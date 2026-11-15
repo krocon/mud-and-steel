@@ -1,0 +1,14 @@
+# Antitank minefield section, 20 x 20 m (data/catalog/us.toml; catalog height 0:
+# the M1A1 mines are buried flush). Perimeter pickets with blank warning boards
+# and a trip wire, nine representative mines; the catalog mine count is a game
+# value. Picket height 1.0 m is an estimate (FM 5-31 fence pickets).
+unit = "us_minefield_at"
+assembly = "env"
+
+[[variant]]
+name = "Field"
+part = "minefield"
+height_m = 1.0
+mine = "at"
+visible = 9
+seed = 5

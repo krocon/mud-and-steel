@@ -1,0 +1,100 @@
+# 105 mm Howitzer M2A1 on Carriage M2A1. Main dimensions from data/catalog/us.toml
+# (M101A1 data): length 5.94 m (trails closed), width 2.21 m, height 1.73 m.
+# Wikipedia "M101 howitzer": barrel 2.31 m (L/22), split trail, steel disc
+# wheels with pneumatic tires, hydro-pneumatic recoil system under the barrel,
+# no muzzle brake; the M2A2 carriage has a "modified shield", so the M2A1 had a
+# shield too. The catalog height (1.73 m) is the shield top.
+#
+# Modeling estimates (photographs, no drawing read): tires ~0.92 m, line of
+# fire 1.02 m with the trunnions just behind the axle, wheel track so that
+# wheels with hubs and the shield end at the catalog width, flat single shield
+# with a cutout for the barrel and recoil sleigh. Positions relative to the
+# axle (y = 0); the trails are fitted to the catalog length.
+unit = "us_m2a1_105"
+assembly = "towed_gun"
+
+[gun]
+part = "field_gun"
+trunnion = [-0.15, 1.02]
+cradle = [1.90, 0.36, 0.30]
+recoil = [1.65, 0.11]
+breech = [0.55, 0.36]
+segments = [[0.55, 0.115, 0.105], [1.76, 0.085, 0.080]]  # 2.31 m barrel
+muzzle_brake = "none"
+
+[carriage]
+part = "split_trail_carriage"
+wheel_diameter = 0.92
+wheel_width = 0.24
+wheel_track = 1.86
+trail_spread_deg = 0
+trail_width = 0.16
+trail_height = 0.24
+spade = [0.40, 0.34]
+mount_z = 0.86
+spokes = 0
+
+[shield]
+part = "gun_shield"
+y = 0.42
+bottom_z = 0.50
+slope_deg = 8
+cutout = [0.42, 0.40]
+wing_width = 0.18
+wing_deg = 15
+spaced = false
+thickness = 0.008
+
+[[part]]
+part = "box_prop"            # panoramic telescope mount on the left of the cradle
+center = [-0.30, -0.20, 1.18]
+size = [0.10, 0.22, 0.22]
+parent = "Gun"
+
+[[part]]
+part = "cylinder_prop"       # elevation handwheel (left)
+from = [-0.30, -0.45, 0.85]
+to = [-0.36, -0.45, 0.85]
+radius = 0.12
+material = "Metal"
+parent = "Carriage"
+
+[[part]]
+part = "cylinder_prop"       # traverse handwheel (left, behind)
+from = [-0.30, -0.75, 0.75]
+to = [-0.36, -0.75, 0.75]
+radius = 0.10
+material = "Metal"
+parent = "Carriage"
+
+[[part]]
+part = "box_prop"            # equilibrator housings beside the cradle
+center = [0.30, 0.10, 0.92]
+size = [0.10, 0.70, 0.12]
+parent = "Carriage"
+
+[[part]]
+part = "box_prop"
+center = [-0.30, 0.10, 0.92]
+size = [0.10, 0.70, 0.12]
+parent = "Carriage"
+
+[[part]]
+part = "crew_sockets"
+center = [0.0, -1.6]
+radius = 1.7
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 0.0, 0.9]
+parent = "Carriage"
+
+[[part]]
+part = "marking"
+name = "Shield"
+kind = "number"
+parent = "Shield"
+position = [-0.70, 0.43, 1.10]
+normal = [0.0, 0.99, 0.14]
+size = 0.25

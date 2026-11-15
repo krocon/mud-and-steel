@@ -1,0 +1,14 @@
+# Antipersonnel minefield section, 20 x 20 m (data/catalog/us.toml; catalog
+# height 0). Bounding M2A1 mine tops with fuze prongs as representative mines,
+# perimeter pickets with warning boards and a trip wire; the catalog mine count
+# is a game value. Picket height 1.0 m is an estimate (FM 5-31 fence pickets).
+unit = "us_minefield_ap"
+assembly = "env"
+
+[[variant]]
+name = "Field"
+part = "minefield"
+height_m = 1.0
+mine = "ap"
+visible = 15
+seed = 6
