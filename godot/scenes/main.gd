@@ -35,6 +35,7 @@ extends Node3D
 ## started game over through `lan/lan_match.gd`; `lan/net_status.gd` then
 ## shows the connection state. Online games over Steam (prompt 026) start in
 ## `online/steam_lobby.tscn` and take the same way.
+## Indirect fire and smoke (prompt 032): `world/artillery_view.gd`.
 ## Combat (prompt 017) is drawn by `world/combat_view.gd`: tracers, health
 ## bars, wrecks, turrets. The self-test starts with every unit holding fire.
 ## Fog of war (prompt 018): `world/fog_of_war.gd` darkens what the local
@@ -66,6 +67,7 @@ const ObjectsBench := preload("res://scenes/tools/objects_bench.gd")
 const LanMatch := preload("res://scenes/lan/lan_match.gd")
 const NetStatus := preload("res://scenes/lan/net_status.gd")
 const CombatView := preload("res://scenes/world/combat_view.gd")
+const ArtilleryView := preload("res://scenes/world/artillery_view.gd")
 const FogOfWar := preload("res://scenes/world/fog_of_war.gd")
 const Effects := preload("res://scenes/world/effects.gd")
 const DestructionView := preload("res://scenes/world/destruction_view.gd")
@@ -133,6 +135,8 @@ var _enemy_material: StandardMaterial3D
 var atmosphere: Atmosphere
 ## Tracers, health bars, wrecks (prompt 017).
 var combat_view: CombatView
+## Shells, impact markers, smoke clouds (prompt 032).
+var artillery_view: ArtilleryView
 ## Fog overlay (prompt 018).
 var fog_of_war: FogOfWar
 ## Smoke, fire, impacts, dust (prompt 019).
@@ -210,6 +214,10 @@ func _ready() -> void:
 	combat_view.name = "CombatView"
 	add_child(combat_view)
 	combat_view.setup(self, $Hud)
+	artillery_view = ArtilleryView.new()
+	artillery_view.name = "ArtilleryView"
+	add_child(artillery_view)
+	artillery_view.setup(self)
 	infantry_view = InfantryView.new()
 	infantry_view.name = "InfantryView"
 	add_child(infantry_view)
@@ -246,6 +254,7 @@ func _ready() -> void:
 	selection.camera = camera
 	selection.camera_rig = camera_rig
 	selection.move_ordered.connect(_show_target_marker)
+	selection.barrage_ordered.connect(func(point: Vector3, _smoke: bool) -> void: _show_target_marker(point))
 	var debug_menu := DebugMenu.new()
 	debug_menu.main = self
 	$Hud.add_child(debug_menu)

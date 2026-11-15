@@ -438,9 +438,9 @@ aim. Hulls follow the simulation's `facing`.
 ### Open
 
 - Guns (`gun_*`) cannot be placed yet (no ground speed; limbering and
-  positions), aircraft neither; indirect fire (mortars, howitzers,
-  self-propelled guns), HE splash, suppression, damaged modules,
-  ammunition limits. Line of sight for targets: see
+  positions), aircraft neither; damaged modules, ammunition limits.
+  Indirect fire, HE fragments and smoke: see
+  [Indirect fire and smoke](#indirect-fire-and-smoke) (prompt 032). Line of sight for targets: see
   [Vision and fog of war](#vision-and-fog-of-war).
 - Target leading: rounds fly at the target's position at the moment of the
   shot; at 75 m per tick this matters only for fast targets far away.
@@ -961,6 +961,116 @@ and an upload together with decoration rebuilds.
 - Water surfaces (prompt 014) are not rebuilt when a crater lowers a bank.
 - Craters do not fill again; the deviation limit keeps them bounded.
 - The map editor (prompt 028) shows no craters (the editor has none).
+
+## Indirect fire and smoke
+
+Prompt 032. Mortars (`inf_mortar_*`, `mortar_heavy`), howitzers
+(`gun_howitzer`) and self-propelled guns (`self_propelled`) fire their first
+catalog weapon indirectly; their other catalog weapons (the crew's small
+arms) are ordinary direct weapons. Rules: `data/indirect.toml`
+(`sim::IndirectRules`, loaded by `Sim::new` like the crater rules, in the
+state hash, not part of `SimConfig`). Code: `crates/sim/src/indirect.rs`
+(rules, `IndirectWeapon`, ballistics, snapshot types) and
+`crates/sim/src/sim/indirect.rs` (orders, shells, impacts, smoke).
+
+### Data
+
+`CombatType::indirect` (`IndirectWeapon`): caliber, rate, muzzle velocity
+(if the catalog has none: `sqrt(range · g)`, the least velocity that reaches
+the catalog range in vacuum), range × `range.indirect_fire` (1/8), interval
+÷ time factor, and whether the catalog ammunition names smoke or white
+phosphorus. Per category the rules add a minimum range (share of the
+range), a setup time after moving and a preferred elevation (mortars 60°,
+guns 25°). Unit prices count the indirect weapon like a direct one.
+
+### Orders
+
+| Order | Indirect units | Direct units |
+|---|---|---|
+| `Attack { target }` | fire at the target while the player sees it (any own observer, prompt 018); the order ends when it is lost or destroyed | unchanged |
+| `AttackGround { target }` | fire at the point until `Stop`; blind fire (the player does not see the cell) has `blind_pct` dispersion | unchanged |
+| `Barrage { target, radius_m, salvos, smoke }` | `salvos` rounds each at uniform random points in the circle; smoke only with smoke ammunition (others ignore it) | ignored |
+| none, fire at will | the nearest enemy the unit itself sees in range that HE hurts (infantry, open vehicles) | unchanged |
+
+Indirect orders live in their own state (`Gun`: order, reload, setup,
+closing in), not in the direct-fire attack order, so a mortar squad fires
+its rifles at will while the mortar follows the order. Out of range a unit
+drives up to 90 % of its range; inside the minimum range it holds fire.
+Indirect weapons fire only standing and set up (`setup_ms` after every
+move; towed guns cannot move until prompt 034). `MoveTo` and `Stop` cancel
+the order.
+
+### Per tick
+
+1. `fire_indirect` (after the direct fire): orders, closing in, setup,
+   automatic targets, new shells. A shell's impact point is the aim point
+   plus a triangular error per axis of `mrad_x10` of the real distance (at
+   least `min_mm`; × `blind_pct` when blind). Its flight
+   (`indirect::flight`) uses the real distance: the charge is chosen so the
+   shell arrives at the preferred elevation (`v² = R·g / sin 2θ`), or full
+   charge at the matching angle; `t = 2·v·sin θ / g` ÷ time factor. The arc
+   is a parabola between muzzle and impact point with the real apex × the
+   range factor. No hit test in flight: shells fly over walls and hills.
+   `Shot` events (weapon `INDIRECT_WEAPON` = 255) share the projectile id
+   counter.
+2. `fly_shells` (after the projectiles): at the impact point, in order: a
+   direct hit on a vehicle (point in its hull outline; HE penetrates
+   `direct_hit_pen_pct` of the caliber against a roof of `roof_pct` of the
+   thinnest plate), else an object under the point (an occupied building
+   loses an occupant like a hit from a gun, prompt 022; otherwise object
+   damage, prompt 020), else the ground (crater, prompt 021). Then
+   fragments within `radius_mm_per_mm` × caliber: every soldier outside a
+   building rolls `infantry_pct` × (1 − d/R) × stance height ÷ standing
+   height × `cover_pct` at a cover spot, then the crater rim (021); open
+   vehicles (thinnest plate ≤ `open_armor_mm`) lose
+   `open_damage_per_mm` × caliber × (1 − d/R). Squads in the radius are
+   suppressed. One `Hit` event per shell with the total damage. Smoke
+   shells instead make a cloud and a `Smoke` event.
+3. `update_smoke` (before the vision update): clouds drift by the wind of
+   the rules, dissolve after `lifetime_ms`, and the oldest goes beyond
+   `max_clouds`. Vision cells whose center lies in a cloud get a smoke top
+   (`VisionGrid::set_smoke`, ground + `height_mm`): sight lines below it
+   end there and targets in a smoke cell are hidden unless next to the eye;
+   an observer above the smoke looks over it. Only changed cells are
+   written, and the viewsheds that contain them are queued (budgeted like
+   every viewshed update).
+
+Clouds, shells, every unit's indirect state and the smoked cells are in the
+state hash.
+
+### Snapshot, bridge and Godot
+
+`Snapshot::shells` (position, velocity, impact point, ticks left, owner,
+caliber, smoke) and `Snapshot::smoke` (center, radius, age, ticks left).
+`SimHost.barrage`, `unit_indirect`, `shell_*`, `smoke_*`; `take_combat_events`
+adds `type = "smoke"`. `world/artillery_view.gd` draws shells, an impact ring
+for the local player's shells and clouds of billboard puffs that drift with
+the simulation and fade out; its signal `shell_incoming` is meant for the
+whistle (prompt 029). Muzzle flashes and explosions come from the usual
+`shot` and `hit` events. Keys: G barrage, T smoke (`selection.gd`).
+
+### Decisions
+
+| Topic | Decision | Why |
+|---|---|---|
+| Rules file | `data/indirect.toml`, outside `SimConfig` | The catalog has no minimum ranges, setup times, blast radii or clouds; keeps the replay/config format unchanged. |
+| Flight | Real ballistics at real distance, scaled apex, no collision in flight | Real flight times with the time factor; shells cross walls by design. |
+| Dispersion and blast in real meters | Sizes are 1:1 | A 16 m blast radius is a size, not a range. |
+| Armor | Direct hits only, roof = half the thinnest plate | The catalog has no roof armor. |
+| Smoke in vision | A height per cell, not just a flag | Observers on hills see over smoke; same ray code as walls. |
+
+### Open
+
+- Provisional values (marked in `data/indirect.toml`): minimum ranges,
+  setup times, elevations, dispersion, blast and smoke figures, the fixed
+  wind (until weather, prompt 040).
+- Towed guns and heavy mortars cannot be fielded until towing (prompt 034);
+  the Soviet catalog entries name no smoke rounds, and tanks have no smoke
+  dischargers in the catalog (the 75 mm M89 smoke round of US tank guns is
+  not used for direct fire).
+- Shells do not hit aircraft or anything in flight; HE does not damage
+  objects around the impact point (only the one hit); no counter-battery,
+  sound ranging or ammunition limits.
 
 ## Victory conditions and game flow
 
