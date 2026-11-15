@@ -138,8 +138,13 @@ struct ComponentGrid {
     tier: u32,
     /// Connected region of every passable cell (4-neighborhood, which equals
     /// the reachability of the 8-neighborhood without corner cutting); 0 for
-    /// blocked cells.
+    /// blocked cells. Only equality of labels matters (searches compare
+    /// them), not their values: [`PathGrid::relabel_components_in`] keeps
+    /// the partition exact but numbers new regions differently from a full
+    /// labeling.
     component: Vec<u32>,
+    /// Largest label handed out so far.
+    last_label: u32,
 }
 
 /// Movement profile of one unit type: its class and its cost per cell.
@@ -159,6 +164,12 @@ struct Profile {
     /// Cost per cell assumed by the A* heuristic.
     heuristic: u16,
 }
+
+/// Cells around changed areas within which
+/// [`PathGrid::relabel_components_in`] looks for a detour before it labels
+/// the whole map again (32 m around a wreck or a crushed hedge; with 16 m,
+/// clusters of wrecks in `cli bench` fell back now and then).
+const RELABEL_MARGIN: u32 = 8;
 
 /// Base flags of a cell.
 /// One of its own samples is impassable terrain.
@@ -260,6 +271,7 @@ impl PathGrid {
                                 class,
                                 tier,
                                 component: vec![0; count],
+                                last_label: 0,
                             });
                             components.len() - 1
                         });
@@ -299,7 +311,8 @@ impl PathGrid {
             y1: height - 1,
         };
         grid.rasterize_objects(map);
-        grid.rebuild(map, rules, all);
+        grid.rebuild_cells(map, rules, all);
+        grid.relabel_components();
         grid.version = 0;
         grid
     }
@@ -480,7 +493,7 @@ impl PathGrid {
     /// margin may have changed).
     pub fn rebuild(&mut self, map: &Map, rules: &TerrainRules, rect: CellRect) -> CellRect {
         let area = self.rebuild_cells(map, rules, rect);
-        self.relabel_components();
+        self.relabel_components_in(&[area]);
         area
     }
 
@@ -527,8 +540,197 @@ impl PathGrid {
         }
     }
 
+    /// Updates the components after the cells of `areas` (as returned by
+    /// [`Self::rebuild_cells`]) changed; cells outside them must be
+    /// unchanged. Gives the same partition as [`Self::relabel_components`]
+    /// (prompt 016): flood fills around the areas, within
+    /// [`RELABEL_MARGIN`] cells, find the regions the changed cells belong
+    /// to; a region whose pieces do not meet within the margin is split by
+    /// [`resolve_split`]. Only when two regions merged (freed cells join
+    /// them), the whole component grid is labeled again. A full labeling of
+    /// a 4 km map takes about 8 ms per component grid, and every crushed
+    /// bush and every wreck used to do it.
+    pub fn relabel_components_in(&mut self, areas: &[CellRect]) {
+        let cells: u64 = areas
+            .iter()
+            .map(|r| u64::from(r.x1 - r.x0 + 1) * u64::from(r.y1 - r.y0 + 1))
+            .sum();
+        let large = cells * 4 > u64::from(self.width) * u64::from(self.height);
+        for c in 0..self.components.len() {
+            if large || !self.relabel_local(c, areas) {
+                self.label_components(c);
+            }
+        }
+    }
+
+    /// The local part of [`Self::relabel_components_in`] for component
+    /// grid `c`; `false` (nothing changed) if the whole grid needs a new
+    /// labeling (two regions merged).
+    ///
+    /// Why this is exact: let X be the changed cells (`areas`) and W the
+    /// window (X grown by the margin). Every passable cell next to or in X
+    /// starts a flood fill limited to W. Cells outside X keep their old
+    /// labels and edges, so an old path between two cells outside X leaves
+    /// and re-enters X only at cells next to X; if all such cells of one
+    /// old region land in one fill, the region is still connected, and a
+    /// fill that meets only one old label cannot connect two regions. A
+    /// fill that meets no old label lies inside X and is a new region.
+    fn relabel_local(&mut self, c: usize, areas: &[CellRect]) -> bool {
+        let (width, height) = (self.width, self.height);
+        let Some(profile) = self.profiles.iter().find(|p| p.components == c) else {
+            return true;
+        };
+        let cost = &profile.cost;
+        let (deck, rights) = (&self.deck, &self.bridge_right);
+        let component = &self.components[c].component;
+        let windows: Vec<CellRect> = areas
+            .iter()
+            .map(|r| r.grow(RELABEL_MARGIN, width, height))
+            .collect();
+        let Some(first) = windows.first() else {
+            return true;
+        };
+        let bounds = windows.iter().fold(*first, |b, w| CellRect {
+            x0: b.x0.min(w.x0),
+            y0: b.y0.min(w.y0),
+            x1: b.x1.max(w.x1),
+            y1: b.y1.max(w.y1),
+        });
+        let in_x = |x: u32, y: u32| areas.iter().any(|r| r.contains(x, y));
+        let in_w = |x: u32, y: u32| windows.iter().any(|r| r.contains(x, y));
+        let bw = bounds.x1 - bounds.x0 + 1;
+        let local = |x: u32, y: u32| ((y - bounds.y0) * bw + (x - bounds.x0)) as usize;
+        // Fill number + 1 per cell of the bounds, 0 = not reached.
+        let mut fill_of = vec![0u32; (bw * (bounds.y1 - bounds.y0 + 1)) as usize];
+        // Per fill: the old label it met outside X (0: none yet).
+        let mut met: Vec<u32> = Vec::new();
+        // Cells of X per fill, and the others, as (fill, cell index).
+        let mut inside: Vec<(u32, u32)> = Vec::new();
+        let mut outside: Vec<(u32, u32)> = Vec::new();
+        let mut stack: Vec<u32> = Vec::new();
+        for area in areas {
+            let seeds = area.grow(1, width, height);
+            for sy in seeds.y0..=seeds.y1 {
+                for sx in seeds.x0..=seeds.x1 {
+                    let seed = sy * width + sx;
+                    if cost[seed as usize] == 0 || fill_of[local(sx, sy)] != 0 {
+                        continue;
+                    }
+                    let fill = met.len() as u32;
+                    met.push(0);
+                    fill_of[local(sx, sy)] = fill + 1;
+                    stack.push(seed);
+                    while let Some(cell) = stack.pop() {
+                        let (x, y) = (cell % width, cell / width);
+                        if in_x(x, y) {
+                            inside.push((fill, cell));
+                        } else {
+                            outside.push((fill, cell));
+                            let old = component[cell as usize];
+                            let seen = &mut met[fill as usize];
+                            if *seen == 0 {
+                                *seen = old;
+                            } else if *seen != old {
+                                // Two regions merged.
+                                return false;
+                            }
+                        }
+                        let mut visit = |nx: u32, ny: u32| {
+                            let n = ny * width + nx;
+                            if in_w(nx, ny)
+                                && cost[n as usize] != 0
+                                && fill_of[local(nx, ny)] == 0
+                                && !railing(deck, rights, width, cell as usize, n as usize)
+                            {
+                                fill_of[local(nx, ny)] = fill + 1;
+                                stack.push(n);
+                            }
+                        };
+                        if x + 1 < width {
+                            visit(x + 1, y);
+                        }
+                        if x > 0 {
+                            visit(x - 1, y);
+                        }
+                        if y + 1 < height {
+                            visit(x, y + 1);
+                        }
+                        if y > 0 {
+                            visit(x, y - 1);
+                        }
+                    }
+                }
+            }
+        }
+        // An old label met by several fills: the region may have split,
+        // or the fills still connect outside the window.
+        let mut by_label: Vec<(u32, u32)> = (0u32..)
+            .zip(&met)
+            .filter(|&(_, &l)| l != 0)
+            .map(|(f, &l)| (l, f))
+            .collect();
+        by_label.sort_unstable();
+        // Per fill: the region it belongs to after a split (`None`: it
+        // keeps its old label); per new region: all its cells.
+        let mut part_of: Vec<Option<usize>> = vec![None; met.len()];
+        let mut parts: Vec<Vec<u32>> = Vec::new();
+        for same in by_label.chunk_by(|a, b| a.0 == b.0) {
+            if same.len() < 2 {
+                continue;
+            }
+            let fills: Vec<Vec<u32>> = same
+                .iter()
+                .map(|&(_, f)| {
+                    inside
+                        .iter()
+                        .chain(&outside)
+                        .filter(|&&(g, _)| g == f)
+                        .map(|&(_, cell)| cell)
+                        .collect()
+                })
+                .collect();
+            let (of_fill, new_parts) = resolve_split(cost, deck, rights, width, height, &fills);
+            for (&(_, f), part) in same.iter().zip(of_fill) {
+                part_of[f as usize] = part.map(|p| p + parts.len());
+            }
+            parts.extend(new_parts);
+        }
+        let grid = &mut self.components[c];
+        for area in areas {
+            for y in area.y0..=area.y1 {
+                for x in area.x0..=area.x1 {
+                    grid.component[(y * width + x) as usize] = 0;
+                }
+            }
+        }
+        let fresh: Vec<u32> = parts
+            .iter()
+            .map(|_| {
+                grid.last_label += 1;
+                grid.last_label
+            })
+            .collect();
+        for (fill, label) in met.iter_mut().enumerate() {
+            if let Some(p) = part_of[fill] {
+                *label = fresh[p];
+            } else if *label == 0 {
+                grid.last_label += 1;
+                *label = grid.last_label;
+            }
+        }
+        for &(fill, cell) in &inside {
+            grid.component[cell as usize] = met[fill as usize];
+        }
+        for (cells, &label) in parts.iter().zip(&fresh) {
+            for &cell in cells {
+                grid.component[cell as usize] = label;
+            }
+        }
+        true
+    }
+
     /// [`Self::rebuild`] without the components: several areas can be
-    /// rebuilt before one [`Self::relabel_components`].
+    /// rebuilt before one [`Self::relabel_components_in`].
     pub fn rebuild_cells(&mut self, map: &Map, rules: &TerrainRules, rect: CellRect) -> CellRect {
         self.version = self.version.wrapping_add(1);
         let area = rect.grow(1, self.width, self.height);
@@ -723,6 +925,7 @@ impl PathGrid {
                 }
             }
         }
+        grid.last_label = next;
     }
 
     /// Visits every cell the segment `a`..`b` touches, from `a` to `b`, and
@@ -1029,6 +1232,120 @@ const fn object_flags(blocks: Blocks) -> u8 {
         flags |= BLOCKED_OBJECT_LARGE;
     }
     flags
+}
+
+/// Splits one old region after cells were blocked: `fills` are its pieces
+/// around the changed cells (connected within the window, not yet known to
+/// be connected outside it). Flood fills grow from all pieces in turn; two
+/// that meet are one region. As soon as at most one region still grows,
+/// all others are complete. Costs about as much as the regions that broke
+/// off (pockets behind wrecks), not the whole map.
+///
+/// Returns per fill `None` if it stays in the region that keeps the old
+/// label, else the index of its new region, and per new region its cells.
+fn resolve_split(
+    cost: &[u16],
+    deck: &[u16],
+    rights: &[Vec2],
+    width: u32,
+    height: u32,
+    fills: &[Vec<u32>],
+) -> (Vec<Option<usize>>, Vec<Vec<u32>>) {
+    fn root(parent: &mut [usize], mut g: usize) -> usize {
+        while parent[g] != g {
+            parent[g] = parent[parent[g]];
+            g = parent[g];
+        }
+        g
+    }
+    let k = fills.len();
+    // Group + 1 per cell, 0 = not reached.
+    let mut owner = vec![0u32; (width * height) as usize];
+    let mut parent: Vec<usize> = (0..k).collect();
+    let mut cells: Vec<Vec<u32>> = fills.to_vec();
+    let mut frontier: Vec<VecDeque<u32>> =
+        fills.iter().map(|f| f.iter().copied().collect()).collect();
+    for (g, fill) in (1u32..).zip(fills) {
+        for &cell in fill {
+            owner[cell as usize] = g;
+        }
+    }
+    loop {
+        let growing: Vec<usize> = (0..k)
+            .filter(|&g| parent[g] == g && !frontier[g].is_empty())
+            .collect();
+        if growing.len() <= 1 {
+            break;
+        }
+        for g in growing {
+            if parent[g] != g {
+                continue;
+            }
+            let Some(cell) = frontier[g].pop_front() else {
+                continue;
+            };
+            let (x, y) = (cell % width, cell / width);
+            let mut neighbors = [None; 4];
+            if x + 1 < width {
+                neighbors[0] = Some(cell + 1);
+            }
+            if x > 0 {
+                neighbors[1] = Some(cell - 1);
+            }
+            if y + 1 < height {
+                neighbors[2] = Some(cell + width);
+            }
+            if y > 0 {
+                neighbors[3] = Some(cell - width);
+            }
+            for n in neighbors.into_iter().flatten() {
+                if cost[n as usize] == 0 || railing(deck, rights, width, cell as usize, n as usize)
+                {
+                    continue;
+                }
+                match owner[n as usize] {
+                    0 => {
+                        owner[n as usize] = g as u32 + 1;
+                        cells[g].push(n);
+                        frontier[g].push_back(n);
+                    }
+                    o => {
+                        let other = root(&mut parent, o as usize - 1);
+                        if other != g {
+                            parent[other] = g;
+                            let moved = std::mem::take(&mut cells[other]);
+                            cells[g].extend(moved);
+                            let moved = std::mem::take(&mut frontier[other]);
+                            frontier[g].extend(moved);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    // The region still growing keeps the old label; if all are complete,
+    // the largest keeps it (fewest cells to write).
+    let roots: Vec<usize> = (0..k).filter(|&g| parent[g] == g).collect();
+    let keeper = roots
+        .iter()
+        .copied()
+        .find(|&g| !frontier[g].is_empty())
+        .or_else(|| {
+            roots
+                .iter()
+                .copied()
+                .max_by_key(|&g| (cells[g].len(), usize::MAX - g))
+        });
+    let mut index = vec![None; k];
+    let mut parts = Vec::new();
+    for &g in &roots {
+        if Some(g) != keeper {
+            index[g] = Some(parts.len());
+            parts.push(std::mem::take(&mut cells[g]));
+        }
+    }
+    let of_fill = (0..k).map(|f| index[root(&mut parent, f)]).collect();
+    (of_fill, parts)
 }
 
 /// Whether a step between neighboring cells `a` and `b` crosses the
@@ -1557,6 +1874,94 @@ mod tests {
         let right = x == 11 && (1..=4).contains(&y);
         let left = x == 1 && (4..=7).contains(&y);
         row || right || left
+    }
+
+    /// Whether two labelings describe the same regions (labels may differ).
+    fn same_partition(a: &[u32], b: &[u32]) -> bool {
+        let mut ab = std::collections::BTreeMap::new();
+        let mut ba = std::collections::BTreeMap::new();
+        a.iter().zip(b).all(|(&x, &y)| {
+            (x == 0) == (y == 0) && *ab.entry(x).or_insert(y) == y && *ba.entry(y).or_insert(x) == x
+        })
+    }
+
+    #[test]
+    fn local_relabeling_matches_a_full_labeling() {
+        // Random walls and blocks are added and removed; after every change
+        // the local update must give the regions a full labeling gives
+        // (splits, merges, pockets, several areas at once).
+        let map = make_map(48, 40, |i, j| {
+            if (i * 7 + j * 3) % 41 == 0 {
+                WATER
+            } else {
+                GRASS
+            }
+        });
+        let rules = TerrainRules::builtin().unwrap();
+        let mut grid = grid(&map);
+        let mut rng = crate::Rng::new(5);
+        let mut placed: Vec<CellRect> = Vec::new();
+        for step in 0..400 {
+            let remove = !placed.is_empty() && rng.range_i32(0, 3) == 0;
+            let rect = if remove {
+                let k = rng.range_i32(0, placed.len() as i32 - 1) as usize;
+                placed.swap_remove(k)
+            } else {
+                let x = rng.range_i32(0, 46) as u32;
+                let y = rng.range_i32(0, 38) as u32;
+                let (w, h) = if rng.range_i32(0, 1) == 0 {
+                    (rng.range_i32(0, 14) as u32, 0)
+                } else {
+                    (0, rng.range_i32(0, 14) as u32)
+                };
+                let r = CellRect {
+                    x0: x,
+                    y0: y,
+                    x1: (x + w).min(47),
+                    y1: (y + h).min(39),
+                };
+                placed.push(r);
+                r
+            };
+            if step % 5 == 0 {
+                // Two areas at once, like destroyed objects in one tick.
+                let other = CellRect {
+                    x0: rng.range_i32(0, 47) as u32,
+                    y0: rng.range_i32(0, 39) as u32,
+                    ..rect
+                };
+                let other = CellRect {
+                    x1: other.x0,
+                    y1: other.y0,
+                    ..other
+                };
+                for (r, blocked) in [(rect, !remove), (other, step % 10 == 0)] {
+                    for y in r.y0..=r.y1 {
+                        for x in r.x0..=r.x1 {
+                            let i = grid.index(x, y);
+                            if blocked {
+                                grid.base[i] |= BLOCKED_OBSTACLE;
+                            } else {
+                                grid.base[i] &= !BLOCKED_OBSTACLE;
+                            }
+                        }
+                    }
+                }
+                let a = grid.rebuild_cells(&map, &rules, rect);
+                let b = grid.rebuild_cells(&map, &rules, other);
+                grid.relabel_components_in(&[a, b]);
+            } else {
+                grid.set_obstacle(&map, &rules, rect, !remove);
+            }
+            let mut full = grid.clone();
+            full.relabel_components();
+            for (local, full) in grid.components.iter().zip(&full.components) {
+                assert!(
+                    same_partition(&local.component, &full.component),
+                    "step {step}: regions differ after {rect:?}"
+                );
+            }
+        }
     }
 
     #[test]

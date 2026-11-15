@@ -428,7 +428,7 @@ impl Sim {
             grid.rasterize_objects_in(rect, list);
             changed.push(grid.rebuild_cells(&map, &self.terrain, rect));
         }
-        grid.relabel_components();
+        grid.relabel_components_in(&changed);
         let vision = Arc::make_mut(&mut self.vision.grid);
         let half_cell = vision.cell / 2;
         let half = Vec2::new(half_cell, half_cell);
