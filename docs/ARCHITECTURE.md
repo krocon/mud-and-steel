@@ -48,6 +48,8 @@ but never its issuer:
 |---|---|
 | `MoveTo { units, target }` | The units drive along one planned path to a grid formation around `target` (see [Pathfinding](#pathfinding)). |
 | `Stop { units }` | The units stop where they are. |
+| `Surrender` | The issuing player gives up and is defeated ([Victory conditions](#victory-conditions-and-game-flow)). |
+| `RemoveUnits { units }` | Removes own units from the match. A test command until combat (prompt 017) destroys units; the bridge sends it only in single player. |
 
 The simulation consumes `PlayerCommand { player, command }`. Only the lockstep layer
 builds these, from the sender of the frame, so a peer cannot command another player's
@@ -266,6 +268,71 @@ the whole square per ring, which cost up to 15 ms for targets deep in a wood).
 - Obstacles and map objects are cell-based and not widened by the margin for
   large units: a tank whose center passes a free cell next to a tree may overlap
   the trunk by up to half its width.
+
+## Victory conditions and game flow
+
+Prompt 027. `crates/sim/src/outcome.rs` decides the match; Godot only shows it.
+
+- Every player that owns a unit at the start is in the **standings**. A
+  player is **defeated** when they send `Surrender` or have no living units
+  left at the end of a tick (`Sim::living_units`; every unit counts as alive
+  until prompt 017 adds destruction, which only has to change that count).
+- The match is **decided** as soon as at most one player is undefeated: that
+  player wins, or it is a draw when the last players fall in the same tick.
+  The result (`Sim::outcome`, with the tick) never changes afterwards; the
+  simulation keeps running so the field stays visible. A match that starts
+  with a single player is never decided. There are no teams yet.
+- The standings enter the state hash only once someone is defeated. Before
+  that they hold nothing beyond the player list, so the golden hash of
+  undecided matches did not change.
+- Commands are appended to the `Command` enum, so older replays stay readable.
+  `RemoveUnits` is limited to own units: a peer cannot use it to cheat.
+- **Factions:** the demo scenario's `[faction_units]` table names one unit per
+  faction; `parse_scenario_with_factions` gives every group of a player the
+  unit of the faction they picked (positions unchanged). `SimHost.start_match(
+  seed, map_dir, factions)` starts it.
+
+**Scenes.** The project starts in `scenes/menu/main_menu.tscn`:
+
+```
+main menu ── Single player ─ setup (map, season, own and enemy faction) ─┐
+          ├─ LAN game ────── lan/lan_lobby.tscn (host, search, join) ────┤
+          ├─ Settings        (user://settings.cfg)                       │
+          └─ Quit                                                        ▼
+                                  main.tscn: loading screen → match → result → main menu
+```
+
+- `menu/match_setup.gd` hands the setup to `main.tscn` (static, like
+  `lan/lan_match.gd`). `main.gd` builds a match from the menu or the lobby in
+  steps (simulation and path grid, terrain, atmosphere, map objects) and
+  waits a frame after each behind `menu/loading_screen.gd`; the simulation and
+  the HUD are disabled until it is done. `test_large` loads in about 1.6 s
+  (debug bridge, M1 Max). Direct starts (`--map`, `--demo`, benchmarks,
+  `--skip-menu`) skip the menu and load in one frame as before.
+- `menu/game_menu.gd`: **Esc** opens the pause menu. In single player it
+  pauses the scene tree (simulation, camera, units); multiplayer cannot pause
+  a lockstep match for one player, so the menu only overlays it and offers
+  Surrender and Leave. The result screen appears as soon as
+  `SimHost.match_result()` is decided: victory, defeat or draw, why, match
+  time, units left per player; "Back to main menu" (the replay is written as
+  before).
+- `menu/settings.gd` (static, loaded by every entry scene): graphics quality
+  (`--quality` overrides it), keyboard bindings of the camera actions (a key
+  taken by another action swaps), master volume (no sounds yet), pan and zoom
+  sensitivity as factors on the camera's tuned speeds, edge scrolling.
+  `menu/settings_panel.gd` is the screen, used by the menu and the pause menu.
+- Look (`menu/menu_theme.gd`): dark field grey and olive with sand as the
+  accent, Godot's default font, plain frames; factions appear by name only,
+  without insignia. UI texts are English like the rest of the UI.
+
+**Self-test.** `just selftest` starts in the menu (`menu/flow_self_test.gd`,
+on the tree root so it survives scene changes): settings changed, saved and
+loaded (own file `user://settings-selftest.cfg`), LAN lobby opened and
+closed, match 1 from the setup screen with the loading screen and all match
+tests of `self_test.gd`, pause, surrender → defeat, back to the menu; match 2
+as United States against Germany in winter, all own units removed → defeat by
+elimination, back to the menu. `just lan-selftest` ends with the client
+surrendering: the host must show victory, the client defeat.
 
 ## Data flow (single player, current state)
 

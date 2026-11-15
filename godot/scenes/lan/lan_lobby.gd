@@ -1,6 +1,8 @@
 extends Control
-## Minimal LAN lobby (prompt 025): host a game, search the LAN, join, get
-## ready and start together. The real menus come with prompt 027.
+## LAN lobby (prompt 025): host a game, search the LAN, join, get ready and
+## start together. Opened from the main menu ("LAN game", prompt 027) or
+## directly with `just lan`; Back returns to the main menu. The host picks
+## the map.
 ##
 ## All networking happens in `LanLobby` (Rust, `net::lan`). When the match
 ## starts, the lobby is handed to `main.tscn` through `lan_match.gd`.
@@ -15,6 +17,9 @@ extends Control
 ##   --map=<name>              host: play on data/maps/<name>/
 
 const LanMatch := preload("res://scenes/lan/lan_match.gd")
+const MatchSetup := preload("res://scenes/menu/match_setup.gd")
+const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
+const Settings := preload("res://scenes/menu/settings.gd")
 const MAIN_SCENE := "res://scenes/main.tscn"
 const MAPS_DIR := "res://../data/maps"
 const SEED := 42
@@ -41,6 +46,10 @@ var _start: Button
 var _leave: Button
 var _status: Label
 var _setup: Control
+var _map: OptionButton
+var _maps: PackedStringArray = []
+## Returns to the main menu (prompt 027).
+var back_button: Button
 
 
 func _ready() -> void:
@@ -48,6 +57,9 @@ func _ready() -> void:
 		var parts := arg.split("=", true, 1)
 		_args[parts[0]] = parts[1] if parts.size() > 1 else ""
 	LanMatch.self_test = _args.has("--lan-self-test")
+	Settings.ensure_loaded()
+	theme = MenuTheme.get_theme()
+	add_child(MenuTheme.background())
 	_build_ui()
 	if _args.has("--lan-host"):
 		_on_host()
@@ -81,9 +93,7 @@ func _build_ui() -> void:
 	box.add_theme_constant_override("separation", 8)
 	panel.add_child(box)
 
-	var title := Label.new()
-	title.text = "Mud and Steel – LAN game"
-	box.add_child(title)
+	box.add_child(MenuTheme.title("LAN game", MenuTheme.HEADING_SIZE))
 
 	_setup = VBoxContainer.new()
 	box.add_child(_setup)
@@ -98,6 +108,14 @@ func _build_ui() -> void:
 	ports.add_child(_labeled("Game port", _port))
 	ports.add_child(_labeled("Search port", _discovery_port))
 	_setup.add_child(ports)
+
+	_map = OptionButton.new()
+	_maps = MatchSetup.available_maps()
+	for map_name in _maps:
+		_map.add_item(map_name)
+	if _args.has("--map") and _args["--map"] in _maps:
+		_map.select(Array(_maps).find(_args["--map"]))
+	_setup.add_child(_labeled("Map (host)", _map))
 
 	var host := Button.new()
 	host.text = "Host game"
@@ -146,6 +164,10 @@ func _build_ui() -> void:
 	_status = Label.new()
 	_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	box.add_child(_status)
+	back_button = Button.new()
+	back_button.text = "Back to main menu"
+	back_button.pressed.connect(_on_back)
+	box.add_child(back_button)
 
 
 func _labeled(text: String, control: Control) -> Control:
@@ -203,7 +225,15 @@ func _on_start() -> void:
 	var map_dir := ""
 	if _args.has("--map"):
 		map_dir = ProjectSettings.globalize_path(MAPS_DIR.path_join(_args["--map"])).simplify_path()
+	else:
+		map_dir = MatchSetup.map_dir(_maps[_map.selected])
 	_lobby.start_match(SEED, map_dir)
+
+
+func _on_back() -> void:
+	set_process(false)
+	_lobby.leave()
+	get_tree().change_scene_to_file(MatchSetup.MENU_SCENE)
 
 
 func _on_leave() -> void:
@@ -235,6 +265,7 @@ func _update_lobby() -> void:
 	_start.visible = state == "lobby" and _lobby.is_host()
 	_start.disabled = not _lobby.can_start()
 	_leave.visible = in_game
+	back_button.visible = not in_game
 	var lines: PackedStringArray = []
 	for player in _lobby.players():
 		lines.append("Player %d: %s%s%s" % [

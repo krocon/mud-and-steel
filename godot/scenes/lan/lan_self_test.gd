@@ -2,9 +2,12 @@ extends Node
 ## Automatic LAN match for `just lan-selftest` (two headless instances).
 ##
 ## Orders the own tanks around every 40 ticks, so both players send
-## commands. Passes (exit code 0) once the simulation reached TICKS and every
-## state hash up to there was confirmed by the other peer; fails (exit code 1)
-## on a desync, a lost connection or after TIMEOUT seconds.
+## commands. Once the simulation reached TICKS and every state hash up to
+## there was confirmed by the other peer, the client (player 1) surrenders
+## (prompt 027); passes (exit code 0) when both see the decided match on their
+## result screen, the host as victory and the client as defeat, and the
+## result tick is confirmed. Fails (exit code 1) on a desync, a lost
+## connection or after TIMEOUT seconds.
 
 const TICKS := 400
 const ORDER_INTERVAL := 40
@@ -18,11 +21,13 @@ const TARGETS: Array[Vector2] = [
 ]
 
 var sim_host: SimHost
+var main: Node3D
 
 var _start_ms := Time.get_ticks_msec()
 var _last_order_tick := -1
 var _orders := 0
 var _passed_ms := -1
+var _surrendered := false
 
 
 func _process(_delta: float) -> void:
@@ -33,20 +38,43 @@ func _process(_delta: float) -> void:
 			get_tree().quit(0)
 			set_process(false)
 		return
-	if tick >= TICKS and status["verified_tick"] >= TICKS:
-		print("LAN self-test PASSED: player %d, tick %d, confirmed %d, %d orders, input delay %d, hash %s" % [
-			sim_host.local_player(), tick, status["verified_tick"], _orders,
-			status["input_delay"], sim_host.state_hash(),
+	if tick >= TICKS and status["verified_tick"] >= TICKS and not _surrendered:
+		_surrendered = true
+		print("LAN self-test: tick %d confirmed by all, %d orders, input delay %d" % [
+			status["verified_tick"], _orders, status["input_delay"],
 		])
-		_passed_ms = Time.get_ticks_msec()
+		if sim_host.local_player() == 1:
+			sim_host.surrender()
+	var result := sim_host.match_result()
+	if _surrendered and result["decided"] and status["verified_tick"] >= int(result["tick"]):
+		_check_result(result)
 		return
 	if status["state"] == "halted":
 		_fail(status["message"])
 	elif Time.get_ticks_msec() - _start_ms > TIMEOUT_MS:
 		_fail("timed out at tick %d (confirmed %d)" % [tick, status["verified_tick"]])
-	elif tick / ORDER_INTERVAL != _last_order_tick / ORDER_INTERVAL and tick > 0:
+	elif tick / ORDER_INTERVAL != _last_order_tick / ORDER_INTERVAL and tick > 0 and not _surrendered:
 		_last_order_tick = tick
 		_order_own_units()
+
+
+## Both peers must agree: player 0 wins because player 1 surrendered, and
+## the result screen says so.
+func _check_result(result: Dictionary) -> void:
+	var expected := "VICTORY" if sim_host.local_player() == 0 else "DEFEAT"
+	if not main.game_menu.result_panel.visible:
+		return  # shown in the game menu's next _process
+	var shown: String = main.game_menu.result_title.text
+	if result["winner"] != 0 or result["players"][1]["reason"] != "surrendered":
+		_fail("unexpected result %s" % result)
+	elif shown != expected:
+		_fail("result screen shows '%s', expected %s" % [shown, expected])
+	else:
+		print("LAN self-test PASSED: player %d, %s at tick %d, confirmed %d, hash %s" % [
+			sim_host.local_player(), expected, result["tick"], sim_host.net_status()["verified_tick"],
+			sim_host.state_hash(),
+		])
+		_passed_ms = Time.get_ticks_msec()
 
 
 func _order_own_units() -> void:

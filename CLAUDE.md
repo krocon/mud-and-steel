@@ -42,8 +42,8 @@ just check                 # fmt --check, clippy -D warnings, tests (same as CI)
 just sim 1000 42           # headless run, prints state hash
 just build                 # GDExtension for Godot
 just import                # headless Godot import (after clone / new assets)
-just run                   # build + start the game (opens a window)
-just selftest              # build + headless smoke test of the game
+just run                   # build + start the game in the main menu (--skip-menu: test match)
+just selftest              # build + headless test: menu, settings, matches, result
 just lan / just lan-selftest  # LAN lobby / two headless instances over localhost
 just catalog-doc           # regenerate docs/UNIT_CATALOG.md after catalog changes
 just export-model assets-src/blender/X.blend
