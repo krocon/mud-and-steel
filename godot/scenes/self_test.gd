@@ -588,6 +588,13 @@ func _combat_test() -> void:
 		holding += hold[i]
 	_check(holding == 0, "F left %d selected units holding fire" % holding)
 	view.combat_event.disconnect(on_event)
+	# Effects (prompt 019) follow the events: flashes, impacts, the explosion
+	# and the burning wreck.
+	var counts: Dictionary = main.effects.counts
+	_check(counts.get("flash", 0) > 0 and counts.get("powder", 0) > 0, "no muzzle effects: %s" % counts)
+	_check(counts.get("sparks", 0) + counts.get("fountain", 0) > 0, "no impact effects: %s" % counts)
+	_check(counts.get("fireball", 0) > 0 and counts.get("wreck", 0) >= 1, "no explosion or wreck fire: %s" % counts)
+	_check(main.effects.burning_wrecks() >= 1, "no burning wreck")
 	print("self-test: combat ok at tick %d: %d shots, %d hits, %d penetrations, %d destroyed, %d enemies left" % [
 		sim_host.current_tick(), view.shots, view.hits, view.penetrations, view.destroyed, sim_host.alive_unit_count(1)
 	])

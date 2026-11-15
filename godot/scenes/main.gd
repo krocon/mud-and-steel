@@ -39,6 +39,8 @@ extends Node3D
 ## Fog of war (prompt 018): `world/fog_of_war.gd` darkens what the local
 ## player does not see; enemy units out of sight are not in the snapshot and
 ## their nodes are hidden here.
+## Effects (prompt 019): `world/effects.gd` (smoke, fire, impacts, dust);
+## `-- --effects-shots` / `--effects-bench` run `tools/effects_bench.gd`.
 
 const UNIT_SCENE: PackedScene = preload("res://scenes/unit.tscn")
 const SelfTest := preload("res://scenes/self_test.gd")
@@ -56,6 +58,8 @@ const LanMatch := preload("res://scenes/lan/lan_match.gd")
 const NetStatus := preload("res://scenes/lan/net_status.gd")
 const CombatView := preload("res://scenes/world/combat_view.gd")
 const FogOfWar := preload("res://scenes/world/fog_of_war.gd")
+const Effects := preload("res://scenes/world/effects.gd")
+const EffectsBench := preload("res://scenes/tools/effects_bench.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
 const MatchSetup := preload("res://scenes/menu/match_setup.gd")
 const LoadingScreen := preload("res://scenes/menu/loading_screen.gd")
@@ -102,6 +106,8 @@ var atmosphere: Atmosphere
 var combat_view: CombatView
 ## Fog overlay (prompt 018).
 var fog_of_war: FogOfWar
+## Smoke, fire, impacts, dust (prompt 019).
+var effects: Effects
 ## Pause menu and result screen (prompt 027).
 var game_menu: CanvasLayer
 var _loading: CanvasLayer
@@ -167,6 +173,15 @@ func _ready() -> void:
 	combat_view.name = "CombatView"
 	add_child(combat_view)
 	combat_view.setup(self, $Hud)
+	effects = Effects.new()
+	effects.name = "Effects"
+	add_child(effects)
+	effects.setup(self)
+	# Effects only appear where the local player currently sees (255 =
+	# visible); without vision data everything is visible.
+	effects.visible_at = func(point: Vector3) -> bool:
+		var state := fog_of_war.state_at(point)
+		return state < 0 or state == 255
 
 	selection.sim_host = sim_host
 	selection.camera = camera
@@ -219,6 +234,10 @@ func _ready() -> void:
 		var objects_bench := ObjectsBench.new()
 		objects_bench.main = self
 		add_child(objects_bench)
+	if _effects_tool():
+		var effects_bench := EffectsBench.new()
+		effects_bench.main = self
+		add_child(effects_bench)
 	if "--demo" in OS.get_cmdline_user_args():
 		var demo := DemoReel.new()
 		demo.main = self
@@ -261,11 +280,21 @@ func _wants_match_test() -> bool:
 	return wanted
 
 
+## Whether `--effects-bench` or `--effects-shots[=<dir>]` was given.
+func _effects_tool() -> bool:
+	for arg in OS.get_cmdline_user_args():
+		if arg == "--effects-bench" or arg.begins_with("--effects-shots"):
+			return true
+	return false
+
+
 ## Starts the built-in map, or the one named by `--map=<name>`, or the LAN
 ## match the lobby started, or the match chosen in the menu.
 func _start_simulation() -> bool:
 	# The self-test checks movement first; combat is tested at its end.
 	sim_host.hold_fire_at_start = "--self-test" in OS.get_cmdline_user_args()
+	# The effects tools trigger their own effects (prompt 019).
+	sim_host.hold_fire_at_start = sim_host.hold_fire_at_start or _effects_tool()
 	if not MatchSetup.pending.is_empty():
 		var setup := MatchSetup.pending
 		return sim_host.start_match(SEED, MatchSetup.map_dir(setup["map"]), setup["factions"])

@@ -1061,6 +1061,119 @@ in a biome, `just terrain-bench test_large --quality=low` measures a level.
 The model gallery (`just gallery`) lights models with the sun color, sky,
 ambient light and grading of the selected biome's preset.
 
+## Effects (presentation only)
+
+Prompt 019. `godot/scenes/world/effects.gd` (created by `main.gd` after the
+combat view) turns the combat events and the snapshot into smoke, fire and
+dust. Particle systems are built in `effect_library.gd`, their textures are
+generated from noise at start-up in `effect_textures.gd` (no image files).
+Nothing here reaches the simulation; Godot randomness is fine because no
+effect is read back. No Rust code was needed: everything comes from
+`SimHost.take_combat_events` (via `combat_view.combat_event`),
+`unit_aim_yaws`, `unit_moving`, `unit_footprints`, `terrain_at` and
+`height_at`.
+
+| Trigger | Effect |
+|---|---|
+| `shot`, caliber ≥ 20 mm | Muzzle flash at the model's nearest `Socket_Muzzle*` (fallback: the simulation's muzzle), white powder smoke along the aim, a light flash; from 37 mm dust blown off the ground in front of the muzzle |
+| `shot`, small arms | A small flash only |
+| `hit` on the ground | Earth fountain (clods) and a rising dust column tinted by terrain and biome, sparks and a scorch decal from 37 mm; water: spray; small arms: a dust puff |
+| `hit` on a unit | Sparks and a light flash; a penetration adds a small burst of fire and smoke |
+| `hit` on an object | Splinters and dust |
+| `destroyed`, vehicle | Fireball, dark smoke, sparks, debris, ground dust ring, a big light flash, a large scorch decal, camera shake; then the wreck **burns** at its `Socket_Fire_NN` (fire, a dense black smoke column drifting with the biome's wind, flickering light) for 60 s, smolders for 90 s and goes out |
+| `destroyed`, infantry | Dust only |
+| Vehicle moving | Dust trail behind the hull, color and strength by the terrain under it in the current biome (tracks and sand strong, grass weak, roads hardly, mud dark, snow powder, shallow water spray), exhaust smoke at `Socket_Exhaust_NN` (thin when standing) |
+
+Tracers stay in `combat_view.gd` (prompt 017). The ground color follows the
+terrain shader's biome mapping (desert draws grass as sand, winter grass and
+sand as snow), so dust matches the ground it rises from.
+
+### Drawing
+
+Every particle is a camera-facing quad drawn by one small spatial shader
+(three render-mode variants: lit, unshaded, additive): texture × particle
+color × a per-instance `tint` (`set_instance_shader_parameter`, the ground
+color), so one pool serves every terrain. Lit puffs get a rounded fake normal
+and read as volumes in the sun; fire, flashes and sparks are unshaded and
+push HDR values into the glow. Soft particles (fade where a quad cuts into
+the ground) read the depth texture. An effect is scaled by its emitter's
+node scale (caliber / 75 mm, vehicle size); particles inherit it.
+
+### Budget and LOD
+
+Burst effects come from **pools** of `GPUParticles3D` per kind; each burst
+restarts the next emitter of its pool, so when the pool is exhausted the
+oldest burst of that kind is cut short. Values per graphics quality, keys
+`fx_*` in `graphics_quality.gd`:
+
+| Level | Particles | Pools | Pooled emitters / particles | Light flashes | Scorch decals | Burning wrecks (with light) | Soft particles | Dust and exhaust within |
+|---|---|---|---|---|---|---|---|---|
+| low | × 0.4 | × 0.35 | 182 / 1 459 | 2 | 32 | 4 (0) | off | 150 m |
+| medium | × 0.7 | × 0.65 | 330 / 4 579 | 6 | 96 | 10 (3) | off | 250 m |
+| high | × 1.0 | × 1.0 | 512 / 10 064 | 12 | 192 | 24 (8) | on | 400 m |
+
+More burning wrecks than the budget: the oldest ones only smolder. A quality
+or biome change rebuilds the pools (the biome sets the wind of the smoke).
+**LOD:** a burst that would be smaller than 3 px on screen (distance to the
+camera, zoom, 30° lens) is skipped, one smaller than 60 px gets fewer
+particles (`amount_ratio`, at least 35 %). Decals fade out beyond 450 m.
+
+**Camera shake** offsets the `Camera3D` (`h_offset`, `v_offset`), not the
+rig, so it never touches the focus or picking state; strength falls off with
+the distance to the camera focus and decays in about half a second.
+
+### Fog of war
+
+`effects.visible_at: Callable` (default: always true) decides whether a world
+point is visible. New effects only start at visible points; burning wrecks
+are checked twice a second and vehicle effects every frame and hidden while
+not visible. Prompt 018 sets it to its visibility query; nothing else
+changes.
+
+### Test scene and measurements
+
+`just effects-shots <dir>` runs `scenes/tools/effects_bench.gd` on the demo
+map (every unit holding fire) and saves screenshots of every effect at fixed
+frames after its trigger (`--fixed-fps 30`): muzzle, small arms, ground
+hits, water, ricochet, penetration, explosion, burning wreck, scorch marks,
+dust trails, a barrage of 50 explosions, then dust and impacts in desert and
+winter. `just effects-bench` measures 50 explosions at once (a new barrage
+every 2 s, 6 s per view) in every quality (1920 × 1080, Apple M1 Max, V-Sync
+off, debug bridge, forest, test_small with its map objects):
+
+| Level | Idle, 150 m | 50 explosions, 150 m | 50 explosions, 60 m | + 24 burning wrecks |
+|---|---|---|---|---|
+| low | 254 FPS | 216 FPS | 205 FPS | 191 FPS |
+| medium | 166 FPS | 136 FPS | 138 FPS | 129 FPS |
+| high | 87 FPS | 79 FPS | 80 FPS | 72 FPS |
+
+Every level stays above 60 FPS with 50 explosions. The barrage costs 0.7 ms
+(low) to 1.3 ms (medium) per frame, 1.2 ms on high; 24 burning wrecks add
+about 1 ms. The rest of "high" is MSAA, full-size SSAO and the map objects. The self-test
+checks that the combat test produced muzzle, impact and explosion effects
+and a burning wreck.
+
+### Decisions
+
+| Question | Decision | Why |
+|---|---|---|
+| Where effects live | GDScript in `scenes/world/`, no Rust change | All data is in the snapshot and event stream; the golden hash and lockstep stay untouched. |
+| Particles | `GPUParticles3D` + `ParticleProcessMaterial`, pooled, `restart()` per burst | Proven by the snowfall (015), runs on the GPU, no node creation per shot. |
+| One shader with instance tint | Instead of `StandardMaterial3D` per color | One pool per kind serves every terrain and biome; soft particles and the rounded normal are a few lines. |
+| Textures | Generated from noise at start-up | No downloads or licenses; a few hundred KB of memory. |
+| Muzzle position | Nearest `Socket_Muzzle*` to the simulation's muzzle | No mapping from weapon index to socket needed; falls back to the simulation's point. |
+| Debris | Dark sprites, not meshes | A mesh draw pass with a `StandardMaterial3D` leaked its shader at exit (Godot 4.7.2); sprites look the same from above. |
+| Decals | `Decal` ring buffer per quality, 2.5 m deep box | Optical only until craters (prompt 021). |
+
+### Open
+
+- Craters (prompt 021) replace scorch decals of large shells.
+- Sound can hook into the same events (`combat_view.combat_event`).
+- Tracers could start at the muzzle socket; projectile ids are not in the
+  per-projectile arrays yet.
+- Smoke does not block line of sight; smoke shells and screens are game
+  rules for later prompts.
+
 ## Selection (presentation only)
 
 Selection is local UI state in `godot/scenes/selection/selection.gd`; only the

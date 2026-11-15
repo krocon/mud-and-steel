@@ -310,6 +310,18 @@ objects-bench map="test_large": build
 objects-shots dir map="test_large": build
     {{ GODOT }} --path godot --always-on-top --fixed-fps 30 --write-movie "{{ dir }}/f.png" res://scenes/main.tscn -- --objects-shots --map={{ map }}
 
+# --- Effects (prompt 019) ------------------------------------------------------------
+
+# Show every effect in fixed views and save PNG screenshots into a folder (also desert, winter)
+[group('godot')]
+effects-shots dir: build
+    {{ GODOT }} --path godot --always-on-top --fixed-fps 30 res://scenes/main.tscn -- "--effects-shots={{ dir }}"
+
+# Measure the frame rate with 50 explosions at once in every graphics quality (opens a window)
+[group('godot')]
+effects-bench: build
+    {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- --effects-bench
+
 # --- LAN multiplayer (prompt 025) ----------------------------------------------------
 
 # Build the bridge and open the LAN lobby (host, search, join, start); args e.g. --map=test_large
