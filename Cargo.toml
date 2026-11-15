@@ -21,3 +21,8 @@ godot = { version = "=0.5.5", features = ["api-4-7"] }
 
 [profile.release]
 debug = "line-tables-only"
+
+# The simulation runs in debug builds too (tests, the Godot debug bridge);
+# A* is too slow unoptimized. Overflow checks and debug assertions stay on.
+[profile.dev.package.sim]
+opt-level = 3

@@ -32,9 +32,9 @@ Transport (later): Steam online, ENet on LAN
 
 | Crate / folder  | Responsibility | Depends on |
 |-----------------|----------------|------------|
-| `crates/sim`    | Game rules and state. `Sim::new(config, map, seed)`, `step(&[PlayerCommand])`, `state_hash()`, `snapshot()`. Players and unit ownership, group commands with formation, maps (height field, terrain), fixed-point math, RNG, stable hash, unit catalog, scale, terrain rules and scenarios (compiled in, like the map `test_small`). | `fixed`, `serde`, `toml`, `png` |
+| `crates/sim`    | Game rules and state. `Sim::new(config, map, seed)`, `step(&[PlayerCommand])`, `state_hash()`, `snapshot()`. Players and unit ownership, group commands with formation, maps (height field, terrain), pathfinding (`sim::path`), fixed-point math, RNG, stable hash, unit catalog, scale, terrain rules and scenarios (compiled in, like the map `test_small`). | `fixed`, `serde`, `toml`, `png` |
 | `crates/net`    | Lockstep protocol: `CommandFrame`, `HashReport`, `LockstepSession` (input delay, desync detection), `Transport` trait, `LoopbackTransport` for tests, `LocalTransport` for single player. Replays (`net::replay`). | `sim`, `postcard` |
-| `crates/cli`    | Headless runner: `cli run --ticks N --seed S [--record FILE]` prints the state hash, `cli replay FILE` re-simulates a replay and checks its end hash, `cli gen-map` generates test maps, `cli map-info DIR` measures a map. | `sim`, `net`, `clap`, `png` |
+| `crates/cli`    | Headless runner: `cli run --ticks N --seed S [--record FILE]` prints the state hash, `cli replay FILE` re-simulates a replay and checks its end hash, `cli gen-map` generates test maps, `cli map-info DIR` measures a map, `cli path-bench` benchmarks pathfinding. | `sim`, `net`, `clap`, `png` |
 | `crates/bridge` | GDExtension `cdylib`. `SimHost` node: runs ticks from a time accumulator through a `LockstepSession`, queues commands, exposes the last two snapshots and the replay. The only float conversion. | `sim`, `net`, `godot` |
 | `godot/`        | Scenes, GDScript UI logic, assets. No C#. | bridge (via `.gdextension`) |
 | `data/`         | Unit catalog (`catalog/*.toml`, real values), `scale.toml` (conversion to game values), `terrain.toml` (terrain types, slope rules), scenarios (`scenarios/*.toml`, start setups) and maps (`maps/<name>/`), integers only. See [SCALE.md](SCALE.md) and [MAPS.md](MAPS.md). | – |
@@ -46,7 +46,7 @@ but never its issuer:
 
 | Command | Effect |
 |---|---|
-| `MoveTo { units, target }` | The units drive in a straight line to a grid formation around `target`. |
+| `MoveTo { units, target }` | The units drive along one planned path to a grid formation around `target` (see [Pathfinding](#pathfinding)). |
 | `Stop { units }` | The units stop where they are. |
 
 The simulation consumes `PlayerCommand { player, command }`. Only the lockstep layer
@@ -68,8 +68,8 @@ footprint of the group (`UnitType::footprint_m` = larger of catalog length and w
 grid is axis-aligned. Units are assigned to slots in the order of their current
 position (y, then x, then id), slots in the same order, which avoids crossing paths
 in the common cases and makes the result independent of the order of ids in the
-command. Pathfinding around obstacles and facing-aware formations follow with
-prompt 012.
+command. Facing-aware formations (and a slot assignment along the direction of
+travel) are still open; see [Pathfinding](#pathfinding).
 
 **Scenarios** (`data/scenarios/*.toml`) name a map and place groups of catalog units
 per player in a grid. The compiled-in demo (`sim::scenario::demo_config`) has eight
@@ -89,8 +89,163 @@ generator and the reasons behind them: [MAPS.md](MAPS.md).
 - Speed per tick = catalog speed (road or cross-country, chosen by the terrain type)
   × terrain percentage × slope factor (uphill grade over the next meter), never more
   than the road speed. Rules: `data/terrain.toml`.
-- A unit stops (drops its target) instead of entering impassable terrain (deep water),
-  climbing more than the maximum grade or leaving the map. Detours: prompt 012.
+- Units follow paths around impassable terrain (deep water), too steep grades and the
+  map edge ([Pathfinding](#pathfinding)). They never enter impassable terrain or leave
+  the map; if the way to the next waypoint is blocked anyway (separation pushed them
+  off), they slide along the obstacle or plan again.
+
+## Pathfinding
+
+`crates/sim/src/path.rs` (grid, A*, smoothing, request queue) and the movement in
+`crates/sim/src/sim.rs`. Everything is integer or `Fixed`, sequential, and part of
+the state hash where it is state (routes, queue, grid version).
+
+### Path grid
+
+The map is covered by **path cells of 4 m**, each exactly 2 × 2 map samples (on a
+map with 2 m cells; generally `4000 / cell_size_mm` samples per axis). A sample owns
+the 2 m square around it (`Map::terrain_at` uses the nearest sample), so a path cell
+covers exactly the squares of its four samples, and the grid starts half a sample
+before the map edge. Per cell:
+
+- **Flags:** impassable terrain in its own samples; too steep (largest
+  `|dx| + |dy|` height difference of the height patches it overlaps above
+  `max_grade_pct`, an upper bound of the gradient, so the movement rule never meets
+  a grade the grid let through); obstacle ([`set_obstacle`](#changing-obstacles));
+  margin (impassable terrain or the map edge within one sample around the cell).
+- **Size classes:** `Small` (footprint up to 4 m: infantry) is blocked by the first
+  three flags, `Large` (tanks, trucks) also by the margin, so a tank's center stays
+  at least 2 m from deep water. Passages a unit class can use: about 4 m (one
+  aligned cell) for infantry, about 8 m for tanks, plus up to one cell of alignment.
+- **Cost per unit type**, `u16`, 0 = blocked: the mean crossing time of the four
+  samples relative to the type's fastest terrain (terrain speed exactly as the
+  movement uses it: road or cross-country basis, percentage, capped at the road
+  speed), times a slope factor (mean of uphill `1 / factor` and downhill 1, from
+  `terrain.toml`). The cheapest cell costs `MIN_CELL_COST` = 100. A Panzer IV (38 vs
+  16 km/h) pays 100 on roads and about 240 on grass; infantry (5 vs 4 km/h) 100
+  and 125.
+- **Components** per class (4-neighborhood flood fill): a target in another
+  component (a lake, behind a river without a ford) is moved to the nearest cell
+  of the start's component before the search, so every search succeeds.
+
+`test_large` (1000 × 1000 cells, two unit types) builds in about 170 ms (release;
+part of `Sim::new`), `test_small` in 3 ms. Memory: 13 bytes per cell (flags, slope, two classes), 2 bytes per cell and unit
+type, 12 bytes per cell of search workspace: 29 MB for `test_large`.
+
+### Search
+
+- **A\*** over the 8 neighbors without corner cutting. Step cost = mean of both
+  cells' costs × 10 (straight) or 14 (diagonal), integer.
+- **Heuristic:** octile distance × `MIN_CELL_COST`, admissible and consistent, so
+  paths are optimal and closed nodes are never reopened.
+- **Tie-breaking:** the open list is a `BinaryHeap` of `(f, h, cell)`: a total order
+  (prefers nodes nearer the goal, then the lower cell index), so the pop order never
+  depends on how the heap arranges equal costs. Neighbors are visited in a fixed
+  order and only strictly better costs replace a node.
+- **Smoothing:** greedy line of sight over the raw cells (at most 32 cells ahead).
+  A shortcut is taken only if every touched cell is passable and the straight
+  line (mean cost of the touched cells × length) is not more expensive than the
+  skipped part of the raw path measured the same way. Units stay on roads and
+  off mud that the search avoided. The line walk is an exact integer grid
+  traversal; passing exactly through a cell corner needs both side cells.
+
+### Request queue and budget
+
+Path requests go into a FIFO queue. Every tick, after the commands and before
+movement, the queue gets **32 768 node expansions** (`NODE_BUDGET_PER_TICK`);
+starting a request costs one. A search that runs out of budget continues next
+tick (one search is active at a time, with a reused workspace). Units **wait**
+(they keep their target, `RouteView::Waiting`) until their path is there. Requests
+nobody waits for any more (new order, `Stop`) are dropped without searching.
+
+### Groups and formation
+
+`MoveTo` assigns formation slots as before, then queues **one request for the
+group**: from the unit nearest to the group's center, with the profile of the
+largest unit (its class fits everybody). When the path is found, every member
+follows it **shifted by its formation offset** (slot minus target), checked by line
+of sight in its own class's grid:
+
+- a shifted waypoint that cannot be reached in a straight line is replaced by the
+  unshifted one (the group squeezes through a gap);
+- a slot in blocked terrain moves to the nearest passable cell visible from the
+  group's end point;
+- waypoints of the group path within 8 m of its start are skipped by members that
+  see the next one (they only re-form the group);
+- only if all of that fails does the member get its own request.
+
+On open ground a group needs exactly one search; in the benchmark below, 25 group
+orders needed 42 requests including re-plans.
+
+### Movement and separation
+
+Each tick, a unit drives towards its current waypoint at the terrain speed (as
+before). **Separation**, computed from the positions at the start of the movement
+phase (order-independent):
+
+- **push** away from every unit closer than half of both footprints, linear up to one
+  unit length at full overlap;
+- **swerve** sideways from units ahead within twice that distance and less than it
+  off the own line, away from the side they are on (straight ahead: to the left),
+  so two units meeting head-on pass each other.
+
+The push deflects the step but never makes it longer than the speed. It is ignored
+within one footprint of the final waypoint, so a parked unit cannot keep another
+from arriving, and pushed steps must stay on cells passable for the unit's class.
+
+Rules that keep units from getting stuck: intermediate waypoints count as reached
+within 1 m; a unit that has not come closer to its waypoint for 2 s (40 ticks)
+skips it, or stops on the last one; if neither the pushed, the direct nor a
+sliding step (x or y part only) is possible, it plans a new path from where it is,
+at most 3 times until it reaches the next waypoint.
+
+### Changing obstacles
+
+`Sim::set_path_obstacle(a, b, blocked)` marks the cells of a rectangle as blocked
+(or frees them), recomputes flags, costs and components of that area and its
+neighbors (components for the whole map),
+restarts the running search and re-plans every unit whose remaining route touches
+the changed cells. It is meant for game systems (buildings, wrecks, destruction in
+prompt 020), not for player commands; nothing calls it yet.
+
+### Decisions
+
+| Question | Decision | Why |
+|---|---|---|
+| A* or flow fields | A* per group | Orders go to groups of a few units with individual targets; a flow field costs a full-map Dijkstra (1 M cells) per target and only pays off for many units with one target. A* with a node budget has bounded cost per tick and easy determinism. Flow fields can be added later for mass orders. |
+| Cell size | 4 m = 2 × 2 samples | 1 M nodes and 12 MB of search state on 4 km instead of 4 M nodes and 48 MB at 2 m; about as wide as a tank. Exact sample ownership (no samples shared between cells) makes blocking exact: the first version with shared edge samples closed every ford of the test maps. |
+| Size classes | Small without margin, Large with one sample (2 m) margin | A margin of a whole 4 m cell would need 12 m wide passages for tanks (bridges, prompt 014); one sample keeps tanks off the water's edge and passes 8 m. |
+| Heuristic | Admissible (octile × cheapest cell) | Measured: weighting the heuristic towards grass cost (4 × fewer expansions) loses roads that are not on the straight line, which is the whole point of road preference. Optimal paths, slower search; the budget pays for it. Switch: `HEURISTIC_WEIGHT_PCT`. |
+| Budget | 32 768 expansions per tick | About 4 ms per tick in release (M1 Max): 8 % of a tick. A group order across `test_large` (177 000 expansions on average) takes about 6 ticks, short orders one. |
+| Unreachable targets | Nearest cell of the start's component | The unit gets as close as possible instead of stopping at the first obstacle, and no search ever explores a whole region in vain. |
+| Separation | Push + swerve, no avoidance planning | Simple, deterministic, enough to pass each other; crowding is handled by the stall and re-plan rules. Proper local avoidance (RVO) is much more code. |
+| Debug builds | `sim` with `opt-level = 3` in the dev profile | The Godot bridge and the tests run debug builds, and unoptimized A* would eat the frame; overflow checks and debug assertions stay on, so integer behavior is unchanged. |
+
+### Benchmark
+
+`just path-bench` (`cli path-bench`): 200 units on `test_large` (half Panzer IV H,
+half rifle squads, 10 m grid around the center), every order to a random point
+within ±1800 m, all in tick 0. Apple M1 Max, release build, other sessions busy:
+
+| Orders | Requests | Expansions per request | All paths after | Time per tick while planning (mean / p99 / max) | All arrived |
+|---|---|---|---|---|---|
+| 200 × 1 unit | 200 | 136 000 | 834 ticks (42 s) | 4.1 / 5.4 / 5.8 ms | 1449 s |
+| 25 × 8 units | 42 | 177 000 | 219 ticks (11 s) | 4.0 / 5.6 / 5.8 ms | 1433 s |
+
+Ticks without path work take 0.02–0.15 ms (200 units, separation is O(n²)). The
+debug build (`opt-level = 3`) is about 25 % slower. 200 single orders to random
+points across a 4 km map at once are the worst case; the latency until the last
+path is there grows linearly with the queue. If that matters later: hierarchical
+search (clusters with precomputed portals) or a weighted heuristic for long
+requests. On `test_small`, two group orders across the river take 2 ticks.
+
+### Open
+
+- Formation facing and slot assignment along the direction of travel (slots are
+  assigned by y, then x, as in prompt 009: diagonal moves make members cross
+  while the group re-forms).
+- Speed matching within a group (members drive at their own terrain speed).
+- Obstacles are cell-based and not widened by the margin for large units.
 
 ## Data flow (single player, current state)
 
@@ -111,6 +266,11 @@ Single player runs through the same lockstep path as multiplayer:
 5. `main.gd` reads both snapshots and `interpolation_alpha()` and draws every unit
    interpolated between them. A sim position `(x, y)` at ground height `h` maps to
    Godot `(x, h, y)`.
+
+`scenes/debug/path_debug.gd` shows the pathfinding: **F3** the cost grid of the
+selected unit's type (red blocked, green cheap, yellow to purple expensive), **F4**
+the remaining paths of all units (orange while a path is planned);
+`-- --path-debug` (or `just run-paths`) starts with both.
 
 The terrain is drawn by `scenes/terrain/terrain_debug.gd`: one coarse mesh (at most
 256 × 256 vertices) from `SimHost.height_grid` / `terrain_grid`, colored by terrain

@@ -16,12 +16,15 @@ extends Node3D
 ## automatically and quit with exit code 0 (pass) or 1 (fail); see
 ## `self_test.gd`. Start with `-- --camera-shots` (together with
 ## `--write-movie`) to record three fixed camera views, or with `-- --demo` to
-## play the scripted demo in `tools/demo_reel.gd`.
+## play the scripted demo in `tools/demo_reel.gd`. F3 / F4 show the path cost
+## grid and the unit paths (`debug/path_debug.gd`; `-- --path-debug` starts
+## with both on).
 
 const UNIT_SCENE: PackedScene = preload("res://scenes/unit.tscn")
 const SelfTest := preload("res://scenes/self_test.gd")
 const DemoReel := preload("res://scenes/tools/demo_reel.gd")
 const GroundPick := preload("res://scenes/camera/ground_pick.gd")
+const PathDebug := preload("res://scenes/debug/path_debug.gd")
 const SEED := 42
 ## Map folders, relative to the Godot project (repository checkout only).
 const MAPS_DIR := "res://../data/maps"
@@ -79,6 +82,13 @@ func _ready() -> void:
 	selection.camera = camera
 	selection.camera_rig = camera_rig
 	selection.move_ordered.connect(_show_target_marker)
+
+	# Pathfinding debug view: F3 cost grid, F4 paths (prompt 012).
+	var path_debug := PathDebug.new()
+	path_debug.name = "PathDebug"
+	path_debug.sim_host = sim_host
+	path_debug.selection = selection
+	add_child(path_debug)
 
 	if "--self-test" in OS.get_cmdline_user_args():
 		camera_rig.edge_scroll_enabled = false

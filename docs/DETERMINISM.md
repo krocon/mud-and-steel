@@ -42,6 +42,17 @@ Additional rules:
   immediately instead of drifting apart. See [MAPS.md](MAPS.md).
 - Single player runs through `net::LockstepSession` as well, so there is one code
   path for applying commands.
+- Pathfinding (see [ARCHITECTURE.md](ARCHITECTURE.md#pathfinding)) is integer-only:
+  `u16` cell costs, `u32` path costs, octile heuristic. The A* open list is ordered by
+  the full key `(f, h, cell)`, so equal costs never depend on the heap's internal
+  order; neighbors are visited in a fixed order and only strictly better costs
+  replace a node. Requests run in FIFO order with a fixed node budget per tick
+  (`sim::path::NODE_BUDGET_PER_TICK`, a rule constant like the tick rate), so the
+  tick in which a path arrives is the same on every peer. Separation is computed
+  from the positions before the movement of the tick. Routes, the queue and the
+  grid version are part of the state hash.
+- `sim` is built with `opt-level = 3` in the dev profile too. Optimization does not
+  change integer results; overflow checks stay on in debug builds.
 
 ## Enforcement
 
@@ -50,13 +61,15 @@ Additional rules:
   `RandomState`, `Instant`, `SystemTime` and `std::thread::spawn`.
 - `crates/sim/tests/determinism.rs` contains a golden-hash test: the demo scenario
   (two players with eight tanks each, scripted group commands, seed 42, 1000 ticks,
-  on the built-in map `test_small`) must produce `0x13dfd6119523d352`. CI runs it on
+  on the built-in map `test_small`) must produce `0x23160b7debd591d7`. CI runs it on
   macOS (ARM64), Linux and Windows (x86_64). The value was recorded on macOS ARM64.
   History: `0x075d8c59dfe3d336` (prompt 001/003, four tanks, single-unit commands),
   `0x8e8b2c6ed986ef2c` (prompt 009: owners, group commands with formation, `Stop`,
-  owner and footprint in the hash), changed in prompt 010 (map with heights and
-  terrain, terrain- and slope-dependent speed, unit height, map hash and terrain
-  rules in the hash). Regenerating `test_small` changes it as well.
+  owner and footprint in the hash), `0x13dfd6119523d352` (prompt 010: map with
+  heights and terrain, terrain- and slope-dependent speed, unit height, map hash and
+  terrain rules in the hash), changed in prompt 012 (movement along A* paths, path
+  queue, routes and grid version in the hash, `test_small` with wider fords).
+  Regenerating `test_small` changes it as well.
 - `crates/net/tests/loopback.rs` plays the demo between two peers in lockstep with
   group commands, compares the hash of every tick, checks that the result equals the
   scripted single-process run, and checks that a divergence is detected through the

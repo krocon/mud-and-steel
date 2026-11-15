@@ -403,6 +403,13 @@ impl Map {
         self.heights_mm[j * self.samples_x as usize + i]
     }
 
+    /// Terrain id of a sample (indices clamped to the grid).
+    pub fn sample_terrain(&self, i: u32, j: u32) -> u8 {
+        let i = i.min(self.samples_x - 1) as usize;
+        let j = j.min(self.samples_y - 1) as usize;
+        self.terrain[j * self.samples_x as usize + i]
+    }
+
     /// Grid coordinate of `value` on an axis, clamped to `0..=samples-1`.
     fn grid(&self, value: Fixed, half: Fixed, samples: u32) -> Fixed {
         let g = value.saturating_add(half).saturating_mul(self.cells_per_m);

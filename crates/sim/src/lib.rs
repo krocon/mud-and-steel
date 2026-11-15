@@ -15,6 +15,7 @@ mod data;
 mod hash;
 pub mod map;
 mod math;
+pub mod path;
 mod rng;
 pub mod scale;
 pub mod scenario;
@@ -30,7 +31,7 @@ pub use math::{Fixed, Vec2};
 pub use rng::Rng;
 pub use scale::Scale;
 pub use sim::{
-    ConfigError, Sim, SimConfig, Snapshot, Spawn, UnitSnapshot, WORLD_LIMIT_M, formation_slots,
-    formation_spacing,
+    ConfigError, RouteView, Sim, SimConfig, Snapshot, Spawn, UnitSnapshot, WORLD_LIMIT_M,
+    formation_slots, formation_spacing,
 };
 pub use terrain::{TerrainError, TerrainRules};

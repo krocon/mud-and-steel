@@ -2,6 +2,7 @@
 
 mod catalog_doc;
 mod gen_map;
+mod path_bench;
 
 use clap::{Parser, Subcommand};
 use std::path::{Path, PathBuf};
@@ -58,6 +59,25 @@ enum CliCommand {
     MapInfo {
         /// Map folder, e.g. data/maps/test_large.
         dir: PathBuf,
+    },
+    /// Benchmarks pathfinding: many units with simultaneous path requests.
+    PathBench {
+        /// Map folder, e.g. data/maps/test_large.
+        #[arg(long, default_value = "data/maps/test_large")]
+        map: PathBuf,
+        #[arg(long, default_value_t = 200)]
+        units: u32,
+        /// Units per move order (1 = every unit gets its own path).
+        #[arg(long, default_value_t = 1)]
+        group: u32,
+        /// Upper bound of simulated ticks.
+        #[arg(long, default_value_t = 20 * 60 * 20)]
+        ticks: u64,
+        #[arg(long, default_value_t = 1)]
+        seed: u64,
+        /// Targets lie within this distance of the map center per axis (m).
+        #[arg(long, default_value_t = 1800)]
+        range_m: i32,
     },
     /// Writes docs/UNIT_CATALOG.md (or the given path) from the built-in catalog.
     CatalogDoc {
@@ -127,6 +147,27 @@ fn main() {
             }
         }
         CliCommand::MapInfo { dir } => map_info(&dir),
+        CliCommand::PathBench {
+            map,
+            units,
+            group,
+            ticks,
+            seed,
+            range_m,
+        } => {
+            let map = Arc::new(load_map_dir(&map).unwrap_or_else(|e| fail(&e)));
+            let options = path_bench::Options {
+                units,
+                group,
+                ticks,
+                seed,
+                range_m,
+            };
+            match path_bench::run(map, &options) {
+                Ok(report) => println!("{report}"),
+                Err(e) => fail(&e),
+            }
+        }
         CliCommand::CatalogCheck { files } => catalog_check(&files),
         CliCommand::CatalogDoc { out } => {
             let catalog = sim::Catalog::builtin().unwrap_or_else(|e| fail(&e.to_string()));

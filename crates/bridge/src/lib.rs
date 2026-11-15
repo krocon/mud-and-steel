@@ -9,8 +9,8 @@ use godot::prelude::*;
 use net::{LocalTransport, LockstepConfig, LockstepSession, NetError, Replay, ReplayRecorder};
 use sim::scenario::{DEMO_SCENARIO, builtin_map, parse_scenario};
 use sim::{
-    Catalog, Command, Fixed, Map, PlayerId, Scale, Sim, SimConfig, Snapshot, TerrainRules, UnitId,
-    Vec2,
+    Catalog, Command, Fixed, Map, PlayerId, RouteView, Scale, Sim, SimConfig, Snapshot,
+    TerrainRules, UnitId, Vec2,
 };
 use std::path::Path;
 use std::sync::Arc;
@@ -513,6 +513,118 @@ impl SimHost {
     fn interpolation_alpha(&self) -> f32 {
         let alpha = self.accumulator * f64::from(self.tick_hz);
         alpha.clamp(0.0, 1.0) as f32
+    }
+
+    // --- Pathfinding debug view (prompt 012) ---------------------------
+
+    /// Number of path cells per axis (x, z). Zero before `start`.
+    #[func]
+    fn path_grid_size(&self) -> Vector2i {
+        self.game.as_ref().map_or(Vector2i::ZERO, |g| {
+            let (w, h) = g.sim.path_grid().size();
+            Vector2i::new(i32::try_from(w).unwrap_or(0), i32::try_from(h).unwrap_or(0))
+        })
+    }
+
+    /// Edge length of a path cell in meters.
+    #[func]
+    fn path_cell_size(&self) -> f32 {
+        self.game
+            .as_ref()
+            .map_or(0.0, |g| fixed_to_f32(g.sim.path_grid().cell_size()))
+    }
+
+    /// Corner (smallest x, z) of path cell (0, 0) in meters.
+    #[func]
+    fn path_grid_origin(&self) -> Vector2 {
+        self.game.as_ref().map_or(Vector2::ZERO, |g| {
+            let o = g.sim.path_grid().origin();
+            Vector2::new(fixed_to_f32(o.x), fixed_to_f32(o.y))
+        })
+    }
+
+    /// The path cost grid of a unit type (index as in `unit_types()`) as
+    /// RGBA8 pixels, one per cell, row by row (z): blocked cells red,
+    /// cheap cells green, expensive ones yellow to purple. Empty if the
+    /// type is unknown.
+    #[func]
+    fn path_cost_image(&self, unit_type: i64) -> PackedByteArray {
+        let Some(game) = &self.game else {
+            return PackedByteArray::new();
+        };
+        let grid = game.sim.path_grid();
+        let Some(profile) = usize::try_from(unit_type)
+            .ok()
+            .filter(|&p| p < grid.profiles())
+        else {
+            return PackedByteArray::new();
+        };
+        let min = f32::from(sim::path::MIN_CELL_COST);
+        grid.costs(profile)
+            .iter()
+            .flat_map(|&cost| {
+                if cost == 0 {
+                    return [200, 30, 30, 170];
+                }
+                // 0 at the cheapest cell, 1 at ten times its cost.
+                let t = ((f32::from(cost) / min).log10()).clamp(0.0, 1.0);
+                let color = if t < 0.5 {
+                    let u = t * 2.0;
+                    Color::from_rgb(0.2 + 0.8 * u, 0.85, 0.2 * (1.0 - u))
+                } else {
+                    let u = (t - 0.5) * 2.0;
+                    Color::from_rgb(1.0 - 0.4 * u, 0.85 * (1.0 - u), 0.6 * u)
+                };
+                let alpha = (40.0 + 140.0 * t) as u8;
+                [color.r8(), color.g8(), color.b8(), alpha]
+            })
+            .collect()
+    }
+
+    /// Remaining waypoints of all units with a route, in the order of
+    /// `unit_ids()`, as ground points; `unit_path_counts()` says how many
+    /// belong to each unit.
+    #[func]
+    fn unit_path_points(&self) -> PackedVector3Array {
+        let Some(game) = &self.game else {
+            return PackedVector3Array::new();
+        };
+        let mut points = PackedVector3Array::new();
+        for unit in &game.sim.snapshot().units {
+            if let Some(RouteView::Following(waypoints)) = game.sim.route_of(unit.id) {
+                for &w in waypoints {
+                    points.push(ground_to_godot(w, game.map.height_at(w)));
+                }
+            }
+        }
+        points
+    }
+
+    /// Number of waypoints per unit in `unit_path_points()`, in the order of
+    /// `unit_ids()`; -1 for units whose path is still being planned.
+    #[func]
+    fn unit_path_counts(&self) -> PackedInt32Array {
+        let Some(game) = &self.game else {
+            return PackedInt32Array::new();
+        };
+        game.sim
+            .snapshot()
+            .units
+            .iter()
+            .map(|u| match game.sim.route_of(u.id) {
+                Some(RouteView::Following(w)) => i32::try_from(w.len()).unwrap_or(i32::MAX),
+                Some(RouteView::Waiting) => -1,
+                _ => 0,
+            })
+            .collect()
+    }
+
+    /// Path requests not finished yet.
+    #[func]
+    fn path_queue_len(&self) -> i64 {
+        self.game.as_ref().map_or(0, |g| {
+            i64::try_from(g.sim.path_queue_len()).unwrap_or(i64::MAX)
+        })
     }
 
     /// The match so far as replay file contents (see `net::replay`).

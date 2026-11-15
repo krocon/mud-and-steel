@@ -61,7 +61,7 @@ Welle 4:  012 Wegfindung ─ 013 …  │   008 Stufe 2 (3 Sessions pro Fraktion
 | 009 | [Einheiten, Auswahl, Lockstep im Spiel](done/009-einheiten-auswahl-lockstep.md) | Mehrere Einheiten, Auswahlrahmen, Gruppenbefehle, Replays | erledigt |
 | 010 | [Kartenformat und Höhenfeld](done/010-karte-hoehenfeld.md) | Karte als Daten, Höhen und Geländearten in der Sim | erledigt |
 | 011 | [Terrain-Darstellung](011-terrain-darstellung.md) | Großes Gelände mit LOD und Textur-Splatting | offen |
-| 012 | [Wegfindung](012-wegfindung.md) | Deterministisches A* mit Hindernissen und Gruppenbewegung | offen |
+| 012 | [Wegfindung](done/012-wegfindung.md) | Deterministisches A* mit Hindernissen und Gruppenbewegung | erledigt |
 | 013 | [Vegetation und Objekte platzieren](013-vegetation-platzieren.md) | Dicht bestücktes Gelände mit den Modellen aus 007 | Entwurf |
 | 014 | [Wasser, Flüsse und Brücken](014-wasser-fluesse-bruecken.md) | Flüsse, Ufer, Brücken als Engstellen | Entwurf |
 | 015 | [Licht, Atmosphäre und Biome](015-licht-atmosphaere-biome.md) | Sonne, Schatten, Nachbearbeitung, Wiese/Wüste/Winter | Entwurf |

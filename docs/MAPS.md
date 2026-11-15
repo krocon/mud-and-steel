@@ -75,8 +75,11 @@ Slope (also in `terrain.toml`): uphill the speed drops by 2 % per percent of gra
 Downhill has no effect yet. These are game rules, not historical values; per-vehicle
 climbing ability, tracked versus wheeled ground pressure and cover follow later.
 
-A unit that would enter impassable terrain, climb too steep a grade or leave the map
-stops and drops its target. Pathfinding around obstacles comes with prompt 012.
+Units drive around impassable terrain, too steep grades and the map edge on paths
+planned on a 4 m grid (2 × 2 samples per cell, see
+[ARCHITECTURE.md](ARCHITECTURE.md#pathfinding)). Passages need to be about 4 m wide
+for infantry and about 8 m for tanks (one aligned cell, plus the 2 m margin tanks
+keep from impassable ground); design fords and bridges accordingly.
 
 ### Loading and identity
 
@@ -142,8 +145,9 @@ step in memory too (half), or as tiles; prompt 016 covers large maps.
 - **Village squares:** flat road-covered circles at the natural height (marker
   `village`), one per 1.5 km of map size.
 - **Field tracks** from the meadow to the edges, the villages, the hill foot and across
-  the river (a ford: shallow instead of deep water), plus a road from the west edge to
-  the first village. Mud patches in the open.
+  the river (a ford: shallow instead of deep water within 7 m of the track, wide
+  enough for tanks; prompt 012), plus a road from the west edge to the first village.
+  Mud patches in the open.
 
 It uses floats (it is a tool, not the simulation) but only basic arithmetic and `sqrt`,
 which IEEE 754 rounds exactly, so the same seed produces the same files everywhere
