@@ -98,7 +98,7 @@ Umsetzen von ihrer Session konkretisiert.
 | 035 | [Pioniere, Minen, Stellungen](035-pioniere-minen-stellungen.md) | Minen, Draht, Gräben, Brücken reparieren/sprengen | Entwurf |
 | 036 | [Nachschub und Reparatur](036-nachschub-reparatur.md) | Verbrauch pro Einheit, Versorgungs-LKW, Reparatur, Bergung | Entwurf |
 | 037 | [Teams und KI-Plätze](037-teams-ki-slots.md) | 2v2/3v3, KI in der Lobby, Moduswahl im LAN | Entwurf |
-| 038 | [Speichern und Replays](038-speichern-replays.md) | Spielstände, Replay-Ansicht mit Vorspulen | Entwurf |
+| 038 | [Speichern und Replays](done/038-speichern-replays.md) | Spielstände, Replay-Ansicht mit Vorspulen | erledigt |
 | 039 | [Tutorial und Missionen](039-tutorial-missionen.md) | Skript-System, Tutorial, Beispielmissionen | Entwurf |
 | 040 | [Wetter, Schlamm, Tageszeit](040-wetter-schlamm-tageszeit.md) | Regen weicht Boden auf, Nebel, Nacht | Entwurf |
 | 041 | [Umwelt Stufe 2 und Feuer](041-umwelt-stufe2-feuer.md) | Stadt, Industrie, Bahn, Bunker; Brände und Lager-Explosionen | Entwurf |
