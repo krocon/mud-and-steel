@@ -28,6 +28,7 @@ _MODULES = (
     "attachments",
     "artillery",
     "aircraft",
+    "vehicles",
     "parts_de",
     "parts_su",
     "parts_us",

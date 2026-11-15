@@ -101,3 +101,11 @@ def all_combinations():
         for faction in FACTIONS:
             if faction in per_faction:
                 yield faction, role
+
+
+# --- su (prompt 006): roles for the tier-1 squads -----------------------------------
+# DP-27 assistant gunner: rifle plus the pan carrier with spare magazines.
+ROLES.setdefault("assistant_gunner", {})["su"] = dict(weapon="mosin", extra=["pan_carrier"],
+                                                      drop=["veshmeshok"])
+# Rifleman with a PPSh-41 (the rifle squad's second submachine gun, catalog su.toml).
+ROLES.setdefault("smg_gunner", {})["su"] = dict(weapon="ppsh41")

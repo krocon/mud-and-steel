@@ -47,6 +47,8 @@ model with names, hierarchy, sockets, material slots and baked vertex colors.
 | `weapons` | `tank_gun` (mantlet types, barrel segments, muzzle brake types), `mg` (coax, ball mount, pintle), `gun_shield` |
 | `attachments` | `skirts`, `turret_skirt`, `spare_tracks`, `tool`, `jerrycans`, `headlight`, `antenna`, `exhaust`, `tow_hook`, `box_prop`, `cylinder_prop`, `marking`, `socket` |
 | `artillery` | `split_trail_carriage`, `field_gun` |
+| `vehicles` | `ladder_frame`, `engine_hood`, `truck_cab`, `cargo_bed`, `truck_fenders` and the `wheeled` assembly (trucks, cars; prompt 006) |
+| `squad` | infantry squads: blueprint with `assembly = "squad"` → Godot scene of soldiers (prompt 006, section "Infantry squads") |
 | `aircraft` | `fuselage` (loft of cross-sections), `wing` (taper, sweep, dihedral, ailerons), `tail`, `propeller`, `canopy`, `landing_gear` (extended/retracted) |
 | `parts_de`, `parts_su`, `parts_us` | faction-specific parts, prefixed `de.`, `su.`, `us.` |
 | `assemblies` | whole units: `tank`, `towed_gun`, `aircraft` |
@@ -80,7 +82,7 @@ origin on the ground at the footprint center):
 
 ```toml
 unit = "de_pz4_h"          # catalog id, must match the file name
-assembly = "tank"          # tank | towed_gun | aircraft
+assembly = "tank"          # tank | towed_gun | aircraft | wheeled | squad
 
 [layout]                   # assembly-level values
 turret_y = 0.28            # turret ring center
@@ -118,7 +120,9 @@ exclude_height = ["Antenna_*"]
 
 Build order of a tank: layout, running gear, hull, turret, cupola, `[[part]]`,
 gun, `[[mg]]`. Towed guns: gun, carriage, shield, `[[part]]`. Aircraft:
-fuselage, wing, tail, canopy, landing gear, `[[propeller]]`, `[[part]]`.
+fuselage, wing, tail, canopy, landing gear, `[[propeller]]`, `[[part]]`. Wheeled
+vehicles: `[[axle]]`, frame, hood, cab, body, fenders, `[[part]]` (body rear end,
+body width and cab roof are fitted to the catalog length, width and height).
 
 ### Generator, checks and previews
 
@@ -301,6 +305,31 @@ gear as skinned meshes, the weapon on the extra bone `Weapon` with `Socket_Muzzl
 Files: `assets-src/blender/<faction>/infantry/<role>.blend` and
 `godot/assets/models/<faction>/infantry/<role>.glb`, built by
 `tools/blender/build_soldier.py` and checked by `tools/blender/validate_soldier.py`.
+
+### Infantry squads (prompt 006)
+
+A squad blueprint lists soldiers of prompt 005 instead of parts:
+
+```toml
+unit = "su_inf_rifle_squad"
+assembly = "squad"
+formation = "wedge"        # wedge | line | column | pair
+spacing = 2.5              # m between neighbours (default formation only)
+[[member]]
+role = "squad_leader"      # role from tools/blender/soldier/loadouts.py
+weapon = "PPSh-41"         # catalog weapon name this soldier carries
+count = 1                  # optional
+```
+
+`just unit <faction> <squad_id>` writes `godot/assets/models/<faction>/<squad_id>.tscn`:
+root `Node3D` with script `SquadModel` (`godot/scenes/tools/squad_model.gd`: uniform
+look per biome, plays clips slightly out of step), meta `extras` with the catalog
+values and one instance of `infantry/<role>.glb` per soldier. The catalog entry gets
+`model = "assets/models/<faction>/<squad_id>.tscn"`. `just validate-assets` checks
+that the members add up to `squad_size`, that their weapons match the catalog
+`weapon` counts, that every soldier is built and the scene is current, and then runs
+the soldier validator. Squads appear in the gallery and in `just lineup`. New roles
+go into an own block at the end of `loadouts.py` per faction.
 
 ## Markings
 

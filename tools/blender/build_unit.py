@@ -17,7 +17,7 @@ import bpy
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from kit import catalog  # noqa: E402
+from kit import catalog, squad  # noqa: E402
 from kit.build import build_model, clear_scene, export_glb  # noqa: E402
 
 
@@ -32,6 +32,10 @@ def parse_args():
 
 def main():
     args = parse_args()
+    if squad.is_squad(args.faction, args.unit_id):  # infantry squad: Godot scene only
+        path = squad.build(args.faction, args.unit_id)
+        print(f"build_unit: {args.unit_id} -> {path.relative_to(catalog.REPO_ROOT)}")
+        return
     clear_scene()
     root = build_model(args.faction, args.unit_id)
     blend = catalog.blend_path(args.faction, args.unit_id)

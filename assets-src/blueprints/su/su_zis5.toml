@@ -1,0 +1,157 @@
+# ZiS-5V 3-ton truck (wartime simplified ZiS-5, from 1942). Main dimensions from
+# data/catalog/su.toml: length 6.06 m, width 2.235 m (cargo body), height 2.16 m
+# (cab roof). From ru Wikipedia "ZIS-5 (avtomobil)" infobox: wheelbase 3,810 mm,
+# front track 1,530 mm, rear track 1,675 mm (between the dual-tire pairs),
+# ground clearance 250 mm, 4x2. ZiS-5V features (same article): wooden cab with
+# a dermatine-covered slatted roof (Canvas slot), simple bent-sheet front wings,
+# a single (left) headlight, no front brakes.
+# Modeling estimates: tires 34x7 in (0.86 m x 0.18 m, dual at the rear), hood,
+# cab and body proportions, frame height, cargo floor height. The catalog length
+# includes a bumper the ZiS-5V did not have; the body overhang absorbs it.
+# Coordinates: axles at y = +-1.905 (half the wheelbase); the assembly keeps the
+# origin midway between them.
+unit = "su_zis5"
+assembly = "wheeled"
+
+[layout]
+front_y = 2.65            # radiator face
+
+[[axle]]                  # front axle, steered
+part = "wheel_axle"
+y = 1.905
+diameter = 0.86
+width = 0.18
+track = 1.53
+
+[[axle]]                  # rear axle, dual tires; track 1.675 between pair centers
+part = "wheel_axle"
+y = -1.905
+diameter = 0.86
+width = 0.18
+track = 1.86
+twin = true
+
+[frame]
+part = "ladder_frame"
+y = [-3.30, 2.55]
+z = 0.82
+spacing = 0.86
+rail = [0.07, 0.18]
+cross_members = 6
+
+[hood]
+part = "engine_hood"
+y = [1.45, 2.65]
+width = 0.80
+bottom_z = 0.80
+top_z = 1.48
+crown = 0.10
+radiator = [0.80, 0.78]
+louvers = 6
+
+[cab]
+part = "truck_cab"
+y = [0.30, 1.45]
+width = 1.70
+floor_z = 0.95
+belt_z = 1.45
+windscreen_lean = 0.03
+door = 0.80
+seats = 2                 # up to 2 passengers beside the driver (catalog note)
+
+[body]
+part = "cargo_bed"
+front_y = 0.22
+floor_z = 1.22
+side_height = 0.55
+planks = 3
+stakes = 4
+seats_per_side = 12       # 25 troops on benches (catalog note): 24 here + 1 below
+
+[fenders]
+part = "truck_fenders"
+front_wheel = [1.905, 0.43]
+x = [0.50, 0.98]
+running_board = [0.26, 0.62]
+rear_wheel = [-1.905, 0.43]
+rear_x = [0.42, 1.06]
+rear_z = 0.98
+
+[[part]]
+part = "socket"           # 25th seat: standing behind the cab
+name = "Socket_Passenger_"
+position = [0.0, 0.0, 1.22]
+
+[[part]]
+part = "headlight"        # ZiS-5V: single left headlight
+position = [-0.66, 2.38, 1.12]
+diameter = 0.20
+
+[[part]]
+part = "box_prop"         # headlight bracket on the wing
+center = [-0.66, 2.38, 1.00]
+size = [0.04, 0.04, 0.10]
+
+[[part]]
+part = "box_prop"         # fuel tank under the cab seat (right side)
+center = [0.62, 0.85, 0.80]
+size = [0.30, 0.55, 0.26]
+
+[[part]]
+part = "cylinder_prop"    # spare wheel under the rear of the body
+from = [0.0, -2.85, 0.92]
+to = [0.0, -2.85, 1.10]
+radius = 0.40
+material = "Rubber"
+segments = 12
+
+[[part]]
+part = "exhaust"
+kind = "pipe"
+position = [0.50, -0.30, 0.55]
+length = 0.35
+diameter = 0.07
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 2.55, 0.62]
+pair = true
+socket = false
+
+[[part]]
+part = "tow_hook"         # pintle for the ZiS-3 and other towed guns
+position = [0.0, -3.30, 0.70]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 2.0, 1.40]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -1.5, 1.30]
+
+[[part]]
+part = "marking"
+name = "Rear"
+kind = "number"
+position = [0.0, -3.45, 1.50]
+normal = [0.0, -1.0, 0.0]
+size = 0.35
+
+[[part]]
+part = "marking"
+name = "Door_L"
+kind = "number"
+position = [-0.86, 1.05, 1.20]
+normal = [-1.0, 0.0, 0.0]
+size = 0.25
+
+[[part]]
+part = "marking"
+name = "Door_R"
+kind = "number"
+position = [0.86, 1.05, 1.20]
+normal = [1.0, 0.0, 0.0]
+size = 0.25

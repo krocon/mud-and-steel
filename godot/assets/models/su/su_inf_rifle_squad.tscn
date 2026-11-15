@@ -1,0 +1,41 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scenes/tools/squad_model.gd" id="1_squad"]
+[ext_resource type="PackedScene" path="res://assets/models/su/infantry/assistant_gunner.glb" id="2_assistant_gunner"]
+[ext_resource type="PackedScene" path="res://assets/models/su/infantry/mg_gunner.glb" id="3_mg_gunner"]
+[ext_resource type="PackedScene" path="res://assets/models/su/infantry/rifleman.glb" id="4_rifleman"]
+[ext_resource type="PackedScene" path="res://assets/models/su/infantry/smg_gunner.glb" id="5_smg_gunner"]
+[ext_resource type="PackedScene" path="res://assets/models/su/infantry/squad_leader.glb" id="6_squad_leader"]
+
+[node name="su_inf_rifle_squad" type="Node3D"]
+script = ExtResource("1_squad")
+faction = "su"
+metadata/extras = {"cat_id": "su_inf_rifle_squad", "cat_faction": "su", "cat_category": "inf_rifle", "cat_name_de": "Schützengruppe", "cat_name_en": "Rifle Squad", "cat_designation": "Strelkovoye otdeleniye (shtat 04/550, 1943/44)", "cat_year_from": 1943, "cat_year_to": 1945, "cat_speed_road_kmh_x10": 50, "cat_speed_offroad_kmh_x10": 40, "cat_weapons": "6× Mosin-Nagant M1891/30; 2× PPSh-41; DP-27", "cat_squad_size": 9, "squad_members": ["squad_leader", "mg_gunner", "assistant_gunner", "smg_gunner", "rifleman", "rifleman", "rifleman", "rifleman", "rifleman"]}
+metadata/source_hash = "2069fc0812042ec3"
+
+[node name="M01_squad_leader" parent="." instance=ExtResource("6_squad_leader")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -3)
+
+[node name="M02_mg_gunner" parent="." instance=ExtResource("3_mg_gunner")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, -1.5)
+
+[node name="M03_assistant_gunner" parent="." instance=ExtResource("2_assistant_gunner")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, -1.5)
+
+[node name="M04_smg_gunner" parent="." instance=ExtResource("5_smg_gunner")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, -0)
+
+[node name="M05_rifleman" parent="." instance=ExtResource("4_rifleman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, -0)
+
+[node name="M06_rifleman" parent="." instance=ExtResource("4_rifleman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, 1.5)
+
+[node name="M07_rifleman" parent="." instance=ExtResource("4_rifleman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, 1.5)
+
+[node name="M08_rifleman" parent="." instance=ExtResource("4_rifleman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, 3)
+
+[node name="M09_rifleman" parent="." instance=ExtResource("4_rifleman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, 3)

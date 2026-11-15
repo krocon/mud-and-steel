@@ -6,6 +6,9 @@ extends Node3D
 ##
 ## Controls: right mouse drag = orbit, middle drag = pan, wheel = zoom,
 ## left click = select and focus, 1/2/3 = forest/desert/winter, F = frame all.
+## Infantry squads (`<faction>/<squad_id>.tscn`, SquadModel, prompt 006) are shown
+## with their soldiers' uniforms per biome; clicking a selected squad again plays
+## the next animation clip.
 ##
 ## `-- --self-test`: loads all models, checks the kit import (camo shader,
 ## sockets, catalog extras), switches through all biomes, quits with 0/1.
@@ -177,7 +180,7 @@ func _model_paths(dir_path: String) -> Array[String]:
 		return out
 	for f in dir.get_files():
 		var name := f.trim_suffix(".import").trim_suffix(".remap")
-		if name.ends_with(".glb") and not out.has(dir_path + "/" + name):
+		if (name.ends_with(".glb") or name.ends_with(".tscn")) and not out.has(dir_path + "/" + name):
 			out.append(dir_path + "/" + name)
 	out.sort()
 	return out
@@ -188,7 +191,10 @@ func _set_biome(biome: String) -> void:
 	for b: String in _biome_buttons:
 		_biome_buttons[b].button_pressed = b == biome
 	for model in _models:
-		UnitCamo.apply(model, UnitCamo.palette(model.get_meta(&"gallery_faction"), biome))
+		if model is SquadModel:
+			(model as SquadModel).apply_look(biome)
+		else:
+			UnitCamo.apply(model, UnitCamo.palette(model.get_meta(&"gallery_faction"), biome))
 	var gmat := _ground.material_override as StandardMaterial3D
 	gmat.albedo_color = {"forest": Color(0.33, 0.36, 0.24), "desert": Color(0.66, 0.58, 0.43),
 		"winter": Color(0.74, 0.76, 0.78)}[biome]
@@ -258,6 +264,8 @@ func _pick(screen_pos: Vector2) -> void:
 
 
 func _select(model: Node3D) -> void:
+	if model is SquadModel:
+		_next_clip(model as SquadModel, model == _selected)
 	_selected = model
 	var box := _aabb(model)
 	_focus = box.get_center()
@@ -279,7 +287,8 @@ func _describe(model: Node3D) -> String:
 	if c.has("cat_length_hull_mm"):
 		dims += " (hull %.2f)" % (c.cat_length_hull_mm / 1000.0)
 	dims += ", %.2f wide, %.2f high" % [c.get("cat_width_mm", 0) / 1000.0, c.get("cat_height_mm", 0) / 1000.0]
-	lines.append(dims)
+	if c.has("cat_length_mm"):  # infantry has no vehicle dimensions
+		lines.append(dims)
 	if c.has("cat_mass_kg"):
 		lines.append("Mass: %.1f t, crew %d" % [c.cat_mass_kg / 1000.0, c.get("cat_crew", 0)])
 	if c.has("cat_speed_road_kmh_x10"):
@@ -289,10 +298,25 @@ func _describe(model: Node3D) -> String:
 	if c.has("cat_armor_hull_front_mm"):
 		lines.append("Armor: hull front %d mm, side %d mm, turret front %d mm" % [
 			c.cat_armor_hull_front_mm, c.get("cat_armor_hull_side_mm", 0), c.get("cat_armor_turret_front_mm", 0)])
+	if c.has("cat_squad_size"):
+		lines.append("Squad: %d men (%s)" % [c.cat_squad_size, ", ".join(c.get("squad_members", []))])
+		lines.append("Animation: %s (click again for the next clip)" % model.get_meta(&"gallery_clip", "idle"))
 	lines.append("Weapons: %s" % c.get("cat_weapons", ""))
 	lines.append("Triangles: %d" % _triangles(model))
 	lines.append("Model: %s" % model.get_meta(&"gallery_path", ""))
 	return "\n".join(lines)
+
+
+## Squads: plays the next clip on every soldier when `advance`, else keeps the current one.
+func _next_clip(squad: SquadModel, advance: bool) -> void:
+	var names := SquadModel.clip_names()
+	if names.is_empty():
+		return
+	var current: String = squad.get_meta(&"gallery_clip", "idle")
+	var i := names.find(current)
+	var clip: String = names[(i + 1) % names.size()] if advance else current
+	squad.play(clip)
+	squad.set_meta(&"gallery_clip", clip)
 
 
 func _triangles(model: Node) -> int:
@@ -330,6 +354,9 @@ func _run_self_test() -> void:
 		if id.is_empty():
 			continue  # not a kit model (e.g. the placeholder tank)
 		ids.append(id)
+		if model is SquadModel:
+			_check_squad(model as SquadModel, cat, errors)
+			continue
 		var camo_surfaces := 0
 		for g in UnitCamo.meshes(model):
 			var mi := g as MeshInstance3D
@@ -343,7 +370,8 @@ func _run_self_test() -> void:
 					camo_surfaces += 1
 		if camo_surfaces == 0:
 			errors.append("%s: no unit_camo surfaces" % id)
-		if model.find_child("Socket_Muzzle", true, false) == null:
+		# unarmed vehicles (trucks) have no muzzle
+		if str(cat.get("cat_weapons", "")) != "" and model.find_child("Socket_Muzzle", true, false) == null:
 			errors.append("%s: Socket_Muzzle missing" % id)
 		if model.find_child("Decal", true, false) == null:
 			errors.append("%s: no marking decal" % id)
@@ -359,6 +387,9 @@ func _run_self_test() -> void:
 			if pal.biome != biome or pal.faction != faction:
 				errors.append("palette %s_%s missing" % [faction, biome])
 				continue
+			if model is SquadModel:
+				_check_squad_look(model as SquadModel, biome, errors)
+				continue
 			var hull := model.find_child("Hull", true, false) as GeometryInstance3D
 			if hull == null:
 				hull = model.find_child("Carriage", true, false) as GeometryInstance3D
@@ -371,6 +402,38 @@ func _run_self_test() -> void:
 		for e in errors:
 			printerr("self-test: FAIL " + e)
 		get_tree().quit(1)
+
+
+## Squad scene: soldier count as in the catalog, each with skeleton, clips and
+## (if armed) Socket_Muzzle, idle playing.
+func _check_squad(squad: SquadModel, cat: Dictionary, errors: Array[String]) -> void:
+	var id: String = cat.get("cat_id", "")
+	var soldiers := squad.soldiers()
+	if soldiers.size() != int(cat.get("cat_squad_size", -1)):
+		errors.append("%s: %d soldiers, catalog squad_size %s" % [id, soldiers.size(), cat.get("cat_squad_size")])
+	var muzzles := 0
+	for s in soldiers:
+		var player := SoldierLook.find_player(s)
+		if player == null or player.get_animation_list().size() < SquadModel.clip_names().size():
+			errors.append("%s/%s: animation clips missing" % [id, s.name])
+		elif player.current_animation != "idle":
+			errors.append("%s/%s: idle not playing" % [id, s.name])
+		if s.find_child("Socket_Muzzle", true, false) != null:
+			muzzles += 1
+	if muzzles == 0:
+		errors.append("%s: no armed soldier (Socket_Muzzle)" % id)
+	print("self-test: %s loaded, %d soldiers, %d armed, %d triangles" % [id, soldiers.size(), muzzles, _triangles(squad)])
+
+
+func _check_squad_look(squad: SquadModel, biome: String, errors: Array[String]) -> void:
+	if squad.biome() != biome:
+		errors.append("%s: look not applied for %s" % [squad.name, biome])
+		return
+	for s in squad.soldiers():
+		var body := s.find_child("Body", true, false) as MeshInstance3D
+		if body == null or body.get_surface_override_material(0) == null:
+			errors.append("%s/%s: uniform material not applied for %s" % [squad.name, s.name, biome])
+			return
 
 
 func _screenshots(dir: String) -> void:

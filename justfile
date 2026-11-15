@@ -115,15 +115,16 @@ unit faction id:
 units:
     {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python tools/blender/build_all.py -- --render "{{ RENDER_DIR }}"
 
-# Check all built models against the catalog and docs/ASSETS.md
+# Check all built models against the catalog and docs/ASSETS.md (incl. squads and soldiers)
 [group('assets')]
 validate-assets:
     {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python tools/blender/validate.py
+    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/validate_soldier.py
 
 # Render all built models side by side with the 1.80 m reference figure
 [group('assets')]
-lineup:
-    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python tools/blender/lineup.py -- "{{ RENDER_DIR }}/lineup.png"
+lineup faction="":
+    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python tools/blender/lineup.py -- "{{ RENDER_DIR }}/lineup{{ if faction == "" { "" } else { "_" + faction } }}.png" {{ faction }}
 
 # Smoke test of every kit part (builds demo vehicles without saving)
 [group('assets')]

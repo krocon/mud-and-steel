@@ -1,11 +1,13 @@
 """Renders all built models side by side with the 1.80 m reference figure.
 
-    blender -b --factory-startup --python tools/blender/lineup.py -- <output.png>
+    blender -b --factory-startup --python tools/blender/lineup.py -- <output.png> [<faction>]
 
 Appends every model with a blueprint (assets-src/blender/<faction>/<id>.blend)
 and the `ScaleReference` collection of assets-src/blender/reference/
 scale_reference.blend into an empty scene, places them in a row and renders
 an orthographic side view (true proportions) and a perspective view.
+Infantry squads (`assembly = "squad"`) are placed as their soldiers in the
+squad formation. An optional faction limits the line-up to that faction.
 Also prints the measured sizes so the line-up can be checked in text form.
 """
 
@@ -16,7 +18,7 @@ import bpy
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from kit import catalog, render  # noqa: E402
+from kit import catalog, render, squad  # noqa: E402
 from kit.core import descendants, world_bbox  # noqa: E402
 
 REFERENCE = catalog.REPO_ROOT / "assets-src" / "blender" / "reference" / "scale_reference.blend"
@@ -40,12 +42,33 @@ def merge_slot_materials():
             bpy.data.materials.remove(mat)
 
 
+def append_squad(faction, uid):
+    """Appends the squad's soldiers in formation under an empty named `uid`."""
+    bp = catalog.blueprint(faction, uid)
+    mem = squad.members(bp)
+    pts = squad.slots(bp.get("formation", "wedge"), float(bp.get("spacing", 2.0)), len(mem))
+    root = bpy.data.objects.new(uid, None)
+    bpy.context.scene.collection.objects.link(root)
+    for (role, _), (x, y) in zip(mem, pts):
+        for o in append_objects(squad.soldier_blend(faction, role)):
+            if o.parent is None:
+                o.parent = root
+                o.location = (x, y, 0.0)
+    return root
+
+
 def main():
     argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
     out = Path(argv[0] if argv else "build/renders/lineup.png").resolve()
+    only = argv[1] if len(argv) > 1 else None
     bpy.ops.wm.read_homefile(use_empty=True)
     roots = []
     for faction, uid in catalog.all_blueprints():
+        if only and faction != only:
+            continue
+        if squad.is_squad(faction, uid):
+            roots.append(append_squad(faction, uid))
+            continue
         blend = catalog.blend_path(faction, uid)
         if not blend.exists():
             print(f"lineup: skipping {uid} (not built)")
