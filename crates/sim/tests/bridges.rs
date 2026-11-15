@@ -306,3 +306,36 @@ fn unreachable_deck_targets_snap_for_heavy_units() {
         .unwrap();
     assert_eq!(path.goal, target);
 }
+
+#[test]
+fn railings_keep_units_on_the_deck() {
+    let map = river_map(&bridges_csv()).unwrap();
+    let on = Vec2::from_meters(0, WOOD_Y);
+    let edge = Vec2::new(Fixed::ZERO, Fixed::from_num(WOOD_Y) + Fixed::from_num(2));
+    let beside = Vec2::new(Fixed::ZERO, Fixed::from_num(WOOD_Y) + Fixed::from_num(3));
+    assert!(map.deck_step_ok(on, edge));
+    // Over the side: a 2 m drop into the river.
+    assert!(!map.deck_step_ok(edge, beside));
+    assert!(!map.deck_step_ok(beside, edge));
+    // Over the end: onto the bank at deck height.
+    let end = Vec2::from_meters(8, WOOD_Y);
+    assert!(map.deck_step_ok(end, Vec2::from_meters(9, WOOD_Y)));
+    // Beside the end, where the bank is as high as the deck.
+    assert!(map.deck_step_ok(
+        Vec2::from_meters(7, WOOD_Y + 2),
+        Vec2::from_meters(7, WOOD_Y + 3)
+    ));
+}
+
+#[test]
+fn units_do_not_drive_down_cliffs() {
+    let rules = TerrainRules::builtin().unwrap();
+    let max = Fixed::from_num(rules.slope.max_grade_pct) / 100;
+    assert!(rules.slope.factor(-max).is_some());
+    assert!(
+        rules
+            .slope
+            .factor(-max - Fixed::from_num(1) / 100)
+            .is_none()
+    );
+}

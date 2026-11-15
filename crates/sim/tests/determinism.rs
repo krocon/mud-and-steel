@@ -21,10 +21,12 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by prompt 013: `test_small` has map objects (woods,
-/// hedges, a village; `objects.csv`), their shapes block path cells by size
-/// class (`data/objects.toml`), and the map hash covers them.
-/// Before: prompt 012 (units drive along A* paths on the 4 m path grid, one
+/// Last changed by prompt 014: `test_small` was regenerated with a deeper
+/// river profile, a stone and a timber bridge with ramps (bridge objects
+/// with decks, `data/objects.toml`), a narrowed river at the bridges and
+/// stones in the river; the map hash covers the bridges.
+/// Before: prompt 013 (`test_small` has map objects: woods, hedges, a
+/// village; their shapes block path cells by size class), prompt 012 (units drive along A* paths on the 4 m path grid, one
 /// path per group, formation offsets, separation, re-planning, path queue
 /// with a node budget, unreachable targets snap to the nearest reachable
 /// cell; routes, queue and grid version in the hash; wider fords), prompt 010 (map `test_small`, ground height, terrain- and
@@ -35,7 +37,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x9d8c_67c2_92c6_6be5;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xc898_16b4_95c7_a23a;
 
 #[test]
 fn golden_hash() {

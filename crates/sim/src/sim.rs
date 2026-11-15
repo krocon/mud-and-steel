@@ -814,7 +814,8 @@ enum Moved {
 /// terrain under it and the grade ahead, deflected by `push` (separation;
 /// the step never gets longer than the speed).
 ///
-/// The unit never enters impassable terrain or leaves the map. If neither
+/// The unit never enters impassable terrain, leaves the map or climbs over
+/// the side of a bridge deck ([`Map::deck_step_ok`]). If neither
 /// the pushed nor the direct step is possible, it slides along the obstacle
 /// (only the x or only the y part of the step); if that fails too, it
 /// reports [`Moved::Blocked`]. Pushed and sliding steps must also stay on
@@ -839,8 +840,12 @@ fn move_unit(
         let Some(speed) = ground_speed(unit, direction, map, rules) else {
             return Moved::Blocked;
         };
-        let valid =
-            |p: Vec2| map.contains(p) && rules.types[usize::from(map.terrain_at(p))].passable;
+        let from = unit.position;
+        let valid = |p: Vec2| {
+            map.contains(p)
+                && rules.types[usize::from(map.terrain_at(p))].passable
+                && map.deck_step_ok(from, p)
+        };
         let off_grid = !clear(unit.position);
         let detour_ok = |p: Vec2| off_grid || clear(p);
         let candidates = if (waypoint - unit.position).length() <= speed {

@@ -138,6 +138,10 @@ struct MapFile {
     marker: Vec<MarkerEntry>,
 }
 
+/// Height difference (mm) between a deck and the ground beside it up to
+/// which units may step on or off the deck sideways ([`Map::deck_step_ok`]).
+pub const DECK_SIDE_STEP_MM: i32 = 500;
+
 /// Default of [`Map::water_flow_deg`]: south.
 pub const DEFAULT_WATER_FLOW_DEG: u16 = 180;
 
@@ -596,6 +600,26 @@ impl Map {
             Some(bridge) => bridge.terrain,
             None => self.ground_terrain_at(point),
         }
+    }
+
+    /// Whether a unit may step from `from` to `to` as far as bridges are
+    /// concerned: it gets on or off a deck only over one of its ends, or
+    /// where the ground beside the deck is about as high as the deck
+    /// (abutments). Elsewhere the railings are in the way and the drop
+    /// would be too deep.
+    pub fn deck_step_ok(&self, from: Vec2, to: Vec2) -> bool {
+        self.bridges.iter().filter(|b| b.intact).all(|b| {
+            let (on_from, on_to) = (b.covers(from), b.covers(to));
+            if on_from == on_to {
+                return true;
+            }
+            let (off, on) = if on_from { (to, from) } else { (from, to) };
+            let (along, across) = b.local(off);
+            let over_end = along.abs() > b.half_length && across.abs() <= b.half_width;
+            let level = (self.ground_height_at(off) - b.height_at(on)).abs()
+                <= Fixed::from_num(DECK_SIDE_STEP_MM) / Fixed::from_num(1000);
+            over_end || level
+        })
     }
 
     /// Whether sample `(i, j)` lies under the deck of an intact bridge.
