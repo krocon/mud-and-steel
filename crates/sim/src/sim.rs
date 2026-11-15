@@ -5,6 +5,7 @@ use crate::data::UnitType;
 use crate::hash::StableHasher;
 use crate::map::{Map, MapRef};
 use crate::math::{Fixed, Vec2};
+use crate::outcome::{Outcome, PlayerStanding, Standings};
 use crate::path::{NODE_BUDGET_PER_TICK, Path, PathGrid, PathStats, Pathfinder, Request};
 use crate::rng::Rng;
 use crate::terrain::TerrainRules;
@@ -166,6 +167,8 @@ pub struct Sim {
     map: Arc<Map>,
     terrain: TerrainRules,
     paths: Pathfinder,
+    /// Defeated players and the result (prompt 027).
+    standings: Standings,
 }
 
 impl Sim {
@@ -220,6 +223,7 @@ impl Sim {
             map,
             terrain: config.terrain.clone(),
             paths: Pathfinder::new(grid),
+            standings: Standings::new(&config.players()),
         })
     }
 
@@ -272,6 +276,26 @@ impl Sim {
         self.plan_paths();
         self.move_units();
         self.tick += 1;
+        let units = &self.units;
+        self.standings
+            .update(self.tick, |player| living_units(units, player));
+    }
+
+    /// Number of living units of `player`. Victory conditions count these;
+    /// every unit in the match is alive until combat (prompt 017) can
+    /// destroy units.
+    pub fn living_units(&self, player: PlayerId) -> usize {
+        living_units(&self.units, player)
+    }
+
+    /// Every player of the match (ascending) and whether they are defeated.
+    pub fn standings(&self) -> &[PlayerStanding] {
+        self.standings.players()
+    }
+
+    /// The result, once the match is decided. It never changes afterwards.
+    pub const fn outcome(&self) -> Option<Outcome> {
+        self.standings.outcome()
     }
 
     /// Blocks (or frees) the area between the corners `a` and `b` for
@@ -449,6 +473,14 @@ impl Sim {
                     stop(&mut self.units[index]);
                 }
             }
+            Command::Surrender => self.standings.surrender(command.player, self.tick + 1),
+            Command::RemoveUnits { units } => {
+                let removed = self.owned_indices(command.player, units);
+                // Ascending indices: removing from the back keeps the rest valid.
+                for index in removed.into_iter().rev() {
+                    self.units.remove(index);
+                }
+            }
         }
     }
 
@@ -557,6 +589,7 @@ impl Sim {
             h.write_i64(unit.speed_road.to_bits());
             h.write_i64(unit.footprint.to_bits());
         }
+        self.standings.hash_into(&mut h);
         h.finish()
     }
 
@@ -578,6 +611,11 @@ impl Sim {
                 .collect(),
         }
     }
+}
+
+/// Living units of `player` (see [`Sim::living_units`]).
+fn living_units(units: &[Unit], player: PlayerId) -> usize {
+    units.iter().filter(|u| u.owner == player).count()
 }
 
 fn within_world(point: Vec2) -> bool {

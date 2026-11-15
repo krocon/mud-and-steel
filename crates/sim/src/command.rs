@@ -26,6 +26,12 @@ pub enum Command {
     MoveTo { units: Vec<UnitId>, target: Vec2 },
     /// `units` stop where they are.
     Stop { units: Vec<UnitId> },
+    /// The issuing player gives up and is defeated (prompt 027).
+    Surrender,
+    /// Removes `units` from the match. Only the issuer's own units, so it
+    /// cannot be used to cheat. A test command until combat (prompt 017)
+    /// destroys units; the bridge sends it only in single player.
+    RemoveUnits { units: Vec<UnitId> },
 }
 
 /// A command together with the player that issued it, as the simulation

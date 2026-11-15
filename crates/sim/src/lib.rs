@@ -16,6 +16,7 @@ mod hash;
 pub mod map;
 mod math;
 pub mod objects;
+mod outcome;
 pub mod path;
 mod rng;
 pub mod scale;
@@ -30,6 +31,7 @@ pub use hash::StableHasher;
 pub use map::{Biome, Map, MapError, MapRef};
 pub use math::{Fixed, Vec2};
 pub use objects::{Blocks, MapObject, ObjectKind, ObjectRules};
+pub use outcome::{DefeatReason, Outcome, PlayerStanding};
 pub use rng::Rng;
 pub use scale::Scale;
 pub use sim::{

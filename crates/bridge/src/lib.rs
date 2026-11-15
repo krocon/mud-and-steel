@@ -10,7 +10,7 @@ use net::{
     LocalTransport, LockstepConfig, LockstepSession, NetError, Replay, ReplayRecorder, Transport,
     recommended_input_delay,
 };
-use sim::scenario::{BUILTIN_MAP_NAME, DEMO_SCENARIO, builtin_map, parse_scenario};
+use sim::scenario::{BUILTIN_MAP_NAME, DEMO_SCENARIO, builtin_map, parse_scenario_with_factions};
 use sim::{
     Catalog, Command, Fixed, Map, PlayerId, RouteView, Scale, Sim, SimConfig, Snapshot,
     TerrainRules, UnitId, Vec2,
@@ -19,6 +19,7 @@ use std::path::Path;
 use std::sync::Arc;
 
 mod lan;
+mod match_funcs;
 mod object_funcs;
 mod objects;
 mod terrain_layers;
@@ -252,7 +253,7 @@ impl SimHost {
     /// `false` (and logs an error) if the data is invalid.
     #[func]
     fn start(&mut self, seed: i64) -> bool {
-        self.start_with(seed, builtin_map())
+        self.start_with(seed, builtin_map(), &[])
     }
 
     /// Like `start`, but on the map in the folder `map_dir` (absolute path
@@ -260,7 +261,7 @@ impl SimHost {
     #[func]
     fn start_on_map(&mut self, seed: i64, map_dir: GString) -> bool {
         match load_map_dir(Path::new(&map_dir.to_string())) {
-            Ok(map) => self.start_with(seed, Arc::new(map)),
+            Ok(map) => self.start_with(seed, Arc::new(map), &[]),
             Err(e) => {
                 godot_error!("{e}");
                 false
@@ -268,8 +269,10 @@ impl SimHost {
         }
     }
 
-    fn start_with(&mut self, seed: i64, map: Arc<Map>) -> bool {
-        let config = match demo_config(&map) {
+    /// Starts the demo scenario on `map`; `factions` replaces the units of
+    /// the listed players by those of their faction (prompt 027).
+    fn start_with(&mut self, seed: i64, map: Arc<Map>, factions: &[(PlayerId, &str)]) -> bool {
+        let config = match demo_config(&map, factions) {
             Ok(config) => config,
             Err(e) => {
                 godot_error!("{e}");
@@ -825,10 +828,26 @@ impl SimHost {
         positions(&self.current)
     }
 
-    /// Unit positions of the snapshot before the latest one.
+    /// Unit positions of the snapshot before the latest one, in the order
+    /// of `unit_ids` (units can disappear between ticks; a unit that was not
+    /// in the previous snapshot gets its current position).
     #[func]
     fn previous_positions(&self) -> PackedVector3Array {
-        positions(&self.previous)
+        if self.previous.units.len() == self.current.units.len() {
+            return positions(&self.previous);
+        }
+        self.current
+            .units
+            .iter()
+            .map(|u| {
+                let before = self
+                    .previous
+                    .units
+                    .binary_search_by_key(&u.id, |p| p.id)
+                    .map_or(u, |i| &self.previous.units[i]);
+                ground_to_godot(before.position, before.height)
+            })
+            .collect()
     }
 
     /// How far real time has progressed from the previous towards the latest
@@ -992,13 +1011,18 @@ impl SimHost {
 }
 
 /// The demo scenario from the catalog, scale and terrain rules compiled
-/// into `sim`, on `map`.
-fn demo_config(map: &Map) -> Result<SimConfig, Box<dyn std::error::Error>> {
+/// into `sim`, on `map`, with the units of the players in `factions`
+/// replaced by those of their faction.
+fn demo_config(
+    map: &Map,
+    factions: &[(PlayerId, &str)],
+) -> Result<SimConfig, Box<dyn std::error::Error>> {
     let catalog = Catalog::builtin()?;
     let scale = Scale::builtin()?;
     let terrain = TerrainRules::builtin()?;
-    Ok(parse_scenario(
+    Ok(parse_scenario_with_factions(
         DEMO_SCENARIO,
+        factions,
         &catalog,
         &scale,
         &terrain,
