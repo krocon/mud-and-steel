@@ -50,6 +50,8 @@ extends Node3D
 ## `-- --mode=base` starts the base-building skirmish directly (prompt 023);
 ## `-- --scenario=<file>` starts a scenario file of `data/scenarios/`;
 ## `-- --infantry-bench` runs `tools/infantry_bench.gd`.
+## Sound (prompt 029): `audio/battle_sound.gd`; `-- --no-sound` leaves it
+## out (benchmark comparison).
 
 const UNIT_SCENE: PackedScene = preload("res://scenes/unit.tscn")
 const SelfTest := preload("res://scenes/self_test.gd")
@@ -83,6 +85,7 @@ const GameMenu := preload("res://scenes/menu/game_menu.gd")
 const BaseView := preload("res://scenes/world/base_view.gd")
 const BaseHud := preload("res://scenes/world/base_hud.gd")
 const BaseShots := preload("res://scenes/tools/base_shots.gd")
+const BattleSound := preload("res://scenes/audio/battle_sound.gd")
 const SEED := 42
 ## Map folders, relative to the Godot project (repository checkout only).
 const MAPS_DIR := "res://../data/maps"
@@ -145,6 +148,8 @@ var crater_view: Node
 ## Buildings, sites, supply points and the base HUD (prompt 023).
 var base_view: BaseView
 var base_hud: BaseHud
+## Weapons, impacts, engines and notices (prompt 029); null with --no-sound.
+var battle_sound: BattleSound
 ## Pause menu and result screen (prompt 027).
 var game_menu: CanvasLayer
 var _loading: CanvasLayer
@@ -241,6 +246,12 @@ func _ready() -> void:
 	$Hud.add_child(base_hud)
 	base_hud.setup(self, base_view)
 	selection.is_structure = func(id: int) -> bool: return base_view.structures.has(id)
+	if not "--no-sound" in OS.get_cmdline_user_args():
+		battle_sound = BattleSound.new()
+		battle_sound.name = "BattleSound"
+		add_child(battle_sound)
+		battle_sound.setup(self)
+		battle_sound.visible_at = effects.visible_at
 
 	selection.sim_host = sim_host
 	selection.camera = camera

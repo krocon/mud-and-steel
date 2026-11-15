@@ -383,6 +383,18 @@ effects-bench: build
 crater-view-bench map="test_small": build
     {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- --effects-craters --map={{ map }}
 
+# --- Sound (prompt 029) --------------------------------------------------------------
+
+# Synthesize the sounds into godot/assets/audio/ (all classes, or the given ones; needs python3 with numpy; then: just import)
+[group('sound')]
+audio *classes:
+    python3 tools/audio/synth.py {{ classes }}
+
+# Play every sound class once, then click to replay (`just sound-gallery --sound-gallery-once` quits after the round)
+[group('sound')]
+sound-gallery *args: build
+    {{ GODOT }} --path godot -- --sound-gallery {{ args }}
+
 # --- LAN multiplayer (prompt 025) ----------------------------------------------------
 
 # Build the bridge and open the LAN lobby (host, search, join, start); args e.g. --map=test_large

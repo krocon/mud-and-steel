@@ -541,6 +541,47 @@ intact one), lowest point on the ground (sunken: at -depth), ground contact
 centered (not for chained segments), the .glb matches the .blend, catalog
 `model` field, and that every neutral catalog entry has a blueprint.
 
+## Audio (prompt 029)
+
+```
+tools/audio/synth.py                  recipes: noise, partials, envelopes, filters (numpy)
+assets-src/audio/<class>/*.wav|ogg|mp3|flac   recordings or generated sounds of other origin (optional)
+        │  just audio [classes]   (normalize, trim, fade, mono 44.1 kHz)
+godot/assets/audio/<class>/*.wav      game files (Git LFS), imported by `just import`
+godot/assets/audio/sounds.json        manifest: class -> group, bus, level, range, priority
+```
+
+- **Classes, not units.** A sound class (`shot_cannon_medium`,
+  `hit_ricochet`, `engine_track_heavy`, `ui_order` …) is a folder of
+  variants; the game plays a random one with a little pitch spread. Units
+  get their class from the catalog (category, caliber, rate of fire, mass;
+  `scenes/audio/sound_classes.gd`), never one by one.
+- **Format.** 16-bit PCM WAV, mono, 44.1 kHz, peak at −1 dBFS; Godot
+  imports them QOA-compressed. Loops (`"loop": true`) are built periodic
+  (whole cycles, noise shaped over the whole loop) and carry a `smpl` loop
+  chunk that Godot reads. [provisional] OGG Vorbis was planned for long
+  loops, but the only encoder on the machine (ffmpeg's built-in `vorbis`)
+  is experimental, stereo-only and not reliably gapless; our loops are 4–6
+  s and small as WAV. Music (prompt 030) may need OGG and libvorbis.
+- **One-shots** start at their first sample (no silence before the
+  attack: timing in a battle), end with a 30 ms fade, trailing silence
+  below −60 dB is cut.
+- **Levels** are set in the manifest (`volume_db`), not baked into files,
+  so all files stay normalized and a class can be balanced without
+  regenerating.
+- **Other origins.** Files in `assets-src/audio/<class>/` replace the
+  synthesized variants of that class on the next `just audio` and take the
+  same steps (prepared as `ext_<name>.wav`; formats other than 16-bit 44.1
+  kHz WAV need ffmpeg). Each needs an entry in
+  [SOURCES.md](SOURCES.md#sounds): CC0 link, or for AI-generated sounds the
+  tool, prompt and a license that allows commercial use. No sounds from
+  other games.
+- **New class:** add it to `sounds.json` (group, bus, levels, `variants`),
+  write a recipe in `synth.py` or put files into `assets-src/audio/<class>/`,
+  run `just audio <class>` and `just import`, and map it in
+  `sound_classes.gd` or `battle_sound.gd`. `just sound-gallery` plays it;
+  the self-test checks that every class has a loadable file.
+
 ## Markings
 
 National markings and numbers are decals at the `Socket_Marking_*` empties, never

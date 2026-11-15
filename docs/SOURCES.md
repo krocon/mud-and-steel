@@ -35,6 +35,7 @@ In this order:
   Steel Division and the like). Their values are often balanced, not historical, and
   their assets are protected.
 - Own assets are built by us or are CC0.
+- Sounds: see [Sounds](#sounds).
 
 ## Markings and symbols
 
@@ -47,3 +48,25 @@ In this order:
 - **Medics without the Red Cross.** The red cross is a protected emblem under the
   Geneva Conventions and its use is restricted. Medics are marked by a plain white
   armband and a medical bag instead.
+
+## Sounds
+
+Prompt 029. Every file in `godot/assets/audio/` names its origin here.
+
+| Files | Origin | License |
+|---|---|---|
+| `godot/assets/audio/<class>/<class>_NN.wav`, all 38 classes of `sounds.json` | Synthesized by `tools/audio/synth.py` (`just audio`): noise, sine partials, envelopes, filters and a convolution tail, a recipe per class, seeded per variant. No recordings, samples or presets of anyone else. | Own work, same license as the code |
+
+Files of other origin go to `assets-src/audio/<class>/` and get a row
+here before they are committed:
+
+- **CC0 recordings:** link to the file page (e.g. on freesound.org with
+  the CC0 mark), author, date downloaded. Only CC0; attribution licenses
+  (CC BY) need a credits screen first.
+- **AI-generated sounds** (text-to-sound tools): tool and version, the
+  full prompt, date, and the license of the output; it must allow
+  commercial use.
+- **Never** sounds from other games or game mods, from films, or
+  "royalty-free" packs whose license forbids redistribution in source
+  form (the repository ships the WAV files).
+- Downloads are agreed with the maintainer first.
