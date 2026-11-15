@@ -119,6 +119,8 @@ units:
 [group('assets')]
 validate-assets:
     {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python tools/blender/validate.py
+    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/validate_soldier.py
+    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/build_squad.py -- --check
     {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/validate_env.py
 
 # Render all built models side by side with the 1.80 m reference figure
@@ -172,6 +174,46 @@ infantry-preview: build
 [group('infantry')]
 infantry-selftest: build
     {{ GODOT }} --path godot --headless res://scenes/tools/infantry_preview.tscn -- --self-test
+
+# --- Squads (prompt 006) ------------------------------------------------------------
+
+# Build one infantry squad scene from assets-src/blueprints/<faction>/squads/<id>.toml
+[group('infantry')]
+squad faction id:
+    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/build_squad.py -- {{ faction }} {{ id }}
+
+# Build every squad scene (all factions)
+[group('infantry')]
+squads:
+    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/build_squad.py -- --all
+
+# Check all squads against the catalog (squad size, roles, built soldiers, up to date)
+[group('infantry')]
+validate-squads:
+    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/build_squad.py -- --check
+
+# --- Maps (prompt 010) ---------------------------------------------------------------
+
+# Generate a test map from a seed into data/maps/<name>/ (see docs/MAPS.md)
+[group('maps')]
+gen-map name size_m="500" seed="1":
+    cargo run -q --release -p cli -- gen-map --name {{ name }} --size-m {{ size_m }} --seed {{ seed }}
+
+# Regenerate both committed test maps (changes the golden hash if test_small changes)
+[group('maps')]
+test-maps:
+    just gen-map test_small 500 7
+    just gen-map test_large 4000 11
+
+# Load a map and report load time, memory, height range and terrain shares
+[group('maps')]
+map-info name="test_large":
+    cargo run -q --release -p cli -- map-info data/maps/{{ name }}
+
+# Build the bridge and start the game on a map from data/maps/
+[group('maps')]
+run-map name="test_large": build
+    {{ GODOT }} --path godot -- --map={{ name }}
 
 # --- Environment objects (prompt 007) ----------------------------------------------
 

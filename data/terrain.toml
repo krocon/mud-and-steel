@@ -1,0 +1,88 @@
+# Terrain types and slope rules. Integers only. Compiled into the simulation
+# (`sim::TerrainRules::builtin`); see docs/MAPS.md.
+#
+# These are game rules, not historical catalog values: they scale the speeds
+# from the unit catalog. Balancing happens here.
+#
+# Every [[terrain]] entry:
+#   id          value of the pixel in a map's terrain.png; ids are 0, 1, 2, ...
+#               in file order
+#   name        identifier used in docs and tools
+#   speed       which catalog speed the unit uses here: "road" or "offroad"
+#               (units without a road speed fall back to offroad)
+#   speed_pct   percent of that speed (1..=200)
+#   passable    false: units do not enter it (until pathfinding, prompt 012,
+#               they simply stop at the edge)
+#   debug_color 0xRRGGBB for the debug terrain mesh and the PNG palette
+
+[slope]
+# Uphill, the speed drops by `uphill_penalty_pct` percent per 100 % grade
+# (rise / run), but not below `min_speed_pct`. Downhill has no effect yet.
+# Steeper than `max_grade_pct` (60 % = 31 degrees) cannot be climbed.
+uphill_penalty_pct = 200
+min_speed_pct = 20
+max_grade_pct = 60
+
+[[terrain]]
+id = 0
+name = "grass"
+speed = "offroad"
+speed_pct = 100
+passable = true
+debug_color = 0x5f7d3a
+
+[[terrain]]
+id = 1
+name = "dirt_track"
+speed = "offroad"
+speed_pct = 125
+passable = true
+debug_color = 0x8a7350
+
+[[terrain]]
+id = 2
+name = "road"
+speed = "road"
+speed_pct = 100
+passable = true
+debug_color = 0x7a7a74
+
+[[terrain]]
+id = 3
+name = "sand"
+speed = "offroad"
+speed_pct = 70
+passable = true
+debug_color = 0xc8b47a
+
+[[terrain]]
+id = 4
+name = "mud"
+speed = "offroad"
+speed_pct = 40
+passable = true
+debug_color = 0x4e3d2a
+
+[[terrain]]
+id = 5
+name = "snow"
+speed = "offroad"
+speed_pct = 60
+passable = true
+debug_color = 0xe8ecef
+
+[[terrain]]
+id = 6
+name = "shallow_water"
+speed = "offroad"
+speed_pct = 30
+passable = true
+debug_color = 0x4f7f9a
+
+[[terrain]]
+id = 7
+name = "deep_water"
+speed = "offroad"
+speed_pct = 100
+passable = false
+debug_color = 0x23465e

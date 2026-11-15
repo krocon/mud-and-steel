@@ -23,11 +23,17 @@ fn recorded_match_replays_to_the_same_hash() {
     let decoded = Replay::decode(&bytes).unwrap();
     assert_eq!(decoded, replay);
 
-    let report = decoded.verify().unwrap();
+    let report = decoded.verify(sim::scenario::builtin_map()).unwrap();
     assert!(report.matches(), "{report:?}");
     assert_eq!(report.ticks, TICKS);
     assert_eq!(report.actual_hash, a.sim.state_hash());
-    assert_eq!(decoded.play().unwrap().snapshot(), a.sim.snapshot());
+    assert_eq!(
+        decoded
+            .play(sim::scenario::builtin_map())
+            .unwrap()
+            .snapshot(),
+        a.sim.snapshot()
+    );
 }
 
 #[test]
@@ -47,6 +53,9 @@ fn tampered_replay_is_reported() {
         .expect("the demo issues move commands");
     *command = Vec2::from_meters(1, 2);
 
-    let report = Replay::decode(&replay.encode()).unwrap().verify().unwrap();
+    let report = Replay::decode(&replay.encode())
+        .unwrap()
+        .verify(sim::scenario::builtin_map())
+        .unwrap();
     assert!(!report.matches());
 }

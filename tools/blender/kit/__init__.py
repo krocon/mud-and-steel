@@ -10,7 +10,7 @@ Module overview:
 - `catalog`     reads data/catalog/*.toml and blueprints
 - `registry`    part and assembly registry (`@part`, `@assembly`)
 - `running_gear`, `wheels`, `hull`, `turret`, `weapons`, `attachments`,
-  `artillery`, `aircraft`   generic parts
+  `artillery`, `aircraft`, `vehicles`   generic parts
 - `parts_de`, `parts_su`, `parts_us`   faction-specific parts
 - `assemblies`  whole-unit builders (`tank`, `towed_gun`, ...)
 """
@@ -28,6 +28,8 @@ _MODULES = (
     "attachments",
     "artillery",
     "aircraft",
+    "vehicles",
+    "trucks",
     "parts_de",
     "parts_su",
     "parts_us",

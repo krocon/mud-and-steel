@@ -7,18 +7,27 @@ extends Node3D
 ##
 ## On exit the match is written as a replay to `user://replays/`.
 ##
+## The match runs on the map compiled into the simulation (`test_small`);
+## `-- --map=<name>` loads `data/maps/<name>/` from the repository instead
+## (e.g. `--map=test_large`). The height field is drawn as a coarse debug
+## mesh (`terrain/terrain_debug.gd`) until prompt 011.
+##
 ## Start with `-- --self-test` to drive camera, selection and orders
 ## automatically and quit with exit code 0 (pass) or 1 (fail); see
 ## `self_test.gd`. Start with `-- --camera-shots` (together with
-## `--write-movie`) to record three fixed camera views.
+## `--write-movie`) to record three fixed camera views, or with `-- --demo` to
+## play the scripted demo in `tools/demo_reel.gd`.
 
 const UNIT_SCENE: PackedScene = preload("res://scenes/unit.tscn")
 const SelfTest := preload("res://scenes/self_test.gd")
+const DemoReel := preload("res://scenes/tools/demo_reel.gd")
+const GroundPick := preload("res://scenes/camera/ground_pick.gd")
 const SEED := 42
-## Size of the test ground in meters, centered on the origin. Prompt 010
-## replaces this with the size of the loaded map.
-const MAP_SIZE := Vector2(2000, 2000)
+## Map folders, relative to the Godot project (repository checkout only).
+const MAPS_DIR := "res://../data/maps"
 const REPLAY_DIR := "user://replays"
+## Unit models built by the Blender kit, one folder per faction.
+const MODELS_DIR := "res://assets/models/"
 ## Camera distances (meters) recorded by --camera-shots.
 const SHOT_DISTANCES: Array[float] = [15.0, 120.0, 600.0]
 const FRAMES_PER_SHOT := 30
@@ -27,7 +36,7 @@ const MARKER_SECONDS := 1.0
 ## Selection ring radius relative to the unit footprint.
 const RING_SCALE := 0.65
 ## Tint over the models of other players (until real markings exist).
-const ENEMY_TINT := Color(0.85, 0.2, 0.15, 0.45)
+const ENEMY_TINT := Color(0.85, 0.2, 0.15, 0.22)
 
 @onready var sim_host: SimHost = $SimHost
 @onready var camera_rig: Node3D = $RtsCamera
@@ -35,6 +44,7 @@ const ENEMY_TINT := Color(0.85, 0.2, 0.15, 0.45)
 @onready var sun: DirectionalLight3D = $Sun
 @onready var units_root: Node3D = $Units
 @onready var target_marker: MeshInstance3D = $TargetMarker
+@onready var terrain: MeshInstance3D = $Terrain
 @onready var selection: Control = $Hud/Selection
 
 var _unit_nodes: Dictionary[int, Node3D] = {}
@@ -45,22 +55,25 @@ var _enemy_material: StandardMaterial3D
 
 
 func _ready() -> void:
-	camera_rig.bounds = Rect2(-MAP_SIZE * 0.5, MAP_SIZE)
 	sun.look_at_from_position(Vector3(10, 20, 5), Vector3.ZERO, Vector3.UP)
-	camera_rig.snap_to(Vector3(0, 0, 40), 140.0)
 
 	_enemy_material = StandardMaterial3D.new()
 	_enemy_material.albedo_color = ENEMY_TINT
 	_enemy_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	_enemy_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 
-	if not sim_host.start(SEED):
+	if not _start_simulation():
 		push_error("SimHost failed to start")
 		get_tree().quit(1)
 		return
-	print("Mud and Steel: simulation running at %d Hz, input delay %d tick(s)" % [
-		sim_host.tick_rate(), sim_host.input_delay
+	print("Mud and Steel: map '%s' (%s m), simulation running at %d Hz, input delay %d tick(s)" % [
+		sim_host.map_name(), sim_host.map_size(), sim_host.tick_rate(), sim_host.input_delay
 	])
+	GroundPick.height_source = sim_host
+	var map_size := sim_host.map_size()
+	camera_rig.bounds = Rect2(-map_size * 0.5, map_size)
+	camera_rig.snap_to(Vector3(0, 0, 40), 140.0)
+	terrain.build(sim_host)
 
 	selection.sim_host = sim_host
 	selection.camera = camera
@@ -74,6 +87,10 @@ func _ready() -> void:
 		add_child(test)
 	if _camera_shots:
 		camera_rig.edge_scroll_enabled = false
+	if "--demo" in OS.get_cmdline_user_args():
+		var demo := DemoReel.new()
+		demo.main = self
+		add_child(demo)
 
 
 func _process(delta: float) -> void:
@@ -88,6 +105,16 @@ func _process(delta: float) -> void:
 
 func _exit_tree() -> void:
 	save_replay()
+	GroundPick.height_source = null
+
+
+## Starts the built-in map, or the one named by `--map=<name>`.
+func _start_simulation() -> bool:
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--map="):
+			var dir := ProjectSettings.globalize_path(MAPS_DIR.path_join(arg.trim_prefix("--map=")))
+			return sim_host.start_on_map(SEED, dir.simplify_path())
+	return sim_host.start(SEED)
 
 
 ## Writes the match so far to `user://replays/<date-time>.msreplay` and
@@ -111,7 +138,7 @@ func save_replay() -> String:
 
 
 func _show_target_marker(point: Vector3) -> void:
-	target_marker.position = Vector3(point.x, 0.02, point.z)
+	target_marker.position = point + Vector3(0, 0.05, 0)
 	target_marker.visible = true
 	_marker_time_left = MARKER_SECONDS
 
@@ -138,6 +165,7 @@ func _unit_node(id: int, index: int) -> Node3D:
 	if not _unit_nodes.has(id):
 		var node := UNIT_SCENE.instantiate() as Node3D
 		node.name = "Unit%d" % id
+		_use_catalog_model(node, sim_host.unit_type_ids()[index], id)
 		units_root.add_child(node)
 		_unit_nodes[id] = node
 		var radius := sim_host.unit_footprints()[index] * RING_SCALE
@@ -145,6 +173,24 @@ func _unit_node(id: int, index: int) -> Node3D:
 		if sim_host.unit_owners()[index] != sim_host.local_player():
 			_tint(node, _enemy_material)
 	return _unit_nodes[id]
+
+
+## Replaces the placeholder with the unit's model from
+## `res://assets/models/<faction>/<catalog id>.glb`, if one exists, and paints
+## it with the faction palette (forest until maps choose a biome, prompt 015).
+func _use_catalog_model(node: Node3D, type_id: String, id: int) -> void:
+	var faction := type_id.get_slice("_", 0)
+	var path := "%s%s/%s.glb" % [MODELS_DIR, faction, type_id]
+	if type_id.is_empty() or not ResourceLoader.exists(path):
+		return
+	var placeholder := node.get_node("Model")
+	node.remove_child(placeholder)
+	placeholder.free()
+	var model := (load(path) as PackedScene).instantiate() as Node3D
+	model.name = "Model"
+	node.add_child(model)
+	UnitCamo.apply(model, UnitCamo.palette(faction, "forest"))
+	UnitCamo.add_markings(model, faction, 100 + id)
 
 
 func _tint(node: Node, material: Material) -> void:

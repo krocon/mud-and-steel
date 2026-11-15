@@ -32,12 +32,12 @@ Transport (later): Steam online, ENet on LAN
 
 | Crate / folder  | Responsibility | Depends on |
 |-----------------|----------------|------------|
-| `crates/sim`    | Game rules and state. `Sim::new(config, seed)`, `step(&[PlayerCommand])`, `state_hash()`, `snapshot()`. Players and unit ownership, group commands with formation, fixed-point math, RNG, stable hash, unit catalog, scale and scenarios (compiled in). | `fixed`, `serde`, `toml` |
+| `crates/sim`    | Game rules and state. `Sim::new(config, map, seed)`, `step(&[PlayerCommand])`, `state_hash()`, `snapshot()`. Players and unit ownership, group commands with formation, maps (height field, terrain), fixed-point math, RNG, stable hash, unit catalog, scale, terrain rules and scenarios (compiled in, like the map `test_small`). | `fixed`, `serde`, `toml`, `png` |
 | `crates/net`    | Lockstep protocol: `CommandFrame`, `HashReport`, `LockstepSession` (input delay, desync detection), `Transport` trait, `LoopbackTransport` for tests, `LocalTransport` for single player. Replays (`net::replay`). | `sim`, `postcard` |
-| `crates/cli`    | Headless runner: `cli run --ticks N --seed S [--record FILE]` prints the state hash, `cli replay FILE` re-simulates a replay and checks its end hash. | `sim`, `net`, `clap` |
+| `crates/cli`    | Headless runner: `cli run --ticks N --seed S [--record FILE]` prints the state hash, `cli replay FILE` re-simulates a replay and checks its end hash, `cli gen-map` generates test maps, `cli map-info DIR` measures a map. | `sim`, `net`, `clap`, `png` |
 | `crates/bridge` | GDExtension `cdylib`. `SimHost` node: runs ticks from a time accumulator through a `LockstepSession`, queues commands, exposes the last two snapshots and the replay. The only float conversion. | `sim`, `net`, `godot` |
 | `godot/`        | Scenes, GDScript UI logic, assets. No C#. | bridge (via `.gdextension`) |
-| `data/`         | Unit catalog (`catalog/*.toml`, real values), `scale.toml` (conversion to game values) and scenarios (`scenarios/*.toml`, start setups), integers only. See [SCALE.md](SCALE.md). | – |
+| `data/`         | Unit catalog (`catalog/*.toml`, real values), `scale.toml` (conversion to game values), `terrain.toml` (terrain types, slope rules), scenarios (`scenarios/*.toml`, start setups) and maps (`maps/<name>/`), integers only. See [SCALE.md](SCALE.md) and [MAPS.md](MAPS.md). | – |
 
 ## Players, commands and formation
 
@@ -71,17 +71,35 @@ in the common cases and makes the result independent of the order of ids in the
 command. Pathfinding around obstacles and facing-aware formations follow with
 prompt 012.
 
-**Scenarios** (`data/scenarios/*.toml`) place groups of catalog units per player in a
-grid. The compiled-in demo (`sim::scenario::demo_config`) has eight Panzer IV H
-(player 0) against eight T-34/76 (player 1), 120 m apart. Unit ids follow file order.
+**Scenarios** (`data/scenarios/*.toml`) name a map and place groups of catalog units
+per player in a grid. The compiled-in demo (`sim::scenario::demo_config`) has eight
+Panzer IV H (player 0) against eight T-34/76 (player 1), 120 m apart, on the built-in
+map `test_small`. Unit ids follow file order.
+
+## Map and movement
+
+The map belongs to the simulation: a height field (integer millimeters on a 2 m grid,
+bilinear in `Fixed`) and a terrain raster (one byte per sample), loaded from
+`data/maps/<name>/` by the caller and handed to `sim::Map::load` as bytes. Format,
+generator and the reasons behind them: [MAPS.md](MAPS.md).
+
+- `SimConfig` references the map by name and content hash (`MapRef`); `Sim::new` gets
+  the `Arc<Map>` and rejects a different one. Replays store only the reference.
+- Units stand on the ground: their height is part of the snapshot and of the state hash.
+- Speed per tick = catalog speed (road or cross-country, chosen by the terrain type)
+  × terrain percentage × slope factor (uphill grade over the next meter), never more
+  than the road speed. Rules: `data/terrain.toml`.
+- A unit stops (drops its target) instead of entering impassable terrain (deep water),
+  climbing more than the maximum grade or leaving the map. Detours: prompt 012.
 
 ## Data flow (single player, current state)
 
 Single player runs through the same lockstep path as multiplayer:
 
 1. The player selects units and right-clicks the ground. `selection/selection.gd`
-   turns the click into a ground point with `scenes/camera/ground_pick.gd` (pure
-   math, no Godot physics) and calls `SimHost.move_units(ids, x, z)`.
+   turns the click into a ground point with `scenes/camera/ground_pick.gd`, which
+   intersects the mouse ray with the height field (`SimHost.ray_pick`: ray marching
+   plus bisection, no Godot physics), and calls `SimHost.move_units(ids, x, z)`.
 2. `SimHost` rounds the target to millimeters and queues `Command::MoveTo`.
 3. Every frame, `SimHost::process` adds the frame time to an accumulator and runs as many
    fixed 20 Hz ticks as are due (at most 5 per frame). Per tick it submits the queued
@@ -91,7 +109,12 @@ Single player runs through the same lockstep path as multiplayer:
    for the replay and stepped.
 4. After each tick, the previous snapshot is kept and a new one is taken.
 5. `main.gd` reads both snapshots and `interpolation_alpha()` and draws every unit
-   interpolated between them. The sim `(x, y)` plane maps to Godot `(x, 0, y)`.
+   interpolated between them. A sim position `(x, y)` at ground height `h` maps to
+   Godot `(x, h, y)`.
+
+The terrain is drawn by `scenes/terrain/terrain_debug.gd`: one coarse mesh (at most
+256 × 256 vertices) from `SimHost.height_grid` / `terrain_grid`, colored by terrain
+type with grid and contour lines. Prompt 011 replaces it.
 
 Player 1 of the demo issues no commands yet; the AI (prompt 024) will join the session
 as another player with its own frames.
@@ -129,7 +152,7 @@ Format (`crates/net/src/replay.rs`):
 
 ```
 "MSRP"  4 bytes magic
-u16 LE  format version (currently 1)
+u16 LE  format version (currently 2)
 postcard body: seed, resolved SimConfig, lockstep players, tick count,
                frames (tick + merged PlayerCommands, only non-empty ticks), end hash
 ```
@@ -143,6 +166,11 @@ Decisions:
   the simulation used them (already converted from the catalog). Catalog or scenario
   edits do not invalidate old replays; changes of the simulation rules do, and then
   playback reports the end-hash mismatch instead of silently showing a different game.
+  Terrain rules are part of the config, too.
+- **Map by reference.** The map (20 MB for 4 km) is not copied into the replay; the
+  config names it with its content hash. `just replay` loads `data/maps/<name>/` (or
+  the built-in `test_small`) and refuses a map whose hash differs. Version 2 (prompt
+  010) added map reference and terrain rules.
 - **Merged commands per tick, sparse.** The replay stores exactly what `Sim::step` got
   (player-tagged, in apply order), so playback needs no lockstep session and does not
   depend on input delay. Ticks without commands are omitted; the tick count marks the
@@ -162,12 +190,13 @@ placed from four values: focus, distance (15–600 m), pitch and yaw.
   point under the cursor fixed. **Pan** (WASD, arrows, window edge) scales with the
   distance; middle-mouse drag grabs the ground. **Q/E** turn in 45° steps, **N** turns
   back to north (−Z).
-- The focus is clamped to `bounds`, set by `main.gd` from `MAP_SIZE` (test ground,
-  2 km × 2 km; prompt 010 replaces it with the map size).
+- The focus is clamped to `bounds`, set by `main.gd` from `SimHost.map_size()`, and
+  sits on the ground height (`GroundPick.height_at`).
 - Near/far planes and the sun's shadow distance scale with the camera distance.
 - All bindings are `camera_*` actions in the input map in `project.godot`.
 - `ground_pick.gd` holds the screen-to-ground math used by the camera and by mouse
-  commands. Today it intersects the plane y = 0; prompt 011 swaps in the height field.
+  commands. Once `main.gd` sets `GroundPick.height_source` to the SimHost, rays hit
+  the simulation's height field (`SimHost.ray_pick`); without it, the plane y = 0.
 
 Perspective was chosen over orthographic: depth and height read better, the view gets
 the slightly perspective look of the style references, and zoom works by moving the

@@ -1,0 +1,192 @@
+# Carrier, Personnel, Half-track, M3 (with front roller). Main dimensions from
+# data/catalog/us.toml: length 6.163 m with roller, width 1.962 m, height 2.30 m
+# (taken as over the pedestal-mounted M1919A4). afvdatabase (catalog source):
+# wheelbase 135.5 in (3.44 m, front axle to the center of the track unit), tread
+# front 64.5 in (1.64 m) / rear 63.8 in (1.62 m), track width 12 in (0.30 m),
+# ground contact 46.75 in (1.19 m), ground clearance 11.2 in (0.28 m), radiator
+# louvres 26 deg and windshield cover 25 deg from vertical.
+#
+# Modeling estimates (no drawing read): tyres 8.25-20 (about 0.94 m), track
+# unit wheel sizes, hood and body heights (body sides about 1.75 m, cab doors
+# lower), wall thickness shown as 20 mm (real 6.35 mm) so that it reads at
+# distance. Coordinates: front axle at y = 0; the assembly centers the origin.
+unit = "us_m3_halftrack"
+assembly = "us.halftrack"
+
+[layout]
+# 1.962 / 2 - (1.62 / 2 + 0.15): the body overhangs the outer track edge
+fender_overhang = 0.021
+
+[running_gear]
+part = "halftrack_rear"
+track_width = 0.30
+track_thickness = 0.03
+link_pitch = 0.10
+road_wheel_diameter = 0.30
+road_wheels = [-2.99, -3.29, -3.59, -3.89]   # contact 1.19 m around y = -3.44
+sprocket = { y = -2.56, z = 0.42, diameter = 0.50, teeth = 18 }
+idler = { y = -4.33, z = 0.38, diameter = 0.48, spoked = false }
+return_rollers = { y = [-3.44], z = 0.62, diameter = 0.18 }
+
+[front_axle]
+part = "wheel_axle"
+y = 0.0
+diameter = 0.94
+width = 0.22
+track = 1.64
+index = 5
+spokes = 0
+
+[body]
+part = "us.m3_body"
+roller = { y = 0.86, z = 0.50, diameter = 0.32, width = 1.10 }
+bumper = { y = 0.62, z = 0.58 }
+rails = { half_x = 0.42, z = 0.62, height = 0.18 }
+hood = { front_y = 0.58, rear_y = -1.12, half_width = 0.50, bottom_z = 0.66, front_top_z = 1.38, top_z = 1.48, louvre_deg = 26 }
+fender = { outer_x = 0.95, radius = 0.58, thickness = 0.03, board_z = 0.66, rear_y = -1.15 }
+body = { front_y = -1.12, rear_y = "fit", bottom_z = 0.74, top_z = 1.76, wall = 0.02, door = [-1.95, 1.50], floor_z = 0.82 }
+windshield = { top_z = 1.98, deg = 25, slits = 2 }
+seats = true
+
+[[mg]]  # M1919A4 on the M25 pedestal in the middle of the body
+part = "us.pedestal_mg"
+position = [0.0, -2.75]
+length = 1.04
+
+[[part]]
+part = "box_prop"    # track unit bogie frame
+center = [-0.81, -3.44, 0.36]
+size = [0.10, 1.10, 0.14]
+material = "Paint"
+
+[[part]]
+part = "box_prop"
+center = [0.81, -3.44, 0.36]
+size = [0.10, 1.10, 0.14]
+material = "Paint"
+
+[[part]]
+part = "headlight"
+position = [-0.62, 0.40, 1.20]
+diameter = 0.18
+
+[[part]]
+part = "headlight"
+position = [0.62, 0.40, 1.20]
+diameter = 0.18
+
+[[part]]
+part = "exhaust"     # muffler under the right side, outlet ahead of the track
+kind = "muffler"
+position = [0.62, -2.10, 0.48]
+length = 0.35
+diameter = 0.14
+
+[[part]]
+part = "tow_hook"    # pintle on the rear wall (body rear fitted to y = -5.14)
+position = [0.0, -5.05, 0.82]
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_01"   # driver
+position = [-0.55, -1.75, 0.82]
+
+# 12 passengers: 2 next to the driver, 10 on the benches
+[[part]]
+part = "socket"
+name = "Socket_Passenger_"
+position = [-0.7, -2.25, 0.82]
+
+[[part]]
+part = "socket"
+name = "Socket_Passenger_"
+position = [-0.7, -2.80, 0.82]
+
+[[part]]
+part = "socket"
+name = "Socket_Passenger_"
+position = [-0.7, -3.35, 0.82]
+
+[[part]]
+part = "socket"
+name = "Socket_Passenger_"
+position = [-0.7, -3.90, 0.82]
+
+[[part]]
+part = "socket"
+name = "Socket_Passenger_"
+position = [-0.7, -4.45, 0.82]
+
+[[part]]
+part = "socket"
+name = "Socket_Passenger_"
+position = [0.7, -2.25, 0.82]
+
+[[part]]
+part = "socket"
+name = "Socket_Passenger_"
+position = [0.7, -2.80, 0.82]
+
+[[part]]
+part = "socket"
+name = "Socket_Passenger_"
+position = [0.7, -3.35, 0.82]
+
+[[part]]
+part = "socket"
+name = "Socket_Passenger_"
+position = [0.7, -3.90, 0.82]
+
+[[part]]
+part = "socket"
+name = "Socket_Passenger_"
+position = [0.7, -4.45, 0.82]
+
+[[part]]
+part = "socket"
+name = "Socket_Passenger_"
+position = [0.0, -1.75, 0.82]
+
+[[part]]
+part = "socket"
+name = "Socket_Passenger_"
+position = [0.55, -1.75, 0.82]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -0.30, 1.50]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -3.80, 1.20]
+
+[[part]]
+part = "marking"
+name = "Hood"
+position = [0.0, -0.30, 1.47]
+normal = [0, 0.06, 1.0]
+size = 0.6
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-0.981, -3.70, 1.30]
+normal = [-1, 0, 0]
+size = 0.55
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [0.981, -3.70, 1.30]
+normal = [1, 0, 0]
+size = 0.55
+
+[[part]]
+part = "marking"
+name = "Number"
+kind = "number"
+position = [0.62, -1.10, 1.12]
+normal = [0, 1, 0]
+size = 0.25

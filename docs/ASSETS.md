@@ -48,9 +48,11 @@ model with names, hierarchy, sockets, material slots and baked vertex colors.
 | `weapons` | `tank_gun` (mantlet types, barrel segments, muzzle brake types), `mg` (coax, ball mount, pintle), `gun_shield` |
 | `attachments` | `skirts`, `turret_skirt`, `spare_tracks`, `tool`, `jerrycans`, `headlight`, `antenna`, `exhaust`, `tow_hook`, `box_prop`, `cylinder_prop`, `marking`, `socket` |
 | `artillery` | `split_trail_carriage`, `field_gun` |
+| `trucks` | `ladder_frame`, `engine_hood`, `truck_cab`, `cargo_bed`, `truck_fenders` and the `wheeled` assembly (trucks, cars; prompt 006) |
 | `aircraft` | `fuselage` (loft of cross-sections), `wing` (taper, sweep, dihedral, ailerons), `tail`, `propeller`, `canopy`, `landing_gear` (extended/retracted) |
+| `vehicles` | `section_hull` (hull lofted from cross-sections, optional open compartment), `fender`, `plate` (doors, lids on sloped faces), `pintle_mg` (MG on a post, optional shield); assembly `halftrack` (prompt 006) |
 | `parts_de`, `parts_su`, `parts_us` | faction-specific parts, prefixed `de.`, `su.`, `us.` |
-| `assemblies` | whole units: `tank`, `towed_gun`, `aircraft` |
+| `assemblies` | whole units: `tank`, `towed_gun`, `aircraft` (`halftrack` lives in `vehicles`) |
 | `bake` | vertex colors (see "Material system") |
 | `render` | turntable and line-up renders (Eevee) |
 
@@ -81,7 +83,7 @@ origin on the ground at the footprint center):
 
 ```toml
 unit = "de_pz4_h"          # catalog id, must match the file name
-assembly = "tank"          # tank | towed_gun | aircraft
+assembly = "tank"          # tank | towed_gun | aircraft | wheeled
 
 [layout]                   # assembly-level values
 turret_y = 0.28            # turret ring center
@@ -120,6 +122,21 @@ exclude_height = ["Antenna_*"]
 Build order of a tank: layout, running gear, hull, turret, cupola, `[[part]]`,
 gun, `[[mg]]`. Towed guns: gun, carriage, shield, `[[part]]`. Aircraft:
 fuselage, wing, tail, canopy, landing gear, `[[propeller]]`, `[[part]]`.
+Halftracks: running gear (`halftrack_rear`), `[front_axle]` (`wheel_axle`,
+wheels numbered after the road wheels), hull (`section_hull`), `[[part]]`,
+`[[mg]]`; `[layout] track_outer_x` sets the track position, and the model is
+moved so that the origin lies at the center of the ground contact (example:
+`assets-src/blueprints/de/de_sdkfz251_1.toml`).
+
+`section_hull` sections give, per Y station, three heights with half-widths
+(bottom, chine, top): lower plates flaring out and upper plates leaning in
+(Sd.Kfz. 251) or vertical sides (equal half-widths). `open = [y_front,
+y_rear]` cuts an open-topped compartment with walls and floor between two
+stations; Y and the top heights are fitted to the catalog like `plate_hull`.
+
+fuselage, wing, tail, canopy, landing gear, `[[propeller]]`, `[[part]]`. Wheeled
+vehicles: `[[axle]]`, frame, hood, cab, body, fenders, `[[part]]` (body rear end,
+body width and cab roof are fitted to the catalog length, width and height).
 
 ### Generator, checks and previews
 
@@ -296,6 +313,14 @@ first. Their material kinds and shaders are described under "Environment objects
   RAL 8017, Soviet 4BO, US Olive Drab).
 
 ## Infantry
+
+Squads (prompt 006) are catalog units made of soldiers: a squad file
+`assets-src/blueprints/<faction>/squads/<id>.toml` lists the members (role,
+formation position, gallery clip, note), `just squad <faction> <id>`
+(`tools/blender/build_squad.py`) writes the Godot scene
+`godot/assets/models/<faction>/<id>.tscn` that instances the soldier .glbs, and
+the catalog `model` points to that scene. `just validate-squads` (also part of
+`just validate-assets`) checks it. Details in [INFANTRY.md](INFANTRY.md).
 
 Soldiers follow their own layout (prompt 005), described in [INFANTRY.md](INFANTRY.md):
 one shared humanoid skeleton (Godot `SkeletonProfileHumanoid` bone names), body and
@@ -474,7 +499,8 @@ Never swastikas or SS runes; medics carry no Red Cross. Details in
 
 Several sessions build models at the same time (prompts 006–008):
 
-- Each session writes only its own files: `assets-src/blueprints/<faction>/<id>.toml`,
+- Each session writes only its own files: `assets-src/blueprints/<faction>/<id>.toml`
+  (and `squads/<id>.toml`),
   `assets-src/blender/<faction>/<id>.blend`, `godot/assets/models/<faction>/<id>.glb`
   and the `model` field of its own catalog entries.
 - Shared building blocks (part library, materials, scripts in `tools/blender/`) are

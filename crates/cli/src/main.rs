@@ -1,8 +1,15 @@
 //! Headless runner: simulates the demo scenario without graphics.
 
 mod catalog_doc;
+mod gen_map;
 
 use clap::{Parser, Subcommand};
+use std::path::{Path, PathBuf};
+use std::sync::Arc;
+
+/// Directory of the map folders, relative to the repository root (where
+/// `just` runs).
+const MAPS_DIR: &str = "data/maps";
 
 #[derive(Parser)]
 #[command(version, about = "Mud and Steel headless simulation runner")]
@@ -32,6 +39,25 @@ enum CliCommand {
     Replay {
         /// Replay file (`.msreplay`).
         file: std::path::PathBuf,
+    },
+    /// Generates a test map (height field, terrain) from a seed.
+    GenMap {
+        /// Map name, written into map.toml.
+        #[arg(long)]
+        name: String,
+        /// Width and depth in meters (multiple of 4).
+        #[arg(long, default_value_t = 500)]
+        size_m: u32,
+        #[arg(long, default_value_t = 1)]
+        seed: u64,
+        /// Output folder (default: data/maps/<name>).
+        #[arg(long)]
+        out: Option<PathBuf>,
+    },
+    /// Loads a map folder and reports load time, memory and height range.
+    MapInfo {
+        /// Map folder, e.g. data/maps/test_large.
+        dir: PathBuf,
     },
     /// Writes docs/UNIT_CATALOG.md (or the given path) from the built-in catalog.
     CatalogDoc {
@@ -82,6 +108,25 @@ fn main() {
             );
         }
         CliCommand::Replay { file } => replay(&file),
+        CliCommand::GenMap {
+            name,
+            size_m,
+            seed,
+            out,
+        } => {
+            let out = out.unwrap_or_else(|| Path::new(MAPS_DIR).join(&name));
+            let options = gen_map::Options {
+                name: &name,
+                size_m,
+                seed,
+                out: &out,
+            };
+            match gen_map::generate(&options) {
+                Ok(report) => println!("{report}"),
+                Err(e) => fail(&e),
+            }
+        }
+        CliCommand::MapInfo { dir } => map_info(&dir),
         CliCommand::CatalogCheck { files } => catalog_check(&files),
         CliCommand::CatalogDoc { out } => {
             let catalog = sim::Catalog::builtin().unwrap_or_else(|e| fail(&e.to_string()));
@@ -105,7 +150,8 @@ fn replay(path: &std::path::Path) {
         replay.config.spawns.len(),
         commands
     );
-    let report = replay.verify().unwrap_or_else(|e| fail(&e.to_string()));
+    let map = find_map(&replay.config.map.name);
+    let report = replay.verify(map).unwrap_or_else(|e| fail(&e.to_string()));
     if report.matches() {
         println!("end hash OK: {:#018x}", report.actual_hash);
     } else {
@@ -113,6 +159,124 @@ fn replay(path: &std::path::Path) {
             "end hash MISMATCH: expected {:#018x}, got {:#018x}",
             report.expected_hash, report.actual_hash
         ));
+    }
+}
+
+/// Reads and decodes `dir/map.toml`, `dir/height.png` and `dir/terrain.png`.
+fn load_map_dir(dir: &Path) -> Result<sim::Map, String> {
+    let read = |file: &str| {
+        let path = dir.join(file);
+        std::fs::read(&path).map_err(|e| format!("cannot read {}: {e}", path.display()))
+    };
+    let toml = String::from_utf8(read("map.toml")?).map_err(|e| e.to_string())?;
+    sim::Map::load(&toml, &read("height.png")?, &read("terrain.png")?)
+        .map_err(|e| format!("{}: {e}", dir.display()))
+}
+
+/// The map with this name: `data/maps/<name>/` if it exists, else the
+/// built-in map if the name matches.
+fn find_map(name: &str) -> Arc<sim::Map> {
+    let dir = Path::new(MAPS_DIR).join(name);
+    if dir.join("map.toml").exists() {
+        return Arc::new(load_map_dir(&dir).unwrap_or_else(|e| fail(&e)));
+    }
+    if name == sim::scenario::BUILTIN_MAP_NAME {
+        return sim::scenario::builtin_map();
+    }
+    fail(&format!("map '{name}' not found in {MAPS_DIR}/"))
+}
+
+fn map_info(dir: &Path) {
+    let start = std::time::Instant::now();
+    let names = ["map.toml", "height.png", "terrain.png"];
+    let files: Vec<Vec<u8>> = names
+        .iter()
+        .map(|f| std::fs::read(dir.join(f)).unwrap_or_else(|e| fail(&format!("{f}: {e}"))))
+        .collect();
+    let read = start.elapsed();
+    let toml = String::from_utf8_lossy(&files[0]);
+    let decode_start = std::time::Instant::now();
+    let map = sim::Map::load(&toml, &files[1], &files[2]).unwrap_or_else(|e| fail(&e.to_string()));
+    let decode = decode_start.elapsed();
+
+    let (sx, sy) = map.samples();
+    let samples = u64::from(sx) * u64::from(sy);
+    let bytes = size_of_val(map.heights_mm()) + map.terrain_ids().len();
+    let low = map.heights_mm().iter().min().copied().unwrap_or(0);
+    let high = map.heights_mm().iter().max().copied().unwrap_or(0);
+    let mut counts = [0u64; 256];
+    for &id in map.terrain_ids() {
+        counts[usize::from(id)] += 1;
+    }
+    // Speed of the height lookup the simulation uses every tick.
+    let lookups = 1_000_000u32;
+    let size = map.size();
+    let mut rng = sim::Rng::new(1);
+    let points: Vec<sim::Vec2> = (0..lookups)
+        .map(|_| {
+            let half_mm = |v: sim::Fixed| (v * sim::Fixed::from_num(500)).to_num::<i32>();
+            sim::Vec2::from_millimeters(
+                rng.range_i32(-half_mm(size.x), half_mm(size.x)),
+                rng.range_i32(-half_mm(size.y), half_mm(size.y)),
+            )
+        })
+        .collect();
+    let lookup_start = std::time::Instant::now();
+    let mut sum = sim::Fixed::ZERO;
+    for &p in &points {
+        sum = sum.wrapping_add(map.height_at(p));
+    }
+    let lookup = lookup_start.elapsed();
+    let file_bytes: usize = files.iter().map(Vec::len).sum();
+    // Steepest grade between neighboring samples.
+    let mut steepest = 0i64;
+    for j in 0..sy {
+        for i in 0..sx {
+            let h = i64::from(map.sample_height_mm(i, j));
+            let right = i64::from(map.sample_height_mm(i + 1, j));
+            let down = i64::from(map.sample_height_mm(i, j + 1));
+            steepest = steepest.max((right - h).abs()).max((down - h).abs());
+        }
+    }
+
+    println!("map '{}' ({})", map.name(), dir.display());
+    println!(
+        "  size {} x {} m, {sx} x {sy} samples ({samples}), cell {} mm",
+        size.x,
+        size.y,
+        map.cell_size_mm()
+    );
+    println!(
+        "  heights {:.3} .. {:.3} m, hash {:#018x}",
+        f64::from(low) / 1000.0,
+        f64::from(high) / 1000.0,
+        map.hash()
+    );
+    println!(
+        "  steepest grade {:.1} %",
+        steepest as f64 * 100.0 / f64::from(map.cell_size_mm())
+    );
+    println!(
+        "  files {:.2} MB, memory {:.2} MB (heights i32 + terrain u8)",
+        file_bytes as f64 / 1e6,
+        bytes as f64 / 1e6
+    );
+    println!(
+        "  read {:.1} ms, decode + validate + hash {:.1} ms",
+        read.as_secs_f64() * 1e3,
+        decode.as_secs_f64() * 1e3
+    );
+    println!(
+        "  height_at: {:.1} ns per lookup (checksum {sum})",
+        lookup.as_secs_f64() * 1e9 / f64::from(lookups)
+    );
+    let rules = sim::TerrainRules::builtin().unwrap_or_else(|e| fail(&e.to_string()));
+    for (id, &count) in counts.iter().enumerate().filter(|(_, c)| **c > 0) {
+        let name = rules.types.get(id).map_or("?", |t| t.name.as_str());
+        println!(
+            "  terrain {id} {name}: {:.1} %",
+            count as f64 * 100.0 / samples as f64
+        );
     }
 }
 

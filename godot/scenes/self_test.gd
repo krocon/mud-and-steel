@@ -10,13 +10,22 @@ extends Node
 ##    Ctrl+1 / 1 / 1-1 (center), click, Shift-click, enemy click, double click.
 ## 3. Orders: right click sends the group into a grid formation (speed,
 ##    spacing, center checked), enemy tanks stay put, H stops a moving group.
-## 4. Replay: the recorded match is saved, read back and re-simulated to the
+## 4. Hill: one tank is right-clicked onto the `hill_top` marker of the map
+##    (mouse ray against the height field), drives up and must stand at the
+##    ground height of the simulation, well above its start.
+## 5. Replay: the recorded match is saved, read back and re-simulated to the
 ##    same end hash.
 
 ## Panzer IV H: 16 km/h cross-country (catalog) × time factor 2 = 8.889 m/s,
-## i.e. 0.4444 m per tick at 20 Hz.
+## i.e. 0.4444 m per tick at 20 Hz. Terrain scales it (data/terrain.toml).
 const EXPECTED_STEP := 16.0 * 2.0 / 3.6 / 20.0
+## Panzer IV H on roads: 38 km/h × 2 = 1.0556 m per tick.
+const ROAD_STEP := 38.0 * 2.0 / 3.6 / 20.0
 const OVERVIEW_DISTANCE := 350.0
+## The hill drive runs at this time scale to keep the test short.
+const HILL_TIME_SCALE := 4.0
+## The tank must end at least this many meters above its start.
+const HILL_MIN_CLIMB := 10.0
 
 var main: Node3D
 var _errors: PackedStringArray = []
@@ -30,9 +39,10 @@ func _run() -> void:
 	await _camera_test()
 	await _selection_test()
 	await _order_test()
+	await _hill_test()
 	_replay_test()
 	var ok := _errors.is_empty()
-	var message := "camera, selection, orders and replay ok" if ok else " ".join(_errors)
+	var message := "camera, selection, orders, hill and replay ok" if ok else " ".join(_errors)
 	print("self-test %s: %s" % ["PASSED" if ok else "FAILED", message])
 	get_tree().quit(0 if ok else 1)
 
@@ -61,8 +71,11 @@ func _camera_test() -> void:
 	Input.action_release("camera_pan_right")
 	Input.action_release("camera_pan_forward")
 	_camera_limits(rig.max_distance)
-	var corner := Vector3(rig.bounds.end.x, 0.0, rig.bounds.position.y)
-	_check(rig.focus.distance_to(corner) < 0.01, "pan did not stop at the map corner %s" % rig.focus)
+	var corner := Vector2(rig.bounds.end.x, rig.bounds.position.y)
+	var focus := Vector2(rig.focus.x, rig.focus.z)
+	_check(focus.distance_to(corner) < 0.01, "pan did not stop at the map corner %s" % rig.focus)
+	var ground: float = main.sim_host.height_at(rig.focus.x, rig.focus.z)
+	_check(absf(rig.focus.y - ground) < 0.001, "camera focus %s not on the ground (%.3f)" % [rig.focus, ground])
 	var rotate := InputEventAction.new()
 	rotate.action = "camera_rotate_left"
 	rotate.pressed = true
@@ -142,8 +155,12 @@ func _order_test() -> void:
 	_check(main.target_marker.visible, "no target marker after the order")
 	var aimed := Vector3(main.target_marker.position.x, 0.0, main.target_marker.position.z)
 
-	# Follow the group tick by tick until it stands.
+	# Follow the group tick by tick until it stands. The start meadow is
+	# flat, so every step is the terrain speed under the tank (shorter only
+	# on arrival); the steepest grass step must be the plain catalog speed.
 	var max_step := 0.0
+	var too_fast := ""
+	var max_grass_step := 0.0
 	var last_tick := sim_host.current_tick()
 	var deadline := last_tick + 20 * 30
 	var started := false
@@ -155,14 +172,23 @@ func _order_test() -> void:
 		var previous := sim_host.previous_positions()
 		var current := sim_host.current_positions()
 		for i in _indices(own):
-			max_step = maxf(max_step, previous[i].distance_to(current[i]))
+			var step := previous[i].distance_to(current[i])
+			max_step = maxf(max_step, step)
+			var terrain := sim_host.terrain_at(previous[i].x, previous[i].z)
+			var basis := ROAD_STEP if sim_host.terrain_uses_road(terrain) else EXPECTED_STEP
+			var allowed := minf(basis * sim_host.terrain_speed_pct(terrain) / 100.0, ROAD_STEP)
+			if step > allowed + 0.002:
+				too_fast = "step %.4f m on terrain %d, allowed %.4f m" % [step, terrain, allowed]
+			if terrain == 0:
+				max_grass_step = maxf(max_grass_step, step)
 		var moving := _moving(own)
 		started = started or moving
 		if started and not moving:
 			break
 	_check(started and not _moving(own), "group did not arrive (started %s)" % started)
-	_check(absf(max_step - EXPECTED_STEP) < 0.002,
-		"max step per tick %.4f m, expected %.4f m" % [max_step, EXPECTED_STEP])
+	_check(too_fast.is_empty(), too_fast)
+	_check(absf(max_grass_step - EXPECTED_STEP) < 0.002,
+		"max step per tick on grass %.4f m, expected %.4f m" % [max_grass_step, EXPECTED_STEP])
 
 	var positions := _positions_of(own)
 	var low := positions[0]
@@ -198,7 +224,54 @@ func _order_test() -> void:
 	print("self-test: stop ok at tick %d, hash %s" % [sim_host.current_tick(), sim_host.state_hash()])
 
 
-# --- 4. Replay ------------------------------------------------------------
+# --- 4. Hill --------------------------------------------------------------
+
+
+func _hill_test() -> void:
+	var sim_host: SimHost = main.sim_host
+	var rig: Node3D = main.camera_rig
+	var marker: Variant = sim_host.map_marker("hill_top")
+	_check(marker != null, "map '%s' has no hill_top marker" % sim_host.map_name())
+	if marker == null:
+		return
+	var top := marker as Vector3
+	var tank: int = _ids_of(true)[0]
+	var start := _positions_of([tank])[0]
+	rig.snap_to((start + top) * 0.5, 450.0, 0.0)
+	await _frames(2)
+
+	_left_click(_screen_of_unit(tank))
+	await _frames(1)
+	_check(main.selection.selected == [tank], "hill test selected %s" % [main.selection.selected])
+	_right_click(_screen_of_point(top))
+	await _frames(1)
+	var aimed: Vector3 = main.target_marker.position - Vector3(0, 0.05, 0)
+	_check(aimed.distance_to(top) < 0.5, "mouse ray hit %s, expected the hill top %s" % [aimed, top])
+
+	Engine.time_scale = HILL_TIME_SCALE
+	var deadline := sim_host.current_tick() + 20 * 180
+	var started := false
+	while sim_host.current_tick() < deadline:
+		await get_tree().process_frame
+		var moving := _moving([tank])
+		started = started or moving
+		if started and not moving:
+			break
+	Engine.time_scale = 1.0
+
+	var end := _positions_of([tank])[0]
+	var ground := sim_host.height_at(end.x, end.z)
+	_check(started and not _moving([tank]), "tank did not finish the hill drive (started %s)" % started)
+	_check(Vector2(end.x, end.z).distance_to(Vector2(top.x, top.z)) < 0.5,
+		"tank stopped at %s, hill top is %s" % [end, top])
+	_check(absf(end.y - ground) < 0.01, "tank height %.3f, ground %.3f" % [end.y, ground])
+	_check(end.y > start.y + HILL_MIN_CLIMB, "tank climbed only from %.2f to %.2f m" % [start.y, end.y])
+	print("self-test: hill drive from %s to %s (ground %.3f m) at tick %d" % [
+		start, end, ground, sim_host.current_tick()
+	])
+
+
+# --- 5. Replay ------------------------------------------------------------
 
 
 func _replay_test() -> void:

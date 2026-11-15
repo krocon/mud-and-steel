@@ -1,17 +1,9 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scenes/main.gd" id="1_main"]
-[ext_resource type="Shader" path="res://assets/materials/ground_grid.gdshader" id="2_grid"]
 [ext_resource type="PackedScene" path="res://scenes/camera/rts_camera.tscn" id="3_camera"]
-[ext_resource type="Script" path="res://scenes/test_area.gd" id="4_test_area"]
+[ext_resource type="Script" path="res://scenes/terrain/terrain_debug.gd" id="4_terrain"]
 [ext_resource type="Script" path="res://scenes/selection/selection.gd" id="5_selection"]
-
-[sub_resource type="ShaderMaterial" id="Mat_ground"]
-shader = ExtResource("2_grid")
-
-[sub_resource type="PlaneMesh" id="Mesh_ground"]
-material = SubResource("Mat_ground")
-size = Vector2(2000, 2000)
 
 [sub_resource type="StandardMaterial3D" id="Mat_marker"]
 shading_mode = 0
@@ -45,11 +37,8 @@ shadow_enabled = true
 [node name="RtsCamera" parent="." node_paths=PackedStringArray("sun") instance=ExtResource("3_camera")]
 sun = NodePath("../Sun")
 
-[node name="Ground" type="MeshInstance3D" parent="."]
-mesh = SubResource("Mesh_ground")
-
-[node name="TestArea" type="Node3D" parent="."]
-script = ExtResource("4_test_area")
+[node name="Terrain" type="MeshInstance3D" parent="."]
+script = ExtResource("4_terrain")
 
 [node name="TargetMarker" type="MeshInstance3D" parent="."]
 visible = false

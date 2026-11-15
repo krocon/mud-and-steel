@@ -1,0 +1,16 @@
+# DP-27 light machine gun team, catalog su.toml: gunner with the DP-27 and the
+# assistant (ammunition carrier with the pan carrier) with a Mosin-Nagant M1891/30.
+# Formation: gun in position, assistant beside and slightly behind (display only).
+unit = "su_inf_mg_team"
+
+[[member]]
+role = "mg_gunner"
+position = [0.0, 0.8]
+clip = "aim_prone"
+note = "DP-27 gunner"
+
+[[member]]
+role = "assistant_gunner"
+position = [1.2, -0.4]
+clip = "kneel"
+note = "assistant gunner (Mosin-Nagant M1891/30, pan carrier)"

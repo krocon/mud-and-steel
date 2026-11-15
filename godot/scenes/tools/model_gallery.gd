@@ -4,7 +4,10 @@ extends Node3D
 ## the selected model. A development tool, not part of the game.
 ##
 ## - Units: kit models under res://assets/models/<faction>/ (prompt 004),
-##   rows by faction, columns by category, camouflage per biome.
+##   rows by faction, columns by category, camouflage per biome. Infantry
+##   squads (prompt 006) are `.tscn` scenes built by tools/blender/build_squad.py
+##   from the soldiers of prompt 005 (root meta `extras` has `squad = true`);
+##   they get SoldierLook colors instead of the camo shader and play their clips.
 ## - Infantry: soldiers under res://assets/models/<faction>/infantry/
 ##   (prompt 005), rows by faction, playable animation clips.
 ## - Environment: res://assets/models/neutral/ (prompt 007), rows by group
@@ -14,7 +17,7 @@ extends Node3D
 ## Controls: category and biome buttons, clip list (infantry), right mouse
 ## drag = orbit, middle drag = pan, wheel = zoom, left click = select and focus,
 ## 1/2/3 = forest/desert/winter, Tab = next category, F = frame all,
-## left/right = previous/next clip.
+## left/right = previous/next clip (infantry), A = next clip for all squads.
 ##
 ## `-- --self-test`: loads all models of all categories, checks imports
 ## (shaders, sockets, catalog extras, variants, skeletons, clips), plays every
@@ -77,6 +80,9 @@ var _focus := Vector3.ZERO
 var _yaw := deg_to_rad(215.0)
 var _pitch := deg_to_rad(28.0)
 var _distance := 30.0
+
+## Squad clip shown in the gallery; "" = each member's own clip from the squad file.
+var _squad_clip := ""
 
 var _args := OS.get_cmdline_user_args()
 var _self_test := "--self-test" in _args
@@ -237,10 +243,13 @@ func _load_units() -> void:
 			model.set_meta(&"gallery_faction", faction)
 			model.set_meta(&"gallery_kind", "unit")
 			_holders["units"].add_child(model)
+			if _is_squad(model):
+				_setup_squad(model)
 			var box := _aabb(model)
 			model.position = Vector3(x - box.position.x, 0.0, row * ROW_SPACING)
 			x += box.size.x + GAP
-			UnitCamo.add_markings(model, faction, 100 * (row + 1) + i + 1)
+			if not _is_squad(model):
+				UnitCamo.add_markings(model, faction, 100 * (row + 1) + i + 1)
 			_label(model, str(entries[i].cat.get("cat_name_en", model.name)), _aabb(model).end.y - model.position.y + 0.6)
 			_models.append(model)
 			_items["units"].append(model)
@@ -361,7 +370,7 @@ func _model_paths(dir_path: String) -> Array[String]:
 		return out
 	for f in dir.get_files():
 		var name := f.trim_suffix(".import").trim_suffix(".remap")
-		if name.ends_with(".glb") and not out.has(dir_path + "/" + name):
+		if (name.ends_with(".glb") or name.ends_with(".tscn")) and not out.has(dir_path + "/" + name):
 			out.append(dir_path + "/" + name)
 	out.sort()
 	return out
@@ -388,7 +397,10 @@ func _set_biome(biome: String) -> void:
 	for b: String in _biome_buttons:
 		_biome_buttons[b].button_pressed = b == biome
 	for model in _models:
-		UnitCamo.apply(model, UnitCamo.palette(model.get_meta(&"gallery_faction"), biome))
+		if _is_squad(model):
+			_squad_look(model, biome)
+		else:
+			UnitCamo.apply(model, UnitCamo.palette(model.get_meta(&"gallery_faction"), biome))
 	for i in _soldiers.size():
 		SoldierLook.apply(_soldiers[i].node, _soldiers[i].faction, biome, i)
 	for model in _env:
@@ -435,6 +447,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			KEY_2: _set_biome("desert")
 			KEY_3: _set_biome("winter")
 			KEY_F: _frame_all()
+			KEY_A: _next_squad_clip()
 			KEY_TAB: _set_category(CATEGORIES[(CATEGORIES.find(_category) + 1) % CATEGORIES.size()])
 			KEY_LEFT, KEY_RIGHT:
 				if _category == "infantry" and _clip_select.item_count > 0:
@@ -547,20 +560,30 @@ func _describe(node: Node3D) -> String:
 		"%s, %d-%d" % [c.get("cat_designation", ""), c.get("cat_year_from", 0), c.get("cat_year_to", 0)],
 		"Category: %s" % c.get("cat_category", ""),
 	]
-	var dims := "Size: %.2f m long" % (c.get("cat_length_mm", 0) / 1000.0)
-	if c.has("cat_length_hull_mm"):
-		dims += " (hull %.2f)" % (c.cat_length_hull_mm / 1000.0)
-	dims += ", %.2f wide, %.2f high" % [c.get("cat_width_mm", 0) / 1000.0, c.get("cat_height_mm", 0) / 1000.0]
-	lines.append(dims)
+	if c.has("cat_length_mm"):  # squads have no size of their own
+		var dims := "Size: %.2f m long" % (c.get("cat_length_mm", 0) / 1000.0)
+		if c.has("cat_length_hull_mm"):
+			dims += " (hull %.2f)" % (c.cat_length_hull_mm / 1000.0)
+		dims += ", %.2f wide, %.2f high" % [c.get("cat_width_mm", 0) / 1000.0, c.get("cat_height_mm", 0) / 1000.0]
+		lines.append(dims)
 	if c.has("cat_mass_kg"):
 		lines.append("Mass: %.1f t, crew %d" % [c.cat_mass_kg / 1000.0, c.get("cat_crew", 0)])
 	if c.has("cat_speed_road_kmh_x10"):
-		lines.append("Speed: %.0f km/h road, %.0f km/h off-road, range %d km" % [
-			c.cat_speed_road_kmh_x10 / 10.0, c.get("cat_speed_offroad_kmh_x10", 0) / 10.0,
-			c.get("cat_range_road_km", 0)])
+		var speed := "Speed: %.0f km/h road, %.0f km/h off-road" % [
+			c.cat_speed_road_kmh_x10 / 10.0, c.get("cat_speed_offroad_kmh_x10", 0) / 10.0]
+		if c.has("cat_range_road_km"):
+			speed += ", range %d km" % c.cat_range_road_km
+		lines.append(speed)
 	if c.has("cat_armor_hull_front_mm"):
 		lines.append("Armor: hull front %d mm, side %d mm, turret front %d mm" % [
 			c.cat_armor_hull_front_mm, c.get("cat_armor_hull_side_mm", 0), c.get("cat_armor_turret_front_mm", 0)])
+	if c.get("squad", false):
+		lines.append("Squad: %d men" % c.get("cat_squad_size", 0))
+		var roles: Array = c.get("squad_roles", [])
+		var notes: Array = c.get("squad_notes", [])
+		for k in roles.size():
+			lines.append("  %d. %s (%s)" % [k + 1, notes[k] if k < notes.size() else "", roles[k]])
+		lines.append("Clip: %s (A = next)" % (_squad_clip if _squad_clip else "per member"))
 	lines.append("Weapons: %s" % c.get("cat_weapons", ""))
 	lines.append("Triangles: %d" % _triangles(node))
 	lines.append("Model: %s" % node.get_meta(&"gallery_path", ""))
@@ -641,6 +664,9 @@ func _check_units(errors: Array[String]) -> void:
 		if id.is_empty():
 			continue  # not a kit model (e.g. the placeholder tank)
 		ids.append(id)
+		if _is_squad(model):
+			_check_squad(model, cat, errors)
+			continue
 		var camo_surfaces := 0
 		for g in UnitCamo.meshes(model):
 			var mi := g as MeshInstance3D
@@ -654,7 +680,8 @@ func _check_units(errors: Array[String]) -> void:
 					camo_surfaces += 1
 		if camo_surfaces == 0:
 			errors.append("%s: no unit_camo surfaces" % id)
-		if model.find_child("Socket_Muzzle", true, false) == null:
+		# unarmed vehicles (trucks) have no muzzle
+		if str(cat.get("cat_weapons", "")) != "" and model.find_child("Socket_Muzzle", true, false) == null:
 			errors.append("%s: Socket_Muzzle missing" % id)
 		if model.find_child("Decal", true, false) == null:
 			errors.append("%s: no marking decal" % id)
@@ -729,6 +756,9 @@ func _check_environment(errors: Array[String]) -> void:
 
 func _check_biome(biome: String, errors: Array[String]) -> void:
 	for model in _models:
+		if _is_squad(model):
+			_check_squad_look(model, biome, errors)
+			continue
 		var faction: String = model.get_meta(&"gallery_faction")
 		var pal := UnitCamo.palette(faction, biome)
 		if pal.biome != biome or pal.faction != faction:
@@ -789,3 +819,99 @@ func _screenshots(dir: String) -> void:
 			if _clip_select.get_item_text(i) == clip:
 				_clip_select.select(i)
 				_play_selected_clip()
+
+
+# --- infantry squads (prompt 006) ----------------------------------------------
+
+func _is_squad(model: Node3D) -> bool:
+	return UnitCamo.catalog_values(model).get("squad", false)
+
+
+## Squad members are the direct children instanced from the soldier .glb files.
+func _squad_members(model: Node3D) -> Array[Node3D]:
+	var out: Array[Node3D] = []
+	for child in model.get_children():
+		if child is Node3D and SoldierLook.find_player(child) != null:
+			out.append(child)
+	return out
+
+
+func _setup_squad(model: Node3D) -> void:
+	for member in _squad_members(model):
+		SoldierLook.configure_animations(SoldierLook.find_player(member))
+	_play_squad(model)
+
+
+func _play_squad(model: Node3D) -> void:
+	var clips: Array = UnitCamo.catalog_values(model).get("squad_clips", [])
+	var members := _squad_members(model)
+	for k in members.size():
+		var clip: String = _squad_clip
+		if clip.is_empty():
+			clip = clips[k] if k < clips.size() else "idle"
+		var player := SoldierLook.find_player(members[k])
+		if player.has_animation(clip):
+			player.play(clip)
+			# desynchronise the members a little (presentation only)
+			player.seek(fmod(k * 0.37, maxf(player.current_animation_length, 0.01)), true)
+
+
+func _squad_look(model: Node3D, biome: String) -> void:
+	var faction: String = model.get_meta(&"gallery_faction")
+	var members := _squad_members(model)
+	for k in members.size():
+		SoldierLook.apply(members[k], faction, biome, hash(model.name) + k)
+
+
+func _next_squad_clip() -> void:
+	var names: Array[String] = [""]
+	for clip: String in SoldierLook.clips():
+		names.append(clip)
+	_squad_clip = names[(names.find(_squad_clip) + 1) % names.size()]
+	for model in _models:
+		if _is_squad(model):
+			_play_squad(model)
+	if _selected:
+		_info.text = _describe(_selected)
+
+
+func _check_squad(model: Node3D, cat: Dictionary, errors: Array[String]) -> void:
+	var id: String = cat.get("cat_id", "")
+	var members := _squad_members(model)
+	if members.size() != int(cat.get("cat_squad_size", -1)):
+		errors.append("%s: %d members, catalog squad_size %d" % [id, members.size(), cat.get("cat_squad_size", -1)])
+	var armed := 0
+	for member in members:
+		var player := SoldierLook.find_player(member)
+		var missing: Array[String] = []
+		for clip: String in SoldierLook.clips():
+			if not player.has_animation(clip):
+				missing.append(clip)
+		if not missing.is_empty():
+			errors.append("%s/%s: clips missing %s" % [id, member.name, missing])
+		if SoldierLook.find_skeleton(member) == null:
+			errors.append("%s/%s: no skeleton" % [id, member.name])
+		if member.find_child("Socket_Muzzle", true, false) != null:
+			armed += 1
+		if not player.is_playing():
+			errors.append("%s/%s: no clip playing" % [id, member.name])
+	if armed == 0:
+		errors.append("%s: no armed member (Socket_Muzzle)" % id)
+	print("self-test: %s loaded, squad of %d, %d armed, %d triangles" % [id, members.size(), armed, _triangles(model)])
+
+
+func _check_squad_look(model: Node3D, biome: String, errors: Array[String]) -> void:
+	var faction: String = model.get_meta(&"gallery_faction")
+	# materials are cached per skin tone too, so compare the uniform color
+	var want := (SoldierLook.slot_material(faction, biome, "Cloth") as StandardMaterial3D).albedo_color
+	for member in _squad_members(model):
+		var found := false
+		for mi: MeshInstance3D in member.find_children("*", "MeshInstance3D", true, false):
+			for s in mi.get_surface_override_material_count():
+				var mat := mi.get_surface_override_material(s)
+				var std := mat as StandardMaterial3D
+				if std and std.resource_name == "Cloth":
+					found = found or std.albedo_color == want
+		if not found:
+			errors.append("%s/%s: no %s_%s uniform" % [model.name, member.name, faction, biome])
+			return

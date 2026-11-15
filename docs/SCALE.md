@@ -38,8 +38,9 @@ game_time   = real_time   ÷ time_factor         (reload, build, setup, ...)
 (`[[time.override]]` in `scale.toml`) let balancing change single categories (for
 example infantry) without touching the catalog.
 
-Until terrain exists (prompt 010), units move at their **cross-country** speed;
-road speed becomes relevant with roads.
+Since prompt 010 the terrain type picks the speed: road speed on roads, cross-country
+speed elsewhere, each scaled by a percentage and by the uphill grade
+(`data/terrain.toml`, see [MAPS.md](MAPS.md)).
 
 ### Range compression
 
@@ -125,6 +126,11 @@ Observations for balancing (to be decided with combat, prompt 017):
 - Short-range infantry anti-tank weapons (bazooka 110 m real) end up at ~30 m. They
   may need a minimum game range rather than pure compression.
 - Artillery covers 1.5 km, a large part of a 2–4 km map, as intended.
+
+## Map scale
+
+Maps use the same 1:1 meters: a height field with **2 m** cells and heights in
+**millimeters**, up to 4 km × 4 km (`test_large`). Details in [MAPS.md](MAPS.md).
 
 ## Changing the scale
 

@@ -3,10 +3,13 @@
 use crate::command::{Command, PlayerCommand, PlayerId, UnitId};
 use crate::data::UnitType;
 use crate::hash::StableHasher;
+use crate::map::{Map, MapRef};
 use crate::math::{Fixed, Vec2};
 use crate::rng::Rng;
+use crate::terrain::{SpeedBasis, TerrainRules};
 use serde::{Deserialize, Serialize};
 use std::fmt;
+use std::sync::Arc;
 
 /// Move targets farther than this from the origin (in meters, per axis) are
 /// ignored. Keeps all position arithmetic far away from `Fixed` overflow, even
@@ -29,6 +32,10 @@ pub struct SimConfig {
     pub tick_hz: u32,
     pub unit_types: Vec<UnitType>,
     pub spawns: Vec<Spawn>,
+    /// The map this match is played on. [`Sim::new`] gets the map itself and
+    /// checks it against this reference.
+    pub map: MapRef,
+    pub terrain: TerrainRules,
 }
 
 impl SimConfig {
@@ -47,6 +54,15 @@ impl SimConfig {
 pub enum ConfigError {
     ZeroTickRate,
     UnknownUnitType(String),
+    /// The given map is not the one the config references.
+    MapMismatch {
+        expected: MapRef,
+        actual: MapRef,
+    },
+    /// The map uses a terrain id without a [`TerrainRules`] entry.
+    UnknownTerrain(u8),
+    /// Spawn with this index lies outside the map.
+    SpawnOutsideMap(usize),
 }
 
 impl fmt::Display for ConfigError {
@@ -54,6 +70,13 @@ impl fmt::Display for ConfigError {
         match self {
             Self::ZeroTickRate => write!(f, "tick_hz must be positive"),
             Self::UnknownUnitType(name) => write!(f, "unknown unit type '{name}'"),
+            Self::MapMismatch { expected, actual } => write!(
+                f,
+                "map '{}' ({:#018x}) does not match the configured map '{}' ({:#018x})",
+                actual.name, actual.hash, expected.name, expected.hash
+            ),
+            Self::UnknownTerrain(id) => write!(f, "map uses unknown terrain id {id}"),
+            Self::SpawnOutsideMap(index) => write!(f, "spawn {index} lies outside the map"),
         }
     }
 }
@@ -66,9 +89,13 @@ struct Unit {
     owner: PlayerId,
     unit_type: u32,
     position: Vec2,
+    /// Ground height at `position` in meters.
+    height: Fixed,
     target: Option<Vec2>,
-    /// Meters per tick.
-    speed: Fixed,
+    /// Cross-country speed in meters per tick.
+    speed_offroad: Fixed,
+    /// Road speed in meters per tick.
+    speed_road: Fixed,
     /// Meters, see [`UnitType::footprint_m`].
     footprint: Fixed,
 }
@@ -81,6 +108,8 @@ pub struct UnitSnapshot {
     /// Index into [`SimConfig::unit_types`].
     pub unit_type: u32,
     pub position: Vec2,
+    /// Ground height at `position` in meters.
+    pub height: Fixed,
     pub target: Option<Vec2>,
 }
 
@@ -100,12 +129,27 @@ pub struct Sim {
     rng: Rng,
     /// Sorted by id; ids are assigned in increasing order.
     units: Vec<Unit>,
+    map: Arc<Map>,
+    terrain: TerrainRules,
 }
 
 impl Sim {
-    pub fn new(config: &SimConfig, seed: u64) -> Result<Self, ConfigError> {
+    /// Starts a match on `map`, which must be the map `config.map` names
+    /// (same content hash).
+    pub fn new(config: &SimConfig, map: Arc<Map>, seed: u64) -> Result<Self, ConfigError> {
         if config.tick_hz == 0 {
             return Err(ConfigError::ZeroTickRate);
+        }
+        if map.reference() != config.map {
+            return Err(ConfigError::MapMismatch {
+                expected: config.map.clone(),
+                actual: map.reference(),
+            });
+        }
+        if let Some(&id) = map.terrain_ids().iter().max()
+            && usize::from(id) >= config.terrain.types.len()
+        {
+            return Err(ConfigError::UnknownTerrain(id));
         }
         let ticks_per_second = Fixed::from_num(config.tick_hz);
 
@@ -115,13 +159,18 @@ impl Sim {
                 .zip(&config.unit_types)
                 .find(|(_, t)| t.name == spawn.unit_type)
                 .ok_or_else(|| ConfigError::UnknownUnitType(spawn.unit_type.clone()))?;
+            if !map.contains(spawn.position) {
+                return Err(ConfigError::SpawnOutsideMap(index as usize));
+            }
             units.push(Unit {
                 id: UnitId(index),
                 owner: spawn.owner,
                 unit_type: type_index,
                 position: spawn.position,
+                height: map.height_at(spawn.position),
                 target: None,
-                speed: unit_type.speed_m_per_s / ticks_per_second,
+                speed_offroad: unit_type.speed_m_per_s / ticks_per_second,
+                speed_road: unit_type.road_speed_m_per_s / ticks_per_second,
                 footprint: unit_type.footprint_m,
             });
         }
@@ -130,12 +179,19 @@ impl Sim {
             tick: 0,
             rng: Rng::new(seed),
             units,
+            map,
+            terrain: config.terrain.clone(),
         })
     }
 
     /// Number of ticks simulated so far.
     pub const fn tick(&self) -> u64 {
         self.tick
+    }
+
+    /// The map of this match.
+    pub const fn map(&self) -> &Arc<Map> {
+        &self.map
     }
 
     /// Advances the simulation by exactly one tick.
@@ -147,7 +203,7 @@ impl Sim {
             self.apply(command);
         }
         for unit in &mut self.units {
-            move_unit(unit);
+            move_unit(unit, &self.map, &self.terrain);
         }
         self.tick += 1;
     }
@@ -210,6 +266,8 @@ impl Sim {
         let mut h = StableHasher::new();
         h.write_u64(self.tick);
         h.write_u64(self.rng.state());
+        h.write_u64(self.map.hash());
+        self.terrain.hash_into(&mut h);
         h.write_u64(self.units.len() as u64);
         for unit in &self.units {
             h.write_u32(unit.id.0);
@@ -217,6 +275,7 @@ impl Sim {
             h.write_u32(unit.unit_type);
             h.write_i64(unit.position.x.to_bits());
             h.write_i64(unit.position.y.to_bits());
+            h.write_i64(unit.height.to_bits());
             match unit.target {
                 None => h.write_u8(0),
                 Some(target) => {
@@ -225,7 +284,8 @@ impl Sim {
                     h.write_i64(target.y.to_bits());
                 }
             }
-            h.write_i64(unit.speed.to_bits());
+            h.write_i64(unit.speed_offroad.to_bits());
+            h.write_i64(unit.speed_road.to_bits());
             h.write_i64(unit.footprint.to_bits());
         }
         h.finish()
@@ -243,6 +303,7 @@ impl Sim {
                     owner: u.owner,
                     unit_type: u.unit_type,
                     position: u.position,
+                    height: u.height,
                     target: u.target,
                 })
                 .collect(),
@@ -291,26 +352,66 @@ pub fn formation_slots(center: Vec2, count: usize, spacing: Fixed) -> Vec<Vec2> 
     slots
 }
 
-/// Moves a unit one tick along the straight line to its target.
-fn move_unit(unit: &mut Unit) {
+/// Moves a unit one tick along the straight line to its target, at the
+/// speed of the terrain under it and the grade ahead.
+///
+/// The unit stops (loses its target) instead of entering impassable terrain,
+/// leaving the map or climbing a grade steeper than the slope rules allow.
+/// Real detours come with pathfinding (prompt 012).
+fn move_unit(unit: &mut Unit, map: &Map, rules: &TerrainRules) {
     let Some(target) = unit.target else {
         return;
     };
     let delta = target - unit.position;
     let distance = delta.length();
-    if distance <= unit.speed {
-        unit.position = target;
+    if distance == Fixed::ZERO {
         unit.target = None;
-    } else {
-        // delta / distance has components in [-1, 1], so this cannot overflow.
-        let direction = Vec2::new(delta.x / distance, delta.y / distance);
-        unit.position = unit.position + direction.scale(unit.speed);
+        return;
     }
+    // delta / distance has components in [-1, 1], so this cannot overflow.
+    let direction = Vec2::new(delta.x / distance, delta.y / distance);
+    let Some(speed) = ground_speed(unit, direction, map, rules) else {
+        unit.target = None;
+        return;
+    };
+    let next = if distance <= speed {
+        target
+    } else {
+        unit.position + direction.scale(speed)
+    };
+    if !map.contains(next) || !rules.types[usize::from(map.terrain_at(next))].passable {
+        unit.target = None;
+        return;
+    }
+    unit.position = next;
+    unit.height = map.height_at(next);
+    if next == target {
+        unit.target = None;
+    }
+}
+
+/// Meters per tick of `unit` driving in `direction` (unit length) from its
+/// current position, or `None` if the grade is too steep.
+///
+/// Terrain picks road or cross-country speed and scales it; the result never
+/// exceeds the road speed. The grade is the height difference over the next
+/// meter.
+fn ground_speed(unit: &Unit, direction: Vec2, map: &Map, rules: &TerrainRules) -> Option<Fixed> {
+    let terrain = &rules.types[usize::from(map.terrain_at(unit.position))];
+    let basis = match terrain.speed {
+        SpeedBasis::Road => unit.speed_road,
+        SpeedBasis::Offroad => unit.speed_offroad,
+    };
+    let speed = (basis * Fixed::from_num(terrain.speed_pct) / Fixed::from_num(100))
+        .min(unit.speed_road.max(unit.speed_offroad));
+    let grade = map.height_at(unit.position + direction) - unit.height;
+    Some(speed * rules.slope.factor(grade)?)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::map::MapLayout;
 
     const P0: PlayerId = PlayerId(0);
     const P1: PlayerId = PlayerId(1);
@@ -319,8 +420,43 @@ mod tests {
         UnitType {
             name: "tank".into(),
             speed_m_per_s: Fixed::from_num(4),
+            road_speed_m_per_s: Fixed::from_num(10),
             footprint_m: Fixed::from_num(6),
         }
+    }
+
+    /// 400 m x 400 m (201 x 201 samples of 2 m), centered on the origin.
+    /// `sample(i, j)` returns height in mm and terrain id of each sample.
+    fn map_with(sample: impl Fn(u32, u32) -> (i32, u8)) -> Arc<Map> {
+        let n = 201;
+        let (heights, terrain) = (0..n)
+            .flat_map(|j| (0..n).map(move |i| (i, j)))
+            .map(|(i, j)| sample(i, j))
+            .unzip();
+        let layout = MapLayout {
+            name: "test".into(),
+            samples_x: n,
+            samples_y: n,
+            cell_size_mm: 2000,
+            starts: Vec::new(),
+            markers: Vec::new(),
+        };
+        Arc::new(Map::from_rasters(layout, heights, terrain).unwrap())
+    }
+
+    fn flat_map() -> Arc<Map> {
+        map_with(|_, _| (0, 0))
+    }
+
+    fn new_sim(config: &SimConfig) -> Result<Sim, ConfigError> {
+        Sim::new(config, flat_map(), 1)
+    }
+
+    /// Same units as [`config`], on `map`.
+    fn sim_on(map: Arc<Map>) -> Sim {
+        let mut cfg = config();
+        cfg.map = map.reference();
+        Sim::new(&cfg, map, 1).unwrap()
     }
 
     /// Units 0..=2 belong to player 0, unit 3 to player 1.
@@ -339,6 +475,8 @@ mod tests {
                 spawn(P0, 20, 0),
                 spawn(P1, 0, 50),
             ],
+            map: flat_map().reference(),
+            terrain: TerrainRules::builtin().unwrap(),
         }
     }
 
@@ -360,7 +498,7 @@ mod tests {
 
     #[test]
     fn unit_reaches_target_and_stops() {
-        let mut sim = Sim::new(&config(), 1).unwrap();
+        let mut sim = new_sim(&config()).unwrap();
         sim.step(&[move_to(P0, &[0], 3, 4)]);
         // 5 m at 4 m/s and 20 Hz takes 25 ticks.
         run(&mut sim, 30);
@@ -371,7 +509,7 @@ mod tests {
 
     #[test]
     fn unit_moves_by_speed_per_tick() {
-        let mut sim = Sim::new(&config(), 1).unwrap();
+        let mut sim = new_sim(&config()).unwrap();
         sim.step(&[move_to(P0, &[0], 10, 0)]);
         let x = sim.snapshot().units[0].position.x;
         let expected = Fixed::from_num(4) / Fixed::from_num(20);
@@ -380,9 +518,9 @@ mod tests {
 
     #[test]
     fn unknown_unit_is_ignored() {
-        let mut sim = Sim::new(&config(), 1).unwrap();
+        let mut sim = new_sim(&config()).unwrap();
         let before = sim.state_hash();
-        let mut reference = Sim::new(&config(), 1).unwrap();
+        let mut reference = new_sim(&config()).unwrap();
         sim.step(&[move_to(P0, &[99], 1, 1)]);
         reference.step(&[]);
         assert_ne!(before, sim.state_hash());
@@ -391,8 +529,8 @@ mod tests {
 
     #[test]
     fn commands_for_foreign_units_are_ignored() {
-        let mut sim = Sim::new(&config(), 1).unwrap();
-        let mut reference = Sim::new(&config(), 1).unwrap();
+        let mut sim = new_sim(&config()).unwrap();
+        let mut reference = new_sim(&config()).unwrap();
         sim.step(&[
             move_to(P1, &[0, 1, 2], 100, 100),
             PlayerCommand::new(P0, Command::Stop { units: vec![] }),
@@ -409,7 +547,7 @@ mod tests {
 
     #[test]
     fn group_gets_distinct_slots_with_spacing() {
-        let mut sim = Sim::new(&config(), 1).unwrap();
+        let mut sim = new_sim(&config()).unwrap();
         sim.step(&[move_to(P0, &[0, 1, 2], 100, 100)]);
         let targets: Vec<Vec2> = sim.snapshot().units[..3]
             .iter()
@@ -428,8 +566,8 @@ mod tests {
 
     #[test]
     fn formation_is_independent_of_command_order() {
-        let mut a = Sim::new(&config(), 1).unwrap();
-        let mut b = Sim::new(&config(), 1).unwrap();
+        let mut a = new_sim(&config()).unwrap();
+        let mut b = new_sim(&config()).unwrap();
         a.step(&[move_to(P0, &[0, 1, 2], -40, 70)]);
         b.step(&[move_to(P0, &[2, 0, 1, 2, 0], -40, 70)]);
         assert_eq!(a.state_hash(), b.state_hash());
@@ -437,7 +575,7 @@ mod tests {
 
     #[test]
     fn stop_clears_the_target() {
-        let mut sim = Sim::new(&config(), 1).unwrap();
+        let mut sim = new_sim(&config()).unwrap();
         sim.step(&[move_to(P0, &[0, 1], 0, 100)]);
         run(&mut sim, 10);
         sim.step(&[PlayerCommand::new(
@@ -455,7 +593,7 @@ mod tests {
 
     #[test]
     fn targets_outside_the_world_are_ignored() {
-        let mut sim = Sim::new(&config(), 1).unwrap();
+        let mut sim = new_sim(&config()).unwrap();
         sim.step(&[PlayerCommand::new(
             P0,
             Command::MoveTo {
@@ -488,8 +626,125 @@ mod tests {
         let mut cfg = config();
         cfg.spawns[0].unit_type = "nope".into();
         assert_eq!(
-            Sim::new(&cfg, 0).unwrap_err(),
+            Sim::new(&cfg, flat_map(), 0).unwrap_err(),
             ConfigError::UnknownUnitType("nope".into())
         );
+    }
+
+    #[test]
+    fn rejects_a_different_map() {
+        let other = map_with(|i, _| (i32::try_from(i).unwrap(), 0));
+        assert!(matches!(
+            Sim::new(&config(), other, 0),
+            Err(ConfigError::MapMismatch { .. })
+        ));
+    }
+
+    #[test]
+    fn rejects_spawns_outside_the_map() {
+        let mut cfg = config();
+        cfg.spawns[1].position = Vec2::from_meters(201, 0);
+        assert_eq!(
+            Sim::new(&cfg, flat_map(), 0).unwrap_err(),
+            ConfigError::SpawnOutsideMap(1)
+        );
+    }
+
+    /// Grade 10 % uphill towards +x: 200 mm per 2 m sample.
+    fn ramp() -> Arc<Map> {
+        map_with(|i, _| (i32::try_from(i).unwrap() * 200, 0))
+    }
+
+    #[test]
+    fn unit_follows_the_ground_height() {
+        let map = ramp();
+        let mut sim = sim_on(map.clone());
+        let start = sim.snapshot().units[0];
+        // Origin is sample 100: 20 m.
+        assert_eq!(start.height, Fixed::from_num(20));
+        sim.step(&[move_to(P0, &[0], 50, 0)]);
+        run(&mut sim, 40);
+        let unit = sim.snapshot().units[0];
+        // 41 ticks at 80 % of 0.2 m: about 6.56 m.
+        assert!(
+            unit.position.x > Fixed::from_num(6),
+            "x = {}",
+            unit.position.x
+        );
+        assert_eq!(unit.height, map.height_at(unit.position));
+        assert!(unit.height > start.height + Fixed::from_num(6) / 10);
+    }
+
+    #[test]
+    fn uphill_is_slower_than_flat_and_downhill() {
+        let step_x = |map: Arc<Map>, x: i32| {
+            let mut sim = sim_on(map);
+            sim.step(&[move_to(P0, &[0], x, 0)]);
+            sim.snapshot().units[0].position.x.abs()
+        };
+        let per_tick = Fixed::from_num(4) / Fixed::from_num(20);
+        // 10 % uphill: 1 - 0.1 * 2 = 80 % of 0.2 m (up to rounding of the
+        // 1 m lookahead height).
+        let uphill = step_x(ramp(), 50);
+        let expected = per_tick * Fixed::from_num(8) / Fixed::from_num(10);
+        assert!(
+            (uphill - expected).abs() <= Fixed::DELTA * 16,
+            "uphill {uphill}"
+        );
+        assert_eq!(step_x(ramp(), -50), per_tick);
+        assert_eq!(step_x(flat_map(), 50), per_tick);
+    }
+
+    #[test]
+    fn too_steep_grades_stop_the_unit() {
+        // 70 % grade: 1400 mm per sample.
+        let steep = map_with(|i, _| (i32::try_from(i).unwrap() * 1400, 0));
+        let mut sim = sim_on(steep);
+        let start = sim.snapshot().units[0].position;
+        sim.step(&[move_to(P0, &[0], 50, 0)]);
+        let unit = sim.snapshot().units[0];
+        assert_eq!((unit.position, unit.target), (start, None));
+    }
+
+    #[test]
+    fn road_uses_the_road_speed() {
+        let road = map_with(|_, _| (0, 2));
+        let mut sim = sim_on(road);
+        sim.step(&[move_to(P0, &[0], 50, 0)]);
+        // 10 m/s at 20 Hz.
+        assert_eq!(sim.snapshot().units[0].position.x, Fixed::ONE / 2);
+    }
+
+    #[test]
+    fn units_stop_before_deep_water() {
+        // Deep water from x = 20 m (sample 110) on.
+        let lake = map_with(|i, _| (0, if i >= 110 { 7 } else { 0 }));
+        let mut sim = sim_on(lake.clone());
+        sim.step(&[move_to(P0, &[0], 60, 0)]);
+        run(&mut sim, 200);
+        let unit = sim.snapshot().units[0];
+        assert_eq!(unit.target, None);
+        assert!(
+            unit.position.x > Fixed::from_num(18),
+            "x = {}",
+            unit.position.x
+        );
+        assert!(
+            unit.position.x < Fixed::from_num(19),
+            "x = {}",
+            unit.position.x
+        );
+        assert_ne!(lake.terrain_at(unit.position), 7);
+    }
+
+    #[test]
+    fn units_stop_at_the_map_edge() {
+        let mut sim = new_sim(&config()).unwrap();
+        sim.step(&[move_to(P0, &[0], 0, -500)]);
+        run(&mut sim, 20 * 60);
+        let unit = sim.snapshot().units[0];
+        assert_eq!(unit.target, None);
+        assert!(unit.position.y >= Fixed::from_num(-200));
+        assert!(unit.position.y < Fixed::from_num(-199));
     }
 }
