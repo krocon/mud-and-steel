@@ -1,19 +1,18 @@
 # US command team (catalog us_inf_command): officer with carbine and pistol,
 # radio operator with carbine and the SCR-300.
 #
-# Roles: `officer` (carbine M1, map case, binoculars) and `radio_operator`
-# (SCR-300 backpack). Deviations: the `radio_operator` soldier carries the M1
-# rifle, the catalog gives him a carbine (no carbine-armed radio role exists;
-# the radio silhouette matters more); the officer's pistol is not modeled.
+# Roles: `officer` (carbine M1, M1911A1 in the holster, map case, binoculars)
+# and `radio_operator` (carbine M1, SCR-300 backpack; prompt 042). No deviations
+# from the catalog weapon list.
 unit = "us_inf_command"
 
 [[member]]
 role = "officer"
 position = [0.0, 0.5]
-note = "officer (carbine M1; pistol M1911A1 not modeled)"
+note = "officer (carbine M1, pistol M1911A1 in the holster)"
 
 [[member]]
 role = "radio_operator"
 position = [1.0, -0.6]
 clip = "kneel"
-note = "radio operator (SCR-300; shown with M1 rifle instead of the carbine)"
+note = "radio operator (carbine M1, SCR-300)"

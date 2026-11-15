@@ -8,7 +8,7 @@ extends Node3D
 ## its `Member_NN` children are the soldiers (`NN` = soldier index + 1).
 ## Every frame each member gets its interpolated position and a clip:
 ##
-## - dead: `death_a` / `death_b` once, then the body stays;
+## - dead: `death_a` / `death_b` / `death_c` once, then the body stays;
 ## - moving: `walk` or `run` (standing, kneeling), `crawl` (prone), played at
 ##   `speed / authored speed` so the feet do not slide;
 ## - fired in the last FIRE_SECONDS: `fire_<stance>`, aiming for AIM_SECONDS
@@ -37,6 +37,8 @@ const FIRE_SECONDS := 0.35
 const AIM_SECONDS := 2.5
 ## Game speed (m/s) from which soldiers run instead of walk.
 const RUN_FROM := 2.6
+## Death clips, picked by soldier seed (death_c: prompt 042).
+const DEATH_CLIPS: Array[String] = ["death_a", "death_b", "death_c"]
 ## Below this game speed (m/s) a soldier counts as standing.
 const MOVING_FROM := 0.15
 const BLEND_SECONDS := 0.2
@@ -368,7 +370,7 @@ func _animate(s: Dictionary, dead: bool, moving: bool, speed: float, stance: int
 	var scale := TIME_FACTOR
 	if dead:
 		s["dead"] = true
-		clip = "death_a" if int(s["seed"]) % 2 == 0 else "death_b"
+		clip = DEATH_CLIPS[int(s["seed"]) % DEATH_CLIPS.size()]
 	elif moving:
 		clip = "crawl" if stance == 2 else ("run" if speed >= RUN_FROM else "walk")
 		var authored: float = SoldierLook.clips().get(clip, {}).get("speed", 1.0)

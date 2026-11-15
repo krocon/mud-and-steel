@@ -202,12 +202,17 @@ class MeshBuilder:
         for poly, (_, s) in zip(mesh.polygons, self.faces):
             poly.material_index = s
             poly.use_smooth = False
-        # Simple projected UVs (front view, 1 m = 1 UV unit) so the export has texture
-        # coordinates; real atlas UVs come with textures later.
+        # Rest-pose position in meters (prompt 042): UV = (x, z), UV2 = (y, 0). The
+        # soldier shader (godot/assets/shaders/soldier.gdshader) draws its procedural
+        # cloth, leather, wood and camouflage patterns in these coordinates, so the
+        # patterns stay on the cloth while the skinned body moves.
         uv = mesh.uv_layers.new(name="UVMap")
+        rest = mesh.uv_layers.new(name="Rest")
         for loop in mesh.loops:
             co = self.verts[loop.vertex_index]
-            uv.data[loop.index].uv = (co.x + co.y * 0.5 + 0.5, co.z * 0.5)
+            uv.data[loop.index].uv = (co.x, co.z)
+            rest.data[loop.index].uv = (co.y, 0.0)
+        mesh.uv_layers.active = uv
         attr = mesh.color_attributes.new("Col", "BYTE_COLOR", "CORNER")
         for loop in mesh.loops:
             r, g, b = self.colors[loop.vertex_index]
