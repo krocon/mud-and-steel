@@ -8,15 +8,26 @@
 use crate::catalog::Catalog;
 use crate::command::{Command, PlayerCommand, PlayerId, UnitId};
 use crate::data::unit_types_from_catalog;
+use crate::map::Map;
 use crate::math::Vec2;
 use crate::rng::Rng;
 use crate::scale::Scale;
 use crate::sim::{Sim, SimConfig, Spawn};
+use crate::terrain::TerrainRules;
 use serde::Deserialize;
 use std::fmt;
+use std::sync::{Arc, OnceLock};
 
 /// The demo scenario: eight Panzer IV against eight T-34/76.
 pub const DEMO_SCENARIO: &str = include_str!("../../../data/scenarios/demo.toml");
+
+/// Name of the map compiled into the simulation.
+pub const BUILTIN_MAP_NAME: &str = "test_small";
+
+/// The files of `data/maps/test_small/`, compiled in (needs Git LFS).
+const BUILTIN_MAP_TOML: &str = include_str!("../../../data/maps/test_small/map.toml");
+const BUILTIN_MAP_HEIGHT: &[u8] = include_bytes!("../../../data/maps/test_small/height.png");
+const BUILTIN_MAP_TERRAIN: &[u8] = include_bytes!("../../../data/maps/test_small/terrain.png");
 
 /// Ticks between two scripted commands.
 pub const COMMAND_INTERVAL: u64 = 40;
@@ -52,16 +63,28 @@ struct Group {
 #[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct ScenarioFile {
+    /// Name of the map the scenario is made for (`data/maps/<map>/`).
+    map: String,
     group: Vec<Group>,
 }
 
-/// Parses a scenario file and resolves its units against the catalog.
+/// The map a scenario file names.
+pub fn scenario_map_name(text: &str) -> Result<String, ScenarioError> {
+    let file: ScenarioFile = toml::from_str(text).map_err(|e| ScenarioError(e.to_string()))?;
+    Ok(file.map)
+}
+
+/// Parses a scenario file and resolves its units against the catalog. The
+/// match is played on `map` (usually the one [`scenario_map_name`] names;
+/// any map large enough for the spawns works).
 ///
 /// Unit ids are assigned in file order: group by group, row by row.
 pub fn parse_scenario(
     text: &str,
     catalog: &Catalog,
     scale: &Scale,
+    terrain: &TerrainRules,
+    map: &Map,
 ) -> Result<SimConfig, ScenarioError> {
     let file: ScenarioFile = toml::from_str(text).map_err(|e| ScenarioError(e.to_string()))?;
 
@@ -92,6 +115,8 @@ pub fn parse_scenario(
         tick_hz: SimConfig::DEFAULT_TICK_HZ,
         unit_types,
         spawns,
+        map: map.reference(),
+        terrain: terrain.clone(),
     })
 }
 
@@ -118,11 +143,27 @@ fn grid(group: &Group) -> Result<Vec<Vec2>, ScenarioError> {
     Ok(positions)
 }
 
-/// The demo scenario with the built-in catalog and scale.
+/// The map compiled into the simulation (`data/maps/test_small/`),
+/// decoded once.
+pub fn builtin_map() -> Arc<Map> {
+    static MAP: OnceLock<Arc<Map>> = OnceLock::new();
+    MAP.get_or_init(|| {
+        Arc::new(
+            Map::load(BUILTIN_MAP_TOML, BUILTIN_MAP_HEIGHT, BUILTIN_MAP_TERRAIN).expect(
+                "built-in map data/maps/test_small is valid (is Git LFS installed and pulled?)",
+            ),
+        )
+    })
+    .clone()
+}
+
+/// The demo scenario with the built-in catalog, scale, terrain and map.
 pub fn demo_config() -> SimConfig {
     let catalog = Catalog::builtin().expect("built-in catalog is valid");
     let scale = Scale::builtin().expect("built-in scale is valid");
-    parse_scenario(DEMO_SCENARIO, &catalog, &scale).expect("demo scenario is valid")
+    let terrain = TerrainRules::builtin().expect("built-in terrain rules are valid");
+    parse_scenario(DEMO_SCENARIO, &catalog, &scale, &terrain, &builtin_map())
+        .expect("demo scenario is valid")
 }
 
 /// Deterministic command generator for one player.
@@ -203,7 +244,7 @@ pub fn run_demo(seed: u64, ticks: u64) -> Sim {
 /// Like [`run_demo`], but calls `observe(tick, commands)` before every step.
 pub fn run_demo_with(seed: u64, ticks: u64, mut observe: impl FnMut(u64, &[PlayerCommand])) -> Sim {
     let config = demo_config();
-    let mut sim = Sim::new(&config, seed).expect("demo config is valid");
+    let mut sim = Sim::new(&config, builtin_map(), seed).expect("demo config is valid");
     let mut scripts = demo_scripts(seed, &config);
     for tick in 0..ticks {
         let commands: Vec<PlayerCommand> = scripts
@@ -248,14 +289,24 @@ mod tests {
     }
 
     #[test]
+    fn demo_names_the_builtin_map() {
+        assert_eq!(scenario_map_name(DEMO_SCENARIO).unwrap(), BUILTIN_MAP_NAME);
+        assert_eq!(builtin_map().name(), BUILTIN_MAP_NAME);
+    }
+
+    #[test]
     fn rejects_unknown_fields_and_units() {
         let catalog = Catalog::builtin().unwrap();
         let scale = Scale::builtin().unwrap();
-        let bad_field = "[[group]]\nowner = 0\nunit = \"de_pz4_h\"\ncount = 1\ncolumns = 1\n\
+        let terrain = TerrainRules::builtin().unwrap();
+        let map = builtin_map();
+        let parse = |text: &str| parse_scenario(text, &catalog, &scale, &terrain, &map);
+        let bad_field = "map = \"test_small\"\n[[group]]\nowner = 0\nunit = \"de_pz4_h\"\ncount = 1\ncolumns = 1\n\
                          spacing_m = 1\ncenter_m = [0, 0]\ncolour = 1\n";
-        assert!(parse_scenario(bad_field, &catalog, &scale).is_err());
+        assert!(parse(bad_field).is_err());
         let bad_unit = DEMO_SCENARIO.replace("de_pz4_h", "de_nope");
-        assert!(parse_scenario(&bad_unit, &catalog, &scale).is_err());
+        assert!(parse(&bad_unit).is_err());
+        assert!(parse(&DEMO_SCENARIO.replace("map = ", "# map = ")).is_err());
     }
 
     #[test]

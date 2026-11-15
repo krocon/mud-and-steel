@@ -45,6 +45,9 @@ Run `just` to list all commands. The most important ones:
 | `just selftest`         | headless smoke test of the game (exit code 0 = passed)   |
 | `just replay <file>`    | plays a replay headless and checks its end hash          |
 | `just record <file>`    | writes a replay of the scripted demo (no Godot needed)   |
+| `just run-map [name]`   | starts the game on `data/maps/<name>/` (default `test_large`) |
+| `just map-info [name]`  | load time, memory and height range of a map              |
+| `just gen-map <name> [size_m] [seed]` | generates a test map ([docs/MAPS.md](docs/MAPS.md)) |
 | `just export-model <file.blend>` | exports a model to `godot/assets/models/`       |
 | `just model-tank`       | regenerates and exports the placeholder tank             |
 
@@ -58,7 +61,9 @@ just run
 ```
 
 You command eight Panzer IV (player 0) facing eight T-34 (player 1, red tint, not
-selectable). Left click or drag a box to select, double click selects all visible tanks
+selectable) on the 500 m test map `test_small`: a start meadow, a hill to the north-west,
+a river in the east and a village square in the south-west, drawn as a debug mesh
+colored by terrain type with height contours. Left click or drag a box to select, double click selects all visible tanks
 of the type, Ctrl+1…9 stores a group and 1…9 recalls it (twice centers the camera).
 Right-click on the ground sends the selection into a formation there, H stops it.
 The camera moves with WASD/arrows, the mouse wheel, middle drag, Q/E and N.

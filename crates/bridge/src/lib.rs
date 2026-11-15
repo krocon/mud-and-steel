@@ -7,8 +7,13 @@
 use godot::classes::{INode, Node};
 use godot::prelude::*;
 use net::{LocalTransport, LockstepConfig, LockstepSession, NetError, Replay, ReplayRecorder};
-use sim::scenario::{DEMO_SCENARIO, parse_scenario};
-use sim::{Catalog, Command, Fixed, PlayerId, Scale, Sim, SimConfig, Snapshot, UnitId, Vec2};
+use sim::scenario::{DEMO_SCENARIO, builtin_map, parse_scenario};
+use sim::{
+    Catalog, Command, Fixed, Map, PlayerId, Scale, Sim, SimConfig, Snapshot, TerrainRules, UnitId,
+    Vec2,
+};
+use std::path::Path;
+use std::sync::Arc;
 
 struct MudAndSteel;
 
@@ -27,9 +32,15 @@ const LOCAL_PLAYER: PlayerId = PlayerId(0);
 /// to compare with, but uses the same protocol.
 const HASH_INTERVAL: u64 = 20;
 
+/// Rays longer than this (meters) do not hit the ground in `ray_pick`.
+const MAX_PICK_DISTANCE: f32 = 20_000.0;
+
 /// A running match: simulation plus lockstep session and replay recorder.
 struct Game {
     sim: Sim,
+    map: Arc<Map>,
+    /// Highest point of the map in meters, for ray picking.
+    map_top: f32,
     config: SimConfig,
     session: LockstepSession,
     transport: LocalTransport,
@@ -60,7 +71,8 @@ impl Game {
 /// All input goes through a `net::LockstepSession`, exactly like in
 /// multiplayer: commands are scheduled `input_delay` ticks ahead.
 ///
-/// Positions use Godot coordinates: sim `(x, y)` becomes `(x, 0, y)`.
+/// Positions use Godot coordinates: sim `(x, y)` at ground height `h`
+/// becomes `(x, h, y)`.
 #[derive(GodotClass)]
 #[class(base = Node)]
 pub struct SimHost {
@@ -127,12 +139,29 @@ impl INode for SimHost {
 
 #[godot_api]
 impl SimHost {
-    /// Starts the demo scenario (two players, eight tanks each) with the local
-    /// player in slot 0. Returns `false` (and logs an error) if the data is
-    /// invalid.
+    /// Starts the demo scenario (two players, eight tanks each) on the
+    /// built-in map `test_small` with the local player in slot 0. Returns
+    /// `false` (and logs an error) if the data is invalid.
     #[func]
     fn start(&mut self, seed: i64) -> bool {
-        let config = match demo_config() {
+        self.start_with(seed, builtin_map())
+    }
+
+    /// Like `start`, but on the map in the folder `map_dir` (absolute path
+    /// of a `data/maps/<name>/` folder).
+    #[func]
+    fn start_on_map(&mut self, seed: i64, map_dir: GString) -> bool {
+        match load_map_dir(Path::new(&map_dir.to_string())) {
+            Ok(map) => self.start_with(seed, Arc::new(map)),
+            Err(e) => {
+                godot_error!("{e}");
+                false
+            }
+        }
+    }
+
+    fn start_with(&mut self, seed: i64, map: Arc<Map>) -> bool {
+        let config = match demo_config(&map) {
             Ok(config) => config,
             Err(e) => {
                 godot_error!("{e}");
@@ -141,7 +170,7 @@ impl SimHost {
         };
         // The seed is a bit pattern; reinterpreting the sign is intended.
         let seed = seed.cast_unsigned();
-        let sim = match Sim::new(&config, seed) {
+        let sim = match Sim::new(&config, map.clone(), seed) {
             Ok(sim) => sim,
             Err(e) => {
                 godot_error!("cannot start simulation: {e}");
@@ -165,11 +194,171 @@ impl SimHost {
         self.game = Some(Game {
             recorder: ReplayRecorder::new(seed, config.clone(), &players),
             sim,
+            map_top: map
+                .heights_mm()
+                .iter()
+                .max()
+                .map_or(0.0, |&h| h as f32 / 1000.0),
+            map,
             config,
             session,
             transport: LocalTransport,
         });
         true
+    }
+
+    /// Name of the loaded map ("" before `start`).
+    #[func]
+    fn map_name(&self) -> GString {
+        self.game
+            .as_ref()
+            .map_or_else(GString::new, |g| GString::from(g.map.name()))
+    }
+
+    /// Width (x) and depth (z) of the map in meters. The map is centered on
+    /// the origin. Zero before `start`.
+    #[func]
+    fn map_size(&self) -> Vector2 {
+        self.game.as_ref().map_or(Vector2::ZERO, |g| {
+            let size = g.map.size();
+            Vector2::new(fixed_to_f32(size.x), fixed_to_f32(size.y))
+        })
+    }
+
+    /// Ground height at `(x, z)` in meters, exactly as the simulation
+    /// computes it (input quantized to millimeters).
+    #[func]
+    fn height_at(&self, x: f32, z: f32) -> f32 {
+        let (Some(game), Some(x), Some(z)) = (
+            self.game.as_ref(),
+            meters_to_millimeters(x),
+            meters_to_millimeters(z),
+        ) else {
+            return 0.0;
+        };
+        fixed_to_f32(game.map.height_at(Vec2::from_millimeters(x, z)))
+    }
+
+    /// Number of samples per axis of `height_grid(stride)` and
+    /// `terrain_grid(stride)`.
+    #[func]
+    fn grid_samples(&self, stride: i64) -> Vector2i {
+        self.game.as_ref().map_or(Vector2i::ZERO, |g| {
+            let (sx, sy) = g.map.samples();
+            let stride = clamp_stride(stride);
+            let count = |n: u32| i32::try_from((n - 1).div_ceil(stride) + 1).unwrap_or(0);
+            Vector2i::new(count(sx), count(sy))
+        })
+    }
+
+    /// Heights in meters of every `stride`-th sample, row by row (z), the
+    /// last row and column always included. Sample spacing is `stride`
+    /// cells; the map's cell size is `cell_size()`.
+    #[func]
+    fn height_grid(&self, stride: i64) -> PackedFloat32Array {
+        self.game
+            .as_ref()
+            .map_or_else(PackedFloat32Array::new, |g| {
+                grid_indices(&g.map, clamp_stride(stride))
+                    .map(|(i, j)| g.map.sample_height_mm(i, j) as f32 / 1000.0)
+                    .collect()
+            })
+    }
+
+    /// Terrain ids of the same samples as `height_grid(stride)`.
+    #[func]
+    fn terrain_grid(&self, stride: i64) -> PackedByteArray {
+        self.game.as_ref().map_or_else(PackedByteArray::new, |g| {
+            let (sx, _) = g.map.samples();
+            let ids = g.map.terrain_ids();
+            grid_indices(&g.map, clamp_stride(stride))
+                .map(|(i, j)| ids[j as usize * sx as usize + i as usize])
+                .collect()
+        })
+    }
+
+    /// Terrain id at `(x, z)` (nearest sample, like the simulation).
+    #[func]
+    fn terrain_at(&self, x: f32, z: f32) -> i64 {
+        let (Some(game), Some(x), Some(z)) = (
+            self.game.as_ref(),
+            meters_to_millimeters(x),
+            meters_to_millimeters(z),
+        ) else {
+            return -1;
+        };
+        i64::from(game.map.terrain_at(Vec2::from_millimeters(x, z)))
+    }
+
+    /// Speed of a terrain type in percent of its basis speed (-1 if unknown).
+    #[func]
+    fn terrain_speed_pct(&self, id: i64) -> i64 {
+        self.terrain_type(id).map_or(-1, |t| i64::from(t.speed_pct))
+    }
+
+    /// Whether units use their road speed (instead of cross-country) on a
+    /// terrain type.
+    #[func]
+    fn terrain_uses_road(&self, id: i64) -> bool {
+        self.terrain_type(id)
+            .is_some_and(|t| t.speed == sim::terrain::SpeedBasis::Road)
+    }
+
+    /// Distance between neighboring samples in meters.
+    #[func]
+    fn cell_size(&self) -> f32 {
+        self.game
+            .as_ref()
+            .map_or(0.0, |g| g.map.cell_size_mm() as f32 / 1000.0)
+    }
+
+    /// Debug color of every terrain type, indexed by terrain id.
+    #[func]
+    fn terrain_colors(&self) -> PackedColorArray {
+        self.game.as_ref().map_or_else(PackedColorArray::new, |g| {
+            g.config
+                .terrain
+                .types
+                .iter()
+                .map(|t| {
+                    let [_, r, g, b] = t.debug_color.to_be_bytes();
+                    Color::from_rgba8(r, g, b, 255)
+                })
+                .collect()
+        })
+    }
+
+    /// Ground point (with height) of a marker from `map.toml`, e.g.
+    /// "hill_top", or null if the map has no such marker.
+    #[func]
+    fn map_marker(&self, name: GString) -> Variant {
+        self.game
+            .as_ref()
+            .and_then(|g| {
+                let p = g.map.marker(&name.to_string())?;
+                Some(ground_to_godot(p, g.map.height_at(p)).to_variant())
+            })
+            .unwrap_or_default()
+    }
+
+    /// First point where the ray from `origin` along `direction` hits the
+    /// height field, or null if it misses (sky, beyond 20 km).
+    ///
+    /// Presentation only (floats): marches along the ray in steps that grow
+    /// with the distance, then refines the hit by bisection. Outside the map
+    /// the edge heights continue, like in the simulation.
+    #[func]
+    fn ray_pick(&self, origin: Vector3, direction: Vector3) -> Variant {
+        let Some(game) = &self.game else {
+            return Variant::nil();
+        };
+        ray_pick(&game.map, game.map_top, origin, direction)
+            .map_or_else(Variant::nil, |p| p.to_variant())
+    }
+
+    fn terrain_type(&self, id: i64) -> Option<&sim::terrain::TerrainType> {
+        let game = self.game.as_ref()?;
+        game.config.terrain.types.get(usize::try_from(id).ok()?)
     }
 
     /// Id of the player controlled on this machine.
@@ -322,8 +511,16 @@ impl SimHost {
     /// end hash matches, otherwise the reason.
     #[func]
     fn verify_replay(&self, bytes: PackedByteArray) -> GString {
+        // The replay names its map by content hash. The running match's map
+        // is the usual case; the built-in map covers replays of the demo.
+        let running = self.game.as_ref().map(|g| g.map.clone());
         let result = Replay::decode(bytes.as_slice())
-            .and_then(|replay| replay.verify())
+            .and_then(|replay| {
+                let map = running
+                    .filter(|m| m.reference() == replay.config.map)
+                    .unwrap_or_else(builtin_map);
+                replay.verify(map)
+            })
             .map_err(|e| e.to_string())
             .and_then(|report| {
                 if report.matches() {
@@ -339,11 +536,106 @@ impl SimHost {
     }
 }
 
-/// The demo scenario from the catalog and scale compiled into `sim`.
-fn demo_config() -> Result<SimConfig, Box<dyn std::error::Error>> {
+/// The demo scenario from the catalog, scale and terrain rules compiled
+/// into `sim`, on `map`.
+fn demo_config(map: &Map) -> Result<SimConfig, Box<dyn std::error::Error>> {
     let catalog = Catalog::builtin()?;
     let scale = Scale::builtin()?;
-    Ok(parse_scenario(DEMO_SCENARIO, &catalog, &scale)?)
+    let terrain = TerrainRules::builtin()?;
+    Ok(parse_scenario(
+        DEMO_SCENARIO,
+        &catalog,
+        &scale,
+        &terrain,
+        map,
+    )?)
+}
+
+/// Reads and decodes `dir/map.toml`, `dir/height.png` and `dir/terrain.png`.
+fn load_map_dir(dir: &Path) -> Result<Map, String> {
+    let read = |file: &str| {
+        let path = dir.join(file);
+        std::fs::read(&path).map_err(|e| format!("cannot read {}: {e}", path.display()))
+    };
+    let toml = String::from_utf8(read("map.toml")?).map_err(|e| e.to_string())?;
+    Map::load(&toml, &read("height.png")?, &read("terrain.png")?)
+        .map_err(|e| format!("{}: {e}", dir.display()))
+}
+
+fn clamp_stride(stride: i64) -> u32 {
+    u32::try_from(stride.clamp(1, 1024)).unwrap_or(1)
+}
+
+/// Sample indices `(i, j)` of every `stride`-th sample per axis, row by row,
+/// always including the last row and column.
+fn grid_indices(map: &Map, stride: u32) -> impl Iterator<Item = (u32, u32)> {
+    let (sx, sy) = map.samples();
+    let axis =
+        move |n: u32| (0..(n - 1).div_ceil(stride) + 1).map(move |k| (k * stride).min(n - 1));
+    axis(sy).flat_map(move |j| axis(sx).map(move |i| (i, j)))
+}
+
+/// Bilinear height in float, for ray picking. Matches the simulation to
+/// well below a millimeter, which is plenty for the mouse.
+fn height_f32(map: &Map, x: f32, z: f32) -> f32 {
+    let (sx, sy) = map.samples();
+    let size = map.size();
+    let cell = map.cell_size_mm() as f32 / 1000.0;
+    let grid = |v: f32, half: f32, n: u32| ((v + half) / cell).clamp(0.0, (n - 1) as f32);
+    let gx = grid(x, fixed_to_f32(size.x) / 2.0, sx);
+    let gz = grid(z, fixed_to_f32(size.y) / 2.0, sy);
+    let i = (gx as u32).min(sx - 2);
+    let j = (gz as u32).min(sy - 2);
+    let (fx, fz) = (gx - i as f32, gz - j as f32);
+    let h = |i: u32, j: u32| map.sample_height_mm(i, j) as f32;
+    let top = h(i, j) + (h(i + 1, j) - h(i, j)) * fx;
+    let bottom = h(i, j + 1) + (h(i + 1, j + 1) - h(i, j + 1)) * fx;
+    (top + (bottom - top) * fz) / 1000.0
+}
+
+fn ray_pick(map: &Map, top: f32, origin: Vector3, direction: Vector3) -> Option<Vector3> {
+    let direction = direction.try_normalized()?;
+    let above = |t: f32| {
+        let p = origin + direction * t;
+        p.y - height_f32(map, p.x, p.z)
+    };
+    // Skip the part of the ray above the highest point of the map.
+    let mut t = 0.0;
+    if origin.y > top {
+        if direction.y >= 0.0 {
+            return None;
+        }
+        t = (origin.y - top) / -direction.y;
+    }
+    if above(t) <= 0.0 {
+        let p = origin + direction * t;
+        return Some(Vector3::new(p.x, height_f32(map, p.x, p.z), p.z));
+    }
+    // March: steps of 0.5 m near the camera, growing to 20 m far away.
+    let mut hit = None;
+    while t < MAX_PICK_DISTANCE {
+        let step = (0.5 + t * 0.01).min(20.0);
+        if above(t + step) <= 0.0 {
+            hit = Some((t, t + step));
+            break;
+        }
+        t += step;
+        let p = origin + direction * t;
+        if p.y > top && direction.y >= 0.0 {
+            return None;
+        }
+    }
+    let (mut low, mut high) = hit?;
+    for _ in 0..24 {
+        let mid = 0.5 * (low + high);
+        if above(mid) > 0.0 {
+            low = mid;
+        } else {
+            high = mid;
+        }
+    }
+    let p = origin + direction * high;
+    Some(Vector3::new(p.x, height_f32(map, p.x, p.z), p.z))
 }
 
 fn to_unit_ids(ids: &PackedInt64Array) -> Vec<UnitId> {
@@ -358,7 +650,7 @@ fn positions(snapshot: &Snapshot) -> PackedVector3Array {
     snapshot
         .units
         .iter()
-        .map(|u| ground_to_godot(u.position))
+        .map(|u| ground_to_godot(u.position, u.height))
         .collect()
 }
 
@@ -366,8 +658,12 @@ fn fixed_to_f32(value: Fixed) -> f32 {
     value.to_num::<f32>()
 }
 
-fn ground_to_godot(position: Vec2) -> Vector3 {
-    Vector3::new(fixed_to_f32(position.x), 0.0, fixed_to_f32(position.y))
+fn ground_to_godot(position: Vec2, height: Fixed) -> Vector3 {
+    Vector3::new(
+        fixed_to_f32(position.x),
+        fixed_to_f32(height),
+        fixed_to_f32(position.y),
+    )
 }
 
 fn meters_to_millimeters(meters: f32) -> Option<i32> {

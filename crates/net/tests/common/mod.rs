@@ -33,7 +33,7 @@ impl Peer {
         };
         let sim_config = demo_config();
         Self {
-            sim: Sim::new(&sim_config, SEED).unwrap(),
+            sim: Sim::new(&sim_config, sim::scenario::builtin_map(), SEED).unwrap(),
             session: LockstepSession::new(PlayerId(player), &config),
             transport,
             // The same scripts as `run_demo`, but each peer only runs its own.

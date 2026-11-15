@@ -196,7 +196,7 @@ func _edge_direction() -> Vector2:
 func _apply() -> void:
 	focus.x = clampf(focus.x, bounds.position.x, bounds.end.x)
 	focus.z = clampf(focus.z, bounds.position.y, bounds.end.y)
-	focus.y = 0.0
+	focus.y = GroundPick.height_at(focus.x, focus.z)
 	global_position = focus
 
 	var elevation := pitch()
