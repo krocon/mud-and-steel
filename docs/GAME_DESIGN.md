@@ -1,0 +1,227 @@
+# Game design: base building and resources
+
+Prompt 023. This document fixes the game rules for building a base, gathering
+resources and producing units. The numbers live in `data/economy.toml`
+(compiled into the simulation, part of the state hash) and can be changed
+there without touching code; how the simulation implements them is in
+[ARCHITECTURE.md](ARCHITECTURE.md#economy-base-building-and-production).
+
+> **Status: provisional (vorläufig, vom Nutzer zu bestätigen).** The user asked
+> for these decisions to be made without a round of questions. Every section
+> below marked **[provisional]** is a design decision that still needs the
+> user's confirmation; the reasons are given so that each one can be reversed
+> on its own.
+
+## Guiding idea
+
+A WW2 real-time strategy game in the spirit of the classics of the genre:
+the tactical weight of real units (armor faces, ranges, sight) combined with
+a compact base, a few resources and supply points worth fighting over. A solo
+developer has to be able to build, balance and maintain it, so:
+
+- **Few moving parts.** Three resources, four base buildings, two kinds of
+  fortification, no harvester units, no tech tree beyond one prerequisite.
+- **Everything is a unit.** Buildings, construction sites and fortifications
+  are stationary units of the simulation. Combat, vision, destruction,
+  victory conditions and the computer opponent work with them unchanged.
+- **Numbers from data.** Unit costs follow from catalog values by a formula
+  (mass, crew, weapons), so all 133 catalog entries have a price without a
+  hand-made table; single units can be overridden.
+
+## Resources [provisional]
+
+| Resource | Used for | Comes from |
+|---|---|---|
+| **Fuel** (Treibstoff) | vehicles (by mass), vehicle works | HQ, supply depots, supply points |
+| **Ammunition** (Munition) | every armed unit (by its weapons), fortifications | HQ, supply depots, supply points |
+| **Manpower** (Personal) | soldiers and crews, every building | HQ, supply depots, supply points |
+
+- Every player has an account of the three resources; it starts with
+  **600 fuel, 600 ammunition, 400 manpower**. There is no storage limit.
+- Income is paid continuously (every second of game time, in thousandths, so
+  nothing is lost to rounding) from:
+
+| Source | Fuel / min | Ammunition / min | Manpower / min |
+|---|---|---|---|
+| Headquarters (completed) | 40 | 50 | 60 |
+| Supply depot (completed, each, at most 3) | 40 | 40 | 20 |
+| Supply point (held, each) | 60 | 60 | 30 |
+
+- **Supply points** are neutral spots on the map (map markers named
+  `supply…`, see [MAPS.md](MAPS.md)). A player takes one by having units (not
+  buildings) within **25 m** while no enemy unit is there; after **20 s** of
+  uncontested presence the point is theirs. Taking an enemy point first
+  neutralizes it (20 s), then captures it (20 s). Held points pay until they
+  are lost. This is where the supply war happens: the cheapest way to more
+  income is the map, not the base.
+
+**Why these three and why no harvesting [provisional]:** fuel, ammunition and
+manpower are what an army of the period really ran on, and each one limits a
+different part of the army (tanks need fuel, artillery and AT need
+ammunition, infantry needs manpower). Harvester units (trucks driving between
+a source and a depot) would add path traffic, AI logistics and a unit type
+that is never fun to protect; captured supply points give the same "fight
+for resources on the map" with one simple rule.
+
+### Consumption [provisional]
+
+**No consumption in this version.** Units do not use up ammunition when
+firing or fuel when driving; the price of a unit already contains its
+ammunition and fuel. Reasons: per-unit stocks need resupply trucks, an
+"out of ammunition" state, UI for it and AI rules for it; that is a feature of
+its own and would make the first version much harder to balance. The catalog
+already has `ammo_carried` and `range_road_km`, so supply trucks with
+per-unit stocks can follow later without changing the account model.
+
+## Buildings [provisional]
+
+Buildings are game objects, not catalog entries: their sizes match the
+models they borrow (`docs/ASSETS.md`), their strength is a game rule like the
+hit points of map objects in `data/destruction.toml`.
+
+| Building | Size (m) | Hit points | Armor (mm) | Cost F / A / M | Build time | Needs | Does |
+|---|---|---|---|---|---|---|---|
+| Headquarters (`base_hq`) | 10 × 8 × 9 | 6000 | 40 | 200 / 0 / 300 | 60 s | – | income; build radius 120 m |
+| Barracks (`base_barracks`) | 12 × 8 × 7.5 | 3000 | 25 | 0 / 0 / 150 | 25 s | HQ | produces infantry |
+| Supply depot (`base_depot`) | 14 × 9 × 8 | 2500 | 25 | 50 / 0 / 100 | 25 s | HQ | income (max. 3) |
+| Vehicle works (`base_factory`) | 20 × 10 × 9 | 4000 | 30 | 150 / 50 / 200 | 45 s | HQ, depot | produces vehicles |
+
+Every player starts with a completed headquarters (scenario
+`data/scenarios/skirmish.toml`). Fortifications come from the catalog:
+
+| Fortification | Catalog ids (de / su / us) | Hit points | Armor (mm) | Cost F / A / M | Build time | Needs |
+|---|---|---|---|---|---|---|
+| MG bunker | `de_bunker_tobruk`, `su_bunker_dzot`, `us_bunker_mg` | 2500 | 60 | 0 / 80 / 60 | 20 s | barracks |
+| AT gun position | `de_pak40`, `su_zis3`, `us_57mm_m1` | 1000 (rules) | catalog shield | formula | formula | vehicle works |
+
+- Bunkers and gun positions fight with their catalog weapons; they cannot
+  move. Towed guns cannot be moved by the simulation yet anyway (prompt 017),
+  so the gun position is the first way to use them.
+- Armor of buildings is the same on every face. 25–60 mm keep rifles and
+  machine guns out (their penetration is ≈ 14 mm) but not tank and AT guns:
+  **buildings need heavy weapons**, which keeps infantry rushes from razing a
+  base and gives AT squads and tanks a job.
+
+### Placing and construction [provisional]
+
+- Buildings are ordered by the player, not by a builder unit (one command,
+  like the classics of the genre; no engineer pathing, no idle builders for
+  the AI to manage).
+- A building can be placed within the **build radius** of an own completed
+  building: 120 m around the headquarters, 60 m around the others
+  (fortifications extend nothing).
+- The site must be flat enough (height difference over the footprint at most
+  12 % of its larger side), on passable ground (no water, no forest, map
+  objects or wrecks), inside the map, and free of units. The preview shows
+  this in green or red; the simulation checks the same rule again.
+- The full cost is paid when the site is placed. At most **2 construction
+  sites** per player at a time.
+- A construction site is a unit at once: it starts with 10 % of its hit
+  points and gains the rest linearly until it is completed (damage taken on
+  the way stays). It can be shot and destroyed; it does not fire, produce or
+  pay income until it is completed.
+- Destroyed buildings stay as ruins that block their ground (like wrecks);
+  their production queue is lost.
+
+## Production [provisional]
+
+- The **barracks** produces the infantry of the player's faction, the
+  **vehicle works** its vehicles (lists in `data/economy.toml`):
+
+| Faction | Barracks | Vehicle works |
+|---|---|---|
+| de | rifle squad, MG 42 team, HMG team, AT squad | Sd.Kfz. 222, Sd.Kfz. 251/1, Panzer IV H, StuG III G, Tiger I |
+| su | rifle squad, MG team, HMG team, AT squad | BA-64B, T-70M, T-34/76, SU-85, IS-2 |
+| us | rifle squad, MG team, HMG team, AT squad | M8 Greyhound, M3 halftrack, M4A3 (75), M10, M26 |
+
+- Each producing building has a queue of up to **5** orders. The cost is paid
+  when an order is queued; cancelling the last order refunds it in full.
+- Only the first order is worked on. When it is done, the unit appears at a
+  free spot beside the building and drives to the building's **rally point**
+  (set by right-clicking with the building selected; default 20 m in front of
+  it).
+- A player can have at most **80** living units besides buildings;
+  production waits while the limit is reached.
+
+### Unit costs (formula) [provisional]
+
+From the catalog entry of the unit (`data/economy.toml`, `[unit_cost]`):
+
+- **Manpower** = 6 × soldiers (squad size, or crew of vehicles and guns).
+- **Fuel** = 4 per tonne of combat mass (vehicles only).
+- **Ammunition** = 10 + Σ over the weapons the simulation uses
+  (caliber in mm)² × count / 60.
+- **Build time** (game seconds) = 8 + (fuel + ammunition + manpower) / 8.
+
+Examples (`cli economy-table` prints the full table):
+
+| Unit | Fuel | Ammunition | Manpower | Time |
+|---|---|---|---|---|
+| Rifle squad (de) | 0 | 19 | 60 | 17.9 s |
+| AT squad (de) | 0 | 140 | 54 | 32.2 s |
+| Panzer IV H | 100 | 106 | 30 | 37.5 s |
+| T-34/76 | 123 | 107 | 24 | 39.8 s |
+| Tiger I | 228 | 141 | 30 | 57.9 s |
+| M4A3 (75) | 121 | 106 | 30 | 40.1 s |
+
+The table in this document is an illustration; the code computes the
+values (`sim::economy::EconomyRules::unit_cost`), and `cli economy-table`
+shows the current ones.
+
+## Victory [provisional]
+
+Unchanged from prompt 027: a player who has no living unit left is defeated.
+Buildings and construction sites are units, so a player with a base is not
+defeated while one building stands. A completed bunker alone keeps a player
+in the game, which is acceptable for now.
+
+## Game modes
+
+- **Base building** (new default in the single-player setup): the skirmish
+  scenario, every player with a headquarters, a few starting units and the
+  start resources.
+- **Battle**: the fixed armies of the demo scenario, as before (also used by
+  the golden hash, the LAN tests and the self-test matches 1–3). Supply
+  points and accounts exist there too but have nothing to buy.
+- LAN matches use the battle scenario for now (the lobby has no mode choice
+  yet).
+
+## Computer opponent [provisional]
+
+The AI (prompt 024) plays the economy with the same commands as a human:
+
+- a fixed build order (barracks, depot, vehicle works, depot, MG bunker; Hard
+  also an AT gun), placed on the first free spot of a spiral around its
+  headquarters;
+- keeps both production queues filled while it can pay, choosing units from
+  a per-difficulty mix (Hard prefers tanks);
+- holds its army near its base and the nearest supply points until an attack
+  wave is complete (Easy 8, Normal 6, Hard 5 units), then attacks as before;
+  enemies near the base are always engaged.
+
+## Balancing principles [provisional]
+
+1. **Real values decide the fight, the economy decides the mix.** Costs scale
+   with catalog mass, crew and weapons, so a Tiger costs about two Panzer IV;
+   a stronger unit is never cheaper.
+2. **Each resource limits one arm.** Fuel limits armor, ammunition limits
+   guns and AT, manpower limits infantry and buildings. A player who holds
+   the supply points gets more of all three.
+3. **The map pays more than the base.** One supply point is worth 1.5 depots
+   and cannot be built, so armies have to leave the base.
+4. **No instant power.** Build and production times grow with the price;
+   the starting resources buy a barracks and a few squads or one tank, not an
+   army.
+5. **Static defense is real but finite.** Bunkers and gun positions use real
+   weapons, but buildings cannot hurt tanks with small arms and every
+   fortification costs ammunition the army also needs.
+6. **Change one number at a time** in `data/economy.toml`, run
+   `just ai-tournament --mode base` and a few matches, and note the reason in
+   the commit.
+
+## Open (not in this version)
+
+Supply trucks and consumption, selling or repairing buildings, cancelling a
+construction site, upgrades, aircraft and artillery production, walls and
+mines as buildable objects, supply points in the map editor, mode choice in
+the LAN lobby, teams.
