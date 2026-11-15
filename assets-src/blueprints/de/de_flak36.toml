@@ -1,0 +1,91 @@
+# 8.8 cm Flak 36 heavy anti-aircraft gun in firing position on its cruciform
+# platform (Kreuzlafette 36), bogies (Sd.Anh. 201) removed. Main dimensions
+# from data/catalog/de.toml: length 5.791 m, width 2.30 m, height 2.10 m
+# (firing position). Barrel horizontal; the barrel is fitted so that the end
+# of the rear outrigger to the muzzle = catalog length (gives a tube of about
+# 4.8 m from the breech ring, real L/56 = 4.938 m).
+# Deviation: the catalog width (2.30 m) leaves out the lowered side
+# outriggers (the catalog note estimates 6-7 m across), but the naming table
+# has no separate outrigger object that a [validate] exclusion could leave
+# out. The side arms are therefore modeled only as long as the catalog width
+# allows, so the cross stays readable from above (see the hand-over report).
+# Modeling estimates from photographs and TM-E 30-451: platform top about
+# 0.50 m, line of fire about 1.60 m, two layer seats with handwheels, two
+# equilibrator cylinders in front of the trunnions, fuze setter on the right,
+# field shield about 2.1 m wide whose top is the catalog height.
+unit = "de_flak36"
+assembly = "aa_gun"
+
+[carriage]
+part = "cruciform_platform"
+center = [1.40, 0.32]
+z = 0.50
+arms = [[0, 2.20], [180, 2.20], [90, 1.15], [270, 1.15]]
+beam = [0.26, 0.22]
+jack = [0.40, 0.14]
+
+[mount]
+part = "aa_mount"
+pedestal = [1.00, 0.22]
+body = [1.10, 1.40, 0.30]
+cheeks = [0.62, 1.50, 0.62]
+seats = [[-0.85, -0.15, 1.12], [0.85, -0.15, 1.12]]
+handwheels = [[-0.62, 0.15, 1.30], [0.62, 0.15, 1.30]]
+shield = { width = 2.10, height = 1.28, bottom_z = 0.82, y = 0.95, slope_deg = 8 }
+
+[gun]
+part = "field_gun"
+trunnion = [-0.50, 1.60]
+cradle = [2.40, 0.36, 0.30]
+recoil = [1.70, 0.075]
+breech = [0.70, 0.36]
+segments = [[1.60, 0.110, 0.095], ["fit", 0.075, 0.068]]
+muzzle_brake = "none"
+
+[[part]]
+part = "cylinder_prop"       # left equilibrator in front of the trunnions
+from = [-0.42, 0.55, 1.10]
+to = [-0.34, 0.10, 1.82]
+radius = 0.085
+parent = "Mount"
+
+[[part]]
+part = "cylinder_prop"       # right equilibrator
+from = [0.42, 0.55, 1.10]
+to = [0.34, 0.10, 1.82]
+radius = 0.085
+parent = "Mount"
+
+[[part]]
+part = "box_prop"            # fuze setter (Zuenderstellmaschine) on the right, behind the layer
+center = [0.70, -0.70, 1.30]
+size = [0.32, 0.36, 0.40]
+parent = "Mount"
+
+[[part]]
+part = "box_prop"            # sight on the left cheek
+center = [-0.42, 0.25, 1.85]
+size = [0.10, 0.25, 0.18]
+material = "Metal"
+parent = "Mount"
+
+[[part]]
+part = "crew_sockets"
+radius = 3.2
+start_deg = 60
+end_deg = 300
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 0.0, 1.2]
+parent = "Carriage"
+
+[[part]]
+part = "marking"
+name = "Shield"
+kind = "number"
+parent = "Shield"
+position = [-0.60, 0.95, 1.55]
+normal = [0, 0.99, 0.14]
+size = 0.3
