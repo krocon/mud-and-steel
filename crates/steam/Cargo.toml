@@ -1,0 +1,20 @@
+[package]
+name = "steam"
+description = "Online multiplayer over Steam: lobbies, invites and the lockstep link (steamworks-rs)."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+# Test binaries link `steam_api` dynamically; `cargo test` finds it through
+# the build script's search path. The tests never start Steam; the lobby
+# protocol is tested in `net` (`MemoryLink`).
+[lib]
+doctest = false
+
+[dependencies]
+net.workspace = true
+steamworks.workspace = true
+
+[lints.rust]
+unsafe_code = "forbid"

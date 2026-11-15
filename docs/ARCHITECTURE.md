@@ -25,19 +25,21 @@ Godot 4 (presentation: 3D scene, UI, audio)        godot/
         ▲▼  commands in, snapshots out
 godot-rust bridge (GDExtension, thin)              crates/bridge
         ▲▼
-Rust workspace:  sim  |  net  |  cli                crates/sim, crates/net, crates/cli
+Rust workspace:  sim  |  net  |  steam  |  cli      crates/sim, crates/net, crates/steam, crates/cli
         ▲▼
-Transport: ENet on LAN (net::lan), later Steam online
+Transport: lobby protocol (net::lobby) over ENet on the LAN (net::lan) or
+           Steam Networking Messages online (crates/steam)
 ```
 
 | Crate / folder  | Responsibility | Depends on |
 |-----------------|----------------|------------|
 | `crates/sim`    | Game rules and state. `Sim::new(config, map, seed)`, `step(&[PlayerCommand])`, `state_hash()`, `snapshot()`. Players and unit ownership, group commands with formation, maps (height field, terrain, objects, bridges), pathfinding (`sim::path`), combat (`sim::combat`), destruction of map objects (`sim::destruction`), infantry squads with soldiers, stances, cover and buildings (`sim::infantry`, prompt 022), fixed-point math, RNG, stable hash, unit catalog, scale, terrain rules and scenarios (compiled in, like the map `test_small`). | `fixed`, `serde`, `toml`, `png` |
-| `crates/net`    | Lockstep protocol: `CommandFrame`, `HashReport`, `LockstepSession` (input delay, also changed at run time, desync detection), `Transport` trait, `LoopbackTransport` for tests, `LocalTransport` for single player. Replays (`net::replay`). LAN games (`net::lan`): ENet transport with lobby, discovery by UDP broadcast. | `sim`, `postcard`, `rusty_enet`, `if-addrs` |
-| `crates/cli`    | Headless runner: `cli run --ticks N --seed S [--record FILE]` prints the state hash, `cli replay FILE` re-simulates a replay and checks its end hash, `cli gen-map` generates test maps, `cli map-info DIR` measures a map, `cli path-bench` benchmarks pathfinding, `cli map-check DIR` validates a map like the editor, `cli lan-host` / `cli lan-join` play the demo as headless LAN peers. | `sim`, `net`, `clap`, `png` |
+| `crates/net`    | Lockstep protocol: `CommandFrame`, `HashReport`, `LockstepSession` (input delay, also changed at run time, desync detection), `Transport` trait, `LoopbackTransport` for tests, `LocalTransport` for single player. Replays (`net::replay`). Network games: `net::lobby::LobbyNode` (lobby protocol, then the match transport) over a `Link`; LAN games (`net::lan`): ENet link, discovery by UDP broadcast; `MemoryLink` for tests. | `sim`, `postcard`, `rusty_enet`, `if-addrs` |
+| `crates/steam`  | Online over Steam (prompt 026, [ONLINE.md](ONLINE.md)): the Steam client (`Steam`, app id `steam::APP_ID`), `SteamLink` over Steam Networking Messages, `OnlineLobby` (create, list, join, invite, rich presence). Optional: only the bridge (feature `steam`, default) and the CLI (feature `steam`) use it. | `net`, `steamworks` |
+| `crates/cli`    | Headless runner: `cli run --ticks N --seed S [--record FILE]` prints the state hash, `cli replay FILE` re-simulates a replay and checks its end hash, `cli gen-map` generates test maps, `cli map-info DIR` measures a map, `cli path-bench` benchmarks pathfinding, `cli map-check DIR` validates a map like the editor, `cli lan-host` / `cli lan-join` play the demo as headless LAN peers, `cli steam-host` / `cli steam-join` over Steam (feature `steam`). | `sim`, `net`, `clap`, `png`, (`steam`) |
 | `crates/ai`     | Computer players (prompt 024): `Ai::think(&PlayerView) -> Vec<Command>`, the fog-of-war `PlayerView`, difficulties, `game::Game` for headless AI matches. Runs on one machine as a hosted player of the lockstep session, not inside the simulation. See [AI.md](AI.md). | `sim`, `net` |
 | `crates/editor` | Map editing (prompt 028): `EditMap` with integer brushes, undo per stroke, saving in the map format and validation through the simulation's loader and path finder. A tool like `cli gen-map`, not game rules. | `sim`, `png`, `toml` |
-| `crates/bridge` | GDExtension `cdylib`. `SimHost` node: runs ticks from a time accumulator through a `LockstepSession`, queues commands, exposes the last two snapshots and the replay; plays single player over `LocalTransport` or a LAN match (`SimHost.start_lan`). `LanLobby` drives the LAN lobby. `MapEditor` hosts the map editor. The only float conversion. | `sim`, `net`, `editor`, `godot` |
+| `crates/bridge` | GDExtension `cdylib`. `SimHost` node: runs ticks from a time accumulator through a `LockstepSession`, queues commands, exposes the last two snapshots and the replay; plays single player over `LocalTransport`, a LAN match (`SimHost.start_lan`) or an online match (`SimHost.start_online`). `LanLobby` drives the LAN lobby, `SteamLobby` the online lobby (always registered; without the `steam` feature it reports that). `MapEditor` hosts the map editor. The only float conversion. | `sim`, `net`, `editor`, `godot`, (`steam`) |
 | `godot/`        | Scenes, GDScript UI logic, assets. No C#. | bridge (via `.gdextension`) |
 | `data/`         | Unit catalog (`catalog/*.toml`, real values), `scale.toml` (conversion to game values), `terrain.toml` (terrain types, slope rules), `combat.toml` (combat rules), `infantry.toml` (stances, cover, buildings), scenarios (`scenarios/*.toml`, start setups) and maps (`maps/<name>/`), integers only. See [SCALE.md](SCALE.md) and [MAPS.md](MAPS.md). | – |
 
@@ -881,6 +883,7 @@ Prompt 027. `crates/sim/src/outcome.rs` decides the match; Godot only shows it.
 ```
 main menu ── Single player ─ setup (map, season, own and enemy faction) ─┐
           ├─ LAN game ────── lan/lan_lobby.tscn (host, search, join) ────┤
+          ├─ Online (Steam)  online/steam_lobby.tscn (host, list, code) ─┤
           ├─ Settings        (user://settings.cfg)                       │
           └─ Quit                                                        ▼
                                   main.tscn: loading screen → match → result → main menu
@@ -1619,6 +1622,15 @@ round trip (`round_trip_ms`) and is closed when a match is dropped.
   relays the lockstep packets of every client to the others (star). Games are found
   with a UDP broadcast query. Lobby, protocol, ports and how to test with two
   machines: [LAN.md](LAN.md).
+- **Online:** `steam::SteamNode`, the same lobby node over Steam Networking
+  Messages (relayed by Steam, NAT traversal included). The Steam lobby finds the
+  game and invites friends; its owner is the host. Choices, protocol, build and
+  how to test with two accounts: [ONLINE.md](ONLINE.md).
+
+The lobby protocol (`net::lobby::LobbyNode`: hello, welcome, ready, start,
+relay through the host) is independent of the network; LAN and Steam only
+provide a `net::lobby::Link` (connect and disconnect events, packets on two
+channels, round trip).
 - **Online (prompt 026):** Steam networking through
   [GodotSteam](https://godotsteam.com/) (GDExtension). Lobbies, matchmaking and NAT
   traversal come from Steam; a `SteamTransport` in the bridge implements the same trait

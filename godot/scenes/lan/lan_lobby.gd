@@ -57,6 +57,7 @@ func _ready() -> void:
 		var parts := arg.split("=", true, 1)
 		_args[parts[0]] = parts[1] if parts.size() > 1 else ""
 	LanMatch.self_test = _args.has("--lan-self-test")
+	LanMatch.kind = "LAN"
 	Settings.ensure_loaded()
 	theme = MenuTheme.get_theme()
 	add_child(MenuTheme.background())

@@ -22,6 +22,8 @@ default:
 check:
     cargo fmt --check
     cargo clippy --workspace --all-targets -- -D warnings
+    cargo clippy -p bridge --no-default-features --all-targets -- -D warnings
+    cargo clippy -p cli --features steam --all-targets -- -D warnings
     cargo test --workspace
 
 # Format all Rust code
@@ -61,8 +63,22 @@ replay file:
 
 # Build the GDExtension (debug)
 [group('godot')]
-build:
+build: && (_steam-lib "debug")
     cargo build -p bridge
+
+# Copy the Steam API library (from the steamworks-sys build) next to the
+# bridge, where it is loaded from (prompt 026, docs/ONLINE.md)
+[private]
+[unix]
+_steam-lib profile:
+    #!/usr/bin/env sh
+    lib=$(ls -t $(find target/{{ profile }}/build -path '*steamworks-sys*' -name 'libsteam_api.*' 2>/dev/null) 2>/dev/null | head -n 1)
+    if [ -n "$lib" ]; then cp "$lib" target/{{ profile }}/; fi
+
+[private]
+[windows]
+_steam-lib profile:
+    Get-ChildItem target/{{ profile }}/build -Recurse -Filter steam_api64.dll -ErrorAction SilentlyContinue | Where-Object FullName -like '*steamworks-sys*' | Sort-Object LastWriteTime -Descending | Select-Object -First 1 | Copy-Item -Destination target/{{ profile }}/
 
 # Import the Godot project headless (once after cloning and after adding assets; needs bash, on Windows Git Bash)
 [group('godot')]
@@ -358,6 +374,26 @@ lan *args: build
 [group('lan')]
 lan-selftest: build
     bash tools/lan-selftest.sh
+
+# Build the bridge and open the online lobby over Steam (Steam must run and be logged in; docs/ONLINE.md)
+[group('online')]
+online *args: build
+    {{ GODOT }} --path godot res://scenes/online/steam_lobby.tscn -- {{ args }}
+
+# Automatic online match over Steam with the game: `host` on one account, `join` (first listed lobby, or `join --steam-join=<code>`) on another
+[group('online')]
+online-selftest role="host" *args: build
+    {{ GODOT }} --path godot res://scenes/online/steam_lobby.tscn -- --steam-self-test --steam-{{ role }} {{ args }}
+
+# Host a headless online game of the demo over Steam (CLI peer; prints the lobby code)
+[group('online')]
+steam-host ticks="600":
+    cargo run -q -p cli --features steam -- steam-host --ticks {{ ticks }}
+
+# Join a headless online game over Steam: by lobby code, or the first one listed
+[group('online')]
+steam-join code="" ticks="600":
+    cargo run -q -p cli --features steam -- steam-join --ticks {{ ticks }} {{ if code != "" { "--code " + code } else { "" } }}
 
 # Host a headless LAN game of the demo (CLI peer, e.g. against `just lan-join` on another machine)
 [group('lan')]

@@ -75,7 +75,7 @@ Welle 4:  012 Wegfindung ─ 013 …  │   008 Stufe 2 (3 Sessions pro Fraktion
 | 023 | [Basisbau und Ressourcen](023-basisbau-ressourcen.md) | Bauen, Abbauen, Produzieren | Entwurf |
 | 024 | [KI-Gegner](done/024-ki-gegner.md) | Computerspieler über normale Befehle | erledigt |
 | 025 | [LAN-Mehrspieler](done/025-lan-mehrspieler.md) | ENet-Transport, Spielsuche per Broadcast | erledigt |
-| 026 | [Online über Steam](026-online-steam.md) | GodotSteam, Lobbys, Matchmaking | Entwurf |
+| 026 | [Online über Steam](done/026-online-steam.md) | Steam-Lobbys, Einladungen, Transport über Steam Networking (steamworks-rs) | erledigt |
 | 027 | [Menüs und Spielablauf](done/027-menues-spielablauf.md) | Hauptmenü, Lobby, Einstellungen, Sieg/Niederlage | erledigt |
 | 028 | [Karteneditor](done/028-karteneditor.md) | Karten im Spiel bauen und speichern | erledigt |
 

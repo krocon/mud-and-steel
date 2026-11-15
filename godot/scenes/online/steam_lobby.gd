@@ -1,0 +1,377 @@
+extends Control
+## Online lobby over Steam (prompt 026): host a lobby, find one in the list,
+## join by lobby code or Steam invitation, get ready and start together.
+## Opened from the main menu ("Online (Steam)") or with `just online`; Back
+## returns to the main menu. Same flow and match hand-over as the LAN lobby
+## (`lan/lan_lobby.gd`); all Steam code is in `SteamLobby` (Rust,
+## `crates/steam`).
+##
+## Steam is only initialized here, so single player and LAN never need it.
+## Without a running Steam client (or in a build without Steam) the screen
+## says why and offers a retry.
+##
+## Command line (after `--`), for tests with two Steam accounts:
+##   --steam-host               host a lobby right away, start when all ready
+##   --steam-join[=<code>]      join the lobby code, or the first lobby listed
+##   --steam-friends-only       hosted lobby is for friends only
+##   --steam-self-test          play automatically, quit with exit code 0/1
+##   --map=<name>               host: play on data/maps/<name>/
+##   --no-steam                 do not initialize Steam (flow self-test)
+
+const LanMatch := preload("res://scenes/lan/lan_match.gd")
+const MatchSetup := preload("res://scenes/menu/match_setup.gd")
+const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
+const Settings := preload("res://scenes/menu/settings.gd")
+const MAIN_SCENE := "res://scenes/main.tscn"
+const MAPS_DIR := "res://../data/maps"
+const SEED := 42
+## The demo scenario has two players.
+const MAX_PLAYERS := 2
+## Milliseconds between automatic refreshes of the lobby list.
+const REFRESH_INTERVAL_MS := 5000
+## Automatic modes give up after this many milliseconds (wall clock).
+const AUTO_TIMEOUT_MS := 120000
+
+var _lobby := SteamLobby.new()
+var _args := {}
+var _connected := false
+var _next_refresh_ms := 0
+var _auto_start_ms := Time.get_ticks_msec()
+var _lobby_lines: PackedStringArray = []
+
+var _account: Label
+var _retry: Button
+var _setup: Control
+var _map: OptionButton
+var _maps: PackedStringArray = []
+var _public: CheckBox
+var _lobbies: ItemList
+var _code: LineEdit
+var _invitation: Button
+var _in_lobby: Control
+var _lobby_code: Label
+var _players: Label
+var _ready_box: CheckBox
+var _start: Button
+var _status: Label
+## Returns to the main menu.
+var back_button: Button
+
+
+func _ready() -> void:
+	for arg in OS.get_cmdline_user_args():
+		var parts := arg.split("=", true, 1)
+		_args[parts[0]] = parts[1] if parts.size() > 1 else ""
+	LanMatch.self_test = _args.has("--steam-self-test")
+	LanMatch.kind = "Online"
+	Settings.ensure_loaded()
+	theme = MenuTheme.get_theme()
+	add_child(MenuTheme.background())
+	_build_ui()
+	if _args.has("--no-steam") or _args.has("--self-test"):
+		_status.text = "Steam is not used in this run (--no-steam)."
+		return
+	_connect_steam()
+
+
+func _process(_delta: float) -> void:
+	if not _connected:
+		return
+	_lobby.poll()
+	var state := _lobby.state()
+	if (state == "idle" or state == "closed") and Time.get_ticks_msec() >= _next_refresh_ms:
+		_refresh()
+	_update_lobbies()
+	_update_lobby(state)
+	if _is_auto():
+		_auto_step(state)
+
+
+func _connect_steam() -> void:
+	_connected = _lobby.connect_steam()
+	_retry.visible = not _connected
+	_setup.visible = _connected
+	if not _connected:
+		_account.text = "Steam is not available."
+		_status.text = _lobby.message()
+		if _is_auto():
+			push_error("Steam lobby: %s" % _lobby.message())
+			get_tree().quit(1)
+		return
+	_account.text = "Signed in to Steam as %s (app %d)" % [_lobby.user_name(), SteamLobby.app_id()]
+	var code := SteamLobby.launch_lobby_code()
+	if _args.has("--steam-host"):
+		_on_host()
+	elif _args.get("--steam-join", "") != "":
+		code = _args["--steam-join"]
+	if code != "":
+		_join(code)
+
+
+func _build_ui() -> void:
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(center)
+	var panel := PanelContainer.new()
+	panel.custom_minimum_size = Vector2(600, 0)
+	center.add_child(panel)
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 8)
+	panel.add_child(box)
+
+	box.add_child(MenuTheme.title("Online (Steam)", MenuTheme.HEADING_SIZE))
+	_account = MenuTheme.hint("Connecting to Steam …")
+	box.add_child(_account)
+	_retry = Button.new()
+	_retry.text = "Try again"
+	_retry.visible = false
+	_retry.pressed.connect(_connect_steam)
+	box.add_child(_retry)
+
+	_setup = VBoxContainer.new()
+	_setup.visible = false
+	box.add_child(_setup)
+	_map = OptionButton.new()
+	_maps = MatchSetup.available_maps()
+	for map_name in _maps:
+		_map.add_item(map_name)
+	if _args.has("--map") and _args["--map"] in _maps:
+		_map.select(Array(_maps).find(_args["--map"]))
+	_setup.add_child(_labeled("Map (host)", _map))
+	_public = CheckBox.new()
+	_public.text = "Listed for everyone (otherwise friends only)"
+	_public.button_pressed = not _args.has("--steam-friends-only")
+	_setup.add_child(_public)
+	var host := Button.new()
+	host.text = "Host game"
+	host.pressed.connect(_on_host)
+	_setup.add_child(host)
+
+	var list_row := HBoxContainer.new()
+	var list_label := Label.new()
+	list_label.text = "Open games"
+	list_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	list_row.add_child(list_label)
+	var refresh := Button.new()
+	refresh.text = "Refresh"
+	refresh.pressed.connect(_refresh)
+	list_row.add_child(refresh)
+	_setup.add_child(list_row)
+	_lobbies = ItemList.new()
+	_lobbies.custom_minimum_size = Vector2(0, 120)
+	_lobbies.item_activated.connect(func(_index: int) -> void: _on_join_selected())
+	_setup.add_child(_lobbies)
+	var join := Button.new()
+	join.text = "Join selected game"
+	join.pressed.connect(_on_join_selected)
+	_setup.add_child(join)
+
+	_code = LineEdit.new()
+	_code.placeholder_text = "Lobby code from a friend"
+	_code.text_submitted.connect(func(_text: String) -> void: _on_join_code())
+	_code.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var by_code := Button.new()
+	by_code.text = "Join code"
+	by_code.pressed.connect(_on_join_code)
+	var code_row := HBoxContainer.new()
+	code_row.add_child(_code)
+	code_row.add_child(by_code)
+	_setup.add_child(code_row)
+
+	_invitation = Button.new()
+	_invitation.visible = false
+	_invitation.pressed.connect(func() -> void: _join(_lobby.invitation_code()))
+	box.add_child(_invitation)
+
+	_in_lobby = VBoxContainer.new()
+	_in_lobby.visible = false
+	box.add_child(_in_lobby)
+	_lobby_code = Label.new()
+	var copy := Button.new()
+	copy.text = "Copy code"
+	copy.pressed.connect(func() -> void: DisplayServer.clipboard_set(_lobby.lobby_code()))
+	var invite := Button.new()
+	invite.text = "Invite friends"
+	invite.pressed.connect(func() -> void: _lobby.invite_friends())
+	var code_line := HBoxContainer.new()
+	_lobby_code.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	code_line.add_child(_lobby_code)
+	code_line.add_child(copy)
+	code_line.add_child(invite)
+	_in_lobby.add_child(code_line)
+	_players = Label.new()
+	_in_lobby.add_child(_players)
+	_ready_box = CheckBox.new()
+	_ready_box.text = "Ready"
+	_ready_box.toggled.connect(func(on: bool) -> void: _lobby.set_ready(on))
+	_in_lobby.add_child(_ready_box)
+	_start = Button.new()
+	_start.text = "Start match"
+	_start.pressed.connect(_on_start)
+	_in_lobby.add_child(_start)
+	var leave := Button.new()
+	leave.text = "Leave"
+	leave.pressed.connect(_on_leave)
+	_in_lobby.add_child(leave)
+
+	_status = Label.new()
+	_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	box.add_child(_status)
+	back_button = Button.new()
+	back_button.text = "Back to main menu"
+	back_button.pressed.connect(_on_back)
+	box.add_child(back_button)
+
+
+func _labeled(text: String, control: Control) -> Control:
+	var row := HBoxContainer.new()
+	var label := Label.new()
+	label.text = text
+	label.custom_minimum_size = Vector2(90, 0)
+	row.add_child(label)
+	control.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(control)
+	return row
+
+
+func _on_host() -> void:
+	if _lobby.host(MAX_PLAYERS, _public.button_pressed):
+		print("Steam: creating a lobby")
+
+
+func _refresh() -> void:
+	_lobby.refresh()
+	_next_refresh_ms = Time.get_ticks_msec() + REFRESH_INTERVAL_MS
+
+
+func _on_join_selected() -> void:
+	var selected := _lobbies.get_selected_items()
+	var found := _lobby.found_lobbies()
+	var index := selected[0] if not selected.is_empty() else 0
+	if index < found.size():
+		_join(found[index]["code"])
+
+
+func _on_join_code() -> void:
+	var code := _code.text.strip_edges()
+	if not code.is_empty():
+		_join(code)
+
+
+func _join(code: String) -> void:
+	_ready_box.button_pressed = false
+	if _lobby.join(code):
+		print("Steam: joining lobby %s" % code)
+
+
+func _on_start() -> void:
+	var map_dir := ""
+	if _args.has("--map"):
+		map_dir = ProjectSettings.globalize_path(MAPS_DIR.path_join(_args["--map"])).simplify_path()
+	else:
+		map_dir = MatchSetup.map_dir(_maps[_map.selected])
+	_lobby.start_match(SEED, map_dir)
+
+
+func _on_back() -> void:
+	set_process(false)
+	_lobby.leave()
+	get_tree().change_scene_to_file(MatchSetup.MENU_SCENE)
+
+
+func _on_leave() -> void:
+	_lobby.leave()
+	_ready_box.button_pressed = false
+
+
+func _update_lobbies() -> void:
+	var lines: PackedStringArray = []
+	for entry in _lobby.found_lobbies():
+		var compatible: bool = entry["compatible"]
+		lines.append("%s  (%d/%d)%s" % [
+			entry["name"], entry["players"], entry["max_players"],
+			"" if compatible else "  incompatible version",
+		])
+	if lines == _lobby_lines:
+		return
+	_lobby_lines = lines
+	var selected := _lobbies.get_selected_items()
+	_lobbies.clear()
+	for line in lines:
+		_lobbies.add_item(line)
+	if not selected.is_empty() and selected[0] < _lobbies.item_count:
+		_lobbies.select(selected[0])
+
+
+func _update_lobby(state: String) -> void:
+	var in_game := state in ["creating", "joining", "connecting", "lobby"]
+	_setup.visible = not in_game
+	_in_lobby.visible = in_game
+	back_button.visible = not in_game
+	_ready_box.visible = state == "lobby" and not _lobby.is_host()
+	_start.visible = state == "lobby" and _lobby.is_host()
+	_start.disabled = not _lobby.can_start()
+	var code := _lobby.lobby_code()
+	_lobby_code.text = "Lobby code: %s" % code if code != "" else ""
+	var invitation := _lobby.invitation_code()
+	_invitation.visible = invitation != ""
+	_invitation.text = "Invitation received: join lobby %s" % invitation
+	var lines: PackedStringArray = []
+	for player in _lobby.players():
+		lines.append("Player %d: %s%s%s" % [
+			player["id"], player["name"],
+			"  (you)" if player["local"] else "",
+			"  – ready" if player["ready"] else "",
+		])
+	_players.text = "\n".join(lines)
+	var status: String
+	match state:
+		"idle":
+			status = "Host a game, or join one from the list or with a code."
+		"creating":
+			status = "Creating the Steam lobby …"
+		"joining":
+			status = "Joining the Steam lobby …"
+		"connecting":
+			status = "Connecting to the host …"
+		"lobby":
+			status = ("Waiting until everyone is ready. Friends join from the Steam friends list or with the code.") \
+				if _lobby.is_host() else "In the lobby. Tick Ready when you are."
+		"started":
+			status = "Starting …"
+		_:
+			status = "Closed."
+	var message := _lobby.message()
+	_status.text = status if message.is_empty() else "%s\n%s" % [status, message]
+	if state == "started":
+		_enter_match()
+
+
+func _enter_match() -> void:
+	set_process(false)
+	LanMatch.lobby = _lobby
+	get_tree().change_scene_to_file(MAIN_SCENE)
+
+
+func _is_auto() -> bool:
+	return _args.has("--steam-host") or _args.has("--steam-join")
+
+
+## Automatic lobby for tests: join the first lobby listed (or the code),
+## get ready; the host starts as soon as everyone is ready.
+func _auto_step(state: String) -> void:
+	if Time.get_ticks_msec() - _auto_start_ms > AUTO_TIMEOUT_MS:
+		push_error("Steam lobby: timed out in state '%s' %s" % [state, _lobby.message()])
+		get_tree().quit(1)
+		set_process(false)
+		return
+	if state == "closed":
+		push_error("Steam lobby closed: %s" % _lobby.message())
+		get_tree().quit(1)
+		set_process(false)
+	elif state == "idle" and _args.has("--steam-join") and not _lobby.found_lobbies().is_empty():
+		_join(_lobby.found_lobbies()[0]["code"])
+	elif state == "lobby" and not _lobby.is_host() and not _ready_box.button_pressed:
+		_ready_box.button_pressed = true
+	elif state == "lobby" and _lobby.can_start():
+		_on_start()

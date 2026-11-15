@@ -8,6 +8,8 @@ mod gen_textures;
 mod infantry_bench;
 mod lan;
 mod path_bench;
+#[cfg(feature = "steam")]
+mod steam;
 mod vision_bench;
 
 use clap::{Parser, Subcommand};
@@ -215,6 +217,30 @@ enum CliCommand {
         #[command(flatten)]
         play: LanPlayArgs,
     },
+    /// Hosts an online game of the demo over Steam (needs a running Steam
+    /// client) and plays it headless; prints the lobby code.
+    #[cfg(feature = "steam")]
+    SteamHost {
+        /// Friends only instead of listed for everyone.
+        #[arg(long)]
+        friends_only: bool,
+        #[arg(long, default_value_t = 42)]
+        seed: u64,
+        #[arg(long, default_value_t = 3)]
+        input_delay: u32,
+        #[command(flatten)]
+        play: LanPlayArgs,
+    },
+    /// Joins an online game over Steam (by lobby code, or the first one
+    /// listed) and plays it headless.
+    #[cfg(feature = "steam")]
+    SteamJoin {
+        /// Lobby code shown by the host.
+        #[arg(long)]
+        code: Option<u64>,
+        #[command(flatten)]
+        play: LanPlayArgs,
+    },
     /// Writes docs/UNIT_CATALOG.md (or the given path) from the built-in catalog.
     CatalogDoc {
         #[arg(default_value = catalog_doc::DOC_PATH)]
@@ -300,6 +326,22 @@ fn main() {
             };
             exit_with(lan::join(&options, &play.options()));
         }
+        #[cfg(feature = "steam")]
+        CliCommand::SteamHost {
+            friends_only,
+            seed,
+            input_delay,
+            play,
+        } => {
+            let options = steam::HostOptions {
+                public: !friends_only,
+                seed,
+                input_delay,
+            };
+            exit_with(steam::host(&options, &play.options()));
+        }
+        #[cfg(feature = "steam")]
+        CliCommand::SteamJoin { code, play } => exit_with(steam::join(code, &play.options())),
         CliCommand::Run {
             ticks,
             seed,
