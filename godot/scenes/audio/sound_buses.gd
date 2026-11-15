@@ -23,8 +23,8 @@ const VOLUME_KEYS: Dictionary[String, String] = {
 ## Sounds in the fog of war: everything above this frequency is damped.
 const MUFFLED_CUTOFF_HZ := 700.0
 const MUFFLED_DB := -6.0
-## Time the audio thread gets to drop stopped playbacks (`release`).
-const RELEASE_MSEC := 60
+## Longest wait for the audio thread to drop stopped playbacks (`release`).
+const RELEASE_MAX_MSEC := 500
 
 ## False while the window has no focus (`ui_sound.gd`).
 static var focused := true
@@ -77,5 +77,16 @@ static func release(players: Array) -> void:
 	for player: Node in players:
 		player.stop()
 		player.set(&"stream", null)
-	if not players.is_empty():
-		OS.delay_msec(RELEASE_MSEC)
+	if players.is_empty():
+		return
+	# Two mixes after the stop: the first may have started before it.
+	var mixes := 0
+	var waited := 0
+	var last := AudioServer.get_time_since_last_mix()
+	while mixes < 2 and waited < RELEASE_MAX_MSEC:
+		OS.delay_msec(5)
+		waited += 5
+		var since := AudioServer.get_time_since_last_mix()
+		if since < last:
+			mixes += 1
+		last = since
