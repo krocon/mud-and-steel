@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="CamoPalette" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://assets/shaders/camo_palette.gd" id="1_pal"]
+
+[resource]
+script = ExtResource("1_pal")
+faction = "us"
+biome = "forest"
+base = Color(0.330, 0.320, 0.200, 1)
+color_1 = Color(0.090, 0.090, 0.080, 1)
+color_2 = Color(0.260, 0.250, 0.160, 1)
+pattern = 2
+scale = 2.0
+coverage = 0.14
+winter_wash = 0.0
+snow = 0.0
+mud = 0.6
+mud_color = Color(0.240, 0.190, 0.130, 1)
+dust = 0.0
+wear = 0.5
+note = "US Olive Drab with black disruptive patches (as applied in north-west Europe 1944)."

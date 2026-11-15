@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="CamoPalette" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://assets/shaders/camo_palette.gd" id="1_pal"]
+
+[resource]
+script = ExtResource("1_pal")
+faction = "us"
+biome = "desert"
+base = Color(0.330, 0.320, 0.200, 1)
+color_1 = Color(0.660, 0.580, 0.420, 1)
+color_2 = Color(0.300, 0.280, 0.180, 1)
+pattern = 2
+scale = 2.2
+coverage = 0.35
+winter_wash = 0.0
+snow = 0.0
+mud = 0.15
+mud_color = Color(0.700, 0.610, 0.440, 1)
+dust = 0.6
+wear = 0.6
+note = "Olive Drab with sand patches; heavy dust."

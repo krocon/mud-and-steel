@@ -240,13 +240,26 @@ def marking(model, p, ctx):
 
     Parameters: `name` (suffix, e.g. "Turret_L"), `position`, `normal`
     (surface normal pointing out), `kind` "national" | "number", `size`
-    (decal edge in m), `parent`. The empty's local +Z is the surface normal
-    and +Y points up, so a Godot Decal child projects straight onto the plate.
+    (decal edge in m), `parent`, `snap` (default true: move the socket along
+    the normal onto the parent's surface, so rough positions on sloped plates
+    are enough). The empty's local +Z is the surface normal and +Y points up,
+    so a Godot Decal child projects straight onto the plate.
     """
+    from mathutils import Vector
+    from mathutils.bvhtree import BVHTree
+
     name = "Socket_Marking_" + p.req("name")
-    pos = p.req("position")
-    m = surface_matrix(pos, p.req("normal"))
-    model.socket(name, p.get("parent", "Hull"), pos, matrix=m, marking=p.get("kind", "national"),
+    parent = p.get("parent", "Hull")
+    pos = Vector(p.req("position"))
+    normal = Vector(p.req("normal")).normalized()
+    if p.get("snap", True):
+        tree = BVHTree.FromBMesh(model.mb(parent).bm)
+        hit = tree.ray_cast(pos + normal * 0.6, -normal, 1.2)
+        if hit[0] is None:
+            raise ValueError(f"{name}: no {parent} surface within 0.6 m along the normal of {tuple(pos)}")
+        pos = hit[0] + normal * 0.005
+    m = surface_matrix(pos, normal)
+    model.socket(name, parent, pos, matrix=m, marking=p.get("kind", "national"),
                  marking_size=p.get("size", 0.5))
 
 
