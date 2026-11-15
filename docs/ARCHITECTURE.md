@@ -32,12 +32,12 @@ Transport: ENet on LAN (net::lan), later Steam online
 
 | Crate / folder  | Responsibility | Depends on |
 |-----------------|----------------|------------|
-| `crates/sim`    | Game rules and state. `Sim::new(config, map, seed)`, `step(&[PlayerCommand])`, `state_hash()`, `snapshot()`. Players and unit ownership, group commands with formation, maps (height field, terrain, objects), pathfinding (`sim::path`), fixed-point math, RNG, stable hash, unit catalog, scale, terrain rules and scenarios (compiled in, like the map `test_small`). | `fixed`, `serde`, `toml`, `png` |
+| `crates/sim`    | Game rules and state. `Sim::new(config, map, seed)`, `step(&[PlayerCommand])`, `state_hash()`, `snapshot()`. Players and unit ownership, group commands with formation, maps (height field, terrain, objects), pathfinding (`sim::path`), combat (`sim::combat`), fixed-point math, RNG, stable hash, unit catalog, scale, terrain rules and scenarios (compiled in, like the map `test_small`). | `fixed`, `serde`, `toml`, `png` |
 | `crates/net`    | Lockstep protocol: `CommandFrame`, `HashReport`, `LockstepSession` (input delay, also changed at run time, desync detection), `Transport` trait, `LoopbackTransport` for tests, `LocalTransport` for single player. Replays (`net::replay`). LAN games (`net::lan`): ENet transport with lobby, discovery by UDP broadcast. | `sim`, `postcard`, `rusty_enet`, `if-addrs` |
 | `crates/cli`    | Headless runner: `cli run --ticks N --seed S [--record FILE]` prints the state hash, `cli replay FILE` re-simulates a replay and checks its end hash, `cli gen-map` generates test maps, `cli map-info DIR` measures a map, `cli path-bench` benchmarks pathfinding, `cli lan-host` / `cli lan-join` play the demo as headless LAN peers. | `sim`, `net`, `clap`, `png` |
 | `crates/bridge` | GDExtension `cdylib`. `SimHost` node: runs ticks from a time accumulator through a `LockstepSession`, queues commands, exposes the last two snapshots and the replay; plays single player over `LocalTransport` or a LAN match (`SimHost.start_lan`). `LanLobby` drives the LAN lobby. The only float conversion. | `sim`, `net`, `godot` |
 | `godot/`        | Scenes, GDScript UI logic, assets. No C#. | bridge (via `.gdextension`) |
-| `data/`         | Unit catalog (`catalog/*.toml`, real values), `scale.toml` (conversion to game values), `terrain.toml` (terrain types, slope rules), scenarios (`scenarios/*.toml`, start setups) and maps (`maps/<name>/`), integers only. See [SCALE.md](SCALE.md) and [MAPS.md](MAPS.md). | – |
+| `data/`         | Unit catalog (`catalog/*.toml`, real values), `scale.toml` (conversion to game values), `terrain.toml` (terrain types, slope rules), `combat.toml` (combat rules), scenarios (`scenarios/*.toml`, start setups) and maps (`maps/<name>/`), integers only. See [SCALE.md](SCALE.md) and [MAPS.md](MAPS.md). | – |
 
 ## Players, commands and formation
 
@@ -47,7 +47,10 @@ but never its issuer:
 | Command | Effect |
 |---|---|
 | `MoveTo { units, target }` | The units drive along one planned path to a grid formation around `target` (see [Pathfinding](#pathfinding)). |
-| `Stop { units }` | The units stop where they are. |
+| `Stop { units }` | The units stop where they are (and drop an attack order). |
+| `Attack { units, target }` | The units drive into range of the unit `target` and fire at it until it is destroyed ([Combat](#combat)). Own targets are ignored. |
+| `AttackGround { units, target }` | The units drive into range of the ground point and fire at it. |
+| `SetFireMode { units, mode }` | `FireAtWill` (default: pick targets automatically) or `HoldFire` (fire only at attack targets). |
 
 The simulation consumes `PlayerCommand { player, command }`. Only the lockstep layer
 builds these, from the sender of the frame, so a peer cannot command another player's
@@ -266,6 +269,125 @@ the whole square per ring, which cost up to 15 ms for targets deep in a wood).
 - Obstacles and map objects are cell-based and not widened by the margin for
   large units: a tank whose center passes a free cell next to a tree may overlap
   the trunk by up to half its width.
+
+## Combat
+
+Prompt 017. Rules and data types in `crates/sim/src/combat.rs`, the update
+in `crates/sim/src/sim/combat.rs`. Everything is `Fixed` or integer; the
+simulation's `Rng` supplies dispersion and penetration rolls in a fixed order
+(units by id, weapons in catalog order, projectiles by id).
+
+### Data
+
+- **Unit values come from the catalog**, converted by `data/scale.toml`
+  (`CombatType::from_catalog`, part of `UnitType`): direct-fire weapons with
+  caliber, rate of fire, muzzle velocity and range (range × 1/4, interval
+  between rounds ÷ time factor, projectile speed × time factor), armor per
+  face (hull and turret front / side / rear, slope of the upper front plate),
+  hull dimensions, squad size, and `gun_traverse_deg` for casemate vehicles.
+  Weapons without all four values (grenades, pistols without a rate, MGs
+  without a range, mines, bombs) are not used. Mortars, howitzers and
+  self-propelled guns get no weapons yet (indirect fire is a later prompt).
+  Missing armor faces fall back (rear → side → front, turret side → hull
+  side); trucks have none.
+- **Rules** are in `data/combat.toml` (`CombatRules`, part of `SimConfig`
+  and the state hash): turret and hull traverse per category, retargeting
+  interval, sustained rate of automatic weapons, dispersion, gravity,
+  penetration formula, damage and hit points.
+
+### Per tick
+
+After commands and path planning, before movement:
+
+1. **Target.** An attack order wins. Otherwise (fire at will) every
+   `retarget_ticks` (10) or when the target is gone, a unit picks the enemy
+   with the smallest key (main weapon can penetrate it, it can hurt me,
+   distance, id), among enemies some weapon can hurt at that distance
+   (against their thinnest plate). An order to attack makes the unit drive
+   (single path) until the target is within 90 % of its longest range, and
+   re-plans when the target moved away.
+2. **Aim.** The turret (`aim`, a unit vector) turns towards the target at
+   the category's rate × time factor (Panzer IV: 20°/s real, 2° per tick);
+   infantry turns at once. Casemate vehicles aim within their traverse and,
+   standing still, turn the hull at `hull_deg_per_s`. A weapon fires when the
+   turret points at the target, its reload is done, the target is in range,
+   it can hurt the target, and no living unit of the same player stands in
+   the line of fire.
+3. **Fire.** One projectile per barrel (`count`), from the muzzle (half a
+   hull length ahead, at 75 % of the unit height) at the target's center.
+   The climb is solved for the aim point under gravity (9.807 m/s² × time
+   factor²), then side and height get a triangular random error of up to
+   2 mrad real, × 4 for the compressed range (× 3 while moving).
+4. **Fly** (after movement). Each projectile moves one tick along its
+   velocity (75 m per tick for the KwK 40). The segment is tested against the
+   oriented hit boxes of all units except the shooter (hull length × width
+   × height from the catalog; infantry squads footprint × 1.8 m; wrecks too,
+   dead squads not), map objects that block tanks (trees, buildings, walls,
+   hedges) up to their catalog height, and the ground (samples at most 1 m
+   apart, refined by bisection). The earliest hit counts. Projectiles vanish
+   after 150 % of their weapon's range or at the map edge.
+5. **Armor.** The face of the box the segment enters is the hit face (front,
+   side, rear, top); hits in the upper 35 % of the height strike the turret if
+   the catalog lists turret armor. Effective thickness = plate / (cos of the
+   angle between flight path and face normal × cos of the plate slope), the
+   cosine at least 0.25. Penetration of kinetic rounds = caliber × (v₀ /
+   520 m/s)^1.5, −20 % per km of real distance (game distance × 4), ± 10 %
+   random; rounds below 300 m/s are shaped charges with 1.6 × caliber at
+   any distance.
+6. **Damage.** A penetrating hit on a vehicle costs caliber² × 0.1 points
+   (7.5 cm: 562 of 1000), a hit on infantry caliber × 8 (rifle 63, a squad of
+   nine has 900). At 0 the unit is **destroyed**: it stops, drops its orders,
+   takes no commands, does not fire or move, and stays in the unit list
+   (stable ids). A vehicle becomes a wreck that blocks its path cells
+   (`set_path_obstacle`) and projectiles; dead infantry leaves nothing.
+
+| Gun (catalog) | Muzzle penetration | At 375 m game (1500 m real) |
+|---|---|---|
+| 7.5 cm KwK 40 L/48 (Panzer IV H, 750 m/s) | 130 mm | 91 mm |
+| 8.8 cm KwK 36 L/56 (Tiger I, 773 m/s) | 159 mm | 111 mm |
+| 76.2 mm F-34 (T-34, 662 m/s) | 109 mm | – (range 250 m) |
+| Bazooka M9 (HEAT, 81 m/s) | 96 mm | 96 mm |
+
+### Snapshot and queries
+
+`UnitSnapshot` carries hit points (and maximum), hull direction (`facing`),
+turret direction (`aim`) and fire mode; `Snapshot::projectiles` the
+projectiles in flight; `Snapshot::events` the `CombatEvent`s of the tick:
+`Shot` (unit, weapon, muzzle, caliber), `Hit` (point, unit / ground / object,
+face, turret, penetrated, damage) and `Destroyed` (unit, by whom).
+`Sim::alive_units(player)` counts living units for victory conditions
+(prompt 027). Events are derived, not state, and not hashed.
+
+The bridge collects the events of all ticks of a frame
+(`SimHost.take_combat_events`, dictionaries); `scenes/world/combat_view.gd`
+reads them (signal `combat_event` for effects and sound), draws a tracer per
+projectile, health bars over damaged and selected units, darkens wrecks,
+hides dead squads and turns each model's `Turret` node by the simulation's
+aim. Hulls follow the simulation's `facing`.
+
+### Decisions
+
+| Question | Decision | Why |
+|---|---|---|
+| Damage model | Hit points; a hit penetrates or not; vehicles lose caliber² × factor, infantry caliber × factor | Simple and traceable from catalog values: a 7.5 cm needs two penetrations, MGs cannot hurt tanks. Modules, crew losses and fires can refine it later. |
+| Penetration | caliber × (v / 520)^1.5, −20 %/km | The catalog has caliber and muzzle velocity but no penetration tables; the formula meets published values of the KwK 36 and KwK 40 and needs only `isqrt`. No values from other games. |
+| Armor by angle | Entry face of the oriented hit box, angle to its normal | Front, flank, rear and obliquity come from one geometric test, without sector rules. |
+| Targets | One target per unit, fixed sort key, every 10 ticks | Deterministic, cheap (O(n²) every 0.5 s), no random choice. |
+| Projectiles | Real objects with ballistic flight, tested per tick segment | Hills, trees and wrecks stop rounds by themselves; effects get flight paths. Fine for a few hundred units; a spatial grid follows with prompt 016. |
+| Friendly fire | Possible, but units do not fire through friends | Rounds that miss can hit anything; a second rank does not shoot into the first. |
+| Automatic weapons | 25 % of the cyclic rate | The catalog lists the cyclic rate; the practical rate of MGs is a quarter to a sixth of it. |
+| Turret traverse | Per category in `combat.toml` | The catalog has no traverse speeds. |
+| Casemates | Catalog field `gun_traverse_deg` | A historical fact (StuG III G: ±10°) with sources, unlike a category rule (the M10 is a turreted tank destroyer). |
+
+### Open
+
+- Guns (`gun_*`) cannot be placed yet (no ground speed; limbering and
+  positions), aircraft neither; indirect fire (mortars, howitzers,
+  self-propelled guns), HE splash, suppression, line of sight and fog of war
+  (prompt 018), damaged modules, ammunition limits.
+- Target leading: rounds fly at the target's position at the moment of the
+  shot; at 75 m per tick this matters only for fast targets far away.
+- Projectiles and unit queries are O(projectiles × units) per tick.
 
 ## Data flow (single player, current state)
 
@@ -579,7 +701,8 @@ ambient light and grading of the selected biome's preset.
 Selection is local UI state in `godot/scenes/selection/selection.gd`; only the
 resulting orders reach the simulation. The bridge exposes per-unit packed arrays in
 the same order as `unit_ids()`: `unit_owners()`, `unit_types()`, `unit_footprints()`,
-`unit_moving()`, plus `local_player()`. Only units of the local player are selectable.
+`unit_moving()`, `unit_alive()`, plus `local_player()`. Only living units of the local
+player are selectable; destroyed units leave the selection.
 
 | Input | Effect |
 |---|---|
@@ -590,7 +713,10 @@ the same order as `unit_ids()`: `unit_owners()`, `unit_types()`, `unit_footprint
 | Ctrl+1…9 (Cmd on macOS) | Store the selection as a group |
 | 1…9 | Recall the group; twice within 0.4 s also centers the camera on it |
 | Right click | Move the selection to the ground point (green marker for 1 s) |
+| Right click on an enemy unit | Attack it |
+| Ctrl+right click (Cmd on macOS) | Fire at the ground point |
 | H | Stop the selection |
+| F | Hold fire / fire at will for the selection |
 
 Picking projects unit positions to the screen (`Camera3D.unproject_position`); the pick
 radius is half the footprint on screen, at least 14 px. Selected units show a green
@@ -607,7 +733,7 @@ Format (`crates/net/src/replay.rs`):
 
 ```
 "MSRP"  4 bytes magic
-u16 LE  format version (currently 2)
+u16 LE  format version (currently 3)
 postcard body: seed, resolved SimConfig, lockstep players, tick count,
                frames (tick + merged PlayerCommands, only non-empty ticks), end hash
 ```
@@ -625,7 +751,8 @@ Decisions:
 - **Map by reference.** The map (20 MB for 4 km) is not copied into the replay; the
   config names it with its content hash. `just replay` loads `data/maps/<name>/` (or
   the built-in `test_small`) and refuses a map whose hash differs. Version 2 (prompt
-  010) added map reference and terrain rules.
+  010) added map reference and terrain rules, version 3 (prompt 017) combat rules,
+  combat data of unit types, the start fire mode of spawns and the combat commands.
 - **Merged commands per tick, sparse.** The replay stores exactly what `Sim::step` got
   (player-tagged, in apply order), so playback needs no lockstep session and does not
   depend on input delay. Ticks without commands are omitted; the tick count marks the

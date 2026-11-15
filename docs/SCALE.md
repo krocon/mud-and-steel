@@ -118,13 +118,22 @@ Game range = real range × factor. Screen width: 190 m at medium zoom, 570 m in 
 | 10.5 cm leFH 18M L/28 (`de_lefh18`) | 12325 | 1/8 indirect | 1541 | 8.1 | 2.7 |
 | 122 mm M-30 L/22.7 (`su_m30`) | 11800 | 1/8 indirect | 1475 | 7.8 | 2.6 |
 
-Observations for balancing (to be decided with combat, prompt 017):
+Combat (prompt 017, [ARCHITECTURE.md](ARCHITECTURE.md#combat)) uses these game
+ranges, the interval between rounds ÷ time factor (Panzer IV: 10 rounds per minute
+real → one round every 3 s), projectile speeds × time factor (750 m/s → 1500 m/s)
+and gravity × time factor². Penetration loss and dispersion work on real distances
+(game distance × 4), so a shot at 375 m in the game is as likely to hit and
+penetrate as one at 1.5 km in reality. Combat rules (not catalog values) are in
+`data/combat.toml`.
+
+Observations for balancing:
 
 - Infantry crossing 4 km takes 30 min of game time. That is slow but fits the
   role of infantry on a large map; trucks and halftracks move it. If it feels too
   slow, a `[[time.override]]` for infantry categories is the intended lever.
 - Short-range infantry anti-tank weapons (bazooka 110 m real) end up at ~30 m. They
-  may need a minimum game range rather than pure compression.
+  may need a minimum game range rather than pure compression. Prompt 017 keeps pure
+  compression; revisit with infantry behavior (prompt 022).
 - Artillery covers 1.5 km, a large part of a 2–4 km map, as intended.
 
 ## Map scale
