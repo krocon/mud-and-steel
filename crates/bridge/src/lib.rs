@@ -29,6 +29,8 @@ mod map_editor;
 mod match_funcs;
 mod object_funcs;
 mod objects;
+mod replay_funcs;
+mod save_funcs;
 mod steam_lobby;
 mod terrain_layers;
 mod vision_funcs;
@@ -36,6 +38,7 @@ mod water;
 mod water_funcs;
 
 pub use lan::LanLobby;
+pub use replay_funcs::ReplayPlayer;
 pub use steam_lobby::SteamLobby;
 
 struct MudAndSteel;
@@ -101,6 +104,8 @@ struct Game {
     water: std::cell::OnceCell<water::WaterField>,
     /// Computer players hosted in the session (prompt 024).
     ais: Vec<ai::Ai>,
+    /// A replay playing instead of a match (prompt 038, `replay_funcs`).
+    playback: Option<replay_funcs::Playback>,
 }
 
 impl Game {
@@ -129,6 +134,10 @@ impl Game {
     /// consumed when a local frame is due, so commands given while waiting
     /// for remote frames are not lost.
     fn step(&mut self, pending: &mut Vec<Command>) -> Result<bool, NetError> {
+        if self.playback.is_some() {
+            pending.clear();
+            return Ok(replay_funcs::step_playback(self));
+        }
         // A loop, because a raised input delay asks for several frames; the
         // first one carries the commands.
         while self.session.needs_local_input() {
@@ -251,6 +260,10 @@ pub struct SimHost {
     /// frame changes, so a match plays the same at any speed (self-tests).
     #[export]
     speed: f64,
+    /// Why the last `load_game` / `start_replay` failed (prompt 038).
+    load_error: String,
+    /// Settings saved with the loaded game (prompt 038).
+    loaded_settings: Vec<(String, String)>,
     base: Base<Node>,
 }
 
@@ -275,6 +288,8 @@ impl INode for SimHost {
             process_ticks: 0,
             mode: GString::new(),
             speed: 1.0,
+            load_error: String::new(),
+            loaded_settings: Vec::new(),
             base,
         }
     }
@@ -299,14 +314,19 @@ impl SimHost {
         }
         let tick_seconds = 1.0 / f64::from(self.tick_hz);
         self.accumulator += delta * self.speed.clamp(0.0, 20.0);
+        let max_ticks = if game.playback.is_some() {
+            replay_funcs::MAX_REPLAY_TICKS_PER_FRAME
+        } else {
+            MAX_TICKS_PER_FRAME
+        };
         let mut ticks = 0;
         // Only the last two ticks of a frame are drawn (interpolated):
         // snapshots of the ticks before them would be thrown away (prompt
         // 016). Events are collected from every tick.
-        let due = ((self.accumulator / tick_seconds) as u32).min(MAX_TICKS_PER_FRAME);
+        let due = ((self.accumulator / tick_seconds) as u32).min(max_ticks);
         game.waiting = false;
         while self.accumulator >= tick_seconds {
-            if ticks == MAX_TICKS_PER_FRAME {
+            if ticks == max_ticks {
                 self.accumulator = 0.0;
                 break;
             }
@@ -491,6 +511,7 @@ impl SimHost {
             deco: std::cell::OnceCell::new(),
             water: std::cell::OnceCell::new(),
             ais: Vec::new(),
+            playback: None,
             sim,
             map_top: map
                 .heights_mm()

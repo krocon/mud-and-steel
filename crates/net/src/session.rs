@@ -18,6 +18,9 @@ pub struct LockstepConfig {
     pub hash_interval: u64,
 }
 
+/// The commands of one player for one tick.
+pub type PlayerFrame = (PlayerId, Vec<Command>);
+
 /// Frames scheduled but not simulated yet (prompt 038): what a saved
 /// single-player game keeps so that it continues exactly, with the commands
 /// already given in flight.
@@ -29,7 +32,7 @@ pub struct PendingFrames {
     pub scheduled_until: u64,
     /// Per tick from `next_tick`, ascending: the commands of every player
     /// that already has a frame for it.
-    pub frames: Vec<(u64, Vec<(PlayerId, Vec<Command>)>)>,
+    pub frames: Vec<(u64, Vec<PlayerFrame>)>,
 }
 
 /// Two peers computed different states for the same tick.
