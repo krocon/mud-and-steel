@@ -8,6 +8,9 @@ use sim::{Command, Fixed, UnitId, Vec2};
 
 /// Enemies within this distance of each other count as one group (m).
 const CLUSTER_M: i32 = 25;
+/// No barrage lands within this distance of own troops (m): blast radius
+/// plus dispersion of a heavy shell.
+const SAFE_M: i32 = 60;
 /// Radius and salvos of a barrage.
 const BARRAGE_RADIUS_M: u16 = 15;
 const BARRAGE_SALVOS: u16 = 3;
@@ -92,7 +95,13 @@ impl Ai {
             .fire
             .barrage_tick
             .is_none_or(|t| view.tick >= t + BARRAGE_TICKS);
-        if barrage_due && let Some(target) = largest_group(&enemies) {
+        let own: Vec<Vec2> = view
+            .own
+            .iter()
+            .filter(|u| u.alive() && self.type_info(u.unit_type).role != Role::Artillery)
+            .map(|u| u.position)
+            .collect();
+        if barrage_due && let Some(target) = largest_group(&enemies, &own) {
             let mut gunners = self.in_range(units, target, false);
             gunners.retain(|id| !busy.contains(id));
             if !gunners.is_empty() {
@@ -179,9 +188,11 @@ impl Ai {
 }
 
 /// Center of the visible enemy with the most other enemies within
-/// [`CLUSTER_M`] (ties: the lower id).
-fn largest_group(enemies: &[&SeenUnit]) -> Option<Vec2> {
+/// [`CLUSTER_M`] (ties: the lower id), with no own unit (`own`) within
+/// [`SAFE_M`] of it: fragments hurt friends too.
+fn largest_group(enemies: &[&SeenUnit], own: &[Vec2]) -> Option<Vec2> {
     let radius = Fixed::from_num(CLUSTER_M);
+    let safe = Fixed::from_num(SAFE_M);
     let mut best: Option<((usize, std::cmp::Reverse<UnitId>), Vec2)> = None;
     for e in enemies {
         let members: Vec<Vec2> = enemies
@@ -189,9 +200,13 @@ fn largest_group(enemies: &[&SeenUnit]) -> Option<Vec2> {
             .filter(|o| dist(o.position, e.position) <= radius)
             .map(|o| o.position)
             .collect();
+        let center = centroid(members.iter().copied()).unwrap_or(e.position);
+        if own.iter().any(|&p| dist(p, center) <= safe) {
+            continue;
+        }
         let key = (members.len(), std::cmp::Reverse(e.id));
         if best.as_ref().is_none_or(|(b, _)| key > *b) {
-            best = Some((key, centroid(members.into_iter()).unwrap_or(e.position)));
+            best = Some((key, center));
         }
     }
     best.map(|(_, p)| p)

@@ -170,8 +170,9 @@ their attack orders into indirect fire.
   every 800 ticks).
 - Every 200 ticks the units in range fire a barrage (3 salvos, 15 m) on the
   largest visible enemy group (most enemies within 25 m of one).
-- Hard builds a mortar team in its infantry mix and a self-propelled gun in
-  its vehicle mix.
+- Hard builds a mortar team in its infantry mix. Not the self-propelled gun:
+  with it in the vehicle mix, saving up for it starved the tank production
+  and Hard lost 4 of 8 base matches against Normal (before: 8 timeouts).
 
 ## Game and menu
 

@@ -554,6 +554,10 @@ impl Sim {
         self.unit_grid
             .query(me.position - r, me.position + r, &mut near);
         let mut best: Option<((i64, UnitId), usize)> = None;
+        let caliber = self.artillery.types[me.unit_type as usize]
+            .as_ref()
+            .map_or(0, |t| t.weapon.caliber_mm_x10);
+        let danger = self.artillery.rules.blast_radius(caliber) * 2;
         for &j in &near {
             let j = j as usize;
             let other = &self.units[j];
@@ -568,12 +572,27 @@ impl Sim {
             if d < min_range || d > range || !self.sees_unit(i, j) {
                 continue;
             }
+            // No automatic fire near own troops (fragments hurt them too).
+            if self.friend_near(me.owner, other.position, danger) {
+                continue;
+            }
             let key = (d.to_bits(), other.id);
             if best.is_none_or(|(b, _)| key < b) {
                 best = Some((key, j));
             }
         }
         best.map(|(_, j)| j)
+    }
+
+    /// Whether a living unit of `owner` stands within `radius` of `p`.
+    fn friend_near(&self, owner: PlayerId, p: Vec2, radius: Fixed) -> bool {
+        let r = Vec2::new(radius, radius);
+        let mut near = Vec::new();
+        self.unit_grid.query(p - r, p + r, &mut near);
+        near.iter().any(|&k| {
+            let u = &self.units[k as usize];
+            u.owner == owner && u.alive() && (u.position - p).length() <= radius
+        })
     }
 
     /// Fires one shell of unit `i` at `point` (a barrage picks a point
