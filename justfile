@@ -85,3 +85,7 @@ model-tank:
     {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python tools/create_placeholder_tank.py
     just export-model assets-src/blender/placeholder_tank.blend
 
+# Regenerate the 1.80 m reference figure and scale bars
+[group('assets')]
+model-scale-reference:
+    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python tools/blender/scale_reference.py
