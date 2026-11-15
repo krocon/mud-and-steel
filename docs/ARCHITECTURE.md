@@ -32,7 +32,7 @@ Transport: ENet on LAN (net::lan), later Steam online
 
 | Crate / folder  | Responsibility | Depends on |
 |-----------------|----------------|------------|
-| `crates/sim`    | Game rules and state. `Sim::new(config, map, seed)`, `step(&[PlayerCommand])`, `state_hash()`, `snapshot()`. Players and unit ownership, group commands with formation, maps (height field, terrain, objects, bridges), pathfinding (`sim::path`), combat (`sim::combat`), fixed-point math, RNG, stable hash, unit catalog, scale, terrain rules and scenarios (compiled in, like the map `test_small`). | `fixed`, `serde`, `toml`, `png` |
+| `crates/sim`    | Game rules and state. `Sim::new(config, map, seed)`, `step(&[PlayerCommand])`, `state_hash()`, `snapshot()`. Players and unit ownership, group commands with formation, maps (height field, terrain, objects, bridges), pathfinding (`sim::path`), combat (`sim::combat`), destruction of map objects (`sim::destruction`), fixed-point math, RNG, stable hash, unit catalog, scale, terrain rules and scenarios (compiled in, like the map `test_small`). | `fixed`, `serde`, `toml`, `png` |
 | `crates/net`    | Lockstep protocol: `CommandFrame`, `HashReport`, `LockstepSession` (input delay, also changed at run time, desync detection), `Transport` trait, `LoopbackTransport` for tests, `LocalTransport` for single player. Replays (`net::replay`). LAN games (`net::lan`): ENet transport with lobby, discovery by UDP broadcast. | `sim`, `postcard`, `rusty_enet`, `if-addrs` |
 | `crates/cli`    | Headless runner: `cli run --ticks N --seed S [--record FILE]` prints the state hash, `cli replay FILE` re-simulates a replay and checks its end hash, `cli gen-map` generates test maps, `cli map-info DIR` measures a map, `cli path-bench` benchmarks pathfinding, `cli map-check DIR` validates a map like the editor, `cli lan-host` / `cli lan-join` play the demo as headless LAN peers. | `sim`, `net`, `clap`, `png` |
 | `crates/editor` | Map editing (prompt 028): `EditMap` with integer brushes, undo per stroke, saving in the map format and validation through the simulation's loader and path finder. A tool like `cli gen-map`, not game rules. | `sim`, `png`, `toml` |
@@ -238,7 +238,8 @@ at most 3 times until it reaches the next waypoint.
 neighbors (components for the whole map),
 restarts the running search and re-plans every unit whose remaining route touches
 the changed cells. It is meant for game systems (buildings, wrecks, destruction in
-prompt 020), not for player commands; nothing calls it yet.
+prompt 020), not for player commands. Wrecks use it; destroyed map objects
+re-rasterize their cells instead ([Destruction](#destruction)).
 
 `Sim::set_bridge_intact(bridge, intact)` (prompt 014) works the same way for a
 bridge: the map is copied once (copy-on-write through `Arc::make_mut`; the
@@ -547,11 +548,121 @@ The maximum tick contains the path planning of the first orders.
 
 ### Open
 
-- Wrecks do not block sight (prompt 020), terrain deformation (prompt 021)
+- Wrecks do not block sight; destroyed map objects rebuild their cells and
+  queue the viewsheds ([Destruction](#destruction)); terrain deformation (prompt 021)
   would need to rebuild cells and requeue viewsheds.
 - Units on bridge decks: target cells use the ground height below the deck.
 - Last known positions of enemy units are not drawn (ghost markers).
 - Smoke (prompt 019 is presentation only) does not block sight yet.
+
+## Destruction
+
+Prompt 020. Trees, hedges, walls, fences, barbed wire and buildings can be
+damaged and destroyed; that changes paths, sight and cover. Rules and public
+types in `crates/sim/src/destruction.rs`, the state and its effects in
+`crates/sim/src/sim/destruction.rs`; Godot only swaps model variants and
+plays effects.
+
+### Rules
+
+`data/destruction.toml` (built in, loaded by `Sim::new` with
+`DestructionRules::builtin`, in the state hash; not part of `SimConfig`,
+like `data/objects.toml` it belongs to the map objects): per group of
+catalog ids the hit points, the share at which an object counts as damaged,
+what remains when it is destroyed (`ruin`, `fallen`, `gone`, `flat`), what a
+ruin blocks and how high it is, the vehicle mass that crushes it, and the
+model variants of the damaged and destroyed stages. Rounds below 20 mm do no
+damage. Bunkers, hedgehogs, rocks, bridges and props are in no class and
+cannot be destroyed.
+
+| Objects | Hit points | Damaged at | Destroyed |
+|---|---|---|---|
+| Trees | 400 | – | fall in the flight direction; block nothing, no forest |
+| Hedges / dry-stone walls | 600 / 1200 | – | gone (a gap) |
+| Fences / barbed wire | – | – | flattened by vehicles from 2.5 t / 8 t |
+| Mud house, barn, farmhouse (brick, stone) | 1800, 2000, 2500 (3000, 3500) | 50 % | ruin: blocks tanks only, stops projectiles up to 40 % of the height |
+| Church | 6000 | 50 % | ruin up to 30 % (the tower falls) |
+
+A 7.5 cm round (562 points, the vehicle damage formula of `combat.toml`)
+fells a tree, three bring down a wall segment, a farmhouse is damaged after
+three and a ruin after five.
+
+### State and per tick
+
+The map stays as loaded. Per object the simulation knows hit points, stage
+(`Intact`, `Damaged`, `Destroyed`) and fall direction (whole degrees); only
+objects that differ from their start are stored (`BTreeMap` by index, in
+the state hash), so 100 000 objects cost nothing until they are hit. The map
+variant gives the start: `Damaged` and `Ruin` variants start damaged or
+destroyed (a placed ruin acts as a ruin from `Sim::new` on). How an object
+acts follows from its stage (`effective`: blocking class, sight, height):
+
+1. After the movement, vehicles at least as heavy as `crush_min_mass_kg`
+   flatten crushable objects whose shape overlaps their footprint square,
+   falling in their driving direction.
+2. In the projectile flight, a hit on an object costs its hit points the
+   vehicle damage of the round (`HitKind::Object`, `damage` in the event).
+   Destroyed trees, gaps and flattened objects no longer stop projectiles;
+   ruins stop them up to their height. A round whose first segment starts
+   inside a ruin ignores that ruin, so infantry in a ruin can fire out.
+3. `apply_destruction` (before the vision update): for every object
+   destroyed in this tick, the object flags of its path cells are
+   re-rasterized from all objects there (`PathGrid::rasterize_objects_in`),
+   flags and costs rebuilt (`rebuild_cells`), the components labeled once
+   for all of them, and units whose route touches the cells plan again; the
+   vision cells are rebuilt (`VisionGrid::rebuild_objects`, copy-on-write of
+   the shared grid) and every viewshed that covers them is queued.
+
+Events (`Sim::object_events`: object, new stage, remains, fall direction,
+point, cause `Hit(shooter)` or `Crushed(vehicle)`) are derived, not hashed.
+For prompt 022 (cover, occupying buildings): `object_state`,
+`object_stage`, `object_hp`, `object_blocks` (blocking class now),
+`object_remains`, `changed_objects`.
+
+**Cost** (`test_large`, 4 km, 98 000 objects, release, Apple M1 Max): the
+object index adds a few milliseconds to `Sim::new` (198 ms in all); a tick in
+which objects are destroyed takes about 8 ms, almost all of it the one flood
+fill of the component grids over the whole map (ticks without destruction
+are unchanged). Several objects in one tick cost the same flood fill.
+
+### Bridge and Godot
+
+The bridge collects the events of every tick (`SimHost.take_object_events`)
+and gives the state of changed objects (`changed_objects`, `object_state`),
+the variant to show and where an object is drawn (`object_instance`: kind,
+chunk, slot of `object_groups`). `scenes/world/destruction_view.gd` reads
+the events; `map_objects.gd` collapses the object's MultiMesh instance and
+puts a single node in its place: the `Damaged` or `Ruin` variant, a tree
+that tips over in 1.6 s next to an `env_tree_stump`, a flattened fence or
+wire; walls and hedges just vanish. `effects.gd` (`object_event`) throws
+debris, dust clouds and a scorch mark for a collapsing building, splinters
+and dust where a tree's crown lands, debris for walls and a puff for crushed
+fences, only at visible points. Objects change in the fog too (the stage is
+not secret, only the effects are hidden).
+
+### Decisions
+
+| Question | Decision | Why |
+|---|---|---|
+| Where the state lives | Next to the unchanged map, only deviations | The map and its hash stay the loaded map; a copy-on-write of a 4 km map per hit would be expensive, and a map's kinds often lack the ruin variant. |
+| Rules outside `SimConfig` | Built in like `data/objects.toml`, hashed | Bound to the map objects; keeps `SimConfig` (shared by every caller) unchanged. The state hash reports differing rules. |
+| Damage | Direct hits, caliber² like vehicles, from 20 mm | Consistent with prompt 017; rifles do not fell trees. Splash comes with indirect fire. |
+| Ruins and sight | Ruins block no sight | At 8 m vision cells a ruin would blind the infantry inside it; rubble has gaps. Cover against fire comes from the projectile height. |
+| Felled trees | Block nothing | Tanks drive over trunks; "the forest thins" follows from the forest count of the vision cells. |
+| Fall direction | Flight direction in whole degrees from the sine table | Deterministic without floats or randomness. |
+| Rebuilds | Collected per tick, components once | Several hits per tick cost one flood fill of the component grids. |
+| Presentation | Hide the MultiMesh instance, add a single node | No rebuild of object groups; a few hundred destroyed objects cost little. |
+
+### Open
+
+- Bridges cannot be shot down yet (`Sim::set_bridge_intact` exists; what
+  happens to units on the deck is open), splash damage (HE radius), rubble
+  as an obstacle of its own, fires in buildings, terrain deformation
+  (prompt 021).
+- Ruins give full protection against direct fire below their height and
+  none from above; prompt 022 refines cover.
+- Fallen trees and ruins do not change the decoration (grass under a felled
+  crown stays).
 
 ## Victory conditions and game flow
 

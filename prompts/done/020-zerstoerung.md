@@ -55,9 +55,9 @@ Effekte ab.
      neu gerastert (alle Objekte, die ihn überdecken), Kosten und Komponenten neu
      berechnet, Pfade durch den Bereich neu geplant. Alle Änderungen eines Ticks
      gesammelt, die Komponenten nur einmal pro Tick.
-   - **Nebel:** betroffene Sichtzellen neu berechnet (Ruinen niedriger, gefallene
-     Bäume kein Wald mehr, Lücken frei), Sichtfelder, die diese Zellen enthalten,
-     neu in die Warteschlange.
+   - **Nebel:** betroffene Sichtzellen neu berechnet (Ruinen verdecken nichts mehr,
+     gefallene Bäume kein Wald mehr, Lücken frei), Sichtfelder, die diese Zellen
+     enthalten, neu in die Warteschlange.
    - **Geschosse:** Ruinen halten Geschosse bis zu ihrer Resthöhe auf, gefallene
      Bäume und Lücken nicht mehr. Ein Geschoss, das in einer Ruine startet, trifft
      diese Ruine nicht (Infanterie kann aus Ruinen schießen).
@@ -111,7 +111,7 @@ Trümmer als eigenes Hindernis, Feuer in Gebäuden, Geländeverformung (021).
 | Regeln | Eigene Datei `data/destruction.toml`, von `Sim::new` eingebaut geladen und gehasht, nicht in `SimConfig` | Wie `data/objects.toml` an die Kartenobjekte gebunden; hält `SimConfig` (geteilt mit 022/024) unverändert. Der State-Hash meldet abweichende Regeln. |
 | Schaden | Direkter Treffer, Kaliber² wie bei Fahrzeugen, ab 20 mm | Nachvollziehbar und mit 017 konsistent; Gewehrfeuer fällt keine Bäume. Splitterwirkung kommt mit indirektem Feuer. |
 | Lebenspunkte | Baum 400, Hecke 600, Mauer 1200, Lehmhaus 1800, Scheune 2000, Bauernhaus 2500 (Ziegel 3000, Stein 3500), Kirche 6000 | 7,5 cm fällt einen Baum mit einem Treffer, eine Mauer mit drei, ein Bauernhaus wird nach drei Treffern beschädigt und nach fünf zur Ruine. |
-| Ruine | Blockiert nur Panzer, Resthöhe 40 % (Kirche 30 %) | Schutthaufen und Mauerreste: Infanterie geht hinein und hat Deckung, Panzer fahren außen herum; Sicht über niedrige Reste. |
+| Ruine | Blockiert nur Panzer, hält Geschosse bis 40 % der Höhe auf (Kirche 30 %), verdeckt keine Sicht | Schutthaufen und Mauerreste: Infanterie geht hinein und hat Deckung, Panzer fahren außen herum. Bei 8-m-Sichtzellen würde eine sichtblockierende Ruine die Infanterie darin blind machen (beim Umsetzen festgestellt). |
 | Gefallener Baum | Blockiert nichts, kein Wald mehr | Panzer überfahren Stämme; „Wald wird lichter“ ergibt sich aus der Waldzählung. |
 | Fallrichtung | Flugrichtung des Geschosses in ganzen Grad, aus der Sinustabelle | Deterministisch ohne Floats und ohne Zufall. |
 | Neuberechnung | Am Ende jedes Ticks gesammelt: Raster-Rechtecke, Sichtzellen, Komponenten einmal | Mehrere Treffer pro Tick kosten nur eine Komponenten-Flutung. |
