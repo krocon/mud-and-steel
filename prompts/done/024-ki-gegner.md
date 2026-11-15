@@ -66,15 +66,17 @@ Eigenschaft für reproduzierbare Messungen, keine Bedingung für Synchronität.
    plant sie für denselben Tick wie den letzten eigenen Frame. Frames von Remote-Peers
    für gehostete Spieler werden abgelehnt. Hash-Vergleich und „Einzelspieler“ zählen
    nur echte Remote-Spieler. Rein additiv, bestehende Aufrufe ändern sich nicht.
-4. **Bridge und Spiel:** `SimHost.start_match(seed, map_dir, factions, ai)` (neuer
-   optionaler Wert, Default ohne KI wie bisher): im Einzelspieler wird Spieler 1 als
+4. **Bridge und Spiel:** neue Eigenschaft `SimHost.ai_opponent` (leer: ohne KI wie
+   bisher), gelesen von `start`/`start_on_map`/`start_match`, damit deren
+   Signaturen gleich bleiben: im Einzelspieler wird Spieler 1 als
    KI-Spieler in der Session gehostet und bekommt seine Befehle vor jedem Tick aus
    `Ai::think`. Das Replay enthält sie. Im Einzelspieler-Setup des Menüs wählt man
    den Gegner: `Passive`, `Easy`, `Normal` (Default), `Hard`. `--skip-menu`
    akzeptiert `--ai=<stufe>` (Default: ohne KI, wie bisher). LAN-Spiele mit KI-Slots
    im Lobby-Menü sind nicht Teil dieses Prompts (der Lockstep-Teil ist vorbereitet).
-5. **CLI-Turnier:** `cli ai-tournament --games N --seed S --map DIR --p0 hard
-   --p1 passive [--factions de,su] [--max-ticks T]`. Jedes Spiel hat einen eigenen
+5. **CLI-Turnier:** `cli ai-tournament --games N --seed S --map NAME --a hard
+   --b passive [--factions de,su] [--max-ticks T] [--matrix]` (`--matrix`: jede
+   Stufe gegen jede niedrigere). Jedes Spiel hat einen eigenen
    Seed (S, S+1, …), die Seiten wechseln jedes Spiel (jede KI spielt beide Seiten und
    Fraktionen). Die KI-Befehle laufen wie im Spiel mit `input_delay` 1 durch eine
    Lockstep-Session. Ausgabe pro Spiel (Sieger, Tick, Einheiten übrig) und eine

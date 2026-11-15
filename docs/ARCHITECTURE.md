@@ -35,6 +35,7 @@ Transport: ENet on LAN (net::lan), later Steam online
 | `crates/sim`    | Game rules and state. `Sim::new(config, map, seed)`, `step(&[PlayerCommand])`, `state_hash()`, `snapshot()`. Players and unit ownership, group commands with formation, maps (height field, terrain, objects, bridges), pathfinding (`sim::path`), combat (`sim::combat`), fixed-point math, RNG, stable hash, unit catalog, scale, terrain rules and scenarios (compiled in, like the map `test_small`). | `fixed`, `serde`, `toml`, `png` |
 | `crates/net`    | Lockstep protocol: `CommandFrame`, `HashReport`, `LockstepSession` (input delay, also changed at run time, desync detection), `Transport` trait, `LoopbackTransport` for tests, `LocalTransport` for single player. Replays (`net::replay`). LAN games (`net::lan`): ENet transport with lobby, discovery by UDP broadcast. | `sim`, `postcard`, `rusty_enet`, `if-addrs` |
 | `crates/cli`    | Headless runner: `cli run --ticks N --seed S [--record FILE]` prints the state hash, `cli replay FILE` re-simulates a replay and checks its end hash, `cli gen-map` generates test maps, `cli map-info DIR` measures a map, `cli path-bench` benchmarks pathfinding, `cli map-check DIR` validates a map like the editor, `cli lan-host` / `cli lan-join` play the demo as headless LAN peers. | `sim`, `net`, `clap`, `png` |
+| `crates/ai`     | Computer players (prompt 024): `Ai::think(&PlayerView) -> Vec<Command>`, the fog-of-war `PlayerView`, difficulties, `game::Game` for headless AI matches. Runs on one machine as a hosted player of the lockstep session, not inside the simulation. See [AI.md](AI.md). | `sim`, `net` |
 | `crates/editor` | Map editing (prompt 028): `EditMap` with integer brushes, undo per stroke, saving in the map format and validation through the simulation's loader and path finder. A tool like `cli gen-map`, not game rules. | `sim`, `png`, `toml` |
 | `crates/bridge` | GDExtension `cdylib`. `SimHost` node: runs ticks from a time accumulator through a `LockstepSession`, queues commands, exposes the last two snapshots and the replay; plays single player over `LocalTransport` or a LAN match (`SimHost.start_lan`). `LanLobby` drives the LAN lobby. `MapEditor` hosts the map editor. The only float conversion. | `sim`, `net`, `editor`, `godot` |
 | `godot/`        | Scenes, GDScript UI logic, assets. No C#. | bridge (via `.gdextension`) |
@@ -618,7 +619,9 @@ closed, match 1 from the setup screen with the loading screen and all match
 tests of `self_test.gd` (including combat), pause, surrender → defeat, back
 to the menu; match 2 as United States against Germany in winter: everyone
 starts with hold fire, the own tanks attack one enemy after the other until
-the last is destroyed → victory by elimination, back to the menu. `just lan-selftest` ends with the client
+the last is destroyed → victory by elimination, back to the menu; match 3 against the hard
+computer opponent (prompt 024) while the own tanks hold fire → defeat by elimination.
+Matches 1 and 2 choose the passive opponent, which gives no orders. `just lan-selftest` ends with the client
 surrendering: the host must show victory, the client defeat.
 
 ## Map editor
@@ -706,8 +709,9 @@ debug menu (`scenes/debug/debug_menu.gd`).
 
 The terrain is drawn by `scenes/terrain/terrain.gd`; see "Terrain rendering" below.
 
-Player 1 of the demo issues no commands yet; the AI (prompt 024) will join the session
-as another player with its own frames.
+Player 1 is the computer opponent chosen in the setup (prompt 024): an `ai::Ai`
+hosted in the same session (`LockstepSession::host_player`), whose frames are
+submitted right after the local one; see [AI.md](AI.md).
 
 ## Terrain rendering (presentation only)
 

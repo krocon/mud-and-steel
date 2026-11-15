@@ -79,7 +79,7 @@ run *args: build
 editor: build
     {{ GODOT }} --path godot -e
 
-# Build the bridge and run the headless self-test: menu, settings, two matches, result (exit code 0 = passed)
+# Build the bridge and run the headless self-test: menu, settings, three matches (one against the computer), result (exit code 0 = passed)
 [group('godot')]
 selftest: build
     {{ GODOT }} --path godot --headless --fixed-fps 60 -- --self-test

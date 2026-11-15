@@ -229,7 +229,10 @@ pub struct Ai {
     /// Damaged units sent back (they keep firing at will).
     retreated: Vec<UnitId>,
     started: bool,
-    /// Ticks spent in `think`, for statistics.
+    /// Tick of the last view seen: a second call for the same tick (several
+    /// frames for one tick after a raised input delay) does nothing.
+    last_tick: Option<u64>,
+    /// Ticks in which `think` made decisions, for statistics.
     thinks: u64,
 }
 
@@ -307,6 +310,7 @@ impl Ai {
             groups: BTreeMap::new(),
             retreated: Vec::new(),
             started: false,
+            last_tick: None,
             thinks: 0,
         }
     }
@@ -328,9 +332,14 @@ impl Ai {
     /// commands to send for this player (often none).
     pub fn think(&mut self, view: &PlayerView) -> Vec<Command> {
         let interval = self.params.think_ticks;
-        if interval == 0 || view.decided || view.player != self.player {
+        if interval == 0
+            || view.decided
+            || view.player != self.player
+            || self.last_tick == Some(view.tick)
+        {
             return Vec::new();
         }
+        self.last_tick = Some(view.tick);
         // Spread the work of several AIs over different ticks.
         if !(view.tick + u64::from(self.player.0) * 3).is_multiple_of(interval) {
             return Vec::new();

@@ -109,6 +109,10 @@ Timeouts: ENet disconnects a peer that did not answer for 3 to 10 s; pings every
   re-simulates to its own end hash; comparing their command frames shows which peer
   applied something the other did not.
 
+**Computer players** (prompt 024, [AI.md](AI.md)): a peer can host further
+players (`LockstepSession::host_player` / `submit_hosted`) and sends their frames
+and hash reports as if they had their own peer. The lobby offers no AI slots yet.
+
 ## Tests
 
 | Command | What it does |
