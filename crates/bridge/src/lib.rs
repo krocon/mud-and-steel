@@ -271,6 +271,10 @@ impl SimHost {
         let tick_seconds = 1.0 / f64::from(self.tick_hz);
         self.accumulator += delta;
         let mut ticks = 0;
+        // Only the last two ticks of a frame are drawn (interpolated):
+        // snapshots of the ticks before them would be thrown away (prompt
+        // 016). Events are collected from every tick.
+        let due = ((self.accumulator / tick_seconds) as u32).min(MAX_TICKS_PER_FRAME);
         game.waiting = false;
         while self.accumulator >= tick_seconds {
             if ticks == MAX_TICKS_PER_FRAME {
@@ -288,13 +292,30 @@ impl SimHost {
                     break;
                 }
             }
-            let next =
-                vision_funcs::snapshot(&game.sim, game.session.local_player(), self.reveal_all);
-            self.previous = std::mem::replace(&mut self.current, next);
-            combat_funcs::collect_events(&mut self.combat_events, &self.current);
+            if ticks + 2 >= due {
+                std::mem::swap(&mut self.previous, &mut self.current);
+                vision_funcs::snapshot_into(
+                    &game.sim,
+                    game.session.local_player(),
+                    self.reveal_all,
+                    &mut self.current,
+                );
+            }
+            combat_funcs::collect_events(&mut self.combat_events, &game.sim);
             destruction_funcs::collect_events(&mut self.object_events, &game.sim);
             self.accumulator -= tick_seconds;
             ticks += 1;
+        }
+        if self.current.tick != game.sim.tick() {
+            // The loop stopped early (waiting for a peer) before the ticks
+            // that take snapshots.
+            std::mem::swap(&mut self.previous, &mut self.current);
+            vision_funcs::snapshot_into(
+                &game.sim,
+                game.session.local_player(),
+                self.reveal_all,
+                &mut self.current,
+            );
         }
         if ticks == 0 && game.networked && game.halted.is_none() {
             // Keep the connection serviced between ticks.

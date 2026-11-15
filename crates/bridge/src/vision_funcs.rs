@@ -15,11 +15,14 @@ const VISIBLE: u8 = 255;
 
 /// What the local player gets to draw.
 pub(crate) fn snapshot(sim: &Sim, local: PlayerId, reveal_all: bool) -> Snapshot {
-    if reveal_all {
-        sim.snapshot()
-    } else {
-        sim.snapshot_for(local)
-    }
+    let mut out = Snapshot::default();
+    snapshot_into(sim, local, reveal_all, &mut out);
+    out
+}
+
+/// [`snapshot`] into the buffers of `out` (prompt 016).
+pub(crate) fn snapshot_into(sim: &Sim, local: PlayerId, reveal_all: bool, out: &mut Snapshot) {
+    sim.snapshot_into((!reveal_all).then_some(local), out);
 }
 
 #[godot_api(secondary)]

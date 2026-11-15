@@ -988,11 +988,23 @@ impl Sim {
 
     /// Data needed to draw the current state.
     pub fn snapshot(&self) -> Snapshot {
-        Snapshot {
-            tick: self.tick,
-            units: self
-                .units
+        let mut out = Snapshot::default();
+        self.snapshot_into(None, &mut out);
+        out
+    }
+
+    /// Writes the snapshot into `out`, reusing its buffers (prompt 016: the
+    /// bridge builds one per tick). With `player`, enemy units (and their
+    /// soldiers) that the player does not see are left out, like
+    /// [`Self::snapshot_for`].
+    pub fn snapshot_into(&self, player: Option<PlayerId>, out: &mut Snapshot) {
+        let shown = |u: &Unit| player.is_none_or(|p| self.visible_to(p, u.id));
+        out.tick = self.tick;
+        out.units.clear();
+        out.units.extend(
+            self.units
                 .iter()
+                .filter(|u| shown(u))
                 .map(|u| UnitSnapshot {
                     id: u.id,
                     owner: u.owner,
@@ -1009,17 +1021,18 @@ impl Sim {
                     garrison: u.squad.as_ref().and_then(|s| s.garrison),
                     changing_stance: u.squad.as_ref().is_some_and(|s| s.changing > 0),
                     spread: u.spread,
-                })
-                .collect(),
-            projectiles: self
-                .projectiles
+                }),
+        );
+        out.projectiles.clear();
+        out.projectiles
+            .extend(self.projectiles.iter().map(|p| p.snapshot(self.tick_hz)));
+        out.events.clear();
+        out.events.extend_from_slice(&self.events);
+        out.soldiers.clear();
+        out.soldiers.extend(
+            self.units
                 .iter()
-                .map(|p| p.snapshot(self.tick_hz))
-                .collect(),
-            events: self.events.clone(),
-            soldiers: self
-                .units
-                .iter()
+                .filter(|u| shown(u))
                 .filter_map(|u| u.squad.as_ref().map(|s| (u, s)))
                 .flat_map(|(u, s)| {
                     let inside = s.garrison.is_some();
@@ -1033,9 +1046,8 @@ impl Sim {
                             hp: x.hp,
                             in_cover: inside || x.at_spot(),
                         })
-                })
-                .collect(),
-        }
+                }),
+        );
     }
 }
 
