@@ -73,7 +73,7 @@ Welle 4:  012 Wegfindung ─ 013 …  │   008 Stufe 2 (3 Sessions pro Fraktion
 | 021 | [Verformbares Gelände](021-gelaendeverformung.md) | Krater verändern das Höhenfeld | Entwurf |
 | 022 | [Infanterie-Verhalten](022-infanterie-verhalten.md) | Trupps, Haltungen, Deckung, Gebäude besetzen | Entwurf |
 | 023 | [Basisbau und Ressourcen](023-basisbau-ressourcen.md) | Bauen, Abbauen, Produzieren | Entwurf |
-| 024 | [KI-Gegner](024-ki-gegner.md) | Computerspieler über normale Befehle | Entwurf |
+| 024 | [KI-Gegner](024-ki-gegner.md) | Computerspieler über normale Befehle | offen |
 | 025 | [LAN-Mehrspieler](done/025-lan-mehrspieler.md) | ENet-Transport, Spielsuche per Broadcast | erledigt |
 | 026 | [Online über Steam](026-online-steam.md) | GodotSteam, Lobbys, Matchmaking | Entwurf |
 | 027 | [Menüs und Spielablauf](done/027-menues-spielablauf.md) | Hauptmenü, Lobby, Einstellungen, Sieg/Niederlage | erledigt |
