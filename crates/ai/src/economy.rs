@@ -31,8 +31,10 @@ fn mix(difficulty: Difficulty, vehicles: bool) -> &'static [usize] {
     match (difficulty, vehicles) {
         (Difficulty::Easy, false) => &[0, 0, 1],
         (Difficulty::Easy, true) => &[1, 2],
-        (Difficulty::Hard, false) => &[0, 3, 1, 0],
-        (Difficulty::Hard, true) => &[2, 3, 2, 4],
+        // Hard also builds artillery (prompt 032): the mortar team (4)
+        // and the self-propelled gun (5).
+        (Difficulty::Hard, false) => &[0, 3, 1, 4, 0],
+        (Difficulty::Hard, true) => &[2, 3, 2, 4, 5],
         (_, false) => &[0, 1, 0, 3],
         (_, true) => &[2, 2, 3, 1],
     }

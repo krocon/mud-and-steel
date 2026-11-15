@@ -11,6 +11,7 @@
 //! iteration, no clocks, its own seeded [`Rng`]) so that tournaments give
 //! the same results on every platform. See `docs/AI.md`.
 
+mod artillery;
 mod economy;
 pub mod game;
 mod view;
@@ -134,6 +135,9 @@ enum Role {
     Armor,
     /// Infantry squads.
     Infantry,
+    /// Mortars and self-propelled guns (prompt 032, Hard only): barrages
+    /// on enemy groups and smoke before the attack.
+    Artillery,
     /// Units without weapons: stay at home.
     Unarmed,
     /// Buildings and fortifications (prompt 023): never commanded as a
@@ -152,6 +156,8 @@ struct TypeInfo {
     /// Has a weapon of at least 20 mm (or a shaped charge): can hurt
     /// armor and buildings (prompt 023: AT squads).
     anti_tank: bool,
+    /// Indirect weapon (prompt 032): minimum and maximum range, smoke.
+    indirect: Option<(Fixed, Fixed, bool)>,
 }
 
 /// Where an enemy unit was last seen.
@@ -246,6 +252,8 @@ pub struct Ai {
     /// Price of every unit type, if it can be bought.
     costs: Vec<Option<sim::Resources>>,
     eco: economy::EcoState,
+    /// Barrages and smoke of the artillery (prompt 032).
+    fire: artillery::FireState,
 }
 
 impl Ai {
@@ -258,6 +266,9 @@ impl Ai {
         map: &Map,
         seed: u64,
     ) -> Self {
+        // Minimum ranges of indirect weapons (`data/indirect.toml`, public
+        // like the config).
+        let indirect_rules = sim::IndirectRules::builtin().ok();
         let types = config
             .unit_types
             .iter()
@@ -269,9 +280,17 @@ impl Ai {
                     .map(|w| w.range_m)
                     .max()
                     .unwrap_or(Fixed::ZERO);
+                let indirect = t.combat.indirect.as_ref().map(|w| {
+                    let pct = indirect_rules
+                        .as_ref()
+                        .map_or(10, |r| r.category(t.combat.category).min_range_pct);
+                    (w.range_m * Fixed::from_num(pct) / 100, w.range_m, w.smoke)
+                });
                 let role = if !t.mobile() {
                     Role::Structure
-                } else if t.combat.weapons.is_empty() {
+                } else if indirect.is_some() && difficulty == Difficulty::Hard {
+                    Role::Artillery
+                } else if t.combat.weapons.is_empty() && indirect.is_none() {
                     Role::Unarmed
                 } else if t.combat.is_infantry() {
                     Role::Infantry
@@ -283,6 +302,7 @@ impl Ai {
                     range,
                     sight: config.vision.range_m(t.combat.category),
                     anti_tank: t.combat.weapons.iter().any(|w| w.caliber_mm_x10 >= 200),
+                    indirect,
                 }
             })
             .collect();
@@ -345,6 +365,7 @@ impl Ai {
             names: config.unit_types.iter().map(|t| t.name.clone()).collect(),
             costs: unit_costs(config),
             eco: economy::EcoState::default(),
+            fire: artillery::FireState::default(),
         }
     }
 
@@ -415,6 +436,7 @@ impl Ai {
                 .collect();
             match role {
                 Role::Armor | Role::Infantry => self.command_group(role, &units, view, &mut out),
+                Role::Artillery => self.command_artillery(&units, view, &mut out),
                 Role::Unarmed | Role::Structure => {}
             }
         }
@@ -430,6 +452,7 @@ impl Ai {
                 range: Fixed::ZERO,
                 sight: Fixed::ZERO,
                 anti_tank: false,
+                indirect: None,
             })
     }
 
