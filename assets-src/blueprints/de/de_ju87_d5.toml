@@ -1,0 +1,154 @@
+# Junkers Ju 87 D-5 "Stuka": two-seat dive/ground-attack aircraft, inverted
+# gull wing, fixed spatted gear, Jumo 211J inline engine with chin radiator,
+# 2 MG 151/20 in the wings, twin MG 81Z in the rear cockpit, SC 500 on the
+# centerline swing arm (crutch) that throws the bomb clear of the propeller.
+# Main dimensions from data/catalog/de.toml (length 11.5 m, span 15.0 m,
+# height 3.9 m). Modeling estimates from Ju 87 D three-views: wing area
+# ~33.7 m2 -> root/tip chord 2.9/1.4 m, gull kink at the gear legs (track
+# ~3.1 m, inner panel -14 degrees, outer +8 degrees), main wheels 840x300 mm,
+# three-blade VS 11 propeller 3.4 m, SC 500 2.0 x 0.40 m, braced tailplane.
+# Attitude: like de_fw190_a8 the fuselage is nearly level (the kit builds the
+# wing level), so the fin top reaches the catalog height; the propeller is
+# excluded from the height.
+unit = "de_ju87_d5"
+assembly = "aircraft"
+
+[layout]
+cg_chord = 0.3
+
+[fuselage]
+part = "fuselage"
+# [y, width, height, z_center, exponent], tail -> nose; y = 0 at the wing root leading edge
+sections = [[-8.30, 0.04, 0.14, 1.80, 2.0], [-7.40, 0.32, 0.60, 1.80, 2.5], [-5.00, 0.70, 1.10, 1.86, 3.0],
+            [-2.50, 0.95, 1.50, 1.95, 3.0], [-0.50, 1.00, 1.60, 2.02, 3.0], [1.20, 1.00, 1.45, 2.06, 3.0],
+            [2.40, 0.92, 1.25, 2.08, 2.8], [2.90, 0.60, 0.70, 2.10, 2.0]]
+segments = 14
+
+[wing]
+part = "wing"
+y = 0.0
+z = 1.40
+root_chord = 2.90
+tip_chord = 1.40
+sweep_deg = 4.0
+dihedral_deg = 8.0
+thickness = 0.16
+aileron = [0.55, 0.95]
+kink = { at = 0.21, inner_dihedral_deg = -14 }
+
+[tail]
+part = "tail"
+y = -6.50
+z = 1.80
+span = 5.00
+root_chord = 1.50
+tip_chord = 0.95
+fin_height = 2.10
+fin_root_chord = 1.60
+fin_tip_chord = 0.85
+fin_sweep_deg = 10
+
+[canopy]
+part = "canopy"
+y = [-3.20, -0.30]
+z = 2.70
+width = 0.82
+height = 0.55
+
+[landing_gear]
+part = "landing_gear"
+fixed = true
+spats = true
+main_y = 0.40
+main_track = 3.10
+main_wheel_diameter = 0.84
+strut_top_z = 1.02
+tail_y = -7.40
+tail_wheel_diameter = 0.40
+tail_strut_top_z = 1.55
+
+[[propeller]]
+part = "propeller"
+position = [0.0, 2.95, 2.10]
+diameter = 3.40
+blades = 3
+
+[[part]]
+part = "box_prop"              # chin radiator under the engine
+center = [0.0, 1.70, 1.30]
+size = [0.75, 1.10, 0.40]
+
+[[part]]
+part = "wing_struts"           # tailplane bracing struts
+struts = [[[0.20, -6.85, 1.55], [1.30, -7.05, 1.79]]]
+chord = 0.08
+
+[[part]]
+part = "fixed_guns"            # MG 151/20 outboard of the gull kink
+muzzles = [[2.40, 0.25, 1.12]]
+length = 0.55
+radius = 0.02
+
+[[part]]
+part = "flex_mg"               # MG 81Z in the rear cockpit
+position = [0.0, -2.90, 2.85]
+direction = [0.0, -1.0, 0.18]
+length = 0.85
+twin = true
+
+[[part]]
+part = "bomb_load"             # SC 500 on the swing arm
+bombs = [[0.0, 0.20, 0.92]]
+mirror = false
+length = 2.0
+diameter = 0.40
+swing_arm = true
+
+[[part]]
+part = "socket"
+name = "Socket_Exhaust_"
+position = [0.52, 2.10, 2.30]
+
+[[part]]
+part = "socket"
+name = "Socket_Exhaust_"
+position = [-0.52, 2.10, 2.30]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 1.5, 2.6]
+
+[[part]]
+part = "marking"
+name = "Wing_L"
+position = [-5.4, -1.0, 1.85]
+normal = [0.0, 0.0, 1.0]
+size = 1.2
+
+[[part]]
+part = "marking"
+name = "Wing_R"
+position = [5.4, -1.0, 1.85]
+normal = [0.0, 0.0, 1.0]
+size = 1.2
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-0.40, -4.6, 1.85]
+normal = [-1.0, 0.0, 0.0]
+size = 0.9
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [0.40, -4.6, 1.85]
+normal = [1.0, 0.0, 0.0]
+size = 0.9
+
+[[part]]
+part = "shadow_proxy"
+
+[validate]
+exclude_height = ["Propeller"]
