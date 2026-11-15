@@ -20,10 +20,10 @@ use std::sync::Arc;
 
 mod ai_funcs;
 mod combat_funcs;
+mod crater_funcs;
 mod destruction_funcs;
 mod infantry_funcs;
 mod lan;
-mod crater_funcs;
 mod map_editor;
 mod match_funcs;
 mod object_funcs;
@@ -65,6 +65,9 @@ const MAX_PICK_DISTANCE: f32 = 20_000.0;
 /// A running match: simulation plus lockstep session and replay recorder.
 struct Game {
     sim: Sim,
+    /// The map as loaded, for replays (craters change the simulation's
+    /// map during the match, prompt 021; read that one through `map()`).
+    loaded_map: Arc<Map>,
     /// Highest point of the map in meters, for ray picking.
     map_top: f32,
     config: SimConfig,
@@ -98,8 +101,9 @@ struct Game {
 
 impl Game {
     /// The map of the match as the simulation has it now (craters change
-    /// it, prompt 021). Read through the simulation, never kept as a
-    /// second `Arc`, so the simulation's copy-on-write copies it only once.
+    /// it, prompt 021). The simulation copies the loaded map once on the
+    /// first crater (copy-on-write); never keep a clone of this `Arc`, or
+    /// every crater would copy it again.
     fn map(&self) -> &Arc<Map> {
         self.sim.map()
     }
@@ -457,6 +461,7 @@ impl SimHost {
                 .iter()
                 .max()
                 .map_or(0.0, |&h| h as f32 / 1000.0),
+            loaded_map: map,
             config,
             session,
             transport,
@@ -1053,7 +1058,7 @@ impl SimHost {
     fn verify_replay(&self, bytes: PackedByteArray) -> GString {
         // The replay names its map by content hash. The running match's map
         // is the usual case; the built-in map covers replays of the demo.
-        let running = self.game.as_ref().map(|g| g.map().clone());
+        let running = self.game.as_ref().map(|g| g.loaded_map.clone());
         let result = Replay::decode(bytes.as_slice())
             .and_then(|replay| {
                 let map = running

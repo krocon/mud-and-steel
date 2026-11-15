@@ -37,7 +37,10 @@ impl SimHost {
             .map(|(tick, e)| {
                 let mut d = VarDictionary::new();
                 d.set("tick", i64::try_from(tick).unwrap_or(i64::MAX));
-                d.set("position", ground_to_godot(e.at, game.map().height_at(e.at)));
+                d.set(
+                    "position",
+                    ground_to_godot(e.at, game.map().height_at(e.at)),
+                );
                 d.set("radius", fixed_to_f32(e.radius));
                 d.set("depth", fixed_to_f32(e.depth));
                 d.set("caliber", e.caliber_mm_x10 as f32 / 10.0);
@@ -57,9 +60,9 @@ impl SimHost {
     /// Craters made in this match so far.
     #[func]
     fn crater_count(&self) -> i64 {
-        self.game
-            .as_ref()
-            .map_or(0, |g| i64::try_from(g.sim.crater_count()).unwrap_or(i64::MAX))
+        self.game.as_ref().map_or(0, |g| {
+            i64::try_from(g.sim.crater_count()).unwrap_or(i64::MAX)
+        })
     }
 
     /// Height of map sample `(i, j)` minus its loaded height in meters
@@ -94,5 +97,33 @@ impl SimHost {
         game.sim
             .queue_crater(sim::Vec2::from_millimeters(x, z), caliber);
         true
+    }
+}
+
+#[godot_api(secondary)]
+impl SimHost {
+    /// Height ranges of the terrain chunks of `cells` x `cells` cells that
+    /// contain a sample of `rect`: `(chunk index, lowest, highest)` per
+    /// entry, for updating `terrain_chunk_ranges` after craters without
+    /// recomputing the whole map.
+    #[func]
+    fn terrain_chunk_ranges_in(&self, cells: i64, rect: Rect2i) -> PackedVector3Array {
+        let Some(game) = self.game.as_ref() else {
+            return PackedVector3Array::new();
+        };
+        let grid = game.grid();
+        let Some(rect) = grid.clip(
+            i64::from(rect.position.x),
+            i64::from(rect.position.y),
+            i64::from(rect.size.x),
+            i64::from(rect.size.y),
+        ) else {
+            return PackedVector3Array::new();
+        };
+        let cells = u32::try_from(cells.clamp(1, 4096)).unwrap_or(1);
+        grid.chunk_ranges_in(cells, rect)
+            .into_iter()
+            .map(|(k, lo, hi)| Vector3::new(k as f32, lo, hi))
+            .collect()
     }
 }

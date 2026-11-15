@@ -40,6 +40,6 @@ max_per_tick = 16
 # below the loaded map is in a crater: a hit on him is caught by the rim
 # with this chance per stance (from every direction).
 min_depth_mm = 250
-stand_pct = 20
-kneel_pct = 45
-prone_pct = 70
+stand_pct = 15
+kneel_pct = 35
+prone_pct = 50

@@ -3,9 +3,9 @@ extends PanelContainer
 ## test commands. Presentation only; nothing here reaches the simulation.
 ##
 ## Commands:
-## - "Test crater at focus": presses a presentation-only crater into the
-##   displayed terrain at the camera focus and rebuilds the affected chunks
-##   (the code path prompt 021 will use for real craters).
+## - "Test crater at focus": a simulation crater of a 15 cm round at the
+##   camera focus (prompt 021: heights, mud, paths, sight, decoration); in
+##   network matches a presentation-only dent instead.
 ## - "Show terrain LOD": tints every chunk by its LOD level.
 ## - "Map objects" / "Decoration": show or hide them (prompt 013).
 ## - "Water": show or hide the water surface (prompt 014).
@@ -85,8 +85,12 @@ func _process(_delta: float) -> void:
 	]
 
 
+## A simulation crater of a 15 cm round at the focus (prompt 021); in
+## network matches only the presentation-only dent of prompt 011.
 func _on_crater() -> void:
-	main.terrain.debug_crater(main.camera_rig.focus)
+	var focus: Vector3 = main.camera_rig.focus
+	if not main.sim_host.debug_crater(focus.x, focus.z, 150.0):
+		main.terrain.debug_crater(focus)
 
 
 ## A labeled option button; `on_select` gets the chosen item.

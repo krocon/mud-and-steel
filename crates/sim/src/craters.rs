@@ -245,7 +245,7 @@ mod tests {
         for (from, to) in [
             ("max_per_tick = 16", "max_per_tick = 0"),
             ("min_radius_mm = 2000", "min_radius_mm = 0"),
-            ("prone_pct = 70", "prone_pct = 170"),
+            ("prone_pct = 50", "prone_pct = 150"),
             ("rim_pct = 25", "rim_pct = 125"),
         ] {
             let text = good.replace(from, to);

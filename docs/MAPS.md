@@ -1,7 +1,8 @@
 # Maps
 
 The map is simulation data. Heights and terrain types decide speed and line of
-sight (prompt 018, `data/vision.toml`) now and craters (prompt 021) later, so they live in `crates/sim`,
+sight (prompt 018, `data/vision.toml`), and craters change them during a match
+(prompt 021, [Craters](#craters)), so they live in `crates/sim`,
 deterministic and integer-only. Godot only reads them for drawing.
 
 ## Format

@@ -342,6 +342,11 @@ effects-shots dir: build
 effects-bench: build
     {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- --effects-bench
 
+# Measure the frame rate while 100 simulation craters fall within 2 s (prompt 021; 1920 x 1080, V-Sync off)
+[group('effects')]
+crater-view-bench map="test_small": build
+    {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- --effects-craters --map={{ map }}
+
 # --- LAN multiplayer (prompt 025) ----------------------------------------------------
 
 # Build the bridge and open the LAN lobby (host, search, join, start); args e.g. --map=test_large
