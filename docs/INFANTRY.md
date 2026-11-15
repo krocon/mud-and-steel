@@ -532,6 +532,26 @@ thousands of soldiers. If that becomes the goal: bake the clips into
 textures and draw far soldiers as `MultiMeshInstance3D` (see "Performance
 outlook" above).
 
+**Prompt 042, procedural soldier materials:** A/B with `just
+infantry-view-bench` right after each other (same build, same models, only
+`SoldierLook` switched between the old `StandardMaterial3D` path and
+`soldier.gdshader`), two runs each, Apple M1 Max, 2026-11-15:
+
+| View | old material (FPS) | soldier shader (FPS) |
+|---|---|---|
+| standing, camera 60 m | 91.8 / 91.8 | 91.8 / 91.1 |
+| standing, camera 150 m | 83.9 / 83.9 | 83.3 / 83.3 |
+| standing, camera 400 m | 90.6 / 90.7 | 90.3 / 90.3 |
+| marching, camera 150 m | 83.8 / 83.7 | 83.0 / 83.1 |
+| fighting, camera 150 m | 65.3 / 62.5 | 64.3 / 64.4 |
+| fighting, camera 60 m | 83.7 / 81.6 | 82.4 / 82.7 |
+
+The shader costs at most about 1.5 %, within the run-to-run spread; draw calls
+are unchanged (same number of materials per soldier). The ten new clips cost
+nothing at run time (only the played clip is evaluated). **VAT stays unnecessary**
+(decision of prompt 022 confirmed): the soldiers are not shading-bound, and the
+far MultiMesh path already removes the skeletons of distant soldiers.
+
 ### Open
 
 - Soldiers do not collide with each other; formations pass through objects
