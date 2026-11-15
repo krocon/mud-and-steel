@@ -84,7 +84,7 @@ func _ready() -> void:
 			request = {"load": arg.trim_prefix("--edit=")}
 	var ok := false
 	if request.has("load"):
-		ok = editor.load_map(map_dir(request["load"]))
+		ok = editor.load_map(GamePaths.map_dir(request["load"]))
 	elif request.has("new"):
 		var spec: Array = request["new"]
 		ok = editor.new_map(spec[0], spec[1], spec[1], spec[2])
@@ -122,9 +122,10 @@ func _exit_tree() -> void:
 		GroundPick.height_source = null
 
 
-## Absolute folder of a map in data/maps/.
+## Absolute folder a map is saved to: data/maps/ in the repository, the
+## player's own maps (user://maps) in an exported game (see GamePaths).
 static func map_dir(map_name: String) -> String:
-	return ProjectSettings.globalize_path(MatchSetup.MAPS_DIR.path_join(map_name)).simplify_path()
+	return GamePaths.user_maps_dir().path_join(map_name)
 
 
 # --- Strokes ------------------------------------------------------------
@@ -265,7 +266,7 @@ func validate_map() -> Dictionary:
 	return last_report
 
 
-## Saves under `map_name` into data/maps/; returns whether it worked.
+## Saves under `map_name` (see `map_dir`); returns whether it worked.
 func save_as(map_name: String) -> bool:
 	map_name = map_name.strip_edges()
 	if map_name in PROTECTED_MAPS:
@@ -278,7 +279,7 @@ func save_as(map_name: String) -> bool:
 		set_status(editor.last_error(), true)
 		return false
 	var report := validate_map()
-	set_status("Saved to data/maps/%s/. %s" % [map_name, "Playable in the single-player menu." if report["ok"] else "Not playable yet: see the errors."], not report["ok"])
+	set_status("Saved to %s. %s" % [map_dir(map_name), "Playable in the single-player menu." if report["ok"] else "Not playable yet: see the errors."], not report["ok"])
 	panel.update_title()
 	return true
 

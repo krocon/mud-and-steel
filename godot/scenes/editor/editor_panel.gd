@@ -174,7 +174,7 @@ func _build_dialogs() -> void:
 	box = _dialog("save", "Save map")
 	save_name = LineEdit.new()
 	box.add_child(_row("Name", save_name))
-	box.add_child(MenuTheme.hint("Saved to data/maps/<name>/ and listed in the single-player menu."))
+	box.add_child(MenuTheme.hint("Saved under its name (data/maps/ in the repository, the player's own maps folder in the released game) and listed in the single-player menu."))
 	_dialog_buttons(box, "Save", _save_map)
 
 

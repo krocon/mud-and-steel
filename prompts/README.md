@@ -104,7 +104,7 @@ Umsetzen von ihrer Session konkretisiert.
 | 041 | [Umwelt Stufe 2 und Feuer](041-umwelt-stufe2-feuer.md) | Stadt, Industrie, Bahn, Bunker; Brände und Lager-Explosionen | Entwurf |
 | 042 | [Infanterie-Texturen](042-infanterie-texturen.md) | Uniform-Texturen, Tarnmuster, fehlende Waffen, Animationen | Entwurf |
 | 043 | [Sprache und Barrierefreiheit](043-sprache-barrierefreiheit.md) | Deutsch/Englisch, Farbpaletten, UI-Skalierung, Grafikoptionen | Entwurf |
-| 044 | [Release-Builds und Steam](044-release-builds-steam.md) | Export für drei Systeme, Release-CI, SteamPipe, Credits | Entwurf |
+| 044 | [Release-Builds und Steam](done/044-release-builds-steam.md) | Export für drei Systeme, Release-CI, SteamPipe, Credits | erledigt (erster Export mit Godot-Export-Templates steht aus, `docs/RELEASE.md`) |
 | 045 | [Balancing und Playtest](045-balancing-playtest.md) | Statistik, Turniere, Gefechtssimulator, bestätigtes Design | Entwurf |
 
 ```
