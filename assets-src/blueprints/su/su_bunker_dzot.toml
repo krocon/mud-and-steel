@@ -1,0 +1,15 @@
+# DZOT (derevo-zemlyanaya ognevaya tochka): field-built log-and-earth MG
+# bunker. Box from data/catalog/su.toml (6 x 5 x 1.0 m above ground,
+# estimates: outer earth mound, interior ~2.5 x 2.5 m dug in). Log cribbing
+# around the embrasure, entrance trench stub at the rear.
+# Embrasure size is an estimate for a Maxim on its wheeled mount: a wide, low
+# slit (~1.0 x 0.25 m) for a broad sector of fire.
+unit = "su_bunker_dzot"
+assembly = "env"
+
+[[variant]]
+name = "Dzot"
+part = "log_bunker"
+walls = "logs"
+embrasure = [1.0, 0.25]
+seed = 3

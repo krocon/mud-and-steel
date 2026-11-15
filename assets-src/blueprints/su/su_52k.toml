@@ -1,0 +1,91 @@
+# 85 mm AA gun M1939 (52-K) on the four-wheel ZU-8 carriage.
+# Main dimensions from data/catalog/su.toml (travel order): length 7.05 m,
+# width 2.15 m, height 2.25 m (top of the shield). Modeled like the Bofors
+# example on its wheels with the barrel horizontal and the cruciform
+# outriggers folded within the catalog width (deployed they spread to about
+# 6 m); the wheels stay on.
+# Barrel 55 calibers = 4.69 m with the multi-slot muzzle brake of the wartime
+# production (en Wikipedia "85 mm air defense gun M1939 (52-K)"; early guns
+# had no brake).
+# Modeling estimates from photographs: wheel diameter 0.90 m (ZIS-5 type
+# tires), axle spacing 3.3 m, platform top 0.78 m, trunnion height 1.55 m,
+# recuperator above and buffer below the barrel, flat shield about 1.9 m wide
+# that traverses with the mount, layer seats on both sides.
+unit = "su_52k"
+assembly = "aa_gun"
+
+[carriage]
+part = "cruciform_platform"
+center = [1.20, 0.34]
+z = 0.78
+arms = [[0, 2.55], [180, 2.75], [90, 0.85], [270, 0.85]]
+beam = [0.24, 0.20]
+jack = [0.38, 0.14]
+
+[[axle]]
+y = 1.65
+diameter = 0.90
+width = 0.20
+track = 1.85
+
+[[axle]]
+y = -1.65
+diameter = 0.90
+width = 0.20
+track = 1.85
+
+[mount]
+part = "aa_mount"
+pedestal = [0.80, 0.18]
+body = [1.10, 1.30, 0.22]
+cheeks = [0.36, 1.10, 0.50]
+seats = [[-0.72, -0.20, 1.30], [0.72, -0.20, 1.30]]
+handwheels = [[-0.62, 0.10, 1.30], [0.62, 0.10, 1.30]]
+shield = { width = 1.90, height = 1.05, bottom_z = 1.20, y = 0.55, slope_deg = 12 }
+
+[gun]
+part = "field_gun"
+trunnion = [0.10, 1.56]
+cradle = [1.70, 0.36, 0.30]
+recoil = [1.40, 0.07]
+breech = [0.70, 0.34]
+segments = [[1.20, 0.085, 0.075], ["fit", 0.065, 0.058]]
+muzzle_brake = "slotted"
+
+[[part]]
+part = "cylinder_prop"       # recuperator above the barrel
+from = [0.0, -0.35, 1.72]
+to = [0.0, 1.05, 1.72]
+radius = 0.075
+parent = "Gun"
+
+[[part]]
+part = "box_prop"            # fuze setter / loading tray behind the breech
+center = [0.30, -0.95, 1.45]
+size = [0.30, 0.55, 0.22]
+material = "Metal"
+parent = "Mount"
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -2.62, 0.26]
+parent = "Carriage"
+
+[[part]]
+part = "crew_sockets"
+radius = 3.0
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 0.0, 1.2]
+parent = "Carriage"
+
+[[part]]
+part = "marking"
+name = "Shield"
+kind = "number"
+parent = "Shield"
+position = [-0.60, 0.53, 1.75]
+normal = [0.0, 0.98, 0.21]
+size = 0.28

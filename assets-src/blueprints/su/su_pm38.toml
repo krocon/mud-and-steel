@@ -1,0 +1,67 @@
+# 120 mm regimental mortar M1938 (120-PM-38) in firing position. Main
+# dimensions from data/catalog/su.toml (estimated firing footprint): length
+# 1.86 m, width 1.30 m, height 1.50 m. Tube 1.862 m, caliber 120 mm (en
+# Wikipedia "M1938 mortar"). The elevation is fitted to the catalog height,
+# the bipod to the catalog length and width.
+# No transport wheels: the catalog describes the firing position (280 kg
+# combat mass, the two-wheel travel carriage of 477 kg total is removed before
+# firing). The prompt suggested [[axle]] wheels; the catalog wins.
+# Modeling estimates from photographs: round stamped baseplate about 0.90 m
+# with radial ribs, bipod with the two shock absorber cylinders between the
+# collar and the elevating gear, sight on the left of the collar.
+unit = "su_pm38"
+assembly = "mortar"
+
+[baseplate]
+part = "baseplate"
+shape = "round"
+diameter = 0.90
+thickness = 0.06
+
+[tube]
+part = "mortar_tube"
+length = 1.862
+caliber = 0.120
+
+[bipod]
+part = "mortar_bipod"
+leg_radius = 0.026
+foot = 0.14
+
+# Two shock absorber cylinders on the bipod yoke, parallel to the tube above
+# the collar (collar at 0.65 of the tube, elevation ~45.5 deg from the fit;
+# coordinates before the footprint centering, baseplate at y = 0).
+[[part]]
+part = "cylinder_prop"
+from = [-0.10, 0.82, 1.03]
+to = [-0.10, 1.07, 1.28]
+radius = 0.035
+material = "Metal"
+parent = "Gun"
+
+[[part]]
+part = "cylinder_prop"
+from = [0.10, 0.82, 1.03]
+to = [0.10, 1.07, 1.28]
+radius = 0.035
+material = "Metal"
+parent = "Gun"
+
+[[part]]
+part = "crew_sockets"
+radius = 1.6
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 0.0, 0.4]
+parent = "Carriage"
+
+[[part]]
+part = "marking"
+name = "Base"
+kind = "number"
+parent = "Carriage"
+position = [0.22, -0.18, 0.11]
+normal = [0.0, 0.0, 1.0]
+size = 0.15

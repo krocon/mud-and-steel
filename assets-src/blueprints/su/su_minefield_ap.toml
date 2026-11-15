@@ -1,0 +1,17 @@
+# Anti-personnel minefield section with PMD-6 and POMZ-2 mines, 20 x 20 m
+# (data/catalog/su.toml; catalog height 0). Faction generator
+# `su_minefield_ap` (kit/parts_su_guns.py): perimeter marking of the shared
+# `minefield` generator, PMD-6 wooden box mines flush with the ground and
+# POMZ-2 fragmentation stake mines with tripwires (stake ~0.3 m, catalog
+# note). Representative counts only; the catalog mix of 40 PMD-6 and 10
+# POMZ-2 is a game value.
+unit = "su_minefield_ap"
+assembly = "env"
+
+[[variant]]
+name = "Field"
+part = "su_minefield_ap"
+height_m = 1.0                # picket height, estimate (catalog height is 0)
+pmd = 8
+pomz = 3
+seed = 4
