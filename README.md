@@ -24,7 +24,7 @@ Architecture and determinism rules: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
 ## Prerequisites
 
-- Rust (stable, installed via rustup; `rust-toolchain.toml` selects it)
+- Rust 1.100.0 (installed via rustup; `rust-toolchain.toml` pins it)
 - Godot 4.7.x (`godot` on `PATH`)
 - Git LFS (`git lfs install` once per machine)
 - Blender 5.x (only for regenerating assets)

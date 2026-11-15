@@ -248,7 +248,7 @@ impl ObjectRules {
                 let radius = pick(entry.radius_mm, o.map(|o| o.radius_mm));
                 let shape = if let Some(radius) = radius {
                     Shape::Circle {
-                        radius: mm(radius, MAX_SIZE_MM).map_err(&err)?,
+                        radius: mm(radius, MAX_SIZE_MM).map_err(err)?,
                     }
                 } else {
                     let length = pick(entry.length_mm, o.map(|o| o.length_mm))
@@ -258,8 +258,8 @@ impl ObjectRules {
                         .or(catalog_entry.width_mm)
                         .ok_or_else(|| err("needs radius_mm or a width".into()))?;
                     Shape::Box {
-                        half_length: mm(length, MAX_SIZE_MM).map_err(&err)? / 2,
-                        half_width: mm(width, MAX_SIZE_MM).map_err(&err)? / 2,
+                        half_length: mm(length, MAX_SIZE_MM).map_err(err)? / 2,
+                        half_width: mm(width, MAX_SIZE_MM).map_err(err)? / 2,
                     }
                 };
                 kinds.push(ObjectKind {
