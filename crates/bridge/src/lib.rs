@@ -18,6 +18,7 @@ use sim::{
 use std::path::Path;
 use std::sync::Arc;
 
+mod ai_funcs;
 mod combat_funcs;
 mod destruction_funcs;
 mod lan;
@@ -41,8 +42,9 @@ unsafe impl ExtensionLibrary for MudAndSteel {}
 /// long hitch; the simulation then runs slower than real time instead.
 const MAX_TICKS_PER_FRAME: u32 = 5;
 
-/// The player controlled on this machine. Player 1 of the demo scenario has
-/// no input yet (the AI of prompt 024 will feed it through its own frames).
+/// The player controlled on this machine. With `SimHost.ai_opponent` set,
+/// the other players are computer players hosted in the same session
+/// (prompt 024, `ai_funcs.rs`).
 const LOCAL_PLAYER: PlayerId = PlayerId(0);
 
 /// Hash exchange interval of the lockstep session. Single player has nobody
@@ -88,6 +90,8 @@ struct Game {
     deco: std::cell::OnceCell<objects::DecoRasters>,
     /// Water surfaces (prompt 014), built on first use.
     water: std::cell::OnceCell<water::WaterField>,
+    /// Computer players hosted in the session (prompt 024).
+    ais: Vec<ai::Ai>,
 }
 
 impl Game {
@@ -113,6 +117,7 @@ impl Game {
         while self.session.needs_local_input() {
             self.session
                 .submit_local(std::mem::take(pending), &mut self.transport)?;
+            ai_funcs::submit(self)?;
         }
         self.session.receive(&mut self.transport)?;
         let Some(commands) = self.session.next_commands() else {
@@ -204,6 +209,11 @@ pub struct SimHost {
     /// `start`, `start_on_map`, `start_match`.
     #[export]
     hold_fire_at_start: bool,
+    /// Difficulty of the computer opponent (`passive`, `easy`, `normal`,
+    /// `hard`; empty: none, the enemy issues no commands). Read by `start`,
+    /// `start_on_map`, `start_match`; not used for LAN matches (prompt 024).
+    #[export]
+    ai_opponent: GString,
     /// Combat events of the ticks since the last `take_combat_events`.
     combat_events: Vec<(u64, sim::CombatEvent)>,
     /// Object stage events since the last `take_object_events` (prompt 020).
@@ -225,6 +235,7 @@ impl INode for SimHost {
             previous: Snapshot::default(),
             current: Snapshot::default(),
             hold_fire_at_start: false,
+            ai_opponent: GString::new(),
             combat_events: Vec::new(),
             object_events: Vec::new(),
             reveal_all: false,
@@ -330,7 +341,7 @@ impl SimHost {
             }
         };
         let lockstep = LockstepConfig {
-            players: vec![LOCAL_PLAYER],
+            players: ai_funcs::session_players(self, &config, LOCAL_PLAYER),
             input_delay: self.input_delay,
             hash_interval: HASH_INTERVAL,
         };
@@ -343,7 +354,7 @@ impl SimHost {
             &lockstep,
             Box::new(LocalTransport),
         );
-        true
+        ai_funcs::attach(self, seed)
     }
 
     /// Starts the LAN match that `lobby` (state "started") prepared: the
@@ -420,6 +431,7 @@ impl SimHost {
             display_offsets: Vec::new(),
             deco: std::cell::OnceCell::new(),
             water: std::cell::OnceCell::new(),
+            ais: Vec::new(),
             sim,
             map_top: map
                 .heights_mm()

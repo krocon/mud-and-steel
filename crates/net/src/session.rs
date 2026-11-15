@@ -83,6 +83,9 @@ pub struct LockstepSession {
     local: PlayerId,
     /// Sorted and deduplicated.
     players: Vec<PlayerId>,
+    /// Players whose frames this peer sends besides its own (computer
+    /// players, prompt 024), sorted.
+    hosted: Vec<PlayerId>,
     input_delay: u64,
     hash_interval: u64,
     /// The next tick to simulate.
@@ -131,6 +134,7 @@ impl LockstepSession {
         Self {
             local,
             players,
+            hosted: Vec::new(),
             input_delay,
             hash_interval: config.hash_interval,
             next_tick: 0,
@@ -218,6 +222,75 @@ impl LockstepSession {
         Ok(tick)
     }
 
+    /// Makes this peer send the frames of `player` (a computer player, prompt
+    /// 024) through [`submit_hosted`](Self::submit_hosted). Call before the
+    /// first tick; frames of other peers for `player` are then rejected.
+    ///
+    /// # Panics
+    /// Panics if `player` is the local player or not part of the match.
+    pub fn host_player(&mut self, player: PlayerId) {
+        assert_ne!(player, self.local, "the local player is not hosted");
+        assert!(
+            self.players.binary_search(&player).is_ok(),
+            "hosted player must take part"
+        );
+        if let Err(i) = self.hosted.binary_search(&player) {
+            self.hosted.insert(i, player);
+            // Like the local player, nobody sent input for the first ticks.
+            for tick in self.next_tick..self.scheduled_until {
+                self.frames
+                    .entry(tick)
+                    .or_default()
+                    .entry(player)
+                    .or_default();
+            }
+        }
+    }
+
+    /// Players this peer hosts, ascending.
+    pub fn hosted_players(&self) -> &[PlayerId] {
+        &self.hosted
+    }
+
+    /// Schedules the commands of the hosted `player` for the tick of the last
+    /// [`submit_local`](Self::submit_local) and sends them to all peers. Call
+    /// once per hosted player after every `submit_local`; a player that is
+    /// not called gets no frame and stalls the match.
+    ///
+    /// # Panics
+    /// Panics if `player` is not hosted or nothing was submitted yet.
+    pub fn submit_hosted(
+        &mut self,
+        player: PlayerId,
+        commands: Vec<Command>,
+        transport: &mut impl Transport,
+    ) -> Result<u64, NetError> {
+        assert!(
+            self.hosted.binary_search(&player).is_ok(),
+            "player {} is not hosted",
+            player.0
+        );
+        assert!(self.scheduled_until > 0, "submit_local first");
+        let tick = self.scheduled_until - 1;
+        let slot = self.frames.entry(tick).or_default();
+        if slot.contains_key(&player) {
+            return Err(NetError::DuplicateFrame { tick, player });
+        }
+        let frame = CommandFrame {
+            tick,
+            player,
+            commands,
+        };
+        transport.send(&encode(&Message::Frame(frame.clone())))?;
+        slot.insert(player, frame.commands);
+        Ok(tick)
+    }
+
+    /// Players on other peers.
+    fn remote_count(&self) -> usize {
+        self.players.len() - 1 - self.hosted.len()
+    }
+
     /// Processes all pending messages from the transport.
     pub fn receive(&mut self, transport: &mut impl Transport) -> Result<(), NetError> {
         while let Some(packet) = transport.recv()? {
@@ -230,7 +303,10 @@ impl LockstepSession {
     }
 
     fn check_remote(&self, player: PlayerId) -> Result<(), NetError> {
-        if player == self.local || self.players.binary_search(&player).is_err() {
+        if player == self.local
+            || self.players.binary_search(&player).is_err()
+            || self.hosted.binary_search(&player).is_ok()
+        {
             return Err(NetError::UnknownPlayer(player));
         }
         Ok(())
@@ -305,17 +381,17 @@ impl LockstepSession {
         if !tick.is_multiple_of(self.hash_interval) {
             return Ok(());
         }
-        if self.players.len() == 1 {
+        if self.remote_count() == 0 {
             // Nobody to compare with; keeping the hash would only leak memory.
             return Ok(());
         }
         self.local_hashes.insert(tick, hash);
-        let report = HashReport {
-            tick,
-            player: self.local,
-            hash,
-        };
-        transport.send(&encode(&Message::Hash(report)))?;
+        // Peers do not know which players this peer hosts, so every hosted
+        // player reports the same hash, as if it had its own peer.
+        for player in std::iter::once(self.local).chain(self.hosted.iter().copied()) {
+            let report = HashReport { tick, player, hash };
+            transport.send(&encode(&Message::Hash(report)))?;
+        }
         self.compare_hashes(tick);
         Ok(())
     }
@@ -338,7 +414,7 @@ impl LockstepSession {
             });
         }
         // Once every player has reported, the entries are no longer needed.
-        if remote.len() + 1 == self.players.len() {
+        if remote.len() == self.remote_count() {
             if self.desync.is_none() {
                 self.verified_tick = self.verified_tick.max(tick);
             }

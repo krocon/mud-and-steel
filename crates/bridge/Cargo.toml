@@ -13,4 +13,5 @@ crate-type = ["cdylib"]
 sim.workspace = true
 net.workspace = true
 editor.workspace = true
+ai.workspace = true
 godot.workspace = true

@@ -41,6 +41,7 @@ var map_option: OptionButton
 var biome_option: OptionButton
 var faction_option: OptionButton
 var enemy_option: OptionButton
+var opponent_option: OptionButton
 var start_button: Button
 var settings_panel: PanelContainer
 
@@ -86,6 +87,7 @@ func start_skirmish() -> void:
 		"map": _maps[map_option.selected],
 		"biome": BIOMES.keys()[biome_option.selected],
 		"factions": PackedStringArray([own, enemy]),
+		"ai": MatchSetup.OPPONENTS.keys()[opponent_option.selected],
 	}
 	print("Menu: starting %s" % MatchSetup.pending)
 	get_tree().change_scene_to_file(MatchSetup.MAIN_SCENE)
@@ -153,7 +155,12 @@ func _skirmish_screen() -> Control:
 	enemy_option.select(1)
 	box.add_child(_row("Your side", faction_option))
 	box.add_child(_row("Enemy", enemy_option))
-	box.add_child(MenuTheme.hint("Eight tanks per side. Win when the enemy surrenders or has no units left. The enemy does not act yet (computer opponent: prompt 024)."))
+	opponent_option = OptionButton.new()
+	for id in MatchSetup.OPPONENTS:
+		opponent_option.add_item(MatchSetup.OPPONENTS[id])
+	opponent_option.select(MatchSetup.OPPONENTS.keys().find(MatchSetup.DEFAULT_OPPONENT))
+	box.add_child(_row("Opponent", opponent_option))
+	box.add_child(MenuTheme.hint("Eight tanks per side. Win when the enemy surrenders or has no units left. The computer opponent sees only what its tanks see."))
 
 	var buttons := HBoxContainer.new()
 	buttons.alignment = BoxContainer.ALIGNMENT_END

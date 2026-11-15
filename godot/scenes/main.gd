@@ -302,6 +302,12 @@ func _start_simulation() -> bool:
 	sim_host.hold_fire_at_start = "--self-test" in OS.get_cmdline_user_args()
 	# The effects tools trigger their own effects (prompt 019).
 	sim_host.hold_fire_at_start = sim_host.hold_fire_at_start or _effects_tool()
+	# Computer opponent (prompt 024): from the setup screen, or `--ai=<level>`
+	# for direct starts; none for LAN matches.
+	sim_host.ai_opponent = MatchSetup.pending.get("ai", "")
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--ai="):
+			sim_host.ai_opponent = arg.trim_prefix("--ai=")
 	if not MatchSetup.pending.is_empty():
 		var setup := MatchSetup.pending
 		return sim_host.start_match(SEED, MatchSetup.map_dir(setup["map"]), setup["factions"])

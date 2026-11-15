@@ -12,6 +12,7 @@ publish = false
 sim = { path = "crates/sim" }
 net = { path = "crates/net" }
 editor = { path = "crates/editor" }
+ai = { path = "crates/ai" }
 fixed = { version = "1.31", features = ["serde"] }
 serde = { version = "1.0", features = ["derive"] }
 postcard = { version = "1.1", default-features = false, features = ["alloc"] }
@@ -34,6 +35,10 @@ opt-level = 3
 # 4 km map); unoptimized that takes seconds at every game start.
 [profile.dev.package.bridge]
 opt-level = 2
+
+# The AI runs every tick in the debug bridge and in the tournament tests.
+[profile.dev.package.ai]
+opt-level = 3
 
 # The map editor runs its brushes and validation in the debug bridge, too.
 [profile.dev.package.editor]
