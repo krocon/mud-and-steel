@@ -21,6 +21,11 @@ const TRACER_COLOR := Color(1.0, 0.75, 0.3)
 const WRECK_TINT := Color(0.05, 0.04, 0.03, 0.72)
 const RECENT_EVENTS := 64
 
+## Time of the last `_process` in microseconds, effects of the events
+## included (benchmark, prompt 016).
+var process_usec := 0
+## Turret node per unit id (null: none).
+var _turrets: Dictionary[int, Node3D] = {}
 var main: Node3D
 var sim_host: SimHost
 ## Counters of all events since the start, for tools and the self-test.
@@ -63,9 +68,11 @@ func setup(main_node: Node3D, hud: CanvasLayer) -> void:
 func _process(delta: float) -> void:
 	if sim_host == null:
 		return
+	var began := Time.get_ticks_usec()
 	_read_events()
 	_draw_tracers()
 	_update_units(delta)
+	process_usec = Time.get_ticks_usec() - began
 
 
 func _read_events() -> void:
@@ -134,12 +141,21 @@ func _update_units(delta: float) -> void:
 				wrecks[ids[i]] = true
 				main.selection.selected.erase(ids[i])
 			continue
-		var turret := node.find_child("Turret", true, false) as Node3D
+		var turret := _turret_of(ids[i], node)
 		if turret != null:
 			if not turret.has_meta(&"rest_yaw"):
 				turret.set_meta(&"rest_yaw", turret.rotation.y)
 			var target := float(turret.get_meta(&"rest_yaw")) + wrapf(aims[i] - facings[i], -PI, PI)
 			turret.rotation.y = lerp_angle(turret.rotation.y, target, turn)
+
+
+## The model's turret, searched once per unit: a recursive search every
+## frame went through the hundreds of skeleton nodes of every squad
+## (prompt 016).
+func _turret_of(id: int, node: Node3D) -> Node3D:
+	if not _turrets.has(id):
+		_turrets[id] = node.find_child("Turret", true, false) as Node3D
+	return _turrets[id]
 
 
 func _make_wreck(node: Node3D, infantry: bool) -> void:

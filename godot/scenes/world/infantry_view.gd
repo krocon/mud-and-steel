@@ -18,13 +18,18 @@ extends Node3D
 ##
 ## Animation LOD: every AnimationPlayer runs in manual mode. Members within
 ## NEAR_M of the camera advance every frame and cast shadows, up to MID_M
-## every MID_STEP frames, beyond every FAR_STEP frames and show only their
+## every MID_STEP frames, beyond with their squad (every FAR_SQUAD_STEP
+## frames, see `_skip_squad`) and show only their
 ## body (gear and weapon hidden: 4 instead of 11 draw calls per soldier).
 
 const NEAR_M := 70.0
 const MID_M := 260.0
 const MID_STEP := 3
-const FAR_STEP := 8
+## Squads farther than this outside the camera's view are not updated.
+const CULL_MARGIN_M := 25.0
+## Squads beyond MID_M are updated every this many frames (a soldier moves
+## about 0.3 m in that time, under a pixel at that distance).
+const FAR_SQUAD_STEP := 4
 const FIRE_SECONDS := 0.35
 const AIM_SECONDS := 2.5
 ## Game speed (m/s) from which soldiers run instead of walk.
@@ -49,6 +54,8 @@ var _soldiers: Dictionary[int, Dictionary] = {}
 ## Keys of the soldiers of every unit id, from the last frame.
 var _by_unit: Dictionary[int, Array] = {}
 var _frame := 0
+## Faction prefix per unit id (`_faction_of`).
+var _factions: Dictionary[int, String] = {}
 var _biome := ""
 
 
@@ -126,10 +133,29 @@ func _draw(delta: float) -> void:
 	var turn := clampf(delta * TURN_RATE, 0.0, 1.0)
 	counts = [0, 0, 0, 0]
 	_by_unit.clear()
+	var camera: Camera3D = main.camera
+	var frustum := camera.get_frustum()
+	# Per unit id: whether its squad is skipped this frame (prompt 016).
+	var skip := {}
 	for k in ids.size():
 		var unit_id := ids[k]
 		var node: Node3D = main._unit_nodes.get(unit_id)
 		if node == null or not node.visible or not unit_index.has(unit_id):
+			continue
+		if not skip.has(unit_id):
+			skip[unit_id] = _skip_squad(node, unit_id, frustum, camera_position)
+		if skip[unit_id]:
+			# Remember the members for shot lookups; their state catches up
+			# when the squad is drawn again.
+			var key_skipped := unit_id * 256 + indices[k]
+			var skipped: Dictionary = _soldiers.get(key_skipped, {})
+			if skipped.is_empty():
+				# Set up now: a member never set up keeps the scene's
+				# shadows, which cost draw calls even off screen.
+				skipped = _make(node, key_skipped, indices[k])
+			if not skipped.is_empty():
+				(_by_unit.get_or_add(unit_id, []) as Array).append(key_skipped)
+				skipped["accum"] = float(skipped["accum"]) + delta
 			continue
 		var key := unit_id * 256 + indices[k]
 		var s: Dictionary = _soldiers.get(key, {})
@@ -159,6 +185,32 @@ func _draw(delta: float) -> void:
 		_advance(s, delta, position.distance_to(camera_position))
 
 
+## Squad LOD (prompt 016): squads outside the camera's view (grown by
+## CULL_MARGIN_M, so shadows and soldiers at the screen edge stay right) are
+## not updated at all, and squads beyond MID_M only every FAR_SQUAD_STEP frames
+## (staggered by unit id): 2250 soldiers cost 6 ms per frame otherwise.
+## Their animation time accumulates and is applied when they are drawn.
+func _skip_squad(node: Node3D, unit_id: int, frustum: Array[Plane], camera_position: Vector3) -> bool:
+	var center := node.global_position
+	for plane in frustum:
+		if plane.distance_to(center) > CULL_MARGIN_M:
+			return true
+	if center.distance_to(camera_position) > MID_M:
+		return (_frame + unit_id) % FAR_SQUAD_STEP != 0
+	return false
+
+
+## Faction prefix of a unit's catalog id; the type ids are read once per
+## frame in which new soldiers appear, not once per soldier (prompt 016).
+func _faction_of(unit_id: int) -> String:
+	if not _factions.has(unit_id):
+		var ids := sim_host.unit_ids()
+		var types := sim_host.unit_type_ids()
+		for i in ids.size():
+			_factions[ids[i]] = (types[i] as String).get_slice("_", 0)
+	return _factions.get(unit_id, "de")
+
+
 ## Prepares member `index` of a squad node: look, animation player in
 ## manual mode. Empty if the scene has no such member.
 func _make(node: Node3D, key: int, index: int) -> Dictionary:
@@ -168,12 +220,7 @@ func _make(node: Node3D, key: int, index: int) -> Dictionary:
 	var member := model.get_node_or_null("Member_%02d" % (index + 1)) as Node3D
 	if member == null:
 		return {}
-	var faction := "de"
-	var ids := sim_host.unit_ids()
-	var types := sim_host.unit_type_ids()
-	for i in ids.size():
-		if ids[i] == key / 256:
-			faction = (types[i] as String).get_slice("_", 0)
+	var faction := _faction_of(key / 256)
 	var seed := key * 7919
 	SoldierLook.apply(member, faction, _biome, seed)
 	var player := SoldierLook.find_player(member)
@@ -184,12 +231,14 @@ func _make(node: Node3D, key: int, index: int) -> Dictionary:
 	var details: Array[GeometryInstance3D] = []
 	for mesh: GeometryInstance3D in member.find_children("*", "GeometryInstance3D", true, false):
 		meshes.append(mesh)
+		# No shadows until `_advance` finds the soldier near the camera.
+		mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		if mesh.name != "Body":
 			details.append(mesh)
 	var s := {
 		"node": member, "player": player, "faction": faction, "seed": seed,
 		"clip": "", "dead": false, "fired": -100000, "yaw": 0.0, "accum": 0.0,
-		"phase": key % FAR_STEP, "meshes": meshes, "details": details, "shadows": true,
+		"phase": key % MID_STEP, "meshes": meshes, "details": details, "shadows": false,
 		"far": false,
 		"position": Vector3.ZERO,
 	}
@@ -245,7 +294,9 @@ func _advance(s: Dictionary, delta: float, distance: float) -> void:
 		for mesh: GeometryInstance3D in s["details"]:
 			mesh.visible = not far
 	s["accum"] = float(s["accum"]) + delta
-	var step := 1 if band == 0 else (MID_STEP if band == 1 else FAR_STEP)
+	# Far squads are only drawn every FAR_SQUAD_STEP frames (`_skip_squad`);
+	# their soldiers advance whenever drawn.
+	var step := MID_STEP if band == 1 else 1
 	if step == 1 or (_frame + int(s["phase"])) % step == 0:
 		player.advance(s["accum"])
 		s["accum"] = 0.0

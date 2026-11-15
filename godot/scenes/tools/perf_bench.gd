@@ -44,6 +44,9 @@ func _run() -> void:
 		sim_host.soldier_units().size(), main.atmosphere.quality])
 	for distance in DISTANCES:
 		await _measure("standing", distance)
+	if "--perf-quick" in OS.get_cmdline_user_args():
+		get_tree().quit()
+		return
 	# Only the local player is ordered: its army drives towards the enemy's
 	# side; the Hard AI meets it.
 	var own := _own_units()
@@ -123,6 +126,9 @@ func _measure(phase: String, distance: float) -> void:
 	var render := 0.0
 	var draw_calls := 0
 	var primitives := 0
+	# GDScript per system (microseconds): units, infantry, combat view and
+	# its event effects, effects, decoration, terrain chunks.
+	var parts := [0, 0, 0, 0, 0, 0]
 	while (Time.get_ticks_usec() - began) / 1e6 < SECONDS:
 		if phase == "battle":
 			# Follow the front slowly, like a player would.
@@ -137,6 +143,12 @@ func _measure(phase: String, distance: float) -> void:
 		render += RenderingServer.viewport_get_measured_render_time_cpu(viewport_rid) + RenderingServer.get_frame_setup_time_cpu()
 		draw_calls += RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_DRAW_CALLS_IN_FRAME)
 		primitives += RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_PRIMITIVES_IN_FRAME)
+		parts[0] += main.draw_usec
+		parts[1] += main.infantry_view.process_usec
+		parts[2] += main.combat_view.process_usec
+		parts[3] += main.effects.process_usec
+		parts[4] += main.map_objects.process_usec
+		parts[5] += main.terrain.last_update_usec
 	var seconds := (Time.get_ticks_usec() - began) / 1e6
 	var frames := times.size()
 	var sorted := times.duplicate()
@@ -147,6 +159,9 @@ func _measure(phase: String, distance: float) -> void:
 		label, frames / seconds, seconds * 1000.0 / frames, sorted[(frames - 1) * 99 / 100],
 		sorted[frames - 1], sim_usec / 1000.0 / frames, float(ticks) / frames,
 		process / frames, render / frames, draw_calls / frames, primitives / 1e6 / frames])
+	print("perf-bench: %-14s scripts ms: units %.2f  infantry %.2f  combat view %.2f  effects %.2f  decoration %.2f  terrain %.2f" % [
+		"", parts[0] / 1000.0 / frames, parts[1] / 1000.0 / frames, parts[2] / 1000.0 / frames,
+		parts[3] / 1000.0 / frames, parts[4] / 1000.0 / frames, parts[5] / 1000.0 / frames])
 
 
 func _frames(count: int) -> void:

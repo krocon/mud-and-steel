@@ -106,8 +106,18 @@ var map_objects: Node3D
 ## Water surfaces of rivers (prompt 014).
 var water: Water
 var _unit_nodes: Dictionary[int, Node3D] = {}
+## Per unit id: its selection ring; units hidden by the fog of war; units
+## placed at least once; units standing still at that position.
+var _rings: Dictionary[int, Node3D] = {}
+var _fogged: Dictionary[int, bool] = {}
+var _placed: Dictionary[int, bool] = {}
+var _still: Dictionary[int, Vector3] = {}
+var _new_unit_frame := -1
+var _new_unit_arrays: Array = []
 var _camera_shots := "--camera-shots" in OS.get_cmdline_user_args()
 var _frame := 0
+## Time of the last `_draw_units` in microseconds (benchmark, prompt 016).
+var draw_usec := 0
 var _marker_time_left := 0.0
 var _enemy_material: StandardMaterial3D
 ## Lighting, haze and biome look (prompt 015).
@@ -279,7 +289,9 @@ func _process(delta: float) -> void:
 	if not _loaded:
 		return
 	_frame += 1
+	var began := Time.get_ticks_usec()
 	_draw_units()
+	draw_usec = Time.get_ticks_usec() - began
 	if target_marker.visible:
 		_marker_time_left -= delta
 		target_marker.visible = _marker_time_left > 0.0
@@ -378,6 +390,8 @@ func _show_target_marker(point: Vector3) -> void:
 
 
 ## Places every unit between its previous and current tick position.
+## Units that stand still and face their direction are not touched (setting
+## a transform notifies every part of the model, prompt 016).
 func _draw_units() -> void:
 	var ids := sim_host.unit_ids()
 	var previous := sim_host.previous_positions()
@@ -385,42 +399,62 @@ func _draw_units() -> void:
 	var alpha := sim_host.interpolation_alpha()
 	var facings := sim_host.unit_facing_yaws()
 	var alive := sim_host.unit_alive()
-	var drawn := {}
+	# Models face -Z; the hull follows the simulation's direction
+	# (prompt 017), turned smoothly so small corrections do not jitter.
+	var turn := clampf(get_process_delta_time() * TURN_RATE, 0.0, 1.0)
 	for i in ids.size():
-		drawn[ids[i]] = true
-		var node := _unit_node(ids[i], i)
-		if node.has_meta(&"fogged"):
-			node.remove_meta(&"fogged")
+		var id := ids[i]
+		var node := _unit_node(id, i)
+		if not _fogged.is_empty() and _fogged.has(id):
+			_fogged.erase(id)
 			node.visible = true
-		var from: Vector3 = previous[i] if i < previous.size() else current[i]
 		var to: Vector3 = current[i]
+		var from: Vector3 = previous[i] if i < previous.size() else to
+		var ring: Node3D = _rings[id]
+		ring.visible = alive[i] != 0 and selection.is_selected(id)
+		if from == to and _still.get(id, Vector3.INF) == to:
+			continue
 		node.position = from.lerp(to, alpha)
-		# Models face -Z; the hull follows the simulation's direction
-		# (prompt 017), turned smoothly so small corrections do not jitter.
-		var turn := clampf(get_process_delta_time() * TURN_RATE, 0.0, 1.0)
-		if not node.has_meta(&"placed"):
-			node.set_meta(&"placed", true)
-			turn = 1.0
-		node.rotation.y = lerp_angle(node.rotation.y, facings[i], turn)
-		(node.get_node("SelectionRing") as Node3D).visible = selection.is_selected(ids[i]) and alive[i] != 0
+		if not _placed.has(id):
+			_placed[id] = true
+			node.rotation.y = facings[i]
+		else:
+			node.rotation.y = lerp_angle(node.rotation.y, facings[i], turn)
+		if from == to and absf(angle_difference(node.rotation.y, facings[i])) < 0.001:
+			_still[id] = to
+		else:
+			_still.erase(id)
 	# Units out of the local player's sight are not in the snapshot (prompt 018).
-	if drawn.size() < _unit_nodes.size():
+	if ids.size() + _fogged.size() < _unit_nodes.size():
+		var drawn := {}
+		for id in ids:
+			drawn[id] = true
 		for id: int in _unit_nodes:
-			if not drawn.has(id) and not _unit_nodes[id].has_meta(&"fogged"):
-				_unit_nodes[id].set_meta(&"fogged", true)
+			if not drawn.has(id) and not _fogged.has(id):
+				_fogged[id] = true
 				_unit_nodes[id].visible = false
 
 
 func _unit_node(id: int, index: int) -> Node3D:
 	if not _unit_nodes.has(id):
+		# Per-unit arrays of this snapshot, read once for all units that
+		# appear in the same frame (at the start: all of them).
+		if _new_unit_frame != _frame:
+			_new_unit_frame = _frame
+			_new_unit_arrays = [sim_host.unit_type_ids(), sim_host.unit_footprints(), sim_host.unit_owners()]
+		var types: PackedStringArray = _new_unit_arrays[0]
+		var footprints: PackedFloat32Array = _new_unit_arrays[1]
+		var owners: PackedInt32Array = _new_unit_arrays[2]
 		var node := UNIT_SCENE.instantiate() as Node3D
 		node.name = "Unit%d" % id
-		_use_catalog_model(node, sim_host.unit_type_ids()[index], id)
+		_use_catalog_model(node, types[index], id)
 		units_root.add_child(node)
 		_unit_nodes[id] = node
-		var radius := sim_host.unit_footprints()[index] * RING_SCALE
-		(node.get_node("SelectionRing") as Node3D).scale = Vector3(radius, 0.3, radius)
-		if sim_host.unit_owners()[index] != sim_host.local_player():
+		var ring := node.get_node("SelectionRing") as Node3D
+		_rings[id] = ring
+		var radius := footprints[index] * RING_SCALE
+		ring.scale = Vector3(radius, 0.3, radius)
+		if owners[index] != sim_host.local_player():
 			_tint(node, _enemy_material)
 	return _unit_nodes[id]
 

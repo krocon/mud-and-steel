@@ -68,6 +68,10 @@ var _image: Image
 var _texture: ImageTexture
 var _size := Vector2i.ZERO
 var _version := 0
+## Cell states of the last upload, and the grid's cell size and origin.
+var _bytes := PackedByteArray()
+var _cell := 0.0
+var _origin := Vector2.ZERO
 
 
 func setup(host: SimHost, camera: Camera3D) -> void:
@@ -115,6 +119,7 @@ func _refresh() -> void:
 	var bytes := _host.vision_image()
 	if bytes.size() != _size.x * _size.y:
 		return
+	_bytes = bytes
 	if _image == null:
 		_image = Image.create_from_data(_size.x, _size.y, false, Image.FORMAT_L8, bytes)
 		_texture = ImageTexture.create_from_image(_image)
@@ -135,15 +140,23 @@ func share_of(state: int) -> float:
 	return float(bytes.count(state)) / bytes.size()
 
 
-## The state byte of the cell containing world point `p` (x, z).
+## The state byte of the cell containing world point `p` (x, z). Reads the
+## cached cell states: effects ask this for every vehicle and
+## every shot, and fetching the whole image from the bridge each time cost
+## 40 ms per frame with 250 tanks (prompt 016).
 func state_at(p: Vector3) -> int:
 	if _host == null or _size.x <= 0:
 		return -1
-	var cell := _host.vision_cell_size()
-	var origin := _host.vision_origin()
-	var c := clampi(int(floor((p.x - origin.x) / cell)), 0, _size.x - 1)
-	var r := clampi(int(floor((p.z - origin.y) / cell)), 0, _size.y - 1)
-	return _host.vision_image()[r * _size.x + c]
+	if _host.vision_version() != _version:
+		_refresh()
+	if _bytes.size() != _size.x * _size.y:
+		return -1
+	if _cell <= 0.0:
+		_cell = _host.vision_cell_size()
+		_origin = _host.vision_origin()
+	var c := clampi(int(floor((p.x - _origin.x) / _cell)), 0, _size.x - 1)
+	var r := clampi(int(floor((p.z - _origin.y) / _cell)), 0, _size.y - 1)
+	return _bytes[r * _size.x + c]
 
 
 ## Reveals everything (debug) or shows the fog again.

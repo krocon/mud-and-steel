@@ -60,6 +60,12 @@ const DECAL_FADE_M := 450.0
 const FIRE_LIGHT_COLOR := Color(1.0, 0.55, 0.2)
 const FLASH_LIGHT_COLOR := Color(1.0, 0.72, 0.4)
 
+## Time of the last `_process` in microseconds (benchmark, prompt 016).
+var process_usec := 0
+## Whether a unit id is infantry (no dust trail, no exhaust).
+var _infantry_ids: Dictionary[int, bool] = {}
+## Turret directions of this frame's snapshot (with `_index_cache`).
+var _aim_yaws := PackedFloat32Array()
 ## Visibility of a world point for new and persistent effects (fog of war,
 ## prompt 018). Default: everything is visible.
 var visible_at: Callable = func(_point: Vector3) -> bool: return true
@@ -110,6 +116,12 @@ func _exit_tree() -> void:
 func _process(delta: float) -> void:
 	if sim_host == null:
 		return
+	var began := Time.get_ticks_usec()
+	_process_effects(delta)
+	process_usec = Time.get_ticks_usec() - began
+
+
+func _process_effects(delta: float) -> void:
 	_time += delta
 	_configure()
 	_update_lights(delta)
@@ -146,7 +158,7 @@ func on_combat_event(event: Dictionary) -> void:
 func _shot(unit: int, sim_muzzle: Vector3, caliber: float) -> void:
 	var muzzle := _muzzle_of(unit, sim_muzzle)
 	var index := _index_of(unit)
-	var yaw: float = sim_host.unit_aim_yaws()[index] if index >= 0 else 0.0
+	var yaw: float = _aim_yaws[index] if index >= 0 and index < _aim_yaws.size() else 0.0
 	muzzle_flash(muzzle, Vector3(-sin(yaw), 0.0, -cos(yaw)), caliber)
 
 
@@ -501,12 +513,18 @@ func _update_vehicles(delta: float) -> void:
 	var ids := sim_host.unit_ids()
 	var moving := sim_host.unit_moving()
 	var alive := sim_host.unit_alive()
-	var types := sim_host.unit_type_ids()
 	var camera_position: Vector3 = main.camera.global_position
 	var reach: float = _settings.fx_vehicle_m
+	# Unit types never change: which ids are infantry is read once per unit
+	# instead of every frame (prompt 016).
+	var types := PackedStringArray()
 	for i in ids.size():
 		var id := ids[i]
-		if alive[i] == 0 or types[i].contains("_inf_"):
+		if not _infantry_ids.has(id):
+			if types.is_empty():
+				types = sim_host.unit_type_ids()
+			_infantry_ids[id] = types[i].contains("_inf_")
+		if alive[i] == 0 or _infantry_ids[id]:
 			if _vehicles.has(id):
 				_remove_vehicle(id)
 			continue
@@ -675,6 +693,8 @@ func _index_of(unit: int) -> int:
 		var ids := sim_host.unit_ids()
 		for i in ids.size():
 			_index_cache[ids[i]] = i
+		# Read once per frame, not once per shot (prompt 016).
+		_aim_yaws = sim_host.unit_aim_yaws()
 	return _index_cache.get(unit, -1)
 
 

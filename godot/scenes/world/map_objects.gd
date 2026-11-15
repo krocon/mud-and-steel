@@ -85,6 +85,8 @@ const DECO_LAYERS: Array[Dictionary] = [
 		"scale": Vector2(0.8, 1.2), "sink": 0.05, "range": 260.0, "shadow": true},
 ]
 
+## Time of the last `_process` in microseconds (benchmark, prompt 016).
+var process_usec := 0
 ## SimHost, or MapEditor in the map editor (prompt 028).
 var sim_host: Object
 var camera: Camera3D
@@ -196,13 +198,16 @@ func build(host: Object, view: Camera3D) -> void:
 
 
 func _process(_delta: float) -> void:
+	process_usec = 0
 	if camera == null or not _deco_enabled:
 		return
 	var origin := camera.global_position
 	if origin.distance_to(_last_deco_origin) < 2.0:
 		return
+	var began := Time.get_ticks_usec()
 	if _update_deco(origin):
 		_last_deco_origin = origin
+	process_usec = Time.get_ticks_usec() - began
 
 
 ## Switches the biome look (prompt 015): map objects are repainted, the
