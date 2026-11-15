@@ -23,8 +23,9 @@ const WOOD_SPACING: f64 = 6.5;
 const WAY_CLEARANCE: f64 = 6.0;
 /// Hedges run this far from the center of a track (m).
 const HEDGE_OFFSET: f64 = 5.5;
-/// Hedge segment length (catalog `env_hedge`, 3 m).
-const HEDGE_SEGMENT: f64 = 3.0;
+/// Distance between hedge segments: a little less than their length
+/// (catalog `env_hedge`, 3 m), so the rounded ends overlap on curves.
+const HEDGE_STEP: f64 = 2.7;
 /// Dry-stone wall and fence segment lengths (catalog).
 const WALL_SEGMENT: f64 = 3.0;
 const FENCE_SEGMENT: f64 = 2.5;
@@ -579,12 +580,12 @@ fn hedgerows(p: &mut Placer, random: &mut Random) -> usize {
             let mut hedge = random.unit() < 0.7;
             let mut since_tree = random.range(10.0, 30.0);
             let mut pieces = Vec::new();
-            walk(&points, HEDGE_SEGMENT, |x, y, dx, dy, _| {
+            walk(&points, HEDGE_STEP, |x, y, dx, dy, _| {
                 if gap_left > 0.0 {
-                    gap_left -= HEDGE_SEGMENT;
+                    gap_left -= HEDGE_STEP;
                     return;
                 }
-                run_left -= HEDGE_SEGMENT;
+                run_left -= HEDGE_STEP;
                 if run_left <= 0.0 {
                     // Switch between a hedge run and an open stretch,
                     // separated by an entrance of 9-21 m.
@@ -598,7 +599,7 @@ fn hedgerows(p: &mut Placer, random: &mut Random) -> usize {
                 }
                 let (nx, ny) = (-dy * side, dx * side);
                 let (hx, hy) = (x + nx * HEDGE_OFFSET, y + ny * HEDGE_OFFSET);
-                since_tree -= HEDGE_SEGMENT;
+                since_tree -= HEDGE_STEP;
                 pieces.push((hx, hy, heading_of(dx, dy), since_tree <= 0.0));
                 if since_tree <= 0.0 {
                     since_tree = random.range(18.0, 40.0);
