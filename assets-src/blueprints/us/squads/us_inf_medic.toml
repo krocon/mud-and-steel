@@ -1,0 +1,11 @@
+# Company aid man, 1 man; composition from the catalog entry (data/catalog/us.toml).
+# US medics in the ETO were normally unarmed (Geneva Convention), so the catalog
+# lists no weapon and the squad has no armed member. Armband and medic bags
+# without Red Cross per docs/SOURCES.md.
+unit = "us_inf_medic"
+
+[[member]]
+role = "medic"
+position = [0.0, 0.0]
+clip = "medic_treat"
+note = "Company aid man (unarmed)"

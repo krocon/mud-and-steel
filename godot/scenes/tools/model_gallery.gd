@@ -915,7 +915,9 @@ func _check_squad(model: Node3D, cat: Dictionary, errors: Array[String]) -> void
 			armed += 1
 		if not player.is_playing():
 			errors.append("%s/%s: no clip playing" % [id, member.name])
-	if armed == 0:
+	# Unarmed squads (e.g. a lone medic) are valid when the catalog lists no weapon.
+	var catalog_armed := not str(cat.get("cat_weapons", "")).strip_edges().is_empty()
+	if armed == 0 and catalog_armed:
 		errors.append("%s: no armed member (Socket_Muzzle)" % id)
 	print("self-test: %s loaded, squad of %d, %d armed, %d triangles" % [id, members.size(), armed, _triangles(model)])
 

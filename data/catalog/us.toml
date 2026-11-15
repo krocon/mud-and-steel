@@ -202,6 +202,7 @@ designation = "Company aid man, regimental medical detachment (1944)"
 year_from = 1943
 year_to = 1945
 tier = 2
+model = "assets/models/us/us_inf_medic.tscn"
 squad_size = 1
 speed_road_kmh_x10 = 50
 speed_offroad_kmh_x10 = 40
