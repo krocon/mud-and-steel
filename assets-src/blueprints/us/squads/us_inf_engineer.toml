@@ -1,0 +1,78 @@
+# US combat engineer squad (catalog us_inf_engineer, strength 12 and the BAR are
+# catalog estimates): 11 M1 rifles, 1 BAR, demolition charges and a Bangalore
+# torpedo.
+#
+# Roles: `engineer` (M1, demolition charge, Bangalore torpedo) for the four men
+# of the demolition team, `auto_rifleman` for the BAR, `rifleman` for the rest.
+# The squad leader is a `scout` (M1 rifle and binoculars) because the
+# `squad_leader` soldier carries a Thompson, which the catalog does not list for
+# this squad. No other deviations.
+#
+# Formation: demolition team ahead, covered by the BAR and riflemen in a wedge
+# behind (display only).
+unit = "us_inf_engineer"
+
+[[member]]
+role = "scout"
+position = [0.0, 2.5]
+note = "squad leader (M1 rifle, binoculars)"
+
+[[member]]
+role = "engineer"
+position = [-1.5, 5.5]
+clip = "kneel"
+note = "demolition man (M1, charge, Bangalore torpedo)"
+
+[[member]]
+role = "engineer"
+position = [1.5, 5.5]
+clip = "kneel"
+note = "demolition man (M1, charge, Bangalore torpedo)"
+
+[[member]]
+role = "engineer"
+position = [-3.0, 4.0]
+note = "demolition man (M1, charge, Bangalore torpedo)"
+
+[[member]]
+role = "engineer"
+position = [3.0, 4.0]
+note = "demolition man (M1, charge, Bangalore torpedo)"
+
+[[member]]
+role = "auto_rifleman"
+position = [-2.5, 1.0]
+clip = "aim_prone"
+note = "automatic rifleman (BAR M1918A2)"
+
+[[member]]
+role = "rifleman"
+position = [-4.5, -0.5]
+note = "assistant automatic rifleman (M1)"
+
+[[member]]
+role = "rifleman"
+position = [2.5, 1.0]
+clip = "aim_kneel"
+note = "rifleman (M1)"
+
+[[member]]
+role = "rifleman"
+position = [4.5, -0.5]
+note = "rifleman (M1)"
+
+[[member]]
+role = "rifleman"
+position = [-1.5, -1.5]
+clip = "aim_stand"
+note = "rifleman (M1)"
+
+[[member]]
+role = "rifleman"
+position = [1.5, -1.5]
+note = "rifleman (M1)"
+
+[[member]]
+role = "rifleman"
+position = [0.0, -3.5]
+note = "assistant squad leader (M1)"

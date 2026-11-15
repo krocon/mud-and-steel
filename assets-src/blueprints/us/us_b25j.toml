@@ -1,0 +1,192 @@
+# North American B-25J Mitchell, glazed nose (prompt 008, us infantry_air).
+# Main dimensions from data/catalog/us.toml: length 16.13 m, wingspan 20.60 m
+# (fitted), height 4.98 m. Tricycle gear, so the fuselage stands level; the
+# catalog height is the top of the twin fins.
+#
+# Modeling estimates (B-25J three-view, NAA figures as commonly quoted):
+# wing area 610 sq ft drawn as a taper from 3.8 m root to 1.7 m tip chord, the
+# inner panels with ~4.5 deg dihedral and the outer panels almost flat (the
+# B-25's "gull"); Hamilton Standard 3-blade propellers 12 ft 7 in (3.84 m) on
+# Wright R-2600 nacelles at 2.95 m from the center line; main gear track
+# 19 ft 4 in (5.89 m), 47 in (1.19 m) main wheels, nose wheel ~0.75 m;
+# horizontal tail span ~6.7 m with the fins at its tips; fuselage ~1.35 m
+# wide and ~1.9 m deep.
+#
+# Weapons: 13 x .50 in as the catalog note breaks them down: one flexible and
+# two fixed nose guns, four package guns on the fuselage sides, two in the
+# Bendix dorsal turret behind the cockpit, two waist guns, two in the tail
+# position. Six 500 lb AN-M64 internal (catalog weapon count) as sockets in
+# the bomb bay.
+unit = "us_b25j"
+assembly = "aircraft"
+
+[layout]
+cg_chord = 0.3
+
+[fuselage]
+part = "fuselage"
+glass_from_y = 5.20           # bombardier's glazed nose
+sections = [[-9.40, 0.40, 0.60, 2.65, 2.0],
+            [-8.00, 0.80, 1.10, 2.55, 2.4],
+            [-4.50, 1.25, 1.75, 2.35, 2.8],
+            [0.00, 1.35, 1.90, 2.25, 2.8],
+            [3.50, 1.30, 1.80, 2.25, 2.8],
+            [5.20, 1.15, 1.55, 2.15, 2.4],
+            [6.20, 0.70, 0.90, 2.10, 2.2],
+            [6.45, 0.16, 0.20, 2.10, 2.0]]
+
+[wing]
+part = "wing"
+y = 0.0
+z = 2.30
+root_chord = 3.80
+tip_chord = 1.70
+sweep_deg = 5.0
+dihedral_deg = 0.5
+kink = { at = 0.30, inner_dihedral_deg = 4.5 }
+thickness = 0.15
+aileron = [0.55, 0.95]
+
+[tail]
+part = "tail"
+# rudder trailing edge = y - fin_root_chord - 0.6 fin_height tan(sweep)
+y = -7.90
+z = 3.10
+span = 6.70
+root_chord = 1.70
+tip_chord = 1.30
+fin_height = 1.88
+fin_root_chord = 1.45
+fin_tip_chord = 0.95
+fin_sweep_deg = 10
+twin_fins = 3.30
+
+[canopy]
+part = "canopy"
+y = [3.00, 4.70]
+z = 2.98
+width = 1.10
+height = 0.42
+
+[landing_gear]
+part = "landing_gear"
+nose = true
+main_y = -1.50
+main_track = 5.89
+main_wheel_diameter = 1.19
+strut_top_z = 2.00
+tail_y = 4.50
+tail_wheel_diameter = 0.75
+tail_strut_top_z = 1.45
+
+[[propeller]]
+part = "propeller"
+name = "Propeller_L"
+position = [-2.95, 3.25, 2.45]
+diameter = 3.84
+blades = 3
+
+[[propeller]]
+part = "propeller"
+name = "Propeller_R"
+position = [2.95, 3.25, 2.45]
+diameter = 3.84
+blades = 3
+
+[[part]]
+part = "nacelle"              # Wright R-2600 nacelles, main gear inside
+x = 2.95
+y = [-3.60, 3.05]
+z = 2.45
+diameter = 1.35
+
+[[part]]
+part = "bomb_bay"             # six 500 lb AN-M64 (catalog count), doors closed
+y = [-1.90, 0.50]
+width = 0.90
+z = 1.32
+
+[[part]]
+part = "gun_turret"           # Bendix dorsal turret behind the cockpit
+position = [0.0, 2.30, 3.17]
+diameter = 1.00
+guns = 2
+gun_length = 1.1
+
+[[part]]
+part = "gun_turret"           # tail position, twin .50 facing aft
+position = [0.0, -8.75, 2.88]
+diameter = 0.62
+height = 0.35
+guns = 2
+direction = [0.0, -1.0, 0.0]
+gun_length = 0.75
+
+[[part]]
+part = "flex_mg"              # left waist gun
+position = [-0.62, -5.80, 2.55]
+direction = [-1.0, 0.0, 0.1]
+length = 0.8
+
+[[part]]
+part = "flex_mg"              # right waist gun
+position = [0.62, -5.80, 2.55]
+direction = [1.0, 0.0, 0.1]
+length = 0.8
+
+[[part]]
+part = "flex_mg"              # flexible nose gun of the bombardier
+position = [0.0, 6.10, 2.00]
+direction = [0.0, 1.0, -0.05]
+length = 0.45
+
+[[part]]
+part = "fixed_guns"           # two fixed nose guns and four package guns on the sides
+muzzles = [[0.30, 6.00, 1.80], [0.72, 3.40, 2.05], [0.72, 3.60, 1.85]]
+length = 0.40
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [-2.95, 1.50, 2.45]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [2.95, 1.50, 2.45]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -3.00, 2.40]
+
+[[part]]
+part = "marking"
+name = "Wing_L"               # star on the upper left wing
+position = [-7.20, -1.20, 2.70]
+normal = [0.0, 0.0, 1.0]
+size = 1.4
+
+[[part]]
+part = "marking"
+name = "Wing_R"               # star under the right wing
+position = [7.20, -1.20, 2.40]
+normal = [0.0, 0.0, -1.0]
+size = 1.4
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-0.65, -5.00, 2.40]
+normal = [-1.0, 0.0, 0.0]
+size = 1.0
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [0.65, -5.00, 2.40]
+normal = [1.0, 0.0, 0.0]
+size = 1.0
+
+[[part]]
+part = "shadow_proxy"

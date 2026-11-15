@@ -11,7 +11,9 @@ cg_chord = 0.3
 
 [fuselage]
 part = "fuselage"
-sections = [[-4.30, 0.0, 0.0, 1.30, 2.0], [-2.60, 0.42, 0.55, 1.22, 3.0], [-0.60, 0.68, 1.00, 1.32, 3.5],
+# the rear fuselage drops toward the tail wheel (three-point attitude on the
+# ground, prompt 008 review: the tail no longer stands on a 0.8 m strut)
+sections = [[-4.30, 0.0, 0.0, 0.80, 2.0], [-2.60, 0.42, 0.55, 1.04, 3.0], [-0.60, 0.68, 1.00, 1.32, 3.5],
             [1.20, 0.70, 0.95, 1.30, 3.0], [1.95, 0.60, 0.66, 1.18, 2.6], [2.25, 0.36, 0.38, 1.12, 2.0]]
 
 [wing]
@@ -26,7 +28,7 @@ thickness = 0.12
 [tail]
 part = "tail"
 y = -3.35
-z = 1.30
+z = 0.90
 span = 2.90
 root_chord = 0.95
 tip_chord = 0.65
@@ -49,7 +51,7 @@ main_wheel_diameter = 0.45
 strut_top_z = 0.90
 tail_y = -3.95
 tail_wheel_diameter = 0.15
-tail_strut_top_z = 0.90
+tail_strut_top_z = 0.72
 
 [[propeller]]
 part = "propeller"

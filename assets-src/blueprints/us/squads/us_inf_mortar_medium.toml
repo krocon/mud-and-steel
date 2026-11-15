@@ -1,0 +1,55 @@
+# US 81 mm mortar squad, heavy weapons company (1944): 8 men (catalog
+# us_inf_mortar_medium, Wikipedia M1 mortar): squad leader, gunner, assistant
+# gunner, 5 ammunition bearers. Catalog weapons: mortar, 6 carbines, 2 pistols
+# (the carbine/pistol split is a catalog estimate).
+#
+# Roles: `mortar_gunner_medium` (81 mm M1, pistol holster), `ammo_carrier` for
+# the pistol-armed assistant gunner, `carbineer` for leader and bearers.
+# No deviations from the catalog weapon list.
+#
+# Formation: mortar in position, assistant beside it, leader ahead, bearers in
+# two rows behind (display only).
+unit = "us_inf_mortar_medium"
+
+[[member]]
+role = "mortar_gunner_medium"
+position = [0.0, 0.0]
+clip = "mortar_operate"
+note = "gunner (81 mm mortar M1, pistol M1911A1)"
+
+[[member]]
+role = "ammo_carrier"
+position = [1.3, -0.4]
+clip = "kneel"
+note = "assistant gunner (pistol M1911A1), loads"
+
+[[member]]
+role = "carbineer"
+position = [-0.5, 3.0]
+clip = "aim_kneel"
+note = "squad leader (carbine M1)"
+
+[[member]]
+role = "carbineer"
+position = [-2.4, -2.0]
+note = "ammunition bearer (carbine M1)"
+
+[[member]]
+role = "carbineer"
+position = [0.0, -2.2]
+note = "ammunition bearer (carbine M1)"
+
+[[member]]
+role = "carbineer"
+position = [2.4, -2.0]
+note = "ammunition bearer (carbine M1)"
+
+[[member]]
+role = "carbineer"
+position = [-1.2, -4.2]
+note = "ammunition bearer (carbine M1)"
+
+[[member]]
+role = "carbineer"
+position = [1.2, -4.2]
+note = "ammunition bearer (carbine M1)"

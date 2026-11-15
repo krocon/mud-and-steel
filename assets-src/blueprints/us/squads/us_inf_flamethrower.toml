@@ -1,0 +1,18 @@
+# US flamethrower team (catalog us_inf_flamethrower): operator with the M2-2 and
+# a pistol, assistant with the M1 rifle.
+#
+# Roles: `flamethrower` (M2-2 and holster) and `rifleman` for the assistant
+# (prompt 008 role hint). No deviations from the catalog weapon list.
+unit = "us_inf_flamethrower"
+
+[[member]]
+role = "flamethrower"
+position = [0.0, 0.8]
+clip = "aim_stand"
+note = "operator (M2-2 flamethrower, pistol M1911A1)"
+
+[[member]]
+role = "rifleman"
+position = [1.2, -0.8]
+clip = "aim_kneel"
+note = "assistant (M1 rifle), covers the operator"

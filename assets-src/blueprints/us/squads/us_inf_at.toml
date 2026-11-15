@@ -1,0 +1,19 @@
+# US bazooka team (catalog us_inf_at): gunner and loader, both with the M1
+# carbine; the M9 launcher is carried by the gunner.
+#
+# Roles: `at_gunner` (bazooka) and `at_assistant` (carbine M1 and the rocket
+# bag, prompt 008 role hint). Deviation: the gunner's own carbine is not
+# modeled (the soldier holds the launcher; one long weapon per soldier).
+unit = "us_inf_at"
+
+[[member]]
+role = "at_gunner"
+position = [-0.5, 0.3]
+clip = "aim_kneel"
+note = "gunner (2.36 in M9; carbine M1 not modeled)"
+
+[[member]]
+role = "at_assistant"
+position = [0.6, -0.3]
+clip = "kneel"
+note = "loader (carbine M1, rocket bag)"

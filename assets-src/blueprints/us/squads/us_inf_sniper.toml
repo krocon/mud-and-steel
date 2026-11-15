@@ -1,0 +1,19 @@
+# US sniper pair (catalog us_inf_sniper; the pairing is a catalog assumption,
+# US doctrine had individual snipers): sniper with the M1903A4 and an observer
+# with the M1 rifle.
+#
+# Roles: `sniper` (M1903A4 with scope), `scout` for the observer (M1 rifle and
+# binoculars, prompt 008 role hint). No deviations from the catalog weapon list.
+unit = "us_inf_sniper"
+
+[[member]]
+role = "sniper"
+position = [-0.6, 0.0]
+clip = "aim_prone"
+note = "sniper (M1903A4, M73B1 scope)"
+
+[[member]]
+role = "scout"
+position = [0.7, -0.4]
+clip = "prone"
+note = "observer (M1 rifle, binoculars)"

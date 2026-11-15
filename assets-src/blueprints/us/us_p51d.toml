@@ -1,0 +1,151 @@
+# North American P-51D Mustang (prompt 008, us infantry_air).
+# Main dimensions from data/catalog/us.toml: length 9.83 m, wingspan 11.28 m
+# (fitted), height 4.17 m. The catalog height is the usual tail-down figure with
+# one propeller blade vertical, so the model stands in a three-point attitude:
+# the fuselage sections climb 9 deg toward the nose (estimate from three-views of
+# a P-51D on its gear), wing and tail stay level (the kit has no wing
+# incidence), and the propeller hub sits at 2.47 m = height - prop radius.
+#
+# Modeling estimates (P-51D three-view, NAA manual figures as commonly quoted):
+# Hamilton Standard 4-blade propeller 11 ft 2 in (3.40 m); wing root chord
+# 104 in (2.64 m), tip chord 50 in (1.27 m), ~5 deg dihedral, slightly swept
+# leading edge; main gear track 11 ft 10 in (3.61 m), 27 in (0.69 m) wheels;
+# horizontal tail span ~13 ft 2 in (4.0 m); belly radiator scoop behind the
+# wing; bubble canopy (D-5 onward). Fuselage width ~0.88 m at the cockpit.
+#
+# Weapons from the catalog: six .50 in wing guns (three per wing, outside the
+# propeller arc) and two 1,000 lb AN-M65 bombs on the wing racks (store size
+# ~1.75 x 0.48 m, estimate from the AN-M65 drawing dimensions 69.5 x 18.8 in).
+unit = "us_p51d"
+assembly = "aircraft"
+
+[layout]
+cg_chord = 0.3
+
+[fuselage]
+part = "fuselage"
+# [y, width, height, z_center, exponent], tail to nose; z_center climbs 9 deg
+sections = [[-6.45, 0.02, 0.30, 1.061, 2.0],
+            [-5.30, 0.40, 0.72, 1.163, 2.4],
+            [-3.00, 0.80, 1.25, 1.478, 2.6],
+            [-1.20, 0.88, 1.45, 1.813, 2.6],
+            [0.60, 0.88, 1.40, 2.098, 2.6],
+            [2.20, 0.80, 1.05, 2.351, 2.4],
+            [2.85, 0.62, 0.62, 2.454, 2.2]]
+
+[wing]
+part = "wing"
+y = 0.0
+z = 1.25
+root_chord = 2.64
+tip_chord = 1.27
+sweep_deg = 4.0
+dihedral_deg = 5.0
+thickness = 0.15
+aileron = [0.6, 0.95]
+
+[tail]
+part = "tail"
+# rudder trailing edge = y - fin_root_chord - 0.6 fin_height tan(sweep) = -6.63
+y = -5.00
+z = 1.15
+span = 4.0
+root_chord = 1.6
+tip_chord = 0.9
+fin_height = 1.50
+fin_root_chord = 1.30
+fin_tip_chord = 0.6
+fin_sweep_deg = 20
+
+[canopy]
+part = "canopy"
+y = [-2.85, -0.80]
+z = 2.22
+width = 0.80
+height = 0.62
+bubble = true
+
+[landing_gear]
+part = "landing_gear"
+main_y = 0.35
+main_track = 3.61
+main_wheel_diameter = 0.69
+strut_top_z = 1.20
+tail_y = -5.30
+tail_wheel_diameter = 0.32
+tail_strut_top_z = 0.85
+
+[[propeller]]
+part = "propeller"
+position = [0.0, 2.95, 2.47]
+diameter = 3.40
+blades = 4
+
+[[part]]
+part = "cylinder_prop"        # belly radiator scoop (intake forward, behind the wing)
+from = [0.0, -4.55, 0.78]
+to = [0.0, -1.90, 0.95]
+radius = 0.25
+segments = 10
+
+[[part]]
+part = "fixed_guns"           # three .50 in M2 per wing in the leading edge
+muzzles = [[2.05, 0.02, 1.37], [2.30, 0.00, 1.40], [2.55, -0.02, 1.43]]
+length = 0.30
+
+[[part]]
+part = "bomb_load"            # two 1,000 lb AN-M65 on the wing racks
+bombs = [[2.60, -0.80, 0.95]]
+length = 1.75
+diameter = 0.48
+
+[[part]]
+part = "socket"
+name = "Socket_Exhaust_"
+position = [-0.42, 1.90, 2.30]
+
+[[part]]
+part = "socket"
+name = "Socket_Exhaust_"
+position = [0.42, 1.90, 2.30]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 1.50, 2.25]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [-1.20, -1.00, 1.35]
+
+[[part]]
+part = "marking"
+name = "Wing_L"               # star on the upper left wing
+position = [-4.0, -1.05, 1.70]
+normal = [0.0, 0.0, 1.0]
+size = 1.1
+
+[[part]]
+part = "marking"
+name = "Wing_R"               # star under the right wing
+position = [4.0, -1.05, 1.50]
+normal = [0.0, 0.0, -1.0]
+size = 1.1
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-0.40, -3.90, 1.38]
+normal = [-1.0, 0.0, 0.0]
+size = 0.8
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [0.40, -3.90, 1.38]
+normal = [1.0, 0.0, 0.0]
+size = 0.8
+
+[[part]]
+part = "shadow_proxy"
