@@ -1,0 +1,184 @@
+# GMC CCKW-353 2 1/2-ton 6x6 cargo truck, long wheelbase, closed steel cab.
+# Main dimensions from data/catalog/us.toml: length 6.86 m, width 2.24 m,
+# height 2.77 m over the canvas tilt (the catalog source gives 2.36 m to the
+# cab roof; that value sets the cab here, the tilt gets the catalog height).
+# Modeling estimates from TM 9-801 figures and photographs (tables not read,
+# see catalog): wheelbase 164 in (4.17 m) to the center of the rear bogie,
+# bogie axle spacing 44 in (1.12 m), 7.50-20 tires (~0.91 m), front track
+# ~1.59 m, dual rear tires ~1.72 m between the pair centers, ground clearance
+# ~0.25 m, steel cargo body ~3.8 m long with folding troop seats, spare wheel
+# under the rear overhang, rounded civilian-style front wings, brush guard.
+# Coordinates: front axle at y = 2.64, rear axles at -0.97 / -2.09; the assembly
+# moves the origin midway between the first and the last axle.
+unit = "us_gmc_cckw"
+assembly = "wheeled"
+
+[layout]
+front_y = 3.49            # front bumper
+
+[[axle]]                  # front axle, driven and steered
+part = "wheel_axle"
+y = 2.64
+diameter = 0.91
+width = 0.21
+track = 1.59
+
+[[axle]]                  # rear bogie, front axle, dual tires
+part = "wheel_axle"
+y = -0.97
+diameter = 0.91
+width = 0.21
+track = 1.72
+twin = true
+
+[[axle]]                  # rear bogie, rear axle, dual tires
+part = "wheel_axle"
+y = -2.09
+diameter = 0.91
+width = 0.21
+track = 1.72
+twin = true
+
+[frame]
+part = "ladder_frame"
+y = [-3.30, 3.35]
+z = 0.98
+spacing = 0.88
+rail = [0.07, 0.22]
+cross_members = 7
+
+[hood]
+part = "engine_hood"
+y = [1.70, 3.28]
+width = 0.92
+bottom_z = 0.98
+top_z = 1.66
+crown = 0.12
+radiator = [0.86, 0.80]
+louvers = 0
+
+[cab]
+part = "truck_cab"
+y = [0.46, 1.70]
+width = 1.92
+floor_z = 1.10
+roof_z = 2.36             # catalog source: height to the cab
+belt_z = 1.66
+windscreen_lean = 0.04
+door = 0.85
+seats = 1                 # assistant driver (catalog crew 2)
+
+[body]
+part = "cargo_bed"
+front_y = 0.38
+floor_z = 1.28
+side_height = 0.50
+planks = 2
+stakes = 5
+seats_per_side = 8        # 16 troops on the folding side seats
+
+[fenders]
+part = "truck_fenders"
+front_wheel = [2.64, 0.455]
+x = [0.58, 1.06]
+running_board = [0.46, 0.78]
+
+[[part]]
+part = "us.cargo_cover"   # canvas tilt over bows, top = catalog height
+front_y = 0.36
+bows = 5
+
+[[part]]
+part = "box_prop"         # brush guard in front of the radiator
+center = [0.0, 3.36, 1.30]
+size = [0.96, 0.05, 0.62]
+material = "Metal"
+
+[[part]]
+part = "box_prop"         # front bumper
+center = [0.0, 3.43, 0.80]
+size = [2.00, 0.12, 0.16]
+
+[[part]]
+part = "cylinder_prop"    # spare wheel, carried flat under the rear overhang
+from = [0.0, -2.85, 0.52]  # (simplification: the stowage place varies in photographs)
+to = [0.0, -2.85, 0.73]
+radius = 0.455
+material = "Rubber"
+segments = 14
+
+[[part]]
+part = "box_prop"         # fuel tank under the cab, right
+center = [0.78, 1.05, 0.88]
+size = [0.36, 0.70, 0.36]
+
+[[part]]
+part = "box_prop"         # tool box under the body, left
+center = [-0.90, -1.55, 1.08]
+size = [0.25, 0.70, 0.30]
+
+[[part]]
+part = "headlight"
+position = [-0.72, 3.18, 1.40]
+diameter = 0.20
+
+[[part]]
+part = "headlight"
+position = [0.72, 3.18, 1.40]
+diameter = 0.20
+
+[[part]]
+part = "exhaust"
+kind = "pipe"
+position = [0.55, 0.40, 0.70]
+length = 0.40
+diameter = 0.07
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 3.40, 0.85]
+pair = true
+socket = false
+
+[[part]]
+part = "tow_hook"         # pintle for towed guns and trailers
+position = [0.0, -3.30, 0.85]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 2.6, 1.55]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -1.5, 1.60]
+
+[[part]]
+part = "marking"          # white star on the hood top
+name = "Hood"
+position = [0.0, 2.50, 1.67]
+normal = [0.0, 0.0, 1.0]
+size = 0.55
+
+[[part]]
+part = "marking"
+name = "Door_L"
+position = [-0.97, 1.15, 1.40]
+normal = [-1.0, 0.0, 0.0]
+size = 0.40
+
+[[part]]
+part = "marking"
+name = "Door_R"
+position = [0.97, 1.15, 1.40]
+normal = [1.0, 0.0, 0.0]
+size = 0.40
+
+[[part]]
+part = "marking"
+name = "Rear"
+kind = "number"
+position = [0.0, -3.38, 1.55]
+normal = [0.0, -1.0, 0.0]
+size = 0.30

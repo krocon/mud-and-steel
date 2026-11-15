@@ -1,0 +1,197 @@
+# M8 Greyhound light armored car (6x6). Main dimensions from
+# data/catalog/us.toml: length 4.70 m, width 2.31 m, height 1.91 m. The catalog
+# note says the height is probably to the turret top without the AA MG; it is
+# used that way here (the .50 ring-mount MG is left out of the height, see
+# [validate]).
+# The catalog has no hull length; [layout] hull_length 4.45 m is a modeling
+# estimate (the 37 mm barrel overhangs the nose by ~0.25 m in side photos).
+# Modeling estimates from photographs and TM 9-743 figures (contents not read):
+# 9.00-20 tires (~1.0 m), front axle near the nose, rear bogie with ~1.2 m
+# axle spacing, low hull with a wedge nose and slightly inward-leaning upper
+# side plates, wide flat fenders over the wheels with stowage boxes, open-topped
+# turret with flat gun face, M23A1 combination mount (37 mm M6 + coax M1919A4),
+# driver and co-driver hatches on the front deck.
+unit = "us_m8_greyhound"
+assembly = "armored_car"
+
+[layout]
+hull_length = 4.45
+turret_y = -0.15
+turret_ring_diameter = 1.30
+
+[[axle]]
+y = 1.42
+diameter = 1.00
+width = 0.25
+track = 1.90
+
+[[axle]]
+y = -0.62
+diameter = 1.00
+width = 0.25
+track = 1.90
+
+[[axle]]
+y = -1.84
+diameter = 1.00
+width = 0.25
+track = 1.90
+
+[hull]
+part = "section_hull"
+height = "keep"               # the turret top sets the height
+sections = [
+    { y = 2.225, bottom_z = 0.60, bottom_hw = 0.50, chine_z = 0.86, chine_hw = 0.66, top_z = 0.98, top_hw = 0.56 },
+    { y = 1.55, bottom_z = 0.46, bottom_hw = 0.60, chine_z = 1.06, chine_hw = 0.78, top_z = 1.40, top_hw = 0.72 },
+    { y = 0.85, bottom_z = 0.46, bottom_hw = 0.60, chine_z = 1.08, chine_hw = 0.80, top_z = 1.50, top_hw = 0.74 },
+    { y = -1.55, bottom_z = 0.46, bottom_hw = 0.60, chine_z = 1.08, chine_hw = 0.80, top_z = 1.50, top_hw = 0.74 },
+    { y = -2.225, bottom_z = 0.60, bottom_hw = 0.56, chine_z = 1.02, chine_hw = 0.76, top_z = 1.32, top_hw = 0.70 },
+]
+
+[turret]
+part = "plate_turret"
+open_top = true
+height = "fit"
+wall = 0.02
+# plan relative to the ring center: flat gun face, angled cheeks, rounded-off
+# rear corners
+plan = [[-0.42, 0.66], [0.42, 0.66], [0.70, 0.30], [0.72, -0.32], [0.50, -0.66], [-0.50, -0.66],
+        [-0.72, -0.32], [-0.70, 0.30]]
+side_slope_deg = 14
+front_slope_deg = 6
+
+[gun]
+part = "tank_gun"
+trunnion = [0.62, 0.24]
+mantlet = { kind = "box", size = [0.48, 0.12, 0.30] }
+sleeve = [0.26, 0.055]
+segments = [["fit", 0.032, 0.028]]
+muzzle_brake = "thread_protector"
+
+[[mg]]  # coaxial M1919A4, right of the gun
+part = "mg"
+mount = "coax"
+position = [0.20, 0.08, 0.0]
+
+[[mg]]  # M2HB on the turret ring mount (late 1944)
+part = "pintle_mg"
+parent = "Turret"
+position = [-0.35, -0.55, 2.08]
+length = 1.65
+post = 0.12
+
+[[part]]
+part = "fender"               # front wheel wings
+profile = [[2.05, 0.98], [1.90, 1.12], [0.95, 1.12], [0.85, 1.02]]
+x = [0.80, "full"]
+
+[[part]]
+part = "fender"               # rear bogie wings with the stowage boxes on top
+profile = [[0.20, 1.02], [0.10, 1.12], [-2.30, 1.12], [-2.40, 1.00]]
+x = [0.80, "full"]
+
+[[part]]
+part = "box_prop"             # side stowage boxes over the rear wheels
+center = [-0.95, -1.25, 1.24]
+size = [0.32, 1.30, 0.24]
+
+[[part]]
+part = "box_prop"
+center = [0.95, -1.25, 1.24]
+size = [0.32, 1.30, 0.24]
+
+[[part]]
+part = "hull_hatch"           # driver (left) and co-driver (right)
+center = [-0.36, 1.05]
+size = [0.48, 0.42]
+hinge = "front"
+socket = true
+
+[[part]]
+part = "hull_hatch"
+center = [0.36, 1.05]
+size = [0.48, 0.42]
+hinge = "front"
+socket = true
+
+[[part]]
+part = "socket"               # commander and gunner in the open turret
+name = "Socket_Crew_"
+parent = "Turret"
+position = [-0.30, -0.20, 1.65]
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+parent = "Turret"
+position = [0.30, -0.20, 1.65]
+
+[[part]]
+part = "headlight"
+position = [-0.55, 2.05, 1.05]
+diameter = 0.16
+
+[[part]]
+part = "headlight"
+position = [0.55, 2.05, 1.05]
+diameter = 0.16
+
+[[part]]
+part = "exhaust"
+kind = "muffler"
+position = [0.0, -2.30, 0.70]
+length = 0.80
+diameter = 0.14
+
+[[part]]
+part = "antenna"
+position = [0.62, -1.70, 1.50]
+length = 2.0
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -2.23, 0.68]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -1.4, 1.55]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 0.6, 1.40]
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-0.79, 0.20, 1.15]
+normal = [-0.99, 0.0, 0.1]
+size = 0.40
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [0.79, 0.20, 1.15]
+normal = [0.99, 0.0, 0.1]
+size = 0.40
+
+[[part]]
+part = "marking"
+name = "Glacis"
+position = [0.0, 1.90, 1.16]
+normal = [0.0, 0.45, 0.89]
+size = 0.40
+
+[[part]]
+part = "marking"
+name = "Hull_Rear"
+kind = "number"
+position = [0.0, -2.22, 1.05]
+normal = [0.0, -0.95, 0.3]
+size = 0.25
+
+[validate]
+# Height 1.91 m is taken as the turret top (catalog note): ring-mount MG and
+# antenna are left out.
+exclude_height = ["MG_02", "Antenna_*"]
