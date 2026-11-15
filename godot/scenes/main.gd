@@ -22,6 +22,11 @@ extends Node3D
 ## debug menu (`debug/debug_menu.gd`); `-- --objects-bench` / `--objects-shots`
 ## measure and record the map objects (`tools/objects_bench.gd`); F4 / F5 show the path cost grid and the
 ## unit paths (`debug/path_debug.gd`; `-- --path-debug` starts with both on).
+##
+## Lighting, haze and the biome look come from `world/atmosphere.gd`
+## (prompt 015): the biome of the map (`map.toml`), overridden by
+## `-- --biome=<forest|desert|winter>`; graphics quality by
+## `-- --quality=<low|medium|high>`.
 
 const UNIT_SCENE: PackedScene = preload("res://scenes/unit.tscn")
 const SelfTest := preload("res://scenes/self_test.gd")
@@ -30,6 +35,8 @@ const TerrainBench := preload("res://scenes/tools/terrain_bench.gd")
 const DebugMenu := preload("res://scenes/debug/debug_menu.gd")
 const GroundPick := preload("res://scenes/camera/ground_pick.gd")
 const PathDebug := preload("res://scenes/debug/path_debug.gd")
+const Atmosphere := preload("res://scenes/world/atmosphere.gd")
+const GraphicsQuality := preload("res://scenes/world/graphics_quality.gd")
 const MapObjects := preload("res://scenes/world/map_objects.gd")
 const ObjectsBench := preload("res://scenes/tools/objects_bench.gd")
 const SEED := 42
@@ -66,11 +73,11 @@ var _camera_shots := "--camera-shots" in OS.get_cmdline_user_args()
 var _frame := 0
 var _marker_time_left := 0.0
 var _enemy_material: StandardMaterial3D
+## Lighting, haze and biome look (prompt 015).
+var atmosphere: Atmosphere
 
 
 func _ready() -> void:
-	sun.look_at_from_position(Vector3(10, 20, 5), Vector3.ZERO, Vector3.UP)
-
 	_enemy_material = StandardMaterial3D.new()
 	_enemy_material.albedo_color = ENEMY_TINT
 	_enemy_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
@@ -88,9 +95,17 @@ func _ready() -> void:
 	camera_rig.bounds = Rect2(-map_size * 0.5, map_size)
 	camera_rig.snap_to(Vector3(0, 0, 40), 140.0)
 	terrain.build(sim_host)
+	atmosphere = Atmosphere.new()
+	atmosphere.name = "Atmosphere"
+	add_child(atmosphere)
+	atmosphere.setup($WorldEnvironment, sun, camera_rig, terrain)
+	atmosphere.quality = GraphicsQuality.from_cmdline()
+	atmosphere.set_biome(Atmosphere.biome_from(sim_host.map_biome()))
+	print("Mud and Steel: biome '%s', graphics quality '%s'" % [atmosphere.preset.id, atmosphere.quality])
 	map_objects = MapObjects.new()
 	map_objects.name = "MapObjects"
 	add_child(map_objects)
+	map_objects.biome = atmosphere.preset.env_biome
 	map_objects.build(sim_host, camera)
 
 	selection.sim_host = sim_host
@@ -216,7 +231,7 @@ func _unit_node(id: int, index: int) -> Node3D:
 
 ## Replaces the placeholder with the unit's model from
 ## `res://assets/models/<faction>/<catalog id>.glb`, if one exists, and paints
-## it with the faction palette (forest until maps choose a biome, prompt 015).
+## it with the faction palette of the biome (prompt 015).
 func _use_catalog_model(node: Node3D, type_id: String, id: int) -> void:
 	var faction := type_id.get_slice("_", 0)
 	var path := "%s%s/%s.glb" % [MODELS_DIR, faction, type_id]
@@ -227,9 +242,22 @@ func _use_catalog_model(node: Node3D, type_id: String, id: int) -> void:
 	placeholder.free()
 	var model := (load(path) as PackedScene).instantiate() as Node3D
 	model.name = "Model"
+	model.set_meta(&"faction", faction)
 	node.add_child(model)
-	UnitCamo.apply(model, UnitCamo.palette(faction, "forest"))
+	UnitCamo.apply(model, UnitCamo.palette(faction, atmosphere.preset.camo_biome))
 	UnitCamo.add_markings(model, faction, 100 + id)
+
+
+## Switches the biome look at runtime (debug menu, self-test): lighting,
+## ground and the palettes of all unit models. Presentation only.
+func set_biome(id: String) -> void:
+	atmosphere.set_biome(id)
+	map_objects.set_biome(atmosphere.preset.env_biome)
+	for node: Node3D in _unit_nodes.values():
+		var model := node.get_node_or_null("Model") as Node3D
+		var faction: String = model.get_meta(&"faction", "") if model else ""
+		if not faction.is_empty():
+			UnitCamo.apply(model, UnitCamo.palette(faction, atmosphere.preset.camo_biome))
 
 
 func _tint(node: Node, material: Material) -> void:

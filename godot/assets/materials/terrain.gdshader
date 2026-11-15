@@ -13,12 +13,19 @@
 // blending between layers, two de-correlated samples per layer against
 // visible tiling, field-track ruts turned along the track direction.
 //
+// Biome (prompt 015): every material layer draws the texture layer named in
+// `layer_source`, multiplied by `layer_tint` (desert: grass drawn as dry
+// sand-earth; winter: grass drawn as snow). `snow_cover` lays snow over flat
+// ground, less on roads and tracks. Set by terrain.gd `apply_biome`.
+//
 // Layer order: see LAYERS in crates/cli/src/gen_textures.rs.
 shader_type spatial;
 render_mode cull_back;
 
 const int LAYER_COUNT = 10;
 const int TRACK = 1;
+const int ROAD = 2;
+const int SNOW = 5;
 const int SHALLOW = 6;
 const int DEEP = 7;
 const int ROCK = 8;
@@ -44,6 +51,13 @@ uniform float blend_contrast = 0.35;
 // Slope (rise/run) where bare earth and rock start to show.
 uniform vec2 earth_grade = vec2(0.20, 0.34);
 uniform vec2 rock_grade = vec2(0.45, 0.65);
+// Biome look (prompt 015).
+// Without a biome (use_biome false) every layer draws its own texture.
+uniform bool use_biome = false;
+uniform int layer_source[LAYER_COUNT];
+uniform vec4 layer_tint[LAYER_COUNT] : source_color;
+uniform float snow_cover = 0.0;
+uniform float grass_variation = 1.0;
 // 1: tint every chunk by its LOD level (debug menu).
 uniform bool show_lod = false;
 
@@ -174,14 +188,18 @@ void fragment() {
 		vec2 gay = gy / tile;
 		vec2 gbx = rotate(gx, angle_b) / (tile * scale_b);
 		vec2 gby = rotate(gy, angle_b) / (tile * scale_b);
-		vec4 ca = textureGrad(albedo_array, vec3(uv_a, float(i)), gax, gay);
-		vec4 cb = textureGrad(albedo_array, vec3(uv_b, float(i)), gbx, gby);
-		vec4 na = textureGrad(normal_array, vec3(uv_a, float(i)), gax, gay);
-		vec4 nb = textureGrad(normal_array, vec3(uv_b, float(i)), gbx, gby);
+		float src = use_biome ? float(layer_source[i]) : float(i);
+		vec4 ca = textureGrad(albedo_array, vec3(uv_a, src), gax, gay);
+		vec4 cb = textureGrad(albedo_array, vec3(uv_b, src), gbx, gby);
+		vec4 na = textureGrad(normal_array, vec3(uv_a, src), gax, gay);
+		vec4 nb = textureGrad(normal_array, vec3(uv_b, src), gbx, gby);
 		// The b normal is rotated with its uv; turn it back.
 		vec2 nbxy = rotate(nb.xy * 2.0 - 1.0, -angle_b) * 0.5 + 0.5;
 		nb = vec4(nbxy, nb.zw);
 		col[i] = mix(ca, cb, blend);
+		if (use_biome) {
+			col[i].rgb *= layer_tint[i].rgb;
+		}
 		nrm[i] = mix(na, nb, blend);
 		bias[i] = w[i] + col[i].a * blend_contrast;
 		best = max(best, bias[i]);
@@ -227,8 +245,25 @@ void fragment() {
 	float greenness = clamp((albedo.g - max(albedo.r, albedo.b)) * 25.0, 0.0, 1.0);
 	vec3 dry = albedo * vec3(1.35, 1.08, 0.7);
 	vec3 lush = albedo * vec3(0.8, 0.95, 0.75);
-	albedo = mix(albedo, dry, smoothstep(0.5, 0.8, macro_far.g) * 0.7 * greenness);
-	albedo = mix(albedo, lush, smoothstep(0.45, 0.2, macro_far.g) * 0.6 * greenness);
+	albedo = mix(albedo, dry, smoothstep(0.5, 0.8, macro_far.g) * 0.7 * greenness * grass_variation);
+	albedo = mix(albedo, lush, smoothstep(0.45, 0.2, macro_far.g) * 0.6 * greenness * grass_variation);
+
+	// Snow cover (winter): on flat ground, patchy, thinner on roads and
+	// tracks (driven on) and none on water.
+	if (snow_cover > 0.0) {
+		float flat_ground = smoothstep(0.55, 0.2, grade);
+		float worn = clamp(w[TRACK] + w[ROAD], 0.0, 1.0);
+		float water = clamp(w[SHALLOW] + w[DEEP], 0.0, 1.0);
+		float s = snow_cover * flat_ground * (1.0 - 0.55 * worn) * (1.0 - water);
+		s = smoothstep(0.25, 0.65, s + (macro_near.r - 0.5) * 0.45 + (macro_far.b - 0.5) * 0.25);
+		float tile = layer_tile[SNOW];
+		vec4 snow_col = textureGrad(albedo_array, vec3(p / tile, float(SNOW)), dpdx / tile, dpdy / tile);
+		vec4 snow_nrm = textureGrad(normal_array, vec3(p / tile, float(SNOW)), dpdx / tile, dpdy / tile);
+		albedo = mix(albedo, snow_col.rgb, s);
+		rough = mix(rough, snow_nrm.b, s);
+		ao = mix(ao, snow_nrm.a, s);
+		detail *= 1.0 - 0.6 * s;
+	}
 
 	if (show_lod) {
 		float level = log2(lod_stride);

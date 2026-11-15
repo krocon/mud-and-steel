@@ -8,6 +8,7 @@ extends PanelContainer
 ##   (the code path prompt 021 will use for real craters).
 ## - "Show terrain LOD": tints every chunk by its LOD level.
 ## - "Map objects" / "Decoration": show or hide them (prompt 013).
+## - Biome and graphics quality switches (prompt 015).
 
 var main: Node3D
 
@@ -43,6 +44,11 @@ func _ready() -> void:
 	deco.button_pressed = true
 	deco.toggled.connect(func(on: bool) -> void: main.map_objects.set_decoration_visible(on))
 	box.add_child(deco)
+	# Biome and graphics quality (prompt 015), presentation only.
+	box.add_child(_choice("Biome", main.atmosphere.BIOMES, main.atmosphere.preset.id,
+		func(id: String) -> void: main.set_biome(id)))
+	box.add_child(_choice("Quality", main.GraphicsQuality.LEVELS, main.atmosphere.quality,
+		func(level: String) -> void: main.atmosphere.set_quality(level)))
 
 
 func _unhandled_key_input(event: InputEvent) -> void:
@@ -68,3 +74,18 @@ func _process(_delta: float) -> void:
 
 func _on_crater() -> void:
 	main.terrain.debug_crater(main.camera_rig.focus)
+
+
+## A labeled option button; `on_select` gets the chosen item.
+func _choice(label: String, items: Array[String], current: String, on_select: Callable) -> HBoxContainer:
+	var row := HBoxContainer.new()
+	var text := Label.new()
+	text.text = label
+	row.add_child(text)
+	var options := OptionButton.new()
+	for item in items:
+		options.add_item(item)
+	options.select(maxi(items.find(current), 0))
+	options.item_selected.connect(func(index: int) -> void: on_select.call(items[index]))
+	row.add_child(options)
+	return row

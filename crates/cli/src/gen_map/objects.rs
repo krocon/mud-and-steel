@@ -781,6 +781,7 @@ mod tests {
             name: "gen_test",
             size_m: 300,
             seed: 5,
+            biome: "forest",
             out: dir,
         };
         generate_map(&options).unwrap();

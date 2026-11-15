@@ -447,8 +447,8 @@ from `crates/bridge/src/objects.rs`.
   in directional shadow passes (orthographic projection) and beyond 70 m instead
   of its 3 × 3 leaf-cell search. Over a wood at 15 m the full pattern in four
   shadow cascades held the frame at 33 FPS; with both measures 160–175 FPS.
-- **Biome:** `EnvLook` instance uniforms per node (forest until prompt 015 lets the
-  map choose). Every node with instance uniforms takes slots of Godot's global
+- **Biome:** `EnvLook` instance uniforms per node, from the map's biome (prompt 015,
+  `MapObjects.set_biome`). Every node with instance uniforms takes slots of Godot's global
   shader uniform buffer; `project.godot` raises
   `rendering/limits/global_shader_variables/buffer_size` to 262 144 (the default
   65 536 overflowed at ~10 000 nodes and turned foliage black).
@@ -486,6 +486,93 @@ near / middle / overview. The draw calls in the overview come from the far meshe
 of about 300 visible chunks × tree variants × shadow cascades; merging far trees
 into larger chunks would cut them if weaker GPUs need it (prompt 016).
 `just objects-shots <dir>` records woods, village, meadow and a hedgerow.
+
+## Lighting, atmosphere and biomes (presentation only)
+
+Prompt 015. `godot/scenes/world/atmosphere.gd` (created by `main.gd`) sets up
+the sun, the `WorldEnvironment`, a vignette, the terrain's biome colors and the
+weather from a **biome preset** and a **graphics quality level**.
+
+### Biome
+
+```
+data/maps/<name>/map.toml   biome = "forest" | "desert" | "winter"   (default forest)
+   │  sim::Map::biome()  (validated on load, not in the map hash or state hash)
+   ▼
+SimHost.map_biome()  ──  `-- --biome=<id>` overrides it
+   ▼
+atmosphere.gd: load res://assets/biomes/<id>.tres (BiomePreset)
+   ├─ sun, sky, ambient light, haze, tonemapping and grading, vignette
+   ├─ terrain.gd apply_biome(): layer sources and tints, snow cover, map edge
+   ├─ env materials (bark, foliage): wind strength, direction, speed
+   └─ snowfall particles (winter)
+main.gd: UnitCamo.palette(faction, preset.camo_biome) for every unit model;
+         map_objects.gd: EnvLook look of preset.env_biome on map objects and decoration
+```
+
+`forest` is the temperate biome (meadows, fields, forest). The names are the
+same as those of the camouflage palettes and `EnvLook`, so there is no mapping
+table. The simulation only checks the value; no rule reads it. Debug menu (F3)
+and `main.set_biome(id)` switch the biome at runtime (units and map objects are
+repainted, decoration is rebuilt).
+
+**Ground per biome.** The map's terrain types stay what they are; the terrain
+shader draws every material layer with the texture layer named in
+`layer_source` and multiplies it by `layer_tint`. Desert: grass and snow are
+drawn as pale sand, mud as dried earth, tracks and gravel lighter and
+yellower. Winter: grass and sand are drawn as snow, `snow_cover` adds patchy
+snow on flat ground (thinner on roads and tracks, none on water), tracks stay
+dark and rutted. Forest is the identity. No extra textures are needed.
+
+### Light and atmosphere
+
+| Element | Setting | Why |
+|---|---|---|
+| Sun | Direction from elevation and bearing per biome (forest 42°, desert 58°, winter 24°), from the south-east, so shadows fall to the north-west (upper left when looking north); no angular size (hard shadows), PCF filter by quality | Hard, readable shadows like the references; side light shows relief. |
+| Shadow cascades | 4 (low: 2), distance 1.8 × camera distance, splits at 45 / 58 / 75 % of it, blended | The ground is seen from about 0.8 to 1.5 camera distances; the default splits spent half the cascades on the air in front of the camera. |
+| Sky | `ProceduralSkyMaterial` per biome | No downloads; the sky is almost never on screen at 45–65° pitch, it serves as ambient light and haze color. Blue-ish shadow fill comes from it. |
+| Tonemapping | AgX, exposure and white per biome | Pleasant highlight roll-off on sand and snow without clipping. |
+| Grading | Contrast, saturation and a `GradientTexture1D` per-channel tone curve (cool shadows, warm highlights) | Editable in the `.tres`, no LUT image files. |
+| Haze | Depth fog from 0.65–0.7 to 2.0–2.2 camera distances, curve 1.3, at most 35–45 %, aerial perspective | Foreground stays clear at every zoom, the upper screen edge lies in light haze. Exponential fog would grey the whole view at 600 m. |
+| SSAO | Radius 2.5 % of the camera distance (0.6–10 m) | Contact shadows under vehicles up close, soft shading of hollows and ditches far away. |
+| SSIL, SDFGI | Off | SSIL measured 0.5–0.7 ms on high with hardly a visible change on open ground; SDFGI costs too much on a 4 km map and leaks light. |
+| Depth of field | Not used | Tried far blur below 50 m: with the narrow 30° lens it smeared the upper screen edge and streaked at texture borders. |
+| Vignette | Canvas shader below the HUD, 25 % | Frames the view lightly. |
+| Snowfall | `GPUParticles3D` box around the camera focus, scaled with the camera distance (winter, medium and high) | Weather prepared; flakes stay visible at every zoom. |
+
+### Graphics quality
+
+`-- --quality=low|medium|high` (default high) or the debug menu (F3);
+settings in `scenes/world/graphics_quality.gd`. A settings menu follows with
+prompt 027.
+
+| Level | Shadow atlas | Cascades | Shadow filter | SSAO | Glow | AA | Snow particles |
+|---|---|---|---|---|---|---|---|
+| low | 2048² | 2 | hard | off | off | FXAA | off |
+| medium | 4096² | 4 | soft low | low, half size | on | FXAA | 6 000 × snowfall |
+| high | 8192² | 4 | soft medium | medium, full size | on | MSAA 4× | 16 000 × snowfall |
+
+Measured with `just terrain-bench test_large --quality=<level>` (1920 × 1080,
+Apple M1 Max, V-Sync off, debug bridge, forest; "terrain" = overview without
+units; measured before the map objects of prompt 013 were merged):
+
+| Level | Near (15 m) | Middle (120 m) | Overview (600 m) | Terrain only |
+|---|---|---|---|---|
+| low | 279 FPS | 272 FPS | 248 FPS | 260 FPS |
+| medium | 239 FPS | 231 FPS | 244 FPS | 253 FPS |
+| high | 172 FPS | 164 FPS | 164 FPS | 183 FPS |
+| high, winter (snowfall) | 186 FPS | 144 FPS | 165 FPS | 178 FPS |
+| high + SSIL (not used) | 164 FPS | 151 FPS | 147 FPS | – |
+
+Every level stays far above the 60 FPS target. Most of the cost of "high" is
+MSAA 4× and the full-size SSAO.
+
+### Tools
+
+`just terrain-shots <dir> test_large --biome=desert` records the fixed views
+in a biome, `just terrain-bench test_large --quality=low` measures a level.
+The model gallery (`just gallery`) lights models with the sun color, sky,
+ambient light and grading of the selected biome's preset.
 
 ## Selection (presentation only)
 
@@ -560,7 +647,8 @@ placed from four values: focus, distance (15–600 m), pitch and yaw.
   back to north (−Z).
 - The focus is clamped to `bounds`, set by `main.gd` from `SimHost.map_size()`, and
   sits on the ground height (`GroundPick.height_at`).
-- Near/far planes and the sun's shadow distance scale with the camera distance.
+- Near/far planes and the sun's shadow distance scale with the camera distance
+  (`atmosphere.gd` sets the shadow factor to 1.8; see "Lighting, atmosphere and biomes").
 - All bindings are `camera_*` actions in the input map in `project.godot`.
 - `ground_pick.gd` holds the screen-to-ground math used by the camera and by mouse
   commands. Once `main.gd` sets `GroundPick.height_source` to the SimHost, rays hit

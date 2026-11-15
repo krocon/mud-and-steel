@@ -52,6 +52,9 @@ enum CliCommand {
         size_m: u32,
         #[arg(long, default_value_t = 1)]
         seed: u64,
+        /// Climate look written into map.toml (presentation only).
+        #[arg(long, default_value = "forest", value_parser = ["forest", "desert", "winter"])]
+        biome: String,
         /// Output folder (default: data/maps/<name>).
         #[arg(long)]
         out: Option<PathBuf>,
@@ -147,6 +150,7 @@ fn main() {
             name,
             size_m,
             seed,
+            biome,
             out,
         } => {
             let out = out.unwrap_or_else(|| Path::new(MAPS_DIR).join(&name));
@@ -154,6 +158,7 @@ fn main() {
                 name: &name,
                 size_m,
                 seed,
+                biome: &biome,
                 out: &out,
             };
             match gen_map::generate(&options) {

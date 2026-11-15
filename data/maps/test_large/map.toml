@@ -5,6 +5,7 @@ cell_size_mm = 2000
 samples = [2001, 2001]
 height_base_mm = -5000
 height_step_mm = 3
+biome = "forest"
 
 [[start]]
 player = 0

@@ -238,6 +238,16 @@ impl SimHost {
             .map_or_else(GString::new, |g| GString::from(g.map.name()))
     }
 
+    /// Biome of the loaded map from `map.toml` (`forest`, `desert`,
+    /// `winter`; "" before `start`). Presentation only: lighting, ground
+    /// colors, camouflage palettes and environment looks follow it.
+    #[func]
+    fn map_biome(&self) -> GString {
+        self.game
+            .as_ref()
+            .map_or_else(GString::new, |g| GString::from(g.map.biome().name()))
+    }
+
     /// Width (x) and depth (z) of the map in meters. The map is centered on
     /// the origin. Zero before `start`.
     #[func]

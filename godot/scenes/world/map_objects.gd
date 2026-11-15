@@ -165,6 +165,20 @@ func _process(_delta: float) -> void:
 		_last_deco_origin = origin
 
 
+## Switches the biome look (prompt 015): map objects are repainted, the
+## decoration is rebuilt with the new look.
+func set_biome(id: String) -> void:
+	biome = id
+	if _objects_root == null:
+		return
+	for node: GeometryInstance3D in _objects_root.get_children():
+		_apply_look(node)
+	for layer in _deco.size():
+		for square: Vector2i in _deco[layer].keys():
+			_free_deco(layer, square)
+	_last_deco_origin = Vector3.INF
+
+
 ## Shows or hides the map objects (debug menu).
 func set_objects_visible(on: bool) -> void:
 	_objects_root.visible = on

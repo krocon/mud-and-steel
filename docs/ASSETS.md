@@ -477,9 +477,12 @@ biome variants cost nothing.
   forest, dry olive desert with dust, winter with snow on upward faces and on
   needles. The leafless `Bare` oak is the winter variant of deciduous trees.
   Military objects use `Paint`; pass a faction palette base color as `paint`.
-- **Wind** is prepared as material parameters `wind_strength`,
-  `wind_direction`, `wind_speed` (prompt 015 can drive them globally); the
-  sway uses the baked weights, so trunks stay rooted and leaves flutter.
+- **Wind** is set as material parameters `wind_strength`,
+  `wind_direction`, `wind_speed` on the shared `bark` and `foliage`
+  materials from the biome preset (prompt 015); the sway uses the baked
+  weights, so trunks stay rooted and leaves flutter.
+- In the game the biome comes from the map (`map.toml`, prompt 015): unit
+  palettes and `EnvLook` follow the preset's `camo_biome` and `env_biome`.
 
 ### Distance: far meshes instead of impostors
 

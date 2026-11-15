@@ -65,6 +65,8 @@ var _ranges := PackedVector2Array()
 var _lods := PackedInt32Array()
 var _material: ShaderMaterial
 var _edge_material: ShaderMaterial
+## BiomePreset applied by `apply_biome` (prompt 015), or null.
+var _biome: Resource
 var _images: Dictionary[String, Image] = {}
 var _textures: Dictionary[String, ImageTexture] = {}
 var _lod_nodes: Array[MultiMeshInstance3D] = []
@@ -142,6 +144,8 @@ func build(host: SimHost) -> void:
 	_edge.name = "Edge"
 	add_child(_edge)
 	_build_edge()
+	if _biome:
+		apply_biome(_biome)
 	_dirty = true
 	print("terrain: map '%s', %d x %d samples, %d x %d chunks of %d m, built in %d ms" % [
 		host.map_name(), _samples.x, _samples.y, _chunks.x, _chunks.y,
@@ -286,6 +290,33 @@ func sample_of(point: Vector3) -> Vector2i:
 	return Vector2i(
 		roundi((point.x + _map_size.x * 0.5) / _cell), roundi((point.z + _map_size.y * 0.5) / _cell)
 	)
+
+
+## Ground colors of a biome (prompt 015): texture layer per material layer,
+## tint, snow cover, dry/lush variation and the map edge. `preset` is a
+## BiomePreset (res://assets/biomes/biome_preset.gd). Before `build` it is
+## kept and applied when the materials exist.
+func apply_biome(preset: Resource) -> void:
+	_biome = preset
+	if _material == null or preset == null:
+		return
+	_material.set_shader_parameter("layer_source", preset.layer_source)
+	var tints := PackedColorArray(preset.layer_tint)
+	tints.resize(LAYER_TILE_M.size())
+	for i in tints.size():
+		if tints[i] == Color(0, 0, 0, 0):
+			tints[i] = Color.WHITE
+	_material.set_shader_parameter("layer_tint", tints)
+	_material.set_shader_parameter("use_biome", true)
+	_material.set_shader_parameter("snow_cover", preset.snow_cover)
+	_material.set_shader_parameter("grass_variation", preset.grass_variation)
+	_edge_material.set_shader_parameter("top_color", preset.edge_top)
+	_edge_material.set_shader_parameter("soil_tint", preset.edge_tint)
+
+
+## Current value of a terrain shader parameter (for the self-test).
+func shader_parameter(name: StringName) -> Variant:
+	return _material.get_shader_parameter(name) if _material else null
 
 
 func set_show_lod(enabled: bool) -> void:

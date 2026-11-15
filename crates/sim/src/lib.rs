@@ -27,7 +27,7 @@ pub use catalog::Catalog;
 pub use command::{Command, PlayerCommand, PlayerId, UnitId};
 pub use data::{DEFAULT_FOOTPRINT_MM, DataError, UnitType, unit_types_from_catalog};
 pub use hash::StableHasher;
-pub use map::{Map, MapError, MapRef};
+pub use map::{Biome, Map, MapError, MapRef};
 pub use math::{Fixed, Vec2};
 pub use objects::{Blocks, MapObject, ObjectKind, ObjectRules};
 pub use rng::Rng;

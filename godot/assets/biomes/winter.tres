@@ -1,0 +1,46 @@
+[gd_resource type="Resource" script_class="" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://assets/biomes/biome_preset.gd" id="1_preset"]
+
+[sub_resource type="Gradient" id="Gradient_grade"]
+offsets = PackedFloat32Array(0, 0.22, 0.75, 1)
+colors = PackedColorArray(0.01, 0.014, 0.025, 1, 0.19, 0.21, 0.245, 1, 0.75, 0.76, 0.77, 1, 1, 1, 1, 1)
+
+[resource]
+script = ExtResource("1_preset")
+id = "winter"
+camo_biome = "winter"
+env_biome = "winter"
+sun_elevation_deg = 24.0
+sun_azimuth_deg = 140.0
+sun_color = Color(1, 0.9, 0.78, 1)
+sun_energy = 1.9
+shadow_opacity = 0.95
+sky_top = Color(0.42, 0.53, 0.68, 1)
+sky_horizon = Color(0.76, 0.8, 0.85, 1)
+ground_horizon = Color(0.7, 0.72, 0.75, 1)
+ground_bottom = Color(0.5, 0.52, 0.55, 1)
+ambient_energy = 0.75
+ambient_sky_contribution = 1.0
+haze_color = Color(0.78, 0.82, 0.88, 1)
+haze_amount = 0.45
+haze_begin = 0.65
+haze_end = 2.0
+haze_curve = 1.3
+aerial_perspective = 0.6
+exposure = 0.95
+white = 8.0
+contrast = 1.08
+saturation = 0.9
+color_correction = SubResource("Gradient_grade")
+vignette = 0.25
+layer_source = PackedInt32Array(5, 1, 2, 5, 4, 5, 6, 7, 8, 9)
+layer_tint = PackedColorArray(1, 1, 1, 1, 0.85, 0.85, 0.88, 1, 0.9, 0.92, 0.95, 1, 1, 1, 1, 1, 0.75, 0.75, 0.78, 1, 1, 1, 1, 1, 0.85, 0.9, 0.95, 1, 0.8, 0.88, 0.95, 1, 0.85, 0.88, 0.92, 1, 0.8, 0.8, 0.82, 1)
+snow_cover = 0.75
+grass_variation = 0.0
+edge_top = Color(0.82, 0.84, 0.87, 1)
+edge_tint = Color(0.85, 0.85, 0.88, 1)
+wind_strength = 0.35
+wind_direction = Vector2(1, 0.5)
+wind_speed = 1.5
+snowfall = 0.6

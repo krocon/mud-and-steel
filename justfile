@@ -268,15 +268,15 @@ run-paths map="test_small": build
 terrain-textures size="1024" preview="":
     cargo run -q --release -p cli -- gen-terrain-textures --size {{ size }} {{ if preview != "" { "--preview " + preview } else { "" } }}
 
-# Measure frame rate and draw calls of the terrain at 1080p (opens a window)
+# Measure frame rate and draw calls of the terrain at 1080p (opens a window; extra args e.g. --quality=low --biome=winter)
 [group('terrain')]
-terrain-bench map="test_large": build
-    {{ GODOT }} --path godot --always-on-top -- --terrain-bench --map={{ map }}
+terrain-bench map="test_large" *args: build
+    {{ GODOT }} --path godot --always-on-top -- --terrain-bench --map={{ map }} {{ args }}
 
-# Record fixed terrain views (near, middle, overview, edge, LOD, crater) as PNG frames into a folder
+# Record fixed terrain views (near, middle, overview, edge, LOD, crater) as PNG frames into a folder (extra args e.g. --biome=desert)
 [group('terrain')]
-terrain-shots dir map="test_large": build
-    {{ GODOT }} --path godot --always-on-top --fixed-fps 30 --write-movie "{{ dir }}/f.png" -- --terrain-shots --map={{ map }}
+terrain-shots dir map="test_large" *args: build
+    {{ GODOT }} --path godot --always-on-top --fixed-fps 30 --write-movie "{{ dir }}/f.png" -- --terrain-shots --map={{ map }} {{ args }}
 
 # --- Map objects (prompt 013) ---------------------------------------------------------
 
