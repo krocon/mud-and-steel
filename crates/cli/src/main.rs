@@ -3,6 +3,7 @@
 mod catalog_doc;
 mod gen_map;
 mod gen_textures;
+mod lan;
 mod path_bench;
 
 use clap::{Parser, Subcommand};
@@ -94,6 +95,40 @@ enum CliCommand {
         #[arg(long)]
         preview: Option<PathBuf>,
     },
+    /// Hosts a LAN game of the demo scenario and plays it headless
+    /// (exit code 1 on desync).
+    LanHost {
+        /// Player name shown to searching clients.
+        #[arg(long, default_value = "cli host")]
+        name: String,
+        #[arg(long, default_value_t = net::lan::DEFAULT_GAME_PORT)]
+        port: u16,
+        #[arg(long, default_value_t = net::lan::DEFAULT_DISCOVERY_PORT)]
+        discovery_port: u16,
+        /// Players including the host; the match starts when all joined.
+        #[arg(long, default_value_t = 2)]
+        players: usize,
+        #[arg(long, default_value_t = 42)]
+        seed: u64,
+        /// Initial input delay in ticks (adapted to the round trip later).
+        #[arg(long, default_value_t = 3)]
+        input_delay: u32,
+        #[command(flatten)]
+        play: LanPlayArgs,
+    },
+    /// Joins a LAN game (by address or the first one found) and plays it
+    /// headless (exit code 1 on desync).
+    LanJoin {
+        #[arg(long, default_value = "cli client")]
+        name: String,
+        /// Host address, e.g. 192.168.1.20:47810. Searched on the LAN if omitted.
+        #[arg(long)]
+        address: Option<std::net::SocketAddr>,
+        #[arg(long, default_value_t = net::lan::DEFAULT_DISCOVERY_PORT)]
+        discovery_port: u16,
+        #[command(flatten)]
+        play: LanPlayArgs,
+    },
     /// Writes docs/UNIT_CATALOG.md (or the given path) from the built-in catalog.
     CatalogDoc {
         #[arg(default_value = catalog_doc::DOC_PATH)]
@@ -106,8 +141,78 @@ enum CliCommand {
     },
 }
 
+#[derive(clap::Args)]
+struct LanPlayArgs {
+    /// Number of ticks to play.
+    #[arg(long, default_value_t = 600)]
+    ticks: u64,
+    /// Write a replay of the match to this file.
+    #[arg(long)]
+    record: Option<PathBuf>,
+    /// Give up after this many seconds (lobby and match).
+    #[arg(long, default_value_t = 60)]
+    timeout_s: u64,
+    /// Testing: apply an extra command locally at this tick to provoke a desync.
+    #[arg(long, hide = true)]
+    cheat_tick: Option<u64>,
+}
+
+impl LanPlayArgs {
+    fn options(self) -> lan::MatchOptions {
+        lan::MatchOptions {
+            ticks: self.ticks,
+            record: self.record,
+            cheat_tick: self.cheat_tick,
+            timeout: std::time::Duration::from_secs(self.timeout_s),
+        }
+    }
+}
+
+fn exit_with(result: Result<i32, String>) -> ! {
+    match result {
+        Ok(code) => std::process::exit(code),
+        // 2, so that errors are told apart from a desync (1).
+        Err(e) => {
+            eprintln!("{e}");
+            std::process::exit(2)
+        }
+    }
+}
+
 fn main() {
     match Cli::parse().command {
+        CliCommand::LanHost {
+            name,
+            port,
+            discovery_port,
+            players,
+            seed,
+            input_delay,
+            play,
+        } => {
+            let options = lan::HostOptions {
+                name,
+                port,
+                discovery_port,
+                players: players.max(2),
+                seed,
+                input_delay,
+            };
+            exit_with(lan::host(&options, &play.options()));
+        }
+        CliCommand::LanJoin {
+            name,
+            address,
+            discovery_port,
+            play,
+        } => {
+            let options = lan::JoinOptions {
+                name,
+                address,
+                discovery_port,
+            };
+            exit_with(lan::join(&options, &play.options()));
+        }
         CliCommand::Run {
             ticks,
             seed,
