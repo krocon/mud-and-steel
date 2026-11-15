@@ -76,3 +76,18 @@ Haltung/Deckung (022) und Effekte (019) reagieren auf `Hit`-Ereignisse.
 | 9 | **KI (Hard):** eigene Rolle „Artillerie“; feuert Sperrfeuer auf die größte gesichtete Gruppe in Reichweite und legt Rauch zwischen eigene vorrückende Gruppe und Feind, bevor sie angreift. Mörser-Trupps und Selbstfahrlafetten kommen in die Produktionslisten (`data/economy.toml`); Hard baut Mörser-Trupps (mit SFL im Mix verlor Hard Basisbau-Partien gegen Normal, weil das Ansparen die Panzerproduktion bremste). | Ohne Produktion hätte die KI keine Artillerie. |
 | 10 | **Darstellung:** Granaten als dunkle Körper auf der Bahn, Mündungsfeuer/Einschlag über die vorhandenen `shot`/`hit`-Ereignisse (gleiche Ids), Rauchwolken als Billboard-Puffs, Einschlagmarker für eigene Granaten, Signal `shell_incoming` für das Pfeifen (029 hängt sich an). Tasten: **G** Sperrfeuer (3 Salven, 25 m) und **N** Rauch (2 Salven) auf den Bodenpunkt unter dem Mauszeiger. | Godot zeichnet nur; Ton kommt aus 029, das parallel entsteht. |
 | 11 | Regeln in eigener Datei `data/indirect.toml`, von `Sim::new` geladen (wie Krater), nicht in `SimConfig`. | Ändert das Replay-/Config-Format nicht (038 läuft parallel) und berührt `CombatRules` nicht. |
+
+## Ergebnis
+
+Umgesetzt wie oben; Details in `docs/ARCHITECTURE.md` „Indirect fire and smoke“,
+`docs/SCALE.md` (Ballistik), `docs/AI.md` (Artillerie). Tests:
+`crates/sim/tests/indirect.rs` (Mörser hinter Mauer, Mindestreichweite, Splitter im
+Radius, Haltung dämpft, offene Fahrzeuge vs. Tiger, Rauch blockiert Sicht und
+verschwindet, keine Rauchmunition, gleicher Hash), Einheitentests in
+`crates/sim/src/indirect.rs`, `crates/ai/tests/ai.rs::hard_uses_artillery_and_smoke`.
+Golden-Hashes (Demo, Basisbau) bewusst aktualisiert: neuer Zustand im Hash, Demo-Schlacht
+unverändert (Tick 480, Spieler 0 gewinnt).
+
+Offen: Darstellung nicht visuell geprüft (nur Headless-Selbsttest ohne Artillerie in
+der Testpartie); gezogene Geschütze und schwere Mörser erst mit 034; SU-Einträge ohne
+Rauchmunition; vorläufige Werte in `data/indirect.toml`; Pfeifton hängt an 029.
