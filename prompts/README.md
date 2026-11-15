@@ -6,7 +6,7 @@ und parallel laufen können:
 
 - **Asset-Strang (003–008):** Maßstab, Einheitenkatalog, Blender-Baukasten, Modelle.
   Er braucht nur den Katalog und die Konventionen, keinen fertigen Spielcode.
-- **Spiel-Strang (002, 009–028):** Kamera, Einheitensteuerung, Karte, Gelände, Gameplay,
+- **Spiel-Strang (002, 009–028, ab 029 Stufe 2):** Kamera, Einheitensteuerung, Karte, Gelände, Gameplay,
   Netzwerk. Er nutzt die Modelle, sobald sie da sind, und arbeitet bis dahin mit
   Platzhaltern.
 
@@ -78,6 +78,44 @@ Welle 4:  012 Wegfindung ─ 013 …  │   008 Stufe 2 (3 Sessions pro Fraktion
 | 026 | [Online über Steam](done/026-online-steam.md) | Steam-Lobbys, Einladungen, Transport über Steam Networking (steamworks-rs) | erledigt |
 | 027 | [Menüs und Spielablauf](done/027-menues-spielablauf.md) | Hauptmenü, Lobby, Einstellungen, Sieg/Niederlage | erledigt |
 | 028 | [Karteneditor](done/028-karteneditor.md) | Karten im Spiel bauen und speichern | erledigt |
+
+### Stufe 2: vom Prototyp zum Spiel (029–045)
+
+Analyse nach Welle 9: Alle Grundsysteme stehen, es fehlen Sound, Bedienkomfort, die
+Waffengattungen, deren Modelle schon gebaut sind (Artillerie, Flugzeuge, Transport,
+Pioniere), Logistik, Teams, Speichern, Einstieg für neue Spieler, Wetter, mehr
+Umgebung und der Weg zum Release. Als „Entwurf“ markierte Prompts werden vor dem
+Umsetzen von ihrer Session konkretisiert.
+
+| Nr. | Prompt | Ziel | Status |
+|-----|--------|------|--------|
+| 029 | [Sound-Effekte](029-sound-effekte.md) | Gefecht, Motoren, UI; Busse, Stimmenlimit, Quellen | offen |
+| 030 | [Musik und Umgebungsklang](030-musik-ambiente.md) | Biom-Ambiente, Musik ruhig/Gefecht, Menü | Entwurf |
+| 031 | [HUD, Minikarte, Befehle](031-hud-minimap-befehle.md) | Minikarte, Einheitenanzeige, Befehlsleiste, Wegpunktketten | Entwurf |
+| 032 | [Indirektes Feuer und Rauch](032-indirektes-feuer-rauch.md) | Mörser, Haubitzen, Splitter, Rauch blockiert Sicht | Entwurf |
+| 033 | [Flugzeuge und Flak](033-luftwaffe-flak.md) | Luftunterstützung als Abruf, Flugabwehr | Entwurf |
+| 034 | [Transport und Schleppen](034-transport-schleppen.md) | Aufsitzen, Geschütze ziehen und abprotzen | Entwurf |
+| 035 | [Pioniere, Minen, Stellungen](035-pioniere-minen-stellungen.md) | Minen, Draht, Gräben, Brücken reparieren/sprengen | Entwurf |
+| 036 | [Nachschub und Reparatur](036-nachschub-reparatur.md) | Verbrauch pro Einheit, Versorgungs-LKW, Reparatur, Bergung | Entwurf |
+| 037 | [Teams und KI-Plätze](037-teams-ki-slots.md) | 2v2/3v3, KI in der Lobby, Moduswahl im LAN | Entwurf |
+| 038 | [Speichern und Replays](038-speichern-replays.md) | Spielstände, Replay-Ansicht mit Vorspulen | Entwurf |
+| 039 | [Tutorial und Missionen](039-tutorial-missionen.md) | Skript-System, Tutorial, Beispielmissionen | Entwurf |
+| 040 | [Wetter, Schlamm, Tageszeit](040-wetter-schlamm-tageszeit.md) | Regen weicht Boden auf, Nebel, Nacht | Entwurf |
+| 041 | [Umwelt Stufe 2 und Feuer](041-umwelt-stufe2-feuer.md) | Stadt, Industrie, Bahn, Bunker; Brände und Lager-Explosionen | Entwurf |
+| 042 | [Infanterie-Texturen](042-infanterie-texturen.md) | Uniform-Texturen, Tarnmuster, fehlende Waffen, Animationen | Entwurf |
+| 043 | [Sprache und Barrierefreiheit](043-sprache-barrierefreiheit.md) | Deutsch/Englisch, Farbpaletten, UI-Skalierung, Grafikoptionen | Entwurf |
+| 044 | [Release-Builds und Steam](044-release-builds-steam.md) | Export für drei Systeme, Release-CI, SteamPipe, Credits | Entwurf |
+| 045 | [Balancing und Playtest](045-balancing-playtest.md) | Statistik, Turniere, Gefechtssimulator, bestätigtes Design | Entwurf |
+
+```
+Welle 10:  029 Sound │ 031 HUD │ 032 Indirektes Feuer │ 038 Speichern │ 042 Infanterie │ 044 Release
+Welle 11:  030 Musik (nach 029) │ 033 Flugzeuge (nach 032) │ 034 Transport │ 037 Teams │ 041 Umwelt 2
+Welle 12:  035 Pioniere │ 036 Nachschub (nach 034) │ 040 Wetter │ 043 Sprache (nach 031)
+Welle 13:  039 Tutorial/Missionen (nach 031, 038) │ 045 Balancing (zuletzt)
+```
+
+Viele dieser Prompts ändern `sim.rs`, `command.rs`, `main.gd` und den Golden-Hash.
+Parallel laufende Sessions übernehmen vor dem Abschluss den aktuellen `main`.
 
 ## Festgelegte Grundsätze
 
