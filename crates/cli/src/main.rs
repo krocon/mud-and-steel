@@ -235,15 +235,22 @@ fn replay(path: &std::path::Path) {
     }
 }
 
-/// Reads and decodes `dir/map.toml`, `dir/height.png` and `dir/terrain.png`.
+/// Reads and decodes `dir/map.toml`, `dir/height.png`, `dir/terrain.png`
+/// and, if present, `dir/objects.csv`.
 fn load_map_dir(dir: &Path) -> Result<sim::Map, String> {
     let read = |file: &str| {
         let path = dir.join(file);
         std::fs::read(&path).map_err(|e| format!("cannot read {}: {e}", path.display()))
     };
     let toml = String::from_utf8(read("map.toml")?).map_err(|e| e.to_string())?;
-    sim::Map::load(&toml, &read("height.png")?, &read("terrain.png")?)
-        .map_err(|e| format!("{}: {e}", dir.display()))
+    let mut map = sim::Map::load(&toml, &read("height.png")?, &read("terrain.png")?)
+        .map_err(|e| format!("{}: {e}", dir.display()))?;
+    if dir.join("objects.csv").exists() {
+        let csv = String::from_utf8(read("objects.csv")?).map_err(|e| e.to_string())?;
+        map.add_objects(&csv)
+            .map_err(|e| format!("{}: {e}", dir.display()))?;
+    }
+    Ok(map)
 }
 
 /// The map with this name: `data/maps/<name>/` if it exists, else the
@@ -269,8 +276,16 @@ fn map_info(dir: &Path) {
     let read = start.elapsed();
     let toml = String::from_utf8_lossy(&files[0]);
     let decode_start = std::time::Instant::now();
-    let map = sim::Map::load(&toml, &files[1], &files[2]).unwrap_or_else(|e| fail(&e.to_string()));
+    let mut map =
+        sim::Map::load(&toml, &files[1], &files[2]).unwrap_or_else(|e| fail(&e.to_string()));
     let decode = decode_start.elapsed();
+    let objects_file = std::fs::read_to_string(dir.join("objects.csv")).ok();
+    let objects_start = std::time::Instant::now();
+    if let Some(csv) = &objects_file {
+        map.add_objects(csv)
+            .unwrap_or_else(|e| fail(&e.to_string()));
+    }
+    let objects_time = objects_start.elapsed();
 
     let (sx, sy) = map.samples();
     let samples = u64::from(sx) * u64::from(sy);
@@ -300,7 +315,8 @@ fn map_info(dir: &Path) {
         sum = sum.wrapping_add(map.height_at(p));
     }
     let lookup = lookup_start.elapsed();
-    let file_bytes: usize = files.iter().map(Vec::len).sum();
+    let file_bytes: usize =
+        files.iter().map(Vec::len).sum::<usize>() + objects_file.as_ref().map_or(0, String::len);
     // Steepest grade between neighboring samples.
     let mut steepest = 0i64;
     for j in 0..sy {
@@ -333,6 +349,18 @@ fn map_info(dir: &Path) {
         "  files {:.2} MB, memory {:.2} MB (heights i32 + terrain u8)",
         file_bytes as f64 / 1e6,
         bytes as f64 / 1e6
+    );
+    let blocking = map
+        .objects()
+        .iter()
+        .filter(|o| map.object_kinds()[usize::from(o.kind)].blocks != sim::Blocks::None)
+        .count();
+    println!(
+        "  objects {} ({} kinds, {blocking} blocking), {:.2} MB in memory, parse + hash {:.1} ms",
+        map.objects().len(),
+        map.object_kinds().len(),
+        size_of_val(map.objects()) as f64 / 1e6,
+        objects_time.as_secs_f64() * 1e3
     );
     println!(
         "  read {:.1} ms, decode + validate + hash {:.1} ms",

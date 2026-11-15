@@ -36,7 +36,9 @@ Additional rules:
   `checked_*` or `saturating_*` where overflow is possible.
 - The algorithms of `Rng`, `StableHasher` and `Sim::state_hash` are part of the
   protocol. Changing them changes the golden hash and breaks replays.
-- Map data is integer: heights in millimeters (`i32`), terrain ids (`u8`). Bilinear
+- Map data is integer: heights in millimeters (`i32`), terrain ids (`u8`), map
+  objects (positions in millimeters, headings in whole degrees, shapes rotated
+  with a fixed integer sine table, `sim::objects::sin_cos_deg`). Bilinear
   interpolation runs in `Fixed` on millimeters and divides by 1000 once. The state
   hash contains the map's content hash, so peers on different map versions desync
   immediately instead of drifting apart. See [MAPS.md](MAPS.md).
@@ -61,14 +63,17 @@ Additional rules:
   `RandomState`, `Instant`, `SystemTime` and `std::thread::spawn`.
 - `crates/sim/tests/determinism.rs` contains a golden-hash test: the demo scenario
   (two players with eight tanks each, scripted group commands, seed 42, 1000 ticks,
-  on the built-in map `test_small`) must produce `0xc56989d73505efba`. CI runs it on
+  on the built-in map `test_small`) must produce `0x9d8c67c292c66be5`. CI runs it on
   macOS (ARM64), Linux and Windows (x86_64). The value was recorded on macOS ARM64.
   History: `0x075d8c59dfe3d336` (prompt 001/003, four tanks, single-unit commands),
   `0x8e8b2c6ed986ef2c` (prompt 009: owners, group commands with formation, `Stop`,
   owner and footprint in the hash), `0x13dfd6119523d352` (prompt 010: map with
   heights and terrain, terrain- and slope-dependent speed, unit height, map hash and
   terrain rules in the hash), changed in prompt 012 (movement along A* paths, path
-  queue, routes and grid version in the hash, `test_small` with wider fords).
+  queue, routes and grid version in the hash, `test_small` with wider fords),
+  `0xc56989d73505efba` (prompt 012), changed in prompt 013 (map objects on
+  `test_small` block path cells by size class; objects and their resolved rules
+  in the map hash).
   Regenerating `test_small` changes it as well.
 - `crates/net/tests/loopback.rs` plays the demo between two peers in lockstep with
   group commands, compares the hash of every tick, checks that the result equals the

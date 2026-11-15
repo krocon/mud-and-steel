@@ -14,6 +14,7 @@
 
 use crate::hash::StableHasher;
 use crate::math::{Fixed, Vec2};
+use crate::objects::{MapObject, ObjectKind, ObjectList, ObjectRules};
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::io::Cursor;
@@ -119,6 +120,8 @@ pub struct Map {
     terrain: Vec<u8>,
     starts: Vec<StartPosition>,
     markers: Vec<Marker>,
+    /// Placed objects (`objects.csv`), empty until [`Map::add_objects`].
+    objects: ObjectList,
     hash: u64,
 }
 
@@ -282,16 +285,7 @@ impl Map {
             }
         }
 
-        let mut h = StableHasher::new();
-        h.write_u32(samples_x);
-        h.write_u32(samples_y);
-        h.write_u32(cell_size_mm);
-        for &height in &heights_mm {
-            h.write_bytes(&height.to_le_bytes());
-        }
-        h.write_bytes(&terrain);
-
-        Ok(Self {
+        let mut map = Self {
             name,
             samples_x,
             samples_y,
@@ -302,16 +296,71 @@ impl Map {
             terrain,
             starts,
             markers,
-            hash: h.finish(),
-        })
+            objects: ObjectList::default(),
+            hash: 0,
+        };
+        map.hash = map.raster_hash();
+        Ok(map)
+    }
+
+    /// Adds the objects of `objects.csv` (format: `docs/MAPS.md`), resolved
+    /// against the built-in rules (`data/objects.toml`). Replaces earlier
+    /// objects. The map hash then covers the objects and their rules.
+    pub fn add_objects(&mut self, csv: &str) -> Result<(), MapError> {
+        let rules = ObjectRules::builtin().map_err(|e| MapError(e.to_string()))?;
+        self.add_objects_with(csv, &rules)
+    }
+
+    /// [`Map::add_objects`] with explicit rules (tests, tools).
+    pub fn add_objects_with(&mut self, csv: &str, rules: &ObjectRules) -> Result<(), MapError> {
+        let list = ObjectList::parse(csv, rules, self.half).map_err(|e| MapError(e.to_string()))?;
+        self.set_objects(list);
+        Ok(())
+    }
+
+    /// Sets already resolved objects (tests, tools).
+    pub fn set_objects(&mut self, list: ObjectList) {
+        let base = self.raster_hash();
+        self.objects = list;
+        self.hash = if self.objects.objects.is_empty() {
+            base
+        } else {
+            let mut h = StableHasher::new();
+            h.write_u64(base);
+            self.objects.hash_into(&mut h);
+            h.finish()
+        };
+    }
+
+    fn raster_hash(&self) -> u64 {
+        let mut h = StableHasher::new();
+        h.write_u32(self.samples_x);
+        h.write_u32(self.samples_y);
+        h.write_u32(self.cell_size_mm);
+        for &height in &self.heights_mm {
+            h.write_bytes(&height.to_le_bytes());
+        }
+        h.write_bytes(&self.terrain);
+        h.finish()
+    }
+
+    /// The kinds used by [`Map::objects`] (index = `MapObject::kind`).
+    pub fn object_kinds(&self) -> &[ObjectKind] {
+        &self.objects.kinds
+    }
+
+    /// Placed objects in file order.
+    pub fn objects(&self) -> &[MapObject] {
+        &self.objects.objects
     }
 
     pub fn name(&self) -> &str {
         &self.name
     }
 
-    /// Hash of the complete content (grid, heights, terrain), independent of
-    /// the name and of `map.toml` metadata.
+    /// Hash of the complete content (grid, heights, terrain, objects with
+    /// their resolved rules), independent of the name and of `map.toml`
+    /// metadata.
     pub const fn hash(&self) -> u64 {
         self.hash
     }
