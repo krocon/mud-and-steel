@@ -48,6 +48,7 @@ Rules:
 | `armor_hull_front_mm`, `armor_hull_side_mm`, `armor_hull_rear_mm` | int | Hull armor (thickest plate of that face, e.g. upper front). |
 | `armor_turret_front_mm`, `armor_turret_side_mm`, `armor_turret_rear_mm` | int | Turret (or casemate/superstructure) armor. Gun shield of towed guns goes into `armor_turret_front_mm`. |
 | `armor_hull_front_deg` | int | Upper front plate slope from vertical. |
+| `gun_traverse_deg` | int | Vehicles whose main gun sits in a casemate (no rotating turret): total horizontal traverse of the gun (StuG III G: `20` = 10° left and right). Absent means a turret that turns 360°. Used by combat (prompt 017). |
 | `weapon` | list | See below. Infantry: all weapons of the team, with `count`. |
 | `source` | list | `{ ref = "...", covers = "..." }`; `ref` is a URL, TM number or book with page. |
 | `uncertain` | list | Field names (or `"weapon"`) with uncertain values. |

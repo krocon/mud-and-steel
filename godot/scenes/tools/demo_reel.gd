@@ -6,6 +6,8 @@ extends Node
 ## Flies the camera over the map, selects the own tanks with a selection box,
 ## sends them across the field, rotates the view, sends one tank up the hill
 ## and zooms out to the overview. Uses the same input events as a player.
+## The tanks of both sides fight on their own (prompt 017), so the hill
+## drive takes the first own tank that is still alive.
 ## Quits when done.
 
 ## Frame rate the demo is timed for; record with `--fixed-fps 30`.
@@ -51,7 +53,8 @@ func _run() -> void:
 	var marker: Variant = main.sim_host.map_marker("hill_top")
 	if marker != null:
 		var top := marker as Vector3
-		var tank := own[0]
+		var survivors := _ids_of(true, true)
+		var tank: int = survivors[0] if not survivors.is_empty() else own[0]
 		_left_click(_screen_of_unit(tank))
 		await _seconds(0.3)
 		var mid := (_positions_of([tank])[0] + top) * 0.5
@@ -140,13 +143,14 @@ func _drag(from: Vector2, to: Vector2, seconds: float) -> void:
 # --- Queries ----------------------------------------------------------------
 
 
-func _ids_of(own: bool) -> Array[int]:
+func _ids_of(own: bool, alive_only := false) -> Array[int]:
 	var sim_host: SimHost = main.sim_host
 	var ids := sim_host.unit_ids()
 	var owners := sim_host.unit_owners()
+	var alive := sim_host.unit_alive()
 	var result: Array[int] = []
 	for i in ids.size():
-		if (owners[i] == sim_host.local_player()) == own:
+		if (owners[i] == sim_host.local_player()) == own and (alive[i] != 0 or not alive_only):
 			result.append(ids[i])
 	result.sort()
 	return result

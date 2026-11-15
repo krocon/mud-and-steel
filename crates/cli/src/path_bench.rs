@@ -41,6 +41,7 @@ pub fn run(map: Arc<Map>, options: &Options) -> Result<String, String> {
                 owner: PlayerId(0),
                 unit_type: TYPES[(i % 2) as usize].into(),
                 position: Vec2::from_meters(at(col), at(row)),
+                fire_mode: sim::FireMode::default(),
             }
         })
         .collect();
@@ -50,6 +51,7 @@ pub fn run(map: Arc<Map>, options: &Options) -> Result<String, String> {
         spawns,
         map: map.reference(),
         terrain,
+        combat: sim::CombatRules::builtin().map_err(|e| e.to_string())?,
     };
 
     let build = Instant::now();

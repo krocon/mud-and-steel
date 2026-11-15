@@ -155,9 +155,11 @@ uncertain; see the list at the end of each faction.
   - https://panzerworld.com/pz-kpfw-tiger-ausf-e (57 t, 8.450 m, width 3.705 m, height 2.885 m, max 45 km/h, range 125 km road / 80 km cross-country, hull sides/rear 60-80 mm, HL 230 P 45 700 hp, 92 rounds (cites Jentz/Doyle, Germany's Tiger Tanks and Panzer Tracts 6))
   - Jentz/Doyle, Germany's Tiger Tanks: D.W. to Tiger I (2000) (front plate angles, KwK 36 PzGr 39 muzzle velocity 773 m/s (not re-verified))
 - `de_jgdpz38t`
+  - https://www.historyofwar.org/articles/weapons_jagdpanzer38t_hetzer.html (gun traverse 5 deg left, 11 deg right)
   - https://en.wikipedia.org/wiki/Jagdpanzer_38(t) (15.75 t, 6.27 / 4.77 m, 2.63 m, 2.17 m, crew 4, Praga 160 PS, 42 km/h, range 180 km road / 130 km cross-country, armor 8-60 mm, front 60 mm at 60 degrees, PaK 39 41 rounds, MG 1200 rounds, 1944-45)
   - Chamberlain/Doyle, Encyclopedia of German Tanks of World War Two (rev. 1999), Jagdpanzer 38 (side armor 20 mm, rear 8 mm)
 - `de_stug3_g`
+  - https://www.militarytrader.com/the-stug-iii-the-last-in-the-line-of-tracked-afvs-and-a-wermacht-battlehorse (StuK 40 L/48 traverse 10 deg either side of the center line)
   - https://en.wikipedia.org/wiki/Sturmgesch%C3%BCtz_III (Ausf. G: 23.9 t, 6.85 m, 2.95 m, 2.16 m, crew 4, HL 120 TRM 300 PS, 40 km/h, range 155 km road / 75 km cross-country, 80 mm front from May 1943, StuK 40 L/48 54 rounds, MG 600 rounds)
   - https://www.historyofwar.org/articles/weapons_StuG_III_Ausf_G.html (Ausf. G armor: hull 80/30/50 (front/side/rear), superstructure 80/30/30; 6.77 m, 2.95 m, 2.16 m, 23.9 t, 155 km)
   - https://panzerworld.com/sturmgeschutz-iii (StuG III series: hull lengths 5.38-5.40 m, cross-country speed 12-15 km/h, road range 140-160 km / cross-country 85-100 km)
@@ -290,7 +292,7 @@ uncertain; see the list at the end of each faction.
 - `su_t70m`: width_mm, mass_kg, speed_road_kmh_x10, speed_offroad_kmh_x10, armor_hull_front_mm, weapon
 - `su_t34_76_1943`: height_mm, mass_kg, speed_offroad_kmh_x10, range_road_km, armor_turret_front_mm, armor_turret_side_mm, armor_turret_rear_mm, weapon
 - `su_is2`: armor_hull_front_mm, speed_offroad_kmh_x10, weapon
-- `su_su85`: speed_offroad_kmh_x10, armor_hull_front_deg, armor_turret_front_mm, weapon
+- `su_su85`: gun_traverse_deg, speed_offroad_kmh_x10, armor_hull_front_deg, armor_turret_front_mm, weapon
 - `su_su76m`: speed_offroad_kmh_x10, armor_hull_front_deg, weapon
 - `su_m3a1_scout`: speed_offroad_kmh_x10, armor_hull_side_mm, armor_hull_rear_mm, weapon
 - `su_zis5`: mass_kg, speed_offroad_kmh_x10, range_road_km, power_hp
@@ -363,10 +365,12 @@ uncertain; see the list at the end of each faction.
   - https://en.wikipedia.org/wiki/IS-2 (infobox; Protection/Production) (46 t, length 9.90 m, width 3.09 m, height 2.73 m, crew 4, armor (hull front 100-120 mm/60 deg, lower 100 mm/30 deg, turret 100 mm, mantlet 120 mm, hull sides 90-130 mm, turret sides 90 mm), D-25T 28 rounds, DShK + 3 DT with 2,079 rounds, V-2IS 520 hp, 37 km/h, range 240 km road / 180 km cross-country, OF-471 800 m/s)
   - Zaloga, IS-2 Heavy Tank 1944-73 (Osprey New Vanguard 7, 1994) (1944 model, hull length, BR-471 velocity (not checked online))
 - `su_su85`
+  - https://www.quartermastersection.com/russian/afvs/827/SU-85 (gun traverse 10 deg left and right (manual))
   - https://en.wikipedia.org/wiki/SU-85 (infobox) (29.6 t, length 8.15 m / hull 6.10 m, width 3.00 m, height 2.45 m, crew 4, armor 45 mm, 85 mm D-5 gun, V-2 500 PS, 55 km/h road, range 280 km road (400 km with extra tanks), 140 km cross-country)
   - https://en.wikipedia.org/wiki/85_mm_air_defense_gun_M1939_(52-K) (infobox) (85 mm ballistics, muzzle velocity 792 m/s (D-5 is based on 52-K ballistics))
   - Zaloga/Grandsen, Soviet Tanks and Combat Vehicles of World War Two (Arms and Armour 1984) (production 1943-44, 48 rounds (not checked online))
 - `su_su76m`
+  - https://www.ospreypublishing.com/us/discover/osprey-publishing/machine-of-the-month/su-76m (ZiS-3 mount traverse 15 deg to either side)
   - https://en.wikipedia.org/wiki/SU-76 (infobox, SU-76M) (10,500 kg, length 4.97 m, width 2.72 m, height 2.10 m, crew 4, armor front 25-35 mm / side 10-15 mm, ZiS-3 gun, DT secondary, 2x 70 hp, 45 km/h, range 250 km road / 175 km cross-country)
   - https://ru.wikipedia.org/wiki/76-мм_дивизионная_пушка_образца_1942_года_(ЗИС-3) (ammunition table) (BR-350A 662 m/s)
   - Zaloga/Grandsen, Soviet Tanks and Combat Vehicles of World War Two (Arms and Armour 1984) (SU-76M open-top variant, role (not checked online))

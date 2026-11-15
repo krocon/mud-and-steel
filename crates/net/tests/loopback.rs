@@ -43,6 +43,15 @@ fn two_peers_stay_in_sync() {
             .count();
         assert!(moved >= 2, "player {} moved only {moved} units", player.0);
     }
+
+    // The match is a battle (prompt 017): both peers saw the same units
+    // destroyed and the same projectiles in flight.
+    let destroyed = end.iter().filter(|u| !u.alive()).count();
+    assert!(destroyed >= 4, "only {destroyed} units destroyed");
+    assert_eq!(a.sim.snapshot(), b.sim.snapshot());
+    for player in [PlayerId(0), PlayerId(1)] {
+        assert_eq!(a.sim.alive_units(player), b.sim.alive_units(player));
+    }
 }
 
 #[test]
@@ -161,9 +170,13 @@ fn single_player_runs_through_the_same_path() {
             assert!(merged.is_empty());
         }
         sim.step(&merged);
+        if tick == 1 {
+            // The order reached the simulation. (Checked right away: the
+            // demo tanks fight, so unit 0 may be destroyed by tick 100.)
+            assert!(sim.snapshot().units[0].target.is_some());
+        }
         session
             .record_hash(sim.tick(), sim.state_hash(), &mut transport)
             .unwrap();
     }
-    assert!(sim.snapshot().units[0].target.is_some());
 }

@@ -459,15 +459,17 @@ armor_hull_side_mm = 45
 armor_hull_rear_mm = 45
 armor_turret_front_mm = 60
 armor_turret_side_mm = 45
+gun_traverse_deg = 20
 weapon = [
     { name = "85 mm D-5S L/52", caliber_mm_x10 = 850, ammo = "BR-365 APHE, O-365 HE", rate_rpm = 6, muzzle_velocity_mps = 792, range_effective_m = 1500, ammo_carried = 48 },
 ]
 source = [
+    { ref = "https://www.quartermastersection.com/russian/afvs/827/SU-85", covers = "gun traverse 10 deg left and right (manual)" },
     { ref = "https://en.wikipedia.org/wiki/SU-85 (infobox)", covers = "29.6 t, length 8.15 m / hull 6.10 m, width 3.00 m, height 2.45 m, crew 4, armor 45 mm, 85 mm D-5 gun, V-2 500 PS, 55 km/h road, range 280 km road (400 km with extra tanks), 140 km cross-country" },
     { ref = "https://en.wikipedia.org/wiki/85_mm_air_defense_gun_M1939_(52-K) (infobox)", covers = "85 mm ballistics, muzzle velocity 792 m/s (D-5 is based on 52-K ballistics)" },
     { ref = "Zaloga/Grandsen, Soviet Tanks and Combat Vehicles of World War Two (Arms and Armour 1984)", covers = "production 1943-44, 48 rounds (not checked online)" },
 ]
-uncertain = ["speed_offroad_kmh_x10", "armor_hull_front_deg", "armor_turret_front_mm", "weapon"]
+uncertain = ["gun_traverse_deg", "speed_offroad_kmh_x10", "armor_hull_front_deg", "armor_turret_front_mm", "weapon"]
 note = "SU-85 on T-34 chassis with fixed casemate; Wikipedia gives a uniform 45 mm (flagged as needing clarification). 50 deg superstructure slope and ~60 mm mantlet not confirmed online. Wikipedia names the gun D-5T; the SU-85 mounting is usually designated D-5S. 48 rounds not confirmed online. No machine gun fitted. Off-road speed estimated. Rate practical."
 
 [[unit]]
@@ -495,10 +497,12 @@ armor_hull_front_deg = 60
 armor_hull_side_mm = 15
 armor_turret_front_mm = 25
 armor_turret_side_mm = 10
+gun_traverse_deg = 30
 weapon = [
     { name = "76.2 mm ZiS-3Sh", caliber_mm_x10 = 762, ammo = "BR-350A APHE, OF-350 HE", rate_rpm = 10, muzzle_velocity_mps = 662, range_effective_m = 1000, ammo_carried = 60 },
 ]
 source = [
+    { ref = "https://www.ospreypublishing.com/us/discover/osprey-publishing/machine-of-the-month/su-76m", covers = "ZiS-3 mount traverse 15 deg to either side" },
     { ref = "https://en.wikipedia.org/wiki/SU-76 (infobox, SU-76M)", covers = "10,500 kg, length 4.97 m, width 2.72 m, height 2.10 m, crew 4, armor front 25-35 mm / side 10-15 mm, ZiS-3 gun, DT secondary, 2x 70 hp, 45 km/h, range 250 km road / 175 km cross-country" },
     { ref = "https://ru.wikipedia.org/wiki/76-мм_дивизионная_пушка_образца_1942_года_(ЗИС-3) (ammunition table)", covers = "BR-350A 662 m/s" },
     { ref = "Zaloga/Grandsen, Soviet Tanks and Combat Vehicles of World War Two (Arms and Armour 1984)", covers = "SU-76M open-top variant, role (not checked online)" },

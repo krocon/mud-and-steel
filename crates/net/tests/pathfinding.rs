@@ -4,13 +4,23 @@
 
 use net::{LockstepConfig, LockstepSession, LoopbackTransport, PlayerId};
 use sim::scenario::{builtin_map, demo_config};
-use sim::{Command, Fixed, Sim, UnitId, Vec2};
+use sim::{Command, FireMode, Fixed, Sim, SimConfig, UnitId, Vec2};
 
 const SEED: u64 = 7;
 const TICKS: u64 = 2400;
 const DEEP_WATER: u8 = 7;
 /// The river of `test_small` runs north-south around x = 160..175 m.
 const EAST_OF_RIVER_M: i32 = 190;
+
+/// The demo with every unit holding fire: this test is about movement,
+/// and the demo tanks would otherwise destroy each other (prompt 017).
+fn peaceful_demo() -> SimConfig {
+    let mut config = demo_config();
+    for spawn in &mut config.spawns {
+        spawn.fire_mode = FireMode::HoldFire;
+    }
+    config
+}
 
 struct Peer {
     sim: Sim,
@@ -48,7 +58,7 @@ impl Peer {
             ),
         ];
         Self {
-            sim: Sim::new(&demo_config(), builtin_map(), SEED).unwrap(),
+            sim: Sim::new(&peaceful_demo(), builtin_map(), SEED).unwrap(),
             session: LockstepSession::new(PlayerId(player), &config),
             transport,
             orders,

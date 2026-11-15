@@ -10,11 +10,15 @@ extends Control
 ## - Ctrl+1…9 (or Cmd on macOS) stores the selection as a group, 1…9 recalls
 ##   it, pressing the same number again quickly centers the camera on it.
 ## - Right click sends the selection to the clicked ground point, H stops it.
+## - Right click on a unit of another player attacks it, Ctrl+right click
+##   (Cmd on macOS) fires at the ground point, F switches between hold fire
+##   and fire at will (prompt 017). Destroyed units cannot be selected.
 ##
 ## Sits full-screen in a CanvasLayer and draws the selection box itself. It
 ## ignores the mouse for GUI purposes and works from `_unhandled_input`.
 
 signal move_ordered(point: Vector3)
+signal attack_ordered(target: int)
 
 const GroundPick := preload("res://scenes/camera/ground_pick.gd")
 ## Pointer travel in pixels before a left press becomes a box drag.
@@ -61,7 +65,10 @@ func _unhandled_input(event: InputEvent) -> void:
 			_on_left_button(button)
 			get_viewport().set_input_as_handled()
 		elif button.button_index == MOUSE_BUTTON_RIGHT and button.pressed:
-			_order_move(button.position)
+			if button.ctrl_pressed or button.meta_pressed:
+				_order_attack_ground(button.position)
+			elif not _order_attack(button.position):
+				_order_move(button.position)
 			get_viewport().set_input_as_handled()
 		return
 	var motion := event as InputEventMouseMotion
@@ -103,6 +110,9 @@ func _on_key(key: InputEventKey) -> bool:
 	if key.keycode == KEY_H and not key.ctrl_pressed and not key.meta_pressed:
 		stop_selected()
 		return true
+	if key.keycode == KEY_F and not key.ctrl_pressed and not key.meta_pressed:
+		toggle_hold_fire()
+		return true
 	if key.keycode < KEY_1 or key.keycode > KEY_9:
 		return false
 	var number := int(key.keycode - KEY_0)
@@ -130,6 +140,40 @@ func recall_group(number: int) -> void:
 func stop_selected() -> void:
 	if not selected.is_empty():
 		sim_host.stop_units(PackedInt64Array(selected))
+
+
+## Hold fire for the selection, or fire at will if all of it holds fire.
+func toggle_hold_fire() -> void:
+	if selected.is_empty():
+		return
+	var hold := sim_host.unit_hold_fire()
+	var all_hold := true
+	for id: int in selected:
+		var index := _index_of(id)
+		all_hold = all_hold and index >= 0 and hold[index] != 0
+	sim_host.set_hold_fire(PackedInt64Array(selected), not all_hold)
+
+
+## Attacks the living unit of another player under the cursor; false if
+## there is none (or nothing is selected).
+func _order_attack(screen_position: Vector2) -> bool:
+	if selected.is_empty():
+		return false
+	var target := _unit_at(screen_position, false)
+	if target < 0:
+		return false
+	sim_host.attack_unit(PackedInt64Array(selected), target)
+	attack_ordered.emit(target)
+	return true
+
+
+func _order_attack_ground(screen_position: Vector2) -> void:
+	if selected.is_empty():
+		return
+	var hit: Variant = GroundPick.from_screen(camera, screen_position)
+	if hit != null:
+		var point := hit as Vector3
+		sim_host.attack_ground(PackedInt64Array(selected), point.x, point.z)
 
 
 func _order_move(screen_position: Vector2) -> void:
@@ -181,15 +225,16 @@ func _select_in_box(box: Rect2, additive: bool) -> void:
 	_set_selection(result)
 
 
-## Id of the own unit under `screen_position`, or -1. Picks the closest one
-## whose screen radius contains the point.
-func _unit_at(screen_position: Vector2) -> int:
+## Id of the own (or, with `own` false, another player's) living unit under
+## `screen_position`, or -1. Picks the closest one whose screen radius
+## contains the point.
+func _unit_at(screen_position: Vector2, own := true) -> int:
 	var ids := sim_host.unit_ids()
 	var positions := sim_host.current_positions()
 	var footprints := sim_host.unit_footprints()
 	var best := -1
 	var best_distance := INF
-	for i in _own_indices():
+	for i in (_own_indices() if own else _other_indices()):
 		var world := positions[i] + Vector3.UP * PICK_HEIGHT
 		if camera.is_position_behind(world):
 			continue
@@ -225,13 +270,26 @@ func _set_selection(ids: Array) -> void:
 	selected = next
 
 
-## Indices (into the SimHost arrays) of the local player's units.
+## Indices (into the SimHost arrays) of the local player's living units.
 func _own_indices() -> Array[int]:
 	var owners := sim_host.unit_owners()
+	var alive := sim_host.unit_alive()
 	var me := sim_host.local_player()
 	var result: Array[int] = []
 	for i in owners.size():
-		if owners[i] == me:
+		if owners[i] == me and alive[i] != 0:
+			result.append(i)
+	return result
+
+
+## Indices of the other players' living units.
+func _other_indices() -> Array[int]:
+	var owners := sim_host.unit_owners()
+	var alive := sim_host.unit_alive()
+	var me := sim_host.local_player()
+	var result: Array[int] = []
+	for i in owners.size():
+		if owners[i] != me and alive[i] != 0:
 			result.append(i)
 	return result
 
@@ -240,10 +298,12 @@ func _index_of(id: int) -> int:
 	return sim_host.unit_ids().find(id)
 
 
-## Index of `id` if it is an existing own unit, else -1.
+## Index of `id` if it is an existing living own unit, else -1.
 func _own_index(id: int) -> int:
 	var index := _index_of(id)
 	if index < 0 or sim_host.unit_owners()[index] != sim_host.local_player():
+		return -1
+	if sim_host.unit_alive()[index] == 0:
 		return -1
 	return index
 

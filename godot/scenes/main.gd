@@ -30,6 +30,8 @@ extends Node3D
 ## LAN games start in `lan/lan_lobby.tscn` (`just lan`), which hands the
 ## started game over through `lan/lan_match.gd`; `lan/net_status.gd` then
 ## shows the connection state.
+## Combat (prompt 017) is drawn by `world/combat_view.gd`: tracers, health
+## bars, wrecks, turrets. The self-test starts with every unit holding fire.
 
 const UNIT_SCENE: PackedScene = preload("res://scenes/unit.tscn")
 const SelfTest := preload("res://scenes/self_test.gd")
@@ -44,6 +46,7 @@ const MapObjects := preload("res://scenes/world/map_objects.gd")
 const ObjectsBench := preload("res://scenes/tools/objects_bench.gd")
 const LanMatch := preload("res://scenes/lan/lan_match.gd")
 const NetStatus := preload("res://scenes/lan/net_status.gd")
+const CombatView := preload("res://scenes/world/combat_view.gd")
 const SEED := 42
 ## Map folders, relative to the Godot project (repository checkout only).
 const MAPS_DIR := "res://../data/maps"
@@ -80,6 +83,8 @@ var _marker_time_left := 0.0
 var _enemy_material: StandardMaterial3D
 ## Lighting, haze and biome look (prompt 015).
 var atmosphere: Atmosphere
+## Tracers, health bars, wrecks (prompt 017).
+var combat_view: CombatView
 
 
 func _ready() -> void:
@@ -112,6 +117,11 @@ func _ready() -> void:
 	add_child(map_objects)
 	map_objects.biome = atmosphere.preset.env_biome
 	map_objects.build(sim_host, camera)
+
+	combat_view = CombatView.new()
+	combat_view.name = "CombatView"
+	add_child(combat_view)
+	combat_view.setup(self, $Hud)
 
 	selection.sim_host = sim_host
 	selection.camera = camera
@@ -173,6 +183,8 @@ func _exit_tree() -> void:
 ## Starts the built-in map, or the one named by `--map=<name>`, or the LAN
 ## match the lobby started.
 func _start_simulation() -> bool:
+	# The self-test checks movement first; combat is tested at its end.
+	sim_host.hold_fire_at_start = "--self-test" in OS.get_cmdline_user_args()
 	if LanMatch.lobby != null:
 		var lobby := LanMatch.lobby
 		LanMatch.lobby = null
@@ -216,18 +228,21 @@ func _draw_units() -> void:
 	var previous := sim_host.previous_positions()
 	var current := sim_host.current_positions()
 	var alpha := sim_host.interpolation_alpha()
+	var facings := sim_host.unit_facing_yaws()
+	var alive := sim_host.unit_alive()
 	for i in ids.size():
 		var node := _unit_node(ids[i], i)
 		var from: Vector3 = previous[i] if i < previous.size() else current[i]
 		var to: Vector3 = current[i]
 		node.position = from.lerp(to, alpha)
-		var heading := to - from
-		if heading.length_squared() > 0.000001:
-			# Models face -Z; turn them towards the driving direction.
-			# Turned smoothly, so small sideways corrections do not jitter.
-			var turn := clampf(get_process_delta_time() * TURN_RATE, 0.0, 1.0)
-			node.rotation.y = lerp_angle(node.rotation.y, atan2(-heading.x, -heading.z), turn)
-		(node.get_node("SelectionRing") as Node3D).visible = selection.is_selected(ids[i])
+		# Models face -Z; the hull follows the simulation's direction
+		# (prompt 017), turned smoothly so small corrections do not jitter.
+		var turn := clampf(get_process_delta_time() * TURN_RATE, 0.0, 1.0)
+		if not node.has_meta(&"placed"):
+			node.set_meta(&"placed", true)
+			turn = 1.0
+		node.rotation.y = lerp_angle(node.rotation.y, facings[i], turn)
+		(node.get_node("SelectionRing") as Node3D).visible = selection.is_selected(ids[i]) and alive[i] != 0
 
 
 func _unit_node(id: int, index: int) -> Node3D:

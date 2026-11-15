@@ -64,7 +64,7 @@ ENet channel 0, lobby messages (postcard, `net::lan::wire`):
 
 | Message | Direction | Meaning |
 |---------|-----------|---------|
-| `Hello { protocol, name }` | client → host | first message; wrong protocol version is rejected |
+| `Hello { protocol, name }` | client → host | first message; wrong protocol version is rejected (`net::lan::PROTOCOL_VERSION`, 2 since prompt 017 changed config and commands) |
 | `Welcome { player }` | host → client | accepted as player id `player` (smallest free id) |
 | `Reject { reason }` | host → client | game full, already started, wrong version; then disconnect |
 | `Lobby { players }` | host → all | names and ready flags |

@@ -10,6 +10,7 @@
 //! - no Godot dependency.
 
 pub mod catalog;
+pub mod combat;
 mod command;
 mod data;
 mod hash;
@@ -24,6 +25,9 @@ mod sim;
 pub mod terrain;
 
 pub use catalog::Catalog;
+pub use combat::{
+    CombatEvent, CombatRules, CombatType, Face, FireMode, HitKind, ProjectileSnapshot, Vec3,
+};
 pub use command::{Command, PlayerCommand, PlayerId, UnitId};
 pub use data::{DEFAULT_FOOTPRINT_MM, DataError, UnitType, unit_types_from_catalog};
 pub use hash::StableHasher;
