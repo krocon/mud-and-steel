@@ -326,7 +326,18 @@ impl ObjectIndex {
     }
 
     /// Earliest object on the segment `a → b`: `(t, object index)`.
-    fn hit(&self, map: &Map, a: Vec3, b: Vec3) -> Option<(Fixed, u32)> {
+    /// `height_of` gives the height up to which an object stops projectiles
+    /// now (`None`: it does not, prompt 020); objects for which
+    /// `skip_inside` holds are ignored when the segment starts inside them
+    /// (a round fired from within a ruin).
+    fn hit(
+        &self,
+        map: &Map,
+        a: Vec3,
+        b: Vec3,
+        height_of: impl Fn(u32) -> Option<Fixed>,
+        skip_inside: impl Fn(u32) -> bool,
+    ) -> Option<(Fixed, u32)> {
         let low = Vec2::new(a.x.min(b.x), a.y.min(b.y));
         let high = Vec2::new(a.x.max(b.x), a.y.max(b.y));
         let (c0, r0) = self.cell(low);
@@ -346,6 +357,9 @@ impl ObjectIndex {
         for i in candidates {
             let object = &objects[i as usize];
             let kind = &kinds[usize::from(object.kind)];
+            let Some(height) = height_of(i) else {
+                continue;
+            };
             let t = match kind.shape {
                 Shape::Circle { radius } => {
                     segment_circle(a.ground(), d.ground(), object.position, radius)
@@ -364,11 +378,11 @@ impl ObjectIndex {
                 }
             };
             let Some(t) = t else { continue };
-            if best.is_some_and(|(bt, _)| bt <= t) {
+            if best.is_some_and(|(bt, _)| bt <= t) || (t == Fixed::ZERO && skip_inside(i)) {
                 continue;
             }
             let p = at(a, d, t);
-            if p.z - map.height_at(p.ground()) < kind.height {
+            if p.z - map.height_at(p.ground()) < height {
                 best = Some((t, i));
             }
         }
@@ -769,7 +783,10 @@ impl Sim {
                     best = Some((t, HitKind::Unit(unit.id), Some((j, face))));
                 }
             }
-            if let Some((t, object)) = self.objects.hit(&self.map, a, b)
+            let first = p.traveled == Fixed::ZERO;
+            let height_of = |i: u32| self.destruction.hit_height(&self.map, i);
+            let skip_inside = |i: u32| first && self.object_is_ruin(i);
+            if let Some((t, object)) = self.objects.hit(&self.map, a, b, height_of, skip_inside)
                 && better(&best, t)
             {
                 best = Some((t, HitKind::Object(object), None));
@@ -795,6 +812,17 @@ impl Sim {
             let point = at(a, d, t);
             p.traveled += d.ground().length() * t;
             let (mut face, mut turret, mut penetrated, mut damage) = (None, false, false, 0);
+            if let HitKind::Object(object) = kind {
+                let w = &self.types[p.shooter_type as usize].weapons[usize::from(p.weapon)];
+                damage = self.destruction.hit(
+                    &self.map,
+                    object,
+                    (p.caliber_mm_x10, w.vehicle_damage),
+                    d.ground(),
+                    point,
+                    p.shooter,
+                );
+            }
             if let Some((j, hit_face)) = unit_hit {
                 let result = self.damage_unit(j, &p, hit_face, point);
                 face = Some(hit_face);

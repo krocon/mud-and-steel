@@ -21,7 +21,14 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by prompt 018: vision and fog of war. Units keep viewsheds
+/// Last changed by prompt 020: destruction. Map objects have hit points
+/// and damage stages (`data/destruction.toml`); the rules and every object
+/// that differs from its start are in the hash. The two farmhouses that
+/// `test_small` places as ruins now act as ruins from the start (they block
+/// tanks only and no longer block sight; the path grid version counts their
+/// rebuild). The demo
+/// battle destroys no object and is still decided at tick 645, same winner.
+/// Before: prompt 018: vision and fog of war. Units keep viewsheds
 /// on an 8 m vision grid (hills, forests, buildings and hedges block sight;
 /// `data/vision.toml`), pick automatic targets and fire only in their own
 /// line of sight, and follow attack targets out of sight to where they were
@@ -58,7 +65,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x8891_4b76_6934_c076;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x7df0_6086_10f1_15e5;
 
 #[test]
 fn golden_hash() {

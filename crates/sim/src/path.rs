@@ -17,6 +17,7 @@ use crate::data::UnitType;
 use crate::hash::StableHasher;
 use crate::map::Map;
 use crate::math::{Fixed, Vec2};
+use crate::objects::{Blocks, MapObject, Shape};
 use crate::terrain::TerrainRules;
 use std::cmp::Reverse;
 use std::collections::{BinaryHeap, VecDeque};
@@ -308,13 +309,7 @@ impl PathGrid {
         let half = self.cell / 2;
         for object in map.objects() {
             let kind = &map.object_kinds()[usize::from(object.kind)];
-            let mut flags = 0;
-            if kind.blocks.small() {
-                flags |= BLOCKED_OBJECT_SMALL;
-            }
-            if kind.blocks.large() {
-                flags |= BLOCKED_OBJECT_LARGE;
-            }
+            let flags = object_flags(kind.blocks);
             if flags == 0 {
                 continue;
             }
@@ -484,6 +479,57 @@ impl PathGrid {
     /// Returns the affected rectangle (`rect` and its neighbor cells, whose
     /// margin may have changed).
     pub fn rebuild(&mut self, map: &Map, rules: &TerrainRules, rect: CellRect) -> CellRect {
+        let area = self.rebuild_cells(map, rules, rect);
+        self.relabel_components();
+        area
+    }
+
+    /// Clears the map object flags of the cells in `rect` and marks them
+    /// again from `objects` (position and shape, with the classes they block
+    /// now), for objects that changed (destruction, prompt 020). Pass every
+    /// object whose shape may overlap `rect`; cells outside `rect` are not
+    /// touched. Call [`Self::rebuild_cells`] afterwards.
+    pub fn rasterize_objects_in(
+        &mut self,
+        rect: CellRect,
+        objects: impl IntoIterator<Item = (MapObject, Shape, Blocks)>,
+    ) {
+        for y in rect.y0..=rect.y1 {
+            for x in rect.x0..=rect.x1 {
+                let i = self.index(x, y);
+                self.base[i] &= !(BLOCKED_OBJECT_SMALL | BLOCKED_OBJECT_LARGE);
+            }
+        }
+        let half = self.cell / 2;
+        for (object, shape, blocks) in objects {
+            let flags = object_flags(blocks);
+            if flags == 0 {
+                continue;
+            }
+            let extent = object.half_extent(shape);
+            let r = self.cells_in(object.position - extent, object.position + extent);
+            for y in r.y0.max(rect.y0)..=r.y1.min(rect.y1) {
+                for x in r.x0.max(rect.x0)..=r.x1.min(rect.x1) {
+                    if object.overlaps_square(shape, self.center(x, y), half) {
+                        let i = self.index(x, y);
+                        self.base[i] |= flags;
+                    }
+                }
+            }
+        }
+    }
+
+    /// Labels the components of the whole map again (after
+    /// [`Self::rebuild_cells`]).
+    pub fn relabel_components(&mut self) {
+        for c in 0..self.components.len() {
+            self.label_components(c);
+        }
+    }
+
+    /// [`Self::rebuild`] without the components: several areas can be
+    /// rebuilt before one [`Self::relabel_components`].
+    pub fn rebuild_cells(&mut self, map: &Map, rules: &TerrainRules, rect: CellRect) -> CellRect {
         self.version = self.version.wrapping_add(1);
         let area = rect.grow(1, self.width, self.height);
         for y in area.y0..=area.y1 {
@@ -504,9 +550,6 @@ impl PathGrid {
                     self.profiles[p].cost[i] = cost;
                 }
             }
-        }
-        for c in 0..self.components.len() {
-            self.label_components(c);
         }
         area
     }
@@ -974,6 +1017,18 @@ impl PathGrid {
         h.write_u32(self.height);
         h.write_u32(self.version);
     }
+}
+
+/// Object flags of a blocking class.
+const fn object_flags(blocks: Blocks) -> u8 {
+    let mut flags = 0;
+    if blocks.small() {
+        flags |= BLOCKED_OBJECT_SMALL;
+    }
+    if blocks.large() {
+        flags |= BLOCKED_OBJECT_LARGE;
+    }
+    flags
 }
 
 /// Whether a step between neighboring cells `a` and `b` crosses the
