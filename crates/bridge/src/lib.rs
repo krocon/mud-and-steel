@@ -10,7 +10,9 @@ use net::{
     LocalTransport, LockstepConfig, LockstepSession, NetError, Replay, ReplayRecorder, Transport,
     recommended_input_delay,
 };
-use sim::scenario::{BUILTIN_MAP_NAME, DEMO_SCENARIO, builtin_map, parse_scenario_with_factions};
+use sim::scenario::{
+    BUILTIN_MAP_NAME, DEMO_SCENARIO, SKIRMISH_SCENARIO, builtin_map, parse_scenario_with_factions,
+};
 use sim::{
     Catalog, Command, Fixed, Map, PlayerId, RouteView, Scale, Sim, SimConfig, Snapshot,
     TerrainRules, UnitId, Vec2,
@@ -21,6 +23,7 @@ use std::sync::Arc;
 mod ai_funcs;
 mod combat_funcs;
 mod destruction_funcs;
+mod economy_funcs;
 mod infantry_funcs;
 mod lan;
 mod map_editor;
@@ -221,6 +224,14 @@ pub struct SimHost {
     object_events: Vec<(u64, sim::ObjectEvent)>,
     /// Debug: draw everything without fog (prompt 018, presentation only).
     reveal_all: bool,
+    /// Scenario of `start_match` (prompt 023): `"battle"` (the demo armies,
+    /// default) or `"base"` (base building, `data/scenarios/skirmish.toml`).
+    #[export]
+    mode: GString,
+    /// Game time per real time (1 = normal). Only the number of ticks per
+    /// frame changes, so a match plays the same at any speed (self-tests).
+    #[export]
+    speed: f64,
     base: Base<Node>,
 }
 
@@ -240,6 +251,8 @@ impl INode for SimHost {
             combat_events: Vec::new(),
             object_events: Vec::new(),
             reveal_all: false,
+            mode: GString::new(),
+            speed: 1.0,
             base,
         }
     }
@@ -252,7 +265,7 @@ impl INode for SimHost {
             return;
         }
         let tick_seconds = 1.0 / f64::from(self.tick_hz);
-        self.accumulator += delta;
+        self.accumulator += delta * self.speed.clamp(0.0, 20.0);
         let mut ticks = 0;
         game.waiting = false;
         while self.accumulator >= tick_seconds {
@@ -320,7 +333,12 @@ impl SimHost {
     /// Starts the demo scenario on `map`; `factions` replaces the units of
     /// the listed players by those of their faction (prompt 027).
     fn start_with(&mut self, seed: i64, map: Arc<Map>, factions: &[(PlayerId, &str)]) -> bool {
-        let config = match demo_config(&map, factions) {
+        let scenario = if self.mode == "base" {
+            SKIRMISH_SCENARIO
+        } else {
+            DEMO_SCENARIO
+        };
+        let config = match scenario_config(scenario, &map, factions) {
             Ok(config) => config,
             Err(e) => {
                 godot_error!("{e}");
@@ -1067,7 +1085,16 @@ impl SimHost {
 /// The demo scenario from the catalog, scale and terrain rules compiled
 /// into `sim`, on `map`, with the units of the players in `factions`
 /// replaced by those of their faction.
+/// The demo scenario (LAN matches).
 fn demo_config(
+    map: &Map,
+    factions: &[(PlayerId, &str)],
+) -> Result<SimConfig, Box<dyn std::error::Error>> {
+    scenario_config(DEMO_SCENARIO, map, factions)
+}
+
+fn scenario_config(
+    scenario: &str,
     map: &Map,
     factions: &[(PlayerId, &str)],
 ) -> Result<SimConfig, Box<dyn std::error::Error>> {
@@ -1075,12 +1102,7 @@ fn demo_config(
     let scale = Scale::builtin()?;
     let terrain = TerrainRules::builtin()?;
     Ok(parse_scenario_with_factions(
-        DEMO_SCENARIO,
-        factions,
-        &catalog,
-        &scale,
-        &terrain,
-        map,
+        scenario, factions, &catalog, &scale, &terrain, map,
     )?)
 }
 

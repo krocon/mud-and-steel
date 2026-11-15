@@ -37,6 +37,13 @@ name = "hill_top"
 position_m = [-104, -142]
 ```
 
+Markers whose name starts with `supply` are **supply points** (prompt 023,
+[GAME_DESIGN.md](GAME_DESIGN.md#resources-provisional)): units standing there
+take them and they pay resources to the holder. `cli gen-map` writes three:
+`supply_village`, `supply_hill` and `supply_ford` at the village square, the
+landmark hill and the ford; the map editor keeps them but cannot place them
+yet.
+
 Since prompt 028 the scenario places every player's units at that player's
 `[[start]]`: all groups of the player move by the offset between the start and
 the center of the player's first group (`sim::scenario`, layout unchanged).

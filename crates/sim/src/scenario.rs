@@ -201,7 +201,7 @@ pub fn parse_scenario_with_factions(
                 "start_distance_pct must be at most 95".into(),
             ));
         }
-        spread_starts(&mut file.group, map, pct);
+        spread_starts(&mut file.group, map, terrain, pct);
     }
     let mut spawns = Vec::new();
     for group in &file.group {
@@ -237,12 +237,14 @@ pub fn parse_scenario_with_factions(
 /// stays as in the scenario. Start positions are whole meters, like group
 /// centers. Maps whose starts equal the scenario's centers (`test_small`,
 /// `test_large`) are unaffected.
-/// See `ScenarioFile::start_distance_pct`. Whole meters, players without
-/// a direction (first group on the center) stay.
-fn spread_starts(groups: &mut [Group], map: &Map, pct: u32) {
+/// See `ScenarioFile::start_distance_pct`. Whole meters. If the groups of
+/// a player would stand on blocking map objects or impassable terrain there,
+/// the distance shrinks in steps of 5 % until they stand clear (at worst
+/// they stay at their start); players without a direction (first group on
+/// the center) stay.
+fn spread_starts(groups: &mut [Group], map: &Map, terrain: &TerrainRules, pct: u32) {
     let size = map.size();
     let half = size.x.min(size.y) / 2;
-    let distance = half * Fixed::from_num(pct) / 100;
     let mut players: Vec<u8> = groups.iter().map(|g| g.owner).collect();
     players.sort_unstable();
     players.dedup();
@@ -259,17 +261,63 @@ fn spread_starts(groups: &mut [Group], map: &Map, pct: u32) {
         if length == Fixed::ZERO {
             continue;
         }
-        let target = at.scale(distance / length);
-        let shift = [
-            target.x.round().to_num::<i32>() - anchor[0],
-            target.y.round().to_num::<i32>() - anchor[1],
-        ];
+        let centers: Vec<Vec2> = groups
+            .iter()
+            .filter(|g| g.owner == player)
+            .map(|g| Vec2::from_meters(g.center_m[0], g.center_m[1]))
+            .collect();
+        let mut shift = [0, 0];
+        let mut step = pct;
+        loop {
+            let distance = (half * Fixed::from_num(step) / 100).max(length);
+            let target = at.scale(distance / length);
+            let candidate = [
+                target.x.round().to_num::<i32>() - anchor[0],
+                target.y.round().to_num::<i32>() - anchor[1],
+            ];
+            let offset = Vec2::from_meters(candidate[0], candidate[1]);
+            if centers
+                .iter()
+                .all(|&c| clear_ground(map, terrain, c + offset))
+            {
+                shift = candidate;
+                break;
+            }
+            if step < 5 {
+                break;
+            }
+            step -= 5;
+        }
         for group in groups.iter_mut().filter(|g| g.owner == player) {
             for axis in 0..2 {
                 group.center_m[axis] = group.center_m[axis].saturating_add(shift[axis]);
             }
         }
     }
+}
+
+/// No map object that blocks units within 20 m of `p`, and passable
+/// terrain on a 10 m grid around it.
+fn clear_ground(map: &Map, terrain: &TerrainRules, p: Vec2) -> bool {
+    let reach = Fixed::from_num(20);
+    let blocked = map.objects().iter().any(|o| {
+        let kind = &map.object_kinds()[usize::from(o.kind)];
+        let d = o.position - p;
+        kind.blocks != crate::objects::Blocks::None && d.x.abs() <= reach && d.y.abs() <= reach
+    });
+    if blocked {
+        return false;
+    }
+    (-3..=3).all(|dy| {
+        (-3..=3).all(|dx| {
+            let q = p + Vec2::from_meters(dx * 10, dy * 10);
+            map.contains(q)
+                && terrain
+                    .types
+                    .get(usize::from(map.terrain_at(q)))
+                    .is_some_and(|t| t.passable)
+        })
+    })
 }
 
 fn move_groups_to_starts(groups: &mut [Group], map: &Map) {

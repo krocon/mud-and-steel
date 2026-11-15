@@ -42,6 +42,7 @@ var biome_option: OptionButton
 var faction_option: OptionButton
 var enemy_option: OptionButton
 var opponent_option: OptionButton
+var mode_option: OptionButton
 var start_button: Button
 var settings_panel: PanelContainer
 
@@ -88,6 +89,7 @@ func start_skirmish() -> void:
 		"biome": BIOMES.keys()[biome_option.selected],
 		"factions": PackedStringArray([own, enemy]),
 		"ai": MatchSetup.OPPONENTS.keys()[opponent_option.selected],
+		"mode": MatchSetup.MODES.keys()[mode_option.selected],
 	}
 	print("Menu: starting %s" % MatchSetup.pending)
 	get_tree().change_scene_to_file(MatchSetup.MAIN_SCENE)
@@ -160,7 +162,12 @@ func _skirmish_screen() -> Control:
 		opponent_option.add_item(MatchSetup.OPPONENTS[id])
 	opponent_option.select(MatchSetup.OPPONENTS.keys().find(MatchSetup.DEFAULT_OPPONENT))
 	box.add_child(_row("Opponent", opponent_option))
-	box.add_child(MenuTheme.hint("Eight tanks per side. Win when the enemy surrenders or has no units left. The computer opponent sees only what its tanks see."))
+	mode_option = OptionButton.new()
+	for id in MatchSetup.MODES:
+		mode_option.add_item(MatchSetup.MODES[id])
+	mode_option.select(MatchSetup.MODES.keys().find(MatchSetup.DEFAULT_MODE))
+	box.add_child(_row("Mode", mode_option))
+	box.add_child(MenuTheme.hint("Base building: build a base, hold supply points, produce an army. Battle: eight tanks per side. Win when the enemy surrenders or has no units left. The computer opponent sees only what its units see."))
 
 	var buttons := HBoxContainer.new()
 	buttons.alignment = BoxContainer.ALIGNMENT_END

@@ -43,9 +43,13 @@ developer has to be able to build, balance and maintain it, so:
 
 | Source | Fuel / min | Ammunition / min | Manpower / min |
 |---|---|---|---|
-| Headquarters (completed) | 40 | 50 | 60 |
-| Supply depot (completed, each, at most 3) | 40 | 40 | 20 |
+| Headquarters (completed) | 40 | 70 | 80 |
+| Supply depot (completed, each, at most 3) | 40 | 50 | 30 |
 | Supply point (held, each) | 60 | 60 | 30 |
+
+The first AI matches showed manpower and then ammunition as the bottleneck
+(the vehicle works was never affordable), so the headquarters and depot
+income was raised from the first draft (40/50/60 and 40/40/20).
 
 - **Supply points** are neutral spots on the map (map markers named
   `supply…`, see [MAPS.md](MAPS.md)). A player takes one by having units (not
@@ -86,8 +90,16 @@ hit points of map objects in `data/destruction.toml`.
 | Supply depot (`base_depot`) | 14 × 9 × 8 | 2500 | 25 | 50 / 0 / 100 | 25 s | HQ | income (max. 3) |
 | Vehicle works (`base_factory`) | 20 × 10 × 9 | 4000 | 30 | 150 / 50 / 200 | 45 s | HQ, depot | produces vehicles |
 
-Every player starts with a completed headquarters (scenario
-`data/scenarios/skirmish.toml`). Fortifications come from the catalog:
+Every player starts with a completed headquarters, a halftrack and two
+rifle squads (scenario `data/scenarios/skirmish.toml`). None of them can
+hurt a building, so the first tanks or AT squads decide when a base falls.
+The bases stand at up to 70 % of half the map size from the center, on the
+line through the map's start positions (`start_distance_pct`; closer in
+where map objects or impassable ground are in the way): the test maps have
+their starts only 120 m apart, which is right for the battle but leaves no
+room for two bases. On `test_large` the bases end up 0.9 and 1.4 km from the
+center; on `test_small` the woods around the start meadow keep them at
+about 90 m. Fortifications come from the catalog:
 
 | Fortification | Catalog ids (de / su / us) | Hit points | Armor (mm) | Cost F / A / M | Build time | Needs |
 |---|---|---|---|---|---|---|
@@ -157,16 +169,21 @@ Examples (`cli economy-table` prints the full table):
 
 | Unit | Fuel | Ammunition | Manpower | Time |
 |---|---|---|---|---|
-| Rifle squad (de) | 0 | 19 | 60 | 17.9 s |
-| AT squad (de) | 0 | 140 | 54 | 32.2 s |
-| Panzer IV H | 100 | 106 | 30 | 37.5 s |
-| T-34/76 | 123 | 107 | 24 | 39.8 s |
-| Tiger I | 228 | 141 | 30 | 57.9 s |
-| M4A3 (75) | 121 | 106 | 30 | 40.1 s |
+| Rifle squad (de) | 0 | 18 | 54 | 17.0 s |
+| AT squad (de, Panzerschreck) | 0 | 140 | 12 | 27.0 s |
+| AT squad (us, bazooka) | 0 | 71 | 12 | 18.3 s |
+| Panzer IV H | 100 | 103 | 30 | 37.1 s |
+| T-34/76 (1943) | 123 | 106 | 24 | 39.6 s |
+| Tiger I | 228 | 139 | 30 | 57.6 s |
+| IS-2 | 184 | 258 | 24 | 66.2 s |
+| M4A3 (75) | 126 | 103 | 30 | 40.3 s |
+| Pak 40 position | 0 | 103 | 36 | 25.3 s |
 
-The table in this document is an illustration; the code computes the
-values (`sim::economy::EconomyRules::unit_cost`), and `cli economy-table`
-shows the current ones.
+The code computes the values (`sim::economy::EconomyRules::unit_cost`);
+this table is a snapshot, `cli economy-table` shows the current ones. The
+formula only counts the weapons the simulation fires (prompt 017), so the
+Soviet AT squad (PTRD rifle, 14.5 mm) is cheap and weak against armor;
+single units can get their own price with an override if that matters.
 
 ## Victory [provisional]
 
@@ -195,9 +212,17 @@ The AI (prompt 024) plays the economy with the same commands as a human:
   headquarters;
 - keeps both production queues filled while it can pay, choosing units from
   a per-difficulty mix (Hard prefers tanks);
+- keeps the price of the next building of its build order in reserve, so
+  production does not starve the base;
 - holds its army near its base and the nearest supply points until an attack
   wave is complete (Easy 8, Normal 6, Hard 5 units), then attacks as before;
-  enemies near the base are always engaged.
+  enemies in sight are always engaged; buildings are attacked last, by
+  armor and by squads with AT weapons.
+
+On `test_small` (500 m) everything is in sight of everything, and two
+computer players of similar strength can end in a stalemate after the first
+base falls; on larger maps the waves matter more. Tuning the end game is
+open.
 
 ## Balancing principles [provisional]
 
@@ -216,12 +241,12 @@ The AI (prompt 024) plays the economy with the same commands as a human:
    weapons, but buildings cannot hurt tanks with small arms and every
    fortification costs ammunition the army also needs.
 6. **Change one number at a time** in `data/economy.toml`, run
-   `just ai-tournament --mode base` and a few matches, and note the reason in
-   the commit.
+   `just ai-tournament --mode base --max-ticks 30000` and a few matches, and
+   note the reason in the commit.
 
 ## Open (not in this version)
 
 Supply trucks and consumption, selling or repairing buildings, cancelling a
 construction site, upgrades, aircraft and artillery production, walls and
 mines as buildable objects, supply points in the map editor, mode choice in
-the LAN lobby, teams.
+the LAN lobby, teams, the AI's end game in base matches.

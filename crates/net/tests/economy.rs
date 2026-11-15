@@ -15,6 +15,8 @@ struct Peer {
     transport: LoopbackTransport,
     hashes: Vec<u64>,
     recorder: ReplayRecorder,
+    /// Most completed buildings each player had at once.
+    most_built: [usize; 2],
 }
 
 impl Peer {
@@ -31,6 +33,7 @@ impl Peer {
             transport,
             hashes: Vec::new(),
             recorder: ReplayRecorder::new(SEED, config.clone(), &players),
+            most_built: [0; 2],
         }
     }
 
@@ -55,6 +58,15 @@ impl Peer {
         self.sim.step(&commands);
         let hash = self.sim.state_hash();
         self.hashes.push(hash);
+        for (player, most) in self.most_built.iter_mut().enumerate() {
+            let built = self
+                .sim
+                .structures()
+                .iter()
+                .filter(|s| usize::from(s.owner.0) == player && s.completed())
+                .count();
+            *most = (*most).max(built);
+        }
         self.session
             .record_hash(self.sim.tick(), hash, &mut self.transport)
             .unwrap();
@@ -90,16 +102,17 @@ fn production_chain_is_identical_on_two_peers() {
     assert_eq!(a.session.verified_tick(), TICKS);
     assert_eq!(a.sim.snapshot(), b.sim.snapshot());
 
-    // Both players built barracks, depot and vehicle works and produced
-    // units; both peers agree on accounts and queues.
+    // Both players built barracks, depot and vehicle works (their units
+    // may have shot some of them down since) and produced units; both peers
+    // agree on accounts and queues.
+    assert_eq!(a.most_built, b.most_built);
     for player in [PlayerId(0), PlayerId(1)] {
-        let built = a
-            .sim
-            .structures()
-            .into_iter()
-            .filter(|s| s.owner == player && s.completed())
-            .count();
-        assert!(built >= 4, "player {} has {built} buildings", player.0);
+        let built = a.most_built[usize::from(player.0)];
+        assert!(
+            built >= 4,
+            "player {} had at most {built} buildings",
+            player.0
+        );
         assert_eq!(a.sim.account(player), b.sim.account(player));
     }
     assert_eq!(a.sim.structures(), b.sim.structures());
