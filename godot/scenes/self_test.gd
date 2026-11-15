@@ -39,6 +39,8 @@ const HILL_TIME_SCALE := 4.0
 ## The tank must end at least this many meters above its start.
 const HILL_MIN_CLIMB := 10.0
 
+const MatchSetup := preload("res://scenes/menu/match_setup.gd")
+
 var main: Node3D
 var _errors: PackedStringArray = []
 
@@ -60,6 +62,12 @@ func _run() -> void:
 	var ok := _errors.is_empty()
 	var message := "camera, selection, orders, hill, objects, terrain, biomes, combat and replay ok" if ok else " ".join(_errors)
 	print("self-test %s: %s" % ["PASSED" if ok else "FAILED", message])
+	# Started from the menu flow test (prompt 027): it continues the flow.
+	var flow: Node = MatchSetup.flow_test
+	if flow != null:
+		flow.match_test_finished(ok, message)
+		queue_free()
+		return
 	get_tree().quit(0 if ok else 1)
 
 

@@ -69,17 +69,17 @@ build:
 import:
     bash tools/godot-import.sh
 
-# Build the bridge and start the game
+# Build the bridge and start the game (main menu; `just run --skip-menu` starts the test match directly)
 [group('godot')]
-run: build
-    {{ GODOT }} --path godot
+run *args: build
+    {{ GODOT }} --path godot {{ if args != "" { "-- " + args } else { "" } }}
 
 # Build the bridge and open the Godot editor
 [group('godot')]
 editor: build
     {{ GODOT }} --path godot -e
 
-# Build the bridge and run the headless self-test (exit code 0 = passed)
+# Build the bridge and run the headless self-test: menu, settings, two matches, result (exit code 0 = passed)
 [group('godot')]
 selftest: build
     {{ GODOT }} --path godot --headless --fixed-fps 60 -- --self-test
@@ -271,24 +271,24 @@ terrain-textures size="1024" preview="":
 # Measure frame rate and draw calls of the terrain at 1080p (opens a window; extra args e.g. --quality=low --biome=winter)
 [group('terrain')]
 terrain-bench map="test_large" *args: build
-    {{ GODOT }} --path godot --always-on-top -- --terrain-bench --map={{ map }} {{ args }}
+    {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- --terrain-bench --map={{ map }} {{ args }}
 
 # Record fixed terrain views (near, middle, overview, edge, LOD, crater) as PNG frames into a folder (extra args e.g. --biome=desert)
 [group('terrain')]
 terrain-shots dir map="test_large" *args: build
-    {{ GODOT }} --path godot --always-on-top --fixed-fps 30 --write-movie "{{ dir }}/f.png" -- --terrain-shots --map={{ map }} {{ args }}
+    {{ GODOT }} --path godot --always-on-top --fixed-fps 30 --write-movie "{{ dir }}/f.png" res://scenes/main.tscn -- --terrain-shots --map={{ map }} {{ args }}
 
 # --- Map objects (prompt 013) ---------------------------------------------------------
 
 # Measure frame rate, draw calls and instances over the densest wood and a village (opens a window)
 [group('terrain')]
 objects-bench map="test_large": build
-    {{ GODOT }} --path godot --always-on-top -- --objects-bench --map={{ map }}
+    {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- --objects-bench --map={{ map }}
 
 # Record fixed views of woods, village, meadow and hedgerow as PNG frames into a folder
 [group('terrain')]
 objects-shots dir map="test_large": build
-    {{ GODOT }} --path godot --always-on-top --fixed-fps 30 --write-movie "{{ dir }}/f.png" -- --objects-shots --map={{ map }}
+    {{ GODOT }} --path godot --always-on-top --fixed-fps 30 --write-movie "{{ dir }}/f.png" res://scenes/main.tscn -- --objects-shots --map={{ map }}
 
 # --- LAN multiplayer (prompt 025) ----------------------------------------------------
 

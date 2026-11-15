@@ -21,7 +21,11 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by prompt 017: combat. Units have hit points, a hull
+/// Last changed by prompt 027: victory conditions. The demo battle is
+/// decided at tick 405 (player 0 loses its last tank, player 1 wins); from the
+/// first defeat on, the standings and the result are part of the hash. Ticks
+/// before that hash exactly as with prompt 017.
+/// Before: prompt 017: combat. Units have hit points, a hull
 /// direction, turrets, weapons and armor from the catalog, pick targets,
 /// fire projectiles with ballistic flight and dispersion (simulation RNG),
 /// penetrate armor by hit face and angle, and are destroyed (wrecks block
@@ -41,7 +45,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x541b_9330_757a_527b;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xcb06_6ca1_b9cf_7d89;
 
 #[test]
 fn golden_hash() {
@@ -82,4 +86,19 @@ fn demo_is_a_battle() {
             .count();
         assert_eq!(end.alive_units(player), alive);
     }
+}
+
+/// The demo battle ends by elimination (prompt 027): the result is part of
+/// the golden state above.
+#[test]
+fn demo_battle_is_decided() {
+    let end = run_demo(42, 1000);
+    let outcome = end.outcome().expect("the demo battle is decided");
+    assert_eq!(outcome.winner, Some(sim::PlayerId(1)));
+    assert_eq!(outcome.tick, 405);
+    assert_eq!(end.alive_units(sim::PlayerId(0)), 0);
+    assert_eq!(
+        end.standings()[0].defeat,
+        Some((sim::DefeatReason::Eliminated, 405))
+    );
 }

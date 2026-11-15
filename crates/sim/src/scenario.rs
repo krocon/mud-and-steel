@@ -16,6 +16,7 @@ use crate::scale::Scale;
 use crate::sim::{Sim, SimConfig, Spawn};
 use crate::terrain::TerrainRules;
 use serde::Deserialize;
+use std::collections::BTreeMap;
 use std::fmt;
 use std::sync::{Arc, OnceLock};
 
@@ -68,6 +69,10 @@ struct ScenarioFile {
     /// Name of the map the scenario is made for (`data/maps/<map>/`).
     map: String,
     group: Vec<Group>,
+    /// Faction id → catalog id that replaces the units of a player who
+    /// plays that faction (skirmish setup, prompt 027).
+    #[serde(default)]
+    faction_units: BTreeMap<String, String>,
 }
 
 /// The map a scenario file names.
@@ -88,7 +93,37 @@ pub fn parse_scenario(
     terrain: &TerrainRules,
     map: &Map,
 ) -> Result<SimConfig, ScenarioError> {
+    parse_scenario_with_factions(text, &[], catalog, scale, terrain, map)
+}
+
+/// Factions a scenario offers in its `[faction_units]` table, ascending.
+pub fn scenario_factions(text: &str) -> Result<Vec<String>, ScenarioError> {
     let file: ScenarioFile = toml::from_str(text).map_err(|e| ScenarioError(e.to_string()))?;
+    Ok(file.faction_units.into_keys().collect())
+}
+
+/// Like [`parse_scenario`], but every group of a player listed in
+/// `factions` uses the unit the scenario's `[faction_units]` table names for
+/// that player's faction. Positions and counts stay as in the file.
+pub fn parse_scenario_with_factions(
+    text: &str,
+    factions: &[(PlayerId, &str)],
+    catalog: &Catalog,
+    scale: &Scale,
+    terrain: &TerrainRules,
+    map: &Map,
+) -> Result<SimConfig, ScenarioError> {
+    let mut file: ScenarioFile = toml::from_str(text).map_err(|e| ScenarioError(e.to_string()))?;
+    for &(player, faction) in factions {
+        let unit = file
+            .faction_units
+            .get(faction)
+            .ok_or_else(|| ScenarioError(format!("scenario has no units for faction '{faction}'")))?
+            .clone();
+        for group in file.group.iter_mut().filter(|g| g.owner == player.0) {
+            group.unit.clone_from(&unit);
+        }
+    }
 
     let mut names: Vec<&str> = Vec::new();
     for group in &file.group {

@@ -24,3 +24,10 @@ count = 8
 columns = 4
 spacing_m = 12
 center_m = [0, -60]
+
+# Unit that replaces a player's groups when they pick another faction in the
+# skirmish setup (prompt 027). Keys are the faction ids of the catalog.
+[faction_units]
+de = "de_pz4_h"
+su = "su_t34_76_1943"
+us = "us_m4a3_75"

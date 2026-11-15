@@ -1,8 +1,8 @@
 extends RefCounted
 ## Graphics quality levels (prompt 015): low, medium, high.
 ##
-## Chosen with `-- --quality=<level>` (default high) or in the debug menu (F3);
-## a settings menu follows with prompt 027. `atmosphere.gd` applies the
+## Chosen in the settings (`menu/settings.gd`, prompt 027), overridden by
+## `-- --quality=<level>`, or at run time in the debug menu (F3). `atmosphere.gd` applies the
 ## level to the sun, the environment and the viewport. Presentation only.
 
 const LEVELS: Array[String] = ["low", "medium", "high"]

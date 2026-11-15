@@ -60,7 +60,7 @@ impl LanLobby {
     fn host(&mut self, name: GString, port: i64, discovery_port: i64) -> bool {
         self.reset();
         self.name = name.to_string();
-        let max_players = match crate::demo_config(&builtin_map()) {
+        let max_players = match crate::demo_config(&builtin_map(), &[]) {
             Ok(config) => config.players().len(),
             Err(e) => return self.fail(format!("invalid demo scenario: {e}")),
         };
@@ -241,7 +241,7 @@ impl LanLobby {
                 Err(e) => return self.fail(e),
             }
         };
-        let config = match crate::demo_config(&map) {
+        let config = match crate::demo_config(&map, &[]) {
             Ok(config) => config,
             Err(e) => return self.fail(e.to_string()),
         };

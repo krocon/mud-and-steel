@@ -34,6 +34,8 @@ pub enum Command {
     AttackGround { units: Vec<UnitId>, target: Vec2 },
     /// Whether `units` pick targets on their own.
     SetFireMode { units: Vec<UnitId>, mode: FireMode },
+    /// The issuing player gives up and is defeated (prompt 027).
+    Surrender,
 }
 
 impl Command {
@@ -45,6 +47,7 @@ impl Command {
             | Self::Attack { units, .. }
             | Self::AttackGround { units, .. }
             | Self::SetFireMode { units, .. } => units,
+            Self::Surrender => &[],
         }
     }
 }

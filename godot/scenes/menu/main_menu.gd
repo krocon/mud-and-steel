@@ -1,0 +1,212 @@
+extends Control
+## Main menu (prompt 027), the start scene of the game.
+##
+## Screens: main (single player, LAN, settings, quit), single-player setup
+## (map, biome, own and enemy faction) and settings. A started match is
+## handed to `main.tscn` through `match_setup.gd`; LAN opens
+## `lan/lan_lobby.tscn`.
+##
+## Direct starts skip the menu: `-- --skip-menu` and the arguments that used
+## to start the match right away (`--map=…`, `--biome=…`, `--demo`,
+## `--camera-shots`, `--path-debug`, the benchmarks) go straight to
+## `main.tscn`. `-- --self-test` plays the whole flow
+## (`menu/flow_self_test.gd`).
+
+const Settings := preload("res://scenes/menu/settings.gd")
+const MatchSetup := preload("res://scenes/menu/match_setup.gd")
+const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
+const SettingsPanel := preload("res://scenes/menu/settings_panel.gd")
+const FlowSelfTest := preload("res://scenes/menu/flow_self_test.gd")
+const LAN_SCENE := "res://scenes/lan/lan_lobby.tscn"
+const DIRECT_FLAGS: Array[String] = [
+	"--skip-menu", "--demo", "--camera-shots", "--path-debug",
+	"--terrain-bench", "--terrain-shots", "--objects-bench", "--objects-shots",
+]
+const DIRECT_PREFIXES: Array[String] = ["--map=", "--biome="]
+const BIOMES: Dictionary[String, String] = {
+	"": "As the map says", "forest": "Forest (summer)", "desert": "Desert", "winter": "Winter",
+}
+
+## Screens, by name: "main", "skirmish", "settings".
+var screens: Dictionary[String, Control] = {}
+var single_player_button: Button
+var lan_button: Button
+var settings_button: Button
+var quit_button: Button
+var map_option: OptionButton
+var biome_option: OptionButton
+var faction_option: OptionButton
+var enemy_option: OptionButton
+var start_button: Button
+var settings_panel: PanelContainer
+
+var _maps: PackedStringArray = []
+var _map_info: Label
+
+
+func _ready() -> void:
+	if _is_direct_start():
+		get_tree().change_scene_to_file.call_deferred(MatchSetup.MAIN_SCENE)
+		return
+	Settings.ensure_loaded()
+	theme = MenuTheme.get_theme()
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(MenuTheme.background())
+	screens["main"] = _main_screen()
+	screens["skirmish"] = _skirmish_screen()
+	screens["settings"] = _settings_screen()
+	show_screen("main")
+	if "--self-test" in OS.get_cmdline_user_args() and MatchSetup.flow_test == null:
+		var test := FlowSelfTest.new()
+		test.name = "FlowSelfTest"
+		MatchSetup.flow_test = test
+		# On the root, so it survives the scene changes it drives.
+		get_tree().root.add_child.call_deferred(test)
+
+
+func show_screen(screen_name: String) -> void:
+	for key in screens:
+		screens[key].visible = key == screen_name
+
+
+## Starts the match chosen on the setup screen.
+func start_skirmish() -> void:
+	var own: String = MatchSetup.FACTIONS.keys()[faction_option.selected]
+	var enemy: String = MatchSetup.FACTIONS.keys()[enemy_option.selected]
+	MatchSetup.pending = {
+		"map": _maps[map_option.selected],
+		"biome": BIOMES.keys()[biome_option.selected],
+		"factions": PackedStringArray([own, enemy]),
+	}
+	print("Menu: starting %s" % MatchSetup.pending)
+	get_tree().change_scene_to_file(MatchSetup.MAIN_SCENE)
+
+
+func open_lan() -> void:
+	get_tree().change_scene_to_file(LAN_SCENE)
+
+
+func _is_direct_start() -> bool:
+	for arg in OS.get_cmdline_user_args():
+		if arg in DIRECT_FLAGS:
+			return true
+		for prefix in DIRECT_PREFIXES:
+			if arg.begins_with(prefix):
+				return true
+	return false
+
+
+func _main_screen() -> Control:
+	var box := _centered_column(360)
+	box.add_child(MenuTheme.title("MUD AND STEEL"))
+	var subtitle := MenuTheme.hint("Real-time tactics, 1939–1945")
+	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(subtitle)
+	box.add_child(_spacer(24))
+	single_player_button = _button(box, "Single player", func() -> void: show_screen("skirmish"))
+	lan_button = _button(box, "LAN game", open_lan)
+	settings_button = _button(box, "Settings", func() -> void: show_screen("settings"))
+	quit_button = _button(box, "Quit", func() -> void: get_tree().quit())
+	single_player_button.grab_focus.call_deferred()
+	return box.get_meta(&"screen")
+
+
+func _skirmish_screen() -> Control:
+	var box := _centered_column(560, true)
+	box.add_child(MenuTheme.title("Single player", MenuTheme.HEADING_SIZE))
+
+	map_option = OptionButton.new()
+	_maps = MatchSetup.available_maps()
+	for map_name in _maps:
+		map_option.add_item(map_name)
+	map_option.item_selected.connect(func(_index: int) -> void: _update_map_info())
+	box.add_child(_row("Map", map_option))
+	_map_info = MenuTheme.hint("")
+	box.add_child(_map_info)
+
+	biome_option = OptionButton.new()
+	for id in BIOMES:
+		biome_option.add_item(BIOMES[id])
+	box.add_child(_row("Season", biome_option))
+
+	faction_option = OptionButton.new()
+	enemy_option = OptionButton.new()
+	for id in MatchSetup.FACTIONS:
+		faction_option.add_item(MatchSetup.FACTIONS[id])
+		enemy_option.add_item(MatchSetup.FACTIONS[id])
+	faction_option.select(0)
+	enemy_option.select(1)
+	box.add_child(_row("Your side", faction_option))
+	box.add_child(_row("Enemy", enemy_option))
+	box.add_child(MenuTheme.hint("Eight tanks per side. Win when the enemy surrenders or has no units left. The enemy does not act yet (computer opponent: prompt 024)."))
+
+	var buttons := HBoxContainer.new()
+	buttons.alignment = BoxContainer.ALIGNMENT_END
+	box.add_child(buttons)
+	_button(buttons, "Back", func() -> void: show_screen("main"))
+	start_button = _button(buttons, "Start", start_skirmish)
+	_update_map_info()
+	return box.get_meta(&"screen")
+
+
+func _settings_screen() -> Control:
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(center)
+	settings_panel = SettingsPanel.new()
+	settings_panel.closed.connect(func() -> void: show_screen("main"))
+	center.add_child(settings_panel)
+	return center
+
+
+func _update_map_info() -> void:
+	var map_name := _maps[map_option.selected]
+	var info := MatchSetup.describe_map(map_name)
+	if map_name == MatchSetup.BUILTIN_MAP:
+		info = "Built-in test map. " + info
+	if MatchSetup.is_large(map_name):
+		info += ". Large map: loading takes a few seconds."
+	_map_info.text = info
+
+
+## A centered column; the screen root is stored as meta "screen".
+func _centered_column(width: float, panel := false) -> VBoxContainer:
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(center)
+	var box := VBoxContainer.new()
+	box.custom_minimum_size = Vector2(width, 0)
+	if panel:
+		var frame := PanelContainer.new()
+		center.add_child(frame)
+		frame.add_child(box)
+	else:
+		center.add_child(box)
+	box.set_meta(&"screen", center)
+	return box
+
+
+func _button(parent: Control, text: String, action: Callable) -> Button:
+	var button := Button.new()
+	button.text = text
+	button.custom_minimum_size = Vector2(140, 44)
+	button.pressed.connect(action)
+	parent.add_child(button)
+	return button
+
+
+func _row(text: String, control: Control) -> Control:
+	var row := HBoxContainer.new()
+	var label := Label.new()
+	label.text = text
+	label.custom_minimum_size = Vector2(150, 0)
+	row.add_child(label)
+	control.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(control)
+	return row
+
+
+func _spacer(height: float) -> Control:
+	var spacer := Control.new()
+	spacer.custom_minimum_size = Vector2(0, height)
+	return spacer

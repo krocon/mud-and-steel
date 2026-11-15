@@ -6,6 +6,7 @@ use crate::data::UnitType;
 use crate::hash::StableHasher;
 use crate::map::{Map, MapRef};
 use crate::math::{Fixed, Vec2};
+use crate::outcome::{Outcome, PlayerStanding, Standings};
 use crate::path::{NODE_BUDGET_PER_TICK, Path, PathGrid, PathStats, Pathfinder, Request};
 use crate::rng::Rng;
 use crate::terrain::TerrainRules;
@@ -213,6 +214,8 @@ pub struct Sim {
     /// Events of the last tick (not state: derived, not hashed).
     events: Vec<CombatEvent>,
     objects: combat::ObjectIndex,
+    /// Defeated players and the result (prompt 027).
+    standings: Standings,
 }
 
 impl Sim {
@@ -292,6 +295,7 @@ impl Sim {
             events: Vec::new(),
             objects: combat::ObjectIndex::new(&map),
             map,
+            standings: Standings::new(&config.players()),
         })
     }
 
@@ -347,15 +351,25 @@ impl Sim {
         self.move_units();
         self.fly_projectiles();
         self.tick += 1;
+        let units = &self.units;
+        self.standings
+            .update(self.tick, |player| alive_units(units, player));
+    }
+
+    /// Every player of the match (ascending) and whether they are defeated.
+    pub fn standings(&self) -> &[PlayerStanding] {
+        self.standings.players()
+    }
+
+    /// The result, once the match is decided. It never changes afterwards.
+    pub const fn outcome(&self) -> Option<Outcome> {
+        self.standings.outcome()
     }
 
     /// Number of units of `player` that are not destroyed (for victory
     /// conditions).
     pub fn alive_units(&self, player: PlayerId) -> usize {
-        self.units
-            .iter()
-            .filter(|u| u.owner == player && u.alive())
-            .count()
+        alive_units(&self.units, player)
     }
 
     /// Hit points of a unit (`None` if it does not exist).
@@ -582,6 +596,7 @@ impl Sim {
                     }
                 }
             }
+            Command::Surrender => self.standings.surrender(command.player, self.tick + 1),
         }
     }
 
@@ -700,6 +715,7 @@ impl Sim {
         for p in &self.projectiles {
             p.hash_into(&mut h);
         }
+        self.standings.hash_into(&mut h);
         h.finish()
     }
 
@@ -732,6 +748,14 @@ impl Sim {
             events: self.events.clone(),
         }
     }
+}
+
+/// Units of `player` that are not destroyed (see [`Sim::alive_units`]).
+fn alive_units(units: &[Unit], player: PlayerId) -> usize {
+    units
+        .iter()
+        .filter(|u| u.owner == player && u.alive())
+        .count()
 }
 
 fn within_world(point: Vec2) -> bool {
