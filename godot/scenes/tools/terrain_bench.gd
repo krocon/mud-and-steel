@@ -10,7 +10,7 @@ extends Node
 ##
 ## With `--terrain-shots` (and `--write-movie <dir>/f.png --fixed-fps 30`) it
 ## instead holds a series of fixed views for SHOT_FRAMES frames each (near,
-## middle, overview, map edge, LOD tint, test crater) for image comparisons;
+## middle, overview, map edge, LOD tint, test crater, bridges, ford) for image comparisons;
 ## `just terrain-shots <dir>` runs it. The movie writer lags about one frame, so
 ## frame `n * SHOT_FRAMES + SHOT_FRAMES / 2` shows view n.
 
@@ -20,6 +20,9 @@ const VIEWS: Array[Dictionary] = [
 	{"name": "overview", "distance": 600.0},
 	# Same view without the unit models: what the terrain alone costs.
 	{"name": "terrain", "distance": 600.0, "hide_units": true},
+	# Prompt 014: over the stone bridge, with and without the water surface.
+	{"name": "river", "distance": 90.0, "marker": "bridge_stone"},
+	{"name": "no_water", "distance": 90.0, "marker": "bridge_stone", "hide_water": true},
 ]
 ## Views for --terrain-shots: focus, distance, yaw (radians), options.
 const SHOTS: Array[Dictionary] = [
@@ -32,6 +35,11 @@ const SHOTS: Array[Dictionary] = [
 	{"name": "edge", "corner": true, "distance": 420.0, "yaw": 0.785},
 	{"name": "lod", "focus": Vector3(0, 0, 0), "distance": 600.0, "yaw": 0.4, "lod": true},
 	{"name": "crater", "focus": Vector3(-6, 0, 44), "distance": 40.0, "yaw": 0.4, "crater": true},
+	# Prompt 014: bridges and the ford (markers of the generated maps).
+	{"name": "bridge_stone", "marker": "bridge_stone", "distance": 70.0, "yaw": 0.5},
+	{"name": "bridge_stone_near", "marker": "bridge_stone", "distance": 28.0, "yaw": -0.7},
+	{"name": "bridge_wood", "marker": "bridge_wood", "distance": 45.0, "yaw": 0.3},
+	{"name": "ford", "marker": "ford", "distance": 60.0, "yaw": -0.4},
 ]
 const SHOT_FRAMES := 20
 const WARMUP_FRAMES := 60
@@ -68,7 +76,11 @@ func _run() -> void:
 	for view in VIEWS:
 		var distance: float = view["distance"]
 		main.units_root.visible = not view.get("hide_units", false)
+		main.water.visible = not view.get("hide_water", false)
 		var start := Vector3(-300.0, 0.0, 200.0)
+		if view.has("marker") and main.sim_host.map_marker(view["marker"]) != null:
+			# Pan across the marker (the pan below covers 0.4 distances).
+			start = main.sim_host.map_marker(view["marker"]) - Vector3(0.15, 0.0, -0.12) * distance
 		rig.snap_to(start, distance, 0.0)
 		await _frames(WARMUP_FRAMES)
 		var began := Time.get_ticks_usec()
@@ -113,6 +125,8 @@ func _shots() -> void:
 	var half: Vector2 = main.sim_host.map_size() * 0.5
 	for i in SHOTS.size():
 		var shot := SHOTS[i]
+		if OS.has_environment("SHOT_ONLY") and shot.name != OS.get_environment("SHOT_ONLY"):
+			continue
 		var focus: Vector3 = shot.get("focus", Vector3.ZERO)
 		if shot.has("marker"):
 			var marker: Variant = main.sim_host.map_marker(shot["marker"])

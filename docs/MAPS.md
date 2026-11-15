@@ -26,6 +26,7 @@ samples = [251, 251]         # [x, y] = width and height of both PNGs
 height_base_mm = -6000       # height of PNG value 0
 height_step_mm = 1           # millimeters per PNG step
 biome = "forest"             # forest | desert | winter; presentation only (optional)
+water_flow_deg = 180         # direction rivers flow towards (0 = north); presentation only (optional)
 
 [[start]]                    # start positions per player (for scenarios, later menus)
 player = 0
@@ -69,19 +70,21 @@ covers the 2 m × 2 m square around its sample. The ids index the types in
 | 3 | sand | 70 % cross-country | yes |
 | 4 | mud | 40 % cross-country | yes |
 | 5 | snow | 60 % cross-country | yes |
-| 6 | shallow_water | 30 % cross-country | yes |
-| 7 | deep_water | – | no |
+| 6 | shallow_water | 30 % cross-country | yes (fords) |
+| 7 | deep_water | – | no (bridges only) |
 
 Slope (also in `terrain.toml`): uphill the speed drops by 2 % per percent of grade
-(rise over the next meter), down to 20 %; grades above 60 % (31°) cannot be climbed.
-Downhill has no effect yet. These are game rules, not historical values; per-vehicle
+(rise over the next meter), down to 20 %; grades above 60 % (31°) cannot be climbed,
+and since prompt 014 not driven down either (units used to drop off abutments).
+Downhill has no other effect yet. These are game rules, not historical values; per-vehicle
 climbing ability, tracked versus wheeled ground pressure and cover follow later.
 
 Units drive around impassable terrain, too steep grades and the map edge on paths
 planned on a 4 m grid (2 × 2 samples per cell, see
 [ARCHITECTURE.md](ARCHITECTURE.md#pathfinding)). Passages need to be about 4 m wide
 for infantry and about 8 m for tanks (one aligned cell, plus the 2 m margin tanks
-keep from impassable ground); design fords and bridges accordingly.
+keep from impassable ground); design fords accordingly. Bridges need less: see
+[Bridges](#bridges).
 
 ### Loading and identity
 
@@ -95,6 +98,13 @@ A map has a content hash (grid, heights, terrain, objects with their resolved ru
 not the name or `map.toml` metadata). `SimConfig::map` is a `MapRef { name, hash }`; `Sim::new(config, map,
 seed)` rejects a map whose hash differs, and the hash is part of the state hash.
 Replays store only the reference, so `just replay` loads `data/maps/<name>/` again.
+
+### Water flow
+
+`water_flow_deg` (optional, default 180 = south, `0..360`, compass degrees)
+tells the water renderer which way rivers flow; along a river the flow follows
+the banks, this value only picks the sign. Like `biome` it is presentation
+only: not in the map hash, no rule reads it (`sim::Map::water_flow_deg()`).
 
 ### Biome
 
@@ -150,9 +160,56 @@ number. The kinds a map uses and their resolved shapes become part of the map ha
 so changing a rule changes the hash of every map using that kind (old replays then
 report the different map instead of desyncing).
 
+Bridges are written first, then everything else.
+
 `objects.csv` is plain text so it can be edited in any tool and diffed, and lives in
 Git LFS like the PNGs (`test_large`: 98 000 lines, 4.2 MB). A compact binary format
 would only pay off far beyond that; parsing takes about 50 ms.
+
+### Bridges
+
+Bridges (prompt 014) are map objects whose kind has a **deck** rule in
+`data/objects.toml`: roadway width, load limit and the terrain whose speed
+applies on the deck.
+
+| Kind | Variants (length) | Roadway | Load limit |
+|---|---|---|---|
+| `env_bridge_wood` (single-lane timber) | `Span8` (8 m), `Span12` (12 m), `Span16` (16 m) | 4.1 m | 16 t |
+| `env_bridge_stone` (stone arch) | `Arch1`, `Arch2` (20 m), `Arch3` (30 m) | 5.1 m | 100 t |
+
+The load limits are game rules: the timber bridge carries trucks, half-tracks,
+armored cars and light tanks, but no Panzer IV, T-34 or Sherman. The catalog
+mass (`mass_kg`, `sim::UnitType::mass_kg`) decides; infantry has none.
+
+- **Deck:** a box along the object's heading, as long as the variant and as
+  wide as the roadway. Its height runs linearly between the ground heights at
+  both ends of the axis (computed when the objects are loaded), so it always
+  meets the banks; the map must bring the banks (ramps) up to the height the
+  bridge should have. `Map::height_at` and `Map::terrain_at` report the deck
+  (never below the ground) wherever a point lies on an intact deck;
+  `ground_height_at` / `ground_terrain_at` give the raw values.
+- **Railings:** units get on or off a deck only over its ends, or sideways
+  where the ground is within 0.5 m of the deck (abutments)
+  (`Map::deck_step_ok`).
+- **Path grid:** a path cell whose center lies on an intact deck is open for
+  every unit the bridge carries (no steepness, no margin, the deck terrain's
+  cost) and closed for heavier ones. Water under a deck does not count for the
+  2 m margin of tanks. Loading checks that the cells along the axis (except
+  the last half cell at each end) have their centers on the deck: the axis
+  must run along the 4 m path grid, close to a line of cell centers
+  (`x` or `y` = `-half + 1 + 4 k` m on 2 m maps), otherwise the bridge is
+  rejected with its position. Diagonal bridges are not supported.
+- **Placing one:** span the water plus about 4 m of bank on each side (so the
+  cells beyond the deck are clear of the tank margin), heading a multiple of
+  90°, axis on a cell center line, banks raised to the wanted deck height
+  with ramps of at most ~12 % (the generator does all of this).
+- **Destruction** (prepared, prompt 020): `Sim::set_bridge_intact(index,
+  false)` removes the deck (the map is copied once, copy-on-write), the path
+  grid around it is rebuilt and units whose route uses it plan again; `true`
+  restores it. The state of every bridge is part of the state hash.
+
+The renderer places the model so that its deck (glTF extra `deck_height_m`)
+lies at the simulation's deck height in the middle of the bridge.
 
 ## Decisions (prompt 010)
 
@@ -182,12 +239,12 @@ touching the simulation.
 | Transient while decoding | + 12 MB (raw PNG rows); peak RSS of `map-info` 50 MB including its 16 MB benchmark points |
 | Read files | 0.5 ms |
 | Decode + validate + hash | 69 ms (debug build: 690 ms) |
-| Objects (prompt 013) | 98 375 (96 404 blocking, 32 kinds); `objects.csv` 4.2 MB, 2.4 MB in memory, parse + resolve + hash 52 ms |
+| Objects (prompts 013, 014) | 98 462 (95 619 blocking, 36 kinds, 4 bridges); `objects.csv` 4.2 MB, 2.4 MB in memory, parse + resolve + hash 52 ms |
 | `height_at` | 35–40 ns per lookup (random points; 2 lookups per unit and tick) |
 | Godot start incl. map and debug mesh | 1.2 s (debug bridge, headless) |
 
 `test_small` (500 m): 63 001 samples, 0.06 MB files, 0.3 MB memory, 1.4 ms to load;
-1 447 objects (2.6 ms).
+1 444 objects including 2 bridges (2.7 ms).
 
 If 8 km maps ever come: 80 MB with this layout. Then store heights as `u16` + base and
 step in memory too (half), or as tiles; prompt 016 covers large maps.
@@ -201,8 +258,21 @@ step in memory too (half), or as tiles; prompt 016 covers large maps.
   `1.54 · h / r`, kept below ~35 %. One landmark hill north-west of the meadow
   (marker `hill_top`); more hills per area on larger maps, away from the meadow and
   the river.
-- **River bed:** a wobbly line roughly north–south in the east, cut 3.5 m deep with
-  gentle banks: deep water in the middle, shallow water, sand banks and mud patches.
+- **River bed:** a wobbly line roughly north–south in the east. Gentle banks
+  down to 3 m below the ground over 40 m, then the water: shallow water down
+  to 0.5 m below the waterline (0.15 m below the banks), a deep channel down
+  to 1.8 m in the middle (none in fords); sand banks and mud patches beside
+  it (prompt 014; before, the bed was nearly flat 3.5 m down).
+- **Bridges** (prompt 014, own random stream): one crossing per started
+  kilometer of river, at least two, spread along the river and away from the
+  ford of the east track, alternating stone and timber. At each crossing the
+  river runs straight for ±30 m and narrows (timber: 7 m of water, stone:
+  11 m, on wide rivers 22 m); the bridge axis runs east–west on a path cell
+  center line; the shortest variant spanning the water plus 4 m on each side
+  is used (timber falls back to stone if none fits). Embankments raise the
+  banks to the deck (timber 1.5 m, stone 3 m above the bank) with 12 % ramps
+  and 50 % sides; a field track leads from the meadow over the bridge to the
+  east edge. Markers `bridge_stone`, `bridge_wood` and `ford`.
 - **Start meadow:** flat at height 0 around the origin (radius 0.38 × half size, at
   most 160 m), blended into the surroundings; the demo scenario stands on it.
 - **Village squares:** flat road-covered circles at the natural height (marker
@@ -227,6 +297,10 @@ step in memory too (half), or as tiles; prompt 016 covers large maps.
     trees at the edges. Trunks keep 6 m from the edges of tracks, so tracks stay open
     through woods.
   - **Fields:** single trees, groups of haystacks, fallen logs; boulders on the hills.
+  - **Stones in the river** (small and medium rocks, blocking nobody), groups
+    every 7 m along the river with a 45 % chance, not within 25 m of bridges
+    and fords; they make foam (prompt 014). Placed last, so all other objects
+    stay as before.
   - Kept free: the start meadow, water and banks, village squares, the landmark
     hill top and a corridor from the meadow to it (self-test and demo drive there).
 
@@ -261,3 +335,8 @@ as before. `debug_color` in `terrain.toml` is still used for the PNG palette.
 Map objects and decoration are drawn by `godot/scenes/world/map_objects.gd`
 (prompt 013): `object_kinds`, `object_count`, `object_groups`, `object_position`
 and `scatter_deco` in the bridge.
+
+Water surfaces (prompt 014) are drawn by `godot/scenes/world/water.gd` from
+`water_mesh`; `water_levels`, `water_level_at`, `is_water_at`, `bridges`,
+`ground_height_at` and `water_flow_deg` serve the terrain shader, tools and the
+self-test (see [ARCHITECTURE.md](ARCHITECTURE.md#water-presentation-only)).

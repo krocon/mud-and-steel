@@ -81,3 +81,11 @@ const LAYER_COUNT := 10
 @export_range(0.0, 4.0) var wind_speed := 1.2
 ## Falling snow, 0..1 (particles around the camera focus).
 @export_range(0.0, 1.0) var snowfall := 0.0
+
+@export_group("Water")
+## Water color over shallow and over deep beds (prompt 014, water.gdshader).
+@export var water_shallow := Color(0.24, 0.26, 0.14)
+@export var water_deep := Color(0.07, 0.10, 0.06)
+@export var water_foam := Color(0.85, 0.88, 0.84)
+## Meters of water after which 63 % of the green light is absorbed.
+@export_range(0.1, 5.0) var water_clarity := 1.2

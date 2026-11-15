@@ -76,7 +76,9 @@ impl SimHost {
     /// `weights`). `density` gives the probability per lattice point for
     /// every terrain id, `wood_factor` scales it in dense wood,
     /// `patchiness` (0..1) groups it into patches. No decoration on samples
-    /// covered by buildings, walls, hedges or props.
+    /// covered by buildings, walls, hedges or props. `shore` (meters,
+    /// signed: negative in the water, positive on land) limits the layer
+    /// to a band along the water's edge (reeds); `Vector2(0, 0)` = no limit.
     #[func]
     #[allow(clippy::too_many_arguments)]
     fn scatter_deco(
@@ -92,6 +94,7 @@ impl SimHost {
         weights: PackedFloat32Array,
         scale: Vector2,
         sink: f32,
+        #[opt(default = Vector2::ZERO)] shore: Vector2,
     ) -> Array<PackedFloat32Array> {
         let Some(game) = self.game.as_ref() else {
             return Array::new();
@@ -108,8 +111,13 @@ impl SimHost {
             weights: weights.as_slice(),
             scale: (scale.x, scale.y),
             sink,
+            shore: (shore.x, shore.y),
         };
-        objects::scatter(&game.map, rasters, &layer, x0, z0, size)
+        let water = (shore != Vector2::ZERO).then(|| {
+            game.water
+                .get_or_init(|| crate::water::WaterField::new(&game.map))
+        });
+        objects::scatter(&game.map, rasters, water, &layer, x0, z0, size)
             .into_iter()
             .map(|b| PackedFloat32Array::from(b.as_slice()))
             .collect()

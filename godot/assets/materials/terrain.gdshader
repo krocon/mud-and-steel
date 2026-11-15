@@ -18,6 +18,11 @@
 // sand-earth; winter: grass drawn as snow). `snow_cover` lays snow over flat
 // ground, less on roads and tracks. Set by terrain.gd `apply_biome`.
 //
+// Water (prompt 014): `water_tex` holds the water level per sample (on water
+// and on land near it, -10000 elsewhere). Ground just above the waterline is
+// darker and glossier (wet band); the river bed under water is only a little
+// darker, the water surface (water.gdshader) tints it.
+//
 // Layer order: see LAYERS in crates/cli/src/gen_textures.rs.
 shader_type spatial;
 render_mode cull_back;
@@ -60,6 +65,8 @@ uniform float snow_cover = 0.0;
 uniform float grass_variation = 1.0;
 // 1: tint every chunk by its LOD level (debug menu).
 uniform bool show_lod = false;
+uniform sampler2D water_tex : filter_linear, repeat_disable;
+uniform bool has_water = false;
 
 varying vec3 world_pos;
 varying float lod_stride;
@@ -220,8 +227,8 @@ void fragment() {
 		vec3 c = col[i].rgb;
 		float r = nrm[i].b;
 		if (i == SHALLOW || i == DEEP) {
-			// Wet river bed until water surfaces arrive (prompt 014).
-			float wet = i == DEEP ? 0.75 : 0.45;
+			// River bed: wet and silty under the water surface.
+			float wet = i == DEEP ? 0.3 : 0.15;
 			c *= mix(vec3(1.0), vec3(0.35, 0.42, 0.45), wet);
 			r *= 1.0 - wet * 0.8;
 			dworld *= 1.0 - wet;
@@ -247,6 +254,21 @@ void fragment() {
 	vec3 lush = albedo * vec3(0.8, 0.95, 0.75);
 	albedo = mix(albedo, dry, smoothstep(0.5, 0.8, macro_far.g) * 0.7 * greenness * grass_variation);
 	albedo = mix(albedo, lush, smoothstep(0.45, 0.2, macro_far.g) * 0.6 * greenness * grass_variation);
+
+	// Wet band above the waterline (and wet ground under the water).
+	if (has_water) {
+		float level = texture(water_tex, base_uv).r;
+		if (level > -9000.0) {
+			float above = world_pos.y - level;
+			// Wet band: darkest at the waterline; under water only a little
+			// darker (the water surface tints it).
+			float wet = smoothstep(0.75, 0.04, above + (macro_near.g - 0.5) * 0.25);
+			float dry_above = step(0.0, above);
+			albedo *= mix(1.0, mix(0.82, 0.58, dry_above), wet);
+			rough = mix(rough, 0.25, wet * dry_above);
+			detail *= 1.0 - 0.4 * wet;
+		}
+	}
 
 	// Snow cover (winter): on flat ground, patchy, thinner on roads and
 	// tracks (driven on) and none on water.

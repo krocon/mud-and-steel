@@ -420,7 +420,13 @@ env_tree_deciduous
 - Bridges: lowest point (abutment base / water level) at z = 0, extras
   `deck_height_m`, `span_m`, `deck_width_m` for placement over rivers
   (prompt 014). The span is parametric: the generator builds to the variant
-  length (`Span8`, `Span12`, `Span16`; `Arch1`..`Arch3`).
+  length (`Span8`, `Span12`, `Span16`; `Arch1`..`Arch3`). In the game the
+  model is lowered by `deck_height_m` so its deck lies on the simulation's
+  deck (`data/objects.toml`, [MAPS.md](MAPS.md#bridges)); the deck rule's
+  roadway width matches `deck_width_m`.
+- Grass clumps have the variant `Reeds` (prompt 014): six tall, narrow, nearly
+  upright grass cards, about 0.45 m wide and 1.7 m high, for the reed
+  decoration along banks.
 - Telegraph poles have `Socket_Wire_NN` empties at the insulators for wires.
 
 ### Blueprint format

@@ -18,6 +18,9 @@ extends Node
 ##    (displayed ground lowered, simulation unchanged).
 ## 6. Replay: the recorded match is saved, read back and re-simulated to the
 ##    same end hash.
+## 8. Water and bridges (prompt 014, `tools/water_self_test.gd`): water
+##    mesh and level, bridge models at the deck height, a tank drives over
+##    the stone bridge at the deck height.
 ## 7. Map objects (prompt 013, runs before the terrain test's crater): every
 ##    object of the map is drawn once, round objects stand on the
 ##    simulation's ground, decoration appears near the camera and is the same
@@ -33,6 +36,8 @@ const OVERVIEW_DISTANCE := 350.0
 const HILL_TIME_SCALE := 4.0
 ## The tank must end at least this many meters above its start.
 const HILL_MIN_CLIMB := 10.0
+
+const WaterSelfTest := preload("res://scenes/tools/water_self_test.gd")
 
 var main: Node3D
 var _errors: PackedStringArray = []
@@ -50,9 +55,10 @@ func _run() -> void:
 	await _objects_test()
 	await _terrain_test()
 	await _biome_test()
+	await WaterSelfTest.new().run(self)
 	_replay_test()
 	var ok := _errors.is_empty()
-	var message := "camera, selection, orders, hill, objects, terrain, biomes and replay ok" if ok else " ".join(_errors)
+	var message := "camera, selection, orders, hill, objects, terrain, biomes, water and replay ok" if ok else " ".join(_errors)
 	print("self-test %s: %s" % ["PASSED" if ok else "FAILED", message])
 	get_tree().quit(0 if ok else 1)
 

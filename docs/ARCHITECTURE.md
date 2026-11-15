@@ -32,7 +32,7 @@ Transport: ENet on LAN (net::lan), later Steam online
 
 | Crate / folder  | Responsibility | Depends on |
 |-----------------|----------------|------------|
-| `crates/sim`    | Game rules and state. `Sim::new(config, map, seed)`, `step(&[PlayerCommand])`, `state_hash()`, `snapshot()`. Players and unit ownership, group commands with formation, maps (height field, terrain, objects), pathfinding (`sim::path`), fixed-point math, RNG, stable hash, unit catalog, scale, terrain rules and scenarios (compiled in, like the map `test_small`). | `fixed`, `serde`, `toml`, `png` |
+| `crates/sim`    | Game rules and state. `Sim::new(config, map, seed)`, `step(&[PlayerCommand])`, `state_hash()`, `snapshot()`. Players and unit ownership, group commands with formation, maps (height field, terrain, objects, bridges), pathfinding (`sim::path`), fixed-point math, RNG, stable hash, unit catalog, scale, terrain rules and scenarios (compiled in, like the map `test_small`). | `fixed`, `serde`, `toml`, `png` |
 | `crates/net`    | Lockstep protocol: `CommandFrame`, `HashReport`, `LockstepSession` (input delay, also changed at run time, desync detection), `Transport` trait, `LoopbackTransport` for tests, `LocalTransport` for single player. Replays (`net::replay`). LAN games (`net::lan`): ENet transport with lobby, discovery by UDP broadcast. | `sim`, `postcard`, `rusty_enet`, `if-addrs` |
 | `crates/cli`    | Headless runner: `cli run --ticks N --seed S [--record FILE]` prints the state hash, `cli replay FILE` re-simulates a replay and checks its end hash, `cli gen-map` generates test maps, `cli map-info DIR` measures a map, `cli path-bench` benchmarks pathfinding, `cli lan-host` / `cli lan-join` play the demo as headless LAN peers. | `sim`, `net`, `clap`, `png` |
 | `crates/bridge` | GDExtension `cdylib`. `SimHost` node: runs ticks from a time accumulator through a `LockstepSession`, queues commands, exposes the last two snapshots and the replay; plays single player over `LocalTransport` or a LAN match (`SimHost.start_lan`). `LanLobby` drives the LAN lobby. The only float conversion. | `sim`, `net`, `godot` |
@@ -93,6 +93,12 @@ generator and the reasons behind them: [MAPS.md](MAPS.md).
   map edge ([Pathfinding](#pathfinding)). They never enter impassable terrain or leave
   the map; if the way to the next waypoint is blocked anyway (separation pushed them
   off), they slide along the obstacle or plan again.
+- **Bridges** (prompt 014, [MAPS.md](MAPS.md#bridges)): on an intact deck,
+  `Map::height_at` and `Map::terrain_at` report the deck, so units drive over
+  bridges with the same movement code. They get on or off a deck only over its
+  ends or where the ground beside it is about as high (railings), and grades
+  steeper than `max_grade_pct` stop them downhill as well as uphill, so a pushed
+  unit cannot drop off an abutment into the river.
 
 ## Pathfinding
 
@@ -116,6 +122,13 @@ before the map edge. Per cell:
   map object small / large (a [map object](MAPS.md#objects) whose ground shape
   overlaps the open cell square blocks that class: circles by the nearest point,
   rotated boxes by a separating-axis test, in `Fixed` with an integer sine table).
+- **Decks** (prompt 014): a cell whose center lies on the deck of an intact
+  [bridge](MAPS.md#bridges) is open whatever lies below (terrain, steepness and
+  margin flags cleared), costs the deck terrain and the deck's grade, and is
+  closed (cost 0) for unit types heavier than the bridge's load limit
+  (`UnitType::mass_kg`). Samples under a deck do not count as impassable for
+  the margin of the neighbor cells. Only cells within two cells of a deck are
+  checked, so maps without bridges build as fast as before.
 - **Size classes:** `Small` (footprint up to 4 m: infantry) is blocked by the first
   three flags and objects that block small units, `Large` (tanks, trucks) also by
   the margin and objects that block large units (trees, hedges, walls), so a tank's
@@ -128,9 +141,13 @@ before the map edge. Per cell:
   `terrain.toml`). The cheapest cell costs `MIN_CELL_COST` = 100. A Panzer IV (38 vs
   16 km/h) pays 100 on roads and about 240 on grass; infantry (5 vs 4 km/h) 100
   and 125.
-- **Components** per class (4-neighborhood flood fill): a target in another
-  component (a lake, behind a river without a ford) is moved to the nearest cell
-  of the start's component before the search, so every search succeeds.
+- **Components** per class and load tier (4-neighborhood flood fill over the
+  cells a profile may enter): a target in another component (a lake, behind a
+  river without a ford, behind a bridge too weak for the unit) is moved to the
+  nearest cell of the start's component before the search, so every search
+  succeeds. The load tier of a unit type is the number of distinct bridge load
+  limits of the map below its mass; types with the same class and tier share
+  one component grid (on maps without bridges: one per class, as before).
 
 `test_large` (1000 × 1000 cells, two unit types) builds in about 170 ms (release;
 part of `Sim::new`), `test_small` in 3 ms. Memory: 13 bytes per cell (flags, slope, two classes), 2 bytes per cell and unit
@@ -166,12 +183,14 @@ nobody waits for any more (new order, `Stop`) are dropped without searching.
 
 `MoveTo` assigns formation slots as before, then queues **one request for the
 group**: from the unit nearest to the group's center, with the profile of the
-largest unit (its class fits everybody). When the path is found, every member
+most restrictive unit (size class, then load tier, then size), which fits
+everybody: a group with a Panzer IV avoids timber bridges. When the path is found, every member
 follows it **shifted by its formation offset** (slot minus target), checked by line
 of sight in its own class's grid:
 
-- a shifted waypoint that cannot be reached in a straight line is replaced by the
-  unshifted one (the group squeezes through a gap);
+- a shifted waypoint that cannot be reached in a straight line (checked with the
+  member's own profile, bridges included) is replaced by the unshifted one (the
+  group squeezes through a gap or over a bridge);
 - a slot in blocked terrain moves to the nearest passable cell visible from the
   group's end point;
 - waypoints of the group path within 8 m of its start are skipped by members that
@@ -212,6 +231,11 @@ restarts the running search and re-plans every unit whose remaining route touche
 the changed cells. It is meant for game systems (buildings, wrecks, destruction in
 prompt 020), not for player commands; nothing calls it yet.
 
+`Sim::set_bridge_intact(bridge, intact)` (prompt 014) works the same way for a
+bridge: the map is copied once (copy-on-write through `Arc::make_mut`; the
+copy has the deck removed), the cells within two cells of the deck are
+rebuilt, and units whose route touches them plan again.
+
 ### Decisions
 
 | Question | Decision | Why |
@@ -223,6 +247,7 @@ prompt 020), not for player commands; nothing calls it yet.
 | Budget | 32 768 expansions per tick | About 4 ms per tick in release (M1 Max): 8 % of a tick. A group order across `test_large` (177 000 expansions on average) takes about 6 ticks, short orders one. |
 | Unreachable targets | Nearest cell of the start's component | The unit gets as close as possible instead of stopping at the first obstacle, and no search ever explores a whole region in vain. |
 | Separation | Push + swerve, no avoidance planning | Simple, deterministic, enough to pass each other; crowding is handled by the stall and re-plan rules. Proper local avoidance (RVO) is much more code. |
+| Bridges in the grid | Deck cells by their center, load limit per unit type, components per (class, load tier) | One lane of cells along the axis is exact and cheap; a separate grid per unit type would multiply memory, while tiers give only as many component grids as there are distinct load limits. Diagonal bridges would need corner cutting on decks; the generator builds them along the grid. |
 | Debug builds | `sim` with `opt-level = 3` in the dev profile | The Godot bridge and the tests run debug builds, and unoptimized A* would eat the frame; overflow checks and debug assertions stay on, so integer behavior is unchanged. |
 
 ### Benchmark
@@ -487,6 +512,69 @@ of about 300 visible chunks × tree variants × shadow cascades; merging far tre
 into larger chunks would cut them if weaker GPUs need it (prompt 016).
 `just objects-shots <dir>` records woods, village, meadow and a hedgerow.
 
+## Water (presentation only)
+
+Prompt 014. The simulation knows water only as terrain types on a river bed;
+`crates/bridge/src/water.rs` derives the surface, `godot/scenes/world/water.gd`
+and `assets/materials/water.gdshader` draw it.
+
+```
+sim::Map (heights, terrain ids 6/7, bridges, rocks, water_flow_deg)
+   │  WaterField::new (floats, once per map, cached in the bridge)
+   ▼
+per sample: level · shore distance · flow velocity · depth
+   │  level: bank heights (land next to water, not under decks, at most
+   │         0.9 m above the bed next to it) carried to the water by
+   │         nearest bank (chamfer distance), 8 × 3×3 smoothing, 8 cm down
+   │  shore: chamfer distance to land or a stone in the water (m)
+   │  flow:  perpendicular to the shore-distance gradient, turned towards
+   │         water_flow_deg, smoothed; 0.9 m/s in the middle of deep water,
+   │         slower near banks and in shallows, around stones
+   ▼
+SimHost.water_mesh(): one vertex per water sample and its ring of land
+   samples, two triangles per touched 2 m cell; UV = flow, UV2 = (shore, depth)
+   ▼
+water.gd: one MeshInstance3D, ShaderMaterial, no shadow casting
+SimHost.water_levels(): level raster → terrain shader (wet band)
+```
+
+**Shader** (`water.gdshader`, transparent pass):
+
+- **Flow map:** two samples of a noise normal map shifted along the flow, half
+  a cycle (2.4 s) apart, blended so neither jumps when its phase wraps; plus
+  a slow large ripple layer. Normal maps and the foam pattern are
+  `NoiseTexture2D` resources (seamless `FastNoiseLite`), so there are no
+  texture files.
+- **Foam:** near banks and stones (shore distance), in very shallow water and
+  where the screen depth shows the water getting thin, with a cellular pattern
+  that moves with the flow; streaks on fast water.
+- **Color:** the opaque scene behind (screen texture, offset by the normals
+  unless that would pick up something in front of the water) comes in as
+  emission, so it is not lit twice, weakened per channel over the view
+  distance through the water (screen depth; blue is absorbed fastest, like
+  humic river water); the water's own color (biome: shallow, deep, foam,
+  clarity) is the lit albedo.
+- **Reflection:** Godot's sky radiance and sun specular on a smooth surface
+  (Fresnel included). No screen-space reflections: they are an effect of
+  the whole environment (every surface pays for them, and they streak at the
+  screen edges); planar reflections would render the scene twice. From the
+  high RTS camera, water mirrors almost only the sky.
+
+**Banks:** the terrain shader darkens ground up to 0.75 m above the waterline
+and makes it glossy (wet band), and darkens the bed under water a little; the
+water tints the rest. **Reeds** (`env_grass_clump` variant `Reeds`) grow in
+a band from 1.5 m in the water to 1.5 m on land, bushes 3–10 m from the water
+(`map_objects.gd` decoration layers with a `shore` band, from the shore
+distance of `WaterField`). Stones in the river are map objects (generator).
+
+**Bridges** are drawn like other map objects; `object_groups` places them at
+the simulation's deck height and `map_objects.gd` lowers each model by its
+`deck_height_m`.
+
+Debug menu (F3): "Water" shows or hides the surface. `just terrain-shots` has
+views of the stone bridge (two distances), the timber bridge and the ford;
+`just terrain-bench` measures a river view with and without the water.
+
 ## Lighting, atmosphere and biomes (presentation only)
 
 Prompt 015. `godot/scenes/world/atmosphere.gd` (created by `main.gd`) sets up
@@ -607,7 +695,7 @@ Format (`crates/net/src/replay.rs`):
 
 ```
 "MSRP"  4 bytes magic
-u16 LE  format version (currently 2)
+u16 LE  format version (currently 3)
 postcard body: seed, resolved SimConfig, lockstep players, tick count,
                frames (tick + merged PlayerCommands, only non-empty ticks), end hash
 ```
@@ -625,7 +713,8 @@ Decisions:
 - **Map by reference.** The map (20 MB for 4 km) is not copied into the replay; the
   config names it with its content hash. `just replay` loads `data/maps/<name>/` (or
   the built-in `test_small`) and refuses a map whose hash differs. Version 2 (prompt
-  010) added map reference and terrain rules.
+  010) added map reference and terrain rules, version 3 (prompt 014) the unit
+  mass (`UnitType::mass_kg`, bridge load limits).
 - **Merged commands per tick, sparse.** The replay stores exactly what `Sim::step` got
   (player-tagged, in apply order), so playback needs no lockstep session and does not
   depend on input delay. Ticks without commands are omitted; the tick count marks the

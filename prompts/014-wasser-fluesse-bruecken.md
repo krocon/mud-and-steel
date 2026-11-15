@@ -60,7 +60,7 @@ reine Darstellung.
    Steilheit, kein Rand-Abstand, Kosten der Deck-Geländeart, Steigung des Decks.
    Proben unter einem Deck zählen nicht als unpassierbar für den Rand-Abstand der
    Nachbarzellen. Bedingung beim Laden: die Zellen entlang der Brückenachse sind
-   durchgehend Deck-Zellen (sonst Fehler mit Zeilennummer); in der Praxis heißt das
+   durchgehend Deck-Zellen (sonst Fehler mit Art und Position der Brücke); in der Praxis heißt das
    Achse ungefähr parallel zum Raster und auf einer Zellmitte.
 4. **Tragfähigkeit:** `UnitType` bekommt `mass_kg` aus dem Katalog (0 für
    Einträge ohne Masse, z. B. Infanterie). Deck-Zellen einer Brücke mit
@@ -162,6 +162,7 @@ denselben Pfad).
 | Deck-Zellen | Zellmitte auf dem Deck, Achse muss durchgehend abgedeckt sein | Einfach und exakt; schräge Brücken würden Diagonalschritte ohne Eckenregel brauchen. Der Generator richtet Brücken am Raster aus. |
 | Tragfähigkeit | Masse aus dem Katalog gegen `max_load_kg`, Holz 16 t, Stein 100 t (Spielregeln) | Echte Fahrzeugmassen sind im Katalog; Holzbrücke trägt Lkw, Halbketten, leichte Panzer und Spähwagen, aber keine Panzer IV, T-34 oder Sherman. |
 | Komponenten | Pro (Klasse, Laststufe), nur so viele wie Profile sie brauchen | Ein Panzer, der nur über eine Holzbrücke käme, bekommt das nächste erreichbare Ziel statt einer vergeblichen Suche. |
+| Vom Deck fallen | Geländer an den Deckseiten (über mehr als 0,5 m Höhenunterschied), Gefälle über der Steigungsgrenze auch bergab gesperrt | Beim Ausführen gefunden: die Separation schob einen Panzer vom Damm 3 m tief ins Flussbett, wo er feststeckte. |
 | Zerstörung | Copy-on-write der Karte | `Map` bleibt für alle Leser unveränderlich; die Kopie (20 MB) entsteht nur beim seltenen Ereignis. |
 | Wasserspiegel | In der Bridge aus Uferhöhen, nicht in der Karte | Keine neuen Kartendaten; die Simulation braucht ihn nicht. |
 | Fließrichtung | Tangente des Uferabstands, Vorzeichen aus `water_flow_deg` | Eine Zahl pro Karte statt einer gemalten Flow-Map; reicht für Flüsse ohne Schleifen. |

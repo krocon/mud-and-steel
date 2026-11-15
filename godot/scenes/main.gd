@@ -41,6 +41,7 @@ const PathDebug := preload("res://scenes/debug/path_debug.gd")
 const Atmosphere := preload("res://scenes/world/atmosphere.gd")
 const GraphicsQuality := preload("res://scenes/world/graphics_quality.gd")
 const MapObjects := preload("res://scenes/world/map_objects.gd")
+const Water := preload("res://scenes/world/water.gd")
 const ObjectsBench := preload("res://scenes/tools/objects_bench.gd")
 const LanMatch := preload("res://scenes/lan/lan_match.gd")
 const NetStatus := preload("res://scenes/lan/net_status.gd")
@@ -73,6 +74,8 @@ const ENEMY_TINT := Color(0.85, 0.2, 0.15, 0.22)
 
 ## Trees, buildings, hedges and decoration (prompt 013).
 var map_objects: Node3D
+## Water surfaces of rivers (prompt 014).
+var water: Water
 var _unit_nodes: Dictionary[int, Node3D] = {}
 var _camera_shots := "--camera-shots" in OS.get_cmdline_user_args()
 var _frame := 0
@@ -112,6 +115,11 @@ func _ready() -> void:
 	add_child(map_objects)
 	map_objects.biome = atmosphere.preset.env_biome
 	map_objects.build(sim_host, camera)
+	water = Water.new()
+	water.name = "Water"
+	add_child(water)
+	water.build(sim_host)
+	water.apply_biome(atmosphere.preset)
 
 	selection.sim_host = sim_host
 	selection.camera = camera
@@ -268,6 +276,7 @@ func _use_catalog_model(node: Node3D, type_id: String, id: int) -> void:
 func set_biome(id: String) -> void:
 	atmosphere.set_biome(id)
 	map_objects.set_biome(atmosphere.preset.env_biome)
+	water.apply_biome(atmosphere.preset)
 	for node: Node3D in _unit_nodes.values():
 		var model := node.get_node_or_null("Model") as Node3D
 		var faction: String = model.get_meta(&"faction", "") if model else ""

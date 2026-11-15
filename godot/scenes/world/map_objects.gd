@@ -17,6 +17,11 @@ extends Node3D
 ## decoration.
 ##
 ## The biome look (EnvLook) and wind come from the env shaders of prompt 007.
+##
+## Bridges (prompt 014) stand at the simulation's deck height: the bridge
+## places them there, and each model is lowered by its own deck height (glTF
+## extra `deck_height_m` of the variant). Reeds grow in a band along the
+## water's edge (`shore`: signed meters, negative in the water).
 
 ## Chunk size of objects in meters (same as the terrain chunks).
 const CHUNK_M := 128.0
@@ -38,6 +43,7 @@ const OBJECT_CLASSES: Array[Dictionary] = [
 	{"prefix": "env_rock", "range": 700.0, "shadow": true},
 	{"prefix": "env_pole", "range": 700.0, "shadow": true},
 	{"prefix": "env_log", "range": 450.0, "shadow": true},
+	{"prefix": "env_bridge", "range": 0.0, "shadow": true},
 	{"prefix": "fort_", "range": 700.0, "shadow": true},
 	{"prefix": "", "range": 300.0, "shadow": false},
 ]
@@ -63,6 +69,16 @@ const DECO_LAYERS: Array[Dictionary] = [
 		"spacing": 5.0, "seed": 37,
 		"density": [0.03, 0.06, 0.0, 0.12, 0.05, 0.0, 0.15, 0.0], "wood": 1.5, "patchiness": 0.8,
 		"scale": Vector2(0.5, 1.4), "sink": 0.05, "range": 160.0, "shadow": false},
+	{"name": "reeds", "model": "env_grass_clump", "variants": ["Reeds", "GrassTall"],
+		"weights": [0.85, 0.15], "spacing": 0.8, "seed": 53,
+		"density": [0.25, 0.0, 0.0, 0.45, 0.5, 0.0, 0.6, 0.0], "wood": 1.0, "patchiness": 1.0,
+		"scale": Vector2(0.7, 1.25), "sink": 0.05, "range": 140.0, "shadow": false,
+		"shore": Vector2(-1.5, 1.5), "tint": Color(1.35, 1.3, 1.05)},
+	{"name": "bank_bushes", "model": "env_bush", "variants": ["Hazel", "Wide"],
+		"weights": [0.6, 0.4], "spacing": 6.0, "seed": 59,
+		"density": [0.07, 0.0, 0.0, 0.05, 0.07, 0.0, 0.0, 0.0], "wood": 1.0, "patchiness": 1.0,
+		"scale": Vector2(0.7, 1.2), "sink": 0.1, "range": 500.0, "shadow": true,
+		"shore": Vector2(3.0, 10.0)},
 	{"name": "stumps", "model": "env_tree_stump", "variants": ["Broken", "Sawn"],
 		"weights": [0.6, 0.4], "spacing": 14.0, "seed": 41,
 		"density": [0.006, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "wood": 20.0, "patchiness": 0.5,
@@ -255,7 +271,8 @@ func _build_deco(layer_index: int, square: Vector2i) -> void:
 	var z0 := -size.y * 0.5 + square.y * DECO_CHUNK_M
 	var buffers := sim_host.scatter_deco(
 		x0, z0, DECO_CHUNK_M, layer.spacing, layer.seed, PackedFloat32Array(layer.density),
-		layer.wood, layer.patchiness, PackedFloat32Array(layer.weights), layer.scale, layer.sink
+		layer.wood, layer.patchiness, PackedFloat32Array(layer.weights), layer.scale, layer.sink,
+		layer.get("shore", Vector2.ZERO)
 	)
 	var nodes: Array = []
 	for v in buffers.size():
@@ -341,6 +358,11 @@ func _parts(id: String, variant: String) -> Array:
 		push_warning("map objects: %s has no variant %s" % [id, variant])
 		return parts
 	var far := EnvLook.variant_node(model, variant + "_Far") as MeshInstance3D
+	# Bridges: the instance stands at the deck height, the model's deck lies
+	# `deck_height_m` above its base.
+	var lower := Transform3D.IDENTITY
+	if id.begins_with("env_bridge"):
+		lower = Transform3D(Basis.IDENTITY, Vector3(0.0, -_deck_height(node), 0.0))
 	var meshes: Array[MeshInstance3D] = []
 	if node is MeshInstance3D:
 		meshes.append(node)
@@ -348,7 +370,7 @@ func _parts(id: String, variant: String) -> Array:
 		meshes.append(child)
 	for mesh in meshes:
 		parts.append({
-			"name": mesh.name, "mesh": mesh.mesh, "transform": _relative(mesh, model),
+			"name": mesh.name, "mesh": mesh.mesh, "transform": lower * _relative(mesh, model),
 			"lod": "near" if far else "",
 		})
 	if far:
@@ -356,6 +378,21 @@ func _parts(id: String, variant: String) -> Array:
 		parts.append({"name": far.name, "mesh": far.mesh, "transform": t, "lod": "far"})
 		parts.append({"name": far.name + "Shadow", "mesh": far.mesh, "transform": t, "lod": "shadow"})
 	return parts
+
+
+## Deck height of a bridge variant (glTF extra `deck_height_m` on the
+## variant node or one of its parts), 0 if missing.
+static func _deck_height(node: Node) -> float:
+	var stack: Array[Node] = [node]
+	while not stack.is_empty():
+		var n: Node = stack.pop_back()
+		if n.has_meta(&"extras"):
+			var extras: Dictionary = n.get_meta(&"extras")
+			if extras.has("deck_height_m"):
+				return float(extras.deck_height_m)
+		stack.append_array(n.get_children())
+	push_warning("map objects: bridge %s has no deck_height_m" % node.name)
+	return 0.0
 
 
 ## Transform of `node` relative to `root` (the parent chain, root excluded).
