@@ -1,0 +1,162 @@
+# Scout Car M3A1 (Lend-Lease, about 3,310 to the USSR). Main dimensions from
+# data/catalog/su.toml: length 5.61 m with the unditching roller, width 2.03 m,
+# height 1.96 m (taken as the raised windshield armor).
+# Catalog category is `halftrack` (the Red Army's troop carrier), but the M3A1 is
+# a 4x4 wheeled scout car, so it is built with the `armored_car` assembly without
+# turret; the catalog is unchanged (reported).
+# The front end and body style match the US M3 half-track (same White family:
+# roller, louvred hood, car fenders, windshield armor), so the body reuses
+# `us.m3_body` through `su.m3a1_body`. Modeling estimates (TM 9-705 not read):
+# wheelbase 131 in (3.33 m), tread about 1.66 m, 8.25-20 tyres (about 0.94 m),
+# body sides about 1.55 m, skate rail around the compartment with the M2HB
+# front left and the M1919A4 rear right. Coordinates: front axle at y = 0; the
+# assembly centers the origin between the axles.
+unit = "su_m3a1_scout"
+assembly = "armored_car"
+
+[layout]
+hull_length = 5.61
+
+[[axle]]
+y = 0.0
+diameter = 0.94
+width = 0.22
+track = 1.66
+
+[[axle]]
+y = -3.33
+diameter = 0.94
+width = 0.22
+track = 1.66
+
+[hull]
+part = "su.m3a1_body"
+front_axle_y = 0.0
+roller = { y = 0.86, z = 0.50, diameter = 0.32, width = 1.10 }
+bumper = { y = 0.62, z = 0.58 }
+rails = { half_x = 0.42, z = 0.62, height = 0.18 }
+hood = { front_y = 0.58, rear_y = -1.12, half_width = 0.50, bottom_z = 0.66, front_top_z = 1.30, top_z = 1.40, louvre_deg = 26 }
+fender = { outer_x = 0.95, radius = 0.58, thickness = 0.03, board_z = 0.66, rear_y = -1.15 }
+body = { front_y = -1.12, rear_y = "fit", bottom_z = 0.86, top_z = 1.55, wall = 0.02, door = [-1.95, 1.30], floor_z = 0.98 }
+windshield = { top_z = 1.96, deg = 20, slits = 2 }
+seats = true
+
+[[part]]
+part = "su.skate_rail"
+y = [-1.30, -4.45]
+half_width = 0.97
+z = 1.66
+posts = 4
+post_z = 1.50
+
+[[part]]
+part = "fender"               # rear mudguards over the wheels, inside the body line
+profile = [[-2.80, 1.00], [-3.33, 1.06], [-3.86, 1.00]]
+x = [0.70, 0.99]
+
+[[part]]
+part = "headlight"
+position = [-0.62, 0.40, 1.20]
+diameter = 0.18
+
+[[part]]
+part = "headlight"
+position = [0.62, 0.40, 1.20]
+diameter = 0.18
+
+[[part]]
+part = "exhaust"              # muffler under the right side
+kind = "muffler"
+position = [0.62, -2.10, 0.50]
+length = 0.35
+diameter = 0.14
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -4.49, 0.80]
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"         # driver
+position = [-0.55, -1.75, 0.98]
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"         # commander
+position = [0.55, -1.75, 0.98]
+
+[[part]]
+part = "socket"
+name = "Socket_Passenger_"
+position = [-0.7, -2.60, 0.98]
+
+[[part]]
+part = "socket"
+name = "Socket_Passenger_"
+position = [-0.7, -3.30, 0.98]
+
+[[part]]
+part = "socket"
+name = "Socket_Passenger_"
+position = [-0.7, -4.00, 0.98]
+
+[[part]]
+part = "socket"
+name = "Socket_Passenger_"
+position = [0.7, -2.60, 0.98]
+
+[[part]]
+part = "socket"
+name = "Socket_Passenger_"
+position = [0.7, -3.30, 0.98]
+
+[[part]]
+part = "socket"
+name = "Socket_Passenger_"
+position = [0.7, -4.00, 0.98]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -0.30, 1.42]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -3.30, 1.10]
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-1.015, -2.90, 1.22]
+normal = [-1, 0, 0]
+size = 0.45
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [1.015, -2.90, 1.22]
+normal = [1, 0, 0]
+size = 0.45
+
+[[part]]
+part = "marking"
+name = "Number"
+kind = "number"
+position = [0.0, -0.40, 1.40]
+normal = [0, 0.06, 1.0]
+size = 0.35
+
+[[mg]]  # Browning M2HB on the skate rail, front left
+part = "pintle_mg"
+position = [-0.55, -1.40, 1.80]
+length = 1.65
+post = 0.14
+jacket = false
+primary = true
+
+[[mg]]  # Browning M1919A4 on the skate rail, rear right
+part = "pintle_mg"
+position = [0.60, -3.70, 1.78]
+length = 1.04
+post = 0.12

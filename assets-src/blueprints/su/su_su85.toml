@@ -1,0 +1,177 @@
+# SU-85 tank destroyer (1943-45) on the T-34 chassis. Main dimensions from
+# data/catalog/su.toml: length 8.15 m with gun, hull 6.10 m, width 3.00 m,
+# height 2.45 m (casemate roof).
+# Running gear and lower hull follow su_t34_76_1943 (five 830 mm Christie road
+# wheels, rear sprocket, 500 mm track), stations stretched to the 6.10 m hull.
+# Modeling estimates from photographs and drawings (Wikipedia "SU-85"; Zaloga/
+# Grandsen): the superstructure front continues the glacis at about 50 deg,
+# sides sloped about 20 deg above the 35 deg upper hull sides, D-5S in a cast
+# ball mantlet on the center line without muzzle brake, no machine gun, roof
+# hatches for commander and loader, periscopes, engine deck as on the T-34.
+unit = "su_su85"
+assembly = "casemate"
+
+[layout]
+fender_overhang = 0.03
+
+[running_gear]
+part = "christie"
+track_width = 0.50
+track_thickness = 0.04
+link_pitch = 0.172
+road_wheel_diameter = 0.83
+road_wheels = [1.67, 0.82, -0.02, -0.87, -1.71]
+sprocket = { y = -2.66, z = 0.62, diameter = 0.64, teeth = 6 }
+idler = { y = 2.64, z = 0.56, diameter = 0.60, spoked = false }
+dish = 0.04
+
+[hull]
+part = "plate_hull"
+lower = [[-2.78, 0.40], [2.42, 0.40], [3.05, 0.90], [-3.05, 0.90], [-3.05, 0.55]]
+# glacis up to the casemate base, flat engine deck, 47 deg rear plate
+upper = [[-3.05, 0.90], [3.05, 0.90], [2.12, 1.55], [-2.28, 1.55], [-3.05, 0.98]]
+upper_side_slope_deg = 35
+bevel = 0.02
+
+[casemate]
+part = "casemate"
+# fighting compartment over the front half; base outline at the deck height
+plan = [[-1.04, 2.12], [1.04, 2.12], [1.04, -0.55], [-1.04, -0.55]]
+side_slope_deg = 20
+front_slope_deg = 50
+rear_slope_deg = 8
+bevel = 0.02
+
+[gun]
+part = "tank_gun"
+trunnion = [1.30, 1.98]      # model space: y, z
+mantlet = { kind = "ball", size = [0.66, 0.30, 0.66] }
+segments = [["fit", 0.068, 0.058]]
+muzzle_brake = "none"
+
+[[part]]
+part = "hull_hatch"           # commander's hatch, left rear of the roof
+center = [-0.38, -0.05]
+z = "casemate"
+size = [0.55, 0.55]
+hinge = "rear"
+socket = true
+
+[[part]]
+part = "hull_hatch"           # loader's hatch, right
+center = [0.38, -0.05]
+z = "casemate"
+size = [0.50, 0.45]
+hinge = "rear"
+
+[[part]]
+part = "box_prop"             # commander's periscope (PTK / MK-4)
+center = [-0.38, 0.45, 2.45]
+size = [0.14, 0.18, 0.06]
+
+[[part]]
+part = "su.glacis_hatch"      # driver's hatch in the glacis, left
+x = -0.42
+y = 2.45
+size = [0.55, 0.55]
+
+[[part]]
+part = "su.side_fuel_tanks"
+y = [-1.25, -2.05]
+x = 1.34
+z = 1.10
+diameter = 0.34
+length = 0.66
+
+[[part]]
+part = "deck_box"             # engine grille
+center = [0.0, -1.55]
+size = [1.1, 1.0, 0.05]
+
+[[part]]
+part = "exhaust"
+kind = "pipe"
+position = [-0.55, -2.97, 1.05]
+length = 0.16
+diameter = 0.16
+
+[[part]]
+part = "exhaust"
+kind = "pipe"
+position = [0.55, -2.97, 1.05]
+length = 0.16
+diameter = 0.16
+
+[[part]]
+part = "box_prop"             # rear transmission access hatch
+center = [0.0, -2.72, 1.20]
+size = [0.9, 0.06, 0.55]
+
+[[part]]
+part = "headlight"
+position = [-0.95, 2.55, 1.18]
+diameter = 0.2
+
+[[part]]
+part = "antenna"              # 9-R radio whip, right front of the casemate
+position = [0.95, 0.80, 1.80]
+length = 2.0
+
+[[part]]
+part = "tool"
+kind = "shovel"
+position = [1.35, 0.9, 0.95]
+
+[[part]]
+part = "spare_tracks"
+origin = [1.10, 2.85, 1.02]
+direction = [0.0, -0.2, 0.13]
+count = 2
+link_size = [0.5, 0.17, 0.04]
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 3.00, 0.80]
+pair = true
+socket = false
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -3.08, 0.70]
+pair = true
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -1.5, 1.60]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 0.6, 2.45]
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-0.95, 0.60, 2.00]
+normal = [-0.94, 0.0, 0.34]
+size = 0.45
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [0.95, 0.60, 2.00]
+normal = [0.94, 0.0, 0.34]
+size = 0.45
+
+[[part]]
+part = "marking"
+name = "Hull_Rear"
+kind = "number"
+position = [0.0, -0.60, 2.00]
+normal = [0.0, -0.99, 0.14]
+size = 0.35
+
+[validate]
+# catalog height is the casemate roof; hatches and periscope stand above it
+exclude_height = ["Hatch_*", "Antenna_*"]
