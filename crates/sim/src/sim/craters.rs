@@ -275,7 +275,9 @@ impl Sim {
             }
         }
         if !blocked_changed.is_empty() {
-            self.paths.grid.relabel_components();
+            // Only these areas changed which cells are passable (prompt 016:
+            // local relabeling, same regions as a full one).
+            self.paths.grid.relabel_components_in(&blocked_changed);
             for rect in blocked_changed {
                 self.replan_through(rect);
             }
