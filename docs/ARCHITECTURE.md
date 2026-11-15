@@ -34,8 +34,9 @@ Transport: ENet on LAN (net::lan), later Steam online
 |-----------------|----------------|------------|
 | `crates/sim`    | Game rules and state. `Sim::new(config, map, seed)`, `step(&[PlayerCommand])`, `state_hash()`, `snapshot()`. Players and unit ownership, group commands with formation, maps (height field, terrain, objects, bridges), pathfinding (`sim::path`), combat (`sim::combat`), fixed-point math, RNG, stable hash, unit catalog, scale, terrain rules and scenarios (compiled in, like the map `test_small`). | `fixed`, `serde`, `toml`, `png` |
 | `crates/net`    | Lockstep protocol: `CommandFrame`, `HashReport`, `LockstepSession` (input delay, also changed at run time, desync detection), `Transport` trait, `LoopbackTransport` for tests, `LocalTransport` for single player. Replays (`net::replay`). LAN games (`net::lan`): ENet transport with lobby, discovery by UDP broadcast. | `sim`, `postcard`, `rusty_enet`, `if-addrs` |
-| `crates/cli`    | Headless runner: `cli run --ticks N --seed S [--record FILE]` prints the state hash, `cli replay FILE` re-simulates a replay and checks its end hash, `cli gen-map` generates test maps, `cli map-info DIR` measures a map, `cli path-bench` benchmarks pathfinding, `cli lan-host` / `cli lan-join` play the demo as headless LAN peers. | `sim`, `net`, `clap`, `png` |
-| `crates/bridge` | GDExtension `cdylib`. `SimHost` node: runs ticks from a time accumulator through a `LockstepSession`, queues commands, exposes the last two snapshots and the replay; plays single player over `LocalTransport` or a LAN match (`SimHost.start_lan`). `LanLobby` drives the LAN lobby. The only float conversion. | `sim`, `net`, `godot` |
+| `crates/cli`    | Headless runner: `cli run --ticks N --seed S [--record FILE]` prints the state hash, `cli replay FILE` re-simulates a replay and checks its end hash, `cli gen-map` generates test maps, `cli map-info DIR` measures a map, `cli path-bench` benchmarks pathfinding, `cli map-check DIR` validates a map like the editor, `cli lan-host` / `cli lan-join` play the demo as headless LAN peers. | `sim`, `net`, `clap`, `png` |
+| `crates/editor` | Map editing (prompt 028): `EditMap` with integer brushes, undo per stroke, saving in the map format and validation through the simulation's loader and path finder. A tool like `cli gen-map`, not game rules. | `sim`, `png`, `toml` |
+| `crates/bridge` | GDExtension `cdylib`. `SimHost` node: runs ticks from a time accumulator through a `LockstepSession`, queues commands, exposes the last two snapshots and the replay; plays single player over `LocalTransport` or a LAN match (`SimHost.start_lan`). `LanLobby` drives the LAN lobby. `MapEditor` hosts the map editor. The only float conversion. | `sim`, `net`, `editor`, `godot` |
 | `godot/`        | Scenes, GDScript UI logic, assets. No C#. | bridge (via `.gdextension`) |
 | `data/`         | Unit catalog (`catalog/*.toml`, real values), `scale.toml` (conversion to game values), `terrain.toml` (terrain types, slope rules), `combat.toml` (combat rules), scenarios (`scenarios/*.toml`, start setups) and maps (`maps/<name>/`), integers only. See [SCALE.md](SCALE.md) and [MAPS.md](MAPS.md). | – |
 
@@ -486,6 +487,63 @@ to the menu; match 2 as United States against Germany in winter: everyone
 starts with hold fire, the own tanks attack one enemy after the other until
 the last is destroyed → victory by elimination, back to the menu. `just lan-selftest` ends with the client
 surrendering: the host must show victory, the client defeat.
+
+## Map editor
+
+Prompt 028 adds an in-game map editor (`godot/scenes/editor/`, main menu →
+"Map editor"); its use is described in [MAPS.md](MAPS.md#map-editor-prompt-028).
+
+**Mode of the game, not a Godot editor plugin.** The editor needs the terrain
+renderer with its rectangle updates, the object, decoration and water
+rendering, the biome look, the RTS camera and picking without physics. All of
+them exist for the game; a plugin would need `@tool` versions of these scripts
+and a GDExtension running inside the Godot editor. In the game the editor
+works in every build, calls the Rust map code directly and is tested headless
+like the rest (`just editor-selftest`). The price is an own small tool panel
+instead of the inspector.
+
+```
+editor_panel.gd (buttons, sliders)   map_editor.gd (strokes, redraw)
+                     │                    │  begin_stroke / raise / paint / … / end_stroke, undo, save, validate
+                     ▼                    ▼
+              MapEditor (crates/bridge/src/map_editor.rs: meters → millimeters)
+                     │
+              editor::EditMap (crates/editor: rasters, objects, metadata, history)
+                     │  files() / save_dir()            validate_files()
+                     ▼                                         ▼
+     data/maps/<name>/ (format of MAPS.md)   sim::Map::load + add_objects, scenario, PathGrid
+```
+
+- **Data.** `EditMap` keeps the map in file form: heights in millimeters,
+  terrain ids, objects as `objects.csv` lines, starts and markers in whole
+  meters. Brushes work in integers (millimeters, falloff in 1/1024, strength
+  in per mille, object scatter from `sim::Rng` with a fixed editor seed), so
+  an edit script gives the same files on every machine. The crate denies
+  float arithmetic like `sim`.
+- **Undo.** `begin_stroke`/`end_stroke` bracket a mouse stroke. Before a brush
+  changes samples the stroke records their old values in one growing
+  rectangle; objects and metadata are copied once per stroke when first
+  touched. `end_stroke` stores old and new state of what changed (nothing
+  for strokes without effect); undo and redo paste them back.
+- **Drawing.** `MapEditor` offers the read functions of `SimHost` that the
+  renderers use (`grid_samples`, `terrain_layers`, `terrain_chunk_ranges`,
+  `height_at`, `ray_pick`, `water_levels`, `water_mesh`, `object_kinds`,
+  `object_groups`, `scatter_deco`, …); `terrain.gd`, `map_objects.gd` and
+  `water.gd` take either host (typed `Object`). Heights and terrain come
+  from the live rasters, so `terrain.heights_changed(rect)` shows every dab.
+  Objects, decoration and water need a `sim::Map`; it is rebuilt from the
+  edited data when a stroke ends (or after undo/redo), and the scene then
+  rebuilds the object and water nodes and `terrain.refresh_water()`.
+- **Saving and checking.** Saving encodes the PNGs and TOML like
+  `cli gen-map`. The check encodes the files and loads them with exactly the
+  calls a match uses, so what is checked is what will be played: start
+  positions, room for the scenario's units, paths between the starts for
+  every faction's tanks and infantry, `Sim::new`. The match uses the map's
+  start positions (`sim::scenario`, see MAPS.md), so a map built in the
+  editor plays from the starts set there.
+- **Determinism.** Nothing of the editor runs during a match. A saved map is
+  an ordinary map folder; peers load it independently and compare its
+  content hash as for every map (`MapRef`).
 
 ## Data flow (single player, current state)
 

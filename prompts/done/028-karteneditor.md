@@ -77,7 +77,8 @@ Godot-Editor-Plugin.
    „Map editor“; gespeicherte Karten landen in `data/maps/<name>/` und stehen damit
    in der Kartenwahl des Einzelspieler-Menüs.
 5. **CLI/justfile:** `cli map-check <dir>` (Validierung wie im Editor),
-   `just map-check <name>`, `just editor`, `just editor-selftest`.
+   `just map-check <name>`, `just map-editor` (`just editor` öffnet schon den
+   Godot-Editor), `just editor-selftest`.
 
 Nicht im Umfang: Marker bearbeiten (bleiben beim Laden/Speichern erhalten), Flüsse
 mit Gefälle, Straßen-Werkzeug mit Kurven (Gelände „road“ wird gemalt), Mehrspieler-

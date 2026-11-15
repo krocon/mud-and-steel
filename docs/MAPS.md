@@ -28,7 +28,7 @@ height_step_mm = 1           # millimeters per PNG step
 biome = "forest"             # forest | desert | winter; presentation only (optional)
 water_flow_deg = 180         # direction rivers flow towards (0 = north); presentation only (optional)
 
-[[start]]                    # start positions per player (for scenarios, later menus)
+[[start]]                    # start positions per player: the scenario's units stand here
 player = 0
 position_m = [0, 60]
 
@@ -36,6 +36,12 @@ position_m = [0, 60]
 name = "hill_top"
 position_m = [-104, -142]
 ```
+
+Since prompt 028 the scenario places every player's units at that player's
+`[[start]]`: all groups of the player move by the offset between the start and
+the center of the player's first group (`sim::scenario`, layout unchanged).
+Maps without a start for a player keep the scenario's positions; the test maps
+have their starts at the demo's centers.
 
 Height of a sample: `height_base_mm + png_value * height_step_mm` millimeters. All
 heights must stay within ±10 km.
@@ -320,6 +326,83 @@ Regenerating `test_small` changes the golden hash: that is a rule change in the 
 of [DETERMINISM.md](DETERMINISM.md) and needs to be named in the commit. A test
 generates a small map twice and compares `objects.csv`; another checks that every
 variant in `data/objects.toml` exists in the model's blueprint.
+
+## Map editor (prompt 028)
+
+Maps can be built in the game: main menu → **Map editor** (or
+`just map-editor`, `-- --edit=<name>` opens `data/maps/<name>/`). It is a mode
+of the game, not a Godot editor plugin: it reuses the terrain renderer, the
+object and water rendering, the camera and ground picking unchanged, works in
+every build, and its saving and checking run through the same Rust code that
+loads maps for the simulation (reasons and data flow:
+[ARCHITECTURE.md](ARCHITECTURE.md#map-editor)).
+
+| Tool | Effect |
+|---|---|
+| Raise / Lower | ground up or down at the center, smooth falloff `(1 − d²/r²)²` to the rim; hold the button (3 m/s at full strength) |
+| Smooth | towards the mean of the 3 × 3 samples around |
+| Flatten | towards the height where the stroke began |
+| Paint terrain | any id of `terrain.toml` inside the circle (roads, tracks, mud, fords …) |
+| River | bed down to 0.6–3 m (strength) below the height where the stroke began, parabolic profile: deep water in the channel, shallow water beside it, a sand bank at the rim; only digs, never fills; existing water is never made shallower |
+| Vegetation / objects | scatters a preset (deciduous, conifer, birch, palms, bushes, rocks, hay) at a density per hectare, random headings, keeps a minimum spacing, never on tracks, roads or water |
+| Place object | any kind and variant of `objects.toml` with a heading; bridges snap to a multiple of 90° and onto a center line of the 4 m path grid |
+| Erase objects | removes the objects in the circle |
+| Start player 1 / 2 | sets the start positions (whole meters) |
+
+Every stroke (mouse down to up) is one undo step (**Ctrl+Z**, **Ctrl+Y** or
+**Ctrl+Shift+Z**; up to 100 steps). `[` / `]` change the radius, **Ctrl+S**
+saves. **New** creates a flat grass map of 256 m to 4 km in a biome, **Open**
+loads any map of `data/maps/`, **Save** writes `data/maps/<name>/` (names:
+lowercase letters, digits, `_`, `-`); `test_small` and `test_large` cannot be
+overwritten (the golden hash and the benchmarks depend on them; regenerate them
+with `just test-maps`). A saved map is listed in the single-player menu at once.
+
+Saving writes exactly the format above: the height encoding comes from the
+height range like in the generator (base one meter below the lowest point,
+the smallest step that covers the range); if that needs steps coarser than
+1 mm (more than 65 m of relief), the editor takes over the rounded heights, so
+editor and file agree. `generator` and the markers of a loaded map are kept.
+
+**Check** (also on every save, and `just map-check <name>` / `cli map-check
+DIR` for any map folder) loads the files the way a match does (`Map::load`,
+`add_objects`) and reports:
+
+- errors from loading (e.g. a bridge off the path grid),
+- missing start positions for players 1 and 2 (ids 0 and 1),
+- units of the scenario that cannot stand at their start (water, too steep,
+  objects, map edge),
+- whether the tanks of every faction can drive from one start to the other
+  (an error) and whether infantry can (a warning), with the path finder of
+  the simulation (`PathGrid::find_path`),
+- the map hash a match on it will use.
+
+The editing code is the crate `crates/editor` (`EditMap`, brushes, undo,
+files, validation): integers only like the simulation, so the same edit
+script gives byte-identical files (tested). A test builds a map with every
+tool, saves it, loads it on two peers and plays the demo scenario on it in
+lockstep over loopback with identical hashes every tick
+(`crates/editor/tests/build_and_play.rs`); `just editor-selftest` does the
+same through the editor scene and the single-player menu.
+
+Measurements (release build, Apple M1 Max):
+
+| | `test_small` (500 m) | `test_large` (4 km) |
+|---|---|---|
+| Open (read + decode + objects) | 6 ms | 184 ms |
+| Raise / smooth dab, radius 25 m | 3 / 6 µs | 3 / 7 µs |
+| Objects brush dab, radius 25 m, 300/ha | < 0.1 ms | 8 ms (spacing check over all objects) |
+| Undo + redo of a stroke | < 0.1 ms | 21 ms |
+| Rebuild the display map after a stroke | 1.5 ms | 88 ms (plus the object and water nodes) |
+| Encode the files (PNG compression "high") | 8 ms | 1.3 s |
+| Check | 16 ms | 0.53 s |
+
+In Godot every dab also re-reads the changed rectangle for the terrain and the
+height ranges of all chunks (whole map); after every stroke the objects,
+decoration and water are rebuilt. Measured in the editor scene (debug bridge,
+headless): opening 0.3 s / 1.9 s, a raise dab of 20 m with terrain redraw
+0.6 ms / 12 ms, the end of a stroke 25 ms / 0.53 s. Smooth on maps up to
+1 km; on 4 km maps a stroke ends with a noticeable pause (rebuilding only
+the touched object chunks would remove it).
 
 ## Presentation
 

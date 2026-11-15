@@ -403,6 +403,7 @@ func _update_starts() -> void:
 		mesh.material = material
 		marker.mesh = mesh
 		marker.name = "Start%d" % player
+		marker.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		marker.position = starts[player] + Vector3(0, 6.0, 0)
 		add_child(marker)
 		_start_markers.append(marker)
