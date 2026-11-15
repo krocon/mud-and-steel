@@ -70,7 +70,7 @@ Welle 4:  012 Wegfindung ─ 013 …  │   008 Stufe 2 (3 Sessions pro Fraktion
 | 018 | [Nebel des Krieges](done/018-nebel-des-krieges.md) | Sicht pro Spieler mit Sichtlinie über Gelände | erledigt |
 | 019 | [Effekte](done/019-effekte.md) | Explosionen, Rauch, Mündungsfeuer, Leuchtspur | erledigt |
 | 020 | [Zerstörbare Gebäude und Vegetation](done/020-zerstoerung.md) | Schadensstufen, Trümmer, umfallende Bäume | erledigt |
-| 021 | [Verformbares Gelände](021-gelaendeverformung.md) | Krater verändern das Höhenfeld | Entwurf |
+| 021 | [Verformbares Gelände](021-gelaendeverformung.md) | Krater verändern das Höhenfeld | offen |
 | 022 | [Infanterie-Verhalten](done/022-infanterie-verhalten.md) | Trupps, Haltungen, Deckung, Gebäude besetzen | erledigt |
 | 023 | [Basisbau und Ressourcen](023-basisbau-ressourcen.md) | Bauen, Abbauen, Produzieren | Entwurf |
 | 024 | [KI-Gegner](done/024-ki-gegner.md) | Computerspieler über normale Befehle | erledigt |
