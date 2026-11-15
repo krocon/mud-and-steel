@@ -161,9 +161,7 @@ impl EconomyRules {
     /// The rules compiled into the simulation (parsed once).
     pub fn builtin() -> Result<Self, EconomyError> {
         static RULES: OnceLock<Result<EconomyRules, EconomyError>> = OnceLock::new();
-        RULES
-            .get_or_init(|| Self::parse(BUILTIN_ECONOMY))
-            .clone()
+        RULES.get_or_init(|| Self::parse(BUILTIN_ECONOMY)).clone()
     }
 
     pub fn parse(text: &str) -> Result<Self, EconomyError> {
