@@ -134,6 +134,7 @@ pub fn parse_scenario_with_factions(
     let unit_types =
         unit_types_from_catalog(catalog, scale, &names).map_err(|e| ScenarioError(e.0))?;
 
+    move_groups_to_starts(&mut file.group, map);
     let mut spawns = Vec::new();
     for group in &file.group {
         if group.columns == 0 {
@@ -157,6 +158,35 @@ pub fn parse_scenario_with_factions(
         terrain: terrain.clone(),
         combat: CombatRules::builtin().map_err(|e| ScenarioError(e.to_string()))?,
     })
+}
+
+/// Places the groups of every player for whom `map` has a start position
+/// there (prompt 028): all groups of the player move by the offset between
+/// the start and the center of the player's first group, so their layout
+/// stays as in the scenario. Start positions are whole meters, like group
+/// centers. Maps whose starts equal the scenario's centers (`test_small`,
+/// `test_large`) are unaffected.
+fn move_groups_to_starts(groups: &mut [Group], map: &Map) {
+    for start in map.starts() {
+        let Some(anchor) = groups
+            .iter()
+            .find(|g| g.owner == start.player)
+            .map(|g| g.center_m)
+        else {
+            continue;
+        };
+        // `map.toml` stores whole meters, so this is exact.
+        let target = [
+            start.position.x.round().to_num::<i32>(),
+            start.position.y.round().to_num::<i32>(),
+        ];
+        for group in groups.iter_mut().filter(|g| g.owner == start.player) {
+            for axis in 0..2 {
+                group.center_m[axis] = group.center_m[axis]
+                    .saturating_add(target[axis].saturating_sub(anchor[axis]));
+            }
+        }
+    }
 }
 
 /// Grid positions of a group, row by row, every row centered.
@@ -375,6 +405,30 @@ mod tests {
             assert!(open(Vec2::from_meters(x, y)), "({x}, {y})");
         }
         assert!(open(map.marker("hill_top").unwrap()));
+    }
+
+    #[test]
+    fn groups_stand_at_the_start_positions_of_the_map() {
+        let catalog = Catalog::builtin().unwrap();
+        let scale = Scale::builtin().unwrap();
+        let terrain = TerrainRules::builtin().unwrap();
+        let moved = BUILTIN_MAP_TOML
+            .replacen("position_m = [0, 60]", "position_m = [-100, 150]", 1)
+            .replacen("position_m = [0, -60]", "position_m = [120, -30]", 1);
+        let map = Map::load(&moved, BUILTIN_MAP_HEIGHT, BUILTIN_MAP_TERRAIN).unwrap();
+        let config = parse_scenario(DEMO_SCENARIO, &catalog, &scale, &terrain, &map).unwrap();
+        let demo = demo_config();
+        for (spawn, original) in config.spawns.iter().zip(&demo.spawns) {
+            let offset = if spawn.owner == PlayerId(0) {
+                Vec2::from_meters(-100, 90)
+            } else {
+                Vec2::from_meters(120, 30)
+            };
+            assert_eq!(spawn.position, original.position + offset);
+        }
+        // The built-in map's starts equal the scenario's centers.
+        let same = parse_scenario(DEMO_SCENARIO, &catalog, &scale, &terrain, &builtin_map());
+        assert_eq!(same.unwrap().spawns, demo.spawns);
     }
 
     #[test]
