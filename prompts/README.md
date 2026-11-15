@@ -46,7 +46,7 @@ Welle 4:  012 Wegfindung ─ 013 …  │   008 Stufe 2 (pro Fraktion/Kategorie 
 | Nr. | Prompt | Ziel | Status |
 |-----|--------|------|--------|
 | 003 | [Maßstab und Einheitenkatalog](done/003-masstab-und-einheitenkatalog.md) | 1:1-Größen, Zeitfaktor 2, Katalog aller Einheiten mit Quellen, Asset-Konventionen | erledigt |
-| 004 | [Blender-Baukasten](004-blender-baukasten.md) | Bauteile, Bauplan → Modell, Tarn-Material-System, Prüfung, Galerie | offen |
+| 004 | [Blender-Baukasten](done/004-blender-baukasten.md) | Bauteile, Bauplan → Modell, Tarn-Material-System, Prüfung, Galerie | erledigt |
 | 005 | [Infanterie-Basis](005-infanterie-basis.md) | Ein Soldat für alle Fraktionen: Skelett, Uniformen, Waffen, Animationen | offen |
 | 006 | [Kerneinheiten Stufe 1](006-kerneinheiten-stufe1.md) | Je 5 Kerneinheiten pro Fraktion, 3 Sessions parallel | offen |
 | 007 | [Umwelt-Objekte Stufe 1](007-umwelt-objekte-stufe1.md) | Bäume, Büsche, Gras, Häuser, Brücken, Mauern, Stacheldraht, Minen, Gräben | offen |

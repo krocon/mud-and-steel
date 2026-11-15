@@ -8,24 +8,165 @@ this document. Sizes and other real values come from the unit catalog
 ## Pipeline
 
 ```
-assets-src/blueprints/<faction>/<id>.toml   build plan (parts, dimensions from the catalog)
-        │  Blender (tools/blender/…, prompt 004)
-assets-src/blender/<faction>/<id>.blend     source file (Git LFS)
-        │  just export-model  (tools/export_blender.py)
+data/catalog/<faction>.toml                 main dimensions (length, width, height ...)
+assets-src/blueprints/<faction>/<id>.toml   build plan: parts and their parameters
+        │  just unit <faction> <id>   (tools/blender/build_unit.py + tools/blender/kit/)
+assets-src/blender/<faction>/<id>.blend     generated source file (Git LFS)
 godot/assets/models/<faction>/<id>.glb      exported model (Git LFS)
+        │  just import   (Godot import, assets/import/unit_post_import.gd)
+Godot scene with the unit_camo shader       palettes and markings applied at runtime
 ```
 
 - `<faction>` is `de`, `su`, `us` or `neutral`; `<id>` is the catalog id
   (`de_pz4_h`, `env_tree_birch`). One model per catalog entry; camouflage variants
   come from the material system, not from separate models.
+- Vehicles, guns and aircraft are **generated** from blueprints by the part kit
+  (next section); the .blend is an output, not edited by hand. Hand-made models
+  (infantry, prompt 005; environment objects, prompt 007) are exported with
+  `just export-model` (`tools/export_blender.py`, `-- --output <glb>` for the
+  faction folder).
 - When a model is exported, its catalog entry gets `model = "assets/models/<faction>/<id>.glb"`.
-- Export: `blender -b <file>.blend --python tools/export_blender.py -- --output <glb>`.
-  Without `--output` the script writes `godot/assets/models/<name>.glb` (flat); the
-  blueprint tooling of prompt 004 passes the faction folder.
 - Binary files (`.blend`, `.glb`, textures) are tracked by Git LFS (`.gitattributes`).
-- `tools/create_placeholder_tank.py` generates the current placeholder tank from
+- `tools/create_placeholder_tank.py` generates the old placeholder tank from
   primitives. `tools/blender/scale_reference.py` builds the 1.80 m reference figure and
   scale bar (`assets-src/blender/reference/scale_reference.blend`) for line-up renders.
+
+## Part kit (prompt 004)
+
+`tools/blender/kit/` is a Python package that runs only inside Blender
+(`blender -b`, no running Blender needed). It turns a blueprint into a finished
+model with names, hierarchy, sockets, material slots and baked vertex colors.
+
+| Module | Content |
+|---|---|
+| `core` | `MeshBuilder` (box, profile extrusion with sloped sides, loft, cylinder, lathe, gear, plate), `Model` (objects with pivots, sockets, `finish()`) |
+| `running_gear` | tracks around wheels; `leaf_spring_bogie` (Panzer IV), `christie` (T-34), `vvss_bogie` (Sherman), `halftrack_rear` |
+| `wheels` | road wheels, idlers, sprockets, rollers, tire wheels, `wheel_axle` (trucks, cars, carriages) |
+| `hull` | `plate_hull` (lower hull + superstructure from side profiles, sloped side plates, fenders, optional cast look), `deck_box`, `hull_hatch` |
+| `turret` | `plate_turret` (plan + side slopes), `cast_turret` (superellipse rings), `cupola`, `turret_hatch`, `turret_bustle_box` |
+| `weapons` | `tank_gun` (mantlet types, barrel segments, muzzle brake types), `mg` (coax, ball mount, pintle), `gun_shield` |
+| `attachments` | `skirts`, `turret_skirt`, `spare_tracks`, `tool`, `jerrycans`, `headlight`, `antenna`, `exhaust`, `tow_hook`, `box_prop`, `cylinder_prop`, `marking`, `socket` |
+| `artillery` | `split_trail_carriage`, `field_gun` |
+| `aircraft` | `fuselage` (loft of cross-sections), `wing` (taper, sweep, dihedral, ailerons), `tail`, `propeller`, `canopy`, `landing_gear` (extended/retracted) |
+| `parts_de`, `parts_su`, `parts_us` | faction-specific parts, prefixed `de.`, `su.`, `us.` |
+| `assemblies` | whole units: `tank`, `towed_gun`, `aircraft` |
+| `bake` | vertex colors (see "Material system") |
+| `render` | turntable and line-up renders (Eevee) |
+
+Every part documents its parameters in its docstring. Unknown parameters are
+errors, so typos in a blueprint fail the build. `just kit-test` builds demo
+units that use every part (also those no real unit uses yet) and fails if a
+part breaks or lacks a docstring.
+
+**Catalog values are never repeated in a blueprint.** The assembly reads length,
+hull length, width and height from the catalog and fits the free values:
+
+- the hull profiles are scaled along Y to the catalog hull length (an error if
+  the profile is more than 8 % off, so the drawing must be roughly right),
+- tracks end at the catalog width, fenders reach it,
+- the turret height (or the shield top of a towed gun) is fitted to the catalog
+  height; the generator measures the finished model and corrects in a second pass,
+- the barrel length (tanks) or trail length (towed guns) is fitted to the catalog
+  overall length.
+
+Part dimensions that are not in the catalog (road wheel diameter, plan of the
+turret, plate angles) are modeling estimates written into the blueprint with
+a comment on where they come from.
+
+### Blueprint format
+
+`assets-src/blueprints/<faction>/<id>.toml`, meters, model space (Z up, front +Y,
+origin on the ground at the footprint center):
+
+```toml
+unit = "de_pz4_h"          # catalog id, must match the file name
+assembly = "tank"          # tank | towed_gun | aircraft
+
+[layout]                   # assembly-level values
+turret_y = 0.28            # turret ring center
+turret_ring_diameter = 1.68
+
+[running_gear]
+part = "leaf_spring_bogie" # every table names its part ...
+track_width = 0.40         # ... and the part's parameters
+road_wheels = [1.66, 1.16, 0.71, 0.21, -0.21, -0.71, -1.16, -1.66]
+sprocket = { y = 2.42, z = 0.74, diameter = 0.68, teeth = 20 }
+
+[hull]
+part = "plate_hull"
+lower = [[-2.82, 0.42], [2.30, 0.42], ...]   # side profile [y, z]
+
+[turret]
+part = "plate_turret"
+height = "fit"             # derived from the catalog height
+
+[cupola]                   # optional
+[gun]                      # barrel segment length "fit" = catalog length
+
+[[part]]                   # any number of extra parts, built in order
+part = "skirts"
+y = [-2.35, 2.05]
+
+[[mg]]                     # machine guns, after the gun
+part = "mg"
+mount = "coax"
+
+[validate]                 # what the catalog dimension leaves out, with reason
+exclude_width = ["Skirt_*"]      # catalog width is without skirts
+exclude_height = ["Antenna_*"]
+```
+
+Build order of a tank: layout, running gear, hull, turret, cupola, `[[part]]`,
+gun, `[[mg]]`. Towed guns: gun, carriage, shield, `[[part]]`. Aircraft:
+fuselage, wing, tail, canopy, landing gear, `[[propeller]]`, `[[part]]`.
+
+### Generator, checks and previews
+
+| Command | Does |
+|---|---|
+| `just unit <faction> <id>` | builds one unit: `.blend`, `.glb` and `build/renders/<id>_turntable.png` (4 views) |
+| `just units` | builds every unit with a blueprint |
+| `just validate-assets` | checks every built model (below); exit code 1 on failure |
+| `just lineup` | renders all models in a row with the 1.80 m figure: `build/renders/lineup.png` |
+| `just kit-test` | smoke test of all parts |
+| `just import` | Godot import after new or rebuilt models (runs the import script) |
+| `just gallery` / `just gallery-check` | model gallery in Godot / its headless self-test |
+
+`build/` is ignored; set `RENDER_DIR` to render elsewhere.
+
+`tools/blender/validate.py` checks per model: .blend and .glb exist and were
+built from the current blueprint and catalog entry (source hash on the root);
+root empty named after the id at the origin; scale 1 everywhere, no rotation on
+meshes; names and parents from the table below; required parts and sockets per
+category (tanks: tracks, wheels, sprocket, idler, gun, `Socket_Muzzle` on the
+muzzle, exhaust, hatch, fire and marking sockets; towed guns: carriage, wheels,
+`Socket_Tow`, one `Socket_Crew_NN` per crew member); one `MG_NN` per machine gun
+in the catalog; only the slot materials; baked `Color` attribute; triangle budget;
+length, width and height within ±2 % of the catalog; lowest point at z = 0 and
+the ground contact centered on the origin; the .glb has the same objects, bounds
+and vertex colors.
+
+**LOD:** Godot's automatic mesh LODs (`meshes/generate_lods`, on by default) are
+used. The budgets above keep LOD0 small already, and at medium zoom a tank covers
+60–100 px, where the automatic LODs remove most triangles. No own LOD meshes for
+now; prompt 016 (performance) measures this together with draw calls.
+
+### New unit in 5 steps
+
+1. **Catalog:** make sure the entry in `data/catalog/<faction>.toml` has length,
+   width and height (and `length_hull_mm` for vehicles with a gun) with sources.
+2. **Blueprint:** copy the closest blueprint to
+   `assets-src/blueprints/<faction>/<id>.toml`, set `unit`, pick parts, draw the
+   profiles and plan in meters. Missing a part? Add it to the kit (faction parts
+   to `kit/parts_<faction>.py`), additively, with a docstring.
+3. **Build:** `just unit <faction> <id>` and look at
+   `build/renders/<id>_turntable.png`; iterate on the blueprint.
+4. **Check:** `just validate-assets` until it is green; add `[validate]`
+   exclusions only where the catalog dimension really leaves a part out, and say
+   why in a comment. Set `model = "assets/models/<faction>/<id>.glb"` in the catalog.
+5. **Look in Godot:** `just import`, then `just gallery`: check the model in all
+   three camouflages and the markings; `just lineup` for the size comparison.
+   Commit blueprint, .blend, .glb, .glb.import and the catalog change.
 
 ## Space, scale and orientation
 
@@ -53,11 +194,16 @@ side `L`/`R`, two-digit index). The root object is named after the catalog id.
 | Wheels / road wheels | `Wheel_L_01`, `Wheel_R_01`, … | `Hull` | wheel center, rotates around X |
 | Sprocket / idler | `Sprocket_L`, `Idler_L`, … | `Hull` | wheel center |
 | Track | `Track_L`, `Track_R` | `Hull` | – (scrolling texture) |
+| Return roller | `Roller_L_01`, … | `Hull` | roller center |
+| Commander's cupola | `Cupola` | `Turret` | cupola base |
+| Side skirts | `Skirt_L`, `Skirt_R` | `Hull` | – |
+| Turret skirt | `TurretSkirt` | `Turret` | – |
+| Antenna | `Antenna_01`, … | `Hull` or `Turret` | antenna base |
 | Machine gun on mount | `MG_01`, … | `Turret` or `Hull` | mount pivot |
-| Hatch | `Hatch_01`, … | parent part | hinge |
+| Hatch | `Hatch_01`, … | `Hull`, `Turret` or `Cupola` | hinge |
 | Propeller | `Propeller`, `Propeller_L`/`_R` | root | hub, rotates around Y |
 | Control surfaces | `Aileron_L`, `Elevator`, `Rudder` | root | hinge |
-| Landing gear | `Gear_L`, `Gear_R`, `Gear_Tail` | root | – |
+| Landing gear | `Gear_L`, `Gear_R`, `Gear_Tail` (`Gear_Nose`) | root | – |
 
 **Attachment points** are empties (no geometry), parented to the moving part they
 follow:
@@ -71,7 +217,8 @@ follow:
 | `Socket_Passenger_01` … | seats of transport vehicles |
 | `Socket_Tow` | tow hook (trucks, guns) |
 | `Socket_Fire_01` … | burning / damage effects |
-| `Socket_Marking_Turret_L` … | decal positions for national and tactical markings |
+| `Socket_Marking_Turret_L` … | decal positions for national and tactical markings; local +Z (Godot +Y) is the surface normal, +Y (Godot −Z) is up; glTF extras `marking` = `national` or `number`, `marking_size` in m |
+| `Socket_Muzzle_02` … | muzzles of machine guns: `MG_01` has `Socket_Muzzle_02`, `MG_02` has `Socket_Muzzle_03` |
 
 ## Polygon and texture budgets (LOD0)
 
@@ -100,8 +247,8 @@ variants are cheap.
 
 ## Material slots
 
-Every model uses only these material names, so the camouflage system of prompt 004
-can swap them per biome (temperate/forest, desert, winter) and faction:
+Every model uses only these material names, so the camouflage system (below)
+can swap them per biome (forest, desert, winter) and faction:
 
 | Slot | Use |
 |---|---|
@@ -116,6 +263,33 @@ can swap them per biome (temperate/forest, desert, winter) and faction:
 
 Environment objects may additionally use `Bark`, `Foliage`, `Stone`, `Plaster` and
 `Ground`. New slots are added here first.
+
+### Material system (prompt 004)
+
+- **In Blender** faces carry only slot materials and a baked corner color
+  attribute `Color` (exported as glTF `COLOR_0`, `tools/blender/kit/bake.py`):
+  R = ambient occlusion (ray traced against the whole model and the ground),
+  G = edge wear mask (bevel strips of plate edges), B = height above ground / 4 m,
+  A = 0 on track link surfaces (scrolling link pattern, UV v = links).
+- **In Godot** one shader, `godot/assets/shaders/unit_camo.gdshader`, with one
+  `ShaderMaterial` per slot (`godot/assets/materials/unit/<slot>.tres`, uniform
+  `slot`). The import script `godot/assets/import/unit_post_import.gd` (default
+  for scene imports in `project.godot`, acts only on kit models) swaps the slot
+  materials for these on import.
+- **Palettes** are `CamoPalette` resources per faction × biome:
+  `godot/assets/materials/camo/<faction>_<biome>.tres` (`forest`, `desert`,
+  `winter`): base coat, two camouflage colors, pattern (plain, soft spray,
+  hard-edged, ambush), pattern size and coverage, whitewash, snow on top faces,
+  mud color and amount from below, dust, edge wear. `UnitCamo.apply(model,
+  palette)` writes them as **instance uniforms**, so all units share the same
+  eight materials.
+- **Markings** are Godot `Decal` nodes that `UnitCamo.add_markings(model,
+  faction, number)` adds at the `Socket_Marking_*` nodes. The textures
+  (Balkenkreuz, red star, white star, tactical numbers) are drawn at runtime by
+  `UnitMarkings`; there are no image files.
+- Colors are sRGB approximations of the historical paints named in each
+  palette's `note` (e.g. Dunkelgelb RAL 7028, Olivgrün RAL 6003, Rotbraun
+  RAL 8017, Soviet 4BO, US Olive Drab).
 
 ## Markings
 
