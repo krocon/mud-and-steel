@@ -145,7 +145,17 @@ impl Game {
         }
     }
 
+    /// Stops the match with `reason`. A desync already found wins: the peer
+    /// that found it first disconnects right after, so the disconnect often
+    /// arrives together with the hash report that shows the desync.
     fn halt(&mut self, reason: String) {
+        let reason = match self.session.desync() {
+            Some(d) => format!(
+                "desync at tick {}: player {} computed a different state",
+                d.tick, d.player.0
+            ),
+            None => reason,
+        };
         if self.halted.is_none() {
             godot_warn!("match stopped: {reason}");
             self.halted = Some(reason);
