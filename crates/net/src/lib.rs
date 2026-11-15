@@ -17,13 +17,16 @@ pub mod lan;
 pub mod lobby;
 mod protocol;
 pub mod replay;
+pub mod save;
 mod session;
 pub mod snapshot;
 mod transport;
 
 pub use protocol::{CommandFrame, HashReport, Message, PlayerId, decode, encode};
-pub use replay::{Replay, ReplayError, ReplayRecorder};
+pub use replay::{PlayerInfo, Replay, ReplayError, ReplayInfo, ReplayRecorder};
+pub use save::{HostedState, SaveError, SaveGame};
 pub use session::{
-    Desync, LockstepConfig, LockstepSession, MAX_INPUT_DELAY, NetError, recommended_input_delay,
+    Desync, LockstepConfig, LockstepSession, MAX_INPUT_DELAY, NetError, PendingFrames,
+    recommended_input_delay,
 };
 pub use transport::{LocalTransport, LoopbackTransport, Transport, TransportError};

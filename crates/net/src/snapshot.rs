@@ -23,7 +23,6 @@
 //! field in the bytes (postcard writes every field), so replays and saved
 //! games of a build with other rules are rejected up front.
 
-use serde::Serialize;
 use sim::snapshot::SimSnapshotOwned;
 use sim::{Map, Sim, StableHasher};
 use std::fmt;
@@ -143,9 +142,4 @@ pub fn rules_hash() -> u64 {
         h.write_bytes(&state_bytes(&sim, &sim::scenario::builtin_map()));
         h.finish()
     })
-}
-
-/// Encodes any value with postcard (for the bridge and the save files).
-pub(crate) fn to_bytes(value: &impl Serialize) -> Vec<u8> {
-    postcard::to_allocvec(value).expect("serializing into a Vec cannot fail")
 }

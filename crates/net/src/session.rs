@@ -2,6 +2,7 @@
 
 use crate::protocol::{CommandFrame, HashReport, Message, PlayerId, decode, encode};
 use crate::transport::{Transport, TransportError};
+use serde::{Deserialize, Serialize};
 use sim::{Command, PlayerCommand};
 use std::collections::BTreeMap;
 use std::fmt;
@@ -15,6 +16,20 @@ pub struct LockstepConfig {
     pub input_delay: u32,
     /// State hashes are exchanged every this many ticks. Must be positive.
     pub hash_interval: u64,
+}
+
+/// Frames scheduled but not simulated yet (prompt 038): what a saved
+/// single-player game keeps so that it continues exactly, with the commands
+/// already given in flight.
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct PendingFrames {
+    /// The next tick to simulate.
+    pub next_tick: u64,
+    /// Local frames exist for all ticks below this value.
+    pub scheduled_until: u64,
+    /// Per tick from `next_tick`, ascending: the commands of every player
+    /// that already has a frame for it.
+    pub frames: Vec<(u64, Vec<(PlayerId, Vec<Command>)>)>,
 }
 
 /// Two peers computed different states for the same tick.
@@ -144,6 +159,50 @@ impl LockstepSession {
             remote_hashes: BTreeMap::new(),
             desync: None,
             verified_tick: 0,
+        }
+    }
+
+    /// Continues a session from [`pending_frames`](Self::pending_frames) of
+    /// a saved single-player game (prompt 038). Host the computer players
+    /// again with [`host_player`](Self::host_player) before the first tick.
+    ///
+    /// # Panics
+    /// Like [`new`](Self::new).
+    pub fn resume(local: PlayerId, config: &LockstepConfig, pending: PendingFrames) -> Self {
+        let mut session = Self::new(local, config);
+        session.next_tick = pending.next_tick;
+        session.scheduled_until = pending.scheduled_until.max(pending.next_tick);
+        session.verified_tick = pending.next_tick;
+        session.frames = pending
+            .frames
+            .into_iter()
+            .map(|(tick, players)| (tick, players.into_iter().collect()))
+            .collect();
+        // Ticks without a saved frame (none scheduled) start empty for the
+        // local player, like the first ticks of a new session.
+        for tick in session.next_tick..session.scheduled_until {
+            session
+                .frames
+                .entry(tick)
+                .or_default()
+                .entry(local)
+                .or_default();
+        }
+        session
+    }
+
+    /// The frames not simulated yet, for a saved game (prompt 038).
+    pub fn pending_frames(&self) -> PendingFrames {
+        PendingFrames {
+            next_tick: self.next_tick,
+            scheduled_until: self.scheduled_until,
+            frames: self
+                .frames
+                .range(self.next_tick..)
+                .map(|(&tick, players)| {
+                    (tick, players.iter().map(|(&p, c)| (p, c.clone())).collect())
+                })
+                .collect(),
         }
     }
 
