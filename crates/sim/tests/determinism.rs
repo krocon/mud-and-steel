@@ -21,7 +21,14 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by prompt 014: `test_small` was regenerated with a deeper
+/// Last changed by prompt 018: vision and fog of war. Units keep viewsheds
+/// on an 8 m vision grid (hills, forests, buildings and hedges block sight;
+/// `data/vision.toml`), pick automatic targets and fire only in their own
+/// line of sight, and follow attack targets out of sight to where they were
+/// last seen; vision rules, viewshed anchors, the update queue and who sees
+/// which unit are in the hash. The demo battle is now decided at tick 645
+/// instead of 525, same winner.
+/// Before: prompt 014: `test_small` was regenerated with a deeper
 /// river profile, a stone and a timber bridge with ramps (bridge objects
 /// with decks, `data/objects.toml`), a narrowed river at the bridges and
 /// stones in the river; the map hash covers the bridges (objects near the
@@ -51,7 +58,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x7bf3_7e90_fed3_d2c6;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x8891_4b76_6934_c076;
 
 #[test]
 fn golden_hash() {
@@ -101,10 +108,10 @@ fn demo_battle_is_decided() {
     let end = run_demo(42, 1000);
     let outcome = end.outcome().expect("the demo battle is decided");
     assert_eq!(outcome.winner, Some(sim::PlayerId(1)));
-    assert_eq!(outcome.tick, 525);
+    assert_eq!(outcome.tick, 645);
     assert_eq!(end.alive_units(sim::PlayerId(0)), 0);
     assert_eq!(
         end.standings()[0].defeat,
-        Some((sim::DefeatReason::Eliminated, 525))
+        Some((sim::DefeatReason::Eliminated, 645))
     );
 }

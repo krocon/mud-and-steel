@@ -256,6 +256,11 @@ soldiers-tier2:
 path-bench map="test_large" units="200" group="1":
     cargo run -q --release -p cli -- path-bench --map data/maps/{{ map }} --units {{ units }} --group {{ group }}
 
+# Benchmark (prompt 018): moving units of two players with vision, time per tick
+[group('pathfinding')]
+vision-bench map="test_large" units="500" ticks="600":
+    cargo run -q --release -p cli -- vision-bench --map data/maps/{{ map }} --units {{ units }} --ticks {{ ticks }}
+
 # Build the bridge and start the game with the path debug view on (F4 costs, F5 paths)
 [group('pathfinding')]
 run-paths map="test_small": build

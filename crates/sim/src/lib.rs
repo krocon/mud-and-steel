@@ -25,6 +25,7 @@ pub mod scale;
 pub mod scenario;
 mod sim;
 pub mod terrain;
+pub mod vision;
 
 pub use bridges::Bridge;
 pub use catalog::Catalog;
@@ -41,7 +42,8 @@ pub use outcome::{DefeatReason, Outcome, PlayerStanding};
 pub use rng::Rng;
 pub use scale::Scale;
 pub use sim::{
-    ConfigError, RouteView, Sim, SimConfig, Snapshot, Spawn, UnitSnapshot, WORLD_LIMIT_M,
-    formation_slots, formation_spacing,
+    ConfigError, MAX_PLAYERS, RouteView, Sim, SimConfig, Snapshot, Spawn, UnitSnapshot,
+    WORLD_LIMIT_M, formation_slots, formation_spacing,
 };
 pub use terrain::{TerrainError, TerrainRules};
+pub use vision::{CellState, VisionGrid, VisionRules};

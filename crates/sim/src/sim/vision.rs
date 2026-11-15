@@ -1,0 +1,249 @@
+//! Keeping the viewsheds of all units and the vision of every player up to
+//! date (prompt 018). The sight computation itself: `crate::vision`.
+//!
+//! A unit's viewshed is computed again when it enters another vision cell.
+//! Such units wait in a FIFO queue; every tick works through it until the
+//! ray-step budget of the rules is spent (at least one unit per tick), so
+//! the cost of a tick stays bounded however many units move. Destroyed units
+//! lose their viewshed at once. Afterwards every unit gets the set of
+//! players that see it.
+
+use super::Sim;
+use crate::command::{PlayerId, UnitId};
+use crate::hash::StableHasher;
+use crate::math::Vec2;
+use crate::sim::Snapshot;
+use crate::vision::{CellState, PlayerVision, Viewshed, VisionGrid, VisionRules};
+use std::collections::VecDeque;
+use std::sync::Arc;
+
+/// Vision state of a match.
+#[derive(Clone, Debug)]
+pub(super) struct Vision {
+    pub(super) rules: VisionRules,
+    pub(super) grid: Arc<VisionGrid>,
+    /// Players in slot order (ascending).
+    players: Vec<PlayerId>,
+    per_player: Vec<PlayerVision>,
+    /// Per unit index.
+    sheds: Vec<Option<Viewshed>>,
+    queued: Vec<bool>,
+    queue: VecDeque<u32>,
+    /// Per unit index: bit `s` = player slot `s` sees the unit.
+    seen: Vec<u64>,
+    /// Per unit type: eye height over the ground (mm) and sight radius (cells).
+    eye_mm: Vec<i32>,
+    radius: Vec<i32>,
+    /// Ray steps computed in the last tick (benchmark).
+    pub(super) last_steps: u32,
+}
+
+/// Most players a match can have (one bit each in [`Vision::seen`]).
+pub const MAX_PLAYERS: usize = 64;
+
+impl Vision {
+    /// `eye_m` and `categories` per unit type.
+    pub(super) fn new(
+        rules: &VisionRules,
+        map: &crate::map::Map,
+        players: Vec<PlayerId>,
+        types: &[(i32, Option<crate::catalog::Category>)],
+        units: usize,
+    ) -> Self {
+        let radius: Vec<i32> = types.iter().map(|&(_, c)| rules.range_cells(c)).collect();
+        let grid = VisionGrid::new(map, rules, &radius);
+        let cells = grid.cells();
+        Self {
+            rules: rules.clone(),
+            grid: Arc::new(grid),
+            per_player: players.iter().map(|_| PlayerVision::new(cells)).collect(),
+            players,
+            sheds: vec![None; units],
+            queued: vec![false; units],
+            queue: VecDeque::new(),
+            seen: vec![0; units],
+            eye_mm: types.iter().map(|&(eye, _)| eye).collect(),
+            radius,
+            last_steps: 0,
+        }
+    }
+
+    fn slot(&self, player: PlayerId) -> Option<usize> {
+        self.players.binary_search(&player).ok()
+    }
+
+    pub(super) fn hash_into(&self, h: &mut StableHasher) {
+        self.rules.hash_into(h);
+        for shed in &self.sheds {
+            match shed {
+                None => h.write_u8(0),
+                Some(s) => {
+                    h.write_u8(1);
+                    h.write_u32(s.anchor);
+                    h.write_u32(s.eye_mm as u32);
+                    h.write_u32(s.radius as u32);
+                    h.write_u32(s.count());
+                }
+            }
+        }
+        h.write_u64(self.queue.len() as u64);
+        for &i in &self.queue {
+            h.write_u32(i);
+        }
+        for &s in &self.seen {
+            h.write_u64(s);
+        }
+        for p in &self.per_player {
+            p.hash_into(h);
+        }
+    }
+}
+
+fn to_mm(v: crate::math::Fixed) -> i32 {
+    (v * crate::math::Fixed::from_num(1000))
+        .round()
+        .to_num::<i32>()
+}
+
+impl Sim {
+    /// Updates viewsheds (within the budget, or all of them if `unlimited`)
+    /// and who sees which unit.
+    pub(super) fn update_vision(&mut self, unlimited: bool) {
+        let v = &mut self.vision;
+        let grid = Arc::clone(&v.grid);
+        for (i, unit) in self.units.iter().enumerate() {
+            if !unit.alive() {
+                if let Some(shed) = v.sheds[i].take() {
+                    let slot = v.slot(unit.owner).expect("owners are players");
+                    v.per_player[slot].remove(&grid, &shed);
+                }
+                continue;
+            }
+            let anchor = grid.index_of(unit.position);
+            if v.sheds[i].as_ref().map(|s| s.anchor) != Some(anchor) && !v.queued[i] {
+                v.queued[i] = true;
+                v.queue.push_back(i as u32);
+            }
+        }
+        let budget = v.rules.grid.budget_steps_per_tick;
+        let mut spent = 0u32;
+        let mut done = 0u32;
+        while let Some(&i) = v.queue.front() {
+            if !unlimited && done > 0 && spent >= budget {
+                break;
+            }
+            v.queue.pop_front();
+            let i = i as usize;
+            v.queued[i] = false;
+            let unit = &self.units[i];
+            if !unit.alive() {
+                continue;
+            }
+            let t = unit.unit_type as usize;
+            let anchor = grid.index_of(unit.position);
+            let eye = to_mm(unit.height).saturating_add(v.eye_mm[t]);
+            let (shed, steps) = grid.viewshed(anchor, eye, v.radius[t]);
+            let slot = v.slot(unit.owner).expect("owners are players");
+            if let Some(old) = v.sheds[i].take() {
+                v.per_player[slot].remove(&grid, &old);
+            }
+            v.per_player[slot].add(&grid, &shed);
+            v.sheds[i] = Some(shed);
+            spent = spent.saturating_add(steps);
+            done += 1;
+        }
+        v.last_steps = spent;
+        for (i, unit) in self.units.iter().enumerate() {
+            v.seen[i] = if unit.alive() {
+                let cell = grid.index_of(unit.position) as usize;
+                let mut mask = 0u64;
+                for (s, (&player, pv)) in v.players.iter().zip(&v.per_player).enumerate() {
+                    if player == unit.owner || pv.visible(cell) {
+                        mask |= 1 << s;
+                    }
+                }
+                mask
+            } else {
+                u64::MAX
+            };
+        }
+    }
+
+    /// Whether the viewshed of unit `i` contains the point `p`.
+    pub(super) fn unit_sees(&self, i: usize, p: Vec2) -> bool {
+        let grid = &self.vision.grid;
+        let (c, r) = grid.cell_of(p);
+        self.vision.sheds[i]
+            .as_ref()
+            .is_some_and(|s| s.contains(grid, c, r))
+    }
+
+    /// Whether the owner of unit `i` sees unit `j`.
+    pub(super) fn owner_sees(&self, i: usize, j: usize) -> bool {
+        self.vision
+            .slot(self.units[i].owner)
+            .is_some_and(|s| self.vision.seen[j] & (1 << s) != 0)
+    }
+
+    /// Whether `player` sees unit `unit`: own units, wrecks and enemies in
+    /// the player's vision. Unknown players see only wrecks.
+    pub fn visible_to(&self, player: PlayerId, unit: UnitId) -> bool {
+        let Ok(j) = self.units.binary_search_by_key(&unit, |u| u.id) else {
+            return false;
+        };
+        match self.vision.slot(player) {
+            Some(s) => self.vision.seen[j] & (1 << s) != 0,
+            None => !self.units[j].alive(),
+        }
+    }
+
+    /// [`Sim::snapshot`] as `player` sees it: enemy units outside the
+    /// player's vision are left out. Projectiles and events stay (muzzle
+    /// flashes and tracers can be seen from afar).
+    pub fn snapshot_for(&self, player: PlayerId) -> Snapshot {
+        let mut snapshot = self.snapshot();
+        snapshot.units.retain(|u| self.visible_to(player, u.id));
+        snapshot
+    }
+
+    /// The vision grid of this match (cell size, origin, dimensions).
+    pub fn vision_grid(&self) -> &VisionGrid {
+        &self.vision.grid
+    }
+
+    /// The state of every vision cell for `player`, row by row (all
+    /// unexplored for unknown players).
+    pub fn vision_states(&self, player: PlayerId, out: &mut Vec<CellState>) {
+        out.clear();
+        let cells = self.vision.grid.cells();
+        match self.vision.slot(player) {
+            Some(s) => {
+                let pv = &self.vision.per_player[s];
+                out.extend((0..cells).map(|i| pv.state(i)));
+            }
+            None => out.resize(cells, CellState::Unexplored),
+        }
+    }
+
+    /// Changes whenever a cell of `player` changes its state.
+    pub fn vision_version(&self, player: PlayerId) -> u64 {
+        self.vision
+            .slot(player)
+            .map_or(0, |s| self.vision.per_player[s].version)
+    }
+
+    /// Units waiting for a new viewshed.
+    pub fn vision_queue_len(&self) -> usize {
+        self.vision.queue.len()
+    }
+
+    /// Ray steps computed in the last tick.
+    pub const fn vision_steps(&self) -> u32 {
+        self.vision.last_steps
+    }
+}
+
+/// Eye height of a unit type in millimeters (its hull or soldier height).
+pub(super) fn eye_mm(height: crate::math::Fixed) -> i32 {
+    to_mm(height)
+}
