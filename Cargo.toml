@@ -21,3 +21,8 @@ godot = { version = "=0.5.5", features = ["api-4-7"] }
 
 [profile.release]
 debug = "line-tables-only"
+
+# The bridge computes the terrain rasters for the renderer (4 M samples on a
+# 4 km map); unoptimized that takes seconds at every game start.
+[profile.dev.package.bridge]
+opt-level = 2
