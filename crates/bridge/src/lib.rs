@@ -18,6 +18,7 @@ use sim::{
 use std::path::Path;
 use std::sync::Arc;
 
+mod combat_funcs;
 mod lan;
 mod object_funcs;
 mod objects;
@@ -181,6 +182,12 @@ pub struct SimHost {
     accumulator: f64,
     previous: Snapshot,
     current: Snapshot,
+    /// Start every unit of the demo with hold fire (self-test). Read by
+    /// `start`, `start_on_map`.
+    #[export]
+    hold_fire_at_start: bool,
+    /// Combat events of the ticks since the last `take_combat_events`.
+    combat_events: Vec<(u64, sim::CombatEvent)>,
     base: Base<Node>,
 }
 
@@ -195,6 +202,8 @@ impl INode for SimHost {
             accumulator: 0.0,
             previous: Snapshot::default(),
             current: Snapshot::default(),
+            hold_fire_at_start: false,
+            combat_events: Vec::new(),
             base,
         }
     }
@@ -227,6 +236,7 @@ impl INode for SimHost {
                 }
             }
             self.previous = std::mem::replace(&mut self.current, game.sim.snapshot());
+            combat_funcs::collect_events(&mut self.combat_events, &self.current);
             self.accumulator -= tick_seconds;
             ticks += 1;
         }
@@ -269,13 +279,18 @@ impl SimHost {
     }
 
     fn start_with(&mut self, seed: i64, map: Arc<Map>) -> bool {
-        let config = match demo_config(&map) {
+        let mut config = match demo_config(&map) {
             Ok(config) => config,
             Err(e) => {
                 godot_error!("{e}");
                 return false;
             }
         };
+        if self.hold_fire_at_start {
+            for spawn in &mut config.spawns {
+                spawn.fire_mode = sim::FireMode::HoldFire;
+            }
+        }
         // The seed is a bit pattern; reinterpreting the sign is intended.
         let seed = seed.cast_unsigned();
         let sim = match Sim::new(&config, map.clone(), seed) {
@@ -368,6 +383,7 @@ impl SimHost {
         self.current = sim.snapshot();
         self.previous = self.current.clone();
         self.pending.clear();
+        self.combat_events.clear();
         self.accumulator = 0.0;
         self.game = Some(Game {
             recorder: ReplayRecorder::new(seed, config.clone(), &players),
