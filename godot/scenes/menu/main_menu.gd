@@ -22,7 +22,7 @@ const DIRECT_FLAGS: Array[String] = [
 	"--skip-menu", "--demo", "--camera-shots", "--path-debug",
 	"--terrain-bench", "--terrain-shots", "--objects-bench", "--objects-shots",
 ]
-const DIRECT_PREFIXES: Array[String] = ["--map=", "--biome="]
+const DIRECT_PREFIXES: Array[String] = ["--map=", "--biome=", "--effects-"]
 const BIOMES: Dictionary[String, String] = {
 	"": "As the map says", "forest": "Forest (summer)", "desert": "Desert", "winter": "Winter",
 }

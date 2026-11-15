@@ -15,21 +15,33 @@ const DEFAULT := "high"
 ## ssao_half: half resolution; ssil: screen-space indirect light;
 ## glow; msaa: Viewport.MSAA; fxaa;
 ## snow_particles: particle count of the snowfall (0 = off).
+## Effects (prompt 019, `effects.gd`): fx_particles: particle count factor;
+## fx_pools: factor on the pooled emitters per effect kind; fx_lights: light
+## flashes at once; fx_decals: scorch marks kept; fx_fires: burning wrecks
+## (older ones only smolder); fx_fire_lights: wreck fires with a light;
+## fx_soft: soft particles; fx_vehicle_m: camera range of dust trails and
+## exhaust smoke in meters.
 const SETTINGS: Dictionary[String, Dictionary] = {
 	"low": {
 		"shadow_size": 2048, "cascades": 2, "shadow_filter": RenderingServer.SHADOW_QUALITY_HARD,
 		"ssao": -1, "ssao_half": true, "ssil": false, "glow": false,
 		"msaa": Viewport.MSAA_DISABLED, "fxaa": true, "snow_particles": 0,
+		"fx_particles": 0.4, "fx_pools": 0.35, "fx_lights": 2, "fx_decals": 32, "fx_fires": 4,
+		"fx_fire_lights": 0, "fx_soft": false, "fx_vehicle_m": 150.0,
 	},
 	"medium": {
 		"shadow_size": 4096, "cascades": 4, "shadow_filter": RenderingServer.SHADOW_QUALITY_SOFT_LOW,
 		"ssao": RenderingServer.ENV_SSAO_QUALITY_LOW, "ssao_half": true, "ssil": false, "glow": true,
 		"msaa": Viewport.MSAA_DISABLED, "fxaa": true, "snow_particles": 6000,
+		"fx_particles": 0.7, "fx_pools": 0.65, "fx_lights": 6, "fx_decals": 96, "fx_fires": 10,
+		"fx_fire_lights": 3, "fx_soft": false, "fx_vehicle_m": 250.0,
 	},
 	"high": {
 		"shadow_size": 8192, "cascades": 4, "shadow_filter": RenderingServer.SHADOW_QUALITY_SOFT_MEDIUM,
 		"ssao": RenderingServer.ENV_SSAO_QUALITY_MEDIUM, "ssao_half": false, "ssil": false, "glow": true,
 		"msaa": Viewport.MSAA_4X, "fxaa": false, "snow_particles": 16000,
+		"fx_particles": 1.0, "fx_pools": 1.0, "fx_lights": 12, "fx_decals": 192, "fx_fires": 24,
+		"fx_fire_lights": 8, "fx_soft": true, "fx_vehicle_m": 400.0,
 	},
 }
 
