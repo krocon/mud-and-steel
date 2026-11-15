@@ -448,6 +448,25 @@ impl SimHost {
             .collect()
     }
 
+    /// Catalog id of every unit's type (e.g. `de_pz4_h`), for picking models.
+    #[func]
+    fn unit_type_ids(&self) -> PackedStringArray {
+        let Some(game) = &self.game else {
+            return PackedStringArray::new();
+        };
+        self.current
+            .units
+            .iter()
+            .map(|u| {
+                let name = usize::try_from(u.unit_type)
+                    .ok()
+                    .and_then(|i| game.config.unit_types.get(i))
+                    .map_or("", |t| t.name.as_str());
+                GString::from(name)
+            })
+            .collect()
+    }
+
     /// Larger of length and width of every unit, in meters.
     #[func]
     fn unit_footprints(&self) -> PackedFloat32Array {
