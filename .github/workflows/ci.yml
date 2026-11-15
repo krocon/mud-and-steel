@@ -49,3 +49,34 @@ jobs:
 
       - name: Headless run
         run: cargo run -p cli -- run --ticks 1000 --seed 42
+
+  # Performance (prompt 016, docs/PERFORMANCE.md): the overall benchmark on
+  # one runner. Informational only: shared CI machines are too noisy for a
+  # hard limit, so this job never blocks a merge. The table lands in the
+  # job summary; compare it with docs/PERFORMANCE.md by hand.
+  bench:
+    name: Benchmark (informational)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          lfs: true
+
+      - name: Install toolchain from rust-toolchain.toml
+        run: rustup toolchain install
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Bench (bench_large, 2 Hard AIs, 3000 ticks, minimum of 2 runs)
+        run: |
+          cargo run -q --release -p cli -- bench --ticks 3000 --runs 2 --windows 5 | tee bench.txt
+          {
+            echo '## cli bench'
+            echo
+            echo '```'
+            head -n 3 bench.txt
+            echo '```'
+            echo
+            tail -n +4 bench.txt
+          } >> "$GITHUB_STEP_SUMMARY"

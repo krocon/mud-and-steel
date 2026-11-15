@@ -239,6 +239,10 @@ pub struct SimHost {
     crater_events: Vec<(u64, sim::CraterEvent)>,
     /// Debug: draw everything without fog (prompt 018, presentation only).
     reveal_all: bool,
+    /// Time of the last `process` (ticks, AI, snapshots) in microseconds
+    /// and the ticks it ran, for benchmarks (prompt 016).
+    process_usec: i64,
+    process_ticks: i64,
     /// Scenario of `start_match` (prompt 023): `"battle"` (the demo armies,
     /// default) or `"base"` (base building, `data/scenarios/skirmish.toml`).
     #[export]
@@ -267,6 +271,8 @@ impl INode for SimHost {
             object_events: Vec::new(),
             crater_events: Vec::new(),
             reveal_all: false,
+            process_usec: 0,
+            process_ticks: 0,
             mode: GString::new(),
             speed: 1.0,
             base,
@@ -274,15 +280,30 @@ impl INode for SimHost {
     }
 
     fn process(&mut self, delta: f64) {
+        let began = std::time::Instant::now();
+        let ticks = self.run_ticks(delta);
+        self.process_ticks = i64::from(ticks);
+        self.process_usec = i64::try_from(began.elapsed().as_micros()).unwrap_or(i64::MAX);
+    }
+}
+
+impl SimHost {
+    /// The body of `process`: runs the ticks due after `delta` seconds and
+    /// returns how many ran.
+    fn run_ticks(&mut self, delta: f64) -> u32 {
         let Some(game) = self.game.as_mut() else {
-            return;
+            return 0;
         };
         if game.halted.is_some() {
-            return;
+            return 0;
         }
         let tick_seconds = 1.0 / f64::from(self.tick_hz);
         self.accumulator += delta * self.speed.clamp(0.0, 20.0);
         let mut ticks = 0;
+        // Only the last two ticks of a frame are drawn (interpolated):
+        // snapshots of the ticks before them would be thrown away (prompt
+        // 016). Events are collected from every tick.
+        let due = ((self.accumulator / tick_seconds) as u32).min(MAX_TICKS_PER_FRAME);
         game.waiting = false;
         while self.accumulator >= tick_seconds {
             if ticks == MAX_TICKS_PER_FRAME {
@@ -300,14 +321,31 @@ impl INode for SimHost {
                     break;
                 }
             }
-            let next =
-                vision_funcs::snapshot(&game.sim, game.session.local_player(), self.reveal_all);
-            self.previous = std::mem::replace(&mut self.current, next);
-            combat_funcs::collect_events(&mut self.combat_events, &self.current);
+            if ticks + 2 >= due {
+                std::mem::swap(&mut self.previous, &mut self.current);
+                vision_funcs::snapshot_into(
+                    &game.sim,
+                    game.session.local_player(),
+                    self.reveal_all,
+                    &mut self.current,
+                );
+            }
+            combat_funcs::collect_events(&mut self.combat_events, &game.sim);
             destruction_funcs::collect_events(&mut self.object_events, &game.sim);
             crater_funcs::collect_events(&mut self.crater_events, &game.sim);
             self.accumulator -= tick_seconds;
             ticks += 1;
+        }
+        if self.current.tick != game.sim.tick() {
+            // The loop stopped early (waiting for a peer) before the ticks
+            // that take snapshots.
+            std::mem::swap(&mut self.previous, &mut self.current);
+            vision_funcs::snapshot_into(
+                &game.sim,
+                game.session.local_player(),
+                self.reveal_all,
+                &mut self.current,
+            );
         }
         if ticks == 0 && game.networked && game.halted.is_none() {
             // Keep the connection serviced between ticks.
@@ -321,11 +359,25 @@ impl INode for SimHost {
                 d.tick, d.player.0
             ));
         }
+        ticks
     }
 }
 
 #[godot_api]
 impl SimHost {
+    /// Microseconds the last frame spent in the simulation (ticks, computer
+    /// players, snapshots), for benchmarks (prompt 016).
+    #[func]
+    fn process_usec(&self) -> i64 {
+        self.process_usec
+    }
+
+    /// Ticks simulated in the last frame.
+    #[func]
+    fn process_ticks(&self) -> i64 {
+        self.process_ticks
+    }
+
     /// Starts the demo scenario (two players, eight tanks each) on the
     /// built-in map `test_small` with the local player in slot 0. Returns
     /// `false` (and logs an error) if the data is invalid.

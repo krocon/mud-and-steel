@@ -249,6 +249,12 @@ fn snapshots_show_only_what_the_player_sees() {
     assert_eq!(ids(P0), vec![0, 2]);
     assert_eq!(ids(P1), vec![0, 1, 2]);
     assert_eq!(sim.snapshot().units.len(), 3);
+    // Reused buffers (the bridge, prompt 016) give the same snapshots.
+    let mut reused = sim.snapshot();
+    sim.snapshot_into(Some(P0), &mut reused);
+    assert_eq!(reused, sim.snapshot_for(P0));
+    sim.snapshot_into(None, &mut reused);
+    assert_eq!(reused, sim.snapshot());
 }
 
 #[test]

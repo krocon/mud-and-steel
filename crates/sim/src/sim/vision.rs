@@ -263,11 +263,8 @@ impl Sim {
     /// player's vision are left out. Projectiles and events stay (muzzle
     /// flashes and tracers can be seen from afar).
     pub fn snapshot_for(&self, player: PlayerId) -> Snapshot {
-        let mut snapshot = self.snapshot();
-        snapshot.units.retain(|u| self.visible_to(player, u.id));
-        snapshot
-            .soldiers
-            .retain(|s| self.visible_to(player, s.unit));
+        let mut snapshot = Snapshot::default();
+        self.snapshot_into(Some(player), &mut snapshot);
         snapshot
     }
 

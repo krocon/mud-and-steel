@@ -1,0 +1,64 @@
+# Performance benchmark (prompt 016): the target scenario of the budgets in
+# docs/PERFORMANCE.md. Two armies of 125 tanks and 125 rifle squads each
+# (2250 soldiers in all) on the 4 km map `test_large`, about 1.3 km apart
+# in the open fields west of the center.
+# Used by `just bench` (CLI: simulation, AI and snapshot time with two Hard
+# AIs) and `just bench-view` (Godot: frame time with this many units).
+#
+# The first group of every player is moved to the map's start position
+# (docs/MAPS.md); here that is a pair of trucks (unarmed, the AI leaves them
+# there), so the armies keep the layout below. Integers only.
+
+map = "test_large"
+
+# Player 0: south of the center (+y).
+[[group]]
+owner = 0
+unit = "de_opel_blitz"
+count = 2
+columns = 2
+spacing_m = 15
+center_m = [0, 60]
+
+[[group]]
+owner = 0
+unit = "de_pz4_h"
+count = 125
+columns = 25
+spacing_m = 14
+center_m = [-1450, 460]
+
+[[group]]
+owner = 0
+unit = "de_inf_rifle_squad"
+role = "infantry"
+count = 125
+columns = 25
+spacing_m = 16
+center_m = [-1450, 580]
+
+# Player 1: north of the center (-y).
+[[group]]
+owner = 1
+unit = "su_zis5"
+count = 2
+columns = 2
+spacing_m = 15
+center_m = [0, -60]
+
+[[group]]
+owner = 1
+unit = "su_t34_76_1943"
+count = 125
+columns = 25
+spacing_m = 14
+center_m = [-1150, -800]
+
+[[group]]
+owner = 1
+unit = "su_inf_rifle_squad"
+role = "infantry"
+count = 125
+columns = 25
+spacing_m = 16
+center_m = [-1150, -920]

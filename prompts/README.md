@@ -65,7 +65,7 @@ Welle 4:  012 Wegfindung ─ 013 …  │   008 Stufe 2 (3 Sessions pro Fraktion
 | 013 | [Vegetation und Objekte platzieren](done/013-vegetation-platzieren.md) | Dicht bestücktes Gelände mit den Modellen aus 007 | erledigt |
 | 014 | [Wasser, Flüsse und Brücken](done/014-wasser-fluesse-bruecken.md) | Flüsse, Ufer, Brücken als Engstellen | erledigt |
 | 015 | [Licht, Atmosphäre und Biome](done/015-licht-atmosphaere-biome.md) | Sonne, Schatten, Nachbearbeitung, Wiese/Wüste/Winter | erledigt |
-| 016 | [Performance für große Karten](016-performance-grosse-karten.md) | Benchmarks, räumliches Raster, Budgets | Entwurf |
+| 016 | [Performance für große Karten](done/016-performance-grosse-karten.md) | Benchmarks, räumliches Raster, Budgets | erledigt |
 | 017 | [Kampf-Grundlagen](done/017-kampf-grundlagen.md) | Lebenspunkte, Waffen, Geschosse, Treffer aus dem Katalog | erledigt |
 | 018 | [Nebel des Krieges](done/018-nebel-des-krieges.md) | Sicht pro Spieler mit Sichtlinie über Gelände | erledigt |
 | 019 | [Effekte](done/019-effekte.md) | Explosionen, Rauch, Mündungsfeuer, Leuchtspur | erledigt |

@@ -16,7 +16,8 @@ only exchange commands. This dictates the rules for the whole project:
    `HashMap`/`HashSet`, no threads with undefined ordering.
 5. **AI is a normal player** that feeds commands into the same simulation.
 
-Details and enforcement: [DETERMINISM.md](DETERMINISM.md).
+Details and enforcement: [DETERMINISM.md](DETERMINISM.md). Budgets, the overall
+benchmark and measurements: [PERFORMANCE.md](PERFORMANCE.md).
 
 ## Layers
 
@@ -248,7 +249,9 @@ at most 3 times until it reaches the next waypoint.
 
 `Sim::set_path_obstacle(a, b, blocked)` marks the cells of a rectangle as blocked
 (or frees them), recomputes flags, costs and components of that area and its
-neighbors (components for the whole map),
+neighbors (components locally, within 32 m of the change; a region that
+breaks off is split by flood fills from all its pieces; only a merge of two
+regions relabels the whole map, prompt 016),
 restarts the running search and re-plans every unit whose remaining route touches
 the changed cells. It is meant for game systems (buildings, wrecks, destruction in
 prompt 020), not for player commands. Wrecks use it; destroyed map objects
@@ -286,7 +289,8 @@ within ±1800 m, all in tick 0. Apple M1 Max, release build, other sessions busy
 | 200 × 1 unit | 200 | 136 000 | 834 ticks (42 s) | 4.1 / 5.4 / 5.8 ms | 1449 s |
 | 25 × 8 units | 42 | 177 000 | 219 ticks (11 s) | 4.0 / 5.6 / 5.8 ms | 1433 s |
 
-Ticks without path work take 0.02–0.15 ms (200 units, separation is O(n²)). The
+Ticks without path work took 0.02–0.15 ms (200 units, separation was O(n²); since
+prompt 016 it asks the unit grid, see [PERFORMANCE.md](PERFORMANCE.md)). The
 debug build (`opt-level = 3`) is about 25 % slower. 200 single orders to random
 points across a 4 km map at once are the worst case; the latency until the last
 path is there grows linearly with the queue. If that matters later: hierarchical
@@ -425,7 +429,7 @@ aim. Hulls follow the simulation's `facing`.
 | Penetration | caliber × (v / 520)^1.5, −20 %/km | The catalog has caliber and muzzle velocity but no penetration tables; the formula meets published values of the KwK 36 and KwK 40 and needs only `isqrt`. No values from other games. |
 | Armor by angle | Entry face of the oriented hit box, angle to its normal | Front, flank, rear and obliquity come from one geometric test, without sector rules. |
 | Targets | One target per unit, fixed sort key, every 10 ticks | Deterministic, cheap (O(n²) every 0.5 s), no random choice. |
-| Projectiles | Real objects with ballistic flight, tested per tick segment | Hills, trees and wrecks stop rounds by themselves; effects get flight paths. Fine for a few hundred units; a spatial grid follows with prompt 016. |
+| Projectiles | Real objects with ballistic flight, tested per tick segment | Hills, trees and wrecks stop rounds by themselves; effects get flight paths. Units near a flight segment come from the unit grid (prompt 016, [PERFORMANCE.md](PERFORMANCE.md)). |
 | Friendly fire | Possible, but units do not fire through friends | Rounds that miss can hit anything; a second rank does not shoot into the first. |
 | Automatic weapons | 25 % of the cyclic rate | The catalog lists the cyclic rate; the practical rate of MGs is a quarter to a sixth of it. |
 | Turret traverse | Per category in `combat.toml` | The catalog has no traverse speeds. |
@@ -440,7 +444,6 @@ aim. Hulls follow the simulation's `facing`.
   [Vision and fog of war](#vision-and-fog-of-war).
 - Target leading: rounds fly at the target's position at the moment of the
   shot; at 75 m per tick this matters only for fast targets far away.
-- Projectiles and unit queries are O(projectiles × units) per tick.
 
 ## Vision and fog of war
 
@@ -907,7 +910,9 @@ Spread craters cost about 1 ms per tick (path cells, vision cells and the
 viewshed queue); no route has to be planned again. Stacked craters that
 close cells cost a flood fill of the components per tick (about 8 ms on
 `test_large`) and re-planning of every route through them, still within
-the 50 ms tick.
+the 50 ms tick. Since prompt 016 the components are relabeled locally
+(`relabel_components_in`): the stacked case takes 6.0 / 6.7 ms per tick
+instead of 22 / 24 ms (same run, same state hash `0x47f2f2f2b80a01e6`).
 
 `just crater-view-bench [map]` (`tools/crater_bench.gd`, `-- --effects-craters`):
 1920 × 1080, V-Sync off, quality high, forest, debug bridge, camera 150 m

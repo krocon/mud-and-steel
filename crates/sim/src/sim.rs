@@ -20,6 +20,7 @@ mod craters;
 mod destruction;
 mod economy;
 mod infantry;
+mod spatial;
 mod vision;
 
 pub use vision::MAX_PLAYERS;
@@ -260,6 +261,61 @@ pub struct Snapshot {
     pub soldiers: Vec<SoldierSnapshot>,
 }
 
+/// Phases of a tick in [`Sim::step_observed`], in order.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub enum Phase {
+    /// Players' commands (orders, formation, path requests).
+    Commands,
+    /// Path search within the node budget, routes for waiting units.
+    Paths,
+    /// Infantry stances, targets, aiming and firing.
+    Combat,
+    /// Unit movement with separation.
+    Movement,
+    /// Soldiers of infantry squads (formation, cover, buildings).
+    Squads,
+    /// Crushing map objects, projectile flight and hits.
+    Projectiles,
+    /// Destroyed map objects and craters: path grid and vision cells.
+    Destruction,
+    /// Accounts, structures, production, supply (prompt 023).
+    Economy,
+    /// Viewsheds and player vision.
+    Vision,
+    /// Victory conditions.
+    Standings,
+}
+
+impl Phase {
+    pub const ALL: [Self; 10] = [
+        Self::Commands,
+        Self::Paths,
+        Self::Combat,
+        Self::Movement,
+        Self::Squads,
+        Self::Projectiles,
+        Self::Destruction,
+        Self::Economy,
+        Self::Vision,
+        Self::Standings,
+    ];
+
+    pub const fn name(self) -> &'static str {
+        match self {
+            Self::Commands => "commands",
+            Self::Paths => "paths",
+            Self::Combat => "combat",
+            Self::Movement => "movement",
+            Self::Squads => "squads",
+            Self::Projectiles => "projectiles",
+            Self::Destruction => "destruction",
+            Self::Economy => "economy",
+            Self::Vision => "vision",
+            Self::Standings => "standings",
+        }
+    }
+}
+
 /// The deterministic simulation.
 #[derive(Clone, Debug)]
 pub struct Sim {
@@ -287,6 +343,9 @@ pub struct Sim {
     infantry: InfantryRt,
     /// Hit points and stages of map objects (prompt 020).
     destruction: destruction::Destruction,
+    /// Unit positions by area (prompt 016): rebuilt within a tick where
+    /// queries need it; not state.
+    unit_grid: spatial::UnitGrid,
     /// Craters and the deformation of the ground (prompt 021).
     craters: craters::Craters,
     /// The unit types of the match (`SimConfig::unit_types`), for units
@@ -413,6 +472,7 @@ impl Sim {
             vision,
             infantry,
             destruction,
+            unit_grid: spatial::UnitGrid::default(),
             craters,
             unit_types: config.unit_types.clone(),
             economy,
@@ -466,25 +526,45 @@ impl Sim {
     /// them by player, then issue order), then queued path requests get
     /// their node budget, then units move.
     pub fn step(&mut self, commands: &[PlayerCommand]) {
+        self.step_observed(commands, |_| {});
+    }
+
+    /// [`Self::step`] that calls `done` after every phase of the tick, for
+    /// benchmarks that time the phases (`cli bench`, prompt 016). The
+    /// simulation itself never reads a clock; `done` cannot change the
+    /// state.
+    pub fn step_observed(&mut self, commands: &[PlayerCommand], mut done: impl FnMut(Phase)) {
         self.events.clear();
         for command in commands {
             self.apply(command);
         }
+        done(Phase::Commands);
         self.plan_paths();
+        done(Phase::Paths);
         self.update_stances();
+        self.rebuild_unit_grid();
         self.aim_and_fire();
+        done(Phase::Combat);
         self.move_units();
+        done(Phase::Movement);
         self.update_squads();
+        done(Phase::Squads);
         self.crush_objects();
+        self.rebuild_unit_grid();
         self.fly_projectiles();
+        done(Phase::Projectiles);
         self.apply_destruction();
         self.apply_craters();
+        done(Phase::Destruction);
         self.update_economy();
+        done(Phase::Economy);
         self.update_vision(false);
+        done(Phase::Vision);
         self.tick += 1;
         let units = &self.units;
         self.standings
             .update(self.tick, |player| alive_units(units, player));
+        done(Phase::Standings);
     }
 
     /// Every player of the match (ascending) and whether they are defeated.
@@ -635,6 +715,16 @@ impl Sim {
         }
     }
 
+    /// Sorts the units into [`spatial::UnitGrid`] by their current
+    /// positions.
+    fn rebuild_unit_grid(&mut self) {
+        let size = self.map.size();
+        let types = &self.types;
+        self.unit_grid.rebuild(&self.units, size, |u| {
+            combat::reach_of(u, &types[u.unit_type as usize])
+        });
+    }
+
     /// Moves every unit that follows a route by one tick, with separation
     /// from nearby units computed from the positions at the start of the
     /// movement (so the result does not depend on the update order).
@@ -646,9 +736,20 @@ impl Sim {
             .iter()
             .map(|u| heading(u).filter(|_| !arriving(u)))
             .collect();
+        // The unit grid holds the positions of this phase (built before
+        // combat, which moves nobody).
+        let mut near = Vec::new();
         let pushes: Vec<Vec2> = (0..self.units.len())
             .map(|i| {
-                directions[i].map_or(Vec2::ZERO, |d| separation(&self.units, &directions, i, d))
+                directions[i].map_or(Vec2::ZERO, |d| {
+                    // Separation looks at most (own + other spread) far.
+                    let me = &self.units[i];
+                    let r = me.spread + self.unit_grid.max_spread;
+                    let r = Vec2::new(r, r);
+                    self.unit_grid
+                        .query(me.position - r, me.position + r, &mut near);
+                    separation(&self.units, &directions, i, d, &near)
+                })
             })
             .collect();
         let grid = &self.paths.grid;
@@ -931,11 +1032,23 @@ impl Sim {
 
     /// Data needed to draw the current state.
     pub fn snapshot(&self) -> Snapshot {
-        Snapshot {
-            tick: self.tick,
-            units: self
-                .units
+        let mut out = Snapshot::default();
+        self.snapshot_into(None, &mut out);
+        out
+    }
+
+    /// Writes the snapshot into `out`, reusing its buffers (prompt 016: the
+    /// bridge builds one per tick). With `player`, enemy units (and their
+    /// soldiers) that the player does not see are left out, like
+    /// [`Self::snapshot_for`].
+    pub fn snapshot_into(&self, player: Option<PlayerId>, out: &mut Snapshot) {
+        let shown = |u: &Unit| player.is_none_or(|p| self.visible_to(p, u.id));
+        out.tick = self.tick;
+        out.units.clear();
+        out.units.extend(
+            self.units
                 .iter()
+                .filter(|u| shown(u))
                 .map(|u| UnitSnapshot {
                     id: u.id,
                     owner: u.owner,
@@ -952,17 +1065,18 @@ impl Sim {
                     garrison: u.squad.as_ref().and_then(|s| s.garrison),
                     changing_stance: u.squad.as_ref().is_some_and(|s| s.changing > 0),
                     spread: u.spread,
-                })
-                .collect(),
-            projectiles: self
-                .projectiles
+                }),
+        );
+        out.projectiles.clear();
+        out.projectiles
+            .extend(self.projectiles.iter().map(|p| p.snapshot(self.tick_hz)));
+        out.events.clear();
+        out.events.extend_from_slice(&self.events);
+        out.soldiers.clear();
+        out.soldiers.extend(
+            self.units
                 .iter()
-                .map(|p| p.snapshot(self.tick_hz))
-                .collect(),
-            events: self.events.clone(),
-            soldiers: self
-                .units
-                .iter()
+                .filter(|u| shown(u))
                 .filter_map(|u| u.squad.as_ref().map(|s| (u, s)))
                 .flat_map(|(u, s)| {
                     let inside = s.garrison.is_some();
@@ -976,9 +1090,8 @@ impl Sim {
                             hp: x.hp,
                             in_cover: inside || x.at_spot(),
                         })
-                })
-                .collect(),
-        }
+                }),
+        );
     }
 }
 
@@ -1127,11 +1240,22 @@ fn arriving(unit: &Unit) -> bool {
 ///   that drive in roughly the same direction (`directions`, less than 60°
 ///   apart) are not swerved around: a column follows its leader instead of
 ///   zig-zagging behind it. The push still keeps them from overlapping.
-fn separation(units: &[Unit], directions: &[Option<Vec2>], i: usize, direction: Vec2) -> Vec2 {
+///
+/// `near` lists the candidates (indices; every unit within the reach must
+/// be among them). The push is a sum, so their order does not matter.
+fn separation(
+    units: &[Unit],
+    directions: &[Option<Vec2>],
+    i: usize,
+    direction: Vec2,
+    near: &[u32],
+) -> Vec2 {
     let me = &units[i];
     let left = Vec2::new(direction.y, -direction.x);
     let mut push = Vec2::ZERO;
-    for (j, other) in units.iter().enumerate() {
+    for &j in near {
+        let j = j as usize;
+        let other = &units[j];
         if j == i || !other.alive() || infantry::inside(other) {
             continue;
         }

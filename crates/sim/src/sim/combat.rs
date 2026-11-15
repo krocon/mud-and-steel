@@ -574,7 +574,14 @@ impl Sim {
         let mine = &self.types[me.unit_type as usize];
         let rules = &self.combat_rules;
         let mut best: Option<((bool, bool, i64, UnitId), usize)> = None;
-        for (j, other) in self.units.iter().enumerate() {
+        // The key is a total order, so the candidates' order does not matter.
+        let range = Vec2::new(mine.max_range, mine.max_range);
+        let mut near = Vec::new();
+        self.unit_grid
+            .query(me.position - range, me.position + range, &mut near);
+        for &j in &near {
+            let j = j as usize;
+            let other = &self.units[j];
             if other.owner == me.owner || !other.alive() {
                 continue;
             }
@@ -949,7 +956,11 @@ impl Sim {
             Vec2::new(muzzle.x.min(aim_point.x), muzzle.y.min(aim_point.y)),
             Vec2::new(muzzle.x.max(aim_point.x), muzzle.y.max(aim_point.y)),
         );
-        self.units.iter().any(|u| {
+        let reach = Vec2::new(self.unit_grid.max_reach, self.unit_grid.max_reach);
+        let mut near = Vec::new();
+        self.unit_grid.query(low - reach, high + reach, &mut near);
+        near.iter().any(|&j| {
+            let u = &self.units[j as usize];
             if u.id == me.id || u.owner != me.owner || !u.alive() {
                 return false;
             }
@@ -969,6 +980,7 @@ impl Sim {
     pub(super) fn fly_projectiles(&mut self) {
         let projectiles = std::mem::take(&mut self.projectiles);
         let mut destroyed: Vec<(usize, UnitId, Vec3)> = Vec::new();
+        let mut near = Vec::new();
         for mut p in projectiles {
             let a = p.position;
             let b = add(a, p.velocity);
@@ -976,7 +988,16 @@ impl Sim {
             let mut best: Option<Candidate> = None;
             let better =
                 |best: &Option<Candidate>, t: Fixed| best.as_ref().is_none_or(|(bt, ..)| t < *bt);
-            for (j, unit) in self.units.iter().enumerate() {
+            // Candidates in index order: the first of equally early hits
+            // wins, as with the loop over all units.
+            let reach = Vec2::new(self.unit_grid.max_reach, self.unit_grid.max_reach);
+            let low = Vec2::new(a.x.min(b.x), a.y.min(b.y));
+            let high = Vec2::new(a.x.max(b.x), a.y.max(b.y));
+            self.unit_grid
+                .query_sorted(low - reach, high + reach, &mut near);
+            for &j in &near {
+                let j = j as usize;
+                let unit = &self.units[j];
                 if unit.id == p.shooter {
                     continue;
                 }
@@ -1310,7 +1331,7 @@ fn box_hit(unit: &Unit, ty: &TypeCombat, a: Vec3, d: Vec3) -> Option<(Fixed, Fac
 
 /// Half the extent of a unit for bounding-box tests: a squad's formation,
 /// else its hull.
-fn reach_of(unit: &Unit, ty: &TypeCombat) -> Fixed {
+pub(super) fn reach_of(unit: &Unit, ty: &TypeCombat) -> Fixed {
     if unit.squad.is_some() {
         unit.spread
     } else {

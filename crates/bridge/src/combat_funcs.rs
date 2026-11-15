@@ -4,16 +4,16 @@
 
 use crate::{SimHost, fixed_to_f32, meters_to_millimeters, to_unit_ids};
 use godot::prelude::*;
-use sim::{CombatEvent, Command, Face, FireMode, HitKind, PlayerId, Snapshot, UnitId, Vec2, Vec3};
+use sim::{CombatEvent, Command, Face, FireMode, HitKind, PlayerId, Sim, UnitId, Vec2, Vec3};
 
 /// Events kept for Godot at most (if it stops taking them).
 const MAX_PENDING_EVENTS: usize = 8192;
 
 /// Appends the events of the latest tick.
-pub(crate) fn collect_events(pending: &mut Vec<(u64, CombatEvent)>, snapshot: &Snapshot) {
-    // The snapshot is taken after the tick, so its events belong to tick - 1.
-    let tick = snapshot.tick.saturating_sub(1);
-    pending.extend(snapshot.events.iter().map(|&e| (tick, e)));
+pub(crate) fn collect_events(pending: &mut Vec<(u64, CombatEvent)>, sim: &Sim) {
+    // Read after the tick, so its events belong to tick - 1.
+    let tick = sim.tick().saturating_sub(1);
+    pending.extend(sim.events().iter().map(|&e| (tick, e)));
     if pending.len() > MAX_PENDING_EVENTS {
         let excess = pending.len() - MAX_PENDING_EVENTS;
         pending.drain(..excess);

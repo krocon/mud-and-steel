@@ -43,7 +43,8 @@ static func meshes(model: Node) -> Array[GeometryInstance3D]:
 	var stack: Array[Node] = [model]
 	while not stack.is_empty():
 		var n: Node = stack.pop_back()
-		if n is MeshInstance3D:
+		# Parts emptied by UnitMerge carry no mesh (prompt 016).
+		if n is MeshInstance3D and (n as MeshInstance3D).mesh != null:
 			out.append(n)
 		stack.append_array(n.get_children())
 	return out
