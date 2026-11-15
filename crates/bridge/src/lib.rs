@@ -10,7 +10,7 @@ use net::{
     LocalTransport, LockstepConfig, LockstepSession, NetError, Replay, ReplayRecorder, Transport,
     recommended_input_delay,
 };
-use sim::scenario::{BUILTIN_MAP_NAME, DEMO_SCENARIO, builtin_map, parse_scenario_with_factions};
+use sim::scenario::{DEMO_SCENARIO, SKIRMISH_SCENARIO, builtin_map, parse_scenario_with_factions};
 use sim::{
     Catalog, Command, Fixed, Map, PlayerId, RouteView, Scale, Sim, SimConfig, Snapshot,
     TerrainRules, UnitId, Vec2,
@@ -20,19 +20,23 @@ use std::sync::Arc;
 
 mod ai_funcs;
 mod combat_funcs;
+mod crater_funcs;
 mod destruction_funcs;
+mod economy_funcs;
 mod infantry_funcs;
 mod lan;
 mod map_editor;
 mod match_funcs;
 mod object_funcs;
 mod objects;
+mod steam_lobby;
 mod terrain_layers;
 mod vision_funcs;
 mod water;
 mod water_funcs;
 
 pub use lan::LanLobby;
+pub use steam_lobby::SteamLobby;
 
 struct MudAndSteel;
 
@@ -64,12 +68,15 @@ const MAX_PICK_DISTANCE: f32 = 20_000.0;
 /// A running match: simulation plus lockstep session and replay recorder.
 struct Game {
     sim: Sim,
-    map: Arc<Map>,
+    /// The map as loaded, for replays (craters change the simulation's
+    /// map during the match, prompt 021; read that one through `map()`).
+    loaded_map: Arc<Map>,
     /// Highest point of the map in meters, for ray picking.
     map_top: f32,
     config: SimConfig,
     session: LockstepSession,
-    /// `LocalTransport` in single player, `net::lan::LanNode` on the LAN.
+    /// `LocalTransport` in single player, a `net::lobby::LobbyNode` over
+    /// ENet (LAN) or Steam (online).
     transport: Box<dyn Transport>,
     /// More than one human player: the match runs over the network.
     networked: bool,
@@ -84,8 +91,9 @@ struct Game {
     lower_delay_votes: u32,
     /// Largest delay recommended during those checks.
     lower_delay_to: u32,
-    /// Presentation-only height offsets in meters (debug craters until the
-    /// simulation can deform terrain, prompt 021). Empty until first used.
+    /// Presentation-only height offsets in meters (`debug_dent`, for terrain
+    /// tests; real craters come from the simulation, prompt 021). Empty
+    /// until first used.
     display_offsets: Vec<f32>,
     /// Object-derived rasters for decoration, built on first use.
     deco: std::cell::OnceCell<objects::DecoRasters>,
@@ -96,12 +104,20 @@ struct Game {
 }
 
 impl Game {
+    /// The map of the match as the simulation has it now (craters change
+    /// it, prompt 021). The simulation copies the loaded map once on the
+    /// first crater (copy-on-write); never keep a clone of this `Arc`, or
+    /// every crater would copy it again.
+    fn map(&self) -> &Arc<Map> {
+        self.sim.map()
+    }
+
     fn grid(&self) -> terrain_layers::Grid<'_> {
         terrain_layers::Grid {
-            samples: self.map.samples(),
-            cell_m: self.map.cell_size_mm() as f32 / 1000.0,
-            heights_mm: self.map.heights_mm(),
-            ids: self.map.terrain_ids(),
+            samples: self.map().samples(),
+            cell_m: self.map().cell_size_mm() as f32 / 1000.0,
+            heights_mm: self.map().heights_mm(),
+            ids: self.map().terrain_ids(),
             offsets: &self.display_offsets,
         }
     }
@@ -219,12 +235,22 @@ pub struct SimHost {
     combat_events: Vec<(u64, sim::CombatEvent)>,
     /// Object stage events since the last `take_object_events` (prompt 020).
     object_events: Vec<(u64, sim::ObjectEvent)>,
+    /// Crater events since the last `take_crater_events` (prompt 021).
+    crater_events: Vec<(u64, sim::CraterEvent)>,
     /// Debug: draw everything without fog (prompt 018, presentation only).
     reveal_all: bool,
     /// Time of the last `process` (ticks, AI, snapshots) in microseconds
     /// and the ticks it ran, for benchmarks (prompt 016).
     process_usec: i64,
     process_ticks: i64,
+    /// Scenario of `start_match` (prompt 023): `"battle"` (the demo armies,
+    /// default) or `"base"` (base building, `data/scenarios/skirmish.toml`).
+    #[export]
+    mode: GString,
+    /// Game time per real time (1 = normal). Only the number of ticks per
+    /// frame changes, so a match plays the same at any speed (self-tests).
+    #[export]
+    speed: f64,
     base: Base<Node>,
 }
 
@@ -243,9 +269,12 @@ impl INode for SimHost {
             ai_opponent: GString::new(),
             combat_events: Vec::new(),
             object_events: Vec::new(),
+            crater_events: Vec::new(),
             reveal_all: false,
             process_usec: 0,
             process_ticks: 0,
+            mode: GString::new(),
+            speed: 1.0,
             base,
         }
     }
@@ -269,7 +298,7 @@ impl SimHost {
             return 0;
         }
         let tick_seconds = 1.0 / f64::from(self.tick_hz);
-        self.accumulator += delta;
+        self.accumulator += delta * self.speed.clamp(0.0, 20.0);
         let mut ticks = 0;
         // Only the last two ticks of a frame are drawn (interpolated):
         // snapshots of the ticks before them would be thrown away (prompt
@@ -303,6 +332,7 @@ impl SimHost {
             }
             combat_funcs::collect_events(&mut self.combat_events, &game.sim);
             destruction_funcs::collect_events(&mut self.object_events, &game.sim);
+            crater_funcs::collect_events(&mut self.crater_events, &game.sim);
             self.accumulator -= tick_seconds;
             ticks += 1;
         }
@@ -372,7 +402,12 @@ impl SimHost {
     /// Starts the demo scenario on `map`; `factions` replaces the units of
     /// the listed players by those of their faction (prompt 027).
     fn start_with(&mut self, seed: i64, map: Arc<Map>, factions: &[(PlayerId, &str)]) -> bool {
-        let config = match demo_config(&map, factions) {
+        let scenario = if self.mode == "base" {
+            SKIRMISH_SCENARIO
+        } else {
+            DEMO_SCENARIO
+        };
+        let config = match scenario_config(scenario, &map, factions) {
             Ok(config) => config,
             Err(e) => {
                 godot_error!("{e}");
@@ -420,48 +455,13 @@ impl SimHost {
     /// `maps_dir/<name>/`). Returns false (and logs why) on failure.
     #[func]
     fn start_lan(&mut self, mut lobby: Gd<LanLobby>, maps_dir: GString) -> bool {
-        let node = match lobby.bind_mut().take_started() {
-            Ok(node) => node,
+        match lobby.bind_mut().take_started() {
+            Ok(node) => self.start_networked(node, &maps_dir.to_string()),
             Err(e) => {
                 godot_error!("cannot start the LAN match: {e}");
-                return false;
+                false
             }
-        };
-        let (Some(info), Some(local)) = (node.start_info().cloned(), node.local_player()) else {
-            godot_error!("cannot start the LAN match: no start message");
-            return false;
-        };
-        let name = &info.config.map.name;
-        let map = if *name == BUILTIN_MAP_NAME {
-            builtin_map()
-        } else {
-            match load_map_dir(&Path::new(&maps_dir.to_string()).join(name)) {
-                Ok(map) => Arc::new(map),
-                Err(e) => {
-                    godot_error!("cannot load the map of the LAN match: {e}");
-                    return false;
-                }
-            }
-        };
-        // Rejects a map with a different content hash than the host's.
-        let sim = match Sim::new(&info.config, map.clone(), info.seed) {
-            Ok(sim) => sim,
-            Err(e) => {
-                godot_error!("cannot start the LAN match: {e}");
-                return false;
-            }
-        };
-        self.input_delay = info.input_delay;
-        self.install(
-            sim,
-            map,
-            info.config.clone(),
-            info.seed,
-            local,
-            &info.lockstep_config(),
-            Box::new(node),
-        );
-        true
+        }
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -483,6 +483,7 @@ impl SimHost {
         self.pending.clear();
         self.combat_events.clear();
         self.object_events.clear();
+        self.crater_events.clear();
         self.accumulator = 0.0;
         self.game = Some(Game {
             recorder: ReplayRecorder::new(seed, config.clone(), &players),
@@ -496,7 +497,7 @@ impl SimHost {
                 .iter()
                 .max()
                 .map_or(0.0, |&h| h as f32 / 1000.0),
-            map,
+            loaded_map: map,
             config,
             session,
             transport,
@@ -551,7 +552,7 @@ impl SimHost {
     fn map_name(&self) -> GString {
         self.game
             .as_ref()
-            .map_or_else(GString::new, |g| GString::from(g.map.name()))
+            .map_or_else(GString::new, |g| GString::from(g.map().name()))
     }
 
     /// Biome of the loaded map from `map.toml` (`forest`, `desert`,
@@ -561,7 +562,7 @@ impl SimHost {
     fn map_biome(&self) -> GString {
         self.game
             .as_ref()
-            .map_or_else(GString::new, |g| GString::from(g.map.biome().name()))
+            .map_or_else(GString::new, |g| GString::from(g.map().biome().name()))
     }
 
     /// Width (x) and depth (z) of the map in meters. The map is centered on
@@ -569,7 +570,7 @@ impl SimHost {
     #[func]
     fn map_size(&self) -> Vector2 {
         self.game.as_ref().map_or(Vector2::ZERO, |g| {
-            let size = g.map.size();
+            let size = g.map().size();
             Vector2::new(fixed_to_f32(size.x), fixed_to_f32(size.y))
         })
     }
@@ -585,7 +586,7 @@ impl SimHost {
         ) else {
             return 0.0;
         };
-        fixed_to_f32(game.map.height_at(Vec2::from_millimeters(x, z)))
+        fixed_to_f32(game.map().height_at(Vec2::from_millimeters(x, z)))
     }
 
     /// Number of samples per axis of `height_grid(stride)` and
@@ -593,7 +594,7 @@ impl SimHost {
     #[func]
     fn grid_samples(&self, stride: i64) -> Vector2i {
         self.game.as_ref().map_or(Vector2i::ZERO, |g| {
-            let (sx, sy) = g.map.samples();
+            let (sx, sy) = g.map().samples();
             let stride = clamp_stride(stride);
             let count = |n: u32| i32::try_from((n - 1).div_ceil(stride) + 1).unwrap_or(0);
             Vector2i::new(count(sx), count(sy))
@@ -608,8 +609,8 @@ impl SimHost {
         self.game
             .as_ref()
             .map_or_else(PackedFloat32Array::new, |g| {
-                grid_indices(&g.map, clamp_stride(stride))
-                    .map(|(i, j)| g.map.sample_height_mm(i, j) as f32 / 1000.0)
+                grid_indices(g.map(), clamp_stride(stride))
+                    .map(|(i, j)| g.map().sample_height_mm(i, j) as f32 / 1000.0)
                     .collect()
             })
     }
@@ -618,9 +619,9 @@ impl SimHost {
     #[func]
     fn terrain_grid(&self, stride: i64) -> PackedByteArray {
         self.game.as_ref().map_or_else(PackedByteArray::new, |g| {
-            let (sx, _) = g.map.samples();
-            let ids = g.map.terrain_ids();
-            grid_indices(&g.map, clamp_stride(stride))
+            let (sx, _) = g.map().samples();
+            let ids = g.map().terrain_ids();
+            grid_indices(g.map(), clamp_stride(stride))
                 .map(|(i, j)| ids[j as usize * sx as usize + i as usize])
                 .collect()
         })
@@ -636,7 +637,7 @@ impl SimHost {
         ) else {
             return -1;
         };
-        i64::from(game.map.terrain_at(Vec2::from_millimeters(x, z)))
+        i64::from(game.map().terrain_at(Vec2::from_millimeters(x, z)))
     }
 
     /// Speed of a terrain type in percent of its basis speed (-1 if unknown).
@@ -658,7 +659,7 @@ impl SimHost {
     fn cell_size(&self) -> f32 {
         self.game
             .as_ref()
-            .map_or(0.0, |g| g.map.cell_size_mm() as f32 / 1000.0)
+            .map_or(0.0, |g| g.map().cell_size_mm() as f32 / 1000.0)
     }
 
     /// Debug color of every terrain type, indexed by terrain id.
@@ -684,8 +685,8 @@ impl SimHost {
         self.game
             .as_ref()
             .and_then(|g| {
-                let p = g.map.marker(&name.to_string())?;
-                Some(ground_to_godot(p, g.map.height_at(p)).to_variant())
+                let p = g.map().marker(&name.to_string())?;
+                Some(ground_to_godot(p, g.map().height_at(p)).to_variant())
             })
             .unwrap_or_default()
     }
@@ -701,7 +702,7 @@ impl SimHost {
         let Some(game) = &self.game else {
             return Variant::nil();
         };
-        ray_pick(&game.map, game.map_top, origin, direction)
+        ray_pick(game.map(), game.map_top, origin, direction)
             .map_or_else(Variant::nil, |p| p.to_variant())
     }
 
@@ -759,20 +760,20 @@ impl SimHost {
 
     /// Presses a test crater (radius and depth in meters) into the displayed
     /// terrain at `(x, z)` and returns the changed rectangle of samples (empty
-    /// if outside). Presentation only: the simulation, unit heights and
-    /// mouse picking keep the original heights until prompt 021 lets the
-    /// simulation deform the ground.
+    /// if outside). Presentation only (terrain tests and benchmarks): the
+    /// simulation, unit heights and mouse picking keep their heights. Real
+    /// craters: `debug_crater` (prompt 021).
     #[func]
     fn debug_dent(&mut self, x: f32, z: f32, radius: f32, depth: f32) -> Rect2i {
         let Some(game) = self.game.as_mut() else {
             return Rect2i::default();
         };
-        let samples = game.map.samples();
+        let samples = game.map().samples();
         if game.display_offsets.is_empty() {
             game.display_offsets = vec![0.0; samples.0 as usize * samples.1 as usize];
         }
-        let size = game.map.size();
-        let cell = game.map.cell_size_mm() as f32 / 1000.0;
+        let size = game.map().size();
+        let cell = game.map().cell_size_mm() as f32 / 1000.0;
         let center = (
             (x + fixed_to_f32(size.x) / 2.0) / cell,
             (z + fixed_to_f32(size.y) / 2.0) / cell,
@@ -1043,7 +1044,7 @@ impl SimHost {
         for unit in &self.current.units {
             if let Some(RouteView::Following(waypoints)) = game.sim.route_of(unit.id) {
                 for &w in waypoints {
-                    points.push(ground_to_godot(w, game.map.height_at(w)));
+                    points.push(ground_to_godot(w, game.map().height_at(w)));
                 }
             }
         }
@@ -1093,7 +1094,7 @@ impl SimHost {
     fn verify_replay(&self, bytes: PackedByteArray) -> GString {
         // The replay names its map by content hash. The running match's map
         // is the usual case; the built-in map covers replays of the demo.
-        let running = self.game.as_ref().map(|g| g.map.clone());
+        let running = self.game.as_ref().map(|g| g.loaded_map.clone());
         let result = Replay::decode(bytes.as_slice())
             .and_then(|replay| {
                 let map = running
@@ -1119,7 +1120,16 @@ impl SimHost {
 /// The demo scenario from the catalog, scale and terrain rules compiled
 /// into `sim`, on `map`, with the units of the players in `factions`
 /// replaced by those of their faction.
+/// The demo scenario (LAN matches).
 fn demo_config(
+    map: &Map,
+    factions: &[(PlayerId, &str)],
+) -> Result<SimConfig, Box<dyn std::error::Error>> {
+    scenario_config(DEMO_SCENARIO, map, factions)
+}
+
+fn scenario_config(
+    scenario: &str,
     map: &Map,
     factions: &[(PlayerId, &str)],
 ) -> Result<SimConfig, Box<dyn std::error::Error>> {
@@ -1127,12 +1137,7 @@ fn demo_config(
     let scale = Scale::builtin()?;
     let terrain = TerrainRules::builtin()?;
     Ok(parse_scenario_with_factions(
-        DEMO_SCENARIO,
-        factions,
-        &catalog,
-        &scale,
-        &terrain,
-        map,
+        scenario, factions, &catalog, &scale, &terrain, map,
     )?)
 }
 

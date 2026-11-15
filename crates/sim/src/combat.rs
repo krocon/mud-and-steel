@@ -331,6 +331,15 @@ pub struct Armor {
 }
 
 impl Armor {
+    /// The same plate on every face, no turret (buildings, prompt 023).
+    pub const fn uniform(mm: u16) -> Self {
+        Self {
+            hull: [mm; 3],
+            turret: None,
+            hull_front_deg: 0,
+        }
+    }
+
     /// Thinnest plate anywhere.
     pub fn thinnest(&self) -> u16 {
         let turret = self.turret.unwrap_or(self.hull);

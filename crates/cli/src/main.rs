@@ -3,11 +3,14 @@
 mod ai_tournament;
 mod bench;
 mod catalog_doc;
+mod crater_bench;
 mod gen_map;
 mod gen_textures;
 mod infantry_bench;
 mod lan;
 mod path_bench;
+#[cfg(feature = "steam")]
+mod steam;
 mod vision_bench;
 
 use clap::{Parser, Subcommand};
@@ -95,6 +98,25 @@ enum CliCommand {
         #[arg(long, default_value_t = 1800)]
         range_m: i32,
     },
+    /// Benchmarks craters (prompt 021): many craters in a short time among
+    /// moving units of two players, time per tick.
+    CraterBench {
+        /// Map folder, e.g. data/maps/test_large.
+        #[arg(long, default_value = "data/maps/test_large")]
+        map: PathBuf,
+        /// Units per player.
+        #[arg(long, default_value_t = 100)]
+        units: u32,
+        #[arg(long, default_value_t = 100)]
+        craters: u32,
+        #[arg(long, default_value_t = 5)]
+        per_tick: u32,
+        /// Craters land within this distance of the map center per axis (m).
+        #[arg(long, default_value_t = 200)]
+        range_m: i32,
+        #[arg(long, default_value_t = 1)]
+        seed: u64,
+    },
     /// Computer players against each other over many seeds (prompt 024):
     /// sides alternate every game; prints the results and a hash over them.
     AiTournament {
@@ -118,6 +140,9 @@ enum CliCommand {
         /// Factions of player 0 and 1, e.g. `de,su` (default: the scenario's).
         #[arg(long, value_delimiter = ',')]
         factions: Vec<String>,
+        /// `battle` (the demo armies) or `base` (base building, prompt 023).
+        #[arg(long, default_value = "battle")]
+        mode: String,
         /// A game not decided after this many ticks counts as a timeout.
         #[arg(long, default_value_t = 6000)]
         max_ticks: u64,
@@ -217,11 +242,38 @@ enum CliCommand {
         #[command(flatten)]
         play: LanPlayArgs,
     },
+    /// Hosts an online game of the demo over Steam (needs a running Steam
+    /// client) and plays it headless; prints the lobby code.
+    #[cfg(feature = "steam")]
+    SteamHost {
+        /// Friends only instead of listed for everyone.
+        #[arg(long)]
+        friends_only: bool,
+        #[arg(long, default_value_t = 42)]
+        seed: u64,
+        #[arg(long, default_value_t = 3)]
+        input_delay: u32,
+        #[command(flatten)]
+        play: LanPlayArgs,
+    },
+    /// Joins an online game over Steam (by lobby code, or the first one
+    /// listed) and plays it headless.
+    #[cfg(feature = "steam")]
+    SteamJoin {
+        /// Lobby code shown by the host.
+        #[arg(long)]
+        code: Option<u64>,
+        #[command(flatten)]
+        play: LanPlayArgs,
+    },
     /// Writes docs/UNIT_CATALOG.md (or the given path) from the built-in catalog.
     CatalogDoc {
         #[arg(default_value = catalog_doc::DOC_PATH)]
         out: std::path::PathBuf,
     },
+    /// Prints the prices and production times of everything the economy
+    /// sells (prompt 023, data/economy.toml) as a Markdown table.
+    EconomyTable,
     /// Validates catalog files (default: the built-in catalog) and prints all errors.
     CatalogCheck {
         /// Catalog TOML files, named `<faction>.toml`.
@@ -302,6 +354,22 @@ fn main() {
             };
             exit_with(lan::join(&options, &play.options()));
         }
+        #[cfg(feature = "steam")]
+        CliCommand::SteamHost {
+            friends_only,
+            seed,
+            input_delay,
+            play,
+        } => {
+            let options = steam::HostOptions {
+                public: !friends_only,
+                seed,
+                input_delay,
+            };
+            exit_with(steam::host(&options, &play.options()));
+        }
+        #[cfg(feature = "steam")]
+        CliCommand::SteamJoin { code, play } => exit_with(steam::join(code, &play.options())),
         CliCommand::Run {
             ticks,
             seed,
@@ -379,6 +447,27 @@ fn main() {
                 Err(e) => fail(&e),
             }
         }
+        CliCommand::CraterBench {
+            map,
+            units,
+            craters,
+            per_tick,
+            range_m,
+            seed,
+        } => {
+            let map = Arc::new(load_map_dir(&map).unwrap_or_else(|e| fail(&e)));
+            let options = crater_bench::Options {
+                units,
+                craters,
+                per_tick,
+                range_m,
+                seed,
+            };
+            match crater_bench::run(map, &options) {
+                Ok(report) => println!("{report}"),
+                Err(e) => fail(&e),
+            }
+        }
         CliCommand::AiTournament {
             a,
             b,
@@ -387,12 +476,18 @@ fn main() {
             seed,
             map,
             factions,
+            mode,
             max_ticks,
             jobs,
             verbose,
         } => {
             let map = find_map(&map);
-            let config = tournament_config(&map, &factions).unwrap_or_else(|e| fail(&e));
+            let scenario = match mode.as_str() {
+                "battle" => sim::scenario::DEMO_SCENARIO,
+                "base" => sim::scenario::SKIRMISH_SCENARIO,
+                other => fail(&format!("unknown mode '{other}' (battle, base)")),
+            };
+            let config = tournament_config(&map, &factions, scenario).unwrap_or_else(|e| fail(&e));
             let options = ai_tournament::Options {
                 games,
                 seed,
@@ -470,11 +565,62 @@ fn main() {
             }
         }
         CliCommand::CatalogCheck { files } => catalog_check(&files),
+        CliCommand::EconomyTable => economy_table(),
         CliCommand::CatalogDoc { out } => {
             let catalog = sim::Catalog::builtin().unwrap_or_else(|e| fail(&e.to_string()));
             std::fs::write(&out, catalog_doc::render(&catalog))
                 .unwrap_or_else(|e| fail(&format!("cannot write {}: {e}", out.display())));
             println!("wrote {}", out.display());
+        }
+    }
+}
+
+/// `cli economy-table`.
+fn economy_table() {
+    let rules = sim::EconomyRules::builtin().unwrap_or_else(|e| fail(&e.to_string()));
+    let catalog = sim::Catalog::builtin().unwrap_or_else(|e| fail(&e.to_string()));
+    let scale = sim::Scale::builtin().unwrap_or_else(|e| fail(&e.to_string()));
+    println!("| Built in | Id | Fuel | Ammunition | Manpower | Time (s) |");
+    println!("|---|---|---|---|---|---|");
+    let row = |place: &str, id: &str, cost: sim::Cost| {
+        let [f, a, m] = cost.resources;
+        let ms = cost.time_ms;
+        println!(
+            "| {place} | `{id}` | {f} | {a} | {m} | {}.{} |",
+            ms / 1000,
+            ms % 1000 / 100
+        );
+    };
+    for b in &rules.buildings {
+        row(
+            "–",
+            &b.id,
+            sim::Cost {
+                resources: b.cost,
+                time_ms: b.build_s * 1000,
+            },
+        );
+    }
+    for f in &rules.fortifications {
+        for id in &f.ids {
+            let Some(entry) = catalog.get(id) else {
+                continue;
+            };
+            let combat = sim::CombatType::from_catalog(entry, &scale);
+            if let Some(cost) = rules.structure_cost(id, &catalog, &combat) {
+                row("fortification", id, cost);
+            }
+        }
+    }
+    for b in rules.buildings.iter().filter(|b| !b.produces.is_empty()) {
+        for faction in ["de", "su", "us"] {
+            for id in rules.produced(&b.produces, faction) {
+                let Some(entry) = catalog.get(id) else {
+                    continue;
+                };
+                let combat = sim::CombatType::from_catalog(entry, &scale);
+                row(&b.name, id, rules.unit_cost(entry, &combat));
+            }
         }
     }
 }
@@ -539,7 +685,11 @@ fn bench_config(file: &Path) -> Result<(sim::SimConfig, Arc<sim::Map>), String> 
 
 /// The demo scenario on `map`; `factions` (one per player, may be empty)
 /// replaces the units like the skirmish setup.
-fn tournament_config(map: &sim::Map, factions: &[String]) -> Result<sim::SimConfig, String> {
+fn tournament_config(
+    map: &sim::Map,
+    factions: &[String],
+    scenario: &str,
+) -> Result<sim::SimConfig, String> {
     let overrides: Vec<(sim::PlayerId, &str)> = (0u8..)
         .zip(factions)
         .filter(|(_, f)| !f.is_empty())
@@ -547,7 +697,7 @@ fn tournament_config(map: &sim::Map, factions: &[String]) -> Result<sim::SimConf
         .collect();
     let err = |e: &dyn std::fmt::Display| e.to_string();
     sim::scenario::parse_scenario_with_factions(
-        sim::scenario::DEMO_SCENARIO,
+        scenario,
         &overrides,
         &sim::Catalog::builtin().map_err(|e| err(&e))?,
         &sim::Scale::builtin().map_err(|e| err(&e))?,

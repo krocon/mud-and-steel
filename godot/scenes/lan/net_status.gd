@@ -31,7 +31,7 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	var host: SimHost = main.sim_host
 	var status := host.net_status()
-	var line := "LAN · player %d of %d · input delay %d ticks · RTT %s · confirmed tick %d" % [
+	var line := LanMatch.kind + " · player %d of %d · input delay %d ticks · RTT %s · confirmed tick %d" % [
 		host.local_player(), status["players"], status["input_delay"],
 		"%d ms" % status["rtt_ms"] if status["rtt_ms"] >= 0 else "?",
 		status["verified_tick"],
@@ -76,4 +76,4 @@ func _on_halt(status: Dictionary) -> void:
 		replay = main.save_replay("desync-p%d-" % main.sim_host.local_player())
 	text = "Match stopped: %s%s" % [message, "\nReplay: %s" % replay if replay != "" else ""]
 	modulate = Color(1, 0.45, 0.4)
-	push_warning("LAN match stopped: %s" % message)
+	push_warning("%s match stopped: %s" % [LanMatch.kind, message])

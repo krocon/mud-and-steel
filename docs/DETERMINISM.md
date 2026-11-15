@@ -79,7 +79,7 @@ Additional rules:
   `RandomState`, `Instant`, `SystemTime` and `std::thread::spawn`.
 - `crates/sim/tests/determinism.rs` contains a golden-hash test: the demo scenario
   (two players with eight tanks each, scripted group commands, seed 42, 1000 ticks,
-  on the built-in map `test_small`) must produce `0x88914b766934c076`. CI runs it on
+  on the built-in map `test_small`) must produce `0xfe523a472761c97c`. CI runs it on
   macOS (ARM64), Linux and Windows (x86_64). The value was recorded on macOS ARM64.
   History: `0x075d8c59dfe3d336` (prompt 001/003, four tanks, single-unit commands),
   `0x8e8b2c6ed986ef2c` (prompt 009: owners, group commands with formation, `Stop`,
@@ -94,8 +94,21 @@ Additional rules:
   the hash; the demo tanks fight), prompts 027 and 014, changed in prompt 018
   (vision: targets and fire need the unit's own line of sight, attack orders
   follow the last known position, vision rules and state in the hash; replay
-  `FORMAT_VERSION` 5).
+  `FORMAT_VERSION` 5), prompts 020, 022 and 024 (destruction, infantry),
+  `0xc9ba61182de57872` (prompt 023: economy rules, unit prices, accounts,
+  structures, production queues and supply points in the hash; `test_small`
+  has three supply point markers; the demo battle is unchanged), prompt 021
+  (craters), `0xfe523a472761c97c` (merge of 023 with 021: both states in the
+  hash; the demo battle as in 021, decided at tick 480).
   Regenerating `test_small` changes it as well.
+- `crates/sim/tests/economy.rs` has a second golden hash: the base-building
+  skirmish with a scripted production chain (build, produce, rally points,
+  the produced units fighting), seed 42, 5000 ticks. `Sim::spawn_unit` adds
+  units during the match with increasing ids, so the unit list stays sorted.
+- `crates/net/tests/economy.rs` plays a production chain on two peers in
+  lockstep: each peer decides only its own player's orders from its own
+  copy of the simulation; the per-tick hashes, accounts and queues agree and
+  the replay plays back to the same end.
 - `crates/sim/tests/combat.rs` plays duels with catalog units: a Panzer IV
   destroys a T-34 at the tick derived from catalog and rules, armor faces and
   angles, a ridge stopping rounds, hold fire, attack orders, infantry, and a

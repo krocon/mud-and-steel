@@ -256,25 +256,48 @@ func update_chunks(camera: Camera3D) -> void:
 ## uploads them. Normals and blurred rasters reach a few samples beyond a
 ## height change, so the rectangle is grown before reading.
 func heights_changed(rect: Rect2i) -> void:
-	var grown := rect.grow(8)
-	var layers: Dictionary = sim_host.terrain_layers(grown.position.x, grown.position.y, grown.size.x, grown.size.y)
-	if layers.is_empty():
+	regions_changed([rect])
+
+
+## Like `heights_changed` for several rectangles (craters, prompt 021): each
+## is re-read and blitted, the textures are uploaded once.
+func regions_changed(rects: Array[Rect2i]) -> void:
+	var edge := false
+	var read: Array[Rect2i] = []
+	for rect in rects:
+		var grown := rect.grow(8)
+		var layers: Dictionary = sim_host.terrain_layers(grown.position.x, grown.position.y, grown.size.x, grown.size.y)
+		if layers.is_empty():
+			continue
+		var clipped: Rect2i = layers["rect"]
+		var w := clipped.size.x
+		var h := clipped.size.y
+		var parts := {
+			"height": Image.create_from_data(w, h, false, Image.FORMAT_RF, (layers["height"] as PackedFloat32Array).to_byte_array()),
+			"normal": Image.create_from_data(w, h, false, Image.FORMAT_RG8, layers["normal"]),
+			"splat0": Image.create_from_data(w, h, false, Image.FORMAT_RGBA8, layers["splat0"]),
+			"splat1": Image.create_from_data(w, h, false, Image.FORMAT_RGBA8, layers["splat1"]),
+			"track": Image.create_from_data(w, h, false, Image.FORMAT_RGBA8, layers["track"]),
+		}
+		for key: String in parts:
+			_images[key].blit_rect(parts[key], Rect2i(Vector2i.ZERO, clipped.size), clipped.position)
+		edge = edge or clipped.position.x == 0 or clipped.position.y == 0 \
+			or clipped.end.x >= _samples.x or clipped.end.y >= _samples.y
+		read.append(clipped)
+	if read.is_empty():
 		return
-	var clipped: Rect2i = layers["rect"]
-	var w := clipped.size.x
-	var h := clipped.size.y
-	var parts := {
-		"height": Image.create_from_data(w, h, false, Image.FORMAT_RF, (layers["height"] as PackedFloat32Array).to_byte_array()),
-		"normal": Image.create_from_data(w, h, false, Image.FORMAT_RG8, layers["normal"]),
-		"splat0": Image.create_from_data(w, h, false, Image.FORMAT_RGBA8, layers["splat0"]),
-		"splat1": Image.create_from_data(w, h, false, Image.FORMAT_RGBA8, layers["splat1"]),
-		"track": Image.create_from_data(w, h, false, Image.FORMAT_RGBA8, layers["track"]),
-	}
-	for key: String in parts:
-		_images[key].blit_rect(parts[key], Rect2i(Vector2i.ZERO, clipped.size), clipped.position)
-		_textures[key].update(_images[key])
-	_ranges = sim_host.terrain_chunk_ranges(CHUNK_CELLS)
-	if clipped.position.x == 0 or clipped.position.y == 0 or clipped.end.x >= _samples.x or clipped.end.y >= _samples.y:
+	for key: String in _images:
+		if _textures.has(key):
+			_textures[key].update(_images[key])
+	# Chunk height ranges: only the chunks under the rectangles where the
+	# host can (the whole map took 11 ms on test_large).
+	if sim_host.has_method("terrain_chunk_ranges_in"):
+		for rect in read:
+			for r: Vector3 in sim_host.terrain_chunk_ranges_in(CHUNK_CELLS, rect):
+				_ranges[int(r.x)] = Vector2(r.y, r.z)
+	else:
+		_ranges = sim_host.terrain_chunk_ranges(CHUNK_CELLS)
+	if edge:
 		_build_edge()
 	region_updates += 1
 	_dirty = true

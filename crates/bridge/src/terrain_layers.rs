@@ -184,23 +184,50 @@ impl Grid<'_> {
     /// the map.
     pub fn chunk_ranges(&self, cells: u32) -> Vec<(f32, f32)> {
         let cells = cells.max(1);
-        let (sx, sy) = self.samples;
-        let (cx, cy) = ((sx - 1).div_ceil(cells), (sy - 1).div_ceil(cells));
+        let (cx, cy) = self.chunk_count(cells);
         let mut out = Vec::with_capacity((cx * cy) as usize);
         for c in 0..cy {
             for r in 0..cx {
-                let (mut lo, mut hi) = (f32::MAX, f32::MIN);
-                for j in c * cells..=((c + 1) * cells).min(sy - 1) {
-                    for i in r * cells..=((r + 1) * cells).min(sx - 1) {
-                        let v = self.height(i64::from(i), i64::from(j));
-                        lo = lo.min(v);
-                        hi = hi.max(v);
-                    }
-                }
-                out.push((lo, hi));
+                out.push(self.chunk_range(cells, r, c));
             }
         }
         out
+    }
+
+    /// Like [`Self::chunk_ranges`], only for the chunks that contain a
+    /// sample of `rect` (craters, prompt 021): `(index, lowest, highest)`.
+    pub fn chunk_ranges_in(&self, cells: u32, rect: Rect) -> Vec<(u32, f32, f32)> {
+        let cells = cells.max(1);
+        let (cx, cy) = self.chunk_count(cells);
+        // A sample on a chunk border belongs to both chunks.
+        let first = |v: u32| v.saturating_sub(1) / cells;
+        let last = |v: u32, n: u32| (v / cells).min(n - 1);
+        let mut out = Vec::new();
+        for c in first(rect.j0)..=last(rect.j0 + rect.h.max(1) - 1, cy) {
+            for r in first(rect.i0)..=last(rect.i0 + rect.w.max(1) - 1, cx) {
+                let (lo, hi) = self.chunk_range(cells, r, c);
+                out.push((c * cx + r, lo, hi));
+            }
+        }
+        out
+    }
+
+    fn chunk_count(&self, cells: u32) -> (u32, u32) {
+        let (sx, sy) = self.samples;
+        ((sx - 1).div_ceil(cells), (sy - 1).div_ceil(cells))
+    }
+
+    fn chunk_range(&self, cells: u32, r: u32, c: u32) -> (f32, f32) {
+        let (sx, sy) = self.samples;
+        let (mut lo, mut hi) = (f32::MAX, f32::MIN);
+        for j in c * cells..=((c + 1) * cells).min(sy - 1) {
+            for i in r * cells..=((r + 1) * cells).min(sx - 1) {
+                let v = self.height(i64::from(i), i64::from(j));
+                lo = lo.min(v);
+                hi = hi.max(v);
+            }
+        }
+        (lo, hi)
     }
 }
 
@@ -390,5 +417,29 @@ mod tests {
         assert_eq!(ranges.len(), 4);
         assert_eq!(ranges[0], (0.0, 0.4));
         assert_eq!(ranges[3], (0.4, 0.8));
+    }
+
+    #[test]
+    fn chunk_ranges_in_match_the_full_computation() {
+        let n = 17u32;
+        let heights: Vec<i32> = (0..n * n).map(|k| ((k * 7919) % 3000) as i32).collect();
+        let ids = vec![0u8; (n * n) as usize];
+        let g = grid(&heights, &ids, n);
+        let all = g.chunk_ranges(4);
+        // Samples 4..=8 x 9..=9: chunks x 0..=2 (4 and 8 lie on borders), y 2.
+        let part = g.chunk_ranges_in(
+            4,
+            Rect {
+                i0: 4,
+                j0: 9,
+                w: 5,
+                h: 1,
+            },
+        );
+        let indices: Vec<u32> = part.iter().map(|p| p.0).collect();
+        assert_eq!(indices, vec![8, 9, 10]);
+        for (k, lo, hi) in part {
+            assert_eq!(all[k as usize], (lo, hi));
+        }
     }
 }

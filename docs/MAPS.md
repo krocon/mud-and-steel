@@ -1,7 +1,8 @@
 # Maps
 
 The map is simulation data. Heights and terrain types decide speed and line of
-sight (prompt 018, `data/vision.toml`) now and craters (prompt 021) later, so they live in `crates/sim`,
+sight (prompt 018, `data/vision.toml`), and craters change them during a match
+(prompt 021, [Craters](#craters)), so they live in `crates/sim`,
 deterministic and integer-only. Godot only reads them for drawing.
 
 ## Format
@@ -36,6 +37,13 @@ position_m = [0, 60]
 name = "hill_top"
 position_m = [-104, -142]
 ```
+
+Markers whose name starts with `supply` are **supply points** (prompt 023,
+[GAME_DESIGN.md](GAME_DESIGN.md#resources-provisional)): units standing there
+take them and they pay resources to the holder. `cli gen-map` writes three:
+`supply_village`, `supply_hill` and `supply_ford` at the village square, the
+landmark hill and the ford; the map editor keeps them but cannot place them
+yet.
 
 Since prompt 028 the scenario places every player's units at that player's
 `[[start]]`: all groups of the player move by the offset between the start and

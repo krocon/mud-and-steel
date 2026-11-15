@@ -13,8 +13,10 @@ pub mod bridges;
 pub mod catalog;
 pub mod combat;
 mod command;
+pub mod craters;
 mod data;
 pub mod destruction;
+pub mod economy;
 mod hash;
 pub mod infantry;
 pub mod map;
@@ -35,10 +37,12 @@ pub use combat::{
     CombatEvent, CombatRules, CombatType, Face, FireMode, HitKind, ProjectileSnapshot, Vec3,
 };
 pub use command::{Command, PlayerCommand, PlayerId, UnitId};
+pub use craters::{CraterEvent, CraterRules};
 pub use data::{DEFAULT_FOOTPRINT_MM, DataError, UnitType, unit_types_from_catalog};
 pub use destruction::{
     DestructionRules, ObjectCause, ObjectEvent, ObjectStage, ObjectState, Remains,
 };
+pub use economy::{Cost, EconomyRules, RESOURCE_NAMES, Resources};
 pub use hash::StableHasher;
 pub use infantry::{InfantryRules, Stance, StanceOrder};
 pub use map::{Biome, Map, MapError, MapRef};
@@ -48,8 +52,9 @@ pub use outcome::{DefeatReason, Outcome, PlayerStanding};
 pub use rng::Rng;
 pub use scale::Scale;
 pub use sim::{
-    BuildingCondition, ConfigError, MAX_PLAYERS, Phase, RouteView, Sim, SimConfig, Snapshot,
-    SoldierSnapshot, Spawn, UnitSnapshot, WORLD_LIMIT_M, formation_slots, formation_spacing,
+    BuildingCondition, BuyOption, ConfigError, MAX_PLAYERS, Phase, PlaceError, RouteView, Sim, SimConfig,
+    Snapshot, SoldierSnapshot, Spawn, StructureView, SupplyView, UnitSnapshot, WORLD_LIMIT_M,
+    formation_slots, formation_spacing,
 };
 pub use terrain::{TerrainError, TerrainRules};
 pub use vision::{CellState, VisionGrid, VisionRules};

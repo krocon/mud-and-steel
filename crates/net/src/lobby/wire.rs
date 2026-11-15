@@ -1,13 +1,14 @@
-//! Lobby messages (ENet channel 0).
+//! Lobby messages (link channel 0).
 
 use crate::{LockstepConfig, PlayerId};
 use serde::{Deserialize, Serialize};
 use sim::SimConfig;
 
-/// ENet channel of the lobby protocol.
+/// Link channel of the lobby protocol.
 pub const CONTROL_CHANNEL: u8 = 0;
-/// ENet channel of the opaque lockstep packets (`Transport`).
+/// Link channel of the opaque lockstep packets (`Transport`).
 pub const GAME_CHANNEL: u8 = 1;
+/// Number of channels a [`Link`](super::Link) must provide.
 pub const CHANNEL_COUNT: usize = 2;
 
 /// A player in the lobby.

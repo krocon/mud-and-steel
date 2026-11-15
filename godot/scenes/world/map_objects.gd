@@ -201,6 +201,7 @@ func _process(_delta: float) -> void:
 	process_usec = 0
 	if camera == null or not _deco_enabled:
 		return
+	_rebuild_crater_squares()
 	var origin := camera.global_position
 	if origin.distance_to(_last_deco_origin) < 2.0:
 		return
@@ -224,6 +225,50 @@ func set_biome(id: String) -> void:
 		for square: Vector2i in _deco[layer].keys():
 			_free_deco(layer, square)
 	_last_deco_origin = Vector3.INF
+
+
+# --- Craters (prompt 021) ----------------------------------------------------
+
+## Built decoration squares to rebuild after craters, per layer: square -> true.
+var _crater_squares: Array[Dictionary] = []
+## Decoration squares rebuilt because of craters (self-test, tools).
+var crater_rebuilds := 0
+
+
+## The map samples in `rect` changed (craters): every built decoration
+## square that overlaps them is rebuilt (a few per frame). `scatter_deco`
+## leaves deformed samples empty, so nothing grows in a crater.
+func craters_changed(rect: Rect2i) -> void:
+	if _deco.is_empty():
+		return
+	var cell: float = sim_host.cell_size()
+	var low := Vector2(rect.position) * cell / DECO_CHUNK_M
+	var high := Vector2(rect.end) * cell / DECO_CHUNK_M
+	if _crater_squares.size() != _deco.size():
+		_crater_squares.resize(_deco.size())
+		for layer in _deco.size():
+			_crater_squares[layer] = {}
+	for j in range(floori(low.y), floori(high.y) + 1):
+		for i in range(floori(low.x), floori(high.x) + 1):
+			var square := Vector2i(i, j)
+			for layer in _deco.size():
+				if _deco[layer].has(square):
+					_crater_squares[layer][square] = true
+
+
+func _rebuild_crater_squares() -> void:
+	var budget := DECO_BUILDS_PER_FRAME
+	for layer in _crater_squares.size():
+		for square: Vector2i in _crater_squares[layer].keys():
+			if budget == 0:
+				return
+			_crater_squares[layer].erase(square)
+			if not _deco[layer].has(square):
+				continue
+			_free_deco(layer, square)
+			_build_deco(layer, square)
+			crater_rebuilds += 1
+			budget -= 1
 
 
 # --- Destruction (prompt 020) ------------------------------------------------

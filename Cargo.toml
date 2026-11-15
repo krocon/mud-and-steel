@@ -13,6 +13,7 @@ sim = { path = "crates/sim" }
 net = { path = "crates/net" }
 editor = { path = "crates/editor" }
 ai = { path = "crates/ai" }
+steam = { path = "crates/steam" }
 fixed = { version = "1.31", features = ["serde"] }
 serde = { version = "1.0", features = ["derive"] }
 postcard = { version = "1.1", default-features = false, features = ["alloc"] }
@@ -22,6 +23,8 @@ clap = { version = "4.6", features = ["derive"] }
 godot = { version = "=0.5.5", features = ["api-4-7"] }
 rusty_enet = "0.4.1"
 if-addrs = "0.15"
+# Steamworks SDK 1.64; brings the redistributable steam_api libraries.
+steamworks = "=0.13.1"
 
 [profile.release]
 debug = "line-tables-only"

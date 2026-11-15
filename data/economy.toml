@@ -1,0 +1,157 @@
+# Economy: resources, buildings, production (prompt 023). Integers only.
+# Compiled into the simulation (`sim::economy::EconomyRules::builtin`, loaded
+# by `Sim::new` and part of the state hash); the design and the reasons are in
+# docs/GAME_DESIGN.md. All values here are PROVISIONAL game rules (not
+# historical data, so they need no source), to be confirmed by the user.
+#
+# Resources are always listed as [fuel, ammunition, manpower].
+# Times are game seconds (the time factor of data/scale.toml does not apply:
+# these are not real durations).
+
+[account]
+# Every player starts with this much.
+start = [600, 600, 400]
+
+[construction]
+# At most this many construction sites per player at a time.
+max_sites = 2
+# A site starts with this share of its hit points and gains the rest
+# linearly until it is completed.
+start_hp_pct = 10
+# Largest height difference over the footprint, in percent of its larger side.
+max_grade_pct = 12
+# Units must keep this distance (m) from the footprint of a new building.
+clearance_m = 2
+
+[production]
+# Orders per producing building.
+max_queue = 5
+# Living units (without buildings) per player; production waits above it.
+max_units = 80
+# Default rally point: this far (m) in front of the building.
+rally_m = 20
+
+[supply]
+# Map markers whose name starts with this are supply points.
+marker_prefix = "supply"
+# Units (not buildings) within this radius (m) take a point.
+radius_m = 25
+# Seconds of uncontested presence to neutralize an enemy point, and again
+# to capture a neutral one.
+capture_s = 20
+# Income of a held point per minute.
+income_per_min = [60, 60, 30]
+
+# Unit prices from catalog values (docs/GAME_DESIGN.md "Unit costs"):
+#   manpower = manpower_per_soldier * (squad size, else crew)
+#   fuel     = fuel_per_tonne * combat mass in tonnes (vehicles only)
+#   ammo     = ammo_base + sum over the weapons the simulation uses of
+#              caliber_mm^2 * count / ammo_caliber_div
+#   time_s   = time_base_s + (fuel + ammo + manpower) / time_per_point_div
+[unit_cost]
+manpower_per_soldier = 6
+fuel_per_tonne = 4
+ammo_base = 10
+ammo_caliber_div = 60
+time_base_s = 8
+time_per_point_div = 8
+
+# Base buildings. Sizes in millimeters match the borrowed models (see
+# docs/GAME_DESIGN.md); armor is the same on every face.
+#   build_radius_m  own completed buildings allow new ones within this radius
+#   income_per_min  paid while the building is completed
+#   max_count       per player (0 = no limit), sites included
+#   requires        completed own buildings needed to place it
+#   produces        name of a production list below (empty = nothing)
+[[building]]
+id = "base_hq"
+name = "Headquarters"
+length_mm = 10000
+width_mm = 8000
+height_mm = 9000
+hp = 6000
+armor_mm = 40
+cost = [200, 0, 300]
+build_s = 60
+build_radius_m = 120
+income_per_min = [40, 70, 80]
+max_count = 0
+requires = []
+produces = ""
+
+[[building]]
+id = "base_barracks"
+name = "Barracks"
+length_mm = 12000
+width_mm = 8000
+height_mm = 7500
+hp = 3000
+armor_mm = 25
+cost = [0, 0, 150]
+build_s = 25
+build_radius_m = 60
+income_per_min = [0, 0, 0]
+max_count = 0
+requires = ["base_hq"]
+produces = "infantry"
+
+[[building]]
+id = "base_depot"
+name = "Supply depot"
+length_mm = 14000
+width_mm = 9000
+height_mm = 8000
+hp = 2500
+armor_mm = 25
+cost = [50, 0, 100]
+build_s = 25
+build_radius_m = 60
+income_per_min = [40, 50, 30]
+max_count = 3
+requires = ["base_hq"]
+produces = ""
+
+[[building]]
+id = "base_factory"
+name = "Vehicle works"
+length_mm = 20000
+width_mm = 10000
+height_mm = 9000
+hp = 4000
+armor_mm = 30
+cost = [150, 50, 200]
+build_s = 45
+build_radius_m = 60
+income_per_min = [0, 0, 0]
+max_count = 0
+requires = ["base_hq", "base_depot"]
+produces = "vehicles"
+
+# Fortifications from the catalog: placed like buildings, fight with their
+# catalog weapons, cannot move, extend no build radius.
+#   hp / armor_mm   0 = from the combat rules / the catalog
+#   cost / build_s  omitted = from the unit cost formula
+[[fortification]]
+ids = ["de_bunker_tobruk", "su_bunker_dzot", "us_bunker_mg"]
+hp = 2500
+armor_mm = 60
+cost = [0, 80, 60]
+build_s = 20
+requires = ["base_barracks"]
+
+[[fortification]]
+ids = ["de_pak40", "su_zis3", "us_57mm_m1"]
+hp = 0
+armor_mm = 0
+requires = ["base_factory"]
+
+# What producing buildings make, per faction (catalog ids).
+[produce.infantry]
+de = ["de_inf_rifle_squad", "de_inf_mg42_team", "de_inf_hmg_team", "de_inf_at"]
+su = ["su_inf_rifle_squad", "su_inf_mg_team", "su_inf_hmg_team", "su_inf_at"]
+us = ["us_inf_rifle_squad", "us_inf_mg_team", "us_inf_hmg_team", "us_inf_at"]
+
+[produce.vehicles]
+de = ["de_sdkfz222", "de_sdkfz251_1", "de_pz4_h", "de_stug3_g", "de_tiger1_e"]
+su = ["su_ba64b", "su_t70m", "su_t34_76_1943", "su_su85", "su_is2"]
+us = ["us_m8_greyhound", "us_m3_halftrack", "us_m4a3_75", "us_m10", "us_m26"]

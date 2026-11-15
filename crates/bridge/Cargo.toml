@@ -15,3 +15,10 @@ net.workspace = true
 editor.workspace = true
 ai.workspace = true
 godot.workspace = true
+# Online over Steam (prompt 026). Without it the game builds and runs
+# without any Steam library; `SteamLobby` then reports that.
+steam = { workspace = true, optional = true }
+
+[features]
+default = ["steam"]
+steam = ["dep:steam"]

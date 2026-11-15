@@ -33,7 +33,8 @@ extends Node3D
 ## adds the pause menu (Esc) and the result screen.
 ## LAN games start in `lan/lan_lobby.tscn` (`just lan`), which hands the
 ## started game over through `lan/lan_match.gd`; `lan/net_status.gd` then
-## shows the connection state.
+## shows the connection state. Online games over Steam (prompt 026) start in
+## `online/steam_lobby.tscn` and take the same way.
 ## Combat (prompt 017) is drawn by `world/combat_view.gd`: tracers, health
 ## bars, wrecks, turrets. The self-test starts with every unit holding fire.
 ## Fog of war (prompt 018): `world/fog_of_war.gd` darkens what the local
@@ -43,8 +44,10 @@ extends Node3D
 ## `-- --effects-shots` / `--effects-bench` run `tools/effects_bench.gd`.
 ## `-- --perf-bench` measures the frame rate with many units
 ## (`tools/perf_bench.gd`, prompt 016).
+## `-- --effects-craters` runs `tools/crater_bench.gd` (prompt 021).
 ## Infantry (prompt 022): squads use their squad scene as model;
 ## `world/infantry_view.gd` places and animates the soldiers.
+## `-- --mode=base` starts the base-building skirmish directly (prompt 023);
 ## `-- --scenario=<file>` starts a scenario file of `data/scenarios/`;
 ## `-- --infantry-bench` runs `tools/infantry_bench.gd`.
 
@@ -66,6 +69,8 @@ const CombatView := preload("res://scenes/world/combat_view.gd")
 const FogOfWar := preload("res://scenes/world/fog_of_war.gd")
 const Effects := preload("res://scenes/world/effects.gd")
 const DestructionView := preload("res://scenes/world/destruction_view.gd")
+const CraterView := preload("res://scenes/world/crater_view.gd")
+const CraterBench := preload("res://scenes/tools/crater_bench.gd")
 const EffectsBench := preload("res://scenes/tools/effects_bench.gd")
 const InfantryView := preload("res://scenes/world/infantry_view.gd")
 const InfantryBench := preload("res://scenes/tools/infantry_bench.gd")
@@ -75,6 +80,9 @@ const Settings := preload("res://scenes/menu/settings.gd")
 const MatchSetup := preload("res://scenes/menu/match_setup.gd")
 const LoadingScreen := preload("res://scenes/menu/loading_screen.gd")
 const GameMenu := preload("res://scenes/menu/game_menu.gd")
+const BaseView := preload("res://scenes/world/base_view.gd")
+const BaseHud := preload("res://scenes/world/base_hud.gd")
+const BaseShots := preload("res://scenes/tools/base_shots.gd")
 const SEED := 42
 ## Map folders, relative to the Godot project (repository checkout only).
 const MAPS_DIR := "res://../data/maps"
@@ -132,6 +140,11 @@ var effects: Effects
 ## Soldiers of infantry squads (prompt 022).
 var infantry_view: InfantryView
 var destruction_view: Node
+## Craters (prompt 021): terrain and decoration updates.
+var crater_view: Node
+## Buildings, sites, supply points and the base HUD (prompt 023).
+var base_view: BaseView
+var base_hud: BaseHud
 ## Pause menu and result screen (prompt 027).
 var game_menu: CanvasLayer
 var _loading: CanvasLayer
@@ -148,7 +161,7 @@ func _ready() -> void:
 	# Matches from the menu or the LAN lobby are built in steps behind a
 	# loading screen (prompt 027); direct starts load in one frame as before.
 	if not MatchSetup.pending.is_empty() or LanMatch.lobby != null:
-		var map_name: String = MatchSetup.pending.get("map", "LAN match")
+		var map_name: String = MatchSetup.pending.get("map", "%s match" % LanMatch.kind)
 		_loading = LoadingScreen.new(map_name)
 		add_child(_loading)
 		sim_host.set_process(false)
@@ -215,6 +228,19 @@ func _ready() -> void:
 	destruction_view.name = "DestructionView"
 	add_child(destruction_view)
 	destruction_view.setup(self)
+	crater_view = CraterView.new()
+	crater_view.name = "CraterView"
+	add_child(crater_view)
+	crater_view.setup(self)
+	base_view = BaseView.new()
+	base_view.name = "BaseView"
+	add_child(base_view)
+	base_view.setup(self)
+	base_hud = BaseHud.new()
+	base_hud.name = "BaseHud"
+	$Hud.add_child(base_hud)
+	base_hud.setup(self, base_view)
+	selection.is_structure = func(id: int) -> bool: return base_view.structures.has(id)
 
 	selection.sim_host = sim_host
 	selection.camera = camera
@@ -271,6 +297,10 @@ func _ready() -> void:
 		var effects_bench := EffectsBench.new()
 		effects_bench.main = self
 		add_child(effects_bench)
+	if "--effects-craters" in OS.get_cmdline_user_args():
+		var crater_bench := CraterBench.new()
+		crater_bench.main = self
+		add_child(crater_bench)
 	if "--infantry-bench" in OS.get_cmdline_user_args():
 		camera_rig.edge_scroll_enabled = false
 		var infantry_bench := InfantryBench.new()
@@ -280,6 +310,12 @@ func _ready() -> void:
 		var perf_bench := PerfBench.new()
 		perf_bench.main = self
 		add_child(perf_bench)
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--base-shots="):
+			camera_rig.edge_scroll_enabled = false
+			var shots := BaseShots.new()
+			shots.main = self
+			add_child(shots)
 	if "--demo" in OS.get_cmdline_user_args():
 		var demo := DemoReel.new()
 		demo.main = self
@@ -339,6 +375,7 @@ func _start_simulation() -> bool:
 	sim_host.hold_fire_at_start = "--self-test" in OS.get_cmdline_user_args()
 	# The effects tools trigger their own effects (prompt 019).
 	sim_host.hold_fire_at_start = sim_host.hold_fire_at_start or _effects_tool()
+	sim_host.hold_fire_at_start = sim_host.hold_fire_at_start or "--effects-craters" in OS.get_cmdline_user_args()
 	# The infantry bench opens fire itself (prompt 022).
 	sim_host.hold_fire_at_start = sim_host.hold_fire_at_start or "--infantry-bench" in OS.get_cmdline_user_args()
 	# Computer opponent (prompt 024): from the setup screen, or `--ai=<level>`
@@ -349,12 +386,20 @@ func _start_simulation() -> bool:
 			sim_host.ai_opponent = arg.trim_prefix("--ai=")
 	if not MatchSetup.pending.is_empty():
 		var setup := MatchSetup.pending
+		sim_host.mode = setup.get("mode", "battle")
 		return sim_host.start_match(SEED, MatchSetup.map_dir(setup["map"]), setup["factions"])
 	if LanMatch.lobby != null:
 		var lobby := LanMatch.lobby
 		LanMatch.lobby = null
-		return sim_host.start_lan(lobby, ProjectSettings.globalize_path(MAPS_DIR).simplify_path())
+		var maps := ProjectSettings.globalize_path(MAPS_DIR).simplify_path()
+		if lobby is SteamLobby:
+			return sim_host.start_online(lobby, maps)
+		return sim_host.start_lan(lobby, maps)
 	for arg in OS.get_cmdline_user_args():
+		# Base building on the built-in map (prompt 023): `--mode=base`.
+		if arg.begins_with("--mode="):
+			sim_host.mode = arg.trim_prefix("--mode=")
+			return sim_host.start_match(SEED, "", PackedStringArray())
 		if arg.begins_with("--scenario="):
 			var file := ProjectSettings.globalize_path("res://../data/scenarios/" + arg.trim_prefix("--scenario="))
 			return sim_host.start_scenario(SEED, file.simplify_path(), ProjectSettings.globalize_path(MAPS_DIR).simplify_path())
@@ -464,6 +509,10 @@ func _unit_node(id: int, index: int) -> Node3D:
 ## `res://assets/models/<faction>/<catalog id>.glb`, if one exists, and paints
 ## it with the faction palette of the biome (prompt 015).
 func _use_catalog_model(node: Node3D, type_id: String, id: int) -> void:
+	# Base buildings borrow house models (prompt 023).
+	if BaseView.is_building(type_id):
+		BaseView.attach_model(node, type_id, atmosphere.preset.env_biome)
+		return
 	var faction := type_id.get_slice("_", 0)
 	var path := "%s%s/%s.glb" % [MODELS_DIR, faction, type_id]
 	# Infantry squads use their squad scene (prompt 022).

@@ -11,6 +11,7 @@
 //! iteration, no clocks, its own seeded [`Rng`]) so that tournaments give
 //! the same results on every platform. See `docs/AI.md`.
 
+mod economy;
 pub mod game;
 mod view;
 
@@ -135,6 +136,9 @@ enum Role {
     Infantry,
     /// Units without weapons: stay at home.
     Unarmed,
+    /// Buildings and fortifications (prompt 023): never commanded as a
+    /// group; enemy ones are attacked last.
+    Structure,
 }
 
 /// What the AI knows about a unit type from the (public) config.
@@ -145,6 +149,9 @@ struct TypeInfo {
     range: Fixed,
     /// Sight range (game meters).
     sight: Fixed,
+    /// Has a weapon of at least 20 mm (or a shaped charge): can hurt
+    /// armor and buildings (prompt 023: AT squads).
+    anti_tank: bool,
 }
 
 /// Where an enemy unit was last seen.
@@ -234,6 +241,11 @@ pub struct Ai {
     last_tick: Option<u64>,
     /// Ticks in which `think` made decisions, for statistics.
     thinks: u64,
+    /// Unit type names of the match (prompt 023).
+    names: Vec<String>,
+    /// Price of every unit type, if it can be bought.
+    costs: Vec<Option<sim::Resources>>,
+    eco: economy::EcoState,
 }
 
 impl Ai {
@@ -257,7 +269,9 @@ impl Ai {
                     .map(|w| w.range_m)
                     .max()
                     .unwrap_or(Fixed::ZERO);
-                let role = if t.combat.weapons.is_empty() {
+                let role = if !t.mobile() {
+                    Role::Structure
+                } else if t.combat.weapons.is_empty() {
                     Role::Unarmed
                 } else if t.combat.is_infantry() {
                     Role::Infantry
@@ -268,6 +282,7 @@ impl Ai {
                     role,
                     range,
                     sight: config.vision.range_m(t.combat.category),
+                    anti_tank: t.combat.weapons.iter().any(|w| w.caliber_mm_x10 >= 200),
                 }
             })
             .collect();
@@ -278,11 +293,26 @@ impl Ai {
             .map(|s| s.position)
             .collect();
         let home = centroid(own.iter().copied()).unwrap_or_default();
-        let enemy_home = map
-            .starts()
+        // The enemy's base (prompt 023: its first building), else the
+        // enemy's start from the map.
+        let enemy_base = config
+            .spawns
             .iter()
-            .find(|s| s.player != player.0)
-            .map(|s| s.position)
+            .find(|s| {
+                s.owner != player
+                    && config
+                        .unit_types
+                        .iter()
+                        .any(|t| t.name == s.unit_type && !t.mobile())
+            })
+            .map(|s| s.position);
+        let enemy_home = enemy_base
+            .or_else(|| {
+                map.starts()
+                    .iter()
+                    .find(|s| s.player != player.0)
+                    .map(|s| s.position)
+            })
             .or_else(|| {
                 centroid(
                     config
@@ -312,6 +342,9 @@ impl Ai {
             started: false,
             last_tick: None,
             thinks: 0,
+            names: config.unit_types.iter().map(|t| t.name.clone()).collect(),
+            costs: unit_costs(config),
+            eco: economy::EcoState::default(),
         }
     }
 
@@ -364,10 +397,11 @@ impl Ai {
             }
         }
 
+        self.think_economy(view, &mut out);
         let mut roles: Vec<Role> = Vec::new();
         for u in view.own.iter().filter(|u| u.alive()) {
             let role = self.type_info(u.unit_type).role;
-            if !roles.contains(&role) {
+            if role != Role::Structure && !roles.contains(&role) {
                 roles.push(role);
             }
         }
@@ -381,7 +415,7 @@ impl Ai {
                 .collect();
             match role {
                 Role::Armor | Role::Infantry => self.command_group(role, &units, view, &mut out),
-                Role::Unarmed => {}
+                Role::Unarmed | Role::Structure => {}
             }
         }
         out
@@ -395,6 +429,7 @@ impl Ai {
                 role: Role::Unarmed,
                 range: Fixed::ZERO,
                 sight: Fixed::ZERO,
+                anti_tank: false,
             })
     }
 
@@ -503,10 +538,29 @@ impl Ai {
         // their small arms can hurt. Squads facing nothing but armor stop
         // where they are instead of walking into it.
         let armor = |e: &&SeenUnit| self.type_info(e.unit_type).role == Role::Armor;
+        let structure = |e: &&SeenUnit| self.type_info(e.unit_type).role == Role::Structure;
         let armor_near = near.iter().any(armor);
+        // Buildings (prompt 023) come last: armor shoots them when nothing
+        // else is near, infantry cannot hurt them.
+        let mobile_near = near.iter().any(|e| !structure(e));
+        // Squads with AT weapons (built in base matches) take on armor and
+        // buildings once no enemy infantry is left near.
+        let anti_tank = units.iter().any(|u| self.type_info(u.unit_type).anti_tank);
+        let soft_near = near.iter().any(|e| !armor(e) && !structure(e));
         let near: Vec<&SeenUnit> = match role {
             Role::Armor if armor_near => near.into_iter().filter(armor).collect(),
-            Role::Infantry => near.into_iter().filter(|e| !armor(e)).collect(),
+            Role::Armor if mobile_near => near.into_iter().filter(|e| !structure(e)).collect(),
+            Role::Infantry if anti_tank && !soft_near => {
+                if mobile_near {
+                    near.into_iter().filter(|e| !structure(e)).collect()
+                } else {
+                    near
+                }
+            }
+            Role::Infantry => near
+                .into_iter()
+                .filter(|e| !armor(e) && !structure(e))
+                .collect(),
             _ => near,
         };
         if role == Role::Infantry && near.is_empty() && armor_near {
@@ -579,6 +633,16 @@ impl Ai {
                 }
                 state.order = order;
                 state.issued = view.tick;
+            }
+            self.groups.insert(role, state);
+            return;
+        }
+
+        // Base building (prompt 023): wait for the wave near the base.
+        if let Some(hold) = self.hold_point(role, ids.len(), center, view) {
+            if dist(center, hold) > Fixed::from_num(ARRIVED_M) {
+                let idle = fighting.iter().all(|u| u.target.is_none());
+                self.move_group(&mut state, &ids, hold, stale && idle, view.tick, out);
             }
             self.groups.insert(role, state);
             return;
@@ -753,6 +817,25 @@ fn flank_point(center: Vec2, enemy: Vec2, range: Fixed, left: bool) -> Vec2 {
     let (c, s) = (Fixed::from_num(342) / 1000, Fixed::from_num(940) / 1000);
     let s = if left { s } else { -s };
     enemy + Vec2::new(u.x * c - u.y * s, u.x * s + u.y * c)
+}
+
+/// Price of every unit type of the match that can be bought (prompt 023).
+fn unit_costs(config: &SimConfig) -> Vec<Option<sim::Resources>> {
+    let rules = sim::EconomyRules::builtin().ok();
+    let catalog = sim::economy::builtin_catalog();
+    config
+        .unit_types
+        .iter()
+        .map(|t| {
+            let (rules, catalog) = (rules.as_ref()?, catalog?);
+            let cost = if rules.structure(&t.name).is_some() {
+                rules.structure_cost(&t.name, catalog, &t.combat)?
+            } else {
+                rules.unit_cost(catalog.get(&t.name)?, &t.combat)
+            };
+            Some(cost.resources)
+        })
+        .collect()
 }
 
 fn dist(a: Vec2, b: Vec2) -> Fixed {

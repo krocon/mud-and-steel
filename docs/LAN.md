@@ -45,8 +45,9 @@ both would be equally deterministic. The Rust one wins on everything else:
   `enet-sys` need).
 - *Maintenance:* one small dependency behind `net::lan`; Godot's ENet would tie the
   network code to Godot types and to the paired Godot/godot-rust updates.
-- *Steam later:* GodotSteam brings its own networking; a `SteamTransport` implements
-  the same `Transport` trait, independent of where ENet lives.
+- *Steam:* since prompt 026 the same lobby protocol (`net::lobby::LobbyNode`) runs
+  over Steam Networking Messages, see [ONLINE.md](ONLINE.md); `LanNode` is that
+  node over an `EnetLink`.
 - *Risk:* the crate's version number is low. Everything ENet-specific is in
   `crates/net/src/lan/`, so it can be swapped without touching the lockstep code.
 
@@ -66,11 +67,11 @@ locally and `Sim::new` rejects a different content hash.
 | Game       | 47810   | ENet, two channels, both reliable and ordered |
 | Search     | 47811   | Discovery queries and answers |
 
-ENet channel 0, lobby messages (postcard, `net::lan::wire`):
+ENet channel 0, lobby messages (postcard, `net::lobby`; the same over Steam):
 
 | Message | Direction | Meaning |
 |---------|-----------|---------|
-| `Hello { protocol, name }` | client → host | first message; wrong protocol version is rejected (`net::lan::PROTOCOL_VERSION`, 2 since prompt 017 changed config and commands) |
+| `Hello { protocol, name }` | client → host | first message; wrong protocol version is rejected (`net::lobby::PROTOCOL_VERSION`, 2 since prompt 017 changed config and commands) |
 | `Welcome { player }` | host → client | accepted as player id `player` (smallest free id) |
 | `Reject { reason }` | host → client | game full, already started, wrong version; then disconnect |
 | `Lobby { players }` | host → all | names and ready flags |

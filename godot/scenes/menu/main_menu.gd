@@ -5,7 +5,9 @@ extends Control
 ## (map, biome, own and enemy faction) and settings; "Map editor" opens
 ## `editor/map_editor.tscn` (prompt 028). A started match is
 ## handed to `main.tscn` through `match_setup.gd`; LAN opens
-## `lan/lan_lobby.tscn`.
+## `lan/lan_lobby.tscn`, "Online (Steam)" `online/steam_lobby.tscn`
+## (prompt 026), also right away when Steam started the game with
+## `+connect_lobby <code>` to join a friend.
 ##
 ## Direct starts skip the menu: `-- --skip-menu` and the arguments that used
 ## to start the match right away (`--map=…`, `--biome=…`, `--demo`,
@@ -19,6 +21,7 @@ const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
 const SettingsPanel := preload("res://scenes/menu/settings_panel.gd")
 const FlowSelfTest := preload("res://scenes/menu/flow_self_test.gd")
 const LAN_SCENE := "res://scenes/lan/lan_lobby.tscn"
+const ONLINE_SCENE := "res://scenes/online/steam_lobby.tscn"
 const EDITOR_SCENE := "res://scenes/editor/map_editor.tscn"
 const EditorSelfTest := preload("res://scenes/editor/editor_self_test.gd")
 const DIRECT_FLAGS: Array[String] = [
@@ -34,6 +37,7 @@ const BIOMES: Dictionary[String, String] = {
 var screens: Dictionary[String, Control] = {}
 var single_player_button: Button
 var lan_button: Button
+var online_button: Button
 var editor_button: Button
 var settings_button: Button
 var quit_button: Button
@@ -42,10 +46,13 @@ var biome_option: OptionButton
 var faction_option: OptionButton
 var enemy_option: OptionButton
 var opponent_option: OptionButton
+var mode_option: OptionButton
 var start_button: Button
 var settings_panel: PanelContainer
 
 var _maps: PackedStringArray = []
+## `+connect_lobby` is followed once per process, not on every menu visit.
+static var _launch_handled := false
 var _map_info: Label
 
 
@@ -61,6 +68,11 @@ func _ready() -> void:
 	screens["skirmish"] = _skirmish_screen()
 	screens["settings"] = _settings_screen()
 	show_screen("main")
+	# Steam starts the game like this when the player joins a friend.
+	if SteamLobby.launch_lobby_code() != "" and not _launch_handled:
+		_launch_handled = true
+		open_online.call_deferred()
+		return
 	if "--self-test" in OS.get_cmdline_user_args() and MatchSetup.flow_test == null:
 		var test := FlowSelfTest.new()
 		test.name = "FlowSelfTest"
@@ -88,6 +100,7 @@ func start_skirmish() -> void:
 		"biome": BIOMES.keys()[biome_option.selected],
 		"factions": PackedStringArray([own, enemy]),
 		"ai": MatchSetup.OPPONENTS.keys()[opponent_option.selected],
+		"mode": MatchSetup.MODES.keys()[mode_option.selected],
 	}
 	print("Menu: starting %s" % MatchSetup.pending)
 	get_tree().change_scene_to_file(MatchSetup.MAIN_SCENE)
@@ -95,6 +108,11 @@ func start_skirmish() -> void:
 
 func open_lan() -> void:
 	get_tree().change_scene_to_file(LAN_SCENE)
+
+
+## Opens the online lobby over Steam (prompt 026).
+func open_online() -> void:
+	get_tree().change_scene_to_file(ONLINE_SCENE)
 
 
 ## Opens the map editor (prompt 028).
@@ -121,6 +139,7 @@ func _main_screen() -> Control:
 	box.add_child(_spacer(24))
 	single_player_button = _button(box, "Single player", func() -> void: show_screen("skirmish"))
 	lan_button = _button(box, "LAN game", open_lan)
+	online_button = _button(box, "Online (Steam)", open_online)
 	editor_button = _button(box, "Map editor", open_editor)
 	settings_button = _button(box, "Settings", func() -> void: show_screen("settings"))
 	quit_button = _button(box, "Quit", func() -> void: get_tree().quit())
@@ -160,7 +179,12 @@ func _skirmish_screen() -> Control:
 		opponent_option.add_item(MatchSetup.OPPONENTS[id])
 	opponent_option.select(MatchSetup.OPPONENTS.keys().find(MatchSetup.DEFAULT_OPPONENT))
 	box.add_child(_row("Opponent", opponent_option))
-	box.add_child(MenuTheme.hint("Eight tanks per side. Win when the enemy surrenders or has no units left. The computer opponent sees only what its tanks see."))
+	mode_option = OptionButton.new()
+	for id in MatchSetup.MODES:
+		mode_option.add_item(MatchSetup.MODES[id])
+	mode_option.select(MatchSetup.MODES.keys().find(MatchSetup.DEFAULT_MODE))
+	box.add_child(_row("Mode", mode_option))
+	box.add_child(MenuTheme.hint("Base building: build a base, hold supply points, produce an army. Battle: eight tanks per side. Win when the enemy surrenders or has no units left. The computer opponent sees only what its units see."))
 
 	var buttons := HBoxContainer.new()
 	buttons.alignment = BoxContainer.ALIGNMENT_END

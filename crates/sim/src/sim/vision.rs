@@ -68,6 +68,14 @@ impl Vision {
         }
     }
 
+    /// Room for one more unit at the end of the unit list (units produced
+    /// during the match, prompt 023).
+    pub(super) fn push_unit(&mut self) {
+        self.sheds.push(None);
+        self.queued.push(false);
+        self.seen.push(0);
+    }
+
     fn slot(&self, player: PlayerId) -> Option<usize> {
         self.players.binary_search(&player).ok()
     }

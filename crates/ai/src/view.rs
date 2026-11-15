@@ -1,7 +1,7 @@
 //! What a computer player may know about the match: the fog-of-war view of
 //! its player. The AI reads the simulation only through [`PlayerView`].
 
-use sim::{FireMode, PlayerId, Sim, UnitId, Vec2};
+use sim::{FireMode, PlayerId, Resources, Sim, StructureView, SupplyView, UnitId, Vec2};
 
 /// An own unit: everything the player knows about it.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -57,6 +57,15 @@ pub struct PlayerView {
     pub enemies: Vec<SeenUnit>,
     /// The match is decided.
     pub decided: bool,
+    /// Resources of the player (prompt 023).
+    pub account: Resources,
+    /// Own buildings, construction sites and fortifications, by unit id.
+    pub structures: Vec<StructureView>,
+    /// Supply points of the map and who holds them (public).
+    pub supply: Vec<SupplyView>,
+    /// For every structure type the player can build right now: the first
+    /// free spot around its headquarters (or its start), by type index.
+    pub sites: Vec<(u32, Vec2)>,
 }
 
 impl PlayerView {
@@ -91,12 +100,32 @@ impl PlayerView {
                 });
             }
         }
+        let structures: Vec<StructureView> = sim
+            .structures()
+            .into_iter()
+            .filter(|s| s.owner == player)
+            .collect();
+        let base = structures
+            .first()
+            .and_then(|s| sim.unit_position(s.unit))
+            .or_else(|| own.first().map(|u| u.position))
+            .unwrap_or_default();
+        let sites = sim
+            .build_options(player)
+            .into_iter()
+            .filter(|o| o.blocked.is_none())
+            .filter_map(|o| Some((o.unit_type, sim.find_site(player, o.unit_type, base)?)))
+            .collect();
         Self {
             player,
             tick: snapshot.tick,
             own,
             enemies,
             decided: sim.outcome().is_some(),
+            account: sim.account(player).unwrap_or_default(),
+            structures,
+            supply: sim.supply_points(),
+            sites,
         }
     }
 }
