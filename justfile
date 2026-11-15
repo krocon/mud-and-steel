@@ -171,3 +171,26 @@ infantry-preview: build
 [group('infantry')]
 infantry-selftest: build
     {{ GODOT }} --path godot --headless res://scenes/tools/infantry_preview.tscn -- --self-test
+
+# --- Maps (prompt 010) ---------------------------------------------------------------
+
+# Generate a test map from a seed into data/maps/<name>/ (see docs/MAPS.md)
+[group('maps')]
+gen-map name size_m="500" seed="1":
+    cargo run -q --release -p cli -- gen-map --name {{ name }} --size-m {{ size_m }} --seed {{ seed }}
+
+# Regenerate both committed test maps (changes the golden hash if test_small changes)
+[group('maps')]
+test-maps:
+    just gen-map test_small 500 7
+    just gen-map test_large 4000 11
+
+# Load a map and report load time, memory, height range and terrain shares
+[group('maps')]
+map-info name="test_large":
+    cargo run -q --release -p cli -- map-info data/maps/{{ name }}
+
+# Build the bridge and start the game on a map from data/maps/
+[group('maps')]
+run-map name="test_large": build
+    {{ GODOT }} --path godot -- --map={{ name }}

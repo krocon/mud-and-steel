@@ -7,6 +7,11 @@ extends Node3D
 ##
 ## On exit the match is written as a replay to `user://replays/`.
 ##
+## The match runs on the map compiled into the simulation (`test_small`);
+## `-- --map=<name>` loads `data/maps/<name>/` from the repository instead
+## (e.g. `--map=test_large`). The height field is drawn as a coarse debug
+## mesh (`terrain/terrain_debug.gd`) until prompt 011.
+##
 ## Start with `-- --self-test` to drive camera, selection and orders
 ## automatically and quit with exit code 0 (pass) or 1 (fail); see
 ## `self_test.gd`. Start with `-- --camera-shots` (together with
@@ -14,10 +19,10 @@ extends Node3D
 
 const UNIT_SCENE: PackedScene = preload("res://scenes/unit.tscn")
 const SelfTest := preload("res://scenes/self_test.gd")
+const GroundPick := preload("res://scenes/camera/ground_pick.gd")
 const SEED := 42
-## Size of the test ground in meters, centered on the origin. Prompt 010
-## replaces this with the size of the loaded map.
-const MAP_SIZE := Vector2(2000, 2000)
+## Map folders, relative to the Godot project (repository checkout only).
+const MAPS_DIR := "res://../data/maps"
 const REPLAY_DIR := "user://replays"
 ## Camera distances (meters) recorded by --camera-shots.
 const SHOT_DISTANCES: Array[float] = [15.0, 120.0, 600.0]
@@ -35,6 +40,7 @@ const ENEMY_TINT := Color(0.85, 0.2, 0.15, 0.45)
 @onready var sun: DirectionalLight3D = $Sun
 @onready var units_root: Node3D = $Units
 @onready var target_marker: MeshInstance3D = $TargetMarker
+@onready var terrain: MeshInstance3D = $Terrain
 @onready var selection: Control = $Hud/Selection
 
 var _unit_nodes: Dictionary[int, Node3D] = {}
@@ -45,22 +51,25 @@ var _enemy_material: StandardMaterial3D
 
 
 func _ready() -> void:
-	camera_rig.bounds = Rect2(-MAP_SIZE * 0.5, MAP_SIZE)
 	sun.look_at_from_position(Vector3(10, 20, 5), Vector3.ZERO, Vector3.UP)
-	camera_rig.snap_to(Vector3(0, 0, 40), 140.0)
 
 	_enemy_material = StandardMaterial3D.new()
 	_enemy_material.albedo_color = ENEMY_TINT
 	_enemy_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	_enemy_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 
-	if not sim_host.start(SEED):
+	if not _start_simulation():
 		push_error("SimHost failed to start")
 		get_tree().quit(1)
 		return
-	print("Mud and Steel: simulation running at %d Hz, input delay %d tick(s)" % [
-		sim_host.tick_rate(), sim_host.input_delay
+	print("Mud and Steel: map '%s' (%s m), simulation running at %d Hz, input delay %d tick(s)" % [
+		sim_host.map_name(), sim_host.map_size(), sim_host.tick_rate(), sim_host.input_delay
 	])
+	GroundPick.height_source = sim_host
+	var map_size := sim_host.map_size()
+	camera_rig.bounds = Rect2(-map_size * 0.5, map_size)
+	camera_rig.snap_to(Vector3(0, 0, 40), 140.0)
+	terrain.build(sim_host)
 
 	selection.sim_host = sim_host
 	selection.camera = camera
@@ -88,6 +97,16 @@ func _process(delta: float) -> void:
 
 func _exit_tree() -> void:
 	save_replay()
+	GroundPick.height_source = null
+
+
+## Starts the built-in map, or the one named by `--map=<name>`.
+func _start_simulation() -> bool:
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--map="):
+			var dir := ProjectSettings.globalize_path(MAPS_DIR.path_join(arg.trim_prefix("--map=")))
+			return sim_host.start_on_map(SEED, dir.simplify_path())
+	return sim_host.start(SEED)
 
 
 ## Writes the match so far to `user://replays/<date-time>.msreplay` and
@@ -111,7 +130,7 @@ func save_replay() -> String:
 
 
 func _show_target_marker(point: Vector3) -> void:
-	target_marker.position = Vector3(point.x, 0.02, point.z)
+	target_marker.position = point + Vector3(0, 0.05, 0)
 	target_marker.visible = true
 	_marker_time_left = MARKER_SECONDS
 
