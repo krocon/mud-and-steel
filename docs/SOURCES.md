@@ -35,6 +35,7 @@ In this order:
   Steel Division and the like). Their values are often balanced, not historical, and
   their assets are protected.
 - Own assets are built by us or are CC0.
+- Sounds: see [Sounds](#sounds).
 
 ## Markings and symbols
 
@@ -61,3 +62,25 @@ No photos or prints are copied.
 | Soviet camouflage suit | "amoeba" pattern overgarment for snipers (and scouts) | https://en.wikipedia.org/wiki/Military_camouflage (section "From the Second World War") |
 | M1942 frogskin | reversible: five-color green side (green and brown shapes on pale green), three-color brown side; USMC in the Pacific, US Army in Normandy in summer 1944 (41st Armored Infantry), withdrawn as it was mistaken for Waffen-SS camouflage | https://en.wikipedia.org/wiki/Frog_skin_camouflage, https://en.wikipedia.org/wiki/Military_camouflage (section "Uniforms") |
 | Pistols | P 38 216 / 125 mm, TT-33 195 / 116 mm, M1911A1 216 / 127 mm (overall / barrel length) | https://en.wikipedia.org/wiki/Walther_P38, https://en.wikipedia.org/wiki/TT_pistol, https://en.wikipedia.org/wiki/M1911_pistol |
+
+## Sounds
+
+Prompt 029. Every file in `godot/assets/audio/` names its origin here.
+
+| Files | Origin | License |
+|---|---|---|
+| `godot/assets/audio/<class>/<class>_NN.wav`, every class of `sounds.json` | Synthesized by `tools/audio/synth.py` (`just audio`): noise, sine partials, envelopes, filters and a convolution tail, a recipe per class, seeded per variant. No recordings, samples or presets of anyone else. | Own work, same license as the code |
+
+Files of other origin go to `assets-src/audio/<class>/` and get a row
+here before they are committed:
+
+- **CC0 recordings:** link to the file page (e.g. on freesound.org with
+  the CC0 mark), author, date downloaded. Only CC0; attribution licenses
+  (CC BY) need a credits screen first.
+- **AI-generated sounds** (text-to-sound tools): tool and version, the
+  full prompt, date, and the license of the output; it must allow
+  commercial use.
+- **Never** sounds from other games or game mods, from films, or
+  "royalty-free" packs whose license forbids redistribution in source
+  form (the repository ships the WAV files).
+- Downloads are agreed with the maintainer first.

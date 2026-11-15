@@ -20,6 +20,7 @@ use std::sync::Arc;
 
 mod ai_funcs;
 mod artillery_funcs;
+mod audio_funcs;
 mod combat_funcs;
 mod crater_funcs;
 mod destruction_funcs;

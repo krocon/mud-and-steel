@@ -24,6 +24,8 @@ const FlowSelfTest := preload("res://scenes/menu/flow_self_test.gd")
 const LAN_SCENE := "res://scenes/lan/lan_lobby.tscn"
 const ONLINE_SCENE := "res://scenes/online/steam_lobby.tscn"
 const EDITOR_SCENE := "res://scenes/editor/map_editor.tscn"
+## Sound gallery (prompt 029): `-- --sound-gallery` / `--sound-gallery-once`.
+const SOUND_GALLERY_SCENE := "res://scenes/tools/sound_gallery.tscn"
 const EditorSelfTest := preload("res://scenes/editor/editor_self_test.gd")
 const DIRECT_FLAGS: Array[String] = [
 	"--skip-menu", "--demo", "--camera-shots", "--path-debug",
@@ -62,6 +64,9 @@ var _map_info: Label
 func _ready() -> void:
 	if _is_direct_start():
 		get_tree().change_scene_to_file.call_deferred(MatchSetup.MAIN_SCENE)
+		return
+	if Array(OS.get_cmdline_user_args()).any(func(arg: String) -> bool: return arg.begins_with("--sound-gallery")):
+		get_tree().change_scene_to_file.call_deferred(SOUND_GALLERY_SCENE)
 		return
 	Settings.ensure_loaded()
 	theme = MenuTheme.get_theme()

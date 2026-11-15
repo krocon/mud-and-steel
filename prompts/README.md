@@ -89,7 +89,7 @@ Umsetzen von ihrer Session konkretisiert.
 
 | Nr. | Prompt | Ziel | Status |
 |-----|--------|------|--------|
-| 029 | [Sound-Effekte](029-sound-effekte.md) | Gefecht, Motoren, UI; Busse, Stimmenlimit, Quellen | offen |
+| 029 | [Sound-Effekte](done/029-sound-effekte.md) | Gefecht, Motoren, UI; Busse, Stimmenlimit, Quellen | erledigt |
 | 030 | [Musik und Umgebungsklang](030-musik-ambiente.md) | Biom-Ambiente, Musik ruhig/Gefecht, Menü | Entwurf |
 | 031 | [HUD, Minikarte, Befehle](031-hud-minimap-befehle.md) | Minikarte, Einheitenanzeige, Befehlsleiste, Wegpunktketten | Entwurf |
 | 032 | [Indirektes Feuer und Rauch](done/032-indirektes-feuer-rauch.md) | Mörser, Haubitzen, Splitter, Rauch blockiert Sicht | erledigt |

@@ -31,6 +31,8 @@ func _process(_delta: float) -> void:
 		main.map_objects.set_object_state(event, true)
 		if main.effects != null:
 			main.effects.object_event(event)
+		if main.battle_sound != null:
+			main.battle_sound.object_event(event)
 		match event.stage:
 			"damaged":
 				damaged += 1

@@ -36,6 +36,8 @@ extends Node
 ## 10. Craters (prompt 021, `tools/crater_self_test.gd`): the own tanks
 ##    fire at open grass until a crater appears; drawn terrain, mud and
 ##    decoration follow the simulation, the replay re-simulates it.
+## 11. Sound (prompt 029, `tools/sound_self_test.gd`): library, buses,
+##    fog, engines and the voice limit under 200 events per frame.
 
 ## Panzer IV H: 16 km/h cross-country (catalog) × time factor 2 = 8.889 m/s,
 ## i.e. 0.4444 m per tick at 20 Hz. Terrain scales it (data/terrain.toml).
@@ -53,6 +55,7 @@ const WaterSelfTest := preload("res://scenes/tools/water_self_test.gd")
 const InfantrySelfTest := preload("res://scenes/tools/infantry_self_test.gd")
 const DestructionSelfTest := preload("res://scenes/tools/destruction_self_test.gd")
 const CraterSelfTest := preload("res://scenes/tools/crater_self_test.gd")
+const SoundSelfTest := preload("res://scenes/tools/sound_self_test.gd")
 const MatchSetup := preload("res://scenes/menu/match_setup.gd")
 
 var main: Node3D
@@ -78,9 +81,10 @@ func _run() -> void:
 	await InfantrySelfTest.new().run(self)
 	await DestructionSelfTest.new().run(self)
 	await CraterSelfTest.new().run(self)
+	await SoundSelfTest.new().run(self)
 	_replay_test()
 	var ok := _errors.is_empty()
-	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, fog, combat, infantry, destruction, craters, water and replay ok" if ok else " ".join(_errors)
+	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, fog, combat, infantry, destruction, craters, sound, water and replay ok" if ok else " ".join(_errors)
 	print("self-test %s: %s" % ["PASSED" if ok else "FAILED", message])
 	# Started from the menu flow test (prompt 027): it continues the flow.
 	var flow: Node = MatchSetup.flow_test
