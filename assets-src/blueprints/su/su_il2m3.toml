@@ -1,0 +1,185 @@
+# Ilyushin Il-2M3 (1943, two-seat, VYa-23 cannon): armored ground-attack
+# aircraft, standing tail-down on its gear. Main dimensions from
+# data/catalog/su.toml: length 11.65 m, wingspan 14.60 m, height 4.17 m.
+# The catalog height is reached with one blade of the 3.60 m AV-5L-158
+# propeller pointing straight up (su.propeller, phase 90 deg); hub height
+# 2.37 m on the ground is consistent with the 3-view (blade tips clear the
+# ground by about 1.5 m at the lowest blade).
+# Modeling estimates from Il-2M3 three-views (Gordon/Khazanov): deep armored
+# nose ("bathtub") 1.05 m wide, raised two-seat canopy, wing root chord
+# 3.40 m, tip 1.60 m, flat center section (22 % of the half span) and outer
+# panels with 6 deg dihedral and swept leading edge (M3 "arrow" wing,
+# 10 deg over the whole span here), main gear fairings under the wing
+# (nacelle part without exhausts), main wheels 800 x 260 on a 3.50 m track,
+# ground angle about 10 deg.
+# Armament: 2x VYa-23 and 2x ShKAS in the wings (fixed_guns), UBT on the rear
+# gunner's ring (flex_mg), 8x RS-82 on rails (rocket_rails), four internal
+# bomb cells in the wing center section (bomb_bay, sockets only) and two
+# external FAB-100 racks (bomb_load) = the catalog's 6x 100 kg.
+unit = "su_il2m3"
+assembly = "aircraft"
+
+[layout]
+cg_chord = 0.3
+
+[fuselage]
+part = "fuselage"
+segments = 14
+sections = [[-6.05, 0.0, 0.0, 0.80, 2.0], [-5.40, 0.30, 0.55, 0.82, 2.2], [-3.50, 0.75, 1.00, 1.05, 2.4],
+            [-1.50, 1.00, 1.30, 1.40, 2.6], [0.50, 1.10, 1.45, 1.70, 2.8], [2.50, 1.05, 1.45, 2.02, 3.0],
+            [4.30, 0.95, 1.25, 2.25, 2.6], [5.10, 0.70, 0.85, 2.37, 2.2]]
+
+[wing]
+part = "wing"
+y = 1.90
+z = 1.00
+root_chord = 3.40
+tip_chord = 1.60
+sweep_deg = 10.0
+dihedral_deg = 6.0
+thickness = 0.15
+kink = { at = 0.22, inner_dihedral_deg = 0.0 }
+
+[tail]
+part = "tail"
+y = -4.29
+z = 0.98
+span = 4.90
+root_chord = 1.60
+tip_chord = 1.00
+fin_height = 1.30
+fin_root_chord = 1.40
+fin_tip_chord = 0.80
+fin_sweep_deg = 25
+
+[canopy]
+part = "canopy"
+y = [-2.00, 0.60]
+z = 2.32
+width = 0.80
+height = 0.58
+
+[landing_gear]
+part = "landing_gear"
+main_y = 1.90
+main_track = 3.50
+main_wheel_diameter = 0.80
+strut_top_z = 1.00
+tail_y = -5.20
+tail_wheel_diameter = 0.40
+tail_strut_top_z = 0.75
+
+[[propeller]]
+part = "su.propeller"
+position = [0.0, 5.35, 2.37]
+diameter = 3.60
+blades = 3
+phase_deg = 90
+spinner = 0.28
+
+[[part]]
+part = "nacelle"               # main gear fairings under the wing (wheels retract backwards into them)
+x = 1.75
+y = [0.20, 2.50]
+z = 0.86
+diameter = 0.50
+front_diameter = 0.40
+height_scale = 1.25
+exhaust = false
+
+[[part]]
+part = "fixed_guns"            # VYa-23 (outer) and ShKAS (inner) in the wings
+muzzles = [[2.15, 2.05, 1.04], [1.70, 1.75, 1.00]]
+length = 0.80
+radius = 0.022
+
+[[part]]
+part = "flex_mg"               # UBT 12.7 mm on the rear gunner's ring
+position = [0.0, -1.60, 2.50]
+direction = [0.0, -1.0, 0.25]
+length = 1.20
+
+[[part]]
+part = "rocket_rails"          # 8x RS-82 (0.60 m with fins, 82 mm)
+rockets = [[3.30, 0.72, 0.88], [3.80, 0.63, 0.93], [4.30, 0.54, 0.98], [4.80, 0.45, 1.03]]
+length = 0.60
+diameter = 0.082
+
+[[part]]
+part = "bomb_load"             # 2x FAB-100 on the wing racks (0.96 x 0.267 m)
+bombs = [[2.55, 0.70, 0.68]]
+length = 0.96
+diameter = 0.267
+
+[[part]]
+part = "bomb_bay"              # four bomb cells in the wing center section
+y = [0.0, 1.20]
+width = 2.80
+z = 0.90
+doors = false
+stations = [[-1.30, 0.60, 0.95], [-0.90, 0.60, 0.95], [0.90, 0.60, 0.95], [1.30, 0.60, 0.95]]
+
+[[part]]
+part = "shadow_proxy"
+
+[[part]]
+part = "socket"
+name = "Socket_Exhaust_"
+position = [0.52, 4.00, 2.30]
+
+[[part]]
+part = "socket"
+name = "Socket_Exhaust_"
+position = [-0.52, 4.00, 2.30]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 3.50, 2.40]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [2.50, 0.80, 1.30]
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-0.40, -3.20, 1.10]
+normal = [-1.0, 0.0, 0.0]
+size = 0.80
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [0.40, -3.20, 1.10]
+normal = [1.0, 0.0, 0.0]
+size = 0.80
+
+[[part]]
+part = "marking"
+name = "Fin_L"
+position = [-0.05, -4.90, 1.60]
+normal = [-1.0, 0.0, 0.0]
+size = 0.55
+
+[[part]]
+part = "marking"
+name = "Fin_R"
+position = [0.05, -4.90, 1.60]
+normal = [1.0, 0.0, 0.0]
+size = 0.55
+
+[[part]]
+part = "marking"
+name = "Wing_L"
+position = [-5.00, 0.00, 1.60]
+normal = [0.0, 0.0, 1.0]
+size = 1.00
+
+[[part]]
+part = "marking"
+name = "Wing_R"
+position = [5.00, 0.00, 1.60]
+normal = [0.0, 0.0, 1.0]
+size = 1.00

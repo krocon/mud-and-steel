@@ -1,0 +1,40 @@
+# Maxim M1910/30 heavy machine gun team, catalog su.toml: 5 men, the Maxim on the
+# wheeled Sokolov mount and 4 Mosin-Nagant M1938 carbines (crew small arms are a
+# catalog estimate). Composition: gunner (No. 1) at the gun, assistant gunner
+# feeding the belt, and three ammunition / water carriers.
+# Role choice: the su `assistant_gunner` role carries the M1891/30 rifle and the
+# DP-27 pan carrier, which belongs to the light MG team; the Maxim crew are therefore
+# `carbineer` (Mosin M1938), matching the catalog weapon list.
+# Formation: gun in position, assistant beside the feed (right side of a Maxim),
+# carriers behind in cover (display only).
+unit = "su_inf_hmg_team"
+
+[[member]]
+role = "hmg_gunner"
+position = [0.0, 1.5]
+clip = "aim_prone"
+note = "gunner No. 1 (Maxim M1910/30 on Sokolov mount)"
+
+[[member]]
+role = "carbineer"
+position = [1.1, 1.3]
+clip = "aim_kneel"
+note = "assistant gunner, belt feed (Mosin-Nagant M1938)"
+
+[[member]]
+role = "carbineer"
+position = [-1.6, -0.5]
+clip = "kneel"
+note = "ammunition carrier (Mosin-Nagant M1938)"
+
+[[member]]
+role = "carbineer"
+position = [1.8, -1.0]
+clip = "kneel"
+note = "ammunition carrier (Mosin-Nagant M1938)"
+
+[[member]]
+role = "carbineer"
+position = [0.0, -2.2]
+clip = "aim_prone"
+note = "ammunition and water carrier (Mosin-Nagant M1938)"

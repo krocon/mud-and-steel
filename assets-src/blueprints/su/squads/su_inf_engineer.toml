@@ -1,0 +1,43 @@
+# Sapper squad of a divisional sapper battalion, catalog su.toml: 7 men, 1 PPSh-41
+# and 6 Mosin-Nagant M1938 carbines. Composition: squad leader (PPSh-41) and six
+# sappers with carbines, demolition charges and wire cutters (`engineer` role).
+# Mine detectors (VIM-203) are not modeled.
+# Formation: wedge behind the leader, 2.5 m apart (display only).
+unit = "su_inf_engineer"
+
+[[member]]
+role = "squad_leader"
+position = [0.0, 3.0]
+note = "squad leader (PPSh-41)"
+
+[[member]]
+role = "engineer"
+position = [-2.0, 1.5]
+note = "sapper (Mosin-Nagant M1938, demolition charge)"
+
+[[member]]
+role = "engineer"
+position = [2.0, 1.5]
+note = "sapper (Mosin-Nagant M1938, demolition charge)"
+
+[[member]]
+role = "engineer"
+position = [-4.0, 0.0]
+clip = "kneel"
+note = "sapper (Mosin-Nagant M1938, demolition charge)"
+
+[[member]]
+role = "engineer"
+position = [4.0, 0.0]
+note = "sapper (Mosin-Nagant M1938, demolition charge)"
+
+[[member]]
+role = "engineer"
+position = [-6.0, -1.5]
+note = "sapper (Mosin-Nagant M1938, demolition charge)"
+
+[[member]]
+role = "engineer"
+position = [6.0, -1.5]
+clip = "kneel"
+note = "sapper (Mosin-Nagant M1938, demolition charge)"

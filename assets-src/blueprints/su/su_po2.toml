@@ -1,0 +1,154 @@
+# Polikarpov Po-2 (U-2VS / Po-2LNB night bomber fit): two-seat biplane with
+# fixed gear and tail skid, standing tail-down. Main dimensions from
+# data/catalog/su.toml: length 8.17 m, wingspan 11.40 m (upper wing),
+# height 3.10 m (to the upper wing tips; with the blade of the 2.35 m
+# two-blade propeller pointing straight up it stays below that).
+# Modeling estimates from the Po-2 three-view: upper wing span 11.40 m and
+# lower wing 10.65 m, both rectangular with 1.65 m chord, gap about 1.8 m,
+# slight forward stagger, N interplane struts at 3.3 m and cabane struts;
+# M-11D radial in a simple cowling, two open cockpits with windscreens,
+# main wheels 700 x 150 on a 1.70 m track.
+# Armament (catalog, U-2VS/LNB): ShKAS on a rear-cockpit mount (flex_mg),
+# six FAB-50 on racks under the lower wing (bomb_load, 0.97 x 0.22 m).
+unit = "su_po2"
+assembly = "aircraft"
+
+[layout]
+cg_chord = 0.3
+
+[fuselage]
+part = "fuselage"
+segments = 12
+sections = [[-3.95, 0.0, 0.0, 1.05, 2.0], [-3.20, 0.25, 0.45, 1.06, 2.4], [-1.20, 0.70, 0.95, 1.25, 2.8],
+            [0.40, 0.85, 1.15, 1.45, 3.0], [1.80, 0.90, 1.10, 1.55, 3.0], [3.20, 0.95, 1.00, 1.60, 2.4],
+            [3.80, 0.85, 0.85, 1.60, 2.0]]
+
+[wing]
+part = "wing"                  # lower wing
+y = 1.90
+z = 1.05
+span = 10.65
+root_chord = 1.65
+tip_chord = 1.65
+dihedral_deg = 3.0
+thickness = 0.10
+aileron = [0.60, 0.97]
+
+[tail]
+part = "tail"
+y = -2.83
+z = 1.15
+span = 3.10
+root_chord = 1.00
+tip_chord = 0.80
+fin_height = 1.00
+fin_root_chord = 0.90
+fin_tip_chord = 0.60
+fin_sweep_deg = 20
+
+[canopy]
+part = "canopy"                # front windscreen (pilot)
+y = [1.90, 2.20]
+z = 2.08
+width = 0.50
+height = 0.22
+
+[landing_gear]
+part = "landing_gear"
+fixed = true
+skid = true
+main_y = 2.10
+main_track = 1.70
+main_wheel_diameter = 0.70
+strut_top_z = 1.05
+tail_y = -3.40
+tail_strut_top_z = 0.90
+
+[[propeller]]
+part = "su.propeller"
+position = [0.0, 4.00, 1.60]
+diameter = 2.35
+blades = 2
+phase_deg = 90
+spinner = 0.14
+spinner_length = 0.40
+
+[[part]]
+part = "upper_wing"
+y = 2.20
+z = 2.90
+root_chord = 1.65
+tip_chord = 1.65
+dihedral_deg = 1.0
+thickness = 0.10
+
+[[part]]
+part = "wing_struts"           # N interplane struts and cabane struts
+struts = [[[3.30, 1.60, 1.20], [3.30, 1.90, 2.96]], [[3.30, 0.55, 1.20], [3.30, 0.80, 2.96]],
+          [[0.35, 2.30, 1.95], [0.50, 2.40, 2.88]], [[0.35, 1.50, 1.95], [0.50, 1.40, 2.88]]]
+
+[[part]]
+part = "canopy"                # rear windscreen (navigator / gunner)
+y = [0.55, 0.80]
+z = 2.03
+width = 0.50
+height = 0.20
+
+[[part]]
+part = "flex_mg"               # ShKAS on the rear cockpit mount
+position = [0.0, 0.30, 2.20]
+direction = [0.0, -1.0, 0.20]
+length = 0.85
+
+[[part]]
+part = "socket"                # tracer origin for gallery and game: the ShKAS muzzle (MG_01)
+name = "Socket_Muzzle"
+parent = "MG_01"
+position = [0.0, -0.533, 2.367]
+
+[[part]]
+part = "bomb_load"             # 6x FAB-50 under the lower wing
+bombs = [[1.35, 1.20, 0.78], [1.85, 1.20, 0.80], [2.35, 1.20, 0.83]]
+length = 0.97
+diameter = 0.22
+
+[[part]]
+part = "shadow_proxy"
+
+[[part]]
+part = "socket"
+name = "Socket_Exhaust_"
+position = [0.50, 3.30, 1.40]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 3.20, 1.70]
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-0.30, -2.00, 1.15]
+normal = [-1.0, 0.0, 0.0]
+size = 0.55
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [0.30, -2.00, 1.15]
+normal = [1.0, 0.0, 0.0]
+size = 0.55
+
+[[part]]
+part = "marking"
+name = "Wing_L"
+position = [-4.40, 1.40, 3.10]
+normal = [0.0, 0.0, 1.0]
+size = 0.90
+
+[[part]]
+part = "marking"
+name = "Wing_R"
+position = [4.40, 1.40, 3.10]
+normal = [0.0, 0.0, 1.0]
+size = 0.90

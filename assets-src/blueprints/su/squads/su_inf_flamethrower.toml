@@ -1,0 +1,16 @@
+# ROKS-3 flamethrower team, catalog su.toml: operator with the ROKS-3 and a covering
+# soldier with a PPSh-41 (the second man is a catalog estimate).
+# Formation: operator in front, cover man behind to the right (display only).
+unit = "su_inf_flamethrower"
+
+[[member]]
+role = "flamethrower"
+position = [0.0, 1.0]
+clip = "aim_stand"
+note = "flamethrower operator (ROKS-3)"
+
+[[member]]
+role = "smg_gunner"
+position = [1.5, -0.5]
+clip = "aim_kneel"
+note = "covering soldier (PPSh-41)"

@@ -1,0 +1,21 @@
+# Sniper pair, catalog su.toml: sniper with the Mosin-Nagant M1891/30 PU and an
+# observer with an M1891/30.
+# Deviation: the observer uses the `scout` role (binoculars, field cap) as the prompt
+# 008 role rule asks for spotters; the su scout carries a PPSh-41, not the catalog's
+# M1891/30. The catalog note says the observer's armament varied (rifle or SMG), so
+# the SMG stays within the documented range; a rifle-armed spotter would need a new
+# role for one model only.
+# Formation: both prone, observer beside and slightly behind (display only).
+unit = "su_inf_sniper"
+
+[[member]]
+role = "sniper"
+position = [0.0, 0.5]
+clip = "aim_prone"
+note = "sniper (Mosin-Nagant M1891/30 PU)"
+
+[[member]]
+role = "scout"
+position = [1.2, -0.3]
+clip = "prone"
+note = "observer (binoculars; PPSh-41 instead of the catalog M1891/30, see header)"

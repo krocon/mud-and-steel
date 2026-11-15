@@ -1,0 +1,16 @@
+# PTRD-41 anti-tank rifle team, catalog su.toml: gunner with the PTRD-41 and the
+# assistant (No. 2) with a Mosin-Nagant M1891/30 and the cartridge case.
+# Formation: gunner prone behind the rifle, assistant beside him (display only).
+unit = "su_inf_at"
+
+[[member]]
+role = "at_gunner"
+position = [0.0, 0.5]
+clip = "aim_prone"
+note = "gunner (PTRD-41)"
+
+[[member]]
+role = "at_assistant"
+position = [1.2, -0.3]
+clip = "prone"
+note = "assistant, ammunition (Mosin-Nagant M1891/30)"

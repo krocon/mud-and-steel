@@ -1,0 +1,19 @@
+# 50-PM 40 company mortar team, catalog su.toml: 2 men (Soviet two-man load),
+# the mortar and 2 Mosin-Nagant M1938 carbines (estimate). Composition: mortar
+# gunner at the tube, loader/ammunition carrier beside it.
+# Deviation: the `mortar_gunner` role shows the mortar but no slung carbine; the
+# catalog's second carbine is carried by the loader only in the model.
+# Formation: loader kneeling to the right of the tube (display only).
+unit = "su_inf_mortar_light"
+
+[[member]]
+role = "mortar_gunner"
+position = [0.0, 0.5]
+clip = "mortar_operate"
+note = "mortar gunner (50-PM 40)"
+
+[[member]]
+role = "carbineer"
+position = [1.2, 0.0]
+clip = "kneel"
+note = "loader / ammunition carrier (Mosin-Nagant M1938)"
