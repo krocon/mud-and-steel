@@ -43,6 +43,8 @@ Run `just` to list all commands. The most important ones:
 | `just run`              | builds the bridge and starts the game                    |
 | `just editor`           | builds the bridge and opens the Godot editor             |
 | `just selftest`         | headless smoke test of the game (exit code 0 = passed)   |
+| `just replay <file>`    | plays a replay headless and checks its end hash          |
+| `just record <file>`    | writes a replay of the scripted demo (no Godot needed)   |
 | `just export-model <file.blend>` | exports a model to `godot/assets/models/`       |
 | `just model-tank`       | regenerates and exports the placeholder tank             |
 
@@ -55,7 +57,15 @@ just import
 just run
 ```
 
-Right-click on the ground to send the tank there.
+You command eight Panzer IV (player 0) facing eight T-34 (player 1, red tint, not
+selectable). Left click or drag a box to select, double click selects all visible tanks
+of the type, Ctrl+1…9 stores a group and 1…9 recalls it (twice centers the camera).
+Right-click on the ground sends the selection into a formation there, H stops it.
+The camera moves with WASD/arrows, the mouse wheel, middle drag, Q/E and N.
+
+On exit the game writes a replay to `user://replays/` (macOS:
+`~/Library/Application Support/Godot/app_userdata/Mud and Steel/replays/`);
+`just replay <file>` re-simulates it and checks the end hash.
 
 `just sim` prints the final state hash of the scripted demo. Two runs with the same
 arguments print the same hash on every platform. The underlying commands are in the

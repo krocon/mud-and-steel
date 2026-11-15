@@ -32,25 +32,123 @@ Transport (later): Steam online, ENet on LAN
 
 | Crate / folder  | Responsibility | Depends on |
 |-----------------|----------------|------------|
-| `crates/sim`    | Game rules and state. `Sim::new(config, seed)`, `step(&[Command])`, `state_hash()`, `snapshot()`. Fixed-point math, RNG, stable hash, unit catalog and scale (compiled in), demo scenario. | `fixed`, `serde`, `toml` |
-| `crates/net`    | Lockstep protocol: `CommandFrame`, `HashReport`, `LockstepSession` (input delay, desync detection), `Transport` trait, `LoopbackTransport` for tests. | `sim`, `postcard` |
-| `crates/cli`    | Headless runner (`cli run --ticks N --seed S`), prints the state hash. | `sim`, `clap` |
-| `crates/bridge` | GDExtension `cdylib`. `SimHost` node: runs ticks from a time accumulator, queues commands, exposes the last two snapshots. The only float conversion. | `sim`, `godot` |
+| `crates/sim`    | Game rules and state. `Sim::new(config, seed)`, `step(&[PlayerCommand])`, `state_hash()`, `snapshot()`. Players and unit ownership, group commands with formation, fixed-point math, RNG, stable hash, unit catalog, scale and scenarios (compiled in). | `fixed`, `serde`, `toml` |
+| `crates/net`    | Lockstep protocol: `CommandFrame`, `HashReport`, `LockstepSession` (input delay, desync detection), `Transport` trait, `LoopbackTransport` for tests, `LocalTransport` for single player. Replays (`net::replay`). | `sim`, `postcard` |
+| `crates/cli`    | Headless runner: `cli run --ticks N --seed S [--record FILE]` prints the state hash, `cli replay FILE` re-simulates a replay and checks its end hash. | `sim`, `net`, `clap` |
+| `crates/bridge` | GDExtension `cdylib`. `SimHost` node: runs ticks from a time accumulator through a `LockstepSession`, queues commands, exposes the last two snapshots and the replay. The only float conversion. | `sim`, `net`, `godot` |
 | `godot/`        | Scenes, GDScript UI logic, assets. No C#. | bridge (via `.gdextension`) |
-| `data/`         | Unit catalog (`catalog/*.toml`, real values) and `scale.toml` (conversion to game values), integers only. See [SCALE.md](SCALE.md). | – |
+| `data/`         | Unit catalog (`catalog/*.toml`, real values), `scale.toml` (conversion to game values) and scenarios (`scenarios/*.toml`, start setups), integers only. See [SCALE.md](SCALE.md). | – |
+
+## Players, commands and formation
+
+Every unit has an owner (`sim::PlayerId`). A `sim::Command` names a list of units
+but never its issuer:
+
+| Command | Effect |
+|---|---|
+| `MoveTo { units, target }` | The units drive in a straight line to a grid formation around `target`. |
+| `Stop { units }` | The units stop where they are. |
+
+The simulation consumes `PlayerCommand { player, command }`. Only the lockstep layer
+builds these, from the sender of the frame, so a peer cannot command another player's
+units by naming them: units that do not exist or belong to someone else are dropped
+from the list, duplicates too. Move targets beyond ±1000 km are ignored, which keeps
+all position arithmetic far from `Fixed` overflow even for forged commands.
+
+**Why a unit list instead of one command per unit:** one order of the player stays
+one command. The formation needs the whole group at once (slot count, spacing, slot
+assignment), the frames stay small, and later commands (attack, follow) have the same
+shape. **Why the player is not in the command:** it cannot be forged and needs no
+check; the frame already carries the sender.
+
+**Formation:** a square grid with `ceil(sqrt(n))` columns, every row (also a shorter
+last one) centered on the target, rows along +y. The spacing is 1.5 × the largest
+footprint of the group (`UnitType::footprint_m` = larger of catalog length and width,
+1 m for entries without dimensions), so a Panzer IV group stands 10.5 m apart. The
+grid is axis-aligned. Units are assigned to slots in the order of their current
+position (y, then x, then id), slots in the same order, which avoids crossing paths
+in the common cases and makes the result independent of the order of ids in the
+command. Pathfinding around obstacles and facing-aware formations follow with
+prompt 012.
+
+**Scenarios** (`data/scenarios/*.toml`) place groups of catalog units per player in a
+grid. The compiled-in demo (`sim::scenario::demo_config`) has eight Panzer IV H
+(player 0) against eight T-34/76 (player 1), 120 m apart. Unit ids follow file order.
 
 ## Data flow (single player, current state)
 
-1. The player right-clicks the ground. `main.gd` turns the click into a ground point
-   with `scenes/camera/ground_pick.gd` (pure math, no Godot physics) and calls
-   `SimHost.move_to(id, x, z)`.
+Single player runs through the same lockstep path as multiplayer:
+
+1. The player selects units and right-clicks the ground. `selection/selection.gd`
+   turns the click into a ground point with `scenes/camera/ground_pick.gd` (pure
+   math, no Godot physics) and calls `SimHost.move_units(ids, x, z)`.
 2. `SimHost` rounds the target to millimeters and queues `Command::MoveTo`.
 3. Every frame, `SimHost::process` adds the frame time to an accumulator and runs as many
-   fixed 20 Hz ticks as are due (at most 5 per frame). The queued commands go into the
-   next tick.
+   fixed 20 Hz ticks as are due (at most 5 per frame). Per tick it submits the queued
+   commands to its `LockstepSession` (one player, `LocalTransport`), which schedules
+   them `input_delay` ticks ahead (exported property, default 1 tick = 50 ms). The
+   session returns the merged `PlayerCommand`s of the current tick; they are recorded
+   for the replay and stepped.
 4. After each tick, the previous snapshot is kept and a new one is taken.
 5. `main.gd` reads both snapshots and `interpolation_alpha()` and draws every unit
    interpolated between them. The sim `(x, y)` plane maps to Godot `(x, 0, y)`.
+
+Player 1 of the demo issues no commands yet; the AI (prompt 024) will join the session
+as another player with its own frames.
+
+## Selection (presentation only)
+
+Selection is local UI state in `godot/scenes/selection/selection.gd`; only the
+resulting orders reach the simulation. The bridge exposes per-unit packed arrays in
+the same order as `unit_ids()`: `unit_owners()`, `unit_types()`, `unit_footprints()`,
+`unit_moving()`, plus `local_player()`. Only units of the local player are selectable.
+
+| Input | Effect |
+|---|---|
+| Left click | Select the own unit under the cursor; on empty ground clear the selection |
+| Shift + left click | Add the unit (or remove it if already selected) |
+| Left drag | Selection box (own units whose hull center is inside) |
+| Double click | All visible own units of the same type |
+| Ctrl+1…9 (Cmd on macOS) | Store the selection as a group |
+| 1…9 | Recall the group; twice within 0.4 s also centers the camera on it |
+| Right click | Move the selection to the ground point (green marker for 1 s) |
+| H | Stop the selection |
+
+Picking projects unit positions to the screen (`Camera3D.unproject_position`); the pick
+radius is half the footprint on screen, at least 14 px. Selected units show a green
+ring; units of other players carry a red tint overlay.
+
+## Replays
+
+The game writes the match to `user://replays/<date-time>.msreplay` when the main scene
+exits (macOS: `~/Library/Application Support/Godot/app_userdata/Mud and Steel/replays/`).
+`just replay <file>` re-simulates it headless and reports whether the end hash matches.
+`just record <file>` writes a replay of the scripted demo without Godot.
+
+Format (`crates/net/src/replay.rs`):
+
+```
+"MSRP"  4 bytes magic
+u16 LE  format version (currently 1)
+postcard body: seed, resolved SimConfig, lockstep players, tick count,
+               frames (tick + merged PlayerCommands, only non-empty ticks), end hash
+```
+
+Decisions:
+
+- **Header outside postcard.** postcard is not self-describing, so a reader must know
+  the version before decoding. A fixed magic and version let old builds reject new
+  files with a clear message instead of garbage.
+- **Resolved config instead of a scenario name.** The replay carries the unit types as
+  the simulation used them (already converted from the catalog). Catalog or scenario
+  edits do not invalidate old replays; changes of the simulation rules do, and then
+  playback reports the end-hash mismatch instead of silently showing a different game.
+- **Merged commands per tick, sparse.** The replay stores exactly what `Sim::step` got
+  (player-tagged, in apply order), so playback needs no lockstep session and does not
+  depend on input delay. Ticks without commands are omitted; the tick count marks the
+  end. An hour of play with a few orders per second stays well below a megabyte.
+- **Only the end hash.** It proves the whole run; intermediate hashes to locate a
+  divergence can be added with a version bump.
 
 ## Camera rig (presentation only)
 
@@ -78,7 +176,8 @@ field of view keeps distortion low.
 
 ## Data flow (multiplayer, planned)
 
-Each peer runs the per-tick protocol of `net::LockstepSession`:
+Each peer runs the per-tick protocol of `net::LockstepSession` (single player already
+does, with one player):
 
 1. Submit local commands for tick `t + input_delay` and send them to all peers (an empty
    frame is also sent).
@@ -87,8 +186,10 @@ Each peer runs the per-tick protocol of `net::LockstepSession`:
    step the simulation, and every `hash_interval` ticks send the state hash.
 4. A mismatching hash is reported as a `Desync`.
 
-`SimHost` will feed its commands through a `LockstepSession` instead of applying them
-directly. AI players produce commands through the same path.
+`crates/net/tests/loopback.rs` plays the demo scenario this way between two peers,
+each controlling its own eight tanks with group commands (and trying to command the
+other's), and compares the hashes of every tick. AI players will produce commands
+through the same path.
 
 ## Transport (planned, not built yet)
 
