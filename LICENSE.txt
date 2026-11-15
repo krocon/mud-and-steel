@@ -1,0 +1,12 @@
+Mud and Steel
+Copyright (c) 2026 the Mud and Steel developer. All rights reserved.
+
+The game's source code, data, models, textures, sounds and other assets made
+for this project are proprietary. They may not be copied, modified or
+distributed without written permission, except as allowed by the platform the
+game was obtained from (for example Steam) for playing the game.
+
+Third-party software included in the game keeps its own license: see
+THIRD_PARTY_LICENSES.txt (Rust crates, Steamworks API) and the Godot Engine
+tab of the in-game Credits (Godot Engine and its components). CREDITS.md lists
+the origin of every asset.

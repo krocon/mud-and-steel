@@ -75,6 +75,7 @@ func _run() -> void:
 	for button: Button in [menu.single_player_button, menu.lan_button, menu.online_button, menu.settings_button, menu.quit_button]:
 		_check(button != null and button.is_visible_in_tree(), "main menu button missing")
 	await _settings_test(menu)
+	await _credits_test(menu)
 	menu = await _lan_test(menu)
 	if menu != null:
 		menu = await _online_test(menu)
@@ -133,7 +134,7 @@ func _run() -> void:
 func _finish() -> void:
 	set_process(false)
 	var ok := _errors.is_empty()
-	var message := "menu, settings, LAN lobby, online lobby, loading, match tests, pause, surrender, combat victory, computer opponent, base building, result and back ok" if ok else " ".join(_errors)
+	var message := "menu, settings, credits, LAN lobby, online lobby, loading, match tests, pause, surrender, combat victory, computer opponent, base building, result and back ok" if ok else " ".join(_errors)
 	print("flow self-test %s: %s" % ["PASSED" if ok else "FAILED", message])
 	get_tree().paused = false
 	get_tree().quit(0 if ok else 1)
@@ -192,6 +193,25 @@ func _action_key(action: String) -> int:
 
 
 # --- LAN ---------------------------------------------------------------
+
+
+## Credits and licenses (prompt 044): every tab has text, Back returns.
+func _credits_test(menu: Control) -> void:
+	_check(menu.credits_button != null and menu.credits_button.is_visible_in_tree(), "main menu has no Credits button")
+	menu.credits_button.pressed.emit()
+	await _frames(2)
+	var panel: PanelContainer = menu.credits_panel
+	_check(panel.is_visible_in_tree(), "credits screen not shown")
+	_check(panel.tabs.get_tab_count() == 4, "credits screen has %d tabs" % panel.tabs.get_tab_count())
+	for view: TextEdit in panel.tabs.get_children():
+		# The third-party file only exists after a release build.
+		var minimum := 10 if view.name == "Third party" else 100
+		_check(view.text.length() > minimum, "credits tab '%s' is (nearly) empty" % view.name)
+	_check(panel.tabs.get_child(3).text.contains("Godot Engine"), "Godot license missing in the credits")
+	panel.back_button.pressed.emit()
+	await _frames(2)
+	_check(menu.screens["main"].visible, "Back on the credits screen did not return to the main menu")
+	print("flow self-test: credits opened and closed")
 
 
 func _lan_test(menu: Control) -> Control:

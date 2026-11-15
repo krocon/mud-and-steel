@@ -85,7 +85,6 @@ const BaseHud := preload("res://scenes/world/base_hud.gd")
 const BaseShots := preload("res://scenes/tools/base_shots.gd")
 const SEED := 42
 ## Map folders, relative to the Godot project (repository checkout only).
-const MAPS_DIR := "res://../data/maps"
 const REPLAY_DIR := "user://replays"
 ## Unit models built by the Blender kit, one folder per faction.
 const MODELS_DIR := "res://assets/models/"
@@ -391,7 +390,7 @@ func _start_simulation() -> bool:
 	if LanMatch.lobby != null:
 		var lobby := LanMatch.lobby
 		LanMatch.lobby = null
-		var maps := ProjectSettings.globalize_path(MAPS_DIR).simplify_path()
+		var maps := GamePaths.maps_dir()
 		if lobby is SteamLobby:
 			return sim_host.start_online(lobby, maps)
 		return sim_host.start_lan(lobby, maps)
@@ -401,10 +400,10 @@ func _start_simulation() -> bool:
 			sim_host.mode = arg.trim_prefix("--mode=")
 			return sim_host.start_match(SEED, "", PackedStringArray())
 		if arg.begins_with("--scenario="):
-			var file := ProjectSettings.globalize_path("res://../data/scenarios/" + arg.trim_prefix("--scenario="))
-			return sim_host.start_scenario(SEED, file.simplify_path(), ProjectSettings.globalize_path(MAPS_DIR).simplify_path())
+			var file := GamePaths.data_dir().path_join("scenarios").path_join(arg.trim_prefix("--scenario="))
+			return sim_host.start_scenario(SEED, file.simplify_path(), GamePaths.maps_dir())
 		if arg.begins_with("--map="):
-			var dir := ProjectSettings.globalize_path(MAPS_DIR.path_join(arg.trim_prefix("--map=")))
+			var dir := GamePaths.map_dir(arg.trim_prefix("--map="))
 			return sim_host.start_on_map(SEED, dir.simplify_path())
 	return sim_host.start(SEED)
 

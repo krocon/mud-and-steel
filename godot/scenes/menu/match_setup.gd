@@ -6,8 +6,6 @@ extends RefCounted
 
 const MENU_SCENE := "res://scenes/menu/main_menu.tscn"
 const MAIN_SCENE := "res://scenes/main.tscn"
-## Map folders, relative to the Godot project (repository checkout only).
-const MAPS_DIR := "res://../data/maps"
 ## Name of the map compiled into the simulation.
 const BUILTIN_MAP := "test_small"
 
@@ -53,15 +51,8 @@ static var last_loading_steps: PackedStringArray = []
 ## Map folders found in `data/maps/` (sorted), the built-in map first.
 static func available_maps() -> PackedStringArray:
 	var maps: PackedStringArray = [BUILTIN_MAP]
-	var dir := DirAccess.open(ProjectSettings.globalize_path(MAPS_DIR))
-	if dir == null:
-		return maps
-	var names := dir.get_directories()
-	names.sort()
-	for map_name in names:
-		if map_name != BUILTIN_MAP and FileAccess.file_exists(
-			ProjectSettings.globalize_path(MAPS_DIR.path_join(map_name).path_join("map.toml"))
-		):
+	for map_name in GamePaths.map_names():
+		if map_name != BUILTIN_MAP:
 			maps.append(map_name)
 	return maps
 
@@ -70,12 +61,12 @@ static func available_maps() -> PackedStringArray:
 static func map_dir(map_name: String) -> String:
 	if map_name == BUILTIN_MAP or map_name.is_empty():
 		return ""
-	return ProjectSettings.globalize_path(MAPS_DIR.path_join(map_name)).simplify_path()
+	return GamePaths.map_dir(map_name)
 
 
 ## Size and biome of a map from its `map.toml`, for the setup screen.
 static func describe_map(map_name: String) -> String:
-	var path := ProjectSettings.globalize_path(MAPS_DIR.path_join(map_name).path_join("map.toml"))
+	var path := GamePaths.map_dir(map_name).path_join("map.toml")
 	var text := FileAccess.get_file_as_string(path)
 	if text.is_empty():
 		return ""
