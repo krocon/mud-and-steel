@@ -19,6 +19,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          # data/maps/*/*.png are in Git LFS; test_small is compiled into sim.
+          lfs: true
 
       - name: Install toolchain from rust-toolchain.toml
         run: rustup toolchain install

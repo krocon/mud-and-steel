@@ -17,16 +17,21 @@
 //! the scenario files change later. It does not survive changes of the
 //! simulation rules: then the end hash no longer matches, which playback
 //! reports.
+//!
+//! The map is not stored, only referenced by name and content hash
+//! (`SimConfig::map`): playback needs the same map, which the caller loads
+//! from `data/maps/<name>/`.
 
 use serde::{Deserialize, Serialize};
-use sim::{ConfigError, PlayerCommand, PlayerId, Sim, SimConfig};
+use sim::{ConfigError, Map, PlayerCommand, PlayerId, Sim, SimConfig};
 use std::fmt;
+use std::sync::Arc;
 
 pub const MAGIC: [u8; 4] = *b"MSRP";
 
 /// Version of the body layout. Bump on every incompatible change of
 /// [`Replay`] or of the types it contains (commands, config).
-pub const FORMAT_VERSION: u16 = 1;
+pub const FORMAT_VERSION: u16 = 2;
 
 const HEADER_LEN: usize = MAGIC.len() + 2;
 
@@ -118,9 +123,10 @@ impl Replay {
         postcard::from_bytes(&bytes[HEADER_LEN..]).map_err(ReplayError::Decode)
     }
 
-    /// Re-simulates the match and returns the final simulation.
-    pub fn play(&self) -> Result<Sim, ReplayError> {
-        let mut sim = Sim::new(&self.config, self.seed).map_err(ReplayError::Config)?;
+    /// Re-simulates the match on `map` (the map `config.map` names) and
+    /// returns the final simulation.
+    pub fn play(&self, map: Arc<Map>) -> Result<Sim, ReplayError> {
+        let mut sim = Sim::new(&self.config, map, self.seed).map_err(ReplayError::Config)?;
         let mut frames = self.frames.iter().peekable();
         for tick in 0..self.ticks {
             match frames.next_if(|f| f.tick == tick) {
@@ -140,8 +146,8 @@ impl Replay {
     }
 
     /// Re-simulates the match and compares the end hash.
-    pub fn verify(&self) -> Result<PlaybackReport, ReplayError> {
-        let sim = self.play()?;
+    pub fn verify(&self, map: Arc<Map>) -> Result<PlaybackReport, ReplayError> {
+        let sim = self.play(map)?;
         Ok(PlaybackReport {
             ticks: sim.tick(),
             expected_hash: self.end_hash,
@@ -214,7 +220,7 @@ impl ReplayRecorder {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use sim::scenario::{demo_config, run_demo_with};
+    use sim::scenario::{builtin_map, demo_config, run_demo_with};
 
     fn demo_replay(ticks: u64) -> Replay {
         let config = demo_config();
@@ -257,13 +263,13 @@ mod tests {
         let mut replay = demo_replay(200);
         replay.frames.swap(0, 1);
         assert!(matches!(
-            replay.play(),
+            replay.play(builtin_map()),
             Err(ReplayError::BadFrameOrder { .. })
         ));
         let mut beyond = demo_replay(200);
         beyond.ticks = 100;
         assert!(matches!(
-            beyond.play(),
+            beyond.play(builtin_map()),
             Err(ReplayError::BadFrameOrder { tick: 120 })
         ));
     }

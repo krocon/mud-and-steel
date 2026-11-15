@@ -27,7 +27,7 @@ fn two_peers_stay_in_sync() {
     assert_eq!(a.sim.state_hash(), run_demo(SEED, TICKS).state_hash());
 
     // The exchanged group commands really moved units of both players.
-    let mut idle = Sim::new(&demo_config(), SEED).unwrap();
+    let mut idle = Sim::new(&demo_config(), sim::scenario::builtin_map(), SEED).unwrap();
     for _ in 0..TICKS {
         idle.step(&[]);
     }
@@ -107,7 +107,7 @@ fn single_player_runs_through_the_same_path() {
     };
     let mut session = LockstepSession::new(PlayerId(0), &config);
     let mut transport = net::LocalTransport;
-    let mut sim = Sim::new(&demo_config(), SEED).unwrap();
+    let mut sim = Sim::new(&demo_config(), sim::scenario::builtin_map(), SEED).unwrap();
     let order = Command::MoveTo {
         units: vec![UnitId(0), UnitId(1)],
         target: Vec2::from_meters(0, 200),

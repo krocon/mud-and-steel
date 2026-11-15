@@ -1,10 +1,13 @@
 # Demo scenario: two players with eight tanks each, facing each other across
-# the test ground. Integers only. Used by the game, the CLI, the golden-hash
-# test and the network tests.
+# the start meadow of the test map. Integers only. Used by the game, the CLI,
+# the golden-hash test and the network tests.
 #
 # Every [[group]] places `count` units of the catalog id `unit` for player
 # `owner` in a grid of `columns` columns, `spacing_m` apart, centered on
 # `center_m` = [x, y] (x east, y south, meters).
+
+# Map the scenario is made for: data/maps/<map>/.
+map = "test_small"
 
 [[group]]
 owner = 0

@@ -11,8 +11,11 @@ use std::fmt;
 pub struct UnitType {
     /// Catalog id.
     pub name: String,
-    /// Movement speed in game meters per second.
+    /// Cross-country movement speed in game meters per second.
     pub speed_m_per_s: Fixed,
+    /// Road speed in game meters per second (equal to `speed_m_per_s` for
+    /// entries without a road speed, and for aircraft).
+    pub road_speed_m_per_s: Fixed,
     /// Larger of length and width in meters (sizes are 1:1, so this is the
     /// real value). Used for formation spacing.
     pub footprint_m: Fixed,
@@ -35,16 +38,22 @@ impl std::error::Error for DataError {}
 impl UnitType {
     /// Converts a catalog entry into a unit type.
     ///
-    /// Until terrain exists (prompt 010), ground units move at their
-    /// cross-country speed and aircraft at their cruise speed (or maximum
-    /// speed if no cruise speed is known). Returns `None` for entries that
-    /// cannot move.
+    /// Ground units get their cross-country and road speed (terrain picks
+    /// one, see `data/terrain.toml`), aircraft their cruise speed (or maximum
+    /// speed if no cruise speed is known) for both. Returns `None` for
+    /// entries that cannot move.
     pub fn from_catalog(entry: &Entry, scale: &Scale) -> Option<Self> {
-        let speed = match entry.category.group() {
-            Group::Infantry | Group::Vehicle => entry.speed_offroad_kmh_x10,
-            Group::Aircraft => entry.speed_cruise_kmh_x10.or(entry.speed_max_kmh_x10),
-            Group::Gun | Group::Fortification | Group::Environment => None,
-        }?;
+        let (speed, road) = match entry.category.group() {
+            Group::Infantry | Group::Vehicle => {
+                let offroad = entry.speed_offroad_kmh_x10?;
+                (offroad, entry.speed_road_kmh_x10.unwrap_or(offroad))
+            }
+            Group::Aircraft => {
+                let speed = entry.speed_cruise_kmh_x10.or(entry.speed_max_kmh_x10)?;
+                (speed, speed)
+            }
+            Group::Gun | Group::Fortification | Group::Environment => return None,
+        };
         let footprint_mm = entry
             .length_mm
             .into_iter()
@@ -54,6 +63,7 @@ impl UnitType {
         Some(Self {
             name: entry.id.clone(),
             speed_m_per_s: scale.game_speed(entry.category, speed),
+            road_speed_m_per_s: scale.game_speed(entry.category, road),
             footprint_m: Fixed::from_num(footprint_mm) / Fixed::from_num(1000),
         })
     }
