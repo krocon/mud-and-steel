@@ -12,6 +12,7 @@
 //! `data/maps/<name>/` and hand the bytes to [`Map::load`]. File format and
 //! reasons: `docs/MAPS.md`.
 
+use crate::bridges::Bridge;
 use crate::hash::StableHasher;
 use crate::math::{Fixed, Vec2};
 use crate::objects::{MapObject, ObjectKind, ObjectList, ObjectRules};
@@ -127,13 +128,25 @@ struct MapFile {
     /// Presentation only, see [`Biome`].
     #[serde(default)]
     biome: Biome,
+    /// Presentation only: compass direction (degrees, 0 = north, 90 =
+    /// east) the rivers flow towards; see [`Map::water_flow_deg`].
+    #[serde(default)]
+    water_flow_deg: Option<u16>,
     #[serde(default)]
     start: Vec<StartEntry>,
     #[serde(default)]
     marker: Vec<MarkerEntry>,
 }
 
+/// Default of [`Map::water_flow_deg`]: south.
+pub const DEFAULT_WATER_FLOW_DEG: u16 = 180;
+
 /// A loaded map.
+///
+/// `Clone` is for copy-on-write changes during a match (a destroyed
+/// bridge, [`crate::Sim::set_bridge_intact`]); everybody else shares it
+/// through an `Arc`.
+#[derive(Clone)]
 pub struct Map {
     name: String,
     samples_x: u32,
@@ -151,8 +164,12 @@ pub struct Map {
     markers: Vec<Marker>,
     /// Not part of `hash`.
     biome: Biome,
+    /// Not part of `hash` (presentation only).
+    water_flow_deg: u16,
     /// Placed objects (`objects.csv`), empty until [`Map::add_objects`].
     objects: ObjectList,
+    /// Derived from the objects whose kind has a deck.
+    bridges: Vec<Bridge>,
     hash: u64,
 }
 
@@ -248,6 +265,14 @@ impl Map {
         };
         let mut map = Self::from_rasters(layout, heights_mm, terrain)?;
         map.biome = file.biome;
+        if let Some(deg) = file.water_flow_deg {
+            if deg >= 360 {
+                return Err(MapError(format!(
+                    "water_flow_deg must be 0..360, got {deg}"
+                )));
+            }
+            map.water_flow_deg = deg;
+        }
         Ok(map)
     }
 
@@ -330,7 +355,9 @@ impl Map {
             starts,
             markers,
             objects: ObjectList::default(),
+            bridges: Vec::new(),
             biome: Biome::default(),
+            water_flow_deg: DEFAULT_WATER_FLOW_DEG,
             hash: 0,
         };
         map.hash = map.raster_hash();
@@ -349,6 +376,56 @@ impl Map {
     pub fn add_objects_with(&mut self, csv: &str, rules: &ObjectRules) -> Result<(), MapError> {
         let list = ObjectList::parse(csv, rules, self.half).map_err(|e| MapError(e.to_string()))?;
         self.set_objects(list);
+        self.check_bridges()
+    }
+
+    /// Every bridge must lie on the map, and the path cells along its axis
+    /// (but the last half cell at each end) must all have their center on
+    /// the deck, so the path grid opens a
+    /// continuous lane (in practice: the axis runs along the 4 m path grid,
+    /// close to the cell centers; see `docs/MAPS.md`).
+    pub fn check_bridges(&self) -> Result<(), MapError> {
+        let stride = (crate::path::PATH_CELL_MM / self.cell_size_mm).max(1);
+        let cell = Fixed::from_num(stride * self.cell_size_mm) / Fixed::from_num(1000);
+        let half_sample = Fixed::from_num(self.cell_size_mm) / Fixed::from_num(2000);
+        let origin = Vec2::new(-self.half.x - half_sample, -self.half.y - half_sample);
+        let center_of = |v: Fixed, o: Fixed| {
+            let k = ((v - o) / cell).floor();
+            o + k * cell + cell / 2
+        };
+        for b in &self.bridges {
+            let o = &self.objects.objects[b.object as usize];
+            let kind = &self.objects.kinds[usize::from(o.kind)];
+            let err = |what: &str| {
+                MapError(format!(
+                    "bridge {} {} at ({} m, {} m): {what}",
+                    kind.id, kind.variant, o.position.x, o.position.y
+                ))
+            };
+            let (start, end) = b.ends();
+            if !self.contains(start) || !self.contains(end) {
+                return Err(err("deck reaches beyond the map"));
+            }
+            // Points every quarter cell along the axis, except the last half
+            // cell at both ends (those cells may lie on the banks).
+            let inner = (b.half_length - cell / 2).max(Fixed::ZERO);
+            let (a, z) = (
+                b.center - b.forward.scale(inner),
+                b.center + b.forward.scale(inner),
+            );
+            let steps = (inner * 8 / cell).ceil().to_num::<i64>().max(1);
+            for k in 0..=steps {
+                let p = a + (z - a).scale(Fixed::from_num(k) / Fixed::from_num(steps));
+                let c = Vec2::new(center_of(p.x, origin.x), center_of(p.y, origin.y));
+                if !b.covers(c) {
+                    return Err(err(&format!(
+                        "the path cell at ({}, {}) on its axis has its center off the deck; \
+                         align the axis with the 4 m path grid",
+                        c.x, c.y
+                    )));
+                }
+            }
+        }
         Ok(())
     }
 
@@ -356,6 +433,14 @@ impl Map {
     pub fn set_objects(&mut self, list: ObjectList) {
         let base = self.raster_hash();
         self.objects = list;
+        self.bridges = (0u32..)
+            .zip(&self.objects.objects)
+            .filter_map(|(index, o)| {
+                let kind = &self.objects.kinds[usize::from(o.kind)];
+                let deck = kind.deck?;
+                Bridge::new(index, o, kind.shape, deck, |p| self.ground_height_at(p))
+            })
+            .collect();
         self.hash = if self.objects.objects.is_empty() {
             base
         } else {
@@ -395,6 +480,43 @@ impl Map {
     /// Climate look for the presentation (not part of the hash).
     pub const fn biome(&self) -> Biome {
         self.biome
+    }
+
+    /// Compass direction (degrees, 0 = north, 90 = east) rivers flow
+    /// towards, for drawing water (`map.toml`: `water_flow_deg`, default
+    /// south). Presentation only, not part of the hash.
+    pub const fn water_flow_deg(&self) -> u16 {
+        self.water_flow_deg
+    }
+
+    /// Bridges of the map, in object order.
+    pub fn bridges(&self) -> &[Bridge] {
+        &self.bridges
+    }
+
+    /// The intact bridge whose deck covers `point` (the first in object
+    /// order if decks overlap).
+    pub fn deck_at(&self, point: Vec2) -> Option<&Bridge> {
+        self.bridges.iter().find(|b| b.intact && b.covers(point))
+    }
+
+    /// Destroys a bridge (no deck any more) or restores it. Returns whether
+    /// anything changed. Use through [`crate::Sim::set_bridge_intact`],
+    /// which also updates the path grid.
+    pub fn set_bridge_intact(&mut self, bridge: usize, intact: bool) -> bool {
+        match self.bridges.get_mut(bridge) {
+            Some(b) if b.intact != intact => {
+                b.intact = intact;
+                true
+            }
+            _ => false,
+        }
+    }
+
+    /// Feeds the state of the bridges (intact or not) into a hash. Writes
+    /// nothing for maps without bridges.
+    pub(crate) fn hash_bridge_state(&self, h: &mut StableHasher) {
+        Bridge::hash_state(&self.bridges, h);
     }
 
     /// Hash of the complete content (grid, heights, terrain, objects with
@@ -456,13 +578,47 @@ impl Map {
         point.x.abs() <= self.half.x && point.y.abs() <= self.half.y
     }
 
-    /// Height in meters at `point`, interpolated bilinearly between the four
-    /// surrounding samples. Points outside the map use the nearest edge.
+    /// Height in meters of the surface units stand on at `point`: the
+    /// deck of an intact bridge (never below the ground), else the ground
+    /// ([`Map::ground_height_at`]).
+    pub fn height_at(&self, point: Vec2) -> Fixed {
+        let ground = self.ground_height_at(point);
+        match self.deck_at(point) {
+            Some(bridge) => bridge.height_at(point).max(ground),
+            None => ground,
+        }
+    }
+
+    /// Terrain id of the surface at `point`: the deck terrain of an intact
+    /// bridge, else the ground ([`Map::ground_terrain_at`]).
+    pub fn terrain_at(&self, point: Vec2) -> u8 {
+        match self.deck_at(point) {
+            Some(bridge) => bridge.terrain,
+            None => self.ground_terrain_at(point),
+        }
+    }
+
+    /// Whether sample `(i, j)` lies under the deck of an intact bridge.
+    pub fn sample_under_deck(&self, i: u32, j: u32) -> bool {
+        if self.bridges.is_empty() {
+            return false;
+        }
+        let cell = Fixed::from_num(self.cell_size_mm) / Fixed::from_num(1000);
+        let p = Vec2::new(
+            Fixed::from_num(i) * cell - self.half.x,
+            Fixed::from_num(j) * cell - self.half.y,
+        );
+        self.deck_at(p).is_some()
+    }
+
+    /// Ground height in meters at `point` (bridges ignored), interpolated
+    /// bilinearly between the four surrounding samples. Points outside the
+    /// map use the nearest edge.
     ///
     /// The interpolation runs in millimeters and is divided by 1000 once at
     /// the end, so heights at samples and at simple fractions of a cell are
     /// exact whenever the result is representable.
-    pub fn height_at(&self, point: Vec2) -> Fixed {
+    pub fn ground_height_at(&self, point: Vec2) -> Fixed {
         let (i, fx) = self.cell_of(point.x, self.half.x, self.samples_x);
         let (j, fy) = self.cell_of(point.y, self.half.y, self.samples_y);
         let sample =
@@ -476,9 +632,9 @@ impl Map {
         (top + (bottom - top) * fy) / Fixed::from_num(1000)
     }
 
-    /// Terrain id at `point`: the nearest sample (points outside the map use
-    /// the nearest edge sample).
-    pub fn terrain_at(&self, point: Vec2) -> u8 {
+    /// Ground terrain id at `point` (bridges ignored): the nearest sample
+    /// (points outside the map use the nearest edge sample).
+    pub fn ground_terrain_at(&self, point: Vec2) -> u8 {
         let i = self.nearest(point.x, self.half.x, self.samples_x);
         let j = self.nearest(point.y, self.half.y, self.samples_y);
         self.terrain[j * self.samples_x as usize + i]

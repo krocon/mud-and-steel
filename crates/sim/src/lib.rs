@@ -9,6 +9,7 @@
 //! - no iteration over hash-based collections,
 //! - no Godot dependency.
 
+pub mod bridges;
 pub mod catalog;
 mod command;
 mod data;
@@ -23,6 +24,7 @@ pub mod scenario;
 mod sim;
 pub mod terrain;
 
+pub use bridges::Bridge;
 pub use catalog::Catalog;
 pub use command::{Command, PlayerCommand, PlayerId, UnitId};
 pub use data::{DEFAULT_FOOTPRINT_MM, DataError, UnitType, unit_types_from_catalog};

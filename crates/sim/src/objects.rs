@@ -79,6 +79,18 @@ pub enum Shape {
     },
 }
 
+/// Drivable deck of a bridge: a box along the object's heading with the
+/// object's shape length and `half_width` across.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Deck {
+    /// Half of the roadway width between the railings, in meters.
+    pub half_width: Fixed,
+    /// Heaviest unit (kg) that may cross.
+    pub max_load_kg: u32,
+    /// Terrain id whose speed applies on the deck.
+    pub terrain: u8,
+}
+
 /// One placeable kind: a catalog id with one model variant.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ObjectKind {
@@ -86,6 +98,8 @@ pub struct ObjectKind {
     pub variant: String,
     pub blocks: Blocks,
     pub shape: Shape,
+    /// Bridges: the deck units drive on (needs a box shape).
+    pub deck: Option<Deck>,
 }
 
 /// A placed object.
@@ -194,6 +208,14 @@ struct Override {
     width_mm: Option<u32>,
 }
 
+#[derive(Clone, Copy, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct DeckEntry {
+    width_mm: u32,
+    max_load_kg: u32,
+    terrain: u8,
+}
+
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 struct Entry {
@@ -203,6 +225,7 @@ struct Entry {
     radius_mm: Option<u32>,
     length_mm: Option<u32>,
     width_mm: Option<u32>,
+    deck: Option<DeckEntry>,
     #[serde(default)]
     variant: BTreeMap<String, Override>,
 }
@@ -262,11 +285,29 @@ impl ObjectRules {
                         half_width: mm(width, MAX_SIZE_MM).map_err(&err)? / 2,
                     }
                 };
+                let deck = match (entry.deck, shape) {
+                    (None, _) => None,
+                    (Some(d), Shape::Box { half_width, .. }) => {
+                        let half = mm(d.width_mm, MAX_SIZE_MM).map_err(&err)? / 2;
+                        if half > half_width {
+                            return Err(err("deck wider than the object".into()));
+                        }
+                        Some(Deck {
+                            half_width: half,
+                            max_load_kg: d.max_load_kg,
+                            terrain: d.terrain,
+                        })
+                    }
+                    (Some(_), Shape::Circle { .. }) => {
+                        return Err(err("a deck needs a box shape".into()));
+                    }
+                };
                 kinds.push(ObjectKind {
                     id: entry.id.clone(),
                     variant: name.clone(),
                     blocks: o.and_then(|o| o.blocks).unwrap_or(entry.blocks),
                     shape,
+                    deck,
                 });
             }
         }
@@ -391,6 +432,13 @@ impl ObjectList {
                     h.write_i64(half_length.to_bits());
                     h.write_i64(half_width.to_bits());
                 }
+            }
+            // Kinds without a deck hash exactly as before decks existed.
+            if let Some(deck) = k.deck {
+                h.write_u8(2);
+                h.write_i64(deck.half_width.to_bits());
+                h.write_u32(deck.max_load_kg);
+                h.write_u8(deck.terrain);
             }
         }
         h.write_u64(self.objects.len() as u64);

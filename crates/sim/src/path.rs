@@ -127,6 +127,14 @@ impl CellRect {
 #[derive(Clone, Debug)]
 struct ClassGrid {
     passable: Vec<bool>,
+}
+
+/// Connected regions for all profiles with the same size class and load
+/// tier (they block exactly the same cells).
+#[derive(Clone, Debug)]
+struct ComponentGrid {
+    class: SizeClass,
+    tier: u32,
     /// Connected region of every passable cell (4-neighborhood, which equals
     /// the reachability of the 8-neighborhood without corner cutting); 0 for
     /// blocked cells.
@@ -139,6 +147,12 @@ struct Profile {
     class: SizeClass,
     offroad: Fixed,
     road: Fixed,
+    mass_kg: u32,
+    /// Number of distinct bridge load limits of the map below `mass_kg`:
+    /// profiles with the same class and tier block the same cells.
+    tier: u32,
+    /// Index into [`PathGrid::components`].
+    components: usize,
     /// 0 = blocked, otherwise at least [`MIN_CELL_COST`].
     cost: Vec<u16>,
     /// Cost per cell assumed by the A* heuristic.
@@ -187,6 +201,13 @@ pub struct PathGrid {
     /// Slope cost factor in permille (1000 = flat).
     slope_pml: Vec<u16>,
     classes: [ClassGrid; 2],
+    /// One per (class, load tier) used by a profile.
+    components: Vec<ComponentGrid>,
+    /// Per cell: 1 + index of the intact bridge whose deck covers the cell
+    /// center ([`crate::Map::bridges`]), 0 for none.
+    deck: Vec<u16>,
+    /// Per bridge: the cells near its deck (bounds grown by two cells).
+    bridge_cells: Vec<CellRect>,
     /// Indexed like [`crate::SimConfig::unit_types`].
     profiles: Vec<Profile>,
     /// Incremented by every change after construction.
@@ -205,8 +226,13 @@ impl PathGrid {
         let half_sample = Fixed::from_num(map.cell_size_mm()) / Fixed::from_num(2000);
         let empty = || ClassGrid {
             passable: vec![false; count],
-            component: vec![0; count],
         };
+        // Load tiers: distinct load limits of the map's bridges.
+        let mut loads: Vec<u32> = map.bridges().iter().map(|b| b.max_load_kg).collect();
+        loads.sort_unstable();
+        loads.dedup();
+        let tier = |mass: u32| loads.iter().filter(|&&l| l < mass).count() as u32;
+        let mut components: Vec<ComponentGrid> = Vec::new();
         let mut grid = Self {
             width,
             height,
@@ -219,16 +245,48 @@ impl PathGrid {
             classes: [empty(), empty()],
             profiles: unit_types
                 .iter()
-                .map(|t| Profile {
-                    class: SizeClass::of_footprint(t.footprint_m),
-                    offroad: t.speed_m_per_s,
-                    road: t.road_speed_m_per_s,
-                    cost: vec![0; count],
-                    heuristic: heuristic_cost(t),
+                .map(|t| {
+                    let class = SizeClass::of_footprint(t.footprint_m);
+                    let tier = tier(t.mass_kg);
+                    let index = components
+                        .iter()
+                        .position(|c| c.class == class && c.tier == tier)
+                        .unwrap_or_else(|| {
+                            components.push(ComponentGrid {
+                                class,
+                                tier,
+                                component: vec![0; count],
+                            });
+                            components.len() - 1
+                        });
+                    Profile {
+                        class,
+                        offroad: t.speed_m_per_s,
+                        road: t.road_speed_m_per_s,
+                        mass_kg: t.mass_kg,
+                        tier,
+                        components: index,
+                        cost: vec![0; count],
+                        heuristic: heuristic_cost(t),
+                    }
                 })
                 .collect(),
+            components: Vec::new(),
+            deck: vec![0; count],
+            bridge_cells: Vec::new(),
             version: 0,
         };
+        grid.components = components;
+        let two_cells = grid.cell * 2;
+        grid.bridge_cells = map
+            .bridges()
+            .iter()
+            .map(|b| {
+                let (lo, hi) = b.bounds();
+                let grow = Vec2::new(two_cells, two_cells);
+                grid.cells_in(lo - grow, hi + grow)
+            })
+            .collect();
         let all = CellRect {
             x0: 0,
             y0: 0,
@@ -320,6 +378,33 @@ impl PathGrid {
     pub fn passable_at(&self, class: SizeClass, p: Vec2) -> bool {
         let (x, y) = self.cell_of(p);
         self.passable(class, x, y)
+    }
+
+    /// Whether the cell containing `p` is passable for unit type `profile`
+    /// (its class, and bridges that carry its mass).
+    pub fn passable_for(&self, profile: usize, p: Vec2) -> bool {
+        let (x, y) = self.cell_of(p);
+        self.profiles[profile].cost[self.index(x, y)] != 0
+    }
+
+    /// How restrictive a profile is: its size class, then its load tier
+    /// (bridges it may not cross). A path planned for the most restrictive
+    /// profile of a group fits every member.
+    pub fn restriction(&self, profile: usize) -> (SizeClass, u32) {
+        let p = &self.profiles[profile];
+        (p.class, p.tier)
+    }
+
+    /// The bridge (index into [`crate::Map::bridges`]) whose intact deck
+    /// covers the center of cell `(x, y)`.
+    pub fn deck_of(&self, x: u32, y: u32) -> Option<usize> {
+        self.deck[self.index(x, y)].checked_sub(1).map(usize::from)
+    }
+
+    /// The cells whose flags may depend on bridge `bridge` (its deck
+    /// bounds grown by two cells).
+    pub fn bridge_cells(&self, bridge: usize) -> Option<CellRect> {
+        self.bridge_cells.get(bridge).copied()
     }
 
     const fn index(&self, x: u32, y: u32) -> usize {
@@ -416,8 +501,8 @@ impl PathGrid {
                 }
             }
         }
-        for class in SizeClass::ALL {
-            self.label_components(class);
+        for c in 0..self.components.len() {
+            self.label_components(c);
         }
         area
     }
@@ -428,13 +513,17 @@ impl PathGrid {
         let k = self.stride;
         let (i0, j0) = (x * k, y * k);
         let i = self.index(x, y);
+        let near_bridge = self.bridge_cells.iter().any(|r| r.contains(x, y));
+        // Samples under an intact deck do not count as impassable (the deck
+        // bridges them), so cells next to a deck get no margin from them.
         let impassable = |si: u32, sj: u32| {
             si >= sx
                 || sj >= sy
-                || rules
+                || (rules
                     .types
                     .get(usize::from(map.sample_terrain(si, sj)))
                     .is_none_or(|t| !t.passable)
+                    && !(near_bridge && map.sample_under_deck(si, sj)))
         };
         let mut flags = self.base[i] & PLACED_FLAGS;
         if (j0..j0 + k).any(|j| (i0..i0 + k).any(|si| impassable(si, j))) {
@@ -477,9 +566,25 @@ impl PathGrid {
         if 100 * sum > i64::from(rules.slope.max_grade_pct) * cell_mm {
             flags |= BLOCKED_STEEP;
         }
+        let mut grade = Fixed::from_num(octagonal) / Fixed::from_num(cell_mm);
+        // A cell whose center lies on an intact deck is the deck: passable
+        // at the deck's grade, whatever lies below.
+        self.deck[i] = 0;
+        if near_bridge {
+            let center = self.center(x, y);
+            if let Some(b) = map
+                .bridges()
+                .iter()
+                .position(|b| b.intact && b.covers(center))
+            {
+                let bridge = &map.bridges()[b];
+                flags &= !(BLOCKED_TERRAIN | BLOCKED_STEEP | BLOCKED_MARGIN);
+                grade = (bridge.height_end - bridge.height_start).abs() / (bridge.half_length * 2);
+                self.deck[i] = u16::try_from(b + 1).unwrap_or(0);
+            }
+        }
         self.base[i] = flags;
         // Driving up costs 1 / factor, down 1: average both directions.
-        let grade = Fixed::from_num(octagonal) / Fixed::from_num(cell_mm);
         let factor = rules
             .slope
             .factor(grade)
@@ -496,31 +601,49 @@ impl PathGrid {
         if !self.classes[self.profiles[p].class.index()].passable[i] {
             return 0;
         }
-        let k = self.stride;
-        let (i0, j0) = (x * k, y * k);
-        let mut sum = Fixed::ZERO;
-        for j in j0..j0 + k {
-            for si in i0..i0 + k {
-                let t = usize::from(map.sample_terrain(si, j));
-                sum += times.get(t).copied().unwrap_or(Fixed::ONE);
+        let mean = if let Some(b) = self.deck_of(x, y) {
+            // On a deck: its terrain, if it carries the unit at all.
+            let bridge = &map.bridges()[b];
+            if bridge.max_load_kg < self.profiles[p].mass_kg {
+                return 0;
             }
-        }
-        let mean = sum / Fixed::from_num(k * k);
+            times
+                .get(usize::from(bridge.terrain))
+                .copied()
+                .unwrap_or(Fixed::ONE)
+        } else {
+            let k = self.stride;
+            let (i0, j0) = (x * k, y * k);
+            let mut sum = Fixed::ZERO;
+            for j in j0..j0 + k {
+                for si in i0..i0 + k {
+                    let t = usize::from(map.sample_terrain(si, j));
+                    sum += times.get(t).copied().unwrap_or(Fixed::ONE);
+                }
+            }
+            sum / Fixed::from_num(k * k)
+        };
         let cost = mean * Fixed::from_num(MIN_CELL_COST) * Fixed::from_num(self.slope_pml[i])
             / Fixed::from_num(1000);
         cost.to_num::<u32>()
             .clamp(u32::from(MIN_CELL_COST), u32::from(u16::MAX)) as u16
     }
 
-    fn label_components(&mut self, class: SizeClass) {
+    /// Labels the connected regions of component grid `c` from the costs of
+    /// a profile that uses it (all of them block the same cells).
+    fn label_components(&mut self, c: usize) {
         let width = self.width;
         let height = self.height;
-        let grid = &mut self.classes[class.index()];
+        let Some(profile) = self.profiles.iter().find(|p| p.components == c) else {
+            return;
+        };
+        let cost = &profile.cost;
+        let grid = &mut self.components[c];
         grid.component.fill(0);
         let mut next = 0u32;
         let mut stack = Vec::new();
-        for start in 0..grid.passable.len() {
-            if !grid.passable[start] || grid.component[start] != 0 {
+        for start in 0..cost.len() {
+            if cost[start] == 0 || grid.component[start] != 0 {
                 continue;
             }
             next += 1;
@@ -530,7 +653,7 @@ impl PathGrid {
                 let (x, y) = (c % width, c / width);
                 let mut visit = |nx: u32, ny: u32| {
                     let n = (ny * width + nx) as usize;
-                    if grid.passable[n] && grid.component[n] == 0 {
+                    if cost[n] != 0 && grid.component[n] == 0 {
                         grid.component[n] = next;
                         stack.push(n as u32);
                     }
@@ -612,6 +735,13 @@ impl PathGrid {
         self.walk_line(a, b, |i| passable[i])
     }
 
+    /// Whether unit type `profile` can drive straight from `a` to `b`
+    /// (like [`PathGrid::line_of_sight`], with the bridges it may cross).
+    pub fn line_of_sight_for(&self, profile: usize, a: Vec2, b: Vec2) -> bool {
+        let cost = &self.profiles[profile].cost;
+        self.walk_line(a, b, |i| cost[i] != 0)
+    }
+
     /// Estimated cost of driving straight from `a` to `b` with profile `p`
     /// (mean cost of the touched cells times the length, in the units of
     /// the search), or `None` if a touched cell (except the start cell) is
@@ -639,8 +769,8 @@ impl PathGrid {
     /// component; with no passable neighbor either, the nearest passable
     /// cell within [`START_SEARCH_CELLS`] rings (the unit drives there in a
     /// straight line). `None` if there is none.
-    fn search_start(&self, class: SizeClass, x: u32, y: u32, start: Vec2) -> Option<(u32, u32)> {
-        let grid = &self.classes[class.index()];
+    fn search_start(&self, profile: usize, x: u32, y: u32, start: Vec2) -> Option<(u32, u32)> {
+        let grid = &self.components[self.profiles[profile].components];
         let cell = self.index(x, y) as u32;
         let own = grid.component[cell as usize];
         if own != 0 {
@@ -654,7 +784,7 @@ impl PathGrid {
         if let Some(component) = neighbor {
             return Some((cell, component));
         }
-        let nearest = self.nearest_cell(class, None, start, START_SEARCH_CELLS)?;
+        let nearest = self.nearest_cell(profile, None, start, START_SEARCH_CELLS)?;
         Some((nearest, grid.component[nearest as usize]))
     }
 
@@ -669,12 +799,12 @@ impl PathGrid {
     /// goal cell up to `max_rings`.
     fn nearest_cell(
         &self,
-        class: SizeClass,
+        profile: usize,
         component: Option<u32>,
         goal: Vec2,
         max_rings: u32,
     ) -> Option<u32> {
-        let grid = &self.classes[class.index()];
+        let grid = &self.components[self.profiles[profile].components];
         let (gx, gy) = self.cell_of(goal);
         let rings = self.width.max(self.height).min(max_rings.saturating_add(1));
         let mut best: Option<(i128, u32)> = None;
@@ -725,22 +855,22 @@ impl PathGrid {
     }
 
     /// The center of the passable cell nearest to `near` (within `radius`
-    /// rings of cells) that a unit of `class` can reach in a straight line
-    /// from `from`; ties go to the smaller cell index.
+    /// rings of cells) that unit type `profile` can reach in a straight
+    /// line from `from`; ties go to the smaller cell index.
     pub fn nearest_visible(
         &self,
-        class: SizeClass,
+        profile: usize,
         from: Vec2,
         near: Vec2,
         radius: u32,
     ) -> Option<Vec2> {
         let (nx, ny) = self.cell_of(near);
-        let passable = &self.classes[class.index()].passable;
+        let cost = &self.profiles[profile].cost;
         let mut best: Option<(i128, usize, Vec2)> = None;
         for y in ny.saturating_sub(radius)..=(ny + radius).min(self.height - 1) {
             for x in nx.saturating_sub(radius)..=(nx + radius).min(self.width - 1) {
                 let i = self.index(x, y);
-                if !passable[i] {
+                if cost[i] == 0 {
                     continue;
                 }
                 let center = self.center(x, y);
@@ -750,7 +880,7 @@ impl PathGrid {
                 if best.is_some_and(|(k, b, _)| (k, b) <= (key, i)) {
                     continue;
                 }
-                if self.line_of_sight(class, from, center) {
+                if self.line_of_sight_for(profile, from, center) {
                     best = Some((key, i, center));
                 }
             }
@@ -979,16 +1109,16 @@ impl Search {
         goal: Vec2,
         profile: usize,
     ) -> Begin {
-        let class = grid.profiles[profile].class;
         let (sx, sy) = grid.cell_of(start);
-        let Some((start_cell, component)) = grid.search_start(class, sx, sy, start) else {
+        let Some((start_cell, component)) = grid.search_start(profile, sx, sy, start) else {
             return Begin::Done(None);
         };
         let (gx, gy) = grid.cell_of(goal);
         let mut goal_cell = grid.index(gx, gy) as u32;
         let mut goal = goal;
-        if grid.classes[class.index()].component[goal_cell as usize] != component {
-            let Some(nearest) = grid.nearest_cell(class, Some(component), goal, u32::MAX) else {
+        let components = &grid.components[grid.profiles[profile].components].component;
+        if components[goal_cell as usize] != component {
+            let Some(nearest) = grid.nearest_cell(profile, Some(component), goal, u32::MAX) else {
                 return Begin::Done(None);
             };
             goal_cell = nearest;
@@ -1267,6 +1397,7 @@ mod tests {
             speed_m_per_s: Fixed::from_num(2),
             road_speed_m_per_s: Fixed::from_num(2),
             footprint_m: Fixed::ONE,
+            mass_kg: 0,
         }
     }
 
@@ -1276,6 +1407,7 @@ mod tests {
             speed_m_per_s: Fixed::from_num(4),
             road_speed_m_per_s: Fixed::from_num(10),
             footprint_m: Fixed::from_num(7),
+            mass_kg: 0,
         }
     }
 
@@ -1556,7 +1688,7 @@ mod tests {
     fn nearest_cell_matches_brute_force() {
         let map = maze();
         let grid = grid(&map);
-        let class = SizeClass::Large;
+        let profile = 1; // the tank: large
         let (w, h) = grid.size();
         let mut rng = crate::Rng::new(3);
         for _ in 0..200 {
@@ -1568,7 +1700,7 @@ mod tests {
             for y in 0..h {
                 for x in 0..w {
                     let i = grid.index(x, y);
-                    if grid.classes[class.index()].component[i] == 0 {
+                    if grid.costs(profile)[i] == 0 {
                         continue;
                     }
                     let d = grid.center(x, y) - goal;
@@ -1580,7 +1712,7 @@ mod tests {
                 }
             }
             assert_eq!(
-                grid.nearest_cell(class, None, goal, u32::MAX),
+                grid.nearest_cell(profile, None, goal, u32::MAX),
                 best.map(|b| b.1),
                 "{goal:?}"
             );

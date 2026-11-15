@@ -14,6 +14,12 @@
 #              "none", "small" (infantry), "large" (tanks, trucks) or "all"
 #   radius_mm  circular ground shape (trunks, poles), or
 #   length_mm / width_mm  box (defaults: catalog values when radius_mm is absent)
+#   deck       bridges only (needs a box): the drivable roadway along the
+#              length (prompt 014), a table with
+#                width_mm     roadway width between the railings
+#                max_load_kg  heaviest unit that may cross (catalog mass_kg)
+#                terrain      terrain id of data/terrain.toml whose speed
+#                             applies on the deck (2 = road)
 #   [object.variant.<Name>]  per-variant overrides of blocks / radius_mm /
 #              length_mm / width_mm
 #
@@ -123,6 +129,35 @@ blocks = "large"
 id = "env_fence_wood"
 variants = ["Segment", "End", "Corner"]
 blocks = "none"
+
+# --- Bridges: a deck over water (prompt 014) --------------------------------------
+# The deck spans the object's length; its height runs linearly between the
+# ground heights at both ends of the axis (docs/MAPS.md, "Bridges"). Widths
+# are the roadway of the models (extra deck_width_m). Load limits are game
+# rules: a single-lane timber bridge carries trucks, half-tracks, armored
+# cars and light tanks (up to 16 t), but no Panzer IV, T-34 or Sherman; the
+# stone arch bridge carries everything in the catalog.
+
+[[object]]
+id = "env_bridge_wood"
+variants = ["Span8", "Span12", "Span16"]
+blocks = "none"
+deck = { width_mm = 4100, max_load_kg = 16000, terrain = 2 }
+
+[object.variant.Span8]
+length_mm = 8000
+
+[object.variant.Span16]
+length_mm = 16000
+
+[[object]]
+id = "env_bridge_stone"
+variants = ["Arch1", "Arch2", "Arch3"]
+blocks = "none"
+deck = { width_mm = 5100, max_load_kg = 100000, terrain = 2 }
+
+[object.variant.Arch3]
+length_mm = 30000
 
 # --- Props -------------------------------------------------------------------------
 
