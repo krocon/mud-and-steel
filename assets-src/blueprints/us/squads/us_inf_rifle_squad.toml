@@ -1,0 +1,79 @@
+# US rifle squad, T/O&E 7-17 (26 Feb 1944): 12 men. Composition from the catalog
+# sources (battleorder.org): leader (M1), assistant leader (M1 + M7 launcher),
+# BAR man, assistant BAR man (M1), ammunition bearer (M1), 2 rifle grenadiers
+# (M1 + M7), 2 scouts and 3 riflemen (M1).
+#
+# Roles are the soldiers of prompt 005 (tools/blender/soldier/loadouts.py).
+# Deviations: the `squad_leader` soldier carries a Thompson M1A1 (the 1944 table
+# gives the leader an M1 rifle; he is kept for his binoculars and silhouette);
+# M7 grenade launchers are not modeled (grenadiers are plain riflemen).
+#
+# Formation: a compact squad wedge for display, scouts ahead, about 2.5 m between
+# men. FM 7-10 uses roughly 5 yd intervals in combat; the game's formations will
+# come from the simulation, this file only fixes who is in the squad.
+unit = "us_inf_rifle_squad"
+
+[[member]]
+role = "squad_leader"
+position = [0.0, 3.0]
+note = "squad leader"
+
+[[member]]
+role = "rifleman"
+position = [-2.5, 6.0]
+clip = "aim_kneel"
+note = "scout"
+
+[[member]]
+role = "rifleman"
+position = [2.5, 6.0]
+clip = "aim_kneel"
+note = "scout"
+
+[[member]]
+role = "auto_rifleman"
+position = [-2.5, 1.5]
+clip = "aim_prone"
+note = "automatic rifleman (BAR M1918A2)"
+
+[[member]]
+role = "rifleman"
+position = [-4.5, 0.0]
+note = "assistant automatic rifleman"
+
+[[member]]
+role = "rifleman"
+position = [-6.0, -1.5]
+note = "ammunition bearer"
+
+[[member]]
+role = "rifleman"
+position = [2.5, 1.5]
+note = "rifle grenadier (M7 launcher not modeled)"
+
+[[member]]
+role = "rifleman"
+position = [4.5, 0.0]
+note = "rifle grenadier (M7 launcher not modeled)"
+
+[[member]]
+role = "rifleman"
+position = [6.0, -1.5]
+clip = "aim_stand"
+note = "rifleman"
+
+[[member]]
+role = "rifleman"
+position = [-1.5, -1.0]
+clip = "aim_stand"
+note = "rifleman"
+
+[[member]]
+role = "rifleman"
+position = [1.5, -1.0]
+note = "rifleman"
+
+[[member]]
+role = "rifleman"
+position = [0.0, -3.0]
+note = "assistant squad leader"

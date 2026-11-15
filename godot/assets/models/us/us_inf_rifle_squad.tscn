@@ -1,0 +1,44 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="PackedScene" uid="uid://bydty1tcmbshf" path="res://assets/models/us/infantry/auto_rifleman.glb" id="1_auto_rifleman"]
+[ext_resource type="PackedScene" uid="uid://1076pyxkp2eq" path="res://assets/models/us/infantry/rifleman.glb" id="2_rifleman"]
+[ext_resource type="PackedScene" uid="uid://d17qbigr2kryl" path="res://assets/models/us/infantry/squad_leader.glb" id="3_squad_leader"]
+
+[node name="us_inf_rifle_squad" type="Node3D"]
+metadata/extras = {"cat_id": "us_inf_rifle_squad", "cat_faction": "us", "cat_category": "inf_rifle", "cat_name_de": "Schützengruppe", "cat_name_en": "Rifle Squad", "cat_designation": "Rifle squad, T/O&E 7-17 (26 Feb 1944)", "cat_year_from": 1943, "cat_year_to": 1945, "cat_speed_road_kmh_x10": 50, "cat_speed_offroad_kmh_x10": 40, "cat_weapons": "9× Rifle M1 (Garand); 2× Rifle M1 with grenade launcher M7; Browning Automatic Rifle M1918A2", "cat_squad_size": 12, "squad": true, "squad_roles": ["squad_leader", "rifleman", "rifleman", "auto_rifleman", "rifleman", "rifleman", "rifleman", "rifleman", "rifleman", "rifleman", "rifleman", "rifleman"], "squad_notes": ["squad leader", "scout", "scout", "automatic rifleman (BAR M1918A2)", "assistant automatic rifleman", "ammunition bearer", "rifle grenadier (M7 launcher not modeled)", "rifle grenadier (M7 launcher not modeled)", "rifleman", "rifleman", "rifleman", "assistant squad leader"], "squad_clips": ["idle", "aim_kneel", "aim_kneel", "aim_prone", "idle", "idle", "idle", "idle", "aim_stand", "aim_stand", "idle", "idle"], "squad_file": "assets-src/blueprints/us/squads/us_inf_rifle_squad.toml", "source_hash": "c95963f6fe6a0434"}
+
+[node name="Member_01" parent="." instance=ExtResource("3_squad_leader")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -3)
+
+[node name="Member_02" parent="." instance=ExtResource("2_rifleman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 0, -6)
+
+[node name="Member_03" parent="." instance=ExtResource("2_rifleman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 0, -6)
+
+[node name="Member_04" parent="." instance=ExtResource("1_auto_rifleman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 0, -1.5)
+
+[node name="Member_05" parent="." instance=ExtResource("2_rifleman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.5, 0, 0)
+
+[node name="Member_06" parent="." instance=ExtResource("2_rifleman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, 1.5)
+
+[node name="Member_07" parent="." instance=ExtResource("2_rifleman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 0, -1.5)
+
+[node name="Member_08" parent="." instance=ExtResource("2_rifleman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.5, 0, 0)
+
+[node name="Member_09" parent="." instance=ExtResource("2_rifleman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, 1.5)
+
+[node name="Member_10" parent="." instance=ExtResource("2_rifleman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 0, 1)
+
+[node name="Member_11" parent="." instance=ExtResource("2_rifleman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 0, 1)
+
+[node name="Member_12" parent="." instance=ExtResource("2_rifleman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 3)
