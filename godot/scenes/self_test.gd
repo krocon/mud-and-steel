@@ -44,9 +44,10 @@ func _run() -> void:
 	await _order_test()
 	await _hill_test()
 	await _terrain_test()
+	await _biome_test()
 	_replay_test()
 	var ok := _errors.is_empty()
-	var message := "camera, selection, orders, hill, terrain and replay ok" if ok else " ".join(_errors)
+	var message := "camera, selection, orders, hill, terrain, biomes and replay ok" if ok else " ".join(_errors)
 	print("self-test %s: %s" % ["PASSED" if ok else "FAILED", message])
 	get_tree().quit(0 if ok else 1)
 
@@ -314,6 +315,43 @@ func _terrain_test() -> void:
 		"crater changed the ground 80 m away")
 	_check(absf(sim_host.height_at(point.x, point.z) - before) < 0.01, "debug crater changed the simulation")
 	print("self-test: terrain ok (crater %.2f -> %.2f m, chunks per LOD %s)" % [before, after, terrain.visible_per_lod])
+
+
+# --- 6. Biomes (prompt 015) -------------------------------------------------
+
+
+## The map's biome is applied at start; switching it changes lighting,
+## ground and unit palettes (the simulation does not know the biome beyond
+## map.toml; its hash is checked by the replay test below).
+func _biome_test() -> void:
+	var sim_host: SimHost = main.sim_host
+	var atmosphere: Node = main.atmosphere
+	var start_biome: String = atmosphere.preset.id
+	var expected: String = atmosphere.biome_from(sim_host.map_biome())
+	_check(start_biome == expected, "biome '%s' at start, map says '%s'" % [start_biome, sim_host.map_biome()])
+	var unit: Node3D = main.units_root.get_child(0)
+	var model := unit.get_node_or_null("Model")
+	var faction: String = model.get_meta(&"faction", "") if model else ""
+	for id: String in ["desert", "winter", "forest"]:
+		main.set_biome(id)
+		await _frames(2)
+		var preset: Resource = atmosphere.preset
+		_check(preset.id == id, "preset '%s' after switching to '%s'" % [preset.id, id])
+		_check(main.terrain.shader_parameter(&"layer_source") == preset.layer_source,
+			"terrain layer sources do not follow the '%s' preset" % id)
+		_check(is_equal_approx(main.terrain.shader_parameter(&"snow_cover"), preset.snow_cover),
+			"terrain snow cover does not follow the '%s' preset" % id)
+		var env: Environment = main.get_node("WorldEnvironment").environment
+		_check(env.fog_enabled and env.fog_depth_end > env.fog_depth_begin, "no haze in '%s'" % id)
+		_check(main.sun.shadow_enabled, "sun casts no shadows in '%s'" % id)
+		if not faction.is_empty():
+			var mesh: GeometryInstance3D = UnitCamo.meshes(model)[0]
+			var base: Color = mesh.get_instance_shader_parameter(&"camo_base")
+			_check(base == UnitCamo.palette(faction, preset.camo_biome).base,
+				"unit palette does not follow the '%s' biome" % id)
+	main.set_biome(start_biome)
+	_check(faction != "", "first unit has no catalog model")
+	print("self-test: biomes ok (start '%s', switched desert, winter, forest)" % start_biome)
 
 
 # --- 6. Replay ------------------------------------------------------------

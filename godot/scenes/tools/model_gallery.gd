@@ -31,6 +31,7 @@ extends Node3D
 ##         res://scenes/tools/model_gallery.tscn -- --tour
 
 const MODEL_ROOT := "res://assets/models/"
+const Atmosphere := preload("res://scenes/world/atmosphere.gd")
 const UNIT_FACTIONS: Array[String] = ["de", "su", "us"]
 const CATEGORIES: Array[String] = ["units", "infantry", "environment"]
 const CATEGORY_NAMES: Dictionary[String, String] = {
@@ -75,6 +76,10 @@ var _biome_buttons: Dictionary[String, Button] = {}
 var _category_buttons: Dictionary[String, Button] = {}
 var _clip_select: OptionButton
 var _ground: MeshInstance3D
+## Lit like the game: sun color and energy, sky, ambient light and grading
+## of the biome preset (prompt 015); the sun direction stays a studio light.
+var _environment: Environment
+var _sky_material: ProceduralSkyMaterial
 var _sun: DirectionalLight3D
 
 # orbit camera
@@ -144,6 +149,8 @@ func _build_environment() -> void:
 	e.ambient_light_energy = 0.8
 	e.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	e.ssao_enabled = true
+	_environment = e
+	_sky_material = mat
 	env.environment = e
 	add_child(env)
 
@@ -427,6 +434,26 @@ func _set_biome(biome: String) -> void:
 		EnvLook.apply(model, biome)
 	var gmat := _ground.material_override as StandardMaterial3D
 	gmat.albedo_color = GROUND_COLORS[biome]
+	_biome_light(biome)
+
+
+## Sun color and energy, sky, ambient light and grading from the biome
+## preset, so models look as in the game.
+func _biome_light(biome: String) -> void:
+	var preset: Resource = Atmosphere.load_preset(biome)
+	_sun.light_color = preset.sun_color
+	_sun.light_energy = preset.sun_energy
+	_sky_material.sky_top_color = preset.sky_top
+	_sky_material.sky_horizon_color = preset.sky_horizon
+	_sky_material.ground_horizon_color = preset.ground_horizon
+	_sky_material.ground_bottom_color = preset.ground_bottom
+	_environment.ambient_light_energy = preset.ambient_energy
+	_environment.tonemap_mode = Environment.TONE_MAPPER_AGX
+	_environment.tonemap_exposure = preset.exposure
+	_environment.tonemap_white = preset.white
+	_environment.adjustment_enabled = true
+	_environment.adjustment_contrast = preset.contrast
+	_environment.adjustment_saturation = preset.saturation
 
 
 func _play_selected_clip() -> void:
