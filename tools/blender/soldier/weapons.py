@@ -207,10 +207,36 @@ def build_mg(w):
         b.cylinder((0, 0.10, BORE + 0.035), (0, 0.10, BORE + 0.06), d / 2, "Metal", W, sides=12)
     if s.get("belt"):
         b.box((-0.05, 0.03, BORE - 0.02), (0.06, 0.05, 0.03), "Metal", W)
+    if "water_jacket" in s:
+        # water-cooled barrel jacket (Maxim, M1917A1) over most of the barrel
+        b.cylinder((0, rec_end, BORE), (0, muzzle_y - 0.05, BORE), s["water_jacket"], "Metal", W, sides=10)
     ground = Vector((0, butt_y, BORE - 0.07))
     if "bipod" in s:
         ground = _bipod(b, s["bipod"] - pull)
-    if s.get("tripod"):
+    if s.get("tripod") == "heavy":
+        # heavy tripod (Lafette 42, M1917A1): long front leg, two rear legs, cradle
+        h = s.get("tripod_height", 0.42)
+        pivot = Vector((0, 0.12, BORE - 0.06))
+        b.box(pivot, (0.07, 0.22, 0.06), "Metal", W)
+        b.cylinder(pivot, pivot + Vector((0, 0.70, -h)), 0.014, "Metal", W, sides=4)
+        for sx in (-1, 1):
+            b.cylinder(pivot, pivot + Vector((sx * 0.45, -0.55, -h)), 0.014, "Metal", W, sides=4)
+        ground = pivot + Vector((0, 0.0, -h))
+    elif s.get("sokolov"):
+        # Sokolov wheeled mount with shield: two small wheels, trail, shield
+        h = 0.36
+        pivot = Vector((0, 0.10, BORE - 0.06))
+        b.box(pivot + Vector((0, 0, -h * 0.5)), (0.05, 0.06, h), "Metal", W)
+        axle = pivot + Vector((0, 0.05, -h + 0.13))
+        for sx in (-1, 1):
+            b.cylinder(axle + Vector((sx * 0.24, 0, 0)), axle + Vector((sx * 0.28, 0, 0)), 0.13, "Metal", W,
+                       sides=10)
+        b.cylinder(axle + Vector((-0.24, 0, 0)), axle + Vector((0.24, 0, 0)), 0.012, "Metal", W, sides=4)
+        b.box(pivot + Vector((0, -0.45, -h + 0.08)), (0.05, 0.75, 0.04), "Metal", W)
+        sw, sh = s["shield"]
+        b.box(pivot + Vector((0, 0.30, 0.05)), (sw, 0.006, sh), "Paint", W)
+        ground = axle + Vector((0, 0, -0.13))
+    elif s.get("tripod"):
         # Low tripod M2: front leg and two rear legs.
         pivot = Vector((0, 0.10, BORE - 0.05))
         b.box(pivot, (0.05, 0.08, 0.05), "Metal", W)
@@ -323,3 +349,29 @@ def build_weapon(wid):
     p.setdefault("fore", p["grip_l"])
     p["center"] = (p["butt"] + p["muzzle"]) * 0.5
     return w
+
+
+# --- prompt 008: weapons for the tier-2 infantry teams ----------------------------------
+# Dimensions from the cited articles; mount dimensions (tripod legs, Sokolov wheels and
+# shield, baseplates) are modeling estimates from photographs and marked uncertain.
+WEAPONS.update({
+    "mg42_lafette": dict(kind="mg", length=1.220, barrel=0.533, pull=0.30, jacket=True, belt=True,
+                         tripod="heavy", tripod_height=0.42,
+                         source=[WIKI + "MG_42", WIKI + "Lafette_34"], uncertain=["tripod_height"]),
+    "maxim": dict(kind="mg", length=1.107, barrel=0.721, pull=0.10, water_jacket=0.055, belt=True,
+                  sokolov=True, shield=(0.42, 0.38),
+                  source=[WIKI + "PM_M1910"], uncertain=["shield"]),
+    "m1917a1": dict(kind="mg", length=0.981, barrel=0.610, pull=0.10, water_jacket=0.048, belt=True,
+                    tripod="heavy", tripod_height=0.40,
+                    source=[WIKI + "M1917_Browning_machine_gun"], uncertain=["tripod_height"]),
+    "m1_carbine": dict(kind="rifle", length=0.904, barrel=0.458, pull=0.33, full_stock=True,
+                       source=[WIKI + "M1_carbine"]),
+    "mosin_m38": dict(kind="rifle", length=1.016, barrel=0.514, pull=0.33, full_stock=True,
+                      source=[WIKI + "Mosin–Nagant"]),
+    "sgrw34": dict(kind="mortar", barrel=1.143, caliber=0.081, base=(0.47, 0.40),
+                   source=[WIKI + "8_cm_Granatwerfer_34"], uncertain=["base"]),
+    "bm37": dict(kind="mortar", barrel=1.220, caliber=0.082, base=(0.50, 0.50),
+                 source=[WIKI + "82-BM-37"], uncertain=["barrel", "base"]),
+    "m1_81mm": dict(kind="mortar", barrel=1.257, caliber=0.081, base=(0.50, 0.42),
+                    source=[WIKI + "M1_mortar"], uncertain=["base"]),
+})

@@ -31,7 +31,7 @@ from kit import catalog, env  # noqa: E402
 from kit.core import tri_count, world_bbox  # noqa: E402
 from kit.sourcehash import source_hash  # noqa: E402
 
-FACTION = "neutral"
+FACTION = "neutral"  # objects every neutral catalog entry needs; faction forts: id prefix
 TOL = 0.02
 PARTS = ("Walls", "Roof", "Floor", "Debris", "Tower", "Deck", "Pier", "Rail")
 SOCKET = re.compile(r"Socket_(Wire|Fire)_\d\d$")
@@ -50,7 +50,7 @@ def box_of(u, vt):
     if "dims_m" in vt:
         return tuple(vt["dims_m"])
     s = vt.get("size", [1, 1, 1])
-    return (catalog.mm(u, "length_mm") * s[0], catalog.mm(u, "width_mm") * s[1], catalog.mm(u, "height_mm") * s[2])
+    return (catalog.mm(u, "length_mm") * s[0], catalog.mm(u, "width_mm") * s[1], catalog.env_height(u, vt) * s[2])
 
 
 def measure(meshes, sunken):
@@ -68,6 +68,7 @@ def measure(meshes, sunken):
 
 
 def check_blend(uid, u, bp, errors, stats):
+    FACTION = catalog.env_faction(uid)
     root = bpy.data.objects.get(uid)
     if root is None or root.type != "EMPTY" or root.parent is not None:
         errors.append(f"no root empty named {uid}")
@@ -201,6 +202,7 @@ def check_glb(glb, ref, errors):
 
 
 def validate(uid):
+    FACTION = catalog.env_faction(uid)
     errors, stats = [], {}
     try:
         u = catalog.unit(FACTION, uid)

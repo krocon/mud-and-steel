@@ -1,0 +1,77 @@
+# 40 mm Automatic Gun M1 (Bofors) on Carriage M2A1: example of the `aa_gun`
+# assembly (prompt 008 kit preparation; the us session reviews and details it).
+# Main dimensions from data/catalog/us.toml (travel order): length 5.69 m,
+# width 1.83 m, height 2.01 m. Modeled on its wheels with the barrel
+# horizontal; the outriggers are shown folded within the catalog width (the
+# deployed outriggers would be wider than the catalog width).
+# Modeling estimates from photographs (TM 9-252 has the details): four-wheel
+# carriage, 6.00-16 tires, two layer seats, clip loader above the breech.
+unit = "us_bofors_m1"
+assembly = "aa_gun"
+
+[carriage]
+part = "cruciform_platform"
+center = [1.0, 0.30]
+z = 0.62
+arms = [[0, 2.15], [180, 2.15], [90, 0.75], [270, 0.75]]
+beam = [0.20, 0.16]
+
+[[axle]]
+y = 1.45
+diameter = 0.72
+width = 0.18
+track = 1.54
+
+[[axle]]
+y = -1.45
+diameter = 0.72
+width = 0.18
+track = 1.54
+
+[mount]
+part = "aa_mount"
+pedestal = [0.60, 0.22]
+body = [0.95, 1.00, 0.28]
+cheeks = [0.38, 0.90, 0.46]
+seats = [[-0.66, -0.30, 1.18], [0.66, -0.30, 1.18]]
+handwheels = [[-0.58, 0.15, 1.12], [0.58, 0.15, 1.12]]
+
+[gun]
+part = "field_gun"
+trunnion = [0.05, 1.50]
+cradle = [1.30, 0.34, 0.28]
+recoil = [0.80, 0.05]
+breech = [0.62, 0.30]
+segments = [[0.90, 0.065, 0.055], ["fit", 0.038, 0.034]]
+muzzle_brake = "slotted"     # conical flash hider
+
+[[part]]
+part = "box_prop"            # clip loader above the breech
+center = [0.0, -0.35, 1.76]
+size = [0.24, 0.34, 0.50]
+material = "Metal"
+parent = "Gun"
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -2.05, 0.45]
+parent = "Carriage"
+
+[[part]]
+part = "crew_sockets"
+radius = 2.6
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 0.0, 1.0]
+parent = "Carriage"
+
+[[part]]
+part = "marking"
+name = "Carriage_L"
+kind = "number"
+parent = "Carriage"
+position = [-0.45, 0.0, 0.47]
+normal = [-1.0, 0.0, 0.0]
+size = 0.2

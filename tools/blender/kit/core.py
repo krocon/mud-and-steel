@@ -239,9 +239,14 @@ def _basis(axis):
 
 
 def surface_matrix(pos, normal, up=(0, 0, 1)):
-    """Socket orientation for markings: local +Z = surface normal, +Y = up."""
+    """Socket orientation for markings: local +Z = surface normal, +Y = up.
+
+    On faces that point (nearly) up, e.g. wing tops and baseplates, "up" is
+    the model front (+Y) instead (prompt 008)."""
     z = v3(normal).normalized()
     y = v3(up)
+    if abs(y.normalized().dot(z)) > 0.99:
+        y = Vector((0.0, 1.0, 0.0))
     y = (y - z * y.dot(z)).normalized()
     x = y.cross(z)
     m = Matrix((x, y, z)).transposed().to_4x4()

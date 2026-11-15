@@ -1,0 +1,96 @@
+# Piper L-4 Grasshopper: example of the aircraft parts of prompt 008 (strut-
+# braced high wing, fixed gear, shadow proxy; the us session reviews it).
+# Main dimensions from data/catalog/us.toml: length 6.83 m, wingspan 10.74 m,
+# height 2.03 m. Modeling estimates from the J-3 Cub three-view: rectangular
+# wing of 1.60 m chord, 8.00-4 main wheels, 72 in two-blade propeller.
+unit = "us_l4"
+assembly = "aircraft"
+
+[layout]
+cg_chord = 0.3
+
+[fuselage]
+part = "fuselage"
+sections = [[-4.30, 0.0, 0.0, 1.30, 2.0], [-2.60, 0.42, 0.55, 1.22, 3.0], [-0.60, 0.68, 1.00, 1.32, 3.5],
+            [1.20, 0.70, 0.95, 1.30, 3.0], [1.95, 0.60, 0.66, 1.18, 2.6], [2.25, 0.36, 0.38, 1.12, 2.0]]
+
+[wing]
+part = "wing"
+y = 0.55
+z = 1.86
+root_chord = 1.60
+tip_chord = 1.60
+dihedral_deg = 1.0
+thickness = 0.12
+
+[tail]
+part = "tail"
+y = -3.35
+z = 1.30
+span = 2.90
+root_chord = 0.95
+tip_chord = 0.65
+fin_height = 0.62
+fin_root_chord = 0.95
+
+[canopy]
+part = "canopy"
+y = [-0.60, 0.90]
+z = 1.52
+width = 0.70
+height = 0.34
+
+[landing_gear]
+part = "landing_gear"
+fixed = true
+main_y = 1.05
+main_track = 1.85
+main_wheel_diameter = 0.45
+strut_top_z = 0.90
+tail_y = -3.95
+tail_wheel_diameter = 0.15
+tail_strut_top_z = 0.90
+
+[[propeller]]
+part = "propeller"
+position = [0.0, 2.20, 1.12]
+diameter = 1.83
+blades = 2
+
+[[part]]
+part = "wing_struts"          # front and rear lift struts
+struts = [[[0.30, 0.75, 0.88], [2.60, 0.45, 1.86]], [[0.30, 0.45, 0.88], [2.60, -0.70, 1.86]]]
+
+[[part]]
+part = "shadow_proxy"
+
+[[part]]
+part = "socket"
+name = "Socket_Exhaust_"
+position = [0.25, 1.70, 0.95]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 1.6, 1.2]
+
+[[part]]
+part = "marking"
+name = "Wing_L"
+position = [-3.8, -0.25, 1.98]
+normal = [0.0, 0.0, 1.0]
+size = 0.9
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-0.30, -2.0, 1.25]
+normal = [-1.0, 0.0, 0.0]
+size = 0.5
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [0.30, -2.0, 1.25]
+normal = [1.0, 0.0, 0.0]
+size = 0.5

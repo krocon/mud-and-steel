@@ -9,6 +9,9 @@ extends EditorScenePostImport
 ## materials from res://assets/materials/unit/.
 ## Environment objects (glTF extras `env_kit_version`, prompt 007) get the
 ## env shader materials from res://assets/materials/env/ instead.
+## Aircraft (prompt 008): the `ShadowProxy` mesh becomes shadow-only and
+## hidden; the game shows it (and turns the real meshes' shadows off) when
+## the aircraft flies high.
 
 const MATERIAL_DIR := "res://assets/materials/unit/"
 const ENV_MATERIAL_DIR := "res://assets/materials/env/"
@@ -34,6 +37,9 @@ func _post_import(scene: Node) -> Object:
 				continue
 			mi.mesh.surface_set_material(i, load(path))
 			replaced += 1
+		if mi.name == "ShadowProxy":
+			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY
+			mi.visible = false
 	if not unknown.is_empty():
 		push_error("unit_post_import: %s: unknown material slots %s" % [get_source_file(), unknown])
 	print("unit_post_import: %s: %d surfaces use the %s shader" % [

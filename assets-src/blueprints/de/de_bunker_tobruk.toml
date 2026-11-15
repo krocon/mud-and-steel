@@ -1,0 +1,11 @@
+# Ringstand 58c ("Tobruk"): example of a faction fortification built by
+# build_env.py (prompt 008 kit preparation). Box from data/catalog/de.toml
+# (5 x 4 x 0.6 m above ground, estimates). Concrete slab with the round
+# fighting opening (~0.8 m) and the rear stair opening, banked with earth.
+unit = "de_bunker_tobruk"
+assembly = "env"
+
+[[variant]]
+name = "Tobruk"
+part = "tobruk"
+opening = 0.8

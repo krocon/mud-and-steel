@@ -379,3 +379,51 @@ ITEMS["mg_ammo_box_de"] = lambda b, f: mg_ammo_box_de(b)
 ITEMS["mg_ammo_boxes_de"] = lambda b, f: (mg_ammo_box_de(b, x=-0.10), mg_ammo_box_de(b, x=0.10))
 ITEMS["belt_drum_de"] = lambda b, f: belt_drum_de(b)
 ITEMS["barrel_case_de"] = lambda b, f: barrel_case_de(b)
+
+
+# -- prompt 008: equipment for the tier-2 roles -----------------------------------------
+# Sizes are modeling estimates from photographs.
+
+
+def demo_charge(b, faction):
+    """Demolition charge: de 'geballte Ladung' (stick grenade heads bundled round a
+    complete grenade) at the left hip; su / us canvas satchel charge on the back."""
+    if faction == "de":
+        for i in range(5):
+            a = i * 2 * math.pi / 5
+            c = Vector((-0.16 + math.cos(a) * 0.04, 0.06 + math.sin(a) * 0.04, 0.92))
+            b.cylinder(c, c + Vector((0, 0, 0.075)), 0.03, "Paint", HIPS, sides=6)
+        b.cylinder((-0.16, 0.06, 0.92), (-0.16, 0.06, 1.05), 0.012, "Wood", HIPS, sides=4)
+    else:
+        b.box((0.0, -0.19, 1.05), (0.26, 0.10, 0.20), "Canvas", CHEST)
+        b.box((0.0, -0.19, 1.17), (0.18, 0.02, 0.03), "Canvas", CHEST)  # carrying strap
+
+
+def bangalore(b):
+    """Bangalore torpedo section (about 1.5 m tube, 54 mm) slung diagonally on the back."""
+    b.cylinder((-0.22, -0.24, 0.80), (0.20, -0.24, 1.62), 0.027, "Paint", CHEST, sides=6)
+
+
+def wire_cutters(b):
+    b.box((0.15, 0.04, 0.93), (0.03, 0.05, 0.16), "Metal", HIPS)
+
+
+def panzerfaust(b):
+    """Panzerfaust 60 slung on the back: tube (1.045 m) with the warhead up."""
+    p0 = Vector((0.12, -0.22, 0.85))
+    p1 = Vector((0.12, -0.22, 1.62))
+    b.cylinder(p0, p1, 0.025, "Paint", CHEST, sides=6)
+    b.cylinder(p1, p1 + Vector((0, 0, 0.15)), 0.075, "Paint", CHEST, sides=8, r1=0.03)
+
+
+def ammo_case(b):
+    """Ammunition case on the back (mortar bombs, MG belts): wooden or steel box."""
+    b.box((0, -0.20, 1.18), (0.26, 0.12, 0.34), "Wood", CHEST)
+    b.box((0, -0.20, 1.37), (0.12, 0.02, 0.02), "Metal", CHEST)
+
+
+ITEMS["demo_charge"] = demo_charge
+ITEMS["bangalore"] = lambda b, f: bangalore(b)
+ITEMS["wire_cutters"] = lambda b, f: wire_cutters(b)
+ITEMS["panzerfaust"] = lambda b, f: panzerfaust(b)
+ITEMS["ammo_case"] = lambda b, f: ammo_case(b)

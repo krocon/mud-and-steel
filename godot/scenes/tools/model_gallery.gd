@@ -237,6 +237,10 @@ func _load_units() -> void:
 				push_error("model_gallery: cannot load %s" % path)
 				continue
 			var model := scene.instantiate() as Node3D
+			# faction fortifications (prompt 008) are environment models: category Environment
+			if not EnvLook.root_extras(model).is_empty():
+				model.free()
+				continue
 			entries.append({"model": model, "cat": UnitCamo.catalog_values(model), "path": path})
 		if entries.is_empty():
 			continue
@@ -292,7 +296,13 @@ func _load_infantry() -> void:
 
 func _load_environment() -> void:
 	var by_cat: Dictionary[String, Array] = {}
-	for path in _model_paths(MODEL_ROOT + "neutral"):
+	var paths := _model_paths(MODEL_ROOT + "neutral")
+	var faction_paths: Array[String] = []
+	for faction in UNIT_FACTIONS:  # faction fortifications (prompt 008)
+		for path in _model_paths(MODEL_ROOT + faction):
+			if path.ends_with(".glb"):
+				faction_paths.append(path)
+	for path in paths + faction_paths:
 		var scene := load(path) as PackedScene
 		if scene == null:
 			push_error("model_gallery: cannot load %s" % path)
@@ -300,6 +310,9 @@ func _load_environment() -> void:
 		var model := scene.instantiate() as Node3D
 		var extras := EnvLook.root_extras(model)
 		if extras.is_empty():
+			if path in faction_paths:  # a unit model: loaded by _load_units
+				model.free()
+				continue
 			push_error("model_gallery: %s is not an environment model" % path)
 			model.free()
 			continue

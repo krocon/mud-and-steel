@@ -562,6 +562,7 @@ designation = "BA-64B light armored car"
 year_from = 1943
 year_to = 1945
 tier = 2
+model = "assets/models/su/su_ba64b.glb"
 length_mm = 3660
 width_mm = 1740
 height_mm = 1900

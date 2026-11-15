@@ -10,8 +10,13 @@ Module overview:
 - `catalog`     reads data/catalog/*.toml and blueprints
 - `registry`    part and assembly registry (`@part`, `@assembly`)
 - `running_gear`, `wheels`, `hull`, `turret`, `weapons`, `attachments`,
-  `artillery`, `aircraft`, `vehicles`   generic parts
-- `parts_de`, `parts_su`, `parts_us`   faction-specific parts
+  `artillery`, `aircraft`, `vehicles`, `trucks`   generic parts
+- `casemate`, `armored_car`, `antiair`, `mortars`   prompt 008: casemate
+  vehicles, armored cars, anti-aircraft guns, heavy mortars (parts and
+  assemblies); `forts` (faction fortifications) is an env module loaded by
+  build_env.py
+- `parts_de`, `parts_su`, `parts_us`   faction-specific parts; prompt 008 adds
+  `parts_<faction>_{vehicles,guns,air}` (one per parallel session)
 - `assemblies`  whole-unit builders (`tank`, `towed_gun`, ...)
 """
 
@@ -30,9 +35,17 @@ _MODULES = (
     "aircraft",
     "vehicles",
     "trucks",
+    "casemate",
+    "armored_car",
+    "antiair",
+    "mortars",
     "parts_de",
     "parts_su",
     "parts_us",
+    # prompt 008: one faction module per parallel session (vehicles, guns, air)
+    "parts_de_vehicles", "parts_de_guns", "parts_de_air",
+    "parts_su_vehicles", "parts_su_guns", "parts_su_air",
+    "parts_us_vehicles", "parts_us_guns", "parts_us_air",
     "assemblies",
 )
 

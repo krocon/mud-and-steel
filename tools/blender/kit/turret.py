@@ -57,7 +57,9 @@ def plate_turret(model, p, ctx):
 
     Parameters: `plan` [[x, y], ...], `height` (m or "fit"), `side_slope_deg`,
     `front_slope_deg` (extra inward slope of points with y > 0), `bevel`,
-    `cast` (rounded edges). Returns `turret_top_z`, `turret_plan`.
+    `cast` (rounded edges), `open_top` (open-topped turret, M10 / M8 /
+    BA-64: walls of `wall` thickness, default 0.025 m, no roof).
+    Returns `turret_top_z`, `turret_plan`.
     """
     plan = [tuple(v) for v in p.req("plan")]
     h = ctx["turret_height"]
@@ -72,7 +74,14 @@ def plate_turret(model, p, ctx):
     if p.get("cast", False):
         mb.bevel_segments = 3
     rings = [[(x, ty + y, z0) for x, y in plan], [(x, ty + y, z0 + h) for x, y in top]]
-    mb.loft(rings, "Paint", bevel=p.get("bevel", 0.015), smooth=p.get("cast", False))
+    if p.get("open_top", False):
+        from .casemate import wall_shell
+
+        p.get("bevel")
+        wall_shell(mb, rings, p.get("wall", 0.025), floor=True)
+    else:
+        p.get("wall")
+        mb.loft(rings, "Paint", bevel=p.get("bevel", 0.015), smooth=p.get("cast", False))
     mb.bevel_segments = 1
     # turret ring collar
     ring_r = ctx.get("turret_ring_r", 0.8)
@@ -118,8 +127,9 @@ def cupola(model, p, ctx):
 
     Parameters: `x`, `y` (relative to ring center), `diameter`, `height`,
     `vision_blocks` (count), `z` (default turret top), `hatch` ("split" or
-    "single"), `exclude_from_height` (validation, see blueprint [validate]).
-    Adds `Cupola` (child of Turret), `Hatch_NN` and `Socket_Hatch_NN`.
+    "single"), `exclude_from_height` (validation, see blueprint [validate]),
+    `parent` (default Turret; Hull for casemate vehicles).
+    Adds `Cupola` (child of the parent), `Hatch_NN` and `Socket_Hatch_NN`.
     """
     x = p.req("x")
     y = ctx["turret_y"] + p.req("y")
@@ -129,7 +139,8 @@ def cupola(model, p, ctx):
     p.get("exclude_from_height")
     blocks = p.get("vision_blocks", 6)
     tz = ctx["turret_z"]
-    mb = model.mb("Cupola", parent="Turret", pivot=(x, y, z))
+    parent = p.get("parent", "Turret")
+    mb = model.mb("Cupola", parent=parent, pivot=(x, y, z))
     mb.cylinder((x, y, z), (x, y, z + h * 0.75), r, seg=14, mat="Paint", cap0=True, cap1=True)
     for i in range(blocks):
         a = 2 * math.pi * (i + 0.5) / blocks
@@ -144,7 +155,7 @@ def cupola(model, p, ctx):
             hb.box((x + k * r * 0.4, y, z + h * 0.85), (r * 0.75, r * 1.5, h * 0.18), "Paint", bevel=0.01)
     else:
         hb.cylinder((x, y, z + h * 0.75), (x, y, z + h), r * 0.82, r1=r * 0.7, seg=12, mat="Paint")
-    model.socket(model.next_index("Socket_Hatch_"), "Turret", (x, y, z + h * 0.75))
+    model.socket(model.next_index("Socket_Hatch_"), parent, (x, y, z + h * 0.75))
     _ = tz
     return {"cupola_top_z": z + h}
 

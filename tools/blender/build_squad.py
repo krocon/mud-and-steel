@@ -26,6 +26,9 @@ Run (pure Python, Blender is only used for its Python 3.11 with tomllib):
     blender -b --factory-startup --python-exit-code 1 --python tools/blender/build_squad.py -- <faction> <id>
     blender -b ... --python tools/blender/build_squad.py -- --all
     blender -b ... --python tools/blender/build_squad.py -- --check   (validate only)
+    blender -b ... --python tools/blender/build_squad.py -- --roles [<faction>]
+        (overview, prompt 008: every role of the faction with its weapon and whether its
+        soldier .glb is built, and the catalog infantry entries that have no squad file yet)
 
 Checks: member count = catalog `squad_size`, every role exists for the faction and
 its .glb is built, clips exist, members at least 0.8 m apart, the .tscn is current.
@@ -220,8 +223,28 @@ def build(faction, unit_id):
           f"formation {max(xs) - min(xs):.1f} x {max(ys) - min(ys):.1f} m -> {out.relative_to(REPO_ROOT)}")
 
 
+def roles_report(factions):
+    """Prints the roles per faction and the infantry catalog entries without squad file."""
+    for faction in factions:
+        print(f"roles {faction}:")
+        for role, per in sorted(loadouts.ROLES.items()):
+            if faction not in per:
+                continue
+            spec = per[faction]
+            built = "built" if soldier_glb(faction, role).exists() else "NOT BUILT"
+            weapon = spec["weapon"] or "unarmed (pistol holster / none)"
+            print(f"  {role:22} {weapon:34} {built}")
+        have = {uid for f, uid in all_squads() if f == faction}
+        todo = sorted(uid for uid, u in catalog.load_faction(faction).items()
+                      if u["category"].startswith("inf_") and uid not in have)
+        print(f"  infantry entries without squad file: {', '.join(todo) if todo else 'none'}")
+
+
 def main():
     argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
+    if argv and argv[0] == "--roles":
+        roles_report(argv[1:] or ["de", "su", "us"])
+        return
     if not argv or argv[0] in ("--all", "--check"):
         squads = all_squads()
         if argv and argv[0] == "--check":
@@ -242,7 +265,7 @@ def main():
             build(faction, uid)
         return
     if len(argv) != 2:
-        sys.exit("usage: build_squad.py -- <faction> <id> | --all | --check")
+        sys.exit("usage: build_squad.py -- <faction> <id> | --all | --check | --roles [<faction>]")
     build(argv[0], argv[1])
 
 

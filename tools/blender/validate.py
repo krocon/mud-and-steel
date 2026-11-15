@@ -11,8 +11,11 @@ with code 1 if any model fails. Checks per model:
 - root empty named after the catalog id, at the origin, identity transform
 - every object: scale 1; meshes: no rotation; names from the naming table;
   parents as in the hierarchy table
-- required parts and sockets per category, one MG object per machine gun in
-  the catalog, Socket_Muzzle on the muzzle, crew sockets for towed guns
+- required parts and sockets per category (prompt 008: casemate vehicles,
+  anti-aircraft guns and mortars by their blueprint assembly), one MG object
+  per machine gun in the catalog, Socket_Muzzle on the muzzle, crew sockets
+  for guns and mortars; aircraft: width = catalog wingspan, the footprint
+  is only centered across (the origin lies under the center of gravity)
 - only the material slots of docs/ASSETS.md; baked `Color` attribute
 - triangle budget (LOD0) of the category
 - length, width, height within +-2 % of the catalog (objects listed in the
@@ -41,16 +44,21 @@ NAMES = {
     r"Hull": [r"<root>"],
     r"Carriage": [r"<root>"],
     r"Turret": [r"Hull"],
-    r"Cupola": [r"Turret"],
+    r"Cupola": [r"Turret", r"Hull"],
+    r"Mount": [r"Carriage"],
     r"TurretSkirt": [r"Turret"],
-    r"Gun": [r"Turret", r"Hull", r"Carriage"],
-    r"Shield": [r"Carriage", r"Hull"],
+    r"Gun": [r"Turret", r"Hull", r"Carriage", r"Mount"],
+    r"Shield": [r"Carriage", r"Hull", r"Mount"],
     r"Wheel_[LR]_\d\d": [r"Hull", r"Carriage", r"<root>"],
     r"(Sprocket|Idler)_[LR]": [r"Hull"],
     r"Roller_[LR]_\d\d": [r"Hull"],
     r"Track_[LR]": [r"Hull"],
     r"Skirt_[LR]": [r"Hull"],
-    r"MG_\d\d": [r"Turret", r"Hull", r"Gun"],
+    r"MG_\d\d": [r"Turret", r"Hull", r"Gun", r"GunTurret_\d\d"],
+    r"GunTurret_\d\d": [r"Hull"],
+    r"(Bomb|Rocket)_\d\d": [r"Hull"],
+    r"BayDoor_[LR]": [r"Hull"],
+    r"ShadowProxy": [r"<root>"],
     r"Hatch_\d\d": [r"Hull", r"Turret", r"Cupola"],
     r"Antenna_\d\d": [r"Hull", r"Turret"],
     r"Propeller(_[LR])?": [r"<root>"],
@@ -58,7 +66,8 @@ NAMES = {
     r"Gear_(L|R|Tail|Nose)": [r"<root>"],
 }
 SOCKETS = re.compile(
-    r"Socket_(Muzzle(_\d\d)?|Exhaust_\d\d|Hatch_\d\d|Crew_\d\d|Passenger_\d\d|Tow|Fire_\d\d|Marking_\w+)$"
+    r"Socket_(Muzzle(_\d\d)?|Exhaust_\d\d|Hatch_\d\d|Crew_\d\d|Passenger_\d\d|Tow|Fire_\d\d|Marking_\w+|"
+    r"Gun_\d\d|Bomb_\d\d|Rocket_\d\d)$"
 )
 
 REQUIRED = {
@@ -67,10 +76,21 @@ REQUIRED = {
              "Socket_Fire_01"],
     "gun": ["Carriage", "Gun", "Wheel_L_01", "Wheel_R_01", "Socket_Muzzle", "Socket_Tow", "Socket_Fire_01"],
     "aircraft": ["Hull", "Gear_L", "Gear_R"],
+    # prompt 008
+    "casemate": ["Hull", "Gun", "Track_L", "Track_R", "Wheel_L_01", "Wheel_R_01", "Sprocket_L", "Sprocket_R",
+                 "Idler_L", "Idler_R", "Socket_Muzzle", "Socket_Exhaust_01", "Socket_Fire_01"],
+    "aa_gun": ["Carriage", "Mount", "Gun", "Socket_Muzzle", "Socket_Fire_01"],
+    "mortar": ["Carriage", "Gun", "Socket_Muzzle", "Socket_Fire_01"],
 }
+# groups whose models need national markings and as many MG objects as the catalog lists
+MARKED = ("tank", "casemate", "aircraft")
+CREWED = ("gun", "aa_gun", "mortar")
+BY_ASSEMBLY = {"casemate": "casemate", "aa_gun": "aa_gun", "mortar": "mortar"}
 
 
-def group(category):
+def group(category, assembly_name=None):
+    if assembly_name in BY_ASSEMBLY:
+        return BY_ASSEMBLY[assembly_name]
     if category.startswith(("tank_", "assault_gun", "self_propelled")):
         return "tank"
     if category.startswith(("gun_", "mortar_heavy")):
@@ -156,21 +176,25 @@ def check_blend(faction, uid, u, bp, errors, stats):
         if ca is None or ca.domain != "CORNER":
             errors.append(f"{o.name}: baked corner color attribute 'Color' missing")
 
-    g = group(u["category"])
+    g = group(u["category"], bp.get("assembly"))
     for req in REQUIRED.get(g, []):
         if req not in names:
             errors.append(f"required part or socket {req} missing")
-    if g == "tank":
+    if g == "casemate" and "Socket_Hatch_01" not in names and "Socket_Crew_01" not in names:
+        errors.append("casemate vehicle needs Socket_Hatch_01 (closed) or Socket_Crew_01 (open compartment)")
+    if g in ("aa_gun", "mortar") and any(n.startswith("Wheel_") for n in names) and "Socket_Tow" not in names:
+        errors.append("model has wheels but no Socket_Tow")
+    if g in MARKED:
         if not any(n.startswith("Socket_Marking_") for n in names):
             errors.append("no Socket_Marking_* for national markings")
-    if g == "gun":
+    if g in CREWED:
         for i in range(1, u.get("crew", 0) + 1):
             if f"Socket_Crew_{i:02d}" not in names:
                 errors.append(f"Socket_Crew_{i:02d} missing (catalog crew {u['crew']})")
-        if "Shield" not in names and "armor_turret_front_mm" in u:
+        if g == "gun" and "Shield" not in names and "armor_turret_front_mm" in u:
             errors.append("catalog lists a shield (armor_turret_front_mm) but the model has no Shield")
     mgs = sorted(n for n in names if re.fullmatch(r"MG_\d\d", n))
-    need = catalog.small_arms_count(u) if g == "tank" else 0
+    need = catalog.small_arms_count(u) if g in ("tank", "casemate") else 0
     if len(mgs) < need:
         errors.append(f"{len(mgs)} MG objects, catalog lists {need} machine guns")
     for n in mgs:
@@ -180,7 +204,13 @@ def check_blend(faction, uid, u, bp, errors, stats):
 
     muzzle = bpy.data.objects.get("Socket_Muzzle")
     gun = bpy.data.objects.get("Gun")
-    if muzzle and gun:
+    if muzzle and gun and g == "mortar":
+        # elevated tube: the socket must sit on the tube end farthest from the pivot
+        piv = gun.matrix_world.translation
+        far = max((gun.matrix_world @ v.co for v in gun.data.vertices), key=lambda q: (q - piv).length)
+        if (muzzle.matrix_world.translation - far).length > 0.15:
+            errors.append("Socket_Muzzle not at the mortar tube end")
+    elif muzzle and gun:
         _, ghi = world_bbox([gun])
         if abs(muzzle.matrix_world.translation.y - ghi.y) > 0.03:
             errors.append(f"Socket_Muzzle not at the muzzle (y {muzzle.matrix_world.translation.y:.3f}, "
@@ -195,7 +225,8 @@ def check_blend(faction, uid, u, bp, errors, stats):
         errors.append(f"{tris} triangles, budget {budget}")
 
     val = bp.get("validate", {})
-    for axis, key, idx in (("length", "length_mm", 1), ("width", "width_mm", 0), ("height", "height_mm", 2)):
+    width_key = "wingspan_mm" if g == "aircraft" else "width_mm"
+    for axis, key, idx in (("length", "length_mm", 1), ("width", width_key, 0), ("height", "height_mm", 2)):
         sel = [o for o in meshes if not excluded(o, val.get(f"exclude_{axis}", []))]
         lo, hi = world_bbox(sel)
         size = hi[idx] - lo[idx]
@@ -216,6 +247,8 @@ def check_blend(faction, uid, u, bp, errors, stats):
         gy = (min(p.y for p in ground) + max(p.y for p in ground)) / 2
         stats["footprint_center"] = (gx, gy)
         tol_y = 0.05 * catalog.mm(u, "length_mm")
+        if g == "aircraft":
+            tol_y = float("inf")  # origin under the center of gravity, not the wheel base
         if abs(gx) > 0.03 or abs(gy) > tol_y:
             errors.append(f"footprint center at ({gx:.3f}, {gy:.3f}), origin must be at its center "
                           f"(tolerance 0.03 / {tol_y:.2f} m)")

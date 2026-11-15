@@ -21,7 +21,8 @@ const REQUIRED_BONES: Array[String] = [
 	"LeftUpperLeg", "LeftLowerLeg", "LeftFoot",
 	"RightUpperLeg", "RightLowerLeg", "RightFoot",
 ]
-const UNARMED_ROLES: Array[String] = ["medic", "mg_assistant"]
+## Roles without a weapon in the hands; "faction/role" for roles armed only in some factions.
+const UNARMED_ROLES: Array[String] = ["medic", "mg_assistant", "ammo_carrier", "su/officer"]
 
 @onready var camera: Camera3D = $Camera3D
 @onready var models_root: Node3D = $Models
@@ -196,7 +197,7 @@ func _run_self_test() -> void:
 				errors.append("%s: bone Weapon missing" % tag)
 			errors.append_array(_check_profile(skeleton, tag))
 		var has_muzzle: bool = not (s.node as Node).find_children("Socket_Muzzle*", "", true, false).is_empty()
-		if s.role in UNARMED_ROLES:
+		if s.role in UNARMED_ROLES or ("%s/%s" % [s.faction, s.role]) in UNARMED_ROLES:
 			if has_muzzle:
 				errors.append("%s: unarmed role has a weapon" % tag)
 		elif not has_muzzle:

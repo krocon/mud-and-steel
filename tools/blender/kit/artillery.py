@@ -76,11 +76,13 @@ def field_gun(model, p, ctx):
     Parameters: `trunnion` [y, z] (model space), `cradle` [length, width,
     height] (part behind and under the barrel), `recoil` [length, radius]
     (cylinders above/below the barrel, optional), `breech` [length, size],
-    `segments` (barrel, one length may be "fit"), `muzzle_brake`.
-    Adds `Gun` (child of Carriage) and `Socket_Muzzle`.
+    `segments` (barrel; one length may be "fit" when the assembly sets the
+    catalog front `overall_front_y`, e.g. `aa_gun`), `muzzle_brake`,
+    `parent` (default Carriage; Mount for anti-aircraft guns).
+    Adds `Gun` (child of the parent) and `Socket_Muzzle`.
     """
     ty, tz = p.req("trunnion")
-    mb = model.mb("Gun", parent="Carriage", pivot=(0.0, ty, tz))
+    mb = model.mb("Gun", parent=p.get("parent", "Carriage"), pivot=(0.0, ty, tz))
     cl, cw, ch = p.req("cradle")
     mb.box((0, ty + cl * 0.15, tz - ch * 0.35), (cw, cl, ch), "Paint", bevel=0.01)
     bl, bs = p.get("breech", [0.45, 0.22])
@@ -91,6 +93,12 @@ def field_gun(model, p, ctx):
         mb.cylinder((0, y0, tz - 0.12), (0, y0 + rec[0], tz - 0.12), rec[1], seg=8, mat="Paint")
     segs = p.req("segments")
     brake = p.get("muzzle_brake", "none")
+    if any(sg[0] == "fit" for sg in segs):
+        from .weapons import _fit_segments
+
+        if "overall_front_y" not in ctx:
+            raise ValueError("field_gun: a 'fit' barrel segment needs an assembly that fits the barrel (aa_gun)")
+        segs = _fit_segments(segs, y0 + 0.1, tz, brake, ctx)
     tip = barrel(mb, y0 + 0.1, tz, segs)
     tip = muzzle_brake(mb, tip, tz, segs[-1][2], brake)
     model.socket("Socket_Muzzle", "Gun", (0.0, tip, tz))

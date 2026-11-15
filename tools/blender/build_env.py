@@ -3,10 +3,12 @@
     blender -b --factory-startup --python-exit-code 1 --python tools/blender/build_env.py -- [<id> ...] [--render DIR]
 
 Without ids every environment blueprint (`assembly = "env"` in
-assets-src/blueprints/neutral/) is built. Writes
-assets-src/blender/neutral/<id>.blend and godot/assets/models/neutral/<id>.glb;
-with --render also DIR/<id>_turntable.png. See docs/ASSETS.md
-("Environment objects") for the blueprint format.
+assets-src/blueprints/<faction>/) is built: the neutral objects and, since
+prompt 008, faction fortifications (`de_bunker_tobruk`, `*_minefield_*`; the
+faction is the id prefix). Writes assets-src/blender/<faction>/<id>.blend and
+godot/assets/models/<faction>/<id>.glb; with --render also
+DIR/<id>_turntable.png. See docs/ASSETS.md ("Environment objects") for the
+blueprint format.
 """
 
 import argparse
@@ -18,14 +20,20 @@ import bpy
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from kit import buildings, catalog, env, parts_neutral, vegetation  # noqa: E402,F401
+from kit import buildings, catalog, env, forts, load_parts, parts_neutral, vegetation  # noqa: E402,F401
+
+load_parts()  # faction modules (parts_<faction>_guns.py) may register env generators
 from kit.build import clear_scene, export_glb  # noqa: E402
 from kit.core import descendants  # noqa: E402
 from kit.registry import Params  # noqa: E402
 from kit.sourcehash import source_hash  # noqa: E402
 
-FACTION = "neutral"
-META = ("name", "part", "size", "dims_m", "fit", "role", "damage_of", "center")
+META = ("name", "part", "size", "dims_m", "fit", "role", "damage_of", "center", "height_m")
+
+
+def faction_of(uid):
+    """Catalog faction of an environment object: the id prefix (de_, su_, us_), else neutral."""
+    return catalog.env_faction(uid)
 
 
 def variant_box(u, vt):
@@ -34,10 +42,11 @@ def variant_box(u, vt):
         return env.Box(L, W, H)
     s = vt.get("size", [1.0, 1.0, 1.0])
     return env.Box(catalog.mm(u, "length_mm") * s[0], catalog.mm(u, "width_mm") * s[1],
-                   catalog.mm(u, "height_mm") * s[2])
+                   catalog.env_height(u, vt) * s[2])
 
 
 def build_env_model(uid):
+    FACTION = faction_of(uid)
     u = catalog.unit(FACTION, uid)
     bp = catalog.blueprint(FACTION, uid)
     if bp.get("assembly") != "env":
@@ -98,6 +107,7 @@ def build_env_model(uid):
 
 
 def build_and_save(uid, render_dir=None):
+    FACTION = faction_of(uid)
     bpy.ops.wm.read_homefile(use_empty=True)
     clear_scene()
     root = build_env_model(uid)

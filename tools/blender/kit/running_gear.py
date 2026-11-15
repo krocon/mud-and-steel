@@ -306,3 +306,94 @@ def halftrack_rear(model, p, ctx):
 
         path = g.build_common(model, side, s, wheel)
     return g.result(path)
+
+
+# --- prompt 008: running gear for the remaining tanks and SPGs ----------------------
+
+
+@part("interleaved")
+def interleaved(model, p, ctx):
+    """Interleaved road wheels on torsion bars (German 'Schachtellaufwerk':
+    Tiger I, Panther, Pz.Kpfw. II Ausf. L 'Luchs').
+
+    Extra parameters: `rows` (2 or 3 wheel layers across the track, default 3:
+    Tiger I; 2: Luchs), `tire` ("Rubber" for rubber-tired wheels, default;
+    "Paint" for steel-tired ones), `arm` (length of the trailing torsion arm,
+    default 0.32). Stations alternate between the outer layers and the inner
+    layer, so neighboring wheels overlap like the real ones; every station is
+    one `Wheel_*_NN` object. The large wheels need no return rollers.
+    """
+    rows = p.get("rows", 3)
+    tire = p.get("tire", "Rubber")
+    arm = p.get("arm", 0.32)
+    if rows not in (2, 3):
+        raise ValueError("interleaved: rows must be 2 or 3")
+    g = Gear(p, ctx)
+    hull = model.mb("Hull")
+    layer_w = g.tw / rows * 0.92
+    path = None
+    for side, s in SIDES:
+        idx = [0]
+
+        def wheel(mb, c, sd, _idx=idx):
+            i = _idx[0]
+            _idx[0] += 1
+            x, y, z = c
+            step = g.tw / rows
+            if rows == 3:
+                layers = (1, -1) if i % 2 == 0 else (0,)
+            else:
+                layers = (0.5,) if i % 2 == 0 else (-0.5,)
+            for k in layers:
+                outer = k == max(layers) and i % 2 == 0
+                W.disc_wheel(mb, (x + sd * k * step, y, z), g.rw_r, layer_w, sd, tire=tire, dish=0.03 if outer else 0.0,
+                             inner_face=False, hub_cap=k >= 0)
+
+        path = g.build_common(model, side, s, wheel)
+        x = g.x(side)
+        xi = x - side * (g.tw / 2 + 0.06)
+        for y in g.stations:
+            # trailing torsion arm from the hull side to the hub
+            hull.box((xi, y - arm / 2, g.wheel_z + 0.04), (0.10, arm, 0.10), "Paint")
+    return g.result(path)
+
+
+@part("torsion_bar")
+def torsion_bar(model, p, ctx):
+    """Road wheels on torsion-bar swing arms with optional return rollers
+    (StuG III, T-70, IS-2, ISU-152, SU-76, M26, Wespe).
+
+    Uses the common parameters (`return_rollers` for vehicles that have them).
+    Extra parameters: `twin` (two discs per station, default true; false =
+    single wide wheel), `tire` (default "Rubber"), `dish`, `arm` (swing arm
+    length, default 0.30), `arm_leading` (arms point forward from the pivot,
+    default false = trailing arms), `bump_stops` (small stops above the
+    arms, default true).
+    """
+    twin = p.get("twin", True)
+    tire = p.get("tire", "Rubber")
+    dish = p.get("dish", 0.0)
+    arm = p.get("arm", 0.30)
+    lead = -1.0 if p.get("arm_leading", False) else 1.0
+    stops = p.get("bump_stops", True)
+    g = Gear(p, ctx)
+    hull = model.mb("Hull")
+
+    def wheel(mb, c, sd):
+        if twin:
+            _twin(g, mb, c, sd, tire=tire, dish=dish)
+        else:
+            W.disc_wheel(mb, c, g.rw_r, g.rw_width, sd, tire=tire, dish=dish)
+
+    path = None
+    for side, s in SIDES:
+        path = g.build_common(model, side, s, wheel)
+        x = g.x(side)
+        xi = x - side * (g.tw / 2 + 0.05)
+        for y in g.stations:
+            hull.box((xi, y + lead * arm / 2, g.wheel_z + 0.05), (0.09, arm, 0.09), "Paint")
+            hull.cylinder((xi - side * 0.06, y + lead * arm, g.wheel_z + 0.08),
+                          (xi + side * 0.04, y + lead * arm, g.wheel_z + 0.08), 0.07, seg=8, mat="Paint")
+            if stops:
+                hull.box((xi, y + lead * arm * 0.3, g.wheel_z + g.rw_r * 0.75), (0.08, 0.08, 0.06), "Metal")
+    return g.result(path)

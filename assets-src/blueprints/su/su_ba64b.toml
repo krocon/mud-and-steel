@@ -1,0 +1,97 @@
+# BA-64B light armored car (GAZ-64/67 chassis, 1943-45): example of the
+# `armored_car` assembly (prompt 008 kit preparation; the su session reviews
+# and details it). Main dimensions from data/catalog/su.toml: length 3.66 m,
+# width 1.74 m, height 1.90 m (top of the open turret).
+# Modeling estimates from photographs and the GAZ-67 data (Wikipedia "BA-64",
+# "GAZ-67"): wheelbase 2.10 m, track about 1.45 m, 6.50-16 tires (~0.75 m),
+# faceted hull of sloped plates, small open-topped hexagonal turret with one DT.
+unit = "su_ba64b"
+assembly = "armored_car"
+
+[layout]
+turret_y = -0.15
+turret_ring_diameter = 0.85
+
+[[axle]]
+y = 1.05
+diameter = 0.75
+width = 0.20
+track = 1.46
+
+[[axle]]
+y = -1.05
+diameter = 0.75
+width = 0.20
+track = 1.46
+
+[hull]
+part = "section_hull"
+height = "keep"               # the turret top sets the height
+sections = [
+    { y = 1.83, bottom_z = 0.55, bottom_hw = 0.36, chine_z = 0.74, chine_hw = 0.52, top_z = 0.82, top_hw = 0.36 },
+    { y = 1.20, bottom_z = 0.40, bottom_hw = 0.55, chine_z = 0.86, chine_hw = 0.76, top_z = 1.18, top_hw = 0.56 },
+    { y = 0.10, bottom_z = 0.40, bottom_hw = 0.55, chine_z = 0.92, chine_hw = 0.76, top_z = 1.42, top_hw = 0.52 },
+    { y = -1.20, bottom_z = 0.40, bottom_hw = 0.55, chine_z = 0.90, chine_hw = 0.74, top_z = 1.36, top_hw = 0.50 },
+    { y = -1.83, bottom_z = 0.52, bottom_hw = 0.45, chine_z = 0.84, chine_hw = 0.60, top_z = 1.12, top_hw = 0.42 },
+]
+
+[turret]
+part = "plate_turret"
+open_top = true
+height = "fit"
+plan = [[-0.30, 0.42], [0.30, 0.42], [0.46, 0.0], [0.30, -0.40], [-0.30, -0.40], [-0.46, 0.0]]
+side_slope_deg = 22
+
+[[mg]]  # DT in the turret front, the vehicle's only weapon
+part = "pintle_mg"
+parent = "Turret"
+position = [0.0, 0.30, 1.72]
+length = 1.27
+post = 0.0
+primary = true
+
+[[part]]
+part = "headlight"
+position = [-0.42, 1.55, 1.0]
+blackout = true
+
+[[part]]
+part = "exhaust"
+kind = "pipe"
+position = [0.50, -1.55, 0.50]
+length = 0.25
+
+[[part]]
+part = "socket"
+name = "Socket_Hatch_"
+position = [0.0, -0.15, 1.6]
+parent = "Turret"
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 0.6, 1.1]
+
+[[part]]
+part = "marking"
+name = "Turret_L"
+parent = "Turret"
+position = [-0.42, -0.05, 1.62]
+normal = [-0.94, 0.0, 0.34]
+size = 0.25
+
+[[part]]
+part = "marking"
+name = "Turret_R"
+parent = "Turret"
+position = [0.42, -0.05, 1.62]
+normal = [0.94, 0.0, 0.34]
+size = 0.25
+
+[[part]]
+part = "marking"
+name = "Hull_Rear"
+kind = "number"
+position = [0.0, -1.80, 0.95]
+normal = [0.0, -0.9, 0.4]
+size = 0.25
