@@ -17,6 +17,7 @@ may not do, and why.
 | Threads, `rayon`, async with unordered results   | sequential code                               | Scheduling order is not deterministic. |
 | Godot types or calls                             | plain Rust data                               | Godot physics, navigation and randomness are not deterministic. |
 | Parsing floats from data files                   | integers with explicit units (`speed_mm_per_s`) | Keeps floats out entirely. |
+| Image decoders with color/gamma conversion       | `png` with `Transformations::IDENTITY`, raw samples | PNG is lossless, so the raw samples are fully specified; conversions are not. |
 
 Additional rules:
 
@@ -35,6 +36,10 @@ Additional rules:
   `checked_*` or `saturating_*` where overflow is possible.
 - The algorithms of `Rng`, `StableHasher` and `Sim::state_hash` are part of the
   protocol. Changing them changes the golden hash and breaks replays.
+- Map data is integer: heights in millimeters (`i32`), terrain ids (`u8`). Bilinear
+  interpolation runs in `Fixed` on millimeters and divides by 1000 once. The state
+  hash contains the map's content hash, so peers on different map versions desync
+  immediately instead of drifting apart. See [MAPS.md](MAPS.md).
 - Single player runs through `net::LockstepSession` as well, so there is one code
   path for applying commands.
 
@@ -44,11 +49,14 @@ Additional rules:
 - `crates/sim/clippy.toml` disallows `HashMap`, `HashSet`, `DefaultHasher`,
   `RandomState`, `Instant`, `SystemTime` and `std::thread::spawn`.
 - `crates/sim/tests/determinism.rs` contains a golden-hash test: the demo scenario
-  (two players with eight tanks each, scripted group commands, seed 42, 1000 ticks)
-  must produce `0x8e8b2c6ed986ef2c`. CI runs it on macOS (ARM64), Linux and Windows
-  (x86_64). The value was recorded on macOS ARM64. History: `0x075d8c59dfe3d336`
-  (prompt 001/003, four tanks, single-unit commands), changed in prompt 009 (owners,
-  group commands with formation, `Stop`, owner and footprint in the hash).
+  (two players with eight tanks each, scripted group commands, seed 42, 1000 ticks,
+  on the built-in map `test_small`) must produce `0x13dfd6119523d352`. CI runs it on
+  macOS (ARM64), Linux and Windows (x86_64). The value was recorded on macOS ARM64.
+  History: `0x075d8c59dfe3d336` (prompt 001/003, four tanks, single-unit commands),
+  `0x8e8b2c6ed986ef2c` (prompt 009: owners, group commands with formation, `Stop`,
+  owner and footprint in the hash), changed in prompt 010 (map with heights and
+  terrain, terrain- and slope-dependent speed, unit height, map hash and terrain
+  rules in the hash). Regenerating `test_small` changes it as well.
 - `crates/net/tests/loopback.rs` plays the demo between two peers in lockstep with
   group commands, compares the hash of every tick, checks that the result equals the
   scripted single-process run, and checks that a divergence is detected through the
