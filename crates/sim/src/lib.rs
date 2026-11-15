@@ -18,6 +18,7 @@ mod data;
 pub mod destruction;
 pub mod economy;
 mod hash;
+pub mod indirect;
 pub mod infantry;
 pub mod map;
 mod math;
@@ -44,6 +45,7 @@ pub use destruction::{
 };
 pub use economy::{Cost, EconomyRules, RESOURCE_NAMES, Resources};
 pub use hash::StableHasher;
+pub use indirect::{IndirectRules, ShellSnapshot, SmokeSnapshot};
 pub use infantry::{InfantryRules, Stance, StanceOrder};
 pub use map::{Biome, Map, MapError, MapRef};
 pub use math::{Fixed, Vec2};

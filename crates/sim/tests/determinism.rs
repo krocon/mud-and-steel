@@ -21,7 +21,14 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by the merge of prompt 023 (base building and resources)
+/// Last changed by prompt 032 (indirect fire and smoke): the rules of
+/// `data/indirect.toml`, the indirect-fire state of units with mortars,
+/// howitzers and self-propelled guns, shells in flight, smoke clouds and
+/// the vision cells under smoke are in the hash, and the economy rules
+/// (also hashed) list mortar teams and self-propelled guns for production.
+/// The demo has no indirect-fire units: its battle is unchanged (decided
+/// at tick 480, player 0 wins).
+/// Before: the merge of prompt 023 (base building and resources)
 /// with 021 (terrain deformation): the economy rules, unit prices,
 /// accounts, structures, production queues and supply points (three
 /// `supply_*` markers on `test_small`) are in the hash next to the
@@ -94,7 +101,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xfe52_3a47_2761_c97c;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xadff_a9a0_054b_53f1;
 
 #[test]
 fn golden_hash() {
