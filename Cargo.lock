@@ -469,6 +469,7 @@ name = "net"
 version = "0.1.0"
 dependencies = [
  "if-addrs",
+ "miniz_oxide 0.8.9",
  "postcard",
  "rusty_enet",
  "serde",

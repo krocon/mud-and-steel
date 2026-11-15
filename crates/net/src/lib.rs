@@ -18,6 +18,7 @@ pub mod lobby;
 mod protocol;
 pub mod replay;
 mod session;
+pub mod snapshot;
 mod transport;
 
 pub use protocol::{CommandFrame, HashReport, Message, PlayerId, decode, encode};

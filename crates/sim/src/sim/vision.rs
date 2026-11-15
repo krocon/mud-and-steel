@@ -14,11 +14,12 @@ use crate::hash::StableHasher;
 use crate::math::Vec2;
 use crate::sim::Snapshot;
 use crate::vision::{CellState, PlayerVision, Viewshed, VisionGrid, VisionRules};
+use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
 use std::sync::Arc;
 
 /// Vision state of a match.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub(super) struct Vision {
     pub(super) rules: VisionRules,
     pub(super) grid: Arc<VisionGrid>,

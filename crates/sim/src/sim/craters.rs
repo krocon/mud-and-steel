@@ -24,10 +24,11 @@ use crate::map::Map;
 use crate::math::{Fixed, Vec2};
 use crate::path::{CellRect, SizeClass};
 use crate::terrain::TerrainRules;
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
 /// Crater state of a match.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub(super) struct Craters {
     rules: CraterRules,
     /// Terrain id of the bowl.

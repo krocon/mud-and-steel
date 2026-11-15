@@ -12,13 +12,14 @@
 
 use super::Unit;
 use crate::math::{Fixed, Vec2};
+use serde::{Deserialize, Serialize};
 
 /// Edge of a grid cell in meters. Sight and weapon ranges are a few hundred
 /// meters, separation a few meters; 64 m keeps both queries at a handful of
 /// cells and the grid of a 4 km map at 4 000 cells.
 const CELL_M: i32 = 64;
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub(super) struct UnitGrid {
     origin: Vec2,
     columns: u32,

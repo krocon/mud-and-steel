@@ -19,16 +19,17 @@ use crate::infantry::Stance;
 use crate::map::Map;
 use crate::math::{Fixed, Vec2};
 use crate::objects::{Shape, sin_cos_deg};
+use serde::{Deserialize, Serialize};
 
 /// An attack order.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub(super) enum Attack {
     Unit(UnitId),
     Ground(Vec2),
 }
 
 /// Combat state of one unit.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub(super) struct CombatState {
     /// Direction of the turret / main weapon (unit length).
     pub(super) aim: Vec2,
@@ -91,7 +92,7 @@ impl CombatState {
 }
 
 /// A weapon with the rules applied, in game units per tick.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 struct WeaponRt {
     weapon: WeaponType,
     reload_ticks: u32,
@@ -103,7 +104,7 @@ struct WeaponRt {
 }
 
 /// Combat values of a unit type with the rules applied.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub(super) struct TypeCombat {
     pub(super) max_hp: u32,
     infantry: bool,
@@ -217,7 +218,7 @@ impl TypeCombat {
 }
 
 /// A projectile in flight.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub(super) struct Projectile {
     id: u32,
     shooter: UnitId,
@@ -276,7 +277,7 @@ impl Projectile {
 
 /// Map objects that stop projectiles (trees, buildings, walls, hedges),
 /// bucketed for segment queries.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub(super) struct ObjectIndex {
     origin: Vec2,
     columns: u32,

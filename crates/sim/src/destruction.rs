@@ -10,7 +10,7 @@ use crate::combat::Vec3;
 use crate::command::UnitId;
 use crate::hash::StableHasher;
 use crate::objects::Blocks;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::fmt;
 
 /// The rules compiled into the simulation.
@@ -28,7 +28,9 @@ impl fmt::Display for DestructionError {
 impl std::error::Error for DestructionError {}
 
 /// Damage stage of a map object.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(
+    Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize,
+)]
 pub enum ObjectStage {
     #[default]
     Intact,
@@ -56,7 +58,7 @@ impl ObjectStage {
 }
 
 /// What is left of a destroyed object.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Remains {
     /// A lower ruin that still blocks some units, projectiles and sight.
@@ -81,7 +83,7 @@ impl Remains {
 }
 
 /// The rules of one group of catalog ids.
-#[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ClassRule {
     pub ids: Vec<String>,
@@ -123,7 +125,7 @@ impl ClassRule {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct DamageRules {
     pub min_caliber_mm: u32,
@@ -137,7 +139,7 @@ struct File {
 }
 
 /// All destruction rules.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DestructionRules {
     pub damage: DamageRules,
     pub classes: Vec<ClassRule>,
@@ -218,7 +220,7 @@ impl DestructionRules {
 }
 
 /// State of one map object.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ObjectState {
     /// Hit points left (0 for objects without hit points).
     pub hp: u32,
@@ -229,7 +231,7 @@ pub struct ObjectState {
 }
 
 /// Why an object changed its stage.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ObjectCause {
     /// A projectile fired by this unit.
     Hit(UnitId),
@@ -238,7 +240,7 @@ pub enum ObjectCause {
 }
 
 /// An object changed its stage during the last tick.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ObjectEvent {
     /// Index into [`crate::Map::objects`].
     pub object: u32,

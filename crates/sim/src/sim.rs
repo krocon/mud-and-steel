@@ -122,7 +122,7 @@ impl fmt::Display for ConfigError {
 
 impl std::error::Error for ConfigError {}
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 struct Unit {
     id: UnitId,
     owner: PlayerId,
@@ -169,7 +169,7 @@ impl Unit {
 }
 
 /// How a unit gets to its target.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 enum Route {
     /// No target.
     None,
@@ -317,12 +317,18 @@ impl Phase {
 }
 
 /// The deterministic simulation.
-#[derive(Clone, Debug)]
+///
+/// `Serialize`/`Deserialize` are for snapshots (prompt 038,
+/// `crate::snapshot`): every field is saved, so new state is included as
+/// soon as its type derives them. The map is saved apart, as the changes
+/// against the loaded map.
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Sim {
     tick: u64,
     rng: Rng,
     /// Sorted by id; ids are assigned in increasing order.
     units: Vec<Unit>,
+    #[serde(skip, default = "crate::snapshot::placeholder_map")]
     map: Arc<Map>,
     terrain: TerrainRules,
     paths: Pathfinder,
@@ -489,6 +495,12 @@ impl Sim {
     }
 
     /// The map of this match.
+    /// Puts the map back after deserializing a snapshot (prompt 038,
+    /// `crate::snapshot`; the map is not part of the serialized fields).
+    pub(crate) fn set_restored_map(&mut self, map: Arc<Map>) {
+        self.map = map;
+    }
+
     pub const fn map(&self) -> &Arc<Map> {
         &self.map
     }

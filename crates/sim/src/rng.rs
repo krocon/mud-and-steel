@@ -3,8 +3,10 @@
 //! Never seeded from OS entropy or time. The algorithm is fixed forever:
 //! changing it changes every replay and breaks lockstep compatibility.
 
+use serde::{Deserialize, Serialize};
+
 /// SplitMix64 generator. Small, fast, and fully specified by its 64-bit state.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Rng {
     state: u64,
 }

@@ -11,7 +11,7 @@
 use crate::catalog::Catalog;
 use crate::hash::StableHasher;
 use crate::math::{Fixed, Vec2};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fmt;
 
@@ -36,7 +36,7 @@ impl fmt::Display for ObjectError {
 impl std::error::Error for ObjectError {}
 
 /// Which path size classes an object blocks.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Blocks {
     None,

@@ -7,7 +7,7 @@
 use crate::hash::StableHasher;
 use crate::infantry::Stance;
 use crate::math::{Fixed, Vec2};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::fmt;
 
 /// The rules compiled into the simulation.
@@ -25,7 +25,7 @@ impl fmt::Display for CraterError {
 impl std::error::Error for CraterError {}
 
 /// Size of craters and what they do to the ground.
-#[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct CraterShape {
     pub min_caliber_mm_x10: u32,
@@ -44,7 +44,7 @@ pub struct CraterShape {
 }
 
 /// Cover of soldiers in craters.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct CraterCover {
     pub min_depth_mm: u32,
@@ -73,7 +73,7 @@ struct File {
 }
 
 /// Rules of `data/craters.toml`.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CraterRules {
     pub crater: CraterShape,
     pub cover: CraterCover,
@@ -194,7 +194,7 @@ impl CraterRules {
 }
 
 /// A crater was made during the last tick.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CraterEvent {
     /// Where the round struck the ground.
     pub at: Vec2,
