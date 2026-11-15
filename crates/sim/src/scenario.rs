@@ -295,6 +295,32 @@ mod tests {
     }
 
     #[test]
+    fn biome_is_read_but_not_hashed() {
+        use crate::map::Biome;
+        let load = |toml: &str| Map::load(toml, BUILTIN_MAP_HEIGHT, BUILTIN_MAP_TERRAIN);
+        let without: String = BUILTIN_MAP_TOML
+            .lines()
+            .filter(|l| !l.starts_with("biome"))
+            .map(|l| format!("{l}\n"))
+            .collect();
+        let base = load(&without).unwrap();
+        assert_eq!(base.biome(), Biome::Forest);
+        assert_eq!(builtin_map().biome(), Biome::Forest);
+        for biome in Biome::ALL {
+            let toml = without.replacen(
+                "cell_size_mm",
+                &format!("biome = \"{}\"\ncell_size_mm", biome.name()),
+                1,
+            );
+            let map = load(&toml).unwrap();
+            assert_eq!(map.biome(), biome);
+            assert_eq!(map.hash(), base.hash());
+        }
+        let bad = without.replacen("cell_size_mm", "biome = \"jungle\"\ncell_size_mm", 1);
+        assert!(load(&bad).is_err());
+    }
+
+    #[test]
     fn rejects_unknown_fields_and_units() {
         let catalog = Catalog::builtin().unwrap();
         let scale = Scale::builtin().unwrap();

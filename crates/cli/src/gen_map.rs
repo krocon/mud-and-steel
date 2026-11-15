@@ -34,6 +34,8 @@ pub struct Options<'a> {
     pub name: &'a str,
     pub size_m: u32,
     pub seed: u64,
+    /// `biome` in map.toml (presentation only).
+    pub biome: &'a str,
     pub out: &'a Path,
 }
 
@@ -483,7 +485,8 @@ pub fn generate(options: &Options) -> Result<String, String> {
          cell_size_mm = 2000\n\
          samples = [{side}, {side}]\n\
          height_base_mm = {base_mm}\n\
-         height_step_mm = {step_mm}\n\n\
+         height_step_mm = {step_mm}\n\
+         biome = \"{}\"\n\n\
          [[start]]\nplayer = 0\nposition_m = [0, 60]\n\n\
          [[start]]\nplayer = 1\nposition_m = [0, -60]\n\n\
          [[marker]]\nname = \"hill_top\"\nposition_m = [{hill_x}, {hill_y}]\n\n\
@@ -492,6 +495,7 @@ pub fn generate(options: &Options) -> Result<String, String> {
         options.name,
         options.size_m,
         options.seed,
+        options.biome,
         village.x.round() as i32,
         village.y.round() as i32,
     );

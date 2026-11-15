@@ -49,6 +49,32 @@ pub struct Marker {
     pub position: Vec2,
 }
 
+/// Climate look of a map from `map.toml` (`biome = "forest"`). Presentation
+/// only: the simulation validates and stores it for the bridge, but no rule
+/// reads it, and it is not part of the map hash or the state hash.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Biome {
+    /// Temperate: meadows, fields, deciduous and pine forest.
+    #[default]
+    Forest,
+    Desert,
+    Winter,
+}
+
+impl Biome {
+    pub const ALL: [Self; 3] = [Self::Forest, Self::Desert, Self::Winter];
+
+    /// The name used in `map.toml`, palettes and presets.
+    pub const fn name(self) -> &'static str {
+        match self {
+            Self::Forest => "forest",
+            Self::Desert => "desert",
+            Self::Winter => "winter",
+        }
+    }
+}
+
 #[derive(Debug, PartialEq, Eq)]
 pub struct MapError(pub String);
 
@@ -97,6 +123,9 @@ struct MapFile {
     height_base_mm: i32,
     /// Millimeters per PNG step.
     height_step_mm: u32,
+    /// Presentation only, see [`Biome`].
+    #[serde(default)]
+    biome: Biome,
     #[serde(default)]
     start: Vec<StartEntry>,
     #[serde(default)]
@@ -119,6 +148,8 @@ pub struct Map {
     terrain: Vec<u8>,
     starts: Vec<StartPosition>,
     markers: Vec<Marker>,
+    /// Not part of `hash`.
+    biome: Biome,
     hash: u64,
 }
 
@@ -212,7 +243,9 @@ impl Map {
                 })
                 .collect(),
         };
-        Self::from_rasters(layout, heights_mm, terrain)
+        let mut map = Self::from_rasters(layout, heights_mm, terrain)?;
+        map.biome = file.biome;
+        Ok(map)
     }
 
     /// Builds a map from already decoded rasters (row-major, one value per
@@ -302,12 +335,18 @@ impl Map {
             terrain,
             starts,
             markers,
+            biome: Biome::default(),
             hash: h.finish(),
         })
     }
 
     pub fn name(&self) -> &str {
         &self.name
+    }
+
+    /// Climate look for the presentation (not part of the hash).
+    pub const fn biome(&self) -> Biome {
+        self.biome
     }
 
     /// Hash of the complete content (grid, heights, terrain), independent of
