@@ -11,10 +11,10 @@ of integers, so the simulation applies it exactly in fixed point.
 |---|---|---|
 | Sizes | **1:1** in real meters, infantry included (reference figure 1.80 m) | fixed |
 | Time | **factor 2**: speeds × 2, durations ÷ 2; overridable per category | fixed |
-| Direct-fire range | real × **1/4** | proposed |
-| Sight range | real × **1/4** | proposed |
-| Indirect-fire range | real × **1/8** | proposed |
-| Aircraft speed | real × **1/2** (instead of the time factor) | proposed |
+| Direct-fire range | real × **1/4** | confirmed 2026-11-15 |
+| Sight range | real × **1/4** | confirmed 2026-11-15 |
+| Indirect-fire range | real × **1/8** | confirmed 2026-11-15 |
+| Aircraft speed | real × **1/2** (instead of the time factor) | confirmed 2026-11-15 |
 
 ### Sizes 1:1
 
