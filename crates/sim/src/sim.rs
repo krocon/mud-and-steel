@@ -18,6 +18,7 @@ use std::sync::Arc;
 mod combat;
 mod destruction;
 mod infantry;
+mod spatial;
 mod vision;
 
 pub use vision::MAX_PLAYERS;
@@ -330,6 +331,9 @@ pub struct Sim {
     infantry: InfantryRt,
     /// Hit points and stages of map objects (prompt 020).
     destruction: destruction::Destruction,
+    /// Unit positions by area (prompt 016): rebuilt within a tick where
+    /// queries need it; not state.
+    unit_grid: spatial::UnitGrid,
 }
 
 impl Sim {
@@ -453,6 +457,7 @@ impl Sim {
             vision,
             infantry,
             destruction,
+            unit_grid: spatial::UnitGrid::default(),
         };
         sim.apply_destruction();
         sim.update_vision(true);
@@ -518,6 +523,7 @@ impl Sim {
         self.plan_paths();
         done(Phase::Paths);
         self.update_stances();
+        self.rebuild_unit_grid();
         self.aim_and_fire();
         done(Phase::Combat);
         self.move_units();
@@ -525,6 +531,7 @@ impl Sim {
         self.update_squads();
         done(Phase::Squads);
         self.crush_objects();
+        self.rebuild_unit_grid();
         self.fly_projectiles();
         done(Phase::Projectiles);
         self.apply_destruction();
@@ -686,6 +693,16 @@ impl Sim {
         }
     }
 
+    /// Sorts the units into [`spatial::UnitGrid`] by their current
+    /// positions.
+    fn rebuild_unit_grid(&mut self) {
+        let size = self.map.size();
+        let types = &self.types;
+        self.unit_grid.rebuild(&self.units, size, |u| {
+            combat::reach_of(u, &types[u.unit_type as usize])
+        });
+    }
+
     /// Moves every unit that follows a route by one tick, with separation
     /// from nearby units computed from the positions at the start of the
     /// movement (so the result does not depend on the update order).
@@ -697,9 +714,20 @@ impl Sim {
             .iter()
             .map(|u| heading(u).filter(|_| !arriving(u)))
             .collect();
+        // The unit grid holds the positions of this phase (built before
+        // combat, which moves nobody).
+        let mut near = Vec::new();
         let pushes: Vec<Vec2> = (0..self.units.len())
             .map(|i| {
-                directions[i].map_or(Vec2::ZERO, |d| separation(&self.units, &directions, i, d))
+                directions[i].map_or(Vec2::ZERO, |d| {
+                    // Separation looks at most (own + other spread) far.
+                    let me = &self.units[i];
+                    let r = me.spread + self.unit_grid.max_spread;
+                    let r = Vec2::new(r, r);
+                    self.unit_grid
+                        .query(me.position - r, me.position + r, &mut near);
+                    separation(&self.units, &directions, i, d, &near)
+                })
             })
             .collect();
         let grid = &self.paths.grid;
@@ -1156,11 +1184,22 @@ fn arriving(unit: &Unit) -> bool {
 ///   that drive in roughly the same direction (`directions`, less than 60°
 ///   apart) are not swerved around: a column follows its leader instead of
 ///   zig-zagging behind it. The push still keeps them from overlapping.
-fn separation(units: &[Unit], directions: &[Option<Vec2>], i: usize, direction: Vec2) -> Vec2 {
+///
+/// `near` lists the candidates (indices; every unit within the reach must
+/// be among them). The push is a sum, so their order does not matter.
+fn separation(
+    units: &[Unit],
+    directions: &[Option<Vec2>],
+    i: usize,
+    direction: Vec2,
+    near: &[u32],
+) -> Vec2 {
     let me = &units[i];
     let left = Vec2::new(direction.y, -direction.x);
     let mut push = Vec2::ZERO;
-    for (j, other) in units.iter().enumerate() {
+    for &j in near {
+        let j = j as usize;
+        let other = &units[j];
         if j == i || !other.alive() || infantry::inside(other) {
             continue;
         }
