@@ -27,9 +27,15 @@ extends Node3D
 ## (prompt 015): the biome of the map (`map.toml`), overridden by
 ## `-- --biome=<forest|desert|winter>`; graphics quality by
 ## `-- --quality=<low|medium|high>`.
+## The game starts in the main menu (`menu/main_menu.tscn`, prompt 027),
+## which hands the chosen match over through `menu/match_setup.gd` and
+## skips itself for the direct-start arguments above; `menu/game_menu.gd`
+## adds the pause menu (Esc) and the result screen.
 ## LAN games start in `lan/lan_lobby.tscn` (`just lan`), which hands the
 ## started game over through `lan/lan_match.gd`; `lan/net_status.gd` then
 ## shows the connection state.
+## Combat (prompt 017) is drawn by `world/combat_view.gd`: tracers, health
+## bars, wrecks, turrets. The self-test starts with every unit holding fire.
 
 const UNIT_SCENE: PackedScene = preload("res://scenes/unit.tscn")
 const SelfTest := preload("res://scenes/self_test.gd")
@@ -45,6 +51,11 @@ const Water := preload("res://scenes/world/water.gd")
 const ObjectsBench := preload("res://scenes/tools/objects_bench.gd")
 const LanMatch := preload("res://scenes/lan/lan_match.gd")
 const NetStatus := preload("res://scenes/lan/net_status.gd")
+const CombatView := preload("res://scenes/world/combat_view.gd")
+const Settings := preload("res://scenes/menu/settings.gd")
+const MatchSetup := preload("res://scenes/menu/match_setup.gd")
+const LoadingScreen := preload("res://scenes/menu/loading_screen.gd")
+const GameMenu := preload("res://scenes/menu/game_menu.gd")
 const SEED := 42
 ## Map folders, relative to the Godot project (repository checkout only).
 const MAPS_DIR := "res://../data/maps"
@@ -83,6 +94,12 @@ var _marker_time_left := 0.0
 var _enemy_material: StandardMaterial3D
 ## Lighting, haze and biome look (prompt 015).
 var atmosphere: Atmosphere
+## Tracers, health bars, wrecks (prompt 017).
+var combat_view: CombatView
+## Pause menu and result screen (prompt 027).
+var game_menu: CanvasLayer
+var _loading: CanvasLayer
+var _loaded := false
 
 
 func _ready() -> void:
@@ -91,6 +108,16 @@ func _ready() -> void:
 	_enemy_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	_enemy_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 
+	Settings.ensure_loaded()
+	# Matches from the menu or the LAN lobby are built in steps behind a
+	# loading screen (prompt 027); direct starts load in one frame as before.
+	if not MatchSetup.pending.is_empty() or LanMatch.lobby != null:
+		var map_name: String = MatchSetup.pending.get("map", "LAN match")
+		_loading = LoadingScreen.new(map_name)
+		add_child(_loading)
+		sim_host.set_process(false)
+		$Hud.process_mode = Node.PROCESS_MODE_DISABLED
+		await _loading_step("Preparing the battlefield …", 0.05)
 	if not _start_simulation():
 		push_error("SimHost failed to start")
 		get_tree().quit(1)
@@ -102,14 +129,19 @@ func _ready() -> void:
 	var map_size := sim_host.map_size()
 	camera_rig.bounds = Rect2(-map_size * 0.5, map_size)
 	camera_rig.snap_to(Vector3(0, 0, 40), 140.0)
+	await _loading_step("Building the terrain …", 0.35)
 	terrain.build(sim_host)
+	await _loading_step("Setting the weather …", 0.6)
 	atmosphere = Atmosphere.new()
 	atmosphere.name = "Atmosphere"
 	add_child(atmosphere)
 	atmosphere.setup($WorldEnvironment, sun, camera_rig, terrain)
-	atmosphere.quality = GraphicsQuality.from_cmdline()
-	atmosphere.set_biome(Atmosphere.biome_from(sim_host.map_biome()))
+	atmosphere.quality = Settings.quality()
+	var biome: String = MatchSetup.pending.get("biome", "")
+	atmosphere.set_biome(biome if not biome.is_empty() else Atmosphere.biome_from(sim_host.map_biome()))
+	MatchSetup.pending = {}
 	print("Mud and Steel: biome '%s', graphics quality '%s'" % [atmosphere.preset.id, atmosphere.quality])
+	await _loading_step("Placing woods and villages …", 0.7)
 	map_objects = MapObjects.new()
 	map_objects.name = "MapObjects"
 	add_child(map_objects)
@@ -120,6 +152,11 @@ func _ready() -> void:
 	add_child(water)
 	water.build(sim_host)
 	water.apply_biome(atmosphere.preset)
+
+	combat_view = CombatView.new()
+	combat_view.name = "CombatView"
+	add_child(combat_view)
+	combat_view.setup(self, $Hud)
 
 	selection.sim_host = sim_host
 	selection.camera = camera
@@ -141,7 +178,22 @@ func _ready() -> void:
 		net_status.main = self
 		$Hud.add_child(net_status)
 
-	if "--self-test" in OS.get_cmdline_user_args():
+	# Pause menu and result screen (prompt 027).
+	Settings.apply_camera(camera_rig)
+	game_menu = GameMenu.new()
+	game_menu.name = "GameMenu"
+	game_menu.main = self
+	add_child(game_menu)
+	if _loading != null:
+		_loading.set_step("Ready.", 1.0)
+		await get_tree().process_frame
+		_loading.finish()
+		_loading = null
+		sim_host.set_process(true)
+		$Hud.process_mode = Node.PROCESS_MODE_INHERIT
+	_loaded = true
+
+	if "--self-test" in OS.get_cmdline_user_args() and _wants_match_test():
 		camera_rig.edge_scroll_enabled = false
 		var test := SelfTest.new()
 		test.main = self
@@ -164,6 +216,8 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	if not _loaded:
+		return
 	_frame += 1
 	_draw_units()
 	if target_marker.visible:
@@ -178,9 +232,33 @@ func _exit_tree() -> void:
 	GroundPick.height_source = null
 
 
+## Shows a loading step and lets a frame be drawn (only behind the loading
+## screen).
+func _loading_step(text: String, fraction: float) -> void:
+	if _loading == null:
+		return
+	_loading.set_step(text, fraction)
+	await get_tree().process_frame
+	await get_tree().process_frame
+
+
+## In the menu flow self-test only the first match runs the match tests.
+func _wants_match_test() -> bool:
+	if MatchSetup.flow_test == null:
+		return true
+	var wanted := MatchSetup.run_match_test
+	MatchSetup.run_match_test = false
+	return wanted
+
+
 ## Starts the built-in map, or the one named by `--map=<name>`, or the LAN
-## match the lobby started.
+## match the lobby started, or the match chosen in the menu.
 func _start_simulation() -> bool:
+	# The self-test checks movement first; combat is tested at its end.
+	sim_host.hold_fire_at_start = "--self-test" in OS.get_cmdline_user_args()
+	if not MatchSetup.pending.is_empty():
+		var setup := MatchSetup.pending
+		return sim_host.start_match(SEED, MatchSetup.map_dir(setup["map"]), setup["factions"])
 	if LanMatch.lobby != null:
 		var lobby := LanMatch.lobby
 		LanMatch.lobby = null
@@ -224,18 +302,21 @@ func _draw_units() -> void:
 	var previous := sim_host.previous_positions()
 	var current := sim_host.current_positions()
 	var alpha := sim_host.interpolation_alpha()
+	var facings := sim_host.unit_facing_yaws()
+	var alive := sim_host.unit_alive()
 	for i in ids.size():
 		var node := _unit_node(ids[i], i)
 		var from: Vector3 = previous[i] if i < previous.size() else current[i]
 		var to: Vector3 = current[i]
 		node.position = from.lerp(to, alpha)
-		var heading := to - from
-		if heading.length_squared() > 0.000001:
-			# Models face -Z; turn them towards the driving direction.
-			# Turned smoothly, so small sideways corrections do not jitter.
-			var turn := clampf(get_process_delta_time() * TURN_RATE, 0.0, 1.0)
-			node.rotation.y = lerp_angle(node.rotation.y, atan2(-heading.x, -heading.z), turn)
-		(node.get_node("SelectionRing") as Node3D).visible = selection.is_selected(ids[i])
+		# Models face -Z; the hull follows the simulation's direction
+		# (prompt 017), turned smoothly so small corrections do not jitter.
+		var turn := clampf(get_process_delta_time() * TURN_RATE, 0.0, 1.0)
+		if not node.has_meta(&"placed"):
+			node.set_meta(&"placed", true)
+			turn = 1.0
+		node.rotation.y = lerp_angle(node.rotation.y, facings[i], turn)
+		(node.get_node("SelectionRing") as Node3D).visible = selection.is_selected(ids[i]) and alive[i] != 0
 
 
 func _unit_node(id: int, index: int) -> Node3D:

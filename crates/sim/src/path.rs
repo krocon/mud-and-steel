@@ -208,6 +208,9 @@ pub struct PathGrid {
     deck: Vec<u16>,
     /// Per bridge: the cells near its deck (bounds grown by two cells).
     bridge_cells: Vec<CellRect>,
+    /// Per bridge: unit vector across its deck. Steps between a deck cell
+    /// and a cell beside it (across the axis) cross the railing.
+    bridge_right: Vec<Vec2>,
     /// Indexed like [`crate::SimConfig::unit_types`].
     profiles: Vec<Profile>,
     /// Incremented by every change after construction.
@@ -274,6 +277,7 @@ impl PathGrid {
             components: Vec::new(),
             deck: vec![0; count],
             bridge_cells: Vec::new(),
+            bridge_right: map.bridges().iter().map(|b| b.right).collect(),
             version: 0,
         };
         grid.components = components;
@@ -638,6 +642,7 @@ impl PathGrid {
             return;
         };
         let cost = &profile.cost;
+        let (deck, rights) = (&self.deck, &self.bridge_right);
         let grid = &mut self.components[c];
         grid.component.fill(0);
         let mut next = 0u32;
@@ -653,7 +658,10 @@ impl PathGrid {
                 let (x, y) = (c % width, c / width);
                 let mut visit = |nx: u32, ny: u32| {
                     let n = (ny * width + nx) as usize;
-                    if cost[n] != 0 && grid.component[n] == 0 {
+                    if cost[n] != 0
+                        && grid.component[n] == 0
+                        && !railing(deck, rights, width, c as usize, n)
+                    {
                         grid.component[n] = next;
                         stack.push(n as u32);
                     }
@@ -690,7 +698,12 @@ impl PathGrid {
         let abs_dx = i128::from(dx.abs().to_bits());
         let abs_dy = i128::from(dy.abs().to_bits());
         let one = Fixed::ONE.to_bits();
-        let mut check = |x: i64, y: i64| ok((y as u32 * self.width + x as u32) as usize);
+        let index = |x: i64, y: i64| (y as u32 * self.width + x as u32) as usize;
+        let mut prev = index(cx, cy);
+        let mut check = |from: usize, x: i64, y: i64| {
+            let i = index(x, y);
+            !railing(&self.deck, &self.bridge_right, self.width, from, i) && ok(i)
+        };
         let max_steps = (ex - cx).abs() + (ey - cy).abs();
         for _ in 0..max_steps {
             if (cx, cy) == (ex, ey) {
@@ -714,16 +727,17 @@ impl PathGrid {
                 std::cmp::Ordering::Less => cx += step_x,
                 std::cmp::Ordering::Greater => cy += step_y,
                 std::cmp::Ordering::Equal => {
-                    if !check(cx + step_x, cy) || !check(cx, cy + step_y) {
+                    if !check(prev, cx + step_x, cy) || !check(prev, cx, cy + step_y) {
                         return false;
                     }
                     cx += step_x;
                     cy += step_y;
                 }
             }
-            if !check(cx, cy) {
+            if !check(prev, cx, cy) {
                 return false;
             }
+            prev = index(cx, cy);
         }
         true
     }
@@ -962,6 +976,27 @@ impl PathGrid {
     }
 }
 
+/// Whether a step between neighboring cells `a` and `b` crosses the
+/// railing of a bridge: one of them is a deck cell and the other is not a
+/// cell of the same deck, and the step is not along the deck's axis. Units
+/// get on and off a deck only over its ends ([`crate::Map::deck_step_ok`]).
+fn railing(deck: &[u16], rights: &[Vec2], width: u32, a: usize, b: usize) -> bool {
+    let (da, db) = (deck[a], deck[b]);
+    if da == db {
+        return false;
+    }
+    let (dx, dy) = (
+        i64::from(b as u32 % width) - i64::from(a as u32 % width),
+        i64::from(b as u32 / width) - i64::from(a as u32 / width),
+    );
+    let half = Fixed::ONE / 2;
+    [da, db].into_iter().filter(|&d| d != 0).any(|d| {
+        rights
+            .get(usize::from(d - 1))
+            .is_some_and(|r| (Fixed::from_num(dx) * r.x + Fixed::from_num(dy) * r.y).abs() > half)
+    })
+}
+
 /// Cost per cell the A* heuristic assumes for a unit type, see
 /// [`HEURISTIC_WEIGHT_PCT`].
 fn heuristic_cost(t: &UnitType) -> u16 {
@@ -1184,7 +1219,14 @@ impl Search {
                     continue;
                 };
                 let n = grid.index(nx, ny);
-                if cost[n] == 0 || ws.nodes[n].mark == closed {
+                // A unit on a blocked start cell (pushed beside a deck) may
+                // leave it in any direction; movement checks the railing
+                // height itself.
+                let off_grid = cost[c] == 0;
+                if cost[n] == 0
+                    || ws.nodes[n].mark == closed
+                    || (!off_grid && railing(&grid.deck, &grid.bridge_right, grid.width, c, n))
+                {
                     continue;
                 }
                 // No corner cutting: both orthogonal cells must be free.
@@ -1398,6 +1440,7 @@ mod tests {
             road_speed_m_per_s: Fixed::from_num(2),
             footprint_m: Fixed::ONE,
             mass_kg: 0,
+            combat: crate::combat::CombatType::default(),
         }
     }
 
@@ -1408,6 +1451,7 @@ mod tests {
             road_speed_m_per_s: Fixed::from_num(10),
             footprint_m: Fixed::from_num(7),
             mass_kg: 0,
+            combat: crate::combat::CombatType::default(),
         }
     }
 

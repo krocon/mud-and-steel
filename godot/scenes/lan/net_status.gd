@@ -24,6 +24,7 @@ func _ready() -> void:
 	if LanMatch.self_test:
 		var test := LanSelfTest.new()
 		test.sim_host = main.sim_host
+		test.main = main
 		add_child(test)
 
 
@@ -65,6 +66,11 @@ func _focus_own_units() -> void:
 
 func _on_halt(status: Dictionary) -> void:
 	var message: String = status["message"]
+	if main.sim_host.match_result()["decided"] and not status["desync"]:
+		# The match is over (prompt 027); the others leaving is expected.
+		text = "Match over. %s" % message
+		modulate = Color(0.8, 0.8, 0.8)
+		return
 	var replay := ""
 	if status["desync"]:
 		replay = main.save_replay("desync-p%d-" % main.sim_host.local_player())

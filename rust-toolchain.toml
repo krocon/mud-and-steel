@@ -1,3 +1,5 @@
 [toolchain]
-channel = "stable"
+# Pinned so that local builds and CI use the same rustc and clippy; a newer
+# "stable" can add lints or change behavior. Update deliberately (docs/VERSIONS.md).
+channel = "1.100.0"
 components = ["rustfmt", "clippy"]

@@ -54,6 +54,7 @@ mod tests {
                 Command::Stop {
                     units: vec![UnitId(4)],
                 },
+                Command::Surrender,
             ],
         });
         assert_eq!(decode(&encode(&message)).unwrap(), message);

@@ -3,8 +3,8 @@
 Two or more machines in the local network play the same match in deterministic
 lockstep (see [ARCHITECTURE.md](ARCHITECTURE.md#data-flow-multiplayer)). One player
 hosts, the others find the game with a LAN search, join, get ready, and everyone
-starts together. Built in prompt 025; the lobby UI is deliberately minimal until the
-menus of prompt 027.
+starts together. Built in prompt 025; since prompt 027 the lobby opens from the
+main menu (*LAN game*), uses the menu look and has *Back to main menu*.
 
 ## Quick start
 
@@ -19,9 +19,15 @@ just lan            # on every machine: opens the LAN lobby
   same machine plus its LAN address); every entry leads to the same game.
 - **Host:** *Start match* is enabled once everyone is ready.
 
-The demo scenario has two players, so a game takes one host and one client. With
-`just lan --map=test_large` the host plays on a map from `data/maps/`; every peer
+The demo scenario has two players, so a game takes one host and one client. The
+host picks the map in the lobby (or with `just lan --map=test_large`); every peer
 must have the same map files (checked by content hash).
+
+**End of a match:** Esc opens the in-match menu (the game keeps running: a lockstep
+match cannot pause for one player) with *Surrender* and *Leave match*. A surrender,
+or a player without units, decides the match in the simulation on every peer; each
+player then sees the result screen and returns to the main menu. A player leaving
+after the result is shown as "Match over", not as an error.
 
 During the match a status line shows the player, the input delay, the round trip
 and the last tick whose state hash every peer confirmed. It turns yellow while the
@@ -64,7 +70,7 @@ ENet channel 0, lobby messages (postcard, `net::lan::wire`):
 
 | Message | Direction | Meaning |
 |---------|-----------|---------|
-| `Hello { protocol, name }` | client → host | first message; wrong protocol version is rejected |
+| `Hello { protocol, name }` | client → host | first message; wrong protocol version is rejected (`net::lan::PROTOCOL_VERSION`, 2 since prompt 017 changed config and commands) |
 | `Welcome { player }` | host → client | accepted as player id `player` (smallest free id) |
 | `Reject { reason }` | host → client | game full, already started, wrong version; then disconnect |
 | `Lobby { players }` | host → all | names and ready flags |
@@ -108,7 +114,7 @@ Timeouts: ENet disconnects a peer that did not answer for 3 to 10 s; pings every
 | Command | What it does |
 |---------|--------------|
 | `just check` | includes `crates/net/tests/lan.rs` (two and three peers over UDP on localhost, rejection, lost peer, discovery) and `crates/cli/tests/lan.rs` (two `cli` processes; the client finds the host by search; end hash equals the single-process `run_demo`; a provoked desync is reported by both, with replays) |
-| `just lan-selftest` | two headless Godot instances: host, search, join, ready, start, both order their tanks, pass once tick 400 is confirmed by both. Logs in `build/lan-selftest/` |
+| `just lan-selftest` | two headless Godot instances: host, search, join, ready, start, both hold fire and order their tanks until tick 400 is confirmed by both; then the client surrenders and both must show the result (host victory, client defeat) at a confirmed tick. Logs in `build/lan-selftest/` |
 | `just lan-host` / `just lan-join [address]` | headless CLI peers playing the demo, e.g. one per machine |
 
 ## Testing with two machines

@@ -24,9 +24,23 @@ fn different_seed_gives_different_hash() {
 /// Last changed by prompt 014: `test_small` was regenerated with a deeper
 /// river profile, a stone and a timber bridge with ramps (bridge objects
 /// with decks, `data/objects.toml`), a narrowed river at the bridges and
-/// stones in the river; the map hash covers the bridges.
-/// Before: prompt 013 (`test_small` has map objects: woods, hedges, a
-/// village; their shapes block path cells by size class), prompt 012 (units drive along A* paths on the 4 m path grid, one
+/// stones in the river; the map hash covers the bridges (objects near the
+/// meadow moved with it, so the demo battle is now decided at tick 525
+/// instead of 405, same winner). Units may not drive down grades steeper
+/// than the climbing limit or over the side of a deck.
+/// Before: prompt 027 (victory conditions: the demo battle is
+/// decided at tick 405, player 0 loses its last tank, player 1 wins; from the
+/// first defeat on, the standings and the result are part of the hash).
+/// Before: prompt 017: combat. Units have hit points, a hull
+/// direction, turrets, weapons and armor from the catalog, pick targets,
+/// fire projectiles with ballistic flight and dispersion (simulation RNG),
+/// penetrate armor by hit face and angle, and are destroyed (wrecks block
+/// paths); combat rules (`data/combat.toml`), unit combat state and
+/// projectiles are in the hash. The demo's tanks start 120 m apart and fight.
+/// Before: prompt 013: `test_small` has map objects (woods,
+/// hedges, a village; `objects.csv`), their shapes block path cells by size
+/// class (`data/objects.toml`), and the map hash covers them.
+/// Before: prompt 012 (units drive along A* paths on the 4 m path grid, one
 /// path per group, formation offsets, separation, re-planning, path queue
 /// with a node budget, unreachable targets snap to the nearest reachable
 /// cell; routes, queue and grid version in the hash; wider fords), prompt 010 (map `test_small`, ground height, terrain- and
@@ -37,7 +51,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xc898_16b4_95c7_a23a;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x7bf3_7e90_fed3_d2c6;
 
 #[test]
 fn golden_hash() {
@@ -61,4 +75,36 @@ fn demo_moves_units_of_both_players() {
             .count();
         assert!(moved > 0, "no unit of player {} moved", player.0);
     }
+}
+
+#[test]
+fn demo_is_a_battle() {
+    let end = run_demo(42, 1000);
+    let snapshot = end.snapshot();
+    let destroyed = snapshot.units.iter().filter(|u| !u.alive()).count();
+    assert!(destroyed >= 8, "only {destroyed} units destroyed");
+    let start = sim::scenario::demo_config();
+    for player in start.players() {
+        let alive = snapshot
+            .units
+            .iter()
+            .filter(|u| u.owner == player && u.alive())
+            .count();
+        assert_eq!(end.alive_units(player), alive);
+    }
+}
+
+/// The demo battle ends by elimination (prompt 027): the result is part of
+/// the golden state above.
+#[test]
+fn demo_battle_is_decided() {
+    let end = run_demo(42, 1000);
+    let outcome = end.outcome().expect("the demo battle is decided");
+    assert_eq!(outcome.winner, Some(sim::PlayerId(1)));
+    assert_eq!(outcome.tick, 525);
+    assert_eq!(end.alive_units(sim::PlayerId(0)), 0);
+    assert_eq!(
+        end.standings()[0].defeat,
+        Some((sim::DefeatReason::Eliminated, 525))
+    );
 }

@@ -1,6 +1,7 @@
 //! Unit types as the simulation uses them, derived from the catalog.
 
 use crate::catalog::{Catalog, Entry, Group};
+use crate::combat::CombatType;
 use crate::math::Fixed;
 use crate::scale::Scale;
 use serde::{Deserialize, Serialize};
@@ -22,6 +23,8 @@ pub struct UnitType {
     /// Combat mass in kilograms from the catalog (0 if unknown, e.g.
     /// infantry). Bridges carry units up to their load limit (prompt 014).
     pub mass_kg: u32,
+    /// Weapons, armor and hit box (prompt 017).
+    pub combat: CombatType,
 }
 
 /// Footprint of entries without dimensions (infantry): one soldier.
@@ -69,6 +72,7 @@ impl UnitType {
             road_speed_m_per_s: scale.game_speed(entry.category, road),
             footprint_m: Fixed::from_num(footprint_mm) / Fixed::from_num(1000),
             mass_kg: entry.mass_kg.unwrap_or(0),
+            combat: CombatType::from_catalog(entry, scale),
         })
     }
 }

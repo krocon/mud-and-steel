@@ -98,6 +98,9 @@ pub struct ObjectKind {
     pub variant: String,
     pub blocks: Blocks,
     pub shape: Shape,
+    /// Height from the catalog in meters (projectiles below it hit the
+    /// object, prompt 017). Not part of the map hash.
+    pub height: Fixed,
     /// Bridges: the deck units drive on (needs a box shape).
     pub deck: Option<Deck>,
 }
@@ -271,7 +274,7 @@ impl ObjectRules {
                 let radius = pick(entry.radius_mm, o.map(|o| o.radius_mm));
                 let shape = if let Some(radius) = radius {
                     Shape::Circle {
-                        radius: mm(radius, MAX_SIZE_MM).map_err(&err)?,
+                        radius: mm(radius, MAX_SIZE_MM).map_err(err)?,
                     }
                 } else {
                     let length = pick(entry.length_mm, o.map(|o| o.length_mm))
@@ -281,8 +284,8 @@ impl ObjectRules {
                         .or(catalog_entry.width_mm)
                         .ok_or_else(|| err("needs radius_mm or a width".into()))?;
                     Shape::Box {
-                        half_length: mm(length, MAX_SIZE_MM).map_err(&err)? / 2,
-                        half_width: mm(width, MAX_SIZE_MM).map_err(&err)? / 2,
+                        half_length: mm(length, MAX_SIZE_MM).map_err(err)? / 2,
+                        half_width: mm(width, MAX_SIZE_MM).map_err(err)? / 2,
                     }
                 };
                 let deck = match (entry.deck, shape) {
@@ -307,6 +310,8 @@ impl ObjectRules {
                     variant: name.clone(),
                     blocks: o.and_then(|o| o.blocks).unwrap_or(entry.blocks),
                     shape,
+                    height: Fixed::from_num(catalog_entry.height_mm.unwrap_or(0))
+                        / Fixed::from_num(1000),
                     deck,
                 });
             }

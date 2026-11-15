@@ -31,7 +31,7 @@ pub const MAGIC: [u8; 4] = *b"MSRP";
 
 /// Version of the body layout. Bump on every incompatible change of
 /// [`Replay`] or of the types it contains (commands, config).
-pub const FORMAT_VERSION: u16 = 3;
+pub const FORMAT_VERSION: u16 = 4;
 
 const HEADER_LEN: usize = MAGIC.len() + 2;
 

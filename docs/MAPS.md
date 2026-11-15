@@ -190,7 +190,8 @@ mass (`mass_kg`, `sim::UnitType::mass_kg`) decides; infantry has none.
   `ground_height_at` / `ground_terrain_at` give the raw values.
 - **Railings:** units get on or off a deck only over its ends, or sideways
   where the ground is within 0.5 m of the deck (abutments)
-  (`Map::deck_step_ok`).
+  (`Map::deck_step_ok`); paths enter and leave deck cells only along the
+  axis.
 - **Path grid:** a path cell whose center lies on an intact deck is open for
   every unit the bridge carries (no steepness, no margin, the deck terrain's
   cost) and closed for heavier ones. Water under a deck does not count for the

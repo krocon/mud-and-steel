@@ -1,16 +1,22 @@
 //! The simulation state and its fixed-tick update.
 
+use crate::combat::{CombatEvent, CombatRules, FireMode, ProjectileSnapshot};
 use crate::command::{Command, PlayerCommand, PlayerId, UnitId};
 use crate::data::UnitType;
 use crate::hash::StableHasher;
 use crate::map::{Map, MapRef};
 use crate::math::{Fixed, Vec2};
+use crate::outcome::{Outcome, PlayerStanding, Standings};
 use crate::path::{NODE_BUDGET_PER_TICK, Path, PathGrid, PathStats, Pathfinder, Request};
 use crate::rng::Rng;
 use crate::terrain::TerrainRules;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::sync::Arc;
+
+mod combat;
+
+use combat::{Attack, CombatState, Projectile, TypeCombat};
 
 /// Move targets farther than this from the origin (in meters, per axis) are
 /// ignored. Keeps all position arithmetic far away from `Fixed` overflow, even
@@ -24,6 +30,8 @@ pub struct Spawn {
     /// Name of a [`UnitType`] in [`SimConfig::unit_types`].
     pub unit_type: String,
     pub position: Vec2,
+    /// Fire mode at the start (default: fire at will).
+    pub fire_mode: FireMode,
 }
 
 /// Everything needed to start a match. Identical on all peers.
@@ -37,6 +45,8 @@ pub struct SimConfig {
     /// checks it against this reference.
     pub map: MapRef,
     pub terrain: TerrainRules,
+    /// Combat rules (`data/combat.toml`).
+    pub combat: CombatRules,
 }
 
 impl SimConfig {
@@ -104,6 +114,17 @@ struct Unit {
     speed_road: Fixed,
     /// Meters, see [`UnitType::footprint_m`].
     footprint: Fixed,
+    /// Hull direction (unit length): the last driving direction.
+    facing: Vec2,
+    /// Hit points; 0 = destroyed (a wreck, or a dead squad).
+    hp: u32,
+    combat: CombatState,
+}
+
+impl Unit {
+    const fn alive(&self) -> bool {
+        self.hp > 0
+    }
 }
 
 /// How a unit gets to its target.
@@ -145,6 +166,20 @@ pub struct UnitSnapshot {
     /// Ground height at `position` in meters.
     pub height: Fixed,
     pub target: Option<Vec2>,
+    /// Hull direction (unit length).
+    pub facing: Vec2,
+    /// Direction of the turret / main weapon (unit length).
+    pub aim: Vec2,
+    /// Hit points left; 0 = destroyed.
+    pub hp: u32,
+    pub max_hp: u32,
+    pub fire_mode: FireMode,
+}
+
+impl UnitSnapshot {
+    pub const fn alive(&self) -> bool {
+        self.hp > 0
+    }
 }
 
 /// Presentation data of the whole simulation after a tick.
@@ -154,6 +189,10 @@ pub struct Snapshot {
     pub tick: u64,
     /// Sorted by unit id.
     pub units: Vec<UnitSnapshot>,
+    /// Projectiles in flight, by id.
+    pub projectiles: Vec<ProjectileSnapshot>,
+    /// What happened during the last tick, in order.
+    pub events: Vec<CombatEvent>,
 }
 
 /// The deterministic simulation.
@@ -166,6 +205,17 @@ pub struct Sim {
     map: Arc<Map>,
     terrain: TerrainRules,
     paths: Pathfinder,
+    tick_hz: u32,
+    combat_rules: CombatRules,
+    /// Per unit type.
+    types: Vec<TypeCombat>,
+    projectiles: Vec<Projectile>,
+    next_projectile: u32,
+    /// Events of the last tick (not state: derived, not hashed).
+    events: Vec<CombatEvent>,
+    objects: combat::ObjectIndex,
+    /// Defeated players and the result (prompt 027).
+    standings: Standings,
 }
 
 impl Sim {
@@ -197,6 +247,16 @@ impl Sim {
             if !map.contains(spawn.position) {
                 return Err(ConfigError::SpawnOutsideMap(index as usize));
             }
+            // Units start facing the map center.
+            let to_center = Vec2::ZERO - spawn.position;
+            let distance = to_center.length();
+            let facing = if distance > Fixed::ZERO {
+                Vec2::new(to_center.x / distance, to_center.y / distance)
+            } else {
+                Vec2::new(Fixed::ZERO, -Fixed::ONE)
+            };
+            let max_hp = config.combat.max_hp(&unit_type.combat);
+            let weapons = unit_type.combat.weapons.len();
             units.push(Unit {
                 id: UnitId(index),
                 owner: spawn.owner,
@@ -209,17 +269,33 @@ impl Sim {
                 speed_offroad: unit_type.speed_m_per_s / ticks_per_second,
                 speed_road: unit_type.road_speed_m_per_s / ticks_per_second,
                 footprint: unit_type.footprint_m,
+                facing,
+                hp: max_hp,
+                combat: CombatState::new(facing, weapons, spawn.fire_mode),
             });
         }
+        let types = config
+            .unit_types
+            .iter()
+            .map(|t| TypeCombat::new(t, &config.combat, config.tick_hz))
+            .collect();
 
         let grid = PathGrid::new(&map, &config.terrain, &config.unit_types);
         Ok(Self {
             tick: 0,
             rng: Rng::new(seed),
             units,
-            map,
             terrain: config.terrain.clone(),
             paths: Pathfinder::new(grid),
+            tick_hz: config.tick_hz,
+            combat_rules: config.combat.clone(),
+            types,
+            projectiles: Vec::new(),
+            next_projectile: 0,
+            events: Vec::new(),
+            objects: combat::ObjectIndex::new(&map),
+            map,
+            standings: Standings::new(&config.players()),
         })
     }
 
@@ -266,12 +342,45 @@ impl Sim {
     /// them by player, then issue order), then queued path requests get
     /// their node budget, then units move.
     pub fn step(&mut self, commands: &[PlayerCommand]) {
+        self.events.clear();
         for command in commands {
             self.apply(command);
         }
         self.plan_paths();
+        self.aim_and_fire();
         self.move_units();
+        self.fly_projectiles();
         self.tick += 1;
+        let units = &self.units;
+        self.standings
+            .update(self.tick, |player| alive_units(units, player));
+    }
+
+    /// Every player of the match (ascending) and whether they are defeated.
+    pub fn standings(&self) -> &[PlayerStanding] {
+        self.standings.players()
+    }
+
+    /// The result, once the match is decided. It never changes afterwards.
+    pub const fn outcome(&self) -> Option<Outcome> {
+        self.standings.outcome()
+    }
+
+    /// Number of units of `player` that are not destroyed (for victory
+    /// conditions).
+    pub fn alive_units(&self, player: PlayerId) -> usize {
+        alive_units(&self.units, player)
+    }
+
+    /// Hit points of a unit (`None` if it does not exist).
+    pub fn unit_hp(&self, id: UnitId) -> Option<u32> {
+        let index = self.units.binary_search_by_key(&id, |u| u.id).ok()?;
+        Some(self.units[index].hp)
+    }
+
+    /// Events of the last tick.
+    pub fn events(&self) -> &[CombatEvent] {
+        &self.events
     }
 
     /// Blocks (or frees) the area between the corners `a` and `b` for
@@ -416,8 +525,15 @@ impl Sim {
         for (index, (unit, push)) in self.units.iter_mut().zip(pushes).enumerate() {
             let profile = unit.unit_type as usize;
             let keep_clear = |p: Vec2| grid.passable_for(profile, p);
+            let from = unit.position;
             if move_unit(unit, push, &self.map, &self.terrain, keep_clear) == Moved::Blocked {
                 blocked.push(index);
+            }
+            // The hull points where the unit drove.
+            let step = unit.position - from;
+            let length = step.length();
+            if length > Fixed::ZERO {
+                unit.facing = Vec2::new(step.x / length, step.y / length);
             }
         }
         // Pushed off the planned line (or the way is blocked): plan again
@@ -465,14 +581,46 @@ impl Sim {
                     (u.position.y, u.position.x, u.id)
                 });
                 let target = *target;
+                for &i in &group {
+                    self.units[i].combat.attack = None;
+                }
                 let assigned: Vec<(usize, Vec2)> = group.into_iter().zip(slots).collect();
                 self.request_group_path(&assigned, target);
             }
             Command::Stop { units } => {
                 for index in self.owned_indices(command.player, units) {
                     stop(&mut self.units[index]);
+                    self.units[index].combat.attack = None;
                 }
             }
+            Command::Attack { units, target } => {
+                let Ok(t) = self.units.binary_search_by_key(target, |u| u.id) else {
+                    return;
+                };
+                if self.units[t].owner == command.player || !self.units[t].alive() {
+                    return;
+                }
+                for index in self.owned_indices(command.player, units) {
+                    self.start_attack(index, Attack::Unit(*target));
+                }
+            }
+            Command::AttackGround { units, target } => {
+                if !within_world(*target) {
+                    return;
+                }
+                for index in self.owned_indices(command.player, units) {
+                    self.start_attack(index, Attack::Ground(*target));
+                }
+            }
+            Command::SetFireMode { units, mode } => {
+                for index in self.owned_indices(command.player, units) {
+                    self.units[index].combat.fire_mode = *mode;
+                    if *mode == FireMode::HoldFire {
+                        self.units[index].combat.auto_target = None;
+                    }
+                }
+            }
+            Command::Surrender => self.standings.surrender(command.player, self.tick + 1),
         }
     }
 
@@ -523,7 +671,7 @@ impl Sim {
         let mut indices: Vec<usize> = ids
             .iter()
             .filter_map(|&id| self.units.binary_search_by_key(&id, |u| u.id).ok())
-            .filter(|&index| self.units[index].owner == player)
+            .filter(|&index| self.units[index].owner == player && self.units[index].alive())
             .collect();
         indices.sort_unstable();
         indices.dedup();
@@ -586,7 +734,18 @@ impl Sim {
             h.write_i64(unit.speed_offroad.to_bits());
             h.write_i64(unit.speed_road.to_bits());
             h.write_i64(unit.footprint.to_bits());
+            h.write_i64(unit.facing.x.to_bits());
+            h.write_i64(unit.facing.y.to_bits());
+            h.write_u32(unit.hp);
+            unit.combat.hash_into(&mut h);
         }
+        self.combat_rules.hash_into(&mut h);
+        h.write_u32(self.next_projectile);
+        h.write_u64(self.projectiles.len() as u64);
+        for p in &self.projectiles {
+            p.hash_into(&mut h);
+        }
+        self.standings.hash_into(&mut h);
         h.finish()
     }
 
@@ -604,10 +763,29 @@ impl Sim {
                     position: u.position,
                     height: u.height,
                     target: u.target,
+                    facing: u.facing,
+                    aim: u.combat.aim,
+                    hp: u.hp,
+                    max_hp: self.types[u.unit_type as usize].max_hp,
+                    fire_mode: u.combat.fire_mode,
                 })
                 .collect(),
+            projectiles: self
+                .projectiles
+                .iter()
+                .map(|p| p.snapshot(self.tick_hz))
+                .collect(),
+            events: self.events.clone(),
         }
     }
+}
+
+/// Units of `player` that are not destroyed (see [`Sim::alive_units`]).
+fn alive_units(units: &[Unit], player: PlayerId) -> usize {
+    units
+        .iter()
+        .filter(|u| u.owner == player && u.alive())
+        .count()
 }
 
 fn within_world(point: Vec2) -> bool {
@@ -752,7 +930,7 @@ fn separation(units: &[Unit], directions: &[Option<Vec2>], i: usize, direction: 
     let left = Vec2::new(direction.y, -direction.x);
     let mut push = Vec2::ZERO;
     for (j, other) in units.iter().enumerate() {
-        if j == i {
+        if j == i || !other.alive() {
             continue;
         }
         let reach = (me.footprint + other.footprint) / 2;
@@ -814,8 +992,9 @@ enum Moved {
 /// terrain under it and the grade ahead, deflected by `push` (separation;
 /// the step never gets longer than the speed).
 ///
-/// The unit never enters impassable terrain, leaves the map or climbs over
-/// the side of a bridge deck ([`Map::deck_step_ok`]). If neither
+/// The unit never enters impassable terrain, leaves the map, climbs over
+/// the side of a bridge deck ([`Map::deck_step_ok`]) or takes a step
+/// steeper than the grade limit. If neither
 /// the pushed nor the direct step is possible, it slides along the obstacle
 /// (only the x or only the y part of the step); if that fails too, it
 /// reports [`Moved::Blocked`]. Pushed and sliding steps must also stay on
@@ -840,11 +1019,15 @@ fn move_unit(
         let Some(speed) = ground_speed(unit, direction, map, rules) else {
             return Moved::Blocked;
         };
-        let from = unit.position;
+        let (from, from_height) = (unit.position, unit.height);
+        let max_grade = Fixed::from_num(rules.slope.max_grade_pct) / 100;
+        // No step steeper than the grade limit, up or down: separation must
+        // not push a unit onto a cliff (an abutment, a steep bank).
         let valid = |p: Vec2| {
             map.contains(p)
                 && rules.types[usize::from(map.terrain_at(p))].passable
                 && map.deck_step_ok(from, p)
+                && (map.height_at(p) - from_height).abs() <= (p - from).length() * max_grade
         };
         let off_grid = !clear(unit.position);
         let detour_ok = |p: Vec2| off_grid || clear(p);
@@ -964,6 +1147,7 @@ mod tests {
             road_speed_m_per_s: Fixed::from_num(10),
             footprint_m: Fixed::from_num(6),
             mass_kg: 0,
+            combat: crate::combat::CombatType::default(),
         }
     }
 
@@ -1015,6 +1199,7 @@ mod tests {
             owner,
             unit_type: "tank".into(),
             position: Vec2::from_meters(x, y),
+            fire_mode: crate::combat::FireMode::default(),
         };
         SimConfig {
             tick_hz: 20,
@@ -1027,6 +1212,7 @@ mod tests {
             ],
             map: flat_map().reference(),
             terrain: TerrainRules::builtin().unwrap(),
+            combat: crate::combat::CombatRules::builtin().unwrap(),
         }
     }
 
@@ -1126,6 +1312,7 @@ mod tests {
                 owner: P0,
                 unit_type: "tank".into(),
                 position: Vec2::from_meters(-30 + 20 * (i % 4), 40 + 20 * (i / 4)),
+                fire_mode: crate::combat::FireMode::default(),
             })
             .collect();
         let mut sim = new_sim(&cfg).unwrap();
@@ -1465,6 +1652,7 @@ mod object_tests {
             road_speed_m_per_s: Fixed::from_num(10),
             footprint_m: Fixed::from_num(footprint_m),
             mass_kg: 0,
+            combat: crate::combat::CombatType::default(),
         }
     }
 
@@ -1510,6 +1698,7 @@ mod object_tests {
             owner: P0,
             unit_type: unit_type.into(),
             position: Vec2::from_meters(x, y),
+            fire_mode: crate::combat::FireMode::default(),
         };
         let config = SimConfig {
             tick_hz: 20,
@@ -1522,6 +1711,7 @@ mod object_tests {
             ],
             map: map.reference(),
             terrain: TerrainRules::builtin().unwrap(),
+            combat: crate::combat::CombatRules::builtin().unwrap(),
         };
         (Sim::new(&config, map.clone(), 1).unwrap(), map)
     }

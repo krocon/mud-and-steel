@@ -10,7 +10,7 @@ use net::{
     LocalTransport, LockstepConfig, LockstepSession, NetError, Replay, ReplayRecorder, Transport,
     recommended_input_delay,
 };
-use sim::scenario::{BUILTIN_MAP_NAME, DEMO_SCENARIO, builtin_map, parse_scenario};
+use sim::scenario::{BUILTIN_MAP_NAME, DEMO_SCENARIO, builtin_map, parse_scenario_with_factions};
 use sim::{
     Catalog, Command, Fixed, Map, PlayerId, RouteView, Scale, Sim, SimConfig, Snapshot,
     TerrainRules, UnitId, Vec2,
@@ -18,7 +18,9 @@ use sim::{
 use std::path::Path;
 use std::sync::Arc;
 
+mod combat_funcs;
 mod lan;
+mod match_funcs;
 mod object_funcs;
 mod objects;
 mod terrain_layers;
@@ -149,7 +151,17 @@ impl Game {
         }
     }
 
+    /// Stops the match with `reason`. A desync already found wins: the peer
+    /// that found it first disconnects right after, so the disconnect often
+    /// arrives together with the hash report that shows the desync.
     fn halt(&mut self, reason: String) {
+        let reason = match self.session.desync() {
+            Some(d) => format!(
+                "desync at tick {}: player {} computed a different state",
+                d.tick, d.player.0
+            ),
+            None => reason,
+        };
         if self.halted.is_none() {
             godot_warn!("match stopped: {reason}");
             self.halted = Some(reason);
@@ -185,6 +197,12 @@ pub struct SimHost {
     accumulator: f64,
     previous: Snapshot,
     current: Snapshot,
+    /// Start every unit of the demo with hold fire (self-test). Read by
+    /// `start`, `start_on_map`, `start_match`.
+    #[export]
+    hold_fire_at_start: bool,
+    /// Combat events of the ticks since the last `take_combat_events`.
+    combat_events: Vec<(u64, sim::CombatEvent)>,
     base: Base<Node>,
 }
 
@@ -199,6 +217,8 @@ impl INode for SimHost {
             accumulator: 0.0,
             previous: Snapshot::default(),
             current: Snapshot::default(),
+            hold_fire_at_start: false,
+            combat_events: Vec::new(),
             base,
         }
     }
@@ -231,6 +251,7 @@ impl INode for SimHost {
                 }
             }
             self.previous = std::mem::replace(&mut self.current, game.sim.snapshot());
+            combat_funcs::collect_events(&mut self.combat_events, &self.current);
             self.accumulator -= tick_seconds;
             ticks += 1;
         }
@@ -256,7 +277,7 @@ impl SimHost {
     /// `false` (and logs an error) if the data is invalid.
     #[func]
     fn start(&mut self, seed: i64) -> bool {
-        self.start_with(seed, builtin_map())
+        self.start_with(seed, builtin_map(), &[])
     }
 
     /// Like `start`, but on the map in the folder `map_dir` (absolute path
@@ -264,7 +285,7 @@ impl SimHost {
     #[func]
     fn start_on_map(&mut self, seed: i64, map_dir: GString) -> bool {
         match load_map_dir(Path::new(&map_dir.to_string())) {
-            Ok(map) => self.start_with(seed, Arc::new(map)),
+            Ok(map) => self.start_with(seed, Arc::new(map), &[]),
             Err(e) => {
                 godot_error!("{e}");
                 false
@@ -272,14 +293,21 @@ impl SimHost {
         }
     }
 
-    fn start_with(&mut self, seed: i64, map: Arc<Map>) -> bool {
-        let config = match demo_config(&map) {
+    /// Starts the demo scenario on `map`; `factions` replaces the units of
+    /// the listed players by those of their faction (prompt 027).
+    fn start_with(&mut self, seed: i64, map: Arc<Map>, factions: &[(PlayerId, &str)]) -> bool {
+        let mut config = match demo_config(&map, factions) {
             Ok(config) => config,
             Err(e) => {
                 godot_error!("{e}");
                 return false;
             }
         };
+        if self.hold_fire_at_start {
+            for spawn in &mut config.spawns {
+                spawn.fire_mode = sim::FireMode::HoldFire;
+            }
+        }
         // The seed is a bit pattern; reinterpreting the sign is intended.
         let seed = seed.cast_unsigned();
         let sim = match Sim::new(&config, map.clone(), seed) {
@@ -372,6 +400,7 @@ impl SimHost {
         self.current = sim.snapshot();
         self.previous = self.current.clone();
         self.pending.clear();
+        self.combat_events.clear();
         self.accumulator = 0.0;
         self.game = Some(Game {
             recorder: ReplayRecorder::new(seed, config.clone(), &players),
@@ -830,10 +859,26 @@ impl SimHost {
         positions(&self.current)
     }
 
-    /// Unit positions of the snapshot before the latest one.
+    /// Unit positions of the snapshot before the latest one, in the order
+    /// of `unit_ids` (units can disappear between ticks; a unit that was not
+    /// in the previous snapshot gets its current position).
     #[func]
     fn previous_positions(&self) -> PackedVector3Array {
-        positions(&self.previous)
+        if self.previous.units.len() == self.current.units.len() {
+            return positions(&self.previous);
+        }
+        self.current
+            .units
+            .iter()
+            .map(|u| {
+                let before = self
+                    .previous
+                    .units
+                    .binary_search_by_key(&u.id, |p| p.id)
+                    .map_or(u, |i| &self.previous.units[i]);
+                ground_to_godot(before.position, before.height)
+            })
+            .collect()
     }
 
     /// How far real time has progressed from the previous towards the latest
@@ -997,13 +1042,18 @@ impl SimHost {
 }
 
 /// The demo scenario from the catalog, scale and terrain rules compiled
-/// into `sim`, on `map`.
-fn demo_config(map: &Map) -> Result<SimConfig, Box<dyn std::error::Error>> {
+/// into `sim`, on `map`, with the units of the players in `factions`
+/// replaced by those of their faction.
+fn demo_config(
+    map: &Map,
+    factions: &[(PlayerId, &str)],
+) -> Result<SimConfig, Box<dyn std::error::Error>> {
     let catalog = Catalog::builtin()?;
     let scale = Scale::builtin()?;
     let terrain = TerrainRules::builtin()?;
-    Ok(parse_scenario(
+    Ok(parse_scenario_with_factions(
         DEMO_SCENARIO,
+        factions,
         &catalog,
         &scale,
         &terrain,

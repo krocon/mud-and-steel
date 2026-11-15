@@ -48,7 +48,7 @@ fn tampered_replay_is_reported() {
         .flat_map(|f| f.commands.iter_mut())
         .find_map(|c| match &mut c.command {
             Command::MoveTo { target, .. } => Some(target),
-            Command::Stop { .. } => None,
+            _ => None,
         })
         .expect("the demo issues move commands");
     *command = Vec2::from_meters(1, 2);

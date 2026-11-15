@@ -71,6 +71,7 @@ fn unit_type(name: &str, footprint_m: i32, mass_kg: u32) -> UnitType {
         road_speed_m_per_s: Fixed::from_num(8),
         footprint_m: Fixed::from_num(footprint_m),
         mass_kg,
+        combat: sim::CombatType::default(),
     }
 }
 
@@ -88,6 +89,7 @@ fn sim(map: &Arc<Map>, spawns: &[(&str, i32, i32)]) -> Sim {
                 owner: P0,
                 unit_type: t.into(),
                 position: Vec2::from_meters(x, y),
+                fire_mode: sim::FireMode::default(),
             })
             .collect(),
         map: MapRef {
@@ -95,6 +97,7 @@ fn sim(map: &Arc<Map>, spawns: &[(&str, i32, i32)]) -> Sim {
             hash: map.hash(),
         },
         terrain: TerrainRules::builtin().unwrap(),
+        combat: sim::CombatRules::builtin().unwrap(),
     };
     Sim::new(&config, Arc::clone(map), 7).unwrap()
 }

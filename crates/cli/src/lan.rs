@@ -162,6 +162,14 @@ fn play_match(mut node: LanNode, options: &MatchOptions) -> Result<i32, String> 
         .and_then(|i| u32::try_from(i).ok())
         .map(sim::UnitId);
     let net = |e: net::NetError| e.to_string();
+    // A desync already found wins over a following disconnect: the peer that
+    // found it first leaves right away, so its disconnect often arrives in
+    // the same receive as the hash report that shows the desync here.
+    let tolerate = |result: Result<(), net::NetError>, session: &net::LockstepSession| match result
+    {
+        Err(_) if session.desync().is_some() => Ok(()),
+        other => other.map_err(net),
+    };
 
     let deadline = Instant::now() + options.timeout;
     let mut max_delay = session.input_delay();
@@ -177,9 +185,17 @@ fn play_match(mut node: LanNode, options: &MatchOptions) -> Result<i32, String> 
         }
         while session.needs_local_input() {
             let commands = script.commands_for_tick(session.next_local_tick());
-            session.submit_local(commands, &mut node).map_err(net)?;
+            let sent = session.submit_local(commands, &mut node).map(|_| ());
+            tolerate(sent, &session)?;
+            if session.desync().is_some() {
+                break;
+            }
         }
-        session.receive(&mut node).map_err(net)?;
+        let received = session.receive(&mut node);
+        tolerate(received, &session)?;
+        if session.desync().is_some() {
+            break;
+        }
         let Some(mut commands) = session.next_commands() else {
             std::thread::sleep(Duration::from_micros(500));
             continue;
@@ -197,9 +213,8 @@ fn play_match(mut node: LanNode, options: &MatchOptions) -> Result<i32, String> 
         }
         recorder.record(&commands);
         sim.step(&commands);
-        session
-            .record_hash(sim.tick(), sim.state_hash(), &mut node)
-            .map_err(net)?;
+        let reported = session.record_hash(sim.tick(), sim.state_hash(), &mut node);
+        tolerate(reported, &session)?;
     }
     // Wait until every peer confirmed the final hash (or a desync shows up).
     while session.verified_tick() < sim.tick() && session.desync().is_none() {
@@ -209,7 +224,8 @@ fn play_match(mut node: LanNode, options: &MatchOptions) -> Result<i32, String> 
                 session.verified_tick()
             ));
         }
-        session.receive(&mut node).map_err(net)?;
+        let received = session.receive(&mut node);
+        tolerate(received, &session)?;
         std::thread::sleep(Duration::from_millis(1));
     }
 

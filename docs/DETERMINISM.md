@@ -53,6 +53,13 @@ Additional rules:
   tick in which a path arrives is the same on every peer. Separation is computed
   from the positions before the movement of the tick. Routes, the queue and the
   grid version are part of the state hash.
+- Combat (see [ARCHITECTURE.md](ARCHITECTURE.md#combat)) is `Fixed` and integer
+  only: angles as unit vectors turned by small-angle Taylor series, square
+  roots with `isqrt`, penetration `v^1.5` as `v · sqrt(v)`. Random numbers
+  (dispersion, penetration rolls) come from the simulation's `Rng` in a fixed
+  order: units by id, weapons in catalog order, barrels in order, projectiles
+  by id. Events are derived and not hashed; projectiles, hit points and
+  combat state are.
 - `sim` is built with `opt-level = 3` in the dev profile too. Optimization does not
   change integer results; overflow checks stay on in debug builds.
 
@@ -63,7 +70,7 @@ Additional rules:
   `RandomState`, `Instant`, `SystemTime` and `std::thread::spawn`.
 - `crates/sim/tests/determinism.rs` contains a golden-hash test: the demo scenario
   (two players with eight tanks each, scripted group commands, seed 42, 1000 ticks,
-  on the built-in map `test_small`) must produce `0x9d8c67c292c66be5`. CI runs it on
+  on the built-in map `test_small`) must produce `0x541b9330757a527b`. CI runs it on
   macOS (ARM64), Linux and Windows (x86_64). The value was recorded on macOS ARM64.
   History: `0x075d8c59dfe3d336` (prompt 001/003, four tanks, single-unit commands),
   `0x8e8b2c6ed986ef2c` (prompt 009: owners, group commands with formation, `Stop`,
@@ -73,8 +80,14 @@ Additional rules:
   queue, routes and grid version in the hash, `test_small` with wider fords),
   `0xc56989d73505efba` (prompt 012), changed in prompt 013 (map objects on
   `test_small` block path cells by size class; objects and their resolved rules
-  in the map hash).
+  in the map hash), `0x9d8c67c292c66be5` (prompt 013), changed in prompt 017
+  (combat: hit points, facing, turrets, projectiles, combat rules and state in
+  the hash; the demo tanks fight).
   Regenerating `test_small` changes it as well.
+- `crates/sim/tests/combat.rs` plays duels with catalog units: a Panzer IV
+  destroys a T-34 at the tick derived from catalog and rules, armor faces and
+  angles, a ridge stopping rounds, hold fire, attack orders, infantry, and a
+  battle that is identical for the same seed.
 - `crates/net/tests/loopback.rs` plays the demo between two peers in lockstep with
   group commands, compares the hash of every tick, checks that the result equals the
   scripted single-process run, and checks that a divergence is detected through the

@@ -6,6 +6,7 @@
 //! exercise exactly the same setup.
 
 use crate::catalog::Catalog;
+use crate::combat::CombatRules;
 use crate::command::{Command, PlayerCommand, PlayerId, UnitId};
 use crate::data::unit_types_from_catalog;
 use crate::map::Map;
@@ -15,6 +16,7 @@ use crate::scale::Scale;
 use crate::sim::{Sim, SimConfig, Spawn};
 use crate::terrain::TerrainRules;
 use serde::Deserialize;
+use std::collections::BTreeMap;
 use std::fmt;
 use std::sync::{Arc, OnceLock};
 
@@ -67,6 +69,10 @@ struct ScenarioFile {
     /// Name of the map the scenario is made for (`data/maps/<map>/`).
     map: String,
     group: Vec<Group>,
+    /// Faction id → catalog id that replaces the units of a player who
+    /// plays that faction (skirmish setup, prompt 027).
+    #[serde(default)]
+    faction_units: BTreeMap<String, String>,
 }
 
 /// The map a scenario file names.
@@ -87,7 +93,37 @@ pub fn parse_scenario(
     terrain: &TerrainRules,
     map: &Map,
 ) -> Result<SimConfig, ScenarioError> {
+    parse_scenario_with_factions(text, &[], catalog, scale, terrain, map)
+}
+
+/// Factions a scenario offers in its `[faction_units]` table, ascending.
+pub fn scenario_factions(text: &str) -> Result<Vec<String>, ScenarioError> {
     let file: ScenarioFile = toml::from_str(text).map_err(|e| ScenarioError(e.to_string()))?;
+    Ok(file.faction_units.into_keys().collect())
+}
+
+/// Like [`parse_scenario`], but every group of a player listed in
+/// `factions` uses the unit the scenario's `[faction_units]` table names for
+/// that player's faction. Positions and counts stay as in the file.
+pub fn parse_scenario_with_factions(
+    text: &str,
+    factions: &[(PlayerId, &str)],
+    catalog: &Catalog,
+    scale: &Scale,
+    terrain: &TerrainRules,
+    map: &Map,
+) -> Result<SimConfig, ScenarioError> {
+    let mut file: ScenarioFile = toml::from_str(text).map_err(|e| ScenarioError(e.to_string()))?;
+    for &(player, faction) in factions {
+        let unit = file
+            .faction_units
+            .get(faction)
+            .ok_or_else(|| ScenarioError(format!("scenario has no units for faction '{faction}'")))?
+            .clone();
+        for group in file.group.iter_mut().filter(|g| g.owner == player.0) {
+            group.unit.clone_from(&unit);
+        }
+    }
 
     let mut names: Vec<&str> = Vec::new();
     for group in &file.group {
@@ -110,6 +146,7 @@ pub fn parse_scenario(
             owner: PlayerId(group.owner),
             unit_type: group.unit.clone(),
             position,
+            fire_mode: crate::combat::FireMode::default(),
         }));
     }
     Ok(SimConfig {
@@ -118,6 +155,7 @@ pub fn parse_scenario(
         spawns,
         map: map.reference(),
         terrain: terrain.clone(),
+        combat: CombatRules::builtin().map_err(|e| ScenarioError(e.to_string()))?,
     })
 }
 
@@ -362,7 +400,7 @@ mod tests {
         for tick in 0..2000 {
             for command in script.commands_for_tick(tick) {
                 issued += 1;
-                let (Command::MoveTo { units, .. } | Command::Stop { units }) = command;
+                let units = command.units();
                 assert!(units.iter().all(|u| (8..16).contains(&u.0)), "{units:?}");
             }
         }

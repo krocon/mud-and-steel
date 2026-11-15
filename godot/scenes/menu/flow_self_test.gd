@@ -1,0 +1,314 @@
+extends Node
+## Self-test of the whole game flow (prompt 027), started by the main menu
+## with `-- --self-test` (`just selftest`). Lives on the scene tree root, so
+## it survives the scene changes it drives, and runs while the game is paused.
+## Quits with exit code 0 (pass) or 1 (fail). Frame counts assume
+## `--fixed-fps 60`.
+##
+## 1. Menu: all main buttons exist.
+## 2. Settings: change quality, pan speed and two key bindings (the second
+##    one takes the key of the first, which gets the second's old key), save,
+##    load again, then restore the defaults. Uses its own settings file.
+## 3. LAN: the lobby opens from the menu and its Back button returns.
+## 4. Match 1 (test_small, Germany vs. Soviet Union, from the setup screen):
+##    loading screen steps, then all match tests of `self_test.gd`; Esc
+##    pauses (no ticks while paused) and resumes; surrender from the pause
+##    menu gives a defeat; "Back to main menu" returns.
+## 5. Match 2 (United States vs. Germany, winter): units and biome as
+##    chosen; everyone starts with hold fire, the own tanks attack one enemy
+##    after the other until the last is destroyed: victory by elimination in
+##    real combat; back to the menu.
+
+signal match_tested
+
+const MatchSetup := preload("res://scenes/menu/match_setup.gd")
+const Settings := preload("res://scenes/menu/settings.gd")
+## Wall-clock limit for the whole flow (`--fixed-fps` decouples frame time).
+const TIMEOUT_MS := 600000
+
+var _errors: PackedStringArray = []
+var _match_done := false
+var _match_ok := false
+var _started_ms := Time.get_ticks_msec()
+
+
+func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	_run()
+
+
+func _process(_delta: float) -> void:
+	if Time.get_ticks_msec() - _started_ms > TIMEOUT_MS:
+		_check(false, "flow self-test timed out")
+		_finish()
+
+
+## Called by `self_test.gd` when the match tests of the first match are done.
+func match_test_finished(ok: bool, message: String) -> void:
+	_match_ok = ok
+	_match_done = true
+	if not ok:
+		_check(false, "match tests failed: %s" % message)
+	match_tested.emit()
+
+
+func _run() -> void:
+	var menu: Control = await _wait_scene("MainMenu")
+	if menu == null:
+		_finish()
+		return
+	for button: Button in [menu.single_player_button, menu.lan_button, menu.settings_button, menu.quit_button]:
+		_check(button != null and button.is_visible_in_tree(), "main menu button missing")
+	await _settings_test(menu)
+	menu = await _lan_test(menu)
+	if menu == null:
+		_finish()
+		return
+
+	# --- Match 1 -------------------------------------------------------
+	var main: Node3D = await _start_match(menu, 0, 0, 1, "test_small")
+	if main == null:
+		_finish()
+		return
+	_check(MatchSetup.last_loading_steps.size() >= 5, "loading screen showed %s" % MatchSetup.last_loading_steps)
+	if not _match_done:
+		await match_tested
+	await _pause_test(main)
+	await _surrender_test(main)
+	menu = await _back_to_menu(main)
+	if menu == null:
+		_finish()
+		return
+
+	# --- Match 2 -------------------------------------------------------
+	main = await _start_match(menu, 3, 2, 0, "test_small")
+	if main == null:
+		_finish()
+		return
+	await _combat_victory_test(main)
+	menu = await _back_to_menu(main)
+	_finish()
+
+
+func _finish() -> void:
+	set_process(false)
+	var ok := _errors.is_empty()
+	var message := "menu, settings, LAN lobby, loading, match tests, pause, surrender, combat victory, result and back ok" if ok else " ".join(_errors)
+	print("flow self-test %s: %s" % ["PASSED" if ok else "FAILED", message])
+	get_tree().paused = false
+	get_tree().quit(0 if ok else 1)
+
+
+func _check(condition: bool, message: String) -> void:
+	if not condition:
+		_errors.append(message + ".")
+		push_error("flow self-test: " + message)
+
+
+# --- Settings ---------------------------------------------------------
+
+
+func _settings_test(menu: Control) -> void:
+	Settings.reset()
+	Settings.save_file()
+	menu.settings_button.pressed.emit()
+	await _frames(2)
+	var panel: PanelContainer = menu.settings_panel
+	_check(panel.is_visible_in_tree(), "settings screen not shown")
+	panel.quality_option.item_selected.emit(0)
+	panel.pan_slider.value = 1.5
+	var rotate_right_key: int = Settings.bindings["camera_rotate_right"]
+	panel.capture("camera_rotate_left")
+	_push_key(KEY_R)
+	await _frames(2)
+	_check(_action_key("camera_rotate_left") == KEY_R, "rotate left not bound to R")
+	panel.capture("camera_rotate_right")
+	_push_key(KEY_R)
+	await _frames(2)
+	_check(_action_key("camera_rotate_right") == KEY_R, "rotate right not bound to R")
+	_check(_action_key("camera_rotate_left") == rotate_right_key, "rotate left did not get the key of rotate right")
+	panel.save_button.pressed.emit()
+	await _frames(2)
+	_check(menu.screens["main"].visible, "saving the settings did not return to the main menu")
+	_check(FileAccess.file_exists(Settings.path()), "settings file not written")
+
+	Settings.reset()
+	Settings.load_file()
+	_check(Settings.get_value("quality") == "low", "quality not loaded")
+	_check(is_equal_approx(Settings.get_value("pan_sensitivity"), 1.5), "pan speed not loaded")
+	_check(_action_key("camera_rotate_right") == KEY_R, "key binding not loaded")
+	# The match tests expect the defaults.
+	Settings.reset()
+	Settings.save_file()
+	_check(_action_key("camera_rotate_right") == KEY_E, "defaults not restored")
+	print("flow self-test: settings ok (%s)" % ProjectSettings.globalize_path(Settings.path()))
+
+
+func _action_key(action: String) -> int:
+	for event in InputMap.action_get_events(action):
+		if event is InputEventKey:
+			return (event as InputEventKey).physical_keycode
+	return 0
+
+
+# --- LAN ---------------------------------------------------------------
+
+
+func _lan_test(menu: Control) -> Control:
+	menu.lan_button.pressed.emit()
+	var lobby: Control = await _wait_scene("LanLobby")
+	if lobby == null:
+		return null
+	_check(lobby.back_button != null and lobby.back_button.is_visible_in_tree(), "LAN lobby has no Back button")
+	lobby.back_button.pressed.emit()
+	menu = await _wait_scene("MainMenu")
+	print("flow self-test: LAN lobby opened and closed")
+	return menu
+
+
+# --- Matches ------------------------------------------------------------
+
+
+## Chooses biome, own and enemy faction (indices in the setup screen) and
+## map, starts and waits until the match is loaded.
+func _start_match(menu: Control, biome: int, own: int, enemy: int, map_name: String) -> Node3D:
+	menu.single_player_button.pressed.emit()
+	await _frames(1)
+	_check(menu.screens["skirmish"].visible, "setup screen not shown")
+	var map_index := Array(menu._maps).find(map_name)
+	_check(map_index >= 0, "map %s not offered" % map_name)
+	menu.map_option.select(maxi(map_index, 0))
+	menu.biome_option.select(biome)
+	menu.faction_option.select(own)
+	menu.enemy_option.select(enemy)
+	MatchSetup.run_match_test = biome == 0 and own == 0
+	menu.start_button.pressed.emit()
+	var main: Node3D = await _wait_scene("Main")
+	if main == null:
+		return null
+	var frames := 600
+	while not main._loaded and frames > 0:
+		frames -= 1
+		await get_tree().process_frame
+	_check(main._loaded, "match did not finish loading")
+	print("flow self-test: match loaded (%s), loading steps %s" % [map_name, MatchSetup.last_loading_steps])
+	return main
+
+
+func _pause_test(main: Node3D) -> void:
+	var game_menu: CanvasLayer = main.game_menu
+	_push_key(KEY_ESCAPE, true)
+	await _frames(2)
+	_check(game_menu.is_paused() and get_tree().paused, "Esc did not pause the game")
+	var tick: int = main.sim_host.current_tick()
+	await _frames(30)
+	_check(main.sim_host.current_tick() == tick, "simulation ran while paused")
+	_push_key(KEY_ESCAPE, true)
+	await _frames(30)
+	_check(not get_tree().paused and not game_menu.is_paused(), "Esc did not resume the game")
+	_check(main.sim_host.current_tick() > tick, "simulation did not resume")
+	print("flow self-test: pause ok")
+
+
+func _surrender_test(main: Node3D) -> void:
+	var game_menu: CanvasLayer = main.game_menu
+	game_menu.open_pause()
+	await _frames(1)
+	game_menu.surrender_button.pressed.emit()
+	_check(game_menu.confirm_box.visible, "surrender asks no confirmation")
+	game_menu.confirm_surrender_button.pressed.emit()
+	await _wait_result(game_menu)
+	var result: Dictionary = main.sim_host.match_result()
+	_check(result["decided"] and result["winner"] == 1, "surrender did not decide the match for player 1: %s" % result)
+	_check(result["players"][0]["reason"] == "surrendered", "player 0 not marked as surrendered")
+	_check(game_menu.result_title.text == "DEFEAT", "result shows '%s' after surrendering" % game_menu.result_title.text)
+	_check(game_menu.result_reason.text == "You surrendered.", "result reason '%s'" % game_menu.result_reason.text)
+	print("flow self-test: surrender ok (%s)" % game_menu.result_details.text.replace("\n", "; "))
+
+
+func _combat_victory_test(main: Node3D) -> void:
+	var host: SimHost = main.sim_host
+	var own := PackedInt64Array()
+	var enemies := PackedInt64Array()
+	var ids := host.unit_ids()
+	var owners := host.unit_owners()
+	var types := host.unit_type_ids()
+	for i in ids.size():
+		var mine := owners[i] == host.local_player()
+		var expected := "us_" if mine else "de_"
+		_check(types[i].begins_with(expected), "unit %d is %s, expected %s…" % [ids[i], types[i], expected])
+		if mine:
+			own.append(ids[i])
+		else:
+			enemies.append(ids[i])
+	_check(main.atmosphere.preset.id == "winter", "biome is %s, not winter" % main.atmosphere.preset.id)
+	_check(own.size() == 8 and enemies.size() == 8, "expected 8 tanks per side")
+	# Everyone starts with hold fire in the self-test: the own tanks attack
+	# one enemy after the other until none is left.
+	var game_menu: CanvasLayer = main.game_menu
+	var frames := 12000
+	var last_order_tick := -1000
+	while not game_menu.result_panel.visible and frames > 0:
+		frames -= 1
+		var tick := host.current_tick()
+		if tick - last_order_tick >= 40:
+			last_order_tick = tick
+			var alive := host.unit_alive()
+			for i in ids.size():
+				if owners[i] != host.local_player() and alive[i] != 0:
+					host.attack_unit(own, ids[i])
+					break
+		await get_tree().process_frame
+	_check(game_menu.result_panel.visible, "the attack did not decide the match (%d enemies left)" % host.alive_unit_count(1))
+	var result: Dictionary = host.match_result()
+	_check(result["decided"] and result["winner"] == host.local_player(), "combat did not decide the match for us: %s" % result)
+	_check(result["players"][1]["reason"] == "eliminated", "player 1 not marked as eliminated")
+	_check(host.alive_unit_count(1) == 0, "enemy tanks left")
+	_check(game_menu.result_title.text == "VICTORY", "result shows '%s'" % game_menu.result_title.text)
+	_check(game_menu.result_reason.text == "All enemy units were destroyed.", "result reason '%s'" % game_menu.result_reason.text)
+	_check(game_menu.result_details.text.contains("Germany: 0 units left – eliminated"), "result details: %s" % game_menu.result_details.text)
+	print("flow self-test: combat victory ok at tick %d (%s)" % [result["tick"], game_menu.result_details.text.replace("\n", "; ")])
+
+
+func _wait_result(game_menu: CanvasLayer) -> void:
+	var frames := 300
+	while not game_menu.result_panel.visible and frames > 0:
+		frames -= 1
+		await get_tree().process_frame
+	_check(game_menu.result_panel.visible, "result screen not shown")
+
+
+func _back_to_menu(main: Node3D) -> Control:
+	main.game_menu.menu_button.pressed.emit()
+	var menu: Control = await _wait_scene("MainMenu")
+	_check(not get_tree().paused, "tree still paused in the menu")
+	return menu
+
+
+# --- Helpers -----------------------------------------------------------
+
+
+func _wait_scene(scene_name: String) -> Node:
+	for i in 600:
+		var scene := get_tree().current_scene
+		if scene != null and scene.name == scene_name and scene.is_node_ready():
+			await _frames(2)
+			return scene
+		await get_tree().process_frame
+	_check(false, "scene %s did not appear" % scene_name)
+	return null
+
+
+func _frames(count: int) -> void:
+	for i in count:
+		await get_tree().process_frame
+
+
+func _push_key(keycode: Key, logical := false) -> void:
+	for pressed in [true, false]:
+		var event := InputEventKey.new()
+		event.pressed = pressed
+		if logical:
+			event.keycode = keycode
+		event.physical_keycode = keycode
+		get_tree().root.push_input(event)

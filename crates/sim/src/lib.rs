@@ -11,12 +11,14 @@
 
 pub mod bridges;
 pub mod catalog;
+pub mod combat;
 mod command;
 mod data;
 mod hash;
 pub mod map;
 mod math;
 pub mod objects;
+mod outcome;
 pub mod path;
 mod rng;
 pub mod scale;
@@ -26,12 +28,16 @@ pub mod terrain;
 
 pub use bridges::Bridge;
 pub use catalog::Catalog;
+pub use combat::{
+    CombatEvent, CombatRules, CombatType, Face, FireMode, HitKind, ProjectileSnapshot, Vec3,
+};
 pub use command::{Command, PlayerCommand, PlayerId, UnitId};
 pub use data::{DEFAULT_FOOTPRINT_MM, DataError, UnitType, unit_types_from_catalog};
 pub use hash::StableHasher;
 pub use map::{Biome, Map, MapError, MapRef};
 pub use math::{Fixed, Vec2};
 pub use objects::{Blocks, MapObject, ObjectKind, ObjectRules};
+pub use outcome::{DefeatReason, Outcome, PlayerStanding};
 pub use rng::Rng;
 pub use scale::Scale;
 pub use sim::{

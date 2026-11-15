@@ -25,6 +25,11 @@ extends Node
 ##    object of the map is drawn once, round objects stand on the
 ##    simulation's ground, decoration appears near the camera and is the same
 ##    when scattered twice.
+## 8. Combat (prompt 017, every unit starts holding fire): right click on an
+##    enemy tank orders the attack; the own tanks drive into range, fire and
+##    destroy it (shots, hits, a destroyed event, a darkened wreck, health
+##    bars); the enemy never fires back; F switches the selection to fire at
+##    will.
 
 ## Panzer IV H: 16 km/h cross-country (catalog) × time factor 2 = 8.889 m/s,
 ## i.e. 0.4444 m per tick at 20 Hz. Terrain scales it (data/terrain.toml).
@@ -38,6 +43,7 @@ const HILL_TIME_SCALE := 4.0
 const HILL_MIN_CLIMB := 10.0
 
 const WaterSelfTest := preload("res://scenes/tools/water_self_test.gd")
+const MatchSetup := preload("res://scenes/menu/match_setup.gd")
 
 var main: Node3D
 var _errors: PackedStringArray = []
@@ -55,11 +61,18 @@ func _run() -> void:
 	await _objects_test()
 	await _terrain_test()
 	await _biome_test()
+	await _combat_test()
 	await WaterSelfTest.new().run(self)
 	_replay_test()
 	var ok := _errors.is_empty()
-	var message := "camera, selection, orders, hill, objects, terrain, biomes, water and replay ok" if ok else " ".join(_errors)
+	var message := "camera, selection, orders, hill, objects, terrain, biomes, combat, water and replay ok" if ok else " ".join(_errors)
 	print("self-test %s: %s" % ["PASSED" if ok else "FAILED", message])
+	# Started from the menu flow test (prompt 027): it continues the flow.
+	var flow: Node = MatchSetup.flow_test
+	if flow != null:
+		flow.match_test_finished(ok, message)
+		queue_free()
+		return
 	get_tree().quit(0 if ok else 1)
 
 
@@ -411,6 +424,63 @@ func _objects_test() -> void:
 	_check(a == b and not (a[0] as PackedFloat32Array).is_empty(), "decoration differs between two scatters")
 	print("self-test: objects ok (%d objects, %d on the ground checked, %d decoration instances)" % [
 		count, checked, objects.deco_instances
+	])
+
+
+# --- 8. Combat -------------------------------------------------------------
+
+
+func _combat_test() -> void:
+	var sim_host: SimHost = main.sim_host
+	var view: Node3D = main.combat_view
+	var own := _ids_of(true)
+	var enemies := _ids_of(false)
+	var shots_by: Dictionary[int, int] = {}
+	var on_event := func(event: Dictionary) -> void:
+		if event["type"] == "shot":
+			var owner: int = sim_host.unit_owners()[_indices([event["unit"]])[0]]
+			shots_by[owner] = shots_by.get(owner, 0) + 1
+	view.combat_event.connect(on_event)
+	_check(view.shots == 0, "%d shots before the combat test (everyone holds fire)" % view.shots)
+
+	var target := enemies[0]
+	main.camera_rig.snap_to(_positions_of([target])[0], 160.0, 0.0)
+	await _frames(2)
+	main.selection._set_selection(own)
+	_right_click(_screen_of_unit(target))
+	var deadline := sim_host.current_tick() + 20 * 60
+	var bars := 0
+	while sim_host.current_tick() < deadline and sim_host.unit_alive()[_indices([target])[0]] != 0:
+		await get_tree().process_frame
+		bars = maxi(bars, view.health_bars.drawn)
+	await _frames(2)
+	var alive: PackedByteArray = sim_host.unit_alive()
+	_check(alive[_indices([target])[0]] == 0, "attacked tank %d not destroyed by tick %d" % [target, sim_host.current_tick()])
+	_check(view.shots > 0 and view.hits > 0 and view.penetrations > 0,
+		"combat events missing: %d shots, %d hits, %d penetrations" % [view.shots, view.hits, view.penetrations])
+	_check(view.destroyed >= 1, "no destroyed event")
+	_check(view.wrecks.has(target), "tank %d is not drawn as a wreck" % target)
+	_check(bars > 0, "no health bars drawn")
+	_check(shots_by.get(1, 0) == 0, "the enemy fired %d rounds while holding fire" % shots_by.get(1, 0))
+	# Rounds that miss the target may hit the tanks behind it.
+	var enemies_alive := 0
+	for i in _indices(enemies):
+		enemies_alive += alive[i]
+	_check(sim_host.alive_unit_count(1) == enemies_alive and enemies_alive < enemies.size(),
+		"alive_unit_count says %d enemy tanks, %d drawn alive" % [sim_host.alive_unit_count(1), enemies_alive])
+	_check(not main.selection.selected.is_empty() and main.selection.selected.size() <= own.size(), "selection lost")
+
+	# F: fire at will for the selection.
+	_key(KEY_F)
+	await _ticks(3)
+	var hold := sim_host.unit_hold_fire()
+	var holding := 0
+	for i in _indices(main.selection.selected):
+		holding += hold[i]
+	_check(holding == 0, "F left %d selected units holding fire" % holding)
+	view.combat_event.disconnect(on_event)
+	print("self-test: combat ok at tick %d: %d shots, %d hits, %d penetrations, %d destroyed, %d enemies left" % [
+		sim_host.current_tick(), view.shots, view.hits, view.penetrations, view.destroyed, sim_host.alive_unit_count(1)
 	])
 
 

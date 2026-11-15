@@ -26,7 +26,7 @@ pub use wire::{LobbyPlayer, StartInfo};
 
 /// Version of the LAN protocol (lobby messages, discovery and lockstep
 /// messages). Peers with a different version are rejected when joining.
-pub const PROTOCOL_VERSION: u16 = 1;
+pub const PROTOCOL_VERSION: u16 = 2;
 
 /// Default UDP port of a hosted game (ENet).
 pub const DEFAULT_GAME_PORT: u16 = 47810;

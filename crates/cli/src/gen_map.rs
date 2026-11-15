@@ -404,8 +404,8 @@ fn river_x_at(river: &Path2, y: f64) -> f64 {
 /// Bridge crossings: one per started kilometer of river, at least two,
 /// alternating stone and timber, spread along the river and away from the
 /// ford of the east track. The river runs straight and narrower at each
-/// crossing; a field track leads from the meadow over the bridge to the
-/// east edge. Uses its own random stream.
+/// crossing; a field track leads from the edge of the meadow over the
+/// bridge to the east edge. Uses its own random stream.
 fn add_crossings(layout: &mut Layout, seed: u64) {
     let mut random = Random(Rng::new(seed ^ BRIDGE_SALT));
     let half = layout.half;
@@ -461,7 +461,12 @@ fn add_crossings(layout: &mut Layout, seed: u64) {
         let b = (c.x + 55.0, c.y);
         let (dx, dy) = (a.0, a.1);
         let pieces = ((dx * dx + dy * dy).sqrt() / 50.0).ceil().max(2.0) as usize;
-        let mut west = Path2::wobbly(&mut random, (0.0, 0.0), a, pieces, wobble);
+        // From the rim of the start meadow, so the meadow (where the demo
+        // battle is fought) stays as it is.
+        let len = (a.0 * a.0 + a.1 * a.1).sqrt().max(1.0);
+        let rim = layout.meadow_radius + 25.0;
+        let start = (a.0 / len * rim, a.1 / len * rim);
+        let mut west = Path2::wobbly(&mut random, start, a, pieces, wobble);
         let east_end = (half, c.y + random.range(-0.05, 0.05) * half);
         let pieces = ((half - b.0) / 50.0).ceil().max(2.0) as usize;
         let east = Path2::wobbly(&mut random, b, east_end, pieces, wobble * 0.5);
