@@ -2,6 +2,7 @@
 
 mod catalog_doc;
 mod gen_map;
+mod gen_textures;
 
 use clap::{Parser, Subcommand};
 use std::path::{Path, PathBuf};
@@ -58,6 +59,20 @@ enum CliCommand {
     MapInfo {
         /// Map folder, e.g. data/maps/test_large.
         dir: PathBuf,
+    },
+    /// Generates the procedural ground textures of the terrain shader.
+    GenTerrainTextures {
+        /// Output folder.
+        #[arg(long, default_value = "godot/assets/textures/terrain")]
+        out: PathBuf,
+        /// Pixels per layer tile (power of two).
+        #[arg(long, default_value_t = 1024)]
+        size: u32,
+        #[arg(long, default_value_t = 1)]
+        seed: u32,
+        /// Also write a lit contact sheet of all layers to this PNG.
+        #[arg(long)]
+        preview: Option<PathBuf>,
     },
     /// Writes docs/UNIT_CATALOG.md (or the given path) from the built-in catalog.
     CatalogDoc {
@@ -127,6 +142,23 @@ fn main() {
             }
         }
         CliCommand::MapInfo { dir } => map_info(&dir),
+        CliCommand::GenTerrainTextures {
+            out,
+            size,
+            seed,
+            preview,
+        } => {
+            let options = gen_textures::Options {
+                out: &out,
+                size,
+                seed,
+                preview: preview.as_deref(),
+            };
+            match gen_textures::generate(&options) {
+                Ok(report) => println!("{report}"),
+                Err(e) => fail(&e),
+            }
+        }
         CliCommand::CatalogCheck { files } => catalog_check(&files),
         CliCommand::CatalogDoc { out } => {
             let catalog = sim::Catalog::builtin().unwrap_or_else(|e| fail(&e.to_string()));
