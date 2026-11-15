@@ -1,0 +1,191 @@
+# Wespe (Sd.Kfz. 124): 10.5 cm leFH 18/2 on a lengthened Pz.Kpfw. II chassis,
+# 1943-45. Main dimensions from data/catalog/de.toml: length 4.81 m (muzzle),
+# width 2.28 m, height 2.30 m (top of the gun shield; the compartment walls
+# are lower, about 2.07 m, estimate from photographs).
+# Chassis (Wikipedia "Wespe"; Chamberlain/Doyle): five single road wheels per
+# side on swing arms, three return rollers, front sprocket, rear idler; engine
+# moved forward behind the driver, open-topped fighting compartment at the
+# rear with sloped 10 mm walls, the howitzer in a box-shaped shield with a
+# double-baffle muzzle brake, the driver in a small armored box at the left
+# front. Modeling estimates from photographs: wheel stations (about 0.55 m
+# wheels, 0.30 m track), hull and compartment outlines, gun trunnion and
+# shield, MG 34 position on the compartment wall (stowed inside on the real
+# vehicle; mounted here so that the catalog MG has an object).
+# Catalog has no length_hull_mm: hull_length below is the catalog length minus
+# the muzzle overhang seen in side photographs (estimate).
+unit = "de_wespe"
+assembly = "casemate"
+
+[layout]
+hull_length = 4.60
+fender_overhang = 0.02
+
+[running_gear]
+part = "torsion_bar"
+twin = false
+tire = "Rubber"
+track_width = 0.30
+link_pitch = 0.10
+road_wheel_diameter = 0.55
+road_wheels = [1.30, 0.66, 0.02, -0.62, -1.26]
+sprocket = { y = 1.95, z = 0.60, diameter = 0.58, teeth = 18 }
+idler = { y = -1.98, z = 0.52, diameter = 0.52 }
+return_rollers = { y = [1.00, 0.00, -1.00], z = 0.73, diameter = 0.18 }
+arm = 0.26
+
+[hull]
+part = "plate_hull"
+lower = [[-2.15, 0.38], [1.88, 0.38], [2.30, 0.68], [2.30, 0.88], [-2.30, 0.88], [-2.30, 0.55]]
+# superstructure deck over the tracks: short glacis, flat deck (engine in front)
+upper = [[-2.30, 0.87], [2.30, 0.87], [2.30, 1.00], [1.85, 1.22], [-2.30, 1.22]]
+fender_front = 2.30
+fender_slope_front = 0.10
+
+[casemate]
+part = "casemate"
+open = true
+wall = 0.02
+height = 0.85                 # walls lower than the gun shield (not "fit")
+# open fighting compartment over the rear two thirds of the hull
+plan = [[-1.12, 0.45], [1.12, 0.45], [1.12, -2.28], [-1.12, -2.28]]
+side_slope_deg = 14
+front_slope_deg = 32
+rear_slope_deg = 4
+
+[[part]]
+part = "box_prop"             # driver's armored compartment, left front
+center = [-0.58, 1.30, 1.42]
+size = [0.72, 0.70, 0.40]
+
+[[part]]
+part = "de.driver_visor"
+position = [-0.58, 1.65, 1.46]
+
+[[part]]
+part = "hull_hatch"           # driver's hatch
+center = [-0.58, 1.25]
+z = 1.62
+size = [0.50, 0.45]
+hinge = "rear"
+socket = true
+
+[[part]]
+part = "deck_box"             # engine deck hatches beside the driver
+center = [0.50, 1.10]
+size = [0.85, 0.75, 0.04]
+
+[[part]]
+part = "deck_box"
+center = [0.0, 0.70]
+size = [1.60, 0.35, 0.04]
+
+[[part]]
+part = "exhaust"
+kind = "muffler"
+position = [0.30, -2.40, 0.75]
+length = 0.75
+diameter = 0.20
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -2.33, 0.50]
+pair = true
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 2.28, 0.68]
+pair = true
+socket = false
+
+[[part]]
+part = "de.notek"
+position = [0.85, 2.05, 0.97]
+
+[[part]]
+part = "headlight"
+position = [-0.90, 2.00, 1.05]
+diameter = 0.15
+
+[[part]]
+part = "tool"
+kind = "shovel"
+position = [-1.06, -0.2, 0.92]
+
+[[part]]
+part = "tool"
+kind = "crowbar"
+position = [1.06, -0.4, 0.92]
+
+[[part]]
+part = "antenna"              # rod antenna at the left rear of the compartment
+position = [-1.00, -1.90, 1.95]
+length = 1.6
+
+[[part]]
+part = "socket"               # gun crew in the open compartment
+name = "Socket_Crew_"
+position = [-0.55, -0.90, 1.25]
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [0.55, -0.90, 1.25]
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [-0.55, -1.75, 1.25]
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [0.55, -1.75, 1.25]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.30, 1.0, 1.30]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -1.4, 1.30]
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-1.04, -1.20, 1.70]
+normal = [-0.97, 0.0, 0.24]
+size = 0.40
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [1.04, -1.20, 1.70]
+normal = [0.97, 0.0, 0.24]
+size = 0.40
+
+[[part]]
+part = "marking"
+name = "Hull_Rear"
+kind = "number"
+position = [0.0, -2.30, 1.65]
+normal = [0.0, -1.0, 0.07]
+size = 0.30
+
+[gun]
+part = "tank_gun"
+trunnion = [-0.55, 1.95]      # model space: y, z
+mantlet = { kind = "box", size = [0.90, 0.30, 0.70] }   # box shield, top = catalog height
+sleeve = [0.95, 0.12]         # cradle with recuperator above the barrel
+segments = [["fit", 0.068, 0.062]]
+muzzle_brake = "double_baffle"
+
+[[mg]]  # MG 34 for local defense, on the right compartment wall
+part = "pintle_mg"
+position = [0.95, -1.40, 2.10]
+length = 1.22
+post = 0.12
+
+[validate]
+exclude_height = ["MG_*", "Antenna_*"]   # catalog height is the gun shield top

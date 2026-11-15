@@ -1,0 +1,199 @@
+# Panzer II Ausf. L "Luchs" (Sd.Kfz. 123), 1943-45 reconnaissance tank.
+# Main dimensions from data/catalog/de.toml: length 4.63 m (the 2 cm gun stays
+# inside the hull outline, so length = hull length), width 2.48 m, height 2.21 m.
+# Running gear (Wikipedia "Panzer II"; Chamberlain/Doyle, Ausf. L): five large
+# road wheels per side on torsion bars, interleaved in two rows, front sprocket,
+# rear idler, no return rollers. Modeling estimates from photographs: wheel
+# diameter about 0.74 m, 0.36 m track, hull and superstructure profiles, the
+# wide box turret with flat roof, three smoke dischargers on each turret side,
+# two roof hatches, no cupola. Catalog has no length_hull_mm: hull_length below
+# is the catalog length minus the rear muffler and the front tow shackles.
+unit = "de_pz2_l"
+assembly = "tank"
+
+[layout]
+hull_length = 4.40
+turret_y = 0.05
+turret_ring_diameter = 1.30
+fender_overhang = 0.065   # the outer wheel layer of `interleaved` (rows 2) stands 0.035 m outside the track
+
+[running_gear]
+part = "interleaved"
+rows = 2
+track_width = 0.36
+link_pitch = 0.11
+road_wheel_diameter = 0.74
+road_wheels = [1.30, 0.66, 0.02, -0.62, -1.26]
+sprocket = { y = 1.92, z = 0.70, diameter = 0.62, teeth = 19 }
+idler = { y = -1.95, z = 0.62, diameter = 0.58 }
+arm = 0.30
+
+[hull]
+part = "plate_hull"
+# lower hull: sloped nose plate and glacis, vertical rear
+lower = [[-2.18, 0.42], [1.90, 0.42], [2.28, 0.74], [2.28, 0.92], [-2.28, 0.92], [-2.28, 0.62]]
+# superstructure over the tracks: short glacis, near-vertical driver's plate,
+# flat roof, engine deck sloping down to the rear
+upper = [[-2.28, 0.91], [2.28, 0.91], [2.28, 1.00], [1.88, 1.16], [1.82, 1.52], [-1.05, 1.52],
+         [-2.28, 1.36]]
+fender_front = 2.28
+fender_slope_front = 0.12
+
+[turret]
+part = "plate_turret"
+height = "fit"
+# wide box turret, almost the width of the superstructure
+plan = [[-0.80, 0.82], [0.80, 0.82], [0.92, 0.55], [0.92, -0.86], [-0.92, -0.86], [-0.92, 0.55]]
+side_slope_deg = 12
+front_slope_deg = 8
+
+[gun]
+part = "tank_gun"
+trunnion = [0.78, 0.30]
+mantlet = { kind = "box", size = [0.56, 0.12, 0.30] }
+sleeve = [0.22, 0.05]
+segments = [[0.95, 0.024, 0.022]]       # 2 cm KwK 38: barrel fixed, the gun stays inside the hull length
+muzzle_brake = "thread_protector"
+
+[[mg]]  # coaxial MG 34, right of the 2 cm gun
+part = "mg"
+mount = "coax"
+position = [0.20, 0.10, 0.0]
+length = 0.9
+
+[[part]]
+part = "de.smoke_dischargers"           # 3 Nebelkerzenwurfgeräte per side on the turret front corners
+x = 0.90
+y = 0.45
+z = 0.42
+count = 3
+
+[[part]]
+part = "turret_hatch"                   # commander
+x = -0.38
+y = -0.35
+size = [0.50, 0.55]
+socket = true
+
+[[part]]
+part = "turret_hatch"                   # loader / gunner
+x = 0.38
+y = -0.35
+size = [0.50, 0.55]
+
+[[part]]
+part = "de.driver_visor"
+position = [-0.48, 1.80, 1.36]
+
+[[part]]
+part = "hull_hatch"                     # engine deck access
+center = [0.0, -1.55]
+size = [1.30, 0.70]
+hinge = "front"
+
+[[part]]
+part = "deck_box"                       # engine air intakes
+center = [0.0, -0.95]
+size = [1.40, 0.45, 0.04]
+
+[[part]]
+part = "exhaust"
+kind = "muffler"
+position = [0.0, -2.31, 0.78]
+length = 0.90
+diameter = 0.20
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -2.22, 0.55]
+pair = true
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 2.18, 0.70]
+pair = true
+socket = false
+
+[[part]]
+part = "de.notek"
+position = [-0.95, 2.10, 0.96]
+
+[[part]]
+part = "headlight"
+position = [0.95, 2.05, 1.05]
+diameter = 0.16
+
+[[part]]
+part = "tool"
+kind = "shovel"
+position = [-1.08, -0.4, 0.96]
+
+[[part]]
+part = "tool"
+kind = "crowbar"
+position = [1.08, -0.2, 0.96]
+
+[[part]]
+part = "jerrycans"
+origin = [0.92, -1.70, 0.93]
+step = [0.0, -0.36, 0.0]
+count = 1
+upright = false
+
+[[part]]
+part = "antenna"
+position = [-0.95, -1.70, 1.38]
+length = 2.0
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -1.4, 1.50]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 0.05, 2.0]
+parent = "Turret"
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-1.24, 0.6, 1.25]
+normal = [-1, 0, 0]
+size = 0.40
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [1.24, 0.6, 1.25]
+normal = [1, 0, 0]
+size = 0.40
+
+[[part]]
+part = "marking"
+name = "Hull_Rear"
+position = [-0.55, -2.20, 1.10]
+normal = [0, -1, 0]
+size = 0.30
+
+[[part]]
+part = "marking"
+name = "Turret_L"
+kind = "number"
+parent = "Turret"
+position = [-0.90, -0.30, 1.90]
+normal = [-0.98, 0, 0.2]
+size = 0.35
+
+[[part]]
+part = "marking"
+name = "Turret_R"
+kind = "number"
+parent = "Turret"
+position = [0.90, -0.30, 1.90]
+normal = [0.98, 0, 0.2]
+size = 0.35
+
+[validate]
+exclude_height = ["Antenna_*"]          # catalog height is the turret roof

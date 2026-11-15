@@ -1,0 +1,159 @@
+# Jagdpanzer 38(t) "Hetzer" (Sd.Kfz. 138/2), 1944-45.
+# Main dimensions from data/catalog/de.toml: length 6.27 m with gun, hull
+# 4.77 m, width 2.63 m, height 2.17 m (casemate roof).
+# Pz.Kpfw. 38(t) chassis, widened (Wikipedia "Jagdpanzer 38(t)"; Chamberlain/
+# Doyle): four large twin road wheels per side (about 0.775 m) on two
+# leaf-spring bogies, front sprocket, rear idler, one return roller; the
+# whole upper hull is one low casemate of sloped plates (front 60 deg, sides
+# about 40 deg upper / lower). The 7.5 cm PaK 39 sits right of the center line
+# in a cast 'Saukopf' mantlet, no muzzle brake. Remote-controlled MG 42
+# ('Rundumfeuer') with shield on the roof above the loader (left), the
+# commander's split hatch rear right.
+# Modeling estimates from photographs: wheel stations, sprocket/idler, the plan
+# and roof plan of the casemate (roof about 1.65 m wide), gun trunnion, hatch
+# and MG positions. The plates are steeper in the model's plan view only as far
+# as the two-ring casemate loft allows (one slope per face).
+unit = "de_jgdpz38t"
+assembly = "casemate"
+
+[layout]
+fender_overhang = 0.02
+
+[running_gear]
+part = "leaf_spring_bogie"
+track_width = 0.35
+link_pitch = 0.10
+road_wheel_diameter = 0.775
+road_wheels = [1.43, 0.61, -0.45, -1.27]
+sprocket = { y = 2.05, z = 0.74, diameter = 0.62, teeth = 19 }
+idler = { y = -2.05, z = 0.62, diameter = 0.56 }
+return_rollers = { y = [0.08], z = 0.90, diameter = 0.22 }
+
+[hull]
+part = "plate_hull"
+# lower hull: 40 deg lower nose plate, belly, sloped rear
+lower = [[-2.20, 0.44], [1.92, 0.44], [2.38, 0.96], [-2.38, 0.96], [-2.38, 0.62]]
+# thin deck at track-top level; everything above is the casemate
+upper = [[-2.38, 0.95], [2.38, 0.95], [2.38, 1.00], [-2.38, 1.00]]
+fender_front = 2.38
+fender_slope_front = 0.0
+
+[casemate]
+part = "casemate"
+# base out to the full width over the tracks, roof plan about 1.65 m wide
+plan = [[-1.29, 2.38], [1.29, 2.38], [1.29, -2.38], [-1.29, -2.38]]
+top_plan = [[-0.82, 0.55], [0.82, 0.55], [0.82, -1.20], [-0.82, -1.20]]
+
+[[part]]
+part = "hull_hatch"                     # commander's split hatch, rear right
+center = [0.42, -0.85]
+z = "casemate"
+size = [0.55, 0.50]
+hinge = "right"
+socket = true
+
+[[part]]
+part = "hull_hatch"                     # loader's hatch, left, under the MG
+center = [-0.42, -0.75]
+z = "casemate"
+size = [0.50, 0.50]
+hinge = "left"
+
+[[part]]
+part = "box_prop"                       # driver's periscope hood in the front plate
+center = [-0.55, 0.85, 2.02]
+size = [0.22, 0.14, 0.10]
+
+[[part]]
+part = "box_prop"                       # gunner's sight cover beside the mantlet
+center = [0.02, 0.70, 2.06]
+size = [0.18, 0.18, 0.10]
+
+[[part]]
+part = "exhaust"
+kind = "muffler"
+position = [0.0, -2.50, 1.05]
+length = 0.80
+diameter = 0.22
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -2.40, 0.60]
+pair = true
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 2.40, 0.80]
+pair = true
+socket = false
+
+[[part]]
+part = "spare_tracks"                   # spare links on the rear deck
+origin = [-0.60, -1.95, 1.50]
+direction = [0.30, 0.0, 0.0]
+count = 5
+link_size = [0.26, 0.10, 0.04]
+
+[[part]]
+part = "tool"
+kind = "shovel"
+position = [-1.18, 0.4, 1.12]
+
+[[part]]
+part = "tool"
+kind = "crowbar"
+position = [1.18, -0.2, 1.12]
+
+[[part]]
+part = "antenna"
+position = [-0.95, -1.55, 1.36]
+length = 1.8
+
+[[part]]
+part = "de.notek"
+position = [-1.05, 2.30, 1.02]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -1.6, 1.5]
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-1.06, -0.4, 1.55]
+normal = [-0.77, 0.0, 0.64]
+size = 0.45
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [1.06, -0.4, 1.55]
+normal = [0.77, 0.0, 0.64]
+size = 0.45
+
+[[part]]
+part = "marking"
+name = "Hull_Rear"
+kind = "number"
+position = [0.0, -2.08, 1.55]
+normal = [0.0, -0.74, 0.67]
+size = 0.30
+
+[gun]
+part = "tank_gun"
+trunnion = [1.35, 1.55]                 # model space: y, z
+x = 0.38                                # mounted right of the center line
+mantlet = { kind = "saukopf", size = [0.55, 0.48, 0.52] }
+segments = [["fit", 0.058, 0.050]]
+muzzle_brake = "thread_protector"       # PaK 39 on the Hetzer: no muzzle brake
+
+[[mg]]  # remote-controlled MG 42 with shield on the roof above the loader
+part = "pintle_mg"
+position = [-0.42, -0.30, 2.33]
+length = 1.22
+post = 0.16
+shield = { width = 0.40, height = 0.30, y = 0.18, slope_deg = 20 }
+
+[validate]
+exclude_height = ["MG_*", "Antenna_*", "Hatch_*"]   # catalog height is the casemate roof

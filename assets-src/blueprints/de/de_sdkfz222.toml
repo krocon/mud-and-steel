@@ -1,0 +1,159 @@
+# Leichter Panzerspähwagen (2 cm) Sd.Kfz. 222, late production (Ausf. B
+# chassis from 1942, 2 cm KwK 38). Main dimensions from data/catalog/de.toml:
+# length 4.80 m, width 1.95 m, height 2.00 m. The catalog height is taken as
+# including the folding grenade screen (catalog note), so the turret wall
+# height is fixed below and the screen ridge ends at the catalog height.
+# Modeling estimates from photographs and general-arrangement drawings
+# (Wikipedia "Leichter Panzerspähwagen"; Panzerworld): 4x4 Horch chassis,
+# wheelbase about 2.80 m, track about 1.60 m, 210-18 tires (~0.84 m); faceted
+# body with lower plates flaring out and upper plates leaning in, engine at
+# the rear; open ten-sided turret with sloped walls, 2 cm KwK 38 and coaxial
+# MG 34 on a pedestal mount firing over the turret front, wire-mesh grenade
+# screen in two halves folding outward (the halves are Hatch_01/02).
+# Catalog has no length_hull_mm: the hull is the catalog length.
+unit = "de_sdkfz222"
+assembly = "armored_car"
+
+[layout]
+turret_y = 0.05
+turret_ring_diameter = 1.15
+
+[[axle]]
+y = 1.40
+diameter = 0.84
+width = 0.21
+track = 1.60
+
+[[axle]]
+y = -1.40
+diameter = 0.84
+width = 0.21
+track = 1.60
+
+[hull]
+part = "section_hull"
+height = "keep"               # the turret and the screen set the height
+sections = [
+    { y = 2.40, bottom_z = 0.62, bottom_hw = 0.40, chine_z = 0.82, chine_hw = 0.62, top_z = 0.92, top_hw = 0.48 },
+    { y = 1.85, bottom_z = 0.58, bottom_hw = 0.50, chine_z = 1.00, chine_hw = 0.94, top_z = 1.22, top_hw = 0.72 },
+    { y = 0.85, bottom_z = 0.58, bottom_hw = 0.50, chine_z = 1.02, chine_hw = 0.975, top_z = 1.45, top_hw = 0.72 },
+    { y = -0.75, bottom_z = 0.58, bottom_hw = 0.50, chine_z = 1.02, chine_hw = 0.975, top_z = 1.45, top_hw = 0.72 },
+    { y = -1.85, bottom_z = 0.58, bottom_hw = 0.50, chine_z = 1.00, chine_hw = 0.94, top_z = 1.30, top_hw = 0.66 },
+    { y = -2.40, bottom_z = 0.66, bottom_hw = 0.42, chine_z = 0.86, chine_hw = 0.66, top_z = 1.06, top_hw = 0.50 },
+]
+
+[turret]
+part = "plate_turret"
+open_top = true
+height = 0.36                 # fixed: rim at 1.81 m, screen ridge at the catalog height
+# ten-sided turret
+plan = [[0.0, 0.70], [0.41, 0.57], [0.67, 0.22], [0.67, -0.22], [0.41, -0.57], [0.0, -0.70],
+        [-0.41, -0.57], [-0.67, -0.22], [-0.67, 0.22], [-0.41, 0.57]]
+side_slope_deg = 28
+
+[gun]
+part = "tank_gun"
+trunnion = [0.22, 0.30]
+mantlet = { kind = "box", size = [0.34, 0.12, 0.22] }
+sleeve = [0.30, 0.045]
+segments = [[1.00, 0.024, 0.022]]       # 2 cm KwK 38: fixed, stays inside the hull length
+muzzle_brake = "thread_protector"
+
+[[mg]]  # MG 34 beside the 2 cm gun in the common pedestal mount
+part = "mg"
+mount = "coax"
+position = [-0.16, 0.05, 0.0]
+length = 0.9
+
+[[part]]
+part = "de.grenade_screen"
+half_width = 0.50
+y = [-0.50, 0.50]
+ridge = 0.17
+bars = 5
+gap = 0.10
+
+[[part]]
+part = "box_prop"             # driver's armored vision block in the front plate
+center = [-0.30, 1.88, 1.18]
+size = [0.32, 0.08, 0.12]
+
+[[part]]
+part = "box_prop"             # engine air intake louvres on the rear deck
+center = [0.0, -1.95, 1.27]
+size = [0.80, 0.50, 0.04]
+
+[[part]]
+part = "headlight"
+position = [-0.55, 2.10, 1.05]
+blackout = true
+
+[[part]]
+part = "de.notek"
+position = [0.55, 2.05, 1.00]
+
+[[part]]
+part = "box_prop"             # stowage bins on the side fenders
+center = [-0.88, -0.10, 1.10]
+size = [0.14, 0.75, 0.22]
+
+[[part]]
+part = "box_prop"
+center = [0.88, -0.10, 1.10]
+size = [0.14, 0.75, 0.22]
+
+[[part]]
+part = "tool"
+kind = "shovel"
+position = [0.86, 1.15, 1.08]
+
+[[part]]
+part = "antenna"              # rod antenna at the right rear
+position = [0.60, -1.60, 1.30]
+length = 1.6
+
+[[part]]
+part = "exhaust"
+kind = "pipe"
+position = [-0.55, -2.12, 0.62]
+length = 0.24
+diameter = 0.07
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -2.34, 0.66]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -1.6, 1.35]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 1.2, 1.25]
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-0.85, -0.90, 1.22]
+normal = [-0.86, 0.0, 0.5]
+size = 0.32
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [0.85, -0.90, 1.22]
+normal = [0.86, 0.0, 0.5]
+size = 0.32
+
+[[part]]
+part = "marking"
+name = "Hull_Rear"
+kind = "number"
+position = [0.0, -2.30, 1.12]
+normal = [0.0, -0.8, 0.6]
+size = 0.25
+
+[validate]
+exclude_height = ["Antenna_*"]
