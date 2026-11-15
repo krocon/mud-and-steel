@@ -16,11 +16,15 @@ use std::fmt;
 use std::sync::Arc;
 
 mod combat;
+mod infantry;
 mod vision;
 
 pub use vision::MAX_PLAYERS;
 
 use combat::{Attack, CombatState, Projectile, TypeCombat};
+use infantry::{InfantryRt, Squad};
+
+pub use infantry::BuildingCondition;
 
 /// Move targets farther than this from the origin (in meters, per axis) are
 /// ignored. Keeps all position arithmetic far away from `Fixed` overflow, even
@@ -53,6 +57,8 @@ pub struct SimConfig {
     pub combat: CombatRules,
     /// Vision rules (`data/vision.toml`, prompt 018).
     pub vision: VisionRules,
+    /// Infantry rules (`data/infantry.toml`, prompt 022).
+    pub infantry: crate::infantry::InfantryRules,
 }
 
 impl SimConfig {
@@ -125,9 +131,22 @@ struct Unit {
     footprint: Fixed,
     /// Hull direction (unit length): the last driving direction.
     facing: Vec2,
-    /// Hit points; 0 = destroyed (a wreck, or a dead squad).
+    /// Hit points; 0 = destroyed (a wreck, or a dead squad). For squads
+    /// the sum of their soldiers' hit points.
     hp: u32,
     combat: CombatState,
+    /// Soldiers, stance and building of an infantry squad (prompt 022).
+    squad: Option<Box<Squad>>,
+    /// Share of the terrain speed in percent (stance; 100 for vehicles).
+    speed_pct: u32,
+    /// Width for formations and separation: the footprint, or the width of
+    /// a squad's formation.
+    spread: Fixed,
+    /// Eye height over the ground in mm when higher than the type's
+    /// (observers in a building); 0 otherwise.
+    elevation_mm: i32,
+    /// The viewshed must be computed again (entered or left a building).
+    vision_dirty: bool,
 }
 
 impl Unit {
@@ -183,6 +202,29 @@ pub struct UnitSnapshot {
     pub hp: u32,
     pub max_hp: u32,
     pub fire_mode: FireMode,
+    /// Stance of an infantry squad; `None` for vehicles (prompt 022).
+    pub stance: Option<crate::infantry::Stance>,
+    /// The building (object index) a squad is in.
+    pub garrison: Option<u32>,
+    /// The squad is changing its stance.
+    pub changing_stance: bool,
+    /// Width for formations: the footprint, or a squad's formation width.
+    pub spread: Fixed,
+}
+
+/// Presentation data of one soldier of a squad (prompt 022).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct SoldierSnapshot {
+    pub unit: UnitId,
+    /// Index of the soldier within the squad.
+    pub index: u16,
+    pub position: Vec2,
+    /// Ground height at `position` in meters.
+    pub height: Fixed,
+    /// Hit points left; 0 = dead.
+    pub hp: u32,
+    /// The soldier uses cover (stands at a cover spot or in a building).
+    pub in_cover: bool,
 }
 
 impl UnitSnapshot {
@@ -202,6 +244,8 @@ pub struct Snapshot {
     pub projectiles: Vec<ProjectileSnapshot>,
     /// What happened during the last tick, in order.
     pub events: Vec<CombatEvent>,
+    /// Soldiers of all squads, by unit id and index (prompt 022).
+    pub soldiers: Vec<SoldierSnapshot>,
 }
 
 /// The deterministic simulation.
@@ -227,6 +271,8 @@ pub struct Sim {
     standings: Standings,
     /// Viewsheds and player vision (prompt 018).
     vision: vision::Vision,
+    /// Infantry rules and cover index (prompt 022).
+    infantry: InfantryRt,
 }
 
 impl Sim {
@@ -252,6 +298,7 @@ impl Sim {
             return Err(ConfigError::TooManyPlayers(players.len()));
         }
         let ticks_per_second = Fixed::from_num(config.tick_hz);
+        let infantry = InfantryRt::new(&config.infantry, &config.unit_types, &map, config.tick_hz);
 
         let mut units = Vec::with_capacity(config.spawns.len());
         for (index, spawn) in (0u32..).zip(&config.spawns) {
@@ -272,6 +319,17 @@ impl Sim {
             };
             let max_hp = config.combat.max_hp(&unit_type.combat);
             let weapons = unit_type.combat.weapons.len();
+            let squad = Self::new_squad(
+                &infantry,
+                type_index as usize,
+                spawn.position,
+                facing,
+                config.combat.damage.soldier_hp,
+                &map,
+            );
+            let spread = infantry.types[type_index as usize]
+                .as_ref()
+                .map_or(unit_type.footprint_m, |t| t.spread);
             units.push(Unit {
                 id: UnitId(index),
                 owner: spawn.owner,
@@ -287,6 +345,11 @@ impl Sim {
                 facing,
                 hp: max_hp,
                 combat: CombatState::new(facing, weapons, spawn.fire_mode),
+                squad,
+                speed_pct: 100,
+                spread,
+                elevation_mm: 0,
+                vision_dirty: false,
             });
         }
         let types: Vec<TypeCombat> = config
@@ -324,6 +387,7 @@ impl Sim {
             map,
             standings: Standings::new(&players),
             vision,
+            infantry,
         };
         sim.update_vision(true);
         Ok(sim)
@@ -377,8 +441,10 @@ impl Sim {
             self.apply(command);
         }
         self.plan_paths();
+        self.update_stances();
         self.aim_and_fire();
         self.move_units();
+        self.update_squads();
         self.fly_projectiles();
         self.update_vision(false);
         self.tick += 1;
@@ -597,9 +663,12 @@ impl Sim {
                 if group.is_empty() {
                     return;
                 }
+                for &i in &group {
+                    self.leave_building(i);
+                }
                 let footprint = group
                     .iter()
-                    .map(|&i| self.units[i].footprint)
+                    .map(|&i| self.units[i].spread)
                     .max()
                     .unwrap_or(Fixed::ZERO);
                 let slots = formation_slots(*target, group.len(), formation_spacing(footprint));
@@ -622,6 +691,7 @@ impl Sim {
                 for index in self.owned_indices(command.player, units) {
                     stop(&mut self.units[index]);
                     self.units[index].combat.attack = None;
+                    self.cancel_enter(index);
                 }
             }
             Command::Attack { units, target } => {
@@ -652,6 +722,15 @@ impl Sim {
                 }
             }
             Command::Surrender => self.standings.surrender(command.player, self.tick + 1),
+            Command::SetStance { units, stance } => {
+                for index in self.owned_indices(command.player, units) {
+                    self.set_stance(index, *stance);
+                }
+            }
+            Command::Garrison { units, building } => {
+                let indices = self.owned_indices(command.player, units);
+                self.order_garrison(&indices, *building);
+            }
         }
     }
 
@@ -769,8 +848,20 @@ impl Sim {
             h.write_i64(unit.facing.y.to_bits());
             h.write_u32(unit.hp);
             unit.combat.hash_into(&mut h);
+            h.write_u32(unit.speed_pct);
+            h.write_i64(unit.spread.to_bits());
+            h.write_u32(unit.elevation_mm.cast_unsigned());
+            h.write_u8(u8::from(unit.vision_dirty));
+            match &unit.squad {
+                None => h.write_u8(0),
+                Some(squad) => {
+                    h.write_u8(1);
+                    squad.hash_into(&mut h);
+                }
+            }
         }
         self.combat_rules.hash_into(&mut h);
+        self.infantry.rules.hash_into(&mut h);
         h.write_u32(self.next_projectile);
         h.write_u64(self.projectiles.len() as u64);
         for p in &self.projectiles {
@@ -800,6 +891,10 @@ impl Sim {
                     hp: u.hp,
                     max_hp: self.types[u.unit_type as usize].max_hp,
                     fire_mode: u.combat.fire_mode,
+                    stance: u.squad.as_ref().map(|s| s.stance),
+                    garrison: u.squad.as_ref().and_then(|s| s.garrison),
+                    changing_stance: u.squad.as_ref().is_some_and(|s| s.changing > 0),
+                    spread: u.spread,
                 })
                 .collect(),
             projectiles: self
@@ -808,6 +903,24 @@ impl Sim {
                 .map(|p| p.snapshot(self.tick_hz))
                 .collect(),
             events: self.events.clone(),
+            soldiers: self
+                .units
+                .iter()
+                .filter_map(|u| u.squad.as_ref().map(|s| (u, s)))
+                .flat_map(|(u, s)| {
+                    let inside = s.garrison.is_some();
+                    (0u16..)
+                        .zip(&s.soldiers)
+                        .map(move |(index, x)| SoldierSnapshot {
+                            unit: u.id,
+                            index,
+                            position: x.position,
+                            height: x.height,
+                            hp: x.hp,
+                            in_cover: inside || x.at_spot(),
+                        })
+                })
+                .collect(),
         }
     }
 }
@@ -962,10 +1075,10 @@ fn separation(units: &[Unit], directions: &[Option<Vec2>], i: usize, direction: 
     let left = Vec2::new(direction.y, -direction.x);
     let mut push = Vec2::ZERO;
     for (j, other) in units.iter().enumerate() {
-        if j == i || !other.alive() {
+        if j == i || !other.alive() || infantry::inside(other) {
             continue;
         }
-        let reach = (me.footprint + other.footprint) / 2;
+        let reach = (me.spread + other.spread) / 2;
         let look = reach * 2;
         // From me to the other unit.
         let d = other.position - me.position;
@@ -1159,7 +1272,10 @@ fn stop(unit: &mut Unit) {
 /// meter.
 fn ground_speed(unit: &Unit, direction: Vec2, map: &Map, rules: &TerrainRules) -> Option<Fixed> {
     let terrain = &rules.types[usize::from(map.terrain_at(unit.position))];
-    let speed = terrain.speed(unit.speed_offroad, unit.speed_road);
+    let mut speed = terrain.speed(unit.speed_offroad, unit.speed_road);
+    if unit.speed_pct != 100 {
+        speed = speed * Fixed::from_num(unit.speed_pct) / 100;
+    }
     let grade = map.height_at(unit.position + direction) - unit.height;
     Some(speed * rules.slope.factor(grade)?)
 }
@@ -1246,6 +1362,7 @@ mod tests {
             terrain: TerrainRules::builtin().unwrap(),
             combat: crate::combat::CombatRules::builtin().unwrap(),
             vision: crate::vision::VisionRules::builtin().unwrap(),
+            infantry: crate::infantry::InfantryRules::builtin().unwrap(),
         }
     }
 
@@ -1746,6 +1863,7 @@ mod object_tests {
             terrain: TerrainRules::builtin().unwrap(),
             combat: crate::combat::CombatRules::builtin().unwrap(),
             vision: crate::vision::VisionRules::builtin().unwrap(),
+            infantry: crate::infantry::InfantryRules::builtin().unwrap(),
         };
         (Sim::new(&config, map.clone(), 1).unwrap(), map)
     }

@@ -102,7 +102,7 @@ fn groups_cross_the_river_in_sync() {
     let mut rounds = 0;
     while a.sim.tick() < TICKS || b.sim.tick() < TICKS {
         if a.sim.tick() < TICKS && a.poll() {
-            for (i, unit) in a.sim.snapshot().units.iter().enumerate() {
+            for (i, unit) in a.sim.snapshot().units.iter().take(16).enumerate() {
                 assert_ne!(
                     map.terrain_at(unit.position),
                     DEEP_WATER,
@@ -113,8 +113,10 @@ fn groups_cross_the_river_in_sync() {
                 crossed[i] |= unit.position.x > Fixed::from_num(EAST_OF_RIVER_M);
             }
             if a.sim.tick() == 1300 {
-                // The first order is done: every unit stands east of the river.
-                for unit in a.sim.snapshot().units {
+                // The first order is done: every tank stands east of the
+                // river (the rifle squads of prompt 022, ids 16..20, get no
+                // orders here).
+                for unit in a.sim.snapshot().units.into_iter().take(16) {
                     assert_eq!(unit.target, None, "unit {} still driving", unit.id.0);
                     assert!(
                         unit.position.x > Fixed::from_num(EAST_OF_RIVER_M),
@@ -143,7 +145,7 @@ fn groups_cross_the_river_in_sync() {
         "not every unit crossed: {crossed:?}"
     );
     // And all came back west of the river.
-    for unit in a.sim.snapshot().units {
+    for unit in a.sim.snapshot().units.into_iter().take(16) {
         assert_eq!(unit.target, None, "unit {} still driving back", unit.id.0);
         assert!(
             unit.position.x < Fixed::from_num(100),

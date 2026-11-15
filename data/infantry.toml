@@ -1,0 +1,161 @@
+# Infantry rules (prompt 022). Integers only. Compiled into the simulation
+# (`sim::InfantryRules::builtin`), part of every SimConfig and of the state
+# hash; see docs/INFANTRY.md "Behavior".
+#
+# These are game rules, not catalog values: squad sizes, weapons and speeds
+# come from the catalog (data/catalog/*.toml) and data/scale.toml. Durations
+# are real milliseconds; the infantry time factor (2) applies.
+
+[formation]
+# Soldiers of a squad stand in two staggered rows across the facing:
+# `row_size` soldiers per row, `spacing_mm` apart sideways, rows
+# `spacing_mm` apart, every second row shifted by half a spacing. The squad
+# leader (first soldier) stands in the middle of the front row.
+spacing_mm = 3000
+row_size = 5
+# A soldier catches up with his place at most this share of the squad speed.
+catch_up_pct = 150
+
+[stance]
+# Changing the stance takes this long; the squad neither moves nor fires
+# meanwhile.
+change_ms = 1000
+# Automatic stance: a squad that was hit, or saw a round land within
+# `near_miss_mm` of one of its soldiers, counts as under fire for
+# `suppressed_ms` and goes prone when it is not moving.
+suppressed_ms = 5000
+near_miss_mm = 3000
+
+# Per stance: movement speed (share of the catalog speed; prone = crawling,
+# real 0.35 m/s against 1.4 m/s walking), height of every soldier's hit box
+# (the 1.80 m reference figure; kneeling and lying measured on the soldier
+# model of prompt 005), and the angular error of the squad's own shots.
+[stance.stand]
+speed_pct = 100
+height_mm = 1800
+dispersion_pct = 100
+
+[stance.kneel]
+speed_pct = 60
+height_mm = 1100
+dispersion_pct = 75
+
+[stance.prone]
+speed_pct = 20
+height_mm = 450
+dispersion_pct = 50
+
+[soldier]
+# Half the width of a soldier's hit box (a 0.6 m wide, 0.6 m deep box).
+half_width_mm = 300
+
+[cover]
+# A standing squad looks for cover spots behind objects within
+# `search_mm` of each soldier's formation place. Spots lie `gap_mm` behind
+# the object (seen along the squad's facing), every `spot_spacing_mm` along
+# its length.
+search_mm = 8000
+spot_spacing_mm = 1500
+gap_mm = 700
+# Soft cover counts for a soldier whose spot is within `reach_mm` of the
+# object, when the object lies between the shooter and the soldier.
+reach_mm = 2000
+
+# Objects that hide soldiers but do not stop projectiles in the simulation
+# (they block no tanks, prompt 013): a hit on a soldier in their cover is
+# absorbed with probability `pct` percent. Objects that block tanks (walls,
+# hedges, houses, trees) stop projectiles up to their height by themselves
+# and are cover spots without a roll.
+[[cover.object]]
+id = "fort_sandbag_position"
+pct = 80
+
+[[cover.object]]
+id = "fort_trench_section"
+pct = 85
+
+[[cover.object]]
+id = "env_rock"
+pct = 60
+
+[[cover.object]]
+id = "env_woodpile"
+pct = 50
+
+[[cover.object]]
+id = "env_log_fallen"
+pct = 50
+
+[[cover.object]]
+id = "env_tree_stump"
+pct = 30
+
+[[cover.object]]
+id = "env_hay_bale"
+pct = 30
+
+[[cover.object]]
+id = "env_bush"
+pct = 15
+
+[[cover.object]]
+id = "env_crate"
+pct = 20
+
+[[cover.object]]
+id = "env_barrel"
+pct = 20
+
+[building]
+# A squad enters its building when it is within this distance of the
+# building's walls.
+enter_mm = 6000
+# Rounds of at least this caliber (tenths of a millimeter) are heavy: they
+# hit an occupant more often.
+heavy_caliber_mm_x10 = 200
+
+# Buildings infantry can occupy. `capacity` is the number of soldiers
+# (about one per 10-15 m² of floor), `exposure_pct` the chance that a round
+# striking the building hits an occupant, `heavy_exposure_pct` the same for
+# heavy rounds. Ruins (prompt 020) cannot be occupied but stay cover.
+[[building.kind]]
+id = "env_house_farm"
+capacity = 12
+exposure_pct = 15
+heavy_exposure_pct = 40
+
+[[building.kind]]
+id = "env_house_farm_brick"
+capacity = 10
+exposure_pct = 10
+heavy_exposure_pct = 35
+
+[[building.kind]]
+id = "env_house_stone"
+capacity = 8
+exposure_pct = 10
+heavy_exposure_pct = 30
+
+[[building.kind]]
+id = "env_house_mud"
+capacity = 4
+exposure_pct = 25
+heavy_exposure_pct = 50
+
+[[building.kind]]
+id = "env_barn"
+capacity = 16
+exposure_pct = 25
+heavy_exposure_pct = 50
+
+[[building.kind]]
+id = "env_church"
+capacity = 16
+exposure_pct = 10
+heavy_exposure_pct = 25
+
+[[building.kind]]
+id = "fort_bunker_mg"
+capacity = 4
+exposure_pct = 5
+heavy_exposure_pct = 15

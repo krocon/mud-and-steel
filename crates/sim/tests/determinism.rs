@@ -21,7 +21,15 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by prompt 018: vision and fog of war. Units keep viewsheds
+/// Last changed by prompt 022: infantry. The demo has two rifle squads
+/// per side behind the tanks; a squad is one unit with soldiers that have
+/// their own positions, hit points and hit boxes (stance height), stances
+/// (stand, kneel, prone: speed, hit box, dispersion), cover spots behind
+/// objects with soft cover rolls, and buildings to occupy
+/// (`data/infantry.toml`). Infantry rules, the squad state and per-unit
+/// speed share, spread and eye elevation are in the hash. The demo battle
+/// is now decided at tick 515 instead of 645, and player 0 wins.
+/// Before: prompt 018: vision and fog of war. Units keep viewsheds
 /// on an 8 m vision grid (hills, forests, buildings and hedges block sight;
 /// `data/vision.toml`), pick automatic targets and fire only in their own
 /// line of sight, and follow attack targets out of sight to where they were
@@ -58,7 +66,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x8891_4b76_6934_c076;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x2f78_c760_87f2_7235;
 
 #[test]
 fn golden_hash() {
@@ -107,11 +115,11 @@ fn demo_is_a_battle() {
 fn demo_battle_is_decided() {
     let end = run_demo(42, 1000);
     let outcome = end.outcome().expect("the demo battle is decided");
-    assert_eq!(outcome.winner, Some(sim::PlayerId(1)));
-    assert_eq!(outcome.tick, 645);
-    assert_eq!(end.alive_units(sim::PlayerId(0)), 0);
+    assert_eq!(outcome.winner, Some(sim::PlayerId(0)));
+    assert_eq!(outcome.tick, 515);
+    assert_eq!(end.alive_units(sim::PlayerId(1)), 0);
     assert_eq!(
-        end.standings()[0].defeat,
-        Some((sim::DefeatReason::Eliminated, 645))
+        end.standings()[1].defeat,
+        Some((sim::DefeatReason::Eliminated, 515))
     );
 }

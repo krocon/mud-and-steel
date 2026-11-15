@@ -15,6 +15,7 @@ pub mod combat;
 mod command;
 mod data;
 mod hash;
+pub mod infantry;
 pub mod map;
 mod math;
 pub mod objects;
@@ -35,6 +36,7 @@ pub use combat::{
 pub use command::{Command, PlayerCommand, PlayerId, UnitId};
 pub use data::{DEFAULT_FOOTPRINT_MM, DataError, UnitType, unit_types_from_catalog};
 pub use hash::StableHasher;
+pub use infantry::{InfantryRules, Stance, StanceOrder};
 pub use map::{Biome, Map, MapError, MapRef};
 pub use math::{Fixed, Vec2};
 pub use objects::{Blocks, MapObject, ObjectKind, ObjectRules};
@@ -42,8 +44,8 @@ pub use outcome::{DefeatReason, Outcome, PlayerStanding};
 pub use rng::Rng;
 pub use scale::Scale;
 pub use sim::{
-    ConfigError, MAX_PLAYERS, RouteView, Sim, SimConfig, Snapshot, Spawn, UnitSnapshot,
-    WORLD_LIMIT_M, formation_slots, formation_spacing,
+    BuildingCondition, ConfigError, MAX_PLAYERS, RouteView, Sim, SimConfig, Snapshot,
+    SoldierSnapshot, Spawn, UnitSnapshot, WORLD_LIMIT_M, formation_slots, formation_spacing,
 };
 pub use terrain::{TerrainError, TerrainRules};
 pub use vision::{CellState, VisionGrid, VisionRules};

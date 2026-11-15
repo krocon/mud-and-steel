@@ -1,6 +1,7 @@
 //! Player commands: the only way to change the simulation from outside.
 
 use crate::combat::FireMode;
+use crate::infantry::StanceOrder;
 use crate::math::Vec2;
 use serde::{Deserialize, Serialize};
 
@@ -36,6 +37,16 @@ pub enum Command {
     SetFireMode { units: Vec<UnitId>, mode: FireMode },
     /// The issuing player gives up and is defeated (prompt 027).
     Surrender,
+    /// Stance of infantry squads (prompt 022); ignored by vehicles.
+    SetStance {
+        units: Vec<UnitId>,
+        stance: StanceOrder,
+    },
+    /// Infantry squads walk to the building (index into
+    /// [`crate::Map::objects`]) and occupy it if there is room and no enemy
+    /// inside (prompt 022). Ignored for vehicles and objects that are no
+    /// buildings.
+    Garrison { units: Vec<UnitId>, building: u32 },
 }
 
 impl Command {
@@ -46,7 +57,9 @@ impl Command {
             | Self::Stop { units }
             | Self::Attack { units, .. }
             | Self::AttackGround { units, .. }
-            | Self::SetFireMode { units, .. } => units,
+            | Self::SetFireMode { units, .. }
+            | Self::SetStance { units, .. }
+            | Self::Garrison { units, .. } => units,
             Self::Surrender => &[],
         }
     }

@@ -568,13 +568,16 @@ Prompt 027. `crates/sim/src/outcome.rs` decides the match; Godot only shows it.
   with a single player is never decided. There are no teams yet.
 - The standings enter the state hash only once someone is defeated. Before
   that they hold nothing beyond the player list, so undecided matches hash
-  as before. The demo battle is decided at tick 645 (525 before the vision of prompt 018, 405 before the map of prompt 014; player 0 loses its last
-  tank), which is why prompt 027 changed the golden hash.
+  as before. The demo battle is decided at tick 515 since the rifle squads of
+  prompt 022 (player 1 loses its last unit; before: tick 645 and player 0
+  lost, 525 before the vision of prompt 018, 405 before the map of prompt
+  014), which is why prompt 027 changed the golden hash.
 - `Surrender` is appended to the `Command` enum, so older replays stay
   readable. No debug command removes units: the self-test wins by real
   combat.
 - **Factions:** the demo scenario's `[faction_units]` table names one unit per
-  faction; `parse_scenario_with_factions` gives every group of a player the
+  faction (and `[faction_infantry]` one for groups with `role = "infantry"`,
+  prompt 022); `parse_scenario_with_factions` gives every group of a player the
   unit of the faction they picked (positions unchanged). `SimHost.start_match(
   seed, map_dir, factions)` starts it.
 

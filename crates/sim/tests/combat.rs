@@ -66,6 +66,7 @@ fn sim_with(
         terrain: TerrainRules::builtin().unwrap(),
         combat: rules,
         vision: sim::VisionRules::builtin().unwrap(),
+        infantry: sim::InfantryRules::builtin().unwrap(),
     };
     Sim::new(&config, map, 7).unwrap()
 }
