@@ -121,6 +121,7 @@ validate-assets:
     {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python tools/blender/validate.py
     {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/validate_soldier.py
     {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/build_squad.py -- --check
+    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/validate_env.py
 
 # Render all built models side by side with the 1.80 m reference figure
 [group('assets')]
@@ -213,3 +214,20 @@ map-info name="test_large":
 [group('maps')]
 run-map name="test_large": build
     {{ GODOT }} --path godot -- --map={{ name }}
+
+# --- Environment objects (prompt 007) ----------------------------------------------
+
+# Build environment objects from assets-src/blueprints/neutral/ (all, or the given ids)
+[group('assets')]
+env *ids:
+    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/build_env.py -- {{ ids }}
+
+# Check environment objects only (also part of validate-assets)
+[group('assets')]
+validate-env *ids:
+    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/validate_env.py -- {{ ids }}
+
+# Render environment objects with the 1.80 m figure and a tank into a scratch folder
+[group('assets')]
+env-lineup out="build/renders/env" *ids:
+    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/env_lineup.py -- "{{ out }}" {{ ids }}

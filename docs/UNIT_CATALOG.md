@@ -629,9 +629,12 @@ uncertain; see the list at the end of each faction.
 | ID | Name | Tier | L × W × H (m) | Note |
 |---|---|---|---|---|
 | fort_trench_section | Schützengraben (Abschnitt) / Infantry fire trench section | 1 | 5.00? × 1.20 × 1.70 | Standard trench (width = 4 ft top, 1220 mm rounded to 1200; height field holds d… |
-| fort_sandbag_position | Sandsackstellung (MG) / Sandbag MG/rifle position | 1 | 3.00? × 2.00? × 1.00? | Sandbag breastwork around an MG/rifle position, thickness at least 3 ft (914 mm)… |
-| fort_hedgehog | Panzerigel / Czech hedgehog (steel beams) | 1 | 1.80? × 1.80? × 1.50? | Three crossed steel angle beams of 1.8 m (original Czechoslovak type; later 2.1 … |
+| fort_sandbag_position | Sandsackstellung (MG) / Sandbag MG/rifle position | 1 | 2.00? × 3.00? × 1.00? | Sandbag breastwork around an MG/rifle position, thickness at least 3 ft (914 mm)… |
+| fort_hedgehog | Panzerigel / Czech hedgehog (steel beams) | 1 | 1.42? × 1.55? × 1.16? | Three crossed steel angle beams of 1.8 m (original Czechoslovak type; later 2.1 … |
 | fort_barbed_wire | Stacheldrahtverhau (Doppelzaun) / Barbed wire (double apron fence section) | 1 | 3.00? × 3.00? × 1.40 | Double apron fence (not concertina); height from TM-E 30-451 |
+| fort_bunker_mg | MG-Bunker (Beton, sechseckig) / Concrete MG pillbox (hexagonal) | 1 | 3.81? × 4.40? × 2.00? | Generic hexagonal concrete pillbox after the Type 22 plan, without national feat… |
+| fort_mine_at | Panzermine (einzeln, sichtbar) / Anti-tank mine (single, visible) | 1 | 0.32 × 0.32 × 0.10? | Single visible pressure mine for engineers and debug views (minefields themselve… |
+| fort_mine_ap | Schützenmine (einzeln, sichtbar) / Anti-personnel mine (single, visible) | 1 | 0.10 × 0.10 × 0.15? | Single visible bounding mine for engineers and debug views |
 
 ### Environment
 
@@ -657,6 +660,13 @@ uncertain; see the list at the end of each faction.
 | env_hay_bale | Heuhaufen / Hay stack (loose haystack) | 1 | 4.00? × 3.00? × 3.50? | Period loose haystack (rick), not a modern bale |
 | env_crate | Holzkiste (Munition/Nachschub) / Wooden crate (ammo/supply) | 1 | 0.90? × 0.45? × 0.45? | Representative wooden ammunition/supply crate; sizes vary widely by contents. |
 | env_barrel | Fass (200 l Stahl) / Barrel (200 l steel drum) | 1 | 0.58 × 0.58 × 0.88 | Standard 200 l steel drum, outside diameter 584 mm, height 876 mm. |
+| env_house_farm_brick | Bauernhaus (Backstein, eingeschossig) / Farmhouse (brick, one storey with attic) | 1 | 12.00? × 8.00? × 7.50? | Smaller single-storey brick farmhouse with a steep gabled roof and an attic; the… |
+| env_tree_stump | Baumstumpf / Tree stump | 1 | 1.20? × 1.20? × 0.60? | Stump of a felled or shot-off mature tree, trunk about 0.6 m, root flares to 1.2… |
+| env_log_fallen | Umgestürzter Baumstamm / Fallen tree trunk | 1 | 10.00? × 0.80? × 0.80? | Trunk section without crown, 10 m long, about 0.6 m diameter plus branch stubs (… |
+| env_woodpile | Holzstapel (Brennholz) / Firewood stack | 1 | 2.44 × 1.22 × 1.22 | One cord of firewood: 8 ft x 4 ft x 4 ft = 2.44 m x 1.22 m x 1.22 m, logs 4 ft l… |
+| env_hay_bale_square | Heuballen (eckig) / Small square hay bale | 1 | 0.91? × 0.46? × 0.36? | Two-string small square bale, common size 14 x 18 x 36 in (0.36 x 0.46 x 0.91 m)… |
+| env_hedge | Feldhecke (Segment) / Field hedge (one segment) | 1 | 3.00? × 1.20? × 2.20? | Managed field hedge without earth bank, 2.2 m high and 1.2 m wide (source: usual… |
+| fort_mine_sign | Minenwarnschild / Minefield warning sign | 1 | 0.06? × 0.40? × 1.20? | Generic marker on a wooden picket, 0.4 m board, top at 1.2 m, without inscriptio… |
 
 ### Uncertain values
 
@@ -683,6 +693,15 @@ uncertain; see the list at the end of each faction.
 - `fort_sandbag_position`: length_mm, width_mm, height_mm
 - `fort_hedgehog`: length_mm, width_mm, height_mm
 - `fort_barbed_wire`: length_mm, width_mm
+- `env_house_farm_brick`: length_mm, width_mm, height_mm
+- `env_tree_stump`: length_mm, width_mm, height_mm
+- `env_log_fallen`: length_mm, width_mm, height_mm
+- `env_hay_bale_square`: length_mm, width_mm, height_mm
+- `env_hedge`: length_mm, width_mm, height_mm
+- `fort_bunker_mg`: length_mm, width_mm, height_mm
+- `fort_mine_at`: height_mm
+- `fort_mine_ap`: height_mm
+- `fort_mine_sign`: length_mm, width_mm, height_mm
 
 ### Sources
 
@@ -743,4 +762,25 @@ uncertain; see the list at the end of each faction.
   - TM-E 30-451 Handbook on German Military Forces (1945), ch. V sec. II para. 7c (double-apron fence 4 to 5 feet high (middle 4.5 ft = 1372 mm, rounded to 1400))
   - War Department MIS Special Series No. 15, German Coastal Defenses (15 Jun 1943), sec. III item 10b(2) (apron fences 4-5 ft high, up to 30 ft wide)
   - https://tpub.com/seabee/5-2.htm (US Navy Seabee manual, derived from FM 5-30 practice) (double-apron fence 4-and-2 pace and 6-and-3 pace types; anchor pickets 2 paces each side of the centre line)
+- `env_house_farm_brick`
+  - Rural architecture references (e.g. Wikipedia: Farmhouse, Hallenhaus) (typical footprint and ridge height of a small farmhouse)
+- `env_tree_stump`
+  - https://en.wikipedia.org/wiki/Quercus_robur (mature oak size (trunk of a 20-40 m tree), used to derive the stump size)
+- `env_log_fallen`
+  - https://en.wikipedia.org/wiki/Picea_abies (spruce trunk size (used to derive a fallen trunk length and diameter))
+- `env_woodpile`
+  - https://en.wikipedia.org/wiki/Cord_(unit) (a cord: stack 4 ft high, 8 ft wide, 4 ft deep (128 cu ft))
+- `env_hay_bale_square`
+  - https://en.wikipedia.org/wiki/Hay_baler (small square balers were the original type, automatic pick-up balers took their modern form in 1938; first production round baler only in 1947)
+  - https://en.wikipedia.org/wiki/Hay (small rectangular bales light enough for one person, 32-45 kg, two-tie and three-tie variants)
+- `env_hedge`
+  - https://en.wikipedia.org/wiki/Hedge (hedgerows usually no wider than about 1 m; dense hedgerow above 2 m rates highest (Hedgelink); Normandy bocage banks 3-12 ft topped by a 1-3 ft hedge)
+- `fort_bunker_mg`
+  - https://en.wikipedia.org/wiki/Type_22_pillbox (Type 22: regular hexagon, walls about 6 ft (1.8 m), 12 in (30 cm) bulletproof walls, embrasures on five sides, entrance on the sixth)
+- `fort_mine_at`
+  - https://en.wikipedia.org/wiki/Tellermine_35 (Tellermine 35: diameter 31.8 cm, height 76 mm)
+- `fort_mine_ap`
+  - https://en.wikipedia.org/wiki/S-mine (S-mine 35: diameter 102 mm, height 127 mm (infobox), body about 15 cm without sensor (text))
+- `fort_mine_sign`
+  - TM-E 30-451 Handbook on German Military Forces (1945), ch. VIII (mines and minefields) (minefields were marked with warning signs and fences (no dimensions))
 

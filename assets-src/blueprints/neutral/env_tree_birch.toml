@@ -1,0 +1,28 @@
+# Silver birch (prompt 007): white bark, narrow crown, hanging twigs.
+unit = "env_tree_birch"
+assembly = "env"
+
+[[variant]]
+name = "Birch"
+part = "tree_broadleaf"
+seed = 1
+bark_kind = 1
+droop = 0.5
+crown_base = 0.35
+trunk_radius = 0.17
+card_size = 0.42
+clusters = 90
+limbs = 5
+lean = 0.6
+
+[[variant]]
+name = "BirchYoung"
+part = "tree_broadleaf"
+size = [0.65, 0.65, 0.6]
+seed = 2
+bark_kind = 1
+droop = 0.5
+crown_base = 0.3
+trunk_radius = 0.1
+clusters = 60
+limbs = 4

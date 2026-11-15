@@ -1,0 +1,22 @@
+# Date palm (prompt 007, desert biome).
+unit = "env_tree_palm"
+assembly = "env"
+
+[[variant]]
+name = "Palm"
+part = "tree_palm"
+seed = 1
+
+[[variant]]
+name = "PalmShort"
+part = "tree_palm"
+size = [0.9, 0.9, 0.55]
+seed = 2
+fronds = 16
+
+[[variant]]
+name = "PalmLeaning"
+part = "tree_palm"
+size = [1.0, 1.0, 0.85]
+seed = 3
+curve = 2.5

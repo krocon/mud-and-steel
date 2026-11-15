@@ -1,0 +1,51 @@
+# Half-timbered farmhouse, one storey plus attic (prompt 007). Three damage levels.
+unit = "env_house_farm"
+assembly = "env"
+
+[[variant]]
+name = "Intact"
+part = "house"
+role = "intact"
+seed = 1
+frame = true
+plinth = 0.4
+storeys = 1
+storey_h = 2.8
+knee = 0.8
+windows_long = 4
+windows_short = 2
+attic_windows = 2
+chimney = true
+
+[[variant]]
+name = "Damaged"
+part = "house"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 1
+frame = true
+plinth = 0.4
+storeys = 1
+storey_h = 2.8
+knee = 0.8
+windows_long = 4
+windows_short = 2
+attic_windows = 2
+chimney = true
+
+[[variant]]
+name = "Ruin"
+part = "house"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 1
+plinth = 0.4
+storeys = 1
+storey_h = 2.8
+knee = 0.8
+windows_long = 4
+windows_short = 2

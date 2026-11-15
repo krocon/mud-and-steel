@@ -1,0 +1,17 @@
+# Timber bridge, span parametric through the variant length.
+unit = "env_bridge_wood"
+assembly = "env"
+
+[[variant]]
+name = "Span12"
+part = "bridge_wood"
+
+[[variant]]
+name = "Span8"
+part = "bridge_wood"
+size = [0.6667, 1.0, 1.0]
+
+[[variant]]
+name = "Span16"
+part = "bridge_wood"
+size = [1.3333, 1.0, 1.0]

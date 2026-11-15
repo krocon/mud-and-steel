@@ -1,0 +1,17 @@
+unit = "env_crate"
+assembly = "env"
+
+[[variant]]
+name = "Crate"
+part = "crate"
+
+[[variant]]
+name = "Small"
+part = "crate"
+dims_m = [0.6, 0.4, 0.3]
+
+[[variant]]
+name = "Stack"
+part = "crate"
+stack = 1
+dims_m = [0.9, 0.9, 0.9]

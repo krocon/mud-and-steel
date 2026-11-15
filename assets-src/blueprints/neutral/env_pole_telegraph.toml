@@ -1,0 +1,7 @@
+# Telegraph pole; cross-arm along Y (catalog length = arm span).
+unit = "env_pole_telegraph"
+assembly = "env"
+
+[[variant]]
+name = "Pole"
+part = "telegraph_pole"

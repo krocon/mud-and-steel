@@ -1,0 +1,56 @@
+# Timber barn on a stone plinth with large doors on both long walls.
+unit = "env_barn"
+assembly = "env"
+
+[[variant]]
+name = "Intact"
+part = "house"
+role = "intact"
+seed = 3
+wall = "Wood"
+wall_kind = 0
+wall_t = 0.2
+plinth = 0.6
+storey_h = 4.5
+eave = 0.5
+windows_short = 0
+attic_windows = 1
+barn_doors = [4.0, 4.2]
+door = ["+y", 1.0]
+
+[[variant]]
+name = "Damaged"
+part = "house"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 3
+wall = "Wood"
+wall_kind = 0
+wall_t = 0.2
+plinth = 0.6
+storey_h = 4.5
+eave = 0.5
+windows_short = 0
+attic_windows = 1
+barn_doors = [4.0, 4.2]
+door = ["+y", 1.0]
+
+[[variant]]
+name = "Ruin"
+part = "house"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 3
+wall = "Wood"
+wall_kind = 3
+wall_t = 0.2
+plinth = 0.6
+storey_h = 4.5
+eave = 0.5
+windows_short = 0
+barn_doors = [4.0, 4.2]
+door = ["+y", 1.0]

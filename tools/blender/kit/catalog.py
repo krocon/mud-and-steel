@@ -47,14 +47,26 @@ def blueprint(faction, unit_id):
     return bp
 
 
-def all_blueprints():
-    """(faction, id) of every blueprint, sorted."""
+def all_blueprints(env=False):
+    """(faction, id) of every unit blueprint, sorted.
+
+    Environment blueprints (`assembly = "env"`, prompt 007) have their own
+    builder and validator (build_env.py, validate_env.py) and are left out;
+    `env=True` returns only those.
+    """
     out = []
     for faction in FACTIONS:
         d = BLUEPRINT_DIR / faction
         if d.is_dir():
-            out += [(faction, p.stem) for p in sorted(d.glob("*.toml"))]
+            for p in sorted(d.glob("*.toml")):
+                if is_env_blueprint(p) == env:
+                    out.append((faction, p.stem))
     return out
+
+
+def is_env_blueprint(path):
+    with open(path, "rb") as f:
+        return tomllib.load(f).get("assembly") == "env"
 
 
 def blend_path(faction, unit_id):

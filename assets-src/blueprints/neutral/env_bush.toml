@@ -1,0 +1,24 @@
+# Bushes (prompt 007): hazel (catalog size), round shrub, low wide shrub.
+unit = "env_bush"
+assembly = "env"
+
+[[variant]]
+name = "Hazel"
+part = "bush"
+seed = 1
+
+[[variant]]
+name = "Round"
+part = "bush"
+size = [0.55, 0.55, 0.4]
+seed = 2
+clusters = 28
+stems = 3
+
+[[variant]]
+name = "Wide"
+part = "bush"
+size = [1.1, 0.9, 0.35]
+seed = 3
+clusters = 34
+center = 0.5

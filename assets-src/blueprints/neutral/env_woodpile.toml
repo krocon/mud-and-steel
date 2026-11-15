@@ -1,0 +1,7 @@
+unit = "env_woodpile"
+assembly = "env"
+
+[[variant]]
+name = "Stack"
+part = "woodpile"
+seed = 1

@@ -1,0 +1,23 @@
+# Rocks in three sizes (prompt 007). Medium = catalog boulder.
+unit = "env_rock"
+assembly = "env"
+
+[[variant]]
+name = "Medium"
+part = "rock"
+seed = 1
+
+[[variant]]
+name = "Small"
+part = "rock"
+size = [0.35, 0.4, 0.35]
+seed = 2
+seg = 8
+rings = 5
+
+[[variant]]
+name = "Large"
+part = "rock"
+size = [2.2, 2.4, 1.8]
+seed = 3
+rough = 0.22
