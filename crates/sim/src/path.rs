@@ -691,19 +691,32 @@ impl PathGrid {
             let x1 = (gx + r).min(self.width - 1);
             let y0 = gy.saturating_sub(r);
             let y1 = (gy + r).min(self.height - 1);
+            let mut visit = |x: u32, y: u32| {
+                let i = self.index(x, y);
+                let c = grid.component[i];
+                if c == 0 || component.is_some_and(|wanted| c != wanted) {
+                    return;
+                }
+                let d = self.center(x, y) - goal;
+                let (ddx, ddy) = (i128::from(d.x.to_bits()), i128::from(d.y.to_bits()));
+                let key = (ddx * ddx + ddy * ddy, i as u32);
+                if best.is_none_or(|b| key < b) {
+                    best = Some(key);
+                }
+            };
+            // Only the cells on ring r (rows and columns at distance r that
+            // lie inside the grid). The minimum over (distance, index) does
+            // not depend on the visiting order.
             for y in y0..=y1 {
-                for x in x0..=x1 {
-                    let on_ring = x.abs_diff(gx) == r || y.abs_diff(gy) == r;
-                    let i = self.index(x, y);
-                    let c = grid.component[i];
-                    if !on_ring || c == 0 || component.is_some_and(|wanted| c != wanted) {
-                        continue;
+                if y.abs_diff(gy) == r {
+                    for x in x0..=x1 {
+                        visit(x, y);
                     }
-                    let d = self.center(x, y) - goal;
-                    let (ddx, ddy) = (i128::from(d.x.to_bits()), i128::from(d.y.to_bits()));
-                    let key = (ddx * ddx + ddy * ddy, i as u32);
-                    if best.is_none_or(|b| key < b) {
-                        best = Some(key);
+                } else {
+                    for x in [gx.checked_sub(r), Some(gx + r)].into_iter().flatten() {
+                        if x <= x1 {
+                            visit(x, y);
+                        }
                     }
                 }
             }
@@ -1537,6 +1550,41 @@ mod tests {
         assert!(detour.waypoints.iter().any(|p| grid.cell_of(*p).1 == 0));
         grid.set_obstacle(&map, &rules, wall, false);
         assert_eq!(grid.find_path(start, goal, 0), Some(straight));
+    }
+
+    #[test]
+    fn nearest_cell_matches_brute_force() {
+        let map = maze();
+        let grid = grid(&map);
+        let class = SizeClass::Large;
+        let (w, h) = grid.size();
+        let mut rng = crate::Rng::new(3);
+        for _ in 0..200 {
+            let goal = Vec2::from_millimeters(
+                rng.range_i32(-90_000, 90_000),
+                rng.range_i32(-70_000, 70_000),
+            );
+            let mut best: Option<(i128, u32)> = None;
+            for y in 0..h {
+                for x in 0..w {
+                    let i = grid.index(x, y);
+                    if grid.classes[class.index()].component[i] == 0 {
+                        continue;
+                    }
+                    let d = grid.center(x, y) - goal;
+                    let (dx, dy) = (i128::from(d.x.to_bits()), i128::from(d.y.to_bits()));
+                    let key = (dx * dx + dy * dy, i as u32);
+                    if best.is_none_or(|b| key < b) {
+                        best = Some(key);
+                    }
+                }
+            }
+            assert_eq!(
+                grid.nearest_cell(class, None, goal, u32::MAX),
+                best.map(|b| b.1),
+                "{goal:?}"
+            );
+        }
     }
 
     #[test]

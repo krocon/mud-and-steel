@@ -493,6 +493,13 @@ card far mesh keeps the biome tint and wind of the shader. At 600 m (the
 farthest camera) a 25 m tree still covers about 80 px, so the far mesh is not
 needed below ~150–200 m; prompt 016 measures the switch distance.
 
+Prompt 013 places the objects on the maps as MultiMesh instances and switches at
+220 m per 128 m chunk. Near trees cast their shadow through a shadows-only copy of
+the far mesh, and `env_foliage.gdshader` draws leaf and needle cells with a cheap
+one-hash pattern in directional shadow passes and beyond `detail_distance` (70 m):
+the 3 × 3 leaf-cell search over a whole wood in four shadow cascades cost most of
+the frame ([ARCHITECTURE.md](ARCHITECTURE.md#map-objects-and-decoration-presentation-only)).
+
 ### Budgets (per variant)
 
 | Category | Triangles | Note |

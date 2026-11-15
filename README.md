@@ -50,6 +50,8 @@ Run `just` to list all commands. The most important ones:
 | `just gen-map <name> [size_m] [seed]` | generates a test map ([docs/MAPS.md](docs/MAPS.md)) |
 | `just path-bench [map] [units] [group]` | pathfinding benchmark, time per tick (default `test_large`, 200, 1) |
 | `just run-paths [map]`  | starts the game with the path debug view (F4 costs, F5 paths) |
+| `just objects-bench [map]` | frame rate and draw calls over woods and a village (opens a window) |
+| `just objects-shots <dir> [map]` | records views of woods, village and hedgerows as PNG frames |
 | `just export-model <file.blend>` | exports a model to `godot/assets/models/`       |
 | `just model-tank`       | regenerates and exports the placeholder tank             |
 
