@@ -21,7 +21,13 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by the merge of prompt 022 (infantry) with 020
+/// Last changed by prompt 023 (base building and resources): the economy
+/// rules (`data/economy.toml`), the resolved unit prices, every player's
+/// account, structures, production queues and supply points are in the
+/// hash, and `test_small` has three supply point markers. The demo has no
+/// buildings and captures no point in 1000 ticks; its battle is unchanged
+/// (decided at tick 515, player 0 wins).
+/// Before: the merge of prompt 022 (infantry) with 020
 /// (destruction) and 024 (AI): the destruction state of 020 (its rules,
 /// the two farmhouses `test_small` places as ruins acting as ruins from
 /// the start, every changed object) and the new infantry building rules
@@ -81,7 +87,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x68f7_cd2d_be30_47c8;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x8b47_feb2_b3f6_7e2a;
 
 #[test]
 fn golden_hash() {

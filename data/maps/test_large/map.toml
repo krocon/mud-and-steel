@@ -35,3 +35,15 @@ position_m = [1112, -399]
 [[marker]]
 name = "ford"
 position_m = [1249, 203]
+
+[[marker]]
+name = "supply_village"
+position_m = [-1100, 1100]
+
+[[marker]]
+name = "supply_hill"
+position_m = [-842, -1118]
+
+[[marker]]
+name = "supply_ford"
+position_m = [1249, 203]

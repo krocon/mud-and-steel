@@ -47,6 +47,17 @@ pub enum Command {
     /// inside (prompt 022). Ignored for vehicles and objects that are no
     /// buildings.
     Garrison { units: Vec<UnitId>, building: u32 },
+    /// Places a construction site of the structure type `unit_type` (index
+    /// into `SimConfig::unit_types`) at `position` and pays for it (prompt
+    /// 023). Ignored where `Sim::placement` says no.
+    Build { unit_type: u32, position: Vec2 },
+    /// Queues a unit of `unit_type` in the own completed `building` and pays
+    /// for it (prompt 023).
+    Produce { building: UnitId, unit_type: u32 },
+    /// Removes the last order of `building`'s queue with a full refund.
+    CancelProduction { building: UnitId },
+    /// Produced units of `building` drive to `point`.
+    SetRallyPoint { building: UnitId, point: Vec2 },
 }
 
 impl Command {
@@ -60,7 +71,11 @@ impl Command {
             | Self::SetFireMode { units, .. }
             | Self::SetStance { units, .. }
             | Self::Garrison { units, .. } => units,
-            Self::Surrender => &[],
+            Self::Surrender
+            | Self::Build { .. }
+            | Self::Produce { .. }
+            | Self::CancelProduction { .. }
+            | Self::SetRallyPoint { .. } => &[],
         }
     }
 }

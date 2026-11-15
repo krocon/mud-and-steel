@@ -1,0 +1,403 @@
+//! Base building, resources and production (prompt 023).
+
+use sim::scenario::{builtin_map, economy_commands, run_economy, skirmish_config};
+use sim::{Command, FireMode, PlaceError, PlayerCommand, PlayerId, Sim, SimConfig, Vec2};
+
+const P0: PlayerId = PlayerId(0);
+const P1: PlayerId = PlayerId(1);
+
+/// The skirmish with every unit holding fire, so nothing is shot while a
+/// test builds.
+fn peaceful() -> SimConfig {
+    let mut config = skirmish_config(&[]);
+    for spawn in &mut config.spawns {
+        spawn.fire_mode = FireMode::HoldFire;
+    }
+    config
+}
+
+fn start(config: &SimConfig) -> Sim {
+    Sim::new(config, builtin_map(), 7).unwrap()
+}
+
+fn t(sim: &Sim, name: &str) -> u32 {
+    sim.unit_type_index(name).unwrap()
+}
+
+fn hq(sim: &Sim, player: PlayerId) -> (sim::UnitId, Vec2) {
+    let s = sim
+        .structures()
+        .into_iter()
+        .find(|s| s.owner == player && s.unit_type == t(sim, "base_hq"))
+        .unwrap();
+    (s.unit, sim.unit_position(s.unit).unwrap())
+}
+
+fn step(sim: &mut Sim, player: PlayerId, command: Command) {
+    sim.step(&[PlayerCommand::new(player, command)]);
+}
+
+fn run(sim: &mut Sim, ticks: u64) {
+    for _ in 0..ticks {
+        sim.step(&[]);
+    }
+}
+
+#[test]
+fn skirmish_starts_with_completed_headquarters_and_resources() {
+    let sim = start(&peaceful());
+    let structures = sim.structures();
+    assert_eq!(structures.len(), 2);
+    assert!(structures.iter().all(|s| s.completed()));
+    assert_eq!(sim.account(P0), Some([600, 600, 400]));
+    assert_eq!(sim.faction(P0), Some("de"));
+    assert_eq!(sim.faction(P1), Some("su"));
+    assert_eq!(sim.income(P0), [40, 50, 60]);
+    // The headquarters faces the map center along the y axis.
+    let (_, p0) = hq(&sim, P0);
+    assert!(p0.y > Vec2::ZERO.y);
+    // Supply points from the map markers.
+    let names: Vec<String> = sim.supply_points().into_iter().map(|p| p.name).collect();
+    assert_eq!(names, ["supply_village", "supply_hill", "supply_ford"]);
+}
+
+#[test]
+fn income_is_paid_every_second() {
+    let mut sim = start(&peaceful());
+    // One minute: exactly the income per minute.
+    run(&mut sim, 60 * 20 + 1);
+    assert_eq!(sim.account(P0), Some([640, 650, 460]));
+}
+
+#[test]
+fn placement_rules() {
+    let sim = start(&peaceful());
+    let barracks = t(&sim, "base_barracks");
+    let factory = t(&sim, "base_factory");
+    let bunker = t(&sim, "de_bunker_tobruk");
+    let (_, home) = hq(&sim, P0);
+    let spot = sim.find_site(P0, barracks, home).unwrap();
+    assert_eq!(sim.placement(P0, barracks, spot), Ok(()));
+    // Other players' radius does not count, and the radius has an end.
+    assert_eq!(
+        sim.placement(P1, barracks, spot),
+        Err(PlaceError::OutOfRange)
+    );
+    let far = home + Vec2::from_meters(0, -200);
+    assert_eq!(
+        sim.placement(P0, barracks, far),
+        Err(PlaceError::OutOfRange)
+    );
+    // On the headquarters, and on own units.
+    assert_eq!(sim.placement(P0, barracks, home), Err(PlaceError::Blocked));
+    let tank = sim.snapshot().units[0].position;
+    assert_eq!(sim.placement(P0, barracks, tank), Err(PlaceError::Occupied));
+    // Requirements and factions.
+    assert_eq!(sim.placement(P0, factory, spot), Err(PlaceError::Requires));
+    assert_eq!(sim.placement(P0, bunker, spot), Err(PlaceError::Requires));
+    assert_eq!(
+        sim.placement(P0, t(&sim, "su_bunker_dzot"), spot),
+        Err(PlaceError::NotBuildable)
+    );
+    // Units cannot be placed.
+    assert_eq!(
+        sim.placement(P0, t(&sim, "de_pz4_h"), spot),
+        Err(PlaceError::NotBuildable)
+    );
+}
+
+#[test]
+fn placement_needs_flat_dry_ground() {
+    let sim = start(&peaceful());
+    let depot = t(&sim, "base_depot");
+    let map = builtin_map();
+    // Every spot of the map: water and steep ground are never accepted, and
+    // some spot near the headquarters is.
+    let (_, home) = hq(&sim, P0);
+    let mut ok = 0;
+    for dy in -12..=12 {
+        for dx in -12..=12 {
+            let p = home + Vec2::from_meters(dx * 10, dy * 10);
+            match sim.placement(P0, depot, p) {
+                Ok(()) => {
+                    ok += 1;
+                    assert!(sim.path_grid().passable_at(sim::path::SizeClass::Large, p));
+                    assert!(map.contains(p));
+                }
+                Err(
+                    PlaceError::Blocked
+                    | PlaceError::TooSteep
+                    | PlaceError::OutOfRange
+                    | PlaceError::Occupied
+                    | PlaceError::OutsideMap,
+                ) => {}
+                Err(e) => panic!("unexpected {e:?}"),
+            }
+        }
+    }
+    assert!(ok > 10, "{ok} spots");
+}
+
+#[test]
+fn construction_production_and_rally_point() {
+    let mut sim = start(&peaceful());
+    let barracks = t(&sim, "base_barracks");
+    let (_, home) = hq(&sim, P0);
+    let spot = sim.find_site(P0, barracks, home).unwrap();
+    let units_before = sim.snapshot().units.len();
+    step(
+        &mut sim,
+        P0,
+        Command::Build {
+            unit_type: barracks,
+            position: spot,
+        },
+    );
+    // Paid at once, a site appears with a tenth of its hit points.
+    assert_eq!(sim.account(P0), Some([600, 600, 250]));
+    let site = sim
+        .structures()
+        .into_iter()
+        .find(|s| s.unit_type == barracks)
+        .unwrap();
+    assert!(!site.completed());
+    assert_eq!(sim.unit_hp(site.unit), Some(300 + 3000 * 9 / 10 / 500));
+    assert_eq!(sim.snapshot().units.len(), units_before + 1);
+    // A site cannot produce.
+    let squad = t(&sim, "de_inf_rifle_squad");
+    step(
+        &mut sim,
+        P0,
+        Command::Produce {
+            building: site.unit,
+            unit_type: squad,
+        },
+    );
+    assert!(sim.structures().iter().all(|s| s.queue.is_empty()));
+    // 25 s later it is completed with full hit points.
+    run(&mut sim, 25 * 20);
+    let built = sim
+        .structures()
+        .into_iter()
+        .find(|s| s.unit == site.unit)
+        .unwrap();
+    assert!(built.completed());
+    assert_eq!(sim.unit_hp(site.unit), Some(3000));
+    // Production: paid when queued, the unit appears when done and drives
+    // to the rally point.
+    let account = sim.account(P0).unwrap();
+    let rally = spot + Vec2::from_meters(-30, -30);
+    step(
+        &mut sim,
+        P0,
+        Command::SetRallyPoint {
+            building: site.unit,
+            point: rally,
+        },
+    );
+    step(
+        &mut sim,
+        P0,
+        Command::Produce {
+            building: site.unit,
+            unit_type: squad,
+        },
+    );
+    let cost = sim.cost_of(squad).unwrap();
+    let after = sim.account(P0).unwrap();
+    assert_eq!(after[2] + cost.resources[2], account[2]);
+    let ticks = u64::from(cost.time_ms) * 20 / 1000;
+    let count = sim.snapshot().units.len();
+    run(&mut sim, ticks + 1);
+    let snap = sim.snapshot();
+    assert_eq!(snap.units.len(), count + 1);
+    let new = snap.units.last().unwrap();
+    assert_eq!((new.owner, new.unit_type), (P0, squad));
+    assert!(new.target.is_some() || sim.path_queue_len() > 0 || new.position == rally);
+    run(&mut sim, 30 * 20);
+    let new = sim
+        .snapshot()
+        .units
+        .into_iter()
+        .find(|u| u.id == new.id)
+        .unwrap();
+    // On its slot of the 3 × 3 gathering formation around the rally point.
+    let spacing = sim::formation_spacing(new.spread);
+    assert!((new.position - rally).length() <= spacing * 2);
+}
+
+#[test]
+fn cancelling_refunds_and_queues_are_limited() {
+    let mut sim = start(&peaceful());
+    let barracks = t(&sim, "base_barracks");
+    let (_, home) = hq(&sim, P0);
+    let spot = sim.find_site(P0, barracks, home).unwrap();
+    step(
+        &mut sim,
+        P0,
+        Command::Build {
+            unit_type: barracks,
+            position: spot,
+        },
+    );
+    run(&mut sim, 25 * 20 + 1);
+    let b = sim
+        .structures()
+        .into_iter()
+        .find(|s| s.unit_type == barracks)
+        .unwrap()
+        .unit;
+    let before = sim.account(P0).unwrap();
+    let squad = t(&sim, "de_inf_rifle_squad");
+    for _ in 0..8 {
+        step(
+            &mut sim,
+            P0,
+            Command::Produce {
+                building: b,
+                unit_type: squad,
+            },
+        );
+    }
+    let queued = sim
+        .structures()
+        .into_iter()
+        .find(|s| s.unit == b)
+        .unwrap()
+        .queue
+        .len();
+    // As many as the manpower pays for, at most five.
+    let cost = sim.cost_of(squad).unwrap().resources[2];
+    assert_eq!(queued, (before[2] / cost).min(5) as usize);
+    assert!(queued >= 3);
+    for _ in 0..10 {
+        step(&mut sim, P0, Command::CancelProduction { building: b });
+    }
+    let after = sim.account(P0).unwrap();
+    // Everything back, plus the income of the ticks in between.
+    assert!(after[2] >= before[2]);
+    assert!(sim.structures().iter().all(|s| s.queue.is_empty()));
+    // Other players cannot order in someone else's building.
+    let su_squad = t(&sim, "su_inf_rifle_squad");
+    step(
+        &mut sim,
+        P1,
+        Command::Produce {
+            building: b,
+            unit_type: su_squad,
+        },
+    );
+    assert!(sim.structures().iter().all(|s| s.queue.is_empty()));
+}
+
+#[test]
+fn buildings_cannot_move_and_are_destroyed_with_their_queue() {
+    let mut config = peaceful();
+    // Player 1's tanks may shoot.
+    for spawn in config.spawns.iter_mut().filter(|s| s.owner == P1) {
+        spawn.fire_mode = FireMode::FireAtWill;
+    }
+    let mut sim = start(&config);
+    let (hq0, home) = hq(&sim, P0);
+    step(
+        &mut sim,
+        P0,
+        Command::MoveTo {
+            units: vec![hq0],
+            target: Vec2::ZERO,
+        },
+    );
+    run(&mut sim, 40);
+    assert_eq!(sim.unit_position(hq0), Some(home));
+    // The enemy tanks attack the headquarters until it falls.
+    let tanks: Vec<_> = sim
+        .snapshot()
+        .units
+        .iter()
+        .filter(|u| u.owner == P1 && !sim.is_structure(u.unit_type))
+        .map(|u| u.id)
+        .collect();
+    step(
+        &mut sim,
+        P1,
+        Command::Attack {
+            units: tanks,
+            target: hq0,
+        },
+    );
+    for _ in 0..4000 {
+        sim.step(&[]);
+        if sim.unit_hp(hq0) == Some(0) {
+            break;
+        }
+    }
+    assert_eq!(sim.unit_hp(hq0), Some(0), "the headquarters fell");
+    assert!(sim.structures().iter().all(|s| s.unit != hq0));
+    assert_eq!(sim.income(P0), [0, 0, 0]);
+}
+
+#[test]
+fn supply_points_are_taken_and_pay() {
+    let mut sim = start(&peaceful());
+    let point = sim.supply_points()[2].position; // the ford
+    let tank = sim
+        .snapshot()
+        .units
+        .iter()
+        .find(|u| u.owner == P0 && !sim.is_structure(u.unit_type))
+        .unwrap()
+        .id;
+    step(
+        &mut sim,
+        P0,
+        Command::MoveTo {
+            units: vec![tank],
+            target: point,
+        },
+    );
+    let mut taken = None;
+    for tick in 0..4000 {
+        sim.step(&[]);
+        if sim.supply_points()[2].owner == Some(P0) {
+            taken = Some(tick);
+            break;
+        }
+    }
+    assert!(taken.is_some(), "the ford was taken");
+    assert_eq!(sim.income(P0), [100, 110, 90]);
+}
+
+#[test]
+fn scripted_production_chain_is_deterministic() {
+    let a = run_economy(42, 3500);
+    let b = run_economy(42, 3500);
+    assert_eq!(a.state_hash(), b.state_hash());
+    // Both players built their base (before the produced armored cars
+    // reach the other base) and produced units.
+    for player in [P0, P1] {
+        let built = a
+            .structures()
+            .into_iter()
+            .filter(|s| s.owner == player && s.completed())
+            .count();
+        assert!(built >= 3, "player {} built {built}", player.0);
+    }
+    let produced = a.snapshot().units.len() - skirmish_config(&[]).spawns.len();
+    assert!(produced >= 6 + 2, "{produced} units and buildings added");
+    // The commands depend only on the state.
+    assert_eq!(economy_commands(&a), economy_commands(&b));
+}
+
+/// Golden hash of the scripted skirmish (prompt 023): construction,
+/// production, rally points, supply points and the fight of the starting
+/// units. Recorded on macOS ARM64.
+#[test]
+fn economy_golden_hash() {
+    let sim = run_economy(42, 5000);
+    assert_eq!(
+        sim.state_hash(),
+        0x8b9f_de2e_2b5d_e31a,
+        "economy golden hash mismatch: got {:#018x}",
+        sim.state_hash()
+    );
+}

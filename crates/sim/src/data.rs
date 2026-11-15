@@ -77,6 +77,66 @@ impl UnitType {
     }
 }
 
+impl UnitType {
+    /// A stationary base building (prompt 023): sizes in millimeters, the
+    /// same armor on every face, no weapons, speed 0.
+    pub fn structure(
+        name: &str,
+        length_mm: u32,
+        width_mm: u32,
+        height_mm: u32,
+        armor_mm: u16,
+        scale: &Scale,
+    ) -> Self {
+        let m = |v: u32| Fixed::from_num(v) / Fixed::from_num(1000);
+        Self {
+            name: name.to_owned(),
+            speed_m_per_s: Fixed::ZERO,
+            road_speed_m_per_s: Fixed::ZERO,
+            footprint_m: m(length_mm.max(width_mm)),
+            mass_kg: 0,
+            combat: CombatType {
+                length_m: m(length_mm),
+                width_m: m(width_mm),
+                height_m: m(height_mm),
+                armor: crate::combat::Armor::uniform(armor_mm),
+                range_ratio: (scale.direct_fire_range.num, scale.direct_fire_range.den),
+                ..CombatType::default()
+            },
+        }
+    }
+
+    /// A catalog entry as a stationary unit (fortifications and guns placed
+    /// as buildings, prompt 023): its weapons and dimensions, speed 0.
+    /// `armor_mm` > 0 replaces the catalog armor on every face (bunkers have
+    /// none in the catalog).
+    pub fn fixed_from_catalog(entry: &Entry, scale: &Scale, armor_mm: u16) -> Self {
+        let footprint_mm = entry
+            .length_mm
+            .into_iter()
+            .chain(entry.width_mm)
+            .max()
+            .unwrap_or(DEFAULT_FOOTPRINT_MM);
+        let mut combat = CombatType::from_catalog(entry, scale);
+        if armor_mm > 0 {
+            combat.armor = crate::combat::Armor::uniform(armor_mm);
+        }
+        Self {
+            name: entry.id.clone(),
+            speed_m_per_s: Fixed::ZERO,
+            road_speed_m_per_s: Fixed::ZERO,
+            footprint_m: Fixed::from_num(footprint_mm) / Fixed::from_num(1000),
+            mass_kg: entry.mass_kg.unwrap_or(0),
+            combat,
+        }
+    }
+
+    /// Whether units of this type can move (buildings cannot).
+    pub fn mobile(&self) -> bool {
+        self.speed_m_per_s > Fixed::ZERO
+    }
+}
+
 /// Looks up the given catalog ids and converts them, keeping their order.
 pub fn unit_types_from_catalog(
     catalog: &Catalog,

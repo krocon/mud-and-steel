@@ -1,0 +1,75 @@
+# Base-building skirmish (prompt 023, docs/GAME_DESIGN.md): every player
+# starts with a headquarters, two tanks and two rifle squads, and the start
+# resources of data/economy.toml. Integers only; the format is the one of
+# demo.toml.
+#
+# `economy = true` adds the base buildings, the fortifications and the
+# production lists of the players' factions to the match. Groups with
+# `role = "building"` place base buildings (`base_*` ids); they are kept for
+# every faction.
+
+map = "test_small"
+economy = true
+
+# The first group of a player is moved onto the player's map start.
+[[group]]
+owner = 0
+unit = "de_pz4_h"
+count = 2
+columns = 2
+spacing_m = 12
+center_m = [0, 60]
+
+[[group]]
+owner = 1
+unit = "su_t34_76_1943"
+count = 2
+columns = 2
+spacing_m = 12
+center_m = [0, -60]
+
+[[group]]
+owner = 0
+unit = "de_inf_rifle_squad"
+role = "infantry"
+count = 2
+columns = 2
+spacing_m = 24
+center_m = [0, 76]
+
+[[group]]
+owner = 1
+unit = "su_inf_rifle_squad"
+role = "infantry"
+count = 2
+columns = 2
+spacing_m = 24
+center_m = [0, -76]
+
+[[group]]
+owner = 0
+unit = "base_hq"
+role = "building"
+count = 1
+columns = 1
+spacing_m = 0
+center_m = [0, 98]
+
+[[group]]
+owner = 1
+unit = "base_hq"
+role = "building"
+count = 1
+columns = 1
+spacing_m = 0
+center_m = [0, -98]
+
+[faction_units]
+de = "de_pz4_h"
+su = "su_t34_76_1943"
+us = "us_m4a3_75"
+
+[faction_infantry]
+de = "de_inf_rifle_squad"
+su = "su_inf_rifle_squad"
+us = "us_inf_rifle_squad"

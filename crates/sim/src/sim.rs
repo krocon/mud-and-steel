@@ -17,6 +17,7 @@ use std::sync::Arc;
 
 mod combat;
 mod destruction;
+mod economy;
 mod infantry;
 mod vision;
 
@@ -25,6 +26,7 @@ pub use vision::MAX_PLAYERS;
 use combat::{Attack, CombatState, Projectile, TypeCombat};
 use infantry::{InfantryRt, Squad};
 
+pub use economy::{BuyOption, PlaceError, StructureView, SupplyView};
 pub use infantry::BuildingCondition;
 
 /// Move targets farther than this from the origin (in meters, per axis) are
@@ -91,6 +93,8 @@ pub enum ConfigError {
     TooManyPlayers(usize),
     /// The built-in destruction rules do not parse (prompt 020).
     Destruction(String),
+    /// The built-in economy rules do not parse (prompt 023).
+    Economy(String),
 }
 
 impl fmt::Display for ConfigError {
@@ -106,7 +110,7 @@ impl fmt::Display for ConfigError {
             Self::UnknownTerrain(id) => write!(f, "map uses unknown terrain id {id}"),
             Self::SpawnOutsideMap(index) => write!(f, "spawn {index} lies outside the map"),
             Self::TooManyPlayers(n) => write!(f, "{n} players, at most {MAX_PLAYERS} allowed"),
-            Self::Destruction(e) => write!(f, "{e}"),
+            Self::Destruction(e) | Self::Economy(e) => write!(f, "{e}"),
         }
     }
 }
@@ -279,6 +283,11 @@ pub struct Sim {
     infantry: InfantryRt,
     /// Hit points and stages of map objects (prompt 020).
     destruction: destruction::Destruction,
+    /// The unit types of the match (`SimConfig::unit_types`), for units
+    /// produced during the match (prompt 023).
+    unit_types: Vec<UnitType>,
+    /// Accounts, structures, production, supply points (prompt 023).
+    economy: economy::Economy,
 }
 
 impl Sim {
@@ -303,15 +312,15 @@ impl Sim {
         if players.len() > MAX_PLAYERS {
             return Err(ConfigError::TooManyPlayers(players.len()));
         }
-        let ticks_per_second = Fixed::from_num(config.tick_hz);
         let infantry = InfantryRt::new(&config.infantry, &config.unit_types, &map, config.tick_hz);
 
         let mut units = Vec::with_capacity(config.spawns.len());
         for (index, spawn) in (0u32..).zip(&config.spawns) {
-            let (type_index, unit_type) = (0u32..)
+            let type_index = (0u32..)
                 .zip(&config.unit_types)
                 .find(|(_, t)| t.name == spawn.unit_type)
-                .ok_or_else(|| ConfigError::UnknownUnitType(spawn.unit_type.clone()))?;
+                .ok_or_else(|| ConfigError::UnknownUnitType(spawn.unit_type.clone()))?
+                .0;
             if !map.contains(spawn.position) {
                 return Err(ConfigError::SpawnOutsideMap(index as usize));
             }
@@ -323,40 +332,23 @@ impl Sim {
             } else {
                 Vec2::new(Fixed::ZERO, -Fixed::ONE)
             };
-            let max_hp = config.combat.max_hp(&unit_type.combat);
-            let weapons = unit_type.combat.weapons.len();
-            let squad = Self::new_squad(
-                &infantry,
-                type_index as usize,
-                spawn.position,
-                facing,
-                config.combat.damage.soldier_hp,
-                &map,
-            );
-            let spread = infantry.types[type_index as usize]
-                .as_ref()
-                .map_or(unit_type.footprint_m, |t| t.spread);
-            units.push(Unit {
+            let max_hp = config
+                .combat
+                .max_hp(&config.unit_types[type_index as usize].combat);
+            units.push(new_unit(&NewUnit {
                 id: UnitId(index),
                 owner: spawn.owner,
-                unit_type: type_index,
+                type_index,
+                unit_type: &config.unit_types[type_index as usize],
                 position: spawn.position,
-                height: map.height_at(spawn.position),
-                target: None,
-                route: Route::None,
-                replans: 0,
-                speed_offroad: unit_type.speed_m_per_s / ticks_per_second,
-                speed_road: unit_type.road_speed_m_per_s / ticks_per_second,
-                footprint: unit_type.footprint_m,
                 facing,
+                fire_mode: spawn.fire_mode,
                 hp: max_hp,
-                combat: CombatState::new(facing, weapons, spawn.fire_mode),
-                squad,
-                speed_pct: 100,
-                spread,
-                elevation_mm: 0,
-                vision_dirty: false,
-            });
+                soldier_hp: config.combat.damage.soldier_hp,
+                infantry: &infantry,
+                map: &map,
+                tick_hz: config.tick_hz,
+            }));
         }
         let types: Vec<TypeCombat> = config
             .unit_types
@@ -383,6 +375,13 @@ impl Sim {
             &config.vision,
             &config.unit_types,
         );
+        let economy = economy::Economy::new(
+            crate::economy::EconomyRules::builtin()
+                .map_err(|e| ConfigError::Economy(e.to_string()))?,
+            config,
+            &map,
+            &players,
+        );
         let grid = PathGrid::new(&map, &config.terrain, &config.unit_types);
         let mut sim = Self {
             tick: 0,
@@ -402,7 +401,10 @@ impl Sim {
             vision,
             infantry,
             destruction,
+            unit_types: config.unit_types.clone(),
+            economy,
         };
+        sim.init_economy();
         sim.apply_destruction();
         sim.update_vision(true);
         Ok(sim)
@@ -463,6 +465,7 @@ impl Sim {
         self.crush_objects();
         self.fly_projectiles();
         self.apply_destruction();
+        self.update_economy();
         self.update_vision(false);
         self.tick += 1;
         let units = &self.units;
@@ -676,7 +679,7 @@ impl Sim {
                 if !within_world(*target) {
                     return;
                 }
-                let mut group = self.owned_indices(command.player, units);
+                let mut group = self.mobile_indices(command.player, units);
                 if group.is_empty() {
                     return;
                 }
@@ -718,7 +721,7 @@ impl Sim {
                 if self.units[t].owner == command.player || !self.units[t].alive() {
                     return;
                 }
-                for index in self.owned_indices(command.player, units) {
+                for index in self.mobile_indices(command.player, units) {
                     self.start_attack(index, Attack::Unit(*target));
                 }
             }
@@ -726,7 +729,7 @@ impl Sim {
                 if !within_world(*target) {
                     return;
                 }
-                for index in self.owned_indices(command.player, units) {
+                for index in self.mobile_indices(command.player, units) {
                     self.start_attack(index, Attack::Ground(*target));
                 }
             }
@@ -745,10 +748,30 @@ impl Sim {
                 }
             }
             Command::Garrison { units, building } => {
-                let indices = self.owned_indices(command.player, units);
+                let indices = self.mobile_indices(command.player, units);
                 self.order_garrison(&indices, *building);
             }
+            Command::Build {
+                unit_type,
+                position,
+            } => self.order_build(command.player, *unit_type, *position),
+            Command::Produce {
+                building,
+                unit_type,
+            } => self.order_produce(command.player, *building, *unit_type),
+            Command::CancelProduction { building } => self.order_cancel(command.player, *building),
+            Command::SetRallyPoint { building, point } => {
+                self.order_rally(command.player, *building, *point);
+            }
         }
+    }
+
+    /// [`Self::owned_indices`] without units that cannot move (buildings,
+    /// prompt 023).
+    fn mobile_indices(&self, player: PlayerId, ids: &[UnitId]) -> Vec<usize> {
+        let mut indices = self.owned_indices(player, ids);
+        indices.retain(|&i| self.units[i].speed_offroad > Fixed::ZERO);
+        indices
     }
 
     /// Queues one path for a group (unit indices with their formation slots)
@@ -887,6 +910,7 @@ impl Sim {
         self.standings.hash_into(&mut h);
         self.vision.hash_into(&mut h);
         self.destruction.hash_into(&mut h);
+        self.economy.hash_into(&mut h);
         h.finish()
     }
 
@@ -1296,6 +1320,60 @@ fn ground_speed(unit: &Unit, direction: Vec2, map: &Map, rules: &TerrainRules) -
     }
     let grade = map.height_at(unit.position + direction) - unit.height;
     Some(speed * rules.slope.factor(grade)?)
+}
+
+/// Everything [`new_unit`] needs to create a unit.
+struct NewUnit<'a> {
+    id: UnitId,
+    owner: PlayerId,
+    type_index: u32,
+    unit_type: &'a UnitType,
+    position: Vec2,
+    facing: Vec2,
+    fire_mode: FireMode,
+    hp: u32,
+    soldier_hp: u32,
+    infantry: &'a InfantryRt,
+    map: &'a Map,
+    tick_hz: u32,
+}
+
+/// A unit standing still at its position (at the start of a match, or
+/// produced during it, prompt 023).
+fn new_unit(n: &NewUnit<'_>) -> Unit {
+    let ticks_per_second = Fixed::from_num(n.tick_hz);
+    let squad = Sim::new_squad(
+        n.infantry,
+        n.type_index as usize,
+        n.position,
+        n.facing,
+        n.soldier_hp,
+        n.map,
+    );
+    let spread = n.infantry.types[n.type_index as usize]
+        .as_ref()
+        .map_or(n.unit_type.footprint_m, |t| t.spread);
+    Unit {
+        id: n.id,
+        owner: n.owner,
+        unit_type: n.type_index,
+        position: n.position,
+        height: n.map.height_at(n.position),
+        target: None,
+        route: Route::None,
+        replans: 0,
+        speed_offroad: n.unit_type.speed_m_per_s / ticks_per_second,
+        speed_road: n.unit_type.road_speed_m_per_s / ticks_per_second,
+        footprint: n.unit_type.footprint_m,
+        facing: n.facing,
+        hp: n.hp,
+        combat: CombatState::new(n.facing, n.unit_type.combat.weapons.len(), n.fire_mode),
+        squad,
+        speed_pct: 100,
+        spread,
+        elevation_mm: 0,
+        vision_dirty: false,
+    }
 }
 
 #[cfg(test)]
