@@ -32,7 +32,7 @@ Transport (later): Steam online, ENet on LAN
 
 | Crate / folder  | Responsibility | Depends on |
 |-----------------|----------------|------------|
-| `crates/sim`    | Game rules and state. `Sim::new(config, map, seed)`, `step(&[PlayerCommand])`, `state_hash()`, `snapshot()`. Players and unit ownership, group commands with formation, maps (height field, terrain), pathfinding (`sim::path`), fixed-point math, RNG, stable hash, unit catalog, scale, terrain rules and scenarios (compiled in, like the map `test_small`). | `fixed`, `serde`, `toml`, `png` |
+| `crates/sim`    | Game rules and state. `Sim::new(config, map, seed)`, `step(&[PlayerCommand])`, `state_hash()`, `snapshot()`. Players and unit ownership, group commands with formation, maps (height field, terrain, objects), pathfinding (`sim::path`), fixed-point math, RNG, stable hash, unit catalog, scale, terrain rules and scenarios (compiled in, like the map `test_small`). | `fixed`, `serde`, `toml`, `png` |
 | `crates/net`    | Lockstep protocol: `CommandFrame`, `HashReport`, `LockstepSession` (input delay, desync detection), `Transport` trait, `LoopbackTransport` for tests, `LocalTransport` for single player. Replays (`net::replay`). | `sim`, `postcard` |
 | `crates/cli`    | Headless runner: `cli run --ticks N --seed S [--record FILE]` prints the state hash, `cli replay FILE` re-simulates a replay and checks its end hash, `cli gen-map` generates test maps, `cli map-info DIR` measures a map, `cli path-bench` benchmarks pathfinding. | `sim`, `net`, `clap`, `png` |
 | `crates/bridge` | GDExtension `cdylib`. `SimHost` node: runs ticks from a time accumulator through a `LockstepSession`, queues commands, exposes the last two snapshots and the replay. The only float conversion. | `sim`, `net`, `godot` |
@@ -112,10 +112,14 @@ before the map edge. Per cell:
   `|dx| + |dy|` height difference of the height patches it overlaps above
   `max_grade_pct`, an upper bound of the gradient, so the movement rule never meets
   a grade the grid let through); obstacle ([`set_obstacle`](#changing-obstacles));
-  margin (impassable terrain or the map edge within one sample around the cell).
+  margin (impassable terrain or the map edge within one sample around the cell);
+  map object small / large (a [map object](MAPS.md#objects) whose ground shape
+  overlaps the open cell square blocks that class: circles by the nearest point,
+  rotated boxes by a separating-axis test, in `Fixed` with an integer sine table).
 - **Size classes:** `Small` (footprint up to 4 m: infantry) is blocked by the first
-  three flags, `Large` (tanks, trucks) also by the margin, so a tank's center stays
-  at least 2 m from deep water. Passages a unit class can use: about 4 m (one
+  three flags and objects that block small units, `Large` (tanks, trucks) also by
+  the margin and objects that block large units (trees, hedges, walls), so a tank's
+  center stays at least 2 m from deep water and out of woods. Passages a unit class can use: about 4 m (one
   aligned cell) for infantry, about 8 m for tanks, plus up to one cell of alignment.
 - **Cost per unit type**, `u16`, 0 = blocked: the mean crossing time of the four
   samples relative to the type's fastest terrain (terrain speed exactly as the
@@ -239,13 +243,29 @@ path is there grows linearly with the queue. If that matters later: hierarchical
 search (clusters with precomputed portals) or a weighted heuristic for long
 requests. On `test_small`, two group orders across the river take 2 ticks.
 
+**With map objects** (prompt 013: 98 000 objects on `test_large`, woods on about
+20 % of the map closed to tanks), same benchmark:
+
+| Orders | Requests | Expansions per request | All paths after | Time per tick while planning (mean / p99 / max) |
+|---|---|---|---|---|
+| 200 × 1 unit | 200 | 124 000 | 755 ticks (38 s) | 4.0 / 5.3 / 5.9 ms |
+| 25 × 8 units | 94 | 165 000 | 473 ticks (24 s) | 3.8 / 5.1 / 6.4 ms |
+
+Building the grid including the object rasterization takes 172 ms as before.
+Groups need more requests (94 instead of 42): members whose shifted path runs into
+a wood plan their own. Targets inside woods snap to the nearest cell reachable
+from the start; `nearest_cell` visits only the cells on each ring (it used to scan
+the whole square per ring, which cost up to 15 ms for targets deep in a wood).
+
 ### Open
 
 - Formation facing and slot assignment along the direction of travel (slots are
   assigned by y, then x, as in prompt 009: diagonal moves make members cross
   while the group re-forms).
 - Speed matching within a group (members drive at their own terrain speed).
-- Obstacles are cell-based and not widened by the margin for large units.
+- Obstacles and map objects are cell-based and not widened by the margin for
+  large units: a tank whose center passes a free cell next to a tree may overlap
+  the trunk by up to half its width.
 
 ## Data flow (single player, current state)
 
@@ -401,6 +421,72 @@ comparisons. Godot skips rendering while its window cannot draw (covered, other
 Space); benchmark and shots then render with `RenderingServer.force_draw` and the
 benchmark reports how many frames that affected.
 
+## Map objects and decoration (presentation only)
+
+The simulation owns the [map objects](MAPS.md#objects) (trees, buildings, hedges,
+walls, props) and blocks path cells with them; Godot draws them and adds
+decoration that exists only on screen. `godot/scenes/world/map_objects.gd`, data
+from `crates/bridge/src/objects.rs`.
+
+### Objects
+
+- `SimHost.object_groups(128)` returns, per kind (catalog id + variant) and 128 m
+  chunk, a `MultiMesh` buffer (12 floats per instance): position on the ground
+  (trees sunk 0.15 m, boxes at the lowest ground under their corners), heading,
+  and a presentation-only size jitter for trees (±12 %), bushes and rocks.
+- One `MultiMeshInstance3D` per group and mesh part of the variant (buildings:
+  `_Walls`, `_Roof`, `_Floor`, `_Debris` share the buffer). `test_large`: 98 000
+  objects in 13 200 nodes, built in 0.25 s.
+- **Distance:** trees switch to their `_Far` mesh (crossed cards, prompt 007) at
+  220 m by visibility ranges per chunk (fade); hedges vanish beyond 1.4 km, walls
+  and rocks beyond 0.7–0.9 km, fences, logs and small props sooner; buildings and
+  trees never.
+- **Shadows** only from trees, buildings, hedges, walls, hay, rocks and poles.
+  Near trees cast their shadow through a shadows-only copy of the far mesh, and
+  the foliage shader (`env_foliage.gdshader`) uses a cheap one-hash leaf pattern
+  in directional shadow passes (orthographic projection) and beyond 70 m instead
+  of its 3 × 3 leaf-cell search. Over a wood at 15 m the full pattern in four
+  shadow cascades held the frame at 33 FPS; with both measures 160–175 FPS.
+- **Biome:** `EnvLook` instance uniforms per node, from the map's biome (prompt 015,
+  `MapObjects.set_biome`). Every node with instance uniforms takes slots of Godot's global
+  shader uniform buffer; `project.godot` raises
+  `rendering/limits/global_shader_variables/buffer_size` to 262 144 (the default
+  65 536 overflowed at ~10 000 nodes and turned foliage black).
+- **Wind** comes from the env shaders (per-instance phase from the instance
+  position, which `MODEL_MATRIX` includes for MultiMesh instances).
+
+### Decoration
+
+Grass and flower clumps (every 0.7 m lattice point, 100 m view distance), bushes
+(8 m, 500 m, many in woods), small stones (5 m, 160 m) and stumps (14 m, in woods)
+are scattered by `SimHost.scatter_deco` in Rust per 64 m square: a hash of the
+lattice point and a fixed seed gives jitter, rotation, scale and variant; the
+chance comes from a density per terrain type, a 25 m patch noise and the wood
+density (trunks within about 12 m), and samples covered by buildings, walls,
+hedges or props (grown by 1 m) get nothing. Only squares within the view distance
+of the camera exist; up to six are built per frame and far ones are freed. About
+70 000 grass instances around the camera at the closest zoom.
+
+### Measurements (`test_large`, 1920 × 1080, Apple M1 Max, V-Sync off)
+
+`just objects-bench`: over the densest wood (400 trees per 128 m chunk), slow pan;
+debug bridge; other sessions busy on the machine, so ±15 %:
+
+| View | FPS | Draw calls | Triangles | Decoration |
+|---|---|---|---|---|
+| Near (15 m), wood edge | 157 | 175 | 0.47 M | 66 000 |
+| Near without object shadows | 264 | 120 | 0.45 M | 66 000 |
+| Middle (120 m) | 137 | 585 | 0.52 M | 76 000 (mostly culled) |
+| Overview (600 m) | 195 | 2 665 | 0.69 M | 185 |
+| Overview without objects | 276 | 30 | 0.11 M | 0 |
+| Village (150 m) | 261 | 404 | 0.36 M | 33 000 |
+
+`just terrain-bench` (meadow, as in prompt 011) with objects: 260 / 264 / 202 FPS
+near / middle / overview. The draw calls in the overview come from the far meshes
+of about 300 visible chunks × tree variants × shadow cascades; merging far trees
+into larger chunks would cut them if weaker GPUs need it (prompt 016).
+`just objects-shots <dir>` records woods, village, meadow and a hedgerow.
+
 ## Lighting, atmosphere and biomes (presentation only)
 
 Prompt 015. `godot/scenes/world/atmosphere.gd` (created by `main.gd`) sets up
@@ -421,13 +507,14 @@ atmosphere.gd: load res://assets/biomes/<id>.tres (BiomePreset)
    ├─ env materials (bark, foliage): wind strength, direction, speed
    └─ snowfall particles (winter)
 main.gd: UnitCamo.palette(faction, preset.camo_biome) for every unit model;
-         EnvLook.apply(model, preset.env_biome) for environment objects (prompt 013)
+         map_objects.gd: EnvLook look of preset.env_biome on map objects and decoration
 ```
 
 `forest` is the temperate biome (meadows, fields, forest). The names are the
 same as those of the camouflage palettes and `EnvLook`, so there is no mapping
 table. The simulation only checks the value; no rule reads it. Debug menu (F3)
-and `main.set_biome(id)` switch the biome at runtime (units are repainted).
+and `main.set_biome(id)` switch the biome at runtime (units and map objects are
+repainted, decoration is rebuilt).
 
 **Ground per biome.** The map's terrain types stay what they are; the terrain
 shader draws every material layer with the texture layer named in
@@ -467,7 +554,7 @@ prompt 027.
 
 Measured with `just terrain-bench test_large --quality=<level>` (1920 × 1080,
 Apple M1 Max, V-Sync off, debug bridge, forest; "terrain" = overview without
-units):
+units; measured before the map objects of prompt 013 were merged):
 
 | Level | Near (15 m) | Middle (120 m) | Overview (600 m) | Terrain only |
 |---|---|---|---|---|

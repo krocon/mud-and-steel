@@ -13,6 +13,7 @@ data/maps/test_small/
   map.toml      name, grid, height encoding, start positions, markers
   height.png    16-bit grayscale, one pixel per sample
   terrain.png   8-bit grayscale or 8-bit indexed, value = terrain id
+  objects.csv   optional: trees, buildings, hedges, walls, props (see "Objects")
 ```
 
 `map.toml`:
@@ -85,12 +86,13 @@ keep from impassable ground); design fords and bridges accordingly.
 ### Loading and identity
 
 The simulation never opens files. Callers (CLI, bridge, tests) read the three files
-and call `sim::Map::load(toml, height_png, terrain_png)`. The built-in map
+and call `sim::Map::load(toml, height_png, terrain_png)`, then
+`Map::add_objects(csv)` if the folder has an `objects.csv`. The built-in map
 `test_small` is compiled into `sim` (`sim::scenario::builtin_map`), like the catalog,
 so tests and the golden hash need no file system.
 
-A map has a content hash (grid, heights, terrain; not the name or `map.toml`
-metadata). `SimConfig::map` is a `MapRef { name, hash }`; `Sim::new(config, map,
+A map has a content hash (grid, heights, terrain, objects with their resolved rules;
+not the name or `map.toml` metadata). `SimConfig::map` is a `MapRef { name, hash }`; `Sim::new(config, map,
 seed)` rejects a map whose hash differs, and the hash is part of the state hash.
 Replays store only the reference, so `just replay` loads `data/maps/<name>/` again.
 
@@ -104,6 +106,53 @@ not part of the map hash or the state hash and no game rule reads it, so the sam
 height and terrain data can be played in every biome. `cli gen-map --biome <id>`
 writes it; in Godot `-- --biome=<id>` overrides it. Details:
 [ARCHITECTURE.md](ARCHITECTURE.md#lighting-atmosphere-and-biomes-presentation-only).
+### Objects
+
+Trees, buildings, hedges, walls and props that matter for the game (they block
+movement now, and line of sight, cover and destruction later) are **map objects**
+owned by the simulation. Grass, flowers, small bushes and stones are decoration and
+exist only in Godot (see [ARCHITECTURE.md](ARCHITECTURE.md#map-objects-and-decoration-presentation-only)).
+
+`objects.csv`, one object per line (`#` starts a comment line):
+
+```
+kind,variant,x_mm,y_mm,heading_deg
+env_tree_deciduous,Oak,-41250,12034,217
+env_house_farm,Damaged,-1093402,1047811,90
+env_hedge,Segment,180412,-3311,4
+```
+
+- `kind` is a catalog id of `data/catalog/neutral.toml`, `variant` a model variant
+  of it (`assets-src/blueprints/neutral/<kind>.toml`).
+- `x_mm`, `y_mm`: center of the object in map coordinates (millimeters).
+- `heading_deg` (0–359): clockwise seen from above; 0 means the model's +Y axis
+  (Blender; its length) points north (−y), 90 east. Models face −Z in Godot, so the
+  bridge turns them by −heading about Y.
+
+**Rules** (`data/objects.toml`, compiled into `sim`, `sim::ObjectRules`): per kind
+the variants a map may use, the size classes it blocks (`none`, `small` for
+infantry, `large` for tanks and trucks, `all`) and its ground shape: a circle
+(`radius_mm`, e.g. a trunk) or a box (`length_mm` along the heading × `width_mm`,
+by default the catalog size). Variants may override both. These are game rules:
+
+| Objects | Blocks | Shape |
+|---|---|---|
+| Trees (deciduous, conifer, birch, palm) | large | trunk circle 0.3–0.5 m |
+| Hedges, dry-stone walls, large rocks, hedgehogs | large | catalog box / circle |
+| Houses, barns, church (every damage level), bunker | all | catalog box |
+| Barbed wire | small | catalog box |
+| Fences, bushes, hay, props, stumps, logs, poles, medium/small rocks, trenches | none | – |
+
+Woods, hedgerows and walls are closed to tanks and open to infantry; tanks use
+gaps and tracks. Loading resolves every line against the rules; unknown kinds or
+variants, objects outside the map, bad numbers and headings are errors with the line
+number. The kinds a map uses and their resolved shapes become part of the map hash,
+so changing a rule changes the hash of every map using that kind (old replays then
+report the different map instead of desyncing).
+
+`objects.csv` is plain text so it can be edited in any tool and diffed, and lives in
+Git LFS like the PNGs (`test_large`: 98 000 lines, 4.2 MB). A compact binary format
+would only pay off far beyond that; parsing takes about 50 ms.
 
 ## Decisions (prompt 010)
 
@@ -133,10 +182,12 @@ touching the simulation.
 | Transient while decoding | + 12 MB (raw PNG rows); peak RSS of `map-info` 50 MB including its 16 MB benchmark points |
 | Read files | 0.5 ms |
 | Decode + validate + hash | 69 ms (debug build: 690 ms) |
+| Objects (prompt 013) | 98 375 (96 404 blocking, 32 kinds); `objects.csv` 4.2 MB, 2.4 MB in memory, parse + resolve + hash 52 ms |
 | `height_at` | 35–40 ns per lookup (random points; 2 lookups per unit and tick) |
 | Godot start incl. map and debug mesh | 1.2 s (debug bridge, headless) |
 
-`test_small` (500 m): 63 001 samples, 0.06 MB files, 0.3 MB memory, 1.4 ms to load.
+`test_small` (500 m): 63 001 samples, 0.06 MB files, 0.3 MB memory, 1.4 ms to load;
+1 447 objects (2.6 ms).
 
 If 8 km maps ever come: 80 MB with this layout. Then store heights as `u16` + base and
 step in memory too (half), or as tiles; prompt 016 covers large maps.
@@ -160,6 +211,24 @@ step in memory too (half), or as tiles; prompt 016 covers large maps.
   the river (a ford: shallow instead of deep water within 7 m of the track, wide
   enough for tanks; prompt 012), plus a road from the west edge to the first village.
   Mud patches in the open.
+- **Objects** (`crates/cli/src/gen_map/objects.rs`, prompt 013), from a random
+  stream of their own, so heights and terrain do not change:
+  - **Villages:** farmhouses, brick and stone houses around each square, turned with
+    the long side to it, mostly intact (about 12 % damaged, 6 % ruins); a church in
+    the first village; behind the houses yards with barns, haystacks, woodpiles,
+    crates and barrels, a wall or fence line and often an **orchard** of young trees
+    on an 8 m grid.
+  - **Road side:** an avenue of oaks and beeches 8 m from the road, telegraph poles.
+  - **Hedgerows** 5.5 m beside the field tracks, segments 2.7 m apart (they overlap
+    on curves), in runs of 30–160 m with entrances of 9–21 m wide enough for tanks,
+    now and then a tree in the hedge.
+  - **Woods** from a noise mask (about 20 % of `test_large`): trees on a jittered
+    6.5 m grid, stands of oak and beech, spruce and pine, or birch, birches and young
+    trees at the edges. Trunks keep 6 m from the edges of tracks, so tracks stay open
+    through woods.
+  - **Fields:** single trees, groups of haystacks, fallen logs; boulders on the hills.
+  - Kept free: the start meadow, water and banks, village squares, the landmark
+    hill top and a corridor from the meadow to it (self-test and demo drive there).
 
 It uses floats (it is a tool, not the simulation) but only basic arithmetic and `sqrt`,
 which IEEE 754 rounds exactly, so the same seed produces the same files everywhere
@@ -173,7 +242,9 @@ just run-map test_large        # play the demo on a map from data/maps/
 ```
 
 Regenerating `test_small` changes the golden hash: that is a rule change in the sense
-of [DETERMINISM.md](DETERMINISM.md) and needs to be named in the commit.
+of [DETERMINISM.md](DETERMINISM.md) and needs to be named in the commit. A test
+generates a small map twice and compares `objects.csv`; another checks that every
+variant in `data/objects.toml` exists in the model's blueprint.
 
 ## Presentation
 
@@ -186,3 +257,7 @@ exposes `map_size`, `height_at`, `terrain_at`, `height_grid`, `terrain_grid`,
 steps growing from 0.5 m to 20 m and refines the hit by bisection, in floats on the
 same grid (presentation only); the order that results is quantized to millimeters
 as before. `debug_color` in `terrain.toml` is still used for the PNG palette.
+
+Map objects and decoration are drawn by `godot/scenes/world/map_objects.gd`
+(prompt 013): `object_kinds`, `object_count`, `object_groups`, `object_position`
+and `scatter_deco` in the bridge.

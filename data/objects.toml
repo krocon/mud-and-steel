@@ -1,0 +1,186 @@
+# Map objects: which placed objects block movement, and with which ground
+# shape. Integers only. Compiled into the simulation (`sim::ObjectRules`);
+# see docs/MAPS.md ("Objects").
+#
+# These are game rules, not historical values. Sizes of boxes default to the
+# catalog length x width of the object (data/catalog/neutral.toml); the length
+# runs along the model's +Y axis (Blender), i.e. along the heading.
+#
+# Every [[object]] entry:
+#   id         catalog id (faction neutral)
+#   variants   variant names a map may use (the model's variants,
+#              assets-src/blueprints/neutral/<id>.toml; checked by a test)
+#   blocks     which path size classes the object blocks:
+#              "none", "small" (infantry), "large" (tanks, trucks) or "all"
+#   radius_mm  circular ground shape (trunks, poles), or
+#   length_mm / width_mm  box (defaults: catalog values when radius_mm is absent)
+#   [object.variant.<Name>]  per-variant overrides of blocks / radius_mm /
+#              length_mm / width_mm
+#
+# A path cell (4 m) is blocked for a class when a blocking shape overlaps it.
+# Rationale: woods, hedges and walls stop tanks but not infantry; buildings
+# stop everybody; fences, bushes, hay and small props stop nobody (tanks push
+# through; destruction follows in prompt 020).
+
+# --- Trees: the trunk blocks vehicles ------------------------------------------
+
+[[object]]
+id = "env_tree_deciduous"
+variants = ["Oak", "Beech", "OakYoung", "Bare"]
+blocks = "large"
+radius_mm = 500
+
+[[object]]
+id = "env_tree_conifer"
+variants = ["Spruce", "Pine", "SpruceYoung"]
+blocks = "large"
+radius_mm = 400
+
+[[object]]
+id = "env_tree_birch"
+variants = ["Birch", "BirchYoung"]
+blocks = "large"
+radius_mm = 300
+
+[[object]]
+id = "env_tree_palm"
+variants = ["Palm", "PalmShort", "PalmLeaning"]
+blocks = "large"
+radius_mm = 400
+
+[[object]]
+id = "env_tree_stump"
+variants = ["Broken", "Sawn"]
+blocks = "none"
+radius_mm = 500
+
+[[object]]
+id = "env_log_fallen"
+variants = ["Log"]
+blocks = "none"
+
+[[object]]
+id = "env_bush"
+variants = ["Hazel", "Round", "Wide"]
+blocks = "none"
+radius_mm = 1500
+
+[[object]]
+id = "env_rock"
+variants = ["Medium", "Small", "Large"]
+blocks = "none"
+radius_mm = 700
+
+[object.variant.Large]
+blocks = "large"
+radius_mm = 1500
+
+# --- Buildings: block everybody ------------------------------------------------
+
+[[object]]
+id = "env_house_farm"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_house_farm_brick"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_house_stone"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_house_mud"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_barn"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_church"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+# --- Boundaries ------------------------------------------------------------------
+
+[[object]]
+id = "env_hedge"
+variants = ["Segment", "End", "Corner"]
+blocks = "large"
+
+[[object]]
+id = "env_wall_stone"
+variants = ["Segment", "End", "Corner"]
+blocks = "large"
+
+[[object]]
+id = "env_fence_wood"
+variants = ["Segment", "End", "Corner"]
+blocks = "none"
+
+# --- Props -------------------------------------------------------------------------
+
+[[object]]
+id = "env_pole_telegraph"
+variants = ["Pole"]
+blocks = "none"
+radius_mm = 150
+
+[[object]]
+id = "env_hay_bale"
+variants = ["Rick", "Round"]
+blocks = "none"
+
+[[object]]
+id = "env_hay_bale_square"
+variants = ["Single", "Stack"]
+blocks = "none"
+
+[[object]]
+id = "env_woodpile"
+variants = ["Stack"]
+blocks = "none"
+
+[[object]]
+id = "env_crate"
+variants = ["Crate", "Small", "Stack"]
+blocks = "none"
+
+[[object]]
+id = "env_barrel"
+variants = ["Standing", "Lying", "Group"]
+blocks = "none"
+
+# --- Field fortifications (for scenarios and the map editor) ----------------------
+
+[[object]]
+id = "fort_barbed_wire"
+variants = ["Segment"]
+blocks = "small"
+
+[[object]]
+id = "fort_hedgehog"
+variants = ["Hedgehog"]
+blocks = "large"
+radius_mm = 800
+
+[[object]]
+id = "fort_bunker_mg"
+variants = ["Pillbox"]
+blocks = "all"
+
+[[object]]
+id = "fort_sandbag_position"
+variants = ["Position"]
+blocks = "none"
+
+[[object]]
+id = "fort_trench_section"
+variants = ["Straight", "Corner", "Tee", "End"]
+blocks = "none"

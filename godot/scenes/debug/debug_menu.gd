@@ -7,6 +7,7 @@ extends PanelContainer
 ##   displayed terrain at the camera focus and rebuilds the affected chunks
 ##   (the code path prompt 021 will use for real craters).
 ## - "Show terrain LOD": tints every chunk by its LOD level.
+## - "Map objects" / "Decoration": show or hide them (prompt 013).
 ## - Biome and graphics quality switches (prompt 015).
 
 var main: Node3D
@@ -33,6 +34,16 @@ func _ready() -> void:
 	lod.text = "Show terrain LOD"
 	lod.toggled.connect(func(on: bool) -> void: main.terrain.set_show_lod(on))
 	box.add_child(lod)
+	var objects := CheckBox.new()
+	objects.text = "Map objects"
+	objects.button_pressed = true
+	objects.toggled.connect(func(on: bool) -> void: main.map_objects.set_objects_visible(on))
+	box.add_child(objects)
+	var deco := CheckBox.new()
+	deco.text = "Decoration"
+	deco.button_pressed = true
+	deco.toggled.connect(func(on: bool) -> void: main.map_objects.set_decoration_visible(on))
+	box.add_child(deco)
 	# Biome and graphics quality (prompt 015), presentation only.
 	box.add_child(_choice("Biome", main.atmosphere.BIOMES, main.atmosphere.preset.id,
 		func(id: String) -> void: main.set_biome(id)))
@@ -55,6 +66,9 @@ func _process(_delta: float) -> void:
 	_stats.text = "%d FPS\n%d draw calls, %.1f M triangles\nterrain chunks per LOD %s\ncamera %.0f m" % [
 		Engine.get_frames_per_second(), draw_calls, primitives / 1e6,
 		main.terrain.visible_per_lod, main.camera_rig.distance,
+	]
+	_stats.text += "\nobjects %d, decoration %d in %d squares" % [
+		main.map_objects.object_instances, main.map_objects.deco_instances, main.map_objects.deco_chunks,
 	]
 
 

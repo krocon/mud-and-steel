@@ -15,6 +15,7 @@ mod data;
 mod hash;
 pub mod map;
 mod math;
+pub mod objects;
 pub mod path;
 mod rng;
 pub mod scale;
@@ -28,6 +29,7 @@ pub use data::{DEFAULT_FOOTPRINT_MM, DataError, UnitType, unit_types_from_catalo
 pub use hash::StableHasher;
 pub use map::{Biome, Map, MapError, MapRef};
 pub use math::{Fixed, Vec2};
+pub use objects::{Blocks, MapObject, ObjectKind, ObjectRules};
 pub use rng::Rng;
 pub use scale::Scale;
 pub use sim::{

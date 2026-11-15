@@ -62,7 +62,7 @@ Welle 4:  012 Wegfindung ─ 013 …  │   008 Stufe 2 (3 Sessions pro Fraktion
 | 010 | [Kartenformat und Höhenfeld](done/010-karte-hoehenfeld.md) | Karte als Daten, Höhen und Geländearten in der Sim | erledigt |
 | 011 | [Terrain-Darstellung](done/011-terrain-darstellung.md) | Großes Gelände mit LOD und Textur-Splatting | erledigt |
 | 012 | [Wegfindung](done/012-wegfindung.md) | Deterministisches A* mit Hindernissen und Gruppenbewegung | erledigt |
-| 013 | [Vegetation und Objekte platzieren](013-vegetation-platzieren.md) | Dicht bestücktes Gelände mit den Modellen aus 007 | Entwurf |
+| 013 | [Vegetation und Objekte platzieren](done/013-vegetation-platzieren.md) | Dicht bestücktes Gelände mit den Modellen aus 007 | erledigt |
 | 014 | [Wasser, Flüsse und Brücken](014-wasser-fluesse-bruecken.md) | Flüsse, Ufer, Brücken als Engstellen | Entwurf |
 | 015 | [Licht, Atmosphäre und Biome](done/015-licht-atmosphaere-biome.md) | Sonne, Schatten, Nachbearbeitung, Wiese/Wüste/Winter | erledigt |
 | 016 | [Performance für große Karten](016-performance-grosse-karten.md) | Benchmarks, räumliches Raster, Budgets | Entwurf |

@@ -18,6 +18,10 @@ extends Node
 ##    (displayed ground lowered, simulation unchanged).
 ## 6. Replay: the recorded match is saved, read back and re-simulated to the
 ##    same end hash.
+## 7. Map objects (prompt 013, runs before the terrain test's crater): every
+##    object of the map is drawn once, round objects stand on the
+##    simulation's ground, decoration appears near the camera and is the same
+##    when scattered twice.
 
 ## Panzer IV H: 16 km/h cross-country (catalog) × time factor 2 = 8.889 m/s,
 ## i.e. 0.4444 m per tick at 20 Hz. Terrain scales it (data/terrain.toml).
@@ -43,11 +47,12 @@ func _run() -> void:
 	await _selection_test()
 	await _order_test()
 	await _hill_test()
+	await _objects_test()
 	await _terrain_test()
 	await _biome_test()
 	_replay_test()
 	var ok := _errors.is_empty()
-	var message := "camera, selection, orders, hill, terrain, biomes and replay ok" if ok else " ".join(_errors)
+	var message := "camera, selection, orders, hill, objects, terrain, biomes and replay ok" if ok else " ".join(_errors)
 	print("self-test %s: %s" % ["PASSED" if ok else "FAILED", message])
 	get_tree().quit(0 if ok else 1)
 
@@ -344,6 +349,13 @@ func _biome_test() -> void:
 		var env: Environment = main.get_node("WorldEnvironment").environment
 		_check(env.fog_enabled and env.fog_depth_end > env.fog_depth_begin, "no haze in '%s'" % id)
 		_check(main.sun.shadow_enabled, "sun casts no shadows in '%s'" % id)
+		_check(main.map_objects.biome == preset.env_biome, "map objects do not follow the '%s' biome" % id)
+		# First child of MapObjects holds the object MultiMeshes.
+		var objects_root: Node = main.map_objects.get_child(0)
+		if objects_root.get_child_count() > 0:
+			var obj := objects_root.get_child(0) as GeometryInstance3D
+			_check(obj.get_instance_shader_parameter(&"env_snow") == EnvLook.LOOK[preset.env_biome].snow,
+				"map object look does not follow the '%s' biome" % id)
 		if not faction.is_empty():
 			var mesh: GeometryInstance3D = UnitCamo.meshes(model)[0]
 			var base: Color = mesh.get_instance_shader_parameter(&"camo_base")
@@ -352,6 +364,48 @@ func _biome_test() -> void:
 	main.set_biome(start_biome)
 	_check(faction != "", "first unit has no catalog model")
 	print("self-test: biomes ok (start '%s', switched desert, winter, forest)" % start_biome)
+
+
+# --- 7. Map objects ---------------------------------------------------------
+
+
+func _objects_test() -> void:
+	var sim_host: SimHost = main.sim_host
+	var objects: Node3D = main.map_objects
+	var count := sim_host.object_count()
+	_check(count > 0, "map '%s' has no objects" % sim_host.map_name())
+	_check(objects.object_instances == count,
+		"%d object instances drawn, the map has %d" % [objects.object_instances, count])
+	# Trees are sunk 0.15 m, other round objects stand on the ground; boxes
+	# stand at the lowest ground under them (not checked here).
+	var kinds := sim_host.object_kinds()
+	var checked := 0
+	for group: Dictionary in sim_host.object_groups(128.0):
+		var kind: String = kinds[group.kind]
+		var sink := 0.15 if kind.begins_with("env_tree_") else 0.0
+		if not (kind.begins_with("env_tree_") or kind.begins_with("env_pole") or kind.begins_with("env_rock")):
+			continue
+		var buffer: PackedFloat32Array = group.buffer
+		for k in buffer.size() / 12:
+			var p := Vector3(buffer[k * 12 + 3], buffer[k * 12 + 7], buffer[k * 12 + 11])
+			var ground := sim_host.height_at(p.x, p.z)
+			if absf(p.y + sink - ground) > 0.01:
+				_check(false, "%s at %s stands at %.3f m, ground %.3f m" % [kind, p, p.y, ground])
+				return
+			checked += 1
+	_check(checked > 0, "no round objects checked")
+	# Decoration near the camera, the same when scattered again.
+	main.camera_rig.snap_to(Vector3(-6, 0, 44), main.camera_rig.min_distance, 0.0)
+	await _frames(30)
+	_check(objects.deco_instances > 0, "no decoration near the camera")
+	var a := sim_host.scatter_deco(0.0, 0.0, 64.0, 1.0, 5, PackedFloat32Array([0.8]), 1.0, 0.5,
+		PackedFloat32Array([1.0]), Vector2(1, 1), 0.0)
+	var b := sim_host.scatter_deco(0.0, 0.0, 64.0, 1.0, 5, PackedFloat32Array([0.8]), 1.0, 0.5,
+		PackedFloat32Array([1.0]), Vector2(1, 1), 0.0)
+	_check(a == b and not (a[0] as PackedFloat32Array).is_empty(), "decoration differs between two scatters")
+	print("self-test: objects ok (%d objects, %d on the ground checked, %d decoration instances)" % [
+		count, checked, objects.deco_instances
+	])
 
 
 # --- 6. Replay ------------------------------------------------------------

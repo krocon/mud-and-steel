@@ -15,6 +15,8 @@ use sim::{
 use std::path::Path;
 use std::sync::Arc;
 
+mod object_funcs;
+mod objects;
 mod terrain_layers;
 
 struct MudAndSteel;
@@ -50,6 +52,8 @@ struct Game {
     /// Presentation-only height offsets in meters (debug craters until the
     /// simulation can deform terrain, prompt 021). Empty until first used.
     display_offsets: Vec<f32>,
+    /// Object-derived rasters for decoration, built on first use.
+    deco: std::cell::OnceCell<objects::DecoRasters>,
 }
 
 impl Game {
@@ -211,6 +215,7 @@ impl SimHost {
         self.game = Some(Game {
             recorder: ReplayRecorder::new(seed, config.clone(), &players),
             display_offsets: Vec::new(),
+            deco: std::cell::OnceCell::new(),
             sim,
             map_top: map
                 .heights_mm()
@@ -798,15 +803,22 @@ fn demo_config(map: &Map) -> Result<SimConfig, Box<dyn std::error::Error>> {
     )?)
 }
 
-/// Reads and decodes `dir/map.toml`, `dir/height.png` and `dir/terrain.png`.
+/// Reads and decodes `dir/map.toml`, `dir/height.png`, `dir/terrain.png`
+/// and, if present, `dir/objects.csv`.
 fn load_map_dir(dir: &Path) -> Result<Map, String> {
     let read = |file: &str| {
         let path = dir.join(file);
         std::fs::read(&path).map_err(|e| format!("cannot read {}: {e}", path.display()))
     };
     let toml = String::from_utf8(read("map.toml")?).map_err(|e| e.to_string())?;
-    Map::load(&toml, &read("height.png")?, &read("terrain.png")?)
-        .map_err(|e| format!("{}: {e}", dir.display()))
+    let mut map = Map::load(&toml, &read("height.png")?, &read("terrain.png")?)
+        .map_err(|e| format!("{}: {e}", dir.display()))?;
+    if dir.join("objects.csv").exists() {
+        let csv = String::from_utf8(read("objects.csv")?).map_err(|e| e.to_string())?;
+        map.add_objects(&csv)
+            .map_err(|e| format!("{}: {e}", dir.display()))?;
+    }
+    Ok(map)
 }
 
 fn clamp_stride(stride: i64) -> u32 {

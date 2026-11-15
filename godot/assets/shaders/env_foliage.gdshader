@@ -10,6 +10,11 @@ render_mode blend_mix, depth_draw_opaque, cull_disabled, diffuse_burley, specula
 #include "res://assets/shaders/env_common.gdshaderinc"
 
 uniform float alpha_cut = 0.5;
+// Beyond this camera distance (m), and in directional shadow passes, leaf
+// and needle cells use a cheap one-hash pattern instead of the 3 x 3 cell
+// search: the cells are a few pixels small there, and over a wood the full
+// pattern made the shadow passes cost most of the frame (prompt 013).
+uniform float detail_distance = 70.0;
 
 varying vec3 v_local;
 varying vec3 v_world_normal;
@@ -21,6 +26,12 @@ void vertex() {
 	VERTEX += wind_offset(VERTEX, COLOR.g, COLOR.b, inst, TIME);
 	v_world_normal = normalize((MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz);
 	v_tint = hash1(inst * 0.37 + vec3(COLOR.b * 13.0));
+}
+
+// Cheap stand-in for leaves(): about 70 % of the cells filled, no search.
+vec2 leaves_cheap(vec2 uv, float cells) {
+	float h = hash2(floor(uv * cells));
+	return vec2(step(0.3, h), 0.75 + 0.5 * fract(h * 7.31));
 }
 
 // One leaf per grid cell (random offset and angle); returns (alpha, shade).
@@ -56,6 +67,8 @@ void fragment() {
 	vec3 p = v_local;
 	float ao = COLOR.r;
 	int kind = kind_of(COLOR.a);
+	// Directional shadow passes use an orthographic projection.
+	bool cheap = PROJECTION_MATRIX[3][3] > 0.5 || length(VERTEX) > detail_distance;
 	float alpha = 0.0;
 	float shade = 1.0;
 	vec3 base = env_foliage.rgb;
@@ -69,7 +82,7 @@ void fragment() {
 		float cells = pattern == 5 ? 11.0 : (pattern == 8 ? 26.0 : 8.0);
 		float edge = 0.38 + 0.12 * vnoise(vec3(uv * 5.0, v_tint * 9.0));
 		float cluster = 1.0 - smoothstep(edge - 0.05, edge, r);
-		vec2 lf = leaves(uv, cells, 1.8);
+		vec2 lf = cheap ? leaves_cheap(uv, cells) : leaves(uv, cells, 1.8);
 		alpha = lf.x * cluster;
 		shade = lf.y * (0.75 + 0.35 * (1.0 - r * 1.6));
 	} else if (pattern == 1 || pattern == 9) {
@@ -80,8 +93,10 @@ void fragment() {
 		float w = pattern == 9 ? 0.5 * pow(1.0 - along, 0.9) : 0.46 * (1.0 - along * 0.5);
 		float ragged = 0.7 + 0.45 * vnoise(vec3(uv * vec2(7.0, 11.0), v_tint * 5.0));
 		float outline = step(side, w * ragged);
-		vec2 tufts = leaves(uv, pattern == 9 ? 30.0 : 16.0, 4.5);
-		vec2 tufts2 = leaves(uv + vec2(0.37, 0.11), pattern == 9 ? 30.0 : 16.0, 4.5);
+		float tuft_cells = pattern == 9 ? 30.0 : 16.0;
+		vec2 tufts = cheap ? leaves_cheap(uv, tuft_cells) : leaves(uv, tuft_cells, 4.5);
+		vec2 tufts2 = cheap ? leaves_cheap(uv + vec2(0.37, 0.11), tuft_cells)
+				: leaves(uv + vec2(0.37, 0.11), tuft_cells, 4.5);
 		alpha = max(tufts.x, tufts2.x) * outline;
 		alpha = max(alpha, step(side, 0.015) * step(along, 0.97) * float(pattern == 1));
 		shade = (0.7 + 0.4 * max(tufts.y, tufts2.y)) * (0.85 + 0.25 * (1.0 - side * 2.0));

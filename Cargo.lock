@@ -139,6 +139,7 @@ dependencies = [
  "net",
  "png",
  "sim",
+ "toml",
 ]
 
 [[package]]

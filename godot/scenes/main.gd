@@ -10,7 +10,8 @@ extends Node3D
 ## The match runs on the map compiled into the simulation (`test_small`);
 ## `-- --map=<name>` loads `data/maps/<name>/` from the repository instead
 ## (e.g. `--map=test_large`). The height field is drawn by
-## `terrain/terrain.gd` (chunks with LOD and a splatting shader).
+## `terrain/terrain.gd` (chunks with LOD and a splatting shader), the map
+## objects and decoration by `world/map_objects.gd`.
 ##
 ## Start with `-- --self-test` to drive camera, selection and orders
 ## automatically and quit with exit code 0 (pass) or 1 (fail); see
@@ -18,7 +19,8 @@ extends Node3D
 ## `--write-movie`) to record three fixed camera views, or with `-- --demo` to
 ## play the scripted demo in `tools/demo_reel.gd`. `-- --terrain-bench`
 ## measures frame rate and draw calls (`tools/terrain_bench.gd`). F3 opens the
-## debug menu (`debug/debug_menu.gd`); F4 / F5 show the path cost grid and the
+## debug menu (`debug/debug_menu.gd`); `-- --objects-bench` / `--objects-shots`
+## measure and record the map objects (`tools/objects_bench.gd`); F4 / F5 show the path cost grid and the
 ## unit paths (`debug/path_debug.gd`; `-- --path-debug` starts with both on).
 ##
 ## Lighting, haze and the biome look come from `world/atmosphere.gd`
@@ -35,6 +37,8 @@ const GroundPick := preload("res://scenes/camera/ground_pick.gd")
 const PathDebug := preload("res://scenes/debug/path_debug.gd")
 const Atmosphere := preload("res://scenes/world/atmosphere.gd")
 const GraphicsQuality := preload("res://scenes/world/graphics_quality.gd")
+const MapObjects := preload("res://scenes/world/map_objects.gd")
+const ObjectsBench := preload("res://scenes/tools/objects_bench.gd")
 const SEED := 42
 ## Map folders, relative to the Godot project (repository checkout only).
 const MAPS_DIR := "res://../data/maps"
@@ -62,6 +66,8 @@ const ENEMY_TINT := Color(0.85, 0.2, 0.15, 0.22)
 @onready var terrain: Node3D = $Terrain
 @onready var selection: Control = $Hud/Selection
 
+## Trees, buildings, hedges and decoration (prompt 013).
+var map_objects: Node3D
 var _unit_nodes: Dictionary[int, Node3D] = {}
 var _camera_shots := "--camera-shots" in OS.get_cmdline_user_args()
 var _frame := 0
@@ -96,6 +102,11 @@ func _ready() -> void:
 	atmosphere.quality = GraphicsQuality.from_cmdline()
 	atmosphere.set_biome(Atmosphere.biome_from(sim_host.map_biome()))
 	print("Mud and Steel: biome '%s', graphics quality '%s'" % [atmosphere.preset.id, atmosphere.quality])
+	map_objects = MapObjects.new()
+	map_objects.name = "MapObjects"
+	add_child(map_objects)
+	map_objects.biome = atmosphere.preset.env_biome
+	map_objects.build(sim_host, camera)
 
 	selection.sim_host = sim_host
 	selection.camera = camera
@@ -123,6 +134,11 @@ func _ready() -> void:
 		var bench := TerrainBench.new()
 		bench.main = self
 		add_child(bench)
+	if "--objects-bench" in OS.get_cmdline_user_args() or "--objects-shots" in OS.get_cmdline_user_args():
+		camera_rig.edge_scroll_enabled = false
+		var objects_bench := ObjectsBench.new()
+		objects_bench.main = self
+		add_child(objects_bench)
 	if "--demo" in OS.get_cmdline_user_args():
 		var demo := DemoReel.new()
 		demo.main = self
@@ -236,6 +252,7 @@ func _use_catalog_model(node: Node3D, type_id: String, id: int) -> void:
 ## ground and the palettes of all unit models. Presentation only.
 func set_biome(id: String) -> void:
 	atmosphere.set_biome(id)
+	map_objects.set_biome(atmosphere.preset.env_biome)
 	for node: Node3D in _unit_nodes.values():
 		var model := node.get_node_or_null("Model") as Node3D
 		var faction: String = model.get_meta(&"faction", "") if model else ""

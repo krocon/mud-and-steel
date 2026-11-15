@@ -277,3 +277,15 @@ terrain-bench map="test_large" *args: build
 [group('terrain')]
 terrain-shots dir map="test_large" *args: build
     {{ GODOT }} --path godot --always-on-top --fixed-fps 30 --write-movie "{{ dir }}/f.png" -- --terrain-shots --map={{ map }} {{ args }}
+
+# --- Map objects (prompt 013) ---------------------------------------------------------
+
+# Measure frame rate, draw calls and instances over the densest wood and a village (opens a window)
+[group('terrain')]
+objects-bench map="test_large": build
+    {{ GODOT }} --path godot --always-on-top -- --objects-bench --map={{ map }}
+
+# Record fixed views of woods, village, meadow and hedgerow as PNG frames into a folder
+[group('terrain')]
+objects-shots dir map="test_large": build
+    {{ GODOT }} --path godot --always-on-top --fixed-fps 30 --write-movie "{{ dir }}/f.png" -- --objects-shots --map={{ map }}
