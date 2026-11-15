@@ -101,3 +101,14 @@ def all_combinations():
         for faction in FACTIONS:
             if faction in per_faction:
                 yield faction, role
+
+
+# --- de squad roles (prompt 006) ---------------------------------------------------------
+# MG-Schütze 2 (assistant gunner): P 38 in the holster, spare barrel, belt drum and one
+# ammunition box. Unarmed in the animation sense (no weapon in the hands), like the medic.
+# Schütze 3 (ammunition bearer): Kar98k and two ammunition boxes on the back.
+ROLES.setdefault("mg_assistant", {})["de"] = dict(
+    weapon=None, extra=["holster", "belt_drum_de", "mg_ammo_box_de", "barrel_case_de"],
+    drop=["pouches_de", "bayonet", "gasmask_can"])
+ROLES.setdefault("ammo_bearer", {})["de"] = dict(
+    weapon="kar98k", extra=["mg_ammo_boxes_de"], drop=["gasmask_can"])

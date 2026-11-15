@@ -13,8 +13,11 @@ trunnion = [0.15, 0.95]
 cradle = [1.35, 0.26, 0.22]
 recoil = [1.1, 0.06]
 breech = [0.42, 0.24]
-segments = [[1.15, 0.068, 0.06], [1.84, 0.055, 0.048]]
-muzzle_brake = "double_baffle_flat"
+# The last segment includes the 0.264 m the old revolved brake was long; the flat
+# brake below sits over its end, so the muzzle position (and the fitted trail
+# length) is unchanged.
+segments = [[1.15, 0.068, 0.06], [2.104, 0.055, 0.048]]
+muzzle_brake = "none"
 
 [carriage]
 part = "split_trail_carriage"
@@ -37,6 +40,12 @@ cutout = [0.30, 0.30]
 wing_width = 0.26
 wing_deg = 28
 spaced = true
+
+[[part]]
+part = "de.flat_muzzle_brake"   # flat double baffle; size estimated from photographs
+length = 0.30
+width = 0.24
+height = 0.13
 
 [[part]]
 part = "box_prop"    # sight box on the left of the cradle

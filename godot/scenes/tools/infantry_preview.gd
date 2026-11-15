@@ -21,7 +21,7 @@ const REQUIRED_BONES: Array[String] = [
 	"LeftUpperLeg", "LeftLowerLeg", "LeftFoot",
 	"RightUpperLeg", "RightLowerLeg", "RightFoot",
 ]
-const UNARMED_ROLES: Array[String] = ["medic"]
+const UNARMED_ROLES: Array[String] = ["medic", "mg_assistant"]
 
 @onready var camera: Camera3D = $Camera3D
 @onready var models_root: Node3D = $Models

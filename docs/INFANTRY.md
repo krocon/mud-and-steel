@@ -116,6 +116,13 @@ Medics carry plain bags and a **plain white armband (`Insignia`), no Red Cross**
 | `radio_operator` | Kar98k + radio | PPSh-41 + RB-M | M1 Garand + SCR-300 |
 | `flamethrower` | Flammenwerfer 41 | ROKS-3 | M2-2 |
 
+Squad roles added in prompt 006 (faction-specific, `loadouts.py` end of file):
+
+| Role | de |
+|---|---|
+| `mg_assistant` | MG-Schütze 2: P 38 in the holster (no weapon in the hands, animated like the medic), spare-barrel case, belt drum, one ammunition box |
+| `ammo_bearer` | Schütze 3: Kar98k, two MG ammunition boxes on the back |
+
 Weapons are built from real overall and barrel lengths and calibers
 (`tools/blender/soldier/weapons.py`, sources per weapon, uncertain values marked:
 flamethrower wand lengths and the 50-PM 40 barrel). Each has `grip_r`, `grip_l`,
@@ -146,6 +153,38 @@ in `godot/assets/models/infantry/animations.json` (written by the build);
 Clips are authored in real time. Locomotion is played at
 `speed_scale = game_speed / authored_speed`, which keeps the feet planted at any game
 speed (time factor 2, [SCALE.md](SCALE.md)); other clips play at the time factor.
+
+## Squads (prompt 006)
+
+A squad is a catalog infantry unit made of soldiers in a formation. Source:
+`assets-src/blueprints/<faction>/squads/<id>.toml`:
+
+```toml
+unit = "de_inf_mg42_team"      # catalog id = file name
+[[member]]
+role = "mg_gunner"             # soldier role of this faction
+position = [0.0, 1.0]          # [x, y] m, model space (x right, y forward)
+clip = "aim_prone"             # clip shown in the gallery (default idle)
+carries = ["MG 42", "P 38"]    # catalog weapon names this member stands for
+```
+
+`just squad <faction> <id>` (or `just squads`) runs `tools/blender/squads.py` and
+writes `godot/assets/models/<faction>/<id>.tscn`: a `Node3D` named after the id
+with the catalog values as `metadata/extras` (like the glTF extras of the kit
+models, plus `cat_squad_size`, `squad` and `squad_roles`) and one instance of
+`infantry/<role>.glb` per member (`metadata/role`, `clip`, `seed`). The catalog
+`model` field points to that scene. `just validate-squads` checks: catalog entry
+is infantry, member count = `squad_size`, roles exist and are built, clips exist,
+members stand at least 0.8 m apart, the `carries` lists add up exactly to the
+catalog `weapon` counts, `model` names the scene, and the scene is up to date.
+The model gallery shows squads with SoldierLook uniforms per biome and each
+member playing its clip; the formation is for display only, the game spreads
+squads with its own formation logic.
+
+| Squad | Members |
+|---|---|
+| `de_inf_rifle_squad` (9) | squad_leader, mg_gunner, mg_assistant, ammo_bearer, 5 × rifleman |
+| `de_inf_mg42_team` (3) | mg_gunner, mg_assistant, ammo_bearer |
 
 ## Line-up check
 

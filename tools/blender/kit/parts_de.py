@@ -43,3 +43,26 @@ def turret_vision_ports(model, p, ctx):
     for k in (-1, 1):
         mb.box((k * x, y, z), (0.2, 0.05, 0.1), "Paint", bevel=0.008)
         mb.box((k * x, y + 0.026, z), (0.12, 0.004, 0.02), "Glass")
+
+
+@part("de.flat_muzzle_brake")
+def flat_muzzle_brake(model, p, ctx):
+    """Flat double-baffle muzzle brake (7.5 cm PaK 40): wider than high, two
+    box-shaped chambers. Built over the last `length` of the barrel so that
+    it ends at the muzzle (`gun_tip_y`); use `muzzle_brake = "none"` on the
+    gun and leave the barrel long enough.
+
+    Parameters: `length` (default 0.30), `width` (default 0.24), `height`
+    (default 0.13), `parent` (default Gun).
+    """
+    L = p.get("length", 0.30)
+    w = p.get("width", 0.24)
+    h = p.get("height", 0.13)
+    tip = ctx["gun_tip_y"]
+    z = ctx["gun_z"]
+    mb = model.mb(p.get("parent", "Gun"))
+    # rear chamber, waist, front chamber (baffle openings show as the gaps)
+    mb.box((0.0, tip - L * 0.80, z), (w, L * 0.36, h), "Metal", bevel=0.012)
+    mb.box((0.0, tip - L * 0.52, z), (w * 0.45, L * 0.22, h * 0.75), "Metal")
+    mb.box((0.0, tip - L * 0.21, z), (w * 0.96, L * 0.38, h * 0.95), "Metal", bevel=0.012)
+    mb.box((0.0, tip - L * 0.01, z), (w * 0.5, L * 0.02, h * 0.6), "Metal")
