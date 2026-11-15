@@ -61,6 +61,21 @@ impl Transport for LoopbackTransport {
     }
 }
 
+/// Transport of a match without remote peers (single player). Sends go
+/// nowhere and nothing is ever received.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct LocalTransport;
+
+impl Transport for LocalTransport {
+    fn send(&mut self, _packet: &[u8]) -> Result<(), TransportError> {
+        Ok(())
+    }
+
+    fn recv(&mut self) -> Result<Option<Vec<u8>>, TransportError> {
+        Ok(None)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

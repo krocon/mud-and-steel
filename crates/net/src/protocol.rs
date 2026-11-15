@@ -2,11 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 use sim::Command;
-
-/// Player slot in a match. Determines the order in which commands of the same
-/// tick are applied (ascending), so it must be identical on all peers.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
-pub struct PlayerId(pub u8);
+pub use sim::PlayerId;
 
 /// All commands of one player for one tick. An empty frame is still sent:
 /// it tells the other peers that the player has nothing to do.
@@ -50,10 +46,15 @@ mod tests {
         let message = Message::Frame(CommandFrame {
             tick: 7,
             player: PlayerId(1),
-            commands: vec![Command::MoveTo {
-                unit: UnitId(3),
-                target: Vec2::from_millimeters(-1500, 2750),
-            }],
+            commands: vec![
+                Command::MoveTo {
+                    units: vec![UnitId(3), UnitId(5)],
+                    target: Vec2::from_millimeters(-1500, 2750),
+                },
+                Command::Stop {
+                    units: vec![UnitId(4)],
+                },
+            ],
         });
         assert_eq!(decode(&encode(&message)).unwrap(), message);
     }

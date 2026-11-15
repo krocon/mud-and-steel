@@ -49,6 +49,16 @@ catalog-doc:
 catalog-check *files:
     cargo run -q -p cli -- catalog-check {{ files }}
 
+# Run the demo headless and write a replay file
+[group('replay')]
+record file ticks="1000" seed="42":
+    cargo run -q -p cli -- run --ticks {{ ticks }} --seed {{ seed }} --record "{{ file }}"
+
+# Play a replay headless and check its end hash (exit code 1 on mismatch)
+[group('replay')]
+replay file:
+    cargo run -q -p cli -- replay "{{ file }}"
+
 # Build the GDExtension (debug)
 [group('godot')]
 build:

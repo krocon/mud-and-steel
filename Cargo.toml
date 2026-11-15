@@ -10,6 +10,7 @@ publish = false
 
 [workspace.dependencies]
 sim = { path = "crates/sim" }
+net = { path = "crates/net" }
 fixed = { version = "1.31", features = ["serde"] }
 serde = { version = "1.0", features = ["derive"] }
 postcard = { version = "1.1", default-features = false, features = ["alloc"] }

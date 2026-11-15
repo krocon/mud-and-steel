@@ -22,10 +22,21 @@ Additional rules:
 
 - Commands within one tick are applied in a defined order (player id ascending, then
   issue order). Units are stored sorted by id.
+- The issuing player of a command comes only from the lockstep frame
+  (`PlayerCommand`), never from the command itself. Commands for units of other
+  players are ignored identically on every peer.
+- Results must not depend on the order of ids inside a command: unit lists are
+  sorted and deduplicated before use, and formation slots are assigned by position
+  (see [ARCHITECTURE.md](ARCHITECTURE.md#players-commands-and-formation)).
+- Values from the network are not trusted to be in range: move targets beyond
+  `sim::WORLD_LIMIT_M` are ignored, so a forged command cannot cause an overflow
+  (which would behave differently in debug and release builds).
 - Integer overflow must not depend on build mode. Use explicit `wrapping_*`,
   `checked_*` or `saturating_*` where overflow is possible.
 - The algorithms of `Rng`, `StableHasher` and `Sim::state_hash` are part of the
   protocol. Changing them changes the golden hash and breaks replays.
+- Single player runs through `net::LockstepSession` as well, so there is one code
+  path for applying commands.
 
 ## Enforcement
 
@@ -33,10 +44,26 @@ Additional rules:
 - `crates/sim/clippy.toml` disallows `HashMap`, `HashSet`, `DefaultHasher`,
   `RandomState`, `Instant`, `SystemTime` and `std::thread::spawn`.
 - `crates/sim/tests/determinism.rs` contains a golden-hash test: the demo scenario
-  (seed 42, 1000 ticks) must produce `0x075d8c59dfe3d336`. CI runs it on macOS (ARM64),
-  Linux and Windows (x86_64). The value was recorded on macOS ARM64.
-- `crates/net/tests/loopback.rs` runs two simulations in lockstep and checks that a
-  divergence is detected through the hash exchange.
+  (two players with eight tanks each, scripted group commands, seed 42, 1000 ticks)
+  must produce `0x8e8b2c6ed986ef2c`. CI runs it on macOS (ARM64), Linux and Windows
+  (x86_64). The value was recorded on macOS ARM64. History: `0x075d8c59dfe3d336`
+  (prompt 001/003, four tanks, single-unit commands), changed in prompt 009 (owners,
+  group commands with formation, `Stop`, owner and footprint in the hash).
+- `crates/net/tests/loopback.rs` plays the demo between two peers in lockstep with
+  group commands, compares the hash of every tick, checks that the result equals the
+  scripted single-process run, and checks that a divergence is detected through the
+  hash exchange.
+- `crates/net/tests/replay.rs` records a lockstep match, encodes and decodes it, and
+  re-simulates it to the same end hash; a tampered command is reported.
+
+## Replays
+
+A replay (`net::Replay`) is the seed, the resolved `SimConfig`, the merged commands of
+every tick and the end hash. Playback is just `Sim::new` plus `step` with the recorded
+commands, so any rule above that is broken shows up as an end-hash mismatch in
+`just replay`. A replay is tied to the simulation rules: after an intentional rule
+change (new golden hash), older replays report a mismatch. That is expected; bump
+`net::replay::FORMAT_VERSION` only when the file layout changes.
 
 If the golden hash changes, either a rule above was broken or the simulation rules
 changed on purpose. Only in the latter case update the constant, and say so in the

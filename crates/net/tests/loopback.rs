@@ -1,120 +1,63 @@
-//! Two simulations exchanging commands over the loopback transport.
+//! Two simulations playing the demo scenario in lockstep over loopback.
 
+mod common;
+
+use common::{SEED, pair, run};
 use net::{Desync, LockstepConfig, LockstepSession, LoopbackTransport, PlayerId, Transport};
-use sim::scenario::{CommandScript, demo_config};
-use sim::{Command, Sim, UnitId, Vec2};
+use sim::scenario::{demo_config, run_demo};
+use sim::{Command, PlayerCommand, Sim, UnitId, Vec2};
 
 const TICKS: u64 = 600;
 
-struct Peer {
-    sim: Sim,
-    session: LockstepSession,
-    transport: LoopbackTransport,
-    script: CommandScript,
-    /// State hash after every simulated tick.
-    hashes: Vec<u64>,
-    /// Commands applied locally only, to provoke a desync: (tick, command).
-    cheat: Option<(u64, Command)>,
-}
-
-impl Peer {
-    fn new(player: u8, transport: LoopbackTransport) -> Self {
-        let config = LockstepConfig {
-            players: vec![PlayerId(0), PlayerId(1)],
-            input_delay: 3,
-            hash_interval: 10,
-        };
-        let unit_count = u32::try_from(demo_config().spawns.len()).unwrap();
-        Self {
-            sim: Sim::new(&demo_config(), 42).unwrap(),
-            session: LockstepSession::new(PlayerId(player), &config),
-            transport,
-            // Each player issues its own, different command stream.
-            script: CommandScript::new(1000 + u64::from(player), unit_count),
-            hashes: Vec::new(),
-            cheat: None,
-        }
-    }
-
-    /// One round of the per-tick protocol. Returns whether a tick was simulated.
-    fn poll(&mut self) -> bool {
-        if self.session.needs_local_input() {
-            let commands = self.script.commands_for_tick(self.session.next_tick());
-            self.session
-                .submit_local(commands, &mut self.transport)
-                .unwrap();
-        }
-        self.session.receive(&mut self.transport).unwrap();
-        let Some(mut commands) = self.session.next_commands() else {
-            return false;
-        };
-        if let Some((tick, cheat)) = self.cheat
-            && tick == self.sim.tick()
-        {
-            commands.push(cheat);
-        }
-        self.sim.step(&commands);
-        let hash = self.sim.state_hash();
-        self.hashes.push(hash);
-        self.session
-            .record_hash(self.sim.tick(), hash, &mut self.transport)
-            .unwrap();
-        true
-    }
-}
-
-/// Alternates both peers until both simulated `TICKS` ticks, then drains the
-/// remaining hash reports.
-fn run(a: &mut Peer, b: &mut Peer) {
-    let mut rounds = 0;
-    while a.sim.tick() < TICKS || b.sim.tick() < TICKS {
-        if a.sim.tick() < TICKS {
-            a.poll();
-        }
-        if b.sim.tick() < TICKS {
-            b.poll();
-        }
-        rounds += 1;
-        assert!(rounds < 10 * TICKS, "lockstep stalled");
-    }
-    a.session.receive(&mut a.transport).unwrap();
-    b.session.receive(&mut b.transport).unwrap();
-}
-
 #[test]
 fn two_peers_stay_in_sync() {
-    let (ta, tb) = LoopbackTransport::pair();
-    let mut a = Peer::new(0, ta);
-    let mut b = Peer::new(1, tb);
-    run(&mut a, &mut b);
+    let (mut a, mut b) = pair();
+    // Both also try to command the other player's tanks.
+    a.forge = true;
+    b.forge = true;
+    run(&mut a, &mut b, TICKS);
 
     assert_eq!(a.hashes.len(), usize::try_from(TICKS).unwrap());
     assert_eq!(a.hashes, b.hashes, "per-tick hashes differ");
     assert_eq!(a.session.desync(), None);
     assert_eq!(b.session.desync(), None);
 
-    // The exchanged commands really changed the state.
-    let mut idle = Sim::new(&demo_config(), 42).unwrap();
+    // Each peer ran only its own player's script, and the forged commands were
+    // ignored, so the match equals the scripted demo with both players.
+    assert_eq!(a.sim.state_hash(), run_demo(SEED, TICKS).state_hash());
+
+    // The exchanged group commands really moved units of both players.
+    let mut idle = Sim::new(&demo_config(), SEED).unwrap();
     for _ in 0..TICKS {
         idle.step(&[]);
     }
-    assert_ne!(a.sim.state_hash(), idle.state_hash());
+    let start = idle.snapshot().units;
+    let end = a.sim.snapshot().units;
+    for player in [PlayerId(0), PlayerId(1)] {
+        let moved = start
+            .iter()
+            .zip(&end)
+            .filter(|(s, e)| e.owner == player && s.position != e.position)
+            .count();
+        assert!(moved >= 2, "player {} moved only {moved} units", player.0);
+    }
 }
 
 #[test]
 fn desync_is_detected() {
-    let (ta, tb) = LoopbackTransport::pair();
-    let mut a = Peer::new(0, ta);
-    let mut b = Peer::new(1, tb);
+    let (mut a, mut b) = pair();
     // Peer B applies a command it never sent: its state diverges in tick 55.
     b.cheat = Some((
         55,
-        Command::MoveTo {
-            unit: UnitId(0),
-            target: Vec2::from_meters(99, 99),
-        },
+        PlayerCommand::new(
+            PlayerId(1),
+            Command::MoveTo {
+                units: vec![UnitId(8)],
+                target: Vec2::from_meters(99, 99),
+            },
+        ),
     ));
-    run(&mut a, &mut b);
+    run(&mut a, &mut b, TICKS);
 
     // Hashes are exchanged every 10 ticks, so the first mismatch is at tick 60.
     let Some(Desync {
@@ -153,4 +96,42 @@ fn rejects_frames_from_unknown_players() {
         session.receive(&mut ta),
         Err(net::NetError::UnknownPlayer(PlayerId(7)))
     ));
+}
+
+#[test]
+fn single_player_runs_through_the_same_path() {
+    let config = LockstepConfig {
+        players: vec![PlayerId(0)],
+        input_delay: 1,
+        hash_interval: 10,
+    };
+    let mut session = LockstepSession::new(PlayerId(0), &config);
+    let mut transport = net::LocalTransport;
+    let mut sim = Sim::new(&demo_config(), SEED).unwrap();
+    let order = Command::MoveTo {
+        units: vec![UnitId(0), UnitId(1)],
+        target: Vec2::from_meters(0, 200),
+    };
+    for tick in 0..100 {
+        let commands = if tick == 0 {
+            vec![order.clone()]
+        } else {
+            vec![]
+        };
+        assert_eq!(session.next_local_tick(), tick + 1);
+        session.submit_local(commands, &mut transport).unwrap();
+        session.receive(&mut transport).unwrap();
+        let merged = session.next_commands().expect("one player never waits");
+        if tick == 1 {
+            // The input delay of one tick moved the order to tick 1.
+            assert_eq!(merged, vec![PlayerCommand::new(PlayerId(0), order.clone())]);
+        } else {
+            assert!(merged.is_empty());
+        }
+        sim.step(&merged);
+        session
+            .record_hash(sim.tick(), sim.state_hash(), &mut transport)
+            .unwrap();
+    }
+    assert!(sim.snapshot().units[0].target.is_some());
 }
