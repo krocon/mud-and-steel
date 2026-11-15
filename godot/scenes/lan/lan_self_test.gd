@@ -1,8 +1,8 @@
 extends Node
 ## Automatic LAN match for `just lan-selftest` (two headless instances).
 ##
-## Orders the own tanks around every 40 ticks, so both players send
-## commands; both sides hold fire, so combat does not end the match first.
+## Orders the own tanks around every 40 ticks (a move plus a queued
+## waypoint, once a patrol: prompt 031), so both players send commands; both sides hold fire, so combat does not end the match first.
 ## Once the simulation reached TICKS and every state hash up to
 ## there was confirmed by the other peer, the client (player 1) surrenders
 ## (prompt 027); passes (exit code 0) when both see the decided match on their
@@ -98,6 +98,12 @@ func _order_own_units() -> void:
 	var own := _own_units()
 	var target := TARGETS[(_orders + sim_host.local_player()) % TARGETS.size()]
 	sim_host.move_units(own, target.x, target.y)
+	# Waypoint chains and a patrol go over the network too (prompt 031).
+	var next := TARGETS[(_orders + 1 + sim_host.local_player()) % TARGETS.size()]
+	if _orders == 4:
+		sim_host.patrol_units(own, next.x, next.y)
+	else:
+		sim_host.queue_move(own, next.x, next.y)
 	_orders += 1
 
 

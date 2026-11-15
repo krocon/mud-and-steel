@@ -36,6 +36,10 @@ extends Node
 ## 10. Craters (prompt 021, `tools/crater_self_test.gd`): the own tanks
 ##    fire at open grass until a crater appears; drawn terrain, mud and
 ##    decoration follow the simulation, the replay re-simulates it.
+## 11. HUD (prompt 031, `tools/hud_self_test.gd`): minimap click, drag and
+##    right click, selection through the unit panel, a waypoint chain by
+##    Shift + right click, orders from the command bar, event jump, health
+##    bar setting.
 
 ## Panzer IV H: 16 km/h cross-country (catalog) × time factor 2 = 8.889 m/s,
 ## i.e. 0.4444 m per tick at 20 Hz. Terrain scales it (data/terrain.toml).
@@ -53,17 +57,28 @@ const WaterSelfTest := preload("res://scenes/tools/water_self_test.gd")
 const InfantrySelfTest := preload("res://scenes/tools/infantry_self_test.gd")
 const DestructionSelfTest := preload("res://scenes/tools/destruction_self_test.gd")
 const CraterSelfTest := preload("res://scenes/tools/crater_self_test.gd")
+const HudSelfTest := preload("res://scenes/tools/hud_self_test.gd")
 const MatchSetup := preload("res://scenes/menu/match_setup.gd")
+
+## Screen size for the test (see `_ready`).
+const SCREEN := Vector2i(1600, 900)
 
 var main: Node3D
 var _errors: PackedStringArray = []
 
 
 func _ready() -> void:
+	# The headless window is 64 × 64 pixels, which the match HUD (prompt
+	# 031) would cover completely: test on the project's window size.
+	if get_tree().root.size.x < SCREEN.x:
+		get_tree().root.size = SCREEN
+	print("self-test: screen %s" % get_viewport().get_visible_rect().size)
 	_run()
 
 
 func _run() -> void:
+	var hud_test := HudSelfTest.new()
+	hud_test.remember(self)
 	await _camera_test()
 	await _selection_test()
 	await _controls_test()
@@ -78,9 +93,10 @@ func _run() -> void:
 	await InfantrySelfTest.new().run(self)
 	await DestructionSelfTest.new().run(self)
 	await CraterSelfTest.new().run(self)
+	await hud_test.run(self)
 	_replay_test()
 	var ok := _errors.is_empty()
-	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, fog, combat, infantry, destruction, craters, water and replay ok" if ok else " ".join(_errors)
+	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, fog, combat, infantry, destruction, craters, water, hud and replay ok" if ok else " ".join(_errors)
 	print("self-test %s: %s" % ["PASSED" if ok else "FAILED", message])
 	# Started from the menu flow test (prompt 027): it continues the flow.
 	var flow: Node = MatchSetup.flow_test
@@ -756,6 +772,8 @@ func _key(keycode: Key, ctrl := false) -> void:
 	for pressed in [true, false]:
 		var event := InputEventKey.new()
 		event.keycode = keycode
+		# Order keys are input actions bound to physical keys (prompt 031).
+		event.physical_keycode = keycode
 		event.ctrl_pressed = ctrl
 		event.pressed = pressed
 		get_viewport().push_input(event)
@@ -769,3 +787,9 @@ func _push_wheel(button: MouseButton, notches: int, at: Vector2) -> void:
 		wheel.position = at * get_viewport().get_visible_rect().size
 		wheel.pressed = true
 		get_viewport().push_input(wheel)
+		# Like a real wheel notch: press and release. A press without
+		# release keeps the GUI's mouse focus on the control under it
+		# (the minimap, prompt 031), which would then take every click.
+		var release := wheel.duplicate() as InputEventMouseButton
+		release.pressed = false
+		get_viewport().push_input(release)

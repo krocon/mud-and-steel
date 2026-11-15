@@ -8,7 +8,7 @@ use godot::prelude::*;
 use sim::{BuyOption, Command, PlayerId, Sim, UnitId, Vec2};
 
 /// The economy rules and catalog are compiled in; names come from there.
-fn display_name(sim_type: &str) -> String {
+pub(crate) fn display_name(sim_type: &str) -> String {
     if let Ok(rules) = sim::EconomyRules::builtin()
         && let Some(b) = rules.buildings.iter().find(|b| b.id == sim_type)
     {

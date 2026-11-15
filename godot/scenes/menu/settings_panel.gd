@@ -3,7 +3,7 @@ extends PanelContainer
 ##
 ## Tabs: Graphics (quality level), Controls (keyboard bindings of the camera),
 ## Audio (master volume, for later), Camera (pan and zoom sensitivity, edge
-## scrolling). Changes apply at once; "Save" writes them to the settings
+## scrolling), Interface (health bars, prompt 031). Changes apply at once; "Save" writes them to the settings
 ## file, "Cancel" reloads the file. Emits `changed` after every change (the
 ## match re-applies quality and camera) and `closed` when the screen closes.
 
@@ -19,6 +19,7 @@ var volume_slider: HSlider
 var pan_slider: HSlider
 var zoom_slider: HSlider
 var edge_scroll_box: CheckBox
+var health_bar_option: OptionButton
 var save_button: Button
 var cancel_button: Button
 ## Action whose key is being captured, or "".
@@ -41,6 +42,7 @@ func _ready() -> void:
 	tabs.add_child(_controls_tab())
 	tabs.add_child(_audio_tab())
 	tabs.add_child(_camera_tab())
+	tabs.add_child(_interface_tab())
 
 	var buttons := HBoxContainer.new()
 	buttons.alignment = BoxContainer.ALIGNMENT_END
@@ -108,15 +110,21 @@ func _graphics_tab() -> Control:
 
 
 func _controls_tab() -> Control:
+	# Camera and order keys (prompt 031) do not fit without scrolling.
+	var scroll := ScrollContainer.new()
+	scroll.name = "Controls"
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	var tab := _tab("Controls")
+	tab.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(tab)
 	for action in Settings.BINDABLE:
 		var button := Button.new()
 		button.custom_minimum_size = Vector2(160, 0)
 		button.pressed.connect(capture.bind(action))
 		_key_buttons[action] = button
 		tab.add_child(_row(Settings.BINDABLE[action], button))
-	tab.add_child(MenuTheme.hint("Click a binding and press the new key (Esc cancels). Arrow keys also pan; the mouse wheel zooms and the middle button drags the map."))
-	return tab
+	tab.add_child(MenuTheme.hint("Click a binding and press the new key (Esc cancels). Arrow keys also pan; the mouse wheel zooms and the middle button drags the map. Groups: Ctrl+1…9 stores, 1…9 recalls."))
+	return scroll
 
 
 func _audio_tab() -> Control:
@@ -140,7 +148,19 @@ func _camera_tab() -> Control:
 	return tab
 
 
+func _interface_tab() -> Control:
+	var tab := _tab("Interface")
+	health_bar_option = OptionButton.new()
+	for label in ["Damaged and selected units", "Selected units only", "Never"]:
+		health_bar_option.add_item(label)
+	health_bar_option.item_selected.connect(func(index: int) -> void:
+		_change("health_bars", Settings.HEALTH_BAR_MODES[index]))
+	tab.add_child(_row("Health bars", health_bar_option))
+	return tab
+
+
 func _refresh() -> void:
+	health_bar_option.select(maxi(Settings.HEALTH_BAR_MODES.find(Settings.get_value("health_bars")), 0))
 	quality_option.select(maxi(GraphicsQuality.LEVELS.find(Settings.get_value("quality")), 0))
 	volume_slider.set_value_no_signal(Settings.get_value("master_volume"))
 	pan_slider.set_value_no_signal(Settings.get_value("pan_sensitivity"))

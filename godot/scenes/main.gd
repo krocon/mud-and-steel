@@ -50,6 +50,8 @@ extends Node3D
 ## `-- --mode=base` starts the base-building skirmish directly (prompt 023);
 ## `-- --scenario=<file>` starts a scenario file of `data/scenarios/`;
 ## `-- --infantry-bench` runs `tools/infantry_bench.gd`.
+## The HUD (prompt 031: minimap, unit panel, command bar, events, waypoint
+## lines) is `hud/hud.gd`.
 
 const UNIT_SCENE: PackedScene = preload("res://scenes/unit.tscn")
 const SelfTest := preload("res://scenes/self_test.gd")
@@ -83,6 +85,7 @@ const GameMenu := preload("res://scenes/menu/game_menu.gd")
 const BaseView := preload("res://scenes/world/base_view.gd")
 const BaseHud := preload("res://scenes/world/base_hud.gd")
 const BaseShots := preload("res://scenes/tools/base_shots.gd")
+const MatchHud := preload("res://scenes/hud/hud.gd")
 const SEED := 42
 ## Map folders, relative to the Godot project (repository checkout only).
 const MAPS_DIR := "res://../data/maps"
@@ -145,6 +148,8 @@ var crater_view: Node
 ## Buildings, sites, supply points and the base HUD (prompt 023).
 var base_view: BaseView
 var base_hud: BaseHud
+## Minimap, unit panel, command bar, events, waypoint lines (prompt 031).
+var hud: MatchHud
 ## Pause menu and result screen (prompt 027).
 var game_menu: CanvasLayer
 var _loading: CanvasLayer
@@ -246,6 +251,9 @@ func _ready() -> void:
 	selection.camera = camera
 	selection.camera_rig = camera_rig
 	selection.move_ordered.connect(_show_target_marker)
+	hud = MatchHud.new()
+	$Hud.add_child(hud)
+	hud.setup(self)
 	var debug_menu := DebugMenu.new()
 	debug_menu.main = self
 	$Hud.add_child(debug_menu)
