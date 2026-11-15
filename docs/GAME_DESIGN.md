@@ -142,9 +142,9 @@ about 90 m. Fortifications come from the catalog:
 
 | Faction | Barracks | Vehicle works |
 |---|---|---|
-| de | rifle squad, MG 42 team, HMG team, AT squad | Sd.Kfz. 222, Sd.Kfz. 251/1, Panzer IV H, StuG III G, Tiger I |
-| su | rifle squad, MG team, HMG team, AT squad | BA-64B, T-70M, T-34/76, SU-85, IS-2 |
-| us | rifle squad, MG team, HMG team, AT squad | M8 Greyhound, M3 halftrack, M4A3 (75), M10, M26 |
+| de | rifle squad, MG 42 team, HMG team, AT squad, 8 cm mortar team | Sd.Kfz. 222, Sd.Kfz. 251/1, Panzer IV H, StuG III G, Tiger I, Wespe |
+| su | rifle squad, MG team, HMG team, AT squad, 82 mm mortar team | BA-64B, T-70M, T-34/76, SU-85, IS-2, ISU-152 |
+| us | rifle squad, MG team, HMG team, AT squad, 81 mm mortar team | M8 Greyhound, M3 halftrack, M4A3 (75), M10, M26, M7 Priest |
 
 - Each producing building has a queue of up to **5** orders. The cost is paid
   when an order is queued; cancelling the last order refunds it in full.

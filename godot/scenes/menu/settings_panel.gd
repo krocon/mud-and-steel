@@ -2,8 +2,9 @@ extends PanelContainer
 ## Settings screen (prompt 027), used by the main menu and the pause menu.
 ##
 ## Tabs: Graphics (quality level), Controls (keyboard bindings of the camera),
-## Audio (master volume, for later), Camera (pan and zoom sensitivity, edge
-## scrolling), Interface (health bars, prompt 031). Changes apply at once; "Save" writes them to the settings
+## Audio (volume per bus, mute without focus), Camera (pan and zoom
+## sensitivity, edge scrolling), Interface (health bars, prompt 031).
+## Changes apply at once; "Save" writes them to the settings
 ## file, "Cancel" reloads the file. Emits `changed` after every change (the
 ## match re-applies quality and camera) and `closed` when the screen closes.
 
@@ -13,9 +14,16 @@ signal closed
 const Settings := preload("res://scenes/menu/settings.gd")
 const GraphicsQuality := preload("res://scenes/world/graphics_quality.gd")
 const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
+## Bus volume sliders below the master volume: settings key -> label.
+const BUS_SLIDERS: Dictionary[String, String] = {
+	"effects_volume": "Effects", "ui_volume": "Interface", "music_volume": "Music", "ambience_volume": "Ambience",
+}
 
 var quality_option: OptionButton
 var volume_slider: HSlider
+## Volume sliders of the other buses (prompt 029), by settings key.
+var bus_sliders: Dictionary[String, HSlider] = {}
+var mute_unfocused_box: CheckBox
 var pan_slider: HSlider
 var zoom_slider: HSlider
 var edge_scroll_box: CheckBox
@@ -131,7 +139,14 @@ func _audio_tab() -> Control:
 	var tab := _tab("Audio")
 	volume_slider = _slider(0.0, 1.0, 0.05, "master_volume")
 	tab.add_child(_row("Master volume", volume_slider))
-	tab.add_child(MenuTheme.hint("The game has no sounds yet; the volume applies once it does."))
+	for key: String in BUS_SLIDERS:
+		bus_sliders[key] = _slider(0.0, 1.0, 0.05, key)
+		tab.add_child(_row(BUS_SLIDERS[key], bus_sliders[key]))
+	mute_unfocused_box = CheckBox.new()
+	mute_unfocused_box.text = "Mute when the window is in the background"
+	mute_unfocused_box.toggled.connect(func(on: bool) -> void: _change("mute_unfocused", on))
+	tab.add_child(mute_unfocused_box)
+	tab.add_child(MenuTheme.hint("Effects: weapons, impacts, engines. Interface: clicks and notices. Music and ambience come with a later update."))
 	return tab
 
 
@@ -163,6 +178,9 @@ func _refresh() -> void:
 	health_bar_option.select(maxi(Settings.HEALTH_BAR_MODES.find(Settings.get_value("health_bars")), 0))
 	quality_option.select(maxi(GraphicsQuality.LEVELS.find(Settings.get_value("quality")), 0))
 	volume_slider.set_value_no_signal(Settings.get_value("master_volume"))
+	for key in bus_sliders:
+		bus_sliders[key].set_value_no_signal(Settings.get_value(key))
+	mute_unfocused_box.set_pressed_no_signal(Settings.get_value("mute_unfocused"))
 	pan_slider.set_value_no_signal(Settings.get_value("pan_sensitivity"))
 	zoom_slider.set_value_no_signal(Settings.get_value("zoom_sensitivity"))
 	edge_scroll_box.set_pressed_no_signal(Settings.get_value("edge_scroll"))

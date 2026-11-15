@@ -47,6 +47,7 @@ and [the HUD section](ARCHITECTURE.md#hud-presentation-only). The tutorial
 | H *(rebindable)* | Stop (also drops the waypoints) |
 | F *(rebindable)* | Hold fire / fire at will |
 | Z / X / V / B *(rebindable)* | Infantry: stand / kneel / prone / automatic stance |
+| G / T *(rebindable)* | Mortars and guns: barrage / smoke at the ground point under the cursor (prompt 032) |
 
 **Targeted orders** from the command bar or their key wait for a left click
 (the cursor turns into a cross, a hint shows at the top); right click
@@ -60,6 +61,7 @@ become waypoints).
 | L | Fire at the clicked ground point |
 | P | Patrol: drive to the clicked point and back, again and again |
 | U | Occupy the clicked building (infantry) |
+| Barrage / Smoke buttons | Mortars and guns fire at the clicked point (the keys G / T fire at the cursor at once) |
 
 ## Base building (skirmish)
 

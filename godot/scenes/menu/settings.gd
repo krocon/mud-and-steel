@@ -13,6 +13,8 @@ extends RefCounted
 const PATH := "user://settings.cfg"
 const SELF_TEST_PATH := "user://settings-selftest.cfg"
 const GraphicsQuality := preload("res://scenes/world/graphics_quality.gd")
+const SoundBuses := preload("res://scenes/audio/sound_buses.gd")
+const UiSound := preload("res://scenes/audio/ui_sound.gd")
 
 ## Keyboard actions the player can rebind (all from project.godot), with
 ## their labels in the settings screen. Mouse bindings stay fixed.
@@ -38,6 +40,8 @@ const BINDABLE: Dictionary[String, String] = {
 	"stance_auto": "Stance: automatic",
 	"camera_follow": "Camera follows selection",
 	"event_jump": "Jump to last event",
+	"order_barrage": "Barrage at the cursor (artillery)",
+	"order_smoke": "Smoke at the cursor (artillery)",
 }
 
 ## Health bars over units (prompt 031): `damaged` (damaged and selected
@@ -49,6 +53,12 @@ const HEALTH_BAR_MODES: Array[String] = ["damaged", "selected", "never"]
 const DEFAULTS := {
 	"quality": GraphicsQuality.DEFAULT,
 	"master_volume": 0.8,
+	# Volumes per audio bus and mute without window focus (prompt 029).
+	"effects_volume": 1.0,
+	"ui_volume": 0.8,
+	"music_volume": 0.7,
+	"ambience_volume": 0.8,
+	"mute_unfocused": true,
 	"pan_sensitivity": 1.0,
 	"zoom_sensitivity": 1.0,
 	"edge_scroll": true,
@@ -163,15 +173,13 @@ static func quality() -> String:
 	return get_value("quality")
 
 
-## Applies key bindings and volume. The camera reads its factors through
-## `apply_camera`.
+## Applies key bindings and volumes (one per audio bus, prompt 029). The
+## camera reads its factors through `apply_camera`.
 static func apply() -> void:
 	for action in bindings:
 		_set_first_key(action, bindings[action])
-	var bus := AudioServer.get_bus_index("Master")
-	var volume: float = values.get("master_volume", 0.8)
-	AudioServer.set_bus_mute(bus, volume <= 0.001)
-	AudioServer.set_bus_volume_db(bus, linear_to_db(maxf(volume, 0.001)))
+	SoundBuses.apply(values)
+	UiSound.install()
 
 
 ## Sets the camera's speeds from its tuned base values times the factors.

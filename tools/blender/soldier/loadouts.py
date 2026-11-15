@@ -73,7 +73,8 @@ ROLES = {
     "radio_operator": {
         "de": dict(weapon="kar98k", extra=["radio"], drop=["gasmask_can"]),
         "su": dict(weapon="ppsh41", extra=["radio"], drop=["veshmeshok"]),
-        "us": dict(weapon="m1_garand", extra=["radio"], drop=["us_haversack"]),
+        # catalog us_inf_command: the radio operator carries the M1 carbine (prompt 042)
+        "us": dict(weapon="m1_carbine", extra=["radio"], drop=["us_haversack"]),
     },
     "flamethrower": {
         "de": dict(weapon="fmw41", extra=["flame_tanks", "holster"],
@@ -168,9 +169,11 @@ _TIER2 = {
     "officer": {
         "de": dict(weapon="mp40", extra=["map_case", "binoculars", "holster"], drop=["pouches_de", "bayonet"],
                    headgear="cap"),
-        "su": dict(weapon=None, extra=["map_case", "binoculars", "holster"], drop=["ammo_pouch_su", "skatka"],
+        # su: TT-33 drawn (prompt 042; before: unarmed with the holster)
+        "su": dict(weapon="tt33", extra=["map_case", "binoculars", "holster"], drop=["ammo_pouch_su", "skatka"],
                    headgear="cap"),
-        "us": dict(weapon="m1_carbine", extra=["map_case", "binoculars"]),
+        # us: M1 carbine and the M1911A1 in the holster (catalog us_inf_command)
+        "us": dict(weapon="m1_carbine", extra=["map_case", "binoculars", "holster"]),
     },
     # second man of an anti-tank team: rifle and spare rockets (de also a Panzerfaust)
     "at_assistant": {
@@ -186,3 +189,9 @@ for _role, _per in _TIER2.items():
         ROLES.setdefault(_role, {})[_faction] = _spec
 
 TIER2_ROLES = tuple(_TIER2)
+
+# --- prompt 042: pistol-armed roles ----------------------------------------------------
+# Krankenträger of the Sanitätstrupp (catalog de_inf_medic: P 38): P 38 in the hand,
+# plain white armband and a medical bag (no Red Cross, docs/SOURCES.md).
+ROLES.setdefault("stretcher_bearer", {})["de"] = dict(
+    weapon="p38", extra=["holster", "medic_bags", "armband"], drop=["pouches_de", "bayonet"])

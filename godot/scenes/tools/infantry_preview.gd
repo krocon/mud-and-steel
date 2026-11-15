@@ -7,8 +7,9 @@ extends Node3D
 ##
 ## Start with `-- --self-test` to check all models headless (clips, skeleton names,
 ## sockets, biome materials) and quit with exit code 0 (pass) or 1 (fail).
-## `-- --shot=<file.png> [--biome=winter] [--clip=walk]` saves one screenshot and quits
-## (needs a window, not --headless).
+## `-- --shot=<file.png> [--biome=winter] [--clip=walk] [--camo=auto|camo|none]
+## [--faction=de] [--roles=rifleman,sniper] [--distance=6]` saves one screenshot and
+## quits (needs a window, not --headless). Key C cycles the camouflage mode (prompt 042).
 
 const FACTIONS: Array[String] = ["de", "su", "us"]
 const SPACING := 1.6
@@ -22,7 +23,7 @@ const REQUIRED_BONES: Array[String] = [
 	"RightUpperLeg", "RightLowerLeg", "RightFoot",
 ]
 ## Roles without a weapon in the hands; "faction/role" for roles armed only in some factions.
-const UNARMED_ROLES: Array[String] = ["medic", "mg_assistant", "ammo_carrier", "su/officer"]
+const UNARMED_ROLES: Array[String] = ["medic", "mg_assistant", "ammo_carrier"]
 
 @onready var camera: Camera3D = $Camera3D
 @onready var models_root: Node3D = $Models
@@ -37,6 +38,7 @@ var _orbit_distance := 16.0
 var _orbit_target := Vector3.ZERO
 var _self_test := "--self-test" in OS.get_cmdline_user_args()
 var _options := _parse_options()
+var _camo_mode: String = _options.get("camo", "auto")
 
 
 func _ready() -> void:
@@ -52,6 +54,7 @@ func _ready() -> void:
 	_select_by_text(clip_select, _options.get("clip", "idle"))
 	_apply_biome()
 	_play_selected()
+	_orbit_distance = float(_options.get("distance", _orbit_distance))
 	_update_camera()
 	if _self_test:
 		get_tree().create_timer(120.0).timeout.connect(func() -> void:
@@ -86,12 +89,15 @@ func _take_shot(path: String) -> void:
 
 func _load_models() -> void:
 	var row := 0
+	var only_roles: PackedStringArray = _options.get("roles", "").split(",", false)
 	for faction in FACTIONS:
+		if _options.has("faction") and faction != _options["faction"]:
+			continue
 		var dir_path := "res://assets/models/%s/infantry" % faction
 		var files := ResourceLoader.list_directory(dir_path)
 		var glbs: Array[String] = []
 		for f in files:
-			if f.ends_with(".glb"):
+			if f.ends_with(".glb") and (only_roles.is_empty() or f.get_basename() in only_roles):
 				glbs.append(f)
 		glbs.sort()
 		for i in glbs.size():
@@ -101,7 +107,7 @@ func _load_models() -> void:
 			var node := scene.instantiate() as Node3D
 			models_root.add_child(node)
 			var x := (i - (glbs.size() - 1) * 0.5) * SPACING
-			node.position = Vector3(x, 0, (row - 1) * ROW_SPACING)
+			node.position = Vector3(x, 0, (row - 1) * ROW_SPACING if not _options.has("faction") else 0.0)
 			var player := SoldierLook.find_player(node)
 			if player != null:
 				SoldierLook.configure_animations(player)
@@ -116,14 +122,14 @@ func _load_models() -> void:
 				"player": player,
 			})
 		row += 1
-	info_label.text = "%d soldiers" % _soldiers.size()
+	info_label.text = "%d soldiers (C: camouflage)" % _soldiers.size()
 
 
 func _apply_biome() -> void:
 	var biome := biome_select.get_item_text(biome_select.selected)
 	for i in _soldiers.size():
 		var s := _soldiers[i]
-		SoldierLook.apply(s.node, s.faction, biome, i)
+		SoldierLook.apply(s.node, s.faction, biome, i, _camo_mode)
 
 
 func _play_selected() -> void:
@@ -148,6 +154,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			_orbit_distance = minf(80.0, _orbit_distance * 1.1)
 			_update_camera()
+	elif event is InputEventKey and event.pressed and event.keycode == KEY_C:
+		var modes := SoldierLook.CAMO_MODES
+		_camo_mode = modes[(modes.find(_camo_mode) + 1) % modes.size()]
+		info_label.text = "%d soldiers, camouflage: %s" % [_soldiers.size(), _camo_mode]
+		_apply_biome()
 	elif event is InputEventKey and event.pressed and clip_select.item_count > 0:
 		var step := 0
 		if event.keycode == KEY_RIGHT:
@@ -215,6 +226,7 @@ func _run_self_test() -> void:
 			_play_selected()
 			await get_tree().process_frame
 	errors.append_array(_check_materials())
+	errors.append_array(_check_camo())
 	if errors.is_empty():
 		print("infantry self-test: ok (%d soldiers, %d clips, %d biomes)" % [
 			_soldiers.size(), clips.size(), SoldierLook.BIOMES.size()])
@@ -236,6 +248,36 @@ func _check_profile(skeleton: Skeleton3D, tag: String) -> Array[String]:
 		if profile.find_bone(bone) < 0:
 			errors.append("%s: bone %s is not in SkeletonProfileHumanoid" % [tag, bone])
 	return errors
+
+
+## Camouflage (prompt 042): in the forest, "camo" puts every faction's pattern on
+## the Cloth slot, "auto" only on the palette's roles, "none" on nobody; other
+## biomes never show it.
+func _check_camo() -> Array[String]:
+	var errors: Array[String] = []
+	for biome in ["forest", "winter"]:
+		for mode: String in SoldierLook.CAMO_MODES:
+			for i in _soldiers.size():
+				var s := _soldiers[i]
+				SoldierLook.apply(s.node, s.faction, biome, i, mode)
+				var want: bool = biome == "forest" and SoldierLook.wears_camo(s.faction, s.role, mode)
+				var got := _cloth_camo(s.node)
+				if got < 0:
+					errors.append("%s/%s: no Cloth material" % [s.faction, s.role])
+				elif (got > 0) != want:
+					errors.append("%s/%s: camouflage %s in %s/%s" % [
+						s.faction, s.role, "shown" if got > 0 else "missing", biome, mode])
+	_apply_biome()
+	return errors
+
+
+func _cloth_camo(model: Node) -> int:
+	for mi: MeshInstance3D in model.find_children("*", "MeshInstance3D", true, false):
+		for i in mi.get_surface_override_material_count():
+			var mat := mi.get_surface_override_material(i) as ShaderMaterial
+			if mat and mat.resource_name == "Cloth":
+				return int(mat.get_shader_parameter(&"camo"))
+	return -1
 
 
 func _check_materials() -> Array[String]:

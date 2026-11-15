@@ -5,7 +5,9 @@ extends VBoxContainer
 ## settings: move, attack, fire at ground, patrol and occupy wait for a
 ## left click (`selection.command_mode`); stop, fire mode and the four
 ## stances act at once. Buttons that do not fit the selection are disabled
-## (stances and occupy need a squad, orders need a unit that can move).
+## (stances and occupy need a squad, orders need a unit that can move,
+## barrage and smoke a unit with an indirect weapon, prompt 032; their keys
+## fire at the cursor at once, the buttons wait for a click).
 ##
 ## Base building (prompt 023, [provisional]): the build menu and the
 ## production bar of `base_hud.gd` are docked above the grid. "Build" opens
@@ -23,6 +25,8 @@ const BUTTONS: Array[Array] = [
 	["stop", "Stop", "order_stop", "now"],
 	["fire", "Hold fire", "order_fire_mode", "now"],
 	["garrison", "Occupy", "order_garrison", "mode"],
+	["barrage", "Barrage", "order_barrage", "mode"],
+	["smoke", "Smoke", "order_smoke", "mode"],
 	["stance_stand", "Stand", "stance_stand", "stance"],
 	["stance_kneel", "Kneel", "stance_kneel", "stance"],
 	["stance_prone", "Prone", "stance_prone", "stance"],
@@ -133,6 +137,8 @@ func _update() -> void:
 	var mobile := 0
 	var squads := 0
 	var holding := 0
+	var guns := 0
+	var smoke := 0
 	for id: int in selected:
 		var i := ids.find(id)
 		if i < 0:
@@ -142,6 +148,11 @@ func _update() -> void:
 		if stances[i] >= 0:
 			squads += 1
 		holding += hold[i]
+		var weapon := sim_host.unit_indirect(id)
+		if weapon.y > 0.0:
+			guns += 1
+			if weapon.z > 0.0:
+				smoke += 1
 	var economy: bool = sim_host.economy_state().get("enabled", false)
 	for spec in BUTTONS:
 		var b: Button = buttons[spec[0]]
@@ -152,7 +163,8 @@ func _update() -> void:
 		b.text = label if key.is_empty() else "%s [%s]" % [label, key]
 		match spec[3]:
 			"mode":
-				b.disabled = mobile == 0 or (spec[0] == "garrison" and squads == 0)
+				b.disabled = mobile == 0 or (spec[0] == "garrison" and squads == 0) \
+						or (spec[0] == "barrage" and guns == 0) or (spec[0] == "smoke" and smoke == 0)
 				b.set_pressed_no_signal(selection.command_mode == spec[0])
 			"stance":
 				b.disabled = squads == 0
@@ -169,4 +181,6 @@ func _set_tooltips() -> void:
 	buttons["attack_ground"].tooltip_text = "Then left click a ground point. Ctrl + right click fires there at once."
 	buttons["patrol"].tooltip_text = "Then left click a point: the units drive back and forth."
 	buttons["garrison"].tooltip_text = "Then left click a building: squads occupy it."
+	buttons["barrage"].tooltip_text = "Mortars and guns: then left click a point. The key fires at the cursor at once."
+	buttons["smoke"].tooltip_text = "Mortars and guns with smoke rounds: then left click a point. The key fires at the cursor at once."
 	buttons["build"].tooltip_text = "Opens the build menu."

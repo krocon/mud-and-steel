@@ -58,6 +58,17 @@ pub enum Command {
     CancelProduction { building: UnitId },
     /// Produced units of `building` drive to `point`.
     SetRallyPoint { building: UnitId, point: Vec2 },
+    /// Units with an indirect weapon (prompt 032) fire `salvos` rounds
+    /// each at random points within `radius_m` of `target` (a barrage),
+    /// smoke shells if `smoke` (units without smoke ammunition ignore it).
+    /// Salvos and radius are capped by `data/indirect.toml`.
+    Barrage {
+        units: Vec<UnitId>,
+        target: Vec2,
+        radius_m: u16,
+        salvos: u16,
+        smoke: bool,
+    },
     /// Appends a waypoint: `units` drive to a formation around `target`
     /// once they are done with their current order (prompt 031). Like
     /// `MoveTo` if all of them are idle.
@@ -78,6 +89,7 @@ impl Command {
             | Self::SetFireMode { units, .. }
             | Self::SetStance { units, .. }
             | Self::Garrison { units, .. }
+            | Self::Barrage { units, .. }
             | Self::QueueMove { units, .. }
             | Self::Patrol { units, .. } => units,
             Self::Surrender

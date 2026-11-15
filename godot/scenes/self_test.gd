@@ -36,7 +36,9 @@ extends Node
 ## 10. Craters (prompt 021, `tools/crater_self_test.gd`): the own tanks
 ##    fire at open grass until a crater appears; drawn terrain, mud and
 ##    decoration follow the simulation, the replay re-simulates it.
-## 11. HUD (prompt 031, `tools/hud_self_test.gd`): minimap click, drag and
+## 11. Sound (prompt 029, `tools/sound_self_test.gd`): library, buses,
+##    fog, engines and the voice limit under 200 events per frame.
+## 12. HUD (prompt 031, `tools/hud_self_test.gd`): minimap click, drag and
 ##    right click, selection through the unit panel, a waypoint chain by
 ##    Shift + right click, orders from the command bar, event jump, health
 ##    bar setting.
@@ -57,6 +59,7 @@ const WaterSelfTest := preload("res://scenes/tools/water_self_test.gd")
 const InfantrySelfTest := preload("res://scenes/tools/infantry_self_test.gd")
 const DestructionSelfTest := preload("res://scenes/tools/destruction_self_test.gd")
 const CraterSelfTest := preload("res://scenes/tools/crater_self_test.gd")
+const SoundSelfTest := preload("res://scenes/tools/sound_self_test.gd")
 const HudSelfTest := preload("res://scenes/tools/hud_self_test.gd")
 const MatchSetup := preload("res://scenes/menu/match_setup.gd")
 
@@ -93,10 +96,11 @@ func _run() -> void:
 	await InfantrySelfTest.new().run(self)
 	await DestructionSelfTest.new().run(self)
 	await CraterSelfTest.new().run(self)
+	await SoundSelfTest.new().run(self)
 	await hud_test.run(self)
 	_replay_test()
 	var ok := _errors.is_empty()
-	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, fog, combat, infantry, destruction, craters, water, hud and replay ok" if ok else " ".join(_errors)
+	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, fog, combat, infantry, destruction, craters, sound, water, hud and replay ok" if ok else " ".join(_errors)
 	print("self-test %s: %s" % ["PASSED" if ok else "FAILED", message])
 	# Started from the menu flow test (prompt 027): it continues the flow.
 	var flow: Node = MatchSetup.flow_test

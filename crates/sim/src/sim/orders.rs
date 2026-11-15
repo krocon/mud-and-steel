@@ -10,8 +10,9 @@
 //!   after the commands of a tick, so an idle unit starts at once.
 //! - `Patrol` is a `MoveTo` to the target; afterwards the unit shuttles
 //!   between where it started and its slot at the target (the queue cycles).
-//! - Every other order that moves, attacks, stops or garrisons a unit drops
-//!   its queue.
+//! - Every other order that moves, attacks, stops, garrisons or fires a
+//!   barrage (prompt 032) drops its queue; a unit with an indirect fire
+//!   order is not idle.
 //!
 //! State hash: only units with a queue (or a patrol) are written, after all
 //! other state, so matches without chains keep their hash.
@@ -56,6 +57,7 @@ const fn replaces_queue(command: &Command) -> bool {
             | Command::Attack { .. }
             | Command::AttackGround { .. }
             | Command::Garrison { .. }
+            | Command::Barrage { .. }
             | Command::Patrol { .. }
     )
 }
@@ -90,10 +92,9 @@ impl Sim {
         if group.is_empty() {
             return;
         }
-        if group
-            .iter()
-            .all(|&i| idle(&self.units[i]) && self.units[i].orders.is_empty())
-        {
+        if group.iter().all(|&i| {
+            idle(&self.units[i]) && self.units[i].orders.is_empty() && !self.has_indirect_order(i)
+        }) {
             let ids = group.iter().map(|&i| self.units[i].id).collect();
             self.apply(&PlayerCommand::new(
                 player,
@@ -167,9 +168,10 @@ impl Sim {
                 unit.orders.clear();
                 continue;
             }
-            if !idle(unit) {
+            if !idle(unit) || self.has_indirect_order(index) {
                 continue;
             }
+            let unit = &mut self.units[index];
             let queue = &mut unit.orders;
             if queue.points.is_empty() {
                 queue.patrol = false;

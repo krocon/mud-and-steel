@@ -80,7 +80,8 @@ self-test checks the names against the profile in Godot.
   on the back (crawling, medic work), set down (mortar), dropped (death).
 - **Materials** use only the slots of [ASSETS.md](ASSETS.md) (`Cloth`, `Canvas`,
   `Leather`, `Paint`, `Skin`, `Metal`, `Wood`, `Insignia`) plus a vertex-color tint.
-  No textures yet; the mesh has simple projected UVs.
+  The UVs hold the rest-pose position for the procedural surface detail and
+  camouflage of prompt 042 (see "Textures and camouflage" below).
 
 ## Factions, uniforms and biomes
 
@@ -95,8 +96,8 @@ Uniform styles are mesh variants (`loadouts.py`), colors come from
 
 Biomes (`forest`, `desert`, `winter`) are material overrides in Godot; winter is a
 white over-garment (white `Cloth`, whitewashed helmet). One `.glb` per role serves all
-biomes. The camouflage shader of prompt 004 can replace `SoldierLook`'s materials
-later; the slot names stay.
+biomes. Camouflage garments (Splittertarn, Soviet camouflage suit, M1942 frogskin) are
+material variants of the same model; see "Textures and camouflage" below.
 
 Medics carry plain bags and a **plain white armband (`Insignia`), no Red Cross**
 ([SOURCES.md](SOURCES.md)).
@@ -117,6 +118,7 @@ Medics carry plain bags and a **plain white armband (`Insignia`), no Red Cross**
 | `flamethrower` | Flammenwerfer 41 | ROKS-3 | M2-2 |
 | `assistant_gunner` | – | Mosin + pan carrier (DP-27 assistant) | – |
 | `smg_gunner` | – | PPSh-41 | – |
+| `stretcher_bearer` | P 38 in the hand, armband, medical bag (prompt 042) | – | – |
 
 Squad roles added in prompt 006 (faction-specific, `loadouts.py` end of file):
 
@@ -137,11 +139,23 @@ soldiers-tier2` builds them, `just roles <faction>` lists every role with its we
 | `scout` | Kar98k, binoculars, field cap | PPSh-41, binoculars, pilotka | M1 Garand, binoculars |
 | `smg_gunner` | MP 40 | (prompt 006) | Thompson |
 | `engineer` | Kar98k, geballte Ladung, wire cutters | Mosin M1938, satchel charge | M1 Garand, satchel charge, Bangalore torpedo |
-| `officer` | MP 40, map case, binoculars, cap | unarmed (TT-33 holster), map case, binoculars, cap | M1 carbine, map case, binoculars |
+| `officer` | MP 40, map case, binoculars, cap | TT-33 in the hand, holster, map case, binoculars, cap | M1 carbine, M1911A1 in the holster, map case, binoculars |
 | `at_assistant` | Kar98k, rocket pack, Panzerfaust 60 | Mosin, ammunition case (PTRD loader) | M1 carbine, rocket pack |
 
-Unarmed roles are listed in `godot/scenes/tools/infantry_preview.gd` (`UNARMED_ROLES`,
-"faction/role" for `su/officer`). Mount dimensions (tripods, Sokolov wheels and shield,
+Unarmed roles are listed in `godot/scenes/tools/infantry_preview.gd` (`UNARMED_ROLES`).
+Prompt 042 armed the roles whose catalog weapon was missing in the model: the `us`
+`radio_operator` carries the M1 carbine (before: M1 rifle), `su/officer` holds the
+TT-33, the `us` officer has the M1911A1 in the holster, and the `de` medic team's
+second man is the `stretcher_bearer` with the P 38 (before: a rifleman). Remaining
+simplifications: one weapon in the hands per soldier, so the bazooka gunner's carbine
+and the pistols of crew members whose hands carry ammunition stay in the holster or
+are not shown; the Panzerfaust is equipment of the `de` `at_assistant`, not a catalog
+weapon.
+
+**Pistols** (prompt 042, kind `pistol` in `weapons.py`): P 38 (216 mm, barrel
+125 mm), TT-33 (195 / 116 mm), M1911A1 (216 / 127 mm). One-handed and low in
+`ready` and when walking, two-handed at arm's length in the `aim_*`/`fire_*` clips,
+in the holster on the right hip instead of slung on the back (crawling, crew work). Mount dimensions (tripods, Sokolov wheels and shield,
 medium mortar baseplates) are estimates and marked `uncertain` in `weapons.py`.
 
 Weapons are built from real overall and barrel lengths and calibers
@@ -151,7 +165,7 @@ flamethrower wand lengths and the 50-PM 40 barrel). Each has `grip_r`, `grip_l`,
 
 ## Animations
 
-25 clips, identical names in every model. Loop flags, lengths and authored speeds are
+35 clips, identical names in every model. Loop flags, lengths and authored speeds are
 in `godot/assets/models/infantry/animations.json` (written by the build);
 `SoldierLook.configure_animations()` applies the loop modes.
 
@@ -170,10 +184,75 @@ in `godot/assets/models/infantry/animations.json` (written by the build);
 | `mg_setup` | no | stand → kneel → prone with the weapon ready |
 | `mortar_operate` | yes | kneeling behind the deployed mortar, load and duck |
 | `medic_treat` | yes | kneeling, both hands working at a casualty |
+| `reload_kneel`, `reload_prone` | no | `reload` kneeling / rolled onto the left side lying (prompt 042) |
+| `throw_grenade_kneel` | no | grenade throw from the knee |
+| `death_c` | no | spins away from a hit from the side and falls; weapon dropped |
+| `wounded` | yes | lying on the back, knees drawn up, hands pressed to the belly |
+| `gun_load` | yes | gun crew loader: shell from the ground at the right, carried to a breech about 1 m high and 0.75 m ahead, pushed in |
+| `gun_aim` | yes | gun layer kneeling at the sight, cranking elevation and traverse wheels |
+| `mg_feed` | yes | MG assistant prone to the left of the gun, guiding the belt (weapon slung, pistols holstered) |
+| `mount` | no | climbs onto a deck 1.0 m high: ends with the hips 1.0 m up and 0.45 m forward (`rise`, `advance` in `animations.json`) |
+| `dismount` | no | jumps down from a deck 1.0 m high, lands in a crouch 0.45 m forward, stands up |
+
+`mount` and `dismount` move the hips, not the root: the game (prompt 034) plays the
+clip and then puts the soldier node on the seat or the ground; `animations.json`
+gives the hip travel (`rise` = +1.0 / −1.0 m, `advance` = 0.45 m).
 
 Clips are authored in real time. Locomotion is played at
 `speed_scale = game_speed / authored_speed`, which keeps the feet planted at any game
 speed (time factor 2, [SCALE.md](SCALE.md)); other clips play at the time factor.
+
+## Textures and camouflage (prompt 042)
+
+**No image files.** Like the vehicle and environment materials ([ASSETS.md](ASSETS.md)),
+the soldiers' surface detail is procedural: `godot/assets/shaders/soldier.gdshader`,
+one `ShaderMaterial` per faction × biome × slot × skin tone × camouflage, made and
+cached by `SoldierLook.slot_material()`. Texture memory stays zero, biomes and
+factions cost nothing, and the far MultiMesh soldiers (prompt 016) use the same
+materials. Detail per slot:
+
+| Slot | Detail |
+|---|---|
+| `Cloth` | faded, mottled wool, fine weave, darker folds |
+| `Canvas` | coarse weave and stains (webbing, bags, gaiters, leggings) |
+| `Leather` | creases, polished worn spots (varying roughness) |
+| `Paint` | rough helmet paint, scratched to bare metal in places |
+| `Skin` | slightly blotchy tone (per-soldier skin tone as before) |
+| `Metal` | blued steel, rubbed bright at wear spots |
+| `Wood` | grain along the weapon |
+
+**Pattern space:** `tools/blender/soldier/mesh.py` writes every vertex's rest-pose
+position in meters into the UVs (`UV` = x, z; `UV2` = y). The shader draws its
+patterns there, so they stay on the cloth while the skinned body moves (`VERTEX` is
+already skinned). Detail finer than a few pixels fades out with `fwidth`, so nothing
+shimmers at RTS distance.
+
+**Camouflage garments** (colors, cut and roles in
+`godot/assets/models/infantry/uniform_palettes.json`, section `camo`; sources in
+[SOURCES.md](SOURCES.md)):
+
+| Faction | Pattern | Cut | Worn by default |
+|---|---|---|---|
+| `de` | Heer Splittertarn: brown and green splinters on grey-beige, dark green rain strokes, 11 cm cells | smock (rest height above 0.62 m: torso, arms, upper thighs) and helmet cover | `sniper`, `scout` |
+| `su` | camouflage suit: dark amoeba blobs on olive khaki, 16 cm | whole overall | `sniper`, `scout` |
+| `us` | M1942 frogskin, green side: spots of four greens and browns on pale green, 7 cm | whole two-piece uniform | nobody (variant only) |
+
+`SoldierLook.apply(model, faction, biome, seed, camo_mode)` with `camo_mode`
+`auto` (default: the roles above), `camo` (everybody) or `none`; the role is the
+file name of the soldier's `.glb`. Camouflage shows only in the `forest` biome: in
+`winter` everybody wears the white over-garment (the German reversible suit white
+side out), in `desert` the plain drill uniform. Winter whites are soiled (grey grime,
+dirt at knees and hems; `winter_soil` in the palette file).
+
+Decisions [provisional, for review]: **no Erbsentarn**, because it was a Waffen-SS
+pattern and the project avoids SS formations ([SOURCES.md](SOURCES.md)); no
+Sumpftarn (a second Heer pattern adds nothing at RTS distance); the US Army wore
+frogskin in Europe only briefly in summer 1944, so US soldiers wear it only as a
+variant.
+
+`just infantry-preview` shows every soldier; key **C** cycles the camouflage mode.
+Screenshots: `-- --shot=<file.png> --faction=de --roles=rifleman,sniper,scout
+--camo=camo --biome=forest --distance=6`.
 
 ## Line-up check
 
@@ -205,7 +284,8 @@ Planned for prompts 016/022:
 
 ## Known limits
 
-- Flat slot colors with vertex tint, no textures or camouflage patterns yet.
+- Surface detail and camouflage are procedural (no image files): from close up the
+  weave and grain are fine noise, not photographic cloth.
 - Hands are blocks without fingers; no grenade mesh in `throw_grenade` (the effect
   system spawns it); the flamethrower hose is a stub.
 - Transitions are blends between key poses; clips are readable at RTS distance, not
@@ -381,7 +461,7 @@ member gets its interpolated position (`SimHost.soldier_positions`,
 
 | State | Clip |
 |---|---|
-| dead | `death_a` / `death_b` once; the body stays on the field |
+| dead | `death_a` / `death_b` / `death_c` once (by soldier seed); the body stays on the field |
 | moving | `walk`, `run` from 2.6 m/s game speed, `crawl` when prone; `speed_scale = speed / authored speed` |
 | fired in the last 0.35 s | `fire_stand` / `fire_kneel` / `fire_prone` |
 | fired in the last 2.5 s | `aim_stand` / `aim_kneel` / `aim_prone` |
@@ -451,6 +531,26 @@ pipeline from Blender and a second animation path, and only pays off for
 thousands of soldiers. If that becomes the goal: bake the clips into
 textures and draw far soldiers as `MultiMeshInstance3D` (see "Performance
 outlook" above).
+
+**Prompt 042, procedural soldier materials:** A/B with `just
+infantry-view-bench` right after each other (same build, same models, only
+`SoldierLook` switched between the old `StandardMaterial3D` path and
+`soldier.gdshader`), two runs each, Apple M1 Max, 2026-11-15:
+
+| View | old material (FPS) | soldier shader (FPS) |
+|---|---|---|
+| standing, camera 60 m | 91.8 / 91.8 | 91.8 / 91.1 |
+| standing, camera 150 m | 83.9 / 83.9 | 83.3 / 83.3 |
+| standing, camera 400 m | 90.6 / 90.7 | 90.3 / 90.3 |
+| marching, camera 150 m | 83.8 / 83.7 | 83.0 / 83.1 |
+| fighting, camera 150 m | 65.3 / 62.5 | 64.3 / 64.4 |
+| fighting, camera 60 m | 83.7 / 81.6 | 82.4 / 82.7 |
+
+The shader costs at most about 1.5 %, within the run-to-run spread; draw calls
+are unchanged (same number of materials per soldier). The ten new clips cost
+nothing at run time (only the played clip is evaluated). **VAT stays unnecessary**
+(decision of prompt 022 confirmed): the soldiers are not shading-bound, and the
+far MultiMesh path already removes the skeletons of distant soldiers.
 
 ### Open
 

@@ -89,10 +89,10 @@ Umsetzen von ihrer Session konkretisiert.
 
 | Nr. | Prompt | Ziel | Status |
 |-----|--------|------|--------|
-| 029 | [Sound-Effekte](029-sound-effekte.md) | Gefecht, Motoren, UI; Busse, Stimmenlimit, Quellen | offen |
+| 029 | [Sound-Effekte](done/029-sound-effekte.md) | Gefecht, Motoren, UI; Busse, Stimmenlimit, Quellen | erledigt |
 | 030 | [Musik und Umgebungsklang](030-musik-ambiente.md) | Biom-Ambiente, Musik ruhig/Gefecht, Menü | Entwurf |
 | 031 | [HUD, Minikarte, Befehle](done/031-hud-minimap-befehle.md) | Minikarte, Einheitenanzeige, Befehlsleiste, Wegpunktketten; Steuerung in `docs/CONTROLS.md` | erledigt |
-| 032 | [Indirektes Feuer und Rauch](032-indirektes-feuer-rauch.md) | Mörser, Haubitzen, Splitter, Rauch blockiert Sicht | Entwurf |
+| 032 | [Indirektes Feuer und Rauch](done/032-indirektes-feuer-rauch.md) | Mörser, Haubitzen, Splitter, Rauch blockiert Sicht | erledigt |
 | 033 | [Flugzeuge und Flak](033-luftwaffe-flak.md) | Luftunterstützung als Abruf, Flugabwehr | Entwurf |
 | 034 | [Transport und Schleppen](034-transport-schleppen.md) | Aufsitzen, Geschütze ziehen und abprotzen | Entwurf |
 | 035 | [Pioniere, Minen, Stellungen](035-pioniere-minen-stellungen.md) | Minen, Draht, Gräben, Brücken reparieren/sprengen | Entwurf |
@@ -102,9 +102,9 @@ Umsetzen von ihrer Session konkretisiert.
 | 039 | [Tutorial und Missionen](039-tutorial-missionen.md) | Skript-System, Tutorial, Beispielmissionen | Entwurf |
 | 040 | [Wetter, Schlamm, Tageszeit](040-wetter-schlamm-tageszeit.md) | Regen weicht Boden auf, Nebel, Nacht | Entwurf |
 | 041 | [Umwelt Stufe 2 und Feuer](041-umwelt-stufe2-feuer.md) | Stadt, Industrie, Bahn, Bunker; Brände und Lager-Explosionen | Entwurf |
-| 042 | [Infanterie-Texturen](042-infanterie-texturen.md) | Uniform-Texturen, Tarnmuster, fehlende Waffen, Animationen | Entwurf |
+| 042 | [Infanterie-Texturen](done/042-infanterie-texturen.md) | Prozedurale Uniform-Texturen, Tarnmuster, Pistolen, zehn neue Clips | erledigt |
 | 043 | [Sprache und Barrierefreiheit](043-sprache-barrierefreiheit.md) | Deutsch/Englisch, Farbpaletten, UI-Skalierung, Grafikoptionen | Entwurf |
-| 044 | [Release-Builds und Steam](044-release-builds-steam.md) | Export für drei Systeme, Release-CI, SteamPipe, Credits | Entwurf |
+| 044 | [Release-Builds und Steam](done/044-release-builds-steam.md) | Export für drei Systeme, Release-CI, SteamPipe, Credits | erledigt (erster Export mit Godot-Export-Templates steht aus, `docs/RELEASE.md`) |
 | 045 | [Balancing und Playtest](045-balancing-playtest.md) | Statistik, Turniere, Gefechtssimulator, bestätigtes Design | Entwurf |
 
 ```

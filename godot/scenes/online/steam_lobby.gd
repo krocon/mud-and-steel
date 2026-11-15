@@ -23,7 +23,6 @@ const MatchSetup := preload("res://scenes/menu/match_setup.gd")
 const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
 const MAIN_SCENE := "res://scenes/main.tscn"
-const MAPS_DIR := "res://../data/maps"
 const SEED := 42
 ## The demo scenario has two players.
 const MAX_PLAYERS := 2
@@ -267,7 +266,7 @@ func _join(code: String) -> void:
 func _on_start() -> void:
 	var map_dir := ""
 	if _args.has("--map"):
-		map_dir = ProjectSettings.globalize_path(MAPS_DIR.path_join(_args["--map"])).simplify_path()
+		map_dir = GamePaths.map_dir(_args["--map"])
 	else:
 		map_dir = MatchSetup.map_dir(_maps[_map.selected])
 	_lobby.start_match(SEED, map_dir)

@@ -151,9 +151,28 @@ average, at most a few milliseconds (the free-spot search of the view).
 | Gathers stragglers | – | no | yes | yes |
 | Pulls back damaged units | – | no | no | below 30 % |
 | Patience before flanking | – | 1600 ticks | 800 ticks | 800 ticks |
+| Artillery (prompt 032) | – | with the group | with the group | own role: barrages, smoke |
 
 `Passive` is the baseline of the tournament and the enemy of the matches
 before prompt 024; the self-test's first two matches use it.
+
+## Artillery (prompt 032)
+
+Units with an indirect weapon (mortar teams, self-propelled guns) are their
+own role for Hard (`crates/ai/src/artillery.rs`); the other difficulties
+command them with their infantry or armor group, and the simulation turns
+their attack orders into indirect fire.
+
+- With no enemy in sight the artillery stays 80 m behind the army (towards
+  home), or at the gathering point of the base.
+- When enemies come into sight after a quiet spell, smoke-capable units fire
+  two salvos of smoke 40 m in front of the enemy towards the army (at most
+  every 800 ticks).
+- Every 200 ticks the units in range fire a barrage (3 salvos, 15 m) on the
+  largest visible enemy group (most enemies within 25 m of one).
+- Hard builds a mortar team in its infantry mix. Not the self-propelled gun:
+  with it in the vehicle mix, saving up for it starved the tank production
+  and Hard lost 4 of 8 base matches against Normal (before: 8 timeouts).
 
 ## Game and menu
 
@@ -242,6 +261,8 @@ starts far apart (meeting engagements) should separate the levels more.
 - Infantry tactics: stances, cover spots and buildings (prompt 022) are not
   used by the AI yet; attacking squads walk in standing and lose against
   kneeling defenders. The end game of base matches (see above),
-  using terrain (hull-down positions, woods, crests), artillery.
+  using terrain (hull-down positions, woods, crests). Artillery (prompt
+  032) is Hard only and simple: no observers sent forward, no
+  counter-battery, smoke only when the enemy first appears.
 - Meeting engagements on large maps for a better spread of the levels.
 - Formation facing and speed matching (pathfinding, see ARCHITECTURE.md).

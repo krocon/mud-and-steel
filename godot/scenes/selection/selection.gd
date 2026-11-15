@@ -21,6 +21,10 @@ extends Control
 ##   L fire at ground, P patrol, U occupy) wait for the next left click
 ##   (`command_mode`; Shift keeps the mode and queues moves); right click
 ##   cancels. Order keys are input actions, rebindable in the settings.
+## - Indirect fire (prompt 032): G (`order_barrage`) fires a barrage (3
+##   salvos within 25 m) and T (`order_smoke`) smoke (2 salvos within 15 m) of the selected mortars and guns at
+##   the ground point under the cursor; Ctrl+right click fires at a point
+##   until stopped, right click on an enemy fires at it while it is seen.
 ##
 ## Sits full-screen in a CanvasLayer and draws the selection box itself. It
 ## ignores the mouse for GUI purposes and works from `_unhandled_input`.
@@ -30,6 +34,7 @@ signal attack_ordered(target: int)
 signal garrison_ordered(building: int)
 ## The targeted order waiting for a click changed ("" = none).
 signal command_mode_changed(mode: String)
+signal barrage_ordered(point: Vector3, smoke: bool)
 
 const GroundPick := preload("res://scenes/camera/ground_pick.gd")
 ## Pointer travel in pixels before a left press becomes a box drag.
@@ -55,7 +60,12 @@ const MODE_HINTS := {
 	"attack_ground": "Fire at ground: left click a point",
 	"patrol": "Patrol: left click a point",
 	"garrison": "Occupy: left click a building",
+	"barrage": "Barrage: left click a point",
+	"smoke": "Smoke: left click a point",
 }
+## Barrage actions (prompt 032, actions since 031): smoke?, salvos, radius
+## in meters. They fire at the ground point under the cursor at once.
+const BARRAGE_ACTIONS := {"order_barrage": [false, 3, 25], "order_smoke": [true, 2, 15]}
 const BOX_FILL := Color(0.45, 0.85, 0.45, 0.12)
 const BOX_LINE := Color(0.55, 0.95, 0.55, 0.9)
 
@@ -152,6 +162,10 @@ func _on_action(event: InputEvent) -> bool:
 	elif event.is_action_pressed("camera_follow", false, true):
 		set_follow(not follow)
 	else:
+		for action: String in BARRAGE_ACTIONS:
+			if event.is_action_pressed(action, false, true):
+				var b: Array = BARRAGE_ACTIONS[action]
+				return order_barrage(get_viewport().get_mouse_position(), b[0], b[1], b[2])
 		for action: String in STANCE_ACTIONS:
 			if event.is_action_pressed(action, false, true):
 				set_stance(STANCE_ACTIONS[action])
@@ -196,6 +210,9 @@ func click_command(screen_position: Vector2, shift := false) -> void:
 				done = true
 		"garrison":
 			done = _order_garrison(screen_position)
+		"barrage", "smoke":
+			var b: Array = BARRAGE_ACTIONS["order_" + command_mode]
+			done = order_barrage(screen_position, b[0], b[1], b[2])
 	if done and not shift:
 		set_command_mode("")
 
@@ -298,6 +315,25 @@ func _order_attack(screen_position: Vector2) -> bool:
 		return false
 	sim_host.attack_unit(PackedInt64Array(selected), target)
 	attack_ordered.emit(target)
+	return true
+
+
+## Barrage (or smoke) of the selected units with an indirect weapon at
+## the ground point under `screen_position`; false if none can fire.
+func order_barrage(screen_position: Vector2, smoke: bool, salvos: int, radius: int) -> bool:
+	var guns: Array[int] = []
+	for id in selected:
+		var w := sim_host.unit_indirect(id)
+		if w.y > 0.0 and (not smoke or w.z > 0.0):
+			guns.append(id)
+	if guns.is_empty():
+		return false
+	var hit: Variant = GroundPick.from_screen(camera, screen_position)
+	if hit == null:
+		return false
+	var point := hit as Vector3
+	sim_host.barrage(PackedInt64Array(guns), point.x, point.z, radius, salvos, smoke)
+	barrage_ordered.emit(point, smoke)
 	return true
 
 
