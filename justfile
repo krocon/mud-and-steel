@@ -276,6 +276,11 @@ path-bench map="test_large" units="200" group="1":
 vision-bench map="test_large" units="500" ticks="600":
     cargo run -q --release -p cli -- vision-bench --map data/maps/{{ map }} --units {{ units }} --ticks {{ ticks }}
 
+# Computer players against each other over many seeds (prompt 024), e.g. `just ai-tournament --a hard --b normal --factions su,su`; default: every difficulty against every lower one
+[group('ai')]
+ai-tournament *args="--matrix":
+    cargo run -q --release -p cli -- ai-tournament {{ args }}
+
 # Build the bridge and start the game with the path debug view on (F4 costs, F5 paths)
 [group('pathfinding')]
 run-paths map="test_small": build

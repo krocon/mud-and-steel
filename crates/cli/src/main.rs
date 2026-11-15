@@ -1,5 +1,6 @@
 //! Headless runner: simulates the demo scenario without graphics.
 
+mod ai_tournament;
 mod catalog_doc;
 mod gen_map;
 mod gen_textures;
@@ -91,6 +92,39 @@ enum CliCommand {
         /// Targets lie within this distance of the map center per axis (m).
         #[arg(long, default_value_t = 1800)]
         range_m: i32,
+    },
+    /// Computer players against each other over many seeds (prompt 024):
+    /// sides alternate every game; prints the results and a hash over them.
+    AiTournament {
+        /// Difficulty of AI A (passive, easy, normal, hard).
+        #[arg(long, default_value = "hard")]
+        a: ai::Difficulty,
+        /// Difficulty of AI B.
+        #[arg(long, default_value = "passive")]
+        b: ai::Difficulty,
+        /// Every difficulty against every lower one instead of A vs B.
+        #[arg(long)]
+        matrix: bool,
+        #[arg(long, default_value_t = 40)]
+        games: u64,
+        /// Seed of the first game; game i uses seed + i.
+        #[arg(long, default_value_t = 1)]
+        seed: u64,
+        /// Map name in data/maps/ (or the built-in test_small).
+        #[arg(long, default_value = "test_small")]
+        map: String,
+        /// Factions of player 0 and 1, e.g. `de,su` (default: the scenario's).
+        #[arg(long, value_delimiter = ',')]
+        factions: Vec<String>,
+        /// A game not decided after this many ticks counts as a timeout.
+        #[arg(long, default_value_t = 6000)]
+        max_ticks: u64,
+        /// Games played at the same time (default: all CPU cores).
+        #[arg(long)]
+        jobs: Option<usize>,
+        /// Print every game.
+        #[arg(long)]
+        verbose: bool,
     },
     /// Benchmarks vision (prompt 018): many moving units of two players.
     VisionBench {
@@ -314,6 +348,39 @@ fn main() {
                 Err(e) => fail(&e),
             }
         }
+        CliCommand::AiTournament {
+            a,
+            b,
+            matrix,
+            games,
+            seed,
+            map,
+            factions,
+            max_ticks,
+            jobs,
+            verbose,
+        } => {
+            let map = find_map(&map);
+            let config = tournament_config(&map, &factions).unwrap_or_else(|e| fail(&e));
+            let options = ai_tournament::Options {
+                games,
+                seed,
+                max_ticks,
+                jobs: jobs.unwrap_or_else(|| {
+                    std::thread::available_parallelism().map_or(1, std::num::NonZero::get)
+                }),
+                verbose,
+            };
+            let start = std::time::Instant::now();
+            if matrix {
+                ai_tournament::matrix(&config, &map, &options);
+            } else {
+                let summary = ai_tournament::series(&config, &map, a, b, &options);
+                ai_tournament::print_header();
+                ai_tournament::print(&summary);
+            }
+            println!("{:.1} s", start.elapsed().as_secs_f64());
+        }
         CliCommand::VisionBench {
             map,
             units,
@@ -395,6 +462,26 @@ fn load_map_dir(dir: &Path) -> Result<sim::Map, String> {
             .map_err(|e| format!("{}: {e}", dir.display()))?;
     }
     Ok(map)
+}
+
+/// The demo scenario on `map`; `factions` (one per player, may be empty)
+/// replaces the units like the skirmish setup.
+fn tournament_config(map: &sim::Map, factions: &[String]) -> Result<sim::SimConfig, String> {
+    let overrides: Vec<(sim::PlayerId, &str)> = (0u8..)
+        .zip(factions)
+        .filter(|(_, f)| !f.is_empty())
+        .map(|(p, f)| (sim::PlayerId(p), f.as_str()))
+        .collect();
+    let err = |e: &dyn std::fmt::Display| e.to_string();
+    sim::scenario::parse_scenario_with_factions(
+        sim::scenario::DEMO_SCENARIO,
+        &overrides,
+        &sim::Catalog::builtin().map_err(|e| err(&e))?,
+        &sim::Scale::builtin().map_err(|e| err(&e))?,
+        &sim::TerrainRules::builtin().map_err(|e| err(&e))?,
+        map,
+    )
+    .map_err(|e| e.0)
 }
 
 /// The map with this name: `data/maps/<name>/` if it exists, else the

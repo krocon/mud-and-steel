@@ -59,21 +59,21 @@ impl Difficulty {
                 focus: Focus::Nearest,
                 regroup: false,
                 retreat_hp_pct: 0,
-                patience_ticks: 800,
+                patience_ticks: 1600,
             },
             Self::Normal => Params {
                 think_ticks: 20,
                 focus: Focus::Nearest,
                 regroup: true,
                 retreat_hp_pct: 0,
-                patience_ticks: 300,
+                patience_ticks: 800,
             },
             Self::Hard => Params {
                 think_ticks: 10,
                 focus: Focus::Weakest,
                 regroup: true,
                 retreat_hp_pct: 30,
-                patience_ticks: 200,
+                patience_ticks: 800,
             },
         }
     }
