@@ -58,6 +58,13 @@ pub enum Command {
     CancelProduction { building: UnitId },
     /// Produced units of `building` drive to `point`.
     SetRallyPoint { building: UnitId, point: Vec2 },
+    /// Appends a waypoint: `units` drive to a formation around `target`
+    /// once they are done with their current order (prompt 031). Like
+    /// `MoveTo` if all of them are idle.
+    QueueMove { units: Vec<UnitId>, target: Vec2 },
+    /// `units` drive to `target`, then back and forth between their start
+    /// and the target (prompt 031).
+    Patrol { units: Vec<UnitId>, target: Vec2 },
 }
 
 impl Command {
@@ -70,7 +77,9 @@ impl Command {
             | Self::AttackGround { units, .. }
             | Self::SetFireMode { units, .. }
             | Self::SetStance { units, .. }
-            | Self::Garrison { units, .. } => units,
+            | Self::Garrison { units, .. }
+            | Self::QueueMove { units, .. }
+            | Self::Patrol { units, .. } => units,
             Self::Surrender
             | Self::Build { .. }
             | Self::Produce { .. }

@@ -20,6 +20,7 @@ mod craters;
 mod destruction;
 mod economy;
 mod infantry;
+mod orders;
 mod spatial;
 mod vision;
 
@@ -30,6 +31,7 @@ use infantry::{InfantryRt, Squad};
 
 pub use economy::{BuyOption, PlaceError, StructureView, SupplyView};
 pub use infantry::BuildingCondition;
+pub use orders::MAX_QUEUED;
 
 /// Move targets farther than this from the origin (in meters, per axis) are
 /// ignored. Keeps all position arithmetic far away from `Fixed` overflow, even
@@ -160,6 +162,8 @@ struct Unit {
     elevation_mm: i32,
     /// The viewshed must be computed again (entered or left a building).
     vision_dirty: bool,
+    /// Queued waypoints and patrol (prompt 031).
+    orders: orders::OrderQueue,
 }
 
 impl Unit {
@@ -538,6 +542,7 @@ impl Sim {
         for command in commands {
             self.apply(command);
         }
+        self.advance_queues();
         done(Phase::Commands);
         self.plan_paths();
         done(Phase::Paths);
@@ -789,6 +794,7 @@ impl Sim {
     }
 
     fn apply(&mut self, command: &PlayerCommand) {
+        self.drop_replaced_queues(command);
         match &command.command {
             Command::MoveTo { units, target } => {
                 if !within_world(*target) {
@@ -878,6 +884,10 @@ impl Sim {
             Command::SetRallyPoint { building, point } => {
                 self.order_rally(command.player, *building, *point);
             }
+            Command::QueueMove { units, target } => {
+                self.order_queue_move(command.player, units, *target);
+            }
+            Command::Patrol { units, target } => self.order_patrol(command.player, units, *target),
         }
     }
 
@@ -1027,6 +1037,7 @@ impl Sim {
         self.destruction.hash_into(&mut h);
         self.craters.hash_into(&mut h);
         self.economy.hash_into(&mut h);
+        self.hash_queues(&mut h);
         h.finish()
     }
 
@@ -1512,6 +1523,7 @@ fn new_unit(n: &NewUnit<'_>) -> Unit {
         spread,
         elevation_mm: 0,
         vision_dirty: false,
+        orders: orders::OrderQueue::default(),
     }
 }
 
