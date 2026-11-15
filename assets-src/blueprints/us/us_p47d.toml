@@ -1,0 +1,150 @@
+# Republic P-47D-30/40 Thunderbolt (prompt 008, us infantry_air).
+# Main dimensions from data/catalog/us.toml: length 11.02 m, wingspan 12.43 m
+# (fitted), height 4.47 m. As on the P-51D, the catalog height is the tail-down
+# figure with one blade vertical: the fuselage climbs 9 deg toward the nose
+# (estimate), wing and tail stay level, and the propeller hub sits at
+# 2.49 m = height - prop radius.
+#
+# Modeling estimates (P-47D three-view, Republic figures as commonly quoted):
+# Curtiss Electric 4-blade paddle propeller 13 ft (3.96 m); elliptical wing
+# drawn as a taper from 2.85 m root to 1.20 m tip chord (wing area 300 sq ft),
+# ~4 deg dihedral; main gear track ~15 ft 6 in (4.72 m), 34 in (0.86 m)
+# wheels; the deep fuselage with the oval cowling (~1.36 x 1.60 m) and the
+# turbo-supercharger ducting under the cockpit; bubble canopy (D-25 onward);
+# horizontal tail span ~4.8 m.
+#
+# Weapons from the catalog (one typical load): eight .50 in wing guns (four per
+# wing, staggered), two 500 lb AN-M64 on the wing racks outboard of the gear
+# (store ~1.45 x 0.36 m, estimate from the AN-M64 drawing dimensions), ten 5 in
+# HVAR on zero-length launchers (five per wing, kit default 1.73 x 0.127 m).
+unit = "us_p47d"
+assembly = "aircraft"
+
+[layout]
+cg_chord = 0.3
+
+[fuselage]
+part = "fuselage"
+# [y, width, height, z_center, exponent], tail to nose; z_center climbs 9 deg
+sections = [[-7.30, 0.02, 0.40, 0.935, 2.0],
+            [-6.00, 0.45, 0.85, 1.041, 2.4],
+            [-3.80, 0.95, 1.55, 1.339, 2.6],
+            [-1.40, 1.15, 1.85, 1.719, 2.6],
+            [0.80, 1.25, 1.85, 2.068, 2.6],
+            [2.40, 1.36, 1.60, 2.321, 2.4],
+            [3.05, 1.22, 1.32, 2.474, 2.4]]
+
+[wing]
+part = "wing"
+y = 0.0
+z = 1.15
+root_chord = 2.85
+tip_chord = 1.20
+sweep_deg = 2.0
+dihedral_deg = 4.0
+thickness = 0.15
+aileron = [0.6, 0.95]
+
+[tail]
+part = "tail"
+# rudder trailing edge = y - fin_root_chord - 0.6 fin_height tan(sweep) = -7.62
+y = -5.85
+z = 1.05
+span = 4.8
+root_chord = 1.75
+tip_chord = 1.0
+fin_height = 1.60
+fin_root_chord = 1.42
+fin_tip_chord = 0.7
+fin_sweep_deg = 20
+
+[canopy]
+part = "canopy"
+y = [-2.00, 0.10]
+z = 2.52
+width = 0.85
+height = 0.62
+bubble = true
+
+[landing_gear]
+part = "landing_gear"
+main_y = 0.30
+main_track = 4.72
+main_wheel_diameter = 0.86
+strut_top_z = 1.12
+tail_y = -6.10
+tail_wheel_diameter = 0.42
+tail_strut_top_z = 0.70
+
+[[propeller]]
+part = "propeller"
+position = [0.0, 3.15, 2.49]
+diameter = 3.96
+blades = 4
+
+[[part]]
+part = "fixed_guns"           # four .50 in M2 per wing, staggered in the leading edge
+muzzles = [[2.75, 0.12, 1.33], [2.95, 0.08, 1.35], [3.15, 0.04, 1.36], [3.35, 0.00, 1.38]]
+length = 0.35
+
+[[part]]
+part = "bomb_load"            # two 500 lb AN-M64 on the wing racks
+bombs = [[2.85, -0.60, 0.92]]
+length = 1.45
+diameter = 0.36
+
+[[part]]
+part = "rocket_rails"         # ten 5 in HVAR on zero-length launchers
+rockets = [[3.60, -0.55, 1.145], [3.95, -0.55, 1.175], [4.30, -0.55, 1.205], [4.65, -0.55, 1.235],
+           [5.00, -0.55, 1.265]]
+
+[[part]]
+part = "socket"
+name = "Socket_Exhaust_"
+position = [-0.55, -1.20, 1.10]
+
+[[part]]
+part = "socket"
+name = "Socket_Exhaust_"
+position = [0.55, -1.20, 1.10]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 1.80, 2.28]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [1.40, -1.00, 1.30]
+
+[[part]]
+part = "marking"
+name = "Wing_L"               # star on the upper left wing
+position = [-4.80, -0.95, 1.55]
+normal = [0.0, 0.0, 1.0]
+size = 1.2
+
+[[part]]
+part = "marking"
+name = "Wing_R"               # star under the right wing, between the rocket launchers
+position = [4.82, -0.95, 1.40]
+normal = [0.0, 0.0, -1.0]
+size = 1.0
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-0.50, -4.30, 1.27]
+normal = [-1.0, 0.0, 0.0]
+size = 0.9
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [0.50, -4.30, 1.27]
+normal = [1.0, 0.0, 0.0]
+size = 0.9
+
+[[part]]
+part = "shadow_proxy"

@@ -1,9 +1,0 @@
-[gd_scene load_steps=2 format=3]
-
-[ext_resource type="PackedScene" uid="uid://yjugko6dxh46" path="res://assets/models/us/infantry/medic.glb" id="1_medic"]
-
-[node name="us_inf_medic" type="Node3D"]
-metadata/extras = {"cat_id": "us_inf_medic", "cat_faction": "us", "cat_category": "inf_medic", "cat_name_de": "Sanitäter", "cat_name_en": "Company Aid Man", "cat_designation": "Company aid man, regimental medical detachment (1944)", "cat_year_from": 1943, "cat_year_to": 1945, "cat_speed_road_kmh_x10": 50, "cat_speed_offroad_kmh_x10": 40, "cat_weapons": "", "cat_squad_size": 1, "squad": true, "squad_roles": ["medic"], "squad_notes": ["company aid man (unarmed)"], "squad_clips": ["medic_treat"], "squad_file": "assets-src/blueprints/us/squads/us_inf_medic.toml", "source_hash": "27b946d8cbafa4c2"}
-
-[node name="Member_01" parent="." instance=ExtResource("1_medic")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
