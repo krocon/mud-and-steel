@@ -146,10 +146,7 @@ pub fn groups(map: &Map, chunk_m: f32) -> Vec<Group> {
     for (index, object) in (0u32..).zip(map.objects()) {
         let kind = &kinds[usize::from(object.kind)];
         let (x, z) = (f(object.position.x), f(object.position.y));
-        let chunk = (
-            ((x + half_x) / chunk_m).floor() as i32,
-            ((z + half_z) / chunk_m).floor() as i32,
-        );
+        let chunk = chunk_of(object, (half_x, half_z), chunk_m);
         let h = mix(object.position.x.to_bits().cast_unsigned()
             ^ mix(object.position.y.to_bits().cast_unsigned()));
         let scale = 1.0 + jitter[usize::from(object.kind)] * (unit(h) * 2.0 - 1.0);
@@ -168,6 +165,30 @@ pub fn groups(map: &Map, chunk_m: f32) -> Vec<Group> {
             buffer,
         })
         .collect()
+}
+
+/// Chunk of an object in [`groups`].
+fn chunk_of(object: &MapObject, (half_x, half_z): (f32, f32), chunk_m: f32) -> (i32, i32) {
+    let (x, z) = (f(object.position.x), f(object.position.y));
+    (
+        ((x + half_x) / chunk_m).floor() as i32,
+        ((z + half_z) / chunk_m).floor() as i32,
+    )
+}
+
+/// Where object `index` is drawn by [`groups`]: its kind, chunk and slot
+/// (instance number within the group's buffer).
+pub fn instance_of(map: &Map, index: usize, chunk_m: f32) -> Option<(u16, (i32, i32), u32)> {
+    let size = map.size();
+    let half = (f(size.x) / 2.0, f(size.y) / 2.0);
+    let objects = map.objects();
+    let object = objects.get(index)?;
+    let chunk = chunk_of(object, half, chunk_m);
+    let slot = objects[..index]
+        .iter()
+        .filter(|o| o.kind == object.kind && chunk_of(o, half, chunk_m) == chunk)
+        .count();
+    Some((object.kind, chunk, u32::try_from(slot).ok()?))
 }
 
 /// Rasters derived from the objects, for decoration.

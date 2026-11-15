@@ -235,6 +235,48 @@ func destroyed(unit: int, at: Vector3) -> void:
 	_start_wreck(unit, at)
 
 
+## A map object changed its stage (prompt 020, `SimHost.take_object_events`):
+## buildings throw debris and a dust cloud (more when they collapse), trees
+## splinter at the trunk and raise dust where the crown lands, walls and
+## hedges burst apart, crushed fences and wire puff a little dust.
+func object_event(event: Dictionary) -> void:
+	var at: Vector3 = sim_host.object_position(event.object)
+	at.y = sim_host.height_at(at.x, at.z)
+	if not visible_at.call(at):
+		return
+	var dust: Color = GROUND_COLORS["object"]
+	var key := "object_" + str(event.remains if event.stage == "destroyed" else event.stage)
+	counts[key] = counts.get(key, 0) + 1
+	if event.stage == "damaged":
+		var s := 1.2
+		_burst("debris", at + Vector3.UP * 3.0, Basis.IDENTITY, s)
+		_burst("impact_dust", at + Vector3.UP * 2.0, Basis.IDENTITY, s * 1.5, dust)
+		_add_shake(at, 0.3)
+		return
+	match str(event.remains):
+		"ruin":
+			var s := 2.2
+			_burst("debris", at + Vector3.UP * 4.0, Basis.IDENTITY, s)
+			_burst("explosion_smoke", at + Vector3.UP * 3.0, Basis.IDENTITY, s, dust.lightened(0.15))
+			_burst("blast_dust", at + Vector3.UP * 0.3, Basis.IDENTITY, s * 1.4, _ground_color(at))
+			_burst("impact_dust", at + Vector3.UP * 5.0, Basis.IDENTITY, s * 1.5, dust)
+			_decal(at, 9.0)
+			_add_shake(at, 1.2)
+		"fallen":
+			var heading := deg_to_rad(float(event.fall_deg))
+			var crown := at + Vector3(sin(heading), 0.0, -cos(heading)) * 12.0
+			crown.y = sim_host.height_at(crown.x, crown.z) + 0.3
+			_burst("debris", at + Vector3.UP * 1.5, Basis.IDENTITY, 0.6)
+			_burst("impact_dust", at + Vector3.UP * 0.5, Basis.IDENTITY, 0.7, dust)
+			_burst("blast_dust", crown, Basis.IDENTITY, 1.1, _ground_color(crown))
+		"gone":
+			_burst("debris", at + Vector3.UP, Basis.IDENTITY, 0.9)
+			_burst("impact_dust", at + Vector3.UP * 0.6, Basis.IDENTITY, 1.2, dust)
+			_burst("blast_dust", at + Vector3.UP * 0.2, Basis.IDENTITY, 0.8, _ground_color(at))
+		_:
+			_burst("puff", at + Vector3.UP * 0.3, Basis.IDENTITY, 1.2, _ground_color(at))
+
+
 ## A vehicle explosion of relative size `s` (1 = medium tank).
 func explosion(at: Vector3, s := 1.0) -> void:
 	if not visible_at.call(at):

@@ -30,6 +30,9 @@ extends Node
 ##    destroy it (shots, hits, a destroyed event, a darkened wreck, health
 ##    bars); the enemy never fires back; F switches the selection to fire at
 ##    will.
+## 9. Destruction (prompt 020, `tools/destruction_self_test.gd`): the own
+##    tanks shell a building into a ruin and fell a tree; variants and
+##    effects follow the simulation, the replay re-simulates it.
 
 ## Panzer IV H: 16 km/h cross-country (catalog) × time factor 2 = 8.889 m/s,
 ## i.e. 0.4444 m per tick at 20 Hz. Terrain scales it (data/terrain.toml).
@@ -44,6 +47,7 @@ const HILL_TIME_SCALE := 4.0
 const HILL_MIN_CLIMB := 10.0
 
 const WaterSelfTest := preload("res://scenes/tools/water_self_test.gd")
+const DestructionSelfTest := preload("res://scenes/tools/destruction_self_test.gd")
 const MatchSetup := preload("res://scenes/menu/match_setup.gd")
 
 var main: Node3D
@@ -66,9 +70,10 @@ func _run() -> void:
 	await WaterSelfTest.new().run(self)
 	await _fog_test()
 	await _combat_test()
+	await DestructionSelfTest.new().run(self)
 	_replay_test()
 	var ok := _errors.is_empty()
-	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, fog, combat, water and replay ok" if ok else " ".join(_errors)
+	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, fog, combat, destruction, water and replay ok" if ok else " ".join(_errors)
 	print("self-test %s: %s" % ["PASSED" if ok else "FAILED", message])
 	# Started from the menu flow test (prompt 027): it continues the flow.
 	var flow: Node = MatchSetup.flow_test

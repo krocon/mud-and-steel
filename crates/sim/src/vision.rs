@@ -12,6 +12,7 @@ use crate::catalog::Category;
 use crate::hash::StableHasher;
 use crate::map::Map;
 use crate::math::{Fixed, Vec2};
+use crate::objects::{MapObject, Shape};
 use crate::scale::Scale;
 use serde::{Deserialize, Serialize};
 use std::fmt;
@@ -276,6 +277,8 @@ pub struct VisionGrid {
     foliage_mm: Vec<i32>,
     target_height_mm: i32,
     foliage_depth: i32,
+    /// Trees per cell that make forest.
+    foliage_min: u32,
     tables: Vec<RayTable>,
 }
 
@@ -363,8 +366,74 @@ impl VisionGrid {
             foliage_mm,
             target_height_mm: rules.grid.target_height_mm as i32,
             foliage_depth: rules.grid.foliage_depth_cells as i32,
+            foliage_min: rules.grid.foliage_min_objects,
             tables: wanted.into_iter().map(RayTable::new).collect(),
         }
+    }
+
+    /// Computes the obstacles of the cells `c0..=c1` × `r0..=r1` again
+    /// from `objects` (position, shape, how it affects sight now and its
+    /// height in meters), after objects there changed (destruction, prompt
+    /// 020). Pass every object whose shape may overlap the cells; cells
+    /// outside the rectangle are not touched.
+    pub fn rebuild_objects(
+        &mut self,
+        (c0, r0, c1, r1): (u32, u32, u32, u32),
+        objects: impl IntoIterator<Item = (MapObject, Shape, Sight, Fixed)>,
+    ) {
+        let (c1, r1) = (c1.min(self.columns - 1), r1.min(self.rows - 1));
+        let width = (c1 - c0 + 1) as usize;
+        let mut counts = vec![0u32; width * (r1 - r0 + 1) as usize];
+        for r in r0..=r1 {
+            for c in c0..=c1 {
+                let i = (r * self.columns + c) as usize;
+                self.solid_mm[i] = NONE;
+                self.foliage_mm[i] = NONE;
+            }
+        }
+        let half = self.cell / 2;
+        for (object, shape, sight, height) in objects {
+            if sight == Sight::Clear || height <= Fixed::ZERO {
+                continue;
+            }
+            let height = to_mm(height);
+            let extent = object.half_extent(shape);
+            let (lc, lr) = self.cell_of(object.position - extent);
+            let (hc, hr) = self.cell_of(object.position + extent);
+            for r in (lr as u32).max(r0)..=(hr as u32).min(r1) {
+                for c in (lc as u32).max(c0)..=(hc as u32).min(c1) {
+                    if !object.overlaps_square(shape, self.center(c, r), half) {
+                        continue;
+                    }
+                    let i = (r * self.columns + c) as usize;
+                    let top = self.ground_mm[i].saturating_add(height);
+                    match sight {
+                        Sight::Solid => self.solid_mm[i] = self.solid_mm[i].max(top),
+                        Sight::Foliage => {
+                            counts[(r - r0) as usize * width + (c - c0) as usize] += 1;
+                            self.foliage_mm[i] = self.foliage_mm[i].max(top);
+                        }
+                        Sight::Clear => {}
+                    }
+                }
+            }
+        }
+        for r in r0..=r1 {
+            for c in c0..=c1 {
+                if counts[(r - r0) as usize * width + (c - c0) as usize] < self.foliage_min {
+                    self.foliage_mm[(r * self.columns + c) as usize] = NONE;
+                }
+            }
+        }
+    }
+
+    /// Center of cell `(column, row)`.
+    pub fn center(&self, c: u32, r: u32) -> Vec2 {
+        let half = self.cell / 2;
+        Vec2::new(
+            self.origin.x + self.cell * Fixed::from_num(c) + half,
+            self.origin.y + self.cell * Fixed::from_num(r) + half,
+        )
     }
 
     pub const fn cells(&self) -> usize {
@@ -600,6 +669,11 @@ impl PlayerVision {
         let explored: u32 = self.explored.iter().map(|w| w.count_ones()).sum();
         h.write_u32(explored);
     }
+}
+
+/// Meters to whole millimeters (as [`VisionGrid::new`] rounds heights).
+fn to_mm(h: Fixed) -> i32 {
+    (h * Fixed::from_num(1000)).round().to_num::<i32>()
 }
 
 #[cfg(test)]

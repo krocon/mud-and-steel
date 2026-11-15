@@ -59,6 +59,7 @@ const NetStatus := preload("res://scenes/lan/net_status.gd")
 const CombatView := preload("res://scenes/world/combat_view.gd")
 const FogOfWar := preload("res://scenes/world/fog_of_war.gd")
 const Effects := preload("res://scenes/world/effects.gd")
+const DestructionView := preload("res://scenes/world/destruction_view.gd")
 const EffectsBench := preload("res://scenes/tools/effects_bench.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
 const MatchSetup := preload("res://scenes/menu/match_setup.gd")
@@ -108,6 +109,7 @@ var combat_view: CombatView
 var fog_of_war: FogOfWar
 ## Smoke, fire, impacts, dust (prompt 019).
 var effects: Effects
+var destruction_view: Node
 ## Pause menu and result screen (prompt 027).
 var game_menu: CanvasLayer
 var _loading: CanvasLayer
@@ -182,6 +184,11 @@ func _ready() -> void:
 	effects.visible_at = func(point: Vector3) -> bool:
 		var state := fog_of_war.state_at(point)
 		return state < 0 or state == 255
+	# Damaged and destroyed map objects (prompt 020).
+	destruction_view = DestructionView.new()
+	destruction_view.name = "DestructionView"
+	add_child(destruction_view)
+	destruction_view.setup(self)
 
 	selection.sim_host = sim_host
 	selection.camera = camera

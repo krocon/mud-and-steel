@@ -14,6 +14,7 @@ pub mod catalog;
 pub mod combat;
 mod command;
 mod data;
+pub mod destruction;
 mod hash;
 pub mod map;
 mod math;
@@ -34,6 +35,9 @@ pub use combat::{
 };
 pub use command::{Command, PlayerCommand, PlayerId, UnitId};
 pub use data::{DEFAULT_FOOTPRINT_MM, DataError, UnitType, unit_types_from_catalog};
+pub use destruction::{
+    DestructionRules, ObjectCause, ObjectEvent, ObjectStage, ObjectState, Remains,
+};
 pub use hash::StableHasher;
 pub use map::{Biome, Map, MapError, MapRef};
 pub use math::{Fixed, Vec2};
