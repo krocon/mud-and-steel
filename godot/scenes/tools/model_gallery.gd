@@ -25,6 +25,10 @@ extends Node3D
 ## `-- --screenshots <dir> [--category units|infantry|environment] [--focus <id>]
 ## [--yaw <deg>] [--clip <name>]`: saves one screenshot per biome and quits
 ## (needs a window).
+## `-- --tour`: scripted camera tour through all categories and biomes for
+## recording, timed for `--fixed-fps 30`; hides the UI and quits at the end:
+##     godot --path godot --write-movie <abs path>.avi --fixed-fps 30 \
+##         res://scenes/tools/model_gallery.tscn -- --tour
 
 const MODEL_ROOT := "res://assets/models/"
 const UNIT_FACTIONS: Array[String] = ["de", "su", "us"]
@@ -102,6 +106,8 @@ func _ready() -> void:
 	_load_environment()
 	_set_biome("forest")
 	_set_category(_arg("--category", "units"))
+	if "--tour" in _args:
+		_tour.call_deferred()
 	if _self_test:
 		get_tree().create_timer(240.0).timeout.connect(func() -> void:
 			printerr("self-test: FAIL timeout")
@@ -166,6 +172,7 @@ func _build_environment() -> void:
 
 func _build_ui() -> void:
 	var layer := CanvasLayer.new()
+	layer.visible = "--tour" not in _args
 	add_child(layer)
 	var bar := HBoxContainer.new()
 	bar.position = Vector2(12, 12)
@@ -915,3 +922,74 @@ func _check_squad_look(model: Node3D, biome: String, errors: Array[String]) -> v
 		if not found:
 			errors.append("%s/%s: no %s_%s uniform" % [model.name, member.name, faction, biome])
 			return
+
+
+# --- recording tour (-- --tour) ---------------------------------------------------
+
+const TOUR_FPS := 30
+
+
+func _tour() -> void:
+	# Units: overview through all biomes, then close-ups of the tanks.
+	_set_category("units")
+	await _tour_overview(0.62, 18.0, 9.0)
+	var looks: Array[String] = ["forest", "desert", "winter"]
+	var tanks: Array[String] = ["de_pz4_h", "su_t34_76_1943", "us_m4a3_75"]
+	for i in tanks.size():
+		_set_biome(looks[i])
+		await _tour_closeup(tanks[i], 3.0)
+	_set_biome("forest")
+	# Infantry: walking, then firing.
+	_set_category("infantry")
+	await _tour_clip("walk")
+	await _tour_overview(0.55, 24.0, 5.0)
+	await _tour_clip("fire_kneel")
+	await _tour_orbit(4.0, 20.0)
+	# Environment: overview through all biomes.
+	_set_category("environment")
+	_set_biome("forest")
+	await _tour_overview(0.42, 34.0, 10.0, 35.0)
+	get_tree().quit()
+
+
+## Frames the category and orbits by `degrees` over `seconds`, switching the
+## biome in thirds (forest, desert, winter).
+func _tour_overview(zoom: float, pitch_deg: float, seconds: float, degrees := 70.0) -> void:
+	_frame_all()
+	_distance *= zoom
+	_pitch = deg_to_rad(pitch_deg)
+	_yaw = deg_to_rad(205.0)
+	var frames := roundi(seconds * TOUR_FPS)
+	for i in frames:
+		var third := mini(2, 3 * i / frames)
+		if UnitCamo.BIOMES[third] != _biome:
+			_set_biome(UnitCamo.BIOMES[third])
+		_yaw += deg_to_rad(degrees) / frames
+		await get_tree().process_frame
+
+
+func _tour_orbit(seconds: float, degrees: float) -> void:
+	var frames := roundi(seconds * TOUR_FPS)
+	for i in frames:
+		_yaw += deg_to_rad(degrees) / frames
+		await get_tree().process_frame
+
+
+func _tour_closeup(id: String, seconds: float) -> void:
+	for m: Node3D in _items["units"]:
+		if UnitCamo.catalog_values(m).get("cat_id", "") == id:
+			var box := _aabb(m)
+			_focus = box.get_center()
+			_distance = maxf(box.size.x, box.size.z) * 1.6
+			_pitch = deg_to_rad(22.0)
+			_yaw = deg_to_rad(215.0)
+			await _tour_orbit(seconds, 50.0)
+			return
+
+
+func _tour_clip(clip: String) -> void:
+	for i in _clip_select.item_count:
+		if _clip_select.get_item_text(i) == clip:
+			_clip_select.select(i)
+			_play_selected_clip()
+	await get_tree().process_frame
