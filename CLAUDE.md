@@ -53,5 +53,5 @@ assets-src/blender/  .blend sources (Git LFS)
 tools/           Blender scripts, Godot import helper
 data/            unit definitions (TOML, integer units)
 docs/            ARCHITECTURE.md, DETERMINISM.md, VERSIONS.md
-prompts/         task prompts from the user; do not modify
+prompts/         task prompts (roadmap in prompts/README.md); finished ones: git mv to prompts/done/
 ```
