@@ -352,6 +352,7 @@ designation = "Medium Tank M4A3 (75 mm), wet stowage"
 year_from = 1944
 year_to = 1945
 tier = 1
+model = "assets/models/us/us_m4a3_75.glb"
 length_mm = 6270
 width_mm = 2670
 height_mm = 2940
