@@ -24,6 +24,10 @@ const SAND: u8 = 3;
 const MUD: u8 = 4;
 const SHALLOW_WATER: u8 = 6;
 const DEEP_WATER: u8 = 7;
+/// Half width of a ford: where a track or road crosses the river, the water
+/// is shallow within this distance of it. Wide enough for tanks, which keep
+/// a margin from deep water (docs/ARCHITECTURE.md, "Pathfinding").
+const FORD_HALF_WIDTH_M: f64 = 7.0;
 
 /// Parameters of `cli gen-map`.
 pub struct Options<'a> {
@@ -366,7 +370,10 @@ impl Layout {
             // A bed 3.5 m deep with gentle banks, cut into the ground.
             let depth = 3.5 * (1.0 - smoothstep(w * 0.5, valley, river));
             h -= depth;
-            let ford = terrain == DIRT_TRACK;
+            let ford =
+                self.tracks.iter().chain(&self.roads).any(|p| {
+                    p.near(x, y, FORD_HALF_WIDTH_M) && p.distance(x, y) < FORD_HALF_WIDTH_M
+                });
             terrain = if river < w * 0.55 && !ford {
                 DEEP_WATER
             } else if river < w {

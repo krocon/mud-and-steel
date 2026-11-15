@@ -5,8 +5,9 @@ use crate::data::UnitType;
 use crate::hash::StableHasher;
 use crate::map::{Map, MapRef};
 use crate::math::{Fixed, Vec2};
+use crate::path::{NODE_BUDGET_PER_TICK, Path, PathGrid, PathStats, Pathfinder, Request};
 use crate::rng::Rng;
-use crate::terrain::{SpeedBasis, TerrainRules};
+use crate::terrain::TerrainRules;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::sync::Arc;
@@ -91,13 +92,46 @@ struct Unit {
     position: Vec2,
     /// Ground height at `position` in meters.
     height: Fixed,
+    /// Final destination (formation slot), also while the path is planned.
     target: Option<Vec2>,
+    route: Route,
+    /// Paths planned again from the current position (because the way to
+    /// the next waypoint was blocked) since the last waypoint was reached.
+    replans: u32,
     /// Cross-country speed in meters per tick.
     speed_offroad: Fixed,
     /// Road speed in meters per tick.
     speed_road: Fixed,
     /// Meters, see [`UnitType::footprint_m`].
     footprint: Fixed,
+}
+
+/// How a unit gets to its target.
+#[derive(Clone, Debug, PartialEq, Eq)]
+enum Route {
+    /// No target.
+    None,
+    /// Waiting for the path request with this id.
+    Waiting(u32),
+    /// Driving along waypoints; the last one is the target.
+    Following {
+        waypoints: Vec<Vec2>,
+        next: usize,
+        /// Smallest distance to `waypoints[next]` so far.
+        best: Fixed,
+        /// Ticks since `best` last improved.
+        stalled: u32,
+    },
+}
+
+/// Route state of a unit, for presentation and tools.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum RouteView<'a> {
+    Idle,
+    /// The path is still being planned.
+    Waiting,
+    /// Remaining waypoints, the target last.
+    Following(&'a [Vec2]),
 }
 
 /// Presentation data of one unit.
@@ -131,6 +165,7 @@ pub struct Sim {
     units: Vec<Unit>,
     map: Arc<Map>,
     terrain: TerrainRules,
+    paths: Pathfinder,
 }
 
 impl Sim {
@@ -169,18 +204,22 @@ impl Sim {
                 position: spawn.position,
                 height: map.height_at(spawn.position),
                 target: None,
+                route: Route::None,
+                replans: 0,
                 speed_offroad: unit_type.speed_m_per_s / ticks_per_second,
                 speed_road: unit_type.road_speed_m_per_s / ticks_per_second,
                 footprint: unit_type.footprint_m,
             });
         }
 
+        let grid = PathGrid::new(&map, &config.terrain, &config.unit_types);
         Ok(Self {
             tick: 0,
             rng: Rng::new(seed),
             units,
             map,
             terrain: config.terrain.clone(),
+            paths: Pathfinder::new(grid),
         })
     }
 
@@ -194,18 +233,177 @@ impl Sim {
         &self.map
     }
 
+    /// The pathfinding grid of this match.
+    pub const fn path_grid(&self) -> &PathGrid {
+        &self.paths.grid
+    }
+
+    /// Counters of the path request queue.
+    pub const fn path_stats(&self) -> PathStats {
+        self.paths.stats
+    }
+
+    /// Number of path requests not finished yet.
+    pub fn path_queue_len(&self) -> usize {
+        self.paths.queued()
+    }
+
+    /// Route state of a unit (`None` if the unit does not exist).
+    pub fn route_of(&self, id: UnitId) -> Option<RouteView<'_>> {
+        let index = self.units.binary_search_by_key(&id, |u| u.id).ok()?;
+        Some(match &self.units[index].route {
+            Route::None => RouteView::Idle,
+            Route::Waiting(_) => RouteView::Waiting,
+            Route::Following {
+                waypoints, next, ..
+            } => RouteView::Following(&waypoints[*next..]),
+        })
+    }
+
     /// Advances the simulation by exactly one tick.
     ///
-    /// Commands are applied in the given order before movement (the lockstep
-    /// layer sorts them by player, then issue order).
+    /// Commands are applied in the given order (the lockstep layer sorts
+    /// them by player, then issue order), then queued path requests get
+    /// their node budget, then units move.
     pub fn step(&mut self, commands: &[PlayerCommand]) {
         for command in commands {
             self.apply(command);
         }
-        for unit in &mut self.units {
-            move_unit(unit, &self.map, &self.terrain);
-        }
+        self.plan_paths();
+        self.move_units();
         self.tick += 1;
+    }
+
+    /// Blocks (or frees) the area between the corners `a` and `b` for
+    /// pathfinding, as a building, a wreck or a wall would. Called by game
+    /// systems (destruction, prompt 020), never by player commands. Units
+    /// whose remaining route touches the changed cells plan again.
+    pub fn set_path_obstacle(&mut self, a: Vec2, b: Vec2, blocked: bool) {
+        let grid = &mut self.paths.grid;
+        let rect = grid.cells_in(a, b);
+        let changed = grid.set_obstacle(&self.map, &self.terrain, rect, blocked);
+        // The running search used the old grid.
+        self.paths.restart_active();
+        for unit in &mut self.units {
+            let Route::Following {
+                waypoints, next, ..
+            } = &unit.route
+            else {
+                continue;
+            };
+            let grid = &self.paths.grid;
+            let mut from = unit.position;
+            let touched = waypoints[*next..].iter().any(|&to| {
+                let cells = grid.cells_in(from, to);
+                from = to;
+                cells.x0 <= changed.x1
+                    && changed.x0 <= cells.x1
+                    && cells.y0 <= changed.y1
+                    && changed.y0 <= cells.y1
+            });
+            if let (true, Some(target)) = (touched, unit.target) {
+                let id = self.paths.request(
+                    unit.position,
+                    target,
+                    unit.unit_type as usize,
+                    vec![(unit.id, Vec2::ZERO)],
+                );
+                unit.route = Route::Waiting(id);
+            }
+        }
+    }
+
+    /// Gives the path queue its budget and hands finished paths to the
+    /// units waiting for them.
+    fn plan_paths(&mut self) {
+        let units = &self.units;
+        let wanted = |id: u32| units.iter().any(|u| u.route == Route::Waiting(id));
+        let finished = self.paths.run(NODE_BUDGET_PER_TICK, wanted);
+        for (request, path) in finished {
+            self.take_path(&request, path.as_ref());
+        }
+    }
+
+    /// Turns a group path into the route of every unit still waiting for it.
+    ///
+    /// A unit follows the group path shifted by its formation offset. Where
+    /// a shifted leg is blocked it uses the unshifted waypoint (the group
+    /// squeezes through); if that is blocked too, it gets a path of its own
+    /// to its slot.
+    fn take_path(&mut self, request: &Request, path: Option<&Path>) {
+        let single = request.units.len() == 1;
+        for &(id, offset) in &request.units {
+            let Ok(index) = self.units.binary_search_by_key(&id, |u| u.id) else {
+                continue;
+            };
+            let unit = &mut self.units[index];
+            if unit.route != Route::Waiting(request.id) {
+                continue;
+            }
+            let Some(path) = path else {
+                unit.target = None;
+                unit.route = Route::None;
+                continue;
+            };
+            let grid = &self.paths.grid;
+            let waypoints = if single {
+                Some(path.waypoints[1..].to_vec())
+            } else {
+                let class = grid.class_of(unit.unit_type as usize);
+                formation_route(grid, &self.map, class, unit.position, path, offset)
+            };
+            match waypoints {
+                Some(waypoints) => {
+                    unit.target = waypoints.last().copied();
+                    unit.route = following(waypoints);
+                }
+                None => {
+                    let slot = unit.target.unwrap_or(path.goal + offset);
+                    let own = self.paths.request(
+                        unit.position,
+                        slot,
+                        unit.unit_type as usize,
+                        vec![(unit.id, Vec2::ZERO)],
+                    );
+                    unit.route = Route::Waiting(own);
+                }
+            }
+        }
+    }
+
+    /// Moves every unit that follows a route by one tick, with separation
+    /// from nearby units computed from the positions at the start of the
+    /// movement (so the result does not depend on the update order).
+    fn move_units(&mut self) {
+        // Units arriving at their final waypoint ignore separation, so a
+        // parked unit next to the target cannot keep them from arriving.
+        let directions: Vec<Option<Vec2>> = self
+            .units
+            .iter()
+            .map(|u| heading(u).filter(|_| !arriving(u)))
+            .collect();
+        let pushes: Vec<Vec2> = (0..self.units.len())
+            .map(|i| directions[i].map_or(Vec2::ZERO, |d| separation(&self.units, i, d)))
+            .collect();
+        for (unit, push) in self.units.iter_mut().zip(pushes) {
+            if move_unit(unit, push, &self.map, &self.terrain) == Moved::Blocked {
+                // Pushed off the planned line (or the way is blocked):
+                // plan again from here, a limited number of times.
+                unit.replans += 1;
+                match unit.target {
+                    Some(target) if unit.replans <= MAX_REPLANS => {
+                        let id = self.paths.request(
+                            unit.position,
+                            target,
+                            unit.unit_type as usize,
+                            vec![(unit.id, Vec2::ZERO)],
+                        );
+                        unit.route = Route::Waiting(id);
+                    }
+                    _ => stop(unit),
+                }
+            }
+        }
     }
 
     fn apply(&mut self, command: &PlayerCommand) {
@@ -232,15 +430,51 @@ impl Sim {
                     let u = &self.units[i];
                     (u.position.y, u.position.x, u.id)
                 });
-                for (index, slot) in group.into_iter().zip(slots) {
-                    self.units[index].target = Some(slot);
-                }
+                let target = *target;
+                let assigned: Vec<(usize, Vec2)> = group.into_iter().zip(slots).collect();
+                self.request_group_path(&assigned, target);
             }
             Command::Stop { units } => {
                 for index in self.owned_indices(command.player, units) {
-                    self.units[index].target = None;
+                    stop(&mut self.units[index]);
                 }
             }
+        }
+    }
+
+    /// Queues one path for a group (unit indices with their formation slots)
+    /// to `target`. It starts at the unit nearest to the group's center and
+    /// uses the profile of the largest unit, so it fits every member.
+    fn request_group_path(&mut self, assigned: &[(usize, Vec2)], target: Vec2) {
+        let count = Fixed::from_num(assigned.len());
+        let center = assigned.iter().fold(Vec2::ZERO, |sum, &(i, _)| {
+            let p = self.units[i].position;
+            sum + Vec2::new(p.x / count, p.y / count)
+        });
+        let distance_bits = |p: Vec2| {
+            let d = p - center;
+            let (x, y) = (i128::from(d.x.to_bits()), i128::from(d.y.to_bits()));
+            x * x + y * y
+        };
+        let anchor = assigned
+            .iter()
+            .map(|&(i, _)| &self.units[i])
+            .min_by_key(|u| (distance_bits(u.position), u.id))
+            .map_or(target, |u| u.position);
+        let profile = assigned
+            .iter()
+            .map(|&(i, _)| &self.units[i])
+            .max_by_key(|u| (u.footprint, std::cmp::Reverse(u.id)))
+            .map_or(0, |u| u.unit_type as usize);
+        let members = assigned
+            .iter()
+            .map(|&(i, slot)| (self.units[i].id, slot - target))
+            .collect();
+        let id = self.paths.request(anchor, target, profile, members);
+        for &(i, slot) in assigned {
+            self.units[i].target = Some(slot);
+            self.units[i].route = Route::Waiting(id);
+            self.units[i].replans = 0;
         }
     }
 
@@ -268,6 +502,7 @@ impl Sim {
         h.write_u64(self.rng.state());
         h.write_u64(self.map.hash());
         self.terrain.hash_into(&mut h);
+        self.paths.hash_into(&mut h);
         h.write_u64(self.units.len() as u64);
         for unit in &self.units {
             h.write_u32(unit.id.0);
@@ -284,6 +519,30 @@ impl Sim {
                     h.write_i64(target.y.to_bits());
                 }
             }
+            match &unit.route {
+                Route::None => h.write_u8(0),
+                Route::Waiting(id) => {
+                    h.write_u8(1);
+                    h.write_u32(*id);
+                }
+                Route::Following {
+                    waypoints,
+                    next,
+                    best,
+                    stalled,
+                } => {
+                    h.write_u8(2);
+                    h.write_u64(*next as u64);
+                    h.write_i64(best.to_bits());
+                    h.write_u32(*stalled);
+                    h.write_u64(waypoints.len() as u64);
+                    for w in waypoints {
+                        h.write_i64(w.x.to_bits());
+                        h.write_i64(w.y.to_bits());
+                    }
+                }
+            }
+            h.write_u32(unit.replans);
             h.write_i64(unit.speed_offroad.to_bits());
             h.write_i64(unit.speed_road.to_bits());
             h.write_i64(unit.footprint.to_bits());
@@ -352,42 +611,258 @@ pub fn formation_slots(center: Vec2, count: usize, spacing: Fixed) -> Vec<Vec2> 
     slots
 }
 
-/// Moves a unit one tick along the straight line to its target, at the
-/// speed of the terrain under it and the grade ahead.
+/// How far (in path cells) a blocked formation slot may move to the
+/// nearest reachable spot.
+const SLOT_SEARCH_CELLS: u32 = 4;
+
+/// Route of one unit along a group path, shifted by its formation `offset`.
 ///
-/// The unit stops (loses its target) instead of entering impassable terrain,
-/// leaving the map or climbing a grade steeper than the slope rules allow.
-/// Real detours come with pathfinding (prompt 012).
-fn move_unit(unit: &mut Unit, map: &Map, rules: &TerrainRules) {
-    let Some(target) = unit.target else {
-        return;
+/// Every shifted waypoint must be reachable in a straight line from the
+/// previous one; otherwise the unshifted waypoint is used. The last waypoint
+/// is the shifted goal (the unit's slot), or the nearest spot to it that is
+/// visible from the group's end point. `None` if none of this works.
+fn formation_route(
+    grid: &PathGrid,
+    map: &Map,
+    class: crate::path::SizeClass,
+    from: Vec2,
+    path: &Path,
+    offset: Vec2,
+) -> Option<Vec<Vec2>> {
+    let clear = |a: Vec2, b: Vec2| map.contains(b) && grid.line_of_sight(class, a, b);
+    let points = &path.waypoints[1..];
+    let last = points.len() - 1;
+    let mut route = Vec::with_capacity(points.len() + 1);
+    let mut previous = from;
+    for (k, &point) in points.iter().enumerate() {
+        let shifted = point + offset;
+        if clear(previous, shifted) {
+            route.push(shifted);
+            previous = shifted;
+        } else if k == last && clear(previous, point) {
+            // The slot lies behind an obstacle or in it: the nearest spot
+            // that is visible from the group's end point.
+            let spot = if clear(point, shifted) {
+                shifted
+            } else {
+                grid.nearest_visible(class, point, shifted, SLOT_SEARCH_CELLS)?
+            };
+            // Straight to the spot if possible: members that share the
+            // group's end point as a waypoint would crowd it.
+            if !clear(previous, spot) {
+                route.push(point);
+            }
+            route.push(spot);
+        } else if k != last && clear(previous, point) {
+            route.push(point);
+            previous = point;
+        } else {
+            return None;
+        }
+    }
+    Some(route)
+}
+
+/// Unit-length direction towards the current waypoint of a unit that follows
+/// a route.
+fn heading(unit: &Unit) -> Option<Vec2> {
+    let Route::Following {
+        waypoints, next, ..
+    } = &unit.route
+    else {
+        return None;
     };
-    let delta = target - unit.position;
+    let delta = waypoints[*next] - unit.position;
     let distance = delta.length();
-    if distance == Fixed::ZERO {
-        unit.target = None;
-        return;
-    }
     // delta / distance has components in [-1, 1], so this cannot overflow.
-    let direction = Vec2::new(delta.x / distance, delta.y / distance);
-    let Some(speed) = ground_speed(unit, direction, map, rules) else {
-        unit.target = None;
-        return;
+    (distance > Fixed::ZERO).then(|| Vec2::new(delta.x / distance, delta.y / distance))
+}
+
+/// Whether a unit following a route is within one footprint of its target.
+fn arriving(unit: &Unit) -> bool {
+    let Route::Following {
+        waypoints, next, ..
+    } = &unit.route
+    else {
+        return false;
     };
-    let next = if distance <= speed {
-        target
+    *next + 1 == waypoints.len() && (waypoints[*next] - unit.position).length() < unit.footprint
+}
+
+/// Separation of unit `i` (driving in `direction`) from all other units.
+///
+/// - **Push:** away from every unit closer than half of both footprints
+///   (`reach`), growing linearly to one unit length at full overlap.
+/// - **Swerve:** sideways from units ahead within twice the reach whose
+///   center is less than `reach` off the own line, away from the side they
+///   are on (straight ahead: to the left of the heading, the same rule for
+///   everybody, so two units meeting head-on pass each other).
+fn separation(units: &[Unit], i: usize, direction: Vec2) -> Vec2 {
+    let me = &units[i];
+    let left = Vec2::new(direction.y, -direction.x);
+    let mut push = Vec2::ZERO;
+    for (j, other) in units.iter().enumerate() {
+        if j == i {
+            continue;
+        }
+        let reach = (me.footprint + other.footprint) / 2;
+        let look = reach * 2;
+        // From me to the other unit.
+        let d = other.position - me.position;
+        if d.x.abs() >= look || d.y.abs() >= look {
+            continue;
+        }
+        let distance = d.length();
+        if distance >= look {
+            continue;
+        }
+        if distance < reach {
+            let weight = (reach - distance) / reach;
+            let away = if distance == Fixed::ZERO {
+                // Same spot: the lower id gives way towards -x.
+                Vec2::new(
+                    if me.id < other.id {
+                        -Fixed::ONE
+                    } else {
+                        Fixed::ONE
+                    },
+                    Fixed::ZERO,
+                )
+            } else {
+                Vec2::new(-d.x / distance, -d.y / distance)
+            };
+            push = push + away.scale(weight);
+        }
+        let ahead = d.x * direction.x + d.y * direction.y;
+        // Positive: the other unit is on my left.
+        let lateral = d.x * left.x + d.y * left.y;
+        if ahead > Fixed::ZERO && lateral.abs() < reach {
+            let weight = (look - distance) / look;
+            let side = if lateral > Fixed::ZERO {
+                -Fixed::ONE
+            } else {
+                Fixed::ONE
+            };
+            push = push + left.scale(side * weight);
+        }
+    }
+    push
+}
+
+/// Result of [`move_unit`].
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Moved {
+    Ok,
+    /// The way to the next waypoint is blocked (impassable terrain, the map
+    /// edge or a grade too steep): the unit did not move.
+    Blocked,
+}
+
+/// Moves a unit one tick towards its current waypoint, at the speed of the
+/// terrain under it and the grade ahead, deflected by `push` (separation;
+/// the step never gets longer than the speed).
+///
+/// The unit never enters impassable terrain or leaves the map. If neither
+/// the pushed nor the direct step is possible, it slides along the obstacle
+/// (only the x or only the y part of the step); if that fails too, it
+/// reports [`Moved::Blocked`].
+fn move_unit(unit: &mut Unit, push: Vec2, map: &Map, rules: &TerrainRules) -> Moved {
+    let Route::Following {
+        waypoints, next, ..
+    } = &unit.route
+    else {
+        return Moved::Ok;
+    };
+    let (waypoint, last) = (waypoints[*next], *next + 1 == waypoints.len());
+    if let Some(direction) = heading(unit) {
+        let Some(speed) = ground_speed(unit, direction, map, rules) else {
+            return Moved::Blocked;
+        };
+        let valid =
+            |p: Vec2| map.contains(p) && rules.types[usize::from(map.terrain_at(p))].passable;
+        let candidates = if (waypoint - unit.position).length() <= speed {
+            [Some(waypoint), None, None, None]
+        } else {
+            let mut velocity = direction + push;
+            let length = velocity.length();
+            if length > Fixed::ONE {
+                velocity = Vec2::new(velocity.x / length, velocity.y / length);
+            }
+            let step = direction.scale(speed);
+            [
+                Some(unit.position + velocity.scale(speed)),
+                Some(unit.position + step),
+                Some(unit.position + Vec2::new(step.x, Fixed::ZERO)),
+                Some(unit.position + Vec2::new(Fixed::ZERO, step.y)),
+            ]
+        };
+        let Some(next_position) = candidates.into_iter().flatten().find(|&p| valid(p)) else {
+            return Moved::Blocked;
+        };
+        unit.position = next_position;
+        unit.height = map.height_at(next_position);
+    }
+    let distance = (waypoint - unit.position).length();
+    let Route::Following {
+        next,
+        best,
+        stalled,
+        ..
+    } = &mut unit.route
+    else {
+        return Moved::Ok;
+    };
+    let reached =
+        distance == Fixed::ZERO || (!last && distance <= Fixed::from_num(WAYPOINT_RADIUS_M));
+    if distance < *best {
+        *best = distance;
+        *stalled = 0;
     } else {
-        unit.position + direction.scale(speed)
-    };
-    if !map.contains(next) || !rules.types[usize::from(map.terrain_at(next))].passable {
-        unit.target = None;
-        return;
+        *stalled += 1;
     }
-    unit.position = next;
-    unit.height = map.height_at(next);
-    if next == target {
-        unit.target = None;
+    if reached {
+        unit.replans = 0;
     }
+    if reached || *stalled >= STALL_TICKS {
+        // A unit that makes no progress (crowded waypoint, separation
+        // deadlock) gives up on the waypoint; on the last one it stays
+        // where it is.
+        if last {
+            stop(unit);
+        } else {
+            *next += 1;
+            *best = Fixed::MAX;
+            *stalled = 0;
+        }
+    }
+    Moved::Ok
+}
+
+/// Paths a unit may plan again from its position before reaching the next
+/// waypoint; then it gives up and stops.
+const MAX_REPLANS: u32 = 3;
+
+/// A route along `waypoints` from the first one on.
+const fn following(waypoints: Vec<Vec2>) -> Route {
+    Route::Following {
+        waypoints,
+        next: 0,
+        best: Fixed::MAX,
+        stalled: 0,
+    }
+}
+
+/// Intermediate waypoints count as reached within this distance (meters).
+const WAYPOINT_RADIUS_M: i32 = 1;
+
+/// Ticks without getting closer to the current waypoint after which a unit
+/// gives up on it (2 s).
+const STALL_TICKS: u32 = 40;
+
+fn stop(unit: &mut Unit) {
+    unit.target = None;
+    unit.route = Route::None;
+    unit.replans = 0;
 }
 
 /// Meters per tick of `unit` driving in `direction` (unit length) from its
@@ -398,12 +873,7 @@ fn move_unit(unit: &mut Unit, map: &Map, rules: &TerrainRules) {
 /// meter.
 fn ground_speed(unit: &Unit, direction: Vec2, map: &Map, rules: &TerrainRules) -> Option<Fixed> {
     let terrain = &rules.types[usize::from(map.terrain_at(unit.position))];
-    let basis = match terrain.speed {
-        SpeedBasis::Road => unit.speed_road,
-        SpeedBasis::Offroad => unit.speed_offroad,
-    };
-    let speed = (basis * Fixed::from_num(terrain.speed_pct) / Fixed::from_num(100))
-        .min(unit.speed_road.max(unit.speed_offroad));
+    let speed = terrain.speed(unit.speed_offroad, unit.speed_road);
     let grade = map.height_at(unit.position + direction) - unit.height;
     Some(speed * rules.slope.factor(grade)?)
 }
@@ -450,6 +920,14 @@ mod tests {
 
     fn new_sim(config: &SimConfig) -> Result<Sim, ConfigError> {
         Sim::new(config, flat_map(), 1)
+    }
+
+    /// Only unit 0 of [`config`], on `map`: nothing in its way.
+    fn solo_on(map: Arc<Map>) -> Sim {
+        let mut cfg = config();
+        cfg.spawns.truncate(1);
+        cfg.map = map.reference();
+        Sim::new(&cfg, map, 1).unwrap()
     }
 
     /// Same units as [`config`], on `map`.
@@ -509,7 +987,7 @@ mod tests {
 
     #[test]
     fn unit_moves_by_speed_per_tick() {
-        let mut sim = new_sim(&config()).unwrap();
+        let mut sim = solo_on(flat_map());
         sim.step(&[move_to(P0, &[0], 10, 0)]);
         let x = sim.snapshot().units[0].position.x;
         let expected = Fixed::from_num(4) / Fixed::from_num(20);
@@ -678,7 +1156,7 @@ mod tests {
     #[test]
     fn uphill_is_slower_than_flat_and_downhill() {
         let step_x = |map: Arc<Map>, x: i32| {
-            let mut sim = sim_on(map);
+            let mut sim = solo_on(map);
             sim.step(&[move_to(P0, &[0], x, 0)]);
             sim.snapshot().units[0].position.x.abs()
         };
@@ -709,42 +1187,151 @@ mod tests {
     #[test]
     fn road_uses_the_road_speed() {
         let road = map_with(|_, _| (0, 2));
-        let mut sim = sim_on(road);
+        let mut sim = solo_on(road);
         sim.step(&[move_to(P0, &[0], 50, 0)]);
         // 10 m/s at 20 Hz.
         assert_eq!(sim.snapshot().units[0].position.x, Fixed::ONE / 2);
     }
 
     #[test]
-    fn units_stop_before_deep_water() {
-        // Deep water from x = 20 m (sample 110) on.
+    fn targets_in_deep_water_end_at_the_nearest_reachable_spot() {
+        // Deep water from x = 20 m (sample 110, owned by the cell 19..23 m)
+        // on. The tank's margin of one sample also blocks the cell 15..19 m,
+        // so the nearest reachable cell center is x = 13 m (y = 1 m: cells
+        // start half a sample before the map edge).
         let lake = map_with(|i, _| (0, if i >= 110 { 7 } else { 0 }));
-        let mut sim = sim_on(lake.clone());
+        let mut sim = solo_on(lake.clone());
         sim.step(&[move_to(P0, &[0], 60, 0)]);
+        assert_eq!(
+            sim.snapshot().units[0].target,
+            Some(Vec2::from_meters(13, 1))
+        );
         run(&mut sim, 200);
         let unit = sim.snapshot().units[0];
         assert_eq!(unit.target, None);
-        assert!(
-            unit.position.x > Fixed::from_num(18),
-            "x = {}",
-            unit.position.x
-        );
-        assert!(
-            unit.position.x < Fixed::from_num(19),
-            "x = {}",
-            unit.position.x
-        );
+        assert_eq!(unit.position, Vec2::from_meters(13, 1));
         assert_ne!(lake.terrain_at(unit.position), 7);
     }
 
     #[test]
-    fn units_stop_at_the_map_edge() {
+    fn targets_beyond_the_map_edge_end_inside_with_clearance() {
         let mut sim = new_sim(&config()).unwrap();
         sim.step(&[move_to(P0, &[0], 0, -500)]);
         run(&mut sim, 20 * 60);
         let unit = sim.snapshot().units[0];
         assert_eq!(unit.target, None);
-        assert!(unit.position.y >= Fixed::from_num(-200));
-        assert!(unit.position.y < Fixed::from_num(-199));
+        // Row 0 (-201..-197 m) touches the edge, which tanks keep a margin
+        // from; center of row 1.
+        assert_eq!(unit.position, Vec2::from_meters(1, -195));
+    }
+
+    /// A wall of deep water across the map at x = 40..44 m with a gap at
+    /// y = 60..80 m.
+    fn wall_with_gap() -> Arc<Map> {
+        map_with(|i, j| {
+            let wall = (120..=122).contains(&i) && !(130..=140).contains(&j);
+            (0, if wall { 7 } else { 0 })
+        })
+    }
+
+    #[test]
+    fn units_drive_around_obstacles() {
+        let map = wall_with_gap();
+        let mut sim = sim_on(map.clone());
+        sim.step(&[move_to(P0, &[0, 1, 2], 80, 0)]);
+        let mut max_x = Fixed::ZERO;
+        for _ in 0..20 * 120 {
+            sim.step(&[]);
+            for u in &sim.snapshot().units[..3] {
+                assert_ne!(map.terrain_at(u.position), 7, "unit in the water");
+                max_x = max_x.max(u.position.x);
+            }
+        }
+        let units = sim.snapshot().units;
+        for u in &units[..3] {
+            assert_eq!(u.target, None);
+            assert!(u.position.x > Fixed::from_num(70), "{:?}", u.position);
+        }
+        // All three went through the gap.
+        assert!(max_x > Fixed::from_num(70));
+    }
+
+    #[test]
+    fn group_shares_one_path_request() {
+        let mut sim = new_sim(&config()).unwrap();
+        sim.step(&[move_to(P0, &[0, 1, 2], 80, 60)]);
+        assert_eq!(sim.path_stats().requests, 1);
+        assert_eq!(sim.path_stats().found, 1);
+        for id in 0..3 {
+            assert!(matches!(
+                sim.route_of(UnitId(id)),
+                Some(RouteView::Following(_))
+            ));
+        }
+        // Through a narrow gap a member may need a path of its own, but
+        // the group still arrives.
+        let mut sim = sim_on(wall_with_gap());
+        sim.step(&[move_to(P0, &[0, 1, 2], 80, 0)]);
+        run(&mut sim, 20 * 120);
+        assert!(sim.path_stats().requests <= 4);
+        assert!(sim.snapshot().units[..3].iter().all(|u| u.target.is_none()));
+    }
+
+    #[test]
+    fn units_wait_for_their_path_and_stop_cancels_it() {
+        let mut sim = sim_on(wall_with_gap());
+        // Many single-unit orders in one tick exceed the node budget, so
+        // later ones wait.
+        let commands: Vec<PlayerCommand> = (0..3)
+            .flat_map(|_| [move_to(P0, &[0], 90, 90), move_to(P0, &[1], 90, -90)])
+            .collect();
+        let start = sim.snapshot().units;
+        sim.step(&commands);
+        assert!(sim.path_stats().dropped > 0, "{:?}", sim.path_stats());
+        sim.step(&[PlayerCommand::new(
+            P0,
+            Command::Stop {
+                units: vec![UnitId(0), UnitId(1)],
+            },
+        )]);
+        assert_eq!(sim.path_queue_len(), 0);
+        run(&mut sim, 20);
+        let units = sim.snapshot().units;
+        assert!(units[0].target.is_none() && units[1].target.is_none());
+        assert!((units[0].position - start[0].position).length() < Fixed::from_num(2));
+    }
+
+    #[test]
+    fn separation_keeps_crossing_units_apart() {
+        // Two tanks swap places head-on.
+        let mut cfg = config();
+        cfg.spawns.truncate(2);
+        cfg.spawns[1].owner = P0;
+        cfg.spawns[1].position = Vec2::from_meters(40, 0);
+        let mut sim = new_sim(&cfg).unwrap();
+        sim.step(&[move_to(P0, &[0], 40, 0), move_to(P0, &[1], 0, 0)]);
+        let mut closest = Fixed::MAX;
+        for _ in 0..20 * 30 {
+            sim.step(&[]);
+            let u = sim.snapshot().units;
+            closest = closest.min((u[0].position - u[1].position).length());
+        }
+        let u = sim.snapshot().units;
+        assert_eq!(u[0].position, Vec2::from_meters(40, 0));
+        assert_eq!(u[1].position, Vec2::from_meters(0, 0));
+        assert!(closest > Fixed::from_num(3), "closest {closest}");
+    }
+
+    #[test]
+    fn obstacles_trigger_replanning() {
+        let mut sim = new_sim(&config()).unwrap();
+        sim.step(&[move_to(P0, &[0], 100, 0)]);
+        // A building appears across the route.
+        sim.set_path_obstacle(Vec2::from_meters(30, -20), Vec2::from_meters(40, 20), true);
+        assert_eq!(sim.route_of(UnitId(0)), Some(RouteView::Waiting));
+        run(&mut sim, 20 * 60);
+        let unit = sim.snapshot().units[0];
+        assert_eq!(unit.position, Vec2::from_meters(100, 0));
+        assert_eq!(sim.path_grid().version(), 1);
     }
 }

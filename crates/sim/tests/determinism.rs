@@ -21,18 +21,21 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by prompt 010: the demo runs on the built-in map
-/// `test_small`; units follow the ground height, speed depends on terrain
-/// type (road or cross-country basis) and uphill grade, units stop before
-/// impassable terrain and at the map edge; map hash, terrain rules, unit
-/// height and both speeds are in the state hash.
-/// Before: prompt 009 (two players with eight tanks each, group commands
-/// with grid formation, `Stop`, owner/footprint in the hash).
+/// Last changed by prompt 012: units drive along A* paths on the 4 m path
+/// grid (one path per group, formation offsets, separation, re-planning),
+/// path requests are queued with a node budget per tick, unreachable
+/// targets snap to the nearest reachable cell; routes, the path queue and
+/// the grid version are in the state hash. `test_small` was regenerated
+/// with wider fords (terrain only).
+/// Before: prompt 010 (map `test_small`, ground height, terrain- and
+/// slope-dependent speed, map hash and terrain rules in the hash), prompt
+/// 009 (two players with eight tanks each, group commands with grid
+/// formation, `Stop`, owner/footprint in the hash).
 ///
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x13df_d611_9523_d352;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x6ebb_c2a3_86e5_a802;
 
 #[test]
 fn golden_hash() {

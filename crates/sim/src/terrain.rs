@@ -29,6 +29,19 @@ pub struct TerrainType {
     pub debug_color: u32,
 }
 
+impl TerrainType {
+    /// Speed on this terrain for a unit with the given cross-country and
+    /// road speed (any unit of time): the basis speed scaled by
+    /// `speed_pct`, never more than the faster of both speeds.
+    pub fn speed(&self, offroad: Fixed, road: Fixed) -> Fixed {
+        let basis = match self.speed {
+            SpeedBasis::Road => road,
+            SpeedBasis::Offroad => offroad,
+        };
+        (basis * Fixed::from_num(self.speed_pct) / Fixed::from_num(100)).min(road.max(offroad))
+    }
+}
+
 /// How the grade along the driving direction changes the speed.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
