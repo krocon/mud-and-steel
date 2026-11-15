@@ -68,7 +68,7 @@ Welle 4:  012 Wegfindung ─ 013 …  │   008 Stufe 2 (3 Sessions pro Fraktion
 | 016 | [Performance für große Karten](016-performance-grosse-karten.md) | Benchmarks, räumliches Raster, Budgets | Entwurf |
 | 017 | [Kampf-Grundlagen](done/017-kampf-grundlagen.md) | Lebenspunkte, Waffen, Geschosse, Treffer aus dem Katalog | erledigt |
 | 018 | [Nebel des Krieges](018-nebel-des-krieges.md) | Sicht pro Spieler mit Sichtlinie über Gelände | Entwurf |
-| 019 | [Effekte](019-effekte.md) | Explosionen, Rauch, Mündungsfeuer, Leuchtspur | Entwurf |
+| 019 | [Effekte](done/019-effekte.md) | Explosionen, Rauch, Mündungsfeuer, Leuchtspur | erledigt |
 | 020 | [Zerstörbare Gebäude und Vegetation](020-zerstoerung.md) | Schadensstufen, Trümmer, umfallende Bäume | Entwurf |
 | 021 | [Verformbares Gelände](021-gelaendeverformung.md) | Krater verändern das Höhenfeld | Entwurf |
 | 022 | [Infanterie-Verhalten](022-infanterie-verhalten.md) | Trupps, Haltungen, Deckung, Gebäude besetzen | Entwurf |
