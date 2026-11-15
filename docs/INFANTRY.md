@@ -295,8 +295,13 @@ squad neither moves nor fires meanwhile.
   object, every 1.5 m along its long side), each soldier the nearest free
   spot within 8 m of his formation place. Soldiers fire over (around) their
   own cover object.
-- **Craters** (prompt 021) will add another cover source through the same
-  spot and roll mechanism.
+- **Craters** (prompt 021): map samples at least 250 mm below their loaded
+  height are cover spots too (no object; the squad takes the nearest free
+  spot, object or crater). A hit on a soldier of a standing squad in such a
+  crater is caught by the rim with 15 / 35 / 50 % (stand / kneel / prone),
+  from every direction (`data/craters.toml`,
+  [ARCHITECTURE.md](ARCHITECTURE.md#terrain-deformation)). Standing squads
+  near a new crater choose their spots again.
 
 ### Buildings
 

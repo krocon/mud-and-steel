@@ -2,6 +2,7 @@
 
 mod ai_tournament;
 mod catalog_doc;
+mod crater_bench;
 mod gen_map;
 mod gen_textures;
 mod infantry_bench;
@@ -93,6 +94,25 @@ enum CliCommand {
         /// Targets lie within this distance of the map center per axis (m).
         #[arg(long, default_value_t = 1800)]
         range_m: i32,
+    },
+    /// Benchmarks craters (prompt 021): many craters in a short time among
+    /// moving units of two players, time per tick.
+    CraterBench {
+        /// Map folder, e.g. data/maps/test_large.
+        #[arg(long, default_value = "data/maps/test_large")]
+        map: PathBuf,
+        /// Units per player.
+        #[arg(long, default_value_t = 100)]
+        units: u32,
+        #[arg(long, default_value_t = 100)]
+        craters: u32,
+        #[arg(long, default_value_t = 5)]
+        per_tick: u32,
+        /// Craters land within this distance of the map center per axis (m).
+        #[arg(long, default_value_t = 200)]
+        range_m: i32,
+        #[arg(long, default_value_t = 1)]
+        seed: u64,
     },
     /// Computer players against each other over many seeds (prompt 024):
     /// sides alternate every game; prints the results and a hash over them.
@@ -353,6 +373,27 @@ fn main() {
                 range_m,
             };
             match path_bench::run(map, &options) {
+                Ok(report) => println!("{report}"),
+                Err(e) => fail(&e),
+            }
+        }
+        CliCommand::CraterBench {
+            map,
+            units,
+            craters,
+            per_tick,
+            range_m,
+            seed,
+        } => {
+            let map = Arc::new(load_map_dir(&map).unwrap_or_else(|e| fail(&e)));
+            let options = crater_bench::Options {
+                units,
+                craters,
+                per_tick,
+                range_m,
+                seed,
+            };
+            match crater_bench::run(map, &options) {
                 Ok(report) => println!("{report}"),
                 Err(e) => fail(&e),
             }

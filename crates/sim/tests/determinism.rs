@@ -21,7 +21,14 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by the merge of prompt 022 (infantry) with 020
+/// Last changed by prompt 021 (terrain deformation): ground hits of rounds
+/// from 45 mm leave craters (`data/craters.toml`) that lower and raise the
+/// map's samples, turn the bowl to mud, rebuild path and vision cells, and
+/// give soldiers in them cover; the crater rules, count and a running
+/// checksum of every changed sample are in the hash. The demo makes 9
+/// craters; the battle is decided at tick 480 instead of 515, player 0
+/// still wins.
+/// Before: the merge of prompt 022 (infantry) with 020
 /// (destruction) and 024 (AI): the destruction state of 020 (its rules,
 /// the two farmhouses `test_small` places as ruins acting as ruins from
 /// the start, every changed object) and the new infantry building rules
@@ -81,7 +88,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x68f7_cd2d_be30_47c8;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x58f5_29f3_e88b_7de2;
 
 #[test]
 fn golden_hash() {
@@ -131,10 +138,10 @@ fn demo_battle_is_decided() {
     let end = run_demo(42, 1000);
     let outcome = end.outcome().expect("the demo battle is decided");
     assert_eq!(outcome.winner, Some(sim::PlayerId(0)));
-    assert_eq!(outcome.tick, 515);
+    assert_eq!(outcome.tick, 480);
     assert_eq!(end.alive_units(sim::PlayerId(1)), 0);
     assert_eq!(
         end.standings()[1].defeat,
-        Some((sim::DefeatReason::Eliminated, 515))
+        Some((sim::DefeatReason::Eliminated, 480))
     );
 }

@@ -60,7 +60,7 @@ pub(crate) fn attach(host: &mut SimHost, seed: u64) -> bool {
             player,
             difficulty,
             &game.config,
-            &game.map,
+            game.map(),
             seed,
         ));
     }

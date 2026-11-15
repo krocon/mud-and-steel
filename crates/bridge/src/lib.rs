@@ -20,6 +20,7 @@ use std::sync::Arc;
 
 mod ai_funcs;
 mod combat_funcs;
+mod crater_funcs;
 mod destruction_funcs;
 mod infantry_funcs;
 mod lan;
@@ -64,7 +65,9 @@ const MAX_PICK_DISTANCE: f32 = 20_000.0;
 /// A running match: simulation plus lockstep session and replay recorder.
 struct Game {
     sim: Sim,
-    map: Arc<Map>,
+    /// The map as loaded, for replays (craters change the simulation's
+    /// map during the match, prompt 021; read that one through `map()`).
+    loaded_map: Arc<Map>,
     /// Highest point of the map in meters, for ray picking.
     map_top: f32,
     config: SimConfig,
@@ -84,8 +87,9 @@ struct Game {
     lower_delay_votes: u32,
     /// Largest delay recommended during those checks.
     lower_delay_to: u32,
-    /// Presentation-only height offsets in meters (debug craters until the
-    /// simulation can deform terrain, prompt 021). Empty until first used.
+    /// Presentation-only height offsets in meters (`debug_dent`, for terrain
+    /// tests; real craters come from the simulation, prompt 021). Empty
+    /// until first used.
     display_offsets: Vec<f32>,
     /// Object-derived rasters for decoration, built on first use.
     deco: std::cell::OnceCell<objects::DecoRasters>,
@@ -96,12 +100,20 @@ struct Game {
 }
 
 impl Game {
+    /// The map of the match as the simulation has it now (craters change
+    /// it, prompt 021). The simulation copies the loaded map once on the
+    /// first crater (copy-on-write); never keep a clone of this `Arc`, or
+    /// every crater would copy it again.
+    fn map(&self) -> &Arc<Map> {
+        self.sim.map()
+    }
+
     fn grid(&self) -> terrain_layers::Grid<'_> {
         terrain_layers::Grid {
-            samples: self.map.samples(),
-            cell_m: self.map.cell_size_mm() as f32 / 1000.0,
-            heights_mm: self.map.heights_mm(),
-            ids: self.map.terrain_ids(),
+            samples: self.map().samples(),
+            cell_m: self.map().cell_size_mm() as f32 / 1000.0,
+            heights_mm: self.map().heights_mm(),
+            ids: self.map().terrain_ids(),
             offsets: &self.display_offsets,
         }
     }
@@ -219,6 +231,8 @@ pub struct SimHost {
     combat_events: Vec<(u64, sim::CombatEvent)>,
     /// Object stage events since the last `take_object_events` (prompt 020).
     object_events: Vec<(u64, sim::ObjectEvent)>,
+    /// Crater events since the last `take_crater_events` (prompt 021).
+    crater_events: Vec<(u64, sim::CraterEvent)>,
     /// Debug: draw everything without fog (prompt 018, presentation only).
     reveal_all: bool,
     base: Base<Node>,
@@ -239,6 +253,7 @@ impl INode for SimHost {
             ai_opponent: GString::new(),
             combat_events: Vec::new(),
             object_events: Vec::new(),
+            crater_events: Vec::new(),
             reveal_all: false,
             base,
         }
@@ -276,6 +291,7 @@ impl INode for SimHost {
             self.previous = std::mem::replace(&mut self.current, next);
             combat_funcs::collect_events(&mut self.combat_events, &self.current);
             destruction_funcs::collect_events(&mut self.object_events, &game.sim);
+            crater_funcs::collect_events(&mut self.crater_events, &game.sim);
             self.accumulator -= tick_seconds;
             ticks += 1;
         }
@@ -431,6 +447,7 @@ impl SimHost {
         self.pending.clear();
         self.combat_events.clear();
         self.object_events.clear();
+        self.crater_events.clear();
         self.accumulator = 0.0;
         self.game = Some(Game {
             recorder: ReplayRecorder::new(seed, config.clone(), &players),
@@ -444,7 +461,7 @@ impl SimHost {
                 .iter()
                 .max()
                 .map_or(0.0, |&h| h as f32 / 1000.0),
-            map,
+            loaded_map: map,
             config,
             session,
             transport,
@@ -499,7 +516,7 @@ impl SimHost {
     fn map_name(&self) -> GString {
         self.game
             .as_ref()
-            .map_or_else(GString::new, |g| GString::from(g.map.name()))
+            .map_or_else(GString::new, |g| GString::from(g.map().name()))
     }
 
     /// Biome of the loaded map from `map.toml` (`forest`, `desert`,
@@ -509,7 +526,7 @@ impl SimHost {
     fn map_biome(&self) -> GString {
         self.game
             .as_ref()
-            .map_or_else(GString::new, |g| GString::from(g.map.biome().name()))
+            .map_or_else(GString::new, |g| GString::from(g.map().biome().name()))
     }
 
     /// Width (x) and depth (z) of the map in meters. The map is centered on
@@ -517,7 +534,7 @@ impl SimHost {
     #[func]
     fn map_size(&self) -> Vector2 {
         self.game.as_ref().map_or(Vector2::ZERO, |g| {
-            let size = g.map.size();
+            let size = g.map().size();
             Vector2::new(fixed_to_f32(size.x), fixed_to_f32(size.y))
         })
     }
@@ -533,7 +550,7 @@ impl SimHost {
         ) else {
             return 0.0;
         };
-        fixed_to_f32(game.map.height_at(Vec2::from_millimeters(x, z)))
+        fixed_to_f32(game.map().height_at(Vec2::from_millimeters(x, z)))
     }
 
     /// Number of samples per axis of `height_grid(stride)` and
@@ -541,7 +558,7 @@ impl SimHost {
     #[func]
     fn grid_samples(&self, stride: i64) -> Vector2i {
         self.game.as_ref().map_or(Vector2i::ZERO, |g| {
-            let (sx, sy) = g.map.samples();
+            let (sx, sy) = g.map().samples();
             let stride = clamp_stride(stride);
             let count = |n: u32| i32::try_from((n - 1).div_ceil(stride) + 1).unwrap_or(0);
             Vector2i::new(count(sx), count(sy))
@@ -556,8 +573,8 @@ impl SimHost {
         self.game
             .as_ref()
             .map_or_else(PackedFloat32Array::new, |g| {
-                grid_indices(&g.map, clamp_stride(stride))
-                    .map(|(i, j)| g.map.sample_height_mm(i, j) as f32 / 1000.0)
+                grid_indices(g.map(), clamp_stride(stride))
+                    .map(|(i, j)| g.map().sample_height_mm(i, j) as f32 / 1000.0)
                     .collect()
             })
     }
@@ -566,9 +583,9 @@ impl SimHost {
     #[func]
     fn terrain_grid(&self, stride: i64) -> PackedByteArray {
         self.game.as_ref().map_or_else(PackedByteArray::new, |g| {
-            let (sx, _) = g.map.samples();
-            let ids = g.map.terrain_ids();
-            grid_indices(&g.map, clamp_stride(stride))
+            let (sx, _) = g.map().samples();
+            let ids = g.map().terrain_ids();
+            grid_indices(g.map(), clamp_stride(stride))
                 .map(|(i, j)| ids[j as usize * sx as usize + i as usize])
                 .collect()
         })
@@ -584,7 +601,7 @@ impl SimHost {
         ) else {
             return -1;
         };
-        i64::from(game.map.terrain_at(Vec2::from_millimeters(x, z)))
+        i64::from(game.map().terrain_at(Vec2::from_millimeters(x, z)))
     }
 
     /// Speed of a terrain type in percent of its basis speed (-1 if unknown).
@@ -606,7 +623,7 @@ impl SimHost {
     fn cell_size(&self) -> f32 {
         self.game
             .as_ref()
-            .map_or(0.0, |g| g.map.cell_size_mm() as f32 / 1000.0)
+            .map_or(0.0, |g| g.map().cell_size_mm() as f32 / 1000.0)
     }
 
     /// Debug color of every terrain type, indexed by terrain id.
@@ -632,8 +649,8 @@ impl SimHost {
         self.game
             .as_ref()
             .and_then(|g| {
-                let p = g.map.marker(&name.to_string())?;
-                Some(ground_to_godot(p, g.map.height_at(p)).to_variant())
+                let p = g.map().marker(&name.to_string())?;
+                Some(ground_to_godot(p, g.map().height_at(p)).to_variant())
             })
             .unwrap_or_default()
     }
@@ -649,7 +666,7 @@ impl SimHost {
         let Some(game) = &self.game else {
             return Variant::nil();
         };
-        ray_pick(&game.map, game.map_top, origin, direction)
+        ray_pick(game.map(), game.map_top, origin, direction)
             .map_or_else(Variant::nil, |p| p.to_variant())
     }
 
@@ -707,20 +724,20 @@ impl SimHost {
 
     /// Presses a test crater (radius and depth in meters) into the displayed
     /// terrain at `(x, z)` and returns the changed rectangle of samples (empty
-    /// if outside). Presentation only: the simulation, unit heights and
-    /// mouse picking keep the original heights until prompt 021 lets the
-    /// simulation deform the ground.
+    /// if outside). Presentation only (terrain tests and benchmarks): the
+    /// simulation, unit heights and mouse picking keep their heights. Real
+    /// craters: `debug_crater` (prompt 021).
     #[func]
     fn debug_dent(&mut self, x: f32, z: f32, radius: f32, depth: f32) -> Rect2i {
         let Some(game) = self.game.as_mut() else {
             return Rect2i::default();
         };
-        let samples = game.map.samples();
+        let samples = game.map().samples();
         if game.display_offsets.is_empty() {
             game.display_offsets = vec![0.0; samples.0 as usize * samples.1 as usize];
         }
-        let size = game.map.size();
-        let cell = game.map.cell_size_mm() as f32 / 1000.0;
+        let size = game.map().size();
+        let cell = game.map().cell_size_mm() as f32 / 1000.0;
         let center = (
             (x + fixed_to_f32(size.x) / 2.0) / cell,
             (z + fixed_to_f32(size.y) / 2.0) / cell,
@@ -991,7 +1008,7 @@ impl SimHost {
         for unit in &self.current.units {
             if let Some(RouteView::Following(waypoints)) = game.sim.route_of(unit.id) {
                 for &w in waypoints {
-                    points.push(ground_to_godot(w, game.map.height_at(w)));
+                    points.push(ground_to_godot(w, game.map().height_at(w)));
                 }
             }
         }
@@ -1041,7 +1058,7 @@ impl SimHost {
     fn verify_replay(&self, bytes: PackedByteArray) -> GString {
         // The replay names its map by content hash. The running match's map
         // is the usual case; the built-in map covers replays of the demo.
-        let running = self.game.as_ref().map(|g| g.map.clone());
+        let running = self.game.as_ref().map(|g| g.loaded_map.clone());
         let result = Replay::decode(bytes.as_slice())
             .and_then(|replay| {
                 let map = running

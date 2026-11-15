@@ -41,6 +41,7 @@ extends Node3D
 ## their nodes are hidden here.
 ## Effects (prompt 019): `world/effects.gd` (smoke, fire, impacts, dust);
 ## `-- --effects-shots` / `--effects-bench` run `tools/effects_bench.gd`.
+## `-- --effects-craters` runs `tools/crater_bench.gd` (prompt 021).
 ## Infantry (prompt 022): squads use their squad scene as model;
 ## `world/infantry_view.gd` places and animates the soldiers.
 ## `-- --scenario=<file>` starts a scenario file of `data/scenarios/`;
@@ -64,6 +65,8 @@ const CombatView := preload("res://scenes/world/combat_view.gd")
 const FogOfWar := preload("res://scenes/world/fog_of_war.gd")
 const Effects := preload("res://scenes/world/effects.gd")
 const DestructionView := preload("res://scenes/world/destruction_view.gd")
+const CraterView := preload("res://scenes/world/crater_view.gd")
+const CraterBench := preload("res://scenes/tools/crater_bench.gd")
 const EffectsBench := preload("res://scenes/tools/effects_bench.gd")
 const InfantryView := preload("res://scenes/world/infantry_view.gd")
 const InfantryBench := preload("res://scenes/tools/infantry_bench.gd")
@@ -118,6 +121,8 @@ var effects: Effects
 ## Soldiers of infantry squads (prompt 022).
 var infantry_view: InfantryView
 var destruction_view: Node
+## Craters (prompt 021): terrain and decoration updates.
+var crater_view: Node
 ## Pause menu and result screen (prompt 027).
 var game_menu: CanvasLayer
 var _loading: CanvasLayer
@@ -201,6 +206,10 @@ func _ready() -> void:
 	destruction_view.name = "DestructionView"
 	add_child(destruction_view)
 	destruction_view.setup(self)
+	crater_view = CraterView.new()
+	crater_view.name = "CraterView"
+	add_child(crater_view)
+	crater_view.setup(self)
 
 	selection.sim_host = sim_host
 	selection.camera = camera
@@ -257,6 +266,10 @@ func _ready() -> void:
 		var effects_bench := EffectsBench.new()
 		effects_bench.main = self
 		add_child(effects_bench)
+	if "--effects-craters" in OS.get_cmdline_user_args():
+		var crater_bench := CraterBench.new()
+		crater_bench.main = self
+		add_child(crater_bench)
 	if "--infantry-bench" in OS.get_cmdline_user_args():
 		camera_rig.edge_scroll_enabled = false
 		var infantry_bench := InfantryBench.new()
@@ -319,6 +332,7 @@ func _start_simulation() -> bool:
 	sim_host.hold_fire_at_start = "--self-test" in OS.get_cmdline_user_args()
 	# The effects tools trigger their own effects (prompt 019).
 	sim_host.hold_fire_at_start = sim_host.hold_fire_at_start or _effects_tool()
+	sim_host.hold_fire_at_start = sim_host.hold_fire_at_start or "--effects-craters" in OS.get_cmdline_user_args()
 	# The infantry bench opens fire itself (prompt 022).
 	sim_host.hold_fire_at_start = sim_host.hold_fire_at_start or "--infantry-bench" in OS.get_cmdline_user_args()
 	# Computer opponent (prompt 024): from the setup screen, or `--ai=<level>`

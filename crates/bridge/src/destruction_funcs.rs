@@ -77,12 +77,12 @@ impl SimHost {
         };
         let mut out = Array::new();
         for (tick, e) in events {
-            let mut d = state_dict(&game.sim, &game.map, e.object);
+            let mut d = state_dict(&game.sim, game.map(), e.object);
             // The event's own stage (the object may have changed again).
             d.set("stage", e.stage.name());
             d.set(
                 "variant",
-                variant_for(&game.sim, &game.map, e.object, e.stage).as_str(),
+                variant_for(&game.sim, game.map(), e.object, e.stage).as_str(),
             );
             d.set("fall_deg", i64::from(e.fall_deg));
             d.set("tick", i64::try_from(tick).unwrap_or(i64::MAX));
@@ -115,7 +115,7 @@ impl SimHost {
         };
         game.sim
             .changed_objects()
-            .map(|(i, _)| state_dict(&game.sim, &game.map, i))
+            .map(|(i, _)| state_dict(&game.sim, game.map(), i))
             .collect()
     }
 
@@ -127,8 +127,8 @@ impl SimHost {
         };
         u32::try_from(index)
             .ok()
-            .filter(|&i| (i as usize) < game.map.objects().len())
-            .map_or_else(VarDictionary::new, |i| state_dict(&game.sim, &game.map, i))
+            .filter(|&i| (i as usize) < game.map().objects().len())
+            .map_or_else(VarDictionary::new, |i| state_dict(&game.sim, game.map(), i))
     }
 
     /// Where `object_groups(chunk_m)` draws object `index`:
@@ -142,7 +142,7 @@ impl SimHost {
         };
         let Some((kind, chunk, slot)) = usize::try_from(index)
             .ok()
-            .and_then(|i| objects::instance_of(&game.map, i, chunk_m.max(1.0)))
+            .and_then(|i| objects::instance_of(game.map(), i, chunk_m.max(1.0)))
         else {
             return d;
         };
@@ -167,9 +167,9 @@ impl SimHost {
             return PackedInt64Array::new();
         };
         let id = id.to_string();
-        let kinds = game.map.object_kinds();
+        let kinds = game.map().object_kinds();
         let mut found: Vec<(f32, i64)> = (0u32..)
-            .zip(game.map.objects())
+            .zip(game.map().objects())
             .filter(|(_, o)| kinds[usize::from(o.kind)].id == id)
             .filter(|&(i, _)| {
                 game.sim
