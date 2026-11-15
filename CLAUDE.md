@@ -48,6 +48,7 @@ just lan / just lan-selftest  # LAN lobby / two headless instances over localhos
 just map-editor / just editor-selftest  # map editor / its headless test
 just map-check <name>      # validate data/maps/<name>/ like the editor
 just ai-tournament         # AI against AI over many seeds, statistics (docs/AI.md)
+just bench / just bench-view  # overall benchmark: simulation / frame rate (docs/PERFORMANCE.md)
 just catalog-doc           # regenerate docs/UNIT_CATALOG.md after catalog changes
 just export-model assets-src/blender/X.blend
 just model-tank            # regenerate placeholder tank
@@ -67,6 +68,7 @@ assets-src/blender/  .blend sources (Git LFS)
 tools/           Blender scripts, Godot import helper
 data/            unit catalog (catalog/*.toml, real values) and scale.toml
 docs/            ARCHITECTURE.md, DETERMINISM.md, VERSIONS.md, SCALE.md, ASSETS.md,
-                 SOURCES.md, INFANTRY.md, LAN.md, AI.md, UNIT_CATALOG.md (generated)
+                 SOURCES.md, INFANTRY.md, LAN.md, AI.md, PERFORMANCE.md,
+                 UNIT_CATALOG.md (generated)
 prompts/         task prompts (roadmap in prompts/README.md); finished ones: git mv to prompts/done/
 ```

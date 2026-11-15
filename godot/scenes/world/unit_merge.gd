@@ -7,9 +7,9 @@ extends RefCounted
 ## camouflage instance uniforms. Only the turret moves at run time
 ## (`combat_view.gd`), so the parts outside the turret become one mesh on
 ## the model root and the parts of the turret (gun, cupola, MGs) one mesh on
-## the `Turret` node, with one surface per material. The original
-## MeshInstance3D nodes stay as empty carriers: sockets (muzzle, exhaust,
-## fire, markings) and the turret keep their transforms. The merged meshes
+## the `Turret` node, with one surface per material. Original
+## MeshInstance3D nodes that carry sockets (muzzle, exhaust, fire,
+## markings) or the turret stay as empty nodes; the others are freed. The merged meshes
 ## are built once per unit type with automatic LODs and shared by all
 ## units of that type. Shadow-only parts (`ShadowProxy`) stay as they are.
 
@@ -36,7 +36,23 @@ static func merge(model: Node3D, type_id: String) -> int:
 		model.get_node(entry["parent"] as NodePath).add_child(instance)
 	for part in parts:
 		part.mesh = null
+	# Emptied parts without children (wheels, rollers, hatches, ...) go
+	# away: every node below a moving unit is notified of every move.
+	# Parts that carry sockets, the turret or a merged mesh stay.
+	for i in range(parts.size() - 1, -1, -1):
+		# Freeing a leaf may free its emptied parents, which come later.
+		if is_instance_valid(parts[i]):
+			_free_if_empty(parts[i])
 	return parts.size()
+
+
+static func _free_if_empty(node: Node) -> void:
+	while node != null and node is MeshInstance3D and (node as MeshInstance3D).mesh == null \
+			and node.get_child_count() == 0:
+		var parent := node.get_parent()
+		parent.remove_child(node)
+		node.free()
+		node = parent
 
 
 ## Mesh parts that can be merged: every MeshInstance3D with a mesh, except

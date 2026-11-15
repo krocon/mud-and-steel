@@ -42,8 +42,10 @@ func _run() -> void:
 		sim_host.map_name(), get_viewport().get_visible_rect().size,
 		RenderingServer.get_video_adapter_name(), sim_host.unit_ids().size(),
 		sim_host.soldier_units().size(), main.atmosphere.quality])
+	var battle_only := "--perf-battle" in OS.get_cmdline_user_args()
 	for distance in DISTANCES:
-		await _measure("standing", distance)
+		if not battle_only:
+			await _measure("standing", distance)
 	if "--perf-quick" in OS.get_cmdline_user_args():
 		get_tree().quit()
 		return

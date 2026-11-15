@@ -207,8 +207,9 @@ func _draw(delta: float) -> void:
 		if s["impostor"]:
 			_drop_impostor(s, key)
 		member.visible = true
-		member.position = node.to_local(position)
-		member.rotation.y = s["yaw"] - node.rotation.y
+		# Members are top-level nodes (`_make`): world transforms.
+		member.position = position
+		member.rotation.y = s["yaw"]
 		_animate(s, hp[k] <= 0, moving, speed, stances[u], now)
 		_advance(s, delta, distance)
 	_flush_impostors(unit_index)
@@ -331,6 +332,10 @@ func _make(node: Node3D, key: int, index: int) -> Dictionary:
 		return {}
 	var faction := _faction_of(key / 256)
 	var seed := key * 7919
+	# Placed in world space every time they are drawn: a moving squad node
+	# then does not drag hundreds of skeleton and attachment nodes along
+	# every frame (prompt 016).
+	member.top_level = true
 	SoldierLook.apply(member, faction, _biome, seed)
 	var player := SoldierLook.find_player(member)
 	if player != null:
