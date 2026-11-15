@@ -91,7 +91,7 @@ Umsetzen von ihrer Session konkretisiert.
 |-----|--------|------|--------|
 | 029 | [Sound-Effekte](029-sound-effekte.md) | Gefecht, Motoren, UI; Busse, Stimmenlimit, Quellen | offen |
 | 030 | [Musik und Umgebungsklang](030-musik-ambiente.md) | Biom-Ambiente, Musik ruhig/Gefecht, Menü | Entwurf |
-| 031 | [HUD, Minikarte, Befehle](031-hud-minimap-befehle.md) | Minikarte, Einheitenanzeige, Befehlsleiste, Wegpunktketten | Entwurf |
+| 031 | [HUD, Minikarte, Befehle](done/031-hud-minimap-befehle.md) | Minikarte, Einheitenanzeige, Befehlsleiste, Wegpunktketten; Steuerung in `docs/CONTROLS.md` | erledigt |
 | 032 | [Indirektes Feuer und Rauch](032-indirektes-feuer-rauch.md) | Mörser, Haubitzen, Splitter, Rauch blockiert Sicht | Entwurf |
 | 033 | [Flugzeuge und Flak](033-luftwaffe-flak.md) | Luftunterstützung als Abruf, Flugabwehr | Entwurf |
 | 034 | [Transport und Schleppen](034-transport-schleppen.md) | Aufsitzen, Geschütze ziehen und abprotzen | Entwurf |

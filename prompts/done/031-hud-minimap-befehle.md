@@ -78,6 +78,20 @@ Warteschlange. Galerie-Thumbnails gibt es nicht als Dateien.
 | Wegpunktlinien | Für gewählte Einheiten: Linie Einheit → aktuelles Ziel → Kette, Marker an den Wegpunkten, auf dem HUD gezeichnet (projizierte Punkte). | Gerade Linien bleiben unter Projektion gerade; billig. |
 | HUD-Messung | Jedes HUD-Teil misst seine `_process`-Zeit; Selbsttest und `--perf-bench` geben die Summe aus. | Akzeptanzkriterium 3. |
 
+## 5. Ergebnis
+
+- Sim: `Command::QueueMove` und `Command::Patrol` (hinten angehängt),
+  `sim/orders.rs`, Tests `crates/sim/tests/orders.rs` und ein Replay-Test in
+  `crates/net/tests/replay.rs`. Golden-Hash unverändert.
+- HUD: `godot/scenes/hud/` (Minikarte, Einheitenanzeige, Befehlsleiste,
+  Ereignisse, Wegpunktlinien), Bridge `crates/bridge/src/hud_funcs.rs`.
+- Selbsttest `tools/hud_self_test.gd`; LAN-Selbsttest schickt Ketten und eine
+  Patrouille. HUD im Schlacht-Benchmark 0,70–0,83 ms pro Frame (Maschine
+  durch parallele Sessions ausgelastet), ohne Auswahl 0,24–0,27 ms.
+- Offen: Formationswahl und Ausrichtung per Rechtsklick-Ziehen; Minikarte
+  nach Kratern nicht neu gezeichnet; Sperrfeuer-Tasten von 032 (G/T) beim
+  Zusammenführen als Aktionen in die Befehlsleiste aufnehmen.
+
 ## Arbeitsweise
 
 Wie in den vorigen Prompts: Deutsch mit mir, Englisch im Repo, kein Push ohne Freigabe,
