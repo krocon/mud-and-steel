@@ -178,13 +178,18 @@ impl SimHost {
     }
 
     /// The combat events since the last call, oldest first, as
-    /// dictionaries with `type` ("shot", "hit", "destroyed"), `tick` and:
+    /// dictionaries with `type` ("shot", "hit", "destroyed", "smoke"), `tick` and:
     ///
     /// - shot: `unit`, `weapon`, `projectile`, `position` (muzzle), `caliber_mm`
     /// - hit: `projectile`, `shooter`, `position`, `target` (unit id or -1),
     ///   `surface` ("unit", "ground", "object"), `face`, `turret`,
     ///   `penetrated`, `damage`, `caliber_mm`
     /// - destroyed: `unit`, `by`, `position`
+    /// - smoke: `projectile`, `shooter`, `position`, `radius` (a smoke shell
+    ///   burst, prompt 032)
+    ///
+    /// Shells of indirect fire (prompt 032) fire `shot` events with
+    /// `weapon` 255 and land with `hit` events of the same `projectile` id.
     #[func]
     fn take_combat_events(&mut self) -> Array<VarDictionary> {
         let events = std::mem::take(&mut self.combat_events);
@@ -234,6 +239,18 @@ impl SimHost {
                     d.set("penetrated", penetrated);
                     d.set("damage", i64::from(damage));
                     d.set("caliber_mm", caliber_mm_x10 as f32 / 10.0);
+                }
+                CombatEvent::Smoke {
+                    projectile,
+                    shooter,
+                    at,
+                    radius,
+                } => {
+                    d.set("type", "smoke");
+                    d.set("projectile", i64::from(projectile));
+                    d.set("shooter", i64::from(shooter.0));
+                    d.set("position", to_godot(at));
+                    d.set("radius", fixed_to_f32(radius));
                 }
                 CombatEvent::Destroyed { unit, by, at } => {
                     d.set("type", "destroyed");

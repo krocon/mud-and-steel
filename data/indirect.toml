@@ -1,0 +1,105 @@
+# Indirect fire and smoke rules (prompt 032). Integers only. Compiled into
+# the simulation (`sim::IndirectRules::builtin`), loaded by `Sim::new` and
+# part of the state hash; see docs/ARCHITECTURE.md "Indirect fire and smoke".
+#
+# These are game rules, not catalog values: caliber, rate of fire, muzzle
+# velocity, maximum range and smoke ammunition come from the catalog (the
+# first weapon of a mortar, howitzer or self-propelled gun) and are converted
+# by data/scale.toml (range × indirect_fire, time factor). The catalog has no
+# minimum ranges, setup times, blast radii or smoke clouds, so they are
+# rules here. Values marked [provisional] wait for confirmation (docs).
+
+# Per category: minimum range as a share of the maximum range, time to set
+# up after moving (real ms, the time factor applies) before the first round,
+# and the preferred elevation in degrees (mortars fire high, guns low; the
+# charge is chosen so the shell reaches the target at this elevation, or
+# full charge at the matching angle when that is not enough). [provisional]
+[[category]]
+category = "inf_mortar_light"
+min_range_pct = 10
+setup_ms = 10000
+elevation_deg = 60
+
+[[category]]
+category = "inf_mortar_medium"
+min_range_pct = 5
+setup_ms = 10000
+elevation_deg = 60
+
+[[category]]
+category = "mortar_heavy"
+min_range_pct = 5
+setup_ms = 30000
+elevation_deg = 60
+
+[[category]]
+category = "gun_howitzer"
+min_range_pct = 10
+setup_ms = 60000
+elevation_deg = 25
+
+[[category]]
+category = "self_propelled"
+min_range_pct = 10
+setup_ms = 10000
+elevation_deg = 25
+
+[ballistics]
+# Gravity in mm/s² of real time (flight time is computed at real distances
+# and divided by the time factor).
+gravity_mm_per_s2 = 9807
+
+[dispersion]
+# Error of the impact point per axis, triangular, in tenths of a
+# milliradian of the real distance, at least `min_mm`. Sizes are 1:1, so
+# the error is in real meters: 3 mrad at 2400 m real (8 cm mortar at full
+# range, 300 m game) is ±7 m. [provisional]
+mrad_x10 = 30
+min_mm = 2000
+# Firing at a ground point the player does not see multiplies the error.
+blind_pct = 300
+
+[blast]
+# Fragmentation radius per mm of caliber (8 cm ≈ 16 m, 10.5 cm ≈ 21 m).
+radius_mm_per_mm = 200
+# Chance that a soldier standing in the open at the point of impact is hit;
+# it falls linearly to 0 at the radius and scales with the stance height
+# (data/infantry.toml: kneeling 61 %, prone 25 % of standing). Soldiers at a
+# cover spot are hit `cover_pct` percent as often. A hit costs
+# `soldier_damage` hit points. [provisional]
+infantry_pct = 60
+cover_pct = 50
+soldier_damage = 100
+# Vehicles whose thinnest plate is at most `open_armor_mm` (trucks,
+# halftracks, open guns) take `open_damage_per_mm` hit points per mm of
+# caliber at the point of impact, falling linearly to 0 at the radius.
+open_armor_mm = 10
+open_damage_per_mm = 4
+# Armored vehicles are hurt only by a direct hit (the impact point lies in
+# their hull outline): the shell penetrates `direct_hit_pen_pct` percent of
+# its caliber against a roof of `roof_pct` percent of the thinnest plate
+# (the catalog has no roof armor). A penetrating hit costs what a
+# penetrating gun round of the caliber costs (data/combat.toml).
+direct_hit_pen_pct = 25
+roof_pct = 50
+
+[smoke]
+# A smoke shell leaves a cloud of `radius_mm_per_mm` per mm of caliber
+# (8 cm ≈ 12 m, 10.5 cm ≈ 16 m) for `lifetime_ms` of real time (time factor
+# applies). It hides what is inside it and blocks sight lines below
+# `height_mm` above the ground of every vision cell whose center it covers.
+# [provisional]
+radius_mm_per_mm = 150
+lifetime_ms = 90000
+height_mm = 10000
+# The wind drifts every cloud by this many mm per real second (x east,
+# y south). Fixed until weather (prompt 040). [provisional]
+wind_x_mm_per_s = 800
+wind_y_mm_per_s = 300
+# At most this many clouds at once; the oldest one dissolves first.
+max_clouds = 64
+
+[barrage]
+# Limits of a barrage order (Command::Barrage).
+max_salvos = 20
+max_radius_m = 150

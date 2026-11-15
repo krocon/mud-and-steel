@@ -395,6 +395,10 @@ pub struct CombatType {
     /// Direct-fire range factor `(num, den)` (real distances for
     /// penetration loss, dispersion); `(0, 0)` counts as 1.
     pub range_ratio: (u32, u32),
+    /// Indirect weapon of mortars, howitzers and self-propelled guns
+    /// (prompt 032).
+    #[serde(default)]
+    pub indirect: Option<crate::indirect::IndirectWeapon>,
 }
 
 impl CombatType {
@@ -405,20 +409,15 @@ impl CombatType {
     /// Converts the combat values of a catalog entry.
     pub fn from_catalog(e: &Entry, scale: &Scale) -> Self {
         let group = e.category.group();
-        let indirect = matches!(
-            e.category,
-            Category::InfMortarLight
-                | Category::InfMortarMedium
-                | Category::MortarHeavy
-                | Category::GunHowitzer
-                | Category::SelfPropelled
-        );
+        // Mortars, howitzers and self-propelled guns fire their first
+        // weapon indirectly (prompt 032); the others are direct weapons.
+        let indirect = crate::indirect::IndirectWeapon::from_catalog(e, scale);
+        let skip = usize::from(crate::indirect::is_indirect_category(e.category));
         let factor = scale.time_factor_for(e.category);
-        let weapons = if indirect {
-            Vec::new()
-        } else {
+        let weapons = {
             e.weapon
                 .iter()
+                .skip(skip)
                 .filter_map(|w| {
                     let (caliber, rate, velocity, range) = (
                         w.caliber_mm_x10?,
@@ -456,6 +455,7 @@ impl CombatType {
             weapons,
             time_ratio: (factor.num, factor.den),
             range_ratio: (scale.direct_fire_range.num, scale.direct_fire_range.den),
+            indirect,
         }
     }
 }
@@ -569,6 +569,14 @@ pub enum CombatEvent {
         damage: u32,
         caliber_mm_x10: u32,
     },
+    /// A smoke shell burst at `at` and left a cloud of `radius` meters
+    /// (prompt 032).
+    Smoke {
+        projectile: u32,
+        shooter: UnitId,
+        at: Vec3,
+        radius: Fixed,
+    },
     /// A unit lost its last hit point.
     Destroyed {
         unit: UnitId,
@@ -673,6 +681,12 @@ mod tests {
         let scale = Scale::builtin().unwrap();
         let wespe = CombatType::from_catalog(catalog.get("de_wespe").unwrap(), &scale);
         assert!(wespe.weapons.is_empty());
+        assert_eq!(wespe.indirect.unwrap().caliber_mm_x10, 1050);
+        // The crew of a mortar keeps its small arms as direct weapons.
+        let grw = CombatType::from_catalog(catalog.get("de_inf_mortar_medium").unwrap(), &scale);
+        assert_eq!(grw.indirect.unwrap().name, "8 cm s.GrW 34");
+        assert!(grw.weapons.iter().all(|w| w.caliber_mm_x10 < 100));
+        assert!(!grw.weapons.is_empty());
     }
 
     #[test]

@@ -19,6 +19,7 @@ mod combat;
 mod craters;
 mod destruction;
 mod economy;
+mod indirect;
 mod infantry;
 mod spatial;
 mod vision;
@@ -99,6 +100,8 @@ pub enum ConfigError {
     Craters(String),
     /// The built-in economy rules do not parse (prompt 023).
     Economy(String),
+    /// The built-in indirect fire rules do not parse (prompt 032).
+    Indirect(String),
 }
 
 impl fmt::Display for ConfigError {
@@ -115,7 +118,7 @@ impl fmt::Display for ConfigError {
             Self::SpawnOutsideMap(index) => write!(f, "spawn {index} lies outside the map"),
             Self::TooManyPlayers(n) => write!(f, "{n} players, at most {MAX_PLAYERS} allowed"),
             Self::Destruction(e) | Self::Economy(e) => write!(f, "{e}"),
-            Self::Craters(e) => write!(f, "{e}"),
+            Self::Craters(e) | Self::Indirect(e) => write!(f, "{e}"),
         }
     }
 }
@@ -259,6 +262,10 @@ pub struct Snapshot {
     pub events: Vec<CombatEvent>,
     /// Soldiers of all squads, by unit id and index (prompt 022).
     pub soldiers: Vec<SoldierSnapshot>,
+    /// Shells of indirect fire in flight, by id (prompt 032).
+    pub shells: Vec<crate::indirect::ShellSnapshot>,
+    /// Smoke clouds (prompt 032).
+    pub smoke: Vec<crate::indirect::SmokeSnapshot>,
 }
 
 /// Phases of a tick in [`Sim::step_observed`], in order.
@@ -353,6 +360,8 @@ pub struct Sim {
     unit_types: Vec<UnitType>,
     /// Accounts, structures, production, supply points (prompt 023).
     economy: economy::Economy,
+    /// Indirect fire, shells and smoke (prompt 032).
+    artillery: indirect::Artillery,
 }
 
 impl Sim {
@@ -453,6 +462,12 @@ impl Sim {
             &map,
             &players,
         );
+        let artillery = indirect::Artillery::new(
+            crate::indirect::IndirectRules::builtin()
+                .map_err(|e| ConfigError::Indirect(e.to_string()))?,
+            &config.unit_types,
+            config.tick_hz,
+        );
         let grid = PathGrid::new(&map, &config.terrain, &config.unit_types);
         let mut sim = Self {
             tick: 0,
@@ -476,6 +491,7 @@ impl Sim {
             craters,
             unit_types: config.unit_types.clone(),
             economy,
+            artillery,
         };
         sim.init_economy();
         sim.apply_destruction();
@@ -544,6 +560,7 @@ impl Sim {
         self.update_stances();
         self.rebuild_unit_grid();
         self.aim_and_fire();
+        self.fire_indirect();
         done(Phase::Combat);
         self.move_units();
         done(Phase::Movement);
@@ -552,12 +569,14 @@ impl Sim {
         self.crush_objects();
         self.rebuild_unit_grid();
         self.fly_projectiles();
+        self.fly_shells();
         done(Phase::Projectiles);
         self.apply_destruction();
         self.apply_craters();
         done(Phase::Destruction);
         self.update_economy();
         done(Phase::Economy);
+        self.update_smoke();
         self.update_vision(false);
         done(Phase::Vision);
         self.tick += 1;
@@ -818,6 +837,7 @@ impl Sim {
                 let target = *target;
                 for &i in &group {
                     self.units[i].combat.attack = None;
+                    self.cancel_indirect(i);
                 }
                 let assigned: Vec<(usize, Vec2)> = group.into_iter().zip(slots).collect();
                 self.request_group_path(&assigned, target);
@@ -827,6 +847,7 @@ impl Sim {
                     stop(&mut self.units[index]);
                     self.units[index].combat.attack = None;
                     self.cancel_enter(index);
+                    self.cancel_indirect(index);
                 }
             }
             Command::Attack { units, target } => {
@@ -836,16 +857,24 @@ impl Sim {
                 if self.units[t].owner == command.player || !self.units[t].alive() {
                     return;
                 }
+                let guns =
+                    self.order_indirect(command.player, units, indirect::Order::Unit(*target));
                 for index in self.mobile_indices(command.player, units) {
-                    self.start_attack(index, Attack::Unit(*target));
+                    if !guns.contains(&index) {
+                        self.start_attack(index, Attack::Unit(*target));
+                    }
                 }
             }
             Command::AttackGround { units, target } => {
                 if !within_world(*target) {
                     return;
                 }
+                let guns =
+                    self.order_indirect(command.player, units, indirect::Order::Ground(*target));
                 for index in self.mobile_indices(command.player, units) {
-                    self.start_attack(index, Attack::Ground(*target));
+                    if !guns.contains(&index) {
+                        self.start_attack(index, Attack::Ground(*target));
+                    }
                 }
             }
             Command::SetFireMode { units, mode } => {
@@ -878,6 +907,13 @@ impl Sim {
             Command::SetRallyPoint { building, point } => {
                 self.order_rally(command.player, *building, *point);
             }
+            Command::Barrage {
+                units,
+                target,
+                radius_m,
+                salvos,
+                smoke,
+            } => self.order_barrage(command.player, units, *target, (*radius_m, *salvos, *smoke)),
         }
     }
 
@@ -1027,6 +1063,7 @@ impl Sim {
         self.destruction.hash_into(&mut h);
         self.craters.hash_into(&mut h);
         self.economy.hash_into(&mut h);
+        self.artillery.hash_into(&mut h);
         h.finish()
     }
 
@@ -1092,6 +1129,9 @@ impl Sim {
                         })
                 }),
         );
+        self.artillery
+            .shell_snapshots(self.tick_hz, &mut out.shells);
+        self.artillery.smoke_snapshots(self.tick, &mut out.smoke);
     }
 }
 

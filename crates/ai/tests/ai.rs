@@ -236,3 +236,59 @@ fn ai_squads_attack_only_what_they_can_hurt() {
         assert!(name.contains("_inf_"), "squads attacked {name}");
     }
 }
+
+/// Hard (prompt 032): a mortar team behind the army fires barrages on the
+/// enemy and lays smoke when the enemy comes into sight.
+#[test]
+fn hard_uses_artillery_and_smoke() {
+    let mut config = demo_config();
+    let catalog = sim::Catalog::builtin().unwrap();
+    let scale = sim::Scale::builtin().unwrap();
+    config
+        .unit_types
+        .extend(sim::unit_types_from_catalog(&catalog, &scale, &["de_inf_mortar_medium"]).unwrap());
+    let mortar = UnitId(u32::try_from(config.spawns.len()).unwrap());
+    config.spawns.push(sim::Spawn {
+        owner: PlayerId(0),
+        unit_type: "de_inf_mortar_medium".into(),
+        position: Vec2::from_meters(0, 130),
+        fire_mode: FireMode::FireAtWill,
+    });
+    let players = [
+        (PlayerId(0), Difficulty::Hard),
+        (PlayerId(1), Difficulty::Passive),
+    ];
+    let mut game = Game::new(&config, builtin_map(), 4, &players).unwrap();
+    let (mut barrage, mut smoke, mut shells) = (0, 0, 0);
+    while game.sim().outcome().is_none() && game.sim().tick() < MAX_TICKS {
+        let decisions = game.think();
+        for command in decisions.iter().flatten() {
+            if let Command::Barrage {
+                units, smoke: s, ..
+            } = command
+                && units.contains(&mortar)
+            {
+                if *s {
+                    smoke += 1;
+                } else {
+                    barrage += 1;
+                }
+            }
+        }
+        game.step(decisions);
+        shells += game
+            .sim()
+            .events()
+            .iter()
+            .filter(|e| {
+                matches!(e, sim::CombatEvent::Shot { unit, weapon, .. }
+                    if *unit == mortar && *weapon == sim::indirect::INDIRECT_WEAPON)
+            })
+            .count();
+    }
+    assert!(
+        barrage > 0 && smoke > 0,
+        "barrages {barrage}, smoke {smoke}"
+    );
+    assert!(shells > 0, "the mortar never fired");
+}
