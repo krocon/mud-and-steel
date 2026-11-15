@@ -1,0 +1,22 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" uid="uid://djcqc6ttlxviu" path="res://assets/models/su/infantry/carbineer.glb" id="1_carbineer"]
+[ext_resource type="PackedScene" uid="uid://qpje6e0s7gxa" path="res://assets/models/su/infantry/hmg_gunner.glb" id="2_hmg_gunner"]
+
+[node name="su_inf_hmg_team" type="Node3D"]
+metadata/extras = {"cat_id": "su_inf_hmg_team", "cat_faction": "su", "cat_category": "inf_hmg", "cat_name_de": "sMG-Trupp Maxim", "cat_name_en": "Maxim Heavy Machine Gun Team", "cat_designation": "Maxim M1910/30 on Sokolov mount", "cat_year_from": 1943, "cat_year_to": 1945, "cat_speed_road_kmh_x10": 50, "cat_speed_offroad_kmh_x10": 40, "cat_weapons": "Maxim M1910/30; 4× Mosin-Nagant M1938 carbine", "cat_squad_size": 5, "squad": true, "squad_roles": ["hmg_gunner", "carbineer", "carbineer", "carbineer", "carbineer"], "squad_notes": ["gunner No. 1 (Maxim M1910/30 on Sokolov mount)", "assistant gunner, belt feed (Mosin-Nagant M1938)", "ammunition carrier (Mosin-Nagant M1938)", "ammunition carrier (Mosin-Nagant M1938)", "ammunition and water carrier (Mosin-Nagant M1938)"], "squad_clips": ["aim_prone", "aim_kneel", "kneel", "kneel", "aim_prone"], "squad_file": "assets-src/blueprints/su/squads/su_inf_hmg_team.toml", "source_hash": "185c2593feb709d0"}
+
+[node name="Member_01" parent="." instance=ExtResource("2_hmg_gunner")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.5)
+
+[node name="Member_02" parent="." instance=ExtResource("1_carbineer")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1, 0, -1.3)
+
+[node name="Member_03" parent="." instance=ExtResource("1_carbineer")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.6, 0, 0.5)
+
+[node name="Member_04" parent="." instance=ExtResource("1_carbineer")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.8, 0, 1)
+
+[node name="Member_05" parent="." instance=ExtResource("1_carbineer")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2.2)

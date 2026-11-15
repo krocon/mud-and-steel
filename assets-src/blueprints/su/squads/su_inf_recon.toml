@@ -1,0 +1,42 @@
+# Scout squad (razvedchiki), catalog su.toml: 7 men, 6 PPSh-41 and 1 Mosin-Nagant
+# M1891/30. Composition: squad leader (PPSh-41), five scouts with PPSh-41 and
+# binoculars, one rifleman with the M1891/30 for longer-range fire.
+# Formation: loose file/column moving through cover, about 3 m apart (display only).
+unit = "su_inf_recon"
+
+[[member]]
+role = "squad_leader"
+position = [0.0, 4.0]
+note = "squad leader (PPSh-41)"
+
+[[member]]
+role = "scout"
+position = [-2.0, 6.0]
+clip = "aim_kneel"
+note = "lead scout (PPSh-41, binoculars)"
+
+[[member]]
+role = "scout"
+position = [2.5, 2.5]
+note = "scout (PPSh-41, binoculars)"
+
+[[member]]
+role = "scout"
+position = [-2.5, 1.5]
+note = "scout (PPSh-41, binoculars)"
+
+[[member]]
+role = "scout"
+position = [2.0, -0.5]
+note = "scout (PPSh-41, binoculars)"
+
+[[member]]
+role = "scout"
+position = [-2.0, -2.0]
+clip = "kneel"
+note = "rear scout (PPSh-41, binoculars)"
+
+[[member]]
+role = "rifleman"
+position = [0.5, -3.0]
+note = "rifleman (Mosin-Nagant M1891/30)"

@@ -1,0 +1,38 @@
+# 82-BM-37 battalion mortar crew, catalog su.toml: 5 men, the mortar (56 kg, carried
+# in three loads: tube, bipod, baseplate) and 4 Mosin-Nagant M1938 carbines
+# (estimate). Composition: gunner (layer) at the sight, loader, and three
+# ammunition carriers.
+# Deviation: the gunner role shows the assembled mortar without a slung carbine;
+# the four carbines are carried by the other crew members.
+# Formation: loader beside the tube, carriers behind with the bomb cases (display only).
+unit = "su_inf_mortar_medium"
+
+[[member]]
+role = "mortar_gunner_medium"
+position = [0.0, 1.0]
+clip = "mortar_operate"
+note = "gunner / layer (82-BM-37)"
+
+[[member]]
+role = "carbineer"
+position = [1.3, 1.2]
+clip = "kneel"
+note = "loader (Mosin-Nagant M1938)"
+
+[[member]]
+role = "carbineer"
+position = [-1.4, -0.6]
+clip = "kneel"
+note = "ammunition carrier (Mosin-Nagant M1938)"
+
+[[member]]
+role = "carbineer"
+position = [1.5, -1.0]
+clip = "kneel"
+note = "ammunition carrier (Mosin-Nagant M1938)"
+
+[[member]]
+role = "carbineer"
+position = [0.0, -2.2]
+clip = "prone"
+note = "ammunition carrier (Mosin-Nagant M1938)"

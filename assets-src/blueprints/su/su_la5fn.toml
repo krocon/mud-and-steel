@@ -1,0 +1,141 @@
+# Lavochkin La-5FN (1943): radial-engined fighter, standing tail-down on its
+# retractable gear. Main dimensions from data/catalog/su.toml: length 8.67 m,
+# wingspan 9.80 m, height 2.54 m.
+# Modeling estimates from the La-5FN three-view (Gordon/Khazanov drawings):
+# ASh-82FN cowling about 1.26 m across, VISh-105V three-blade propeller of
+# 3.10 m, tapered wing (root chord 2.36 m, tip 1.12 m, slight leading-edge
+# sweep, 5.5 deg dihedral), main gear track 2.80 m with 650 x 200 wheels,
+# ground angle about 9 deg (fuselage section centers rise towards the nose).
+# Two synchronized ShVAK cannon in the upper cowling (fixed_guns). Bombs
+# (2x 100 kg) are not in the catalog weapon list and not modeled.
+unit = "su_la5fn"
+assembly = "aircraft"
+
+[layout]
+cg_chord = 0.3
+
+[fuselage]
+part = "fuselage"
+segments = 14
+sections = [[-4.37, 0.0, 0.0, 0.92, 2.0], [-3.70, 0.30, 0.50, 0.98, 2.2], [-2.20, 0.62, 0.92, 1.18, 2.4],
+            [-0.60, 0.90, 1.18, 1.42, 2.4], [0.80, 1.04, 1.24, 1.60, 2.3], [2.00, 1.18, 1.24, 1.74, 2.2],
+            [3.20, 1.26, 1.26, 1.90, 2.0], [3.85, 1.14, 1.14, 1.96, 2.0]]
+
+[wing]
+part = "wing"
+y = 1.30
+z = 0.98
+root_chord = 2.36
+tip_chord = 1.12
+sweep_deg = 4.0
+dihedral_deg = 5.5
+thickness = 0.14
+
+[tail]
+part = "tail"
+y = -3.10
+z = 1.10
+span = 3.60
+root_chord = 1.00
+tip_chord = 0.62
+fin_height = 1.00
+fin_root_chord = 1.00
+fin_tip_chord = 0.55
+fin_sweep_deg = 25
+
+[canopy]
+part = "canopy"
+y = [-1.10, 0.60]
+z = 1.98
+width = 0.66
+height = 0.42
+
+[landing_gear]
+part = "landing_gear"
+main_y = 1.15
+main_track = 2.80
+main_wheel_diameter = 0.65
+strut_top_z = 0.98
+tail_y = -3.85
+tail_wheel_diameter = 0.30
+tail_strut_top_z = 0.75
+
+[[propeller]]
+part = "su.propeller"
+position = [0.0, 4.05, 1.96]
+diameter = 3.10
+blades = 3
+phase_deg = 90
+spinner = 0.24
+
+[[part]]
+part = "fixed_guns"            # 2x ShVAK, synchronized, upper cowling
+muzzles = [[0.16, 3.70, 2.44]]
+length = 0.60
+radius = 0.02
+
+[[part]]
+part = "shadow_proxy"
+
+[[part]]
+part = "socket"
+name = "Socket_Exhaust_"
+position = [0.60, 2.80, 1.80]
+
+[[part]]
+part = "socket"
+name = "Socket_Exhaust_"
+position = [-0.60, 2.80, 1.80]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 2.60, 2.00]
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-0.30, -2.40, 1.15]
+normal = [-1.0, 0.0, 0.0]
+size = 0.75
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [0.30, -2.40, 1.15]
+normal = [1.0, 0.0, 0.0]
+size = 0.75
+
+[[part]]
+part = "marking"
+name = "Fin_L"
+position = [-0.05, -3.60, 1.55]
+normal = [-1.0, 0.0, 0.0]
+size = 0.50
+
+[[part]]
+part = "marking"
+name = "Fin_R"
+position = [0.05, -3.60, 1.55]
+normal = [1.0, 0.0, 0.0]
+size = 0.50
+
+[[part]]
+part = "marking"
+name = "Wing_L"
+position = [-3.40, 0.20, 1.30]
+normal = [0.0, 0.0, 1.0]
+size = 0.80
+
+[[part]]
+part = "marking"
+name = "Wing_R"
+position = [3.40, 0.20, 1.30]
+normal = [0.0, 0.0, 1.0]
+size = 0.80
+
+[validate]
+# Catalog height 2.54 m is the tail-down height to the top of the canopy and
+# cowling; with any blade position the propeller arc reaches higher (the
+# hub must clear the ground by more than the blade length), so it is left out.
+exclude_height = ["Propeller"]

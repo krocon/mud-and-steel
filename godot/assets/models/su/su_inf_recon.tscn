@@ -1,0 +1,29 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="PackedScene" uid="uid://dgvbge7ssjqi2" path="res://assets/models/su/infantry/rifleman.glb" id="1_rifleman"]
+[ext_resource type="PackedScene" uid="uid://cfsrh3se48vog" path="res://assets/models/su/infantry/scout.glb" id="2_scout"]
+[ext_resource type="PackedScene" uid="uid://b5xuntxmu2vjw" path="res://assets/models/su/infantry/squad_leader.glb" id="3_squad_leader"]
+
+[node name="su_inf_recon" type="Node3D"]
+metadata/extras = {"cat_id": "su_inf_recon", "cat_faction": "su", "cat_category": "inf_recon", "cat_name_de": "Aufklärungstrupp (Raswedtschiki)", "cat_name_en": "Scout Squad (Razvedchiki)", "cat_designation": "Razvedyvatelnoye otdeleniye (divisional/regimental scouts)", "cat_year_from": 1943, "cat_year_to": 1945, "cat_speed_road_kmh_x10": 50, "cat_speed_offroad_kmh_x10": 40, "cat_weapons": "6× PPSh-41; Mosin-Nagant M1891/30", "cat_squad_size": 7, "squad": true, "squad_roles": ["squad_leader", "scout", "scout", "scout", "scout", "scout", "rifleman"], "squad_notes": ["squad leader (PPSh-41)", "lead scout (PPSh-41, binoculars)", "scout (PPSh-41, binoculars)", "scout (PPSh-41, binoculars)", "scout (PPSh-41, binoculars)", "rear scout (PPSh-41, binoculars)", "rifleman (Mosin-Nagant M1891/30)"], "squad_clips": ["idle", "aim_kneel", "idle", "idle", "idle", "kneel", "idle"], "squad_file": "assets-src/blueprints/su/squads/su_inf_recon.toml", "source_hash": "aaac01816315277a"}
+
+[node name="Member_01" parent="." instance=ExtResource("3_squad_leader")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -4)
+
+[node name="Member_02" parent="." instance=ExtResource("2_scout")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, -6)
+
+[node name="Member_03" parent="." instance=ExtResource("2_scout")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 0, -2.5)
+
+[node name="Member_04" parent="." instance=ExtResource("2_scout")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 0, -1.5)
+
+[node name="Member_05" parent="." instance=ExtResource("2_scout")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 0.5)
+
+[node name="Member_06" parent="." instance=ExtResource("2_scout")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, 2)
+
+[node name="Member_07" parent="." instance=ExtResource("1_rifleman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 0, 3)

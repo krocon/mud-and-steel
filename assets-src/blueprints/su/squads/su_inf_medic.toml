@@ -1,0 +1,17 @@
+# Company medical team, catalog su.toml: sanitary instructor (TT-33) and orderly
+# (Mosin-Nagant M1938 carbine). The `medic` role has the pistol in the holster,
+# medical bags and a plain armband (no Red Cross marking, project rule).
+# Formation: instructor treating, orderly kneeling beside and covering (display only).
+unit = "su_inf_medic"
+
+[[member]]
+role = "medic"
+position = [0.0, 0.5]
+clip = "medic_treat"
+note = "sanitary instructor (TT-33 in the holster)"
+
+[[member]]
+role = "carbineer"
+position = [1.3, -0.2]
+clip = "aim_kneel"
+note = "orderly (sanitar, Mosin-Nagant M1938)"

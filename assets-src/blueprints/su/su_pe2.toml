@@ -1,0 +1,182 @@
+# Petlyakov Pe-2 (1943+ series): twin-engined dive bomber with twin fins,
+# standing tail-down on its gear. Main dimensions from data/catalog/su.toml:
+# length 12.66 m, wingspan 17.16 m, height 3.42 m. The catalog height is
+# reached with one blade of each 3.00 m VISh-61 propeller pointing straight
+# up (su.propeller, phase 90 deg) at a hub height of 1.92 m.
+# Modeling estimates from Pe-2 three-views (Gordon/Khazanov): slender
+# fuselage 1.25 m wide, glazed navigator's nose, long canopy over pilot and
+# navigator, M-105PF nacelles at 2.55 m from the center line, wing root
+# chord 3.20 m, tip 1.40 m, flat center section and 7 deg outer dihedral,
+# twin oval fins at the stabilizer tips (simplified to the kit fin shape),
+# main wheels 900 x 300 on a 5.10 m track.
+# Armament (1943+ fit, catalog): ShKAS and UBK fixed in the nose
+# (fixed_guns), dorsal UBT and ventral ShKAS (flex_mg), six FAB-100 in the
+# fuselage bay (bomb_bay, 600 kg normal load); the nacelle-tail bays and
+# external racks of the 1,000 kg load are not modeled.
+unit = "su_pe2"
+assembly = "aircraft"
+
+[layout]
+cg_chord = 0.3
+
+[fuselage]
+part = "fuselage"
+segments = 14
+glass_from_y = 5.30
+sections = [[-6.40, 0.06, 0.10, 1.45, 2.0], [-5.00, 0.55, 0.70, 1.40, 2.3], [-2.50, 0.95, 1.20, 1.47, 2.5],
+            [0.00, 1.20, 1.55, 1.62, 2.6], [2.00, 1.25, 1.70, 1.80, 2.6], [4.00, 1.15, 1.45, 1.82, 2.4],
+            [5.30, 0.90, 1.05, 1.80, 2.2], [6.00, 0.20, 0.25, 1.72, 2.0]]
+
+[wing]
+part = "wing"
+y = 2.30
+z = 1.20
+root_chord = 3.20
+tip_chord = 1.40
+sweep_deg = 6.0
+dihedral_deg = 7.0
+thickness = 0.15
+kink = { at = 0.32, inner_dihedral_deg = 0.0 }
+
+[tail]
+part = "tail"
+y = -5.20
+z = 1.60
+span = 5.20
+root_chord = 1.40
+tip_chord = 1.10
+fin_height = 1.45
+fin_root_chord = 1.30
+fin_tip_chord = 0.90
+fin_sweep_deg = 10
+twin_fins = 2.45
+
+[canopy]
+part = "canopy"
+y = [0.20, 3.30]
+z = 2.52
+width = 0.90
+height = 0.48
+
+[landing_gear]
+part = "landing_gear"
+main_y = 2.00
+main_track = 5.10
+main_wheel_diameter = 0.90
+strut_top_z = 1.20
+tail_y = -5.20
+tail_wheel_diameter = 0.45
+tail_strut_top_z = 1.10
+
+[[propeller]]
+part = "su.propeller"
+name = "Propeller_L"
+position = [-2.55, 4.85, 1.92]
+diameter = 3.00
+blades = 3
+phase_deg = 90
+spinner = 0.22
+
+[[propeller]]
+part = "su.propeller"
+name = "Propeller_R"
+position = [2.55, 4.85, 1.92]
+diameter = 3.00
+blades = 3
+phase_deg = 90
+spinner = 0.22
+
+[[part]]
+part = "nacelle"               # M-105PF nacelles, main gear inside
+x = 2.55
+y = [-0.90, 4.60]
+z = 1.92
+diameter = 0.92
+front_diameter = 0.72
+height_scale = 1.25
+
+[[part]]
+part = "fixed_guns"            # ShKAS (left) and UBK (right) in the nose
+muzzles = [[0.16, 5.75, 1.95], [-0.16, 5.65, 1.90]]
+mirror = false
+length = 0.50
+radius = 0.014
+
+[[part]]
+part = "flex_mg"               # dorsal UBT (navigator)
+position = [0.0, 0.45, 2.95]
+direction = [0.0, -1.0, 0.25]
+length = 1.20
+
+[[part]]
+part = "flex_mg"               # ventral ShKAS (gunner/radio operator)
+position = [0.0, -1.40, 0.95]
+direction = [0.0, -1.0, -0.15]
+length = 0.90
+
+[[part]]
+part = "bomb_bay"              # fuselage bay, 6x FAB-100
+y = [-1.10, 1.50]
+width = 0.80
+z = 0.86
+count = 6
+
+[[part]]
+part = "shadow_proxy"
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [2.55, 3.20, 2.10]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [-2.55, 3.20, 2.10]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 1.00, 1.80]
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-0.40, -3.50, 1.45]
+normal = [-1.0, 0.0, 0.0]
+size = 0.75
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [0.40, -3.50, 1.45]
+normal = [1.0, 0.0, 0.0]
+size = 0.75
+
+[[part]]
+part = "marking"
+name = "Fin_L"
+position = [-2.60, -5.80, 2.30]
+normal = [-1.0, 0.0, 0.0]
+size = 0.60
+
+[[part]]
+part = "marking"
+name = "Fin_R"
+position = [2.60, -5.80, 2.30]
+normal = [1.0, 0.0, 0.0]
+size = 0.60
+
+[[part]]
+part = "marking"
+name = "Wing_L"
+position = [-6.20, 1.20, 1.90]
+normal = [0.0, 0.0, 1.0]
+size = 1.00
+
+[[part]]
+part = "marking"
+name = "Wing_R"
+position = [6.20, 1.20, 1.90]
+normal = [0.0, 0.0, 1.0]
+size = 1.00
