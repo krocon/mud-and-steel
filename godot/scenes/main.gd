@@ -33,7 +33,8 @@ extends Node3D
 ## adds the pause menu (Esc) and the result screen.
 ## LAN games start in `lan/lan_lobby.tscn` (`just lan`), which hands the
 ## started game over through `lan/lan_match.gd`; `lan/net_status.gd` then
-## shows the connection state.
+## shows the connection state. Online games over Steam (prompt 026) start in
+## `online/steam_lobby.tscn` and take the same way.
 ## Combat (prompt 017) is drawn by `world/combat_view.gd`: tracers, health
 ## bars, wrecks, turrets. The self-test starts with every unit holding fire.
 ## Fog of war (prompt 018): `world/fog_of_war.gd` darkens what the local
@@ -134,7 +135,7 @@ func _ready() -> void:
 	# Matches from the menu or the LAN lobby are built in steps behind a
 	# loading screen (prompt 027); direct starts load in one frame as before.
 	if not MatchSetup.pending.is_empty() or LanMatch.lobby != null:
-		var map_name: String = MatchSetup.pending.get("map", "LAN match")
+		var map_name: String = MatchSetup.pending.get("map", "%s match" % LanMatch.kind)
 		_loading = LoadingScreen.new(map_name)
 		add_child(_loading)
 		sim_host.set_process(false)
@@ -333,7 +334,10 @@ func _start_simulation() -> bool:
 	if LanMatch.lobby != null:
 		var lobby := LanMatch.lobby
 		LanMatch.lobby = null
-		return sim_host.start_lan(lobby, ProjectSettings.globalize_path(MAPS_DIR).simplify_path())
+		var maps := ProjectSettings.globalize_path(MAPS_DIR).simplify_path()
+		if lobby is SteamLobby:
+			return sim_host.start_online(lobby, maps)
+		return sim_host.start_lan(lobby, maps)
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--scenario="):
 			var file := ProjectSettings.globalize_path("res://../data/scenarios/" + arg.trim_prefix("--scenario="))

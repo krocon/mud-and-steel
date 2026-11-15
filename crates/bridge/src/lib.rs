@@ -10,7 +10,7 @@ use net::{
     LocalTransport, LockstepConfig, LockstepSession, NetError, Replay, ReplayRecorder, Transport,
     recommended_input_delay,
 };
-use sim::scenario::{BUILTIN_MAP_NAME, DEMO_SCENARIO, builtin_map, parse_scenario_with_factions};
+use sim::scenario::{DEMO_SCENARIO, builtin_map, parse_scenario_with_factions};
 use sim::{
     Catalog, Command, Fixed, Map, PlayerId, RouteView, Scale, Sim, SimConfig, Snapshot,
     TerrainRules, UnitId, Vec2,
@@ -27,12 +27,14 @@ mod map_editor;
 mod match_funcs;
 mod object_funcs;
 mod objects;
+mod steam_lobby;
 mod terrain_layers;
 mod vision_funcs;
 mod water;
 mod water_funcs;
 
 pub use lan::LanLobby;
+pub use steam_lobby::SteamLobby;
 
 struct MudAndSteel;
 
@@ -69,7 +71,8 @@ struct Game {
     map_top: f32,
     config: SimConfig,
     session: LockstepSession,
-    /// `LocalTransport` in single player, `net::lan::LanNode` on the LAN.
+    /// `LocalTransport` in single player, a `net::lobby::LobbyNode` over
+    /// ENet (LAN) or Steam (online).
     transport: Box<dyn Transport>,
     /// More than one human player: the match runs over the network.
     networked: bool,
@@ -368,48 +371,13 @@ impl SimHost {
     /// `maps_dir/<name>/`). Returns false (and logs why) on failure.
     #[func]
     fn start_lan(&mut self, mut lobby: Gd<LanLobby>, maps_dir: GString) -> bool {
-        let node = match lobby.bind_mut().take_started() {
-            Ok(node) => node,
+        match lobby.bind_mut().take_started() {
+            Ok(node) => self.start_networked(node, &maps_dir.to_string()),
             Err(e) => {
                 godot_error!("cannot start the LAN match: {e}");
-                return false;
+                false
             }
-        };
-        let (Some(info), Some(local)) = (node.start_info().cloned(), node.local_player()) else {
-            godot_error!("cannot start the LAN match: no start message");
-            return false;
-        };
-        let name = &info.config.map.name;
-        let map = if *name == BUILTIN_MAP_NAME {
-            builtin_map()
-        } else {
-            match load_map_dir(&Path::new(&maps_dir.to_string()).join(name)) {
-                Ok(map) => Arc::new(map),
-                Err(e) => {
-                    godot_error!("cannot load the map of the LAN match: {e}");
-                    return false;
-                }
-            }
-        };
-        // Rejects a map with a different content hash than the host's.
-        let sim = match Sim::new(&info.config, map.clone(), info.seed) {
-            Ok(sim) => sim,
-            Err(e) => {
-                godot_error!("cannot start the LAN match: {e}");
-                return false;
-            }
-        };
-        self.input_delay = info.input_delay;
-        self.install(
-            sim,
-            map,
-            info.config.clone(),
-            info.seed,
-            local,
-            &info.lockstep_config(),
-            Box::new(node),
-        );
-        true
+        }
     }
 
     #[allow(clippy::too_many_arguments)]
