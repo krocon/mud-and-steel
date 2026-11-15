@@ -371,7 +371,8 @@ func _run_self_test() -> void:
 					camo_surfaces += 1
 		if camo_surfaces == 0:
 			errors.append("%s: no unit_camo surfaces" % id)
-		if model.find_child("Socket_Muzzle", true, false) == null:
+		# unarmed vehicles (trucks) have no muzzle
+		if str(cat.get("cat_weapons", "")) != "" and model.find_child("Socket_Muzzle", true, false) == null:
 			errors.append("%s: Socket_Muzzle missing" % id)
 		if model.find_child("Decal", true, false) == null:
 			errors.append("%s: no marking decal" % id)
