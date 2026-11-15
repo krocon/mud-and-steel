@@ -9,6 +9,7 @@ mod gen_textures;
 mod infantry_bench;
 mod lan;
 mod path_bench;
+mod save_bench;
 #[cfg(feature = "steam")]
 mod steam;
 mod vision_bench;
@@ -49,6 +50,27 @@ enum CliCommand {
     Replay {
         /// Replay file (`.msreplay`).
         file: std::path::PathBuf,
+    },
+    /// Checks a saved game (prompt 038): restores its snapshot and
+    /// re-simulates its replay from tick 0; both must agree.
+    SaveCheck {
+        /// Saved game (`.mssave`).
+        file: std::path::PathBuf,
+    },
+    /// What loading costs (prompt 038): two computer players play a
+    /// scenario, then the match is re-simulated from its replay and saved
+    /// and restored as a snapshot; times and sizes.
+    SaveBench {
+        /// Scenario file; its map is loaded from data/maps/.
+        #[arg(long, default_value = "data/scenarios/bench_large.toml")]
+        scenario: PathBuf,
+        #[arg(long, default_value_t = 6000)]
+        ticks: u64,
+        #[arg(long, default_value_t = 1)]
+        seed: u64,
+        /// Difficulty of both computer players.
+        #[arg(long, default_value = "hard")]
+        ai: ai::Difficulty,
     },
     /// Generates a test map (height field, terrain) from a seed.
     GenMap {
@@ -405,6 +427,20 @@ fn main() {
             );
         }
         CliCommand::Replay { file } => replay(&file),
+        CliCommand::SaveCheck { file } => save_check(&file),
+        CliCommand::SaveBench {
+            scenario,
+            ticks,
+            seed,
+            ai,
+        } => {
+            let (config, map) = bench_config(&scenario).unwrap_or_else(|e| fail(&e));
+            let options = save_bench::Options { ticks, seed, ai };
+            match save_bench::run(&config, map, &options) {
+                Ok(report) => println!("{report}"),
+                Err(e) => fail(&e),
+            }
+        }
         CliCommand::GenMap {
             name,
             size_m,
@@ -628,6 +664,12 @@ fn economy_table() {
 fn replay(path: &std::path::Path) {
     let bytes = std::fs::read(path)
         .unwrap_or_else(|e| fail(&format!("cannot read {}: {e}", path.display())));
+    if let Ok(info) = net::Replay::read_info(&bytes) {
+        println!(
+            "recorded with game version {} on '{}' at {}",
+            info.game_version, info.map, info.created
+        );
+    }
     let replay = net::Replay::decode(&bytes).unwrap_or_else(|e| fail(&e.to_string()));
     let commands: usize = replay.frames.iter().map(|f| f.commands.len()).sum();
     println!(
@@ -647,6 +689,24 @@ fn replay(path: &std::path::Path) {
             "end hash MISMATCH: expected {:#018x}, got {:#018x}",
             report.expected_hash, report.actual_hash
         ));
+    }
+}
+
+fn save_check(path: &std::path::Path) {
+    let bytes = std::fs::read(path)
+        .unwrap_or_else(|e| fail(&format!("cannot read {}: {e}", path.display())));
+    let save = net::SaveGame::decode(&bytes).unwrap_or_else(|e| fail(&e.to_string()));
+    println!(
+        "saved game: map '{}', tick {}, {} computer player(s), game version {}",
+        save.info.map,
+        save.info.ticks,
+        save.hosted.len(),
+        save.info.game_version
+    );
+    let map = find_map(&save.replay.config.map.name);
+    match save.verify(map) {
+        Ok(()) => println!("snapshot and replay agree: {:#018x}", save.replay.end_hash),
+        Err(e) => fail(&e.to_string()),
     }
 }
 
