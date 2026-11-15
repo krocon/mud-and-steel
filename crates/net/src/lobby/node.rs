@@ -1,24 +1,15 @@
-//! One LAN peer: lobby first, then the match transport.
+//! One peer of a multiplayer game: lobby first, then the match transport.
+//! Generic over the [`Link`] that moves the bytes (ENet, Steam, memory).
 
 use super::PROTOCOL_VERSION;
-use super::wire::{
-    CHANNEL_COUNT, CONTROL_CHANNEL, Control, GAME_CHANNEL, LobbyPlayer, StartInfo, decode, encode,
-};
+use super::link::{Link, LinkEvent};
+use super::wire::{CONTROL_CHANNEL, Control, GAME_CHANNEL, LobbyPlayer, StartInfo, decode, encode};
 use crate::{PlayerId, Transport, TransportError};
-use rusty_enet::{EventNoRef, Host, HostSettings, Packet, PeerID};
 use sim::SimConfig;
 use std::collections::{BTreeMap, VecDeque};
-use std::io;
-use std::net::{Ipv4Addr, SocketAddr, UdpSocket};
-
-/// ENet disconnects a peer that has not answered for this long (ms).
-const TIMEOUT_MAX_MS: u32 = 10_000;
-const TIMEOUT_MIN_MS: u32 = 3_000;
-/// Pings measure the round trip time; ENet's default is 500 ms.
-const PING_INTERVAL_MS: u32 = 250;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub enum LanState {
+pub enum LobbyState {
     /// Client: connecting to the host, not yet accepted.
     Connecting,
     /// In the lobby, waiting for the start.
@@ -29,43 +20,40 @@ pub enum LanState {
     Closed(String),
 }
 
-enum Role {
+enum Role<P> {
     Host {
-        /// Connected peers (ENet ids) and their player once they said hello.
-        peers: BTreeMap<PeerID, Option<PlayerId>>,
+        /// Connected peers and their player once they said hello.
+        peers: BTreeMap<P, Option<PlayerId>>,
         max_players: usize,
     },
     Client {
-        server: PeerID,
+        server: P,
     },
 }
 
-/// One peer of a LAN game. See the module documentation.
+/// One peer of a game. See the [module documentation](super).
 ///
 /// Call [`poll`](Self::poll) regularly (every frame) in the lobby. During the
 /// match, [`Transport::recv`] polls.
-pub struct LanNode {
-    host: Host<UdpSocket>,
-    role: Role,
+pub struct LobbyNode<L: Link> {
+    link: L,
+    role: Role<L::Peer>,
     name: String,
     local: Option<PlayerId>,
     lobby: Vec<LobbyPlayer>,
     start: Option<StartInfo>,
-    state: LanState,
+    state: LobbyState,
     /// Received lockstep packets, in arrival order.
     inbox: VecDeque<Vec<u8>>,
 }
 
-impl LanNode {
-    /// Hosts a game on `port` (0 = any free port) for up to `max_players`
-    /// players including the host, who is player 0.
-    pub fn host(name: &str, port: u16, max_players: usize) -> io::Result<Self> {
-        let socket = UdpSocket::bind((Ipv4Addr::UNSPECIFIED, port))?;
-        // A few spare slots so that peers beyond the limit can be told why.
-        let host = new_host(socket, max_players.max(1) + 4)?;
+impl<L: Link> LobbyNode<L> {
+    /// Hosts a game on `link` for up to `max_players` players including the
+    /// host, who is player 0. Peers connect through the link.
+    pub fn new_host(link: L, name: &str, max_players: usize) -> Self {
         let local = PlayerId(0);
-        Ok(Self {
-            host,
+        Self {
+            link,
             role: Role::Host {
                 peers: BTreeMap::new(),
                 max_players: max_players.clamp(1, usize::from(u8::MAX)),
@@ -78,42 +66,39 @@ impl LanNode {
                 ready: true,
             }],
             start: None,
-            state: LanState::Lobby,
+            state: LobbyState::Lobby,
             inbox: VecDeque::new(),
-        })
+        }
     }
 
-    /// Connects to the game hosted at `address`.
-    pub fn join(name: &str, address: SocketAddr) -> io::Result<Self> {
-        let socket = UdpSocket::bind((Ipv4Addr::UNSPECIFIED, 0))?;
-        let mut host = new_host(socket, 1)?;
-        let peer = host
-            .connect(address, CHANNEL_COUNT, u32::from(PROTOCOL_VERSION))
-            .map_err(|_| io::Error::other("no free ENet peer slot"))?;
-        configure_peer(peer);
-        let server = peer.id();
-        Ok(Self {
-            host,
+    /// Joins the game hosted by `server`. The hello is sent once the link
+    /// reports the server as connected.
+    pub fn new_client(link: L, server: L::Peer, name: &str) -> Self {
+        Self {
+            link,
             role: Role::Client { server },
             name: name.to_owned(),
             local: None,
             lobby: Vec::new(),
             start: None,
-            state: LanState::Connecting,
+            state: LobbyState::Connecting,
             inbox: VecDeque::new(),
-        })
+        }
+    }
+
+    pub const fn link(&self) -> &L {
+        &self.link
+    }
+
+    pub const fn link_mut(&mut self) -> &mut L {
+        &mut self.link
     }
 
     pub const fn is_host(&self) -> bool {
         matches!(self.role, Role::Host { .. })
     }
 
-    /// Local UDP port (the game port for a host).
-    pub fn port(&self) -> u16 {
-        self.host.socket().local_addr().map_or(0, |a| a.port())
-    }
-
-    pub fn state(&self) -> &LanState {
+    pub const fn state(&self) -> &LobbyState {
         &self.state
     }
 
@@ -127,7 +112,7 @@ impl LanNode {
         &self.lobby
     }
 
-    pub fn max_players(&self) -> Option<usize> {
+    pub const fn max_players(&self) -> Option<usize> {
         match self.role {
             Role::Host { max_players, .. } => Some(max_players),
             Role::Client { .. } => None,
@@ -142,7 +127,7 @@ impl LanNode {
     /// Host: whether at least two players are in the lobby and all are ready.
     pub fn can_start(&self) -> bool {
         self.is_host()
-            && self.state == LanState::Lobby
+            && self.state == LobbyState::Lobby
             && self.lobby.len() >= 2
             && self.lobby.iter().all(|p| p.ready)
     }
@@ -157,7 +142,7 @@ impl LanNode {
             entry.ready = ready;
         }
         self.send_control(server, &Control::Ready(ready));
-        self.host.flush();
+        self.link.flush();
     }
 
     /// Host: starts the match with all lobby players. Fails unless
@@ -180,17 +165,17 @@ impl LanNode {
             hash_interval,
         };
         self.broadcast_control(&Control::Start(Box::new(info.clone())));
-        self.host.flush();
+        self.link.flush();
         self.start = Some(info.clone());
-        self.state = LanState::Started;
+        self.state = LobbyState::Started;
         Ok(info)
     }
 
     /// Processes all pending network events. Never blocks.
     pub fn poll(&mut self) {
         loop {
-            let event = match self.host.service() {
-                Ok(Some(event)) => event.no_ref(),
+            let event = match self.link.poll() {
+                Ok(Some(event)) => event,
                 Ok(None) => break,
                 Err(e) => {
                     self.close_state(format!("network error: {e}"));
@@ -198,65 +183,64 @@ impl LanNode {
                 }
             };
             match event {
-                EventNoRef::Connect { peer, .. } => self.on_connect(peer),
-                EventNoRef::Disconnect { peer, .. } => self.on_disconnect(peer),
-                EventNoRef::Receive {
+                LinkEvent::Connected(peer) => self.on_connect(peer),
+                LinkEvent::Disconnected(peer) => self.on_disconnect(peer),
+                LinkEvent::Received {
                     peer,
-                    channel_id,
-                    packet,
+                    channel,
+                    data,
                 } => {
-                    if channel_id == GAME_CHANNEL {
-                        self.on_game_packet(peer, packet);
-                    } else if let Some(message) = decode(packet.data()) {
+                    if channel == GAME_CHANNEL {
+                        self.on_game_packet(peer, data);
+                    } else if channel == CONTROL_CHANNEL
+                        && let Some(message) = decode(&data)
+                    {
                         self.on_control(peer, message);
                     }
                 }
             }
         }
-        self.host.flush();
+        self.link.flush();
     }
 
     /// Disconnects from all peers (gracefully, if `poll` runs a bit longer).
     pub fn leave(&mut self) {
-        for peer in self.host.connected_peers_mut() {
-            peer.disconnect_later(0);
-        }
-        self.host.flush();
-        if !matches!(self.state, LanState::Closed(_)) {
-            self.state = LanState::Closed("left the game".into());
-        }
+        self.link.disconnect_all(false);
+        self.link.flush();
+        self.close_state("left the game".into());
     }
 
     fn close_state(&mut self, reason: String) {
-        if !matches!(self.state, LanState::Closed(_)) {
-            self.state = LanState::Closed(reason);
+        if !matches!(self.state, LobbyState::Closed(_)) {
+            self.state = LobbyState::Closed(reason);
         }
     }
 
-    fn on_connect(&mut self, peer: PeerID) {
-        configure_peer(self.host.peer_mut(peer));
+    fn on_connect(&mut self, peer: L::Peer) {
         match &mut self.role {
             Role::Host { peers, .. } => {
                 // The player id is assigned when the hello arrives.
-                peers.insert(peer, None);
+                peers.entry(peer).or_insert(None);
             }
-            Role::Client { .. } => {
-                let hello = Control::Hello {
-                    protocol: PROTOCOL_VERSION,
-                    name: self.name.clone(),
-                };
-                self.send_control(peer, &hello);
+            Role::Client { server } => {
+                if *server == peer {
+                    let hello = Control::Hello {
+                        protocol: PROTOCOL_VERSION,
+                        name: self.name.clone(),
+                    };
+                    self.send_control(peer, &hello);
+                }
             }
         }
     }
 
-    fn on_disconnect(&mut self, peer: PeerID) {
+    fn on_disconnect(&mut self, peer: L::Peer) {
         match &mut self.role {
             Role::Host { peers, .. } => {
                 let Some(Some(player)) = peers.remove(&peer) else {
                     return;
                 };
-                if self.state == LanState::Started {
+                if self.state == LobbyState::Started {
                     self.broadcast_control(&Control::PeerLeft(player));
                     self.close_state(format!("player {} left the game", player.0));
                 } else {
@@ -266,7 +250,7 @@ impl LanNode {
             }
             Role::Client { server } => {
                 if *server == peer {
-                    let reason = if self.state == LanState::Connecting {
+                    let reason = if self.state == LobbyState::Connecting {
                         "could not connect to the host"
                     } else {
                         "connection to the host lost"
@@ -277,23 +261,37 @@ impl LanNode {
         }
     }
 
-    fn on_game_packet(&mut self, from: PeerID, packet: Packet) {
-        if let Role::Host { peers, .. } = &self.role {
-            // Relay to every other accepted client; order per sender is kept.
-            let others: Vec<PeerID> = peers
-                .iter()
-                .filter(|&(&p, player)| p != from && player.is_some())
-                .map(|(&p, _)| p)
-                .collect();
-            for peer in others {
-                // A failed send means the peer is gone; its disconnect event follows.
-                let _ = self.host.peer_mut(peer).send(GAME_CHANNEL, &packet);
+    fn on_game_packet(&mut self, from: L::Peer, data: Vec<u8>) {
+        match &self.role {
+            Role::Host { peers, .. } => {
+                if peers.get(&from).copied().flatten().is_none() {
+                    return; // Not an accepted player.
+                }
+                // Relay to every other accepted client; order per sender is kept.
+                let others: Vec<L::Peer> = peers
+                    .iter()
+                    .filter(|&(&p, player)| p != from && player.is_some())
+                    .map(|(&p, _)| p)
+                    .collect();
+                for peer in others {
+                    self.link.send(peer, GAME_CHANNEL, &data);
+                }
+            }
+            Role::Client { server } => {
+                if *server != from {
+                    return;
+                }
             }
         }
-        self.inbox.push_back(packet.data().to_vec());
+        self.inbox.push_back(data);
     }
 
-    fn on_control(&mut self, from: PeerID, message: Control) {
+    fn on_control(&mut self, from: L::Peer, message: Control) {
+        if let Role::Client { server } = &self.role
+            && *server != from
+        {
+            return; // Clients only listen to their host.
+        }
         match (&self.role, message) {
             (Role::Host { .. }, Control::Hello { protocol, name }) => {
                 self.on_hello(from, protocol, name);
@@ -308,7 +306,7 @@ impl LanNode {
             }
             (Role::Client { .. }, Control::Welcome { player }) => {
                 self.local = Some(player);
-                self.state = LanState::Lobby;
+                self.state = LobbyState::Lobby;
             }
             (Role::Client { .. }, Control::Reject { reason }) => {
                 self.close_state(format!("rejected by the host: {reason}"));
@@ -320,7 +318,7 @@ impl LanNode {
                     .is_some_and(|local| info.players.contains(&local))
                 {
                     self.start = Some(*info);
-                    self.state = LanState::Started;
+                    self.state = LobbyState::Started;
                 } else {
                     self.close_state("the match started without us".into());
                 }
@@ -333,18 +331,20 @@ impl LanNode {
         }
     }
 
-    fn on_hello(&mut self, from: PeerID, protocol: u16, name: String) {
+    fn on_hello(&mut self, from: L::Peer, protocol: u16, name: String) {
         let Role::Host { peers, max_players } = &mut self.role else {
             return;
         };
-        if peers.get(&from) != Some(&None) {
-            return; // Unknown peer or second hello.
+        // A link without connect events (Steam) may deliver the hello first.
+        let entry = peers.entry(from).or_insert(None);
+        if entry.is_some() {
+            return; // Second hello.
         }
         let reject = if protocol != PROTOCOL_VERSION {
             Some(format!(
                 "protocol version {protocol}, the host has {PROTOCOL_VERSION}"
             ))
-        } else if self.state != LanState::Lobby {
+        } else if self.state != LobbyState::Lobby {
             Some("the match already started".into())
         } else if self.lobby.len() >= *max_players {
             Some("the game is full".into())
@@ -352,8 +352,9 @@ impl LanNode {
             None
         };
         if let Some(reason) = reject {
+            peers.remove(&from);
             self.send_control(from, &Control::Reject { reason });
-            self.host.peer_mut(from).disconnect_later(0);
+            self.link.disconnect(from, false);
             return;
         }
         // Smallest free id; the host is 0.
@@ -379,26 +380,17 @@ impl LanNode {
 
     /// Host: sends to every accepted client.
     fn broadcast_control(&mut self, message: &Control) {
-        let Role::Host { peers, .. } = &self.role else {
-            return;
-        };
-        let accepted: Vec<PeerID> = peers
-            .iter()
-            .filter(|(_, player)| player.is_some())
-            .map(|(&p, _)| p)
-            .collect();
-        for peer in accepted {
+        for peer in self.game_peers() {
             self.send_control(peer, message);
         }
     }
 
-    fn send_control(&mut self, peer: PeerID, message: &Control) {
-        let packet = Packet::reliable(encode(message));
-        // A failed send means the peer is gone; its disconnect event follows.
-        let _ = self.host.peer_mut(peer).send(CONTROL_CHANNEL, &packet);
+    fn send_control(&mut self, peer: L::Peer, message: &Control) {
+        self.link.send(peer, CONTROL_CHANNEL, &encode(message));
     }
 
-    fn game_peers(&self) -> Vec<PeerID> {
+    /// Host: accepted clients. Client: the host.
+    fn game_peers(&self) -> Vec<L::Peer> {
         match &self.role {
             Role::Host { peers, .. } => peers
                 .iter()
@@ -410,17 +402,16 @@ impl LanNode {
     }
 }
 
-impl Transport for LanNode {
+impl<L: Link> Transport for LobbyNode<L> {
     fn send(&mut self, packet: &[u8]) -> Result<(), TransportError> {
-        if let LanState::Closed(_) = self.state {
+        if let LobbyState::Closed(_) = self.state {
             return Err(TransportError::Disconnected);
         }
-        let packet = Packet::reliable(packet);
         for peer in self.game_peers() {
             // A failed send means the peer is gone; `recv` reports it.
-            let _ = self.host.peer_mut(peer).send(GAME_CHANNEL, &packet);
+            self.link.send(peer, GAME_CHANNEL, packet);
         }
-        self.host.flush();
+        self.link.flush();
         Ok(())
     }
 
@@ -431,62 +422,36 @@ impl Transport for LanNode {
         match self.inbox.pop_front() {
             Some(packet) => Ok(Some(packet)),
             // Everything received before the loss is delivered first.
-            None if matches!(self.state, LanState::Closed(_)) => Err(TransportError::Disconnected),
+            None if matches!(self.state, LobbyState::Closed(_)) => {
+                Err(TransportError::Disconnected)
+            }
             None => Ok(None),
         }
     }
 
     fn round_trip_ms(&self) -> Option<(u32, u32)> {
-        let millis = |d: std::time::Duration| u32::try_from(d.as_millis()).unwrap_or(u32::MAX);
         self.game_peers()
             .into_iter()
-            .filter_map(|id| self.host.get_peer(id))
-            .filter(|peer| peer.connected())
-            .map(|peer| {
-                (
-                    millis(peer.round_trip_time()),
-                    millis(peer.round_trip_time_variance()),
-                )
-            })
+            .filter_map(|peer| self.link.round_trip_ms(peer))
             .max_by_key(|&(rtt, variance)| rtt.saturating_add(variance))
     }
 
     fn close(&mut self) {
         // Unlike `leave`, nothing waits for acknowledgements: the process
         // may be about to exit.
-        for peer in self.host.connected_peers_mut() {
-            peer.disconnect_now(0);
-        }
-        self.host.flush();
+        self.link.disconnect_all(true);
+        self.link.flush();
         self.close_state("left the game".into());
     }
 }
 
-impl std::fmt::Debug for LanNode {
+impl<L: Link> std::fmt::Debug for LobbyNode<L> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("LanNode")
+        f.debug_struct("LobbyNode")
             .field("host", &self.is_host())
-            .field("port", &self.port())
             .field("state", &self.state)
             .field("local", &self.local)
             .field("lobby", &self.lobby)
             .finish_non_exhaustive()
     }
-}
-
-fn new_host(socket: UdpSocket, peer_limit: usize) -> io::Result<Host<UdpSocket>> {
-    Host::new(
-        socket,
-        HostSettings {
-            peer_limit,
-            channel_limit: CHANNEL_COUNT,
-            ..HostSettings::default()
-        },
-    )
-    .map_err(|e| io::Error::other(format!("cannot create ENet host: {e:?}")))
-}
-
-fn configure_peer(peer: &mut rusty_enet::Peer<UdpSocket>) {
-    peer.set_timeout(0, TIMEOUT_MIN_MS, TIMEOUT_MAX_MS);
-    peer.set_ping_interval(PING_INTERVAL_MS);
 }

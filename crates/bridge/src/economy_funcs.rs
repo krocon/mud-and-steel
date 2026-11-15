@@ -154,7 +154,7 @@ impl SimHost {
                     .map(|&t| i32::try_from(t).unwrap_or(-1))
                     .collect();
                 let (x, y) = (fixed_to_f32(s.rally.x), fixed_to_f32(s.rally.y));
-                let h = fixed_to_f32(game.map.height_at(s.rally));
+                let h = fixed_to_f32(game.map().height_at(s.rally));
                 let id = names.get(s.unit_type as usize).cloned().unwrap_or_default();
                 vdict! {
                     "id" => i64::from(s.unit.0),
@@ -242,7 +242,7 @@ impl SimHost {
             .supply_points()
             .iter()
             .map(|p| {
-                let h = fixed_to_f32(game.map.height_at(p.position));
+                let h = fixed_to_f32(game.map().height_at(p.position));
                 vdict! {
                     "name" => p.name.as_str(),
                     "position" => Vector3::new(fixed_to_f32(p.position.x), h, fixed_to_f32(p.position.y)),

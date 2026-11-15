@@ -25,19 +25,21 @@ Godot 4 (presentation: 3D scene, UI, audio)        godot/
         ▲▼  commands in, snapshots out
 godot-rust bridge (GDExtension, thin)              crates/bridge
         ▲▼
-Rust workspace:  sim  |  net  |  cli                crates/sim, crates/net, crates/cli
+Rust workspace:  sim  |  net  |  steam  |  cli      crates/sim, crates/net, crates/steam, crates/cli
         ▲▼
-Transport: ENet on LAN (net::lan), later Steam online
+Transport: lobby protocol (net::lobby) over ENet on the LAN (net::lan) or
+           Steam Networking Messages online (crates/steam)
 ```
 
 | Crate / folder  | Responsibility | Depends on |
 |-----------------|----------------|------------|
 | `crates/sim`    | Game rules and state. `Sim::new(config, map, seed)`, `step(&[PlayerCommand])`, `state_hash()`, `snapshot()`. Players and unit ownership, group commands with formation, maps (height field, terrain, objects, bridges), pathfinding (`sim::path`), combat (`sim::combat`), destruction of map objects (`sim::destruction`), infantry squads with soldiers, stances, cover and buildings (`sim::infantry`, prompt 022), fixed-point math, RNG, stable hash, unit catalog, scale, terrain rules and scenarios (compiled in, like the map `test_small`). | `fixed`, `serde`, `toml`, `png` |
-| `crates/net`    | Lockstep protocol: `CommandFrame`, `HashReport`, `LockstepSession` (input delay, also changed at run time, desync detection), `Transport` trait, `LoopbackTransport` for tests, `LocalTransport` for single player. Replays (`net::replay`). LAN games (`net::lan`): ENet transport with lobby, discovery by UDP broadcast. | `sim`, `postcard`, `rusty_enet`, `if-addrs` |
-| `crates/cli`    | Headless runner: `cli run --ticks N --seed S [--record FILE]` prints the state hash, `cli replay FILE` re-simulates a replay and checks its end hash, `cli gen-map` generates test maps, `cli map-info DIR` measures a map, `cli path-bench` benchmarks pathfinding, `cli map-check DIR` validates a map like the editor, `cli lan-host` / `cli lan-join` play the demo as headless LAN peers. | `sim`, `net`, `clap`, `png` |
+| `crates/net`    | Lockstep protocol: `CommandFrame`, `HashReport`, `LockstepSession` (input delay, also changed at run time, desync detection), `Transport` trait, `LoopbackTransport` for tests, `LocalTransport` for single player. Replays (`net::replay`). Network games: `net::lobby::LobbyNode` (lobby protocol, then the match transport) over a `Link`; LAN games (`net::lan`): ENet link, discovery by UDP broadcast; `MemoryLink` for tests. | `sim`, `postcard`, `rusty_enet`, `if-addrs` |
+| `crates/steam`  | Online over Steam (prompt 026, [ONLINE.md](ONLINE.md)): the Steam client (`Steam`, app id `steam::APP_ID`), `SteamLink` over Steam Networking Messages, `OnlineLobby` (create, list, join, invite, rich presence). Optional: only the bridge (feature `steam`, default) and the CLI (feature `steam`) use it. | `net`, `steamworks` |
+| `crates/cli`    | Headless runner: `cli run --ticks N --seed S [--record FILE]` prints the state hash, `cli replay FILE` re-simulates a replay and checks its end hash, `cli gen-map` generates test maps, `cli map-info DIR` measures a map, `cli path-bench` benchmarks pathfinding, `cli map-check DIR` validates a map like the editor, `cli lan-host` / `cli lan-join` play the demo as headless LAN peers, `cli steam-host` / `cli steam-join` over Steam (feature `steam`). | `sim`, `net`, `clap`, `png`, (`steam`) |
 | `crates/ai`     | Computer players (prompt 024): `Ai::think(&PlayerView) -> Vec<Command>`, the fog-of-war `PlayerView`, difficulties, `game::Game` for headless AI matches. Runs on one machine as a hosted player of the lockstep session, not inside the simulation. See [AI.md](AI.md). | `sim`, `net` |
 | `crates/editor` | Map editing (prompt 028): `EditMap` with integer brushes, undo per stroke, saving in the map format and validation through the simulation's loader and path finder. A tool like `cli gen-map`, not game rules. | `sim`, `png`, `toml` |
-| `crates/bridge` | GDExtension `cdylib`. `SimHost` node: runs ticks from a time accumulator through a `LockstepSession`, queues commands, exposes the last two snapshots and the replay; plays single player over `LocalTransport` or a LAN match (`SimHost.start_lan`). `LanLobby` drives the LAN lobby. `MapEditor` hosts the map editor. The only float conversion. | `sim`, `net`, `editor`, `godot` |
+| `crates/bridge` | GDExtension `cdylib`. `SimHost` node: runs ticks from a time accumulator through a `LockstepSession`, queues commands, exposes the last two snapshots and the replay; plays single player over `LocalTransport`, a LAN match (`SimHost.start_lan`) or an online match (`SimHost.start_online`). `LanLobby` drives the LAN lobby, `SteamLobby` the online lobby (always registered; without the `steam` feature it reports that). `MapEditor` hosts the map editor. The only float conversion. | `sim`, `net`, `editor`, `godot`, (`steam`) |
 | `godot/`        | Scenes, GDScript UI logic, assets. No C#. | bridge (via `.gdextension`) |
 | `data/`         | Unit catalog (`catalog/*.toml`, real values), `scale.toml` (conversion to game values), `terrain.toml` (terrain types, slope rules), `combat.toml` (combat rules), `infantry.toml` (stances, cover, buildings), scenarios (`scenarios/*.toml`, start setups) and maps (`maps/<name>/`), integers only. See [SCALE.md](SCALE.md) and [MAPS.md](MAPS.md). | – |
 
@@ -251,6 +253,8 @@ restarts the running search and re-plans every unit whose remaining route touche
 the changed cells. It is meant for game systems (buildings, wrecks, destruction in
 prompt 020), not for player commands. Wrecks use it; destroyed map objects
 re-rasterize their cells instead ([Destruction](#destruction)).
+Craters rebuild the cells under them and re-plan routes only when
+passability changed ([Terrain deformation](#terrain-deformation)).
 
 `Sim::set_bridge_intact(bridge, intact)` (prompt 014) works the same way for a
 bridge: the map is copied once (copy-on-write through `Arc::make_mut`; the
@@ -565,8 +569,9 @@ The maximum tick contains the path planning of the first orders.
 ### Open
 
 - Wrecks do not block sight; destroyed map objects rebuild their cells and
-  queue the viewsheds ([Destruction](#destruction)); terrain deformation (prompt 021)
-  would need to rebuild cells and requeue viewsheds.
+  queue the viewsheds ([Destruction](#destruction)); craters update the
+  ground height of their cells and queue the viewsheds
+  ([Terrain deformation](#terrain-deformation)).
 - Units on bridge decks: target cells use the ground height below the deck.
 - Last known positions of enemy units are not drawn (ghost markers).
 - Smoke (prompt 019 is presentation only) does not block sight yet.
@@ -673,8 +678,8 @@ not secret, only the effects are hidden).
 
 - Bridges cannot be shot down yet (`Sim::set_bridge_intact` exists; what
   happens to units on the deck is open), splash damage (HE radius), rubble
-  as an obstacle of its own, fires in buildings, terrain deformation
-  (prompt 021).
+  as an obstacle of its own, fires in buildings. Craters: [Terrain
+  deformation](#terrain-deformation).
 - Ruins stop rounds below their height; soldiers inside are hit through
   the rubble with an exposure chance by stance, and occupants of a
   collapsing building take losses (prompt 022,
@@ -782,6 +787,176 @@ object.
 - Path profiles per unit type grow with the economy types (see Cost).
 - The LAN lobby has no mode choice; LAN matches play the battle.
 
+## Terrain deformation
+
+Prompt 021. Ground hits of heavy rounds leave craters that change the
+simulation's map: heights and terrain types. Movement, ballistics, paths,
+sight and the presentation all read the same samples. Rules and public
+types in `crates/sim/src/craters.rs`, the state and its effects in
+`crates/sim/src/sim/craters.rs`; Godot only redraws.
+
+### Rules
+
+`data/craters.toml` (built in, loaded by `Sim::new` with
+`CraterRules::builtin`, in the state hash; like `data/destruction.toml` not
+part of `SimConfig`). Game rules, not catalog values:
+
+| Rule | Value |
+|---|---|
+| Crater from | 45 mm caliber (ground hits; smaller rounds only throw dust) |
+| Bowl radius | 12 mm per mm of caliber, at least 2 m (one raster step) |
+| Bowl depth | 5 mm per mm of caliber (7.5 cm: 375 mm, 15 cm: 750 mm) |
+| Rim | 25 % of the depth high at the bowl's edge, falling to 0 half a radius further out |
+| Limits per sample | at most 1.5 m below and 0.4 m above the loaded map |
+| Bowl terrain | `mud` (40 % speed); water types keep theirs and take no craters, nor do bridge decks |
+| Per tick | at most 16 craters; further ground hits in that tick leave none |
+| Cover | from 250 mm below the loaded height: 15 / 35 / 50 % of hits caught (stand / kneel / prone) |
+
+The shape on the 2 m raster, all integer: for every sample within the rim
+radius, with `d²` its squared distance to the impact in mm²,
+`-depth + (depth + rim) × d² / r²` inside the bowl and
+`rim × (outer - d) / (outer - r)` on the rim (`d` the integer square root).
+A 7.5 cm crater on a sample lowers it by 375 mm, raises its four neighbors
+by 93 mm and the diagonal ones by 15 mm; one between two samples lowers
+both by 258 mm.
+
+### State and per tick
+
+- **The map is changed in place.** The first crater copies it once
+  (copy-on-write through `Arc::make_mut`, like a destroyed bridge); after
+  that only the simulation holds it. The bridge reads the map through
+  `Sim::map()` and keeps no second `Arc`, or every crater would copy it
+  again. The map's content hash stays the loaded one (its identity for
+  `SimConfig::map` and replays).
+- **Deviation raster:** one `i16` per sample (allocated with the first
+  crater, 8 MB on `test_large`) holds height minus loaded height. It clamps
+  repeated hits, marks craters for infantry and lets the decoration skip
+  them. Memory stays constant however many craters there are.
+- **Order:** `fly_projectiles` collects ground hits (`HitKind::Ground`) of
+  heavy rounds; `apply_craters` runs after `apply_destruction` and before
+  the vision update. Per crater: samples changed (planned on the unchanged
+  map, then applied in order), then for all craters of the tick:
+  - path cells under the craters: flags and costs rebuilt
+    (`PathGrid::rebuild_cells`). Components are labeled again and routes
+    through the cells re-planned **only if passability changed** (a crater
+    field steeper than 60 %, or the reverse); mud only raises the cost;
+  - vision cells whose center height changed get the new ground
+    (`VisionGrid::ground_changes` / `set_ground`, copy-on-write of the
+    shared grid) and the viewsheds that contain them are queued; obstacle
+    tops (absolute heights) stay;
+  - units and soldiers standing there get the new ground height; standing
+    squads nearby choose their cover spots again.
+- **Hash:** the rules, the number of craters, queued craters and a running
+  checksum (`StableHasher` over the previous checksum, every crater's
+  point and caliber and every changed sample's index, height and terrain).
+  Hashing 4 M samples per tick would be far too slow; the checksum sees
+  every change in order.
+- **Events** (`Sim::crater_events`: point, caliber, radius, depth, sample
+  rectangle) are derived, not hashed. `Sim::queue_crater(point, caliber)`
+  queues a crater like a ground hit, for game systems and tools, never for
+  player commands. `deformation_mm(i, j)`, `crater_count`,
+  `has_craters`, `crater_rules` serve tests and the presentation.
+
+### Infantry cover
+
+Crater samples at least 250 mm deep are **cover spots** like the spots
+behind objects ([INFANTRY.md](INFANTRY.md#cover)): a standing squad assigns
+its soldiers to the nearest free spot within reach, object or crater. A
+hit on a soldier of a standing squad whose ground lies that deep is caught
+by the rim with the chance of his stance, from every direction (simulation
+`Rng`); the round becomes a ground hit there. `SoldierSnapshot::in_cover`
+holds at crater spots as well.
+
+### Bridge and Godot
+
+The bridge collects the crater events of every tick
+(`SimHost.take_crater_events`: position on the new ground, radius, depth,
+caliber, sample rectangle), `scatter_deco` leaves deformed samples empty,
+and `debug_crater(x, z, caliber_mm)` queues a simulation crater (refused
+in network matches; a single-player replay with debug craters no longer
+verifies). `scenes/world/crater_view.gd`:
+
+- collects the sample rectangles (overlapping ones merged) and redraws the
+  terrain with one `terrain.regions_changed` (one texture upload). Godot
+  uploads whole textures, so uploads are spaced at least 0.1 s apart and at
+  least eight times the cost of the last upload (at most 0.5 s): on large
+  maps 100 craters cost a few uploads, not 100. Units already stand on the
+  new ground meanwhile;
+- has `map_objects.craters_changed` rebuild the decoration squares over the
+  craters (six per frame at most); grass, bushes and stones vanish from the
+  crater and its rim.
+
+The impact itself is the ground-hit effect of prompt 019 (earth fountain,
+dust, scorch decal); the mud splat of the bowl and the shading of the
+changed normals make the crater visible.
+
+### Measurements
+
+`just crater-bench` (`cli crater-bench`): 200 units of two players
+(half Panzer IV, half rifle squads) driving across the middle of
+`test_large`, then 100 craters of 7.5 cm at random points within ±200 m,
+release build, Apple M1 Max:
+
+| Craters | Ticks before | First crater tick (map copy) | Ticks with craters (mean / max) | Path requests |
+|---|---|---|---|---|
+| 5 per tick (1 s) | 2.2 ms | 3.3 ms | 3.1 / 3.2 ms | 0 |
+| 16 per tick (0.35 s) | 2.3 ms | 3.3 ms | 3.2 / 3.2 ms | 0 |
+| 16 per tick within ±10 m (crater field steeper than 60 %) | 3.4 ms | 3.3 ms | 27.8 / 39.1 ms | 102 |
+
+Spread craters cost about 1 ms per tick (path cells, vision cells and the
+viewshed queue); no route has to be planned again. Stacked craters that
+close cells cost a flood fill of the components per tick (about 8 ms on
+`test_large`) and re-planning of every route through them, still within
+the 50 ms tick.
+
+`just crater-view-bench [map]` (`tools/crater_bench.gd`, `-- --effects-craters`):
+1920 × 1080, V-Sync off, quality high, forest, debug bridge, camera 150 m
+above the middle between both sides, every unit holding fire; 100
+simulation craters of 7.5 cm (`debug_crater`) within 2 s on an area of
+120 m × 120 m, each with the ground-hit effect of prompt 019 (Apple M1 Max):
+
+| Map | Idle | 100 craters in 2 s (worst frame) | 4 s after | Terrain uploads (last) | Decoration squares rebuilt |
+|---|---|---|---|---|---|
+| `test_small` | 77 FPS | 71 FPS (21 ms) | 64 FPS | 20 (0.7 ms) | 460 |
+| `test_large` | 114 FPS | 61 FPS (45 ms) | 96 FPS | 20 (6.2 ms) | 524 |
+| `test_large`, craters without effects | 113 FPS | 74 FPS (45 ms) | 102 FPS | 20 (6.1 ms) | 558 |
+| `test_large`, without decoration rebuilds | 114 FPS | 64 FPS (36 ms) | 96 FPS | 20 (6.4 ms) | 0 |
+
+On `test_large` one upload of all terrain textures (2001² samples, 72 MB)
+costs about 6 ms; recomputing the height ranges of all 1024 chunks took
+another 11 ms per upload until `terrain.regions_changed` updated only the
+chunks under the craters (`SimHost.terrain_chunk_ranges_in`). The craters
+themselves (simulation in the debug bridge, uploads, decoration) cost about
+4.7 ms per frame while they fall, the impact effects about 2.3 ms; the
+frame rate stays at 60 FPS or above. On `test_small` (`after` lower than
+`during`: smoke and 100 scorch decals stay) the craters hardly matter. The
+worst frames contain the first crater (the map copy in the debug build)
+and an upload together with decoration rebuilds.
+
+### Decisions
+
+| Question | Decision | Why |
+|---|---|---|
+| Where the heights live | In the simulation's `Map`, changed in place after one copy, plus an `i16` deviation raster | Movement, ballistics, sight and drawing read the same samples without special cases; memory stays constant. An overlay of crater records would grow and need lookups everywhere. |
+| State hash | Running checksum over craters and changed samples, plus the count | Hashing the raster every tick is too slow; the checksum sees every change in order. |
+| New terrain type for churned earth | No, mud (id 4) | The splatting shader has exactly eight weights (two RGBA rasters); mud already slows units. The deviation raster keeps decoration out. |
+| Radius on the 2 m raster | At least one raster step | Smaller craters would often touch no sample. Real 7.5 cm craters are smaller; the bowl is shallow enough not to block anything alone. |
+| Re-planning | Only when passability changed | Every crater changes costs; re-planning every route through every crater would be expensive and make units hesitate. |
+| Cover | Spots plus an all-round chance by stance | At 2 m samples the geometry alone cannot hide a soldier in a 40 cm dip; the spot and roll mechanism of prompt 022 is reused. |
+| Limit | 16 craters per tick | Bounded cost per tick like the path and vision budgets; a barrage spreads over ticks. |
+| Terrain upload | Collected, spaced by its cost | Godot 4 has no partial texture update; one upload for many craters. |
+
+### Open
+
+- Indirect fire (mortars, howitzers) and HE splash: today only direct-fire
+  rounds from 45 mm that miss or attack the ground make craters; larger
+  calibers would dig larger craters with the same rules.
+- Map objects standing in a crater keep their height (a tree may float a
+  few decimeters above a bowl); vision obstacle tops do not move.
+- Water surfaces (prompt 014) are not rebuilt when a crater lowers a bank.
+- Craters do not fill again; the deviation limit keeps them bounded.
+- The map editor (prompt 028) shows no craters (the editor has none).
+
 ## Victory conditions and game flow
 
 Prompt 027. `crates/sim/src/outcome.rs` decides the match; Godot only shows it.
@@ -815,6 +990,7 @@ Prompt 027. `crates/sim/src/outcome.rs` decides the match; Godot only shows it.
 ```
 main menu ── Single player ─ setup (map, season, factions, opponent, mode) ┐
           ├─ LAN game ────── lan/lan_lobby.tscn (host, search, join) ────┤
+          ├─ Online (Steam)  online/steam_lobby.tscn (host, list, code) ─┤
           ├─ Settings        (user://settings.cfg)                       │
           └─ Quit                                                        ▼
                                   main.tscn: loading screen → match → result → main menu
@@ -975,8 +1151,9 @@ terrain.gdshader: vertex reads heights (texelFetch), fragment blends materials
 
 `SimHost.terrain_chunk_ranges(cells)` gives the height range of every chunk for
 culling. `SimHost.debug_dent(x, z, radius, depth)` adds a presentation-only offset
-(debug crater); the simulation, unit heights and mouse picking keep the original
-heights until prompt 021 lets the simulation change the map.
+(terrain tests and benchmarks); real craters change the simulation's map
+([Terrain deformation](#terrain-deformation)), which the bridge always reads
+through the simulation.
 
 ### Chunks and LOD
 
@@ -1027,8 +1204,13 @@ below the lowest point, like a diorama block.
 `terrain.heights_changed(rect)` re-reads a rectangle of samples (grown by 8 samples
 for normals and filters) through `terrain_layers`, blits it into the images,
 uploads the textures and refreshes the chunk height ranges and, at the map border,
-the edge cut. No mesh is rebuilt: chunks only reference the textures. The debug
-menu (F3) has "Test crater at focus", which goes through the same path.
+the edge cut. No mesh is rebuilt: chunks only reference the textures.
+`terrain.regions_changed(rects)` does the same for several rectangles with one
+upload and updates only the height ranges of the chunks under them
+(`SimHost.terrain_chunk_ranges_in`); `world/crater_view.gd` uses it for the craters of the simulation
+([Terrain deformation](#terrain-deformation)). The debug menu (F3) "Test crater
+at focus" makes a simulation crater (a presentation-only dent in network
+matches).
 
 ### Why our own renderer and not Terrain3D (phase 0)
 
@@ -1402,11 +1584,13 @@ and a burning wreck.
 | Textures | Generated from noise at start-up | No downloads or licenses; a few hundred KB of memory. |
 | Muzzle position | Nearest `Socket_Muzzle*` to the simulation's muzzle | No mapping from weapon index to socket needed; falls back to the simulation's point. |
 | Debris | Dark sprites, not meshes | A mesh draw pass with a `StandardMaterial3D` leaked its shader at exit (Godot 4.7.2); sprites look the same from above. |
-| Decals | `Decal` ring buffer per quality, 2.5 m deep box | Optical only until craters (prompt 021). |
+| Decals | `Decal` ring buffer per quality, 2.5 m deep box | Optical; since prompt 021 a scorch mark lies in the simulation's crater of the same hit. |
 
 ### Open
 
-- Craters (prompt 021) replace scorch decals of large shells.
+- Craters (prompt 021) are terrain now; the impact of a crater-making hit
+  still uses the ground-hit effect (earth fountain, dust, scorch decal),
+  there is no extra crater decal.
 - Sound can hook into the same events (`combat_view.combat_event`).
 - Tracers could start at the muzzle socket; projectile ids are not in the
   per-projectile arrays yet.
@@ -1549,6 +1733,15 @@ round trip (`round_trip_ms`) and is closed when a match is dropped.
   relays the lockstep packets of every client to the others (star). Games are found
   with a UDP broadcast query. Lobby, protocol, ports and how to test with two
   machines: [LAN.md](LAN.md).
+- **Online:** `steam::SteamNode`, the same lobby node over Steam Networking
+  Messages (relayed by Steam, NAT traversal included). The Steam lobby finds the
+  game and invites friends; its owner is the host. Choices, protocol, build and
+  how to test with two accounts: [ONLINE.md](ONLINE.md).
+
+The lobby protocol (`net::lobby::LobbyNode`: hello, welcome, ready, start,
+relay through the host) is independent of the network; LAN and Steam only
+provide a `net::lobby::Link` (connect and disconnect events, packets on two
+channels, round trip).
 - **Online (prompt 026):** Steam networking through
   [GodotSteam](https://godotsteam.com/) (GDExtension). Lobbies, matchmaking and NAT
   traversal come from Steam; a `SteamTransport` in the bridge implements the same trait

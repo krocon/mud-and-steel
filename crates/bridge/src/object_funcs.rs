@@ -14,7 +14,7 @@ impl SimHost {
         let Some(game) = self.game.as_ref() else {
             return PackedStringArray::new();
         };
-        game.map
+        game.map()
             .object_kinds()
             .iter()
             .map(|k| GString::from(format!("{}:{}", k.id, k.variant).as_str()))
@@ -26,7 +26,7 @@ impl SimHost {
     fn object_count(&self) -> i64 {
         self.game
             .as_ref()
-            .map_or(0, |g| g.map.objects().len() as i64)
+            .map_or(0, |g| g.map().objects().len() as i64)
     }
 
     /// The objects as `MultiMesh` transform buffers (12 floats per
@@ -39,7 +39,7 @@ impl SimHost {
         let Some(game) = self.game.as_ref() else {
             return Array::new();
         };
-        objects::groups(&game.map, chunk_m.max(1.0))
+        objects::groups(game.map(), chunk_m.max(1.0))
             .into_iter()
             .map(|g| {
                 let mut d = VarDictionary::new();
@@ -60,13 +60,13 @@ impl SimHost {
         };
         let Some(o) = usize::try_from(index)
             .ok()
-            .and_then(|i| game.map.objects().get(i))
+            .and_then(|i| game.map().objects().get(i))
         else {
             return Vector3::ZERO;
         };
         Vector3::new(
             fixed_to_f32(o.position.x),
-            fixed_to_f32(game.map.height_at(o.position)),
+            fixed_to_f32(game.map().height_at(o.position)),
             fixed_to_f32(o.position.y),
         )
     }
@@ -101,7 +101,7 @@ impl SimHost {
         };
         let rasters = game
             .deco
-            .get_or_init(|| objects::DecoRasters::new(&game.map));
+            .get_or_init(|| objects::DecoRasters::new(game.map()));
         let layer = DecoLayer {
             spacing,
             seed: seed.cast_unsigned(),
@@ -115,9 +115,15 @@ impl SimHost {
         };
         let water = (shore != Vector2::ZERO).then(|| {
             game.water
-                .get_or_init(|| crate::water::WaterField::new(&game.map))
+                .get_or_init(|| crate::water::WaterField::new(game.map()))
         });
-        objects::scatter(&game.map, rasters, water, &layer, x0, z0, size)
+        // Nothing grows in craters (prompt 021).
+        let sim = &game.sim;
+        let sx = game.map().samples().0 as usize;
+        let deformed = |k: usize| {
+            sim.has_craters() && sim.deformation_mm((k % sx) as u32, (k / sx) as u32) != 0
+        };
+        objects::scatter(game.map(), rasters, water, &layer, x0, z0, size, deformed)
             .into_iter()
             .map(|b| PackedFloat32Array::from(b.as_slice()))
             .collect()

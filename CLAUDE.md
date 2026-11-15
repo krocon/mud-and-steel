@@ -45,6 +45,7 @@ just import                # headless Godot import (after clone / new assets)
 just run                   # build + start the game in the main menu (--skip-menu: test match)
 just selftest              # build + headless test: menu, settings, matches, result
 just lan / just lan-selftest  # LAN lobby / two headless instances over localhost
+just online                # online lobby over Steam (optional; docs/ONLINE.md)
 just map-editor / just editor-selftest  # map editor / its headless test
 just map-check <name>      # validate data/maps/<name>/ like the editor
 just ai-tournament         # AI against AI over many seeds, statistics (docs/AI.md)
@@ -57,7 +58,8 @@ just model-tank            # regenerate placeholder tank
 
 ```
 crates/sim/      deterministic game rules (Fixed, Vec2, Rng, StableHasher, Sim, scenario)
-crates/net/      lockstep protocol, Transport trait, LoopbackTransport
+crates/net/      lockstep protocol, Transport trait, lobby protocol, LAN (ENet)
+crates/steam/    online over Steam (steamworks-rs), optional; app id in one place
 crates/cli/      headless runner
 crates/bridge/   godot-rust GDExtension (SimHost node, MapEditor node)
 crates/ai/       computer players: fog-of-war PlayerView, difficulties, headless AI games
@@ -67,7 +69,7 @@ assets-src/blender/  .blend sources (Git LFS)
 tools/           Blender scripts, Godot import helper
 data/            unit catalog (catalog/*.toml, real values) and scale.toml
 docs/            ARCHITECTURE.md, DETERMINISM.md, VERSIONS.md, SCALE.md, ASSETS.md,
-                 SOURCES.md, INFANTRY.md, LAN.md, AI.md, GAME_DESIGN.md,
+                 SOURCES.md, INFANTRY.md, LAN.md, ONLINE.md, AI.md, GAME_DESIGN.md,
                  UNIT_CATALOG.md (generated)
 prompts/         task prompts (roadmap in prompts/README.md); finished ones: git mv to prompts/done/
 ```

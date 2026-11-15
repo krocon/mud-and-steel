@@ -4,6 +4,7 @@
 use net::lan::{
     DiscoveryBrowser, DiscoveryResponder, GameInfo, LanNode, LanState, PROTOCOL_VERSION,
 };
+use net::lobby::{Link, LobbyNode};
 use net::{LockstepSession, ReplayRecorder, Transport, recommended_input_delay};
 use sim::scenario::{CommandScript, builtin_map, demo_config};
 use sim::{Command, PlayerCommand, Sim, Vec2};
@@ -12,7 +13,7 @@ use std::path::PathBuf;
 use std::time::{Duration, Instant};
 
 /// State hashes are exchanged every this many ticks (like the game).
-const HASH_INTERVAL: u64 = 20;
+pub const HASH_INTERVAL: u64 = 20;
 /// The input delay is re-evaluated every this many ticks.
 const DELAY_INTERVAL: u64 = 20;
 
@@ -145,8 +146,8 @@ fn discover(port: u16, deadline: Instant) -> Result<SocketAddr, String> {
     }
 }
 
-/// Plays the started match as fast as the lockstep allows.
-fn play_match(mut node: LanNode, options: &MatchOptions) -> Result<i32, String> {
+/// Plays the started match as fast as the lockstep allows (LAN or Steam).
+pub fn play_match<L: Link>(mut node: LobbyNode<L>, options: &MatchOptions) -> Result<i32, String> {
     let info = node.start_info().ok_or("match not started")?.clone();
     let local = node.local_player().ok_or("no player id")?;
     let map = builtin_map();

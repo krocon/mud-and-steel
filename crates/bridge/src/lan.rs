@@ -4,13 +4,16 @@
 //! lobby scene to `main.tscn`; `SimHost.start_lan` then takes the started
 //! connection out of it. The network code itself lives in `net::lan`.
 
+use crate::SimHost;
 use godot::classes::{IRefCounted, RefCounted};
 use godot::prelude::*;
 use net::lan::{
     DEFAULT_DISCOVERY_PORT, DEFAULT_GAME_PORT, DiscoveryBrowser, DiscoveryResponder, GameInfo,
     LanNode, LanState, PROTOCOL_VERSION,
 };
-use sim::scenario::builtin_map;
+use net::lobby::{Link, LobbyNode};
+use sim::Sim;
+use sim::scenario::{BUILTIN_MAP_NAME, builtin_map};
 use std::net::{IpAddr, SocketAddr};
 use std::path::Path;
 use std::sync::Arc;
@@ -232,30 +235,11 @@ impl LanLobby {
     /// the map folder `map_dir` (absolute path, "" = built-in).
     #[func]
     fn start_match(&mut self, seed: i64, map_dir: GString) -> bool {
-        let map_dir = map_dir.to_string();
-        let map = if map_dir.is_empty() {
-            builtin_map()
-        } else {
-            match crate::load_map_dir(Path::new(&map_dir)) {
-                Ok(map) => Arc::new(map),
-                Err(e) => return self.fail(e),
-            }
-        };
-        let config = match crate::demo_config(&map, &[]) {
-            Ok(config) => config,
-            Err(e) => return self.fail(e.to_string()),
-        };
         let Some(node) = &mut self.node else {
             return self.fail("not hosting".into());
         };
-        // The seed is a bit pattern; reinterpreting the sign is intended.
-        match node.start(
-            seed.cast_unsigned(),
-            config,
-            LAN_INPUT_DELAY,
-            LAN_HASH_INTERVAL,
-        ) {
-            Ok(_) => {
+        match start_demo(node, seed, &map_dir.to_string()) {
+            Ok(()) => {
                 self.responder = None;
                 true
             }
@@ -321,4 +305,75 @@ fn parse_address(text: &str) -> Option<SocketAddr> {
             DEFAULT_GAME_PORT,
         ))
     })
+}
+
+/// Host: starts the demo scenario for everyone in the lobby of `node`, on
+/// the built-in map or the map folder `map_dir` (absolute path, "" =
+/// built-in). Shared by the LAN and the Steam lobby.
+pub(crate) fn start_demo<L: Link>(
+    node: &mut LobbyNode<L>,
+    seed: i64,
+    map_dir: &str,
+) -> Result<(), String> {
+    let map = if map_dir.is_empty() {
+        builtin_map()
+    } else {
+        Arc::new(crate::load_map_dir(Path::new(map_dir))?)
+    };
+    let config = crate::demo_config(&map, &[]).map_err(|e| e.to_string())?;
+    // The seed is a bit pattern; reinterpreting the sign is intended.
+    node.start(
+        seed.cast_unsigned(),
+        config,
+        LAN_INPUT_DELAY,
+        LAN_HASH_INTERVAL,
+    )
+    .map(|_| ())
+}
+
+impl SimHost {
+    /// Starts the network match that `node` (state "started") prepared: the
+    /// host's seed and config, the map loaded locally (built-in, or from
+    /// `maps_dir/<name>/`). Returns false (and logs why) on failure.
+    pub(crate) fn start_networked<L: Link + 'static>(
+        &mut self,
+        node: LobbyNode<L>,
+        maps_dir: &str,
+    ) -> bool {
+        let (Some(info), Some(local)) = (node.start_info().cloned(), node.local_player()) else {
+            godot_error!("cannot start the network match: no start message");
+            return false;
+        };
+        let name = &info.config.map.name;
+        let map = if *name == BUILTIN_MAP_NAME {
+            builtin_map()
+        } else {
+            match crate::load_map_dir(&Path::new(maps_dir).join(name)) {
+                Ok(map) => Arc::new(map),
+                Err(e) => {
+                    godot_error!("cannot load the map of the network match: {e}");
+                    return false;
+                }
+            }
+        };
+        // Rejects a map with a different content hash than the host's.
+        let sim = match Sim::new(&info.config, map.clone(), info.seed) {
+            Ok(sim) => sim,
+            Err(e) => {
+                godot_error!("cannot start the network match: {e}");
+                return false;
+            }
+        };
+        self.input_delay = info.input_delay;
+        self.install(
+            sim,
+            map,
+            info.config.clone(),
+            info.seed,
+            local,
+            &info.lockstep_config(),
+            Box::new(node),
+        );
+        true
+    }
 }

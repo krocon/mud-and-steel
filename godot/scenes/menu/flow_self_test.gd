@@ -9,7 +9,8 @@ extends Node
 ## 2. Settings: change quality, pan speed and two key bindings (the second
 ##    one takes the key of the first, which gets the second's old key), save,
 ##    load again, then restore the defaults. Uses its own settings file.
-## 3. LAN: the lobby opens from the menu and its Back button returns.
+## 3. LAN: the lobby opens from the menu and its Back button returns; the
+##    same for the online lobby (prompt 026), without initializing Steam.
 ## 4. Match 1 (test_small, Germany vs. Soviet Union, from the setup screen):
 ##    loading screen steps, then all match tests of `self_test.gd`; Esc
 ##    pauses (no ticks while paused) and resumes; surrender from the pause
@@ -71,10 +72,12 @@ func _run() -> void:
 	if menu == null:
 		_finish()
 		return
-	for button: Button in [menu.single_player_button, menu.lan_button, menu.settings_button, menu.quit_button]:
+	for button: Button in [menu.single_player_button, menu.lan_button, menu.online_button, menu.settings_button, menu.quit_button]:
 		_check(button != null and button.is_visible_in_tree(), "main menu button missing")
 	await _settings_test(menu)
 	menu = await _lan_test(menu)
+	if menu != null:
+		menu = await _online_test(menu)
 	if menu == null:
 		_finish()
 		return
@@ -130,7 +133,7 @@ func _run() -> void:
 func _finish() -> void:
 	set_process(false)
 	var ok := _errors.is_empty()
-	var message := "menu, settings, LAN lobby, loading, match tests, pause, surrender, combat victory, computer opponent, base building, result and back ok" if ok else " ".join(_errors)
+	var message := "menu, settings, LAN lobby, online lobby, loading, match tests, pause, surrender, combat victory, computer opponent, base building, result and back ok" if ok else " ".join(_errors)
 	print("flow self-test %s: %s" % ["PASSED" if ok else "FAILED", message])
 	get_tree().paused = false
 	get_tree().quit(0 if ok else 1)
@@ -200,6 +203,24 @@ func _lan_test(menu: Control) -> Control:
 	lobby.back_button.pressed.emit()
 	menu = await _wait_scene("MainMenu")
 	print("flow self-test: LAN lobby opened and closed")
+	return menu
+
+
+# --- Online (prompt 026) --------------------------------------------------
+
+
+## Opens the online lobby without initializing Steam (`--self-test` counts
+## as `--no-steam` there) and goes back.
+func _online_test(menu: Control) -> Control:
+	menu.online_button.pressed.emit()
+	var lobby: Control = await _wait_scene("OnlineLobby")
+	if lobby == null:
+		return null
+	_check(lobby.back_button != null and lobby.back_button.is_visible_in_tree(), "online lobby has no Back button")
+	_check(not lobby._connected, "the flow self-test must not initialize Steam")
+	lobby.back_button.pressed.emit()
+	menu = await _wait_scene("MainMenu")
+	print("flow self-test: online lobby opened and closed")
 	return menu
 
 

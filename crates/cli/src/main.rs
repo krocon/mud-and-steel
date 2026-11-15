@@ -2,11 +2,14 @@
 
 mod ai_tournament;
 mod catalog_doc;
+mod crater_bench;
 mod gen_map;
 mod gen_textures;
 mod infantry_bench;
 mod lan;
 mod path_bench;
+#[cfg(feature = "steam")]
+mod steam;
 mod vision_bench;
 
 use clap::{Parser, Subcommand};
@@ -93,6 +96,25 @@ enum CliCommand {
         /// Targets lie within this distance of the map center per axis (m).
         #[arg(long, default_value_t = 1800)]
         range_m: i32,
+    },
+    /// Benchmarks craters (prompt 021): many craters in a short time among
+    /// moving units of two players, time per tick.
+    CraterBench {
+        /// Map folder, e.g. data/maps/test_large.
+        #[arg(long, default_value = "data/maps/test_large")]
+        map: PathBuf,
+        /// Units per player.
+        #[arg(long, default_value_t = 100)]
+        units: u32,
+        #[arg(long, default_value_t = 100)]
+        craters: u32,
+        #[arg(long, default_value_t = 5)]
+        per_tick: u32,
+        /// Craters land within this distance of the map center per axis (m).
+        #[arg(long, default_value_t = 200)]
+        range_m: i32,
+        #[arg(long, default_value_t = 1)]
+        seed: u64,
     },
     /// Computer players against each other over many seeds (prompt 024):
     /// sides alternate every game; prints the results and a hash over them.
@@ -198,6 +220,30 @@ enum CliCommand {
         #[command(flatten)]
         play: LanPlayArgs,
     },
+    /// Hosts an online game of the demo over Steam (needs a running Steam
+    /// client) and plays it headless; prints the lobby code.
+    #[cfg(feature = "steam")]
+    SteamHost {
+        /// Friends only instead of listed for everyone.
+        #[arg(long)]
+        friends_only: bool,
+        #[arg(long, default_value_t = 42)]
+        seed: u64,
+        #[arg(long, default_value_t = 3)]
+        input_delay: u32,
+        #[command(flatten)]
+        play: LanPlayArgs,
+    },
+    /// Joins an online game over Steam (by lobby code, or the first one
+    /// listed) and plays it headless.
+    #[cfg(feature = "steam")]
+    SteamJoin {
+        /// Lobby code shown by the host.
+        #[arg(long)]
+        code: Option<u64>,
+        #[command(flatten)]
+        play: LanPlayArgs,
+    },
     /// Writes docs/UNIT_CATALOG.md (or the given path) from the built-in catalog.
     CatalogDoc {
         #[arg(default_value = catalog_doc::DOC_PATH)]
@@ -286,6 +332,22 @@ fn main() {
             };
             exit_with(lan::join(&options, &play.options()));
         }
+        #[cfg(feature = "steam")]
+        CliCommand::SteamHost {
+            friends_only,
+            seed,
+            input_delay,
+            play,
+        } => {
+            let options = steam::HostOptions {
+                public: !friends_only,
+                seed,
+                input_delay,
+            };
+            exit_with(steam::host(&options, &play.options()));
+        }
+        #[cfg(feature = "steam")]
+        CliCommand::SteamJoin { code, play } => exit_with(steam::join(code, &play.options())),
         CliCommand::Run {
             ticks,
             seed,
@@ -359,6 +421,27 @@ fn main() {
                 range_m,
             };
             match path_bench::run(map, &options) {
+                Ok(report) => println!("{report}"),
+                Err(e) => fail(&e),
+            }
+        }
+        CliCommand::CraterBench {
+            map,
+            units,
+            craters,
+            per_tick,
+            range_m,
+            seed,
+        } => {
+            let map = Arc::new(load_map_dir(&map).unwrap_or_else(|e| fail(&e)));
+            let options = crater_bench::Options {
+                units,
+                craters,
+                per_tick,
+                range_m,
+                seed,
+            };
+            match crater_bench::run(map, &options) {
                 Ok(report) => println!("{report}"),
                 Err(e) => fail(&e),
             }

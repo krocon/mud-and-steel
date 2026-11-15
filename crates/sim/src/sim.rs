@@ -16,6 +16,7 @@ use std::fmt;
 use std::sync::Arc;
 
 mod combat;
+mod craters;
 mod destruction;
 mod economy;
 mod infantry;
@@ -93,6 +94,8 @@ pub enum ConfigError {
     TooManyPlayers(usize),
     /// The built-in destruction rules do not parse (prompt 020).
     Destruction(String),
+    /// The crater rules are invalid (prompt 021).
+    Craters(String),
     /// The built-in economy rules do not parse (prompt 023).
     Economy(String),
 }
@@ -111,6 +114,7 @@ impl fmt::Display for ConfigError {
             Self::SpawnOutsideMap(index) => write!(f, "spawn {index} lies outside the map"),
             Self::TooManyPlayers(n) => write!(f, "{n} players, at most {MAX_PLAYERS} allowed"),
             Self::Destruction(e) | Self::Economy(e) => write!(f, "{e}"),
+            Self::Craters(e) => write!(f, "{e}"),
         }
     }
 }
@@ -283,6 +287,8 @@ pub struct Sim {
     infantry: InfantryRt,
     /// Hit points and stages of map objects (prompt 020).
     destruction: destruction::Destruction,
+    /// Craters and the deformation of the ground (prompt 021).
+    craters: craters::Craters,
     /// The unit types of the match (`SimConfig::unit_types`), for units
     /// produced during the match (prompt 023).
     unit_types: Vec<UnitType>,
@@ -375,6 +381,12 @@ impl Sim {
             &config.vision,
             &config.unit_types,
         );
+        let craters = craters::Craters::new(
+            crate::craters::CraterRules::builtin()
+                .map_err(|e| ConfigError::Craters(e.to_string()))?,
+            &config.terrain,
+        )
+        .map_err(ConfigError::Craters)?;
         let economy = economy::Economy::new(
             crate::economy::EconomyRules::builtin()
                 .map_err(|e| ConfigError::Economy(e.to_string()))?,
@@ -401,6 +413,7 @@ impl Sim {
             vision,
             infantry,
             destruction,
+            craters,
             unit_types: config.unit_types.clone(),
             economy,
         };
@@ -465,6 +478,7 @@ impl Sim {
         self.crush_objects();
         self.fly_projectiles();
         self.apply_destruction();
+        self.apply_craters();
         self.update_economy();
         self.update_vision(false);
         self.tick += 1;
@@ -910,6 +924,7 @@ impl Sim {
         self.standings.hash_into(&mut h);
         self.vision.hash_into(&mut h);
         self.destruction.hash_into(&mut h);
+        self.craters.hash_into(&mut h);
         self.economy.hash_into(&mut h);
         h.finish()
     }

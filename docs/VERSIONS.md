@@ -9,7 +9,7 @@ releases.
 | Godot         | 4.7.2-stable         | `godot/mud_and_steel.gdextension` (`compatibility_minimum = 4.7`), `project.godot` | Latest stable Godot supported by godot-rust 0.5.5. |
 | godot-rust    | `godot = "=0.5.5"`   | `Cargo.toml` (workspace dependencies)      | Feature `api-4-7`. Exact pin. |
 | Blender       | 5.3.0                | –                                          | Used for `tools/*.py`; export via the bundled glTF exporter. |
-| GodotSteam    | 4.24 (GDExtension)   | – (not integrated yet)                     | GDExtension build supports Godot 4.4+, Steamworks SDK 1.65. |
+| steamworks-rs | `steamworks = "=0.13.1"` | `Cargo.toml` (workspace dependencies)  | Steamworks SDK 1.64; `steamworks-sys` 0.13.0 brings the redistributable `steam_api` libraries (crates.io, not in the repository). Chosen over GodotSteam (4.24, SDK 1.65), see [ONLINE.md](ONLINE.md). Steam app id: `steam::APP_ID`. |
 | Git LFS       | 3.8.1                | `.gitattributes`                           | |
 
 Other crates (`fixed`, `serde`, `postcard`, `toml`, `clap`, `rusty_enet`, `if-addrs`) are

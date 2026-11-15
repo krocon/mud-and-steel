@@ -9,7 +9,7 @@ use sim::Vec2;
 impl SimHost {
     fn with_water<R>(&self, f: impl FnOnce(&WaterField) -> R) -> Option<R> {
         let game = self.game.as_ref()?;
-        Some(f(game.water.get_or_init(|| WaterField::new(&game.map))))
+        Some(f(game.water.get_or_init(|| WaterField::new(game.map()))))
     }
 }
 
@@ -132,6 +132,6 @@ impl SimHost {
     fn water_flow_deg(&self) -> i64 {
         self.game
             .as_ref()
-            .map_or(180, |g| i64::from(g.map.water_flow_deg()))
+            .map_or(180, |g| i64::from(g.map().water_flow_deg()))
     }
 }

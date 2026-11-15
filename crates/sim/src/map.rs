@@ -678,6 +678,21 @@ impl Map {
         self.terrain[j * self.samples_x as usize + i]
     }
 
+    /// Heights and terrain ids for changes during a match (craters, prompt
+    /// 021; only through [`crate::Sim`]). The content hash stays the one of
+    /// the loaded map.
+    pub(crate) fn rasters_mut(&mut self) -> (&mut [i32], &mut [u8]) {
+        (&mut self.heights_mm, &mut self.terrain)
+    }
+
+    /// Half of the width and depth in whole millimeters.
+    pub(crate) fn half_mm(&self) -> (i64, i64) {
+        (
+            self.half.x.to_num::<i64>() * 1000,
+            self.half.y.to_num::<i64>() * 1000,
+        )
+    }
+
     /// Grid coordinate of `value` on an axis, clamped to `0..=samples-1`.
     fn grid(&self, value: Fixed, half: Fixed, samples: u32) -> Fixed {
         let g = value.saturating_add(half).saturating_mul(self.cells_per_m);

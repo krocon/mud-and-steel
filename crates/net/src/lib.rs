@@ -9,10 +9,12 @@
 //! reach the other peers before it is needed.
 //!
 //! Single player uses the same path with one player and [`LocalTransport`];
-//! LAN games use [`lan::LanNode`] (ENet).
+//! Network games use a [`lobby::LobbyNode`]: over ENet on the LAN
+//! ([`lan::LanNode`]), over Steam online (`crates/steam`).
 //! [`Replay`] records the merged commands of every tick for later playback.
 
 pub mod lan;
+pub mod lobby;
 mod protocol;
 pub mod replay;
 mod session;

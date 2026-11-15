@@ -830,7 +830,7 @@ impl MapEditor {
         };
         let water =
             (shore != Vector2::ZERO).then(|| d.water.get_or_init(|| WaterField::new(&d.map)));
-        objects::scatter(&d.map, rasters, water, &layer, x0, z0, size)
+        objects::scatter(&d.map, rasters, water, &layer, x0, z0, size, |_| false)
             .into_iter()
             .map(|b| PackedFloat32Array::from(b.as_slice()))
             .collect()
@@ -844,7 +844,7 @@ impl SimHost {
     #[func]
     fn map_hash(&self) -> GString {
         self.game.as_ref().map_or_else(GString::new, |g| {
-            GString::from(format!("{:#018x}", g.map.hash()).as_str())
+            GString::from(format!("{:#018x}", g.map().hash()).as_str())
         })
     }
 }

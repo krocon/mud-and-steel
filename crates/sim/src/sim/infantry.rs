@@ -70,7 +70,7 @@ pub(super) struct Squad {
     /// Round robin over living soldiers for muzzles.
     pub(super) turn: u32,
     /// Squad position for which the cover spots were chosen.
-    spots_at: Option<Vec2>,
+    pub(super) spots_at: Option<Vec2>,
 }
 
 impl Squad {
@@ -777,7 +777,7 @@ impl Sim {
         let profile = unit.unit_type as usize;
         let kinds = self.map.object_kinds();
         let objects = self.map.objects();
-        let mut spots: Vec<(Vec2, u32)> = Vec::new();
+        let mut spots: Vec<(Vec2, Option<u32>)> = Vec::new();
         let mut buffer = Vec::new();
         for o in self.infantry.index.near(center, ty.spread / 2 + search) {
             let object = &objects[o as usize];
@@ -794,8 +794,11 @@ impl Sim {
                 spacing,
                 &mut buffer,
             );
-            spots.extend(buffer.iter().map(|&p| (p, o)));
+            spots.extend(buffer.iter().map(|&p| (p, Some(o))));
         }
+        // Craters (prompt 021): spots without an object, cover all round.
+        let crater_spots = self.crater_spots(center, ty.spread / 2 + search);
+        spots.extend(crater_spots.into_iter().map(|p| (p, None)));
         let grid = &self.paths.grid;
         let map = &self.map;
         spots.retain(|&(p, _)| map.contains(p) && grid.passable_for(profile, p));
@@ -815,7 +818,7 @@ impl Sim {
                 Some((_, k, p, o)) => {
                     used[k] = true;
                     soldier.spot = Some(p);
-                    soldier.cover = Some(o);
+                    soldier.cover = o;
                 }
                 None => {
                     soldier.spot = None;
