@@ -32,13 +32,13 @@ Transport: ENet on LAN (net::lan), later Steam online
 
 | Crate / folder  | Responsibility | Depends on |
 |-----------------|----------------|------------|
-| `crates/sim`    | Game rules and state. `Sim::new(config, map, seed)`, `step(&[PlayerCommand])`, `state_hash()`, `snapshot()`. Players and unit ownership, group commands with formation, maps (height field, terrain, objects, bridges), pathfinding (`sim::path`), combat (`sim::combat`), fixed-point math, RNG, stable hash, unit catalog, scale, terrain rules and scenarios (compiled in, like the map `test_small`). | `fixed`, `serde`, `toml`, `png` |
+| `crates/sim`    | Game rules and state. `Sim::new(config, map, seed)`, `step(&[PlayerCommand])`, `state_hash()`, `snapshot()`. Players and unit ownership, group commands with formation, maps (height field, terrain, objects, bridges), pathfinding (`sim::path`), combat (`sim::combat`), infantry squads with soldiers, stances, cover and buildings (`sim::infantry`, prompt 022), fixed-point math, RNG, stable hash, unit catalog, scale, terrain rules and scenarios (compiled in, like the map `test_small`). | `fixed`, `serde`, `toml`, `png` |
 | `crates/net`    | Lockstep protocol: `CommandFrame`, `HashReport`, `LockstepSession` (input delay, also changed at run time, desync detection), `Transport` trait, `LoopbackTransport` for tests, `LocalTransport` for single player. Replays (`net::replay`). LAN games (`net::lan`): ENet transport with lobby, discovery by UDP broadcast. | `sim`, `postcard`, `rusty_enet`, `if-addrs` |
 | `crates/cli`    | Headless runner: `cli run --ticks N --seed S [--record FILE]` prints the state hash, `cli replay FILE` re-simulates a replay and checks its end hash, `cli gen-map` generates test maps, `cli map-info DIR` measures a map, `cli path-bench` benchmarks pathfinding, `cli map-check DIR` validates a map like the editor, `cli lan-host` / `cli lan-join` play the demo as headless LAN peers. | `sim`, `net`, `clap`, `png` |
 | `crates/editor` | Map editing (prompt 028): `EditMap` with integer brushes, undo per stroke, saving in the map format and validation through the simulation's loader and path finder. A tool like `cli gen-map`, not game rules. | `sim`, `png`, `toml` |
 | `crates/bridge` | GDExtension `cdylib`. `SimHost` node: runs ticks from a time accumulator through a `LockstepSession`, queues commands, exposes the last two snapshots and the replay; plays single player over `LocalTransport` or a LAN match (`SimHost.start_lan`). `LanLobby` drives the LAN lobby. `MapEditor` hosts the map editor. The only float conversion. | `sim`, `net`, `editor`, `godot` |
 | `godot/`        | Scenes, GDScript UI logic, assets. No C#. | bridge (via `.gdextension`) |
-| `data/`         | Unit catalog (`catalog/*.toml`, real values), `scale.toml` (conversion to game values), `terrain.toml` (terrain types, slope rules), `combat.toml` (combat rules), scenarios (`scenarios/*.toml`, start setups) and maps (`maps/<name>/`), integers only. See [SCALE.md](SCALE.md) and [MAPS.md](MAPS.md). | – |
+| `data/`         | Unit catalog (`catalog/*.toml`, real values), `scale.toml` (conversion to game values), `terrain.toml` (terrain types, slope rules), `combat.toml` (combat rules), `infantry.toml` (stances, cover, buildings), scenarios (`scenarios/*.toml`, start setups) and maps (`maps/<name>/`), integers only. See [SCALE.md](SCALE.md) and [MAPS.md](MAPS.md). | – |
 
 ## Players, commands and formation
 
@@ -53,6 +53,8 @@ but never its issuer:
 | `AttackGround { units, target }` | The units drive into range of the ground point and fire at it. |
 | `SetFireMode { units, mode }` | `FireAtWill` (default: pick targets automatically) or `HoldFire` (fire only at attack targets). |
 | `Surrender` | The issuing player gives up and is defeated ([Victory conditions](#victory-conditions-and-game-flow)). |
+| `SetStance { units, stance }` | Infantry squads stand, kneel, go prone or choose automatically (prompt 022, [INFANTRY.md](INFANTRY.md#behavior-prompt-022)). |
+| `Garrison { units, building }` | Infantry squads walk to the building (map object index) and occupy it if there is room and no enemy inside; a `MoveTo` leaves it. |
 
 The simulation consumes `PlayerCommand { player, command }`. Only the lockstep layer
 builds these, from the sender of the frame, so a peer cannot command another player's
@@ -78,8 +80,9 @@ travel) are still open; see [Pathfinding](#pathfinding).
 
 **Scenarios** (`data/scenarios/*.toml`) name a map and place groups of catalog units
 per player in a grid. The compiled-in demo (`sim::scenario::demo_config`) has eight
-Panzer IV H (player 0) against eight T-34/76 (player 1), 120 m apart, on the built-in
-map `test_small`. Unit ids follow file order.
+Panzer IV H and two rifle squads (player 0) against eight T-34/76 and two rifle
+squads (player 1), the tanks 120 m apart, on the built-in map `test_small`. Unit ids
+follow file order (the squads, appended in prompt 022, have ids 16–19).
 
 ## Map and movement
 
@@ -352,7 +355,8 @@ After commands and path planning, before movement:
 4. **Fly** (after movement). Each projectile moves one tick along its
    velocity (75 m per tick for the KwK 40). The segment is tested against the
    oriented hit boxes of all units except the shooter (hull length × width
-   × height from the catalog; infantry squads footprint × 1.8 m; wrecks too,
+   × height from the catalog; for infantry squads every living soldier's
+   0.6 m box at the height of the squad's stance, prompt 022; wrecks too,
    dead squads not), map objects that block tanks (trees, buildings, walls,
    hedges) up to their catalog height, and the ground (samples at most 1 m
    apart, refined by bisection). The earliest hit counts. Projectiles vanish
@@ -371,6 +375,9 @@ After commands and path planning, before movement:
    takes no commands, does not fire or move, and stays in the unit list
    (stable ids). A vehicle becomes a wreck that blocks its path cells
    (`set_path_obstacle`) and projectiles; dead infantry leaves nothing.
+   Infantry (prompt 022): a hit strikes one soldier (`caliber ×
+   infantry_per_mm` of his `soldier_hp`); soft cover and buildings may
+   catch it first ([INFANTRY.md](INFANTRY.md#behavior-prompt-022)).
 
 | Gun (catalog) | Muzzle penetration | At 375 m game (1500 m real) |
 |---|---|---|
@@ -393,7 +400,8 @@ The bridge collects the events of all ticks of a frame
 (`SimHost.take_combat_events`, dictionaries); `scenes/world/combat_view.gd`
 reads them (signal `combat_event` for effects and sound), draws a tracer per
 projectile, health bars over damaged and selected units, darkens wrecks,
-hides dead squads and turns each model's `Turret` node by the simulation's
+leaves fallen soldiers on the field (prompt 022: `world/infantry_view.gd`
+draws the soldiers) and turns each model's `Turret` node by the simulation's
 aim. Hulls follow the simulation's `facing`.
 
 ### Decisions

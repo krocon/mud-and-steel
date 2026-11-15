@@ -235,3 +235,189 @@ Formations in the squad files are compact display formations (about 2.5 m betwee
 men); combat intervals and movement formations belong to the simulation.
 Members whose real weapon has no soldier yet (carbine, pistol-only assistant gunner)
 use the closest existing role; each squad file names these deviations.
+
+## Behavior (prompt 022)
+
+Infantry squads of the catalog are playable. Rules: `data/infantry.toml`
+(`sim::InfantryRules`, part of `SimConfig` and the state hash); simulation:
+`crates/sim/src/sim/infantry.rs` and the squad parts of `sim/combat.rs`.
+
+### A squad is one unit with soldiers
+
+A squad stays one simulation unit: orders, paths, vision, target selection
+and victory conditions work per squad, as for a tank. Inside it every
+soldier (catalog `squad_size`) has his own position, ground height, hit
+points (`soldier_hp` of `combat.toml`) and hit box; the squad's hit points
+are their sum.
+
+- **Formation:** two staggered rows across the facing, `row_size` (5) per
+  row, 3 m apart, the leader in the middle of the front row. Soldiers follow
+  their places at up to 1.5 × the squad speed; places in impassable cells
+  fall back to the squad position. Group orders and separation use the
+  squad's width (`spread`, 15 m for a squad of nine) instead of the 1 m
+  footprint, while the path grid still treats infantry as the small size
+  class (4 m passages).
+- **Hits:** a round flying at a squad is tested against each living
+  soldier's box (0.6 × 0.6 m, stance height). Shooters aim at a living
+  soldier (a different one every round). A weapon with several copies
+  (6 × Kar98k) fires in proportion to the living soldiers, every round
+  from the next living soldier.
+- **Friendly fire:** soldiers do not fire within 1 m of a comrade (their
+  own boxes grown by 1 m in the line-of-fire check), so a second rank does
+  not shoot into the first.
+
+### Stances
+
+`Command::SetStance { units, stance }` with `StanceOrder::Auto` (default)
+or a fixed stance. Automatic: standing while moving, kneeling when standing
+still, prone while under fire (hit, or a round of another player landed
+within 3 m of a soldier in the last 5 s real). Changing takes 1 s real; the
+squad neither moves nor fires meanwhile.
+
+| Stance | Speed | Hit box height | Own dispersion |
+|---|---|---|---|
+| stand | 100 % | 1.80 m | 100 % |
+| kneel | 60 % | 1.10 m | 75 % |
+| prone (crawling) | 20 % | 0.45 m | 50 % |
+
+### Cover
+
+- **Hard cover** needs no rule: rounds hit walls, hedges, houses and trees
+  up to their catalog height (prompt 017). A 1.20 m stone wall hides
+  kneeling and prone soldiers completely.
+- **Soft cover** per object kind (`[[cover.object]]`: sandbags 80 %, trench
+  85 %, rocks 60 %, wood piles and fallen logs 50 %, …): objects that stop
+  no tanks and no rounds. A hit on a soldier at a cover spot behind such an
+  object, coming from the object's side, is caught with that probability
+  (simulation `Rng`).
+- **Cover spots:** a squad that stands still assigns its soldiers to spots
+  behind nearby cover objects (seen along its facing: 0.7 m behind the
+  object, every 1.5 m along its long side), each soldier the nearest free
+  spot within 8 m of his formation place. Soldiers fire over (around) their
+  own cover object.
+- **Craters** (prompt 021) will add another cover source through the same
+  spot and roll mechanism.
+
+### Buildings
+
+`Command::Garrison { units, building }` (map object index): the squads walk
+to the building and enter when within 6 m of its walls, if its capacity
+(`[[building.kind]]`: farmhouse 12, barn and church 16, bunker 4, …) holds
+all their living soldiers and no other player is inside. Occupants:
+
+- stand at window spots 1 m inside the walls and are drawn hidden;
+- fire out of the building (their rounds ignore it), with the muzzle at
+  half the building height (at most 4 m), and look out over the roof
+  (vision eye height = building height + 0.5 m);
+- are seen when an enemy sees one of their windows;
+- are hit only through the building: a round that strikes an occupied
+  building hits a random occupant with the building's `exposure_pct`
+  (`heavy_exposure_pct` for calibers of 20 mm and more), else the wall
+  stops it.
+
+A move order takes the squad out where it entered; `Stop` and attack orders
+keep it inside. **Building condition** comes from `Sim::building_condition`:
+until prompt 020 tracks damage in the simulation, it is the placed variant
+(`Intact`, `Damaged`, `Ruin`). Ruins cannot be occupied (and throw occupants
+out) but remain cover; 020 replaces only this function.
+
+### Tests
+
+`crates/sim/tests/infantry.rs`, fixed seeds, rounds of an MG team 150 m
+away at a rifle squad, five seeds each (wounding hits per round fired):
+
+| Situation | Hit rate |
+|---|---|
+| kneeling in the open | 52 % |
+| kneeling behind sandbags | 10 % |
+| kneeling behind a stone wall | 0 % |
+| standing in the open / prone in the open | 61 % / 24 % |
+| in a farmhouse (attack order) | 15 % |
+
+Further tests: formation, cover spots behind objects, speed per stance,
+automatic prone under fire, capacity and enemy exclusion of buildings,
+leaving, ruins, determinism of a mixed fight.
+
+## Presentation (prompt 022)
+
+`godot/scenes/world/infantry_view.gd`. A squad's unit node (from
+`main.gd`) holds its squad scene (prompt 006/008) as model; the members
+`Member_NN` are the soldiers (`NN` = soldier index + 1). Per frame every
+member gets its interpolated position (`SimHost.soldier_positions`,
+`soldier_previous_positions`) and a clip:
+
+| State | Clip |
+|---|---|
+| dead | `death_a` / `death_b` once; the body stays on the field |
+| moving | `walk`, `run` from 2.6 m/s game speed, `crawl` when prone; `speed_scale = speed / authored speed` |
+| fired in the last 0.35 s | `fire_stand` / `fire_kneel` / `fire_prone` |
+| fired in the last 2.5 s | `aim_stand` / `aim_kneel` / `aim_prone` |
+| else | `idle` / `kneel` / `prone` |
+
+The shooter of a `shot` event is the member nearest to the muzzle. Members
+turn towards their walking direction, standing ones to the squad's aim.
+Soldiers in a building are hidden.
+
+**Animation LOD:** every `AnimationPlayer` runs in manual mode. Within 70 m
+of the camera members advance every frame and cast shadows; up to 260 m
+every third frame without shadows; beyond every eighth frame and only the
+body (gear and weapon hidden: 4 instead of 11 draw calls per soldier).
+
+**Controls:** right click on a building sends the selected squads in
+(vehicles in the selection drive there); **Z** stand, **X** kneel, **V**
+prone, **B** automatic. `SimHost.building_at`, `building_info`,
+`set_stance`, `garrison_units`.
+
+## Performance (prompt 022)
+
+`data/scenarios/infantry_bench.toml`: 56 rifle squads (504 soldiers) on
+`test_small`. Apple M1 Max, 2026-11-15.
+
+**Simulation** (`just infantry-bench`, release):
+
+| Phase | Mean | p99 | Max |
+|---|---|---|---|
+| standing (hold fire) | 0.020 ms | 0.021 ms | 0.07 ms |
+| marching | 0.19 ms | 0.51 ms | 1.15 ms |
+| first 10 s of fire (up to 86 rounds in flight) | 0.19 ms | 0.70 ms | 2.8 ms |
+
+**Presentation** (`just infantry-view-bench`, 1920 × 1080, quality high,
+debug bridge; the reference is the demo with 16 tanks and 36 soldiers):
+
+| View | FPS | Frame | Infantry script | Draw calls |
+|---|---|---|---|---|
+| standing, camera 60 m | 90 | 11.1 ms | 3.0 ms | 1 140 |
+| standing, camera 150 m | 81 | 12.4 ms | 2.5 ms | 3 280 |
+| standing, camera 400 m | 89 | 11.2 ms | 2.1 ms | 3 960 |
+| marching, camera 150 m | 79 | 12.6 ms | 2.7 ms | 3 360 |
+| fighting, camera 150 m | 57 | 17.7 ms | 3.2 ms | 3 760 |
+| fighting, camera 60 m | 60 | 16.8 ms | 5.5 ms | 2 730 |
+| reference demo, 60 / 150 / 400 m | 93 / 83 / 89 | | 0.2 ms | 344 / 1 810 / 3 465 |
+
+Standing and marching, 504 soldiers cost about as much as the demo. The
+first measurement without LOD tricks gave 53 FPS at 150 m (11 800 draw
+calls: shadows of every soldier) and 56 FPS at 400 m; shadows only near
+the camera and body-only far soldiers fixed that. In the fight the extra
+time goes to muzzle flashes and tracers of hundreds of shots (effects,
+prompt 019) and to the animation of the near soldiers.
+
+**Decision: no vertex animation textures (VAT) yet.** Skinned soldiers with
+animation LOD hold 57–90 FPS with 504 soldiers; VAT would need a baking
+pipeline from Blender and a second animation path, and only pays off for
+thousands of soldiers. If that becomes the goal: bake the clips into
+textures and draw far soldiers as `MultiMeshInstance3D` (see "Performance
+outlook" above).
+
+### Open
+
+- Soldiers do not collide with each other; formations pass through objects
+  that infantry may cross (fences, hedges for small units).
+- Prone soldiers' hit boxes are square (not body length); stance does not
+  change how far a squad sees or how well it is seen.
+- No grenades, assaults or melee, no morale or retreat; suppression only
+  drives the automatic stance (no accuracy penalty).
+- Garrisoned squads have no floors or window directions; the window spots
+  ignore the building's real openings.
+- Ground picking: a click on a roof picks the ground behind it, so a
+  building is found only where the clicked ground lies in its footprint.
+- Mortars and other indirect-fire teams have no weapons yet (prompt 017).
