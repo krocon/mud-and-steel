@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[sub_resource type="StandardMaterial3D" id="Mat_hull"]
+albedo_color = Color(0.36, 0.38, 0.24, 1)
+
+[sub_resource type="BoxMesh" id="Mesh_hull"]
+material = SubResource("Mat_hull")
+size = Vector3(3, 1.2, 6)
+
+[node name="Unit" type="Node3D"]
+
+[node name="Placeholder" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
+mesh = SubResource("Mesh_hull")

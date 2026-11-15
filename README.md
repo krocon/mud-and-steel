@@ -50,8 +50,14 @@ every platform.
 
 ```bash
 cargo build -p bridge
-godot --path godot --headless --import   # once after cloning, builds godot/.godot/
-godot --path godot                       # starts the main scene
+tools/godot-import.sh      # once after cloning and after adding assets
+godot --path godot         # starts the main scene
+```
+
+Headless self-test (drives the unit, exits with 0 on success):
+
+```bash
+godot --path godot --headless --fixed-fps 60 -- --self-test
 ```
 
 Right-click on the ground to send the tank there. `godot --path godot -e` opens the editor.
