@@ -3,24 +3,30 @@
 //! Used by the headless CLI, the golden-hash test and the network tests, so
 //! all of them exercise exactly the same input.
 
+use crate::catalog::Catalog;
 use crate::command::{Command, UnitId};
-use crate::data::UnitType;
+use crate::data::unit_types_from_catalog;
 use crate::math::Vec2;
 use crate::rng::Rng;
+use crate::scale::Scale;
 use crate::sim::{Sim, SimConfig, Spawn};
 
 /// Ticks between two scripted commands.
 pub const COMMAND_INTERVAL: u64 = 40;
 
-/// Four placeholder tanks in a square around the origin.
+/// Catalog id of the tank used by the demo scenario.
+pub const DEMO_UNIT: &str = "de_pz4_h";
+
+/// Four Panzer IV in a square around the origin, with the built-in catalog
+/// and scale.
 pub fn demo_config() -> SimConfig {
-    let name = "placeholder_tank";
+    let name = DEMO_UNIT;
+    let catalog = Catalog::builtin().expect("built-in catalog is valid");
+    let scale = Scale::builtin().expect("built-in scale is valid");
     SimConfig {
         tick_hz: SimConfig::DEFAULT_TICK_HZ,
-        unit_types: vec![UnitType {
-            name: name.into(),
-            speed_mm_per_s: 4000,
-        }],
+        unit_types: unit_types_from_catalog(&catalog, &scale, &[name])
+            .expect("demo unit is in the catalog"),
         spawns: [(-10, -10), (10, -10), (-10, 10), (10, 10)]
             .into_iter()
             .map(|(x, y)| Spawn {

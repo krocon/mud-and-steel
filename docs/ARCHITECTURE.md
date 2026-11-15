@@ -32,12 +32,12 @@ Transport (later): Steam online, ENet on LAN
 
 | Crate / folder  | Responsibility | Depends on |
 |-----------------|----------------|------------|
-| `crates/sim`    | Game rules and state. `Sim::new(config, seed)`, `step(&[Command])`, `state_hash()`, `snapshot()`. Fixed-point math, RNG, stable hash, unit data parsing, demo scenario. | `fixed`, `serde`, `toml` |
+| `crates/sim`    | Game rules and state. `Sim::new(config, seed)`, `step(&[Command])`, `state_hash()`, `snapshot()`. Fixed-point math, RNG, stable hash, unit catalog and scale (compiled in), demo scenario. | `fixed`, `serde`, `toml` |
 | `crates/net`    | Lockstep protocol: `CommandFrame`, `HashReport`, `LockstepSession` (input delay, desync detection), `Transport` trait, `LoopbackTransport` for tests. | `sim`, `postcard` |
 | `crates/cli`    | Headless runner (`cli run --ticks N --seed S`), prints the state hash. | `sim`, `clap` |
 | `crates/bridge` | GDExtension `cdylib`. `SimHost` node: runs ticks from a time accumulator, queues commands, exposes the last two snapshots. The only float conversion. | `sim`, `godot` |
 | `godot/`        | Scenes, GDScript UI logic, assets. No C#. | bridge (via `.gdextension`) |
-| `data/`         | Unit definitions as TOML, integers with explicit units. | – |
+| `data/`         | Unit catalog (`catalog/*.toml`, real values) and `scale.toml` (conversion to game values), integers only. See [SCALE.md](SCALE.md). | – |
 
 ## Data flow (single player, current state)
 
@@ -105,11 +105,5 @@ Both must deliver reliably and in order per peer, as `Transport` requires.
 
 ## Asset pipeline
 
-- Sources: `assets-src/blender/*.blend` (Git LFS).
-- Export: `.glb` to `godot/assets/models/` (Git LFS), using
-  `blender -b <file>.blend --python tools/export_blender.py`.
-- Conventions: 1 Blender unit = 1 meter, Z up in Blender (Y up after export), models face
-  +Y in Blender (−Z in Godot), origin on the ground at the model's center, rotation and
-  scale applied. Parts that move separately (turret, barrel) are child objects.
-- `tools/create_placeholder_tank.py` generates the current placeholder tank from
-  primitives.
+Folders, scale, orientation, part names, budgets and material slots:
+[ASSETS.md](ASSETS.md).

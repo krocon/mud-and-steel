@@ -1,0 +1,29 @@
+# Conversion from real (catalog) values to game values. The only place where
+# real values become game values; see docs/SCALE.md for the reasoning.
+#
+# Every factor is a fraction num/den of positive integers, so the simulation
+# applies it exactly in fixed point.
+
+# Sizes are 1:1 (1 m real = 1 m on the map). There is no size factor.
+
+# Time factor: game time runs faster than real time.
+# Speeds are multiplied by it, durations (reload, build, setup) divided by it.
+[time]
+factor = { num = 2, den = 1 }
+
+# Per-category overrides of the time factor for balancing, e.g.
+#   [[time.override]]
+#   category = "inf_rifle"
+#   factor = { num = 3, den = 2 }
+# Aircraft do not use the time factor at all, see [aircraft].
+
+# Range compression: real ranges are multiplied by these factors.
+[range]
+direct_fire = { num = 1, den = 4 }
+sight = { num = 1, den = 4 }
+indirect_fire = { num = 1, den = 8 }
+
+# Aircraft fly on their own speed factor instead of the time factor (real
+# speeds times two would cross a map in seconds). They enter from the map edge.
+[aircraft]
+speed = { num = 1, den = 2 }

@@ -87,7 +87,6 @@ impl Sim {
             return Err(ConfigError::ZeroTickRate);
         }
         let ticks_per_second = Fixed::from_num(config.tick_hz);
-        let mm_per_m = Fixed::from_num(1000);
 
         let mut units = Vec::with_capacity(config.spawns.len());
         for (index, spawn) in (0u32..).zip(&config.spawns) {
@@ -100,7 +99,7 @@ impl Sim {
                 unit_type: type_index,
                 position: spawn.position,
                 target: None,
-                speed: Fixed::from_num(unit_type.speed_mm_per_s) / mm_per_m / ticks_per_second,
+                speed: unit_type.speed_m_per_s / ticks_per_second,
             });
         }
 
@@ -218,7 +217,7 @@ mod tests {
             tick_hz: 20,
             unit_types: vec![UnitType {
                 name: "tank".into(),
-                speed_mm_per_s: 4000,
+                speed_m_per_s: Fixed::from_num(4),
             }],
             spawns: vec![Spawn {
                 unit_type: "tank".into(),
