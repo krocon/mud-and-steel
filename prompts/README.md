@@ -50,7 +50,7 @@ Welle 4:  012 Wegfindung ─ 013 …  │   008 Stufe 2 (3 Sessions pro Fraktion
 | 005 | [Infanterie-Basis](done/005-infanterie-basis.md) | Ein Soldat für alle Fraktionen: Skelett, Uniformen, Waffen, Animationen | erledigt |
 | 006 | [Kerneinheiten Stufe 1](done/006-kerneinheiten-stufe1.md) | Je 5 Kerneinheiten pro Fraktion, 3 Sessions parallel | erledigt |
 | 007 | [Umwelt-Objekte Stufe 1](done/007-umwelt-objekte-stufe1.md) | Bäume, Büsche, Gras, Häuser, Brücken, Mauern, Stacheldraht, Minen, Gräben | erledigt |
-| 008 | [Einheiten Stufe 2](008-einheiten-stufe2.md) | Alle restlichen Einheiten inkl. Flugzeuge, 9 Sessions parallel (Vorab-Session Baukasten erledigt) | bereit |
+| 008 | [Einheiten Stufe 2](done/008-einheiten-stufe2.md) | Alle restlichen Einheiten inkl. Flugzeuge, 9 Sessions parallel (Vorab-Session Baukasten erledigt) | erledigt |
 
 ### Spiel-Strang
 
