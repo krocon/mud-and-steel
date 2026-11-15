@@ -8,16 +8,16 @@ unit = "de_inf_mg42_team"
 role = "mg_gunner"
 position = [0.0, 1.0]
 clip = "aim_prone"
-carries = ["MG 42", "P 38"]
+note = "MG-Schütze 1 (MG 42, P 38)"
 
 [[member]]
 role = "mg_assistant"
 position = [1.0, 0.2]
 clip = "prone"
-carries = ["P 38"]
+note = "MG-Schütze 2 (P 38)"
 
 [[member]]
 role = "ammo_bearer"
 position = [-0.8, -1.2]
 clip = "aim_kneel"
-carries = ["Kar98k"]
+note = "Schütze 3, ammunition bearer (Kar98k)"

@@ -120,7 +120,7 @@ units:
 validate-assets:
     {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python tools/blender/validate.py
     {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/validate_soldier.py
-    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/squads.py -- validate
+    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/build_squad.py -- --check
 
 # Render all built models side by side with the 1.80 m reference figure
 [group('assets')]
@@ -174,19 +174,19 @@ infantry-preview: build
 infantry-selftest: build
     {{ GODOT }} --path godot --headless res://scenes/tools/infantry_preview.tscn -- --self-test
 
-# --- Squads (prompt 006) -------------------------------------------------------------
+# --- Squads (prompt 006) ------------------------------------------------------------
 
-# Generate one squad scene from assets-src/blueprints/<faction>/squads/<id>.toml
+# Build one infantry squad scene from assets-src/blueprints/<faction>/squads/<id>.toml
 [group('infantry')]
 squad faction id:
-    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/squads.py -- build {{ faction }}/{{ id }}
+    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/build_squad.py -- {{ faction }} {{ id }}
 
-# Generate every squad scene
+# Build every squad scene (all factions)
 [group('infantry')]
 squads:
-    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/squads.py -- build
+    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/build_squad.py -- --all
 
-# Check the squads against the catalog (members, roles, weapons, scene up to date)
+# Check all squads against the catalog (squad size, roles, built soldiers, up to date)
 [group('infantry')]
 validate-squads:
-    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/squads.py -- validate
+    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/build_squad.py -- --check

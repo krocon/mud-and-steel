@@ -154,38 +154,6 @@ Clips are authored in real time. Locomotion is played at
 `speed_scale = game_speed / authored_speed`, which keeps the feet planted at any game
 speed (time factor 2, [SCALE.md](SCALE.md)); other clips play at the time factor.
 
-## Squads (prompt 006)
-
-A squad is a catalog infantry unit made of soldiers in a formation. Source:
-`assets-src/blueprints/<faction>/squads/<id>.toml`:
-
-```toml
-unit = "de_inf_mg42_team"      # catalog id = file name
-[[member]]
-role = "mg_gunner"             # soldier role of this faction
-position = [0.0, 1.0]          # [x, y] m, model space (x right, y forward)
-clip = "aim_prone"             # clip shown in the gallery (default idle)
-carries = ["MG 42", "P 38"]    # catalog weapon names this member stands for
-```
-
-`just squad <faction> <id>` (or `just squads`) runs `tools/blender/squads.py` and
-writes `godot/assets/models/<faction>/<id>.tscn`: a `Node3D` named after the id
-with the catalog values as `metadata/extras` (like the glTF extras of the kit
-models, plus `cat_squad_size`, `squad` and `squad_roles`) and one instance of
-`infantry/<role>.glb` per member (`metadata/role`, `clip`, `seed`). The catalog
-`model` field points to that scene. `just validate-squads` checks: catalog entry
-is infantry, member count = `squad_size`, roles exist and are built, clips exist,
-members stand at least 0.8 m apart, the `carries` lists add up exactly to the
-catalog `weapon` counts, `model` names the scene, and the scene is up to date.
-The model gallery shows squads with SoldierLook uniforms per biome and each
-member playing its clip; the formation is for display only, the game spreads
-squads with its own formation logic.
-
-| Squad | Members |
-|---|---|
-| `de_inf_rifle_squad` (9) | squad_leader, mg_gunner, mg_assistant, ammo_bearer, 5 × rifleman |
-| `de_inf_mg42_team` (3) | mg_gunner, mg_assistant, ammo_bearer |
-
 ## Line-up check
 
 `just soldier-lineup` renders riflemen and MG gunners of all factions in all three
@@ -221,3 +189,28 @@ Planned for prompts 016/022:
   system spawns it); the flamethrower hose is a stub.
 - Transitions are blends between key poses; clips are readable at RTS distance, not
   motion-capture quality.
+
+## Squads (prompt 006)
+
+Infantry units of the catalog (`us_inf_rifle_squad`, ...) are not new meshes but Godot
+scenes that place the soldiers above in a formation:
+
+```bash
+just squad us us_inf_rifle_squad   # assets-src/blueprints/us/squads/<id>.toml -> godot/assets/models/us/<id>.tscn
+just squads                        # all factions
+just validate-squads               # member count = catalog squad_size, roles built, scene up to date
+```
+
+The squad file lists one `[[member]]` per man: `role` (a role of the table above),
+`position` [x, y] in meters (x right, y forward), optional `heading_deg`, `clip` (the
+gallery's default clip) and `note` (what the man is in the T/O&E). It lives in a
+`squads/` sub-folder, so the vehicle kit tools ignore it. `tools/blender/build_squad.py`
+writes the scene with the catalog values as root meta `extras` (like the kit's glTF
+extras, plus `squad = true`, roles, notes, clips and a source hash), and the catalog
+entry gets `model = "assets/models/<faction>/<id>.tscn"`. The model gallery shows
+squads with SoldierLook colors per biome and plays their clips (key A cycles clips).
+
+Formations in the squad files are compact display formations (about 2.5 m between
+men); combat intervals and movement formations belong to the simulation.
+Members whose real weapon has no soldier yet (carbine, pistol-only assistant gunner)
+use the closest existing role; each squad file names these deviations.

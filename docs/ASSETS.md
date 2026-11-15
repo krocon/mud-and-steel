@@ -307,14 +307,13 @@ Environment objects may additionally use `Bark`, `Foliage`, `Stone`, `Plaster` a
 
 ## Infantry
 
-Squads (prompt 006) are catalog units made of soldiers: a squad blueprint
+Squads (prompt 006) are catalog units made of soldiers: a squad file
 `assets-src/blueprints/<faction>/squads/<id>.toml` lists the members (role,
-formation position, gallery clip, catalog weapons carried), `just squad
-<faction> <id>` writes the Godot scene `godot/assets/models/<faction>/<id>.tscn`
-that instances the soldier .glbs, and the catalog `model` points to that scene.
-`just validate-squads` (also part of `just validate-assets`) checks the member
-count against `squad_size`, roles, built soldiers and that the carried weapons
-add up to the catalog `weapon` list. Details in [INFANTRY.md](INFANTRY.md).
+formation position, gallery clip, note), `just squad <faction> <id>`
+(`tools/blender/build_squad.py`) writes the Godot scene
+`godot/assets/models/<faction>/<id>.tscn` that instances the soldier .glbs, and
+the catalog `model` points to that scene. `just validate-squads` (also part of
+`just validate-assets`) checks it. Details in [INFANTRY.md](INFANTRY.md).
 
 Soldiers follow their own layout (prompt 005), described in [INFANTRY.md](INFANTRY.md):
 one shared humanoid skeleton (Godot `SkeletonProfileHumanoid` bone names), body and

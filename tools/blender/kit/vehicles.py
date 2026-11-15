@@ -213,7 +213,9 @@ def pintle_mg(model, p, ctx):
     (gun length, default 1.22 = MG 42), `post` (height of the post below the
     pivot, default 0.25; 0 = none), `shield` = { width, height, y, slope_deg }
     (optional gun shield in front of the pivot, moves with the gun), `jacket`
-    (perforated barrel jacket, default true), `parent` (default Hull).
+    (perforated barrel jacket, default true), `parent` (default Hull),
+    `primary` (default false: also adds `Socket_Muzzle` on this MG, for
+    vehicles whose main weapon is a machine gun).
     Adds `MG_NN` and `Socket_Muzzle_NN` (NN = MG index + 1).
     """
     import math
@@ -241,6 +243,8 @@ def pintle_mg(model, p, ctx):
         mb.extrude([(x - 0.03, sy, zb), (x + 0.03, sy, zb), (x + 0.03, sy - lean * 0.3, zb + h * 0.3),
                     (x - 0.03, sy - lean * 0.3, zb + h * 0.3)], (0, -0.008, 0), "Paint")
     model.socket(f"Socket_Muzzle_{int(name[3:]) + 1:02d}", name, (x, tip, z + 0.04))
+    if p.get("primary", False):
+        model.socket("Socket_Muzzle", name, (x, tip, z + 0.04))
 
 
 @assembly("halftrack")

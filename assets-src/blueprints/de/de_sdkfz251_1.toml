@@ -283,6 +283,7 @@ size = 0.32
 [[mg]]   # forward MG 42 with shield on the front of the compartment
 part = "pintle_mg"
 position = [0.0, 0.86, 1.92]
+primary = true
 post = 0.15
 shield = { width = 0.56, height = 0.42, y = 0.16, slope_deg = 12 }
 
