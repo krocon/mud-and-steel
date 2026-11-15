@@ -44,6 +44,7 @@ const HILL_TIME_SCALE := 4.0
 const HILL_MIN_CLIMB := 10.0
 
 const WaterSelfTest := preload("res://scenes/tools/water_self_test.gd")
+const InfantrySelfTest := preload("res://scenes/tools/infantry_self_test.gd")
 const MatchSetup := preload("res://scenes/menu/match_setup.gd")
 
 var main: Node3D
@@ -66,9 +67,10 @@ func _run() -> void:
 	await WaterSelfTest.new().run(self)
 	await _fog_test()
 	await _combat_test()
+	await InfantrySelfTest.new().run(self)
 	_replay_test()
 	var ok := _errors.is_empty()
-	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, fog, combat, water and replay ok" if ok else " ".join(_errors)
+	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, fog, combat, infantry, water and replay ok" if ok else " ".join(_errors)
 	print("self-test %s: %s" % ["PASSED" if ok else "FAILED", message])
 	# Started from the menu flow test (prompt 027): it continues the flow.
 	var flow: Node = MatchSetup.flow_test
@@ -140,7 +142,8 @@ func _selection_test() -> void:
 	var size := get_viewport().get_visible_rect().size
 	_drag(Vector2(4, 4), size - Vector2(4, 4))
 	await _frames(1)
-	_check(selection.selected == own, "box selected %s, expected own units %s" % [selection.selected, own])
+	# Rifle squads in the box are taken too (prompt 022).
+	_check(_tanks(selection.selected) == own, "box selected %s, expected own tanks %s" % [selection.selected, own])
 
 	_key(KEY_1, true)
 	_left_click(_screen_of_point(Vector3.ZERO))
@@ -149,10 +152,10 @@ func _selection_test() -> void:
 
 	_key(KEY_1)
 	await _frames(1)
-	_check(selection.selected == own, "group 1 recalled %s" % [selection.selected])
+	_check(_tanks(selection.selected) == own, "group 1 recalled %s" % [selection.selected])
 	_key(KEY_1)
 	await _frames(1)
-	var centroid := _centroid(own)
+	var centroid := _centroid(selection.selected)
 	_check(rig.focus.distance_to(centroid) < 0.5, "double recall focused %s, expected %s" % [rig.focus, centroid])
 	rig.snap_to(Vector3.ZERO, OVERVIEW_DISTANCE, 0.0)
 	await _frames(1)
@@ -571,12 +574,16 @@ func _combat_test() -> void:
 	_check(view.wrecks.has(target), "tank %d is not drawn as a wreck" % target)
 	_check(bars > 0, "no health bars drawn")
 	_check(shots_by.get(1, 0) == 0, "the enemy fired %d rounds while holding fire" % shots_by.get(1, 0))
-	# Rounds that miss the target may hit the tanks behind it.
-	var enemies_alive := 0
+	# Rounds that miss the target may hit the tanks behind it. The enemy
+	# also has two rifle squads (prompt 022).
+	var tanks_alive := 0
 	for i in _indices(enemies):
+		tanks_alive += alive[i]
+	var enemies_alive := tanks_alive
+	for i in _indices(_ids_of(false, true)):
 		enemies_alive += alive[i]
-	_check(sim_host.alive_unit_count(1) == enemies_alive and enemies_alive < enemies.size(),
-		"alive_unit_count says %d enemy tanks, %d drawn alive" % [sim_host.alive_unit_count(1), enemies_alive])
+	_check(sim_host.alive_unit_count(1) == enemies_alive and tanks_alive < enemies.size(),
+		"alive_unit_count says %d enemy units, %d drawn alive" % [sim_host.alive_unit_count(1), enemies_alive])
 	_check(not main.selection.selected.is_empty() and main.selection.selected.size() <= own.size(), "selection lost")
 
 	# F: fire at will for the selection.
@@ -637,15 +644,29 @@ func _ticks(count: int) -> void:
 		await get_tree().process_frame
 
 
-## Ids of the own (or the other players') units, ascending.
-func _ids_of(own: bool) -> Array[int]:
+## Ids of the own (or the other players') tanks, ascending; with `squads`
+## their infantry squads instead (prompt 022).
+func _ids_of(own: bool, squads := false) -> Array[int]:
 	var sim_host: SimHost = main.sim_host
 	var ids := sim_host.unit_ids()
 	var owners := sim_host.unit_owners()
+	var stances := sim_host.unit_stances()
 	var result: Array[int] = []
 	for i in ids.size():
-		if (owners[i] == sim_host.local_player()) == own:
+		if (owners[i] == sim_host.local_player()) == own and (stances[i] >= 0) == squads:
 			result.append(ids[i])
+	result.sort()
+	return result
+
+
+## The tanks among `ids`, ascending.
+func _tanks(ids: Array[int]) -> Array[int]:
+	var stances: PackedInt32Array = main.sim_host.unit_stances()
+	var all: PackedInt64Array = main.sim_host.unit_ids()
+	var result: Array[int] = []
+	for i in all.size():
+		if stances[i] < 0 and all[i] in ids:
+			result.append(all[i])
 	result.sort()
 	return result
 

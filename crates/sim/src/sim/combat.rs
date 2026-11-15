@@ -923,7 +923,7 @@ impl Sim {
                 && p.x <= high.x + reach
                 && p.y >= low.y - reach
                 && p.y <= high.y + reach
-                && unit_hit(u, ty, &self.infantry, muzzle, d).is_some()
+                && friend_hit(u, ty, &self.infantry, muzzle, d)
         })
     }
 
@@ -1248,6 +1248,30 @@ fn reach_of(unit: &Unit, ty: &TypeCombat) -> Fixed {
     } else {
         ty.half_length + ty.half_width
     }
+}
+
+/// Clearance around friendly soldiers that a squad's fire keeps, in
+/// meters: rounds spread, so a soldier does not fire past a comrade's head.
+const FRIEND_CLEARANCE_M: i32 = 1;
+
+/// Whether the line of fire `a + d·t` passes a friendly unit: its hit box,
+/// or a soldier's hit box grown by [`FRIEND_CLEARANCE_M`] on every side.
+fn friend_hit(unit: &Unit, ty: &TypeCombat, rt: &InfantryRt, a: Vec3, d: Vec3) -> bool {
+    let Some(squad) = &unit.squad else {
+        return box_hit(unit, ty, a, d).is_some();
+    };
+    if squad.garrison.is_some() {
+        return false;
+    }
+    let margin = Fixed::from_num(FRIEND_CLEARANCE_M);
+    let half = rt.half_width() + margin;
+    let height = rt.stance_height(squad.stance) + margin;
+    squad.soldiers.iter().filter(|s| s.alive()).any(|s| {
+        let rel = a.ground() - s.position;
+        let p = [rel.x, rel.y, a.z - s.height];
+        let v = [d.x, d.y, d.z];
+        slab(&p, &v, &[-half, -half, Fixed::ZERO], &[half, half, height]).is_some()
+    })
 }
 
 /// Entry of the segment `a + d·t` into a unit: its hit box, or for a squad

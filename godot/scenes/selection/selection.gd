@@ -13,12 +13,16 @@ extends Control
 ## - Right click on a unit of another player attacks it, Ctrl+right click
 ##   (Cmd on macOS) fires at the ground point, F switches between hold fire
 ##   and fire at will (prompt 017). Destroyed units cannot be selected.
+## - Infantry (prompt 022): right click on a building sends the selected
+##   squads into it (other units drive there); Z stand, X kneel, V prone,
+##   B automatic stance.
 ##
 ## Sits full-screen in a CanvasLayer and draws the selection box itself. It
 ## ignores the mouse for GUI purposes and works from `_unhandled_input`.
 
 signal move_ordered(point: Vector3)
 signal attack_ordered(target: int)
+signal garrison_ordered(building: int)
 
 const GroundPick := preload("res://scenes/camera/ground_pick.gd")
 ## Pointer travel in pixels before a left press becomes a box drag.
@@ -29,6 +33,8 @@ const MIN_PICK_RADIUS := 14.0
 const PICK_HEIGHT := 1.2
 ## Two presses of the same group key within this time center the camera.
 const DOUBLE_PRESS_MS := 400
+## Stance keys (prompt 022): stance code for `SimHost.set_stance`.
+const STANCE_KEYS := {KEY_Z: 0, KEY_X: 1, KEY_V: 2, KEY_B: -1}
 const BOX_FILL := Color(0.45, 0.85, 0.45, 0.12)
 const BOX_LINE := Color(0.55, 0.95, 0.55, 0.9)
 
@@ -129,6 +135,10 @@ func _on_key(key: InputEventKey) -> bool:
 	if key.keycode == KEY_C and not key.ctrl_pressed and not key.meta_pressed:
 		set_follow(not follow)
 		return true
+	var stance: int = STANCE_KEYS.get(key.keycode, -2)
+	if stance > -2 and not key.ctrl_pressed and not key.meta_pressed:
+		set_stance(stance)
+		return true
 	if key.keycode < KEY_1 or key.keycode > KEY_9:
 		return false
 	var number := int(key.keycode - KEY_0)
@@ -151,6 +161,24 @@ func recall_group(number: int) -> void:
 	_set_selection(members.filter(func(id: int) -> bool: return _own_index(id) >= 0))
 	if again and not selected.is_empty():
 		_center_camera_on_selection()
+
+
+## Stance for the selected squads: -1 automatic, 0 stand, 1 kneel, 2 prone.
+func set_stance(stance: int) -> void:
+	var squads := _selected_squads()
+	if not squads.is_empty():
+		sim_host.set_stance(PackedInt64Array(squads), stance)
+
+
+## Selected units that are infantry squads.
+func _selected_squads() -> Array[int]:
+	var stances := sim_host.unit_stances()
+	var squads: Array[int] = []
+	for id: int in selected:
+		var index := _index_of(id)
+		if index >= 0 and stances[index] >= 0:
+			squads.append(id)
+	return squads
 
 
 func stop_selected() -> void:
@@ -199,6 +227,17 @@ func _order_move(screen_position: Vector2) -> void:
 	if hit == null:
 		return
 	var point := hit as Vector3
+	# A building under the cursor: squads go in, vehicles drive there.
+	var building := sim_host.building_at(point.x, point.z)
+	var squads := _selected_squads() if building >= 0 else ([] as Array[int])
+	if not squads.is_empty():
+		sim_host.garrison_units(PackedInt64Array(squads), building)
+		garrison_ordered.emit(building)
+		var others := selected.filter(func(id: int) -> bool: return not squads.has(id))
+		if not others.is_empty():
+			sim_host.move_units(PackedInt64Array(others), point.x, point.z)
+		move_ordered.emit(point)
+		return
 	sim_host.move_units(PackedInt64Array(selected), point.x, point.z)
 	move_ordered.emit(point)
 

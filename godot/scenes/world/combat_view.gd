@@ -144,8 +144,8 @@ func _update_units(delta: float) -> void:
 
 func _make_wreck(node: Node3D, infantry: bool) -> void:
 	(node.get_node("SelectionRing") as Node3D).visible = false
+	# Fallen soldiers stay on the field (prompt 022, `infantry_view.gd`).
 	if infantry:
-		node.visible = false
 		return
 	_tint(node, _wreck_material)
 
