@@ -14,13 +14,19 @@ fn cli() -> Command {
     Command::new(env!("CARGO_BIN_EXE_cli"))
 }
 
-/// A UDP port that was free a moment ago.
-fn free_port() -> u16 {
-    UdpSocket::bind("127.0.0.1:0")
-        .unwrap()
-        .local_addr()
-        .unwrap()
-        .port()
+/// Both tests start real processes on real ports; running them at the same
+/// time could hand both the same port (seen on macOS CI).
+static SERIAL: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
+/// Two different UDP ports that were free a moment ago (both are held while
+/// the second one is chosen, so they cannot be equal).
+fn free_ports() -> (u16, u16) {
+    let a = UdpSocket::bind("0.0.0.0:0").unwrap();
+    let b = UdpSocket::bind("0.0.0.0:0").unwrap();
+    (
+        a.local_addr().unwrap().port(),
+        b.local_addr().unwrap().port(),
+    )
 }
 
 fn spawn(command: &mut Command) -> Child {
@@ -67,8 +73,11 @@ fn scratch_dir() -> PathBuf {
 /// Starts host and client; the client searches the LAN unless `search` is
 /// false, then it joins by address.
 fn play(extra_host: &[&str], extra_join: &[&str], search: bool) -> (Output, Output) {
-    let port = free_port().to_string();
-    let discovery = free_port().to_string();
+    let _serial = SERIAL
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
+    let (port, discovery) = free_ports();
+    let (port, discovery) = (port.to_string(), discovery.to_string());
     let ticks = TICKS.to_string();
     let host = spawn(
         cli()
