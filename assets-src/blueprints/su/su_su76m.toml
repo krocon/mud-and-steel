@@ -1,0 +1,163 @@
+# SU-76M light self-propelled gun (from mid-1943), open-topped fighting
+# compartment at the rear. Main dimensions from data/catalog/su.toml: length
+# 4.97 m, width 2.72 m, height 2.10 m (top of the compartment walls).
+# The catalog has no hull length. Wikipedia (en) gives 4.97 m and ru.wikipedia
+# 5.00 m as "hull length", while photographs show the ZiS-3Sh muzzle ahead of
+# the nose; the model treats 4.97 m as the overall length and estimates the hull
+# at 4.75 m (uncertain, reported).
+# Modeling estimates from photographs and drawings (Wikipedia "SU-76"; Zaloga/
+# Grandsen): T-70 based running gear with six 550 mm road wheels on torsion bars
+# per side, three return rollers, front sprocket, rear idler of road-wheel size,
+# 300 mm track; driver front left, engines front right under the roof; the
+# compartment walls reach out over the fenders; ZiS-3Sh with its small box
+# mantlet and double-baffle muzzle brake on the center line.
+unit = "su_su76m"
+assembly = "casemate"
+
+[layout]
+hull_length = 4.75
+fender_overhang = 0.06
+
+[running_gear]
+part = "torsion_bar"
+twin = false
+track_width = 0.30
+track_thickness = 0.035
+link_pitch = 0.11
+road_wheel_diameter = 0.55
+road_wheels = [1.50, 0.90, 0.30, -0.30, -0.90, -1.50]
+sprocket = { y = 1.98, z = 0.62, diameter = 0.60, teeth = 13 }
+idler = { y = -2.02, z = 0.50, diameter = 0.52, spoked = false }
+return_rollers = { y = [1.20, 0.0, -1.20], z = 0.74, diameter = 0.20 }
+arm = 0.26
+
+[hull]
+part = "plate_hull"
+lower = [[-2.30, 0.30], [2.05, 0.30], [2.375, 0.78], [-2.375, 0.78], [-2.375, 0.45]]
+# glacis, flat roof over driver and engines; the compartment sits behind it
+upper = [[-2.375, 0.78], [2.375, 0.78], [1.55, 1.25], [-2.375, 1.25]]
+upper_half_width = 0.94      # hull between the tracks, fenders outside
+fender_front = 2.15
+bevel = 0.015
+
+[casemate]
+part = "casemate"
+open = true
+z = 0.84                     # walls stand on the fenders
+plan = [[-1.02, 0.70], [1.02, 0.70], [1.24, 0.30], [1.24, -2.375], [-1.24, -2.375], [-1.24, 0.30]]
+side_slope_deg = 6
+front_slope_deg = 28
+rear_slope_deg = 0
+wall = 0.02
+
+[gun]
+part = "tank_gun"
+trunnion = [0.38, 1.58]      # model space: y, z
+mantlet = { kind = "box", size = [0.62, 0.22, 0.48] }
+sleeve = [0.35, 0.09]
+segments = [["fit", 0.056, 0.05]]
+muzzle_brake = "double_baffle_flat"
+
+[[part]]
+part = "su.glacis_hatch"      # driver's hatch, front left
+x = -0.45
+y = 1.90
+size = [0.45, 0.45]
+
+[[part]]
+part = "deck_box"             # engine access over the twin GAZ-202, front right
+center = [0.42, 1.05]
+size = [0.70, 0.75, 0.04]
+
+[[part]]
+part = "exhaust"              # exhaust on the right fender
+kind = "pipe"
+position = [1.12, 0.90, 0.95]
+length = 0.45
+diameter = 0.10
+
+[[part]]
+part = "box_prop"             # rear door of the compartment
+center = [0.0, -2.385, 1.35]
+size = [0.75, 0.03, 0.80]
+
+[[part]]
+part = "box_prop"             # ammunition and kit boxes on the left fender
+center = [-1.15, 1.40, 0.95]
+size = [0.25, 0.60, 0.22]
+
+[[part]]
+part = "headlight"
+position = [-0.70, 2.20, 1.05]
+diameter = 0.16
+
+[[part]]
+part = "antenna"              # 12-RT radio whip, right rear of the compartment
+position = [1.05, -1.90, 2.00]
+length = 2.0
+
+[[part]]
+part = "tool"
+kind = "shovel"
+position = [1.15, -0.6, 0.86]
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 2.38, 0.55]
+pair = true
+socket = false
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -2.40, 0.55]
+pair = true
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"         # commander, left
+position = [-0.55, -0.60, 0.90]
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"         # gunner, left of the gun
+position = [-0.35, 0.0, 0.90]
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"         # loader, right
+position = [0.55, -0.70, 0.90]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.42, 1.05, 1.30]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -1.2, 1.0]
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-1.22, -1.0, 1.55]
+normal = [-1.0, 0.0, 0.1]
+size = 0.45
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [1.22, -1.0, 1.55]
+normal = [1.0, 0.0, 0.1]
+size = 0.45
+
+[[part]]
+part = "marking"
+name = "Hull_Rear"
+kind = "number"
+position = [0.75, -2.39, 1.55]
+normal = [0.0, -1.0, 0.0]
+size = 0.3
+
+[validate]
+exclude_height = ["Hatch_*", "Antenna_*"]

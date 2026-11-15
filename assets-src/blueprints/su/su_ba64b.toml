@@ -2,6 +2,7 @@
 # `armored_car` assembly (prompt 008 kit preparation; the su session reviews
 # and details it). Main dimensions from data/catalog/su.toml: length 3.66 m,
 # width 1.74 m, height 1.90 m (top of the open turret).
+# Reviewed in prompt 008 (su vehicles): driver's hatch and tow hook added.
 # Modeling estimates from photographs and the GAZ-67 data (Wikipedia "BA-64",
 # "GAZ-67"): wheelbase 2.10 m, track about 1.45 m, 6.50-16 tires (~0.75 m),
 # faceted hull of sloped plates, small open-topped hexagonal turret with one DT.
@@ -49,6 +50,21 @@ position = [0.0, 0.30, 1.72]
 length = 1.27
 post = 0.0
 primary = true
+
+[[part]]
+part = "plate"                # driver's hatch with vision slit in the upper front plate
+corners = [[-0.24, 1.32, 1.115], [0.24, 1.32, 1.115], [0.24, 1.60, 0.955], [-0.24, 1.60, 0.955]]
+thickness = 0.015
+
+[[part]]
+part = "box_prop"             # vision slit of the driver's hatch
+center = [0.0, 1.40, 1.085]
+size = [0.30, 0.04, 0.025]
+material = "Glass"
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -1.74, 0.62]
 
 [[part]]
 part = "headlight"
