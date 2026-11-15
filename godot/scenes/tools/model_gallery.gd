@@ -290,17 +290,20 @@ func _describe(model: Node3D) -> String:
 		"%s, %d-%d" % [c.get("cat_designation", ""), c.get("cat_year_from", 0), c.get("cat_year_to", 0)],
 		"Category: %s" % c.get("cat_category", ""),
 	]
-	var dims := "Size: %.2f m long" % (c.get("cat_length_mm", 0) / 1000.0)
-	if c.has("cat_length_hull_mm"):
-		dims += " (hull %.2f)" % (c.cat_length_hull_mm / 1000.0)
-	dims += ", %.2f wide, %.2f high" % [c.get("cat_width_mm", 0) / 1000.0, c.get("cat_height_mm", 0) / 1000.0]
-	lines.append(dims)
+	if c.has("cat_length_mm"):  # squads have no size of their own
+		var dims := "Size: %.2f m long" % (c.get("cat_length_mm", 0) / 1000.0)
+		if c.has("cat_length_hull_mm"):
+			dims += " (hull %.2f)" % (c.cat_length_hull_mm / 1000.0)
+		dims += ", %.2f wide, %.2f high" % [c.get("cat_width_mm", 0) / 1000.0, c.get("cat_height_mm", 0) / 1000.0]
+		lines.append(dims)
 	if c.has("cat_mass_kg"):
 		lines.append("Mass: %.1f t, crew %d" % [c.cat_mass_kg / 1000.0, c.get("cat_crew", 0)])
 	if c.has("cat_speed_road_kmh_x10"):
-		lines.append("Speed: %.0f km/h road, %.0f km/h off-road, range %d km" % [
-			c.cat_speed_road_kmh_x10 / 10.0, c.get("cat_speed_offroad_kmh_x10", 0) / 10.0,
-			c.get("cat_range_road_km", 0)])
+		var speed := "Speed: %.0f km/h road, %.0f km/h off-road" % [
+			c.cat_speed_road_kmh_x10 / 10.0, c.get("cat_speed_offroad_kmh_x10", 0) / 10.0]
+		if c.has("cat_range_road_km"):
+			speed += ", range %d km" % c.cat_range_road_km
+		lines.append(speed)
 	if c.has("cat_armor_hull_front_mm"):
 		lines.append("Armor: hull front %d mm, side %d mm, turret front %d mm" % [
 			c.cat_armor_hull_front_mm, c.get("cat_armor_hull_side_mm", 0), c.get("cat_armor_turret_front_mm", 0)])
