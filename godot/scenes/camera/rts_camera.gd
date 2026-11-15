@@ -51,6 +51,8 @@ const GroundPick := preload("res://scenes/camera/ground_pick.gd")
 @export var shadow_distance_factor := 2.5
 ## Far plane as a multiple of the camera distance.
 @export var far_factor := 4.0
+## The camera stays at least this many meters above the ground below it.
+@export var min_clearance := 3.0
 ## Light whose shadow distance follows the zoom. Optional.
 @export var sun: DirectionalLight3D
 
@@ -202,6 +204,9 @@ func _apply() -> void:
 	var elevation := pitch()
 	var back := Vector3(0.0, sin(elevation), cos(elevation)).rotated(Vector3.UP, yaw)
 	camera.global_position = focus + back * distance
+	# Close to a hillside the camera would end up inside the ground: lift it.
+	var ground := GroundPick.height_at(camera.global_position.x, camera.global_position.z)
+	camera.global_position.y = maxf(camera.global_position.y, ground + min_clearance)
 	camera.look_at(focus, Vector3.UP)
 
 	camera.near = maxf(0.05, distance * 0.02)

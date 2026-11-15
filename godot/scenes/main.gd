@@ -9,18 +9,22 @@ extends Node3D
 ##
 ## The match runs on the map compiled into the simulation (`test_small`);
 ## `-- --map=<name>` loads `data/maps/<name>/` from the repository instead
-## (e.g. `--map=test_large`). The height field is drawn as a coarse debug
-## mesh (`terrain/terrain_debug.gd`) until prompt 011.
+## (e.g. `--map=test_large`). The height field is drawn by
+## `terrain/terrain.gd` (chunks with LOD and a splatting shader).
 ##
 ## Start with `-- --self-test` to drive camera, selection and orders
 ## automatically and quit with exit code 0 (pass) or 1 (fail); see
 ## `self_test.gd`. Start with `-- --camera-shots` (together with
 ## `--write-movie`) to record three fixed camera views, or with `-- --demo` to
-## play the scripted demo in `tools/demo_reel.gd`.
+## play the scripted demo in `tools/demo_reel.gd`. `-- --terrain-bench`
+## measures frame rate and draw calls (`tools/terrain_bench.gd`). F3 opens the
+## debug menu (`debug/debug_menu.gd`).
 
 const UNIT_SCENE: PackedScene = preload("res://scenes/unit.tscn")
 const SelfTest := preload("res://scenes/self_test.gd")
 const DemoReel := preload("res://scenes/tools/demo_reel.gd")
+const TerrainBench := preload("res://scenes/tools/terrain_bench.gd")
+const DebugMenu := preload("res://scenes/debug/debug_menu.gd")
 const GroundPick := preload("res://scenes/camera/ground_pick.gd")
 const SEED := 42
 ## Map folders, relative to the Godot project (repository checkout only).
@@ -44,7 +48,7 @@ const ENEMY_TINT := Color(0.85, 0.2, 0.15, 0.22)
 @onready var sun: DirectionalLight3D = $Sun
 @onready var units_root: Node3D = $Units
 @onready var target_marker: MeshInstance3D = $TargetMarker
-@onready var terrain: MeshInstance3D = $Terrain
+@onready var terrain: Node3D = $Terrain
 @onready var selection: Control = $Hud/Selection
 
 var _unit_nodes: Dictionary[int, Node3D] = {}
@@ -79,6 +83,9 @@ func _ready() -> void:
 	selection.camera = camera
 	selection.camera_rig = camera_rig
 	selection.move_ordered.connect(_show_target_marker)
+	var debug_menu := DebugMenu.new()
+	debug_menu.main = self
+	$Hud.add_child(debug_menu)
 
 	if "--self-test" in OS.get_cmdline_user_args():
 		camera_rig.edge_scroll_enabled = false
@@ -87,6 +94,10 @@ func _ready() -> void:
 		add_child(test)
 	if _camera_shots:
 		camera_rig.edge_scroll_enabled = false
+	if "--terrain-bench" in OS.get_cmdline_user_args() or "--terrain-shots" in OS.get_cmdline_user_args():
+		var bench := TerrainBench.new()
+		bench.main = self
+		add_child(bench)
 	if "--demo" in OS.get_cmdline_user_args():
 		var demo := DemoReel.new()
 		demo.main = self
