@@ -1,0 +1,183 @@
+# Opel Blitz 3.6-36S, 3 t 4x2 cargo truck (1937-45), open cargo body without
+# the canvas cover (catalog height 2.175 m is the cab roof).
+# Main dimensions from data/catalog/de.toml: length 6.02 m, width 2.265 m
+# (cargo body), height 2.175 m.
+# Modeling estimates (photographs; Opel Blitz data sheets quoted on Wikipedia
+# "Opel Blitz" and truck-encyclopedia.com, not catalog values): wheelbase
+# 3.60 m, track about 1.64 m front / 1.60 m between the rear dual tires, 7.50-20
+# tires (~0.90 m), hood, cab and body proportions, cargo floor height. Typical
+# features: tall flat radiator grille with vertical bars, narrow hood with
+# louvers, all-steel cab with flat two-piece windscreen, curved front wings
+# flowing into the running boards, front bumper, wooden drop-side body, spare
+# wheel under the body behind the cab.
+# Coordinates: axles at y = +-1.80 (half the wheelbase); the assembly keeps the
+# origin midway between them.
+unit = "de_opel_blitz"
+assembly = "wheeled"
+
+[layout]
+front_y = 2.88            # front face of the bumper
+
+[[axle]]                  # front axle, steered
+part = "wheel_axle"
+y = 1.80
+diameter = 0.90
+width = 0.20
+track = 1.64
+
+[[axle]]                  # rear axle, dual tires; 1.60 m between the pair centers
+part = "wheel_axle"
+y = -1.80
+diameter = 0.90
+width = 0.20
+track = 1.81
+twin = true
+
+[frame]
+part = "ladder_frame"
+y = [-3.05, 2.75]
+z = 0.86
+spacing = 0.88
+rail = [0.07, 0.18]
+cross_members = 6
+
+[hood]
+part = "engine_hood"
+y = [1.30, 2.66]
+width = 0.78
+bottom_z = 0.86
+top_z = 1.56
+crown = 0.12
+radiator = [0.80, 0.82]
+louvers = 8
+
+[cab]
+part = "truck_cab"
+y = [0.10, 1.30]
+width = 1.80
+floor_z = 1.00
+belt_z = 1.52
+windscreen_lean = 0.06
+door = 0.85
+seats = 1                 # co-driver (catalog crew 2)
+
+[body]
+part = "cargo_bed"
+front_y = 0.02
+floor_z = 1.22
+side_height = 0.50
+planks = 3
+stakes = 5
+material = "Wood"
+seats_per_side = 8
+
+[[part]]
+part = "de.round_wings"   # curved front wings into the running boards
+wheel = [1.80, 0.45, 0.45]
+x = [0.42, 0.92]
+running_board = [0.15, 0.62]
+
+[[part]]
+part = "box_prop"         # rear wings over the dual tires
+center = [-0.82, -1.80, 1.02]
+size = [0.40, 1.10, 0.012]
+
+[[part]]
+part = "box_prop"
+center = [0.82, -1.80, 1.02]
+size = [0.40, 1.10, 0.012]
+
+[[part]]
+part = "de.radiator_grille"
+center = [0.0, 2.68, 1.18]
+size = [0.66, 0.66]
+bars = 11
+
+[[part]]
+part = "box_prop"         # front bumper
+center = [0.0, 2.82, 0.62]
+size = [1.90, 0.12, 0.14]
+material = "Metal"
+
+[[part]]
+part = "headlight"
+position = [-0.62, 2.55, 1.32]
+diameter = 0.22
+
+[[part]]
+part = "headlight"
+position = [0.62, 2.55, 1.32]
+diameter = 0.22
+
+[[part]]
+part = "de.notek"
+position = [-0.80, 2.15, 1.42]
+
+[[part]]
+part = "cylinder_prop"    # spare wheel under the body, right side behind the cab
+from = [0.72, -0.25, 0.58]
+to = [0.92, -0.25, 0.58]
+radius = 0.45
+material = "Rubber"
+segments = 12
+
+[[part]]
+part = "box_prop"         # fuel tank under the cab (left)
+center = [-0.62, 0.70, 0.78]
+size = [0.30, 0.60, 0.28]
+
+[[part]]
+part = "box_prop"         # tool box on the frame (left)
+center = [-0.70, -0.55, 0.88]
+size = [0.25, 0.55, 0.25]
+
+[[part]]
+part = "exhaust"
+kind = "pipe"
+position = [0.45, -0.75, 0.55]
+length = 0.35
+diameter = 0.06
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 2.80, 0.62]
+pair = true
+socket = false
+
+[[part]]
+part = "tow_hook"         # coupling for light guns and trailers
+position = [0.0, -3.08, 0.72]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 2.0, 1.45]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -1.5, 1.35]
+
+[[part]]
+part = "marking"
+name = "Rear"
+kind = "number"
+position = [0.0, -3.15, 1.48]
+normal = [0.0, -1.0, 0.0]
+size = 0.35
+
+[[part]]
+part = "marking"
+name = "Door_L"
+kind = "number"
+position = [-0.91, 0.75, 1.30]
+normal = [-1.0, 0.0, 0.0]
+size = 0.25
+
+[[part]]
+part = "marking"
+name = "Door_R"
+kind = "number"
+position = [0.91, 0.75, 1.30]
+normal = [1.0, 0.0, 0.0]
+size = 0.25

@@ -9,6 +9,10 @@
 # 'Saukopf' cast mantlet (late Ausf. G), MG 34 behind a shield on the loader's
 # hatch. Cupola and MG stand above the roof and are left out of the height
 # (catalog height = roof).
+# Prompt 008 de vehicles review: Schürzen (5 mm side skirts on rails, standard
+# from spring 1943; catalog width is without them), whip antenna at the left
+# rear of the casemate, Notek and headlight, tools on the fenders, driver's
+# visor; national crosses moved onto the skirts as on most vehicles.
 unit = "de_stug3_g"
 assembly = "casemate"
 
@@ -102,18 +106,62 @@ name = "Socket_Fire_"
 position = [0.0, -1.6, 1.5]
 
 [[part]]
+part = "skirts"                 # Schürzen: five plates per side on a rail
+y = [-2.25, 1.95]
+bottom_z = 0.52
+top_z = 1.52
+plates = 5
+gap = 0.10
+
+[[part]]
+part = "antenna"                # Fu 15/16 whip at the left rear of the casemate
+position = [-1.20, -0.75, 1.62]
+length = 2.0
+
+[[part]]
+part = "de.driver_visor"
+position = [-0.72, 1.32, 1.90]
+
+[[part]]
+part = "de.notek"
+position = [-1.15, 2.45, 1.13]
+
+[[part]]
+part = "headlight"
+position = [1.10, 2.40, 1.25]
+diameter = 0.17
+
+[[part]]
+part = "tool"
+kind = "shovel"
+position = [-1.40, -1.55, 1.15]
+
+[[part]]
+part = "tool"
+kind = "crowbar"
+position = [1.40, -1.40, 1.15]
+
+[[part]]
+part = "tool"
+kind = "jack"
+position = [0.55, -2.55, 1.30]
+axis = "x"
+
+[[part]]
 part = "marking"
 name = "Hull_L"
-position = [-1.30, 0.3, 1.80]
-normal = [-0.98, 0.0, 0.2]
-size = 0.45
+parent = "Skirt_L"              # crosses painted on the skirts
+position = [-1.585, -0.15, 1.05]
+normal = [-1, 0, 0]
+size = 0.50
 
 [[part]]
 part = "marking"
 name = "Hull_R"
-position = [1.30, 0.3, 1.80]
-normal = [0.98, 0.0, 0.2]
-size = 0.45
+parent = "Skirt_R"
+position = [1.585, -0.15, 1.05]
+normal = [1, 0, 0]
+size = 0.50
 
 [[part]]
 part = "marking"
@@ -124,4 +172,5 @@ normal = [0.0, -1.0, 0.1]
 size = 0.35
 
 [validate]
-exclude_height = ["Cupola", "MG_*", "Hatch_*"]   # catalog height is the casemate roof
+exclude_height = ["Cupola", "MG_*", "Hatch_*", "Antenna_*"]   # catalog height is the casemate roof
+exclude_width = ["Skirt_*"]                   # catalog width is without Schürzen
