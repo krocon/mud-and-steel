@@ -2,7 +2,8 @@ extends Node
 ## Automatic LAN match for `just lan-selftest` (two headless instances).
 ##
 ## Orders the own tanks around every 40 ticks, so both players send
-## commands. Once the simulation reached TICKS and every state hash up to
+## commands; both sides hold fire, so combat does not end the match first.
+## Once the simulation reached TICKS and every state hash up to
 ## there was confirmed by the other peer, the client (player 1) surrenders
 ## (prompt 027); passes (exit code 0) when both see the decided match on their
 ## result screen, the host as victory and the client as defeat, and the
@@ -28,6 +29,12 @@ var _last_order_tick := -1
 var _orders := 0
 var _passed_ms := -1
 var _surrendered := false
+
+
+func _ready() -> void:
+	# The tanks would fight on their own (prompt 017) and decide the match
+	# before the surrender this test checks: both sides hold fire.
+	sim_host.set_hold_fire(_own_units(), true)
 
 
 func _process(_delta: float) -> void:
@@ -77,13 +84,18 @@ func _check_result(result: Dictionary) -> void:
 		_passed_ms = Time.get_ticks_msec()
 
 
-func _order_own_units() -> void:
+func _own_units() -> PackedInt64Array:
 	var ids := sim_host.unit_ids()
 	var owners := sim_host.unit_owners()
 	var own := PackedInt64Array()
 	for i in ids.size():
 		if owners[i] == sim_host.local_player():
 			own.append(ids[i])
+	return own
+
+
+func _order_own_units() -> void:
+	var own := _own_units()
 	var target := TARGETS[(_orders + sim_host.local_player()) % TARGETS.size()]
 	sim_host.move_units(own, target.x, target.y)
 	_orders += 1

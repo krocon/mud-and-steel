@@ -142,3 +142,54 @@ impl Standings {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const P: [PlayerId; 3] = [PlayerId(0), PlayerId(1), PlayerId(2)];
+
+    #[test]
+    fn last_players_falling_together_is_a_draw() {
+        let mut standings = Standings::new(&P[..2]);
+        standings.update(5, |_| 3);
+        assert_eq!(standings.outcome(), None);
+        standings.update(6, |_| 0);
+        assert_eq!(
+            standings.outcome(),
+            Some(Outcome {
+                winner: None,
+                tick: 6
+            })
+        );
+        assert!(
+            standings
+                .players()
+                .iter()
+                .all(|s| s.defeat == Some((DefeatReason::Eliminated, 6)))
+        );
+    }
+
+    #[test]
+    fn three_players_decide_when_one_is_left() {
+        let mut standings = Standings::new(&P);
+        standings.update(1, |p| usize::from(p != P[2]));
+        assert_eq!(standings.outcome(), None);
+        standings.surrender(P[0], 2);
+        standings.update(2, |p| usize::from(p != P[2]));
+        assert_eq!(standings.outcome().map(|o| o.winner), Some(Some(P[1])));
+        // Final: later changes do not matter.
+        standings.update(3, |_| 0);
+        assert_eq!(
+            standings.outcome().map(|o| (o.winner, o.tick)),
+            Some((Some(P[1]), 2))
+        );
+    }
+
+    #[test]
+    fn single_player_is_never_decided() {
+        let mut standings = Standings::new(&P[..1]);
+        standings.update(1, |_| 0);
+        assert_eq!(standings.outcome(), None);
+    }
+}

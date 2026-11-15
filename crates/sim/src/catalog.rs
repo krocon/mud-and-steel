@@ -7,7 +7,7 @@
 //! happens only in [`crate::scale`]. The field reference is in
 //! `data/catalog/SCHEMA.md`.
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::fmt;
 
 /// The catalog files compiled into the simulation, as `(file name, contents)`.
@@ -69,7 +69,7 @@ impl Group {
 
 macro_rules! categories {
     ($($group:ident => [$($variant:ident = $code:literal),* $(,)?]),* $(,)?) => {
-        #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Deserialize)]
+        #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
         pub enum Category {
             $($(#[serde(rename = $code)] $variant,)*)*
         }
@@ -234,6 +234,9 @@ pub struct Entry {
     pub armor_turret_rear_mm: Option<u16>,
     /// Slope of the upper front hull plate from vertical, in degrees.
     pub armor_hull_front_deg: Option<u16>,
+    /// Total horizontal traverse of the main gun in a casemate (degrees);
+    /// absent for vehicles with a rotating turret.
+    pub gun_traverse_deg: Option<u16>,
 
     #[serde(default)]
     pub weapon: Vec<Weapon>,
@@ -274,6 +277,7 @@ pub const FIELD_NAMES: &[&str] = &[
     "armor_turret_side_mm",
     "armor_turret_rear_mm",
     "armor_hull_front_deg",
+    "gun_traverse_deg",
     "weapon",
 ];
 
@@ -443,6 +447,13 @@ fn validate(e: &Entry) -> Vec<String> {
     }
     if e.armor_hull_front_deg.is_some_and(|v| v > 80) {
         errors.push("armor_hull_front_deg above 80".into());
+    }
+    if let Some(v) = e.gun_traverse_deg
+        && (group != Group::Vehicle || !(1..=359).contains(&v))
+    {
+        errors.push(format!(
+            "gun_traverse_deg = {v}: only vehicles with a casemate, 1..=359"
+        ));
     }
 
     let is_snake = !e.id.is_empty()

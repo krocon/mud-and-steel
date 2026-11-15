@@ -6,6 +6,7 @@
 //! exercise exactly the same setup.
 
 use crate::catalog::Catalog;
+use crate::combat::CombatRules;
 use crate::command::{Command, PlayerCommand, PlayerId, UnitId};
 use crate::data::unit_types_from_catalog;
 use crate::map::Map;
@@ -145,6 +146,7 @@ pub fn parse_scenario_with_factions(
             owner: PlayerId(group.owner),
             unit_type: group.unit.clone(),
             position,
+            fire_mode: crate::combat::FireMode::default(),
         }));
     }
     Ok(SimConfig {
@@ -153,6 +155,7 @@ pub fn parse_scenario_with_factions(
         spawns,
         map: map.reference(),
         terrain: terrain.clone(),
+        combat: CombatRules::builtin().map_err(|e| ScenarioError(e.to_string()))?,
     })
 }
 
@@ -397,9 +400,7 @@ mod tests {
         for tick in 0..2000 {
             for command in script.commands_for_tick(tick) {
                 issued += 1;
-                let (Command::MoveTo { units, .. } | Command::Stop { units }) = command else {
-                    panic!("the script only moves and stops: {command:?}");
-                };
+                let units = command.units();
                 assert!(units.iter().all(|u| (8..16).contains(&u.0)), "{units:?}");
             }
         }

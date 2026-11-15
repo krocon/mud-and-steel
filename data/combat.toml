@@ -1,0 +1,93 @@
+# Combat rules (prompt 017). Integers only. Compiled into the simulation
+# (`sim::CombatRules::builtin`), part of every SimConfig and of the state hash;
+# see docs/ARCHITECTURE.md "Combat".
+#
+# These are game rules, not historical catalog values: unit values (armor,
+# caliber, rate of fire, muzzle velocity, range, dimensions) come from the
+# catalog and are converted by data/scale.toml. Balancing happens here.
+
+[aim]
+# Turret traverse in degrees per real second (the time factor applies). The
+# catalog has no traverse speeds, so this is a rule per category.
+turret_deg_per_s = 20
+# Casemate vehicles (catalog `gun_traverse_deg`) turn the whole hull towards a
+# target outside the gun's traverse when they stand still.
+hull_deg_per_s = 30
+# Infantry turns instantly. Per-category overrides of turret_deg_per_s:
+[[aim.category]]
+category = "tank_light"
+turret_deg_per_s = 30
+
+[[aim.category]]
+category = "tank_heavy"
+turret_deg_per_s = 15
+
+[[aim.category]]
+category = "recon_vehicle"
+turret_deg_per_s = 30
+
+[[aim.category]]
+category = "halftrack"
+turret_deg_per_s = 60
+
+[fire]
+# Automatic targets are chosen again every this many ticks.
+retarget_ticks = 10
+# Weapons whose catalog rate (cyclic for automatic weapons) is at least this
+# fire bursts with a sustained rate of `automatic_sustained_pct` of it.
+automatic_rpm = 200
+automatic_sustained_pct = 25
+# Units ordered to attack drive until the target is within this share of
+# their longest weapon range.
+attack_range_pct = 90
+# Muzzle height over the ground as a share of the unit height.
+muzzle_height_pct = 75
+
+[dispersion]
+# Angular error of a shot per axis (side and height), in tenths of a
+# milliradian at real distances; triangular distribution. Ranges are
+# compressed, so the error in game angles is divided by the direct-fire range
+# factor: a hit at 400 m game range is as likely as at 1600 m real range.
+mrad_x10 = 20
+# Firing while moving multiplies the error.
+moving_pct = 300
+
+[ballistics]
+# Gravity in mm/s² of real time; game gravity is this × time factor².
+gravity_mm_per_s2 = 9807
+# Projectiles vanish after this share of their weapon's range.
+max_flight_range_pct = 150
+
+[penetration]
+# Kinetic rounds: penetration (mm, 0° plate) = caliber × (v / reference)^1.5,
+# minus `loss_pct_per_km` percent per km of real distance (game distance ÷
+# direct-fire range factor). The reference velocity is fitted to published
+# penetration of the 8.8 cm KwK 36 and the 7.5 cm KwK 40 at 100 m (about 160
+# and 135 mm against a vertical plate).
+reference_velocity_mps = 520
+loss_pct_per_km = 20
+# Rounds slower than this are shaped charges (bazooka, Panzerschreck):
+# penetration = caliber × heat_pct / 100, independent of distance.
+heat_below_velocity_mps = 300
+heat_pct = 160
+# Random variation of every penetration roll, ± percent.
+spread_pct = 10
+# Effective thickness = plate / (cos impact angle × cos plate slope); the
+# cosine never drops below this (at most 4 × the plate).
+min_cos_pct = 25
+# Hits in the upper share of a vehicle's height strike the turret (or the
+# casemate) if the catalog has turret armor.
+turret_height_pct = 35
+
+[damage]
+# Hit points of every vehicle.
+vehicle_hp = 1000
+# A penetrating hit on a vehicle costs caliber_mm² × vehicle_pct_per_mm2 / 100
+# points: 7.5 cm 562 (two hits), 8.8 cm 774, 3.7 cm 136, 7.92 mm 6.
+vehicle_pct_per_mm2 = 10
+# Infantry has soldier_hp per soldier (catalog squad_size); a hit costs
+# caliber_mm × infantry_per_mm points: rifle 63, 7.5 cm HE 600.
+soldier_hp = 100
+infantry_per_mm = 8
+# Height of an infantry squad's hit box in mm (the 1.80 m reference figure).
+infantry_height_mm = 1800

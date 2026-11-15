@@ -1,5 +1,6 @@
 //! Player commands: the only way to change the simulation from outside.
 
+use crate::combat::FireMode;
 use crate::math::Vec2;
 use serde::{Deserialize, Serialize};
 
@@ -24,14 +25,31 @@ pub struct PlayerId(pub u8);
 pub enum Command {
     /// Drive `units` in a straight line to a grid formation around `target`.
     MoveTo { units: Vec<UnitId>, target: Vec2 },
-    /// `units` stop where they are.
+    /// `units` stop where they are (and drop an attack order).
     Stop { units: Vec<UnitId> },
+    /// `units` drive into range of `target` and fire at it until it is
+    /// destroyed. Ignored for own targets.
+    Attack { units: Vec<UnitId>, target: UnitId },
+    /// `units` drive into range of the ground point `target` and fire at it.
+    AttackGround { units: Vec<UnitId>, target: Vec2 },
+    /// Whether `units` pick targets on their own.
+    SetFireMode { units: Vec<UnitId>, mode: FireMode },
     /// The issuing player gives up and is defeated (prompt 027).
     Surrender,
-    /// Removes `units` from the match. Only the issuer's own units, so it
-    /// cannot be used to cheat. A test command until combat (prompt 017)
-    /// destroys units; the bridge sends it only in single player.
-    RemoveUnits { units: Vec<UnitId> },
+}
+
+impl Command {
+    /// The units the command is for.
+    pub fn units(&self) -> &[UnitId] {
+        match self {
+            Self::MoveTo { units, .. }
+            | Self::Stop { units }
+            | Self::Attack { units, .. }
+            | Self::AttackGround { units, .. }
+            | Self::SetFireMode { units, .. } => units,
+            Self::Surrender => &[],
+        }
+    }
 }
 
 /// A command together with the player that issued it, as the simulation

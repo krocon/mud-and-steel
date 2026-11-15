@@ -15,8 +15,9 @@ extends Node
 ##    pauses (no ticks while paused) and resumes; surrender from the pause
 ##    menu gives a defeat; "Back to main menu" returns.
 ## 5. Match 2 (United States vs. Germany, winter): units and biome as
-##    chosen; removing all own units ends the match by elimination; back to
-##    the menu.
+##    chosen; everyone starts with hold fire, the own tanks attack one enemy
+##    after the other until the last is destroyed: victory by elimination in
+##    real combat; back to the menu.
 
 signal match_tested
 
@@ -84,7 +85,7 @@ func _run() -> void:
 	if main == null:
 		_finish()
 		return
-	await _elimination_test(main)
+	await _combat_victory_test(main)
 	menu = await _back_to_menu(main)
 	_finish()
 
@@ -92,7 +93,7 @@ func _run() -> void:
 func _finish() -> void:
 	set_process(false)
 	var ok := _errors.is_empty()
-	var message := "menu, settings, LAN lobby, loading, match tests, pause, surrender, elimination, result and back ok" if ok else " ".join(_errors)
+	var message := "menu, settings, LAN lobby, loading, match tests, pause, surrender, combat victory, result and back ok" if ok else " ".join(_errors)
 	print("flow self-test %s: %s" % ["PASSED" if ok else "FAILED", message])
 	get_tree().paused = false
 	get_tree().quit(0 if ok else 1)
@@ -225,29 +226,48 @@ func _surrender_test(main: Node3D) -> void:
 	print("flow self-test: surrender ok (%s)" % game_menu.result_details.text.replace("\n", "; "))
 
 
-func _elimination_test(main: Node3D) -> void:
+func _combat_victory_test(main: Node3D) -> void:
 	var host: SimHost = main.sim_host
 	var own := PackedInt64Array()
+	var enemies := PackedInt64Array()
 	var ids := host.unit_ids()
 	var owners := host.unit_owners()
 	var types := host.unit_type_ids()
 	for i in ids.size():
-		var expected := "us_" if owners[i] == host.local_player() else "de_"
+		var mine := owners[i] == host.local_player()
+		var expected := "us_" if mine else "de_"
 		_check(types[i].begins_with(expected), "unit %d is %s, expected %s…" % [ids[i], types[i], expected])
-		if owners[i] == host.local_player():
+		if mine:
 			own.append(ids[i])
+		else:
+			enemies.append(ids[i])
 	_check(main.atmosphere.preset.id == "winter", "biome is %s, not winter" % main.atmosphere.preset.id)
-	_check(own.size() == 8, "expected 8 own units, got %d" % own.size())
-	host.remove_units(own)
-	await _wait_result(main.game_menu)
-	await _frames(2)
+	_check(own.size() == 8 and enemies.size() == 8, "expected 8 tanks per side")
+	# Everyone starts with hold fire in the self-test: the own tanks attack
+	# one enemy after the other until none is left.
+	var game_menu: CanvasLayer = main.game_menu
+	var frames := 12000
+	var last_order_tick := -1000
+	while not game_menu.result_panel.visible and frames > 0:
+		frames -= 1
+		var tick := host.current_tick()
+		if tick - last_order_tick >= 40:
+			last_order_tick = tick
+			var alive := host.unit_alive()
+			for i in ids.size():
+				if owners[i] != host.local_player() and alive[i] != 0:
+					host.attack_unit(own, ids[i])
+					break
+		await get_tree().process_frame
+	_check(game_menu.result_panel.visible, "the attack did not decide the match (%d enemies left)" % host.alive_unit_count(1))
 	var result: Dictionary = host.match_result()
-	_check(result["decided"] and result["winner"] == 1, "elimination did not decide the match: %s" % result)
-	_check(result["players"][0]["reason"] == "eliminated", "player 0 not marked as eliminated")
-	_check(host.unit_ids().size() == 8 and main._unit_nodes.size() == 8, "removed units still drawn")
-	_check(main.game_menu.result_title.text == "DEFEAT", "result shows '%s'" % main.game_menu.result_title.text)
-	_check(main.game_menu.result_details.text.contains("United States (you): 0 units left"), "result details: %s" % main.game_menu.result_details.text)
-	print("flow self-test: elimination ok (%s)" % main.game_menu.result_details.text.replace("\n", "; "))
+	_check(result["decided"] and result["winner"] == host.local_player(), "combat did not decide the match for us: %s" % result)
+	_check(result["players"][1]["reason"] == "eliminated", "player 1 not marked as eliminated")
+	_check(host.alive_unit_count(1) == 0, "enemy tanks left")
+	_check(game_menu.result_title.text == "VICTORY", "result shows '%s'" % game_menu.result_title.text)
+	_check(game_menu.result_reason.text == "All enemy units were destroyed.", "result reason '%s'" % game_menu.result_reason.text)
+	_check(game_menu.result_details.text.contains("Germany: 0 units left – eliminated"), "result details: %s" % game_menu.result_details.text)
+	print("flow self-test: combat victory ok at tick %d (%s)" % [result["tick"], game_menu.result_details.text.replace("\n", "; ")])
 
 
 func _wait_result(game_menu: CanvasLayer) -> void:

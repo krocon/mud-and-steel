@@ -70,7 +70,7 @@ ENet channel 0, lobby messages (postcard, `net::lan::wire`):
 
 | Message | Direction | Meaning |
 |---------|-----------|---------|
-| `Hello { protocol, name }` | client → host | first message; wrong protocol version is rejected |
+| `Hello { protocol, name }` | client → host | first message; wrong protocol version is rejected (`net::lan::PROTOCOL_VERSION`, 2 since prompt 017 changed config and commands) |
 | `Welcome { player }` | host → client | accepted as player id `player` (smallest free id) |
 | `Reject { reason }` | host → client | game full, already started, wrong version; then disconnect |
 | `Lobby { players }` | host → all | names and ready flags |
@@ -114,7 +114,7 @@ Timeouts: ENet disconnects a peer that did not answer for 3 to 10 s; pings every
 | Command | What it does |
 |---------|--------------|
 | `just check` | includes `crates/net/tests/lan.rs` (two and three peers over UDP on localhost, rejection, lost peer, discovery) and `crates/cli/tests/lan.rs` (two `cli` processes; the client finds the host by search; end hash equals the single-process `run_demo`; a provoked desync is reported by both, with replays) |
-| `just lan-selftest` | two headless Godot instances: host, search, join, ready, start, both order their tanks until tick 400 is confirmed by both; then the client surrenders and both must show the result (host victory, client defeat) at a confirmed tick. Logs in `build/lan-selftest/` |
+| `just lan-selftest` | two headless Godot instances: host, search, join, ready, start, both hold fire and order their tanks until tick 400 is confirmed by both; then the client surrenders and both must show the result (host victory, client defeat) at a confirmed tick. Logs in `build/lan-selftest/` |
 | `just lan-host` / `just lan-join [address]` | headless CLI peers playing the demo, e.g. one per machine |
 
 ## Testing with two machines

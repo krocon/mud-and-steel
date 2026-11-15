@@ -1,7 +1,7 @@
 //! `SimHost` functions for the game flow (prompt 027): starting a skirmish
 //! with chosen factions, surrendering, and the result of the match.
 
-use crate::{SimHost, load_map_dir, to_unit_ids};
+use crate::{SimHost, load_map_dir};
 use godot::prelude::*;
 use sim::scenario::builtin_map;
 use sim::{Command, DefeatReason, PlayerId};
@@ -45,25 +45,11 @@ impl SimHost {
         }
     }
 
-    /// Queues the removal of own units: a test command until combat
-    /// (prompt 017) destroys units. Refused in networked matches.
-    #[func]
-    fn remove_units(&mut self, unit_ids: PackedInt64Array) {
-        if self.game.as_ref().is_none_or(|g| g.networked) {
-            godot_warn!("remove_units is only available in single player");
-            return;
-        }
-        let units = to_unit_ids(&unit_ids);
-        if !units.is_empty() {
-            self.pending.push(Command::RemoveUnits { units });
-        }
-    }
-
     /// State of the match: `decided` (bool); once decided `winner` (player
     /// id, -1 for a draw) and `tick`; always `players`, an array of
     /// dictionaries with `id`, `defeated` (bool), `reason` (`""`,
-    /// `"surrendered"`, `"eliminated"`), `defeat_tick` and `units` (living
-    /// units).
+    /// `"surrendered"`, `"eliminated"`), `defeat_tick` and `units` (units not
+    /// destroyed).
     #[func]
     fn match_result(&self) -> VarDictionary {
         let Some(game) = &self.game else {
@@ -83,7 +69,7 @@ impl SimHost {
                 "defeated" => standing.defeat.is_some(),
                 "reason" => reason,
                 "defeat_tick" => tick,
-                "units" => game.sim.living_units(standing.player) as i64,
+                "units" => game.sim.alive_units(standing.player) as i64,
             };
             players.push(&entry.to_variant());
         }

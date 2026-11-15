@@ -5,7 +5,7 @@ releases.
 
 | Component     | Version              | Pinned in                                  | Notes |
 |---------------|----------------------|--------------------------------------------|-------|
-| Rust          | stable (1.100.0)     | `rust-toolchain.toml`                      | Channel `stable` with rustfmt and clippy. MSRV 1.94 (`rust-version`, required by godot-rust 0.5). |
+| Rust          | 1.100.0              | `rust-toolchain.toml`                      | Exact pin with rustfmt and clippy, so local builds and CI lint the same way. MSRV 1.94 (`rust-version`, required by godot-rust 0.5). |
 | Godot         | 4.7.2-stable         | `godot/mud_and_steel.gdextension` (`compatibility_minimum = 4.7`), `project.godot` | Latest stable Godot supported by godot-rust 0.5.5. |
 | godot-rust    | `godot = "=0.5.5"`   | `Cargo.toml` (workspace dependencies)      | Feature `api-4-7`. Exact pin. |
 | Blender       | 5.3.0                | –                                          | Used for `tools/*.py`; export via the bundled glTF exporter. |

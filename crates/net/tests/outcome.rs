@@ -20,9 +20,10 @@ fn surrendered_match_replays_to_the_same_result() {
                 },
             )],
             60 => vec![PlayerCommand::new(
-                PlayerId(1),
-                Command::RemoveUnits {
-                    units: vec![UnitId(8), UnitId(9)],
+                PlayerId(0),
+                Command::Attack {
+                    units: vec![UnitId(2), UnitId(3)],
+                    target: UnitId(9),
                 },
             )],
             150 => vec![PlayerCommand::new(PlayerId(1), Command::Surrender)],
@@ -38,5 +39,9 @@ fn surrendered_match_replays_to_the_same_result() {
     assert!(report.matches(), "{report:?}");
     let replayed = replay.play(builtin_map()).unwrap();
     assert_eq!(replayed.outcome(), sim.outcome());
-    assert_eq!(replayed.living_units(PlayerId(1)), 6);
+    assert_eq!(
+        replayed.alive_units(PlayerId(1)),
+        sim.alive_units(PlayerId(1))
+    );
+    assert_eq!(replayed.state_hash(), sim.state_hash());
 }
