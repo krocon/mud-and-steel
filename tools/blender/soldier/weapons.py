@@ -336,9 +336,32 @@ def build_flame(w):
                     muzzle=Vector((0, y1, BORE)), ground=Vector((0, y0, BORE - 0.07)))
 
 
+def build_pistol(w):
+    """Self-loading pistol (prompt 042): grip at the origin, slide above it.
+    Overall and barrel length are real values; slide height and grip size are
+    modeling estimates (about 3 x 11 cm grip, 3 cm slide)."""
+    s, b = w.spec, w.mesh
+    length, barrel = s["length"], s["barrel"]
+    bore = 0.032
+    back = -0.035
+    muzzle_y = back + length
+    # Frame and grip (raked back like every pistol of the three).
+    b.box((0, -0.012, -0.035), (0.028, 0.034, 0.105), s.get("grip", "Wood"), W, rot=_rx(-14))
+    b.box((0, (back + muzzle_y - barrel * 0.4) * 0.5, bore - 0.022),
+          (0.024, muzzle_y - barrel * 0.4 - back, 0.018), "Metal", W)
+    # Slide over the barrel, trigger guard below it.
+    b.box((0, (back + muzzle_y) * 0.5, bore), (0.026, length, 0.03), "Metal", W)
+    b.box((0, 0.035, bore - 0.04), (0.008, 0.045, 0.02), "Metal", W)
+    w.points.update(grip_l=Vector((-0.012, -0.01, -0.045)),
+                    butt=Vector((0, -0.03, -0.085)),
+                    muzzle=Vector((0, muzzle_y, bore)),
+                    ground=Vector((0, -0.03, -0.085)))
+
+
 BUILDERS = {
     "rifle": build_rifle, "smg": build_smg, "mg": build_mg, "atr": build_atr,
     "launcher": build_launcher, "mortar": build_mortar, "flame": build_flame,
+    "pistol": build_pistol,
 }
 
 
@@ -374,4 +397,16 @@ WEAPONS.update({
                  source=[WIKI + "82-BM-37"], uncertain=["barrel", "base"]),
     "m1_81mm": dict(kind="mortar", barrel=1.257, caliber=0.081, base=(0.50, 0.42),
                     source=[WIKI + "M1_mortar"], uncertain=["base"]),
+})
+
+
+# --- prompt 042: pistols ----------------------------------------------------------------
+# Overall and barrel length from the cited articles (infobox values).
+WEAPONS.update({
+    "p38": dict(kind="pistol", length=0.216, barrel=0.125, grip="Metal",
+                source=[WIKI + "Walther_P38"]),
+    "tt33": dict(kind="pistol", length=0.195, barrel=0.116, grip="Metal",
+                 source=[WIKI + "TT_pistol"]),
+    "m1911a1": dict(kind="pistol", length=0.216, barrel=0.127, grip="Wood",
+                    source=[WIKI + "M1911_pistol"]),
 })

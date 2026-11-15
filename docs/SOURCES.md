@@ -47,3 +47,17 @@ In this order:
 - **Medics without the Red Cross.** The red cross is a protected emblem under the
   Geneva Conventions and its use is restricted. Medics are marked by a plain white
   armband and a medical bag instead.
+
+## Infantry camouflage (prompt 042)
+
+The camouflage prints of the soldiers are procedural imitations by period
+descriptions; colors are sRGB approximations (`uniform_palettes.json`, `camo`).
+No photos or prints are copied.
+
+| Pattern | Facts used | Source |
+|---|---|---|
+| Splittertarn (Heer) | introduced 1931 (Zeltbahn), smocks and helmet covers from 1942, winter suit with a white reverse; light field-grey/tan base, wood-brown and medium-green polygons, dark-green rain strokes; not used by the Waffen-SS | https://en.wikipedia.org/wiki/Splittertarnmuster |
+| Erbsentarn | 1944 pattern, Waffen-SS issue: **not used** (rule above) | https://en.wikipedia.org/wiki/List_of_camouflage_patterns |
+| Soviet camouflage suit | "amoeba" pattern overgarment for snipers (and scouts) | https://en.wikipedia.org/wiki/Military_camouflage (section "From the Second World War") |
+| M1942 frogskin | reversible: five-color green side (green and brown shapes on pale green), three-color brown side; USMC in the Pacific, US Army in Normandy in summer 1944 (41st Armored Infantry), withdrawn as it was mistaken for Waffen-SS camouflage | https://en.wikipedia.org/wiki/Frog_skin_camouflage, https://en.wikipedia.org/wiki/Military_camouflage (section "Uniforms") |
+| Pistols | P 38 216 / 125 mm, TT-33 195 / 116 mm, M1911A1 216 / 127 mm (overall / barrel length) | https://en.wikipedia.org/wiki/Walther_P38, https://en.wikipedia.org/wiki/TT_pistol, https://en.wikipedia.org/wiki/M1911_pistol |

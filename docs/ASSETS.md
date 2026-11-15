@@ -284,8 +284,8 @@ LOD on import; own LOD meshes only if that proves insufficient (prompt 004).
 
 | Category | Triangles LOD0 | Textures |
 |---|---|---|
-| Soldier incl. equipment | ≤ 3 000 | 1024² uniform atlas + 512² equipment |
-| Small arm, small part | ≤ 800 | shared weapon atlas 1024² |
+| Soldier incl. equipment | ≤ 3 000 | none: procedural `soldier.gdshader` (prompt 042, [INFANTRY.md](INFANTRY.md)) |
+| Small arm, small part | ≤ 800 | none (soldier weapons: `soldier.gdshader`) |
 | Truck, recon vehicle | ≤ 5 000 | 1024² |
 | Tank, halftrack, SPG | ≤ 8 000 | 2048² `Paint`, 1024² others |
 | Towed gun | ≤ 3 000 | 1024² |
