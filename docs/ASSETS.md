@@ -258,6 +258,7 @@ LOD on import; own LOD meshes only if that proves insufficient (prompt 004).
 | Fortification element | 500–2 000 | tileable trim sheets 1024² |
 | Tree / bush / grass clump / rock | ≤ 2 000 / 500 / 50 / 300 | atlas 1024² with alpha |
 | House / church | ≤ 3 000 / 5 000 | trim sheet 2048² per biome |
+| Terrain ground layer | – (chunked grid, prompt 011) | 1024² per layer in two texture arrays (albedo + height, normal + roughness + AO), tile 3–8 m, i.e. 128–340 px/m |
 
 Target texel density: about 256 px/m for vehicles, 512 px/m for soldiers. Use
 tileable textures and trim sheets for buildings and fortifications so that biome
