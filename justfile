@@ -39,6 +39,16 @@ test:
 sim ticks="1000" seed="42":
     cargo run -p cli -- run --ticks {{ ticks }} --seed {{ seed }}
 
+# Regenerate docs/UNIT_CATALOG.md from data/catalog/*.toml
+[group('rust')]
+catalog-doc:
+    cargo run -q -p cli -- catalog-doc
+
+# Validate the unit catalog (all files, or the given ones)
+[group('rust')]
+catalog-check *files:
+    cargo run -q -p cli -- catalog-check {{ files }}
+
 # Build the GDExtension (debug)
 [group('godot')]
 build:
@@ -74,3 +84,4 @@ export-model blend:
 model-tank:
     {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python tools/create_placeholder_tank.py
     just export-model assets-src/blender/placeholder_tank.blend
+
