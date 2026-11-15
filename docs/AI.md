@@ -56,9 +56,10 @@ frames → peers, replay, Sim::step
 
 ## Behavior
 
-Every role of unit is commanded as one group: armor now; infantry (prompt 022)
-already forms its own group with the same rules and can get its own; unarmed
-units stay where they are. Per group, every think:
+Every role of unit is commanded as one group: armor and infantry (prompt 022)
+with the same rules, except that armor attacks enemy armor first, infantry
+attacks only enemy infantry (small arms cannot hurt tanks) and stops when it
+sees nothing but enemy armor; unarmed units stay where they are. Per group, every think:
 
 1. **Memory:** enemies in sight are remembered with position and tick; wrecks are
    forgotten, and so are sightings an own unit comes close to without seeing
@@ -179,7 +180,9 @@ starts far apart (meeting engagements) should separate the levels more.
 ## Open
 
 - AI slots in the LAN lobby (the session part exists).
-- Infantry rules of their own (prompt 022), building and economy (prompt 023),
+- Infantry tactics: stances, cover spots and buildings (prompt 022) are not
+  used by the AI yet; attacking squads walk in standing and lose against
+  kneeling defenders. Building and economy (prompt 023),
   using terrain (hull-down positions, woods, crests), artillery.
 - Meeting engagements on large maps for a better spread of the levels.
 - Formation facing and speed matching (pathfinding, see ARCHITECTURE.md).

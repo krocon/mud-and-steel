@@ -67,6 +67,7 @@ fn sim_with(map: Arc<Map>, spawns: &[(PlayerId, &str, i32, i32)]) -> Sim {
         terrain: TerrainRules::builtin().unwrap(),
         combat: exact_rules(),
         vision: VisionRules::builtin().unwrap(),
+        infantry: sim::InfantryRules::builtin().unwrap(),
     };
     Sim::new(&config, map, 7).unwrap()
 }
@@ -289,6 +290,10 @@ fn infantry_fires_out_of_a_ruin_it_stands_in() {
     assert!(sim.path_grid().passable_at(SizeClass::Small, Vec2::ZERO));
     assert!(!sim.path_grid().passable_at(SizeClass::Large, Vec2::ZERO));
     assert!(sim.visible_to(P1, UnitId(0)), "ruins do not block sight");
+    // The squad first spreads its soldiers over the rubble (prompt 022).
+    for _ in 0..80 {
+        sim.step(&[]);
+    }
     sim.step(&[command(
         P1,
         Command::Attack {
@@ -304,9 +309,13 @@ fn infantry_fires_out_of_a_ruin_it_stands_in() {
             _ => None,
         }));
     }
-    assert!(!hits.is_empty());
+    // No round of the squad in the ruin strikes the ruin or the squad
+    // itself. Since prompt 022 every soldier has a small hit box of his own,
+    // so rounds that miss hit the ground behind the target.
+    assert!(hits.contains(&HitKind::Unit(UnitId(0))), "{hits:?}");
     assert!(
-        hits.iter().all(|&k| k == HitKind::Unit(UnitId(0))),
+        hits.iter()
+            .all(|&k| k == HitKind::Unit(UnitId(0)) || k == HitKind::Ground),
         "{hits:?}"
     );
 }

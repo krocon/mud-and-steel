@@ -276,6 +276,16 @@ path-bench map="test_large" units="200" group="1":
 vision-bench map="test_large" units="500" ticks="600":
     cargo run -q --release -p cli -- vision-bench --map data/maps/{{ map }} --units {{ units }} --ticks {{ ticks }}
 
+# Benchmark infantry in the simulation: 504 soldiers stand, march and fight (prompt 022)
+[group('infantry')]
+infantry-bench ticks="1200":
+    cargo run -q --release -p cli -- infantry-bench --ticks {{ ticks }}
+
+# Benchmark drawing 504 soldiers in Godot: frame time per camera distance (prompt 022)
+[group('infantry')]
+infantry-view-bench: build
+    {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- --scenario=infantry_bench.toml --infantry-bench
+
 # Computer players against each other over many seeds (prompt 024), e.g. `just ai-tournament --a hard --b normal --factions su,su`; default: every difficulty against every lower one
 [group('ai')]
 ai-tournament *args="--matrix":

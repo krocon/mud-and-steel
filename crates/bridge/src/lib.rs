@@ -21,6 +21,7 @@ use std::sync::Arc;
 mod ai_funcs;
 mod combat_funcs;
 mod destruction_funcs;
+mod infantry_funcs;
 mod lan;
 mod map_editor;
 mod match_funcs;
@@ -319,13 +320,18 @@ impl SimHost {
     /// Starts the demo scenario on `map`; `factions` replaces the units of
     /// the listed players by those of their faction (prompt 027).
     fn start_with(&mut self, seed: i64, map: Arc<Map>, factions: &[(PlayerId, &str)]) -> bool {
-        let mut config = match demo_config(&map, factions) {
+        let config = match demo_config(&map, factions) {
             Ok(config) => config,
             Err(e) => {
                 godot_error!("{e}");
                 return false;
             }
         };
+        self.start_config(seed, map, config)
+    }
+
+    /// Starts a single-player match of `config` on `map`.
+    fn start_config(&mut self, seed: i64, map: Arc<Map>, mut config: SimConfig) -> bool {
         if self.hold_fire_at_start {
             for spawn in &mut config.spawns {
                 spawn.fire_mode = sim::FireMode::HoldFire;
@@ -850,21 +856,14 @@ impl SimHost {
             .collect()
     }
 
-    /// Larger of length and width of every unit, in meters.
+    /// Larger of length and width of every unit, in meters; for infantry
+    /// squads the width of their formation (prompt 022).
     #[func]
     fn unit_footprints(&self) -> PackedFloat32Array {
-        let Some(game) = &self.game else {
-            return PackedFloat32Array::new();
-        };
         self.current
             .units
             .iter()
-            .map(|u| {
-                usize::try_from(u.unit_type)
-                    .ok()
-                    .and_then(|i| game.config.unit_types.get(i))
-                    .map_or(0.0, |t| fixed_to_f32(t.footprint_m))
-            })
+            .map(|u| fixed_to_f32(u.spread))
             .collect()
     }
 

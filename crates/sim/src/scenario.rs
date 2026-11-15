@@ -61,6 +61,19 @@ struct Group {
     spacing_m: u32,
     /// Center of the grid, `[x, y]` in meters.
     center_m: [i32; 2],
+    /// What the group is when a player picks another faction: its unit is
+    /// replaced from `[faction_units]` (tanks) or `[faction_infantry]`.
+    #[serde(default)]
+    role: Role,
+}
+
+/// Role of a scenario group for the faction swap (prompt 022).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Deserialize)]
+#[serde(rename_all = "lowercase")]
+enum Role {
+    #[default]
+    Tank,
+    Infantry,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
@@ -73,6 +86,9 @@ struct ScenarioFile {
     /// plays that faction (skirmish setup, prompt 027).
     #[serde(default)]
     faction_units: BTreeMap<String, String>,
+    /// Faction id → catalog id for groups with `role = "infantry"`.
+    #[serde(default)]
+    faction_infantry: BTreeMap<String, String>,
 }
 
 /// The map a scenario file names.
@@ -115,13 +131,15 @@ pub fn parse_scenario_with_factions(
 ) -> Result<SimConfig, ScenarioError> {
     let mut file: ScenarioFile = toml::from_str(text).map_err(|e| ScenarioError(e.to_string()))?;
     for &(player, faction) in factions {
-        let unit = file
-            .faction_units
-            .get(faction)
-            .ok_or_else(|| ScenarioError(format!("scenario has no units for faction '{faction}'")))?
-            .clone();
         for group in file.group.iter_mut().filter(|g| g.owner == player.0) {
-            group.unit.clone_from(&unit);
+            let table = match group.role {
+                Role::Tank => &file.faction_units,
+                Role::Infantry => &file.faction_infantry,
+            };
+            let unit = table.get(faction).ok_or_else(|| {
+                ScenarioError(format!("scenario has no units for faction '{faction}'"))
+            })?;
+            group.unit.clone_from(unit);
         }
     }
 
@@ -158,6 +176,8 @@ pub fn parse_scenario_with_factions(
         terrain: terrain.clone(),
         combat: CombatRules::builtin().map_err(|e| ScenarioError(e.to_string()))?,
         vision: crate::vision::VisionRules::builtin().map_err(|e| ScenarioError(e.to_string()))?,
+        infantry: crate::infantry::InfantryRules::builtin()
+            .map_err(|e| ScenarioError(e.to_string()))?,
     })
 }
 
@@ -339,17 +359,21 @@ mod tests {
     use super::*;
 
     #[test]
-    fn demo_has_two_players_with_eight_tanks() {
+    fn demo_has_two_players_with_eight_tanks_and_two_squads() {
         let config = demo_config();
         assert_eq!(config.players(), vec![PlayerId(0), PlayerId(1)]);
-        for (player, unit) in [(0, "de_pz4_h"), (1, "su_t34_76_1943")] {
+        for (player, unit, squad) in [
+            (0, "de_pz4_h", "de_inf_rifle_squad"),
+            (1, "su_t34_76_1943", "su_inf_rifle_squad"),
+        ] {
             let spawns: Vec<&Spawn> = config
                 .spawns
                 .iter()
                 .filter(|s| s.owner == PlayerId(player))
                 .collect();
-            assert_eq!(spawns.len(), 8);
-            assert!(spawns.iter().all(|s| s.unit_type == unit));
+            assert_eq!(spawns.len(), 10);
+            assert!(spawns[..8].iter().all(|s| s.unit_type == unit));
+            assert!(spawns[8..].iter().all(|s| s.unit_type == squad));
         }
         // First row of player 0: four tanks 12 m apart, centered, at y = 54 m.
         let first: Vec<(i32, i32)> = config.spawns[..4]
@@ -456,7 +480,12 @@ mod tests {
             for command in script.commands_for_tick(tick) {
                 issued += 1;
                 let units = command.units();
-                assert!(units.iter().all(|u| (8..16).contains(&u.0)), "{units:?}");
+                assert!(
+                    units
+                        .iter()
+                        .all(|u| (8..16).contains(&u.0) || (18..20).contains(&u.0)),
+                    "{units:?}"
+                );
             }
         }
         assert_eq!(issued, 2000 / 40 - 1);

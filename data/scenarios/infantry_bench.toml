@@ -1,0 +1,24 @@
+# Infantry benchmark (prompt 022): 28 rifle squads per side, 504 soldiers,
+# on the start meadow of the test map. Used by `just infantry-bench` (CLI,
+# simulation time) and `just infantry-view-bench` (Godot, frame time). The
+# groups start at the map's start positions (docs/MAPS.md).
+
+map = "test_small"
+
+[[group]]
+owner = 0
+unit = "de_inf_rifle_squad"
+role = "infantry"
+count = 28
+columns = 7
+spacing_m = 20
+center_m = [0, 60]
+
+[[group]]
+owner = 1
+unit = "su_inf_rifle_squad"
+role = "infantry"
+count = 28
+columns = 7
+spacing_m = 20
+center_m = [0, -60]

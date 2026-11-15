@@ -32,14 +32,14 @@ Transport: ENet on LAN (net::lan), later Steam online
 
 | Crate / folder  | Responsibility | Depends on |
 |-----------------|----------------|------------|
-| `crates/sim`    | Game rules and state. `Sim::new(config, map, seed)`, `step(&[PlayerCommand])`, `state_hash()`, `snapshot()`. Players and unit ownership, group commands with formation, maps (height field, terrain, objects, bridges), pathfinding (`sim::path`), combat (`sim::combat`), destruction of map objects (`sim::destruction`), fixed-point math, RNG, stable hash, unit catalog, scale, terrain rules and scenarios (compiled in, like the map `test_small`). | `fixed`, `serde`, `toml`, `png` |
+| `crates/sim`    | Game rules and state. `Sim::new(config, map, seed)`, `step(&[PlayerCommand])`, `state_hash()`, `snapshot()`. Players and unit ownership, group commands with formation, maps (height field, terrain, objects, bridges), pathfinding (`sim::path`), combat (`sim::combat`), destruction of map objects (`sim::destruction`), infantry squads with soldiers, stances, cover and buildings (`sim::infantry`, prompt 022), fixed-point math, RNG, stable hash, unit catalog, scale, terrain rules and scenarios (compiled in, like the map `test_small`). | `fixed`, `serde`, `toml`, `png` |
 | `crates/net`    | Lockstep protocol: `CommandFrame`, `HashReport`, `LockstepSession` (input delay, also changed at run time, desync detection), `Transport` trait, `LoopbackTransport` for tests, `LocalTransport` for single player. Replays (`net::replay`). LAN games (`net::lan`): ENet transport with lobby, discovery by UDP broadcast. | `sim`, `postcard`, `rusty_enet`, `if-addrs` |
 | `crates/cli`    | Headless runner: `cli run --ticks N --seed S [--record FILE]` prints the state hash, `cli replay FILE` re-simulates a replay and checks its end hash, `cli gen-map` generates test maps, `cli map-info DIR` measures a map, `cli path-bench` benchmarks pathfinding, `cli map-check DIR` validates a map like the editor, `cli lan-host` / `cli lan-join` play the demo as headless LAN peers. | `sim`, `net`, `clap`, `png` |
 | `crates/ai`     | Computer players (prompt 024): `Ai::think(&PlayerView) -> Vec<Command>`, the fog-of-war `PlayerView`, difficulties, `game::Game` for headless AI matches. Runs on one machine as a hosted player of the lockstep session, not inside the simulation. See [AI.md](AI.md). | `sim`, `net` |
 | `crates/editor` | Map editing (prompt 028): `EditMap` with integer brushes, undo per stroke, saving in the map format and validation through the simulation's loader and path finder. A tool like `cli gen-map`, not game rules. | `sim`, `png`, `toml` |
 | `crates/bridge` | GDExtension `cdylib`. `SimHost` node: runs ticks from a time accumulator through a `LockstepSession`, queues commands, exposes the last two snapshots and the replay; plays single player over `LocalTransport` or a LAN match (`SimHost.start_lan`). `LanLobby` drives the LAN lobby. `MapEditor` hosts the map editor. The only float conversion. | `sim`, `net`, `editor`, `godot` |
 | `godot/`        | Scenes, GDScript UI logic, assets. No C#. | bridge (via `.gdextension`) |
-| `data/`         | Unit catalog (`catalog/*.toml`, real values), `scale.toml` (conversion to game values), `terrain.toml` (terrain types, slope rules), `combat.toml` (combat rules), scenarios (`scenarios/*.toml`, start setups) and maps (`maps/<name>/`), integers only. See [SCALE.md](SCALE.md) and [MAPS.md](MAPS.md). | – |
+| `data/`         | Unit catalog (`catalog/*.toml`, real values), `scale.toml` (conversion to game values), `terrain.toml` (terrain types, slope rules), `combat.toml` (combat rules), `infantry.toml` (stances, cover, buildings), scenarios (`scenarios/*.toml`, start setups) and maps (`maps/<name>/`), integers only. See [SCALE.md](SCALE.md) and [MAPS.md](MAPS.md). | – |
 
 ## Players, commands and formation
 
@@ -54,6 +54,8 @@ but never its issuer:
 | `AttackGround { units, target }` | The units drive into range of the ground point and fire at it. |
 | `SetFireMode { units, mode }` | `FireAtWill` (default: pick targets automatically) or `HoldFire` (fire only at attack targets). |
 | `Surrender` | The issuing player gives up and is defeated ([Victory conditions](#victory-conditions-and-game-flow)). |
+| `SetStance { units, stance }` | Infantry squads stand, kneel, go prone or choose automatically (prompt 022, [INFANTRY.md](INFANTRY.md#behavior-prompt-022)). |
+| `Garrison { units, building }` | Infantry squads walk to the building (map object index) and occupy it if there is room and no enemy inside; a `MoveTo` leaves it. |
 
 The simulation consumes `PlayerCommand { player, command }`. Only the lockstep layer
 builds these, from the sender of the frame, so a peer cannot command another player's
@@ -79,8 +81,9 @@ travel) are still open; see [Pathfinding](#pathfinding).
 
 **Scenarios** (`data/scenarios/*.toml`) name a map and place groups of catalog units
 per player in a grid. The compiled-in demo (`sim::scenario::demo_config`) has eight
-Panzer IV H (player 0) against eight T-34/76 (player 1), 120 m apart, on the built-in
-map `test_small`. Unit ids follow file order.
+Panzer IV H and two rifle squads (player 0) against eight T-34/76 and two rifle
+squads (player 1), the tanks 120 m apart, on the built-in map `test_small`. Unit ids
+follow file order (the squads, appended in prompt 022, have ids 16–19).
 
 ## Map and movement
 
@@ -354,7 +357,8 @@ After commands and path planning, before movement:
 4. **Fly** (after movement). Each projectile moves one tick along its
    velocity (75 m per tick for the KwK 40). The segment is tested against the
    oriented hit boxes of all units except the shooter (hull length × width
-   × height from the catalog; infantry squads footprint × 1.8 m; wrecks too,
+   × height from the catalog; for infantry squads every living soldier's
+   0.6 m box at the height of the squad's stance, prompt 022; wrecks too,
    dead squads not), map objects that block tanks (trees, buildings, walls,
    hedges) up to their catalog height, and the ground (samples at most 1 m
    apart, refined by bisection). The earliest hit counts. Projectiles vanish
@@ -373,6 +377,9 @@ After commands and path planning, before movement:
    takes no commands, does not fire or move, and stays in the unit list
    (stable ids). A vehicle becomes a wreck that blocks its path cells
    (`set_path_obstacle`) and projectiles; dead infantry leaves nothing.
+   Infantry (prompt 022): a hit strikes one soldier (`caliber ×
+   infantry_per_mm` of his `soldier_hp`); soft cover and buildings may
+   catch it first ([INFANTRY.md](INFANTRY.md#behavior-prompt-022)).
 
 | Gun (catalog) | Muzzle penetration | At 375 m game (1500 m real) |
 |---|---|---|
@@ -395,7 +402,8 @@ The bridge collects the events of all ticks of a frame
 (`SimHost.take_combat_events`, dictionaries); `scenes/world/combat_view.gd`
 reads them (signal `combat_event` for effects and sound), draws a tracer per
 projectile, health bars over damaged and selected units, darkens wrecks,
-hides dead squads and turns each model's `Turret` node by the simulation's
+leaves fallen soldiers on the field (prompt 022: `world/infantry_view.gd`
+draws the soldiers) and turns each model's `Turret` node by the simulation's
 aim. Hulls follow the simulation's `facing`.
 
 ### Decisions
@@ -660,8 +668,10 @@ not secret, only the effects are hidden).
   happens to units on the deck is open), splash damage (HE radius), rubble
   as an obstacle of its own, fires in buildings, terrain deformation
   (prompt 021).
-- Ruins give full protection against direct fire below their height and
-  none from above; prompt 022 refines cover.
+- Ruins stop rounds below their height; soldiers inside are hit through
+  the rubble with an exposure chance by stance, and occupants of a
+  collapsing building take losses (prompt 022,
+  [INFANTRY.md](INFANTRY.md#buildings)). Nothing protects from above.
 - Fallen trees and ruins do not change the decoration (grass under a felled
   crown stays).
 
@@ -680,13 +690,16 @@ Prompt 027. `crates/sim/src/outcome.rs` decides the match; Godot only shows it.
   with a single player is never decided. There are no teams yet.
 - The standings enter the state hash only once someone is defeated. Before
   that they hold nothing beyond the player list, so undecided matches hash
-  as before. The demo battle is decided at tick 645 (525 before the vision of prompt 018, 405 before the map of prompt 014; player 0 loses its last
-  tank), which is why prompt 027 changed the golden hash.
+  as before. The demo battle is decided at tick 515 since the rifle squads of
+  prompt 022 (player 1 loses its last unit; before: tick 645 and player 0
+  lost, 525 before the vision of prompt 018, 405 before the map of prompt
+  014), which is why prompt 027 changed the golden hash.
 - `Surrender` is appended to the `Command` enum, so older replays stay
   readable. No debug command removes units: the self-test wins by real
   combat.
 - **Factions:** the demo scenario's `[faction_units]` table names one unit per
-  faction; `parse_scenario_with_factions` gives every group of a player the
+  faction (and `[faction_infantry]` one for groups with `role = "infantry"`,
+  prompt 022); `parse_scenario_with_factions` gives every group of a player the
   unit of the faction they picked (positions unchanged). `SimHost.start_match(
   seed, map_dir, factions)` starts it.
 

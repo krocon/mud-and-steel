@@ -6,6 +6,7 @@
 //! projectiles), unit movement, [`Sim::fly_projectiles`] (flight, hits,
 //! destruction).
 
+use super::infantry::{InfantryRt, inside};
 use super::{Route, Sim, Unit, stop};
 use crate::combat::{
     CombatEvent, CombatRules, Face, FireMode, HitKind, ProjectileSnapshot, Vec3, WeaponType,
@@ -14,6 +15,7 @@ use crate::combat::{
 use crate::command::UnitId;
 use crate::data::UnitType;
 use crate::hash::StableHasher;
+use crate::infantry::Stance;
 use crate::map::Map;
 use crate::math::{Fixed, Vec2};
 use crate::objects::{Shape, sin_cos_deg};
@@ -229,6 +231,8 @@ pub(super) struct Projectile {
     /// Horizontal game meters flown.
     traveled: Fixed,
     caliber_mm_x10: u32,
+    /// The building the shooter fires out of (prompt 022): not hit.
+    skip_object: Option<u32>,
 }
 
 impl Projectile {
@@ -248,6 +252,9 @@ impl Projectile {
             self.traveled,
         ] {
             h.write_i64(v.to_bits());
+        }
+        if let Some(o) = self.skip_object {
+            h.write_u32(o);
         }
     }
 
@@ -390,8 +397,9 @@ impl ObjectIndex {
     }
 }
 
-/// Earliest hit of a projectile so far: `(t, what, unit index and face)`.
-type Candidate = (Fixed, HitKind, Option<(usize, Face)>);
+/// Earliest hit of a projectile so far: `(t, what, unit index, face and
+/// soldier)`.
+type Candidate = (Fixed, HitKind, Option<(usize, Face, Option<usize>)>);
 
 /// What a unit fires at this tick.
 #[derive(Clone, Copy)]
@@ -444,7 +452,7 @@ impl Sim {
             let (point, sees) = match goal {
                 Goal::Unit(t) => {
                     let p = self.units[t].position;
-                    (p, self.unit_sees(i, p))
+                    (p, self.sees_unit(i, t))
                 }
                 Goal::Ground(p) => (p, true),
                 Goal::Search(p) => (p, false),
@@ -494,16 +502,16 @@ impl Sim {
                 };
                 if ok {
                     let aim_point = match goal {
-                        Goal::Unit(t) => {
-                            let u = &self.units[t];
-                            let h = self.types[u.unit_type as usize].height;
-                            Vec3::new(u.position.x, u.position.y, u.height + h / 2)
-                        }
+                        Goal::Unit(t) => self.aim_point(t),
                         Goal::Ground(p) | Goal::Search(p) => {
                             Vec3::new(p.x, p.y, self.map.height_at(p))
                         }
                     };
-                    self.fire(i, w, aim_point);
+                    if self.units[i].squad.is_some() {
+                        self.fire_squad(i, w, aim_point);
+                    } else {
+                        self.fire(i, w, aim_point);
+                    }
                 }
             }
         }
@@ -547,8 +555,7 @@ impl Sim {
             let t = self.units.binary_search_by_key(&id, |u| u.id).ok()?;
             let target = &self.units[t];
             let distance = (target.position - self.units[i].position).length();
-            (target.alive() && distance <= ty.max_range && self.unit_sees(i, target.position))
-                .then_some(t)
+            (target.alive() && distance <= ty.max_range && self.sees_unit(i, t)).then_some(t)
         });
         let chosen = if retarget || current.is_none() {
             self.choose_target(i)
@@ -576,7 +583,7 @@ impl Sim {
                 continue;
             }
             // Only targets in the unit's own line of sight (prompt 018).
-            if !self.unit_sees(i, other.position) {
+            if !self.sees_unit(i, j) {
                 continue;
             }
             let distance = d.length();
@@ -605,7 +612,8 @@ impl Sim {
         wanted: Fixed,
         retarget: bool,
     ) {
-        if self.units[i].combat.attack.is_none() {
+        // Squads in a building fire from there and do not leave it.
+        if self.units[i].combat.attack.is_none() || inside(&self.units[i]) {
             return;
         }
         let ty = &self.types[self.units[i].unit_type as usize];
@@ -713,6 +721,7 @@ impl Sim {
                 remaining: range,
                 traveled: Fixed::ZERO,
                 caliber_mm_x10: caliber,
+                skip_object: None,
             });
             self.events.push(CombatEvent::Shot {
                 unit: shooter,
@@ -723,6 +732,212 @@ impl Sim {
             });
         }
         self.units[i].combat.reload[w] = self.types[shooter_type as usize].weapons[w].reload_ticks;
+    }
+
+    /// Where shooters aim at unit `t`: the middle of its hull, or a living
+    /// soldier of a squad (a different one for every round).
+    fn aim_point(&self, t: usize) -> Vec3 {
+        let u = &self.units[t];
+        let h = self.types[u.unit_type as usize].height;
+        if let Some(squad) = &u.squad
+            && let Some(s) = squad.living(self.next_projectile)
+        {
+            let z = if squad.garrison.is_some() {
+                s.height + self.window_height(squad.garrison)
+            } else {
+                s.height + self.infantry.stance_height(squad.stance) / 2
+            };
+            return Vec3::new(s.position.x, s.position.y, z);
+        }
+        Vec3::new(u.position.x, u.position.y, u.height + h / 2)
+    }
+
+    /// Height of the windows over the ground in building `garrison`: half
+    /// the building, at most 4 m.
+    fn window_height(&self, garrison: Option<u32>) -> Fixed {
+        garrison.map_or(Fixed::ZERO, |o| {
+            let kind = self.map.objects()[o as usize].kind;
+            (self.map.object_kinds()[usize::from(kind)].height / 2).min(Fixed::from_num(4))
+        })
+    }
+
+    /// Fires weapon `w` of squad `i` at `aim_point`: weapons with several
+    /// copies fire in proportion to the living soldiers, every round from
+    /// the next living soldier (prompt 022). No fire while the squad
+    /// changes its stance.
+    fn fire_squad(&mut self, i: usize, w: usize, aim_point: Vec3) {
+        let unit = &self.units[i];
+        let squad = unit.squad.as_ref().expect("squads have soldiers");
+        if squad.changing > 0 {
+            return;
+        }
+        let ty = &self.types[unit.unit_type as usize];
+        let weapon = &ty.weapons[w];
+        let alive = squad.alive_count();
+        let size = u32::try_from(squad.soldiers.len()).unwrap_or(1).max(1);
+        let count = (u32::from(weapon.weapon.count) * alive).div_ceil(size);
+        let rules = &self.combat_rules;
+        let moving = matches!(unit.route, Route::Following { .. });
+        let stance = &self.infantry.rules.stance.values(squad.stance);
+        let mut spread = Fixed::from_num(rules.dispersion.mrad_x10) / 10_000 * ty.angle_scale;
+        if moving {
+            spread = spread * Fixed::from_num(rules.dispersion.moving_pct) / 100;
+        }
+        spread = spread * Fixed::from_num(stance.dispersion_pct) / 100;
+        let (speed, gravity, range) = (
+            weapon.speed,
+            ty.gravity,
+            weapon.range * Fixed::from_num(rules.ballistics.max_flight_range_pct) / 100,
+        );
+        let (shooter, shooter_type, caliber) =
+            (unit.id, unit.unit_type, weapon.weapon.caliber_mm_x10);
+        let garrison = squad.garrison;
+        let muzzle_z = if garrison.is_some() {
+            self.window_height(garrison)
+        } else {
+            self.infantry.stance_height(squad.stance)
+                * Fixed::from_num(rules.fire.muzzle_height_pct)
+                / 100
+        };
+        let mut fired = false;
+        for k in 0..count {
+            let unit = &self.units[i];
+            let squad = unit.squad.as_ref().expect("squads have soldiers");
+            let Some(soldier) = squad.living(squad.turn.wrapping_add(k)) else {
+                break;
+            };
+            let muzzle = Vec3::new(
+                soldier.position.x + unit.combat.aim.x / 2,
+                soldier.position.y + unit.combat.aim.y / 2,
+                soldier.height + muzzle_z,
+            );
+            let delta = aim_point.ground() - muzzle.ground();
+            let distance = delta.length();
+            if distance < Fixed::ONE / 2 || self.friend_in_line(i, muzzle, aim_point) {
+                continue;
+            }
+            // Soldiers fire out of their building, or over (around) the
+            // object they take cover behind.
+            let skip_object = garrison.or_else(|| soldier.cover.filter(|_| soldier.at_spot()));
+            let dir = Vec2::new(delta.x / distance, delta.y / distance);
+            let ticks = distance / speed;
+            let dz = aim_point.z - muzzle.z;
+            let climb = dz / ticks + gravity * (ticks - Fixed::ONE) / 2;
+            let side = triangular(&mut self.rng) * spread;
+            let up = triangular(&mut self.rng) * spread;
+            let (sn, c) = sin_cos_rad(side);
+            let shot = Vec2::new(dir.x * c - dir.y * sn, dir.x * sn + dir.y * c);
+            let id = self.next_projectile;
+            self.next_projectile = self.next_projectile.wrapping_add(1);
+            self.projectiles.push(Projectile {
+                id,
+                shooter,
+                shooter_type,
+                weapon: u8::try_from(w).unwrap_or(u8::MAX),
+                position: muzzle,
+                velocity: Vec3::new(shot.x * speed, shot.y * speed, climb + up * speed),
+                remaining: range,
+                traveled: Fixed::ZERO,
+                caliber_mm_x10: caliber,
+                skip_object,
+            });
+            self.events.push(CombatEvent::Shot {
+                unit: shooter,
+                weapon: u8::try_from(w).unwrap_or(u8::MAX),
+                projectile: id,
+                muzzle,
+                caliber_mm_x10: caliber,
+            });
+            fired = true;
+        }
+        let reload = self.types[shooter_type as usize].weapons[w].reload_ticks;
+        let unit = &mut self.units[i];
+        if let Some(squad) = &mut unit.squad {
+            squad.turn = squad.turn.wrapping_add(count);
+        }
+        if fired {
+            unit.combat.reload[w] = reload;
+        }
+    }
+
+    /// Whether soldier `k` of squad `j` is behind soft cover that catches
+    /// a round flying along `d`; returns the object (prompt 022).
+    fn soft_cover_absorbs(&mut self, j: usize, k: usize, d: Vec3) -> Option<u32> {
+        let squad = self.units[j].squad.as_ref()?;
+        let soldier = &squad.soldiers[k];
+        let object = soldier.cover?;
+        if !soldier.at_spot() {
+            return None;
+        }
+        let pct = self.infantry.cover_pct(&self.map, object);
+        if pct == 0 || !self.gives_cover(object) {
+            return None;
+        }
+        // The object must lie between the shooter and the soldier.
+        let towards = self.map.objects()[object as usize].position - soldier.position;
+        if dot(towards, d.ground()) >= Fixed::ZERO {
+            return None;
+        }
+        (self.rng.below(100) < pct).then_some(object)
+    }
+
+    /// A round struck map object `object`: if it is an occupied building,
+    /// it hits one occupant with the building's exposure chance. Returns
+    /// the squad index and soldier.
+    fn building_hit(&mut self, object: u32, caliber_mm_x10: u32) -> Option<(usize, usize)> {
+        let rules = &self.infantry.rules.building;
+        // Rubble of a ruin hides the soldiers in it less than walls do.
+        // The exposure holds for a standing soldier and shrinks with the
+        // stance height: soldiers lying in the rubble are hard to hit.
+        if self.object_is_ruin(object) {
+            let exposure = rules.ruin_exposure_pct;
+            let inside = self.soldiers_in(object);
+            if inside.is_empty() {
+                return None;
+            }
+            let pick = self
+                .rng
+                .below(u32::try_from(inside.len()).unwrap_or(u32::MAX));
+            let (j, k) = inside[pick as usize];
+            let stance = self.units[j]
+                .squad
+                .as_ref()
+                .map_or(Stance::Stand, |s| s.stance);
+            let stances = &self.infantry.rules.stance;
+            let scaled = exposure * stances.values(stance).height_mm / stances.stand.height_mm;
+            return (self.rng.below(100) < scaled).then_some((j, k));
+        }
+        let damaged = self.building_condition(object) == super::BuildingCondition::Damaged;
+        let extra = if damaged { rules.damaged_extra_pct } else { 0 };
+        let kind = self.infantry.building(&self.map, object)?;
+        let exposure = if caliber_mm_x10 >= self.infantry.rules.building.heavy_caliber_mm_x10 {
+            kind.heavy_exposure_pct
+        } else {
+            kind.exposure_pct
+        };
+        let exposure = (exposure + extra).min(100);
+        let inside: Vec<(usize, usize)> = self
+            .units
+            .iter()
+            .enumerate()
+            .filter(|(_, u)| u.alive())
+            .filter_map(|(j, u)| u.squad.as_ref().map(|s| (j, s)))
+            .filter(|(_, s)| s.garrison == Some(object))
+            .flat_map(|(j, s)| {
+                s.soldiers
+                    .iter()
+                    .enumerate()
+                    .filter(|(_, x)| x.alive())
+                    .map(move |(k, _)| (j, k))
+            })
+            .collect();
+        if inside.is_empty() || self.rng.below(100) >= exposure {
+            return None;
+        }
+        let pick = self
+            .rng
+            .below(u32::try_from(inside.len()).unwrap_or(u32::MAX));
+        Some(inside[pick as usize])
     }
 
     /// Whether a living unit of the same player stands in the straight line
@@ -739,13 +954,13 @@ impl Sim {
                 return false;
             }
             let ty = &self.types[u.unit_type as usize];
-            let reach = ty.half_length + ty.half_width;
+            let reach = reach_of(u, ty);
             let p = u.position;
             p.x >= low.x - reach
                 && p.x <= high.x + reach
                 && p.y >= low.y - reach
                 && p.y <= high.y + reach
-                && box_hit(u, ty, muzzle, d).is_some()
+                && friend_hit(u, ty, &self.infantry, muzzle, d)
         })
     }
 
@@ -769,7 +984,7 @@ impl Sim {
                 if !unit.alive() && ty.infantry {
                     continue;
                 }
-                let reach = ty.half_length + ty.half_width;
+                let reach = reach_of(unit, ty);
                 if unit.position.x < a.x.min(b.x) - reach
                     || unit.position.x > a.x.max(b.x) + reach
                     || unit.position.y < a.y.min(b.y) - reach
@@ -777,14 +992,20 @@ impl Sim {
                 {
                     continue;
                 }
-                if let Some((t, face)) = box_hit(unit, ty, a, d)
+                if let Some((t, face, soldier)) = unit_hit(unit, ty, &self.infantry, a, d)
                     && better(&best, t)
                 {
-                    best = Some((t, HitKind::Unit(unit.id), Some((j, face))));
+                    best = Some((t, HitKind::Unit(unit.id), Some((j, face, soldier))));
                 }
             }
             let first = p.traveled == Fixed::ZERO;
-            let height_of = |i: u32| self.destruction.hit_height(&self.map, i);
+            // A squad's own building or cover object is not in its way
+            // (prompt 022).
+            let height_of = |i: u32| {
+                (p.skip_object != Some(i))
+                    .then(|| self.destruction.hit_height(&self.map, i))
+                    .flatten()
+            };
             let skip_inside = |i: u32| first && self.object_is_ruin(i);
             if let Some((t, object)) = self.objects.hit(&self.map, a, b, height_of, skip_inside)
                 && better(&best, t)
@@ -797,7 +1018,7 @@ impl Sim {
             {
                 best = Some((t, HitKind::Ground, None));
             }
-            let Some((t, kind, unit_hit)) = best else {
+            let Some((t, mut kind, mut unit_hit)) = best else {
                 // Flies on, unless it leaves the map or its range.
                 let step = d.ground().length();
                 p.position = b;
@@ -812,6 +1033,22 @@ impl Sim {
             let point = at(a, d, t);
             p.traveled += d.ground().length() * t;
             let (mut face, mut turret, mut penetrated, mut damage) = (None, false, false, 0);
+            // Soft cover catches some rounds aimed at soldiers behind it,
+            // and rounds into an occupied building may hit an occupant
+            // (prompt 022).
+            if let Some((j, _, Some(soldier))) = unit_hit
+                && let Some(object) = self.soft_cover_absorbs(j, soldier, d)
+            {
+                kind = HitKind::Object(object);
+                unit_hit = None;
+            }
+            if let HitKind::Object(object) = kind
+                && let Some((j, soldier)) = self.building_hit(object, p.caliber_mm_x10)
+            {
+                kind = HitKind::Unit(self.units[j].id);
+                unit_hit = Some((j, Face::Side, Some(soldier)));
+            }
+            // Rounds that hit no occupant damage the object (prompt 020).
             if let HitKind::Object(object) = kind {
                 let w = &self.types[p.shooter_type as usize].weapons[usize::from(p.weapon)];
                 damage = self.destruction.hit(
@@ -823,18 +1060,26 @@ impl Sim {
                     p.shooter,
                 );
             }
-            if let Some((j, hit_face)) = unit_hit {
+            if let Some((j, hit_face, soldier)) = unit_hit {
                 let result = self.damage_unit(j, &p, hit_face, point);
                 face = Some(hit_face);
                 (turret, penetrated, damage) = result;
                 let unit = &mut self.units[j];
                 if damage > 0 && unit.alive() {
-                    unit.hp = unit.hp.saturating_sub(damage);
+                    match (&mut unit.squad, soldier) {
+                        (Some(squad), Some(k)) => {
+                            let s = &mut squad.soldiers[k];
+                            s.hp = s.hp.saturating_sub(damage);
+                            unit.hp = squad.soldiers.iter().map(|s| s.hp).sum();
+                        }
+                        _ => unit.hp = unit.hp.saturating_sub(damage),
+                    }
                     if unit.hp == 0 {
                         destroyed.push((j, p.shooter, point));
                     }
                 }
             }
+            self.near_miss(point.ground(), p.shooter);
             self.events.push(CombatEvent::Hit {
                 projectile: p.id,
                 shooter: p.shooter,
@@ -920,7 +1165,7 @@ impl Sim {
     }
 
     /// Unit `j` lost its last hit point.
-    fn destroy(&mut self, j: usize, by: UnitId, at: Vec3) {
+    pub(super) fn destroy(&mut self, j: usize, by: UnitId, at: Vec3) {
         let ty = &self.types[self.units[j].unit_type as usize];
         let (infantry, half_length, half_width) = (ty.infantry, ty.half_length, ty.half_width);
         let unit: &mut Unit = &mut self.units[j];
@@ -1051,6 +1296,86 @@ fn box_hit(unit: &Unit, ty: &TypeCombat, a: Vec3, d: Vec3) -> Option<(Fixed, Fac
         _ => Face::Top,
     };
     Some((t, face))
+}
+
+/// Half the extent of a unit for bounding-box tests: a squad's formation,
+/// else its hull.
+fn reach_of(unit: &Unit, ty: &TypeCombat) -> Fixed {
+    if unit.squad.is_some() {
+        unit.spread
+    } else {
+        ty.half_length + ty.half_width
+    }
+}
+
+/// Clearance around friendly soldiers that a squad's fire keeps, in
+/// meters: rounds spread, so a soldier does not fire past a comrade's head.
+const FRIEND_CLEARANCE_M: i32 = 1;
+
+/// Whether the line of fire `a + d·t` passes a friendly unit: its hit box,
+/// or a soldier's hit box grown by [`FRIEND_CLEARANCE_M`] on every side.
+fn friend_hit(unit: &Unit, ty: &TypeCombat, rt: &InfantryRt, a: Vec3, d: Vec3) -> bool {
+    let Some(squad) = &unit.squad else {
+        return box_hit(unit, ty, a, d).is_some();
+    };
+    if squad.garrison.is_some() {
+        return false;
+    }
+    let margin = Fixed::from_num(FRIEND_CLEARANCE_M);
+    let half = rt.half_width() + margin;
+    let height = rt.stance_height(squad.stance) + margin;
+    squad.soldiers.iter().filter(|s| s.alive()).any(|s| {
+        let rel = a.ground() - s.position;
+        let p = [rel.x, rel.y, a.z - s.height];
+        let v = [d.x, d.y, d.z];
+        slab(&p, &v, &[-half, -half, Fixed::ZERO], &[half, half, height]).is_some()
+    })
+}
+
+/// Entry of the segment `a + d·t` into a unit: its hit box, or for a squad
+/// the hit box of the soldier hit first (`(t, face, soldier)`). Soldiers in
+/// a building are only hit through it ([`Sim::building_hit`]).
+fn unit_hit(
+    unit: &Unit,
+    ty: &TypeCombat,
+    rt: &InfantryRt,
+    a: Vec3,
+    d: Vec3,
+) -> Option<(Fixed, Face, Option<usize>)> {
+    let Some(squad) = &unit.squad else {
+        return box_hit(unit, ty, a, d).map(|(t, face)| (t, face, None));
+    };
+    if squad.garrison.is_some() {
+        return None;
+    }
+    let f = unit.facing;
+    let r = Vec2::new(-f.y, f.x);
+    let half = rt.half_width();
+    let height = rt.stance_height(squad.stance);
+    let v = [dot(d.ground(), f), dot(d.ground(), r), d.z];
+    let mut best: Option<(Fixed, Face, Option<usize>)> = None;
+    for (k, s) in squad.soldiers.iter().enumerate() {
+        if !s.alive() {
+            continue;
+        }
+        let rel = a.ground() - s.position;
+        let p = [dot(rel, f), dot(rel, r), a.z - s.height];
+        let Some((t, entry)) = slab(&p, &v, &[-half, -half, Fixed::ZERO], &[half, half, height])
+        else {
+            continue;
+        };
+        if best.as_ref().is_some_and(|(bt, ..)| *bt <= t) {
+            continue;
+        }
+        let face = match entry {
+            Some((0, true)) => Face::Front,
+            Some((0, false)) => Face::Rear,
+            Some((1, _)) => Face::Side,
+            _ => Face::Top,
+        };
+        best = Some((t, face, Some(k)));
+    }
+    best
 }
 
 /// First point of `p + d·t` within the circle, or `None`.

@@ -499,6 +499,25 @@ impl Ai {
             .iter()
             .filter(|e| dist(e.position, center) <= engage)
             .collect();
+        // Infantry (prompt 022): tanks fight tanks first, squads only what
+        // their small arms can hurt. Squads facing nothing but armor stop
+        // where they are instead of walking into it.
+        let armor = |e: &&SeenUnit| self.type_info(e.unit_type).role == Role::Armor;
+        let armor_near = near.iter().any(armor);
+        let near: Vec<&SeenUnit> = match role {
+            Role::Armor if armor_near => near.into_iter().filter(armor).collect(),
+            Role::Infantry => near.into_iter().filter(|e| !armor(e)).collect(),
+            _ => near,
+        };
+        if role == Role::Infantry && near.is_empty() && armor_near {
+            if fighting.iter().any(|u| u.target.is_some()) {
+                out.push(Command::Stop { units: ids });
+            }
+            state.order = Order::None;
+            state.maneuver = None;
+            self.groups.insert(role, state);
+            return;
+        }
         if near.is_empty() {
             state.maneuver = None;
         } else {

@@ -71,7 +71,7 @@ Welle 4:  012 Wegfindung ─ 013 …  │   008 Stufe 2 (3 Sessions pro Fraktion
 | 019 | [Effekte](done/019-effekte.md) | Explosionen, Rauch, Mündungsfeuer, Leuchtspur | erledigt |
 | 020 | [Zerstörbare Gebäude und Vegetation](done/020-zerstoerung.md) | Schadensstufen, Trümmer, umfallende Bäume | erledigt |
 | 021 | [Verformbares Gelände](021-gelaendeverformung.md) | Krater verändern das Höhenfeld | Entwurf |
-| 022 | [Infanterie-Verhalten](022-infanterie-verhalten.md) | Trupps, Haltungen, Deckung, Gebäude besetzen | Entwurf |
+| 022 | [Infanterie-Verhalten](done/022-infanterie-verhalten.md) | Trupps, Haltungen, Deckung, Gebäude besetzen | erledigt |
 | 023 | [Basisbau und Ressourcen](023-basisbau-ressourcen.md) | Bauen, Abbauen, Produzieren | Entwurf |
 | 024 | [KI-Gegner](done/024-ki-gegner.md) | Computerspieler über normale Befehle | erledigt |
 | 025 | [LAN-Mehrspieler](done/025-lan-mehrspieler.md) | ENet-Transport, Spielsuche per Broadcast | erledigt |

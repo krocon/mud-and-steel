@@ -75,6 +75,7 @@ fn config(
         terrain: TerrainRules::builtin().unwrap(),
         combat,
         vision,
+        infantry: sim::InfantryRules::builtin().unwrap(),
     }
 }
 

@@ -41,6 +41,10 @@ extends Node3D
 ## their nodes are hidden here.
 ## Effects (prompt 019): `world/effects.gd` (smoke, fire, impacts, dust);
 ## `-- --effects-shots` / `--effects-bench` run `tools/effects_bench.gd`.
+## Infantry (prompt 022): squads use their squad scene as model;
+## `world/infantry_view.gd` places and animates the soldiers.
+## `-- --scenario=<file>` starts a scenario file of `data/scenarios/`;
+## `-- --infantry-bench` runs `tools/infantry_bench.gd`.
 
 const UNIT_SCENE: PackedScene = preload("res://scenes/unit.tscn")
 const SelfTest := preload("res://scenes/self_test.gd")
@@ -61,6 +65,8 @@ const FogOfWar := preload("res://scenes/world/fog_of_war.gd")
 const Effects := preload("res://scenes/world/effects.gd")
 const DestructionView := preload("res://scenes/world/destruction_view.gd")
 const EffectsBench := preload("res://scenes/tools/effects_bench.gd")
+const InfantryView := preload("res://scenes/world/infantry_view.gd")
+const InfantryBench := preload("res://scenes/tools/infantry_bench.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
 const MatchSetup := preload("res://scenes/menu/match_setup.gd")
 const LoadingScreen := preload("res://scenes/menu/loading_screen.gd")
@@ -109,6 +115,8 @@ var combat_view: CombatView
 var fog_of_war: FogOfWar
 ## Smoke, fire, impacts, dust (prompt 019).
 var effects: Effects
+## Soldiers of infantry squads (prompt 022).
+var infantry_view: InfantryView
 var destruction_view: Node
 ## Pause menu and result screen (prompt 027).
 var game_menu: CanvasLayer
@@ -175,6 +183,10 @@ func _ready() -> void:
 	combat_view.name = "CombatView"
 	add_child(combat_view)
 	combat_view.setup(self, $Hud)
+	infantry_view = InfantryView.new()
+	infantry_view.name = "InfantryView"
+	add_child(infantry_view)
+	infantry_view.setup(self)
 	effects = Effects.new()
 	effects.name = "Effects"
 	add_child(effects)
@@ -245,6 +257,11 @@ func _ready() -> void:
 		var effects_bench := EffectsBench.new()
 		effects_bench.main = self
 		add_child(effects_bench)
+	if "--infantry-bench" in OS.get_cmdline_user_args():
+		camera_rig.edge_scroll_enabled = false
+		var infantry_bench := InfantryBench.new()
+		infantry_bench.main = self
+		add_child(infantry_bench)
 	if "--demo" in OS.get_cmdline_user_args():
 		var demo := DemoReel.new()
 		demo.main = self
@@ -302,6 +319,8 @@ func _start_simulation() -> bool:
 	sim_host.hold_fire_at_start = "--self-test" in OS.get_cmdline_user_args()
 	# The effects tools trigger their own effects (prompt 019).
 	sim_host.hold_fire_at_start = sim_host.hold_fire_at_start or _effects_tool()
+	# The infantry bench opens fire itself (prompt 022).
+	sim_host.hold_fire_at_start = sim_host.hold_fire_at_start or "--infantry-bench" in OS.get_cmdline_user_args()
 	# Computer opponent (prompt 024): from the setup screen, or `--ai=<level>`
 	# for direct starts; none for LAN matches.
 	sim_host.ai_opponent = MatchSetup.pending.get("ai", "")
@@ -316,6 +335,9 @@ func _start_simulation() -> bool:
 		LanMatch.lobby = null
 		return sim_host.start_lan(lobby, ProjectSettings.globalize_path(MAPS_DIR).simplify_path())
 	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--scenario="):
+			var file := ProjectSettings.globalize_path("res://../data/scenarios/" + arg.trim_prefix("--scenario="))
+			return sim_host.start_scenario(SEED, file.simplify_path(), ProjectSettings.globalize_path(MAPS_DIR).simplify_path())
 		if arg.begins_with("--map="):
 			var dir := ProjectSettings.globalize_path(MAPS_DIR.path_join(arg.trim_prefix("--map=")))
 			return sim_host.start_on_map(SEED, dir.simplify_path())
@@ -402,11 +424,17 @@ func _unit_node(id: int, index: int) -> Node3D:
 func _use_catalog_model(node: Node3D, type_id: String, id: int) -> void:
 	var faction := type_id.get_slice("_", 0)
 	var path := "%s%s/%s.glb" % [MODELS_DIR, faction, type_id]
-	if type_id.is_empty() or not ResourceLoader.exists(path):
+	# Infantry squads use their squad scene (prompt 022).
+	var squad := InfantryView.squad_model(MODELS_DIR, type_id)
+	if squad == null and (type_id.is_empty() or not ResourceLoader.exists(path)):
 		return
 	var placeholder := node.get_node("Model")
 	node.remove_child(placeholder)
 	placeholder.free()
+	if squad != null:
+		squad.name = "Model"
+		node.add_child(squad)
+		return
 	var model := (load(path) as PackedScene).instantiate() as Node3D
 	model.name = "Model"
 	model.set_meta(&"faction", faction)

@@ -53,6 +53,7 @@ pub fn run(map: Arc<Map>, options: &Options) -> Result<String, String> {
         terrain,
         combat: sim::CombatRules::builtin().map_err(|e| e.to_string())?,
         vision: sim::VisionRules::builtin().map_err(|e| e.to_string())?,
+        infantry: sim::InfantryRules::builtin().map_err(|e| e.to_string())?,
     };
 
     let build = Instant::now();

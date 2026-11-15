@@ -166,3 +166,73 @@ fn difficulties_parse() {
     assert_eq!(" Hard ".parse::<Difficulty>(), Ok(Difficulty::Hard));
     assert!("brutal".parse::<Difficulty>().is_err());
 }
+
+/// Rifle squads (prompt 022) are an AI group of their own: squads 320 m
+/// apart see each other, and the AI's squads close in and attack. Against
+/// enemy tanks they attack only infantry (see `ai_moves_and_attacks...`).
+#[test]
+fn ai_moves_and_attacks_with_infantry() {
+    let mut config = demo_config();
+    config.spawns.retain(|s| s.unit_type.contains("_inf_"));
+    for s in &mut config.spawns {
+        if s.owner == PlayerId(1) {
+            s.position.y -= sim::Fixed::from_num(150);
+        }
+    }
+    let squads = [UnitId(0), UnitId(1)];
+    assert!(config.spawns[..2].iter().all(|s| s.owner == PlayerId(0)));
+    let players = [
+        (PlayerId(0), Difficulty::Hard),
+        (PlayerId(1), Difficulty::Passive),
+    ];
+    let mut game = Game::new(&config, builtin_map(), 5, &players).unwrap();
+    let start: Vec<Vec2> = config.spawns[..2].iter().map(|s| s.position).collect();
+    let mut attacked = false;
+    let mut moved = false;
+    while game.sim().outcome().is_none() && game.sim().tick() < MAX_TICKS {
+        let decisions = game.think();
+        attacked |= decisions.iter().flatten().any(|c| {
+            matches!(c, Command::Attack { units, .. } if units.iter().any(|u| squads.contains(u)))
+        });
+        game.step(decisions);
+        let now = game.sim().snapshot();
+        moved |=
+            (0..2).any(|k| (now.units[k].position - start[k]).length() > sim::Fixed::from_num(20));
+    }
+    assert!(attacked && moved, "attacked {attacked}, moved {moved}");
+}
+
+/// With enemy tanks around, the AI's squads attack only enemy infantry and
+/// leave the tanks to its own tanks.
+#[test]
+fn ai_squads_attack_only_what_they_can_hurt() {
+    let config = demo_config();
+    let squads: Vec<UnitId> = (0u32..)
+        .zip(&config.spawns)
+        .filter(|(_, s)| s.unit_type.contains("_inf_") && s.owner == PlayerId(0))
+        .map(|(i, _)| UnitId(i))
+        .collect();
+    assert_eq!(squads.len(), 2);
+    let players = [
+        (PlayerId(0), Difficulty::Hard),
+        (PlayerId(1), Difficulty::Passive),
+    ];
+    let mut game = Game::new(&config, builtin_map(), 5, &players).unwrap();
+    let mut targets = Vec::new();
+    while game.sim().outcome().is_none() && game.sim().tick() < MAX_TICKS {
+        let decisions = game.think();
+        for command in decisions.iter().flatten() {
+            if let Command::Attack { units, target } = command
+                && units.iter().any(|u| squads.contains(u))
+            {
+                targets.push(*target);
+            }
+        }
+        game.step(decisions);
+    }
+    assert!(!targets.is_empty(), "the squads got no attack order");
+    for target in &targets {
+        let name = &config.spawns[target.0 as usize].unit_type;
+        assert!(name.contains("_inf_"), "squads attacked {name}");
+    }
+}

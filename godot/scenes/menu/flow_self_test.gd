@@ -15,7 +15,7 @@ extends Node
 ##    pauses (no ticks while paused) and resumes; surrender from the pause
 ##    menu gives a defeat; "Back to main menu" returns.
 ## 5. Match 2 (United States vs. Germany, winter): units and biome as
-##    chosen; everyone starts with hold fire, the own tanks attack one enemy
+##    chosen; everyone starts with hold fire, the own units attack one enemy
 ##    after the other until the last is destroyed: victory by elimination in
 ##    real combat; back to the menu.
 ## 6. Match 3 (prompt 024): against the hard computer opponent while the own
@@ -260,8 +260,9 @@ func _combat_victory_test(main: Node3D) -> void:
 		else:
 			enemies.append(ids[i])
 	_check(main.atmosphere.preset.id == "winter", "biome is %s, not winter" % main.atmosphere.preset.id)
-	_check(own.size() == 8 and enemies.size() == 8, "expected 8 tanks per side")
-	# Everyone starts with hold fire in the self-test: the own tanks attack
+	# Eight tanks and two rifle squads per side (prompt 022).
+	_check(own.size() == 10 and enemies.size() == 10, "expected 10 units per side")
+	# Everyone starts with hold fire in the self-test: the own units attack
 	# one enemy after the other until none is left.
 	var game_menu: CanvasLayer = main.game_menu
 	var frames := 12000
@@ -281,7 +282,7 @@ func _combat_victory_test(main: Node3D) -> void:
 	var result: Dictionary = host.match_result()
 	_check(result["decided"] and result["winner"] == host.local_player(), "combat did not decide the match for us: %s" % result)
 	_check(result["players"][1]["reason"] == "eliminated", "player 1 not marked as eliminated")
-	_check(host.alive_unit_count(1) == 0, "enemy tanks left")
+	_check(host.alive_unit_count(1) == 0, "enemy units left")
 	_check(game_menu.result_title.text == "VICTORY", "result shows '%s'" % game_menu.result_title.text)
 	_check(game_menu.result_reason.text == "All enemy units were destroyed.", "result reason '%s'" % game_menu.result_reason.text)
 	_check(game_menu.result_details.text.contains("Germany: 0 units left – eliminated"), "result details: %s" % game_menu.result_details.text)

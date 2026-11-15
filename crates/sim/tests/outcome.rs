@@ -37,8 +37,9 @@ fn undecided_at_start() {
     assert_eq!(sim.outcome(), None);
     assert_eq!(sim.standings().len(), 2);
     assert!(sim.standings().iter().all(|s| s.defeat.is_none()));
-    assert_eq!(sim.alive_units(P0), 8);
-    assert_eq!(sim.alive_units(P1), 8);
+    // Eight tanks and two rifle squads each (prompt 022).
+    assert_eq!(sim.alive_units(P0), 10);
+    assert_eq!(sim.alive_units(P1), 10);
 }
 
 #[test]
@@ -55,11 +56,12 @@ fn surrender_decides_the_match() {
     );
     assert_eq!(sim.standings()[0].defeat, None);
     // Units of a surrendered player stay on the field.
-    assert_eq!(sim.alive_units(P1), 8);
+    assert_eq!(sim.alive_units(P1), 10);
 }
 
-/// Player 1 holds fire; player 0 attacks one enemy tank after the other
-/// until the last one is destroyed: player 1 is eliminated by real combat.
+/// Player 1 holds fire; player 0 attacks one enemy after the other (tanks,
+/// then the rifle squads) until the last one is destroyed: player 1 is
+/// eliminated by real combat.
 #[test]
 fn destroying_all_enemy_units_eliminates() {
     let mut config = demo_config();
@@ -69,12 +71,16 @@ fn destroying_all_enemy_units_eliminates() {
         }
     }
     let mut sim = Sim::new(&config, builtin_map(), 42).unwrap();
-    let own = ids(0..8);
+    // Tanks 0..8 and squads 16, 17 of player 0; tanks 8..16 and squads 18,
+    // 19 of player 1 (infantry groups follow the tanks in the scenario).
+    let mut own = ids(0..8);
+    own.extend(ids(16..18));
     let mut ticks = 0;
     while sim.outcome().is_none() && ticks < 20_000 {
         let commands = if ticks % 100 == 0 {
             // Attack the first enemy that is still alive.
             (8..16)
+                .chain(18..20)
                 .map(UnitId)
                 .find(|&id| sim.unit_hp(id).is_some_and(|hp| hp > 0))
                 .map(|target| {
@@ -102,7 +108,7 @@ fn destroying_all_enemy_units_eliminates() {
         Some((DefeatReason::Eliminated, outcome.tick))
     );
     // Wrecks stay in the match.
-    assert_eq!(sim.snapshot().units.len(), 16);
+    assert_eq!(sim.snapshot().units.len(), 20);
 }
 
 #[test]
@@ -174,10 +180,12 @@ fn factions_replace_the_units_of_a_player() {
     assert_eq!(config.spawns.len(), demo.spawns.len());
     for (spawn, original) in config.spawns.iter().zip(&demo.spawns) {
         assert_eq!(spawn.position, original.position);
-        let expected = if spawn.owner == P0 {
-            "us_m4a3_75"
-        } else {
-            "de_pz4_h"
+        let infantry = original.unit_type.contains("_inf_");
+        let expected = match (spawn.owner == P0, infantry) {
+            (true, false) => "us_m4a3_75",
+            (false, false) => "de_pz4_h",
+            (true, true) => "us_inf_rifle_squad",
+            (false, true) => "de_inf_rifle_squad",
         };
         assert_eq!(spawn.unit_type, expected);
     }

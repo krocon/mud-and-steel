@@ -111,7 +111,7 @@ impl Sim {
     pub(super) fn update_vision(&mut self, unlimited: bool) {
         let v = &mut self.vision;
         let grid = Arc::clone(&v.grid);
-        for (i, unit) in self.units.iter().enumerate() {
+        for (i, unit) in self.units.iter_mut().enumerate() {
             if !unit.alive() {
                 if let Some(shed) = v.sheds[i].take() {
                     let slot = v.slot(unit.owner).expect("owners are players");
@@ -120,10 +120,12 @@ impl Sim {
                 continue;
             }
             let anchor = grid.index_of(unit.position);
-            if v.sheds[i].as_ref().map(|s| s.anchor) != Some(anchor) && !v.queued[i] {
+            let moved = v.sheds[i].as_ref().map(|s| s.anchor) != Some(anchor);
+            if (moved || unit.vision_dirty) && !v.queued[i] {
                 v.queued[i] = true;
                 v.queue.push_back(i as u32);
             }
+            unit.vision_dirty = false;
         }
         let budget = v.rules.grid.budget_steps_per_tick;
         let mut spent = 0u32;
@@ -141,7 +143,8 @@ impl Sim {
             }
             let t = unit.unit_type as usize;
             let anchor = grid.index_of(unit.position);
-            let eye = to_mm(unit.height).saturating_add(v.eye_mm[t]);
+            // Observers in a building look out over its roof (prompt 022).
+            let eye = to_mm(unit.height).saturating_add(v.eye_mm[t].max(unit.elevation_mm));
             let (shed, steps) = grid.viewshed(anchor, eye, v.radius[t]);
             let slot = v.slot(unit.owner).expect("owners are players");
             if let Some(old) = v.sheds[i].take() {
@@ -156,9 +159,22 @@ impl Sim {
         for (i, unit) in self.units.iter().enumerate() {
             v.seen[i] = if unit.alive() {
                 let cell = grid.index_of(unit.position) as usize;
+                // Squads in a building are seen at their windows (prompt 022).
+                let windows: Vec<usize> = match &unit.squad {
+                    Some(squad) if squad.garrison.is_some() => squad
+                        .soldiers
+                        .iter()
+                        .filter(|x| x.alive())
+                        .map(|x| grid.index_of(x.position) as usize)
+                        .collect(),
+                    _ => Vec::new(),
+                };
                 let mut mask = 0u64;
                 for (s, (&player, pv)) in v.players.iter().zip(&v.per_player).enumerate() {
-                    if player == unit.owner || pv.visible(cell) {
+                    if player == unit.owner
+                        || pv.visible(cell)
+                        || windows.iter().any(|&c| pv.visible(c))
+                    {
                         mask |= 1 << s;
                     }
                 }
@@ -193,6 +209,21 @@ impl Sim {
     }
 
     /// Whether the viewshed of unit `i` contains the point `p`.
+    /// Whether unit `i` sees unit `j`: its cell, or for a squad in a
+    /// building one of the windows its soldiers stand at (prompt 022).
+    pub(super) fn sees_unit(&self, i: usize, j: usize) -> bool {
+        let target = &self.units[j];
+        if self.unit_sees(i, target.position) {
+            return true;
+        }
+        target.squad.as_ref().is_some_and(|s| {
+            s.garrison.is_some()
+                && s.soldiers
+                    .iter()
+                    .any(|x| x.alive() && self.unit_sees(i, x.position))
+        })
+    }
+
     pub(super) fn unit_sees(&self, i: usize, p: Vec2) -> bool {
         let grid = &self.vision.grid;
         let (c, r) = grid.cell_of(p);
@@ -226,6 +257,9 @@ impl Sim {
     pub fn snapshot_for(&self, player: PlayerId) -> Snapshot {
         let mut snapshot = self.snapshot();
         snapshot.units.retain(|u| self.visible_to(player, u.id));
+        snapshot
+            .soldiers
+            .retain(|s| self.visible_to(player, s.unit));
         snapshot
     }
 
