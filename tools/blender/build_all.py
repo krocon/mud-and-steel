@@ -13,7 +13,7 @@ import bpy
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from kit import catalog, squad  # noqa: E402
+from kit import catalog  # noqa: E402
 from kit.build import build_model, clear_scene, export_glb  # noqa: E402
 
 
@@ -24,10 +24,6 @@ def main():
     args = ap.parse_args(argv)
     units = catalog.all_blueprints()
     for faction, uid in units:
-        if squad.is_squad(faction, uid):  # infantry squad: Godot scene only
-            squad.build(faction, uid)
-            print(f"build_all: {faction}/{uid} (squad)")
-            continue
         bpy.ops.wm.read_homefile(use_empty=True)
         clear_scene()
         root = build_model(faction, uid)

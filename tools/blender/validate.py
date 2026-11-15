@@ -30,7 +30,7 @@ from mathutils import Vector
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from kit import catalog, squad  # noqa: E402
+from kit import catalog  # noqa: E402
 from kit.core import SLOTS, tri_count, world_bbox  # noqa: E402
 from kit.sourcehash import source_hash  # noqa: E402
 
@@ -248,11 +248,6 @@ def check_glb(glb, ref, errors):
 
 def validate(faction, uid):
     errors, stats = [], {}
-    try:
-        if squad.is_squad(faction, uid):  # infantry squads: see kit/squad.py
-            return squad.validate(faction, uid)
-    except Exception as exc:
-        return [str(exc)], stats
     blend = catalog.blend_path(faction, uid)
     glb = catalog.glb_path(faction, uid)
     try:
@@ -286,8 +281,6 @@ def main():
         dims = "  ".join(f"{k[0].upper()} {st[k][0]:.3f}/{st[k][1]:.3f}" for k in ("length", "width", "height")
                          if k in st)
         tri = f"{st['tris']}/{st['budget']} tris" if "tris" in st else ""
-        if "members" in st:
-            tri = f"squad of {st['members']}"
         status = "FAIL" if errors else "ok"
         print(f"  {status:4} {faction}/{uid:20} {tri:16} {dims}")
         for e in errors:

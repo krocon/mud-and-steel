@@ -1,17 +1,13 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=3 format=3]
 
-[ext_resource type="Script" path="res://scenes/tools/squad_model.gd" id="1_squad"]
-[ext_resource type="PackedScene" path="res://assets/models/su/infantry/assistant_gunner.glb" id="2_assistant_gunner"]
-[ext_resource type="PackedScene" path="res://assets/models/su/infantry/mg_gunner.glb" id="3_mg_gunner"]
+[ext_resource type="PackedScene" uid="uid://dchpdwtb75mih" path="res://assets/models/su/infantry/assistant_gunner.glb" id="1_assistant_gunner"]
+[ext_resource type="PackedScene" uid="uid://csdy8770vi2a" path="res://assets/models/su/infantry/mg_gunner.glb" id="2_mg_gunner"]
 
 [node name="su_inf_mg_team" type="Node3D"]
-script = ExtResource("1_squad")
-faction = "su"
-metadata/extras = {"cat_id": "su_inf_mg_team", "cat_faction": "su", "cat_category": "inf_lmg", "cat_name_de": "MG-Trupp DP-27", "cat_name_en": "DP-27 Machine Gun Team", "cat_designation": "DP-27 light machine gun team", "cat_year_from": 1943, "cat_year_to": 1945, "cat_speed_road_kmh_x10": 50, "cat_speed_offroad_kmh_x10": 40, "cat_weapons": "DP-27; Mosin-Nagant M1891/30", "cat_squad_size": 2, "squad_members": ["mg_gunner", "assistant_gunner"]}
-metadata/source_hash = "4ac9a627cd8b658b"
+metadata/extras = {"cat_id": "su_inf_mg_team", "cat_faction": "su", "cat_category": "inf_lmg", "cat_name_de": "MG-Trupp DP-27", "cat_name_en": "DP-27 Machine Gun Team", "cat_designation": "DP-27 light machine gun team", "cat_year_from": 1943, "cat_year_to": 1945, "cat_speed_road_kmh_x10": 50, "cat_speed_offroad_kmh_x10": 40, "cat_weapons": "DP-27; Mosin-Nagant M1891/30", "cat_squad_size": 2, "squad": true, "squad_roles": ["mg_gunner", "assistant_gunner"], "squad_notes": ["DP-27 gunner", "assistant gunner (Mosin-Nagant M1891/30, pan carrier)"], "squad_clips": ["aim_prone", "kneel"], "squad_file": "assets-src/blueprints/su/squads/su_inf_mg_team.toml", "source_hash": "ff763a722dbd15ae"}
 
-[node name="M01_mg_gunner" parent="." instance=ExtResource("3_mg_gunner")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.75, 0, -0)
+[node name="Member_01" parent="." instance=ExtResource("2_mg_gunner")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.8)
 
-[node name="M02_assistant_gunner" parent="." instance=ExtResource("2_assistant_gunner")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.75, 0, -0)
+[node name="Member_02" parent="." instance=ExtResource("1_assistant_gunner")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2, 0, 0.4)

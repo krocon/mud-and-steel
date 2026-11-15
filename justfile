@@ -115,16 +115,15 @@ unit faction id:
 units:
     {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python tools/blender/build_all.py -- --render "{{ RENDER_DIR }}"
 
-# Check all built models against the catalog and docs/ASSETS.md (incl. squads and soldiers)
+# Check all built models against the catalog and docs/ASSETS.md
 [group('assets')]
 validate-assets:
     {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python tools/blender/validate.py
-    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/validate_soldier.py
 
 # Render all built models side by side with the 1.80 m reference figure
 [group('assets')]
-lineup faction="":
-    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python tools/blender/lineup.py -- "{{ RENDER_DIR }}/lineup{{ if faction == "" { "" } else { "_" + faction } }}.png" {{ faction }}
+lineup:
+    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python tools/blender/lineup.py -- "{{ RENDER_DIR }}/lineup.png"
 
 # Smoke test of every kit part (builds demo vehicles without saving)
 [group('assets')]
@@ -172,3 +171,20 @@ infantry-preview: build
 [group('infantry')]
 infantry-selftest: build
     {{ GODOT }} --path godot --headless res://scenes/tools/infantry_preview.tscn -- --self-test
+
+# --- Squads (prompt 006) ------------------------------------------------------------
+
+# Build one infantry squad scene from assets-src/blueprints/<faction>/squads/<id>.toml
+[group('infantry')]
+squad faction id:
+    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/build_squad.py -- {{ faction }} {{ id }}
+
+# Build every squad scene (all factions)
+[group('infantry')]
+squads:
+    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/build_squad.py -- --all
+
+# Check all squads against the catalog (squad size, roles, built soldiers, up to date)
+[group('infantry')]
+validate-squads:
+    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/build_squad.py -- --check
