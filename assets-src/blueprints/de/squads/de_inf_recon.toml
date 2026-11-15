@@ -1,0 +1,36 @@
+# Spähtrupp, 5 men; composition from the catalog entry (data/catalog/de.toml):
+# NCO and one man with MP 40, three riflemen (Kar98k), stick grenades.
+# Role choice: NCO `squad_leader` (MP 40, map case, binoculars), second MP man
+# `smg_gunner`, the riflemen `scout` (Kar98k, binoculars, field cap).
+# Formation: file-like wedge, point man forward.
+unit = "de_inf_recon"
+
+[[member]]
+role = "scout"
+position = [0.0, 3.0]
+clip = "aim_kneel"
+note = "Spitze (Kar98k, Stielhandgranate 24)"
+
+[[member]]
+role = "squad_leader"
+position = [-0.8, 1.6]
+clip = "kneel"
+note = "Spähtruppführer (MP 40)"
+
+[[member]]
+role = "smg_gunner"
+position = [1.0, 0.8]
+clip = "aim_stand"
+note = "Schütze (MP 40)"
+
+[[member]]
+role = "scout"
+position = [-1.8, 0.0]
+clip = "idle"
+note = "Späher (Kar98k, Stielhandgranate 24)"
+
+[[member]]
+role = "scout"
+position = [0.6, -1.0]
+clip = "aim_kneel"
+note = "Späher, rear guard (Kar98k, Stielhandgranate 24)"

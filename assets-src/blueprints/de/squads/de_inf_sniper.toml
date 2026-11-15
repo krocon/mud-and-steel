@@ -1,0 +1,16 @@
+# Scharfschützentrupp, 2 men; composition from the catalog entry
+# (data/catalog/de.toml): sniper (Kar98k with ZF 39) and observer (Kar98k).
+# Role choice: observer is `scout` (Kar98k, binoculars), as the prompt suggests.
+unit = "de_inf_sniper"
+
+[[member]]
+role = "sniper"
+position = [0.0, 0.6]
+clip = "aim_prone"
+note = "Scharfschütze (Kar98k mit ZF 39)"
+
+[[member]]
+role = "scout"
+position = [1.0, 0.0]
+clip = "prone"
+note = "Beobachter (Kar98k, binoculars)"

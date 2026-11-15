@@ -1,0 +1,62 @@
+# Pioniergruppe (1944), 9 men; composition from the catalog entry
+# (data/catalog/de.toml): leader (MP 40), MG team (MG 42 + P 38, assistant P 38),
+# six men with Kar98k, four demolition charges.
+# Role choice: like the rifle squad (squad_leader, mg_gunner, mg_assistant,
+# ammo_bearer as Schütze 3); the four charges go to four `engineer` men (Kar98k,
+# demolition charge, wire cutters); the sixth Kar98k is a `rifleman`.
+# Formation: wedge, engineers forward right, MG team covering on the left.
+unit = "de_inf_engineer"
+
+[[member]]
+role = "squad_leader"
+position = [0.0, 2.2]
+clip = "kneel"
+note = "Gruppenführer (MP 40)"
+
+[[member]]
+role = "mg_gunner"
+position = [-1.8, 1.2]
+clip = "aim_prone"
+note = "MG-Schütze 1 (MG 42, P 38)"
+
+[[member]]
+role = "mg_assistant"
+position = [-2.8, 0.2]
+clip = "prone"
+note = "MG-Schütze 2 (P 38)"
+
+[[member]]
+role = "ammo_bearer"
+position = [-3.0, -1.2]
+clip = "idle"
+note = "Schütze 3, ammunition bearer (Kar98k)"
+
+[[member]]
+role = "engineer"
+position = [1.4, 1.4]
+clip = "kneel"
+note = "Pionier (Kar98k, Geballte Ladung)"
+
+[[member]]
+role = "engineer"
+position = [2.6, 0.4]
+clip = "idle"
+note = "Pionier (Kar98k, 3 kg Sprengbüchse 24)"
+
+[[member]]
+role = "engineer"
+position = [1.2, -0.4]
+clip = "aim_kneel"
+note = "Pionier (Kar98k, 3 kg Sprengbüchse 24)"
+
+[[member]]
+role = "engineer"
+position = [-0.6, -1.0]
+clip = "idle"
+note = "Pionier (Kar98k, Geballte Ladung)"
+
+[[member]]
+role = "rifleman"
+position = [0.8, -2.0]
+clip = "aim_stand"
+note = "Schütze (Kar98k)"

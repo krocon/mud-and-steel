@@ -1,0 +1,182 @@
+# Heinkel He 111 H-16: twin-engine medium bomber, fully glazed nose,
+# elliptical-planform wing, two Jumo 211F nacelles, ventral gondola ("Bola"),
+# eight SC 250 in vertical ESAC cells (internal: sockets in the bomb bay only).
+# Defensive guns per catalog: MG 131 in the nose and the dorsal position,
+# MG 81Z twin guns in both beam windows and at the rear of the gondola.
+# Main dimensions from data/catalog/de.toml (length 16.4 m, span 22.6 m,
+# height 4.0 m). Modeling estimates from He 111 H three-views: wing area
+# 87.6 m2 -> root/tip chord 5.0/2.0 m with a swept leading edge, nacelle
+# axes ~2.9 m off the center line, three-blade VDM propellers 3.5 m, main
+# wheels 1140x410 mm retracting into the nacelles, tailplane span ~7.8 m.
+# The trapezoidal kit wing stands in for the elliptical planform. Attitude
+# nearly level (fin top = catalog height), propellers excluded from the height.
+unit = "de_he111_h16"
+assembly = "aircraft"
+
+[layout]
+cg_chord = 0.3
+
+[fuselage]
+part = "fuselage"
+# [y, width, height, z_center, exponent], tail -> nose; y = 0 at the wing root leading edge
+sections = [[-11.20, 0.05, 0.15, 2.05, 2.0], [-10.00, 0.45, 0.70, 2.06, 2.2], [-6.00, 1.20, 1.60, 2.15, 2.4],
+            [-2.00, 1.65, 2.00, 2.25, 2.4], [1.50, 1.70, 2.05, 2.30, 2.4], [2.60, 1.66, 1.98, 2.30, 2.3],
+            [3.40, 1.60, 1.90, 2.30, 2.2],
+            [4.60, 1.20, 1.40, 2.30, 2.0], [5.15, 0.30, 0.35, 2.35, 2.0]]
+segments = 14
+glass_from_y = 2.60
+
+[wing]
+part = "wing"
+y = 0.0
+z = 1.55
+root_chord = 5.00
+tip_chord = 2.00
+sweep_deg = 7.0
+dihedral_deg = 5.0
+thickness = 0.16
+aileron = [0.55, 0.92]
+
+[tail]
+part = "tail"
+y = -8.90
+z = 2.15
+span = 7.80
+root_chord = 2.20
+tip_chord = 1.30
+fin_height = 1.85
+fin_root_chord = 2.00
+fin_tip_chord = 1.10
+fin_sweep_deg = 15
+
+[canopy]
+part = "canopy"                # dorsal gun position (B-Stand) fairing
+y = [-2.70, -1.30]
+z = 3.15
+width = 0.80
+height = 0.35
+
+[landing_gear]
+part = "landing_gear"
+main_y = 0.20
+main_track = 5.80
+main_wheel_diameter = 1.14
+strut_top_z = 1.15
+tail_y = -10.00
+tail_wheel_diameter = 0.60
+tail_strut_top_z = 1.70
+
+[[propeller]]
+part = "propeller"
+name = "Propeller_L"
+position = [-2.90, 2.60, 1.85]
+diameter = 3.50
+blades = 3
+
+[[propeller]]
+part = "propeller"
+name = "Propeller_R"
+position = [2.90, 2.60, 1.85]
+diameter = 3.50
+blades = 3
+
+[[part]]
+part = "nacelle"               # Jumo 211F, adds the exhaust sockets
+x = 2.90
+y = [-2.50, 2.40]
+z = 1.85
+diameter = 1.25
+
+[[part]]
+part = "box_prop"              # ventral gondola (Bola)
+center = [0.0, 1.90, 1.18]
+size = [0.90, 2.60, 0.40]
+bevel = 0.08
+
+[[part]]
+part = "bomb_bay"              # 8 x SC 250 in vertical ESAC cells (count from the catalog)
+y = [-3.00, -0.40]
+width = 1.00
+z = 1.29
+
+[[part]]
+part = "flex_mg"               # MG 131, nose (A-Stand)
+position = [0.0, 4.85, 2.20]
+direction = [0.0, 1.0, -0.05]
+length = 0.50
+
+[[part]]
+part = "flex_mg"               # MG 131, dorsal (B-Stand)
+position = [0.0, -2.00, 3.35]
+direction = [0.0, -1.0, 0.25]
+length = 0.90
+
+[[part]]
+part = "flex_mg"               # MG 81Z, rear of the gondola (C-Stand)
+position = [0.0, 0.65, 1.15]
+direction = [0.0, -1.0, -0.12]
+length = 0.80
+twin = true
+
+[[part]]
+part = "flex_mg"               # MG 81Z, left beam window
+position = [-0.70, -4.20, 2.35]
+direction = [-1.0, -0.3, 0.1]
+length = 0.70
+twin = true
+
+[[part]]
+part = "flex_mg"               # MG 81Z, right beam window
+position = [0.70, -4.20, 2.35]
+direction = [1.0, -0.3, 0.1]
+length = 0.70
+twin = true
+
+[[part]]
+part = "socket"                # tracer origin for gallery and game: tip of the nose MG 131
+name = "Socket_Muzzle"
+position = [0.0, 5.35, 2.175]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [-2.90, 0.5, 2.2]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [2.90, 0.5, 2.2]
+
+[[part]]
+part = "marking"
+name = "Wing_L"
+position = [-8.3, -1.9, 2.25]
+normal = [0.0, 0.0, 1.0]
+size = 1.6
+
+[[part]]
+part = "marking"
+name = "Wing_R"
+position = [8.3, -1.9, 2.25]
+normal = [0.0, 0.0, 1.0]
+size = 1.6
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-0.70, -6.6, 2.15]
+normal = [-1.0, 0.0, 0.0]
+size = 1.1
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [0.70, -6.6, 2.15]
+normal = [1.0, 0.0, 0.0]
+size = 1.1
+
+[[part]]
+part = "shadow_proxy"
+
+[validate]
+exclude_height = ["Propeller_*"]

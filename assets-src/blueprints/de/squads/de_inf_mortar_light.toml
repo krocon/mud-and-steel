@@ -1,0 +1,26 @@
+# le. Granatwerfer-Trupp (5 cm leGrW 36), 3 men; composition from the catalog
+# entry (data/catalog/de.toml): gunner and assistant (P 38), ammunition bearer
+# (Kar98k). Personal weapons of the crew are a catalog assumption.
+# Role choice: gunner `mortar_gunner` (leGrW 36, holster); the pistol-armed
+# assistant is `ammo_carrier` (no long arm, ammunition case); the bearer with the
+# Kar98k is a `rifleman` (the `ammo_bearer` role carries MG ammunition boxes,
+# which would be wrong for a mortar).
+unit = "de_inf_mortar_light"
+
+[[member]]
+role = "mortar_gunner"
+position = [0.0, 0.8]
+clip = "mortar_operate"
+note = "Richtschütze (5 cm leGrW 36, P 38)"
+
+[[member]]
+role = "ammo_carrier"
+position = [1.0, 0.2]
+clip = "kneel"
+note = "Ladeschütze (P 38, ammunition case)"
+
+[[member]]
+role = "rifleman"
+position = [-0.4, -1.2]
+clip = "aim_kneel"
+note = "Munitionsschütze (Kar98k)"

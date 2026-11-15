@@ -1,0 +1,136 @@
+# Fieseler Fi 156 C-2 Storch: STOL liaison/observation aircraft, strut-braced
+# high wing, wide glazed cabin, long-stroke fixed main gear, Argus As 10
+# inverted V8 with a two-blade propeller, MG 15 in the rear cabin (C-2).
+# Main dimensions from data/catalog/de.toml (length 9.91 m, span 14.25 m,
+# height 3.05 m). Modeling estimates from Fi 156 C three-views: wing area
+# 26 m2 -> chord 1.9/1.55 m (nearly rectangular), propeller 2.6 m, main
+# wheel track ~2.9 m, low-pressure main wheels ~0.65 m, tailplane ~4.0 m.
+# Attitude nearly level (the real aircraft sits steeply tail-down); the fin
+# top gives the catalog height. Built like the us_l4 example (fixed gear,
+# wing_struts) with extra V-struts for the main gear legs.
+unit = "de_fi156"
+assembly = "aircraft"
+
+[layout]
+cg_chord = 0.3
+
+[fuselage]
+part = "fuselage"
+# [y, width, height, z_center, exponent], tail -> nose; y = 0 at the wing root leading edge
+sections = [[-7.46, 0.04, 0.12, 1.60, 2.0], [-6.50, 0.25, 0.40, 1.62, 2.5], [-3.50, 0.55, 0.75, 1.75, 2.8],
+            [-1.40, 0.95, 0.90, 1.50, 3.0], [0.60, 1.00, 0.90, 1.50, 3.0], [1.40, 0.85, 1.00, 1.70, 2.8],
+            [2.20, 0.60, 0.70, 1.78, 2.4]]
+
+[wing]
+part = "wing"
+y = 0.0
+z = 2.65
+root_chord = 1.90
+tip_chord = 1.55
+dihedral_deg = 1.5
+thickness = 0.13
+aileron = [0.45, 0.97]
+
+[tail]
+part = "tail"
+y = -6.31
+z = 1.65
+span = 4.00
+root_chord = 1.00
+tip_chord = 0.75
+fin_height = 1.40
+fin_root_chord = 1.00
+fin_tip_chord = 0.60
+fin_sweep_deg = 10
+
+[canopy]
+part = "canopy"                # wide glazed cabin under the wing
+y = [-1.40, 0.90]
+z = 1.95
+width = 1.15
+height = 0.70
+
+[landing_gear]
+part = "landing_gear"
+fixed = true
+main_y = 0.50
+main_track = 2.90
+main_wheel_diameter = 0.65
+strut_top_z = 1.00
+tail_y = -6.60
+tail_wheel_diameter = 0.25
+tail_strut_top_z = 1.42
+
+[[propeller]]
+part = "propeller"
+position = [0.0, 2.20, 1.78]
+diameter = 2.60
+blades = 2
+
+[[part]]
+part = "wing_struts"           # wing lift struts (front and rear)
+struts = [[[0.45, 0.30, 1.40], [3.00, -0.30, 2.68]], [[0.45, -0.60, 1.40], [3.00, -1.40, 2.68]]]
+chord = 0.08
+
+[[part]]
+part = "wing_struts"           # main gear V-struts to the fuselage
+struts = [[[1.45, 0.50, 1.00], [0.48, 0.70, 1.55]], [[1.45, 0.50, 1.00], [0.48, -0.20, 1.35]]]
+chord = 0.07
+thickness = 0.04
+
+[[part]]
+part = "flex_mg"               # MG 15 in the rear cabin
+position = [0.0, -1.30, 2.35]
+direction = [0.0, -1.0, 0.10]
+length = 0.80
+
+[[part]]
+part = "socket"                # tracer origin for gallery and game: tip of the MG 15
+name = "Socket_Muzzle"
+position = [0.0, -2.096, 2.430]
+
+[[part]]
+part = "socket"
+name = "Socket_Exhaust_"
+position = [0.35, 1.50, 1.60]
+
+[[part]]
+part = "socket"
+name = "Socket_Exhaust_"
+position = [-0.35, 1.50, 1.60]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 1.2, 2.0]
+
+[[part]]
+part = "marking"
+name = "Wing_L"
+position = [-5.0, -0.8, 2.85]
+normal = [0.0, 0.0, 1.0]
+size = 1.0
+
+[[part]]
+part = "marking"
+name = "Wing_R"
+position = [5.0, -0.8, 2.85]
+normal = [0.0, 0.0, 1.0]
+size = 1.0
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-0.30, -4.2, 1.70]
+normal = [-1.0, 0.0, 0.0]
+size = 0.55
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [0.30, -4.2, 1.70]
+normal = [1.0, 0.0, 0.0]
+size = 0.55
+
+[[part]]
+part = "shadow_proxy"

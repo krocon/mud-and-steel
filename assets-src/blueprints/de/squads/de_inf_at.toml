@@ -1,0 +1,18 @@
+# Panzerschreck-Trupp, 2 men; composition from the catalog entry
+# (data/catalog/de.toml): gunner (RPzB 54, P 38) and loader (Kar98k, rockets,
+# Panzerfaust 60).
+# Role choice: `at_gunner` and `at_assistant` (rocket pack, Panzerfaust).
+# The loader kneels behind and to the side, outside the back-blast cone.
+unit = "de_inf_at"
+
+[[member]]
+role = "at_gunner"
+position = [0.0, 0.6]
+clip = "aim_kneel"
+note = "Richtschütze (8.8 cm RPzB 54, P 38)"
+
+[[member]]
+role = "at_assistant"
+position = [1.2, -0.2]
+clip = "kneel"
+note = "Ladeschütze (Kar98k, rockets, Panzerfaust 60)"

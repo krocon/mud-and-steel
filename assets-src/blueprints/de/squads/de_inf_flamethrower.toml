@@ -1,0 +1,16 @@
+# Flammenwerfer-Trupp (FmW 41), 2 men; composition from the catalog entry
+# (data/catalog/de.toml): operator (FmW 41, P 38) and assistant (Kar98k).
+# Role choice: `flamethrower`; the assistant is a normal `rifleman` (prompt 008).
+unit = "de_inf_flamethrower"
+
+[[member]]
+role = "flamethrower"
+position = [0.0, 0.8]
+clip = "aim_stand"
+note = "Flammenwerferführer (Flammenwerfer 41, P 38)"
+
+[[member]]
+role = "rifleman"
+position = [1.1, -0.2]
+clip = "aim_kneel"
+note = "Schütze, cover (Kar98k)"

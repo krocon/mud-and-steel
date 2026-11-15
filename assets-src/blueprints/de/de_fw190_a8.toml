@@ -1,0 +1,140 @@
+# Focke-Wulf Fw 190 A-8: single-seat fighter, BMW 801 radial, wide-track
+# retractable gear, 2 MG 131 over the engine, 4 MG 151/20 in the wings,
+# optional SC 500 on the ETC 501 centerline rack.
+# Main dimensions from data/catalog/de.toml (length 8.95 m, span 10.506 m,
+# height 3.15 m). Modeling estimates from Fw 190 A three-views (wing area
+# 18.3 m2 per Wikipedia -> mean chord 1.74 m; root/tip chord 2.3/1.2 m),
+# cowling diameter ~1.3 m, VDM three-blade propeller 3.3 m, main wheels
+# 700x175 mm, track ~3.5 m, SC 500 2.0 x 0.40 m.
+# Attitude: the kit builds the wing level; the fuselage is tilted ~4 degrees
+# nose up (shallower than the real ~13 degree three-point attitude) so the fin
+# top ends at the catalog height. The catalog height excludes the propeller
+# (published heights are tail-down to the fin top), hence exclude_height.
+unit = "de_fw190_a8"
+assembly = "aircraft"
+
+[layout]
+cg_chord = 0.3
+
+[fuselage]
+part = "fuselage"
+# [y, width, height, z_center, exponent], tail -> nose; y = 0 at the wing root leading edge
+sections = [[-6.20, 0.04, 0.12, 1.50, 2.0], [-5.20, 0.32, 0.55, 1.52, 2.2], [-3.50, 0.62, 0.95, 1.60, 2.4],
+            [-1.80, 0.88, 1.20, 1.69, 2.4], [-0.20, 1.00, 1.30, 1.78, 2.5], [1.00, 1.20, 1.30, 1.88, 2.3],
+            [2.20, 1.30, 1.30, 1.98, 2.1], [2.55, 1.08, 1.08, 2.00, 2.0]]
+segments = 14
+
+[wing]
+part = "wing"
+y = 0.0
+z = 1.15
+root_chord = 2.30
+tip_chord = 1.20
+sweep_deg = 5.0
+dihedral_deg = 5.5
+thickness = 0.15
+aileron = [0.58, 0.95]
+
+[tail]
+part = "tail"
+y = -4.80
+z = 1.50
+span = 3.65
+root_chord = 1.00
+tip_chord = 0.60
+fin_height = 1.65
+fin_root_chord = 1.00
+fin_tip_chord = 0.55
+fin_sweep_deg = 22
+
+[canopy]
+part = "canopy"
+y = [-2.00, -0.45]
+z = 2.20
+width = 0.64
+height = 0.46
+bubble = true
+
+[landing_gear]
+part = "landing_gear"
+main_y = 0.35
+main_track = 3.50
+main_wheel_diameter = 0.70
+strut_top_z = 1.15
+tail_y = -4.90
+tail_wheel_diameter = 0.38
+tail_strut_top_z = 1.22
+
+[[propeller]]
+part = "propeller"
+position = [0.0, 2.55, 2.00]
+diameter = 3.30
+blades = 3
+
+[[part]]
+part = "fixed_guns"            # MG 151/20 E: wing roots (inner) and outer wing
+muzzles = [[0.95, 0.20, 1.22], [2.40, 0.06, 1.40]]
+length = 0.45
+radius = 0.02
+
+[[part]]
+part = "fixed_guns"            # MG 131 over the engine, firing through the propeller arc
+muzzles = [[0.16, 1.95, 2.56]]
+length = 0.55
+radius = 0.014
+
+[[part]]
+part = "bomb_load"             # SC 500 on the ETC 501 centerline rack
+bombs = [[0.0, -0.30, 0.74]]
+mirror = false
+length = 2.0
+diameter = 0.40
+
+[[part]]
+part = "socket"
+name = "Socket_Exhaust_"
+position = [0.60, 1.30, 1.70]
+
+[[part]]
+part = "socket"
+name = "Socket_Exhaust_"
+position = [-0.60, 1.30, 1.70]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 1.6, 2.2]
+
+[[part]]
+part = "marking"
+name = "Wing_L"
+position = [-3.8, -0.9, 1.65]
+normal = [0.0, 0.0, 1.0]
+size = 1.0
+
+[[part]]
+part = "marking"
+name = "Wing_R"
+position = [3.8, -0.9, 1.65]
+normal = [0.0, 0.0, 1.0]
+size = 1.0
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-0.30, -3.2, 1.62]
+normal = [-1.0, 0.0, 0.0]
+size = 0.8
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [0.30, -3.2, 1.62]
+normal = [1.0, 0.0, 0.0]
+size = 0.8
+
+[[part]]
+part = "shadow_proxy"
+
+[validate]
+exclude_height = ["Propeller"]

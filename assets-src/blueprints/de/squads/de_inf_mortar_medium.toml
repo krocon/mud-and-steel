@@ -1,0 +1,45 @@
+# Granatwerfer-Trupp (8 cm s.GrW 34), 6 men; composition from the catalog entry
+# (data/catalog/de.toml): leader (MP 40), gunner and assistant (P 38), three
+# ammunition bearers (Kar98k).
+# Role choice: leader `squad_leader` (MP 40, binoculars); gunner
+# `mortar_gunner_medium` (s.GrW 34, holster); the pistol-armed assistant is
+# `ammo_carrier`; the bearers are `rifleman` (no mortar-ammunition bearer role
+# exists; `ammo_bearer` carries MG boxes).
+# Formation: mortar in a pit-like cluster, leader forward observing, bearers behind.
+unit = "de_inf_mortar_medium"
+
+[[member]]
+role = "mortar_gunner_medium"
+position = [0.0, 0.6]
+clip = "mortar_operate"
+note = "Richtschütze (8 cm s.GrW 34, P 38)"
+
+[[member]]
+role = "ammo_carrier"
+position = [1.1, 0.4]
+clip = "kneel"
+note = "Ladeschütze (P 38, ammunition case)"
+
+[[member]]
+role = "squad_leader"
+position = [-0.4, 2.4]
+clip = "kneel"
+note = "Werferführer (MP 40)"
+
+[[member]]
+role = "rifleman"
+position = [-1.4, -0.6]
+clip = "kneel"
+note = "Munitionsschütze 1 (Kar98k)"
+
+[[member]]
+role = "rifleman"
+position = [0.0, -1.4]
+clip = "idle"
+note = "Munitionsschütze 2 (Kar98k)"
+
+[[member]]
+role = "rifleman"
+position = [1.4, -1.0]
+clip = "aim_kneel"
+note = "Munitionsschütze 3 (Kar98k)"
