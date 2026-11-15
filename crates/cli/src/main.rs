@@ -65,6 +65,13 @@ enum CliCommand {
         /// Map folder, e.g. data/maps/test_large.
         dir: PathBuf,
     },
+    /// Validates a map folder like the map editor: loading, start
+    /// positions, room for the units, paths between the starts (exit code 1
+    /// on errors).
+    MapCheck {
+        /// Map folder, e.g. data/maps/test_small.
+        dir: PathBuf,
+    },
     /// Benchmarks pathfinding: many units with simultaneous path requests.
     PathBench {
         /// Map folder, e.g. data/maps/test_large.
@@ -184,6 +191,7 @@ fn exit_with(result: Result<i32, String>) -> ! {
 
 fn main() {
     match Cli::parse().command {
+        CliCommand::MapCheck { dir } => exit_with(map_check(&dir)),
         CliCommand::LanHost {
             name,
             port,
@@ -374,6 +382,30 @@ fn find_map(name: &str) -> Arc<sim::Map> {
         return sim::scenario::builtin_map();
     }
     fail(&format!("map '{name}' not found in {MAPS_DIR}/"))
+}
+
+/// Prints the editor's validation report of a map folder (prompt 028).
+fn map_check(dir: &Path) -> Result<i32, String> {
+    let start = std::time::Instant::now();
+    let report = editor::validate::validate_files(&editor::MapFiles::read_dir(dir)?);
+    for error in &report.errors {
+        println!("error: {error}");
+    }
+    for warning in &report.warnings {
+        println!("warning: {warning}");
+    }
+    let hash = report
+        .map_hash
+        .map_or_else(|| "-".to_string(), |h| format!("{h:#018x}"));
+    println!(
+        "{}: {} ({} errors, {} warnings), map hash {hash}, checked in {} ms",
+        dir.display(),
+        if report.ok() { "ok" } else { "NOT PLAYABLE" },
+        report.errors.len(),
+        report.warnings.len(),
+        start.elapsed().as_millis()
+    );
+    Ok(i32::from(!report.ok()))
 }
 
 fn map_info(dir: &Path) {

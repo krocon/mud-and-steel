@@ -182,8 +182,8 @@ fn move_groups_to_starts(groups: &mut [Group], map: &Map) {
         ];
         for group in groups.iter_mut().filter(|g| g.owner == start.player) {
             for axis in 0..2 {
-                group.center_m[axis] = group.center_m[axis]
-                    .saturating_add(target[axis].saturating_sub(anchor[axis]));
+                group.center_m[axis] =
+                    group.center_m[axis].saturating_add(target[axis].saturating_sub(anchor[axis]));
             }
         }
     }
