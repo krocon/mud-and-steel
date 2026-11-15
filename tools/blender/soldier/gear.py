@@ -349,3 +349,33 @@ def build_gear(faction, headgear, items):
     for item in items:
         ITEMS[item](b, faction)
     return b
+
+
+# -- de squad roles (prompt 006) ------------------------------------------------------------
+# Sizes are modeling estimates from photographs; exact dimensions are not in the
+# catalog sources.
+
+
+def mg_ammo_box_de(b, x=0.0, y=-0.205, z=1.20):
+    """Patronenkasten (300-round belt box for MG 34/42), about 0.28 x 0.19 x 0.10 m,
+    carried flat on the back."""
+    b.box((x, y, z), (0.19, 0.10, 0.28), "Paint", CHEST)
+    b.box((x, y, z + 0.15), (0.12, 0.02, 0.02), "Metal", CHEST)  # handle
+
+
+def belt_drum_de(b):
+    """Gurttrommel 34 (50-round belt drum) on the right front of the belt."""
+    b.cylinder((0.07, 0.15, 0.90), (0.145, 0.15, 0.90), 0.055, "Paint", HIPS, sides=10)
+
+
+def barrel_case_de(b):
+    """Laufschützer: spare-barrel case slung diagonally across the back."""
+    p0 = Vector((-0.17, -0.27, 0.98))
+    p1 = Vector((0.16, -0.27, 1.52))
+    b.cylinder(p0, p1, 0.04, "Paint", CHEST, sides=8)
+
+
+ITEMS["mg_ammo_box_de"] = lambda b, f: mg_ammo_box_de(b)
+ITEMS["mg_ammo_boxes_de"] = lambda b, f: (mg_ammo_box_de(b, x=-0.10), mg_ammo_box_de(b, x=0.10))
+ITEMS["belt_drum_de"] = lambda b, f: belt_drum_de(b)
+ITEMS["barrel_case_de"] = lambda b, f: barrel_case_de(b)

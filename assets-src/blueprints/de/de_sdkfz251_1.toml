@@ -1,0 +1,297 @@
+# Sd.Kfz. 251/1 Ausf. D (mittlerer Schützenpanzerwagen). Main dimensions
+# (length 5.80 m, width 2.10 m, height 1.75 m without MG shield) come from
+# data/catalog/de.toml. Everything below is a modeling estimate in meters from
+# published general arrangement drawings and photographs of the Ausf. D:
+# front tires 190-18 (about 0.84 m), front track about 1.6 m, track 280 mm
+# wide, six interleaved road wheel stations per side (Schachtellaufwerk),
+# drive sprocket at the front of the track unit. Ausf. D features: simplified
+# welded body with flat upper side plates, single sloped rear plate with two
+# doors, stowage lockers integrated in the lower side plates, no vision
+# ports in the compartment sides.
+#
+# Model space before the assembly centers the footprint: hull center at y = 0.
+unit = "de_sdkfz251_1"
+assembly = "halftrack"
+
+[layout]
+track_outer_x = 0.90
+
+[running_gear]
+part = "halftrack_rear"
+interleaved = true
+track_width = 0.28
+track_thickness = 0.03
+link_pitch = 0.10
+road_wheel_diameter = 0.56
+road_wheels = [0.12, -0.34, -0.80, -1.26, -1.72, -2.18]
+sprocket = { y = 0.62, z = 0.50, diameter = 0.56, teeth = 18 }
+idler = { y = -2.58, z = 0.48, diameter = 0.50, spoked = false }
+
+[front_axle]
+part = "wheel_axle"
+y = 1.95
+diameter = 0.84
+width = 0.19
+track = 1.60
+spokes = 0
+
+[hull]
+part = "section_hull"
+# Front to rear: radiator nose, engine hood, driver's cab with sloped front
+# plate, open crew and troop compartment, sloped rear plate. Upper side plates
+# lean in (about 16 deg), lower plates flare out over the tracks (stowage).
+sections = [
+  { y =  2.90, bottom_z = 0.66, bottom_hw = 0.36, chine_z = 0.82, chine_hw = 0.40, top_z = 0.95, top_hw = 0.30 },
+  { y =  2.72, bottom_z = 0.52, bottom_hw = 0.44, chine_z = 0.95, chine_hw = 0.50, top_z = 1.22, top_hw = 0.40 },
+  { y =  1.30, bottom_z = 0.48, bottom_hw = 0.50, chine_z = 1.02, chine_hw = 0.60, top_z = 1.45, top_hw = 0.50 },
+  { y =  1.10, bottom_z = 0.82, bottom_hw = 0.60, chine_z = 1.05, chine_hw = 0.95, top_z = 1.50, top_hw = 0.72 },
+  { y =  0.90, bottom_z = 0.82, bottom_hw = 0.60, chine_z = 1.05, chine_hw = 1.04, top_z = 1.75, top_hw = 0.84 },
+  { y = -2.50, bottom_z = 0.82, bottom_hw = 0.60, chine_z = 1.05, chine_hw = 1.04, top_z = 1.75, top_hw = 0.84 },
+  { y = -2.58, bottom_z = 0.82, bottom_hw = 0.60, chine_z = 1.03, chine_hw = 1.02, top_z = 1.72, top_hw = 0.82 },
+  { y = -2.90, bottom_z = 0.55, bottom_hw = 0.55, chine_z = 0.80, chine_hw = 0.95, top_z = 0.86, top_hw = 0.88 },
+]
+open = [0.90, -2.50]
+floor_z = 0.86
+wall = 0.02
+
+[[part]]
+part = "box_prop"      # belly between the tracks under the compartment
+center = [0.0, -0.62, 0.65]
+size = [1.18, 3.84, 0.36]
+
+[[part]]
+part = "fender"        # front mudguards over the steered wheels
+profile = [[2.62, 0.78], [2.46, 0.93], [2.30, 0.99], [1.60, 0.99], [1.36, 0.97], [1.12, 1.02]]
+x = [0.48, "full"]
+
+[[part]]
+part = "box_prop"      # armored radiator louvers on top of the hood
+center = [0.0, 2.15, 1.33]
+size = [0.62, 0.70, 0.04]
+material = "Metal"
+
+[[part]]
+part = "box_prop"      # engine access hatch
+center = [0.0, 1.62, 1.44]
+size = [0.70, 0.45, 0.03]
+
+[[part]]
+part = "de.driver_visor"   # driver
+position = [-0.36, 1.02, 1.60]
+size = [0.36, 0.12]
+
+[[part]]
+part = "de.driver_visor"   # commander
+position = [0.36, 1.02, 1.60]
+size = [0.36, 0.12]
+
+[[part]]
+part = "headlight"
+position = [-0.74, 2.40, 1.08]
+diameter = 0.17
+blackout = true
+
+[[part]]
+part = "headlight"
+position = [0.74, 2.40, 1.08]
+diameter = 0.17
+blackout = true
+
+[[part]]
+part = "de.notek"
+position = [-0.72, 2.05, 0.99]
+
+[[part]]
+part = "exhaust"       # muffler under the left front of the body
+kind = "pipe"
+position = [-0.66, 1.22, 0.60]
+length = 0.45
+diameter = 0.11
+
+[[part]]
+part = "tool"
+kind = "shovel"
+position = [0.80, 1.85, 1.00]
+
+# two rear doors in the sloped rear plate (plane through the top edges of the
+# last two sections: (0.82, -2.58, 1.72) and (0.88, -2.90, 0.86))
+[[part]]
+part = "plate"
+corners = [[0.03, -2.86, 0.97], [0.40, -2.86, 0.97], [0.39, -2.62, 1.62], [0.03, -2.62, 1.62]]
+mirror = true
+
+[[part]]
+part = "box_prop"      # door handles
+center = [0.0, -2.78, 1.25]
+size = [0.30, 0.04, 0.03]
+material = "Metal"
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -2.82, 0.62]
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 2.82, 0.72]
+socket = false
+
+# compartment interior: driver and commander seats, troop benches along the sides
+[[part]]
+part = "box_prop"
+center = [-0.36, 0.45, 1.02]
+size = [0.42, 0.40, 0.10]
+material = "Canvas"
+
+[[part]]
+part = "box_prop"
+center = [0.36, 0.45, 1.02]
+size = [0.42, 0.40, 0.10]
+material = "Canvas"
+
+[[part]]
+part = "cylinder_prop"   # steering wheel
+from = [-0.36, 0.86, 1.30]
+to = [-0.36, 0.84, 1.32]
+radius = 0.20
+material = "Metal"
+
+[[part]]
+part = "box_prop"
+center = [-0.62, -1.05, 1.12]
+size = [0.30, 2.50, 0.08]
+material = "Canvas"
+
+[[part]]
+part = "box_prop"
+center = [0.62, -1.05, 1.12]
+size = [0.30, 2.50, 0.08]
+material = "Canvas"
+
+[[part]]
+part = "box_prop"        # rifle rack / stowage between the benches at the front
+center = [0.0, -0.05, 1.10]
+size = [0.40, 0.25, 0.48]
+material = "Wood"
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_01"   # driver
+position = [-0.36, 0.45, 1.07]
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_02"   # commander
+position = [0.36, 0.45, 1.07]
+
+[[part]]
+part = "socket"
+name = "Socket_Passenger_01"
+position = [-0.62, 0.05, 1.16]
+
+[[part]]
+part = "socket"
+name = "Socket_Passenger_02"
+position = [-0.62, -0.50, 1.16]
+
+[[part]]
+part = "socket"
+name = "Socket_Passenger_03"
+position = [-0.62, -1.05, 1.16]
+
+[[part]]
+part = "socket"
+name = "Socket_Passenger_04"
+position = [-0.62, -1.60, 1.16]
+
+[[part]]
+part = "socket"
+name = "Socket_Passenger_05"
+position = [-0.62, -2.15, 1.16]
+
+[[part]]
+part = "socket"
+name = "Socket_Passenger_06"
+position = [0.62, 0.05, 1.16]
+
+[[part]]
+part = "socket"
+name = "Socket_Passenger_07"
+position = [0.62, -0.50, 1.16]
+
+[[part]]
+part = "socket"
+name = "Socket_Passenger_08"
+position = [0.62, -1.05, 1.16]
+
+[[part]]
+part = "socket"
+name = "Socket_Passenger_09"
+position = [0.62, -1.60, 1.16]
+
+[[part]]
+part = "socket"
+name = "Socket_Passenger_10"
+position = [0.62, -2.15, 1.16]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"     # engine
+position = [0.0, 1.90, 1.40]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"     # compartment
+position = [0.0, -1.0, 1.0]
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-0.95, -1.15, 1.36]
+normal = [-0.96, 0, 0.28]
+size = 0.45
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [0.95, -1.15, 1.36]
+normal = [0.96, 0, 0.28]
+size = 0.45
+
+[[part]]
+part = "marking"
+name = "Hull_Rear"
+position = [0.42, -2.74, 1.30]
+normal = [0, -0.94, 0.35]
+size = 0.32
+
+[[part]]
+part = "marking"
+name = "Number_L"
+kind = "number"
+position = [-0.95, 0.35, 1.36]
+normal = [-0.96, 0, 0.28]
+size = 0.32
+
+[[part]]
+part = "marking"
+name = "Number_R"
+kind = "number"
+position = [0.95, 0.35, 1.36]
+normal = [0.96, 0, 0.28]
+size = 0.32
+
+[[mg]]   # forward MG 42 with shield on the front of the compartment
+part = "pintle_mg"
+position = [0.0, 0.86, 1.92]
+primary = true
+post = 0.15
+shield = { width = 0.56, height = 0.42, y = 0.16, slope_deg = 12 }
+
+[[mg]]   # rear MG 42 on the anti-aircraft mount at the back of the compartment
+part = "pintle_mg"
+position = [0.0, -2.54, 1.95]
+post = 0.20
+
+[validate]
+# Catalog height 1.75 m is without the MG shield; MGs on their mounts are not counted.
+exclude_height = ["MG_*"]

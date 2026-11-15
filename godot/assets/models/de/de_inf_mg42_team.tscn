@@ -1,0 +1,17 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="PackedScene" uid="uid://dw8m1sgb55qcl" path="res://assets/models/de/infantry/ammo_bearer.glb" id="1_ammo_bearer"]
+[ext_resource type="PackedScene" uid="uid://c33yoa3dnq10q" path="res://assets/models/de/infantry/mg_assistant.glb" id="2_mg_assistant"]
+[ext_resource type="PackedScene" uid="uid://cu1e5xcags30a" path="res://assets/models/de/infantry/mg_gunner.glb" id="3_mg_gunner"]
+
+[node name="de_inf_mg42_team" type="Node3D"]
+metadata/extras = {"cat_id": "de_inf_mg42_team", "cat_faction": "de", "cat_category": "inf_lmg", "cat_name_de": "le. MG-Trupp (MG 42)", "cat_name_en": "Light MG team (MG 42)", "cat_designation": "le. MG 42 Trupp", "cat_year_from": 1943, "cat_year_to": 1945, "cat_speed_road_kmh_x10": 50, "cat_speed_offroad_kmh_x10": 40, "cat_weapons": "MG 42; 2× P 38; Kar98k", "cat_squad_size": 3, "squad": true, "squad_roles": ["mg_gunner", "mg_assistant", "ammo_bearer"], "squad_notes": ["MG-Schütze 1 (MG 42, P 38)", "MG-Schütze 2 (P 38)", "Schütze 3, ammunition bearer (Kar98k)"], "squad_clips": ["aim_prone", "prone", "aim_kneel"], "squad_file": "assets-src/blueprints/de/squads/de_inf_mg42_team.toml", "source_hash": "4c83ffdcbf138b9b"}
+
+[node name="Member_01" parent="." instance=ExtResource("3_mg_gunner")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1)
+
+[node name="Member_02" parent="." instance=ExtResource("2_mg_assistant")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, -0.2)
+
+[node name="Member_03" parent="." instance=ExtResource("1_ammo_bearer")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.8, 0, 1.2)

@@ -116,6 +116,13 @@ Medics carry plain bags and a **plain white armband (`Insignia`), no Red Cross**
 | `radio_operator` | Kar98k + radio | PPSh-41 + RB-M | M1 Garand + SCR-300 |
 | `flamethrower` | Flammenwerfer 41 | ROKS-3 | M2-2 |
 
+Squad roles added in prompt 006 (faction-specific, `loadouts.py` end of file):
+
+| Role | de |
+|---|---|
+| `mg_assistant` | MG-Schütze 2: P 38 in the holster (no weapon in the hands, animated like the medic), spare-barrel case, belt drum, one ammunition box |
+| `ammo_bearer` | Schütze 3: Kar98k, two MG ammunition boxes on the back |
+
 Weapons are built from real overall and barrel lengths and calibers
 (`tools/blender/soldier/weapons.py`, sources per weapon, uncertain values marked:
 flamethrower wand lengths and the 50-PM 40 barrel). Each has `grip_r`, `grip_l`,
@@ -182,3 +189,28 @@ Planned for prompts 016/022:
   system spawns it); the flamethrower hose is a stub.
 - Transitions are blends between key poses; clips are readable at RTS distance, not
   motion-capture quality.
+
+## Squads (prompt 006)
+
+Infantry units of the catalog (`us_inf_rifle_squad`, ...) are not new meshes but Godot
+scenes that place the soldiers above in a formation:
+
+```bash
+just squad us us_inf_rifle_squad   # assets-src/blueprints/us/squads/<id>.toml -> godot/assets/models/us/<id>.tscn
+just squads                        # all factions
+just validate-squads               # member count = catalog squad_size, roles built, scene up to date
+```
+
+The squad file lists one `[[member]]` per man: `role` (a role of the table above),
+`position` [x, y] in meters (x right, y forward), optional `heading_deg`, `clip` (the
+gallery's default clip) and `note` (what the man is in the T/O&E). It lives in a
+`squads/` sub-folder, so the vehicle kit tools ignore it. `tools/blender/build_squad.py`
+writes the scene with the catalog values as root meta `extras` (like the kit's glTF
+extras, plus `squad = true`, roles, notes, clips and a source hash), and the catalog
+entry gets `model = "assets/models/<faction>/<id>.tscn"`. The model gallery shows
+squads with SoldierLook colors per biome and plays their clips (key A cycles clips).
+
+Formations in the squad files are compact display formations (about 2.5 m between
+men); combat intervals and movement formations belong to the simulation.
+Members whose real weapon has no soldier yet (carbine, pistol-only assistant gunner)
+use the closest existing role; each squad file names these deviations.
