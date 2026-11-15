@@ -133,6 +133,11 @@ length = 0.70
 twin = true
 
 [[part]]
+part = "socket"                # tracer origin for gallery and game: tip of the nose MG 131
+name = "Socket_Muzzle"
+position = [0.0, 5.35, 2.175]
+
+[[part]]
 part = "socket"
 name = "Socket_Fire_"
 position = [-2.90, 0.5, 2.2]

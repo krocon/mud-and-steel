@@ -85,6 +85,11 @@ direction = [0.0, -1.0, 0.10]
 length = 0.80
 
 [[part]]
+part = "socket"                # tracer origin for gallery and game: tip of the MG 15
+name = "Socket_Muzzle"
+position = [0.0, -2.096, 2.430]
+
+[[part]]
 part = "socket"
 name = "Socket_Exhaust_"
 position = [0.35, 1.50, 1.60]
