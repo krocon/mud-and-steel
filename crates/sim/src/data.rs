@@ -1,6 +1,7 @@
 //! Unit types as the simulation uses them, derived from the catalog.
 
 use crate::catalog::{Catalog, Entry, Group};
+use crate::combat::CombatType;
 use crate::math::Fixed;
 use crate::scale::Scale;
 use serde::{Deserialize, Serialize};
@@ -19,6 +20,8 @@ pub struct UnitType {
     /// Larger of length and width in meters (sizes are 1:1, so this is the
     /// real value). Used for formation spacing.
     pub footprint_m: Fixed,
+    /// Weapons, armor and hit box (prompt 017).
+    pub combat: CombatType,
 }
 
 /// Footprint of entries without dimensions (infantry): one soldier.
@@ -65,6 +68,7 @@ impl UnitType {
             speed_m_per_s: scale.game_speed(entry.category, speed),
             road_speed_m_per_s: scale.game_speed(entry.category, road),
             footprint_m: Fixed::from_num(footprint_mm) / Fixed::from_num(1000),
+            combat: CombatType::from_catalog(entry, scale),
         })
     }
 }

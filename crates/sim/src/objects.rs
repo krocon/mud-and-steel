@@ -86,6 +86,9 @@ pub struct ObjectKind {
     pub variant: String,
     pub blocks: Blocks,
     pub shape: Shape,
+    /// Height from the catalog in meters (projectiles below it hit the
+    /// object, prompt 017). Not part of the map hash.
+    pub height: Fixed,
 }
 
 /// A placed object.
@@ -267,6 +270,8 @@ impl ObjectRules {
                     variant: name.clone(),
                     blocks: o.and_then(|o| o.blocks).unwrap_or(entry.blocks),
                     shape,
+                    height: Fixed::from_num(catalog_entry.height_mm.unwrap_or(0))
+                        / Fixed::from_num(1000),
                 });
             }
         }

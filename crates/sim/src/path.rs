@@ -1267,6 +1267,7 @@ mod tests {
             speed_m_per_s: Fixed::from_num(2),
             road_speed_m_per_s: Fixed::from_num(2),
             footprint_m: Fixed::ONE,
+            combat: crate::combat::CombatType::default(),
         }
     }
 
@@ -1276,6 +1277,7 @@ mod tests {
             speed_m_per_s: Fixed::from_num(4),
             road_speed_m_per_s: Fixed::from_num(10),
             footprint_m: Fixed::from_num(7),
+            combat: crate::combat::CombatType::default(),
         }
     }
 
