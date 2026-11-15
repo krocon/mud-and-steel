@@ -24,6 +24,7 @@ cell_size_mm = 2000          # distance between samples
 samples = [251, 251]         # [x, y] = width and height of both PNGs
 height_base_mm = -6000       # height of PNG value 0
 height_step_mm = 1           # millimeters per PNG step
+biome = "forest"             # forest | desert | winter; presentation only (optional)
 
 [[start]]                    # start positions per player (for scenarios, later menus)
 player = 0
@@ -92,6 +93,17 @@ A map has a content hash (grid, heights, terrain; not the name or `map.toml`
 metadata). `SimConfig::map` is a `MapRef { name, hash }`; `Sim::new(config, map,
 seed)` rejects a map whose hash differs, and the hash is part of the state hash.
 Replays store only the reference, so `just replay` loads `data/maps/<name>/` again.
+
+### Biome
+
+`biome` chooses the look of the map (prompt 015): lighting, haze, ground colors,
+camouflage palettes and environment looks. It is optional (default `forest`, the
+temperate biome); other values than `forest`, `desert` and `winter` fail to load.
+`sim::Map::biome()` keeps it for the bridge (`SimHost.map_biome()`), but it is
+not part of the map hash or the state hash and no game rule reads it, so the same
+height and terrain data can be played in every biome. `cli gen-map --biome <id>`
+writes it; in Godot `-- --biome=<id>` overrides it. Details:
+[ARCHITECTURE.md](ARCHITECTURE.md#lighting-atmosphere-and-biomes-presentation-only).
 
 ## Decisions (prompt 010)
 

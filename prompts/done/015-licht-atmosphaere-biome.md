@@ -68,7 +68,9 @@ Golden-Hash bleibt unverändert.
      der Vordergrund klar bleibt und der obere Bildrand leicht im Dunst liegt; Farbe
      aus dem Himmel (Luftperspektive).
    - **Vignette** als schlichter Vollbild-Shader unter der HUD.
-   - **Tiefenunschärfe** nur in der Nahansicht (unter ~50 m) und nur in „hoch“.
+   - **Tiefenunschärfe** nur in der Nahansicht (unter ~50 m) und nur in „hoch“
+     (umgesetzt, dann verworfen: Streifen am oberen Bildrand, siehe
+     `docs/ARCHITECTURE.md`).
 4. **Terrain je Biom:** `terrain.gdshader` bekommt pro Schicht eine Quelle
    (`layer_source`) und eine Tönung (`layer_tint`) sowie eine Schneedecke
    (flache Flächen, Rauschen) – Wüste: Gras wird trockene Steppe aus Sand-/Erde-Textur,
@@ -78,7 +80,7 @@ Golden-Hash bleibt unverändert.
    Preset statt fest `forest`; Wind global aus dem Preset.
 6. **Qualitätsstufen** `low`, `medium`, `high` (`godot/scenes/world/graphics_quality.gd`):
    Schattenauflösung und Kaskaden, Schatten-Filter, SSAO an/aus und Qualität, SSIL,
-   Glow, Antialiasing (FXAA / TAA / MSAA), Tiefenunschärfe, Schneefall-Partikel.
+   Glow, Antialiasing (FXAA / TAA / MSAA), Schneefall-Partikel.
    Auswahl über `-- --quality=<stufe>` (Standard `high`) und im Debug-Menü (F3).
    Ein Einstellungsmenü folgt in Prompt 027.
 7. **Wetter vorbereiten:** Schneefall als `GPUParticles3D` um den Kamera-Fokus im

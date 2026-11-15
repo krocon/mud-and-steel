@@ -12,7 +12,6 @@ extends Node
 ##   in light haze;
 ## - SSAO radius grows with the distance: contact shadows up close, shading of
 ##   hollows from far away;
-## - depth of field only in the near view (quality high);
 ## - the snowfall volume (winter) is scaled around the camera focus.
 ##
 ## Shadows: the rig sets `directional_shadow_max_distance` from the camera
@@ -36,8 +35,6 @@ const SPLIT_2 := 0.55
 ## SSAO radius in meters: distance * factor, clamped.
 const SSAO_RADIUS_FACTOR := 0.025
 const SSAO_RADIUS_RANGE := Vector2(0.6, 10.0)
-## Depth of field only below this camera distance (meters).
-const DOF_MAX_DISTANCE := 50.0
 ## Environment materials whose wind parameters follow the preset.
 const WIND_MATERIALS: Array[String] = [
 	"res://assets/materials/env/bark.tres",
@@ -61,7 +58,6 @@ var _env: Environment
 var _sun: DirectionalLight3D
 var _rig: Node3D
 var _terrain: Node
-var _attributes: CameraAttributesPractical
 var _vignette: ShaderMaterial
 var _snow_root: Node3D
 var _snow: GPUParticles3D
@@ -74,8 +70,6 @@ func setup(world_env: WorldEnvironment, sun: DirectionalLight3D, camera_rig: Nod
 	_terrain = terrain
 	if "shadow_distance_factor" in _rig:
 		_rig.shadow_distance_factor = SHADOW_DISTANCE_FACTOR
-	_attributes = CameraAttributesPractical.new()
-	_world_env.camera_attributes = _attributes
 
 	var layer := CanvasLayer.new()
 	layer.name = "Vignette"
@@ -243,7 +237,7 @@ func _process(_delta: float) -> void:
 	_follow_camera()
 
 
-## Zoom-dependent values: haze range, SSAO radius, depth of field, snow volume.
+## Zoom-dependent values: haze range, SSAO radius, snow volume.
 func _follow_camera() -> void:
 	if _env == null or _rig == null:
 		return
@@ -251,12 +245,6 @@ func _follow_camera() -> void:
 	_env.fog_depth_begin = d * preset.haze_begin
 	_env.fog_depth_end = d * preset.haze_end
 	_env.ssao_radius = clampf(d * SSAO_RADIUS_FACTOR, SSAO_RADIUS_RANGE.x, SSAO_RADIUS_RANGE.y)
-	var dof := bool(GraphicsQuality.settings(quality).dof) and d < DOF_MAX_DISTANCE
-	_attributes.dof_blur_far_enabled = dof
-	if dof:
-		_attributes.dof_blur_far_distance = d * 1.5
-		_attributes.dof_blur_far_transition = d * 1.5
-		_attributes.dof_blur_amount = 0.06 * (1.0 - smoothstep(25.0, DOF_MAX_DISTANCE, d))
 	if _snow_root:
 		_snow_root.global_position = _rig.focus
 		_snow_root.scale = Vector3.ONE * clampf(d / 60.0, 0.4, 10.0)
