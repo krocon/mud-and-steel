@@ -1,0 +1,12 @@
+# Determinism guard rails for the simulation crate. See docs/DETERMINISM.md.
+disallowed-types = [
+    { path = "std::collections::HashMap", reason = "iteration order is not deterministic; use BTreeMap or a sorted Vec" },
+    { path = "std::collections::HashSet", reason = "iteration order is not deterministic; use BTreeSet or a sorted Vec" },
+    { path = "std::collections::hash_map::DefaultHasher", reason = "output is not guaranteed stable; use crate::hash::StableHasher" },
+    { path = "std::hash::RandomState", reason = "randomly seeded; use crate::hash::StableHasher" },
+    { path = "std::time::Instant", reason = "wall-clock time is not deterministic; use the tick counter" },
+    { path = "std::time::SystemTime", reason = "wall-clock time is not deterministic; use the tick counter" },
+]
+disallowed-methods = [
+    { path = "std::thread::spawn", reason = "thread scheduling is not deterministic" },
+]
