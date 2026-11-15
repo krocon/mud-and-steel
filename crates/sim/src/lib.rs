@@ -9,6 +9,7 @@
 //! - no iteration over hash-based collections,
 //! - no Godot dependency.
 
+pub mod bridges;
 pub mod catalog;
 pub mod combat;
 mod command;
@@ -25,6 +26,7 @@ pub mod scenario;
 mod sim;
 pub mod terrain;
 
+pub use bridges::Bridge;
 pub use catalog::Catalog;
 pub use combat::{
     CombatEvent, CombatRules, CombatType, Face, FireMode, HitKind, ProjectileSnapshot, Vec3,

@@ -43,3 +43,7 @@ wind_strength = 0.15
 wind_direction = Vector2(1, -0.2)
 wind_speed = 0.9
 snowfall = 0.0
+water_shallow = Color(0.24, 0.29, 0.22, 1)
+water_deep = Color(0.05, 0.12, 0.12, 1)
+water_foam = Color(0.9, 0.88, 0.8, 1)
+water_clarity = 2.0

@@ -391,6 +391,30 @@ impl Sim {
         let grid = &mut self.paths.grid;
         let rect = grid.cells_in(a, b);
         let changed = grid.set_obstacle(&self.map, &self.terrain, rect, blocked);
+        self.replan_through(changed);
+    }
+
+    /// Destroys bridge `bridge` (index into [`Map::bridges`]) or restores
+    /// it: without its deck the water below is impassable again. Called by
+    /// game systems (destruction, prompt 020), never by player commands.
+    /// The map is copied on the first change (copy-on-write); units whose
+    /// remaining route touches the deck plan again. Units standing on a
+    /// destroyed deck stay where they are (prompt 020 decides their fate).
+    pub fn set_bridge_intact(&mut self, bridge: usize, intact: bool) {
+        let Some(rect) = self.paths.grid.bridge_cells(bridge) else {
+            return;
+        };
+        if self.map.bridges()[bridge].intact == intact {
+            return;
+        }
+        Arc::make_mut(&mut self.map).set_bridge_intact(bridge, intact);
+        let changed = self.paths.grid.rebuild(&self.map, &self.terrain, rect);
+        self.replan_through(changed);
+    }
+
+    /// After the path grid changed in `changed`: restarts the running search
+    /// and lets every unit whose remaining route touches the area plan again.
+    fn replan_through(&mut self, changed: crate::path::CellRect) {
         // The running search used the old grid.
         self.paths.restart_active();
         for unit in &mut self.units {
@@ -458,8 +482,8 @@ impl Sim {
             let waypoints = if single {
                 Some(path.waypoints[1..].to_vec())
             } else {
-                let class = grid.class_of(unit.unit_type as usize);
-                formation_route(grid, &self.map, class, unit.position, path, offset)
+                let profile = unit.unit_type as usize;
+                formation_route(grid, &self.map, profile, unit.position, path, offset)
             };
             match waypoints {
                 Some(waypoints) => {
@@ -499,8 +523,8 @@ impl Sim {
         let grid = &self.paths.grid;
         let mut blocked = Vec::new();
         for (index, (unit, push)) in self.units.iter_mut().zip(pushes).enumerate() {
-            let class = grid.class_of(unit.unit_type as usize);
-            let keep_clear = |p: Vec2| grid.passable_at(class, p);
+            let profile = unit.unit_type as usize;
+            let keep_clear = |p: Vec2| grid.passable_for(profile, p);
             let from = unit.position;
             if move_unit(unit, push, &self.map, &self.terrain, keep_clear) == Moved::Blocked {
                 blocked.push(index);
@@ -602,7 +626,8 @@ impl Sim {
 
     /// Queues one path for a group (unit indices with their formation slots)
     /// to `target`. It starts at the unit nearest to the group's center and
-    /// uses the profile of the largest unit, so it fits every member.
+    /// uses the profile of the most restrictive unit (size class, then the
+    /// bridges it may not cross, then the largest), so it fits every member.
     fn request_group_path(&mut self, assigned: &[(usize, Vec2)], target: Vec2) {
         let count = Fixed::from_num(assigned.len());
         let center = assigned.iter().fold(Vec2::ZERO, |sum, &(i, _)| {
@@ -619,10 +644,14 @@ impl Sim {
             .map(|&(i, _)| &self.units[i])
             .min_by_key(|u| (distance_bits(u.position), u.id))
             .map_or(target, |u| u.position);
+        let grid = &self.paths.grid;
         let profile = assigned
             .iter()
             .map(|&(i, _)| &self.units[i])
-            .max_by_key(|u| (u.footprint, std::cmp::Reverse(u.id)))
+            .max_by_key(|u| {
+                let restriction = grid.restriction(u.unit_type as usize);
+                (restriction, u.footprint, std::cmp::Reverse(u.id))
+            })
             .map_or(0, |u| u.unit_type as usize);
         let members = assigned
             .iter()
@@ -659,6 +688,7 @@ impl Sim {
         h.write_u64(self.tick);
         h.write_u64(self.rng.state());
         h.write_u64(self.map.hash());
+        self.map.hash_bridge_state(&mut h);
         self.terrain.hash_into(&mut h);
         self.paths.hash_into(&mut h);
         h.write_u64(self.units.len() as u64);
@@ -812,12 +842,12 @@ const SLOT_SEARCH_CELLS: u32 = 4;
 fn formation_route(
     grid: &PathGrid,
     map: &Map,
-    class: crate::path::SizeClass,
+    profile: usize,
     from: Vec2,
     path: &Path,
     offset: Vec2,
 ) -> Option<Vec<Vec2>> {
-    let clear = |a: Vec2, b: Vec2| map.contains(b) && grid.line_of_sight(class, a, b);
+    let clear = |a: Vec2, b: Vec2| map.contains(b) && grid.line_of_sight_for(profile, a, b);
     let points = &path.waypoints[1..];
     let last = points.len() - 1;
     let mut route = Vec::with_capacity(points.len() + 1);
@@ -840,7 +870,7 @@ fn formation_route(
             let spot = if clear(point, shifted) {
                 shifted
             } else {
-                grid.nearest_visible(class, point, shifted, SLOT_SEARCH_CELLS)?
+                grid.nearest_visible(profile, point, shifted, SLOT_SEARCH_CELLS)?
             };
             // Straight to the spot if possible: members that share the
             // group's end point as a waypoint would crowd it.
@@ -962,7 +992,9 @@ enum Moved {
 /// terrain under it and the grade ahead, deflected by `push` (separation;
 /// the step never gets longer than the speed).
 ///
-/// The unit never enters impassable terrain or leaves the map. If neither
+/// The unit never enters impassable terrain, leaves the map, climbs over
+/// the side of a bridge deck ([`Map::deck_step_ok`]) or takes a step
+/// steeper than the grade limit. If neither
 /// the pushed nor the direct step is possible, it slides along the obstacle
 /// (only the x or only the y part of the step); if that fails too, it
 /// reports [`Moved::Blocked`]. Pushed and sliding steps must also stay on
@@ -987,8 +1019,16 @@ fn move_unit(
         let Some(speed) = ground_speed(unit, direction, map, rules) else {
             return Moved::Blocked;
         };
-        let valid =
-            |p: Vec2| map.contains(p) && rules.types[usize::from(map.terrain_at(p))].passable;
+        let (from, from_height) = (unit.position, unit.height);
+        let max_grade = Fixed::from_num(rules.slope.max_grade_pct) / 100;
+        // No step steeper than the grade limit, up or down: separation must
+        // not push a unit onto a cliff (an abutment, a steep bank).
+        let valid = |p: Vec2| {
+            map.contains(p)
+                && rules.types[usize::from(map.terrain_at(p))].passable
+                && map.deck_step_ok(from, p)
+                && (map.height_at(p) - from_height).abs() <= (p - from).length() * max_grade
+        };
         let off_grid = !clear(unit.position);
         let detour_ok = |p: Vec2| off_grid || clear(p);
         let candidates = if (waypoint - unit.position).length() <= speed {
@@ -1106,6 +1146,7 @@ mod tests {
             speed_m_per_s: Fixed::from_num(4),
             road_speed_m_per_s: Fixed::from_num(10),
             footprint_m: Fixed::from_num(6),
+            mass_kg: 0,
             combat: crate::combat::CombatType::default(),
         }
     }
@@ -1610,6 +1651,7 @@ mod object_tests {
             speed_m_per_s: Fixed::from_num(4),
             road_speed_m_per_s: Fixed::from_num(10),
             footprint_m: Fixed::from_num(footprint_m),
+            mass_kg: 0,
             combat: crate::combat::CombatType::default(),
         }
     }

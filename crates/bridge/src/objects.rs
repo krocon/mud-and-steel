@@ -135,8 +135,15 @@ pub fn groups(map: &Map, chunk_m: f32) -> Vec<Group> {
                 .unwrap_or(0.0)
         })
         .collect();
+    // Bridges stand at the deck height in their middle; the renderer lowers
+    // each model by its own deck height (glTF extra `deck_height_m`).
+    let decks: BTreeMap<u32, f32> = map
+        .bridges()
+        .iter()
+        .map(|b| (b.object, f(b.height_at(b.center))))
+        .collect();
     let mut groups: BTreeMap<(u16, i32, i32), Vec<f32>> = BTreeMap::new();
-    for object in map.objects() {
+    for (index, object) in (0u32..).zip(map.objects()) {
         let kind = &kinds[usize::from(object.kind)];
         let (x, z) = (f(object.position.x), f(object.position.y));
         let chunk = (
@@ -146,7 +153,9 @@ pub fn groups(map: &Map, chunk_m: f32) -> Vec<Group> {
         let h = mix(object.position.x.to_bits().cast_unsigned()
             ^ mix(object.position.y.to_bits().cast_unsigned()));
         let scale = 1.0 + jitter[usize::from(object.kind)] * (unit(h) * 2.0 - 1.0);
-        let y = object_height(map, object, kind.shape, kind.id.starts_with("env_tree_"));
+        let y = decks.get(&index).copied().unwrap_or_else(|| {
+            object_height(map, object, kind.shape, kind.id.starts_with("env_tree_"))
+        });
         let yaw = -f32::from(object.heading_deg).to_radians();
         let buffer = groups.entry((object.kind, chunk.0, chunk.1)).or_default();
         push_transform(buffer, yaw, scale, [x, y, z]);
@@ -300,6 +309,9 @@ pub struct DecoLayer<'a> {
     pub scale: (f32, f32),
     /// Sink into the ground (m).
     pub sink: f32,
+    /// Signed shore band `(from, to)` in meters (negative: in the water)
+    /// the layer is limited to; `(0, 0)`: everywhere.
+    pub shore: (f32, f32),
 }
 
 /// Value noise in 0..1 on a lattice of `cell` meters, from hashes.
@@ -325,6 +337,7 @@ fn noise(seed: u64, x: f32, z: f32, cell: f32) -> f32 {
 pub fn scatter(
     map: &Map,
     rasters: &DecoRasters,
+    water: Option<&crate::water::WaterField>,
     layer: &DecoLayer,
     x0: f32,
     z0: f32,
@@ -355,6 +368,16 @@ pub fn scatter(
             let mut density = layer.density.get(id).copied().unwrap_or(0.0);
             if density <= 0.0 {
                 continue;
+            }
+            if let Some(water) = water {
+                // Inside the band, fading out over one meter at its edges.
+                let s = water.signed_shore(k);
+                let (from, to) = layer.shore;
+                density *= ((s - from + 1.0).min(to + 1.0 - s)).clamp(0.0, 1.0);
+                let sx = map.samples().0 as usize;
+                if density <= 0.0 || map.sample_under_deck((k % sx) as u32, (k / sx) as u32) {
+                    continue;
+                }
             }
             let patch = noise(layer.seed ^ 0x5eed, x, z, 25.0);
             density *= 1.0 + layer.patchiness * (patch * 2.0 - 1.0);

@@ -21,10 +21,16 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by prompt 027: victory conditions. The demo battle is
-/// decided at tick 405 (player 0 loses its last tank, player 1 wins); from the
-/// first defeat on, the standings and the result are part of the hash. Ticks
-/// before that hash exactly as with prompt 017.
+/// Last changed by prompt 014: `test_small` was regenerated with a deeper
+/// river profile, a stone and a timber bridge with ramps (bridge objects
+/// with decks, `data/objects.toml`), a narrowed river at the bridges and
+/// stones in the river; the map hash covers the bridges (objects near the
+/// meadow moved with it, so the demo battle is now decided at tick 525
+/// instead of 405, same winner). Units may not drive down grades steeper
+/// than the climbing limit or over the side of a deck.
+/// Before: prompt 027 (victory conditions: the demo battle is
+/// decided at tick 405, player 0 loses its last tank, player 1 wins; from the
+/// first defeat on, the standings and the result are part of the hash).
 /// Before: prompt 017: combat. Units have hit points, a hull
 /// direction, turrets, weapons and armor from the catalog, pick targets,
 /// fire projectiles with ballistic flight and dispersion (simulation RNG),
@@ -45,7 +51,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xcb06_6ca1_b9cf_7d89;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x7bf3_7e90_fed3_d2c6;
 
 #[test]
 fn golden_hash() {
@@ -95,10 +101,10 @@ fn demo_battle_is_decided() {
     let end = run_demo(42, 1000);
     let outcome = end.outcome().expect("the demo battle is decided");
     assert_eq!(outcome.winner, Some(sim::PlayerId(1)));
-    assert_eq!(outcome.tick, 405);
+    assert_eq!(outcome.tick, 525);
     assert_eq!(end.alive_units(sim::PlayerId(0)), 0);
     assert_eq!(
         end.standings()[0].defeat,
-        Some((sim::DefeatReason::Eliminated, 405))
+        Some((sim::DefeatReason::Eliminated, 525))
     );
 }

@@ -56,10 +56,11 @@ pub struct SlopeRules {
 
 impl SlopeRules {
     /// Speed factor for driving at `grade` (rise per meter, negative
-    /// downhill), or `None` if the grade is too steep to climb.
+    /// downhill), or `None` if the grade is too steep to climb or to drive
+    /// down (since prompt 014: units must not drop off abutments and banks).
     pub fn factor(&self, grade: Fixed) -> Option<Fixed> {
         let hundred = Fixed::from_num(100);
-        if grade > Fixed::from_num(self.max_grade_pct) / hundred {
+        if grade.abs() > Fixed::from_num(self.max_grade_pct) / hundred {
             return None;
         }
         if grade <= Fixed::ZERO {

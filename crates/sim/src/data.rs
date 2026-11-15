@@ -20,6 +20,9 @@ pub struct UnitType {
     /// Larger of length and width in meters (sizes are 1:1, so this is the
     /// real value). Used for formation spacing.
     pub footprint_m: Fixed,
+    /// Combat mass in kilograms from the catalog (0 if unknown, e.g.
+    /// infantry). Bridges carry units up to their load limit (prompt 014).
+    pub mass_kg: u32,
     /// Weapons, armor and hit box (prompt 017).
     pub combat: CombatType,
 }
@@ -68,6 +71,7 @@ impl UnitType {
             speed_m_per_s: scale.game_speed(entry.category, speed),
             road_speed_m_per_s: scale.game_speed(entry.category, road),
             footprint_m: Fixed::from_num(footprint_mm) / Fixed::from_num(1000),
+            mass_kg: entry.mass_kg.unwrap_or(0),
             combat: CombatType::from_catalog(entry, scale),
         })
     }

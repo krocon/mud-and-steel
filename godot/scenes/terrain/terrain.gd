@@ -114,6 +114,12 @@ func build(host: SimHost) -> void:
 	_material.set_shader_parameter("normal_array", NORMAL_ARRAY)
 	_material.set_shader_parameter("macro_tex", MACRO)
 	_material.set_shader_parameter("layer_tile", PackedFloat32Array(LAYER_TILE_M))
+	# Water level per sample (prompt 014): wet band above the waterline.
+	var levels := host.water_levels()
+	if levels.size() == _samples.x * _samples.y:
+		var water := Image.create_from_data(_samples.x, _samples.y, false, Image.FORMAT_RF, levels.to_byte_array())
+		_material.set_shader_parameter("water_tex", ImageTexture.create_from_image(water))
+		_material.set_shader_parameter("has_water", true)
 
 	var bounds := _map_bounds()
 	for level in LOD_LEVELS:

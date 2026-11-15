@@ -24,6 +24,8 @@ mod match_funcs;
 mod object_funcs;
 mod objects;
 mod terrain_layers;
+mod water;
+mod water_funcs;
 
 pub use lan::LanLobby;
 
@@ -81,6 +83,8 @@ struct Game {
     display_offsets: Vec<f32>,
     /// Object-derived rasters for decoration, built on first use.
     deco: std::cell::OnceCell<objects::DecoRasters>,
+    /// Water surfaces (prompt 014), built on first use.
+    water: std::cell::OnceCell<water::WaterField>,
 }
 
 impl Game {
@@ -402,6 +406,7 @@ impl SimHost {
             recorder: ReplayRecorder::new(seed, config.clone(), &players),
             display_offsets: Vec::new(),
             deco: std::cell::OnceCell::new(),
+            water: std::cell::OnceCell::new(),
             sim,
             map_top: map
                 .heights_mm()

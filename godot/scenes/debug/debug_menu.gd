@@ -8,6 +8,7 @@ extends PanelContainer
 ##   (the code path prompt 021 will use for real craters).
 ## - "Show terrain LOD": tints every chunk by its LOD level.
 ## - "Map objects" / "Decoration": show or hide them (prompt 013).
+## - "Water": show or hide the water surface (prompt 014).
 ## - Biome and graphics quality switches (prompt 015).
 
 var main: Node3D
@@ -44,6 +45,11 @@ func _ready() -> void:
 	deco.button_pressed = true
 	deco.toggled.connect(func(on: bool) -> void: main.map_objects.set_decoration_visible(on))
 	box.add_child(deco)
+	var water := CheckBox.new()
+	water.text = "Water"
+	water.button_pressed = true
+	water.toggled.connect(func(on: bool) -> void: main.water.set_water_visible(on))
+	box.add_child(water)
 	# Biome and graphics quality (prompt 015), presentation only.
 	box.add_child(_choice("Biome", main.atmosphere.BIOMES, main.atmosphere.preset.id,
 		func(id: String) -> void: main.set_biome(id)))

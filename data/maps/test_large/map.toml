@@ -3,9 +3,10 @@ name = "test_large"
 generator = "cli gen-map --name test_large --size-m 4000 --seed 11"
 cell_size_mm = 2000
 samples = [2001, 2001]
-height_base_mm = -5000
+height_base_mm = -7000
 height_step_mm = 3
 biome = "forest"
+water_flow_deg = 180
 
 [[start]]
 player = 0
@@ -22,3 +23,15 @@ position_m = [-842, -1118]
 [[marker]]
 name = "village"
 position_m = [-1100, 1100]
+
+[[marker]]
+name = "bridge_stone"
+position_m = [1092, -1199]
+
+[[marker]]
+name = "bridge_wood"
+position_m = [1112, -399]
+
+[[marker]]
+name = "ford"
+position_m = [1249, 203]
