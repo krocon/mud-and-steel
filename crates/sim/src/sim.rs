@@ -16,6 +16,7 @@ use std::fmt;
 use std::sync::Arc;
 
 mod combat;
+mod craters;
 mod destruction;
 mod infantry;
 mod vision;
@@ -91,6 +92,8 @@ pub enum ConfigError {
     TooManyPlayers(usize),
     /// The built-in destruction rules do not parse (prompt 020).
     Destruction(String),
+    /// The crater rules are invalid (prompt 021).
+    Craters(String),
 }
 
 impl fmt::Display for ConfigError {
@@ -107,6 +110,7 @@ impl fmt::Display for ConfigError {
             Self::SpawnOutsideMap(index) => write!(f, "spawn {index} lies outside the map"),
             Self::TooManyPlayers(n) => write!(f, "{n} players, at most {MAX_PLAYERS} allowed"),
             Self::Destruction(e) => write!(f, "{e}"),
+            Self::Craters(e) => write!(f, "{e}"),
         }
     }
 }
@@ -279,6 +283,8 @@ pub struct Sim {
     infantry: InfantryRt,
     /// Hit points and stages of map objects (prompt 020).
     destruction: destruction::Destruction,
+    /// Craters and the deformation of the ground (prompt 021).
+    craters: craters::Craters,
 }
 
 impl Sim {
@@ -383,6 +389,12 @@ impl Sim {
             &config.vision,
             &config.unit_types,
         );
+        let craters = craters::Craters::new(
+            crate::craters::CraterRules::builtin()
+                .map_err(|e| ConfigError::Craters(e.to_string()))?,
+            &config.terrain,
+        )
+        .map_err(ConfigError::Craters)?;
         let grid = PathGrid::new(&map, &config.terrain, &config.unit_types);
         let mut sim = Self {
             tick: 0,
@@ -402,6 +414,7 @@ impl Sim {
             vision,
             infantry,
             destruction,
+            craters,
         };
         sim.apply_destruction();
         sim.update_vision(true);
@@ -463,6 +476,7 @@ impl Sim {
         self.crush_objects();
         self.fly_projectiles();
         self.apply_destruction();
+        self.apply_craters();
         self.update_vision(false);
         self.tick += 1;
         let units = &self.units;
@@ -887,6 +901,7 @@ impl Sim {
         self.standings.hash_into(&mut h);
         self.vision.hash_into(&mut h);
         self.destruction.hash_into(&mut h);
+        self.craters.hash_into(&mut h);
         h.finish()
     }
 

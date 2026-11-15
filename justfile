@@ -271,6 +271,11 @@ soldiers-tier2:
 path-bench map="test_large" units="200" group="1":
     cargo run -q --release -p cli -- path-bench --map data/maps/{{ map }} --units {{ units }} --group {{ group }}
 
+# Benchmark (prompt 021): craters among moving units of two players, time per tick
+[group('pathfinding')]
+crater-bench map="test_large" craters="100" per_tick="5" range_m="200":
+    cargo run -q --release -p cli -- crater-bench --map data/maps/{{ map }} --craters {{ craters }} --per-tick {{ per_tick }} --range-m {{ range_m }}
+
 # Benchmark (prompt 018): moving units of two players with vision, time per tick
 [group('pathfinding')]
 vision-bench map="test_large" units="500" ticks="600":

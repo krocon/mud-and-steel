@@ -427,6 +427,41 @@ impl VisionGrid {
         }
     }
 
+    /// Cells of `c0..=c1` × `r0..=r1` whose ground height (at the center)
+    /// differs from `map` now, with the new height in millimeters (craters,
+    /// prompt 021). Apply them with [`Self::set_ground`].
+    pub fn ground_changes(
+        &self,
+        (c0, r0, c1, r1): (u32, u32, u32, u32),
+        map: &Map,
+    ) -> Vec<(u32, i32)> {
+        let (c1, r1) = (c1.min(self.columns - 1), r1.min(self.rows - 1));
+        let mut out = Vec::new();
+        for r in r0..=r1 {
+            for c in c0..=c1 {
+                let i = r * self.columns + c;
+                let mm = to_mm(map.height_at(self.center(c, r)));
+                if mm != self.ground_mm[i as usize] {
+                    out.push((i, mm));
+                }
+            }
+        }
+        out
+    }
+
+    /// Sets the ground height of cells (index, millimeters). Obstacle tops
+    /// are absolute heights and stay as they are.
+    pub fn set_ground(&mut self, changes: &[(u32, i32)]) {
+        for &(i, mm) in changes {
+            self.ground_mm[i as usize] = mm;
+        }
+    }
+
+    /// Ground height at the center of cell `index`, millimeters.
+    pub fn ground_mm(&self, index: u32) -> i32 {
+        self.ground_mm[index as usize]
+    }
+
     /// Center of cell `(column, row)`.
     pub fn center(&self, c: u32, r: u32) -> Vec2 {
         let half = self.cell / 2;

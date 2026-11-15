@@ -1,0 +1,45 @@
+# Crater rules (prompt 021). Integers only. Compiled into the simulation
+# (`sim::CraterRules::builtin`), loaded by `Sim::new` and part of the state
+# hash; see docs/ARCHITECTURE.md "Terrain deformation".
+#
+# These are game rules, not catalog values. They are rough approximations of
+# the size of craters left by high-explosive shells (a few decimeters deep, a
+# little over a meter wide for 75 mm), widened to the 2 m height raster: a
+# crater smaller than one raster step would often touch no sample at all.
+
+[crater]
+# Ground hits of rounds of at least this caliber (tenths of a millimeter)
+# leave a crater; smaller rounds only throw up dust.
+min_caliber_mm_x10 = 450
+# Radius and depth of the bowl per millimeter of caliber; the radius is at
+# least `min_radius_mm`.
+radius_mm_per_mm = 12
+min_radius_mm = 2000
+depth_mm_per_mm = 5
+# The rim: thrown-up earth around the bowl, `rim_pct` of the depth high at
+# the edge of the bowl, falling to nothing at `rim_width_pct` of the radius
+# beyond it.
+rim_pct = 25
+rim_width_pct = 50
+# No sample ever lies deeper than `max_depth_mm` below or higher than
+# `max_rise_mm` above the loaded map: repeated hits widen a crater field
+# instead of digging a shaft.
+max_depth_mm = 1500
+max_rise_mm = 400
+# Terrain type (name in data/terrain.toml) of the bowl. Samples of the
+# `keep` types never change their type, and impacts on them (water) leave no
+# crater.
+terrain = "mud"
+keep = ["shallow_water", "deep_water"]
+# At most this many craters per tick; further ground hits in the same tick
+# leave none (bounded cost per tick, like the path and vision budgets).
+max_per_tick = 16
+
+[cover]
+# A soldier of a standing squad whose ground lies at least `min_depth_mm`
+# below the loaded map is in a crater: a hit on him is caught by the rim
+# with this chance per stance (from every direction).
+min_depth_mm = 250
+stand_pct = 20
+kneel_pct = 45
+prone_pct = 70

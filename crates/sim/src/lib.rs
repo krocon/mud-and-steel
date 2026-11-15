@@ -13,6 +13,7 @@ pub mod bridges;
 pub mod catalog;
 pub mod combat;
 mod command;
+pub mod craters;
 mod data;
 pub mod destruction;
 mod hash;
@@ -35,6 +36,7 @@ pub use combat::{
     CombatEvent, CombatRules, CombatType, Face, FireMode, HitKind, ProjectileSnapshot, Vec3,
 };
 pub use command::{Command, PlayerCommand, PlayerId, UnitId};
+pub use craters::{CraterEvent, CraterRules};
 pub use data::{DEFAULT_FOOTPRINT_MM, DataError, UnitType, unit_types_from_catalog};
 pub use destruction::{
     DestructionRules, ObjectCause, ObjectEvent, ObjectStage, ObjectState, Remains,

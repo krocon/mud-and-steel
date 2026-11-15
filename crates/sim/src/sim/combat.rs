@@ -1042,6 +1042,13 @@ impl Sim {
                 kind = HitKind::Object(object);
                 unit_hit = None;
             }
+            // A soldier in a crater may be saved by its rim (prompt 021).
+            if let Some((j, _, Some(soldier))) = unit_hit
+                && self.crater_catches(j, soldier)
+            {
+                kind = HitKind::Ground;
+                unit_hit = None;
+            }
             if let HitKind::Object(object) = kind
                 && let Some((j, soldier)) = self.building_hit(object, p.caliber_mm_x10)
             {
@@ -1080,6 +1087,9 @@ impl Sim {
                 }
             }
             self.near_miss(point.ground(), p.shooter);
+            if kind == HitKind::Ground {
+                self.ground_hit(point.ground(), p.caliber_mm_x10);
+            }
             self.events.push(CombatEvent::Hit {
                 projectile: p.id,
                 shooter: p.shooter,
