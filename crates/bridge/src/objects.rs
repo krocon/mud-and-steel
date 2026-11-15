@@ -354,7 +354,9 @@ fn noise(seed: u64, x: f32, z: f32, cell: f32) -> f32 {
 
 /// Decoration instances of one layer in the square `x0..x0 + size`,
 /// `z0..z0 + size`, one `MultiMesh` buffer per variant. Only lattice points
-/// inside the square count, so neighboring squares never overlap.
+/// inside the square count, so neighboring squares never overlap. Samples
+/// for which `deformed(index)` holds (craters, prompt 021) get nothing.
+#[allow(clippy::too_many_arguments)]
 pub fn scatter(
     map: &Map,
     rasters: &DecoRasters,
@@ -363,6 +365,7 @@ pub fn scatter(
     x0: f32,
     z0: f32,
     size: f32,
+    deformed: impl Fn(usize) -> bool,
 ) -> Vec<Vec<f32>> {
     let mut out = vec![Vec::new(); layer.weights.len().max(1)];
     let total: f32 = layer.weights.iter().sum();
@@ -382,7 +385,7 @@ pub fn scatter(
             let Some(k) = rasters.sample(x, z) else {
                 continue;
             };
-            if rasters.blocked[k] {
+            if rasters.blocked[k] || deformed(k) {
                 continue;
             }
             let id = usize::from(map.terrain_ids()[k]);
