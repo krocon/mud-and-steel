@@ -1,0 +1,63 @@
+# Vision rules (prompt 018). Integers only. Compiled into the simulation
+# (`sim::VisionRules::builtin`), part of every SimConfig and of the state hash;
+# see docs/ARCHITECTURE.md "Vision and fog of war".
+#
+# These are game rules, not catalog values: the catalog has no sight ranges.
+# Ranges are given in real meters and compressed by `range.sight` in
+# data/scale.toml (× 1/4), like weapon ranges.
+
+[grid]
+# Edge of a vision cell. Sight lines run from cell to cell.
+cell_mm = 8000
+# A cell counts as visible when a point this high above its ground can be
+# seen (between standing infantry and a tank).
+target_height_mm = 2000
+# Cells with at least this many foliage objects (trees) are forest.
+foliage_min_objects = 2
+# A sight line may pass through this many forest cells whose canopy is above
+# it (not counting the cells of eye and target): one sees and is seen 16 m
+# deep into a forest; from above, one sees over the canopy.
+foliage_depth_cells = 1
+# Ray steps computed per tick at most (at least one unit is always updated).
+# Units that changed their cell wait in a FIFO queue.
+budget_steps_per_tick = 400000
+
+[sight]
+# Real sight range of a unit in open terrain, in meters (→ 500 m game).
+range_real_m = 2000
+# Per-category overrides.
+[[sight.category]]
+category = "inf_recon"
+range_real_m = 2800
+
+[[sight.category]]
+category = "inf_sniper"
+range_real_m = 2800
+
+[[sight.category]]
+category = "recon_vehicle"
+range_real_m = 2800
+
+[[sight.category]]
+category = "truck"
+range_real_m = 1600
+
+[objects]
+# Map objects (catalog ids) that block sight up to their catalog height.
+solid = [
+    "env_house_farm",
+    "env_house_farm_brick",
+    "env_house_stone",
+    "env_house_mud",
+    "env_barn",
+    "env_church",
+    "env_hedge",
+    "env_wall_stone",
+]
+# Map objects that form forest (see foliage_min_objects / foliage_depth_cells).
+foliage = [
+    "env_tree_deciduous",
+    "env_tree_conifer",
+    "env_tree_birch",
+    "env_tree_palm",
+]

@@ -1,0 +1,651 @@
+//! Vision and fog of war (prompt 018): rules, the static vision grid of a map
+//! and the sight computation of one unit (its viewshed).
+//!
+//! The map is divided into square vision cells (`grid.cell_mm`). Every unit
+//! sees the cells inside its sight range that a ray from its eye reaches
+//! without passing below the horizon formed by the ground, solid obstacles
+//! (buildings, walls, hedges) and forest. Everything is integer math on
+//! millimeters: slopes are compared by cross-multiplication, never divided.
+//! How the simulation keeps the viewsheds up to date: `crate::sim::vision`.
+
+use crate::catalog::Category;
+use crate::hash::StableHasher;
+use crate::map::Map;
+use crate::math::{Fixed, Vec2};
+use crate::scale::Scale;
+use serde::{Deserialize, Serialize};
+use std::fmt;
+
+/// The rules compiled into the simulation (`data/vision.toml`).
+pub const BUILTIN_VISION: &str = include_str!("../../../data/vision.toml");
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct GridRules {
+    pub cell_mm: u32,
+    pub target_height_mm: u32,
+    pub foliage_min_objects: u32,
+    pub foliage_depth_cells: u32,
+    pub budget_steps_per_tick: u32,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct SightOverride {
+    pub category: Category,
+    pub range_real_m: u32,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct SightRules {
+    pub range_real_m: u32,
+    #[serde(default, rename = "category")]
+    pub categories: Vec<SightOverride>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ObjectSight {
+    pub solid: Vec<String>,
+    pub foliage: Vec<String>,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct File {
+    grid: GridRules,
+    sight: SightRules,
+    objects: ObjectSight,
+}
+
+/// All vision rules, with the sight range factor of `data/scale.toml`
+/// resolved. Part of [`crate::SimConfig`], so replays carry them.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct VisionRules {
+    pub grid: GridRules,
+    pub sight: SightRules,
+    pub objects: ObjectSight,
+    /// `range.sight` of the scale, `(num, den)`.
+    pub sight_ratio: (u32, u32),
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub struct VisionError(pub String);
+
+impl fmt::Display for VisionError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "invalid vision rules: {}", self.0)
+    }
+}
+
+impl std::error::Error for VisionError {}
+
+/// Largest sight range in game meters (keeps ray tables small).
+const MAX_RANGE_M: u32 = 2000;
+
+/// How a map object affects sight.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Sight {
+    Clear,
+    Solid,
+    Foliage,
+}
+
+impl VisionRules {
+    pub fn parse(text: &str, scale: &Scale) -> Result<Self, VisionError> {
+        let file: File = toml::from_str(text).map_err(|e| VisionError(e.to_string()))?;
+        let check = |name: &str, value: u32, min: u32, max: u32| {
+            if (min..=max).contains(&value) {
+                Ok(())
+            } else {
+                Err(VisionError(format!(
+                    "{name} = {value} outside {min}..={max}"
+                )))
+            }
+        };
+        let g = &file.grid;
+        check("grid.cell_mm", g.cell_mm, 1000, 100_000)?;
+        check("grid.target_height_mm", g.target_height_mm, 0, 100_000)?;
+        check("grid.foliage_min_objects", g.foliage_min_objects, 1, 1000)?;
+        check("grid.foliage_depth_cells", g.foliage_depth_cells, 0, 16)?;
+        check(
+            "grid.budget_steps_per_tick",
+            g.budget_steps_per_tick,
+            1,
+            100_000_000,
+        )?;
+        let ratio = (scale.sight_range.num, scale.sight_range.den);
+        let rules = Self {
+            grid: file.grid,
+            sight: file.sight,
+            objects: file.objects,
+            sight_ratio: ratio,
+        };
+        let ranges = std::iter::once(rules.sight.range_real_m)
+            .chain(rules.sight.categories.iter().map(|o| o.range_real_m));
+        for real in ranges {
+            let game = scale.sight_range_m(real);
+            if game < Fixed::ONE || game > Fixed::from_num(MAX_RANGE_M) {
+                return Err(VisionError(format!(
+                    "sight range {real} m real is {game} m in game, outside 1..={MAX_RANGE_M}"
+                )));
+            }
+        }
+        Ok(rules)
+    }
+
+    /// The rules from `data/vision.toml` with the built-in scale.
+    pub fn builtin() -> Result<Self, VisionError> {
+        let scale = Scale::builtin().map_err(|e| VisionError(e.to_string()))?;
+        Self::parse(BUILTIN_VISION, &scale)
+    }
+
+    /// Edge of a vision cell in meters.
+    pub fn cell_m(&self) -> Fixed {
+        Fixed::from_num(self.grid.cell_mm) / Fixed::from_num(1000)
+    }
+
+    /// Sight range in game meters for a category.
+    pub fn range_m(&self, category: Option<Category>) -> Fixed {
+        let real = self
+            .sight
+            .categories
+            .iter()
+            .find(|o| Some(o.category) == category)
+            .map_or(self.sight.range_real_m, |o| o.range_real_m);
+        let (num, den) = self.sight_ratio;
+        Fixed::from_num(real) * Fixed::from_num(num) / Fixed::from_num(den)
+    }
+
+    /// Sight range in whole vision cells (at least 1).
+    pub fn range_cells(&self, category: Option<Category>) -> i32 {
+        (self.range_m(category) / self.cell_m())
+            .to_num::<i32>()
+            .max(1)
+    }
+
+    pub fn object_sight(&self, id: &str) -> Sight {
+        if self.objects.solid.iter().any(|s| s == id) {
+            Sight::Solid
+        } else if self.objects.foliage.iter().any(|s| s == id) {
+            Sight::Foliage
+        } else {
+            Sight::Clear
+        }
+    }
+
+    pub(crate) fn hash_into(&self, h: &mut StableHasher) {
+        let g = &self.grid;
+        for v in [
+            g.cell_mm,
+            g.target_height_mm,
+            g.foliage_min_objects,
+            g.foliage_depth_cells,
+            g.budget_steps_per_tick,
+            self.sight.range_real_m,
+            self.sight_ratio.0,
+            self.sight_ratio.1,
+        ] {
+            h.write_u32(v);
+        }
+        h.write_u64(self.sight.categories.len() as u64);
+        for o in &self.sight.categories {
+            h.write_bytes(o.category.code().as_bytes());
+            h.write_u32(o.range_real_m);
+        }
+        for list in [&self.objects.solid, &self.objects.foliage] {
+            h.write_u64(list.len() as u64);
+            for id in list {
+                h.write_bytes(id.as_bytes());
+                h.write_u8(0);
+            }
+        }
+    }
+}
+
+/// No obstacle in a cell.
+const NONE: i32 = i32::MIN;
+
+/// The rays of a sight radius: cell offsets, ray by ray.
+#[derive(Clone, Debug)]
+struct RayTable {
+    radius: i32,
+    /// Offsets of all rays, one after the other.
+    offsets: Vec<(i16, i16)>,
+    /// Start of every ray in `offsets`, plus the end.
+    starts: Vec<u32>,
+}
+
+impl RayTable {
+    /// Rays from the center to every cell on the edge of the square with
+    /// half edge `radius`; each ray visits the cell nearest to it at every
+    /// step along its major axis, and ends at the sight circle. Together
+    /// they visit every cell of the circle.
+    fn new(radius: i32) -> Self {
+        let mut ends = Vec::with_capacity(8 * radius as usize);
+        for i in -radius..radius {
+            ends.push((i, -radius));
+            ends.push((radius, i));
+            ends.push((-i, radius));
+            ends.push((-radius, -i));
+        }
+        let r2 = i64::from(radius) * i64::from(radius);
+        let mut offsets = Vec::new();
+        let mut starts = vec![0u32];
+        for (ex, ey) in ends {
+            for k in 1..=radius {
+                let dx = round_div(ex * k, radius);
+                let dy = round_div(ey * k, radius);
+                if i64::from(dx * dx + dy * dy) > r2 {
+                    break;
+                }
+                offsets.push((dx as i16, dy as i16));
+            }
+            starts.push(offsets.len() as u32);
+        }
+        Self {
+            radius,
+            offsets,
+            starts,
+        }
+    }
+}
+
+/// `a / b` rounded half away from zero (`b > 0`).
+const fn round_div(a: i32, b: i32) -> i32 {
+    if a >= 0 {
+        (2 * a + b) / (2 * b)
+    } else {
+        -((-2 * a + b) / (2 * b))
+    }
+}
+
+/// The static vision data of a map: cell heights and obstacles.
+#[derive(Clone, Debug)]
+pub struct VisionGrid {
+    pub origin: Vec2,
+    pub cell: Fixed,
+    pub columns: u32,
+    pub rows: u32,
+    /// Ground height at the cell center, millimeters.
+    ground_mm: Vec<i32>,
+    /// Top of solid obstacles (absolute, mm) or [`NONE`].
+    solid_mm: Vec<i32>,
+    /// Top of forest (absolute, mm) or [`NONE`].
+    foliage_mm: Vec<i32>,
+    target_height_mm: i32,
+    foliage_depth: i32,
+    tables: Vec<RayTable>,
+}
+
+impl VisionGrid {
+    /// Builds the grid of `map`; `radii` are the sight radii (cells) used.
+    pub fn new(map: &Map, rules: &VisionRules, radii: &[i32]) -> Self {
+        let size = map.size();
+        let cell = rules.cell_m();
+        let origin = Vec2::new(-size.x / 2, -size.y / 2);
+        let columns = (size.x / cell).ceil().to_num::<u32>().max(1);
+        let rows = (size.y / cell).ceil().to_num::<u32>().max(1);
+        let count = (columns * rows) as usize;
+        let half = cell / 2;
+        let center = |c: u32, r: u32| {
+            Vec2::new(
+                origin.x + cell * Fixed::from_num(c) + half,
+                origin.y + cell * Fixed::from_num(r) + half,
+            )
+        };
+        let to_mm = |h: Fixed| (h * Fixed::from_num(1000)).round().to_num::<i32>();
+        let mut ground_mm = Vec::with_capacity(count);
+        for r in 0..rows {
+            for c in 0..columns {
+                ground_mm.push(to_mm(map.height_at(center(c, r))));
+            }
+        }
+        let mut solid_mm = vec![NONE; count];
+        let mut foliage_mm = vec![NONE; count];
+        let mut foliage_count = vec![0u32; count];
+        let kinds = map.object_kinds();
+        let sights: Vec<Sight> = kinds.iter().map(|k| rules.object_sight(&k.id)).collect();
+        let cell_index = |v: Fixed, o: Fixed, n: u32| {
+            ((v - o) / cell)
+                .floor()
+                .max(Fixed::ZERO)
+                .to_num::<u32>()
+                .min(n - 1)
+        };
+        for object in map.objects() {
+            let k = usize::from(object.kind);
+            let sight = sights[k];
+            let kind = &kinds[k];
+            if sight == Sight::Clear || kind.height <= Fixed::ZERO {
+                continue;
+            }
+            let height = to_mm(kind.height);
+            let extent = object.half_extent(kind.shape);
+            let low = object.position - extent;
+            let high = object.position + extent;
+            for r in cell_index(low.y, origin.y, rows)..=cell_index(high.y, origin.y, rows) {
+                for c in
+                    cell_index(low.x, origin.x, columns)..=cell_index(high.x, origin.x, columns)
+                {
+                    if !object.overlaps_square(kind.shape, center(c, r), half) {
+                        continue;
+                    }
+                    let i = (r * columns + c) as usize;
+                    let top = ground_mm[i].saturating_add(height);
+                    match sight {
+                        Sight::Solid => solid_mm[i] = solid_mm[i].max(top),
+                        Sight::Foliage => {
+                            foliage_count[i] += 1;
+                            foliage_mm[i] = foliage_mm[i].max(top);
+                        }
+                        Sight::Clear => {}
+                    }
+                }
+            }
+        }
+        for (top, &n) in foliage_mm.iter_mut().zip(&foliage_count) {
+            if n < rules.grid.foliage_min_objects {
+                *top = NONE;
+            }
+        }
+        let mut wanted: Vec<i32> = radii.to_vec();
+        wanted.sort_unstable();
+        wanted.dedup();
+        Self {
+            origin,
+            cell,
+            columns,
+            rows,
+            ground_mm,
+            solid_mm,
+            foliage_mm,
+            target_height_mm: rules.grid.target_height_mm as i32,
+            foliage_depth: rules.grid.foliage_depth_cells as i32,
+            tables: wanted.into_iter().map(RayTable::new).collect(),
+        }
+    }
+
+    pub const fn cells(&self) -> usize {
+        (self.columns * self.rows) as usize
+    }
+
+    /// Cell `(column, row)` containing `p` (clamped to the grid).
+    pub fn cell_of(&self, p: Vec2) -> (i32, i32) {
+        let axis = |v: Fixed, o: Fixed, n: u32| {
+            ((v - o) / self.cell)
+                .floor()
+                .max(Fixed::ZERO)
+                .to_num::<u32>()
+                .min(n - 1) as i32
+        };
+        (
+            axis(p.x, self.origin.x, self.columns),
+            axis(p.y, self.origin.y, self.rows),
+        )
+    }
+
+    pub fn index_of(&self, p: Vec2) -> u32 {
+        let (c, r) = self.cell_of(p);
+        r as u32 * self.columns + c as u32
+    }
+
+    /// Whether cell `i` holds a solid obstacle / forest (tools and tests).
+    pub fn blocker_at(&self, i: usize) -> Sight {
+        if self.solid_mm[i] != NONE {
+            Sight::Solid
+        } else if self.foliage_mm[i] != NONE {
+            Sight::Foliage
+        } else {
+            Sight::Clear
+        }
+    }
+
+    /// Computes the viewshed of an eye at absolute height `eye_mm` in cell
+    /// `anchor` with sight radius `radius` (cells). Returns it and the
+    /// number of ray steps taken.
+    pub(crate) fn viewshed(&self, anchor: u32, eye_mm: i32, radius: i32) -> (Viewshed, u32) {
+        let table = self
+            .tables
+            .iter()
+            .find(|t| t.radius == radius)
+            .expect("ray table for every sight radius");
+        let side = (2 * radius + 1) as usize;
+        let mut shed = Viewshed {
+            anchor,
+            eye_mm,
+            radius,
+            bits: vec![0; (side * side).div_ceil(64)],
+        };
+        shed.set(0, 0);
+        let ac = (anchor % self.columns) as i32;
+        let ar = (anchor / self.columns) as i32;
+        let eye = i64::from(eye_mm);
+        let target = i64::from(self.target_height_mm);
+        // A sight line may cross `depth` forest cells whose canopy is above
+        // it; the (depth + 1)-th steepest canopy slope is the forest horizon.
+        let keep = self.foliage_depth as usize + 1;
+        let mut steps = 0u32;
+        // Steepest canopy slopes of the ray so far, descending: (num, den).
+        let mut canopy: Vec<(i64, i64)> = Vec::with_capacity(keep + 1);
+        // `a/b > c/d` for positive `b`, `d`.
+        let steeper = |(a, b): (i64, i64), (c, d): (i64, i64)| a * d > c * b;
+        for ray in table.starts.windows(2) {
+            // Horizon of ground and solid obstacles; `None` = open.
+            let mut horizon: Option<(i64, i64)> = None;
+            canopy.clear();
+            for (k, &(dx, dy)) in (1i32..).zip(&table.offsets[ray[0] as usize..ray[1] as usize]) {
+                let c = ac + i32::from(dx);
+                let r = ar + i32::from(dy);
+                if c < 0 || r < 0 || c >= self.columns as i32 || r >= self.rows as i32 {
+                    break;
+                }
+                steps += 1;
+                let i = (r as u32 * self.columns + c as u32) as usize;
+                let ground = i64::from(self.ground_mm[i]);
+                let kk = i64::from(k);
+                let line = (ground + target - eye, kk);
+                let visible = horizon.is_none_or(|h| !steeper(h, line))
+                    && (canopy.len() < keep || !steeper(canopy[keep - 1], line));
+                if visible {
+                    shed.set(i32::from(dx), i32::from(dy));
+                }
+                let mut raise = |top: i64| {
+                    let slope = (top - eye, kk);
+                    if horizon.is_none_or(|h| steeper(slope, h)) {
+                        horizon = Some(slope);
+                    }
+                };
+                raise(ground);
+                if self.solid_mm[i] != NONE {
+                    raise(i64::from(self.solid_mm[i]));
+                }
+                if self.foliage_mm[i] != NONE {
+                    let slope = (i64::from(self.foliage_mm[i]) - eye, kk);
+                    let at = canopy.iter().position(|&s| steeper(slope, s));
+                    canopy.insert(at.unwrap_or(canopy.len()), slope);
+                    canopy.truncate(keep);
+                }
+            }
+        }
+        (shed, steps)
+    }
+}
+
+/// The cells one unit sees: a bit field over the square around its anchor.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub(crate) struct Viewshed {
+    /// Cell index of the eye.
+    pub(crate) anchor: u32,
+    pub(crate) eye_mm: i32,
+    pub(crate) radius: i32,
+    bits: Vec<u64>,
+}
+
+impl Viewshed {
+    const fn bit(&self, dx: i32, dy: i32) -> usize {
+        let side = 2 * self.radius + 1;
+        ((dy + self.radius) * side + dx + self.radius) as usize
+    }
+
+    fn set(&mut self, dx: i32, dy: i32) {
+        let b = self.bit(dx, dy);
+        self.bits[b / 64] |= 1 << (b % 64);
+    }
+
+    /// Whether cell `(c, r)` of `grid` is in the viewshed.
+    pub(crate) fn contains(&self, grid: &VisionGrid, c: i32, r: i32) -> bool {
+        let dx = c - (self.anchor % grid.columns) as i32;
+        let dy = r - (self.anchor / grid.columns) as i32;
+        if dx.abs() > self.radius || dy.abs() > self.radius {
+            return false;
+        }
+        let b = self.bit(dx, dy);
+        self.bits[b / 64] & (1 << (b % 64)) != 0
+    }
+
+    /// Calls `f` with the grid index of every visible cell.
+    pub(crate) fn for_each(&self, grid: &VisionGrid, mut f: impl FnMut(usize)) {
+        let side = 2 * self.radius + 1;
+        let ac = (self.anchor % grid.columns) as i32;
+        let ar = (self.anchor / grid.columns) as i32;
+        for (w, &word) in self.bits.iter().enumerate() {
+            let mut word = word;
+            while word != 0 {
+                let b = w * 64 + word.trailing_zeros() as usize;
+                word &= word - 1;
+                let b = b as i32;
+                let c = ac + b % side - self.radius;
+                let r = ar + b / side - self.radius;
+                // Rays stop at the map edge, so every set cell is inside.
+                f((r as u32 * grid.columns + c as u32) as usize);
+            }
+        }
+    }
+
+    /// Number of visible cells.
+    pub(crate) fn count(&self) -> u32 {
+        self.bits.iter().map(|w| w.count_ones()).sum()
+    }
+}
+
+/// What a player knows about a vision cell.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[repr(u8)]
+pub enum CellState {
+    Unexplored = 0,
+    /// Seen before, not now.
+    Explored = 1,
+    Visible = 2,
+}
+
+/// Vision of one player: how many own viewsheds contain each cell, and
+/// which cells were ever seen.
+#[derive(Clone, Debug)]
+pub(crate) struct PlayerVision {
+    counts: Vec<u32>,
+    explored: Vec<u64>,
+    /// Increased whenever a cell changes its [`CellState`].
+    pub(crate) version: u64,
+}
+
+impl PlayerVision {
+    pub(crate) fn new(cells: usize) -> Self {
+        Self {
+            counts: vec![0; cells],
+            explored: vec![0; cells.div_ceil(64)],
+            version: 0,
+        }
+    }
+
+    pub(crate) fn add(&mut self, grid: &VisionGrid, shed: &Viewshed) {
+        let mut changed = false;
+        shed.for_each(grid, |i| {
+            self.counts[i] += 1;
+            if self.counts[i] == 1 {
+                changed = true;
+                self.explored[i / 64] |= 1 << (i % 64);
+            }
+        });
+        self.version += u64::from(changed);
+    }
+
+    pub(crate) fn remove(&mut self, grid: &VisionGrid, shed: &Viewshed) {
+        let mut changed = false;
+        shed.for_each(grid, |i| {
+            self.counts[i] -= 1;
+            changed |= self.counts[i] == 0;
+        });
+        self.version += u64::from(changed);
+    }
+
+    pub(crate) fn visible(&self, i: usize) -> bool {
+        self.counts[i] > 0
+    }
+
+    pub(crate) fn state(&self, i: usize) -> CellState {
+        if self.counts[i] > 0 {
+            CellState::Visible
+        } else if self.explored[i / 64] & (1 << (i % 64)) != 0 {
+            CellState::Explored
+        } else {
+            CellState::Unexplored
+        }
+    }
+
+    pub(crate) fn hash_into(&self, h: &mut StableHasher) {
+        // Counts follow from the hashed viewsheds; the explored cells are
+        // history, so they are hashed as a summary.
+        let explored: u32 = self.explored.iter().map(|w| w.count_ones()).sum();
+        h.write_u32(explored);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn builtin_rules_parse() {
+        let rules = VisionRules::builtin().unwrap();
+        assert_eq!(rules.range_m(None), Fixed::from_num(500));
+        assert_eq!(rules.range_cells(None), 62);
+        assert_eq!(
+            rules.range_m(Some(Category::ReconVehicle)),
+            Fixed::from_num(700)
+        );
+        assert_eq!(rules.object_sight("env_hedge"), Sight::Solid);
+        assert_eq!(rules.object_sight("env_tree_conifer"), Sight::Foliage);
+        assert_eq!(rules.object_sight("env_bush"), Sight::Clear);
+    }
+
+    #[test]
+    fn rays_cover_every_cell_of_the_circle() {
+        for radius in [1, 2, 5, 17, 62] {
+            let table = RayTable::new(radius);
+            let side = (2 * radius + 1) as usize;
+            let mut hit = vec![false; side * side];
+            for &(dx, dy) in &table.offsets {
+                hit[(i32::from(dy) + radius) as usize * side + (i32::from(dx) + radius) as usize] =
+                    true;
+            }
+            for dy in -radius..=radius {
+                for dx in -radius..=radius {
+                    if (dx, dy) != (0, 0) && dx * dx + dy * dy <= radius * radius {
+                        let i = (dy + radius) as usize * side + (dx + radius) as usize;
+                        assert!(hit[i], "radius {radius}: cell ({dx}, {dy}) missed");
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn rounding_is_symmetric() {
+        assert_eq!(round_div(5, 2), 3);
+        assert_eq!(round_div(-5, 2), -3);
+        assert_eq!(round_div(4, 3), 1);
+        assert_eq!(round_div(-4, 3), -1);
+    }
+}

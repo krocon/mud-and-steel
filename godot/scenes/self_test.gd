@@ -64,10 +64,11 @@ func _run() -> void:
 	await _terrain_test()
 	await _biome_test()
 	await WaterSelfTest.new().run(self)
+	await _fog_test()
 	await _combat_test()
 	_replay_test()
 	var ok := _errors.is_empty()
-	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, combat, water and replay ok" if ok else " ".join(_errors)
+	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, fog, combat, water and replay ok" if ok else " ".join(_errors)
 	print("self-test %s: %s" % ["PASSED" if ok else "FAILED", message])
 	# Started from the menu flow test (prompt 027): it continues the flow.
 	var flow: Node = MatchSetup.flow_test
@@ -499,6 +500,43 @@ func _objects_test() -> void:
 
 
 # --- 8. Combat -------------------------------------------------------------
+
+
+## Fog of war (prompt 018): the overlay is drawn, the local player's units
+## stand in visible cells, units out of sight are hidden, and revealing
+## (debug) brings every unit into the snapshot.
+func _fog_test() -> void:
+	var sim_host: SimHost = main.sim_host
+	var fog: Node3D = main.fog_of_war
+	var overlay := main.camera.get_node_or_null("FogOverlay") as MeshInstance3D
+	_check(overlay != null and overlay.visible, "fog overlay missing or hidden")
+	_check(fog.updates > 0, "fog texture never uploaded")
+	var size := sim_host.vision_grid_size()
+	_check(size.x > 0 and size.y > 0 and sim_host.vision_image().size() == size.x * size.y,
+		"vision image does not match the grid %s" % size)
+	var own := _ids_of(true)
+	for p in _positions_of(own):
+		if fog.state_at(p) != 255:
+			_check(false, "own unit at %s stands in a fogged cell (%d)" % [p, fog.state_at(p)])
+			break
+	var seen := sim_host.unit_ids().size()
+	await _frames(1)
+	for id: int in main._unit_nodes:
+		var node: Node3D = main._unit_nodes[id]
+		if not (id in sim_host.unit_ids()):
+			_check(not node.visible, "unit %d is out of sight but drawn" % id)
+	fog.set_fog_enabled(false)
+	await _frames(2)
+	var all := sim_host.unit_ids().size()
+	_check(not overlay.visible, "fog overlay drawn while revealed")
+	_check(all >= seen and sim_host.vision_image().count(255) == size.x * size.y,
+		"reveal all shows %d of %d units" % [all, seen])
+	fog.set_fog_enabled(true)
+	await _frames(2)
+	_check(overlay.visible and sim_host.unit_ids().size() <= all, "fog not back after revealing")
+	print("self-test: fog ok (%d x %d cells, %.0f %% visible, %.0f %% explored, %d of %d units in sight)" % [
+		size.x, size.y, fog.share_of(255) * 100.0, fog.share_of(128) * 100.0, seen, all
+	])
 
 
 func _combat_test() -> void:

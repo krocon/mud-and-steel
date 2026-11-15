@@ -5,6 +5,7 @@ mod gen_map;
 mod gen_textures;
 mod lan;
 mod path_bench;
+mod vision_bench;
 
 use clap::{Parser, Subcommand};
 use std::path::{Path, PathBuf};
@@ -83,6 +84,18 @@ enum CliCommand {
         /// Targets lie within this distance of the map center per axis (m).
         #[arg(long, default_value_t = 1800)]
         range_m: i32,
+    },
+    /// Benchmarks vision (prompt 018): many moving units of two players.
+    VisionBench {
+        /// Map folder, e.g. data/maps/test_large.
+        #[arg(long, default_value = "data/maps/test_large")]
+        map: PathBuf,
+        #[arg(long, default_value_t = 500)]
+        units: u32,
+        #[arg(long, default_value_t = 600)]
+        ticks: u64,
+        #[arg(long, default_value_t = 1)]
+        seed: u64,
     },
     /// Generates the procedural ground textures of the terrain shader.
     GenTerrainTextures {
@@ -289,6 +302,19 @@ fn main() {
                 range_m,
             };
             match path_bench::run(map, &options) {
+                Ok(report) => println!("{report}"),
+                Err(e) => fail(&e),
+            }
+        }
+        CliCommand::VisionBench {
+            map,
+            units,
+            ticks,
+            seed,
+        } => {
+            let map = Arc::new(load_map_dir(&map).unwrap_or_else(|e| fail(&e)));
+            let options = vision_bench::Options { units, ticks, seed };
+            match vision_bench::run(map, &options) {
                 Ok(report) => println!("{report}"),
                 Err(e) => fail(&e),
             }

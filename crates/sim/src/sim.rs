@@ -10,11 +10,15 @@ use crate::outcome::{Outcome, PlayerStanding, Standings};
 use crate::path::{NODE_BUDGET_PER_TICK, Path, PathGrid, PathStats, Pathfinder, Request};
 use crate::rng::Rng;
 use crate::terrain::TerrainRules;
+use crate::vision::VisionRules;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::sync::Arc;
 
 mod combat;
+mod vision;
+
+pub use vision::MAX_PLAYERS;
 
 use combat::{Attack, CombatState, Projectile, TypeCombat};
 
@@ -47,6 +51,8 @@ pub struct SimConfig {
     pub terrain: TerrainRules,
     /// Combat rules (`data/combat.toml`).
     pub combat: CombatRules,
+    /// Vision rules (`data/vision.toml`, prompt 018).
+    pub vision: VisionRules,
 }
 
 impl SimConfig {
@@ -74,6 +80,8 @@ pub enum ConfigError {
     UnknownTerrain(u8),
     /// Spawn with this index lies outside the map.
     SpawnOutsideMap(usize),
+    /// More players than [`MAX_PLAYERS`].
+    TooManyPlayers(usize),
 }
 
 impl fmt::Display for ConfigError {
@@ -88,6 +96,7 @@ impl fmt::Display for ConfigError {
             ),
             Self::UnknownTerrain(id) => write!(f, "map uses unknown terrain id {id}"),
             Self::SpawnOutsideMap(index) => write!(f, "spawn {index} lies outside the map"),
+            Self::TooManyPlayers(n) => write!(f, "{n} players, at most {MAX_PLAYERS} allowed"),
         }
     }
 }
@@ -216,6 +225,8 @@ pub struct Sim {
     objects: combat::ObjectIndex,
     /// Defeated players and the result (prompt 027).
     standings: Standings,
+    /// Viewsheds and player vision (prompt 018).
+    vision: vision::Vision,
 }
 
 impl Sim {
@@ -235,6 +246,10 @@ impl Sim {
             && usize::from(id) >= config.terrain.types.len()
         {
             return Err(ConfigError::UnknownTerrain(id));
+        }
+        let players = config.players();
+        if players.len() > MAX_PLAYERS {
+            return Err(ConfigError::TooManyPlayers(players.len()));
         }
         let ticks_per_second = Fixed::from_num(config.tick_hz);
 
@@ -274,14 +289,26 @@ impl Sim {
                 combat: CombatState::new(facing, weapons, spawn.fire_mode),
             });
         }
-        let types = config
+        let types: Vec<TypeCombat> = config
             .unit_types
             .iter()
             .map(|t| TypeCombat::new(t, &config.combat, config.tick_hz))
             .collect();
+        let vision_types: Vec<_> = types
+            .iter()
+            .zip(&config.unit_types)
+            .map(|(c, t)| (vision::eye_mm(c.height), t.combat.category))
+            .collect();
+        let vision = vision::Vision::new(
+            &config.vision,
+            &map,
+            players.clone(),
+            &vision_types,
+            units.len(),
+        );
 
         let grid = PathGrid::new(&map, &config.terrain, &config.unit_types);
-        Ok(Self {
+        let mut sim = Self {
             tick: 0,
             rng: Rng::new(seed),
             units,
@@ -295,8 +322,11 @@ impl Sim {
             events: Vec::new(),
             objects: combat::ObjectIndex::new(&map),
             map,
-            standings: Standings::new(&config.players()),
-        })
+            standings: Standings::new(&players),
+            vision,
+        };
+        sim.update_vision(true);
+        Ok(sim)
     }
 
     /// Number of ticks simulated so far.
@@ -350,6 +380,7 @@ impl Sim {
         self.aim_and_fire();
         self.move_units();
         self.fly_projectiles();
+        self.update_vision(false);
         self.tick += 1;
         let units = &self.units;
         self.standings
@@ -746,6 +777,7 @@ impl Sim {
             p.hash_into(&mut h);
         }
         self.standings.hash_into(&mut h);
+        self.vision.hash_into(&mut h);
         h.finish()
     }
 
@@ -1213,6 +1245,7 @@ mod tests {
             map: flat_map().reference(),
             terrain: TerrainRules::builtin().unwrap(),
             combat: crate::combat::CombatRules::builtin().unwrap(),
+            vision: crate::vision::VisionRules::builtin().unwrap(),
         }
     }
 
@@ -1712,6 +1745,7 @@ mod object_tests {
             map: map.reference(),
             terrain: TerrainRules::builtin().unwrap(),
             combat: crate::combat::CombatRules::builtin().unwrap(),
+            vision: crate::vision::VisionRules::builtin().unwrap(),
         };
         (Sim::new(&config, map.clone(), 1).unwrap(), map)
     }

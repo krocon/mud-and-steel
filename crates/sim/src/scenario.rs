@@ -156,6 +156,7 @@ pub fn parse_scenario_with_factions(
         map: map.reference(),
         terrain: terrain.clone(),
         combat: CombatRules::builtin().map_err(|e| ScenarioError(e.to_string()))?,
+        vision: crate::vision::VisionRules::builtin().map_err(|e| ScenarioError(e.to_string()))?,
     })
 }
 

@@ -38,6 +38,8 @@ pub(super) struct CombatState {
     attack_moving: bool,
     /// Automatically chosen target.
     pub(super) auto_target: Option<UnitId>,
+    /// Where the player last saw the target of an attack order (prompt 018).
+    last_seen: Option<Vec2>,
 }
 
 impl CombatState {
@@ -49,6 +51,7 @@ impl CombatState {
             attack: None,
             attack_moving: false,
             auto_target: None,
+            last_seen: None,
         }
     }
 
@@ -74,6 +77,14 @@ impl CombatState {
         }
         h.write_u8(u8::from(self.attack_moving));
         h.write_u32(self.auto_target.map_or(u32::MAX, |t| t.0));
+        match self.last_seen {
+            None => h.write_u8(0),
+            Some(p) => {
+                h.write_u8(1);
+                h.write_i64(p.x.to_bits());
+                h.write_i64(p.y.to_bits());
+            }
+        }
     }
 }
 
@@ -96,7 +107,7 @@ pub(super) struct TypeCombat {
     infantry: bool,
     half_length: Fixed,
     half_width: Fixed,
-    height: Fixed,
+    pub(super) height: Fixed,
     armor: crate::combat::Armor,
     /// `(sin, cos)` of the turret turn per tick; `None` = instant.
     turret_step: Option<(Fixed, Fixed)>,
@@ -373,6 +384,8 @@ type Candidate = (Fixed, HitKind, Option<(usize, Face)>);
 enum Goal {
     Unit(usize),
     Ground(Vec2),
+    /// The attack target is out of sight: drive to where it was last seen.
+    Search(Vec2),
 }
 
 impl Sim {
@@ -386,6 +399,7 @@ impl Sim {
         }
         unit.combat.attack = Some(attack);
         unit.combat.attack_moving = false;
+        unit.combat.last_seen = None;
     }
 
     /// Target selection, attack movement, aiming and firing of every unit.
@@ -413,14 +427,38 @@ impl Sim {
                     rotate_towards(unit.combat.aim, facing, self.types[ty].turret_step).0;
                 continue;
             };
-            let point = match goal {
-                Goal::Unit(t) => self.units[t].position,
-                Goal::Ground(p) => p,
+            let (point, sees) = match goal {
+                Goal::Unit(t) => {
+                    let p = self.units[t].position;
+                    (p, self.unit_sees(i, p))
+                }
+                Goal::Ground(p) => (p, true),
+                Goal::Search(p) => (p, false),
             };
             let delta = point - self.units[i].position;
             let distance = delta.length();
-            self.attack_move(i, point, distance, retarget);
-            if distance < Fixed::ONE {
+            let cell = self.vision.grid.cell;
+            if matches!(goal, Goal::Search(_)) && distance < cell {
+                // Nothing found where the target was last seen.
+                let unit = &mut self.units[i];
+                unit.combat.attack = None;
+                unit.combat.last_seen = None;
+                if unit.combat.attack_moving {
+                    unit.combat.attack_moving = false;
+                    stop(unit);
+                }
+                continue;
+            }
+            // Without a line of sight the unit drives on until it sees the
+            // target (or reaches the point where it was last seen).
+            let wanted = if sees {
+                self.types[ty].max_range * Fixed::from_num(self.combat_rules.fire.attack_range_pct)
+                    / 100
+            } else {
+                cell / 2
+            };
+            self.attack_move(i, point, distance, wanted, retarget);
+            if distance < Fixed::ONE || !sees {
                 continue;
             }
             let want = Vec2::new(delta.x / distance, delta.y / distance);
@@ -438,6 +476,7 @@ impl Sim {
                         self.types[ty].can_damage(w, &self.combat_rules, target, distance)
                     }
                     Goal::Ground(_) => distance <= self.types[ty].weapons[w].range,
+                    Goal::Search(_) => false,
                 };
                 if ok {
                     let aim_point = match goal {
@@ -446,7 +485,9 @@ impl Sim {
                             let h = self.types[u.unit_type as usize].height;
                             Vec3::new(u.position.x, u.position.y, u.height + h / 2)
                         }
-                        Goal::Ground(p) => Vec3::new(p.x, p.y, self.map.height_at(p)),
+                        Goal::Ground(p) | Goal::Search(p) => {
+                            Vec3::new(p.x, p.y, self.map.height_at(p))
+                        }
                     };
                     self.fire(i, w, aim_point);
                 }
@@ -462,11 +503,19 @@ impl Sim {
                 if let Ok(t) = self.units.binary_search_by_key(&id, |u| u.id)
                     && self.units[t].alive()
                 {
-                    return Some(Goal::Unit(t));
+                    // Only what the player sees is followed (prompt 018).
+                    if self.owner_sees(i, t) {
+                        self.units[i].combat.last_seen = Some(self.units[t].position);
+                        return Some(Goal::Unit(t));
+                    }
+                    if let Some(p) = self.units[i].combat.last_seen {
+                        return Some(Goal::Search(p));
+                    }
                 }
-                // Target destroyed: the order is done.
+                // Target destroyed or never seen: the order is done.
                 let unit = &mut self.units[i];
                 unit.combat.attack = None;
+                unit.combat.last_seen = None;
                 if unit.combat.attack_moving {
                     unit.combat.attack_moving = false;
                     stop(unit);
@@ -484,7 +533,8 @@ impl Sim {
             let t = self.units.binary_search_by_key(&id, |u| u.id).ok()?;
             let target = &self.units[t];
             let distance = (target.position - self.units[i].position).length();
-            (target.alive() && distance <= ty.max_range).then_some(t)
+            (target.alive() && distance <= ty.max_range && self.unit_sees(i, target.position))
+                .then_some(t)
         });
         let chosen = if retarget || current.is_none() {
             self.choose_target(i)
@@ -511,6 +561,10 @@ impl Sim {
             if d.x.abs() > mine.max_range || d.y.abs() > mine.max_range {
                 continue;
             }
+            // Only targets in the unit's own line of sight (prompt 018).
+            if !self.unit_sees(i, other.position) {
+                continue;
+            }
             let distance = d.length();
             let theirs = &self.types[other.unit_type as usize];
             if !(0..mine.weapons.len()).any(|w| mine.can_damage(w, rules, theirs, distance)) {
@@ -529,12 +583,18 @@ impl Sim {
 
     /// Drives a unit with an attack order into range of `point`, or stops it
     /// there.
-    fn attack_move(&mut self, i: usize, point: Vec2, distance: Fixed, retarget: bool) {
+    fn attack_move(
+        &mut self,
+        i: usize,
+        point: Vec2,
+        distance: Fixed,
+        wanted: Fixed,
+        retarget: bool,
+    ) {
         if self.units[i].combat.attack.is_none() {
             return;
         }
         let ty = &self.types[self.units[i].unit_type as usize];
-        let wanted = ty.max_range * Fixed::from_num(self.combat_rules.fire.attack_range_pct) / 100;
         let unit = &mut self.units[i];
         if distance <= wanted {
             if unit.combat.attack_moving {

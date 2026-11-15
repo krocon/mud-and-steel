@@ -10,6 +10,8 @@ extends PanelContainer
 ## - "Map objects" / "Decoration": show or hide them (prompt 013).
 ## - "Water": show or hide the water surface (prompt 014).
 ## - Biome and graphics quality switches (prompt 015).
+## - "Fog of war": off reveals every unit and the whole map (prompt 018,
+##   presentation only).
 
 var main: Node3D
 
@@ -50,6 +52,11 @@ func _ready() -> void:
 	water.button_pressed = true
 	water.toggled.connect(func(on: bool) -> void: main.water.set_water_visible(on))
 	box.add_child(water)
+	var fog := CheckBox.new()
+	fog.text = "Fog of war"
+	fog.button_pressed = true
+	fog.toggled.connect(func(on: bool) -> void: main.fog_of_war.set_fog_enabled(on))
+	box.add_child(fog)
 	# Biome and graphics quality (prompt 015), presentation only.
 	box.add_child(_choice("Biome", main.atmosphere.BIOMES, main.atmosphere.preset.id,
 		func(id: String) -> void: main.set_biome(id)))

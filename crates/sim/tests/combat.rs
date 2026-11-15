@@ -65,6 +65,7 @@ fn sim_with(
         map: map.reference(),
         terrain: TerrainRules::builtin().unwrap(),
         combat: rules,
+        vision: sim::VisionRules::builtin().unwrap(),
     };
     Sim::new(&config, map, 7).unwrap()
 }
@@ -225,7 +226,19 @@ fn a_ridge_stops_the_rounds() {
             (P1, "su_t34_76_1943", 0, -150, HOLD),
         ],
     );
-    let events = run_until_destroyed(&mut sim, UnitId(1), 200);
+    // Since prompt 018 a unit does not fire at targets it cannot see, so
+    // the hidden T-34 draws no fire by itself …
+    let events = run_until_destroyed(&mut sim, UnitId(1), 100);
+    assert!(events.is_empty(), "{events:?}");
+    // … and a ground attack at its position sends the rounds into the bank.
+    sim.step(&[PlayerCommand::new(
+        P0,
+        Command::AttackGround {
+            units: vec![UnitId(0)],
+            target: Vec2::from_meters(0, -150),
+        },
+    )]);
+    let events = run_until_destroyed(&mut sim, UnitId(1), 300);
     assert!(
         events
             .iter()

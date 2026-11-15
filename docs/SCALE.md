@@ -53,7 +53,9 @@ by different factors per kind:
   still within the overview. Duels stay visible, and range differences between weapons
   are kept in proportion.
 - **Sight × 1/4**, the same as direct fire, so a unit can see what it can shoot. Real
-  ~2 km in open terrain becomes ~500 m; terrain and fog of war (prompt 018) reduce it.
+  ~2 km in open terrain becomes ~500 m; hills, forests and buildings reduce it (prompt
+  018). The catalog has no sight values: `data/vision.toml` sets them as rules in real
+  meters per category (2 km; recon and snipers 2.8 km → 700 m; trucks 1.6 km → 400 m).
 - **Indirect fire × 1/8.** Artillery should cover a large part of the map but not all
   of it: the leFH 18 (real 10.7 km) reaches ~1.3 km, mortars (real 2–6 km) 250–750 m.
   Stronger compression than direct fire, because otherwise every gun reaches every
