@@ -35,6 +35,10 @@ pub trait Transport {
     fn round_trip_ms(&self) -> Option<(u32, u32)> {
         None
     }
+
+    /// Leaves the match: tells the other peers right away instead of letting
+    /// them run into a timeout. Called when a match is dropped.
+    fn close(&mut self) {}
 }
 
 impl<T: Transport + ?Sized> Transport for Box<T> {
@@ -48,6 +52,10 @@ impl<T: Transport + ?Sized> Transport for Box<T> {
 
     fn round_trip_ms(&self) -> Option<(u32, u32)> {
         (**self).round_trip_ms()
+    }
+
+    fn close(&mut self) {
+        (**self).close();
     }
 }
 

@@ -277,3 +277,25 @@ terrain-bench map="test_large": build
 [group('terrain')]
 terrain-shots dir map="test_large": build
     {{ GODOT }} --path godot --always-on-top --fixed-fps 30 --write-movie "{{ dir }}/f.png" -- --terrain-shots --map={{ map }}
+
+# --- LAN multiplayer (prompt 025) ----------------------------------------------------
+
+# Build the bridge and open the LAN lobby (host, search, join, start)
+[group('lan')]
+lan: build
+    {{ GODOT }} --path godot res://scenes/lan/lan_lobby.tscn
+
+# Two headless Godot instances play a LAN match over localhost (needs bash, on Windows Git Bash)
+[group('lan')]
+lan-selftest: build
+    bash tools/lan-selftest.sh
+
+# Host a headless LAN game of the demo (CLI peer, e.g. against `just lan-join` on another machine)
+[group('lan')]
+lan-host ticks="600":
+    cargo run -q -p cli -- lan-host --ticks {{ ticks }}
+
+# Join a headless LAN game: the first one found, or the given address (ip or ip:port)
+[group('lan')]
+lan-join address="" ticks="600":
+    cargo run -q -p cli -- lan-join --ticks {{ ticks }} {{ if address != "" { "--address " + address } else { "" } }}

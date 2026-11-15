@@ -193,7 +193,7 @@ impl LanNode {
                 Ok(Some(event)) => event.no_ref(),
                 Ok(None) => break,
                 Err(e) => {
-                    self.close(format!("network error: {e}"));
+                    self.close_state(format!("network error: {e}"));
                     break;
                 }
             };
@@ -227,7 +227,7 @@ impl LanNode {
         }
     }
 
-    fn close(&mut self, reason: String) {
+    fn close_state(&mut self, reason: String) {
         if !matches!(self.state, LanState::Closed(_)) {
             self.state = LanState::Closed(reason);
         }
@@ -258,7 +258,7 @@ impl LanNode {
                 };
                 if self.state == LanState::Started {
                     self.broadcast_control(&Control::PeerLeft(player));
-                    self.close(format!("player {} left the game", player.0));
+                    self.close_state(format!("player {} left the game", player.0));
                 } else {
                     self.lobby.retain(|p| p.player != player);
                     self.broadcast_lobby();
@@ -271,7 +271,7 @@ impl LanNode {
                     } else {
                         "connection to the host lost"
                     };
-                    self.close(reason.into());
+                    self.close_state(reason.into());
                 }
             }
         }
@@ -311,7 +311,7 @@ impl LanNode {
                 self.state = LanState::Lobby;
             }
             (Role::Client { .. }, Control::Reject { reason }) => {
-                self.close(format!("rejected by the host: {reason}"));
+                self.close_state(format!("rejected by the host: {reason}"));
             }
             (Role::Client { .. }, Control::Lobby { players }) => self.lobby = players,
             (Role::Client { .. }, Control::Start(info)) => {
@@ -322,11 +322,11 @@ impl LanNode {
                     self.start = Some(*info);
                     self.state = LanState::Started;
                 } else {
-                    self.close("the match started without us".into());
+                    self.close_state("the match started without us".into());
                 }
             }
             (Role::Client { .. }, Control::PeerLeft(player)) => {
-                self.close(format!("player {} left the game", player.0));
+                self.close_state(format!("player {} left the game", player.0));
             }
             // Anything else is a protocol violation by the sender; ignore it.
             _ => {}
@@ -449,6 +449,16 @@ impl Transport for LanNode {
                 )
             })
             .max_by_key(|&(rtt, variance)| rtt.saturating_add(variance))
+    }
+
+    fn close(&mut self) {
+        // Unlike `leave`, nothing waits for acknowledgements: the process
+        // may be about to exit.
+        for peer in self.host.connected_peers_mut() {
+            peer.disconnect_now(0);
+        }
+        self.host.flush();
+        self.close_state("left the game".into());
     }
 }
 
