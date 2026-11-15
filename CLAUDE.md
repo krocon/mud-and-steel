@@ -61,6 +61,6 @@ assets-src/blender/  .blend sources (Git LFS)
 tools/           Blender scripts, Godot import helper
 data/            unit catalog (catalog/*.toml, real values) and scale.toml
 docs/            ARCHITECTURE.md, DETERMINISM.md, VERSIONS.md, SCALE.md, ASSETS.md,
-                 SOURCES.md, UNIT_CATALOG.md (generated)
+                 SOURCES.md, INFANTRY.md, UNIT_CATALOG.md (generated)
 prompts/         task prompts (roadmap in prompts/README.md); finished ones: git mv to prompts/done/
 ```
