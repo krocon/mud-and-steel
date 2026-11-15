@@ -56,8 +56,8 @@ become waypoints).
 | Key *(rebindable)* | Order |
 |---|---|
 | M | Move to the clicked point |
-| T | Attack the clicked enemy |
-| G | Fire at the clicked ground point |
+| R | Attack the clicked enemy |
+| L | Fire at the clicked ground point |
 | P | Patrol: drive to the clicked point and back, again and again |
 | U | Occupy the clicked building (infantry) |
 

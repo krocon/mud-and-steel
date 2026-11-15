@@ -17,8 +17,8 @@ extends Control
 ##   squads into it (other units drive there); Z stand, X kneel, V prone,
 ##   B automatic stance.
 ## - Prompt 031: Shift + right click appends a waypoint (`SimHost.queue_move`).
-##   Targeted orders from the command bar or their keys (M move, T attack,
-##   G fire at ground, P patrol, U occupy) wait for the next left click
+##   Targeted orders from the command bar or their keys (M move, R attack,
+##   L fire at ground, P patrol, U occupy) wait for the next left click
 ##   (`command_mode`; Shift keeps the mode and queues moves); right click
 ##   cancels. Order keys are input actions, rebindable in the settings.
 ##

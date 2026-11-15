@@ -20,12 +20,14 @@ use super::{Route, Sim, Unit, formation_slots, formation_spacing, within_world};
 use crate::command::{Command, PlayerCommand, PlayerId, UnitId};
 use crate::hash::StableHasher;
 use crate::math::{Fixed, Vec2};
+use serde::{Deserialize, Serialize};
 
 /// Waypoints a unit keeps at most; more are ignored (forged commands).
 pub const MAX_QUEUED: usize = 64;
 
-/// The queued move targets of one unit.
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
+/// The queued move targets of one unit. Serializable for saved games
+/// (prompt 038 serializes the whole `Sim`).
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub(super) struct OrderQueue {
     /// Formation slots, the next one first.
     points: Vec<Vec2>,

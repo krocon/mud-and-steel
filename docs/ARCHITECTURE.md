@@ -1658,7 +1658,7 @@ player are selectable; destroyed units leave the selection.
 | Ctrl+right click (Cmd on macOS) | Fire at the ground point |
 | H | Stop the selection |
 | F | Hold fire / fire at will for the selection |
-| M, T, G, P, U | Targeted order (move, attack, fire at ground, patrol, occupy): waits for the next left click (`command_mode`; Shift keeps it and queues moves), right click cancels |
+| M, R, L, P, U | Targeted order (move, attack, fire at ground, patrol, occupy): waits for the next left click (`command_mode`; Shift keeps it and queues moves), right click cancels |
 
 Since prompt 031 the order, stance, follow and event keys are input actions
 (`order_*`, `stance_*`, `camera_follow`, `event_jump` in `project.godot`),

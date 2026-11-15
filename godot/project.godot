@@ -67,11 +67,11 @@ order_move={
 }
 order_attack={
 "deadzone": 0.2,
-"events": [Object(InputEventKey,"physical_keycode":84)]
+"events": [Object(InputEventKey,"physical_keycode":82)]
 }
 order_attack_ground={
 "deadzone": 0.2,
-"events": [Object(InputEventKey,"physical_keycode":71)]
+"events": [Object(InputEventKey,"physical_keycode":76)]
 }
 order_patrol={
 "deadzone": 0.2,
