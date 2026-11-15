@@ -9,11 +9,16 @@ extends CanvasLayer
 ## As soon as `SimHost.match_result()` is decided the result screen shows
 ## victory, defeat or draw, why, the match time and the units left per
 ## player. Added by `main.gd`; runs while the tree is paused.
+##
+## Prompt 038: "Save game" in the single-player pause menu writes a saved
+## game (`game_files.gd`). While a replay plays there is no surrender, no
+## saving and no result screen.
 
 const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
 const MatchSetup := preload("res://scenes/menu/match_setup.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
 const SettingsPanel := preload("res://scenes/menu/settings_panel.gd")
+const GameFiles := preload("res://scenes/menu/game_files.gd")
 
 var main: Node3D
 
@@ -30,6 +35,10 @@ var confirm_surrender_button: Button
 var leave_button: Button
 var menu_button: Button
 var watch_button: Button
+var save_button: Button
+var save_label: Label
+## Absolute path of the last saved game of this match ("" if none).
+var last_saved_path := ""
 
 var _root: Control
 var _shade: ColorRect
@@ -72,6 +81,8 @@ func is_paused() -> bool:
 func open_pause() -> void:
 	if _result_shown and result_panel.visible:
 		return
+	save_button.visible = main.sim_host.can_save()
+	save_label.visible = false
 	pause_panel.visible = true
 	confirm_box.visible = false
 	_shade.visible = true
@@ -85,6 +96,17 @@ func close_pause() -> void:
 	settings_panel.visible = false
 	_shade.visible = result_panel.visible
 	get_tree().paused = false
+
+
+## Writes the match as a saved game (prompt 038).
+func save_game() -> void:
+	var settings := {"biome": main.atmosphere.preset.id if main.atmosphere != null else ""}
+	last_saved_path = GameFiles.save_game(main.sim_host, settings)
+	save_label.visible = true
+	if last_saved_path.is_empty():
+		save_label.text = "This match cannot be saved."
+	else:
+		save_label.text = "Saved at %s." % GameFiles.now_text()
 
 
 func surrender() -> void:
@@ -111,7 +133,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _process(_delta: float) -> void:
-	if _result_shown:
+	if _result_shown or main.sim_host.is_replay():
 		return
 	var result: Dictionary = main.sim_host.match_result()
 	if result["decided"]:
@@ -128,8 +150,14 @@ func _build_pause() -> void:
 	_button(box, "Settings", func() -> void:
 		pause_panel.visible = false
 		settings_panel.visible = true)
+	save_button = _button(box, "Save game", save_game)
+	save_button.visible = main.sim_host.can_save()
+	save_label = MenuTheme.hint("")
+	save_label.visible = false
+	box.add_child(save_label)
 	surrender_button = _button(box, "Surrender", func() -> void:
 		confirm_box.visible = not confirm_box.visible)
+	surrender_button.visible = not main.sim_host.is_replay()
 	confirm_box = VBoxContainer.new()
 	confirm_box.visible = false
 	confirm_box.add_child(MenuTheme.hint("Give up this match? It counts as a defeat."))

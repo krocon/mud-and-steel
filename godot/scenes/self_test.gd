@@ -627,7 +627,8 @@ func _replay_test() -> void:
 	if path.is_empty():
 		return
 	var bytes := FileAccess.get_file_as_bytes(path)
-	_check(bytes == sim_host.replay_bytes(), "replay file differs from the recorded match")
+	var created: String = ReplayPlayer.read_replay_info(bytes).get("created", "")
+	_check(bytes == sim_host.replay_file_bytes(created), "replay file differs from the recorded match")
 	var problem := sim_host.verify_replay(bytes)
 	_check(problem.is_empty(), "replay check failed: %s" % problem)
 	print("self-test: replay ok (%d bytes, %d ticks)" % [bytes.size(), sim_host.current_tick()])

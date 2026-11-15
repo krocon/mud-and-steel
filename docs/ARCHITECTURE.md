@@ -35,12 +35,12 @@ Transport: lobby protocol (net::lobby) over ENet on the LAN (net::lan) or
 | Crate / folder  | Responsibility | Depends on |
 |-----------------|----------------|------------|
 | `crates/sim`    | Game rules and state. `Sim::new(config, map, seed)`, `step(&[PlayerCommand])`, `state_hash()`, `snapshot()`. Players and unit ownership, group commands with formation, maps (height field, terrain, objects, bridges), pathfinding (`sim::path`), combat (`sim::combat`), destruction of map objects (`sim::destruction`), infantry squads with soldiers, stances, cover and buildings (`sim::infantry`, prompt 022), fixed-point math, RNG, stable hash, unit catalog, scale, terrain rules and scenarios (compiled in, like the map `test_small`). | `fixed`, `serde`, `toml`, `png` |
-| `crates/net`    | Lockstep protocol: `CommandFrame`, `HashReport`, `LockstepSession` (input delay, also changed at run time, desync detection), `Transport` trait, `LoopbackTransport` for tests, `LocalTransport` for single player. Replays (`net::replay`). Network games: `net::lobby::LobbyNode` (lobby protocol, then the match transport) over a `Link`; LAN games (`net::lan`): ENet link, discovery by UDP broadcast; `MemoryLink` for tests. | `sim`, `postcard`, `rusty_enet`, `if-addrs` |
+| `crates/net`    | Lockstep protocol: `CommandFrame`, `HashReport`, `LockstepSession` (input delay, also changed at run time, desync detection), `Transport` trait, `LoopbackTransport` for tests, `LocalTransport` for single player. Replays (`net::replay`), snapshots and the rules hash (`net::snapshot`), saved games (`net::save`, prompt 038). Network games: `net::lobby::LobbyNode` (lobby protocol, then the match transport) over a `Link`; LAN games (`net::lan`): ENet link, discovery by UDP broadcast; `MemoryLink` for tests. | `sim`, `postcard`, `miniz_oxide`, `rusty_enet`, `if-addrs` |
 | `crates/steam`  | Online over Steam (prompt 026, [ONLINE.md](ONLINE.md)): the Steam client (`Steam`, app id `steam::APP_ID`), `SteamLink` over Steam Networking Messages, `OnlineLobby` (create, list, join, invite, rich presence). Optional: only the bridge (feature `steam`, default) and the CLI (feature `steam`) use it. | `net`, `steamworks` |
-| `crates/cli`    | Headless runner: `cli run --ticks N --seed S [--record FILE]` prints the state hash, `cli replay FILE` re-simulates a replay and checks its end hash, `cli gen-map` generates test maps, `cli map-info DIR` measures a map, `cli path-bench` benchmarks pathfinding, `cli map-check DIR` validates a map like the editor, `cli lan-host` / `cli lan-join` play the demo as headless LAN peers, `cli steam-host` / `cli steam-join` over Steam (feature `steam`). | `sim`, `net`, `clap`, `png`, (`steam`) |
+| `crates/cli`    | Headless runner: `cli run --ticks N --seed S [--record FILE]` prints the state hash, `cli replay FILE` re-simulates a replay and checks its end hash, `cli save-check FILE` checks a saved game, `cli save-bench` measures loading (prompt 038), `cli gen-map` generates test maps, `cli map-info DIR` measures a map, `cli path-bench` benchmarks pathfinding, `cli map-check DIR` validates a map like the editor, `cli lan-host` / `cli lan-join` play the demo as headless LAN peers, `cli steam-host` / `cli steam-join` over Steam (feature `steam`). | `sim`, `net`, `clap`, `png`, (`steam`) |
 | `crates/ai`     | Computer players (prompt 024): `Ai::think(&PlayerView) -> Vec<Command>`, the fog-of-war `PlayerView`, difficulties, `game::Game` for headless AI matches. Runs on one machine as a hosted player of the lockstep session, not inside the simulation. See [AI.md](AI.md). | `sim`, `net` |
 | `crates/editor` | Map editing (prompt 028): `EditMap` with integer brushes, undo per stroke, saving in the map format and validation through the simulation's loader and path finder. A tool like `cli gen-map`, not game rules. | `sim`, `png`, `toml` |
-| `crates/bridge` | GDExtension `cdylib`. `SimHost` node: runs ticks from a time accumulator through a `LockstepSession`, queues commands, exposes the last two snapshots and the replay; plays single player over `LocalTransport`, a LAN match (`SimHost.start_lan`) or an online match (`SimHost.start_online`). `LanLobby` drives the LAN lobby, `SteamLobby` the online lobby (always registered; without the `steam` feature it reports that). `MapEditor` hosts the map editor. The only float conversion. | `sim`, `net`, `editor`, `godot`, (`steam`) |
+| `crates/bridge` | GDExtension `cdylib`. `SimHost` node: runs ticks from a time accumulator through a `LockstepSession`, queues commands, exposes the last two snapshots and the replay; plays single player over `LocalTransport`, a LAN match (`SimHost.start_lan`) or an online match (`SimHost.start_online`). `LanLobby` drives the LAN lobby, `SteamLobby` the online lobby (always registered; without the `steam` feature it reports that). `MapEditor` hosts the map editor. `ReplayPlayer` holds an opened replay and its snapshots (prompt 038). The only float conversion. | `sim`, `net`, `editor`, `godot`, (`steam`) |
 | `godot/`        | Scenes, GDScript UI logic, assets. No C#. | bridge (via `.gdextension`) |
 | `data/`         | Unit catalog (`catalog/*.toml`, real values), `scale.toml` (conversion to game values), `terrain.toml` (terrain types, slope rules), `combat.toml` (combat rules), `infantry.toml` (stances, cover, buildings), scenarios (`scenarios/*.toml`, start setups) and maps (`maps/<name>/`), integers only. See [SCALE.md](SCALE.md) and [MAPS.md](MAPS.md). | – |
 
@@ -1633,16 +1633,19 @@ ring; units of other players carry a red tint overlay.
 ## Replays
 
 The game writes the match to `user://replays/<date-time>.msreplay` when the main scene
-exits (macOS: `~/Library/Application Support/Godot/app_userdata/Mud and Steel/replays/`).
-`just replay <file>` re-simulates it headless and reports whether the end hash matches.
-`just record <file>` writes a replay of the scripted demo without Godot.
+exits (macOS: `~/Library/Application Support/Godot/app_userdata/Mud and Steel/replays/`);
+watching a replay writes nothing. `just replay <file>` re-simulates it headless and
+reports whether the end hash matches. `just record <file>` writes a replay of the
+scripted demo without Godot.
 
 Format (`crates/net/src/replay.rs`):
 
 ```
 "MSRP"  4 bytes magic
-u16 LE  format version (currently 4)
-postcard body: seed, resolved SimConfig, lockstep players, tick count,
+u16 LE  format version (currently 6)
+postcard body: info (game version, rules hash, date, map, tick rate, ticks,
+                     players with faction and kind, result, multiplayer),
+               seed, resolved SimConfig, lockstep players, tick count,
                frames (tick + merged PlayerCommands, only non-empty ticks), end hash
 ```
 
@@ -1651,11 +1654,17 @@ Decisions:
 - **Header outside postcard.** postcard is not self-describing, so a reader must know
   the version before decoding. A fixed magic and version let old builds reject new
   files with a clear message instead of garbage.
+- **Info first (prompt 038).** `ReplayInfo` is the first field of the body, so the
+  replay list reads it with `Replay::read_info` without decoding the commands. It
+  carries the game version (for the player) and the rules hash (for the check):
+  `Replay::decode` rejects a replay whose rules hash differs from this build's
+  (`ReplayError::RulesChanged`) instead of playing back a different game. Version 6
+  (prompt 038) added the info; older replays are rejected as "from an older game
+  version".
 - **Resolved config instead of a scenario name.** The replay carries the unit types as
-  the simulation used them (already converted from the catalog). Catalog or scenario
-  edits do not invalidate old replays; changes of the simulation rules do, and then
-  playback reports the end-hash mismatch instead of silently showing a different game.
-  Terrain rules are part of the config, too.
+  the simulation used them (already converted from the catalog). Terrain rules are
+  part of the config, too. Note that the rules hash also changes with the catalog
+  (see "Saved games and replay viewer").
 - **Map by reference.** The map (20 MB for 4 km) is not copied into the replay; the
   config names it with its content hash. `just replay` loads `data/maps/<name>/` (or
   the built-in `test_small`) and refuses a map whose hash differs. Version 2 (prompt
@@ -1668,6 +1677,100 @@ Decisions:
   end. An hour of play with a few orders per second stays well below a megabyte.
 - **Only the end hash.** It proves the whole run; intermediate hashes to locate a
   divergence can be added with a version bump.
+
+## Saved games and replay viewer
+
+Prompt 038. Single-player matches can be saved and continued; every replay can be
+watched in the game.
+
+### Snapshots
+
+A snapshot is the complete state of a `Sim` (`crates/sim/src/snapshot.rs`, encoding in
+`crates/net/src/snapshot.rs`):
+
+```
+"MSSN"  4 bytes magic
+u16 LE  format version (currently 1)
+u64 LE  Sim::state_hash at the snapshot
+deflate (miniz_oxide, level 1) of postcard(SimSnapshot { map: MapDelta, sim: Sim })
+```
+
+- `Sim` and every type it holds derive `Serialize` and `Deserialize`. **New state is
+  included automatically**: a field whose type does not derive them does not compile.
+  Derived data (path grid, vision rasters, object index, unit grid) is saved, not
+  rebuilt: rebuilding would have to reproduce every incremental change exactly (local
+  path relabeling after craters, vision budgets).
+- The map is skipped (`#[serde(skip)]`) and saved as `MapDelta`: the map reference,
+  the height and terrain samples that differ from the loaded map (craters) and the
+  intact flag of every bridge. `Sim::restore` applies it to the loaded map.
+- `net::snapshot::decode` checks the stored state hash against the restored
+  simulation. Tests (`crates/net/tests/snapshot.rs`) restore the demo at several ticks
+  (with craters) and step original and copy side by side: every tick has the same hash.
+- serde's derive borrows `&'static str` fields; the economy's faction ids use a type
+  alias and a `with` module (`sim/economy.rs`, `static_faction`).
+
+### Rules hash
+
+`net::snapshot::rules_hash()` is the hash of the uncompressed snapshot bytes after a
+fixed reference run (the demo, seed 7, 400 ticks; ≈ 60 ms once per process). Any rule
+change changes the state, any new state field the bytes, so files of a build with other
+rules are rejected up front, without a constant to maintain. **[provisional]** The demo
+uses catalog units, so catalog edits change it too, and older replays then count as
+incompatible although they carry their resolved config. A reference run with a config
+built in code would avoid that.
+
+### Saved games
+
+`net::save::SaveGame` (`user://saves/<date-time>.mssave`):
+
+```
+"MSSV"  4 bytes magic
+u16 LE  format version (currently 1)
+postcard body: info (as in replays; ticks = save tick), the replay from tick 0 to the
+               save tick, snapshot bytes, pending lockstep frames, input delay,
+               computer players' state (postcard of ai::Ai), settings (biome)
+```
+
+- **Loading restores the snapshot, it does not re-simulate.** Measured with
+  `just save-bench` (release, Apple M1 Max): the large battle (`bench_large`, 504 units,
+  two hard AIs, 6000 ticks = 5 min) re-simulates in 32.4 s (5.4 ms per tick, an hour
+  ≈ 6½ min); its snapshot writes in 162 ms, restores in 113 ms and has 9.1 MB. The base
+  building skirmish on `test_small` (10 min): 0.27 s re-simulation, 8 / 5 ms and 452 KB
+  for the snapshot.
+- **Exact continuation.** Commands already given but not yet simulated (input delay)
+  are kept (`LockstepSession::pending_frames` / `resume`), and so is the state of every
+  computer player (`ai::Ai::save_state`). A loaded game plays exactly like the match
+  that was never saved (`crates/ai/tests/save.rs`, battle and base building).
+- **The replay keeps growing.** The saved replay continues (`ReplayRecorder::resume`),
+  so the replay written at the end covers the whole match from tick 0.
+  `SaveGame::verify` / `just save-check <file>` re-simulates it and compares it with
+  the snapshot.
+- Only single player can be saved (also against computer players): the pause menu
+  offers "Save game" when `SimHost.can_save()`. The main menu's "Load game" lists the
+  saves (date, map, players, time) and hands the chosen one to `main.tscn` through
+  `MatchSetup.pending` (`menu/game_files.gd`).
+
+### Replay viewer
+
+Main menu → "Replays" lists `user://replays/` (date, map, players with faction and
+human/computer, duration, result); files of an older format or other rules are greyed
+out with the reason. "Watch" opens the replay in a `ReplayPlayer` (bridge,
+`replay_funcs.rs`) and starts `main.tscn` with `SimHost.start_replay(player, tick,
+view)`: `Game::step` then takes the commands from the replay instead of the lockstep
+session, the player's commands are dropped, nothing is saved or recorded.
+
+- **Controls** (`replay/replay_bar.gd`): play/pause, 1×/2×/4×/8× (`SimHost.speed`; up
+  to 20 ticks per frame while a replay plays), a timeline and the perspective.
+- **Snapshots for jumps.** While a replay plays (or is fast-forwarded), a snapshot is
+  kept in memory every 600 ticks (30 s). A jump rebuilds `main.tscn` from the nearest
+  earlier snapshot and plays the rest headless, because terrain, craters and object
+  states are built from the simulation when the scene starts. The open replay and its
+  snapshots live in a static of `game_files.gd`, so they survive the rebuild.
+- **Perspective.** One player: the presentation's local player (that player's fog of
+  war, the others tinted as enemies). "Everything": `reveal_all`. A change rebuilds the
+  scene at the current tick like a jump.
+- **Multiplayer.** No saving; the replay is written as before (with its info) and can
+  be watched like any other.
 
 ## Camera rig (presentation only)
 

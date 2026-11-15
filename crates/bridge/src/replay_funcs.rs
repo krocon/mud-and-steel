@@ -88,6 +88,15 @@ impl ReplayPlayer {
         self.replay.as_ref().map_or(0, |r| tick_i64(r.ticks))
     }
 
+    /// State hash at the end of the open replay, as hex string (compare with
+    /// `SimHost.state_hash` at the end of playback).
+    #[func]
+    fn end_hash(&self) -> GString {
+        self.replay.as_ref().map_or_else(GString::new, |r| {
+            GString::from(format!("{:#018x}", r.end_hash).as_str())
+        })
+    }
+
     /// Ticks of the snapshots taken so far.
     #[func]
     fn keyframe_ticks(&self) -> PackedInt64Array {

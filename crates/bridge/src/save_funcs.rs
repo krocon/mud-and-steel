@@ -96,6 +96,20 @@ impl SimHost {
         GString::from(self.load_error.as_str())
     }
 
+    /// Tick and state hash (hex) right after the last `load_game`, before
+    /// any further tick: `tick`, `hash` (empty without a loaded game).
+    #[func]
+    fn loaded_state(&self) -> VarDictionary {
+        self.loaded_state
+            .as_ref()
+            .map_or_else(VarDictionary::new, |(tick, hash)| {
+                vdict! {
+                    "tick" => i64::try_from(*tick).unwrap_or(i64::MAX),
+                    "hash" => format!("{hash:#018x}"),
+                }
+            })
+    }
+
     /// The `settings` saved with the loaded game (empty otherwise).
     #[func]
     fn loaded_settings(&self) -> VarDictionary {
@@ -148,6 +162,7 @@ impl SimHost {
         }
         game.ais = ais;
         self.loaded_settings = save.settings;
+        self.loaded_state = Some((game.sim.tick(), game.sim.state_hash()));
         godot_print!(
             "saved game loaded: map '{}', tick {}, {} computer player(s)",
             save.info.map,

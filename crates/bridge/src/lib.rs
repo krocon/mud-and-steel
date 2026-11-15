@@ -264,6 +264,8 @@ pub struct SimHost {
     load_error: String,
     /// Settings saved with the loaded game (prompt 038).
     loaded_settings: Vec<(String, String)>,
+    /// Tick and state hash right after `load_game` (prompt 038).
+    loaded_state: Option<(u64, u64)>,
     base: Base<Node>,
 }
 
@@ -290,6 +292,7 @@ impl INode for SimHost {
             speed: 1.0,
             load_error: String::new(),
             loaded_settings: Vec::new(),
+            loaded_state: None,
             base,
         }
     }

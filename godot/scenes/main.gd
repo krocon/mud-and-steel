@@ -50,6 +50,9 @@ extends Node3D
 ## `-- --mode=base` starts the base-building skirmish directly (prompt 023);
 ## `-- --scenario=<file>` starts a scenario file of `data/scenarios/`;
 ## `-- --infantry-bench` runs `tools/infantry_bench.gd`.
+## Saved games and replays (prompt 038): the menu hands a saved game or a
+## replay over (`menu/game_files.gd`); a replay plays with the controls of
+## `replay/replay_bar.gd` and is not written again on exit.
 
 const UNIT_SCENE: PackedScene = preload("res://scenes/unit.tscn")
 const SelfTest := preload("res://scenes/self_test.gd")
@@ -83,6 +86,8 @@ const GameMenu := preload("res://scenes/menu/game_menu.gd")
 const BaseView := preload("res://scenes/world/base_view.gd")
 const BaseHud := preload("res://scenes/world/base_hud.gd")
 const BaseShots := preload("res://scenes/tools/base_shots.gd")
+const GameFiles := preload("res://scenes/menu/game_files.gd")
+const ReplayBar := preload("res://scenes/replay/replay_bar.gd")
 const SEED := 42
 ## Map folders, relative to the Godot project (repository checkout only).
 const MAPS_DIR := "res://../data/maps"
@@ -268,6 +273,11 @@ func _ready() -> void:
 	game_menu.name = "GameMenu"
 	game_menu.main = self
 	add_child(game_menu)
+	if sim_host.is_replay():
+		var replay_bar := ReplayBar.new()
+		replay_bar.name = "ReplayBar"
+		replay_bar.main = self
+		add_child(replay_bar)
 	if _loading != null:
 		_loading.set_step("Ready.", 1.0)
 		await get_tree().process_frame
@@ -384,6 +394,8 @@ func _start_simulation() -> bool:
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--ai="):
 			sim_host.ai_opponent = arg.trim_prefix("--ai=")
+	if GameFiles.is_pending(MatchSetup.pending):
+		return GameFiles.start(sim_host, MatchSetup.pending)
 	if not MatchSetup.pending.is_empty():
 		var setup := MatchSetup.pending
 		sim_host.mode = setup.get("mode", "battle")
@@ -412,12 +424,12 @@ func _start_simulation() -> bool:
 ## Writes the match so far to `user://replays/<prefix><date-time>.msreplay`
 ## and returns the path, or "" on failure.
 func save_replay(prefix := "") -> String:
-	var bytes := sim_host.replay_bytes()
+	var bytes := sim_host.replay_file_bytes(GameFiles.now_text())
 	if bytes.is_empty():
 		return ""
 	DirAccess.make_dir_recursive_absolute(REPLAY_DIR)
 	var stamp := Time.get_datetime_string_from_system().replace(":", "-")
-	var path := "%s/%s%s.msreplay" % [REPLAY_DIR, prefix, stamp]
+	var path := GameFiles.unique_path(REPLAY_DIR, prefix + stamp, GameFiles.REPLAY_EXTENSION)
 	var file := FileAccess.open(path, FileAccess.WRITE)
 	if file == null:
 		push_error("cannot write replay %s: %s" % [path, error_string(FileAccess.get_open_error())])
@@ -425,6 +437,7 @@ func save_replay(prefix := "") -> String:
 	file.store_buffer(bytes)
 	file.close()
 	var absolute := ProjectSettings.globalize_path(path)
+	GameFiles.last_replay_path = absolute
 	print("replay written: %s (%d ticks)" % [absolute, sim_host.current_tick()])
 	return absolute
 
