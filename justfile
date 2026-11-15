@@ -119,6 +119,8 @@ units:
 [group('assets')]
 validate-assets:
     {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python tools/blender/validate.py
+    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/validate_soldier.py
+    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/squads.py -- validate
 
 # Render all built models side by side with the 1.80 m reference figure
 [group('assets')]
@@ -171,3 +173,20 @@ infantry-preview: build
 [group('infantry')]
 infantry-selftest: build
     {{ GODOT }} --path godot --headless res://scenes/tools/infantry_preview.tscn -- --self-test
+
+# --- Squads (prompt 006) -------------------------------------------------------------
+
+# Generate one squad scene from assets-src/blueprints/<faction>/squads/<id>.toml
+[group('infantry')]
+squad faction id:
+    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/squads.py -- build {{ faction }}/{{ id }}
+
+# Generate every squad scene
+[group('infantry')]
+squads:
+    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/squads.py -- build
+
+# Check the squads against the catalog (members, roles, weapons, scene up to date)
+[group('infantry')]
+validate-squads:
+    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/squads.py -- validate
