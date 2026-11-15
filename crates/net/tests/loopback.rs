@@ -21,6 +21,8 @@ fn two_peers_stay_in_sync() {
     assert_eq!(a.hashes, b.hashes, "per-tick hashes differ");
     assert_eq!(a.session.desync(), None);
     assert_eq!(b.session.desync(), None);
+    assert_eq!(a.session.verified_tick(), TICKS);
+    assert_eq!(b.session.verified_tick(), TICKS);
 
     // Each peer ran only its own player's script, and the forged commands were
     // ignored, so the match equals the scripted demo with both players.
@@ -41,6 +43,36 @@ fn two_peers_stay_in_sync() {
             .count();
         assert!(moved >= 2, "player {} moved only {moved} units", player.0);
     }
+}
+
+#[test]
+fn changing_input_delays_stay_in_sync() {
+    let (mut a, mut b) = pair();
+    // Each peer changes its own delay independently while the match runs.
+    let delays_a = [3, 7, 1, 12, 2];
+    let delays_b = [5, 1, 9, 3, 4];
+    let mut rounds = 0;
+    while a.sim.tick() < TICKS || b.sim.tick() < TICKS {
+        for (peer, delays) in [(&mut a, &delays_a), (&mut b, &delays_b)] {
+            if peer.sim.tick() < TICKS {
+                let phase = usize::try_from(peer.sim.tick() / 130).unwrap();
+                peer.session.set_input_delay(delays[phase % delays.len()]);
+                peer.poll();
+            }
+        }
+        rounds += 1;
+        assert!(rounds < 20 * TICKS, "lockstep stalled");
+    }
+    a.session.receive(&mut a.transport).unwrap();
+    b.session.receive(&mut b.transport).unwrap();
+
+    assert_eq!(a.hashes, b.hashes, "per-tick hashes differ");
+    assert_eq!(a.session.desync(), None);
+    assert_eq!(b.session.desync(), None);
+    assert_eq!(a.session.verified_tick(), TICKS);
+    // Every frame asks the script for its own tick, so the delays do not
+    // change the match.
+    assert_eq!(a.sim.state_hash(), run_demo(SEED, TICKS).state_hash());
 }
 
 #[test]

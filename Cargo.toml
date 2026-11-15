@@ -18,6 +18,8 @@ toml = "1.2"
 png = "0.18"
 clap = { version = "4.6", features = ["derive"] }
 godot = { version = "=0.5.5", features = ["api-4-7"] }
+rusty_enet = "0.4.1"
+if-addrs = "0.15"
 
 [profile.release]
 debug = "line-tables-only"
