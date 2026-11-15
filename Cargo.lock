@@ -74,6 +74,7 @@ checksum = "3ded4057c258ba199e2d26386d3af3780957ecaee6c4ef4041c6b4b8b97c0b06"
 name = "bridge"
 version = "0.1.0"
 dependencies = [
+ "editor",
  "godot",
  "net",
  "sim",
@@ -142,6 +143,7 @@ name = "cli"
 version = "0.1.0"
 dependencies = [
  "clap",
+ "editor",
  "net",
  "png",
  "sim",
@@ -177,6 +179,16 @@ name = "crunchy"
 version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "460fbee9c2c2f33933d720630a6a0bac33ba7053db5344fac858d4b8952d77d5"
+
+[[package]]
+name = "editor"
+version = "0.1.0"
+dependencies = [
+ "net",
+ "png",
+ "sim",
+ "toml",
+]
 
 [[package]]
 name = "embedded-io"

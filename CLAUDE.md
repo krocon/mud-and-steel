@@ -45,6 +45,8 @@ just import                # headless Godot import (after clone / new assets)
 just run                   # build + start the game in the main menu (--skip-menu: test match)
 just selftest              # build + headless test: menu, settings, matches, result
 just lan / just lan-selftest  # LAN lobby / two headless instances over localhost
+just map-editor / just editor-selftest  # map editor / its headless test
+just map-check <name>      # validate data/maps/<name>/ like the editor
 just catalog-doc           # regenerate docs/UNIT_CATALOG.md after catalog changes
 just export-model assets-src/blender/X.blend
 just model-tank            # regenerate placeholder tank
@@ -56,7 +58,8 @@ just model-tank            # regenerate placeholder tank
 crates/sim/      deterministic game rules (Fixed, Vec2, Rng, StableHasher, Sim, scenario)
 crates/net/      lockstep protocol, Transport trait, LoopbackTransport
 crates/cli/      headless runner
-crates/bridge/   godot-rust GDExtension (SimHost node)
+crates/bridge/   godot-rust GDExtension (SimHost node, MapEditor node)
+crates/editor/   map editor core: brushes, undo, saving, validation (no Godot)
 godot/           Godot project: scenes/, ui/, assets/, mud_and_steel.gdextension
 assets-src/blender/  .blend sources (Git LFS)
 tools/           Blender scripts, Godot import helper

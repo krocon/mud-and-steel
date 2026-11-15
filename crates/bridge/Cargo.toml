@@ -12,4 +12,5 @@ crate-type = ["cdylib"]
 [dependencies]
 sim.workspace = true
 net.workspace = true
+editor.workspace = true
 godot.workspace = true

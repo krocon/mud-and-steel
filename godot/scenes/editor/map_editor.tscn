@@ -1,0 +1,31 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scenes/editor/map_editor.gd" id="1_editor"]
+[ext_resource type="PackedScene" path="res://scenes/camera/rts_camera.tscn" id="2_camera"]
+[ext_resource type="Script" path="res://scenes/terrain/terrain.gd" id="3_terrain"]
+
+[sub_resource type="Environment" id="Env"]
+background_mode = 1
+background_color = Color(0.36, 0.42, 0.45, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.6, 0.6, 0.6, 1)
+ambient_light_energy = 0.6
+
+[node name="MapEditorScene" type="Node3D"]
+script = ExtResource("1_editor")
+
+[node name="MapEditor" type="MapEditor" parent="."]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Env")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+shadow_enabled = true
+
+[node name="RtsCamera" parent="." node_paths=PackedStringArray("sun") instance=ExtResource("2_camera")]
+sun = NodePath("../Sun")
+
+[node name="Terrain" type="Node3D" parent="."]
+script = ExtResource("3_terrain")
+
+[node name="Hud" type="CanvasLayer" parent="."]

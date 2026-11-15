@@ -210,6 +210,21 @@ test-maps:
 map-info name="test_large":
     cargo run -q --release -p cli -- map-info data/maps/{{ name }}
 
+# Check a map like the map editor: loading, start positions, paths between the starts
+[group('maps')]
+map-check name="test_small":
+    cargo run -q --release -p cli -- map-check data/maps/{{ name }}
+
+# Build the bridge and open the map editor (prompt 028); args e.g. --edit=test_small
+[group('maps')]
+map-editor *args: build
+    {{ GODOT }} --path godot res://scenes/editor/map_editor.tscn {{ if args != "" { "-- " + args } else { "" } }}
+
+# Headless self-test of the map editor: build a map, save, play it from the menu, delete it
+[group('maps')]
+editor-selftest: build
+    {{ GODOT }} --path godot --headless --fixed-fps 60 -- --editor-self-test
+
 # Build the bridge and start the game on a map from data/maps/
 [group('maps')]
 run-map name="test_large": build

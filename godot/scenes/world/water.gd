@@ -20,9 +20,10 @@ var _material: ShaderMaterial
 
 
 ## Builds the water mesh of the map loaded in `host` (nothing without water).
-func build(host: SimHost) -> void:
+## `host`: SimHost, or MapEditor in the map editor (prompt 028).
+func build(host: Object) -> void:
 	var started := Time.get_ticks_usec()
-	var data := host.water_mesh()
+	var data: Dictionary = host.water_mesh()
 	var vertices: PackedVector3Array = data.get("vertices", PackedVector3Array())
 	var indices: PackedInt32Array = data.get("indices", PackedInt32Array())
 	if indices.is_empty():

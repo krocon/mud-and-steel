@@ -49,7 +49,9 @@ const INSTANCE_FLOATS := 16
 ## Depth of the map edge cut below the lowest point of the map, in meters.
 @export var edge_depth := 12.0
 
-var sim_host: SimHost
+## SimHost in a match, MapEditor in the map editor (prompt 028): both offer
+## the same read functions.
+var sim_host: Object
 ## Visible chunks per LOD level in the last update (for the debug overlay).
 var visible_per_lod := PackedInt32Array()
 ## Duration of the last chunk update in microseconds (for the benchmark).
@@ -78,7 +80,7 @@ var _dirty := true
 
 
 ## Builds textures, meshes and the map edge for the map loaded in `host`.
-func build(host: SimHost) -> void:
+func build(host: Object) -> void:
 	var started := Time.get_ticks_usec()
 	sim_host = host
 	_samples = host.grid_samples(1)
@@ -90,7 +92,7 @@ func build(host: SimHost) -> void:
 	_lods.resize(_chunks.x * _chunks.y)
 	_ranges = host.terrain_chunk_ranges(CHUNK_CELLS)
 
-	var layers := host.terrain_layers(0, 0, _samples.x, _samples.y)
+	var layers: Dictionary = host.terrain_layers(0, 0, _samples.x, _samples.y)
 	_images["height"] = Image.create_from_data(
 		_samples.x, _samples.y, false, Image.FORMAT_RF, (layers["height"] as PackedFloat32Array).to_byte_array()
 	)
@@ -115,7 +117,7 @@ func build(host: SimHost) -> void:
 	_material.set_shader_parameter("macro_tex", MACRO)
 	_material.set_shader_parameter("layer_tile", PackedFloat32Array(LAYER_TILE_M))
 	# Water level per sample (prompt 014): wet band above the waterline.
-	var levels := host.water_levels()
+	var levels: PackedFloat32Array = host.water_levels()
 	if levels.size() == _samples.x * _samples.y:
 		var water := Image.create_from_data(_samples.x, _samples.y, false, Image.FORMAT_RF, levels.to_byte_array())
 		_material.set_shader_parameter("water_tex", ImageTexture.create_from_image(water))
@@ -255,7 +257,7 @@ func update_chunks(camera: Camera3D) -> void:
 ## height change, so the rectangle is grown before reading.
 func heights_changed(rect: Rect2i) -> void:
 	var grown := rect.grow(8)
-	var layers := sim_host.terrain_layers(grown.position.x, grown.position.y, grown.size.x, grown.size.y)
+	var layers: Dictionary = sim_host.terrain_layers(grown.position.x, grown.position.y, grown.size.x, grown.size.y)
 	if layers.is_empty():
 		return
 	var clipped: Rect2i = layers["rect"]
@@ -281,9 +283,20 @@ func heights_changed(rect: Rect2i) -> void:
 ## Presses a presentation-only test crater into the ground at `point` and
 ## rebuilds the affected chunks (debug menu, self-test).
 func debug_crater(point: Vector3, radius := 6.0, depth := 1.5) -> void:
-	var rect := sim_host.debug_dent(point.x, point.z, radius, depth)
+	var rect: Rect2i = sim_host.debug_dent(point.x, point.z, radius, depth)
 	if rect.has_area():
 		heights_changed(rect)
+
+
+## Re-reads the water levels of the wet band (map editor, prompt 028: after
+## painting water or digging a river).
+func refresh_water() -> void:
+	var levels: PackedFloat32Array = sim_host.water_levels()
+	var has_water := levels.size() == _samples.x * _samples.y
+	if has_water:
+		var water := Image.create_from_data(_samples.x, _samples.y, false, Image.FORMAT_RF, levels.to_byte_array())
+		_material.set_shader_parameter("water_tex", ImageTexture.create_from_image(water))
+	_material.set_shader_parameter("has_water", has_water)
 
 
 ## Displayed height at a sample (meters), from the uploaded raster.
