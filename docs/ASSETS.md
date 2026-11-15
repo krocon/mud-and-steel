@@ -260,6 +260,8 @@ can swap them per biome (forest, desert, winter) and faction:
 | `Glass` | vision blocks, windows, canopies |
 | `Skin` | exposed skin of soldiers |
 | `Cloth` | uniforms and webbing; receives the uniform scheme |
+| `Leather` | boots, belts, leather pouches and holsters (soldiers) |
+| `Insignia` | plain fixed-color markings worn by soldiers, e.g. the white medic armband |
 
 Environment objects may additionally use `Bark`, `Foliage`, `Stone`, `Plaster` and
 `Ground`. New slots are added here first.
@@ -290,6 +292,15 @@ Environment objects may additionally use `Bark`, `Foliage`, `Stone`, `Plaster` a
 - Colors are sRGB approximations of the historical paints named in each
   palette's `note` (e.g. Dunkelgelb RAL 7028, Olivgrün RAL 6003, Rotbraun
   RAL 8017, Soviet 4BO, US Olive Drab).
+
+## Infantry
+
+Soldiers follow their own layout (prompt 005), described in [INFANTRY.md](INFANTRY.md):
+one shared humanoid skeleton (Godot `SkeletonProfileHumanoid` bone names), body and
+gear as skinned meshes, the weapon on the extra bone `Weapon` with `Socket_Muzzle`.
+Files: `assets-src/blender/<faction>/infantry/<role>.blend` and
+`godot/assets/models/<faction>/infantry/<role>.glb`, built by
+`tools/blender/build_soldier.py` and checked by `tools/blender/validate_soldier.py`.
 
 ## Markings
 

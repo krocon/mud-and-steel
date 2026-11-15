@@ -129,3 +129,35 @@ gallery: build
 [group('godot')]
 gallery-check: build
     {{ GODOT }} --path godot --headless res://scenes/tools/model_gallery.tscn -- --self-test
+
+# --- Infantry (prompt 005) -----------------------------------------------------------
+
+# Build one soldier: .blend + godot/assets/models/<faction>/infantry/<role>.glb
+[group('infantry')]
+soldier faction role biome="forest":
+    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/build_soldier.py -- {{ faction }} {{ role }} {{ biome }}
+
+# Build every soldier of every faction (see tools/blender/soldier/loadouts.py)
+[group('infantry')]
+soldiers:
+    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/build_soldier.py -- --all
+
+# Validate all soldiers (height 1.80 m +- 2 %, bone names, sockets, budgets, clips)
+[group('infantry')]
+validate-soldiers *files:
+    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/validate_soldier.py -- {{ files }}
+
+# Render the soldier line-up with tank and reference figure into a scratch directory
+[group('infantry')]
+soldier-lineup out="build/lineup":
+    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/soldier_lineup.py -- {{ out }}
+
+# Open the infantry preview (all soldiers, biomes, animations)
+[group('infantry')]
+infantry-preview: build
+    {{ GODOT }} --path godot res://scenes/tools/infantry_preview.tscn
+
+# Headless check of all soldier models in Godot (clips, skeleton, sockets, biomes)
+[group('infantry')]
+infantry-selftest: build
+    {{ GODOT }} --path godot --headless res://scenes/tools/infantry_preview.tscn -- --self-test

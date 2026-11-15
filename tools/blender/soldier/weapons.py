@@ -1,0 +1,325 @@
+"""Low-poly small arms, built from parameters with real dimensions.
+
+Weapon space: origin at the right-hand grip (pistol grip or wrist of the stock),
++Y towards the muzzle, +Z up. Every weapon defines the points
+- `grip_r` (always the origin) and `grip_l` (support hand),
+- `butt` (shoulder contact; launchers: shoulder rest),
+- `muzzle` (becomes the `Socket_Muzzle` empty, +Y forward),
+- `ground` (contact point when the weapon stands on the ground: mortars, bipods).
+
+Dimensions (overall length, barrel length, caliber) are real values. Sources are
+listed per weapon in `source`; values the sources disagree on, or that were estimated,
+are named in `uncertain` (same rules as the unit catalog, docs/SOURCES.md).
+"""
+
+import math
+
+from mathutils import Matrix, Vector
+
+from .mesh import MeshBuilder
+
+W = {"Weapon": 1.0}
+
+WIKI = "https://en.wikipedia.org/wiki/"
+
+WEAPONS = {
+    # --- de ---------------------------------------------------------------------------
+    "kar98k": dict(kind="rifle", length=1.110, barrel=0.600, pull=0.33, full_stock=True,
+                   source=[WIKI + "Karabiner_98k"]),
+    "kar98k_zf39": dict(kind="rifle", length=1.110, barrel=0.600, pull=0.33, full_stock=True,
+                        scope=0.27, source=[WIKI + "Karabiner_98k", WIKI + "Zielfernrohr_39"]),
+    "mp40": dict(kind="smg", length=0.833, barrel=0.251, pull=0.26, mag=(0.11, 0.25),
+                 folding_stock=True, source=[WIKI + "MP_40"]),
+    "mg42": dict(kind="mg", length=1.220, barrel=0.533, pull=0.30, bipod=0.80, jacket=True,
+                 belt=True, source=[WIKI + "MG_42"]),
+    "panzerschreck": dict(kind="launcher", length=1.640, caliber=0.088, rear=0.62,
+                          shield=True, source=[WIKI + "Panzerschreck"]),
+    "legrw36": dict(kind="mortar", barrel=0.465, caliber=0.050, base=(0.30, 0.22),
+                    source=[WIKI + "5_cm_leGrW_36"]),
+    "fmw41": dict(kind="flame", length=0.70, source=[WIKI + "Flammenwerfer_41"],
+                  uncertain=["length"]),
+    # --- su ---------------------------------------------------------------------------
+    "mosin": dict(kind="rifle", length=1.232, barrel=0.730, pull=0.33, full_stock=True,
+                  source=[WIKI + "Mosin–Nagant"]),
+    "mosin_pu": dict(kind="rifle", length=1.232, barrel=0.730, pull=0.33, full_stock=True,
+                     scope=0.17, source=[WIKI + "Mosin–Nagant", WIKI + "PU_scope"]),
+    "ppsh41": dict(kind="smg", length=0.843, barrel=0.269, pull=0.30, drum=0.115, wood_stock=True,
+                   jacket=True, source=[WIKI + "PPSh-41"]),
+    "dp27": dict(kind="mg", length=1.270, barrel=0.605, pull=0.32, bipod=0.78, pan=0.25,
+                 wood_stock=True, jacket=True, source=[WIKI + "DP-27"]),
+    "ptrd41": dict(kind="atr", length=2.000, barrel=1.350, pull=0.32, bipod=0.55,
+                   source=[WIKI + "PTRD-41"]),
+    "pm40": dict(kind="mortar", barrel=0.630, caliber=0.050, base=(0.32, 0.25),
+                 source=[WIKI + "50-PM_40"], uncertain=["barrel"]),
+    "roks3": dict(kind="flame", length=0.95, rifle_like=True, source=[WIKI + "ROKS-3"],
+                  uncertain=["length"]),
+    # --- us ---------------------------------------------------------------------------
+    "m1_garand": dict(kind="rifle", length=1.100, barrel=0.610, pull=0.33, full_stock=True,
+                      source=[WIKI + "M1_Garand"]),
+    "m1903a4": dict(kind="rifle", length=1.105, barrel=0.610, pull=0.33, full_stock=True,
+                    scope=0.29, source=[WIKI + "M1903_Springfield"]),
+    "thompson": dict(kind="smg", length=0.813, barrel=0.267, pull=0.30, mag=(0.07, 0.22),
+                     wood_stock=True, source=[WIKI + "Thompson_submachine_gun"]),
+    "bar": dict(kind="mg", length=1.214, barrel=0.610, pull=0.32, bipod=0.75, mag=(0.03, 0.17),
+                wood_stock=True, source=[WIKI + "M1918_Browning_automatic_rifle"]),
+    "m1919a4": dict(kind="mg", length=0.964, barrel=0.610, pull=0.10, tripod=True, jacket=True,
+                    belt=True, source=[WIKI + "M1919_Browning_machine_gun"]),
+    "bazooka": dict(kind="launcher", length=1.550, caliber=0.060, rear=0.55,
+                    source=[WIKI + "Bazooka"]),
+    "m2_mortar": dict(kind="mortar", barrel=0.726, caliber=0.060, base=(0.33, 0.26),
+                      source=[WIKI + "M2_mortar"]),
+    "m2_flame": dict(kind="flame", length=0.90, source=[WIKI + "M2_flamethrower"],
+                     uncertain=["length"]),
+}
+
+
+def _rx(deg):
+    return Matrix.Rotation(math.radians(deg), 3, "X")
+
+
+class Weapon:
+    def __init__(self, wid):
+        self.id = wid
+        self.spec = WEAPONS[wid]
+        self.mesh = MeshBuilder(["Metal", "Wood", "Paint"])
+        self.points = {"grip_r": Vector((0, 0, 0))}
+
+    @property
+    def kind(self):
+        return self.spec["kind"]
+
+
+BORE = 0.035  # bore axis above the grip
+MORTAR_ELEVATION = 55.0  # degrees, deployed pose (animations use the same value)
+
+
+def _barrel(b, y0, y1, r=0.0095, jacket=False):
+    if jacket:
+        b.cylinder((0, y0, BORE), (0, y1 - 0.04, BORE), r * 2.2, "Metal", W, sides=8)
+        b.cylinder((0, y1 - 0.04, BORE), (0, y1, BORE), r, "Metal", W, sides=6)
+    else:
+        b.cylinder((0, y0, BORE), (0, y1, BORE), r, "Metal", W, sides=6)
+
+
+def _stock(b, butt_y, slot="Wood", drop=0.03):
+    # Butt stock from the butt plate to the wrist at the grip.
+    b.box((0, butt_y + 0.10, BORE - drop - 0.02), (0.042, 0.20, 0.12), slot, W, taper=1.0)
+    b.box((0, butt_y + 0.24, BORE - drop * 0.4 - 0.005), (0.036, 0.12, 0.055), slot, W)
+
+
+def _pistol_grip(b, slot="Wood"):
+    b.box((0, -0.01, -0.03), (0.03, 0.04, 0.10), slot, W, rot=_rx(-15))
+
+
+def _bipod(b, y, folded_len=0.32):
+    for sx in (-1, 1):
+        top = Vector((0, y, BORE - 0.01))
+        foot = Vector((sx * 0.14, y + 0.08, BORE - folded_len))
+        b.cylinder(top, foot, 0.007, "Metal", W, sides=4)
+    return Vector((0, y + 0.08, BORE - folded_len))
+
+
+def _scope(b, y0, length):
+    b.cylinder((0, y0, BORE + 0.055), (0, y0 + length, BORE + 0.055), 0.016, "Metal", W, sides=8)
+    b.box((0, y0 + length * 0.5, BORE + 0.035), (0.02, length * 0.6, 0.02), "Metal", W)
+
+
+def build_rifle(w):
+    s, b = w.spec, w.mesh
+    pull, length, barrel = s["pull"], s["length"], s["barrel"]
+    butt_y = -pull
+    muzzle_y = length - pull
+    rec_end = muzzle_y - barrel
+    _stock(b, butt_y)
+    # Receiver and bolt.
+    b.box((0, rec_end * 0.5 + 0.01, BORE), (0.034, rec_end + 0.04, 0.05), "Metal", W)
+    b.box((0.03, 0.05, BORE + 0.02), (0.035, 0.012, 0.012), "Metal", W)
+    if s.get("full_stock"):
+        fore_end = muzzle_y - 0.09
+        b.box((0, (rec_end + fore_end) * 0.5, BORE - 0.012), (0.04, fore_end - rec_end, 0.045),
+              "Wood", W, taper=0.85)
+        # Magazine well below the receiver.
+        b.box((0, 0.10, BORE - 0.045), (0.03, 0.09, 0.04), "Wood", W)
+    _barrel(b, rec_end, muzzle_y)
+    if s.get("scope"):
+        _scope(b, -0.02, s["scope"])
+    w.points.update(grip_l=Vector((0, rec_end + 0.22, BORE - 0.03)),
+                    butt=Vector((0, butt_y, BORE - 0.02)),
+                    muzzle=Vector((0, muzzle_y, BORE)),
+                    ground=Vector((0, butt_y, BORE - 0.07)))
+
+
+def build_smg(w):
+    s, b = w.spec, w.mesh
+    pull, length, barrel = s["pull"], s["length"], s["barrel"]
+    butt_y = -pull
+    muzzle_y = length - pull
+    rec_end = muzzle_y - barrel
+    if s.get("folding_stock"):
+        # Folding steel stock: two struts and a butt plate.
+        for z in (BORE + 0.01, BORE - 0.05):
+            b.box((0, butt_y * 0.5, z), (0.01, -butt_y, 0.012), "Metal", W)
+        b.box((0, butt_y, BORE - 0.02), (0.03, 0.012, 0.09), "Metal", W)
+        _pistol_grip(b, "Metal")
+    else:
+        _stock(b, butt_y)
+        if not s.get("wood_stock"):
+            _pistol_grip(b)
+    b.box((0, rec_end * 0.5, BORE), (0.034, rec_end + 0.02, 0.045), "Metal", W)
+    if s.get("wood_stock") and s["kind"] == "smg":
+        b.box((0, rec_end * 0.4, BORE - 0.03), (0.04, rec_end * 0.8, 0.035), "Wood", W)
+    _barrel(b, rec_end, muzzle_y, r=0.008, jacket=s.get("jacket", False))
+    if "mag" in s:
+        y, mlen = s["mag"]
+        b.box((0, y, BORE - 0.02 - mlen / 2), (0.022, 0.035, mlen), "Metal", W, rot=_rx(-4))
+    if "drum" in s:
+        d = s["drum"]
+        b.cylinder((-0.022, 0.08, BORE - 0.07), (0.022, 0.08, BORE - 0.07), d, "Metal", W, sides=10)
+    if s.get("thompson_grip") or s.get("wood_stock"):
+        _pistol_grip(b)
+    w.points.update(grip_l=Vector((0, rec_end * 0.55 + 0.03, BORE - 0.03)),
+                    butt=Vector((0, butt_y, BORE - 0.02)),
+                    muzzle=Vector((0, muzzle_y, BORE)),
+                    ground=Vector((0, butt_y, BORE - 0.07)))
+
+
+def build_mg(w):
+    s, b = w.spec, w.mesh
+    pull, length, barrel = s["pull"], s["length"], s["barrel"]
+    butt_y = -pull
+    muzzle_y = length - pull
+    rec_end = muzzle_y - barrel
+    if pull > 0.15:
+        _stock(b, butt_y, "Wood" if s.get("wood_stock") else "Metal")
+    else:
+        # Spade grip of a tripod gun.
+        b.box((0, butt_y, BORE - 0.01), (0.05, 0.03, 0.06), "Metal", W)
+    _pistol_grip(b, "Metal")
+    b.box((0, rec_end * 0.5, BORE), (0.05, rec_end + 0.02, 0.065), "Metal", W)
+    if s.get("wood_stock") and "pan" in s:
+        b.box((0, rec_end + 0.08, BORE - 0.02), (0.045, 0.16, 0.04), "Wood", W)
+    _barrel(b, rec_end, muzzle_y, r=0.011, jacket=s.get("jacket", False))
+    if "mag" in s:
+        y, mlen = s["mag"]
+        b.box((0, y, BORE - 0.03 - mlen / 2), (0.03, 0.06, mlen), "Metal", W)
+    if "pan" in s:
+        d = s["pan"]
+        b.cylinder((0, 0.10, BORE + 0.035), (0, 0.10, BORE + 0.06), d / 2, "Metal", W, sides=12)
+    if s.get("belt"):
+        b.box((-0.05, 0.03, BORE - 0.02), (0.06, 0.05, 0.03), "Metal", W)
+    ground = Vector((0, butt_y, BORE - 0.07))
+    if "bipod" in s:
+        ground = _bipod(b, s["bipod"] - pull)
+    if s.get("tripod"):
+        # Low tripod M2: front leg and two rear legs.
+        pivot = Vector((0, 0.10, BORE - 0.05))
+        b.box(pivot, (0.05, 0.08, 0.05), "Metal", W)
+        b.cylinder(pivot, pivot + Vector((0, 0.45, -0.30)), 0.012, "Metal", W, sides=4)
+        for sx in (-1, 1):
+            b.cylinder(pivot, pivot + Vector((sx * 0.38, -0.40, -0.30)), 0.012, "Metal", W, sides=4)
+        ground = pivot + Vector((0, 0.0, -0.30))
+    grip_l = (Vector((0, butt_y + 0.12, BORE - 0.05)) if pull > 0.15
+              else Vector((-0.06, butt_y + 0.02, BORE)))
+    w.points.update(grip_l=grip_l, butt=Vector((0, butt_y, BORE - 0.02)),
+                    muzzle=Vector((0, muzzle_y, BORE)), ground=ground,
+                    fore=Vector((0, rec_end + 0.12, BORE - 0.02)))
+
+
+def build_atr(w):
+    # PTRD-41 anti-tank rifle: long barrel with muzzle brake, padded stock, bipod.
+    s, b = w.spec, w.mesh
+    pull, length, barrel = s["pull"], s["length"], s["barrel"]
+    butt_y = -pull
+    muzzle_y = length - pull
+    rec_end = muzzle_y - barrel
+    _stock(b, butt_y, "Metal")
+    b.box((0, butt_y + 0.02, BORE - 0.02), (0.06, 0.04, 0.13), "Wood", W)
+    b.cylinder((0, -0.05, BORE), (0, rec_end, BORE), 0.03, "Metal", W, sides=8)
+    _pistol_grip(b, "Wood")
+    b.cylinder((0, rec_end, BORE), (0, muzzle_y - 0.08, BORE), 0.018, "Metal", W, sides=8,
+               r1=0.014)
+    b.cylinder((0, muzzle_y - 0.08, BORE), (0, muzzle_y, BORE), 0.028, "Metal", W, sides=8)
+    ground = _bipod(b, s["bipod"] - pull, 0.30)
+    w.points.update(grip_l=Vector((0, rec_end - 0.15, BORE - 0.03)),
+                    butt=Vector((0, butt_y, BORE - 0.02)),
+                    muzzle=Vector((0, muzzle_y, BORE)), ground=ground)
+
+
+def build_launcher(w):
+    s, b = w.spec, w.mesh
+    length, cal, rear = s["length"], s["caliber"], s["rear"]
+    r = cal / 2 + 0.004
+    axis_z = 0.10  # tube axis above the grip
+    y0, y1 = -rear, length - rear
+    b.cylinder((0, y0, axis_z), (0, y1, axis_z), r, "Paint", W, sides=10)
+    b.cylinder((0, y0, axis_z), (0, y0 + 0.08, axis_z), r + 0.012, "Metal", W, sides=10)
+    b.cylinder((0, y1 - 0.05, axis_z), (0, y1, axis_z), r + 0.006, "Metal", W, sides=10)
+    _pistol_grip(b, "Wood")
+    b.box((0, 0.0, axis_z * 0.55), (0.02, 0.03, axis_z * 0.9), "Metal", W)
+    # Shoulder rest and front grip.
+    b.box((0, -0.18, axis_z - r - 0.02), (0.05, 0.12, 0.03), "Wood", W)
+    grip_l = Vector((0, 0.33, axis_z - r - 0.06))
+    b.box(grip_l + Vector((0, 0, 0.03)), (0.03, 0.04, 0.08), "Wood", W)
+    if s.get("shield"):
+        b.box((-0.06, 0.12, axis_z + 0.02), (0.36, 0.008, 0.38), "Paint", W)
+    w.points.update(grip_l=grip_l, butt=Vector((0, -0.10, axis_z - 0.02)),
+                    muzzle=Vector((0, y1, axis_z)), ground=Vector((0, y0, axis_z - r)))
+
+
+def build_mortar(w):
+    """Light mortar, assembled. Weapon space: origin at the carry point (tube middle),
+    +Y along the tube towards the muzzle. `ground` is the baseplate center."""
+    s, b = w.spec, w.mesh
+    lb, cal = s["barrel"], s["caliber"]
+    r = cal / 2 + 0.006
+    y0, y1 = -lb * 0.5, lb * 0.5
+    b.cylinder((0, y0, 0), (0, y1, 0), r, "Paint", W, sides=10)
+    b.cylinder((0, y1 - 0.03, 0), (0, y1, 0), r + 0.006, "Metal", W, sides=10)
+    # Deployed elevation; baseplate and bipod feet then stand on the ground (Z = 0).
+    theta = math.radians(MORTAR_ELEVATION)
+    axis_y = Vector((0, math.cos(theta), math.sin(theta)))
+    axis_z = Vector((0, -math.sin(theta), math.cos(theta)))
+    bw, bd = s["base"]
+    b.box((0, y0 - 0.02, 0), (bw, bd, 0.025), "Metal", W, rot=_rx(-MORTAR_ELEVATION))
+    h = lb * 0.72
+    top = Vector((0, y0 + h, 0))
+    top_world = axis_y * h
+    for sx in (-1, 1):
+        d = Vector((sx * 0.20, top_world.y + 0.18, 0.0)) - top_world
+        foot = top + Vector((d.x, d.dot(axis_y), d.dot(axis_z)))
+        b.cylinder(top, foot, 0.009, "Metal", W, sides=4)
+    b.box(top + Vector((0, 0, -0.03)), (0.07, 0.03, 0.05), "Metal", W)
+    w.points.update(grip_l=Vector((0, y0 + 0.12, -r)), butt=Vector((0, y0, 0)),
+                    muzzle=Vector((0, y1, 0)), ground=Vector((0, y0 - 0.035, 0)))
+
+
+def build_flame(w):
+    s, b = w.spec, w.mesh
+    length = s["length"]
+    y0, y1 = -0.15, length - 0.15
+    b.cylinder((0, y0, BORE), (0, y1, BORE), 0.022, "Paint", W, sides=8)
+    b.cylinder((0, y1 - 0.08, BORE), (0, y1, BORE), 0.03, "Metal", W, sides=8)
+    _pistol_grip(b, "Wood")
+    grip_l = Vector((0, 0.32, BORE - 0.05))
+    b.box(grip_l + Vector((0, 0, 0.02)), (0.03, 0.04, 0.08), "Wood", W)
+    if s.get("rifle_like"):
+        _stock(b, -0.28)
+    # Hose stub towards the back pack.
+    b.cylinder((0, y0, BORE - 0.01), (0.03, y0 - 0.12, BORE - 0.12), 0.016, "Paint", W, sides=6)
+    w.points.update(grip_l=grip_l, butt=Vector((0, y0, BORE - 0.02)),
+                    muzzle=Vector((0, y1, BORE)), ground=Vector((0, y0, BORE - 0.07)))
+
+
+BUILDERS = {
+    "rifle": build_rifle, "smg": build_smg, "mg": build_mg, "atr": build_atr,
+    "launcher": build_launcher, "mortar": build_mortar, "flame": build_flame,
+}
+
+
+def build_weapon(wid):
+    w = Weapon(wid)
+    BUILDERS[w.kind](w)
+    p = w.points
+    p.setdefault("fore", p["grip_l"])
+    p["center"] = (p["butt"] + p["muzzle"]) * 0.5
+    return w

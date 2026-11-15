@@ -1,0 +1,28 @@
+{
+  "_comment": "Infantry slot colors (sRGB hex) per faction and biome. Single source for Blender (tools/blender/soldier/materials.py) and Godot (godot/scenes/tools/soldier_look.gd). Approximate period colors; see docs/ASSETS.md, section Infantry.",
+  "fixed": {
+    "Skin": "#c39a7c",
+    "Metal": "#3b3c3d",
+    "Wood": "#6e4a2c",
+    "Rubber": "#232323",
+    "Glass": "#1d2a2a",
+    "Insignia": "#e6e6e0"
+  },
+  "factions": {
+    "de": {
+      "forest": {"Cloth": "#5c5e4b", "Canvas": "#6d6651", "Leather": "#2b2623", "Paint": "#4e5245"},
+      "desert": {"Cloth": "#9e8b5c", "Canvas": "#b3a27c", "Leather": "#6a4a2f", "Paint": "#b09868"},
+      "winter": {"Cloth": "#dcdcd5", "Canvas": "#c7c5bb", "Leather": "#2b2623", "Paint": "#e1e1db"}
+    },
+    "su": {
+      "forest": {"Cloth": "#6f6a46", "Canvas": "#6a6249", "Leather": "#2f2721", "Paint": "#4d5939"},
+      "desert": {"Cloth": "#a49a70", "Canvas": "#9c8f6d", "Leather": "#3c2f23", "Paint": "#8e8962"},
+      "winter": {"Cloth": "#d7d7d1", "Canvas": "#c3c1b7", "Leather": "#2f2721", "Paint": "#dfdfd9"}
+    },
+    "us": {
+      "forest": {"Cloth": "#6a6247", "Canvas": "#7e7657", "Leather": "#5a3c25", "Paint": "#4f5238"},
+      "desert": {"Cloth": "#a7956f", "Canvas": "#a29476", "Leather": "#6b4629", "Paint": "#8a8464"},
+      "winter": {"Cloth": "#d9d9d3", "Canvas": "#c8c6bc", "Leather": "#5a3c25", "Paint": "#dddbd3"}
+    }
+  }
+}
