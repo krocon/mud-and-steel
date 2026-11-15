@@ -1,0 +1,90 @@
+# 37 mm automatic AA gun M1939 (61-K) on the four-wheel ZU-7 carriage.
+# Main dimensions from data/catalog/su.toml (travel order): length 5.5 m,
+# width 1.79 m, height 2.11 m. Like the Bofors it is modeled on its wheels with
+# the barrel horizontal and the four outriggers folded within the catalog
+# width (deployed they reach about 4 m); the wheels stay on the carriage.
+# Barrel 67 calibers = 2.48 m bore plus the conical flash hider (en Wikipedia
+# "37 mm automatic air defense gun M1939 (61-K)").
+# Modeling estimates from photographs (no dimensioned drawing found): wheel
+# diameter 0.82 m (ZIS-5 type 34x7 tire), track 1.50 m (tires end at the catalog width), axle spacing 2.7 m, platform top
+# 0.66 m, two layer seats left and right of the cradle, clip feed guide above
+# the breech (5-round clips), no shield (most wartime photographs; a shield
+# kit existed but was rarely fitted).
+unit = "su_61k"
+assembly = "aa_gun"
+
+[carriage]
+part = "cruciform_platform"
+center = [1.0, 0.30]
+z = 0.66
+# front and rear arms carry the axles; the side outriggers are folded up
+# along the carriage (shown short)
+arms = [[0, 2.05], [180, 2.05], [90, 0.70], [270, 0.70]]
+beam = [0.20, 0.17]
+
+[[axle]]
+y = 1.35
+diameter = 0.82
+width = 0.18
+track = 1.50
+
+[[axle]]
+y = -1.35
+diameter = 0.82
+width = 0.18
+track = 1.50
+
+[mount]
+part = "aa_mount"
+pedestal = [0.62, 0.22]
+body = [0.90, 0.95, 0.26]
+cheeks = [0.40, 0.95, 0.42]
+seats = [[-0.62, -0.25, 1.20], [0.62, -0.25, 1.20]]
+handwheels = [[-0.55, 0.18, 1.15], [0.55, 0.18, 1.15]]
+
+[gun]
+part = "field_gun"
+trunnion = [0.05, 1.52]
+cradle = [1.35, 0.32, 0.28]
+recoil = [0.85, 0.05]
+breech = [0.60, 0.28]
+segments = [[0.95, 0.060, 0.050], ["fit", 0.036, 0.032]]
+muzzle_brake = "slotted"     # conical flash hider
+
+[[part]]
+part = "box_prop"            # clip feed guide above the breech
+center = [0.0, -0.30, 1.88]
+size = [0.20, 0.36, 0.46]
+material = "Metal"
+parent = "Gun"
+
+[[part]]
+part = "box_prop"            # ring sight frame in front of the left layer
+center = [-0.38, 0.45, 1.80]
+size = [0.03, 0.03, 0.36]
+material = "Metal"
+parent = "Gun"
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -1.95, 0.24]
+parent = "Carriage"
+
+[[part]]
+part = "crew_sockets"
+radius = 2.6
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 0.0, 1.0]
+parent = "Carriage"
+
+[[part]]
+part = "marking"
+name = "Carriage_L"
+kind = "number"
+parent = "Carriage"
+position = [-0.45, 0.0, 0.51]
+normal = [-1.0, 0.0, 0.0]
+size = 0.2

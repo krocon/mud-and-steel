@@ -1,0 +1,16 @@
+# Anti-tank minefield section with TM-41 mines, 20 x 20 m
+# (data/catalog/su.toml; catalog height 0: the mines lie flush). Shared
+# `minefield` generator: perimeter pickets with blank warning boards and a
+# trip wire, nine representative mines (the catalog count of 20 is a game
+# value). The generic disc stands in for the cylindrical TM-41 (about 0.25 m
+# diameter, mostly buried; only the top shows).
+unit = "su_minefield_at"
+assembly = "env"
+
+[[variant]]
+name = "Field"
+part = "minefield"
+height_m = 1.0                # picket height, estimate (catalog height is 0)
+mine = "at"
+visible = 9
+seed = 2

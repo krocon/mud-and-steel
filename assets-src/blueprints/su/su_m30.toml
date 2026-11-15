@@ -1,0 +1,102 @@
+# 122 mm howitzer M1938 (M-30). Main dimensions from data/catalog/su.toml:
+# length 5.9 m, width 1.98 m, height 1.82 m (top of the shield). Modeled in
+# travel order like the ZiS-3 (trails closed, barrel forward, no limber); the
+# trail length is fitted so that muzzle to trail end equals the catalog
+# length. Barrel 22.7 calibers = 2.77 m without muzzle brake (en Wikipedia
+# "122 mm howitzer M1938 (M-30)").
+# Modeling estimates from photographs (no dimensioned drawing found): steel
+# disc wheels with sponge-rubber tires, diameter 1.05 m; line of fire 1.20 m;
+# long cradle under the barrel with the buffer, recuperator cylinder above the
+# barrel; single shield with a sliding lower part; box-section split trails.
+unit = "su_m30"
+assembly = "towed_gun"
+
+[gun]
+part = "field_gun"
+trunnion = [-0.05, 1.20]
+cradle = [1.90, 0.30, 0.26]
+recoil = [1.55, 0.07]
+breech = [0.45, 0.30]
+# 2.77 m barrel from the breech face: thick jacket, then a slight taper
+segments = [[1.20, 0.105, 0.098], [1.47, 0.090, 0.085]]
+muzzle_brake = "none"
+
+[carriage]
+part = "split_trail_carriage"
+wheel_diameter = 1.05
+wheel_width = 0.20
+wheel_track = 1.64   # fitted: tires end at the catalog width 1.98 m
+trail_spread_deg = 0
+trail_width = 0.17
+trail_height = 0.24
+spade = [0.38, 0.32]
+mount_z = 0.95
+spokes = 0
+
+[shield]
+part = "gun_shield"
+y = 0.38
+bottom_z = 0.40
+slope_deg = 8
+cutout = [0.34, 0.36]
+wing_width = 0.16
+wing_deg = 15
+spaced = false
+thickness = 0.008
+
+[[part]]
+part = "cylinder_prop"   # recuperator above the barrel
+from = [0.0, -0.55, 1.40]
+to = [0.0, 1.00, 1.40]
+radius = 0.085
+parent = "Gun"
+
+[[part]]
+part = "box_prop"        # panoramic sight box on the left of the cradle
+center = [-0.26, -0.10, 1.34]
+size = [0.10, 0.22, 0.16]
+parent = "Gun"
+
+[[part]]
+part = "cylinder_prop"   # elevation handwheel (left)
+from = [-0.30, -0.35, 1.00]
+to = [-0.34, -0.35, 1.00]
+radius = 0.11
+material = "Metal"
+parent = "Carriage"
+
+[[part]]
+part = "cylinder_prop"   # traverse handwheel (left, behind)
+from = [-0.30, -0.60, 0.90]
+to = [-0.34, -0.60, 0.90]
+radius = 0.09
+material = "Metal"
+parent = "Carriage"
+
+[[part]]
+part = "box_prop"        # sliding lower shield below the axle
+center = [0.0, 0.42, 0.30]
+size = [1.30, 0.008, 0.20]
+parent = "Carriage"
+
+# Crew of 8 (catalog): commander, layer, breech operator, loader, fuze
+# setter and ammunition numbers.
+[[part]]
+part = "crew_sockets"
+positions = [[-0.65, -0.45], [0.65, -0.45], [-0.85, -1.30], [0.85, -1.30],
+             [-1.05, -2.25], [1.05, -2.25], [-0.60, -3.70], [0.60, -3.70]]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 0.0, 1.0]
+parent = "Carriage"
+
+[[part]]
+part = "marking"
+name = "Shield"
+kind = "number"
+parent = "Shield"
+position = [-0.62, 0.38, 1.20]
+normal = [0, 0.99, 0.14]
+size = 0.30
