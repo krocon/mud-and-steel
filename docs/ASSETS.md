@@ -47,6 +47,7 @@ model with names, hierarchy, sockets, material slots and baked vertex colors.
 | `weapons` | `tank_gun` (mantlet types, barrel segments, muzzle brake types), `mg` (coax, ball mount, pintle), `gun_shield` |
 | `attachments` | `skirts`, `turret_skirt`, `spare_tracks`, `tool`, `jerrycans`, `headlight`, `antenna`, `exhaust`, `tow_hook`, `box_prop`, `cylinder_prop`, `marking`, `socket` |
 | `artillery` | `split_trail_carriage`, `field_gun` |
+| `trucks` | `ladder_frame`, `engine_hood`, `truck_cab`, `cargo_bed`, `truck_fenders` and the `wheeled` assembly (trucks, cars; prompt 006) |
 | `aircraft` | `fuselage` (loft of cross-sections), `wing` (taper, sweep, dihedral, ailerons), `tail`, `propeller`, `canopy`, `landing_gear` (extended/retracted) |
 | `vehicles` | `section_hull` (hull lofted from cross-sections, optional open compartment), `fender`, `plate` (doors, lids on sloped faces), `pintle_mg` (MG on a post, optional shield); assembly `halftrack` (prompt 006) |
 | `parts_de`, `parts_su`, `parts_us` | faction-specific parts, prefixed `de.`, `su.`, `us.` |
@@ -81,7 +82,7 @@ origin on the ground at the footprint center):
 
 ```toml
 unit = "de_pz4_h"          # catalog id, must match the file name
-assembly = "tank"          # tank | towed_gun | aircraft
+assembly = "tank"          # tank | towed_gun | aircraft | wheeled
 
 [layout]                   # assembly-level values
 turret_y = 0.28            # turret ring center
@@ -131,6 +132,10 @@ moved so that the origin lies at the center of the ground contact (example:
 (Sd.Kfz. 251) or vertical sides (equal half-widths). `open = [y_front,
 y_rear]` cuts an open-topped compartment with walls and floor between two
 stations; Y and the top heights are fitted to the catalog like `plate_hull`.
+
+fuselage, wing, tail, canopy, landing gear, `[[propeller]]`, `[[part]]`. Wheeled
+vehicles: `[[axle]]`, frame, hood, cab, body, fenders, `[[part]]` (body rear end,
+body width and cab roof are fitted to the catalog length, width and height).
 
 ### Generator, checks and previews
 

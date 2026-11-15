@@ -1,0 +1,132 @@
+# 76 mm divisional gun M1942 (ZiS-3). Main dimensions from data/catalog/su.toml:
+# length 6.1 m in travel order (trails closed), width 1.6 m, height 1.37 m (top of
+# the shield). Barrel 3.4 m incl. muzzle brake (L/42.6, en Wikipedia), 2,994 mm
+# without the brake (ru Wikipedia footnote); single 5 mm shield; split trail;
+# GAZ-AA-type steel disc wheels with rubber tires (ru Wikipedia).
+# Modeling estimates (no source with exact values found): wheel diameter 0.80 m
+# (GAZ-AA tire 6.50-20), line of fire 0.90 m, cradle length, shield and trail
+# section sizes. Positions are relative to the axle (y = 0); the assembly moves
+# the origin to the footprint center afterwards.
+unit = "su_zis3"
+assembly = "towed_gun"
+
+[gun]
+part = "field_gun"
+trunnion = [0.12, 0.90]
+# long cradle under the barrel with the recoil system inside (no cylinders above)
+cradle = [1.75, 0.22, 0.24]
+breech = [0.40, 0.22]
+# 2.994 m barrel from the breech face (monoblock, slight taper) + muzzle brake
+segments = [[1.30, 0.058, 0.052], [1.62, 0.047, 0.043]]
+muzzle_brake = "slotted"   # cylindrical brake with side ports
+
+[carriage]
+part = "split_trail_carriage"
+wheel_diameter = 0.80
+wheel_width = 0.17
+wheel_track = 1.33   # fitted: tires outside the hubs end at the catalog width 1.6 m
+trail_spread_deg = 0
+trail_width = 0.13
+trail_height = 0.18
+spade = [0.30, 0.28]
+mount_z = 0.70
+spokes = 0
+
+[shield]
+part = "gun_shield"
+# single flat 5 mm plate with a small backward slope, narrow angled corners
+y = 0.40
+bottom_z = 0.30
+slope_deg = 9
+cutout = [0.26, 0.30]
+wing_width = 0.14
+wing_deg = 18
+spaced = false
+thickness = 0.008
+
+[[part]]
+part = "box_prop"    # panoramic sight box on the left of the cradle
+center = [-0.22, -0.05, 1.05]
+size = [0.10, 0.22, 0.14]
+parent = "Gun"
+
+[[part]]
+part = "cylinder_prop"  # elevation handwheel (left)
+from = [-0.28, -0.30, 0.78]
+to = [-0.32, -0.30, 0.78]
+radius = 0.10
+material = "Metal"
+parent = "Carriage"
+
+[[part]]
+part = "cylinder_prop"  # traverse handwheel (left, behind)
+from = [-0.28, -0.52, 0.70]
+to = [-0.32, -0.52, 0.70]
+radius = 0.09
+material = "Metal"
+parent = "Carriage"
+
+[[part]]
+part = "box_prop"    # hinged lower shield apron in front of the axle
+center = [0.0, 0.46, 0.22]
+size = [1.10, 0.008, 0.16]
+parent = "Carriage"
+
+# Crew of 7 (catalog): gun layer, loader, breech operator, commander and
+# ammunition handlers.
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [-0.55, -0.40, 0.0]
+parent = "Carriage"
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [0.55, -0.40, 0.0]
+parent = "Carriage"
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [-0.75, -1.20, 0.0]
+parent = "Carriage"
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [0.75, -1.20, 0.0]
+parent = "Carriage"
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [-0.95, -2.10, 0.0]
+parent = "Carriage"
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [0.95, -2.10, 0.0]
+parent = "Carriage"
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [0.0, -3.30, 0.0]
+parent = "Carriage"
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 0.0, 0.85]
+parent = "Carriage"
+
+[[part]]
+part = "marking"
+name = "Shield"
+kind = "number"
+parent = "Shield"
+position = [-0.55, 0.40, 0.80]
+normal = [0, 0.99, 0.16]
+size = 0.28

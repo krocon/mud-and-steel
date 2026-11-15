@@ -115,6 +115,8 @@ Medics carry plain bags and a **plain white armband (`Insignia`), no Red Cross**
 | `medic` | unarmed | unarmed | unarmed |
 | `radio_operator` | Kar98k + radio | PPSh-41 + RB-M | M1 Garand + SCR-300 |
 | `flamethrower` | Flammenwerfer 41 | ROKS-3 | M2-2 |
+| `assistant_gunner` | – | Mosin + pan carrier (DP-27 assistant) | – |
+| `smg_gunner` | – | PPSh-41 | – |
 
 Squad roles added in prompt 006 (faction-specific, `loadouts.py` end of file):
 

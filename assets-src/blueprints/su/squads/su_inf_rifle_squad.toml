@@ -1,0 +1,55 @@
+# Soviet rifle squad, shtat 04/550 (1943/44), catalog su.toml: 9 men with
+# 6 Mosin-Nagant M1891/30, 2 PPSh-41, 1 DP-27. Composition: squad leader (PPSh),
+# DP-27 gunner and assistant gunner (rifle, pan carrier), one rifleman with a
+# PPSh-41 and five riflemen. The catalog marks the weapon mix as uncertain
+# (the number of PPSh grew during 1943-45).
+# Formation: wedge behind the leader, 2.5 m apart (display only; the skirmish
+# line in combat was wider, about 6-8 paces).
+unit = "su_inf_rifle_squad"
+
+[[member]]
+role = "squad_leader"
+position = [0.0, 3.0]
+note = "squad leader (PPSh-41)"
+
+[[member]]
+role = "mg_gunner"
+position = [-2.0, 1.5]
+clip = "aim_kneel"
+note = "DP-27 gunner"
+
+[[member]]
+role = "assistant_gunner"
+position = [-3.0, 0.5]
+clip = "kneel"
+note = "assistant gunner (Mosin-Nagant M1891/30, pan carrier)"
+
+[[member]]
+role = "smg_gunner"
+position = [2.0, 1.5]
+note = "rifleman with PPSh-41"
+
+[[member]]
+role = "rifleman"
+position = [4.0, 0.0]
+note = "rifleman (Mosin-Nagant M1891/30)"
+
+[[member]]
+role = "rifleman"
+position = [-4.5, -1.0]
+note = "rifleman (Mosin-Nagant M1891/30)"
+
+[[member]]
+role = "rifleman"
+position = [6.0, -1.5]
+note = "rifleman (Mosin-Nagant M1891/30)"
+
+[[member]]
+role = "rifleman"
+position = [-6.5, -2.5]
+note = "rifleman (Mosin-Nagant M1891/30)"
+
+[[member]]
+role = "rifleman"
+position = [8.0, -3.0]
+note = "rifleman (Mosin-Nagant M1891/30)"
