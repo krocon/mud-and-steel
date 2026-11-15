@@ -1,0 +1,22 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" uid="uid://bp8rctpcl2jhj" path="res://assets/models/us/infantry/mg_gunner.glb" id="1_mg_gunner"]
+[ext_resource type="PackedScene" uid="uid://1076pyxkp2eq" path="res://assets/models/us/infantry/rifleman.glb" id="2_rifleman"]
+
+[node name="us_inf_mg_team" type="Node3D"]
+metadata/extras = {"cat_id": "us_inf_mg_team", "cat_faction": "us", "cat_category": "inf_lmg", "cat_name_de": "Leichter MG-Trupp (M1919A4)", "cat_name_en": "Light Machine Gun Squad (M1919A4)", "cat_designation": "LMG squad, weapons platoon, T/O&E 7-17 (1944)", "cat_year_from": 1943, "cat_year_to": 1945, "cat_speed_road_kmh_x10": 50, "cat_speed_offroad_kmh_x10": 40, "cat_weapons": "Browning M1919A4 (tripod M2); Rifle M1 with grenade launcher M7; 2× Carbine M1; 2× Pistol M1911A1", "cat_squad_size": 5, "squad": true, "squad_roles": ["mg_gunner", "rifleman", "rifleman", "rifleman", "rifleman"], "squad_notes": ["gunner (M1919A4)", "assistant gunner (pistol M1911A1 in the T/O&E; shown with M1)", "squad leader (M1 + M7)", "ammunition bearer (carbine M1 in the T/O&E; shown with M1)", "ammunition bearer (carbine M1 in the T/O&E; shown with M1)"], "squad_clips": ["aim_prone", "kneel", "aim_kneel", "idle", "idle"], "squad_file": "assets-src/blueprints/us/squads/us_inf_mg_team.toml", "source_hash": "427ef7e02b04a379"}
+
+[node name="Member_01" parent="." instance=ExtResource("1_mg_gunner")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.5)
+
+[node name="Member_02" parent="." instance=ExtResource("2_rifleman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2, 0, -0.6)
+
+[node name="Member_03" parent="." instance=ExtResource("2_rifleman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 0, 0.5)
+
+[node name="Member_04" parent="." instance=ExtResource("2_rifleman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, 2.8)
+
+[node name="Member_05" parent="." instance=ExtResource("2_rifleman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 0, 2.8)

@@ -171,3 +171,20 @@ infantry-preview: build
 [group('infantry')]
 infantry-selftest: build
     {{ GODOT }} --path godot --headless res://scenes/tools/infantry_preview.tscn -- --self-test
+
+# --- Squads (prompt 006) ------------------------------------------------------------
+
+# Build one infantry squad scene from assets-src/blueprints/<faction>/squads/<id>.toml
+[group('infantry')]
+squad faction id:
+    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/build_squad.py -- {{ faction }} {{ id }}
+
+# Build every squad scene (all factions)
+[group('infantry')]
+squads:
+    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/build_squad.py -- --all
+
+# Check all squads against the catalog (squad size, roles, built soldiers, up to date)
+[group('infantry')]
+validate-squads:
+    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/build_squad.py -- --check

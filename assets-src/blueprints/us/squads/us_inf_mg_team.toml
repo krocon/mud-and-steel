@@ -1,0 +1,41 @@
+# US light machine gun squad, weapons platoon of the rifle company, T/O&E 7-17
+# (1944): 5 men. Composition from the catalog sources (battleorder.org): leader
+# (M1 + M7), gunner (M1919A4 on tripod M2, pistol M1911A1), assistant gunner
+# (pistol), 2 ammunition bearers (carbine M1).
+#
+# Deviations: prompt 005 has no assistant-gunner or ammunition-bearer soldier and
+# no M1 carbine or pistol-only loadout, so the assistant gunner and the two
+# ammunition bearers are `rifleman` soldiers with the M1 rifle (proposed kit
+# extension: roles `mg_assistant` / `ammo_bearer` with carbine and ammo boxes for
+# all factions). The leader's M7 launcher is not modeled.
+#
+# Formation: gun in position, crew close behind it (display only).
+unit = "us_inf_mg_team"
+
+[[member]]
+role = "mg_gunner"
+position = [0.0, 1.5]
+clip = "aim_prone"
+note = "gunner (M1919A4)"
+
+[[member]]
+role = "rifleman"
+position = [1.2, 0.6]
+clip = "kneel"
+note = "assistant gunner (pistol M1911A1 in the T/O&E; shown with M1)"
+
+[[member]]
+role = "rifleman"
+position = [-1.5, -0.5]
+clip = "aim_kneel"
+note = "squad leader (M1 + M7)"
+
+[[member]]
+role = "rifleman"
+position = [-1.0, -2.8]
+note = "ammunition bearer (carbine M1 in the T/O&E; shown with M1)"
+
+[[member]]
+role = "rifleman"
+position = [1.5, -2.8]
+note = "ammunition bearer (carbine M1 in the T/O&E; shown with M1)"
