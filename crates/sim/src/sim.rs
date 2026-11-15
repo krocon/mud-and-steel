@@ -383,7 +383,9 @@ impl Sim {
             .map(|u| heading(u).filter(|_| !arriving(u)))
             .collect();
         let pushes: Vec<Vec2> = (0..self.units.len())
-            .map(|i| directions[i].map_or(Vec2::ZERO, |d| separation(&self.units, i, d)))
+            .map(|i| {
+                directions[i].map_or(Vec2::ZERO, |d| separation(&self.units, &directions, i, d))
+            })
             .collect();
         let grid = &self.paths.grid;
         let mut blocked = Vec::new();
@@ -711,8 +713,11 @@ fn arriving(unit: &Unit) -> bool {
 /// - **Swerve:** sideways from units ahead within twice the reach whose
 ///   center is less than `reach` off the own line, away from the side they
 ///   are on (straight ahead: to the left of the heading, the same rule for
-///   everybody, so two units meeting head-on pass each other).
-fn separation(units: &[Unit], i: usize, direction: Vec2) -> Vec2 {
+///   everybody, so two units meeting head-on pass each other). Units ahead
+///   that drive in roughly the same direction (`directions`, less than 60°
+///   apart) are not swerved around: a column follows its leader instead of
+///   zig-zagging behind it. The push still keeps them from overlapping.
+fn separation(units: &[Unit], directions: &[Option<Vec2>], i: usize, direction: Vec2) -> Vec2 {
     let me = &units[i];
     let left = Vec2::new(direction.y, -direction.x);
     let mut push = Vec2::ZERO;
@@ -751,7 +756,9 @@ fn separation(units: &[Unit], i: usize, direction: Vec2) -> Vec2 {
         let ahead = d.x * direction.x + d.y * direction.y;
         // Positive: the other unit is on my left.
         let lateral = d.x * left.x + d.y * left.y;
-        if ahead > Fixed::ZERO && lateral.abs() < reach {
+        let same_way =
+            directions[j].is_some_and(|o| o.x * direction.x + o.y * direction.y > Fixed::ONE / 2);
+        if ahead > Fixed::ZERO && lateral.abs() < reach && !same_way {
             let weight = (look - distance) / look;
             let side = if lateral > Fixed::ZERO {
                 -Fixed::ONE
@@ -1069,6 +1076,46 @@ mod tests {
                 Vec2::new(Fixed::from_num(100), Fixed::from_num(104.5)),
             ]
         );
+    }
+
+    /// Eight tanks in two rows drive straight ahead as a group. Followers
+    /// must not zig-zag: the sideways part of their step may change sign
+    /// only a few times (formation shuffling at the start), not every few
+    /// ticks.
+    #[test]
+    fn group_drives_straight_without_wobbling() {
+        let mut cfg = config();
+        cfg.spawns = (0..8)
+            .map(|i| Spawn {
+                owner: P0,
+                unit_type: "tank".into(),
+                position: Vec2::from_meters(-30 + 20 * (i % 4), 40 + 20 * (i / 4)),
+            })
+            .collect();
+        let mut sim = new_sim(&cfg).unwrap();
+        let ids: Vec<u32> = (0..8).collect();
+        sim.step(&[move_to(P0, &ids, 0, -150)]);
+        let mut last: Vec<Vec2> = sim.snapshot().units.iter().map(|u| u.position).collect();
+        let mut last_dx = [Fixed::ZERO; 8];
+        let mut flips = [0u32; 8];
+        let noise = Fixed::from_num(1) / Fixed::from_num(100);
+        for _ in 0..800 {
+            sim.step(&[]);
+            let now: Vec<Vec2> = sim.snapshot().units.iter().map(|u| u.position).collect();
+            for i in 0..8 {
+                let dx = now[i].x - last[i].x;
+                if dx.abs() > noise {
+                    if last_dx[i] != Fixed::ZERO && (dx > Fixed::ZERO) != (last_dx[i] > Fixed::ZERO)
+                    {
+                        flips[i] += 1;
+                    }
+                    last_dx[i] = dx;
+                }
+            }
+            last = now;
+        }
+        println!("sideways direction changes per unit: {flips:?}");
+        assert!(flips.iter().all(|&f| f <= 4), "units wobble: {flips:?}");
     }
 
     #[test]

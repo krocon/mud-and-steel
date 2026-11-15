@@ -39,6 +39,8 @@ const SHOT_DISTANCES: Array[float] = [15.0, 120.0, 600.0]
 const FRAMES_PER_SHOT := 30
 ## How long the target marker stays visible after an order, in seconds.
 const MARKER_SECONDS := 1.0
+## How fast models turn towards their driving direction (presentation only).
+const TURN_RATE := 6.0
 ## Selection ring radius relative to the unit footprint.
 const RING_SCALE := 0.65
 ## Tint over the models of other players (until real markings exist).
@@ -177,7 +179,9 @@ func _draw_units() -> void:
 		var heading := to - from
 		if heading.length_squared() > 0.000001:
 			# Models face -Z; turn them towards the driving direction.
-			node.rotation.y = atan2(-heading.x, -heading.z)
+			# Turned smoothly, so small sideways corrections do not jitter.
+			var turn := clampf(get_process_delta_time() * TURN_RATE, 0.0, 1.0)
+			node.rotation.y = lerp_angle(node.rotation.y, atan2(-heading.x, -heading.z), turn)
 		(node.get_node("SelectionRing") as Node3D).visible = selection.is_selected(ids[i])
 
 
