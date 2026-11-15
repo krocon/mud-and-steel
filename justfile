@@ -280,10 +280,10 @@ terrain-shots dir map="test_large": build
 
 # --- LAN multiplayer (prompt 025) ----------------------------------------------------
 
-# Build the bridge and open the LAN lobby (host, search, join, start)
+# Build the bridge and open the LAN lobby (host, search, join, start); args e.g. --map=test_large
 [group('lan')]
-lan: build
-    {{ GODOT }} --path godot res://scenes/lan/lan_lobby.tscn
+lan *args: build
+    {{ GODOT }} --path godot res://scenes/lan/lan_lobby.tscn -- {{ args }}
 
 # Two headless Godot instances play a LAN match over localhost (needs bash, on Windows Git Bash)
 [group('lan')]

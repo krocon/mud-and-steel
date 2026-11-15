@@ -43,8 +43,7 @@ const HASH_INTERVAL: u64 = 20;
 /// The input delay of networked games is re-evaluated every this many ticks.
 const DELAY_CHECK_INTERVAL: u64 = 20;
 
-/// Checks in a row that must recommend a smaller input delay before it drops
-/// by one tick.
+/// Checks in a row that must recommend a smaller input delay before it drops.
 const LOWER_DELAY_VOTES: u32 = 3;
 
 /// Rays longer than this (meters) do not hit the ground in `ray_pick`.
@@ -71,6 +70,8 @@ struct Game {
     waiting: bool,
     /// Consecutive delay checks that recommended a smaller input delay.
     lower_delay_votes: u32,
+    /// Largest delay recommended during those checks.
+    lower_delay_to: u32,
     /// Presentation-only height offsets in meters (debug craters until the
     /// simulation can deform terrain, prompt 021). Empty until first used.
     display_offsets: Vec<f32>,
@@ -115,7 +116,8 @@ impl Game {
     }
 
     /// Follows the measured round trip: raises the input delay at once,
-    /// lowers it only after several checks in a row (no flapping).
+    /// lowers it only after several checks in a row (no flapping), then to
+    /// the largest value recommended during those checks.
     fn adapt_input_delay(&mut self) {
         let Some((rtt, variance)) = self.transport.round_trip_ms() else {
             return;
@@ -127,12 +129,15 @@ impl Game {
             self.lower_delay_votes = 0;
         } else if recommended < current {
             self.lower_delay_votes += 1;
+            self.lower_delay_to = self.lower_delay_to.max(recommended);
             if self.lower_delay_votes >= LOWER_DELAY_VOTES {
-                self.session.set_input_delay(current - 1);
+                self.session.set_input_delay(self.lower_delay_to);
                 self.lower_delay_votes = 0;
+                self.lower_delay_to = 0;
             }
         } else {
             self.lower_delay_votes = 0;
+            self.lower_delay_to = 0;
         }
     }
 
@@ -378,6 +383,7 @@ impl SimHost {
             halted: None,
             waiting: false,
             lower_delay_votes: 0,
+            lower_delay_to: 0,
         });
     }
 

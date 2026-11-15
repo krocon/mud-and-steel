@@ -74,6 +74,13 @@ Additional rules:
   group commands, compares the hash of every tick, checks that the result equals the
   scripted single-process run, and checks that a divergence is detected through the
   hash exchange.
+- `crates/net/tests/loopback.rs` also changes both peers' input delays independently
+  during the match and checks that they stay in sync with the scripted run.
+- `crates/net/tests/lan.rs` plays the demo over real UDP on localhost (ENet, two and
+  three peers, the host relaying); `crates/cli/tests/lan.rs` does the same with two
+  separate `cli` processes that find each other with the LAN search, and checks that a
+  provoked desync is reported by both. `just lan-selftest` plays a LAN match between
+  two headless Godot instances.
 - `crates/net/tests/replay.rs` records a lockstep match, encodes and decodes it, and
   re-simulates it to the same end hash; a tampered command is reported.
 

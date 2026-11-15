@@ -20,6 +20,7 @@ func _ready() -> void:
 	position = Vector2(12, 12)
 	add_theme_color_override("font_shadow_color", Color.BLACK)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_focus_own_units()
 	if LanMatch.self_test:
 		var test := LanSelfTest.new()
 		test.sim_host = main.sim_host
@@ -45,6 +46,21 @@ func _process(_delta: float) -> void:
 		_:
 			text = line
 			modulate = Color.WHITE
+
+
+## Every player starts looking at their own tanks (main.gd frames player 0's).
+func _focus_own_units() -> void:
+	var host: SimHost = main.sim_host
+	var owners := host.unit_owners()
+	var positions := host.current_positions()
+	var sum := Vector3.ZERO
+	var count := 0
+	for i in owners.size():
+		if owners[i] == host.local_player():
+			sum += positions[i]
+			count += 1
+	if count > 0:
+		main.camera_rig.snap_to(sum / count, 140.0)
 
 
 func _on_halt(status: Dictionary) -> void:

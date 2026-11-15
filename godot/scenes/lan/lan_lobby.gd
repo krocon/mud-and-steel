@@ -71,10 +71,12 @@ func _process(_delta: float) -> void:
 
 
 func _build_ui() -> void:
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(center)
 	var panel := PanelContainer.new()
-	panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
 	panel.custom_minimum_size = Vector2(560, 0)
-	add_child(panel)
+	center.add_child(panel)
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 8)
 	panel.add_child(box)

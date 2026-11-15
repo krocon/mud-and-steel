@@ -12,7 +12,9 @@ releases.
 | GodotSteam    | 4.24 (GDExtension)   | – (not integrated yet)                     | GDExtension build supports Godot 4.4+, Steamworks SDK 1.65. |
 | Git LFS       | 3.8.1                | `.gitattributes`                           | |
 
-Other crates (`fixed`, `serde`, `postcard`, `toml`, `clap`) are pinned by `Cargo.lock`.
+Other crates (`fixed`, `serde`, `postcard`, `toml`, `clap`, `rusty_enet`, `if-addrs`) are
+pinned by `Cargo.lock`. `rusty_enet` 0.4 is ENet 1.3.18 transpiled to Rust (no C
+toolchain needed); see [LAN.md](LAN.md) for why it was chosen over Godot's ENet.
 
 ## Update policy
 

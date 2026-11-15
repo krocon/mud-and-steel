@@ -27,15 +27,15 @@ godot-rust bridge (GDExtension, thin)              crates/bridge
         ▲▼
 Rust workspace:  sim  |  net  |  cli                crates/sim, crates/net, crates/cli
         ▲▼
-Transport (later): Steam online, ENet on LAN
+Transport: ENet on LAN (net::lan), later Steam online
 ```
 
 | Crate / folder  | Responsibility | Depends on |
 |-----------------|----------------|------------|
 | `crates/sim`    | Game rules and state. `Sim::new(config, map, seed)`, `step(&[PlayerCommand])`, `state_hash()`, `snapshot()`. Players and unit ownership, group commands with formation, maps (height field, terrain), pathfinding (`sim::path`), fixed-point math, RNG, stable hash, unit catalog, scale, terrain rules and scenarios (compiled in, like the map `test_small`). | `fixed`, `serde`, `toml`, `png` |
-| `crates/net`    | Lockstep protocol: `CommandFrame`, `HashReport`, `LockstepSession` (input delay, desync detection), `Transport` trait, `LoopbackTransport` for tests, `LocalTransport` for single player. Replays (`net::replay`). | `sim`, `postcard` |
-| `crates/cli`    | Headless runner: `cli run --ticks N --seed S [--record FILE]` prints the state hash, `cli replay FILE` re-simulates a replay and checks its end hash, `cli gen-map` generates test maps, `cli map-info DIR` measures a map, `cli path-bench` benchmarks pathfinding. | `sim`, `net`, `clap`, `png` |
-| `crates/bridge` | GDExtension `cdylib`. `SimHost` node: runs ticks from a time accumulator through a `LockstepSession`, queues commands, exposes the last two snapshots and the replay. The only float conversion. | `sim`, `net`, `godot` |
+| `crates/net`    | Lockstep protocol: `CommandFrame`, `HashReport`, `LockstepSession` (input delay, also changed at run time, desync detection), `Transport` trait, `LoopbackTransport` for tests, `LocalTransport` for single player. Replays (`net::replay`). LAN games (`net::lan`): ENet transport with lobby, discovery by UDP broadcast. | `sim`, `postcard`, `rusty_enet`, `if-addrs` |
+| `crates/cli`    | Headless runner: `cli run --ticks N --seed S [--record FILE]` prints the state hash, `cli replay FILE` re-simulates a replay and checks its end hash, `cli gen-map` generates test maps, `cli map-info DIR` measures a map, `cli path-bench` benchmarks pathfinding, `cli lan-host` / `cli lan-join` play the demo as headless LAN peers. | `sim`, `net`, `clap`, `png` |
+| `crates/bridge` | GDExtension `cdylib`. `SimHost` node: runs ticks from a time accumulator through a `LockstepSession`, queues commands, exposes the last two snapshots and the replay; plays single player over `LocalTransport` or a LAN match (`SimHost.start_lan`). `LanLobby` drives the LAN lobby. The only float conversion. | `sim`, `net`, `godot` |
 | `godot/`        | Scenes, GDScript UI logic, assets. No C#. | bridge (via `.gdextension`) |
 | `data/`         | Unit catalog (`catalog/*.toml`, real values), `scale.toml` (conversion to game values), `terrain.toml` (terrain types, slope rules), scenarios (`scenarios/*.toml`, start setups) and maps (`maps/<name>/`), integers only. See [SCALE.md](SCALE.md) and [MAPS.md](MAPS.md). | – |
 
@@ -485,7 +485,7 @@ the slightly perspective look of the style references, and zoom works by moving 
 camera, which makes pitch changes and distance-based shadows and LOD natural. The small
 field of view keeps distortion low.
 
-## Data flow (multiplayer, planned)
+## Data flow (multiplayer)
 
 Each peer runs the per-tick protocol of `net::LockstepSession` (single player already
 does, with one player):
@@ -502,18 +502,32 @@ each controlling its own eight tanks with group commands (and trying to command 
 other's), and compares the hashes of every tick. AI players will produce commands
 through the same path.
 
-## Transport (planned, not built yet)
+The input delay is per peer: every peer starts with the same delay (frames for the
+first ticks are implicitly empty), then follows its measured round trip
+(`net::recommended_input_delay`; raised at once, lowered after three checks in a
+row). A larger delay submits extra, usually empty frames; a smaller one
+pauses local scheduling until the simulation caught up. Frames carry their tick, so
+this needs no agreement between peers. `LockstepSession::verified_tick` is the last
+tick whose hash every peer confirmed.
+
+A lost connection or a desync halts the match in `SimHost` (the last state stays
+visible, the replay can still be saved); a desync also saves the replay at once.
+
+## Transport
 
 The `Transport` trait only sends and receives bytes, so the protocol does not know how
-packets travel.
+packets travel. It must deliver reliably and in order per sender; it may report the
+round trip (`round_trip_ms`) and is closed when a match is dropped.
 
-- **Online:** Steam networking through [GodotSteam](https://godotsteam.com/)
-  (GDExtension). Lobbies, matchmaking and NAT traversal come from Steam. Requires a
-  Steam App ID.
-- **LAN:** ENet over UDP. Games are discovered with a UDP broadcast on the local
-  network; joining then uses a direct ENet connection.
-
-Both must deliver reliably and in order per peer, as `Transport` requires.
+- **LAN:** `net::lan::LanNode`, ENet over UDP with the pure-Rust port
+  [`rusty_enet`](https://crates.io/crates/rusty_enet). The host is the ENet server and
+  relays the lockstep packets of every client to the others (star). Games are found
+  with a UDP broadcast query. Lobby, protocol, ports and how to test with two
+  machines: [LAN.md](LAN.md).
+- **Online (prompt 026):** Steam networking through
+  [GodotSteam](https://godotsteam.com/) (GDExtension). Lobbies, matchmaking and NAT
+  traversal come from Steam; a `SteamTransport` in the bridge implements the same trait
+  and reuses the start message of the LAN lobby. Requires a Steam App ID.
 
 ## Asset pipeline
 
