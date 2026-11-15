@@ -41,8 +41,9 @@ Transport (later): Steam online, ENet on LAN
 
 ## Data flow (single player, current state)
 
-1. The player right-clicks the ground. `main.gd` intersects the camera ray with the
-   ground plane (pure math, no Godot physics) and calls `SimHost.move_to(id, x, z)`.
+1. The player right-clicks the ground. `main.gd` turns the click into a ground point
+   with `scenes/camera/ground_pick.gd` (pure math, no Godot physics) and calls
+   `SimHost.move_to(id, x, z)`.
 2. `SimHost` rounds the target to millimeters and queues `Command::MoveTo`.
 3. Every frame, `SimHost::process` adds the frame time to an accumulator and runs as many
    fixed 20 Hz ticks as are due (at most 5 per frame). The queued commands go into the
@@ -50,6 +51,30 @@ Transport (later): Steam online, ENet on LAN
 4. After each tick, the previous snapshot is kept and a new one is taken.
 5. `main.gd` reads both snapshots and `interpolation_alpha()` and draws every unit
    interpolated between them. The sim `(x, y)` plane maps to Godot `(x, 0, y)`.
+
+## Camera rig (presentation only)
+
+`godot/scenes/camera/rts_camera.tscn` is a `Node3D` that sits on a focus point on the
+ground, with a perspective `Camera3D` (30° field of view) as its child. The camera is
+placed from four values: focus, distance (15–600 m), pitch and yaw.
+
+- **Pitch follows the zoom:** 45° above the horizon at the closest distance, 65° at the
+  farthest, blended over a logarithmic zoom level (optional `Curve`, else smoothstep).
+- **Zoom** (mouse wheel, trackpad pinch) is smoothed in log space and keeps the ground
+  point under the cursor fixed. **Pan** (WASD, arrows, window edge) scales with the
+  distance; middle-mouse drag grabs the ground. **Q/E** turn in 45° steps, **N** turns
+  back to north (−Z).
+- The focus is clamped to `bounds`, set by `main.gd` from `MAP_SIZE` (test ground,
+  2 km × 2 km; prompt 010 replaces it with the map size).
+- Near/far planes and the sun's shadow distance scale with the camera distance.
+- All bindings are `camera_*` actions in the input map in `project.godot`.
+- `ground_pick.gd` holds the screen-to-ground math used by the camera and by mouse
+  commands. Today it intersects the plane y = 0; prompt 011 swaps in the height field.
+
+Perspective was chosen over orthographic: depth and height read better, the view gets
+the slightly perspective look of the style references, and zoom works by moving the
+camera, which makes pitch changes and distance-based shadows and LOD natural. The small
+field of view keeps distortion low.
 
 ## Data flow (multiplayer, planned)
 

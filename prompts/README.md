@@ -57,7 +57,7 @@ Welle 4:  012 Wegfindung ─ 013 …  │   008 Stufe 2 (pro Fraktion/Kategorie 
 | Nr. | Prompt | Ziel | Status |
 |-----|--------|------|--------|
 | 001 | [Projekt-Setup](done/001-projekt-setup.md) | Gerüst, Sim, Lockstep, Bridge, CI | erledigt |
-| 002 | [RTS-Kamera](002-rts-kamera.md) | Schwenken, Zoomen, Drehen über großem Spielfeld | offen |
+| 002 | [RTS-Kamera](done/002-rts-kamera.md) | Schwenken, Zoomen, Drehen über großem Spielfeld | erledigt |
 | 009 | [Einheiten, Auswahl, Lockstep im Spiel](009-einheiten-auswahl-lockstep.md) | Mehrere Einheiten, Auswahlrahmen, Gruppenbefehle, Replays | offen |
 | 010 | [Kartenformat und Höhenfeld](010-karte-hoehenfeld.md) | Karte als Daten, Höhen und Geländearten in der Sim | offen |
 | 011 | [Terrain-Darstellung](011-terrain-darstellung.md) | Großes Gelände mit LOD und Textur-Splatting | offen |
