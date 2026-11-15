@@ -165,11 +165,12 @@ of [DETERMINISM.md](DETERMINISM.md) and needs to be named in the commit.
 
 ## Presentation
 
-Until prompt 011, `godot/scenes/terrain/terrain_debug.gd` draws the height field as one
-mesh of at most 256 × 256 vertices (`test_large`: every 8th sample), colored by
-terrain type (`debug_color` in `terrain.toml`) with grid lines every 10/100 m and
-contour lines every 1/5 m. The bridge exposes `map_size`, `height_at`, `terrain_at`,
-`height_grid`, `terrain_grid`, `terrain_colors`, `map_marker` and `ray_pick`. Mouse
-picking marches along the ray in steps growing from 0.5 m to 20 m and refines the hit
-by bisection, in floats on the same grid (presentation only); the order that results
-is quantized to millimeters as before.
+Since prompt 011, `godot/scenes/terrain/terrain.gd` draws the height field as chunks
+with five LOD levels and a splatting shader (data path, LOD, shader and measurements:
+[ARCHITECTURE.md](ARCHITECTURE.md#terrain-rendering-presentation-only)). The bridge
+exposes `map_size`, `height_at`, `terrain_at`, `height_grid`, `terrain_grid`,
+`terrain_colors`, `map_marker`, `ray_pick`, and for the renderer `terrain_layers`,
+`terrain_chunk_ranges` and `debug_dent`. Mouse picking marches along the ray in
+steps growing from 0.5 m to 20 m and refines the hit by bisection, in floats on the
+same grid (presentation only); the order that results is quantized to millimeters
+as before. `debug_color` in `terrain.toml` is still used for the PNG palette.

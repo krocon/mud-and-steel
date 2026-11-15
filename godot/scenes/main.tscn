@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scenes/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/camera/rts_camera.tscn" id="3_camera"]
-[ext_resource type="Script" path="res://scenes/terrain/terrain_debug.gd" id="4_terrain"]
+[ext_resource type="Script" path="res://scenes/terrain/terrain.gd" id="4_terrain"]
 [ext_resource type="Script" path="res://scenes/selection/selection.gd" id="5_selection"]
 
 [sub_resource type="StandardMaterial3D" id="Mat_marker"]
@@ -37,7 +37,7 @@ shadow_enabled = true
 [node name="RtsCamera" parent="." node_paths=PackedStringArray("sun") instance=ExtResource("3_camera")]
 sun = NodePath("../Sun")
 
-[node name="Terrain" type="MeshInstance3D" parent="."]
+[node name="Terrain" type="Node3D" parent="."]
 script = ExtResource("4_terrain")
 
 [node name="TargetMarker" type="MeshInstance3D" parent="."]

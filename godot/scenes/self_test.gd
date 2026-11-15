@@ -13,7 +13,10 @@ extends Node
 ## 4. Hill: one tank is right-clicked onto the `hill_top` marker of the map
 ##    (mouse ray against the height field), drives up and must stand at the
 ##    ground height of the simulation, well above its start.
-## 5. Replay: the recorded match is saved, read back and re-simulated to the
+## 5. Terrain: chunks are visible at every zoom, the displayed heights match
+##    the simulation's samples, and a debug crater rebuilds only its region
+##    (displayed ground lowered, simulation unchanged).
+## 6. Replay: the recorded match is saved, read back and re-simulated to the
 ##    same end hash.
 
 ## Panzer IV H: 16 km/h cross-country (catalog) × time factor 2 = 8.889 m/s,
@@ -40,9 +43,10 @@ func _run() -> void:
 	await _selection_test()
 	await _order_test()
 	await _hill_test()
+	await _terrain_test()
 	_replay_test()
 	var ok := _errors.is_empty()
-	var message := "camera, selection, orders, hill and replay ok" if ok else " ".join(_errors)
+	var message := "camera, selection, orders, hill, terrain and replay ok" if ok else " ".join(_errors)
 	print("self-test %s: %s" % ["PASSED" if ok else "FAILED", message])
 	get_tree().quit(0 if ok else 1)
 
@@ -271,7 +275,48 @@ func _hill_test() -> void:
 	])
 
 
-# --- 5. Replay ------------------------------------------------------------
+# --- 5. Terrain -----------------------------------------------------------
+
+
+func _terrain_test() -> void:
+	var sim_host: SimHost = main.sim_host
+	var rig: Node3D = main.camera_rig
+	var terrain: Node3D = main.terrain
+	for distance: float in [rig.min_distance, 120.0, rig.max_distance]:
+		rig.snap_to(Vector3(0, 0, 40), distance, 0.0)
+		await _frames(2)
+		var visible := 0
+		for count in terrain.visible_per_lod:
+			visible += count
+		_check(visible > 0, "no terrain chunk visible at %.0f m" % distance)
+		# Close up the chunk under the camera uses full detail.
+		if distance == rig.min_distance:
+			_check(terrain.visible_per_lod[0] > 0, "no full-detail chunk at %.0f m" % distance)
+	var marker: Variant = sim_host.map_marker("hill_top")
+	var point: Vector3 = marker if marker != null else Vector3(30, 0, 30)
+	var s: Vector2i = terrain.sample_of(point)
+	# Compare on the sample itself: between samples the mesh and the
+	# simulation interpolate differently (triangles versus bilinear).
+	var half: Vector2 = sim_host.map_size() * 0.5
+	var cell: float = sim_host.cell_size()
+	point = Vector3(s.x * cell - half.x, 0.0, s.y * cell - half.y)
+	var before: float = terrain.displayed_height(s.x, s.y)
+	_check(absf(before - sim_host.height_at(point.x, point.z)) < 0.01,
+		"displayed height %.3f differs from the simulation %.3f" % [before, sim_host.height_at(point.x, point.z)])
+	var updates: int = terrain.region_updates
+	terrain.debug_crater(point, 6.0, 1.5)
+	await _frames(1)
+	var after: float = terrain.displayed_height(s.x, s.y)
+	_check(terrain.region_updates == updates + 1, "debug crater did not rebuild its region")
+	_check(absf(before - 1.5 - after) < 0.05, "crater center %.3f m, expected %.3f m" % [after, before - 1.5])
+	var far: Vector2i = s + Vector2i(40, 0)
+	_check(absf(terrain.displayed_height(far.x, far.y) - sim_host.height_at(point.x + 80.0, point.z)) < 0.01,
+		"crater changed the ground 80 m away")
+	_check(absf(sim_host.height_at(point.x, point.z) - before) < 0.01, "debug crater changed the simulation")
+	print("self-test: terrain ok (crater %.2f -> %.2f m, chunks per LOD %s)" % [before, after, terrain.visible_per_lod])
+
+
+# --- 6. Replay ------------------------------------------------------------
 
 
 func _replay_test() -> void:

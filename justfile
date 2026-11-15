@@ -256,7 +256,24 @@ soldiers-tier2:
 path-bench map="test_large" units="200" group="1":
     cargo run -q --release -p cli -- path-bench --map data/maps/{{ map }} --units {{ units }} --group {{ group }}
 
-# Build the bridge and start the game with the path debug view on (F3 costs, F4 paths)
+# Build the bridge and start the game with the path debug view on (F4 costs, F5 paths)
 [group('pathfinding')]
 run-paths map="test_small": build
     {{ GODOT }} --path godot -- --map={{ map }} --path-debug
+
+# --- Terrain rendering (prompt 011) --------------------------------------------------
+
+# Regenerate the procedural ground textures in godot/assets/textures/terrain/ (then: just import)
+[group('terrain')]
+terrain-textures size="1024" preview="":
+    cargo run -q --release -p cli -- gen-terrain-textures --size {{ size }} {{ if preview != "" { "--preview " + preview } else { "" } }}
+
+# Measure frame rate and draw calls of the terrain at 1080p (opens a window)
+[group('terrain')]
+terrain-bench map="test_large": build
+    {{ GODOT }} --path godot --always-on-top -- --terrain-bench --map={{ map }}
+
+# Record fixed terrain views (near, middle, overview, edge, LOD, crater) as PNG frames into a folder
+[group('terrain')]
+terrain-shots dir map="test_large": build
+    {{ GODOT }} --path godot --always-on-top --fixed-fps 30 --write-movie "{{ dir }}/f.png" -- --terrain-shots --map={{ map }}

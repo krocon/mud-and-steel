@@ -1,8 +1,8 @@
 extends Node3D
 ## Debug view of the simulation's pathfinding (presentation only).
 ##
-## F3 toggles the path cost grid of the unit type of the first selected unit
-## (red = blocked, green = cheap, yellow to purple = expensive); F4 toggles
+## F4 toggles the path cost grid of the unit type of the first selected unit
+## (red = blocked, green = cheap, yellow to purple = expensive); F5 toggles
 ## the remaining paths of all units (white, orange while a path is planned).
 ## `-- --path-debug` starts with both visible.
 ##
@@ -58,10 +58,10 @@ func _unhandled_input(event: InputEvent) -> void:
 	if key == null or not key.pressed or key.echo:
 		return
 	match key.physical_keycode:
-		KEY_F3:
+		KEY_F4:
 			show_costs(not _costs.visible)
 			get_viewport().set_input_as_handled()
-		KEY_F4:
+		KEY_F5:
 			_paths.visible = not _paths.visible
 			get_viewport().set_input_as_handled()
 

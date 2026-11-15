@@ -26,3 +26,8 @@ debug = "line-tables-only"
 # A* is too slow unoptimized. Overflow checks and debug assertions stay on.
 [profile.dev.package.sim]
 opt-level = 3
+
+# The bridge computes the terrain rasters for the renderer (4 M samples on a
+# 4 km map); unoptimized that takes seconds at every game start.
+[profile.dev.package.bridge]
+opt-level = 2

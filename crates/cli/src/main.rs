@@ -2,6 +2,7 @@
 
 mod catalog_doc;
 mod gen_map;
+mod gen_textures;
 mod path_bench;
 
 use clap::{Parser, Subcommand};
@@ -78,6 +79,20 @@ enum CliCommand {
         /// Targets lie within this distance of the map center per axis (m).
         #[arg(long, default_value_t = 1800)]
         range_m: i32,
+    },
+    /// Generates the procedural ground textures of the terrain shader.
+    GenTerrainTextures {
+        /// Output folder.
+        #[arg(long, default_value = "godot/assets/textures/terrain")]
+        out: PathBuf,
+        /// Pixels per layer tile (power of two).
+        #[arg(long, default_value_t = 1024)]
+        size: u32,
+        #[arg(long, default_value_t = 1)]
+        seed: u32,
+        /// Also write a lit contact sheet of all layers to this PNG.
+        #[arg(long)]
+        preview: Option<PathBuf>,
     },
     /// Writes docs/UNIT_CATALOG.md (or the given path) from the built-in catalog.
     CatalogDoc {
@@ -164,6 +179,23 @@ fn main() {
                 range_m,
             };
             match path_bench::run(map, &options) {
+                Ok(report) => println!("{report}"),
+                Err(e) => fail(&e),
+            }
+        }
+        CliCommand::GenTerrainTextures {
+            out,
+            size,
+            seed,
+            preview,
+        } => {
+            let options = gen_textures::Options {
+                out: &out,
+                size,
+                seed,
+                preview: preview.as_deref(),
+            };
+            match gen_textures::generate(&options) {
                 Ok(report) => println!("{report}"),
                 Err(e) => fail(&e),
             }

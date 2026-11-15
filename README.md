@@ -49,7 +49,7 @@ Run `just` to list all commands. The most important ones:
 | `just map-info [name]`  | load time, memory and height range of a map              |
 | `just gen-map <name> [size_m] [seed]` | generates a test map ([docs/MAPS.md](docs/MAPS.md)) |
 | `just path-bench [map] [units] [group]` | pathfinding benchmark, time per tick (default `test_large`, 200, 1) |
-| `just run-paths [map]`  | starts the game with the path debug view (F3 costs, F4 paths) |
+| `just run-paths [map]`  | starts the game with the path debug view (F4 costs, F5 paths) |
 | `just export-model <file.blend>` | exports a model to `godot/assets/models/`       |
 | `just model-tank`       | regenerates and exports the placeholder tank             |
 

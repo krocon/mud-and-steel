@@ -15,6 +15,8 @@ use sim::{
 use std::path::Path;
 use std::sync::Arc;
 
+mod terrain_layers;
+
 struct MudAndSteel;
 
 #[gdextension]
@@ -45,6 +47,21 @@ struct Game {
     session: LockstepSession,
     transport: LocalTransport,
     recorder: ReplayRecorder,
+    /// Presentation-only height offsets in meters (debug craters until the
+    /// simulation can deform terrain, prompt 021). Empty until first used.
+    display_offsets: Vec<f32>,
+}
+
+impl Game {
+    fn grid(&self) -> terrain_layers::Grid<'_> {
+        terrain_layers::Grid {
+            samples: self.map.samples(),
+            cell_m: self.map.cell_size_mm() as f32 / 1000.0,
+            heights_mm: self.map.heights_mm(),
+            ids: self.map.terrain_ids(),
+            offsets: &self.display_offsets,
+        }
+    }
 }
 
 impl Game {
@@ -193,6 +210,7 @@ impl SimHost {
         self.accumulator = 0.0;
         self.game = Some(Game {
             recorder: ReplayRecorder::new(seed, config.clone(), &players),
+            display_offsets: Vec::new(),
             sim,
             map_top: map
                 .heights_mm()
@@ -354,6 +372,94 @@ impl SimHost {
         };
         ray_pick(&game.map, game.map_top, origin, direction)
             .map_or_else(Variant::nil, |p| p.to_variant())
+    }
+
+    /// Rasters of the terrain renderer for the samples `i0..i0+w`,
+    /// `j0..j0+h` (clipped to the map), row by row: `rect` (Rect2i, the
+    /// clipped rectangle), `height` (PackedFloat32Array, meters), `normal`
+    /// (RG8), `splat0`/`splat1` (RGBA8 weights of terrain ids 0..=3 and
+    /// 4..=7) and `track` (RGBA8 track direction and mask). Format:
+    /// `terrain_layers.rs`. Empty dictionary if nothing is left.
+    #[func]
+    fn terrain_layers(&self, i0: i64, j0: i64, w: i64, h: i64) -> VarDictionary {
+        let mut out = VarDictionary::new();
+        let Some(game) = &self.game else {
+            return out;
+        };
+        let grid = game.grid();
+        let Some(rect) = grid.clip(i0, j0, w, h) else {
+            return out;
+        };
+        let layers = grid.layers(rect);
+        let to_i32 = |v: u32| i32::try_from(v).unwrap_or(i32::MAX);
+        out.set(
+            "rect",
+            Rect2i::new(
+                Vector2i::new(to_i32(rect.i0), to_i32(rect.j0)),
+                Vector2i::new(to_i32(rect.w), to_i32(rect.h)),
+            ),
+        );
+        out.set(
+            "height",
+            &PackedFloat32Array::from(layers.heights.as_slice()),
+        );
+        out.set("normal", &PackedByteArray::from(layers.normals.as_slice()));
+        out.set("splat0", &PackedByteArray::from(layers.splat0.as_slice()));
+        out.set("splat1", &PackedByteArray::from(layers.splat1.as_slice()));
+        out.set("track", &PackedByteArray::from(layers.track.as_slice()));
+        out
+    }
+
+    /// Lowest (x) and highest (y) displayed height of every terrain chunk of
+    /// `cells` x `cells` cells, chunks along x first.
+    #[func]
+    fn terrain_chunk_ranges(&self, cells: i64) -> PackedVector2Array {
+        self.game
+            .as_ref()
+            .map_or_else(PackedVector2Array::new, |g| {
+                let cells = u32::try_from(cells.clamp(1, 4096)).unwrap_or(1);
+                g.grid()
+                    .chunk_ranges(cells)
+                    .into_iter()
+                    .map(|(lo, hi)| Vector2::new(lo, hi))
+                    .collect()
+            })
+    }
+
+    /// Presses a test crater (radius and depth in meters) into the displayed
+    /// terrain at `(x, z)` and returns the changed rectangle of samples (empty
+    /// if outside). Presentation only: the simulation, unit heights and
+    /// mouse picking keep the original heights until prompt 021 lets the
+    /// simulation deform the ground.
+    #[func]
+    fn debug_dent(&mut self, x: f32, z: f32, radius: f32, depth: f32) -> Rect2i {
+        let Some(game) = self.game.as_mut() else {
+            return Rect2i::default();
+        };
+        let samples = game.map.samples();
+        if game.display_offsets.is_empty() {
+            game.display_offsets = vec![0.0; samples.0 as usize * samples.1 as usize];
+        }
+        let size = game.map.size();
+        let cell = game.map.cell_size_mm() as f32 / 1000.0;
+        let center = (
+            (x + fixed_to_f32(size.x) / 2.0) / cell,
+            (z + fixed_to_f32(size.y) / 2.0) / cell,
+        );
+        let rect = terrain_layers::dent(
+            samples,
+            &mut game.display_offsets,
+            center,
+            radius / cell,
+            depth,
+        );
+        rect.map_or_else(Rect2i::default, |r| {
+            let to_i32 = |v: u32| i32::try_from(v).unwrap_or(i32::MAX);
+            Rect2i::new(
+                Vector2i::new(to_i32(r.i0), to_i32(r.j0)),
+                Vector2i::new(to_i32(r.w), to_i32(r.h)),
+            )
+        })
     }
 
     fn terrain_type(&self, id: i64) -> Option<&sim::terrain::TerrainType> {
