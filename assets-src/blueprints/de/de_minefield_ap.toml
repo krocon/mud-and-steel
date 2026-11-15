@@ -1,0 +1,16 @@
+# Anti-personnel minefield section, 20 x 20 m (data/catalog/de.toml; catalog
+# height 0: S-Mines and Schue-Mines lie flush). Same `minefield` generator as
+# de_minefield_at, with `mine = "ap"`: the visible mines are S-Mine tops with
+# their three-prong fuzes. Pickets with blank warning boards and a trip wire
+# mark the perimeter; the catalog mine count (40) is a game value, the
+# representative mines are geometry.
+unit = "de_minefield_ap"
+assembly = "env"
+
+[[variant]]
+name = "Field"
+part = "minefield"
+height_m = 1.0                # picket height, estimate (catalog height is 0)
+mine = "ap"
+visible = 12
+seed = 2

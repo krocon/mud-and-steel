@@ -1,0 +1,101 @@
+# 10.5 cm leFH 18M light field howitzer. Main dimensions from
+# data/catalog/de.toml: length 6.10 m, width 1.977 m, height 1.88 m (leFH 18
+# carriage values). Modeled like the PaK 40 example with the trails closed
+# (spread trails would be far wider than the catalog width) and the barrel
+# horizontal. Barrel L/28 (2.94 m) with the two-chamber muzzle brake of the
+# 18M; the trails are fitted to the catalog length.
+# Modeling estimates from photographs: wheel diameter about 1.30 m, pressed
+# steel disc wheels (the late-war production standard; spoked wooden wheels
+# belong to the horse-drawn early guns, so `spokes = 0`), single shield plate
+# with a folding lower apron, recuperator above and buffer below the barrel
+# in a long cradle. Positions are relative to the axle (y = 0).
+unit = "de_lefh18"
+assembly = "towed_gun"
+
+[gun]
+part = "field_gun"
+trunnion = [-0.25, 1.15]
+cradle = [1.90, 0.34, 0.30]
+recoil = [1.55, 0.075]
+breech = [0.50, 0.34]
+segments = [[1.20, 0.100, 0.090], [1.74, 0.080, 0.074]]
+muzzle_brake = "double_baffle_flat"
+
+[carriage]
+part = "split_trail_carriage"
+wheel_diameter = 1.30
+wheel_width = 0.14
+wheel_track = 1.735          # outer hub caps = catalog width
+trail_spread_deg = 0
+trail_width = 0.18
+trail_height = 0.24
+spade = [0.40, 0.32]
+mount_z = 0.98
+spokes = 0
+
+[shield]
+part = "gun_shield"
+y = 0.30
+width = 1.62                 # between the wheels
+bottom_z = 0.62
+slope_deg = 10
+cutout = [0.34, 0.36]
+wing_width = 0.12
+wing_deg = 20
+spaced = false
+thickness = 0.008
+
+[[part]]
+part = "box_prop"            # folding lower shield apron between the wheels
+center = [0.0, 0.33, 0.48]
+size = [1.30, 0.012, 0.24]
+parent = "Shield"
+
+[[part]]
+part = "cylinder_prop"       # recuperator above the barrel
+from = [0.0, -1.0, 1.32]
+to = [0.0, 0.55, 1.32]
+radius = 0.07
+parent = "Gun"
+
+[[part]]
+part = "box_prop"            # panoramic sight bracket on the left of the cradle
+center = [-0.26, -0.20, 1.32]
+size = [0.10, 0.18, 0.22]
+material = "Metal"
+parent = "Gun"
+
+[[part]]
+part = "cylinder_prop"       # elevation handwheel
+from = [-0.30, -0.55, 0.95]
+to = [-0.35, -0.55, 0.95]
+radius = 0.12
+material = "Metal"
+parent = "Carriage"
+
+[[part]]
+part = "cylinder_prop"       # traverse handwheel
+from = [0.30, -0.55, 0.90]
+to = [0.35, -0.55, 0.90]
+radius = 0.11
+material = "Metal"
+parent = "Carriage"
+
+[[part]]
+part = "crew_sockets"
+positions = [[-0.60, -0.80], [0.60, -0.80], [-0.75, -1.70], [0.75, -1.70], [-0.95, -2.60], [0.95, -2.60]]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -0.3, 1.0]
+parent = "Carriage"
+
+[[part]]
+part = "marking"
+name = "Shield"
+kind = "number"
+parent = "Shield"
+position = [-0.55, 0.30, 1.30]
+normal = [0, 0.98, 0.17]
+size = 0.3
