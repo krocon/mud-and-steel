@@ -70,6 +70,7 @@ const EffectsBench := preload("res://scenes/tools/effects_bench.gd")
 const InfantryView := preload("res://scenes/world/infantry_view.gd")
 const InfantryBench := preload("res://scenes/tools/infantry_bench.gd")
 const PerfBench := preload("res://scenes/tools/perf_bench.gd")
+const UnitMerge := preload("res://scenes/world/unit_merge.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
 const MatchSetup := preload("res://scenes/menu/match_setup.gd")
 const LoadingScreen := preload("res://scenes/menu/loading_screen.gd")
@@ -479,6 +480,8 @@ func _use_catalog_model(node: Node3D, type_id: String, id: int) -> void:
 	var model := (load(path) as PackedScene).instantiate() as Node3D
 	model.name = "Model"
 	model.set_meta(&"faction", faction)
+	# Static parts to a few meshes per unit type (prompt 016).
+	UnitMerge.merge(model, type_id)
 	node.add_child(model)
 	UnitCamo.apply(model, UnitCamo.palette(faction, atmosphere.preset.camo_biome))
 	UnitCamo.add_markings(model, faction, 100 + id)

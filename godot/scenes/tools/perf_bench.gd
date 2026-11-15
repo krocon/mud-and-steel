@@ -8,8 +8,8 @@ extends Node
 ## same distances over the fighting (effects, tracers, wrecks, crushed
 ## objects). Per view it prints frames per second, frame time (mean, p99,
 ## worst), the simulation's share of the frame (`SimHost.process_usec`:
-## ticks, AI, snapshots), GDScript process time, render CPU time and draw
-## calls. Screenshots go to `user://perf-bench/`. See docs/PERFORMANCE.md.
+## ticks, AI, snapshots), render CPU time, draw calls and the script time of
+## the big presentation systems. Screenshots go to `user://perf-bench/`. See docs/PERFORMANCE.md.
 
 const BENCH_SIZE := Vector2i(1920, 1080)
 const SECONDS := 6.0
@@ -98,6 +98,24 @@ func _center(units: PackedInt64Array) -> Vector3:
 	return sum / maxi(count, 1)
 
 
+## Position of the living own unit nearest to `point` (the army's center
+## may lie in the gap between tanks and infantry).
+func _nearest_own(point: Vector3) -> Vector3:
+	var sim_host: SimHost = main.sim_host
+	var owners := sim_host.unit_owners()
+	var alive := sim_host.unit_alive()
+	var positions := sim_host.current_positions()
+	var best := point
+	var best_d := INF
+	for i in positions.size():
+		if owners[i] == sim_host.local_player() and alive[i] != 0:
+			var d := positions[i].distance_squared_to(point)
+			if d < best_d:
+				best_d = d
+				best = positions[i]
+	return best
+
+
 ## The own unit nearest to the enemy side (smallest z): where the fighting is.
 func _front() -> Vector3:
 	var sim_host: SimHost = main.sim_host
@@ -113,7 +131,7 @@ func _front() -> Vector3:
 
 func _measure(phase: String, distance: float) -> void:
 	var label := "%s, %d m" % [phase, int(distance)]
-	var focus := _front() if phase == "battle" else _center(_own_units())
+	var focus := _front() if phase == "battle" else _nearest_own(_center(_own_units()))
 	main.camera_rig.snap_to(focus, distance, 0.7)
 	await _frames(WARMUP_FRAMES)
 	var viewport_rid := get_viewport().get_viewport_rid()
@@ -122,7 +140,6 @@ func _measure(phase: String, distance: float) -> void:
 	var last := began
 	var sim_usec := 0
 	var ticks := 0
-	var process := 0.0
 	var render := 0.0
 	var draw_calls := 0
 	var primitives := 0
@@ -139,7 +156,6 @@ func _measure(phase: String, distance: float) -> void:
 		last = now
 		sim_usec += main.sim_host.process_usec()
 		ticks += main.sim_host.process_ticks()
-		process += Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0
 		render += RenderingServer.viewport_get_measured_render_time_cpu(viewport_rid) + RenderingServer.get_frame_setup_time_cpu()
 		draw_calls += RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_DRAW_CALLS_IN_FRAME)
 		primitives += RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_PRIMITIVES_IN_FRAME)
@@ -155,10 +171,10 @@ func _measure(phase: String, distance: float) -> void:
 	sorted.sort()
 	DirAccess.make_dir_recursive_absolute("user://perf-bench")
 	get_viewport().get_texture().get_image().save_png("user://perf-bench/%s_%d.png" % [phase, int(distance)])
-	print("perf-bench: %-14s %6.1f FPS  frame %5.2f ms (p99 %6.2f, worst %6.2f)  sim %5.2f ms (%.2f ticks)  process %5.2f ms  render cpu %5.2f ms  %5d draw calls  %5.2f M primitives" % [
+	print("perf-bench: %-14s %6.1f FPS  frame %5.2f ms (p99 %6.2f, worst %6.2f)  sim %5.2f ms (%.2f ticks)  render cpu %5.2f ms  %5d draw calls  %5.2f M primitives" % [
 		label, frames / seconds, seconds * 1000.0 / frames, sorted[(frames - 1) * 99 / 100],
 		sorted[frames - 1], sim_usec / 1000.0 / frames, float(ticks) / frames,
-		process / frames, render / frames, draw_calls / frames, primitives / 1e6 / frames])
+		render / frames, draw_calls / frames, primitives / 1e6 / frames])
 	print("perf-bench: %-14s scripts ms: units %.2f  infantry %.2f  combat view %.2f  effects %.2f  decoration %.2f  terrain %.2f" % [
 		"", parts[0] / 1000.0 / frames, parts[1] / 1000.0 / frames, parts[2] / 1000.0 / frames,
 		parts[3] / 1000.0 / frames, parts[4] / 1000.0 / frames, parts[5] / 1000.0 / frames])

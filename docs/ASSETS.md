@@ -191,7 +191,11 @@ and vertex colors.
 **LOD:** Godot's automatic mesh LODs (`meshes/generate_lods`, on by default) are
 used. The budgets above keep LOD0 small already, and at medium zoom a tank covers
 60–100 px, where the automatic LODs remove most triangles. No own LOD meshes for
-now; prompt 016 (performance) measures this together with draw calls.
+now. At run time the static parts of a vehicle are merged per unit type into
+one mesh for the hull and one for the turret (`godot/scenes/world/unit_merge.gd`,
+prompt 016): a tank was 30–50 draw calls per pass. Parts keep their names and
+transforms as empty nodes, so sockets and the turret still work; tools that
+inspect models (gallery, validation) see the unmerged scene.
 
 ### New unit in 5 steps
 

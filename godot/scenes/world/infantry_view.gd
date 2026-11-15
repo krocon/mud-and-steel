@@ -25,6 +25,9 @@ extends Node3D
 const NEAR_M := 70.0
 const MID_M := 260.0
 const MID_STEP := 3
+## Soldiers farther than this from the camera are drawn as MultiMesh
+## instances (about 8 px tall at 1080p).
+const IMPOSTOR_M := 450.0
 ## Squads farther than this outside the camera's view are not updated.
 const CULL_MARGIN_M := 25.0
 ## Squads beyond MID_M are updated every this many frames (a soldier moves
@@ -54,6 +57,12 @@ var _soldiers: Dictionary[int, Dictionary] = {}
 ## Keys of the soldiers of every unit id, from the last frame.
 var _by_unit: Dictionary[int, Array] = {}
 var _frame := 0
+## Far soldiers per faction: MultiMesh node, instance transforms by soldier
+## key, factions whose MultiMesh needs an upload; impostor keys per unit.
+var _impostor_nodes: Dictionary[String, MultiMeshInstance3D] = {}
+var _impostors: Dictionary[String, Dictionary] = {}
+var _impostor_dirty: Dictionary[String, bool] = {}
+var _impostor_keys: Dictionary[int, Array] = {}
 ## Faction prefix per unit id (`_faction_of`).
 var _factions: Dictionary[int, String] = {}
 var _biome := ""
@@ -113,6 +122,15 @@ func _draw(delta: float) -> void:
 		_biome = biome
 		for s: Dictionary in _soldiers.values():
 			SoldierLook.apply(s["node"], s["faction"], _biome, s["seed"])
+		# The far MultiMeshes carry the old palette: build them again.
+		for node: Node in _impostor_nodes.values():
+			node.queue_free()
+		_impostor_nodes.clear()
+		_impostors.clear()
+		_impostor_dirty.clear()
+		for s: Dictionary in _soldiers.values():
+			s["impostor"] = false
+		_impostor_keys.clear()
 	var unit_ids := sim_host.unit_ids()
 	var stances := sim_host.unit_stances()
 	var garrisons := sim_host.unit_garrisons()
@@ -171,18 +189,109 @@ func _draw(delta: float) -> void:
 		if garrisons[u] >= 0:
 			member.visible = false
 			counts[3] += 1
+			if s["impostor"]:
+				_drop_impostor(s, key)
 			continue
-		member.visible = true
-		member.position = node.to_local(position)
 		var step := current[k] - previous[k]
 		step.y = 0.0
 		var speed := step.length() * tick_rate
 		var moving := speed > MOVING_FROM and hp[k] > 0
 		var yaw: float = atan2(-step.x, -step.z) if moving else aims[u]
 		s["yaw"] = lerp_angle(s["yaw"], yaw, turn)
+		var distance := position.distance_to(camera_position)
+		if distance > IMPOSTOR_M:
+			member.visible = false
+			counts[2] += 1
+			_set_impostor(s, unit_id, key, position, hp[k] <= 0, stances[u])
+			continue
+		if s["impostor"]:
+			_drop_impostor(s, key)
+		member.visible = true
+		member.position = node.to_local(position)
 		member.rotation.y = s["yaw"] - node.rotation.y
 		_animate(s, hp[k] <= 0, moving, speed, stances[u], now)
-		_advance(s, delta, position.distance_to(camera_position))
+		_advance(s, delta, distance)
+	_flush_impostors(unit_index)
+
+
+## Far soldiers (prompt 016): beyond IMPOSTOR_M a soldier is a few pixels
+## tall; instead of his skinned model (several draw calls, a skeleton) he is
+## one instance of a MultiMesh per faction that shows the body in its rest
+## pose, upright, lower when kneeling, lying when prone or dead.
+func _set_impostor(s: Dictionary, unit_id: int, key: int, position: Vector3, dead: bool, stance: int) -> void:
+	var faction: String = s["faction"]
+	if not _impostor_nodes.has(faction):
+		var made := _make_impostor(s)
+		if made == null:
+			return
+		_impostor_nodes[faction] = made
+		_impostors[faction] = {}
+	var basis := Basis(Vector3.UP, float(s["yaw"]))
+	if dead or stance == 2:
+		basis = basis * Basis(Vector3.RIGHT, -PI * 0.5)
+	elif stance == 1:
+		basis = basis.scaled_local(Vector3(1.0, 0.65, 1.0))
+	(_impostors[faction] as Dictionary)[key] = Transform3D(basis, position)
+	_impostor_dirty[faction] = true
+	if not s["impostor"]:
+		s["impostor"] = true
+		(_impostor_keys.get_or_add(unit_id, []) as Array).append(key)
+
+
+func _drop_impostor(s: Dictionary, key: int) -> void:
+	s["impostor"] = false
+	var faction: String = s["faction"]
+	if _impostors.has(faction):
+		(_impostors[faction] as Dictionary).erase(key)
+		_impostor_dirty[faction] = true
+	var keys: Array = _impostor_keys.get(key / 256, [])
+	keys.erase(key)
+
+
+## The far MultiMesh of a soldier's faction: his body mesh with the
+## faction's uniform materials.
+func _make_impostor(s: Dictionary) -> MultiMeshInstance3D:
+	var body := (s["node"] as Node).find_child("Body", true, false) as MeshInstance3D
+	if body == null or body.mesh == null:
+		return null
+	# Without the automatic LODs: the whole MultiMesh counts as one far
+	# object, and the lowest LOD of a body is a few scattered triangles.
+	var source := body.mesh
+	var mesh := ArrayMesh.new()
+	for i in source.get_surface_count():
+		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, source.surface_get_arrays(i))
+		mesh.surface_set_material(i, body.get_active_material(i))
+	var node := MultiMeshInstance3D.new()
+	node.name = "FarSoldiers_" + str(s["faction"])
+	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	node.multimesh = MultiMesh.new()
+	node.multimesh.transform_format = MultiMesh.TRANSFORM_3D
+	node.multimesh.mesh = mesh
+	add_child(node)
+	return node
+
+
+## Removes the impostors of squads that left the snapshot or are hidden
+## (fog of war) and uploads the changed MultiMeshes.
+func _flush_impostors(unit_index: Dictionary) -> void:
+	for unit_id: int in _impostor_keys.keys():
+		var node: Node3D = main._unit_nodes.get(unit_id)
+		if unit_index.has(unit_id) and node != null and node.visible:
+			continue
+		for key: int in (_impostor_keys[unit_id] as Array).duplicate():
+			var s: Dictionary = _soldiers.get(key, {})
+			if not s.is_empty():
+				_drop_impostor(s, key)
+		_impostor_keys.erase(unit_id)
+	for faction: String in _impostor_dirty:
+		var transforms: Dictionary = _impostors[faction]
+		var mm: MultiMesh = (_impostor_nodes[faction] as MultiMeshInstance3D).multimesh
+		mm.instance_count = transforms.size()
+		var i := 0
+		for xform: Transform3D in transforms.values():
+			mm.set_instance_transform(i, xform)
+			i += 1
+	_impostor_dirty.clear()
 
 
 ## Squad LOD (prompt 016): squads outside the camera's view (grown by
@@ -239,7 +348,7 @@ func _make(node: Node3D, key: int, index: int) -> Dictionary:
 		"node": member, "player": player, "faction": faction, "seed": seed,
 		"clip": "", "dead": false, "fired": -100000, "yaw": 0.0, "accum": 0.0,
 		"phase": key % MID_STEP, "meshes": meshes, "details": details, "shadows": false,
-		"far": false,
+		"far": false, "impostor": false,
 		"position": Vector3.ZERO,
 	}
 	_soldiers[key] = s

@@ -429,6 +429,17 @@ the camera and body-only far soldiers fixed that. In the fight the extra
 time goes to muzzle flashes and tracers of hundreds of shots (effects,
 prompt 019) and to the animation of the near soldiers.
 
+**Prompt 016** ([PERFORMANCE.md](PERFORMANCE.md)): with 2250 soldiers
+`infantry_view.gd` skips squads outside the camera's view (grown by 25 m),
+updates squads beyond 260 m every fourth frame, sets every soldier up
+without shadows, and draws soldiers farther than 450 m from the camera (8 px
+tall at 1080p) as instances of one MultiMesh per faction: the body mesh in
+its rest pose with the faction's materials, upright, lower when kneeling,
+lying when prone or dead. That turned 3 000–4 000 draw calls and the
+skeletons of the far soldiers into one draw call per faction. The
+MultiMesh's mesh has no automatic LODs: Godot picks the LOD for the whole
+MultiMesh, and from afar it chose a few scattered triangles.
+
 **Decision: no vertex animation textures (VAT) yet.** Skinned soldiers with
 animation LOD hold 57–90 FPS with 504 soldiers; VAT would need a baking
 pipeline from Blender and a second animation path, and only pays off for
