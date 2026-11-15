@@ -910,7 +910,9 @@ Spread craters cost about 1 ms per tick (path cells, vision cells and the
 viewshed queue); no route has to be planned again. Stacked craters that
 close cells cost a flood fill of the components per tick (about 8 ms on
 `test_large`) and re-planning of every route through them, still within
-the 50 ms tick.
+the 50 ms tick. Since prompt 016 the components are relabeled locally
+(`relabel_components_in`): the stacked case takes 6.0 / 6.7 ms per tick
+instead of 22 / 24 ms (same run, same state hash `0x47f2f2f2b80a01e6`).
 
 `just crater-view-bench [map]` (`tools/crater_bench.gd`, `-- --effects-craters`):
 1920 × 1080, V-Sync off, quality high, forest, debug bridge, camera 150 m

@@ -52,9 +52,9 @@ pub use outcome::{DefeatReason, Outcome, PlayerStanding};
 pub use rng::Rng;
 pub use scale::Scale;
 pub use sim::{
-    BuildingCondition, BuyOption, ConfigError, MAX_PLAYERS, Phase, PlaceError, RouteView, Sim, SimConfig,
-    Snapshot, SoldierSnapshot, Spawn, StructureView, SupplyView, UnitSnapshot, WORLD_LIMIT_M,
-    formation_slots, formation_spacing,
+    BuildingCondition, BuyOption, ConfigError, MAX_PLAYERS, Phase, PlaceError, RouteView, Sim,
+    SimConfig, Snapshot, SoldierSnapshot, Spawn, StructureView, SupplyView, UnitSnapshot,
+    WORLD_LIMIT_M, formation_slots, formation_spacing,
 };
 pub use terrain::{TerrainError, TerrainRules};
 pub use vision::{CellState, VisionGrid, VisionRules};

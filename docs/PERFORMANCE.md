@@ -53,22 +53,31 @@ Apple M1 Max, the scenario above, release simulation, debug bridge (as
 ## Simulation
 
 `just bench --runs 3` (6000 ticks = 5 min game time, seed 1, minimum per
-tick of 3 runs, release, Apple M1 Max, 2026-11-15). End hash
-`0x21c325f3290ca7fd` before and after.
+tick of 3 runs, release, Apple M1 Max, 2026-11-15). "Before" and "after"
+are prompt 016 alone (end hash `0x21c325f3290ca7fd` both); "with 021/023"
+is the state after merging terrain deformation and base building (new
+rules, end hash `0x6603281bb9fb609c`).
 
-| ms per tick | Before mean | p99 | max | After mean | p99 | max |
-|---|---|---|---|---|---|---|
-| **Sim tick** | 5.21 | 31.7 | 65.4 | **3.96** | **7.2** | **7.9** |
-| · commands | 0.00 | 0.01 | 0.03 | 0.00 | 0.01 | 0.03 |
-| · paths (A\*, budget) | 2.23 | 4.65 | 6.5 | 2.20 | 4.53 | 5.3 |
-| · combat (targets, aim, fire) | 0.21 | 0.56 | 1.0 | 0.18 | 0.55 | 1.1 |
-| · movement (separation) | 0.46 | 0.86 | 0.93 | 0.26 | 0.42 | 0.47 |
-| · squads | 0.18 | 0.23 | 0.27 | 0.18 | 0.23 | 0.28 |
-| · projectiles (and crushing) | 0.63 | 24.6 | 58.5 | 0.03 | 0.31 | 0.69 |
-| · destruction | 0.09 | 0.00 | 27.1 | 0.00 | 0.00 | 0.66 |
-| · vision (budget) | 1.41 | 2.86 | 3.0 | 1.10 | 2.19 | 2.3 |
-| AI think (both) | 0.09 | 0.30 | 0.47 | 0.06 | 0.26 | 0.46 |
-| Snapshot | 0.04 | 0.05 | 0.05 | 0.02 | 0.03 | 0.03 |
+| ms per tick | Before mean | p99 | max | After mean | p99 | max | With 021/023 mean | p99 | max |
+|---|---|---|---|---|---|---|---|---|---|
+| **Sim tick** | 5.21 | 31.7 | 65.4 | **3.96** | **7.2** | **7.9** | **4.66** | **7.7** | **8.5** |
+| · commands | 0.00 | 0.01 | 0.03 | 0.00 | 0.01 | 0.03 | 0.00 | 0.01 | 0.04 |
+| · paths (A\*, budget) | 2.23 | 4.65 | 6.5 | 2.20 | 4.53 | 5.3 | 2.46 | 4.29 | 5.0 |
+| · combat (targets, aim, fire) | 0.21 | 0.56 | 1.0 | 0.18 | 0.55 | 1.1 | 0.17 | 0.57 | 1.1 |
+| · movement (separation) | 0.46 | 0.86 | 0.93 | 0.26 | 0.42 | 0.47 | 0.26 | 0.39 | 0.43 |
+| · squads | 0.18 | 0.23 | 0.27 | 0.18 | 0.23 | 0.28 | 0.18 | 0.22 | 0.27 |
+| · projectiles (and crushing) | 0.63 | 24.6 | 58.5 | 0.03 | 0.31 | 0.69 | 0.03 | 0.31 | 0.79 |
+| · destruction (and craters) | 0.09 | 0.00 | 27.1 | 0.00 | 0.00 | 0.66 | 0.00 | 0.02 | 1.0 |
+| · economy | – | – | – | – | – | – | 0.00 | 0.00 | 0.00 |
+| · vision (budget) | 1.41 | 2.86 | 3.0 | 1.10 | 2.19 | 2.3 | 1.56 | 2.73 | 2.9 |
+| AI think (both) | 0.09 | 0.30 | 0.47 | 0.06 | 0.26 | 0.46 | 0.06 | 0.26 | 0.45 |
+| Snapshot | 0.04 | 0.05 | 0.05 | 0.02 | 0.03 | 0.03 | 0.02 | 0.03 | 0.03 |
+
+Vision costs more with craters: every crater changes the ground of vision
+cells and queues the viewsheds that cover them. `just crater-bench` with
+16 stacked craters per tick (the case that closes path cells): 22 / 24 ms
+per tick with the full relabeling, 6.0 / 6.7 ms with the local one, same
+state hash.
 
 All simulation budgets are met. What changed:
 
@@ -115,27 +124,27 @@ vision into its 400 000 ray steps in few.
 bridge; the local player sees 254 units and 1125 soldiers, the rest is in
 the fog). Frames per second, mean frame time in brackets:
 
+Measured after merging prompts 021 and 023 (the "before" column is the
+state before prompt 016):
+
 | View | Before, high | After, high | After, medium |
 |---|---|---|---|
-| standing, 40 m | 13.0 (77 ms) | 93.8 (10.7 ms) | 100.2 (10.0 ms) |
-| standing, 150 m | 14.3 (70 ms) | 91.7 (10.9 ms) | 93.1 (10.7 ms) |
-| standing, 600 m | 30.5 (33 ms) | 102.2 (9.8 ms) | 105.7 (9.5 ms) |
-| battle, 40 m | 10.7 (94 ms) | 82.6 (12.1 ms) | ≈ high |
-| battle, 150 m | 9.5 (105 ms) | 69.2 (14.4 ms) | ≈ high |
-| battle, 600 m | 24.3 (41 ms) | 50.3 (19.9 ms) | ≈ high |
+| standing, 40 m | 13.0 (77 ms) | 92.9 (10.8 ms) | 113.3 (8.8 ms) |
+| standing, 150 m | 14.3 (70 ms) | 89.0 (11.2 ms) | 91.1 (11.0 ms) |
+| standing, 600 m | 30.5 (33 ms) | 101.2 (9.9 ms) | 109.3 (9.2 ms) |
+| battle, 40 m | 10.7 (94 ms) | 75.1 (13.3 ms) | 81.1 (12.3 ms) |
+| battle, 150 m | 9.5 (105 ms) | 68.2 (14.7 ms) | 73.4 (13.6 ms) |
+| battle, 600 m | 24.3 (41 ms) | 55.7 (18.0 ms) | 61.2 (16.3 ms) |
 
 Draw calls standing at 150 / 600 m: 2 525 / 6 579 before, 679 / 1 109
-after. The battle views follow the front and differ from run to run; the
-battle columns of medium were measured before the last two changes (top
-level soldiers, freed parts) and were within a few FPS of high, so medium
-and high are limited by the CPU, not the GPU.
+after. The battle views follow the front and differ a little from run to
+run. Medium and high are close: the frame is limited by the CPU (engine,
+scripts, the simulation), not by the GPU.
 
-**Budgets:** standing views and the battle at 40 and 150 m meet them;
-the battle at 600 m (about 50 FPS, p99 29 ms) is above the 45 FPS for high
-but below 60 for medium. The rest of that frame is engine work for
-hundreds of particle emitters, moving models and the debug build of the
-simulation (a tick there takes about 9 ms against 4 ms in release, and
-falls into every third frame).
+**Budgets:** all met, the battle at 600 m in medium just (61 FPS); its p99
+frame (33 ms) comes from frames that run a tick of the debug-build
+simulation (about 9 ms against 4 ms in release, every third frame) on top
+of hundreds of particle emitters.
 
 What changed, by effect:
 
@@ -162,8 +171,8 @@ What changed, by effect:
    between, built into reused buffers.
 
 Script time per system is printed by the bench; after the changes, in the
-battle: units 0.8–1.3 ms, infantry 1.6 ms, combat view 0.6 ms, effects
-0.8–1.0 ms, terrain chunks 1.0–1.3 ms.
+battle: units 0.7 ms, infantry 1.6 ms, combat view 0.6 ms, effects
+0.8–1.0 ms, terrain chunks 0.9–1.3 ms.
 
 
 ## Decisions
