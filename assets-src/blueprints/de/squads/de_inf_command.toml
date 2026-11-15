@@ -1,0 +1,16 @@
+# Zugtrupp, 2 men; composition from the catalog entry (data/catalog/de.toml):
+# Zugführer (MP 40) and Funker (Kar98k, portable radio).
+# Role choice: `officer` (MP 40, map case, binoculars) and `radio_operator`.
+unit = "de_inf_command"
+
+[[member]]
+role = "officer"
+position = [0.0, 0.6]
+clip = "idle"
+note = "Zugführer (MP 40)"
+
+[[member]]
+role = "radio_operator"
+position = [1.0, -0.2]
+clip = "kneel"
+note = "Funker (Kar98k, Feldfunksprecher)"

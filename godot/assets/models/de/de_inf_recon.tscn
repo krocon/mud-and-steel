@@ -1,0 +1,23 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="PackedScene" uid="uid://c11mkq2iu7qrv" path="res://assets/models/de/infantry/scout.glb" id="1_scout"]
+[ext_resource type="PackedScene" uid="uid://l53r5iv01hn7" path="res://assets/models/de/infantry/smg_gunner.glb" id="2_smg_gunner"]
+[ext_resource type="PackedScene" uid="uid://fnwiuysnj51v" path="res://assets/models/de/infantry/squad_leader.glb" id="3_squad_leader"]
+
+[node name="de_inf_recon" type="Node3D"]
+metadata/extras = {"cat_id": "de_inf_recon", "cat_faction": "de", "cat_category": "inf_recon", "cat_name_de": "Spähtrupp", "cat_name_en": "Reconnaissance patrol", "cat_designation": "Spähtrupp (Infanterie)", "cat_year_from": 1943, "cat_year_to": 1945, "cat_speed_road_kmh_x10": 50, "cat_speed_offroad_kmh_x10": 40, "cat_weapons": "2× MP 40; 3× Kar98k; 10× Stielhandgranate 24", "cat_squad_size": 5, "squad": true, "squad_roles": ["scout", "squad_leader", "smg_gunner", "scout", "scout"], "squad_notes": ["Spitze (Kar98k, Stielhandgranate 24)", "Spähtruppführer (MP 40)", "Schütze (MP 40)", "Späher (Kar98k, Stielhandgranate 24)", "Späher, rear guard (Kar98k, Stielhandgranate 24)"], "squad_clips": ["aim_kneel", "kneel", "aim_stand", "idle", "aim_kneel"], "squad_file": "assets-src/blueprints/de/squads/de_inf_recon.toml", "source_hash": "1aa23b82df6c1c7b"}
+
+[node name="Member_01" parent="." instance=ExtResource("1_scout")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -3)
+
+[node name="Member_02" parent="." instance=ExtResource("3_squad_leader")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.8, 0, -1.6)
+
+[node name="Member_03" parent="." instance=ExtResource("2_smg_gunner")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, -0.8)
+
+[node name="Member_04" parent="." instance=ExtResource("1_scout")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.8, 0, 0)
+
+[node name="Member_05" parent="." instance=ExtResource("1_scout")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6, 0, 1)

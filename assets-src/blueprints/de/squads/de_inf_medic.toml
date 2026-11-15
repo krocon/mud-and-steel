@@ -1,0 +1,19 @@
+# Sanitätstrupp, 2 men; composition from the catalog entry (data/catalog/de.toml):
+# medical NCO and stretcher bearer, both with P 38 (catalog assumption).
+# Role choice: both `medic` (medic bags, armband without Red Cross per
+# docs/SOURCES.md; P 38 holstered, nothing in the hands). A stretcher bearer role
+# does not exist; `ammo_carrier` would show an ammunition case, so `medic` is the
+# closest role for the second man.
+unit = "de_inf_medic"
+
+[[member]]
+role = "medic"
+position = [0.0, 0.5]
+clip = "medic_treat"
+note = "Sanitätsdienstgrad (P 38)"
+
+[[member]]
+role = "medic"
+position = [1.1, -0.3]
+clip = "kneel"
+note = "Krankenträger (P 38)"

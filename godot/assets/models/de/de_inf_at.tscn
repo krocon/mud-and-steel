@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" uid="uid://cvhq7qpcywbfo" path="res://assets/models/de/infantry/at_assistant.glb" id="1_at_assistant"]
+[ext_resource type="PackedScene" uid="uid://csv28c7f7ipqw" path="res://assets/models/de/infantry/at_gunner.glb" id="2_at_gunner"]
+
+[node name="de_inf_at" type="Node3D"]
+metadata/extras = {"cat_id": "de_inf_at", "cat_faction": "de", "cat_category": "inf_at", "cat_name_de": "Panzerschreck-Trupp", "cat_name_en": "Panzerschreck AT team", "cat_designation": "8.8 cm RPzB 54 + Panzerfaust 60", "cat_year_from": 1944, "cat_year_to": 1945, "cat_speed_road_kmh_x10": 50, "cat_speed_offroad_kmh_x10": 40, "cat_weapons": "8.8 cm RPzB 54 Panzerschreck; 2× Panzerfaust 60; P 38; Kar98k", "cat_squad_size": 2, "squad": true, "squad_roles": ["at_gunner", "at_assistant"], "squad_notes": ["Richtschütze (8.8 cm RPzB 54, P 38)", "Ladeschütze (Kar98k, rockets, Panzerfaust 60)"], "squad_clips": ["aim_kneel", "kneel"], "squad_file": "assets-src/blueprints/de/squads/de_inf_at.toml", "source_hash": "fe082aa9d831427c"}
+
+[node name="Member_01" parent="." instance=ExtResource("2_at_gunner")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.6)
+
+[node name="Member_02" parent="." instance=ExtResource("1_at_assistant")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2, 0, 0.2)

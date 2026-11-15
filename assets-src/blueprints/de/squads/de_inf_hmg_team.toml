@@ -1,0 +1,46 @@
+# s. MG-Trupp (MG 42 on Lafette 42), 6 men; composition from the catalog entry
+# (data/catalog/de.toml): Truppführer (MP 40), gunner (MG 42 on tripod, P 38),
+# assistant (P 38, carries the tripod), three riflemen as ammunition/barrel
+# carriers (Kar98k).
+# Role choice: the assistant is `mg_assistant` (unarmed in the hands, ammunition
+# and barrel case); the three carriers are `ammo_bearer` (Kar98k with MG
+# ammunition boxes).
+# Formation: gun in position, leader behind and to the right with binoculars,
+# carriers in a loose line behind the gun.
+unit = "de_inf_hmg_team"
+
+[[member]]
+role = "hmg_gunner"
+position = [0.0, 1.2]
+clip = "aim_prone"
+note = "MG-Schütze 1 (MG 42 on Lafette 42, P 38)"
+
+[[member]]
+role = "mg_assistant"
+position = [1.0, 0.6]
+clip = "prone"
+note = "MG-Schütze 2 (P 38, tripod carrier)"
+
+[[member]]
+role = "squad_leader"
+position = [2.0, -0.4]
+clip = "kneel"
+note = "Truppführer (MP 40)"
+
+[[member]]
+role = "ammo_bearer"
+position = [-1.2, -0.6]
+clip = "aim_kneel"
+note = "Schütze 3, ammunition carrier (Kar98k)"
+
+[[member]]
+role = "ammo_bearer"
+position = [0.0, -1.6]
+clip = "idle"
+note = "Schütze 4, ammunition carrier (Kar98k)"
+
+[[member]]
+role = "ammo_bearer"
+position = [1.2, -2.2]
+clip = "idle"
+note = "Schütze 5, barrel/ammunition carrier (Kar98k)"

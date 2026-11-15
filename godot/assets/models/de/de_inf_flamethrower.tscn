@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" uid="uid://buxgwsjodav1q" path="res://assets/models/de/infantry/flamethrower.glb" id="1_flamethrower"]
+[ext_resource type="PackedScene" uid="uid://3nvmjkwu2ptd" path="res://assets/models/de/infantry/rifleman.glb" id="2_rifleman"]
+
+[node name="de_inf_flamethrower" type="Node3D"]
+metadata/extras = {"cat_id": "de_inf_flamethrower", "cat_faction": "de", "cat_category": "inf_flamethrower", "cat_name_de": "Flammenwerfer-Trupp (FmW 41)", "cat_name_en": "Flamethrower team (FmW 41)", "cat_designation": "Flammenwerfer 41", "cat_year_from": 1941, "cat_year_to": 1945, "cat_speed_road_kmh_x10": 50, "cat_speed_offroad_kmh_x10": 40, "cat_weapons": "Flammenwerfer 41; P 38; Kar98k", "cat_squad_size": 2, "squad": true, "squad_roles": ["flamethrower", "rifleman"], "squad_notes": ["Flammenwerferführer (Flammenwerfer 41, P 38)", "Schütze, cover (Kar98k)"], "squad_clips": ["aim_stand", "aim_kneel"], "squad_file": "assets-src/blueprints/de/squads/de_inf_flamethrower.toml", "source_hash": "d9d7d270a4eb105c"}
+
+[node name="Member_01" parent="." instance=ExtResource("1_flamethrower")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.8)
+
+[node name="Member_02" parent="." instance=ExtResource("2_rifleman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1, 0, 0.2)
