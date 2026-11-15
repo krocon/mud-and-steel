@@ -28,16 +28,17 @@ instead of guessing, e.g. in `~/.cargo/registry/src/*/godot-core-0.5.5/`.
 
 ## Commands
 
+All commands live in the `justfile` (`just` lists them). Prefer them over raw commands.
+
 ```bash
-cargo fmt --check
-cargo clippy --workspace --all-targets -- -D warnings
-cargo test --workspace
-cargo run -p cli -- run --ticks 1000 --seed 42     # prints state hash
-cargo build -p bridge                              # GDExtension for Godot
-tools/godot-import.sh                              # headless import (after clone / new assets)
-godot --path godot                                 # run the game
-godot --path godot --headless --fixed-fps 60 -- --self-test   # headless smoke test
-/Applications/Blender.app/Contents/MacOS/Blender -b assets-src/blender/X.blend --python tools/export_blender.py
+just check                 # fmt --check, clippy -D warnings, tests (same as CI)
+just sim 1000 42           # headless run, prints state hash
+just build                 # GDExtension for Godot
+just import                # headless Godot import (after clone / new assets)
+just run                   # build + start the game (opens a window)
+just selftest              # build + headless smoke test of the game
+just export-model assets-src/blender/X.blend
+just model-tank            # regenerate placeholder tank
 ```
 
 ## Layout

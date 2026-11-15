@@ -28,36 +28,35 @@ Architecture and determinism rules: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - Godot 4.7.x (`godot` on `PATH`)
 - Git LFS (`git lfs install` once per machine)
 - Blender 5.x (only for regenerating assets)
+- [just](https://github.com/casey/just) as command runner
+  (`brew install just`, `winget install Casey.Just`, or `cargo install just`)
 
-## Build and test
+## Commands
 
-```bash
-cargo fmt --check
-cargo clippy --workspace -- -D warnings
-cargo test --workspace
-```
+Run `just` to list all commands. The most important ones:
 
-## Run headless
+| Command                 | What it does                                             |
+|-------------------------|----------------------------------------------------------|
+| `just check`            | `cargo fmt --check`, clippy and all tests, like CI       |
+| `just sim [ticks] [seed]` | headless run, prints the state hash (default 1000, 42) |
+| `just import`           | headless Godot import, once after cloning / new assets   |
+| `just run`              | builds the bridge and starts the game                    |
+| `just editor`           | builds the bridge and opens the Godot editor             |
+| `just selftest`         | headless smoke test of the game (exit code 0 = passed)   |
+| `just export-model <file.blend>` | exports a model to `godot/assets/models/`       |
+| `just model-tank`       | regenerates and exports the placeholder tank             |
 
-```bash
-cargo run -p cli -- run --ticks 1000 --seed 42
-```
+Tool paths can be overridden with `GODOT=...` and `BLENDER=...`.
 
-Prints the final state hash. Two runs with the same arguments print the same hash on
-every platform.
-
-## Run the game
-
-```bash
-cargo build -p bridge
-tools/godot-import.sh      # once after cloning and after adding assets
-godot --path godot         # starts the main scene
-```
-
-Headless self-test (drives the unit, exits with 0 on success):
+## First start
 
 ```bash
-godot --path godot --headless --fixed-fps 60 -- --self-test
+just import
+just run
 ```
 
-Right-click on the ground to send the tank there. `godot --path godot -e` opens the editor.
+Right-click on the ground to send the tank there.
+
+`just sim` prints the final state hash of the scripted demo. Two runs with the same
+arguments print the same hash on every platform. The underlying commands are in the
+[justfile](justfile).
