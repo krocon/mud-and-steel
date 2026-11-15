@@ -18,3 +18,9 @@ godot/export_presets.cfg
 .DS_Store
 Thumbs.db
 /docs/.vorlagen/
+
+# Preview renders of the asset pipeline (just unit / lineup)
+/build/
+
+# Python bytecode (Blender tools)
+__pycache__/

@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="CamoPalette" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://assets/shaders/camo_palette.gd" id="1_pal"]
+
+[resource]
+script = ExtResource("1_pal")
+faction = "de"
+biome = "forest"
+base = Color(0.760, 0.660, 0.450, 1)
+color_1 = Color(0.310, 0.350, 0.230, 1)
+color_2 = Color(0.400, 0.250, 0.180, 1)
+pattern = 1
+scale = 1.4
+coverage = 0.55
+winter_wash = 0.0
+snow = 0.0
+mud = 0.6
+mud_color = Color(0.240, 0.190, 0.130, 1)
+dust = 0.0
+wear = 0.5
+note = "Dunkelgelb RAL 7028 base coat with sprayed Olivgrün RAL 6003 and Rotbraun RAL 8017 (German three-tone scheme from 1943)."

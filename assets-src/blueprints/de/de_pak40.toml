@@ -1,0 +1,112 @@
+# 7.5 cm PaK 40 anti-tank gun. Main dimensions from data/catalog/de.toml:
+# length 6.2 m in travel order (trails closed), width 2.0 m, height 1.25 m in
+# firing position (top of the shield). Barrel L/46 = 3.45 m, line of fire
+# about 0.98 m (Panzerworld, see catalog sources). Other part dimensions are
+# modeling estimates. Positions are relative to the axle (y = 0); the
+# assembly moves the origin to the footprint center afterwards.
+unit = "de_pak40"
+assembly = "towed_gun"
+
+[gun]
+part = "field_gun"
+trunnion = [0.15, 0.95]
+cradle = [1.35, 0.26, 0.22]
+recoil = [1.1, 0.06]
+breech = [0.42, 0.24]
+segments = [[1.15, 0.068, 0.06], [1.84, 0.055, 0.048]]
+muzzle_brake = "double_baffle_flat"
+
+[carriage]
+part = "split_trail_carriage"
+wheel_diameter = 0.80
+wheel_width = 0.16
+wheel_track = 1.68
+trail_spread_deg = 0
+trail_width = 0.14
+trail_height = 0.20
+spade = [0.34, 0.30]
+mount_z = 0.78
+spokes = 0
+
+[shield]
+part = "gun_shield"
+y = 0.42
+bottom_z = 0.36
+slope_deg = 16
+cutout = [0.30, 0.30]
+wing_width = 0.26
+wing_deg = 28
+spaced = true
+
+[[part]]
+part = "box_prop"    # sight box on the left of the cradle
+center = [-0.24, 0.10, 1.08]
+size = [0.10, 0.25, 0.14]
+parent = "Gun"
+
+[[part]]
+part = "cylinder_prop"  # elevation handwheel
+from = [-0.30, -0.25, 0.80]
+to = [-0.34, -0.25, 0.80]
+radius = 0.11
+material = "Metal"
+parent = "Carriage"
+
+[[part]]
+part = "cylinder_prop"  # traverse handwheel
+from = [0.30, -0.25, 0.75]
+to = [0.34, -0.25, 0.75]
+radius = 0.10
+material = "Metal"
+parent = "Carriage"
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [-0.55, -0.45, 0.0]
+parent = "Carriage"
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [0.55, -0.45, 0.0]
+parent = "Carriage"
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [-0.70, -1.30, 0.0]
+parent = "Carriage"
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [0.70, -1.30, 0.0]
+parent = "Carriage"
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [-0.90, -2.20, 0.0]
+parent = "Carriage"
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [0.90, -2.20, 0.0]
+parent = "Carriage"
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 0.0, 0.9]
+parent = "Carriage"
+
+[[part]]
+part = "marking"
+name = "Shield"
+kind = "number"
+parent = "Shield"
+position = [-0.62, 0.43, 0.75]
+normal = [0, 0.96, 0.27]
+size = 0.3

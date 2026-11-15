@@ -350,6 +350,7 @@ designation = "T-34 obr. 1943 (hexagonal turret)"
 year_from = 1942
 year_to = 1945
 tier = 1
+model = "assets/models/su/su_t34_76_1943.glb"
 length_mm = 6680
 length_hull_mm = 5920
 width_mm = 3000

@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="CamoPalette" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://assets/shaders/camo_palette.gd" id="1_pal"]
+
+[resource]
+script = ExtResource("1_pal")
+faction = "us"
+biome = "winter"
+base = Color(0.330, 0.320, 0.200, 1)
+color_1 = Color(0.090, 0.090, 0.080, 1)
+color_2 = Color(0.260, 0.250, 0.160, 1)
+pattern = 0
+scale = 1.5
+coverage = 0.4
+winter_wash = 0.8
+snow = 0.7
+mud = 0.35
+mud_color = Color(0.320, 0.290, 0.250, 1)
+dust = 0.0
+wear = 0.45
+note = "Field-applied whitewash over Olive Drab (Ardennes 1944/45); snow on top faces."

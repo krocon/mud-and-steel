@@ -89,3 +89,43 @@ model-tank:
 [group('assets')]
 model-scale-reference:
     {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python tools/blender/scale_reference.py
+
+# --- Prompt 004: part kit, blueprints, validation, gallery -------------------
+
+# Directory for preview renders (turntables, line-up); not part of the repository
+RENDER_DIR := env("RENDER_DIR", "build/renders")
+
+# Build one unit from its blueprint: .blend, .glb and a turntable preview
+[group('assets')]
+unit faction id:
+    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python tools/blender/build_unit.py -- {{ faction }} {{ id }} --render "{{ RENDER_DIR }}"
+
+# Build every unit that has a blueprint in assets-src/blueprints/
+[group('assets')]
+units:
+    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python tools/blender/build_all.py -- --render "{{ RENDER_DIR }}"
+
+# Check all built models against the catalog and docs/ASSETS.md
+[group('assets')]
+validate-assets:
+    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python tools/blender/validate.py
+
+# Render all built models side by side with the 1.80 m reference figure
+[group('assets')]
+lineup:
+    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python tools/blender/lineup.py -- "{{ RENDER_DIR }}/lineup.png"
+
+# Smoke test of every kit part (builds demo vehicles without saving)
+[group('assets')]
+kit-test:
+    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python tools/blender/kit_test.py
+
+# Build the bridge and open the model gallery (all models, camouflage switch)
+[group('godot')]
+gallery: build
+    {{ GODOT }} --path godot res://scenes/tools/model_gallery.tscn
+
+# Headless check of the model gallery: loads every model in every camouflage
+[group('godot')]
+gallery-check: build
+    {{ GODOT }} --path godot --headless res://scenes/tools/model_gallery.tscn -- --self-test
