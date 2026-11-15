@@ -33,7 +33,7 @@ Additional rules:
 - `crates/sim/clippy.toml` disallows `HashMap`, `HashSet`, `DefaultHasher`,
   `RandomState`, `Instant`, `SystemTime` and `std::thread::spawn`.
 - `crates/sim/tests/determinism.rs` contains a golden-hash test: the demo scenario
-  (seed 42, 1000 ticks) must produce `0x42903d08f29e27a6`. CI runs it on macOS (ARM64),
+  (seed 42, 1000 ticks) must produce `0x075d8c59dfe3d336`. CI runs it on macOS (ARM64),
   Linux and Windows (x86_64). The value was recorded on macOS ARM64.
 - `crates/net/tests/loopback.rs` runs two simulations in lockstep and checks that a
   divergence is detected through the hash exchange.

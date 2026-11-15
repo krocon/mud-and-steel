@@ -1,6 +1,0 @@
-# Unit type definitions. Values are integers in the unit named by the key
-# suffix, so the simulation never parses floating-point numbers.
-
-[[unit]]
-name = "placeholder_tank"
-speed_mm_per_s = 4000

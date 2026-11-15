@@ -6,15 +6,15 @@
 
 use godot::classes::{INode, Node};
 use godot::prelude::*;
-use sim::{Command, Fixed, Sim, SimConfig, Snapshot, Spawn, UnitId, Vec2};
+use sim::scenario::DEMO_UNIT;
+use sim::{
+    Catalog, Command, Fixed, Scale, Sim, SimConfig, Snapshot, Spawn, UnitId, UnitType, Vec2,
+};
 
 struct MudAndSteel;
 
 #[gdextension]
 unsafe impl ExtensionLibrary for MudAndSteel {}
-
-/// Unit data compiled into the extension. Loaded at runtime in a later step.
-const UNIT_DATA: &str = include_str!("../../../data/units.toml");
 
 /// Upper bound of ticks per rendered frame. Prevents a death spiral after a
 /// long hitch; the simulation then runs slower than real time instead.
@@ -74,11 +74,11 @@ impl INode for SimHost {
 
 #[godot_api]
 impl SimHost {
-    /// Starts a new simulation with one placeholder tank at the origin.
-    /// Returns `false` (and logs an error) if the unit data is invalid.
+    /// Starts a new simulation with one demo tank at the origin.
+    /// Returns `false` (and logs an error) if the catalog data is invalid.
     #[func]
     fn start(&mut self, seed: i64) -> bool {
-        let unit_types = match sim::parse_unit_types(UNIT_DATA) {
+        let unit_types = match load_unit_types() {
             Ok(types) => types,
             Err(e) => {
                 godot_error!("{e}");
@@ -89,7 +89,7 @@ impl SimHost {
             tick_hz: SimConfig::DEFAULT_TICK_HZ,
             unit_types,
             spawns: vec![Spawn {
-                unit_type: "placeholder_tank".into(),
+                unit_type: DEMO_UNIT.into(),
                 position: Vec2::ZERO,
             }],
         };
@@ -180,6 +180,17 @@ impl SimHost {
         let alpha = self.accumulator * f64::from(self.tick_hz);
         alpha.clamp(0.0, 1.0) as f32
     }
+}
+
+/// Converts the demo unit from the catalog and scale compiled into `sim`.
+fn load_unit_types() -> Result<Vec<UnitType>, Box<dyn std::error::Error>> {
+    let catalog = Catalog::builtin()?;
+    let scale = Scale::builtin()?;
+    Ok(sim::unit_types_from_catalog(
+        &catalog,
+        &scale,
+        &[DEMO_UNIT],
+    )?)
 }
 
 fn positions(snapshot: &Snapshot) -> PackedVector3Array {

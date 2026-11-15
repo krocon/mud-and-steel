@@ -34,7 +34,7 @@ func _ready() -> void:
 	print("Mud and Steel: simulation running at %d Hz" % sim_host.tick_rate())
 
 	if _self_test:
-		_send_first_unit_to(Vector3(8, 0, 6))
+		_send_first_unit_to(Vector3(24, 0, 32))
 
 
 func _process(_delta: float) -> void:
@@ -90,19 +90,20 @@ func _unit_node(id: int) -> Node3D:
 	return _unit_nodes[id]
 
 
-## Headless check: 4 m/s at 20 Hz must give 8 m after 40 ticks, and the unit
-## must stop exactly on the 10 m distant target.
+## Headless check with the demo Panzer IV: 16 km/h cross-country (catalog)
+## times the time factor 2 is 8.889 m/s, so 40 ticks at 20 Hz give 17.78 m, and
+## the unit must stop exactly on the 40 m distant target (reached at tick 90).
 func _check_self_test() -> void:
 	var tick := sim_host.current_tick()
 	var unit_position := sim_host.current_positions()[0]
 	if tick == 40:
 		var driven := unit_position.length()
 		print("self-test: tick 40, driven %.3f m, alpha %.2f" % [driven, sim_host.interpolation_alpha()])
-		if absf(driven - 8.0) > 0.25:
-			_finish_self_test(false, "expected ~8 m after 40 ticks")
-	elif tick >= 80:
+		if absf(driven - 17.78) > 0.25:
+			_finish_self_test(false, "expected ~17.78 m after 40 ticks")
+	elif tick >= 100:
 		print("self-test: tick %d, position %s, hash %s" % [tick, unit_position, sim_host.state_hash()])
-		var ok := unit_position.distance_to(Vector3(8, 0, 6)) < 0.001
+		var ok := unit_position.distance_to(Vector3(24, 0, 32)) < 0.001
 		_finish_self_test(ok, "unit stopped on target" if ok else "unit missed target")
 
 
