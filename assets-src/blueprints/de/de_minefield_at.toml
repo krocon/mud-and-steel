@@ -1,0 +1,13 @@
+# Anti-tank minefield section, 20 x 20 m (data/catalog/de.toml; catalog height 0:
+# the Tellermines lie flush). Example of the `minefield` generator (prompt 008):
+# perimeter pickets with blank warning boards and a trip wire, nine
+# representative mines; the catalog mine count is a game value.
+unit = "de_minefield_at"
+assembly = "env"
+
+[[variant]]
+name = "Field"
+part = "minefield"
+height_m = 1.0                # picket height, estimate (catalog height is 0)
+mine = "at"
+visible = 9

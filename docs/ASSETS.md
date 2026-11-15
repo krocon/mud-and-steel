@@ -41,18 +41,23 @@ model with names, hierarchy, sockets, material slots and baked vertex colors.
 | Module | Content |
 |---|---|
 | `core` | `MeshBuilder` (box, profile extrusion with sloped sides, loft, cylinder, lathe, gear, plate), `Model` (objects with pivots, sockets, `finish()`) |
-| `running_gear` | tracks around wheels; `leaf_spring_bogie` (Panzer IV), `christie` (T-34), `vvss_bogie` (Sherman), `halftrack_rear` |
+| `running_gear` | tracks around wheels; `leaf_spring_bogie` (Panzer IV), `christie` (T-34), `vvss_bogie` (Sherman), `halftrack_rear`; prompt 008: `torsion_bar` (single or twin wheels on swing arms, optional return rollers: StuG III, T-70, IS-2, M26, Wespe), `interleaved` (Schachtellaufwerk in 2 or 3 layers: Tiger I, Luchs) |
 | `wheels` | road wheels, idlers, sprockets, rollers, tire wheels, `wheel_axle` (trucks, cars, carriages) |
 | `hull` | `plate_hull` (lower hull + superstructure from side profiles, sloped side plates, fenders, optional cast look), `deck_box`, `hull_hatch` |
-| `turret` | `plate_turret` (plan + side slopes), `cast_turret` (superellipse rings), `cupola`, `turret_hatch`, `turret_bustle_box` |
-| `weapons` | `tank_gun` (mantlet types, barrel segments, muzzle brake types), `mg` (coax, ball mount, pintle), `gun_shield` |
+| `turret` | `plate_turret` (plan + side slopes; `open_top` for M10, M8, BA-64), `cast_turret` (superellipse rings), `cupola` (`parent = "Hull"` on casemates), `turret_hatch`, `turret_bustle_box` |
+| `weapons` | `tank_gun` (mantlet types incl. `saukopf` and `ball`, barrel segments, muzzle brake types, `x` offset for casemate guns), `mg` (coax, ball mount, pintle), `gun_shield` |
 | `attachments` | `skirts`, `turret_skirt`, `spare_tracks`, `tool`, `jerrycans`, `headlight`, `antenna`, `exhaust`, `tow_hook`, `box_prop`, `cylinder_prop`, `marking`, `socket` |
-| `artillery` | `split_trail_carriage`, `field_gun` |
+| `artillery` | `split_trail_carriage`, `field_gun` (`parent` Mount and a "fit" barrel segment for AA guns) |
 | `trucks` | `ladder_frame`, `engine_hood`, `truck_cab`, `cargo_bed`, `truck_fenders` and the `wheeled` assembly (trucks, cars; prompt 006) |
-| `aircraft` | `fuselage` (loft of cross-sections), `wing` (taper, sweep, dihedral, ailerons), `tail`, `propeller`, `canopy`, `landing_gear` (extended/retracted) |
+| `aircraft` | `fuselage` (loft of cross-sections, glazed nose), `wing` (taper, sweep, dihedral, gull `kink`, ailerons), `tail`, `propeller`, `canopy`, `landing_gear` (extended/retracted, `fixed`, `spats`, `skid`); prompt 008: `nacelle`, `wing_struts`, `upper_wing` (biplanes), `fixed_guns`, `flex_mg`, `gun_turret`, `bomb_load`, `rocket_rails`, `bomb_bay`, `shadow_proxy` |
 | `vehicles` | `section_hull` (hull lofted from cross-sections, optional open compartment), `fender`, `plate` (doors, lids on sloped faces), `pintle_mg` (MG on a post, optional shield); assembly `halftrack` (prompt 006) |
+| `casemate` | prompt 008: `casemate` (closed or open superstructure from a plan with slopes, `wall_shell` helper) and the assembly `casemate` (tank destroyers, assault guns, SPGs: no turret, `Gun` on `Hull`) |
+| `armored_car` | prompt 008: assembly `armored_car` (wheels, `section_hull`, optional turret, gun, MGs) |
+| `antiair` | prompt 008: `cruciform_platform`, `aa_mount` (traversing `Mount` with seats, optional shield), `crew_sockets` (any gun); assembly `aa_gun` |
+| `mortars` | prompt 008: `baseplate`, `mortar_tube` (elevation fitted to the catalog height), `mortar_bipod` (fitted to length and width); assembly `mortar` |
+| `forts` | prompt 008, env generators for faction fortifications: `tobruk`, `log_bunker` (DZOT, US field bunker), `minefield` (built by `build_env.py`) |
 | `parts_de`, `parts_su`, `parts_us` | faction-specific parts, prefixed `de.`, `su.`, `us.` |
-| `assemblies` | whole units: `tank`, `towed_gun`, `aircraft` (`halftrack` lives in `vehicles`) |
+| `assemblies` | whole units: `tank`, `towed_gun`, `aircraft` (`halftrack` lives in `vehicles`, `wheeled` in `trucks`, the prompt 008 assemblies in their modules) |
 | `bake` | vertex colors (see "Material system") |
 | `render` | turntable and line-up renders (Eevee) |
 
@@ -83,7 +88,7 @@ origin on the ground at the footprint center):
 
 ```toml
 unit = "de_pz4_h"          # catalog id, must match the file name
-assembly = "tank"          # tank | towed_gun | aircraft | wheeled
+assembly = "tank"          # tank | towed_gun | aircraft | wheeled | halftrack | casemate | armored_car | aa_gun | mortar
 
 [layout]                   # assembly-level values
 turret_y = 0.28            # turret ring center
@@ -137,6 +142,25 @@ stations; Y and the top heights are fitted to the catalog like `plate_hull`.
 fuselage, wing, tail, canopy, landing gear, `[[propeller]]`, `[[part]]`. Wheeled
 vehicles: `[[axle]]`, frame, hood, cab, body, fenders, `[[part]]` (body rear end,
 body width and cab roof are fitted to the catalog length, width and height).
+
+Prompt 008 assemblies (each docstring has the details; `just kit-test` builds a
+demo of each, `just kit-test-render` renders them):
+
+| Assembly | Build order | Fitted to the catalog | Example |
+|---|---|---|---|
+| `casemate` | layout, running gear, hull, `[casemate]`, cupola, `[[part]]`, gun (model space trunnion, parent Hull), `[[mg]]` | casemate roof (or open wall top) = height, barrel = length | `de/de_stug3_g.toml` |
+| `armored_car` | `[[axle]]`, hull (`section_hull`, `height = "keep"` with a turret), turret, cupola, `[[part]]`, gun, `[[mg]]` | hull length, turret top = height, barrel = length | `su/su_ba64b.toml` |
+| `aa_gun` | `[carriage]` (cruciform_platform), `[[axle]]`, `[mount]` (aa_mount), gun (field_gun on Mount), `[[part]]` | side arms = width, barrel = length (from the rear end) | `us/us_bofors_m1.toml` |
+| `mortar` | baseplate, tube, bipod, `[[axle]]` (transport wheels), `[[part]]` | elevation = height, bipod feet = length and width | `us/us_m2_42in.toml` |
+| `aircraft` | (as above) plus `[[part]]` with nacelles, struts, guns, stores, bomb bay, `shadow_proxy` last | wingspan (`span = "fit"`) | `us/us_l4.toml` |
+
+Aircraft are built standing on their landing gear with the gear extended; the
+root extras `gear_retractable` says whether the game hides `Gear_*` in flight.
+Faction fortifications (`fort_bunker`, `fort_minefield_*` of de/su/us) are
+environment objects: `assembly = "env"` blueprints in the faction folder, built
+by `just env <id>` with the `forts` generators (examples
+`de/de_bunker_tobruk.toml`, `de/de_minefield_at.toml`). Catalog entries with
+height 0 (minefields) give the marker height as `height_m` in the variant.
 
 ### Generator, checks and previews
 
@@ -222,6 +246,11 @@ side `L`/`R`, two-digit index). The root object is named after the catalog id.
 | Propeller | `Propeller`, `Propeller_L`/`_R` | root | hub, rotates around Y |
 | Control surfaces | `Aileron_L`, `Elevator`, `Rudder` | root | hinge |
 | Landing gear | `Gear_L`, `Gear_R`, `Gear_Tail` (`Gear_Nose`) | root | – |
+| AA gun upper carriage | `Mount` | `Carriage` | traverse axis, rotates around Z |
+| Aircraft gun turret | `GunTurret_01`, … (with `MG_NN` children) | `Hull` | ring center, rotates around Z |
+| External bomb / rocket | `Bomb_01`, `Rocket_01`, … | `Hull` | store center (hidden on release) |
+| Bomb bay door | `BayDoor_L`, `BayDoor_R` | `Hull` | outer hinge, opens around Y |
+| Shadow proxy | `ShadowProxy` | root | flat planform, shadow-only in Godot |
 
 **Attachment points** are empties (no geometry), parented to the moving part they
 follow:
@@ -237,6 +266,9 @@ follow:
 | `Socket_Fire_01` … | burning / damage effects |
 | `Socket_Marking_Turret_L` … | decal positions for national and tactical markings; local +Z (Godot +Y) is the surface normal, +Y (Godot −Z) is up; glTF extras `marking` = `national` or `number`, `marking_size` in m |
 | `Socket_Muzzle_02` … | muzzles of machine guns: `MG_01` has `Socket_Muzzle_02`, `MG_02` has `Socket_Muzzle_03` |
+| `Socket_Gun_01` … | muzzles of fixed aircraft guns (`Socket_Muzzle` sits at their mean position) |
+| `Socket_Bomb_01` … | bomb release points (external stores and bomb bay stations) |
+| `Socket_Rocket_01` … | rocket launch points (rocket tails) |
 
 ## Polygon and texture budgets (LOD0)
 

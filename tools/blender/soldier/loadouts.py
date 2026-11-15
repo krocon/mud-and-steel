@@ -119,3 +119,70 @@ ROLES.setdefault("assistant_gunner", {})["su"] = dict(weapon="mosin", extra=["pa
                                                       drop=["veshmeshok"])
 # Rifleman with a PPSh-41 (the rifle squad's second submachine gun, catalog su.toml).
 ROLES.setdefault("smg_gunner", {})["su"] = dict(weapon="ppsh41")
+
+# --- prompt 008: roles for the tier-2 teams (all factions) --------------------------
+# Composition per catalog entry (data/catalog/<faction>.toml, inf_* tier 2). Pistol-only
+# crew members are unarmed in the animation sense (pistol in the holster), like the
+# medic; infantry_preview.gd lists them in UNARMED_ROLES.
+_TIER2 = {
+    # heavy machine gun on its mount (Lafette 42, Sokolov, tripod M1917A1)
+    "hmg_gunner": {
+        "de": dict(weapon="mg42_lafette", extra=["holster", "mg_pouch"], drop=["pouches_de", "bayonet"]),
+        "su": dict(weapon="maxim", drop=["veshmeshok"]),
+        "us": dict(weapon="m1917a1", extra=["holster"]),
+    },
+    # medium mortar (8 cm s.GrW 34, 82-BM-37, 81 mm M1), assembled
+    "mortar_gunner_medium": {
+        "de": dict(weapon="sgrw34", extra=["holster"], drop=["pouches_de"]),
+        "su": dict(weapon="bm37", drop=["veshmeshok"]),
+        "us": dict(weapon="m1_81mm", extra=["holster"]),
+    },
+    # pistol-armed crew member with an ammunition case (mortar and HMG teams)
+    "ammo_carrier": {
+        "de": dict(weapon=None, extra=["holster", "ammo_case"], drop=["pouches_de", "bayonet", "gasmask_can"]),
+        "us": dict(weapon=None, extra=["holster", "ammo_case"], drop=["us_haversack"]),
+    },
+    # carbine-armed crew member (Mosin M1938, M1 carbine); de: the Kar98k is the carbine
+    "carbineer": {
+        "su": dict(weapon="mosin_m38"),
+        "us": dict(weapon="m1_carbine"),
+    },
+    # scout / sniper spotter: rifle or SMG and binoculars, field cap
+    "scout": {
+        "de": dict(weapon="kar98k", extra=["binoculars", "stick_grenade"], headgear="cap"),
+        "su": dict(weapon="ppsh41", extra=["binoculars"], headgear="cap", drop=["skatka"]),
+        "us": dict(weapon="m1_garand", extra=["binoculars"]),
+    },
+    # submachine gunner (de recon team: second MP 40)
+    "smg_gunner": {
+        "de": dict(weapon="mp40", drop=["pouches_de"], extra=["mg_pouch"]),
+        "us": dict(weapon="thompson"),
+    },
+    # assault engineer: demolition charge, wire cutters, Bangalore torpedo (us)
+    "engineer": {
+        "de": dict(weapon="kar98k", extra=["demo_charge", "wire_cutters"], drop=["bread_bag"]),
+        "su": dict(weapon="mosin_m38", extra=["demo_charge", "wire_cutters"], drop=["veshmeshok"]),
+        "us": dict(weapon="m1_garand", extra=["demo_charge", "bangalore"], drop=["us_haversack"]),
+    },
+    # platoon or company officer: map case, binoculars, cap
+    "officer": {
+        "de": dict(weapon="mp40", extra=["map_case", "binoculars", "holster"], drop=["pouches_de", "bayonet"],
+                   headgear="cap"),
+        "su": dict(weapon=None, extra=["map_case", "binoculars", "holster"], drop=["ammo_pouch_su", "skatka"],
+                   headgear="cap"),
+        "us": dict(weapon="m1_carbine", extra=["map_case", "binoculars"]),
+    },
+    # second man of an anti-tank team: rifle and spare rockets (de also a Panzerfaust)
+    "at_assistant": {
+        "de": dict(weapon="kar98k", extra=["rocket_pack", "panzerfaust"], drop=["gasmask_can"]),
+        "su": dict(weapon="mosin", extra=["ammo_case"], drop=["veshmeshok"]),
+        "us": dict(weapon="m1_carbine", extra=["rocket_pack"], drop=["us_haversack"]),
+    },
+}
+for _role, _per in _TIER2.items():
+    for _faction, _spec in _per.items():
+        if _faction in ROLES.get(_role, {}):
+            raise ValueError(f"role {_role} for {_faction} defined twice")
+        ROLES.setdefault(_role, {})[_faction] = _spec
+
+TIER2_ROLES = tuple(_TIER2)

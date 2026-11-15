@@ -231,3 +231,20 @@ validate-env *ids:
 [group('assets')]
 env-lineup out="build/renders/env" *ids:
     {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/env_lineup.py -- "{{ out }}" {{ ids }}
+
+# --- Tier-2 kit (prompt 008) ---------------------------------------------------------
+
+# Render the kit-test demo units (casemate, armored car, AA gun, mortar, aircraft, forts) into a folder
+[group('assets')]
+kit-test-render out="build/renders/kit":
+    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/kit_test.py -- --render "{{ out }}"
+
+# List the soldier roles of a faction (weapon, built?) and the infantry entries without squad file
+[group('infantry')]
+roles *factions:
+    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/build_squad.py -- --roles {{ factions }}
+
+# Build every soldier role added in prompt 008 for every faction that has it
+[group('infantry')]
+soldiers-tier2:
+    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/build_soldier.py -- --tier2

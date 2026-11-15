@@ -125,6 +125,25 @@ Squad roles added in prompt 006 (faction-specific, `loadouts.py` end of file):
 | `mg_assistant` | MG-Schütze 2: P 38 in the holster (no weapon in the hands, animated like the medic), spare-barrel case, belt drum, one ammunition box |
 | `ammo_bearer` | Schütze 3: Kar98k, two MG ammunition boxes on the back |
 
+Roles added in prompt 008 for the tier-2 teams (`loadouts.py`, block `_TIER2`; `just
+soldiers-tier2` builds them, `just roles <faction>` lists every role with its weapon):
+
+| Role | de | su | us |
+|---|---|---|---|
+| `hmg_gunner` | MG 42 on Lafette 42 | Maxim M1910/30 on Sokolov mount | M1917A1 (water-cooled, tripod) |
+| `mortar_gunner_medium` | 8 cm s.GrW 34 | 82-BM-37 | 81 mm M1 |
+| `ammo_carrier` | unarmed (P 38 holster), ammunition case | – | unarmed (M1911 holster), ammunition case |
+| `carbineer` | – (Kar98k = `rifleman`) | Mosin M1938 carbine | M1 carbine |
+| `scout` | Kar98k, binoculars, field cap | PPSh-41, binoculars, pilotka | M1 Garand, binoculars |
+| `smg_gunner` | MP 40 | (prompt 006) | Thompson |
+| `engineer` | Kar98k, geballte Ladung, wire cutters | Mosin M1938, satchel charge | M1 Garand, satchel charge, Bangalore torpedo |
+| `officer` | MP 40, map case, binoculars, cap | unarmed (TT-33 holster), map case, binoculars, cap | M1 carbine, map case, binoculars |
+| `at_assistant` | Kar98k, rocket pack, Panzerfaust 60 | Mosin, ammunition case (PTRD loader) | M1 carbine, rocket pack |
+
+Unarmed roles are listed in `godot/scenes/tools/infantry_preview.gd` (`UNARMED_ROLES`,
+"faction/role" for `su/officer`). Mount dimensions (tripods, Sokolov wheels and shield,
+medium mortar baseplates) are estimates and marked `uncertain` in `weapons.py`.
+
 Weapons are built from real overall and barrel lengths and calibers
 (`tools/blender/soldier/weapons.py`, sources per weapon, uncertain values marked:
 flamethrower wand lengths and the 50-PM 40 barrel). Each has `grip_r`, `grip_l`,

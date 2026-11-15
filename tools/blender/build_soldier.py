@@ -3,6 +3,7 @@
 Run headless:
     blender -b --factory-startup --python tools/blender/build_soldier.py -- <faction> <role> [biome]
     blender -b --factory-startup --python tools/blender/build_soldier.py -- --all
+    blender -b --factory-startup --python tools/blender/build_soldier.py -- --tier2   (prompt 008 roles)
 
 Writes
     assets-src/blender/<faction>/infantry/<role>.blend
@@ -44,12 +45,13 @@ def parse_args():
     parser.add_argument("role", nargs="?")
     parser.add_argument("biome", nargs="?", default="forest", choices=materials.BIOMES)
     parser.add_argument("--all", action="store_true", help="build every faction/role")
+    parser.add_argument("--tier2", action="store_true", help="build the roles added in prompt 008")
     parser.add_argument("--headgear", choices=sorted(gear.HEADGEAR), help="override headgear")
     parser.add_argument("--no-anim", action="store_true", help="skip animations (fast preview)")
     parser.add_argument("--no-export", action="store_true", help="only save the .blend")
     args = parser.parse_args(argv)
-    if not args.all and (args.faction is None or args.role is None):
-        parser.error("give <faction> <role> or --all")
+    if not (args.all or args.tier2) and (args.faction is None or args.role is None):
+        parser.error("give <faction> <role>, --all or --tier2")
     return args
 
 
@@ -175,8 +177,10 @@ def build_and_save(faction, role, biome, headgear=None, animate=True, export=Tru
 
 def main():
     args = parse_args()
-    if args.all:
+    if args.all or args.tier2:
         for faction, role in loadouts.all_combinations():
+            if args.tier2 and role not in loadouts.TIER2_ROLES:
+                continue
             build_and_save(faction, role, args.biome, animate=not args.no_anim,
                            export=not args.no_export)
     else:

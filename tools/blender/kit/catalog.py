@@ -109,3 +109,25 @@ def summary(u):
     ]
     out["cat_weapons"] = "; ".join(weapons)
     return out
+
+
+def env_faction(uid):
+    """Faction of an environment object (prompt 008): faction fortifications
+    carry the faction prefix (`de_bunker_tobruk`), everything else is neutral."""
+    for f in FACTIONS:
+        if f != "neutral" and uid.startswith(f + "_"):
+            return f
+    return "neutral"
+
+
+def env_height(u, vt):
+    """Box height of an environment variant: the catalog height, or the
+    variant's `height_m` where the catalog height is 0 (minefields lie flush
+    with the ground; their markers stand `height_m` high)."""
+    if u.get("height_mm", 0) == 0:
+        if "height_m" not in vt:
+            raise KeyError(f"{u['id']}: catalog height is 0, the variant needs height_m (marker height)")
+        return float(vt["height_m"])
+    if "height_m" in vt:
+        raise KeyError(f"{u['id']}: height_m is only for catalog entries with height 0")
+    return mm(u, "height_mm")

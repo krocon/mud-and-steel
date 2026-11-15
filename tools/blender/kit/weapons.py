@@ -56,7 +56,9 @@ def mantlet(mb, kind, y, z, size, x=0.0):
 
     Kinds: box (Panzer IV: flat plate + recoil sleeve), cast_box (T-34 cast
     mantlet with rounded front), rotor (Sherman M34A1: wide plate with
-    cheeks), round (cast dome, small guns).
+    cheeks), round (cast dome, small guns), saukopf (cast 'pig's head'
+    cone tapering forward: StuG III late, Jagdpanzer 38(t)), ball (armored
+    ball mount in a casemate front: SU-85, SU-100; `size` x = diameter).
     """
     sx, sy, sz = size
     if kind == "box":
@@ -76,6 +78,15 @@ def mantlet(mb, kind, y, z, size, x=0.0):
         mb.revolve((x, y, z), (0, 1, 0), [(0, sx / 2), (sy * 0.6, sx / 2 * 0.9), (sy, sx / 4)], seg=12,
                    mat="Paint")
         return y + sy
+    if kind == "saukopf":
+        mb.revolve((x, y, z), (0, 1, 0), [(0, sx / 2), (sy * 0.35, sx / 2 * 0.92), (sy * 0.8, sx / 2 * 0.55),
+                                          (sy, sx / 2 * 0.3)], seg=12, mat="Paint")
+        return y + sy
+    if kind == "ball":
+        r = sx / 2
+        mb.revolve((x, y - r * 0.4, z), (0, 1, 0), [(0, r * 0.5), (r * 0.4, r * 0.95), (r * 0.9, r),
+                                                    (r * 1.3, r * 0.75), (r * 1.4, r * 0.35)], seg=14, mat="Paint")
+        return y + r
     raise ValueError(f"unknown mantlet {kind!r}")
 
 
@@ -91,26 +102,29 @@ def tank_gun(model, p, ctx):
       one length may be "fit" (derived from the catalog overall length).
     - `muzzle_brake`: kind (see `muzzle_brake`).
     - `parent`: Turret (default) or Hull (casemate guns).
+    - `x`: sideways offset of the gun (default 0; casemate guns mounted off
+      center, e.g. Jagdpanzer 38(t)).
     Adds `Gun` and `Socket_Muzzle`.
     """
     parent = p.get("parent", "Turret")
     ty, tz = p.req("trunnion")
+    gx = p.get("x", 0.0)
     y0 = ctx["turret_y"] + ty
     z = ctx["turret_z"] + tz
-    mb = model.mb("Gun", parent=parent, pivot=(0.0, y0, z))
+    mb = model.mb("Gun", parent=parent, pivot=(gx, y0, z))
     m = p.req("mantlet")
-    y = mantlet(mb, m["kind"], y0 - m["size"][1] * 0.35, z, m["size"])
+    y = mantlet(mb, m["kind"], y0 - m["size"][1] * 0.35, z, m["size"], x=gx)
     sleeve = p.get("sleeve")
     if sleeve:
-        mb.cylinder((0, y - 0.02, z), (0, y + sleeve[0], z), sleeve[1], r1=sleeve[1] * 0.9, seg=12, mat="Paint")
+        mb.cylinder((gx, y - 0.02, z), (gx, y + sleeve[0], z), sleeve[1], r1=sleeve[1] * 0.9, seg=12, mat="Paint")
         y += sleeve[0]
     segs = p.req("segments")
     brake = p.get("muzzle_brake", "none")
     segs = _fit_segments(segs, y, z, brake, ctx)
-    tip = barrel(mb, y, z, segs)
-    tip = muzzle_brake(mb, tip, z, segs[-1][2], brake)
-    model.socket("Socket_Muzzle", "Gun", (0.0, tip, z))
-    return {"gun_tip_y": tip, "gun_z": z}
+    tip = barrel(mb, y, z, segs, x=gx)
+    tip = muzzle_brake(mb, tip, z, segs[-1][2], brake, x=gx)
+    model.socket("Socket_Muzzle", "Gun", (gx, tip, z))
+    return {"gun_tip_y": tip, "gun_z": z, "gun_x": gx}
 
 
 def _fit_segments(segs, start_y, z, brake, ctx):

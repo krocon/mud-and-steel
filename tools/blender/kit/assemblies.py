@@ -31,12 +31,14 @@ def excludes(bp, axis):
 
 def _base_ctx(bp, u, tune):
     layout = bp.get("layout", {})
+    # aircraft have no catalog width, only the wingspan
+    width = mm(u, "width_mm") if "width_mm" in u or "wingspan_mm" not in u else mm(u, "wingspan_mm")
     ctx = {
         "unit": u,
         "length": mm(u, "length_mm"),
-        "width": mm(u, "width_mm"),
+        "width": width,
         "height": mm(u, "height_mm") + tune.get("height", 0.0),
-        "half_width": mm(u, "width_mm") / 2,
+        "half_width": width / 2,
         "layout": layout,
     }
     return ctx, layout

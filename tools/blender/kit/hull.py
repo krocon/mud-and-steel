@@ -134,12 +134,15 @@ def hull_hatch(model, p, ctx):
     """Hinged hull hatch (driver, radio operator) as its own object.
 
     Parameters: `center` [x, y] on the roof, `size` [x, y], `z` (default hull
-    top), `hinge` "front" / "rear" / "left" / "right" (default rear), `socket`
-    (adds Socket_Hatch_NN at the hatch).
+    top; "casemate" = the casemate roof of a `casemate` vehicle), `hinge`
+    "front" / "rear" / "left" / "right" (default rear), `socket` (adds
+    Socket_Hatch_NN at the hatch).
     """
     x, y = p.req("center")
     sx, sy = p.req("size")
     z = p.get("z", ctx["hull_top_z"])
+    if z == "casemate":
+        z = ctx["casemate_top_z"]
     hinge = p.get("hinge", "rear")
     hp = {"rear": (x, y - sy / 2), "front": (x, y + sy / 2), "left": (x - sx / 2, y), "right": (x + sx / 2, y)}[hinge]
     name = model.next_index("Hatch_")
