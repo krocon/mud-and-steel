@@ -41,6 +41,8 @@ extends Node3D
 ## their nodes are hidden here.
 ## Effects (prompt 019): `world/effects.gd` (smoke, fire, impacts, dust);
 ## `-- --effects-shots` / `--effects-bench` run `tools/effects_bench.gd`.
+## `-- --perf-bench` measures the frame rate with many units
+## (`tools/perf_bench.gd`, prompt 016).
 ## Infantry (prompt 022): squads use their squad scene as model;
 ## `world/infantry_view.gd` places and animates the soldiers.
 ## `-- --scenario=<file>` starts a scenario file of `data/scenarios/`;
@@ -67,6 +69,7 @@ const DestructionView := preload("res://scenes/world/destruction_view.gd")
 const EffectsBench := preload("res://scenes/tools/effects_bench.gd")
 const InfantryView := preload("res://scenes/world/infantry_view.gd")
 const InfantryBench := preload("res://scenes/tools/infantry_bench.gd")
+const PerfBench := preload("res://scenes/tools/perf_bench.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
 const MatchSetup := preload("res://scenes/menu/match_setup.gd")
 const LoadingScreen := preload("res://scenes/menu/loading_screen.gd")
@@ -262,6 +265,10 @@ func _ready() -> void:
 		var infantry_bench := InfantryBench.new()
 		infantry_bench.main = self
 		add_child(infantry_bench)
+	if "--perf-bench" in OS.get_cmdline_user_args():
+		var perf_bench := PerfBench.new()
+		perf_bench.main = self
+		add_child(perf_bench)
 	if "--demo" in OS.get_cmdline_user_args():
 		var demo := DemoReel.new()
 		demo.main = self

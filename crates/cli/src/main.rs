@@ -1,6 +1,7 @@
 //! Headless runner: simulates the demo scenario without graphics.
 
 mod ai_tournament;
+mod bench;
 mod catalog_doc;
 mod gen_map;
 mod gen_textures;
@@ -146,6 +147,27 @@ enum CliCommand {
         ticks: u64,
         #[arg(long, default_value_t = 1)]
         seed: u64,
+    },
+    /// Overall benchmark (prompt 016): two computer players play a large
+    /// scenario; time per tick of the simulation, the AIs and the snapshot.
+    Bench {
+        /// Scenario file; its map is loaded from data/maps/.
+        #[arg(long, default_value = "data/scenarios/bench_large.toml")]
+        scenario: PathBuf,
+        #[arg(long, default_value_t = 6000)]
+        ticks: u64,
+        #[arg(long, default_value_t = 1)]
+        seed: u64,
+        /// Difficulty of both computer players.
+        #[arg(long, default_value = "hard")]
+        ai: ai::Difficulty,
+        /// Tick windows reported separately.
+        #[arg(long, default_value_t = 10)]
+        windows: u64,
+        /// Play-throughs; the minimum per tick filters out the noise of a
+        /// busy machine.
+        #[arg(long, default_value_t = 1)]
+        runs: u32,
     },
     /// Generates the procedural ground textures of the terrain shader.
     GenTerrainTextures {
@@ -403,6 +425,27 @@ fn main() {
                 Err(e) => fail(&e),
             }
         }
+        CliCommand::Bench {
+            scenario,
+            ticks,
+            seed,
+            ai,
+            windows,
+            runs,
+        } => {
+            let (config, map) = bench_config(&scenario).unwrap_or_else(|e| fail(&e));
+            let options = bench::Options {
+                ticks,
+                seed,
+                ai,
+                windows,
+                runs,
+            };
+            match bench::run(&config, map, &options) {
+                Ok(report) => println!("{report}"),
+                Err(e) => fail(&e),
+            }
+        }
         CliCommand::InfantryBench { ticks, seed } => {
             match infantry_bench::run(&infantry_bench::Options { ticks, seed }) {
                 Ok(report) => println!("{report}"),
@@ -477,6 +520,21 @@ fn load_map_dir(dir: &Path) -> Result<sim::Map, String> {
             .map_err(|e| format!("{}: {e}", dir.display()))?;
     }
     Ok(map)
+}
+
+/// A scenario file and its map from `data/maps/`.
+fn bench_config(file: &Path) -> Result<(sim::SimConfig, Arc<sim::Map>), String> {
+    let text = std::fs::read_to_string(file)
+        .map_err(|e| format!("cannot read {}: {e}", file.display()))?;
+    let err = |e: &dyn std::fmt::Display| format!("{}: {e}", file.display());
+    let name = sim::scenario::scenario_map_name(&text).map_err(|e| err(&e))?;
+    let map = Arc::new(load_map_dir(&Path::new(MAPS_DIR).join(&name))?);
+    let catalog = sim::Catalog::builtin().map_err(|e| err(&e))?;
+    let scale = sim::Scale::builtin().map_err(|e| err(&e))?;
+    let terrain = sim::TerrainRules::builtin().map_err(|e| err(&e))?;
+    let config = sim::scenario::parse_scenario(&text, &catalog, &scale, &terrain, &map)
+        .map_err(|e| err(&e))?;
+    Ok((config, map))
 }
 
 /// The demo scenario on `map`; `factions` (one per player, may be empty)

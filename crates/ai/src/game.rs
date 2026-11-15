@@ -124,7 +124,20 @@ impl Game {
     ///
     /// # Panics
     /// Panics if the session breaks (it cannot with `LocalTransport`).
-    pub fn step(&mut self, mut decisions: Vec<Vec<Command>>) {
+    pub fn step(&mut self, decisions: Vec<Vec<Command>>) {
+        self.step_observed(decisions, |_| {});
+    }
+
+    /// [`Self::step`] with [`Sim::step_observed`]: `done` is called after
+    /// every phase of the tick (benchmarks).
+    ///
+    /// # Panics
+    /// Panics if the session breaks (it cannot with `LocalTransport`).
+    pub fn step_observed(
+        &mut self,
+        mut decisions: Vec<Vec<Command>>,
+        done: impl FnMut(sim::Phase),
+    ) {
         decisions.resize(self.ais.len(), Vec::new());
         for (count, d) in self.commands.iter_mut().zip(&decisions) {
             *count += d.len();
@@ -148,7 +161,7 @@ impl Game {
         }
         let commands = self.session.next_commands().expect("all frames are local");
         self.recorder.record(&commands);
-        self.sim.step(&commands);
+        self.sim.step_observed(&commands, done);
     }
 
     /// Plays until the match is decided or `max_ticks` ticks were

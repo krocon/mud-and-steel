@@ -221,6 +221,10 @@ pub struct SimHost {
     object_events: Vec<(u64, sim::ObjectEvent)>,
     /// Debug: draw everything without fog (prompt 018, presentation only).
     reveal_all: bool,
+    /// Time of the last `process` (ticks, AI, snapshots) in microseconds
+    /// and the ticks it ran, for benchmarks (prompt 016).
+    process_usec: i64,
+    process_ticks: i64,
     base: Base<Node>,
 }
 
@@ -240,16 +244,29 @@ impl INode for SimHost {
             combat_events: Vec::new(),
             object_events: Vec::new(),
             reveal_all: false,
+            process_usec: 0,
+            process_ticks: 0,
             base,
         }
     }
 
     fn process(&mut self, delta: f64) {
+        let began = std::time::Instant::now();
+        let ticks = self.run_ticks(delta);
+        self.process_ticks = i64::from(ticks);
+        self.process_usec = i64::try_from(began.elapsed().as_micros()).unwrap_or(i64::MAX);
+    }
+}
+
+impl SimHost {
+    /// The body of `process`: runs the ticks due after `delta` seconds and
+    /// returns how many ran.
+    fn run_ticks(&mut self, delta: f64) -> u32 {
         let Some(game) = self.game.as_mut() else {
-            return;
+            return 0;
         };
         if game.halted.is_some() {
-            return;
+            return 0;
         }
         let tick_seconds = 1.0 / f64::from(self.tick_hz);
         self.accumulator += delta;
@@ -291,11 +308,25 @@ impl INode for SimHost {
                 d.tick, d.player.0
             ));
         }
+        ticks
     }
 }
 
 #[godot_api]
 impl SimHost {
+    /// Microseconds the last frame spent in the simulation (ticks, computer
+    /// players, snapshots), for benchmarks (prompt 016).
+    #[func]
+    fn process_usec(&self) -> i64 {
+        self.process_usec
+    }
+
+    /// Ticks simulated in the last frame.
+    #[func]
+    fn process_ticks(&self) -> i64 {
+        self.process_ticks
+    }
+
     /// Starts the demo scenario (two players, eight tanks each) on the
     /// built-in map `test_small` with the local player in slot 0. Returns
     /// `false` (and logs an error) if the data is invalid.

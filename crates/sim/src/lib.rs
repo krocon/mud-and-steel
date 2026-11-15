@@ -48,7 +48,7 @@ pub use outcome::{DefeatReason, Outcome, PlayerStanding};
 pub use rng::Rng;
 pub use scale::Scale;
 pub use sim::{
-    BuildingCondition, ConfigError, MAX_PLAYERS, RouteView, Sim, SimConfig, Snapshot,
+    BuildingCondition, ConfigError, MAX_PLAYERS, Phase, RouteView, Sim, SimConfig, Snapshot,
     SoldierSnapshot, Spawn, UnitSnapshot, WORLD_LIMIT_M, formation_slots, formation_spacing,
 };
 pub use terrain::{TerrainError, TerrainRules};

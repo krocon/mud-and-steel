@@ -276,6 +276,16 @@ path-bench map="test_large" units="200" group="1":
 vision-bench map="test_large" units="500" ticks="600":
     cargo run -q --release -p cli -- vision-bench --map data/maps/{{ map }} --units {{ units }} --ticks {{ ticks }}
 
+# Overall benchmark (prompt 016): two Hard AIs play data/scenarios/bench_large.toml (504 units on test_large); time per tick of simulation, phases, AI and snapshot; e.g. `just bench --runs 3`
+[group('performance')]
+bench *args:
+    cargo run -q --release -p cli -- bench {{ args }}
+
+# Frame rate with the bench scenario (prompt 016): standing and fighting armies from three camera distances (opens a window; extra args e.g. --quality=low)
+[group('performance')]
+bench-view *args: build
+    {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- --scenario=bench_large.toml --ai=hard --perf-bench {{ args }}
+
 # Benchmark infantry in the simulation: 504 soldiers stand, march and fight (prompt 022)
 [group('infantry')]
 infantry-bench ticks="1200":

@@ -252,6 +252,57 @@ pub struct Snapshot {
     pub soldiers: Vec<SoldierSnapshot>,
 }
 
+/// Phases of a tick in [`Sim::step_observed`], in order.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub enum Phase {
+    /// Players' commands (orders, formation, path requests).
+    Commands,
+    /// Path search within the node budget, routes for waiting units.
+    Paths,
+    /// Infantry stances, targets, aiming and firing.
+    Combat,
+    /// Unit movement with separation.
+    Movement,
+    /// Soldiers of infantry squads (formation, cover, buildings).
+    Squads,
+    /// Crushing map objects, projectile flight and hits.
+    Projectiles,
+    /// Destroyed map objects: path grid and vision cells.
+    Destruction,
+    /// Viewsheds and player vision.
+    Vision,
+    /// Victory conditions.
+    Standings,
+}
+
+impl Phase {
+    pub const ALL: [Self; 9] = [
+        Self::Commands,
+        Self::Paths,
+        Self::Combat,
+        Self::Movement,
+        Self::Squads,
+        Self::Projectiles,
+        Self::Destruction,
+        Self::Vision,
+        Self::Standings,
+    ];
+
+    pub const fn name(self) -> &'static str {
+        match self {
+            Self::Commands => "commands",
+            Self::Paths => "paths",
+            Self::Combat => "combat",
+            Self::Movement => "movement",
+            Self::Squads => "squads",
+            Self::Projectiles => "projectiles",
+            Self::Destruction => "destruction",
+            Self::Vision => "vision",
+            Self::Standings => "standings",
+        }
+    }
+}
+
 /// The deterministic simulation.
 #[derive(Clone, Debug)]
 pub struct Sim {
@@ -451,23 +502,40 @@ impl Sim {
     /// them by player, then issue order), then queued path requests get
     /// their node budget, then units move.
     pub fn step(&mut self, commands: &[PlayerCommand]) {
+        self.step_observed(commands, |_| {});
+    }
+
+    /// [`Self::step`] that calls `done` after every phase of the tick, for
+    /// benchmarks that time the phases (`cli bench`, prompt 016). The
+    /// simulation itself never reads a clock; `done` cannot change the
+    /// state.
+    pub fn step_observed(&mut self, commands: &[PlayerCommand], mut done: impl FnMut(Phase)) {
         self.events.clear();
         for command in commands {
             self.apply(command);
         }
+        done(Phase::Commands);
         self.plan_paths();
+        done(Phase::Paths);
         self.update_stances();
         self.aim_and_fire();
+        done(Phase::Combat);
         self.move_units();
+        done(Phase::Movement);
         self.update_squads();
+        done(Phase::Squads);
         self.crush_objects();
         self.fly_projectiles();
+        done(Phase::Projectiles);
         self.apply_destruction();
+        done(Phase::Destruction);
         self.update_vision(false);
+        done(Phase::Vision);
         self.tick += 1;
         let units = &self.units;
         self.standings
             .update(self.tick, |player| alive_units(units, player));
+        done(Phase::Standings);
     }
 
     /// Every player of the match (ascending) and whether they are defeated.
