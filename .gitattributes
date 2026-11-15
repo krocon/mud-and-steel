@@ -18,3 +18,5 @@
 *.ogg   filter=lfs diff=lfs merge=lfs -text
 *.mp3   filter=lfs diff=lfs merge=lfs -text
 *.flac  filter=lfs diff=lfs merge=lfs -text
+# Map object lists (generated, several MB on large maps)
+data/maps/**/objects.csv filter=lfs diff=lfs merge=lfs -text

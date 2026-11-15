@@ -28,6 +28,7 @@ pub const BUILTIN_MAP_NAME: &str = "test_small";
 const BUILTIN_MAP_TOML: &str = include_str!("../../../data/maps/test_small/map.toml");
 const BUILTIN_MAP_HEIGHT: &[u8] = include_bytes!("../../../data/maps/test_small/height.png");
 const BUILTIN_MAP_TERRAIN: &[u8] = include_bytes!("../../../data/maps/test_small/terrain.png");
+const BUILTIN_MAP_OBJECTS: &str = include_str!("../../../data/maps/test_small/objects.csv");
 
 /// Ticks between two scripted commands.
 pub const COMMAND_INTERVAL: u64 = 40;
@@ -148,11 +149,12 @@ fn grid(group: &Group) -> Result<Vec<Vec2>, ScenarioError> {
 pub fn builtin_map() -> Arc<Map> {
     static MAP: OnceLock<Arc<Map>> = OnceLock::new();
     MAP.get_or_init(|| {
-        Arc::new(
-            Map::load(BUILTIN_MAP_TOML, BUILTIN_MAP_HEIGHT, BUILTIN_MAP_TERRAIN).expect(
-                "built-in map data/maps/test_small is valid (is Git LFS installed and pulled?)",
-            ),
-        )
+        const HINT: &str =
+            "built-in map data/maps/test_small is valid (is Git LFS installed and pulled?)";
+        let mut map =
+            Map::load(BUILTIN_MAP_TOML, BUILTIN_MAP_HEIGHT, BUILTIN_MAP_TERRAIN).expect(HINT);
+        map.add_objects(BUILTIN_MAP_OBJECTS).expect(HINT);
+        Arc::new(map)
     })
     .clone()
 }
@@ -292,6 +294,23 @@ mod tests {
     fn demo_names_the_builtin_map() {
         assert_eq!(scenario_map_name(DEMO_SCENARIO).unwrap(), BUILTIN_MAP_NAME);
         assert_eq!(builtin_map().name(), BUILTIN_MAP_NAME);
+    }
+
+    #[test]
+    fn builtin_map_has_objects_but_keeps_the_demo_area_open() {
+        use crate::path::{PathGrid, SizeClass};
+        let map = builtin_map();
+        assert!(map.objects().len() > 500, "{} objects", map.objects().len());
+        let config = demo_config();
+        let grid = PathGrid::new(&map, &config.terrain, &config.unit_types);
+        let open = |p: Vec2| grid.passable_at(SizeClass::Large, p);
+        // Spawns, the scripted command area of the demo (the meadow), the
+        // hill top of the self-test and the demo reel.
+        assert!(config.spawns.iter().all(|s| open(s.position)));
+        for (x, y) in [(40, -10), (-80, 40), (70, -30), (0, 0)] {
+            assert!(open(Vec2::from_meters(x, y)), "({x}, {y})");
+        }
+        assert!(open(map.marker("hill_top").unwrap()));
     }
 
     #[test]

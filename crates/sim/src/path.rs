@@ -75,8 +75,16 @@ impl SizeClass {
     /// Flags that block a cell for this class.
     const fn blocking(self) -> u8 {
         match self {
-            Self::Small => BLOCKED_TERRAIN | BLOCKED_STEEP | BLOCKED_OBSTACLE,
-            Self::Large => BLOCKED_TERRAIN | BLOCKED_STEEP | BLOCKED_OBSTACLE | BLOCKED_MARGIN,
+            Self::Small => {
+                BLOCKED_TERRAIN | BLOCKED_STEEP | BLOCKED_OBSTACLE | BLOCKED_OBJECT_SMALL
+            }
+            Self::Large => {
+                BLOCKED_TERRAIN
+                    | BLOCKED_STEEP
+                    | BLOCKED_OBSTACLE
+                    | BLOCKED_MARGIN
+                    | BLOCKED_OBJECT_LARGE
+            }
         }
     }
 
@@ -147,6 +155,12 @@ const BLOCKED_STEEP: u8 = 4;
 /// Impassable terrain or the map edge within one sample around the cell
 /// (blocks [`SizeClass::Large`] only).
 const BLOCKED_MARGIN: u8 = 8;
+/// A map object that blocks small units overlaps the cell.
+const BLOCKED_OBJECT_SMALL: u8 = 16;
+/// A map object that blocks large units overlaps the cell.
+const BLOCKED_OBJECT_LARGE: u8 = 32;
+/// Flags that do not come from the map samples.
+const PLACED_FLAGS: u8 = BLOCKED_OBSTACLE | BLOCKED_OBJECT_SMALL | BLOCKED_OBJECT_LARGE;
 
 /// Passability and costs of the path grid, derived from the map, the terrain
 /// rules and the unit types of a match.
@@ -221,9 +235,47 @@ impl PathGrid {
             x1: width - 1,
             y1: height - 1,
         };
+        grid.rasterize_objects(map);
         grid.rebuild(map, rules, all);
         grid.version = 0;
         grid
+    }
+
+    /// Marks every cell overlapped by the shape of a blocking map object.
+    fn rasterize_objects(&mut self, map: &Map) {
+        let half = self.cell / 2;
+        for object in map.objects() {
+            let kind = &map.object_kinds()[usize::from(object.kind)];
+            let mut flags = 0;
+            if kind.blocks.small() {
+                flags |= BLOCKED_OBJECT_SMALL;
+            }
+            if kind.blocks.large() {
+                flags |= BLOCKED_OBJECT_LARGE;
+            }
+            if flags == 0 {
+                continue;
+            }
+            let extent = object.half_extent(kind.shape);
+            let rect = self.cells_in(object.position - extent, object.position + extent);
+            for y in rect.y0..=rect.y1 {
+                for x in rect.x0..=rect.x1 {
+                    if object.overlaps_square(kind.shape, self.center(x, y), half) {
+                        let i = self.index(x, y);
+                        self.base[i] |= flags;
+                    }
+                }
+            }
+        }
+    }
+
+    /// Whether a map object blocks the cell for `class`.
+    pub fn object_blocked(&self, class: SizeClass, x: u32, y: u32) -> bool {
+        let flag = match class {
+            SizeClass::Small => BLOCKED_OBJECT_SMALL,
+            SizeClass::Large => BLOCKED_OBJECT_LARGE,
+        };
+        self.base[self.index(x, y)] & flag != 0
     }
 
     /// Number of cells per axis.
@@ -384,7 +436,7 @@ impl PathGrid {
                     .get(usize::from(map.sample_terrain(si, sj)))
                     .is_none_or(|t| !t.passable)
         };
-        let mut flags = self.base[i] & BLOCKED_OBSTACLE;
+        let mut flags = self.base[i] & PLACED_FLAGS;
         if (j0..j0 + k).any(|j| (i0..i0 + k).any(|si| impassable(si, j))) {
             flags |= BLOCKED_TERRAIN;
         }

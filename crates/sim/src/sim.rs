@@ -1411,3 +1411,194 @@ mod tests {
         assert_eq!(sim.path_grid().version(), 1);
     }
 }
+
+#[cfg(test)]
+mod object_tests {
+    use super::*;
+    use crate::map::MapLayout;
+    use crate::objects::CSV_HEADER;
+    use crate::path::SizeClass;
+    use std::fmt::Write as _;
+
+    const P0: PlayerId = PlayerId(0);
+
+    fn unit_type(name: &str, footprint_m: i32) -> UnitType {
+        UnitType {
+            name: name.into(),
+            speed_m_per_s: Fixed::from_num(4),
+            road_speed_m_per_s: Fixed::from_num(10),
+            footprint_m: Fixed::from_num(footprint_m),
+        }
+    }
+
+    /// Flat 400 m map with a dry-stone wall along x = 40 m (gap at
+    /// y = 60..80 m), a dense row of oaks along x = -40 m (gap at y = -10..10 m)
+    /// and a farmhouse at (0, -100).
+    fn walled_map() -> Arc<Map> {
+        let n = 201;
+        let layout = MapLayout {
+            name: "walls".into(),
+            samples_x: n,
+            samples_y: n,
+            cell_size_mm: 2000,
+            starts: Vec::new(),
+            markers: Vec::new(),
+        };
+        let count = (n * n) as usize;
+        let mut map = Map::from_rasters(layout, vec![0; count], vec![0; count]).unwrap();
+        let mut csv = format!("{CSV_HEADER}\n");
+        // Wall segments are 3 m long, heading 0 = along y.
+        for k in 0..133 {
+            let y = -198_500 + k * 3000;
+            if !(58_000..=82_000).contains(&y) {
+                let _ = writeln!(csv, "env_wall_stone,Segment,40000,{y},0");
+            }
+        }
+        // Trees 3 m apart: no 4 m cell between two trunks stays free.
+        for k in 0..133 {
+            let y = -198_500 + k * 3000;
+            if !(-12_000..=12_000).contains(&y) {
+                let _ = writeln!(csv, "env_tree_deciduous,Oak,-40000,{y},{}", k * 37 % 360);
+            }
+        }
+        let _ = writeln!(csv, "env_house_farm,Intact,0,-100000,90");
+        map.add_objects(&csv).unwrap();
+        Arc::new(map)
+    }
+
+    /// Units 0..=2: tanks at x = 0..20, unit 3: infantry at (0, 20).
+    fn sim() -> (Sim, Arc<Map>) {
+        let map = walled_map();
+        let spawn = |unit_type: &str, x, y| Spawn {
+            owner: P0,
+            unit_type: unit_type.into(),
+            position: Vec2::from_meters(x, y),
+        };
+        let config = SimConfig {
+            tick_hz: 20,
+            unit_types: vec![unit_type("tank", 7), unit_type("infantry", 1)],
+            spawns: vec![
+                spawn("tank", 0, 0),
+                spawn("tank", 10, 0),
+                spawn("tank", 20, 0),
+                spawn("infantry", 0, 20),
+            ],
+            map: map.reference(),
+            terrain: TerrainRules::builtin().unwrap(),
+        };
+        (Sim::new(&config, map.clone(), 1).unwrap(), map)
+    }
+
+    fn order(units: &[u32], x: i32, y: i32) -> PlayerCommand {
+        PlayerCommand::new(
+            P0,
+            Command::MoveTo {
+                units: units.iter().copied().map(UnitId).collect(),
+                target: Vec2::from_meters(x, y),
+            },
+        )
+    }
+
+    #[test]
+    fn objects_block_cells_by_size_class() {
+        let (sim, _) = sim();
+        let grid = sim.path_grid();
+        let at = |x, y| grid.cell_of(Vec2::from_meters(x, y));
+        let (wx, wy) = at(40, 0);
+        assert!(grid.object_blocked(SizeClass::Large, wx, wy));
+        assert!(!grid.object_blocked(SizeClass::Small, wx, wy));
+        assert!(!grid.passable(SizeClass::Large, wx, wy));
+        assert!(grid.passable(SizeClass::Small, wx, wy));
+        let (gx, gy) = at(40, 70);
+        assert!(grid.passable(SizeClass::Large, gx, gy));
+        // The house (14 m along x, 9 m along y) blocks both classes.
+        for (x, y) in [(0, -100), (6, -103), (-6, -97)] {
+            let (hx, hy) = at(x, y);
+            assert!(!grid.passable(SizeClass::Small, hx, hy), "({x}, {y})");
+            assert!(!grid.passable(SizeClass::Large, hx, hy), "({x}, {y})");
+        }
+        let (ox, oy) = at(0, -110);
+        assert!(grid.passable(SizeClass::Small, ox, oy));
+    }
+
+    #[test]
+    fn tanks_use_the_gaps_and_infantry_climbs_the_wall() {
+        let (mut sim, map) = sim();
+        sim.step(&[order(&[0, 1, 2], 80, 0), order(&[3], 80, 20)]);
+        let grid = sim.path_grid().clone();
+        let mut tank_max_y = Fixed::MIN;
+        let mut infantry_max_dy = Fixed::ZERO;
+        for _ in 0..20 * 120 {
+            sim.step(&[]);
+            let units = sim.snapshot().units;
+            for u in &units[..3] {
+                let (x, y) = grid.cell_of(u.position);
+                assert!(
+                    !grid.object_blocked(SizeClass::Large, x, y),
+                    "tank in a blocked cell at {:?}",
+                    u.position
+                );
+                tank_max_y = tank_max_y.max(u.position.y);
+            }
+            infantry_max_dy =
+                infantry_max_dy.max((units[3].position.y - Fixed::from_num(20)).abs());
+        }
+        let units = sim.snapshot().units;
+        assert!(units.iter().all(|u| u.target.is_none()), "{units:?}");
+        assert!(units.iter().all(|u| u.position.x > Fixed::from_num(70)));
+        // The tanks went through the gap at y = 60..80 ...
+        assert!(tank_max_y > Fixed::from_num(55), "{tank_max_y}");
+        // ... the infantry straight across the wall.
+        assert!(infantry_max_dy < Fixed::from_num(6), "{infantry_max_dy}");
+        assert!(!map.objects().is_empty());
+    }
+
+    #[test]
+    fn tanks_pass_the_tree_row_only_at_its_gap() {
+        let (mut sim, _) = sim();
+        sim.step(&[order(&[0], -80, 60)]);
+        let mut crossed_at = None;
+        let mut last = sim.snapshot().units[0].position;
+        for _ in 0..20 * 120 {
+            sim.step(&[]);
+            let p = sim.snapshot().units[0].position;
+            if last.x > Fixed::from_num(-40) && p.x <= Fixed::from_num(-40) {
+                crossed_at = Some(p.y);
+            }
+            last = p;
+        }
+        assert!(sim.snapshot().units[0].target.is_none());
+        let y = crossed_at.expect("tank crossed the tree row");
+        assert!(y.abs() < Fixed::from_num(12), "crossed at y = {y}");
+    }
+
+    #[test]
+    fn objects_change_the_map_hash() {
+        let plain = || {
+            let n = 201;
+            let layout = MapLayout {
+                name: "walls".into(),
+                samples_x: n,
+                samples_y: n,
+                cell_size_mm: 2000,
+                starts: Vec::new(),
+                markers: Vec::new(),
+            };
+            let count = (n * n) as usize;
+            Map::from_rasters(layout, vec![0; count], vec![0; count]).unwrap()
+        };
+        let with = |heading: u32| {
+            let mut map = plain();
+            let csv = format!("{CSV_HEADER}\nenv_house_farm,Intact,0,-100000,{heading}\n");
+            map.add_objects(&csv).unwrap();
+            map.hash()
+        };
+        assert_ne!(plain().hash(), walled_map().hash());
+        assert_ne!(with(90), with(91));
+        assert_eq!(with(90), with(90));
+        // An empty list keeps the hash of the rasters.
+        let mut empty = plain();
+        empty.add_objects(&format!("{CSV_HEADER}\n")).unwrap();
+        assert_eq!(empty.hash(), plain().hash());
+    }
+}

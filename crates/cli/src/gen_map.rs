@@ -3,7 +3,8 @@
 //! Builds a map from a seed: gentle rolling ground, hills, a river bed with
 //! banks, a flat start meadow around the origin, village squares, field
 //! tracks and a road, and writes `map.toml`, `height.png` and `terrain.png`
-//! (format: `docs/MAPS.md`).
+//! (format: `docs/MAPS.md`). Objects (woods, hedges, villages) are placed by
+//! [`objects`] into `objects.csv`.
 //!
 //! The generator runs outside the simulation and may use floats: its output
 //! files are the source of truth and are committed. It only uses basic
@@ -13,6 +14,8 @@
 use sim::{Rng, TerrainRules};
 use std::fmt::Write as _;
 use std::path::Path;
+
+mod objects;
 
 const CELL_M: f64 = 2.0;
 
@@ -473,6 +476,15 @@ pub fn generate(options: &Options) -> Result<String, String> {
     )?;
 
     let (hill_x, hill_y) = layout.hill_top(&heights, samples);
+    let (csv, summary) = objects::generate(
+        &layout,
+        options.seed,
+        samples,
+        &heights,
+        &terrain,
+        (f64::from(hill_x), f64::from(hill_y)),
+    );
+    std::fs::write(options.out.join("objects.csv"), csv).map_err(|e| e.to_string())?;
     let village = &layout.squares[0];
     let mut toml = String::new();
     let _ = writeln!(
@@ -499,9 +511,14 @@ pub fn generate(options: &Options) -> Result<String, String> {
 
     Ok(format!(
         "wrote {}: {side} x {side} samples, heights {low:.2} .. {high:.2} m, step {step_mm} mm, \
-         {} hills, hill_top at ({hill_x}, {hill_y})",
+         {} hills, hill_top at ({hill_x}, {hill_y}), {} objects ({} trees, {} hedge segments, \
+         {} buildings)",
         options.out.display(),
-        layout.hills.len()
+        layout.hills.len(),
+        summary.total,
+        summary.trees,
+        summary.hedges,
+        summary.buildings,
     ))
 }
 
