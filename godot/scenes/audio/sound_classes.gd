@@ -53,6 +53,11 @@ static func shot_class(category: String, weapon: Dictionary) -> String:
 	return shot_class_by_caliber(caliber)
 
 
+## Shells of indirect fire (prompt 032: shot events with weapon 255).
+static func indirect_shot_class(category: String) -> String:
+	return "shot_mortar" if category.begins_with("inf_mortar") or category == "mortar_heavy" else "shot_howitzer"
+
+
 ## Fallback without catalog facts: by caliber only.
 static func shot_class_by_caliber(caliber: float) -> String:
 	if caliber < SMALL_ARMS_MM:

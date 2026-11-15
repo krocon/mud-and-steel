@@ -343,6 +343,17 @@ def explosion_vehicle(ctx: Ctx) -> np.ndarray:
     return x
 
 
+def shell_incoming(ctx: Ctx) -> np.ndarray:
+    # The whistle of a shell in its last 1.5 s: falling pitch, growing louder.
+    seconds = 1.5
+    n = samples(seconds)
+    t = times(n)
+    rise = (t / seconds) ** 2.5
+    whistle = sweep(n, ctx.jit(1500, 0.12), ctx.jit(650, 0.1), 0.9) * rise
+    air = filt(ctx.noise(n), bp(600, 3000)) * rise
+    return 0.8 * whistle + 0.25 * air
+
+
 def crater(ctx: Ctx) -> np.ndarray:
     # Earth and stones raining down after the impact.
     n = samples(1.4)
@@ -594,7 +605,7 @@ def ui_defeat(ctx: Ctx) -> np.ndarray:
 RECIPES = {name: globals()[name] for name in [
     "shot_rifle", "shot_mg", "shot_cannon_small", "shot_cannon_medium", "shot_cannon_large", "shot_mortar",
     "shot_howitzer", "shot_rocket", "hit_bullet_ground", "hit_bullet_armor", "hit_shell_small", "hit_shell", "hit_shell_water",
-    "hit_ricochet", "hit_penetration", "hit_object", "explosion_vehicle", "crater", "building_damage",
+    "hit_ricochet", "hit_penetration", "hit_object", "explosion_vehicle", "shell_incoming", "crater", "building_damage",
     "building_collapse", "tree_fall", "wall_break", "fence_crush", "engine_wheel", "engine_halftrack",
     "engine_track_light", "engine_track_heavy", "tracks", "fire", "ui_click", "ui_select", "ui_order",
     "ui_build_complete", "ui_unit_ready", "ui_under_attack", "ui_unit_lost", "ui_victory", "ui_defeat",

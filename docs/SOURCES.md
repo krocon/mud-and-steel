@@ -55,7 +55,7 @@ Prompt 029. Every file in `godot/assets/audio/` names its origin here.
 
 | Files | Origin | License |
 |---|---|---|
-| `godot/assets/audio/<class>/<class>_NN.wav`, all 38 classes of `sounds.json` | Synthesized by `tools/audio/synth.py` (`just audio`): noise, sine partials, envelopes, filters and a convolution tail, a recipe per class, seeded per variant. No recordings, samples or presets of anyone else. | Own work, same license as the code |
+| `godot/assets/audio/<class>/<class>_NN.wav`, every class of `sounds.json` | Synthesized by `tools/audio/synth.py` (`just audio`): noise, sine partials, envelopes, filters and a convolution tail, a recipe per class, seeded per variant. No recordings, samples or presets of anyone else. | Own work, same license as the code |
 
 Files of other origin go to `assets-src/audio/<class>/` and get a row
 here before they are committed:

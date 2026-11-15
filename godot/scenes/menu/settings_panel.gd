@@ -2,8 +2,8 @@ extends PanelContainer
 ## Settings screen (prompt 027), used by the main menu and the pause menu.
 ##
 ## Tabs: Graphics (quality level), Controls (keyboard bindings of the camera),
-## Audio (volume per bus, mute without focus), Camera (pan and zoom sensitivity, edge
-## scrolling). Changes apply at once; "Save" writes them to the settings
+## Audio (volume per bus, mute without focus), Camera (pan and zoom
+## sensitivity, edge scrolling). Changes apply at once; "Save" writes them to the settings
 ## file, "Cancel" reloads the file. Emits `changed` after every change (the
 ## match re-applies quality and camera) and `closed` when the screen closes.
 
@@ -13,6 +13,10 @@ signal closed
 const Settings := preload("res://scenes/menu/settings.gd")
 const GraphicsQuality := preload("res://scenes/world/graphics_quality.gd")
 const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
+## Bus volume sliders below the master volume: settings key -> label.
+const BUS_SLIDERS: Dictionary[String, String] = {
+	"effects_volume": "Effects", "ui_volume": "Interface", "music_volume": "Music", "ambience_volume": "Ambience",
+}
 
 var quality_option: OptionButton
 var volume_slider: HSlider
@@ -26,10 +30,6 @@ var save_button: Button
 var cancel_button: Button
 ## Action whose key is being captured, or "".
 var capturing := ""
-## Bus volume sliders below the master volume: settings key -> label.
-const BUS_SLIDERS: Dictionary[String, String] = {
-	"effects_volume": "Effects", "ui_volume": "Interface", "music_volume": "Music", "ambience_volume": "Ambience",
-}
 
 var _key_buttons: Dictionary[String, Button] = {}
 

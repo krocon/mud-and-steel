@@ -1635,6 +1635,7 @@ per unit type and weapon.
 | `destroyed` | vehicles `explosion_vehicle` (by size) and a `fire` loop for 60 s, 90 s quieter while smoldering; base buildings `building_collapse`; infantry nothing |
 | object event | `building_damage`, `building_collapse` (ruin), `tree_fall`, `wall_break` (walls, hedges), `fence_crush` (flattened) |
 | crater event | `crater` (earth raining down; the impact itself is the hit) |
+| indirect fire (prompt 032) | shot events with `weapon` 255: `shot_mortar` / `shot_howitzer` by category; `artillery_view.shell_incoming` (if present): `shell_incoming`, a 1.5 s whistle at the impact point; `smoke` events: a quiet `hit_shell_small` |
 | moving vehicles | `engine_wheel` / `engine_halftrack` / `engine_track_light` / `engine_track_heavy` (from 20 t) plus `tracks` for tracked vehicles; pitch 0.8–1.2 and volume by speed / road speed |
 | notices (UI bus) | `ui_order` (move, attack, garrison), `ui_select`, `ui_unit_ready` (a new own unit after the first 2 s), `ui_build_complete`, `ui_under_attack` (own unit hit, every 20 s at most), `ui_unit_lost` (6 s), `ui_victory` / `ui_defeat`; `ui_click` on every button of every screen |
 
@@ -1698,12 +1699,37 @@ loops loop, the earlier combat, destruction and crater tests asked for
 their sounds, bus volumes follow the settings, hidden sounds play muffled,
 own tanks get engine loops, the voice limit holds under load.
 
+### Measurements
+
+`just bench-view` (prompt 016 scenario, 1920 × 1080, quality high, debug
+bridge, Apple M1 Max) with sound and with `-- --no-sound`, two runs each,
+alternating, while other sessions loaded the machine (load average 18–55):
+
+| View | Sound, run 1 / 2 | No sound, run 1 / 2 |
+|---|---|---|
+| standing, 40 m | 54.9 / 87.9 FPS | 55.1 / 93.0 FPS |
+| standing, 150 m | 72.4 / 79.0 FPS | 66.4 / 81.7 FPS |
+| standing, 600 m | 79.5 / 92.9 FPS | 99.1 / 99.5 FPS |
+| battle, 40 m | 38.7 / 68.8 FPS | 59.3 / 74.8 FPS |
+| battle, 150 m | 46.9 / 66.2 FPS | 63.2 / 68.3 FPS |
+| battle, 600 m | 41.6 / 56.8 FPS | 47.5 / 55.7 FPS |
+
+The runs differ more between themselves than sound against no sound
+(the simulation's share of the frame, untouched by sound, varied by 50 %
+between runs). In the calmer second pair sound costs between −8 % and +2 %.
+What is stable is the main-thread time of the sound code: 0.11–0.20 ms per
+frame for `battle_sound._process` (the "sound" column of the bench) plus
+about 0.1 ms for the event handling inside the combat view, together under
+2 % of a 60 FPS frame. Mixing runs on Godot's audio thread. The self-test
+measures 8 µs per combat event in the sound code (debug build). The 5 %
+acceptance criterion needs a run on a quiet machine to confirm.
+
 ### Decisions
 
 | Question | Decision | Why |
 |---|---|---|
 | Origin of the sounds | Synthesized with numpy (`tools/audio/synth.py`), reproducible like the Blender models; a pipeline for files of other origin | No downloads, no licenses, no sounds from other games. [provisional] The synthesized set is a first pass, tuned by numbers (spectrum, level) without listening; recordings (CC0) or generated sounds can replace any class without code changes. |
-| Format | WAV everywhere, loops with a `smpl` chunk | [provisional] No usable Vorbis encoder without installing one (ffmpeg's built-in encoder is experimental, stereo-only and not reliably gapless); 16 MB for 94 files. Revisit with music (030). |
+| Format | WAV everywhere, loops with a `smpl` chunk | [provisional] No usable Vorbis encoder without installing one (ffmpeg's built-in encoder is experimental, stereo-only and not reliably gapless); 16 MB for 97 files. Revisit with music (030). |
 | Buses | Created in code | No bus layout file to merge; the same buses in the menu, lobbies, editor and tools. |
 | Listener | Above the camera's ground focus, hearing range scaled with zoom | At the camera itself a high view would hear everything equally faint. |
 | Voice limit | Fixed pools per group, priority and loudness decide, budget per frame | Hundreds of shots per second neither clip nor cost frame time; nothing is allocated during a battle. |
@@ -1719,8 +1745,10 @@ own tanks get engine loops, the voice limit holds under load.
 - No voices, music or ambience (wind, birds; prompt 030 owns the Music and
   Ambience buses).
 - Infantry hits and deaths are silent; aircraft have no engine class yet.
-- Indirect fire (prompt 032) has its shot classes (`shot_mortar`,
-  `shot_howitzer`) but no incoming whistle yet.
+- Indirect fire (prompt 032) is wired by its interface (weapon 255,
+  `shell_incoming`, `smoke` events) as described in its merge notes; it was
+  not merged yet when this was written, so its sounds are tested only once
+  both are in main.
 
 ## Selection (presentation only)
 

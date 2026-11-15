@@ -59,6 +59,10 @@ const ENGINE_IDLE_DB := -9.0
 const TRACKS_IDLE_DB := -40.0
 ## How fast loop volume and pitch follow (1/s).
 const LOOP_SMOOTHING := 6.0
+## `weapon` of shot events for indirect fire (prompt 032).
+const INDIRECT_WEAPON := 255
+## Smoke shells burst with a small charge.
+const SMOKE_BURST_DB := -8.0
 ## Notices: minimum seconds between two of the same kind.
 const NOTICE_COOLDOWN: Dictionary[String, float] = {
 	"ui_under_attack": 20.0, "ui_unit_lost": 6.0, "ui_unit_ready": 1.0, "ui_build_complete": 1.0,
@@ -139,6 +143,10 @@ func setup(main_node: Node3D) -> void:
 	for i in FIRE_VOICES:
 		_fire_slots.append({"player": _new_player(), "wreck": null})
 	main.combat_view.combat_event.connect(on_combat_event)
+	# Indirect fire (prompt 032), if present: the whistle before a shell lands.
+	var artillery: Object = main.get("artillery_view")
+	if artillery != null and artillery.has_signal(&"shell_incoming"):
+		artillery.connect(&"shell_incoming", shell_incoming)
 	var selection: Node = main.selection
 	selection.move_ordered.connect(func(_point: Vector3) -> void: notice("ui_order"))
 	selection.attack_ordered.connect(func(_target: int) -> void: notice("ui_order"))
@@ -202,6 +210,13 @@ func on_combat_event(event: Dictionary) -> void:
 				play_at(picked[0], at, picked[1])
 		"destroyed":
 			_destroyed(event["unit"], event["position"])
+		"smoke":
+			play_at("hit_shell_small", event.get("position", Vector3.ZERO), SMOKE_BURST_DB)
+
+
+## A shell lands in about 1.5 s (`artillery_view.shell_incoming`).
+func shell_incoming(at: Vector3, caliber_mm: float, smoke: bool) -> void:
+	play_at("shell_incoming", at, SoundClasses.caliber_gain_db(caliber_mm) + (SMOKE_BURST_DB if smoke else 0.0))
 
 
 ## A map object changed its stage (`destruction_view.gd`).
@@ -591,7 +606,9 @@ func _shot_class(unit: int, weapon: int, caliber: float) -> String:
 		var info := _info(unit_type)
 		var weapons: Array = info.get("weapons", [])
 		var sound_class := SoundClasses.shot_class_by_caliber(caliber)
-		if weapon >= 0 and weapon < weapons.size():
+		if weapon == INDIRECT_WEAPON:
+			sound_class = SoundClasses.indirect_shot_class(str(info.get("category", "")))
+		elif weapon >= 0 and weapon < weapons.size():
 			sound_class = SoundClasses.shot_class(str(info.get("category", "")), weapons[weapon])
 		_shot_classes[key] = sound_class
 	return _shot_classes[key]

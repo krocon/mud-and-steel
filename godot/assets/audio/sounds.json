@@ -26,6 +26,7 @@
 		"hit_penetration": {"group": "impact", "bus": "Effects", "volume_db": -4.0, "pitch_spread": 0.05, "range_m": 700, "ref_m": 25, "priority": 4, "variants": 3},
 		"hit_object": {"group": "impact", "bus": "Effects", "volume_db": -7.0, "pitch_spread": 0.08, "range_m": 500, "ref_m": 20, "priority": 3, "variants": 3},
 		"explosion_vehicle": {"group": "explosion", "bus": "Effects", "volume_db": 0.0, "pitch_spread": 0.04, "range_m": 1600, "ref_m": 50, "priority": 6, "variants": 3},
+		"shell_incoming": {"group": "impact", "bus": "Effects", "volume_db": -8.0, "pitch_spread": 0.05, "range_m": 600, "ref_m": 25, "priority": 4, "variants": 3},
 		"crater": {"group": "object", "bus": "Effects", "volume_db": -11.0, "pitch_spread": 0.08, "range_m": 300, "ref_m": 15, "priority": 2, "variants": 3},
 		"building_damage": {"group": "object", "bus": "Effects", "volume_db": -4.0, "pitch_spread": 0.06, "range_m": 900, "ref_m": 30, "priority": 4, "variants": 3},
 		"building_collapse": {"group": "object", "bus": "Effects", "volume_db": 0.0, "pitch_spread": 0.04, "range_m": 1400, "ref_m": 45, "priority": 6, "variants": 3},
