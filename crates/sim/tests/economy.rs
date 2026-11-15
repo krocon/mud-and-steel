@@ -52,7 +52,7 @@ fn skirmish_starts_with_completed_headquarters_and_resources() {
     assert_eq!(sim.account(P0), Some([600, 600, 400]));
     assert_eq!(sim.faction(P0), Some("de"));
     assert_eq!(sim.faction(P1), Some("su"));
-    assert_eq!(sim.income(P0), [40, 50, 60]);
+    assert_eq!(sim.income(P0), [40, 70, 80]);
     // The headquarters faces the map center along the y axis.
     let (_, p0) = hq(&sim, P0);
     assert!(p0.y > Vec2::ZERO.y);
@@ -66,7 +66,7 @@ fn income_is_paid_every_second() {
     let mut sim = start(&peaceful());
     // One minute: exactly the income per minute.
     run(&mut sim, 60 * 20 + 1);
-    assert_eq!(sim.account(P0), Some([640, 650, 460]));
+    assert_eq!(sim.account(P0), Some([640, 670, 480]));
 }
 
 #[test]
@@ -88,10 +88,8 @@ fn placement_rules() {
         sim.placement(P0, barracks, far),
         Err(PlaceError::OutOfRange)
     );
-    // On the headquarters, and on own units.
+    // On the headquarters.
     assert_eq!(sim.placement(P0, barracks, home), Err(PlaceError::Blocked));
-    let tank = sim.snapshot().units[0].position;
-    assert_eq!(sim.placement(P0, barracks, tank), Err(PlaceError::Occupied));
     // Requirements and factions.
     assert_eq!(sim.placement(P0, factory, spot), Err(PlaceError::Requires));
     assert_eq!(sim.placement(P0, bunker, spot), Err(PlaceError::Requires));
@@ -104,6 +102,31 @@ fn placement_rules() {
         sim.placement(P0, t(&sim, "de_pz4_h"), spot),
         Err(PlaceError::NotBuildable)
     );
+}
+
+#[test]
+fn placement_keeps_clear_of_units() {
+    let mut sim = start(&peaceful());
+    let barracks = t(&sim, "base_barracks");
+    let (_, home) = hq(&sim, P0);
+    let spot = sim.find_site(P0, barracks, home).unwrap();
+    let squad = sim
+        .snapshot()
+        .units
+        .iter()
+        .find(|u| u.owner == P0 && u.stance.is_some())
+        .unwrap()
+        .id;
+    step(
+        &mut sim,
+        P0,
+        Command::MoveTo {
+            units: vec![squad],
+            target: spot,
+        },
+    );
+    run(&mut sim, 40 * 20);
+    assert_eq!(sim.placement(P0, barracks, spot), Err(PlaceError::Occupied));
 }
 
 #[test]
@@ -293,12 +316,24 @@ fn cancelling_refunds_and_queues_are_limited() {
 #[test]
 fn buildings_cannot_move_and_are_destroyed_with_their_queue() {
     let mut config = peaceful();
-    // Player 1's tanks may shoot.
-    for spawn in config.spawns.iter_mut().filter(|s| s.owner == P1) {
-        spawn.fire_mode = FireMode::FireAtWill;
+    // Three T-34 of player 1 stand right in front of player 0's
+    // headquarters and may shoot (the starting units cannot hurt buildings).
+    let home = config
+        .spawns
+        .iter()
+        .find(|s| s.owner == P0 && s.unit_type == "base_hq")
+        .unwrap()
+        .position;
+    for dx in [-30, 30, 42] {
+        config.spawns.push(sim::Spawn {
+            owner: P1,
+            unit_type: "su_t34_76_1943".into(),
+            position: home + Vec2::from_meters(dx, -22),
+            fire_mode: FireMode::FireAtWill,
+        });
     }
     let mut sim = start(&config);
-    let (hq0, home) = hq(&sim, P0);
+    let (hq0, _) = hq(&sim, P0);
     step(
         &mut sim,
         P0,
@@ -314,7 +349,7 @@ fn buildings_cannot_move_and_are_destroyed_with_their_queue() {
         .snapshot()
         .units
         .iter()
-        .filter(|u| u.owner == P1 && !sim.is_structure(u.unit_type))
+        .filter(|u| u.owner == P1 && sim.unit_type_index("su_t34_76_1943") == Some(u.unit_type))
         .map(|u| u.id)
         .collect();
     step(
@@ -364,7 +399,7 @@ fn supply_points_are_taken_and_pay() {
         }
     }
     assert!(taken.is_some(), "the ford was taken");
-    assert_eq!(sim.income(P0), [100, 110, 90]);
+    assert_eq!(sim.income(P0), [100, 130, 110]);
 }
 
 #[test]
@@ -396,7 +431,7 @@ fn economy_golden_hash() {
     let sim = run_economy(42, 5000);
     assert_eq!(
         sim.state_hash(),
-        0x8b9f_de2e_2b5d_e31a,
+        0x6bc1_a431_1820_bb74,
         "economy golden hash mismatch: got {:#018x}",
         sim.state_hash()
     );

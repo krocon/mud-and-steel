@@ -117,6 +117,9 @@ enum CliCommand {
         /// Factions of player 0 and 1, e.g. `de,su` (default: the scenario's).
         #[arg(long, value_delimiter = ',')]
         factions: Vec<String>,
+        /// `battle` (the demo armies) or `base` (base building, prompt 023).
+        #[arg(long, default_value = "battle")]
+        mode: String,
         /// A game not decided after this many ticks counts as a timeout.
         #[arg(long, default_value_t = 6000)]
         max_ticks: u64,
@@ -200,6 +203,9 @@ enum CliCommand {
         #[arg(default_value = catalog_doc::DOC_PATH)]
         out: std::path::PathBuf,
     },
+    /// Prints the prices and production times of everything the economy
+    /// sells (prompt 023, data/economy.toml) as a Markdown table.
+    EconomyTable,
     /// Validates catalog files (default: the built-in catalog) and prints all errors.
     CatalogCheck {
         /// Catalog TOML files, named `<faction>.toml`.
@@ -365,12 +371,18 @@ fn main() {
             seed,
             map,
             factions,
+            mode,
             max_ticks,
             jobs,
             verbose,
         } => {
             let map = find_map(&map);
-            let config = tournament_config(&map, &factions).unwrap_or_else(|e| fail(&e));
+            let scenario = match mode.as_str() {
+                "battle" => sim::scenario::DEMO_SCENARIO,
+                "base" => sim::scenario::SKIRMISH_SCENARIO,
+                other => fail(&format!("unknown mode '{other}' (battle, base)")),
+            };
+            let config = tournament_config(&map, &factions, scenario).unwrap_or_else(|e| fail(&e));
             let options = ai_tournament::Options {
                 games,
                 seed,
@@ -427,11 +439,62 @@ fn main() {
             }
         }
         CliCommand::CatalogCheck { files } => catalog_check(&files),
+        CliCommand::EconomyTable => economy_table(),
         CliCommand::CatalogDoc { out } => {
             let catalog = sim::Catalog::builtin().unwrap_or_else(|e| fail(&e.to_string()));
             std::fs::write(&out, catalog_doc::render(&catalog))
                 .unwrap_or_else(|e| fail(&format!("cannot write {}: {e}", out.display())));
             println!("wrote {}", out.display());
+        }
+    }
+}
+
+/// `cli economy-table`.
+fn economy_table() {
+    let rules = sim::EconomyRules::builtin().unwrap_or_else(|e| fail(&e.to_string()));
+    let catalog = sim::Catalog::builtin().unwrap_or_else(|e| fail(&e.to_string()));
+    let scale = sim::Scale::builtin().unwrap_or_else(|e| fail(&e.to_string()));
+    println!("| Built in | Id | Fuel | Ammunition | Manpower | Time (s) |");
+    println!("|---|---|---|---|---|---|");
+    let row = |place: &str, id: &str, cost: sim::Cost| {
+        let [f, a, m] = cost.resources;
+        let ms = cost.time_ms;
+        println!(
+            "| {place} | `{id}` | {f} | {a} | {m} | {}.{} |",
+            ms / 1000,
+            ms % 1000 / 100
+        );
+    };
+    for b in &rules.buildings {
+        row(
+            "–",
+            &b.id,
+            sim::Cost {
+                resources: b.cost,
+                time_ms: b.build_s * 1000,
+            },
+        );
+    }
+    for f in &rules.fortifications {
+        for id in &f.ids {
+            let Some(entry) = catalog.get(id) else {
+                continue;
+            };
+            let combat = sim::CombatType::from_catalog(entry, &scale);
+            if let Some(cost) = rules.structure_cost(id, &catalog, &combat) {
+                row("fortification", id, cost);
+            }
+        }
+    }
+    for b in rules.buildings.iter().filter(|b| !b.produces.is_empty()) {
+        for faction in ["de", "su", "us"] {
+            for id in rules.produced(&b.produces, faction) {
+                let Some(entry) = catalog.get(id) else {
+                    continue;
+                };
+                let combat = sim::CombatType::from_catalog(entry, &scale);
+                row(&b.name, id, rules.unit_cost(entry, &combat));
+            }
         }
     }
 }
@@ -481,7 +544,11 @@ fn load_map_dir(dir: &Path) -> Result<sim::Map, String> {
 
 /// The demo scenario on `map`; `factions` (one per player, may be empty)
 /// replaces the units like the skirmish setup.
-fn tournament_config(map: &sim::Map, factions: &[String]) -> Result<sim::SimConfig, String> {
+fn tournament_config(
+    map: &sim::Map,
+    factions: &[String],
+    scenario: &str,
+) -> Result<sim::SimConfig, String> {
     let overrides: Vec<(sim::PlayerId, &str)> = (0u8..)
         .zip(factions)
         .filter(|(_, f)| !f.is_empty())
@@ -489,7 +556,7 @@ fn tournament_config(map: &sim::Map, factions: &[String]) -> Result<sim::SimConf
         .collect();
     let err = |e: &dyn std::fmt::Display| e.to_string();
     sim::scenario::parse_scenario_with_factions(
-        sim::scenario::DEMO_SCENARIO,
+        scenario,
         &overrides,
         &sim::Catalog::builtin().map_err(|e| err(&e))?,
         &sim::Scale::builtin().map_err(|e| err(&e))?,

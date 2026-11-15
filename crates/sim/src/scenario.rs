@@ -10,7 +10,7 @@ use crate::combat::CombatRules;
 use crate::command::{Command, PlayerCommand, PlayerId, UnitId};
 use crate::data::unit_types_from_catalog;
 use crate::map::Map;
-use crate::math::Vec2;
+use crate::math::{Fixed, Vec2};
 use crate::rng::Rng;
 use crate::scale::Scale;
 use crate::sim::{Sim, SimConfig, Spawn};
@@ -100,6 +100,12 @@ struct ScenarioFile {
     /// production lists of `data/economy.toml` for the players' factions.
     #[serde(default)]
     economy: bool,
+    /// Moves every player's groups outwards along the line from the map
+    /// center through their start, until the first group stands at this
+    /// share (percent) of half the map size from the center (prompt 023:
+    /// bases need room; the test maps have their starts 120 m apart).
+    #[serde(default)]
+    start_distance_pct: Option<u32>,
 }
 
 /// The map a scenario file names.
@@ -189,6 +195,14 @@ pub fn parse_scenario_with_factions(
     }
 
     move_groups_to_starts(&mut file.group, map);
+    if let Some(pct) = file.start_distance_pct {
+        if pct > 95 {
+            return Err(ScenarioError(
+                "start_distance_pct must be at most 95".into(),
+            ));
+        }
+        spread_starts(&mut file.group, map, pct);
+    }
     let mut spawns = Vec::new();
     for group in &file.group {
         if group.columns == 0 {
@@ -223,6 +237,41 @@ pub fn parse_scenario_with_factions(
 /// stays as in the scenario. Start positions are whole meters, like group
 /// centers. Maps whose starts equal the scenario's centers (`test_small`,
 /// `test_large`) are unaffected.
+/// See `ScenarioFile::start_distance_pct`. Whole meters, players without
+/// a direction (first group on the center) stay.
+fn spread_starts(groups: &mut [Group], map: &Map, pct: u32) {
+    let size = map.size();
+    let half = size.x.min(size.y) / 2;
+    let distance = half * Fixed::from_num(pct) / 100;
+    let mut players: Vec<u8> = groups.iter().map(|g| g.owner).collect();
+    players.sort_unstable();
+    players.dedup();
+    for player in players {
+        let Some(anchor) = groups
+            .iter()
+            .find(|g| g.owner == player)
+            .map(|g| g.center_m)
+        else {
+            continue;
+        };
+        let at = Vec2::from_meters(anchor[0], anchor[1]);
+        let length = at.length();
+        if length == Fixed::ZERO {
+            continue;
+        }
+        let target = at.scale(distance / length);
+        let shift = [
+            target.x.round().to_num::<i32>() - anchor[0],
+            target.y.round().to_num::<i32>() - anchor[1],
+        ];
+        for group in groups.iter_mut().filter(|g| g.owner == player) {
+            for axis in 0..2 {
+                group.center_m[axis] = group.center_m[axis].saturating_add(shift[axis]);
+            }
+        }
+    }
+}
+
 fn move_groups_to_starts(groups: &mut [Group], map: &Map) {
     for start in map.starts() {
         let Some(anchor) = groups
