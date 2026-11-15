@@ -1,31 +1,32 @@
-# Prompt 017 – Infanterie
+# Prompt 018 – Nebel des Krieges
 
 ## Ziel
 
-Soldaten in Trupps: kleiner als Fahrzeuge, nutzen Deckung, laufen, kriechen, gehen in
-Gebäude.
+Jeder Spieler sieht nur, was seine Einheiten sehen. Sichtlinie berücksichtigt
+Höhen (Hügel verdecken), Wald und Gebäude.
 
 ## Umfang
 
-- Sim: Trupp als Einheit mit mehreren Soldaten (eigene Positionen in Formation),
-  Haltungen (stehend, kniend, liegend) mit Einfluss auf Geschwindigkeit und Treffbarkeit,
-  Deckung durch Objekte und Krater.
-- Gebäude besetzen (Kapazität, Schutz).
-- Darstellung: Soldaten-Modell mit Animationen (Laufen, Schießen, Liegen, Sterben),
-  bei vielen Soldaten Vertex-Animation oder Animations-Texturen für Performance.
-- Platzhalter per Blender-Skript oder CC0 mit Credits.
+- Sichtraster pro Spieler in der Sim (Auflösung z. B. 4 m), aktualisiert in festen
+  Intervallen; Sichtweite und Sichthöhe pro Einheitentyp.
+- Sichtlinie gegen Höhenfeld und Objekte, effizient (z. B. inkrementell, nur bewegte
+  Einheiten).
+- Zustände: nie gesehen, erkundet (zuletzt gesehener Stand), sichtbar.
+- Snapshot liefert pro Spieler nur sichtbare Feindeinheiten (Vorbereitung gegen
+  Map-Hacks ist bei Lockstep begrenzt; im Bericht kurz einordnen).
+- Godot: Nebel als Shader-Overlay auf Terrain und Vegetation, weiche Ränder.
 
 ## Akzeptanzkriterien
 
 - `just check` und `just selftest` sind grün.
-- Test: Trupp in Deckung erleidet weniger Treffer (statistisch über festen Seed).
-- Performance mit 500 Soldaten gemessen.
+- Tests: Einheit hinter Hügel unsichtbar, auf dem Hügel sichtbar.
+- Performance-Messung mit 500 Einheiten.
 - Betroffene Doku in `docs/` ist aktualisiert.
 
 ## Arbeitsweise
 
 > **Entwurf.** Vor der Ausführung mit dem dann aktuellen Stand abgleichen und bei Bedarf
-> konkretisieren (am besten in einer kurzen Session: „Bitte konkretisiere Prompt 017“).
+> konkretisieren (am besten in einer kurzen Session: „Bitte konkretisiere Prompt 018“).
 
 - In einer frischen Session ausführen. Zuerst `CLAUDE.md` und `docs/` lesen, deren
   Regeln gelten (Simulation ist die Wahrheit, keine Floats in `sim`, Godot zeigt nur an).

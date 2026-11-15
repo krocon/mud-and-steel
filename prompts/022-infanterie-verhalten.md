@@ -1,28 +1,30 @@
-# Prompt 021 – Online über Steam
+# Prompt 022 – Infanterie-Verhalten
 
 ## Ziel
 
-Online-Mehrspieler über Steam: Lobbys, Freunde einladen, Matchmaking, NAT-Traversal.
+Soldaten in Trupps: kleiner als Fahrzeuge, nutzen Deckung, laufen, kriechen, gehen in
+Gebäude.
 
 ## Umfang
 
-- Voraussetzung: Steam App-ID (von mir). Bis dahin mit der Test-App-ID 480 arbeiten.
-- GodotSteam (GDExtension) in passender Version einbinden; `Transport` über Steam
-  Networking Sockets.
-- Lobbys erstellen und beitreten, Einladungen, Rich Presence.
-- Plattformübergreifend (macOS, Linux, Windows) mit derselben Lobby.
+- Sim: Trupp als Einheit mit mehreren Soldaten (eigene Positionen in Formation),
+  Haltungen (stehend, kniend, liegend) mit Einfluss auf Geschwindigkeit und Treffbarkeit,
+  Deckung durch Objekte und Krater.
+- Gebäude besetzen (Kapazität, Schutz).
+- Darstellung: Modelle und Animationen aus Prompt 005 (Infanterie-Basis) und 006/008;
+  bei vielen Soldaten Vertex-Animation oder Animations-Texturen für Performance.
 
 ## Akzeptanzkriterien
 
 - `just check` und `just selftest` sind grün.
-- Zwei Steam-Konten spielen eine Partie über das Internet ohne Desync (mein Test,
-  Ablauf beschrieben).
+- Test: Trupp in Deckung erleidet weniger Treffer (statistisch über festen Seed).
+- Performance mit 500 Soldaten gemessen.
 - Betroffene Doku in `docs/` ist aktualisiert.
 
 ## Arbeitsweise
 
 > **Entwurf.** Vor der Ausführung mit dem dann aktuellen Stand abgleichen und bei Bedarf
-> konkretisieren (am besten in einer kurzen Session: „Bitte konkretisiere Prompt 021“).
+> konkretisieren (am besten in einer kurzen Session: „Bitte konkretisiere Prompt 022“).
 
 - In einer frischen Session ausführen. Zuerst `CLAUDE.md` und `docs/` lesen, deren
   Regeln gelten (Simulation ist die Wahrheit, keine Floats in `sim`, Godot zeigt nur an).

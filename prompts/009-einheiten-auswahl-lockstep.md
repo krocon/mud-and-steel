@@ -1,4 +1,4 @@
-# Prompt 003 – Mehrere Einheiten, Auswahl und Lockstep im Spiel
+# Prompt 009 – Mehrere Einheiten, Auswahl und Lockstep im Spiel
 
 > In einer frischen Session im Repo-Ordner ausführen. Lies zuerst `CLAUDE.md`,
 > `docs/ARCHITECTURE.md` und `docs/DETERMINISM.md`. Deren Regeln gelten unverändert.
@@ -21,7 +21,8 @@ Codepfad haben. Replays machen jede Partie reproduzierbar.
   Lockstep-Frame, nicht aus dem Befehl).
 - `Command::Stop`.
 - Die Startaufstellung kommt aus der Szenario-Konfiguration: zwei Spieler mit je acht
-  Panzern.
+  Panzern. Liegen die Kerneinheiten aus Prompt 006 schon vor, deren Katalogdaten und
+  Modelle verwenden (z. B. Panzer IV gegen T-34), sonst den Platzhalter.
 - Golden-Hash bewusst neu festlegen und den Grund im Commit nennen.
 
 ### Replays
@@ -46,7 +47,7 @@ Codepfad haben. Replays machen jede Partie reproduzierbar.
 
 ## 3. Nicht-Ziele
 
-Wegfindung um Hindernisse (006), Kampf (012), echter Netzwerk-Transport (020).
+Wegfindung um Hindernisse (012), Kampf (017), echter Netzwerk-Transport (025).
 
 ## 4. Akzeptanzkriterien
 

@@ -1,4 +1,4 @@
-# Prompt 009 – Licht, Atmosphäre und Biome
+# Prompt 015 – Licht, Atmosphäre und Biome
 
 ## Ziel
 
@@ -12,7 +12,8 @@ gemäßigte Wiese, Wüste, Winter.
 - `WorldEnvironment`: SSAO, ggf. SSIL/SDFGI nach Messung, Tonemapping (Filmic/AgX),
   Farbkorrektur per LUT, Höhennebel/Dunst, leichte Vignette, optional Tiefenunschärfe
   nur in der Nahansicht.
-- Biom-Presets als Ressourcen (Licht, Himmel, Nebel, Texturset, Vegetations-Set);
+- Biom-Presets als Ressourcen (Licht, Himmel, Nebel, Texturset, Vegetations-Set,
+  Tarn-Palette der Einheiten aus dem Material-System von Prompt 004);
   die Karte wählt ihr Biom in `map.toml`.
 - Grafikqualitäts-Stufen (niedrig, mittel, hoch) für schwächere Rechner.
 - Wetter optional vorbereiten (Schneefall-Partikel im Winter-Biom).
@@ -27,7 +28,7 @@ gemäßigte Wiese, Wüste, Winter.
 ## Arbeitsweise
 
 > **Entwurf.** Vor der Ausführung mit dem dann aktuellen Stand abgleichen und bei Bedarf
-> konkretisieren (am besten in einer kurzen Session: „Bitte konkretisiere Prompt 009“).
+> konkretisieren (am besten in einer kurzen Session: „Bitte konkretisiere Prompt 015“).
 
 - In einer frischen Session ausführen. Zuerst `CLAUDE.md` und `docs/` lesen, deren
   Regeln gelten (Simulation ist die Wahrheit, keine Floats in `sim`, Godot zeigt nur an).

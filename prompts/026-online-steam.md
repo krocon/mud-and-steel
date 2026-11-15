@@ -1,30 +1,28 @@
-# Prompt 016 – Verformbares Gelände
+# Prompt 026 – Online über Steam
 
 ## Ziel
 
-Explosionen hinterlassen Krater, die das Höhenfeld der Sim ändern und Bewegung sowie
-Sicht beeinflussen.
+Online-Mehrspieler über Steam: Lobbys, Freunde einladen, Matchmaking, NAT-Traversal.
 
 ## Umfang
 
-- Sim: Krater-Funktion (Radius, Tiefe, Randwall) auf dem Ganzzahl-Höhenfeld,
-  deterministisch; betroffene Bereiche in Kostenraster und Sicht invalidieren.
-- Geländeart im Krater wird zu „aufgewühlt/Schlamm“.
-- Bridge meldet geänderte Rechtecke; Terrain aus 005 baut nur diese Chunks neu.
-- Darstellung: Krater-Decal, Erdbrocken-Partikel, Deko-Vegetation im Krater entfernen.
-- Grenzen: maximale Kraterzahl pro Tick, Speicher bleibt konstant.
+- Voraussetzung: Steam App-ID (von mir). Bis dahin mit der Test-App-ID 480 arbeiten.
+- GodotSteam (GDExtension) in passender Version einbinden; `Transport` über Steam
+  Networking Sockets.
+- Lobbys erstellen und beitreten, Einladungen, Rich Presence.
+- Plattformübergreifend (macOS, Linux, Windows) mit derselben Lobby.
 
 ## Akzeptanzkriterien
 
 - `just check` und `just selftest` sind grün.
-- Test: Krater ändert Höhe an erwarteten Punkten exakt; Hash identisch auf zwei Peers.
-- Bildrate bei 100 Einschlägen in kurzer Zeit gemessen.
+- Zwei Steam-Konten spielen eine Partie über das Internet ohne Desync (mein Test,
+  Ablauf beschrieben).
 - Betroffene Doku in `docs/` ist aktualisiert.
 
 ## Arbeitsweise
 
 > **Entwurf.** Vor der Ausführung mit dem dann aktuellen Stand abgleichen und bei Bedarf
-> konkretisieren (am besten in einer kurzen Session: „Bitte konkretisiere Prompt 016“).
+> konkretisieren (am besten in einer kurzen Session: „Bitte konkretisiere Prompt 026“).
 
 - In einer frischen Session ausführen. Zuerst `CLAUDE.md` und `docs/` lesen, deren
   Regeln gelten (Simulation ist die Wahrheit, keine Floats in `sim`, Godot zeigt nur an).

@@ -1,30 +1,30 @@
-# Prompt 020 – LAN-Mehrspieler
+# Prompt 021 – Verformbares Gelände
 
 ## Ziel
 
-Echter Netzwerk-Transport im lokalen Netz: ENet über UDP, Spielsuche per Broadcast.
+Explosionen hinterlassen Krater, die das Höhenfeld der Sim ändern und Bewegung sowie
+Sicht beeinflussen.
 
 ## Umfang
 
-- `Transport`-Implementierung mit ENet (Rust-Crate oder Godot-ENet über die Bridge –
-  vorher abwägen und mit mir entscheiden).
-- Spielsuche: UDP-Broadcast im LAN, Liste offener Spiele.
-- Verbindungsaufbau, Bereitschaft, gemeinsamer Start mit Seed und Konfiguration.
-- Umgang mit Latenz (Eingabeverzögerung dynamisch), Verbindungsabbruch, Desync-Meldung
-  mit Replay-Export zur Fehlersuche.
-- Plattformübergreifend testen: mindestens macOS ↔ Windows oder Linux.
+- Sim: Krater-Funktion (Radius, Tiefe, Randwall) auf dem Ganzzahl-Höhenfeld,
+  deterministisch; betroffene Bereiche in Kostenraster und Sicht invalidieren.
+- Geländeart im Krater wird zu „aufgewühlt/Schlamm“.
+- Bridge meldet geänderte Rechtecke; Terrain aus 011 baut nur diese Chunks neu.
+- Darstellung: Krater-Decal, Erdbrocken-Partikel, Deko-Vegetation im Krater entfernen.
+- Grenzen: maximale Kraterzahl pro Tick, Speicher bleibt konstant.
 
 ## Akzeptanzkriterien
 
 - `just check` und `just selftest` sind grün.
-- Zwei Prozesse auf einem Rechner spielen über localhost ein Szenario ohne Desync.
-- Mein Test mit zwei Rechnern ist beschrieben.
+- Test: Krater ändert Höhe an erwarteten Punkten exakt; Hash identisch auf zwei Peers.
+- Bildrate bei 100 Einschlägen in kurzer Zeit gemessen.
 - Betroffene Doku in `docs/` ist aktualisiert.
 
 ## Arbeitsweise
 
 > **Entwurf.** Vor der Ausführung mit dem dann aktuellen Stand abgleichen und bei Bedarf
-> konkretisieren (am besten in einer kurzen Session: „Bitte konkretisiere Prompt 020“).
+> konkretisieren (am besten in einer kurzen Session: „Bitte konkretisiere Prompt 021“).
 
 - In einer frischen Session ausführen. Zuerst `CLAUDE.md` und `docs/` lesen, deren
   Regeln gelten (Simulation ist die Wahrheit, keine Floats in `sim`, Godot zeigt nur an).

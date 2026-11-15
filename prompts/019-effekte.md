@@ -1,4 +1,4 @@
-# Prompt 014 – Effekte
+# Prompt 019 – Effekte
 
 ## Ziel
 
@@ -9,9 +9,9 @@ Wracks – wie in den Vorlagen. Reine Darstellung, ausgelöst durch Sim-Ereignis
 
 - Effekt-Bibliothek mit `GPUParticles3D` (Rauchwolken, Feuerball, Funken, Trümmer),
   Licht-Blitz bei Explosionen, Kamera-Wackeln abhängig von Entfernung.
-- Leuchtspur und Geschossbahnen, Mündungsfeuer an den Anbaupunkten aus 010.
+- Leuchtspur und Geschossbahnen, Mündungsfeuer an den Anbaupunkten aus 004.
 - Staub hinter fahrenden Fahrzeugen abhängig von Geländeart.
-- Decals für Einschläge und Brandflecken (bis 016 nur optisch).
+- Decals für Einschläge und Brandflecken (bis 021 nur optisch).
 - Budget: maximale Partikelzahl, Pooling, LOD nach Entfernung und Zoom.
 - Effekte dürfen nie zurück in die Sim wirken.
 
@@ -25,7 +25,7 @@ Wracks – wie in den Vorlagen. Reine Darstellung, ausgelöst durch Sim-Ereignis
 ## Arbeitsweise
 
 > **Entwurf.** Vor der Ausführung mit dem dann aktuellen Stand abgleichen und bei Bedarf
-> konkretisieren (am besten in einer kurzen Session: „Bitte konkretisiere Prompt 014“).
+> konkretisieren (am besten in einer kurzen Session: „Bitte konkretisiere Prompt 019“).
 
 - In einer frischen Session ausführen. Zuerst `CLAUDE.md` und `docs/` lesen, deren
   Regeln gelten (Simulation ist die Wahrheit, keine Floats in `sim`, Godot zeigt nur an).

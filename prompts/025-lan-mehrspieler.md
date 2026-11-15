@@ -1,32 +1,30 @@
-# Prompt 013 – Nebel des Krieges
+# Prompt 025 – LAN-Mehrspieler
 
 ## Ziel
 
-Jeder Spieler sieht nur, was seine Einheiten sehen. Sichtlinie berücksichtigt
-Höhen (Hügel verdecken), Wald und Gebäude.
+Echter Netzwerk-Transport im lokalen Netz: ENet über UDP, Spielsuche per Broadcast.
 
 ## Umfang
 
-- Sichtraster pro Spieler in der Sim (Auflösung z. B. 4 m), aktualisiert in festen
-  Intervallen; Sichtweite und Sichthöhe pro Einheitentyp.
-- Sichtlinie gegen Höhenfeld und Objekte, effizient (z. B. inkrementell, nur bewegte
-  Einheiten).
-- Zustände: nie gesehen, erkundet (zuletzt gesehener Stand), sichtbar.
-- Snapshot liefert pro Spieler nur sichtbare Feindeinheiten (Vorbereitung gegen
-  Map-Hacks ist bei Lockstep begrenzt; im Bericht kurz einordnen).
-- Godot: Nebel als Shader-Overlay auf Terrain und Vegetation, weiche Ränder.
+- `Transport`-Implementierung mit ENet (Rust-Crate oder Godot-ENet über die Bridge –
+  vorher abwägen und mit mir entscheiden).
+- Spielsuche: UDP-Broadcast im LAN, Liste offener Spiele.
+- Verbindungsaufbau, Bereitschaft, gemeinsamer Start mit Seed und Konfiguration.
+- Umgang mit Latenz (Eingabeverzögerung dynamisch), Verbindungsabbruch, Desync-Meldung
+  mit Replay-Export zur Fehlersuche.
+- Plattformübergreifend testen: mindestens macOS ↔ Windows oder Linux.
 
 ## Akzeptanzkriterien
 
 - `just check` und `just selftest` sind grün.
-- Tests: Einheit hinter Hügel unsichtbar, auf dem Hügel sichtbar.
-- Performance-Messung mit 500 Einheiten.
+- Zwei Prozesse auf einem Rechner spielen über localhost ein Szenario ohne Desync.
+- Mein Test mit zwei Rechnern ist beschrieben.
 - Betroffene Doku in `docs/` ist aktualisiert.
 
 ## Arbeitsweise
 
 > **Entwurf.** Vor der Ausführung mit dem dann aktuellen Stand abgleichen und bei Bedarf
-> konkretisieren (am besten in einer kurzen Session: „Bitte konkretisiere Prompt 013“).
+> konkretisieren (am besten in einer kurzen Session: „Bitte konkretisiere Prompt 025“).
 
 - In einer frischen Session ausführen. Zuerst `CLAUDE.md` und `docs/` lesen, deren
   Regeln gelten (Simulation ist die Wahrheit, keine Floats in `sim`, Godot zeigt nur an).

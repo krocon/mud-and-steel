@@ -1,29 +1,28 @@
-# Prompt 023 – Karteneditor
+# Prompt 024 – KI-Gegner
 
 ## Ziel
 
-Karten im Spiel (oder als Godot-Editor-Plugin) bauen: Höhen formen, Geländearten
-malen, Objekte setzen, speichern im Kartenformat aus 004.
+Ein Computerspieler, der nur über normale Befehle in die Sim eingreift (Regel 5).
 
 ## Umfang
 
-- Werkzeuge: Anheben/Absenken/Glätten/Ebnen, Geländearten malen, Flüsse ziehen,
-  Objekte und Vegetation platzieren (Pinsel mit Dichte).
-- Speichern und Laden im Kartenformat; Validierung (Startpositionen, erreichbare Wege).
-- Rückgängig/Wiederholen.
-- Vorher entscheiden: eigener Editor-Modus im Spiel oder Godot-Editor-Plugin.
+- KI läuft deterministisch im Lockstep (auf allen Peers gleich) oder auf einem Host und
+  sendet Befehle wie ein Spieler – Vor- und Nachteile abwägen und mit mir entscheiden.
+- Sie liest nur, was ihr Spieler sehen darf (Nebel des Krieges).
+- Ebenen: Strategie (Ziele, Bauen), Taktik (Gruppen, Angriff, Rückzug), Mikro.
+- Schwierigkeitsstufen.
+- Headless-Turnier in der CLI: KI gegen KI über viele Seeds, Statistik.
 
 ## Akzeptanzkriterien
 
 - `just check` und `just selftest` sind grün.
-- Eine im Editor gebaute Karte lässt sich spielen und erzeugt auf zwei Peers
-  denselben Hash.
+- KI gewinnt gegen eine passive KI zuverlässig; Turnier läuft reproduzierbar.
 - Betroffene Doku in `docs/` ist aktualisiert.
 
 ## Arbeitsweise
 
 > **Entwurf.** Vor der Ausführung mit dem dann aktuellen Stand abgleichen und bei Bedarf
-> konkretisieren (am besten in einer kurzen Session: „Bitte konkretisiere Prompt 023“).
+> konkretisieren (am besten in einer kurzen Session: „Bitte konkretisiere Prompt 024“).
 
 - In einer frischen Session ausführen. Zuerst `CLAUDE.md` und `docs/` lesen, deren
   Regeln gelten (Simulation ist die Wahrheit, keine Floats in `sim`, Godot zeigt nur an).

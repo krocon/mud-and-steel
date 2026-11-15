@@ -1,4 +1,4 @@
-# Prompt 004 – Kartenformat und Höhenfeld in der Simulation
+# Prompt 010 – Kartenformat und Höhenfeld in der Simulation
 
 > In einer frischen Session im Repo-Ordner ausführen. Lies zuerst `CLAUDE.md`,
 > `docs/ARCHITECTURE.md` und `docs/DETERMINISM.md`. Deren Regeln gelten unverändert.
@@ -6,8 +6,8 @@
 ## 1. Ziel
 
 Die Karte wird zu Daten, die der Simulation gehören. Höhen und Geländearten sind
-spielrelevant (Steigung, Sichtlinie in 013, Krater in 016) und müssen deshalb
-deterministisch in `sim` liegen. Die Darstellung (005) liest sie nur.
+spielrelevant (Steigung, Sichtlinie in 018, Krater in 021) und müssen deshalb
+deterministisch in `sim` liegen. Die Darstellung (011) liest sie nur.
 
 Zielgröße: bis 4 km × 4 km.
 
@@ -36,13 +36,13 @@ Zielgröße: bis 4 km × 4 km.
 1. Datentypen und Laden in `sim` (Laden der Bytes außerhalb, `sim` bekommt `&[u8]`).
 2. Einheiten folgen der Geländehöhe (Höhe ist Teil des Snapshots und des State-Hashes).
 3. Bewegungsgeschwindigkeit hängt von Geländeart und Steigung ab; unbefahrbares Gelände
-   wird vorerst einfach nicht betreten (echte Umwege kommen in 006).
+   wird vorerst einfach nicht betreten (echte Umwege kommen in 012).
 4. `SimConfig` referenziert eine Karte; CLI, Tests und Bridge laden sie.
 5. Bridge: Höhenabfrage für die Darstellung (`height_at(x, z)`) und Kartengröße für die
    Kamera-Grenzen aus Prompt 002.
 6. Mausauswahl: Strahl gegen das Höhenfeld (Schrittverfahren plus Verfeinerung) in der
    Bridge oder in GDScript, ohne Godot-Physik.
-7. Bis 005 fertig ist, zeigt Godot das Höhenfeld als einfaches, grob aufgelöstes
+7. Bis 011 fertig ist, zeigt Godot das Höhenfeld als einfaches, grob aufgelöstes
    Debug-Mesh an.
 
 ## 4. Akzeptanzkriterien

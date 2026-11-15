@@ -1,4 +1,4 @@
-# Prompt 006 – Deterministische Wegfindung
+# Prompt 012 – Deterministische Wegfindung
 
 > In einer frischen Session im Repo-Ordner ausführen. Lies zuerst `CLAUDE.md`,
 > `docs/ARCHITECTURE.md`, `docs/DETERMINISM.md` und `docs/MAPS.md`.
@@ -21,7 +21,7 @@ ohne Godot-`NavigationServer`.
    Knoten pro Tick; Einheiten warten, bis ihr Pfad fertig ist.
 4. **Gruppenbewegung:** ein Pfad für die Gruppe, Formation folgt ihm; einfache
    Ausweichregeln zwischen Einheiten (Separation), deterministisch.
-5. Später änderbare Hindernisse (Zerstörung in 015) berücksichtigen: Teilbereiche des
+5. Später änderbare Hindernisse (Zerstörung in 020) berücksichtigen: Teilbereiche des
    Kostenrasters invalidierbar, betroffene Pfade neu planen.
 6. Debug-Ansicht in Godot: Kostenraster und Pfade ein- und ausblendbar.
 

@@ -1,4 +1,4 @@
-# Prompt 011 – Performance für große Karten
+# Prompt 016 – Performance für große Karten
 
 ## Ziel
 
@@ -27,7 +27,7 @@ schnell bleiben, und Messwerte dauerhaft im Blick behalten.
 ## Arbeitsweise
 
 > **Entwurf.** Vor der Ausführung mit dem dann aktuellen Stand abgleichen und bei Bedarf
-> konkretisieren (am besten in einer kurzen Session: „Bitte konkretisiere Prompt 011“).
+> konkretisieren (am besten in einer kurzen Session: „Bitte konkretisiere Prompt 016“).
 
 - In einer frischen Session ausführen. Zuerst `CLAUDE.md` und `docs/` lesen, deren
   Regeln gelten (Simulation ist die Wahrheit, keine Floats in `sim`, Godot zeigt nur an).

@@ -1,4 +1,4 @@
-# Prompt 012 – Kampf-Grundlagen
+# Prompt 017 – Kampf-Grundlagen
 
 ## Ziel
 
@@ -7,13 +7,14 @@ Treffer. Alles deterministisch in der Sim.
 
 ## Umfang
 
-- Werte in `data/units.toml` und `data/weapons.toml` (Ganzzahlen mit Einheiten).
+- Werte aus dem Einheitenkatalog (Prompt 003, `data/catalog/`), umgerechnet über
+  `data/scale.toml` (Zeitfaktor, gestauchte Reichweiten). Keine Werte doppelt pflegen.
 - Befehle: Angriff auf Einheit, Angriff auf Boden, Halten/Feuer frei.
 - Zielauswahl automatisch nach festen Regeln, Turm-Drehgeschwindigkeit, Nachladezeit.
 - Geschosse als Sim-Objekte mit ballistischer Bahn in `Fixed`; Treffer gegen Höhenfeld
   und Objekte; Streuung über den geseedeten RNG.
 - Panzerung frontal/seitlich/hinten, Schaden, Zerstörung (Wrack bleibt als Hindernis).
-- Sim-Ereignisse (Schuss, Treffer, Zerstörung) im Snapshot für Effekte (014) und Sound.
+- Sim-Ereignisse (Schuss, Treffer, Zerstörung) im Snapshot für Effekte (019) und Sound.
 - Godot: einfache Darstellung (Linie/Leuchtspur, Wrack-Modell), Lebensbalken.
 
 ## Akzeptanzkriterien
@@ -26,7 +27,7 @@ Treffer. Alles deterministisch in der Sim.
 ## Arbeitsweise
 
 > **Entwurf.** Vor der Ausführung mit dem dann aktuellen Stand abgleichen und bei Bedarf
-> konkretisieren (am besten in einer kurzen Session: „Bitte konkretisiere Prompt 012“).
+> konkretisieren (am besten in einer kurzen Session: „Bitte konkretisiere Prompt 017“).
 
 - In einer frischen Session ausführen. Zuerst `CLAUDE.md` und `docs/` lesen, deren
   Regeln gelten (Simulation ist die Wahrheit, keine Floats in `sim`, Godot zeigt nur an).

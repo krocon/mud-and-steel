@@ -30,7 +30,7 @@ Die Kamera ist **reine Darstellung**. Sie berührt `crates/sim` nicht.
 4. **Neigung abhängig vom Zoom:** z. B. 45° nah bis 65° fern, über eine Kurve.
 5. **Drehen:** Q/E in 45°-Schritten, weich animiert; Taste zum Zurücksetzen nach Norden.
 6. **Kartengrenzen:** Der Fokuspunkt bleibt innerhalb eines Rechtecks. Vorerst eine
-   Testfläche von 2 km × 2 km. Die Größe kommt aus einer Konstante, die Prompt 004
+   Testfläche von 2 km × 2 km. Die Größe kommt aus einer Konstante, die Prompt 010
    durch die echte Kartengröße ersetzt.
 7. **Testfläche:** Boden auf 2 km × 2 km vergrößern, Raster-Shader mit zwei Stufen
    (5-m- und 100-m-Linien), dazu einige Orientierungs-Objekte (Platzhalter-Boxen in
@@ -39,13 +39,13 @@ Die Kamera ist **reine Darstellung**. Sie berührt `crates/sim` nicht.
    Zoomstufe anpassen, damit es in der Nähe scharf und in der Ferne schattig bleibt.
 9. **Mausauswahl:** Der Rechtsklick auf den Boden funktioniert weiterhin. Die
    Strahl-Ebene-Berechnung kommt in eine wiederverwendbare Hilfsfunktion, die Prompt
-   005 später gegen das Höhenfeld austauscht.
+   011 später gegen das Höhenfeld austauscht.
 10. **Einstellungen:** Tastenbelegung über die Godot-Input-Map (`project.godot`), nicht
     hart codiert.
 
 ## 3. Nicht-Ziele
 
-Minimap, Kamerafahrten, Höhenfeld (kommt in 004/005), Auswahl von Einheiten (003).
+Minimap, Kamerafahrten, Höhenfeld (kommt in 010/011), Auswahl von Einheiten (009).
 
 ## 4. Akzeptanzkriterien
 

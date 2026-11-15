@@ -1,4 +1,4 @@
-# Prompt 007 – Vegetation und Objekte
+# Prompt 013 – Vegetation und Objekte platzieren
 
 ## Ziel
 
@@ -9,16 +9,16 @@ Heuballen, Zäune, Mauerreste, Telegrafenmasten. Trotzdem flüssig auf einer 4-k
 
 - **Zwei Klassen trennen:**
   - *Spielrelevant* (Bäume, Hecken, Mauern, Felsen): statische Objekte in der Sim mit
-    Grundfläche, blockieren Wegfindung, später Sicht und Deckung, zerstörbar (015).
+    Grundfläche, blockieren Wegfindung, später Sicht und Deckung, zerstörbar (020).
     Gespeichert in der Karte (`objects.toml` oder eigenes Binärformat).
   - *Deko* (Gras, kleine Büsche, Steine, Blumen): nur in Godot, aus Dichte-Karten und
     Geländeart erzeugt, mit festem Seed reproduzierbar.
-- Darstellung über `MultiMeshInstance3D` pro Chunk (oder den Instancer aus 005),
+- Darstellung über `MultiMeshInstance3D` pro Chunk (oder den Instancer aus 011),
   Sichtweite pro Objektart, LOD und Impostor/Billboards für Bäume in der Ferne.
 - Wind-Bewegung im Shader (dezent), Schatten nur für größere Objekte.
-- Platzhalter-Modelle per Blender-Skript (Laub- und Nadelbaum, Busch, Heuballen,
-  Mauerstück) oder CC0-Modelle mit Credits-Datei.
-- Generator aus 004 erweitern: Wäldchen, Hecken an Feldwegen, Obstgärten am Dorf.
+- Modelle kommen aus Prompt 007 (Umwelt-Objekte); hier geht es um Platzierung,
+  Sim-Daten und performante Darstellung, nicht ums Modellieren.
+- Generator aus 010 erweitern: Wäldchen, Hecken an Feldwegen, Obstgärten am Dorf.
 
 ## Akzeptanzkriterien
 
@@ -31,7 +31,7 @@ Heuballen, Zäune, Mauerreste, Telegrafenmasten. Trotzdem flüssig auf einer 4-k
 ## Arbeitsweise
 
 > **Entwurf.** Vor der Ausführung mit dem dann aktuellen Stand abgleichen und bei Bedarf
-> konkretisieren (am besten in einer kurzen Session: „Bitte konkretisiere Prompt 007“).
+> konkretisieren (am besten in einer kurzen Session: „Bitte konkretisiere Prompt 013“).
 
 - In einer frischen Session ausführen. Zuerst `CLAUDE.md` und `docs/` lesen, deren
   Regeln gelten (Simulation ist die Wahrheit, keine Floats in `sim`, Godot zeigt nur an).

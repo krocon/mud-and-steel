@@ -1,28 +1,29 @@
-# Prompt 018 – Basisbau und Ressourcen
+# Prompt 028 – Karteneditor
 
 ## Ziel
 
-Bauen, Ressourcen abbauen und Einheiten produzieren, wie geplant für das Spielkonzept.
+Karten im Spiel (oder als Godot-Editor-Plugin) bauen: Höhen formen, Geländearten
+malen, Objekte setzen, speichern im Kartenformat aus 010.
 
 ## Umfang
 
-- Vorher mit mir klären: welche Ressourcen (z. B. Treibstoff, Munition, Personal),
-  wie abgebaut wird, welche Gebäude es gibt. Ergebnis in `docs/GAME_DESIGN.md`.
-- Sim: Bauplätze auf dem Raster (Steigung und Geländeart prüfen), Bauzeit,
-  Produktionswarteschlangen, Ressourcen-Konto pro Spieler.
-- Darstellung: Bau-Vorschau mit Gültigkeit, Baustelle, Produktions-UI.
-- Gebäude sind zerstörbar (015).
+- Werkzeuge: Anheben/Absenken/Glätten/Ebnen, Geländearten malen, Flüsse ziehen,
+  Objekte und Vegetation platzieren (Pinsel mit Dichte).
+- Speichern und Laden im Kartenformat; Validierung (Startpositionen, erreichbare Wege).
+- Rückgängig/Wiederholen.
+- Vorher entscheiden: eigener Editor-Modus im Spiel oder Godot-Editor-Plugin.
 
 ## Akzeptanzkriterien
 
 - `just check` und `just selftest` sind grün.
-- Test: Produktionskette läuft auf zwei Peers identisch; Golden-Hash aktualisiert.
+- Eine im Editor gebaute Karte lässt sich spielen und erzeugt auf zwei Peers
+  denselben Hash.
 - Betroffene Doku in `docs/` ist aktualisiert.
 
 ## Arbeitsweise
 
 > **Entwurf.** Vor der Ausführung mit dem dann aktuellen Stand abgleichen und bei Bedarf
-> konkretisieren (am besten in einer kurzen Session: „Bitte konkretisiere Prompt 018“).
+> konkretisieren (am besten in einer kurzen Session: „Bitte konkretisiere Prompt 028“).
 
 - In einer frischen Session ausführen. Zuerst `CLAUDE.md` und `docs/` lesen, deren
   Regeln gelten (Simulation ist die Wahrheit, keine Floats in `sim`, Godot zeigt nur an).

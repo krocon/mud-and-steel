@@ -1,58 +1,92 @@
 # Prompts – Roadmap „Mud and Steel“
 
 Jeder Prompt ist ein abgeschlossener Arbeitsauftrag für eine frische Coding-Agent-Session
-im Repo-Ordner. Die Reihenfolge ist so gewählt, dass immer ein lauffähiges Spiel entsteht
-und die Grundlagen (Determinismus, Lockstep, Karte) stehen, bevor viel Grafik darauf
-aufbaut.
+im Repo-Ordner. Die Arbeit läuft in **zwei Strängen**, die weitgehend unabhängig sind
+und parallel laufen können:
+
+- **Asset-Strang (003–008):** Maßstab, Einheitenkatalog, Blender-Baukasten, Modelle.
+  Er braucht nur den Katalog und die Konventionen, keinen fertigen Spielcode.
+- **Spiel-Strang (002, 009–028):** Kamera, Einheitensteuerung, Karte, Gelände, Gameplay,
+  Netzwerk. Er nutzt die Modelle, sobald sie da sind, und arbeitet bis dahin mit
+  Platzhaltern.
 
 ## Ablauf
 
-1. Den nächsten offenen Prompt nehmen und vor dem Start kurz prüfen, ob er zum aktuellen
-   Stand passt. Spätere Prompts sind bewusst knapper gehalten und werden vor der
-   Ausführung konkretisiert.
-2. In einer frischen Session ausführen: „Bitte führe `prompts/00X-….md` aus.“
-3. Ist er fertig, verschiebt der Agent die Datei mit `git mv` nach `prompts/done/`.
+1. Den nächsten offenen Prompt nehmen und kurz prüfen, ob er zum aktuellen Stand passt.
+   Als „Entwurf“ markierte Prompts vorher konkretisieren lassen
+   („Bitte konkretisiere Prompt 0XX“).
+2. In einer frischen Session ausführen: „Bitte führe `prompts/0XX-….md` aus.“
+   **Parallel laufende Sessions immer in eigenen Git-Worktrees/Branches**, damit sie
+   sich nicht gegenseitig Dateien überschreiben. Zusammenführen in einer kurzen
+   eigenen Session.
+3. Ist ein Prompt fertig, verschiebt der Agent die Datei mit `git mv` nach
+   `prompts/done/` und setzt den Status hier auf „erledigt“. Bei parallelen Prompts
+   (006–008) macht das erst die zusammenführende Session.
+
+## Paralleler Fahrplan
+
+```
+Welle 1:  002 Kamera ─────────────┐        003 Maßstab + Katalog
+                                  │                 │
+Welle 2:  009 Einheiten/Lockstep  │   004 Baukasten    005 Infanterie-Basis
+                                  │        │                 │
+Welle 3:  010 Karte ─ 011 Terrain │   006 de │ 006 su │ 006 us │ 007 Umwelt
+                                  │        └──── zusammenführen ────┘
+Welle 4:  012 Wegfindung ─ 013 …  │   008 Stufe 2 (pro Fraktion/Kategorie parallel)
+```
+
+- **Sofort möglich:** 002 und 003 gleichzeitig.
+- **Nach 003:** 004 und 005 gleichzeitig, daneben weiter der Spiel-Strang (009 …).
+- **Nach 004 und 005:** vier parallele Sessions: 006 für `de`, `su`, `us` und 007.
 
 ## Übersicht
+
+### Asset-Strang
+
+| Nr. | Prompt | Ziel | Status |
+|-----|--------|------|--------|
+| 003 | [Maßstab und Einheitenkatalog](003-masstab-und-einheitenkatalog.md) | 1:1-Größen, Zeitfaktor 2, Katalog aller Einheiten mit Quellen, Asset-Konventionen | offen |
+| 004 | [Blender-Baukasten](004-blender-baukasten.md) | Bauteile, Bauplan → Modell, Tarn-Material-System, Prüfung, Galerie | offen |
+| 005 | [Infanterie-Basis](005-infanterie-basis.md) | Ein Soldat für alle Fraktionen: Skelett, Uniformen, Waffen, Animationen | offen |
+| 006 | [Kerneinheiten Stufe 1](006-kerneinheiten-stufe1.md) | Je 5 Kerneinheiten pro Fraktion, 3 Sessions parallel | offen |
+| 007 | [Umwelt-Objekte Stufe 1](007-umwelt-objekte-stufe1.md) | Bäume, Büsche, Gras, Häuser, Brücken, Mauern, Stacheldraht, Minen, Gräben | offen |
+| 008 | [Einheiten Stufe 2](008-einheiten-stufe2.md) | Alle restlichen Einheiten inkl. Flugzeuge, parallel | Entwurf |
+
+### Spiel-Strang
 
 | Nr. | Prompt | Ziel | Status |
 |-----|--------|------|--------|
 | 001 | [Projekt-Setup](done/001-projekt-setup.md) | Gerüst, Sim, Lockstep, Bridge, CI | erledigt |
 | 002 | [RTS-Kamera](002-rts-kamera.md) | Schwenken, Zoomen, Drehen über großem Spielfeld | offen |
-| 003 | [Einheiten, Auswahl, Lockstep im Spiel](003-einheiten-auswahl-lockstep.md) | Mehrere Einheiten, Auswahlrahmen, Gruppenbefehle, Replays | offen |
-| 004 | [Kartenformat und Höhenfeld](004-karte-hoehenfeld.md) | Karte als Daten, Höhen und Geländearten in der Sim | offen |
-| 005 | [Terrain-Darstellung](005-terrain-darstellung.md) | Großes Gelände mit LOD und Textur-Splatting | offen |
-| 006 | [Wegfindung](006-wegfindung.md) | Deterministisches A* mit Hindernissen und Gruppenbewegung | offen |
-| 007 | [Vegetation und Objekte](007-vegetation-und-objekte.md) | Bäume, Büsche, Gras, Kleinkram, dicht und performant | offen |
-| 008 | [Wasser, Flüsse und Brücken](008-wasser-fluesse-bruecken.md) | Flüsse, Ufer, Brücken als Engstellen | offen |
-| 009 | [Licht, Atmosphäre und Biome](009-licht-atmosphaere-biome.md) | Sonne, Schatten, Nachbearbeitung, Wiese/Wüste/Winter | offen |
-| 010 | [Asset-Pipeline für echte Modelle](010-asset-pipeline-modelle.md) | Modelle mit LOD, PBR-Material, Lizenzregeln | offen |
-| 011 | [Performance für große Karten](011-performance-grosse-karten.md) | Benchmarks, räumliches Raster, Budgets | offen |
-| 012 | [Kampf-Grundlagen](012-kampf-grundlagen.md) | Lebenspunkte, Waffen, Geschosse, Treffer | offen |
-| 013 | [Nebel des Krieges](013-nebel-des-krieges.md) | Sicht pro Spieler mit Sichtlinie über Gelände | offen |
-| 014 | [Effekte](014-effekte.md) | Explosionen, Rauch, Mündungsfeuer, Leuchtspur | offen |
-| 015 | [Zerstörbare Gebäude und Vegetation](015-zerstoerung.md) | Schadensstufen, Trümmer, umfallende Bäume | offen |
-| 016 | [Verformbares Gelände](016-gelaendeverformung.md) | Krater verändern das Höhenfeld | offen |
-| 017 | [Infanterie](017-infanterie.md) | Trupps, Formationen, Animationen | offen |
-| 018 | [Basisbau und Ressourcen](018-basisbau-ressourcen.md) | Bauen, Abbauen, Produzieren | offen |
-| 019 | [KI-Gegner](019-ki-gegner.md) | Computerspieler über normale Befehle | offen |
-| 020 | [LAN-Mehrspieler](020-lan-mehrspieler.md) | ENet-Transport, Spielsuche per Broadcast | offen |
-| 021 | [Online über Steam](021-online-steam.md) | GodotSteam, Lobbys, Matchmaking | offen |
-| 022 | [Menüs und Spielablauf](022-menues-spielablauf.md) | Hauptmenü, Lobby, Einstellungen, Sieg/Niederlage | offen |
-| 023 | [Karteneditor](023-karteneditor.md) | Karten im Spiel bauen und speichern | offen |
+| 009 | [Einheiten, Auswahl, Lockstep im Spiel](009-einheiten-auswahl-lockstep.md) | Mehrere Einheiten, Auswahlrahmen, Gruppenbefehle, Replays | offen |
+| 010 | [Kartenformat und Höhenfeld](010-karte-hoehenfeld.md) | Karte als Daten, Höhen und Geländearten in der Sim | offen |
+| 011 | [Terrain-Darstellung](011-terrain-darstellung.md) | Großes Gelände mit LOD und Textur-Splatting | offen |
+| 012 | [Wegfindung](012-wegfindung.md) | Deterministisches A* mit Hindernissen und Gruppenbewegung | offen |
+| 013 | [Vegetation und Objekte platzieren](013-vegetation-platzieren.md) | Dicht bestücktes Gelände mit den Modellen aus 007 | Entwurf |
+| 014 | [Wasser, Flüsse und Brücken](014-wasser-fluesse-bruecken.md) | Flüsse, Ufer, Brücken als Engstellen | Entwurf |
+| 015 | [Licht, Atmosphäre und Biome](015-licht-atmosphaere-biome.md) | Sonne, Schatten, Nachbearbeitung, Wiese/Wüste/Winter | Entwurf |
+| 016 | [Performance für große Karten](016-performance-grosse-karten.md) | Benchmarks, räumliches Raster, Budgets | Entwurf |
+| 017 | [Kampf-Grundlagen](017-kampf-grundlagen.md) | Lebenspunkte, Waffen, Geschosse, Treffer aus dem Katalog | Entwurf |
+| 018 | [Nebel des Krieges](018-nebel-des-krieges.md) | Sicht pro Spieler mit Sichtlinie über Gelände | Entwurf |
+| 019 | [Effekte](019-effekte.md) | Explosionen, Rauch, Mündungsfeuer, Leuchtspur | Entwurf |
+| 020 | [Zerstörbare Gebäude und Vegetation](020-zerstoerung.md) | Schadensstufen, Trümmer, umfallende Bäume | Entwurf |
+| 021 | [Verformbares Gelände](021-gelaendeverformung.md) | Krater verändern das Höhenfeld | Entwurf |
+| 022 | [Infanterie-Verhalten](022-infanterie-verhalten.md) | Trupps, Haltungen, Deckung, Gebäude besetzen | Entwurf |
+| 023 | [Basisbau und Ressourcen](023-basisbau-ressourcen.md) | Bauen, Abbauen, Produzieren | Entwurf |
+| 024 | [KI-Gegner](024-ki-gegner.md) | Computerspieler über normale Befehle | Entwurf |
+| 025 | [LAN-Mehrspieler](025-lan-mehrspieler.md) | ENet-Transport, Spielsuche per Broadcast | Entwurf |
+| 026 | [Online über Steam](026-online-steam.md) | GodotSteam, Lobbys, Matchmaking | Entwurf |
+| 027 | [Menüs und Spielablauf](027-menues-spielablauf.md) | Hauptmenü, Lobby, Einstellungen, Sieg/Niederlage | Entwurf |
+| 028 | [Karteneditor](028-karteneditor.md) | Karten im Spiel bauen und speichern | Entwurf |
 
-## Warum diese Reihenfolge
+## Festgelegte Grundsätze
 
-- **002 zuerst:** Die Kamera ist reine Darstellung, klein und sofort spürbar. Sie legt
-  fest, wie groß das Spielfeld wirkt und wie Zoom-Stufen aussehen; das brauchen alle
-  späteren Grafik-Prompts.
-- **003 vor dem Gelände:** Mehrere Einheiten und Lockstep im echten Spiel sind die
-  Grundlage für alles Weitere. Replays machen Fehler reproduzierbar.
-- **004 vor 005:** Das Höhenfeld gehört der Simulation (Sichtlinie, Krater, Steigungen).
-  Die Darstellung baut darauf auf, nicht umgekehrt.
-- **006–011:** Spielfeld fertig machen, bis es wie die Vorlagen aussieht und groß
-  bleibt, ohne langsam zu werden.
-- **012–019:** Gameplay. Erst danach lohnt sich echter Netzwerk-Transport (020–022).
+- **Größen 1:1** in echten Metern, auch Infanterie (1,80 m).
+- **Zeitfaktor 2:** Geschwindigkeiten × 2, Dauern ÷ 2; echte Werte im Katalog,
+  Umrechnung nur über `data/scale.toml`.
+- **Ein Modell pro Einheit**, Tarnung Wald/Wüste/Winter über das Material-System.
+- **Quellen:** Fakten und Maße frei, Zeichnungen und Fotos Dritter nur als Referenz,
+  nichts aus anderen Spielen. Balkenkreuz statt Hakenkreuz, kein Rotes Kreuz.
 
 ## Stil-Referenz
 

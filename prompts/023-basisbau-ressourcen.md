@@ -1,28 +1,28 @@
-# Prompt 019 – KI-Gegner
+# Prompt 023 – Basisbau und Ressourcen
 
 ## Ziel
 
-Ein Computerspieler, der nur über normale Befehle in die Sim eingreift (Regel 5).
+Bauen, Ressourcen abbauen und Einheiten produzieren, wie geplant für das Spielkonzept.
 
 ## Umfang
 
-- KI läuft deterministisch im Lockstep (auf allen Peers gleich) oder auf einem Host und
-  sendet Befehle wie ein Spieler – Vor- und Nachteile abwägen und mit mir entscheiden.
-- Sie liest nur, was ihr Spieler sehen darf (Nebel des Krieges).
-- Ebenen: Strategie (Ziele, Bauen), Taktik (Gruppen, Angriff, Rückzug), Mikro.
-- Schwierigkeitsstufen.
-- Headless-Turnier in der CLI: KI gegen KI über viele Seeds, Statistik.
+- Vorher mit mir klären: welche Ressourcen (z. B. Treibstoff, Munition, Personal),
+  wie abgebaut wird, welche Gebäude es gibt. Ergebnis in `docs/GAME_DESIGN.md`.
+- Sim: Bauplätze auf dem Raster (Steigung und Geländeart prüfen), Bauzeit,
+  Produktionswarteschlangen, Ressourcen-Konto pro Spieler.
+- Darstellung: Bau-Vorschau mit Gültigkeit, Baustelle, Produktions-UI.
+- Gebäude sind zerstörbar (020).
 
 ## Akzeptanzkriterien
 
 - `just check` und `just selftest` sind grün.
-- KI gewinnt gegen eine passive KI zuverlässig; Turnier läuft reproduzierbar.
+- Test: Produktionskette läuft auf zwei Peers identisch; Golden-Hash aktualisiert.
 - Betroffene Doku in `docs/` ist aktualisiert.
 
 ## Arbeitsweise
 
 > **Entwurf.** Vor der Ausführung mit dem dann aktuellen Stand abgleichen und bei Bedarf
-> konkretisieren (am besten in einer kurzen Session: „Bitte konkretisiere Prompt 019“).
+> konkretisieren (am besten in einer kurzen Session: „Bitte konkretisiere Prompt 023“).
 
 - In einer frischen Session ausführen. Zuerst `CLAUDE.md` und `docs/` lesen, deren
   Regeln gelten (Simulation ist die Wahrheit, keine Floats in `sim`, Godot zeigt nur an).

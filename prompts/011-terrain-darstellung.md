@@ -1,16 +1,16 @@
-# Prompt 005 – Terrain-Darstellung für große Karten
+# Prompt 011 – Terrain-Darstellung für große Karten
 
 > In einer frischen Session im Repo-Ordner ausführen. Lies zuerst `CLAUDE.md`,
 > `docs/ARCHITECTURE.md` und `docs/MAPS.md`. Deren Regeln gelten unverändert.
 
 ## 1. Ziel
 
-Das Höhenfeld aus Prompt 004 soll so aussehen wie in den Vorlagen: realistische
+Das Höhenfeld aus Prompt 010 soll so aussehen wie in den Vorlagen: realistische
 Bodentexturen (Gras, Erde, Feldwege mit Fahrspuren, Sand, Schlamm, Schnee), weiche
 Übergänge und gute Bildrate über eine 4-km-Karte bei jeder Zoomstufe.
 
 Die Simulation bleibt die Wahrheit. Die Darstellung liest Höhen und Geländearten über
-die Bridge und muss später einzelne Bereiche neu aufbauen können (Krater in 016).
+die Bridge und muss später einzelne Bereiche neu aufbauen können (Krater in 021).
 
 ## 2. Phase 0 – Entscheidung (erst prüfen, dann berichten, dann warten)
 
@@ -37,7 +37,7 @@ Kriterien: Aufwand für einen Solo-Entwickler, Laufzeit-Updates für Krater, Kon
    großer Entfernung.
 4. Feldwege mit Fahrspuren als eigene Geländeart beziehungsweise Decal-Schicht.
 5. Bereichsweises Neuaufbauen: API „Höhen im Rechteck X geändert“ → betroffene Chunks
-   neu erzeugen (für 016 vorbereitet und mit einem Test-Befehl im Debug-Menü belegt).
+   neu erzeugen (für 021 vorbereitet und mit einem Test-Befehl im Debug-Menü belegt).
 6. Kartenrand: sauberer Abschluss (z. B. abfallende Kante wie in der Vorlage mit
    sichtbarem Kartenrand) statt endloser Fläche.
 7. Mausauswahl und Kamera-Grenzen nutzen das echte Gelände.

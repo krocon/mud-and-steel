@@ -1,28 +1,29 @@
-# Prompt 022 – Menüs und Spielablauf
+# Prompt 020 – Zerstörbare Gebäude und Vegetation
 
 ## Ziel
 
-Aus dem Prototyp wird ein Spiel: Hauptmenü, Spielvorbereitung, Einstellungen,
-Sieg und Niederlage, Pause.
+Häuser, Mauern, Zäune und Bäume lassen sich beschädigen und zerstören. Das ändert
+Deckung, Sicht und Wege.
 
 ## Umfang
 
-- Hauptmenü, Einzelspieler-Setup (Karte, Gegner, Fraktion), LAN/Online-Lobby-UI.
-- Einstellungen: Grafikstufen (009), Tastenbelegung, Lautstärke, Kamera-Empfindlichkeit.
-- Siegbedingungen in der Sim (z. B. alle Einheiten zerstört, Kontrollpunkte).
-- Pause im Einzelspieler, Abstimmung im Mehrspieler.
-- Ladebildschirm für große Karten.
+- Sim: Lebenspunkte und Schadensstufen für statische Objekte; Zerstörung ändert
+  Kostenraster (012) und Sichtblocker (018) bereichsweise.
+- Bäume fallen um (Richtung aus der Einschlagsrichtung, deterministisch), Wald wird
+  lichter, Zäune werden umgefahren.
+- Gebäude: Stufen intakt / beschädigt / Ruine, Ruine bleibt als Deckung.
+- Darstellung: Ruinen-Varianten aus 007, Wracks aus 006/008, Trümmer-Partikel, Staubwolke.
 
 ## Akzeptanzkriterien
 
 - `just check` und `just selftest` sind grün.
-- Kompletter Ablauf Menü → Partie → Ergebnis → Menü im Selbsttest abgedeckt.
+- Test: zerstörte Mauer öffnet einen Weg (Pfad wird kürzer), Golden-Hash aktualisiert.
 - Betroffene Doku in `docs/` ist aktualisiert.
 
 ## Arbeitsweise
 
 > **Entwurf.** Vor der Ausführung mit dem dann aktuellen Stand abgleichen und bei Bedarf
-> konkretisieren (am besten in einer kurzen Session: „Bitte konkretisiere Prompt 022“).
+> konkretisieren (am besten in einer kurzen Session: „Bitte konkretisiere Prompt 020“).
 
 - In einer frischen Session ausführen. Zuerst `CLAUDE.md` und `docs/` lesen, deren
   Regeln gelten (Simulation ist die Wahrheit, keine Floats in `sim`, Godot zeigt nur an).
