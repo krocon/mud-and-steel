@@ -275,6 +275,8 @@ pub struct VisionGrid {
     solid_mm: Vec<i32>,
     /// Top of forest (absolute, mm) or [`NONE`].
     foliage_mm: Vec<i32>,
+    /// Top of smoke (absolute, mm) or [`NONE`] (prompt 032).
+    smoke_mm: Vec<i32>,
     target_height_mm: i32,
     foliage_depth: i32,
     /// Trees per cell that make forest.
@@ -364,6 +366,7 @@ impl VisionGrid {
             ground_mm,
             solid_mm,
             foliage_mm,
+            smoke_mm: vec![NONE; count],
             target_height_mm: rules.grid.target_height_mm as i32,
             foliage_depth: rules.grid.foliage_depth_cells as i32,
             foliage_min: rules.grid.foliage_min_objects,
@@ -455,6 +458,19 @@ impl VisionGrid {
         for &(i, mm) in changes {
             self.ground_mm[i as usize] = mm;
         }
+    }
+
+    /// Puts smoke up to `height_mm` above the ground over cell `index`, or
+    /// clears it (`None`, prompt 032). Sight lines below the top end
+    /// there, and targets in the cell are hidden.
+    pub fn set_smoke(&mut self, index: u32, height_mm: Option<i32>) {
+        let i = index as usize;
+        self.smoke_mm[i] = height_mm.map_or(NONE, |h| self.ground_mm[i].saturating_add(h));
+    }
+
+    /// Whether cell `index` is under smoke.
+    pub fn smoke_at(&self, index: u32) -> bool {
+        self.smoke_mm[index as usize] != NONE
     }
 
     /// Ground height at the center of cell `index`, millimeters.
@@ -550,7 +566,12 @@ impl VisionGrid {
                 let ground = i64::from(self.ground_mm[i]);
                 let kk = i64::from(k);
                 let line = (ground + target - eye, kk);
-                let visible = horizon.is_none_or(|h| !steeper(h, line))
+                // A target inside smoke is hidden unless it is next to the
+                // eye (prompt 032).
+                let smoke = self.smoke_mm[i];
+                let smoked = smoke != NONE && k > 1 && ground + target < i64::from(smoke);
+                let visible = !smoked
+                    && horizon.is_none_or(|h| !steeper(h, line))
                     && (canopy.len() < keep || !steeper(canopy[keep - 1], line));
                 if visible {
                     shed.set(i32::from(dx), i32::from(dy));
@@ -564,6 +585,9 @@ impl VisionGrid {
                 raise(ground);
                 if self.solid_mm[i] != NONE {
                     raise(i64::from(self.solid_mm[i]));
+                }
+                if smoke != NONE {
+                    raise(i64::from(smoke));
                 }
                 if self.foliage_mm[i] != NONE {
                     let slope = (i64::from(self.foliage_mm[i]) - eye, kk);

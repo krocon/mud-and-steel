@@ -20,10 +20,13 @@ const Settings := preload("res://scenes/menu/settings.gd")
 const MatchSetup := preload("res://scenes/menu/match_setup.gd")
 const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
 const SettingsPanel := preload("res://scenes/menu/settings_panel.gd")
+const CreditsPanel := preload("res://scenes/menu/credits_panel.gd")
 const FlowSelfTest := preload("res://scenes/menu/flow_self_test.gd")
 const LAN_SCENE := "res://scenes/lan/lan_lobby.tscn"
 const ONLINE_SCENE := "res://scenes/online/steam_lobby.tscn"
 const EDITOR_SCENE := "res://scenes/editor/map_editor.tscn"
+## Sound gallery (prompt 029): `-- --sound-gallery` / `--sound-gallery-once`.
+const SOUND_GALLERY_SCENE := "res://scenes/tools/sound_gallery.tscn"
 const EditorSelfTest := preload("res://scenes/editor/editor_self_test.gd")
 const FilesScreen := preload("res://scenes/menu/files_screen.gd")
 const DIRECT_FLAGS: Array[String] = [
@@ -35,13 +38,14 @@ const BIOMES: Dictionary[String, String] = {
 	"": "As the map says", "forest": "Forest (summer)", "desert": "Desert", "winter": "Winter",
 }
 
-## Screens, by name: "main", "skirmish", "settings", "load", "replays".
+## Screens, by name: "main", "skirmish", "settings", "credits", "load", "replays".
 var screens: Dictionary[String, Control] = {}
 var single_player_button: Button
 var lan_button: Button
 var online_button: Button
 var editor_button: Button
 var settings_button: Button
+var credits_button: Button
 var quit_button: Button
 ## Saved games and replays (prompt 038).
 var load_button: Button
@@ -54,6 +58,7 @@ var opponent_option: OptionButton
 var mode_option: OptionButton
 var start_button: Button
 var settings_panel: PanelContainer
+var credits_panel: PanelContainer
 
 var _maps: PackedStringArray = []
 ## `+connect_lobby` is followed once per process, not on every menu visit.
@@ -65,6 +70,9 @@ func _ready() -> void:
 	if _is_direct_start():
 		get_tree().change_scene_to_file.call_deferred(MatchSetup.MAIN_SCENE)
 		return
+	if Array(OS.get_cmdline_user_args()).any(func(arg: String) -> bool: return arg.begins_with("--sound-gallery")):
+		get_tree().change_scene_to_file.call_deferred(SOUND_GALLERY_SCENE)
+		return
 	Settings.ensure_loaded()
 	theme = MenuTheme.get_theme()
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -72,6 +80,7 @@ func _ready() -> void:
 	screens["main"] = _main_screen()
 	screens["skirmish"] = _skirmish_screen()
 	screens["settings"] = _settings_screen()
+	screens["credits"] = _credits_screen()
 	for kind in ["load", "replays"]:
 		var files := FilesScreen.new()
 		files.kind = kind
@@ -156,8 +165,14 @@ func _main_screen() -> Control:
 	online_button = _button(box, "Online (Steam)", open_online)
 	editor_button = _button(box, "Map editor", open_editor)
 	settings_button = _button(box, "Settings", func() -> void: show_screen("settings"))
+	credits_button = _button(box, "Credits", func() -> void: show_screen("credits"))
 	quit_button = _button(box, "Quit", func() -> void: get_tree().quit())
 	single_player_button.grab_focus.call_deferred()
+	# Prompt 044: a crash report of the last session, kept locally.
+	if not CrashGuard.last_report.is_empty():
+		var crash := MenuTheme.hint("The game ended unexpectedly last time. A report was saved (not sent anywhere):\n%s" % CrashGuard.last_report)
+		crash.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		box.add_child(crash)
 	return box.get_meta(&"screen")
 
 
@@ -216,6 +231,17 @@ func _settings_screen() -> Control:
 	settings_panel = SettingsPanel.new()
 	settings_panel.closed.connect(func() -> void: show_screen("main"))
 	center.add_child(settings_panel)
+	return center
+
+
+## Credits and licenses (prompt 044).
+func _credits_screen() -> Control:
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(center)
+	credits_panel = CreditsPanel.new()
+	credits_panel.closed.connect(func() -> void: show_screen("main"))
+	center.add_child(credits_panel)
 	return center
 
 

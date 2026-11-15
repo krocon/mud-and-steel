@@ -128,6 +128,18 @@ and gravity × time factor². Penetration loss and dispersion work on real dista
 penetrate as one at 1.5 km in reality. Combat rules (not catalog values) are in
 `data/combat.toml`.
 
+Indirect fire (prompt 032, [ARCHITECTURE.md](ARCHITECTURE.md#indirect-fire-and-smoke))
+uses the game ranges of the table and computes the flight at the **real**
+distance (game distance × 8): the charge is chosen so the shell arrives at a
+preferred elevation (mortars 60°, guns 25°, `data/indirect.toml`), the real
+flight time `2·v·sin θ / g` is divided by the time factor, and the apex is
+scaled down by 1/8 like the distance. Examples: 8 cm s.GrW 34 at 300 m game
+(2.4 km real) about 15 s, at 50 m game 6 s; 10.5 cm leFH 18M at 1540 m game
+(12.3 km real) about 17 s. Dispersion uses the real distance too (3 mrad),
+while blast and smoke radii are sizes and stay 1:1 (8 cm: 16 m fragments,
+12 m smoke). Smoke lasts 90 s real = 45 s game and drifts with the wind ×
+time factor.
+
 Observations for balancing:
 
 - Infantry crossing 4 km takes 30 min of game time. That is slow but fits the
@@ -137,6 +149,9 @@ Observations for balancing:
   may need a minimum game range rather than pure compression. Prompt 017 keeps pure
   compression; revisit with infantry behavior (prompt 022).
 - Artillery covers 1.5 km, a large part of a 2–4 km map, as intended.
+- Light mortars end up very short: the 5 cm leGrW 36 (520 m real) reaches
+  65 m, shorter than a rifle (125 m). A minimum game range or a separate
+  factor for infantry mortars is a balancing option (prompt 045).
 
 ## Map scale
 

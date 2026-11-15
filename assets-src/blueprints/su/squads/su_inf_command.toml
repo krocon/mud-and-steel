@@ -1,13 +1,13 @@
 # Command team, catalog su.toml: officer (TT-33) and radio operator (PPSh-41) with
-# a portable set such as the RB-M. The su `officer` role carries the pistol in the
-# holster, map case and binoculars.
+# a portable set such as the RB-M. The su `officer` role holds the TT-33 (prompt
+# 042) and carries the holster, map case and binoculars.
 # Formation: officer in front, radio operator close behind (display only).
 unit = "su_inf_command"
 
 [[member]]
 role = "officer"
 position = [0.0, 0.8]
-note = "platoon/company officer (TT-33 in the holster)"
+note = "platoon/company officer (TT-33)"
 
 [[member]]
 role = "radio_operator"

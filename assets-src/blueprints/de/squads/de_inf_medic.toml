@@ -1,12 +1,9 @@
 # Sanitätstrupp, 2 men; composition from the catalog entry (data/catalog/de.toml):
 # medical NCO and stretcher bearer, both with P 38 (catalog assumption).
 # Role choice: the Sanitätsdienstgrad is `medic` (medic bags, armband without
-# Red Cross per docs/SOURCES.md, P 38 holstered). Deviation: the second man is
-# shown as a Hilfskrankenträger, i.e. a `rifleman` with Kar98k. Reason: no role
-# shows a drawn pistol, and the gallery self-test needs at least one armed
-# member (Socket_Muzzle) per squad; the auxiliary stretcher bearers of a German
-# rifle company were ordinary riflemen. The catalog stays P 38 x 2 (game rules
-# use the catalog); a pistol role is proposed in the prompt 008 report.
+# Red Cross per docs/SOURCES.md, P 38 holstered); the second man is the
+# Krankenträger, `stretcher_bearer` (P 38 in the hand, armband, medical bag;
+# prompt 042). No deviations from the catalog weapon list.
 unit = "de_inf_medic"
 
 [[member]]
@@ -16,7 +13,7 @@ clip = "medic_treat"
 note = "Sanitätsdienstgrad (P 38)"
 
 [[member]]
-role = "rifleman"
+role = "stretcher_bearer"
 position = [1.2, -0.3]
 clip = "aim_kneel"
-note = "Hilfskrankenträger, shown with Kar98k (catalog: P 38)"
+note = "Krankenträger (P 38)"

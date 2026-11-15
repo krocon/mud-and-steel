@@ -116,8 +116,9 @@ delay of the LAN applies unchanged (`ceil((rtt + variance) / 2 / 50 ms) + 1`,
   pass it); `cargo run` finds the library by itself.
 - CI builds and lints the bridge with and without Steam and the CLI with
   Steam on macOS, Linux and Windows. No Steam client is needed anywhere in CI.
-- An exported game has to ship the Steam library next to the bridge (not set
-  up yet: there is no export pipeline).
+- An exported game ships the Steam library next to the bridge: the
+  `[dependencies]` of `godot/mud_and_steel.gdextension` (prompt 044, see
+  [RELEASE.md](RELEASE.md)).
 
 ## Tests
 

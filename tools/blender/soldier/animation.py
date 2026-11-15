@@ -117,6 +117,10 @@ SHOULDER_POCKET = (0.135, 0.105, 1.425)
 
 def hold(kind, name):
     """Weapon hold spec by weapon kind and hold name."""
+    if kind == "pistol":
+        spec = _pistol_hold(name)
+        if spec is not None:
+            return spec
     if name == "aim":
         if kind == "flame":
             return dict(anchor="UpperChest", at=(0.17, 0.20, 1.05), point="grip_r",
@@ -162,8 +166,25 @@ def hold(kind, name):
     raise KeyError(name)
 
 
+def _pistol_hold(name):
+    """Pistols (prompt 042): two hands at arm's length when aiming, one hand low when
+    ready, in the holster on the right hip instead of slung on the back."""
+    if name == "aim":
+        return dict(anchor="UpperChest", at=(0.06, 0.46, 1.39), point="grip_r", rot=(0, 0, 4),
+                    frame="root")
+    if name in ("ready", "port", "shoulder"):
+        return dict(anchor="UpperChest", at=(0.22, 0.20, 1.02), point="grip_r",
+                    rot=(-30, 0, 4), frame="anchor")
+    if name == "slung":
+        return dict(anchor="Hips", at=(0.17, 0.02, 0.92), point="grip_r", rot=(-90, 0, 0),
+                    frame="anchor")
+    return None
+
+
 def grips(kind, hold_name):
     """Hand targets that go with a hold: (left, right) weapon points or None (FK)."""
+    if kind == "pistol" and hold_name in ("ready", "port", "shoulder"):
+        return None, ("weapon", "grip_r")
     if hold_name in ("shoulder", "mg_shoulder"):
         return None, ("weapon", "grip_r") if hold_name == "shoulder" else ("weapon", "center_fwd")
     if hold_name in ("slung", "dropped", "deployed"):
@@ -377,8 +398,8 @@ def clip_library(kind):
     P = Poses(kind)
     lib = {}
 
-    def add(name, length, fn, loop=False, speed=0.0):
-        lib[name] = dict(length=length, pose=fn, loop=loop, speed=speed)
+    def add(name, length, fn, loop=False, speed=0.0, **extra):
+        lib[name] = dict(length=length, pose=fn, loop=loop, speed=speed, extra=extra)
 
     # Idle: breathing.
     def idle(t):
@@ -540,7 +561,194 @@ def clip_library(kind):
     b = dict(med, hand_l=(("anchor", "Root", (-0.04, 0.50, 0.28)), 1.0),
              hand_r=(("anchor", "Root", (0.06, 0.58, 0.20)), 1.0))
     add("medic_treat", 2.0, keyed([(0.0, a), (0.5, b), (1.0, a), (1.5, b), (2.0, a)]), loop=True)
+
+    _more_clips(P, kind, add, pouch)
     return lib
+
+
+# ---------------------------------------------------------------------------------------
+# Prompt 042: reload and throw in other stances, wounded and death variants, gun and MG
+# crew work, mounting and dismounting a vehicle (prompt 034)
+# ---------------------------------------------------------------------------------------
+
+MOUNT_RISE = 1.0      # m, deck height the soldier climbs onto (mount) or jumps from
+MOUNT_ADVANCE = 0.45  # m, forward travel of the hips during mount / dismount
+
+
+def _slung(P, pose):
+    """The weapon on the back (pistols: in the holster), hands free."""
+    if P.kind != "none":
+        pose["weapon"] = hold(P.kind, "slung")
+    pose["hand_l"] = (None, 0.0)
+    pose["hand_r"] = (None, 0.0)
+    return pose
+
+
+def _more_clips(P, kind, add, pouch):
+    root = lambda x, y, z: ("anchor", "Root", (x, y, z))  # noqa: E731
+
+    # Reload kneeling and prone (same motion as `reload`).
+    k, kr = P.kneel("ready"), P.kneel("reload")
+    add("reload_kneel", 2.2, keyed([
+        (0.0, k), (0.35, kr), (0.75, dict(kr, hand_l=(pouch, 1.0))),
+        (1.05, dict(kr, hand_l=(pouch, 1.0))), (1.5, dict(kr, hand_l=(("weapon", "grip_l"), 1.0))),
+        (1.85, kr), (2.2, k)]))
+    pr = P.prone("aim")
+    roll = P.prone("aim")
+    roll["rot"] = {**roll["rot"], "Hips": (-88, 18, 0), "Spine": (12, 10, 0), "Head": (10, 0, 10)}
+    side_pouch = ("anchor", "Hips", (-0.14, 0.10, 0.97))
+    add("reload_prone", 2.6, keyed([
+        (0.0, pr), (0.4, roll), (0.85, dict(roll, hand_l=(side_pouch, 1.0))),
+        (1.25, dict(roll, hand_l=(side_pouch, 1.0))),
+        (1.8, dict(roll, hand_l=(("weapon", "grip_l"), 1.0))), (2.2, roll), (2.6, pr)]))
+
+    # Grenade throw from the knee.
+    k0 = P.kneel("left_low")
+    wind = dict(k0)
+    wind["rot"] = {"Spine": (2, 0, -22), "Chest": (6, 0, -15), "Head": (0, 0, 20),
+                   "RightUpperArm": (-40, -40, 0), "RightLowerArm": (100, 0, 0)}
+    release = dict(wind)
+    release["rot"] = {"Spine": (-18, 0, 18), "Chest": (-8, 0, 12),
+                      "RightUpperArm": (150, -10, 0), "RightLowerArm": (15, 0, 0)}
+    follow = dict(release)
+    follow["rot"] = {"Spine": (-24, 0, 22), "Chest": (-10, 0, 14),
+                     "RightUpperArm": (60, 30, 0), "RightLowerArm": (30, 0, 0)}
+    add("throw_grenade_kneel", 1.6, keyed([(0.0, k), (0.3, k0), (0.75, wind), (0.95, release),
+                                           (1.15, follow), (1.6, k)]))
+
+    # Death C: hit from the side, spins away and falls on the right side.
+    s = P.stand("ready")
+    spin = P.stand("ready")
+    spin["rot"] = {"Hips": (0, 0, 55), "Spine": (6, 14, 15), "Chest": (4, 10, 0),
+                   "Neck": (10, 0, 0), "Head": (5, 15, 20),
+                   "LeftUpperArm": (-20, -70, 0), **both("LowerArm", (25, 0, 0))}
+    spin["hips"] = Vector((0.05, -0.04, -0.12))
+    spin["foot_l"] = (foot("L", y=-0.10, x=-0.05), 1.0)
+    spin["hand_l"] = (("weapon", "grip_l"), 0.0)
+    side = {"rot": {"Hips": (-10, 84, 70), "Spine": (-12, 4, 0), "Chest": (-6, 0, 0),
+                    "Neck": (-10, 20, 0), "Head": (0, 15, 0),
+                    **both("UpperLeg", (45, 0, 0)), "RightLowerLeg": (-70, 0, 0),
+                    "LeftLowerLeg": (-35, 0, 0), **both("Foot", (-20, 0, 0)),
+                    "RightUpperArm": (80, 20, 0), "LeftUpperArm": (40, -30, 0),
+                    **both("LowerArm", (35, 0, 0))},
+            "hips": Vector((0.25, 0.05, -0.80))}
+    if kind != "none":
+        side["weapon"] = hold(kind, "dropped")
+    add("death_c", 1.6, keyed([(0.0, s), (0.3, spin), (1.05, side), (1.6, side)]))
+
+    # Wounded: lying on the back, knees drawn up, hands pressed to the belly.
+    def wounded(t):
+        w = math.sin(2 * math.pi * t / 3.0)
+        p = P.lying_back()
+        p["rot"] = {**p["rot"], **both("UpperLeg", (55 + 8 * w, -6, 0)),
+                    **both("LowerLeg", (-85 - 6 * w, 0, 0)), **both("Foot", (-10, 0, 0)),
+                    "Spine": (-4 - 4 * w, 0, 0), "Neck": (-18, 0, 6 * w), "Head": (0, 0, 20 + 12 * w)}
+        p["hips"] = Vector((0, 0.25, -0.80))
+        p["hand_l"] = (("anchor", "Hips", (-0.05, 0.14, 1.02 + 0.02 * w)), 1.0)
+        p["hand_r"] = (("anchor", "Hips", (0.06, 0.15, 1.00)), 1.0)
+        if kind != "none":
+            p["weapon"] = hold(kind, "dropped")
+        return single(p)
+    add("wounded", 3.0, wounded, loop=True)
+
+    # Gun loader: shell from the ground at the right, carried to the breech about 1 m
+    # high and 0.75 m ahead, pushed in, back for the next round.
+    base = _slung(P, P.stand("ready"))
+    base["foot_l"] = (foot("L", y=0.20, x=-0.05), 1.0)
+    base["foot_r"] = (foot("R", y=-0.10, x=0.05), 1.0)
+    bend = dict(base)
+    bend["rot"] = {"Hips": (0, 0, -25), "Spine": (-45, 0, -10), "Chest": (-15, 0, 0),
+                   "Neck": (10, 0, 0), **both("UpperLeg", (35, 0, 0)), **both("LowerLeg", (-55, 0, 0))}
+    bend["hips"] = Vector((0.05, -0.12, -0.32))
+    bend["hand_l"] = (root(0.22, 0.35, 0.16), 1.0)
+    bend["hand_r"] = (root(0.40, 0.25, 0.14), 1.0)
+    carry = dict(base)
+    carry["rot"] = {"Spine": (-10, 0, 0), "Chest": (-4, 0, 0)}
+    carry["hand_l"] = (root(-0.02, 0.38, 1.05), 1.0)
+    carry["hand_r"] = (root(0.12, 0.22, 1.02), 1.0)
+    push = dict(carry)
+    push["rot"] = {"Spine": (-18, 0, 0), "Chest": (-8, 0, 0)}
+    push["hips"] = Vector((0, 0.10, -0.05))
+    push["hand_l"] = (root(-0.02, 0.62, 1.00), 1.0)
+    push["hand_r"] = (root(0.03, 0.55, 1.00), 1.0)
+    add("gun_load", 3.0, keyed([(0.0, base), (0.5, bend), (0.9, bend), (1.5, carry),
+                                (2.0, push), (2.3, push), (3.0, base)]), loop=True)
+
+    # Gun layer: kneeling at the sight, cranking the elevation and traverse wheels.
+    def gun_aim(t):
+        p = _slung(P, P.kneel("ready"))
+        a = 2 * math.pi * t / 1.0
+        p["rot"] = {"Spine": (-22, 0, 0), "Chest": (-8, 0, 0), "Neck": (-5, 0, 0),
+                    "Head": (-12, 0, 0)}
+        p["hand_l"] = (root(-0.20 + 0.04 * math.cos(a), 0.48, 0.72 + 0.04 * math.sin(a)), 1.0)
+        p["hand_r"] = (root(0.22, 0.46 + 0.04 * math.sin(a * 0.5), 0.66 + 0.04 * math.cos(a * 0.5)), 1.0)
+        return single(p)
+    add("gun_aim", 2.0, gun_aim, loop=True)
+
+    # MG assistant: prone to the left of the gun, guiding the belt into the feed.
+    def mg_feed(t):
+        p = _slung(P, P.prone("slung"))
+        a = math.sin(2 * math.pi * t / 1.0)
+        p["rot"] = {**p["rot"], "Hips": (-88, 6, -8), "Head": (12, 0, -12)}
+        p["hand_l"] = (root(0.22 + 0.03 * a, 0.52, 0.10), 1.0)
+        p["hand_r"] = (root(0.32 + 0.02 * a, 0.42, 0.12 + 0.03 * a), 1.0)
+        return single(p)
+    add("mg_feed", 2.0, mg_feed, loop=True)
+
+    # Mount: climb onto a deck MOUNT_RISE high, MOUNT_ADVANCE ahead.
+    up, fwd = MOUNT_RISE, MOUNT_ADVANCE
+    m0 = _slung(P, P.stand("ready"))
+    step = _slung(P, P.stand("ready"))
+    step["rot"] = {"Spine": (-20, 0, 0), "Neck": (5, 0, 0), "RightUpperLeg": (70, 0, 0),
+                   "RightLowerLeg": (-90, 0, 0)}
+    step["foot_r"] = (foot("R", y=0.32, z=up * 0.5), 1.0)
+    step["hand_l"] = (root(-0.22, 0.48, up + 0.35), 1.0)
+    step["hand_r"] = (root(0.22, 0.48, up + 0.35), 1.0)
+    pull = _slung(P, P.stand("ready"))
+    pull["rot"] = {"Spine": (-30, 0, 0), "Neck": (10, 0, 0)}
+    pull["hips"] = Vector((0, fwd * 0.6, up * 0.55))
+    pull["foot_r"] = (foot("R", y=fwd, z=up), 1.0)
+    pull["foot_l"] = (foot("L", y=0.30, z=up * 0.55), 1.0)
+    pull["hand_l"] = (root(-0.22, 0.55, up + 0.15), 1.0)
+    pull["hand_r"] = (root(0.22, 0.55, up + 0.15), 1.0)
+    crouch = _slung(P, P.stand("ready"))
+    crouch["rot"] = {"Spine": (-20, 0, 0), **both("UpperLeg", (35, 0, 0)),
+                     **both("LowerLeg", (-50, 0, 0))}
+    crouch["hips"] = Vector((0, fwd, up - 0.20))
+    on_deck = _slung(P, P.stand("ready"))
+    on_deck["hips"] = Vector((0, fwd, up))
+    for pose in (crouch, on_deck):
+        pose["foot_l"] = (foot("L", y=fwd + 0.02, z=up, x=-0.02), 1.0)
+        pose["foot_r"] = (foot("R", y=fwd + 0.02, z=up, x=0.02), 1.0)
+    add("mount", 1.8, keyed([(0.0, m0), (0.45, step), (0.95, pull), (1.35, crouch),
+                             (1.8, on_deck)]), rise=up, advance=fwd)
+
+    # Dismount: from standing on the deck, jump down, land in a crouch, stand up.
+    d0 = _slung(P, P.stand("ready"))
+    d0["hips"] = Vector((0, 0, up))
+    d0["foot_l"] = (foot("L", z=up, x=-0.02), 1.0)
+    d0["foot_r"] = (foot("R", z=up, x=0.02), 1.0)
+    edge = dict(d0)
+    edge["rot"] = {"Spine": (-25, 0, 0), **both("UpperLeg", (45, 0, 0)), **both("LowerLeg", (-70, 0, 0))}
+    edge["hips"] = Vector((0, 0.08, up - 0.30))
+    edge["foot_l"] = (foot("L", y=0.12, z=up, x=-0.02), 1.0)
+    edge["foot_r"] = (foot("R", y=0.12, z=up, x=0.02), 1.0)
+    air = _slung(P, P.stand("ready"))
+    air["rot"] = {"Spine": (-10, 0, 0), **both("UpperLeg", (30, 0, 0)), **both("LowerLeg", (-40, 0, 0)),
+                  **both("UpperArm", (30, 50, 0))}
+    air["hips"] = Vector((0, fwd * 0.6, up * 0.45))
+    air.pop("foot_l")
+    air.pop("foot_r")
+    land = _slung(P, P.stand("ready"))
+    land["rot"] = {"Spine": (-30, 0, 0), **both("UpperLeg", (60, 0, 0)), **both("LowerLeg", (-95, 0, 0))}
+    land["hips"] = Vector((0, fwd, -0.40))
+    stood = _slung(P, P.stand("ready"))
+    stood["hips"] = Vector((0, fwd, 0.0))
+    for pose in (land, stood):
+        pose["foot_l"] = (foot("L", y=fwd + 0.02, x=-0.02), 1.0)
+        pose["foot_r"] = (foot("R", y=fwd + 0.02, x=0.02), 1.0)
+    add("dismount", 1.6, keyed([(0.0, d0), (0.3, edge), (0.6, air), (0.8, land), (1.6, stood)]),
+        rise=-up, advance=fwd)
 
 
 CLIP_NAMES = list(clip_library("rifle").keys())
@@ -773,5 +981,5 @@ def bake_all(arm, weapon, kind):
         track.mute = True
         arm.animation_data.action = None
     baker.reset()
-    return {name: dict(loop=c["loop"], speed=c["speed"], length=c["length"])
+    return {name: dict(loop=c["loop"], speed=c["speed"], length=c["length"], **c["extra"])
             for name, c in lib.items()}

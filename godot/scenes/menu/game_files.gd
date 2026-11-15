@@ -138,7 +138,8 @@ static func unique_path(dir: String, base: String, extension: String) -> String:
 ## Opens a replay for watching; returns "" or why it cannot be played.
 static func open_replay(path: String) -> String:
 	var player := ReplayPlayer.new()
-	var error := player.open(FileAccess.get_file_as_bytes(path), maps_dir())
+	var bytes := FileAccess.get_file_as_bytes(path)
+	var error := player.open(bytes, maps_dir(ReplayPlayer.read_replay_info(bytes).get("map", "")))
 	if not error.is_empty():
 		return error
 	replay_player = player
@@ -159,9 +160,12 @@ static func watch_replay(tick: int, view: int) -> void:
 	}
 
 
-## Absolute folder of the maps.
-static func maps_dir() -> String:
-	return ProjectSettings.globalize_path(MatchSetup.MAPS_DIR).simplify_path()
+## Absolute folder that holds the map `map_name` (shipped or the player's
+## own, `GamePaths`); the bridge loads `<folder>/<map_name>/`.
+static func maps_dir(map_name: String) -> String:
+	if map_name.is_empty() or map_name == MatchSetup.BUILTIN_MAP:
+		return GamePaths.maps_dir()
+	return GamePaths.map_dir(map_name).get_base_dir()
 
 
 ## Whether `main.gd` should call `start` for the pending setup.
@@ -172,7 +176,8 @@ static func is_pending(setup: Dictionary) -> bool:
 ## Starts the saved game or replay of `setup` on `sim_host`.
 static func start(sim_host: SimHost, setup: Dictionary) -> bool:
 	if setup.has("load"):
-		var ok := sim_host.load_game(FileAccess.get_file_as_bytes(setup["load"]), maps_dir())
+		var bytes := FileAccess.get_file_as_bytes(setup["load"])
+		var ok := sim_host.load_game(bytes, maps_dir(ReplayPlayer.read_save_info(bytes).get("map", "")))
 		if ok:
 			# The biome of the saved match (main.gd reads it after the start).
 			setup["biome"] = sim_host.loaded_settings().get("biome", "")

@@ -16,6 +16,10 @@ extends Control
 ## - Infantry (prompt 022): right click on a building sends the selected
 ##   squads into it (other units drive there); Z stand, X kneel, V prone,
 ##   B automatic stance.
+## - Indirect fire (prompt 032): G fires a barrage (3 salvos within 25 m)
+##   and T smoke (2 salvos within 15 m) of the selected mortars and guns at
+##   the ground point under the cursor; Ctrl+right click fires at a point
+##   until stopped, right click on an enemy fires at it while it is seen.
 ##
 ## Sits full-screen in a CanvasLayer and draws the selection box itself. It
 ## ignores the mouse for GUI purposes and works from `_unhandled_input`.
@@ -23,6 +27,7 @@ extends Control
 signal move_ordered(point: Vector3)
 signal attack_ordered(target: int)
 signal garrison_ordered(building: int)
+signal barrage_ordered(point: Vector3, smoke: bool)
 
 const GroundPick := preload("res://scenes/camera/ground_pick.gd")
 ## Pointer travel in pixels before a left press becomes a box drag.
@@ -35,6 +40,8 @@ const PICK_HEIGHT := 1.2
 const DOUBLE_PRESS_MS := 400
 ## Stance keys (prompt 022): stance code for `SimHost.set_stance`.
 const STANCE_KEYS := {KEY_Z: 0, KEY_X: 1, KEY_V: 2, KEY_B: -1}
+## Barrage keys (prompt 032): smoke?, salvos, radius in meters.
+const BARRAGE_KEYS := {KEY_G: [false, 3, 25], KEY_T: [true, 2, 15]}
 const BOX_FILL := Color(0.45, 0.85, 0.45, 0.12)
 const BOX_LINE := Color(0.55, 0.95, 0.55, 0.9)
 
@@ -138,6 +145,9 @@ func _on_key(key: InputEventKey) -> bool:
 	if key.keycode == KEY_C and not key.ctrl_pressed and not key.meta_pressed:
 		set_follow(not follow)
 		return true
+	if BARRAGE_KEYS.has(key.keycode) and not key.ctrl_pressed and not key.meta_pressed:
+		var b: Array = BARRAGE_KEYS[key.keycode]
+		return order_barrage(get_viewport().get_mouse_position(), b[0], b[1], b[2])
 	var stance: int = STANCE_KEYS.get(key.keycode, -2)
 	if stance > -2 and not key.ctrl_pressed and not key.meta_pressed:
 		set_stance(stance)
@@ -211,6 +221,25 @@ func _order_attack(screen_position: Vector2) -> bool:
 		return false
 	sim_host.attack_unit(PackedInt64Array(selected), target)
 	attack_ordered.emit(target)
+	return true
+
+
+## Barrage (or smoke) of the selected units with an indirect weapon at
+## the ground point under `screen_position`; false if none can fire.
+func order_barrage(screen_position: Vector2, smoke: bool, salvos: int, radius: int) -> bool:
+	var guns: Array[int] = []
+	for id in selected:
+		var w := sim_host.unit_indirect(id)
+		if w.y > 0.0 and (not smoke or w.z > 0.0):
+			guns.append(id)
+	if guns.is_empty():
+		return false
+	var hit: Variant = GroundPick.from_screen(camera, screen_position)
+	if hit == null:
+		return false
+	var point := hit as Vector3
+	sim_host.barrage(PackedInt64Array(guns), point.x, point.z, radius, salvos, smoke)
+	barrage_ordered.emit(point, smoke)
 	return true
 
 

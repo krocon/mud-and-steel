@@ -241,6 +241,15 @@ impl Sim {
             .is_some_and(|s| s.contains(grid, c, r))
     }
 
+    /// Whether `player` sees the vision cell of `p` now (prompt 032:
+    /// indirect fire at unseen points is blind).
+    pub(super) fn player_sees_point(&self, player: PlayerId, p: Vec2) -> bool {
+        let cell = self.vision.grid.index_of(p) as usize;
+        self.vision
+            .slot(player)
+            .is_some_and(|s| self.vision.per_player[s].visible(cell))
+    }
+
     /// Whether the owner of unit `i` sees unit `j`.
     pub(super) fn owner_sees(&self, i: usize, j: usize) -> bool {
         self.vision

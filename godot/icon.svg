@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- Mud and Steel app icon (prompt 044): own work, a plain tank silhouette
+       on muddy ground. No insignia. -->
+  <rect x="8" y="8" width="240" height="240" rx="40" fill="#4a4f2f"/>
+  <path d="M8 176 Q64 160 128 172 T248 166 V208 Q248 248 208 248 H48 Q8 248 8 208 Z" fill="#5c4630"/>
+  <path d="M8 196 Q72 184 136 194 T248 188" fill="none" stroke="#3e2f20" stroke-width="6"/>
+  <!-- tracks -->
+  <rect x="44" y="140" width="168" height="34" rx="17" fill="#2b2d24"/>
+  <circle cx="64" cy="157" r="10" fill="#6d6f60"/>
+  <circle cx="96" cy="157" r="10" fill="#6d6f60"/>
+  <circle cx="128" cy="157" r="10" fill="#6d6f60"/>
+  <circle cx="160" cy="157" r="10" fill="#6d6f60"/>
+  <circle cx="192" cy="157" r="10" fill="#6d6f60"/>
+  <!-- hull, turret, gun -->
+  <path d="M40 140 L60 116 H196 L216 140 Z" fill="#7a7f58"/>
+  <path d="M92 116 L102 88 H158 L168 116 Z" fill="#8d9266"/>
+  <rect x="156" y="96" width="76" height="9" rx="3" fill="#8d9266"/>
+  <rect x="44" y="140" width="168" height="6" fill="#55593d"/>
+</svg>

@@ -257,9 +257,11 @@ impl EconomyRules {
         let squares: u64 = combat
             .weapons
             .iter()
-            .map(|w| {
-                let mm = u64::from(w.caliber_mm_x10);
-                mm * mm * u64::from(w.count) / 100
+            .map(|w| (w.caliber_mm_x10, w.count))
+            .chain(combat.indirect.iter().map(|w| (w.caliber_mm_x10, 1)))
+            .map(|(caliber, count)| {
+                let mm = u64::from(caliber);
+                mm * mm * u64::from(count) / 100
             })
             .sum();
         let ammo = r.ammo_base.saturating_add(

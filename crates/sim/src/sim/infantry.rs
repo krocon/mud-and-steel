@@ -139,7 +139,7 @@ pub(super) struct TypeInfantry {
     /// Width of the formation plus one spacing (like a footprint).
     pub(super) spread: Fixed,
     change_ticks: u32,
-    suppressed_ticks: u32,
+    pub(super) suppressed_ticks: u32,
 }
 
 /// Infantry rules with per-type and per-object values, built once.

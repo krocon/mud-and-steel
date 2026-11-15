@@ -35,6 +35,7 @@ extends Node3D
 ## started game over through `lan/lan_match.gd`; `lan/net_status.gd` then
 ## shows the connection state. Online games over Steam (prompt 026) start in
 ## `online/steam_lobby.tscn` and take the same way.
+## Indirect fire and smoke (prompt 032): `world/artillery_view.gd`.
 ## Combat (prompt 017) is drawn by `world/combat_view.gd`: tracers, health
 ## bars, wrecks, turrets. The self-test starts with every unit holding fire.
 ## Fog of war (prompt 018): `world/fog_of_war.gd` darkens what the local
@@ -53,6 +54,8 @@ extends Node3D
 ## Saved games and replays (prompt 038): the menu hands a saved game or a
 ## replay over (`menu/game_files.gd`); a replay plays with the controls of
 ## `replay/replay_bar.gd` and is not written again on exit.
+## Sound (prompt 029): `audio/battle_sound.gd`; `-- --no-sound` leaves it
+## out (benchmark comparison).
 
 const UNIT_SCENE: PackedScene = preload("res://scenes/unit.tscn")
 const SelfTest := preload("res://scenes/self_test.gd")
@@ -69,6 +72,7 @@ const ObjectsBench := preload("res://scenes/tools/objects_bench.gd")
 const LanMatch := preload("res://scenes/lan/lan_match.gd")
 const NetStatus := preload("res://scenes/lan/net_status.gd")
 const CombatView := preload("res://scenes/world/combat_view.gd")
+const ArtilleryView := preload("res://scenes/world/artillery_view.gd")
 const FogOfWar := preload("res://scenes/world/fog_of_war.gd")
 const Effects := preload("res://scenes/world/effects.gd")
 const DestructionView := preload("res://scenes/world/destruction_view.gd")
@@ -88,9 +92,9 @@ const BaseHud := preload("res://scenes/world/base_hud.gd")
 const BaseShots := preload("res://scenes/tools/base_shots.gd")
 const GameFiles := preload("res://scenes/menu/game_files.gd")
 const ReplayBar := preload("res://scenes/replay/replay_bar.gd")
+const BattleSound := preload("res://scenes/audio/battle_sound.gd")
 const SEED := 42
 ## Map folders, relative to the Godot project (repository checkout only).
-const MAPS_DIR := "res://../data/maps"
 const REPLAY_DIR := "user://replays"
 ## Unit models built by the Blender kit, one folder per faction.
 const MODELS_DIR := "res://assets/models/"
@@ -138,6 +142,8 @@ var _enemy_material: StandardMaterial3D
 var atmosphere: Atmosphere
 ## Tracers, health bars, wrecks (prompt 017).
 var combat_view: CombatView
+## Shells, impact markers, smoke clouds (prompt 032).
+var artillery_view: ArtilleryView
 ## Fog overlay (prompt 018).
 var fog_of_war: FogOfWar
 ## Smoke, fire, impacts, dust (prompt 019).
@@ -150,6 +156,8 @@ var crater_view: Node
 ## Buildings, sites, supply points and the base HUD (prompt 023).
 var base_view: BaseView
 var base_hud: BaseHud
+## Weapons, impacts, engines and notices (prompt 029); null with --no-sound.
+var battle_sound: BattleSound
 ## Pause menu and result screen (prompt 027).
 var game_menu: CanvasLayer
 var _loading: CanvasLayer
@@ -215,6 +223,10 @@ func _ready() -> void:
 	combat_view.name = "CombatView"
 	add_child(combat_view)
 	combat_view.setup(self, $Hud)
+	artillery_view = ArtilleryView.new()
+	artillery_view.name = "ArtilleryView"
+	add_child(artillery_view)
+	artillery_view.setup(self)
 	infantry_view = InfantryView.new()
 	infantry_view.name = "InfantryView"
 	add_child(infantry_view)
@@ -246,11 +258,18 @@ func _ready() -> void:
 	$Hud.add_child(base_hud)
 	base_hud.setup(self, base_view)
 	selection.is_structure = func(id: int) -> bool: return base_view.structures.has(id)
+	if not "--no-sound" in OS.get_cmdline_user_args():
+		battle_sound = BattleSound.new()
+		battle_sound.name = "BattleSound"
+		add_child(battle_sound)
+		battle_sound.setup(self)
+		battle_sound.visible_at = effects.visible_at
 
 	selection.sim_host = sim_host
 	selection.camera = camera
 	selection.camera_rig = camera_rig
 	selection.move_ordered.connect(_show_target_marker)
+	selection.barrage_ordered.connect(func(point: Vector3, _smoke: bool) -> void: _show_target_marker(point))
 	var debug_menu := DebugMenu.new()
 	debug_menu.main = self
 	$Hud.add_child(debug_menu)
@@ -403,7 +422,7 @@ func _start_simulation() -> bool:
 	if LanMatch.lobby != null:
 		var lobby := LanMatch.lobby
 		LanMatch.lobby = null
-		var maps := ProjectSettings.globalize_path(MAPS_DIR).simplify_path()
+		var maps := GamePaths.maps_dir()
 		if lobby is SteamLobby:
 			return sim_host.start_online(lobby, maps)
 		return sim_host.start_lan(lobby, maps)
@@ -413,10 +432,10 @@ func _start_simulation() -> bool:
 			sim_host.mode = arg.trim_prefix("--mode=")
 			return sim_host.start_match(SEED, "", PackedStringArray())
 		if arg.begins_with("--scenario="):
-			var file := ProjectSettings.globalize_path("res://../data/scenarios/" + arg.trim_prefix("--scenario="))
-			return sim_host.start_scenario(SEED, file.simplify_path(), ProjectSettings.globalize_path(MAPS_DIR).simplify_path())
+			var file := GamePaths.data_dir().path_join("scenarios").path_join(arg.trim_prefix("--scenario="))
+			return sim_host.start_scenario(SEED, file.simplify_path(), GamePaths.maps_dir())
 		if arg.begins_with("--map="):
-			var dir := ProjectSettings.globalize_path(MAPS_DIR.path_join(arg.trim_prefix("--map=")))
+			var dir := GamePaths.map_dir(arg.trim_prefix("--map="))
 			return sim_host.start_on_map(SEED, dir.simplify_path())
 	return sim_host.start(SEED)
 

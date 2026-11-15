@@ -224,7 +224,7 @@ func _finish() -> void:
 
 
 func _delete_map() -> void:
-	var dir := ProjectSettings.globalize_path(MatchSetup.MAPS_DIR.path_join(MAP_NAME)).simplify_path()
+	var dir := GamePaths.user_maps_dir().path_join(MAP_NAME)
 	if not DirAccess.dir_exists_absolute(dir):
 		return
 	for file in DirAccess.get_files_at(dir):

@@ -32,7 +32,10 @@ fn mix(difficulty: Difficulty, vehicles: bool) -> &'static [usize] {
     match (difficulty, vehicles) {
         (Difficulty::Easy, false) => &[0, 0, 1],
         (Difficulty::Easy, true) => &[1, 2],
-        (Difficulty::Hard, false) => &[0, 3, 1, 0],
+        // Hard also builds mortar teams (4, prompt 032). Not the
+        // self-propelled gun (vehicle 5): saving up for it starved the tank
+        // production and lost base matches against Normal.
+        (Difficulty::Hard, false) => &[0, 3, 1, 4, 0],
         (Difficulty::Hard, true) => &[2, 3, 2, 4],
         (_, false) => &[0, 1, 0, 3],
         (_, true) => &[2, 2, 3, 1],

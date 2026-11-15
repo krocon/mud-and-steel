@@ -438,9 +438,9 @@ aim. Hulls follow the simulation's `facing`.
 ### Open
 
 - Guns (`gun_*`) cannot be placed yet (no ground speed; limbering and
-  positions), aircraft neither; indirect fire (mortars, howitzers,
-  self-propelled guns), HE splash, suppression, damaged modules,
-  ammunition limits. Line of sight for targets: see
+  positions), aircraft neither; damaged modules, ammunition limits.
+  Indirect fire, HE fragments and smoke: see
+  [Indirect fire and smoke](#indirect-fire-and-smoke) (prompt 032). Line of sight for targets: see
   [Vision and fog of war](#vision-and-fog-of-war).
 - Target leading: rounds fly at the target's position at the moment of the
   shot; at 75 m per tick this matters only for fast targets far away.
@@ -962,6 +962,116 @@ and an upload together with decoration rebuilds.
 - Craters do not fill again; the deviation limit keeps them bounded.
 - The map editor (prompt 028) shows no craters (the editor has none).
 
+## Indirect fire and smoke
+
+Prompt 032. Mortars (`inf_mortar_*`, `mortar_heavy`), howitzers
+(`gun_howitzer`) and self-propelled guns (`self_propelled`) fire their first
+catalog weapon indirectly; their other catalog weapons (the crew's small
+arms) are ordinary direct weapons. Rules: `data/indirect.toml`
+(`sim::IndirectRules`, loaded by `Sim::new` like the crater rules, in the
+state hash, not part of `SimConfig`). Code: `crates/sim/src/indirect.rs`
+(rules, `IndirectWeapon`, ballistics, snapshot types) and
+`crates/sim/src/sim/indirect.rs` (orders, shells, impacts, smoke).
+
+### Data
+
+`CombatType::indirect` (`IndirectWeapon`): caliber, rate, muzzle velocity
+(if the catalog has none: `sqrt(range · g)`, the least velocity that reaches
+the catalog range in vacuum), range × `range.indirect_fire` (1/8), interval
+÷ time factor, and whether the catalog ammunition names smoke or white
+phosphorus. Per category the rules add a minimum range (share of the
+range), a setup time after moving and a preferred elevation (mortars 60°,
+guns 25°). Unit prices count the indirect weapon like a direct one.
+
+### Orders
+
+| Order | Indirect units | Direct units |
+|---|---|---|
+| `Attack { target }` | fire at the target while the player sees it (any own observer, prompt 018); the order ends when it is lost or destroyed | unchanged |
+| `AttackGround { target }` | fire at the point until `Stop`; blind fire (the player does not see the cell) has `blind_pct` dispersion | unchanged |
+| `Barrage { target, radius_m, salvos, smoke }` | `salvos` rounds each at uniform random points in the circle; smoke only with smoke ammunition (others ignore it) | ignored |
+| none, fire at will | the nearest enemy the unit itself sees in range that HE hurts (infantry, open vehicles) | unchanged |
+
+Indirect orders live in their own state (`Gun`: order, reload, setup,
+closing in), not in the direct-fire attack order, so a mortar squad fires
+its rifles at will while the mortar follows the order. Out of range a unit
+drives up to 90 % of its range; inside the minimum range it holds fire.
+Indirect weapons fire only standing and set up (`setup_ms` after every
+move; towed guns cannot move until prompt 034). `MoveTo` and `Stop` cancel
+the order.
+
+### Per tick
+
+1. `fire_indirect` (after the direct fire): orders, closing in, setup,
+   automatic targets, new shells. A shell's impact point is the aim point
+   plus a triangular error per axis of `mrad_x10` of the real distance (at
+   least `min_mm`; × `blind_pct` when blind). Its flight
+   (`indirect::flight`) uses the real distance: the charge is chosen so the
+   shell arrives at the preferred elevation (`v² = R·g / sin 2θ`), or full
+   charge at the matching angle; `t = 2·v·sin θ / g` ÷ time factor. The arc
+   is a parabola between muzzle and impact point with the real apex × the
+   range factor. No hit test in flight: shells fly over walls and hills.
+   `Shot` events (weapon `INDIRECT_WEAPON` = 255) share the projectile id
+   counter.
+2. `fly_shells` (after the projectiles): at the impact point, in order: a
+   direct hit on a vehicle (point in its hull outline; HE penetrates
+   `direct_hit_pen_pct` of the caliber against a roof of `roof_pct` of the
+   thinnest plate), else an object under the point (an occupied building
+   loses an occupant like a hit from a gun, prompt 022; otherwise object
+   damage, prompt 020), else the ground (crater, prompt 021). Then
+   fragments within `radius_mm_per_mm` × caliber: every soldier outside a
+   building rolls `infantry_pct` × (1 − d/R) × stance height ÷ standing
+   height × `cover_pct` at a cover spot, then the crater rim (021); open
+   vehicles (thinnest plate ≤ `open_armor_mm`) lose
+   `open_damage_per_mm` × caliber × (1 − d/R). Squads in the radius are
+   suppressed. One `Hit` event per shell with the total damage. Smoke
+   shells instead make a cloud and a `Smoke` event.
+3. `update_smoke` (before the vision update): clouds drift by the wind of
+   the rules, dissolve after `lifetime_ms`, and the oldest goes beyond
+   `max_clouds`. Vision cells whose center lies in a cloud get a smoke top
+   (`VisionGrid::set_smoke`, ground + `height_mm`): sight lines below it
+   end there and targets in a smoke cell are hidden unless next to the eye;
+   an observer above the smoke looks over it. Only changed cells are
+   written, and the viewsheds that contain them are queued (budgeted like
+   every viewshed update).
+
+Clouds, shells, every unit's indirect state and the smoked cells are in the
+state hash.
+
+### Snapshot, bridge and Godot
+
+`Snapshot::shells` (position, velocity, impact point, ticks left, owner,
+caliber, smoke) and `Snapshot::smoke` (center, radius, age, ticks left).
+`SimHost.barrage`, `unit_indirect`, `shell_*`, `smoke_*`; `take_combat_events`
+adds `type = "smoke"`. `world/artillery_view.gd` draws shells, an impact ring
+for the local player's shells and clouds of billboard puffs that drift with
+the simulation and fade out; its signal `shell_incoming` is meant for the
+whistle (prompt 029). Muzzle flashes and explosions come from the usual
+`shot` and `hit` events. Keys: G barrage, T smoke (`selection.gd`).
+
+### Decisions
+
+| Topic | Decision | Why |
+|---|---|---|
+| Rules file | `data/indirect.toml`, outside `SimConfig` | The catalog has no minimum ranges, setup times, blast radii or clouds; keeps the replay/config format unchanged. |
+| Flight | Real ballistics at real distance, scaled apex, no collision in flight | Real flight times with the time factor; shells cross walls by design. |
+| Dispersion and blast in real meters | Sizes are 1:1 | A 16 m blast radius is a size, not a range. |
+| Armor | Direct hits only, roof = half the thinnest plate | The catalog has no roof armor. |
+| Smoke in vision | A height per cell, not just a flag | Observers on hills see over smoke; same ray code as walls. |
+
+### Open
+
+- Provisional values (marked in `data/indirect.toml`): minimum ranges,
+  setup times, elevations, dispersion, blast and smoke figures, the fixed
+  wind (until weather, prompt 040).
+- Towed guns and heavy mortars cannot be fielded until towing (prompt 034);
+  the Soviet catalog entries name no smoke rounds, and tanks have no smoke
+  dischargers in the catalog (the 75 mm M89 smoke round of US tank guns is
+  not used for direct fire).
+- Shells do not hit aircraft or anything in flight; HE does not damage
+  objects around the impact point (only the one hit); no counter-battery,
+  sound ranging or ammunition limits.
+
 ## Victory conditions and game flow
 
 Prompt 027. `crates/sim/src/outcome.rs` decides the match; Godot only shows it.
@@ -1017,7 +1127,8 @@ main menu ── Single player ─ setup (map, season, factions, opponent, mode)
   before).
 - `menu/settings.gd` (static, loaded by every entry scene): graphics quality
   (`--quality` overrides it), keyboard bindings of the camera actions (a key
-  taken by another action swaps), master volume (no sounds yet), pan and zoom
+  taken by another action swaps), volumes per audio bus and mute without
+  focus (prompt 029, see [Audio](#audio-presentation-only)), pan and zoom
   sensitivity as factors on the camera's tuned speeds, edge scrolling.
   `menu/settings_panel.gd` is the screen, used by the menu and the pause menu.
 - Look (`menu/menu_theme.gd`): dark field grey and olive with sand as the
@@ -1596,11 +1707,158 @@ and a burning wreck.
 - Craters (prompt 021) are terrain now; the impact of a crater-making hit
   still uses the ground-hit effect (earth fountain, dust, scorch decal),
   there is no extra crater decal.
-- Sound can hook into the same events (`combat_view.combat_event`).
+- Sound hooks into the same events since prompt 029 (see [Audio](#audio-presentation-only)).
 - Tracers could start at the muzzle socket; projectile ids are not in the
   per-projectile arrays yet.
 - Smoke does not block line of sight; smoke shells and screens are game
   rules for later prompts.
+
+## Audio (presentation only)
+
+Prompt 029. Sound reads the same events and snapshot as the effects and
+never reaches the simulation (golden hash unchanged; Godot randomness is
+fine). Code in `godot/scenes/audio/`, files and manifest in
+`godot/assets/audio/` (conventions: [ASSETS.md](ASSETS.md#audio-prompt-029),
+origin: [SOURCES.md](SOURCES.md#sounds)).
+
+| Script | Does |
+|---|---|
+| `sound_library.gd` | Reads `sounds.json`, loads the files of each class (`ResourceLoader.list_directory`, so exports work), makes loops loop, checks the library |
+| `sound_classes.gd` | Catalog facts → class: shots by category, caliber and rate of fire; engines by category and mass; hits by surface, caliber, penetration, water; map objects by stage and remains |
+| `battle_sound.gd` | Created by `main.gd` (left out with `-- --no-sound`). Listener, voice pools, one-shots for combat, object and crater events, engine/track/fire loops, match notices |
+| `ui_sound.gd` | One node under the tree root for the whole run (installed when the settings are applied): UI voice pool, a click for every `BaseButton`, mute on focus loss |
+| `sound_buses.gd` | Creates the buses in code and sets their volumes from the settings |
+
+The bridge adds one read function, `SimHost.unit_type_sound(type)`:
+catalog id, category, mass, road speed and the weapons in the order of
+the shot event's `weapon` index (caliber, rate of fire). Classes are cached
+per unit type and weapon.
+
+### Events and sounds
+
+| Trigger | Class |
+|---|---|
+| `shot` | `shot_rifle` / `shot_mg` (below 20 mm, rate below / from 300 rpm), `shot_rocket` (anti-tank squads), `shot_mortar`, `shot_howitzer` (prepared for prompt 032), `shot_cannon_small` / `_medium` / `_large` (20 / 37 / 75 mm) |
+| `hit`, ground | `hit_bullet_ground`, `hit_shell_small` (below 37 mm), `hit_shell` (louder with caliber, ±6 dB), `hit_shell_water` in water |
+| `hit`, vehicle | `hit_bullet_armor`, `hit_ricochet` (not penetrated), `hit_penetration` |
+| `hit`, infantry / object | shells: as on the ground / `hit_object`; bullets: nothing / `hit_bullet_ground` |
+| `destroyed` | vehicles `explosion_vehicle` (by size) and a `fire` loop for 60 s, 90 s quieter while smoldering; base buildings `building_collapse`; infantry nothing |
+| object event | `building_damage`, `building_collapse` (ruin), `tree_fall`, `wall_break` (walls, hedges), `fence_crush` (flattened) |
+| crater event | `crater` (earth raining down; the impact itself is the hit) |
+| indirect fire (prompt 032) | shot events with `weapon` 255: `shot_mortar` / `shot_howitzer` by category; `artillery_view.shell_incoming` (if present): `shell_incoming`, a 1.5 s whistle at the impact point; `smoke` events: a quiet `hit_shell_small` |
+| moving vehicles | `engine_wheel` / `engine_halftrack` / `engine_track_light` / `engine_track_heavy` (from 20 t) plus `tracks` for tracked vehicles; pitch 0.8–1.2 and volume by speed / road speed |
+| notices (UI bus) | `ui_order` (move, attack, garrison), `ui_select`, `ui_unit_ready` (a new own unit after the first 2 s), `ui_build_complete`, `ui_under_attack` (own unit hit, every 20 s at most), `ui_unit_lost` (6 s), `ui_victory` / `ui_defeat`; `ui_click` on every button of every screen |
+
+### Hearing
+
+An `AudioListener3D` stands above the camera's ground focus, raised by
+12 % of the camera distance (at least 6 m), facing the camera's view
+direction on the ground, so left and right match the screen. Attenuation
+is inverse distance from `ref_m` up to the cut at `range_m` (manifest);
+both grow with the zoom (`hearing_scale` = camera distance / 150 m, 1 to
+4): close up you hear the skirmish in front of you, in the overview the
+whole battle, quieter. Godot's distance low-pass darkens far sounds.
+
+### Budget
+
+| Group | Voices | New per frame | Classes |
+|---|---|---|---|
+| small_arms | 12 | 3 | rifle, MG |
+| cannon | 10 | 4 | cannons, rockets, mortars, howitzers |
+| impact | 14 | 4 | bullet and shell hits, ricochets, penetrations, objects hit |
+| explosion | 8 | 3 | shell bursts, vehicle explosions |
+| object | 6 | 3 | buildings, trees, walls, fences, craters |
+| ui | 6 | – | notices and clicks (`ui_sound.gd`) |
+| loops | 6 vehicles × 2, 4 fires | every 0.2 s | engines and tracks of the nearest vehicles, nearest burning wrecks |
+
+A new sound takes a free voice, else the weakest busy one if that is not
+stronger: score = priority × 12 + estimated loudness at the listener / 3,
+lowered while a sound fades out (age / length). Cannons (priority 3–5)
+always win against rifles (1); a near rifle beats a far rifle. Sounds
+beyond the hearing range are culled before any work. All players are
+created once; the self-test fires 200 events per frame for 30 frames and
+checks the pools and the per-frame budget.
+
+### Fog of war
+
+`battle_sound.visible_at` is the effects' visibility query. Sounds at points
+the player does not see are **muffled, not silent**: they play on the
+`Muffled` bus (send to Effects, low-pass at 700 Hz, −6 dB) 3 dB quieter and
+up to 15 % of their distance off their true position. Battle noise beyond
+the front is information soldiers had, but it does not give away an exact
+position. Enemy vehicles out of sight are not in the snapshot, so their
+engines are not heard.
+
+### Buses and settings
+
+`Master` → `Effects` (→ `Muffled`), `UI`, `Music`, `Ambience` (the last two
+for prompt 030), created in code by `sound_buses.gd` (no bus layout file).
+Settings keys `master_volume` (as before), `effects_volume`, `ui_volume`,
+`music_volume`, `ambience_volume` (linear 0–1, 0 mutes the bus) and
+`mute_unfocused` (default on: Master is muted while the window has no
+focus). The Audio tab of the settings screen has a slider per bus.
+
+### Tools
+
+`just audio [classes]` synthesizes the files (`tools/audio/synth.py`, then
+`just import`); `just sound-gallery` plays every class once 40 m in front
+of the listener and lists them for replay (`--sound-gallery-once` quits
+after the round, exit code 1 on a missing file). The self-test part
+`tools/sound_self_test.gd` (in `just selftest`): every class loadable,
+loops loop, the earlier combat, destruction and crater tests asked for
+their sounds, bus volumes follow the settings, hidden sounds play muffled,
+own tanks get engine loops, the voice limit holds under load.
+
+### Measurements
+
+`just bench-view` (prompt 016 scenario, 1920 × 1080, quality high, debug
+bridge, Apple M1 Max) with sound and with `-- --no-sound`, two runs each,
+alternating, while other sessions loaded the machine (load average 18–55):
+
+| View | Sound, run 1 / 2 | No sound, run 1 / 2 |
+|---|---|---|
+| standing, 40 m | 54.9 / 87.9 FPS | 55.1 / 93.0 FPS |
+| standing, 150 m | 72.4 / 79.0 FPS | 66.4 / 81.7 FPS |
+| standing, 600 m | 79.5 / 92.9 FPS | 99.1 / 99.5 FPS |
+| battle, 40 m | 38.7 / 68.8 FPS | 59.3 / 74.8 FPS |
+| battle, 150 m | 46.9 / 66.2 FPS | 63.2 / 68.3 FPS |
+| battle, 600 m | 41.6 / 56.8 FPS | 47.5 / 55.7 FPS |
+
+The runs differ more between themselves than sound against no sound
+(the simulation's share of the frame, untouched by sound, varied by 50 %
+between runs). In the calmer second pair sound costs between −8 % and +2 %.
+What is stable is the main-thread time of the sound code: 0.11–0.20 ms per
+frame for `battle_sound._process` (the "sound" column of the bench) plus
+about 0.1 ms for the event handling inside the combat view, together under
+2 % of a 60 FPS frame. Mixing runs on Godot's audio thread. The self-test
+measures 8 µs per combat event in the sound code (debug build). The 5 %
+acceptance criterion needs a run on a quiet machine to confirm.
+
+### Decisions
+
+| Question | Decision | Why |
+|---|---|---|
+| Origin of the sounds | Synthesized with numpy (`tools/audio/synth.py`), reproducible like the Blender models; a pipeline for files of other origin | No downloads, no licenses, no sounds from other games. [provisional] The synthesized set is a first pass, tuned by numbers (spectrum, level) without listening; recordings (CC0) or generated sounds can replace any class without code changes. |
+| Format | WAV everywhere, loops with a `smpl` chunk | [provisional] No usable Vorbis encoder without installing one (ffmpeg's built-in encoder is experimental, stereo-only and not reliably gapless); 16 MB for 97 files. Revisit with music (030). |
+| Buses | Created in code | No bus layout file to merge; the same buses in the menu, lobbies, editor and tools. |
+| Listener | Above the camera's ground focus, hearing range scaled with zoom | At the camera itself a high view would hear everything equally faint. |
+| Voice limit | Fixed pools per group, priority and loudness decide, budget per frame | Hundreds of shots per second neither clip nor cost frame time; nothing is allocated during a battle. |
+| Fog | Muffled and slightly displaced, not silent | Battle noise is reconnaissance, an exact position is not. [provisional] |
+| Speed of sound | Not simulated | [provisional] With time running at factor 2 and a camera that sees at most a few hundred meters, a delay of 0.3–1 s would mostly read as lag. Easy to add later as a delay per distance for explosions. |
+| Mute without focus | On by default | [provisional] Usual for strategy games; a setting. |
+| Rockets | Own class `shot_rocket` for anti-tank squads | Panzerschreck, Panzerfaust and Bazooka have 60–150 mm calibers and would otherwise sound like tank guns. |
+
+### Open
+
+- Listening: the set was made and balanced by measurement only; levels,
+  ranges and recipes want a pass by ear (`just sound-gallery`).
+- No voices, music or ambience (wind, birds; prompt 030 owns the Music and
+  Ambience buses).
+- Infantry hits and deaths are silent; aircraft have no engine class yet.
+- Indirect fire (prompt 032) is wired by its interface (weapon 255,
+  `shell_incoming`, `smoke` events) as described in its merge notes; it was
+  not merged yet when this was written, so its sounds are tested only once
+  both are in main.
 
 ## Selection (presentation only)
 

@@ -47,6 +47,8 @@ func _process(delta: float) -> void:
 		_add_pending(rect)
 		if main.map_objects != null:
 			main.map_objects.craters_changed(rect)
+		if main.battle_sound != null:
+			main.battle_sound.crater_event(event)
 		craters += 1
 		recent.append(event)
 		if recent.size() > 32:

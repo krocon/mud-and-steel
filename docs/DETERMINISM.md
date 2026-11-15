@@ -154,7 +154,8 @@ through serde, the map as changes against the loaded map. Rules for state:
   self-describing.
 - `crates/net/tests/snapshot.rs` restores the demo at several ticks (with craters)
   and steps original and restored copy side by side: the state hash must agree every
-  tick. `crates/ai/tests/save.rs` saves matches between computer players (battle and
+  tick; `crates/net/tests/snapshot_indirect.rs` does the same with mortar shells in
+  flight and smoke clouds drifting (prompt 032). `crates/ai/tests/save.rs` saves matches between computer players (battle and
   base building), loads and continues them: identical to the never-saved match, and the
   replay re-simulated from tick 0 ends in the snapshot's state.
 

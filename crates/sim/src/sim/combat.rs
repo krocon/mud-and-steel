@@ -338,7 +338,7 @@ impl ObjectIndex {
     /// now (`None`: it does not, prompt 020); objects for which
     /// `skip_inside` holds are ignored when the segment starts inside them
     /// (a round fired from within a ruin).
-    fn hit(
+    pub(super) fn hit(
         &self,
         map: &Map,
         a: Vec3,
@@ -892,7 +892,11 @@ impl Sim {
     /// A round struck map object `object`: if it is an occupied building,
     /// it hits one occupant with the building's exposure chance. Returns
     /// the squad index and soldier.
-    fn building_hit(&mut self, object: u32, caliber_mm_x10: u32) -> Option<(usize, usize)> {
+    pub(super) fn building_hit(
+        &mut self,
+        object: u32,
+        caliber_mm_x10: u32,
+    ) -> Option<(usize, usize)> {
         let rules = &self.infantry.rules.building;
         // Rubble of a ruin hides the soldiers in it less than walls do.
         // The exposure holds for a standing soldier and shrinks with the
