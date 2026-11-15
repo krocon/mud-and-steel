@@ -1,0 +1,7 @@
+unit = "fort_hedgehog"
+assembly = "env"
+
+[[variant]]
+name = "Hedgehog"
+part = "hedgehog"
+fit = false                     # size follows from the 1.8 m beams

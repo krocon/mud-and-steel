@@ -1,0 +1,16 @@
+# Loose haystacks (period-correct; round bales are post-war, see catalog note).
+unit = "env_hay_bale"
+assembly = "env"
+
+[[variant]]
+name = "Rick"
+part = "haystack"
+shape = "rick"
+seed = 1
+
+[[variant]]
+name = "Round"
+part = "haystack"
+shape = "round"
+dims_m = [3.2, 3.2, 3.3]
+seed = 2

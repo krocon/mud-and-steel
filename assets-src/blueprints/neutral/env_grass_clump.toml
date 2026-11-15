@@ -1,0 +1,23 @@
+# Grass and flowers as alpha cards (prompt 007).
+unit = "env_grass_clump"
+assembly = "env"
+
+[[variant]]
+name = "Grass"
+part = "grass"
+seed = 1
+
+[[variant]]
+name = "GrassTall"
+part = "grass"
+size = [1.3, 1.3, 1.6]
+seed = 2
+cards = 4
+
+[[variant]]
+name = "Flowers"
+part = "grass"
+size = [0.8, 0.8, 0.75]
+seed = 3
+cards = 2
+flowers = 2

@@ -1,0 +1,6 @@
+unit = "fort_mine_at"
+assembly = "env"
+
+[[variant]]
+name = "Mine"
+part = "mine_at"

@@ -1,0 +1,24 @@
+# Dry-stone wall: segment, end piece, corner pier.
+unit = "env_wall_stone"
+assembly = "env"
+
+[[variant]]
+name = "Segment"
+part = "wall_stone"
+role = "segment"
+seed = 1
+
+[[variant]]
+name = "End"
+part = "wall_stone"
+role = "end"
+piece = "end"
+dims_m = [0.4, 0.6, 1.2]
+seed = 2
+
+[[variant]]
+name = "Corner"
+part = "wall_stone"
+role = "corner"
+piece = "corner"
+dims_m = [0.7, 0.7, 1.25]

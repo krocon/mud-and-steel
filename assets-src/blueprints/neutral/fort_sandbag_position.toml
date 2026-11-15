@@ -1,0 +1,8 @@
+# Horseshoe breastwork, front +Y, open at the rear.
+unit = "fort_sandbag_position"
+assembly = "env"
+
+[[variant]]
+name = "Position"
+part = "sandbag_position"
+seed = 1

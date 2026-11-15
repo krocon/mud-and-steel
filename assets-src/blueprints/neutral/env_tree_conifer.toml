@@ -1,0 +1,25 @@
+# Conifers (prompt 007): spruce (catalog size), Scots pine, young spruce.
+unit = "env_tree_conifer"
+assembly = "env"
+
+[[variant]]
+name = "Spruce"
+part = "tree_conifer"
+shape = "spruce"
+seed = 1
+
+[[variant]]
+name = "Pine"
+part = "tree_conifer"
+shape = "pine"
+size = [1.4, 1.4, 0.85]         # pine: bare trunk, flat wide crown at the top
+seed = 2
+
+[[variant]]
+name = "SpruceYoung"
+part = "tree_conifer"
+shape = "spruce"
+size = [0.6, 0.6, 0.4]
+seed = 3
+whorls = 14
+crown_base = 0.15

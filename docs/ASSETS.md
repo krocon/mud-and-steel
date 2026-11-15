@@ -21,8 +21,9 @@ Godot scene with the unit_camo shader       palettes and markings applied at run
   (`de_pz4_h`, `env_tree_birch`). One model per catalog entry; camouflage variants
   come from the material system, not from separate models.
 - Vehicles, guns and aircraft are **generated** from blueprints by the part kit
-  (next section); the .blend is an output, not edited by hand. Hand-made models
-  (infantry, prompt 005; environment objects, prompt 007) are exported with
+  (next section); the .blend is an output, not edited by hand. Environment
+  objects (prompt 007) are generated too, with their own builder (section
+  "Environment objects"). Hand-made models are exported with
   `just export-model` (`tools/export_blender.py`, `-- --output <glb>` for the
   faction folder).
 - When a model is exported, its catalog entry gets `model = "assets/models/<faction>/<id>.glb"`.
@@ -263,8 +264,9 @@ can swap them per biome (forest, desert, winter) and faction:
 | `Leather` | boots, belts, leather pouches and holsters (soldiers) |
 | `Insignia` | plain fixed-color markings worn by soldiers, e.g. the white medic armband |
 
-Environment objects may additionally use `Bark`, `Foliage`, `Stone`, `Plaster` and
-`Ground`. New slots are added here first.
+Environment objects may additionally use `Bark`, `Foliage`, `Stone`, `Plaster`,
+`Ground` and `Roof` (roof tiles, slate, thatch and hay). New slots are added here
+first. Their material kinds and shaders are described under "Environment objects".
 
 ### Material system (prompt 004)
 
@@ -301,6 +303,165 @@ gear as skinned meshes, the weapon on the extra bone `Weapon` with `Socket_Muzzl
 Files: `assets-src/blender/<faction>/infantry/<role>.blend` and
 `godot/assets/models/<faction>/infantry/<role>.glb`, built by
 `tools/blender/build_soldier.py` and checked by `tools/blender/validate_soldier.py`.
+
+## Environment objects (prompt 007)
+
+Vegetation, props, buildings, bridges, boundaries and field fortifications: the
+catalog faction `neutral` (`data/catalog/neutral.toml`). They are generated from
+blueprints like units, but have their own builder, structure and checks.
+
+```
+data/catalog/neutral.toml                  main dimensions (real values, sources)
+assets-src/blueprints/neutral/<id>.toml    assembly = "env", one [[variant]] per variant
+        │  just env [<id> ...]   (tools/blender/build_env.py + kit/env.py, vegetation.py,
+        │                         parts_neutral.py, buildings.py)
+assets-src/blender/neutral/<id>.blend      generated, Git LFS
+godot/assets/models/neutral/<id>.glb       exported, Git LFS
+        │  just import   (env materials from godot/assets/materials/env/)
+EnvLook.apply(model, biome)                biome look as instance uniforms
+```
+
+`catalog.all_blueprints()` leaves environment blueprints out, so `just units`,
+`validate.py` and `lineup.py` only see units; `just validate-assets` runs
+`validate_env.py` as a second step.
+
+### Structure: variants
+
+One .glb per catalog entry, all variants standing at the origin:
+
+```
+env_house_farm                 root empty: catalog extras, env_kit_version, env_variants (JSON)
+├── Intact                     empty, extras damage = "intact", door_height_m
+│   ├── Intact_Walls           walls, timber frame, windows, doors
+│   ├── Intact_Roof
+│   └── Intact_Floor           plinth, ground floor, upper floor
+├── Damaged  (..._Debris)      damage = "damaged": shell holes, roof holes, rubble
+└── Ruin     (..._Debris)      damage = "ruin": jagged walls, no roof, partial floor, rubble
+env_tree_deciduous
+├── Oak                        one mesh = one instanceable variant (Bark + Foliage surfaces)
+├── Oak_Far                    distant version (<= 200 triangles)
+└── ...
+```
+
+- **Single-mesh variants** (vegetation, rocks, props, fences, fortifications)
+  are one `MeshInstance3D` each: one mesh resource per variant, ready for
+  `MultiMesh` instancing (prompt 013). One surface per material slot, so a
+  tree costs two draw calls (Bark, Foliage).
+- **Modular variants** (buildings, bridges) are an empty with the parts
+  `<Variant>_Walls`, `_Roof`, `_Floor`, `_Debris`, `_Tower` (buildings) or
+  `_Deck`, `_Pier`, `_Rail` (bridges). Each part is one mesh resource; prompt
+  020 can swap or combine parts per damage level. Buildings have the damage
+  levels `Intact`, `Damaged`, `Ruin` as variants already now.
+- Boundaries have the variants `Segment` (runs along Y; a segment starts with
+  its post/end at -Y and chains every catalog length), `End` and `Corner`.
+- Trench pieces (`Straight`, `Corner`, `Tee`, `End`) sit on a 5 m grid and are
+  **sunken**: z = 0 is the terrain surface, the cut reaches down to -1.7 m; the
+  spoil parapets lie 2 mm above the surface. Variant extras `terrain_cut`,
+  `cut_depth_m`, `cut_width_top_m`, `cut_width_bottom_m` describe the
+  depression that prompt 010/021 cuts into the terrain.
+- Bridges: lowest point (abutment base / water level) at z = 0, extras
+  `deck_height_m`, `span_m`, `deck_width_m` for placement over rivers
+  (prompt 014). The span is parametric: the generator builds to the variant
+  length (`Span8`, `Span12`, `Span16`; `Arch1`..`Arch3`).
+- Telegraph poles have `Socket_Wire_NN` empties at the insulators for wires.
+
+### Blueprint format
+
+```toml
+unit = "env_tree_deciduous"   # catalog id = file name
+assembly = "env"
+sunken = false                # true for trenches (measured below z = 0)
+
+[[variant]]                   # first variant: the catalog size exactly
+name = "Oak"                  # node name in Blender and Godot
+part = "tree_broadleaf"       # generator (kit/vegetation.py, parts_neutral.py, buildings.py)
+seed = 1                      # ... and its parameters (documented in the docstring)
+
+[[variant]]
+name = "Beech"
+part = "tree_broadleaf"
+size = [0.8, 0.8, 1.1]        # box = catalog length, width, height x size
+# dims_m = [L, W, H]          # or an absolute box in meters
+# fit = false                 # build exactly instead of scaling into the box
+# role = "winter"             # free tag, stored as extras env_role
+# damage_of = "Intact"        # damaged variant: checked not larger than Intact
+# center = "ground"           # center the ground contact (default for trees, bushes)
+```
+
+Generators build into the target box; by default `fit` then scales the finished
+variant exactly into it (vertex transform, object scale stays 1). Unknown
+parameters are errors.
+
+### Materials and shaders
+
+No texture files: all patterns are procedural, so texture budgets are zero and
+biome variants cost nothing.
+
+- `godot/assets/shaders/env.gdshader` (opaque) with one material per slot in
+  `godot/assets/materials/env/`, and `env_foliage.gdshader` (alpha scissor,
+  double sided) for `Foliage`. Shared code: `env_common.gdshaderinc`.
+- Vertex colors (`Color`, COLOR_0): R = ambient occlusion; G = wind weight on
+  `Bark`/`Foliage`, edge wear elsewhere; B = wind phase on `Bark`/`Foliage`,
+  height / 4 m elsewhere; A = material kind, `A = 1 - kind / 4`.
+- Kinds per slot (kind 0 first): Bark oak / birch / palm / pine; Stone
+  fieldstone / ashlar / concrete / brick; Plaster lime / adobe / whitewash /
+  ochre; Roof clay tile / slate / thatch (also hay) / planks; Wood weathered /
+  fresh / creosote / charred; Paint field grey (`env_paint`) / warning red /
+  white / rust; Metal steel / rust / galvanized / dark; Ground earth / spoil /
+  mud / sand.
+- **Foliage cards** use a virtual atlas: the integer part of U selects the
+  pattern (0 broadleaf, 1 needles, 2 palm frond, 3 grass, 4 flowers, 5 shrub,
+  6 twigs, 7 solid hedge core, 8 far crown, 9 far conifer), the fraction is the
+  position on the card. Card normals point away from the crown center for soft
+  crown lighting.
+- **Biomes**: `EnvLook.apply(model, biome, paint)` sets the instance uniforms
+  `env_foliage`, `env_dry`, `env_snow`, `env_dust`, `env_paint`: green
+  forest, dry olive desert with dust, winter with snow on upward faces and on
+  needles. The leafless `Bare` oak is the winter variant of deciduous trees.
+  Military objects use `Paint`; pass a faction palette base color as `paint`.
+- **Wind** is prepared as material parameters `wind_strength`,
+  `wind_direction`, `wind_speed` (prompt 015 can drive them globally); the
+  sway uses the baked weights, so trunks stay rooted and leaves flutter.
+
+### Distance: far meshes instead of impostors
+
+Trees have a `<Variant>_Far` mesh: low trunk plus three crossed and one or two
+horizontal crown cards (18–26 triangles) with a far crown pattern.
+`EnvLook.set_far_ranges(model, 180)` switches near and far by Godot visibility
+ranges with a fade. Reason: Godot's automatic mesh LOD cannot simplify alpha
+cards well (it removes whole cards and the crown falls apart), and baked
+impostor textures would need texture files and an atlas per biome. A crossed-
+card far mesh keeps the biome tint and wind of the shader. At 600 m (the
+farthest camera) a 25 m tree still covers about 80 px, so the far mesh is not
+needed below ~150–200 m; prompt 016 measures the switch distance.
+
+### Budgets (per variant)
+
+| Category | Triangles | Note |
+|---|---|---|
+| Tree | ≤ 2 000 (far ≤ 200) | per variant, not per file |
+| Bush / grass clump / rock | ≤ 500 / 50 / 300 | |
+| House / church | ≤ 3 000 / 5 000 | per damage variant, all parts together |
+| Bridge | ≤ 3 000 | no budget in the table above; same as a house |
+| Fence, wall, hedge segment; fortification | ≤ 2 000 | |
+| Prop, pole, mine, sign | ≤ 800 | like small parts |
+
+### Checks and previews
+
+| Command | Does |
+|---|---|
+| `just env [<id> ...]` | builds environment objects (.blend + .glb) |
+| `just validate-env [<id> ...]` | checks them (also part of `just validate-assets`) |
+| `just env-lineup [out] [<id> ...]` | per object all variants with the 1.80 m figure; a front and perspective line-up with the Panzer IV; prints measured sizes and door heights |
+| `just gallery` | category "Environment", biome switch |
+
+`validate_env.py` checks per object: files exist and are current (source
+hash), root and variant structure, part names, far meshes of trees, scale 1 and
+no rotation, only env slots, baked `Color`, triangle budget per variant, size
+of every variant within ±2 % of its box (damaged variants not larger than the
+intact one), lowest point on the ground (sunken: at -depth), ground contact
+centered (not for chained segments), the .glb matches the .blend, catalog
+`model` field, and that every neutral catalog entry has a blueprint.
 
 ## Markings
 

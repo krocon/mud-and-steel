@@ -7,13 +7,18 @@ extends EditorScenePostImport
 ## (`kit_version`); everything else is left untouched. Replaces the slot
 ## materials (Paint, Metal, Rubber, ...) with the shared unit_camo shader
 ## materials from res://assets/materials/unit/.
+## Environment objects (glTF extras `env_kit_version`, prompt 007) get the
+## env shader materials from res://assets/materials/env/ instead.
 
 const MATERIAL_DIR := "res://assets/materials/unit/"
+const ENV_MATERIAL_DIR := "res://assets/materials/env/"
 
 
 func _post_import(scene: Node) -> Object:
-	if not _is_kit_model(scene):
+	var env := _has_extra(scene, "env_kit_version")
+	if not env and not _is_kit_model(scene):
 		return scene
+	var dir := ENV_MATERIAL_DIR if env else MATERIAL_DIR
 	var replaced := 0
 	var unknown: Array[String] = []
 	for node in _all(scene):
@@ -23,7 +28,7 @@ func _post_import(scene: Node) -> Object:
 		for i in mi.mesh.get_surface_count():
 			var old := mi.mesh.surface_get_material(i)
 			var slot := old.resource_name if old else ""
-			var path := MATERIAL_DIR + slot.to_lower() + ".tres"
+			var path := dir + slot.to_lower() + ".tres"
 			if slot.is_empty() or not ResourceLoader.exists(path):
 				unknown.append("%s/%s" % [mi.name, slot])
 				continue
@@ -31,13 +36,18 @@ func _post_import(scene: Node) -> Object:
 			replaced += 1
 	if not unknown.is_empty():
 		push_error("unit_post_import: %s: unknown material slots %s" % [get_source_file(), unknown])
-	print("unit_post_import: %s: %d surfaces use the unit_camo shader" % [get_source_file(), replaced])
+	print("unit_post_import: %s: %d surfaces use the %s shader" % [
+		get_source_file(), replaced, "env" if env else "unit_camo"])
 	return scene
 
 
 func _is_kit_model(scene: Node) -> bool:
+	return _has_extra(scene, "kit_version")
+
+
+func _has_extra(scene: Node, key: String) -> bool:
 	for node in _all(scene):
-		if node.has_meta(&"extras") and (node.get_meta(&"extras") as Dictionary).has("kit_version"):
+		if node.has_meta(&"extras") and (node.get_meta(&"extras") as Dictionary).has(key):
 			return true
 	return false
 

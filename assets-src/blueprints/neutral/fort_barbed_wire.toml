@@ -1,0 +1,7 @@
+unit = "fort_barbed_wire"
+assembly = "env"
+
+[[variant]]
+name = "Segment"
+part = "barbed_wire"
+role = "segment"

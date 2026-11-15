@@ -1,0 +1,7 @@
+# Hexagonal concrete MG pillbox, front wall facing +Y, entrance at -Y.
+unit = "fort_bunker_mg"
+assembly = "env"
+
+[[variant]]
+name = "Pillbox"
+part = "pillbox"

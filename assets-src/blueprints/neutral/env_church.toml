@@ -1,0 +1,27 @@
+# Village church: west tower with spire (-Y), nave, choir (+Y).
+unit = "env_church"
+assembly = "env"
+
+[[variant]]
+name = "Intact"
+part = "church"
+role = "intact"
+seed = 6
+
+[[variant]]
+name = "Damaged"
+part = "church"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 6
+
+[[variant]]
+name = "Ruin"
+part = "church"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 6

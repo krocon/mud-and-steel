@@ -1,0 +1,12 @@
+unit = "fort_mine_sign"
+assembly = "env"
+
+[[variant]]
+name = "Triangle"
+part = "mine_sign"
+shape = "triangle"
+
+[[variant]]
+name = "Board"
+part = "mine_sign"
+shape = "board"

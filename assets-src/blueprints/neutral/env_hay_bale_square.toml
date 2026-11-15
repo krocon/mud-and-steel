@@ -1,0 +1,12 @@
+unit = "env_hay_bale_square"
+assembly = "env"
+
+[[variant]]
+name = "Single"
+part = "hay_bale"
+
+[[variant]]
+name = "Stack"
+part = "hay_bale"
+stack = 1
+dims_m = [0.91, 1.38, 1.08]      # 3 / 2 / 1 bales

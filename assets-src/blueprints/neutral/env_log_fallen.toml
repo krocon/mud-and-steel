@@ -1,0 +1,7 @@
+unit = "env_log_fallen"
+assembly = "env"
+
+[[variant]]
+name = "Log"
+part = "log"
+seed = 1

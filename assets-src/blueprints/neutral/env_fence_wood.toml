@@ -1,0 +1,23 @@
+# Post-and-rail fence: segment (chains along Y), end post, corner post.
+unit = "env_fence_wood"
+assembly = "env"
+
+[[variant]]
+name = "Segment"
+part = "fence_wood"
+role = "segment"
+seed = 1
+
+[[variant]]
+name = "End"
+part = "fence_wood"
+role = "end"
+piece = "end"
+dims_m = [0.1, 0.1, 1.2]
+
+[[variant]]
+name = "Corner"
+part = "fence_wood"
+role = "corner"
+piece = "corner"
+dims_m = [0.14, 0.14, 1.25]

@@ -1,0 +1,19 @@
+# Stone arch bridge: one, two or three arches; spans follow from the length.
+unit = "env_bridge_stone"
+assembly = "env"
+
+[[variant]]
+name = "Arch1"
+part = "bridge_stone"
+arches = 1
+
+[[variant]]
+name = "Arch2"
+part = "bridge_stone"
+arches = 2
+
+[[variant]]
+name = "Arch3"
+part = "bridge_stone"
+size = [1.5, 1.0, 1.0]
+arches = 3

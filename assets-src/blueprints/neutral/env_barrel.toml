@@ -1,0 +1,19 @@
+unit = "env_barrel"
+assembly = "env"
+
+[[variant]]
+name = "Standing"
+part = "drum"
+
+[[variant]]
+name = "Lying"
+part = "drum"
+pose = "lying"
+dims_m = [0.876, 0.584, 0.584]
+
+[[variant]]
+name = "Group"
+part = "drum"
+pose = "group"
+kind = 3
+dims_m = [1.08, 1.168, 0.876]

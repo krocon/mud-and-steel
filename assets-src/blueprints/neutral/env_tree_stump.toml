@@ -1,0 +1,14 @@
+unit = "env_tree_stump"
+assembly = "env"
+
+[[variant]]
+name = "Broken"
+part = "stump"
+seed = 1
+
+[[variant]]
+name = "Sawn"
+part = "stump"
+size = [0.8, 0.8, 0.6]
+seed = 2
+sawn = true

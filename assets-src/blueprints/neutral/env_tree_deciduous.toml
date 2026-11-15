@@ -1,0 +1,31 @@
+# Deciduous trees (prompt 007). Variants: oak (catalog size), beech, young oak,
+# bare winter tree. Sizes are fractions of the catalog box (length, width, height).
+unit = "env_tree_deciduous"
+assembly = "env"
+
+[[variant]]
+name = "Oak"
+part = "tree_broadleaf"
+seed = 1
+
+[[variant]]
+name = "Beech"
+part = "tree_broadleaf"
+size = [0.8, 0.8, 1.1]          # beech: taller, narrower crown (25-35 m)
+seed = 2
+crown_base = 0.38
+clusters = 120
+
+[[variant]]
+name = "OakYoung"
+part = "tree_broadleaf"
+size = [0.55, 0.55, 0.5]
+seed = 3
+clusters = 70
+limbs = 5
+
+[[variant]]
+name = "Bare"
+part = "tree_bare"
+role = "winter"                 # leafless variant for the winter biome
+seed = 4

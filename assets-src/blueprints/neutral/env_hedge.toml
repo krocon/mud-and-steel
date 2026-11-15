@@ -1,0 +1,27 @@
+# Field hedge: segment, rounded end, corner block.
+unit = "env_hedge"
+assembly = "env"
+
+[[variant]]
+name = "Segment"
+part = "hedge"
+role = "segment"
+seed = 1
+
+[[variant]]
+name = "End"
+part = "hedge"
+role = "end"
+piece = "end"
+dims_m = [0.9, 1.2, 2.0]
+seed = 2
+cards = 12
+
+[[variant]]
+name = "Corner"
+part = "hedge"
+role = "corner"
+piece = "corner"
+dims_m = [1.3, 1.3, 2.2]
+seed = 3
+cards = 16

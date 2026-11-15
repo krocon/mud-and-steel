@@ -1,0 +1,155 @@
+// Opaque environment material: buildings, props, rocks, trunks, fortifications.
+//
+// One ShaderMaterial per slot (godot/assets/materials/env/*.tres, assigned on
+// import by assets/import/unit_post_import.gd for models with env_kit_version).
+// Each slot has up to four material kinds (vertex color A, see
+// tools/blender/kit/env.py SLOT_KINDS); all patterns are procedural, there are
+// no texture files. Biome look via instance uniforms (EnvLook.apply()).
+shader_type spatial;
+render_mode blend_mix, depth_draw_opaque, cull_back, diffuse_burley, specular_schlick_ggx;
+
+#include "res://assets/shaders/env_common.gdshaderinc"
+
+// 0 Paint, 1 Metal, 2 Rubber, 3 Wood, 4 Canvas, 5 Glass,
+// 10 Bark, 12 Stone, 13 Plaster, 14 Ground, 15 Roof
+uniform int slot = 12;
+
+varying vec3 v_local;
+varying vec3 v_world_normal;
+
+void vertex() {
+	v_local = VERTEX;
+	if (slot == 10 && COLOR.g > 0.0) {
+		vec3 inst = (MODEL_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
+		VERTEX += wind_offset(VERTEX, COLOR.g, COLOR.b, inst, TIME) * 0.5;
+	}
+	v_world_normal = normalize((MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz);
+}
+
+// mortar lines of a running bond (brick / ashlar), size in meters
+float bond(vec2 uv, vec2 size, float joint) {
+	vec2 q = uv / size;
+	q.x += step(1.0, mod(floor(q.y), 2.0)) * 0.5;
+	vec2 f = fract(q);
+	vec2 j = joint / size;
+	return step(j.x, f.x) * step(j.y, f.y);
+}
+
+void fragment() {
+	vec4 vc = COLOR;
+	float ao = vc.r;
+	int kind = kind_of(vc.a);
+	vec3 p = v_local;
+	vec3 wn = normalize(v_world_normal);
+	float grain = vnoise(p * 6.0);
+	float big = fbm3(p * 0.7);
+	vec3 albedo = vec3(0.5);
+	float rough = 0.9;
+	float metal = 0.0;
+	if (slot == 0) {  // Paint
+		vec3 c[4] = {env_paint.rgb, vec3(0.62, 0.07, 0.05), vec3(0.86, 0.86, 0.82), vec3(0.36, 0.20, 0.11)};
+		albedo = c[kind] * (0.9 + 0.2 * grain);
+		rough = 0.7;
+		float rust = smoothstep(0.62, 0.8, fbm3(p * 9.0)) * vc.g;
+		albedo = mix(albedo, vec3(0.3, 0.16, 0.08), rust);
+	} else if (slot == 1) {  // Metal
+		vec3 c[4] = {vec3(0.27, 0.27, 0.27), vec3(0.33, 0.18, 0.09), vec3(0.55, 0.56, 0.56), vec3(0.12, 0.12, 0.12)};
+		albedo = c[kind] * (0.85 + 0.3 * grain);
+		rough = kind == 1 ? 0.85 : 0.5;
+		metal = kind == 1 ? 0.2 : 0.6;
+	} else if (slot == 2) {  // Rubber
+		albedo = vec3(0.05);
+		rough = 0.92;
+	} else if (slot == 3) {  // Wood: weathered, fresh, dark (creosote), charred
+		vec3 c[4] = {vec3(0.42, 0.33, 0.24), vec3(0.58, 0.42, 0.25), vec3(0.20, 0.15, 0.11), vec3(0.05, 0.045, 0.04)};
+		float planks = vnoise(p * vec3(1.5, 1.5, 24.0)) * 0.35 + vnoise(p * vec3(24.0, 24.0, 1.5)) * 0.35;
+		// board seams every 0.2 m on vertical faces
+		float u = abs(wn.y) < 0.7 ? (p.x + p.y) * 5.0 : p.x * 5.0;
+		float seam = 1.0 - 0.35 * (1.0 - smoothstep(0.0, 0.06, abs(fract(u) - 0.5) * 2.0 - 0.9));
+		float board = 0.85 + 0.3 * hash2(vec2(floor(u), 1.0));
+		albedo = c[kind] * (0.7 + 0.6 * planks) * board * seam;
+		rough = 0.9;
+	} else if (slot == 4) {  // Canvas / hessian (sandbags)
+		albedo = vec3(0.50, 0.44, 0.32) * (0.85 + 0.3 * grain) * (0.9 + 0.2 * big);
+		albedo = mix(albedo, albedo * vec3(0.9, 0.95, 0.8), env_dry * 0.0);
+		rough = 0.97;
+	} else if (slot == 5) {  // Glass
+		albedo = vec3(0.04, 0.06, 0.07);
+		rough = 0.06;
+		metal = 0.3;
+	} else if (slot == 10) {  // Bark: oak, birch, palm, pine
+		if (kind == 1) {
+			float marks = step(0.72, vnoise(vec3(p.x * 6.0, p.y * 6.0, p.z * 1.2)) + vnoise(p * vec3(2.0, 2.0, 18.0)) * 0.3);
+			albedo = mix(vec3(0.82, 0.80, 0.74), vec3(0.08, 0.07, 0.06), marks);
+			albedo = mix(vec3(0.15, 0.12, 0.10), albedo, smoothstep(0.4, 1.4, p.z));
+		} else if (kind == 2) {
+			float rings = smoothstep(0.3, 0.5, abs(fract(p.z * 3.0) - 0.5));
+			albedo = mix(vec3(0.30, 0.25, 0.18), vec3(0.48, 0.40, 0.29), rings) * (0.85 + 0.3 * grain);
+		} else if (kind == 3) {
+			albedo = mix(vec3(0.24, 0.18, 0.14), vec3(0.62, 0.36, 0.20), smoothstep(8.0, 20.0, p.z));
+			albedo *= 0.8 + 0.4 * vnoise(p * vec3(8.0, 8.0, 1.5));
+		} else {
+			albedo = vec3(0.26, 0.21, 0.16) * (0.65 + 0.7 * vnoise(p * vec3(10.0, 10.0, 1.2)));
+		}
+		rough = 0.95;
+	} else if (slot == 12) {  // Stone: fieldstone, ashlar, concrete, brick
+		vec2 uv = UV;
+		if (kind == 3) {
+			float m = bond(uv, vec2(0.25, 0.075), 0.012);
+			albedo = mix(vec3(0.62, 0.60, 0.55), vec3(0.50, 0.22, 0.15) * (0.8 + 0.4 * hash2(floor(uv / vec2(0.25, 0.075)))), m);
+		} else if (kind == 1) {
+			float m = bond(uv, vec2(0.6, 0.3), 0.02);
+			albedo = mix(vec3(0.45, 0.43, 0.40), vec3(0.66, 0.62, 0.54) * (0.88 + 0.24 * hash2(floor(uv / vec2(0.6, 0.3)))), m);
+		} else if (kind == 2) {
+			float lines = smoothstep(0.0, 0.02, abs(fract(p.z * 1.6) - 0.5) - 0.48);
+			albedo = vec3(0.58, 0.58, 0.55) * (0.85 + 0.25 * big) * (1.0 - lines * 0.15);
+		} else {
+			albedo = mix(vec3(0.42, 0.41, 0.38), vec3(0.55, 0.52, 0.46), big) * (0.85 + 0.3 * grain);
+			albedo = mix(albedo, vec3(0.25, 0.32, 0.18), smoothstep(0.65, 0.8, fbm3(p * 3.0)) * (1.0 - env_dry) * 0.6 * max(wn.y, 0.0));
+		}
+		rough = 0.93;
+	} else if (slot == 13) {  // Plaster: lime, adobe, whitewash, ochre
+		vec3 c[4] = {vec3(0.80, 0.77, 0.69), vec3(0.62, 0.48, 0.33), vec3(0.90, 0.89, 0.85), vec3(0.76, 0.60, 0.36)};
+		albedo = c[kind] * (0.88 + 0.16 * big) * (0.95 + 0.1 * grain);
+		// grime rising from the ground
+		float h = vc.b * 4.0;
+		albedo *= mix(0.72, 1.0, smoothstep(0.0, 1.2 + 0.6 * big, h));
+		rough = 0.95;
+	} else if (slot == 14) {  // Ground: earth, spoil, mud, sand
+		vec3 c[4] = {vec3(0.33, 0.26, 0.18), vec3(0.42, 0.34, 0.24), vec3(0.22, 0.18, 0.13), vec3(0.66, 0.58, 0.42)};
+		albedo = c[kind] * (0.8 + 0.4 * big) * (0.9 + 0.2 * grain);
+		albedo = mix(albedo, vec3(0.56, 0.48, 0.34), env_dry * 0.5);
+		rough = 1.0;
+	} else {  // 15 Roof: clay tile, slate, thatch, planks
+		float rows = smoothstep(0.0, 0.08, fract(p.z * 6.0)) * 0.25 + 0.75;
+		float cols = 0.9 + 0.2 * hash2(floor(vec2(p.x * 4.0 + p.y * 4.0, p.z * 6.0)));
+		if (kind == 1) {
+			albedo = vec3(0.22, 0.24, 0.27) * rows * cols;
+			rough = 0.7;
+		} else if (kind == 2) {
+			float straw = vnoise(p * vec3(30.0, 30.0, 3.0));
+			albedo = mix(vec3(0.52, 0.44, 0.24), vec3(0.70, 0.62, 0.36), straw) * (0.85 + 0.25 * big);
+			rough = 1.0;
+		} else if (kind == 3) {
+			albedo = vec3(0.30, 0.25, 0.20) * rows * cols;
+		} else {
+			albedo = vec3(0.56, 0.26, 0.17) * rows * cols * (0.85 + 0.25 * big);
+			albedo = mix(albedo, vec3(0.25, 0.30, 0.16), smoothstep(0.7, 0.85, fbm3(p * 2.0)) * 0.5 * (1.0 - env_dry));
+			rough = 0.85;
+		}
+	}
+	// edge wear (bevel strips) brightens a little, desert dust, snow on top faces
+	if (slot != 10) {
+		albedo = mix(albedo, albedo * 1.15, vc.g * 0.5);
+	}
+	if (slot != 5 && slot != 14) {
+		float dust = env_dust * (0.35 + 0.65 * max(wn.y, 0.0)) * (0.6 + 0.4 * grain);
+		albedo = mix(albedo, vec3(0.70, 0.62, 0.46), clamp(dust, 0.0, 0.7));
+		albedo = snow_cover(albedo, rough, wn, p, env_snow);
+	}
+	ALBEDO = albedo * mix(0.45, 1.0, ao);
+	AO = ao;
+	AO_LIGHT_AFFECT = 0.3;
+	ROUGHNESS = rough;
+	METALLIC = metal;
+}

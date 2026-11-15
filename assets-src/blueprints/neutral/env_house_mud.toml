@@ -1,0 +1,60 @@
+# Flat-roofed mud-brick house (desert), roof beams through the walls.
+unit = "env_house_mud"
+assembly = "env"
+
+[[variant]]
+name = "Intact"
+part = "house"
+role = "intact"
+seed = 5
+wall = "Plaster"
+wall_kind = 1
+wall_t = 0.5
+roof = "flat"
+plinth = 0.15
+storey_h = 3.0
+windows_long = 2
+windows_short = 1
+window = [0.6, 0.6]
+sill = 1.2
+door = ["-x", 0.9]
+
+[[variant]]
+name = "Damaged"
+part = "house"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 5
+wall = "Plaster"
+wall_kind = 1
+wall_t = 0.5
+roof = "flat"
+plinth = 0.15
+storey_h = 3.0
+windows_long = 2
+windows_short = 1
+window = [0.6, 0.6]
+sill = 1.2
+door = ["-x", 0.9]
+
+[[variant]]
+name = "Ruin"
+part = "house"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 5
+wall = "Plaster"
+wall_kind = 1
+wall_t = 0.5
+roof = "flat"
+plinth = 0.15
+storey_h = 3.0
+windows_long = 2
+windows_short = 1
+window = [0.6, 0.6]
+sill = 1.2
+door = ["-x", 0.9]

@@ -7,6 +7,7 @@ category = "env_tree"
 name_de = "Laubbaum (Eiche/Buche)"
 name_en = "Deciduous tree (oak/beech)"
 tier = 1
+model = "assets/models/neutral/env_tree_deciduous.glb"
 length_mm = 16000
 width_mm = 16000
 height_mm = 25000
@@ -24,6 +25,7 @@ category = "env_tree"
 name_de = "Nadelbaum (Fichte/Kiefer)"
 name_en = "Conifer (spruce/pine)"
 tier = 1
+model = "assets/models/neutral/env_tree_conifer.glb"
 length_mm = 6000
 width_mm = 6000
 height_mm = 35000
@@ -41,6 +43,7 @@ category = "env_tree"
 name_de = "Birke"
 name_en = "Birch"
 tier = 1
+model = "assets/models/neutral/env_tree_birch.glb"
 length_mm = 7000
 width_mm = 7000
 height_mm = 20000
@@ -57,6 +60,7 @@ category = "env_tree"
 name_de = "Dattelpalme"
 name_en = "Date palm"
 tier = 1
+model = "assets/models/neutral/env_tree_palm.glb"
 length_mm = 8000
 width_mm = 8000
 height_mm = 20000
@@ -73,6 +77,7 @@ category = "env_bush"
 name_de = "Busch (Haselstrauch)"
 name_en = "Bush (hazel-like shrub)"
 tier = 1
+model = "assets/models/neutral/env_bush.glb"
 length_mm = 3500
 width_mm = 3500
 height_mm = 4000
@@ -89,6 +94,7 @@ category = "env_grass"
 name_de = "Grasbüschel"
 name_en = "Grass clump"
 tier = 1
+model = "assets/models/neutral/env_grass_clump.glb"
 length_mm = 500
 width_mm = 500
 height_mm = 600
@@ -105,6 +111,7 @@ category = "env_rock"
 name_de = "Fels (Findling)"
 name_en = "Rock (boulder)"
 tier = 1
+model = "assets/models/neutral/env_rock.glb"
 length_mm = 1500
 width_mm = 1200
 height_mm = 1000
@@ -121,6 +128,7 @@ category = "env_building"
 name_de = "Bauernhaus"
 name_en = "Farmhouse (European)"
 tier = 1
+model = "assets/models/neutral/env_house_farm.glb"
 length_mm = 14000
 width_mm = 9000
 height_mm = 8000
@@ -137,6 +145,7 @@ category = "env_building"
 name_de = "Scheune"
 name_en = "Barn"
 tier = 1
+model = "assets/models/neutral/env_barn.glb"
 length_mm = 20000
 width_mm = 10000
 height_mm = 9000
@@ -153,6 +162,7 @@ category = "env_building"
 name_de = "Steinhaus (zweigeschossig)"
 name_en = "Stone house (two-storey)"
 tier = 1
+model = "assets/models/neutral/env_house_stone.glb"
 length_mm = 10000
 width_mm = 8000
 height_mm = 9000
@@ -169,6 +179,7 @@ category = "env_building"
 name_de = "Lehmziegelhaus (Nordafrika)"
 name_en = "Mud-brick house (North Africa)"
 tier = 1
+model = "assets/models/neutral/env_house_mud.glb"
 length_mm = 8000
 width_mm = 6000
 height_mm = 3500
@@ -186,6 +197,7 @@ category = "env_building"
 name_de = "Dorfkirche mit Turm"
 name_en = "Village church with tower"
 tier = 1
+model = "assets/models/neutral/env_church.glb"
 length_mm = 20000
 width_mm = 10000
 height_mm = 30000
@@ -202,6 +214,7 @@ category = "env_bridge"
 name_de = "Holzbrücke (einspurig)"
 name_en = "Timber road bridge (single lane, one span)"
 tier = 1
+model = "assets/models/neutral/env_bridge_wood.glb"
 length_mm = 12000
 width_mm = 4500
 height_mm = 3000
@@ -219,6 +232,7 @@ category = "env_bridge"
 name_de = "Steinbogenbrücke"
 name_en = "Stone arch road bridge"
 tier = 1
+model = "assets/models/neutral/env_bridge_stone.glb"
 length_mm = 20000
 width_mm = 6000
 height_mm = 6000
@@ -235,6 +249,7 @@ category = "env_fence"
 name_de = "Holzzaun (Segment)"
 name_en = "Wooden fence (one segment)"
 tier = 1
+model = "assets/models/neutral/env_fence_wood.glb"
 length_mm = 2500
 width_mm = 100
 height_mm = 1200
@@ -251,6 +266,7 @@ category = "env_fence"
 name_de = "Trockenmauer (Segment)"
 name_en = "Dry-stone wall (one segment)"
 tier = 1
+model = "assets/models/neutral/env_wall_stone.glb"
 length_mm = 3000
 width_mm = 600
 height_mm = 1200
@@ -267,6 +283,7 @@ category = "env_pole"
 name_de = "Telegrafenmast"
 name_en = "Telegraph pole"
 tier = 1
+model = "assets/models/neutral/env_pole_telegraph.glb"
 length_mm = 1000
 width_mm = 250
 height_mm = 8000
@@ -283,6 +300,7 @@ category = "env_prop"
 name_de = "Heuhaufen"
 name_en = "Hay stack (loose haystack)"
 tier = 1
+model = "assets/models/neutral/env_hay_bale.glb"
 length_mm = 4000
 width_mm = 3000
 height_mm = 3500
@@ -299,6 +317,7 @@ category = "env_prop"
 name_de = "Holzkiste (Munition/Nachschub)"
 name_en = "Wooden crate (ammo/supply)"
 tier = 1
+model = "assets/models/neutral/env_crate.glb"
 length_mm = 900
 width_mm = 450
 height_mm = 450
@@ -315,6 +334,7 @@ category = "env_prop"
 name_de = "Fass (200 l Stahl)"
 name_en = "Barrel (200 l steel drum)"
 tier = 1
+model = "assets/models/neutral/env_barrel.glb"
 length_mm = 584
 width_mm = 584
 height_mm = 876
@@ -331,6 +351,7 @@ category = "fort_trench"
 name_de = "Schützengraben (Abschnitt)"
 name_en = "Infantry fire trench section"
 tier = 1
+model = "assets/models/neutral/fort_trench_section.glb"
 length_mm = 5000
 width_mm = 1200
 height_mm = 1700
@@ -348,8 +369,9 @@ category = "fort_sandbag"
 name_de = "Sandsackstellung (MG)"
 name_en = "Sandbag MG/rifle position"
 tier = 1
-length_mm = 3000
-width_mm = 2000
+model = "assets/models/neutral/fort_sandbag_position.glb"
+length_mm = 2000
+width_mm = 3000
 height_mm = 1000
 source = [
     { ref = "US Army FM 5-15 Field Fortifications (1944), para. 26 (p. 45)", covers = "breastworks/parapets at least 3 ft thick at the top (protection against .30 bullets)" },
@@ -357,7 +379,7 @@ source = [
     { ref = "US Army FM 5-15 (1944), para. 39 and figs. 24-25 (pp. 57-59)", covers = "light MG horseshoe emplacement: parapet 3 ft thick, chest-high gun platform, trench about 2 ft wide" },
 ]
 uncertain = ["length_mm", "width_mm", "height_mm"]
-note = "Sandbag breastwork around an MG/rifle position, thickness at least 3 ft (914 mm) per FM 5-15. Footprint 3 m x 2 m and height 1 m (about 8 sandbag courses of 4.75 in) are my derivations, not stated in the manual."
+note = "Sandbag breastwork around an MG/rifle position, thickness at least 3 ft (914 mm) per FM 5-15. Footprint 3 m frontage (width) x 2 m depth (length, open at the rear) and height 1 m (about 8 sandbag courses of 4.75 in) are my derivations, not stated in the manual."
 
 [[unit]]
 id = "fort_hedgehog"
@@ -366,14 +388,15 @@ category = "fort_obstacle"
 name_de = "Panzerigel"
 name_en = "Czech hedgehog (steel beams)"
 tier = 1
-length_mm = 1800
-width_mm = 1800
-height_mm = 1500
+model = "assets/models/neutral/fort_hedgehog.glb"
+length_mm = 1420
+width_mm = 1550
+height_mm = 1160
 source = [
     { ref = "https://en.wikipedia.org/wiki/Czech_hedgehog", covers = "angle beams L 140/140/13 mm, about 1.8 m (original) to 2.1 m (later) long, about 198-240 kg; overall height not stated" },
 ]
 uncertain = ["length_mm", "width_mm", "height_mm"]
-note = "Three crossed steel angle beams of 1.8 m (original Czechoslovak type; later 2.1 m). Bounding box 1.8 m x 1.8 m x 1.5 m is estimated from the beam length because no source gives the overall height. No German/US WW2 manual figure found: the TM-E 30-451 text on lonesentry.com does not mention hedgehogs."
+note = "Three crossed steel angle beams of 1.8 m (original Czechoslovak type; later 2.1 m), mutually perpendicular and standing on three beam ends. No source gives the overall size, so the bounding box is derived from that geometry: height 1.8 m / sqrt(3) + flange = 1.16 m, plan 1.55 m x 1.42 m (prompt 007; the earlier estimate 1.8 x 1.8 x 1.5 m ignored that the beams cross at an angle). No German/US WW2 manual figure found: the TM-E 30-451 text on lonesentry.com does not mention hedgehogs."
 
 [[unit]]
 id = "fort_barbed_wire"
@@ -382,6 +405,7 @@ category = "fort_wire"
 name_de = "Stacheldrahtverhau (Doppelzaun)"
 name_en = "Barbed wire (double apron fence section)"
 tier = 1
+model = "assets/models/neutral/fort_barbed_wire.glb"
 length_mm = 3000
 width_mm = 3000
 height_mm = 1400
@@ -392,3 +416,178 @@ source = [
 ]
 uncertain = ["length_mm", "width_mm"]
 note = "Double apron fence (not concertina); height from TM-E 30-451. The 3 m section length and 3 m width (about 4 paces between anchor pickets for the 4-and-2 pace type) are estimates; FM 5-15 (1944) does not cover obstacles (it refers to FM 5-30), and FM 5-30 itself was not found."
+
+# ---------------------------------------------------------------------------
+# Added with prompt 007 (environment objects tier 1)
+# ---------------------------------------------------------------------------
+
+[[unit]]
+id = "env_house_farm_brick"
+faction = "neutral"
+category = "env_building"
+name_de = "Bauernhaus (Backstein, eingeschossig)"
+name_en = "Farmhouse (brick, one storey with attic)"
+tier = 1
+model = "assets/models/neutral/env_house_farm_brick.glb"
+length_mm = 12000
+width_mm = 8000
+height_mm = 7500
+source = [
+    { ref = "Rural architecture references (e.g. Wikipedia: Farmhouse, Hallenhaus)", covers = "typical footprint and ridge height of a small farmhouse" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Smaller single-storey brick farmhouse with a steep gabled roof and an attic; the second farmhouse design next to env_house_farm. All dimensions are judgement values of the same kind as env_house_farm."
+
+[[unit]]
+id = "env_tree_stump"
+faction = "neutral"
+category = "env_prop"
+name_de = "Baumstumpf"
+name_en = "Tree stump"
+tier = 1
+model = "assets/models/neutral/env_tree_stump.glb"
+length_mm = 1200
+width_mm = 1200
+height_mm = 600
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Quercus_robur", covers = "mature oak size (trunk of a 20-40 m tree), used to derive the stump size" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Stump of a felled or shot-off mature tree, trunk about 0.6 m, root flares to 1.2 m, 0.6 m high. Derived from the tree entries, judgement values."
+
+[[unit]]
+id = "env_log_fallen"
+faction = "neutral"
+category = "env_prop"
+name_de = "Umgestürzter Baumstamm"
+name_en = "Fallen tree trunk"
+tier = 1
+model = "assets/models/neutral/env_log_fallen.glb"
+length_mm = 10000
+width_mm = 800
+height_mm = 800
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Picea_abies", covers = "spruce trunk size (used to derive a fallen trunk length and diameter)" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Trunk section without crown, 10 m long, about 0.6 m diameter plus branch stubs (0.8 m bounding box). Judgement values derived from the tree entries."
+
+[[unit]]
+id = "env_woodpile"
+faction = "neutral"
+category = "env_prop"
+name_de = "Holzstapel (Brennholz)"
+name_en = "Firewood stack"
+tier = 1
+model = "assets/models/neutral/env_woodpile.glb"
+length_mm = 2440
+width_mm = 1220
+height_mm = 1220
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Cord_(unit)", covers = "a cord: stack 4 ft high, 8 ft wide, 4 ft deep (128 cu ft)" },
+]
+uncertain = []
+note = "One cord of firewood: 8 ft x 4 ft x 4 ft = 2.44 m x 1.22 m x 1.22 m, logs 4 ft long across the depth."
+
+[[unit]]
+id = "env_hay_bale_square"
+faction = "neutral"
+category = "env_prop"
+name_de = "Heuballen (eckig)"
+name_en = "Small square hay bale"
+tier = 1
+model = "assets/models/neutral/env_hay_bale_square.glb"
+length_mm = 910
+width_mm = 460
+height_mm = 360
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Hay_baler", covers = "small square balers were the original type, automatic pick-up balers took their modern form in 1938; first production round baler only in 1947" },
+    { ref = "https://en.wikipedia.org/wiki/Hay", covers = "small rectangular bales light enough for one person, 32-45 kg, two-tie and three-tie variants" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Two-string small square bale, common size 14 x 18 x 36 in (0.36 x 0.46 x 0.91 m); the sources give no dimensions, so the size is a judgement value. Round bales are post-war (Roto-Baler 1947), so the round hay object is the loose haystack env_hay_bale."
+
+[[unit]]
+id = "env_hedge"
+faction = "neutral"
+category = "env_fence"
+name_de = "Feldhecke (Segment)"
+name_en = "Field hedge (one segment)"
+tier = 1
+model = "assets/models/neutral/env_hedge.glb"
+length_mm = 3000
+width_mm = 1200
+height_mm = 2200
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Hedge", covers = "hedgerows usually no wider than about 1 m; dense hedgerow above 2 m rates highest (Hedgelink); Normandy bocage banks 3-12 ft topped by a 1-3 ft hedge" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Managed field hedge without earth bank, 2.2 m high and 1.2 m wide (source: usually up to about 1 m wide, dense hedges above 2 m); one segment of 3 m. The tall Normandy bocage bank-hedge is a later variant."
+
+[[unit]]
+id = "fort_bunker_mg"
+faction = "neutral"
+category = "fort_bunker"
+name_de = "MG-Bunker (Beton, sechseckig)"
+name_en = "Concrete MG pillbox (hexagonal)"
+tier = 1
+model = "assets/models/neutral/fort_bunker_mg.glb"
+length_mm = 3810
+width_mm = 4400
+height_mm = 2000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Type_22_pillbox", covers = "Type 22: regular hexagon, walls about 6 ft (1.8 m), 12 in (30 cm) bulletproof walls, embrasures on five sides, entrance on the sixth" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Generic hexagonal concrete pillbox after the Type 22 plan, without national features. Walls about 2.1 m (6-7 ft) give 4.2 m across the corners (width, X), roof slab overhang 0.1 m: 4.4 m; across the flats (length, Y, front wall facing +Y) 4.4 x 0.866 = 3.81 m. Height 2.0 m above ground is a judgement value (no source gives the height)."
+
+[[unit]]
+id = "fort_mine_at"
+faction = "neutral"
+category = "fort_minefield_at"
+name_de = "Panzermine (einzeln, sichtbar)"
+name_en = "Anti-tank mine (single, visible)"
+tier = 1
+model = "assets/models/neutral/fort_mine_at.glb"
+length_mm = 318
+width_mm = 318
+height_mm = 100
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Tellermine_35", covers = "Tellermine 35: diameter 31.8 cm, height 76 mm" },
+]
+uncertain = ["height_mm"]
+note = "Single visible pressure mine for engineers and debug views (minefields themselves are the faction entries). Disc of 318 mm diameter; height 100 mm includes the fuze cap above the 76 mm body."
+
+[[unit]]
+id = "fort_mine_ap"
+faction = "neutral"
+category = "fort_minefield_ap"
+name_de = "Schützenmine (einzeln, sichtbar)"
+name_en = "Anti-personnel mine (single, visible)"
+tier = 1
+model = "assets/models/neutral/fort_mine_ap.glb"
+length_mm = 102
+width_mm = 102
+height_mm = 150
+source = [
+    { ref = "https://en.wikipedia.org/wiki/S-mine", covers = "S-mine 35: diameter 102 mm, height 127 mm (infobox), body about 15 cm without sensor (text)" },
+]
+uncertain = ["height_mm"]
+note = "Single visible bounding mine for engineers and debug views. Body 102 mm diameter; 150 mm height includes the fuze rod and prongs (the sources disagree on the body height, 127 or about 150 mm)."
+
+[[unit]]
+id = "fort_mine_sign"
+faction = "neutral"
+category = "env_prop"
+name_de = "Minenwarnschild"
+name_en = "Minefield warning sign"
+tier = 1
+model = "assets/models/neutral/fort_mine_sign.glb"
+length_mm = 60
+width_mm = 400
+height_mm = 1200
+source = [
+    { ref = "TM-E 30-451 Handbook on German Military Forces (1945), ch. VIII (mines and minefields)", covers = "minefields were marked with warning signs and fences (no dimensions)" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Generic marker on a wooden picket, 0.4 m board, top at 1.2 m, without inscriptions or national symbols (text would need localisation and real sign designs differed by army). Dimensions are judgement values."
