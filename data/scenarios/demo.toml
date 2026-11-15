@@ -1,0 +1,23 @@
+# Demo scenario: two players with eight tanks each, facing each other across
+# the test ground. Integers only. Used by the game, the CLI, the golden-hash
+# test and the network tests.
+#
+# Every [[group]] places `count` units of the catalog id `unit` for player
+# `owner` in a grid of `columns` columns, `spacing_m` apart, centered on
+# `center_m` = [x, y] (x east, y south, meters).
+
+[[group]]
+owner = 0
+unit = "de_pz4_h"
+count = 8
+columns = 4
+spacing_m = 12
+center_m = [0, 60]
+
+[[group]]
+owner = 1
+unit = "su_t34_76_1943"
+count = 8
+columns = 4
+spacing_m = 12
+center_m = [0, -60]

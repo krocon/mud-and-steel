@@ -20,10 +20,13 @@ pub mod scenario;
 mod sim;
 
 pub use catalog::Catalog;
-pub use command::{Command, UnitId};
-pub use data::{DataError, UnitType, unit_types_from_catalog};
+pub use command::{Command, PlayerCommand, PlayerId, UnitId};
+pub use data::{DEFAULT_FOOTPRINT_MM, DataError, UnitType, unit_types_from_catalog};
 pub use hash::StableHasher;
 pub use math::{Fixed, Vec2};
 pub use rng::Rng;
 pub use scale::Scale;
-pub use sim::{ConfigError, Sim, SimConfig, Snapshot, Spawn, UnitSnapshot};
+pub use sim::{
+    ConfigError, Sim, SimConfig, Snapshot, Spawn, UnitSnapshot, WORLD_LIMIT_M, formation_slots,
+    formation_spacing,
+};

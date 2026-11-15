@@ -3,16 +3,23 @@
 use crate::catalog::{Catalog, Entry, Group};
 use crate::math::Fixed;
 use crate::scale::Scale;
+use serde::{Deserialize, Serialize};
 use std::fmt;
 
 /// Game properties of a unit type, already converted by [`Scale`].
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct UnitType {
     /// Catalog id.
     pub name: String,
     /// Movement speed in game meters per second.
     pub speed_m_per_s: Fixed,
+    /// Larger of length and width in meters (sizes are 1:1, so this is the
+    /// real value). Used for formation spacing.
+    pub footprint_m: Fixed,
 }
+
+/// Footprint of entries without dimensions (infantry): one soldier.
+pub const DEFAULT_FOOTPRINT_MM: u32 = 1000;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct DataError(pub String);
@@ -38,9 +45,16 @@ impl UnitType {
             Group::Aircraft => entry.speed_cruise_kmh_x10.or(entry.speed_max_kmh_x10),
             Group::Gun | Group::Fortification | Group::Environment => None,
         }?;
+        let footprint_mm = entry
+            .length_mm
+            .into_iter()
+            .chain(entry.width_mm)
+            .max()
+            .unwrap_or(DEFAULT_FOOTPRINT_MM);
         Some(Self {
             name: entry.id.clone(),
             speed_m_per_s: scale.game_speed(entry.category, speed),
+            footprint_m: Fixed::from_num(footprint_mm) / Fixed::from_num(1000),
         })
     }
 }

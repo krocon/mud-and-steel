@@ -2,7 +2,7 @@
 
 use crate::protocol::{CommandFrame, HashReport, Message, PlayerId, decode, encode};
 use crate::transport::{Transport, TransportError};
-use sim::Command;
+use sim::{Command, PlayerCommand};
 use std::collections::BTreeMap;
 use std::fmt;
 
@@ -134,6 +134,11 @@ impl LockstepSession {
         self.next_tick
     }
 
+    /// The tick the next [`submit_local`](Self::submit_local) schedules for.
+    pub const fn next_local_tick(&self) -> u64 {
+        self.scheduled_until
+    }
+
     /// Whether local input for the current tick is still missing.
     pub const fn needs_local_input(&self) -> bool {
         self.scheduled_until <= self.next_tick + self.input_delay
@@ -221,8 +226,10 @@ impl LockstepSession {
 
     /// Returns the merged commands for the next tick once all players' frames
     /// are known, and advances to the following tick. Commands are ordered by
-    /// player id, then in the order the player issued them.
-    pub fn next_commands(&mut self) -> Option<Vec<Command>> {
+    /// player id, then in the order the player issued them. Each command is
+    /// tagged with the sender of its frame; that is the only source of the
+    /// issuing player the simulation trusts.
+    pub fn next_commands(&mut self) -> Option<Vec<PlayerCommand>> {
         let complete = self
             .frames
             .get(&self.next_tick)
@@ -233,7 +240,16 @@ impl LockstepSession {
         let frames = self.frames.remove(&self.next_tick)?;
         self.next_tick += 1;
         // BTreeMap iterates in ascending player order.
-        Some(frames.into_values().flatten().collect())
+        Some(
+            frames
+                .into_iter()
+                .flat_map(|(player, commands)| {
+                    commands
+                        .into_iter()
+                        .map(move |command| PlayerCommand::new(player, command))
+                })
+                .collect(),
+        )
     }
 
     /// Records the local state hash after `tick` simulated ticks and shares it
@@ -245,6 +261,10 @@ impl LockstepSession {
         transport: &mut impl Transport,
     ) -> Result<(), NetError> {
         if !tick.is_multiple_of(self.hash_interval) {
+            return Ok(());
+        }
+        if self.players.len() == 1 {
+            // Nobody to compare with; keeping the hash would only leak memory.
             return Ok(());
         }
         self.local_hashes.insert(tick, hash);

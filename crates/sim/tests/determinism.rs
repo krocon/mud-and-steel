@@ -21,10 +21,13 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
+/// Last changed by prompt 009: two players with eight tanks each, group
+/// commands with grid formation, `Stop`, and owner/footprint in the hash.
+///
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x075d_8c59_dfe3_d336;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x8e8b_2c6e_d986_ef2c;
 
 #[test]
 fn golden_hash() {
@@ -33,4 +36,19 @@ fn golden_hash() {
         hash, GOLDEN_HASH_SEED_42_TICKS_1000,
         "golden hash mismatch: got {hash:#018x}"
     );
+}
+
+#[test]
+fn demo_moves_units_of_both_players() {
+    let start = sim::scenario::demo_config();
+    let end = run_demo(42, 1000).snapshot();
+    for player in start.players() {
+        let moved = start
+            .spawns
+            .iter()
+            .zip(&end.units)
+            .filter(|(spawn, unit)| unit.owner == player && spawn.position != unit.position)
+            .count();
+        assert!(moved > 0, "no unit of player {} moved", player.0);
+    }
 }

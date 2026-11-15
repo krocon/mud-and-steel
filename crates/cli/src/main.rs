@@ -24,6 +24,14 @@ enum CliCommand {
         /// Also print the final position of every unit.
         #[arg(long)]
         verbose: bool,
+        /// Write a replay of the run to this file.
+        #[arg(long)]
+        record: Option<std::path::PathBuf>,
+    },
+    /// Plays a replay headless and checks its end hash (exit code 1 on mismatch).
+    Replay {
+        /// Replay file (`.msreplay`).
+        file: std::path::PathBuf,
     },
     /// Writes docs/UNIT_CATALOG.md (or the given path) from the built-in catalog.
     CatalogDoc {
@@ -43,13 +51,24 @@ fn main() {
             ticks,
             seed,
             verbose,
+            record,
         } => {
-            let sim = sim::scenario::run_demo(seed, ticks);
+            let config = sim::scenario::demo_config();
+            let mut recorder = net::ReplayRecorder::new(seed, config.clone(), &config.players());
+            let sim = sim::scenario::run_demo_with(seed, ticks, |_, commands| {
+                recorder.record(commands);
+            });
+            if let Some(path) = record {
+                std::fs::write(&path, recorder.finish(&sim).encode())
+                    .unwrap_or_else(|e| fail(&format!("cannot write {}: {e}", path.display())));
+                println!("wrote {}", path.display());
+            }
             if verbose {
                 for unit in sim.snapshot().units {
                     println!(
-                        "unit {} at ({}, {}) target {:?}",
+                        "unit {} of player {} at ({}, {}) target {:?}",
                         unit.id.0,
+                        unit.owner.0,
                         unit.position.x,
                         unit.position.y,
                         unit.target.map(|t| (t.x.to_string(), t.y.to_string()))
@@ -62,6 +81,7 @@ fn main() {
                 sim.state_hash()
             );
         }
+        CliCommand::Replay { file } => replay(&file),
         CliCommand::CatalogCheck { files } => catalog_check(&files),
         CliCommand::CatalogDoc { out } => {
             let catalog = sim::Catalog::builtin().unwrap_or_else(|e| fail(&e.to_string()));
@@ -69,6 +89,30 @@ fn main() {
                 .unwrap_or_else(|e| fail(&format!("cannot write {}: {e}", out.display())));
             println!("wrote {}", out.display());
         }
+    }
+}
+
+fn replay(path: &std::path::Path) {
+    let bytes = std::fs::read(path)
+        .unwrap_or_else(|e| fail(&format!("cannot read {}: {e}", path.display())));
+    let replay = net::Replay::decode(&bytes).unwrap_or_else(|e| fail(&e.to_string()));
+    let commands: usize = replay.frames.iter().map(|f| f.commands.len()).sum();
+    println!(
+        "replay: seed={} ticks={} players={} units={} commands={}",
+        replay.seed,
+        replay.ticks,
+        replay.players.len(),
+        replay.config.spawns.len(),
+        commands
+    );
+    let report = replay.verify().unwrap_or_else(|e| fail(&e.to_string()));
+    if report.matches() {
+        println!("end hash OK: {:#018x}", report.actual_hash);
+    } else {
+        fail(&format!(
+            "end hash MISMATCH: expected {:#018x}, got {:#018x}",
+            report.expected_hash, report.actual_hash
+        ));
     }
 }
 
