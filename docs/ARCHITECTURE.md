@@ -766,6 +766,19 @@ distance of `WaterField`). Stones in the river are map objects (generator).
 the simulation's deck height and `map_objects.gd` lowers each model by its
 `deck_height_m`.
 
+**Measurements** (`test_large`, Apple M1 Max, 1920 × 1080, debug bridge;
+the machine was heavily loaded by other sessions, load average about 60, so
+absolute frame rates are about half of those in the sections above):
+
+| Quantity | Value |
+|---|---|
+| `WaterField` + mesh, `test_large` | 64 ms at game start; 56 776 vertices, 104 594 triangles (`test_small`: 2 ms, 3 558 triangles) |
+| River view at the stone bridge (90 m) | 52.5 FPS with water, 54.6 FPS without: the water costs about 0.7 ms per frame |
+| Same run: meadow near / middle / overview | 118 / 101 / 100 FPS |
+
+The river view is the slowest view because of the dense woods and the
+decoration along the banks, not the water.
+
 Debug menu (F3): "Water" shows or hides the surface. `just terrain-shots` has
 views of the stone bridge (two distances), the timber bridge and the ford;
 `just terrain-bench` measures a river view with and without the water.
