@@ -85,7 +85,8 @@ const DECO_LAYERS: Array[Dictionary] = [
 		"scale": Vector2(0.8, 1.2), "sink": 0.05, "range": 260.0, "shadow": true},
 ]
 
-var sim_host: SimHost
+## SimHost, or MapEditor in the map editor (prompt 028).
+var sim_host: Object
 var camera: Camera3D
 ## Biome look of EnvLook ("forest", "desert", "winter").
 var biome := "forest"
@@ -111,7 +112,7 @@ var _deco_enabled := true
 
 
 ## Builds all object instances of the map loaded in `host`.
-func build(host: SimHost, view: Camera3D) -> void:
+func build(host: Object, view: Camera3D) -> void:
 	var started := Time.get_ticks_usec()
 	sim_host = host
 	camera = view
@@ -122,7 +123,7 @@ func build(host: SimHost, view: Camera3D) -> void:
 	_deco_root.name = "Decoration"
 	add_child(_deco_root)
 
-	var kinds := host.object_kinds()
+	var kinds: PackedStringArray = host.object_kinds()
 	var parts_of_kind: Array = []
 	for kind in kinds:
 		parts_of_kind.append(_parts(kind.get_slice(":", 0), kind.get_slice(":", 1)))
@@ -224,7 +225,7 @@ func set_decoration_visible(on: bool) -> void:
 ## Builds missing decoration squares near `origin` (a few per call) and frees
 ## far ones. Returns true when nothing is left to build.
 func _update_deco(origin: Vector3) -> bool:
-	var size := sim_host.map_size()
+	var size: Vector2 = sim_host.map_size()
 	var squares := Vector2i(ceili(size.x / DECO_CHUNK_M), ceili(size.y / DECO_CHUNK_M))
 	var half_diag := DECO_CHUNK_M * 0.7072
 	var wanted: Array = []
@@ -258,7 +259,7 @@ func _update_deco(origin: Vector3) -> bool:
 
 
 func _square_distance(square: Vector2i, origin: Vector3) -> float:
-	var size := sim_host.map_size()
+	var size: Vector2 = sim_host.map_size()
 	var cx := -size.x * 0.5 + (square.x + 0.5) * DECO_CHUNK_M
 	var cz := -size.y * 0.5 + (square.y + 0.5) * DECO_CHUNK_M
 	return origin.distance_to(Vector3(cx, sim_host.height_at(cx, cz), cz))
@@ -266,10 +267,10 @@ func _square_distance(square: Vector2i, origin: Vector3) -> float:
 
 func _build_deco(layer_index: int, square: Vector2i) -> void:
 	var layer: Dictionary = DECO_LAYERS[layer_index]
-	var size := sim_host.map_size()
+	var size: Vector2 = sim_host.map_size()
 	var x0 := -size.x * 0.5 + square.x * DECO_CHUNK_M
 	var z0 := -size.y * 0.5 + square.y * DECO_CHUNK_M
-	var buffers := sim_host.scatter_deco(
+	var buffers: Array = sim_host.scatter_deco(
 		x0, z0, DECO_CHUNK_M, layer.spacing, layer.seed, PackedFloat32Array(layer.density),
 		layer.wood, layer.patchiness, PackedFloat32Array(layer.weights), layer.scale, layer.sink,
 		layer.get("shore", Vector2.ZERO)

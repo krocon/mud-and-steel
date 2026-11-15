@@ -2,7 +2,8 @@ extends Control
 ## Main menu (prompt 027), the start scene of the game.
 ##
 ## Screens: main (single player, LAN, settings, quit), single-player setup
-## (map, biome, own and enemy faction) and settings. A started match is
+## (map, biome, own and enemy faction) and settings; "Map editor" opens
+## `editor/map_editor.tscn` (prompt 028). A started match is
 ## handed to `main.tscn` through `match_setup.gd`; LAN opens
 ## `lan/lan_lobby.tscn`.
 ##
@@ -18,6 +19,8 @@ const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
 const SettingsPanel := preload("res://scenes/menu/settings_panel.gd")
 const FlowSelfTest := preload("res://scenes/menu/flow_self_test.gd")
 const LAN_SCENE := "res://scenes/lan/lan_lobby.tscn"
+const EDITOR_SCENE := "res://scenes/editor/map_editor.tscn"
+const EditorSelfTest := preload("res://scenes/editor/editor_self_test.gd")
 const DIRECT_FLAGS: Array[String] = [
 	"--skip-menu", "--demo", "--camera-shots", "--path-debug",
 	"--terrain-bench", "--terrain-shots", "--objects-bench", "--objects-shots",
@@ -31,6 +34,7 @@ const BIOMES: Dictionary[String, String] = {
 var screens: Dictionary[String, Control] = {}
 var single_player_button: Button
 var lan_button: Button
+var editor_button: Button
 var settings_button: Button
 var quit_button: Button
 var map_option: OptionButton
@@ -62,6 +66,11 @@ func _ready() -> void:
 		MatchSetup.flow_test = test
 		# On the root, so it survives the scene changes it drives.
 		get_tree().root.add_child.call_deferred(test)
+	# Map editor self-test (prompt 028, `just editor-selftest`).
+	if "--editor-self-test" in OS.get_cmdline_user_args() and not get_tree().root.has_node("EditorSelfTest"):
+		var editor_test := EditorSelfTest.new()
+		editor_test.name = "EditorSelfTest"
+		get_tree().root.add_child.call_deferred(editor_test)
 
 
 func show_screen(screen_name: String) -> void:
@@ -86,6 +95,11 @@ func open_lan() -> void:
 	get_tree().change_scene_to_file(LAN_SCENE)
 
 
+## Opens the map editor (prompt 028).
+func open_editor() -> void:
+	get_tree().change_scene_to_file(EDITOR_SCENE)
+
+
 func _is_direct_start() -> bool:
 	for arg in OS.get_cmdline_user_args():
 		if arg in DIRECT_FLAGS:
@@ -105,6 +119,7 @@ func _main_screen() -> Control:
 	box.add_child(_spacer(24))
 	single_player_button = _button(box, "Single player", func() -> void: show_screen("skirmish"))
 	lan_button = _button(box, "LAN game", open_lan)
+	editor_button = _button(box, "Map editor", open_editor)
 	settings_button = _button(box, "Settings", func() -> void: show_screen("settings"))
 	quit_button = _button(box, "Quit", func() -> void: get_tree().quit())
 	single_player_button.grab_focus.call_deferred()

@@ -217,7 +217,7 @@ map-check name="test_small":
 
 # Build the bridge and open the map editor (prompt 028); args e.g. --edit=test_small
 [group('maps')]
-editor-run *args: build
+map-editor *args: build
     {{ GODOT }} --path godot res://scenes/editor/map_editor.tscn {{ if args != "" { "-- " + args } else { "" } }}
 
 # Headless self-test of the map editor: build a map, save, play it from the menu, delete it

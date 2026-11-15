@@ -20,6 +20,7 @@ use std::sync::Arc;
 
 mod combat_funcs;
 mod lan;
+mod map_editor;
 mod match_funcs;
 mod object_funcs;
 mod objects;
