@@ -883,7 +883,9 @@ player are selectable; destroyed units leave the selection.
 | Left click | Select the own unit under the cursor; on empty ground clear the selection |
 | Shift + left click | Add the unit (or remove it if already selected) |
 | Left drag | Selection box (own units whose hull center is inside) |
-| Double click | All visible own units of the same type |
+| Double click on a unit | All visible own units of the same type |
+| Double click on empty ground | Camera glides there; the selection stays (the first click's deselect is undone) |
+| C | Follow mode: the camera keeps the selection's center in view; ends on any hand pan or when the selection is empty |
 | Ctrl+1…9 (Cmd on macOS) | Store the selection as a group |
 | 1…9 | Recall the group; twice within 0.4 s also centers the camera on it |
 | Right click | Move the selection to the ground point (green marker for 1 s) |
@@ -945,8 +947,12 @@ placed from four values: focus, distance (15–600 m), pitch and yaw.
   farthest, blended over a logarithmic zoom level (optional `Curve`, else smoothstep).
 - **Zoom** (mouse wheel, trackpad pinch) is smoothed in log space and keeps the ground
   point under the cursor fixed. **Pan** (WASD, arrows, window edge) scales with the
-  distance; middle-mouse drag grabs the ground. **Q/E** turn in 45° steps, **N** turns
-  back to north (−Z).
+  distance; middle-mouse drag, **Option/Alt + mouse move** and the **trackpad
+  two-finger pan** (`InputEventPanGesture`, which macOS sends for trackpad scrolling;
+  the map follows the fingers, honoring the system's scroll direction) grab the
+  ground. **Q/E** turn in 45° steps, **N** turns back to north (−Z).
+- `center_on(point)` glides the focus to a point (double click on the ground, follow
+  mode); every hand pan cancels the glide and emits `panned_by_hand`.
 - The focus is clamped to `bounds`, set by `main.gd` from `SimHost.map_size()`, and
   sits on the ground height (`GroundPick.height_at`).
 - Near/far planes and the sun's shadow distance scale with the camera distance

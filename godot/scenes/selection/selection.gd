@@ -43,6 +43,13 @@ var groups: Dictionary[int, Array] = {}
 var _pressing := false
 var _dragging := false
 var _double_click := false
+## Selection before the first click of a possible double click, restored when
+## the double click centers the camera on empty ground.
+var _selection_before_click: Array = []
+## Follow mode (key C): the camera keeps the center of the selection in view.
+## Ends when the player moves the map by hand or the selection becomes empty.
+var follow := false
+var _follow_hooked := false
 var _press_position := Vector2.ZERO
 var _drag_position := Vector2.ZERO
 var _last_group_key := -1
@@ -90,6 +97,8 @@ func _on_left_button(button: InputEventMouseButton) -> void:
 		_pressing = true
 		_dragging = false
 		_double_click = button.double_click
+		if not button.double_click:
+			_selection_before_click = selected.duplicate()
 		_press_position = button.position
 		_drag_position = button.position
 		return
@@ -101,7 +110,11 @@ func _on_left_button(button: InputEventMouseButton) -> void:
 		queue_redraw()
 		_select_in_box(Rect2(_press_position, Vector2.ZERO).expand(button.position), button.shift_pressed)
 	elif _double_click:
-		_select_same_type(_unit_at(button.position))
+		var id := _unit_at(button.position)
+		if id >= 0:
+			_select_same_type(id)
+		else:
+			_center_on_ground(button.position)
 	else:
 		_click(_unit_at(button.position), button.shift_pressed)
 
@@ -112,6 +125,9 @@ func _on_key(key: InputEventKey) -> bool:
 		return true
 	if key.keycode == KEY_F and not key.ctrl_pressed and not key.meta_pressed:
 		toggle_hold_fire()
+		return true
+	if key.keycode == KEY_C and not key.ctrl_pressed and not key.meta_pressed:
+		set_follow(not follow)
 		return true
 	if key.keycode < KEY_1 or key.keycode > KEY_9:
 		return false
@@ -197,6 +213,45 @@ func _click(id: int, additive: bool) -> void:
 		else:
 			next.append(id)
 		_set_selection(next)
+
+
+## Double click on empty ground: keep the selection the first click cleared
+## and let the camera glide to the clicked point.
+func _center_on_ground(screen_position: Vector2) -> void:
+	_set_selection(_selection_before_click)
+	var hit: Variant = GroundPick.from_screen(camera, screen_position)
+	if hit != null and camera_rig != null:
+		camera_rig.center_on(hit as Vector3)
+
+
+## Turns follow mode on or off (only on with a selection).
+func set_follow(on: bool) -> void:
+	if camera_rig != null and not _follow_hooked:
+		camera_rig.panned_by_hand.connect(func() -> void: set_follow(false))
+		_follow_hooked = true
+	follow = on and not selected.is_empty()
+	queue_redraw()
+
+
+func _process(_delta: float) -> void:
+	if not follow:
+		return
+	if selected.is_empty():
+		set_follow(false)
+		return
+	var ids := sim_host.unit_ids()
+	var positions := sim_host.current_positions()
+	var sum := Vector3.ZERO
+	var count := 0
+	for id: int in selected:
+		var i := ids.find(id)
+		if i >= 0:
+			sum += positions[i]
+			count += 1
+	if count == 0:
+		set_follow(false)
+		return
+	camera_rig.center_on(sum / count)
 
 
 func _select_same_type(id: int) -> void:
@@ -309,6 +364,10 @@ func _own_index(id: int) -> int:
 
 
 func _draw() -> void:
+	if follow:
+		var font := ThemeDB.fallback_font
+		draw_string(font, Vector2(16, 28), "Kamera folgt der Auswahl (C)",
+			HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color(1, 1, 1, 0.85))
 	if not _dragging:
 		return
 	var box := Rect2(_press_position, Vector2.ZERO).expand(_drag_position)

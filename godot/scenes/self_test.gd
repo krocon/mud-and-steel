@@ -37,6 +37,7 @@ const EXPECTED_STEP := 16.0 * 2.0 / 3.6 / 20.0
 ## Panzer IV H on roads: 38 km/h × 2 = 1.0556 m per tick.
 const ROAD_STEP := 38.0 * 2.0 / 3.6 / 20.0
 const OVERVIEW_DISTANCE := 350.0
+const GroundPick := preload("res://scenes/camera/ground_pick.gd")
 ## The hill drive runs at this time scale to keep the test short.
 const HILL_TIME_SCALE := 4.0
 ## The tank must end at least this many meters above its start.
@@ -56,6 +57,7 @@ func _ready() -> void:
 func _run() -> void:
 	await _camera_test()
 	await _selection_test()
+	await _controls_test()
 	await _order_test()
 	await _hill_test()
 	await _objects_test()
@@ -65,7 +67,7 @@ func _run() -> void:
 	await _combat_test()
 	_replay_test()
 	var ok := _errors.is_empty()
-	var message := "camera, selection, orders, hill, objects, terrain, biomes, combat, water and replay ok" if ok else " ".join(_errors)
+	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, combat, water and replay ok" if ok else " ".join(_errors)
 	print("self-test %s: %s" % ["PASSED" if ok else "FAILED", message])
 	# Started from the menu flow test (prompt 027): it continues the flow.
 	var flow: Node = MatchSetup.flow_test
@@ -168,6 +170,75 @@ func _selection_test() -> void:
 	await _frames(1)
 	_check(selection.selected == own, "double click selected %s" % [selection.selected])
 	print("self-test: selection ok, group of %d" % selection.selected.size())
+
+
+# --- 2b. Map controls (trackpad, Option drag, double click, follow) ---------
+
+
+## Expects the selection test's end state (all own units selected) and leaves
+## it unchanged; issues no orders, so the simulation is not affected.
+func _controls_test() -> void:
+	var rig: Node3D = main.camera_rig
+	var selection: Control = main.selection
+	var own := _ids_of(true)
+	var center := get_viewport().get_visible_rect().size * 0.5
+
+	# Two-finger trackpad pan: fingers move down, the map follows them, so
+	# the camera looks further north (-z).
+	rig.snap_to(Vector3.ZERO, OVERVIEW_DISTANCE, 0.0)
+	await _frames(1)
+	var pan := InputEventPanGesture.new()
+	pan.position = center
+	pan.delta = Vector2(0.0, -2.0)
+	get_viewport().push_input(pan)
+	await _frames(1)
+	_check(rig.focus.z < -5.0, "trackpad pan did not move the map north (focus %s)" % rig.focus)
+
+	# Option/Alt held while moving the mouse grabs the map: moving right
+	# looks further west (-x).
+	rig.snap_to(Vector3.ZERO, OVERVIEW_DISTANCE, 0.0)
+	await _frames(1)
+	var motion := InputEventMouseMotion.new()
+	motion.position = center
+	motion.global_position = center
+	motion.relative = Vector2(80.0, 0.0)
+	motion.alt_pressed = true
+	get_viewport().push_input(motion)
+	await _frames(1)
+	_check(rig.focus.x < -5.0, "Option drag did not move the map (focus %s)" % rig.focus)
+
+	# Double click on empty ground: the camera glides there and the
+	# selection survives the first click of the double click.
+	rig.snap_to(Vector3.ZERO, OVERVIEW_DISTANCE, 0.0)
+	await _frames(1)
+	var spot := center + Vector2(0.0, -center.y * 0.8)
+	var ground: Variant = GroundPick.from_screen(main.camera, spot)
+	_check(ground != null, "no ground under the double click point")
+	_left_click(spot)
+	_left_click(spot, false, true)
+	await _frames(1)
+	_check(selection.selected == own, "double click on ground changed the selection to %s" % [selection.selected])
+	await _frames(90)
+	if ground != null:
+		var target := ground as Vector3
+		var off := Vector2(rig.focus.x - target.x, rig.focus.z - target.z).length()
+		_check(off < 1.0, "double click did not center the camera (%.2f m off)" % off)
+
+	# Follow mode (C): the camera moves to the selection's center and stops
+	# following as soon as the map is moved by hand.
+	rig.snap_to(Vector3(200.0, 0.0, 200.0), OVERVIEW_DISTANCE, 0.0)
+	_key(KEY_C)
+	await _frames(90)
+	_check(selection.follow, "follow mode did not turn on")
+	var centroid := _centroid(own)
+	var follow_off := Vector2(rig.focus.x - centroid.x, rig.focus.z - centroid.z).length()
+	_check(follow_off < 1.0, "follow mode did not center the selection (%.2f m off)" % follow_off)
+	get_viewport().push_input(pan)
+	await _frames(1)
+	_check(not selection.follow, "a hand pan did not end follow mode")
+	rig.snap_to(Vector3.ZERO, OVERVIEW_DISTANCE, 0.0)
+	await _frames(1)
+	print("self-test: map controls ok (trackpad, Option drag, double click, follow)")
 
 
 # --- 3. Orders ------------------------------------------------------------

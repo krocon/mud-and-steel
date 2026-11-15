@@ -70,7 +70,10 @@ a river in the east and a village square in the south-west, drawn as a debug mes
 colored by terrain type with height contours. Left click or drag a box to select, double click selects all visible tanks
 of the type, Ctrl+1…9 stores a group and 1…9 recalls it (twice centers the camera).
 Right-click on the ground sends the selection into a formation there, H stops it.
-The camera moves with WASD/arrows, the mouse wheel, middle drag, Q/E and N.
+Moving the map: two fingers on the trackpad, Option (Alt) + mouse move, middle drag,
+WASD/arrows or the window edge; double click on empty ground centers there, C makes
+the camera follow the selection. Zoom with the mouse wheel or pinch, turn with Q/E,
+N turns back to north.
 
 On exit the game writes a replay to `user://replays/` (macOS:
 `~/Library/Application Support/Godot/app_userdata/Mud and Steel/replays/`);

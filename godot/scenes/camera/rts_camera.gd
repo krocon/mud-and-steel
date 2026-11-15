@@ -10,6 +10,9 @@ extends Node3D
 
 const GroundPick := preload("res://scenes/camera/ground_pick.gd")
 
+## Emitted when the player moves the map by hand (keys, edge, drag, trackpad).
+signal panned_by_hand
+
 @export_group("Zoom")
 ## Closest distance from camera to focus point, in meters.
 @export var min_distance := 15.0
@@ -56,6 +59,13 @@ const GroundPick := preload("res://scenes/camera/ground_pick.gd")
 ## Light whose shadow distance follows the zoom. Optional.
 @export var sun: DirectionalLight3D
 
+@export_group("Trackpad and mouse")
+## Screen pixels the map moves per unit of a trackpad two-finger pan gesture
+## (macOS reports trackpad scrolling as InputEventPanGesture).
+@export var trackpad_pan_scale := 40.0
+## How fast the camera glides to a point centered by double click.
+@export var glide_smoothing := 8.0
+
 ## Area the focus point must stay in (x/z plane, meters).
 var bounds := Rect2(-1000, -1000, 2000, 2000)
 
@@ -67,6 +77,8 @@ var target_yaw := 0.0
 
 var _zoom_anchor := Vector2.ZERO
 var _dragging := false
+## Point the focus glides to (double click on the ground), or null.
+var _glide_target: Variant = null
 
 @onready var camera: Camera3D = $Camera3D
 
@@ -92,6 +104,17 @@ func snap_to(new_focus: Vector3, new_distance: float, new_yaw := 0.0) -> void:
 	_apply()
 
 
+## Glides the focus smoothly to `point` (e.g. a double click on the ground).
+## Any manual pan stops the glide.
+func center_on(point: Vector3) -> void:
+	_glide_target = point
+
+
+## Whether the camera is still gliding to a point set by `center_on`.
+func is_gliding() -> bool:
+	return _glide_target != null
+
+
 ## Zoom level from 0 (closest) to 1 (farthest), logarithmic in the distance.
 func zoom_level() -> float:
 	return clampf(log(distance / min_distance) / log(max_distance / min_distance), 0.0, 1.0)
@@ -111,6 +134,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		_zoom_by(1.0 + zoom_step * _wheel_factor(event), event)
 	elif event is InputEventMagnifyGesture:
 		_zoom_by(1.0 / (event as InputEventMagnifyGesture).factor, event)
+	elif event is InputEventPanGesture:
+		# Two fingers on the trackpad: the map follows the fingers.
+		var pan := event as InputEventPanGesture
+		_drag_by(pan.position, -pan.delta * trackpad_pan_scale)
 	elif event.is_action_pressed("camera_rotate_left"):
 		target_yaw += PI / 4.0
 	elif event.is_action_pressed("camera_rotate_right"):
@@ -122,8 +149,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		_dragging = true
 	elif event.is_action_released("camera_drag"):
 		_dragging = false
-	elif event is InputEventMouseMotion and _dragging:
-		_drag(event as InputEventMouseMotion)
+	elif event is InputEventMouseMotion and (_dragging or (event as InputEventMouseMotion).alt_pressed):
+		# Middle mouse button held, or Option/Alt held: grab the map.
+		var motion := event as InputEventMouseMotion
+		_drag_by(motion.position, motion.relative)
 	else:
 		return
 	get_viewport().set_input_as_handled()
@@ -136,8 +165,16 @@ func _process(delta: float) -> void:
 	if direction == Vector2.ZERO and edge_scroll_enabled:
 		direction = _edge_direction()
 	if direction != Vector2.ZERO:
+		_glide_target = null
+		panned_by_hand.emit()
 		var step := direction * pan_speed * distance * delta
 		focus += Vector3(step.x, 0.0, step.y).rotated(Vector3.UP, yaw)
+	elif _glide_target != null:
+		var target := _glide_target as Vector3
+		focus = focus.lerp(target, _smooth(glide_smoothing, delta))
+		if Vector2(focus.x - target.x, focus.z - target.z).length() < 0.05:
+			focus = target
+			_glide_target = null
 
 	yaw = lerpf(yaw, target_yaw, _smooth(rotate_smoothing, delta))
 	if absf(yaw - target_yaw) < 0.0001:
@@ -166,10 +203,13 @@ func _zoom_by(factor: float, event: InputEvent) -> void:
 	)
 
 
-## Grab-the-ground drag: the point under the cursor follows the cursor.
-func _drag(motion: InputEventMouseMotion) -> void:
-	var before: Variant = GroundPick.from_screen(camera, motion.position - motion.relative)
-	var after: Variant = GroundPick.from_screen(camera, motion.position)
+## Grab-the-ground drag: the ground point that was at `position - relative`
+## (screen pixels) moves to `position`, i.e. the map follows the pointer.
+func _drag_by(position: Vector2, relative: Vector2) -> void:
+	_glide_target = null
+	panned_by_hand.emit()
+	var before: Variant = GroundPick.from_screen(camera, position - relative)
+	var after: Variant = GroundPick.from_screen(camera, position)
 	if before != null and after != null:
 		focus += (before as Vector3) - (after as Vector3)
 		_apply()
