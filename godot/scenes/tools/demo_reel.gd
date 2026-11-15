@@ -39,7 +39,9 @@ func _run() -> void:
 	var goal := start + Vector3(70, 0, -90)
 	goal.y = main.sim_host.height_at(goal.x, goal.z)
 	_right_click(_screen_of_point(goal))
+	print("demo: group order to %s, marker at %s" % [goal, main.target_marker.position])
 	await _follow(own, 110.0, 5.0)
+	print("demo: group centroid after 5 s %s, moving %s" % [_centroid(own), main.sim_host.unit_moving()])
 
 	# 4. Rotate the view while they drive.
 	await _fly_follow(own, 110.0, -PI / 4.0, 3.0)
@@ -54,8 +56,10 @@ func _run() -> void:
 		await _seconds(0.3)
 		var mid := (_positions_of([tank])[0] + top) * 0.5
 		await _fly(mid, 160.0, -PI / 4.0, 2.0)
+		print("demo: selected %s for the hill" % [main.selection.selected])
 		_right_click(_screen_of_point(top))
-		await _follow([tank], 120.0, 6.0, -PI / 4.0)
+		await _follow([tank], 120.0, 15.0, -PI / 4.0)
+		print("demo: hill tank at %s, hill top %s" % [_positions_of([tank])[0], top])
 
 	# 6. Back up to the overview.
 	await _fly(rig.focus, 600.0, -PI / 2.0, 4.0)
