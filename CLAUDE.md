@@ -26,6 +26,13 @@ Never `git push` without explicit approval. Godot and godot-rust are only update
 together (`docs/VERSIONS.md`). Look up godot-rust APIs for the pinned version (0.5.5)
 instead of guessing, e.g. in `~/.cargo/registry/src/*/godot-core-0.5.5/`.
 
+## Scale, catalog and assets
+
+Sizes are 1:1 in real meters; time runs at factor 2. The catalog holds real values
+only, converted solely via `data/scale.toml` (`docs/SCALE.md`). Every catalog value
+needs a source (`docs/SOURCES.md`: no data from other games, no swastika/SS runes, no
+Red Cross). Model conventions and budgets: `docs/ASSETS.md`.
+
 ## Commands
 
 All commands live in the `justfile` (`just` lists them). Prefer them over raw commands.
@@ -37,6 +44,7 @@ just build                 # GDExtension for Godot
 just import                # headless Godot import (after clone / new assets)
 just run                   # build + start the game (opens a window)
 just selftest              # build + headless smoke test of the game
+just catalog-doc           # regenerate docs/UNIT_CATALOG.md after catalog changes
 just export-model assets-src/blender/X.blend
 just model-tank            # regenerate placeholder tank
 ```
@@ -51,7 +59,8 @@ crates/bridge/   godot-rust GDExtension (SimHost node)
 godot/           Godot project: scenes/, ui/, assets/, mud_and_steel.gdextension
 assets-src/blender/  .blend sources (Git LFS)
 tools/           Blender scripts, Godot import helper
-data/            unit definitions (TOML, integer units)
-docs/            ARCHITECTURE.md, DETERMINISM.md, VERSIONS.md
+data/            unit catalog (catalog/*.toml, real values) and scale.toml
+docs/            ARCHITECTURE.md, DETERMINISM.md, VERSIONS.md, SCALE.md, ASSETS.md,
+                 SOURCES.md, UNIT_CATALOG.md (generated)
 prompts/         task prompts (roadmap in prompts/README.md); finished ones: git mv to prompts/done/
 ```
