@@ -18,3 +18,9 @@ godot/export_presets.cfg
 .DS_Store
 Thumbs.db
 /docs/.vorlagen/
+
+# Generated previews and line-up renders
+/build/
+
+# Python
+__pycache__/
