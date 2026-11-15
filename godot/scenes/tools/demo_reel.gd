@@ -55,6 +55,11 @@ func _run() -> void:
 		var top := marker as Vector3
 		var survivors := _ids_of(true, true)
 		var tank: int = survivors[0] if not survivors.is_empty() else own[0]
+		# Center the tank first: the battle decides where it stands.
+		await _fly(_positions_of([tank])[0], 110.0, -PI / 4.0, 1.0)
+		survivors = _ids_of(true, true)
+		if not survivors.is_empty() and not survivors.has(tank):
+			tank = survivors[0]
 		_left_click(_screen_of_unit(tank))
 		await _seconds(0.3)
 		var mid := (_positions_of([tank])[0] + top) * 0.5

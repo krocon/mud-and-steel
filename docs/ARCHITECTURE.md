@@ -413,11 +413,144 @@ aim. Hulls follow the simulation's `facing`.
 
 - Guns (`gun_*`) cannot be placed yet (no ground speed; limbering and
   positions), aircraft neither; indirect fire (mortars, howitzers,
-  self-propelled guns), HE splash, suppression, line of sight and fog of war
-  (prompt 018), damaged modules, ammunition limits.
+  self-propelled guns), HE splash, suppression, damaged modules,
+  ammunition limits. Line of sight for targets: see
+  [Vision and fog of war](#vision-and-fog-of-war).
 - Target leading: rounds fly at the target's position at the moment of the
   shot; at 75 m per tick this matters only for fast targets far away.
 - Projectiles and unit queries are O(projectiles × units) per tick.
+
+## Vision and fog of war
+
+Prompt 018. Every player sees only what their units see; hills, forests,
+hedges, walls and buildings block sight. Vision is a game rule (combat
+targets depend on it), so it lives in `crates/sim` (`vision.rs` for the grid
+and the sight computation, `sim/vision.rs` for keeping it up to date). Godot
+only draws the result.
+
+### Rules and grid
+
+`data/vision.toml` (built in, `SimConfig::vision`, in the state hash):
+cell size (8 m), target height (2 m), forest rules, the ray-step budget per
+tick, sight ranges in **real** meters per category (2 km, recon and snipers
+2.8 km, trucks 1.6 km; compressed by `range.sight` = 1/4 of
+`data/scale.toml` to 500 / 700 / 400 m) and which object ids are `solid`
+(houses, barns, church, walls, hedges) or `foliage` (trees). The catalog has
+no sight values; these are rules like the turret traverse in `combat.toml`.
+
+`VisionGrid` (built once per match): per 8 m cell the ground height at its
+center (mm), the top of solid obstacles (catalog height) and forest (cells
+with at least two trees; top = tallest tree).
+
+### Viewsheds
+
+A unit sees from its cell at eye height = its ground height + its catalog
+height (infantry: `combat.toml` infantry height). Rays run from the eye to
+every cell on the edge of the square with the sight radius (precomputed
+offset tables per radius: at every step along the ray's major axis the
+nearest cell; together the rays visit every cell of the sight circle). Along
+a ray two horizons are kept, as slopes `num/den` compared by
+cross-multiplication (integers only, no division):
+
+- **Ground and solid obstacles** raise the horizon at once.
+- **Forest:** a sight line may cross `foliage_depth_cells` (1) forest cells
+  whose canopy lies above it. The ray keeps the two steepest canopy slopes;
+  the second one is the forest horizon. One sees and is seen 16 m deep into
+  a forest, the same in both directions; from a hill one sees over the
+  canopy; a single tree hides nothing.
+
+A cell is visible when the point 2 m above its ground is not below either
+horizon. The result is a bit field over the sight square (≈ 2 KB per unit).
+
+### Updates and budget
+
+A viewshed is computed again only when its unit enters another cell;
+destroyed units lose theirs at once. Units to update wait in a FIFO queue;
+every tick (after projectiles) works through it until
+`budget_steps_per_tick` (400 000) ray steps are spent, at least one unit per
+tick. The budget is a rule constant, so a late update happens in the same
+tick on every peer. All viewsheds are computed in `Sim::new`.
+
+Every player has a reference count per cell (how many own viewsheds contain
+it) and an explored bit. Cell states: never seen, explored, visible. After
+the update every unit gets a bit mask of the players that see it (its cell
+is visible to them; own units always, wrecks for everyone). State hash:
+vision rules, per unit the viewshed anchor, eye height, radius and cell
+count, the queue, the masks and the number of explored cells per player.
+
+### Combat
+
+- Automatic targets are chosen only among enemies in the unit's **own**
+  viewshed, and an automatic target out of it is dropped. No more rounds
+  into a hill at a target only a comrade sees.
+- An attack order fires only with the unit's own sight; without it, the
+  unit drives towards the target until it sees it. When the player loses
+  sight of the target, the unit drives to where it was last seen and drops
+  the order there if the target is still hidden. Orders against units the
+  player has never seen in this order are dropped. Ground attacks are
+  unchanged.
+
+### Snapshot, bridge and Godot
+
+`Sim::snapshot_for(player)` leaves out enemy units the player does not see
+(own units and wrecks stay); projectiles and events stay unfiltered,
+because muzzle flashes and tracers can be seen from afar.
+`Sim::visible_to`, `vision_states`, `vision_version` and `vision_grid` serve
+the presentation. The bridge (`vision_funcs.rs`) gives Godot the local
+player's snapshot and the cell states as an L8 image (0 / 128 / 255),
+uploaded only when the version changes.
+
+`scenes/world/fog_of_war.gd` draws the fog as a screen-space overlay: a quad
+in front of the camera reads the depth buffer, reconstructs every pixel's
+world position and darkens it by its cell (never seen: nearly black,
+explored: dimmed). It covers terrain, MultiMesh vegetation, objects and water
+without changing their materials; linear filtering and five taps give soft
+edges. Tracers in the fog are dimmed with the ground behind them. `main.gd`
+hides the nodes of units that left the snapshot. F3 → "Fog of war" reveals
+everything (presentation only: `SimHost.set_reveal_all`).
+
+**Map hacks:** in lockstep every peer simulates the full state, so a
+modified client can always show everything. Filtering happens only in the
+presentation; it keeps honest players honest, nothing more. Preventing it
+would need a server that holds the state, which lockstep does not have.
+
+### Measurements (`just vision-bench`, Apple M1 Max, release)
+
+500 units of two players (half Panzer IV, half rifle squads) on `test_large`
+(500 × 500 vision cells), all driving to random targets in groups of ten,
+600 ticks, hold fire:
+
+| | mean | median | p99 | max |
+|---|---|---|---|---|
+| with vision | 6.03 ms | 6.04 ms | 8.73 ms | 36.9 ms |
+| one-cell sight (baseline) | 4.46 ms | 4.40 ms | 5.93 ms | 9.3 ms |
+
+About 1.6 ms per tick for vision; on average 213 000 ray steps per tick
+(≈ 7.5 ns each), the budget (400 000) was reached in few ticks and the queue
+held at most 8 units. `Sim::new` computes all 500 viewsheds in about 90 ms.
+The maximum tick contains the path planning of the first orders.
+
+### Decisions
+
+| Question | Decision | Why |
+|---|---|---|
+| Resolution | 8 m cells | 62 cells radius at 500 m, ≈ 31 000 ray steps per viewshed; 4 m would cost four times as much. About a tank length; enough for crests and forest edges. |
+| Update | On cell change, FIFO with a ray-step budget | Standing units cost nothing; the cost per tick is bounded like path planning; under load vision lags a little instead of a tick taking too long. |
+| Sight line | Rays to the square's edge, integer horizon slopes | Standard viewshed method; covers every cell; no division, no floats. |
+| Target height | One value (2 m) | One grid per player instead of a sight line per pair; between standing infantry and a tank. |
+| Forest | Count of canopy cells above the line (≤ 1) | Symmetric (who sees in is seen out), looks over the canopy from above, single trees hide nothing. A first "delayed horizon" model was asymmetric. |
+| Hedges, walls, houses | Solid up to their catalog height | Hedges are only one cell thick but should hide (bocage). |
+| Combat | Own line of sight for targets and fire; attack orders follow the last known position | No rounds into hills; behavior reveals nothing about hidden units. |
+| Revealing shooters | Not a rule | Keeps the simulation simple; tracers show where fire comes from. |
+| Presentation | Screen-space overlay from the depth buffer | One shader for everything, no changes to terrain, vegetation or water materials. |
+
+### Open
+
+- Wrecks do not block sight (prompt 020), terrain deformation (prompt 021)
+  would need to rebuild cells and requeue viewsheds.
+- Units on bridge decks: target cells use the ground height below the deck.
+- Last known positions of enemy units are not drawn (ghost markers).
+- Smoke (prompt 019 is presentation only) does not block sight yet.
 
 ## Victory conditions and game flow
 
@@ -434,7 +567,7 @@ Prompt 027. `crates/sim/src/outcome.rs` decides the match; Godot only shows it.
   with a single player is never decided. There are no teams yet.
 - The standings enter the state hash only once someone is defeated. Before
   that they hold nothing beyond the player list, so undecided matches hash
-  as before. The demo battle is decided at tick 525 (405 before the map of prompt 014; player 0 loses its last
+  as before. The demo battle is decided at tick 645 (525 before the vision of prompt 018, 405 before the map of prompt 014; player 0 loses its last
   tank), which is why prompt 027 changed the golden hash.
 - `Surrender` is appended to the `Command` enum, so older replays stay
   readable. No debug command removes units: the self-test wins by real

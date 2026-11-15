@@ -60,6 +60,15 @@ Additional rules:
   order: units by id, weapons in catalog order, barrels in order, projectiles
   by id. Events are derived and not hashed; projectiles, hit points and
   combat state are.
+- Vision (see [ARCHITECTURE.md](ARCHITECTURE.md#vision-and-fog-of-war)) is
+  integer only: heights in mm, horizon slopes compared by cross-multiplying
+  (`i64`), precomputed ray tables with symmetric integer rounding. Viewsheds
+  are updated in FIFO order with a fixed ray-step budget per tick
+  (`data/vision.toml`, part of the rules), so a late update lands in the
+  same tick everywhere. Vision rules, viewshed anchors, the queue and who
+  sees which unit are in the state hash; the per-cell counts follow from
+  the viewsheds. The fog the bridge draws is per player and not part of
+  any hash.
 - `sim` is built with `opt-level = 3` in the dev profile too. Optimization does not
   change integer results; overflow checks stay on in debug builds.
 
@@ -70,7 +79,7 @@ Additional rules:
   `RandomState`, `Instant`, `SystemTime` and `std::thread::spawn`.
 - `crates/sim/tests/determinism.rs` contains a golden-hash test: the demo scenario
   (two players with eight tanks each, scripted group commands, seed 42, 1000 ticks,
-  on the built-in map `test_small`) must produce `0x541b9330757a527b`. CI runs it on
+  on the built-in map `test_small`) must produce `0x88914b766934c076`. CI runs it on
   macOS (ARM64), Linux and Windows (x86_64). The value was recorded on macOS ARM64.
   History: `0x075d8c59dfe3d336` (prompt 001/003, four tanks, single-unit commands),
   `0x8e8b2c6ed986ef2c` (prompt 009: owners, group commands with formation, `Stop`,
@@ -82,7 +91,10 @@ Additional rules:
   `test_small` block path cells by size class; objects and their resolved rules
   in the map hash), `0x9d8c67c292c66be5` (prompt 013), changed in prompt 017
   (combat: hit points, facing, turrets, projectiles, combat rules and state in
-  the hash; the demo tanks fight).
+  the hash; the demo tanks fight), prompts 027 and 014, changed in prompt 018
+  (vision: targets and fire need the unit's own line of sight, attack orders
+  follow the last known position, vision rules and state in the hash; replay
+  `FORMAT_VERSION` 5).
   Regenerating `test_small` changes it as well.
 - `crates/sim/tests/combat.rs` plays duels with catalog units: a Panzer IV
   destroys a T-34 at the tick derived from catalog and rules, armor faces and

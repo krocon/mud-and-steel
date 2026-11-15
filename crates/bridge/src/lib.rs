@@ -24,6 +24,7 @@ mod match_funcs;
 mod object_funcs;
 mod objects;
 mod terrain_layers;
+mod vision_funcs;
 mod water;
 mod water_funcs;
 
@@ -203,6 +204,8 @@ pub struct SimHost {
     hold_fire_at_start: bool,
     /// Combat events of the ticks since the last `take_combat_events`.
     combat_events: Vec<(u64, sim::CombatEvent)>,
+    /// Debug: draw everything without fog (prompt 018, presentation only).
+    reveal_all: bool,
     base: Base<Node>,
 }
 
@@ -219,6 +222,7 @@ impl INode for SimHost {
             current: Snapshot::default(),
             hold_fire_at_start: false,
             combat_events: Vec::new(),
+            reveal_all: false,
             base,
         }
     }
@@ -250,7 +254,9 @@ impl INode for SimHost {
                     break;
                 }
             }
-            self.previous = std::mem::replace(&mut self.current, game.sim.snapshot());
+            let next =
+                vision_funcs::snapshot(&game.sim, game.session.local_player(), self.reveal_all);
+            self.previous = std::mem::replace(&mut self.current, next);
             combat_funcs::collect_events(&mut self.combat_events, &self.current);
             self.accumulator -= tick_seconds;
             ticks += 1;
@@ -397,7 +403,7 @@ impl SimHost {
         let session = LockstepSession::new(local, lockstep);
         let players = lockstep.players.clone();
         self.tick_hz = config.tick_hz;
-        self.current = sim.snapshot();
+        self.current = vision_funcs::snapshot(&sim, local, self.reveal_all);
         self.previous = self.current.clone();
         self.pending.clear();
         self.combat_events.clear();
@@ -964,7 +970,7 @@ impl SimHost {
             return PackedVector3Array::new();
         };
         let mut points = PackedVector3Array::new();
-        for unit in &game.sim.snapshot().units {
+        for unit in &self.current.units {
             if let Some(RouteView::Following(waypoints)) = game.sim.route_of(unit.id) {
                 for &w in waypoints {
                     points.push(ground_to_godot(w, game.map.height_at(w)));
@@ -981,8 +987,7 @@ impl SimHost {
         let Some(game) = &self.game else {
             return PackedInt32Array::new();
         };
-        game.sim
-            .snapshot()
+        self.current
             .units
             .iter()
             .map(|u| match game.sim.route_of(u.id) {

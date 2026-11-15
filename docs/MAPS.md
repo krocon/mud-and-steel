@@ -1,7 +1,7 @@
 # Maps
 
-The map is simulation data. Heights and terrain types decide speed now and line of
-sight (prompt 018) and craters (prompt 021) later, so they live in `crates/sim`,
+The map is simulation data. Heights and terrain types decide speed and line of
+sight (prompt 018, `data/vision.toml`) now and craters (prompt 021) later, so they live in `crates/sim`,
 deterministic and integer-only. Godot only reads them for drawing.
 
 ## Format
@@ -119,7 +119,8 @@ writes it; in Godot `-- --biome=<id>` overrides it. Details:
 ### Objects
 
 Trees, buildings, hedges, walls and props that matter for the game (they block
-movement now, and line of sight, cover and destruction later) are **map objects**
+movement and, per `data/vision.toml`, line of sight now, and cover and destruction
+later) are **map objects**
 owned by the simulation. Grass, flowers, small bushes and stones are decoration and
 exist only in Godot (see [ARCHITECTURE.md](ARCHITECTURE.md#map-objects-and-decoration-presentation-only)).
 

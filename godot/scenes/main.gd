@@ -36,6 +36,9 @@ extends Node3D
 ## shows the connection state.
 ## Combat (prompt 017) is drawn by `world/combat_view.gd`: tracers, health
 ## bars, wrecks, turrets. The self-test starts with every unit holding fire.
+## Fog of war (prompt 018): `world/fog_of_war.gd` darkens what the local
+## player does not see; enemy units out of sight are not in the snapshot and
+## their nodes are hidden here.
 
 const UNIT_SCENE: PackedScene = preload("res://scenes/unit.tscn")
 const SelfTest := preload("res://scenes/self_test.gd")
@@ -52,6 +55,7 @@ const ObjectsBench := preload("res://scenes/tools/objects_bench.gd")
 const LanMatch := preload("res://scenes/lan/lan_match.gd")
 const NetStatus := preload("res://scenes/lan/net_status.gd")
 const CombatView := preload("res://scenes/world/combat_view.gd")
+const FogOfWar := preload("res://scenes/world/fog_of_war.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
 const MatchSetup := preload("res://scenes/menu/match_setup.gd")
 const LoadingScreen := preload("res://scenes/menu/loading_screen.gd")
@@ -96,6 +100,8 @@ var _enemy_material: StandardMaterial3D
 var atmosphere: Atmosphere
 ## Tracers, health bars, wrecks (prompt 017).
 var combat_view: CombatView
+## Fog overlay (prompt 018).
+var fog_of_war: FogOfWar
 ## Pause menu and result screen (prompt 027).
 var game_menu: CanvasLayer
 var _loading: CanvasLayer
@@ -152,6 +158,10 @@ func _ready() -> void:
 	add_child(water)
 	water.build(sim_host)
 	water.apply_biome(atmosphere.preset)
+	fog_of_war = FogOfWar.new()
+	fog_of_war.name = "FogOfWar"
+	add_child(fog_of_war)
+	fog_of_war.setup(sim_host, camera)
 
 	combat_view = CombatView.new()
 	combat_view.name = "CombatView"
@@ -304,8 +314,13 @@ func _draw_units() -> void:
 	var alpha := sim_host.interpolation_alpha()
 	var facings := sim_host.unit_facing_yaws()
 	var alive := sim_host.unit_alive()
+	var drawn := {}
 	for i in ids.size():
+		drawn[ids[i]] = true
 		var node := _unit_node(ids[i], i)
+		if node.has_meta(&"fogged"):
+			node.remove_meta(&"fogged")
+			node.visible = true
 		var from: Vector3 = previous[i] if i < previous.size() else current[i]
 		var to: Vector3 = current[i]
 		node.position = from.lerp(to, alpha)
@@ -317,6 +332,12 @@ func _draw_units() -> void:
 			turn = 1.0
 		node.rotation.y = lerp_angle(node.rotation.y, facings[i], turn)
 		(node.get_node("SelectionRing") as Node3D).visible = selection.is_selected(ids[i]) and alive[i] != 0
+	# Units out of the local player's sight are not in the snapshot (prompt 018).
+	if drawn.size() < _unit_nodes.size():
+		for id: int in _unit_nodes:
+			if not drawn.has(id) and not _unit_nodes[id].has_meta(&"fogged"):
+				_unit_nodes[id].set_meta(&"fogged", true)
+				_unit_nodes[id].visible = false
 
 
 func _unit_node(id: int, index: int) -> Node3D:
