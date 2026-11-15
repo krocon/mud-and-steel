@@ -1,0 +1,14 @@
+"AppBuild"
+{
+	"AppID" "@APP_ID@"
+	"Desc" "Mud and Steel @VERSION@ (@COMMIT@)"
+	"ContentRoot" "@ROOT@/build/export/"
+	"BuildOutput" "@ROOT@/build/steam/output/"
+	"SetLive" "@BRANCH@"
+	"Depots"
+	{
+		"@DEPOT_WINDOWS@" "depot_build_windows.vdf"
+		"@DEPOT_MACOS@" "depot_build_macos.vdf"
+		"@DEPOT_LINUX@" "depot_build_linux.vdf"
+	}
+}

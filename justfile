@@ -424,3 +424,25 @@ lan-host ticks="600":
 [group('lan')]
 lan-join address="" ticks="600":
     cargo run -q -p cli -- lan-join --ticks {{ ticks }} {{ if address != "" { "--address " + address } else { "" } }}
+
+# --- Release (prompt 044, docs/RELEASE.md) ----------------------------------------------
+
+# Build the GDExtension in the release profile and stage it with steam_api and the third-party licenses in target/export/
+[group('release')]
+release-lib:
+    bash tools/release/build-lib.sh
+
+# Export the game: macos, windows or linux into build/export/ and an archive in build/release/ (needs Godot's export templates); `pack` only the .pck (no templates)
+[group('release')]
+export system="pack":
+    bash tools/release/export.sh {{ system }}
+
+# Headless menu self-test of the exported game; `pack` runs the exported .pck with the editor binary and the debug bridge
+[group('release')]
+export-selftest system="pack": build
+    bash tools/release/smoke-test.sh {{ system }}
+
+# Write the SteamPipe scripts into build/steam/ (dry run); `just steam-upload --upload` uploads with steamcmd (manual only)
+[group('release')]
+steam-upload *args:
+    bash tools/steam/upload.sh {{ args }}

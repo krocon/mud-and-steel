@@ -11,6 +11,7 @@ releases.
 | Blender       | 5.3.0                | –                                          | Used for `tools/*.py`; export via the bundled glTF exporter. |
 | steamworks-rs | `steamworks = "=0.13.1"` | `Cargo.toml` (workspace dependencies)  | Steamworks SDK 1.64; `steamworks-sys` 0.13.0 brings the redistributable `steam_api` libraries (crates.io, not in the repository). Chosen over GodotSteam (4.24, SDK 1.65), see [ONLINE.md](ONLINE.md). Steam app id: `steam::APP_ID`. |
 | Git LFS       | 3.8.1                | `.gitattributes`                           | |
+| Godot export templates | 4.7.2-stable | `.github/workflows/release.yml` (`GODOT_VERSION`) | Only for release exports ([RELEASE.md](RELEASE.md)); must match the Godot version exactly. |
 
 Other crates (`fixed`, `serde`, `postcard`, `toml`, `clap`, `rusty_enet`, `if-addrs`) are
 pinned by `Cargo.lock`. `rusty_enet` 0.4 is ENet 1.3.18 transpiled to Rust (no C
