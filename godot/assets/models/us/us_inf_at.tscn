@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" uid="uid://bd6mabqvv7mwf" path="res://assets/models/us/infantry/at_assistant.glb" id="1_at_assistant"]
+[ext_resource type="PackedScene" uid="uid://clhfwi6uyxu45" path="res://assets/models/us/infantry/at_gunner.glb" id="2_at_gunner"]
+
+[node name="us_inf_at" type="Node3D"]
+metadata/extras = {"cat_id": "us_inf_at", "cat_faction": "us", "cat_category": "inf_at", "cat_name_de": "Panzerabwehrtrupp (Bazooka)", "cat_name_en": "Bazooka Team", "cat_designation": "Rocket launcher team, 2.36 in M1A1 / M9", "cat_year_from": 1943, "cat_year_to": 1945, "cat_speed_road_kmh_x10": 50, "cat_speed_offroad_kmh_x10": 40, "cat_weapons": "2.36 in Rocket Launcher M9 (Bazooka); 2× Carbine M1", "cat_squad_size": 2, "squad": true, "squad_roles": ["at_gunner", "at_assistant"], "squad_notes": ["gunner (2.36 in M9; carbine M1 not modeled)", "loader (carbine M1, rocket bag)"], "squad_clips": ["aim_kneel", "kneel"], "squad_file": "assets-src/blueprints/us/squads/us_inf_at.toml", "source_hash": "df598ce03c9b33d9"}
+
+[node name="Member_01" parent="." instance=ExtResource("2_at_gunner")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5, 0, -0.3)
+
+[node name="Member_02" parent="." instance=ExtResource("1_at_assistant")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6, 0, 0.3)

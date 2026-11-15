@@ -1,0 +1,50 @@
+# US heavy machine gun squad, heavy weapons company (1944): 7 men (catalog
+# us_inf_hmg_team: M1917A1, 5 carbines, 2 pistols; strength is a catalog estimate).
+# Members: gunner (M1917A1, pistol M1911A1), assistant gunner (pistol), squad
+# leader and four ammunition bearers / driver with the M1 carbine.
+#
+# Roles: `hmg_gunner` (gun on its tripod), `ammo_carrier` for the pistol-armed
+# assistant gunner (pistol in the holster, ammunition case), `carbineer` for the
+# carbine men. No deviations from the catalog weapon list.
+#
+# Formation: gun in position, assistant beside it, leader behind, bearers in the
+# rear (display only).
+unit = "us_inf_hmg_team"
+
+[[member]]
+role = "hmg_gunner"
+position = [0.0, 2.0]
+clip = "aim_prone"
+note = "gunner (M1917A1 on tripod, pistol M1911A1)"
+
+[[member]]
+role = "ammo_carrier"
+position = [1.3, 1.4]
+clip = "kneel"
+note = "assistant gunner (pistol M1911A1), feeds the belt"
+
+[[member]]
+role = "carbineer"
+position = [-1.4, 0.4]
+clip = "aim_kneel"
+note = "squad leader (carbine M1)"
+
+[[member]]
+role = "carbineer"
+position = [-2.0, -1.6]
+note = "ammunition bearer (carbine M1)"
+
+[[member]]
+role = "carbineer"
+position = [0.0, -1.6]
+note = "ammunition bearer (carbine M1)"
+
+[[member]]
+role = "carbineer"
+position = [2.0, -1.6]
+note = "ammunition bearer (carbine M1)"
+
+[[member]]
+role = "carbineer"
+position = [0.0, -3.8]
+note = "driver of the squad's jeep (carbine M1)"

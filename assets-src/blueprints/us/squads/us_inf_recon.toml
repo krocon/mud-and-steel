@@ -1,0 +1,43 @@
+# US I&R squad, dismounted (catalog us_inf_recon, strength and weapons are
+# catalog estimates): 3 M1 rifles, 2 carbines, 1 Thompson.
+#
+# Roles: `squad_leader` (Thompson M1A1 and binoculars) leads, `scout` (M1 and
+# binoculars) for the three riflemen, `carbineer` for the carbine men.
+# No deviations from the catalog weapon list.
+#
+# Formation: scouts spread out ahead, leader in the middle, carbines covering
+# the flanks behind (display only).
+unit = "us_inf_recon"
+
+[[member]]
+role = "squad_leader"
+position = [0.0, 1.0]
+note = "squad leader (Thompson M1A1)"
+
+[[member]]
+role = "scout"
+position = [-3.0, 4.0]
+clip = "aim_kneel"
+note = "scout (M1 rifle, binoculars)"
+
+[[member]]
+role = "scout"
+position = [0.0, 5.0]
+clip = "prone"
+note = "scout (M1 rifle, binoculars)"
+
+[[member]]
+role = "scout"
+position = [3.0, 4.0]
+clip = "aim_kneel"
+note = "scout (M1 rifle, binoculars)"
+
+[[member]]
+role = "carbineer"
+position = [-2.5, -1.5]
+note = "radio / messenger (carbine M1)"
+
+[[member]]
+role = "carbineer"
+position = [2.5, -1.5]
+note = "rear security (carbine M1)"

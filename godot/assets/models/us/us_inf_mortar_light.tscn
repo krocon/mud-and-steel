@@ -1,0 +1,24 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="PackedScene" uid="uid://58tjrpa55dr6" path="res://assets/models/us/infantry/ammo_carrier.glb" id="1_ammo_carrier"]
+[ext_resource type="PackedScene" uid="uid://bmxxflfsru6sd" path="res://assets/models/us/infantry/carbineer.glb" id="2_carbineer"]
+[ext_resource type="PackedScene" uid="uid://dsefeiae6klwx" path="res://assets/models/us/infantry/mortar_gunner.glb" id="3_mortar_gunner"]
+[ext_resource type="PackedScene" uid="uid://1076pyxkp2eq" path="res://assets/models/us/infantry/rifleman.glb" id="4_rifleman"]
+
+[node name="us_inf_mortar_light" type="Node3D"]
+metadata/extras = {"cat_id": "us_inf_mortar_light", "cat_faction": "us", "cat_category": "inf_mortar_light", "cat_name_de": "Leichter Granatwerfertrupp (60 mm M2)", "cat_name_en": "60 mm Mortar Squad (M2)", "cat_designation": "60 mm mortar squad, weapons platoon, T/O&E 7-17 (1944)", "cat_year_from": 1943, "cat_year_to": 1945, "cat_speed_road_kmh_x10": 50, "cat_speed_offroad_kmh_x10": 40, "cat_weapons": "60 mm Mortar M2 (mount M2); Rifle M1 (Garand); 2× Carbine M1; 2× Pistol M1911A1", "cat_squad_size": 5, "squad": true, "squad_roles": ["mortar_gunner", "ammo_carrier", "rifleman", "carbineer", "carbineer"], "squad_notes": ["gunner (60 mm mortar M2, pistol M1911A1)", "assistant gunner (pistol M1911A1), loads", "squad leader (M1 rifle), observes the fall of shot", "ammunition bearer (carbine M1)", "ammunition bearer (carbine M1)"], "squad_clips": ["mortar_operate", "kneel", "aim_kneel", "idle", "idle"], "squad_file": "assets-src/blueprints/us/squads/us_inf_mortar_light.toml", "source_hash": "2fc41bb936649afb"}
+
+[node name="Member_01" parent="." instance=ExtResource("3_mortar_gunner")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="Member_02" parent="." instance=ExtResource("1_ammo_carrier")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2, 0, 0.4)
+
+[node name="Member_03" parent="." instance=ExtResource("4_rifleman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5, 0, -3)
+
+[node name="Member_04" parent="." instance=ExtResource("2_carbineer")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.2, 0, 2.2)
+
+[node name="Member_05" parent="." instance=ExtResource("2_carbineer")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2, 0, 2.4)

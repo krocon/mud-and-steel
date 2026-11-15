@@ -1,0 +1,10 @@
+# US company aid man (catalog us_inf_medic): one unarmed medic attached from the
+# battalion medical section. The `medic` role carries the aid bags and an
+# armband without the Red Cross emblem (docs/SOURCES.md).
+unit = "us_inf_medic"
+
+[[member]]
+role = "medic"
+position = [0.0, 0.0]
+clip = "medic_treat"
+note = "company aid man (unarmed)"

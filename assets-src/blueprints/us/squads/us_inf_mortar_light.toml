@@ -1,0 +1,39 @@
+# US 60 mm mortar squad, weapons platoon, T/O&E 7-17 (1944): 5 men (catalog
+# us_inf_mortar_light, battleorder.org): leader (M1 rifle), gunner and assistant
+# gunner (pistol M1911A1), 2 ammunition bearers (carbine M1).
+#
+# Roles: `mortar_gunner` (60 mm M2, pistol holster), `ammo_carrier` for the
+# assistant gunner, `rifleman` for the leader, `carbineer` for the bearers.
+# No deviations from the catalog weapon list.
+#
+# Formation: mortar in position, assistant beside it, leader observing ahead,
+# bearers behind (display only).
+unit = "us_inf_mortar_light"
+
+[[member]]
+role = "mortar_gunner"
+position = [0.0, 0.0]
+clip = "mortar_operate"
+note = "gunner (60 mm mortar M2, pistol M1911A1)"
+
+[[member]]
+role = "ammo_carrier"
+position = [1.2, -0.4]
+clip = "kneel"
+note = "assistant gunner (pistol M1911A1), loads"
+
+[[member]]
+role = "rifleman"
+position = [-0.5, 3.0]
+clip = "aim_kneel"
+note = "squad leader (M1 rifle), observes the fall of shot"
+
+[[member]]
+role = "carbineer"
+position = [-1.2, -2.2]
+note = "ammunition bearer (carbine M1)"
+
+[[member]]
+role = "carbineer"
+position = [1.2, -2.4]
+note = "ammunition bearer (carbine M1)"

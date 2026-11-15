@@ -1,0 +1,45 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="PackedScene" uid="uid://bydty1tcmbshf" path="res://assets/models/us/infantry/auto_rifleman.glb" id="1_auto_rifleman"]
+[ext_resource type="PackedScene" uid="uid://c77vxuijp7keo" path="res://assets/models/us/infantry/engineer.glb" id="2_engineer"]
+[ext_resource type="PackedScene" uid="uid://1076pyxkp2eq" path="res://assets/models/us/infantry/rifleman.glb" id="3_rifleman"]
+[ext_resource type="PackedScene" uid="uid://cehsofkewvhqx" path="res://assets/models/us/infantry/scout.glb" id="4_scout"]
+
+[node name="us_inf_engineer" type="Node3D"]
+metadata/extras = {"cat_id": "us_inf_engineer", "cat_faction": "us", "cat_category": "inf_engineer", "cat_name_de": "Pioniergruppe", "cat_name_en": "Combat Engineer Squad", "cat_designation": "Engineer squad, engineer combat battalion (1944)", "cat_year_from": 1943, "cat_year_to": 1945, "cat_speed_road_kmh_x10": 50, "cat_speed_offroad_kmh_x10": 40, "cat_weapons": "11× Rifle M1 (Garand); Browning Automatic Rifle M1918A2; Demolition charges (TNT, Composition C2) and Bangalore torpedo M1A1", "cat_squad_size": 12, "squad": true, "squad_roles": ["scout", "engineer", "engineer", "engineer", "engineer", "auto_rifleman", "rifleman", "rifleman", "rifleman", "rifleman", "rifleman", "rifleman"], "squad_notes": ["squad leader (M1 rifle, binoculars)", "demolition man (M1, charge, Bangalore torpedo)", "demolition man (M1, charge, Bangalore torpedo)", "demolition man (M1, charge, Bangalore torpedo)", "demolition man (M1, charge, Bangalore torpedo)", "automatic rifleman (BAR M1918A2)", "assistant automatic rifleman (M1)", "rifleman (M1)", "rifleman (M1)", "rifleman (M1)", "rifleman (M1)", "assistant squad leader (M1)"], "squad_clips": ["idle", "kneel", "kneel", "idle", "idle", "aim_prone", "idle", "aim_kneel", "idle", "aim_stand", "idle", "idle"], "squad_file": "assets-src/blueprints/us/squads/us_inf_engineer.toml", "source_hash": "f219a57f98119587"}
+
+[node name="Member_01" parent="." instance=ExtResource("4_scout")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2.5)
+
+[node name="Member_02" parent="." instance=ExtResource("2_engineer")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 0, -5.5)
+
+[node name="Member_03" parent="." instance=ExtResource("2_engineer")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 0, -5.5)
+
+[node name="Member_04" parent="." instance=ExtResource("2_engineer")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, -4)
+
+[node name="Member_05" parent="." instance=ExtResource("2_engineer")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, -4)
+
+[node name="Member_06" parent="." instance=ExtResource("1_auto_rifleman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 0, -1)
+
+[node name="Member_07" parent="." instance=ExtResource("3_rifleman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.5, 0, 0.5)
+
+[node name="Member_08" parent="." instance=ExtResource("3_rifleman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 0, -1)
+
+[node name="Member_09" parent="." instance=ExtResource("3_rifleman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.5, 0, 0.5)
+
+[node name="Member_10" parent="." instance=ExtResource("3_rifleman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 0, 1.5)
+
+[node name="Member_11" parent="." instance=ExtResource("3_rifleman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 0, 1.5)
+
+[node name="Member_12" parent="." instance=ExtResource("3_rifleman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 3.5)
