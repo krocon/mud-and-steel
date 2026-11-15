@@ -1352,11 +1352,17 @@ fn resolve_split(
 /// railing of a bridge: one of them is a deck cell and the other is not a
 /// cell of the same deck, and the step is not along the deck's axis. Units
 /// get on and off a deck only over its ends ([`crate::Map::deck_step_ok`]).
+///
+/// The common case (neither cell on a deck) is inlined into the searches,
+/// which ask for every neighbor (prompt 016).
+#[inline]
 fn railing(deck: &[u16], rights: &[Vec2], width: u32, a: usize, b: usize) -> bool {
-    let (da, db) = (deck[a], deck[b]);
-    if da == db {
-        return false;
-    }
+    deck[a] != deck[b] && railing_crossed(deck[a], deck[b], rights, width, a, b)
+}
+
+/// [`railing`] for two cells with different decks.
+#[inline(never)]
+fn railing_crossed(da: u16, db: u16, rights: &[Vec2], width: u32, a: usize, b: usize) -> bool {
     let (dx, dy) = (
         i64::from(b as u32 % width) - i64::from(a as u32 % width),
         i64::from(b as u32 / width) - i64::from(a as u32 / width),
