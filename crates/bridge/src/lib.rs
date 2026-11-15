@@ -6,8 +6,11 @@
 
 use godot::classes::{INode, Node};
 use godot::prelude::*;
-use net::{LocalTransport, LockstepConfig, LockstepSession, NetError, Replay, ReplayRecorder};
-use sim::scenario::{DEMO_SCENARIO, builtin_map, parse_scenario};
+use net::{
+    LocalTransport, LockstepConfig, LockstepSession, NetError, Replay, ReplayRecorder, Transport,
+    recommended_input_delay,
+};
+use sim::scenario::{BUILTIN_MAP_NAME, DEMO_SCENARIO, builtin_map, parse_scenario};
 use sim::{
     Catalog, Command, Fixed, Map, PlayerId, RouteView, Scale, Sim, SimConfig, Snapshot,
     TerrainRules, UnitId, Vec2,
@@ -15,9 +18,12 @@ use sim::{
 use std::path::Path;
 use std::sync::Arc;
 
+mod lan;
 mod object_funcs;
 mod objects;
 mod terrain_layers;
+
+pub use lan::LanLobby;
 
 struct MudAndSteel;
 
@@ -36,6 +42,12 @@ const LOCAL_PLAYER: PlayerId = PlayerId(0);
 /// to compare with, but uses the same protocol.
 const HASH_INTERVAL: u64 = 20;
 
+/// The input delay of networked games is re-evaluated every this many ticks.
+const DELAY_CHECK_INTERVAL: u64 = 20;
+
+/// Checks in a row that must recommend a smaller input delay before it drops.
+const LOWER_DELAY_VOTES: u32 = 3;
+
 /// Rays longer than this (meters) do not hit the ground in `ray_pick`.
 const MAX_PICK_DISTANCE: f32 = 20_000.0;
 
@@ -47,8 +59,21 @@ struct Game {
     map_top: f32,
     config: SimConfig,
     session: LockstepSession,
-    transport: LocalTransport,
+    /// `LocalTransport` in single player, `net::lan::LanNode` on the LAN.
+    transport: Box<dyn Transport>,
+    /// More than one human player: the match runs over the network.
+    networked: bool,
+    player_count: usize,
     recorder: ReplayRecorder,
+    /// Why the match stopped (lost connection, desync); the last state stays
+    /// visible and the replay can still be saved.
+    halted: Option<String>,
+    /// Whether the last frame had to wait for remote command frames.
+    waiting: bool,
+    /// Consecutive delay checks that recommended a smaller input delay.
+    lower_delay_votes: u32,
+    /// Largest delay recommended during those checks.
+    lower_delay_to: u32,
     /// Presentation-only height offsets in meters (debug craters until the
     /// simulation can deform terrain, prompt 021). Empty until first used.
     display_offsets: Vec<f32>,
@@ -70,10 +95,15 @@ impl Game {
 
 impl Game {
     /// Runs one round of the lockstep protocol. Returns whether a tick was
-    /// simulated (always true with a single local player).
-    fn step(&mut self, local: Vec<Command>) -> Result<bool, NetError> {
-        if self.session.needs_local_input() {
-            self.session.submit_local(local, &mut self.transport)?;
+    /// simulated (always true with a single local player). `pending` is only
+    /// consumed when a local frame is due, so commands given while waiting
+    /// for remote frames are not lost.
+    fn step(&mut self, pending: &mut Vec<Command>) -> Result<bool, NetError> {
+        // A loop, because a raised input delay asks for several frames; the
+        // first one carries the commands.
+        while self.session.needs_local_input() {
+            self.session
+                .submit_local(std::mem::take(pending), &mut self.transport)?;
         }
         self.session.receive(&mut self.transport)?;
         let Some(commands) = self.session.next_commands() else {
@@ -83,7 +113,50 @@ impl Game {
         self.sim.step(&commands);
         self.session
             .record_hash(self.sim.tick(), self.sim.state_hash(), &mut self.transport)?;
+        if self.sim.tick().is_multiple_of(DELAY_CHECK_INTERVAL) {
+            self.adapt_input_delay();
+        }
         Ok(true)
+    }
+
+    /// Follows the measured round trip: raises the input delay at once,
+    /// lowers it only after several checks in a row (no flapping), then to
+    /// the largest value recommended during those checks.
+    fn adapt_input_delay(&mut self) {
+        let Some((rtt, variance)) = self.transport.round_trip_ms() else {
+            return;
+        };
+        let recommended = recommended_input_delay(rtt, variance, self.config.tick_hz);
+        let current = self.session.input_delay();
+        if recommended > current {
+            self.session.set_input_delay(recommended);
+            self.lower_delay_votes = 0;
+        } else if recommended < current {
+            self.lower_delay_votes += 1;
+            self.lower_delay_to = self.lower_delay_to.max(recommended);
+            if self.lower_delay_votes >= LOWER_DELAY_VOTES {
+                self.session.set_input_delay(self.lower_delay_to);
+                self.lower_delay_votes = 0;
+                self.lower_delay_to = 0;
+            }
+        } else {
+            self.lower_delay_votes = 0;
+            self.lower_delay_to = 0;
+        }
+    }
+
+    fn halt(&mut self, reason: String) {
+        if self.halted.is_none() {
+            godot_warn!("match stopped: {reason}");
+            self.halted = Some(reason);
+        }
+    }
+}
+
+impl Drop for Game {
+    fn drop(&mut self) {
+        // Tell LAN peers right away instead of letting them time out.
+        self.transport.close();
     }
 }
 
@@ -130,21 +203,26 @@ impl INode for SimHost {
         let Some(game) = self.game.as_mut() else {
             return;
         };
+        if game.halted.is_some() {
+            return;
+        }
         let tick_seconds = 1.0 / f64::from(self.tick_hz);
         self.accumulator += delta;
         let mut ticks = 0;
-        let mut failed = false;
+        game.waiting = false;
         while self.accumulator >= tick_seconds {
             if ticks == MAX_TICKS_PER_FRAME {
                 self.accumulator = 0.0;
                 break;
             }
-            match game.step(std::mem::take(&mut self.pending)) {
+            match game.step(&mut self.pending) {
                 Ok(true) => {}
-                Ok(false) => break,
+                Ok(false) => {
+                    game.waiting = true;
+                    break;
+                }
                 Err(e) => {
-                    godot_error!("lockstep failed, stopping the match: {e}");
-                    failed = true;
+                    game.halt(format!("lockstep failed: {e}"));
                     break;
                 }
             }
@@ -152,8 +230,17 @@ impl INode for SimHost {
             self.accumulator -= tick_seconds;
             ticks += 1;
         }
-        if failed {
-            self.game = None;
+        if ticks == 0 && game.networked && game.halted.is_none() {
+            // Keep the connection serviced between ticks.
+            if let Err(e) = game.session.receive(&mut game.transport) {
+                game.halt(format!("lockstep failed: {e}"));
+            }
+        }
+        if let Some(d) = game.session.desync() {
+            game.halt(format!(
+                "desync at tick {}: player {} computed a different state",
+                d.tick, d.player.0
+            ));
         }
     }
 }
@@ -198,15 +285,85 @@ impl SimHost {
                 return false;
             }
         };
-        let players = vec![LOCAL_PLAYER];
-        let session = LockstepSession::new(
+        let lockstep = LockstepConfig {
+            players: vec![LOCAL_PLAYER],
+            input_delay: self.input_delay,
+            hash_interval: HASH_INTERVAL,
+        };
+        self.install(
+            sim,
+            map,
+            config,
+            seed,
             LOCAL_PLAYER,
-            &LockstepConfig {
-                players: players.clone(),
-                input_delay: self.input_delay,
-                hash_interval: HASH_INTERVAL,
-            },
+            &lockstep,
+            Box::new(LocalTransport),
         );
+        true
+    }
+
+    /// Starts the LAN match that `lobby` (state "started") prepared: the
+    /// host's seed and config, the map loaded locally (built-in, or from
+    /// `maps_dir/<name>/`). Returns false (and logs why) on failure.
+    #[func]
+    fn start_lan(&mut self, mut lobby: Gd<LanLobby>, maps_dir: GString) -> bool {
+        let node = match lobby.bind_mut().take_started() {
+            Ok(node) => node,
+            Err(e) => {
+                godot_error!("cannot start the LAN match: {e}");
+                return false;
+            }
+        };
+        let (Some(info), Some(local)) = (node.start_info().cloned(), node.local_player()) else {
+            godot_error!("cannot start the LAN match: no start message");
+            return false;
+        };
+        let name = &info.config.map.name;
+        let map = if *name == BUILTIN_MAP_NAME {
+            builtin_map()
+        } else {
+            match load_map_dir(&Path::new(&maps_dir.to_string()).join(name)) {
+                Ok(map) => Arc::new(map),
+                Err(e) => {
+                    godot_error!("cannot load the map of the LAN match: {e}");
+                    return false;
+                }
+            }
+        };
+        // Rejects a map with a different content hash than the host's.
+        let sim = match Sim::new(&info.config, map.clone(), info.seed) {
+            Ok(sim) => sim,
+            Err(e) => {
+                godot_error!("cannot start the LAN match: {e}");
+                return false;
+            }
+        };
+        self.input_delay = info.input_delay;
+        self.install(
+            sim,
+            map,
+            info.config.clone(),
+            info.seed,
+            local,
+            &info.lockstep_config(),
+            Box::new(node),
+        );
+        true
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn install(
+        &mut self,
+        sim: Sim,
+        map: Arc<Map>,
+        config: SimConfig,
+        seed: u64,
+        local: PlayerId,
+        lockstep: &LockstepConfig,
+        transport: Box<dyn Transport>,
+    ) {
+        let session = LockstepSession::new(local, lockstep);
+        let players = lockstep.players.clone();
         self.tick_hz = config.tick_hz;
         self.current = sim.snapshot();
         self.previous = self.current.clone();
@@ -225,9 +382,51 @@ impl SimHost {
             map,
             config,
             session,
-            transport: LocalTransport,
+            transport,
+            networked: players.len() > 1,
+            player_count: players.len(),
+            halted: None,
+            waiting: false,
+            lower_delay_votes: 0,
+            lower_delay_to: 0,
         });
-        true
+    }
+
+    /// Whether the match runs over the network (LAN).
+    #[func]
+    fn is_networked(&self) -> bool {
+        self.game.as_ref().is_some_and(|g| g.networked)
+    }
+
+    /// State of the lockstep match: `state` ("none", "running", "waiting"
+    /// for remote frames, "halted"), `message` (why it halted),
+    /// `desync` (bool), `players`, `input_delay`, `rtt_ms` (-1 if unknown)
+    /// and `verified_tick` (last tick whose hashes all peers confirmed).
+    #[func]
+    fn net_status(&self) -> VarDictionary {
+        let Some(game) = &self.game else {
+            return vdict! { "state" => "none" };
+        };
+        let state = if game.halted.is_some() {
+            "halted"
+        } else if game.waiting {
+            "waiting"
+        } else {
+            "running"
+        };
+        let rtt = game
+            .transport
+            .round_trip_ms()
+            .map_or(-1, |(rtt, _)| i64::from(rtt));
+        vdict! {
+            "state" => state,
+            "message" => game.halted.clone().unwrap_or_default(),
+            "desync" => game.session.desync().is_some(),
+            "players" => i64::try_from(game.player_count).unwrap_or(0),
+            "input_delay" => i64::from(game.session.input_delay()),
+            "rtt_ms" => rtt,
+            "verified_tick" => i64::try_from(game.session.verified_tick()).unwrap_or(i64::MAX),
+        }
     }
 
     /// Name of the loaded map ("" before `start`).
@@ -485,7 +684,11 @@ impl SimHost {
     /// Id of the player controlled on this machine.
     #[func]
     fn local_player(&self) -> i64 {
-        i64::from(LOCAL_PLAYER.0)
+        let local = self
+            .game
+            .as_ref()
+            .map_or(LOCAL_PLAYER, |g| g.session.local_player());
+        i64::from(local.0)
     }
 
     /// Queues a move of the given units to a formation around the ground

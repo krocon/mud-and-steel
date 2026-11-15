@@ -1,4 +1,5 @@
-//! Byte transport abstraction. Real transports (Steam, ENet) come later.
+//! Byte transport abstraction. ENet on the LAN lives in [`crate::lan`];
+//! Steam (prompt 026) implements the same trait.
 
 use std::fmt;
 use std::sync::mpsc::{Receiver, Sender, TryRecvError, channel};
@@ -28,6 +29,34 @@ pub trait Transport {
     /// Returns the next received packet, or `None` if nothing is pending.
     /// Never blocks.
     fn recv(&mut self) -> Result<Option<Vec<u8>>, TransportError>;
+
+    /// Measured round trip time to the slowest peer and its variance, in
+    /// milliseconds, or `None` if the transport does not measure it.
+    fn round_trip_ms(&self) -> Option<(u32, u32)> {
+        None
+    }
+
+    /// Leaves the match: tells the other peers right away instead of letting
+    /// them run into a timeout. Called when a match is dropped.
+    fn close(&mut self) {}
+}
+
+impl<T: Transport + ?Sized> Transport for Box<T> {
+    fn send(&mut self, packet: &[u8]) -> Result<(), TransportError> {
+        (**self).send(packet)
+    }
+
+    fn recv(&mut self) -> Result<Option<Vec<u8>>, TransportError> {
+        (**self).recv()
+    }
+
+    fn round_trip_ms(&self) -> Option<(u32, u32)> {
+        (**self).round_trip_ms()
+    }
+
+    fn close(&mut self) {
+        (**self).close();
+    }
 }
 
 /// In-process transport between exactly two peers, for tests.

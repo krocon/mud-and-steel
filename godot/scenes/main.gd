@@ -27,6 +27,9 @@ extends Node3D
 ## (prompt 015): the biome of the map (`map.toml`), overridden by
 ## `-- --biome=<forest|desert|winter>`; graphics quality by
 ## `-- --quality=<low|medium|high>`.
+## LAN games start in `lan/lan_lobby.tscn` (`just lan`), which hands the
+## started game over through `lan/lan_match.gd`; `lan/net_status.gd` then
+## shows the connection state.
 
 const UNIT_SCENE: PackedScene = preload("res://scenes/unit.tscn")
 const SelfTest := preload("res://scenes/self_test.gd")
@@ -39,6 +42,8 @@ const Atmosphere := preload("res://scenes/world/atmosphere.gd")
 const GraphicsQuality := preload("res://scenes/world/graphics_quality.gd")
 const MapObjects := preload("res://scenes/world/map_objects.gd")
 const ObjectsBench := preload("res://scenes/tools/objects_bench.gd")
+const LanMatch := preload("res://scenes/lan/lan_match.gd")
+const NetStatus := preload("res://scenes/lan/net_status.gd")
 const SEED := 42
 ## Map folders, relative to the Godot project (repository checkout only).
 const MAPS_DIR := "res://../data/maps"
@@ -123,6 +128,11 @@ func _ready() -> void:
 	path_debug.selection = selection
 	add_child(path_debug)
 
+	if sim_host.is_networked():
+		var net_status := NetStatus.new()
+		net_status.main = self
+		$Hud.add_child(net_status)
+
 	if "--self-test" in OS.get_cmdline_user_args():
 		camera_rig.edge_scroll_enabled = false
 		var test := SelfTest.new()
@@ -160,8 +170,13 @@ func _exit_tree() -> void:
 	GroundPick.height_source = null
 
 
-## Starts the built-in map, or the one named by `--map=<name>`.
+## Starts the built-in map, or the one named by `--map=<name>`, or the LAN
+## match the lobby started.
 func _start_simulation() -> bool:
+	if LanMatch.lobby != null:
+		var lobby := LanMatch.lobby
+		LanMatch.lobby = null
+		return sim_host.start_lan(lobby, ProjectSettings.globalize_path(MAPS_DIR).simplify_path())
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--map="):
 			var dir := ProjectSettings.globalize_path(MAPS_DIR.path_join(arg.trim_prefix("--map=")))
@@ -169,15 +184,15 @@ func _start_simulation() -> bool:
 	return sim_host.start(SEED)
 
 
-## Writes the match so far to `user://replays/<date-time>.msreplay` and
-## returns the path, or "" on failure.
-func save_replay() -> String:
+## Writes the match so far to `user://replays/<prefix><date-time>.msreplay`
+## and returns the path, or "" on failure.
+func save_replay(prefix := "") -> String:
 	var bytes := sim_host.replay_bytes()
 	if bytes.is_empty():
 		return ""
 	DirAccess.make_dir_recursive_absolute(REPLAY_DIR)
 	var stamp := Time.get_datetime_string_from_system().replace(":", "-")
-	var path := "%s/%s.msreplay" % [REPLAY_DIR, stamp]
+	var path := "%s/%s%s.msreplay" % [REPLAY_DIR, prefix, stamp]
 	var file := FileAccess.open(path, FileAccess.WRITE)
 	if file == null:
 		push_error("cannot write replay %s: %s" % [path, error_string(FileAccess.get_open_error())])

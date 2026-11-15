@@ -93,7 +93,24 @@ pub struct LockstepSession {
     local_hashes: BTreeMap<u64, u64>,
     remote_hashes: BTreeMap<u64, BTreeMap<PlayerId, u64>>,
     desync: Option<Desync>,
+    /// Highest tick whose hash every player reported identically.
+    verified_tick: u64,
 }
+
+/// Input delay (ticks) that hides a measured round trip: half the round
+/// trip plus its variance, rounded up to whole ticks, plus one tick for
+/// processing, clamped to `1..=MAX_INPUT_DELAY`.
+pub fn recommended_input_delay(rtt_ms: u32, rtt_variance_ms: u32, tick_hz: u32) -> u32 {
+    let tick_ms = 1000 / tick_hz.max(1);
+    let one_way = (u64::from(rtt_ms) + u64::from(rtt_variance_ms)).div_ceil(2);
+    let ticks = one_way.div_ceil(u64::from(tick_ms.max(1))) + 1;
+    u32::try_from(ticks)
+        .unwrap_or(MAX_INPUT_DELAY)
+        .clamp(1, MAX_INPUT_DELAY)
+}
+
+/// Upper bound of [`recommended_input_delay`]: 600 ms at 20 Hz.
+pub const MAX_INPUT_DELAY: u32 = 12;
 
 impl LockstepSession {
     /// # Panics
@@ -122,6 +139,7 @@ impl LockstepSession {
             local_hashes: BTreeMap::new(),
             remote_hashes: BTreeMap::new(),
             desync: None,
+            verified_tick: 0,
         }
     }
 
@@ -137,6 +155,30 @@ impl LockstepSession {
     /// The tick the next [`submit_local`](Self::submit_local) schedules for.
     pub const fn next_local_tick(&self) -> u64 {
         self.scheduled_until
+    }
+
+    /// Current input delay in ticks.
+    pub const fn input_delay(&self) -> u32 {
+        // Only ever set from a `u32`.
+        self.input_delay as u32
+    }
+
+    /// Changes the input delay of the local player from now on.
+    ///
+    /// Only the local schedule changes; every frame carries its tick, so the
+    /// peers need not agree on the delay (only the initial one, from
+    /// `LockstepConfig`, must be the same everywhere). A larger delay makes
+    /// [`needs_local_input`](Self::needs_local_input) true until the gap is
+    /// filled: submit one frame per call, the extra ones usually empty. A
+    /// smaller delay pauses local scheduling until the simulation caught up.
+    pub fn set_input_delay(&mut self, input_delay: u32) {
+        self.input_delay = u64::from(input_delay);
+    }
+
+    /// Highest tick whose state hash every player reported identically
+    /// (0 before the first comparison and in single player).
+    pub const fn verified_tick(&self) -> u64 {
+        self.verified_tick
     }
 
     /// Whether local input for the current tick is still missing.
@@ -297,8 +339,30 @@ impl LockstepSession {
         }
         // Once every player has reported, the entries are no longer needed.
         if remote.len() + 1 == self.players.len() {
+            if self.desync.is_none() {
+                self.verified_tick = self.verified_tick.max(tick);
+            }
             self.local_hashes.remove(&tick);
             self.remote_hashes.remove(&tick);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn recommended_delay() {
+        // 20 Hz: 50 ms per tick.
+        assert_eq!(recommended_input_delay(0, 0, 20), 1);
+        assert_eq!(recommended_input_delay(20, 5, 20), 2);
+        assert_eq!(recommended_input_delay(100, 0, 20), 2);
+        assert_eq!(recommended_input_delay(102, 0, 20), 3);
+        assert_eq!(recommended_input_delay(500, 0, 20), 6);
+        assert_eq!(
+            recommended_input_delay(u32::MAX, u32::MAX, 20),
+            MAX_INPUT_DELAY
+        );
     }
 }
