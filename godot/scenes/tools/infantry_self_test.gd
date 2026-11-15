@@ -82,7 +82,9 @@ func run(test: Node) -> void:
 	test._check(shown == 0, "%d soldiers in the church are drawn" % shown)
 
 	# Out again.
-	var outside := point + Vector3(30.0, 0.0, -30.0)
+	# Away from the church and out of the line of fire of the destruction
+	# test that follows (it shells the nearest building).
+	var outside := point + Vector3(60.0, 0.0, 30.0)
 	sim_host.move_units(PackedInt64Array(own), outside.x, outside.z)
 	await test._ticks(5)
 	var garrisons := sim_host.unit_garrisons()

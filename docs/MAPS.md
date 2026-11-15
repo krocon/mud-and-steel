@@ -125,8 +125,8 @@ writes it; in Godot `-- --biome=<id>` overrides it. Details:
 ### Objects
 
 Trees, buildings, hedges, walls and props that matter for the game (they block
-movement and, per `data/vision.toml`, line of sight now, and cover and destruction
-later) are **map objects**
+movement and, per `data/vision.toml`, line of sight; since prompt 020 they can be
+destroyed, see [ARCHITECTURE.md](ARCHITECTURE.md#destruction)) are **map objects**
 owned by the simulation. Grass, flowers, small bushes and stones are decoration and
 exist only in Godot (see [ARCHITECTURE.md](ARCHITECTURE.md#map-objects-and-decoration-presentation-only)).
 
@@ -156,7 +156,8 @@ by default the catalog size). Variants may override both. These are game rules:
 |---|---|---|
 | Trees (deciduous, conifer, birch, palm) | large | trunk circle 0.3–0.5 m |
 | Hedges, dry-stone walls, large rocks, hedgehogs | large | catalog box / circle |
-| Houses, barns, church (every damage level), bunker | all | catalog box |
+| Houses, barns, church (intact and damaged), bunker | all | catalog box |
+| Ruins of houses, barns and the church (variant `Ruin`, prompt 020) | large | catalog box |
 | Barbed wire | small | catalog box |
 | Fences, bushes, hay, props, stumps, logs, poles, medium/small rocks, trenches | none | – |
 
@@ -166,6 +167,13 @@ variants, objects outside the map, bad numbers and headings are errors with the 
 number. The kinds a map uses and their resolved shapes become part of the map hash,
 so changing a rule changes the hash of every map using that kind (old replays then
 report the different map instead of desyncing).
+
+**Damage stages** (prompt 020, `data/destruction.toml`): a placed `Damaged`
+variant starts damaged, a `Ruin` starts destroyed and acts as a ruin (blocks
+tanks only, stops projectiles up to 40 % of its height, blocks no sight); the
+`blocks` of the `Ruin` variant in `data/objects.toml` is overridden by the
+destruction rules (it stays in the map hash). During a match objects lose hit
+points to gunfire and change their stage; the map itself never changes.
 
 Bridges are written first, then everything else.
 

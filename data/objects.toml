@@ -26,7 +26,10 @@
 # A path cell (4 m) is blocked for a class when a blocking shape overlaps it.
 # Rationale: woods, hedges and walls stop tanks but not infantry; buildings
 # stop everybody; fences, bushes, hay and small props stop nobody (tanks push
-# through; destruction follows in prompt 020).
+# through). Destruction (prompt 020, data/destruction.toml) changes what an
+# object blocks during a match: ruins (also placed `Ruin` variants, whose
+# `blocks` here is overridden) block large units only, felled trees and
+# destroyed walls nothing.
 
 # --- Trees: the trunk blocks vehicles ------------------------------------------
 

@@ -112,6 +112,12 @@ pub struct BuildingKind {
 pub struct BuildingRules {
     pub enter_mm: u32,
     pub heavy_caliber_mm_x10: u32,
+    /// Extra exposure of occupants in a damaged building (prompt 020).
+    pub damaged_extra_pct: u32,
+    /// Chance that a round striking a ruin hits a soldier in its rubble.
+    pub ruin_exposure_pct: u32,
+    /// Chance of every occupant to die when the building collapses.
+    pub collapse_loss_pct: u32,
     #[serde(default, rename = "kind")]
     pub kinds: Vec<BuildingKind>,
 }
@@ -192,6 +198,9 @@ impl InfantryRules {
             1,
             10_000,
         )?;
+        check("building.damaged_extra_pct", b.damaged_extra_pct, 0, 100)?;
+        check("building.ruin_exposure_pct", b.ruin_exposure_pct, 0, 100)?;
+        check("building.collapse_loss_pct", b.collapse_loss_pct, 0, 100)?;
         for k in &b.kinds {
             check(
                 &format!("building.kind {} capacity", k.id),
@@ -261,6 +270,9 @@ impl InfantryRules {
         let b = &self.building;
         h.write_u32(b.enter_mm);
         h.write_u32(b.heavy_caliber_mm_x10);
+        h.write_u32(b.damaged_extra_pct);
+        h.write_u32(b.ruin_exposure_pct);
+        h.write_u32(b.collapse_loss_pct);
         h.write_u64(b.kinds.len() as u64);
         for k in &b.kinds {
             h.write_bytes(k.id.as_bytes());

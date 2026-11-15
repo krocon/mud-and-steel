@@ -185,6 +185,29 @@ impl Sim {
         }
     }
 
+    /// Queues every viewshed that covers a vision cell of `c0..=c1` ×
+    /// `r0..=r1` (obstacles there changed, prompt 020).
+    pub(super) fn requeue_viewsheds(&mut self, (c0, r0, c1, r1): (u32, u32, u32, u32)) {
+        let v = &mut self.vision;
+        let columns = v.grid.columns;
+        for (i, shed) in v.sheds.iter().enumerate() {
+            let Some(shed) = shed else { continue };
+            let (c, r) = (
+                (shed.anchor % columns) as i64,
+                (shed.anchor / columns) as i64,
+            );
+            let radius = i64::from(shed.radius);
+            let overlaps = c + radius >= i64::from(c0)
+                && c - radius <= i64::from(c1)
+                && r + radius >= i64::from(r0)
+                && r - radius <= i64::from(r1);
+            if overlaps && !v.queued[i] {
+                v.queued[i] = true;
+                v.queue.push_back(i as u32);
+            }
+        }
+    }
+
     /// Whether the viewshed of unit `i` contains the point `p`.
     /// Whether unit `i` sees unit `j`: its cell, or for a squad in a
     /// building one of the windows its soldiers stand at (prompt 022).

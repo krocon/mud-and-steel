@@ -19,9 +19,20 @@ const FACTIONS: Dictionary[String, String] = {
 	"us": "United States",
 }
 
+## Computer opponents (prompt 024): difficulty id (`SimHost.ai_opponent`)
+## with its display name. "passive" gives no orders: its tanks only fire.
+const OPPONENTS: Dictionary[String, String] = {
+	"passive": "Passive (holds its ground)",
+	"easy": "Easy",
+	"normal": "Normal",
+	"hard": "Hard",
+}
+const DEFAULT_OPPONENT := "normal"
+
 ## The match to start: `map` (folder name in `data/maps/`, or BUILTIN_MAP for
 ## the compiled-in map), `biome` ("" = the map's), `factions` (faction id per
-## player, local player first). Empty when nothing is pending.
+## player, local player first), `ai` (difficulty of the computer opponent,
+## see OPPONENTS). Empty when nothing is pending.
 static var pending := {}
 ## The menu self-test that drives the whole flow, or null. While it runs,
 ## `main.gd` adds the match self-test only when `run_match_test` is set.

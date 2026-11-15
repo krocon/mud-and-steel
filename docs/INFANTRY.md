@@ -316,10 +316,28 @@ all their living soldiers and no other player is inside. Occupants:
   stops it.
 
 A move order takes the squad out where it entered; `Stop` and attack orders
-keep it inside. **Building condition** comes from `Sim::building_condition`:
-until prompt 020 tracks damage in the simulation, it is the placed variant
-(`Intact`, `Damaged`, `Ruin`). Ruins cannot be occupied (and throw occupants
-out) but remain cover; 020 replaces only this function.
+keep it inside.
+
+**Building condition** comes from the destruction of prompt 020
+(`Sim::building_condition`: intact, damaged, destroyed = ruin; a placed
+`Ruin` variant is a ruin from the start):
+
+| Condition | Infantry |
+|---|---|
+| intact | occupied as above |
+| damaged | still occupied; occupants are exposed 10 % more (`damaged_extra_pct`: holes in walls and roof) |
+| ruin | cannot be occupied. `Garrison` on a ruin moves the squads into the rubble; a squad standing in a ruin spreads its soldiers 1 m inside its walls. A round that strikes the ruin (it stops rounds up to 30–40 % of the building height, prompt 020) hits one of the soldiers inside with `ruin_exposure_pct` (40 %) × stance height / standing height: 40 % standing, 24 % kneeling, 10 % prone. Rounds of the soldiers inside ignore the ruin they stand in. |
+
+**Collapse:** when an occupied building becomes a ruin, every occupant dies
+with `collapse_loss_pct` (30 %); the survivors are no longer garrisoned but
+stay where they were, in the rubble, and fight on from there. Why: a house
+coming down on its defenders should cost lives, but driving the survivors
+out to the door would put them into the open right under the guns that
+destroyed it, which neither looks nor plays right; the rubble is the cover
+they actually have.
+
+Destroyed cover objects (felled trees, flattened fences, gone bushes) give
+no cover spots and no soft cover any more; ruins do.
 
 ### Tests
 
@@ -333,10 +351,20 @@ away at a rifle squad, five seeds each (wounding hits per round fired):
 | kneeling behind a stone wall | 0 % |
 | standing in the open / prone in the open | 61 % / 24 % |
 | in a farmhouse (attack order) | 15 % |
+| in a farmhouse ruin (automatic stance) | 9 % (open ground in the same setup: 27 %) |
 
 Further tests: formation, cover spots behind objects, speed per stance,
 automatic prone under fire, capacity and enemy exclusion of buildings,
-leaving, ruins, determinism of a mixed fight.
+leaving, squads moving into a ruin, a farmhouse shelled into a ruin over its
+occupants (five seeds: 16 soldiers alive before the collapse, 11 after),
+determinism of a mixed fight.
+
+**AI (prompt 024):** infantry is its own AI group with the same rules as
+armor (engage, focus fire, regroup, objectives), plus: tanks attack enemy
+tanks first, squads attack only enemy infantry, and squads that see nothing
+but enemy armor stop instead of walking into it. Tested in
+`crates/ai/tests/ai.rs`. The AI does not use stances, cover or buildings
+yet.
 
 ## Presentation (prompt 022)
 

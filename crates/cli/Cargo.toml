@@ -11,6 +11,7 @@ png.workspace = true
 sim.workspace = true
 net.workspace = true
 editor.workspace = true
+ai.workspace = true
 clap.workspace = true
 
 [dev-dependencies]

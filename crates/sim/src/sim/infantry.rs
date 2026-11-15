@@ -461,21 +461,22 @@ impl Sim {
         }))
     }
 
-    /// Condition of building `object`. Until prompt 020 tracks damage in
-    /// the simulation, it is the placed variant (`Damaged`, `Ruin`, else
-    /// intact); 020 replaces this function.
+    /// Condition of building `object`: the damage stage of prompt 020
+    /// (a destroyed building is a ruin; a placed `Ruin` variant starts as
+    /// one).
     pub fn building_condition(&self, object: u32) -> BuildingCondition {
-        let Some(o) = self.map.objects().get(object as usize) else {
-            return BuildingCondition::Intact;
-        };
-        match self.map.object_kinds()[usize::from(o.kind)]
-            .variant
-            .as_str()
-        {
-            "Ruin" => BuildingCondition::Ruin,
-            "Damaged" => BuildingCondition::Damaged,
+        match self.object_stage(object) {
+            Some(crate::destruction::ObjectStage::Destroyed) => BuildingCondition::Ruin,
+            Some(crate::destruction::ObjectStage::Damaged) => BuildingCondition::Damaged,
             _ => BuildingCondition::Intact,
         }
+    }
+
+    /// Whether map object `object` still gives cover: not destroyed, or a
+    /// ruin (felled trees, flattened fences and burnt bushes give none).
+    pub(super) fn gives_cover(&self, object: u32) -> bool {
+        self.object_stage(object) != Some(crate::destruction::ObjectStage::Destroyed)
+            || self.object_is_ruin(object)
     }
 
     /// Soldiers of `player` in building `object`.
@@ -501,6 +502,55 @@ impl Sim {
             .map(|b| b.capacity)
     }
 
+    /// The building of squad `i` became a ruin: every occupant dies with
+    /// `collapse_loss_pct`; the survivors stay in the rubble at their
+    /// window spots (a squad in a ruin, no longer garrisoned).
+    fn collapse(&mut self, i: usize) {
+        let loss = self.infantry.rules.building.collapse_loss_pct;
+        let unit = &mut self.units[i];
+        let squad = unit.squad.as_mut().expect("checked");
+        for soldier in squad.soldiers.iter_mut().filter(|s| s.alive()) {
+            if self.rng.below(100) < loss {
+                soldier.hp = 0;
+            }
+        }
+        unit.hp = squad.soldiers.iter().map(|s| s.hp).sum();
+        squad.garrison = None;
+        squad.spots_at = Some(unit.position);
+        unit.elevation_mm = 0;
+        unit.vision_dirty = true;
+        if unit.hp == 0 {
+            let (id, at) = (unit.id, unit.position);
+            let z = unit.height;
+            self.destroy(i, id, crate::combat::Vec3::new(at.x, at.y, z));
+        }
+    }
+
+    /// Soldiers standing inside the ground shape of map object `object`
+    /// (a ruin), as (unit index, soldier index).
+    pub(super) fn soldiers_in(&self, object: u32) -> Vec<(usize, usize)> {
+        let o = self.map.objects()[object as usize];
+        let shape = self.map.object_kinds()[usize::from(o.kind)].shape;
+        let reach = o.half_extent(shape);
+        let mut out = Vec::new();
+        for (j, u) in self.units.iter().enumerate() {
+            let Some(s) = &u.squad else { continue };
+            if !u.alive() || s.garrison.is_some() {
+                continue;
+            }
+            let d = u.position - o.position;
+            if d.x.abs() > reach.x + u.spread || d.y.abs() > reach.y + u.spread {
+                continue;
+            }
+            for (k, x) in s.soldiers.iter().enumerate() {
+                if x.alive() && distance_to_shape(x.position, &o, shape) == Fixed::ZERO {
+                    out.push((j, k));
+                }
+            }
+        }
+        out
+    }
+
     /// Drops a pending order to enter a building (`Stop`).
     pub(super) fn cancel_enter(&mut self, index: usize) {
         if let Some(s) = &mut self.units[index].squad {
@@ -520,11 +570,12 @@ impl Sim {
         let Some(object) = self.map.objects().get(building as usize).copied() else {
             return;
         };
-        if self.infantry.building(&self.map, building).is_none()
-            || self.building_condition(building) == BuildingCondition::Ruin
-        {
+        if self.infantry.building(&self.map, building).is_none() {
             return;
         }
+        // A ruin cannot be occupied: the squads move into the rubble and
+        // take cover there.
+        let ruin = self.building_condition(building) == BuildingCondition::Ruin;
         for &i in indices {
             if self.units[i].squad.is_none() {
                 continue;
@@ -536,7 +587,7 @@ impl Sim {
             let unit = &mut self.units[i];
             unit.combat.attack = None;
             if let Some(s) = &mut unit.squad {
-                s.enter = Some(building);
+                s.enter = (!ruin).then_some(building);
             }
             let id = self.paths.request(
                 unit.position,
@@ -620,11 +671,14 @@ impl Sim {
             if self.units[i].squad.is_none() || !self.units[i].alive() {
                 continue;
             }
-            // Ruins throw their occupants out (prompt 020).
+            // A building that collapses around its occupants (prompt 020).
             if let Some(b) = self.units[i].squad.as_ref().and_then(|s| s.garrison)
                 && self.building_condition(b) == BuildingCondition::Ruin
             {
-                self.leave_building(i);
+                self.collapse(i);
+                if !self.units[i].alive() {
+                    continue;
+                }
             }
             self.try_enter(i);
             let standing = self.units[i].route == Route::None;
@@ -704,6 +758,9 @@ impl Sim {
 
     /// Picks cover spots near every soldier's formation place.
     fn choose_spots(&mut self, i: usize) {
+        if self.spots_in_ruin(i) {
+            return;
+        }
         let rules = &self.infantry.rules.cover;
         let (gap, spacing, search) = (
             mm(rules.gap_mm),
@@ -725,7 +782,7 @@ impl Sim {
         for o in self.infantry.index.near(center, ty.spread / 2 + search) {
             let object = &objects[o as usize];
             let kind_index = usize::from(object.kind);
-            if !self.infantry.cover_spot[kind_index] {
+            if !self.infantry.cover_spot[kind_index] || !self.gives_cover(o) {
                 continue;
             }
             buffer.clear();
@@ -767,6 +824,37 @@ impl Sim {
             }
         }
         squad.spots_at = Some(center);
+    }
+
+    /// A squad standing in a ruin (prompt 020) spreads its soldiers over
+    /// the rubble, 1 m inside the walls like occupants at windows. Returns
+    /// whether it did.
+    fn spots_in_ruin(&mut self, i: usize) -> bool {
+        let center = self.units[i].position;
+        let ruin = self
+            .infantry
+            .index
+            .near(center, Fixed::ONE)
+            .into_iter()
+            .find(|&o| {
+                let object = self.map.objects()[o as usize];
+                let shape = self.map.object_kinds()[usize::from(object.kind)].shape;
+                self.object_is_ruin(o) && distance_to_shape(center, &object, shape) == Fixed::ZERO
+            });
+        let Some(ruin) = ruin else {
+            return false;
+        };
+        let object = self.map.objects()[ruin as usize];
+        let shape = self.map.object_kinds()[usize::from(object.kind)].shape;
+        let unit = &mut self.units[i];
+        let squad = unit.squad.as_mut().expect("checked");
+        let spots = windows(&object, shape, squad.soldiers.len());
+        for (soldier, spot) in squad.soldiers.iter_mut().zip(spots) {
+            soldier.spot = Some(spot);
+            soldier.cover = Some(ruin);
+        }
+        squad.spots_at = Some(center);
+        true
     }
 
     /// Moves the soldiers of unit `i` towards their places.

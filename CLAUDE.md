@@ -47,6 +47,7 @@ just selftest              # build + headless test: menu, settings, matches, res
 just lan / just lan-selftest  # LAN lobby / two headless instances over localhost
 just map-editor / just editor-selftest  # map editor / its headless test
 just map-check <name>      # validate data/maps/<name>/ like the editor
+just ai-tournament         # AI against AI over many seeds, statistics (docs/AI.md)
 just catalog-doc           # regenerate docs/UNIT_CATALOG.md after catalog changes
 just export-model assets-src/blender/X.blend
 just model-tank            # regenerate placeholder tank
@@ -59,12 +60,13 @@ crates/sim/      deterministic game rules (Fixed, Vec2, Rng, StableHasher, Sim, 
 crates/net/      lockstep protocol, Transport trait, LoopbackTransport
 crates/cli/      headless runner
 crates/bridge/   godot-rust GDExtension (SimHost node, MapEditor node)
+crates/ai/       computer players: fog-of-war PlayerView, difficulties, headless AI games
 crates/editor/   map editor core: brushes, undo, saving, validation (no Godot)
 godot/           Godot project: scenes/, ui/, assets/, mud_and_steel.gdextension
 assets-src/blender/  .blend sources (Git LFS)
 tools/           Blender scripts, Godot import helper
 data/            unit catalog (catalog/*.toml, real values) and scale.toml
 docs/            ARCHITECTURE.md, DETERMINISM.md, VERSIONS.md, SCALE.md, ASSETS.md,
-                 SOURCES.md, INFANTRY.md, LAN.md, UNIT_CATALOG.md (generated)
+                 SOURCES.md, INFANTRY.md, LAN.md, AI.md, UNIT_CATALOG.md (generated)
 prompts/         task prompts (roadmap in prompts/README.md); finished ones: git mv to prompts/done/
 ```

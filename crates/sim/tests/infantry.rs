@@ -417,11 +417,111 @@ fn infantry_runs_are_deterministic() {
 }
 
 #[test]
-fn ruins_cannot_be_occupied() {
+fn ruins_cannot_be_occupied_but_squads_move_into_the_rubble() {
     let ruin = vec!["env_house_farm,Ruin,0,0,0".to_string()];
     let mut sim = sim_with(map_with(&ruin), 1, &[(P0, SQUAD, -40, 0, HOLD)]);
     assert_eq!(sim.building_condition(0), sim::BuildingCondition::Ruin);
     sim.step(&[garrison(P0, &[0])]);
-    run(&mut sim, 600);
-    assert_eq!(sim.snapshot().units[0].garrison, None);
+    run(&mut sim, 900);
+    let snapshot = sim.snapshot();
+    assert_eq!(snapshot.units[0].garrison, None);
+    assert_eq!(sim.building_occupants(0), (None, 0));
+    // All soldiers stand in the 14 m × 9 m rubble, at their spots.
+    for s in &snapshot.soldiers {
+        assert!(
+            s.position.x.abs() < 5 && s.position.y.abs() < 7,
+            "{:?}",
+            s.position
+        );
+        assert!(s.in_cover);
+    }
+}
+
+/// Wounding hits per round of an MG team 150 m north at a rifle squad at
+/// the origin, in the open or ordered into a farmhouse ruin there.
+fn hits_in_rubble(ruin: bool) -> Tally {
+    let objects = if ruin {
+        vec!["env_house_farm,Ruin,0,0,0".to_string()]
+    } else {
+        Vec::new()
+    };
+    let map = map_with(&objects);
+    (1..=5)
+        .map(|seed| {
+            let mut sim = sim_with(
+                Arc::clone(&map),
+                seed,
+                &[(P0, SQUAD, 0, 0, HOLD), (P1, MG, 0, -150, HOLD)],
+            );
+            sim.step(&[garrison(P0, &[0])]);
+            run(&mut sim, 120);
+            sim.step(&[order(
+                P1,
+                Command::Attack {
+                    units: vec![UnitId(1)],
+                    target: UnitId(0),
+                },
+            )]);
+            tally(&mut sim, UnitId(0), 400)
+        })
+        .fold(Tally::default(), |a, b| a + b)
+}
+
+#[test]
+fn rubble_gives_cover() {
+    let open = hits_in_rubble(false);
+    let rubble = hits_in_rubble(true);
+    println!("open {open:?}, in the ruin {rubble:?}");
+    assert!(rubble.shots >= 100, "too few rounds");
+    assert!(
+        rubble.per_mille() * 3 < open.per_mille() * 2,
+        "open {open:?}, rubble {rubble:?}"
+    );
+}
+
+#[test]
+fn a_building_collapsing_on_its_occupants_kills_some_and_leaves_the_rest_in_the_ruin() {
+    // A Panzer IV shells the farmhouse the squad holds (2500 hit points,
+    // a ruin after five 7.5 cm hits, prompt 020); five seeds.
+    let (mut before, mut after) = (0, 0);
+    for seed in 1..=5 {
+        let mut sim = sim_with(
+            map_with(&house()),
+            seed,
+            &[(P0, SQUAD, -30, 0, HOLD), (P1, "de_pz4_h", 0, -150, HOLD)],
+        );
+        sim.step(&[garrison(P0, &[0])]);
+        run(&mut sim, 400);
+        assert_eq!(sim.snapshot().units[0].garrison, Some(0));
+        sim.step(&[order(
+            P1,
+            Command::AttackGround {
+                units: vec![UnitId(1)],
+                target: Vec2::ZERO,
+            },
+        )]);
+        let mut ticks = 0;
+        while sim.building_condition(0) != sim::BuildingCondition::Ruin && ticks < 3000 {
+            sim.step(&[]);
+            ticks += 1;
+        }
+        assert_eq!(sim.building_condition(0), sim::BuildingCondition::Ruin);
+        let alive = |sim: &Sim| sim.snapshot().soldiers.iter().filter(|s| s.hp > 0).count();
+        before += alive(&sim);
+        sim.step(&[]);
+        after += alive(&sim);
+        let snapshot = sim.snapshot();
+        // (The shelling may have killed the whole squad before.)
+        assert!(snapshot.units[0].hp == 0 || snapshot.units[0].garrison.is_none());
+        // The survivors stay in the rubble.
+        for s in snapshot.soldiers.iter().filter(|s| s.hp > 0) {
+            assert!(
+                s.position.x.abs() < 5 && s.position.y.abs() < 8,
+                "{:?}",
+                s.position
+            );
+        }
+    }
+    println!("soldiers alive before the collapse {before}, after {after}");
+    assert!(after < before, "nobody died in the collapses");
 }

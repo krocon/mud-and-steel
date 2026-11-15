@@ -113,11 +113,23 @@ enter_mm = 6000
 # Rounds of at least this caliber (tenths of a millimeter) are heavy: they
 # hit an occupant more often.
 heavy_caliber_mm_x10 = 200
+# Building condition comes from prompt 020 (destruction). Occupants of a
+# damaged building (holes in walls and roof) are exposed this much more.
+damaged_extra_pct = 10
+# A ruin cannot be occupied, but squads can move into its rubble: a round
+# that strikes the ruin hits one of the soldiers standing inside it with
+# this chance (more than the walls of an intact building, less than open
+# ground).
+ruin_exposure_pct = 40
+# When an occupied building collapses into a ruin, every occupant dies
+# with this chance; the survivors stay in the rubble and fight on from
+# there.
+collapse_loss_pct = 30
 
 # Buildings infantry can occupy. `capacity` is the number of soldiers
 # (about one per 10-15 m² of floor), `exposure_pct` the chance that a round
 # striking the building hits an occupant, `heavy_exposure_pct` the same for
-# heavy rounds. Ruins (prompt 020) cannot be occupied but stay cover.
+# heavy rounds. Ruins (prompt 020) cannot be occupied but give cover.
 [[building.kind]]
 id = "env_house_farm"
 capacity = 12

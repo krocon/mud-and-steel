@@ -18,6 +18,12 @@ extends Node
 ##    chosen; everyone starts with hold fire, the own units attack one enemy
 ##    after the other until the last is destroyed: victory by elimination in
 ##    real combat; back to the menu.
+## 6. Match 3 (prompt 024): against the hard computer opponent while the own
+##    tanks hold fire: the AI must give orders, open fire and destroy them
+##    (defeat by elimination); back to the menu.
+##
+## Matches 1 and 2 choose the passive opponent, which gives no orders, so
+## they play as before the computer opponent existed.
 
 signal match_tested
 
@@ -87,13 +93,24 @@ func _run() -> void:
 		return
 	await _combat_victory_test(main)
 	menu = await _back_to_menu(main)
+	if menu == null:
+		_finish()
+		return
+
+	# --- Match 3: computer opponent -----------------------------------
+	main = await _start_match(menu, 2, 0, 1, "test_small", "hard")
+	if main == null:
+		_finish()
+		return
+	await _ai_opponent_test(main)
+	menu = await _back_to_menu(main)
 	_finish()
 
 
 func _finish() -> void:
 	set_process(false)
 	var ok := _errors.is_empty()
-	var message := "menu, settings, LAN lobby, loading, match tests, pause, surrender, combat victory, result and back ok" if ok else " ".join(_errors)
+	var message := "menu, settings, LAN lobby, loading, match tests, pause, surrender, combat victory, computer opponent, result and back ok" if ok else " ".join(_errors)
 	print("flow self-test %s: %s" % ["PASSED" if ok else "FAILED", message])
 	get_tree().paused = false
 	get_tree().quit(0 if ok else 1)
@@ -171,7 +188,7 @@ func _lan_test(menu: Control) -> Control:
 
 ## Chooses biome, own and enemy faction (indices in the setup screen) and
 ## map, starts and waits until the match is loaded.
-func _start_match(menu: Control, biome: int, own: int, enemy: int, map_name: String) -> Node3D:
+func _start_match(menu: Control, biome: int, own: int, enemy: int, map_name: String, opponent := "passive") -> Node3D:
 	menu.single_player_button.pressed.emit()
 	await _frames(1)
 	_check(menu.screens["skirmish"].visible, "setup screen not shown")
@@ -181,6 +198,7 @@ func _start_match(menu: Control, biome: int, own: int, enemy: int, map_name: Str
 	menu.biome_option.select(biome)
 	menu.faction_option.select(own)
 	menu.enemy_option.select(enemy)
+	menu.opponent_option.select(MatchSetup.OPPONENTS.keys().find(opponent))
 	MatchSetup.run_match_test = biome == 0 and own == 0
 	menu.start_button.pressed.emit()
 	var main: Node3D = await _wait_scene("Main")
@@ -269,6 +287,27 @@ func _combat_victory_test(main: Node3D) -> void:
 	_check(game_menu.result_reason.text == "All enemy units were destroyed.", "result reason '%s'" % game_menu.result_reason.text)
 	_check(game_menu.result_details.text.contains("Germany: 0 units left – eliminated"), "result details: %s" % game_menu.result_details.text)
 	print("flow self-test: combat victory ok at tick %d (%s)" % [result["tick"], game_menu.result_details.text.replace("\n", "; ")])
+
+
+## The hard computer opponent beats tanks that hold fire.
+func _ai_opponent_test(main: Node3D) -> void:
+	var host: SimHost = main.sim_host
+	var status: Dictionary = host.ai_status()
+	_check(status["difficulty"] == "hard" and status["players"] == 1, "computer opponent not running: %s" % status)
+	_check(not host.is_networked(), "a match against the computer counts as networked")
+	var game_menu: CanvasLayer = main.game_menu
+	var frames := 9000
+	while not game_menu.result_panel.visible and frames > 0:
+		frames -= 1
+		await get_tree().process_frame
+	status = host.ai_status()
+	_check(status["decisions"] > 0, "the computer opponent never decided anything")
+	_check(game_menu.result_panel.visible, "the computer opponent did not decide the match (%d own tanks left)" % host.alive_unit_count(0))
+	var result: Dictionary = host.match_result()
+	_check(result["decided"] and result["winner"] == 1, "the computer opponent did not win: %s" % result)
+	_check(result["players"][0]["reason"] == "eliminated", "player 0 not eliminated: %s" % result)
+	_check(game_menu.result_title.text == "DEFEAT", "result shows '%s'" % game_menu.result_title.text)
+	print("flow self-test: computer opponent won at tick %d after %d decisions (%s)" % [result["tick"], status["decisions"], game_menu.result_details.text.replace("\n", "; ")])
 
 
 func _wait_result(game_menu: CanvasLayer) -> void:

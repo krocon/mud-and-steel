@@ -1,0 +1,19 @@
+[package]
+name = "ai"
+description = "Computer players: issue commands like a human player (prompt 024)."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+sim.workspace = true
+net.workspace = true
+
+[lints.clippy]
+float_arithmetic = "deny"
+disallowed_types = "deny"
+disallowed_methods = "deny"
+
+[lints.rust]
+unsafe_code = "forbid"

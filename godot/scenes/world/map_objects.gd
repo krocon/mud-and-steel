@@ -99,8 +99,13 @@ var deco_instances := 0
 var deco_chunks := 0
 ## Duration of `build` in milliseconds.
 var build_msec := 0.0
+## Objects drawn in another stage than their map variant (prompt 020):
+## object index -> the node drawn instead (null: only hidden).
+var swapped: Dictionary[int, Node3D] = {}
 
 var _objects_root: Node3D
+## Single nodes of damaged and destroyed objects (prompt 020).
+var _destroyed_root: Node3D
 var _deco_root: Node3D
 var _models: Dictionary[String, Node3D] = {}
 ## Per decoration layer: Vector2i square -> Array of MultiMeshInstance3D.
@@ -109,6 +114,14 @@ var _deco: Array[Dictionary] = []
 var _deco_meshes: Array[Array] = []
 var _last_deco_origin := Vector3.INF
 var _deco_enabled := true
+## "kind:chunk_x:chunk_y" -> the MultiMeshInstance3D nodes of that group.
+var _group_nodes: Dictionary[String, Array] = {}
+## "kind:chunk_x:chunk_y" -> the transform buffer of that group (prompt 020).
+var _group_buffers: Dictionary[String, PackedFloat32Array] = {}
+## Objects whose MultiMesh instance is collapsed (prompt 020).
+var hidden: Dictionary[int, bool] = {}
+## Kind index -> "<catalog id>:<variant>".
+var _kinds: PackedStringArray = []
 
 
 ## Builds all object instances of the map loaded in `host`.
@@ -122,8 +135,12 @@ func build(host: Object, view: Camera3D) -> void:
 	_deco_root = Node3D.new()
 	_deco_root.name = "Decoration"
 	add_child(_deco_root)
+	_destroyed_root = Node3D.new()
+	_destroyed_root.name = "Destroyed"
+	add_child(_destroyed_root)
 
 	var kinds: PackedStringArray = host.object_kinds()
+	_kinds = kinds
 	var parts_of_kind: Array = []
 	for kind in kinds:
 		parts_of_kind.append(_parts(kind.get_slice(":", 0), kind.get_slice(":", 1)))
@@ -155,8 +172,14 @@ func build(host: Object, view: Camera3D) -> void:
 				node.visibility_range_end = range_end
 				node.visibility_range_end_margin = range_end * 0.1
 			node.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
+			node.set_meta(&"local", part.transform)
 			_objects_root.add_child(node)
 			object_nodes += 1
+			var key := "%d:%d:%d" % [kind, group.chunk.x, group.chunk.y]
+			if not _group_nodes.has(key):
+				_group_nodes[key] = []
+				_group_buffers[key] = buffer
+			_group_nodes[key].append(node)
 
 	for layer: Dictionary in DECO_LAYERS:
 		var meshes: Array = []
@@ -190,15 +213,137 @@ func set_biome(id: String) -> void:
 		return
 	for node: GeometryInstance3D in _objects_root.get_children():
 		_apply_look(node)
+	for node in _destroyed_root.find_children("*", "GeometryInstance3D", true, false):
+		_apply_look(node as GeometryInstance3D)
 	for layer in _deco.size():
 		for square: Vector2i in _deco[layer].keys():
 			_free_deco(layer, square)
 	_last_deco_origin = Vector3.INF
 
 
+# --- Destruction (prompt 020) ------------------------------------------------
+
+
+## Seconds a felled tree takes to hit the ground; flattened fences fall faster.
+const TREE_FALL_SECONDS := 1.6
+const FLAT_FALL_SECONDS := 0.35
+
+
+## Draws object `state.object` in its new stage (a dictionary of
+## `SimHost.take_object_events` / `changed_objects`): its instance in the
+## MultiMesh is hidden and, unless nothing is left, a node with the damaged
+## or ruin variant, a falling tree with a stump, or a flattened fence takes
+## its place. `animate` false puts fallen things down at once.
+func set_object_state(state: Dictionary, animate := true) -> void:
+	var index: int = state.object
+	var found: Variant = _instance_transform(index, true)
+	if found == null:
+		return
+	var transform: Transform3D = found
+	var variant: String = state.variant
+	var fall_deg: int = state.fall_deg
+	if swapped.has(index):
+		var old: Node3D = swapped[index]
+		if old != null:
+			old.queue_free()
+		swapped.erase(index)
+	var id: String = state.id
+	var node: Node3D = null
+	if state.stage == "intact":
+		_instance_transform(index, false)
+		return
+	if state.stage == "damaged" or state.remains == "ruin":
+		node = _variant_node(id, variant, transform)
+	elif state.remains == "fallen":
+		node = Node3D.new()
+		node.add_child(_variant_node("env_tree_stump", "Broken", Transform3D(transform.basis, Vector3.ZERO)))
+		var tree: Node3D = _falling(_variant_node(id, variant, Transform3D(transform.basis, Vector3.ZERO)),
+			fall_deg, TREE_FALL_SECONDS if animate else 0.0, deg_to_rad(86.0))
+		node.add_child(tree)
+		node.position = transform.origin
+	elif state.remains == "flat":
+		node = Node3D.new()
+		node.add_child(_falling(_variant_node(id, variant, Transform3D(transform.basis, Vector3.ZERO)),
+			fall_deg, FLAT_FALL_SECONDS if animate else 0.0, deg_to_rad(84.0)))
+		node.position = transform.origin
+	if node != null:
+		node.name = "Destroyed_%d" % index
+		_destroyed_root.add_child(node)
+	swapped[index] = node
+
+
+## The object transform of `index` (from its group buffer); with `hide`
+## its MultiMesh instance is collapsed, otherwise it is drawn again. Null
+## for an unknown object.
+func _instance_transform(index: int, hide: bool) -> Variant:
+	var inst: Dictionary = sim_host.object_instance(index, CHUNK_M)
+	if inst.is_empty():
+		return null
+	var chunk: Vector2i = inst.chunk
+	var key := "%d:%d:%d" % [inst.kind, chunk.x, chunk.y]
+	if not _group_buffers.has(key):
+		return null
+	var b: PackedFloat32Array = _group_buffers[key]
+	var o: int = inst.slot * 12
+	var t := Transform3D(
+		Vector3(b[o], b[o + 4], b[o + 8]), Vector3(b[o + 1], b[o + 5], b[o + 9]),
+		Vector3(b[o + 2], b[o + 6], b[o + 10]), Vector3(b[o + 3], b[o + 7], b[o + 11]),
+	)
+	for node: MultiMeshInstance3D in _group_nodes[key]:
+		var local: Transform3D = node.get_meta(&"local")
+		var shown := t * local
+		node.multimesh.set_instance_transform(inst.slot,
+			Transform3D(Basis().scaled(Vector3.ZERO), shown.origin) if hide else shown)
+	if hide:
+		hidden[index] = true
+	else:
+		hidden.erase(index)
+	return t
+
+
+## A node with the mesh parts of `variant` of model `id` at `transform`
+## (near meshes only: no far LOD for single objects).
+func _variant_node(id: String, variant: String, transform: Transform3D) -> Node3D:
+	var root := Node3D.new()
+	root.transform = transform
+	var cls := _class_of(id)
+	for part: Dictionary in _parts(id, variant):
+		if part.lod == "far" or part.lod == "shadow":
+			continue
+		var mesh := MeshInstance3D.new()
+		mesh.mesh = part.mesh
+		mesh.transform = part.transform
+		mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if cls.shadow \
+			else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		_apply_look(mesh)
+		root.add_child(mesh)
+	return root
+
+
+## Wraps `node` in a pivot at its base that tips it over towards
+## `fall_deg` (simulation heading: 0 = north = -Z, 90 = east = +X) by
+## `angle`, animated over `seconds` (0: at once).
+func _falling(node: Node3D, fall_deg: int, seconds: float, angle: float) -> Node3D:
+	var pivot := Node3D.new()
+	pivot.add_child(node)
+	var heading := deg_to_rad(float(fall_deg))
+	var direction := Vector3(sin(heading), 0.0, -cos(heading))
+	var axis := Vector3.UP.cross(direction).normalized()
+	if seconds <= 0.0:
+		pivot.basis = Basis(axis, angle)
+		return pivot
+	# The tween starts once the pivot is in the scene tree.
+	pivot.tree_entered.connect(func() -> void:
+		var t := pivot.create_tween()
+		t.tween_method(func(a: float) -> void: pivot.basis = Basis(axis, a), 0.0, angle, seconds) \
+			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN), CONNECT_ONE_SHOT)
+	return pivot
+
+
 ## Shows or hides the map objects (debug menu).
 func set_objects_visible(on: bool) -> void:
 	_objects_root.visible = on
+	_destroyed_root.visible = on
 
 
 ## Turns shadow casting of all map objects off (or back to their class).

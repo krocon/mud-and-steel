@@ -21,14 +21,29 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by prompt 022: infantry. The demo has two rifle squads
+/// Last changed by the merge of prompt 022 (infantry) with 020
+/// (destruction) and 024 (AI): the destruction state of 020 (its rules,
+/// the two farmhouses `test_small` places as ruins acting as ruins from
+/// the start, every changed object) and the new infantry building rules
+/// (exposure in damaged buildings and ruins, losses when a building
+/// collapses on its occupants) are in the hash; building conditions now
+/// come from the destruction state. The demo battle is still decided at
+/// tick 515 and player 0 wins.
+/// Before: prompt 022: infantry. The demo has two rifle squads
 /// per side behind the tanks; a squad is one unit with soldiers that have
 /// their own positions, hit points and hit boxes (stance height), stances
 /// (stand, kneel, prone: speed, hit box, dispersion), cover spots behind
 /// objects with soft cover rolls, and buildings to occupy
 /// (`data/infantry.toml`). Infantry rules, the squad state and per-unit
 /// speed share, spread and eye elevation are in the hash. The demo battle
-/// is now decided at tick 515 instead of 645, and player 0 wins.
+/// was decided at tick 515 instead of 645, and player 0 won.
+/// Before: prompt 020: destruction. Map objects have hit points
+/// and damage stages (`data/destruction.toml`); the rules and every object
+/// that differs from its start are in the hash. The two farmhouses that
+/// `test_small` places as ruins now act as ruins from the start (they block
+/// tanks only and no longer block sight; the path grid version counts their
+/// rebuild). The demo
+/// battle destroys no object and is still decided at tick 645, same winner.
 /// Before: prompt 018: vision and fog of war. Units keep viewsheds
 /// on an 8 m vision grid (hills, forests, buildings and hedges block sight;
 /// `data/vision.toml`), pick automatic targets and fire only in their own
@@ -66,7 +81,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x2f78_c760_87f2_7235;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x68f7_cd2d_be30_47c8;
 
 #[test]
 fn golden_hash() {

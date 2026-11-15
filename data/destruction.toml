@@ -1,0 +1,141 @@
+# Destruction of map objects (prompt 020). Integers only. Compiled into the
+# simulation (`sim::DestructionRules::builtin`, loaded by `Sim::new` and part
+# of the state hash); see docs/ARCHITECTURE.md "Destruction".
+#
+# These are game rules, not historical values: the catalog has no structural
+# strength. They are chosen so that the guns of the catalog behave sensibly
+# with the damage formula of data/combat.toml (caliber_mm² × 0.1: 3.7 cm 136,
+# 7.5 cm 562, 8.8 cm 774):
+#   - a 7.5 cm round fells a tree, three bring down a dry-stone wall segment;
+#   - a farmhouse is damaged after three hits and a ruin after five;
+#   - rifles and machine guns (below min_caliber_mm) never hurt objects.
+#
+# Every [[class]]:
+#   ids          catalog ids (data/catalog/neutral.toml) of the class
+#   hp           hit points of an intact object; 0 = cannot be shot to pieces
+#                (only crushed)
+#   damaged_pct  the object counts as damaged at or below this share of its
+#                hit points (0 = no damaged stage)
+#   remains      what is left when it is destroyed:
+#                  "ruin"   a lower ruin (buildings): blocks `ruin_blocks`,
+#                           stops projectiles up to `ruin_height_pct` of the
+#                           catalog height; it does not block sight (rubble
+#                           with gaps, and infantry inside must see out)
+#                  "fallen" a felled tree: blocks nothing, no forest
+#                  "gone"   nothing (walls, hedges): blocks nothing
+#                  "flat"   flattened (fences, wire): blocks nothing
+#   ruin_blocks  "none", "small", "large" or "all" (ruins only)
+#   ruin_height_pct  share of the catalog height (ruins only)
+#   crush_min_mass_kg  vehicles at least this heavy (catalog mass_kg) flatten
+#                the object when their footprint covers it (0 = never)
+#   damaged_variant / ruin_variant  model variants (assets-src/blueprints/
+#                neutral/<id>.toml) a map places for an object that starts
+#                damaged or destroyed; the presentation shows them
+#
+# Objects whose id is in no class (bunkers, hedgehogs, rocks, bridges,
+# props) cannot be destroyed.
+
+[damage]
+# Rounds below this caliber do not damage objects.
+min_caliber_mm = 20
+
+# --- Trees: one 7.5 cm hit fells them -------------------------------------------
+
+[[class]]
+ids = ["env_tree_deciduous", "env_tree_conifer", "env_tree_birch", "env_tree_palm"]
+hp = 400
+damaged_pct = 0
+remains = "fallen"
+
+# --- Field boundaries --------------------------------------------------------------
+
+[[class]]
+ids = ["env_hedge"]
+hp = 600
+damaged_pct = 0
+remains = "gone"
+
+[[class]]
+ids = ["env_wall_stone"]
+hp = 1200
+damaged_pct = 0
+remains = "gone"
+
+[[class]]
+ids = ["env_fence_wood"]
+hp = 0
+damaged_pct = 0
+remains = "flat"
+# Trucks, half-tracks and tanks; jeeps and motorcycles drive around.
+crush_min_mass_kg = 2500
+
+[[class]]
+ids = ["fort_barbed_wire"]
+hp = 0
+damaged_pct = 0
+remains = "flat"
+# Tracked vehicles and heavy trucks flatten wire entanglements.
+crush_min_mass_kg = 8000
+
+# --- Buildings: damaged, then a ruin that infantry can use as cover -----------------
+
+[[class]]
+ids = ["env_house_mud"]
+hp = 1800
+damaged_pct = 50
+remains = "ruin"
+ruin_blocks = "large"
+ruin_height_pct = 40
+damaged_variant = "Damaged"
+ruin_variant = "Ruin"
+
+[[class]]
+ids = ["env_barn"]
+hp = 2000
+damaged_pct = 50
+remains = "ruin"
+ruin_blocks = "large"
+ruin_height_pct = 40
+damaged_variant = "Damaged"
+ruin_variant = "Ruin"
+
+[[class]]
+ids = ["env_house_farm"]
+hp = 2500
+damaged_pct = 50
+remains = "ruin"
+ruin_blocks = "large"
+ruin_height_pct = 40
+damaged_variant = "Damaged"
+ruin_variant = "Ruin"
+
+[[class]]
+ids = ["env_house_farm_brick"]
+hp = 3000
+damaged_pct = 50
+remains = "ruin"
+ruin_blocks = "large"
+ruin_height_pct = 40
+damaged_variant = "Damaged"
+ruin_variant = "Ruin"
+
+[[class]]
+ids = ["env_house_stone"]
+hp = 3500
+damaged_pct = 50
+remains = "ruin"
+ruin_blocks = "large"
+ruin_height_pct = 40
+damaged_variant = "Damaged"
+ruin_variant = "Ruin"
+
+[[class]]
+ids = ["env_church"]
+hp = 6000
+damaged_pct = 50
+remains = "ruin"
+ruin_blocks = "large"
+# The 30 m tower falls; the nave walls stay.
+ruin_height_pct = 30
+damaged_variant = "Damaged"
+ruin_variant = "Ruin"

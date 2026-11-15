@@ -16,6 +16,7 @@ use std::fmt;
 use std::sync::Arc;
 
 mod combat;
+mod destruction;
 mod infantry;
 mod vision;
 
@@ -88,6 +89,8 @@ pub enum ConfigError {
     SpawnOutsideMap(usize),
     /// More players than [`MAX_PLAYERS`].
     TooManyPlayers(usize),
+    /// The built-in destruction rules do not parse (prompt 020).
+    Destruction(String),
 }
 
 impl fmt::Display for ConfigError {
@@ -103,6 +106,7 @@ impl fmt::Display for ConfigError {
             Self::UnknownTerrain(id) => write!(f, "map uses unknown terrain id {id}"),
             Self::SpawnOutsideMap(index) => write!(f, "spawn {index} lies outside the map"),
             Self::TooManyPlayers(n) => write!(f, "{n} players, at most {MAX_PLAYERS} allowed"),
+            Self::Destruction(e) => write!(f, "{e}"),
         }
     }
 }
@@ -273,6 +277,8 @@ pub struct Sim {
     vision: vision::Vision,
     /// Infantry rules and cover index (prompt 022).
     infantry: InfantryRt,
+    /// Hit points and stages of map objects (prompt 020).
+    destruction: destruction::Destruction,
 }
 
 impl Sim {
@@ -370,6 +376,13 @@ impl Sim {
             units.len(),
         );
 
+        let destruction = destruction::Destruction::new(
+            crate::destruction::DestructionRules::builtin()
+                .map_err(|e| ConfigError::Destruction(e.to_string()))?,
+            &map,
+            &config.vision,
+            &config.unit_types,
+        );
         let grid = PathGrid::new(&map, &config.terrain, &config.unit_types);
         let mut sim = Self {
             tick: 0,
@@ -388,7 +401,9 @@ impl Sim {
             standings: Standings::new(&players),
             vision,
             infantry,
+            destruction,
         };
+        sim.apply_destruction();
         sim.update_vision(true);
         Ok(sim)
     }
@@ -445,7 +460,9 @@ impl Sim {
         self.aim_and_fire();
         self.move_units();
         self.update_squads();
+        self.crush_objects();
         self.fly_projectiles();
+        self.apply_destruction();
         self.update_vision(false);
         self.tick += 1;
         let units = &self.units;
@@ -869,6 +886,7 @@ impl Sim {
         }
         self.standings.hash_into(&mut h);
         self.vision.hash_into(&mut h);
+        self.destruction.hash_into(&mut h);
         h.finish()
     }
 

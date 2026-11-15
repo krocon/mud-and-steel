@@ -15,6 +15,7 @@ use crate::combat::{
 use crate::command::UnitId;
 use crate::data::UnitType;
 use crate::hash::StableHasher;
+use crate::infantry::Stance;
 use crate::map::Map;
 use crate::math::{Fixed, Vec2};
 use crate::objects::{Shape, sin_cos_deg};
@@ -332,7 +333,18 @@ impl ObjectIndex {
     }
 
     /// Earliest object on the segment `a → b`: `(t, object index)`.
-    fn hit(&self, map: &Map, a: Vec3, b: Vec3, skip: Option<u32>) -> Option<(Fixed, u32)> {
+    /// `height_of` gives the height up to which an object stops projectiles
+    /// now (`None`: it does not, prompt 020); objects for which
+    /// `skip_inside` holds are ignored when the segment starts inside them
+    /// (a round fired from within a ruin).
+    fn hit(
+        &self,
+        map: &Map,
+        a: Vec3,
+        b: Vec3,
+        height_of: impl Fn(u32) -> Option<Fixed>,
+        skip_inside: impl Fn(u32) -> bool,
+    ) -> Option<(Fixed, u32)> {
         let low = Vec2::new(a.x.min(b.x), a.y.min(b.y));
         let high = Vec2::new(a.x.max(b.x), a.y.max(b.y));
         let (c0, r0) = self.cell(low);
@@ -350,11 +362,11 @@ impl ObjectIndex {
         let d = sub(b, a);
         let mut best: Option<(Fixed, u32)> = None;
         for i in candidates {
-            if skip == Some(i) {
-                continue;
-            }
             let object = &objects[i as usize];
             let kind = &kinds[usize::from(object.kind)];
+            let Some(height) = height_of(i) else {
+                continue;
+            };
             let t = match kind.shape {
                 Shape::Circle { radius } => {
                     segment_circle(a.ground(), d.ground(), object.position, radius)
@@ -373,11 +385,11 @@ impl ObjectIndex {
                 }
             };
             let Some(t) = t else { continue };
-            if best.is_some_and(|(bt, _)| bt <= t) {
+            if best.is_some_and(|(bt, _)| bt <= t) || (t == Fixed::ZERO && skip_inside(i)) {
                 continue;
             }
             let p = at(a, d, t);
-            if p.z - map.height_at(p.ground()) < kind.height {
+            if p.z - map.height_at(p.ground()) < height {
                 best = Some((t, i));
             }
         }
@@ -858,7 +870,7 @@ impl Sim {
             return None;
         }
         let pct = self.infantry.cover_pct(&self.map, object);
-        if pct == 0 {
+        if pct == 0 || !self.gives_cover(object) {
             return None;
         }
         // The object must lie between the shooter and the soldier.
@@ -873,12 +885,37 @@ impl Sim {
     /// it hits one occupant with the building's exposure chance. Returns
     /// the squad index and soldier.
     fn building_hit(&mut self, object: u32, caliber_mm_x10: u32) -> Option<(usize, usize)> {
+        let rules = &self.infantry.rules.building;
+        // Rubble of a ruin hides the soldiers in it less than walls do.
+        // The exposure holds for a standing soldier and shrinks with the
+        // stance height: soldiers lying in the rubble are hard to hit.
+        if self.object_is_ruin(object) {
+            let exposure = rules.ruin_exposure_pct;
+            let inside = self.soldiers_in(object);
+            if inside.is_empty() {
+                return None;
+            }
+            let pick = self
+                .rng
+                .below(u32::try_from(inside.len()).unwrap_or(u32::MAX));
+            let (j, k) = inside[pick as usize];
+            let stance = self.units[j]
+                .squad
+                .as_ref()
+                .map_or(Stance::Stand, |s| s.stance);
+            let stances = &self.infantry.rules.stance;
+            let scaled = exposure * stances.values(stance).height_mm / stances.stand.height_mm;
+            return (self.rng.below(100) < scaled).then_some((j, k));
+        }
+        let damaged = self.building_condition(object) == super::BuildingCondition::Damaged;
+        let extra = if damaged { rules.damaged_extra_pct } else { 0 };
         let kind = self.infantry.building(&self.map, object)?;
         let exposure = if caliber_mm_x10 >= self.infantry.rules.building.heavy_caliber_mm_x10 {
             kind.heavy_exposure_pct
         } else {
             kind.exposure_pct
         };
+        let exposure = (exposure + extra).min(100);
         let inside: Vec<(usize, usize)> = self
             .units
             .iter()
@@ -961,7 +998,16 @@ impl Sim {
                     best = Some((t, HitKind::Unit(unit.id), Some((j, face, soldier))));
                 }
             }
-            if let Some((t, object)) = self.objects.hit(&self.map, a, b, p.skip_object)
+            let first = p.traveled == Fixed::ZERO;
+            // A squad's own building or cover object is not in its way
+            // (prompt 022).
+            let height_of = |i: u32| {
+                (p.skip_object != Some(i))
+                    .then(|| self.destruction.hit_height(&self.map, i))
+                    .flatten()
+            };
+            let skip_inside = |i: u32| first && self.object_is_ruin(i);
+            if let Some((t, object)) = self.objects.hit(&self.map, a, b, height_of, skip_inside)
                 && better(&best, t)
             {
                 best = Some((t, HitKind::Object(object), None));
@@ -1001,6 +1047,18 @@ impl Sim {
             {
                 kind = HitKind::Unit(self.units[j].id);
                 unit_hit = Some((j, Face::Side, Some(soldier)));
+            }
+            // Rounds that hit no occupant damage the object (prompt 020).
+            if let HitKind::Object(object) = kind {
+                let w = &self.types[p.shooter_type as usize].weapons[usize::from(p.weapon)];
+                damage = self.destruction.hit(
+                    &self.map,
+                    object,
+                    (p.caliber_mm_x10, w.vehicle_damage),
+                    d.ground(),
+                    point,
+                    p.shooter,
+                );
             }
             if let Some((j, hit_face, soldier)) = unit_hit {
                 let result = self.damage_unit(j, &p, hit_face, point);
@@ -1107,7 +1165,7 @@ impl Sim {
     }
 
     /// Unit `j` lost its last hit point.
-    fn destroy(&mut self, j: usize, by: UnitId, at: Vec3) {
+    pub(super) fn destroy(&mut self, j: usize, by: UnitId, at: Vec3) {
         let ty = &self.types[self.units[j].unit_type as usize];
         let (infantry, half_length, half_width) = (ty.infantry, ty.half_length, ty.half_width);
         let unit: &mut Unit = &mut self.units[j];

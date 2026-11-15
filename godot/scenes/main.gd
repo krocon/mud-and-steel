@@ -63,6 +63,7 @@ const NetStatus := preload("res://scenes/lan/net_status.gd")
 const CombatView := preload("res://scenes/world/combat_view.gd")
 const FogOfWar := preload("res://scenes/world/fog_of_war.gd")
 const Effects := preload("res://scenes/world/effects.gd")
+const DestructionView := preload("res://scenes/world/destruction_view.gd")
 const EffectsBench := preload("res://scenes/tools/effects_bench.gd")
 const InfantryView := preload("res://scenes/world/infantry_view.gd")
 const InfantryBench := preload("res://scenes/tools/infantry_bench.gd")
@@ -116,6 +117,7 @@ var fog_of_war: FogOfWar
 var effects: Effects
 ## Soldiers of infantry squads (prompt 022).
 var infantry_view: InfantryView
+var destruction_view: Node
 ## Pause menu and result screen (prompt 027).
 var game_menu: CanvasLayer
 var _loading: CanvasLayer
@@ -194,6 +196,11 @@ func _ready() -> void:
 	effects.visible_at = func(point: Vector3) -> bool:
 		var state := fog_of_war.state_at(point)
 		return state < 0 or state == 255
+	# Damaged and destroyed map objects (prompt 020).
+	destruction_view = DestructionView.new()
+	destruction_view.name = "DestructionView"
+	add_child(destruction_view)
+	destruction_view.setup(self)
 
 	selection.sim_host = sim_host
 	selection.camera = camera
@@ -314,6 +321,12 @@ func _start_simulation() -> bool:
 	sim_host.hold_fire_at_start = sim_host.hold_fire_at_start or _effects_tool()
 	# The infantry bench opens fire itself (prompt 022).
 	sim_host.hold_fire_at_start = sim_host.hold_fire_at_start or "--infantry-bench" in OS.get_cmdline_user_args()
+	# Computer opponent (prompt 024): from the setup screen, or `--ai=<level>`
+	# for direct starts; none for LAN matches.
+	sim_host.ai_opponent = MatchSetup.pending.get("ai", "")
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--ai="):
+			sim_host.ai_opponent = arg.trim_prefix("--ai=")
 	if not MatchSetup.pending.is_empty():
 		var setup := MatchSetup.pending
 		return sim_host.start_match(SEED, MatchSetup.map_dir(setup["map"]), setup["factions"])
