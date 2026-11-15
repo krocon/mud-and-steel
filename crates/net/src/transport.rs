@@ -1,5 +1,6 @@
-//! Byte transport abstraction. ENet on the LAN lives in [`crate::lan`];
-//! Steam (prompt 026) implements the same trait.
+//! Byte transport abstraction. Network games use a
+//! [`LobbyNode`](crate::lobby::LobbyNode) over ENet ([`crate::lan`]) or Steam
+//! (`crates/steam`).
 
 use std::fmt;
 use std::sync::mpsc::{Receiver, Sender, TryRecvError, channel};
