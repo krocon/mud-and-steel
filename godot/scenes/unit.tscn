@@ -2,6 +2,23 @@
 
 [ext_resource type="PackedScene" path="res://assets/models/placeholder_tank.glb" id="1_tank"]
 
+[sub_resource type="StandardMaterial3D" id="Mat_ring"]
+shading_mode = 0
+albedo_color = Color(0.45, 1, 0.45, 1)
+
+[sub_resource type="TorusMesh" id="Mesh_ring"]
+material = SubResource("Mat_ring")
+inner_radius = 0.9
+outer_radius = 1.0
+rings = 48
+ring_segments = 6
+
 [node name="Unit" type="Node3D"]
 
 [node name="Model" parent="." instance=ExtResource("1_tank")]
+
+[node name="SelectionRing" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
+visible = false
+cast_shadow = 0
+mesh = SubResource("Mesh_ring")
