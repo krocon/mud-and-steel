@@ -21,13 +21,19 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by prompt 021 (terrain deformation): ground hits of rounds
+/// Last changed by the merge of prompt 023 (base building and resources)
+/// with 021 (terrain deformation): the economy rules, unit prices,
+/// accounts, structures, production queues and supply points (three
+/// `supply_*` markers on `test_small`) are in the hash next to the
+/// craters. The demo has no buildings and captures no point; its battle
+/// is the one of prompt 021 (decided at tick 480, player 0 wins).
+/// Before: prompt 021 (terrain deformation): ground hits of rounds
 /// from 45 mm leave craters (`data/craters.toml`) that lower and raise the
 /// map's samples, turn the bowl to mud, rebuild path and vision cells, and
 /// give soldiers in them cover; the crater rules, count and a running
 /// checksum of every changed sample are in the hash. The demo makes 9
 /// craters; the battle is decided at tick 480 instead of 515, player 0
-/// still wins.
+/// still wins. Prompt 023 alone: `0xc9ba_6118_2de5_7872`.
 /// Before: the merge of prompt 022 (infantry) with 020
 /// (destruction) and 024 (AI): the destruction state of 020 (its rules,
 /// the two farmhouses `test_small` places as ruins acting as ruins from
@@ -88,7 +94,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x58f5_29f3_e88b_7de2;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xfe52_3a47_2761_c97c;
 
 #[test]
 fn golden_hash() {

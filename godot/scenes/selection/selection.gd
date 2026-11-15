@@ -45,6 +45,9 @@ var camera_rig: Node3D
 var selected: Array[int] = []
 ## Control groups 1..9: number -> unit ids.
 var groups: Dictionary[int, Array] = {}
+## Whether a unit id is a building (prompt 023): box selections that also
+## catch units leave buildings out. Set by `main.gd`.
+var is_structure := func(_id: int) -> bool: return false
 
 var _pressing := false
 var _dragging := false
@@ -313,9 +316,13 @@ func _select_in_box(box: Rect2, additive: bool) -> void:
 	var result: Array[int] = []
 	if additive:
 		result = selected.duplicate()
+	var caught: Array[int] = []
 	for i in _own_indices():
 		if _on_screen(i, box) and not result.has(ids[i]):
-			result.append(ids[i])
+			caught.append(ids[i])
+	if caught.any(func(id: int) -> bool: return not is_structure.call(id)):
+		caught = caught.filter(func(id: int) -> bool: return not is_structure.call(id))
+	result.append_array(caught)
 	_set_selection(result)
 
 

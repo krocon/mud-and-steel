@@ -181,6 +181,8 @@ func _play_test(menu: Control, map_hash: String) -> void:
 	await _frames(2)
 	menu.map_option.select(index)
 	menu.map_option.item_selected.emit(index)
+	# The fixed armies of the demo (prompt 023 made base building the default).
+	menu.mode_option.select(MatchSetup.MODES.keys().find("battle"))
 	menu.start_button.pressed.emit()
 	var main: Node3D = await _wait_scene("Main")
 	if main == null:

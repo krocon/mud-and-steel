@@ -45,6 +45,7 @@ extends Node3D
 ## `-- --effects-craters` runs `tools/crater_bench.gd` (prompt 021).
 ## Infantry (prompt 022): squads use their squad scene as model;
 ## `world/infantry_view.gd` places and animates the soldiers.
+## `-- --mode=base` starts the base-building skirmish directly (prompt 023);
 ## `-- --scenario=<file>` starts a scenario file of `data/scenarios/`;
 ## `-- --infantry-bench` runs `tools/infantry_bench.gd`.
 
@@ -75,6 +76,9 @@ const Settings := preload("res://scenes/menu/settings.gd")
 const MatchSetup := preload("res://scenes/menu/match_setup.gd")
 const LoadingScreen := preload("res://scenes/menu/loading_screen.gd")
 const GameMenu := preload("res://scenes/menu/game_menu.gd")
+const BaseView := preload("res://scenes/world/base_view.gd")
+const BaseHud := preload("res://scenes/world/base_hud.gd")
+const BaseShots := preload("res://scenes/tools/base_shots.gd")
 const SEED := 42
 ## Map folders, relative to the Godot project (repository checkout only).
 const MAPS_DIR := "res://../data/maps"
@@ -124,6 +128,9 @@ var infantry_view: InfantryView
 var destruction_view: Node
 ## Craters (prompt 021): terrain and decoration updates.
 var crater_view: Node
+## Buildings, sites, supply points and the base HUD (prompt 023).
+var base_view: BaseView
+var base_hud: BaseHud
 ## Pause menu and result screen (prompt 027).
 var game_menu: CanvasLayer
 var _loading: CanvasLayer
@@ -211,6 +218,15 @@ func _ready() -> void:
 	crater_view.name = "CraterView"
 	add_child(crater_view)
 	crater_view.setup(self)
+	base_view = BaseView.new()
+	base_view.name = "BaseView"
+	add_child(base_view)
+	base_view.setup(self)
+	base_hud = BaseHud.new()
+	base_hud.name = "BaseHud"
+	$Hud.add_child(base_hud)
+	base_hud.setup(self, base_view)
+	selection.is_structure = func(id: int) -> bool: return base_view.structures.has(id)
 
 	selection.sim_host = sim_host
 	selection.camera = camera
@@ -276,6 +292,12 @@ func _ready() -> void:
 		var infantry_bench := InfantryBench.new()
 		infantry_bench.main = self
 		add_child(infantry_bench)
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--base-shots="):
+			camera_rig.edge_scroll_enabled = false
+			var shots := BaseShots.new()
+			shots.main = self
+			add_child(shots)
 	if "--demo" in OS.get_cmdline_user_args():
 		var demo := DemoReel.new()
 		demo.main = self
@@ -344,6 +366,7 @@ func _start_simulation() -> bool:
 			sim_host.ai_opponent = arg.trim_prefix("--ai=")
 	if not MatchSetup.pending.is_empty():
 		var setup := MatchSetup.pending
+		sim_host.mode = setup.get("mode", "battle")
 		return sim_host.start_match(SEED, MatchSetup.map_dir(setup["map"]), setup["factions"])
 	if LanMatch.lobby != null:
 		var lobby := LanMatch.lobby
@@ -353,6 +376,10 @@ func _start_simulation() -> bool:
 			return sim_host.start_online(lobby, maps)
 		return sim_host.start_lan(lobby, maps)
 	for arg in OS.get_cmdline_user_args():
+		# Base building on the built-in map (prompt 023): `--mode=base`.
+		if arg.begins_with("--mode="):
+			sim_host.mode = arg.trim_prefix("--mode=")
+			return sim_host.start_match(SEED, "", PackedStringArray())
 		if arg.begins_with("--scenario="):
 			var file := ProjectSettings.globalize_path("res://../data/scenarios/" + arg.trim_prefix("--scenario="))
 			return sim_host.start_scenario(SEED, file.simplify_path(), ProjectSettings.globalize_path(MAPS_DIR).simplify_path())
@@ -440,6 +467,10 @@ func _unit_node(id: int, index: int) -> Node3D:
 ## `res://assets/models/<faction>/<catalog id>.glb`, if one exists, and paints
 ## it with the faction palette of the biome (prompt 015).
 func _use_catalog_model(node: Node3D, type_id: String, id: int) -> void:
+	# Base buildings borrow house models (prompt 023).
+	if BaseView.is_building(type_id):
+		BaseView.attach_model(node, type_id, atmosphere.preset.env_biome)
+		return
 	var faction := type_id.get_slice("_", 0)
 	var path := "%s%s/%s.glb" % [MODELS_DIR, faction, type_id]
 	# Infantry squads use their squad scene (prompt 022).

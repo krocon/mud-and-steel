@@ -1,0 +1,80 @@
+# Base-building skirmish (prompt 023, docs/GAME_DESIGN.md): every player
+# starts with a headquarters, a halftrack and two rifle squads, and the start
+# resources of data/economy.toml. None of them can hurt a building: tanks
+# have to be built first. Integers only; the format is the one of
+# demo.toml.
+#
+# `economy = true` adds the base buildings, the fortifications and the
+# production lists of the players' factions to the match. Groups with
+# `role = "building"` place base buildings (`base_*` ids); they are kept for
+# every faction.
+
+map = "test_small"
+economy = true
+# Bases at 70 % of the half map size from the center, on the line through
+# the map's start positions (test_small: 175 m, test_large: 1400 m).
+start_distance_pct = 70
+
+# The first group of a player is moved onto the player's map start (and
+# then outwards, see start_distance_pct). Bases face the map center.
+[[group]]
+owner = 0
+unit = "de_sdkfz251_1"
+count = 1
+columns = 1
+spacing_m = 12
+center_m = [0, 60]
+
+[[group]]
+owner = 1
+unit = "su_m3a1_scout"
+count = 1
+columns = 1
+spacing_m = 12
+center_m = [0, -60]
+
+[[group]]
+owner = 0
+unit = "de_inf_rifle_squad"
+role = "infantry"
+count = 2
+columns = 2
+spacing_m = 24
+center_m = [0, 46]
+
+[[group]]
+owner = 1
+unit = "su_inf_rifle_squad"
+role = "infantry"
+count = 2
+columns = 2
+spacing_m = 24
+center_m = [0, -46]
+
+[[group]]
+owner = 0
+unit = "base_hq"
+role = "building"
+count = 1
+columns = 1
+spacing_m = 0
+center_m = [0, 88]
+
+[[group]]
+owner = 1
+unit = "base_hq"
+role = "building"
+count = 1
+columns = 1
+spacing_m = 0
+center_m = [0, -88]
+
+[faction_units]
+de = "de_sdkfz251_1"
+su = "su_m3a1_scout"
+us = "us_m3_halftrack"
+
+[faction_infantry]
+de = "de_inf_rifle_squad"
+su = "su_inf_rifle_squad"
+us = "us_inf_rifle_squad"

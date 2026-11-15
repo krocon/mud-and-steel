@@ -23,8 +23,16 @@ extends Node
 ##    tanks hold fire: the AI must give orders, open fire and destroy them
 ##    (defeat by elimination); back to the menu.
 ##
+## 7. Match 4 (prompt 023): base building against the normal computer
+##    opponent at eight times the speed: the build menu offers buildings,
+##    a barracks is placed through the placement preview, completed,
+##    selected, and produces a squad that appears and costs resources; the
+##    computer opponent builds too; supply points are drawn; surrender and
+##    back to the menu.
+##
 ## Matches 1 and 2 choose the passive opponent, which gives no orders, so
-## they play as before the computer opponent existed.
+## they play as before the computer opponent existed. Matches 1 to 3 play
+## the "battle" mode (the fixed armies of the demo scenario).
 
 signal match_tested
 
@@ -107,13 +115,25 @@ func _run() -> void:
 		return
 	await _ai_opponent_test(main)
 	menu = await _back_to_menu(main)
+	if menu == null:
+		_finish()
+		return
+
+	# --- Match 4: base building ----------------------------------------
+	main = await _start_match(menu, 0, 0, 1, "test_small", "normal", "base")
+	if main == null:
+		_finish()
+		return
+	await _base_building_test(main)
+	await _surrender_test(main)
+	menu = await _back_to_menu(main)
 	_finish()
 
 
 func _finish() -> void:
 	set_process(false)
 	var ok := _errors.is_empty()
-	var message := "menu, settings, LAN lobby, online lobby, loading, match tests, pause, surrender, combat victory, computer opponent, result and back ok" if ok else " ".join(_errors)
+	var message := "menu, settings, LAN lobby, online lobby, loading, match tests, pause, surrender, combat victory, computer opponent, base building, result and back ok" if ok else " ".join(_errors)
 	print("flow self-test %s: %s" % ["PASSED" if ok else "FAILED", message])
 	get_tree().paused = false
 	get_tree().quit(0 if ok else 1)
@@ -209,7 +229,7 @@ func _online_test(menu: Control) -> Control:
 
 ## Chooses biome, own and enemy faction (indices in the setup screen) and
 ## map, starts and waits until the match is loaded.
-func _start_match(menu: Control, biome: int, own: int, enemy: int, map_name: String, opponent := "passive") -> Node3D:
+func _start_match(menu: Control, biome: int, own: int, enemy: int, map_name: String, opponent := "passive", mode := "battle") -> Node3D:
 	menu.single_player_button.pressed.emit()
 	await _frames(1)
 	_check(menu.screens["skirmish"].visible, "setup screen not shown")
@@ -220,7 +240,8 @@ func _start_match(menu: Control, biome: int, own: int, enemy: int, map_name: Str
 	menu.faction_option.select(own)
 	menu.enemy_option.select(enemy)
 	menu.opponent_option.select(MatchSetup.OPPONENTS.keys().find(opponent))
-	MatchSetup.run_match_test = biome == 0 and own == 0
+	menu.mode_option.select(MatchSetup.MODES.keys().find(mode))
+	MatchSetup.run_match_test = biome == 0 and own == 0 and mode == "battle"
 	menu.start_button.pressed.emit()
 	var main: Node3D = await _wait_scene("Main")
 	if main == null:
@@ -329,6 +350,84 @@ func _ai_opponent_test(main: Node3D) -> void:
 	_check(result["players"][0]["reason"] == "eliminated", "player 0 not eliminated: %s" % result)
 	_check(game_menu.result_title.text == "DEFEAT", "result shows '%s'" % game_menu.result_title.text)
 	print("flow self-test: computer opponent won at tick %d after %d decisions (%s)" % [result["tick"], status["decisions"], game_menu.result_details.text.replace("\n", "; ")])
+
+
+func _base_building_test(main: Node3D) -> void:
+	var host: SimHost = main.sim_host
+	var hud: Control = main.base_hud
+	host.speed = 8.0
+	await _frames(30)
+	var state: Dictionary = host.economy_state()
+	_check(state["enabled"] and hud.visible, "base building HUD not shown: %s" % state)
+	_check(main.base_view._supply_nodes.size() == 3, "supply points not drawn")
+	var barracks := -1
+	for o: Dictionary in host.build_options():
+		if o["id"] == "base_barracks":
+			barracks = o["type"]
+	_check(barracks >= 0, "barracks not in the build menu")
+	# Place it through the preview on the first valid spot around the HQ.
+	var hq := Vector3.ZERO
+	for s: Dictionary in host.structures():
+		if s["owner"] == 0 and s["type_id"] == "base_hq":
+			var index := Array(host.unit_ids()).find(s["id"])
+			hq = host.current_positions()[index]
+	hud.start_placing(barracks)
+	var placed := false
+	for r: float in [20.0, 30.0, 40.0, 50.0]:
+		for k in 16:
+			var angle := TAU * k / 16.0
+			var p := hq + Vector3(cos(angle), 0, sin(angle)) * r
+			if not placed and host.placement_check(barracks, p.x, p.z).is_empty():
+				placed = hud.place_at(Vector3(p.x, 0, p.z))
+	hud.cancel_placing()
+	_check(placed, "no valid spot for a barracks near the headquarters")
+	var before: Dictionary = host.economy_state()
+	# Wait until it is completed (25 s game time).
+	var site := {}
+	var frames := 1200
+	while frames > 0:
+		frames -= 1
+		await get_tree().process_frame
+		for s: Dictionary in host.structures():
+			if s["owner"] == 0 and s["type_id"] == "base_barracks":
+				site = s
+		if not site.is_empty() and float(site["built"]) >= 1.0:
+			break
+	_check(not site.is_empty() and float(site["built"]) >= 1.0, "barracks not completed: %s" % site)
+	if site.is_empty():
+		return
+	main.selection._set_selection([site["id"]])
+	await _frames(20)
+	_check(hud._production_panel.visible, "production bar not shown for the barracks")
+	var options: Array = host.production_options(site["id"])
+	_check(not options.is_empty(), "the barracks offers nothing")
+	var own_units := func() -> int:
+		var n := 0
+		var ids := host.unit_ids()
+		var owners := host.unit_owners()
+		for i in ids.size():
+			if owners[i] == 0 and not main.base_view.structures.has(ids[i]) and not host.structures().any(func(s: Dictionary) -> bool: return s["id"] == ids[i]):
+				n += 1
+		return n
+	var units_before: int = own_units.call()
+	var buttons: Array = hud._production_options.get_children().filter(func(c: Node) -> bool: return c is Button and not (c as Button).disabled)
+	_check(not buttons.is_empty(), "no production button enabled")
+	if not buttons.is_empty():
+		(buttons[0] as Button).pressed.emit()
+	frames = 1200
+	while own_units.call() == units_before and frames > 0:
+		frames -= 1
+		await get_tree().process_frame
+	_check(own_units.call() > units_before, "no unit produced")
+	var after: Dictionary = host.economy_state()
+	_check(int(after["manpower"]) < int(before["manpower"]) + 60, "production cost nothing: %s -> %s" % [before, after])
+	var ai_buildings := 0
+	for s: Dictionary in host.structures():
+		if s["owner"] == 1:
+			ai_buildings += 1
+	_check(ai_buildings >= 2, "the computer opponent built nothing")
+	host.speed = 1.0
+	print("flow self-test: base building ok (barracks built, unit produced, computer opponent has %d buildings, tick %d)" % [ai_buildings, host.current_tick()])
 
 
 func _wait_result(game_menu: CanvasLayer) -> void:

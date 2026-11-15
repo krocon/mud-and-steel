@@ -832,6 +832,22 @@ pub fn generate(options: &Options) -> Result<String, String> {
         ford_x.round() as i32,
         ford_y.round() as i32
     );
+    // Supply points (prompt 023, docs/GAME_DESIGN.md): the village, the
+    // landmark hill and the ford, worth fighting over.
+    for (name, x, y) in [
+        (
+            "supply_village",
+            village.x.round() as i32,
+            village.y.round() as i32,
+        ),
+        ("supply_hill", hill_x, hill_y),
+        ("supply_ford", ford_x.round() as i32, ford_y.round() as i32),
+    ] {
+        let _ = write!(
+            bridge_markers,
+            "\n\n[[marker]]\nname = \"{name}\"\nposition_m = [{x}, {y}]"
+        );
+    }
     let mut toml = String::new();
     let _ = writeln!(
         toml,

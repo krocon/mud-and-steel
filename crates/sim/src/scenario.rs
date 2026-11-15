@@ -10,7 +10,7 @@ use crate::combat::CombatRules;
 use crate::command::{Command, PlayerCommand, PlayerId, UnitId};
 use crate::data::unit_types_from_catalog;
 use crate::map::Map;
-use crate::math::Vec2;
+use crate::math::{Fixed, Vec2};
 use crate::rng::Rng;
 use crate::scale::Scale;
 use crate::sim::{Sim, SimConfig, Spawn};
@@ -24,6 +24,10 @@ use std::sync::{Arc, OnceLock};
 pub const DEMO_SCENARIO: &str = include_str!("../../../data/scenarios/demo.toml");
 
 /// Name of the map compiled into the simulation.
+/// The base-building skirmish (prompt 023): a headquarters, two tanks and
+/// two rifle squads per player, with the economy.
+pub const SKIRMISH_SCENARIO: &str = include_str!("../../../data/scenarios/skirmish.toml");
+
 pub const BUILTIN_MAP_NAME: &str = "test_small";
 
 /// The files of `data/maps/test_small/`, compiled in (needs Git LFS).
@@ -74,6 +78,9 @@ enum Role {
     #[default]
     Tank,
     Infantry,
+    /// A building of the economy (prompt 023, `base_*` ids of
+    /// `data/economy.toml`): kept for every faction.
+    Building,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
@@ -89,6 +96,16 @@ struct ScenarioFile {
     /// Faction id → catalog id for groups with `role = "infantry"`.
     #[serde(default)]
     faction_infantry: BTreeMap<String, String>,
+    /// Base building (prompt 023): adds the buildings, fortifications and
+    /// production lists of `data/economy.toml` for the players' factions.
+    #[serde(default)]
+    economy: bool,
+    /// Moves every player's groups outwards along the line from the map
+    /// center through their start, until the first group stands at this
+    /// share (percent) of half the map size from the center (prompt 023:
+    /// bases need room; the test maps have their starts 120 m apart).
+    #[serde(default)]
+    start_distance_pct: Option<u32>,
 }
 
 /// The map a scenario file names.
@@ -135,6 +152,7 @@ pub fn parse_scenario_with_factions(
             let table = match group.role {
                 Role::Tank => &file.faction_units,
                 Role::Infantry => &file.faction_infantry,
+                Role::Building => continue,
             };
             let unit = table.get(faction).ok_or_else(|| {
                 ScenarioError(format!("scenario has no units for faction '{faction}'"))
@@ -144,15 +162,47 @@ pub fn parse_scenario_with_factions(
     }
 
     let mut names: Vec<&str> = Vec::new();
-    for group in &file.group {
+    for group in file.group.iter().filter(|g| g.role != Role::Building) {
         if !names.contains(&group.unit.as_str()) {
             names.push(&group.unit);
         }
     }
-    let unit_types =
+    let mut unit_types =
         unit_types_from_catalog(catalog, scale, &names).map_err(|e| ScenarioError(e.0))?;
+    if file.economy {
+        let mut factions: Vec<&str> = file
+            .group
+            .iter()
+            .filter_map(|g| crate::economy::faction_of(&g.unit))
+            .collect();
+        factions.sort_unstable();
+        factions.dedup();
+        let rules = crate::economy::EconomyRules::builtin().map_err(|e| ScenarioError(e.0))?;
+        let more = rules
+            .unit_types(catalog, scale, &factions, &unit_types)
+            .map_err(|e| ScenarioError(e.0))?;
+        unit_types.extend(more);
+    }
+    if let Some(g) = file
+        .group
+        .iter()
+        .find(|g| !unit_types.iter().any(|t| t.name == g.unit))
+    {
+        return Err(ScenarioError(format!(
+            "unknown unit '{}' (buildings need `economy = true`)",
+            g.unit
+        )));
+    }
 
     move_groups_to_starts(&mut file.group, map);
+    if let Some(pct) = file.start_distance_pct {
+        if pct > 95 {
+            return Err(ScenarioError(
+                "start_distance_pct must be at most 95".into(),
+            ));
+        }
+        spread_starts(&mut file.group, map, terrain, pct);
+    }
     let mut spawns = Vec::new();
     for group in &file.group {
         if group.columns == 0 {
@@ -187,6 +237,89 @@ pub fn parse_scenario_with_factions(
 /// stays as in the scenario. Start positions are whole meters, like group
 /// centers. Maps whose starts equal the scenario's centers (`test_small`,
 /// `test_large`) are unaffected.
+/// See `ScenarioFile::start_distance_pct`. Whole meters. If the groups of
+/// a player would stand on blocking map objects or impassable terrain there,
+/// the distance shrinks in steps of 5 % until they stand clear (at worst
+/// they stay at their start); players without a direction (first group on
+/// the center) stay.
+fn spread_starts(groups: &mut [Group], map: &Map, terrain: &TerrainRules, pct: u32) {
+    let size = map.size();
+    let half = size.x.min(size.y) / 2;
+    let mut players: Vec<u8> = groups.iter().map(|g| g.owner).collect();
+    players.sort_unstable();
+    players.dedup();
+    for player in players {
+        let Some(anchor) = groups
+            .iter()
+            .find(|g| g.owner == player)
+            .map(|g| g.center_m)
+        else {
+            continue;
+        };
+        let at = Vec2::from_meters(anchor[0], anchor[1]);
+        let length = at.length();
+        if length == Fixed::ZERO {
+            continue;
+        }
+        let centers: Vec<Vec2> = groups
+            .iter()
+            .filter(|g| g.owner == player)
+            .map(|g| Vec2::from_meters(g.center_m[0], g.center_m[1]))
+            .collect();
+        let mut shift = [0, 0];
+        let mut step = pct;
+        loop {
+            let distance = (half * Fixed::from_num(step) / 100).max(length);
+            let target = at.scale(distance / length);
+            let candidate = [
+                target.x.round().to_num::<i32>() - anchor[0],
+                target.y.round().to_num::<i32>() - anchor[1],
+            ];
+            let offset = Vec2::from_meters(candidate[0], candidate[1]);
+            if centers
+                .iter()
+                .all(|&c| clear_ground(map, terrain, c + offset))
+            {
+                shift = candidate;
+                break;
+            }
+            if step < 5 {
+                break;
+            }
+            step -= 5;
+        }
+        for group in groups.iter_mut().filter(|g| g.owner == player) {
+            for axis in 0..2 {
+                group.center_m[axis] = group.center_m[axis].saturating_add(shift[axis]);
+            }
+        }
+    }
+}
+
+/// No map object that blocks units within 20 m of `p`, and passable
+/// terrain on a 10 m grid around it.
+fn clear_ground(map: &Map, terrain: &TerrainRules, p: Vec2) -> bool {
+    let reach = Fixed::from_num(20);
+    let blocked = map.objects().iter().any(|o| {
+        let kind = &map.object_kinds()[usize::from(o.kind)];
+        let d = o.position - p;
+        kind.blocks != crate::objects::Blocks::None && d.x.abs() <= reach && d.y.abs() <= reach
+    });
+    if blocked {
+        return false;
+    }
+    (-3..=3).all(|dy| {
+        (-3..=3).all(|dx| {
+            let q = p + Vec2::from_meters(dx * 10, dy * 10);
+            map.contains(q)
+                && terrain
+                    .types
+                    .get(usize::from(map.terrain_at(q)))
+                    .is_some_and(|t| t.passable)
+        })
+    })
+}
+
 fn move_groups_to_starts(groups: &mut [Group], map: &Map) {
     for start in map.starts() {
         let Some(anchor) = groups
@@ -267,6 +400,23 @@ pub fn demo_config() -> SimConfig {
 /// Because tick 0 never has commands, a lockstep peer with an input delay
 /// below [`COMMAND_INTERVAL`] that asks for the commands of the tick it
 /// schedules reproduces [`run_demo`] exactly.
+/// The skirmish scenario (prompt 023) on the built-in map, with the given
+/// factions per player (empty: the file's units).
+pub fn skirmish_config(factions: &[(PlayerId, &str)]) -> SimConfig {
+    let catalog = Catalog::builtin().expect("built-in catalog is valid");
+    let scale = Scale::builtin().expect("built-in scale is valid");
+    let terrain = TerrainRules::builtin().expect("built-in terrain rules are valid");
+    parse_scenario_with_factions(
+        SKIRMISH_SCENARIO,
+        factions,
+        &catalog,
+        &scale,
+        &terrain,
+        &builtin_map(),
+    )
+    .expect("skirmish scenario is valid")
+}
+
 #[derive(Clone, Debug)]
 pub struct CommandScript {
     rng: Rng,
@@ -349,6 +499,105 @@ pub fn run_demo_with(seed: u64, ticks: u64, mut observe: impl FnMut(u64, &[Playe
             })
             .collect();
         observe(tick, &commands);
+        sim.step(&commands);
+    }
+    sim
+}
+
+/// Scripted base building for tests (prompt 023): every player builds a
+/// barracks and a depot next to their headquarters, then a vehicle works;
+/// the barracks makes infantry for the first 30 s, the vehicle works
+/// vehicles until tick 6000, all sent to the map center. The
+/// commands depend only on the (shared) simulation state, so every peer
+/// derives the same ones.
+pub fn economy_commands(sim: &Sim) -> Vec<PlayerCommand> {
+    let tick = sim.tick();
+    if tick == 0 || !tick.is_multiple_of(20) {
+        return Vec::new();
+    }
+    let type_of = |name: &str| sim.unit_type_index(name);
+    let mut out = Vec::new();
+    for standing in sim.standings() {
+        let player = standing.player;
+        let structures: Vec<_> = sim
+            .structures()
+            .into_iter()
+            .filter(|s| s.owner == player)
+            .collect();
+        let Some(hq) = structures
+            .iter()
+            .find(|s| Some(s.unit_type) == type_of("base_hq"))
+        else {
+            continue;
+        };
+        let Some(hq_pos) = sim.unit_position(hq.unit) else {
+            continue;
+        };
+        let has = |name: &str| {
+            structures
+                .iter()
+                .find(|s| Some(s.unit_type) == type_of(name))
+        };
+        for name in ["base_barracks", "base_depot", "base_factory"] {
+            if has(name).is_none()
+                && let Some(t) = type_of(name)
+                && let Some(spot) = sim.find_site(player, t, hq_pos)
+            {
+                out.push(PlayerCommand::new(
+                    player,
+                    Command::Build {
+                        unit_type: t,
+                        position: spot,
+                    },
+                ));
+                break;
+            }
+        }
+        // One order at a time, while the script still wants units.
+        for (building, until) in [("base_barracks", 600u64), ("base_factory", 6000)] {
+            let Some(b) = has(building).filter(|b| b.completed()) else {
+                continue;
+            };
+            if b.rally != Vec2::ZERO {
+                out.push(PlayerCommand::new(
+                    player,
+                    Command::SetRallyPoint {
+                        building: b.unit,
+                        point: Vec2::ZERO,
+                    },
+                ));
+            }
+            if tick < until
+                && b.queue.is_empty()
+                && let Some(option) = sim
+                    .production_options(b.unit)
+                    .into_iter()
+                    .find(|o| o.blocked.is_none())
+            {
+                out.push(PlayerCommand::new(
+                    player,
+                    Command::Produce {
+                        building: b.unit,
+                        unit_type: option.unit_type,
+                    },
+                ));
+            }
+        }
+    }
+    out
+}
+
+/// Plays the skirmish with [`economy_commands`] for `ticks` ticks. The
+/// starting units hold fire; produced units fire at will and meet at the
+/// map center.
+pub fn run_economy(seed: u64, ticks: u64) -> Sim {
+    let mut config = skirmish_config(&[]);
+    for spawn in &mut config.spawns {
+        spawn.fire_mode = crate::combat::FireMode::HoldFire;
+    }
+    let mut sim = Sim::new(&config, builtin_map(), seed).expect("skirmish config is valid");
+    for _ in 0..ticks {
+        let commands = economy_commands(&sim);
         sim.step(&commands);
     }
     sim

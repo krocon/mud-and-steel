@@ -46,6 +46,11 @@ sim ticks="1000" seed="42":
 catalog-doc:
     cargo run -q -p cli -- catalog-doc
 
+# Print the prices and production times of the economy (prompt 023, data/economy.toml)
+[group('rust')]
+economy-table:
+    cargo run -q -p cli -- economy-table
+
 # Validate the unit catalog (all files, or the given ones)
 [group('rust')]
 catalog-check *files:
@@ -352,6 +357,11 @@ objects-shots dir map="test_large": build
 [group('godot')]
 effects-shots dir: build
     {{ GODOT }} --path godot --always-on-top --fixed-fps 30 res://scenes/main.tscn -- "--effects-shots={{ dir }}"
+
+# Record base building (preview, construction site, production bar, bases) as PNG files into a folder (prompt 023)
+[group('godot')]
+base-shots dir: build
+    {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- --mode=base --ai=normal "--base-shots={{ dir }}"
 
 # Measure the frame rate with 50 explosions at once in every graphics quality (opens a window)
 [group('godot')]

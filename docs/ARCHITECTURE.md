@@ -58,6 +58,13 @@ but never its issuer:
 | `Surrender` | The issuing player gives up and is defeated ([Victory conditions](#victory-conditions-and-game-flow)). |
 | `SetStance { units, stance }` | Infantry squads stand, kneel, go prone or choose automatically (prompt 022, [INFANTRY.md](INFANTRY.md#behavior-prompt-022)). |
 | `Garrison { units, building }` | Infantry squads walk to the building (map object index) and occupy it if there is room and no enemy inside; a `MoveTo` leaves it. |
+| `Build { unit_type, position }` | Places and pays a construction site of a structure type ([Economy](#economy-base-building-and-production), prompt 023). |
+| `Produce { building, unit_type }` | Queues and pays a unit in an own completed producing building. |
+| `CancelProduction { building }` | Removes the last order of the queue with a full refund. |
+| `SetRallyPoint { building, point }` | Units of the building drive there when they are done. |
+
+Movement commands (`MoveTo`, `Attack`, `AttackGround`, `Garrison`) ignore
+units that cannot move (buildings).
 
 The simulation consumes `PlayerCommand { player, command }`. Only the lockstep layer
 builds these, from the sender of the frame, so a peer cannot command another player's
@@ -680,6 +687,106 @@ not secret, only the effects are hidden).
 - Fallen trees and ruins do not change the decoration (grass under a felled
   crown stays).
 
+## Economy: base building and production
+
+Prompt 023. The game rules and their reasons: [GAME_DESIGN.md](GAME_DESIGN.md).
+Rules in `crates/sim/src/economy.rs` (`data/economy.toml`, compiled in like
+the destruction rules, part of the state hash, not of `SimConfig`), the state
+in `crates/sim/src/sim/economy.rs`.
+
+**Buildings are units.** Base buildings (`base_*`, sizes, hit points and
+armor from the rules: `UnitType::structure`), fortifications from the
+catalog (`UnitType::fixed_from_catalog`) and construction sites are units with
+speed 0. Combat (hit boxes, armor, automatic targets, bunkers and gun
+positions firing their catalog weapons), vision, wrecks that block their path
+cells, victory conditions and the computer player's view need no special
+case. The economy keeps per unit type whether it is a structure, its price,
+build radius, income and requirements, and per structure (by unit id) the
+build progress, the production queue and the rally point. A structure faces
+along the y axis towards the map center, so its footprint is an axis-aligned
+rectangle; its path cells are blocked with `Sim::set_path_obstacle` when it is
+placed.
+
+**Scenarios.** `economy = true` in a scenario appends the base buildings, the
+fortifications and the production lists of the players' factions to
+`SimConfig::unit_types` (`EconomyRules::unit_types`); groups with
+`role = "building"` place buildings. `start_distance_pct` moves every
+player's groups outwards on the line from the map center through their start
+(`data/scenarios/skirmish.toml`: 70 % of half the map size), 5 % closer at a
+time while a group would stand within 20 m of a blocking map object or on
+impassable terrain. A player's
+faction is the prefix of their first catalog unit.
+
+**Per tick** (`Sim::update_economy`, after destruction, before vision):
+
+1. Structures whose unit was destroyed are dropped with their queue.
+2. Construction sites gain hit points linearly (from 10 % of the maximum) and
+   hold fire until completed.
+3. Supply points (map markers `supply*`): units (no buildings) within the
+   radius take a point while no other player has units there; an enemy point
+   is neutralized first.
+4. After every full second: income of completed buildings and held points.
+   Accounts are kept in 1/60 000 of a resource unit, so an income per minute
+   pays exactly.
+5. Production: the first order of every completed producing building counts
+   down (not while its owner is at the unit limit); a finished unit appears at
+   the first free spot beside the building (rings outwards, 15° steps from
+   its front, passable for the unit's path profile) and drives to its slot of
+   a 3 × 3 formation around the rally point. Units are added during the match
+   by `Sim::spawn_unit`: ids keep increasing, the vision arrays grow.
+
+**Placement** (`Sim::placement`, the same check for the command and for the
+preview): a structure type the player's faction may build, requirements
+completed, count and construction site limits, resources, within the build
+radius of an own completed building, footprint inside the map, every path cell
+under it passable for large units (no water, map objects, wrecks or other
+buildings), height difference over the footprint at most `max_grade_pct` of
+its larger side, no living unit within `clearance_m`. `Sim::find_site` tries
+rings around a point in a fixed order (the computer player).
+
+**Queries** for the bridge and the AI: `account`, `income`, `faction`,
+`structures` (`StructureView`), `supply_points`, `build_options`,
+`production_options` (`BuyOption` with the reason it is blocked), `cost_of`,
+`structure_size`, `is_structure`, `unit_type_index`, `unit_position`.
+
+**Bridge and Godot.** `crates/bridge/src/economy_funcs.rs` turns these into
+dictionaries and queues the commands; `SimHost.mode` picks the battle or the
+base-building scenario for `start_match`, `SimHost.speed` runs more ticks per
+frame (self-tests). `scenes/world/base_view.gd` gives the `base_*` buildings
+borrowed house models (prompt 007, with the `Damaged` and `Ruin` variants of
+prompt 020), lets a site's model grow with its progress, and draws supply
+points as flags in the colour of their holder with a ring that fills while
+they are taken. `scenes/world/base_hud.gd`: resource bar, build menu with
+prices (greyed out with the reason), placement preview (a box of the
+building's size, green or red with the reason from `placement_check`),
+production bar of the selected building with its queue and a cancel button,
+right click sets the rally point. Box selections that also catch units leave
+buildings out.
+
+**Cost** (`test_large`, release, Apple M1 Max): the skirmish has 26 unit
+types instead of 4, one path cost profile each, so `Sim::new` takes 0.86 s
+instead of 0.27 s (a performance item for prompt 016: profiles with equal
+speeds could share their costs). A tick of the demo is unchanged; placing a
+building costs one relabeling of the component grids, like a destroyed
+object.
+
+### Decisions
+
+| Question | Decision | Why |
+|---|---|---|
+| What a building is | A unit with speed 0 | Combat, vision, destruction, victory and the AI view work unchanged; a separate entity type would need its own targeting, hit tests and fog filtering. |
+| Who builds | The player, by command, within a build radius | No builder units to path, protect or manage for the AI; one command per building. |
+| Rules location | Built in and hashed, not in `SimConfig` | Like the destruction rules: keeps `SimConfig` and the replay layout unchanged for the parallel prompts; peers with other rules desync at once. |
+| Unit prices | Formula from catalog values | Covers all 133 entries without a hand-made table; stronger units are never cheaper. |
+| Supply points | Map markers | Maps decide where the fighting is; the generator places three, the editor keeps them. |
+| Consumption | None yet | See GAME_DESIGN.md; the account model allows supply trucks later. |
+
+### Open
+
+- Supply points cannot be placed in the map editor yet (markers are kept).
+- Path profiles per unit type grow with the economy types (see Cost).
+- The LAN lobby has no mode choice; LAN matches play the battle.
+
 ## Terrain deformation
 
 Prompt 021. Ground hits of heavy rounds leave craters that change the
@@ -856,7 +963,7 @@ Prompt 027. `crates/sim/src/outcome.rs` decides the match; Godot only shows it.
 
 - Every player that owns a unit at the start is in the **standings**. A
   player is **defeated** when they send `Surrender` or have no living units
-  left at the end of a tick (`Sim::alive_units`: units not destroyed by
+  (buildings included, prompt 023) left at the end of a tick (`Sim::alive_units`: units not destroyed by
   [combat](#combat); wrecks stay in the unit list but do not count).
 - The match is **decided** as soon as at most one player is undefeated: that
   player wins, or it is a draw when the last players fall in the same tick.
@@ -881,7 +988,7 @@ Prompt 027. `crates/sim/src/outcome.rs` decides the match; Godot only shows it.
 **Scenes.** The project starts in `scenes/menu/main_menu.tscn`:
 
 ```
-main menu ── Single player ─ setup (map, season, own and enemy faction) ─┐
+main menu ── Single player ─ setup (map, season, factions, opponent, mode) ┐
           ├─ LAN game ────── lan/lan_lobby.tscn (host, search, join) ────┤
           ├─ Online (Steam)  online/steam_lobby.tscn (host, list, code) ─┤
           ├─ Settings        (user://settings.cfg)                       │
@@ -920,7 +1027,11 @@ tests of `self_test.gd` (including combat), pause, surrender → defeat, back
 to the menu; match 2 as United States against Germany in winter: everyone
 starts with hold fire, the own tanks attack one enemy after the other until
 the last is destroyed → victory by elimination, back to the menu; match 3 against the hard
-computer opponent (prompt 024) while the own tanks hold fire → defeat by elimination.
+computer opponent (prompt 024) while the own tanks hold fire → defeat by elimination;
+match 4 (prompt 023) in the base-building mode against the normal opponent at eight
+times the speed: a barracks placed through the preview, completed, selected, a unit
+produced from its production bar, the opponent builds too, surrender. Matches 1–3 play
+the battle mode.
 Matches 1 and 2 choose the passive opponent, which gives no orders. `just lan-selftest` ends with the client
 surrendering: the host must show victory, the client defeat.
 

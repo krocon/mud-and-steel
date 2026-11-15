@@ -29,10 +29,18 @@ const OPPONENTS: Dictionary[String, String] = {
 }
 const DEFAULT_OPPONENT := "normal"
 
+## Game modes (prompt 023, `SimHost.mode`): base building with resources
+## and production, or the fixed armies of the demo scenario.
+const MODES: Dictionary[String, String] = {
+	"base": "Base building",
+	"battle": "Battle (fixed armies)",
+}
+const DEFAULT_MODE := "base"
+
 ## The match to start: `map` (folder name in `data/maps/`, or BUILTIN_MAP for
 ## the compiled-in map), `biome` ("" = the map's), `factions` (faction id per
 ## player, local player first), `ai` (difficulty of the computer opponent,
-## see OPPONENTS). Empty when nothing is pending.
+## see OPPONENTS), `mode` (see MODES). Empty when nothing is pending.
 static var pending := {}
 ## The menu self-test that drives the whole flow, or null. While it runs,
 ## `main.gd` adds the match self-test only when `run_match_test` is set.

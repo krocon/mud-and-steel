@@ -86,6 +86,61 @@ sees nothing but enemy armor; unarmed units stay where they are. Per group, ever
    target moved by more than 40 m or the group stopped early.
 5. At its first think the AI sets all own units to fire at will.
 
+## Base building (prompt 023)
+
+In matches with buildings ([GAME_DESIGN.md](GAME_DESIGN.md)) the AI also plays
+the economy (`crates/ai/src/economy.rs`), with the same commands as a human:
+
+- `PlayerView` adds the account, the own structures with their queues, the
+  supply points (public) and, for every structure type the player can build
+  now, the first free spot around its headquarters (`Sim::find_site`, the
+  placement check of the simulation). The check sees units the player does
+  not see; a construction site cannot go where one stands, which a human
+  learns from the red preview as well.
+- **Build order:** barracks, depot, vehicle works, depot, MG bunker of the
+  faction; Hard also an AT gun position. One step at a time; the price of the
+  missing step is kept in reserve before anything is produced, otherwise
+  infantry eats the manpower and the vehicle works is never built.
+- **Production:** every think, completed barracks and vehicle works get an
+  order while their queue is shorter than 1 (Hard 2), from a mix per
+  difficulty (indices into the faction's list in `data/economy.toml`:
+  Normal infantry rifle, MG, rifle, AT and vehicles medium, medium, tank
+  destroyer, light; Hard more AT and heavy tanks; Easy cheaper units). The AI
+  saves up for the next unit of the mix instead of skipping it. Rally points
+  are set once to a point 45 m in front of the headquarters.
+- **Waves:** with a base, a group with nothing in sight goes to the nearest
+  supply point it does not hold (if that is nearer to its base than to the
+  enemy's), else to the rally point, until it has the wave size (Easy 8,
+  Normal 6, Hard 5); then it attacks as before until it shrinks below half.
+- **Targets:** buildings are attacked last: armor fights armor, then other
+  units, then buildings; infantry groups with a weapon of 20 mm or more (AT
+  squads) also take on armor and buildings once no enemy infantry is near.
+- The enemy's home is the enemy's first building if the scenario places one.
+
+`just ai-tournament --mode base` plays the base-building skirmish. Results
+(10 games per pairing, at most 24 000 ticks = 20 min, test_small, seeds
+1–10, Apple M1 Max, release, 21 s together):
+
+| Pairing (A vs B) | A wins | B wins | timeouts | mean decided |
+|---|---|---|---|---|
+| hard vs passive | 100 % | 0 % | 0 | 216 s |
+| normal vs passive | 100 % | 0 % | 0 | 215 s |
+| easy vs passive | 100 % | 0 % | 0 | 215 s |
+| hard vs normal | 20 % | 10 % | 7 | 825 s |
+| hard vs easy | 10 % | 10 % | 8 | 807 s |
+| normal vs easy | 50 % | 20 % | 3 | 522 s |
+
+Against the passive enemy every level builds, produces and razes the base.
+On `test_small` the bases stand only about 180 m apart (the free ground of
+the start meadow; `start_distance_pct` finds no clear spot farther out), so
+both bases are in sight and range of each other, armies meet in the middle
+and replace their losses, and many games between two AIs end undecided:
+after the first base falls the remaining units and fortifications are not
+hunted down. Tuning the end game (attacking with everything at the unit
+limit, hunting the last units) and measuring on `test_large` (bases 0.9 and
+1.4 km from the center) are open. Thinking costs about 5–20 µs per tick on
+average, at most a few milliseconds (the free-spot search of the view).
+
 ## Difficulties
 
 | | Passive | Easy | Normal | Hard |
@@ -175,14 +230,18 @@ starts far apart (meeting engagements) should separate the levels more.
   another peer for a hosted player are rejected, and single player with a
   hosted AI needs no peer.
 - `just selftest` (flow test, match 3): the hard computer opponent beats tanks
-  that hold fire; matches 1 and 2 play against the passive opponent.
+  that hold fire; matches 1 and 2 play against the passive opponent; match 4
+  (prompt 023) checks that the normal opponent builds in a base match.
+- `crates/ai/tests/economy.rs` (prompt 023): every level builds barracks
+  and depot and produces units against the passive enemy; base matches
+  between two AIs are reproducible and both sides build.
 
 ## Open
 
 - AI slots in the LAN lobby (the session part exists).
 - Infantry tactics: stances, cover spots and buildings (prompt 022) are not
   used by the AI yet; attacking squads walk in standing and lose against
-  kneeling defenders. Building and economy (prompt 023),
+  kneeling defenders. The end game of base matches (see above),
   using terrain (hull-down positions, woods, crests), artillery.
 - Meeting engagements on large maps for a better spread of the levels.
 - Formation facing and speed matching (pathfinding, see ARCHITECTURE.md).
