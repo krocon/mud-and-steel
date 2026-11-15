@@ -9,7 +9,8 @@ extends Node
 ## objects). Per view it prints frames per second, frame time (mean, p99,
 ## worst), the simulation's share of the frame (`SimHost.process_usec`:
 ## ticks, AI, snapshots), render CPU time, draw calls and the script time of
-## the big presentation systems. Screenshots go to `user://perf-bench/`. See docs/PERFORMANCE.md.
+## the big presentation systems (the HUD of prompt 031 included; the battle
+## views have a dozen units selected). Screenshots go to `user://perf-bench/`. See docs/PERFORMANCE.md.
 
 const BENCH_SIZE := Vector2i(1920, 1080)
 const SECONDS := 6.0
@@ -63,6 +64,9 @@ func _run() -> void:
 	while (Time.get_ticks_msec() - began) / 1000.0 < BATTLE_SETTLE:
 		main.camera_rig.snap_to(_front(), 150.0, 0.7)
 		await _frame()
+	# A typical selection of a dozen units for the HUD (prompt 031): unit
+	# panel tiles, waypoint lines, minimap rings.
+	main.selection.set_selection(Array(_own_units()).slice(0, 12))
 	for distance in DISTANCES:
 		await _measure("battle", distance)
 	print("perf-bench: frames rendered by force_draw (window not drawable): %d" % forced_draws)
@@ -147,7 +151,7 @@ func _measure(phase: String, distance: float) -> void:
 	var primitives := 0
 	# GDScript per system (microseconds): units, infantry, combat view and
 	# its event effects, effects, decoration, terrain chunks.
-	var parts := [0, 0, 0, 0, 0, 0]
+	var parts := [0, 0, 0, 0, 0, 0, 0]
 	while (Time.get_ticks_usec() - began) / 1e6 < SECONDS:
 		if phase == "battle":
 			# Follow the front slowly, like a player would.
@@ -167,6 +171,7 @@ func _measure(phase: String, distance: float) -> void:
 		parts[3] += main.effects.process_usec
 		parts[4] += main.map_objects.process_usec
 		parts[5] += main.terrain.last_update_usec
+		parts[6] += main.hud.usec
 	var seconds := (Time.get_ticks_usec() - began) / 1e6
 	var frames := times.size()
 	var sorted := times.duplicate()
@@ -177,9 +182,10 @@ func _measure(phase: String, distance: float) -> void:
 		label, frames / seconds, seconds * 1000.0 / frames, sorted[(frames - 1) * 99 / 100],
 		sorted[frames - 1], sim_usec / 1000.0 / frames, float(ticks) / frames,
 		render / frames, draw_calls / frames, primitives / 1e6 / frames])
-	print("perf-bench: %-14s scripts ms: units %.2f  infantry %.2f  combat view %.2f  effects %.2f  decoration %.2f  terrain %.2f" % [
+	print("perf-bench: %-14s scripts ms: units %.2f  infantry %.2f  combat view %.2f  effects %.2f  decoration %.2f  terrain %.2f  hud %.2f" % [
 		"", parts[0] / 1000.0 / frames, parts[1] / 1000.0 / frames, parts[2] / 1000.0 / frames,
-		parts[3] / 1000.0 / frames, parts[4] / 1000.0 / frames, parts[5] / 1000.0 / frames])
+		parts[3] / 1000.0 / frames, parts[4] / 1000.0 / frames, parts[5] / 1000.0 / frames,
+		parts[6] / 1000.0 / frames])
 
 
 func _frames(count: int) -> void:
