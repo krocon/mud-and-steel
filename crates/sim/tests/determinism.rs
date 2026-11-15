@@ -35,7 +35,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x6ebb_c2a3_86e5_a802;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x2316_0b7d_ebd5_91d7;
 
 #[test]
 fn golden_hash() {

@@ -42,6 +42,10 @@ pub const MIN_CELL_COST: u16 = 100;
 /// the straight line (see `docs/ARCHITECTURE.md`).
 pub const HEURISTIC_WEIGHT_PCT: i32 = 0;
 
+/// How far (in cells) a search that starts on a blocked cell without
+/// passable neighbors looks for a passable start cell.
+const START_SEARCH_CELLS: u32 = 16;
+
 /// Footprints above this (meters) belong to [`SizeClass::Large`].
 const SMALL_MAX_FOOTPRINT_M: i32 = 4;
 
@@ -258,6 +262,12 @@ impl PathGrid {
 
     pub fn passable(&self, class: SizeClass, x: u32, y: u32) -> bool {
         self.classes[class.index()].passable[self.index(x, y)]
+    }
+
+    /// Whether the cell containing `p` is passable for `class`.
+    pub fn passable_at(&self, class: SizeClass, p: Vec2) -> bool {
+        let (x, y) = self.cell_of(p);
+        self.passable(class, x, y)
     }
 
     const fn index(&self, x: u32, y: u32) -> usize {
@@ -571,20 +581,29 @@ impl PathGrid {
         Some(mean * (b - a).length() / self.cell * Fixed::from_num(10))
     }
 
-    /// Component of a start cell: its own, or for a blocked cell (a unit
-    /// standing in the dilated margin) the first passable neighbor's.
-    fn start_component(&self, class: SizeClass, x: u32, y: u32) -> u32 {
+    /// Start cell and component of a search from cell `(x, y)`: the cell
+    /// itself if passable; for a blocked cell (a unit standing in the
+    /// margin) the cell itself with the first passable neighbor's
+    /// component; with no passable neighbor either, the nearest passable
+    /// cell within [`START_SEARCH_CELLS`] rings (the unit drives there in a
+    /// straight line). `None` if there is none.
+    fn search_start(&self, class: SizeClass, x: u32, y: u32, start: Vec2) -> Option<(u32, u32)> {
         let grid = &self.classes[class.index()];
-        let own = grid.component[self.index(x, y)];
+        let cell = self.index(x, y) as u32;
+        let own = grid.component[cell as usize];
         if own != 0 {
-            return own;
+            return Some((cell, own));
         }
-        NEIGHBORS
+        let neighbor = NEIGHBORS
             .iter()
             .filter_map(|&(dx, dy, _)| self.offset(x, y, dx, dy))
             .map(|(nx, ny)| grid.component[self.index(nx, ny)])
-            .find(|&c| c != 0)
-            .unwrap_or(0)
+            .find(|&c| c != 0);
+        if let Some(component) = neighbor {
+            return Some((cell, component));
+        }
+        let nearest = self.nearest_cell(class, None, start, START_SEARCH_CELLS)?;
+        Some((nearest, grid.component[nearest as usize]))
     }
 
     fn offset(&self, x: u32, y: u32, dx: i32, dy: i32) -> Option<(u32, u32)> {
@@ -593,12 +612,19 @@ impl PathGrid {
         (nx < self.width && ny < self.height).then_some((nx, ny))
     }
 
-    /// The cell of `component` whose center is nearest to `goal` (ties: the
-    /// smaller index), searched ring by ring around the goal cell.
-    fn nearest_in_component(&self, class: SizeClass, component: u32, goal: Vec2) -> Option<u32> {
+    /// The passable cell (of `component`, if given) whose center is nearest
+    /// to `goal` (ties: the smaller index), searched ring by ring around the
+    /// goal cell up to `max_rings`.
+    fn nearest_cell(
+        &self,
+        class: SizeClass,
+        component: Option<u32>,
+        goal: Vec2,
+        max_rings: u32,
+    ) -> Option<u32> {
         let grid = &self.classes[class.index()];
         let (gx, gy) = self.cell_of(goal);
-        let rings = self.width.max(self.height);
+        let rings = self.width.max(self.height).min(max_rings.saturating_add(1));
         let mut best: Option<(i128, u32)> = None;
         for r in 0..rings {
             // Every cell on ring r is at least (r - 1/2) cells from the goal,
@@ -617,7 +643,8 @@ impl PathGrid {
                 for x in x0..=x1 {
                     let on_ring = x.abs_diff(gx) == r || y.abs_diff(gy) == r;
                     let i = self.index(x, y);
-                    if !on_ring || grid.component[i] != component {
+                    let c = grid.component[i];
+                    if !on_ring || c == 0 || component.is_some_and(|wanted| c != wanted) {
                         continue;
                     }
                     let d = self.center(x, y) - goal;
@@ -889,22 +916,20 @@ impl Search {
     ) -> Begin {
         let class = grid.profiles[profile].class;
         let (sx, sy) = grid.cell_of(start);
-        let component = grid.start_component(class, sx, sy);
-        if component == 0 {
+        let Some((start_cell, component)) = grid.search_start(class, sx, sy, start) else {
             return Begin::Done(None);
-        }
+        };
         let (gx, gy) = grid.cell_of(goal);
         let mut goal_cell = grid.index(gx, gy) as u32;
         let mut goal = goal;
         if grid.classes[class.index()].component[goal_cell as usize] != component {
-            let Some(nearest) = grid.nearest_in_component(class, component, goal) else {
+            let Some(nearest) = grid.nearest_cell(class, Some(component), goal, u32::MAX) else {
                 return Begin::Done(None);
             };
             goal_cell = nearest;
             let (x, y) = grid.coords(nearest);
             goal = grid.center(x, y);
         }
-        let start_cell = grid.index(sx, sy) as u32;
         if start_cell == goal_cell {
             return Begin::Done(Some(Path {
                 cells: vec![start_cell],
@@ -920,6 +945,7 @@ impl Search {
             mark: 2 * ws.generation,
         };
         let (gx, gy) = grid.coords(goal_cell);
+        let (sx, sy) = grid.coords(start_cell);
         let h = heuristic(grid.profiles[profile].heuristic, sx, sy, gx, gy);
         ws.open.push(Reverse((h, h, start_cell)));
         Begin::Search(Self {

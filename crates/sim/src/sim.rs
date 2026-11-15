@@ -385,23 +385,31 @@ impl Sim {
         let pushes: Vec<Vec2> = (0..self.units.len())
             .map(|i| directions[i].map_or(Vec2::ZERO, |d| separation(&self.units, i, d)))
             .collect();
-        for (unit, push) in self.units.iter_mut().zip(pushes) {
-            if move_unit(unit, push, &self.map, &self.terrain) == Moved::Blocked {
-                // Pushed off the planned line (or the way is blocked):
-                // plan again from here, a limited number of times.
-                unit.replans += 1;
-                match unit.target {
-                    Some(target) if unit.replans <= MAX_REPLANS => {
-                        let id = self.paths.request(
-                            unit.position,
-                            target,
-                            unit.unit_type as usize,
-                            vec![(unit.id, Vec2::ZERO)],
-                        );
-                        unit.route = Route::Waiting(id);
-                    }
-                    _ => stop(unit),
+        let grid = &self.paths.grid;
+        let mut blocked = Vec::new();
+        for (index, (unit, push)) in self.units.iter_mut().zip(pushes).enumerate() {
+            let class = grid.class_of(unit.unit_type as usize);
+            let keep_clear = |p: Vec2| grid.passable_at(class, p);
+            if move_unit(unit, push, &self.map, &self.terrain, keep_clear) == Moved::Blocked {
+                blocked.push(index);
+            }
+        }
+        // Pushed off the planned line (or the way is blocked): plan again
+        // from here, a limited number of times.
+        for index in blocked {
+            let unit = &mut self.units[index];
+            unit.replans += 1;
+            match unit.target {
+                Some(target) if unit.replans <= MAX_REPLANS => {
+                    let id = self.paths.request(
+                        unit.position,
+                        target,
+                        unit.unit_type as usize,
+                        vec![(unit.id, Vec2::ZERO)],
+                    );
+                    unit.route = Route::Waiting(id);
                 }
+                _ => stop(unit),
             }
         }
     }
@@ -634,8 +642,15 @@ fn formation_route(
     let last = points.len() - 1;
     let mut route = Vec::with_capacity(points.len() + 1);
     let mut previous = from;
+    let start = path.waypoints[0];
     for (k, &point) in points.iter().enumerate() {
         let shifted = point + offset;
+        // A group waypoint close to the group's start only re-forms the
+        // group; members skip it when they see the next one.
+        let near_start = (point - start).length() < grid.cell_size() * 2;
+        if k < last && near_start && clear(previous, points[k + 1] + offset) {
+            continue;
+        }
         if clear(previous, shifted) {
             route.push(shifted);
             previous = shifted;
@@ -765,8 +780,17 @@ enum Moved {
 /// The unit never enters impassable terrain or leaves the map. If neither
 /// the pushed nor the direct step is possible, it slides along the obstacle
 /// (only the x or only the y part of the step); if that fails too, it
-/// reports [`Moved::Blocked`].
-fn move_unit(unit: &mut Unit, push: Vec2, map: &Map, rules: &TerrainRules) -> Moved {
+/// reports [`Moved::Blocked`]. Pushed and sliding steps must also stay on
+/// cells that `clear` accepts (passable for the unit's size class) unless
+/// the unit already stands on a blocked cell; the direct step follows the
+/// planned leg and needs no such check.
+fn move_unit(
+    unit: &mut Unit,
+    push: Vec2,
+    map: &Map,
+    rules: &TerrainRules,
+    clear: impl Fn(Vec2) -> bool,
+) -> Moved {
     let Route::Following {
         waypoints, next, ..
     } = &unit.route
@@ -780,6 +804,8 @@ fn move_unit(unit: &mut Unit, push: Vec2, map: &Map, rules: &TerrainRules) -> Mo
         };
         let valid =
             |p: Vec2| map.contains(p) && rules.types[usize::from(map.terrain_at(p))].passable;
+        let off_grid = !clear(unit.position);
+        let detour_ok = |p: Vec2| off_grid || clear(p);
         let candidates = if (waypoint - unit.position).length() <= speed {
             [Some(waypoint), None, None, None]
         } else {
@@ -789,11 +815,14 @@ fn move_unit(unit: &mut Unit, push: Vec2, map: &Map, rules: &TerrainRules) -> Mo
                 velocity = Vec2::new(velocity.x / length, velocity.y / length);
             }
             let step = direction.scale(speed);
+            let pushed = unit.position + velocity.scale(speed);
+            let slide_x = unit.position + Vec2::new(step.x, Fixed::ZERO);
+            let slide_y = unit.position + Vec2::new(Fixed::ZERO, step.y);
             [
-                Some(unit.position + velocity.scale(speed)),
+                Some(pushed).filter(|&p| detour_ok(p)),
                 Some(unit.position + step),
-                Some(unit.position + Vec2::new(step.x, Fixed::ZERO)),
-                Some(unit.position + Vec2::new(Fixed::ZERO, step.y)),
+                Some(slide_x).filter(|&p| detour_ok(p)),
+                Some(slide_y).filter(|&p| detour_ok(p)),
             ]
         };
         let Some(next_position) = candidates.into_iter().flatten().find(|&p| valid(p)) else {

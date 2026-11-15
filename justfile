@@ -231,3 +231,15 @@ validate-env *ids:
 [group('assets')]
 env-lineup out="build/renders/env" *ids:
     {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/env_lineup.py -- "{{ out }}" {{ ids }}
+
+# --- Pathfinding (prompt 012) ---------------------------------------------------------
+
+# Benchmark: units with simultaneous path requests on a map, time per tick (group = units per order)
+[group('pathfinding')]
+path-bench map="test_large" units="200" group="1":
+    cargo run -q --release -p cli -- path-bench --map data/maps/{{ map }} --units {{ units }} --group {{ group }}
+
+# Build the bridge and start the game with the path debug view on (F3 costs, F4 paths)
+[group('pathfinding')]
+run-paths map="test_small": build
+    {{ GODOT }} --path godot -- --map={{ map }} --path-debug
