@@ -20,6 +20,8 @@ var terrain_option: OptionButton
 var preset_option: OptionButton
 var place_option: OptionButton
 var heading_spin: SpinBox
+## Team of the start a start tool places (prompt 037).
+var start_team_option: OptionButton
 ## Dialogs by name: "new", "open", "save".
 var dialogs: Dictionary[String, PanelContainer] = {}
 var new_name: LineEdit
@@ -94,6 +96,11 @@ func _ready() -> void:
 	heading_spin.step = 15
 	heading_spin.value_changed.connect(func(v: float) -> void: main.place_heading = int(v))
 	_setting(box, "heading", "Heading °", heading_spin)
+	start_team_option = OptionButton.new()
+	for label in EditorData.START_TEAMS:
+		start_team_option.add_item(label)
+	start_team_option.item_selected.connect(func(i: int) -> void: main.set_start_team(i - 1))
+	_setting(box, "start_team", "Team", start_team_option)
 
 	status = MenuTheme.hint("")
 	status.custom_minimum_size = Vector2(300, 0)
@@ -114,9 +121,12 @@ func select_tool(id: String) -> void:
 		"strength": ["raise", "lower", "smooth", "flatten", "river"],
 		"density": ["scatter"], "preset": ["scatter"], "terrain": ["paint"],
 		"place": ["place"], "heading": ["place"],
+		"start_team": EditorData.START_TOOLS,
 	}
 	for key in _settings:
 		_settings[key].visible = id in uses[key]
+	if id in EditorData.START_TOOLS:
+		start_team_option.select(main.start_team_of(int(id.right(1))) + 1)
 
 
 func set_radius(value: float) -> void:
