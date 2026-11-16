@@ -4,7 +4,7 @@
 //! lobby scene to `main.tscn`; `SimHost.start_lan` then takes the started
 //! connection out of it. The network code itself lives in `net::lan`.
 
-use crate::SimHost;
+use crate::{SimHost, team_funcs};
 use godot::classes::{IRefCounted, RefCounted};
 use godot::prelude::*;
 use net::lan::{
@@ -33,6 +33,10 @@ pub struct LanLobby {
     browser: Option<DiscoveryBrowser>,
     name: String,
     message: String,
+    /// Host: every unit starts with hold fire (self-tests that end by
+    /// surrender, prompt 037). Part of the config, so the same everywhere.
+    #[var]
+    hold_fire_at_start: bool,
     base: Base<RefCounted>,
 }
 
@@ -45,6 +49,7 @@ impl IRefCounted for LanLobby {
             browser: None,
             name: String::new(),
             message: String::new(),
+            hold_fire_at_start: false,
             base,
         }
     }
@@ -57,20 +62,19 @@ impl LanLobby {
     #[constant]
     const DEFAULT_DISCOVERY_PORT: i64 = DEFAULT_DISCOVERY_PORT as i64;
 
-    /// Hosts a game of the demo scenario on `port` and answers searches on
-    /// `discovery_port`. Returns false (see `message()`) if the port is taken.
+    /// Hosts a game on `port` and answers searches on `discovery_port`:
+    /// the battle on the built-in map with two slots until `set_match`
+    /// changes it (prompt 037). Returns false (see `message()`) if the
+    /// port is taken.
     #[func]
     fn host(&mut self, name: GString, port: i64, discovery_port: i64) -> bool {
         self.reset();
         self.name = name.to_string();
-        let max_players = match crate::demo_config(&builtin_map(), &[]) {
-            Ok(config) => config.players().len(),
-            Err(e) => return self.fail(format!("invalid demo scenario: {e}")),
-        };
-        let node = match LanNode::host(&self.name, to_port(port), max_players) {
+        let mut node = match LanNode::host(&self.name, to_port(port), team_funcs::MAX_SLOTS) {
             Ok(node) => node,
             Err(e) => return self.fail(format!("cannot host on port {port}: {e}")),
         };
+        team_funcs::set_lobby_match(&mut node, BUILTIN_MAP_NAME, "battle", true, 2);
         match DiscoveryResponder::new(to_port(discovery_port), self.game_info(&node)) {
             Ok(responder) => self.responder = Some(responder),
             Err(e) => {
@@ -231,14 +235,63 @@ impl LanLobby {
         self.node.as_ref().is_some_and(LanNode::can_start)
     }
 
-    /// Host: starts the demo scenario for everyone, on the built-in map or
+    /// Slots of the lobby (prompt 037), see `team_funcs::lobby_slots`.
+    #[func]
+    fn slots(&self) -> Array<VarDictionary> {
+        self.node
+            .as_ref()
+            .map_or_else(Array::new, team_funcs::lobby_slots)
+    }
+
+    /// Map, mode and shared vision of the lobby.
+    #[func]
+    fn match_settings(&self) -> VarDictionary {
+        self.node
+            .as_ref()
+            .map_or_else(VarDictionary::new, team_funcs::lobby_match)
+    }
+
+    /// Host: `open`, `closed` or `computer` (with difficulty `level`) for
+    /// slot `index`.
+    #[func]
+    fn set_slot_kind(&mut self, index: i64, kind: GString, level: GString) {
+        if let Some(node) = &mut self.node {
+            team_funcs::set_slot_kind(node, index, &kind.to_string(), &level.to_string());
+        }
+    }
+
+    /// Team and faction of slot `index` (a client only its own).
+    #[func]
+    fn set_slot_side(&mut self, index: i64, team: i64, faction: GString) {
+        if let Some(node) = &mut self.node {
+            team_funcs::set_slot_side(node, index, team, &faction.to_string());
+        }
+    }
+
+    /// Host: map name, mode (`battle`, `base`), shared vision and number
+    /// of slots (the map's starts).
+    #[func]
+    fn set_match(&mut self, map: GString, mode: GString, shared_vision: bool, slots: i64) {
+        if let Some(node) = &mut self.node {
+            team_funcs::set_lobby_match(
+                node,
+                &map.to_string(),
+                &mode.to_string(),
+                shared_vision,
+                slots,
+            );
+        }
+    }
+
+    /// Host: starts the lobby's match for everyone, on the built-in map or
     /// the map folder `map_dir` (absolute path, "" = built-in).
     #[func]
     fn start_match(&mut self, seed: i64, map_dir: GString) -> bool {
+        let hold_fire = self.hold_fire_at_start;
         let Some(node) = &mut self.node else {
             return self.fail("not hosting".into());
         };
-        match start_demo(node, seed, &map_dir.to_string()) {
+        match team_funcs::start_setup(node, seed, &map_dir.to_string(), hold_fire) {
             Ok(()) => {
                 self.responder = None;
                 true
@@ -307,30 +360,6 @@ fn parse_address(text: &str) -> Option<SocketAddr> {
     })
 }
 
-/// Host: starts the demo scenario for everyone in the lobby of `node`, on
-/// the built-in map or the map folder `map_dir` (absolute path, "" =
-/// built-in). Shared by the LAN and the Steam lobby.
-pub(crate) fn start_demo<L: Link>(
-    node: &mut LobbyNode<L>,
-    seed: i64,
-    map_dir: &str,
-) -> Result<(), String> {
-    let map = if map_dir.is_empty() {
-        builtin_map()
-    } else {
-        Arc::new(crate::load_map_dir(Path::new(map_dir))?)
-    };
-    let config = crate::demo_config(&map, &[]).map_err(|e| e.to_string())?;
-    // The seed is a bit pattern; reinterpreting the sign is intended.
-    node.start(
-        seed.cast_unsigned(),
-        config,
-        LAN_INPUT_DELAY,
-        LAN_HASH_INTERVAL,
-    )
-    .map(|_| ())
-}
-
 impl SimHost {
     /// Starts the network match that `node` (state "started") prepared: the
     /// host's seed and config, the map loaded locally (built-in, or from
@@ -356,6 +385,15 @@ impl SimHost {
                 }
             }
         };
+        // The host runs the computer players (prompt 037).
+        let computers: Vec<(sim::PlayerId, ai::Difficulty)> = if node.is_host() {
+            info.computers
+                .iter()
+                .filter_map(|(p, level)| Some((*p, level.parse().ok()?)))
+                .collect()
+        } else {
+            Vec::new()
+        };
         // Rejects a map with a different content hash than the host's.
         let sim = match Sim::new(&info.config, map.clone(), info.seed) {
             Ok(sim) => sim,
@@ -374,6 +412,9 @@ impl SimHost {
             &info.lockstep_config(),
             Box::new(node),
         );
+        if let Some(game) = self.game.as_mut() {
+            crate::ai_funcs::host_computers(game, &computers, info.seed);
+        }
         true
     }
 }

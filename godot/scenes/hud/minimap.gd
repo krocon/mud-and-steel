@@ -19,6 +19,8 @@ const DOT_PX := 3.0
 const PING_SECONDS := 1.6
 ## Player colors: own units first in `_colors()`.
 const OWN_COLOR := Color(0.35, 0.95, 0.4)
+## Allies (prompt 037) [provisional].
+const ALLY_COLOR := Color(0.35, 0.6, 1.0)
 const ENEMY_COLOR := Color(1.0, 0.3, 0.22)
 const VIEW_COLOR := Color(1, 1, 1, 0.9)
 const PING_COLOR := Color(1.0, 0.25, 0.2)
@@ -154,18 +156,28 @@ func _process(delta: float) -> void:
 	usec += Time.get_ticks_usec() - began
 
 
-## Player colors indexed by player id: the local player green, the others
-## red.
+## Player colors indexed by player id: the local player green, allies
+## blue (prompt 037), enemies red.
 func _colors() -> PackedColorArray:
 	var colors := PackedColorArray()
 	var me := sim_host.local_player()
-	for player in maxi(me + 1, 2):
-		colors.append(OWN_COLOR if player == me else ENEMY_COLOR)
+	var last := maxi(me + 1, 2)
+	for p: Dictionary in sim_host.match_players():
+		last = maxi(last, int(p["id"]) + 1)
+	for player in last:
+		match sim_host.relation(player):
+			0:
+				colors.append(OWN_COLOR)
+			1:
+				colors.append(ALLY_COLOR)
+			_:
+				colors.append(ENEMY_COLOR)
 	colors.append(ENEMY_COLOR)
 	return colors
 
 
-## A combat ping at the world point (from the event feed).
+## A ping at the world point (combat from the event feed; marks of the
+## allies, prompt 037).
 func add_ping(point: Vector3) -> void:
 	_pings.append({"at": to_minimap(point), "age": 0.0})
 	ping_count += 1
@@ -230,7 +242,12 @@ func _gui_input(event: InputEvent) -> void:
 		return
 	var local := mouse.global_position - _area.global_position
 	if button != null:
-		if button.button_index == MOUSE_BUTTON_LEFT:
+		if button.button_index == MOUSE_BUTTON_LEFT and button.pressed and button.alt_pressed:
+			# Alt + left click marks the spot for the allies (prompt 037).
+			var at := to_world(local)
+			sim_host.ping(at.x, at.z)
+			accept_event()
+		elif button.button_index == MOUSE_BUTTON_LEFT:
 			_dragging = button.pressed
 			if button.pressed:
 				look_at_pixel(local)

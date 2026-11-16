@@ -169,6 +169,18 @@ struct Sighting {
     tick: u64,
 }
 
+/// Base or start of one enemy player (prompt 037).
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+struct EnemyHome {
+    player: PlayerId,
+    position: Vec2,
+    searched: bool,
+}
+
+/// Share of the unit limit from which a base player stops waiting for
+/// waves (percent).
+const ALL_IN_PCT: usize = 85;
+
 /// The last order a group got.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 enum Order {
@@ -189,8 +201,10 @@ enum Order {
 enum Objective {
     /// The last known position of this enemy unit.
     Sighting(UnitId),
-    /// The enemy's start position.
+    /// The start (or base) of the nearest undefeated enemy.
     EnemyHome,
+    /// A supply point an enemy holds (end game, prompt 037).
+    Supply(Vec2),
     /// A random point (everything known was searched).
     Explore(Vec2),
 }
@@ -232,9 +246,16 @@ pub struct Ai {
     types: Vec<TypeInfo>,
     /// Center of the own start (m).
     home: Vec2,
-    /// Start of the enemy: from the map, else mirrored through the center.
+    /// Start of the enemy the AI heads for: from the map, else mirrored
+    /// through the center (prompt 037: the nearest undefeated enemy's).
     enemy_home: Vec2,
     enemy_home_searched: bool,
+    /// Base or start of every enemy player, and whether it was searched
+    /// (prompt 037: teams have several).
+    enemy_homes: Vec<EnemyHome>,
+    /// Living units besides buildings from which a base player attacks
+    /// with everything instead of in waves (end game, prompt 037).
+    all_in_units: usize,
     /// Half the map size (m).
     half: Vec2,
     rng: Rng,
@@ -328,38 +349,56 @@ impl Ai {
             .map(|s| s.position)
             .collect();
         let home = centroid(own.iter().copied()).unwrap_or_default();
-        // The enemy's base (prompt 023: its first building), else the
-        // enemy's start from the map.
-        let enemy_base = config
-            .spawns
-            .iter()
-            .find(|s| {
-                s.owner != player
-                    && config
-                        .unit_types
+        // Every enemy's base (prompt 023: its first building), else its
+        // start from the map, else the centroid of its spawns (public like
+        // the map). Allies (prompt 037) are no enemies.
+        let teams = &config.teams;
+        let home_of = |enemy: PlayerId| {
+            config
+                .spawns
+                .iter()
+                .find(|s| {
+                    s.owner == enemy
+                        && config
+                            .unit_types
+                            .iter()
+                            .any(|t| t.name == s.unit_type && !t.mobile())
+                })
+                .map(|s| s.position)
+                .or_else(|| {
+                    map.starts()
                         .iter()
-                        .any(|t| t.name == s.unit_type && !t.mobile())
+                        .find(|s| s.player == enemy.0)
+                        .map(|s| s.position)
+                })
+                .or_else(|| {
+                    centroid(
+                        config
+                            .spawns
+                            .iter()
+                            .filter(|s| s.owner == enemy)
+                            .map(|s| s.position),
+                    )
+                })
+        };
+        let enemy_homes: Vec<EnemyHome> = config
+            .players()
+            .into_iter()
+            .filter(|&p| teams.hostile(player, p))
+            .filter_map(|p| {
+                Some(EnemyHome {
+                    player: p,
+                    position: home_of(p)?,
+                    searched: false,
+                })
             })
-            .map(|s| s.position);
-        let enemy_home = enemy_base
-            .or_else(|| {
-                map.starts()
-                    .iter()
-                    .find(|s| s.player != player.0)
-                    .map(|s| s.position)
-            })
-            .or_else(|| {
-                centroid(
-                    config
-                        .spawns
-                        .iter()
-                        .filter(|s| s.owner != player)
-                        .map(|s| s.position),
-                )
-                // Without starts in the map, spawns are the scenario's: the
-                // enemy's are public like the map. Mirror as a last resort.
-            })
-            .unwrap_or(Vec2::new(-home.x, -home.y));
+            .collect();
+        // Mirror through the center as a last resort.
+        let enemy_home = nearest_home(&enemy_homes, home, |_| true)
+            .map_or(Vec2::new(-home.x, -home.y), |h| h.position);
+        let all_in_units = sim::EconomyRules::builtin().map_or(usize::MAX, |r| {
+            r.production.max_units as usize * ALL_IN_PCT / 100
+        });
         let size = map.size();
         Self {
             player,
@@ -369,6 +408,8 @@ impl Ai {
             home,
             enemy_home,
             enemy_home_searched: false,
+            enemy_homes,
+            all_in_units,
             half: Vec2::new(size.x / 2, size.y / 2),
             rng: Rng::new(seed ^ (u64::from(player.0) << 56) ^ 0xA1_0024),
             memory: BTreeMap::new(),
@@ -417,6 +458,7 @@ impl Ai {
         self.thinks += 1;
         let mut out = Vec::new();
         self.remember(view);
+        self.choose_enemy_home(view);
 
         if !self.started {
             self.started = true;
@@ -458,6 +500,30 @@ impl Ai {
             }
         }
         out
+    }
+
+    /// Heads for the nearest home of an undefeated enemy that was not
+    /// searched yet (prompt 037: with teams there are several).
+    fn choose_enemy_home(&mut self, view: &PlayerView) {
+        let alive = |p: PlayerId| {
+            view.enemy_players
+                .iter()
+                .any(|&(q, defeated)| q == p && !defeated)
+        };
+        let next = nearest_home(&self.enemy_homes, self.home, |h| {
+            alive(h.player) && !h.searched
+        })
+        .or_else(|| nearest_home(&self.enemy_homes, self.home, |h| alive(h.player)));
+        if let Some(h) = next {
+            self.enemy_home = h.position;
+        }
+        if !self.enemy_homes.is_empty() {
+            self.enemy_home_searched = self
+                .enemy_homes
+                .iter()
+                .filter(|h| alive(h.player))
+                .all(|h| h.searched);
+        }
     }
 
     fn type_info(&self, unit_type: u32) -> TypeInfo {
@@ -714,18 +780,34 @@ impl Ai {
             }
         }
 
-        let objective = self.objective(&mut state, center);
+        let objective = self.objective(&mut state, center, view);
         let target = match objective {
             Objective::Sighting(id) => self.memory[&id].position,
             Objective::EnemyHome => self.enemy_home,
-            Objective::Explore(p) => p,
+            Objective::Supply(p) | Objective::Explore(p) => p,
         };
         if dist(center, target) <= Fixed::from_num(ARRIVED_M) {
             match objective {
                 Objective::Sighting(id) => {
                     self.memory.remove(&id);
                 }
-                Objective::EnemyHome => self.enemy_home_searched = true,
+                Objective::EnemyHome => {
+                    let reached = self.enemy_home;
+                    for h in self
+                        .enemy_homes
+                        .iter_mut()
+                        .filter(|h| h.position == reached)
+                    {
+                        h.searched = true;
+                    }
+                    if self.enemy_homes.is_empty() {
+                        self.enemy_home_searched = true;
+                    } else {
+                        self.choose_enemy_home(view);
+                    }
+                }
+                // Units at the point take it over: wait there.
+                Objective::Supply(_) => {}
                 Objective::Explore(_) => state.explore = None,
             }
         } else {
@@ -736,8 +818,10 @@ impl Ai {
     }
 
     /// Where to go without enemies in sight: the freshest sighting, the
-    /// enemy start, then random points.
-    fn objective(&mut self, state: &mut GroupState, center: Vec2) -> Objective {
+    /// enemy start (the nearest undefeated enemy's), then the nearest
+    /// supply point an enemy holds (hunting the last units, prompt 037),
+    /// then random points.
+    fn objective(&mut self, state: &mut GroupState, center: Vec2, view: &PlayerView) -> Objective {
         let freshest = self
             .memory
             .iter()
@@ -754,6 +838,20 @@ impl Ai {
         }
         if !self.enemy_home_searched {
             return Objective::EnemyHome;
+        }
+        let held = view
+            .supply
+            .iter()
+            .filter(|p| {
+                p.owner.is_some_and(|o| {
+                    view.enemy_players
+                        .iter()
+                        .any(|&(q, defeated)| q == o && !defeated)
+                })
+            })
+            .min_by_key(|p| (dist(p.position, center), p.name.clone()));
+        if let Some(p) = held {
+            return Objective::Supply(p.position);
         }
         let point = match state.explore {
             Some(p) => p,
@@ -860,6 +958,20 @@ fn flank_point(center: Vec2, enemy: Vec2, range: Fixed, left: bool) -> Vec2 {
 }
 
 /// Price of every unit type of the match that can be bought (prompt 023).
+/// The home of `homes` nearest to `from` among those `wanted` accepts
+/// (ties: the lower player id).
+fn nearest_home(
+    homes: &[EnemyHome],
+    from: Vec2,
+    wanted: impl Fn(&EnemyHome) -> bool,
+) -> Option<EnemyHome> {
+    homes
+        .iter()
+        .filter(|h| wanted(h))
+        .min_by_key(|h| (dist(h.position, from), h.player))
+        .copied()
+}
+
 fn unit_costs(config: &SimConfig) -> Vec<Option<sim::Resources>> {
     let rules = sim::EconomyRules::builtin().ok();
     let catalog = sim::economy::builtin_catalog();

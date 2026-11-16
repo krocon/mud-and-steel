@@ -22,6 +22,8 @@ const MODELS_DIR := "res://assets/models/neutral/"
 const MIN_SITE_SCALE := 0.12
 const OWN_COLOR := Color(0.35, 0.6, 0.95)
 const ENEMY_COLOR := Color(0.85, 0.25, 0.2)
+## Supply points of allies (prompt 037) [provisional].
+const ALLY_COLOR := Color(0.4, 0.85, 0.85)
 const NEUTRAL_COLOR := Color(0.85, 0.85, 0.8)
 ## Structures and supply points are read this often (s).
 const READ_INTERVAL := 0.1
@@ -167,6 +169,12 @@ func _update_rally() -> void:
 	_rally_marker.position = (s.rally as Vector3) + Vector3.UP * 2.0
 
 
+func _side_color(player: int, me: int) -> Color:
+	if player == me:
+		return OWN_COLOR
+	return ALLY_COLOR if sim_host.relation(player) == 1 else ENEMY_COLOR
+
+
 func _update_supply() -> void:
 	var points := sim_host.supply_points()
 	var me := sim_host.local_player()
@@ -174,13 +182,13 @@ func _update_supply() -> void:
 		var p: Dictionary = points[i]
 		var flag := _supply_nodes[i]
 		var owner: int = p.owner
-		var color := NEUTRAL_COLOR if owner < 0 else (OWN_COLOR if owner == me else ENEMY_COLOR)
+		var color := NEUTRAL_COLOR if owner < 0 else _side_color(owner, me)
 		(flag.get_node("Cloth") as MeshInstance3D).material_override = _flat(color)
 		var ring := flag.get_node("Ring") as MeshInstance3D
 		var taker: int = p.taker
 		ring.visible = taker >= 0
 		if taker >= 0:
-			ring.material_override = _flat((OWN_COLOR if taker == me else ENEMY_COLOR) * Color(1, 1, 1, 0.6))
+			ring.material_override = _flat(_side_color(taker, me) * Color(1, 1, 1, 0.6))
 			var r := 2.0 + 23.0 * float(p.progress)
 			ring.scale = Vector3(r, 1.0, r)
 

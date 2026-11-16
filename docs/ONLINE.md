@@ -90,7 +90,7 @@ delay of the LAN applies unchanged (`ceil((rtt + variance) / 2 / 50 ms) + 1`,
 | What | Value |
 |------|-------|
 | Lobby data | `game = mud-and-steel`, `protocol = <net::lobby::PROTOCOL_VERSION>`, `name = <host's Steam name>`, `started = 1` once the match runs (the lobby is then also set not joinable) |
-| Lobby size | 2 (the demo scenario has two players) |
+| Lobby size | 6 members (prompt 037: the slots follow the map's starts, [TEAMS.md](TEAMS.md)) |
 | Lobby list | filter `game`, distance worldwide; incompatible protocol versions are shown and refused by the host |
 | Rich presence | `status` ("In a lobby" / "In a match"), `connect = +connect_lobby <code>` while the host waits for players, `steam_player_group = <code>` |
 | Invites | overlay invite dialog (when Steam started the game), *Join game* in the friends list (`GameRichPresenceJoinRequested`), lobby invitations (`GameLobbyJoinRequested`), the code |
@@ -170,7 +170,10 @@ friends list. Different networks are fine: that is the point of the test.
 
 ## Limits
 
-- Two players (the demo scenario), no AI slots, no spectators, no reconnect.
+- Slots, teams and computer players as on the LAN (prompt 037,
+  [TEAMS.md](TEAMS.md)); tested without Steam only (the lobby protocol over
+  memory links and ENet), a real test with three or more accounts is open.
+  No spectators, no reconnect.
 - No kick: Steam lobbies cannot remove a member; a refused peer leaves by
   itself after the host's rejection.
 - Lobby membership is not enforced for sessions (anyone in contact with the

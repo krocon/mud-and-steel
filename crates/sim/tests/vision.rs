@@ -76,6 +76,7 @@ fn config(
         combat,
         vision,
         infantry: sim::InfantryRules::builtin().unwrap(),
+        teams: sim::Teams::default(),
     }
 }
 

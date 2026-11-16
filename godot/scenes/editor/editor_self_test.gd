@@ -142,6 +142,12 @@ func _tools_test(scene: Node3D, editor: MapEditor) -> void:
 	var starts := editor.start_positions()
 	_check(Vector2(starts[0].x, starts[0].z) == Vector2(20, 70) and Vector2(starts[1].x, starts[1].z) == Vector2(-20, -70), "start positions %s" % starts)
 	_check(scene.has_node("Start0") and scene.has_node("Start1"), "start markers missing")
+	# A third start gets the usual team (prompt 037); the panel changes it.
+	scene.tool = "start2"
+	scene.stroke(_points([Vector2(60, 70)], editor))
+	_check(editor.start_teams() == {2: 0}, "start teams %s" % [editor.start_teams()])
+	scene.set_start_team(1)
+	_check(editor.start_teams() == {2: 1} and scene.has_node("Start2"), "start team not changed: %s" % [editor.start_teams()])
 	await _frames(5)
 
 

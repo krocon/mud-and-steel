@@ -144,8 +144,15 @@ func stroke_begin(point: Vector3) -> void:
 			var placed: Variant = editor.place_object(place_kind, point.x, point.z, place_heading)
 			if placed == null:
 				set_status(editor.last_error(), true)
-		"start0", "start1":
-			editor.set_start(int(tool.right(1)), point.x, point.z)
+		"start0", "start1", "start2", "start3", "start4", "start5":
+			var player := int(tool.right(1))
+			var new_start: bool = not editor.start_positions().has(player)
+			editor.set_start(player, point.x, point.z)
+			# A new start gets the usual team: even players against odd
+			# ones (prompt 037); the panel changes it.
+			if new_start and not editor.start_teams().has(player):
+				editor.set_start_team(player, player % 2)
+				_update_starts()
 		_:
 			stroke_to(point, 1.0 / 60.0)
 
@@ -376,7 +383,7 @@ func _draw_cursor() -> void:
 	if _hover == null:
 		return
 	var center: Vector3 = _hover
-	var r := radius if tool not in ["place", "start0", "start1"] else 3.0
+	var r := radius if tool not in ["place"] + EditorData.START_TOOLS else 3.0
 	_cursor_mesh.surface_begin(Mesh.PRIMITIVE_LINE_STRIP)
 	for k in 49:
 		var angle := TAU * k / 48.0
@@ -386,12 +393,27 @@ func _draw_cursor() -> void:
 	_cursor_mesh.surface_end()
 
 
-## Columns at the start positions (blue: player 1, red: player 2).
+## Team of `player`'s start, -1 without (prompt 037).
+func start_team_of(player: int) -> int:
+	return int(editor.start_teams().get(player, -1))
+
+
+## Sets the team of the start the current start tool places (-1: none).
+func set_start_team(team: int) -> void:
+	if tool in EditorData.START_TOOLS:
+		editor.set_start_team(int(tool.right(1)), team)
+		_update_starts()
+
+
+## Columns at the start positions, colored by team (prompt 037; without
+## teams blue for player 1, red for the others).
 func _update_starts() -> void:
 	for marker in _start_markers:
 		marker.queue_free()
 	_start_markers.clear()
 	var starts := editor.start_positions()
+	var teams := editor.start_teams()
+	var team_colors: Array[Color] = [Color(0.3, 0.55, 1.0), Color(1.0, 0.35, 0.25), Color(0.35, 0.9, 0.4)]
 	for player: int in starts:
 		var marker := MeshInstance3D.new()
 		var mesh := CylinderMesh.new()
@@ -400,7 +422,11 @@ func _update_starts() -> void:
 		mesh.height = 12.0
 		var material := StandardMaterial3D.new()
 		material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		material.albedo_color = Color(0.3, 0.55, 1.0) if player == 0 else Color(1.0, 0.35, 0.25)
+		var team: int = teams.get(player, -1)
+		if team >= 0:
+			material.albedo_color = team_colors[team % team_colors.size()]
+		else:
+			material.albedo_color = Color(0.3, 0.55, 1.0) if player == 0 else Color(1.0, 0.35, 0.25)
 		mesh.material = material
 		marker.mesh = mesh
 		marker.name = "Start%d" % player

@@ -498,6 +498,30 @@ impl MapEditor {
         self.edited(None);
     }
 
+    /// Suggested team of `player`'s start for the lobby (prompt 037); -1:
+    /// none (the player is on a team of their own).
+    #[func]
+    fn set_start_team(&mut self, player: i64, team: i64) {
+        let (Some(map), Ok(player)) = (self.map.as_mut(), u8::try_from(player)) else {
+            return;
+        };
+        map.set_start_team(player, u8::try_from(team).ok());
+        self.edited(None);
+    }
+
+    /// Suggested teams of the starts: player id → team (players without
+    /// one are left out).
+    #[func]
+    fn start_teams(&self) -> VarDictionary {
+        let mut d = VarDictionary::new();
+        if let Some(map) = &self.map {
+            for &(player, team) in &map.meta().start_teams {
+                d.set(i64::from(player), i64::from(team));
+            }
+        }
+        d
+    }
+
     /// Start positions: player id → ground point (Vector3).
     #[func]
     fn start_positions(&self) -> VarDictionary {

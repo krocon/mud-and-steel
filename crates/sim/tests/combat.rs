@@ -67,6 +67,7 @@ fn sim_with(
         combat: rules,
         vision: sim::VisionRules::builtin().unwrap(),
         infantry: sim::InfantryRules::builtin().unwrap(),
+        teams: sim::Teams::default(),
     };
     Sim::new(&config, map, 7).unwrap()
 }

@@ -42,6 +42,8 @@ const BINDABLE: Dictionary[String, String] = {
 	"event_jump": "Jump to last event",
 	"order_barrage": "Barrage at the cursor (artillery)",
 	"order_smoke": "Smoke at the cursor (artillery)",
+	# Teams (prompt 037).
+	"ping_allies": "Mark the spot for allies",
 }
 
 ## Health bars over units (prompt 031): `damaged` (damaged and selected

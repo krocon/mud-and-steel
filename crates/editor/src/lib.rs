@@ -58,8 +58,18 @@ pub struct Meta {
     pub water_flow_deg: u16,
     /// `(player, [x, y] meters)`, sorted by player.
     pub starts: Vec<(u8, [i32; 2])>,
+    /// `(player, team)` for starts with a suggested team (prompt 037),
+    /// sorted by player.
+    pub start_teams: Vec<(u8, u8)>,
     /// `(name, [x, y] meters)`, kept as loaded.
     pub markers: Vec<(String, [i32; 2])>,
+}
+
+impl Meta {
+    /// The suggested team of `player`'s start, if any.
+    pub fn start_team(&self, player: u8) -> Option<u8> {
+        self.start_teams.iter().find(|s| s.0 == player).map(|s| s.1)
+    }
 }
 
 /// A rectangle of samples: columns `i0..i0 + w`, rows `j0..j0 + h`.
@@ -152,6 +162,7 @@ impl EditMap {
             biome,
             water_flow_deg: sim::map::DEFAULT_WATER_FLOW_DEG,
             starts: vec![(0, [0, d]), (1, [0, -d])],
+            start_teams: Vec::new(),
             markers: Vec::new(),
         };
         Self::from_parts(
@@ -179,12 +190,19 @@ impl EditMap {
             .map(|s| (s.player, meters(s.position)))
             .collect();
         starts.sort_by_key(|s| s.0);
+        let mut start_teams: Vec<(u8, u8)> = map
+            .starts()
+            .iter()
+            .filter_map(|s| Some((s.player, s.team?)))
+            .collect();
+        start_teams.sort_by_key(|s| s.0);
         let meta = Meta {
             name: map.name().into(),
             generator,
             biome: map.biome(),
             water_flow_deg: map.water_flow_deg(),
             starts,
+            start_teams,
             markers: map
                 .markers()
                 .iter()
@@ -275,6 +293,7 @@ impl EditMap {
                 .map(|&(player, p)| StartPosition {
                     player,
                     position: point(p),
+                    team: self.meta.start_team(player),
                 })
                 .collect(),
             markers: self
@@ -436,9 +455,24 @@ impl EditMap {
         });
     }
 
-    /// Removes the start position of `player`.
+    /// Removes the start position of `player` (and its team).
     pub fn remove_start(&mut self, player: u8) {
-        self.edit_meta(|m| m.starts.retain(|s| s.0 != player));
+        self.edit_meta(|m| {
+            m.starts.retain(|s| s.0 != player);
+            m.start_teams.retain(|s| s.0 != player);
+        });
+    }
+
+    /// Sets the suggested team of `player`'s start (prompt 037; `None`:
+    /// no suggestion, the player is on a team of their own).
+    pub fn set_start_team(&mut self, player: u8, team: Option<u8>) {
+        self.edit_meta(|m| {
+            m.start_teams.retain(|s| s.0 != player);
+            if let Some(team) = team {
+                m.start_teams.push((player, team));
+                m.start_teams.sort_by_key(|s| s.0);
+            }
+        });
     }
 
     fn edit_meta(&mut self, f: impl FnOnce(&mut Meta)) {

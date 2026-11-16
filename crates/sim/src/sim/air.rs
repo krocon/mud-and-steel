@@ -768,6 +768,20 @@ impl Sim {
                     mask |= bit;
                 }
             }
+            // Teams (prompt 037): allies see each other's planes, and with
+            // shared vision what any ally sees.
+            let teams = &self.teams;
+            if !teams.is_free_for_all() {
+                let seen = mask;
+                for (s, &q) in air.players.iter().enumerate() {
+                    let shares = air.players.iter().enumerate().any(|(t, &r)| {
+                        seen & (1 << t) != 0 && teams.shared_vision && teams.allied(q, r)
+                    });
+                    if teams.allied(q, p.owner) || shares {
+                        mask |= 1 << s;
+                    }
+                }
+            }
             p.seen = mask;
         }
     }
@@ -810,7 +824,9 @@ impl Sim {
                     .planes
                     .iter()
                     .enumerate()
-                    .filter(|(_, p)| p.alive() && p.owner != owner && p.seen & (1 << slot) != 0)
+                    .filter(|(_, p)| {
+                        p.alive() && self.teams.hostile(p.owner, owner) && p.seen & (1 << slot) != 0
+                    })
                     .filter(|(_, p)| p.position.z - eye.z >= min_alt)
                     .filter_map(|(k, p)| {
                         let d = Vec3::new(

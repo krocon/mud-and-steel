@@ -617,7 +617,7 @@ impl Sim {
         for &j in &near {
             let j = j as usize;
             let other = &self.units[j];
-            if other.owner == me.owner || !other.alive() {
+            if self.teams.allied(other.owner, me.owner) || !other.alive() {
                 continue;
             }
             let body = &self.artillery.bodies[other.unit_type as usize];
@@ -640,14 +640,15 @@ impl Sim {
         best.map(|(_, j)| j)
     }
 
-    /// Whether a living unit of `owner` stands within `radius` of `p`.
+    /// Whether a living unit of `owner` or an ally stands within `radius`
+    /// of `p`.
     fn friend_near(&self, owner: PlayerId, p: Vec2, radius: Fixed) -> bool {
         let r = Vec2::new(radius, radius);
         let mut near = Vec::new();
         self.unit_grid.query(p - r, p + r, &mut near);
         near.iter().any(|&k| {
             let u = &self.units[k as usize];
-            u.owner == owner && u.alive() && (u.position - p).length() <= radius
+            self.teams.allied(u.owner, owner) && u.alive() && (u.position - p).length() <= radius
         })
     }
 

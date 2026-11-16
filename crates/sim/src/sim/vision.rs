@@ -37,6 +37,12 @@ pub(super) struct Vision {
     radius: Vec<i32>,
     /// Ray steps computed in the last tick (benchmark).
     pub(super) last_steps: u32,
+    /// Per player slot (prompt 037): bit `t` = slot `t` is an ally (or the
+    /// slot itself), whose units this player always sees.
+    allies: Vec<u64>,
+    /// Per player slot: bit `t` = this player sees what slot `t` sees
+    /// (itself, plus its allies with shared vision).
+    shares: Vec<u64>,
 }
 
 /// Most players a match can have (one bit each in [`Vision::seen`]).
@@ -48,9 +54,25 @@ impl Vision {
         rules: &VisionRules,
         map: &crate::map::Map,
         players: Vec<PlayerId>,
+        teams: &crate::teams::Teams,
         types: &[(i32, Option<crate::catalog::Category>)],
         units: usize,
     ) -> Self {
+        let mask_of = |with: &dyn Fn(PlayerId) -> bool| {
+            players
+                .iter()
+                .enumerate()
+                .filter(|&(_, &p)| with(p))
+                .fold(0u64, |m, (t, _)| m | (1 << t))
+        };
+        let allies: Vec<u64> = players
+            .iter()
+            .map(|&p| mask_of(&|q| teams.allied(p, q)))
+            .collect();
+        let shares: Vec<u64> = players
+            .iter()
+            .map(|&p| mask_of(&|q| p == q || (teams.shared_vision && teams.allied(p, q))))
+            .collect();
         let radius: Vec<i32> = types.iter().map(|&(_, c)| rules.range_cells(c)).collect();
         let grid = VisionGrid::new(map, rules, &radius);
         let cells = grid.cells();
@@ -66,7 +88,19 @@ impl Vision {
             eye_mm: types.iter().map(|&(eye, _)| eye).collect(),
             radius,
             last_steps: 0,
+            allies,
+            shares,
         }
+    }
+
+    /// Whether the player in `slot` sees vision cell `cell`, with the eyes
+    /// of the allies it shares vision with.
+    fn slot_sees(&self, slot: usize, cell: usize) -> bool {
+        let share = self.shares[slot];
+        self.per_player
+            .iter()
+            .enumerate()
+            .any(|(t, pv)| share & (1 << t) != 0 && pv.visible(cell))
     }
 
     /// Room for one more unit at the end of the unit list (units produced
@@ -201,16 +235,22 @@ impl Sim {
                         .collect(),
                     _ => Vec::new(),
                 };
-                let mut mask = 0u64;
-                for (s, (&player, pv)) in v.players.iter().zip(&v.per_player).enumerate() {
-                    if player == unit.owner
-                        || pv.visible(cell)
-                        || windows.iter().any(|&c| pv.visible(c))
-                    {
-                        mask |= 1 << s;
+                // Allies always see each other (prompt 037); with shared
+                // vision a player sees what their allies see.
+                let owner = v.slot(unit.owner).expect("owners are players");
+                let visible: u64 = v
+                    .per_player
+                    .iter()
+                    .enumerate()
+                    .filter(|(_, pv)| pv.visible(cell) || windows.iter().any(|&c| pv.visible(c)))
+                    .fold(0, |m, (t, _)| m | (1 << t));
+                (0..v.players.len()).fold(0u64, |mask, s| {
+                    if v.allies[s] & (1 << owner) != 0 || v.shares[s] & visible != 0 {
+                        mask | (1 << s)
+                    } else {
+                        mask
                     }
-                }
-                mask
+                })
             } else {
                 u64::MAX
             };
@@ -270,7 +310,7 @@ impl Sim {
         let cell = self.vision.grid.index_of(p) as usize;
         self.vision
             .slot(player)
-            .is_some_and(|s| self.vision.per_player[s].visible(cell))
+            .is_some_and(|s| self.vision.slot_sees(s, cell))
     }
 
     /// Whether the owner of unit `i` sees unit `j`.
@@ -313,8 +353,30 @@ impl Sim {
         let cells = self.vision.grid.cells();
         match self.vision.slot(player) {
             Some(s) => {
-                let pv = &self.vision.per_player[s];
-                out.extend((0..cells).map(|i| pv.state(i)));
+                let v = &self.vision;
+                let shared: Vec<&PlayerVision> = v
+                    .per_player
+                    .iter()
+                    .enumerate()
+                    .filter(|&(t, _)| v.shares[s] & (1 << t) != 0)
+                    .map(|(_, pv)| pv)
+                    .collect();
+                if let [pv] = shared[..] {
+                    out.extend((0..cells).map(|i| pv.state(i)));
+                } else {
+                    // Shared vision (prompt 037): the best state of the team.
+                    out.extend((0..cells).map(|i| {
+                        shared
+                            .iter()
+                            .map(|pv| pv.state(i))
+                            .max_by_key(|&state| match state {
+                                CellState::Unexplored => 0,
+                                CellState::Explored => 1,
+                                CellState::Visible => 2,
+                            })
+                            .unwrap_or(CellState::Unexplored)
+                    }));
+                }
             }
             None => out.resize(cells, CellState::Unexplored),
         }
@@ -322,9 +384,14 @@ impl Sim {
 
     /// Changes whenever a cell of `player` changes its state.
     pub fn vision_version(&self, player: PlayerId) -> u64 {
-        self.vision
-            .slot(player)
-            .map_or(0, |s| self.vision.per_player[s].version)
+        let v = &self.vision;
+        v.slot(player).map_or(0, |s| {
+            v.per_player
+                .iter()
+                .enumerate()
+                .filter(|&(t, _)| v.shares[s] & (1 << t) != 0)
+                .fold(0u64, |sum, (_, pv)| sum.wrapping_add(pv.version))
+        })
     }
 
     /// Units waiting for a new viewshed.

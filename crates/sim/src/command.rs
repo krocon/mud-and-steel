@@ -82,6 +82,10 @@ pub enum Command {
     /// edge. Ignored while the mission cools down or the player cannot
     /// pay (`data/air.toml`).
     CallAir { mission: AirMission, target: Vec2 },
+    /// Marks `target` on the map of the issuer's allies (prompt 037). Has
+    /// no effect on the simulation; it travels through the lockstep session
+    /// (and into the replay) so that every ally's game can show it.
+    Ping { target: Vec2 },
 }
 
 impl Command {
@@ -103,7 +107,8 @@ impl Command {
             | Self::Produce { .. }
             | Self::CancelProduction { .. }
             | Self::SetRallyPoint { .. }
-            | Self::CallAir { .. } => &[],
+            | Self::CallAir { .. }
+            | Self::Ping { .. } => &[],
         }
     }
 }

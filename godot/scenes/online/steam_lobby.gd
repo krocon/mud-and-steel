@@ -22,10 +22,12 @@ const LanMatch := preload("res://scenes/lan/lan_match.gd")
 const MatchSetup := preload("res://scenes/menu/match_setup.gd")
 const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
+const SlotList := preload("res://scenes/menu/slot_list.gd")
 const MAIN_SCENE := "res://scenes/main.tscn"
 const SEED := 42
-## The demo scenario has two players.
-const MAX_PLAYERS := 2
+## Members of the Steam lobby: the largest maps have six starts (prompt
+## 037); the slots follow the map.
+const MAX_PLAYERS := 6
 ## Milliseconds between automatic refreshes of the lobby list.
 const REFRESH_INTERVAL_MS := 5000
 ## Automatic modes give up after this many milliseconds (wall clock).
@@ -43,6 +45,11 @@ var _retry: Button
 var _setup: Control
 var _map: OptionButton
 var _maps: PackedStringArray = []
+var _mode: OptionButton
+var _shared_vision: CheckBox
+var _slot_list: SlotList
+## The host applied map, mode and slots to its new lobby (prompt 037).
+var _match_applied := false
 var _public: CheckBox
 var _lobbies: ItemList
 var _code: LineEdit
@@ -140,6 +147,15 @@ func _build_ui() -> void:
 	if _args.has("--map") and _args["--map"] in _maps:
 		_map.select(Array(_maps).find(_args["--map"]))
 	_setup.add_child(_labeled("Map (host)", _map))
+	_mode = OptionButton.new()
+	for id in MatchSetup.MODES:
+		_mode.add_item(MatchSetup.MODES[id])
+	_mode.select(MatchSetup.MODES.keys().find("battle"))
+	_setup.add_child(_labeled("Mode (host)", _mode))
+	_shared_vision = CheckBox.new()
+	_shared_vision.text = "Allies share what they see"
+	_shared_vision.button_pressed = true
+	_setup.add_child(_shared_vision)
 	_public = CheckBox.new()
 	_public.text = "Listed for everyone (otherwise friends only)"
 	_public.button_pressed = not _args.has("--steam-friends-only")
@@ -203,6 +219,13 @@ func _build_ui() -> void:
 	_in_lobby.add_child(code_line)
 	_players = Label.new()
 	_in_lobby.add_child(_players)
+	_slot_list = SlotList.new()
+	_slot_list.allow_open = true
+	_slot_list.kind_changed.connect(func(index: int, kind: String, level: String) -> void:
+		_lobby.set_slot_kind(index, kind, level))
+	_slot_list.side_changed.connect(func(index: int, team: int, faction: String) -> void:
+		_lobby.set_slot_side(index, team, faction))
+	_in_lobby.add_child(_slot_list)
 	_ready_box = CheckBox.new()
 	_ready_box.text = "Ready"
 	_ready_box.toggled.connect(func(on: bool) -> void: _lobby.set_ready(on))
@@ -237,8 +260,20 @@ func _labeled(text: String, control: Control) -> Control:
 
 
 func _on_host() -> void:
+	_match_applied = false
 	if _lobby.host(MAX_PLAYERS, _public.button_pressed):
 		print("Steam: creating a lobby")
+
+
+## Host: map, mode, shared vision and one slot per start of the map, with
+## the map's teams (prompt 037).
+func _apply_match_settings() -> void:
+	_match_applied = true
+	var map_name: String = _args["--map"] if _args.has("--map") and _args["--map"] in _maps else _maps[_map.selected]
+	var starts := MatchSetup.map_starts(map_name)
+	_lobby.set_match(map_name, MatchSetup.MODES.keys()[_mode.selected], _shared_vision.button_pressed, starts.size())
+	for s in starts:
+		_lobby.set_slot_side(s["player"], s["team"], "")
 
 
 func _refresh() -> void:
@@ -326,6 +361,13 @@ func _update_lobby(state: String) -> void:
 			"  – ready" if player["ready"] else "",
 		])
 	_players.text = "\n".join(lines)
+	_players.visible = false
+	if state == "lobby" and _lobby.is_host() and not _match_applied:
+		_apply_match_settings()
+	_slot_list.visible = state == "lobby"
+	_slot_list.host = _lobby.is_host()
+	if state == "lobby":
+		_slot_list.show_slots(_lobby.slots())
 	var status: String
 	match state:
 		"idle":

@@ -139,9 +139,12 @@ fn map_toml(map: &EditMap, base: i32, step: u32) -> String {
     let _ = writeln!(t, "biome = {}", quoted(meta.biome.name()));
     let _ = writeln!(t, "water_flow_deg = {}", meta.water_flow_deg);
     for (player, p) in &meta.starts {
+        let team = meta
+            .start_team(*player)
+            .map_or(String::new(), |team| format!("team = {team}\n"));
         let _ = write!(
             t,
-            "\n[[start]]\nplayer = {player}\nposition_m = [{}, {}]\n",
+            "\n[[start]]\nplayer = {player}\n{team}position_m = [{}, {}]\n",
             p[0], p[1]
         );
     }
