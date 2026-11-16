@@ -36,6 +36,10 @@ func run(test: Node) -> void:
 	var dir := Vector3(at.x, 0.0, at.z).normalized() * -1.0
 	if dir.length() < 0.5:
 		dir = Vector3(1, 0, 0)
+	# The tank must drive straight through the field: a unit or wreck on its
+	# way makes it drive round, past the mines (where the battle leaves its
+	# wrecks depends on the weapon ranges, prompt 067).
+	dir = _clear_direction(sim_host, at, test._indices(tank_only)[0], dir)
 	var field := at + dir * FIELD_M
 	var placed := sim_host.debug_minefield(field.x, field.z, true)
 	test._check(placed > 10, "debug minefield placed %d mines" % placed)
@@ -62,6 +66,28 @@ func run(test: Node) -> void:
 
 
 const EngineerOrders := preload("res://scenes/selection/engineer_orders.gd")
+
+
+## `preferred` or the nearest direction to it (in steps of 45°) in which no
+## other unit (wrecks are units) stands within 9 m of the way through the
+## field; `preferred` if every direction is blocked.
+func _clear_direction(sim_host: SimHost, at: Vector3, own: int, preferred: Vector3) -> Vector3:
+	var positions := sim_host.current_positions()
+	var start := Vector3(at.x, 0.0, at.z)
+	for degrees: float in [0.0, 45.0, -45.0, 90.0, -90.0, 135.0, -135.0, 180.0]:
+		var dir := preferred.rotated(Vector3.UP, deg_to_rad(degrees))
+		var end := start + dir * (FIELD_M * 2.0)
+		var free := true
+		for i in positions.size():
+			if i == own:
+				continue
+			var p := Vector3(positions[i].x, 0.0, positions[i].z)
+			if Geometry3D.get_closest_point_to_segment(p, start, end).distance_to(p) < 9.0:
+				free = false
+				break
+		if free:
+			return dir
+	return preferred
 
 
 func _alive(sim_host: SimHost, ids: Array[int]) -> Array[int]:
