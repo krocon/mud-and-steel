@@ -72,12 +72,8 @@ pub use outcome::{DefeatReason, Outcome, PlayerStanding};
 pub use rng::Rng;
 pub use scale::Scale;
 pub use sim::{
-<<<<<<< HEAD
-    BuildingCondition, BuyOption, ConfigError, ExperienceView, MAX_PLAYERS, MAX_QUEUED, Phase,
-=======
-    BuildingCondition, BuyOption, ConfigError, DrillView, MAX_PLAYERS, MAX_QUEUED, Phase,
->>>>>>> main
-    PlaceError, RouteView, Sim, SimConfig, Snapshot, SoldierSnapshot, Spawn, StockView,
+    BuildingCondition, BuyOption, ConfigError, DrillView, ExperienceView, MAX_PLAYERS, MAX_QUEUED,
+    Phase, PlaceError, RouteView, Sim, SimConfig, Snapshot, SoldierSnapshot, Spawn, StockView,
     StructureView, SupplySource, SupplyView, UnitSnapshot, WORLD_LIMIT_M, formation_slots,
     formation_spacing,
 };

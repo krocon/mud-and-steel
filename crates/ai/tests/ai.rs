@@ -465,7 +465,6 @@ fn ai_lays_mines_that_the_enemy_does_not_see() {
     assert!(PlayerView::new(game.sim(), PlayerId(1)).mines.is_empty());
 }
 
-<<<<<<< HEAD
 /// Prompt 050: on Normal, a badly hurt veteran pulls back out of the fight
 /// while a recruit with the same losses fights on.
 #[test]
@@ -497,7 +496,8 @@ fn normal_pulls_back_hurt_veterans() {
     };
     assert!(!pulled_back(0), "a recruit pulled back on Normal");
     assert!(pulled_back(2), "the veteran stayed in the fight");
-=======
+}
+
 /// Prompt 046: Normal and Hard advance with attack-move in an automatic
 /// formation; Easy keeps plain moves.
 #[test]
@@ -534,5 +534,4 @@ fn normal_advances_with_attack_move_easy_does_not() {
     }
     assert!(attack_moves[0] > 0, "Normal never attack-moved");
     assert_eq!(attack_moves[1], 0, "Easy attack-moved");
->>>>>>> main
 }

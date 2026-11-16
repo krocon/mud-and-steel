@@ -233,15 +233,12 @@ struct Unit {
     /// Ammunition and fuel (prompt 036).
     #[serde(default)]
     stock: logistics::Stock,
-<<<<<<< HEAD
-    /// Experience points and kills (prompt 050).
-    #[serde(default)]
-    veterancy: experience::Veterancy,
-=======
     /// Formation facing, attack-move and securing (prompt 046).
     #[serde(default)]
     drill: drill::Drill,
->>>>>>> main
+    /// Experience points and kills (prompt 050).
+    #[serde(default)]
+    veterancy: experience::Veterancy,
 }
 
 impl Unit {
@@ -1927,11 +1924,8 @@ fn new_unit(n: &NewUnit<'_>) -> Unit {
         orders: orders::OrderQueue::default(),
         link: None,
         stock: logistics::Stock::default(),
-<<<<<<< HEAD
-        veterancy: experience::Veterancy::default(),
-=======
         drill: drill::Drill::default(),
->>>>>>> main
+        veterancy: experience::Veterancy::default(),
     }
 }
 
