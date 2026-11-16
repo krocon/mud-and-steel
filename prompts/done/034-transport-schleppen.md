@@ -67,10 +67,41 @@ keine Aufsitzer-Sockel.
 | 4 | **Zeiten** (real, Zeitfaktor 2 gilt): Aufsitzen LKW 20 s, Schützenpanzer 12 s, Panzer 10 s; Absitzen 10/8/4 s; Auf-/Abprotzen Pak 30 s, Haubitze 40 s, leichte Flak 30 s, schwere Flak 120 s, schwerer Mörser 20 s. Haubitzen brauchen danach zusätzlich ihre Aufbauzeit aus 032. **[vorläufig]** | Größenordnung realer Drills; Timer laufen nur, solange das Fahrzeug steht. |
 | 5 | **Tank-Desant für alle Fraktionen:** leichte Panzer 6, mittlere und schwere 10 Aufsitzer. **[vorläufig]** | Historisch vor allem sowjetisch, aber auch bei US/DE üblich; eine Fraktionsregel wäre Balancing, nicht Simulation. |
 | 6 | **Passagiere bleiben Einheiten** (gleiche Id) mit Verknüpfung `Aboard(Fahrzeug)`: sie stehen in der Fahrzeugmitte, sind für den Gegner unsichtbar, nicht treffbar (nicht im Einheitenraster), schießen nicht und nehmen nur `Disembark` an. Kein Sitz wird gezählt außer lebenden Soldaten; ein Trupp steigt nur ganz ein. | Keine Umbauten an Ids, Sicht- und Kampf-Arrays pro Einheitenindex; Wiederverwendung der Garnisonslogik-Ideen aus 022. |
-| 7 | **Verluste:** verliert der Träger Trefferpunkte (auch Splitter), stirbt jeder Passagier mit `hit_pct` (LKW 25 %, SPW 15 %, Panzer 40 %); Treffer ohne Schaden (Abpraller) treffen Aufsitzer auf Panzern mit 25 %. Bei Zerstörung stirbt jeder Passagier mit 60/50/70 %, die Überlebenden springen sofort ab. **[vorläufig]** | „Ganz oder teilweise“ wie gefordert, deterministisch über `sim::Rng`; offen/geschlossen wirkt über die Prozentsätze (alle Träger im Katalog sind offen). |
+| 7 | **Verluste:** jeder Treffer auf den Träger, der Schaden macht (oder Trefferpunktverlust ohne Treffer, also Splitter), tötet mit `hit_pct` einen zufälligen Passagier (LKW 50 %, SPW 30 %, Panzer 40 %); Treffer ohne Schaden (Abpraller) töten Aufsitzer auf Panzern mit 30 %. Bei Zerstörung stirbt jeder Passagier mit 60/50/70 %, die Überlebenden springen sofort ab. **[vorläufig]** | „Ganz oder teilweise“ wie gefordert, deterministisch über `sim::Rng`; offen/geschlossen wirkt über die Prozentsätze (alle Träger im Katalog sind offen). Erste Fassung (jeder Passagier würfelt pro Tick mit Schaden) löschte Trupps auf einem LKW unter MG-Feuer in einer Sekunde aus. |
 | 8 | **Gezogene Geschütze** werden beweglich: Bedienung schiebt sie mit 2 km/h (Pak), 1 km/h (Haubitze) real. Angehängt (`Towed(Zugmaschine)`) folgen sie wie ein Anhänger an der Kupplung (Mündung nach hinten), sind sichtbar und treffbar, schießen nicht; beim Abprotzen dreht die Bedienung sie in Fahrtrichtung. Geschütze feuern nur stehend und nicht während Auf-/Abprotzen. Fällt die Zugmaschine aus, wird das Geschütz abgehängt und ist erst nach der Abprotzzeit bereit. | „Ohne Zugmaschine nur langsam verschiebbar; abgeprotzt schussbereit, aufgeprotzt nicht.“ Gleiche Id, keine Sonderwege in Sicht und Kampf. |
 | 9 | Die **Pak-Stellung** (Befestigung aus 023) entfällt; stattdessen produziert das Fahrzeugwerk LKW, Pak und leichte Haubitze jeder Fraktion (`data/economy.toml`, am Listenende). **[vorläufig]** | Gleiche Katalog-Id als feste und als bewegliche Einheit ginge nicht (Typen über Namen). 023 nannte die Stellung ausdrücklich eine Übergangslösung, „bis Geschütze bewegt werden“. |
 | 10 | **Befehle** (am Enum-Ende): `Embark { units, carrier }`, `Disembark { units }` (Fahrzeuge entladen alle, Passagiere steigen einzeln aus), `Tow { units, gun }` (das nächste freie, starke genug Fahrzeug der Auswahl), `Unlimber { units }` (Fahrzeuge oder Geschütze). Bewegungs-, Angriffs- und Stoppbefehle brechen Anmarsch und Anfahrt ab, nicht laufendes Absitzen/Abprotzen. | Klein und additiv; dieselbe Logik wie `Garrison`. |
 | 11 | **Bedienung:** Rechtsklick mit Infanterie auf eigenes Fahrzeug mit Plätzen = aufsitzen; Rechtsklick mit Fahrzeugen auf ein eigenes Geschütz = anhängen; **J** absitzen, **K** abprotzen (Input-Actions, umbelegbar), Schaltflächen in der Befehlsleiste; das Einheitenpanel zeigt Insassen „9/10“ und das gezogene Geschütz. Passagiere sind nicht auswählbar. | Wie gefordert; J/K waren frei. |
 | 12 | **Darstellung:** aufgesessene Soldaten sitzen (Pose „kneel“, Uniform der Fraktion) an den `Socket_Passenger_NN` offener Fahrzeuge; Panzer haben keine solchen Sockel, dort verteilt Godot die Aufsitzer auf dem hinteren Deck (Bounding-Box des Modells). Das Geschütz steht in der Sim an der Kupplung (Katalogmaße 1:1). Kein Blender-Lauf. **[vorläufig: Aufsitzer-Sockel für Panzer im Baukasten ergänzen]** | Sockel für LKW/SPW und `Socket_Tow` sind vorhanden; die Panzer-Modelle neu zu bauen wäre ein großer Asset-Schritt ohne Sim-Nutzen. |
-| 13 | **KI:** eigene Rollen „Transport“ (LKW und SPW) und „Geschütz“. Wartende Infanterie nahe der Basis steigt in freie Transporter, die fahren zur Infanterie-Gruppe bzw. zum Ziel und laden 120 m vor bekannten Feinden ab. Geschütze ohne Zugmaschine lassen sich von einem freien Fahrzeug abholen und hinter die Front bringen, dort abprotzen. Normal und Hard bauen LKW und Pak in ihren Mix ein. | „Fährt Infanterie mit LKW an die Front, verlegt Geschütze“, über normale Befehle. |
+| 13 | **KI:** eigene Rollen „Transport“ (LKW und SPW) und „Geschütz“. Wartende Infanterie (mehr als 200 m vom Ziel) steigt in einen freien Transporter in der Nähe; der fährt (mit Basis: sobald eine Welle aufbricht) bis 180 m vor die Feinde und lädt dort ab. Freie Zugmaschinen holen Geschütze ab, die weiter als 150 m von ihrem Platz stehen (Sammelpunkt der Basis bzw. 60 m hinter der Armee), und protzen dort ab. Normal baut eine Pak in seinen Fahrzeug-Mix (gezogen vom SPW); Hard behält seinen Mix (mit LKW und Pak verlor Hard Basisbau-Partien gegen Easy). Aufsitzen auf Panzern nutzt die KI nicht. **[vorläufig]** | „Fährt Infanterie mit LKW an die Front, verlegt Geschütze“, über normale Befehle. |
+
+## Ergebnis
+
+Umgesetzt wie oben; Details in `docs/ARCHITECTURE.md` „Transport and towing“,
+`docs/INFANTRY.md` (Transport), `docs/CONTROLS.md` (Rechtsklick, J, K),
+`docs/AI.md` (Transport), `docs/GAME_DESIGN.md` (Produktion), `docs/SCALE.md`.
+
+- **Sim:** `data/transport.toml`, `crates/sim/src/transport.rs`,
+  `crates/sim/src/sim/transport.rs`; Katalogfeld `passengers`; Befehle `Embark`,
+  `Disembark`, `Tow`, `Unlimber` am Enum-Ende; Zustand (Aufgaben, Verknüpfungen,
+  Trefferpunkte beladener Träger) im Hash und im Spielstand (038).
+- **Tests:** `crates/sim/tests/transport.rs` (Auf- und Absitzen, Sitzplätze, Aufsitzer
+  auf Panzern, Verluste bei Zerstörung, Schleppen und Abprotzen, langsameres Ziehen,
+  Schieben durch die Bedienung, gezogenes Geschütz schießt erst abgeprotzt, zu schwere
+  Geschütze, gleicher Hash), `crates/net/tests/snapshot_transport.rs` (Spielstand mitten
+  im Auf-/Abprotzen), `crates/ai/tests/ai.rs::ai_rides_trucks_and_tows_guns`,
+  Selbsttest-Teil `godot/scenes/tools/transport_self_test.gd` (Trupp sitzt per
+  Rechtsklick auf einem eigenen Panzer auf, 9 Figuren auf dem Deck, J lässt ihn absitzen).
+- **Golden-Hash** bewusst aktualisiert: `0xadffa9a0054b53f1` → `0xe602e2eba51e1c8e`
+  (Transportregeln und -zustand im Hash, neue Produktionslisten in den gehashten
+  Wirtschaftsregeln); Demo-Schlacht unverändert (Tick 480, Spieler 0 gewinnt).
+  Basisbau-Golden-Hash ebenso.
+- **Messwerte:** `just ai-tournament` (Schlacht) unverändert gegenüber vorher;
+  Basisbau-Turnier in `docs/AI.md` (Hard gegen Easy und Normal besser, Normal gegen
+  Easy schlechter; viele Zeitüberschreitungen, 10 Spiele, verrauscht).
+
+Offen: Aufsitzer-Sockel für Panzer-Modelle (Godot verteilt die Figuren über das Deck),
+`mount`/`dismount`-Clips nicht abgespielt, Darstellung nicht in einem gerenderten Bild
+geprüft (nur Headless); Sitzplätze Opel Blitz/CCKW geschätzt; vorläufige Regelwerte;
+Passagiere schießen nicht aus offenen Fahrzeugen; Brücken prüfen nur die Masse der
+Zugmaschine; keine Zugmaschinen für 8,8-cm-/90-mm-Flak im Katalog.
