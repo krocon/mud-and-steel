@@ -173,7 +173,7 @@ Zeichnungen bleiben Referenz auf dem Rechner.
 
 | Nr. | Prompt | Ziel | Status |
 |-----|--------|------|--------|
-| 070 | [YouTube-Demo-Video](070-youtube-demo-video.md) | Demo-Video von 1 bis 4 Minuten: geskriptete Spielszenen aus wechselnden Blickwinkeln (`just trailer-shots`, Movie Maker), Schnitt als Promo im Video-Projekt `videoserien`; Freigabe vor dem Rendern, kein Upload | offen |
+| 070 | [YouTube-Demo-Video](periodic/070-youtube-demo-video.md) | Demo-Video von 1 bis 4 Minuten: geskriptete Spielszenen aus wechselnden Blickwinkeln (`just trailer-shots`, Movie Maker), Schnitt als Promo im Video-Projekt `videoserien`; Freigabe vor dem Rendern, kein Upload | erledigt (16.11.2026: 1:39, 17 Einstellungen auf 5 Karten; wiederholbar, liegt in `periodic/`) |
 
 ## Festgelegte Grundsätze
 
