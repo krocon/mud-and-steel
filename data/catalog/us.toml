@@ -21,7 +21,7 @@ speed_offroad_kmh_x10 = 40
 weapon = [
     { name = "Rifle M1 (Garand)", count = 9, caliber_mm_x10 = 76, ammo = ".30-06 M2 ball, M2 AP", rate_rpm = 40, muzzle_velocity_mps = 853, range_effective_m = 457, range_typical_m = 300 },
     { name = "Rifle M1 with grenade launcher M7", count = 2, caliber_mm_x10 = 76, ammo = ".30-06 M2 ball; M9A1 AT rifle grenade", rate_rpm = 40, muzzle_velocity_mps = 853, range_effective_m = 457, range_typical_m = 300 },
-    { name = "Browning Automatic Rifle M1918A2", count = 1, caliber_mm_x10 = 76, ammo = ".30-06 M2 ball, 20-round magazine", rate_rpm = 375, muzzle_velocity_mps = 860, range_effective_m = 550, range_typical_m = 300 },
+    { name = "Browning Automatic Rifle M1918A2", count = 1, caliber_mm_x10 = 76, ammo = ".30-06 M2 ball, 20-round magazine", rate_rpm = 375, muzzle_velocity_mps = 860, range_effective_m = 550, range_typical_m = 400 },
 ]
 source = [
     { ref = "https://www.battleorder.org/post/usa-rifleco-1944", covers = "1944 rifle squad of 12: leader (M1), assistant leader (M1 + M7), BAR man, assistant BAR man (M1), ammunition bearer (M1), 2 rifle grenadiers (M1 + M7), 2 scouts and 3 riflemen (M1)" },
@@ -30,9 +30,10 @@ source = [
     { ref = "https://en.wikipedia.org/wiki/M1_Garand", covers = "M1: 853 m/s, effective range 500 yd (457 m), rate 40-50 rpm" },
     { ref = "https://en.wikipedia.org/wiki/M1918_Browning_Automatic_Rifle", covers = "BAR M1918A2: slow cyclic 300-450 rpm, fast 500-650 rpm, 860 m/s" },
     { ref = "N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346", covers = "range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd" },
+    { ref = "TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII sec. II, https://lonesentry.com/manuals/tme30/ch7sec2sub6.html", covers = "range_typical_m: MG 34 / MG 42 effective range as light MG 600-800 yd, as heavy MG (tripod) 2,000-2,500 yd: upper bounds for the typical distance" },
 ]
 uncertain = ["weapon"]
-note = "Rifle squad per T/O&E 7-17 of 26 Feb 1944 (ETO). The 1943 squad had an M1903 rifle with M1 launcher; the 1944 table replaced it with two M1 rifles with M7 launchers. Many units informally added a second BAR. BAR rate_rpm = middle of the slow cyclic setting; M1 rate_rpm = lower end of the 40-50 rpm figure. BAR range_effective_m 550 m is a practical figure (estimate; Wikipedia gives a sight-adjusted maximum effective range of 1,372 m). Marching speed uses the project convention (5 km/h road, 4 km/h cross-country)."
+note = "Rifle squad per T/O&E 7-17 of 26 Feb 1944 (ETO). The 1943 squad had an M1903 rifle with M1 launcher; the 1944 table replaced it with two M1 rifles with M7 launchers. Many units informally added a second BAR. BAR rate_rpm = middle of the slow cyclic setting; M1 rate_rpm = lower end of the 40-50 rpm figure. BAR range_effective_m 550 m is a practical figure (estimate; Wikipedia gives a sight-adjusted maximum effective range of 1,372 m). Marching speed uses the project convention (5 km/h road, 4 km/h cross-country). range_typical_m (prompt 067): bipod and flexible-mount machine guns 400 m (class estimate between the 300 yd of ORO-T-160 and the 600-800 yd 'effective as light MG' of TM-E 30-451); the BAR M1918A2 on its bipod, the squad's automatic weapon, counts as one like the DP-27."
 
 [[unit]]
 id = "us_inf_mg_team"
@@ -240,16 +241,17 @@ speed_road_kmh_x10 = 50
 speed_offroad_kmh_x10 = 40
 weapon = [
     { name = "Rifle M1 (Garand)", count = 11, caliber_mm_x10 = 76, ammo = ".30-06 M2 ball, M2 AP", rate_rpm = 40, muzzle_velocity_mps = 853, range_effective_m = 457, range_typical_m = 300 },
-    { name = "Browning Automatic Rifle M1918A2", count = 1, caliber_mm_x10 = 76, ammo = ".30-06 M2 ball, 20-round magazine", rate_rpm = 375, muzzle_velocity_mps = 860, range_effective_m = 550, range_typical_m = 300 },
+    { name = "Browning Automatic Rifle M1918A2", count = 1, caliber_mm_x10 = 76, ammo = ".30-06 M2 ball, 20-round magazine", rate_rpm = 375, muzzle_velocity_mps = 860, range_effective_m = 550, range_typical_m = 400 },
     { name = "Demolition charges (TNT, Composition C2) and Bangalore torpedo M1A1", count = 1, ammo = "satchel / block charges" },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/Combat_engineer", covers = "role and equipment of WWII US combat engineers (not re-fetched)" },
     { ref = "https://en.wikipedia.org/wiki/M1_Garand", covers = "M1 rifle data" },
     { ref = "N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346", covers = "range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd" },
+    { ref = "TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII sec. II, https://lonesentry.com/manuals/tme30/ch7sec2sub6.html", covers = "range_typical_m: MG 34 / MG 42 effective range as light MG 600-800 yd, as heavy MG (tripod) 2,000-2,500 yd: upper bounds for the typical distance" },
 ]
 uncertain = ["squad_size", "weapon"]
-note = "Squad of 12 including squad leader and assistant (estimate; the engineer combat battalion T/O&E 5-15 was not consulted). BAR allocation per squad is approximate. Demolitions entry has no caliber."
+note = "Squad of 12 including squad leader and assistant (estimate; the engineer combat battalion T/O&E 5-15 was not consulted). BAR allocation per squad is approximate. Demolitions entry has no caliber. range_typical_m (prompt 067): bipod and flexible-mount machine guns 400 m (class estimate between the 300 yd of ORO-T-160 and the 600-800 yd 'effective as light MG' of TM-E 30-451); the BAR M1918A2 on its bipod, the squad's automatic weapon, counts as one like the DP-27."
 
 [[unit]]
 id = "us_inf_at"

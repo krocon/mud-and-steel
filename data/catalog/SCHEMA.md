@@ -108,9 +108,9 @@ guns in the ground role and for anti-tank weapons.
 
 | Class | Weapons | Typical (m) | Basis |
 |---|---|---|---|
-| Rifles, automatic rifle | Kar98k, Mosin-Nagant, M1, BAR | 300 | ORO-T-160 (Hitchman 1952): 80 % of the effective rifle and LMG fire of the European actions within 200 yd, 90 % within 300 yd |
+| Rifles | Kar98k, Mosin-Nagant, M1 | 300 | ORO-T-160 (Hitchman 1952): 80 % of the effective rifle and LMG fire of the European actions within 200 yd, 90 % within 300 yd |
 | Sniper rifles | Kar98k ZF 39, Mosin PU, M1903A4 | 400 | Truppendienst 1967 (German snipers): 65–80 % of the hits below 400 m; class estimate for su, us |
-| Bipod and flexible-mount MGs | MG 42, DP-27, DT, M1919A4 on vehicles, ring mounts | 400 | class estimate between ORO-T-160 (300 yd) and TM-E 30-451 (600–800 yd effective as light MG) |
+| Bipod and flexible-mount MGs, squad automatic rifle | MG 42, DP-27, BAR M1918A2, DT, M1919A4 on vehicles, ring mounts | 400 | class estimate between ORO-T-160 (300 yd) and TM-E 30-451 (600–800 yd effective as light MG) |
 | Tripod MGs, .50 MG on a vehicle | MG 42 on Lafette 42, Maxim, M1917A1, M1919A4 on tripod, M2HB | 800 | class estimate: twice the bipod value; TM-E 30-451 and FM 7-15 give 2,000 yd and more as the limit |
 | Submachine guns | MP 40, PPSh-41 / Thompson, M3 | 100 / 50 | class estimate: battle sight setting; .45 ACP weapons their effective range |
 | Carbine / pistols | M1 carbine / P 38, TT-33, M1911A1 | 200 / 25 | class estimates |

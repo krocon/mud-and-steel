@@ -645,7 +645,7 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 |---|---|---|---|
 | Rifle M1 (Garand) | 300 | 457 | `us_inf_rifle_squad`, `us_inf_mortar_light`, `us_inf_recon`, `us_inf_sniper`, `us_inf_engineer`, `us_inf_flamethrower` |
 | Rifle M1 with grenade launcher M7 | 300 | 457 | `us_inf_rifle_squad`, `us_inf_mg_team` |
-| Browning Automatic Rifle M1918A2 | 300 | 550 | `us_inf_rifle_squad`, `us_inf_engineer` |
+| Browning Automatic Rifle M1918A2 | 400 | 550 | `us_inf_rifle_squad`, `us_inf_engineer` |
 | Browning M1919A4 (tripod M2) | 800 | 1370 | `us_inf_mg_team` |
 | Carbine M1 | 200 | 300 | `us_inf_mg_team`, `us_inf_hmg_team`, `us_inf_mortar_light`, `us_inf_mortar_medium`, `us_inf_recon`, `us_inf_at`, `us_inf_command` |
 | Pistol M1911A1 | 25 | 50 | `us_inf_mg_team`, `us_inf_hmg_team`, `us_inf_mortar_light`, `us_inf_mortar_medium`, `us_inf_flamethrower`, `us_inf_command`, `us_inf_tank_crew` |
@@ -716,6 +716,7 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
   - https://en.wikipedia.org/wiki/M1_Garand (M1: 853 m/s, effective range 500 yd (457 m), rate 40-50 rpm)
   - https://en.wikipedia.org/wiki/M1918_Browning_Automatic_Rifle (BAR M1918A2: slow cyclic 300-450 rpm, fast 500-650 rpm, 860 m/s)
   - N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346 (range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd)
+  - TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII sec. II, https://lonesentry.com/manuals/tme30/ch7sec2sub6.html (range_typical_m: MG 34 / MG 42 effective range as light MG 600-800 yd, as heavy MG (tripod) 2,000-2,500 yd: upper bounds for the typical distance)
 - `us_inf_mg_team`
   - https://www.battleorder.org/post/usa-rifleco-1944 (LMG squad of 5: leader (M1 + M7), gunner (M1919A4, M1911A1), assistant gunner (M1911A1), 2 ammunition bearers (M1 carbine); 2 squads per LMG section)
   - https://en.wikipedia.org/wiki/M1919_Browning_machine_gun (5-man squad, rate 400-600 rpm, 853 m/s, effective range 1,500 yd (1,370 m))
@@ -753,6 +754,7 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
   - https://en.wikipedia.org/wiki/Combat_engineer (role and equipment of WWII US combat engineers (not re-fetched))
   - https://en.wikipedia.org/wiki/M1_Garand (M1 rifle data)
   - N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346 (range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd)
+  - TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII sec. II, https://lonesentry.com/manuals/tme30/ch7sec2sub6.html (range_typical_m: MG 34 / MG 42 effective range as light MG 600-800 yd, as heavy MG (tripod) 2,000-2,500 yd: upper bounds for the typical distance)
 - `us_inf_at`
   - https://en.wikipedia.org/wiki/Bazooka (crew 2 (operator, loader); M1A1 effective 150 yd, M9 120 yd (claimed), max 400-500 yd; M6A3 rocket 265 ft/s; penetration up to 4 in (102 mm))
 - `us_inf_flamethrower`
