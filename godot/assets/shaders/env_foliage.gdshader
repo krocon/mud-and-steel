@@ -165,8 +165,9 @@ void fragment() {
 	// snow sits on needles and on the tops of dense cards only
 	// (prompt 056: needle branches hold more, on all but their undersides;
 	// the normal of the standing tree keeps the snow on a fallen one)
-	bool needles = pattern == 1 || pattern == 9;
-	float snow_amount = env_snow * (needles ? 1.0 : 0.45);
+	// Far crowns (9) are flat cards: less snow, or they read as white flags.
+	bool needles = pattern == 1;
+	float snow_amount = env_snow * (needles ? 1.0 : (pattern == 9 ? 0.5 : 0.45));
 	vec3 rest = normalize(v_rest_normal);
 	vec3 up = needles ? vec3(0.0, 0.62 + 0.4 * max(rest.y, 0.0), 0.0) : rest * vec3(1.0, 0.85, 1.0);
 	albedo = snow_cover(albedo, rough, up, p, snow_amount);
