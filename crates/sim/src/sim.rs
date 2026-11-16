@@ -33,6 +33,7 @@ mod orders;
 mod positions;
 mod spatial;
 mod strike;
+mod tactics;
 mod transport;
 mod vision;
 mod weather;
@@ -50,6 +51,7 @@ pub use infantry::BuildingCondition;
 pub use logistics::{StockView, SupplySource};
 pub use mission::ObjectiveView;
 pub use orders::MAX_QUEUED;
+pub use tactics::{SquadTactics, soldier_flags};
 
 /// Move targets farther than this from the origin (in meters, per axis) are
 /// ignored. Keeps all position arithmetic far away from `Fixed` overflow, even
@@ -163,6 +165,8 @@ pub enum ConfigError {
     Weather(String),
     /// The built-in field work rules do not parse (prompt 035).
     Works(String),
+    /// The built-in tactics rules do not parse (prompt 047).
+    Tactics(String),
     /// The built-in experience rules do not parse (prompt 050).
     Experience(String),
     /// The built-in crossing rules do not parse (prompt 055).
@@ -192,6 +196,7 @@ impl fmt::Display for ConfigError {
             | Self::Logistics(e)
             | Self::Weather(e)
             | Self::Works(e)
+            | Self::Tactics(e)
             | Self::Experience(e)
             | Self::Crossings(e) => {
                 write!(f, "{e}")
@@ -498,6 +503,8 @@ pub struct Sim {
     weather: weather::WeatherState,
     /// Field works of engineers: mines, obstacles, positions (prompt 035).
     works: works::Works,
+    /// Infantry tactics rules (prompt 047); the state is in the squads.
+    tactics: tactics::TacticsRt,
     /// Experience rules and promotions (prompt 050).
     experience: experience::Experience,
     /// Collapsing decks, swimmers, bridge-laying tanks, camouflage and
@@ -661,6 +668,12 @@ impl Sim {
             &map,
             config.tick_hz,
         );
+        let tactics = tactics::TacticsRt::new(
+            crate::tactics::TacticsRules::builtin()
+                .map_err(|e| ConfigError::Tactics(e.to_string()))?,
+            &config.unit_types,
+            config.tick_hz,
+        );
         let crossings = crossings::Crossings::new(
             crate::crossings::CrossingRules::builtin()
                 .map_err(|e| ConfigError::Crossings(e.to_string()))?,
@@ -711,6 +724,7 @@ impl Sim {
             logistics,
             weather,
             works,
+            tactics,
             experience,
             crossings,
             strikes,
@@ -798,6 +812,7 @@ impl Sim {
         self.rebuild_unit_grid();
         self.aim_and_fire();
         self.update_drills();
+        self.update_tactics();
         self.fire_indirect();
         self.update_strikes();
         done(Phase::Combat);
@@ -1480,6 +1495,7 @@ impl Sim {
             self.weather.hash_into(&mut h);
         }
         self.works.hash_into(&mut h);
+        self.tactics.hash_into(&mut h);
         self.hash_experience(&mut h);
         self.crossings.hash_into(&mut h);
         // Left out until the first strike, so other matches keep their
@@ -1821,6 +1837,11 @@ fn move_unit(
     else {
         return Moved::Ok;
     };
+    // Halted (stance change, a fire team's bound, prompt 047): no step and
+    // no stall, the route waits.
+    if unit.speed_pct == 0 {
+        return Moved::Ok;
+    }
     let (waypoint, last) = (waypoints[*next], *next + 1 == waypoints.len());
     if let Some(direction) = heading(unit) {
         let Some(speed) = ground_speed(unit, direction, map, rules, ground_pct) else {

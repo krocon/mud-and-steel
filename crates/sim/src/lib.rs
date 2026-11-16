@@ -39,6 +39,7 @@ pub mod scenario;
 mod sim;
 pub mod snapshot;
 pub mod strike;
+pub mod tactics;
 pub mod teams;
 pub mod terrain;
 pub mod transport;
@@ -83,10 +84,11 @@ pub use scale::Scale;
 pub use sim::{
     BuildingCondition, BuyOption, ConfigError, DrillView, ExperienceView, MAX_PLAYERS, MAX_QUEUED,
     ObjectiveView, Phase, PlaceError, RouteView, Sim, SimConfig, Snapshot, SoldierSnapshot, Spawn,
-    StockView, StructureView, SupplySource, SupplyView, UnitSnapshot, WORLD_LIMIT_M,
-    formation_slots, formation_spacing,
+    SquadTactics, StockView, StructureView, SupplySource, SupplyView, UnitSnapshot, WORLD_LIMIT_M,
+    formation_slots, formation_spacing, soldier_flags,
 };
 pub use strike::{StrikeBlock, StrikeEvent, StrikeOption, StrikeRules, StrikeView};
+pub use tactics::TacticsRules;
 pub use teams::Teams;
 pub use terrain::{TerrainError, TerrainRules};
 pub use transport::{TransportRules, TransportType};

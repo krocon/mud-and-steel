@@ -157,6 +157,8 @@ Prompt 046, `crates/sim/src/formation.rs` (shapes) and
   `All`): a unit with the task halts while it has an automatic target (an
   enemy in range it sees and can hurt) and then plans its own path to its
   slot again. Hold fire never halts. Runs right after `aim_and_fire`.
+  Prompt 047: squads of two fire teams bound instead of halting, and mortar
+  teams halt only for targets of their mortar (INFANTRY.md "Tactics").
 - **Securing**: every `retarget_ticks` a unit without a target attacks the
   nearest enemy its player sees inside the circle that it can hurt (an
   ordinary attack order, so search and sight rules apply); the attack is

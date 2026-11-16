@@ -612,9 +612,18 @@ impl Sim {
         false
     }
 
+    /// The automatic target of unit `i`'s indirect weapon, if it has one
+    /// (prompt 047: mortar teams halt for it on attack-move).
+    pub(super) fn indirect_auto_target(&self, i: usize) -> Option<usize> {
+        let t = self.artillery.types[self.units[i].unit_type as usize].as_ref()?;
+        self.indirect_target(i, t.min_range, t.range)
+    }
+
     /// Automatic target of an indirect weapon: an enemy the unit itself
     /// sees in range that high explosive hurts (infantry and open
-    /// vehicles), the nearest first, then the lowest id.
+    /// vehicles), the nearest first, then the lowest id. Mortar teams also
+    /// take enemies their player has spotted (prompt 047,
+    /// [`Sim::indirect_spots`]).
     fn indirect_target(&self, i: usize, min_range: Fixed, range: Fixed) -> Option<usize> {
         let me = &self.units[i];
         let open = self.artillery.rules.blast.open_armor_mm;
@@ -638,7 +647,7 @@ impl Sim {
                 continue;
             }
             let d = (other.position - me.position).length();
-            if d < min_range || d > range || !self.sees_unit(i, j) {
+            if d < min_range || d > range || !self.indirect_spots(i, j) {
                 continue;
             }
             // No automatic fire near own troops (fragments hurt them too).
@@ -1074,6 +1083,7 @@ impl Sim {
                     if let Some(s) = &mut self.units[j].squad {
                         s.suppressed = s.suppressed.max(ticks);
                     }
+                    self.suppress_blast(j);
                 }
             } else if b.thinnest_mm <= blast.open_armor_mm {
                 let d = (unit.position - p).length();
