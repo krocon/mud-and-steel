@@ -1559,6 +1559,50 @@ See the result of prompt 040 in `prompts/done/040-wetter-schlamm-tageszeit.md`.
 - The look is checked in a few rendered frames only (rain by day, clear
   night); the 2 ms budget is measured on the CPU (the rain moves on the GPU).
 
+## Supply and repair
+
+Prompt 036; the game rules are in [GAME_DESIGN.md](GAME_DESIGN.md#supply-and-repair-provisional),
+the numbers in `data/logistics.toml` (`sim::LogisticsRules`, loaded by
+`Sim::new`, hashed; not part of `SimConfig`, like `data/transport.toml`).
+
+- **Stocks:** every unit carries a `Stock` (ammunition and fuel in
+  millionths of a full load, `sim/logistics.rs`). What a full load is comes
+  from the catalog per unit type (`sim::LogisticsType::from_catalog`): the
+  salvos of the main weapon (`ammo_carried / count`, else a default per
+  group) and the road range converted by `[range] fuel` of
+  `data/scale.toml` (`Scale::fuel_range_m`). Types without a stock keep it
+  full; buildings and fortifications have none.
+- **Consumption:** `aim_and_fire` skips every weapon while the stock is
+  short of a salvo and charges a salvo when weapon 0 fired (direct main
+  weapons); `fire_indirect` does the same per shell. `move_units` charges
+  fuel by the distance moved. `halt_stranded` (before the movement) stops
+  vehicles without fuel or at or below `immobile_pct` of their hit points
+  and clears their queued waypoints and patrols.
+- **Resupply and repair:** `update_logistics` runs once per game second
+  after the economy. Sources are units whose type name (a completed base
+  building) or category matches a `[[supplier]]` or `[[repairer]]`;
+  receivers of the source's player and its allies (`Teams::allied`) within
+  the radius gain a share of a full load, paid by their own player through
+  `Economy::pay_share` (exact to a part of a resource unit). Repair adds hit
+  points to vehicles and towed guns; the best repairer in reach counts.
+- **Buildings:** `Command::Repair` toggles a repair order (a sorted list of
+  unit ids); each second the building gains hit points while its player
+  pays. `Command::Sell` goes through `Sim::remove_structure`
+  (`sim/economy.rs`): refund, queue refund, hit points 0, ground freed with
+  `set_path_obstacle(.., false)`. Sold ids are kept sorted and left out of
+  every snapshot, so the presentation drops the node like a unit out of
+  sight; no `Destroyed` event is sent.
+- **State and saves:** stocks (per unit), repair orders and sold ids are in
+  the state hash (`hash_logistics`) and, as serde fields of `Sim`, in saved
+  games and replay snapshots (prompt 038); the rules hash of the snapshot
+  header rejects older saves.
+- **Presentation:** `UnitSnapshot::stock` (`StockView`: percent or `None`,
+  immobilized) and `Sim::supply_sources` reach Godot through
+  `bridge/src/supply_funcs.rs` (`unit_ammo`, `unit_fuel`, `unit_immobile`,
+  `supply_radius`, `repair_building`, `sell_building`). The unit panel
+  shows the bars and warnings, `hud/supply_rings.gd` the radii of selected
+  sources, `world/base_hud.gd` the Repair and Sell buttons.
+
 ## Victory conditions and game flow
 
 Prompt 027. `crates/sim/src/outcome.rs` decides the match; Godot only shows it.
@@ -2485,12 +2529,30 @@ decides anything; orders go through `selection.gd` or `SimHost`.
   stance, fire mode and queued waypoints from the per-unit arrays. The
   portrait (`unit_portrait.gd`, [provisional]) is rendered once per unit type
   in its own `SubViewport` from a fresh model (duplicating a unit's model
-  fails: its parts are merged at run time). Several units: tiles with health
+  fails: its parts are merged at run time); a pre-rendered thumbnail
+  (prompt 058) replaces it when there is one. Several units: tiles with health
   bars; click selects one, Shift + click removes it.
 - **Command bar** (`command_bar.gd`, bottom left): buttons with the bound key
   for every order; targeted orders set `selection.command_mode`. The build
   menu and the production bar of `world/base_hud.gd` are docked above it
   (`BaseHud.dock_into`, [provisional]); "Build" opens the build menu.
+- **Picker** (`picker.gd`, prompt 058, [provisional]): the build menu and the
+  production bar show their options as picture tiles: thumbnail on a
+  faction-tinted backdrop, name, fuel / ammunition / manpower, build time,
+  hotkey (Alt + 1…0 for the open tab), count of queued orders or own
+  construction sites and the progress of the first as a bar over the
+  picture; blocked tiles are dimmed with the reason. Tabs by kind: base
+  buildings, other structures (defense), then by catalog group (infantry,
+  vehicles, guns, aircraft); empty tabs are hidden. Everything comes from
+  `build_options` / `production_options`, so new buildables appear without
+  changes. The tooltip reads `SimHost.catalog_card` (catalog values: armor,
+  weapons with real effective range, crew, mass, speed; for base buildings
+  hit points, income, requirements). The thumbnails are PNGs in
+  `godot/assets/thumbnails/` (`hud/thumbnail.gd`, docs/ASSETS.md), rendered
+  by `just thumbnails` for every id of `SimHost.buildable_ids()`; any own
+  structure with production options gets the production bar. When the
+  docked panels make the command bar tall, `hud.gd` moves the event feed
+  above it.
 - **Event feed** (`event_feed.gd`, left edge): own unit lost, building
   completed, unit ready, enemy sighted (at most every 15 s), under fire (at
   most every 10 s), from the combat event stream and a poll of the snapshot

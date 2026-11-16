@@ -23,6 +23,7 @@ mod economy;
 mod fire;
 mod indirect;
 mod infantry;
+mod logistics;
 mod orders;
 mod spatial;
 mod transport;
@@ -36,6 +37,7 @@ use infantry::{InfantryRt, Squad};
 
 pub use economy::{BuyOption, PlaceError, StructureView, SupplyView};
 pub use infantry::BuildingCondition;
+pub use logistics::{StockView, SupplySource};
 pub use orders::MAX_QUEUED;
 
 /// Move targets farther than this from the origin (in meters, per axis) are
@@ -138,6 +140,8 @@ pub enum ConfigError {
     Air(String),
     /// The built-in transport rules do not parse (prompt 034).
     Transport(String),
+    /// The built-in logistics rules do not parse (prompt 036).
+    Logistics(String),
     /// The built-in weather rules do not parse (prompt 040).
     Weather(String),
 }
@@ -161,6 +165,7 @@ impl fmt::Display for ConfigError {
             | Self::Fire(e)
             | Self::Air(e)
             | Self::Transport(e)
+            | Self::Logistics(e)
             | Self::Weather(e) => {
                 write!(f, "{e}")
             }
@@ -213,6 +218,9 @@ struct Unit {
     /// Riding in or on a vehicle, or towed by one (prompt 034).
     #[serde(default)]
     link: Option<transport::Link>,
+    /// Ammunition and fuel (prompt 036).
+    #[serde(default)]
+    stock: logistics::Stock,
 }
 
 impl Unit {
@@ -285,6 +293,8 @@ pub struct UnitSnapshot {
     pub towing: Option<UnitId>,
     /// Mounting, dismounting, limbering or unlimbering is under way.
     pub loading: bool,
+    /// Ammunition, fuel and mobility (prompt 036).
+    pub stock: StockView,
 }
 
 /// Presentation data of one soldier of a squad (prompt 022).
@@ -441,6 +451,8 @@ pub struct Sim {
     teams: crate::teams::Teams,
     /// Mounting, dismounting and towing (prompt 034).
     transport: transport::Transport,
+    /// Supply, consumption and repair (prompt 036).
+    logistics: logistics::Logistics,
     /// Weather, soft ground and time of day (prompt 040).
     weather: weather::WeatherState,
 }
@@ -580,6 +592,11 @@ impl Sim {
             &config.unit_types,
             config.tick_hz,
         );
+        let logistics = logistics::Logistics::new(
+            crate::logistics::LogisticsRules::builtin()
+                .map_err(|e| ConfigError::Logistics(e.to_string()))?,
+            &config.unit_types,
+        );
         let grid = PathGrid::new(&map, &config.terrain, &config.unit_types);
         let weather = weather::WeatherState::new(
             crate::weather::WeatherRules::builtin()
@@ -617,6 +634,7 @@ impl Sim {
             air,
             teams: config.teams.clone(),
             transport,
+            logistics,
             weather,
         };
         sim.init_weather();
@@ -697,6 +715,7 @@ impl Sim {
         self.aim_and_fire();
         self.fire_indirect();
         done(Phase::Combat);
+        self.halt_stranded();
         self.move_units();
         self.update_transport();
         done(Phase::Movement);
@@ -715,6 +734,7 @@ impl Sim {
         self.update_weather();
         done(Phase::Destruction);
         self.update_economy();
+        self.update_logistics();
         done(Phase::Economy);
         self.update_smoke();
         self.update_vision(false);
@@ -943,6 +963,7 @@ impl Sim {
             .collect();
         let grid = &self.paths.grid;
         let mut blocked = Vec::new();
+        let mut driven = Vec::new();
         for (index, (unit, push)) in self.units.iter_mut().zip(pushes).enumerate() {
             let profile = unit.unit_type as usize;
             let keep_clear = |p: Vec2| grid.passable_for(profile, p);
@@ -956,7 +977,11 @@ impl Sim {
             let length = step.length();
             if length > Fixed::ZERO {
                 unit.facing = Vec2::new(step.x / length, step.y / length);
+                driven.push((index, length));
             }
+        }
+        for (index, length) in driven {
+            self.burn_fuel(index, length);
         }
         // Pushed off the planned line (or the way is blocked): plan again
         // from here, a limited number of times.
@@ -1103,6 +1128,8 @@ impl Sim {
             Command::Disembark { units } => self.order_disembark(command.player, units),
             Command::Tow { units, gun } => self.order_tow(command.player, units, *gun),
             Command::Unlimber { units } => self.order_unlimber(command.player, units),
+            Command::Repair { building } => self.order_repair(command.player, *building),
+            Command::Sell { building } => self.order_sell(command.player, *building),
         }
     }
 
@@ -1263,6 +1290,7 @@ impl Sim {
         self.air.hash_into(&mut h);
         self.teams.hash_into(&mut h);
         self.hash_transport(&mut h);
+        self.hash_logistics(&mut h);
         // Clear weather by day changes nothing and is left out, so matches
         // without weather keep their hashes (prompt 040).
         if !self.weather.is_default() {
@@ -1283,7 +1311,7 @@ impl Sim {
     /// soldiers) that the player does not see are left out, like
     /// [`Self::snapshot_for`].
     pub fn snapshot_into(&self, player: Option<PlayerId>, out: &mut Snapshot) {
-        let shown = |u: &Unit| player.is_none_or(|p| self.visible_to(p, u.id));
+        let shown = |u: &Unit| !self.sold(u.id) && player.is_none_or(|p| self.visible_to(p, u.id));
         let loads = self.transport_loads();
         out.tick = self.tick;
         out.units.clear();
@@ -1311,6 +1339,7 @@ impl Sim {
                     passengers: transport::load_of(&loads, u.id).0,
                     towing: transport::load_of(&loads, u.id).1,
                     loading: self.transport_busy(u.id),
+                    stock: self.stock_view(u),
                 }),
         );
         out.projectiles.clear();
@@ -1780,6 +1809,7 @@ fn new_unit(n: &NewUnit<'_>) -> Unit {
         vision_dirty: false,
         orders: orders::OrderQueue::default(),
         link: None,
+        stock: logistics::Stock::default(),
     }
 }
 

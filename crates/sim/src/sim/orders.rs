@@ -41,7 +41,7 @@ impl OrderQueue {
         self.points.is_empty() && !self.patrol
     }
 
-    fn clear(&mut self) {
+    pub(super) fn clear(&mut self) {
         self.points.clear();
         self.patrol = false;
     }

@@ -1179,3 +1179,71 @@ mod static_faction {
         }
     }
 }
+
+// --- Supply and repair (prompt 036) -------------------------------------------
+
+impl Economy {
+    /// Owner of `unit` if it is a completed structure.
+    pub(super) fn completed_owner(&self, unit: UnitId) -> Option<PlayerId> {
+        let s = &self.structures[self.structure_index(unit)?];
+        (s.build_left == 0).then_some(s.owner)
+    }
+
+    /// Price of a unit type (`None`: it cannot be bought).
+    pub(super) fn price(&self, unit_type: usize) -> Option<Resources> {
+        self.types.get(unit_type)?.cost.map(|c| c.resources)
+    }
+
+    /// Pays `bill × part / whole` (exact to a part of a resource unit) if
+    /// the account holds it.
+    pub(super) fn pay_share(
+        &mut self,
+        player: PlayerId,
+        bill: Resources,
+        part: u32,
+        whole: u32,
+    ) -> bool {
+        let amount = bill.map(|b| u64::from(b) * PARTS * u64::from(part) / u64::from(whole.max(1)));
+        let Some(a) = self.account_mut(player) else {
+            return false;
+        };
+        if a.parts.iter().zip(amount).any(|(&have, c)| have < c) {
+            return false;
+        }
+        for (have, c) in a.parts.iter_mut().zip(amount) {
+            *have -= c;
+        }
+        true
+    }
+}
+
+impl Sim {
+    /// Removes the structure unit `i` (selling, prompt 036): refunds
+    /// `completed_pct` percent of its price (`site_pct` for a construction
+    /// site) and its production queue in full, frees its ground and leaves
+    /// it with 0 hit points. Returns whether it was a structure.
+    pub(super) fn remove_structure(&mut self, i: usize, completed_pct: u32, site_pct: u32) -> bool {
+        let id = self.units[i].id;
+        let Some(s) = self.economy.structure_index(id) else {
+            return false;
+        };
+        let st = self.economy.structures.remove(s);
+        let pct = if st.build_left == 0 {
+            completed_pct
+        } else {
+            site_pct
+        };
+        if let Some(cost) = self.economy.types[st.unit_type as usize].cost {
+            self.economy
+                .refund(st.owner, cost.resources.map(|c| c * pct / 100));
+        }
+        for order in &st.queue {
+            self.economy.refund(st.owner, order.paid);
+        }
+        let u = &self.units[i];
+        let (a, b) = self.footprint(u.unit_type as usize, u.position, u.facing);
+        self.units[i].hp = 0;
+        self.set_path_obstacle(a, b, false);
+        true
+    }
+}

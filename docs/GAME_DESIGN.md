@@ -69,13 +69,9 @@ for resources on the map" with one simple rule.
 
 ### Consumption [provisional]
 
-**No consumption in this version.** Units do not use up ammunition when
-firing or fuel when driving; the price of a unit already contains its
-ammunition and fuel. Reasons: per-unit stocks need resupply trucks, an
-"out of ammunition" state, UI for it and AI rules for it; that is a feature of
-its own and would make the first version much harder to balance. The catalog
-already has `ammo_carried` and `range_road_km`, so supply trucks with
-per-unit stocks can follow later without changing the account model.
+Since prompt 036 units use up ammunition and fuel and are resupplied from
+the account, see [Supply and repair](#supply-and-repair-provisional). The
+price of a unit still contains its first load.
 
 ## Buildings [provisional]
 
@@ -209,6 +205,55 @@ No buildings are needed: air support is the commander's tool in both
 modes. Light and heavy flak are the answer (fortifications above), and
 tanks of the US and the late Soviet heavies carry AA machine guns.
 
+## Supply and repair [provisional]
+
+Prompt 036, rules in `data/logistics.toml`. The user was not available for
+the design question of the prompt ("how much logistics is fun"); it was
+decided along the prompt's proposal and **every point of this section is
+provisional** until the user confirms it. The reasons per decision are in
+`prompts/done/036-nachschub-reparatur.md`.
+
+**Idea: a stock per unit, resupply in a radius, no micromanagement of single
+shells.** An offensive has to bring trucks along or come back to the base;
+the player never loads trucks or picks ammunition types.
+
+| Stock | Who has it | Full load | Used by | Empty |
+|---|---|---|---|---|
+| Ammunition | every armed unit but buildings, bunkers and flak positions | salvos of the main weapon: catalog `ammo_carried` / barrels (Panzer IV 87, Tiger 92), else 150 (infantry), 100 (vehicles), 60 (guns); at least 12, at most 2000 | every salvo of the main weapon (shells of mortars and howitzers) | the unit fires no weapon |
+| Fuel | vehicles | road range × 1/20 (`data/scale.toml`, `[range] fuel`): Panzer IV 10.5 km, Tiger 9.75 km, Opel Blitz 16 km | every meter driven | the vehicle stands |
+
+- **Immobilized:** a vehicle at or below **35 %** of its hit points cannot
+  move (it still fires) until it is repaired above that line. One 8.8 cm
+  hit (774 of 1000 points) or three 5.7 cm hits do it.
+- **Resupply:** completed headquarters and supply depots (**60 m**) and
+  every **truck** (**40 m**) resupply the units of their player and of
+  their allies: **5 %** of a full load per second, ammunition and fuel at
+  once. The receiving player pays from the account: a full load costs half
+  the ammunition (fuel) price of the unit. Without the money nothing is
+  refilled. Trucks have no stock of their own.
+- **Repair** (free, it costs time): the vehicle works repairs vehicles and
+  towed guns within **50 m** by **2 %** of their hit points per second,
+  trucks within **25 m** and engineers (category `inf_engineer`) within
+  **20 m** by **1 %**. The best repairer in reach counts. Infantry is not
+  repaired (replacing soldiers is open).
+- **Recovery** of an immobilized tank is repair on the spot until it can
+  drive again; tanks are not towed (no recovery vehicles in the catalog).
+- **Buildings:** the owner orders a repair of a completed, damaged
+  building (`Repair`): **2 %** per second while the account pays; a full
+  repair costs half the building's price. **Selling** (`Sell`) a completed
+  building refunds **50 %** of its price, cancelling a construction site
+  **75 %**; queued production is refunded in full. A sold building is gone
+  (its ground is free); for the victory condition it is lost like a
+  destroyed one.
+- **HUD:** the unit panel shows ammunition and fuel bars and warns about
+  low ammunition (≤ 25 %), low fuel (≤ 20 %) and immobilized vehicles;
+  selected suppliers and repairers show their radius on the ground; the
+  building bar has Repair and Sell (Cancel for a site).
+- **Computer players** send units with low stocks or (mobile) vehicles
+  below half their hit points back to the nearest own supplier or
+  repairer and repair damaged buildings when they can pay
+  ([AI.md](AI.md)).
+
 ## Victory [provisional]
 
 Unchanged from prompt 027: a player who has no living unit left is defeated.
@@ -273,8 +318,8 @@ open.
 
 ## Open (not in this version)
 
-Supply trucks and consumption, selling or repairing buildings, cancelling a
-construction site, upgrades, aircraft and artillery production, walls and
+Replacing soldiers of squads, towing immobilized tanks, recovery
+vehicles, supply trucks with a stock of their own (all prompt 036), upgrades, aircraft and artillery production, walls and
 mines as buildable objects, supply points in the map editor, sharing
 resources with allies, tuning the AI's end game in base matches (prompt
 037 made a first step, see [AI.md](AI.md#teams-prompt-037)).

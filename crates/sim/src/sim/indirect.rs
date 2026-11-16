@@ -570,7 +570,11 @@ impl Sim {
             if distance < min_range || distance > range {
                 continue;
             }
+            if !self.has_ammo(i) {
+                continue;
+            }
             self.fire_shell(i, point, order);
+            self.spend_salvo(i, true);
         }
     }
 

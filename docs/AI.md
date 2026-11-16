@@ -217,6 +217,27 @@ group):
 Tank riders are not used by the AI (players only). Test:
 `ai_rides_trucks_and_tows_guns` (`crates/ai/tests/ai.rs`).
 
+## Supply and repair (prompt 036)
+
+`crates/ai/src/supply.rs`, all difficulties. The view carries every own
+unit's stocks (`OwnUnit::stock`) and the own and allied suppliers and
+repairers (`PlayerView::sources`).
+
+- Armor, infantry, artillery and transports with ammunition or fuel at or
+  below the low marks of `data/logistics.toml` (25 % / 20 %), and mobile
+  vehicles at or below half their hit points, drive to the nearest source
+  that serves them (half way into its radius). Their group leaves them
+  alone until they are back at 90 % (or the trip is given up after three
+  minutes, or the unit is stranded); the order is repeated every 400 ticks
+  while the unit stands outside the radius.
+- Immobilized or dry units are not moved; trucks are not sent to them
+  (open).
+- Completed buildings below 70 % of their hit points are ordered repaired
+  when every resource is at least 200 (production first). The AI never
+  sells.
+
+Test: `ai_sends_empty_units_to_resupply` (`crates/ai/tests/ai.rs`).
+
 ## Difficulties
 
 | | Passive | Easy | Normal | Hard |

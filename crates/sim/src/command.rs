@@ -100,6 +100,12 @@ pub enum Command {
     /// drop their gun, listed guns are dropped by their tractor (prompt
     /// 034).
     Unlimber { units: Vec<UnitId> },
+    /// Starts repairing the own completed, damaged `building` (paid while
+    /// it is repaired), or stops a running repair (prompt 036).
+    Repair { building: UnitId },
+    /// Sells the own completed `building` (part of its price back) or
+    /// cancels the own construction site (prompt 036).
+    Sell { building: UnitId },
 }
 
 impl Command {
@@ -126,7 +132,9 @@ impl Command {
             | Self::CancelProduction { .. }
             | Self::SetRallyPoint { .. }
             | Self::CallAir { .. }
-            | Self::Ping { .. } => &[],
+            | Self::Ping { .. }
+            | Self::Repair { .. }
+            | Self::Sell { .. } => &[],
         }
     }
 }
