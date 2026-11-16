@@ -1,0 +1,27 @@
+# Supply depot (prompt 056): store shed with crates and drums. Three damage levels.
+unit = "env_depot"
+assembly = "env"
+
+[[variant]]
+name = "Intact"
+part = "depot"
+role = "intact"
+seed = 5
+
+[[variant]]
+name = "Damaged"
+part = "depot"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 5
+
+[[variant]]
+name = "Ruin"
+part = "depot"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 5

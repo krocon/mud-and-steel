@@ -43,6 +43,16 @@ fn map_with(objects: &[String]) -> Arc<Map> {
 
 /// Units start facing the map center; a unit at the origin faces north.
 fn sim_with(map: Arc<Map>, seed: u64, spawns: &[(PlayerId, &str, i32, i32, FireMode)]) -> Sim {
+    sim_with_vision(map, seed, spawns, sim::VisionRules::builtin().unwrap())
+}
+
+/// Like [`sim_with`] with other vision rules.
+fn sim_with_vision(
+    map: Arc<Map>,
+    seed: u64,
+    spawns: &[(PlayerId, &str, i32, i32, FireMode)],
+    vision: sim::VisionRules,
+) -> Sim {
     let catalog = Catalog::builtin().unwrap();
     let scale = Scale::builtin().unwrap();
     let mut names: Vec<&str> = spawns.iter().map(|s| s.1).collect();
@@ -63,7 +73,7 @@ fn sim_with(map: Arc<Map>, seed: u64, spawns: &[(PlayerId, &str, i32, i32, FireM
         map: map.reference(),
         terrain: TerrainRules::builtin().unwrap(),
         combat: CombatRules::builtin().unwrap(),
-        vision: sim::VisionRules::builtin().unwrap(),
+        vision,
         infantry: sim::InfantryRules::builtin().unwrap(),
         teams: sim::Teams::default(),
         weather: sim::WeatherSetup::default(),
@@ -351,14 +361,20 @@ fn squads_occupy_buildings_up_to_their_capacity() {
 
 #[test]
 fn occupants_take_fewer_hits_than_squads_in_the_open() {
+    // The silent squad in the house would stay hidden from the MG 150 m
+    // away (ambush, prompt 056); this test is about cover, so it plays
+    // without that rule.
+    let mut vision = sim::VisionRules::builtin().unwrap();
+    vision.ambush.spot_real_m = 0;
     let hits = |objects: &[String], garrisoned: bool| -> Tally {
         let map = map_with(objects);
         (1..=5)
             .map(|seed| {
-                let mut sim = sim_with(
+                let mut sim = sim_with_vision(
                     Arc::clone(&map),
                     seed,
                     &[(P0, SQUAD, 0, 12, HOLD), (P1, MG, 0, -150, HOLD)],
+                    vision.clone(),
                 );
                 if garrisoned {
                     sim.step(&[garrison(P0, &[0])]);

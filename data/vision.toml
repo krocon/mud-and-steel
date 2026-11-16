@@ -89,3 +89,13 @@ foliage = [
 min_drop_m = 20
 pct_per_10m = 5
 max_pct = 25
+
+[ambush]
+# Infantry ambush (prompt 056) [provisional]: a squad that stands in a
+# forest cell or is garrisoned in a building and has not fired for
+# `reveal_s` seconds is seen only by hostile ground units within
+# `spot_real_m` real meters (→ 50 m game) that have it in sight. Firing
+# reveals it like anyone else; standing silent again for `reveal_s` hides
+# it again. 0 turns the rule off.
+spot_real_m = 200
+reveal_s = 20

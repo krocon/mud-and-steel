@@ -81,6 +81,19 @@ impl HeightRules {
     }
 }
 
+/// Infantry ambush (prompt 056) [provisional]: a squad standing in a
+/// forest cell or garrisoned in a building, that has not fired for
+/// `reveal_s` seconds, is seen only by hostile ground units within
+/// `spot_real_m` (real meters, compressed like sight ranges). Zero
+/// `spot_real_m` turns the rule off. Hashed with the ambush state, only
+/// once a squad has been hidden (`crate::sim` vision).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct AmbushRules {
+    pub spot_real_m: u32,
+    pub reveal_s: u32,
+}
+
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 struct File {
@@ -88,6 +101,8 @@ struct File {
     sight: SightRules,
     objects: ObjectSight,
     height: HeightRules,
+    #[serde(default)]
+    ambush: AmbushRules,
 }
 
 /// All vision rules, with the sight range factor of `data/scale.toml`
@@ -102,6 +117,9 @@ pub struct VisionRules {
     /// Seeing farther downhill (prompt 060).
     #[serde(default)]
     pub height: HeightRules,
+    /// Infantry ambush (prompt 056).
+    #[serde(default)]
+    pub ambush: AmbushRules,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -153,6 +171,8 @@ impl VisionRules {
         check("height.min_drop_m", hr.min_drop_m, 0, 10_000)?;
         check("height.pct_per_10m", hr.pct_per_10m, 0, 100)?;
         check("height.max_pct", hr.max_pct, 0, 100)?;
+        check("ambush.spot_real_m", file.ambush.spot_real_m, 0, 8000)?;
+        check("ambush.reveal_s", file.ambush.reveal_s, 0, 3600)?;
         let ratio = (scale.sight_range.num, scale.sight_range.den);
         let rules = Self {
             grid: file.grid,
@@ -160,6 +180,7 @@ impl VisionRules {
             objects: file.objects,
             sight_ratio: ratio,
             height: file.height,
+            ambush: file.ambush,
         };
         let ranges = std::iter::once(rules.sight.range_real_m)
             .chain(rules.sight.categories.iter().map(|o| o.range_real_m));
@@ -195,6 +216,12 @@ impl VisionRules {
             .map_or(self.sight.range_real_m, |o| o.range_real_m);
         let (num, den) = self.sight_ratio;
         Fixed::from_num(real) * Fixed::from_num(num) / Fixed::from_num(den)
+    }
+
+    /// Ambush spotting distance in game meters (prompt 056).
+    pub fn ambush_spot_m(&self) -> Fixed {
+        let (num, den) = self.sight_ratio;
+        Fixed::from_num(self.ambush.spot_real_m) * Fixed::from_num(num) / Fixed::from_num(den)
     }
 
     /// Sight range in whole vision cells (at least 1).

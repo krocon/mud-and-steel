@@ -135,12 +135,13 @@ oder weggelassen; es werden keine Inhalte anderer Spiele übernommen.
 | 053 | [Sound Stufe 2](done/053-sound-stufe2.md) | Überschallknall, Schallverzögerung, Hall, Zoom-Akustik, Flugzeuge, Brände, Stimmen-Struktur | erledigt |
 | 054 | [Explosionen Stufe 2](done/054-explosionen-stufe2.md) | Druckwelle, Blitzlicht, Munitionsexplosion, schwerer Feuerschlag | erledigt (Werte vorläufig, siehe Ergebnis) |
 | 055 | [Brücken, Pioniertechnik, Luftlande](done/055-bruecken-pioniertechnik-luftlande.md) | Brückeneinsturz, Ertrinken, Brückenleger, Fallschirmjäger | erledigt (Werte vorläufig, siehe Ergebnis) |
-| 056 | [Karten und Basis Stufe 2](056-karten-basis-stufe2.md) | Winterdorf, Höfe, Flussland, Punkte an Orten, Hinterhalt | Entwurf |
+| 056 | [Karten und Basis Stufe 2](done/056-karten-basis-stufe2.md) | Winterdorf, Höfe, Flussland, Punkte an Orten, Hinterhalt | erledigt |
 | 057 | [Bodenoptik: Wiesen](done/057-bodenoptik-wiese.md) | Feines Gras, Farbvariation, Halmbüschel, Blüten, Übergänge, Tilt-Shift | erledigt |
 | 058 | [Bilder in der Produktionsauswahl](done/058-bilder-produktionsauswahl.md) | Vorgerenderte Bilder als Kacheln mit Kosten, Reiter; `just thumbnails` | erledigt |
 | 059 | [Wüstendorf](done/059-wuestendorf.md) | Flachdachhäuser mit Hofmauern, Palmenhaine, Dorfkarte Nordafrika | erledigt |
 | 060 | [Berge und Täler](done/060-berge-taeler.md) | Gebirgs-Profile im Generator, Pässe, Hangregeln, Gebirgskarte | erledigt |
 | 061 | [Recherche: freie Soundeffekte](done/061-sound-recherche.md) | Geprüfte CC0/CC-BY-Aufnahmen, Pakete, Lücken, Ordnerstruktur in `docs/AUDIO_LIBRARY.md` | erledigt |
+| 062 | [Raketenwerfer und Sturmpanzer](062-raketenwerfer-sturmpanzer.md) | Fahrbare Raketenwerfer je Fraktion mit Salven-Regel, deutscher Sturmpanzer; Katalog, Modelle, KI | Entwurf |
 
 Viele dieser Prompts ändern `sim.rs`, `command.rs`, `main.gd` und den Golden-Hash.
 Parallel laufende Sessions übernehmen vor dem Abschluss den aktuellen `main`.

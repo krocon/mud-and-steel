@@ -10,12 +10,14 @@ extends Node3D
 ## Supply points are flag poles in the colour of their holder with a ring
 ## that fills while they are taken. Created by `main.gd`.
 
-## Borrowed models of the base buildings (sizes match data/economy.toml).
+## Models of the base buildings (sizes match data/economy.toml): the
+## headquarters borrows a stone house, the others have their own since
+## prompt 056 (steel hall, barracks hut, depot shed with crates and drums).
 const MODELS := {
 	"base_hq": "env_house_stone",
-	"base_barracks": "env_house_farm_brick",
-	"base_depot": "env_house_farm",
-	"base_factory": "env_barn",
+	"base_barracks": "env_barracks",
+	"base_depot": "env_depot",
+	"base_factory": "env_steel_hall",
 	# Prompt 054: the ammunition dump of prompt 041; `strike_view.gd` adds
 	# the launch frames. [provisional]
 	"base_rocket_battery": "env_dump_ammo",

@@ -522,6 +522,37 @@ mostly to the lanes), houses 10 % damaged and 5 % ruined, 8 % of the wall
 segments broken; never on tracks, roads or water or over existing objects;
 deterministic from the editor's seed.
 
+### Landscape maps (prompt 056)
+
+`cli gen-land` (`crates/cli/src/gen_land.rs`, `just gen-land [map]`,
+default all three) writes three 1 km maps for two or four players (two
+teams; a two-player match uses players 0 and 1, diagonally opposite). No
+real place names. Supply points stand on places of the map, and the
+objects there are generated with them: the point is the village square,
+the farmstead or the bridgehead you see.
+
+| Map | Look | Starts | Supply points (places) |
+|---|---|---|---|
+| `winter_village` | biome `winter`, default weather `snow`; plowed main road north–south, a village of ~50 farm, brick, stone and log houses along two streets with gardens (woodpiles, hay, bare fruit trees, fences), the church at the square, snowy conifer woods with birches, snow drifts (terrain `snow`, 60 % speed) in the open, no mud (frozen) | team 0 south, team 1 north | `supply_square` (village square), `supply_trench` on a hill east with the trench strongpoint `strongpoint_hill` (prompt 052), `supply_farmstead` west |
+| `farms` | rolling farmland, five farmsteads (farmhouse, barn, log shed, hay ricks and bales, fence, orchard; cottages and a second barn outside), field tracks with hedgerows and gaps for tanks, haystacks in the fields, small woods | team 0 south, team 1 north | `supply_farm_center`, `_west`, `_east`, `_north`, `_south` (the farmyards) |
+| `river_land` | default weather `overcast`; a river north–south between the teams, a stone bridge in the middle with a hamlet and a damaged church at both ends, timber bridges north and south (16 t: no medium tanks), fords near the north and south edges, birches and young oaks on the banks, a farmstead on each side | team 0 west, team 1 east | `supply_bridgehead` (stone bridge), `supply_bridge_north`, `supply_bridge_south` (timber bridges; the marker sits on the deck, so units on both banks within 25 m count), `supply_farm_west`, `supply_farm_east` |
+
+The ground is bumps and value noise as in `gen_town`, flattened at the
+places and the starts (60 m around each start, kept free of objects);
+the river and the bridges follow `gen_map` (narrowed water at the
+crossings, embankments with 12 % ramps, axes on path cell center lines);
+objects are placed without overlaps and off roads, tracks and water (a
+16 m bucket grid keeps that fast). Field track headings for hedges use a
+polynomial arctangent instead of `atan2`, so files are bit-identical on
+every platform (a test generates every map twice). All three pass `just
+map-check`; markers `village`, `church`, `farm_*`, `ford_*`,
+`bridge_stone`, `trench_hill` serve tools and shots.
+
+`SHOT_SET=land just terrain-shots <dir> <map>` records the whole map, a
+few felled trees and every supply point (prompt 056).
+
+Measurements: [prompt 056](../prompts/done/056-karten-basis-stufe2.md#ergebnis).
+
 ## Map editor (prompt 028)
 
 Maps can be built in the game: main menu → **Map editor** (or

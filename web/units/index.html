@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mud and Steel – Einheiten</title>
+<link rel="stylesheet" href="style.css">
+<!-- Pinned CDN versions; the page needs internet access for these three modules. -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/",
+    "smol-toml": "https://cdn.jsdelivr.net/npm/smol-toml@1.3.1/+esm"
+  }
+}
+</script>
+</head>
+<body>
+<header>
+  <h1>Mud and Steel <span>Einheiten</span></h1>
+  <nav id="factions" class="seg" aria-label="Fraktion"></nav>
+  <input id="search" type="search" placeholder="Suchen (Name, ID, Waffe)" aria-label="Suchen">
+  <nav id="biomes" class="seg" aria-label="Tarnung"></nav>
+</header>
+<nav id="groups" class="chips" aria-label="Gruppe"></nav>
+<main>
+  <section id="list" aria-label="Einheitenliste"></section>
+  <aside id="detail" aria-live="polite">
+    <div id="stage">
+      <canvas id="view"></canvas>
+      <img id="still" alt="" hidden>
+      <p id="stage-msg" hidden></p>
+      <div id="stage-tools">
+        <select id="variant" hidden aria-label="Variante"></select>
+        <label><input id="spin" type="checkbox" checked> Drehen</label>
+        <span>Raster 1 m</span>
+      </div>
+    </div>
+    <div id="sheet"></div>
+  </aside>
+</main>
+<p id="status"></p>
+<script type="module" src="app.js"></script>
+</body>
+</html>

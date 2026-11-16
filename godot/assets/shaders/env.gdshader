@@ -16,14 +16,31 @@ uniform int slot = 12;
 
 varying vec3 v_local;
 varying vec3 v_world_normal;
+// Normal of the standing model: snow stays on fallen trees (prompt 056).
+varying vec3 v_rest_normal;
+// Per object, from its position (prompt 056): picks the paint of plaster,
+// the roof covering and tints of brick and boards, so no two neighbouring
+// houses look alike. Deterministic: the same house always looks the same.
+varying float v_seed;
 
 void vertex() {
 	v_local = VERTEX;
+	vec3 inst = (MODEL_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
 	if (slot == 10 && COLOR.g > 0.0) {
-		vec3 inst = (MODEL_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
-		VERTEX += wind_offset(VERTEX, COLOR.g, COLOR.b, inst, TIME) * 0.5;
+		VERTEX += wind_offset(VERTEX, COLOR.g, COLOR.b, inst, TIME) * 0.5 * (1.0 - env_fallen);
 	}
 	v_world_normal = normalize((MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz);
+	v_rest_normal = normalize(NORMAL);
+	v_seed = hash2(floor(inst.xz * 0.5) + vec2(0.5, 0.5));
+}
+
+// Paint of plaster walls (prompt 056): whitewash, cream, pale yellow, light
+// ochre, pale pink, light grey-green, grey (a palette of rural Central
+// European houses, judgement values).
+vec3 plaster_paint(float seed) {
+	vec3 c[7] = {vec3(0.88, 0.87, 0.83), vec3(0.84, 0.79, 0.66), vec3(0.86, 0.78, 0.52),
+		vec3(0.78, 0.62, 0.40), vec3(0.84, 0.70, 0.64), vec3(0.70, 0.74, 0.66), vec3(0.66, 0.66, 0.63)};
+	return c[int(floor(seed * 7.0)) % 7];
 }
 
 // mortar lines of a running bond (brick / ashlar), size in meters
@@ -55,6 +72,12 @@ void fragment() {
 	} else if (slot == 1) {  // Metal
 		vec3 c[4] = {vec3(0.27, 0.27, 0.27), vec3(0.33, 0.18, 0.09), vec3(0.55, 0.56, 0.56), vec3(0.12, 0.12, 0.12)};
 		albedo = c[kind] * (0.85 + 0.3 * grain);
+		if (kind == 1 || kind == 2) {
+			// Corrugated sheet (prompt 056, steel hall, depot roof): ribs
+			// across the wall, down the roof slope.
+			float u = wn.y > 0.5 ? p.z : p.x + p.z;
+			albedo *= 0.9 + 0.2 * abs(fract(u * 7.0) - 0.5);
+		}
 		rough = kind == 1 ? 0.85 : 0.5;
 		metal = kind == 1 ? 0.2 : 0.6;
 	} else if (slot == 2) {  // Rubber
@@ -68,6 +91,7 @@ void fragment() {
 		float seam = 1.0 - 0.35 * (1.0 - smoothstep(0.0, 0.06, abs(fract(u) - 0.5) * 2.0 - 0.9));
 		float board = 0.85 + 0.3 * hash2(vec2(floor(u), 1.0));
 		albedo = c[kind] * (0.7 + 0.6 * planks) * board * seam;
+		albedo *= 0.88 + 0.24 * fract(v_seed * 9.17);
 		rough = 0.9;
 	} else if (slot == 4) {  // Canvas / hessian (sandbags)
 		albedo = vec3(0.50, 0.44, 0.32) * (0.85 + 0.3 * grain) * (0.9 + 0.2 * big);
@@ -96,7 +120,8 @@ void fragment() {
 		vec2 uv = UV;
 		if (kind == 3) {
 			float m = bond(uv, vec2(0.25, 0.075), 0.012);
-			albedo = mix(vec3(0.62, 0.60, 0.55), vec3(0.50, 0.22, 0.15) * (0.8 + 0.4 * hash2(floor(uv / vec2(0.25, 0.075)))), m);
+			vec3 brick = mix(vec3(0.50, 0.22, 0.15), vec3(0.58, 0.32, 0.20), fract(v_seed * 3.7));
+			albedo = mix(vec3(0.62, 0.60, 0.55), brick * (0.8 + 0.4 * hash2(floor(uv / vec2(0.25, 0.075)))), m);
 		} else if (kind == 1) {
 			float m = bond(uv, vec2(0.6, 0.3), 0.02);
 			albedo = mix(vec3(0.45, 0.43, 0.40), vec3(0.66, 0.62, 0.54) * (0.88 + 0.24 * hash2(floor(uv / vec2(0.6, 0.3)))), m);
@@ -110,7 +135,14 @@ void fragment() {
 		rough = 0.93;
 	} else if (slot == 13) {  // Plaster: lime, adobe, whitewash, ochre
 		vec3 c[4] = {vec3(0.80, 0.77, 0.69), vec3(0.62, 0.48, 0.33), vec3(0.90, 0.89, 0.85), vec3(0.76, 0.60, 0.36)};
-		albedo = c[kind] * (0.88 + 0.16 * big) * (0.95 + 0.1 * grain);
+		vec3 base = c[kind];
+		if (kind == 0 || kind == 2) {
+			// Most houses get a paint of their own, a few stay bare lime.
+			base = v_seed < 0.15 ? base : plaster_paint(fract(v_seed * 7.13));
+		} else {
+			base *= 0.9 + 0.2 * fract(v_seed * 5.31);
+		}
+		albedo = base * (0.88 + 0.16 * big) * (0.95 + 0.1 * grain);
 		// grime rising from the ground
 		float h = vc.b * 4.0;
 		albedo *= mix(0.72, 1.0, smoothstep(0.0, 1.2 + 0.6 * big, h));
@@ -123,8 +155,16 @@ void fragment() {
 	} else {  // 15 Roof: clay tile, slate, thatch, planks
 		float rows = smoothstep(0.0, 0.08, fract(p.z * 6.0)) * 0.25 + 0.75;
 		float cols = 0.9 + 0.2 * hash2(floor(vec2(p.x * 4.0 + p.y * 4.0, p.z * 6.0)));
+		// Roof variants (prompt 056): clay tiles red, brown or weathered
+		// grey-brown, a few houses with dark cement tiles; slate blue-grey
+		// or nearly black.
+		float r_pick = fract(v_seed * 11.3);
+		if (kind == 0 && r_pick > 0.82) {
+			kind = 1;
+		}
 		if (kind == 1) {
-			albedo = vec3(0.22, 0.24, 0.27) * rows * cols;
+			vec3 slate = mix(vec3(0.22, 0.24, 0.27), vec3(0.15, 0.15, 0.16), fract(v_seed * 4.7));
+			albedo = slate * rows * cols;
 			rough = 0.7;
 		} else if (kind == 2) {
 			float straw = vnoise(p * vec3(30.0, 30.0, 3.0));
@@ -133,7 +173,9 @@ void fragment() {
 		} else if (kind == 3) {
 			albedo = vec3(0.30, 0.25, 0.20) * rows * cols;
 		} else {
-			albedo = vec3(0.56, 0.26, 0.17) * rows * cols * (0.85 + 0.25 * big);
+			vec3 tile = r_pick < 0.4 ? vec3(0.56, 0.26, 0.17)
+				: (r_pick < 0.65 ? vec3(0.48, 0.28, 0.20) : vec3(0.45, 0.36, 0.30));
+			albedo = tile * rows * cols * (0.85 + 0.25 * big);
 			albedo = mix(albedo, vec3(0.25, 0.30, 0.16), smoothstep(0.7, 0.85, fbm3(p * 2.0)) * 0.5 * (1.0 - env_dry));
 			rough = 0.85;
 		}
@@ -145,7 +187,7 @@ void fragment() {
 	if (slot != 5 && slot != 14) {
 		float dust = env_dust * (0.35 + 0.65 * max(wn.y, 0.0)) * (0.6 + 0.4 * grain);
 		albedo = mix(albedo, vec3(0.70, 0.62, 0.46), clamp(dust, 0.0, 0.7));
-		albedo = snow_cover(albedo, rough, wn, p, env_snow);
+		albedo = snow_cover(albedo, rough, normalize(v_rest_normal), p, env_snow);
 	}
 	albedo = charred(albedo, env_char);
 	ALBEDO = albedo * mix(0.45, 1.0, ao);

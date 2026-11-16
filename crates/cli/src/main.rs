@@ -5,6 +5,7 @@ mod bench;
 mod catalog_doc;
 mod crater_bench;
 mod fire_bench;
+mod gen_land;
 mod gen_map;
 mod gen_textures;
 mod gen_town;
@@ -103,6 +104,19 @@ enum CliCommand {
         /// mountains.
         #[arg(long, default_value = "gentle", value_parser = gen_map::Relief::NAMES)]
         relief: String,
+    },
+    /// Generates a landscape map of prompt 056: winter_village, farms or
+    /// river_land (two or four players, supply points at real places).
+    GenLand {
+        /// winter_village, farms, river_land or all.
+        #[arg(long, default_value = "all")]
+        map: String,
+        /// Seed (default: the one of the committed map).
+        #[arg(long)]
+        seed: Option<u64>,
+        /// Output folder (default: data/maps/<map>).
+        #[arg(long)]
+        out: Option<PathBuf>,
     },
     /// Generates the desert village map (prompt 059): courtyard compounds,
     /// square with mosque and market, oasis, police post; two or four players.
@@ -547,6 +561,27 @@ fn main() {
             match gen_map::generate(&options) {
                 Ok(report) => println!("{report}"),
                 Err(e) => fail(&e),
+            }
+        }
+        CliCommand::GenLand { map, seed, out } => {
+            let maps = if map == "all" {
+                gen_land::LandMap::ALL.to_vec()
+            } else {
+                vec![gen_land::LandMap::parse(&map).unwrap_or_else(|e| fail(&e))]
+            };
+            for map in maps {
+                let out = out
+                    .clone()
+                    .unwrap_or_else(|| Path::new(MAPS_DIR).join(map.name()));
+                let options = gen_land::Options {
+                    map,
+                    seed: seed.unwrap_or(map.default_seed()),
+                    out: &out,
+                };
+                match gen_land::generate(&options) {
+                    Ok(report) => println!("{report}"),
+                    Err(e) => fail(&e),
+                }
             }
         }
         CliCommand::GenVillage { name, seed, out } => {
