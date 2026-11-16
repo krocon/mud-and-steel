@@ -57,7 +57,7 @@ pub const HILLY_FACTOR: f64 = 1.7;
 /// Seed offset of the mountains' random stream ("mountain").
 const MOUNTAIN_SALT: u64 = 0x6d6f_756e_7461_696e;
 /// Height of the highest ridges above the valley floors.
-pub const PEAK_M: f64 = 480.0;
+pub const PEAK_M: f64 = 600.0;
 /// Starts far from the center lie in basins this far below the passes.
 pub const BASIN_DROP_M: f64 = 30.0;
 /// Flat floor of a basin around a start, and the distance over which it
@@ -69,9 +69,9 @@ const VALLEY_FLOOR_M: f64 = 22.0;
 /// Along the river: its half width plus this.
 const RIVER_FLOOR_M: f64 = 50.0;
 /// Distance from a valley floor over which the mountains reach full height.
-const VALLEY_RISE_M: f64 = 150.0;
+const VALLEY_RISE_M: f64 = 220.0;
 /// Height of one cliff band: benches with rock walls between them.
-const CLIFF_STEP_M: f64 = 14.0;
+const CLIFF_STEP_M: f64 = 24.0;
 
 // Serpentine (marker `lookout`).
 /// Grade of the serpentine road, well under the 60 % limit.
@@ -88,6 +88,10 @@ const ROAD_PAINT_M: f64 = 3.0;
 /// Grade of the cut and fill walls beside the road bed (rock walls).
 const ROAD_SIDE_GRADE: f64 = 1.2;
 const PLATEAU_RADIUS_M: f64 = 24.0;
+/// The mountainside around the serpentine stands this high above its ramp.
+const SPUR_ABOVE_M: f64 = 30.0;
+/// ... and falls to nothing over this distance.
+const SPUR_FALL_M: f64 = 300.0;
 
 /// Mountain heights for the `mountains` profile.
 pub(super) struct Mountains {
@@ -104,7 +108,7 @@ impl Mountains {
         let mut random = Random(Rng::new(seed ^ MOUNTAIN_SALT));
         let size = layout.half * 2.0;
         let massif = ValueNoise::new(&mut random, size, 900.0);
-        let ridges = [(620.0, 1.0), (260.0, 0.5), (110.0, 0.22), (45.0, 0.08)]
+        let ridges = [(700.0, 1.0), (300.0, 0.45), (120.0, 0.12), (50.0, 0.03)]
             .into_iter()
             .map(|(wavelength, weight)| (ValueNoise::new(&mut random, size, wavelength), weight))
             .collect();
@@ -134,13 +138,14 @@ impl Mountains {
             })
             .fold(0.0, f64::max);
         let floor = -BASIN_DROP_M * basin;
+        let spur = self.serpentine.spur(x, y);
         let away = self.valley_distance(layout, x, y);
         if away <= 0.0 {
-            return floor;
+            return floor + spur;
         }
         let mask = smoothstep(0.0, VALLEY_RISE_M, away) * (1.0 - basin);
         if mask <= 0.0 {
-            return floor;
+            return floor + spur;
         }
         // Ridged noise: creases of the value noise become crests.
         let (mut sum, mut weights) = (0.0, 0.0);
@@ -151,15 +156,15 @@ impl Mountains {
         }
         let ridged = sum / weights;
         let massif = 0.55 + 0.45 * self.massif.at(x, y);
-        let mut m = PEAK_M * massif * ridged * mask;
+        let mut m = PEAK_M * massif * ridged * ridged * mask;
         // Cliff bands: benches and rock walls where the cliff noise is high.
-        let cliff = smoothstep(0.1, 0.35, self.cliffs.at(x, y));
+        let cliff = smoothstep(0.25, 0.45, self.cliffs.at(x, y));
         if cliff > 0.0 {
             let steps = m / CLIFF_STEP_M;
-            let terraced = CLIFF_STEP_M * (steps.floor() + smoothstep(0.72, 1.0, steps.fract()));
+            let terraced = CLIFF_STEP_M * (steps.floor() + smoothstep(0.8, 1.0, steps.fract()));
             m += (terraced - m) * cliff;
         }
-        floor + m
+        floor + m.max(spur)
     }
 
     /// Distance beyond the nearest valley floor or low area (negative
@@ -271,6 +276,22 @@ impl Serpentine {
             }
         }
         self.ramp.last().map_or(0.0, |p| p.1)
+    }
+
+    /// The mountainside the serpentine is cut into: `SPUR_ABOVE_M` above
+    /// the ramp around the zone, falling away over `SPUR_FALL_M`; nothing
+    /// towards the meadow (east).
+    fn spur(&self, x: f64, y: f64) -> f64 {
+        let (x0, y0, x1, y1) = self.zone;
+        if x > x1 + 10.0 {
+            return 0.0;
+        }
+        let (dx, dy) = ((x0 - x).max(0.0), (y0 - y).max(y - y1).max(0.0));
+        let outside = (dx * dx + dy * dy).sqrt();
+        let east = 1.0 - smoothstep(x1 - 40.0, x1 + 10.0, x);
+        (self.ramp_at(x.max(x0)) + SPUR_ABOVE_M)
+            * (1.0 - smoothstep(0.0, SPUR_FALL_M, outside))
+            * east
     }
 
     /// Shapes the ground at `(x, y)` (height `h`): the ramp, the plateau

@@ -824,6 +824,22 @@ fn place_bridges(
     Ok(placed)
 }
 
+/// Mountains (prompt 060): mud only collects on flat ground; on slopes
+/// steeper than 20 % it is grass.
+fn dry_slopes(samples: usize, heights: &[f64], terrain: &mut [u8]) {
+    for j in 0..samples - 1 {
+        for i in 0..samples - 1 {
+            let k = j * samples + i;
+            let grade = ((heights[k + 1] - heights[k]).abs()
+                + (heights[k + samples] - heights[k]).abs())
+                / CELL_M;
+            if terrain[k] == MUD && grade > 0.2 {
+                terrain[k] = GRASS;
+            }
+        }
+    }
+}
+
 /// Where the track to the east edge (the third track) crosses the river.
 fn ford_point(layout: &Layout) -> (f64, f64) {
     let mut best = (f64::INFINITY, 0.0, 0.0);
@@ -892,6 +908,9 @@ pub fn generate(options: &Options) -> Result<String, String> {
     }
 
     let bridges = place_bridges(&layout, samples, &mut heights, &mut terrain)?;
+    if options.relief == Relief::Mountains {
+        dry_slopes(samples, &heights, &mut terrain);
+    }
 
     let low = heights.iter().copied().fold(f64::MAX, f64::min);
     let high = heights.iter().copied().fold(f64::MIN, f64::max);

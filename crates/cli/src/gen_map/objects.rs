@@ -23,7 +23,7 @@ const SEED_SALT: u64 = 0x006f_626a_6563_7473;
 /// slopes steeper than `ROCK_GRADE`.
 const CONIFER_ABOVE_M: f64 = 25.0;
 const TREE_LINE_M: f64 = 200.0;
-const ROCK_GRADE: f64 = 0.8;
+const ROCK_GRADE: f64 = 0.6;
 
 /// Trees in woods stand on a jittered grid with this spacing (m).
 const WOOD_SPACING: f64 = 6.5;

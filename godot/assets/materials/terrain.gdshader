@@ -27,6 +27,10 @@
 // darkens the ground, makes it glossy and fills puddles on flat soft
 // ground (tracks, mud, bare earth first).
 //
+// Mountains (prompt 060): on maps with a lot of relief (`mountain`, set by
+// terrain.gd from the height range) scree covers slopes between bare earth
+// and rock, and snow lies above `snow_line` on all but the steepest rock.
+//
 // Layer order: see LAYERS in crates/cli/src/gen_textures.rs.
 shader_type spatial;
 render_mode cull_back;
@@ -69,6 +73,13 @@ uniform float snow_cover = 0.0;
 uniform float grass_variation = 1.0;
 // Rain-soaked ground (prompt 040), 0..1.
 uniform float wetness = 0.0;
+// Mountain look (prompt 060), 0 = off.
+uniform float mountain = 0.0;
+// Slope (rise/run) where scree starts and covers the ground.
+uniform vec2 scree_grade = vec2(0.42, 0.62);
+// Height (m) above which snow lies (mountains), and its fade.
+uniform float snow_line = 1000000.0;
+uniform float snow_line_fade = 25.0;
 // 1: tint every chunk by its LOD level (debug menu).
 uniform bool show_lod = false;
 uniform sampler2D water_tex : filter_linear, repeat_disable;
@@ -152,10 +163,17 @@ void fragment() {
 	float soft = w[0] + w[3] + w[5];
 	// Worn patches: where two noises of different size are both high.
 	float patch = smoothstep(0.6, 0.72, macro_far.b) * smoothstep(0.45, 0.65, macro_near.r);
-	float earth = max(smoothstep(earth_grade.x, earth_grade.y, grade), patch * 0.8);
-	float rock = smoothstep(rock_grade.x, rock_grade.y, grade + (macro_near.r - 0.5) * 0.1);
+	// Mountains: grass holds on steeper slopes (alpine meadows), rock only
+	// on the walls.
+	vec2 earth_g = earth_grade + mountain * vec2(0.22, 0.26);
+	vec2 rock_g = rock_grade + mountain * vec2(0.17, 0.2);
+	float earth = max(smoothstep(earth_g.x, earth_g.y, grade), patch * 0.8);
+	float rock = smoothstep(rock_g.x, rock_g.y, grade + (macro_near.r - 0.5) * 0.1);
 	w[ROCK] = soft * rock;
 	w[EARTH] = soft * earth * (1.0 - rock);
+	// Scree (mountains): patchy, between earth and rock.
+	float scree = mountain * soft * (1.0 - rock)
+		* smoothstep(scree_grade.x, scree_grade.y, grade + (macro_near.g - 0.5) * 0.2);
 	float keep = (1.0 - earth) * (1.0 - rock);
 	w[0] *= keep; w[3] *= keep; w[5] *= keep;
 
@@ -275,6 +293,27 @@ void fragment() {
 			macro_far, macro_near, px, albedo, detail, rough);
 	}
 
+	// Rock walls (mountains): strata, bands of lighter and darker rock.
+	if (mountain > 0.0 && w[ROCK] > 0.02) {
+		float band = sin(world_pos.y * 0.9 + macro_near.r * 4.0 + macro_far.g * 9.0);
+		float band2 = sin(world_pos.y * 0.23 + macro_far.b * 6.0);
+		albedo *= mix(1.0, 0.86 + 0.1 * band + 0.12 * band2, w[ROCK] * mountain);
+	}
+
+	// Scree (mountains): grey stones from the pebble texture, larger.
+	if (scree > 0.01) {
+		float src_scree = use_biome ? float(layer_source[SHALLOW]) : float(SHALLOW);
+		float tile = layer_tile[SHALLOW] * 2.2;
+		vec4 sc = textureGrad(albedo_array, vec3(p / tile, src_scree), dpdx / tile, dpdy / tile);
+		vec4 sn = textureGrad(normal_array, vec3(p / tile, src_scree), dpdx / tile, dpdy / tile);
+		float grey = dot(sc.rgb, vec3(0.333));
+		vec3 stones = mix(vec3(grey), sc.rgb, 0.35) * vec3(1.02, 1.0, 0.96) * 1.05;
+		albedo = mix(albedo, stones, scree * 0.9);
+		rough = mix(rough, max(sn.b, 0.75), scree);
+		vec2 sdn = (sn.xy * 2.0 - 1.0) * detail_normal_strength;
+		detail = mix(detail, vec3(sdn.x, 0.0, sdn.y), scree * 0.8);
+	}
+
 	// Wet band above the waterline (and wet ground under the water).
 	if (has_water) {
 		float level = texture(water_tex, base_uv).r;
@@ -306,11 +345,16 @@ void fragment() {
 
 	// Snow cover (winter): on flat ground, patchy, thinner on roads and
 	// tracks (driven on) and none on water.
-	if (snow_cover > 0.0) {
+	// Mountains: snow above the snow line, also on steep slopes but not
+	// on the steepest rock.
+	float alpine = smoothstep(snow_line - snow_line_fade, snow_line + snow_line_fade,
+		world_pos.y + (macro_far.b - 0.5) * snow_line_fade * 2.0);
+	if (snow_cover > 0.0 || alpine > 0.0) {
 		float flat_ground = smoothstep(0.55, 0.2, grade);
 		float worn = clamp(w[TRACK] + w[ROAD], 0.0, 1.0);
 		float water = clamp(w[SHALLOW] + w[DEEP], 0.0, 1.0);
-		float s = snow_cover * flat_ground * (1.0 - 0.55 * worn) * (1.0 - water);
+		float cover = max(snow_cover * flat_ground, alpine * smoothstep(1.1, 0.6, grade));
+		float s = cover * (1.0 - 0.55 * worn) * (1.0 - water);
 		s = smoothstep(0.25, 0.65, s + (macro_near.r - 0.5) * 0.45 + (macro_far.b - 0.5) * 0.25);
 		float tile = layer_tile[SNOW];
 		vec4 snow_col = textureGrad(albedo_array, vec3(p / tile, float(SNOW)), dpdx / tile, dpdy / tile);
