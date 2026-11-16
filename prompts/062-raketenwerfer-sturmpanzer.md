@@ -105,3 +105,30 @@ Gemeinsame Dateien (`sim.rs`, `bridge/src/lib.rs`, `main.gd`, `self_test.gd`,
 Ändert sich der Golden-Hash, den Grund im Commit nennen. Am Ende nach `prompts/done/`
 verschieben und `prompts/README.md` aktualisieren. Abschlussbericht: was gebaut wurde,
 wie ich es teste, Messwerte, was offen ist.
+
+## Entscheidungen (autonom, Nachtlauf 17.11.2026)
+
+Vorläufig: der Nutzer hat geschlafen; die Vorschläge aus Abschnitt 5 sind übernommen,
+der Rest ist von der ausführenden Session konkretisiert.
+
+| Frage | Entscheidung |
+|---|---|
+| Sturmpanzer IV oder Sturmtiger? | Sturmpanzer IV `de_sturmpanzer4` (Sd.Kfz. 166, 15 cm StuH 43 L/12), Kategorie `assault_gun`. |
+| V1/V2 als zweite Art des schweren Schlags? | Nicht in diesem Prompt. |
+| Bleibt `base_rocket_battery`? | Ja, unverändert. |
+| Gezogener Nebelwerfer 41? | Nein. |
+| Sowjetisches Fahrgestell | ZiS-6 (`su_bm13`, BM-13-16 von 1941). |
+| Calliope | Eigene Einheit `us_t34_calliope` mit eigenem Modell (M4A3-Wanne, T34-Gestell). Ohne 75-mm-Kanone im Katalog: laut Quelle konnte sie mit montiertem Werfer nicht feuern; Bug- und Turm-MG bleiben. |
+| Deutscher Werfer | `de_pzwerfer42`: 15 cm Panzerwerfer 42 auf Sd.Kfz. 4/1 „Maultier“ (10 Rohre). |
+| Rohrzahl | Das vorhandene Feld `count` der ersten Waffe; kein neues Waffenfeld. Der Nachschub (036) zählt schon jetzt eine Salve als `count` Schuss. |
+| Feuerrate im Katalog | `rate_rpm` des Werfers ist die Dauerfeuerrate (Salve plus Nachladen, Raketen pro Minute); daraus folgt die Nachladezeit nach der Salve. |
+| Salvenabstand | `ripple_ms = 500` (reale ms, Zeitfaktor gilt) als neuer Kategoriewert in `data/indirect.toml`; 0 = keine Salve (alle bisherigen Kategorien). |
+| Streuung | Eigener Kategoriewert `mrad_x10 = 80` (8 mrad statt 3 mrad global), 0 = globaler Wert. |
+| Mindestreichweite, Aufbau, Erhöhung | `rocket_launcher`: 20 % der Reichweite, 30 s Aufbau (real), 45°. |
+| Munition | Eine Salve kostet einen „salvo“ des Vorrats (Regel 036), abgebucht mit der ersten Rakete; die übrigen Raketen der Salve brauchen keinen Vorrat mehr. |
+| Unterbrochene Salve | Bewegt sich der Werfer mitten in der Salve, verfällt der Rest und er lädt ganz nach. |
+| Kosten | Formel unverändert: der indirekte Waffenterm zählt schon nur ein Rohr (Kaliber² ohne `count`), also bepreist sie eine Salve wie einen Schuss des Kalibers; das passt zur Dauerfeuerrate (siehe GAME_DESIGN.md). |
+| Sturmpanzer-Regel | Keine neue Regel: 15 cm unter 300 m/s zählt als Hohlladung (240 mm Durchschlag) und macht 2250 Schaden je Treffer, genug gegen Bunker (2500) und Häuser. |
+| Produktion | `de_pzwerfer42`, `de_sturmpanzer4`, `su_bm13`, `us_t34_calliope` und das schon vorhandene `us_m4a3_105` (Gegenstück zum Sturmpanzer) kommen ins Fahrzeugwerk. |
+| KI | Raketenwerfer haben auf Normal und Hard die Rolle Artillerie (bisher nur Hard für Granatwerfer und Selbstfahrlafetten). |
+| Darstellung | Abschussfeuer über das vorhandene Mündungsfeuer (Socket_Muzzle am Gestell), Klang `shot_rocket`, Rauchspur einfach über die vorhandenen Rauch-Bursts von 019; die eigentliche Raketendarstellung baut 076. |

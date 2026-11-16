@@ -426,7 +426,11 @@ fn scripted_production_chain_is_deterministic() {
 
 /// Golden hash of the scripted skirmish (prompt 023): construction,
 /// production, rally points, supply points and the fight of the starting
-/// units. Recorded on macOS ARM64. Last changed by prompt 067 (typical
+/// units. Recorded on macOS ARM64. Last changed by prompt 062 (rocket
+/// launchers: the hashed indirect-fire rules gained the `rocket_launcher`
+/// category, salvo and dispersion values and the salvo state of guns; the
+/// vehicle works' lists end with the new units). Before
+/// (`0x57e7_5da9_31e6_20dd`), prompt 067 (typical
 /// combat distances: weapon ranges from `range_typical_m`, the range
 /// reference and the velocity factor of unit prices). Before
 /// (`0xe007_c7b9_cb19_a7b3`), the decisions of prompt 045
@@ -475,7 +479,7 @@ fn economy_golden_hash() {
     let sim = run_economy(42, 5000);
     assert_eq!(
         sim.state_hash(),
-        0x57e7_5da9_31e6_20dd,
+        0xca21_de69_68b0_4ae2,
         "economy golden hash mismatch: got {:#018x}",
         sim.state_hash()
     );

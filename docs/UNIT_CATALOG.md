@@ -40,6 +40,8 @@ uncertain; see the list at the end of each faction.
 | de_opel_blitz | Opel Blitz 3,6-36S / Opel Blitz 3.6-36S truck | Opel Blitz 3.6-36S (3 t, 4x2) | 1937–1945 | 2 | 6.02? × 2.27? × 2.18? | 6.6? | 2 + 16? | 85.0? / 30.0? |  /  |  |
 | de_sdkfz222 | Leichter Panzerspähwagen (2 cm) Sd.Kfz. 222 / Sd.Kfz. 222 light armoured car | Sd.Kfz. 222 | 1936–1945 | 2 | 4.80 × 1.95 × 2.00? | 4.8 | 3 | 80.0 / 40.0? | 30 / 8 | 2 cm KwK 38 L/55? |
 | de_wespe | Leichte Feldhaubitze 18/2 auf Fahrgestell Panzerkampfwagen II (Sf) "Wespe" / Wespe self-propelled howitzer | Sd.Kfz. 124 | 1943–1945 | 2 | 4.81 × 2.28 × 2.30 | 11.0 | 5? | 40.0 / 20.0? | 30? / 10? | 10.5 cm leFH 18/2 L/28? |
+| de_pzwerfer42 | 15 cm Panzerwerfer 42 auf Selbstfahrlafette Sd.Kfz. 4/1 "Maultier" / 15 cm Panzerwerfer 42 (Sd.Kfz. 4/1) | Sd.Kfz. 4/1 | 1943–1945 | 2 | 6.00 × 2.20 × 2.50 | 7.1 | 3 | 40.0 / 20.0? | 15? /  | 10× 15 cm Panzerwerfer 42 (10 tubes)? |
+| de_sturmpanzer4 | Sturmpanzer IV / Sturmpanzer IV | Sd.Kfz. 166 | 1943–1945 | 2 | 5.93 × 2.88 × 2.52 | 28.2 | 5 | 40.0 / 24.0 | 80? / 100 | 15 cm StuH 43 L/12? |
 | de_brueckenleger4 | Brückenleger IV b / Brückenleger IV b bridge-laying tank | Brückenleger IV b | 1940–1941 | 2 | 11.00 × 3.00 × 3.54? | 28.0? | 2 | 40.0 / 20.0? | 30 /  |  |
 
 ### Guns
@@ -93,6 +95,9 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 | 7.5 cm PaK 39 L/48 | 700 | 1500 | `de_jgdpz38t` |
 | 7.5 cm StuK 40 L/48 | 700 | 1500 | `de_stug3_g` |
 | 10.5 cm leFH 18/2 L/28 |  | 10675 | `de_wespe` |
+| 15 cm Panzerwerfer 42 (10 tubes) |  | 6900 | `de_pzwerfer42` |
+| 15 cm StuH 43 L/12 | 500 | 4300 | `de_sturmpanzer4` |
+| MG 34 (ball mount) | 400 | 800 | `de_sturmpanzer4` |
 | 7.5 cm PaK 40 L/46 | 700 | 1800 | `de_pak40` |
 | 2 cm Flak 38 L/65 | 400 | 5783 | `de_flak38` |
 | 8.8 cm Flak 36 L/56 | 1000 | 14860 | `de_flak36` |
@@ -124,6 +129,8 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `de_opel_blitz`: passengers, length_mm, width_mm, height_mm, mass_kg, speed_road_kmh_x10, speed_offroad_kmh_x10, range_road_km, power_hp
 - `de_sdkfz222`: height_mm, speed_offroad_kmh_x10, weapon
 - `de_wespe`: speed_offroad_kmh_x10, armor_hull_front_mm, armor_turret_front_mm, weapon, crew, range_road_km
+- `de_pzwerfer42`: speed_offroad_kmh_x10, armor_hull_front_mm, armor_hull_side_mm, armor_hull_rear_mm, weapon
+- `de_sturmpanzer4`: length_hull_mm, armor_hull_front_mm, armor_hull_rear_mm, armor_turret_side_mm, armor_turret_rear_mm, gun_traverse_deg, weapon
 - `de_pak40`: width_mm, height_mm, crew
 - `de_flak38`: mass_kg, length_mm, width_mm, height_mm, weapon
 - `de_flak36`: length_mm, width_mm
@@ -245,6 +252,13 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
   - https://en.wikipedia.org/wiki/Wespe (11 t, 4.81 m, 2.28 m, 2.3 m, crew 5, HL 62 TR 140 PS, 40 km/h, range 220 km, armor 5-30 mm, leFH 18/2 L/28, 40 rounds, 1943-45)
   - https://en.wikipedia.org/wiki/10.5_cm_leFH_18 (leFH 18 muzzle velocity 470 m/s, max range 10,675 m, 6-8 rpm)
   - Chamberlain/Doyle, Encyclopedia of German Tanks of World War Two (rev. 1999), Wespe (32 rounds stowed, superstructure 10 mm, MG 34)
+- `de_pzwerfer42`
+  - https://en.wikipedia.org/wiki/Panzerwerfer (Panzerwerfer 42 auf Maultier (Sd.Kfz. 4/1): 7.1 t, 6.0 m, 2.2 m, 2.5 m, crew 3, armor 6-14.5 mm, Opel six-cylinder 69 PS (68 hp), 40 km/h, range 130 km, 15 cm launcher, 20 rockets (10 in the launcher, 10 stowed), range 300-6,900 m, MG 34 or MG 42, 300 built April 1943 - March 1945)
+  - https://en.wikipedia.org/wiki/Nebelwerfer (ten-tube 15 cm launcher on the lightly armored Sd.Kfz. 4; the 15 cm rocket of the Nebelwerfer 41 reached 6,900 m; high-explosive and smoke rockets)
+- `de_sturmpanzer4`
+  - https://en.wikipedia.org/wiki/Sturmpanzer (Sturmpanzer IV (Brummbaer): 28.2 t, 5.93 m, 2.88 m, 2.52 m, crew 5, front armor 100 mm, 15 cm StuH 43 L/12, 38 rounds, MG 34 (Series IV), Maybach HL 120 TRM 300 PS, 40 km/h road, 24 km/h off-road, range 210 km, 306 built 1943-1945)
+  - https://en.wikipedia.org/wiki/15_cm_sIG_33 (the 15 cm infantry howitzer whose ammunition the StuH 43 fires: muzzle velocity up to 240 m/s, maximum range 4,700 m, rate of fire 2-3 rounds per minute, HE and HEAT shells)
+  - TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII sec. II, https://lonesentry.com/manuals/tme30/ch7sec2sub6.html (range_typical_m: MG 34 / MG 42 effective range as light MG 600-800 yd: upper bound for the typical distance)
 - `de_pak40`
   - https://en.wikipedia.org/wiki/7.5_cm_Pak_40 (1425 kg combat, length 6.2 m with carriage, barrel 3.45 m (L/46), width 2.08 m (2.0 m in characteristics list), height 1.2 m (1.25 m in list), crew 6, PzGr 39 790 m/s, PzGr 40 990 m/s, HL 450 m/s, HE 550 m/s, 14 rpm, effective 1800 m, max 7678 m, elevation -5/+22, traverse 65)
   - https://panzerworld.com/7-5-cm-pak-40 (1425 kg firing / 1500 kg travel, length 6.20 m (travel), width 1.98 m (travel), height 1.26 m combat-ready, firing height 0.98 m, 12-15 rpm, PzGr 39 790 m/s, PzGr 40 990 m/s, max range 8100 m (cites Überblick über den Rüstungsstand des Heeres 1942-44, Waffen-Revue W 127))
@@ -325,6 +339,7 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 | su_su76m | SU-76M / SU-76M | SU-76M self-propelled gun | 1943–1945 | 2 | 4.97 × 2.72 × 2.10 | 10.5? | 4 | 45.0 / 25.0? | 35? / 25 | 76.2 mm ZiS-3Sh? |
 | su_m3a1_scout | M3A1 Scout Car (Lend-Lease) / M3A1 Scout Car (Lend-Lease) | Scout Car M3A1 | 1942–1945 | 2 | 5.61 × 2.03 × 1.96 | 5.7 | 2 + 6 | 80.0 / 40.0? | 13 /  | Browning M2HB? |
 | su_zis5 | ZiS-5V / ZiS-5V | ZiS-5V 3-ton truck | 1942–1945 | 1 | 6.06 × 2.24 × 2.16 | 3.1? | 1 + 25 | 60.0 / 25.0? |  /  |  |
+| su_bm13 | BM-13-16 "Katjuscha" auf ZiS-6 / BM-13-16 "Katyusha" on ZiS-6 | BM-13-16 (ZiS-6) | 1941–1945 | 2 | 6.55? × 2.30? × 2.80? | 7.2? | 6 | 50.0? / 20.0? |  /  | 16× BM-13-16 launcher (16 rails)? |
 | su_ba64b | BA-64B / BA-64B | BA-64B light armored car | 1943–1945 | 2 | 3.66 × 1.74? × 1.90 | 2.4 | 2 | 80.0 / 30.0? | 15 /  | DT? |
 | su_isu152 | ISU-152 / ISU-152 | ISU-152 heavy self-propelled gun | 1943–1945 | 2 | 9.18 × 3.07 × 2.48 | 46.0? | 5? | 30.0? / 15.0? | 90 / 90 | 152 mm ML-20S L/29? |
 | su_valentine_bridgelayer | Valentine-Brückenleger (Lend-Lease) / Valentine Bridgelayer (Lend-Lease) | Valentine Bridgelayer | 1943–1945 | 2 | 5.90? × 2.90? × 3.40? | 20.0? | 2 | 24.0 / 13.0? | 60 /  |  |
@@ -380,6 +395,7 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 | 76.2 mm ZiS-3Sh | 700 | 1000 | `su_su76m` |
 | Browning M2HB | 800 | 1800 | `su_m3a1_scout` |
 | Browning M1919A4 | 400 | 1000 | `su_m3a1_scout` |
+| BM-13-16 launcher (16 rails) |  | 8740 | `su_bm13` |
 | DT | 400 | 800 | `su_ba64b` |
 | 152 mm ML-20S L/29 |  | 6200 | `su_isu152` |
 | 76.2 mm ZiS-3 L/42.6 | 700 | 1000 | `su_zis3` |
@@ -410,6 +426,7 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `su_su76m`: speed_offroad_kmh_x10, armor_hull_front_deg, weapon, mass_kg, power_hp, armor_hull_front_mm
 - `su_m3a1_scout`: speed_offroad_kmh_x10, armor_hull_side_mm, armor_hull_rear_mm, weapon
 - `su_zis5`: mass_kg, speed_offroad_kmh_x10, range_road_km, power_hp
+- `su_bm13`: length_mm, width_mm, height_mm, mass_kg, speed_road_kmh_x10, speed_offroad_kmh_x10, range_road_km, weapon
 - `su_ba64b`: width_mm, speed_offroad_kmh_x10, weapon
 - `su_isu152`: mass_kg, crew, speed_offroad_kmh_x10, weapon, speed_road_kmh_x10, range_road_km, power_hp
 - `su_zis3`: length_mm, mass_kg, crew, weapon
@@ -519,6 +536,10 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `su_zis5`
   - https://en.wikipedia.org/wiki/ZIS-5_(truck) (specifications; ZIS-5V variant section) (length 6,060 mm with bumper, width 2,235 mm, cab height 2,160 mm, curb weight 3,100 kg, 3 t payload, 73 hp at 2,300 rpm (76 hp from Jan 1944), 60 km/h, 34 l/100 km; ZiS-5V production from 1942 and simplifications)
   - Zaloga/Ness, Red Army Handbook 1939-1945 (Sutton 1998) (role as standard Soviet 3-ton truck (not checked online))
+- `su_bm13`
+  - https://en.wikipedia.org/wiki/Katyusha_rocket_launcher (BM-13 on the ZiS-6 from 1941; M-13 rocket 132 mm, 80 cm long, 42 kg, 4.9 kg explosive, maximum range 8,740 m; a battery of four launchers fired its salvo in 7-10 s; reloading took 3-4 minutes; crew of six per firing vehicle; first combat use 14 July 1941)
+  - https://en.wikipedia.org/wiki/ZIS-6 (ZiS-6 6x4 three-axle truck: chassis of the original BM-13; height 2,160 mm (cab), curb weight 4,230 kg, payload 4 t on roads, ZiS-5 engine 73 hp, built 1933-1941)
+  - https://en.wikipedia.org/wiki/ZIS-5_(truck) (ZiS-5 sister truck: width 2,235 mm, 60 km/h; the ZiS-6 shares cab, engine and front end)
 - `su_ba64b`
   - https://en.wikipedia.org/wiki/BA-64 (infobox and text) (2.4 t, length 3.66 m, width 1.74 m, height 1.9 m (hull), crew 2, DT with 1,070 rounds, GAZ-MM 50 hp, 80 km/h, range 500 km, armor 15 mm front to 6 mm sides; BA-64B wider track)
   - https://en.wikipedia.org/wiki/DP_machine_gun (infobox) (DP/DT family ballistics (840 m/s, 800 m))
@@ -604,6 +625,7 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 | us_m26 | Schwerer Panzer M26 Pershing / M26 Pershing | Heavy Tank T26E3 / M26 | 1945–1951 | 2 | 8.65 × 3.51 × 2.78 | 41.9 | 5 | 48.0? / 26.0? | 102 / 114? | 90 mm Gun M3? |
 | us_m10 | Jagdpanzer M10 Wolverine / M10 Gun Motor Carriage | 3-inch Gun Motor Carriage M10 | 1942–1945 | 2 | 6.83 × 3.05 × 2.90 | 29.6 | 5 | 48.0? / 26.0? | 38? / 57 | 3 in Gun M7 (mount M5)? |
 | us_m4a3_105 | Sturmhaubitze M4A3 (105) / M4A3 (105) Sherman | Medium Tank M4A3 (105 mm Howitzer) | 1944–1945 | 2 | 5.91? × 2.62 × 2.81 | 31.1 | 5 | 42.0 / 25.0? | 64 / 76 | 105 mm Howitzer M4 (mount M52)? |
+| us_t34_calliope | M4A3 mit Raketenwerfer T34 "Calliope" / M4A3 with Rocket Launcher T34 "Calliope" | Rocket Launcher T34 on Medium Tank M4A3 | 1944–1945 | 2 | 6.27 × 2.67 × 3.70? | 33.5? | 5 | 42.0 / 25.0? | 64 / 76 | 60× Rocket Launcher T34 (60 tubes)? |
 | us_m3_halftrack | Halbkettenfahrzeug M3 / M3 Half-track | Carrier, Personnel, Half-track, M3 | 1941–1945 | 1 | 6.16 × 1.96? × 2.30 | 9.1? | 1 + 12 | 72.0 / 35.0? | 13 /  | Browning M1919A4 (pedestal mount M25)? |
 | us_gmc_cckw | Lkw GMC CCKW 353 (2½ t, 6x6) / GMC CCKW 353 2½-ton Truck | Truck, 2½-ton, 6x6, GMC CCKW-353 | 1941–1945 | 2 | 6.86 × 2.24 × 2.77 | 7.4 | 2? + 16? | 72.0 / 35.0? |  /  |  |
 | us_m8_greyhound | Panzerspähwagen M8 Greyhound / M8 Greyhound | Light Armored Car M8 | 1943–1945 | 2 | 4.70 × 2.31 × 1.91? | 7.4 | 4 | 89.0 / 51.0 | 19? / 25 | 37 mm Gun M6? |
@@ -662,6 +684,7 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 | 90 mm Gun M3 | 1000 | 1500 | `us_m26` |
 | 3 in Gun M7 (mount M5) | 700 | 1500 | `us_m10` |
 | 105 mm Howitzer M4 (mount M52) | 500 | 11160 | `us_m4a3_105` |
+| Rocket Launcher T34 (60 tubes) |  | 4200 | `us_t34_calliope` |
 | Browning M1919A4 (pedestal mount M25) | 400 | 1370 | `us_m3_halftrack` |
 | 105 mm Howitzer M2A1 (mount M4) |  | 11160 | `us_m7_priest` |
 | 57 mm Gun M1 (L/50) | 700 | 1000 | `us_57mm_m1` |
@@ -690,6 +713,7 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `us_m26`: speed_offroad_kmh_x10, armor_hull_front_deg, armor_hull_rear_mm, armor_turret_front_mm, armor_turret_rear_mm, speed_road_kmh_x10, weapon
 - `us_m10`: speed_road_kmh_x10, speed_offroad_kmh_x10, armor_hull_front_deg, armor_hull_front_mm, armor_hull_side_mm, armor_hull_rear_mm, weapon
 - `us_m4a3_105`: length_mm, speed_offroad_kmh_x10, range_road_km, weapon
+- `us_t34_calliope`: height_mm, mass_kg, speed_offroad_kmh_x10, weapon
 - `us_m3_halftrack`: width_mm, mass_kg, speed_offroad_kmh_x10, weapon
 - `us_gmc_cckw`: passengers, speed_offroad_kmh_x10, crew
 - `us_m8_greyhound`: height_mm, range_road_km, armor_hull_front_mm, armor_hull_side_mm, armor_hull_rear_mm, armor_turret_side_mm, armor_turret_rear_mm, weapon
@@ -790,6 +814,10 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
   - https://afvdatabase.com/usa/m4sherman.html (M4A3(105): ~68,500 lb, length 232.5 in without howitzer with sandshields, width 103 in, height 110.7 in, hull and turret armor (turret 3.0/2.0/1.0 in, howitzer shield 3.6 in), Ford GAA, 66 rounds 105 mm, 600 rds .50, 4,000 rds .30)
   - https://en.wikipedia.org/wiki/M4_Sherman_variants (500 VVSS vehicles Apr-Aug 1944, later HVSS; role)
   - https://en.wikipedia.org/wiki/M101_howitzer (105 mm ballistics: 472 m/s, max range ~11.3 km)
+- `us_t34_calliope`
+  - https://en.wikipedia.org/wiki/T34_Calliope (T34: 60 tubes (36 fixed above, two jettisonable groups of 12 below) for 4.5 in rockets on a frame about one meter above the turret, elevated with the 75 mm gun (+25 to -12 degrees); the main gun could not fire with the launcher attached; fired electrically; designed 1943, used by the 743rd Tank Battalion and the 2nd, 4th, 6th, 12th and 14th Armored Divisions 1944-1945; small numbers)
+  - https://en.wikipedia.org/wiki/M8_(rocket) (M8 rocket: 4.5 in (114 mm), 840 mm, 17 kg, 2 kg warhead, 880 ft/s (270 m/s), range 4,600 yd (4.2 km); launched from the T34 Calliope on M4 tanks)
+  - https://afvdatabase.com/usa/m4sherman.html (the M4A3(75)W carrier: 69,600 lb, length 247 in, width 105 in, armor, Ford GAA, 26 mph, ~100 mi (as us_m4a3_75))
 - `us_m3_halftrack`
   - https://afvdatabase.com/usa/halftrackm3.html (M3: combat weight 20,000 lb, length 242.63 in with roller, width 77.25 in, height 89 in, White 160AX 147 net hp, 45 mph, ~200 mi, 60 gal, 13 men, M1919A4 on pedestal M25 with 4,000 rds; armor windshield cover 0.5 in, radiator louvres/sides/rear 0.25 in; reference TM 9-710)
   - https://en.wikipedia.org/wiki/M3_half-track (crew 1 (driver) + 12 passengers; 17,650 lb (M3), 18,425 lb (M3A1); 6.17 x 2.223 x 2.26 m; range 200 mi (320 km))

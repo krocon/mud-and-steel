@@ -51,6 +51,10 @@ struct Gun {
     setup: u32,
     /// The unit drives into range of its order's target.
     closing: bool,
+    /// Rockets of the current salvo still to launch (prompt 062; 0: no
+    /// salvo under way).
+    #[serde(default)]
+    ripple: u32,
 }
 
 /// The indirect weapon of a unit type with the rules applied.
@@ -59,9 +63,19 @@ struct GunType {
     weapon: IndirectWeapon,
     range: Fixed,
     min_range: Fixed,
+    /// Ticks after a round, or after the last rocket of a salvo.
     reload_ticks: u32,
     setup_ticks: u32,
     elevation_deg: u32,
+    /// Rounds per salvo (prompt 062: the tubes of a rocket launcher, else
+    /// 1) and ticks between two rounds of a salvo.
+    #[serde(default)]
+    salvo: u32,
+    #[serde(default)]
+    ripple_ticks: u32,
+    /// Dispersion in tenths of a milliradian (0: the global value).
+    #[serde(default)]
+    mrad_x10: u32,
 }
 
 /// What every unit type looks like to a shell.
@@ -180,12 +194,27 @@ impl Artillery {
                 let w = t.combat.indirect.clone()?;
                 let c = rules.category(t.combat.category);
                 let interval = (w.interval_s * Fixed::from_num(hz)).round();
+                let interval = interval.to_num::<u32>().max(1);
+                // Prompt 062: a salvo weapon launches its tubes `ripple`
+                // apart; the catalog rate is the sustained one, so the
+                // reload fills the rest of tubes × interval.
+                let (salvo, ripple, reload) = if c.ripple_ms > 0 && w.tubes > 1 {
+                    let ripple = ticks(c.ripple_ms, w.time_ratio).max(1);
+                    let cycle = interval.saturating_mul(w.tubes);
+                    let reload = cycle.saturating_sub(ripple * (w.tubes - 1)).max(ripple);
+                    (w.tubes, ripple, reload)
+                } else {
+                    (1, 0, interval)
+                };
                 Some(GunType {
                     range: w.range_m,
                     min_range: w.range_m * Fixed::from_num(c.min_range_pct) / 100,
-                    reload_ticks: interval.to_num::<u32>().max(1),
+                    reload_ticks: reload,
                     setup_ticks: ticks(c.setup_ms, w.time_ratio),
                     elevation_deg: c.elevation_deg,
+                    salvo,
+                    ripple_ticks: ripple,
+                    mrad_x10: c.mrad_x10,
                     weapon: w,
                 })
             })
@@ -266,6 +295,7 @@ impl Artillery {
             h.write_u32(g.reload);
             h.write_u32(g.setup);
             h.write_u8(u8::from(g.closing));
+            h.write_u32(g.ripple);
         }
         h.write_u64(self.shells.len() as u64);
         for s in &self.shells {
@@ -500,7 +530,8 @@ impl Sim {
             let Some(gt) = self.artillery.types[ty].as_ref() else {
                 continue;
             };
-            let (range, min_range, setup_ticks) = (gt.range, gt.min_range, gt.setup_ticks);
+            let (range, min_range, setup_ticks, full_reload) =
+                (gt.range, gt.min_range, gt.setup_ticks, gt.reload_ticks);
             let id = self.units[i].id;
             if !self.units[i].alive() {
                 self.artillery.guns.remove(&id);
@@ -513,6 +544,12 @@ impl Sim {
             gun.reload = gun.reload.saturating_sub(1);
             if moving {
                 gun.setup = setup_ticks;
+                // A salvo broken off by moving: the rest is lost, the
+                // launcher reloads as a whole (prompt 062).
+                if gun.ripple > 0 {
+                    gun.ripple = 0;
+                    gun.reload = gun.reload.max(full_reload);
+                }
             } else {
                 gun.setup = gun.setup.saturating_sub(1);
             }
@@ -570,11 +607,16 @@ impl Sim {
             if distance < min_range || distance > range {
                 continue;
             }
-            if !self.has_ammo(i) {
+            // A salvo costs one salvo of the stock, paid with its first
+            // round (prompt 062; a single round is a salvo of one).
+            let starting = gun.ripple == 0;
+            if starting && !self.has_ammo(i) {
                 continue;
             }
             self.fire_shell(i, point, order);
-            self.spend_salvo(i, true);
+            if starting {
+                self.spend_salvo(i, true);
+            }
         }
     }
 
@@ -684,6 +726,7 @@ impl Sim {
             .expect("checked");
         let (reload, elevation, caliber) =
             (gt.reload_ticks, gt.elevation_deg, gt.weapon.caliber_mm_x10);
+        let (salvo, ripple_ticks, mrad_x10) = (gt.salvo, gt.ripple_ticks, gt.mrad_x10);
         let real_per_game = gt.weapon.real_per_game();
         let weapon = gt.weapon.clone();
         let mut aim = point;
@@ -721,7 +764,8 @@ impl Sim {
         let delta = aim - unit.position;
         let distance = delta.length();
         let d = &self.artillery.rules.dispersion;
-        let mut sigma = (distance * real_per_game * Fixed::from_num(d.mrad_x10) / 10_000)
+        let mrad_x10 = if mrad_x10 > 0 { mrad_x10 } else { d.mrad_x10 };
+        let mut sigma = (distance * real_per_game * Fixed::from_num(mrad_x10) / 10_000)
             .max(Fixed::from_num(d.min_mm) / 1000);
         if blind {
             sigma = sigma * Fixed::from_num(d.blind_pct) / 100;
@@ -769,6 +813,19 @@ impl Sim {
             self.units[i].combat.aim = Vec2::new(delta.x / distance, delta.y / distance);
         }
         let gun = self.artillery.guns.entry(id).or_default();
+        // Prompt 062: the first round of a salvo leaves `salvo - 1` to
+        // follow `ripple_ticks` apart; after the last one the full reload.
+        if salvo > 1 {
+            gun.ripple = if gun.ripple == 0 {
+                salvo - 1
+            } else {
+                gun.ripple - 1
+            };
+        }
+        if gun.ripple > 0 {
+            gun.reload = ripple_ticks;
+            return;
+        }
         gun.reload = reload;
         if let Some(Order::Barrage { salvos, .. }) = &mut gun.order {
             *salvos = salvos.saturating_sub(1);

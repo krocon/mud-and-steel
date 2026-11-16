@@ -44,6 +44,24 @@ min_range_pct = 10
 setup_ms = 10000
 elevation_deg = 25
 
+# Rocket launchers on vehicles (prompt 062): one fire order launches all
+# tubes of the salvo (catalog `count` of the first weapon) `ripple_ms` real
+# ms apart, then the launcher reloads as a whole; the catalog `rate_rpm` is
+# the sustained rate (rockets per minute, salvo and reloading together), so
+# the reload after a salvo is count × 60 s / rate minus the ripple. Rockets
+# scatter far more than shells: `mrad_x10` replaces the global dispersion
+# (8 mrad: ±55 m at the 6.9 km of the 15 cm Wurfgranate). Fired at about
+# 45° for range. All values [provisional] (game rules; the 7-10 s salvo of
+# a BM-13 battery, Wikipedia "Katyusha rocket launcher", gives the order
+# of the ripple).
+[[category]]
+category = "rocket_launcher"
+min_range_pct = 20
+setup_ms = 30000
+elevation_deg = 45
+ripple_ms = 500
+mrad_x10 = 80
+
 [ballistics]
 # Gravity in mm/s² of real time (flight time is computed at real distances
 # and divided by the time factor).

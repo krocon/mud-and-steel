@@ -233,6 +233,13 @@ struct TypeInfo {
     /// `[defeat] base_buildings`): headquarters and production.
     #[serde(default)]
     keeps_base: bool,
+    /// A rocket launcher (prompt 062, catalog `rocket_launcher`).
+    #[serde(default)]
+    rockets: bool,
+    /// An assault howitzer (prompt 062): an `assault_gun` whose main gun
+    /// has at least 100 mm (Sturmpanzer IV, M4A3 (105)).
+    #[serde(default)]
+    assault_howitzer: bool,
 }
 
 /// Where an enemy unit was last seen, and what it looked like then.
@@ -492,6 +499,19 @@ impl Ai {
                 let tows = carrier.is_some_and(|c| c.tows) && t.transport.power_hp > 0;
                 let truck = carrier.is_some_and(|c| c.riders == 0) && (seats > 0 || tows);
                 let crew = sim::care::is_crew(t);
+                let rockets = category == Some(sim::catalog::Category::RocketLauncher);
+                let assault_howitzer = category == Some(sim::catalog::Category::AssaultGun)
+                    && t.combat
+                        .weapons
+                        .first()
+                        .is_some_and(|w| w.caliber_mm_x10 >= 1000);
+                // Rocket launchers fire like artillery on Normal too
+                // (prompt 062); other indirect weapons on Hard only.
+                let artillery = match difficulty.base() {
+                    Difficulty::Hard => true,
+                    Difficulty::Normal => rockets,
+                    _ => false,
+                };
                 let role = if !t.mobile() {
                     Role::Structure
                 } else if crew {
@@ -500,7 +520,7 @@ impl Ai {
                     Role::Gun
                 } else if truck {
                     Role::Transport
-                } else if indirect.is_some() && difficulty.base() == Difficulty::Hard {
+                } else if indirect.is_some() && artillery {
                     Role::Artillery
                 } else if t.combat.weapons.is_empty() && indirect.is_none() {
                     Role::Unarmed
@@ -531,6 +551,8 @@ impl Ai {
                     mass_kg: t.mass_kg,
                     crew,
                     keeps_base: base_buildings.contains(&t.name),
+                    rockets,
+                    assault_howitzer,
                 }
             })
             .collect();
@@ -850,6 +872,8 @@ impl Ai {
                 mass_kg: 0,
                 crew: false,
                 keeps_base: false,
+                rockets: false,
+                assault_howitzer: false,
             })
     }
 

@@ -2,6 +2,8 @@
 //! and self-propelled guns follow the army at a distance, fire barrages on
 //! the largest visible enemy group in range, and lay smoke between the army
 //! and the enemy when the enemy comes into sight. Ordinary commands only.
+//! Rocket launchers (prompt 062) join on Normal too: one salvo per barrage,
+//! never within `ROCKET_SAFE_M` of own troops.
 
 use crate::{Ai, OwnUnit, PlayerView, Role, SeenUnit, centroid, dist, toward};
 use serde::{Deserialize, Serialize};
@@ -12,6 +14,11 @@ pub(crate) const CLUSTER_M: i32 = 25;
 /// No barrage lands within this distance of own troops (m): blast radius
 /// plus dispersion of a heavy shell.
 const SAFE_M: i32 = 60;
+/// The same for rocket launchers (prompt 062): their rockets scatter far
+/// more (8 mrad, ±55 m at the longest range) than shells.
+const ROCKET_SAFE_M: i32 = 120;
+/// A rocket launcher's barrage is one salvo of all its tubes.
+const ROCKET_SALVOS: u16 = 1;
 /// Radius and salvos of a barrage.
 const BARRAGE_RADIUS_M: u16 = 15;
 const BARRAGE_SALVOS: u16 = 3;
@@ -105,17 +112,36 @@ impl Ai {
             // Allies (prompt 037) are friends for the fragments too.
             .chain(view.allies.iter().filter(|a| a.alive()).map(|a| a.position))
             .collect();
-        if barrage_due && let Some(target) = largest_group(&enemies, &own, SAFE_M) {
-            let mut gunners = self.in_range(units, target, false);
-            gunners.retain(|id| !busy.contains(id));
-            if !gunners.is_empty() {
-                out.push(Command::Barrage {
-                    units: gunners,
-                    target,
-                    radius_m: BARRAGE_RADIUS_M,
-                    salvos: BARRAGE_SALVOS,
-                    smoke: false,
+        if barrage_due {
+            // Guns and mortars, then rocket launchers with their wider
+            // safety distance (prompt 062).
+            let mut fired = false;
+            for (rockets, safe, salvos) in [
+                (false, SAFE_M, BARRAGE_SALVOS),
+                (true, ROCKET_SAFE_M, ROCKET_SALVOS),
+            ] {
+                let Some(target) = largest_group(&enemies, &own, safe) else {
+                    continue;
+                };
+                let mut gunners = self.in_range(units, target, false);
+                gunners.retain(|id| {
+                    !busy.contains(id)
+                        && units
+                            .iter()
+                            .any(|u| u.id == *id && self.type_info(u.unit_type).rockets == rockets)
                 });
+                if !gunners.is_empty() {
+                    out.push(Command::Barrage {
+                        units: gunners,
+                        target,
+                        radius_m: BARRAGE_RADIUS_M,
+                        salvos,
+                        smoke: false,
+                    });
+                    fired = true;
+                }
+            }
+            if fired {
                 self.fire.barrage_tick = Some(view.tick);
                 return;
             }

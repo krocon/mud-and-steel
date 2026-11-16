@@ -29,6 +29,7 @@ pub const fn is_indirect_category(category: Category) -> bool {
             | Category::MortarHeavy
             | Category::GunHowitzer
             | Category::SelfPropelled
+            | Category::RocketLauncher
     )
 }
 
@@ -51,6 +52,16 @@ pub struct CategoryRules {
     pub min_range_pct: u32,
     pub setup_ms: u32,
     pub elevation_deg: u32,
+    /// Prompt 062: salvo weapons (rocket launchers) fire all `count` tubes
+    /// of their indirect weapon one after the other, this many real ms
+    /// apart (the time factor applies), then reload as a whole. 0: one
+    /// round per reload (every other category).
+    #[serde(default)]
+    pub ripple_ms: u32,
+    /// Prompt 062: dispersion of the category in tenths of a milliradian
+    /// (0: the global `[dispersion] mrad_x10`).
+    #[serde(default)]
+    pub mrad_x10: u32,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
@@ -133,6 +144,8 @@ impl IndirectRules {
             check("category.min_range_pct", c.min_range_pct, 0, 90)?;
             check("category.setup_ms", c.setup_ms, 0, 600_000)?;
             check("category.elevation_deg", c.elevation_deg, 5, 85)?;
+            check("category.ripple_ms", c.ripple_ms, 0, 60_000)?;
+            check("category.mrad_x10", c.mrad_x10, 0, 1000)?;
         }
         let (b, d, x, s, r) = (
             &rules.ballistics,
@@ -195,6 +208,8 @@ impl IndirectRules {
                 min_range_pct: 10,
                 setup_ms: 0,
                 elevation_deg: 45,
+                ripple_ms: 0,
+                mrad_x10: 0,
             })
     }
 
@@ -215,6 +230,8 @@ impl IndirectRules {
             h.write_u32(c.min_range_pct);
             h.write_u32(c.setup_ms);
             h.write_u32(c.elevation_deg);
+            h.write_u32(c.ripple_ms);
+            h.write_u32(c.mrad_x10);
         }
         let (b, d, x, s, r) = (
             &self.ballistics,
@@ -256,7 +273,11 @@ impl IndirectRules {
 pub struct IndirectWeapon {
     pub name: String,
     pub caliber_mm_x10: u32,
-    /// Catalog rate of fire, real.
+    /// Catalog `count` (prompt 062): tubes or rails of a rocket launcher,
+    /// fired as one salvo when its category has a `ripple_ms`.
+    pub tubes: u32,
+    /// Catalog rate of fire, real (rocket launchers: the sustained rate,
+    /// salvo and reloading together).
     pub rate_rpm: u32,
     /// Catalog muzzle velocity, real; if the catalog has none, the least
     /// velocity that reaches the maximum range in vacuum (`sqrt(R·g)`).
@@ -299,6 +320,7 @@ impl IndirectWeapon {
         Some(Self {
             name: w.name.clone(),
             caliber_mm_x10: caliber,
+            tubes: u32::from(w.count.max(1)),
             rate_rpm: rate,
             muzzle_velocity_mps: velocity,
             real_range_m: range,
@@ -422,7 +444,7 @@ mod tests {
     #[test]
     fn builtin_rules_parse_and_bad_values_fail() {
         let rules = IndirectRules::builtin().unwrap();
-        assert_eq!(rules.categories.len(), 5);
+        assert_eq!(rules.categories.len(), 6);
         assert_eq!(
             rules.blast_radius(814).round().to_num::<i32>(),
             16,

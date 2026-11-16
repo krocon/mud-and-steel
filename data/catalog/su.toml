@@ -619,6 +619,37 @@ uncertain = ["mass_kg", "speed_offroad_kmh_x10", "range_road_km", "power_hp"]
 note = "ZiS-5V: wartime simplified ZiS-5 (wooden cab, flat fenders, no front brakes, often one headlight, no bumpers), built from 1942. mass_kg is the ZiS-5 curb weight; no separate ZiS-5V weight found. Engine 73 hp, 76 hp from January 1944 (investigators estimate real output 67-68 hp). Range not stated in sources: estimated from 34 l/100 km and a ~60 l tank (tank capacity not confirmed). Off-road speed estimated. Driver plus up to 2 in cab; 25 troops on benches in the cargo body."
 
 [[unit]]
+id = "su_bm13"
+faction = "su"
+category = "rocket_launcher"
+name_de = "BM-13-16 \"Katjuscha\" auf ZiS-6"
+name_en = "BM-13-16 \"Katyusha\" on ZiS-6"
+designation = "BM-13-16 (ZiS-6)"
+year_from = 1941
+year_to = 1945
+tier = 2
+model = ""
+length_mm = 6550
+width_mm = 2300
+height_mm = 2800
+mass_kg = 7200
+crew = 6
+speed_road_kmh_x10 = 500
+speed_offroad_kmh_x10 = 200
+range_road_km = 180
+power_hp = 73
+weapon = [
+    { name = "BM-13-16 launcher (16 rails)", count = 16, caliber_mm_x10 = 1320, ammo = "M-13 HE rocket", rate_rpm = 4, muzzle_velocity_mps = 355, range_effective_m = 8740, ammo_carried = 16 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Katyusha_rocket_launcher", covers = "BM-13 on the ZiS-6 from 1941; M-13 rocket 132 mm, 80 cm long, 42 kg, 4.9 kg explosive, maximum range 8,740 m; a battery of four launchers fired its salvo in 7-10 s; reloading took 3-4 minutes; crew of six per firing vehicle; first combat use 14 July 1941" },
+    { ref = "https://en.wikipedia.org/wiki/ZIS-6", covers = "ZiS-6 6x4 three-axle truck: chassis of the original BM-13; height 2,160 mm (cab), curb weight 4,230 kg, payload 4 t on roads, ZiS-5 engine 73 hp, built 1933-1941" },
+    { ref = "https://en.wikipedia.org/wiki/ZIS-5_(truck)", covers = "ZiS-5 sister truck: width 2,235 mm, 60 km/h; the ZiS-6 shares cab, engine and front end" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm", "mass_kg", "speed_road_kmh_x10", "speed_offroad_kmh_x10", "range_road_km", "weapon"]
+note = "Prompt 062. The 16-rail BM-13 of 1941 on the ZiS-6 three-axle truck (Wikipedia's variant table lists the ZiS-6 with the BM-13 in general; the 16-rail launcher on the ZiS-6 is the common 1941 form). No fetched source gives the dimensions, mass or speed of the combat vehicle: length 6.55 m (ZiS-6 with the rails reaching forward over the cab), width 2.3 m, height 2.8 m in travel order and 7.2 t loaded (4.23 t truck, launcher and 16 rockets of 42 kg) are estimates; road speed 50 km/h, off-road 20 km/h and range 180 km estimated from the ZiS-5. Unarmored. Weapon: count = rails of one salvo; rate_rpm is the sustained rate (salvo in about 8 s plus 3-4 minutes reloading: 16 rockets in about 4 minutes). muzzle_velocity_mps = burn-out velocity of the M-13, about 355 m/s (from memory). ammo_carried = one salvo; reloads came on separate trucks."
+
+[[unit]]
 id = "su_ba64b"
 faction = "su"
 category = "recon_vehicle"

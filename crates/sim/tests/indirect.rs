@@ -349,3 +349,105 @@ fn same_barrage_gives_same_hash() {
     assert_eq!(a, b);
     assert_eq!(sa, sb);
 }
+
+/// Prompt 062: tick and projectile of every indirect shot of `unit`, and
+/// the ground impacts of those projectiles; `orders` go with the first tick.
+fn salvo_log(
+    sim: &mut Sim,
+    orders: &[PlayerCommand],
+    ticks: u32,
+    unit: UnitId,
+) -> (Vec<(u32, u32)>, Vec<sim::combat::Vec3>) {
+    let mut shots = Vec::new();
+    let mut impacts = Vec::new();
+    for t in 0..ticks {
+        sim.step(if t == 0 { orders } else { &[] });
+        for e in sim.events() {
+            match *e {
+                CombatEvent::Shot {
+                    unit: u,
+                    weapon,
+                    projectile,
+                    ..
+                } if u == unit && weapon == INDIRECT_WEAPON => shots.push((t, projectile)),
+                CombatEvent::Hit {
+                    projectile,
+                    at,
+                    kind: sim::combat::HitKind::Ground,
+                    ..
+                } if shots.iter().any(|&(_, p)| p == projectile) => impacts.push(at),
+                _ => {}
+            }
+        }
+    }
+    (shots, impacts)
+}
+
+#[test]
+fn a_rocket_salvo_fires_every_tube_then_reloads() {
+    // The 15 cm Panzerwerfer 42: 10 tubes, 4 rockets per minute sustained,
+    // rockets 500 ms real (5 ticks) apart.
+    let mut sim = sim_with(
+        map_with(""),
+        &[(P0, "de_pzwerfer42", 0, 300), (P1, SQUAD, -380, -380)],
+        11,
+    );
+    let (shots, impacts) = salvo_log(&mut sim, &[fire_at(&[0], 0, -200)], 20 * 120, UnitId(0));
+    assert!(shots.len() >= 11, "only {} rockets", shots.len());
+    // The first salvo: exactly the ten tubes, 5 ticks apart.
+    let first: Vec<u32> = shots.iter().take(10).map(|s| s.0).collect();
+    for pair in first.windows(2) {
+        assert_eq!(pair[1] - pair[0], 5, "ripple {first:?}");
+    }
+    // Then the reload: 10 × 7.5 s game per rocket minus the ripple
+    // (1500 - 45 ticks) before the next salvo.
+    let gap = shots[10].0 - shots[9].0;
+    assert_eq!(gap, 1455, "reload after the salvo");
+    // Every rocket lands within the dispersion of the aim point: 8 mrad
+    // of 4000 m real (500 m game) is ±32 m per axis, at most 45.3 m away.
+    assert!(impacts.len() >= 10, "{} impacts", impacts.len());
+    let target = Vec2::from_meters(0, -200);
+    let mut far = sim::Fixed::ZERO;
+    for at in &impacts {
+        let d = (Vec2::new(at.x, at.y) - target).length();
+        assert!(
+            d <= sim::Fixed::from_num(46),
+            "impact {d} m from the aim point"
+        );
+        far = far.max(d);
+    }
+    // ... and they scatter (no two salvos of one point).
+    assert!(
+        far > sim::Fixed::from_num(8),
+        "rockets scatter only {far} m"
+    );
+}
+
+#[test]
+fn a_barrage_counts_whole_salvos_and_same_salvo_gives_same_hash() {
+    let play = || {
+        let mut sim = sim_with(
+            map_with(""),
+            &[(P0, "su_bm13", 0, 380), (P1, SQUAD, -380, -380)],
+            5,
+        );
+        let barrage = cmd(
+            P0,
+            Command::Barrage {
+                units: vec![UnitId(0)],
+                target: Vec2::from_meters(0, -150),
+                radius_m: 20,
+                salvos: 1,
+                smoke: false,
+            },
+        );
+        let (shots, _) = salvo_log(&mut sim, &[barrage], 20 * 60, UnitId(0));
+        (shots.len(), sim.state_hash(), sim.snapshot())
+    };
+    let (n, a, sa) = play();
+    // One salvo of the BM-13-16: all 16 rails, then the order is done.
+    assert_eq!(n, 16);
+    let (_, b, sb) = play();
+    assert_eq!(a, b);
+    assert_eq!(sa, sb);
+}

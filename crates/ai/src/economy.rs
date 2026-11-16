@@ -24,6 +24,12 @@ enum Step {
     Bunker,
 }
 
+/// Mix entries that name a kind of vehicle instead of an index (prompt
+/// 062): the faction's rocket launcher and its assault howitzer, found by
+/// their catalog category wherever they stand in the list.
+const ROCKETS: usize = 100;
+const ASSAULT_HOWITZER: usize = 101;
+
 /// Production mixes per difficulty: indices into the production list of
 /// the building (`data/economy.toml`), repeated in order.
 fn mix(difficulty: Difficulty, vehicles: bool) -> &'static [usize] {
@@ -35,10 +41,12 @@ fn mix(difficulty: Difficulty, vehicles: bool) -> &'static [usize] {
         // production and lost base matches against Normal.
         // Normal adds an AT gun (7, prompt 034), towed by its halftrack
         // (1).
+        // Prompt 062: Normal and Hard build a rocket launcher and an
+        // assault howitzer once per two rounds of the mix. [provisional]
         (Difficulty::Hard, false) => &[0, 3, 1, 4, 0],
-        (Difficulty::Hard, true) => &[2, 3, 2, 4],
+        (Difficulty::Hard, true) => &[2, 3, 2, 4, ROCKETS, 2, 3, 2, 4, ASSAULT_HOWITZER],
         (_, false) => &[0, 1, 0, 3],
-        (_, true) => &[2, 2, 3, 1, 7],
+        (_, true) => &[2, 2, 3, 1, 7, ROCKETS, 2, 2, 3, 1, 7, ASSAULT_HOWITZER],
     }
 }
 
@@ -131,7 +139,7 @@ impl Ai {
                     index = self.support_vehicle(index, &options, view);
                 }
             }
-            let index = index.min(options.len() - 1);
+            let index = self.resolve_kind(index, &options).min(options.len() - 1);
             let unit_type = options[index];
             let Some(cost) = self.costs.get(unit_type as usize).copied().flatten() else {
                 continue;
@@ -226,6 +234,21 @@ impl Ai {
             (true, 3) if armor_pct <= 30 => 2,
             _ => index,
         }
+    }
+
+    /// The list index of a mix entry: [`ROCKETS`] and [`ASSAULT_HOWITZER`]
+    /// name the first unit of that kind (else the heavy tank, 4); other
+    /// entries are indices already.
+    fn resolve_kind(&self, index: usize, options: &[u32]) -> usize {
+        let wanted: fn(&crate::TypeInfo) -> bool = match index {
+            ROCKETS => |t| t.rockets,
+            ASSAULT_HOWITZER => |t| t.assault_howitzer,
+            _ => return index,
+        };
+        options
+            .iter()
+            .position(|&t| wanted(&self.type_info(t)))
+            .unwrap_or(4)
     }
 
     /// The commander's support vehicles (prompt 051): a reconnaissance car

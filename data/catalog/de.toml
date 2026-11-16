@@ -713,6 +713,80 @@ source = [
 uncertain = ["speed_offroad_kmh_x10", "armor_hull_front_mm", "armor_turret_front_mm", "weapon", "crew", "range_road_km"]
 note = "Production Feb 1943 - mid 1944, used to 1945. range_effective_m is maximum indirect range. Ammunition: Wikipedia 40 rounds, Chamberlain/Doyle 32 (from memory); 32 used. Hull front 30 mm taken as the upper bound of the Wikipedia range; open superstructure 10 mm (in armor_turret_front_mm). Off-road speed ~20 km/h estimated. Differs from onwar.com (data/vehicles, a rank-4 source; the values above keep their sources): crew 4, range_road_km 140, armor_turret_front_mm 20."
 
+[[unit]]
+id = "de_pzwerfer42"
+faction = "de"
+category = "rocket_launcher"
+name_de = "15 cm Panzerwerfer 42 auf Selbstfahrlafette Sd.Kfz. 4/1 \"Maultier\""
+name_en = "15 cm Panzerwerfer 42 (Sd.Kfz. 4/1)"
+designation = "Sd.Kfz. 4/1"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = ""
+length_mm = 6000
+width_mm = 2200
+height_mm = 2500
+mass_kg = 7100
+crew = 3
+speed_road_kmh_x10 = 400
+speed_offroad_kmh_x10 = 200
+range_road_km = 130
+power_hp = 68
+armor_hull_front_mm = 15
+armor_hull_side_mm = 8
+armor_hull_rear_mm = 8
+weapon = [
+    { name = "15 cm Panzerwerfer 42 (10 tubes)", count = 10, caliber_mm_x10 = 1500, ammo = "15 cm Wurfgranate 41 HE, Wurfgranate 41 smoke", rate_rpm = 4, muzzle_velocity_mps = 340, range_effective_m = 6900, ammo_carried = 20 },
+    { name = "MG 42 (AA)", caliber_mm_x10 = 79, rate_rpm = 1200, muzzle_velocity_mps = 740, aa = true },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Panzerwerfer", covers = "Panzerwerfer 42 auf Maultier (Sd.Kfz. 4/1): 7.1 t, 6.0 m, 2.2 m, 2.5 m, crew 3, armor 6-14.5 mm, Opel six-cylinder 69 PS (68 hp), 40 km/h, range 130 km, 15 cm launcher, 20 rockets (10 in the launcher, 10 stowed), range 300-6,900 m, MG 34 or MG 42, 300 built April 1943 - March 1945" },
+    { ref = "https://en.wikipedia.org/wiki/Nebelwerfer", covers = "ten-tube 15 cm launcher on the lightly armored Sd.Kfz. 4; the 15 cm rocket of the Nebelwerfer 41 reached 6,900 m; high-explosive and smoke rockets" },
+]
+uncertain = ["speed_offroad_kmh_x10", "armor_hull_front_mm", "armor_hull_side_mm", "armor_hull_rear_mm", "weapon"]
+note = "Prompt 062. Armored Maultier half-track (Opel Blitz with a tracked rear) with a ten-tube 15 cm launcher on a turntable on the roof. Armor 6-14.5 mm (Wikipedia): front stored as 15 (integers only, like the Sd.Kfz. 251), sides and rear 8 mm estimated. Off-road speed estimated as half the road speed. Weapon: count = tubes of one salvo. rate_rpm is the sustained rate (salvo plus reloading the ten tubes by hand, about 2.5 min per salvo), an estimate: no fetched source gives the reload time (the towed Nebelwerfer 41 is usually quoted at six rockets in 10 s and about 90 s to reload). muzzle_velocity_mps = burn-out velocity of the 15 cm Wurfgranate 41, about 340 m/s (from memory, not in a fetched source). range_effective_m is the maximum range; the 300 m minimum range of the source is shorter than the game rule (data/indirect.toml). MG 34 or MG 42 on an anti-aircraft mount; MG 42 chosen."
+
+[[unit]]
+id = "de_sturmpanzer4"
+faction = "de"
+category = "assault_gun"
+name_de = "Sturmpanzer IV"
+name_en = "Sturmpanzer IV"
+designation = "Sd.Kfz. 166"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = ""
+length_mm = 5930
+length_hull_mm = 5920
+width_mm = 2880
+height_mm = 2520
+mass_kg = 28200
+crew = 5
+speed_road_kmh_x10 = 400
+speed_offroad_kmh_x10 = 240
+range_road_km = 210
+power_hp = 300
+armor_hull_front_mm = 80
+armor_hull_side_mm = 30
+armor_hull_rear_mm = 20
+armor_turret_front_mm = 100
+armor_turret_side_mm = 50
+armor_turret_rear_mm = 30
+gun_traverse_deg = 30
+weapon = [
+    { name = "15 cm StuH 43 L/12", caliber_mm_x10 = 1500, ammo = "15 cm IGr 38 HE, IGr 39 HL HEAT", rate_rpm = 2, muzzle_velocity_mps = 240, range_effective_m = 4300, range_typical_m = 500, ammo_carried = 38 },
+    { name = "MG 34 (ball mount)", caliber_mm_x10 = 79, rate_rpm = 900, muzzle_velocity_mps = 755, range_effective_m = 800, range_typical_m = 400, ammo_carried = 600 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Sturmpanzer", covers = "Sturmpanzer IV (Brummbaer): 28.2 t, 5.93 m, 2.88 m, 2.52 m, crew 5, front armor 100 mm, 15 cm StuH 43 L/12, 38 rounds, MG 34 (Series IV), Maybach HL 120 TRM 300 PS, 40 km/h road, 24 km/h off-road, range 210 km, 306 built 1943-1945" },
+    { ref = "https://en.wikipedia.org/wiki/15_cm_sIG_33", covers = "the 15 cm infantry howitzer whose ammunition the StuH 43 fires: muzzle velocity up to 240 m/s, maximum range 4,700 m, rate of fire 2-3 rounds per minute, HE and HEAT shells" },
+    { ref = "TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII sec. II, https://lonesentry.com/manuals/tme30/ch7sec2sub6.html", covers = "range_typical_m: MG 34 / MG 42 effective range as light MG 600-800 yd: upper bound for the typical distance" },
+]
+uncertain = ["length_hull_mm", "armor_hull_front_mm", "armor_hull_rear_mm", "armor_turret_side_mm", "armor_turret_rear_mm", "gun_traverse_deg", "weapon"]
+note = "Prompt 062. Assault howitzer on the Panzer IV chassis with a casemate for the short 15 cm StuH 43 (derived from the sIG 33). Series IV (from 1944) with the MG 34 in a ball mount in the casemate front; earlier series had none. armor_turret_* = casemate: front 100 mm (Wikipedia), sides 50 and rear 30 mm estimated. Hull front 80 mm and rear 20 mm as on the late Panzer IV hull (estimate); sides 30 mm. length_hull_mm = Panzer IV hull (the short barrel hardly overhangs). gun_traverse_deg 30 (15 left and right) is an estimate. rate_rpm 2 = lower bound of the sIG 33 (two-part ammunition in a cramped casemate). range_effective_m = maximum range of the StuH 43 (4,300 m, from memory; the sIG 33 reaches 4,700 m). range_typical_m (prompt 067): howitzer in direct fire 500 m (class estimate, as the M4A3 (105)); MG 34 in a ball mount 400 m (class estimate, as other vehicle MGs)."
+
 # ---------------------------------------------------------------------------
 # Guns (height and mass in firing position unless noted)
 # ---------------------------------------------------------------------------

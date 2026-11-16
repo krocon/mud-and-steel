@@ -562,6 +562,45 @@ uncertain = ["length_mm", "speed_offroad_kmh_x10", "range_road_km", "weapon"]
 note = "Assault gun of the tank battalion HQ companies. Length is without the howitzer (afvdatabase); the short barrel overhangs a little, so overall length is somewhat larger. armor_turret_front_mm = turret 76 mm (howitzer shield 91 mm). Speed and range taken as M4A3(75)W (not in the fetched excerpt). range_effective_m = maximum indirect range of the M2A1 family; the M4 tank howitzer is similar (estimate). range_typical_m (prompt 067): 105 mm howitzer in direct fire 500 m (class estimate: low muzzle velocity, below the 75 mm guns)."
 
 [[unit]]
+id = "us_t34_calliope"
+faction = "us"
+category = "rocket_launcher"
+name_de = "M4A3 mit Raketenwerfer T34 \"Calliope\""
+name_en = "M4A3 with Rocket Launcher T34 \"Calliope\""
+designation = "Rocket Launcher T34 on Medium Tank M4A3"
+year_from = 1944
+year_to = 1945
+tier = 2
+model = ""
+length_mm = 6270
+width_mm = 2670
+height_mm = 3700
+mass_kg = 33500
+crew = 5
+speed_road_kmh_x10 = 420
+speed_offroad_kmh_x10 = 250
+range_road_km = 161
+power_hp = 507
+armor_hull_front_mm = 64
+armor_hull_front_deg = 47
+armor_hull_side_mm = 38
+armor_hull_rear_mm = 38
+armor_turret_front_mm = 76
+armor_turret_side_mm = 51
+armor_turret_rear_mm = 51
+weapon = [
+    { name = "Rocket Launcher T34 (60 tubes)", count = 60, caliber_mm_x10 = 1140, ammo = "4.5 in Rocket M8 HE", rate_rpm = 6, muzzle_velocity_mps = 270, range_effective_m = 4200, ammo_carried = 60 },
+    { name = "Browning M1919A4 (bow)", caliber_mm_x10 = 76, rate_rpm = 500, muzzle_velocity_mps = 853, ammo_carried = 4750 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/T34_Calliope", covers = "T34: 60 tubes (36 fixed above, two jettisonable groups of 12 below) for 4.5 in rockets on a frame about one meter above the turret, elevated with the 75 mm gun (+25 to -12 degrees); the main gun could not fire with the launcher attached; fired electrically; designed 1943, used by the 743rd Tank Battalion and the 2nd, 4th, 6th, 12th and 14th Armored Divisions 1944-1945; small numbers" },
+    { ref = "https://en.wikipedia.org/wiki/M8_(rocket)", covers = "M8 rocket: 4.5 in (114 mm), 840 mm, 17 kg, 2 kg warhead, 880 ft/s (270 m/s), range 4,600 yd (4.2 km); launched from the T34 Calliope on M4 tanks" },
+    { ref = "https://afvdatabase.com/usa/m4sherman.html", covers = "the M4A3(75)W carrier: 69,600 lb, length 247 in, width 105 in, armor, Ford GAA, 26 mph, ~100 mi (as us_m4a3_75)" },
+]
+uncertain = ["height_mm", "mass_kg", "speed_offroad_kmh_x10", "weapon"]
+note = "Prompt 062. The T34 launcher on an M4A3(75)W (Calliopes were fitted to several M4 models; the M4A3 is the one of the catalog). Hull and turret values as us_m4a3_75. height_mm = top of the launcher (turret roof plus the frame about one meter above it and four rows of tubes), mass_kg = the tank plus an estimated 1.9 t for the launcher and 60 rockets of 17 kg; both are estimates from the model. The 75 mm gun is left out: it could not fire with the launcher attached (field modifications aside); the .50 on the turret roof is left out too (the launcher frame sits over it). Weapon: count = tubes of one salvo; rate_rpm is the sustained rate, estimated (the salvo was fired electrically within seconds; reloading 60 tubes by hand took the crew about ten minutes; no fetched source gives the time). The bow MG keeps the M4A3's MG ammunition."
+
+[[unit]]
 id = "us_m3_halftrack"
 faction = "us"
 category = "halftrack"

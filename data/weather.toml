@@ -155,22 +155,24 @@ wet_loss_pct = 80
 snow_loss_pct = 60
 categories = ["truck", "recon_vehicle", "gun_at", "gun_aa_light", "gun_aa_heavy", "gun_howitzer"]
 # The M3A1 Scout Car is a 4x4 armored car (see its catalog note), filed as
-# the Red Army's half-track.
-ids = ["su_m3a1_scout"]
+# the Red Army's half-track. Prompt 062: rocket launchers by their chassis
+# (BM-13-16 on the ZiS-6 truck, Panzerwerfer 42 on the Maultier half-track,
+# T34 Calliope on the M4A3 tank).
+ids = ["su_m3a1_scout", "su_bm13"]
 
 [[ground.gear]]
 name = "halftrack"
 wet_loss_pct = 50
 snow_loss_pct = 35
 categories = ["halftrack"]
-ids = []
+ids = ["de_pzwerfer42"]
 
 [[ground.gear]]
 name = "tracked"
 wet_loss_pct = 35
 snow_loss_pct = 25
 categories = ["tank_light", "tank_medium", "tank_heavy", "tank_destroyer", "assault_gun", "self_propelled"]
-ids = []
+ids = ["us_t34_calliope"]
 
 # How soft each terrain type of data/terrain.toml gets, in percent (0: stays
 # firm). Terrain types not listed stay firm. Paved roads shed water and are

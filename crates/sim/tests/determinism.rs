@@ -21,7 +21,12 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by prompt 067 (typical combat distances): direct fire uses
+/// Last changed by prompt 062 (rocket launchers): the hashed indirect-fire
+/// rules gained the `rocket_launcher` category and the per-category
+/// `ripple_ms` and `mrad_x10`, every gun's salvo state is hashed, and the
+/// hashed economy rules produce the new units. Checked: the demo's
+/// snapshot after 1000 ticks is unchanged (no rocket launchers in it).
+/// Before (`0x3ad2_633d_388d_e4f8`), prompt 067 (typical combat distances): direct fire uses
 /// the catalog's `range_typical_m` instead of `range_effective_m` (Panzer IV
 /// 175 m instead of 375 m, T-34 175 m instead of 250 m, rifles 75 m instead
 /// of 125 m), so the demo battle runs differently (decided at tick 1834
@@ -226,7 +231,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x3ad2_633d_388d_e4f8;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xc2af_af4d_9a08_b29d;
 
 #[test]
 fn golden_hash() {

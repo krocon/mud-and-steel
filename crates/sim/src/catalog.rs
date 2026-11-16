@@ -121,6 +121,8 @@ categories! {
         ReconVehicle = "recon_vehicle",
         SelfPropelled = "self_propelled",
         Bridgelayer = "bridgelayer",
+        // Prompt 062: rocket launchers on a vehicle (salvo fire).
+        RocketLauncher = "rocket_launcher",
     ],
     Gun => [
         GunAt = "gun_at",
@@ -418,7 +420,9 @@ fn validate(e: &Entry) -> Vec<String> {
             need("speed_road_kmh_x10", e.speed_road_kmh_x10, 150, 1_200);
             need("speed_offroad_kmh_x10", e.speed_offroad_kmh_x10, 50, 1_000);
             need("range_road_km", e.range_road_km, 50, 1_000);
-            if e.category != Category::Truck {
+            // Trucks and rocket launchers on soft trucks (BM-13) may be
+            // unarmored.
+            if !matches!(e.category, Category::Truck | Category::RocketLauncher) {
                 need("armor_hull_front_mm", wide(e.armor_hull_front_mm), 5, 300);
             }
         }
@@ -552,6 +556,7 @@ fn validate(e: &Entry) -> Vec<String> {
             | Category::TankDestroyer
             | Category::AssaultGun
             | Category::SelfPropelled
+            | Category::RocketLauncher
     );
     if ((armed_group && !may_be_unarmed) || combat_vehicle) && e.weapon.is_empty() {
         errors.push("missing weapon".into());
