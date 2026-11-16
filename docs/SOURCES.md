@@ -131,12 +131,23 @@ Prompt 029. Every file in `godot/assets/audio/` names its origin here.
 | `assets-src/audio/building_collapse/julujanus768369_01.wav` | julujanus, "Power plant chimney detonation collapse", https://freesound.org/people/julujanus/sounds/768369/ , downloaded 2026-11-16 | CC0 |
 | `assets-src/audio/building_collapse/xkeril703247_01.wav` | xkeril, "Big falling debris (crash)", https://freesound.org/people/xkeril/sounds/703247/ , downloaded 2026-11-16 | CC0 |
 | `assets-src/audio/fire/kyles637523_01.wav` (6 s loop, crossfaded) | kyles, "fire small campfire crackling short +air tone", https://freesound.org/people/kyles/sounds/637523/ , downloaded 2026-11-16 | CC0 |
+| `assets-src/audio/shot_cannon_small/qubodup854183_0N.wav` (one shot, four pitches, synthesized low body) | qubodup, "Autocannon Shot 1" (likely a 25 mm M242, from a US Marine Corps video), https://freesound.org/people/qubodup/sounds/854183/ , downloaded 2026-11-16 | CC0 |
+| `assets-src/audio/shot_cannon_medium/ylearkisto332935_0N.wav` (the five shots of the tape, synthesized crack) | YleArkisto, "Tykki, laukaus / Big gun, cannon, 76 mm, single shots, gunshots" (76 mm field gun, 1958), https://freesound.org/people/YleArkisto/sounds/332935/ , downloaded 2026-11-16 | CC BY 4.0, credited |
+| `assets-src/audio/shot_cannon_large/qubodup189344_0N.wav` (first four shots, synthesized low body) | qubodup, "Tanks Shooting.flac" (from a US government video), https://freesound.org/people/qubodup/sounds/189344/ , downloaded 2026-11-16 | CC0 |
+| `assets-src/audio/hit_penetration/lpa134329515_0N.wav` (one hit, three pitches, synthesized bang inside the hull) | LPA134, "Big stereo metal hit" (hits on a lift door), https://freesound.org/people/LPA134/sounds/329515/ , downloaded 2026-11-16 | CC0 |
+| `assets-src/audio/hit_ricochet/cv523403_0N.wav` (lowered pitch) | C-V, "22 caliber with ricochet.wav", https://freesound.org/people/C-V/sounds/523403/ , downloaded 2026-11-16 | CC0 |
+| `assets-src/audio/{explosion_vehicle,hit_shell,hit_shell_small}/modusmogulus737321_0N.wav` (pitched and shortened per class) | modusmogulus, "Pipe Bomb" (designed from the author's own recordings), https://freesound.org/people/modusmogulus/sounds/737321/ , downloaded 2026-11-16 | CC0 |
+| debris layer in `assets-src/audio/explosion_vehicle/` | SamsterBirdies, "Scrap metal dropping / crashing", https://freesound.org/people/SamsterBirdies/sounds/587443/ , downloaded 2026-11-16 | CC0 |
+| `assets-src/audio/explosion_tail/ylearkisto256296_0N.wav` | YleArkisto, "Räjähdys maastossa / Explosion in the woods little further away, echoing" (1984), https://freesound.org/people/YleArkisto/sounds/256296/ , downloaded 2026-11-16 | CC BY 4.0, credited |
+| `assets-src/audio/tracks/ylearkisto386660_01.wav` (8 s loop, high-passed, crossfaded) | YleArkisto, "Panssarivaunut kadulla / Tanks on the street, tracks creaking" (1969), https://freesound.org/people/YleArkisto/sounds/386660/ , downloaded 2026-11-16 | CC BY 4.0, credited |
 
 The recordings above are cut from Freesound's public HQ previews (MP3, 128 kbps)
 and converted to 44.1 kHz 16-bit mono; the original WAV/FLAC files need a Freesound
 login. Replacing a file with a cut from the original keeps its name and row. The
 classes and weapons with files in `assets-src/audio/` play only those recordings
-(`tools/audio/synth.py`).
+(`tools/audio/synth.py`). The cuts of prompt 069 (cannon shots, hits, explosions,
+tracks) are made by `tools/audio/cuts.py` from the downloads in `docs/.sfx/freesound/`
+(not in git); the layers it adds are synthesized there.
 
 Files of other origin go to `assets-src/audio/<class>/` (music:
 `assets-src/music/<mood>_NN.<ext>`, which replaces the composed piece of

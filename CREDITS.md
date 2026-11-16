@@ -25,6 +25,9 @@ Most sounds and all music are synthesized by the project's own scripts
 | Mortar and artillery shots | qubodup (from US government videos), InMotionAudio | CC0 |
 | Chimney collapse, falling debris | julujanus, xkeril | CC0 |
 | Fire crackling | kyles | CC0 |
+| 76 mm field gun shots ([332935](https://freesound.org/people/YleArkisto/sounds/332935/)), distant explosion with echo ([256296](https://freesound.org/people/YleArkisto/sounds/256296/)), tank tracks on a street ([386660](https://freesound.org/people/YleArkisto/sounds/386660/)) | YleArkisto (Yle, the Finnish Broadcasting Company) | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), cut, filtered, layered and looped |
+| Autocannon and tank gun shots | qubodup (from US government videos) | CC0 |
+| Metal hit, ricochet, explosion, falling scrap metal | LPA134, C-V, modusmogulus, SamsterBirdies | CC0 |
 
 Every file and its page: [docs/SOURCES.md](docs/SOURCES.md#sounds).
 

@@ -131,6 +131,9 @@ candidates for. License, author, origin and format were read on each sound's own
 (automated fetch; 332935, 854183, 368671, 255268 and 256300 opened a second time as a
 spot check). **None has been listened to yet**; noise, voices and clipping are open
 until the downloads are agreed. All are repo-safe; CC BY rows need a credit.
+The maintainer listened on 2026-11-16 and chose 854183, 332935, 189344, 329515, 523403,
+737321, 256296 and 386660; these are in the game (SOURCES.md). Every candidate for
+bullets on armor was rejected; that class stays synthesized.
 
 | Group | Freesound id | Title | Author / origin | License | Format, length | Use |
 |---|---|---|---|---|---|---|
