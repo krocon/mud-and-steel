@@ -13,10 +13,15 @@ extends RefCounted
 ## "weapon" by default) or `voice@de/contact` (battle voices; the manifest's
 ## top-level `voice` spec, `keyed_dir` "voice"). A keyed name without files
 ## has no stream (`has_files`), so the caller falls back.
+##
+## A folder with files named `priv_*` plays only those (prompt 069): sounds
+## that may ship in the game but not as single files in the public
+## repository (docs/AUDIO_LIBRARY.md).
 
 const DIR := "res://assets/audio/"
 const MANIFEST := DIR + "sounds.json"
 const EXTENSIONS: Array[String] = ["wav", "ogg", "mp3"]
+const PRIVATE_PREFIX := "priv_"
 
 static var _manifest := {}
 static var _streams: Dictionary[String, Array] = {}
@@ -120,6 +125,14 @@ static func _files(sound_class: String) -> PackedStringArray:
 	for file in ResourceLoader.list_directory(dir):
 		if file.get_extension().to_lower() in EXTENSIONS:
 			out.append(dir + file)
+	# Private sounds (`priv_*`, from the private sound repository, never in
+	# git) replace the public files of their folder where they exist.
+	var private := PackedStringArray()
+	for path in out:
+		if path.get_file().begins_with(PRIVATE_PREFIX):
+			private.append(path)
+	if not private.is_empty():
+		out = private
 	out.sort()
 	return out
 

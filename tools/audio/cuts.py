@@ -10,6 +10,10 @@ cuts to `assets-src/audio/<class>/<author><id>_NN.wav` (mono, 44.1 kHz,
 16 bit). `just audio <class>` then normalizes them into the game. The cuts
 are committed, so this script is only needed to change a cut.
 
+Private classes (named explicitly: `cuts.py shot_mg`) are cut from files
+that must not be in the public repository and are written to the private
+one (`../mud-and-steel-sfx`, see tools/audio/synth.py).
+
 What it adds to a recording is synthesized here (own work): a low body
 under shots that lack bass, a crack on a shot that lacks highs, the muffled
 bang inside the hull after a penetration. Variants of a single recording
@@ -20,6 +24,7 @@ Needs numpy and ffmpeg.
 
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 import wave
@@ -29,12 +34,14 @@ import numpy as np
 
 SR = 44100
 ROOT = Path(__file__).resolve().parents[2]
-RAW = ROOT / "docs" / ".sfx" / "freesound"
+SFX = ROOT / "docs" / ".sfx"
+RAW = SFX / "freesound"
 OUT = ROOT / "assets-src" / "audio"
+PRIVATE = Path(os.environ.get("MUD_AND_STEEL_SFX", ROOT.parent / "mud-and-steel-sfx"))
 
 
-def load(rel: str) -> np.ndarray:
-    path = RAW / rel
+def load(rel: str, root: Path = RAW) -> np.ndarray:
+    path = root / rel
     if not path.exists():
         raise SystemExit(f"{path} is missing (raw downloads are not in git; see docs/SOURCES.md)")
     raw = subprocess.run(["ffmpeg", "-v", "error", "-i", str(path), "-ac", "1", "-ar", str(SR), "-f", "f32le", "-"],
@@ -112,20 +119,20 @@ def inner_bang(seed: int) -> np.ndarray:
     return norm(band(rng.standard_normal(n), 40, 260) * np.exp(-t / 0.16) * (1 - np.exp(-t / 0.004)))
 
 
-def save(sound_class: str, name: str, x: np.ndarray) -> None:
+def save(sound_class: str, name: str, x: np.ndarray, root: Path = OUT) -> None:
     x = norm(x) * 10 ** (-1 / 20)
-    path = OUT / sound_class / f"{name}.wav"
+    path = root / sound_class / f"{name}.wav"
     path.parent.mkdir(parents=True, exist_ok=True)
     with wave.open(str(path), "wb") as w:
         w.setnchannels(1)
         w.setsampwidth(2)
         w.setframerate(SR)
         w.writeframes(np.round(x * 32767).astype("<i2").tobytes())
-    print(f"{path.relative_to(ROOT)}  {len(x) / SR:.2f} s")
+    print(f"{path}  {len(x) / SR:.2f} s")
 
 
-def clear(sound_class: str) -> None:
-    folder = OUT / sound_class
+def clear(sound_class: str, root: Path = OUT) -> None:
+    folder = root / sound_class
     if folder.is_dir():
         for old in folder.glob("*.wav"):
             old.unlink()
@@ -225,17 +232,57 @@ def tracks() -> None:
     save("tracks", "ylearkisto386660_01", loop)
 
 
+def onsets(x: np.ndarray, gap: float = 0.06) -> list[int]:
+    """Sample positions of the shots of a burst."""
+    hop = int(0.002 * SR)
+    step = np.diff(x, prepend=0.0)
+    n = len(step) // hop
+    energy = np.sqrt((step[:n * hop].reshape(n, hop) ** 2).mean(axis=1))
+    out: list[int] = []
+    for i in range(8, n):
+        if energy[i] > 0.25 * energy.max() and energy[i] > 2.5 * np.median(energy[i - 8:i]) and (not out or (i * hop - out[-1]) > gap * SR):
+            out.append(i * hop)
+    return out
+
+
+def shot_mg() -> None:
+    """Private: single shots out of a machine-gun burst generated with
+    ElevenLabs (docs/.sfx/MG-Sound, file #1, about 10 rounds per second).
+    Each variant is one shot from the middle of the burst, running into the
+    tail of the last shot, so a single shot rings out and a burst does not
+    play a burst of its own. Written to the private repository."""
+    files = sorted((SFX / "MG-Sound").glob("*#1-*.wav"))
+    if not files:
+        raise SystemExit("docs/.sfx/MG-Sound/*#1-*.wav is missing")
+    burst = load(files[0].name, SFX / "MG-Sound")
+    starts = onsets(burst)
+    spacing = int(np.median(np.diff(starts)))
+    lead, fade = int(0.002 * SR), int(0.015 * SR)
+    tail = burst[starts[-1] + spacing - fade:starts[-1] + spacing + int(1.2 * SR)].copy()
+    ramp = np.linspace(0, np.pi / 2, fade)
+    clear("shot_mg", PRIVATE)
+    for i, k in enumerate([len(starts) // 5, 2 * len(starts) // 5, 3 * len(starts) // 5, 4 * len(starts) // 5]):
+        shot = burst[starts[k] - lead:starts[k] - lead + spacing].copy()
+        shot[-fade:] = shot[-fade:] * np.cos(ramp) + tail[:fade] * np.sin(ramp)
+        save("shot_mg", f"elevenlabs_mg1_{i + 1:02d}", np.concatenate([shot, cut(tail[fade:], 0.0, 1.2, 0.6)]), PRIVATE)
+
+
 CLASSES = {f.__name__: f for f in [
     shot_cannon_small, shot_cannon_medium, shot_cannon_large, hit_penetration, hit_ricochet,
-    explosion_vehicle, hit_shell, hit_shell_small, explosion_tail, tracks,
+    explosion_vehicle, hit_shell, hit_shell_small, explosion_tail, tracks, shot_mg,
 ]}
+PRIVATE_CLASSES = {"shot_mg"}
 
 
 def main(argv: list[str]) -> int:
     for name in argv or list(CLASSES):
         if name not in CLASSES:
             raise SystemExit(f"unknown class '{name}'; known: {', '.join(CLASSES)}")
-        clear(name)
+        if name in PRIVATE_CLASSES:
+            if not argv:
+                continue  # private classes only when named
+        else:
+            clear(name)
         CLASSES[name]()
     return 0
 

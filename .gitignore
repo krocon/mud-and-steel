@@ -30,4 +30,6 @@ data/maps/editor_selftest/
 /docs/.sfx/
 # Sounds whose license forbids standalone redistribution (docs/AUDIO_LIBRARY.md); the repository is public
 /assets-src/audio-private/
+# Game files prepared from the private sound repository (tools/audio/synth.py)
+/godot/assets/audio/**/priv_*
 /.env

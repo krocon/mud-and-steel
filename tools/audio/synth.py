@@ -42,12 +42,22 @@ files stays silent.
 
     python3 tools/audio/synth.py --weapons  # list the weapon slugs of the catalog
 
+Private sounds (prompt 069): files whose license forbids handing them on
+as single files (ElevenLabs output, Pixabay, Sonniss) live in a private
+repository with the layout of `assets-src/audio/`, cloned next to this one
+as `../mud-and-steel-sfx` (or where `MUD_AND_STEEL_SFX` points). When it is
+there, its files are prepared too, as `priv_<name>.wav` beside the public
+files of the class or weapon. The game plays only the `priv_` files of a
+folder that has some (`sound_library.gd`); they are gitignored, so a clone
+without the private repository plays the public files.
+
 Requires numpy. Afterwards run `just import` so Godot imports new files.
 """
 
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import struct
 import subprocess
@@ -63,6 +73,7 @@ ROOT = Path(__file__).resolve().parents[2]
 AUDIO_DIR = ROOT / "godot" / "assets" / "audio"
 MANIFEST = AUDIO_DIR / "sounds.json"
 EXTERNAL_DIR = ROOT / "assets-src" / "audio"
+PRIVATE_DIR = Path(os.environ.get("MUD_AND_STEEL_SFX", ROOT.parent / "mud-and-steel-sfx"))
 CATALOG_DIR = ROOT / "data" / "catalog"
 KEYED = ["weapon", "voice"]
 SOURCE_EXTENSIONS = {".wav", ".ogg", ".mp3", ".flac"}
@@ -844,14 +855,15 @@ def prepare_keyed(kind: str) -> int:
         for old in out_root.rglob("*.wav"):
             old.unlink()
     total = 0
-    if not src_root.is_dir():
-        return 0
-    for path in sorted(src_root.rglob("*")):
-        if path.suffix.lower() not in SOURCE_EXTENSIONS:
+    for prefix, root in (("ext", src_root), ("priv", PRIVATE_DIR / kind)):
+        if not root.is_dir():
             continue
-        rel = path.parent.relative_to(src_root)
-        write_wav(out_root / rel / f"ext_{path.stem}.wav", finish(trim_leading(read_external(path)), False), False)
-        total += 1
+        for path in sorted(root.rglob("*")):
+            if path.suffix.lower() not in SOURCE_EXTENSIONS:
+                continue
+            rel = path.parent.relative_to(root)
+            write_wav(out_root / rel / f"{prefix}_{path.stem}.wav", finish(trim_leading(read_external(path)), False), False)
+            total += 1
     print(f"{kind:20s} {total} file(s) (external, keyed)")
     return total
 
@@ -893,12 +905,15 @@ def main(argv: list[str]) -> int:
                 raise SystemExit(f"no recipe and no files in {EXTERNAL_DIR / name} for '{name}'")
             for v in range(int(spec.get("variants", 1))):
                 files.append((f"{name}_{v + 1:02d}", finish(recipe(Ctx(class_seed(name, v), v)), loop)))
+        private = sorted(p for p in (PRIVATE_DIR / name).glob("*") if p.suffix.lower() in SOURCE_EXTENSIONS) if (PRIVATE_DIR / name).is_dir() else []
+        for path in private:
+            files.append((f"priv_{path.stem}", finish(trim_leading(read_external(path)), loop)))
         for stem, x in files:
             write_wav(out_dir / f"{stem}.wav", x, loop)
             if extra_dir is not None:
                 write_wav(extra_dir / f"{stem}.wav", x, loop)
             total += 1
-        print(f"{name:20s} {len(files)} file(s){' (external)' if external else ''}")
+        print(f"{name:20s} {len(files)} file(s){' (external)' if external else ''}{f', {len(private)} private' if private else ''}")
     # Import files of variants that no longer exist.
     for stale in AUDIO_DIR.rglob("*.wav.import"):
         if not stale.with_suffix("").exists():

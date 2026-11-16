@@ -612,6 +612,12 @@ godot/assets/audio/sounds.json        manifest: class -> group, bus, level, rang
   [SOURCES.md](SOURCES.md#sounds): CC0 link, or for AI-generated sounds the
   tool, prompt and a license that allows commercial use. No sounds from
   other games.
+- **Private sounds** (prompt 069). Files that must not be published as single files
+  live in the private repository `mud-and-steel-sfx` (same layout as
+  `assets-src/audio/`), cloned next to this one or named by `MUD_AND_STEEL_SFX`.
+  `just audio` prepares them as `priv_<name>.wav` beside the public files; a folder
+  with `priv_` files plays only those (`sound_library.gd`). They and their import
+  files are gitignored. Without the private repository nothing changes.
 - **New class:** add it to `sounds.json` (group, bus, levels, `variants`),
   write a recipe in `synth.py` or put files into `assets-src/audio/<class>/`,
   run `just audio <class>` and `just import`, and map it in

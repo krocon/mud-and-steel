@@ -31,6 +31,11 @@ tools/steam/upload.sh        SteamPipe scripts, steamcmd upload (manual only)
 | `just export-selftest macos` | plays the self-test in the exported game | an export of the current system |
 | `just steam-upload` | writes the SteamPipe scripts (dry run); `--upload` uploads | Steamworks app, steamcmd |
 
+Release builds are made with the private sound repository in place
+(`../mud-and-steel-sfx`, then `just audio` and `just import`): the `.pck` takes the
+`priv_*.wav` files that are there. Without it the build works and plays the public
+sounds (docs/ASSETS.md, "Private sounds").
+
 `just export pack` + `just export-selftest pack` is the quick check that an
 export contains everything (missing resources, scripts that only work in the
 repository): run it after adding scenes or resources that are loaded by path.
