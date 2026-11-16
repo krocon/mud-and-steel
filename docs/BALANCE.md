@@ -571,10 +571,16 @@ apply).
 The decisions of [PLAYTEST.md](PLAYTEST.md) were answered on 2026-11-16.
 From prompt 067 (typical combat distances, see above):
 
-1. **Velocity factor of the prices** (change 12, provisional) and the
-   higher prices of the 88 mm class guns (Tiger 473 instead of 412, IS-2
-   612 instead of 495): confirm, or cap the range factor at 100 %
-   (`range_max_pct`), which gives the heavy guns their old prices.
+1. **Velocity factor of the prices** (change 12): **decided 2026-11-16, it
+   stays** (the user left the decision to the session). Reasons: without it
+   the Panzer IV costs as much as the T-34 although it wins the duel, which
+   `tests/prices.rs` (equal strength, equal price) rejects; and the heavy
+   guns are the ones that gained from the shorter ranges (base mode after
+   prompt 067: 30 Tigers with 117 kills for 4 losses), so their higher
+   prices (Tiger 473 instead of 412, IS-2 612 instead of 495, M26 435
+   instead of 369) push in the right direction. The alternative, capping the
+   range factor at 100 % (`range_max_pct`), stays available if playtests
+   show the heavy tanks too rare.
 2. **United States in base mode** (15 % of 40 games, before 42 %): the US
    rifle squad loses to the German and Soviet squads at 75–100 m. Rule
    levers, none decided: the price of the US squad (12 men = 72 manpower),

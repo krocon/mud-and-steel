@@ -90,8 +90,8 @@ range_max_pct = 150
 rate_ref_rpm = 10
 rate_min_pct = 75
 rate_max_pct = 150
-# Prompt 067 [provisional]: the same term is also scaled by the cube of the
-# weapon's muzzle velocity relative to velocity_ref_mps, clamped to
+# Prompt 067 (kept by decision of 2026-11-16, docs/BALANCE.md): the same
+# term is also scaled by the cube of the weapon's muzzle velocity relative to velocity_ref_mps, clamped to
 # velocity_min_pct..velocity_max_pct percent. Caliber squared times
 # velocity cubed is the square of the muzzle penetration of the combat
 # rules (caliber x velocity^1.5, data/combat.toml). Before prompt 067 the
