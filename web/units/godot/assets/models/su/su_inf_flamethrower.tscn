@@ -4,7 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://bb6rlx7y4mki8" path="res://assets/models/su/infantry/smg_gunner.glb" id="2_smg_gunner"]
 
 [node name="su_inf_flamethrower" type="Node3D"]
-metadata/extras = {"cat_id": "su_inf_flamethrower", "cat_faction": "su", "cat_category": "inf_flamethrower", "cat_name_de": "Flammenwerfertrupp ROKS-3", "cat_name_en": "ROKS-3 Flamethrower Team", "cat_designation": "ROKS-3 (ranzevy ognemyot Klyuyeva-Sergeyeva)", "cat_year_from": 1942, "cat_year_to": 1945, "cat_speed_road_kmh_x10": 50, "cat_speed_offroad_kmh_x10": 40, "cat_weapons": "ROKS-3; PPSh-41", "cat_squad_size": 2, "squad": true, "squad_roles": ["flamethrower", "smg_gunner"], "squad_notes": ["flamethrower operator (ROKS-3)", "covering soldier (PPSh-41)"], "squad_clips": ["aim_stand", "aim_kneel"], "squad_file": "assets-src/blueprints/su/squads/su_inf_flamethrower.toml", "source_hash": "1b0a5bcf5c2fcf8d"}
+metadata/extras = {"cat_id": "su_inf_flamethrower", "cat_faction": "su", "cat_category": "inf_flamethrower", "cat_name_de": "Flammenwerfertrupp ROKS-3", "cat_name_en": "ROKS-3 Flamethrower Team", "cat_designation": "ROKS-3 (ranzevy ognemyot Klyuyeva-Sergeyeva)", "cat_year_from": 1942, "cat_year_to": 1945, "cat_speed_road_kmh_x10": 50, "cat_speed_offroad_kmh_x10": 40, "cat_weapons": "ROKS-3; PPSh-41", "cat_squad_size": 2, "squad": true, "squad_roles": ["flamethrower", "smg_gunner"], "squad_notes": ["flamethrower operator (ROKS-3)", "covering soldier (PPSh-41)"], "squad_clips": ["aim_stand", "aim_kneel"], "squad_file": "assets-src/blueprints/su/squads/su_inf_flamethrower.toml", "source_hash": "0e428c4fbb850891"}
 
 [node name="Member_01" parent="." instance=ExtResource("1_flamethrower")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1)

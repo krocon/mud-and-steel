@@ -19,9 +19,9 @@ squad_size = 12
 speed_road_kmh_x10 = 50
 speed_offroad_kmh_x10 = 40
 weapon = [
-    { name = "Rifle M1 (Garand)", count = 9, caliber_mm_x10 = 76, ammo = ".30-06 M2 ball, M2 AP", rate_rpm = 40, muzzle_velocity_mps = 853, range_effective_m = 457 },
-    { name = "Rifle M1 with grenade launcher M7", count = 2, caliber_mm_x10 = 76, ammo = ".30-06 M2 ball; M9A1 AT rifle grenade", rate_rpm = 40, muzzle_velocity_mps = 853, range_effective_m = 457 },
-    { name = "Browning Automatic Rifle M1918A2", count = 1, caliber_mm_x10 = 76, ammo = ".30-06 M2 ball, 20-round magazine", rate_rpm = 375, muzzle_velocity_mps = 860, range_effective_m = 550 },
+    { name = "Rifle M1 (Garand)", count = 9, caliber_mm_x10 = 76, ammo = ".30-06 M2 ball, M2 AP", rate_rpm = 40, muzzle_velocity_mps = 853, range_effective_m = 457, range_typical_m = 300 },
+    { name = "Rifle M1 with grenade launcher M7", count = 2, caliber_mm_x10 = 76, ammo = ".30-06 M2 ball; M9A1 AT rifle grenade", rate_rpm = 40, muzzle_velocity_mps = 853, range_effective_m = 457, range_typical_m = 300 },
+    { name = "Browning Automatic Rifle M1918A2", count = 1, caliber_mm_x10 = 76, ammo = ".30-06 M2 ball, 20-round magazine", rate_rpm = 375, muzzle_velocity_mps = 860, range_effective_m = 550, range_typical_m = 400 },
 ]
 source = [
     { ref = "https://www.battleorder.org/post/usa-rifleco-1944", covers = "1944 rifle squad of 12: leader (M1), assistant leader (M1 + M7), BAR man, assistant BAR man (M1), ammunition bearer (M1), 2 rifle grenadiers (M1 + M7), 2 scouts and 3 riflemen (M1)" },
@@ -29,9 +29,11 @@ source = [
     { ref = "FM 7-10 Rifle Company, Rifle Regiment (1944), https://ciehub.info/ref/FM/7-10_1944.pdf", covers = "squad organization (not re-read in detail)" },
     { ref = "https://en.wikipedia.org/wiki/M1_Garand", covers = "M1: 853 m/s, effective range 500 yd (457 m), rate 40-50 rpm" },
     { ref = "https://en.wikipedia.org/wiki/M1918_Browning_Automatic_Rifle", covers = "BAR M1918A2: slow cyclic 300-450 rpm, fast 500-650 rpm, 860 m/s" },
+    { ref = "N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346", covers = "range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd" },
+    { ref = "TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII sec. II, https://lonesentry.com/manuals/tme30/ch7sec2sub6.html", covers = "range_typical_m: MG 34 / MG 42 effective range as light MG 600-800 yd, as heavy MG (tripod) 2,000-2,500 yd: upper bounds for the typical distance" },
 ]
 uncertain = ["weapon"]
-note = "Rifle squad per T/O&E 7-17 of 26 Feb 1944 (ETO). The 1943 squad had an M1903 rifle with M1 launcher; the 1944 table replaced it with two M1 rifles with M7 launchers. Many units informally added a second BAR. BAR rate_rpm = middle of the slow cyclic setting; M1 rate_rpm = lower end of the 40-50 rpm figure. BAR range_effective_m 550 m is a practical figure (estimate; Wikipedia gives a sight-adjusted maximum effective range of 1,372 m). Marching speed uses the project convention (5 km/h road, 4 km/h cross-country)."
+note = "Rifle squad per T/O&E 7-17 of 26 Feb 1944 (ETO). The 1943 squad had an M1903 rifle with M1 launcher; the 1944 table replaced it with two M1 rifles with M7 launchers. Many units informally added a second BAR. BAR rate_rpm = middle of the slow cyclic setting; M1 rate_rpm = lower end of the 40-50 rpm figure. BAR range_effective_m 550 m is a practical figure (estimate; Wikipedia gives a sight-adjusted maximum effective range of 1,372 m). Marching speed uses the project convention (5 km/h road, 4 km/h cross-country). range_typical_m (prompt 067): bipod and flexible-mount machine guns 400 m (class estimate between the 300 yd of ORO-T-160 and the 600-800 yd 'effective as light MG' of TM-E 30-451); the BAR M1918A2 on its bipod, the squad's automatic weapon, counts as one like the DP-27."
 
 [[unit]]
 id = "us_inf_mg_team"
@@ -48,18 +50,22 @@ squad_size = 5
 speed_road_kmh_x10 = 50
 speed_offroad_kmh_x10 = 40
 weapon = [
-    { name = "Browning M1919A4 (tripod M2)", count = 1, caliber_mm_x10 = 76, ammo = ".30-06 M2 ball, M1 tracer, 250-round belts", rate_rpm = 500, muzzle_velocity_mps = 853, range_effective_m = 1370 },
-    { name = "Rifle M1 with grenade launcher M7", count = 1, caliber_mm_x10 = 76, ammo = ".30-06 M2 ball; M9A1 AT rifle grenade", rate_rpm = 40, muzzle_velocity_mps = 853, range_effective_m = 457 },
-    { name = "Carbine M1", count = 2, caliber_mm_x10 = 76, ammo = ".30 Carbine M1 ball", rate_rpm = 30, muzzle_velocity_mps = 600, range_effective_m = 300 },
-    { name = "Pistol M1911A1", count = 2, caliber_mm_x10 = 114, ammo = ".45 ACP", muzzle_velocity_mps = 253, range_effective_m = 50 },
+    { name = "Browning M1919A4 (tripod M2)", count = 1, caliber_mm_x10 = 76, ammo = ".30-06 M2 ball, M1 tracer, 250-round belts", rate_rpm = 500, muzzle_velocity_mps = 853, range_effective_m = 1370, range_typical_m = 800 },
+    { name = "Rifle M1 with grenade launcher M7", count = 1, caliber_mm_x10 = 76, ammo = ".30-06 M2 ball; M9A1 AT rifle grenade", rate_rpm = 40, muzzle_velocity_mps = 853, range_effective_m = 457, range_typical_m = 300 },
+    { name = "Carbine M1", count = 2, caliber_mm_x10 = 76, ammo = ".30 Carbine M1 ball", rate_rpm = 30, muzzle_velocity_mps = 600, range_effective_m = 300, range_typical_m = 200 },
+    { name = "Pistol M1911A1", count = 2, caliber_mm_x10 = 114, ammo = ".45 ACP", muzzle_velocity_mps = 253, range_effective_m = 50, range_typical_m = 25 },
 ]
 source = [
     { ref = "https://www.battleorder.org/post/usa-rifleco-1944", covers = "LMG squad of 5: leader (M1 + M7), gunner (M1919A4, M1911A1), assistant gunner (M1911A1), 2 ammunition bearers (M1 carbine); 2 squads per LMG section" },
     { ref = "https://en.wikipedia.org/wiki/M1919_Browning_machine_gun", covers = "5-man squad, rate 400-600 rpm, 853 m/s, effective range 1,500 yd (1,370 m)" },
     { ref = "FM 23-45 Browning Machine Gun, Caliber .30, HB, M1919A4, Ground (April 1943)", covers = "gun manual (existence confirmed in a manual inventory; contents not read)" },
     { ref = "https://en.wikipedia.org/wiki/M1_Garand", covers = "M1 rifle data" },
+    { ref = "TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII sec. II, https://lonesentry.com/manuals/tme30/ch7sec2sub6.html", covers = "range_typical_m: MG 34 / MG 42 effective range as light MG 600-800 yd, as heavy MG (tripod) 2,000-2,500 yd: upper bounds for the typical distance" },
+    { ref = "FM 7-15 Heavy Weapons Company, Rifle Regiment (US War Dept., 1942), https://ibiblio.org/hyperwar/USA/ref/FM/PDFs/FM7-15.PDF (search excerpt, not read in full)", covers = "range_typical_m: direct machine-gun fire is limited by observation, rarely effective beyond 2,000 yd: upper bound for the typical distance of tripod machine guns" },
+    { ref = "N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346", covers = "range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd" },
 ]
-note = "Squad composition and personal weapons per the 1944 rifle company weapons platoon. MG rate_rpm = cyclic (400-600). Carbine and pistol values are standard published figures (not re-fetched)."
+uncertain = ["weapon"]
+note = "Squad composition and personal weapons per the 1944 rifle company weapons platoon. MG rate_rpm = cyclic (400-600). Carbine and pistol values are standard published figures (not re-fetched). range_typical_m (prompt 067): tripod machine guns 800 m (class estimate: twice the bipod value, far below the 2,000 yd limit of observed fire); carbine 200 m (class estimate: two thirds of the rifle value for the weaker cartridge); pistols 25 m (class estimate: half the effective range)."
 
 [[unit]]
 id = "us_inf_hmg_team"
@@ -76,16 +82,18 @@ squad_size = 7
 speed_road_kmh_x10 = 50
 speed_offroad_kmh_x10 = 40
 weapon = [
-    { name = "Browning M1917A1 (water-cooled, tripod M1917A1)", count = 1, caliber_mm_x10 = 76, ammo = ".30-06 M2 ball, M1 tracer, 250-round belts", rate_rpm = 500, muzzle_velocity_mps = 853, range_effective_m = 1830 },
-    { name = "Carbine M1", count = 5, caliber_mm_x10 = 76, ammo = ".30 Carbine M1 ball", rate_rpm = 30, muzzle_velocity_mps = 600, range_effective_m = 300 },
-    { name = "Pistol M1911A1", count = 2, caliber_mm_x10 = 114, ammo = ".45 ACP", muzzle_velocity_mps = 253, range_effective_m = 50 },
+    { name = "Browning M1917A1 (water-cooled, tripod M1917A1)", count = 1, caliber_mm_x10 = 76, ammo = ".30-06 M2 ball, M1 tracer, 250-round belts", rate_rpm = 500, muzzle_velocity_mps = 853, range_effective_m = 1830, range_typical_m = 800 },
+    { name = "Carbine M1", count = 5, caliber_mm_x10 = 76, ammo = ".30 Carbine M1 ball", rate_rpm = 30, muzzle_velocity_mps = 600, range_effective_m = 300, range_typical_m = 200 },
+    { name = "Pistol M1911A1", count = 2, caliber_mm_x10 = 114, ammo = ".45 ACP", muzzle_velocity_mps = 253, range_effective_m = 50, range_typical_m = 25 },
 ]
 source = [
     { ref = "FM 23-55 Browning Machine Gun, Cal. .30, M1917 (1940)", covers = "gun manual (existence confirmed in a manual inventory; contents not read)" },
     { ref = "https://en.wikipedia.org/wiki/M1917_Browning_machine_gun", covers = "M1917A1 450-600 rpm, 853 m/s, max range ~3,200 m (M2 ball) to 5,000 m (M1 ball)" },
+    { ref = "TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII sec. II, https://lonesentry.com/manuals/tme30/ch7sec2sub6.html", covers = "range_typical_m: MG 34 / MG 42 effective range as light MG 600-800 yd, as heavy MG (tripod) 2,000-2,500 yd: upper bounds for the typical distance" },
+    { ref = "FM 7-15 Heavy Weapons Company, Rifle Regiment (US War Dept., 1942), https://ibiblio.org/hyperwar/USA/ref/FM/PDFs/FM7-15.PDF (search excerpt, not read in full)", covers = "range_typical_m: direct machine-gun fire is limited by observation, rarely effective beyond 2,000 yd: upper bound for the typical distance of tripod machine guns" },
 ]
 uncertain = ["squad_size", "weapon"]
-note = "Squad strength 7 (leader, gunner, assistant, ammunition bearers, jeep driver) is an estimate; no heavy weapons company T/O&E was consulted. rate_rpm = cyclic. range_effective_m is the usual sustained-fire figure for the tripod-mounted gun (~2,000 yd), estimate."
+note = "Squad strength 7 (leader, gunner, assistant, ammunition bearers, jeep driver) is an estimate; no heavy weapons company T/O&E was consulted. rate_rpm = cyclic. range_effective_m is the usual sustained-fire figure for the tripod-mounted gun (~2,000 yd), estimate. range_typical_m (prompt 067): tripod machine guns 800 m (class estimate: twice the bipod value, far below the 2,000 yd limit of observed fire); carbine 200 m (class estimate: two thirds of the rifle value for the weaker cartridge); pistols 25 m (class estimate: half the effective range)."
 
 [[unit]]
 id = "us_inf_mortar_light"
@@ -103,16 +111,18 @@ speed_road_kmh_x10 = 50
 speed_offroad_kmh_x10 = 40
 weapon = [
     { name = "60 mm Mortar M2 (mount M2)", count = 1, caliber_mm_x10 = 600, ammo = "M49A2 HE, M302 WP, M83 illuminating", rate_rpm = 18, muzzle_velocity_mps = 158, range_effective_m = 1815 },
-    { name = "Rifle M1 (Garand)", count = 1, caliber_mm_x10 = 76, ammo = ".30-06 M2 ball, M2 AP", rate_rpm = 40, muzzle_velocity_mps = 853, range_effective_m = 457 },
-    { name = "Carbine M1", count = 2, caliber_mm_x10 = 76, ammo = ".30 Carbine M1 ball", rate_rpm = 30, muzzle_velocity_mps = 600, range_effective_m = 300 },
-    { name = "Pistol M1911A1", count = 2, caliber_mm_x10 = 114, ammo = ".45 ACP", muzzle_velocity_mps = 253, range_effective_m = 50 },
+    { name = "Rifle M1 (Garand)", count = 1, caliber_mm_x10 = 76, ammo = ".30-06 M2 ball, M2 AP", rate_rpm = 40, muzzle_velocity_mps = 853, range_effective_m = 457, range_typical_m = 300 },
+    { name = "Carbine M1", count = 2, caliber_mm_x10 = 76, ammo = ".30 Carbine M1 ball", rate_rpm = 30, muzzle_velocity_mps = 600, range_effective_m = 300, range_typical_m = 200 },
+    { name = "Pistol M1911A1", count = 2, caliber_mm_x10 = 114, ammo = ".45 ACP", muzzle_velocity_mps = 253, range_effective_m = 50, range_typical_m = 25 },
 ]
 source = [
     { ref = "https://www.battleorder.org/post/usa-rifleco-1944", covers = "mortar section, 3 squads of 5: leader (M1), gunner and assistant (M1911A1), 2 ammunition bearers (M1 carbine)" },
     { ref = "https://en.wikipedia.org/wiki/M2_mortar", covers = "crew 5, 18 rpm, 158 m/s, max range 1.8 km" },
     { ref = "FM 23-85 60-mm Mortar M2 (1942)", covers = "mortar manual (existence confirmed in a manual inventory; contents not read)" },
+    { ref = "N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346", covers = "range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd" },
 ]
-note = "range_effective_m = maximum range (indirect fire, 1,985 yd with M49A2). rate_rpm = sustained rate (30-35 rpm maximum)."
+uncertain = ["weapon"]
+note = "range_effective_m = maximum range (indirect fire, 1,985 yd with M49A2). rate_rpm = sustained rate (30-35 rpm maximum). range_typical_m (prompt 067): carbine 200 m (class estimate: two thirds of the rifle value for the weaker cartridge); pistols 25 m (class estimate: half the effective range)."
 
 [[unit]]
 id = "us_inf_mortar_medium"
@@ -130,15 +140,15 @@ speed_road_kmh_x10 = 50
 speed_offroad_kmh_x10 = 40
 weapon = [
     { name = "81 mm Mortar M1 (mount M4)", count = 1, caliber_mm_x10 = 812, ammo = "M43A1 light HE, M56 heavy HE, M57 WP", rate_rpm = 18, muzzle_velocity_mps = 210, range_effective_m = 3018 },
-    { name = "Carbine M1", count = 6, caliber_mm_x10 = 76, ammo = ".30 Carbine M1 ball", rate_rpm = 30, muzzle_velocity_mps = 600, range_effective_m = 300 },
-    { name = "Pistol M1911A1", count = 2, caliber_mm_x10 = 114, ammo = ".45 ACP", muzzle_velocity_mps = 253, range_effective_m = 50 },
+    { name = "Carbine M1", count = 6, caliber_mm_x10 = 76, ammo = ".30 Carbine M1 ball", rate_rpm = 30, muzzle_velocity_mps = 600, range_effective_m = 300, range_typical_m = 200 },
+    { name = "Pistol M1911A1", count = 2, caliber_mm_x10 = 114, ammo = ".45 ACP", muzzle_velocity_mps = 253, range_effective_m = 50, range_typical_m = 25 },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/M1_mortar", covers = "crew 8 (leader, gunner, assistant, 5 ammunition bearers), 62 kg, 18 rpm sustained / 30-35 max, 210 m/s, max range 3,300 yd (M43A1), 2,655 yd (M56)" },
     { ref = "FM 23-90 81-mm Mortar M1 (1942, Changes 1 Jan 1943)", covers = "mortar manual (existence confirmed in a library record; contents not read)" },
 ]
 uncertain = ["weapon"]
-note = "range_effective_m = maximum range with M43A1 light HE (indirect). Personal weapons split (carbines/pistols) is an estimate."
+note = "range_effective_m = maximum range with M43A1 light HE (indirect). Personal weapons split (carbines/pistols) is an estimate. range_typical_m (prompt 067): carbine 200 m (class estimate: two thirds of the rifle value for the weaker cartridge); pistols 25 m (class estimate: half the effective range)."
 
 [[unit]]
 id = "us_inf_recon"
@@ -155,17 +165,18 @@ squad_size = 6
 speed_road_kmh_x10 = 50
 speed_offroad_kmh_x10 = 40
 weapon = [
-    { name = "Rifle M1 (Garand)", count = 3, caliber_mm_x10 = 76, ammo = ".30-06 M2 ball, M2 AP", rate_rpm = 40, muzzle_velocity_mps = 853, range_effective_m = 457 },
-    { name = "Carbine M1", count = 2, caliber_mm_x10 = 76, ammo = ".30 Carbine M1 ball", rate_rpm = 30, muzzle_velocity_mps = 600, range_effective_m = 300 },
-    { name = "Submachine gun M1A1 (Thompson)", count = 1, caliber_mm_x10 = 114, ammo = ".45 ACP", rate_rpm = 700, muzzle_velocity_mps = 285, range_effective_m = 50 },
+    { name = "Rifle M1 (Garand)", count = 3, caliber_mm_x10 = 76, ammo = ".30-06 M2 ball, M2 AP", rate_rpm = 40, muzzle_velocity_mps = 853, range_effective_m = 457, range_typical_m = 300 },
+    { name = "Carbine M1", count = 2, caliber_mm_x10 = 76, ammo = ".30 Carbine M1 ball", rate_rpm = 30, muzzle_velocity_mps = 600, range_effective_m = 300, range_typical_m = 200 },
+    { name = "Submachine gun M1A1 (Thompson)", count = 1, caliber_mm_x10 = 114, ammo = ".45 ACP", rate_rpm = 700, muzzle_velocity_mps = 285, range_effective_m = 50, range_typical_m = 50 },
 ]
 source = [
     { ref = "https://www.battleorder.org/us-army-rifle-co-1945", covers = "US infantry regiment context (I&R platoon not detailed there)" },
     { ref = "https://en.wikipedia.org/wiki/Thompson_submachine_gun", covers = "M1A1 rate of fire and muzzle velocity" },
     { ref = "https://en.wikipedia.org/wiki/M1_Garand", covers = "M1 rifle data" },
+    { ref = "N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346", covers = "range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd" },
 ]
 uncertain = ["squad_size", "weapon"]
-note = "Dismounted team of one regimental I&R squad (the platoon was jeep-mounted). Strength and weapons mix are estimates; no T/O&E for the regimental HQ company was consulted. Thompson rate_rpm = cyclic. Thompson values not re-fetched."
+note = "Dismounted team of one regimental I&R squad (the platoon was jeep-mounted). Strength and weapons mix are estimates; no T/O&E for the regimental HQ company was consulted. Thompson rate_rpm = cyclic. Thompson values not re-fetched. range_typical_m (prompt 067): carbine 200 m (class estimate: two thirds of the rifle value for the weaker cartridge); .45 ACP submachine guns 50 m (class estimate, equal to the effective range)."
 
 [[unit]]
 id = "us_inf_sniper"
@@ -182,15 +193,17 @@ squad_size = 2
 speed_road_kmh_x10 = 50
 speed_offroad_kmh_x10 = 40
 weapon = [
-    { name = "Rifle M1903A4 (sniper's, M73B1 2.5x scope)", count = 1, caliber_mm_x10 = 76, ammo = ".30-06 M2 ball, M2 AP", rate_rpm = 10, muzzle_velocity_mps = 853, range_effective_m = 600 },
-    { name = "Rifle M1 (Garand)", count = 1, caliber_mm_x10 = 76, ammo = ".30-06 M2 ball, M2 AP", rate_rpm = 40, muzzle_velocity_mps = 853, range_effective_m = 457 },
+    { name = "Rifle M1903A4 (sniper's, M73B1 2.5x scope)", count = 1, caliber_mm_x10 = 76, ammo = ".30-06 M2 ball, M2 AP", rate_rpm = 10, muzzle_velocity_mps = 853, range_effective_m = 600, range_typical_m = 400 },
+    { name = "Rifle M1 (Garand)", count = 1, caliber_mm_x10 = 76, ammo = ".30-06 M2 ball, M2 AP", rate_rpm = 40, muzzle_velocity_mps = 853, range_effective_m = 457, range_typical_m = 300 },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/M1903_Springfield", covers = "M1903A4 adoption (1943), scope M73B1, muzzle velocity (not re-fetched)" },
     { ref = "https://en.wikipedia.org/wiki/M1_Garand", covers = "M1 rifle data" },
+    { ref = "H. Widhofner, interview with the snipers M. Hetzenauer, J. Allerberger and H. Wirnsberger, Truppendienst (Austrian Armed Forces, 1967), English text at https://shadowspear.com/threads/german-snipers-in-ww-ii.1045", covers = "range_typical_m: 65-80 % of the hits below 400 m, the rest up to 600 m; sure hits on a head up to 400 m, on a standing man up to 600 m" },
+    { ref = "N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346", covers = "range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd" },
 ]
 uncertain = ["squad_size", "weapon"]
-note = "US doctrine had no fixed sniper team; snipers were individual riflemen in the rifle company. Modeled as sniper plus observer with M1 rifle (assumption). Effective range of the M1903A4 with 2.5x scope ~600 m (estimate); rate_rpm is a rough aimed rate."
+note = "US doctrine had no fixed sniper team; snipers were individual riflemen in the rifle company. Modeled as sniper plus observer with M1 rifle (assumption). Effective range of the M1903A4 with 2.5x scope ~600 m (estimate); rate_rpm is a rough aimed rate. range_typical_m (prompt 067): sniper rifle 400 m (class value from the German sniper interview of 1967)."
 
 [[unit]]
 id = "us_inf_medic"
@@ -227,16 +240,18 @@ squad_size = 12
 speed_road_kmh_x10 = 50
 speed_offroad_kmh_x10 = 40
 weapon = [
-    { name = "Rifle M1 (Garand)", count = 11, caliber_mm_x10 = 76, ammo = ".30-06 M2 ball, M2 AP", rate_rpm = 40, muzzle_velocity_mps = 853, range_effective_m = 457 },
-    { name = "Browning Automatic Rifle M1918A2", count = 1, caliber_mm_x10 = 76, ammo = ".30-06 M2 ball, 20-round magazine", rate_rpm = 375, muzzle_velocity_mps = 860, range_effective_m = 550 },
+    { name = "Rifle M1 (Garand)", count = 11, caliber_mm_x10 = 76, ammo = ".30-06 M2 ball, M2 AP", rate_rpm = 40, muzzle_velocity_mps = 853, range_effective_m = 457, range_typical_m = 300 },
+    { name = "Browning Automatic Rifle M1918A2", count = 1, caliber_mm_x10 = 76, ammo = ".30-06 M2 ball, 20-round magazine", rate_rpm = 375, muzzle_velocity_mps = 860, range_effective_m = 550, range_typical_m = 400 },
     { name = "Demolition charges (TNT, Composition C2) and Bangalore torpedo M1A1", count = 1, ammo = "satchel / block charges" },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/Combat_engineer", covers = "role and equipment of WWII US combat engineers (not re-fetched)" },
     { ref = "https://en.wikipedia.org/wiki/M1_Garand", covers = "M1 rifle data" },
+    { ref = "N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346", covers = "range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd" },
+    { ref = "TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII sec. II, https://lonesentry.com/manuals/tme30/ch7sec2sub6.html", covers = "range_typical_m: MG 34 / MG 42 effective range as light MG 600-800 yd, as heavy MG (tripod) 2,000-2,500 yd: upper bounds for the typical distance" },
 ]
 uncertain = ["squad_size", "weapon"]
-note = "Squad of 12 including squad leader and assistant (estimate; the engineer combat battalion T/O&E 5-15 was not consulted). BAR allocation per squad is approximate. Demolitions entry has no caliber."
+note = "Squad of 12 including squad leader and assistant (estimate; the engineer combat battalion T/O&E 5-15 was not consulted). BAR allocation per squad is approximate. Demolitions entry has no caliber. range_typical_m (prompt 067): bipod and flexible-mount machine guns 400 m (class estimate between the 300 yd of ORO-T-160 and the 600-800 yd 'effective as light MG' of TM-E 30-451); the BAR M1918A2 on its bipod, the squad's automatic weapon, counts as one like the DP-27."
 
 [[unit]]
 id = "us_inf_at"
@@ -253,14 +268,14 @@ squad_size = 2
 speed_road_kmh_x10 = 50
 speed_offroad_kmh_x10 = 40
 weapon = [
-    { name = "2.36 in Rocket Launcher M9 (Bazooka)", count = 1, caliber_mm_x10 = 600, ammo = "M6A3 HEAT rocket", rate_rpm = 4, muzzle_velocity_mps = 81, range_effective_m = 110, ammo_carried = 6 },
-    { name = "Carbine M1", count = 2, caliber_mm_x10 = 76, ammo = ".30 Carbine M1 ball", rate_rpm = 30, muzzle_velocity_mps = 600, range_effective_m = 300 },
+    { name = "2.36 in Rocket Launcher M9 (Bazooka)", count = 1, caliber_mm_x10 = 600, ammo = "M6A3 HEAT rocket", rate_rpm = 4, muzzle_velocity_mps = 81, range_effective_m = 110, range_typical_m = 100, ammo_carried = 6 },
+    { name = "Carbine M1", count = 2, caliber_mm_x10 = 76, ammo = ".30 Carbine M1 ball", rate_rpm = 30, muzzle_velocity_mps = 600, range_effective_m = 300, range_typical_m = 200 },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/Bazooka", covers = "crew 2 (operator, loader); M1A1 effective 150 yd, M9 120 yd (claimed), max 400-500 yd; M6A3 rocket 265 ft/s; penetration up to 4 in (102 mm)" },
 ]
 uncertain = ["weapon"]
-note = "M1A1 in 1943-44, M9/M9A1 from late 1944; modeled as M9 (effective 120 yd = 110 m). Gunner and loader with carbines. ammo_carried (rockets carried by the team) and practical rate_rpm are estimates."
+note = "M1A1 in 1943-44, M9/M9A1 from late 1944; modeled as M9 (effective 120 yd = 110 m). Gunner and loader with carbines. ammo_carried (rockets carried by the team) and practical rate_rpm are estimates. range_typical_m (prompt 067): anti-tank rocket launcher 100 m (class estimate: below the sight limit, where a moving tank is hit reliably); carbine 200 m (class estimate: two thirds of the rifle value for the weaker cartridge)."
 
 [[unit]]
 id = "us_inf_flamethrower"
@@ -277,15 +292,16 @@ squad_size = 2
 speed_road_kmh_x10 = 50
 speed_offroad_kmh_x10 = 40
 weapon = [
-    { name = "Portable Flame Thrower M2-2", count = 1, ammo = "thickened fuel (napalm) or gasoline, 2x 2 US gal (7.6 l) tanks", range_effective_m = 20, ammo_carried = 7 },
-    { name = "Rifle M1 (Garand)", count = 1, caliber_mm_x10 = 76, ammo = ".30-06 M2 ball, M2 AP", rate_rpm = 40, muzzle_velocity_mps = 853, range_effective_m = 457 },
-    { name = "Pistol M1911A1", count = 1, caliber_mm_x10 = 114, ammo = ".45 ACP", muzzle_velocity_mps = 253, range_effective_m = 50 },
+    { name = "Portable Flame Thrower M2-2", count = 1, ammo = "thickened fuel (napalm) or gasoline, 2x 2 US gal (7.6 l) tanks", range_effective_m = 20, range_typical_m = 20, ammo_carried = 7 },
+    { name = "Rifle M1 (Garand)", count = 1, caliber_mm_x10 = 76, ammo = ".30-06 M2 ball, M2 AP", rate_rpm = 40, muzzle_velocity_mps = 853, range_effective_m = 457, range_typical_m = 300 },
+    { name = "Pistol M1911A1", count = 1, caliber_mm_x10 = 114, ammo = ".45 ACP", muzzle_velocity_mps = 253, range_effective_m = 50, range_typical_m = 25 },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/M2_flamethrower", covers = "19.5 kg empty / 30.8 kg filled, two 2-gal fuel tanks, effective range 20 m, maximum 40 m, burn time ~7 s" },
+    { ref = "N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346", covers = "range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd" },
 ]
 uncertain = ["squad_size", "weapon"]
-note = "Operator with pistol, assistant with M1 rifle (team of 2 is a modeling choice; the source lists crew 1). ammo_carried = seconds of burn time (~7 s, no caliber). range_effective_m = effective range; maximum 40 m with thickened fuel."
+note = "Operator with pistol, assistant with M1 rifle (team of 2 is a modeling choice; the source lists crew 1). ammo_carried = seconds of burn time (~7 s, no caliber). range_effective_m = effective range; maximum 40 m with thickened fuel. range_typical_m (prompt 067): pistols 25 m (class estimate: half the effective range)."
 
 [[unit]]
 id = "us_inf_command"
@@ -302,8 +318,8 @@ squad_size = 2
 speed_road_kmh_x10 = 50
 speed_offroad_kmh_x10 = 40
 weapon = [
-    { name = "Carbine M1", count = 2, caliber_mm_x10 = 76, ammo = ".30 Carbine M1 ball", rate_rpm = 30, muzzle_velocity_mps = 600, range_effective_m = 300 },
-    { name = "Pistol M1911A1", count = 1, caliber_mm_x10 = 114, ammo = ".45 ACP", muzzle_velocity_mps = 253, range_effective_m = 50 },
+    { name = "Carbine M1", count = 2, caliber_mm_x10 = 76, ammo = ".30 Carbine M1 ball", rate_rpm = 30, muzzle_velocity_mps = 600, range_effective_m = 300, range_typical_m = 200 },
+    { name = "Pistol M1911A1", count = 1, caliber_mm_x10 = 114, ammo = ".45 ACP", muzzle_velocity_mps = 253, range_effective_m = 50, range_typical_m = 25 },
 ]
 source = [
     { ref = "TM 11-242 Radio Set SCR-300-A (1945)", covers = "radio manual (number confirmed via Wikipedia)" },
@@ -311,7 +327,7 @@ source = [
     { ref = "https://www.battleorder.org/post/usa-rifleco-1944", covers = "platoon HQs used SCR-536 handie-talkies (6 per rifle company)" },
 ]
 uncertain = ["weapon"]
-note = "Officer with carbine and pistol, radio operator with carbine (typical, not fixed by T/O&E). The SCR-300 served company-to-battalion nets; platoon leaders used the handheld SCR-536."
+note = "Officer with carbine and pistol, radio operator with carbine (typical, not fixed by T/O&E). The SCR-300 served company-to-battalion nets; platoon leaders used the handheld SCR-536. range_typical_m (prompt 067): carbine 200 m (class estimate: two thirds of the rifle value for the weaker cartridge); pistols 25 m (class estimate: half the effective range)."
 
 [[unit]]
 id = "us_inf_tank_crew"
@@ -328,15 +344,15 @@ squad_size = 5
 speed_road_kmh_x10 = 50
 speed_offroad_kmh_x10 = 40
 weapon = [
-    { name = "Submachine gun M3", count = 1, caliber_mm_x10 = 114, ammo = ".45 ACP", rate_rpm = 450, muzzle_velocity_mps = 280, range_effective_m = 50 },
-    { name = "Pistol M1911A1", count = 4, caliber_mm_x10 = 114, ammo = ".45 ACP", muzzle_velocity_mps = 253, range_effective_m = 50 },
+    { name = "Submachine gun M3", count = 1, caliber_mm_x10 = 114, ammo = ".45 ACP", rate_rpm = 450, muzzle_velocity_mps = 280, range_effective_m = 50, range_typical_m = 50 },
+    { name = "Pistol M1911A1", count = 4, caliber_mm_x10 = 114, ammo = ".45 ACP", muzzle_velocity_mps = 253, range_effective_m = 50, range_typical_m = 25 },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/M4_Sherman", covers = "crew of five (commander, gunner, loader, driver, assistant driver); from memory, not fetched for this entry" },
     { ref = "https://en.wikipedia.org/wiki/M3_submachine_gun", covers = "M3: .45 ACP, about 450 rpm cyclic, 280 m/s, issued to tank crews; from memory, not fetched for this entry" },
 ]
 uncertain = ["weapon"]
-note = "Not built or bought: the survivors of a destroyed vehicle (prompt 049) bail out as this squad, 1-5 men by chance. squad_size is the largest crew of the faction's tanks (M4 Sherman, M26: 5). Personal weapons: M1911A1 pistols and one M3 submachine gun from the tank's stowage. The model carries the Thompson (no M3 model yet) and the M1 helmet instead of the tanker helmet."
+note = "Not built or bought: the survivors of a destroyed vehicle (prompt 049) bail out as this squad, 1-5 men by chance. squad_size is the largest crew of the faction's tanks (M4 Sherman, M26: 5). Personal weapons: M1911A1 pistols and one M3 submachine gun from the tank's stowage. The model carries the Thompson (no M3 model yet) and the M1 helmet instead of the tanker helmet. range_typical_m (prompt 067): .45 ACP submachine guns 50 m (class estimate, equal to the effective range); pistols 25 m (class estimate: half the effective range)."
 
 # ---------------------------------------------------------------------------
 # Vehicles
@@ -370,15 +386,15 @@ armor_turret_front_mm = 51
 armor_turret_side_mm = 32
 armor_turret_rear_mm = 32
 weapon = [
-    { name = "37 mm Gun M6", caliber_mm_x10 = 370, ammo = "M51 APC, M63 HE, M2 canister", rate_rpm = 20, muzzle_velocity_mps = 884, range_effective_m = 800, ammo_carried = 147 },
+    { name = "37 mm Gun M6", caliber_mm_x10 = 370, ammo = "M51 APC, M63 HE, M2 canister", rate_rpm = 20, muzzle_velocity_mps = 884, range_effective_m = 800, range_typical_m = 500, ammo_carried = 147 },
     { name = "Browning M1919A4", count = 3, caliber_mm_x10 = 76, rate_rpm = 500, muzzle_velocity_mps = 853, ammo_carried = 6250 },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/M3_Stuart", covers = "M5A1 late production: 4.84 x 2.29 x 2.57 m (over AA MG), 33,500 lb, crew 4, 37 mm M6 with 147 rounds, twin Cadillac Series 42 220 hp, 36 mph, 100 mi" },
     { ref = "Hunnicutt, Stuart: A History of the American Light Tank (1992)", covers = "armor values (not re-checked)" },
 ]
-uncertain = ["speed_offroad_kmh_x10", "armor_hull_front_mm", "armor_hull_side_mm", "armor_hull_rear_mm", "armor_turret_front_mm", "armor_turret_side_mm", "armor_turret_rear_mm", "weapon"]
-note = "M5A1 (production Nov 1942 - Jun 1944), the standard US light tank 1943-45 until the M24. Length incl. sand shields and stowage box; height over the AA MG. power_hp = 220 hp (net) converted. Armor values are from memory of Hunnicutt and not confirmed by a fetched source (Wikipedia gives only 9.5-50.8 mm overall); turret front 51 mm = gun shield. Offroad speed estimated. 37 mm practical rate_rpm and MG ammunition are estimates; MG rate_rpm = cyclic."
+uncertain = ["speed_offroad_kmh_x10", "armor_hull_front_mm", "armor_hull_side_mm", "armor_hull_rear_mm", "armor_turret_front_mm", "armor_turret_side_mm", "armor_turret_rear_mm", "weapon", "power_hp"]
+note = "M5A1 (production Nov 1942 - Jun 1944), the standard US light tank 1943-45 until the M24. Length incl. sand shields and stowage box; height over the AA MG. power_hp = 220 hp (net) converted. Armor values are from memory of Hunnicutt and not confirmed by a fetched source (Wikipedia gives only 9.5-50.8 mm overall); turret front 51 mm = gun shield. Offroad speed estimated. 37 mm practical rate_rpm and MG ammunition are estimates; MG rate_rpm = cyclic. Differs from onwar.com (data/vehicles, a rank-4 source; the values above keep their sources): power_hp 296, armor_hull_front_mm 64. range_typical_m (prompt 067): light guns of 37-45 mm 500 m against ground targets (class estimate below the 75 mm class)."
 
 [[unit]]
 id = "us_m4a3_75"
@@ -408,7 +424,7 @@ armor_turret_front_mm = 76
 armor_turret_side_mm = 51
 armor_turret_rear_mm = 51
 weapon = [
-    { name = "75 mm Gun M3 (mount M34A1)", caliber_mm_x10 = 750, ammo = "M61 APC, M72 AP, M48 HE, M89 smoke", rate_rpm = 10, muzzle_velocity_mps = 619, range_effective_m = 1000, ammo_carried = 104 },
+    { name = "75 mm Gun M3 (mount M34A1)", caliber_mm_x10 = 750, ammo = "M61 APC, M72 AP, M48 HE, M89 smoke", rate_rpm = 10, muzzle_velocity_mps = 619, range_effective_m = 1000, range_typical_m = 700, ammo_carried = 104 },
     { name = "Browning M2HB (AA, turret roof)", caliber_mm_x10 = 127, rate_rpm = 500, muzzle_velocity_mps = 887, aa = true, ammo_carried = 300 },
     { name = "Browning M1919A4 (coaxial, bow)", count = 2, caliber_mm_x10 = 76, rate_rpm = 500, muzzle_velocity_mps = 853, ammo_carried = 4750 },
 ]
@@ -417,9 +433,11 @@ source = [
     { ref = "https://www.historyofwar.org/articles/weapons_medium_tank_M4A3_sherman_IV.html", covers = "cross-check: same dimensions, weight 69,600 lb, armor, 26 mph, 100 mi; M4A3(75)W built Feb 1944 - Mar 1945" },
     { ref = "https://en.wikipedia.org/wiki/M4_Sherman", covers = "crew 5, off-road speed 15-20 mph (24-32 km/h) across variants" },
     { ref = "TM 9-759 Medium Tank M4A3 (1942)", covers = "base M4A3 manual (existence confirmed; contents not read)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+    { ref = "A. D. Coox / L. Van Loan Naisawald, Survey of Allied Tank Casualties in World War II, ORO-T-117 (Operations Research Office, 1951); figures from secondary quotations, report not read", covers = "range_typical_m: cross-check: average range at which Allied tanks were knocked out by gunfire just under 800 yd (US sample about 774 yd = 708 m)" },
 ]
-uncertain = ["speed_offroad_kmh_x10", "weapon"]
-note = "M4A3(75)W with VVSS, large-hatch 47 deg hull, wet stowage (built Feb 1944 - Mar 1945). Length 6,270 mm is the hull with sandshields; the 75 mm barrel hardly overhangs, so it is used as overall length. Height over the cupola. armor_hull_front_mm = upper glacis (the cast/rolled lower nose is 51-108 mm). armor_turret_front_mm = turret face 76 mm; gun shield 89 mm. power_hp = 500 gross hp converted (450 net). Offroad speed estimated within the 24-32 km/h range Wikipedia gives for Shermans. 75 mm practical rate_rpm and effective range are estimates; MG rate_rpm = cyclic."
+uncertain = ["speed_offroad_kmh_x10", "weapon", "armor_hull_front_mm", "armor_turret_front_mm"]
+note = "M4A3(75)W with VVSS, large-hatch 47 deg hull, wet stowage (built Feb 1944 - Mar 1945). Length 6,270 mm is the hull with sandshields; the 75 mm barrel hardly overhangs, so it is used as overall length. Height over the cupola. armor_hull_front_mm = upper glacis (the cast/rolled lower nose is 51-108 mm). armor_turret_front_mm = turret face 76 mm; gun shield 89 mm. power_hp = 500 gross hp converted (450 net). Offroad speed estimated within the 24-32 km/h range Wikipedia gives for Shermans. 75 mm practical rate_rpm and effective range are estimates; MG rate_rpm = cyclic. Differs from onwar.com (data/vehicles, a rank-4 source; the values above keep their sources): armor_hull_front_mm 108, armor_turret_front_mm 89. range_typical_m (prompt 067): 57-76 mm tank and anti-tank guns 700 m (class value: documented for the German 75 mm guns, taken over for the same gun class)."
 
 [[unit]]
 id = "us_m26"
@@ -450,16 +468,17 @@ armor_turret_front_mm = 114
 armor_turret_side_mm = 76
 armor_turret_rear_mm = 76
 weapon = [
-    { name = "90 mm Gun M3", caliber_mm_x10 = 900, ammo = "M82 APC, T30E16 HVAP, M71 HE", rate_rpm = 8, muzzle_velocity_mps = 853, range_effective_m = 1500, ammo_carried = 70 },
+    { name = "90 mm Gun M3", caliber_mm_x10 = 900, ammo = "M82 APC, T30E16 HVAP, M71 HE", rate_rpm = 8, muzzle_velocity_mps = 853, range_effective_m = 1500, range_typical_m = 1000, ammo_carried = 70 },
     { name = "Browning M2HB (AA)", caliber_mm_x10 = 127, rate_rpm = 500, muzzle_velocity_mps = 887, aa = true, ammo_carried = 550 },
     { name = "Browning M1919A4 (coaxial, bow)", count = 2, caliber_mm_x10 = 76, rate_rpm = 500, muzzle_velocity_mps = 853, ammo_carried = 5000 },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/M26_Pershing", covers = "8.649 m with gun, 6.337 m hull, 3.51 m, 2.781 m, 41.9 t, crew 5, upper hull 102 mm, turret sides 76 mm, hull sides 50-75 mm, 90 mm M3 with 70 rounds, 2x M1919 (5,000), M2 (550), Ford GAF 450-500 hp, 48 km/h, 160 km" },
     { ref = "Hunnicutt, Pershing: A History of the Medium Tank T20 Series (1971)", covers = "glacis angle 46 deg, mantlet 4.5 in, rear armor (not re-checked)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
 ]
-uncertain = ["speed_offroad_kmh_x10", "armor_hull_front_deg", "armor_hull_rear_mm", "armor_turret_front_mm", "armor_turret_rear_mm"]
-note = "T26E3/M26 as used in Europe Feb-May 1945 (in service until Korea, reclassified medium tank 1946). armor_turret_front_mm 114 = gun mantlet (turret face 102 mm); not in the fetched source. Wikipedia lists an off-road speed of 5.25 mph (8.45 km/h), which looks like a grade/soft-ground figure; 26 km/h is an estimate. power_hp = 500 gross hp converted. MG rate_rpm = cyclic."
+uncertain = ["speed_offroad_kmh_x10", "armor_hull_front_deg", "armor_hull_rear_mm", "armor_turret_front_mm", "armor_turret_rear_mm", "speed_road_kmh_x10", "weapon"]
+note = "T26E3/M26 as used in Europe Feb-May 1945 (in service until Korea, reclassified medium tank 1946). armor_turret_front_mm 114 = gun mantlet (turret face 102 mm); not in the fetched source. Wikipedia lists an off-road speed of 5.25 mph (8.45 km/h), which looks like a grade/soft-ground figure; 26 km/h is an estimate. power_hp = 500 gross hp converted. MG rate_rpm = cyclic. Differs from onwar.com (data/vehicles, a rank-4 source; the values above keep their sources): speed_road_kmh_x10 400. range_typical_m (prompt 067): 85-122 mm high-velocity guns 1000 m (class value: documented for the German 88 mm guns, taken over for the same gun class)."
 
 [[unit]]
 id = "us_m10"
@@ -490,15 +509,17 @@ armor_turret_front_mm = 57
 armor_turret_side_mm = 25
 armor_turret_rear_mm = 25
 weapon = [
-    { name = "3 in Gun M7 (mount M5)", caliber_mm_x10 = 762, ammo = "M62 APC, M79 AP, M42A1 HE, M93 HVAP (late 1944)", rate_rpm = 8, muzzle_velocity_mps = 792, range_effective_m = 1500, ammo_carried = 54 },
+    { name = "3 in Gun M7 (mount M5)", caliber_mm_x10 = 762, ammo = "M62 APC, M79 AP, M42A1 HE, M93 HVAP (late 1944)", rate_rpm = 8, muzzle_velocity_mps = 792, range_effective_m = 1500, range_typical_m = 700, ammo_carried = 54 },
     { name = "Browning M2HB (AA)", caliber_mm_x10 = 127, rate_rpm = 500, muzzle_velocity_mps = 887, aa = true, ammo_carried = 300 },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/M10_tank_destroyer", covers = "6.83 m with gun, 5.97 m hull, 3.05 m, 2.90 m over AA MG, 65,200 lb, crew 5, glacis 1.5 in, upper sides/rear 0.75 in, turret side 1 in, gun shield 2.25 in, 3 in M7 with 54 rounds, 375 hp, 25-30 mph, 200 mi" },
     { ref = "Zaloga, M10 and M36 Tank Destroyers 1942-53, Osprey New Vanguard 57 (2002)", covers = "service, .50 AA MG (not re-checked)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+    { ref = "A. D. Coox / L. Van Loan Naisawald, Survey of Allied Tank Casualties in World War II, ORO-T-117 (Operations Research Office, 1951); figures from secondary quotations, report not read", covers = "range_typical_m: cross-check: average range at which Allied tanks were knocked out by gunfire just under 800 yd (US sample about 774 yd = 708 m)" },
 ]
-uncertain = ["speed_road_kmh_x10", "speed_offroad_kmh_x10", "armor_hull_front_deg"]
-note = "M10 (GM 6046 twin diesel; the M10A1 used the Ford GAA). Open-topped turret. Height over the AA MG. armor_hull_front_mm = glacis 38 mm; the 55 deg slope is from memory, not confirmed. Turret front 57 mm = gun shield. Road speed: Wikipedia gives 25-30 mph, 30 mph used. power_hp = 375 hp converted. Offroad speed estimated."
+uncertain = ["speed_road_kmh_x10", "speed_offroad_kmh_x10", "armor_hull_front_deg", "armor_hull_front_mm", "armor_hull_side_mm", "armor_hull_rear_mm", "weapon"]
+note = "M10 (GM 6046 twin diesel; the M10A1 used the Ford GAA). Open-topped turret. Height over the AA MG. armor_hull_front_mm = glacis 38 mm; the 55 deg slope is from memory, not confirmed. Turret front 57 mm = gun shield. Road speed: Wikipedia gives 25-30 mph, 30 mph used. power_hp = 375 hp converted. Offroad speed estimated. Differs from onwar.com (data/vehicles, a rank-4 source; the values above keep their sources): armor_hull_front_mm 51, armor_hull_side_mm 25, armor_hull_rear_mm 25, speed_road_kmh_x10 400. range_typical_m (prompt 067): 57-76 mm tank and anti-tank guns 700 m (class value: documented for the German 75 mm guns, taken over for the same gun class)."
 
 [[unit]]
 id = "us_m4a3_105"
@@ -528,7 +549,7 @@ armor_turret_front_mm = 76
 armor_turret_side_mm = 51
 armor_turret_rear_mm = 25
 weapon = [
-    { name = "105 mm Howitzer M4 (mount M52)", caliber_mm_x10 = 1050, ammo = "M1 HE, M67 HEAT, M84 smoke", rate_rpm = 4, muzzle_velocity_mps = 472, range_effective_m = 11160, ammo_carried = 66 },
+    { name = "105 mm Howitzer M4 (mount M52)", caliber_mm_x10 = 1050, ammo = "M1 HE, M67 HEAT, M84 smoke", rate_rpm = 4, muzzle_velocity_mps = 472, range_effective_m = 11160, range_typical_m = 500, ammo_carried = 66 },
     { name = "Browning M2HB (AA)", caliber_mm_x10 = 127, rate_rpm = 500, muzzle_velocity_mps = 887, aa = true, ammo_carried = 600 },
     { name = "Browning M1919A4 (coaxial, bow)", count = 2, caliber_mm_x10 = 76, rate_rpm = 500, muzzle_velocity_mps = 853, ammo_carried = 4000 },
 ]
@@ -538,7 +559,7 @@ source = [
     { ref = "https://en.wikipedia.org/wiki/M101_howitzer", covers = "105 mm ballistics: 472 m/s, max range ~11.3 km" },
 ]
 uncertain = ["length_mm", "speed_offroad_kmh_x10", "range_road_km", "weapon"]
-note = "Assault gun of the tank battalion HQ companies. Length is without the howitzer (afvdatabase); the short barrel overhangs a little, so overall length is somewhat larger. armor_turret_front_mm = turret 76 mm (howitzer shield 91 mm). Speed and range taken as M4A3(75)W (not in the fetched excerpt). range_effective_m = maximum indirect range of the M2A1 family; the M4 tank howitzer is similar (estimate)."
+note = "Assault gun of the tank battalion HQ companies. Length is without the howitzer (afvdatabase); the short barrel overhangs a little, so overall length is somewhat larger. armor_turret_front_mm = turret 76 mm (howitzer shield 91 mm). Speed and range taken as M4A3(75)W (not in the fetched excerpt). range_effective_m = maximum indirect range of the M2A1 family; the M4 tank howitzer is similar (estimate). range_typical_m (prompt 067): 105 mm howitzer in direct fire 500 m (class estimate: low muzzle velocity, below the 75 mm guns)."
 
 [[unit]]
 id = "us_m3_halftrack"
@@ -565,15 +586,17 @@ armor_hull_front_mm = 13
 armor_hull_side_mm = 6
 armor_hull_rear_mm = 6
 weapon = [
-    { name = "Browning M1919A4 (pedestal mount M25)", caliber_mm_x10 = 76, ammo = ".30-06 M2 ball, M1 tracer", rate_rpm = 500, muzzle_velocity_mps = 853, range_effective_m = 1370, ammo_carried = 4000 },
+    { name = "Browning M1919A4 (pedestal mount M25)", caliber_mm_x10 = 76, ammo = ".30-06 M2 ball, M1 tracer", rate_rpm = 500, muzzle_velocity_mps = 853, range_effective_m = 1370, range_typical_m = 400, ammo_carried = 4000 },
 ]
 source = [
     { ref = "https://afvdatabase.com/usa/halftrackm3.html", covers = "M3: combat weight 20,000 lb, length 242.63 in with roller, width 77.25 in, height 89 in, White 160AX 147 net hp, 45 mph, ~200 mi, 60 gal, 13 men, M1919A4 on pedestal M25 with 4,000 rds; armor windshield cover 0.5 in, radiator louvres/sides/rear 0.25 in; reference TM 9-710" },
     { ref = "https://en.wikipedia.org/wiki/M3_half-track", covers = "crew 1 (driver) + 12 passengers; 17,650 lb (M3), 18,425 lb (M3A1); 6.17 x 2.223 x 2.26 m; range 200 mi (320 km)" },
     { ref = "TM 9-710 Basic Half-track Vehicles (White, Autocar and Diamond T), 23 Feb 1944, https://webarchive.library.unt.edu/web/20121010045806/http:/usacac.army.mil/cac2/cgsc/carl/wwIItms/TM9_710_1944.pdf", covers = "primary manual (existence confirmed; tables not read)" },
+    { ref = "N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346", covers = "range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd" },
+    { ref = "TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII sec. II, https://lonesentry.com/manuals/tme30/ch7sec2sub6.html", covers = "range_typical_m: MG 34 / MG 42 effective range as light MG 600-800 yd, as heavy MG (tripod) 2,000-2,500 yd: upper bounds for the typical distance" },
 ]
-uncertain = ["width_mm", "mass_kg", "speed_offroad_kmh_x10"]
-note = "M3 personnel carrier (with front roller). crew = driver; carries 12 passengers (13 men total). Width: afvdatabase gives 77.25 in for the M3 and 87.5 in over mine racks for the M3A1 (Wikipedia 2.223 m) - sources conflict. Mass: afvdatabase combat weight 20,000 lb vs Wikipedia 17,650 lb (likely unladen gross). Armament per afvdatabase: early M3 .30 M1919A4 on pedestal M25; many vehicles carried a .50 M2HB, and the M3A1 (1943) had the M49 ring mount (.50 with 700 rds plus two .30). armor_hull_front_mm = windshield armor cover 12.7 mm (radiator louvres 6.35 mm). power_hp = 147 net hp converted. Offroad speed estimated. MG rate_rpm = cyclic."
+uncertain = ["width_mm", "mass_kg", "speed_offroad_kmh_x10", "weapon"]
+note = "M3 personnel carrier (with front roller). crew = driver; carries 12 passengers (13 men total). Width: afvdatabase gives 77.25 in for the M3 and 87.5 in over mine racks for the M3A1 (Wikipedia 2.223 m) - sources conflict. Mass: afvdatabase combat weight 20,000 lb vs Wikipedia 17,650 lb (likely unladen gross). Armament per afvdatabase: early M3 .30 M1919A4 on pedestal M25; many vehicles carried a .50 M2HB, and the M3A1 (1943) had the M49 ring mount (.50 with 700 rds plus two .30). armor_hull_front_mm = windshield armor cover 12.7 mm (radiator louvres 6.35 mm). power_hp = 147 net hp converted. Offroad speed estimated. MG rate_rpm = cyclic. range_typical_m (prompt 067): bipod and flexible-mount machine guns 400 m (class estimate between the 300 yd of ORO-T-160 and the 600-800 yd 'effective as light MG' of TM-E 30-451)."
 
 [[unit]]
 id = "us_gmc_cckw"
@@ -630,7 +653,7 @@ armor_turret_front_mm = 25
 armor_turret_side_mm = 19
 armor_turret_rear_mm = 19
 weapon = [
-    { name = "37 mm Gun M6", caliber_mm_x10 = 370, ammo = "M51 APC, M63 HE, M2 canister", rate_rpm = 20, muzzle_velocity_mps = 884, range_effective_m = 800, ammo_carried = 80 },
+    { name = "37 mm Gun M6", caliber_mm_x10 = 370, ammo = "M51 APC, M63 HE, M2 canister", rate_rpm = 20, muzzle_velocity_mps = 884, range_effective_m = 800, range_typical_m = 500, ammo_carried = 80 },
     { name = "Browning M1919A4 (coaxial)", caliber_mm_x10 = 76, rate_rpm = 500, muzzle_velocity_mps = 853, ammo_carried = 1500 },
     { name = "Browning M2HB (AA, ring mount)", caliber_mm_x10 = 127, rate_rpm = 500, muzzle_velocity_mps = 887, aa = true, ammo_carried = 400 },
 ]
@@ -638,8 +661,8 @@ source = [
     { ref = "https://en.wikipedia.org/wiki/M8_Greyhound", covers = "4.70 x 2.31 x 1.91 m, ~7.4 t, crew 4, armor up to 25 mm, 37 mm with 80 rounds, .30 MG 1,500 rds, .50 MG 400 rds, 110 hp, 55 mph road, 32 mph cross-country, 200-400 mi road" },
     { ref = "TM 9-743 Light Armored Car M8 and Armored Utility Car M20", covers = "primary manual (existence confirmed; contents not read)" },
 ]
-uncertain = ["height_mm", "range_road_km", "armor_hull_front_mm", "armor_hull_side_mm", "armor_hull_rear_mm", "armor_turret_side_mm", "armor_turret_rear_mm"]
-note = "M8, 6x6. Dimensions per Wikipedia (other published figures are up to 5.0 x 2.54 x 2.25 m; height 1.91 m is probably to the hull/turret roof without the AA MG). Armor split by face is from memory (Wikipedia gives only max 25 mm); turret front 25 mm. Range 560 km chosen within the 320-640 km road range. M2HB ring mount added from late 1944 (not on all vehicles). power_hp = 110 hp converted. MG rate_rpm = cyclic."
+uncertain = ["height_mm", "range_road_km", "armor_hull_front_mm", "armor_hull_side_mm", "armor_hull_rear_mm", "armor_turret_side_mm", "armor_turret_rear_mm", "weapon"]
+note = "M8, 6x6. Dimensions per Wikipedia (other published figures are up to 5.0 x 2.54 x 2.25 m; height 1.91 m is probably to the hull/turret roof without the AA MG). Armor split by face is from memory (Wikipedia gives only max 25 mm); turret front 25 mm. Range 560 km chosen within the 320-640 km road range. M2HB ring mount added from late 1944 (not on all vehicles). power_hp = 110 hp converted. MG rate_rpm = cyclic. range_typical_m (prompt 067): light guns of 37-45 mm 500 m against ground targets (class estimate below the 75 mm class)."
 
 [[unit]]
 id = "us_m7_priest"
@@ -697,7 +720,7 @@ mass_kg = 1275
 crew = 7
 armor_turret_front_mm = 6
 weapon = [
-    { name = "57 mm Gun M1 (L/50)", caliber_mm_x10 = 570, ammo = "M86 APC, M70 AP, M303 HE (1944), British APDS (late 1944)", rate_rpm = 15, muzzle_velocity_mps = 823, range_effective_m = 1000 },
+    { name = "57 mm Gun M1 (L/50)", caliber_mm_x10 = 570, ammo = "M86 APC, M70 AP, M303 HE (1944), British APDS (late 1944)", rate_rpm = 15, muzzle_velocity_mps = 823, range_effective_m = 1000, range_typical_m = 700 },
 ]
 source = [
     { ref = "https://www.lonesentry.com/blog/57-mm-gun-m1.html", covers = "wartime data sheet: weight of gun and carriage travelling 2,915 lb; M70 AP 2,970 ft/s, M86 APC 2,700 ft/s; elevation -5 to +15 deg, traverse 90 deg; 20-30 rpm" },
@@ -705,9 +728,11 @@ source = [
     { ref = "https://www.quartermastersection.com/american/artillery/231/57mmM1A3", covers = "squad: leader, gunner, assistant gunner, 2 loaders, 2 drivers; max rate 15 rpm; gun shield 6.35 mm; APC 823 m/s, AP 853 m/s" },
     { ref = "https://en.wikipedia.org/wiki/Ordnance_QF_6-pounder", covers = "US M1 L/50: width 1.8 m, height 1.28 m, 15 rpm, effective range 1,650 yd, max 5,000 yd" },
     { ref = "FM 23-75 57-mm Gun M1 (June 1944)", covers = "service of the piece (existence confirmed; contents not read)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+    { ref = "A. D. Coox / L. Van Loan Naisawald, Survey of Allied Tank Casualties in World War II, ORO-T-117 (Operations Research Office, 1951); figures from secondary quotations, report not read", covers = "range_typical_m: cross-check: average range at which Allied tanks were knocked out by gunfire just under 800 yd (US sample about 774 yd = 708 m)" },
 ]
 uncertain = ["length_mm", "mass_kg", "crew", "weapon"]
-note = "US licence version of the British 6-pounder on carriage M2 (1944, caster wheel on right trail). mass_kg = 2,810 lb in firing position (historyofwar; travelling 2,915 lb per Lone Sentry; one manual excerpt says 2,700 lb). Height 1.28 m (firing position, over shield). length_mm is an estimate (no overall length found; tube 2.97 m). crew 7 = squad incl. 2 drivers per quartermastersection; Wikipedia mentions 10 in US AT use, 6 in its table. armor_turret_front_mm = gun shield 6.35 mm. muzzle_velocity_mps = M86 APC (M70 AP 853-905 m/s by source). rate_rpm 15 (wiki, quartermastersection); Lone Sentry gives 20-30. range_effective_m against tanks ~1,000 m is an estimate (Wikipedia: 1,510 m)."
+note = "US licence version of the British 6-pounder on carriage M2 (1944, caster wheel on right trail). mass_kg = 2,810 lb in firing position (historyofwar; travelling 2,915 lb per Lone Sentry; one manual excerpt says 2,700 lb). Height 1.28 m (firing position, over shield). length_mm is an estimate (no overall length found; tube 2.97 m). crew 7 = squad incl. 2 drivers per quartermastersection; Wikipedia mentions 10 in US AT use, 6 in its table. armor_turret_front_mm = gun shield 6.35 mm. muzzle_velocity_mps = M86 APC (M70 AP 853-905 m/s by source). rate_rpm 15 (wiki, quartermastersection); Lone Sentry gives 20-30. range_effective_m against tanks ~1,000 m is an estimate (Wikipedia: 1,510 m). range_typical_m (prompt 067): 57-76 mm tank and anti-tank guns 700 m (class value: documented for the German 75 mm guns, taken over for the same gun class)."
 
 [[unit]]
 id = "us_bofors_m1"
@@ -726,14 +751,14 @@ height_mm = 2010
 mass_kg = 2520
 crew = 11
 weapon = [
-    { name = "40 mm Automatic Gun M1 (L/60)", caliber_mm_x10 = 400, ammo = "M2 HE-T, M81 AP-T", rate_rpm = 120, muzzle_velocity_mps = 874, range_effective_m = 7160, range_aa_m = 3500 },
+    { name = "40 mm Automatic Gun M1 (L/60)", caliber_mm_x10 = 400, ammo = "M2 HE-T, M81 AP-T", rate_rpm = 120, muzzle_velocity_mps = 874, range_effective_m = 7160, range_typical_m = 500, range_aa_m = 3500 },
 ]
 source = [
     { ref = "TM 9-252 40-mm Automatic Gun M1 (AA) and 40-mm Antiaircraft Gun Carriages M2 and M2A1 (1944), https://www.bulletpicker.com/pdf/TM-9-252.pdf", covers = "primary manual (existence confirmed; tables not read)" },
     { ref = "https://en.wikipedia.org/wiki/Bofors_40_mm_L/60_gun", covers = "rate 120-140 rpm, muzzle velocity 850-880 m/s, maximum firing range 7,160 m" },
 ]
 uncertain = ["length_mm", "width_mm", "height_mm", "mass_kg", "crew", "weapon"]
-note = "Towed single Bofors of the AAA automatic weapons battalions. Dimensions (travel order) and mass are from memory and not confirmed by a fetched source. crew = US gun section (~11 incl. director crew); 4-6 serve the gun. rate_rpm = cyclic 120 rpm. range_effective_m = maximum horizontal (ground) range per Wikipedia. Ceiling: effective ~3,500 m, maximum vertical reach ~6,800 m (estimates)."
+note = "Towed single Bofors of the AAA automatic weapons battalions. Dimensions (travel order) and mass are from memory and not confirmed by a fetched source. crew = US gun section (~11 incl. director crew); 4-6 serve the gun. rate_rpm = cyclic 120 rpm. range_effective_m = maximum horizontal (ground) range per Wikipedia. Ceiling: effective ~3,500 m, maximum vertical reach ~6,800 m (estimates). range_typical_m (prompt 067): light guns of 37-45 mm 500 m against ground targets (class estimate below the 75 mm class)."
 
 [[unit]]
 id = "us_90mm_m2"
@@ -752,14 +777,15 @@ height_mm = 3100
 mass_kg = 14700
 crew = 8
 weapon = [
-    { name = "90 mm Gun M2 (L/50)", caliber_mm_x10 = 900, ammo = "M71 HE (time/VT fuze), M77 AP-T, M82 APC", rate_rpm = 24, muzzle_velocity_mps = 823, range_effective_m = 19042, range_aa_m = 13300 },
+    { name = "90 mm Gun M2 (L/50)", caliber_mm_x10 = 900, ammo = "M71 HE (time/VT fuze), M77 AP-T, M82 APC", rate_rpm = 24, muzzle_velocity_mps = 823, range_effective_m = 19042, range_typical_m = 1000, range_aa_m = 13300 },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/90_mm_gun_M1/M2/M3", covers = "M2 weight 32,300 lb (14,700 kg), crew 8, up to 24 rpm with fuze setter-rammer; M1A1 travel dimensions 9.0 x 4.1 x 3.1 m, horizontal range 19,042 m, ceiling 13,300 m; M2 mount depresses to -10 deg" },
     { ref = "https://www.quartermastersection.com/american/artillery/229/90mmM1A1", covers = "cross-check: width 4.16 m, height 3.07 m (M1A1); M2 14,651 kg in action, 17,812 kg in transit (via search excerpt)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
 ]
 uncertain = ["length_mm", "width_mm", "height_mm", "weapon"]
-note = "Dimensions are travel order of the M1A1 mount (M2 values not found); in firing position the outriggers are spread wider. mass_kg = M2 in action (14,651-14,700 kg). range_effective_m = maximum horizontal (ground) range (M1A1 data). Ceiling 43,500 ft (13,300 m). muzzle_velocity_mps is the M3 tank gun HE/AP figure (820 m/s), assumed similar. The M2 mount could depress to -10 deg for ground/AT fire."
+note = "Dimensions are travel order of the M1A1 mount (M2 values not found); in firing position the outriggers are spread wider. mass_kg = M2 in action (14,651-14,700 kg). range_effective_m = maximum horizontal (ground) range (M1A1 data). Ceiling 43,500 ft (13,300 m). muzzle_velocity_mps is the M3 tank gun HE/AP figure (820 m/s), assumed similar. The M2 mount could depress to -10 deg for ground/AT fire. range_typical_m (prompt 067): 85-122 mm high-velocity guns 1000 m (class value: documented for the German 88 mm guns, taken over for the same gun class)."
 
 [[unit]]
 id = "us_m2a1_105"

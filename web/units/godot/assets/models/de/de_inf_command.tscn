@@ -4,7 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://boklgyh7c6aoi" path="res://assets/models/de/infantry/radio_operator.glb" id="2_radio_operator"]
 
 [node name="de_inf_command" type="Node3D"]
-metadata/extras = {"cat_id": "de_inf_command", "cat_faction": "de", "cat_category": "inf_command", "cat_name_de": "Zugtrupp (Zugführer und Funker)", "cat_name_en": "Platoon HQ (leader and radio operator)", "cat_designation": "Zugtrupp, Schützenzug", "cat_year_from": 1943, "cat_year_to": 1945, "cat_speed_road_kmh_x10": 50, "cat_speed_offroad_kmh_x10": 40, "cat_weapons": "MP 40; Kar98k", "cat_squad_size": 2, "squad": true, "squad_roles": ["officer", "radio_operator"], "squad_notes": ["Zugführer (MP 40)", "Funker (Kar98k, Feldfunksprecher)"], "squad_clips": ["idle", "kneel"], "squad_file": "assets-src/blueprints/de/squads/de_inf_command.toml", "source_hash": "9dcbe8d04e02b623"}
+metadata/extras = {"cat_id": "de_inf_command", "cat_faction": "de", "cat_category": "inf_command", "cat_name_de": "Zugtrupp (Zugführer und Funker)", "cat_name_en": "Platoon HQ (leader and radio operator)", "cat_designation": "Zugtrupp, Schützenzug", "cat_year_from": 1943, "cat_year_to": 1945, "cat_speed_road_kmh_x10": 50, "cat_speed_offroad_kmh_x10": 40, "cat_weapons": "MP 40; Kar98k", "cat_squad_size": 2, "squad": true, "squad_roles": ["officer", "radio_operator"], "squad_notes": ["Zugführer (MP 40)", "Funker (Kar98k, Feldfunksprecher)"], "squad_clips": ["idle", "kneel"], "squad_file": "assets-src/blueprints/de/squads/de_inf_command.toml", "source_hash": "62604d2b80435450"}
 
 [node name="Member_01" parent="." instance=ExtResource("1_officer")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.6)

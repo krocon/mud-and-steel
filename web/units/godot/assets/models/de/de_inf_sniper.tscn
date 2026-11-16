@@ -4,7 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://cs25au3m7frg4" path="res://assets/models/de/infantry/sniper.glb" id="2_sniper"]
 
 [node name="de_inf_sniper" type="Node3D"]
-metadata/extras = {"cat_id": "de_inf_sniper", "cat_faction": "de", "cat_category": "inf_sniper", "cat_name_de": "Scharfschützentrupp (Kar98k mit ZF 39)", "cat_name_en": "Sniper team (Kar98k with ZF 39)", "cat_designation": "Scharfschütze, Kar98k mit ZF 39", "cat_year_from": 1943, "cat_year_to": 1945, "cat_speed_road_kmh_x10": 50, "cat_speed_offroad_kmh_x10": 40, "cat_weapons": "Kar98k mit ZF 39 (4x); Kar98k", "cat_squad_size": 2, "squad": true, "squad_roles": ["sniper", "scout"], "squad_notes": ["Scharfschütze (Kar98k mit ZF 39)", "Beobachter (Kar98k, binoculars)"], "squad_clips": ["aim_prone", "prone"], "squad_file": "assets-src/blueprints/de/squads/de_inf_sniper.toml", "source_hash": "eb196dded061c1d6"}
+metadata/extras = {"cat_id": "de_inf_sniper", "cat_faction": "de", "cat_category": "inf_sniper", "cat_name_de": "Scharfschützentrupp (Kar98k mit ZF 39)", "cat_name_en": "Sniper team (Kar98k with ZF 39)", "cat_designation": "Scharfschütze, Kar98k mit ZF 39", "cat_year_from": 1943, "cat_year_to": 1945, "cat_speed_road_kmh_x10": 50, "cat_speed_offroad_kmh_x10": 40, "cat_weapons": "Kar98k mit ZF 39 (4x); Kar98k", "cat_squad_size": 2, "squad": true, "squad_roles": ["sniper", "scout"], "squad_notes": ["Scharfschütze (Kar98k mit ZF 39)", "Beobachter (Kar98k, binoculars)"], "squad_clips": ["aim_prone", "prone"], "squad_file": "assets-src/blueprints/de/squads/de_inf_sniper.toml", "source_hash": "4445c5fdc78892c7"}
 
 [node name="Member_01" parent="." instance=ExtResource("2_sniper")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.6)

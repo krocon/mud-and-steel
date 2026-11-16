@@ -20,10 +20,10 @@ squad_size = 9
 speed_road_kmh_x10 = 50
 speed_offroad_kmh_x10 = 40
 weapon = [
-    { name = "MP 40", count = 1, caliber_mm_x10 = 90, ammo = "9 mm Parabellum", rate_rpm = 500, muzzle_velocity_mps = 400, range_effective_m = 100 },
-    { name = "MG 42", count = 1, caliber_mm_x10 = 79, ammo = "7.92x57 mm s.S.", rate_rpm = 1200, muzzle_velocity_mps = 740, range_effective_m = 800, ammo_carried = 1800 },
-    { name = "Kar98k", count = 6, caliber_mm_x10 = 79, ammo = "7.92x57 mm s.S.", rate_rpm = 15, muzzle_velocity_mps = 760, range_effective_m = 500 },
-    { name = "P 38", count = 2, caliber_mm_x10 = 90, ammo = "9 mm Parabellum", muzzle_velocity_mps = 365, range_effective_m = 50 },
+    { name = "MP 40", count = 1, caliber_mm_x10 = 90, ammo = "9 mm Parabellum", rate_rpm = 500, muzzle_velocity_mps = 400, range_effective_m = 100, range_typical_m = 100 },
+    { name = "MG 42", count = 1, caliber_mm_x10 = 79, ammo = "7.92x57 mm s.S.", rate_rpm = 1200, muzzle_velocity_mps = 740, range_effective_m = 800, range_typical_m = 400, ammo_carried = 1800 },
+    { name = "Kar98k", count = 6, caliber_mm_x10 = 79, ammo = "7.92x57 mm s.S.", rate_rpm = 15, muzzle_velocity_mps = 760, range_effective_m = 500, range_typical_m = 300 },
+    { name = "P 38", count = 2, caliber_mm_x10 = 90, ammo = "9 mm Parabellum", muzzle_velocity_mps = 365, range_effective_m = 50, range_typical_m = 25 },
     { name = "Stielhandgranate 24", count = 9 },
 ]
 source = [
@@ -33,9 +33,11 @@ source = [
     { ref = "https://en.wikipedia.org/wiki/MG_42", covers = "MG 42 cyclic rate, muzzle velocity, squad MG ammunition 1800 rounds" },
     { ref = "https://en.wikipedia.org/wiki/Karabiner_98k", covers = "Kar98k muzzle velocity and effective range" },
     { ref = "Gander/Chamberlain, Small Arms, Artillery and Special Weapons of the Third Reich (1978), MP 40 and P 38 entries", covers = "MP 40 and P 38 data" },
+    { ref = "N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346", covers = "range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd" },
+    { ref = "TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII sec. II, https://lonesentry.com/manuals/tme30/ch7sec2sub6.html", covers = "range_typical_m: MG 34 / MG 42 effective range as light MG 600-800 yd, as heavy MG (tripod) 2,000-2,500 yd: upper bounds for the typical distance" },
 ]
 uncertain = ["weapon"]
-note = "1944 Schützengruppe of 9 men: Gruppenführer (MP 40), MG-Schütze 1 and 2 (MG 42, P 38 each), 6 riflemen incl. Schütze 3 as ammunition bearer (Kar98k). Earlier squads (H.Dv. 130/2a 1942, MIS 1943) had 10 men with the same role/weapon pattern; the 9-man 1944 strength is supported only by secondary/hobby sources found online (TM-E 30-451 not re-fetched). MG ammunition: 1800 rounds (Wikipedia) vs ~1150 rounds carried by the 1943 squad (MIS); 1800 used. Leaders sometimes carried the StG 44 instead of the MP 40 in late 1944/45. MG 42 effective range on bipod given as 800 m (sources vary 600-1000 m). Kar98k rate is a practical aimed rate. Hand grenade count (one per man) is an assumption."
+note = "1944 Schützengruppe of 9 men: Gruppenführer (MP 40), MG-Schütze 1 and 2 (MG 42, P 38 each), 6 riflemen incl. Schütze 3 as ammunition bearer (Kar98k). Earlier squads (H.Dv. 130/2a 1942, MIS 1943) had 10 men with the same role/weapon pattern; the 9-man 1944 strength is supported only by secondary/hobby sources found online (TM-E 30-451 not re-fetched). MG ammunition: 1800 rounds (Wikipedia) vs ~1150 rounds carried by the 1943 squad (MIS); 1800 used. Leaders sometimes carried the StG 44 instead of the MP 40 in late 1944/45. MG 42 effective range on bipod given as 800 m (sources vary 600-1000 m). Kar98k rate is a practical aimed rate. Hand grenade count (one per man) is an assumption. range_typical_m (prompt 067): submachine guns 100 m (class estimate: the battle sight setting); bipod and flexible-mount machine guns 400 m (class estimate between the 300 yd of ORO-T-160 and the 600-800 yd 'effective as light MG' of TM-E 30-451); pistols 25 m (class estimate: half the effective range)."
 
 [[unit]]
 id = "de_inf_mg42_team"
@@ -52,16 +54,19 @@ squad_size = 3
 speed_road_kmh_x10 = 50
 speed_offroad_kmh_x10 = 40
 weapon = [
-    { name = "MG 42", count = 1, caliber_mm_x10 = 79, ammo = "7.92x57 mm s.S.", rate_rpm = 1200, muzzle_velocity_mps = 740, range_effective_m = 800, ammo_carried = 1800 },
-    { name = "P 38", count = 2, caliber_mm_x10 = 90, ammo = "9 mm Parabellum", muzzle_velocity_mps = 365, range_effective_m = 50 },
-    { name = "Kar98k", count = 1, caliber_mm_x10 = 79, ammo = "7.92x57 mm s.S.", rate_rpm = 15, muzzle_velocity_mps = 760, range_effective_m = 500 },
+    { name = "MG 42", count = 1, caliber_mm_x10 = 79, ammo = "7.92x57 mm s.S.", rate_rpm = 1200, muzzle_velocity_mps = 740, range_effective_m = 800, range_typical_m = 400, ammo_carried = 1800 },
+    { name = "P 38", count = 2, caliber_mm_x10 = 90, ammo = "9 mm Parabellum", muzzle_velocity_mps = 365, range_effective_m = 50, range_typical_m = 25 },
+    { name = "Kar98k", count = 1, caliber_mm_x10 = 79, ammo = "7.92x57 mm s.S.", rate_rpm = 15, muzzle_velocity_mps = 760, range_effective_m = 500, range_typical_m = 300 },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/MG_42", covers = "three-man light MG team (gunner, assistant, ammunition carrier), cyclic rate ~1200 rpm (practical ~150), muzzle velocity 740 m/s, 1800 rounds per squad" },
     { ref = "TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. II", covers = "MG team within the rifle squad, side arms" },
     { ref = "https://en.wikipedia.org/wiki/Karabiner_98k", covers = "Kar98k data" },
+    { ref = "N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346", covers = "range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd" },
+    { ref = "TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII sec. II, https://lonesentry.com/manuals/tme30/ch7sec2sub6.html", covers = "range_typical_m: MG 34 / MG 42 effective range as light MG 600-800 yd, as heavy MG (tripod) 2,000-2,500 yd: upper bounds for the typical distance" },
 ]
-note = "Gunner (MG 42 + P 38), assistant (P 38, spare barrels, ammunition), ammunition bearer (Kar98k). Practical rate of fire ~150 rpm in bursts; cyclic 1200 rpm listed. 1800 rounds is the squad's MG ammunition."
+uncertain = ["weapon"]
+note = "Gunner (MG 42 + P 38), assistant (P 38, spare barrels, ammunition), ammunition bearer (Kar98k). Practical rate of fire ~150 rpm in bursts; cyclic 1200 rpm listed. 1800 rounds is the squad's MG ammunition. range_typical_m (prompt 067): bipod and flexible-mount machine guns 400 m (class estimate between the 300 yd of ORO-T-160 and the 600-800 yd 'effective as light MG' of TM-E 30-451); pistols 25 m (class estimate: half the effective range)."
 
 [[unit]]
 id = "de_inf_hmg_team"
@@ -78,17 +83,20 @@ squad_size = 6
 speed_road_kmh_x10 = 50
 speed_offroad_kmh_x10 = 40
 weapon = [
-    { name = "MG 42 on Lafette 42", count = 1, caliber_mm_x10 = 79, ammo = "7.92x57 mm s.S.", rate_rpm = 1200, muzzle_velocity_mps = 740, range_effective_m = 3000, ammo_carried = 3000 },
-    { name = "MP 40", count = 1, caliber_mm_x10 = 90, ammo = "9 mm Parabellum", rate_rpm = 500, muzzle_velocity_mps = 400, range_effective_m = 100 },
-    { name = "P 38", count = 2, caliber_mm_x10 = 90, ammo = "9 mm Parabellum", muzzle_velocity_mps = 365, range_effective_m = 50 },
-    { name = "Kar98k", count = 3, caliber_mm_x10 = 79, ammo = "7.92x57 mm s.S.", rate_rpm = 15, muzzle_velocity_mps = 760, range_effective_m = 500 },
+    { name = "MG 42 on Lafette 42", count = 1, caliber_mm_x10 = 79, ammo = "7.92x57 mm s.S.", rate_rpm = 1200, muzzle_velocity_mps = 740, range_effective_m = 3000, range_typical_m = 800, ammo_carried = 3000 },
+    { name = "MP 40", count = 1, caliber_mm_x10 = 90, ammo = "9 mm Parabellum", rate_rpm = 500, muzzle_velocity_mps = 400, range_effective_m = 100, range_typical_m = 100 },
+    { name = "P 38", count = 2, caliber_mm_x10 = 90, ammo = "9 mm Parabellum", muzzle_velocity_mps = 365, range_effective_m = 50, range_typical_m = 25 },
+    { name = "Kar98k", count = 3, caliber_mm_x10 = 79, ammo = "7.92x57 mm s.S.", rate_rpm = 15, muzzle_velocity_mps = 760, range_effective_m = 500, range_typical_m = 300 },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/MG_42", covers = "six-man tripod crew, Lafette 42 20.5 kg, 3000 m direct fire with optical sight, 3500 m indirect" },
     { ref = "TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. II (heavy machine-gun platoon)", covers = "heavy MG section organization" },
+    { ref = "TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII sec. II, https://lonesentry.com/manuals/tme30/ch7sec2sub6.html", covers = "range_typical_m: MG 34 / MG 42 effective range as light MG 600-800 yd, as heavy MG (tripod) 2,000-2,500 yd: upper bounds for the typical distance" },
+    { ref = "FM 7-15 Heavy Weapons Company, Rifle Regiment (US War Dept., 1942), https://ibiblio.org/hyperwar/USA/ref/FM/PDFs/FM7-15.PDF (search excerpt, not read in full)", covers = "range_typical_m: direct machine-gun fire is limited by observation, rarely effective beyond 2,000 yd: upper bound for the typical distance of tripod machine guns" },
+    { ref = "N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346", covers = "range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd" },
 ]
 uncertain = ["weapon"]
-note = "One gun of an s.MG-Gruppe: Truppführer (MP 40), gunner and assistant (P 38; assistant carries the tripod), three riflemen as ammunition/barrel carriers. range_effective_m = direct fire with MGZ 34 sight. ammo_carried is an estimate for the team's first-line load."
+note = "One gun of an s.MG-Gruppe: Truppführer (MP 40), gunner and assistant (P 38; assistant carries the tripod), three riflemen as ammunition/barrel carriers. range_effective_m = direct fire with MGZ 34 sight. ammo_carried is an estimate for the team's first-line load. range_typical_m (prompt 067): tripod machine guns 800 m (class estimate: twice the bipod value, far below the 2,000 yd limit of observed fire); submachine guns 100 m (class estimate: the battle sight setting); pistols 25 m (class estimate: half the effective range)."
 
 [[unit]]
 id = "de_inf_mortar_light"
@@ -106,15 +114,16 @@ speed_road_kmh_x10 = 50
 speed_offroad_kmh_x10 = 40
 weapon = [
     { name = "5 cm leGrW 36", count = 1, caliber_mm_x10 = 500, ammo = "5 cm Wgr 36 HE (0.91 kg)", rate_rpm = 15, muzzle_velocity_mps = 75, range_effective_m = 520 },
-    { name = "P 38", count = 2, caliber_mm_x10 = 90, ammo = "9 mm Parabellum", muzzle_velocity_mps = 365, range_effective_m = 50 },
-    { name = "Kar98k", count = 1, caliber_mm_x10 = 79, ammo = "7.92x57 mm s.S.", rate_rpm = 15, muzzle_velocity_mps = 760, range_effective_m = 500 },
+    { name = "P 38", count = 2, caliber_mm_x10 = 90, ammo = "9 mm Parabellum", muzzle_velocity_mps = 365, range_effective_m = 50, range_typical_m = 25 },
+    { name = "Kar98k", count = 1, caliber_mm_x10 = 79, ammo = "7.92x57 mm s.S.", rate_rpm = 15, muzzle_velocity_mps = 760, range_effective_m = 500, range_typical_m = 300 },
 ]
 source = [
     { ref = "Gander/Chamberlain, Small Arms, Artillery and Special Weapons of the Third Reich (1978), 5 cm leGrW 36 entry", covers = "caliber, weight 14 kg, max range 520 m, muzzle velocity 75 m/s, shell 0.91 kg" },
     { ref = "https://www.lonesentry.com/manuals/tme30/ch7sec3.html", covers = "TM-E 30-451 (1945): le.GrW 36 total weight 31 lb, max range 570 yd (521 m), shell 2.2 lb" },
+    { ref = "N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346", covers = "range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd" },
 ]
 uncertain = ["weapon"]
-note = "Production ended 1941 and it was being withdrawn from first-line units in 1943, but remained in use to 1945 (second-line and garrison units). range_effective_m is maximum range (indirect fire); minimum ~50 m. Rate of fire 15-25 rpm per sources; 15 used. Personal weapons of the crew are an assumption."
+note = "Production ended 1941 and it was being withdrawn from first-line units in 1943, but remained in use to 1945 (second-line and garrison units). range_effective_m is maximum range (indirect fire); minimum ~50 m. Rate of fire 15-25 rpm per sources; 15 used. Personal weapons of the crew are an assumption. range_typical_m (prompt 067): pistols 25 m (class estimate: half the effective range)."
 
 [[unit]]
 id = "de_inf_mortar_medium"
@@ -132,16 +141,17 @@ speed_road_kmh_x10 = 50
 speed_offroad_kmh_x10 = 40
 weapon = [
     { name = "8 cm s.GrW 34", count = 1, caliber_mm_x10 = 814, ammo = "8 cm Wgr 34 HE (3.5 kg), Wgr 38 smoke", rate_rpm = 15, muzzle_velocity_mps = 174, range_effective_m = 2400 },
-    { name = "MP 40", count = 1, caliber_mm_x10 = 90, ammo = "9 mm Parabellum", rate_rpm = 500, muzzle_velocity_mps = 400, range_effective_m = 100 },
-    { name = "P 38", count = 2, caliber_mm_x10 = 90, ammo = "9 mm Parabellum", muzzle_velocity_mps = 365, range_effective_m = 50 },
-    { name = "Kar98k", count = 3, caliber_mm_x10 = 79, ammo = "7.92x57 mm s.S.", rate_rpm = 15, muzzle_velocity_mps = 760, range_effective_m = 500 },
+    { name = "MP 40", count = 1, caliber_mm_x10 = 90, ammo = "9 mm Parabellum", rate_rpm = 500, muzzle_velocity_mps = 400, range_effective_m = 100, range_typical_m = 100 },
+    { name = "P 38", count = 2, caliber_mm_x10 = 90, ammo = "9 mm Parabellum", muzzle_velocity_mps = 365, range_effective_m = 50, range_typical_m = 25 },
+    { name = "Kar98k", count = 3, caliber_mm_x10 = 79, ammo = "7.92x57 mm s.S.", rate_rpm = 15, muzzle_velocity_mps = 760, range_effective_m = 500, range_typical_m = 300 },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/8_cm_Granatwerfer_34", covers = "caliber 81.4 mm, weight 62 kg, rate 15-25 rpm, muzzle velocity 174 m/s, range 2.4 km, shell 3.5 kg" },
     { ref = "https://www.lonesentry.com/manuals/tme30/ch7sec3.html", covers = "TM-E 30-451 (1945): s.GrW 34 total weight 124 lb, max range 2625 yd (2400 m) with 4th charge, shell 7.7 lb" },
+    { ref = "N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346", covers = "range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd" },
 ]
 uncertain = ["squad_size", "weapon"]
-note = "One mortar with leader (MP 40), gunner and assistant (P 38), three ammunition bearers (Kar98k); crew size varied in practice (4-6 seen). range_effective_m is maximum range (indirect fire)."
+note = "One mortar with leader (MP 40), gunner and assistant (P 38), three ammunition bearers (Kar98k); crew size varied in practice (4-6 seen). range_effective_m is maximum range (indirect fire). range_typical_m (prompt 067): submachine guns 100 m (class estimate: the battle sight setting); pistols 25 m (class estimate: half the effective range)."
 
 [[unit]]
 id = "de_inf_recon"
@@ -158,16 +168,17 @@ squad_size = 5
 speed_road_kmh_x10 = 50
 speed_offroad_kmh_x10 = 40
 weapon = [
-    { name = "MP 40", count = 2, caliber_mm_x10 = 90, ammo = "9 mm Parabellum", rate_rpm = 500, muzzle_velocity_mps = 400, range_effective_m = 100 },
-    { name = "Kar98k", count = 3, caliber_mm_x10 = 79, ammo = "7.92x57 mm s.S.", rate_rpm = 15, muzzle_velocity_mps = 760, range_effective_m = 500 },
+    { name = "MP 40", count = 2, caliber_mm_x10 = 90, ammo = "9 mm Parabellum", rate_rpm = 500, muzzle_velocity_mps = 400, range_effective_m = 100, range_typical_m = 100 },
+    { name = "Kar98k", count = 3, caliber_mm_x10 = 79, ammo = "7.92x57 mm s.S.", rate_rpm = 15, muzzle_velocity_mps = 760, range_effective_m = 500, range_typical_m = 300 },
     { name = "Stielhandgranate 24", count = 10 },
 ]
 source = [
     { ref = "TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. IV (tactics, reconnaissance patrols)", covers = "patrol composition (small task-organized patrols of a few men led by an NCO)" },
     { ref = "Gander/Chamberlain, Small Arms, Artillery and Special Weapons of the Third Reich (1978)", covers = "weapon data" },
+    { ref = "N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346", covers = "range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd" },
 ]
 uncertain = ["squad_size", "weapon"]
-note = "No fixed table of organization: Spähtrupps were formed ad hoc for each mission. 5 men (NCO and one man with MP 40, three riflemen) is a representative assumption. Optics (Dienstglas 6x30) not listed as a weapon."
+note = "No fixed table of organization: Spähtrupps were formed ad hoc for each mission. 5 men (NCO and one man with MP 40, three riflemen) is a representative assumption. Optics (Dienstglas 6x30) not listed as a weapon. range_typical_m (prompt 067): submachine guns 100 m (class estimate: the battle sight setting)."
 
 [[unit]]
 id = "de_inf_sniper"
@@ -184,11 +195,13 @@ squad_size = 2
 speed_road_kmh_x10 = 50
 speed_offroad_kmh_x10 = 40
 weapon = [
-    { name = "Kar98k mit ZF 39 (4x)", count = 1, caliber_mm_x10 = 79, ammo = "7.92x57 mm s.S.", rate_rpm = 10, muzzle_velocity_mps = 760, range_effective_m = 800 },
-    { name = "Kar98k", count = 1, caliber_mm_x10 = 79, ammo = "7.92x57 mm s.S.", rate_rpm = 15, muzzle_velocity_mps = 760, range_effective_m = 500 },
+    { name = "Kar98k mit ZF 39 (4x)", count = 1, caliber_mm_x10 = 79, ammo = "7.92x57 mm s.S.", rate_rpm = 10, muzzle_velocity_mps = 760, range_effective_m = 800, range_typical_m = 400 },
+    { name = "Kar98k", count = 1, caliber_mm_x10 = 79, ammo = "7.92x57 mm s.S.", rate_rpm = 15, muzzle_velocity_mps = 760, range_effective_m = 500, range_typical_m = 300 },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/Karabiner_98k", covers = "ZF 39 4x scope, graduated 100-800 (some 1000) m, aimed hits to ~600 m, harassing fire to 1000 m, muzzle velocity" },
+    { ref = "H. Widhofner, interview with the snipers M. Hetzenauer, J. Allerberger and H. Wirnsberger, Truppendienst (Austrian Armed Forces, 1967), English text at https://shadowspear.com/threads/german-snipers-in-ww-ii.1045", covers = "range_typical_m: 65-80 % of the hits below 400 m, the rest up to 600 m; sure hits on a head up to 400 m, on a standing man up to 600 m" },
+    { ref = "N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346", covers = "range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd" },
 ]
 uncertain = ["squad_size"]
 note = "Sniper with observer; German snipers frequently worked alone, pairs are an assumption. Effective range 800 m with the 4x scope (head/chest shots to ~400 m). Rate is an aimed practical rate."
@@ -208,13 +221,13 @@ squad_size = 2
 speed_road_kmh_x10 = 50
 speed_offroad_kmh_x10 = 40
 weapon = [
-    { name = "P 38", count = 2, caliber_mm_x10 = 90, ammo = "9 mm Parabellum", muzzle_velocity_mps = 365, range_effective_m = 50 },
+    { name = "P 38", count = 2, caliber_mm_x10 = 90, ammo = "9 mm Parabellum", muzzle_velocity_mps = 365, range_effective_m = 50, range_typical_m = 25 },
 ]
 source = [
     { ref = "TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. II (company aid men / stretcher bearers)", covers = "company medical personnel" },
 ]
 uncertain = ["weapon"]
-note = "Medical NCO and stretcher bearer. Medics were permitted side arms for self-defence; whether they carried them varied, so the P 38 is an assumption. Historically wore Red Cross armbands; the game model shows no Red Cross marking."
+note = "Medical NCO and stretcher bearer. Medics were permitted side arms for self-defence; whether they carried them varied, so the P 38 is an assumption. Historically wore Red Cross armbands; the game model shows no Red Cross marking. range_typical_m (prompt 067): pistols 25 m (class estimate: half the effective range)."
 
 [[unit]]
 id = "de_inf_engineer"
@@ -231,18 +244,20 @@ squad_size = 9
 speed_road_kmh_x10 = 50
 speed_offroad_kmh_x10 = 40
 weapon = [
-    { name = "MP 40", count = 1, caliber_mm_x10 = 90, ammo = "9 mm Parabellum", rate_rpm = 500, muzzle_velocity_mps = 400, range_effective_m = 100 },
-    { name = "MG 42", count = 1, caliber_mm_x10 = 79, ammo = "7.92x57 mm s.S.", rate_rpm = 1200, muzzle_velocity_mps = 740, range_effective_m = 800 },
-    { name = "Kar98k", count = 6, caliber_mm_x10 = 79, ammo = "7.92x57 mm s.S.", rate_rpm = 15, muzzle_velocity_mps = 760, range_effective_m = 500 },
-    { name = "P 38", count = 2, caliber_mm_x10 = 90, ammo = "9 mm Parabellum", muzzle_velocity_mps = 365, range_effective_m = 50 },
+    { name = "MP 40", count = 1, caliber_mm_x10 = 90, ammo = "9 mm Parabellum", rate_rpm = 500, muzzle_velocity_mps = 400, range_effective_m = 100, range_typical_m = 100 },
+    { name = "MG 42", count = 1, caliber_mm_x10 = 79, ammo = "7.92x57 mm s.S.", rate_rpm = 1200, muzzle_velocity_mps = 740, range_effective_m = 800, range_typical_m = 400 },
+    { name = "Kar98k", count = 6, caliber_mm_x10 = 79, ammo = "7.92x57 mm s.S.", rate_rpm = 15, muzzle_velocity_mps = 760, range_effective_m = 500, range_typical_m = 300 },
+    { name = "P 38", count = 2, caliber_mm_x10 = 90, ammo = "9 mm Parabellum", muzzle_velocity_mps = 365, range_effective_m = 50, range_typical_m = 25 },
     { name = "Geballte Ladung / 3 kg Sprengbüchse 24", count = 4 },
 ]
 source = [
     { ref = "TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. II (engineer battalion, pioneer company)", covers = "pioneer squad organization and equipment" },
     { ref = "Gander/Chamberlain, Small Arms, Artillery and Special Weapons of the Third Reich (1978)", covers = "weapon and demolition charge data" },
+    { ref = "N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346", covers = "range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd" },
+    { ref = "TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII sec. II, https://lonesentry.com/manuals/tme30/ch7sec2sub6.html", covers = "range_typical_m: MG 34 / MG 42 effective range as light MG 600-800 yd, as heavy MG (tripod) 2,000-2,500 yd: upper bounds for the typical distance" },
 ]
 uncertain = ["squad_size", "weapon"]
-note = "Modelled like the 1944 rifle squad (NCO, MG team, riflemen) plus demolition charges; pioneer squads also carried flamethrowers and mines as needed. Exact KStN strength varied (9-12 men)."
+note = "Modelled like the 1944 rifle squad (NCO, MG team, riflemen) plus demolition charges; pioneer squads also carried flamethrowers and mines as needed. Exact KStN strength varied (9-12 men). range_typical_m (prompt 067): submachine guns 100 m (class estimate: the battle sight setting); bipod and flexible-mount machine guns 400 m (class estimate between the 300 yd of ORO-T-160 and the 600-800 yd 'effective as light MG' of TM-E 30-451); pistols 25 m (class estimate: half the effective range)."
 
 [[unit]]
 id = "de_inf_at"
@@ -259,18 +274,19 @@ squad_size = 2
 speed_road_kmh_x10 = 50
 speed_offroad_kmh_x10 = 40
 weapon = [
-    { name = "8.8 cm RPzB 54 Panzerschreck", count = 1, caliber_mm_x10 = 880, ammo = "RPzB Gr 4322 HEAT", rate_rpm = 4, muzzle_velocity_mps = 110, range_effective_m = 150, ammo_carried = 6 },
-    { name = "Panzerfaust 60", count = 2, caliber_mm_x10 = 1490, ammo = "HEAT warhead", muzzle_velocity_mps = 45, range_effective_m = 60 },
-    { name = "P 38", count = 1, caliber_mm_x10 = 90, ammo = "9 mm Parabellum", muzzle_velocity_mps = 365, range_effective_m = 50 },
-    { name = "Kar98k", count = 1, caliber_mm_x10 = 79, ammo = "7.92x57 mm s.S.", rate_rpm = 15, muzzle_velocity_mps = 760, range_effective_m = 500 },
+    { name = "8.8 cm RPzB 54 Panzerschreck", count = 1, caliber_mm_x10 = 880, ammo = "RPzB Gr 4322 HEAT", rate_rpm = 4, muzzle_velocity_mps = 110, range_effective_m = 150, range_typical_m = 100, ammo_carried = 6 },
+    { name = "Panzerfaust 60", count = 2, caliber_mm_x10 = 1490, ammo = "HEAT warhead", muzzle_velocity_mps = 45, range_effective_m = 60, range_typical_m = 60 },
+    { name = "P 38", count = 1, caliber_mm_x10 = 90, ammo = "9 mm Parabellum", muzzle_velocity_mps = 365, range_effective_m = 50, range_typical_m = 25 },
+    { name = "Kar98k", count = 1, caliber_mm_x10 = 79, ammo = "7.92x57 mm s.S.", rate_rpm = 15, muzzle_velocity_mps = 760, range_effective_m = 500, range_typical_m = 300 },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/Panzerschreck", covers = "RPzB 54: 88 mm, 11 kg with shield, 110 m/s, effective range 150 m (54/1: 180 m), penetration ~230 mm RHA (German tests), RPzB Gr 4322" },
     { ref = "Gander/Chamberlain, Small Arms, Artillery and Special Weapons of the Third Reich (1978), Panzerfaust entries", covers = "Panzerfaust 60: 149 mm warhead, ~45 m/s, 60 m range" },
     { ref = "TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII (antitank rocket launcher)", covers = "two-man team (gunner, loader)" },
+    { ref = "N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346", covers = "range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd" },
 ]
 uncertain = ["weapon"]
-note = "Gunner (P 38) and loader (Kar98k, rockets). Penetration about 200-230 mm RHA at 0 degrees, ~160 mm at 60. caliber_mm_x10 of the Panzerfaust is the warhead diameter. Rate of fire and rockets carried (often 5-6 in packs) are estimates. Panzerfaust 60 entered service autumn 1944; earlier 1944 teams used Panzerfaust 30."
+note = "Gunner (P 38) and loader (Kar98k, rockets). Penetration about 200-230 mm RHA at 0 degrees, ~160 mm at 60. caliber_mm_x10 of the Panzerfaust is the warhead diameter. Rate of fire and rockets carried (often 5-6 in packs) are estimates. Panzerfaust 60 entered service autumn 1944; earlier 1944 teams used Panzerfaust 30. range_typical_m (prompt 067): anti-tank rocket launcher 100 m (class estimate: below the sight limit, where a moving tank is hit reliably); Panzerfaust 60: 60 m (the design range of the sight); pistols 25 m (class estimate: half the effective range)."
 
 [[unit]]
 id = "de_inf_flamethrower"
@@ -287,16 +303,17 @@ squad_size = 2
 speed_road_kmh_x10 = 50
 speed_offroad_kmh_x10 = 40
 weapon = [
-    { name = "Flammenwerfer 41", count = 1, ammo = "Flammöl 19, 11.8 l", range_effective_m = 32 },
-    { name = "P 38", count = 1, caliber_mm_x10 = 90, ammo = "9 mm Parabellum", muzzle_velocity_mps = 365, range_effective_m = 50 },
-    { name = "Kar98k", count = 1, caliber_mm_x10 = 79, ammo = "7.92x57 mm s.S.", rate_rpm = 15, muzzle_velocity_mps = 760, range_effective_m = 500 },
+    { name = "Flammenwerfer 41", count = 1, ammo = "Flammöl 19, 11.8 l", range_effective_m = 32, range_typical_m = 32 },
+    { name = "P 38", count = 1, caliber_mm_x10 = 90, ammo = "9 mm Parabellum", muzzle_velocity_mps = 365, range_effective_m = 50, range_typical_m = 25 },
+    { name = "Kar98k", count = 1, caliber_mm_x10 = 79, ammo = "7.92x57 mm s.S.", rate_rpm = 15, muzzle_velocity_mps = 760, range_effective_m = 500, range_typical_m = 300 },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/Flammenwerfer_41", covers = "11.8 l Flammöl 19, range 32 m, weight 18 kg (body text 28.7 kg), 1941-1945" },
     { ref = "Gander/Chamberlain, Small Arms, Artillery and Special Weapons of the Third Reich (1978), Flammenwerfer 41 entry", covers = "fuel load enough for several short bursts (~10 s total)" },
+    { ref = "N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346", covers = "range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd" },
 ]
 uncertain = ["weapon"]
-note = "Operator (P 38) and assistant (Kar98k). Fuel for roughly 10 seconds of flame in short bursts; range 25-32 m depending on source. Weight conflict in sources (18 vs 28.7 kg)."
+note = "Operator (P 38) and assistant (Kar98k). Fuel for roughly 10 seconds of flame in short bursts; range 25-32 m depending on source. Weight conflict in sources (18 vs 28.7 kg). range_typical_m (prompt 067): pistols 25 m (class estimate: half the effective range)."
 
 [[unit]]
 id = "de_inf_command"
@@ -313,14 +330,15 @@ squad_size = 2
 speed_road_kmh_x10 = 50
 speed_offroad_kmh_x10 = 40
 weapon = [
-    { name = "MP 40", count = 1, caliber_mm_x10 = 90, ammo = "9 mm Parabellum", rate_rpm = 500, muzzle_velocity_mps = 400, range_effective_m = 100 },
-    { name = "Kar98k", count = 1, caliber_mm_x10 = 79, ammo = "7.92x57 mm s.S.", rate_rpm = 15, muzzle_velocity_mps = 760, range_effective_m = 500 },
+    { name = "MP 40", count = 1, caliber_mm_x10 = 90, ammo = "9 mm Parabellum", rate_rpm = 500, muzzle_velocity_mps = 400, range_effective_m = 100, range_typical_m = 100 },
+    { name = "Kar98k", count = 1, caliber_mm_x10 = 79, ammo = "7.92x57 mm s.S.", rate_rpm = 15, muzzle_velocity_mps = 760, range_effective_m = 500, range_typical_m = 300 },
 ]
 source = [
     { ref = "TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. II (rifle platoon headquarters)", covers = "platoon HQ: leader, messengers; radio equipment" },
+    { ref = "N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346", covers = "range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd" },
 ]
-uncertain = ["squad_size"]
-note = "Game abstraction of the Zugtrupp: Zugführer (MP 40) and Funker (Kar98k) with a portable radio (Feldfunksprecher b / Tornister-Funkgerät; not a weapon). The real Zugtrupp also had 2-3 messengers and an aid man."
+uncertain = ["squad_size", "weapon"]
+note = "Game abstraction of the Zugtrupp: Zugführer (MP 40) and Funker (Kar98k) with a portable radio (Feldfunksprecher b / Tornister-Funkgerät; not a weapon). The real Zugtrupp also had 2-3 messengers and an aid man. range_typical_m (prompt 067): submachine guns 100 m (class estimate: the battle sight setting)."
 
 [[unit]]
 id = "de_inf_tank_crew"
@@ -337,15 +355,15 @@ squad_size = 5
 speed_road_kmh_x10 = 50
 speed_offroad_kmh_x10 = 40
 weapon = [
-    { name = "MP 40", count = 1, caliber_mm_x10 = 90, ammo = "9 mm Parabellum", rate_rpm = 500, muzzle_velocity_mps = 400, range_effective_m = 100 },
-    { name = "P 38", count = 4, caliber_mm_x10 = 90, ammo = "9 mm Parabellum", muzzle_velocity_mps = 365, range_effective_m = 50 },
+    { name = "MP 40", count = 1, caliber_mm_x10 = 90, ammo = "9 mm Parabellum", rate_rpm = 500, muzzle_velocity_mps = 400, range_effective_m = 100, range_typical_m = 100 },
+    { name = "P 38", count = 4, caliber_mm_x10 = 90, ammo = "9 mm Parabellum", muzzle_velocity_mps = 365, range_effective_m = 50, range_typical_m = 25 },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/Panzer_IV", covers = "crew of five (commander, gunner, loader, driver, radio operator / hull gunner); from memory, not fetched for this entry" },
     { ref = "Gander/Chamberlain, Small Arms, Artillery and Special Weapons of the Third Reich (1978), MP 40 and P 38 entries", covers = "MP 40 and P 38 data" },
 ]
 uncertain = ["weapon"]
-note = "Not built or bought: the survivors of a destroyed vehicle (prompt 049) bail out as this squad, 1-5 men by chance. squad_size is the largest crew of the faction's tanks (Panzer IV, Tiger: 5). Personal weapons: pistols for the crew and one MP 40 carried in the vehicle (stowage varied), an assumption. The model shows the field uniform with the field cap; the black Panzer wrap is not modeled."
+note = "Not built or bought: the survivors of a destroyed vehicle (prompt 049) bail out as this squad, 1-5 men by chance. squad_size is the largest crew of the faction's tanks (Panzer IV, Tiger: 5). Personal weapons: pistols for the crew and one MP 40 carried in the vehicle (stowage varied), an assumption. The model shows the field uniform with the field cap; the black Panzer wrap is not modeled. range_typical_m (prompt 067): submachine guns 100 m (class estimate: the battle sight setting); pistols 25 m (class estimate: half the effective range)."
 
 # ---------------------------------------------------------------------------
 # Vehicles
@@ -378,15 +396,15 @@ armor_turret_front_mm = 30
 armor_turret_side_mm = 20
 armor_turret_rear_mm = 20
 weapon = [
-    { name = "2 cm KwK 38 L/55", caliber_mm_x10 = 200, ammo = "PzGr 39 AP, PzGr 40 APCR, Sprgr HE", rate_rpm = 450, muzzle_velocity_mps = 830, range_effective_m = 600, ammo_carried = 330 },
+    { name = "2 cm KwK 38 L/55", caliber_mm_x10 = 200, ammo = "PzGr 39 AP, PzGr 40 APCR, Sprgr HE", rate_rpm = 450, muzzle_velocity_mps = 830, range_effective_m = 600, range_typical_m = 400, ammo_carried = 330 },
     { name = "MG 34", caliber_mm_x10 = 79, rate_rpm = 900, muzzle_velocity_mps = 755, ammo_carried = 2250 },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/Panzer_II", covers = "Ausf. L dimensions, 11.8 t, crew 4, 60 km/h, range 290 km, armor 30/20 mm, armament and ammunition 330/2250, 100 built Sep 1943-Jan 1944" },
     { ref = "Chamberlain/Doyle, Encyclopedia of German Tanks of World War Two (rev. 1999), Pz.Kpfw. II Ausf. L", covers = "Maybach HL 66 P 180 PS, turret front 30 mm" },
 ]
-uncertain = ["speed_offroad_kmh_x10", "power_hp", "armor_turret_front_mm"]
-note = "Only 100 built (Sep 1943-Jan 1944), served with recon units in East and West to 1945. Off-road speed not found in sources; 30 km/h estimated. Wikipedia gives 20 mm for the whole turret; Chamberlain/Doyle 30 mm front. 2 cm rate_rpm is cyclic (~450, as for the Flak 38); practical ~180-220."
+uncertain = ["speed_offroad_kmh_x10", "power_hp", "armor_turret_front_mm", "mass_kg", "weapon"]
+note = "Only 100 built (Sep 1943-Jan 1944), served with recon units in East and West to 1945. Off-road speed not found in sources; 30 km/h estimated. Wikipedia gives 20 mm for the whole turret; Chamberlain/Doyle 30 mm front. 2 cm rate_rpm is cyclic (~450, as for the Flak 38); practical ~180-220. Differs from onwar.com (data/vehicles, a rank-4 source; the values above keep their sources): mass_kg 13000. range_typical_m (prompt 067): 20 mm automatic cannon 400 m against ground targets (class estimate below the light guns)."
 
 [[unit]]
 id = "de_pz4_h"
@@ -417,7 +435,7 @@ armor_turret_side_mm = 30
 armor_turret_rear_mm = 30
 armor_hull_front_deg = 10
 weapon = [
-    { name = "7.5 cm KwK 40 L/48", caliber_mm_x10 = 750, ammo = "PzGr 39 APCBC, PzGr 40 APCR, Sprgr 34 HE", rate_rpm = 10, muzzle_velocity_mps = 750, range_effective_m = 1500, ammo_carried = 87 },
+    { name = "7.5 cm KwK 40 L/48", caliber_mm_x10 = 750, ammo = "PzGr 39 APCBC, PzGr 40 APCR, Sprgr 34 HE", rate_rpm = 10, muzzle_velocity_mps = 750, range_effective_m = 1500, range_typical_m = 700, ammo_carried = 87 },
     { name = "MG 34", count = 2, caliber_mm_x10 = 79, rate_rpm = 900, muzzle_velocity_mps = 755, ammo_carried = 3150 },
 ]
 source = [
@@ -426,9 +444,11 @@ source = [
     { ref = "https://tanks-encyclopedia.com/ww2/nazi_germany/panzer_iv_ausf_h", covers = "Ausf. H range 210 km road / 130 km cross-country, 38 km/h road, 25 km/h cross-country, 87 + 3150 rounds (cites Jentz/Doyle Panzer Tracts 4-3)" },
     { ref = "https://www.historyofwar.org/articles/weapons_panzer_IV_ausf_H.html", covers = "Ausf. H range 210 km, armor table hull/superstructure 80/30/20, turret 50/30/30" },
     { ref = "https://panzerivtheworkhorse.blogspot.com/2015/03/panzerkampfwagen-iv-ausf-h-part-i.html", covers = "Ausf. H armor angles: superstructure (driver) front 80 mm / 10 deg, hull nose 80 mm / 14 deg, turret front 50 / 10 deg" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+    { ref = "A. D. Coox / L. Van Loan Naisawald, Survey of Allied Tank Casualties in World War II, ORO-T-117 (Operations Research Office, 1951); figures from secondary quotations, report not read", covers = "range_typical_m: cross-check: average range at which Allied tanks were knocked out by gunfire just under 800 yd (US sample about 774 yd = 708 m)" },
 ]
 uncertain = ["speed_offroad_kmh_x10", "width_mm"]
-note = "Ausf. H (production June 1943 - mid 1944), the most numerous Pz IV in 1943-45. Width 2.88 m without Schürzen; with the 5 mm hull skirts fitted (standard on Ausf. H) about 3.3 m (not verified by a fetched source). Road range 210 km (cross-country 130 km) confirmed by two sources citing Jentz/Doyle; Wikipedia's 235-360 km spans all Pz IV variants. Off-road speed conflicts: 16 km/h (Wikipedia), ~19 km/h (12 mph, workhorse blog), 25 km/h (Tanks Encyclopedia). Superstructure (driver) front plate 80 mm at 10 degrees from vertical; hull nose plate 80 mm at 14 degrees. MG ammunition is the total for both MG 34. range_effective_m is a typical engagement range, not a hard limit."
+note = "Ausf. H (production June 1943 - mid 1944), the most numerous Pz IV in 1943-45. Width 2.88 m without Schürzen; with the 5 mm hull skirts fitted (standard on Ausf. H) about 3.3 m (not verified by a fetched source). Road range 210 km (cross-country 130 km) confirmed by two sources citing Jentz/Doyle; Wikipedia's 235-360 km spans all Pz IV variants. Off-road speed conflicts: 16 km/h (Wikipedia), ~19 km/h (12 mph, workhorse blog), 25 km/h (Tanks Encyclopedia). Superstructure (driver) front plate 80 mm at 10 degrees from vertical; hull nose plate 80 mm at 14 degrees. MG ammunition is the total for both MG 34. range_effective_m is a typical engagement range, not a hard limit. Differs from onwar.com (data/vehicles, a rank-4 source; the values above keep their sources): width_mm 3330."
 
 [[unit]]
 id = "de_tiger1_e"
@@ -459,16 +479,17 @@ armor_turret_side_mm = 80
 armor_turret_rear_mm = 80
 armor_hull_front_deg = 9
 weapon = [
-    { name = "8.8 cm KwK 36 L/56", caliber_mm_x10 = 880, ammo = "PzGr 39 APCBC, PzGr 40 APCR, Sprgr HE", rate_rpm = 6, muzzle_velocity_mps = 773, range_effective_m = 2000, ammo_carried = 92 },
+    { name = "8.8 cm KwK 36 L/56", caliber_mm_x10 = 880, ammo = "PzGr 39 APCBC, PzGr 40 APCR, Sprgr HE", rate_rpm = 6, muzzle_velocity_mps = 773, range_effective_m = 2000, range_typical_m = 1000, ammo_carried = 92 },
     { name = "MG 34", count = 2, caliber_mm_x10 = 79, rate_rpm = 900, muzzle_velocity_mps = 755, ammo_carried = 4800 },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/Tiger_I", covers = "57 t (Ausf. E), 8.45 / 6.316 m, 3.56 m, 3.00 m, crew 5, 700 PS, 45.4 km/h road, 20-25 km/h off-road, range 195 km, armor 100 front, 80 upper side, 100/80 turret, 92 rounds, 4800 MG rounds" },
     { ref = "https://panzerworld.com/pz-kpfw-tiger-ausf-e", covers = "57 t, 8.450 m, width 3.705 m, height 2.885 m, max 45 km/h, range 125 km road / 80 km cross-country, hull sides/rear 60-80 mm, HL 230 P 45 700 hp, 92 rounds (cites Jentz/Doyle, Germany's Tiger Tanks and Panzer Tracts 6)" },
     { ref = "Jentz/Doyle, Germany's Tiger Tanks: D.W. to Tiger I (2000)", covers = "front plate angles, KwK 36 PzGr 39 muzzle velocity 773 m/s (not re-verified)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
 ]
 uncertain = ["width_mm", "height_mm", "range_road_km", "armor_hull_front_deg", "speed_road_kmh_x10", "weapon"]
-note = "Late Ausf. E (HL 230, 1943-44). Width 3.705 m over combat tracks (Panzerworld citing Jentz/Doyle; Quartermaster Section 3.70 m, WW2DB 3.72 m); Wikipedia gives 3.56 m. Height 3.00 m (Wikipedia) vs 2.885 m (Panzerworld). Road range 195 km (Wikipedia) vs 125 km (Panzerworld). PzGr 39 muzzle velocity 773 m/s and front plate angle from memory. MG ammunition 4800 (Wikipedia, Ausf. E) vs 4500 (Panzerworld). Road speed 45.4 km/h is the maximum; the engine was later governed so ~38 km/h is a practical maximum. Hull side: 80 mm upper, 60 mm lower. Mantlet 100-200 mm. Front plate almost vertical (~9 degrees)."
+note = "Late Ausf. E (HL 230, 1943-44). Width 3.705 m over combat tracks (Panzerworld citing Jentz/Doyle; Quartermaster Section 3.70 m, WW2DB 3.72 m); Wikipedia gives 3.56 m. Height 3.00 m (Wikipedia) vs 2.885 m (Panzerworld). Road range 195 km (Wikipedia) vs 125 km (Panzerworld). PzGr 39 muzzle velocity 773 m/s and front plate angle from memory. MG ammunition 4800 (Wikipedia, Ausf. E) vs 4500 (Panzerworld). Road speed 45.4 km/h is the maximum; the engine was later governed so ~38 km/h is a practical maximum. Hull side: 80 mm upper, 60 mm lower. Mantlet 100-200 mm. Front plate almost vertical (~9 degrees). Differs from onwar.com (data/vehicles, a rank-4 source; the values above keep their sources): speed_road_kmh_x10 380, range_road_km 140."
 
 [[unit]]
 id = "de_jgdpz38t"
@@ -499,16 +520,18 @@ armor_turret_side_mm = 20
 armor_hull_front_deg = 60
 gun_traverse_deg = 16
 weapon = [
-    { name = "7.5 cm PaK 39 L/48", caliber_mm_x10 = 750, ammo = "PzGr 39 APCBC, PzGr 40 APCR, Sprgr 34 HE", rate_rpm = 8, muzzle_velocity_mps = 750, range_effective_m = 1500, ammo_carried = 41 },
+    { name = "7.5 cm PaK 39 L/48", caliber_mm_x10 = 750, ammo = "PzGr 39 APCBC, PzGr 40 APCR, Sprgr 34 HE", rate_rpm = 8, muzzle_velocity_mps = 750, range_effective_m = 1500, range_typical_m = 700, ammo_carried = 41 },
     { name = "MG 42 (remote mount)", caliber_mm_x10 = 79, rate_rpm = 1200, muzzle_velocity_mps = 740, ammo_carried = 1200 },
 ]
 source = [
     { ref = "https://www.historyofwar.org/articles/weapons_jagdpanzer38t_hetzer.html", covers = "gun traverse 5 deg left, 11 deg right" },
     { ref = "https://en.wikipedia.org/wiki/Jagdpanzer_38(t)", covers = "15.75 t, 6.27 / 4.77 m, 2.63 m, 2.17 m, crew 4, Praga 160 PS, 42 km/h, range 180 km road / 130 km cross-country, armor 8-60 mm, front 60 mm at 60 degrees, PaK 39 41 rounds, MG 1200 rounds, 1944-45" },
     { ref = "Chamberlain/Doyle, Encyclopedia of German Tanks of World War Two (rev. 1999), Jagdpanzer 38", covers = "side armor 20 mm, rear 8 mm" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+    { ref = "A. D. Coox / L. Van Loan Naisawald, Survey of Allied Tank Casualties in World War II, ORO-T-117 (Operations Research Office, 1951); figures from secondary quotations, report not read", covers = "range_typical_m: cross-check: average range at which Allied tanks were knocked out by gunfire just under 800 yd (US sample about 774 yd = 708 m)" },
 ]
 uncertain = ["speed_offroad_kmh_x10", "armor_hull_side_mm", "armor_hull_rear_mm"]
-note = "Built April 1944 - May 1945. Off-road speed not in sources; 15 km/h estimated. The MG (MG 34 or MG 42) is on a remote mount on the roof. Superstructure front uses the same 60 mm sloped plate (in armor_turret_front_mm)."
+note = "Built April 1944 - May 1945. Off-road speed not in sources; 15 km/h estimated. The MG (MG 34 or MG 42) is on a remote mount on the roof. Superstructure front uses the same 60 mm sloped plate (in armor_turret_front_mm). Differs from onwar.com (data/vehicles, a rank-4 source; the values above keep their sources): armor_hull_rear_mm 20."
 
 [[unit]]
 id = "de_stug3_g"
@@ -539,7 +562,7 @@ armor_turret_side_mm = 30
 armor_turret_rear_mm = 30
 gun_traverse_deg = 20
 weapon = [
-    { name = "7.5 cm StuK 40 L/48", caliber_mm_x10 = 750, ammo = "PzGr 39 APCBC, PzGr 40 APCR, Sprgr 34 HE", rate_rpm = 8, muzzle_velocity_mps = 750, range_effective_m = 1500, ammo_carried = 54 },
+    { name = "7.5 cm StuK 40 L/48", caliber_mm_x10 = 750, ammo = "PzGr 39 APCBC, PzGr 40 APCR, Sprgr 34 HE", rate_rpm = 8, muzzle_velocity_mps = 750, range_effective_m = 1500, range_typical_m = 700, ammo_carried = 54 },
     { name = "MG 34", caliber_mm_x10 = 79, rate_rpm = 900, muzzle_velocity_mps = 755, ammo_carried = 600 },
 ]
 source = [
@@ -547,6 +570,8 @@ source = [
     { ref = "https://en.wikipedia.org/wiki/Sturmgesch%C3%BCtz_III", covers = "Ausf. G: 23.9 t, 6.85 m, 2.95 m, 2.16 m, crew 4, HL 120 TRM 300 PS, 40 km/h, range 155 km road / 75 km cross-country, 80 mm front from May 1943, StuK 40 L/48 54 rounds, MG 600 rounds" },
     { ref = "https://www.historyofwar.org/articles/weapons_StuG_III_Ausf_G.html", covers = "Ausf. G armor: hull 80/30/50 (front/side/rear), superstructure 80/30/30; 6.77 m, 2.95 m, 2.16 m, 23.9 t, 155 km" },
     { ref = "https://panzerworld.com/sturmgeschutz-iii", covers = "StuG III series: hull lengths 5.38-5.40 m, cross-country speed 12-15 km/h, road range 140-160 km / cross-country 85-100 km" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+    { ref = "A. D. Coox / L. Van Loan Naisawald, Survey of Allied Tank Casualties in World War II, ORO-T-117 (Operations Research Office, 1951); figures from secondary quotations, report not read", covers = "range_typical_m: cross-check: average range at which Allied tanks were knocked out by gunfire just under 800 yd (US sample about 774 yd = 708 m)" },
 ]
 uncertain = ["length_mm", "length_hull_mm", "speed_offroad_kmh_x10"]
 note = "Ausf. G from mid-1943 with single 80 mm front plates (earlier 50+30 mm, both forms seen). Width without Schürzen. Overall length conflicts: 6.85 m (Wikipedia) vs 6.77 m (History of War, Panzerworld). Hull length 5.40 m from the Panzerworld series table, not clearly tied to Ausf. G. Off-road speed 15 km/h (Panzerworld 12-15 km/h, series-wide). From 1944 a coaxial MG 34 (600 rounds) was added on some vehicles; not counted."
@@ -576,14 +601,17 @@ armor_hull_front_mm = 15
 armor_hull_side_mm = 8
 armor_hull_rear_mm = 8
 weapon = [
-    { name = "MG 42", count = 2, caliber_mm_x10 = 79, rate_rpm = 1200, muzzle_velocity_mps = 740, range_effective_m = 800, ammo_carried = 2010 },
+    { name = "MG 42", count = 2, caliber_mm_x10 = 79, rate_rpm = 1200, muzzle_velocity_mps = 740, range_effective_m = 800, range_typical_m = 400, ammo_carried = 2010 },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/Sd.Kfz._251", covers = "7.81 t, 5.80 m, 2.10 m, 1.75 m, crew 2 + 10 passengers, armor 6-14.5 mm, Maybach HL 42 100 PS, 52.5 km/h, range 300 km, Ausf. D most produced (10,602), 251/1 with front and rear MG 34/42" },
     { ref = "https://panzerworld.com/sd-kfz-251", covers = "251/1: 6.8 t factory, 7.0 t combat ready, 8.5 t fully loaded; 5.80 x 2.10 x 1.75 m; 52.5 km/h road, 21.2 km/h cross-country; range 300 km road / 150 km cross-country; front 14.5 mm, sides/rear 5.5-8 mm; HL 42 TUKRM 100 hp; 2010 MG rounds (cites D 660/4 1943, Waffen-Revue W 127)" },
     { ref = "https://www.americanheritagemuseum.org/jml/sd-kfz-251-1-ausf-d", covers = "251/1 Ausf. D: 8.6 t, crew 2 + 10, range 186 mi (300 km), HL 42 99 hp, 10,602 Ausf. D built" },
+    { ref = "N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346", covers = "range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd" },
+    { ref = "TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII sec. II, https://lonesentry.com/manuals/tme30/ch7sec2sub6.html", covers = "range_typical_m: MG 34 / MG 42 effective range as light MG 600-800 yd, as heavy MG (tripod) 2,000-2,500 yd: upper bounds for the typical distance" },
 ]
-note = "Ausf. D (from 1943, simplified welded hull). Carries 10 Panzergrenadiere in addition to the 2 crew (driver, commander). mass_kg = fully loaded 8.5 t (Panzerworld; American Heritage Museum 8.6 t); combat ready without troops 7.0 t, Wikipedia series figure 7.81 t. Front armor 14.5 mm, stored as 15 (integers only). Height without MG shield. 2010 rounds for the two MGs."
+uncertain = ["weapon"]
+note = "Ausf. D (from 1943, simplified welded hull). Carries 10 Panzergrenadiere in addition to the 2 crew (driver, commander). mass_kg = fully loaded 8.5 t (Panzerworld; American Heritage Museum 8.6 t); combat ready without troops 7.0 t, Wikipedia series figure 7.81 t. Front armor 14.5 mm, stored as 15 (integers only). Height without MG shield. 2010 rounds for the two MGs. range_typical_m (prompt 067): bipod and flexible-mount machine guns 400 m (class estimate between the 300 yd of ORO-T-160 and the 600-800 yd 'effective as light MG' of TM-E 30-451)."
 
 [[unit]]
 id = "de_opel_blitz"
@@ -640,16 +668,16 @@ armor_hull_rear_mm = 5
 armor_turret_front_mm = 8
 armor_turret_side_mm = 8
 weapon = [
-    { name = "2 cm KwK 38 L/55", caliber_mm_x10 = 200, ammo = "PzGr 39 AP, PzGr 40 APCR, Sprgr HE", rate_rpm = 450, muzzle_velocity_mps = 830, range_effective_m = 600, ammo_carried = 180 },
+    { name = "2 cm KwK 38 L/55", caliber_mm_x10 = 200, ammo = "PzGr 39 AP, PzGr 40 APCR, Sprgr HE", rate_rpm = 450, muzzle_velocity_mps = 830, range_effective_m = 600, range_typical_m = 400, ammo_carried = 180 },
     { name = "MG 34", caliber_mm_x10 = 79, rate_rpm = 900, muzzle_velocity_mps = 755, ammo_carried = 1100 },
-    { name = "MP 40", caliber_mm_x10 = 90, rate_rpm = 500, muzzle_velocity_mps = 400, range_effective_m = 100, ammo_carried = 192 },
+    { name = "MP 40", caliber_mm_x10 = 90, rate_rpm = 500, muzzle_velocity_mps = 400, range_effective_m = 100, range_typical_m = 100, ammo_carried = 192 },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/Leichter_Panzersp%C3%A4hwagen", covers = "4.8 m, 1.95 m, 1.7 m, crew 3, Horch 3.8 l V8 90 PS (Ausf. B, 1942), 80 / 40 km/h, range 300 km (infobox 350), 8 mm sides, 5 mm rear, 30 mm front on 1942 Ausf. B, KwK 38 from 1942, coaxial MG 34" },
     { ref = "https://panzerworld.com/sd-kfz-222", covers = "4.80 t total, 4.80 x 1.95 x 2.00 m, 85 km/h, range 300 km road / 180 km cross-country, front 30 mm, sides/rear 8 mm, KwK 38 + MG 34 + MP, ammunition 180 / 1100 / 192 (cites WaA Bildermappe, Waffen-Revue W 127)" },
 ]
-uncertain = ["height_mm", "speed_offroad_kmh_x10"]
-note = "Late production / Ausf. B (from 1942: 90 PS, 30 mm front, KwK 38). Mass 4.8 t (Panzerworld); Wikipedia's 4.0 t covers the series. Height 2.00 m (Panzerworld, probably including the folding grenade screen) vs 1.7 m (Wikipedia). Road speed 80 km/h (Wikipedia, Ausf. B) vs 85 km/h max (Panzerworld). Off-road 40 km/h from Wikipedia only. KwK 38 rate_rpm is cyclic (practical ~180-220)."
+uncertain = ["height_mm", "speed_offroad_kmh_x10", "weapon"]
+note = "Late production / Ausf. B (from 1942: 90 PS, 30 mm front, KwK 38). Mass 4.8 t (Panzerworld); Wikipedia's 4.0 t covers the series. Height 2.00 m (Panzerworld, probably including the folding grenade screen) vs 1.7 m (Wikipedia). Road speed 80 km/h (Wikipedia, Ausf. B) vs 85 km/h max (Panzerworld). Off-road 40 km/h from Wikipedia only. KwK 38 rate_rpm is cyclic (practical ~180-220). range_typical_m (prompt 067): 20 mm automatic cannon 400 m against ground targets (class estimate below the light guns); submachine guns 100 m (class estimate: the battle sight setting)."
 
 [[unit]]
 id = "de_wespe"
@@ -682,8 +710,8 @@ source = [
     { ref = "https://en.wikipedia.org/wiki/10.5_cm_leFH_18", covers = "leFH 18 muzzle velocity 470 m/s, max range 10,675 m, 6-8 rpm" },
     { ref = "Chamberlain/Doyle, Encyclopedia of German Tanks of World War Two (rev. 1999), Wespe", covers = "32 rounds stowed, superstructure 10 mm, MG 34" },
 ]
-uncertain = ["speed_offroad_kmh_x10", "armor_hull_front_mm", "armor_turret_front_mm", "weapon"]
-note = "Production Feb 1943 - mid 1944, used to 1945. range_effective_m is maximum indirect range. Ammunition: Wikipedia 40 rounds, Chamberlain/Doyle 32 (from memory); 32 used. Hull front 30 mm taken as the upper bound of the Wikipedia range; open superstructure 10 mm (in armor_turret_front_mm). Off-road speed ~20 km/h estimated."
+uncertain = ["speed_offroad_kmh_x10", "armor_hull_front_mm", "armor_turret_front_mm", "weapon", "crew", "range_road_km"]
+note = "Production Feb 1943 - mid 1944, used to 1945. range_effective_m is maximum indirect range. Ammunition: Wikipedia 40 rounds, Chamberlain/Doyle 32 (from memory); 32 used. Hull front 30 mm taken as the upper bound of the Wikipedia range; open superstructure 10 mm (in armor_turret_front_mm). Off-road speed ~20 km/h estimated. Differs from onwar.com (data/vehicles, a rank-4 source; the values above keep their sources): crew 4, range_road_km 140, armor_turret_front_mm 20."
 
 # ---------------------------------------------------------------------------
 # Guns (height and mass in firing position unless noted)
@@ -706,12 +734,14 @@ height_mm = 1250
 mass_kg = 1425
 crew = 6
 weapon = [
-    { name = "7.5 cm PaK 40 L/46", caliber_mm_x10 = 750, ammo = "PzGr 39 APCBC, PzGr 40 APCR, Gr 38 HL HEAT, Sprgr 34 HE", rate_rpm = 14, muzzle_velocity_mps = 790, range_effective_m = 1800 },
+    { name = "7.5 cm PaK 40 L/46", caliber_mm_x10 = 750, ammo = "PzGr 39 APCBC, PzGr 40 APCR, Gr 38 HL HEAT, Sprgr 34 HE", rate_rpm = 14, muzzle_velocity_mps = 790, range_effective_m = 1800, range_typical_m = 700 },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/7.5_cm_Pak_40", covers = "1425 kg combat, length 6.2 m with carriage, barrel 3.45 m (L/46), width 2.08 m (2.0 m in characteristics list), height 1.2 m (1.25 m in list), crew 6, PzGr 39 790 m/s, PzGr 40 990 m/s, HL 450 m/s, HE 550 m/s, 14 rpm, effective 1800 m, max 7678 m, elevation -5/+22, traverse 65" },
     { ref = "https://panzerworld.com/7-5-cm-pak-40", covers = "1425 kg firing / 1500 kg travel, length 6.20 m (travel), width 1.98 m (travel), height 1.26 m combat-ready, firing height 0.98 m, 12-15 rpm, PzGr 39 790 m/s, PzGr 40 990 m/s, max range 8100 m (cites Überblick über den Rüstungsstand des Heeres 1942-44, Waffen-Revue W 127)" },
     { ref = "https://collection.lonesentry.com/manuals/tme30/ch7sec5sub2.html", covers = "TM-E 30-451 (1945): Pak 40 weight in action 3136 lb (1422 kg), tube length 11 ft 4 in" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+    { ref = "A. D. Coox / L. Van Loan Naisawald, Survey of Allied Tank Casualties in World War II, ORO-T-117 (Operations Research Office, 1951); figures from secondary quotations, report not read", covers = "range_typical_m: cross-check: average range at which Allied tanks were knocked out by gunfire just under 800 yd (US sample about 774 yd = 708 m)" },
 ]
 uncertain = ["width_mm", "height_mm", "crew"]
 note = "Height 1.25 m in firing position (top of shield): sources give 1.2 m (Wikipedia infobox), 1.25 m (Wikipedia list) and 1.26 m (Panzerworld). Width 2.0 m (Wikipedia list; infobox 2.08 m, Panzerworld 1.98 m in travel order). Length 6.2 m is travel order; trails spread in firing position. Mass 1425 kg confirmed by TM-E 30-451 (3136 lb). Crew 6 from Wikipedia only. Shield of spaced 4 mm plates (not stored as armor). range_effective_m is direct fire; HE indirect up to 7678-8100 m."
@@ -733,13 +763,13 @@ height_mm = 1600
 mass_kg = 405
 crew = 5
 weapon = [
-    { name = "2 cm Flak 38 L/65", caliber_mm_x10 = 200, ammo = "Sprgr HE-T, PzGr AP-T, PzGr 40 APCR (20-round magazine)", rate_rpm = 450, muzzle_velocity_mps = 900, range_effective_m = 5783, range_aa_m = 2200 },
+    { name = "2 cm Flak 38 L/65", caliber_mm_x10 = 200, ammo = "Sprgr HE-T, PzGr AP-T, PzGr 40 APCR (20-round magazine)", rate_rpm = 450, muzzle_velocity_mps = 900, range_effective_m = 5783, range_typical_m = 400, range_aa_m = 2200 },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/2_cm_Flak_30/38/Flakvierling", covers = "405 kg (420 kg in text), 4.08 m, 1.81 m, 1.6 m, crew 5, 450 rpm cyclic / 180 practical, 900 m/s, AA effective 2200 m, ground max 5783 m, 20-round box" },
 ]
-uncertain = ["mass_kg", "length_mm", "width_mm", "height_mm"]
-note = "Mass firing position 405-420 kg depending on source. Dimensions are the Wikipedia figures and probably refer to the gun on its Sd.Ah. 51 trailer (travel order); in firing position on the triangular platform the footprint is similar. rate_rpm is cyclic (450); practical rate 180 rpm. range_effective_m is the maximum horizontal (ground) range 5783 m; effective AA range/ceiling 2200 m."
+uncertain = ["mass_kg", "length_mm", "width_mm", "height_mm", "weapon"]
+note = "Mass firing position 405-420 kg depending on source. Dimensions are the Wikipedia figures and probably refer to the gun on its Sd.Ah. 51 trailer (travel order); in firing position on the triangular platform the footprint is similar. rate_rpm is cyclic (450); practical rate 180 rpm. range_effective_m is the maximum horizontal (ground) range 5783 m; effective AA range/ceiling 2200 m. range_typical_m (prompt 067): 20 mm automatic cannon 400 m against ground targets (class estimate below the light guns)."
 
 [[unit]]
 id = "de_flak36"
@@ -758,11 +788,12 @@ height_mm = 2100
 mass_kg = 7407
 crew = 10
 weapon = [
-    { name = "8.8 cm Flak 36 L/56", caliber_mm_x10 = 880, ammo = "Sprgr HE (time/percussion fuze), PzGr 39 APCBC", rate_rpm = 15, muzzle_velocity_mps = 820, range_effective_m = 14860, range_aa_m = 8000 },
+    { name = "8.8 cm Flak 36 L/56", caliber_mm_x10 = 880, ammo = "Sprgr HE (time/percussion fuze), PzGr 39 APCBC", rate_rpm = 15, muzzle_velocity_mps = 820, range_effective_m = 14860, range_typical_m = 1000, range_aa_m = 8000 },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/8.8_cm_Flak_18/36/37/41", covers = "7407 kg firing, 5.791 m, 2.3 m, height 2.10 m firing, crew 10, 15-20 rpm, 820 m/s, effective ceiling 8000 m, ground range 14,860 m" },
     { ref = "TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII (8.8 cm Flak 36)", covers = "cross-check of weights and performance" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
 ]
 uncertain = ["length_mm", "width_mm"]
 note = "Height 2.10 m in firing position. Length and width as given by Wikipedia; on the cruciform platform with outriggers lowered the footprint is considerably wider (~6-7 m across, estimate). range_effective_m is maximum ground range; effective AA ceiling 8000 m. 820 m/s is the HE muzzle velocity."
@@ -839,14 +870,16 @@ length_mm = 5000
 width_mm = 4000
 height_mm = 600
 weapon = [
-    { name = "MG 34 / MG 42", caliber_mm_x10 = 79, rate_rpm = 1200, muzzle_velocity_mps = 740, range_effective_m = 1000 },
+    { name = "MG 34 / MG 42", caliber_mm_x10 = 79, rate_rpm = 1200, muzzle_velocity_mps = 740, range_effective_m = 1000, range_typical_m = 400 },
 ]
 source = [
     { ref = "https://de.wikipedia.org/wiki/Ringstand", covers = "Ringstand concept: small buried concrete position with circular opening, variants 58c (MG), 58d, 67 (tank turret)" },
     { ref = "Rudi Rolf, Der Atlantikwall: Bauten der deutschen Küstenbefestigungen 1940-1945 (1998)", covers = "Regelbau 58c type, construction class, typical dimensions" },
+    { ref = "N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346", covers = "range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd" },
+    { ref = "TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII sec. II, https://lonesentry.com/manuals/tme30/ch7sec2sub6.html", covers = "range_typical_m: MG 34 / MG 42 effective range as light MG 600-800 yd, as heavy MG (tripod) 2,000-2,500 yd: upper bounds for the typical distance" },
 ]
 uncertain = ["length_mm", "width_mm", "height_mm", "weapon"]
-note = "Small concrete position, mostly buried, entered through a rear trench/passage; circular firing opening ~0.8 m. Footprint 5 x 4 m and ~0.6 m above ground are estimates of one element. Crew 2-3 with an MG 34/42 on a ring mount (variants carried mortars or tank turrets)."
+note = "Small concrete position, mostly buried, entered through a rear trench/passage; circular firing opening ~0.8 m. Footprint 5 x 4 m and ~0.6 m above ground are estimates of one element. Crew 2-3 with an MG 34/42 on a ring mount (variants carried mortars or tank turrets). range_typical_m (prompt 067): bipod and flexible-mount machine guns 400 m (class estimate between the 300 yd of ORO-T-160 and the 600-800 yd 'effective as light MG' of TM-E 30-451)."
 
 [[unit]]
 id = "de_minefield_at"
