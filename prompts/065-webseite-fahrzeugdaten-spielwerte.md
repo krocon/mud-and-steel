@@ -115,7 +115,53 @@ nicht erfunden, sondern im Bericht gemeldet (Abschnitt 4, Schritt 6).
    Fahrzeug statt je Kategorie, Bodendruck für Schlamm, Watfähigkeit, Steigfähigkeit,
    Grabenüberschreitung, Panzerungswinkel aller Seiten, Rückwärtsgang), mit Aufwand und
    Wirkung auf den Golden-Hash. Nur auflisten, nichts davon umsetzen.
-7. **Doku:** `web/units/README.md` (neue Quellen, Grenzen), `docs/ARCHITECTURE.md`
+7. **Impressum:** so klein und unauffällig, wie es rechtlich geht (§ 5 DDG; die DSGVO
+   regelt die Datenschutzerklärung, nicht das Impressum):
+   - Ein kleiner Link „Impressum“ in der Fußzeile jeder Ansicht, gedämpfte Farbe, kleine
+     Schrift. Er muss von jeder Seite aus mit einem Klick erreichbar und klar so benannt
+     sein; nicht hinter Menüs, Hover oder Scroll-Tricks verstecken.
+   - Der Klick öffnet einen schlichten Block (Dialog oder eigene Ansicht) mit genau
+     diesen Angaben, als Text (nicht als Bild), E-Mail als `mailto:`-Link:
+     ```
+     Marc Kronberg
+     Herrnwaldstr. 11
+     61462 Königstein im Taunus
+     E-Mail: krocon@gmail.com
+     ```
+   - Die Angaben stehen an genau einer Stelle (z. B. `web/units/impressum.html` oder ein
+     Block in `index.html`), nicht in mehreren Dateien.
+   - Keine weiteren Rechtstexte außer der Datenschutzerklärung (Schritt 8).
+8. **Datenschutzerklärung** (Art. 13 DSGVO), ebenso schlicht wie das Impressum:
+   - Daneben in der Fußzeile ein zweiter kleiner Link „Datenschutz“, gleiche Optik und
+     gleiche Regeln (jede Ansicht, ein Klick, klar benannt). Text an genau einer Stelle.
+   - **Erst prüfen, dann schreiben:** Alle externen Anfragen der Seite auflisten
+     (Schriften, CDNs, Bilder, Skripte, Analyse), dazu Cookies und `localStorage`.
+     Ziel ist eine Seite, die nichts an Dritte schickt: externe Schriften und
+     Bibliotheken in `web/units/` selbst ablegen (Lizenz prüfen und nennen), kein
+     Tracking, keine Cookies. Was sich nicht vermeiden lässt, vor dem Ändern mit mir
+     abstimmen.
+   - Der Text beschreibt nur, was die Seite danach wirklich tut, kurz und auf Deutsch:
+     1. Verantwortlicher: die Angaben aus dem Impressum.
+     2. Hosting und Server-Logs (IP-Adresse, Zeitpunkt, abgerufene Datei, Browser):
+        Zweck Betrieb und Sicherheit, Rechtsgrundlage Art. 6 Abs. 1 lit. f DSGVO,
+        Speicherdauer laut Anbieter. Der Anbieter steht noch nicht fest: Platzhalter
+        `[Hosting-Anbieter, Anschrift, Speicherdauer der Logs]` setzen und mich im
+        Bericht danach fragen.
+     3. Keine Cookies, kein Tracking, keine Analyse; `localStorage` nur, falls die Seite
+        es nutzt, mit Zweck (z. B. gewählter Filter) und dem Hinweis, dass es den
+        Rechner nicht verlässt.
+     4. Kontakt per E-Mail: Verarbeitung nur zur Beantwortung, Art. 6 Abs. 1 lit. b
+        bzw. f DSGVO, Löschung nach Erledigung.
+     5. Externe Dienste: keine, oder die nach der Prüfung verbliebenen mit Anbieter,
+        Zweck, Rechtsgrundlage und ggf. Drittlandübermittlung.
+     6. Rechte: Auskunft, Berichtigung, Löschung, Einschränkung, Datenübertragbarkeit,
+        Widerspruch (Art. 15–21 DSGVO) und Beschwerde bei einer Aufsichtsbehörde, z. B.
+        dem Hessischen Beauftragten für Datenschutz und Informationsfreiheit.
+     7. Stand (Datum).
+   - Keine Textbausteine aus Generatoren oder fremden Seiten kopieren; nichts
+     aufnehmen, was die Seite nicht tut. Im Bericht vermerken, dass der Text kein
+     Rechtsrat ist und vor dem Veröffentlichen geprüft werden sollte.
+9. **Doku:** `web/units/README.md` (neue Quellen, Grenzen), `docs/ARCHITECTURE.md`
    (Abschnitt „Unit stats“: woher jeder Wert kommt, Formeln der Kennzahlen), `CLAUDE.md`
    nur, wenn ein neuer `just`-Befehl dazukommt.
 
@@ -134,6 +180,11 @@ nicht erfunden, sondern im Bericht gemeldet (Abschnitt 4, Schritt 6).
    JavaScript).
 5. Jede Zahl im Block „Spielwerte“ lässt sich über die Doku auf eine Regeldatei oder
    einen Katalog-Wert zurückführen.
+6. Die Links „Impressum“ und „Datenschutz“ sind in jeder Ansicht sichtbar, auch im
+   schmalen Fenster, und zeigen die Texte aus Abschnitt 4, Schritt 7 und 8 vollständig.
+7. Im Netzwerk-Tab des Browsers gehen beim Laden und Bedienen der Seite keine Anfragen
+   an fremde Server (außer den mit mir abgestimmten); die Datenschutzerklärung nennt
+   genau diese.
 
 ## 6. Offene Fragen
 
