@@ -7,8 +7,9 @@ see and acts only through ordinary `sim::Command`s.
 ## Where the AI runs
 
 **On one machine, outside the simulation, as a player of the lockstep session.**
-In single player the local `SimHost` runs it; in a LAN match it would be the host
-(the lobby has no AI slots yet). Its commands travel through
+In single player the local `SimHost` runs it; in a LAN or online match the
+host runs the computer slots of the lobby (prompt 037, [TEAMS.md](TEAMS.md)).
+Its commands travel through
 `net::LockstepSession` in frames like a human's and are recorded in the replay.
 
 | Criterion | AI in lockstep on every peer | AI on one machine (chosen) |
@@ -141,6 +142,49 @@ limit, hunting the last units) and measuring on `test_large` (bases 0.9 and
 1.4 km from the center) are open. Thinking costs about 5–20 µs per tick on
 average, at most a few milliseconds (the free-spot search of the view).
 
+## Teams (prompt 037)
+
+[TEAMS.md](TEAMS.md) has the rules. For the AI:
+
+- `PlayerView::allies` holds the allied units (always visible),
+  `PlayerView::enemies` only enemies; `enemy_players` lists the enemy
+  players and whether they are defeated.
+- Every enemy has a home (its first building, else its map start, else the
+  centroid of its spawns). The AI heads for the nearest home of an
+  undefeated enemy that it has not searched yet, then the next.
+- Helping allies is kept simple: with shared vision the enemies an ally
+  fights are sightings of the AI too, so its groups advance there.
+  Barrages keep their safety distance from allied units as well.
+- End game of base matches: with 85 % of the unit limit (68 units) the AI
+  attacks without waiting for waves; with nothing left to search it goes
+  for the supply points enemies hold before random points.
+
+`just ai-tournament --teams 2v2` (map `twin_meadow`) or `--teams 3v3`
+(`test_large`): A plays every slot of one team, B the other's; A plays
+team 0 (players 0, 2, …) in even games, team 1 in odd ones. Results
+(seeds 1–20 or 1–10, Apple M1 Max, release):
+
+| Pairing (A vs B) | Mode, factions | Games | A wins | B wins | timeouts |
+|---|---|---|---|---|---|
+| hard vs passive | 2v2 battle, de vs su (scenario) | 20 | 40 % | 50 % | 2 |
+| normal vs passive | 2v2 battle, de vs su | 20 | 30 % | 55 % | 3 |
+| hard vs normal | 2v2 battle, de vs su | 20 | 30 % | 40 % | 6 |
+| hard vs passive | 2v2 battle, su vs su | 20 | 5 % | 40 % | 11 |
+| hard vs passive | 3v3 battle, de vs su, `test_large` | 10 | 50 % | 50 % | 0 |
+| normal vs passive | 2v2 base, 24 000 ticks | 10 | 100 % | 0 % | 0 |
+| hard vs normal | 2v2 base, 24 000 ticks | 10 | 40 % | 0 % | 6 |
+
+**Reading the numbers.** In base matches the AIs play the teams as
+intended (every one builds, the passive team falls every time). In the
+battle mode the side decides, not the level: the attacking AI loses
+against armies that stand and fire, and many games end with a few units
+that are never found. The same happens without teams on `twin_meadow`
+(1 vs 1, hard vs passive, su vs su: 50 % wins, 45 % timeouts, before and
+after this prompt): the battle AI was tuned on `test_small`, where the
+armies start inside each other's range. Tuning the approach (stopping at
+the own range, moving as one front with the ally) and the hunt for the
+last units is open.
+
 ## Difficulties
 
 | | Passive | Easy | Normal | Hard |
@@ -257,7 +301,6 @@ starts far apart (meeting engagements) should separate the levels more.
 
 ## Open
 
-- AI slots in the LAN lobby (the session part exists).
 - Infantry tactics: stances, cover spots and buildings (prompt 022) are not
   used by the AI yet; attacking squads walk in standing and lose against
   kneeling defenders. The end game of base matches (see above),

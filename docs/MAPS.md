@@ -31,6 +31,7 @@ water_flow_deg = 180         # direction rivers flow towards (0 = north); presen
 
 [[start]]                    # start positions per player: the scenario's units stand here
 player = 0
+team = 0                     # optional (prompt 037): the lobby's suggestion; not in the hash
 position_m = [0, 60]
 
 [[marker]]                   # named points for tools and tests
@@ -44,6 +45,13 @@ take them and they pay resources to the holder. `cli gen-map` writes three:
 `supply_village`, `supply_hill` and `supply_ford` at the village square, the
 landmark hill and the ford; the map editor keeps them but cannot place them
 yet.
+
+Teams (prompt 037, [TEAMS.md](TEAMS.md)): a map takes as many players as it
+has starts; `team` suggests the teams for the lobby. `cli gen-map --players
+4|6` (`just gen-map NAME SIZE SEED --players 4`) writes starts for two teams
+on the start meadow and more supply points there (`supply_meadow_*`).
+`twin_meadow` (1 km, 4 starts) is the 2-against-2 map, `test_large` has 6
+starts; `test_small` keeps its two.
 
 Since prompt 028 the scenario places every player's units at that player's
 `[[start]]`: all groups of the player move by the offset between the start and

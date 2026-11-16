@@ -48,6 +48,8 @@ and [the HUD section](ARCHITECTURE.md#hud-presentation-only). The tutorial
 | F *(rebindable)* | Hold fire / fire at will |
 | Z / X / V / B *(rebindable)* | Infantry: stand / kneel / prone / automatic stance |
 | G / T *(rebindable)* | Mortars and guns: barrage / smoke at the ground point under the cursor (prompt 032) |
+| K *(rebindable)* | Mark the ground point under the cursor for your allies (ping, prompt 037) |
+| Minimap: Alt + left click | Mark that point for your allies |
 
 **Targeted orders** from the command bar or their key wait for a left click
 (the cursor turns into a cross, a hint shows at the top); right click

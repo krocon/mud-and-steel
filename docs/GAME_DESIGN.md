@@ -200,8 +200,10 @@ in the game, which is acceptable for now.
 - **Battle**: the fixed armies of the demo scenario, as before (also used by
   the golden hash, the LAN tests and the self-test matches 1–3). Supply
   points and accounts exist there too but have nothing to buy.
-- LAN matches use the battle scenario for now (the lobby has no mode choice
-  yet).
+- LAN and online matches: the host chooses the mode (prompt 037).
+- **Teams** (prompt 037, [TEAMS.md](TEAMS.md)): 2 against 2 and 3 against
+  3 with humans and computer players in both modes; allies share their
+  sight (option), a team loses when all its players are defeated.
 
 ## Computer opponent [provisional]
 
@@ -248,5 +250,6 @@ open.
 
 Supply trucks and consumption, selling or repairing buildings, cancelling a
 construction site, upgrades, aircraft and artillery production, walls and
-mines as buildable objects, supply points in the map editor, mode choice in
-the LAN lobby, teams, the AI's end game in base matches.
+mines as buildable objects, supply points in the map editor, sharing
+resources with allies, tuning the AI's end game in base matches (prompt
+037 made a first step, see [AI.md](AI.md#teams-prompt-037)).
