@@ -169,6 +169,12 @@ Zeichnungen bleiben Referenz auf dem Rechner.
                    └─ 064 Datenbank ─ 065 Webseite + Spielwerte ─ 066 Anzeige im Spiel
 ```
 
+### Außer der Reihe: Öffentlichkeit (070)
+
+| Nr. | Prompt | Ziel | Status |
+|-----|--------|------|--------|
+| 070 | [YouTube-Demo-Video](070-youtube-demo-video.md) | Demo-Video von 1 bis 4 Minuten: geskriptete Spielszenen aus wechselnden Blickwinkeln (`just trailer-shots`, Movie Maker), Schnitt als Promo im Video-Projekt `videoserien`; Freigabe vor dem Rendern, kein Upload | offen |
+
 ## Festgelegte Grundsätze
 
 - **Größen 1:1** in echten Metern, auch Infanterie (1,80 m).
