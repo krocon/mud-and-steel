@@ -525,6 +525,20 @@ cross-multiplication (integers only, no division):
 A cell is visible when the point 2 m above its ground is not below either
 horizon. The result is a bit field over the sight square (≈ 2 KB per unit).
 
+**Seeing downhill** (prompt 060, `[height]` in `data/vision.toml`
+[provisional]): beyond its sight range a unit also sees cells whose ground
+lies more than 20 m below its eye, 5 % of the range farther per 10 m of
+further drop, at most 25 % (500 m → 625 m). The line of sight already lets
+heights look over cover; this adds the wider view over a valley, and only
+downwards (the valley does not see the height farther). Such a unit uses a
+ray table of the longer reach, but only when some ground within that reach
+is low enough: the grid keeps the lowest ground per block of 8 × 8 cells
+(updated with craters), so units on flat ground keep their usual table and
+cost. Beyond the sight range a ray stops as soon as its horizon rules out
+every further cell. `test_small` has no 20 m drops within sight, so the
+demo is unchanged; on `mountain_pass` vision-bench takes about 18 % more ray
+steps than before (250 000 instead of 212 000 per tick, 500 units).
+
 ### Updates and budget
 
 A viewshed is computed again only when its unit enters another cell;

@@ -139,7 +139,7 @@ oder weggelassen; es werden keine Inhalte anderer Spiele übernommen.
 | 057 | [Bodenoptik: Wiesen](done/057-bodenoptik-wiese.md) | Feines Gras, Farbvariation, Halmbüschel, Blüten, Übergänge, Tilt-Shift | erledigt |
 | 058 | [Bilder in der Produktionsauswahl](done/058-bilder-produktionsauswahl.md) | Vorgerenderte Bilder als Kacheln mit Kosten, Reiter; `just thumbnails` | erledigt |
 | 059 | [Wüstendorf](059-wuestendorf.md) | Flachdachhäuser mit Hofmauern, Palmenhaine, Dorfkarte Nordafrika | Entwurf |
-| 060 | [Berge und Täler](060-berge-taeler.md) | Gebirgs-Profile im Generator, Pässe, Hangregeln, Gebirgskarte | Entwurf |
+| 060 | [Berge und Täler](done/060-berge-taeler.md) | Gebirgs-Profile im Generator, Pässe, Hangregeln, Gebirgskarte | erledigt |
 | 061 | [Recherche: freie Soundeffekte](done/061-sound-recherche.md) | Geprüfte CC0/CC-BY-Aufnahmen, Pakete, Lücken, Ordnerstruktur in `docs/AUDIO_LIBRARY.md` | erledigt |
 
 Viele dieser Prompts ändern `sim.rs`, `command.rs`, `main.gd` und den Golden-Hash.
