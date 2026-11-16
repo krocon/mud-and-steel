@@ -48,6 +48,14 @@ impl SimHost {
             Some(WorkKind::Hedgehogs) => lay(units, LayKind::Hedgehogs, from, to),
             Some(WorkKind::Foxhole) => dig(units, DigKind::Foxhole, from, to),
             Some(WorkKind::Trench) => dig(units, DigKind::Trench, from, to),
+            // Prompt 052.
+            Some(WorkKind::CommTrench) => dig(units, DigKind::CommTrench, from, to),
+            Some(WorkKind::VehiclePit) => dig(units, DigKind::VehiclePit, from, to),
+            Some(WorkKind::MgNest) => dig(units, DigKind::MgNest, from, to),
+            Some(WorkKind::Dugout) => dig(units, DigKind::Dugout, from, to),
+            Some(WorkKind::CamoNet) => lay(units, LayKind::CamoNet, from, to),
+            Some(WorkKind::Bunker) => lay(units, LayKind::Bunker, from, to),
+            Some(WorkKind::Teeth) => lay(units, LayKind::Teeth, from, to),
             None => return false,
         };
         self.pending.push(command);
@@ -218,8 +226,9 @@ impl SimHost {
         })
     }
 
-    /// Price of one piece of `kind` (fuel, ammo, manpower) and its build
-    /// time in seconds (the last entry).
+    /// Price of one piece of `kind` (fuel, ammo, manpower), its build
+    /// time in seconds and its length along a line in mm (0: one piece per
+    /// point; prompt 052).
     #[func]
     fn work_cost(&self, kind: GString) -> PackedInt32Array {
         let (Some(game), Some(kind)) = (&self.game, WorkKind::from_name(&kind.to_string())) else {
@@ -228,7 +237,7 @@ impl SimHost {
         let rule = game.sim.works_rules().rule(kind);
         rule.cost
             .iter()
-            .chain(std::iter::once(&rule.build_s))
+            .chain([&rule.build_s, &rule.piece_mm])
             .map(|&v| i32::try_from(v).unwrap_or(i32::MAX))
             .collect()
     }

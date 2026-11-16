@@ -205,7 +205,20 @@ squads are twice as fast).
 | Demolish a bridge | – | 0 / 40 / 0 (when done) | 30 s |
 | Repair a bridge | – | 40 / 0 / 80 (when done) | 90 s |
 
-Clearing takes 3 s per mine, 5 s per wire piece, 8 s per hedgehog. At most
+Positions (prompt 052, `[positions]` of `data/works.toml`):
+
+| Work | Piece | Price (fuel / ammo / manpower) | Time |
+|---|---|---|---|
+| Communication trench | 4 m of line | free | 15 s |
+| Vehicle pit | one | free | 60 s |
+| MG nest (at a trench) | one | 0 / 0 / 10 | 25 s |
+| Dugout (at a trench) | one | 0 / 0 / 20 | 60 s |
+| Camouflage net | one | 0 / 0 / 10 | 10 s |
+| Bunker (at a trench) | the faction's fortification | 0 / 80 / 60 | 60 s |
+| Concrete teeth | one tooth every 1.5 m | 0 / 0 / 15 | 15 s |
+
+Clearing takes 3 s per mine, 5 s per wire piece, 8 s per hedgehog (30 s per
+tooth, 4 s per net). At most
 24 unfinished sites per player; sites left alone for 30 s are given up
 (refunded if not started). Mines do not go off under the own team; the
 enemy sees them only after his engineers found them or one went off.

@@ -604,6 +604,32 @@ impl Sim {
         self.block_ground(index);
     }
 
+    /// A completed structure of `owner` at once (prompt 052: bunkers that
+    /// engineers built at a trench edge).
+    pub(super) fn add_completed_structure(
+        &mut self,
+        owner: PlayerId,
+        unit_type: u32,
+        position: Vec2,
+        facing: Vec2,
+        fire_mode: FireMode,
+    ) -> usize {
+        let index = self.spawn_unit(owner, unit_type, position, facing, fire_mode);
+        let rally = self.default_rally(index);
+        let unit = &self.units[index];
+        self.economy.structures.push(Structure {
+            unit: unit.id,
+            owner,
+            unit_type,
+            build_left: 0,
+            build_total: 1,
+            queue: Vec::new(),
+            rally,
+        });
+        self.block_ground(index);
+        index
+    }
+
     /// Adds a unit during the match (production, construction sites). Ids
     /// keep increasing, so the unit list stays sorted. Returns its index.
     pub(super) fn spawn_unit(

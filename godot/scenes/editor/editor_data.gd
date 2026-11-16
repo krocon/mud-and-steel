@@ -16,7 +16,11 @@ const TOOLS: Dictionary[String, String] = {
 	# Prompt 037: up to six players in teams.
 	"start2": "Start player 3", "start3": "Start player 4",
 	"start4": "Start player 5", "start5": "Start player 6",
+	# Prompt 052: neutral trench strongpoints (map markers).
+	"strongpoint": "Strongpoint",
 }
+## A strongpoint click within this distance (m) of one removes it.
+const STRONGPOINT_PICK_M := 20.0
 ## Mountain tools (prompt 060).
 const MOUNTAIN_TOOLS: Array[String] = ["ridge", "valley", "terrace", "road"]
 ## Start tools (prompt 037).

@@ -758,6 +758,9 @@ impl Sim {
     /// Where shooters aim at unit `t`: the middle of its hull, or a living
     /// soldier of a squad (a different one for every round).
     fn aim_point(&self, t: usize) -> Vec3 {
+        if let Some(turret) = self.dug_in_aim(t) {
+            return turret;
+        }
         let u = &self.units[t];
         let h = self.types[u.unit_type as usize].height;
         if let Some(squad) = &u.squad
@@ -1039,7 +1042,13 @@ impl Sim {
                 if let Some((t, face, soldier)) = unit_hit(unit, ty, &self.infantry, a, d)
                     && better(&best, t)
                 {
-                    best = Some((t, HitKind::Unit(unit.id), Some((j, face, soldier))));
+                    // The hull of a dug-in vehicle is behind its parapet
+                    // (prompt 052).
+                    best = Some(if self.below_parapet(j, at(a, d, t)) {
+                        (t, HitKind::Ground, None)
+                    } else {
+                        (t, HitKind::Unit(unit.id), Some((j, face, soldier)))
+                    });
                 }
             }
             let first = p.traveled == Fixed::ZERO;
@@ -1088,6 +1097,7 @@ impl Sim {
             }
             // A soldier in a crater may be saved by its rim (prompt 021).
             if let Some((j, _, Some(soldier))) = unit_hit
+                && !self.trench_exposed(j, soldier, p.traveled, d)
                 && self.crater_catches(j, soldier)
             {
                 kind = HitKind::Ground;

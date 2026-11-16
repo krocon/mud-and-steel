@@ -696,3 +696,40 @@ source = [
 ]
 uncertain = ["length_mm", "width_mm"]
 note = "Rows of standing 200 l drums with gaps on dunnage. Height is one drum plus dunnage. Bursts when it burns (data/fire.toml)."
+
+# --- Prompt 052: positions tier 2 ------------------------------------------
+
+[[unit]]
+id = "fort_camo_net"
+faction = "neutral"
+category = "env_prop"
+name_de = "Tarnnetz (auf Stangen)"
+name_en = "Camouflage net (on poles)"
+tier = 1
+model = "assets/models/neutral/fort_camo_net.glb"
+length_mm = 8840
+width_mm = 8840
+height_mm = 2800
+source = [
+    { ref = "US War Department FM 5-20 Camouflage, Basic Principles (1944), drape and flat-top nets", covers = "garnished fish nets or chicken-wire nets stretched over positions on poles, kept clear of the object so that its shape and shadow disappear; standard net sizes such as 29 x 29 ft" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Garnished drape net of 29 x 29 ft (8.84 m) held by poles about 2.8 m high over an MG, gun or vehicle position. The net size is one of several standard sizes (not checked against the manual's table); the pole height is a judgement value. Used for camouflage nets engineers lay (data/works.toml, prompt 052)."
+
+[[unit]]
+id = "fort_dragon_teeth"
+faction = "neutral"
+category = "fort_obstacle"
+name_de = "Höckerhindernis (Betonhöcker)"
+name_en = "Concrete anti-tank teeth (dragon's teeth)"
+tier = 1
+model = "assets/models/neutral/fort_dragon_teeth.glb"
+length_mm = 1200
+width_mm = 1200
+height_mm = 1200
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Dragon%27s_teeth_(fortification)", covers = "square-pyramidal reinforced-concrete blocks set in rows on a common foundation to stop tanks (Siegfried Line), rows of increasing height" },
+    { ref = "TM-E 30-451 Handbook on German Military Forces (1945), ch. V sec. II", covers = "rows of concrete teeth as anti-tank obstacles of the West Wall" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "One truncated concrete pyramid on its footing. Real teeth varied from below 1 m to about 1.5 m with the row; 1.2 m base and height is a judgement value. One tooth per 1.5 m of an ordered line (data/works.toml, prompt 052)."

@@ -259,6 +259,14 @@ first. Units avoid known hostile fields by themselves (path search). Test:
 `crates/ai/tests/ai.rs::ai_lays_mines_that_the_enemy_does_not_see`.
 [provisional]
 
+Positions (prompt 052): once its mines are laid (or while it has no
+ammunition for them) the AI defends its chokepoints: at the next one it
+digs a 16 m zigzag trench across the way to the enemy 20 m behind the
+point, then 24 m of wire 12 m in front of the trench, an MG nest and a
+camouflage net, one step whenever no site is under way and it can pay six
+pieces; at most two positions per match. Test:
+`ai_digs_a_position_after_its_mines`. [provisional]
+
 ## Difficulties
 
 | | Passive | Easy | Normal | Hard |

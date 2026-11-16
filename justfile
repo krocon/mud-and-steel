@@ -411,6 +411,11 @@ effects-shots dir: build
 base-shots dir: build
     {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- --mode=base --ai=normal "--base-shots={{ dir }}"
 
+# Record a trench strongpoint (prompt 052) as PNG files into a folder: overview, firing bay, dugouts, ring and wire (needs a window)
+[group('godot')]
+position-shots dir="build/positions": build
+    {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- "--position-shots={{ dir }}"
+
 # Measure the frame rate with 50 explosions at once in every graphics quality (opens a window)
 [group('godot')]
 effects-bench: build

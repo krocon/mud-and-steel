@@ -586,6 +586,71 @@ impl MapEditor {
         self.edited(None);
     }
 
+    /// Adds a strongpoint marker at the ground point (prompt 052); returns
+    /// its name ("" without a map).
+    #[func]
+    fn add_strongpoint(&mut self, x: f32, z: f32) -> GString {
+        let Some(map) = self.map.as_mut() else {
+            return GString::new();
+        };
+        let name = map.add_strongpoint(mm(x), mm(z));
+        self.edited(None);
+        GString::from(name.as_str())
+    }
+
+    /// Removes the strongpoint markers within `radius` m of the point;
+    /// returns how many.
+    #[func]
+    fn remove_strongpoints(&mut self, x: f32, z: f32, radius: f32) -> i64 {
+        let Some(map) = self.map.as_mut() else {
+            return 0;
+        };
+        let n = map.remove_strongpoints(mm(x), mm(z), mm(radius));
+        if n > 0 {
+            self.edited(None);
+        }
+        i64::try_from(n).unwrap_or(0)
+    }
+
+    /// Strongpoint markers with their layout for the preview: per marker
+    /// `{name, position (Vector3), pieces: [{kind, from, to}]}`.
+    #[func]
+    fn strongpoints(&self) -> Array<VarDictionary> {
+        let Some(map) = &self.map else {
+            return Array::new();
+        };
+        let Ok(rules) = sim::PositionRules::builtin() else {
+            return Array::new();
+        };
+        let ground = |p: sim::Vec2| {
+            let (x, z) = (crate::fixed_to_f32(p.x), crate::fixed_to_f32(p.y));
+            Vector3::new(x, Self::height_f32(map, x, z), z)
+        };
+        map.meta()
+            .markers
+            .iter()
+            .filter(|(name, _)| name.starts_with(&rules.strongpoint_prefix))
+            .map(|(name, p)| {
+                let center = sim::Vec2::from_meters(p[0], p[1]);
+                let pieces: Array<VarDictionary> = sim::strongpoint_layout(&rules, center)
+                    .iter()
+                    .map(|piece| {
+                        let mut d = VarDictionary::new();
+                        d.set("kind", piece.kind.name());
+                        d.set("from", ground(piece.from));
+                        d.set("to", ground(piece.to));
+                        d
+                    })
+                    .collect();
+                let mut d = VarDictionary::new();
+                d.set("name", name.as_str());
+                d.set("position", ground(center));
+                d.set("pieces", &pieces);
+                d
+            })
+            .collect()
+    }
+
     /// Suggested team of `player`'s start for the lobby (prompt 037); -1:
     /// none (the player is on a team of their own).
     #[func]

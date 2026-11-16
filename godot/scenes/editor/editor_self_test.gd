@@ -151,6 +151,15 @@ func _tools_test(scene: Node3D, editor: MapEditor) -> void:
 	scene.stroke(_points([Vector2(40, -40)], editor))
 	_check(editor.object_count() == before_mines + 1, "the minefield was not placed")
 	_check(scene.map_objects.object_instances == editor.object_count(), "minefield not drawn in the editor")
+	# A strongpoint (prompt 052): a marker with an outline; a second click
+	# on it removes it, a third adds it again (the play test checks it).
+	scene.tool = "strongpoint"
+	scene.stroke(_points([Vector2(-40, 30)], editor))
+	_check(editor.strongpoints().size() == 1 and scene.strongpoint_outlines == 1, "strongpoint not placed")
+	scene.stroke(_points([Vector2(-42, 31)], editor))
+	_check(editor.strongpoints().is_empty(), "a click on the strongpoint did not remove it")
+	scene.stroke(_points([Vector2(-40, 30)], editor))
+	_check(editor.strongpoints().size() == 1, "strongpoint not placed again")
 
 	for player in 2:
 		scene.tool = "start%d" % player
@@ -251,6 +260,15 @@ func _play_test(menu: Control, map_hash: String) -> void:
 	var host: SimHost = main.sim_host
 	# The minefield of the edit test: hidden mines, nobody knows them.
 	_check(host.all_mines_count() > 0, "the map's minefield has no mines in the match")
+	# The strongpoint marker became neutral works in the first tick
+	# (prompt 052).
+	for i in 120:
+		if host.current_tick() > 1:
+			break
+		await get_tree().process_frame
+	var works := host.field_works()
+	_check(works.filter(func(w: Dictionary) -> bool: return w.kind == "trench").size() >= 8,
+		"the map's strongpoint has %d works in the match" % works.size())
 	_check(host.known_mines().is_empty(), "the map's hidden mines are known")
 	_check(host.map_name() == MAP_NAME, "match runs on '%s'" % host.map_name())
 	_check(host.map_hash() == map_hash, "match map hash %s, editor check %s" % [host.map_hash(), map_hash])

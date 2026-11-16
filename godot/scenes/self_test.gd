@@ -52,6 +52,8 @@ extends Node
 ##    fuel, the unit panel shows their stock bars, tanks draw no supply ring.
 ## 16. Works (prompt 035, `tools/works_self_test.gd`, after the replay
 ##    test): a hidden debug minefield, an own tank throws its track in it.
+## 17. Positions (prompt 052, `tools/positions_self_test.gd`): a debug
+##    strongpoint is drawn as trenches, a squad walks in, a line shows its price.
 
 ## Panzer IV H: 16 km/h cross-country (catalog) × time factor 2 = 8.889 m/s,
 ## i.e. 0.4444 m per tick at 20 Hz. Terrain scales it (data/terrain.toml).
@@ -77,6 +79,7 @@ const AirSelfTest := preload("res://scenes/tools/air_self_test.gd")
 const TransportSelfTest := preload("res://scenes/tools/transport_self_test.gd")
 const SupplySelfTest := preload("res://scenes/tools/supply_self_test.gd")
 const WorksSelfTest := preload("res://scenes/tools/works_self_test.gd")
+const PositionsSelfTest := preload("res://scenes/tools/positions_self_test.gd")
 const FormationSelfTest := preload("res://scenes/tools/formation_self_test.gd")
 const MatchSetup := preload("res://scenes/menu/match_setup.gd")
 
@@ -124,8 +127,9 @@ func _run() -> void:
 	_replay_test()
 	# After the replay test: its debug minefield is no command (prompt 035).
 	await WorksSelfTest.new().run(self)
+	await PositionsSelfTest.new().run(self)
 	var ok := _errors.is_empty()
-	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, fog, combat, infantry, destruction, fire, craters, sound, music, water, hud, air, transport, supply, formations, replay and works ok" if ok else " ".join(_errors)
+	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, fog, combat, infantry, destruction, fire, craters, sound, music, water, hud, air, transport, supply, formations, replay, works and positions ok" if ok else " ".join(_errors)
 	print("self-test %s: %s" % ["PASSED" if ok else "FAILED", message])
 	# Started from the menu flow test (prompt 027): it continues the flow.
 	var flow: Node = MatchSetup.flow_test

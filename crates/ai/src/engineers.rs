@@ -4,10 +4,15 @@
 //! enemy) and clear hostile mines the player knows near its army. Normal
 //! and Hard only. Ordinary commands only (`Produce`, `Lay`, `Clear`), and
 //! only what the [`PlayerView`] shows (the map is public).
+//!
+//! Prompt 052: once the mines are laid, the engineers fortify the
+//! chokepoints (the AI defends them): a zigzag trench across the way to the
+//! enemy behind the point, wire in front of it, an MG nest at the trench
+//! and a camouflage net over it, step by step (`Dig`, `Lay`).
 
 use crate::{Ai, Difficulty, OwnUnit, PlayerView, Role, centroid, dist, toward};
 use serde::{Deserialize, Serialize};
-use sim::{Command, Fixed, LayKind, Map, Vec2};
+use sim::{Command, DigKind, Fixed, LayKind, Map, Vec2};
 
 /// Most mine sections the AI lays in a match.
 const MAX_SECTIONS: u32 = 2;
@@ -21,6 +26,14 @@ const CLEAR_TICKS: u64 = 1200;
 const PRODUCE_TICKS: u64 = 600;
 /// Mines are laid this far (m) beyond the end of a bridge.
 const BRIDGE_OFFSET_M: i32 = 16;
+/// Most positions (prompt 052) the AI digs in a match.
+const MAX_POSITIONS: u32 = 2;
+/// A position's trench lies this far (m) behind its chokepoint (towards
+/// the own home), is this long, and its wire this far in front of it.
+const TRENCH_BACK_M: i32 = 20;
+const TRENCH_HALF_M: i32 = 8;
+const WIRE_AHEAD_M: i32 = 12;
+const WIRE_HALF_M: i32 = 12;
 
 /// Engineer jobs of a computer player.
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
@@ -33,6 +46,12 @@ pub(crate) struct EngineerState {
     cleared: Option<(u64, Vec2)>,
     /// Tick of the last production order for engineers.
     produced: Option<u64>,
+    /// Positions dug so far and the next step of the current one
+    /// (prompt 052: trench, wire, MG nest, camouflage net).
+    #[serde(default)]
+    fortified: u32,
+    #[serde(default)]
+    step: u32,
 }
 
 impl EngineerState {
@@ -145,7 +164,11 @@ impl Ai {
             }
             return;
         }
-        if building || clearing || self.engineers.laid >= MAX_SECTIONS {
+        if building || clearing {
+            return;
+        }
+        if self.engineers.laid >= MAX_SECTIONS {
+            self.fortify(view, units, out);
             return;
         }
         let Some(&point) = self.engineers.chokepoints.get(self.engineers.laid as usize) else {
@@ -154,6 +177,8 @@ impl Ai {
         let cost =
             sim::WorksRules::builtin().map_or([0, 60, 0], |r| r.rule(sim::WorkKind::MinesAt).cost);
         if view.account.iter().zip(cost).any(|(&have, c)| have < c) {
+            // No ammunition for mines: dig in meanwhile (prompt 052).
+            self.fortify(view, units, out);
             return;
         }
         self.engineers.laid += 1;
@@ -164,6 +189,87 @@ impl Ai {
             from: point,
             to: point,
         });
+    }
+
+    /// The next step of the position at the current chokepoint (prompt
+    /// 052): trench, wire, MG nest, camouflage net. Waits for the money.
+    fn fortify(&mut self, view: &PlayerView, units: Vec<sim::UnitId>, out: &mut Vec<Command>) {
+        if self.engineers.fortified >= MAX_POSITIONS {
+            return;
+        }
+        let Some(&point) = self
+            .engineers
+            .chokepoints
+            .get(self.engineers.fortified as usize)
+        else {
+            return;
+        };
+        let enemy = self.enemy_home;
+        // `toward(enemy, p, -d)` lies d from p towards the enemy.
+        let ahead = |p: Vec2, d: i32| toward(enemy, p, -Fixed::from_num(d));
+        let trench = ahead(point, -TRENCH_BACK_M);
+        let way = enemy - trench;
+        let len = way.length();
+        if len == Fixed::ZERO {
+            self.engineers.fortified += 1;
+            return;
+        }
+        let across = Vec2::new(-way.y / len, way.x / len);
+        let line = |center: Vec2, half: i32| {
+            let h = across.scale(Fixed::from_num(half));
+            (self.clamp_to_map(center - h), self.clamp_to_map(center + h))
+        };
+        let (kind, (from, to)) = match self.engineers.step {
+            0 => (sim::WorkKind::Trench, line(trench, TRENCH_HALF_M)),
+            1 => (
+                sim::WorkKind::Wire,
+                line(ahead(trench, WIRE_AHEAD_M), WIRE_HALF_M),
+            ),
+            2 => {
+                let nest = self.clamp_to_map(ahead(trench, 2));
+                (sim::WorkKind::MgNest, (nest, nest))
+            }
+            _ => {
+                let net = self.clamp_to_map(trench);
+                (sim::WorkKind::CamoNet, (net, net))
+            }
+        };
+        let cost = sim::WorksRules::builtin().map_or([0, 0, 0], |r| r.rule(kind).cost);
+        // Enough for a line of six pieces.
+        if view.account.iter().zip(cost).any(|(&have, c)| have < c * 6) {
+            return;
+        }
+        out.push(match kind {
+            sim::WorkKind::Trench => Command::Dig {
+                units,
+                kind: DigKind::Trench,
+                from,
+                to,
+            },
+            sim::WorkKind::MgNest => Command::Dig {
+                units,
+                kind: DigKind::MgNest,
+                from,
+                to,
+            },
+            sim::WorkKind::Wire => Command::Lay {
+                units,
+                kind: LayKind::Wire,
+                from,
+                to,
+            },
+            _ => Command::Lay {
+                units,
+                kind: LayKind::CamoNet,
+                from,
+                to,
+            },
+        });
+        self.engineers.step += 1;
+        if self.engineers.step > 3 {
+            self.engineers.step = 0;
+            self.engineers.fortified += 1;
+        }
     }
 
     /// With a base: one engineer squad from the first completed barracks.

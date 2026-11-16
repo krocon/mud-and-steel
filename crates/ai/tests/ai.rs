@@ -465,6 +465,55 @@ fn ai_lays_mines_that_the_enemy_does_not_see() {
     assert!(PlayerView::new(game.sim(), PlayerId(1)).mines.is_empty());
 }
 
+/// Prompt 052: after its mines, the AI fortifies the chokepoint it defends:
+/// a trench, wire, an MG nest and a camouflage net.
+#[test]
+fn ai_digs_a_position_after_its_mines() {
+    let mut config = demo_config();
+    config.spawns.retain(|s| s.unit_type.contains("_inf_"));
+    let catalog = sim::Catalog::builtin().unwrap();
+    let scale = sim::Scale::builtin().unwrap();
+    config
+        .unit_types
+        .extend(sim::unit_types_from_catalog(&catalog, &scale, &["de_inf_engineer"]).unwrap());
+    let own = config.spawns[0].position;
+    // Only the engineers on the own side, the enemy far away: the match
+    // must not end first.
+    config.spawns.retain(|s| s.owner == PlayerId(1));
+    for s in &mut config.spawns {
+        s.position = s.position + Vec2::from_meters(0, -150);
+    }
+    config.spawns.push(sim::Spawn {
+        owner: PlayerId(0),
+        unit_type: "de_inf_engineer".into(),
+        position: own + Vec2::from_meters(0, 10),
+        fire_mode: FireMode::FireAtWill,
+    });
+    let players = [
+        (PlayerId(0), Difficulty::Normal),
+        (PlayerId(1), Difficulty::Passive),
+    ];
+    let mut game = Game::new(&config, builtin_map(), 4, &players).unwrap();
+    let built = |game: &Game, kind: sim::WorkKind| {
+        game.sim()
+            .works_for(PlayerId(0))
+            .iter()
+            .any(|w| w.kind == kind && w.built)
+    };
+    while !(built(&game, sim::WorkKind::Trench) && built(&game, sim::WorkKind::Wire))
+        && game.sim().tick() < 4 * MAX_TICKS
+    {
+        let decisions = game.think();
+        game.step(decisions);
+    }
+    assert!(
+        built(&game, sim::WorkKind::Trench),
+        "no trench after {} ticks",
+        game.sim().tick()
+    );
+    assert!(built(&game, sim::WorkKind::Wire), "no wire in front");
+}
+
 /// Prompt 046: Normal and Hard advance with attack-move in an automatic
 /// formation; Easy keeps plain moves.
 #[test]
