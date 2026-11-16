@@ -33,6 +33,10 @@ only, converted solely via `data/scale.toml` (`docs/SCALE.md`). Every catalog va
 needs a source (`docs/SOURCES.md`: no data from other games, no swastika/SS runes, no
 Red Cross). Model conventions and budgets: `docs/ASSETS.md`.
 
+After every change to a model (units, soldiers, buildings), re-render its picker
+thumbnails: `just thumbnails --only=<id>,<id>` (needs a window; without `--only` it
+renders all). A changed soldier affects every squad and crew picture that shows him.
+
 ## Commands
 
 All commands live in the `justfile` (`just` lists them). Prefer them over raw commands.

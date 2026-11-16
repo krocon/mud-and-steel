@@ -2,20 +2,23 @@
 gets. `build_soldier.py <faction> <role> <biome>` reads this table.
 
 Uniform styles (period 1943-45):
-- de: M43 field blouse to the upper thigh, trousers, ankle boots with canvas gaiters.
-- su: gymnastyorka pullover tunic, breeches (flared thighs), tall kirza boots.
-- us: M41/M43 field jacket, trousers, canvas leggings M1938, service shoes.
+- de: M43 field blouse to the upper thigh (four pockets, shoulder straps), trousers
+  bloused over ankle boots with canvas gaiters.
+- su: gymnastyorka pullover tunic (breast pockets, shoulder boards), breeches (flared
+  thighs), tall kirza boots.
+- us: M43 field jacket (four pockets), trousers bloused over canvas leggings M1938,
+  service shoes.
 Winter uses white over-garments through the material system (white `Cloth`), desert
 lighter drill colors; see godot/assets/models/infantry/uniform_palettes.json.
 """
 
 UNIFORMS = {
     "de": dict(tunic_hem=0.79, tunic_flare=0.012, boot_top=0.15, gaiter_top=0.25,
-               gaiter_slot="Canvas", trouser_tint=(0.96, 0.96, 0.96)),
+               gaiter_slot="Canvas", trouser_tint=(0.96, 0.96, 0.96), skirt_pockets=True),
     "su": dict(tunic_hem=0.80, tunic_flare=0.010, boot_top=0.42, breeches=0.022,
-               trouser_tint=(0.94, 0.94, 0.94)),
-    "us": dict(tunic_hem=0.83, tunic_flare=0.004, boot_top=0.14, gaiter_top=0.28,
-               gaiter_slot="Canvas", trouser_tint=(0.80, 0.78, 0.74)),
+               blouse=0.008, trouser_tint=(0.94, 0.94, 0.94)),
+    "us": dict(tunic_hem=0.83, tunic_flare=0.004, boot_top=0.14, gaiter_top=0.30,
+               gaiter_slot="Canvas", trouser_tint=(0.80, 0.78, 0.74), skirt_pockets=True),
 }
 
 # Basic equipment every soldier of a faction carries.
@@ -24,7 +27,7 @@ BASE_GEAR = {
            "gasmask_can", "bayonet"],
     "su": ["belt_leather", "ammo_pouch_su", "gasmask_bag", "canteen", "shovel_side",
            "veshmeshok", "skatka"],
-    "us": ["us_cartridge_belt", "first_aid_us", "canteen", "us_haversack"],
+    "us": ["us_cartridge_belt", "y_straps_canvas", "first_aid_us", "canteen", "us_haversack"],
 }
 
 HELMET = {"de": "m35", "su": "ssh40", "us": "m1"}

@@ -26,9 +26,14 @@ just infantry-selftest            # the same scene headless as a test (exit code
 | **Own body by script** | own work | enough for 15–600 m camera distance | names chosen to match Godot exactly | code only |
 
 Chosen: **own body** (`tools/blender/soldier/body.py`). It needs no installation and no
-download, has no license questions, is exactly 1.80 m tall, stays far below the budget
-(~1 000 triangles body, ~1 450 with gear, budget 3 000) and its proportions, joints
-and skinning are under our control. At the game's camera distances (a soldier covers
+download, has no license questions, is exactly 1.80 m tall, stays below the budget
+(~1 600 triangles body, ~2 150 with gear, budget 3 000) and its proportions, joints
+and skinning are under our control. The proportions are those of a dressed figure, not
+of the bare body: short neck inside the collar, broad sloping shoulders, a tunic
+cinched by the belt, wide trousers bloused over gaiters or boots, sturdy boots.
+Equipment is written against a reference torso and fitted to the body's torso profile
+when the gear is built (`gear.py`, `_fit`), so changing the body carries it along. At
+the game's camera distances (a soldier covers
 roughly 10–60 px) silhouette and colors matter, not facial detail. A detailed
 CC0/MPFB2 body can replace `body.py` later without touching skeleton, gear, weapons or
 animations, as long as it keeps the bone names and rest pose.
