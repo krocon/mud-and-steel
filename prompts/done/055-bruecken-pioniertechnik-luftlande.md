@@ -71,3 +71,42 @@ Katalog hat keine Brückenleger und keine Transportflugzeuge.
 | 10 | **Bombenteppich per Ziehen:** neuer Befehl `CallAirLine { mission, from, to }`: die Flugzeuge fliegen entlang der gezogenen Linie über ihre Mitte; Bomber verteilen ihre Bomben gleichmäßig über die Linie (höchstens `bombs.carpet_max_m` = 300 m), Transporter setzen ihre Trupps entlang der Linie ab, andere Missionen nehmen nur die Richtung. In der Luftleiste: ziehen statt klicken (ab 15 m). | „Richtung und Länge“ mit einem Befehl für alle Missionen. |
 | 11 | **Golden-Hash ändert sich** (Luftregeln mit neuer Mission, Trefferpunkten der Transporter, Teppichlänge und Fallschirmregeln; Transporter unter den Flugzeugtypen; fünfte Abklingzeit je Spieler). Die Demo-Schlacht bleibt gleich. Auch der Economy-Golden-Hash (Brückenleger in der Fahrzeugfabrik). | Begründet im Commit. |
 | 12 | **KI** (Normal, Hard): liegt auf der Linie zum Gegner tiefes Wasser und steht dort keine Brücke (mehr), baut sie einen Brückenleger ihrer Fraktion (höchstens zwei je Partie) und versucht `LayBridge` an Punkten entlang des Flusses, bis einer passt. Ihre Armee nutzt die Brücke über den Wegfinder. Fallschirmjäger ruft die KI nicht. **[vorläufig]** | „KI nutzt Brückenleger an Flüssen“, nur über Befehle und den `PlayerView` (neu: eigene Brückenleger, welche Brücken stehen). |
+
+## Ergebnis
+
+Umgesetzt wie oben; Details in `docs/ARCHITECTURE.md` „Bridges, bridge-laying tanks and
+camouflage“, `docs/CONTROLS.md` (Brückenleger, Tarnung, Luftleiste), `docs/AI.md`
+„Bridge-laying tanks“, `docs/ASSETS.md` (Baugruppe `bridgelayer`, Objekt `Bridge`),
+`data/catalog/SCHEMA.md` (neue Kategorien und Felder).
+
+- **Sim:** `data/crossings.toml`, `crates/sim/src/crossings.rs`,
+  `crates/sim/src/sim/crossings.rs`; Befehle `LayBridge`, `PickUpBridge`,
+  `SetCamouflage`, `CallAirLine` am Enum-Ende; `Sim::collapse_bridge` (aus der
+  Pioniersprengung), Schwimmen/Ertrinken, gelegte Brücken als Kartenbrücken ohne Objekt
+  (`Map::put_laid_bridge`, `PathGrid::sync_bridge` mit neuen Lastklassen),
+  `MapDelta::laid` im Spielstand; Fahrzeugtarnung über die Sicht-Maske; Luftmission
+  `airborne` mit Fallschirm-Sticks, Bombenteppich per Linie. Katalog: Kategorien
+  `bridgelayer`, `aircraft_transport`, Felder `bridge_length_mm`, `bridge_load_kg`;
+  `de_brueckenleger4`, `su_valentine_bridgelayer`, `de_ju52_3m`, `su_li2`, `us_c47`;
+  Brückenleger in der Fahrzeugfabrik (de, su).
+- **KI:** `crates/ai/src/bridgelayer.rs`; `PlayerView::layers`, `bridges_intact`.
+- **Godot:** `crossing_funcs.rs`, `world/crossing_view.gd` (einstürzende Fahrbahn,
+  Spritzer, ausklappende/ausgeblendete Trägerbrücke, Treadway-Fahrbahn, Zweige/Netze,
+  Fallschirme, Schwimmer an der Wasseroberfläche), `selection/crossing_orders.gd`, drei
+  Schaltflächen in der Befehlsleiste, Luftleiste mit Fallschirmjägern und Ziehen.
+- **Modelle** aus dem Baukasten (headless Blender, neue Baugruppe `bridgelayer`):
+  Brückenleger IV b, Valentine-Brückenleger, Ju 52/3m, Li-2, C-47; Vorschaubilder der
+  beiden Brückenleger.
+- **Tests:** `crates/sim/tests/crossings.rs` (Einsturz mit Lkw und Trupp, Trupp
+  schwimmt ans Ufer; Fallschirmjäger im See ertrinken; Landung entlang der gezogenen
+  Linie; Brücke legen, leichter Panzer fährt drüber, IS-2 zu schwer, aufnehmen und neu
+  legen; Tarnung; Bombenteppich; gleicher Hash), `crates/net/tests/snapshot_crossings.rs`,
+  `crates/ai/tests/bridgelayer.rs`, Selbsttest-Teil `tools/crossing_self_test.gd`.
+- **Golden-Hash:** `0x92fb_909b_2e81_c158` nach dem Zusammenführen mit main (055 allein
+  `0xef27_60b4_5add_ed7b`), Economy `0xafcd_c136_ed2a_d7ef`; Grund: Luftregeln (siehe 11).
+
+Offen: vorläufige Werte (`data/crossings.toml`, `[airborne]`), Katalogwerte aus dem
+Gedächtnis (nicht online geprüft), keine eigenen Fallschirmjäger-Trupps, keine
+Lastensegler, Brücken nur durch Pioniere zerstörbar, Fallschirmjäger in der Luft nicht
+beschießbar, Schwimmer schießen noch, gelegte Brücke als Treadway statt ausgeklapptem
+Kit-Modell, nur entlang der Rasterachsen.

@@ -45,7 +45,8 @@ func run(test: Node) -> void:
 			states += 1
 	test._check(states == vehicles.size(), "%d of %d vehicles put up camouflage" % [states, vehicles.size()])
 	test._check(view.camo_drawn > 0, "no branches or nets drawn")
-	test._check(button == null or button.text == "Uncover", "the button does not offer to uncover")
+	bar._update()
+	test._check(button == null or button.text == "Uncover", "the button does not offer to uncover (%s)" % (button.text if button != null else ""))
 	main.selection.set_selection([])
 
 	# Paratroopers by a drag in the air bar.
@@ -60,10 +61,23 @@ func run(test: Node) -> void:
 	var landed := 0
 	var most_chutes := 0
 	if air.buttons.has("airborne") and not air.buttons["airborne"].disabled:
-		var home: Vector3 = test._positions_of(vehicles)[0] if not vehicles.is_empty() else Vector3.ZERO
+		# Into the map corner farthest from the enemy: the sticks must not
+		# decide the battle the menu flow test continues with.
+		var enemy_ids: Array[int] = test._ids_of(false)
+		enemy_ids.append_array(test._ids_of(false, true))
+		var enemies: Array[Vector3] = test._positions_of(enemy_ids)
+		var drop := Vector3(-200.0, 0.0, -200.0)
+		var best := -1.0
+		for corner: Vector3 in [Vector3(-200, 0, -200), Vector3(200, 0, -200), Vector3(-200, 0, 200), Vector3(200, 0, 200)]:
+			var nearest := INF
+			for e: Vector3 in enemies:
+				nearest = minf(nearest, Vector2(e.x - corner.x, e.z - corner.z).length())
+			if nearest > best:
+				best = nearest
+				drop = corner
 		air.set_pending("airborne")
-		var from := home + Vector3(-40.0, 0.0, 0.0)
-		var to := home + Vector3(40.0, 0.0, 0.0)
+		var from := drop + Vector3(-40.0, 0.0, 0.0)
+		var to := drop + Vector3(40.0, 0.0, 0.0)
 		test._check(air.call_along(from, to), "the drag did not call the paratroopers")
 		# Only until the first canopies are drawn: the battle goes on
 		# meanwhile, and the menu flow test after this one needs the enemy
