@@ -13,10 +13,11 @@ extends Node
 ## - SSAO radius grows with the distance: contact shadows up close, shading of
 ##   hollows from far away;
 ## - the snowfall volume (winter) is scaled around the camera focus.
-## - tilt-shift depth of field (prompt 057): at close zoom the ground in front
-##   of and behind the focus blurs, so the upper and lower screen edges are
-##   soft like a photo of a model; fades out from 30 to 60 m camera distance.
-##   Setting "depth_of_field" (menu), never on quality low.
+## - tilt-shift depth of field (prompt 057): the ground in front of and behind
+##   the focus blurs, so the upper and lower screen edges are soft like a
+##   photo of a model. Setting "depth_of_field" (menu, `DOF_MODES`): "subtle"
+##   only at close zoom, "miniature" strong, up to middle zoom and with
+##   stronger colours; never on quality low.
 ##
 ## Shadows: the rig sets `directional_shadow_max_distance` from the camera
 ## distance (`shadow_distance_factor`); the cascade splits here are
@@ -38,14 +39,28 @@ const SHADOW_DISTANCE_FACTOR := 1.8
 ## Cascade splits as fractions of the shadow distance (4 and 2 cascades).
 const SPLITS_4 := Vector3(0.45, 0.58, 0.75)
 const SPLIT_2 := 0.55
-## Tilt-shift depth of field (prompt 057): full below the first camera
-## distance (m), none above the second; sharp band from NEAR to FAR camera
-## distances along the view, blurred over TRANSITION distances beyond.
-const DOF_ZOOM := Vector2(30.0, 60.0)
-const DOF_NEAR := 0.86
-const DOF_FAR := 1.1
-const DOF_TRANSITION := 0.22
-const DOF_AMOUNT := 0.09
+## Tilt-shift depth of field per setting "depth_of_field" ("off" has no
+## entry). zoom: full below the first camera distance (m), none above the
+## second; sharp band from `near` to `far` camera distances along the view,
+## blurred over `transition` distances beyond; amount: blur size; shape and
+## blur_quality: RenderingServer DOFBokehShape / DOFBlurQuality; saturation
+## and contrast: factors on the biome's, fading out with the blur.
+## "subtle" (prompt 057) only softens the screen edges at close zoom.
+## "miniature" is the look of a photo of a model railway: a narrow sharp band
+## across the screen up to middle zoom, and stronger colours.
+const DOF_MODES: Dictionary[String, Dictionary] = {
+	"subtle": {
+		"zoom": Vector2(30.0, 60.0), "near": 0.86, "far": 1.1, "transition": 0.22, "amount": 0.09,
+		# Cheapest blur: the blurred band is ground texture, no bokeh highlights.
+		"shape": RenderingServer.DOF_BOKEH_BOX, "blur_quality": RenderingServer.DOF_BLUR_QUALITY_VERY_LOW,
+		"saturation": 1.0, "contrast": 1.0,
+	},
+	"miniature": {
+		"zoom": Vector2(150.0, 350.0), "near": 0.95, "far": 1.05, "transition": 0.2, "amount": 0.22,
+		"shape": RenderingServer.DOF_BOKEH_HEXAGON, "blur_quality": RenderingServer.DOF_BLUR_QUALITY_MEDIUM,
+		"saturation": 1.18, "contrast": 1.05,
+	},
+}
 ## SSAO radius in meters: distance * factor, clamped.
 const SSAO_RADIUS_FACTOR := 0.025
 const SSAO_RADIUS_RANGE := Vector2(0.6, 10.0)
@@ -84,6 +99,8 @@ var _vignette: ShaderMaterial
 var _snow_root: Node3D
 var _snow: GPUParticles3D
 var _dof: CameraAttributesPractical
+## Mode whose bokeh shape and blur quality are set (they are global).
+var _dof_mode := ""
 
 
 func setup(world_env: WorldEnvironment, sun: DirectionalLight3D, camera_rig: Node3D, terrain: Node) -> void:
@@ -286,31 +303,40 @@ func _follow_camera() -> void:
 	_follow_dof(d)
 
 
-## Tilt-shift depth of field around the focus distance at close zoom.
+## Tilt-shift depth of field around the focus distance (`DOF_MODES`), with
+## the mode's stronger colours as far as the blur is on.
 func _follow_dof(d: float) -> void:
 	var camera: Camera3D = _rig.get("camera")
 	if camera == null:
 		return
-	var amount := 1.0 - smoothstep(DOF_ZOOM.x, DOF_ZOOM.y, d)
-	var on := amount > 0.0 and quality != "low" and bool(Settings.get_value("depth_of_field"))
-	if not on:
+	var mode_name: String = Settings.get_value("depth_of_field")
+	var mode: Dictionary = DOF_MODES.get(mode_name, {})
+	var amount := 0.0
+	if not mode.is_empty() and quality != "low":
+		var zoom: Vector2 = mode.zoom
+		amount = 1.0 - smoothstep(zoom.x, zoom.y, d)
+	_env.adjustment_saturation = preset.saturation * lerpf(1.0, float(mode.get("saturation", 1.0)), amount)
+	_env.adjustment_contrast = preset.contrast * lerpf(1.0, float(mode.get("contrast", 1.0)), amount)
+	if amount <= 0.0:
 		if camera.attributes == _dof and _dof != null:
 			camera.attributes = null
 		return
 	if _dof == null:
 		_dof = CameraAttributesPractical.new()
-		# Cheapest blur: the blurred band is ground texture, no bokeh highlights.
-		RenderingServer.camera_attributes_set_dof_blur_bokeh_shape(RenderingServer.DOF_BOKEH_BOX)
-		RenderingServer.camera_attributes_set_dof_blur_quality(RenderingServer.DOF_BLUR_QUALITY_VERY_LOW, false)
 		_dof.dof_blur_near_enabled = true
 		_dof.dof_blur_far_enabled = true
+	if _dof_mode != mode_name:
+		_dof_mode = mode_name
+		RenderingServer.camera_attributes_set_dof_blur_bokeh_shape(int(mode.shape) as RenderingServer.DOFBokehShape)
+		RenderingServer.camera_attributes_set_dof_blur_quality(int(mode.blur_quality) as RenderingServer.DOFBlurQuality, false)
 	if camera.attributes != _dof:
 		camera.attributes = _dof
-	_dof.dof_blur_amount = DOF_AMOUNT * amount
-	_dof.dof_blur_near_distance = d * DOF_NEAR
-	_dof.dof_blur_near_transition = d * DOF_TRANSITION
-	_dof.dof_blur_far_distance = d * DOF_FAR
-	_dof.dof_blur_far_transition = d * DOF_TRANSITION
+	var transition := d * float(mode.transition)
+	_dof.dof_blur_amount = float(mode.amount) * amount
+	_dof.dof_blur_near_distance = d * float(mode.near)
+	_dof.dof_blur_near_transition = transition
+	_dof.dof_blur_far_distance = d * float(mode.far)
+	_dof.dof_blur_far_transition = transition
 
 
 ## Snowfall: a box of falling flakes around the camera focus, in local

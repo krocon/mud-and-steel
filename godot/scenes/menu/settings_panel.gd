@@ -27,7 +27,7 @@ var mute_unfocused_box: CheckBox
 var pan_slider: HSlider
 var zoom_slider: HSlider
 var edge_scroll_box: CheckBox
-var dof_box: CheckBox
+var dof_option: OptionButton
 var health_bar_option: OptionButton
 var save_button: Button
 var cancel_button: Button
@@ -115,10 +115,13 @@ func _graphics_tab() -> Control:
 		_change("quality", GraphicsQuality.LEVELS[index]))
 	tab.add_child(_row("Quality", quality_option))
 	tab.add_child(MenuTheme.hint("Low: hard shadows, no ambient occlusion, no snowfall. Medium: soft shadows. High: finest shadows and anti-aliasing. `--quality=<level>` on the command line overrides this."))
-	dof_box = CheckBox.new()
-	dof_box.text = "Depth of field at close zoom (not on low)"
-	dof_box.toggled.connect(func(on: bool) -> void: _change("depth_of_field", on))
-	tab.add_child(dof_box)
+	dof_option = OptionButton.new()
+	for label in ["Off", "Subtle (close zoom only)", "Miniature (tilt-shift)"]:
+		dof_option.add_item(label)
+	dof_option.item_selected.connect(func(index: int) -> void:
+		_change("depth_of_field", Settings.DOF_MODES[index]))
+	tab.add_child(_row("Depth of field", dof_option))
+	tab.add_child(MenuTheme.hint("Miniature: the upper and lower screen edges blur and the colours are stronger, like a photo of a model. Units near the screen edges are harder to make out. Not on quality low."))
 	return tab
 
 
@@ -189,7 +192,7 @@ func _refresh() -> void:
 	pan_slider.set_value_no_signal(Settings.get_value("pan_sensitivity"))
 	zoom_slider.set_value_no_signal(Settings.get_value("zoom_sensitivity"))
 	edge_scroll_box.set_pressed_no_signal(Settings.get_value("edge_scroll"))
-	dof_box.set_pressed_no_signal(Settings.get_value("depth_of_field"))
+	dof_option.select(maxi(Settings.DOF_MODES.find(Settings.get_value("depth_of_field")), 0))
 	for action in _key_buttons:
 		_key_buttons[action].text = Settings.key_name(Settings.bindings.get(action, 0))
 

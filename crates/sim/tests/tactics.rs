@@ -67,6 +67,7 @@ fn sim_with(map: Arc<Map>, seed: u64, spawns: &[(PlayerId, &str, i32, i32, FireM
         combat: CombatRules::builtin().unwrap(),
         vision: sim::VisionRules::builtin().unwrap(),
         infantry: sim::InfantryRules::builtin().unwrap(),
+        mission: None,
         teams: sim::Teams::default(),
         weather: sim::WeatherSetup::default(),
     };

@@ -224,6 +224,7 @@ func _settings_test(menu: Control) -> void:
 	var panel: PanelContainer = menu.settings_panel
 	_check(panel.is_visible_in_tree(), "settings screen not shown")
 	panel.quality_option.item_selected.emit(0)
+	panel.dof_option.item_selected.emit(Settings.DOF_MODES.find("miniature"))
 	panel.pan_slider.value = 1.5
 	var rotate_right_key: int = Settings.bindings["camera_rotate_right"]
 	panel.capture("camera_rotate_left")
@@ -243,8 +244,15 @@ func _settings_test(menu: Control) -> void:
 	Settings.reset()
 	Settings.load_file()
 	_check(Settings.get_value("quality") == "low", "quality not loaded")
+	_check(Settings.get_value("depth_of_field") == "miniature", "depth of field mode not loaded")
 	_check(is_equal_approx(Settings.get_value("pan_sensitivity"), 1.5), "pan speed not loaded")
 	_check(_action_key("camera_rotate_right") == KEY_R, "key binding not loaded")
+	# Older files stored the depth of field as a switch.
+	var old_file := ConfigFile.new()
+	old_file.set_value("game", "depth_of_field", false)
+	old_file.save(Settings.path())
+	Settings.load_file()
+	_check(Settings.get_value("depth_of_field") == "off", "old depth of field switch not converted")
 	# The match tests expect the defaults.
 	Settings.reset()
 	Settings.save_file()
