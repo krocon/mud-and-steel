@@ -238,6 +238,9 @@ the economy (`crates/ai/src/economy.rs`), with the same commands as a human:
 - **Targets:** buildings are attacked last: armor fights armor, then other
   units, then buildings; infantry groups with a weapon of 20 mm or more (AT
   squads) also take on armor and buildings once no enemy infantry is near.
+  With only buildings near, the headquarters, barracks and vehicle works
+  come first (decision 6 of prompt 045: a player without them is
+  defeated; `[defeat] base_buildings`).
 - The enemy's home is the enemy's first building if the scenario places one.
 
 `just ai-tournament --mode base` plays the base-building skirmish. Results

@@ -2136,6 +2136,15 @@ Prompt 027. `crates/sim/src/outcome.rs` decides the match; Godot only shows it.
   player is **defeated** when they send `Surrender` or have no living units
   (buildings included, prompt 023) left at the end of a tick (`Sim::alive_units`: units not destroyed by
   [combat](#combat); wrecks stay in the unit list but do not count).
+- **Base lost** (decision 6 of prompt 045, `DefeatReason::BaseLost`): a
+  player who has had a completed building of `[defeat] base_buildings`
+  (`data/economy.toml`: headquarters, barracks, vehicle works) is defeated
+  at the end of the tick in which none of them is left completed and
+  alive. The economy remembers these players (`Economy::base_players`, in
+  the hash and in snapshots) when a starting building is registered or a
+  site is completed; `Economy::base_lost` checks them in the standings
+  update. Battle armies never have such a building; mission sides that
+  cannot be eliminated are exempt as from elimination.
 - The match is **decided** as soon as at most one player is undefeated: that
   player wins, or it is a draw when the last players fall in the same tick.
   The result (`Sim::outcome`, with the tick) never changes afterwards; the

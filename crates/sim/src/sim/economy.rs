@@ -44,6 +44,9 @@ pub(super) struct TypeEco {
     requires: Vec<u32>,
     /// Production list name (base buildings).
     produces: String,
+    /// Keeps its owner in a base match (`[defeat] base_buildings`).
+    #[serde(default)]
+    base: bool,
     /// Faction of a catalog type (`de`, `su`, `us`).
     #[serde(with = "static_faction")]
     faction: StaticFaction,
@@ -105,6 +108,10 @@ pub(super) struct Economy {
     structures: Vec<Structure>,
     supply: Vec<SupplyPoint>,
     tick_hz: u32,
+    /// Players who have had a completed base building (decision 6 of
+    /// prompt 045), ascending; only they can lose by losing their base.
+    #[serde(default)]
+    base_players: Vec<PlayerId>,
 }
 
 /// Why a building cannot be placed (prompt 023).
@@ -229,6 +236,7 @@ impl Economy {
                         eco.income = b.income_per_min;
                         eco.max_count = b.max_count;
                         eco.produces.clone_from(&b.produces);
+                        eco.base = rules.defeat.base_buildings.contains(&b.id);
                     }
                     Some(StructureRule::Fortification(f)) => {
                         eco.structure = true;
@@ -295,6 +303,7 @@ impl Economy {
             structures: Vec::new(),
             supply,
             tick_hz: config.tick_hz,
+            base_players: Vec::new(),
         }
     }
 
@@ -386,6 +395,35 @@ impl Economy {
             h.write_u8(p.taker.map_or(0xFF, |o| o.0));
             h.write_u32(p.progress);
         }
+        h.write_u64(self.base_players.len() as u64);
+        for p in &self.base_players {
+            h.write_u8(p.0);
+        }
+    }
+
+    /// Remembers that `player` has had a completed base building.
+    fn note_base(&mut self, player: PlayerId, unit_type: u32) {
+        if !self.types[unit_type as usize].base {
+            return;
+        }
+        if let Err(at) = self.base_players.binary_search(&player) {
+            self.base_players.insert(at, player);
+        }
+    }
+
+    /// Whether `player` has lost their base (decision 6 of prompt 045):
+    /// the rule is on, they have had a completed base building, and none of
+    /// their completed base buildings is alive any more (construction sites
+    /// do not count).
+    pub(super) fn base_lost(&self, player: PlayerId, alive: impl Fn(UnitId) -> bool) -> bool {
+        self.rules.defeat.without_base
+            && self.base_players.binary_search(&player).is_ok()
+            && !self.structures.iter().any(|s| {
+                s.owner == player
+                    && s.build_left == 0
+                    && self.types[s.unit_type as usize].base
+                    && alive(s.unit)
+            })
     }
 }
 
@@ -420,6 +458,7 @@ impl Sim {
                 queue: Vec::new(),
                 rally,
             });
+            self.economy.note_base(unit.owner, unit.unit_type);
             self.block_ground(i);
         }
         // Rule hit points of every structure type (also those built later).
@@ -775,6 +814,8 @@ impl Sim {
             st.build_left -= 1;
             if st.build_left == 0 {
                 unit.combat.fire_mode = FireMode::FireAtWill;
+                let (owner, unit_type) = (st.owner, st.unit_type);
+                self.economy.note_base(owner, unit_type);
             }
         }
     }

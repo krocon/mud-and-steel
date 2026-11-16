@@ -32,14 +32,17 @@ RESULT_SUFFIX_ALLY,(ally),(Verbündeter)
 RESULT_DEFEAT_SURRENDERED,surrendered,aufgegeben
 RESULT_DEFEAT_ELIMINATED,eliminated,vernichtet
 RESULT_DEFEAT_MISSION,mission failed,Mission gescheitert
+RESULT_DEFEAT_BASE_LOST,base lost,Basis verloren
 RESULT_REASON_DRAW,Every side lost in the same moment.,Alle Seiten haben im selben Moment verloren.
 RESULT_REASON_MISSION_WON,Mission accomplished.,Mission erfüllt.
 RESULT_REASON_MISSION_LOST,Mission failed.,Mission gescheitert.
 RESULT_REASON_YOU_SURRENDERED,You surrendered.,Du hast aufgegeben.
 RESULT_REASON_YOU_ELIMINATED,All your units were lost.,Alle deine Einheiten sind verloren.
+RESULT_REASON_YOU_BASE_LOST,Your headquarters and production were lost.,Dein Hauptquartier und deine Produktion sind verloren.
 RESULT_REASON_TEAM_DEFEATED,Your team was defeated.,Dein Team wurde besiegt.
 RESULT_REASON_ENEMY_SURRENDERED,The enemy surrendered.,Der Feind hat aufgegeben.
 RESULT_REASON_ENEMY_ELIMINATED,All enemy units were destroyed.,Alle feindlichen Einheiten wurden vernichtet.
+RESULT_REASON_ENEMY_BASE_LOST,The enemy base was destroyed.,Die feindliche Basis wurde zerstört.
 RESULT_STATS_PLAYER,"{player}: {lost} units lost, {kills} enemies destroyed, {points} supply points taken","{player}: {lost} Einheiten verloren, {kills} Feinde vernichtet, {points} Versorgungspunkte genommen"
 RESULT_STATS_BEST,Most kills: %s,Meiste Abschüsse: %s
 RESULT_STATS_SAVED,Statistics saved: %s,Statistik gespeichert: %s

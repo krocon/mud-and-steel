@@ -11,6 +11,14 @@ there without touching code; how the simulation implements them is in
 > below marked **[provisional]** is a design decision that still needs the
 > user's confirmation; the reasons are given so that each one can be reversed
 > on its own.
+>
+> **Confirmed by the user on 2026-11-16** (the decisions of prompt 045,
+> [PLAYTEST.md](PLAYTEST.md)): the economy values (start account, income,
+> resupply cost), equal strength instead of equal numbers in battle mode,
+> range and rate of fire in the unit price, the unarmed truck as start
+> vehicle and the defeat of a player without headquarters and production.
+> These points are marked **[confirmed 2026-11-16]** below. Weapon ranges
+> (decision 3) are handled by prompt 067.
 
 ## Guiding idea
 
@@ -38,7 +46,7 @@ developer has to be able to build, balance and maintain it, so:
 
 - Every player has an account of the three resources; it starts with
   **500 fuel, 600 ammunition, 500 manpower** (prompt 045; 600/600/400
-  before). There is no storage limit.
+  before) **[confirmed 2026-11-16]**. There is no storage limit.
 - Income is paid continuously (every second of game time, in thousandths, so
   nothing is lost to rounding) from:
 
@@ -56,6 +64,7 @@ and manpower as the second one for the United States, and shifted the
 income from fuel to ammunition and manpower (before: headquarters
 40/70/80, depot 40/50/30, point 60/60/30); resupply costs 25 % instead of
 50 % of the ammunition price. Measurements in [BALANCE.md](BALANCE.md).
+The income table and the resupply cost are **[confirmed 2026-11-16]**.
 
 - **Supply points** are neutral spots on the map (map markers named
   `supply…`, see [MAPS.md](MAPS.md)). A player takes one by having units (not
@@ -125,7 +134,8 @@ hit points of map objects in `data/destruction.toml`.
 Every player starts with a completed headquarters, a truck and two
 rifle squads (scenario `data/scenarios/skirmish.toml`; a halftrack before
 prompt 045, whose armament differed so much between the factions that it
-decided matches on small maps, see [BALANCE.md](BALANCE.md)). None of them can
+decided matches on small maps, see [BALANCE.md](BALANCE.md); the unarmed
+truck is **[confirmed 2026-11-16]**). None of them can
 hurt a building, so the first tanks or AT squads decide when a base falls.
 The bases stand at up to 70 % of half the map size from the center, on the
 line through the map's start positions (`start_distance_pct`; closer in
@@ -201,27 +211,33 @@ From the catalog entry of the unit (`data/economy.toml`, `[unit_cost]`):
 - **Manpower** = 6 × soldiers (squad size, or crew of vehicles and guns).
 - **Fuel** = 4 per tonne of combat mass (vehicles only).
 - **Ammunition** = 10 + Σ over the weapons the simulation uses
-  (caliber in mm)² × count / 60 × range factor. The range factor (prompt
-  045) is the weapon's game range / 250 m, clamped to 50–150 %, for
-  direct-fire weapons; indirect weapons count 100 %. Without it a T-34
+  (caliber in mm)² × count / 60 × range factor × rate factor. The range
+  factor (prompt 045) is the weapon's game range / 250 m, clamped to
+  50–150 %; the rate factor (decision 4 of prompt 045) is the catalog
+  rate of fire / 10 rounds per minute, clamped to 75–150 %. Both apply to
+  direct-fire weapons; indirect weapons count 100 %. Without them a T-34
   (250 m, 5 rounds/min) cost more than a Panzer IV (375 m, 10 rounds/min)
-  and lost 2:1 to it ([BALANCE.md](BALANCE.md)).
+  and lost 2:1 to it; now ten T-34 cost what eight Panzer IV cost, the
+  equal strength measured in battle mode ([BALANCE.md](BALANCE.md)).
+  Range and rate of fire in the price are **[confirmed 2026-11-16]**; the
+  reference values stay tunable.
 - **Build time** (game seconds) = 8 + (fuel + ammunition + manpower) / 8.
 
-Examples (`cli economy-table` prints the full table; prompt 045 values,
-before the range factor in brackets where it changed):
+Examples (`just economy-table` prints the full table; ammunition with
+range and rate factor, with the range factor only (prompt 045) in
+brackets where it changed):
 
 | Unit | Fuel | Ammunition | Manpower | Time |
 |---|---|---|---|---|
-| Rifle squad (de) | 0 | 14 (18) | 54 | 16.5 s |
-| AT squad (de, Panzerschreck) | 0 | 75 (140) | 12 | 18.8 s |
-| AT squad (us, bazooka) | 0 | 40 (71) | 12 | 14.5 s |
-| Panzer IV H | 100 | 150 (103) | 30 | 43.0 s |
-| T-34/76 (1943) | 123 | 106 | 24 | 39.6 s |
-| Tiger I | 228 | 203 (139) | 30 | 65.6 s |
-| IS-2 | 184 | 382 (258) | 24 | 81.7 s |
+| Rifle squad (de) | 0 | 16 (14) | 54 | 16.7 s |
+| AT squad (de, Panzerschreck) | 0 | 58 (75) | 12 | 16.7 s |
+| AT squad (us, bazooka) | 0 | 33 (40) | 12 | 13.6 s |
+| Panzer IV H | 100 | 150 | 30 | 43.0 s |
+| T-34/76 (1943) | 123 | 82 (106) | 24 | 36.6 s |
+| Tiger I | 228 | 154 (203) | 30 | 59.5 s |
+| IS-2 | 184 | 287 (382) | 24 | 69.8 s |
 | M4A3 (75) | 126 | 103 | 30 | 40.3 s |
-| Pak 40 | 0 | 150 (103) | 36 | 31.2 s |
+| Pak 40 | 0 | 206 (150) | 36 | 38.2 s |
 
 The code computes the values (`sim::economy::EconomyRules::unit_cost`);
 this table is a snapshot, `cli economy-table` shows the current ones. The
@@ -426,12 +442,21 @@ at the forest edge be seen from 500 m. Rules in `data/vision.toml`
 `[ambush]`; details in
 [ARCHITECTURE.md](ARCHITECTURE.md#ambush-prompt-056-provisional).
 
-## Victory [provisional]
+## Victory [confirmed 2026-11-16]
 
-Unchanged from prompt 027: a player who has no living unit left is defeated.
-Buildings and construction sites are units, so a player with a base is not
-defeated while one building stands. A completed bunker alone keeps a player
-in the game, which is acceptable for now.
+A player who has no living unit left is defeated (prompt 027). Since
+decision 6 of prompt 045 a player of a base match is also defeated, at the
+end of the tick, when none of their **headquarters, barracks and vehicle
+works** is left completed and alive, even with units still on the field
+(`[defeat]` in `data/economy.toml`, `DefeatReason::BaseLost`, "base lost"
+on the result screen). Construction sites, depots, the rocket battery,
+bunkers and flak do not keep a player in the match. Only players who have
+had such a building count (in battle mode nobody has one); mission sides
+that cannot be eliminated (prompt 039) are exempt; with teams each player
+falls on their own and a team loses when all its players are defeated
+(prompt 037). Before, a completed bunker alone kept a player in the game
+and AI base matches on large maps never ended
+([BALANCE.md](BALANCE.md)).
 
 ## Game modes
 
@@ -440,8 +465,8 @@ in the game, which is acceptable for now.
   start resources.
 - **Battle**: the fixed armies of the demo scenario, as before (also used by
   the golden hash, the LAN tests and the self-test matches 1–3).
-  Prompt 045 [provisional]: when the players pick factions, the tank
-  groups have equal strength instead of equal numbers: 8 Panzer IV, 10
+  Prompt 045 **[confirmed 2026-11-16]**: when the players pick factions,
+  the tank groups have equal strength instead of equal numbers: 8 Panzer IV, 10
   T-34 (125 %), 9 M4A3 (112 %), `[faction_count_pct]` of
   `data/scenarios/demo.toml`. With 8 each Germany won 71 % of all AI
   battles, the Soviet Union 25 % ([BALANCE.md](BALANCE.md)). Supply
@@ -466,7 +491,9 @@ The AI (prompt 024) plays the economy with the same commands as a human:
 - holds its army near its base and the nearest supply points until an attack
   wave is complete (Easy 8, Normal 6, Hard 5 units), then attacks as before;
   enemies in sight are always engaged; buildings are attacked last, by
-  armor and by squads with AT weapons.
+  armor and by squads with AT weapons, and among buildings the
+  headquarters and production first (their loss defeats the owner, see
+  "Victory").
 
 On `test_small` (500 m) everything is in sight of everything, and two
 computer players of similar strength can end in a stalemate after the first
