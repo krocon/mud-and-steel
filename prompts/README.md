@@ -137,7 +137,7 @@ oder weggelassen; es werden keine Inhalte anderer Spiele übernommen.
 | 055 | [Brücken, Pioniertechnik, Luftlande](055-bruecken-pioniertechnik-luftlande.md) | Brückeneinsturz, Ertrinken, Brückenleger, Fallschirmjäger | Entwurf |
 | 056 | [Karten und Basis Stufe 2](056-karten-basis-stufe2.md) | Winterdorf, Höfe, Flussland, Punkte an Orten, Hinterhalt | Entwurf |
 | 057 | [Bodenoptik: Wiesen](057-bodenoptik-wiese.md) | Feines Gras, Farbvariation, Mähstreifen, Übergänge | Entwurf |
-| 058 | [Bilder in der Produktionsauswahl](058-bilder-produktionsauswahl.md) | Vorgerenderte Bilder als Kacheln mit Kosten, Reiter | Entwurf |
+| 058 | [Bilder in der Produktionsauswahl](done/058-bilder-produktionsauswahl.md) | Vorgerenderte Bilder als Kacheln mit Kosten, Reiter; `just thumbnails` | erledigt |
 | 059 | [Wüstendorf](059-wuestendorf.md) | Flachdachhäuser mit Hofmauern, Palmenhaine, Dorfkarte Nordafrika | Entwurf |
 | 060 | [Berge und Täler](060-berge-taeler.md) | Gebirgs-Profile im Generator, Pässe, Hangregeln, Gebirgskarte | Entwurf |
 | 061 | [Recherche: freie Soundeffekte](done/061-sound-recherche.md) | Geprüfte CC0/CC-BY-Aufnahmen, Pakete, Lücken, Ordnerstruktur in `docs/AUDIO_LIBRARY.md` | erledigt |
