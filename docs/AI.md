@@ -92,6 +92,115 @@ sees nothing but enemy armor; unarmed units stay where they are. Per group, ever
    [provisional].
 5. At its first think the AI sets all own units to fire at will.
 
+## Commander (prompt 051)
+
+Normal and Hard lead their army as a commander (`crates/ai/src/commander.rs`,
+`intel.rs`, `scout.rs`, `surrender.rs`); Easy keeps the group logic above.
+`Difficulty::HardOld` (`--a hard-old`, not in the menus) is Hard without
+the commander, the behavior of prompts 024–055, kept for tournaments. The
+commander still reads only the `PlayerView`: sightings of its own (and
+allied) units and its own losses.
+
+**Situation picture** (`intel.rs`):
+
+- Sightings carry type, owner, hit points and hull direction. Knowledge
+  ages: full weight for 30 s, then fading to nothing at 4 minutes; mobile
+  units older than that are forgotten (buildings do not move and are kept).
+  A separate list of every enemy ever seen and not seen destroyed gives the
+  enemy's composition (counter-production) and known strength (surrender).
+- **Danger** at a point: the value of own units lost within 120 m (full for
+  2 minutes, fading over 2 more) plus the value of freshly seen enemies whose
+  weapons reach the point. Staging points and scouting goals avoid it.
+- **Fronts:** fresh sightings within 160 m of each other form one front with
+  a center, strength (price × hit point share × freshness), anti-tank and
+  overall weapon reach, and the mean hull direction of its vehicles.
+- Unit value is the price of `data/economy.toml` (sum of the three
+  resources).
+
+**Army plan** (the lead group is armor while any armor can still fight,
+else infantry; infantry follows 50 m behind the armor while enemy armor is
+known, else it hunts on its own):
+
+1. **Stage:** against the nearest front (before anything is seen: the
+   enemy's home, assumed to face the own home) the army gathers on a
+   staging point 70 m outside the front's reach (before any anti-tank weapon
+   was seen: 1.5 × the own range). The axis is chosen among 0, ±30, ±60, ±90°
+   (Normal 0, ±45°): flank or rear of the hulls seen, little danger, short
+   way round, not an axis that failed; the way leads round the front in
+   legs of 45° at that distance. Armor that clearly outranges the front's
+   anti-tank weapons stages and fights at 85 % of its own range instead.
+2. **Assault:** gathered (or after 30 s there, 3 minutes at most) the army
+   drives in line with attack-move to 60 % of its range; while nothing comes
+   into sight it creeps 60 m closer every 10 s; after a minute without
+   contact the group logic leads for two minutes (attack-move to the
+   sightings, buildings included).
+3. **Fight:** the focus fire of prompt 024. Armor first closes in to 45 % of
+   its range when it stands beyond 60 % of it (dispersion grows with the
+   distance), except when it outranges the enemy; with no anti-tank weapon
+   at the front it drives to 60 m (machine guns). Every 15 s the fight is
+   reviewed: losing more than twice what it inflicts, the army moves round
+   to another axis at 85 % of its range; clearly outmatched (30 % of its
+   strength lost and below 60 % (Normal 40 %) of the front's) it
+   **withdraws** 150 m beyond the front's reach and attacks again over
+   another axis.
+4. **Hold:** when the front comes 12 m closer within 3 s (the enemy
+   advances), the army stops in line facing it and lets it come.
+
+[provisional] all distances and shares above; they were tuned against the
+passive enemy and the old Hard on the ten maps of the tournament.
+
+**Scouting** (`scout.rs`): reconnaissance vehicles (catalog category
+`recon_vehicle`) are their own role. They drive to the 200 m cell the
+player saw longest ago (nearer to the enemy's home and to the scout first,
+no cell with known danger) and turn back 200 m once an enemy is within
+350 m. Base matches build one whenever none is left (every sixth vehicle
+at most). Air reconnaissance (prompt 033) stays as it was.
+
+**Counter-production** (`economy.rs`): from the enemies seen, mostly armor
+(at least half the value): rifle squads become AT squads and every other
+medium tank a tank destroyer; mostly infantry (at most 30 % armor): AT
+squads become MG teams, tank destroyers medium tanks, every third rifle
+squad a mortar team. Flak after enemy aircraft as before. When the next
+unit of the mix waits 30 s for one resource (ammunition ran dry while
+manpower piled up), the commander builds the first affordable unit of
+rifle squad / MG / AT squad (vehicles: medium tank / tank destroyer /
+reconnaissance car) meanwhile.
+
+**Supply:** waves take the free supply points near the own base first (as
+before); the second depot and the bunker are built from 100 m in front of
+the headquarters towards the map center (`PlayerView::forward_sites`, the
+placement check of the simulation), i.e. towards the front. From the fourth
+vehicle on, a supply truck is built whenever none is left; the transport
+logic carries infantry with it and it refills units within 40 m near the
+front [provisional: a forward depot on wheels; depots far forward are not
+possible, buildings need an own building within 60–120 m]. With no enemy
+armor near, the commander's armor shoots enemy trucks and halftracks first
+(raids on the enemy's supply). Protecting own trucks beyond keeping them
+behind the army is open.
+
+**All-in:** in base matches the army stops waiting for waves once its
+armed units are worth twice every enemy unit known.
+
+**Other systems:** formations and attack-move (046) for every move, the
+artillery's smoke screen also when an assault begins (032), air support
+(033), transport (034), engineers (035), teams through shared vision (037),
+the heavy strike (054) and bridges (055) as before; fire and movement of
+squads (047) and wounds (049) are the simulation's.
+
+**Surrender** (`surrender.rs`, Easy, Normal, Hard; not `HardOld`): after a
+minute of a hopeless situation the AI sends `Command::Surrender`. Hopeless
+[provisional]: no completed barracks or vehicle works (or production but
+no headquarters), and either none of its armed units with ammunition can
+hurt any enemy unit it knows to be alive (rifle squads against tanks), or
+its armed units are worth less than 15 % (without headquarters 10 %) of
+the known enemies. Reason: a lost match should end instead of running out
+the clock, but never because of units the AI could not see; 15 % is about
+one tank against seven.
+
+Tests: `crates/ai/tests/commander.rs` (Hard surrenders when its rifles see
+only tanks, the old Hard does not; Hard attacks a passive tank platoon from
+the flank, not along the direct line).
+
 ## Base building (prompt 023)
 
 In matches with buildings ([GAME_DESIGN.md](GAME_DESIGN.md)) the AI also plays
@@ -316,6 +425,9 @@ waves. The AI does not call paratroopers. Test:
 | Pulls back veterans (prompt 050) | – | no | below 40 % | below 50 % |
 | Patience before flanking | – | 1600 ticks | 800 ticks | 800 ticks |
 | Artillery (prompt 032) | – | with the group | with the group | own role: barrages, smoke |
+| Commander (prompt 051) | – | no | yes, axes 0/±45° | yes, axes 0/±30/±60/±90° |
+| Withdraws below (share of the front) | – | – | 40 % | 60 % |
+| Surrenders when hopeless | no | yes | yes | yes (`HardOld`: no) |
 
 `Passive` is the baseline of the tournament and the enemy of the matches
 before prompt 024; the self-test's first two matches use it.

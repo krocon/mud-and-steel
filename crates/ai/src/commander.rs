@@ -354,15 +354,6 @@ impl Ai {
         };
         let found = self.current_front(center, view);
         let virtual_front = found.is_none();
-        // Nothing seen yet: advance straight (attack-move, group logic);
-        // the maneuver starts at the first contact, when the enemy turns
-        // out to stand.
-        if virtual_front {
-            self.army.phase = Phase::Free;
-            self.army.target = None;
-            self.army.axis = None;
-            return false;
-        }
         let Some(front) = found.or_else(|| self.home_front()) else {
             self.army.phase = Phase::Free;
             self.army.target = None;
