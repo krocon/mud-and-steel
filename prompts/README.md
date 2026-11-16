@@ -160,6 +160,7 @@ Zeichnungen bleiben Referenz auf dem Rechner.
 | 064 | [Fahrzeug-Datenbank](064-fahrzeug-datenbank.md) | `data/vehicles/*.json` mit Schema, Quelle und Prüfung gegen den Katalog; Zugriff für Spiel und Webseite | offen |
 | 065 | [Webseite: Fahrzeugdaten und Spielwerte](065-webseite-fahrzeugdaten-spielwerte.md) | Technische Daten in der Detailansicht, Spielwerte aus der Sim (`cli unit-stats`), fünf Kennzahlen | offen |
 | 066 | [Einheitenwerte im Spiel](066-einheitenwerte-im-spiel.md) | Kennzahlen im Picker, Tooltip, Einheitenkarte, Nachschlagewerk im Hauptmenü | offen |
+| 067 | [Typische Kampfentfernungen](067-typische-kampfentfernungen.md) | Typische statt maximale Reichweiten im Katalog, mit Quellen; Balance neu messen | offen |
 
 ```
 063 Vorab-Session ─┬─ 063 Modell-Sessions (9 parallel) ─ zusammenführen
