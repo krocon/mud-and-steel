@@ -16,6 +16,7 @@ mod artillery;
 mod economy;
 mod engineers;
 pub mod game;
+mod strike;
 mod supply;
 mod transport;
 mod view;
@@ -317,6 +318,9 @@ pub struct Ai {
     supply: supply::SupplyState,
     /// Low ammunition and fuel in percent (`data/logistics.toml`).
     low_stock: (u8, u8),
+    /// Heavy strikes: own calls and evading enemy ones (prompt 054).
+    #[serde(default)]
+    strike: strike::StrikeState,
 }
 
 impl Ai {
@@ -509,6 +513,7 @@ impl Ai {
                     u8::try_from(r.fuel.low_pct).unwrap_or(20),
                 )
             }),
+            strike: strike::StrikeState::default(),
         }
     }
 
@@ -564,6 +569,7 @@ impl Ai {
 
         self.think_economy(view, &mut out);
         self.think_air(view, &mut out);
+        self.think_strike(view, &mut out);
         self.command_transport(view, &mut out);
         self.command_supply(view, &mut out);
         self.command_engineers(view, &mut out);
@@ -584,6 +590,7 @@ impl Ai {
                 .filter(|u| u.alive() && self.type_info(u.unit_type).role == role)
                 .filter(|u| u.carrier.is_none() && !self.transport.boarding(u.id, view.tick))
                 .filter(|u| !self.supply.busy(u.id))
+                .filter(|u| !self.strike.busy(u.id, view.tick))
                 .copied()
                 .collect();
             if units.is_empty() {

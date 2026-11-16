@@ -21,7 +21,7 @@
 building = "base_rocket_battery"
 # Simulated seconds after the start before the first strike can be called
 # (late game).
-unlock_s = 900
+unlock_s = 600
 # Fuel, ammunition, manpower per strike (paid when called).
 cost = [60, 250, 30]
 # Simulated seconds between two calls of the same player.

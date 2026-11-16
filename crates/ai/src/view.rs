@@ -93,6 +93,10 @@ pub struct PlayerView {
     pub mines: Vec<sim::MineView>,
     /// Field works: finished ones of everybody, sites of the own team.
     pub works: Vec<sim::WorkView>,
+    /// Whether and when the player can call a heavy strike (prompt 054).
+    pub strike: sim::StrikeOption,
+    /// Every called strike (public: smoke, siren, revealed position).
+    pub strikes: Vec<sim::StrikeView>,
 }
 
 impl PlayerView {
@@ -180,6 +184,8 @@ impl PlayerView {
             sources: sim.supply_sources(player),
             mines: sim.mines_for(player),
             works: sim.works_for(player),
+            strike: sim.strike_option(player),
+            strikes: sim.strikes(),
         }
     }
 }
