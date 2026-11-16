@@ -657,6 +657,10 @@ func _combat_test() -> void:
 	for i in _indices(main.selection.selected):
 		holding += hold[i]
 	_check(holding == 0, "F left %d selected units holding fire" % holding)
+	# Quiet again (prompt 050): own tanks that gained a rank from the kill
+	# shoot better, and firing at will at enemies that hold fire they would
+	# finish them off and decide the match before the later parts.
+	main.sim_host.set_hold_fire(PackedInt64Array(own), true)
 	view.combat_event.disconnect(on_event)
 	# Effects (prompt 019) follow the events: flashes, impacts, the explosion
 	# and the burning wreck.
