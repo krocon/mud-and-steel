@@ -312,7 +312,7 @@ impl Economy {
         self.accounts.iter_mut().find(|a| a.player == player)
     }
 
-    fn can_pay(&self, player: PlayerId, cost: Resources) -> bool {
+    pub(super) fn can_pay(&self, player: PlayerId, cost: Resources) -> bool {
         self.account(player).is_some_and(|a| {
             a.parts
                 .iter()
@@ -321,7 +321,7 @@ impl Economy {
         })
     }
 
-    fn pay(&mut self, player: PlayerId, cost: Resources) -> bool {
+    pub(super) fn pay(&mut self, player: PlayerId, cost: Resources) -> bool {
         if !self.can_pay(player, cost) {
             return false;
         }

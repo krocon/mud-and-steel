@@ -21,7 +21,14 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by prompt 032 (indirect fire and smoke): the rules of
+/// Last changed by prompt 033 (air support and anti-aircraft fire): the
+/// rules of `data/air.toml`, the aircraft types of every faction (catalog
+/// ids), every player's cooldowns and the (empty) sorties, aircraft, bombs
+/// and flak reload times are in the hash, and the economy rules (also
+/// hashed) list light and heavy flak as fortifications. The demo calls no
+/// aircraft and has no anti-aircraft weapons: its battle is unchanged
+/// (decided at tick 480, player 0 wins).
+/// Before: prompt 032 (indirect fire and smoke): the rules of
 /// `data/indirect.toml`, the indirect-fire state of units with mortars,
 /// howitzers and self-propelled guns, shells in flight, smoke clouds and
 /// the vision cells under smoke are in the hash, and the economy rules
@@ -101,7 +108,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xadff_a9a0_054b_53f1;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x0dce_a06c_b8c7_2039;
 
 #[test]
 fn golden_hash() {

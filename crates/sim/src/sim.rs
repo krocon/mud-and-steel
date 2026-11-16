@@ -15,6 +15,7 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::sync::Arc;
 
+mod air;
 mod combat;
 mod craters;
 mod destruction;
@@ -104,6 +105,8 @@ pub enum ConfigError {
     Economy(String),
     /// The built-in indirect fire rules do not parse (prompt 032).
     Indirect(String),
+    /// The built-in air rules do not parse (prompt 033).
+    Air(String),
 }
 
 impl fmt::Display for ConfigError {
@@ -120,7 +123,7 @@ impl fmt::Display for ConfigError {
             Self::SpawnOutsideMap(index) => write!(f, "spawn {index} lies outside the map"),
             Self::TooManyPlayers(n) => write!(f, "{n} players, at most {MAX_PLAYERS} allowed"),
             Self::Destruction(e) | Self::Economy(e) => write!(f, "{e}"),
-            Self::Craters(e) | Self::Indirect(e) => write!(f, "{e}"),
+            Self::Craters(e) | Self::Indirect(e) | Self::Air(e) => write!(f, "{e}"),
         }
     }
 }
@@ -270,6 +273,12 @@ pub struct Snapshot {
     pub shells: Vec<crate::indirect::ShellSnapshot>,
     /// Smoke clouds (prompt 032).
     pub smoke: Vec<crate::indirect::SmokeSnapshot>,
+    /// Aircraft in the air, by id (prompt 033; filtered by vision).
+    pub aircraft: Vec<crate::air::AircraftSnapshot>,
+    /// Falling bombs, by id.
+    pub bombs: Vec<crate::air::BombSnapshot>,
+    /// Called missions (filtered: only the player's own).
+    pub sorties: Vec<crate::air::SortieSnapshot>,
 }
 
 /// Phases of a tick in [`Sim::step_observed`], in order.
@@ -372,6 +381,8 @@ pub struct Sim {
     economy: economy::Economy,
     /// Indirect fire, shells and smoke (prompt 032).
     artillery: indirect::Artillery,
+    /// Air support and anti-aircraft fire (prompt 033).
+    air: air::Air,
 }
 
 impl Sim {
@@ -478,6 +489,12 @@ impl Sim {
             &config.unit_types,
             config.tick_hz,
         );
+        let air = air::Air::new(
+            crate::air::AirRules::builtin().map_err(|e| ConfigError::Air(e.to_string()))?,
+            config,
+        );
+        let mut vision = vision;
+        vision.ensure_radius(air.recon_radius);
         let grid = PathGrid::new(&map, &config.terrain, &config.unit_types);
         let mut sim = Self {
             tick: 0,
@@ -502,6 +519,7 @@ impl Sim {
             unit_types: config.unit_types.clone(),
             economy,
             artillery,
+            air,
         };
         sim.init_economy();
         sim.apply_destruction();
@@ -567,6 +585,7 @@ impl Sim {
     /// state.
     pub fn step_observed(&mut self, commands: &[PlayerCommand], mut done: impl FnMut(Phase)) {
         self.events.clear();
+        self.air.events.clear();
         for command in commands {
             self.apply(command);
         }
@@ -587,6 +606,7 @@ impl Sim {
         self.rebuild_unit_grid();
         self.fly_projectiles();
         self.fly_shells();
+        self.update_air();
         done(Phase::Projectiles);
         self.apply_destruction();
         self.apply_craters();
@@ -936,6 +956,9 @@ impl Sim {
                 self.order_queue_move(command.player, units, *target);
             }
             Command::Patrol { units, target } => self.order_patrol(command.player, units, *target),
+            Command::CallAir { mission, target } => {
+                self.order_air(command.player, *mission, *target);
+            }
         }
     }
 
@@ -1087,6 +1110,7 @@ impl Sim {
         self.economy.hash_into(&mut h);
         self.artillery.hash_into(&mut h);
         self.hash_queues(&mut h);
+        self.air.hash_into(&mut h);
         h.finish()
     }
 
@@ -1155,6 +1179,7 @@ impl Sim {
         self.artillery
             .shell_snapshots(self.tick_hz, &mut out.shells);
         self.artillery.smoke_snapshots(self.tick, &mut out.smoke);
+        self.air_snapshots(player, &mut out.aircraft, &mut out.bombs, &mut out.sorties);
     }
 }
 

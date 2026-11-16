@@ -19,6 +19,7 @@ use std::path::Path;
 use std::sync::Arc;
 
 mod ai_funcs;
+mod air_funcs;
 mod artillery_funcs;
 mod audio_funcs;
 mod combat_funcs;
@@ -249,6 +250,8 @@ pub struct SimHost {
     object_events: Vec<(u64, sim::ObjectEvent)>,
     /// Crater events since the last `take_crater_events` (prompt 021).
     crater_events: Vec<(u64, sim::CraterEvent)>,
+    /// Air events since the last `take_air_events` (prompt 033).
+    air_events: Vec<(u64, sim::AirEvent)>,
     /// Debug: draw everything without fog (prompt 018, presentation only).
     reveal_all: bool,
     /// Time of the last `process` (ticks, AI, snapshots) in microseconds
@@ -288,6 +291,7 @@ impl INode for SimHost {
             combat_events: Vec::new(),
             object_events: Vec::new(),
             crater_events: Vec::new(),
+            air_events: Vec::new(),
             reveal_all: false,
             process_usec: 0,
             process_ticks: 0,
@@ -359,6 +363,7 @@ impl SimHost {
             combat_funcs::collect_events(&mut self.combat_events, &game.sim);
             destruction_funcs::collect_events(&mut self.object_events, &game.sim);
             crater_funcs::collect_events(&mut self.crater_events, &game.sim);
+            air_funcs::collect_events(&mut self.air_events, &game.sim);
             self.accumulator -= tick_seconds;
             ticks += 1;
         }
@@ -510,6 +515,7 @@ impl SimHost {
         self.combat_events.clear();
         self.object_events.clear();
         self.crater_events.clear();
+        self.air_events.clear();
         self.accumulator = 0.0;
         self.game = Some(Game {
             recorder: ReplayRecorder::new(seed, config.clone(), &players),

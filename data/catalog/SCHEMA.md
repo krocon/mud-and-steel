@@ -66,6 +66,9 @@ Rules:
 | `muzzle_velocity_mps` | int | Of the main AP (or standard) round. |
 | `range_effective_m` | int | Real effective range (direct fire) or maximum range (indirect fire). |
 | `ammo_carried` | int | Rounds carried. |
+| `range_aa_m` | int | Anti-aircraft guns: real effective range against aircraft (slant range or effective ceiling) in meters (prompt 033). |
+| `aa` | bool | The weapon sits on an anti-aircraft mount (MGs with "AA" in name or note; prompt 033). Default `false`. |
+| `bomb_kg` | int | Aircraft: nominal mass of one bomb in kilograms (SC 250 = 250, 500 lb = 227; prompt 033). `count` is the number of bombs. |
 
 ## Categories
 
