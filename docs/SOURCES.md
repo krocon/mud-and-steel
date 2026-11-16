@@ -167,8 +167,9 @@ that name) and get a row here before they are committed:
 **Private sounds** (prompt 069): sounds that may ship inside the game but not as single
 files (ElevenLabs output, Pixabay, Sonniss) are not in this repository. Release builds
 take them from the private repository `mud-and-steel-sfx`, whose own `SOURCES.md` names
-every file; there they replace the public sounds of their class (so far: `shot_mg`,
-single shots cut from a machine-gun burst generated with ElevenLabs on a paid plan).
+every file; there they replace the public sounds of their class (so far, all generated
+with ElevenLabs on a paid plan: `shot_mg`, single shots cut from a machine-gun burst,
+and the loops of `engine_track_heavy` and `engine_track_light`).
 
 Candidate recordings with checked licenses, the free packs worth using, known gaps
 and the source library layout: [AUDIO_LIBRARY.md](AUDIO_LIBRARY.md) (prompt 061).

@@ -223,13 +223,8 @@ def tracks() -> None:
     """Tanks on a street, tracks creaking, 1969 (YleArkisto 386660): the
     steadiest 8 s without the engine's low end, crossfaded into a loop."""
     street = band(load("tracked/ylearkisto386660.mp3"), 350)
-    length, fade = int(8.0 * SR), int(0.6 * SR)
     start = int(48.0 * SR)
-    part = street[start:start + length + fade].copy()
-    ramp = np.linspace(0, np.pi / 2, fade)
-    loop = part[:length]
-    loop[:fade] = part[:fade] * np.sin(ramp) + part[length:] * np.cos(ramp)
-    save("tracks", "ylearkisto386660_01", loop)
+    save("tracks", "ylearkisto386660_01", crossfade_loop(street[start:start + int(8.6 * SR)], 0.6))
 
 
 def onsets(x: np.ndarray, gap: float = 0.06) -> list[int]:
@@ -267,11 +262,32 @@ def shot_mg() -> None:
         save("shot_mg", f"elevenlabs_mg1_{i + 1:02d}", np.concatenate([shot, cut(tail[fade:], 0.0, 1.2, 0.6)]), PRIVATE)
 
 
+def crossfade_loop(x: np.ndarray, fade: float) -> np.ndarray:
+    """Folds the last `fade` seconds into the start, so the end runs into
+    the start without a seam."""
+    n = int(fade * SR)
+    ramp = np.linspace(0, np.pi / 2, n)
+    loop = x[:len(x) - n].copy()
+    loop[:n] = loop[:n] * np.sin(ramp) + x[len(x) - n:] * np.cos(ramp)
+    return loop
+
+
+def engine_loops() -> None:
+    """Private: engine loops generated with ElevenLabs (`just sfx-generate
+    first`). The MP3 of a generated loop does not close exactly (encoder
+    padding), so the ends are crossfaded again."""
+    clear("engine_track_heavy", PRIVATE)
+    clear("engine_track_light", PRIVATE)
+    for sound_class, name in (("engine_track_heavy", "engine_heavy_loop_01"), ("engine_track_light", "engine_light_loop_01")):
+        loop = load(f"{sound_class}/{name}.mp3", SFX / "generated")
+        save(sound_class, f"elevenlabs_{name}", crossfade_loop(loop, 0.5), PRIVATE)
+
+
 CLASSES = {f.__name__: f for f in [
     shot_cannon_small, shot_cannon_medium, shot_cannon_large, hit_penetration, hit_ricochet,
-    explosion_vehicle, hit_shell, hit_shell_small, explosion_tail, tracks, shot_mg,
+    explosion_vehicle, hit_shell, hit_shell_small, explosion_tail, tracks, shot_mg, engine_loops,
 ]}
-PRIVATE_CLASSES = {"shot_mg"}
+PRIVATE_CLASSES = {"shot_mg", "engine_loops"}
 
 
 def main(argv: list[str]) -> int:
