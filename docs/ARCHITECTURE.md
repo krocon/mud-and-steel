@@ -2392,12 +2392,30 @@ decides anything; orders go through `selection.gd` or `SimHost`.
   stance, fire mode and queued waypoints from the per-unit arrays. The
   portrait (`unit_portrait.gd`, [provisional]) is rendered once per unit type
   in its own `SubViewport` from a fresh model (duplicating a unit's model
-  fails: its parts are merged at run time). Several units: tiles with health
+  fails: its parts are merged at run time); a pre-rendered thumbnail
+  (prompt 058) replaces it when there is one. Several units: tiles with health
   bars; click selects one, Shift + click removes it.
 - **Command bar** (`command_bar.gd`, bottom left): buttons with the bound key
   for every order; targeted orders set `selection.command_mode`. The build
   menu and the production bar of `world/base_hud.gd` are docked above it
   (`BaseHud.dock_into`, [provisional]); "Build" opens the build menu.
+- **Picker** (`picker.gd`, prompt 058, [provisional]): the build menu and the
+  production bar show their options as picture tiles: thumbnail on a
+  faction-tinted backdrop, name, fuel / ammunition / manpower, build time,
+  hotkey (Alt + 1…0 for the open tab), count of queued orders or own
+  construction sites and the progress of the first as a bar over the
+  picture; blocked tiles are dimmed with the reason. Tabs by kind: base
+  buildings, other structures (defense), then by catalog group (infantry,
+  vehicles, guns, aircraft); empty tabs are hidden. Everything comes from
+  `build_options` / `production_options`, so new buildables appear without
+  changes. The tooltip reads `SimHost.catalog_card` (catalog values: armor,
+  weapons with real effective range, crew, mass, speed; for base buildings
+  hit points, income, requirements). The thumbnails are PNGs in
+  `godot/assets/thumbnails/` (`hud/thumbnail.gd`, docs/ASSETS.md), rendered
+  by `just thumbnails` for every id of `SimHost.buildable_ids()`; any own
+  structure with production options gets the production bar. When the
+  docked panels make the command bar tall, `hud.gd` moves the event feed
+  above it.
 - **Event feed** (`event_feed.gd`, left edge): own unit lost, building
   completed, unit ready, enemy sighted (at most every 15 s), under fire (at
   most every 10 s), from the combat event stream and a poll of the snapshot
