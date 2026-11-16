@@ -41,6 +41,17 @@ const SHOTS: Array[Dictionary] = [
 	{"name": "bridge_wood", "marker": "bridge_wood", "distance": 45.0, "yaw": 0.3},
 	{"name": "ford", "marker": "ford", "distance": 60.0, "yaw": -0.4},
 ]
+## Prompt 057: meadow views at four zoom levels, near the village (trees and
+## houses cast shadows onto grass) and in open meadow. `SHOT_SET=meadow` picks
+## them instead of SHOTS (`SHOT_SET=meadow just terrain-shots <dir>`).
+const MEADOW_SHOTS: Array[Dictionary] = [
+	{"name": "meadow_15", "marker": "village", "offset": Vector3(-31, 0, -87), "distance": 15.0, "yaw": 0.4},
+	{"name": "meadow_35", "marker": "village", "offset": Vector3(-31, 0, -87), "distance": 35.0, "yaw": 0.4},
+	{"name": "meadow_110", "marker": "village", "offset": Vector3(-31, 0, -87), "distance": 110.0, "yaw": 0.4},
+	{"name": "meadow_350", "marker": "village", "offset": Vector3(-31, 0, -87), "distance": 350.0, "yaw": 0.4},
+	{"name": "open_15", "focus": Vector3(-6, 0, 44), "distance": 15.0, "yaw": 0.4},
+	{"name": "open_40", "focus": Vector3(-6, 0, 44), "distance": 40.0, "yaw": 0.4},
+]
 const SHOT_FRAMES := 20
 const WARMUP_FRAMES := 60
 const MEASURE_FRAMES := 240
@@ -123,15 +134,21 @@ func _shots() -> void:
 	var rig: Node3D = main.camera_rig
 	rig.edge_scroll_enabled = false
 	var half: Vector2 = main.sim_host.map_size() * 0.5
-	for i in SHOTS.size():
-		var shot := SHOTS[i]
+	var meadow := OS.get_environment("SHOT_SET") == "meadow"
+	var shots := MEADOW_SHOTS if meadow else SHOTS
+	if meadow:
+		# Clean ground views: no fog of war over the village, no HUD.
+		main.fog_of_war.set_fog_enabled(false)
+		main.get_node("Hud").visible = false
+	for i in shots.size():
+		var shot := shots[i]
 		if OS.has_environment("SHOT_ONLY") and shot.name != OS.get_environment("SHOT_ONLY"):
 			continue
 		var focus: Vector3 = shot.get("focus", Vector3.ZERO)
 		if shot.has("marker"):
 			var marker: Variant = main.sim_host.map_marker(shot["marker"])
 			if marker != null:
-				focus = marker
+				focus = marker + shot.get("offset", Vector3.ZERO)
 		if shot.has("find_terrain"):
 			# First sample of that terrain east of the origin (the river).
 			for x in range(0, int(half.x), 2):
