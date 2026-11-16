@@ -21,6 +21,7 @@ default, so a 1-against-1 from the lobby is bit for bit the old match.
 | Allies always see each other's units | `sim/vision.rs` (`allies` mask per player) |
 | Shared vision (option, default on **[provisional]**): a player sees what the allies see; the fog shows the best state of the team | `sim/vision.rs` (`shares` mask), `Sim::vision_states` |
 | Allies do not contest each other's supply points; a point held by an ally counts as held | `sim/economy.rs` |
+| Flak does not fire at allied planes; allies see each other's planes and, with shared vision, the planes an ally spots (prompt 033 merged) | `sim/air.rs` |
 | Nobody commands an ally's units | unchanged (`owned_indices`) |
 | A match is decided once every undefeated player is an ally of the others; `Outcome::winner` is the lowest undefeated player of the winning team, `Sim::winners()` the whole team | `outcome.rs` |
 | A surrender hands nothing over: the units stay where they are with their fire mode **[provisional]** | `outcome.rs` |

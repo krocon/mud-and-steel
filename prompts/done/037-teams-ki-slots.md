@@ -91,3 +91,23 @@ wie ich es teste, Messwerte, was offen ist.
 
 Team-Chat, Ressourcen an Verbündete geben, Einheiten übergeben, Wiederbeitritt,
 Zuschauer, mehr als 6 Spieler, Team-Startplätze automatisch tauschen.
+
+## 5. Ergebnis (Umsetzung)
+
+Umgesetzt wie in Abschnitt 4; Details, Tests und offene Punkte in
+`docs/TEAMS.md`, KI-Zahlen in `docs/AI.md` („Teams (prompt 037)“).
+
+- **Golden-Hash unverändert** (Teams gehen nur in den Hash, wenn es Teams
+  gibt); nach dem Merge von `main` (033, 041) gilt dessen Wert
+  `0xd8f0_f135_a14d_e016`.
+- Zusätzlich nötig beim Merge von 033: Flak schießt nicht auf verbündete
+  Flugzeuge, Verbündete sehen ihre Flugzeuge, die KI hält Luftangriffe von
+  Verbündeten fern.
+- `just lan-selftest` spielt jetzt 2 gegen 2 (zwei Menschen gegen zwei KIs
+  auf `twin_meadow`, alle mit Feuer halten, Ende durch Kapitulation beider
+  Menschen); `LAN_COMPUTERS=0` spielt das alte 1 gegen 1.
+- **Offen:** Die Schlacht-KI greift auf Karten mit Anmarsch (twin_meadow,
+  test_large) schlecht an; dort entscheidet die Seite, nicht die Stufe
+  (auch ohne Teams, vor und nach diesem Prompt). Steam mit drei oder mehr
+  echten Konten ist ungetestet (kein Konto verfügbar). Team-Chat,
+  Ressourcen teilen, Wiederbeitritt.
