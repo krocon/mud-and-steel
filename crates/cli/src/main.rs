@@ -87,6 +87,10 @@ enum CliCommand {
         /// Climate look written into map.toml (presentation only).
         #[arg(long, default_value = "forest", value_parser = ["forest", "desert", "winter"])]
         biome: String,
+        /// Distance between the two starts in meters (120: both in the
+        /// central meadow, as on the test maps).
+        #[arg(long, default_value_t = gen_map::DEFAULT_START_DISTANCE_M)]
+        start_distance_m: u32,
         /// Output folder (default: data/maps/<name>).
         #[arg(long)]
         out: Option<PathBuf>,
@@ -477,6 +481,7 @@ fn main() {
             size_m,
             seed,
             biome,
+            start_distance_m,
             out,
         } => {
             let out = out.unwrap_or_else(|| Path::new(MAPS_DIR).join(&name));
@@ -485,6 +490,7 @@ fn main() {
                 size_m,
                 seed,
                 biome: &biome,
+                start_distance_m,
                 out: &out,
             };
             match gen_map::generate(&options) {

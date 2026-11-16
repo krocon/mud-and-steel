@@ -594,6 +594,29 @@ godot/assets/audio/sounds.json        manifest: class -> group, bus, level, rang
   `sound_classes.gd` or `battle_sound.gd`. `just sound-gallery` plays it;
   the self-test checks that every class has a loadable file.
 
+### Music and ambience (prompt 030)
+
+```
+tools/audio/music.py                          composition, instruments, ambience recipes (numpy)
+assets-src/music/<mood>_NN.wav|mp3|ogg|flac   pieces of other origin (optional, replace a composed piece)
+        │  just music [names]   (then just import)
+godot/assets/audio/music/<mood>_NN.mp3        pieces, moods: menu, calm, combat, victory, defeat
+godot/assets/audio/ambience/<layer>/*.wav     beds (loops) and one-shots (birds, rumble)
+```
+
+- **Music** is stereo MP3 (LAME VBR `-V 5`, about 130 kbit/s, 44.1 kHz),
+  1–2.5 min per piece, each mixed to the same loudness (RMS −21 dBFS, peak
+  −1 dBFS) with a fade at the end; pieces do not loop, the game
+  cross-fades them. Godot keeps only the compressed file in memory and
+  decodes while playing. A new piece: a file `<mood>_NN` with a new number
+  is enough; `music.gd` finds pieces by the name before the last `_`.
+- **Ambience beds** are periodic WAV loops of 20 s with a `smpl` chunk:
+  wind stereo 22.05 kHz, insects and rain stereo 32 kHz, leaves and water
+  mono 32 kHz (played at a position). Godot imports them QOA-compressed.
+  **One-shots** (birds, rumble) are mono 44.1 kHz, trimmed, faded.
+- **Levels** are set in code (`music.gd` `MUSIC_DB`, `ambience.gd` per
+  layer), the files stay normalized.
+
 ## Markings
 
 National markings and numbers are decals at the `Socket_Marking_*` empties, never

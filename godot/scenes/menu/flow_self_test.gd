@@ -18,7 +18,8 @@ extends Node
 ## 5. Match 2 (United States vs. Germany, winter): units and biome as
 ##    chosen; everyone starts with hold fire, the own units attack one enemy
 ##    after the other until the last is destroyed: victory by elimination in
-##    real combat; back to the menu.
+##    real combat (the music switches to combat and plays the victory
+##    piece, prompt 030); back to the menu, which plays the menu music.
 ## 6. Match 3 (prompt 024): against the hard computer opponent while the own
 ##    tanks hold fire: the AI must give orders, open fire and destroy them
 ##    (defeat by elimination); back to the menu.
@@ -47,6 +48,7 @@ signal match_tested
 const MatchSetup := preload("res://scenes/menu/match_setup.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
 const GameFiles := preload("res://scenes/menu/game_files.gd")
+const MusicSelfTest := preload("res://scenes/tools/music_self_test.gd")
 ## Wall-clock limit for the whole flow (`--fixed-fps` decouples frame time).
 const TIMEOUT_MS := 600000
 
@@ -113,10 +115,12 @@ func _run() -> void:
 		_finish()
 		return
 	await _combat_victory_test(main)
+	await MusicSelfTest.flow_result(self, main, "victory")
 	menu = await _back_to_menu(main)
 	if menu == null:
 		_finish()
 		return
+	MusicSelfTest.check_menu(self)
 
 	# --- Match 3: computer opponent -----------------------------------
 	main = await _start_match(menu, 2, 0, 1, "test_small", "hard")

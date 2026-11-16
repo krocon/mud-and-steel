@@ -128,4 +128,17 @@ impl SimHost {
             .map(|b| PackedFloat32Array::from(b.as_slice()))
             .collect()
     }
+
+    /// Wood density 0..1 at `(x, z)` (Godot x and z): trunks per 8 m cell,
+    /// smoothed over the neighbors, as used for the decoration. Read by the
+    /// ambience (prompt 030) for rustling leaves and birds; presentation only.
+    #[func]
+    fn wood_density_at(&self, x: f32, z: f32) -> f32 {
+        let Some(game) = self.game.as_ref() else {
+            return 0.0;
+        };
+        game.deco
+            .get_or_init(|| objects::DecoRasters::new(game.map()))
+            .wood_at(x, z)
+    }
 }

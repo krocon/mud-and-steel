@@ -38,6 +38,7 @@ extends Node
 ##    decoration follow the simulation, the replay re-simulates it.
 ## 11. Sound (prompt 029, `tools/sound_self_test.gd`): library, buses,
 ##    fog, engines and the voice limit under 200 events per frame.
+##    Then music and ambience (prompt 030, `tools/music_self_test.gd`).
 ## 12. HUD (prompt 031, `tools/hud_self_test.gd`): minimap click, drag and
 ##    right click, selection through the unit panel, a waypoint chain by
 ##    Shift + right click, orders from the command bar, event jump, health
@@ -64,6 +65,7 @@ const DestructionSelfTest := preload("res://scenes/tools/destruction_self_test.g
 const CraterSelfTest := preload("res://scenes/tools/crater_self_test.gd")
 const FireSelfTest := preload("res://scenes/tools/fire_self_test.gd")
 const SoundSelfTest := preload("res://scenes/tools/sound_self_test.gd")
+const MusicSelfTest := preload("res://scenes/tools/music_self_test.gd")
 const HudSelfTest := preload("res://scenes/tools/hud_self_test.gd")
 const MatchSetup := preload("res://scenes/menu/match_setup.gd")
 
@@ -102,10 +104,11 @@ func _run() -> void:
 	await FireSelfTest.new().run(self)
 	await CraterSelfTest.new().run(self)
 	await SoundSelfTest.new().run(self)
+	await MusicSelfTest.new().run(self)
 	await hud_test.run(self)
 	_replay_test()
 	var ok := _errors.is_empty()
-	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, fog, combat, infantry, destruction, fire, craters, sound, water, hud and replay ok" if ok else " ".join(_errors)
+	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, fog, combat, infantry, destruction, fire, craters, sound, music, water, hud and replay ok" if ok else " ".join(_errors)
 	print("self-test %s: %s" % ["PASSED" if ok else "FAILED", message])
 	# Started from the menu flow test (prompt 027): it continues the flow.
 	var flow: Node = MatchSetup.flow_test

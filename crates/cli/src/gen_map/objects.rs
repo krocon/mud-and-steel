@@ -170,6 +170,12 @@ impl Placer<'_> {
         if (x * x + y * y).sqrt() < l.meadow_radius + 15.0 {
             return false;
         }
+        if l.start_meadows
+            .iter()
+            .any(|&(mx, my, r)| ((x - mx) * (x - mx) + (y - my) * (y - my)).sqrt() < r + 15.0)
+        {
+            return false;
+        }
         if l.squares.iter().any(|s| {
             let d = ((x - s.x) * (x - s.x) + (y - s.y) * (y - s.y)).sqrt();
             d < s.radius + 6.0
@@ -843,6 +849,7 @@ mod tests {
             size_m: 300,
             seed: 5,
             biome: "forest",
+            start_distance_m: crate::gen_map::DEFAULT_START_DISTANCE_M,
             out: dir,
         };
         generate_map(&options).unwrap();

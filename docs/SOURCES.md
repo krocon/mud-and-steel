@@ -87,9 +87,12 @@ Prompt 029. Every file in `godot/assets/audio/` names its origin here.
 | Files | Origin | License |
 |---|---|---|
 | `godot/assets/audio/<class>/<class>_NN.wav`, every class of `sounds.json` | Synthesized by `tools/audio/synth.py` (`just audio`): noise, sine partials, envelopes, filters and a convolution tail, a recipe per class, seeded per variant. No recordings, samples or presets of anyone else. | Own work, same license as the code |
+| `godot/assets/audio/music/<mood>_NN.mp3` (prompt 030) | Composed and rendered by `tools/audio/music.py` (`just music`): chord progressions and melodies written for this game (melodies partly from a seeded random walk on the scale), additive instruments (string pad, low strings, a soft piano-like pluck, timpani) and a convolution hall, all numpy; encoded with LAME. No samples, loops, presets, MIDI files or melodies of anyone else; no music from games, films or historical recordings. | Own work, same license as the code |
+| `godot/assets/audio/ambience/<layer>/<layer>_NN.wav` (prompt 030) | Synthesized by `tools/audio/music.py`: wind, insects, leaves, water, rain from shaped noise and short tones; bird calls from frequency sweeps; rumble from low-passed noise. No recordings. | Own work, same license as the code |
 
-Files of other origin go to `assets-src/audio/<class>/` and get a row
-here before they are committed:
+Files of other origin go to `assets-src/audio/<class>/` (music:
+`assets-src/music/<mood>_NN.<ext>`, which replaces the composed piece of
+that name) and get a row here before they are committed:
 
 - **CC0 recordings:** link to the file page (e.g. on freesound.org with
   the CC0 mark), author, date downloaded. Only CC0; attribution licenses
