@@ -758,6 +758,17 @@ impl Sim {
         }
     }
 
+    /// Hull of unit type `t` (prompt 035, mines): half length and half
+    /// width (m), thinnest armor (mm), and whether it is infantry.
+    pub(super) fn hull(&self, t: usize) -> (Fixed, Fixed, u32, bool) {
+        self.artillery
+            .bodies
+            .get(t)
+            .map_or((Fixed::ZERO, Fixed::ZERO, 0, true), |b| {
+                (b.half_length, b.half_width, b.thinnest_mm, b.infantry)
+            })
+    }
+
     /// Fragmentation rules (prompt 033: strafing and bombs use them too).
     pub(super) const fn indirect_blast(&self) -> &crate::indirect::BlastRules {
         &self.artillery.rules.blast

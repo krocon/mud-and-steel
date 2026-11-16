@@ -27,6 +27,7 @@ mod orders;
 mod spatial;
 mod transport;
 mod vision;
+mod works;
 
 pub use vision::MAX_PLAYERS;
 
@@ -117,6 +118,8 @@ pub enum ConfigError {
     Air(String),
     /// The built-in transport rules do not parse (prompt 034).
     Transport(String),
+    /// The built-in field work rules do not parse (prompt 035).
+    Works(String),
 }
 
 impl fmt::Display for ConfigError {
@@ -137,7 +140,8 @@ impl fmt::Display for ConfigError {
             | Self::Indirect(e)
             | Self::Fire(e)
             | Self::Air(e)
-            | Self::Transport(e) => {
+            | Self::Transport(e)
+            | Self::Works(e) => {
                 write!(f, "{e}")
             }
         }
@@ -417,6 +421,8 @@ pub struct Sim {
     teams: crate::teams::Teams,
     /// Mounting, dismounting and towing (prompt 034).
     transport: transport::Transport,
+    /// Field works of engineers: mines, obstacles, positions (prompt 035).
+    works: works::Works,
 }
 
 impl Sim {
@@ -543,6 +549,12 @@ impl Sim {
             &config.unit_types,
             config.tick_hz,
         );
+        let works = works::Works::new(
+            crate::works::WorksRules::builtin().map_err(|e| ConfigError::Works(e.to_string()))?,
+            &config.unit_types,
+            &map,
+            config.tick_hz,
+        );
         let grid = PathGrid::new(&map, &config.terrain, &config.unit_types);
         let mut sim = Self {
             tick: 0,
@@ -571,6 +583,7 @@ impl Sim {
             air,
             teams: config.teams.clone(),
             transport,
+            works,
         };
         sim.init_economy();
         sim.apply_destruction();
@@ -656,6 +669,7 @@ impl Sim {
         done(Phase::Squads);
         self.crush_objects();
         self.rebuild_unit_grid();
+        self.update_works();
         self.fly_projectiles();
         self.fly_shells();
         self.update_air();
@@ -664,6 +678,7 @@ impl Sim {
         done(Phase::Projectiles);
         self.apply_destruction();
         self.apply_craters();
+        self.apply_digs();
         done(Phase::Destruction);
         self.update_economy();
         done(Phase::Economy);
@@ -799,9 +814,19 @@ impl Sim {
     /// Gives the path queue its budget and hands finished paths to the
     /// units waiting for them.
     fn plan_paths(&mut self) {
+        // Known minefields of every player (prompt 035).
+        let avoid_by = self.avoid_by_player();
         let units = &self.units;
         let wanted = |id: u32| units.iter().any(|u| u.route == Route::Waiting(id));
-        let finished = self.paths.run(NODE_BUDGET_PER_TICK, wanted);
+        let avoid = |request: &Request| {
+            request
+                .units
+                .first()
+                .and_then(|&(id, _)| units.binary_search_by_key(&id, |u| u.id).ok())
+                .and_then(|i| avoid_by.iter().find(|(p, _)| *p == units[i].owner))
+                .map_or_else(Vec::new, |(_, cells)| cells.clone())
+        };
+        let finished = self.paths.run_avoiding(NODE_BUDGET_PER_TICK, wanted, avoid);
         for (request, path) in finished {
             self.take_path(&request, path.as_ref());
         }
@@ -930,6 +955,7 @@ impl Sim {
     fn apply(&mut self, command: &PlayerCommand) {
         self.drop_replaced_queues(command);
         self.drop_transport_tasks(command);
+        self.drop_work_jobs(command);
         match &command.command {
             Command::MoveTo { units, target } => {
                 if !within_world(*target) {
@@ -1052,6 +1078,25 @@ impl Sim {
             Command::Disembark { units } => self.order_disembark(command.player, units),
             Command::Tow { units, gun } => self.order_tow(command.player, units, *gun),
             Command::Unlimber { units } => self.order_unlimber(command.player, units),
+            Command::Lay {
+                units,
+                kind,
+                from,
+                to,
+            } => self.order_works(command.player, units, (*kind).into(), (*from, *to)),
+            Command::Dig {
+                units,
+                kind,
+                from,
+                to,
+            } => self.order_works(command.player, units, (*kind).into(), (*from, *to)),
+            Command::Clear { units, target } => self.order_clear(command.player, units, *target),
+            Command::Demolish { units, bridge } => {
+                self.order_bridge(command.player, units, *bridge, false);
+            }
+            Command::Repair { units, bridge } => {
+                self.order_bridge(command.player, units, *bridge, true);
+            }
         }
     }
 
@@ -1212,6 +1257,7 @@ impl Sim {
         self.air.hash_into(&mut h);
         self.teams.hash_into(&mut h);
         self.hash_transport(&mut h);
+        self.works.hash_into(&mut h);
         h.finish()
     }
 
