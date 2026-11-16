@@ -137,6 +137,12 @@ struct MapFile {
     /// east) the rivers flow towards; see [`Map::water_flow_deg`].
     #[serde(default)]
     water_flow_deg: Option<u16>,
+    /// Default weather and time of day of matches on this map (prompt 040);
+    /// the setup may choose others. Not part of the map hash.
+    #[serde(default)]
+    weather: crate::weather::Weather,
+    #[serde(default)]
+    daytime: crate::weather::Daytime,
     #[serde(default)]
     start: Vec<StartEntry>,
     #[serde(default)]
@@ -175,6 +181,8 @@ pub struct Map {
     biome: Biome,
     /// Not part of `hash` (presentation only).
     water_flow_deg: u16,
+    /// Default weather of matches (prompt 040); not part of `hash`.
+    weather: crate::weather::WeatherSetup,
     /// Placed objects (`objects.csv`), empty until [`Map::add_objects`].
     objects: ObjectList,
     /// Derived from the objects whose kind has a deck.
@@ -275,6 +283,10 @@ impl Map {
         };
         let mut map = Self::from_rasters(layout, heights_mm, terrain)?;
         map.biome = file.biome;
+        map.weather = crate::weather::WeatherSetup {
+            weather: file.weather,
+            daytime: file.daytime,
+        };
         if let Some(deg) = file.water_flow_deg {
             if deg >= 360 {
                 return Err(MapError(format!(
@@ -368,6 +380,7 @@ impl Map {
             bridges: Vec::new(),
             biome: Biome::default(),
             water_flow_deg: DEFAULT_WATER_FLOW_DEG,
+            weather: crate::weather::WeatherSetup::default(),
             hash: 0,
         };
         map.hash = map.raster_hash();
@@ -490,6 +503,13 @@ impl Map {
     /// Climate look for the presentation (not part of the hash).
     pub const fn biome(&self) -> Biome {
         self.biome
+    }
+
+    /// Default weather and time of day of matches on this map (`map.toml`:
+    /// `weather`, `daytime`; prompt 040). Not part of the hash: the match
+    /// carries its choice in [`crate::SimConfig::weather`].
+    pub const fn weather(&self) -> crate::weather::WeatherSetup {
+        self.weather
     }
 
     /// Compass direction (degrees, 0 = north, 90 = east) rivers flow

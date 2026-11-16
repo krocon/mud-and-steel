@@ -54,6 +54,9 @@ var load_button: Button
 var replays_button: Button
 var map_option: OptionButton
 var biome_option: OptionButton
+## Weather and time of day (prompt 040).
+var weather_option: OptionButton
+var daytime_option: OptionButton
 var faction_option: OptionButton
 var enemy_option: OptionButton
 var opponent_option: OptionButton
@@ -127,6 +130,8 @@ func start_skirmish() -> void:
 	MatchSetup.pending = {
 		"map": _maps[map_option.selected],
 		"biome": BIOMES.keys()[biome_option.selected],
+		"weather": MatchSetup.WEATHERS.keys()[weather_option.selected],
+		"daytime": MatchSetup.DAYTIMES.keys()[daytime_option.selected],
 		"factions": PackedStringArray([own, enemy]),
 		"ai": MatchSetup.OPPONENTS.keys()[opponent_option.selected],
 		"mode": MatchSetup.MODES.keys()[mode_option.selected],
@@ -207,6 +212,14 @@ func _skirmish_screen() -> Control:
 	for id in BIOMES:
 		biome_option.add_item(BIOMES[id])
 	box.add_child(_row("Season", biome_option))
+	weather_option = OptionButton.new()
+	for id in MatchSetup.WEATHERS:
+		weather_option.add_item(MatchSetup.WEATHERS[id])
+	box.add_child(_row("Weather", weather_option))
+	daytime_option = OptionButton.new()
+	for id in MatchSetup.DAYTIMES:
+		daytime_option.add_item(MatchSetup.DAYTIMES[id])
+	box.add_child(_row("Time of day", daytime_option))
 
 	faction_option = OptionButton.new()
 	enemy_option = OptionButton.new()

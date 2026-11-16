@@ -511,7 +511,8 @@ impl Sim {
                     continue;
                 }
                 let c = self.fire.class_index(&map, o).unwrap_or(0);
-                let pct = self.fire.rules.classes[c].catch_pct;
+                // Wet wood and the wind (prompt 040).
+                let pct = self.weather_catch_pct(self.fire.rules.classes[c].catch_pct, gap);
                 if pct > 0 && self.rng.below(100) < pct {
                     caught.push((o, by));
                 }

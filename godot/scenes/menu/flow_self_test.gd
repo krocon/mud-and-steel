@@ -149,6 +149,18 @@ func _run() -> void:
 		_finish()
 		return
 
+	# --- Weather match (prompt 040): rain at night --------------------
+	main = await _start_match(menu, 0, 1, 0, "test_small", "passive", "battle", "rain", "night")
+	if main == null:
+		_finish()
+		return
+	await _weather_test(main)
+	await _surrender_test(main)
+	menu = await _back_to_menu(main)
+	if menu == null:
+		_finish()
+		return
+
 	# --- Match 4: base building ----------------------------------------
 	main = await _start_match(menu, 0, 0, 1, "test_small", "normal", "base")
 	if main == null:
@@ -177,7 +189,7 @@ func _run() -> void:
 func _finish() -> void:
 	set_process(false)
 	var ok := _errors.is_empty()
-	var message := "menu, settings, credits, LAN lobby, online lobby, loading, match tests, pause, surrender, combat victory, computer opponent, base building, saving, loading, replay viewer, result and back ok" if ok else " ".join(_errors)
+	var message := "menu, settings, credits, LAN lobby, online lobby, loading, match tests, pause, surrender, combat victory, computer opponent, rain at night, base building, saving, loading, replay viewer, result and back ok" if ok else " ".join(_errors)
 	print("flow self-test %s: %s" % ["PASSED" if ok else "FAILED", message])
 	get_tree().paused = false
 	get_tree().quit(0 if ok else 1)
@@ -292,7 +304,7 @@ func _online_test(menu: Control) -> Control:
 
 ## Chooses biome, own and enemy faction (indices in the setup screen) and
 ## map, starts and waits until the match is loaded.
-func _start_match(menu: Control, biome: int, own: int, enemy: int, map_name: String, opponent := "passive", mode := "battle") -> Node3D:
+func _start_match(menu: Control, biome: int, own: int, enemy: int, map_name: String, opponent := "passive", mode := "battle", weather := "", daytime := "") -> Node3D:
 	menu.single_player_button.pressed.emit()
 	await _frames(1)
 	_check(menu.screens["skirmish"].visible, "setup screen not shown")
@@ -304,6 +316,8 @@ func _start_match(menu: Control, biome: int, own: int, enemy: int, map_name: Str
 	menu.enemy_option.select(enemy)
 	menu.opponent_option.select(MatchSetup.OPPONENTS.keys().find(opponent))
 	menu.mode_option.select(MatchSetup.MODES.keys().find(mode))
+	menu.weather_option.select(MatchSetup.WEATHERS.keys().find(weather))
+	menu.daytime_option.select(MatchSetup.DAYTIMES.keys().find(daytime))
 	MatchSetup.run_match_test = biome == 0 and own == 0 and mode == "battle"
 	menu.start_button.pressed.emit()
 	var main: Node3D = await _wait_scene("Main")
@@ -388,6 +402,42 @@ func _pause_test(main: Node3D) -> void:
 	_check(not get_tree().paused and not game_menu.is_paused(), "Esc did not resume the game")
 	_check(main.sim_host.current_tick() > tick, "simulation did not resume")
 	print("flow self-test: pause ok")
+
+
+## Rain at night (prompt 040): the simulation has the weather from the
+## setup screen, the ground is soft, sight is short; rain falls, the ground
+## is wet, the light is the night's, the ambience plays rain. Measures what
+## the weather costs per frame on the CPU.
+func _weather_test(main: Node3D) -> void:
+	var host: SimHost = main.sim_host
+	var info: Dictionary = host.weather_info()
+	_check(info.get("weather") == "rain" and info.get("daytime") == "night", "match weather %s, chosen rain at night" % info)
+	_check(info.get("ground") == "wet" and int(info.get("ground_pct", 0)) >= 50, "ground %s" % info)
+	_check(int(info.get("sight_pct", 100)) < 50, "sight at a rainy night %s %%" % info.get("sight_pct"))
+	var look: Node = main.weather_look
+	_check(look != null, "no weather look")
+	if look == null:
+		return
+	var quality: Dictionary = preload("res://scenes/world/graphics_quality.gd").settings(main.atmosphere.quality)
+	_check(look.rain != null or int(quality.snow_particles) == 0, "no rain particles")
+	var wet: Variant = main.terrain.shader_parameter("wetness")
+	_check(wet != null and float(wet) > 0.5, "terrain wetness %s" % wet)
+	var base_energy: float = main.atmosphere._biome_preset.sun_energy
+	_check(main.atmosphere.preset.sun_energy < base_energy * 0.2, "night light %.2f of %.2f" % [main.atmosphere.preset.sun_energy, base_energy])
+	if main.battle_sound:
+		_check(main.battle_sound.ambience.rain > 0.9, "ambience without rain")
+	var tick := host.current_tick()
+	await _frames(120)
+	_check(host.current_tick() > tick + 30, "the rainy match does not run (tick %d)" % host.current_tick())
+	# CPU cost of the weather look per frame (rain moves on the GPU).
+	var started := Time.get_ticks_usec()
+	for i in 200:
+		look._process(1.0 / 60.0)
+	var usec := float(Time.get_ticks_usec() - started) / 200.0
+	_check(usec < 2000.0, "weather costs %.0f µs per frame" % usec)
+	print("flow self-test: rain at night ok (ground %d %%, sight %d %%, wetness %.2f, rain %s, weather %.1f µs per frame)" % [
+		int(info.get("ground_pct", 0)), int(info.get("sight_pct", 0)), float(wet), "on" if look.rain else "off", usec
+	])
 
 
 func _surrender_test(main: Node3D) -> void:

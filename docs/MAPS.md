@@ -28,6 +28,8 @@ height_base_mm = -6000       # height of PNG value 0
 height_step_mm = 1           # millimeters per PNG step
 biome = "forest"             # forest | desert | winter; presentation only (optional)
 water_flow_deg = 180         # direction rivers flow towards (0 = north); presentation only (optional)
+weather = "rain"             # default weather of matches (optional, prompt 040): clear | overcast | rain | snow | fog
+daytime = "night"            # default time of day (optional): morning | day | evening | night
 
 [[start]]                    # start positions per player: the scenario's units stand here
 player = 0
@@ -138,6 +140,20 @@ not part of the map hash or the state hash and no game rule reads it, so the sam
 height and terrain data can be played in every biome. `cli gen-map --biome <id>`
 writes it; in Godot `-- --biome=<id>` overrides it. Details:
 [ARCHITECTURE.md](ARCHITECTURE.md#lighting-atmosphere-and-biomes-presentation-only).
+
+### Weather and time of day
+
+`weather` and `daytime` (optional, prompt 040; default `clear` by `day`) are
+the defaults of matches on the map; the setup screen may choose others
+(`Map default` keeps them), `-- --weather=<id> --daytime=<id>` overrides them
+for direct starts, and LAN and online matches use them as they are. Unlike
+`biome` they are game rules: the match carries its choice in
+`SimConfig::weather` (replays, saved games, the state hash), and rain soaks
+the ground, which slows wheels more than tracks off the roads. They are not
+part of the map hash: the same map can be played in every weather. The map
+editor sets them in its Save dialog and writes them only when they are not
+`clear` / `day`. Rules: [ARCHITECTURE.md](ARCHITECTURE.md#weather-mud-and-time-of-day).
+
 ### Objects
 
 Trees, buildings, hedges, walls and props that matter for the game (they block

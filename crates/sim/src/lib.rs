@@ -37,6 +37,7 @@ pub mod teams;
 pub mod terrain;
 pub mod transport;
 pub mod vision;
+pub mod weather;
 
 pub use air::{
     AirBlock, AirEvent, AirMission, AirOption, AirRules, AirType, AircraftSnapshot, BombSnapshot,
@@ -74,3 +75,4 @@ pub use teams::Teams;
 pub use terrain::{TerrainError, TerrainRules};
 pub use transport::{TransportRules, TransportType};
 pub use vision::{CellState, VisionGrid, VisionRules};
+pub use weather::{Daytime, Ground, Weather, WeatherRules, WeatherSetup};
