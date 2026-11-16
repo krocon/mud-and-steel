@@ -257,8 +257,10 @@ func _input(event: InputEvent) -> void:
 				get_viewport().set_input_as_handled()
 		return
 	# Right click with only own buildings selected: rally point.
+	# Not over a panel: a right click on a tile asks for its unit card
+	# (prompt 066).
 	if button != null and button.pressed and button.button_index == MOUSE_BUTTON_RIGHT \
-			and not button.ctrl_pressed and not button.meta_pressed:
+			and not button.ctrl_pressed and not button.meta_pressed and not _over_panel(button.position):
 		var selected: Array = main.selection.selected
 		var own: Array[int] = base_view.own_structures(selected)
 		if not own.is_empty() and own.size() == selected.size():

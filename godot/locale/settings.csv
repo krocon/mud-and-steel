@@ -93,6 +93,7 @@ SET_KEY_AIR_ATTACK,Air: ground attack (then click),Luft: Schlachtflug (dann klic
 SET_KEY_AIR_BOMB,Air: bombing run (then click),Luft: Bombenangriff (dann klicken)
 SET_KEY_AIR_AIRBORNE,Air: airborne drop (then click),Luft: Luftlandung (dann klicken)
 SET_KEY_STRIKE_ROCKETS,Heavy rocket strike (then click),Schwerer Raketenschlag (dann klicken)
+SET_KEY_UNIT_CARD,Unit card of the selection,Einheitenkarte der Auswahl
 SUB_UNDER_ATTACK,We are under attack!,Wir werden angegriffen!
 SUB_UNIT_LOST,Unit lost.,Einheit verloren.
 SUB_UNIT_READY,Unit ready.,Einheit bereit.

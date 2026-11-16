@@ -64,6 +64,8 @@ const BINDABLE: Dictionary[String, String] = {
 	"air_bomb": "SET_KEY_AIR_BOMB",
 	"air_airborne": "SET_KEY_AIR_AIRBORNE",
 	"strike_rockets": "SET_KEY_STRIKE_ROCKETS",
+	# Unit card of the selected unit (prompt 066).
+	"unit_card": "SET_KEY_UNIT_CARD",
 }
 
 ## Actions that are not in `project.godot`, with their default key
@@ -75,6 +77,8 @@ const RUNTIME_ACTIONS: Dictionary[String, int] = {
 	"air_bomb": KEY_4 | KEY_MASK_SHIFT,
 	"air_airborne": KEY_5 | KEY_MASK_SHIFT,
 	"strike_rockets": KEY_6 | KEY_MASK_SHIFT,
+	# Plain I is "Secure" (prompt 046); every letter key is taken.
+	"unit_card": KEY_I | KEY_MASK_SHIFT,
 }
 
 ## Health bars over units (prompt 031): `damaged` (damaged and selected

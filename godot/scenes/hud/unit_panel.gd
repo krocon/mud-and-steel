@@ -7,16 +7,29 @@ extends PanelContainer
 ##   towed gun or the tractor (prompt 034); ammunition and fuel bars with a
 ##   warning when they run low or the vehicle is immobilized (prompt 036);
 ##   rank insignia, rank name, kills and an experience bar (prompt 050).
+##   Prompt 066: under the portrait the five ratings of the unit's type
+##   (`rating_bars.gd`: symbols with bars, the numbers in the tooltip; type
+##   values without rank or damage), in its corner the button that opens
+##   the unit card; an own unit with a rank lists the bonuses of
+##   its rank as their own line.
 ## - Several units: a grid of tiles with a short name, a health bar and an
 ##   ammunition bar (red when low);
 ##   click selects that unit alone, Shift + click removes it.
 ## - Hidden without a selection.
 
+## The unit card of this catalog id is wanted, for unit `unit` (prompt 066).
+signal card_requested(type_id: String, unit: int)
+
+const Settings := preload("res://scenes/menu/settings.gd")
+const UnitStats := preload("res://scenes/hud/unit_stats.gd")
+const RatingBars := preload("res://scenes/hud/rating_bars.gd")
 const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
 const UnitPortrait := preload("res://scenes/hud/unit_portrait.gd")
 const RankBadge := preload("res://scenes/hud/rank_badge.gd")
 const UNIT_SCENE: PackedScene = preload("res://scenes/unit.tscn")
 const REFRESH := 0.2
+## Height of the ratings strip under the portrait (prompt 066).
+const RATINGS_HEIGHT := 16
 ## Tiles shown at most; the rest is counted.
 const MAX_TILES := 40
 const TILE_SIZE := Vector2(74, 40)
@@ -31,6 +44,13 @@ var tile_ids: Array[int] = []
 ## Rank line of the single unit, e.g. "Veteran, 3 kills" (prompt 050;
 ## self-test).
 var rank_line := ""
+## Bonuses of the single unit's rank as their own line ("" for a recruit;
+## prompt 066; self-test).
+var bonus_line := ""
+## Ratings of the single unit's type and the button to its unit card
+## (prompt 066; self-test).
+var ratings: RatingBars
+var card_button: Button
 
 var _portraits: UnitPortrait
 var _single: HBoxContainer
@@ -48,6 +68,8 @@ var _grid: GridContainer
 var _more: Label
 var _shown: Array[int] = []
 var _refresh_left := 0.0
+## Catalog id of the single unit shown.
+var _single_type := ""
 
 
 func setup(main_node: Node3D) -> void:
@@ -71,11 +93,40 @@ func setup(main_node: Node3D) -> void:
 
 	_single = HBoxContainer.new()
 	box.add_child(_single)
+	# The portrait with the five ratings of the type under it and the
+	# button to its unit card in its corner (prompt 066). Together they are
+	# as large as the portrait was: a larger panel would cover units.
+	var picture := VBoxContainer.new()
+	picture.add_theme_constant_override(&"separation", 2)
+	_single.add_child(picture)
 	_portrait = TextureRect.new()
-	_portrait.custom_minimum_size = Vector2(UnitPortrait.SIZE)
+	_portrait.custom_minimum_size = Vector2(UnitPortrait.SIZE) - Vector2(0, RATINGS_HEIGHT + 2)
 	_portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	_single.add_child(_portrait)
+	picture.add_child(_portrait)
+	ratings = RatingBars.new(RatingBars.Layout.STRIP)
+	ratings.name = "Ratings"
+	ratings.custom_minimum_size = Vector2(UnitPortrait.SIZE.x, RATINGS_HEIGHT)
+	ratings.mouse_filter = Control.MOUSE_FILTER_PASS
+	picture.add_child(ratings)
+	card_button = Button.new()
+	card_button.name = "CardButton"
+	card_button.text = "UNIT_CARD_BUTTON"
+	card_button.focus_mode = Control.FOCUS_NONE
+	card_button.add_theme_font_size_override(&"font_size", MenuTheme.font(11))
+	var flat := StyleBoxFlat.new()
+	flat.bg_color = Color(MenuTheme.BUTTON, 0.85)
+	flat.border_color = MenuTheme.PANEL_BORDER
+	flat.set_border_width_all(1)
+	flat.set_content_margin_all(2)
+	flat.content_margin_left = 5
+	flat.content_margin_right = 5
+	card_button.add_theme_stylebox_override(&"normal", flat)
+	card_button.pressed.connect(func() -> void:
+		if _shown.size() == 1:
+			card_requested.emit(_single_type, _shown[0]))
+	_portrait.add_child(card_button)
+	card_button.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
 	var text := VBoxContainer.new()
 	text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_single.add_child(text)
@@ -160,6 +211,11 @@ func _show_single(id: int) -> void:
 			ring.visible = false
 		return unit)
 	_title.text = info.name
+	if type_id != _single_type or ratings.tooltip_text.is_empty():
+		_single_type = type_id
+		ratings.ratings = UnitStats.ratings(type_id)
+		ratings.tooltip_text = UnitStats.ratings_line(type_id)
+		card_button.tooltip_text = tr("UNIT_CARD_BUTTON_TIP") % Settings.action_key_name("unit_card")
 	_show_rank(id, type_id)
 	_health.max_value = maxi(int(info.max_hp), 1)
 	_health.value = int(info.hp)
@@ -216,6 +272,9 @@ func _show_single(id: int) -> void:
 		if not transport.is_empty():
 			state.append(transport)
 		lines.append(", ".join(state))
+	# The rank's bonuses stay apart from the type's values (prompt 066).
+	if not bonus_line.is_empty():
+		lines.append(bonus_line)
 	_details.text = "\n".join(lines)
 
 
@@ -224,6 +283,7 @@ func _show_single(id: int) -> void:
 func _show_rank(id: int, type_id: String) -> void:
 	var xp := sim_host.unit_experience(id)
 	rank_line = ""
+	bonus_line = ""
 	_badge.visible = not xp.is_empty()
 	_xp_bar.visible = not xp.is_empty()
 	if xp.is_empty():
@@ -245,6 +305,8 @@ func _show_rank(id: int, type_id: String) -> void:
 		_xp_bar.value = clampi(100 * (int(xp.xp) - start) / maxi(next - start, 1), 0, 100)
 		_xp_bar.tooltip_text = tr("HUD_XP_NEXT").format({"rank": xp.rank_name, "xp": xp.xp, "next": next})
 	if rank > 0:
+		bonus_line = tr("UNIT_CARD_RANK") % tr("HUD_XP_BONUS").format({"rank": xp.rank_name,
+				"dispersion": xp.dispersion_pct, "reload": xp.reload_pct, "pinned": xp.suppression_pct})
 		_badge.tooltip_text = tr("HUD_XP_BONUS").format({"rank": xp.rank_name, "dispersion": xp.dispersion_pct,
 				"reload": xp.reload_pct, "pinned": xp.suppression_pct})
 	else:

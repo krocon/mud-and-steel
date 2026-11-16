@@ -111,15 +111,17 @@ func _run() -> void:
 	get_tree().quit(1 if not missing.is_empty() else 0)
 
 
-## The model of `id` as the match shows it in the forest (null if there
-## is none): base buildings borrow houses, squads are squad scenes, the rest
-## are kit models with camouflage or fortifications with the environment look.
-static func build_model(id: String) -> Node3D:
+## The model of `id` as the match shows it in `biome` (`forest`, `desert`,
+## `winter`; null if there is none): base buildings borrow houses, squads
+## are squad scenes, the rest are kit models with camouflage or
+## fortifications with the environment look. Also the model of the unit
+## reference in the main menu (prompt 066, `menu/unit_model_view.gd`).
+static func build_model(id: String, biome := BIOME) -> Node3D:
 	if BaseView.is_building(id):
 		var holder := Node3D.new()
 		holder.add_child(Node3D.new())
 		holder.get_child(0).name = "Model"
-		BaseView.attach_model(holder, id, BIOME)
+		BaseView.attach_model(holder, id, biome)
 		return holder if holder.get_node_or_null("Model/House") != null else _discard(holder)
 	var faction := id.get_slice("_", 0)
 	var squad := InfantryView.squad_model(MODELS_DIR, id)
@@ -128,7 +130,7 @@ static func build_model(id: String) -> Node3D:
 		for child in squad.get_children():
 			var player := SoldierLook.find_player(child)
 			if child is Node3D and player != null:
-				SoldierLook.apply(child, faction, BIOME, k)
+				SoldierLook.apply(child, faction, biome, k)
 				SoldierLook.configure_animations(player)
 				if player.has_animation("idle"):
 					player.play("idle")
@@ -155,12 +157,12 @@ static func build_model(id: String) -> Node3D:
 		return null
 	var model := (load(path) as PackedScene).instantiate() as Node3D
 	if EnvLook.is_env_model(model):
-		EnvLook.apply(model, BIOME)
+		EnvLook.apply(model, biome)
 		var variants := EnvLook.variants(model)
 		if not variants.is_empty():
 			EnvLook.show_variant(model, variants[0].name)
 	else:
-		UnitCamo.apply(model, UnitCamo.palette(faction, BIOME))
+		UnitCamo.apply(model, UnitCamo.palette(faction, biome))
 		UnitCamo.add_markings(model, faction, 101)
 	for player in model.find_children("*", "AnimationPlayer", true, false):
 		(player as AnimationPlayer).pause()
