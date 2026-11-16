@@ -499,8 +499,9 @@ func _combat_victory_test(main: Node3D) -> void:
 		else:
 			enemies.append(ids[i])
 	_check(main.atmosphere.preset.id == "winter", "biome is %s, not winter" % main.atmosphere.preset.id)
-	# Eight tanks and two rifle squads per side (prompt 022).
-	_check(own.size() == 10 and enemies.size() == 10, "expected 10 units per side")
+	# Two rifle squads per side (prompt 022) and the tanks of the faction
+	# (prompt 045: 9 M4A3 against 8 Panzer IV).
+	_check(own.size() == 11 and enemies.size() == 10, "expected 11 own and 10 enemy units, got %d/%d" % [own.size(), enemies.size()])
 	# Everyone starts with hold fire in the self-test: the own units attack
 	# one enemy after the other until none is left.
 	var game_menu: CanvasLayer = main.game_menu

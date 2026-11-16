@@ -201,22 +201,27 @@ From the catalog entry of the unit (`data/economy.toml`, `[unit_cost]`):
 - **Manpower** = 6 × soldiers (squad size, or crew of vehicles and guns).
 - **Fuel** = 4 per tonne of combat mass (vehicles only).
 - **Ammunition** = 10 + Σ over the weapons the simulation uses
-  (caliber in mm)² × count / 60.
+  (caliber in mm)² × count / 60 × range factor. The range factor (prompt
+  045) is the weapon's game range / 250 m, clamped to 50–150 %, for
+  direct-fire weapons; indirect weapons count 100 %. Without it a T-34
+  (250 m, 5 rounds/min) cost more than a Panzer IV (375 m, 10 rounds/min)
+  and lost 2:1 to it ([BALANCE.md](BALANCE.md)).
 - **Build time** (game seconds) = 8 + (fuel + ammunition + manpower) / 8.
 
-Examples (`cli economy-table` prints the full table):
+Examples (`cli economy-table` prints the full table; prompt 045 values,
+before the range factor in brackets where it changed):
 
 | Unit | Fuel | Ammunition | Manpower | Time |
 |---|---|---|---|---|
-| Rifle squad (de) | 0 | 18 | 54 | 17.0 s |
-| AT squad (de, Panzerschreck) | 0 | 140 | 12 | 27.0 s |
-| AT squad (us, bazooka) | 0 | 71 | 12 | 18.3 s |
-| Panzer IV H | 100 | 103 | 30 | 37.1 s |
+| Rifle squad (de) | 0 | 14 (18) | 54 | 16.5 s |
+| AT squad (de, Panzerschreck) | 0 | 75 (140) | 12 | 18.8 s |
+| AT squad (us, bazooka) | 0 | 40 (71) | 12 | 14.5 s |
+| Panzer IV H | 100 | 150 (103) | 30 | 43.0 s |
 | T-34/76 (1943) | 123 | 106 | 24 | 39.6 s |
-| Tiger I | 228 | 139 | 30 | 57.6 s |
-| IS-2 | 184 | 258 | 24 | 66.2 s |
+| Tiger I | 228 | 203 (139) | 30 | 65.6 s |
+| IS-2 | 184 | 382 (258) | 24 | 81.7 s |
 | M4A3 (75) | 126 | 103 | 30 | 40.3 s |
-| Pak 40 position | 0 | 103 | 36 | 25.3 s |
+| Pak 40 | 0 | 150 (103) | 36 | 31.2 s |
 
 The code computes the values (`sim::economy::EconomyRules::unit_cost`);
 this table is a snapshot, `cli economy-table` shows the current ones. The
