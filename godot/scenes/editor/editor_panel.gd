@@ -112,6 +112,15 @@ func _ready() -> void:
 	heading_spin.step = 15
 	heading_spin.value_changed.connect(func(v: float) -> void: main.place_heading = int(v))
 	_setting(box, "heading", "Heading °", heading_spin)
+	# Prompt 059: compounds of data/compounds.toml.
+	var compound_option := OptionButton.new()
+	for entry: String in main.editor.compound_names():
+		compound_option.add_item(entry.get_slice(":", 1))
+		compound_option.set_item_metadata(compound_option.item_count - 1, entry.get_slice(":", 0))
+		if entry.get_slice(":", 0) == main.compound_name:
+			compound_option.select(compound_option.item_count - 1)
+	compound_option.item_selected.connect(func(i: int) -> void: main.compound_name = compound_option.get_item_metadata(i))
+	_setting(box, "compound", "Compound", compound_option)
 	start_team_option = OptionButton.new()
 	for label in EditorData.START_TEAMS:
 		start_team_option.add_item(label)
@@ -133,10 +142,10 @@ func select_tool(id: String) -> void:
 	main.tool = id
 	tool_buttons[id].set_pressed_no_signal(true)
 	var uses: Dictionary[String, Array] = {
-		"radius": ["raise", "lower", "smooth", "flatten", "paint", "river", "scatter", "erase"],
+		"radius": ["raise", "lower", "smooth", "flatten", "paint", "river", "scatter", "erase", "village"],
 		"strength": ["raise", "lower", "smooth", "flatten", "river"],
 		"density": ["scatter"], "preset": ["scatter"], "terrain": ["paint"],
-		"place": ["place"], "heading": ["place"],
+		"place": ["place"], "heading": ["place", "compound"], "compound": ["compound"],
 		"start_team": EditorData.START_TOOLS,
 	}
 	for key in _settings:

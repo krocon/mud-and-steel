@@ -60,6 +60,8 @@ var terrain_id := 2
 var scatter_preset := "Deciduous wood"
 var place_kind := "env_house_farm:Intact"
 var place_heading := 0
+## Compound of the "compound" tool (prompt 059, data/compounds.toml).
+var compound_name := "hut_yard"
 ## Counters for the self-test.
 var strokes := 0
 var world_rebuilds := 0
@@ -144,6 +146,15 @@ func stroke_begin(point: Vector3) -> void:
 			var placed: Variant = editor.place_object(place_kind, point.x, point.z, place_heading)
 			if placed == null:
 				set_status(editor.last_error(), true)
+		"compound":
+			if editor.place_compound(compound_name, point.x, point.z, place_heading) < 0:
+				set_status(editor.last_error(), true)
+		"village":
+			var n: int = editor.village(point.x, point.z, radius)
+			if n < 0:
+				set_status(editor.last_error(), true)
+			else:
+				set_status("%d compounds placed" % n)
 		"start0", "start1", "start2", "start3", "start4", "start5":
 			var player := int(tool.right(1))
 			var new_start: bool = not editor.start_positions().has(player)
@@ -383,7 +394,7 @@ func _draw_cursor() -> void:
 	if _hover == null:
 		return
 	var center: Vector3 = _hover
-	var r := radius if tool not in ["place"] + EditorData.START_TOOLS else 3.0
+	var r := radius if tool not in ["place", "compound"] + EditorData.START_TOOLS else 3.0
 	_cursor_mesh.surface_begin(Mesh.PRIMITIVE_LINE_STRIP)
 	for k in 49:
 		var angle := TAU * k / 48.0

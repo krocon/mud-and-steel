@@ -103,6 +103,24 @@ fn strings<'a>(items: impl IntoIterator<Item = &'a String>) -> PackedStringArray
 }
 
 impl MapEditor {
+    /// Result of a counting edit for GDScript: the count, or -1 after
+    /// recording the error.
+    fn counted(&mut self, result: Option<Result<usize, String>>) -> i64 {
+        match result {
+            Some(Ok(n)) => {
+                if n > 0 {
+                    self.edited(None);
+                }
+                i64::try_from(n).unwrap_or(i64::MAX)
+            }
+            Some(Err(e)) => {
+                self.fail(e);
+                -1
+            }
+            None => -1,
+        }
+    }
+
     fn fail(&mut self, message: String) -> bool {
         godot_warn!("map editor: {message}");
         self.error = message;
@@ -500,6 +518,42 @@ impl MapEditor {
             }
             None => Variant::nil(),
         }
+    }
+
+    /// Places a compound of `data/compounds.toml` (prompt 059) centered at
+    /// the point, turned by `heading_deg` (rounded to 90°). Returns how
+    /// many objects were placed (-1 on an error).
+    #[func]
+    fn place_compound(&mut self, name: GString, x: f32, z: f32, heading_deg: i64) -> i64 {
+        let heading = u16::try_from(heading_deg.rem_euclid(360)).unwrap_or(0);
+        let result = self
+            .map
+            .as_mut()
+            .map(|m| m.place_compound(&name.to_string(), mm(x), mm(z), heading));
+        self.counted(result)
+    }
+
+    /// Village brush (prompt 059): packs courtyard compounds into the
+    /// circle. Returns how many compounds were placed (-1 on an error).
+    #[func]
+    fn village(&mut self, x: f32, z: f32, radius: f32) -> i64 {
+        let brush = self.brush(x, z, radius);
+        let result = self.map.as_mut().map(|m| m.village(brush));
+        self.counted(result)
+    }
+
+    /// Names and labels of the compounds: `"<name>:<label>"`.
+    #[func]
+    fn compound_names(&self) -> PackedStringArray {
+        editor::compound::Compounds::builtin().map_or_else(
+            |_| PackedStringArray::new(),
+            |c| {
+                c.list
+                    .iter()
+                    .map(|c| GString::from(format!("{}:{}", c.name, c.label).as_str()))
+                    .collect()
+            },
+        )
     }
 
     /// Removes objects in the circle (only catalog id `kind` unless empty).
