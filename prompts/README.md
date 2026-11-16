@@ -111,8 +111,31 @@ Umsetzen von ihrer Session konkretisiert.
 Welle 10:  029 Sound │ 031 HUD │ 032 Indirektes Feuer │ 038 Speichern │ 042 Infanterie │ 044 Release
 Welle 11:  030 Musik (nach 029) │ 033 Flugzeuge (nach 032) │ 034 Transport │ 037 Teams │ 041 Umwelt 2
 Welle 12:  035 Pioniere │ 036 Nachschub (nach 034) │ 040 Wetter │ 043 Sprache (nach 031)
-Welle 13:  039 Tutorial/Missionen (nach 031, 038) │ 045 Balancing (zuletzt)
+Welle 13:  039 Tutorial/Missionen (nach 031, 038) │ 046 Befehle │ 048 Animationen │ 053 Sound 2 │ 056 Karten 2
+Welle 14:  047 Infanterie-Taktik (nach 046) │ 049 Verwundung │ 050 Erfahrung │ 052 Stellungen 2 │ 054 Explosionen 2 │ 055 Brücken/Luftlande
+Welle 15:  051 KI-Kommandeur (nach allem, was die KI nutzen soll)
+Welle 16:  045 Balancing (zuletzt)
 ```
+
+### Stufe 3: aus der Wunschliste (046–056)
+
+Allgemeine Spielmechaniken aus einer Wunschliste, auf WW2 übertragen. Moderne Inhalte
+(Drohnen, Atomwaffe, moderne Fahrzeuge und Hubschrauber, Laser) sind bewusst ersetzt
+oder weggelassen; es werden keine Inhalte anderer Spiele übernommen.
+
+| Nr. | Prompt | Ziel | Status |
+|-----|--------|------|--------|
+| 046 | [Befehle und Formationen](046-befehle-formationen.md) | Angriffsbewegung, Gebiet sichern, Auto-Formation, Ausrichtung per Ziehen | Entwurf |
+| 047 | [Infanterie-Taktik](047-infanterie-taktik.md) | Feuertrupps, Deckung zu Deckung, Niederhalten, Blindfeuer | Entwurf |
+| 048 | [Animationen und Ragdolls](048-animationen-ragdolls.md) | Deckungs-, Kriech- und Rollanimationen, Ragdolls nur als Darstellung | Entwurf |
+| 049 | [Verwundung und Kameradenhilfe](049-verwundung-kameradenhilfe.md) | Verwundete, Bergen, Sanitäter mit Trage, ausgestiegene Besatzungen | Entwurf |
+| 050 | [Erfahrung und Ränge](050-erfahrung-raenge.md) | Veteranenstufen mit moderaten Boni und Abzeichen | Entwurf |
+| 051 | [KI-Kommandeur Stufe 2](051-ki-kommandeur.md) | Aufklären, Lagebild, Konter, Versorgungskrieg, Aufgeben | Entwurf |
+| 052 | [Stellungen Stufe 2](052-stellungen-stufe2.md) | Gräben, Sperrlinien, eingegrabene Panzer, Tarnnetze, Bunker | Entwurf |
+| 053 | [Sound Stufe 2](053-sound-stufe2.md) | Überschallknall, Schallverzögerung, Zoom-Akustik, Stimmen | Entwurf |
+| 054 | [Explosionen Stufe 2](054-explosionen-stufe2.md) | Druckwelle, Blitzlicht, Munitionsexplosion, schwerer Feuerschlag | Entwurf |
+| 055 | [Brücken, Pioniertechnik, Luftlande](055-bruecken-pioniertechnik-luftlande.md) | Brückeneinsturz, Ertrinken, Brückenleger, Fallschirmjäger | Entwurf |
+| 056 | [Karten und Basis Stufe 2](056-karten-basis-stufe2.md) | Winterdorf, Höfe, Flussland, Punkte an Orten, Hinterhalt | Entwurf |
 
 Viele dieser Prompts ändern `sim.rs`, `command.rs`, `main.gd` und den Golden-Hash.
 Parallel laufende Sessions übernehmen vor dem Abschluss den aktuellen `main`.
