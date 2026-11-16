@@ -146,6 +146,26 @@ oder weggelassen; es werden keine Inhalte anderer Spiele übernommen.
 Viele dieser Prompts ändern `sim.rs`, `command.rs`, `main.gd` und den Golden-Hash.
 Parallel laufende Sessions übernehmen vor dem Abschluss den aktuellen `main`.
 
+### Stufe 4: Fahrzeugdaten (063–066)
+
+Die Vorlagen in `docs/.vorlagen/fahrzeuge/` (nicht im Repo, geladen mit
+`just vehicle-refs`) enthalten technische Daten und Zeichnungen zu 141 Panzerfahrzeugen.
+Daraus entstehen fehlende Katalog-Einträge und Modelle, eine JSON-Datenbank und die
+Anzeige der Werte auf der Webseite und im Spiel. Übernommen werden nur Fakten; die
+Zeichnungen bleiben Referenz auf dem Rechner.
+
+| Nr. | Prompt | Ziel | Status |
+|-----|--------|------|--------|
+| 063 | [Fahrzeug-Vorlagen: Modelle](063-fahrzeug-vorlagen-modelle.md) | Bestandsliste aller 141 Vorlagen, fehlende Fahrzeuge in Katalog und als Modell, vorhandene Modelle gegen Maße und Zeichnungen prüfen; Vorab-Session, dann 9 Sessions parallel | offen (Bestandsliste vor den Modell-Sessions freigeben) |
+| 064 | [Fahrzeug-Datenbank](064-fahrzeug-datenbank.md) | `data/vehicles/*.json` mit Schema, Quelle und Prüfung gegen den Katalog; Zugriff für Spiel und Webseite | offen |
+| 065 | [Webseite: Fahrzeugdaten und Spielwerte](065-webseite-fahrzeugdaten-spielwerte.md) | Technische Daten in der Detailansicht, Spielwerte aus der Sim (`cli unit-stats`), fünf Kennzahlen | offen |
+| 066 | [Einheitenwerte im Spiel](066-einheitenwerte-im-spiel.md) | Kennzahlen im Picker, Tooltip, Einheitenkarte, Nachschlagewerk im Hauptmenü | offen |
+
+```
+063 Vorab-Session ─┬─ 063 Modell-Sessions (9 parallel) ─ zusammenführen
+                   └─ 064 Datenbank ─ 065 Webseite + Spielwerte ─ 066 Anzeige im Spiel
+```
+
 ## Festgelegte Grundsätze
 
 - **Größen 1:1** in echten Metern, auch Infanterie (1,80 m).
