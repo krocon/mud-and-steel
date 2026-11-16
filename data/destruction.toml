@@ -199,3 +199,136 @@ remains = "ruin"
 ruin_blocks = "none"
 ruin_height_pct = 20
 ruin_variant = "Burnt"
+
+# --- Prompt 059: desert village -------------------------------------------------
+# Mud brick takes fewer hits than fired brick or stone (env_house_farm_brick
+# 3000, env_house_stone 3500): one-room huts fall after about three 7.5 cm
+# hits; vaults and the plastered stone houses hold longer. [provisional]
+
+[[class]]
+ids = ["env_house_desert_hut"]
+hp = 1400
+damaged_pct = 50
+remains = "ruin"
+ruin_blocks = "large"
+ruin_height_pct = 40
+damaged_variant = "Damaged"
+ruin_variant = "Ruin"
+
+[[class]]
+ids = ["env_house_desert_two"]
+hp = 1800
+damaged_pct = 50
+remains = "ruin"
+ruin_blocks = "large"
+ruin_height_pct = 40
+damaged_variant = "Damaged"
+ruin_variant = "Ruin"
+
+[[class]]
+ids = ["env_house_desert_long"]
+hp = 2000
+damaged_pct = 50
+remains = "ruin"
+ruin_blocks = "large"
+ruin_height_pct = 40
+damaged_variant = "Damaged"
+ruin_variant = "Ruin"
+
+[[class]]
+ids = ["env_house_desert_corner"]
+hp = 2200
+damaged_pct = 50
+remains = "ruin"
+ruin_blocks = "large"
+ruin_height_pct = 40
+damaged_variant = "Damaged"
+ruin_variant = "Ruin"
+
+[[class]]
+ids = ["env_house_desert_stair"]
+hp = 1900
+damaged_pct = 50
+remains = "ruin"
+ruin_blocks = "large"
+ruin_height_pct = 40
+damaged_variant = "Damaged"
+ruin_variant = "Ruin"
+
+[[class]]
+ids = ["env_house_desert_roofroom"]
+hp = 2200
+damaged_pct = 50
+remains = "ruin"
+ruin_blocks = "large"
+ruin_height_pct = 40
+damaged_variant = "Damaged"
+ruin_variant = "Ruin"
+
+[[class]]
+ids = ["env_house_desert_tall"]
+hp = 2600
+damaged_pct = 50
+remains = "ruin"
+ruin_blocks = "large"
+ruin_height_pct = 40
+damaged_variant = "Damaged"
+ruin_variant = "Ruin"
+
+[[class]]
+ids = ["env_house_desert_vault"]
+hp = 2800
+damaged_pct = 50
+remains = "ruin"
+ruin_blocks = "large"
+ruin_height_pct = 40
+damaged_variant = "Damaged"
+ruin_variant = "Ruin"
+
+[[class]]
+ids = ["env_house_desert_large"]
+hp = 3200
+damaged_pct = 50
+remains = "ruin"
+ruin_blocks = "large"
+ruin_height_pct = 40
+damaged_variant = "Damaged"
+ruin_variant = "Ruin"
+
+[[class]]
+ids = ["env_house_desert_shop"]
+hp = 2000
+damaged_pct = 50
+remains = "ruin"
+ruin_blocks = "large"
+ruin_height_pct = 40
+damaged_variant = "Damaged"
+ruin_variant = "Ruin"
+
+[[class]]
+ids = ["env_mosque"]
+hp = 4500
+damaged_pct = 50
+remains = "ruin"
+ruin_blocks = "large"
+# The 16 m minaret falls; the hall walls stay.
+ruin_height_pct = 30
+damaged_variant = "Damaged"
+ruin_variant = "Ruin"
+
+[[class]]
+ids = ["env_police_post"]
+hp = 5500
+damaged_pct = 50
+remains = "ruin"
+ruin_blocks = "large"
+ruin_height_pct = 40
+damaged_variant = "Damaged"
+ruin_variant = "Ruin"
+
+# Mud courtyard walls: weaker than a dry-stone wall (1200).
+[[class]]
+ids = ["env_wall_mud"]
+hp = 800
+damaged_pct = 0
+remains = "gone"

@@ -269,6 +269,19 @@ variant.
 Screenshots: `-- --shot=<file.png> --faction=de --roles=rifleman,sniper,scout
 --camo=camo --biome=forest --distance=6`.
 
+### Rank kit (prompt 050)
+
+`SoldierLook.apply(.., rank)` dresses soldiers by their squad's rank
+(`infantry_view.gd` applies it again when the rank changes): from
+"experienced" on, cloth and canvas are mixed 18 % towards a pale dust tone
+(sun-bleached, washed, worn; one more material key per slot); German and
+Soviet veterans wear their faction's camouflage garment (`VETERAN_CAMO`:
+every second soldier of a veteran squad, all of an elite one, forest
+biome), as front-line soldiers got hold of Splittertarn smocks and amoeba
+suits. US veterans only look worn (frogskin was withdrawn in Europe in
+1944). No modern kit. Captured weapons are open (they need weapon models
+per soldier). [provisional]
+
 ## Line-up check
 
 `just soldier-lineup` renders riflemen and MG gunners of all factions in all three

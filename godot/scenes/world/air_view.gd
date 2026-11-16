@@ -31,7 +31,7 @@ const WRECK_SECONDS := 90.0
 const ENEMY_TINT := Color(0.85, 0.2, 0.15, 0.18)
 const ROUTE_COLOR := Color(0.55, 0.85, 1.0, 0.85)
 const SHADOW_COLOR := Color(0.0, 0.0, 0.0, 0.45)
-const MISSION_NAMES := {"recon": "Recon", "strafe": "Fighters", "attack": "Ground attack", "bomb": "Bombers"}
+const MISSION_NAMES := {"recon": "Recon", "strafe": "Fighters", "attack": "Ground attack", "bomb": "Bombers", "airborne": "Paratroopers"}
 
 var main: Node3D
 var sim_host: SimHost

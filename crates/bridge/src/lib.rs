@@ -25,8 +25,10 @@ mod audio_funcs;
 mod catalog_funcs;
 mod combat_funcs;
 mod crater_funcs;
+mod crossing_funcs;
 mod destruction_funcs;
 mod economy_funcs;
+mod experience_funcs;
 mod fire_funcs;
 mod hud_funcs;
 mod infantry_funcs;
@@ -267,6 +269,8 @@ pub struct SimHost {
     crater_events: Vec<(u64, sim::CraterEvent)>,
     /// Air events since the last `take_air_events` (prompt 033).
     air_events: Vec<(u64, sim::AirEvent)>,
+    /// Crossing events since the last `take_crossing_events` (prompt 055).
+    crossing_events: Vec<(u64, sim::CrossingEvent)>,
     /// Debug: draw everything without fog (prompt 018, presentation only).
     reveal_all: bool,
     /// Time of the last `process` (ticks, AI, snapshots) in microseconds
@@ -319,6 +323,7 @@ impl INode for SimHost {
             object_events: Vec::new(),
             crater_events: Vec::new(),
             air_events: Vec::new(),
+            crossing_events: Vec::new(),
             reveal_all: false,
             process_usec: 0,
             process_ticks: 0,
@@ -394,6 +399,7 @@ impl SimHost {
             destruction_funcs::collect_events(&mut self.object_events, &game.sim);
             crater_funcs::collect_events(&mut self.crater_events, &game.sim);
             air_funcs::collect_events(&mut self.air_events, &game.sim);
+            crossing_funcs::collect_events(&mut self.crossing_events, &game.sim);
             self.accumulator -= tick_seconds;
             ticks += 1;
         }
@@ -547,6 +553,7 @@ impl SimHost {
         self.object_events.clear();
         self.crater_events.clear();
         self.air_events.clear();
+        self.crossing_events.clear();
         self.accumulator = 0.0;
         self.game = Some(Game {
             recorder: ReplayRecorder::new(seed, config.clone(), &players),

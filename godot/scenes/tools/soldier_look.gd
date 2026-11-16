@@ -10,6 +10,10 @@ extends RefCounted
 ##
 ## Colors come from res://assets/models/infantry/uniform_palettes.json, the same file
 ## Blender uses.
+##
+## Rank (prompt 050, `rank` of apply()): from the second rank on the uniform cloth and
+## canvas are sun-bleached and worn; veterans of factions in VETERAN_CAMO wear the
+## faction's camouflage garment (half of them, elite all of them, forest biome only).
 
 const PALETTE_PATH := "res://assets/models/infantry/uniform_palettes.json"
 const CLIPS_PATH := "res://assets/models/infantry/animations.json"
@@ -24,6 +28,19 @@ const SKIN_TONES: Array[float] = [1.0, 0.9, 1.08, 0.82]
 ## wear it, "camo" = every soldier, "none" = nobody. Only in the forest biome.
 const CAMO_MODES: Array[String] = ["auto", "camo", "none"]
 const PATTERNS := {"splinter": 1, "amoeba": 2, "frogskin": 3}
+## Rank index from which uniforms look worn, from which some (all) soldiers wear the
+## camouflage garment (prompt 050, ranks of data/experience.toml).
+const WORN_RANK := 1
+const VETERAN_RANK := 2
+const ELITE_RANK := 3
+## Factions whose veterans got hold of camouflage garments: German Heer soldiers
+## acquired Splittertarn smocks and helmet covers, Soviet scouts wore amoeba suits.
+## US frogskin was withdrawn in Europe after mid-1944, so US veterans only look worn.
+## [provisional]
+const VETERAN_CAMO := {"de": true, "su": true, "us": false}
+## Share the worn cloth moves towards WORN_TINT (sun, mud, washing).
+const WORN_MIX := 0.18
+const WORN_TINT := Color(0.72, 0.69, 0.6)
 
 static var _palette: Dictionary = {}
 static var _clips: Dictionary = {}
@@ -52,16 +69,20 @@ static func _load_json(path: String) -> Dictionary:
 
 ## Shared material for one slot of one faction/biome (and skin tone index, camouflage).
 static func slot_material(faction: String, biome: String, slot: String, tone := 0,
-		camo := false) -> Material:
+		camo := false, worn := false) -> Material:
 	camo = camo and biome == "forest"
-	var key := "%s/%s/%s/%d/%s" % [faction, biome, slot, tone, camo]
+	worn = worn and slot in ["Cloth", "Canvas"]
+	var key := "%s/%s/%s/%d/%s/%s" % [faction, biome, slot, tone, camo, worn]
 	if _materials.has(key):
 		return _materials[key]
 	var mat := ShaderMaterial.new()
 	mat.shader = SHADER
 	mat.resource_name = slot
 	mat.set_shader_parameter(&"slot", SLOTS.find(slot))
-	mat.set_shader_parameter(&"base_color", slot_color(faction, biome, slot, tone))
+	var base := slot_color(faction, biome, slot, tone)
+	if worn:
+		base = base.lerp(WORN_TINT, WORN_MIX)
+	mat.set_shader_parameter(&"base_color", base)
 	mat.set_shader_parameter(&"roughness", ROUGHNESS.get(slot, 0.9))
 	mat.set_shader_parameter(&"metallic", 0.6 if slot == "Metal" else 0.0)
 	mat.set_shader_parameter(&"camo", 0)
@@ -114,14 +135,17 @@ static func role_of(model: Node) -> String:
 
 
 ## Recolors a soldier for faction and biome; seed picks stature, face and skin tone.
-## camo_mode: see CAMO_MODES.
-static func apply(model: Node, faction: String, biome: String, seed := 0, camo_mode := "auto") -> void:
+## camo_mode: see CAMO_MODES. rank: the squad's rank (prompt 050, 0 = recruit).
+static func apply(model: Node, faction: String, biome: String, seed := 0, camo_mode := "auto",
+		rank := 0) -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed
 	var tone := rng.randi_range(0, SKIN_TONES.size() - 1)
 	var stature := rng.randf_range(-1.0, 1.0)
 	var face := rng.randi_range(0, 2)
-	var camo := wears_camo(faction, role_of(model), camo_mode)
+	var camo := wears_camo(faction, role_of(model), camo_mode) \
+			or (camo_mode == "auto" and veteran_camo(faction, rank, seed))
+	var worn := rank >= WORN_RANK
 	for mesh_instance: MeshInstance3D in model.find_children("*", "MeshInstance3D", true, false):
 		var mesh := mesh_instance.mesh
 		if mesh == null:
@@ -130,12 +154,22 @@ static func apply(model: Node, faction: String, biome: String, seed := 0, camo_m
 			var slot := _slot_name(mesh.surface_get_material(i))
 			if slot in SLOTS:
 				mesh_instance.set_surface_override_material(
-					i, slot_material(faction, biome, slot, tone, camo)
+					i, slot_material(faction, biome, slot, tone, camo, worn)
 				)
 		_set_blend_shape(mesh_instance, "Stocky", maxf(stature, 0.0))
 		_set_blend_shape(mesh_instance, "Slim", maxf(-stature, 0.0))
 		_set_blend_shape(mesh_instance, "FaceB", 1.0 if face == 1 else 0.0)
 		_set_blend_shape(mesh_instance, "FaceC", 1.0 if face == 2 else 0.0)
+
+
+## Whether a soldier of a squad of `rank` wears the camouflage garment he got hold of
+## (prompt 050): elite all, veterans every second one (by seed).
+static func veteran_camo(faction: String, rank: int, seed: int) -> bool:
+	if not VETERAN_CAMO.get(faction, false):
+		return false
+	if rank >= ELITE_RANK:
+		return true
+	return rank >= VETERAN_RANK and (seed / 7919) % 2 == 0
 
 
 static func _slot_name(material: Material) -> String:

@@ -22,6 +22,7 @@ const Settings := preload("res://scenes/menu/settings.gd")
 const TransportOrders := preload("res://scenes/selection/transport_orders.gd")
 const EngineerOrders := preload("res://scenes/selection/engineer_orders.gd")
 const FormationOrders := preload("res://scenes/selection/formation_orders.gd")
+const CrossingOrders := preload("res://scenes/selection/crossing_orders.gd")
 const REFRESH := 0.2
 ## id, label, action (key shown), kind: "mode" (targeted), "now", "stance".
 const BUTTONS: Array[Array] = [
@@ -60,6 +61,11 @@ const BUTTONS: Array[Array] = [
 	["work_camo_net", "Camo net", "", "work"],
 	["work_bunker", "Bunker", "", "work"],
 	["work_teeth", "Teeth", "", "work"],
+	# Bridge-laying tanks and camouflage (prompt 055): shown while such
+	# units are selected.
+	["bridge_lay", "Lay bridge", "", "layer"],
+	["bridge_pickup", "Take up", "", "layer_now"],
+	["camouflage", "Camouflage", "", "camo"],
 ]
 
 var main: Node3D
@@ -107,7 +113,8 @@ func setup(main_node: Node3D) -> void:
 		b.name = "Order_" + spec[0]
 		b.custom_minimum_size = Vector2(92, 34)
 		b.focus_mode = Control.FOCUS_NONE
-		b.toggle_mode = spec[3] == "mode" or spec[3] == "build" or spec[3] == "work"
+		b.toggle_mode = spec[3] == "mode" or spec[3] == "build" or spec[3] == "work" \
+				or spec[3] == "layer"
 		b.add_theme_font_size_override(&"font_size", 13)
 		b.pressed.connect(press.bind(spec[0]))
 		grid.add_child(b)
@@ -162,8 +169,12 @@ func press(id: String) -> void:
 		if spec[0] != id:
 			continue
 		match spec[3]:
-			"mode", "work":
+			"mode", "work", "layer":
 				selection.set_command_mode("" if selection.command_mode == id else id)
+			"layer_now":
+				CrossingOrders.pick_up(selection)
+			"camo":
+				CrossingOrders.toggle_camouflage(selection)
 			"stance":
 				selection.set_stance({"stance_stand": 0, "stance_kneel": 1, "stance_prone": 2, "stance_auto": -1}[id])
 			"build":
@@ -218,6 +229,8 @@ func _update() -> void:
 	# Vehicles with passengers, towing links (prompt 034).
 	var transport := TransportOrders.counts(selection)
 	var engineers := EngineerOrders.engineers(selection).size()
+	var layers := CrossingOrders.layers(selection).size()
+	var camo := CrossingOrders.camouflageable(selection)
 	for spec in BUTTONS:
 		var b: Button = buttons[spec[0]]
 		var key := Settings.action_key_name(spec[2]) if not (spec[2] as String).is_empty() else ""
@@ -241,6 +254,18 @@ func _update() -> void:
 			"work":
 				b.visible = engineers > 0
 				b.set_pressed_no_signal(selection.command_mode == spec[0])
+			"layer":
+				b.visible = layers > 0
+				b.set_pressed_no_signal(selection.command_mode == spec[0])
+			"layer_now":
+				b.visible = layers > 0
+			"camo":
+				b.visible = not camo.is_empty()
+				var on := 0
+				for id: int in camo:
+					if sim_host.camouflage_state(id) > 0:
+						on += 1
+				b.text = "Uncover" if on > 0 and on == camo.size() else "Camouflage"
 
 
 func _set_tooltips() -> void:
@@ -256,6 +281,9 @@ func _set_tooltips() -> void:
 	buttons["disembark"].tooltip_text = "Passengers of the selected vehicles get off once they stand. Right click a vehicle with squads selected to mount."
 	buttons["unlimber"].tooltip_text = "Selected vehicles drop their towed guns. Right click an own gun with vehicles selected to hitch it."
 	buttons["build"].tooltip_text = "Opens the build menu."
+	buttons["bridge_lay"].tooltip_text = "Bridge-laying tanks: then left click a narrow river or ditch. The tank lays its bridge across the nearest gap its bridge spans."
+	buttons["bridge_pickup"].tooltip_text = "Bridge-laying tanks take their laid bridge up again once nobody is on it."
+	buttons["camouflage"].tooltip_text = "Vehicles and guns put up branches and nets (takes a while, standing). Standing still they are seen only from close by; driving or firing gives them away."
 	for spec in BUTTONS:
 		if spec[3] == "work":
 			var kind := EngineerOrders.kind_of(spec[0])

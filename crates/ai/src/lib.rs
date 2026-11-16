@@ -13,6 +13,7 @@
 
 mod air;
 mod artillery;
+mod bridgelayer;
 mod economy;
 mod engineers;
 pub mod game;
@@ -61,6 +62,7 @@ impl Difficulty {
                 focus: Focus::None,
                 regroup: false,
                 retreat_hp_pct: 0,
+                veteran_retreat_hp_pct: 0,
                 patience_ticks: 0,
                 attack_move: false,
             },
@@ -69,6 +71,7 @@ impl Difficulty {
                 focus: Focus::Nearest,
                 regroup: false,
                 retreat_hp_pct: 0,
+                veteran_retreat_hp_pct: 0,
                 patience_ticks: 1600,
                 attack_move: false,
             },
@@ -77,6 +80,7 @@ impl Difficulty {
                 focus: Focus::Nearest,
                 regroup: true,
                 retreat_hp_pct: 0,
+                veteran_retreat_hp_pct: 40,
                 patience_ticks: 800,
                 attack_move: true,
             },
@@ -85,6 +89,7 @@ impl Difficulty {
                 focus: Focus::Weakest,
                 regroup: true,
                 retreat_hp_pct: 30,
+                veteran_retreat_hp_pct: 50,
                 patience_ticks: 800,
                 attack_move: true,
             },
@@ -132,6 +137,10 @@ struct Params {
     /// Units below this share of their hit points pull back behind the
     /// group while enemies are near (0 = never).
     retreat_hp_pct: u32,
+    /// Veterans and better (prompt 050) pull back already below this share
+    /// of their hit points (0 = like everybody else): experienced crews
+    /// and squads are worth more than their hit points.
+    veteran_retreat_hp_pct: u32,
     /// Ticks without damage to the enemy after which a fighting group
     /// moves round to the enemy's flank (wrecks and comrades in the line of
     /// fire, a crest in between).
@@ -256,6 +265,20 @@ struct GroupState {
 const ARRIVED_M: i32 = 40;
 /// A move order is repeated only if its target moved more than this (m).
 const RETARGET_M: i32 = 40;
+/// Rank index from which a unit counts as a veteran (prompt 050:
+/// `data/experience.toml` ranks recruit, experienced, veteran, elite).
+const VETERAN_RANK: u8 = 2;
+
+/// Share of its hit points (percent) below which a unit of `rank` pulls
+/// back: veterans earlier than recruits (prompt 050).
+fn retreat_pct(base_pct: u32, veteran_pct: u32, rank: u8) -> u32 {
+    if rank >= VETERAN_RANK {
+        base_pct.max(veteran_pct)
+    } else {
+        base_pct
+    }
+}
+
 /// Damaged units pull back this far behind the group (m).
 const RETREAT_M: i32 = 80;
 /// Orders are repeated after this many ticks: units drop attack orders on
@@ -317,6 +340,12 @@ pub struct Ai {
     supply: supply::SupplyState,
     /// Low ammunition and fuel in percent (`data/logistics.toml`).
     low_stock: (u8, u8),
+    /// The river crossing and the bridge-laying tank (prompt 055).
+    #[serde(default)]
+    layers: bridgelayer::LayerPlan,
+    /// Per unit type: a bridge-laying tank.
+    #[serde(default)]
+    is_layer: Vec<bool>,
 }
 
 impl Ai {
@@ -499,6 +528,16 @@ impl Ai {
             air: air::AirState::default(),
             transport: transport::TransportState::default(),
             engineers: engineers::EngineerState::new(map, home, enemy_home),
+            layers: bridgelayer::LayerPlan::new(map, home, enemy_home),
+            is_layer: config
+                .unit_types
+                .iter()
+                .map(|t| {
+                    sim::economy::builtin_catalog()
+                        .and_then(|c| c.get(&t.name))
+                        .is_some_and(|e| e.category == sim::catalog::Category::Bridgelayer)
+                })
+                .collect(),
             tow_min_hp_per_tonne: transport_rules
                 .as_ref()
                 .map_or(8, |r| r.towing.min_hp_per_tonne),
@@ -567,6 +606,7 @@ impl Ai {
         self.command_transport(view, &mut out);
         self.command_supply(view, &mut out);
         self.command_engineers(view, &mut out);
+        self.command_layers(view, &mut out);
         let mut roles: Vec<Role> = Vec::new();
         for u in view.own.iter().filter(|u| u.alive()) {
             let role = self.type_info(u.unit_type).role;
@@ -716,17 +756,24 @@ impl Ai {
         });
         let stale = view.tick >= state.issued + REISSUE_TICKS;
 
-        // Damaged units pull back once (Hard).
+        // Damaged units pull back once (Hard), veterans also on Normal and
+        // earlier (prompt 050).
         let mut fighting: Vec<OwnUnit> = units.to_vec();
         if enemies.is_empty() {
             // Out of the fight: the damaged follow the group again.
             self.retreated.clear();
         }
-        if self.params.retreat_hp_pct > 0
+        let (base_pct, veteran_pct) = (
+            self.params.retreat_hp_pct,
+            self.params.veteran_retreat_hp_pct,
+        );
+        if (base_pct > 0 || veteran_pct > 0)
             && let Some(enemy_center) = centroid(enemies.iter().map(|e| e.position))
         {
-            let threshold = u64::from(self.params.retreat_hp_pct);
-            let damaged = |u: &OwnUnit| u64::from(u.hp) * 100 < u64::from(u.max_hp) * threshold;
+            let damaged = |u: &OwnUnit| {
+                let threshold = u64::from(retreat_pct(base_pct, veteran_pct, u.rank));
+                u64::from(u.hp) * 100 < u64::from(u.max_hp) * threshold
+            };
             let healthy = units.iter().filter(|u| !damaged(u)).count();
             for u in units.iter().filter(|u| damaged(u)) {
                 if healthy == 0 || self.retreated.contains(&u.id) {

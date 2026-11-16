@@ -749,6 +749,8 @@ impl Sim {
         if moving {
             spread = spread * Fixed::from_num(rules.dispersion.moving_pct) / 100;
         }
+        // Experienced crews shoot more accurately (prompt 050).
+        spread = spread * Fixed::from_num(self.experience.dispersion_pct(unit.veterancy)) / 100;
         let (count, speed, gravity, range) = (
             weapon.weapon.count,
             weapon.speed,
@@ -787,7 +789,11 @@ impl Sim {
                 caliber_mm_x10: caliber,
             });
         }
-        self.units[i].combat.reload[w] = self.types[shooter_type as usize].weapons[w].reload_ticks;
+        let reload = self.experience.reload_ticks(
+            self.units[i].veterancy,
+            self.types[shooter_type as usize].weapons[w].reload_ticks,
+        );
+        self.units[i].combat.reload[w] = reload;
     }
 
     /// Where shooters aim at unit `t`: the middle of its hull, or a living
@@ -853,6 +859,7 @@ impl Sim {
         }
         spread = spread * Fixed::from_num(stance.dispersion_pct) / 100;
         spread = spread * Fixed::from_num(self.tactics.dispersion_pct(squad, blind)) / 100;
+        spread = spread * Fixed::from_num(self.experience.dispersion_pct(unit.veterancy)) / 100;
         let (speed, gravity, range) = (
             weapon.speed,
             ty.gravity,
@@ -930,7 +937,10 @@ impl Sim {
                 self.tactics.jam(squad, index);
             }
         }
-        let reload = self.types[shooter_type as usize].weapons[w].reload_ticks;
+        let reload = self.experience.reload_ticks(
+            self.units[i].veterancy,
+            self.types[shooter_type as usize].weapons[w].reload_ticks,
+        );
         let unit = &mut self.units[i];
         if let Some(squad) = &mut unit.squad {
             squad.turn = squad.turn.wrapping_add(count);

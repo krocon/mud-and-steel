@@ -43,6 +43,7 @@ TOLERANCE = 0.02
 NAMES = {
     r"Hull": [r"<root>"],
     r"Carriage": [r"<root>"],
+    r"Bridge": [r"Hull"],  # carried bridge of a bridge-laying tank (prompt 055)
     r"Turret": [r"Hull"],
     r"Cupola": [r"Turret", r"Hull"],
     r"Mount": [r"Carriage"],

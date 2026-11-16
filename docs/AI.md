@@ -243,6 +243,16 @@ repairers (`PlayerView::sources`).
 
 Test: `ai_sends_empty_units_to_resupply` (`crates/ai/tests/ai.rs`).
 
+## Experience (prompt 050)
+
+`OwnUnit::rank` carries the rank of every own unit. Normal and Hard pull a
+damaged unit of rank veteran or better (index 2 of `data/experience.toml`)
+back out of the fight earlier than others (Normal below 40 %, Hard below
+50 % of its hit points; for squads the hit points are the living
+soldiers), once per fight, while healthier units of the group stay;
+recruits are pulled back as before (Hard below 30 %, Normal never). Test:
+`normal_pulls_back_hurt_veterans` (`crates/ai/tests/ai.rs`). [provisional]
+
 ## Engineers (prompt 035)
 
 `crates/ai/src/engineers.rs`, Normal and Hard only. Engineer squads have
@@ -267,6 +277,20 @@ camouflage net, one step whenever no site is under way and it can pay six
 pieces; at most two positions per match. Test:
 `ai_digs_a_position_after_its_mines`. [provisional]
 
+## Bridge-laying tanks (prompt 055)
+
+`crates/ai/src/bridgelayer.rs`, Normal and Hard only. When the AI starts it
+looks for deep water on the line from its home to the enemy (public map):
+the first river there and points along it (every 40 m, up to 200 m to both
+sides). While no bridge of the map stands within 150 m of the crossing
+(`PlayerView::bridges_intact`), it builds one bridge-laying tank of its
+faction in the vehicle works (at most two per match; the US has none) and
+sends it `LayBridge` at these points in turn until one leads to a laid
+bridge (`PlayerView::layers`). The army uses the bridge through the path
+search. The tank has no weapon (role `Unarmed`) and stays out of the attack
+waves. The AI does not call paratroopers. Test:
+`crates/ai/tests/bridgelayer.rs`. [provisional]
+
 ## Difficulties
 
 | | Passive | Easy | Normal | Hard |
@@ -276,6 +300,7 @@ pieces; at most two positions per match. Test:
 | Common target | – | nearest | nearest | weakest in range |
 | Gathers stragglers | – | no | yes | yes |
 | Pulls back damaged units | – | no | no | below 30 % |
+| Pulls back veterans (prompt 050) | – | no | below 40 % | below 50 % |
 | Patience before flanking | – | 1600 ticks | 800 ticks | 800 ticks |
 | Artillery (prompt 032) | – | with the group | with the group | own role: barrages, smoke |
 

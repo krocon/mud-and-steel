@@ -145,3 +145,35 @@ def aircraft(model, bp, u, tune):
     lo, _ = model.extent()
     model.translate((0.0, -cg, -lo.z))
     return ctx
+
+
+@assembly("bridgelayer")
+def bridgelayer(model, bp, u, tune):
+    """Turretless tracked bridge-laying tank (prompt 055).
+
+    Blueprint sections, in build order: `[layout]`, `[running_gear]`,
+    `[hull]`, `[[part]]`. The carried bridge is built from parts with
+    `parent = "Bridge"`: its own object below `Hull`, so the game can fold
+    it out while the tank lays it and hide it while it lies across a gap.
+
+    `[layout]`: `fender_overhang` (the catalog width is the bridge's, the
+    tracks lie this far inside), `hull_length` (only if the catalog has no
+    `length_hull_mm`).
+    """
+    ctx, layout = _base_ctx(bp, u, tune)
+    if "length_hull_mm" in u:
+        ctx["hull_length"] = mm(u, "length_hull_mm")
+    else:
+        ctx["hull_length"] = layout["hull_length"]
+    ctx["track_outer_x"] = ctx["half_width"] - layout.get("fender_overhang", 0.0)
+    model.mb("Hull")
+    name, t = _table(bp["running_gear"], "[running_gear]")
+    build_part(name, model, t, ctx, where="[running_gear]")
+    name, t = _table(bp["hull"], "[hull]")
+    hull = dict(t)
+    # The hull is as wide as the tracks, not as the bridge.
+    hull.setdefault("upper_half_width", ctx["track_outer_x"])
+    build_part(name, model, hull, ctx, where="[hull]")
+    model.mb("Bridge", parent="Hull")
+    _run_list(model, bp, "part", ctx)
+    return ctx

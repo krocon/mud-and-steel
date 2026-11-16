@@ -62,6 +62,10 @@ static func _parts(model: Node) -> Array[MeshInstance3D]:
 	var stack: Array[Node] = [model]
 	while not stack.is_empty():
 		var n: Node = stack.pop_back()
+		# The carried bridge of a bridge-laying tank moves while it is laid
+		# and hides while it lies across a gap (prompt 055): not merged.
+		if n.name == &"Bridge":
+			continue
 		stack.append_array(n.get_children())
 		var mesh := n as MeshInstance3D
 		if mesh != null and mesh.mesh != null \

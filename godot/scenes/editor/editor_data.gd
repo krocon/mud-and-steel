@@ -18,6 +18,8 @@ const TOOLS: Dictionary[String, String] = {
 	"start4": "Start player 5", "start5": "Start player 6",
 	# Prompt 052: neutral trench strongpoints (map markers).
 	"strongpoint": "Strongpoint",
+	# Prompt 059: compounds (house, walled yard, props) and the village brush.
+	"compound": "Place compound", "village": "Village (desert)",
 }
 ## A strongpoint click within this distance (m) of one removes it.
 const STRONGPOINT_PICK_M := 20.0
@@ -43,6 +45,8 @@ const OBJECT_GROUPS: Array = [
 	["Trees and plants", ["env_tree", "env_bush", "env_log", "env_grass"]],
 	["Village buildings", ["env_house_farm", "env_house_stone", "env_house_mud", "env_house_log", "env_barn", "env_church"]],
 	["Town buildings", ["env_house_town", "env_town_hall", "env_warehouse"]],
+	["Desert village", ["env_house_desert", "env_mosque", "env_police_post", "env_wall_mud",
+		"env_awning", "env_jars", "env_well_desert", "env_cart_wood", "env_market_stall"]],
 	["Supply dumps", ["env_dump"]],
 	["Fences, walls, hedges", ["env_fence", "env_wall", "env_hedge"]],
 	["Bridges", ["env_bridge"]],

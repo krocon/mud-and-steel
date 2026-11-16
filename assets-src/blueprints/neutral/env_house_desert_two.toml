@@ -1,0 +1,43 @@
+# Two rooms in a row, two doors to the courtyard.
+# Generator: desert_house (tools/blender/kit/desert.py); plan in m from the -X/-Y corner, +X = door side.
+unit = "env_house_desert_two"
+assembly = "env"
+
+[[variant]]
+name = "Intact"
+part = "desert_house"
+role = "intact"
+seed = 12
+plaster = 0
+coping = 2
+blocks = [[0, 0, 4.5, 4, 3.3], [0, 4, 4.5, 8, 3.12]]
+doors = [[0, "+x", 2.0, 0.9], [1, "+x", 5.4, 0.85]]
+windows = [[0, "+x", 3.25], [1, "+x", 6.9], [0, "-x", 2.0], [1, "+y", 2.2]]
+
+[[variant]]
+name = "Damaged"
+part = "desert_house"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 12
+plaster = 0
+coping = 2
+blocks = [[0, 0, 4.5, 4, 3.3], [0, 4, 4.5, 8, 3.12]]
+doors = [[0, "+x", 2.0, 0.9], [1, "+x", 5.4, 0.85]]
+windows = [[0, "+x", 3.25], [1, "+x", 6.9], [0, "-x", 2.0], [1, "+y", 2.2]]
+
+[[variant]]
+name = "Ruin"
+part = "desert_house"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 12
+plaster = 0
+coping = 2
+blocks = [[0, 0, 4.5, 4, 3.3], [0, 4, 4.5, 8, 3.12]]
+doors = [[0, "+x", 2.0, 0.9], [1, "+x", 5.4, 0.85]]
+windows = [[0, "+x", 3.25], [1, "+x", 6.9], [0, "-x", 2.0], [1, "+y", 2.2]]

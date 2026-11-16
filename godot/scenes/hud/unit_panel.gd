@@ -5,13 +5,15 @@ extends PanelContainer
 ##   (hull and turret front / side / rear), weapons with caliber and range,
 ##   soldiers of a squad, stance and fire mode; passengers and seats, the
 ##   towed gun or the tractor (prompt 034); ammunition and fuel bars with a
-##   warning when they run low or the vehicle is immobilized (prompt 036).
+##   warning when they run low or the vehicle is immobilized (prompt 036);
+##   rank insignia, rank name, kills and an experience bar (prompt 050).
 ## - Several units: a grid of tiles with a short name, a health bar and an
 ##   ammunition bar (red when low);
 ##   click selects that unit alone, Shift + click removes it.
 ## - Hidden without a selection.
 
 const UnitPortrait := preload("res://scenes/hud/unit_portrait.gd")
+const RankBadge := preload("res://scenes/hud/rank_badge.gd")
 const UNIT_SCENE: PackedScene = preload("res://scenes/unit.tscn")
 const REFRESH := 0.2
 ## Tiles shown at most; the rest is counted.
@@ -25,6 +27,9 @@ var sim_host: SimHost
 var usec := 0
 ## Unit ids of the tiles (self-test).
 var tile_ids: Array[int] = []
+## Rank line of the single unit, e.g. "Veteran, 3 kills" (prompt 050;
+## self-test).
+var rank_line := ""
 
 var _portraits: UnitPortrait
 var _single: HBoxContainer
@@ -36,6 +41,8 @@ var _fuel_bar: ProgressBar
 ## Warning line of the single unit (prompt 036; self-test).
 var supply_warning := ""
 var _details: Label
+var _badge: RankBadge
+var _xp_bar: ProgressBar
 var _grid: GridContainer
 var _more: Label
 var _shown: Array[int] = []
@@ -71,8 +78,15 @@ func setup(main_node: Node3D) -> void:
 	var text := VBoxContainer.new()
 	text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_single.add_child(text)
+	# Rank insignia before the name, in the same row (prompt 050).
+	var title_row := HBoxContainer.new()
+	text.add_child(title_row)
+	_badge = RankBadge.new()
+	_badge.name = "RankBadge"
+	_badge.custom_minimum_size = Vector2(18, 20)
+	title_row.add_child(_badge)
 	_title = Label.new()
-	text.add_child(_title)
+	title_row.add_child(_title)
 	# Health, ammunition and fuel in one row, so the panel keeps its
 	# height (prompt 036).
 	var bars := HBoxContainer.new()
@@ -86,6 +100,9 @@ func setup(main_node: Node3D) -> void:
 	bars.add_child(_ammo_bar)
 	_fuel_bar = _stock_bar(Color(0.45, 0.7, 1.0), "Fuel")
 	bars.add_child(_fuel_bar)
+	_xp_bar = _stock_bar(Color(0.75, 0.68, 0.5), "Experience")
+	_xp_bar.custom_minimum_size = Vector2(56, 14)
+	bars.add_child(_xp_bar)
 	_details = Label.new()
 	_details.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_details.add_theme_font_size_override(&"font_size", 13)
@@ -142,6 +159,7 @@ func _show_single(id: int) -> void:
 			ring.visible = false
 		return unit)
 	_title.text = info.name
+	_show_rank(id, type_id)
 	_health.max_value = maxi(int(info.max_hp), 1)
 	_health.value = int(info.hp)
 	var lines: Array[String] = []
@@ -194,6 +212,38 @@ func _show_single(id: int) -> void:
 			state.append(transport)
 		lines.append(", ".join(state))
 	_details.text = "\n".join(lines)
+
+
+## Rank insignia, name and kills after the unit's name, the experience
+## bar towards the next rank (prompt 050).
+func _show_rank(id: int, type_id: String) -> void:
+	var xp := sim_host.unit_experience(id)
+	rank_line = ""
+	_badge.visible = not xp.is_empty()
+	_xp_bar.visible = not xp.is_empty()
+	if xp.is_empty():
+		return
+	var rank: int = xp.rank
+	_badge.faction = type_id.get_slice("_", 0)
+	_badge.rank = rank
+	rank_line = str(xp.rank_name)
+	var kills: int = xp.kills
+	if kills > 0:
+		rank_line += ", %d kill%s" % [kills, "" if kills == 1 else "s"]
+	_title.text += "   ·   " + rank_line
+	var next: int = xp.next_xp
+	var start: int = xp.rank_xp
+	if next < 0:
+		_xp_bar.value = 100
+		_xp_bar.tooltip_text = "%s: %d experience, highest rank" % [xp.rank_name, xp.xp]
+	else:
+		_xp_bar.value = clampi(100 * (int(xp.xp) - start) / maxi(next - start, 1), 0, 100)
+		_xp_bar.tooltip_text = "%s: %d / %d experience to the next rank" % [xp.rank_name, xp.xp, next]
+	if rank > 0:
+		_badge.tooltip_text = "%s: dispersion %d %%, reload %d %%, pinned down %d %% of a recruit's" \
+				% [xp.rank_name, xp.dispersion_pct, xp.reload_pct, xp.suppression_pct]
+	else:
+		_badge.tooltip_text = "%s: no bonus yet" % xp.rank_name
 
 
 ## Passengers, towing and loading state of unit `id` (prompt 034).
@@ -272,6 +322,7 @@ func _build_tiles(selected: Array[int]) -> void:
 		tile.custom_minimum_size = TILE_SIZE
 		tile.unit = id
 		tile.label = _short_name(types[index] if index >= 0 else "")
+		tile.faction = (types[index] if index >= 0 else "").get_slice("_", 0)
 		tile.pressed_with.connect(_on_tile)
 		_grid.add_child(tile)
 		tile_ids.append(id)
@@ -285,13 +336,16 @@ func _update_tiles() -> void:
 	var ammo := sim_host.unit_ammo()
 	var low := sim_host.supply_low_pct()
 	var low_ammo: int = low[0] if low.size() == 2 else 0
+	var ranks := sim_host.unit_ranks()
 	for tile: Tile in _grid.get_children():
 		var index := ids.find(tile.unit)
 		var value := health[index] if index >= 0 else 0.0
 		var stock: int = ammo[index] if index >= 0 else -1
-		if not is_equal_approx(value, tile.health) or stock != tile.ammo:
+		var rank: int = ranks[index] if index >= 0 and index < ranks.size() else 0
+		if not is_equal_approx(value, tile.health) or stock != tile.ammo or rank != tile.rank:
 			tile.health = value
 			tile.ammo = stock
+			tile.rank = rank
 			tile.low_ammo = low_ammo
 			tile.queue_redraw()
 
@@ -327,6 +381,9 @@ class Tile:
 	## Ammunition in percent, -1 without a stock (prompt 036).
 	var ammo := -1
 	var low_ammo := 0
+	## Rank insignia in the corner (prompt 050).
+	var rank := 0
+	var faction := "de"
 
 	func _ready() -> void:
 		mouse_filter = Control.MOUSE_FILTER_STOP
@@ -342,7 +399,10 @@ class Tile:
 		var rect := Rect2(Vector2.ZERO, size)
 		draw_rect(rect, Color(0.12, 0.13, 0.11, 0.9))
 		draw_rect(rect, Color(0.5, 0.55, 0.45, 0.8), false, 1.0)
-		draw_string(ThemeDB.fallback_font, Vector2(4, 17), label, HORIZONTAL_ALIGNMENT_LEFT, size.x - 8, 12)
+		var room := size.x - (20 if rank > 0 else 8)
+		draw_string(ThemeDB.fallback_font, Vector2(4, 17), label, HORIZONTAL_ALIGNMENT_LEFT, room, 12)
+		if rank > 0:
+			RankBadge.draw_badge(self, Rect2(size.x - 13, 3, 10, 12), faction, rank)
 		var bar := Rect2(4, size.y - 10, size.x - 8, 5)
 		draw_rect(bar, Color(0, 0, 0, 0.7))
 		var color := Color(0.3, 0.9, 0.3) if health > 0.5 else (Color(0.95, 0.75, 0.2) if health > 0.25 else Color(0.95, 0.3, 0.2))

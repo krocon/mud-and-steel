@@ -1,0 +1,14 @@
+# Market stall: counter under a cloth roof (prompt 059); bare and torn variant.
+unit = "env_market_stall"
+assembly = "env"
+
+[[variant]]
+name = "Stall"
+part = "market_stall"
+seed = 1
+
+[[variant]]
+name = "Empty"
+part = "market_stall"
+empty = true
+seed = 2
