@@ -47,6 +47,7 @@ mod vision_funcs;
 mod water;
 mod water_funcs;
 mod weather_funcs;
+mod works_funcs;
 
 pub use lan::LanLobby;
 pub use replay_funcs::ReplayPlayer;

@@ -1644,6 +1644,162 @@ the numbers in `data/logistics.toml` (`sim::LogisticsRules`, loaded by
   shows the bars and warnings, `hud/supply_rings.gd` the radii of selected
   sources, `world/base_hud.gd` the Repair and Sell buttons.
 
+## Field works
+
+Prompt 035. Engineer squads (catalog category `inf_engineer`) lay
+minefields, barbed wire and anti-tank obstacles, dig foxholes and trenches,
+clear mines and obstacles, and demolish or repair bridges. Rules:
+`data/works.toml` (`sim::WorksRules`, loaded by `Sim::new` like the
+transport rules, in the state hash, not part of `SimConfig`). Code:
+`crates/sim/src/works.rs` (rules, public kinds and views) and
+`crates/sim/src/sim/works.rs` (orders, sites, jobs, mines, obstacles,
+digging, bridges). Decisions and provisional values:
+`prompts/done/035-pioniere-minen-stellungen.md`. Prompt 052 extends this
+(lines of obstacles, vehicle pits, camouflage nets, trench strongpoints):
+new kinds are appended to `WorkKind`, new pieces go through the same sites
+and jobs.
+
+### Orders, sites and jobs
+
+| Command | Effect |
+|---|---|
+| `Lay { units, kind, from, to }` | AT or AP mine sections, wire or hedgehogs along the line (a point if `from == to`) |
+| `Dig { units, kind, from, to }` | A foxhole at `from` or a trench along the line |
+| `Clear { units, target }` | Clear the known mines, wire and hedgehogs within `clear_radius_mm` |
+| `DemolishBridge { units, bridge }` / `RepairBridge { units, bridge }` | Blow up an intact bridge (index into `Map::bridges`) / rebuild a destroyed one |
+
+Only engineer squads among `units` take these orders. A line is cut into
+**pieces** (`piece_mm`: wire and trench 4 m, a hedgehog every 3 m; mines in
+sections whose size and count come from the catalog entry
+`<faction>_minefield_at|ap`, 20 m × 20 m with 20 AT or 40–50 AP mines; a
+point order faces the engineers' side). Every piece is a **site** paid for
+when it is placed (`cost`, the account of prompt 023; pieces the player
+cannot pay are dropped, at most `max_sites` open sites per player) and
+built in `build_s` game seconds by one squad; every squad within `reach_mm`
+adds one tick of work per tick. All squads of an order work the sites in
+order, starting at the end nearest to them. A site nobody works on or walks
+to for `abandon_s` is given up (refunded if no work was done).
+
+Each engineer has at most one **job** (`Works::jobs`, by unit id): build a
+list of sites, clear around a point, or work on a bridge. Move, attack,
+stop, garrison, patrol, waypoint and embark orders end it. Squads walk to
+their work with ordinary path requests (a few retries if no path is found).
+
+### Mines
+
+Mines are not units: `Works::mines` (by id) with kind, owner (`None`:
+placed with the map) and a bit mask of the players who found one, plus a
+bucket index (16 m) for the trigger checks. Every tick (after the unit grid
+is rebuilt behind the movement):
+
+- a **vehicle** whose hull (the blast body of prompt 032) covers a mine and
+  whose catalog mass reaches the trigger (`at_trigger_kg` 150,
+  `ap_trigger_kg` 5) sets it off; a **soldier** (counted as `soldier_kg`
+  100) within `ap_reach_mm` of an AP mine sets it off. Mines never go off
+  under units of their owner's team (prompt 037).
+- **Anti-tank:** vehicles with armor up to `open_armor_mm`
+  (`data/indirect.toml`) are destroyed; others lose `at_damage_pct` of
+  their hit points and their track: speed 0 (no move orders; turret and
+  weapons work) until the crew fitted it after `track_repair_s`; a crater
+  of `at_crater_caliber_mm_x10`. **Anti-personnel:** the soldier falls,
+  then the blast of `ap_caliber_mm_x10` (fragments, a vehicle above it, the
+  crater) through `Sim::detonate`. Combat events name
+  `sim::works::MINE_SHOOTER` as the shooter.
+- An explosion shows the victim's player the mines within `reveal_mm`;
+  engineer squads find hostile mines within `detect_mm` (every 10 ticks) and
+  the whole clear radius when they start clearing. Knowledge counts for the
+  whole team.
+
+**Visibility:** mines never appear in a `Snapshot`. `Sim::mines_for(player)`
+returns the mines the player's team knows (own, allied, found); `PlayerView`
+(prompt 024) gets exactly these, so the enemy's view never contains hidden
+mines. `Sim::all_mines` is for tests and tools.
+
+**Avoiding known minefields per player:** the path grid stays shared. Every
+search gets a sorted list of cells to avoid when it starts
+(`Pathfinder::run_avoiding`, kept in the resumable search): the cells of
+the hostile mines the requesting unit's team knows and their neighbors (a
+hull reaches over the edge of the cell its center drives through). A* pays
+`AVOID_FACTOR` (10) times the step cost there, and the smoothing compares
+shortcuts with the same weights, so routes go round known fields but a unit
+inside one still finds its way out. When a team learns of mines, units
+whose route touches them plan again. Formation offsets of a group are not
+checked against the list (members may brush the edge of a field).
+
+### Obstacles and digging
+
+- **Wire** blocks small units, **hedgehogs** large ones: two path flags
+  (`BLOCKED_WORK_SMALL`, `BLOCKED_WORK_LARGE`, the last free bits of the
+  cell flags) set by `PathGrid::mark_works_in` from every finished
+  obstacle overlapping the changed cells; components and routes are updated
+  like for destroyed objects. Moving vehicles of at least `crush.wire_kg`
+  flatten the wire piece they drive over.
+- **Foxholes and trenches** lower the height field through the crater
+  machinery of prompt 021 (`Sim::deform`, `CraterPlan`): `steps` steps of
+  `depth_mm` with a parapet of `parapet_mm` on the neighboring samples; the
+  dug samples turn to mud. Path cells, vision cells, unit heights, the
+  `MapDelta` of saved games and the terrain in Godot (crater events with
+  caliber 0, no sound) follow. On the 2 m raster a sample may lie only
+  600 mm below its neighbors before the cell is too steep for infantry, so
+  holes are 0.5 m deep [provisional]; prompt 052 cuts real trenches. Dug
+  samples (`Works::dug`) give a standing squad cover like a crater, with the
+  stance values of `[dig]` (60/75/85 %) instead of the crater's.
+- **Bridges:** engineers work at the nearer end of the deck; demolishing
+  calls `Sim::set_bridge_intact(false)` and detonates a charge of
+  `demolish_caliber_mm_x10` on the deck, repairing restores the deck. The
+  price is paid when the work is done (the job waits for the money).
+
+### Map editor minefields
+
+Objects `fort_mine_at` / `fort_mine_ap` (variant `Mine`, `data/objects.toml`)
+are placed like other objects in the editor (group "Fortifications"). When
+a match starts, each becomes a hidden section of **neutral** mines
+(`map_at_count` / `map_ap_count`, `section_mm`, the object's heading), laid
+out from a hash of the object (not the match's random numbers). Matches do
+not draw these objects (`map_objects.show_minefields`). `twin_meadow` has
+an AT and an AP section in the middle (the LAN self-test drives into them).
+
+### State, snapshot, bridge and Godot
+
+Sites, mines, jobs, thrown tracks, dug samples and pending dig steps are in
+the state hash (last) and, as fields of `Sim`, in saved games
+(`crates/net/tests/snapshot_works.rs`). Views: `Sim::mines_for`,
+`works_for` (finished works of everybody like map objects, sites of the own
+team), `tracks_off`, `is_engineer_type`, `engineer_job`, `place_minefield`
+(tools, debug). `SimHost.order_works`, `clear_works`, `order_bridge_work`,
+`is_engineer`, `engineer_job`, `known_mines`, `field_works`, `tracks_off`,
+`bridges_intact`, `bridge_objects`, `work_cost`, `debug_minefield`
+(offline only) in `crates/bridge/src/works_funcs.rs`.
+`world/works_view.gd` marks the known mines (own and allied yellow, found
+hostile ones red), draws finished wire and hedgehogs with the models of
+prompt 007, own sites as translucent outlines with dust while engineers
+dig, a thrown track beside immobilized vehicles, and hides demolished
+bridges in the map objects. `selection/engineer_orders.gd` and eight
+command bar buttons (shown while engineers are selected) give the orders.
+Tests: `crates/sim/tests/works.rs`, `tools/works_self_test.gd` (a debug
+minefield in front of an own tank), the editor self-test (a minefield
+placed, hidden mines in the match), the LAN self-test (tanks drive into
+the minefields of `twin_meadow` without a desync).
+
+### Decisions
+
+See the table in `prompts/done/035-pioniere-minen-stellungen.md`: own
+simulation layer instead of runtime map objects, pieces per line, avoid
+lists instead of a per-player grid, mines never under the own team, digging
+through the height field, editor minefields neutral.
+
+### Open
+
+- Provisional values in `data/works.toml` (costs, times, damage, trigger
+  masses, cover, depth, avoid factor).
+- Trenches are shallow (2 m raster) and look like ditches; prompt 052 makes
+  real trenches, lines of obstacles, vehicle pits and camouflage nets.
+- Mines cannot be destroyed by artillery; engineers clear without risk;
+  no lanes through own fields; wire sites have no model (an outline); the
+  editor shows a minefield as a single mine model.
+- Thrown tracks are repaired by the crew only (prompt 036 adds repairs);
+  not checked in a rendered frame (headless tests only).
+
 ## Victory conditions and game flow
 
 Prompt 027. `crates/sim/src/outcome.rs` decides the match; Godot only shows it.

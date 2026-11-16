@@ -21,7 +21,15 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by prompt 036 (supply and repair): the rules of
+/// Last changed by the merge of prompt 035 (engineers, mines, obstacles,
+/// positions) with 036 (supply and repair). Prompt 035: the rules of
+/// `data/works.toml` and the (empty) field works, mines, engineer jobs,
+/// thrown tracks and dug samples are in the hash, and the economy rules
+/// (also hashed) list engineer squads for production; prompt 035 alone:
+/// `0xfe4f_ccdf_7c02_97e0`. The demo has no engineers and no mines: its
+/// battle is unchanged (decided at tick 467, player 0 wins).
+/// Before: prompt 036 alone (`0x1971_0235_5cc0_0b3e`).
+/// Prompt 036 (supply and repair): the rules of
 /// `data/logistics.toml`, every unit's ammunition and fuel stock, building
 /// repair orders and sold buildings are in the hash; units use up
 /// ammunition and fuel. The demo battle is unchanged (decided at tick 467,
@@ -131,7 +139,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x1971_0235_5cc0_0b3e;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x738f_0759_efe2_a7bd;
 
 #[test]
 fn golden_hash() {

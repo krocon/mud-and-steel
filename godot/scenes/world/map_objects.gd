@@ -128,6 +128,10 @@ var _group_nodes: Dictionary[String, Array] = {}
 var _group_buffers: Dictionary[String, PackedFloat32Array] = {}
 ## Objects whose MultiMesh instance is collapsed (prompt 020).
 var hidden: Dictionary[int, bool] = {}
+## Draw the hidden minefields of the map editor (`fort_mine_*`, prompt
+## 035). Matches leave them out: the simulation turns them into hidden
+## mines; the editor sets this.
+var show_minefields := false
 ## Kind index -> "<catalog id>:<variant>".
 var _kinds: PackedStringArray = []
 
@@ -155,6 +159,8 @@ func build(host: Object, view: Camera3D) -> void:
 	for group: Dictionary in host.object_groups(CHUNK_M):
 		var kind: int = group.kind
 		var id := kinds[kind].get_slice(":", 0)
+		if id.begins_with("fort_mine_") and not show_minefields:
+			continue
 		var buffer: PackedFloat32Array = group.buffer
 		var count := buffer.size() / 12
 		object_instances += count

@@ -105,6 +105,11 @@ const fn replaces_drill(command: &Command) -> bool {
             | Command::Tow { .. }
             | Command::FormationMove { .. }
             | Command::Secure { .. }
+            | Command::Lay { .. }
+            | Command::Dig { .. }
+            | Command::Clear { .. }
+            | Command::DemolishBridge { .. }
+            | Command::RepairBridge { .. }
     )
 }
 

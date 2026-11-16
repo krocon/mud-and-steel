@@ -73,6 +73,14 @@ become waypoints).
 | U | Occupy the clicked building (infantry) |
 | Barrage / Smoke buttons | Mortars and guns fire at the clicked point (the keys G / T fire at the cursor at once) |
 
+**Engineers** (prompt 035): while engineer squads are selected, the command
+bar shows AT mines, AP mines, Wire, Obstacles, Foxhole, Trench, Clear and
+Bridge. Mines, foxhole and clear take one left click; wire, obstacles and
+trench take two (start and end of the line); Bridge takes a click near a
+bridge (an intact one is blown up, a destroyed one repaired). The tooltip
+names the price of one piece. Known mines are marked on the ground (own
+yellow, found enemy mines red). [provisional: no keys yet]
+
 Passengers are hidden in their vehicle and cannot be selected; the unit
 panel shows "Passengers 9 / 10", "towing …" or "towed by …" and "loading"
 while mounting, dismounting, limbering or unlimbering runs. Dismount and

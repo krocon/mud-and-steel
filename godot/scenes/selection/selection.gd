@@ -50,6 +50,7 @@ signal formation_changed(code: int)
 
 const GroundPick := preload("res://scenes/camera/ground_pick.gd")
 const TransportOrders := preload("res://scenes/selection/transport_orders.gd")
+const EngineerOrders := preload("res://scenes/selection/engineer_orders.gd")
 const FormationOrders := preload("res://scenes/selection/formation_orders.gd")
 ## Pointer travel in pixels before a left press becomes a box drag.
 const DRAG_THRESHOLD := 6.0
@@ -224,6 +225,7 @@ func set_command_mode(mode: String) -> void:
 	if next == command_mode:
 		return
 	command_mode = next
+	EngineerOrders.reset(self)
 	Input.set_default_cursor_shape(Input.CURSOR_CROSS if not next.is_empty() else Input.CURSOR_ARROW)
 	command_mode_changed.emit(command_mode)
 	queue_redraw()
@@ -260,6 +262,9 @@ func click_command(screen_position: Vector2, shift := false) -> void:
 		"barrage", "smoke":
 			var b: Array = BARRAGE_ACTIONS["order_" + command_mode]
 			done = order_barrage(screen_position, b[0], b[1], b[2])
+		_:
+			# Engineer orders (prompt 035), `work_<kind>`.
+			done = EngineerOrders.click(self, screen_position)
 	if done and not shift:
 		set_command_mode("")
 
@@ -661,7 +666,7 @@ func _draw() -> void:
 	if not command_mode.is_empty():
 		var size := get_viewport_rect().size
 		draw_string(ThemeDB.fallback_font, Vector2(size.x * 0.5 - 180, 70),
-			MODE_HINTS.get(command_mode, "") + "  ·  right click cancels",
+			MODE_HINTS.get(command_mode, EngineerOrders.hint(self)) + "  ·  right click cancels",
 			HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color(1, 0.95, 0.6, 0.95))
 	if _right_pressing and _right_drag.distance_to(_right_press) > DRAG_THRESHOLD:
 		# Facing arrow of a right-drag (prompt 046).
