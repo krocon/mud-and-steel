@@ -51,7 +51,7 @@ model with names, hierarchy, sockets, material slots and baked vertex colors.
 | `trucks` | `ladder_frame`, `engine_hood`, `truck_cab`, `cargo_bed`, `truck_fenders` and the `wheeled` assembly (trucks, cars; prompt 006) |
 | `aircraft` | `fuselage` (loft of cross-sections, glazed nose), `wing` (taper, sweep, dihedral, gull `kink`, ailerons), `tail`, `propeller`, `canopy`, `landing_gear` (extended/retracted, `fixed`, `spats`, `skid`); prompt 008: `nacelle`, `wing_struts`, `upper_wing` (biplanes), `fixed_guns`, `flex_mg`, `gun_turret`, `bomb_load`, `rocket_rails`, `bomb_bay`, `shadow_proxy` |
 | `vehicles` | `section_hull` (hull lofted from cross-sections, optional open compartment), `fender`, `plate` (doors, lids on sloped faces), `pintle_mg` (MG on a post, optional shield); assembly `halftrack` (prompt 006) |
-| `casemate` | prompt 008: `casemate` (closed or open superstructure from a plan with slopes, `wall_shell` helper) and the assembly `casemate` (tank destroyers, assault guns, SPGs: no turret, `Gun` on `Hull`) |
+| `casemate` | prompt 008: `casemate` (closed or open superstructure from a plan with slopes, optional `rear_deck` for an engine deck that drops behind the roof, `wall_shell` helper) and the assembly `casemate` (tank destroyers, assault guns, SPGs: no turret, `Gun` on `Hull`) |
 | `armored_car` | prompt 008: assembly `armored_car` (wheels, `section_hull`, optional turret, gun, MGs) |
 | `antiair` | prompt 008: `cruciform_platform`, `aa_mount` (traversing `Mount` with seats, optional shield), `crew_sockets` (any gun); assembly `aa_gun` |
 | `mortars` | prompt 008: `baseplate`, `mortar_tube` (elevation fitted to the catalog height), `mortar_bipod` (fitted to length and width); assembly `mortar` |

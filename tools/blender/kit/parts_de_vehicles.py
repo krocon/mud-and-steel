@@ -152,3 +152,21 @@ def round_wings(model, p, ctx):
             y_front = pts[-1][0]
             mb.box((side * (xi + xo) / 2, (y_front + y_rear) / 2, z), (xo - xi, y_front - y_rear, 0.02), "Paint")
             mb.box((side * (xi + 0.02), (y_front + y_rear) / 2, z - 0.06), (0.04, y_front - y_rear, 0.1), "Paint")
+
+
+@part("de.gun_housing")
+def gun_housing(model, p, ctx):
+    """Cast gun housing bulging out of a sloped front plate, behind the
+    'Saukopf' mantlet (Jagdpanzer 38(t)): a drum along +Y with a rounded
+    front shoulder; the plate hides its rear part.
+
+    Parameters: `position` [x, y, z] (center of the front face), `length`
+    (back into the plate), `radius`, `parent` (default Hull).
+    """
+    x, y, z = p.req("position")
+    length = p.req("length")
+    r = p.req("radius")
+    mb = model.mb(p.get("parent", "Hull"))
+    mb.revolve((x, y - length, z), (0, 1, 0),
+               [(0.0, r), (length * 0.72, r), (length * 0.88, r * 0.93), (length * 0.97, r * 0.78), (length, r * 0.55)],
+               seg=14, mat="Paint")
