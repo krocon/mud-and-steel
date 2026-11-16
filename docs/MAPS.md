@@ -345,7 +345,18 @@ just gen-map my_map 1000 3     # data/maps/my_map/, 1 km, seed 3
 just test-maps                 # regenerate test_small (500 m, seed 7) and test_large (4 km, seed 11)
 just map-info test_large       # measurements as above
 just run-map test_large        # play the demo on a map from data/maps/
+just gen-map skirmish 2400 21 1200   # the default match map (starts 1.2 km apart)
 ```
+
+**Start distance.** By default both starts lie 60 m north and south of the
+center, inside the central meadow; the test maps keep that, because tests,
+benchmarks and the demo battle are built on it. `--start-distance-m D`
+(fourth argument of `just gen-map`) puts the starts `D/2` north and south
+of the center instead and flattens a meadow of their own around each (at most
+100 m radius, at its natural height); hills, villages and objects keep clear
+of it. `skirmish` (2.4 km, starts 1.2 km apart) is preselected in the setup
+screens and lobbies, so the first contact takes a few minutes instead of
+opening fire at once.
 
 Regenerating `test_small` changes the golden hash: that is a rule change in the sense
 of [DETERMINISM.md](DETERMINISM.md) and needs to be named in the commit. A test

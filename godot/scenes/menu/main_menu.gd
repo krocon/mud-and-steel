@@ -23,6 +23,7 @@ const SettingsPanel := preload("res://scenes/menu/settings_panel.gd")
 const CreditsPanel := preload("res://scenes/menu/credits_panel.gd")
 const FlowSelfTest := preload("res://scenes/menu/flow_self_test.gd")
 const SlotList := preload("res://scenes/menu/slot_list.gd")
+const Music := preload("res://scenes/audio/music.gd")
 const LAN_SCENE := "res://scenes/lan/lan_lobby.tscn"
 const ONLINE_SCENE := "res://scenes/online/steam_lobby.tscn"
 const EDITOR_SCENE := "res://scenes/editor/map_editor.tscn"
@@ -80,6 +81,7 @@ func _ready() -> void:
 		get_tree().change_scene_to_file.call_deferred(SOUND_GALLERY_SCENE)
 		return
 	Settings.ensure_loaded()
+	Music.play("menu")
 	theme = MenuTheme.get_theme()
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(MenuTheme.background())
@@ -193,6 +195,7 @@ func _skirmish_screen() -> Control:
 	_maps = MatchSetup.available_maps()
 	for map_name in _maps:
 		map_option.add_item(map_name)
+	map_option.select(MatchSetup.default_map_index(_maps))
 	map_option.item_selected.connect(func(_index: int) -> void:
 		_update_map_info()
 		_update_team_sizes())

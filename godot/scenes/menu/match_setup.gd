@@ -54,6 +54,17 @@ static var run_match_test := false
 static var last_loading_steps: PackedStringArray = []
 
 
+## Map preselected in the setup screens: 2.4 km with the starts 1.2 km
+## apart, so the enemy does not open fire at once (the test maps keep their
+## starts 120 m apart for tests and benchmarks).
+const DEFAULT_MAP := "skirmish"
+
+
+## Index of DEFAULT_MAP in `maps`, or 0 when it is missing.
+static func default_map_index(maps: PackedStringArray) -> int:
+	return maxi(Array(maps).find(DEFAULT_MAP), 0)
+
+
 ## Map folders found in `data/maps/` (sorted), the built-in map first.
 static func available_maps() -> PackedStringArray:
 	var maps: PackedStringArray = [BUILTIN_MAP]

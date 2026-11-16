@@ -73,6 +73,7 @@ data/            unit catalog (catalog/*.toml, real values) and scale.toml
 docs/            ARCHITECTURE.md, DETERMINISM.md, VERSIONS.md, SCALE.md, ASSETS.md,
                  SOURCES.md, INFANTRY.md, LAN.md, ONLINE.md, AI.md, GAME_DESIGN.md,
                  PERFORMANCE.md, RELEASE.md, CONTROLS.md (player controls), TEAMS.md,
+                 AUDIO_LIBRARY.md (free sound candidates),
                  UNIT_CATALOG.md (generated)
 prompts/         task prompts (roadmap in prompts/README.md); finished ones: git mv to prompts/done/
 ```

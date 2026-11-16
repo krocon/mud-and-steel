@@ -99,8 +99,15 @@ pub struct Options<'a> {
     pub players: u8,
     /// `biome` in map.toml (presentation only).
     pub biome: &'a str,
+    /// Distance between the two start positions on the north-south axis.
+    /// The default 120 m keeps both starts in the central meadow (test
+    /// maps); a larger distance gives each start a flat meadow of its own.
+    pub start_distance_m: u32,
     pub out: &'a Path,
 }
+
+/// Start distance of the test maps: both starts in the central meadow.
+pub const DEFAULT_START_DISTANCE_M: u32 = 120;
 
 /// Random numbers in `[0, 1)` from the simulation's generator.
 struct Random(Rng);
@@ -251,6 +258,8 @@ struct Square {
 struct Layout {
     half: f64,
     meadow_radius: f64,
+    /// Flat meadows around starts outside the central meadow (x, y, radius).
+    start_meadows: Vec<(f64, f64, f64)>,
     hills: Vec<Hill>,
     river: Path2,
     river_width: f64,
@@ -264,9 +273,26 @@ struct Layout {
     mud: ValueNoise,
 }
 
-fn layout(random: &mut Random, size: f64, seed: u64) -> Layout {
+fn layout(random: &mut Random, size: f64, seed: u64, start_distance: f64) -> Layout {
     let half = size / 2.0;
     let meadow_radius = (0.38 * half).min(160.0);
+    // Starts far from the center get their own flat meadow; hills and
+    // villages keep clear of it like of the central meadow.
+    let start_meadows: Vec<(f64, f64, f64)> =
+        if start_distance > f64::from(DEFAULT_START_DISTANCE_M) {
+            let radius = meadow_radius.min(100.0);
+            vec![
+                (0.0, start_distance / 2.0, radius),
+                (0.0, -start_distance / 2.0, radius),
+            ]
+        } else {
+            Vec::new()
+        };
+    let near_start = |x: f64, y: f64, margin: f64| {
+        start_meadows
+            .iter()
+            .any(|&(sx, sy, r)| ((x - sx) * (x - sx) + (y - sy) * (y - sy)).sqrt() < r + margin)
+    };
     // The river runs roughly north-south on the east side, the landmark
     // hill stands north-west of the meadow, villages lie in the south-west.
     let river_x = 0.6 * half;
@@ -304,6 +330,7 @@ fn layout(random: &mut Random, size: f64, seed: u64) -> Layout {
         if (x * x + y * y).sqrt() < meadow_radius + radius * 0.8
             || (x - river_x).abs() < radius * 0.7 + 0.1 * half
             || to_landmark < radius + landmark.radius
+            || near_start(x, y, radius)
         {
             continue;
         }
@@ -330,7 +357,10 @@ fn layout(random: &mut Random, size: f64, seed: u64) -> Layout {
             random.range(-0.85, 0.85) * half,
             random.range(-0.85, 0.85) * half,
         );
-        if (x * x + y * y).sqrt() < meadow_radius * 2.0 || (x - river_x).abs() < 0.25 * half {
+        if (x * x + y * y).sqrt() < meadow_radius * 2.0
+            || (x - river_x).abs() < 0.25 * half
+            || near_start(x, y, 80.0)
+        {
             continue;
         }
         squares.push(Square {
@@ -377,6 +407,7 @@ fn layout(random: &mut Random, size: f64, seed: u64) -> Layout {
     let mut layout = Layout {
         half,
         meadow_radius,
+        start_meadows,
         hills,
         river,
         river_width,
@@ -503,6 +534,14 @@ impl Layout {
         let d = (x * x + y * y).sqrt();
         let blend = smoothstep(self.meadow_radius, self.meadow_radius + 40.0, d);
         h *= blend;
+
+        // Flat meadows around distant starts, at their natural center height.
+        for &(sx, sy, radius) in &self.start_meadows {
+            let d = ((x - sx) * (x - sx) + (y - sy) * (y - sy)).sqrt();
+            let level = self.natural_height(sx, sy);
+            let blend = smoothstep(radius, radius + 40.0, d);
+            h = level + (h - level) * blend;
+        }
 
         // Flat village squares at their natural center height.
         for square in &self.squares {
@@ -745,18 +784,21 @@ fn ford_point(layout: &Layout) -> (f64, f64) {
     (best.1, best.2)
 }
 
-/// Start positions `(player, team, x, y)` on the start meadow (prompt
-/// 037): two teams, south (even players) and north (odd players), every
-/// start mirrored through the center from its opponent's. Two players
-/// stand where the demo scenario expects them.
-pub fn start_positions(players: u8) -> Vec<(u8, u8, i32, i32)> {
+/// Start positions `(player, team, x, y)` (prompt 037): two teams, south
+/// (even players) and north (odd players), side by side around the points
+/// `start_distance_m / 2` south and north of the center, every start
+/// mirrored through the center from its opponent's. Two players stand at
+/// those points (the demo scenario's places with the default distance).
+pub fn start_positions(players: u8, start_distance_m: u32) -> Vec<(u8, u8, i32, i32)> {
+    let base = i32::try_from(start_distance_m / 2).unwrap_or(0);
     let south: &[(i32, i32)] = match players {
-        0..=2 => &[(0, 60)],
-        3 | 4 => &[(-55, 65), (55, 65)],
-        _ => &[(0, 60), (-90, 75), (90, 75)],
+        0..=2 => &[(0, 0)],
+        3 | 4 => &[(-55, 5), (55, 5)],
+        _ => &[(0, 0), (-90, 15), (90, 15)],
     };
     let mut out = Vec::new();
-    for (k, &(x, y)) in (0u8..).zip(south) {
+    for (k, &(x, dy)) in (0u8..).zip(south) {
+        let y = base + dy;
         out.push((2 * k, 0, x, y));
         out.push((2 * k + 1, 1, -x, -y));
     }
@@ -771,8 +813,14 @@ pub fn generate(options: &Options) -> Result<String, String> {
     let rules = TerrainRules::builtin().map_err(|e| e.to_string())?;
     let size = f64::from(options.size_m);
     let samples = (options.size_m / 2 + 1) as usize;
+    let start_distance = f64::from(options.start_distance_m);
+    if options.start_distance_m != DEFAULT_START_DISTANCE_M
+        && (start_distance < 2.0 || start_distance / 2.0 > size / 2.0 - 150.0)
+    {
+        return Err("--start-distance-m must leave at least 150 m to the map edge".into());
+    }
     let mut random = Random(Rng::new(options.seed));
-    let layout = layout(&mut random, size, options.seed);
+    let layout = layout(&mut random, size, options.seed, start_distance);
 
     let mut heights = Vec::with_capacity(samples * samples);
     let mut terrain = Vec::with_capacity(samples * samples);
@@ -890,7 +938,7 @@ pub fn generate(options: &Options) -> Result<String, String> {
         );
     }
     let mut starts = String::new();
-    for (player, team, x, y) in start_positions(options.players) {
+    for (player, team, x, y) in start_positions(options.players, options.start_distance_m) {
         let team = if options.players > 2 {
             format!("team = {team}\n")
         } else {
@@ -906,12 +954,17 @@ pub fn generate(options: &Options) -> Result<String, String> {
     } else {
         String::new()
     };
+    let start_arg = if options.start_distance_m == DEFAULT_START_DISTANCE_M {
+        String::new()
+    } else {
+        format!(" --start-distance-m {}", options.start_distance_m)
+    };
     let mut toml = String::new();
     let _ = writeln!(
         toml,
         "# Generated by `cli gen-map`; edit the PNGs freely (docs/MAPS.md).\n\
          name = \"{}\"\n\
-         generator = \"cli gen-map --name {} --size-m {} --seed {}{generator_players}\"\n\
+         generator = \"cli gen-map --name {} --size-m {} --seed {}{start_arg}{generator_players}\"\n\
          cell_size_mm = 2000\n\
          samples = [{side}, {side}]\n\
          height_base_mm = {base_mm}\n\
@@ -980,6 +1033,7 @@ mod tests {
             seed: 7,
             players: 2,
             biome: "forest",
+            start_distance_m: crate::gen_map::DEFAULT_START_DISTANCE_M,
             out: &dir,
         };
         generate(&options).unwrap();
