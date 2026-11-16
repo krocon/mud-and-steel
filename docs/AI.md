@@ -145,6 +145,12 @@ known, else it hunts on its own):
    another axis.
 4. **Hold:** when the front comes 12 m closer within 3 s (the enemy
    advances), the army stops in line facing it and lets it come.
+5. **Maneuvering enemy:** once a known enemy unit was seen 8 m away from
+   where it was seen before (within the last 2 minutes), the army stops
+   going round fronts: it holds against an advance and otherwise advances
+   with the group logic (attack-move), and in the fight it neither closes
+   in nor moves round a flank (driving under fire lost the exchange
+   against the old Hard). Staged flank attacks are for static defenses.
 
 [provisional] all distances and shares above; they were tuned against the
 passive enemy and the old Hard on the ten maps of the tournament.
@@ -508,6 +514,11 @@ just ai-tournament --a hard --b normal --games 100  # one pairing
 just ai-tournament --factions su,su --verbose       # mirror match, every game printed
 ```
 
+Prompt 051: `--a hard-old` plays the Hard before the commander;
+`--verbose` also lists the living units of every timeout (why a game did
+not end); `--trace N` (with `--games 1`) prints every N ticks the living
+units, the commander's plan and every player's account and buildings.
+
 `cli ai-tournament` plays the demo scenario (eight tanks per side, 120 m apart)
 on `test_small` (`--map` for others). Game *i* uses seed *seed + i*; A plays
 player 0 in even games and player 1 in odd ones, so with the scenario's
@@ -553,6 +564,91 @@ starts far apart (meeting engagements) should separate the levels more.
 - *Every unit at its own nearest enemy* (old Easy): lost every game as the
   Soviet side against the passive Germans.
 
+### Results of the commander (prompt 051)
+
+Measured on the merged code of prompts 043/049 (Apple M1 Max, release, all
+cores; the machine was shared with other builds, so the times are upper
+bounds). Battle mode: the demo armies (eight tanks and two rifle squads,
+de vs su) on the map's starts, 20 games, a game not decided after 12 000
+ticks (10 min) is a timeout (`--max-ticks 12000`; on 1–2 km maps the
+approach alone takes minutes). "Old" is `hard-old`, the Hard of prompts
+024–055 on the same code. Win rate of A / of B / timeouts:
+
+| Map | hard vs passive | old hard vs passive |
+|---|---|---|
+| test_small | 100 / 0 / 0 | 100 / 0 / 0 |
+| skirmish | 75 / 0 / 5 | 55 / 0 / 9 |
+| twin_meadow | 45 / 55 / 0 | 60 / 30 / 2 |
+| test_large | 100 / 0 / 0 | 100 / 0 / 0 |
+| mountain_pass | 80 / 0 / 4 | 40 / 0 / 12 |
+| winter_village | 85 / 5 / 2 | 25 / 0 / 15 |
+| farms | 75 / 0 / 5 | 15 / 0 / 17 |
+| river_land | 45 / 25 / 6 | 50 / 0 / 10 |
+| town_small | 35 / 40 / 5 | 35 / 0 / 13 |
+| desert_village | 40 / 10 / 10 | 20 / 0 / 16 |
+
+Normal / Easy vs passive (battle): test_small 100/0/0 and 100/0/0,
+skirmish 50/50/0 and 25/60/3, farms 0/40/12 and 15/60/5, river_land
+60/10/6 and 45/50/1. "B wins" against the passive enemy are surrenders:
+the AI's armor is gone and its rifle squads face tanks they cannot hurt.
+
+Hard against the old Hard (battle, 20 games; scenario factions de vs su,
+A plays both sides): test_small 40 / 60 / 0, skirmish 40 / 50 / 2,
+twin_meadow 50 / 50 / 0, test_large 50 / 50 / 0, mountain_pass
+20 / 45 / 7, winter_village 55 / 30 / 3, farms 55 / 40 / 1, river_land
+35 / 50 / 3, town_small 35 / 25 / 8, desert_village 10 / 65 / 5. Mirror
+matches: skirmish su,su 25 / 65 / 2 and de,de 10 / 50 / 8, farms su,su
+40 / 55 / 1 and de,de 15 / 75 / 2, twin_meadow su,su 30 / 70 / 0 and
+de,de 15 / 80 / 1.
+
+Base mode (`--mode base`, 10 games, 24 000 ticks = 20 min; "before" =
+the code of prompt 056 before this prompt):
+
+| Pairing | test_small | skirmish | test_large |
+|---|---|---|---|
+| hard vs passive | 90 / 0 / 1 (before 100 / 0 / 0) | 100 / 0 / 0 (80 / 0 / 2) | 90 / 0 / 1 (0 / 0 / 10) |
+| normal vs passive | 100 / 0 / 0 (100 / 0 / 0) | 100 / 0 / 0 (40 / 0 / 6) | 100 / 0 / 0 (0 / 0 / 10) |
+| easy vs passive | 100 / 0 / 0 (100 / 0 / 0) | 100 / 0 / 0 (100 / 0 / 0) | 100 / 0 / 0 (100 / 0 / 0) |
+| hard vs normal | 50 / 50 / 0 (60 / 10 / 3) | 0 / 0 / 10 (0 / 0 / 10) | – (0 / 0 / 10) |
+| hard vs old hard | 40 / 60 / 0 | 0 / 0 / 10 | – |
+| old hard vs normal | 50 / 40 / 1 | 0 / 0 / 10 | – |
+
+(test_large normal and easy vs passive were measured before the merge of
+prompts 043/049; "–": not measured again, every game of these pairings
+ran out of time before.)
+
+AI time per tick (both AIs, `--jobs 1`): battle (skirmish, hard vs passive, 4 games) 9 µs on average, at most 0.7 ms; base match (skirmish, hard vs normal, 20 minutes) 104 µs on average, at most 2.3 ms (the free-spot searches of the view and the scouting grid).
+
+**Reading the numbers.**
+
+- Against static defenses the commander wins clearly more often than the
+  old Hard (farms 15 → 75 %, winter_village 25 → 85 %, mountain_pass
+  40 → 80 %, skirmish 55 → 75 %) and base matches against the passive
+  enemy on the 2.8 km map `test_large` are decided now (0 → 90–100 %).
+  The target of 90 % against the passive enemy on every map is **not**
+  reached: as the Soviet side (T-34, 250 m against the Panzer IV's 375 m)
+  on small maps where no flank lies outside the enemy's reach
+  (`twin_meadow`, starts 170 m apart; `town_small`, 600 m square;
+  `river_land`) the passive Germans win the slugfest, and the AI then
+  surrenders instead of running out the clock.
+- Against the old Hard (an enemy that attacks) the commander is even at
+  best, not better: the staged flank approach is caught on the move by an
+  enemy that drives straight at it, most clearly in mirror matches.
+  Measured and rejected: advancing straight until the first contact
+  (mirror matches 45–55 % against the old Hard, but against the passive
+  enemy farms 30 %, winter_village 15 %), a probe tank 300 m ahead of the
+  army (worse against both), holding against any moving front (no
+  effect). [provisional] The trade-off is the user's call: the current
+  setting favors beating defenses.
+- Base matches between two AIs on 1–2 km maps stay undecided within 20
+  minutes (skirmish: all pairings 10 timeouts of 10, before and after):
+  ammunition is the bottleneck of both economies (resupply costs it),
+  armies rebuild faster than they die, and the old Hard never gives up.
+  The commander builds substitutes when one resource is short, attacks with
+  everything when twice as strong and surrenders when crushed, which
+  decides some games on `test_small`, but the economy balance (prompt 045)
+  decides the rest.
+
 ## Tests
 
 - `crates/ai/tests/ai.rs`: Normal and Hard beat Passive in 6 of 6 games (both
@@ -570,11 +666,22 @@ starts far apart (meeting engagements) should separate the levels more.
 - `crates/ai/tests/air.rs` (prompt 033): Normal calls bombers on a large
   group far from its own units, Easy does not; Hard builds light flak once
   it saw enemy aircraft.
+- `crates/ai/tests/commander.rs` (prompt 051): Hard surrenders when its
+  rifles see only tanks, the old Hard does not; Hard attacks a passive
+  tank platoon from the flank, not along the direct line.
 - `crates/ai/tests/economy.rs` (prompt 023): every level builds barracks
   and depot and produces units against the passive enemy; base matches
   between two AIs are reproducible and both sides build.
 
 ## Open
+
+- Commander (prompt 051): 90 % against the passive enemy on every map and
+  a clear win against the old Hard are not reached (see "Results of the
+  commander"); base matches between two AIs on 1–2 km maps stay
+  undecided (economy balance, prompt 045). Protecting own trucks beyond
+  keeping them behind the army, observers for the artillery, terrain
+  (crests, woods, houses) in the choice of axes, and coordinating allies
+  beyond shared sightings are open.
 
 - Infantry tactics: stances, cover spots and buildings (prompt 022) are not
   used by the AI yet; attacking squads walk in standing and lose against

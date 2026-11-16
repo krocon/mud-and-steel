@@ -71,3 +71,47 @@ Basismodus auf `test_large` 0 % (Hard/Normal gegen Passiv), KI gegen KI auf 1-km
 | 10 | **Aufgeben** (Easy, Normal, Hard; nicht `hard-old`): 60 s aussichtslos ⇒ `Command::Surrender`. Aussichtslos: keine Produktion (oder Produktion ohne Hauptquartier) und entweder keine eigene Waffe mit Munition kann einem bekannten Feind schaden, oder die eigenen Kampfeinheiten sind < 15 % (ohne HQ < 10 %) der bekannten Feinde wert. **[vorläufig]** | Verlorene Partien enden statt auf Zeit zu laufen; nur gesehene Feinde zählen, nie unsichtbare. 15 % ≈ ein Panzer gegen sieben. |
 | 11 | **Keine Sim-Änderung.** Nur `crates/ai` (+ `--trace` und Überlebende im Turnier-CLI). | Parallel laufende Prompts; Golden-Hash unverändert. |
 | 12 | Schlachtmodus im Turnier mit `--max-ticks 12000` (10 min) gemessen. | Auf 1–2-km-Karten dauert schon der Anmarsch mehrere Minuten; 5 min maß nur den Zeitablauf. |
+
+## Ergebnis
+
+Umgesetzt wie in der Tabelle; Details und alle Messwerte in `docs/AI.md` („Commander
+(prompt 051)“, „Results of the commander“).
+
+- **Code:** `crates/ai/src/commander.rs` (Bereitstellen, Angriff in Linie, Nahangriff,
+  Kampfbilanz, Ausweichen, Rückzug, Halten, Verhalten gegen manövrierende Gegner,
+  Überlegenheit), `intel.rs` (Lagebild, Gefahr, Fronten, bekannte Feinde, grobes
+  Gelände), `scout.rs` (Spähwagen, Wissensraster), `surrender.rs` (Aufgeben),
+  `economy.rs` (Konterproduktion, Ersatzbau, Spähwagen und Versorgungs-LKW,
+  vorgeschobene Depots), `view.rs` (`forward_sites`), `artillery.rs` (Nebel beim
+  Angriff); `Difficulty::HardOld` (`hard-old`). Turnier-CLI: `--trace`, Überlebende bei
+  Zeitablauf. Keine Änderung an `crates/sim`; Golden-Hash unverändert
+  (`0xf8f2_b8a4_aead_460d` nach dem Zusammenführen mit main).
+- **Tests:** `crates/ai/tests/commander.rs` (Aufgeben, Flankenangriff); der Test
+  `normal_advances_with_attack_move_easy_does_not` akzeptiert jetzt auch Linie und
+  `Engage::Infantry` (beabsichtigte Regeländerung, siehe Commit).
+- **Messung (Schlacht, 20 Spiele, 10 min):** Hard gegen Passiv vorher → nachher:
+  skirmish 55 → 75 %, mountain_pass 40 → 80 %, winter_village 25 → 85 %, farms
+  15 → 75 %, desert_village 20 → 40 %, test_small/test_large 100 → 100 %, aber
+  twin_meadow 60 → 45 %, river_land 50 → 45 %, town_small 35 → 35 % (Rest:
+  Kapitulationen statt Zeitablauf). **Ziel ≥ 90 % auf jeder Karte nicht erreicht.**
+  Neue gegen alte Hard: 10–55 % (Spiegelpartien 10–40 %), **nicht klar besser** – die
+  Flankenbereitstellung wird von einem frontal anstürmenden Gegner im Marsch
+  erwischt; geradeaus anrücken gewinnt die Spiegelpartien (45–55 %), verliert aber
+  gegen Verteidigung (farms 30 %, winter_village 15 %). **[vorläufig]** Die aktuelle
+  Einstellung bevorzugt das Ziel gegen Verteidigung; die Abwägung muss der Nutzer
+  bestätigen.
+- **Basismodus (10 Spiele, 20 min):** gegen Passiv auf `test_large` 0 → 90 % (Hard),
+  0 → 100 % (Normal), skirmish Hard 80 → 100 %, Normal 40 → 100 %. KI gegen KI auf
+  skirmish weiter 10 von 10 Zeitablauf (Munition ist der Engpass beider Wirtschaften,
+  Armeen bauen schneller nach, als sie fallen); test_small entschieden wie vorher.
+  **Ziel „Basispartien deutlich öfter entschieden“ nur gegen Passiv erreicht.**
+- **Rechenzeit der KI** (`--jobs 1`): Schlacht 9 µs/Tick im Mittel (max 0,7 ms),
+  Basispartie 104 µs/Tick (max 2,3 ms).
+- `just check`, `just selftest`, `just lan-selftest` grün.
+
+Offen: 90 % gegen Passiv auf kleinen Karten als sowjetische Seite (T-34 gegen die
+längere Reichweite des Panzer IV ohne Platz für eine Flanke), klarer Sieg gegen die
+alte Hard (Gegner erkennen, bevor man ihn sieht), entschiedene KI-gegen-KI-Basispartien
+(Wirtschaftsbalance, Prompt 045), Schutz eigener LKW über „hinter der Armee“ hinaus,
+Beobachter für die Artillerie, Gelände (Kämme, Wald, Häuser) bei der Achsenwahl,
+Normal ist gegen Passiv auf manchen Karten schwächer als vorher (farms 0 %).
