@@ -48,6 +48,10 @@ const CLOSE_FROM_PCT: i64 = 60;
 const STANDOFF_PCT: i64 = 85;
 /// With no anti-tank weapon seen, armor closes in this far (m).
 const OVERRUN_M: i32 = 60;
+/// An assault that arrived without contact creeps this much closer after
+/// this long (m, ticks).
+const CREEP_M: i32 = 60;
+const CREEP_TICKS: u64 = 200;
 /// A fight is reviewed after this long (ticks).
 const REVIEW_TICKS: u64 = 300;
 /// Below this share (percent) of damage dealt to damage taken the army
@@ -90,6 +94,10 @@ pub(crate) struct ArmyPlan {
     /// The staging point and the last point the lead was sent to.
     stage: Option<Vec2>,
     sent: Option<(Vec2, u64)>,
+    /// Distance of the staging point from the front.
+    reach: Option<Fixed>,
+    /// Distance of the assault after creeping closer.
+    creep: Option<Fixed>,
 }
 
 /// `v` turned by `deg` degrees (multiples of 15 only; counter-clockwise).
@@ -146,8 +154,14 @@ impl Ai {
         let armor = view
             .own
             .iter()
-            .any(|u| u.alive() && self.type_info(u.unit_type).role == Role::Armor);
+            .any(|u| self.effective(u) && self.type_info(u.unit_type).role == Role::Armor);
         if armor { Role::Armor } else { Role::Infantry }
+    }
+
+    /// A unit that can still fight and move: alive, with ammunition, not
+    /// immobilized, not riding.
+    pub(crate) fn effective(&self, u: &OwnUnit) -> bool {
+        u.alive() && u.stock.ammo_pct != Some(0) && !u.stock.immobile && u.carrier.is_none()
     }
 
     /// Strength of `units`: value times hit point share.
@@ -189,21 +203,27 @@ impl Ai {
     /// the staging point): the enemy's flank or rear if its hulls were
     /// seen, little danger at the staging point, a short way round, and
     /// not an axis that failed.
-    fn choose_axis(&mut self, front: &Front, from: Vec2, reach: Fixed, tick: u64) -> Vec2 {
+    /// On small maps the staging point may lie closer than `reach` (down
+    /// to 90 % of it) if the full distance leaves the map; the returned
+    /// distance is the one to use.
+    fn choose_axis(&mut self, front: &Front, from: Vec2, reach: Fixed, tick: u64) -> (Vec2, Fixed) {
         let direct = unit_vec(from - front.center).unwrap_or(Vec2::new(Fixed::ZERO, Fixed::ONE));
         let degrees: &[i32] = if self.difficulty == crate::Difficulty::Hard {
             &[0, 30, -30, 60, -60, 90, -90]
         } else {
             &[0, 45, -45]
         };
-        let mut best: Option<(i64, Vec2)> = None;
+        let mut best: Option<(i64, Vec2, Fixed)> = None;
         for &deg in degrees {
             let dir = rotate(direct, deg);
-            let stage = front.center + dir.scale(reach);
-            if !self.standable(stage) {
+            let Some(shrink) =
+                (0..2).find(|&k| self.standable(front.center + dir.scale(reach * (10 - k) / 10)))
+            else {
                 continue;
-            }
-            let mut score: i64 = 0;
+            };
+            let r = reach * (10 - shrink) / 10;
+            let stage = front.center + dir.scale(r);
+            let mut score: i64 = -15 * i64::from(shrink);
             // Hulls towards us cost, flanks and rear gain (-100..100).
             if front.facing != Vec2::ZERO {
                 score -= (dot(front.facing, dir) * 100).to_num::<i64>();
@@ -213,11 +233,11 @@ impl Ai {
             if self.army.failed.iter().any(|&f| angle_deg(f, dir) <= 30) {
                 score -= 150;
             }
-            if best.is_none_or(|(b, _)| score > b) {
-                best = Some((score, dir));
+            if best.is_none_or(|(b, _, _)| score > b) {
+                best = Some((score, dir, r));
             }
         }
-        best.map_or(direct, |(_, d)| d)
+        best.map_or((direct, reach), |(_, d, r)| (d, r))
     }
 
     /// The range from which the enemy can hurt `role` near `front`: what
@@ -232,7 +252,7 @@ impl Ai {
                 known = known.max(info.range);
             }
         }
-        if known == Fixed::ZERO {
+        if known == Fixed::ZERO && !self.intel.seen_any {
             known = (range * 3 / 2).max(Fixed::from_num(250));
         }
         let seen = if armor {
@@ -248,7 +268,7 @@ impl Ai {
     fn standoff(&self, front: &Front, range: Fixed) -> Option<Fixed> {
         let threat = self.reach_of(front, Role::Armor, range);
         let standoff = range * STANDOFF_PCT / 100;
-        (standoff > threat + Fixed::from_num(30)).then_some(standoff)
+        (threat > Fixed::ZERO && standoff > threat + Fixed::from_num(30)).then_some(standoff)
     }
 
     /// The enemy's home as a front while nothing was seen: the army
@@ -300,6 +320,18 @@ impl Ai {
             return self.follow_lead(units, center, range, near, view, state, out);
         }
         let tick = view.tick;
+        let able: Vec<OwnUnit> = units
+            .iter()
+            .filter(|u| self.effective(u))
+            .copied()
+            .collect();
+        if able.is_empty() {
+            return false;
+        }
+        let units = &able[..];
+        let Some(center) = centroid(units.iter().map(|u| u.position)) else {
+            return false;
+        };
         let found = self.current_front(center, view);
         let virtual_front = found.is_none();
         let Some(front) = found.or_else(|| self.home_front()) else {
@@ -376,13 +408,15 @@ impl Ai {
         };
         let reach = standoff.unwrap_or(threat + Fixed::from_num(STAGE_MARGIN_M));
         if self.army.axis.is_none() {
-            let axis = self.choose_axis(&front, center, reach, tick);
+            let (axis, r) = self.choose_axis(&front, center, reach, tick);
             self.army.axis = Some(axis);
+            self.army.reach = Some(r);
             self.army.phase = Phase::Stage;
             self.army.since = tick;
             self.army.sent = None;
         }
         let axis = self.army.axis.unwrap_or(Vec2::ZERO);
+        let reach = self.army.reach.unwrap_or(reach);
         let stage = self.clamp_to_map(front.center + axis.scale(reach));
         self.army.stage = Some(stage);
         let facing = Some(front.center - stage);
@@ -414,9 +448,29 @@ impl Ai {
             self.army.since = tick;
             self.army.sent = None;
         }
-        // Assault: in line to the own range.
+        // Assault: in line to the own range; closer step by step while
+        // nothing comes into sight there (woods, houses).
+        if self.army.phase != Phase::Assault {
+            self.army.creep = None;
+            self.army.since = tick;
+        }
         self.army.phase = Phase::Assault;
-        let close = standoff.unwrap_or(range * ASSAULT_RANGE_PCT / 100);
+        let mut close = if role == Role::Armor && threat == Fixed::ZERO {
+            Fixed::from_num(OVERRUN_M)
+        } else {
+            standoff.unwrap_or(range * ASSAULT_RANGE_PCT / 100)
+        };
+        if let Some(c) = self.army.creep {
+            close = close.min(c);
+        }
+        if let Some((goal, sent)) = self.army.sent
+            && dist(center, goal) <= Fixed::from_num(40)
+            && tick > sent + CREEP_TICKS
+        {
+            let next = (d - Fixed::from_num(CREEP_M)).max(range * 3 / 10);
+            close = close.min(next);
+            self.army.creep = Some(close);
+        }
         let dir = unit_vec(center - front.center).unwrap_or(axis);
         let goal = self.clamp_to_map(front.center + dir.scale(close));
         self.send(
@@ -481,7 +535,7 @@ impl Ai {
             let dir = unit_vec(center - front.center).unwrap_or(Vec2::ZERO);
             self.army.failed.push(dir);
             let reach = range * 85 / 100;
-            let axis = self.choose_axis(front, center, reach, tick);
+            let (axis, reach) = self.choose_axis(front, center, reach, tick);
             let goal = self.arc_leg(center, front.center, axis, reach);
             out.push(Command::FormationMove {
                 units: ids,
@@ -668,11 +722,18 @@ impl Ai {
         {
             return false;
         }
+        // Without enemy armor known the infantry hunts on its own.
+        let enemy_armor = self.intel.known.iter().any(|(_, s)| {
+            self.type_info(s.unit_type).role == Role::Armor
+                && !view.enemy_players.iter().any(|&(p, d)| p == s.owner && d)
+        });
+        if !enemy_armor {
+            return false;
+        }
         let lead: Vec<Vec2> = view
             .own
             .iter()
-            .filter(|u| u.alive() && self.type_info(u.unit_type).role == Role::Armor)
-            .filter(|u| u.carrier.is_none())
+            .filter(|u| self.effective(u) && self.type_info(u.unit_type).role == Role::Armor)
             .map(|u| u.position)
             .collect();
         let Some(lead_center) = centroid(lead.iter().copied()) else {

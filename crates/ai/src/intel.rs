@@ -39,6 +39,8 @@ pub(crate) struct Intel {
     /// position and tick (composition for counter-production, strength for
     /// surrendering). Unlike the sightings these are never forgotten.
     pub(crate) known: Vec<(UnitId, Sighting)>,
+    /// Any enemy unit was seen (the enemy's weapons are no guess any more).
+    pub(crate) seen_any: bool,
 }
 
 /// A cluster of fresh sightings: one front of the enemy.
@@ -110,6 +112,7 @@ impl Ai {
         }
         self.intel.alive = now;
         for e in &view.enemies {
+            self.intel.seen_any |= e.alive();
             let pos = self.intel.known.iter().position(|(id, _)| *id == e.id);
             if !e.alive() {
                 if let Some(i) = pos {
