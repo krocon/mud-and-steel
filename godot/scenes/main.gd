@@ -103,6 +103,7 @@ const MatchHud := preload("res://scenes/hud/hud.gd")
 const TransportView := preload("res://scenes/world/transport_view.gd")
 const WorksView := preload("res://scenes/world/works_view.gd")
 const VeterancyView := preload("res://scenes/world/veterancy_view.gd")
+const MissionHud := preload("res://scenes/hud/mission_hud.gd")
 const SEED := 42
 ## Map folders, relative to the Godot project (repository checkout only).
 const REPLAY_DIR := "user://replays"
@@ -185,6 +186,8 @@ var base_hud: BaseHud
 var battle_sound: BattleSound
 ## Minimap, unit panel, command bar, events, waypoint lines (prompt 031).
 var hud: MatchHud
+## Objectives, messages and signals of a mission (prompt 039); null without.
+var mission_hud: MissionHud
 ## Pause menu and result screen (prompt 027).
 var game_menu: CanvasLayer
 var _loading: CanvasLayer
@@ -331,6 +334,10 @@ func _ready() -> void:
 	$Hud.add_child(hud)
 	hud.setup(self)
 	air_view.setup_hud(hud)
+	if sim_host.mission_info()["active"]:
+		mission_hud = MissionHud.new()
+		$Hud.add_child(mission_hud)
+		mission_hud.setup(self)
 	var debug_menu := DebugMenu.new()
 	debug_menu.main = self
 	$Hud.add_child(debug_menu)
@@ -492,6 +499,10 @@ func _start_simulation() -> bool:
 			sim_host.daytime = arg.trim_prefix("--daytime=")
 	if GameFiles.is_pending(MatchSetup.pending):
 		return GameFiles.start(sim_host, MatchSetup.pending)
+	# Missions and the tutorial (prompt 039) start with fire at will.
+	if MatchSetup.pending.has("mission"):
+		sim_host.hold_fire_at_start = false
+		return sim_host.start_mission(SEED, MatchSetup.pending["mission"])
 	if not MatchSetup.pending.is_empty():
 		var setup := MatchSetup.pending
 		sim_host.mode = setup.get("mode", "battle")

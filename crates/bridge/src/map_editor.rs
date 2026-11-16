@@ -42,6 +42,9 @@ pub struct MapEditor {
     /// Highest sample in millimeters (for ray picking).
     top_mm: i32,
     error: String,
+    /// Trigger areas and spawn points of the map (prompt 039,
+    /// `mission_funcs.rs`), saved with the map.
+    pub(crate) points: sim::mission::MissionPoints,
     base: Base<Node>,
 }
 
@@ -54,6 +57,7 @@ impl INode for MapEditor {
             in_stroke: false,
             top_mm: 0,
             error: String::new(),
+            points: sim::mission::MissionPoints::default(),
             base,
         }
     }
@@ -241,6 +245,7 @@ impl MapEditor {
         match EditMap::new(&name.to_string(), side(width_m), side(depth_m), biome) {
             Ok(map) => {
                 self.install(map);
+                self.points = sim::mission::MissionPoints::default();
                 true
             }
             Err(e) => self.fail(e),
@@ -253,6 +258,9 @@ impl MapEditor {
         match EditMap::load_dir(Path::new(&dir.to_string())) {
             Ok(map) => {
                 self.install(map);
+                // Prompt 039: an unreadable points file starts empty.
+                self.points = editor::mission_points::load_points(Path::new(&dir.to_string()))
+                    .unwrap_or_default();
                 true
             }
             Err(e) => self.fail(e),
@@ -267,7 +275,10 @@ impl MapEditor {
         };
         map.end_stroke();
         self.in_stroke = false;
-        match map.save_dir(Path::new(&dir.to_string())) {
+        let saved = map.save_dir(Path::new(&dir.to_string())).and_then(|()| {
+            editor::mission_points::save_points(&self.points, Path::new(&dir.to_string()))
+        });
+        match saved {
             Ok(()) => {
                 self.display = OnceCell::new();
                 true
@@ -843,7 +854,7 @@ impl MapEditor {
     }
 
     #[func]
-    fn height_at(&self, x: f32, z: f32) -> f32 {
+    pub(crate) fn height_at(&self, x: f32, z: f32) -> f32 {
         self.map.as_ref().map_or(0.0, |m| Self::height_f32(m, x, z))
     }
 

@@ -8,7 +8,7 @@ order = 3
 faction = "de"
 briefing = """
 A Soviet outpost holds the square of a small town. Take it with your Panzer IV \
-platoon and the riflemen, then stop the Soviet relief from the north."""
+company and the riflemen, then stop the Soviet relief from the north."""
 player = 0
 biome = "winter"
 elimination = false
@@ -18,10 +18,10 @@ player = 1
 difficulty = "passive"
 
 [[group]]
-name = "platoon"
+name = "company"
 owner = 0
 unit = "de_pz4_h"
-count = 3
+count = 4
 at = "south_entry"
 
 [[group]]
@@ -35,8 +35,15 @@ position_m = [0, 275]
 name = "outpost"
 owner = 1
 unit = "su_inf_rifle_squad"
-count = 2
+count = 1
 at = "square_south"
+
+[[group]]
+name = "outpost"
+owner = 1
+unit = "su_t70m"
+count = 1
+position_m = [20, 0]
 
 [[objective]]
 id = "square"
@@ -64,7 +71,7 @@ actions = [
   { do = "objective", objective = "square", state = "done" },
   { do = "text", text = "The square is ours. Soviet tanks approach from the north!" },
   { do = "spawn", group = "relief", owner = 1, unit = "su_t34_76_1943", count = 2, at = "north_entry" },
-  { do = "order", group = "relief", to = "square", order = "advance" },
+  { do = "order", group = "relief", to = "square", order = "move" },
   { do = "objective", objective = "relief", state = "active" },
   { do = "camera", at = "north_entry" },
 ]

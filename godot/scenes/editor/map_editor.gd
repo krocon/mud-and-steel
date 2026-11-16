@@ -68,6 +68,10 @@ var place_kind := "env_house_farm:Intact"
 var place_heading := 0
 ## Compound of the "compound" tool (prompt 059, data/compounds.toml).
 var compound_name := "hut_yard"
+## Name of the next trigger area or spawn point (prompt 039; empty: numbered).
+var mission_point_name := ""
+## Trigger areas and spawn points drawn (self-test).
+var mission_points_drawn := 0
 ## Counters for the self-test.
 var strokes := 0
 var world_rebuilds := 0
@@ -82,6 +86,8 @@ var _cursor_mesh: ImmediateMesh
 var _start_markers: Array[MeshInstance3D] = []
 ## Outlines of the strongpoint markers (prompt 052).
 var _strongpoint_mesh: MeshInstance3D
+## Trigger areas and spawn points with their names (prompt 039).
+var _mission_root: Node3D
 var _hover: Variant = null
 ## Road tool (prompt 060): the previous dab and the road level there.
 var _road_from := Vector3.ZERO
@@ -164,6 +170,8 @@ func stroke_begin(point: Vector3) -> void:
 			if editor.remove_strongpoints(point.x, point.z, EditorData.STRONGPOINT_PICK_M) == 0:
 				editor.add_strongpoint(point.x, point.z)
 			_update_strongpoints()
+		"mission_area", "mission_spawn":
+			_mission_point_click(point)
 		"compound":
 			if editor.place_compound(compound_name, point.x, point.z, place_heading) < 0:
 				set_status(editor.last_error(), true)
@@ -439,7 +447,7 @@ func _draw_cursor() -> void:
 	if _hover == null:
 		return
 	var center: Vector3 = _hover
-	var r := radius if tool not in ["place", "compound"] + EditorData.START_TOOLS else 3.0
+	var r := radius if tool not in ["place", "compound", "mission_spawn"] + EditorData.START_TOOLS else 3.0
 	_cursor_mesh.surface_begin(Mesh.PRIMITIVE_LINE_STRIP)
 	for k in 49:
 		var angle := TAU * k / 48.0
@@ -491,6 +499,7 @@ func _update_starts() -> void:
 		add_child(marker)
 		_start_markers.append(marker)
 	_update_strongpoints()
+	_update_mission_points()
 
 
 ## Outlines of the strongpoints the map's markers make in a match (prompt
@@ -535,3 +544,64 @@ func _update_strongpoints() -> void:
 		mesh.surface_end()
 	_strongpoint_mesh.mesh = mesh
 	strongpoint_outlines = editor.strongpoints().size()
+
+
+# --- Mission places (prompt 039) ---------------------------------------------
+
+
+## A click of a mission tool: removes the areas under the point and the
+## spawn points near it, or adds one (saved with the map as
+## `mission_points.toml`; not part of undo [provisional]).
+func _mission_point_click(point: Vector3) -> void:
+	if editor.remove_mission_points(point.x, point.z, EditorData.MISSION_PICK_M) > 0:
+		set_status("Mission place removed.")
+	elif tool == "mission_area":
+		var added: String = editor.add_mission_area(point.x, point.z, radius, mission_point_name)
+		set_status("Trigger area '%s' (%d m) added; mission scripts name it in area = \"%s\"." % [added, roundi(radius), added])
+	else:
+		var added: String = editor.add_mission_spawn(point.x, point.z, mission_point_name)
+		set_status("Spawn point '%s' added; mission scripts name it in at = \"%s\"." % [added, added])
+	_update_mission_points()
+
+
+## Rings for trigger areas (yellow), small rings for spawn points (green),
+## each with its name.
+func _update_mission_points() -> void:
+	if _mission_root != null:
+		_mission_root.queue_free()
+	_mission_root = Node3D.new()
+	_mission_root.name = "MissionPoints"
+	add_child(_mission_root)
+	var mesh := ImmediateMesh.new()
+	var points: Array = editor.mission_points()
+	for p: Dictionary in points:
+		var at: Vector3 = p.position
+		var area: bool = p.kind == "area"
+		var color := Color(0.95, 0.8, 0.3) if area else Color(0.4, 0.95, 0.45)
+		var r: float = p.radius if area else 2.0
+		mesh.surface_begin(Mesh.PRIMITIVE_LINE_STRIP)
+		for k in 49:
+			var angle := TAU * k / 48.0
+			var x := at.x + cos(angle) * r
+			var z := at.z + sin(angle) * r
+			mesh.surface_set_color(color)
+			mesh.surface_add_vertex(Vector3(x, editor.height_at(x, z) + 0.4, z))
+		mesh.surface_end()
+		var label := Label3D.new()
+		label.text = p.name
+		label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		label.no_depth_test = true
+		label.pixel_size = 0.02
+		label.modulate = color
+		label.position = at + Vector3(0, 4.0, 0)
+		_mission_root.add_child(label)
+	var lines := MeshInstance3D.new()
+	lines.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	var material := StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.vertex_color_use_as_albedo = true
+	lines.material_override = material
+	if not points.is_empty():
+		lines.mesh = mesh
+	_mission_root.add_child(lines)
+	mission_points_drawn = points.size()
