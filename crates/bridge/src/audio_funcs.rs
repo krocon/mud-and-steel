@@ -42,4 +42,35 @@ impl SimHost {
         out.set("weapons", &weapons);
         out
     }
+
+    /// Number of buildings (box-shaped map objects from `BUILDING_HEIGHT_M`
+    /// high, ruins included) within `radius` meters of `(x, z)`. The
+    /// acoustics (prompt 053) pick the reverb of a village from it; read
+    /// only, a few times per second.
+    #[func]
+    fn buildings_near(&self, x: f32, z: f32, radius: f32) -> i64 {
+        const BUILDING_HEIGHT_M: f32 = 3.0;
+        let Some(game) = &self.game else {
+            return 0;
+        };
+        let map = game.map();
+        let kinds = map.object_kinds();
+        let r2 = radius * radius;
+        let count = map
+            .objects()
+            .iter()
+            .filter(|o| {
+                let kind = &kinds[usize::from(o.kind)];
+                if !matches!(kind.shape, sim::objects::Shape::Box { .. })
+                    || fixed_to_f32(kind.height) < BUILDING_HEIGHT_M
+                {
+                    return false;
+                }
+                let dx = fixed_to_f32(o.position.x) - x;
+                let dz = fixed_to_f32(o.position.y) - z;
+                dx * dx + dz * dz <= r2
+            })
+            .count();
+        i64::try_from(count).unwrap_or(i64::MAX)
+    }
 }

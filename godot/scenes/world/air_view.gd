@@ -11,6 +11,9 @@ extends Node3D
 ## dust come from the ordinary `hit` events (`effects.gd`). Godot
 ## randomness only scatters tracers and smoke puffs.
 
+## Every air event as read (sound, prompt 053: flak, strafing, crashes).
+signal air_event(event: Dictionary)
+
 const EffectTextures := preload("res://scenes/world/effect_textures.gd")
 const AirBar := preload("res://scenes/hud/air_bar.gd")
 const MODELS_DIR := "res://assets/models/"
@@ -381,6 +384,7 @@ func _draw_sorties() -> void:
 
 
 func _on_event(event: Dictionary) -> void:
+	air_event.emit(event)
 	match event["type"]:
 		"flak":
 			_flak(event)

@@ -132,7 +132,7 @@ oder weggelassen; es werden keine Inhalte anderer Spiele übernommen.
 | 050 | [Erfahrung und Ränge](050-erfahrung-raenge.md) | Veteranenstufen mit moderaten Boni und Abzeichen | Entwurf |
 | 051 | [KI-Kommandeur Stufe 2](051-ki-kommandeur.md) | Aufklären, Lagebild, Konter, Versorgungskrieg, Aufgeben | Entwurf |
 | 052 | [Stellungen Stufe 2](052-stellungen-stufe2.md) | Gräben, Sperrlinien, eingegrabene Panzer, Tarnnetze, Bunker | Entwurf |
-| 053 | [Sound Stufe 2](053-sound-stufe2.md) | Überschallknall, Schallverzögerung, Zoom-Akustik, Stimmen | Entwurf |
+| 053 | [Sound Stufe 2](done/053-sound-stufe2.md) | Überschallknall, Schallverzögerung, Hall, Zoom-Akustik, Flugzeuge, Brände, Stimmen-Struktur | erledigt |
 | 054 | [Explosionen Stufe 2](054-explosionen-stufe2.md) | Druckwelle, Blitzlicht, Munitionsexplosion, schwerer Feuerschlag | Entwurf |
 | 055 | [Brücken, Pioniertechnik, Luftlande](055-bruecken-pioniertechnik-luftlande.md) | Brückeneinsturz, Ertrinken, Brückenleger, Fallschirmjäger | Entwurf |
 | 056 | [Karten und Basis Stufe 2](056-karten-basis-stufe2.md) | Winterdorf, Höfe, Flussland, Punkte an Orten, Hinterhalt | Entwurf |

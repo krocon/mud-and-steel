@@ -26,6 +26,22 @@ whole number of cycles in the loop and noise is shaped in the frequency
 domain of the whole loop, so the end runs into the start without a seam.
 The file carries a `smpl` loop chunk, which Godot's importer reads.
 
+Keyed folders (prompt 053) hold files that only exist as recordings, with
+no synthesized fallback of their own:
+
+    assets-src/audio/weapon/<slug>/*        one weapon type (slug: catalog weapon
+                                            name without parentheses, lower case, every run of
+                                            other characters `_`: "MG 42" -> mg_42)
+    assets-src/audio/voice/<faction>/<callout>/*   battle voices (de, su, us;
+                                            callouts: see docs/ASSETS.md)
+
+They are prepared the same way into `godot/assets/audio/weapon/...` and
+`.../voice/...` on every full run (or with the argument `weapon` / `voice`).
+A weapon without files plays its synthesized class; a callout without
+files stays silent.
+
+    python3 tools/audio/synth.py --weapons  # list the weapon slugs of the catalog
+
 Requires numpy. Afterwards run `just import` so Godot imports new files.
 """
 
@@ -47,6 +63,9 @@ ROOT = Path(__file__).resolve().parents[2]
 AUDIO_DIR = ROOT / "godot" / "assets" / "audio"
 MANIFEST = AUDIO_DIR / "sounds.json"
 EXTERNAL_DIR = ROOT / "assets-src" / "audio"
+CATALOG_DIR = ROOT / "data" / "catalog"
+KEYED = ["weapon", "voice"]
+SOURCE_EXTENSIONS = {".wav", ".ogg", ".mp3", ".flac"}
 PEAK_DBFS = -1.0
 
 
@@ -526,6 +545,115 @@ def fire(ctx: Ctx) -> np.ndarray:
     return roar + 0.35 * crackle
 
 
+
+# --- Recipes: stage 2 (prompt 053) ------------------------------------------------
+
+
+def n_wave(n: int, length: float, at: float = 0.0) -> np.ndarray:
+    """The pressure signature of a supersonic projectile: a sudden rise, a
+    linear fall through zero and a sudden return (`length` seconds)."""
+    out = np.zeros(n)
+    i0 = samples(at)
+    m = max(2, samples(length))
+    out[i0:i0 + m] = np.linspace(1.0, -1.0, m)[:max(0, min(m, n - i0))]
+    return out
+
+
+def crack_bullet(ctx: Ctx) -> np.ndarray:
+    # The snap of a bullet passing close by: a sub-millisecond N-wave, the
+    # hiss of the air it tears, a slap from the ground.
+    n = samples(0.6)
+    snap = n_wave(n, ctx.jit(0.0005, 0.25), 0.002)
+    snap = filt(snap, hp(400)) * 1.5
+    hiss = filt(ctx.noise(n), bp(2500, 12000)) * env(n, ctx.jit(0.006), attack=0.0002, delay=0.002)
+    x = snap + 0.35 * hiss
+    return fit(reverb(x, ctx, ctx.jit(0.12), 0.25, 5000, predelay=0.008), 0.6)
+
+
+def crack_shell(ctx: Ctx) -> np.ndarray:
+    # A tank or gun shell passing: a heavier N-wave and a tearing whoosh.
+    n = samples(1.0)
+    snap = filt(n_wave(n, ctx.jit(0.0022, 0.2), 0.12), hp(150)) * 1.4
+    t = times(n)
+    swell = np.exp(-((t - 0.12) / ctx.jit(0.07)) ** 2)
+    whoosh = filt(ctx.noise(n), bp(500, 5000)) * swell
+    x = snap + 0.45 * whoosh
+    return fit(reverb(x, ctx, ctx.jit(0.25), 0.3, 3500, predelay=0.012), 1.0)
+
+
+def explosion_tail(ctx: Ctx) -> np.ndarray:
+    # The long roll of a big blast: low rumble, echoes off woods and hills.
+    seconds = 5.0
+    n = samples(seconds)
+    t = times(n)
+    roll = np.clip(t / 0.12, 0, 1) * np.exp(-t / ctx.jit(1.3))
+    x = filt(ctx.noise(n), lp(ctx.jit(260))) * roll
+    for _ in range(ctx.rng.integers(3, 6)):
+        at = ctx.rng.uniform(0.3, 2.2)
+        x += ctx.rng.uniform(0.25, 0.5) * filt(ctx.noise(n), lp(400)) * env(n, ctx.jit(0.35), attack=0.05, delay=at)
+    x += 0.5 * sweep(n, 45, 24, 0.4) * env(n, 0.8, attack=0.03)
+    return fit(x, seconds)
+
+
+def flak_burst(ctx: Ctx) -> np.ndarray:
+    # A heavy flak shell bursting high up: sharp, little body, open sky.
+    n = samples(2.6)
+    crack = filt(ctx.noise(n), hp(1000)) * env(n, 0.008, attack=0.0003)
+    body = filt(ctx.noise(n), bp(120, 2000)) * env(n, ctx.jit(0.06), attack=0.002)
+    boom = sweep(n, ctx.jit(90), ctx.jit(40), 0.05) * env(n, ctx.jit(0.12), attack=0.003)
+    x = 0.9 * crack + 1.0 * body + 0.8 * boom
+    return fit(reverb(x, ctx, ctx.jit(0.8), 0.6, 1600, predelay=0.04), 2.6)
+
+
+def prop_engine(ctx: Ctx, engines: list[tuple[float, float]], tone_lp: float, air: float) -> np.ndarray:
+    """Propeller aircraft: per engine `(blade pass Hz, level)`, the blade
+    pass with its harmonics, the cylinders' buzz four times above, and the
+    rush of air. Slightly detuned engines beat against each other."""
+    n = samples(LOOP_SECONDS)
+    t = times(n)
+    x = np.zeros(n)
+    for f, level in engines:
+        f = loop_freq(f, LOOP_SECONDS)
+        for k, a in enumerate([1.0, 0.7, 0.45, 0.3, 0.2, 0.12], start=1):
+            x += level * a * np.sin(2 * np.pi * loop_freq(f * k, LOOP_SECONDS) * t + ctx.rng.uniform(0, 2 * np.pi))
+        buzz_f = loop_freq(f * 4.0, LOOP_SECONDS)
+        buzz = np.sign(np.sin(2 * np.pi * buzz_f * t)) * (0.6 + 0.4 * np.sin(2 * np.pi * f * t))
+        x += level * 0.25 * filt(buzz, lp(1800))
+    rush = circular_noise(ctx, n, bp(300, 4000))
+    x = x / (np.std(x) + 1e-9) + air * rush / (np.std(rush) + 1e-9)
+    return filt(x, lp(tone_lp))
+
+
+def engine_aircraft(ctx: Ctx) -> np.ndarray:
+    return prop_engine(ctx, [(ctx.jit(68, 0.03), 1.0)], 3200, 0.45)
+
+
+def engine_bomber(ctx: Ctx) -> np.ndarray:
+    base = ctx.jit(46, 0.03)
+    return prop_engine(ctx, [(base, 1.0), (base + 0.75, 0.9), (base + 1.5, 0.6)], 2200, 0.35)
+
+
+def fire_large(ctx: Ctx) -> np.ndarray:
+    # A burning house or wood: a deep roar that swells with the draught,
+    # dense crackle and timber popping.
+    seconds = 8.0
+    n = samples(seconds)
+    t = times(n)
+    roar = circular_noise(ctx, n, lp(280))
+    roar /= np.std(roar) + 1e-9
+    roar *= 0.7 + 0.2 * np.sin(2 * np.pi * loop_freq(0.25, seconds) * t) + 0.1 * np.sin(2 * np.pi * loop_freq(0.9, seconds) * t + 2.0)
+    count = int(55 * seconds)
+    ir_n = samples(0.012)
+    ir = ctx.noise(ir_n) * np.exp(-times(ir_n) / 0.002)
+    crackle = filt(circular_place(n, ctx.rng.uniform(0, n, count), ctx.rng.exponential(0.5, count), ir), bp(700, 4500))
+    crackle /= np.std(crackle) + 1e-9
+    pops_n = int(1.2 * seconds)
+    pop_ir_n = samples(0.08)
+    pop_ir = filt(np.concatenate([ctx.noise(pop_ir_n), np.zeros(pop_ir_n)]), lp(1500))[:pop_ir_n] * np.exp(-times(pop_ir_n) / 0.02)
+    pops = circular_place(n, ctx.rng.uniform(0, n, pops_n), ctx.rng.uniform(0.5, 1.0, pops_n), pop_ir)
+    pops /= np.std(pops) + 1e-9
+    return 1.2 * roar + 0.4 * crackle + 0.25 * pops
+
 # --- Recipes: UI ---------------------------------------------------------------------
 
 
@@ -609,6 +737,7 @@ RECIPES = {name: globals()[name] for name in [
     "building_collapse", "tree_fall", "wall_break", "fence_crush", "engine_wheel", "engine_halftrack",
     "engine_track_light", "engine_track_heavy", "tracks", "fire", "ui_click", "ui_select", "ui_order",
     "ui_build_complete", "ui_unit_ready", "ui_under_attack", "ui_unit_lost", "ui_victory", "ui_defeat",
+    "crack_bullet", "crack_shell", "explosion_tail", "flak_burst", "engine_aircraft", "engine_bomber", "fire_large",
 ]}
 
 
@@ -676,7 +805,60 @@ def class_seed(name: str, variant: int) -> int:
     return (sum(ord(c) * 131 ** i for i, c in enumerate(name)) + variant * 7919) % (2 ** 32)
 
 
+def weapon_slug(name: str) -> str:
+    """Folder name of a catalog weapon (same rule as `sound_classes.gd`):
+    without parentheses (mounts: "Browning M2HB (AA)" -> browning_m2hb)."""
+    import re
+    out, gap = [], False
+    for c in re.sub(r"\([^)]*\)", " ", name).lower():
+        if c.isascii() and c.isalnum():
+            if gap and out:
+                out.append("_")
+            out.append(c)
+            gap = False
+        else:
+            gap = True
+    return "".join(out)
+
+
+def list_weapons() -> int:
+    """Prints every catalog weapon with a caliber: slug, name, files."""
+    import re
+    seen: dict[str, str] = {}
+    for path in sorted(CATALOG_DIR.glob("*.toml")):
+        for m in re.finditer(r'\{\s*name\s*=\s*"([^"]+)"[^}]*caliber_mm_x10', path.read_text()):
+            seen.setdefault(weapon_slug(m.group(1)), m.group(1))
+    for slug in sorted(seen):
+        folder = EXTERNAL_DIR / "weapon" / slug
+        count = len([p for p in folder.glob("*") if p.suffix.lower() in SOURCE_EXTENSIONS]) if folder.is_dir() else 0
+        print(f"{slug:28s} {seen[slug]:28s} {count} file(s) in assets-src/audio/weapon/{slug}/")
+    return 0
+
+
+def prepare_keyed(kind: str) -> int:
+    """Prepares `assets-src/audio/<kind>/**` into `godot/assets/audio/<kind>/**`
+    (one folder per weapon or per faction and callout). Returns the files."""
+    src_root = EXTERNAL_DIR / kind
+    out_root = AUDIO_DIR / kind
+    if out_root.is_dir():
+        for old in out_root.rglob("*.wav"):
+            old.unlink()
+    total = 0
+    if not src_root.is_dir():
+        return 0
+    for path in sorted(src_root.rglob("*")):
+        if path.suffix.lower() not in SOURCE_EXTENSIONS:
+            continue
+        rel = path.parent.relative_to(src_root)
+        write_wav(out_root / rel / f"ext_{path.stem}.wav", finish(trim_leading(read_external(path)), False), False)
+        total += 1
+    print(f"{kind:20s} {total} file(s) (external, keyed)")
+    return total
+
+
 def main(argv: list[str]) -> int:
+    if "--weapons" in argv:
+        return list_weapons()
     extra_dir = None
     if "--wav-dir" in argv:
         i = argv.index("--wav-dir")
@@ -684,9 +866,12 @@ def main(argv: list[str]) -> int:
         argv = argv[:i] + argv[i + 2:]
     manifest = json.loads(MANIFEST.read_text())
     classes = manifest["classes"]
-    wanted = argv or list(classes)
+    wanted = argv or list(classes) + KEYED
     total = 0
     for name in wanted:
+        if name in KEYED:
+            total += prepare_keyed(name)
+            continue
         if name not in classes:
             raise SystemExit(f"unknown sound class '{name}' (see {MANIFEST})")
         spec = classes[name]
@@ -715,7 +900,7 @@ def main(argv: list[str]) -> int:
             total += 1
         print(f"{name:20s} {len(files)} file(s){' (external)' if external else ''}")
     # Import files of variants that no longer exist.
-    for stale in AUDIO_DIR.glob("*/*.wav.import"):
+    for stale in AUDIO_DIR.rglob("*.wav.import"):
         if not stale.with_suffix("").exists():
             stale.unlink()
     print(f"{total} files in {AUDIO_DIR.relative_to(ROOT)}; run `just import` next")

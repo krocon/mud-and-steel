@@ -136,6 +136,47 @@ static func caliber_gain_db(caliber: float) -> float:
 	return clampf(20.0 * log(clampf(caliber / 75.0, 0.5, 2.0)) / log(10.0), -6.0, 6.0)
 
 
+## Folder of real recordings of a catalog weapon (prompt 053,
+## `assets/audio/weapon/<slug>/`): the name without parentheses, lower
+## case, every run of other characters one `_` ("MG 42" → `mg_42`,
+## "Browning M2HB (AA)" → `browning_m2hb`). Same rule as
+## `tools/audio/synth.py --weapons`.
+static func weapon_slug(weapon_name: String) -> String:
+	var text := weapon_name
+	while text.contains("(") and text.find(")", text.find("(")) > 0:
+		var open := text.find("(")
+		text = text.substr(0, open) + " " + text.substr(text.find(")", open) + 1)
+	var out := ""
+	var gap := false
+	for c in text.to_lower():
+		var code := c.unicode_at(0)
+		if (code >= 48 and code <= 57) or (code >= 97 and code <= 122):
+			if gap and not out.is_empty():
+				out += "_"
+			out += c
+			gap = false
+		else:
+			gap = true
+	return out
+
+
+## Pitch of a blast by caliber (prompt 053): larger charges sound lower,
+## 75 mm = 1.0, 150 mm ≈ 0.87, 37 mm ≈ 1.12 (0.75 .. 1.2).
+static func blast_pitch(caliber: float) -> float:
+	if caliber < SMALL_ARMS_MM:
+		return 1.0
+	return clampf(pow(75.0 / caliber, 0.2), 0.75, 1.2)
+
+
+## Level of the long `explosion_tail` of a blast (dB), or NAN for none:
+## shells from `TAIL_MM`, louder with caliber.
+const TAIL_MM := 100.0
+static func blast_tail_db(caliber: float) -> float:
+	if caliber < TAIL_MM:
+		return NAN
+	return clampf(20.0 * log(caliber / 150.0) / log(10.0), -6.0, 9.0)
+
+
 static func _has_any(text: String, words: Array[String]) -> bool:
 	for word in words:
 		if text.contains(word):
