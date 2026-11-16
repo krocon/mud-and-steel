@@ -19,6 +19,7 @@ mod combat;
 mod craters;
 mod destruction;
 mod economy;
+mod fire;
 mod indirect;
 mod infantry;
 mod orders;
@@ -104,6 +105,8 @@ pub enum ConfigError {
     Economy(String),
     /// The built-in indirect fire rules do not parse (prompt 032).
     Indirect(String),
+    /// The built-in fire rules do not parse (prompt 041).
+    Fire(String),
 }
 
 impl fmt::Display for ConfigError {
@@ -120,7 +123,7 @@ impl fmt::Display for ConfigError {
             Self::SpawnOutsideMap(index) => write!(f, "spawn {index} lies outside the map"),
             Self::TooManyPlayers(n) => write!(f, "{n} players, at most {MAX_PLAYERS} allowed"),
             Self::Destruction(e) | Self::Economy(e) => write!(f, "{e}"),
-            Self::Craters(e) | Self::Indirect(e) => write!(f, "{e}"),
+            Self::Craters(e) | Self::Indirect(e) | Self::Fire(e) => write!(f, "{e}"),
         }
     }
 }
@@ -372,6 +375,8 @@ pub struct Sim {
     economy: economy::Economy,
     /// Indirect fire, shells and smoke (prompt 032).
     artillery: indirect::Artillery,
+    /// Burning objects and wrecks (prompt 041).
+    fire: fire::Fire,
 }
 
 impl Sim {
@@ -478,6 +483,13 @@ impl Sim {
             &config.unit_types,
             config.tick_hz,
         );
+        let fire = fire::Fire::new(
+            crate::fire::FireRules::builtin().map_err(|e| ConfigError::Fire(e.to_string()))?,
+            &map,
+            &config.terrain,
+            config.tick_hz,
+        )
+        .map_err(ConfigError::Fire)?;
         let grid = PathGrid::new(&map, &config.terrain, &config.unit_types);
         let mut sim = Self {
             tick: 0,
@@ -502,6 +514,7 @@ impl Sim {
             unit_types: config.unit_types.clone(),
             economy,
             artillery,
+            fire,
         };
         sim.init_economy();
         sim.apply_destruction();
@@ -587,6 +600,7 @@ impl Sim {
         self.rebuild_unit_grid();
         self.fly_projectiles();
         self.fly_shells();
+        self.update_fire();
         done(Phase::Projectiles);
         self.apply_destruction();
         self.apply_craters();
@@ -1086,6 +1100,7 @@ impl Sim {
         self.craters.hash_into(&mut h);
         self.economy.hash_into(&mut h);
         self.artillery.hash_into(&mut h);
+        self.fire.hash_into(&mut h);
         self.hash_queues(&mut h);
         h.finish()
     }

@@ -132,6 +132,9 @@ struct Cloud {
     radius: Fixed,
     born: u64,
     expires: u64,
+    /// Dark smoke of a fire (prompt 041), not of a smoke shell.
+    #[serde(default)]
+    dark: bool,
 }
 
 /// Indirect fire and smoke of a match.
@@ -277,6 +280,10 @@ impl Artillery {
             h.write_i64(c.radius.to_bits());
             h.write_u64(c.born);
             h.write_u64(c.expires);
+            // Shell smoke hashes as before fire smoke existed.
+            if c.dark {
+                h.write_u8(1);
+            }
         }
         h.write_u64(self.smoked.len() as u64);
         for &c in &self.smoked {
@@ -314,7 +321,40 @@ impl Artillery {
             radius: c.radius,
             age_ticks: u32::try_from(tick.saturating_sub(c.born)).unwrap_or(u32::MAX),
             ticks_left: u32::try_from(c.expires.saturating_sub(tick)).unwrap_or(u32::MAX),
+            dark: c.dark,
         }));
+    }
+
+    /// Fragmentation radius of a shell of `caliber_mm_x10` (prompt 041:
+    /// exploding dumps).
+    pub(super) fn blast_radius(&self, caliber_mm_x10: u32) -> Fixed {
+        self.rules.blast_radius(caliber_mm_x10)
+    }
+
+    /// Puts the dark smoke cloud of a fire (prompt 041) at `center`, living
+    /// `ticks` from `tick`; the oldest cloud goes if there are too many.
+    /// Returns the cloud's id.
+    pub(super) fn add_fire_cloud(
+        &mut self,
+        tick: u64,
+        center: Vec2,
+        radius: Fixed,
+        ticks: u64,
+    ) -> u32 {
+        if self.clouds.len() >= self.rules.smoke.max_clouds as usize {
+            self.clouds.remove(0);
+        }
+        let id = self.next_cloud;
+        self.next_cloud = self.next_cloud.wrapping_add(1);
+        self.clouds.push(Cloud {
+            id,
+            center,
+            radius,
+            born: tick,
+            expires: tick + ticks.max(1),
+            dark: true,
+        });
+        id
     }
 }
 
@@ -752,6 +792,7 @@ impl Sim {
             radius,
             born: self.tick,
             expires: self.tick + a.smoke_ticks,
+            dark: false,
         });
         self.events.push(CombatEvent::Smoke {
             projectile: shell.id,
@@ -941,6 +982,38 @@ impl Sim {
             damage: total,
             caliber_mm_x10: caliber,
         });
+    }
+
+    /// An explosion that is no shell (prompt 041: a dump blowing up): the
+    /// blast of a high-explosive shell of `caliber_mm_x10` at `at`, credited
+    /// to `by`.
+    pub(super) fn detonate(&mut self, at: Vec3, caliber_mm_x10: u32, by: UnitId) {
+        let id = self.next_projectile;
+        self.next_projectile = self.next_projectile.wrapping_add(1);
+        let owner = self
+            .units
+            .binary_search_by_key(&by, |u| u.id)
+            .map_or(PlayerId(0), |i| self.units[i].owner);
+        let shell = Shell {
+            id,
+            shooter: by,
+            owner,
+            origin: at,
+            target: at,
+            apex: Fixed::ZERO,
+            total: 1,
+            elapsed: 1,
+            caliber_mm_x10,
+            smoke: false,
+        };
+        let mut destroyed: Vec<(usize, UnitId, Vec3)> = Vec::new();
+        self.explode(&shell, at, &mut destroyed);
+        for (j, by, at) in destroyed {
+            if self.units[j].alive() {
+                continue;
+            }
+            self.destroy(j, by, at);
+        }
     }
 
     /// Drifts the smoke clouds, dissolves old ones and puts the smoke into
