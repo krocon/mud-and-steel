@@ -6,7 +6,7 @@ extends Node
 ## (fail). Frame counts assume `--fixed-fps 60`.
 ##
 ## 1. Camera: zoom limits, pan to the map corner, 45° rotation.
-## 2. Selection: box over the whole screen selects exactly the 8 own tanks,
+## 2. Selection: box over the whole screen selects exactly the own tanks,
 ##    Ctrl+1 / 1 / 1-1 (center), click, Shift-click, enemy click, double click.
 ## 3. Orders: right click sends the group into a grid formation (speed,
 ##    spacing, center checked), enemy tanks stay put, H stops a moving group.
@@ -210,7 +210,12 @@ func _selection_test() -> void:
 	await _frames(2)
 	var own := _ids_of(true)
 	var enemy := _ids_of(false)
-	_check(own.size() == 8 and enemy.size() == 8, "expected 8 own and 8 enemy units, got %d/%d" % [own.size(), enemy.size()])
+	# Tanks per faction in battle mode (prompt 045, `[faction_count_pct]` of
+	# data/scenarios/demo.toml): 8 Panzer IV, 10 T-34, 9 M4A3.
+	var own_tanks := _expected_tanks(own)
+	var enemy_tanks := _expected_tanks(enemy)
+	_check(own_tanks > 0 and enemy_tanks > 0 and own.size() == own_tanks and enemy.size() == enemy_tanks,
+		"expected %d own and %d enemy tanks, got %d/%d" % [own_tanks, enemy_tanks, own.size(), enemy.size()])
 
 	var size := get_viewport().get_visible_rect().size
 	_drag(Vector2(4, 4), size - Vector2(4, 4))
@@ -748,6 +753,18 @@ func _ids_of(own: bool, squads := false) -> Array[int]:
 			result.append(ids[i])
 	result.sort()
 	return result
+
+
+## Tanks of a faction in battle mode (prompt 045), from the type of the
+## first of `ids`; 0 if unknown.
+func _expected_tanks(ids: Array[int]) -> int:
+	if ids.is_empty():
+		return 0
+	var counts := {"de": 8, "su": 10, "us": 9}
+	var sim_host: SimHost = main.sim_host
+	var types := sim_host.unit_type_ids()
+	var index := Array(sim_host.unit_ids()).find(ids[0])
+	return counts.get(types[index].get_slice("_", 0), 0)
 
 
 ## The tanks among `ids`, ascending.

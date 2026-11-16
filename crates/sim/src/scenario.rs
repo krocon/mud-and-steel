@@ -96,6 +96,12 @@ struct ScenarioFile {
     /// Faction id → catalog id for groups with `role = "infantry"`.
     #[serde(default)]
     faction_infantry: BTreeMap<String, String>,
+    /// Faction id → size of its tank groups in percent of `count`, applied
+    /// together with the faction swap (prompt 045: battle armies of equal
+    /// strength instead of equal numbers; the file's own units keep their
+    /// counts). Rounded up.
+    #[serde(default)]
+    faction_count_pct: BTreeMap<String, u32>,
     /// Base building (prompt 023): adds the buildings, fortifications and
     /// production lists of `data/economy.toml` for the players' factions.
     #[serde(default)]
@@ -274,6 +280,11 @@ fn parse_scenario_inner(
                 ScenarioError(format!("scenario has no units for faction '{faction}'"))
             })?;
             group.unit.clone_from(unit);
+            if group.role == Role::Tank
+                && let Some(&pct) = file.faction_count_pct.get(faction)
+            {
+                group.count = (group.count * pct).div_ceil(100);
+            }
         }
     }
 

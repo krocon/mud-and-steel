@@ -76,6 +76,15 @@ pub struct UnitCostRules {
     pub ammo_caliber_div: u32,
     pub time_base_s: u32,
     pub time_per_point_div: u32,
+    /// Prompt 045: the ammunition term of a direct-fire weapon is scaled
+    /// by its game range relative to this range (meters; 0 = no scaling),
+    /// clamped to `range_min_pct..=range_max_pct` percent.
+    #[serde(default)]
+    pub range_ref_m: u32,
+    #[serde(default)]
+    pub range_min_pct: u32,
+    #[serde(default)]
+    pub range_max_pct: u32,
 }
 
 /// A base building (not in the catalog).
@@ -254,14 +263,31 @@ impl EconomyRules {
         } else {
             0
         };
+        // Range factor in percent (prompt 045): a gun that reaches farther
+        // is worth more; indirect weapons keep 100 %.
+        let range_pct = |range_m: u32| -> u64 {
+            if r.range_ref_m == 0 {
+                return 100;
+            }
+            u64::from(
+                (range_m.saturating_mul(100) / r.range_ref_m)
+                    .clamp(r.range_min_pct, r.range_max_pct.max(r.range_min_pct)),
+            )
+        };
         let squares: u64 = combat
             .weapons
             .iter()
-            .map(|w| (w.caliber_mm_x10, w.count))
-            .chain(combat.indirect.iter().map(|w| (w.caliber_mm_x10, 1)))
-            .map(|(caliber, count)| {
+            .map(|w| {
+                (
+                    w.caliber_mm_x10,
+                    w.count,
+                    range_pct(w.range_m.to_num::<u32>()),
+                )
+            })
+            .chain(combat.indirect.iter().map(|w| (w.caliber_mm_x10, 1, 100)))
+            .map(|(caliber, count, pct)| {
                 let mm = u64::from(caliber);
-                mm * mm * u64::from(count) / 100
+                mm * mm * u64::from(count) * pct / 10_000
             })
             .sum();
         let ammo = r.ammo_base.saturating_add(
@@ -393,6 +419,9 @@ impl EconomyRules {
             u.ammo_caliber_div,
             u.time_base_s,
             u.time_per_point_div,
+            u.range_ref_m,
+            u.range_min_pct,
+            u.range_max_pct,
         ] {
             h.write_u32(v);
         }
@@ -474,7 +503,7 @@ mod tests {
     #[test]
     fn builtin_rules_parse() {
         let r = rules();
-        assert_eq!(r.account.start, [600, 600, 400]);
+        assert_eq!(r.account.start, [500, 600, 500]);
         // HQ, barracks, depot, works and the rocket battery (prompt 054).
         assert_eq!(r.buildings.len(), 5);
         assert!(matches!(

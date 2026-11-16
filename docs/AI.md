@@ -649,6 +649,17 @@ AI time per tick (both AIs, `--jobs 1`): battle (skirmish, hard vs passive, 4 ga
   decides some games on `test_small`, but the economy balance (prompt 045)
   decides the rest.
 
+### Balance (prompt 045)
+
+Prompt 045 changed rule values the AI plays with (income, start account,
+resupply cost, unit prices by range, a truck as start vehicle, more Soviet
+and US tanks in battle mode when factions are chosen); the tables above
+were measured before. Faction balance with equal AIs, the statistics per
+unit type and the new tools (`just balance`, `just duel`) are in
+[BALANCE.md](BALANCE.md). The AI weaknesses the statistics showed are
+listed there under "Open" (useless Soviet AT squads built against armor,
+lost engineers rebuilt again and again).
+
 ## Tests
 
 - `crates/ai/tests/ai.rs`: Normal and Hard beat Passive in 6 of 6 games (both

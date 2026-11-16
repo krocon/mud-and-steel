@@ -32,6 +32,8 @@ struct Played {
     think_max: Duration,
     /// Living units at the end of a timeout (`--verbose`).
     survivors: Vec<String>,
+    /// Post-match statistics (prompt 045).
+    stats: sim::stats::MatchStats,
 }
 
 /// Summary of a series of `a` against `b`.
@@ -50,6 +52,70 @@ pub struct Summary {
     pub think_us_per_tick: u64,
     pub think_max_us: u64,
     pub hash: u64,
+    /// Prompt 045: statistics summed over all games.
+    pub balance: Balance,
+}
+
+/// Statistics of a series by faction and unit type (prompt 045).
+#[derive(Default)]
+pub struct Balance {
+    /// Faction id -> (games played, games won). A mirror match counts
+    /// both players.
+    pub factions: std::collections::BTreeMap<String, (u64, u64)>,
+    /// Unit type -> counts summed over all games and players.
+    pub types: std::collections::BTreeMap<String, sim::stats::TypeCounts>,
+    /// Faction -> sum over games of the account at the end and of the
+    /// income at the end, and supply points taken.
+    pub economy: std::collections::BTreeMap<String, EconomySums>,
+}
+
+#[derive(Default, Clone, Copy)]
+pub struct EconomySums {
+    pub players: u64,
+    pub account: [u64; 3],
+    pub income: [u64; 3],
+    pub points_captured: u64,
+    pub produced_value: u64,
+    pub lost_value: u64,
+}
+
+impl Balance {
+    fn add(
+        &mut self,
+        stats: &sim::stats::MatchStats,
+        winner: Option<PlayerId>,
+        config: &SimConfig,
+    ) {
+        for p in stats.players() {
+            let faction = p.faction.unwrap_or("?").to_string();
+            let entry = self.factions.entry(faction.clone()).or_default();
+            entry.0 += 1;
+            if winner.is_some_and(|w| config.teams.allied(w, p.player)) {
+                entry.1 += 1;
+            }
+            for (&t, c) in &p.types {
+                let sum = self
+                    .types
+                    .entry(stats.type_name(t).to_string())
+                    .or_default();
+                sum.produced += c.produced;
+                sum.lost += c.lost;
+                sum.kills += c.kills;
+                sum.kill_value += c.kill_value;
+            }
+            let e = self.economy.entry(faction).or_default();
+            e.players += 1;
+            if let Some(last) = p.samples.last() {
+                for i in 0..3 {
+                    e.account[i] += u64::from(last.account[i]);
+                    e.income[i] += u64::from(last.income[i]);
+                }
+            }
+            e.points_captured += u64::from(p.points_captured);
+            e.produced_value += p.produced_value;
+            e.lost_value += p.lost_value;
+        }
+    }
 }
 
 fn play(
@@ -122,6 +188,7 @@ fn play(
             }
         }
     }
+    game.finish_stats();
     let result = game.result();
     let survivors = if result.decided_tick.is_none() {
         survivors(game.sim(), config)
@@ -134,6 +201,7 @@ fn play(
         think,
         think_max,
         survivors,
+        stats: game.stats().clone(),
     }
 }
 
@@ -209,6 +277,7 @@ pub fn series(
         think_us_per_tick: 0,
         think_max_us: 0,
         hash: 0,
+        balance: Balance::default(),
     };
     let mut hasher = StableHasher::default();
     let mut ticks_sum = 0u64;
@@ -219,6 +288,7 @@ pub fn series(
     for p in &played {
         let r = &p.result;
         r.hash_into(&mut hasher);
+        summary.balance.add(&p.stats, r.winner, config);
         let label = match (r.decided_tick, r.winner) {
             (None, _) => {
                 summary.timeouts += 1;

@@ -39,6 +39,7 @@ pub mod scale;
 pub mod scenario;
 mod sim;
 pub mod snapshot;
+pub mod stats;
 pub mod strike;
 pub mod tactics;
 pub mod teams;

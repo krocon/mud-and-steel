@@ -499,8 +499,9 @@ func _combat_victory_test(main: Node3D) -> void:
 		else:
 			enemies.append(ids[i])
 	_check(main.atmosphere.preset.id == "winter", "biome is %s, not winter" % main.atmosphere.preset.id)
-	# Eight tanks and two rifle squads per side (prompt 022).
-	_check(own.size() == 10 and enemies.size() == 10, "expected 10 units per side")
+	# Two rifle squads per side (prompt 022) and the tanks of the faction
+	# (prompt 045: 9 M4A3 against 8 Panzer IV).
+	_check(own.size() == 11 and enemies.size() == 10, "expected 11 own and 10 enemy units, got %d/%d" % [own.size(), enemies.size()])
 	# Everyone starts with hold fire in the self-test: the own units attack
 	# one enemy after the other until none is left.
 	var game_menu: CanvasLayer = main.game_menu
@@ -525,6 +526,14 @@ func _combat_victory_test(main: Node3D) -> void:
 	_check(game_menu.result_title.text == "VICTORY", "result shows '%s'" % game_menu.result_title.text)
 	_check(game_menu.result_reason.text == "All enemy units were destroyed.", "result reason '%s'" % game_menu.result_reason.text)
 	_check(game_menu.result_details.text.contains("Germany: 0 units left – eliminated"), "result details: %s" % game_menu.result_details.text)
+	# Prompt 045: statistics on the result screen and as JSON.
+	_check(game_menu.result_stats.text.contains("enemies destroyed"), "result statistics: %s" % game_menu.result_stats.text)
+	_check(FileAccess.file_exists(game_menu.stats_path), "statistics JSON not written: '%s'" % game_menu.stats_path)
+	var stats_json: Variant = JSON.parse_string(FileAccess.get_file_as_string(game_menu.stats_path))
+	_check(stats_json is Dictionary and (stats_json["players"] as Array).size() == 2, "statistics JSON does not parse")
+	var own_stats: Dictionary = (host.match_stats() as Array)[host.local_player()]
+	_check(int(own_stats["kills"]) > 0, "no kills counted for the local player: %s" % own_stats)
+	print("flow self-test: statistics ok (%s)" % game_menu.result_stats.text.replace("\n", "; "))
 	print("flow self-test: combat victory ok at tick %d (%s)" % [result["tick"], game_menu.result_details.text.replace("\n", "; ")])
 
 

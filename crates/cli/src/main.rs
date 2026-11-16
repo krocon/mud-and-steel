@@ -1,9 +1,11 @@
 //! Headless runner: simulates the demo scenario without graphics.
 
 mod ai_tournament;
+mod balance;
 mod bench;
 mod catalog_doc;
 mod crater_bench;
+mod duel;
 mod fire_bench;
 mod gen_land;
 mod gen_map;
@@ -208,6 +210,62 @@ enum CliCommand {
         ticks: u64,
         #[arg(long, default_value_t = 1)]
         seed: u64,
+    },
+    /// AI tournaments over faction pairings, maps and modes with the match
+    /// statistics (prompt 045): prints Markdown tables for docs/BALANCE.md.
+    Balance {
+        /// Maps in data/maps/ (default: every map).
+        #[arg(long, value_delimiter = ',')]
+        maps: Vec<String>,
+        #[arg(long, value_delimiter = ',', default_value = "battle,base")]
+        modes: Vec<String>,
+        /// Faction pairings, e.g. `de-su,de-us,su-us` (mirrors: `de-de`).
+        #[arg(long, value_delimiter = ',', default_value = "de-su,de-us,su-us")]
+        pairs: Vec<String>,
+        #[arg(long, default_value = "hard")]
+        a: ai::Difficulty,
+        #[arg(long, default_value = "hard")]
+        b: ai::Difficulty,
+        /// Games per row (half with each faction as player 0).
+        #[arg(long, default_value_t = 10)]
+        games: u64,
+        #[arg(long, default_value_t = 1)]
+        seed: u64,
+        /// Timeout of battle games (default 10 min).
+        #[arg(long, default_value_t = 12_000)]
+        battle_ticks: u64,
+        /// Timeout of base games (default 20 min).
+        #[arg(long, default_value_t = 24_000)]
+        base_ticks: u64,
+        #[arg(long)]
+        jobs: Option<usize>,
+        /// Also write the report to this file.
+        #[arg(long)]
+        out: Option<PathBuf>,
+    },
+    /// One unit against another on flat open ground over distances and
+    /// angles (prompt 045, docs/BALANCE.md): prints a Markdown table.
+    Duel {
+        /// Catalog id of unit A (stands at the given distance and angle).
+        #[arg(long)]
+        a: String,
+        /// Catalog id of unit B (at the center, hull facing north).
+        #[arg(long)]
+        b: String,
+        /// Distances in meters.
+        #[arg(long, value_delimiter = ',', default_value = "100,200,300,400")]
+        distances: Vec<u32>,
+        /// Where A stands relative to B's hull, in degrees (0 front, 90
+        /// side, 180 rear).
+        #[arg(long, value_delimiter = ',', default_value = "0,45,90,180")]
+        angles: Vec<u32>,
+        #[arg(long, default_value_t = 20)]
+        runs: u64,
+        #[arg(long, default_value_t = 1)]
+        seed: u64,
+        /// A duel not decided after this many game seconds is undecided.
+        #[arg(long, default_value_t = 120)]
+        max_s: u64,
     },
     /// Computer players against each other over many seeds (prompt 024):
     /// sides alternate every game; prints the results and a hash over them.
@@ -674,6 +732,66 @@ fn main() {
                 Err(e) => fail(&e),
             }
         }
+        CliCommand::Balance {
+            maps,
+            modes,
+            pairs,
+            a,
+            b,
+            games,
+            seed,
+            battle_ticks,
+            base_ticks,
+            jobs,
+            out,
+        } => {
+            let maps = if maps.is_empty() { all_maps() } else { maps };
+            let options = balance::BalanceOptions {
+                maps,
+                modes,
+                pairs,
+                a,
+                b,
+                games,
+                seed,
+                battle_ticks,
+                base_ticks,
+                jobs: jobs.unwrap_or_else(|| {
+                    std::thread::available_parallelism().map_or(1, std::num::NonZero::get)
+                }),
+            };
+            let start = std::time::Instant::now();
+            let report = balance::run(&options);
+            print!("{report}");
+            println!("{:.1} s", start.elapsed().as_secs_f64());
+            if let Some(path) = out {
+                std::fs::write(&path, &report)
+                    .unwrap_or_else(|e| fail(&format!("cannot write {}: {e}", path.display())));
+            }
+        }
+        CliCommand::Duel {
+            a,
+            b,
+            distances,
+            angles,
+            runs,
+            seed,
+            max_s,
+        } => {
+            let options = duel::Options {
+                a,
+                b,
+                distances,
+                angles,
+                runs,
+                seed,
+                max_s,
+            };
+            match duel::run(&options) {
+                Ok(cells) => print!("{}", duel::table(&options, &cells)),
+                Err(e) => fail(&e),
+            }
+        }
         CliCommand::AiTournament {
             a,
             b,
@@ -1019,6 +1137,20 @@ fn team_tournament_config(
         map,
     )
     .map_err(|e| e.0)
+}
+
+/// Names of every map in data/maps/, sorted.
+fn all_maps() -> Vec<String> {
+    let mut names: Vec<String> = std::fs::read_dir(MAPS_DIR)
+        .map(|dir| {
+            dir.filter_map(Result::ok)
+                .filter(|e| e.path().join("map.toml").exists())
+                .filter_map(|e| e.file_name().into_string().ok())
+                .collect()
+        })
+        .unwrap_or_default();
+    names.sort();
+    names
 }
 
 /// The map with this name: `data/maps/<name>/` if it exists, else the

@@ -401,6 +401,16 @@ infantry-view-bench: build
 ai-tournament *args="--matrix":
     cargo run -q --release -p cli -- ai-tournament {{ args }}
 
+# Faction balance (prompt 045, docs/BALANCE.md): AI tournaments over faction pairings, maps and modes, e.g. `just balance --maps test_small,skirmish --modes base --games 10`
+[group('ai')]
+balance *args:
+    cargo run -q --release -p cli -- balance {{ args }}
+
+# One unit against another over distances and angles (prompt 045), e.g. `just duel --a de_pz4_h --b su_t34_76_1943`
+[group('ai')]
+duel *args:
+    cargo run -q --release -p cli -- duel {{ args }}
+
 # Build the bridge and start the game with the path debug view on (F4 costs, F5 paths)
 [group('pathfinding')]
 run-paths map="test_small": build

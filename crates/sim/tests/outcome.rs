@@ -184,10 +184,22 @@ fn factions_replace_the_units_of_a_player() {
     )
     .unwrap();
     let demo = demo_config();
-    assert_eq!(config.spawns.len(), demo.spawns.len());
-    for (spawn, original) in config.spawns.iter().zip(&demo.spawns) {
-        assert_eq!(spawn.position, original.position);
-        let infantry = original.unit_type.contains("_inf_");
+    // Prompt 045: tank groups get the faction's share of `count`
+    // (`[faction_count_pct]`: us 112 % of 8 = 9, de unchanged); infantry
+    // keeps its count. Positions of the units of the file stay.
+    let tanks = |owner: PlayerId, c: &sim::SimConfig| -> Vec<sim::Spawn> {
+        c.spawns
+            .iter()
+            .filter(|s| s.owner == owner && !s.unit_type.contains("_inf_"))
+            .cloned()
+            .collect()
+    };
+    assert_eq!(tanks(P0, &config).len(), 9);
+    assert_eq!(tanks(P1, &config).len(), 8);
+    assert_eq!(config.spawns.len(), demo.spawns.len() + 1);
+    let mut originals: Vec<&sim::Spawn> = demo.spawns.iter().collect();
+    for spawn in &config.spawns {
+        let infantry = spawn.unit_type.contains("_inf_");
         let expected = match (spawn.owner == P0, infantry) {
             (true, false) => "us_m4a3_75",
             (false, false) => "de_pz4_h",
@@ -195,7 +207,21 @@ fn factions_replace_the_units_of_a_player() {
             (false, true) => "de_inf_rifle_squad",
         };
         assert_eq!(spawn.unit_type, expected);
+        // Every unit keeps its place, except the tanks of the group that
+        // grew: its grid (one more row) is centered on the same point.
+        if spawn.owner == P0 && !infantry {
+            let center = sim::Vec2::from_meters(0, 60);
+            assert!((spawn.position - center).length() < sim::Fixed::from_num(30));
+        } else {
+            let i = originals
+                .iter()
+                .position(|o| o.owner == spawn.owner && o.position == spawn.position)
+                .unwrap_or_else(|| panic!("{spawn:?} moved"));
+            originals.remove(i);
+        }
     }
+    originals.retain(|o| o.owner != P0 || o.unit_type.contains("_inf_"));
+    assert!(originals.is_empty(), "units missing: {originals:?}");
     Sim::new(&config, builtin_map(), 1).unwrap();
 
     // No override: exactly the demo.
