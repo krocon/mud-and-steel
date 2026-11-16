@@ -62,3 +62,6 @@ treat_ms = 30000
 # with this chance. The survivors bail out beside the wreck as a squad of
 # their faction's tank crew type (`<faction>_inf_tank_crew`).
 survive_pct = 50
+# The crew then withdraws this far, away from whoever destroyed the vehicle
+# (out of the fight, towards the rear); the player may order it elsewhere.
+withdraw_mm = 150000

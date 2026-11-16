@@ -258,8 +258,12 @@ recruits are pulled back as before (Hard below 30 %, Normal never). Test:
 Crews that bailed out of destroyed vehicles (catalog `inf_crew`) are no
 target and no objective for the AI (`TypeInfo::crew`: left out of the
 enemies of a group and of the memory of sightings), and its own crews have
-the role `Unarmed` (they stay where they are). Without that, tanks spent
-minutes firing at prone crews in the AI tests while the real enemy waited.
+the role `Unarmed` and walk back home. Without that, tanks spent minutes
+firing at prone crews in the AI tests while the real enemy waited. The
+simulation itself lets crews withdraw 150 m from the fight: crews left
+between the lines caught the rounds meant for the tanks behind them
+(Easy against Passive won only 65 % of 40 games instead of 92 %; with the
+withdrawal 97 %).
 Crews do not count for elimination either. [provisional]
 
 ## Engineers (prompt 035)

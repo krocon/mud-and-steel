@@ -681,7 +681,8 @@ All values [provisional].
   (group vehicle) survives with 50 %; the survivors bail out behind or
   beside the wreck as a squad of `<faction>_inf_tank_crew` (5 places,
   submachine gun and pistols; the missing men are `Gone`: no hit points,
-  not drawn). Scenarios add the crew types to the match
+  not drawn) and withdraw 150 m away from whoever destroyed the vehicle
+  (an order of the player overrides it). Scenarios add the crew types to the match
   (`sim::care::crew_types`). Crews do not keep a player in the match
   (`Sim::alive_units` leaves them out) and the AI neither hunts them nor
   sends its own into the fight. No re-crewing of vehicles, no prisoners

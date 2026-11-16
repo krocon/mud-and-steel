@@ -56,6 +56,7 @@ pub struct MedicRules {
 #[serde(deny_unknown_fields)]
 pub struct CrewRules {
     pub survive_pct: u32,
+    pub withdraw_mm: u32,
 }
 
 /// Rules of `data/care.toml`.
@@ -96,6 +97,7 @@ impl CareRules {
         check("medic.stretcher_speed_pct", m.stretcher_speed_pct, 10, 100)?;
         check("medic.treat_ms", m.treat_ms, 0, 600_000)?;
         check("crew.survive_pct", r.crew.survive_pct, 0, 100)?;
+        check("crew.withdraw_mm", r.crew.withdraw_mm, 0, 2_000_000)?;
         Ok(r)
     }
 
@@ -123,6 +125,7 @@ impl CareRules {
             m.stretcher_speed_pct,
             m.treat_ms,
             self.crew.survive_pct,
+            self.crew.withdraw_mm,
         ] {
             h.write_u32(v);
         }

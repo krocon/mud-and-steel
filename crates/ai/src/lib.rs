@@ -288,6 +288,9 @@ const RETREAT_M: i32 = 80;
 /// Orders are repeated after this many ticks: units drop attack orders on
 /// targets they lose sight of, and moves can end early.
 const REISSUE_TICKS: u64 = 100;
+/// Own bailed-out crews farther than this from home walk back (prompt 049).
+const CREW_HOME_M: i32 = 40;
+
 /// Groups engage enemies within this share of their sight range (percent).
 const ENGAGE_SIGHT_PCT: i64 = 100;
 
@@ -646,10 +649,28 @@ impl Ai {
             match role {
                 Role::Armor | Role::Infantry => self.command_group(role, &units, view, &mut out),
                 Role::Artillery => self.command_artillery(&units, view, &mut out),
-                Role::Unarmed | Role::Structure | Role::Transport | Role::Gun | Role::Engineer => {}
+                Role::Unarmed => self.send_crews_home(&units, &mut out),
+                Role::Structure | Role::Transport | Role::Gun | Role::Engineer => {}
             }
         }
         out
+    }
+
+    /// Bailed-out crews (prompt 049) walk back home out of the fight: left
+    /// at their wrecks they stood in the line of fire of the own tanks.
+    fn send_crews_home(&self, units: &[OwnUnit], out: &mut Vec<Command>) {
+        let crews: Vec<UnitId> = units
+            .iter()
+            .filter(|u| self.type_info(u.unit_type).crew && u.target.is_none())
+            .filter(|u| dist(u.position, self.home) > Fixed::from_num(CREW_HOME_M))
+            .map(|u| u.id)
+            .collect();
+        if !crews.is_empty() {
+            out.push(Command::MoveTo {
+                units: crews,
+                target: self.home,
+            });
+        }
     }
 
     /// Heads for the nearest home of an undefeated enemy that was not

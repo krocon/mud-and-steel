@@ -929,15 +929,15 @@ impl Sim {
 
     /// Survivors of the vehicles destroyed this tick bail out.
     fn bail_out_crews(&mut self) {
-        let destroyed: Vec<UnitId> = self
+        let destroyed: Vec<(UnitId, UnitId)> = self
             .events
             .iter()
             .filter_map(|e| match *e {
-                CombatEvent::Destroyed { unit, .. } => Some(unit),
+                CombatEvent::Destroyed { unit, by, .. } => Some((unit, by)),
                 _ => None,
             })
             .collect();
-        for vehicle in destroyed {
+        for (vehicle, by) in destroyed {
             let Some(j) = self.care_index(vehicle) else {
                 continue;
             };
@@ -988,6 +988,28 @@ impl Sim {
             }
             new.hp = squad.soldiers.iter().map(|s| s.hp).sum();
             let crew_id = new.id;
+            // They withdraw away from whoever destroyed their vehicle, out of
+            // the fight (otherwise they stood between the lines and caught
+            // the rounds meant for the tanks behind them).
+            let from = self
+                .care_index(by)
+                .filter(|&k| k != j)
+                .map_or(at - away, |k| self.units[k].position);
+            let back = at - from;
+            let len = back.length();
+            if len > Fixed::ZERO {
+                let size = self.map.size();
+                let margin = Fixed::from_num(10);
+                let (hx, hy) = (size.x / 2 - margin, size.y / 2 - margin);
+                let goal = at
+                    + Vec2::new(back.x / len, back.y / len).scale(mm(self
+                        .care
+                        .rules
+                        .crew
+                        .withdraw_mm));
+                let goal = Vec2::new(goal.x.clamp(-hx, hx), goal.y.clamp(-hy, hy));
+                self.send(index, goal);
+            }
             self.care.active = true;
             self.care.events.push(CareEvent::BailedOut {
                 vehicle,
