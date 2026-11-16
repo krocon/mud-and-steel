@@ -22,9 +22,9 @@ squad_size = 9
 speed_road_kmh_x10 = 50
 speed_offroad_kmh_x10 = 40
 weapon = [
-    { name = "Mosin-Nagant M1891/30", count = 6, caliber_mm_x10 = 76, ammo = "7.62x54R ball", rate_rpm = 10, muzzle_velocity_mps = 865, range_effective_m = 500 },
-    { name = "PPSh-41", count = 2, caliber_mm_x10 = 76, ammo = "7.62x25 Tokarev, 71-round drum or 35-round box", rate_rpm = 1000, muzzle_velocity_mps = 488, range_effective_m = 200 },
-    { name = "DP-27", count = 1, caliber_mm_x10 = 76, ammo = "7.62x54R ball, 47-round pan", rate_rpm = 550, muzzle_velocity_mps = 840, range_effective_m = 800 },
+    { name = "Mosin-Nagant M1891/30", count = 6, caliber_mm_x10 = 76, ammo = "7.62x54R ball", rate_rpm = 10, muzzle_velocity_mps = 865, range_effective_m = 500, range_typical_m = 300 },
+    { name = "PPSh-41", count = 2, caliber_mm_x10 = 76, ammo = "7.62x25 Tokarev, 71-round drum or 35-round box", rate_rpm = 1000, muzzle_velocity_mps = 488, range_effective_m = 200, range_typical_m = 100 },
+    { name = "DP-27", count = 1, caliber_mm_x10 = 76, ammo = "7.62x54R ball, 47-round pan", rate_rpm = 550, muzzle_velocity_mps = 840, range_effective_m = 800, range_typical_m = 400 },
 ]
 source = [
     { ref = "https://battleorder.org/ussr-rifle-co-1944 (seen as search excerpt; direct fetch returned 404)", covers = "shtat 04/550 with early-1944 changes: squad of leader/deputy, DP-27 gunner, assistant gunner and riflemen; PPSh replacing some rifles from mid-1943" },
@@ -33,9 +33,11 @@ source = [
     { ref = "https://en.wikipedia.org/wiki/Mosin%E2%80%93Nagant (infobox)", covers = "M1891/30: 7.62x54R, muzzle velocity ~865 m/s, effective range 500 m (iron sights)" },
     { ref = "https://en.wikipedia.org/wiki/PPSh-41 (infobox)", covers = "PPSh-41: 7.62x25, muzzle velocity 488 m/s, effective range 150-200 m, 71-round drum / 35-round box, rate 1250 rpm" },
     { ref = "https://en.wikipedia.org/wiki/DP_machine_gun (infobox and text)", covers = "DP-27: 7.62x54R, 550 rpm, combat rate up to 80 rpm, 840 m/s, effective range 800 m, 47-round pan" },
+    { ref = "N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346", covers = "range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd" },
+    { ref = "TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII sec. II, https://lonesentry.com/manuals/tme30/ch7sec2sub6.html", covers = "range_typical_m: MG 34 / MG 42 effective range as light MG 600-800 yd, as heavy MG (tripod) 2,000-2,500 yd: upper bounds for the typical distance" },
 ]
 uncertain = ["squad_size", "weapon"]
-note = "Rifle squad per shtat 04/550 (1943/44): squad leader, DP-27 gunner and assistant, 6 riflemen = 9. Sources agree on one DP team plus 6-8 riflemen; exact headcount differs. The number of PPSh-41 grew during 1943-45 and varied by unit (2 is a typical value; assistant gunner and some riflemen received SMGs). Rifle rate is practical. Automatic weapons use cyclic rates: PPSh-41 given as 900-1250 rpm across sources (Wikipedia infobox 1250), 1000 chosen, practical ~100 rpm; DP-27 practical (combat) rate up to 80 rpm."
+note = "Rifle squad per shtat 04/550 (1943/44): squad leader, DP-27 gunner and assistant, 6 riflemen = 9. Sources agree on one DP team plus 6-8 riflemen; exact headcount differs. The number of PPSh-41 grew during 1943-45 and varied by unit (2 is a typical value; assistant gunner and some riflemen received SMGs). Rifle rate is practical. Automatic weapons use cyclic rates: PPSh-41 given as 900-1250 rpm across sources (Wikipedia infobox 1250), 1000 chosen, practical ~100 rpm; DP-27 practical (combat) rate up to 80 rpm. range_typical_m (prompt 067): submachine guns 100 m (class estimate: the battle sight setting); bipod and flexible-mount machine guns 400 m (class estimate between the 300 yd of ORO-T-160 and the 600-800 yd 'effective as light MG' of TM-E 30-451)."
 
 [[unit]]
 id = "su_inf_mg_team"
@@ -52,16 +54,18 @@ squad_size = 2
 speed_road_kmh_x10 = 50
 speed_offroad_kmh_x10 = 40
 weapon = [
-    { name = "DP-27", count = 1, caliber_mm_x10 = 76, ammo = "7.62x54R ball, 47-round pan", rate_rpm = 550, muzzle_velocity_mps = 840, range_effective_m = 800 },
-    { name = "Mosin-Nagant M1891/30", count = 1, caliber_mm_x10 = 76, ammo = "7.62x54R ball", rate_rpm = 10, muzzle_velocity_mps = 865, range_effective_m = 500 },
+    { name = "DP-27", count = 1, caliber_mm_x10 = 76, ammo = "7.62x54R ball, 47-round pan", rate_rpm = 550, muzzle_velocity_mps = 840, range_effective_m = 800, range_typical_m = 400 },
+    { name = "Mosin-Nagant M1891/30", count = 1, caliber_mm_x10 = 76, ammo = "7.62x54R ball", rate_rpm = 10, muzzle_velocity_mps = 865, range_effective_m = 500, range_typical_m = 300 },
 ]
 source = [
     { ref = "https://battleorder.org/ussr-rifle-co-1943 (seen as search excerpt; direct fetch returned 404)", covers = "each squad had a DP-27 gunner and an assistant, assistant with Mosin-Nagant (later sometimes PPSh-41/PPS-43)" },
     { ref = "https://en.wikipedia.org/wiki/DP_machine_gun (infobox and text)", covers = "DP-27: 7.62x54R, 550 rpm, combat rate up to 80 rpm, 840 m/s, 800 m, 47-round pan, 9.12 kg empty" },
     { ref = "https://en.wikipedia.org/wiki/Mosin%E2%80%93Nagant (infobox)", covers = "M1891/30 muzzle velocity and effective range" },
+    { ref = "N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346", covers = "range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd" },
+    { ref = "TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII sec. II, https://lonesentry.com/manuals/tme30/ch7sec2sub6.html", covers = "range_typical_m: MG 34 / MG 42 effective range as light MG 600-800 yd, as heavy MG (tripod) 2,000-2,500 yd: upper bounds for the typical distance" },
 ]
 uncertain = ["weapon"]
-note = "DP-27 gunner and assistant (ammunition carrier) as found in the rifle squad. rate_rpm is the cyclic rate (550); practical combat rate up to 80 rpm. From mid-1943 the assistant's rifle was sometimes replaced by a PPSh-41 or PPS-43."
+note = "DP-27 gunner and assistant (ammunition carrier) as found in the rifle squad. rate_rpm is the cyclic rate (550); practical combat rate up to 80 rpm. From mid-1943 the assistant's rifle was sometimes replaced by a PPSh-41 or PPS-43. range_typical_m (prompt 067): bipod and flexible-mount machine guns 400 m (class estimate between the 300 yd of ORO-T-160 and the 600-800 yd 'effective as light MG' of TM-E 30-451)."
 
 [[unit]]
 id = "su_inf_hmg_team"
@@ -78,15 +82,17 @@ squad_size = 5
 speed_road_kmh_x10 = 50
 speed_offroad_kmh_x10 = 40
 weapon = [
-    { name = "Maxim M1910/30", count = 1, caliber_mm_x10 = 76, ammo = "7.62x54R heavy ball M1930, 250-round belt", rate_rpm = 600, muzzle_velocity_mps = 800, range_effective_m = 1000 },
+    { name = "Maxim M1910/30", count = 1, caliber_mm_x10 = 76, ammo = "7.62x54R heavy ball M1930, 250-round belt", rate_rpm = 600, muzzle_velocity_mps = 800, range_effective_m = 1000, range_typical_m = 800 },
     { name = "Mosin-Nagant M1938 carbine", count = 4, caliber_mm_x10 = 76, ammo = "7.62x54R" },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/PM_M1910 (infobox and M1910/30 section)", covers = "7.62x54R, 600 rpm, gun 23.8 kg, 62.66 kg on wheeled mount, M1910/30 changes incl. heavy-bullet cartridge, effective range 2,700 m, muzzle velocity 740 m/s" },
     { ref = "Zaloga/Ness, Red Army Handbook 1939-1945 (Sutton 1998)", covers = "HMG crew strength (not checked online)" },
+    { ref = "TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII sec. II, https://lonesentry.com/manuals/tme30/ch7sec2sub6.html", covers = "range_typical_m: MG 34 / MG 42 effective range as light MG 600-800 yd, as heavy MG (tripod) 2,000-2,500 yd: upper bounds for the typical distance" },
+    { ref = "FM 7-15 Heavy Weapons Company, Rifle Regiment (US War Dept., 1942), https://ibiblio.org/hyperwar/USA/ref/FM/PDFs/FM7-15.PDF (search excerpt, not read in full)", covers = "range_typical_m: direct machine-gun fire is limited by observation, rarely effective beyond 2,000 yd: upper bound for the typical distance of tripod machine guns" },
 ]
 uncertain = ["squad_size", "weapon"]
-note = "Maxim M1910/30 on the wheeled Sokolov mount (~63 kg). Crew given as 5-6 depending on source; 5 chosen. Cyclic 600 rpm; practical sustained rate ~250 rpm. Muzzle velocity: Wikipedia gives 740 m/s (not tied to a cartridge); ~800 m/s is commonly given for the M1930 heavy ball, so marked uncertain. Effective range 1,000 m chosen for direct fire; Wikipedia's 2,700 m is the sight/indirect range. Crew personal weapons estimated (carbines; muzzle velocity not given because sources disagree)."
+note = "Maxim M1910/30 on the wheeled Sokolov mount (~63 kg). Crew given as 5-6 depending on source; 5 chosen. Cyclic 600 rpm; practical sustained rate ~250 rpm. Muzzle velocity: Wikipedia gives 740 m/s (not tied to a cartridge); ~800 m/s is commonly given for the M1930 heavy ball, so marked uncertain. Effective range 1,000 m chosen for direct fire; Wikipedia's 2,700 m is the sight/indirect range. Crew personal weapons estimated (carbines; muzzle velocity not given because sources disagree). range_typical_m (prompt 067): tripod machine guns 800 m (class estimate: twice the bipod value, far below the 2,000 yd limit of observed fire)."
 
 [[unit]]
 id = "su_inf_mortar_light"
@@ -152,16 +158,17 @@ squad_size = 7
 speed_road_kmh_x10 = 50
 speed_offroad_kmh_x10 = 40
 weapon = [
-    { name = "PPSh-41", count = 6, caliber_mm_x10 = 76, ammo = "7.62x25 Tokarev", rate_rpm = 1000, muzzle_velocity_mps = 488, range_effective_m = 200 },
-    { name = "Mosin-Nagant M1891/30", count = 1, caliber_mm_x10 = 76, ammo = "7.62x54R", rate_rpm = 10, muzzle_velocity_mps = 865, range_effective_m = 500 },
+    { name = "PPSh-41", count = 6, caliber_mm_x10 = 76, ammo = "7.62x25 Tokarev", rate_rpm = 1000, muzzle_velocity_mps = 488, range_effective_m = 200, range_typical_m = 100 },
+    { name = "Mosin-Nagant M1891/30", count = 1, caliber_mm_x10 = 76, ammo = "7.62x54R", rate_rpm = 10, muzzle_velocity_mps = 865, range_effective_m = 500, range_typical_m = 300 },
 ]
 source = [
     { ref = "Zaloga/Ness, Red Army Handbook 1939-1945 (Sutton 1998)", covers = "regimental scout platoon organisation (not checked online)" },
     { ref = "https://en.wikipedia.org/wiki/PPSh-41 (infobox)", covers = "PPSh-41 data" },
     { ref = "https://en.wikipedia.org/wiki/Mosin%E2%80%93Nagant (infobox)", covers = "M1891/30 data" },
+    { ref = "N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346", covers = "range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd" },
 ]
 uncertain = ["squad_size", "weapon"]
-note = "Scouts were mostly SMG-armed volunteers; exact squad strength varied (6-9). PPSh-41 cyclic rate (sources 900-1250 rpm), practical ~100 rpm."
+note = "Scouts were mostly SMG-armed volunteers; exact squad strength varied (6-9). PPSh-41 cyclic rate (sources 900-1250 rpm), practical ~100 rpm. range_typical_m (prompt 067): submachine guns 100 m (class estimate: the battle sight setting)."
 
 [[unit]]
 id = "su_inf_sniper"
@@ -178,14 +185,16 @@ squad_size = 2
 speed_road_kmh_x10 = 50
 speed_offroad_kmh_x10 = 40
 weapon = [
-    { name = "Mosin-Nagant M1891/30 PU sniper rifle", count = 1, caliber_mm_x10 = 76, ammo = "7.62x54R heavy ball / sniper", rate_rpm = 5, muzzle_velocity_mps = 865, range_effective_m = 850 },
-    { name = "Mosin-Nagant M1891/30", count = 1, caliber_mm_x10 = 76, ammo = "7.62x54R", rate_rpm = 10, muzzle_velocity_mps = 865, range_effective_m = 500 },
+    { name = "Mosin-Nagant M1891/30 PU sniper rifle", count = 1, caliber_mm_x10 = 76, ammo = "7.62x54R heavy ball / sniper", rate_rpm = 5, muzzle_velocity_mps = 865, range_effective_m = 850, range_typical_m = 400 },
+    { name = "Mosin-Nagant M1891/30", count = 1, caliber_mm_x10 = 76, ammo = "7.62x54R", rate_rpm = 10, muzzle_velocity_mps = 865, range_effective_m = 500, range_typical_m = 300 },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/Mosin%E2%80%93Nagant (infobox and sniper section)", covers = "M91/30 with 3.5x PU scope from 1942, effective range 850 m with optical sights, 500 m iron sights, ~865 m/s" },
+    { ref = "H. Widhofner, interview with the snipers M. Hetzenauer, J. Allerberger and H. Wirnsberger, Truppendienst (Austrian Armed Forces, 1967), English text at https://shadowspear.com/threads/german-snipers-in-ww-ii.1045", covers = "range_typical_m: 65-80 % of the hits below 400 m, the rest up to 600 m; sure hits on a head up to 400 m, on a standing man up to 600 m" },
+    { ref = "N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346", covers = "range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd" },
 ]
 uncertain = ["weapon"]
-note = "Sniper and observer pair; observer armament varied (rifle or SMG). Rates are practical (sniper rate an estimate)."
+note = "Sniper and observer pair; observer armament varied (rifle or SMG). Rates are practical (sniper rate an estimate). range_typical_m (prompt 067): sniper rifle 400 m (class value from the German sniper interview of 1967)."
 
 [[unit]]
 id = "su_inf_medic"
@@ -202,7 +211,7 @@ squad_size = 2
 speed_road_kmh_x10 = 50
 speed_offroad_kmh_x10 = 40
 weapon = [
-    { name = "TT-33", count = 1, caliber_mm_x10 = 76, ammo = "7.62x25 Tokarev", rate_rpm = 20, muzzle_velocity_mps = 420, range_effective_m = 50 },
+    { name = "TT-33", count = 1, caliber_mm_x10 = 76, ammo = "7.62x25 Tokarev", rate_rpm = 20, muzzle_velocity_mps = 420, range_effective_m = 50, range_typical_m = 25 },
     { name = "Mosin-Nagant M1938 carbine", count = 1, caliber_mm_x10 = 76, ammo = "7.62x54R" },
 ]
 source = [
@@ -210,7 +219,7 @@ source = [
     { ref = "https://en.wikipedia.org/wiki/TT_pistol (infobox)", covers = "TT-33 muzzle velocity 420 m/s, effective range 50 m" },
 ]
 uncertain = ["squad_size", "weapon"]
-note = "Company sanitary instructor plus one orderly; Soviet medics (many of them women) were often armed. Armament is an estimate; TT-33 rate is practical (semi-automatic). Model must show no Red Cross marking (project rule)."
+note = "Company sanitary instructor plus one orderly; Soviet medics (many of them women) were often armed. Armament is an estimate; TT-33 rate is practical (semi-automatic). Model must show no Red Cross marking (project rule). range_typical_m (prompt 067): pistols 25 m (class estimate: half the effective range)."
 
 [[unit]]
 id = "su_inf_engineer"
@@ -227,7 +236,7 @@ squad_size = 7
 speed_road_kmh_x10 = 50
 speed_offroad_kmh_x10 = 40
 weapon = [
-    { name = "PPSh-41", count = 1, caliber_mm_x10 = 76, ammo = "7.62x25 Tokarev", rate_rpm = 1000, muzzle_velocity_mps = 488, range_effective_m = 200 },
+    { name = "PPSh-41", count = 1, caliber_mm_x10 = 76, ammo = "7.62x25 Tokarev", rate_rpm = 1000, muzzle_velocity_mps = 488, range_effective_m = 200, range_typical_m = 100 },
     { name = "Mosin-Nagant M1938 carbine", count = 6, caliber_mm_x10 = 76, ammo = "7.62x54R" },
 ]
 source = [
@@ -235,7 +244,7 @@ source = [
     { ref = "https://en.wikipedia.org/wiki/PPSh-41 (infobox)", covers = "PPSh-41 data" },
 ]
 uncertain = ["squad_size", "weapon"]
-note = "Sapper squad of a divisional sapper battalion, carbine-armed, with demolition charges, mine detectors (VIM-203) and tools (not listed as weapons). Assault engineer brigades (ShISBr) were far more SMG- and flamethrower-heavy. Strength 6-8 depending on table; 7 chosen. PPSh-41 rate is cyclic."
+note = "Sapper squad of a divisional sapper battalion, carbine-armed, with demolition charges, mine detectors (VIM-203) and tools (not listed as weapons). Assault engineer brigades (ShISBr) were far more SMG- and flamethrower-heavy. Strength 6-8 depending on table; 7 chosen. PPSh-41 rate is cyclic. range_typical_m (prompt 067): submachine guns 100 m (class estimate: the battle sight setting)."
 
 [[unit]]
 id = "su_inf_at"
@@ -252,14 +261,15 @@ squad_size = 2
 speed_road_kmh_x10 = 50
 speed_offroad_kmh_x10 = 40
 weapon = [
-    { name = "PTRD-41", count = 1, caliber_mm_x10 = 145, ammo = "14.5x114 B-32 API, BS-41 API", rate_rpm = 8, muzzle_velocity_mps = 1012, range_effective_m = 300 },
-    { name = "Mosin-Nagant M1891/30", count = 1, caliber_mm_x10 = 76, ammo = "7.62x54R", rate_rpm = 10, muzzle_velocity_mps = 865, range_effective_m = 500 },
+    { name = "PTRD-41", count = 1, caliber_mm_x10 = 145, ammo = "14.5x114 B-32 API, BS-41 API", rate_rpm = 8, muzzle_velocity_mps = 1012, range_effective_m = 300, range_typical_m = 150 },
+    { name = "Mosin-Nagant M1891/30", count = 1, caliber_mm_x10 = 76, ammo = "7.62x54R", rate_rpm = 10, muzzle_velocity_mps = 865, range_effective_m = 500, range_typical_m = 300 },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/PTRD-41 (infobox)", covers = "14.5x114 (B-32, BS-41), mass 16 kg, 8-10 rpm, 1,012 m/s, effective range 300 m, crew 2" },
+    { ref = "N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346", covers = "range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd" },
 ]
 uncertain = ["weapon"]
-note = "Gunner and assistant; single-shot bolt action. Effective range 300 m per Wikipedia (other sources give up to 500 m against armor). By 1943-45 effective mainly against light vehicles and side armor. Assistant's weapon estimated."
+note = "Gunner and assistant; single-shot bolt action. Effective range 300 m per Wikipedia (other sources give up to 500 m against armor). By 1943-45 effective mainly against light vehicles and side armor. Assistant's weapon estimated. range_typical_m (prompt 067): anti-tank rifle 150 m (class estimate: half the effective range, where the side armor of a tank is still penetrated)."
 
 [[unit]]
 id = "su_inf_flamethrower"
@@ -276,15 +286,15 @@ squad_size = 2
 speed_road_kmh_x10 = 50
 speed_offroad_kmh_x10 = 40
 weapon = [
-    { name = "ROKS-3", count = 1, ammo = "~9 l flame fuel", range_effective_m = 25 },
-    { name = "PPSh-41", count = 1, caliber_mm_x10 = 76, ammo = "7.62x25 Tokarev", rate_rpm = 1000, muzzle_velocity_mps = 488, range_effective_m = 200 },
+    { name = "ROKS-3", count = 1, ammo = "~9 l flame fuel", range_effective_m = 25, range_typical_m = 25 },
+    { name = "PPSh-41", count = 1, caliber_mm_x10 = 76, ammo = "7.62x25 Tokarev", rate_rpm = 1000, muzzle_velocity_mps = 488, range_effective_m = 200, range_typical_m = 100 },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/ROKS-3 (infobox)", covers = "mass 22.7 kg, ~9 l fuel, effective range 25 m, maximum range 45 m, crew 1" },
     { ref = "Zaloga/Ness, Red Army Handbook 1939-1945 (Sutton 1998)", covers = "flamethrower companies (ORRO) and use in assault engineer brigades (not checked online)" },
 ]
 uncertain = ["squad_size", "weapon"]
-note = "Operator with ROKS-3 (infobox crew 1) plus a covering SMG-armed soldier; second man is an estimate. Effective range 25 m, maximum 45 m. PPSh-41 rate is cyclic."
+note = "Operator with ROKS-3 (infobox crew 1) plus a covering SMG-armed soldier; second man is an estimate. Effective range 25 m, maximum 45 m. PPSh-41 rate is cyclic. range_typical_m (prompt 067): submachine guns 100 m (class estimate: the battle sight setting)."
 
 [[unit]]
 id = "su_inf_command"
@@ -301,8 +311,8 @@ squad_size = 2
 speed_road_kmh_x10 = 50
 speed_offroad_kmh_x10 = 40
 weapon = [
-    { name = "TT-33", count = 1, caliber_mm_x10 = 76, ammo = "7.62x25 Tokarev", rate_rpm = 20, muzzle_velocity_mps = 420, range_effective_m = 50 },
-    { name = "PPSh-41", count = 1, caliber_mm_x10 = 76, ammo = "7.62x25 Tokarev", rate_rpm = 1000, muzzle_velocity_mps = 488, range_effective_m = 200 },
+    { name = "TT-33", count = 1, caliber_mm_x10 = 76, ammo = "7.62x25 Tokarev", rate_rpm = 20, muzzle_velocity_mps = 420, range_effective_m = 50, range_typical_m = 25 },
+    { name = "PPSh-41", count = 1, caliber_mm_x10 = 76, ammo = "7.62x25 Tokarev", rate_rpm = 1000, muzzle_velocity_mps = 488, range_effective_m = 200, range_typical_m = 100 },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/TT_pistol (infobox)", covers = "TT-33 data" },
@@ -310,7 +320,7 @@ source = [
     { ref = "Zaloga/Ness, Red Army Handbook 1939-1945 (Sutton 1998)", covers = "signals equipment at battalion/company level (not checked online)" },
 ]
 uncertain = ["weapon"]
-note = "Officer (TT-33, often also a PPSh) and radio operator with a portable set such as the RB-M; radios were scarce below battalion level in the Red Army, so this is a gameplay abstraction. TT-33 rate practical, PPSh-41 cyclic."
+note = "Officer (TT-33, often also a PPSh) and radio operator with a portable set such as the RB-M; radios were scarce below battalion level in the Red Army, so this is a gameplay abstraction. TT-33 rate practical, PPSh-41 cyclic. range_typical_m (prompt 067): pistols 25 m (class estimate: half the effective range); submachine guns 100 m (class estimate: the battle sight setting)."
 
 [[unit]]
 id = "su_inf_tank_crew"
@@ -327,8 +337,8 @@ squad_size = 5
 speed_road_kmh_x10 = 50
 speed_offroad_kmh_x10 = 40
 weapon = [
-    { name = "PPSh-41", count = 1, caliber_mm_x10 = 76, ammo = "7.62x25 Tokarev, 71-round drum or 35-round box", rate_rpm = 1000, muzzle_velocity_mps = 488, range_effective_m = 200 },
-    { name = "TT-33", count = 4, caliber_mm_x10 = 76, ammo = "7.62x25 Tokarev", rate_rpm = 20, muzzle_velocity_mps = 420, range_effective_m = 50 },
+    { name = "PPSh-41", count = 1, caliber_mm_x10 = 76, ammo = "7.62x25 Tokarev, 71-round drum or 35-round box", rate_rpm = 1000, muzzle_velocity_mps = 488, range_effective_m = 200, range_typical_m = 100 },
+    { name = "TT-33", count = 4, caliber_mm_x10 = 76, ammo = "7.62x25 Tokarev", rate_rpm = 20, muzzle_velocity_mps = 420, range_effective_m = 50, range_typical_m = 25 },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/T-34", covers = "T-34-85 crew of five (T-34/76: four); from memory, not fetched for this entry" },
@@ -336,7 +346,7 @@ source = [
     { ref = "https://en.wikipedia.org/wiki/PPSh-41 (infobox)", covers = "PPSh-41: 7.62x25, muzzle velocity 488 m/s, effective range 150-200 m" },
 ]
 uncertain = ["weapon"]
-note = "Not built or bought: the survivors of a destroyed vehicle (prompt 049) bail out as this squad, 1-5 men by chance. squad_size is the largest crew of the faction's tanks (T-34-85: 5). Personal weapons: TT-33 pistols and one PPSh-41 carried in the tank, an assumption. The model shows the field uniform with the pilotka; the padded tank helmet is not modeled."
+note = "Not built or bought: the survivors of a destroyed vehicle (prompt 049) bail out as this squad, 1-5 men by chance. squad_size is the largest crew of the faction's tanks (T-34-85: 5). Personal weapons: TT-33 pistols and one PPSh-41 carried in the tank, an assumption. The model shows the field uniform with the pilotka; the padded tank helmet is not modeled. range_typical_m (prompt 067): submachine guns 100 m (class estimate: the battle sight setting); pistols 25 m (class estimate: half the effective range)."
 
 # ---------------------------------------------------------------------------
 # Vehicles
@@ -369,7 +379,7 @@ armor_turret_front_mm = 50
 armor_turret_side_mm = 35
 armor_turret_rear_mm = 35
 weapon = [
-    { name = "45 mm 20-K M1938", caliber_mm_x10 = 450, ammo = "BR-240 APHE, O-240 HE", rate_rpm = 7, muzzle_velocity_mps = 760, range_effective_m = 1000, ammo_carried = 70 },
+    { name = "45 mm 20-K M1938", caliber_mm_x10 = 450, ammo = "BR-240 APHE, O-240 HE", rate_rpm = 7, muzzle_velocity_mps = 760, range_effective_m = 1000, range_typical_m = 500, ammo_carried = 70 },
     { name = "DT", caliber_mm_x10 = 76, rate_rpm = 600, ammo_carried = 945 },
 ]
 source = [
@@ -377,7 +387,7 @@ source = [
     { ref = "Zaloga/Grandsen, Soviet Tanks and Combat Vehicles of World War Two (Arms and Armour 1984)", covers = "T-70M (wider tracks, stronger suspension), mass 9.8 t, road speed 42 km/h (not checked online)" },
 ]
 uncertain = ["width_mm", "mass_kg", "speed_road_kmh_x10", "speed_offroad_kmh_x10", "armor_hull_front_mm", "weapon", "range_road_km", "power_hp", "armor_turret_front_mm"]
-note = "T-70M (from Oct 1942), in service through 1945. Wikipedia only gives T-70 (1942) values (9.2 t, 2.32 m wide, 45 km/h); the heavier, wider-tracked T-70M is commonly given as 9.8 t, ~2.35 m wide and 42 km/h, not confirmed online. Hull front: upper glacis 35 mm at 60 deg, lower plate commonly given as 45 mm; thickest plate entered, slope is the upper plate's. Hull rear omitted (no fetched value). Off-road speed estimated. Gun designation conflicts (20-K vs 45 mm Model 1938) in Wikipedia; muzzle velocity and stowage (70-90 rounds) not confirmed online. DT rate is cyclic. Differs from onwar.com (data/vehicles, a rank-4 source; the values above keep their sources): range_road_km 300, power_hp 170, armor_turret_front_mm 60, width_mm 2500, armor_hull_front_mm 35, weapon.ammo_carried 94."
+note = "T-70M (from Oct 1942), in service through 1945. Wikipedia only gives T-70 (1942) values (9.2 t, 2.32 m wide, 45 km/h); the heavier, wider-tracked T-70M is commonly given as 9.8 t, ~2.35 m wide and 42 km/h, not confirmed online. Hull front: upper glacis 35 mm at 60 deg, lower plate commonly given as 45 mm; thickest plate entered, slope is the upper plate's. Hull rear omitted (no fetched value). Off-road speed estimated. Gun designation conflicts (20-K vs 45 mm Model 1938) in Wikipedia; muzzle velocity and stowage (70-90 rounds) not confirmed online. DT rate is cyclic. Differs from onwar.com (data/vehicles, a rank-4 source; the values above keep their sources): range_road_km 300, power_hp 170, armor_turret_front_mm 60, width_mm 2500, armor_hull_front_mm 35, weapon.ammo_carried 94. range_typical_m (prompt 067): light guns of 37-45 mm 500 m against ground targets (class estimate below the 75 mm class)."
 
 [[unit]]
 id = "su_t34_76_1943"
@@ -408,7 +418,7 @@ armor_turret_front_mm = 52
 armor_turret_side_mm = 45
 armor_turret_rear_mm = 45
 weapon = [
-    { name = "76.2 mm F-34 L/41.5", caliber_mm_x10 = 762, ammo = "BR-350A APHE, BR-350P APCR, OF-350 HE", rate_rpm = 5, muzzle_velocity_mps = 662, range_effective_m = 1000, ammo_carried = 100 },
+    { name = "76.2 mm F-34 L/41.5", caliber_mm_x10 = 762, ammo = "BR-350A APHE, BR-350P APCR, OF-350 HE", rate_rpm = 5, muzzle_velocity_mps = 662, range_effective_m = 1000, range_typical_m = 700, ammo_carried = 100 },
     { name = "DT", count = 2, caliber_mm_x10 = 76, rate_rpm = 600 },
 ]
 source = [
@@ -416,9 +426,11 @@ source = [
     { ref = "https://ru.wikipedia.org/wiki/Т-34 (infobox; sections Бронирование, Вооружение, Подвижность)", covers = "combat mass 26.5-30.9 t, hull length 5,920 mm, width 3,000 mm, height 2,405 mm, hull side 45 mm from 1942, turret front 45-52 mm, mantlet 40 mm, turret side/rear 45 mm, F-34 L/41.5 with 100 rounds, 54 km/h road, 36 km/h off-road, 380 km road range" },
     { ref = "https://ru.wikipedia.org/wiki/76-мм_дивизионная_пушка_образца_1942_года_(ЗИС-3) (section Characteristics and ammunition)", covers = "BR-350A muzzle velocity 662 m/s (same 76.2x385R ammunition family as F-34)" },
     { ref = "Zaloga, T-34/76 Medium Tank 1941-45 (Osprey New Vanguard 9, 1994)", covers = "1943 model (hexagonal turret, cupola), mass (not checked online)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+    { ref = "A. D. Coox / L. Van Loan Naisawald, Survey of Allied Tank Casualties in World War II, ORO-T-117 (Operations Research Office, 1951); figures from secondary quotations, report not read", covers = "range_typical_m: cross-check: average range at which Allied tanks were knocked out by gunfire just under 800 yd (US sample about 774 yd = 708 m)" },
 ]
 uncertain = ["height_mm", "mass_kg", "speed_offroad_kmh_x10", "range_road_km", "armor_turret_front_mm", "armor_turret_side_mm", "armor_turret_rear_mm", "weapon", "armor_hull_rear_mm"]
-note = "Western 'Model 1943' (officially obr. 1942 in part): hexagonal turret, from mid-1943 with commander's cupola. Height 2.46 m (en) vs 2.405 m (ru), without cupola. Mass 30.9 t is the upper end of the ru range (1943 production); other sources give 30.0 t. Road speed 53-54 km/h; off-road 36 km/h per ru Wikipedia (family value, may be optimistic). Road range 330 km (en) vs 380 km (ru) on internal fuel; more with external tanks. Hexagonal turret armor not given explicitly in fetched sources: ru gives turret front 45-52 mm, sides/rear 45 mm for the family; en gives up to 70 mm for the Model 1943 overall; values marked uncertain. F-34 muzzle velocity taken from the BR-350A ZiS-3 table (similar barrel length); DT ammunition count omitted (sources give 2,898-3,150). Main gun rate practical, DT rate cyclic. Differs from onwar.com (data/vehicles, a rank-4 source; the values above keep their sources): armor_hull_rear_mm 45, height_mm 2600, armor_turret_front_mm 70, armor_turret_side_mm 52, armor_turret_rear_mm 52."
+note = "Western 'Model 1943' (officially obr. 1942 in part): hexagonal turret, from mid-1943 with commander's cupola. Height 2.46 m (en) vs 2.405 m (ru), without cupola. Mass 30.9 t is the upper end of the ru range (1943 production); other sources give 30.0 t. Road speed 53-54 km/h; off-road 36 km/h per ru Wikipedia (family value, may be optimistic). Road range 330 km (en) vs 380 km (ru) on internal fuel; more with external tanks. Hexagonal turret armor not given explicitly in fetched sources: ru gives turret front 45-52 mm, sides/rear 45 mm for the family; en gives up to 70 mm for the Model 1943 overall; values marked uncertain. F-34 muzzle velocity taken from the BR-350A ZiS-3 table (similar barrel length); DT ammunition count omitted (sources give 2,898-3,150). Main gun rate practical, DT rate cyclic. Differs from onwar.com (data/vehicles, a rank-4 source; the values above keep their sources): armor_hull_rear_mm 45, height_mm 2600, armor_turret_front_mm 70, armor_turret_side_mm 52, armor_turret_rear_mm 52. range_typical_m (prompt 067): 57-76 mm tank and anti-tank guns 700 m (class value: documented for the German 75 mm guns, taken over for the same gun class)."
 
 [[unit]]
 id = "su_is2"
@@ -447,16 +459,17 @@ armor_hull_side_mm = 90
 armor_turret_front_mm = 100
 armor_turret_side_mm = 90
 weapon = [
-    { name = "122 mm D-25T L/43", caliber_mm_x10 = 1220, ammo = "BR-471 APHE, BR-471B APHEBC, OF-471 HE", rate_rpm = 2, muzzle_velocity_mps = 781, range_effective_m = 1500, ammo_carried = 28 },
+    { name = "122 mm D-25T L/43", caliber_mm_x10 = 1220, ammo = "BR-471 APHE, BR-471B APHEBC, OF-471 HE", rate_rpm = 2, muzzle_velocity_mps = 781, range_effective_m = 1500, range_typical_m = 1000, ammo_carried = 28 },
     { name = "DT", count = 3, caliber_mm_x10 = 76, rate_rpm = 600 },
     { name = "DShK", caliber_mm_x10 = 127, rate_rpm = 600, aa = true },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/IS-2 (infobox; Protection/Production)", covers = "46 t, length 9.90 m, width 3.09 m, height 2.73 m, crew 4, armor (hull front 100-120 mm/60 deg, lower 100 mm/30 deg, turret 100 mm, mantlet 120 mm, hull sides 90-130 mm, turret sides 90 mm), D-25T 28 rounds, DShK + 3 DT with 2,079 rounds, V-2IS 520 hp, 37 km/h, range 240 km road / 180 km cross-country, OF-471 800 m/s" },
     { ref = "Zaloga, IS-2 Heavy Tank 1944-73 (Osprey New Vanguard 7, 1994)", covers = "1944 model, hull length, BR-471 velocity (not checked online)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
 ]
 uncertain = ["armor_hull_front_mm", "speed_offroad_kmh_x10", "weapon", "range_road_km", "power_hp"]
-note = "IS-2 obr. 1944 with single-piece glacis at 60 deg; Wikipedia's infobox says 100 mm but its text says a 120 mm casting, so uncertain. Hull rear omitted (no fetched value). Off-road speed estimated. D-25T: 800 m/s is the OF-471 HE figure; ~781 m/s for BR-471 APHE is not confirmed online. MG ammunition is 2,079 rounds total for DT and DShK (split unknown, so omitted). DShK AA mount from late 1944. Main gun rate practical (two-piece ammunition), MG rates cyclic. Differs from onwar.com (data/vehicles, a rank-4 source; the values above keep their sources): range_road_km 150, power_hp 600."
+note = "IS-2 obr. 1944 with single-piece glacis at 60 deg; Wikipedia's infobox says 100 mm but its text says a 120 mm casting, so uncertain. Hull rear omitted (no fetched value). Off-road speed estimated. D-25T: 800 m/s is the OF-471 HE figure; ~781 m/s for BR-471 APHE is not confirmed online. MG ammunition is 2,079 rounds total for DT and DShK (split unknown, so omitted). DShK AA mount from late 1944. Main gun rate practical (two-piece ammunition), MG rates cyclic. Differs from onwar.com (data/vehicles, a rank-4 source; the values above keep their sources): range_road_km 150, power_hp 600. range_typical_m (prompt 067): 85-122 mm high-velocity guns 1000 m (class value: documented for the German 88 mm guns, taken over for the same gun class)."
 
 [[unit]]
 id = "su_su85"
@@ -487,16 +500,17 @@ armor_turret_front_mm = 60
 armor_turret_side_mm = 45
 gun_traverse_deg = 20
 weapon = [
-    { name = "85 mm D-5S L/52", caliber_mm_x10 = 850, ammo = "BR-365 APHE, O-365 HE", rate_rpm = 6, muzzle_velocity_mps = 792, range_effective_m = 1500, ammo_carried = 48 },
+    { name = "85 mm D-5S L/52", caliber_mm_x10 = 850, ammo = "BR-365 APHE, O-365 HE", rate_rpm = 6, muzzle_velocity_mps = 792, range_effective_m = 1500, range_typical_m = 1000, ammo_carried = 48 },
 ]
 source = [
     { ref = "https://www.quartermastersection.com/russian/afvs/827/SU-85", covers = "gun traverse 10 deg left and right (manual)" },
     { ref = "https://en.wikipedia.org/wiki/SU-85 (infobox)", covers = "29.6 t, length 8.15 m / hull 6.10 m, width 3.00 m, height 2.45 m, crew 4, armor 45 mm, 85 mm D-5 gun, V-2 500 PS, 55 km/h road, range 280 km road (400 km with extra tanks), 140 km cross-country" },
     { ref = "https://en.wikipedia.org/wiki/85_mm_air_defense_gun_M1939_(52-K) (infobox)", covers = "85 mm ballistics, muzzle velocity 792 m/s (D-5 is based on 52-K ballistics)" },
     { ref = "Zaloga/Grandsen, Soviet Tanks and Combat Vehicles of World War Two (Arms and Armour 1984)", covers = "production 1943-44, 48 rounds (not checked online)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
 ]
 uncertain = ["gun_traverse_deg", "speed_offroad_kmh_x10", "armor_hull_front_deg", "armor_turret_front_mm", "weapon"]
-note = "SU-85 on T-34 chassis with fixed casemate; Wikipedia gives a uniform 45 mm (flagged as needing clarification). 50 deg superstructure slope and ~60 mm mantlet not confirmed online. Wikipedia names the gun D-5T; the SU-85 mounting is usually designated D-5S. 48 rounds not confirmed online. No machine gun fitted. Off-road speed estimated. Rate practical. Differs from onwar.com (data/vehicles, a rank-4 source; the values above keep their sources): armor_turret_front_mm 75."
+note = "SU-85 on T-34 chassis with fixed casemate; Wikipedia gives a uniform 45 mm (flagged as needing clarification). 50 deg superstructure slope and ~60 mm mantlet not confirmed online. Wikipedia names the gun D-5T; the SU-85 mounting is usually designated D-5S. 48 rounds not confirmed online. No machine gun fitted. Off-road speed estimated. Rate practical. Differs from onwar.com (data/vehicles, a rank-4 source; the values above keep their sources): armor_turret_front_mm 75. range_typical_m (prompt 067): 85-122 mm high-velocity guns 1000 m (class value: documented for the German 88 mm guns, taken over for the same gun class)."
 
 [[unit]]
 id = "su_su76m"
@@ -525,16 +539,18 @@ armor_turret_front_mm = 25
 armor_turret_side_mm = 10
 gun_traverse_deg = 30
 weapon = [
-    { name = "76.2 mm ZiS-3Sh", caliber_mm_x10 = 762, ammo = "BR-350A APHE, OF-350 HE", rate_rpm = 10, muzzle_velocity_mps = 662, range_effective_m = 1000, ammo_carried = 60 },
+    { name = "76.2 mm ZiS-3Sh", caliber_mm_x10 = 762, ammo = "BR-350A APHE, OF-350 HE", rate_rpm = 10, muzzle_velocity_mps = 662, range_effective_m = 1000, range_typical_m = 700, ammo_carried = 60 },
 ]
 source = [
     { ref = "https://www.ospreypublishing.com/us/discover/osprey-publishing/machine-of-the-month/su-76m", covers = "ZiS-3 mount traverse 15 deg to either side" },
     { ref = "https://en.wikipedia.org/wiki/SU-76 (infobox, SU-76M)", covers = "10,500 kg, length 4.97 m, width 2.72 m, height 2.10 m, crew 4, armor front 25-35 mm / side 10-15 mm, ZiS-3 gun, DT secondary, 2x 70 hp, 45 km/h, range 250 km road / 175 km cross-country" },
     { ref = "https://ru.wikipedia.org/wiki/76-мм_дивизионная_пушка_образца_1942_года_(ЗИС-3) (ammunition table)", covers = "BR-350A 662 m/s" },
     { ref = "Zaloga/Grandsen, Soviet Tanks and Combat Vehicles of World War Two (Arms and Armour 1984)", covers = "SU-76M open-top variant, role (not checked online)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+    { ref = "A. D. Coox / L. Van Loan Naisawald, Survey of Allied Tank Casualties in World War II, ORO-T-117 (Operations Research Office, 1951); figures from secondary quotations, report not read", covers = "range_typical_m: cross-check: average range at which Allied tanks were knocked out by gunfire just under 800 yd (US sample about 774 yd = 708 m)" },
 ]
 uncertain = ["speed_offroad_kmh_x10", "armor_hull_front_deg", "weapon", "mass_kg", "power_hp", "armor_hull_front_mm"]
-note = "SU-76M (from mid-1943), open-topped light SPG for infantry support. Front armor 25-35 mm (35 mm hull, 25 mm superstructure), sides 10-15 mm; 60 deg slope not confirmed online. Wikipedia lists a DT as secondary (not always carried; omitted). 60 rounds not confirmed online. Off-road speed estimated. Rate practical. Differs from onwar.com (data/vehicles, a rank-4 source; the values above keep their sources): mass_kg 11200, power_hp 170, armor_hull_front_mm 30."
+note = "SU-76M (from mid-1943), open-topped light SPG for infantry support. Front armor 25-35 mm (35 mm hull, 25 mm superstructure), sides 10-15 mm; 60 deg slope not confirmed online. Wikipedia lists a DT as secondary (not always carried; omitted). 60 rounds not confirmed online. Off-road speed estimated. Rate practical. Differs from onwar.com (data/vehicles, a rank-4 source; the values above keep their sources): mass_kg 11200, power_hp 170, armor_hull_front_mm 30. range_typical_m (prompt 067): 57-76 mm tank and anti-tank guns 700 m (class value: documented for the German 75 mm guns, taken over for the same gun class)."
 
 [[unit]]
 id = "su_m3a1_scout"
@@ -561,15 +577,18 @@ armor_hull_front_mm = 13
 armor_hull_side_mm = 6
 armor_hull_rear_mm = 6
 weapon = [
-    { name = "Browning M2HB", caliber_mm_x10 = 127, rate_rpm = 500, muzzle_velocity_mps = 890, range_effective_m = 1800 },
-    { name = "Browning M1919A4", caliber_mm_x10 = 76, rate_rpm = 500, muzzle_velocity_mps = 850, range_effective_m = 1000 },
+    { name = "Browning M2HB", caliber_mm_x10 = 127, rate_rpm = 500, muzzle_velocity_mps = 890, range_effective_m = 1800, range_typical_m = 800 },
+    { name = "Browning M1919A4", caliber_mm_x10 = 76, rate_rpm = 500, muzzle_velocity_mps = 850, range_effective_m = 1000, range_typical_m = 400 },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/M3_scout_car (infobox; Lend-Lease section)", covers = "M3A1: 5.67 t, length 5.61 m, width 2.03 m, height 1.96 m, crew 8, armor max 13 mm, M2 .50 + 1-2 .30 cal, Hercules JXD 110 hp, 80 km/h, range 400 km; 3,310 to the USSR" },
     { ref = "TM 9-705, Scout Car M3A1 (War Department)", covers = "side/rear armor 1/4 in (not checked online)" },
+    { ref = "FM 7-15 Heavy Weapons Company, Rifle Regiment (US War Dept., 1942), https://ibiblio.org/hyperwar/USA/ref/FM/PDFs/FM7-15.PDF (search excerpt, not read in full)", covers = "range_typical_m: direct machine-gun fire is limited by observation, rarely effective beyond 2,000 yd: upper bound for the typical distance of tripod machine guns" },
+    { ref = "N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346", covers = "range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd" },
+    { ref = "TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII sec. II, https://lonesentry.com/manuals/tme30/ch7sec2sub6.html", covers = "range_typical_m: MG 34 / MG 42 effective range as light MG 600-800 yd, as heavy MG (tripod) 2,000-2,500 yd: upper bounds for the typical distance" },
 ]
 uncertain = ["speed_offroad_kmh_x10", "armor_hull_side_mm", "armor_hull_rear_mm", "weapon"]
-note = "Wheeled 4x4 armored car, not a halftrack; placed in category halftrack as the Red Army's troop carrier. The Red Army had no domestic APC; about 3,310 M3A1 were supplied via Lend-Lease and used for reconnaissance, command, towing and troop carrying. crew = 2 (driver, commander); Wikipedia counts 8 including 6 passengers. Off-road speed estimated. MG rates are cyclic (M2HB 450-575, M1919A4 400-600 rpm); muzzle velocities and ranges not confirmed online; ammunition counts omitted (vary by TM edition)."
+note = "Wheeled 4x4 armored car, not a halftrack; placed in category halftrack as the Red Army's troop carrier. The Red Army had no domestic APC; about 3,310 M3A1 were supplied via Lend-Lease and used for reconnaissance, command, towing and troop carrying. crew = 2 (driver, commander); Wikipedia counts 8 including 6 passengers. Off-road speed estimated. MG rates are cyclic (M2HB 450-575, M1919A4 400-600 rpm); muzzle velocities and ranges not confirmed online; ammunition counts omitted (vary by TM edition). range_typical_m (prompt 067): .50 machine gun on a vehicle mount 800 m (class estimate, as tripod machine guns); bipod and flexible-mount machine guns 400 m (class estimate between the 300 yd of ORO-T-160 and the 600-800 yd 'effective as light MG' of TM-E 30-451)."
 
 [[unit]]
 id = "su_zis5"
@@ -622,14 +641,16 @@ power_hp = 50
 armor_hull_front_mm = 15
 armor_hull_side_mm = 6
 weapon = [
-    { name = "DT", caliber_mm_x10 = 76, rate_rpm = 600, muzzle_velocity_mps = 840, range_effective_m = 800, ammo_carried = 1070 },
+    { name = "DT", caliber_mm_x10 = 76, rate_rpm = 600, muzzle_velocity_mps = 840, range_effective_m = 800, range_typical_m = 400, ammo_carried = 1070 },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/BA-64 (infobox and text)", covers = "2.4 t, length 3.66 m, width 1.74 m, height 1.9 m (hull), crew 2, DT with 1,070 rounds, GAZ-MM 50 hp, 80 km/h, range 500 km, armor 15 mm front to 6 mm sides; BA-64B wider track" },
     { ref = "https://en.wikipedia.org/wiki/DP_machine_gun (infobox)", covers = "DP/DT family ballistics (840 m/s, 800 m)" },
+    { ref = "N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346", covers = "range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd" },
+    { ref = "TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII sec. II, https://lonesentry.com/manuals/tme30/ch7sec2sub6.html", covers = "range_typical_m: MG 34 / MG 42 effective range as light MG 600-800 yd, as heavy MG (tripod) 2,000-2,500 yd: upper bounds for the typical distance" },
 ]
-uncertain = ["width_mm", "speed_offroad_kmh_x10"]
-note = "BA-64B (from 1943, wider track) on GAZ-67 chassis, open-topped turret with one DT. Wikipedia's infobox covers the BA-64 family; BA-64B width may differ. Turret armor omitted (no fetched value). Off-road speed estimated. DT rate is cyclic."
+uncertain = ["width_mm", "speed_offroad_kmh_x10", "weapon"]
+note = "BA-64B (from 1943, wider track) on GAZ-67 chassis, open-topped turret with one DT. Wikipedia's infobox covers the BA-64 family; BA-64B width may differ. Turret armor omitted (no fetched value). Off-road speed estimated. DT rate is cyclic. range_typical_m (prompt 067): bipod and flexible-mount machine guns 400 m (class estimate between the 300 yd of ORO-T-160 and the 600-800 yd 'effective as light MG' of TM-E 30-451)."
 
 [[unit]]
 id = "su_isu152"
@@ -689,15 +710,17 @@ mass_kg = 1116
 crew = 7
 armor_turret_front_mm = 5
 weapon = [
-    { name = "76.2 mm ZiS-3 L/42.6", caliber_mm_x10 = 762, ammo = "BR-350A APHE, BR-350P APCR, OF-350 HE-frag", rate_rpm = 15, muzzle_velocity_mps = 662, range_effective_m = 1000 },
+    { name = "76.2 mm ZiS-3 L/42.6", caliber_mm_x10 = 762, ammo = "BR-350A APHE, BR-350P APCR, OF-350 HE-frag", rate_rpm = 15, muzzle_velocity_mps = 662, range_effective_m = 1000, range_typical_m = 700 },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/76_mm_divisional_gun_M1942_(ZiS-3) (infobox; ammunition table)", covers = "mass 1,116 kg combat / 2,150 kg travel, barrel 3.4 m (L/42.6), width 1.6 m, height 1.37 m, crew 7, up to 25 rpm, max range 13.29 km, BR-350A 700 m/s, OF-350 680 m/s, BR-350A penetration to 2,000 m" },
     { ref = "https://ru.wikipedia.org/wiki/76-мм_дивизионная_пушка_образца_1942_года_(ЗИС-3) (Characteristics and ammunition properties)", covers = "mass 1,200 kg firing / 1,850 kg travel, shield 5 mm, max range 13,000 m, direct-fire range 820 m, BR-350A 662 m/s, BR-350B 655 m/s, OF-350 680 m/s" },
     { ref = "https://www.historyofwar.org/articles/weapons_76_2mm_divisional_gun_1942_ZiS3.html (seen as search excerpt)", covers = "length 6.1 m, width ~1.65 m, height ~1.38 m" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+    { ref = "A. D. Coox / L. Van Loan Naisawald, Survey of Allied Tank Casualties in World War II, ORO-T-117 (Operations Research Office, 1951); figures from secondary quotations, report not read", covers = "range_typical_m: cross-check: average range at which Allied tanks were knocked out by gunfire just under 800 yd (US sample about 774 yd = 708 m)" },
 ]
 uncertain = ["length_mm", "mass_kg", "crew", "weapon"]
-note = "Length 6.1 m is the travel-position figure (barrel forward, trails closed); width 1.6 m and height 1.37 m per en Wikipedia (other sources 1.645 m / 1.375 m); firing-position height is about the same (shield top), not separately sourced. Mass in firing position: 1,116 kg (en and most sources) vs 1,200 kg (ru). Crew 7 (en; usual figure), ru lists 4 named roles. Muzzle velocity of BR-350A: 662 m/s (ru table) vs 700 m/s (en); 680 m/s with OF-350 HE. Practical anti-tank rate ~15 rpm (maximum 25). Effective anti-tank range ~1,000 m chosen (ru direct-fire range 820 m; penetration tables to 2,000 m); max indirect range 13,000-13,290 m."
+note = "Length 6.1 m is the travel-position figure (barrel forward, trails closed); width 1.6 m and height 1.37 m per en Wikipedia (other sources 1.645 m / 1.375 m); firing-position height is about the same (shield top), not separately sourced. Mass in firing position: 1,116 kg (en and most sources) vs 1,200 kg (ru). Crew 7 (en; usual figure), ru lists 4 named roles. Muzzle velocity of BR-350A: 662 m/s (ru table) vs 700 m/s (en); 680 m/s with OF-350 HE. Practical anti-tank rate ~15 rpm (maximum 25). Effective anti-tank range ~1,000 m chosen (ru direct-fire range 820 m; penetration tables to 2,000 m); max indirect range 13,000-13,290 m. range_typical_m (prompt 067): 57-76 mm tank and anti-tank guns 700 m (class value: documented for the German 75 mm guns, taken over for the same gun class)."
 
 [[unit]]
 id = "su_61k"
@@ -716,14 +739,14 @@ height_mm = 2110
 mass_kg = 2100
 crew = 8
 weapon = [
-    { name = "37 mm 61-K L/67", caliber_mm_x10 = 370, ammo = "OR-167 HE-T, UBR-167 AP-T, 5-round clips", rate_rpm = 170, muzzle_velocity_mps = 880, range_effective_m = 4000, range_aa_m = 3000 },
+    { name = "37 mm 61-K L/67", caliber_mm_x10 = 370, ammo = "OR-167 HE-T, UBR-167 AP-T, 5-round clips", rate_rpm = 170, muzzle_velocity_mps = 880, range_effective_m = 4000, range_typical_m = 500, range_aa_m = 3000 },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/37_mm_automatic_air_defense_gun_M1939_(61-K) (infobox; specifications table)", covers = "2,100 kg, length 5.5 m, width 1.79 m, height 2.11 m, crew 8, 160-170 rpm cyclic, 80 rpm practical, 880 m/s, effective range 4 km, max ceiling 5 km, 3,000 m against air targets" },
     { ref = "https://ru.wikipedia.org/wiki/61-К (infobox; ballistics section)", covers = "2,100 kg travel and firing, 5,500 x 1,765 x 2,100 mm travel, crew 7, 160-170 rpm (practical 120), OR-167 880 m/s, UBR-167 872 m/s, tabular range 4,000 m (HE, self-destruct), 1,500 m (AP)" },
 ]
-uncertain = ["width_mm", "crew"]
-note = "Dimensions are travel position on the four-wheel carriage (width 1.79 m en vs 1.765 m ru); firing position lowered on outriggers, not separately sourced. Crew 8 (en) vs 7 (ru). rate_rpm is cyclic (160-170); practical 80-120 rpm. range_effective_m = horizontal tabular range of the HE round (4,000 m, fuze self-destruct); AP rounds 1,500 m. Ceiling: effective ~3,000 m, maximum ~5,000 m."
+uncertain = ["width_mm", "crew", "weapon"]
+note = "Dimensions are travel position on the four-wheel carriage (width 1.79 m en vs 1.765 m ru); firing position lowered on outriggers, not separately sourced. Crew 8 (en) vs 7 (ru). rate_rpm is cyclic (160-170); practical 80-120 rpm. range_effective_m = horizontal tabular range of the HE round (4,000 m, fuze self-destruct); AP rounds 1,500 m. Ceiling: effective ~3,000 m, maximum ~5,000 m. range_typical_m (prompt 067): light guns of 37-45 mm 500 m against ground targets (class estimate below the 75 mm class)."
 
 [[unit]]
 id = "su_52k"
@@ -742,13 +765,14 @@ height_mm = 2250
 mass_kg = 4500
 crew = 7
 weapon = [
-    { name = "85 mm 52-K L/55", caliber_mm_x10 = 850, ammo = "O-365K HE-frag (time fuze), BR-365 APHE", rate_rpm = 12, muzzle_velocity_mps = 792, range_effective_m = 15650, range_aa_m = 10500 },
+    { name = "85 mm 52-K L/55", caliber_mm_x10 = 850, ammo = "O-365K HE-frag (time fuze), BR-365 APHE", rate_rpm = 12, muzzle_velocity_mps = 792, range_effective_m = 15650, range_typical_m = 1000, range_aa_m = 10500 },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/85_mm_air_defense_gun_M1939_(52-K) (infobox)", covers = "4,500 kg combat and travel, length 7.05 m, width 2.15 m, height 2.25 m, crew 7, 10-12 rpm, 792 m/s, vertical range 10,500 m, maximum firing range 15.65 km" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
 ]
-uncertain = ["mass_kg"]
-note = "Dimensions are travel position on the four-wheel carriage; firing position on cruciform outriggers not separately sourced. Mass 4,500 kg per Wikipedia (other sources 4,220-4,300 kg). range_effective_m = maximum horizontal range (15,650 m); vertical reach 10,500 m. Rate practical (10-12 rpm, 15-20 in some sources). Also used as an anti-tank gun in direct fire."
+uncertain = ["mass_kg", "weapon"]
+note = "Dimensions are travel position on the four-wheel carriage; firing position on cruciform outriggers not separately sourced. Mass 4,500 kg per Wikipedia (other sources 4,220-4,300 kg). range_effective_m = maximum horizontal range (15,650 m); vertical reach 10,500 m. Rate practical (10-12 rpm, 15-20 in some sources). Also used as an anti-tank gun in direct fire. range_typical_m (prompt 067): 85-122 mm high-velocity guns 1000 m (class value: documented for the German 88 mm guns, taken over for the same gun class)."
 
 [[unit]]
 id = "su_m30"
@@ -819,14 +843,16 @@ length_mm = 6000
 width_mm = 5000
 height_mm = 1000
 weapon = [
-    { name = "Maxim M1910/30", caliber_mm_x10 = 76, rate_rpm = 600, muzzle_velocity_mps = 800, range_effective_m = 1000 },
+    { name = "Maxim M1910/30", caliber_mm_x10 = 76, rate_rpm = 600, muzzle_velocity_mps = 800, range_effective_m = 1000, range_typical_m = 800 },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/Pillbox_(military)", covers = "DZOT as Soviet field-built log-and-earth firing point, secondary (not checked online)" },
     { ref = "Zaloga/Ness, Red Army Handbook 1939-1945 (Sutton 1998)", covers = "field fortification practice (not checked online)" },
+    { ref = "TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII sec. II, https://lonesentry.com/manuals/tme30/ch7sec2sub6.html", covers = "range_typical_m: MG 34 / MG 42 effective range as light MG 600-800 yd, as heavy MG (tripod) 2,000-2,500 yd: upper bounds for the typical distance" },
+    { ref = "FM 7-15 Heavy Weapons Company, Rifle Regiment (US War Dept., 1942), https://ibiblio.org/hyperwar/USA/ref/FM/PDFs/FM7-15.PDF (search excerpt, not read in full)", covers = "range_typical_m: direct machine-gun fire is limited by observation, rarely effective beyond 2,000 yd: upper bound for the typical distance of tripod machine guns" },
 ]
 uncertain = ["length_mm", "width_mm", "height_mm", "weapon"]
-note = "Field-built log bunker covered by 1-2 m of earth, typically for one HMG (sometimes an AT gun). No standard size: dimensions are an estimate of the outer earth mound (interior ~2.5 x 2.5 m), height above ground ~1 m with the rest dug in. Weapon is a typical occupant (cyclic rate)."
+note = "Field-built log bunker covered by 1-2 m of earth, typically for one HMG (sometimes an AT gun). No standard size: dimensions are an estimate of the outer earth mound (interior ~2.5 x 2.5 m), height above ground ~1 m with the rest dug in. Weapon is a typical occupant (cyclic rate). range_typical_m (prompt 067): tripod machine guns 800 m (class estimate: twice the bipod value, far below the 2,000 yd limit of observed fire)."
 
 [[unit]]
 id = "su_minefield_at"
