@@ -545,7 +545,9 @@ impl Sim {
         }
     }
 
-    /// Burning objects with smoke put a dark cloud above them.
+    /// Burning objects with smoke put a dark cloud next to them, on the
+    /// downwind side (the plume leans away from the fire; the burning
+    /// object itself and its flames stay visible).
     fn fire_smoke(&mut self) {
         let tick = self.tick;
         self.fire.clouds.retain(|&(_, expires)| expires > tick);
@@ -561,6 +563,14 @@ impl Sim {
                 (r > 0).then(|| (o, Fixed::from_num(r) / 1000))
             })
             .collect();
+        let wind = self.artillery.wind();
+        let speed = wind.length();
+        let downwind = if speed > Fixed::ZERO {
+            Vec2::new(wind.x / speed, wind.y / speed)
+        } else {
+            Vec2::ZERO
+        };
+        let kinds = self.map.object_kinds();
         for (o, radius) in due {
             if let Some(b) = self.fire.objects.get_mut(&o) {
                 b.next_smoke = tick + self.fire.smoke_interval;
@@ -568,7 +578,10 @@ impl Sim {
             if self.fire.clouds.len() >= max {
                 continue;
             }
-            let center = self.map.objects()[o as usize].position;
+            let object = &self.map.objects()[o as usize];
+            let ext = object.half_extent(kinds[usize::from(object.kind)].shape);
+            let away = radius + ext.x.max(ext.y);
+            let center = object.position + Vec2::new(downwind.x * away, downwind.y * away);
             let ticks = self.fire.smoke_ticks;
             let id = self.artillery.add_fire_cloud(tick, center, radius, ticks);
             self.fire.clouds.push((id, tick + ticks));

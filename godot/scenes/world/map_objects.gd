@@ -104,6 +104,8 @@ var build_msec := 0.0
 ## Objects drawn in another stage than their map variant (prompt 020):
 ## object index -> the node drawn instead (null: only hidden).
 var swapped: Dictionary[int, Node3D] = {}
+## Objects charred by fire (prompt 041): object index -> amount 0..1.
+var charred: Dictionary[int, float] = {}
 
 var _objects_root: Node3D
 ## Single nodes of damaged and destroyed objects (prompt 020).
@@ -319,7 +321,35 @@ func set_object_state(state: Dictionary, animate := true) -> void:
 	if node != null:
 		node.name = "Destroyed_%d" % index
 		_destroyed_root.add_child(node)
+		if charred.has(index):
+			_char_node(node, charred[index])
 	swapped[index] = node
+
+
+## Draws object `index` charred by fire (prompt 041), `amount` 0..1. An
+## object still drawn in its MultiMesh (a burnt-out mud house can stay
+## intact) gets a node of its own first.
+func set_charred(index: int, amount: float) -> void:
+	charred[index] = maxf(amount, charred.get(index, 0.0))
+	var node: Node3D = swapped.get(index)
+	if node == null and not swapped.has(index):
+		var state: Dictionary = sim_host.object_state(index)
+		var found: Variant = _instance_transform(index, true)
+		if found == null or state.is_empty():
+			return
+		node = _variant_node(state.id, state.variant, found)
+		node.name = "Charred_%d" % index
+		_destroyed_root.add_child(node)
+		swapped[index] = node
+	if node != null:
+		_char_node(node, charred[index])
+
+
+func _char_node(node: Node, amount: float) -> void:
+	if node is GeometryInstance3D:
+		(node as GeometryInstance3D).set_instance_shader_parameter(&"env_char", amount)
+	for child in node.get_children():
+		_char_node(child, amount)
 
 
 ## The object transform of `index` (from its group buffer); with `hide`

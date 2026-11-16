@@ -59,6 +59,8 @@ fn state_dict(sim: &Sim, map: &Map, index: u32) -> VarDictionary {
         "variant",
         variant_for(sim, map, index, state.stage).as_str(),
     );
+    // Prompt 041: burned out objects are drawn charred.
+    d.set("burnt", sim.object_burnt(index));
     d
 }
 
@@ -68,7 +70,8 @@ impl SimHost {
     /// `{tick, object, id, stage ("intact" / "damaged" / "destroyed"),
     /// remains ("ruin" / "fallen" / "gone" / "flat"), fall_deg, hp, max_hp,
     /// variant (model variant to show), position (Vector3, the hit or the
-    /// crushing vehicle), cause ("hit" / "crushed"), unit}`.
+    /// crushing vehicle), cause ("hit" / "crushed" / "fire"), unit, burnt
+    /// (the fire burned out, prompt 041)}`.
     #[func]
     fn take_object_events(&mut self) -> Array<VarDictionary> {
         let events = std::mem::take(&mut self.object_events);
@@ -97,6 +100,7 @@ impl SimHost {
             let (cause, unit) = match e.cause {
                 ObjectCause::Hit(u) => ("hit", u),
                 ObjectCause::Crushed(u) => ("crushed", u),
+                ObjectCause::Fire(u) => ("fire", u),
             };
             d.set("cause", cause);
             d.set("unit", i64::from(unit.0));

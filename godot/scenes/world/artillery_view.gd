@@ -23,6 +23,8 @@ const MARKER_SMOKE_COLOR := Color(0.85, 0.85, 0.85, 0.8)
 ## Puffs per cloud and their look.
 const PUFFS := 9
 const SMOKE_COLOR := Color(0.78, 0.78, 0.76)
+## Fire smoke (prompt 041): dark, oily.
+const FIRE_SMOKE_COLOR := Color(0.16, 0.15, 0.14)
 const SMOKE_OPACITY := 0.85
 
 var main: Node3D
@@ -39,6 +41,7 @@ var _marker_mesh: TorusMesh
 var _marker_material: StandardMaterial3D
 var _marker_smoke_material: StandardMaterial3D
 var _puff_mesh: QuadMesh
+var _dark_puff_mesh: QuadMesh
 ## Cloud id -> its puffs (MeshInstance3D) and their offsets (x, y, z in
 ## units of the radius).
 var _clouds: Dictionary[int, Array] = {}
@@ -73,6 +76,11 @@ func setup(main_node: Node3D) -> void:
 	puff.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	puff.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
 	_puff_mesh.material = puff
+	_dark_puff_mesh = QuadMesh.new()
+	_dark_puff_mesh.size = Vector2(1, 1)
+	var dark := puff.duplicate() as StandardMaterial3D
+	dark.albedo_color = FIRE_SMOKE_COLOR
+	_dark_puff_mesh.material = dark
 
 
 func _flat_material(color: Color) -> StandardMaterial3D:
@@ -152,12 +160,13 @@ func _draw_smoke() -> void:
 	var clouds := sim_host.smoke_clouds()
 	var ids := sim_host.smoke_ids()
 	var life := sim_host.smoke_life()
+	var dark := sim_host.smoke_dark()
 	var live: Dictionary[int, bool] = {}
 	for i in clouds.size():
 		var id := ids[i]
 		live[id] = true
 		if not _clouds.has(id):
-			_clouds[id] = _make_cloud(id)
+			_clouds[id] = _make_cloud(id, i < dark.size() and dark[i] != 0)
 		var c := clouds[i]
 		var center := Vector3(c.x, c.y, c.z)
 		var radius := c.w
@@ -176,13 +185,13 @@ func _draw_smoke() -> void:
 	clouds_drawn = clouds.size()
 
 
-func _make_cloud(id: int) -> Array:
+func _make_cloud(id: int, is_dark := false) -> Array:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = id * 7919 + 17
 	var puffs: Array = []
 	for k in PUFFS:
 		var node := MeshInstance3D.new()
-		node.mesh = _puff_mesh
+		node.mesh = _dark_puff_mesh if is_dark else _puff_mesh
 		node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		add_child(node)
 		var angle := rng.randf() * TAU

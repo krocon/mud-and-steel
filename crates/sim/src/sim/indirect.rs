@@ -325,6 +325,12 @@ impl Artillery {
         }));
     }
 
+    /// Drift of the smoke clouds per tick (prompt 041: fire smoke starts
+    /// downwind of the fire).
+    pub(super) const fn wind(&self) -> Vec2 {
+        self.wind
+    }
+
     /// Fragmentation radius of a shell of `caliber_mm_x10` (prompt 041:
     /// exploding dumps).
     pub(super) fn blast_radius(&self, caliber_mm_x10: u32) -> Fixed {

@@ -36,9 +36,10 @@ firebreak = ["road", "shallow_water", "deep_water"]
 
 [smoke]
 # Burning objects of classes with `smoke_radius_mm` put a dark smoke cloud
-# (prompt 032 clouds: they drift with the wind and block sight) above
-# themselves every `interval_ms`, living `lifetime_ms`, as long as fewer
-# than `max_clouds` fire clouds exist. [provisional]
+# (prompt 032 clouds: they drift with the wind and block sight) next to
+# themselves on the downwind side (the object and its flames stay visible)
+# every `interval_ms`, living `lifetime_ms`, as long as fewer than
+# `max_clouds` fire clouds exist. [provisional]
 interval_ms = 20000
 lifetime_ms = 40000
 max_clouds = 24

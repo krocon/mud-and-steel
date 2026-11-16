@@ -147,6 +147,7 @@ void fragment() {
 		albedo = mix(albedo, vec3(0.70, 0.62, 0.46), clamp(dust, 0.0, 0.7));
 		albedo = snow_cover(albedo, rough, wn, p, env_snow);
 	}
+	albedo = charred(albedo, env_char);
 	ALBEDO = albedo * mix(0.45, 1.0, ao);
 	AO = ao;
 	AO_LIGHT_AFFECT = 0.3;
