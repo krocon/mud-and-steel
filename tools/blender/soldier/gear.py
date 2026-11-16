@@ -1,8 +1,12 @@
 """Headgear and equipment, rigidly skinned to one bone each ("attachments at bones").
 
 All parts of one soldier go into a single skinned `Gear` mesh (one draw call per
-material). Positions fit the base body (body.py); the stature shape keys move gear
-together with the body.
+material). The stature shape keys move gear together with the body.
+
+Equipment positions are written against a reference torso (`_AUTHORED`) and fitted to
+the actual torso of body.py when the gear is built (`_fit`), so a change of the body
+proportions carries the equipment along. Headgear scales with the head, and the
+suspenders (`y_straps`) follow the tunic surface directly.
 
 Headgear: Stahlhelm M35/M40, Feldmütze M43 (de); SSh-40, pilotka (su); M1 helmet (us).
 Equipment: belt, ammunition pouches, bread bag, canteen, entrenching tool, gas mask
@@ -14,7 +18,7 @@ import math
 
 from mathutils import Matrix, Vector
 
-from .body import HEAD_CENTER
+from .body import HEAD_CENTER, HEAD_RADII, torso_at, torso_front, torso_top
 from .mesh import MeshBuilder
 
 HEAD = {"Head": 1.0}
@@ -39,10 +43,16 @@ def _rz(deg):
 # -- headgear --------------------------------------------------------------------------
 
 
+# Headgear radii are written for a head of 0.082 x 0.098 m and scale with the head.
+_HX = HEAD_RADII[0] / 0.082
+_HY = HEAD_RADII[1] / 0.098
+
+
 def _shell(b, rings, slot, sides=12, scale=(1.0, 1.0), top=1.84, y0=0.0):
     """Helmet shell: rings of (radius, z, front_lift). front_lift raises the ring at
     the front (+Y), e.g. the visor cut-out of the Stahlhelm."""
     c = HEAD_CENTER + Vector((0, y0, 0))
+    scale = (scale[0] * _HX, scale[1] * _HY)
     idx = []
     for r, z, lift in rings:
         ring = []
@@ -67,7 +77,8 @@ def _shell(b, rings, slot, sides=12, scale=(1.0, 1.0), top=1.84, y0=0.0):
     for s in range(sides):
         a = 2.0 * math.pi * s / sides
         front = max(0.0, math.sin(a)) ** 2
-        co = Vector((c.x + math.cos(a) * 0.088, c.y + math.sin(a) * 0.104, z0 + 0.012 + lift0 * front))
+        co = Vector((c.x + math.cos(a) * (HEAD_RADII[0] + 0.006),
+                     c.y + math.sin(a) * (HEAD_RADII[1] + 0.006), z0 + 0.012 + lift0 * front))
         inner.append(b.vert(co, HEAD))
     for s in range(sides):
         t = (s + 1) % sides
@@ -97,7 +108,7 @@ def cap_m43(b):
                (0.090, 1.812, 0.0)],
            "Cloth", sides=10, scale=(0.9, 1.0), top=1.814)
     # Short visor.
-    b.box(HEAD_CENTER + Vector((0, 0.105, 0.035)), (0.13, 0.06, 0.008), "Cloth", HEAD,
+    b.box((0, HEAD_CENTER.y + 0.105 * _HY, 1.73), (0.13 * _HX, 0.06, 0.008), "Cloth", HEAD,
           rot=_rx(-12))
 
 
@@ -125,11 +136,22 @@ def belt(b, slot, height=0.045, thick=0.012):
 
 
 def y_straps(b, slot):
+    """Suspenders: from the belt up the chest, over the shoulder and down the back,
+    lying on the tunic (not fitted, see `_fit`)."""
+    half = 0.016 / math.cos(math.pi / 4)  # a 4-gon turned half a step is a flat band
+    lift = 0.007
+
+    def weights(z):
+        return WAIST if z < 1.10 else (CHEST if z < 1.36 else UPPER)
+
     for sx in (-1, 1):
-        # Front strap from belt to shoulder, back strap from shoulder to belt.
-        b.box((sx * 0.085, 0.125, 1.21), (0.03, 0.01, 0.40), slot, CHEST, rot=_ry(-sx * 4) @ _rx(-6))
-        b.box((sx * 0.06, -0.122, 1.21), (0.03, 0.01, 0.40), slot, CHEST, rot=_ry(sx * 8) @ _rx(4))
-        b.box((sx * 0.11, 0.0, 1.462), (0.03, 0.24, 0.01), slot, UPPER)
+        path = []
+        for z, x in ((1.02, 0.095), (1.20, 0.100), (1.33, 0.106), (1.43, 0.112)):
+            path.append((Vector((sx * x, torso_front(x, z) + lift, z)), weights(z)))
+        path.append((Vector((sx * 0.114, torso_at(1.48)[0], torso_top(0.114) + lift)), UPPER))
+        for z, x in ((1.43, 0.110), (1.30, 0.095), (1.15, 0.070), (1.02, 0.050)):
+            path.append((Vector((sx * x, torso_front(x, z, back=True) - lift, z)), weights(z)))
+        b.tube([(p, half, 0.007, w) for p, w in path], slot, sides=4, phase=0.5)
 
 
 def pouches_de(b):
@@ -188,7 +210,7 @@ def sturmgepaeck(b):
 
 def veshmeshok(b):
     # Soviet duffel rucksack, sack shape.
-    b.ellipsoid((0, -0.20, 1.22), (0.14, 0.08, 0.15), "Canvas", CHEST, rings=5, sides=8)
+    b.ellipsoid((0, -0.175, 1.22), (0.14, 0.08, 0.15), "Canvas", CHEST, rings=5, sides=8)
 
 
 def skatka(b):
@@ -222,8 +244,6 @@ def us_cartridge_belt(b):
             y = math.sin(a) * 0.135
             rot = _rz(sx * (90 - math.degrees(a)) * -1)
             b.box((x, y, 0.985), (0.055, 0.03, 0.07), "Canvas", HIPS, rot=rot)
-    # Suspenders.
-    y_straps(b, "Canvas")
 
 
 def us_haversack(b):
@@ -264,7 +284,7 @@ def armband(b):
     d = (tail - head)
     c0 = head + d * 0.40
     c1 = head + d * 0.62
-    b.tube([(c0, 0.062, 0.064, {"LeftUpperArm": 1.0}), (c1, 0.058, 0.060, {"LeftUpperArm": 1.0})],
+    b.tube([(c0, 0.074, 0.077, {"LeftUpperArm": 1.0}), (c1, 0.068, 0.070, {"LeftUpperArm": 1.0})],
            "Insignia", sides=7, cap_start=False, cap_end=False)
 
 
@@ -315,6 +335,7 @@ def rocket_pack(b):
 ITEMS = {
     "belt_leather": lambda b, f: belt(b, "Leather"),
     "y_straps": lambda b, f: y_straps(b, "Leather"),
+    "y_straps_canvas": lambda b, f: y_straps(b, "Canvas"),
     "pouches_de": lambda b, f: pouches_de(b),
     "stick_grenade": lambda b, f: stick_grenade(b),
     "bread_bag": lambda b, f: bread_bag(b),
@@ -343,11 +364,52 @@ ITEMS = {
 }
 
 
+# The torso the equipment positions below were written against: z, center y, half
+# width, half depth.
+_AUTHORED = [
+    (0.80, -0.005, 0.186, 0.134),
+    (0.92, -0.010, 0.176, 0.124),
+    (1.00, -0.005, 0.170, 0.117),
+    (1.08, 0.000, 0.160, 0.110),
+    (1.18, 0.008, 0.170, 0.116),
+    (1.30, 0.012, 0.186, 0.124),
+    (1.40, 0.005, 0.196, 0.122),
+    (1.465, -0.005, 0.165, 0.105),
+]
+_NOT_FITTED = {"y_straps", "y_straps_canvas", "armband"}
+
+
+def _authored_at(z):
+    rows = _AUTHORED
+    if z <= rows[0][0]:
+        return rows[0][1:]
+    for (z0, *a), (z1, *c) in zip(rows, rows[1:]):
+        if z <= z1:
+            t = (z - z0) / (z1 - z0)
+            return tuple(p + (q - p) * t for p, q in zip(a, c))
+    return rows[-1][1:]
+
+
+def _fit(b, start):
+    """Moves the vertices from index `start` on from the authored torso to the actual
+    one: sideways and in depth, in proportion to the torso at their height."""
+    top = _AUTHORED[-1][0]
+    for co in b.verts[start:]:
+        z = min(co.z, top)
+        cy0, rx0, ry0 = _authored_at(z)
+        cy1, rx1, ry1 = torso_at(z)
+        co.x *= rx1 / rx0
+        co.y = cy1 + (co.y - cy0) * ry1 / ry0
+
+
 def build_gear(faction, headgear, items):
     b = MeshBuilder(["Paint", "Leather", "Canvas"])
     HEADGEAR[headgear](b)
     for item in items:
+        start = len(b.verts)
         ITEMS[item](b, faction)
+        if item not in _NOT_FITTED:
+            _fit(b, start)
     return b
 
 
