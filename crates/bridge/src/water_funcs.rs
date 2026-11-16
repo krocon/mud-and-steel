@@ -72,7 +72,8 @@ impl SimHost {
     /// kind: String, variant: String, center: Vector3 (y = deck height in
     /// the middle), heading_deg: int, half_length: float, half_width: float
     /// (roadway), height_start: float, height_end: float, max_load_kg: int,
-    /// intact: bool}`.
+    /// intact: bool}`. Bridges laid by bridge-laying tanks (prompt 055,
+    /// after the map's own) are left out: `bridge_decks` has them.
     #[func]
     fn bridges(&self) -> Array<VarDictionary> {
         let Some(game) = self.game.as_ref() else {
@@ -81,6 +82,7 @@ impl SimHost {
         let map = game.sim.map();
         map.bridges()
             .iter()
+            .filter(|b| b.laid_by.is_none())
             .map(|b| {
                 let o = &map.objects()[b.object as usize];
                 let kind = &map.object_kinds()[usize::from(o.kind)];

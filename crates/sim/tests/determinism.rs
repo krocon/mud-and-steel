@@ -21,7 +21,17 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by prompt 050 (experience and ranks): the rules of
+/// Last changed by the merge of prompt 055 (bridges, bridge-laying tanks,
+/// camouflage, paratroopers): the hashed air rules gained the `airborne`
+/// mission, the hit points of transport aircraft, the bomb carpet length
+/// and the paratrooper rules; the air types of the match include the
+/// transport aircraft and every player has a fifth cooldown. The crossing
+/// rules and state enter the hash only once one of them acted (not in the
+/// demo). The demo battle is unchanged (decided at tick 412). Prompt 055
+/// alone: `0xef27_60b4_5add_ed7b`. Before: `0xb608_35fb_c1d7_09a8`, set by
+/// prompt 050:
+///
+/// Prompt 050 (experience and ranks): the rules of
 /// `data/experience.toml` and every unit's experience points and kills are
 /// in the hash, and units that gain a rank shoot more accurately and
 /// reload faster. The demo's tanks gain ranks from their first kill: the
@@ -166,7 +176,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xb608_35fb_c1d7_09a8;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x2022_32ed_b313_f95a;
 
 #[test]
 fn golden_hash() {

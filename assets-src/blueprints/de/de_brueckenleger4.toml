@@ -1,0 +1,215 @@
+# Brückenleger IV b (prompt 055): turretless Panzer IV Ausf. C/D chassis with
+# the bridge on a launching frame on top. Main dimensions from
+# data/catalog/de.toml (length 11.0 m with the bridge, hull 5.92 m, width
+# 3.0 m = the bridge, height 3.54 m). Running gear and hull profiles as the
+# Panzer IV H blueprint (same chassis family). Modeling estimates from
+# photographs: the 11 m bridge lies about 1.2 m ahead of the hull center
+# (it was pushed forward over the gap), two treadways on deep side girders,
+# a hand rail along each side.
+unit = "de_brueckenleger4"
+assembly = "bridgelayer"
+
+[layout]
+fender_overhang = 0.06
+
+[running_gear]
+part = "leaf_spring_bogie"
+track_width = 0.40
+link_pitch = 0.12
+road_wheel_diameter = 0.47
+road_wheels = [1.66, 1.16, 0.71, 0.21, -0.21, -0.71, -1.16, -1.66]
+sprocket = { y = 2.42, z = 0.74, diameter = 0.68, teeth = 20 }
+idler = { y = -2.52, z = 0.56, diameter = 0.60 }
+return_rollers = { y = [1.45, 0.48, -0.48, -1.45], z = 0.86, diameter = 0.25 }
+
+[hull]
+part = "plate_hull"
+lower = [[-2.82, 0.42], [2.30, 0.42], [2.90, 0.78], [2.96, 1.03], [-2.96, 1.03], [-2.96, 0.62]]
+upper = [[-2.96, 1.02], [2.96, 1.02], [2.96, 1.08], [2.38, 1.27], [2.31, 1.70], [-1.95, 1.70],
+         [-2.96, 1.56]]
+fender_front = 2.96
+fender_slope_front = 0.18
+
+# Launching frame on the roof.
+[[part]]
+part = "box_prop"
+center = [0.0, 0.40, 1.86]
+size = [1.80, 3.60, 0.32]
+
+[[part]]
+part = "box_prop"
+center = [0.0, 2.10, 2.20]
+size = [1.60, 0.40, 0.40]
+
+# The bridge: two treadways on side girders, cross members, hand rails.
+[[part]]
+part = "box_prop"
+parent = "Bridge"
+center = [-0.85, 0.55, 2.90]
+size = [1.30, 11.0, 0.22]
+bevel = 0.02
+
+[[part]]
+part = "box_prop"
+parent = "Bridge"
+center = [0.85, 0.55, 2.90]
+size = [1.30, 11.0, 0.22]
+bevel = 0.02
+
+[[part]]
+part = "box_prop"
+parent = "Bridge"
+center = [-0.85, 0.55, 2.45]
+size = [0.24, 10.2, 0.70]
+
+[[part]]
+part = "box_prop"
+parent = "Bridge"
+center = [0.85, 0.55, 2.45]
+size = [0.24, 10.2, 0.70]
+
+[[part]]
+part = "box_prop"
+parent = "Bridge"
+center = [0.0, -3.2, 2.45]
+size = [1.94, 0.20, 0.30]
+
+[[part]]
+part = "box_prop"
+parent = "Bridge"
+center = [0.0, 0.55, 2.45]
+size = [1.94, 0.20, 0.30]
+
+[[part]]
+part = "box_prop"
+parent = "Bridge"
+center = [0.0, 4.3, 2.45]
+size = [1.94, 0.20, 0.30]
+
+[[part]]
+part = "cylinder_prop"
+parent = "Bridge"
+from = [-1.42, -4.60, 3.465]
+to = [-1.42, 5.70, 3.465]
+radius = 0.075
+
+[[part]]
+part = "cylinder_prop"
+parent = "Bridge"
+from = [1.42, -4.60, 3.465]
+to = [1.42, 5.70, 3.465]
+radius = 0.075
+
+[[part]]
+part = "box_prop"
+parent = "Bridge"
+center = [-1.42, 0.55, 3.20]
+size = [0.06, 10.0, 0.06]
+
+[[part]]
+part = "box_prop"
+parent = "Bridge"
+center = [1.42, 0.55, 3.20]
+size = [0.06, 10.0, 0.06]
+
+[[part]]
+part = "box_prop"
+parent = "Bridge"
+center = [-1.42, -4.4, 3.235]
+size = [0.07, 0.07, 0.47]
+
+[[part]]
+part = "box_prop"
+parent = "Bridge"
+center = [-1.42, -1.4, 3.235]
+size = [0.07, 0.07, 0.47]
+
+[[part]]
+part = "box_prop"
+parent = "Bridge"
+center = [-1.42, 1.6, 3.235]
+size = [0.07, 0.07, 0.47]
+
+[[part]]
+part = "box_prop"
+parent = "Bridge"
+center = [-1.42, 4.6, 3.235]
+size = [0.07, 0.07, 0.47]
+
+[[part]]
+part = "box_prop"
+parent = "Bridge"
+center = [1.42, -4.4, 3.235]
+size = [0.07, 0.07, 0.47]
+
+[[part]]
+part = "box_prop"
+parent = "Bridge"
+center = [1.42, -1.4, 3.235]
+size = [0.07, 0.07, 0.47]
+
+[[part]]
+part = "box_prop"
+parent = "Bridge"
+center = [1.42, 1.6, 3.235]
+size = [0.07, 0.07, 0.47]
+
+[[part]]
+part = "box_prop"
+parent = "Bridge"
+center = [1.42, 4.6, 3.235]
+size = [0.07, 0.07, 0.47]
+
+[[part]]
+part = "hull_hatch"
+center = [-0.62, 1.75]
+size = [0.55, 0.5]
+hinge = "rear"
+socket = true
+
+[[part]]
+part = "exhaust"
+kind = "muffler"
+position = [0.0, -3.08, 0.86]
+length = 1.0
+diameter = 0.3
+
+[[part]]
+part = "de.notek"
+position = [-1.15, 2.75, 1.04]
+
+[[part]]
+part = "headlight"
+position = [-1.05, 2.62, 1.18]
+diameter = 0.17
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -2.98, 0.60]
+pair = true
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -1.6, 1.75]
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-1.30, -1.40, 1.30]
+normal = [-1, 0, 0]
+size = 0.5
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [1.30, -1.40, 1.30]
+normal = [1, 0, 0]
+size = 0.5
+
+[[part]]
+part = "marking"
+name = "Hull_Rear"
+position = [-0.75, -2.97, 1.30]
+normal = [0, -1, 0]
+size = 0.4
