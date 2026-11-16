@@ -18,9 +18,12 @@ extends Control
 ## Hidden in matches without base building. Created by `main.gd` in the HUD.
 ## Prompt 031: the command bar docks the build menu and the production bar
 ## (`dock_into`); its "Build" button opens the build menu.
+## Prompt 058: both show picture tiles in tabs (`hud/picker.gd`); Alt + 1…0
+## picks a tile of the production bar if it shows, else of the build menu.
 
 const GroundPick := preload("res://scenes/camera/ground_pick.gd")
 const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
+const Picker := preload("res://scenes/hud/picker.gd")
 const RESOURCE_NAMES := ["Fuel", "Ammunition", "Manpower"]
 const OK_COLOR := Color(0.3, 0.9, 0.35, 0.45)
 const BAD_COLOR := Color(0.95, 0.25, 0.2, 0.45)
@@ -39,11 +42,12 @@ var placement_reason := ""
 var production_building := -1
 
 var _resources: Label
-var _build_box: VBoxContainer
 var _build_panel: PanelContainer
 var _production_panel: PanelContainer
 var _production_box: VBoxContainer
-var _production_options: VBoxContainer
+## Picture tiles of the build menu and the production bar (prompt 058).
+var build_picker: Picker
+var production_picker: Picker
 var _queue_label: Label
 var _cancel: Button
 var _hint: Label
@@ -80,8 +84,10 @@ func setup(main_node: Node3D, view: Node) -> void:
 	_build_panel.offset_top = -8
 	_build_panel.offset_bottom = -8
 	_build_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	_build_box = VBoxContainer.new()
-	_build_panel.add_child(_build_box)
+	build_picker = Picker.new()
+	build_picker.name = "BuildPicker"
+	build_picker.picked.connect(func(o: Dictionary) -> void: start_placing(o.type))
+	_build_panel.add_child(build_picker)
 	add_child(_build_panel)
 
 	_production_panel = PanelContainer.new()
@@ -93,12 +99,19 @@ func setup(main_node: Node3D, view: Node) -> void:
 	_production_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	_production_box = VBoxContainer.new()
 	_production_panel.add_child(_production_box)
-	_production_options = VBoxContainer.new()
-	_production_box.add_child(_production_options)
+	production_picker = Picker.new()
+	production_picker.name = "ProductionPicker"
+	production_picker.picked.connect(func(o: Dictionary) -> void:
+		if production_building >= 0:
+			sim_host.produce(production_building, o.type))
+	_production_box.add_child(production_picker)
 	_queue_label = Label.new()
+	_queue_label.add_theme_font_size_override(&"font_size", 13)
+	_queue_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_production_box.add_child(_queue_label)
 	_cancel = Button.new()
 	_cancel.text = "Cancel last"
+	_cancel.add_theme_font_size_override(&"font_size", 13)
 	_cancel.pressed.connect(func() -> void:
 		if production_building >= 0:
 			sim_host.cancel_production(production_building))
@@ -199,6 +212,13 @@ func _input(event: InputEvent) -> void:
 		return
 	var button := event as InputEventMouseButton
 	var key := event as InputEventKey
+	var hotkey := Picker.hotkey_index(key)
+	if hotkey >= 0:
+		var picker: Picker = production_picker if _production_panel.visible else (build_picker if _build_panel.visible else null)
+		if picker != null:
+			picker.press_index(hotkey)
+			get_viewport().set_input_as_handled()
+			return
 	if placing >= 0:
 		if key != null and key.pressed and key.keycode == KEY_ESCAPE:
 			cancel_placing()
@@ -250,27 +270,38 @@ func _refresh() -> void:
 		var key: String = ["fuel", "ammo", "manpower"][i]
 		parts.append("%s %d (+%d/min)" % [RESOURCE_NAMES[i], state[key], income[i]])
 	_resources.text = "    ".join(parts)
-	_fill(_build_box, "Build", sim_host.build_options(), func(o: Dictionary) -> void:
-		start_placing(o.type))
+	# Own construction sites per type, and the progress of the furthest.
+	var sites := {}
+	var site_progress := {}
+	var me := sim_host.local_player()
+	for s: Dictionary in base_view.structures.values():
+		if int(s.owner) == me and float(s.built) < 1.0:
+			var t := int(s.type)
+			sites[t] = int(sites.get(t, 0)) + 1
+			site_progress[t] = maxf(float(site_progress.get(t, 0.0)), float(s.built))
+	build_picker.set_options("Build", sim_host.build_options(), sites, site_progress)
 	_refresh_production()
 
 
 func _refresh_production() -> void:
 	var own: Array[int] = base_view.own_structures(main.selection.selected)
 	production_building = -1
+	var options: Array = []
 	for id in own:
-		var s: Dictionary = base_view.structures.get(id, {})
-		if s.get("type_id", "") in ["base_barracks", "base_factory"]:
+		options = sim_host.production_options(id)
+		if not options.is_empty():
 			production_building = id
 			break
 	_production_panel.visible = production_building >= 0
 	if production_building < 0:
 		return
 	var s: Dictionary = base_view.structures[production_building]
-	var building := production_building
-	_fill(_production_options, s.name, sim_host.production_options(building), func(o: Dictionary) -> void:
-		sim_host.produce(building, o.type))
 	var queue: PackedInt32Array = s.queue
+	var queued := {}
+	for t in queue:
+		queued[t] = int(queued.get(t, 0)) + 1
+	var first := {queue[0]: float(s.progress)} if not queue.is_empty() else {}
+	production_picker.set_options(s.name, options, queued, first)
 	var names: Array[String] = []
 	for i in queue.size():
 		var text := sim_host.unit_type_name(queue[i])
@@ -282,27 +313,3 @@ func _refresh_production() -> void:
 	_queue_label.text = "Queue: " + (", ".join(names) if not names.is_empty() else "empty")
 	_cancel.disabled = queue.is_empty()
 
-
-## Rebuilds a panel with a title and one button per option.
-func _fill(box: VBoxContainer, title: String, options: Array, on_press: Callable) -> void:
-	# Rebuilt only when something changed, so a click is never lost.
-	var signature := title + JSON.stringify(options)
-	if box.get_meta(&"signature", "") == signature:
-		return
-	box.set_meta(&"signature", signature)
-	for child in box.get_children():
-		box.remove_child(child)
-		child.queue_free()
-	var label := Label.new()
-	label.text = title
-	box.add_child(label)
-	for o: Dictionary in options:
-		var b := Button.new()
-		b.text = "%s   %d / %d / %d   %ds" % [o.name, o.fuel, o.ammo, o.manpower, int(o.time)]
-		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		var blocked: String = o.blocked
-		b.disabled = not blocked.is_empty()
-		b.tooltip_text = blocked if not blocked.is_empty() else "Fuel / ammunition / manpower, build time"
-		var option := o
-		b.pressed.connect(func() -> void: on_press.call(option))
-		box.add_child(b)
