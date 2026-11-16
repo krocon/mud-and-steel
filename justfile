@@ -264,6 +264,11 @@ gen-town:
 gen-village:
     cargo run -q --release -p cli -- gen-village
 
+# Generate the landscape maps of prompt 056 (winter_village, farms, river_land, or all) into data/maps/
+[group('maps')]
+gen-land map="all":
+    cargo run -q --release -p cli -- gen-land --map {{ map }}
+
 # Fire benchmark on the town map (prompt 041): ticks without and with a burning wood, terrace and dumps
 [group('maps')]
 fire-bench units="40" ticks="6000":
