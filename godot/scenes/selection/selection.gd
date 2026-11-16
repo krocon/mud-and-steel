@@ -45,6 +45,7 @@ signal embark_ordered(target: int)
 const GroundPick := preload("res://scenes/camera/ground_pick.gd")
 const TransportOrders := preload("res://scenes/selection/transport_orders.gd")
 const EngineerOrders := preload("res://scenes/selection/engineer_orders.gd")
+const CrossingOrders := preload("res://scenes/selection/crossing_orders.gd")
 ## Pointer travel in pixels before a left press becomes a box drag.
 const DRAG_THRESHOLD := 6.0
 ## Minimum click radius around a unit in pixels (for far zoom levels).
@@ -70,6 +71,7 @@ const MODE_HINTS := {
 	"garrison": "Occupy: left click a building",
 	"barrage": "Barrage: left click a point",
 	"smoke": "Smoke: left click a point",
+	"bridge_lay": "Lay bridge: left click a narrow river or ditch",
 }
 ## Barrage actions (prompt 032, actions since 031): smoke?, salvos, radius
 ## in meters. They fire at the ground point under the cursor at once.
@@ -228,6 +230,9 @@ func click_command(screen_position: Vector2, shift := false) -> void:
 		"barrage", "smoke":
 			var b: Array = BARRAGE_ACTIONS["order_" + command_mode]
 			done = order_barrage(screen_position, b[0], b[1], b[2])
+		"bridge_lay":
+			# Bridge-laying tanks (prompt 055).
+			done = CrossingOrders.click(self, screen_position)
 		_:
 			# Engineer orders (prompt 035), `work_<kind>`.
 			done = EngineerOrders.click(self, screen_position)

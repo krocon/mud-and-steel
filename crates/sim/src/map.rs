@@ -416,7 +416,7 @@ impl Map {
             let k = ((v - o) / cell).floor();
             o + k * cell + cell / 2
         };
-        for b in &self.bridges {
+        for b in self.bridges.iter().filter(|b| b.laid_by.is_none()) {
             let o = &self.objects.objects[b.object as usize];
             let kind = &self.objects.kinds[usize::from(o.kind)];
             let err = |what: &str| {

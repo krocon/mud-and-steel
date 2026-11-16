@@ -2,8 +2,12 @@ extends PanelContainer
 ## Air support call bar (prompt 033), docked above the command bar.
 ##
 ## One button per mission with its price and cooldown (`SimHost.air_options`).
-## A button (or Shift + 1…4) waits for a left click on the map, which calls
+## A button (or Shift + 1…5) waits for a left click on the map, which calls
 ## the mission there (`SimHost.call_air`); right click or Escape cancels.
+## Dragging instead of clicking (prompt 055) aims along the line
+## (`SimHost.call_air_line`): the aircraft fly from its start to its end,
+## bombers lay a carpet over it (at most `air_carpet_max_m`), transports
+## drop their paratroopers along it.
 ## Presentation only: the simulation checks cooldown and price again.
 ## [provisional] keys and layout.
 
@@ -14,8 +18,11 @@ const MISSIONS: Array[Array] = [
 	["strafe", "Fighters"],
 	["attack", "Attack"],
 	["bomb", "Bombers"],
+	["airborne", "Paratroopers"],
 ]
-const HINT := "Air support: left click the target  ·  right click cancels"
+const HINT := "Air support: left click the target or drag the run  ·  right click cancels"
+## A drag shorter than this (m) is a click.
+const DRAG_MIN_M := 15.0
 
 var main: Node3D
 var sim_host: SimHost
@@ -28,6 +35,8 @@ var calls := 0
 
 var _refresh_left := 0.0
 var _hint: Label
+## Ground point where a drag started (null: none).
+var _drag_from: Variant = null
 var _options: Dictionary = {}
 
 
@@ -106,6 +115,7 @@ func _on_button(mission: String) -> void:
 ## Waits for the target of `mission` ("" cancels).
 func set_pending(mission: String) -> void:
 	pending = mission
+	_drag_from = null
 	_hint.visible = not pending.is_empty()
 	for m: String in buttons:
 		buttons[m].set_pressed_no_signal(m == pending)
@@ -122,6 +132,17 @@ func call_at(screen_position: Vector2) -> bool:
 		return false
 	var point := hit as Vector3
 	sim_host.call_air(pending, point.x, point.z)
+	calls += 1
+	set_pending("")
+	return true
+
+
+## Calls the pending mission along the ground line `from` → `to` (a drag;
+## also used by the self-test).
+func call_along(from: Vector3, to: Vector3) -> bool:
+	if pending.is_empty():
+		return false
+	sim_host.call_air_line(pending, Vector2(from.x, from.z), Vector2(to.x, to.z))
 	calls += 1
 	set_pending("")
 	return true
@@ -144,8 +165,30 @@ func _input(event: InputEvent) -> void:
 		set_pending("")
 		get_viewport().set_input_as_handled()
 		return
+	var motion := event as InputEventMouseMotion
+	if motion != null and _drag_from != null:
+		var over: Variant = GroundPick.from_screen(main.camera, motion.position)
+		if over != null:
+			var d := Vector2((over as Vector3).x - (_drag_from as Vector3).x, (over as Vector3).z - (_drag_from as Vector3).z).length()
+			_hint.text = "Air support: release to fly the run (%d m)  ·  right click cancels" % roundi(minf(d, sim_host.air_carpet_max_m()))
+		return
 	var button := event as InputEventMouseButton
-	if button == null or not button.pressed:
+	if button == null:
+		return
+	if not button.pressed:
+		# The end of a drag (prompt 055): a run along the line, or a click.
+		if button.button_index == MOUSE_BUTTON_LEFT and _drag_from != null:
+			var from: Vector3 = _drag_from
+			_drag_from = null
+			_hint.text = HINT
+			var end: Variant = GroundPick.from_screen(main.camera, button.position)
+			if end != null and Vector2((end as Vector3).x - from.x, (end as Vector3).z - from.z).length() >= DRAG_MIN_M:
+				call_along(from, end as Vector3)
+			else:
+				sim_host.call_air(pending, from.x, from.z)
+				calls += 1
+				set_pending("")
+			get_viewport().set_input_as_handled()
 		return
 	var hud: Node = main.get("hud")
 	if hud != null and hud.covers(button.position):
@@ -153,7 +196,7 @@ func _input(event: InputEvent) -> void:
 	if get_global_rect().has_point(button.position):
 		return
 	if button.button_index == MOUSE_BUTTON_LEFT:
-		call_at(button.position)
+		_drag_from = GroundPick.from_screen(main.camera, button.position)
 		get_viewport().set_input_as_handled()
 	elif button.button_index == MOUSE_BUTTON_RIGHT:
 		set_pending("")

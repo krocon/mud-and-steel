@@ -157,6 +157,7 @@ func _draw(delta: float) -> void:
 	var frustum := camera.get_frustum()
 	# Per unit id: whether its squad is skipped this frame (prompt 016).
 	var skip := {}
+	var crossing: Node = main.get("crossing_view")
 	for k in ids.size():
 		var unit_id := ids[k]
 		var node: Node3D = main._unit_nodes.get(unit_id)
@@ -187,6 +188,9 @@ func _draw(delta: float) -> void:
 		var u: int = unit_index[unit_id]
 		(_by_unit.get_or_add(unit_id, []) as Array).append(key)
 		var position := previous[k].lerp(current[k], alpha)
+		# Swimming squads (prompt 055) float at the water surface.
+		if crossing != null and crossing.is_swimming(unit_id):
+			position.y = crossing.swim_height(position)
 		s["position"] = position
 		if garrisons[u] >= 0:
 			member.visible = false

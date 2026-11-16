@@ -101,6 +101,7 @@ const BattleSound := preload("res://scenes/audio/battle_sound.gd")
 const MatchHud := preload("res://scenes/hud/hud.gd")
 const TransportView := preload("res://scenes/world/transport_view.gd")
 const WorksView := preload("res://scenes/world/works_view.gd")
+const CrossingView := preload("res://scenes/world/crossing_view.gd")
 const SEED := 42
 ## Map folders, relative to the Godot project (repository checkout only).
 const REPLAY_DIR := "user://replays"
@@ -174,6 +175,8 @@ var destruction_view: Node
 var fire_view: Node
 ## Craters (prompt 021): terrain and decoration updates.
 var crater_view: Node
+## Collapsing decks, laid bridges, camouflage, paratroopers (prompt 055).
+var crossing_view: CrossingView
 ## Buildings, sites, supply points and the base HUD (prompt 023).
 var base_view: BaseView
 var base_hud: BaseHud
@@ -272,6 +275,10 @@ func _ready() -> void:
 	works_view.name = "WorksView"
 	add_child(works_view)
 	works_view.setup(self)
+	crossing_view = CrossingView.new()
+	crossing_view.name = "CrossingView"
+	add_child(crossing_view)
+	crossing_view.setup(self)
 	effects = Effects.new()
 	effects.name = "Effects"
 	add_child(effects)

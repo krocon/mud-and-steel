@@ -254,6 +254,20 @@ first. Units avoid known hostile fields by themselves (path search). Test:
 `crates/ai/tests/ai.rs::ai_lays_mines_that_the_enemy_does_not_see`.
 [provisional]
 
+## Bridge-laying tanks (prompt 055)
+
+`crates/ai/src/bridgelayer.rs`, Normal and Hard only. When the AI starts it
+looks for deep water on the line from its home to the enemy (public map):
+the first river there and points along it (every 40 m, up to 200 m to both
+sides). While no bridge of the map stands within 150 m of the crossing
+(`PlayerView::bridges_intact`), it builds one bridge-laying tank of its
+faction in the vehicle works (at most two per match; the US has none) and
+sends it `LayBridge` at these points in turn until one leads to a laid
+bridge (`PlayerView::layers`). The army uses the bridge through the path
+search. The tank has no weapon (role `Unarmed`) and stays out of the attack
+waves. The AI does not call paratroopers. Test:
+`crates/ai/tests/bridgelayer.rs`. [provisional]
+
 ## Difficulties
 
 | | Passive | Easy | Normal | Hard |

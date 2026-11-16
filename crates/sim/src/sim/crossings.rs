@@ -1250,6 +1250,11 @@ impl Sim {
         &self.crossings.rules
     }
 
+    /// Index into `SimConfig::unit_types` of unit `id`.
+    pub fn type_of_unit(&self, id: UnitId) -> Option<u32> {
+        self.crossing_index(id).map(|i| self.units[i].unit_type)
+    }
+
     /// Whether unit type `unit_type` lays bridges.
     pub fn is_bridgelayer_type(&self, unit_type: u32) -> bool {
         self.crossings

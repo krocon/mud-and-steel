@@ -77,6 +77,13 @@ bridge (an intact one is blown up, a destroyed one repaired). The tooltip
 names the price of one piece. Known mines are marked on the ground (own
 yellow, found enemy mines red). [provisional: no keys yet]
 
+**Bridge-laying tanks and camouflage** (prompt 055): with bridge-laying
+tanks selected the command bar shows Lay bridge (then a left click near a
+narrow river or ditch: the tank lays its bridge across the nearest gap its
+bridge spans) and Take up (it fetches its laid bridge). With vehicles or
+guns selected, Camouflage puts up branches and nets (Uncover takes them off
+when all of them have them). [provisional: no keys yet]
+
 Passengers are hidden in their vehicle and cannot be selected; the unit
 panel shows "Passengers 9 / 10", "towing …" or "towed by …" and "loading"
 while mounting, dismounting, limbering or unlimbering runs. Dismount and
@@ -86,8 +93,10 @@ Unlimber are also buttons of the command bar.
 
 | Input | Effect |
 |---|---|
-| Air bar (above the command bar): Recon / Fighters / Attack / Bombers | Wait for a left click on the map, then call the mission there; right click or Esc cancels |
-| Shift + 1 / 2 / 3 / 4 | The same as the four buttons [provisional] |
+| Air bar (above the command bar): Recon / Fighters / Attack / Bombers / Paratroopers | Wait for a left click on the map, then call the mission there; right click or Esc cancels |
+| Shift + 1 / 2 / 3 / 4 / 5 | The same as the five buttons [provisional] |
+| Air bar: Paratroopers (prompt 055) | Transport aircraft drop three squads of paratroopers around the clicked point |
+| Drag instead of click (prompt 055) | The aircraft fly along the dragged line; bombers lay a carpet over it (at most 300 m), transports drop along it |
 
 The buttons show the price (fuel / ammunition / manpower) or the seconds
 until the mission can be called again; the tooltip names the aircraft. Own
