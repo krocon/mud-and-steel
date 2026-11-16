@@ -88,3 +88,63 @@ unsichtbar, weil das Gelände nicht ausgeschnitten wird.
 | 13 | **KI** (Normal, Hard), wenn sie verteidigt (sie hat einen Pioniertrupp und ihre Engstellen aus 035): nach den Minen gräbt sie an der ersten Engstelle eine Grabenlinie quer zum Weg zum Gegner, zieht Draht 12 m davor, setzt ein MG-Nest und ein Tarnnetz; höchstens eine Stellung je Engstelle, zwei insgesamt. **[vorläufig]** | „KI baut Stellungen an Engstellen“ nur über normale Befehle und den `PlayerView`. |
 | 14 | **Modelle:** Tarnnetz (`fort_camo_net`) und Höcker (`fort_dragon_teeth`) als neue neutrale Katalogeinträge mit Quellen und Blender-Bauplänen (Env-Kit); Graben, Verbindungsgraben, MG-Nest-Ring, Unterstand (Erdhügel über Balkendecke mit Eingang) und Fahrzeugstellung prozedural in Godot (sie folgen beliebigen Linien bzw. dem Graben). Sandsack-Stellung, Igel, Draht, Bunker: vorhandene Modelle. | Gräben folgen frei gezogenen Linien, feste Modelle passen nicht; die drei festen Objekte brauchen echte Maße (`docs/SOURCES.md`). |
 | 15 | **Darstellung:** aufgeworfene Erde an der Brustwehr, Laufroste, Bretter- und Faschinenverschalung, Sandsäcke an den Feuerplätzen und Knicken, Trampelpfade hinter den Gräben (dunkler Streifen), zerschossene Stellen: Krater in ≤ 3 m reißen die Brustwehr eines Stücks auf (verstreute Säcke). Bildnachweis: `just position-shots build/positions`. | Wirkung des Referenzbildes ohne es nachzubauen. |
+
+## Ergebnis
+
+Umgesetzt wie oben; Details in `docs/ARCHITECTURE.md` „Positions (prompt 052)“,
+`docs/GAME_DESIGN.md` „Field works“ (Preise, Zeiten), `docs/CONTROLS.md`
+(Pionier-Schaltflächen, Linienvorschau), `docs/AI.md` „Engineers“, `docs/MAPS.md`
+(Stützpunkt-Marker), `docs/INFANTRY.md` (Feuerplätze, Brustwehr, Tarnnetz).
+
+- **Sim:** `crates/sim/src/positions.rs` (Regeln `[positions]` in `data/works.toml`,
+  Stützpunkt-Grundriss), `crates/sim/src/sim/positions.rs` (Zustand und Ablauf);
+  neue Arten am Ende von `WorkKind`/`LayKind`/`DigKind` (Verbindungsgraben,
+  Fahrzeugstellung, MG-Nest, Unterstand, Tarnnetz, Bunker, Höcker), keine neuen
+  `Command`-Varianten. Zickzack-Gräben, Feuerplätze in `choose_spots`, Brustwehr nur
+  gegen ferne flache Schüsse, Nest-/Unterstand-Deckung, eingegrabene Fahrzeuge (nur
+  Turm treffbar, Ziel auf den Turm), Tarnnetze (Nachbearbeitung der Sichtmaske, nie aus
+  der Luft), Bunker am Grabenrand als fertige Befestigung der Fraktion, Höcker als
+  Sperrlinie (nicht plattwalzbar), Marker `strongpoint_<name>` als neutrale
+  Stützpunkte im ersten Tick. Grabschritte eines Ticks werden nacheinander angewendet
+  (Stoßstellen wurden sonst doppelt gegraben und für Infanterie unpassierbar).
+- **Godot:** `world/trench_builder.gd` (prozedurale Gräben mit Laufrost,
+  Bretter-/Faschinenverschalung, Pfosten, Erd-Brustwehr beidseitig, Sandsäcken an den
+  Knicken, Trampelpfad, aufgerissener Brustwehr und verstreuten Säcken nach Treffern,
+  Gehrung an den Stößen; MG-Nest, Unterstand, Fahrzeugstellung, Schützenloch),
+  `works_view.gd` (Modelle Tarnnetz/Höcker, Erdwall um eingegrabene Fahrzeuge,
+  Linienvorschau mit Länge, Stückzahl, Gesamtpreis und Preis pro Meter),
+  `engineer_orders.gd` und sieben neue Schaltflächen, `positions_funcs.rs`,
+  Editor-Werkzeug „Strongpoint“ mit Umriss-Vorschau, Selbsttest-Teil 17
+  (`tools/positions_self_test.gd`), `just position-shots`.
+- **Modelle:** `fort_camo_net` (Tarnnetz 29 × 29 ft auf Stangen, FM 5-20) und
+  `fort_dragon_teeth` (Betonhöcker) als Katalogeinträge mit Quellen, Env-Kit-Teile
+  `camo_net` und `dragon_tooth`.
+- **KI:** nach den Minen (oder ohne Munition dafür) gräbt sie an der Engstelle einen
+  Zickzack-Graben quer zum Weg, zieht Draht davor, setzt MG-Nest und Tarnnetz; höchstens
+  zwei Stellungen.
+- **Tests:** `crates/sim/tests/positions.rs` (Zickzack und Feuerplätze, eingegrabener
+  Panzer nur am Turm getroffen und Ausfahren, Tarnnetz gegen Beobachter aus 150 m und
+  Sichtung aus der Nähe, Feuern verrät, Höckerlinie: Kosten pro Stück, sperrt Panzer,
+  wird nicht plattgewalzt, Nest/Bunker nur am Grabenrand und Bunker wird Bauwerk,
+  Kartenstützpunkt neutral und gegraben, Infanterie quert Gräben und erreicht
+  Stützpunkte, Luftaufklärung findet den Lkw unter dem Netz nicht, Determinismus), `crates/net/tests/snapshot_positions.rs`,
+  `crates/ai/tests/ai.rs::ai_digs_a_position_after_its_mines`, Editor-Selbsttest
+  (Stützpunkt setzen, entfernen, im Spiel gegraben).
+- **Golden-Hash** unverändert `0x9b87_57bd_bec7_96f8` (Stand von main): Regeln und
+  Zustand von 052 gehen erst in den Hash, wenn eine Partie sie benutzt.
+- **Bilder:** `build/positions/` (nicht im Repo): Übersicht des Stützpunkts,
+  Schützenstand mit zerschossener Brustwehr, Unterstände und Verbindungsgraben, Ring
+  mit Draht, eingegrabener Panzer unter dem Tarnnetz.
+- **Prüfungen** (nach dem Zusammenführen mit main inkl. 046, 048, 053, 060): `just check`,
+  `selftest`, `lan-selftest`, `editor-selftest`, `gallery-check`, `validate-assets`,
+  `kit-test` grün. `ai-tournament --matrix --games 6`: Hard–Normal 50/50 %,
+  Hard–Easy 66/16 %, Normal–Easy 50/50 %, gegen Passive 100 %. Basisbau Hard gegen
+  Normal (4 Spiele, 20 000 Ticks): 0/75 %, 1 Zeitüberschreitung (verrauscht).
+
+Offen: alle Werte in `[positions]` vorläufig; Graben im Höhenfeld nur 0,5 m (die
+Tiefe zeigt das Mesh, kein Loch im Geländemesh); Feuerplätze bevorzugen Knicke nicht
+vor Wandplätzen; kein Ausfahr-Verzug bei eingegrabenen Fahrzeugen; Stützpunkte neutral
+und rundum (ohne Front, ohne Bunker; `fort_bunker_mg` separat setzen); die KI nutzt
+Fahrzeugstellungen und Bunker noch nicht; Draht im Bild aus der Ferne kaum sichtbar;
+in den Bildern stehen die Trupps noch am Grabenrand statt in den Feuerplätzen
+(Darstellung der Haltung im Graben gehört zu 048).

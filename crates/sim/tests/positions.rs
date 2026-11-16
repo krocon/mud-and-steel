@@ -475,3 +475,51 @@ fn infantry_walks_into_a_strongpoint_placed_during_the_match() {
         })
     });
 }
+
+/// Flat 800 m × 800 m (room for a reconnaissance flight, like `tests/air.rs`).
+fn wide_map() -> Arc<Map> {
+    let n = 401;
+    let layout = MapLayout {
+        name: "positions_air_test".into(),
+        samples_x: n,
+        samples_y: n,
+        cell_size_mm: 2000,
+        starts: Vec::new(),
+        markers: Vec::new(),
+    };
+    let count = (n * n) as usize;
+    Arc::new(Map::from_rasters(layout, vec![0; count], vec![0; count]).unwrap())
+}
+
+#[test]
+fn reconnaissance_does_not_reveal_a_truck_under_a_net() {
+    // As in `tests/air.rs`: the tank sees 500 m, the truck 650 m south of
+    // it is hidden; a reconnaissance flight over it would reveal it.
+    let play = |net: bool| {
+        let mut sim = sim_on(
+            wide_map(),
+            &hold(&[(P0, TANK, 0, 350), (P1, "su_zis5", 0, -300)]),
+            &[],
+        );
+        if net {
+            let at = Vec2::from_meters(0, -300);
+            assert_eq!(sim.place_finished_work(WorkKind::CamoNet, P1, at, at), 1);
+        }
+        run(&mut sim, 5);
+        sim.step(&[PlayerCommand::new(
+            P0,
+            Command::CallAir {
+                mission: sim::AirMission::Recon,
+                target: Vec2::from_meters(0, -250),
+            },
+        )]);
+        let mut seen = false;
+        for _ in 0..20 * 120 {
+            sim.step(&[]);
+            seen |= sim.visible_to(P0, UnitId(1));
+        }
+        seen
+    };
+    assert!(play(false), "without a net the flight reveals the truck");
+    assert!(!play(true), "the flight revealed the truck under its net");
+}
