@@ -110,7 +110,7 @@ Umsetzen von ihrer Session konkretisiert.
 ```
 Welle 10:  029 Sound │ 031 HUD │ 032 Indirektes Feuer │ 038 Speichern │ 042 Infanterie │ 044 Release
 Welle 11:  030 Musik (nach 029) │ 033 Flugzeuge (nach 032) │ 034 Transport │ 037 Teams │ 041 Umwelt 2
-Welle 12:  035 Pioniere │ 036 Nachschub (nach 034) │ 040 Wetter │ 043 Sprache (nach 031) │ 057 Wiese │ 058 Produktionsbilder
+Welle 12:  035 Pioniere │ 036 Nachschub (nach 034) │ 040 Wetter │ 043 Sprache (nach 031) │ 057 Wiese │ 058 Produktionsbilder │ 059 Wüstendorf (nach 041)
 Welle 13:  039 Tutorial/Missionen (nach 031, 038) │ 046 Befehle │ 048 Animationen │ 053 Sound 2 │ 056 Karten 2
 Welle 14:  047 Infanterie-Taktik (nach 046) │ 049 Verwundung │ 050 Erfahrung │ 052 Stellungen 2 │ 054 Explosionen 2 │ 055 Brücken/Luftlande
 Welle 15:  051 KI-Kommandeur (nach allem, was die KI nutzen soll)
@@ -138,6 +138,7 @@ oder weggelassen; es werden keine Inhalte anderer Spiele übernommen.
 | 056 | [Karten und Basis Stufe 2](056-karten-basis-stufe2.md) | Winterdorf, Höfe, Flussland, Punkte an Orten, Hinterhalt | Entwurf |
 | 057 | [Bodenoptik: Wiesen](057-bodenoptik-wiese.md) | Feines Gras, Farbvariation, Mähstreifen, Übergänge | Entwurf |
 | 058 | [Bilder in der Produktionsauswahl](058-bilder-produktionsauswahl.md) | Vorgerenderte Bilder als Kacheln mit Kosten, Reiter | Entwurf |
+| 059 | [Wüstendorf](059-wuestendorf.md) | Flachdachhäuser mit Hofmauern, Palmenhaine, Dorfkarte Nordafrika | Entwurf |
 
 Viele dieser Prompts ändern `sim.rs`, `command.rs`, `main.gd` und den Golden-Hash.
 Parallel laufende Sessions übernehmen vor dem Abschluss den aktuellen `main`.
