@@ -170,6 +170,11 @@ lineup:
 kit-test:
     {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python tools/blender/kit_test.py
 
+# Serve the unit browser (web/units/): every catalog entry with picture, 3D model, camouflage and values; opens http://localhost:8137/web/units/
+[group('assets')]
+units-web *args:
+    python3 tools/units_web.py {{ args }}
+
 # Build the bridge and open the model gallery (all models, camouflage switch)
 [group('godot')]
 gallery: build
@@ -420,6 +425,16 @@ base-shots dir: build
 [group('godot')]
 position-shots dir="build/positions": build
     {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- "--position-shots={{ dir }}"
+
+# Record big blasts, a tank's ammunition explosion and a heavy rocket strike by day and night as PNG files (prompt 054, needs a window)
+[group('godot')]
+blast-shots dir="build/explosions": build
+    {{ GODOT }} --path godot --always-on-top --fixed-fps 30 res://scenes/main.tscn -- "--blast-shots={{ justfile_directory() }}/{{ dir }}"
+
+# Play a real heavy rocket strike on the base skirmish and record it as PNG files; fails if it does not show (prompt 054, needs a window)
+[group('godot')]
+strike-shots dir="build/explosions": build
+    {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- --mode=base --strike-live "--blast-shots={{ justfile_directory() }}/{{ dir }}"
 
 # Measure the frame rate with 50 explosions at once in every graphics quality (opens a window)
 [group('godot')]

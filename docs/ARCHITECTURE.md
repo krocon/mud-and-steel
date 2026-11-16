@@ -68,6 +68,7 @@ but never its issuer:
 | `CallAir { mission, target }` | Calls air support of the player's faction on the ground point ([Air support](#air-support-and-anti-aircraft-fire), prompt 033). |
 | `FormationMove { units, target, formation, facing, engage }` | Drives the group to a formation around `target`, turned to `facing` (default: direction of travel); `engage` picks who halts to fight on the way (attack-move) ([Formations](#formations-attack-move-and-securing), prompt 046). |
 | `Secure { units, center, radius_m, formation, facing }` | Takes up the formation around `center` and holds the circle: attack enemies inside, return to the slots. |
+| `MissionSignal { name }` | Reports what only the presentation knows (camera moved, units selected) to the mission script; ignored without a mission and from other players ([MISSIONS.md](MISSIONS.md), prompt 039). |
 
 Movement commands (`MoveTo`, `Attack`, `AttackGround`, `Garrison`,
 `QueueMove`, `Patrol`) ignore units that cannot move (buildings).
@@ -156,6 +157,8 @@ Prompt 046, `crates/sim/src/formation.rs` (shapes) and
   `All`): a unit with the task halts while it has an automatic target (an
   enemy in range it sees and can hurt) and then plans its own path to its
   slot again. Hold fire never halts. Runs right after `aim_and_fire`.
+  Prompt 047: squads of two fire teams bound instead of halting, and mortar
+  teams halt only for targets of their mortar (INFANTRY.md "Tactics").
 - **Securing**: every `retarget_ticks` a unit without a target attacks the
   nearest enemy its player sees inside the circle that it can hurt (an
   ordinary attack order, so search and sight rules apply); the attack is
@@ -1418,6 +1421,49 @@ The full table is in `prompts/done/033-luftwaffe-flak.md`. In short:
 - The approach direction follows the caller's start; players cannot pick
   it.
 
+## Heavy strike
+
+Prompt 054. Rules: `data/strike.toml` (`sim::StrikeRules`), state and update:
+`crates/sim/src/sim/strike.rs`, public types: `crates/sim/src/strike.rs`.
+Design and numbers: GAME_DESIGN.md "Heavy strike".
+
+- **Call:** `Command::HeavyStrike { target }` (the last variant of the
+  enum). It needs a completed, unsold rocket battery position of the player
+  (`building`, a base building of `data/economy.toml`), the unlock time
+  (`unlock_s` after the start), no cooldown, no other strike of the player
+  under way, the faction's rocket caliber and the price, which is paid at
+  once. `Sim::strike_option` says why not (`StrikeBlock`).
+- **Warning:** `warning_s`. The strike is public (`Sim::strikes`,
+  `StrikeEvent::Called`): every player's game shows the smoke and plays the
+  siren. After every vision update `Sim::reveal_strikes` shows the battery
+  position to every player who is not allied with the owner
+  (`Vision::reveal`, like muzzle flashes at night), so the enemy can find
+  and destroy it. A position that is destroyed or sold before the first
+  rocket leaves calls the strike off (`StrikeEvent::Cancelled`); one lost
+  during the salvo fires no more rockets.
+- **Salvo:** `Sim::update_strikes` runs after the indirect fire. Every
+  `ripple_ms` a rocket leaves the position (`Sim::launch_shell` in
+  `indirect.rs`): an ordinary high-explosive shell of the faction's caliber
+  aimed at a uniform random point within `radius_m` (rejection sampling with
+  the simulation's generator, like a barrage), flying distance /
+  `speed_m_per_s` (at least `min_flight_ms`) over an arc of `apex_pct` of the
+  distance. From then on it is a shell: `fly_shells` moves it, and on impact
+  the usual direct hit, object, crater, fire, fragment and knockdown rules
+  apply. The shooter of its hits is the battery position.
+- **Hash:** the strike state (rules, cooldowns, strikes, next id) is hashed
+  only once a strike was called, so matches without strikes keep their
+  hashes. It is saved with the rest of `Sim` (prompt 038); a copy taken in
+  the warning time continues identically (`tests/strike.rs`).
+- **Events:** `Sim::strike_events` also carries
+  `StrikeEvent::AmmoExplosion` (prompt 048's ammunition explosion of a
+  destroyed vehicle), so the presentation can blow the turret off.
+- **Bridge:** `SimHost.call_strike`, `strike_option`, `strikes`,
+  `take_strike_events` (`crates/bridge/src/strike_funcs.rs`).
+- **Presentation:** `world/strike_view.gd` (marker smoke, area ring, siren,
+  countdown, enemy battery marker, call bar, launch frames for the
+  borrowed ammunition dump model of the position) and
+  `world/blast_effects.gd` (see "Effects", big blasts).
+
 ## Transport and towing
 
 Prompt 034. Squads ride in trucks and halftracks and on tanks (tank
@@ -2145,6 +2191,20 @@ Matches 1 and 2 choose the passive opponent, which gives no orders. `just lan-se
 surrendering: the host must show victory, the client defeat (since prompt 037 a 2 vs 2 with computer players, see
 [TEAMS.md](TEAMS.md)); the flow self-test also starts a 2 vs 2 from the setup screen.
 
+## Missions and tutorial
+
+Prompt 039, reference in [MISSIONS.md](MISSIONS.md). A mission is a TOML
+script next to its map (`data/maps/<map>/missions/<id>.toml`, places in
+`mission_points.toml`). `sim::mission::parse_mission` resolves it into
+`SimConfig::mission`; the simulation visits its triggers at the end of
+every tick (after vision, before the standings) and runs the actions
+(units appear, orders as commands of their owner, objectives, messages,
+camera requests, victory or defeat with `DefeatReason::Mission`). So a
+mission is deterministic and part of replays, saved games and the state
+hash (only when there is one: the golden hash is unchanged). What only the
+presentation knows arrives as `Command::MissionSignal`. Godot shows the
+panel (`hud/mission_hud.gd`) and keeps the progress in `user://`.
+
 ## Map editor
 
 Prompt 028 adds an in-game map editor (`godot/scenes/editor/`, main menu →
@@ -2587,7 +2647,7 @@ dark and rutted. Forest is the identity. No extra textures are needed.
 | Haze | Depth fog from 0.65–0.7 to 2.0–2.2 camera distances, curve 1.3, at most 35–45 %, aerial perspective | Foreground stays clear at every zoom, the upper screen edge lies in light haze. Exponential fog would grey the whole view at 600 m. |
 | SSAO | Radius 2.5 % of the camera distance (0.6–10 m) | Contact shadows under vehicles up close, soft shading of hollows and ditches far away. |
 | SSIL, SDFGI | Off | SSIL measured 0.5–0.7 ms on high with hardly a visible change on open ground; SDFGI costs too much on a 4 km map and leaks light. |
-| Depth of field | Tilt-shift at close zoom (prompt 057): sharp from 0.86 to 1.1 camera distances along the view, blurred over 0.22 distances beyond, amount 0.09, fading out between 30 and 60 m camera distance; box bokeh, very low quality; off on quality low and with the setting "Depth of field at close zoom" **[provisional: on by default]** | Makes close views look like a photo of a model and hides the far edge of the decoration range. A far blur alone (tried in prompt 015) smeared the upper edge at every zoom; the narrow band around the focus only shows near the ground. |
+| Depth of field | Tilt-shift, setting "Depth of field" with three modes (`DOF_MODES` in `atmosphere.gd`), off on quality low. **Subtle** (prompt 057, the default **[provisional]**): sharp from 0.86 to 1.1 camera distances along the view, blurred over 0.22 distances beyond, amount 0.09, fading out between 30 and 60 m camera distance; box bokeh, very low quality. **Miniature**: sharp from 0.95 to 1.05, blurred over 0.2 distances beyond, amount 0.22, fading out between 150 and 350 m; hexagon bokeh, medium quality; saturation × 1.18 and contrast × 1.05, fading with the blur **[provisional values]**. **Off**: none. | Subtle makes close views look like a photo of a model and hides the far edge of the decoration range. A far blur alone (tried in prompt 015) smeared the upper edge at every zoom; the narrow band around the focus only shows near the ground. Miniature is the full model-railway look as an option: the 45–65° view down already is the angle of such photos, and the depth-based blur keeps a band across the middle of the screen sharp. It is not the default because units near the upper and lower screen edges are harder to make out. |
 | Vignette | Canvas shader below the HUD, 25 % | Frames the view lightly. |
 | Snowfall | `GPUParticles3D` box around the camera focus, scaled with the camera distance (winter, medium and high) | Weather prepared; flakes stay visible at every zoom. |
 
@@ -2739,6 +2799,34 @@ and a burning wreck.
   per-projectile arrays yet.
 - Smoke does not block line of sight; smoke shells and screens are game
   rules for later prompts.
+
+### Big blasts (prompt 054)
+
+`world/blast_effects.gd` adds to every hit of at least 110 mm (12.2 cm
+howitzers and up, bombs, the rockets of the heavy strike, exploding dumps)
+and to a tank's ammunition explosion:
+
+- a **shock-wave dome**: a white hemisphere that grows to 0.075 m per mm of
+  caliber in 0.32 s, slowing down, with a bright rim and a nearly clear
+  middle, fading (the condensation of the shock front); a flat **pressure
+  ring** to twice that radius in 0.55 s; a **dust ring** thrown outwards
+  along the ground in the ground's colour (12 pooled domes and rings, 4–8
+  dust rings by quality);
+- a heavier fireball, a grey-brown cloud of earth and smoke and debris on
+  top of the ordinary impact of `effects.gd`;
+- a **flash light**: an omni light of 30–66 m range for 0.32 s that lights
+  up the ground and the buildings around; at most 1 / 2 / 4 at once (low /
+  medium / high, the oldest is reused); at night 3× as strong and 1.45× as
+  far, at dawn and dusk 1.7× (prompt 040);
+- more camera shake.
+
+A tank whose ammunition explodes (`StrikeEvent::AmmoExplosion`) also
+throws its turret: the `Turret` node leaves the model, flies up 10–15 m/s
+with a spin, lands and stays (6 in the air, 16 lying at most); it gets the
+wreck tint and no longer follows the aim. Pictures: `just blast-shots`
+(fixed views by day and by night into `build/explosions/`) and `just
+strike-shots` (a real strike on the base skirmish; fails if smoke, siren,
+countdown or launch are missing). [provisional] sizes, colours, threshold.
 
 ## Audio (presentation only)
 

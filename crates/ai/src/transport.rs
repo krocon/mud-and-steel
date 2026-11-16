@@ -176,6 +176,16 @@ impl Ai {
                     units: riders,
                     carrier: carrier.id,
                 });
+            } else if carrier.target.is_none()
+                && dist(carrier.position, place) > Fixed::from_num(ARRIVED_M)
+                && enemies
+                    .iter()
+                    .any(|&e| dist(e, carrier.position) <= Fixed::from_num(2 * UNLOAD_M))
+            {
+                // An empty carrier does not wait under fire where it
+                // unloaded: back behind the army (prompt 047, where squads
+                // fight longer from cover and the enemy shoots at it).
+                self.drive(carrier, place, out);
             }
         }
     }

@@ -14,12 +14,14 @@
 # first rifle hit and dies of the second; the roll decides whether that
 # first hit puts him out of the fight.
 heavy_pct = 40
-# Lightly wounded: he dresses the wound himself (`bandage_ms`, no firing
-# meanwhile) and limps until `limp_ms` after that.
+# Lightly wounded: he fights on, dresses the wound himself within
+# `bandage_ms` (the presentation shows it in lulls) and limps until
+# `limp_ms` after that. (Not firing while dressing it took too much of the
+# fire out of suppressed squads, see prompts/done/049.)
 bandage_ms = 20000
 # Heavily wounded: down, neither moves by himself nor fires, and dies
 # after `bleed_ms` unless a medic reaches him first.
-bleed_ms = 180000
+bleed_ms = 120000
 # Treated men (bandaged, or patched up by a medic) limp this long.
 limp_ms = 60000
 # Squad speed while one of its men limps, or while it carries a heavily

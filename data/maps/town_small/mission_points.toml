@@ -1,0 +1,19 @@
+# Trigger areas and spawn points of this map for mission scripts
+# (prompt 039, docs/MISSIONS.md). Written by the map editor.
+
+[[area]]
+name = "square"
+center_m = [0, 0]
+radius_m = 40
+
+[[spawn]]
+name = "south_entry"
+position_m = [0, 240]
+
+[[spawn]]
+name = "north_entry"
+position_m = [0, -270]
+
+[[spawn]]
+name = "square_south"
+position_m = [0, 15]

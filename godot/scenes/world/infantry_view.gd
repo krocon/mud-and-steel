@@ -49,6 +49,9 @@ const TURN_RATE := 8.0
 const TIME_FACTOR := 2.0
 const STANCE_SUFFIX: Array[String] = ["stand", "kneel", "prone"]
 const IDLE_CLIPS: Array[String] = ["idle", "kneel", "prone"]
+## Prompt 047: a soldier clearing a jammed weapon (`SimHost.soldier_tactics`).
+const JAMMED := 1
+const RELOAD_CLIPS: Array[String] = ["reload", "reload_kneel", "reload_prone"]
 const Motion := preload("res://scenes/world/soldier_motion.gd")
 const Care := preload("res://scenes/world/care_view.gd")
 
@@ -171,6 +174,8 @@ func _draw(delta: float) -> void:
 	var knocked := sim_host.soldier_knocked()
 	var knock_from := sim_host.soldier_knock_from()
 	var covers := sim_host.soldier_cover_objects()
+	# Prompt 047: jams, rushing fire teams.
+	var tactics := sim_host.soldier_tactics()
 	# Prompt 049: wounds and buddy aid.
 	var wounds := sim_host.soldier_wounds()
 	var aid := sim_host.soldier_aid_kinds()
@@ -266,7 +271,7 @@ func _draw(delta: float) -> void:
 			# Remember the last blast point: a killing blast changes it.
 			s["knock_from"] = knock_from[k]
 			s["knocked"] = 0
-			_animate(s, false, moving, speed, stances[u], now, covers[k])
+			_animate(s, false, moving, speed, stances[u], now, covers[k], tactics[k] if k < tactics.size() else 0)
 		elif not motion.animate(s, hp[k] <= 0, knocked[k], knock_from[k], position, camera_position, tick_rate):
 			_animate(s, hp[k] <= 0, moving, speed, stances[u], now, covers[k])
 		if distance < NEAR_M or s.has("lead"):
@@ -421,7 +426,7 @@ func _make(node: Node3D, key: int, index: int) -> Dictionary:
 
 
 func _animate(s: Dictionary, dead: bool, moving: bool, speed: float, stance: int, now: int,
-		cover := -1) -> void:
+		cover := -1, tactics := 0) -> void:
 	var player: AnimationPlayer = s["player"]
 	if player == null or s["dead"]:
 		return
@@ -449,7 +454,9 @@ func _animate(s: Dictionary, dead: bool, moving: bool, speed: float, stance: int
 			clip = "aim_" + suffix
 		else:
 			clip = IDLE_CLIPS[clampi(stance, 0, 2)]
-		if cover >= 0 or phase == 0:
+		if tactics & JAMMED:
+			clip = RELOAD_CLIPS[clampi(stance, 0, 2)]
+		elif cover >= 0 or phase == 0:
 			clip = motion.standing_clip(s, stance, phase, cover, clip)
 	s["last_stance"] = stance
 	player.speed_scale = scale

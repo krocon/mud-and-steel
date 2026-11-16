@@ -173,6 +173,16 @@ pub enum Command {
         from: Vec2,
         to: Vec2,
     },
+    /// The player's rocket battery position fires a heavy strike on the
+    /// ground point `target` after a warning time (prompt 054,
+    /// `data/strike.toml`). Ignored while it is locked, cools down, another
+    /// strike of the player is under way, or the player cannot pay.
+    HeavyStrike { target: Vec2 },
+    /// The human player's presentation reports something the simulation
+    /// cannot see (camera moved, units selected) to the mission script
+    /// (prompt 039). Ignored without a mission, from other players and for
+    /// names longer than `crate::mission::MAX_SIGNAL_LEN`.
+    MissionSignal { name: String },
 }
 
 impl Command {
@@ -212,7 +222,9 @@ impl Command {
             | Self::Ping { .. }
             | Self::Repair { .. }
             | Self::Sell { .. }
-            | Self::CallAirLine { .. } => &[],
+            | Self::CallAirLine { .. }
+            | Self::HeavyStrike { .. }
+            | Self::MissionSignal { .. } => &[],
         }
     }
 }

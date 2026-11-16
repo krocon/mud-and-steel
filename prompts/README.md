@@ -99,7 +99,7 @@ Umsetzen von ihrer Session konkretisiert.
 | 036 | [Nachschub und Reparatur](done/036-nachschub-reparatur.md) | Verbrauch pro Einheit, Versorgungs-LKW, Reparatur, Bergung | erledigt (Design vorläufig, Rest offen, siehe Ergebnis) |
 | 037 | [Teams und KI-Plätze](done/037-teams-ki-slots.md) | 2v2/3v3, KI in der Lobby, Moduswahl im LAN; `docs/TEAMS.md` | erledigt (vorläufige Entscheidungen in `docs/TEAMS.md` zu bestätigen) |
 | 038 | [Speichern und Replays](done/038-speichern-replays.md) | Spielstände, Replay-Ansicht mit Vorspulen | erledigt |
-| 039 | [Tutorial und Missionen](039-tutorial-missionen.md) | Skript-System, Tutorial, Beispielmissionen | Entwurf |
+| 039 | [Tutorial und Missionen](done/039-tutorial-missionen.md) | Skript-System, Tutorial, Beispielmissionen; `docs/MISSIONS.md` | erledigt (vorläufige Entscheidungen in `docs/MISSIONS.md` zu bestätigen) |
 | 040 | [Wetter, Schlamm, Tageszeit](done/040-wetter-schlamm-tageszeit.md) | Regen weicht Boden auf, Nebel, Nacht | erledigt (Werte vorläufig, Rest offen, siehe Ergebnis) |
 | 041 | [Umwelt Stufe 2 und Feuer](done/041-umwelt-stufe2-feuer.md) | Stadt, Industrie, Bahn, Bunker; Brände und Lager-Explosionen | erledigt (Rest offen, siehe Ergebnis) |
 | 042 | [Infanterie-Texturen](done/042-infanterie-texturen.md) | Prozedurale Uniform-Texturen, Tarnmuster, Pistolen, zehn neue Clips | erledigt |
@@ -126,14 +126,14 @@ oder weggelassen; es werden keine Inhalte anderer Spiele übernommen.
 | Nr. | Prompt | Ziel | Status |
 |-----|--------|------|--------|
 | 046 | [Befehle und Formationen](done/046-befehle-formationen.md) | Angriffsbewegung, Gebiet sichern, Auto-Formation, Ausrichtung per Ziehen | erledigt (Schwellen und Tasten vorläufig, siehe Abschnitt 4) |
-| 047 | [Infanterie-Taktik](047-infanterie-taktik.md) | Feuertrupps, Deckung zu Deckung, Niederhalten, Blindfeuer | Entwurf |
+| 047 | [Infanterie-Taktik](done/047-infanterie-taktik.md) | Feuertrupps, Deckung zu Deckung, Niederhalten, Blindfeuer | erledigt (Sprungweiten, Niederhalt-Werte, Ladehemmung vorläufig, siehe Ergebnis) |
 | 048 | [Animationen und Ragdolls](done/048-animationen-ragdolls.md) | Deckungs-, Kriech- und Rollanimationen, Ragdolls nur als Darstellung | erledigt (Umwerf-Werte, Ragdoll-Budget und Trefferdarstellung vorläufig, siehe Ergebnis) |
 | 049 | [Verwundung und Kameradenhilfe](049-verwundung-kameradenhilfe.md) | Verwundete, Bergen, Sanitäter mit Trage, ausgestiegene Besatzungen | Entwurf |
 | 050 | [Erfahrung und Ränge](done/050-erfahrung-raenge.md) | Veteranenstufen mit moderaten Boni und Abzeichen | erledigt (Werte vorläufig, siehe Ergebnis) |
 | 051 | [KI-Kommandeur Stufe 2](051-ki-kommandeur.md) | Aufklären, Lagebild, Konter, Versorgungskrieg, Aufgeben | Entwurf |
 | 052 | [Stellungen Stufe 2](done/052-stellungen-stufe2.md) | Gräben, Sperrlinien, eingegrabene Panzer, Tarnnetze, Bunker | erledigt (Werte vorläufig, siehe Ergebnis) |
 | 053 | [Sound Stufe 2](done/053-sound-stufe2.md) | Überschallknall, Schallverzögerung, Hall, Zoom-Akustik, Flugzeuge, Brände, Stimmen-Struktur | erledigt |
-| 054 | [Explosionen Stufe 2](054-explosionen-stufe2.md) | Druckwelle, Blitzlicht, Munitionsexplosion, schwerer Feuerschlag | Entwurf |
+| 054 | [Explosionen Stufe 2](done/054-explosionen-stufe2.md) | Druckwelle, Blitzlicht, Munitionsexplosion, schwerer Feuerschlag | erledigt (Werte vorläufig, siehe Ergebnis) |
 | 055 | [Brücken, Pioniertechnik, Luftlande](done/055-bruecken-pioniertechnik-luftlande.md) | Brückeneinsturz, Ertrinken, Brückenleger, Fallschirmjäger | erledigt (Werte vorläufig, siehe Ergebnis) |
 | 056 | [Karten und Basis Stufe 2](056-karten-basis-stufe2.md) | Winterdorf, Höfe, Flussland, Punkte an Orten, Hinterhalt | Entwurf |
 | 057 | [Bodenoptik: Wiesen](done/057-bodenoptik-wiese.md) | Feines Gras, Farbvariation, Halmbüschel, Blüten, Übergänge, Tilt-Shift | erledigt |
@@ -141,6 +141,7 @@ oder weggelassen; es werden keine Inhalte anderer Spiele übernommen.
 | 059 | [Wüstendorf](done/059-wuestendorf.md) | Flachdachhäuser mit Hofmauern, Palmenhaine, Dorfkarte Nordafrika | erledigt |
 | 060 | [Berge und Täler](done/060-berge-taeler.md) | Gebirgs-Profile im Generator, Pässe, Hangregeln, Gebirgskarte | erledigt |
 | 061 | [Recherche: freie Soundeffekte](done/061-sound-recherche.md) | Geprüfte CC0/CC-BY-Aufnahmen, Pakete, Lücken, Ordnerstruktur in `docs/AUDIO_LIBRARY.md` | erledigt |
+| 062 | [Raketenwerfer und Sturmpanzer](062-raketenwerfer-sturmpanzer.md) | Fahrbare Raketenwerfer je Fraktion mit Salven-Regel, deutscher Sturmpanzer; Katalog, Modelle, KI | Entwurf |
 
 Viele dieser Prompts ändern `sim.rs`, `command.rs`, `main.gd` und den Golden-Hash.
 Parallel laufende Sessions übernehmen vor dem Abschluss den aktuellen `main`.

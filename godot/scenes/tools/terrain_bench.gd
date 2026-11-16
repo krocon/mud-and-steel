@@ -169,7 +169,7 @@ func _set_meadow_variant(variant: String) -> void:
 	var preset: Resource = main.atmosphere.preset
 	if _sun_elevation < 0.0:
 		_sun_elevation = preset.sun_elevation_deg
-	Settings.set_value("depth_of_field", not (off_all or variant == "no_dof"))
+	Settings.set_value("depth_of_field", "off" if off_all or variant == "no_dof" else "subtle")
 	preset.sun_elevation_deg = 42.0 if off_all or variant == "old_sun" else _sun_elevation
 	main.atmosphere.shadow_blur = 1.0 if off_all or variant == "old_blur" else 2.0
 	main.atmosphere.set_quality(main.atmosphere.quality)

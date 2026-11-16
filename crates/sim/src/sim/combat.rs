@@ -119,7 +119,7 @@ pub(super) struct TypeCombat {
     /// Cosine of half the casemate traverse; `None` = turret.
     arc_cos: Option<Fixed>,
     weapons: Vec<WeaponRt>,
-    max_range: Fixed,
+    pub(super) max_range: Fixed,
     /// Gravity in meters per tick².
     gravity: Fixed,
     /// Real meters per game meter (direct-fire range compression).
@@ -531,6 +531,41 @@ impl Sim {
         }
     }
 
+    /// Blind fire of squad `i` at `point`, where its target went out of
+    /// sight (prompt 047): weapons that hurt infantry and reach the point,
+    /// with the blind dispersion and a share of the soldiers.
+    pub(super) fn blind_fire(&mut self, i: usize, point: Vec2) {
+        if self.transport_blocks_fire(i) || !self.has_ammo(i) {
+            return;
+        }
+        let ty = self.units[i].unit_type as usize;
+        let delta = point - self.units[i].position;
+        let distance = delta.length();
+        if distance < Fixed::ONE {
+            return;
+        }
+        self.units[i].combat.aim = Vec2::new(delta.x / distance, delta.y / distance);
+        let aim_point = Vec3::new(point.x, point.y, self.map.height_at(point) + Fixed::ONE / 2);
+        let mut fired = false;
+        for w in 0..self.types[ty].weapons.len() {
+            let weapon = &self.types[ty].weapons[w];
+            if self.units[i].combat.reload[w] > 0
+                || weapon.infantry_damage == 0
+                || distance > weapon.range
+            {
+                continue;
+            }
+            self.fire_squad_as(i, w, aim_point, true);
+            fired = true;
+            if w == 0 && self.units[i].combat.reload[0] > 0 {
+                self.spend_salvo(i, false);
+            }
+        }
+        if fired && let Some(s) = &mut self.units[i].squad {
+            s.tactics.blind_now = true;
+        }
+    }
+
     /// What unit `i` fires at: its attack order, else (fire at will) the
     /// automatic target, chosen again every `retarget_ticks`.
     fn goal(&mut self, i: usize, retarget: bool) -> Option<Goal> {
@@ -802,6 +837,13 @@ impl Sim {
     /// the next living soldier (prompt 022). No fire while the squad
     /// changes its stance.
     fn fire_squad(&mut self, i: usize, w: usize, aim_point: Vec3) {
+        self.fire_squad_as(i, w, aim_point, false);
+    }
+
+    /// [`Self::fire_squad`]; `blind`: at a point where the target was last
+    /// seen (prompt 047). Suppression widens the dispersion, rushing and
+    /// jammed soldiers do not fire, every round may jam the weapon.
+    fn fire_squad_as(&mut self, i: usize, w: usize, aim_point: Vec3, blind: bool) {
         let unit = &self.units[i];
         let squad = unit.squad.as_ref().expect("squads have soldiers");
         if squad.changing > 0 {
@@ -812,14 +854,17 @@ impl Sim {
         let alive = squad.alive_count();
         let size = u32::try_from(squad.soldiers.len()).unwrap_or(1).max(1);
         let count = (u32::from(weapon.weapon.count) * alive).div_ceil(size);
+        let count = self.tactics.fire_count(squad, count, blind);
         let rules = &self.combat_rules;
-        let moving = matches!(unit.route, Route::Following { .. });
+        let moving =
+            matches!(unit.route, Route::Following { .. }) && !super::tactics::steady(squad);
         let stance = &self.infantry.rules.stance.values(squad.stance);
         let mut spread = Fixed::from_num(rules.dispersion.mrad_x10) / 10_000 * ty.angle_scale;
         if moving {
             spread = spread * Fixed::from_num(rules.dispersion.moving_pct) / 100;
         }
         spread = spread * Fixed::from_num(stance.dispersion_pct) / 100;
+        spread = spread * Fixed::from_num(self.tactics.dispersion_pct(squad, blind)) / 100;
         spread = spread * Fixed::from_num(self.experience.dispersion_pct(unit.veterancy)) / 100;
         let (speed, gravity, range) = (
             weapon.speed,
@@ -840,12 +885,17 @@ impl Sim {
         for k in 0..count {
             let unit = &self.units[i];
             let squad = unit.squad.as_ref().expect("squads have soldiers");
-            let Some(soldier) = squad.living(squad.turn.wrapping_add(k)) else {
+            let Some(index) = squad.living_index(squad.turn.wrapping_add(k)) else {
                 break;
             };
-            // Knocked down by a blast (prompt 048), wounded or helping a
+            let soldier = &squad.soldiers[index];
+            // Knocked down by a blast (prompt 048), rushing with his fire
+            // team or clearing a jam (prompt 047), wounded or helping a
             // comrade (prompt 049): no shot.
-            if soldier.knocked > 0 || !soldier.wound.can_fire() {
+            if soldier.knocked > 0
+                || !super::tactics::may_fire(squad, index)
+                || !soldier.wound.can_fire()
+            {
                 continue;
             }
             let muzzle = Vec3::new(
@@ -891,6 +941,11 @@ impl Sim {
                 caliber_mm_x10: caliber,
             });
             fired = true;
+            if self.tactics.roll_jam(&mut self.rng)
+                && let Some(squad) = &mut self.units[i].squad
+            {
+                self.tactics.jam(squad, index);
+            }
         }
         let reload = self.experience.reload_ticks(
             self.units[i].veterancy,
@@ -1149,6 +1204,7 @@ impl Sim {
                             let s = &mut squad.soldiers[k];
                             s.hp = s.hp.saturating_sub(damage);
                             unit.hp = squad.soldiers.iter().map(|s| s.hp).sum();
+                            self.tactics.hit(squad);
                         }
                         _ => unit.hp = unit.hp.saturating_sub(damage),
                     }
@@ -1157,7 +1213,7 @@ impl Sim {
                     }
                 }
             }
-            self.near_miss(point.ground(), p.shooter);
+            self.near_miss(point.ground(), p.shooter, p.caliber_mm_x10);
             if kind == HitKind::Ground {
                 self.ground_hit(point.ground(), p.caliber_mm_x10);
             }

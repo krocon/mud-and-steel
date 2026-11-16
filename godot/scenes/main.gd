@@ -104,6 +104,11 @@ const TransportView := preload("res://scenes/world/transport_view.gd")
 const WorksView := preload("res://scenes/world/works_view.gd")
 const VeterancyView := preload("res://scenes/world/veterancy_view.gd")
 const CrossingView := preload("res://scenes/world/crossing_view.gd")
+## Big blasts, heavy rocket strike (prompt 054).
+const BlastEffects := preload("res://scenes/world/blast_effects.gd")
+const StrikeView := preload("res://scenes/world/strike_view.gd")
+const BlastShots := preload("res://scenes/tools/blast_shots.gd")
+const MissionHud := preload("res://scenes/hud/mission_hud.gd")
 const SEED := 42
 ## Map folders, relative to the Godot project (repository checkout only).
 const REPLAY_DIR := "user://replays"
@@ -166,6 +171,8 @@ var air_view: AirView
 var fog_of_war: FogOfWar
 ## Smoke, fire, impacts, dust (prompt 019).
 var effects: Effects
+var blast_effects: BlastEffects
+var strike_view: StrikeView
 ## Soldiers of infantry squads (prompt 022).
 var infantry_view: InfantryView
 ## Passengers and their seats (prompt 034).
@@ -188,6 +195,8 @@ var base_hud: BaseHud
 var battle_sound: BattleSound
 ## Minimap, unit panel, command bar, events, waypoint lines (prompt 031).
 var hud: MatchHud
+## Objectives, messages and signals of a mission (prompt 039); null without.
+var mission_hud: MissionHud
 ## Pause menu and result screen (prompt 027).
 var game_menu: CanvasLayer
 var _loading: CanvasLayer
@@ -296,6 +305,14 @@ func _ready() -> void:
 	effects.visible_at = func(point: Vector3) -> bool:
 		var state := fog_of_war.state_at(point)
 		return state < 0 or state == 255
+	blast_effects = BlastEffects.new()
+	blast_effects.name = "BlastEffects"
+	add_child(blast_effects)
+	blast_effects.setup(self)
+	strike_view = StrikeView.new()
+	strike_view.name = "StrikeView"
+	add_child(strike_view)
+	strike_view.setup(self, blast_effects)
 	# Damaged and destroyed map objects (prompt 020).
 	destruction_view = DestructionView.new()
 	destruction_view.name = "DestructionView"
@@ -338,6 +355,11 @@ func _ready() -> void:
 	$Hud.add_child(hud)
 	hud.setup(self)
 	air_view.setup_hud(hud)
+	strike_view.setup_hud(hud)
+	if sim_host.mission_info()["active"]:
+		mission_hud = MissionHud.new()
+		$Hud.add_child(mission_hud)
+		mission_hud.setup(self)
 	var debug_menu := DebugMenu.new()
 	debug_menu.main = self
 	$Hud.add_child(debug_menu)
@@ -413,6 +435,11 @@ func _ready() -> void:
 			var shots := BaseShots.new()
 			shots.main = self
 			add_child(shots)
+		if arg.begins_with("--blast-shots="):
+			camera_rig.edge_scroll_enabled = false
+			var blast_shots := BlastShots.new()
+			blast_shots.main = self
+			add_child(blast_shots)
 		if arg.begins_with("--position-shots="):
 			camera_rig.edge_scroll_enabled = false
 			var position_shots := PositionShots.new()
@@ -478,6 +505,9 @@ func _start_simulation() -> bool:
 	# The effects tools trigger their own effects (prompt 019).
 	sim_host.hold_fire_at_start = sim_host.hold_fire_at_start or _effects_tool()
 	sim_host.hold_fire_at_start = sim_host.hold_fire_at_start or "--effects-craters" in OS.get_cmdline_user_args()
+	# The blast shots (prompt 054) trigger their own blasts.
+	sim_host.hold_fire_at_start = sim_host.hold_fire_at_start or Array(OS.get_cmdline_user_args()).any(
+		func(a: String) -> bool: return a.begins_with("--blast-shots="))
 	# The position shots (prompt 052) want a calm field.
 	sim_host.hold_fire_at_start = sim_host.hold_fire_at_start or Array(OS.get_cmdline_user_args()).any(
 		func(a: String) -> bool: return a.begins_with("--position-shots="))
@@ -499,6 +529,10 @@ func _start_simulation() -> bool:
 			sim_host.daytime = arg.trim_prefix("--daytime=")
 	if GameFiles.is_pending(MatchSetup.pending):
 		return GameFiles.start(sim_host, MatchSetup.pending)
+	# Missions and the tutorial (prompt 039) start with fire at will.
+	if MatchSetup.pending.has("mission"):
+		sim_host.hold_fire_at_start = false
+		return sim_host.start_mission(SEED, MatchSetup.pending["mission"])
 	if not MatchSetup.pending.is_empty():
 		var setup := MatchSetup.pending
 		sim_host.mode = setup.get("mode", "battle")

@@ -15,6 +15,7 @@ pub mod brush;
 pub mod compound;
 mod files;
 pub mod history;
+pub mod mission_points;
 pub mod validate;
 
 pub use files::MapFiles;

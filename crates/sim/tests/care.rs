@@ -73,6 +73,7 @@ fn sim_with(map: Arc<Map>, seed: u64, spawns: &[(PlayerId, &str, i32, i32, FireM
         infantry: sim::InfantryRules::builtin().unwrap(),
         teams: sim::Teams::default(),
         weather: sim::WeatherSetup::default(),
+        mission: None,
     };
     Sim::new(&config, map, seed).unwrap()
 }
@@ -440,6 +441,23 @@ fn crews_bail_out_of_destroyed_tanks() {
             }
             if sim.outcome().is_some() {
                 break;
+            }
+        }
+        // The men of a crew take their places, not one point.
+        let snap = sim.snapshot();
+        for crew in snap.units.iter().filter(|u| sim.is_bailed_crew(u.id)) {
+            let men: Vec<Vec2> = snap
+                .soldiers
+                .iter()
+                .filter(|s| s.unit == crew.id && s.hp > 0)
+                .map(|s| s.position)
+                .collect();
+            if men.len() >= 2 {
+                assert!(
+                    men.iter().any(|&p| p != men[0]),
+                    "crew {:?} stacked",
+                    crew.id
+                );
             }
         }
         // Crews do not keep a player in the match.

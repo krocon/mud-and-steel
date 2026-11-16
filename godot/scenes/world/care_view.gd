@@ -99,7 +99,12 @@ func animate(s: Dictionary, hp: int, knocked: int, wound: int, aid: int, target:
 				clip = "wounded"
 				lying = true
 			Wound.BANDAGING:
-				clip = "limp" if moving else "bandage"
+				# He fights on (prompt 049): dressing the wound only in a lull.
+				var since := Time.get_ticks_msec() - int(s["fired"])
+				if moving:
+					clip = "limp"
+				elif since > view.AIM_SECONDS * 1000.0:
+					clip = "bandage"
 			Wound.LIMPING:
 				if moving:
 					clip = "limp"

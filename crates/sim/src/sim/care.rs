@@ -84,10 +84,13 @@ pub(super) struct Wound {
 }
 
 impl Wound {
-    /// Whether he may fire: not wounded beyond a bandage and not busy
-    /// with a comrade.
+    /// Whether he may fire: not heavily wounded and not busy with a
+    /// comrade (a lightly wounded man fights on while he limps).
     pub(super) fn can_fire(&self) -> bool {
-        matches!(self.state, WoundState::Fit | WoundState::Treated) && self.task == Task::None
+        matches!(
+            self.state,
+            WoundState::Fit | WoundState::Light | WoundState::Treated
+        ) && self.task == Task::None
     }
 
     /// Lying: hit like a prone soldier.
@@ -959,11 +962,20 @@ impl Sim {
                 continue;
             }
             let (owner, facing) = (unit.owner, unit.facing);
-            let back = self.unit_types[t].combat.length_m / 2 + Fixed::from_num(2);
+            let back = self.unit_types[t].combat.length_m / 2 + Fixed::from_num(4);
             let Some(at) = self.bail_spot(crew_t as usize, unit.position, facing, back) else {
                 continue;
             };
-            let index = self.spawn_unit(owner, crew_t, at, facing, FireMode::default());
+            // Facing away from the wreck, so their formation does not reach
+            // into its blocked cells.
+            let away = at - unit.position;
+            let len = away.length();
+            let away = if len > Fixed::ZERO {
+                Vec2::new(away.x / len, away.y / len)
+            } else {
+                facing
+            };
+            let index = self.spawn_unit(owner, crew_t, at, away, FireMode::default());
             let new = &mut self.units[index];
             let squad = new.squad.as_mut().expect("crews are squads");
             for (n, s) in squad.soldiers.iter_mut().enumerate() {
@@ -1126,6 +1138,23 @@ impl Sim {
     /// The care rules of the match.
     pub const fn care_rules(&self) -> &CareRules {
         &self.care.rules
+    }
+
+    /// Replaces the care rules of the match (tests that measure something
+    /// else, missions). Not a player command.
+    pub fn set_care_rules(&mut self, rules: CareRules) {
+        let ratio = self
+            .unit_types
+            .iter()
+            .find(|t| t.combat.is_infantry())
+            .map_or((2, 1), |t| t.combat.time_ratio);
+        let hz = self.tick_hz;
+        let care = &mut self.care;
+        care.rules = rules;
+        care.bandage_ticks = ticks(rules.wound.bandage_ms, hz, ratio);
+        care.bleed_ticks = ticks(rules.wound.bleed_ms, hz, ratio).max(1);
+        care.limp_ticks = ticks(rules.wound.limp_ms, hz, ratio);
+        care.treat_ticks = ticks(rules.medic.treat_ms, hz, ratio);
     }
 
     /// Living soldiers of unit `id` that are (lightly, heavily) wounded and

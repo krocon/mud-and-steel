@@ -58,6 +58,7 @@ fn sim_with(
         infantry,
         teams: sim::Teams::default(),
         weather: sim::WeatherSetup::default(),
+        mission: None,
     };
     Sim::new(&config, map, seed).unwrap()
 }

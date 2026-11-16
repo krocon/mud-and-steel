@@ -196,6 +196,14 @@ func _show_single(id: int) -> void:
 		var stance: int = sim_host.unit_stances()[index]
 		if stance >= 0:
 			state.append("Stance %s" % STANCES.get(stance, "?"))
+			# Prompt 047: suppression and fire teams.
+			var tactics := sim_host.squad_tactics(id)
+			if tactics.get("pinned", false):
+				state.append("pinned down")
+			elif int(tactics.get("suppression", 0)) > 0:
+				state.append("suppressed %d %%" % int(tactics.get("suppression", 0)))
+			if int(tactics.get("bounding", -1)) >= 0:
+				state.append("bounding")
 		state.append("holding fire" if sim_host.unit_hold_fire()[index] != 0 else "fire at will")
 		var queued := sim_host.unit_queue_length(id)
 		if sim_host.unit_patrols(id):

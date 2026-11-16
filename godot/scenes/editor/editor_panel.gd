@@ -126,6 +126,11 @@ func _ready() -> void:
 		start_team_option.add_item(label)
 	start_team_option.item_selected.connect(func(i: int) -> void: main.set_start_team(i - 1))
 	_setting(box, "start_team", "Team", start_team_option)
+	# Prompt 039: name of the next trigger area or spawn point.
+	var point_name := LineEdit.new()
+	point_name.placeholder_text = "numbered"
+	point_name.text_changed.connect(func(text: String) -> void: main.mission_point_name = text)
+	_setting(box, "point_name", "Name", point_name)
 
 	status = MenuTheme.hint("")
 	status.custom_minimum_size = Vector2(300, 0)
@@ -142,12 +147,13 @@ func select_tool(id: String) -> void:
 	main.tool = id
 	tool_buttons[id].set_pressed_no_signal(true)
 	var uses: Dictionary[String, Array] = {
-		"radius": ["raise", "lower", "smooth", "flatten", "paint", "river", "scatter", "erase", "village"]
-			+ EditorData.MOUNTAIN_TOOLS,
+		"radius": ["raise", "lower", "smooth", "flatten", "paint", "river", "scatter", "erase", "village",
+			"mission_area"] + EditorData.MOUNTAIN_TOOLS,
 		"strength": ["raise", "lower", "smooth", "flatten", "river", "ridge", "valley", "terrace"],
 		"density": ["scatter"], "preset": ["scatter"], "terrain": ["paint", "road"],
 		"place": ["place"], "heading": ["place", "compound"], "compound": ["compound"],
 		"start_team": EditorData.START_TOOLS,
+		"point_name": EditorData.MISSION_TOOLS,
 	}
 	for key in _settings:
 		_settings[key].visible = id in uses[key]

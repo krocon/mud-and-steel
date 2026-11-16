@@ -57,6 +57,11 @@ const BINDABLE: Dictionary[String, String] = {
 ## units), `selected` (selected units only), `never`.
 const HEALTH_BAR_MODES: Array[String] = ["damaged", "selected", "never"]
 
+## Tilt-shift depth of field (`atmosphere.gd`, `DOF_MODES`): `off`, `subtle`
+## (soft screen edges at close zoom, prompt 057), `miniature` (strong, like a
+## photo of a model).
+const DOF_MODES: Array[String] = ["off", "subtle", "miniature"]
+
 ## Section "game" of the file. Sensitivities are factors on the camera's
 ## tuned speeds (0.25–3).
 const DEFAULTS := {
@@ -72,8 +77,8 @@ const DEFAULTS := {
 	"zoom_sensitivity": 1.0,
 	"edge_scroll": true,
 	"health_bars": "damaged",
-	# Tilt-shift depth of field at close zoom (prompt 057).
-	"depth_of_field": true,
+	# Tilt-shift depth of field, one of DOF_MODES.
+	"depth_of_field": "subtle",
 }
 
 static var values := {}
@@ -109,12 +114,16 @@ static func load_file() -> void:
 			var value: Variant = file.get_value("game", key, DEFAULTS[key])
 			if typeof(value) == typeof(DEFAULTS[key]) or (DEFAULTS[key] is float and value is int):
 				values[key] = value
+		# Older files stored the depth of field as a switch.
+		if file.get_value("game", "depth_of_field", "") is bool:
+			values["depth_of_field"] = "subtle" if file.get_value("game", "depth_of_field") else "off"
 		for action in BINDABLE:
 			var code: int = file.get_value("keys", action, bindings[action])
 			if code > 0:
 				bindings[action] = code
 	values["quality"] = values["quality"] if values["quality"] in GraphicsQuality.LEVELS else GraphicsQuality.DEFAULT
 	values["health_bars"] = values["health_bars"] if values["health_bars"] in HEALTH_BAR_MODES else "damaged"
+	values["depth_of_field"] = values["depth_of_field"] if values["depth_of_field"] in DOF_MODES else "subtle"
 	apply()
 
 

@@ -45,6 +45,10 @@ extends Node
 ##    as allies, a ping reaches the minimap; surrendering does not decide
 ##    the match while the ally stands; leave to the menu.
 ##
+## 10. Tutorial and missions (prompt 039, `mission_self_test.gd`, after
+##	match 3): the menu entries, the tutorial and every mission played to
+##	victory, the wins in the (self-test's) progress file.
+##
 ## Matches 1 and 2 choose the passive opponent, which gives no orders, so
 ## they play as before the computer opponent existed. Matches 1 to 3 play
 ## the "battle" mode (the fixed armies of the demo scenario).
@@ -55,8 +59,10 @@ const MatchSetup := preload("res://scenes/menu/match_setup.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
 const GameFiles := preload("res://scenes/menu/game_files.gd")
 const MusicSelfTest := preload("res://scenes/tools/music_self_test.gd")
-## Wall-clock limit for the whole flow (`--fixed-fps` decouples frame time).
-const TIMEOUT_MS := 600000
+const MissionSelfTest := preload("res://scenes/menu/mission_self_test.gd")
+## Wall-clock limit for the whole flow (`--fixed-fps` decouples frame time);
+## raised from 10 to 20 minutes for the tutorial and missions (prompt 039).
+const TIMEOUT_MS := 1200000
 
 var _errors: PackedStringArray = []
 var _match_done := false
@@ -139,6 +145,12 @@ func _run() -> void:
 		_finish()
 		return
 
+	# --- Tutorial and missions (prompt 039) -----------------------------
+	menu = await MissionSelfTest.new(self).run(menu)
+	if menu == null:
+		_finish()
+		return
+
 	# --- Team match (prompt 037) -----------------------------------------
 	main = await _team_test(menu)
 	if main == null:
@@ -189,7 +201,7 @@ func _run() -> void:
 func _finish() -> void:
 	set_process(false)
 	var ok := _errors.is_empty()
-	var message := "menu, settings, credits, LAN lobby, online lobby, loading, match tests, pause, surrender, combat victory, computer opponent, rain at night, base building, saving, loading, replay viewer, result and back ok" if ok else " ".join(_errors)
+	var message := "menu, settings, credits, LAN lobby, online lobby, loading, match tests, pause, surrender, combat victory, computer opponent, tutorial and missions, rain at night, base building, saving, loading, replay viewer, result and back ok" if ok else " ".join(_errors)
 	print("flow self-test %s: %s" % ["PASSED" if ok else "FAILED", message])
 	get_tree().paused = false
 	get_tree().quit(0 if ok else 1)
@@ -212,6 +224,7 @@ func _settings_test(menu: Control) -> void:
 	var panel: PanelContainer = menu.settings_panel
 	_check(panel.is_visible_in_tree(), "settings screen not shown")
 	panel.quality_option.item_selected.emit(0)
+	panel.dof_option.item_selected.emit(Settings.DOF_MODES.find("miniature"))
 	panel.pan_slider.value = 1.5
 	var rotate_right_key: int = Settings.bindings["camera_rotate_right"]
 	panel.capture("camera_rotate_left")
@@ -231,8 +244,15 @@ func _settings_test(menu: Control) -> void:
 	Settings.reset()
 	Settings.load_file()
 	_check(Settings.get_value("quality") == "low", "quality not loaded")
+	_check(Settings.get_value("depth_of_field") == "miniature", "depth of field mode not loaded")
 	_check(is_equal_approx(Settings.get_value("pan_sensitivity"), 1.5), "pan speed not loaded")
 	_check(_action_key("camera_rotate_right") == KEY_R, "key binding not loaded")
+	# Older files stored the depth of field as a switch.
+	var old_file := ConfigFile.new()
+	old_file.set_value("game", "depth_of_field", false)
+	old_file.save(Settings.path())
+	Settings.load_file()
+	_check(Settings.get_value("depth_of_field") == "off", "old depth of field switch not converted")
 	# The match tests expect the defaults.
 	Settings.reset()
 	Settings.save_file()

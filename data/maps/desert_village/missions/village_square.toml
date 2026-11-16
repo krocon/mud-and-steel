@@ -1,0 +1,103 @@
+# Example mission (prompt 039), American side. Format: docs/MISSIONS.md.
+# Areas and spawn points: ../mission_points.toml (map editor).
+
+[mission]
+title = "The village square"
+kind = "mission"
+order = 2
+faction = "us"
+briefing = """
+German infantry with a tank holds the square of a desert village. Clear it with \
+your Shermans and riflemen and take the supply point on the square."""
+player = 0
+elimination = false
+
+[[computer]]
+player = 1
+difficulty = "passive"
+
+[[group]]
+name = "shermans"
+owner = 0
+unit = "us_m4a3_75"
+count = 4
+at = "south_road"
+
+[[group]]
+name = "riflemen"
+owner = 0
+unit = "us_inf_rifle_squad"
+count = 2
+position_m = [0, 370]
+
+[[group]]
+name = "garrison"
+owner = 1
+unit = "de_inf_rifle_squad"
+count = 2
+at = "square_north"
+
+[[group]]
+name = "garrison_tank"
+owner = 1
+unit = "de_pz4_h"
+count = 1
+position_m = [20, 10]
+
+[[objective]]
+id = "clear"
+text = "Clear the village square of German troops."
+area = "square"
+shown = true
+
+[[objective]]
+id = "hold"
+text = "Take the supply point on the square."
+area = "square"
+
+[[trigger]]
+id = "briefing"
+when = "time"
+actions = [
+  { do = "text", text = "Move up the road into the village. Infantry in the houses is dangerous: let the riflemen and the tanks work together." },
+]
+
+[[trigger]]
+id = "tank_gone"
+when = "destroyed"
+group = "garrison_tank"
+actions = [
+  { do = "text", text = "The German tank is burning. Clear the rest of the square." },
+]
+
+[[trigger]]
+id = "cleared"
+when = "destroyed"
+group = "garrison"
+actions = [
+  { do = "text", text = "The infantry is gone. Take the supply point on the square." },
+  { do = "objective", objective = "hold", state = "active" },
+]
+
+[[trigger]]
+id = "clear_done"
+after = ["cleared", "tank_gone"]
+when = "time"
+actions = [{ do = "objective", objective = "clear", state = "done" }]
+
+[[trigger]]
+id = "taken"
+after = ["clear_done"]
+when = "captured"
+point = "supply_square"
+actions = [
+  { do = "objective", objective = "hold", state = "done" },
+  { do = "text", text = "The village is in American hands." },
+]
+
+[[trigger]]
+id = "victory"
+after = ["taken"]
+when = "time"
+delay_s = 3
+actions = [{ do = "victory" }]
