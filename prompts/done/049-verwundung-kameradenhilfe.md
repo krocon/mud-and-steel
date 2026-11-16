@@ -65,6 +65,54 @@ die ganze `Sim` per serde. Zerstörte Fahrzeuge bleiben als Wracks; ihre Besatzu
 | 10 | **HUD:** Einheitenanzeige zeigt leicht/schwer Verwundete eines Trupps; Ereignis-Feed meldet „Mann verwundet“ (eigene Trupps, gedrosselt) und „Besatzung ausgestiegen“. Abgefragt im Feed-Takt über `SimHost.unit_wounded_counts`, ohne neue Ereignis-Kette in der Bridge. | Klein und additiv; der Feed hat schon einen Abfragetakt (031). |
 | 11 | **Speichern (038):** Wundzustand pro Soldat (`Soldier::wound`, serde default), Sanitäter-Aufträge und Typtabellen liegen in `Sim` und werden mitgespeichert; Test `crates/net/tests/snapshot_care.rs`. Der Zustand geht erst in den Hash, wenn etwas passiert ist (Verwundung, Umwerfen, Auftrag, Ausstieg). | Wie 055: Matches ohne Verwundete behalten ihren Hash. |
 
+## Ergebnis
+
+Umgesetzt wie oben; alle Werte und die Optik sind **[provisional]** (Nutzer nicht
+erreichbar). Details in `docs/INFANTRY.md` „Wounds and buddy aid (prompt 049)“,
+`docs/ARCHITECTURE.md` „Wounds and care“, `docs/AI.md` „Bailed-out crews“,
+`docs/GAME_DESIGN.md` „Wounds, medics and crews“.
+
+- **Sim:** `data/care.toml`, `crates/sim/src/care.rs` (Regeln, Besatzungstypen),
+  `crates/sim/src/sim/care.rs` (Verwundung, Kameradenhilfe, Sanitäter, Ausstieg,
+  Abfragen); kleine additive Stellen in `sim.rs` (Feld, zwei Aufrufe, Hash, Sieg ohne
+  Besatzungen), `sim/infantry.rs` (`Soldier::wound`, `aim_soldier`, gehaltene Soldaten
+  folgen nicht der Formation), `sim/combat.rs` (Schussverbot, liegende Trefferbox,
+  tief zielen), `scenario.rs` (Besatzungstypen), `transport.rs` (`crew`), Katalog
+  `*_inf_tank_crew` (Kategorie `inf_crew`).
+- **Änderungen gegenüber der Tabelle beim Umsetzen:** Leicht Verwundete schießen weiter
+  (das Verbot nahm niedergehaltenen Trupps zu viel Feuer, Test aus 047); Verbluten nach
+  120 s real (60 s Spiel) statt 180 s; Besatzungen ziehen sich 150 m vom Schützen
+  zurück, die KI schickt eigene nach Hause (sonst fingen Besatzungen zwischen den
+  Linien die Schüsse auf die Panzer ab: Easy gegen Passive 65 % statt 92 %).
+- **KI:** Besatzungen sind kein Ziel und kein Objektiv; eigene gehen heim.
+- **Bridge/Godot:** `bridge/src/care_funcs.rs`; `world/care_view.gd` (Clips, Trage,
+  Verband), sechs neue Clips (`limp`, `bandage`, `drag`, `dragged`, `stretcher`,
+  `help_up`; in Blender headless gebaut, Kontaktbögen begutachtet), Rollen
+  `crew_commander`/`crewman`, Trupp-Szenen der Besatzungen; Einheitenanzeige
+  (Verwundete), Ereignis-Feed („Man wounded“, „Crew bailed out“).
+- **Tests:** `crates/sim/tests/care.rs` (11: leicht/schwer, Verbluten, Treffer
+  verwunden, Ziehen in Deckung, Mittragen, Aufhelfen, US-Sanitäter, Trage, Besatzung
+  steigt aus, Determinismus), `crates/net/tests/snapshot_care.rs` (Spielstand),
+  Selbsttest-Teil `tools/care_self_test.gd`. Angepasst: `infantry.rs`-Trefferzählung
+  endet, wenn kein Mann mehr steht; 047-Test „suppressed squads hit less“ mit
+  `heavy_pct = 0` (misst Niederhalten, nicht Wunden); Selbsttest-Helfer zählen
+  Besatzungen nicht zu den Szenario-Trupps; Ausgangs- und KI-Tests lassen Besatzungen aus.
+- **Golden-Hash** bewusst geändert: `0x9ca9_6477_eff5_75ef` → `0xf8f2_b8a4_aead_460d`
+  (Demo bei Tick 1013 statt 1017 entschieden, gleicher Sieger); Basisbau
+  `0x745c_45c6_528b_58ee` → `0xa4a5_8dfc_9b57_0a72`.
+- **Messwerte:** Infanterie-Benchmark (M1 Max): stehend 0,029 ms, Marsch 0,21–0,235 ms
+  (main 0,20), erste 10 s Feuer 0,16–0,17 ms (main 0,155–0,158), also etwa +5–10 %.
+  `just ai-tournament --matrix --games 10`: Hard/Normal/Easy gegen Passive 100 %,
+  Hard–Normal 50 %, Hard–Easy 100 %, Normal–Easy 50 % (1 Zeitüberschreitung); Turnier-
+  Hash `0x2c3439843d4a1dd6`. `just check`, `just selftest`, `just lan-selftest`,
+  `just validate-assets`, `just gallery-check` grün.
+
+Offen: Gefangene und Befreien; Wiederbesetzen von Fahrzeugen; Seil aus der Deckung;
+Panzeruniformen der Besatzungen; Sanitäter holen keine Verwundeten aus Gebäuden;
+ein weit von seinem Trupp getragener Verwundeter wird von Flächenabfragen (Splitter,
+Umwerfen) seines Trupps nicht erfasst; Clips und Trage nur in Blender-Renderbildern und
+headless geprüft (kein Godot-Bild begutachtet); alle Werte bis zum Balancing (045).
+
 ## Arbeitsweise
 
 Wie in den vorigen Prompts: Deutsch mit mir, Englisch im Repo, kein Push ohne Freigabe,
