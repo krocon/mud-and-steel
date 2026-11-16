@@ -3,7 +3,7 @@
 > In einer frischen Session im Repo-Ordner ausführen. Lies zuerst `CLAUDE.md`,
 > `docs/GAME_DESIGN.md`, `docs/INFANTRY.md`, `docs/ARCHITECTURE.md` (Kampf).
 >
-> **Entwurf:** vor dem Umsetzen konkretisieren: Ausgangslage im Code prüfen,
+> **Konkretisiert** (siehe unten); ursprünglich Entwurf: Ausgangslage im Code prüfen,
 > Entscheidungen mit Begründung als Tabelle festhalten, Umfang schärfen.
 
 ## 1. Ziel
@@ -71,3 +71,45 @@ unter 30 % zurück. Es gibt keinen Ersatz für gefallene Soldaten.
 | 15 | KI: Normal zieht Veteranen/Elite unter 40 % zurück (Rekruten nie), Hard unter 50 % (sonst 30 %) | „Zieht Veteranen bei Verlusten eher zurück“, ohne die übrige KI zu ändern |
 | 16 | Keine modernen Zusätze (Vollpanzerung, Visiere, Lampen, Laser) aus der Wunschliste | Gegen die Zeitvorgabe des Projekts |
 | 17 | Debug-Funktion `debug_set_experience` nur ohne Netzwerk und nach dem Replay-Selbsttest | Kein Befehl; würde Replays verändern |
+
+## Ergebnis
+
+Umgesetzt wie oben; alle Werte und die Optik sind **[provisional]** (Nutzer nicht
+erreichbar). Details in `docs/GAME_DESIGN.md` „Experience and ranks“,
+`docs/ARCHITECTURE.md` „Experience“, `docs/AI.md` „Experience (prompt 050)“,
+`docs/INFANTRY.md` „Rank kit (prompt 050)“.
+
+- **Sim:** `data/experience.toml`, `crates/sim/src/experience.rs` (Regeln),
+  `crates/sim/src/sim/experience.rs` (Punkte aus den Ereignissen, Boni, Abfragen);
+  kleine additive Stellen in `sim.rs`, `sim/combat.rs` (Streuung, Nachladen),
+  `sim/infantry.rs`, `sim/indirect.rs`, `sim/air.rs` (Niederhalten).
+  `UnitSnapshot::experience`, `Sim::unit_experience`, `Sim::promotions`,
+  `Sim::set_unit_experience`. Erfahrung im State-Hash und im Spielstand (038).
+- **KI:** `OwnUnit::rank`; Normal zieht Veteranen unter 40 %, Hard unter 50 % zurück.
+- **Bridge/Godot:** `bridge/src/experience_funcs.rs`; `hud/rank_badge.gd`
+  (Abzeichen), Einheitenanzeige mit Rang, Abschüssen, Erfahrungsbalken und Kachel-
+  Abzeichen; `world/veterancy_view.gd` (Abschussringe am Rohr, Beförderungen im
+  Ereignis-Feed); `SoldierLook.apply(.., rank)` (abgetragene Uniform, Tarnkleidung).
+- **Tests:** `crates/sim/tests/experience.rs` (Start als Rekrut, Abschuss befördert,
+  Punkte für Schaden und überstandenes Feuer, schnelleres Nachladen und geringere
+  Streuung der Elite, Hash), Regel-Prüfung in `experience.rs`,
+  `crates/net/tests/snapshot_experience.rs` (Spielstand), 
+  `crates/ai/tests/ai.rs::normal_pulls_back_hurt_veterans`, Selbsttest-Teil
+  `godot/scenes/tools/experience_self_test.gd`.
+- **Selbsttest-Anpassungen:** Der Kampfteil stellt die eigenen Einheiten nach der
+  F-Prüfung wieder auf Feuer halten (die beförderten Panzer hätten den Gegner sonst
+  vorzeitig vernichtet und das Spiel entschieden). Die Prüfung „verzögerter Schuss“
+  im Soundtest bestand bisher nur dank Kanonenschüssen des laufenden Gefechts; sie
+  wartet jetzt, bis die Stimmen des Stresstests frei sind.
+- **Golden-Hash** bewusst geändert (nach Merge mit 048 und 060):
+  `0x9b87_57bd_bec7_96f8` → `0x755b_b848_ef42_04fb`; Demo-Schlacht jetzt bei Tick 412
+  statt 467 entschieden, gleicher Sieger. Basisbau-Hash → `0x6b44_7fb3_d882_5c93`.
+- **Messwerte:** `just ai-tournament` (40 Spiele je Paarung): Hard/Normal gegen Passive
+  100 %, Easy gegen Passive 97 % (1 Zeitüberschreitung), Hard–Normal 50 %, Hard–Easy
+  87 %, Normal–Easy 50 %; Turnier-Hash `0x1fd191937a744a88`. `just check`,
+  `just selftest`, `just lan-selftest`, `just validate-assets` grün.
+
+Offen: Bestätigung aller Werte (Balancing 045); erbeutete Waffen an Veteranen;
+Erfahrung für Splitterschaden und Artilleriebeobachtung; was Ersatz von Soldaten mit
+der Erfahrung macht; Veteranen zu Missionsbeginn (039); Abzeichen und Ringe nur
+headless geprüft (kein gerendertes Bild begutachtet).
