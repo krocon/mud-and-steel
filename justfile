@@ -406,6 +406,11 @@ crater-view-bench map="test_small": build
 audio *classes:
     python3 tools/audio/synth.py {{ classes }}
 
+# Compose the music and ambience into godot/assets/audio/music/ and ambience/ (all, or names starting with the given ones; needs numpy and lame; then: just import)
+[group('sound')]
+music *names:
+    python3 tools/audio/music.py {{ names }}
+
 # Play every sound class once, then click to replay (`just sound-gallery --sound-gallery-once` quits after the round)
 [group('sound')]
 sound-gallery *args: build

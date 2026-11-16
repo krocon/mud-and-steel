@@ -22,6 +22,7 @@ const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
 const SettingsPanel := preload("res://scenes/menu/settings_panel.gd")
 const CreditsPanel := preload("res://scenes/menu/credits_panel.gd")
 const FlowSelfTest := preload("res://scenes/menu/flow_self_test.gd")
+const Music := preload("res://scenes/audio/music.gd")
 const LAN_SCENE := "res://scenes/lan/lan_lobby.tscn"
 const ONLINE_SCENE := "res://scenes/online/steam_lobby.tscn"
 const EDITOR_SCENE := "res://scenes/editor/map_editor.tscn"
@@ -74,6 +75,7 @@ func _ready() -> void:
 		get_tree().change_scene_to_file.call_deferred(SOUND_GALLERY_SCENE)
 		return
 	Settings.ensure_loaded()
+	Music.play("menu")
 	theme = MenuTheme.get_theme()
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(MenuTheme.background())
