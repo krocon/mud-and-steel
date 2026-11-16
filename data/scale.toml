@@ -22,6 +22,10 @@ factor = { num = 2, den = 1 }
 direct_fire = { num = 1, den = 4 }
 sight = { num = 1, den = 4 }
 indirect_fire = { num = 1, den = 8 }
+# Fuel (prompt 036): the real road range times this factor is how far a
+# vehicle drives on a full tank. Real ranges (200 km) would never run out in
+# a match on maps of 4 km; 1/20 leaves 5-15 km.
+fuel = { num = 1, den = 20 }
 
 # Aircraft fly on their own speed factor instead of the time factor (real
 # speeds times two would cross a map in seconds). They enter from the map edge.

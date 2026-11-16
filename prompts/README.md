@@ -96,7 +96,7 @@ Umsetzen von ihrer Session konkretisiert.
 | 033 | [Flugzeuge und Flak](done/033-luftwaffe-flak.md) | Luftunterstützung als Abruf (Aufklärung, Jäger, Schlachtflug, Bomber), Flak und Fliegerabwehr-MGs | erledigt |
 | 034 | [Transport und Schleppen](done/034-transport-schleppen.md) | Aufsitzen, Geschütze ziehen und abprotzen | erledigt |
 | 035 | [Pioniere, Minen, Stellungen](035-pioniere-minen-stellungen.md) | Minen, Draht, Gräben, Brücken reparieren/sprengen | Entwurf |
-| 036 | [Nachschub und Reparatur](036-nachschub-reparatur.md) | Verbrauch pro Einheit, Versorgungs-LKW, Reparatur, Bergung | Entwurf |
+| 036 | [Nachschub und Reparatur](done/036-nachschub-reparatur.md) | Verbrauch pro Einheit, Versorgungs-LKW, Reparatur, Bergung | erledigt (Design vorläufig, Rest offen, siehe Ergebnis) |
 | 037 | [Teams und KI-Plätze](done/037-teams-ki-slots.md) | 2v2/3v3, KI in der Lobby, Moduswahl im LAN; `docs/TEAMS.md` | erledigt (vorläufige Entscheidungen in `docs/TEAMS.md` zu bestätigen) |
 | 038 | [Speichern und Replays](done/038-speichern-replays.md) | Spielstände, Replay-Ansicht mit Vorspulen | erledigt |
 | 039 | [Tutorial und Missionen](039-tutorial-missionen.md) | Skript-System, Tutorial, Beispielmissionen | Entwurf |

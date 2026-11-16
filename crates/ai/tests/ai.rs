@@ -357,3 +357,61 @@ fn ai_rides_trucks_and_tows_guns() {
         "rode {rode}, unloaded {unloaded}, towed {towed}, unlimbered {unlimbered}"
     );
 }
+
+/// Prompt 036: a tank that fired most of its ammunition drives to the own
+/// truck in the rear and is resupplied there.
+#[test]
+fn ai_sends_empty_units_to_resupply() {
+    let mut config = demo_config();
+    let tank_spawn = config.spawns[0].clone();
+    let own = tank_spawn.position;
+    // One tank of player 0; the enemy holds fire.
+    config.spawns.retain(|s| s.owner == PlayerId(1));
+    for s in &mut config.spawns {
+        s.fire_mode = FireMode::HoldFire;
+    }
+    config.spawns.insert(0, tank_spawn);
+    let catalog = sim::Catalog::builtin().unwrap();
+    let scale = sim::Scale::builtin().unwrap();
+    config
+        .unit_types
+        .extend(sim::unit_types_from_catalog(&catalog, &scale, &["de_opel_blitz"]).unwrap());
+    let enemy = config.spawns[1].position;
+    let away = own - enemy;
+    let back = away.scale(sim::Fixed::from_num(150) / away.length());
+    config.spawns.push(sim::Spawn {
+        owner: PlayerId(0),
+        unit_type: "de_opel_blitz".into(),
+        position: own + back,
+        fire_mode: FireMode::HoldFire,
+    });
+    let tank = UnitId(0);
+    let players = [
+        (PlayerId(0), Difficulty::Normal),
+        (PlayerId(1), Difficulty::Passive),
+    ];
+    let mut game = Game::new(&config, builtin_map(), 4, &players).unwrap();
+    let ammo = |game: &Game| game.sim().unit_stock(tank).unwrap().ammo_pct.unwrap();
+    // The tank fires at the ground until a fifth of its ammunition is left;
+    // the computer player is not asked meanwhile.
+    let shoot = Command::AttackGround {
+        units: vec![tank],
+        target: own + Vec2::from_meters(40, 0),
+    };
+    game.step(vec![vec![shoot], Vec::new()]);
+    while ammo(&game) > 20 {
+        assert!(game.sim().tick() < 20 * 400, "the tank did not fire");
+        game.step(vec![Vec::new(), Vec::new()]);
+    }
+    game.step(vec![vec![Command::Stop { units: vec![tank] }], Vec::new()]);
+    let mut sent = false;
+    while ammo(&game) < 90 {
+        assert!(game.sim().tick() < 20 * 900, "not resupplied (sent {sent})");
+        let decisions = game.think();
+        sent |= decisions[0]
+            .iter()
+            .any(|c| matches!(c, Command::MoveTo { units, .. } if units.contains(&tank)));
+        game.step(decisions);
+    }
+    assert!(sent, "the AI never sent the tank");
+}

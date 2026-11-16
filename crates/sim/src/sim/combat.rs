@@ -490,7 +490,8 @@ impl Sim {
                 continue;
             }
             for w in 0..self.types[ty].weapons.len() {
-                if self.units[i].combat.reload[w] > 0 {
+                // Out of ammunition: no weapon fires (prompt 036).
+                if self.units[i].combat.reload[w] > 0 || !self.has_ammo(i) {
                     continue;
                 }
                 let ok = match goal {
@@ -512,6 +513,9 @@ impl Sim {
                         self.fire_squad(i, w, aim_point);
                     } else {
                         self.fire(i, w, aim_point);
+                    }
+                    if w == 0 && self.units[i].combat.reload[0] > 0 {
+                        self.spend_salvo(i, false);
                     }
                 }
             }

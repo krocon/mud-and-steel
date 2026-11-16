@@ -15,6 +15,7 @@ mod air;
 mod artillery;
 mod economy;
 pub mod game;
+mod supply;
 mod transport;
 mod view;
 
@@ -296,6 +297,10 @@ pub struct Ai {
     transport: transport::TransportState,
     /// Towing rule: engine hp per tonne of tractor and gun.
     tow_min_hp_per_tonne: u32,
+    /// Supply trips and building repairs (prompt 036).
+    supply: supply::SupplyState,
+    /// Low ammunition and fuel in percent (`data/logistics.toml`).
+    low_stock: (u8, u8),
 }
 
 impl Ai {
@@ -471,6 +476,13 @@ impl Ai {
             tow_min_hp_per_tonne: transport_rules
                 .as_ref()
                 .map_or(8, |r| r.towing.min_hp_per_tonne),
+            supply: supply::SupplyState::default(),
+            low_stock: sim::LogisticsRules::builtin().map_or((25, 20), |r| {
+                (
+                    u8::try_from(r.ammo.low_pct).unwrap_or(25),
+                    u8::try_from(r.fuel.low_pct).unwrap_or(20),
+                )
+            }),
         }
     }
 
@@ -527,6 +539,7 @@ impl Ai {
         self.think_economy(view, &mut out);
         self.think_air(view, &mut out);
         self.command_transport(view, &mut out);
+        self.command_supply(view, &mut out);
         let mut roles: Vec<Role> = Vec::new();
         for u in view.own.iter().filter(|u| u.alive()) {
             let role = self.type_info(u.unit_type).role;
@@ -543,6 +556,7 @@ impl Ai {
                 .iter()
                 .filter(|u| u.alive() && self.type_info(u.unit_type).role == role)
                 .filter(|u| u.carrier.is_none() && !self.transport.boarding(u.id, view.tick))
+                .filter(|u| !self.supply.busy(u.id))
                 .copied()
                 .collect();
             if units.is_empty() {

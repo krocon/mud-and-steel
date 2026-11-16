@@ -526,6 +526,9 @@ func _base_building_test(main: Node3D) -> void:
 	main.selection._set_selection([site["id"]])
 	await _frames(20)
 	_check(hud._production_panel.visible, "production bar not shown for the barracks")
+	# Prompt 036: Repair (disabled while whole) and Sell for the building.
+	_check(hud._sell.is_visible_in_tree() and hud._sell.text == "Sell", "no Sell button for the barracks")
+	_check(hud._repair.disabled, "Repair enabled for an undamaged building")
 	var options: Array = host.production_options(site["id"])
 	_check(not options.is_empty(), "the barracks offers nothing")
 	var own_units := func() -> int:
