@@ -3770,7 +3770,7 @@ and sound, written by Godot's Movie Maker (`--write-movie`, `--fixed-fps 60`; th
   distance to the rig, which haze, depth of field and sound follow. Without `hud` the
   interface is off: HUD layer, health bars, fog of war, relation tint, supply point
   markers; pause menu and result screen are always off.
-- **Sound:** fixed bus volumes with 9 dB headroom, no music (a cut would chop it).
+- **Sound:** fixed bus volumes, set every frame (the game applies the settings again and mutes when its window changes focus), with 14 dB headroom (layered explosions clip otherwise; the edit sets the loudness), no music (a cut would chop it).
 - **Finding a shot:** `-- --trailer=<shot> --trailer-scout=<seconds>` (headless, with
   `--fixed-fps 60`) plays the shot's scene without a camera and prints every destroyed
   unit with time and place, shots and hits per five seconds and where the groups

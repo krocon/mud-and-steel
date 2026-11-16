@@ -36,7 +36,7 @@ const CLEARANCE := 0.45
 const TICK_HZ := 20
 ## Bus volumes of a recording in dB (-80: muted).
 const BUS_DB: Dictionary[String, float] = {
-	"Master": -9.0, "Effects": 0.0, "Ambience": -2.0, "UI": -2.0, "Music": -80.0,
+	"Master": -14.0, "Effects": 0.0, "Ambience": -2.0, "UI": -2.0, "Music": -80.0,
 }
 
 ## The shots. Per shot:
@@ -141,6 +141,14 @@ const SHOTS: Dictionary[String, Dictionary] = {
 			{"t": 7.0, "at": Vector2(-5, 2), "dist": 195.0, "yaw": 12.0, "pitch": 70.0, "lift": 0.0},
 		],
 	},
+	"bridge_after": {
+		"map": "river_land", "scene": "bridge", "seed": 7, "weather": "clear", "daytime": "day",
+		"start_s": 46.0, "seconds": 15.0, "stills": [2.0, 8.0, 13.0],
+		"camera": [
+			{"t": 0.0, "at": Vector2(0, 2), "dist": 250.0, "yaw": 18.0, "pitch": 60.0, "lift": 0.0},
+			{"t": 15.0, "at": Vector2(-8, 2), "dist": 205.0, "yaw": 48.0, "pitch": 56.0, "lift": 0.0},
+		],
+	},
 	# --- Variety: desert, winter, town ----------------------------------------
 	"desert_road": {
 		"map": "desert_village", "scene": "desert", "seed": 7, "start_s": 6.0, "seconds": 6.0,
@@ -225,6 +233,8 @@ var _scout := false
 var _scout_seconds := -1.0
 ## -1: run-up, else the frame of the shot.
 var _frame := -1
+## Master bus muted (the fast part of the run-up).
+var _silent := true
 var _stills_left: Array = []
 ## Smoothed heading per camera key (chase rides must not jitter).
 var _headings: Dictionary[int, float] = {}
@@ -305,7 +315,6 @@ func _ready() -> void:
 	elif DisplayServer.get_name() != "headless":
 		get_window().size = SIZE
 	_set_volumes()
-	AudioServer.set_bus_mute(0, true)
 	main.sim_host.speed = RUN_UP_SPEED
 	_place_camera(0.0)
 
@@ -313,6 +322,7 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	var host: SimHost = main.sim_host
 	var tick := host.current_tick()
+	_set_volumes()
 	if _scout:
 		_scout_step(tick)
 		return
@@ -321,7 +331,7 @@ func _process(_delta: float) -> void:
 		# Run-up: fast and silent, then the pre-roll at normal speed.
 		if tick >= start_tick - roundi(PRE_ROLL_S * TICK_HZ) and host.speed != 1.0:
 			host.speed = 1.0
-			AudioServer.set_bus_mute(0, false)
+			_silent = false
 		_place_camera(0.0)
 		if tick < start_tick:
 			return
@@ -349,15 +359,17 @@ func _frame_count() -> int:
 	return roundi(float(_shot["seconds"]) * FPS)
 
 
-## The same volumes whatever the player's settings say: headroom on the
-## master bus (explosions clip a 16-bit recording otherwise; the edit sets
-## the loudness), and no music, which a cut would chop.
+## The same volumes whatever the player's settings say, set every frame:
+## the game applies the settings again (and mutes) when its window loses
+## or gains the focus. Headroom on the master bus, because layered
+## explosions clip a 16-bit recording otherwise (the edit sets the
+## loudness); no music, which a cut would chop; silent during the run-up.
 func _set_volumes() -> void:
 	for bus: String in BUS_DB:
 		var index := AudioServer.get_bus_index(bus)
 		if index >= 0:
 			AudioServer.set_bus_volume_db(index, BUS_DB[bus])
-			AudioServer.set_bus_mute(index, BUS_DB[bus] <= -80.0)
+			AudioServer.set_bus_mute(index, BUS_DB[bus] <= -80.0 or (index == 0 and _silent))
 
 
 # --- Camera ---------------------------------------------------------------------
