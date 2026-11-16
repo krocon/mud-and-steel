@@ -291,6 +291,19 @@ the player never loads trucks or picks ammunition types.
   repairer and repair damaged buildings when they can pay
   ([AI.md](AI.md)).
 
+## Wounds, medics and crews [provisional]
+
+Prompt 049, rules in `data/care.toml`, details in
+[INFANTRY.md](INFANTRY.md#wounds-and-buddy-aid-prompt-049), reasons in
+`prompts/done/049-verwundung-kameradenhilfe.md`. A hit a soldier survives
+wounds him: lightly (he bandages himself and limps) or heavily (down, out of
+the fight, dies after 90 s game without a medic). Comrades drag the wounded
+into cover and carry them along (the squad slows down); medic teams fetch
+them, two-man teams on a stretcher, and patch them up, so the man limps back
+into the fight. Survivors of destroyed vehicles bail out as small crew squads
+with pistols and a submachine gun; they do not keep a player in the match.
+Not in this version: prisoners, re-crewing vehicles.
+
 ## Experience and ranks [provisional]
 
 Prompt 050, rules in `data/experience.toml`, reasons per decision in

@@ -103,7 +103,10 @@ func _squads(sim_host: SimHost, own: bool) -> Array[int]:
 	var stances := sim_host.unit_stances()
 	var result: Array[int] = []
 	for i in ids.size():
-		if stances[i] >= 0 and (owners[i] == sim_host.local_player()) == own:
+		# Crews that bailed out of destroyed tanks (prompt 049) are no
+		# squads of the scenario.
+		if stances[i] >= 0 and (owners[i] == sim_host.local_player()) == own \
+				and not sim_host.unit_is_crew(ids[i]):
 			result.append(ids[i])
 	result.sort()
 	return result

@@ -166,6 +166,10 @@ func _show_single(id: int) -> void:
 	var hp_line := "Hit points %d / %d" % [info.hp, info.max_hp]
 	if info.has("soldiers"):
 		hp_line += "   ·   soldiers %d / %d" % [info.soldiers, info.squad_size]
+		# Prompt 049: lightly / heavily wounded (untreated) men.
+		var wounded: Vector2i = sim_host.unit_wounded_counts().get(id, Vector2i.ZERO)
+		if wounded != Vector2i.ZERO:
+			hp_line += "   ·   wounded %d light, %d down" % [wounded.x, wounded.y]
 	# Only warnings, on the same line, so the panel keeps its height; the
 	# bars carry the percentages in their tooltips.
 	var warning := _supply_warning(id)

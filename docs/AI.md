@@ -253,6 +253,15 @@ soldiers), once per fight, while healthier units of the group stay;
 recruits are pulled back as before (Hard below 30 %, Normal never). Test:
 `normal_pulls_back_hurt_veterans` (`crates/ai/tests/ai.rs`). [provisional]
 
+## Bailed-out crews (prompt 049)
+
+Crews that bailed out of destroyed vehicles (catalog `inf_crew`) are no
+target and no objective for the AI (`TypeInfo::crew`: left out of the
+enemies of a group and of the memory of sightings), and its own crews have
+the role `Unarmed` (they stay where they are). Without that, tanks spent
+minutes firing at prone crews in the AI tests while the real enemy waited.
+Crews do not count for elimination either. [provisional]
+
 ## Engineers (prompt 035)
 
 `crates/ai/src/engineers.rs`, Normal and Hard only. Engineer squads have

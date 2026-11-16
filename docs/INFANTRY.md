@@ -142,6 +142,17 @@ soldiers-tier2` builds them, `just roles <faction>` lists every role with its we
 | `officer` | MP 40, map case, binoculars, cap | TT-33 in the hand, holster, map case, binoculars, cap | M1 carbine, M1911A1 in the holster, map case, binoculars |
 | `at_assistant` | Kar98k, rocket pack, Panzerfaust 60 | Mosin, ammunition case (PTRD loader) | M1 carbine, rocket pack |
 
+Roles added in prompt 049 for the crews that bail out of destroyed vehicles (catalog
+`*_inf_tank_crew`, `loadouts.py` end of file; field cap, no packs, pistol holster):
+
+| Role | de | su | us |
+|---|---|---|---|
+| `crew_commander` | MP 40 | PPSh-41 | Thompson (stands in for the M3) |
+| `crewman` | P 38 | TT-33 | M1911A1 |
+
+The Panzer wrap, the padded Soviet tank helmet and the US tanker helmet and jacket are
+not modeled [provisional].
+
 Unarmed roles are listed in `godot/scenes/tools/infantry_preview.gd` (`UNARMED_ROLES`).
 Prompt 042 armed the roles whose catalog weapon was missing in the model: the `us`
 `radio_operator` carries the M1 carbine (before: M1 rifle), `su/officer` holds the
@@ -165,7 +176,7 @@ flamethrower wand lengths and the 50-PM 40 barrel). Each has `grip_r`, `grip_l`,
 
 ## Animations
 
-35 clips (55 since prompt 048, below), identical names in every model. Loop flags, lengths and authored speeds are
+35 clips (55 since prompt 048, 61 since prompt 049, below), identical names in every model. Loop flags, lengths and authored speeds are
 in `godot/assets/models/infantry/animations.json` (written by the build);
 `SoldierLook.configure_animations()` applies the loop modes.
 
@@ -207,6 +218,17 @@ Prompt 048 added 20 clips (55 in all):
 | `cover_tall`, `cover_peek_r_aim`/`_fire`, `cover_peek_l_aim`/`_fire` | yes | tall cover (corner, tree, high wall): standing close behind it, left hand on it; a step aside, leaning out right or left |
 | `trench_idle`, `trench_aim`, `trench_fire` | yes | standing in a trench, leaning on a parapet 1.35 m high, 0.35 m ahead |
 | `turn_in_place` | yes | small steps on the spot while the body turns |
+
+Prompt 049 added 6 clips (61 in all), for wounds and buddy aid:
+
+| Clip | Loop | Notes |
+|---|---|---|
+| `limp` (0.9 m/s) | yes | limping on a wounded left leg: stiff knee, no toe-off, the body dips over the right leg |
+| `bandage` | yes | kneeling, both hands winding a dressing around the left thigh, weapon on the back |
+| `drag` (0.8 m/s) | yes | crouched, walking backwards, both hands low in front at the collar of a man (played facing him) |
+| `dragged` | yes | lying on the back, arms trailing over the head, pulled head first (towards model -Y) |
+| `stretcher` (0.7 m/s) | yes | walking, both hands at the sides on the poles 0.72 m high, 0.54 m apart |
+| `help_up` | yes | feet apart, bent over a man on the ground in front, hands under his arms, pulling |
 
 `mount` and `dismount` move the hips, not the root; `animations.json` gives the hip
 travel (`rise` = +1.0 / −1.0 m, `advance` = 0.45 m). Prompt 034 does not play them
@@ -544,6 +566,67 @@ tests in `crates/sim/tests/knockdown.rs`. [provisional]
   with 60 / 50 / 70 %; the survivors jump off. [provisional]
 - The squad stays the same unit (same id, stance, fire mode) throughout.
 - Details: ARCHITECTURE.md "Transport and towing".
+
+### Wounds and buddy aid (prompt 049)
+
+`data/care.toml` (`sim::CareRules`), `crates/sim/src/sim/care.rs`, tests in
+`crates/sim/tests/care.rs`. Reasons per decision: `prompts/done/049-verwundung-kameradenhilfe.md`.
+All values [provisional].
+
+- **Wounds:** after all hits of a tick, a soldier who lost hit points and
+  lives is wounded: heavily with 40 % (always when he was wounded already),
+  else lightly. A rifle or MG hit costs 63 of 100 points, so the first hit
+  never kills and the roll decides whether it puts the man out of the
+  fight. The roll uses its own generator (seeded from the shared one's
+  state, the unit and the tick) and does not advance the shared one.
+- **Lightly wounded:** dresses the wound himself (20 s real, no firing),
+  then limps for 60 s. **Heavily wounded:** lies, neither moves by himself
+  nor fires, is hit like a prone man and dies after 180 s real (90 s game)
+  unless a medic reaches him. **Treated:** bandage, limps for 60 s.
+- **Squad speed:** 70 % while a man limps, 50 % while it carries a heavily
+  wounded man along, 0 if nobody is left to carry him.
+- **Aimed fire:** shooters aim at men of a squad who are up while there
+  are any, and low at lying men (knocked down or wounded).
+- **Buddy aid:** while the squad stands, a comrade (not wounded, not busy)
+  drags a heavily wounded man to the man's cover spot (up to 15 m, 40 % of
+  walking, backwards ahead of him); while it moves, a comrade carries him
+  along behind himself. A comrade within 6 m goes to a man knocked down by
+  a blast and pulls him up when the 048 knock-down time is over (the time
+  is not shortened). Helpers do not fire. No rope variant.
+- **Medics** (catalog `inf_medic`): an idle team (standing, no orders, no
+  attack) walks to the nearest untreated heavily wounded man of its side
+  (allies included) within 60 m and stops the bleeding on arrival. Teams of
+  two or more (de, su) carry him on a stretcher to their post (where they
+  stood when they set out; also out of trenches) at 50 % of walking and
+  treat him there (30 s real); the US aid man treats him where he lies.
+  Then the man gets up, limps and walks back to his squad. Any player
+  order to the team ends the job. A casualty on the stretcher or under
+  treatment is moved by the team, not by his squad (which is not slowed
+  down by him).
+- **Crews:** every crew member (catalog `crew`) of a destroyed vehicle
+  (group vehicle) survives with 50 %; the survivors bail out behind or
+  beside the wreck as a squad of `<faction>_inf_tank_crew` (5 places,
+  submachine gun and pistols; the missing men are `Gone`: no hit points,
+  not drawn). Scenarios add the crew types to the match
+  (`sim::care::crew_types`). Crews do not keep a player in the match
+  (`Sim::alive_units` leaves them out) and the AI neither hunts them nor
+  sends its own into the fight. No re-crewing of vehicles, no prisoners
+  (open).
+- **State:** `Soldier::wound` (state, ticks left, stable, hit points seen,
+  task, held) and the medic jobs are saved with the match (prompt 038) and
+  hashed once anything happened. `SoldierSnapshot::wound` (`WoundView`)
+  and `aid` (`AidView`) for the presentation; `Sim::care_events`,
+  `unit_wounded`, `is_bailed_crew`, `wound_soldier` (tests, missions).
+- **Presentation** (`world/care_view.gd`, `bridge/src/care_funcs.rs`:
+  `soldier_wounds`, `soldier_aid_kinds`, `soldier_aid_targets`,
+  `unit_wounded_counts`, `unit_is_crew`, `debug_wound_soldier`): the clips
+  above; a wooden stretcher (two poles and canvas, Godot primitives) under
+  the casualty between the bearers; a white bandage on the left thigh of
+  treated men (not on the arm, where medics wear their plain armband; no Red
+  Cross); men who die lying keep their pose. The unit panel lists the
+  lightly and heavily wounded men of a squad, the event feed reports "Man
+  wounded" (at most every 8 s) and "Crew bailed out". Self-test:
+  `tools/care_self_test.gd`.
 
 ## Presentation (prompt 022)
 

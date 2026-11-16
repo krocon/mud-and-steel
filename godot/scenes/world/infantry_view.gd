@@ -50,6 +50,7 @@ const TIME_FACTOR := 2.0
 const STANCE_SUFFIX: Array[String] = ["stand", "kneel", "prone"]
 const IDLE_CLIPS: Array[String] = ["idle", "kneel", "prone"]
 const Motion := preload("res://scenes/world/soldier_motion.gd")
+const Care := preload("res://scenes/world/care_view.gd")
 
 var main: Node3D
 var sim_host: SimHost
@@ -74,6 +75,8 @@ var _biome := ""
 ## Ragdolls, flying helmets and the clip choice of prompt 048
 ## (`soldier_motion.gd`).
 var motion: Motion
+## Wounded men and their helpers of prompt 049 (`care_view.gd`).
+var care: Care
 
 
 func setup(main_node: Node3D) -> void:
@@ -84,6 +87,10 @@ func setup(main_node: Node3D) -> void:
 	motion.name = "SoldierMotion"
 	add_child(motion)
 	motion.setup(self)
+	care = Care.new()
+	care.name = "CareView"
+	add_child(care)
+	care.setup(self)
 
 
 ## The squad scene of a catalog id (`assets/models/<faction>/<id>.tscn`), or
@@ -164,6 +171,10 @@ func _draw(delta: float) -> void:
 	var knocked := sim_host.soldier_knocked()
 	var knock_from := sim_host.soldier_knock_from()
 	var covers := sim_host.soldier_cover_objects()
+	# Prompt 049: wounds and buddy aid.
+	var wounds := sim_host.soldier_wounds()
+	var aid := sim_host.soldier_aid_kinds()
+	var aid_targets := sim_host.soldier_aid_targets()
 	var alpha := sim_host.interpolation_alpha()
 	var tick_rate := float(sim_host.tick_rate())
 	var camera_position: Vector3 = main.camera.global_position
@@ -213,7 +224,8 @@ func _draw(delta: float) -> void:
 		if crossing != null and crossing.is_swimming(unit_id):
 			position.y = crossing.swim_height(position)
 		s["position"] = position
-		if garrisons[u] >= 0:
+		# In a building, or a crew member who did not get out (prompt 049).
+		if garrisons[u] >= 0 or wounds[k] == Care.Wound.GONE:
 			member.visible = false
 			counts[3] += 1
 			if s["impostor"]:
@@ -230,13 +242,14 @@ func _draw(delta: float) -> void:
 			yaw = motion.body_yaw(s, yaw, aims[u], moving, stances[u], knocked[k] > 0)
 		else:
 			s["roll_dir"] = 0
-		if not s.get("hold_yaw", false):
+		if not s.get("hold_yaw", false) and not s.get("care_yaw", false):
 			s["yaw"] = lerp_angle(s["yaw"], yaw, turn if moving else turn * motion.STANDING_TURN)
 		var distance := position.distance_to(camera_position)
 		if distance > IMPOSTOR_M:
 			member.visible = false
 			counts[2] += 1
-			_set_impostor(s, unit_id, key, position, hp[k] <= 0, stances[u])
+			var lying := hp[k] <= 0 or wounds[k] == Care.Wound.DOWN or wounds[k] == Care.Wound.DOWN_STABLE
+			_set_impostor(s, unit_id, key, position, lying, stances[u])
 			continue
 		if s["impostor"]:
 			_drop_impostor(s, key)
@@ -244,7 +257,10 @@ func _draw(delta: float) -> void:
 		# Members are top-level nodes (`_make`): world transforms.
 		member.position = position
 		member.rotation.y = s["yaw"]
-		if s["dead"]:
+		if not s["dead"] and (wounds[k] != 0 or aid[k] != 0 or s.has("care")) \
+				and care.animate(s, hp[k], knocked[k], wounds[k], aid[k], aid_targets[k], position, moving, speed):
+			pass
+		elif s["dead"]:
 			pass
 		elif hp[k] > 0 and knocked[k] == 0 and not s.get("down", false):
 			# Remember the last blast point: a killing blast changes it.

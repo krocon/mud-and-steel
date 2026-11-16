@@ -280,6 +280,36 @@
       "loop": true,
       "speed": 0.0,
       "length": 1.0
+    },
+    "limp": {
+      "loop": true,
+      "speed": 0.9,
+      "length": 1.4
+    },
+    "bandage": {
+      "loop": true,
+      "speed": 0.0,
+      "length": 1.6
+    },
+    "drag": {
+      "loop": true,
+      "speed": 0.8,
+      "length": 1.2
+    },
+    "dragged": {
+      "loop": true,
+      "speed": 0.0,
+      "length": 1.2
+    },
+    "stretcher": {
+      "loop": true,
+      "speed": 0.7,
+      "length": 1.2
+    },
+    "help_up": {
+      "loop": true,
+      "speed": 0.0,
+      "length": 2.0
     }
   }
 }
