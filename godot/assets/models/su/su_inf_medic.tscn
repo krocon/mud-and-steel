@@ -4,7 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://bpi38uvdslkuu" path="res://assets/models/su/infantry/medic.glb" id="2_medic"]
 
 [node name="su_inf_medic" type="Node3D"]
-metadata/extras = {"cat_id": "su_inf_medic", "cat_faction": "su", "cat_category": "inf_medic", "cat_name_de": "Sanitätstrupp", "cat_name_en": "Medic Team", "cat_designation": "Sanitarny instruktor and sanitar (company medical team)", "cat_year_from": 1941, "cat_year_to": 1945, "cat_speed_road_kmh_x10": 50, "cat_speed_offroad_kmh_x10": 40, "cat_weapons": "TT-33; Mosin-Nagant M1938 carbine", "cat_squad_size": 2, "squad": true, "squad_roles": ["medic", "carbineer"], "squad_notes": ["sanitary instructor (TT-33 in the holster)", "orderly (sanitar, Mosin-Nagant M1938)"], "squad_clips": ["medic_treat", "aim_kneel"], "squad_file": "assets-src/blueprints/su/squads/su_inf_medic.toml", "source_hash": "b5bb84aa6ab41778"}
+metadata/extras = {"cat_id": "su_inf_medic", "cat_faction": "su", "cat_category": "inf_medic", "cat_name_de": "Sanitätstrupp", "cat_name_en": "Medic Team", "cat_designation": "Sanitarny instruktor and sanitar (company medical team)", "cat_year_from": 1941, "cat_year_to": 1945, "cat_speed_road_kmh_x10": 50, "cat_speed_offroad_kmh_x10": 40, "cat_weapons": "TT-33; Mosin-Nagant M1938 carbine", "cat_squad_size": 2, "squad": true, "squad_roles": ["medic", "carbineer"], "squad_notes": ["sanitary instructor (TT-33 in the holster)", "orderly (sanitar, Mosin-Nagant M1938)"], "squad_clips": ["medic_treat", "aim_kneel"], "squad_file": "assets-src/blueprints/su/squads/su_inf_medic.toml", "source_hash": "f0cfb530afba0623"}
 
 [node name="Member_01" parent="." instance=ExtResource("2_medic")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.5)

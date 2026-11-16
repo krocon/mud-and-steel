@@ -4,7 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://b81akprfv0dvi" path="res://assets/models/us/infantry/sniper.glb" id="2_sniper"]
 
 [node name="us_inf_sniper" type="Node3D"]
-metadata/extras = {"cat_id": "us_inf_sniper", "cat_faction": "us", "cat_category": "inf_sniper", "cat_name_de": "Scharfschütze (M1903A4)", "cat_name_en": "Sniper (M1903A4)", "cat_designation": "Sniper, rifle company (M1903A4 with Weaver M73B1 scope)", "cat_year_from": 1943, "cat_year_to": 1945, "cat_speed_road_kmh_x10": 50, "cat_speed_offroad_kmh_x10": 40, "cat_weapons": "Rifle M1903A4 (sniper's, M73B1 2.5x scope); Rifle M1 (Garand)", "cat_squad_size": 2, "squad": true, "squad_roles": ["sniper", "scout"], "squad_notes": ["sniper (M1903A4, M73B1 scope)", "observer (M1 rifle, binoculars)"], "squad_clips": ["aim_prone", "prone"], "squad_file": "assets-src/blueprints/us/squads/us_inf_sniper.toml", "source_hash": "9d6b0914d4c449f5"}
+metadata/extras = {"cat_id": "us_inf_sniper", "cat_faction": "us", "cat_category": "inf_sniper", "cat_name_de": "Scharfschütze (M1903A4)", "cat_name_en": "Sniper (M1903A4)", "cat_designation": "Sniper, rifle company (M1903A4 with Weaver M73B1 scope)", "cat_year_from": 1943, "cat_year_to": 1945, "cat_speed_road_kmh_x10": 50, "cat_speed_offroad_kmh_x10": 40, "cat_weapons": "Rifle M1903A4 (sniper's, M73B1 2.5x scope); Rifle M1 (Garand)", "cat_squad_size": 2, "squad": true, "squad_roles": ["sniper", "scout"], "squad_notes": ["sniper (M1903A4, M73B1 scope)", "observer (M1 rifle, binoculars)"], "squad_clips": ["aim_prone", "prone"], "squad_file": "assets-src/blueprints/us/squads/us_inf_sniper.toml", "source_hash": "d2e5754599442080"}
 
 [node name="Member_01" parent="." instance=ExtResource("2_sniper")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6, 0, 0)
