@@ -1,6 +1,6 @@
 //! Checks a map the way a match will use it: loading, start positions,
 //! room for the units of the scenario and reachable paths between the
-//! starts.
+//! starts and to the supply points.
 
 use crate::MapFiles;
 use sim::path::{PathGrid, SizeClass};
@@ -14,6 +14,9 @@ use std::sync::Arc;
 pub const INFANTRY_UNIT: &str = "de_inf_rifle_squad";
 /// Players of the skirmish (prompt 027): both need a start position.
 pub const PLAYERS: [u8; 2] = [0, 1];
+/// A path that ends this close to a supply point reaches it (units take a
+/// point within 25 m, `data/economy.toml`).
+pub const SUPPLY_REACH_M: i32 = 20;
 /// Blocked unit positions listed at most per player.
 const MAX_LISTED: usize = 3;
 
@@ -174,6 +177,43 @@ pub fn validate_map(map: Map) -> Report {
             } else {
                 err(&mut report, message);
             }
+        }
+    }
+
+    // Supply points (prompt 060): reachable from player 0's start. Units
+    // take a point within `SUPPLY_REACH_M`; an error if nobody gets there,
+    // a warning if some unit types cannot.
+    for marker in map
+        .markers()
+        .iter()
+        .filter(|m| m.name.starts_with("supply"))
+    {
+        let missing: Vec<&str> = names
+            .iter()
+            .filter(|name| {
+                profile(name).is_some_and(|p| {
+                    !grid.find_path(a, marker.position, p).is_some_and(|path| {
+                        (path.goal - marker.position).length()
+                            <= sim::Fixed::from_num(SUPPLY_REACH_M)
+                    })
+                })
+            })
+            .map(String::as_str)
+            .collect();
+        if missing.len() == names.len() {
+            err(
+                &mut report,
+                format!(
+                    "no unit can reach the supply point '{}' from player 0's start",
+                    marker.name
+                ),
+            );
+        } else if !missing.is_empty() {
+            report.warnings.push(format!(
+                "{} cannot reach the supply point '{}' from player 0's start",
+                missing.join(", "),
+                marker.name
+            ));
         }
     }
 

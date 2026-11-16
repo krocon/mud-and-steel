@@ -10,13 +10,20 @@
 
 use super::{
     CELL_M, DEEP_WATER, DIRT_TRACK, FORD_HALF_WIDTH_M, Layout, MUD, Path2, PlacedBridge, ROAD,
-    Random, SAND, SHALLOW_WATER, ValueNoise, coord,
+    Random, Relief, SAND, SHALLOW_WATER, ValueNoise, coord,
 };
 use sim::objects::{CSV_HEADER, sin_cos_deg};
 use std::fmt::Write as _;
 
 /// Seed offset of the object stream ("objects").
 const SEED_SALT: u64 = 0x006f_626a_6563_7473;
+
+/// Mountains (prompt 060): woods above this height (m, the central meadow
+/// is at 0) are conifer stands, and none grow above the tree line or on
+/// slopes steeper than `ROCK_GRADE`.
+const CONIFER_ABOVE_M: f64 = 25.0;
+const TREE_LINE_M: f64 = 200.0;
+const ROCK_GRADE: f64 = 0.8;
 
 /// Trees in woods stand on a jittered grid with this spacing (m).
 const WOOD_SPACING: f64 = 6.5;
@@ -147,6 +154,12 @@ impl Placer<'_> {
 
     fn height(&self, x: f64, y: f64) -> f64 {
         self.index(x, y).map_or(0.0, |k| self.heights[k])
+    }
+
+    /// Grade (rise per meter) of the ground at `(x, y)`, `|dx| + |dy|`.
+    fn grade(&self, x: f64, y: f64) -> f64 {
+        let h = self.height(x, y);
+        ((self.height(x + CELL_M, y) - h).abs() + (self.height(x, y + CELL_M) - h).abs()) / CELL_M
     }
 
     /// Whether `(x, y)` is open ground for an object: inside the map, on
@@ -671,8 +684,18 @@ fn woods(p: &mut Placer, random: &mut Random) {
             if m < threshold || !p.open(x, y, WAY_CLEARANCE) {
                 continue;
             }
+            // Mountains (prompt 060): no trees on rock walls or above the
+            // tree line, conifers on the slopes.
+            let mountains = p.layout.relief == Relief::Mountains;
+            if mountains && (p.grade(x, y) > ROCK_GRADE || p.height(x, y) > TREE_LINE_M) {
+                continue;
+            }
             let edge = m < threshold + 0.08;
-            let s = species.at(x, y);
+            let s = if mountains && p.height(x, y) > CONIFER_ABOVE_M {
+                1.0
+            } else {
+                species.at(x, y)
+            };
             let (kind, variant) = if edge && random.unit() < 0.45 {
                 pick(
                     random,
@@ -784,6 +807,19 @@ fn rocks(p: &mut Placer, random: &mut Random) {
             }
         }
     }
+    // Mountains (prompt 060): boulders on the scree slopes below the rock.
+    if p.layout.relief == Relief::Mountains {
+        let half = p.layout.half;
+        for _ in 0..(4.0 * half * half / 1500.0) as usize {
+            let (x, y) = (random.range(-half, half), random.range(-half, half));
+            let grade = p.grade(x, y);
+            if (0.35..ROCK_GRADE).contains(&grade) && p.open(x, y, 6.0) {
+                let variant = pick(random, &[("Medium", 0.6), ("Large", 0.4)]);
+                p.put("env_rock", variant, x, y, (random.unit() * 360.0) as u16);
+                p.take(x, y, 2.5);
+            }
+        }
+    }
 }
 
 /// Stones in the river (small and medium, they block nobody) for foam and
@@ -852,6 +888,7 @@ mod tests {
             biome: "forest",
             start_distance_m: crate::gen_map::DEFAULT_START_DISTANCE_M,
             out: dir,
+            relief: crate::gen_map::Relief::Gentle,
         };
         generate_map(&options).unwrap();
         let read = |f: &str| std::fs::read(dir.join(f)).unwrap();
