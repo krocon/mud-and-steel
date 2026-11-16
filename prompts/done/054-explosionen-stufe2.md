@@ -69,3 +69,52 @@ Gemeinsame Dateien (`sim.rs`, `bridge/src/lib.rs`, `main.gd`, `self_test.gd`,
 Ändert sich der Golden-Hash, den Grund im Commit nennen. Am Ende nach `prompts/done/`
 verschieben und `prompts/README.md` aktualisieren. Abschlussbericht: was gebaut wurde,
 wie ich es teste, Messwerte, was offen ist.
+
+## Ergebnis
+
+Umgesetzt wie in der Konkretisierung; Details in `docs/ARCHITECTURE.md` „Heavy
+strike“ und „Effects / Big blasts (prompt 054)“, `docs/GAME_DESIGN.md` „Heavy
+strike“ und Gebäudetabelle, `docs/CONTROLS.md` „Heavy strike“, `docs/AI.md` „Heavy
+strike“.
+
+- **Sim:** `data/strike.toml`, `crates/sim/src/strike.rs`, `crates/sim/src/sim/strike.rs`,
+  `Command::HeavyStrike` (letzte Variante), Basisgebäude `base_rocket_battery`,
+  `Sim::launch_shell` (Raketen als Granaten), `StrikeEvent::AmmoExplosion` aus
+  `knockdown.rs`. Tests: `crates/sim/tests/strike.rs` (Freischaltung, Warnung, Aufdecken,
+  Salve im Radius mit Kratern und Schaden, Absage beim Verlust der Stellung, Kopie in der
+  Frist läuft identisch, Munitionsexplosionen werden gemeldet).
+- **KI:** `crates/ai/src/strike.rs`, Test `crates/ai/tests/strike.rs` (ruft den Schlag,
+  der Gegner räumt das markierte Gebiet: 3 → 0 Einheiten).
+- **Bridge:** `strike_funcs.rs` (`call_strike`, `strike_option`, `strikes`,
+  `take_strike_events`).
+- **Godot:** `world/blast_effects.gd` (Kuppel, Druck- und Staubring, Feuerball, Erdwolke,
+  Blitzlicht mit Budget und Nachtfaktor, Turm fliegt ab), `world/strike_view.gd` (roter
+  Rauch, Gebietsring, erzeugte Sirene, Countdown, Markierung der feindlichen Stellung,
+  Leiste „Rockets“ mit Shift+6, Startgestelle), Vorschaubild des Gebäudes, Selbsttest-Check,
+  `just blast-shots` (feste Ansichten Tag/Nacht) und `just strike-shots` (echter Schlag im
+  Basis-Gefecht, schlägt fehl, wenn Rauch, Sirene, Countdown oder Start fehlen: PASSED).
+- **Bilder:** `build/explosions/` (u. a. `blast_day_04.png`, `blast_village_night_00/01.png`
+  vorher/nachher, `ammo_explosion_08/90.png`, `strike_day_salvo_15_00.png`,
+  `strike_live_marked_00.png`, `strike_live_salvo_60.png`).
+
+**Messwerte:** `just check` grün, `just selftest` und `just lan-selftest` grün. Golden-Hash
+nach dem Merge mit main `0x7681_c049_8fc9_19b3` (vorher `0x2022_32ed_b313_f95a`),
+Wirtschaft `0x656a_58c4_9caa_aed9`; einzige Ursache ist das neue Gebäude in den gehashten
+Wirtschaftsregeln (geprüft mit der `economy.toml` von main). Schlacht-Benchmark
+(`just bench`, Rechner durch parallele Sessions stark belastet): Zweig 8,6 ms Mittel,
+p99 41 ms; main im selben Zeitraum 22,0 ms / 129 ms; gleiche Pfadknoten und Überlebende,
+der Schlag kostet ohne Abruf nichts Messbares (Phase Combat 0,23 ms). Die Budgets
+(5 ms Mittel) lassen sich nur auf einem ruhigen Rechner prüfen. KI-Turnier (8 Spiele):
+Matrix-Hash `0xc44b_22e4_f4dd_002d`; Basis hard gegen normal mit 20 000 Ticks: 62 % / 25 %,
+mittlere Dauer 557 s, also erreichen manche Partien die Freischaltung.
+
+**Vorläufig [provisional]:** alle Zahlen in `data/strike.toml` (Freischaltung 600 s,
+Preis, Frist 30 s, 24 Raketen, 60 m), das Gebäude (Werte, geliehenes Lagermodell mit
+prozeduralen Gestellen), Aufdecken der Stellung für alle Gegner, roter Rauch, Sirene,
+Taste Shift+6, Schwelle 110 mm und Größen der Druckwelle, Licht-Budget 1/2/4 und
+Nachtfaktor 3.
+
+**Offen:** echtes Modell der Raketenstellung; Raketen-Darstellung (Feuerschweif,
+Startgeräusch) statt Granaten-Körper; eine aufgenommene Sirene; die Trefferringe eigener
+Granaten (artillery_view) sind bei 24 Raketen unruhig; Bildschirmwackeln nach Entfernung
+existierte schon (019) und wurde nur verstärkt; Protokollversion nicht erhöht (wie 046).
