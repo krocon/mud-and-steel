@@ -55,6 +55,11 @@ pub struct PlayerView {
     pub own: Vec<OwnUnit>,
     /// Enemy units the player sees (wrecks are seen by everyone), by id.
     pub enemies: Vec<SeenUnit>,
+    /// Units of allied players (prompt 037; always visible), by id.
+    pub allies: Vec<SeenUnit>,
+    /// Players of the match that are enemies of this one, ascending,
+    /// with whether they are defeated (public: the result screen).
+    pub enemy_players: Vec<(PlayerId, bool)>,
     /// The match is decided.
     pub decided: bool,
     /// Resources of the player (prompt 023).
@@ -76,6 +81,7 @@ impl PlayerView {
         let snapshot = sim.snapshot_for(player);
         let mut own = Vec::new();
         let mut enemies = Vec::new();
+        let mut allies = Vec::new();
         for u in snapshot.units {
             if u.owner == player {
                 own.push(OwnUnit {
@@ -88,7 +94,7 @@ impl PlayerView {
                     fire_mode: u.fire_mode,
                 });
             } else {
-                enemies.push(SeenUnit {
+                let seen = SeenUnit {
                     id: u.id,
                     owner: u.owner,
                     unit_type: u.unit_type,
@@ -97,9 +103,20 @@ impl PlayerView {
                     aim: u.aim,
                     hp: u.hp,
                     max_hp: u.max_hp,
-                });
+                };
+                if sim.allied(player, u.owner) {
+                    allies.push(seen);
+                } else {
+                    enemies.push(seen);
+                }
             }
         }
+        let enemy_players = sim
+            .standings()
+            .iter()
+            .filter(|s| !sim.allied(player, s.player))
+            .map(|s| (s.player, s.defeat.is_some()))
+            .collect();
         let structures: Vec<StructureView> = sim
             .structures()
             .into_iter()
@@ -121,6 +138,8 @@ impl PlayerView {
             tick: snapshot.tick,
             own,
             enemies,
+            allies,
+            enemy_players,
             decided: sim.outcome().is_some(),
             account: sim.account(player).unwrap_or_default(),
             structures,

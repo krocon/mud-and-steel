@@ -101,6 +101,8 @@ impl Ai {
             .iter()
             .filter(|u| u.alive() && self.type_info(u.unit_type).role != Role::Artillery)
             .map(|u| u.position)
+            // Allies (prompt 037) are friends for the fragments too.
+            .chain(view.allies.iter().filter(|a| a.alive()).map(|a| a.position))
             .collect();
         if barrage_due && let Some(target) = largest_group(&enemies, &own) {
             let mut gunners = self.in_range(units, target, false);

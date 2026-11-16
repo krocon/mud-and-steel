@@ -55,11 +55,25 @@ fn play(
     b: Difficulty,
     max_ticks: u64,
 ) -> Played {
-    // A plays player 0 in even games, player 1 in odd ones.
+    // A plays player 0 (and its allies, prompt 037) in even games, player
+    // 1 (and its allies) in odd ones.
     let a_player = PlayerId(u8::try_from(seed % 2).unwrap_or(0));
-    let b_player = PlayerId(1 - a_player.0);
-    let mut game = Game::new(config, map.clone(), seed, &[(a_player, a), (b_player, b)])
-        .unwrap_or_else(|e| crate::fail(&e));
+    let levels: Vec<(PlayerId, Difficulty)> = config
+        .players()
+        .into_iter()
+        .map(|p| {
+            (
+                p,
+                if config.teams.allied(p, a_player) {
+                    a
+                } else {
+                    b
+                },
+            )
+        })
+        .collect();
+    let mut game =
+        Game::new(config, map.clone(), seed, &levels).unwrap_or_else(|e| crate::fail(&e));
     let mut think = Duration::ZERO;
     let mut think_max = Duration::ZERO;
     while game.sim().outcome().is_none() && game.sim().tick() < max_ticks {
@@ -136,13 +150,15 @@ pub fn series(
                 "draw".to_string()
             }
             (Some(_), Some(w)) => {
-                let left = r
+                // Units left to the winning team.
+                let left: usize = r
                     .alive
                     .iter()
-                    .find(|&&(q, _)| q == w)
-                    .map_or(0, |&(_, n)| n);
+                    .filter(|&&(q, _)| config.teams.allied(q, w))
+                    .map(|&(_, n)| n)
+                    .sum();
                 left_sum += left as u64;
-                if w == p.a_player {
+                if config.teams.allied(w, p.a_player) {
                     summary.a_wins += 1;
                     format!("{a} wins")
                 } else {

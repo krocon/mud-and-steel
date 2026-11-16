@@ -159,12 +159,18 @@ enum CliCommand {
         /// Seed of the first game; game i uses seed + i.
         #[arg(long, default_value_t = 1)]
         seed: u64,
-        /// Map name in data/maps/ (or the built-in test_small).
-        #[arg(long, default_value = "test_small")]
-        map: String,
-        /// Factions of player 0 and 1, e.g. `de,su` (default: the scenario's).
+        /// Map name in data/maps/ (default: the built-in test_small; with
+        /// `--teams 2v2` twin_meadow, with `3v3` test_large).
+        #[arg(long)]
+        map: Option<String>,
+        /// Factions of player 0 and 1 (with teams: of team 0 and 1), e.g.
+        /// `de,su` (default: the scenario's).
         #[arg(long, value_delimiter = ',')]
         factions: Vec<String>,
+        /// Team games (prompt 037): `2v2` or `3v3`; A plays every slot of
+        /// one team, B the other's. Allies share their vision.
+        #[arg(long, value_parser = ["1v1", "2v2", "3v3"])]
+        teams: Option<String>,
         /// `battle` (the demo armies) or `base` (base building, prompt 023).
         #[arg(long, default_value = "battle")]
         mode: String,
@@ -517,18 +523,33 @@ fn main() {
             seed,
             map,
             factions,
+            teams,
             mode,
             max_ticks,
             jobs,
             verbose,
         } => {
-            let map = find_map(&map);
+            let team_size = match teams.as_deref() {
+                Some("2v2") => 2,
+                Some("3v3") => 3,
+                _ => 1,
+            };
+            let map = find_map(map.as_deref().unwrap_or(match team_size {
+                1 => sim::scenario::BUILTIN_MAP_NAME,
+                2 => "twin_meadow",
+                _ => "test_large",
+            }));
             let scenario = match mode.as_str() {
                 "battle" => sim::scenario::DEMO_SCENARIO,
                 "base" => sim::scenario::SKIRMISH_SCENARIO,
                 other => fail(&format!("unknown mode '{other}' (battle, base)")),
             };
-            let config = tournament_config(&map, &factions, scenario).unwrap_or_else(|e| fail(&e));
+            let config = if team_size > 1 {
+                team_tournament_config(&map, &factions, scenario, team_size)
+            } else {
+                tournament_config(&map, &factions, scenario)
+            }
+            .unwrap_or_else(|e| fail(&e));
             let options = ai_tournament::Options {
                 games,
                 seed,
@@ -764,6 +785,38 @@ fn tournament_config(
     sim::scenario::parse_scenario_with_factions(
         scenario,
         &overrides,
+        &sim::Catalog::builtin().map_err(|e| err(&e))?,
+        &sim::Scale::builtin().map_err(|e| err(&e))?,
+        &sim::TerrainRules::builtin().map_err(|e| err(&e))?,
+        map,
+    )
+    .map_err(|e| e.0)
+}
+
+/// Players `0..2 * team_size`, even ones on team 0, odd ones on team 1
+/// (the teams of the maps' starts), with shared vision; `factions` are
+/// those of team 0 and team 1.
+fn team_tournament_config(
+    map: &sim::Map,
+    factions: &[String],
+    scenario: &str,
+    team_size: u8,
+) -> Result<sim::SimConfig, String> {
+    let slots: Vec<sim::scenario::SlotSetup> = (0..2 * team_size)
+        .map(|p| sim::scenario::SlotSetup {
+            player: sim::PlayerId(p),
+            team: p % 2,
+            faction: factions
+                .get(usize::from(p % 2))
+                .filter(|f| !f.is_empty())
+                .cloned(),
+        })
+        .collect();
+    let err = |e: &dyn std::fmt::Display| e.to_string();
+    sim::scenario::parse_scenario_for_slots(
+        scenario,
+        &slots,
+        true,
         &sim::Catalog::builtin().map_err(|e| err(&e))?,
         &sim::Scale::builtin().map_err(|e| err(&e))?,
         &sim::TerrainRules::builtin().map_err(|e| err(&e))?,
