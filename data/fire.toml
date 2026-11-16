@@ -70,12 +70,14 @@ damage_per_s = 3
 #                    [blast]) `fuse_ms` after it caught fire (0: never)
 #   fuse_ms          time from catching fire to the explosion
 
-# Woods: conifers burn best, broadleaf trees less, palms hardly.
+# Woods: conifers burn best, broadleaf trees less, palms hardly. Reaches
+# cover the tree spacing of generated woods (6.5 m, cli gen-map) and of the
+# editor's wood brushes (4-6 m).
 [[class]]
 ids = ["env_tree_conifer"]
 hit_pct = 25
 catch_pct = 40
-reach_mm = 6000
+reach_mm = 7000
 burn_ms = 180000
 burn_hp_pct = 100
 smoke_radius_mm = 6000
@@ -84,7 +86,7 @@ smoke_radius_mm = 6000
 ids = ["env_tree_deciduous", "env_tree_birch"]
 hit_pct = 15
 catch_pct = 25
-reach_mm = 5000
+reach_mm = 6000
 burn_ms = 180000
 burn_hp_pct = 100
 smoke_radius_mm = 6000
@@ -93,7 +95,7 @@ smoke_radius_mm = 6000
 ids = ["env_tree_palm"]
 hit_pct = 10
 catch_pct = 15
-reach_mm = 4000
+reach_mm = 5000
 burn_ms = 120000
 burn_hp_pct = 100
 

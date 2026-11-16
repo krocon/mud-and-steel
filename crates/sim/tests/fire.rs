@@ -136,7 +136,7 @@ fn burn_west(map: Arc<Map>) -> Sim {
 #[test]
 fn fire_spreads_through_a_wood_and_across_grass() {
     // The 10 m gap is grass with nothing in it: fire jumps it only where
-    // the trunks are within reach (6 m), which they are not.
+    // the trunks are within reach (7 m), which they are not.
     let sim = burn_west(map_with(&two_woods(), |_| false));
     let (west, east) = sides(&sim);
     assert!(

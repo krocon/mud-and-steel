@@ -216,7 +216,7 @@ impl Sim {
         let mut seen = 0;
         self.ignite_from_events(&mut seen);
         self.explode_dumps();
-        if self.tick.is_multiple_of(self.fire.interval) {
+        if !self.fire.objects.is_empty() || !self.fire.wrecks.is_empty() {
             self.burn_interval();
         }
         self.ignite_from_events(&mut seen);
@@ -391,13 +391,27 @@ impl Sim {
         }
     }
 
-    /// Damage, burnt-out fires, spreading, occupants and smoke.
+    /// Whether the fire of object (or wreck unit id) `key` takes its
+    /// interval step this tick: every fire once per spread interval, spread
+    /// over the ticks by its key, so a large fire does not do all its work
+    /// in one tick.
+    fn in_phase(&self, key: u32) -> bool {
+        (self.tick + u64::from(key)).is_multiple_of(self.fire.interval)
+    }
+
+    /// Damage, burnt-out fires, spreading, occupants and smoke of the fires
+    /// whose interval step is due this tick.
     fn burn_interval(&mut self) {
         let tick = self.tick;
         let map = Arc::clone(&self.map);
         // Damage, in proportion to the burn time passed.
-        let burning: Vec<(u32, Burning)> =
-            self.fire.objects.iter().map(|(&o, &b)| (o, b)).collect();
+        let burning: Vec<(u32, Burning)> = self
+            .fire
+            .objects
+            .iter()
+            .filter(|(o, _)| self.in_phase(**o))
+            .map(|(&o, &b)| (o, b))
+            .collect();
         let mut out = Vec::new();
         for (o, b) in burning {
             let Some(c) = self.fire.class_index(&map, o) else {
@@ -431,7 +445,7 @@ impl Sim {
             .fire
             .wrecks
             .iter()
-            .filter(|(_, w)| tick >= w.ends)
+            .filter(|(id, w)| tick >= w.ends && self.in_phase(id.0))
             .map(|(&id, w)| (id, w.at))
             .collect();
         for (id, at) in ended {
@@ -455,7 +469,7 @@ impl Sim {
         let kinds = map.object_kinds();
         let mut sources: Vec<(Option<u32>, Vec2, Vec2, Fixed, UnitId)> = Vec::new();
         for (&o, b) in &self.fire.objects {
-            let Some(c) = self.fire.class_index(&map, o) else {
+            let Some(c) = self.fire.class_index(&map, o).filter(|_| self.in_phase(o)) else {
                 continue;
             };
             let object = &map.objects()[o as usize];
@@ -464,7 +478,10 @@ impl Sim {
             sources.push((Some(o), object.position, ext, reach, b.by));
         }
         let wreck_reach = Fixed::from_num(self.fire.rules.wreck.reach_mm) / 1000;
-        for w in self.fire.wrecks.values() {
+        for (id, w) in &self.fire.wrecks {
+            if !self.in_phase(id.0) {
+                continue;
+            }
             sources.push((None, w.at, Vec2::new(w.half, w.half), wreck_reach, w.by));
         }
         let mut caught: Vec<(u32, UnitId)> = Vec::new();
@@ -521,6 +538,8 @@ impl Sim {
             return;
         }
         let mut killed = Vec::new();
+        let (tick, interval) = (self.tick, self.fire.interval);
+        let in_phase = |o: u32| (tick + u64::from(o)).is_multiple_of(interval);
         for (j, unit) in self.units.iter_mut().enumerate() {
             if !unit.alive() {
                 continue;
@@ -528,7 +547,11 @@ impl Sim {
             let Some(squad) = unit.squad.as_mut() else {
                 continue;
             };
-            let Some(b) = squad.garrison.and_then(|o| self.fire.objects.get(&o)) else {
+            let Some(b) = squad
+                .garrison
+                .filter(|&o| in_phase(o))
+                .and_then(|o| self.fire.objects.get(&o))
+            else {
                 continue;
             };
             for s in &mut squad.soldiers {
