@@ -75,3 +75,36 @@ mit `Teams::allied`.
 | 10 | **Befehle** `Repair` und `Sell` am **Ende** des `Command`-Enums. Zustand (Vorräte jeder Einheit, Reparaturaufträge, verkaufte Gebäude) im Hash und über serde im Spielstand (038); kein Format-Versionssprung nötig (der Regel-Hash erkennt alte Stände). Regeln in neuem `data/logistics.toml` (wie `transport.toml`, nicht in `SimConfig`). | Parallele Prompts (035, 040) hängen ebenfalls an; additive Änderungen. |
 | 11 | **HUD:** Einheitenpanel zeigt Munition/Treibstoff als Balken und Zeile mit Warnung („low ammunition“, „out of fuel“, „immobilized“); Kacheln der Mehrfachauswahl bekommen einen Munitionsbalken; Versorgungs-/Reparaturradius ausgewählter Quellen als Ring auf dem Boden; Gebäudeleiste mit „Repair“ und „Sell“/„Cancel“. | Prompt Punkt 3, auf vorhandenen 031-Bausteinen. |
 | 12 | **KI:** Einheiten mit ≤ 25 % Munition, ≤ 20 % Treibstoff oder (Fahrzeuge, fahrbereit) ≤ 50 % Trefferpunkten ziehen sich zur nächsten eigenen Quelle zurück (Versorger bzw. Reparierer) und kehren voll zurück; beschädigte Gebäude (< 70 %) werden repariert, wenn die Kasse reicht. Kein Verkaufen. **[provisional]** | „Versorgt und repariert, zieht leere Einheiten zurück“ mit normalen Befehlen. |
+
+## Ergebnis
+
+Umgesetzt wie oben; das ganze Design ist **[provisional]** (Nutzer nicht erreichbar).
+Details in `docs/GAME_DESIGN.md` „Supply and repair“, `docs/ARCHITECTURE.md`
+„Supply and repair“, `docs/AI.md` „Supply and repair“, `docs/SCALE.md` (Treibstoff 1/20).
+
+- **Sim:** `data/logistics.toml`, `crates/sim/src/logistics.rs`,
+  `crates/sim/src/sim/logistics.rs`; `[range] fuel` in `data/scale.toml`; Befehle
+  `Repair` und `Sell` am Enum-Ende; Vorräte, Reparaturaufträge und verkaufte Gebäude im
+  Hash und im Spielstand (038). Kleine additive Stellen in `sim.rs`, `sim/combat.rs`,
+  `sim/indirect.rs`, `sim/economy.rs` (Kontenhilfen, `remove_structure`), `sim/orders.rs`.
+- **Tests:** `crates/sim/tests/logistics.rs` (87 Schuss Panzer IV, danach schweigt jede
+  Waffe; Nachschub durch LKW für eigene und verbündete Einheiten gegen Bezahlung, nicht
+  für Feinde und nicht außer Reichweite; Treibstoff nach Strecke und Stehenbleiben;
+  Bewegungsunfähigkeit nach 8,8-cm-Treffer; Bergung durch LKW-Reparatur; Gebäude
+  reparieren und verkaufen; Baustelle abbrechen; Determinismus),
+  `crates/net/tests/snapshot_logistics.rs` (Spielstand mitten im Nachschub),
+  `crates/ai/tests/ai.rs::ai_sends_empty_units_to_resupply`, Selbsttest-Teil
+  `godot/scenes/tools/supply_self_test.gd` und Repair/Sell-Prüfung im Ablauftest.
+- **Golden-Hash** bewusst aktualisiert: `0x0b1d_7230_9f70_e885` → `0x1971_0235_5cc0_0b3e`
+  (Regeln und Vorräte im Hash, Verbrauch); Demo-Schlacht unverändert (Tick 467,
+  Spieler 0 gewinnt). Basisbau-Golden-Hash `0xcdc0_5864_0c6f_5ac8` → `0xe435_5d73_1d25_d25a`.
+- **Messwerte:** `just ai-tournament` (20 Spiele je Paarung, Schlacht): Hard/Normal/Easy
+  gegen Passive je 100 %; Basisbau 30000 Ticks, 10 Spiele: Normal und Hard gegen Passive
+  je 100 %. `just check`, `just selftest`, `just lan-selftest`, `just editor-selftest`,
+  `just validate-assets` grün.
+
+Offen: Bestätigung aller Werte und des Designs durch den Nutzer; kein Bergepanzer im
+Katalog, kein Abschleppen von Panzern; KI schickt keine LKW zu liegengebliebenen
+Einheiten; Infanterie wird nicht aufgefüllt (Ersatz von Soldaten); LKW ohne eigenen
+Vorrat; Verkaufen hinterlässt keine Abbau-Animation; Ringe und Warnungen nur headless
+geprüft (kein gerendertes Bild); Pioniere reparieren erst, wenn 035 sie baubar macht.
