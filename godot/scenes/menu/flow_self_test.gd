@@ -572,7 +572,9 @@ func _replay_viewer_test(menu: Control, saved: Dictionary) -> void:
 		return
 	_check(info["ticks"] > saved["tick"] + 10 and info["map"] == "test_small", "replay does not continue the loaded match: %s" % info)
 	_check(GameFiles.players_text(info).contains("computer, normal"), "players: %s" % GameFiles.players_text(info))
-	var replays_before := DirAccess.get_files_at(GameFiles.REPLAY_DIR).size()
+	# Only replays this process writes count: parallel self-tests in other
+	# worktrees share the replay folder.
+	GameFiles.last_replay_path = ""
 	screen.list.select(index)
 	screen.activate()
 	var main := await _wait_replay()
@@ -632,7 +634,7 @@ func _replay_viewer_test(menu: Control, saved: Dictionary) -> void:
 	print("flow self-test: replay viewer ok (%d ticks, snapshots at %s, end hash %s)" % [ticks, GameFiles.replay_player.keyframe_ticks(), host.state_hash()])
 	main.get_node("ReplayBar").leave()
 	menu = await _wait_scene("MainMenu")
-	_check(DirAccess.get_files_at(GameFiles.REPLAY_DIR).size() == replays_before, "watching a replay wrote a replay")
+	_check(GameFiles.last_replay_path.is_empty(), "watching a replay wrote a replay: %s" % GameFiles.last_replay_path)
 
 
 ## Waits for `main.tscn` with a replay, loaded.
