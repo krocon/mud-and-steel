@@ -117,6 +117,19 @@ missions show their approach as a dashed line to a ring on the target with
 the time until the aircraft arrive. Enemy aircraft coming into sight post
 **Enemy aircraft!** in the event feed.
 
+## Heavy strike (prompt 054)
+
+| Input | Effect |
+|---|---|
+| Strike bar (above the command bar, base matches): Rockets | Wait for a left click on the map, then call the rocket strike there; right click or Esc cancels |
+| Shift + 5 | The same as the button [provisional] |
+
+The button shows the price, the time until the strike unlocks, the
+cooldown, or "no battery" while there is no completed rocket battery
+position. A called strike shows red smoke and a ring on the target, sounds a
+siren and counts down at the top of the screen; an enemy strike also marks
+the enemy's battery position (beam and ring) and pings it on the minimap.
+
 ## Base building (skirmish)
 
 | Input | Effect |
