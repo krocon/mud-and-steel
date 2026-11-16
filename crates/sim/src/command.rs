@@ -178,6 +178,11 @@ pub enum Command {
     /// `data/strike.toml`). Ignored while it is locked, cools down, another
     /// strike of the player is under way, or the player cannot pay.
     HeavyStrike { target: Vec2 },
+    /// The human player's presentation reports something the simulation
+    /// cannot see (camera moved, units selected) to the mission script
+    /// (prompt 039). Ignored without a mission, from other players and for
+    /// names longer than `crate::mission::MAX_SIGNAL_LEN`.
+    MissionSignal { name: String },
 }
 
 impl Command {
@@ -218,7 +223,8 @@ impl Command {
             | Self::Repair { .. }
             | Self::Sell { .. }
             | Self::CallAirLine { .. }
-            | Self::HeavyStrike { .. } => &[],
+            | Self::HeavyStrike { .. }
+            | Self::MissionSignal { .. } => &[],
         }
     }
 }

@@ -36,8 +36,9 @@ pub const MAGIC: [u8; 4] = *b"MSRP";
 
 /// Version of the body layout. Bump on every incompatible change of
 /// [`Replay`] or of the types it contains (commands, config). 8 since
-/// prompt 040 (`SimConfig::weather`).
-pub const FORMAT_VERSION: u16 = 8;
+/// prompt 040 (`SimConfig::weather`); 9 since prompt 039
+/// (`SimConfig::mission`, `Command::MissionSignal`).
+pub const FORMAT_VERSION: u16 = 9;
 
 /// Version of the game that writes replays and saved games.
 pub const GAME_VERSION: &str = env!("CARGO_PKG_VERSION");

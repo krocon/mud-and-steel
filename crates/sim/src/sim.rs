@@ -28,6 +28,7 @@ mod indirect;
 mod infantry;
 mod knockdown;
 mod logistics;
+mod mission;
 mod orders;
 mod positions;
 mod spatial;
@@ -47,6 +48,7 @@ pub use economy::{BuyOption, PlaceError, StructureView, SupplyView};
 pub use experience::ExperienceView;
 pub use infantry::BuildingCondition;
 pub use logistics::{StockView, SupplySource};
+pub use mission::ObjectiveView;
 pub use orders::MAX_QUEUED;
 
 /// Move targets farther than this from the origin (in meters, per axis) are
@@ -90,6 +92,10 @@ pub struct SimConfig {
     /// changes nothing.
     #[serde(default)]
     pub weather: crate::weather::WeatherSetup,
+    /// The mission script (prompt 039, `crate::mission`); `None` for
+    /// skirmishes.
+    #[serde(default)]
+    pub mission: Option<crate::mission::Mission>,
 }
 
 impl SimConfig {
@@ -499,6 +505,9 @@ pub struct Sim {
     crossings: crossings::Crossings,
     /// Heavy rocket strikes (prompt 054).
     strikes: strike::Strikes,
+    /// The mission script and its progress (prompt 039).
+    #[serde(default)]
+    mission: Option<Box<mission::MissionRt>>,
 }
 
 impl Sim {
@@ -705,6 +714,10 @@ impl Sim {
             experience,
             crossings,
             strikes,
+            mission: config
+                .mission
+                .as_ref()
+                .map(|m| Box::new(mission::MissionRt::new(m))),
         };
         sim.init_weather();
         sim.init_economy();
@@ -821,11 +834,26 @@ impl Sim {
         self.reveal_strikes();
         done(Phase::Vision);
         self.tick += 1;
+        // The mission script (prompt 039) may decide the match first.
+        self.update_mission();
+        let exempt: Vec<PlayerId> = self
+            .standings
+            .players()
+            .iter()
+            .map(|s| s.player)
+            .filter(|&p| !self.eliminable(p))
+            .collect();
         let units = &self.units;
         let teams = &self.teams;
         self.standings.update(
             self.tick,
-            |player| alive_units(units, player),
+            |player| {
+                if exempt.contains(&player) {
+                    1
+                } else {
+                    alive_units(units, player)
+                }
+            },
             |a, b| teams.allied(a, b),
         );
         done(Phase::Standings);
@@ -1283,6 +1311,7 @@ impl Sim {
                 self.order_air_line(command.player, *mission, (*from, *to));
             }
             Command::HeavyStrike { target } => self.order_strike(command.player, *target),
+            Command::MissionSignal { name } => self.mission_signal(command.player, name),
         }
     }
 
@@ -1457,6 +1486,10 @@ impl Sim {
         // hashes (prompt 054).
         if self.strikes.used() {
             self.strikes.hash_into(&mut h);
+        }
+        // Only matches with a mission (prompt 039): the others keep their hash.
+        if let Some(m) = &self.mission {
+            m.hash_into(&mut h);
         }
         h.finish()
     }
@@ -2067,6 +2100,7 @@ mod tests {
             infantry: crate::infantry::InfantryRules::builtin().unwrap(),
             teams: crate::teams::Teams::default(),
             weather: crate::weather::WeatherSetup::default(),
+            mission: None,
         }
     }
 
@@ -2571,6 +2605,7 @@ mod object_tests {
             infantry: crate::infantry::InfantryRules::builtin().unwrap(),
             teams: crate::teams::Teams::default(),
             weather: crate::weather::WeatherSetup::default(),
+            mission: None,
         };
         (Sim::new(&config, map.clone(), 1).unwrap(), map)
     }

@@ -31,6 +31,9 @@ const EDITOR_SCENE := "res://scenes/editor/map_editor.tscn"
 const SOUND_GALLERY_SCENE := "res://scenes/tools/sound_gallery.tscn"
 const EditorSelfTest := preload("res://scenes/editor/editor_self_test.gd")
 const FilesScreen := preload("res://scenes/menu/files_screen.gd")
+## Tutorial and missions (prompt 039).
+const MissionsScreen := preload("res://scenes/menu/missions_screen.gd")
+const Missions := preload("res://scenes/menu/missions.gd")
 const DIRECT_FLAGS: Array[String] = [
 	"--skip-menu", "--demo", "--camera-shots", "--path-debug",
 	"--terrain-bench", "--terrain-shots", "--objects-bench", "--objects-shots",
@@ -40,7 +43,8 @@ const BIOMES: Dictionary[String, String] = {
 	"": "As the map says", "forest": "Forest (summer)", "desert": "Desert", "winter": "Winter",
 }
 
-## Screens, by name: "main", "skirmish", "settings", "credits", "load", "replays".
+## Screens, by name: "main", "skirmish", "settings", "credits", "load",
+## "replays", "missions".
 var screens: Dictionary[String, Control] = {}
 var single_player_button: Button
 var lan_button: Button
@@ -52,6 +56,10 @@ var quit_button: Button
 ## Saved games and replays (prompt 038).
 var load_button: Button
 var replays_button: Button
+## Tutorial and missions (prompt 039).
+var tutorial_button: Button
+var missions_button: Button
+var missions_screen: MissionsScreen
 var map_option: OptionButton
 var biome_option: OptionButton
 ## Weather and time of day (prompt 040).
@@ -99,6 +107,11 @@ func _ready() -> void:
 		files.back_pressed.connect(func() -> void: show_screen("main"))
 		add_child(files)
 		screens[kind] = files
+	missions_screen = MissionsScreen.new()
+	missions_screen.visible = false
+	missions_screen.back_pressed.connect(func() -> void: show_screen("main"))
+	add_child(missions_screen)
+	screens["missions"] = missions_screen
 	show_screen("main")
 	# Steam starts the game like this when the player joins a friend.
 	if SteamLobby.launch_lobby_code() != "" and not _launch_handled:
@@ -143,6 +156,15 @@ func start_skirmish() -> void:
 	get_tree().change_scene_to_file(MatchSetup.MAIN_SCENE)
 
 
+## Starts the tutorial (prompt 039).
+func start_tutorial() -> void:
+	var tutorial := Missions.tutorial()
+	if tutorial.is_empty():
+		push_error("tutorial mission not found")
+		return
+	Missions.start(get_tree(), tutorial)
+
+
 func open_lan() -> void:
 	get_tree().change_scene_to_file(LAN_SCENE)
 
@@ -174,6 +196,8 @@ func _main_screen() -> Control:
 	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(subtitle)
 	box.add_child(_spacer(24))
+	tutorial_button = _button(box, "Tutorial", start_tutorial)
+	missions_button = _button(box, "Missions", func() -> void: show_screen("missions"))
 	single_player_button = _button(box, "Single player", func() -> void: show_screen("skirmish"))
 	load_button = _button(box, "Load game", func() -> void: show_screen("load"))
 	replays_button = _button(box, "Replays", func() -> void: show_screen("replays"))

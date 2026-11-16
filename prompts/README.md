@@ -99,7 +99,7 @@ Umsetzen von ihrer Session konkretisiert.
 | 036 | [Nachschub und Reparatur](done/036-nachschub-reparatur.md) | Verbrauch pro Einheit, Versorgungs-LKW, Reparatur, Bergung | erledigt (Design vorläufig, Rest offen, siehe Ergebnis) |
 | 037 | [Teams und KI-Plätze](done/037-teams-ki-slots.md) | 2v2/3v3, KI in der Lobby, Moduswahl im LAN; `docs/TEAMS.md` | erledigt (vorläufige Entscheidungen in `docs/TEAMS.md` zu bestätigen) |
 | 038 | [Speichern und Replays](done/038-speichern-replays.md) | Spielstände, Replay-Ansicht mit Vorspulen | erledigt |
-| 039 | [Tutorial und Missionen](039-tutorial-missionen.md) | Skript-System, Tutorial, Beispielmissionen | Entwurf |
+| 039 | [Tutorial und Missionen](done/039-tutorial-missionen.md) | Skript-System, Tutorial, Beispielmissionen; `docs/MISSIONS.md` | erledigt (vorläufige Entscheidungen in `docs/MISSIONS.md` zu bestätigen) |
 | 040 | [Wetter, Schlamm, Tageszeit](done/040-wetter-schlamm-tageszeit.md) | Regen weicht Boden auf, Nebel, Nacht | erledigt (Werte vorläufig, Rest offen, siehe Ergebnis) |
 | 041 | [Umwelt Stufe 2 und Feuer](done/041-umwelt-stufe2-feuer.md) | Stadt, Industrie, Bahn, Bunker; Brände und Lager-Explosionen | erledigt (Rest offen, siehe Ergebnis) |
 | 042 | [Infanterie-Texturen](done/042-infanterie-texturen.md) | Prozedurale Uniform-Texturen, Tarnmuster, Pistolen, zehn neue Clips | erledigt |

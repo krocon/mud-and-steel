@@ -69,6 +69,8 @@ func _run() -> void:
 	_check(FileAccess.get_file_as_string(dir.path_join("map.toml")).contains("weather = \"fog\""), "map.toml without the weather")
 	for file in ["map.toml", "height.png", "terrain.png", "objects.csv"]:
 		_check(FileAccess.file_exists(dir.path_join(file)), "%s not written" % file)
+	var points := FileAccess.get_file_as_string(dir.path_join("mission_points.toml"))
+	_check(points.contains("name = \"bridge\"") and points.contains("radius_m = 25") and points.contains("name = \"spawn_1\""), "mission_points.toml: %s" % points)
 	_check(scene.save_as("test_small") == false, "the editor overwrote test_small")
 
 	scene.back_to_menu()
@@ -160,6 +162,24 @@ func _tools_test(scene: Node3D, editor: MapEditor) -> void:
 	_check(editor.strongpoints().is_empty(), "a click on the strongpoint did not remove it")
 	scene.stroke(_points([Vector2(-40, 30)], editor))
 	_check(editor.strongpoints().size() == 1, "strongpoint not placed again")
+	# Mission places (prompt 039): a named trigger area, a numbered spawn
+	# point; a click into the area removes it, the next adds it again.
+	scene.tool = "mission_area"
+	scene.radius = 25.0
+	scene.mission_point_name = "bridge"
+	scene.stroke(_points([Vector2(0, -30)], editor))
+	scene.tool = "mission_spawn"
+	scene.mission_point_name = ""
+	scene.stroke(_points([Vector2(30, 40)], editor))
+	var places: Array = editor.mission_points()
+	_check(places.size() == 2 and places[0]["name"] == "bridge" and places[1]["name"] == "spawn_1", "mission places %s" % [places])
+	_check(scene.mission_points_drawn == 2, "mission places drawn: %d" % scene.mission_points_drawn)
+	scene.tool = "mission_area"
+	scene.stroke(_points([Vector2(5, -25)], editor))
+	_check(editor.mission_points().size() == 1, "a click into the area did not remove it")
+	scene.mission_point_name = "bridge"
+	scene.stroke(_points([Vector2(0, -30)], editor))
+	_check(editor.mission_points().size() == 2, "trigger area not placed again")
 
 	for player in 2:
 		scene.tool = "start%d" % player

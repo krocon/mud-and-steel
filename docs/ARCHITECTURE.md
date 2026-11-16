@@ -68,6 +68,7 @@ but never its issuer:
 | `CallAir { mission, target }` | Calls air support of the player's faction on the ground point ([Air support](#air-support-and-anti-aircraft-fire), prompt 033). |
 | `FormationMove { units, target, formation, facing, engage }` | Drives the group to a formation around `target`, turned to `facing` (default: direction of travel); `engage` picks who halts to fight on the way (attack-move) ([Formations](#formations-attack-move-and-securing), prompt 046). |
 | `Secure { units, center, radius_m, formation, facing }` | Takes up the formation around `center` and holds the circle: attack enemies inside, return to the slots. |
+| `MissionSignal { name }` | Reports what only the presentation knows (camera moved, units selected) to the mission script; ignored without a mission and from other players ([MISSIONS.md](MISSIONS.md), prompt 039). |
 
 Movement commands (`MoveTo`, `Attack`, `AttackGround`, `Garrison`,
 `QueueMove`, `Patrol`) ignore units that cannot move (buildings).
@@ -2167,6 +2168,20 @@ the battle mode.
 Matches 1 and 2 choose the passive opponent, which gives no orders. `just lan-selftest` ends with the client
 surrendering: the host must show victory, the client defeat (since prompt 037 a 2 vs 2 with computer players, see
 [TEAMS.md](TEAMS.md)); the flow self-test also starts a 2 vs 2 from the setup screen.
+
+## Missions and tutorial
+
+Prompt 039, reference in [MISSIONS.md](MISSIONS.md). A mission is a TOML
+script next to its map (`data/maps/<map>/missions/<id>.toml`, places in
+`mission_points.toml`). `sim::mission::parse_mission` resolves it into
+`SimConfig::mission`; the simulation visits its triggers at the end of
+every tick (after vision, before the standings) and runs the actions
+(units appear, orders as commands of their owner, objectives, messages,
+camera requests, victory or defeat with `DefeatReason::Mission`). So a
+mission is deterministic and part of replays, saved games and the state
+hash (only when there is one: the golden hash is unchanged). What only the
+presentation knows arrives as `Command::MissionSignal`. Godot shows the
+panel (`hud/mission_hud.gd`) and keeps the progress in `user://`.
 
 ## Map editor
 

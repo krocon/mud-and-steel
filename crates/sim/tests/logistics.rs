@@ -60,6 +60,7 @@ fn sim_with(spawns: &[(PlayerId, &str, i32, i32)], teams: sim::Teams) -> Sim {
         infantry: sim::InfantryRules::builtin().unwrap(),
         teams,
         weather: sim::WeatherSetup::default(),
+        mission: None,
     };
     Sim::new(&config, map, 3).unwrap()
 }

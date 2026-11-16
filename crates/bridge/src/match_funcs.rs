@@ -48,7 +48,7 @@ impl SimHost {
     /// State of the match: `decided` (bool); once decided `winner` (player
     /// id, -1 for a draw) and `tick`; always `players`, an array of
     /// dictionaries with `id`, `defeated` (bool), `reason` (`""`,
-    /// `"surrendered"`, `"eliminated"`), `defeat_tick` and `units` (units not
+    /// `"surrendered"`, `"eliminated"`, `"mission"`), `defeat_tick` and `units` (units not
     /// destroyed).
     #[func]
     fn match_result(&self) -> VarDictionary {
@@ -63,6 +63,7 @@ impl SimHost {
                 None => ("", -1),
                 Some((DefeatReason::Surrendered, tick)) => ("surrendered", tick_i64(tick)),
                 Some((DefeatReason::Eliminated, tick)) => ("eliminated", tick_i64(tick)),
+                Some((DefeatReason::Mission, tick)) => ("mission", tick_i64(tick)),
             };
             let entry = vdict! {
                 "id" => i64::from(standing.player.0),

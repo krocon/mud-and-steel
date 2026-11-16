@@ -66,6 +66,7 @@ fn normal_lays_its_bridge_across_the_river_to_the_enemy() {
         infantry: sim::InfantryRules::builtin().unwrap(),
         teams: sim::Teams::default(),
         weather: sim::WeatherSetup::default(),
+        mission: None,
     };
     let mut game = Game::new(
         &config,

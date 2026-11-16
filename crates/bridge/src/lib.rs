@@ -36,6 +36,7 @@ mod knockdown_funcs;
 mod lan;
 mod map_editor;
 mod match_funcs;
+mod mission_funcs;
 mod object_funcs;
 mod objects;
 mod orders_funcs;

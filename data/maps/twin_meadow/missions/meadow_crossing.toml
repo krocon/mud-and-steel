@@ -1,0 +1,96 @@
+# Example mission (prompt 039), Soviet side. Format: docs/MISSIONS.md.
+# Areas and spawn points: ../mission_points.toml (map editor).
+
+[mission]
+title = "Meadow crossing"
+kind = "mission"
+order = 1
+faction = "su"
+briefing = """
+A small German screen holds the western meadow and its supply point. Take the \
+point with your tank company and the riflemen, then beat off the counterattack \
+that will come from the north."""
+player = 0
+# Only the script decides: the enemy's counterattack arrives later.
+elimination = false
+
+[[computer]]
+player = 1
+difficulty = "passive"
+
+[[group]]
+name = "company"
+owner = 0
+unit = "su_t34_76_1943"
+count = 4
+at = "south_west"
+
+[[group]]
+name = "riflemen"
+owner = 0
+unit = "su_inf_rifle_squad"
+count = 2
+position_m = [-120, 340]
+
+[[group]]
+name = "screen"
+owner = 1
+unit = "de_pz4_h"
+count = 1
+at = "west_outpost"
+
+[[group]]
+name = "screen_infantry"
+owner = 1
+unit = "de_inf_rifle_squad"
+count = 1
+position_m = [-100, -20]
+
+[[objective]]
+id = "take"
+text = "Take the supply point on the western meadow."
+area = "meadow_west"
+shown = true
+
+[[objective]]
+id = "counter"
+text = "Destroy the German counterattack."
+area = "meadow_west"
+
+[[trigger]]
+id = "briefing"
+when = "time"
+actions = [
+  { do = "text", text = "Comrade commander: the meadow in front of you is held by a light German screen. Take the supply point there." },
+]
+
+[[trigger]]
+id = "taken"
+when = "captured"
+point = "supply_meadow_west"
+actions = [
+  { do = "objective", objective = "take", state = "done" },
+  { do = "text", text = "The point is ours. German tanks are coming from the north: hold the meadow." },
+  { do = "spawn", group = "counter", owner = 1, unit = "de_pz4_h", count = 1, at = "north_west" },
+  { do = "spawn", group = "counter", owner = 1, unit = "de_inf_rifle_squad", count = 2, at = "north_west" },
+  { do = "order", group = "counter", to = "meadow_west", order = "move" },
+  { do = "objective", objective = "counter", state = "active" },
+  { do = "camera", at = "meadow_west" },
+]
+
+[[trigger]]
+id = "beaten"
+after = ["taken"]
+when = "destroyed"
+group = "counter"
+actions = [
+  { do = "objective", objective = "counter", state = "done" },
+  { do = "text", text = "The counterattack is beaten off. The meadow is ours." },
+]
+
+[[trigger]]
+id = "victory"
+after = ["beaten"]
+when = "time"
+delay_s = 3
+actions = [{ do = "victory" }]
