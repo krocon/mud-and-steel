@@ -87,16 +87,34 @@ Prompt 029. Every file in `godot/assets/audio/` names its origin here.
 | Files | Origin | License |
 |---|---|---|
 | `godot/assets/audio/<class>/<class>_NN.wav`, every class of `sounds.json` | Synthesized by `tools/audio/synth.py` (`just audio`): noise, sine partials, envelopes, filters and a convolution tail, a recipe per class, seeded per variant. No recordings, samples or presets of anyone else. | Own work, same license as the code |
+| Stage-2 classes (prompt 053): `crack_bullet`, `crack_shell` (N-wave pressure signature plus air hiss), `explosion_tail`, `flak_burst`, `engine_aircraft`, `engine_bomber` (propeller blade pass and cylinder buzz, detuned engines beating), `fire_large` | Synthesized by `tools/audio/synth.py` like the classes above; no recordings. | Own work, same license as the code |
+| `godot/assets/audio/weapon/<slug>/`, `godot/assets/audio/voice/<faction>/<callout>/` (prompt 053) | **Empty.** Folders for real weapon recordings and battle voices (docs/ASSETS.md); every file gets its own row here before it is committed. | – |
 | `godot/assets/audio/music/<mood>_NN.mp3` (prompt 030) | Composed and rendered by `tools/audio/music.py` (`just music`): chord progressions and melodies written for this game (melodies partly from a seeded random walk on the scale), additive instruments (string pad, low strings, a soft piano-like pluck, timpani) and a convolution hall, all numpy; encoded with LAME. No samples, loops, presets, MIDI files or melodies of anyone else; no music from games, films or historical recordings. | Own work, same license as the code |
 | `godot/assets/audio/ambience/<layer>/<layer>_NN.wav` (prompt 030) | Synthesized by `tools/audio/music.py`: wind, insects, leaves, water, rain from shaped noise and short tones; bird calls from frequency sweeps; rumble from low-passed noise. No recordings. | Own work, same license as the code |
+| `assets-src/audio/weapon/{kar98k,kar98k_mit_zf_39}/wwm802675_01.wav` | Walking.With.Microphones, "Mauser 98k Shooting" (blanks at a reenactment), https://freesound.org/people/Walking.With.Microphones/sounds/802675/ , downloaded 2026-11-16 | CC0 |
+| `assets-src/audio/weapon/{mg_42,mg_34_mg_42,mg_42_on_lafette_42}/lubini338242_0N.wav` (last round of each burst) | Lubini, "MG 42 (Solo) WW2.wav", https://freesound.org/people/Lubini/sounds/338242/ , downloaded 2026-11-16 | CC BY 4.0, credited in `CREDITS.md` |
+| `assets-src/audio/weapon/mp_40/lubini338046_0N.wav` (MP 38 as stand-in) | Lubini, "mp 38 schmeisser (Variations) WW2.wav", https://freesound.org/people/Lubini/sounds/338046/ , downloaded 2026-11-16 | CC BY 4.0, credited |
+| `assets-src/audio/weapon/ppsh_41/lubini338323_0N.wav` | Lubini, "PPSh-41 - Soviet Submachine Gun.wav", https://freesound.org/people/Lubini/sounds/338323/ , downloaded 2026-11-16 | CC BY 4.0, credited |
+| `assets-src/audio/shot_mortar/qubodup184382_0N.wav` | qubodup, "Mortar Shots.flac" (from a US government video), https://freesound.org/people/qubodup/sounds/184382/ , downloaded 2026-11-16 | CC0 |
+| `assets-src/audio/shot_howitzer/qubodup182822_0N.wav` | qubodup, "Artillery Shots.flac" (from US government videos), https://freesound.org/people/qubodup/sounds/182822/ , downloaded 2026-11-16 | CC0 |
+| `assets-src/audio/shot_howitzer/inmotion702245_01.wav` | InMotionAudio, "GUNArtl_69thFieldArtilleryGun01", https://freesound.org/people/InMotionAudio/sounds/702245/ , downloaded 2026-11-16 | CC0 |
+| `assets-src/audio/building_collapse/julujanus768369_01.wav` | julujanus, "Power plant chimney detonation collapse", https://freesound.org/people/julujanus/sounds/768369/ , downloaded 2026-11-16 | CC0 |
+| `assets-src/audio/building_collapse/xkeril703247_01.wav` | xkeril, "Big falling debris (crash)", https://freesound.org/people/xkeril/sounds/703247/ , downloaded 2026-11-16 | CC0 |
+| `assets-src/audio/fire/kyles637523_01.wav` (6 s loop, crossfaded) | kyles, "fire small campfire crackling short +air tone", https://freesound.org/people/kyles/sounds/637523/ , downloaded 2026-11-16 | CC0 |
+
+The recordings above are cut from Freesound's public HQ previews (MP3, 128 kbps)
+and converted to 44.1 kHz 16-bit mono; the original WAV/FLAC files need a Freesound
+login. Replacing a file with a cut from the original keeps its name and row. The
+classes and weapons with files in `assets-src/audio/` play only those recordings
+(`tools/audio/synth.py`).
 
 Files of other origin go to `assets-src/audio/<class>/` (music:
 `assets-src/music/<mood>_NN.<ext>`, which replaces the composed piece of
 that name) and get a row here before they are committed:
 
 - **CC0 recordings:** link to the file page (e.g. on freesound.org with
-  the CC0 mark), author, date downloaded. Only CC0; attribution licenses
-  (CC BY) need a credits screen first.
+  the CC0 mark), author, date downloaded. CC0 or CC BY; attribution licenses
+  (CC BY) also get a row in `CREDITS.md`, which the main menu shows.
 - **AI-generated sounds** (text-to-sound tools): tool and version, the
   full prompt, date, and the license of the output; it must allow
   commercial use.

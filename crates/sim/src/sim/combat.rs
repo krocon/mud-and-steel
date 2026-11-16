@@ -115,7 +115,7 @@ pub(super) struct TypeCombat {
     /// `(sin, cos)` of the turret turn per tick; `None` = instant.
     turret_step: Option<(Fixed, Fixed)>,
     /// `(sin, cos)` of the hull turn per tick (casemates).
-    hull_step: Option<(Fixed, Fixed)>,
+    pub(super) hull_step: Option<(Fixed, Fixed)>,
     /// Cosine of half the casemate traverse; `None` = turret.
     arc_cos: Option<Fixed>,
     weapons: Vec<WeaponRt>,
@@ -423,6 +423,15 @@ impl Sim {
         unit.combat.attack = Some(attack);
         unit.combat.attack_moving = false;
         unit.combat.last_seen = None;
+    }
+
+    /// Whether some weapon of unit `i` can hurt unit `j` from half its
+    /// range (prompt 046: who a securing unit goes after).
+    pub(super) fn could_hurt(&self, i: usize, j: usize) -> bool {
+        let mine = &self.types[self.units[i].unit_type as usize];
+        let theirs = &self.types[self.units[j].unit_type as usize];
+        (0..mine.weapons.len())
+            .any(|w| mine.can_damage(w, &self.combat_rules, theirs, mine.weapons[w].range / 2))
     }
 
     /// Target selection, attack movement, aiming and firing of every unit.
@@ -821,6 +830,10 @@ impl Sim {
             let Some(soldier) = squad.living(squad.turn.wrapping_add(k)) else {
                 break;
             };
+            // Knocked down by a blast (prompt 048): no shot.
+            if soldier.knocked > 0 {
+                continue;
+            }
             let muzzle = Vec3::new(
                 soldier.position.x + unit.combat.aim.x / 2,
                 soldier.position.y + unit.combat.aim.y / 2,
@@ -1219,6 +1232,7 @@ impl Sim {
     pub(super) fn destroy(&mut self, j: usize, by: UnitId, at: Vec3) {
         let ty = &self.types[self.units[j].unit_type as usize];
         let (infantry, half_length, half_width) = (ty.infantry, ty.half_length, ty.half_width);
+        let gun = ty.weapons.iter().map(|w| w.weapon.caliber_mm_x10).max();
         let unit: &mut Unit = &mut self.units[j];
         stop(unit);
         unit.combat.attack = None;
@@ -1237,13 +1251,19 @@ impl Sim {
             half_length * f.y.abs() + half_width * f.x.abs(),
         );
         self.set_path_obstacle(c - ext, c + ext, true);
+        // Its ammunition may blow up (prompt 048).
+        self.ammo_explosion(j, gun.unwrap_or(0));
     }
 }
 
 /// Rotates `current` towards `want` by at most one step `(sin, cos)`;
 /// `None` turns at once. Returns the new direction and whether it reached
 /// `want`.
-fn rotate_towards(current: Vec2, want: Vec2, step: Option<(Fixed, Fixed)>) -> (Vec2, bool) {
+pub(super) fn rotate_towards(
+    current: Vec2,
+    want: Vec2,
+    step: Option<(Fixed, Fixed)>,
+) -> (Vec2, bool) {
     let Some((sin, cos)) = step else {
         return (want, true);
     };
@@ -1403,6 +1423,7 @@ fn unit_hit(
     let r = Vec2::new(-f.y, f.x);
     let half = rt.half_width();
     let height = rt.stance_height(squad.stance);
+    let lying = rt.stance_height(crate::infantry::Stance::Prone);
     let v = [dot(d.ground(), f), dot(d.ground(), r), d.z];
     let mut best: Option<(Fixed, Face, Option<usize>)> = None;
     for (k, s) in squad.soldiers.iter().enumerate() {
@@ -1411,6 +1432,8 @@ fn unit_hit(
         }
         let rel = a.ground() - s.position;
         let p = [dot(rel, f), dot(rel, r), a.z - s.height];
+        // Knocked-down soldiers lie (prompt 048).
+        let height = if s.knocked > 0 { lying } else { height };
         let Some((t, entry)) = slab(&p, &v, &[-half, -half, Fixed::ZERO], &[half, half, height])
         else {
             continue;

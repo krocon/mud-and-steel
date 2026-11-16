@@ -15,9 +15,13 @@ extends RefCounted
 ##   more voices than the pools hold nor starts more sounds per frame than
 ##   the budget, and stays cheap.
 ## - Notices: orders and selection played their UI sounds.
+## - Stage 2 (prompt 053): weapon folders fall back, far sounds wait for
+##   the speed of sound, supersonic bullets crack, surroundings and zoom
+##   set the Effects chain, callouts without files only count.
 
 const SoundLibrary := preload("res://scenes/audio/sound_library.gd")
 const SoundBuses := preload("res://scenes/audio/sound_buses.gd")
+const SoundClasses := preload("res://scenes/audio/sound_classes.gd")
 const UiSound := preload("res://scenes/audio/ui_sound.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
 
@@ -39,6 +43,7 @@ func run(test: Node) -> void:
 	await _fog(test, main, sound)
 	await _engines(test, main, sound)
 	await _stress(test, main, sound)
+	await _acoustics(test, main, sound)
 	test._check(sound.notices.get("ui_order", 0) > 0 and sound.notices.get("ui_select", 0) > 0,
 		"no order or selection notice: %s" % sound.notices)
 	test._check(UiSound.instance() != null and UiSound.play("ui_click"), "UI sounds do not play")
@@ -166,6 +171,68 @@ func _stress(test: Node, main: Node3D, sound: Node3D) -> void:
 	test._check(per_event < MAX_USEC_PER_EVENT, "a combat event costs %.1f µs of sound code" % per_event)
 	print("self-test: sound stress: %d events in %d frames, %d sounds started, %.1f µs per event, peak voices %s" % [
 		STRESS_FRAMES * STRESS_EVENTS_PER_FRAME, STRESS_FRAMES, started, per_event, sound.peak_voices
+	])
+
+
+## Stage 2 (prompt 053): weapon folders, speed of sound, supersonic crack,
+## surroundings, zoom filter, voices without files.
+func _acoustics(test: Node, main: Node3D, sound: Node3D) -> void:
+	var acoustics: Node = sound.acoustics
+	test._check(acoustics != null and sound.voices != null, "no acoustics or voices in the battle sound")
+	if acoustics == null:
+		return
+	test._check(SoundClasses.weapon_slug("MG 42") == "mg_42" and SoundClasses.weapon_slug("Browning M2HB (AA)") == "browning_m2hb",
+		"weapon slugs: %s, %s" % [SoundClasses.weapon_slug("MG 42"), SoundClasses.weapon_slug("Browning M2HB (AA)")])
+	test._check(SoundLibrary.spec("shot_mg@no_such_weapon") == SoundLibrary.spec("shot_mg") and not SoundLibrary.has_files("shot_mg@no_such_weapon"),
+		"a weapon without recordings does not fall back to its class")
+	var rig: Node3D = main.camera_rig
+	var focus: Vector3 = rig.focus
+	var distance: float = rig.distance
+	rig.snap_to(focus, 60.0, 0.0)
+	await test._frames(40)
+	# Speed of sound: 400 m away waits 400 / 686 s.
+	var far_at := focus + Vector3(400.0, 0.0, 0.0)
+	far_at.y = main.sim_host.height_at(far_at.x, far_at.z)
+	var wait: float = acoustics.delay_of(far_at)
+	test._check(absf(wait - 400.0 / 686.0) < 0.02, "a sound 400 m away waits %.2f s" % wait)
+	var played_before: int = sound.played.get("shot_cannon_large", 0)
+	var delayed_before: int = acoustics.delayed
+	sound.play_far("shot_cannon_large", far_at)
+	test._check(acoustics.delayed == delayed_before + 1 and sound.played.get("shot_cannon_large", 0) == played_before,
+		"a far shot did not wait for its sound")
+	await test._frames(int(wait * 60.0) + 10)
+	test._check(sound.played.get("shot_cannon_large", 0) > played_before, "the delayed shot never played")
+	# Supersonic crack: a bullet passing 3 m from the ear on this tick.
+	var ear: Vector3 = rig.focus + Vector3.UP * 1.5
+	var cracks: int = acoustics.cracks
+	acoustics.scan_cracks(PackedVector3Array([ear + Vector3(-5.0, 0.5, 3.0)]), PackedVector3Array([Vector3(1500.0, 0.0, 0.0)]), PackedFloat32Array([7.92]), 0.05)
+	test._check(acoustics.cracks == cracks + 1, "a passing supersonic bullet did not crack")
+	await test._frames(1)
+	cracks = acoustics.cracks
+	acoustics.scan_cracks(PackedVector3Array([ear + Vector3(-5.0, 0.5, 3.0), ear + Vector3(5.0, 0.0, 0.0)]),
+		PackedVector3Array([Vector3(300.0, 0.0, 0.0), Vector3(1500.0, 0.0, 0.0)]), PackedFloat32Array([7.92, 7.92]), 0.05)
+	test._check(acoustics.cracks == cracks, "a subsonic or receding bullet cracked")
+	# Surroundings and the Effects chain.
+	var shares: Dictionary = acoustics.surroundings
+	var total := float(shares.open) + float(shares.forest) + float(shares.village)
+	test._check(absf(total - 1.0) < 0.01, "surrounding shares sum to %.2f: %s" % [total, shares])
+	var chain := SoundBuses.ensure_effects()
+	var bus := AudioServer.get_bus_index("Effects")
+	test._check(AudioServer.get_bus_effect_count(bus) == 2, "Effects bus has %d effects" % AudioServer.get_bus_effect_count(bus))
+	# Zoom: the overview is darker.
+	var near_cutoff: float = (chain[0] as AudioEffectLowPassFilter).cutoff_hz
+	rig.snap_to(focus, 500.0, 0.0)
+	await test._frames(3)
+	var far_cutoff: float = (chain[0] as AudioEffectLowPassFilter).cutoff_hz
+	test._check(far_cutoff < near_cutoff * 0.5 and acoustics.far > 0.9, "zoom filter: %.0f Hz near, %.0f Hz far" % [near_cutoff, far_cutoff])
+	rig.snap_to(focus, distance, 0.0)
+	# Voices: no files ship, a callout only counts.
+	var voices: Node = sound.voices
+	var missing: int = voices.missing
+	var said: bool = voices.say("de", "contact", focus)
+	test._check(not said and voices.missing == missing + 1, "a callout without files played or was not counted")
+	print("self-test: sound stage 2 ok (delayed %d, queue dropped %d, cracks %d, surroundings %s, aircraft loops %d, air events %d, callouts %s)" % [
+		acoustics.delayed, acoustics.queue_dropped, acoustics.cracks, shares, acoustics.aircraft_loops, acoustics.air_events, voices.asked
 	])
 
 

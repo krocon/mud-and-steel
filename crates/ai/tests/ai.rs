@@ -513,3 +513,41 @@ fn ai_digs_a_position_after_its_mines() {
     );
     assert!(built(&game, sim::WorkKind::Wire), "no wire in front");
 }
+
+/// Prompt 046: Normal and Hard advance with attack-move in an automatic
+/// formation; Easy keeps plain moves.
+#[test]
+fn normal_advances_with_attack_move_easy_does_not() {
+    // The infantry of the demo, out of sight of each other.
+    let mut config = demo_config();
+    config.spawns.retain(|s| s.unit_type.contains("_inf_"));
+    for s in &mut config.spawns {
+        if s.owner == PlayerId(1) {
+            s.position.y -= sim::Fixed::from_num(150);
+        }
+    }
+    let players = [
+        (PlayerId(0), Difficulty::Normal),
+        (PlayerId(1), Difficulty::Easy),
+    ];
+    let mut game = Game::new(&config, builtin_map(), 5, &players).unwrap();
+    let mut attack_moves = [0, 0];
+    while game.sim().outcome().is_none() && game.sim().tick() < MAX_TICKS {
+        let decisions = game.think();
+        for (k, commands) in decisions.iter().enumerate() {
+            for command in commands {
+                if let Command::FormationMove {
+                    engage, formation, ..
+                } = command
+                {
+                    assert_eq!(*engage, sim::Engage::All);
+                    assert_eq!(*formation, sim::Formation::Auto);
+                    attack_moves[k] += 1;
+                }
+            }
+        }
+        game.step(decisions);
+    }
+    assert!(attack_moves[0] > 0, "Normal never attack-moved");
+    assert_eq!(attack_moves[1], 0, "Easy attack-moved");
+}

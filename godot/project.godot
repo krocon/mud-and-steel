@@ -145,6 +145,18 @@ ping_allies={
 "deadzone": 0.2,
 "events": [Object(InputEventKey,"physical_keycode":75)]
 }
+order_attack_move={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":89)]
+}
+order_secure={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":73)]
+}
+order_formation={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":44)]
+}
 
 [importer_defaults]
 

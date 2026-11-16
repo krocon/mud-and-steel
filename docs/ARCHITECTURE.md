@@ -66,6 +66,8 @@ but never its issuer:
 | `QueueMove { units, target }` | Appends a waypoint: a formation slot around `target` per unit, driven to after the current order ([Waypoint chains](#waypoint-chains-and-patrols), prompt 031). |
 | `Patrol { units, target }` | Like `MoveTo`, then back and forth between the start and the target. |
 | `CallAir { mission, target }` | Calls air support of the player's faction on the ground point ([Air support](#air-support-and-anti-aircraft-fire), prompt 033). |
+| `FormationMove { units, target, formation, facing, engage }` | Drives the group to a formation around `target`, turned to `facing` (default: direction of travel); `engage` picks who halts to fight on the way (attack-move) ([Formations](#formations-attack-move-and-securing), prompt 046). |
+| `Secure { units, center, radius_m, formation, facing }` | Takes up the formation around `center` and holds the circle: attack enemies inside, return to the slots. |
 
 Movement commands (`MoveTo`, `Attack`, `AttackGround`, `Garrison`,
 `QueueMove`, `Patrol`) ignore units that cannot move (buildings).
@@ -89,8 +91,9 @@ footprint of the group (`UnitType::footprint_m` = larger of catalog length and w
 grid is axis-aligned. Units are assigned to slots in the order of their current
 position (y, then x, then id), slots in the same order, which avoids crossing paths
 in the common cases and makes the result independent of the order of ids in the
-command. Facing-aware formations (and a slot assignment along the direction of
-travel) are still open; see [Pathfinding](#pathfinding).
+command. Facing-aware formations with a slot assignment along the direction of
+travel came with prompt 046 (`FormationMove`, [below](#formations-attack-move-and-securing));
+`MoveTo` keeps the grid.
 
 **Scenarios** (`data/scenarios/*.toml`) name a map and place groups of catalog units
 per player in a grid. The compiled-in demo (`sim::scenario::demo_config`) has eight
@@ -128,7 +131,45 @@ targets (formation slots), at most `MAX_QUEUED` (64).
 |---|---|---|
 | New command or `queue` flag | Two new variants at the end of `Command` | `MoveTo` and old replays stay unchanged (postcard numbers variants in order). |
 | Paths along the chain | One per unit and leg | A shared group path would need the members to wait for each other; short legs cost little search budget. |
-| Formation choice, facing by right-drag | Not done | Optional in prompt 031; it changes the formation rules (golden hash) and was left for later. |
+| Formation choice, facing by right-drag | Done in prompt 046 as new commands | `MoveTo` keeps its grid, so the golden hash did not change. |
+
+### Formations, attack-move and securing
+
+Prompt 046, `crates/sim/src/formation.rs` (shapes) and
+`crates/sim/src/sim/drill.rs` (orders); decisions with reasons in
+`prompts/done/046-befehle-formationen.md`.
+
+- **Shapes** (`Formation`): line (at most 8 per rank), wedge (point and two
+  ranks, a platoon of 5; more follow in ranks of 5), column (two files from 9
+  units), broad wedge (inverted), dispersed (staggered, twice the gap). Laid
+  out in units of the spacing (1.5 × largest footprint, as `MoveTo`) across
+  and along the facing, then centered: the mean of the slots is the target.
+  Slots are filled rank by rank from the front; the units most forward along
+  the facing take the front rank, within a rank from left to right.
+- **Auto** is resolved once, when the command is applied: free width across
+  the facing at the target below 3 slots (for the group's most restrictive
+  size class) → column; 30 % or more of the area around the target blocked
+  for tanks by objects → dispersed; target on a road and half the way on
+  roads → column; else wedge (with vehicles) or line (infantry only).
+  [provisional] thresholds.
+- **Attack-move** (`engage`: `Never`, `Infantry` = right-click default,
+  `All`): a unit with the task halts while it has an automatic target (an
+  enemy in range it sees and can hurt) and then plans its own path to its
+  slot again. Hold fire never halts. Runs right after `aim_and_fire`.
+- **Securing**: every `retarget_ticks` a unit without a target attacks the
+  nearest enemy its player sees inside the circle that it can hurt (an
+  ordinary attack order, so search and sight rules apply); the attack is
+  dropped once the target leaves the circle, and the unit returns to its
+  slot.
+- **Facing:** a standing unit without a fight turns its hull to the facing
+  of the order (turret speed rules: `hull_step`); squads turn their soldier
+  formation with it.
+- Other orders drop task and facing; a waypoint (`QueueMove`) only ends
+  securing, and a queue continues after an attack-move (`idle` waits for it).
+- **State:** `Unit::drill` (serde, so in saved games); hashed after all other
+  state only for units that have a task or a facing, so the golden hash did
+  not change. `Sim::drill_view` and `Sim::auto_formation_for` serve the HUD
+  (`SimHost.unit_drill`, `auto_formation`).
 
 ## Map and movement
 
@@ -1357,8 +1398,9 @@ The full table is in `prompts/done/033-luftwaffe-flak.md`. In short:
   (HVAR, RS-82), no smoke or supply drops; one call per mission at a time.
 - Flak shoots only at aircraft, never at bombs; shells (032) and direct
   fire do not hit aircraft; aircraft guns do not hit map objects.
-- Wrecks of crashed aircraft are drawn only, they block nothing; no engine
-  sound yet (prompt 029 has no aircraft sounds).
+- Wrecks of crashed aircraft are drawn only, they block nothing. Engine,
+  flak, strafing and crash sounds since prompt 053 (`air_view.air_event`,
+  see [Audio](#stage-2-acoustics-and-voices-prompt-053)).
 - The approach direction follows the caller's start; players cannot pick
   it.
 
@@ -2650,7 +2692,7 @@ acceptance criterion needs a run on a quiet machine to confirm.
 | Listener | Above the camera's ground focus, hearing range scaled with zoom | At the camera itself a high view would hear everything equally faint. |
 | Voice limit | Fixed pools per group, priority and loudness decide, budget per frame | Hundreds of shots per second neither clip nor cost frame time; nothing is allocated during a battle. |
 | Fog | Muffled and slightly displaced, not silent | Battle noise is reconnaissance, an exact position is not. [provisional] |
-| Speed of sound | Not simulated | [provisional] With time running at factor 2 and a camera that sees at most a few hundred meters, a delay of 0.3–1 s would mostly read as lag. Easy to add later as a delay per distance for explosions. |
+| Speed of sound | Not simulated in 029; since prompt 053 far sounds wait for their travel time (see below) | 029: a delay could read as lag; 053 adds it with a 2.5 s cap and keeps notices and incoming whistles immediate. |
 | Mute without focus | On by default | [provisional] Usual for strategy games; a setting. |
 | Rockets | Own class `shot_rocket` for anti-tank squads | Panzerschreck, Panzerfaust and Bazooka have 60–150 mm calibers and would otherwise sound like tank guns. |
 
@@ -2658,12 +2700,97 @@ acceptance criterion needs a run on a quiet machine to confirm.
 
 - Listening: the set was made and balanced by measurement only; levels,
   ranges and recipes want a pass by ear (`just sound-gallery`).
-- No voices. Music and ambience: see below (prompt 030).
-- Infantry hits and deaths are silent; aircraft have no engine class yet.
+- Voices: structure since prompt 053, no files yet. Music and ambience:
+  see below (prompt 030).
+- Infantry hits and deaths are silent (053 adds only the `wounded` callout).
 - Indirect fire (prompt 032) is wired by its interface (weapon 255,
   `shell_incoming`, `smoke` events) as described in its merge notes; it was
   not merged yet when this was written, so its sounds are tested only once
   both are in main.
+
+### Stage 2: acoustics and voices (prompt 053)
+
+| Script | Does |
+|---|---|
+| `acoustics.gd` | Created by `battle_sound.gd`, driven from its `_process` (its time counts in the bench's "sound" column). Speed of sound queue, supersonic crack, reverb by surroundings, zoom filter, aircraft engines and air events |
+| `battle_voices.gd` | Created by `battle_sound.gd`, fed its combat events. Callouts of squads near the camera per faction |
+
+- **Speed of sound.** 343 m/s real × time factor 2 = 686 game m/s.
+  `battle_sound.play_far` (shots, hits, explosions, destruction, object and
+  crater events, flak, strafing, crashes) waits ground distance to the
+  camera focus / 686 s, at most 2.5 s [provisional]; under 0.04 s it plays
+  at once. `play_at` stays immediate (notices, incoming whistles, cracks,
+  voices). The queue is sorted by due time, at most 192 entries; when full,
+  small arms are dropped and stronger sounds push out the weakest. The
+  per-frame voice budget applies when a sound leaves the queue.
+- **Supersonic crack.** Once per simulation tick (only up to 200 m camera
+  distance) every projectile faster than 686 m/s is checked: if its
+  closest point to the hearing center (focus + 1.5 m) lies on its next
+  tick of flight and within 12 m (below 20 mm) or 25 m (shells),
+  `crack_bullet` / `crack_shell` plays there at once, so the crack comes
+  before the delayed muzzle report. No projectile ids are needed: each
+  stretch of flight is checked exactly once.
+- **Reverb by surroundings.** Every 0.5 s a 5 × 5 grid of
+  `wood_density_at` and `SimHost.buildings_near` (box-shaped objects from
+  3 m high; new read function in `audio_funcs.rs`) within 35 m × zoom (up
+  to 70 m) give shares of forest (density / 0.6), village (buildings / 8)
+  and open field. One `AudioEffectReverb` on the Effects bus blends three
+  presets [provisional, set without listening]: open nearly dry with a
+  late reflection, forest dense and dark, village short and bright.
+- **Zoom.** A low-pass on the Effects bus goes from 20 kHz at 40 m camera
+  distance to 2.2 kHz at 450 m (logarithmic); classes of priority ≤ 1
+  (rifles, MGs, bullet hits) lose up to 8 dB in the overview. Both effects
+  are reset when the match ends (`SoundBuses.reset_effects`).
+- **Blasts by size.** Shell hits get pitch (75 / caliber)^0.2 (0.75–1.2);
+  from 100 mm an `explosion_tail` (5 s roll, own group `tail`) follows,
+  louder with caliber (bombs included). Vehicle explosions (ammunition and
+  fuel) go lower with footprint and get the tail from medium-tank size.
+- **Weapon recordings.** `<class>@<key>` names (`sound_library.gd`) play
+  the files of `assets/audio/weapon/<key>/` with the settings of
+  `<class>`. A shot uses `<class>@<weapon slug>` if that folder has files,
+  else its synthesized class (checked once per unit type and weapon).
+- **Aircraft.** The three aircraft nearest the listener get
+  `engine_aircraft` or, from 18 m wingspan, `engine_bomber`; pitch by
+  Doppler (686 / (686 − radial speed), 0.75–1.35), higher while falling.
+  `air_view` emits `air_event` for every air event: heavy flak
+  `flak_burst` at the burst, light flak `shot_cannon_small` and MG flak
+  `shot_mg` at the gun, strafing `shot_mg` at the muzzle, crashes
+  `explosion_vehicle` with tail.
+- **Fires.** Burning map objects (`SimHost.fires`, keys ≥ 0, prompt 041)
+  join the wrecks for the fire loops (now 6): `fire_large` from 8 m, louder
+  by size (±6 dB), down to −12 dB as they burn out.
+- **Voices.** `voice@<faction>/<callout>` from
+  `assets/audio/voice/<faction>/<callout>/`; faction = prefix of the unit
+  type id. Callouts and triggers [provisional]: `contact` (a squad fires
+  after 20 s without firing), `reloading` (one shot in 12), `take_cover`
+  (a shell hits a squad), `wounded` (a bullet hits a squad); only up to
+  80 m camera distance, for visible squads within 50 m of the focus, one
+  callout per 4 s, per squad per 12 s; group `voice` (3 voices). No files
+  ship: without files a callout only counts (`missing`).
+
+| Group | Voices | New per frame | Classes |
+|---|---|---|---|
+| crack | 4 | 2 | `crack_bullet`, `crack_shell` |
+| tail | 4 | 2 | `explosion_tail` |
+| voice | 3 | 1 | callouts |
+| loops | 3 aircraft, 6 fires | every 0.2 s | `engine_aircraft`, `engine_bomber`, `fire`, `fire_large` |
+
+Self-test (`tools/sound_self_test.gd`): weapon slugs and fallback, a shot
+400 m away waits 0.58 s and then plays, a supersonic bullet passing 3 m
+away cracks while subsonic and receding ones do not, surrounding shares
+sum to 1, the Effects bus holds low-pass and reverb, the overview is
+darker than close up, a callout without files only counts.
+
+Measurements (`just bench-view`, Apple M1 Max, debug bridge, load average
+80–160 from parallel sessions, one run each): the "sound" column
+(`battle_sound._process` including `acoustics.update`) is 0.13–0.14 ms
+standing and 0.21–0.27 ms in the battle (029: 0.11–0.20 ms), under 2 % of
+a 60 FPS frame. FPS with / without sound: battle 40 m 53.1 / 50.1, 150 m
+47.8 / 55.3, 600 m 43.0 / 46.9; standing 79.9 / 77.6, 78.5 / 70.8, 87.4 /
+82.5. The spread comes from the machine load (the same views differ by
+±10 % in either direction). The self-test stress measures 18–27 µs per
+combat event in the sound code under that load (limit 60 µs; 029: 8 µs
+on a quieter machine).
 
 ### Music and ambience
 

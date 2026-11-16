@@ -3,6 +3,7 @@ extends RefCounted
 ## needed:
 ##
 ##     Master ─┬─ Effects ── Muffled (low-pass, quieter: sounds in the fog)
+##             │  (effects: zoom low-pass, reverb; prompt 053, `ensure_effects`)
 ##             ├─ UI
 ##             ├─ Music      (prompt 030)
 ##             └─ Ambience   (prompt 030)
@@ -48,6 +49,40 @@ static func ensure() -> void:
 		low_pass.cutoff_hz = MUFFLED_CUTOFF_HZ
 		AudioServer.add_bus_effect(muffled, low_pass)
 		AudioServer.set_bus_volume_db(muffled, MUFFLED_DB)
+
+
+## The effects of the Effects bus (prompt 053, `acoustics.gd`): a low-pass
+## for the zoom and a reverb for the surroundings, created once:
+## `[AudioEffectLowPassFilter, AudioEffectReverb]`.
+static func ensure_effects() -> Array:
+	ensure()
+	var bus := AudioServer.get_bus_index("Effects")
+	var low_pass: AudioEffectLowPassFilter = null
+	var reverb: AudioEffectReverb = null
+	for i in AudioServer.get_bus_effect_count(bus):
+		var effect := AudioServer.get_bus_effect(bus, i)
+		if effect is AudioEffectLowPassFilter:
+			low_pass = effect
+		elif effect is AudioEffectReverb:
+			reverb = effect
+	if low_pass == null:
+		low_pass = AudioEffectLowPassFilter.new()
+		low_pass.cutoff_hz = 20000.0
+		AudioServer.add_bus_effect(bus, low_pass)
+	if reverb == null:
+		reverb = AudioEffectReverb.new()
+		reverb.dry = 1.0
+		reverb.wet = 0.0
+		reverb.spread = 1.0
+		AudioServer.add_bus_effect(bus, reverb)
+	return [low_pass, reverb]
+
+
+## Leaves the Effects bus neutral (end of a match).
+static func reset_effects() -> void:
+	var chain := ensure_effects()
+	(chain[0] as AudioEffectLowPassFilter).cutoff_hz = 20000.0
+	(chain[1] as AudioEffectReverb).wet = 0.0
 
 
 ## Sets the bus volumes from the settings values.

@@ -23,7 +23,9 @@ mod view;
 pub use view::{OwnUnit, PlayerView, SeenUnit};
 
 use serde::{Deserialize, Serialize};
-use sim::{Command, FireMode, Fixed, Map, PlayerId, Rng, SimConfig, UnitId, Vec2};
+use sim::{
+    Command, Engage, FireMode, Fixed, Formation, Map, PlayerId, Rng, SimConfig, UnitId, Vec2,
+};
 use std::collections::BTreeMap;
 use std::fmt;
 use std::str::FromStr;
@@ -60,6 +62,7 @@ impl Difficulty {
                 regroup: false,
                 retreat_hp_pct: 0,
                 patience_ticks: 0,
+                attack_move: false,
             },
             Self::Easy => Params {
                 think_ticks: 80,
@@ -67,6 +70,7 @@ impl Difficulty {
                 regroup: false,
                 retreat_hp_pct: 0,
                 patience_ticks: 1600,
+                attack_move: false,
             },
             Self::Normal => Params {
                 think_ticks: 20,
@@ -74,6 +78,7 @@ impl Difficulty {
                 regroup: true,
                 retreat_hp_pct: 0,
                 patience_ticks: 800,
+                attack_move: true,
             },
             Self::Hard => Params {
                 think_ticks: 10,
@@ -81,6 +86,7 @@ impl Difficulty {
                 regroup: true,
                 retreat_hp_pct: 30,
                 patience_ticks: 800,
+                attack_move: true,
             },
         }
     }
@@ -130,6 +136,9 @@ struct Params {
     /// moves round to the enemy's flank (wrecks and comrades in the line of
     /// fire, a crest in between).
     patience_ticks: u64,
+    /// Advances as attack-move in an automatic formation, facing the
+    /// enemy (prompt 046); otherwise plain `MoveTo`.
+    attack_move: bool,
 }
 
 /// Role of a unit; every role is commanded as its own group. Infantry
@@ -855,7 +864,15 @@ impl Ai {
         if let Some(hold) = self.hold_point(role, ids.len(), center, view) {
             if dist(center, hold) > Fixed::from_num(ARRIVED_M) {
                 let idle = fighting.iter().all(|u| u.target.is_none());
-                self.move_group(&mut state, &ids, hold, stale && idle, view.tick, out);
+                let facing = Some(self.enemy_home - hold);
+                self.move_group(
+                    &mut state,
+                    &ids,
+                    (hold, facing),
+                    stale && idle,
+                    view.tick,
+                    out,
+                );
             }
             self.groups.insert(role, state);
             return;
@@ -919,7 +936,14 @@ impl Ai {
             }
         } else {
             let idle = fighting.iter().all(|u| u.target.is_none());
-            self.move_group(&mut state, &ids, target, stale && idle, view.tick, out);
+            self.move_group(
+                &mut state,
+                &ids,
+                (target, None),
+                stale && idle,
+                view.tick,
+                out,
+            );
         }
         self.groups.insert(role, state);
     }
@@ -973,12 +997,14 @@ impl Ai {
         Objective::Explore(point)
     }
 
-    /// Sends the group to `target` unless it already drives there.
+    /// Sends the group to `target` unless it already drives there; with
+    /// attack-move (prompt 046) in an automatic formation facing `facing`
+    /// (default: the direction of travel).
     fn move_group(
         &self,
         state: &mut GroupState,
         ids: &[UnitId],
-        target: Vec2,
+        (target, facing): (Vec2, Option<Vec2>),
         repeat: bool,
         tick: u64,
         out: &mut Vec<Command>,
@@ -995,10 +1021,20 @@ impl Ai {
             return;
         }
         let target = self.clamp_to_map(target);
-        out.push(Command::MoveTo {
-            units: ids.to_vec(),
-            target,
-        });
+        if self.params.attack_move {
+            out.push(Command::FormationMove {
+                units: ids.to_vec(),
+                target,
+                formation: Formation::Auto,
+                facing,
+                engage: Engage::All,
+            });
+        } else {
+            out.push(Command::MoveTo {
+                units: ids.to_vec(),
+                target,
+            });
+        }
         state.order = Order::Move {
             target,
             units: ids.to_vec(),
