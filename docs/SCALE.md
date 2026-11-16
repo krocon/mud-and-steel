@@ -140,6 +140,13 @@ while blast and smoke radii are sizes and stay 1:1 (8 cm: 16 m fragments,
 12 m smoke). Smoke lasts 90 s real = 45 s game and drifts with the wind ×
 time factor.
 
+Transport (prompt 034, [ARCHITECTURE.md](ARCHITECTURE.md#transport-and-towing)):
+mounting, dismounting, limbering and unlimbering times in `data/transport.toml`
+are real and divided by the time factor (truck 20 s real = 10 s game); a gun
+pushed by its crew moves at the rules' real speed × time factor (Pak 2 km/h →
+4 km/h). Seats are catalog values (`passengers`); towing compares the catalog's
+engine power with the masses of tractor and gun (8 hp per tonne).
+
 Observations for balancing:
 
 - Infantry crossing 4 km takes 30 min of game time. That is slow but fits the

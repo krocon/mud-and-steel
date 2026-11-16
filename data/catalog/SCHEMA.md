@@ -36,6 +36,7 @@ Rules:
 | `wingspan_mm` | int | Aircraft. |
 | `mass_kg` | int | Combat weight (vehicles, aircraft: loaded/normal takeoff weight; guns: in firing position). |
 | `crew` | int | Vehicles, guns, aircraft. |
+| `passengers` | int | Troop seats besides the crew (trucks, halftracks; prompt 034). Vehicles only, 1–30. |
 | `squad_size` | int | Infantry: soldiers in the team. |
 | `speed_road_kmh_x10` | int | Maximum road speed (vehicles); marching speed (infantry, ~50). |
 | `speed_offroad_kmh_x10` | int | Cross-country speed (vehicles); infantry cross-country (~40). |

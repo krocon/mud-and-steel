@@ -48,6 +48,10 @@ and [the HUD section](ARCHITECTURE.md#hud-presentation-only). The tutorial
 | F *(rebindable)* | Hold fire / fire at will |
 | Z / X / V / B *(rebindable)* | Infantry: stand / kneel / prone / automatic stance |
 | G / T *(rebindable)* | Mortars and guns: barrage / smoke at the ground point under the cursor (prompt 032) |
+| Right click with squads on an own truck, halftrack or tank | Mount it (if its seats suffice; prompt 034) |
+| Right click with vehicles on an own towed gun | The nearest vehicle strong enough hitches it |
+| J *(rebindable)* | Passengers of the selected vehicles get off once the vehicle stands |
+| K *(rebindable)* | Selected vehicles drop their towed guns; selected towed guns are unhitched |
 
 **Targeted orders** from the command bar or their key wait for a left click
 (the cursor turns into a cross, a hint shows at the top); right click
@@ -62,6 +66,11 @@ become waypoints).
 | P | Patrol: drive to the clicked point and back, again and again |
 | U | Occupy the clicked building (infantry) |
 | Barrage / Smoke buttons | Mortars and guns fire at the clicked point (the keys G / T fire at the cursor at once) |
+
+Passengers are hidden in their vehicle and cannot be selected; the unit
+panel shows "Passengers 9 / 10", "towing …" or "towed by …" and "loading"
+while mounting, dismounting, limbering or unlimbering runs. Dismount and
+Unlimber are also buttons of the command bar.
 
 ## Base building (skirmish)
 

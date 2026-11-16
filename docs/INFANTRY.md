@@ -194,9 +194,10 @@ in `godot/assets/models/infantry/animations.json` (written by the build);
 | `mount` | no | climbs onto a deck 1.0 m high: ends with the hips 1.0 m up and 0.45 m forward (`rise`, `advance` in `animations.json`) |
 | `dismount` | no | jumps down from a deck 1.0 m high, lands in a crouch 0.45 m forward, stands up |
 
-`mount` and `dismount` move the hips, not the root: the game (prompt 034) plays the
-clip and then puts the soldier node on the seat or the ground; `animations.json`
-gives the hip travel (`rise` = +1.0 / −1.0 m, `advance` = 0.45 m).
+`mount` and `dismount` move the hips, not the root; `animations.json` gives the hip
+travel (`rise` = +1.0 / −1.0 m, `advance` = 0.45 m). Prompt 034 does not play them
+yet: passengers appear seated (pose `kneel`) on the vehicle and dismounted soldiers
+behind it (see "Transport (prompt 034)" below).
 
 Clips are authored in real time. Locomotion is played at
 `speed_scale = game_speed / authored_speed`, which keeps the feet planted at any game
@@ -450,6 +451,24 @@ tanks first, squads attack only enemy infantry, and squads that see nothing
 but enemy armor stop instead of walking into it. Tested in
 `crates/ai/tests/ai.rs`. The AI does not use stances, cover or buildings
 yet.
+
+### Transport (prompt 034)
+
+- A squad mounts a truck, halftrack (catalog `passengers`) or tank (10 or 6
+  riders, `data/transport.toml`) as a whole: right click on the own vehicle,
+  `Command::Embark`. It walks behind the vehicle, waits there for
+  `embark_ms` (truck 20 s, halftrack 12 s, tank 10 s real) and is then
+  aboard: hidden in the vehicle, out of the enemy's sight and fire, no
+  orders but dismounting, no fire.
+- `J` / `Command::Disembark`: off after `disembark_ms` (10 / 8 / 4 s real)
+  once the vehicle stands; the squad appears behind it and takes its places
+  and cover as usual.
+- Every round that hits the carrier kills one passenger with `hit_pct`
+  (truck 50 %, halftrack 30 %, tank 40 %); rounds glancing off a tank kill
+  one rider with 30 %. A destroyed carrier kills each passenger soldier
+  with 60 / 50 / 70 %; the survivors jump off. [provisional]
+- The squad stays the same unit (same id, stance, fire mode) throughout.
+- Details: ARCHITECTURE.md "Transport and towing".
 
 ## Presentation (prompt 022)
 
