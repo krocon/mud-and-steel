@@ -24,8 +24,14 @@ fn different_seed_gives_different_hash() {
 /// Last changed by the merge of prompt 059 (desert village: new entries
 /// in the hashed rule tables of `data/destruction.toml`,
 /// `data/infantry.toml` and `data/vision.toml`; the demo uses none of
-/// them, battle unchanged) with 035/036. Before (`0x738f_0759_efe2_a7bd`):
-/// the merge of prompt 035 (engineers, mines, obstacles,
+/// them, battle unchanged). Before (`0x934d_db12_191d_9a20`):
+/// prompt 048 (knockdown): the `[knockdown]` rules of
+/// `data/infantry.toml` and every soldier's knock-down state (ticks left,
+/// blast point) are in the hash; blasts and tank ammunition explosions
+/// knock soldiers down. The ammunition roll does not advance the shared
+/// generator, so the demo battle is unchanged (decided at tick 467, player 0
+/// wins). Before: `0x738f_0759_efe2_a7bd`, the merge of prompt 035 with 036.
+/// The merge of prompt 035 (engineers, mines, obstacles,
 /// positions) with 036 (supply and repair). Prompt 035: the rules of
 /// `data/works.toml` and the (empty) field works, mines, engineer jobs,
 /// thrown tracks and dug samples are in the hash, and the economy rules
@@ -143,7 +149,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xad7f_f1fa_36e9_3bc0;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x0773_c8ed_1eac_669d;
 
 #[test]
 fn golden_hash() {

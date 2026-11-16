@@ -49,6 +49,32 @@ dispersion_pct = 50
 # Half the width of a soldier's hit box (a 0.6 m wide, 0.6 m deep box).
 half_width_mm = 300
 
+[knockdown]
+# Prompt 048: the blast of a high-explosive charge (shells, bombs, exploding
+# dumps; data/indirect.toml [blast]) throws the soldiers near it to the
+# ground, whether the fragments hit them or not. Radius per mm of caliber
+# (8 cm: 4.8 m, 10.5 cm: 6.3 m); kneeling soldiers are knocked down within
+# `kneel_pct`, prone ones within `prone_pct` of it, soldiers at a cover spot
+# (behind an object or in a crater) within `cover_pct` of that. A soldier is
+# thrown up to `throw_mm` away from the blast (falling linearly to 0 at the
+# radius) and lies there; after `down_ms` (dazed, getting up, picking up his
+# weapon) he goes on. While down he neither moves nor fires and is hit like a
+# prone soldier. Soldiers in buildings and aboard vehicles are not affected.
+# [provisional]
+radius_mm_per_mm = 60
+kneel_pct = 75
+prone_pct = 40
+cover_pct = 50
+throw_mm = 2500
+down_ms = 6000
+# A destroyed vehicle armed with a gun of at least `ammo_min_caliber_mm_x10`
+# blows up its ammunition with `ammo_explosion_pct` percent and knocks the
+# soldiers within `ammo_radius_mm` down (same stance and cover factors).
+# [provisional]
+ammo_explosion_pct = 40
+ammo_radius_mm = 12000
+ammo_min_caliber_mm_x10 = 200
+
 [cover]
 # A standing squad looks for cover spots behind objects within
 # `search_mm` of each soldier's formation place. Spots lie `gap_mm` behind

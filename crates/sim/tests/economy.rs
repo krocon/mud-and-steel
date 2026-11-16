@@ -427,7 +427,9 @@ fn scripted_production_chain_is_deterministic() {
 /// production, rally points, supply points and the fight of the starting
 /// units. Recorded on macOS ARM64. Last changed by the merge of prompt 059
 /// (desert village entries in the hashed destruction, infantry and vision
-/// rule tables; the skirmish uses none of them) with 035/036. Before
+/// rule tables; the skirmish uses none of them). Before
+/// (`0x6316_8c90_a213_4d1c`): prompt 048 (knockdown rules and every
+/// soldier's knock-down state in the hash). Before
 /// (`0x87ed_9b47_05ad_8899`): the merge of prompt 035
 /// (field work rules and state in the hash, the barracks also produce
 /// engineer squads; 035 alone `0x5489_8b04_42f6_7a57`) with 036. Before
@@ -445,7 +447,7 @@ fn economy_golden_hash() {
     let sim = run_economy(42, 5000);
     assert_eq!(
         sim.state_hash(),
-        0xc6f0_4cdc_48e2_fa18,
+        0x787f_c469_8fa2_b0d1,
         "economy golden hash mismatch: got {:#018x}",
         sim.state_hash()
     );

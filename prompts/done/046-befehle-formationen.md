@@ -87,7 +87,14 @@ wie ich es teste, Messwerte, was offen ist.
   Gruppe stand dadurch so, dass sie später alle Gegner abschoss (Sieg mitten
   im Selbsttest). Mit dem Zug-Keil (5) bleibt die Gruppe kompakt.
 - Der Selbsttest der Befehle prüfte die Mitte der Formation als Mitte der
-  Bounding-Box; Formationen sind jetzt über den Mittelwert zentriert (beim
-  alten Raster identisch), die Prüfung nutzt den Mittelwert mit derselben
-  Toleranz.
+  Bounding-Box; Formationen sind jetzt über den Mittelwert zentriert, die
+  Prüfung nutzt den Mittelwert mit derselben Toleranz (beim alten Raster
+  wäre das nur bei vollen Reihen gleich).
+- Nach dem Merge mit 053 (längerer Soundtest) fiel der HUD-Selbsttest aus:
+  Der Kampfteil lässt die eigenen Panzer auf Gegner feuern, die Feuer
+  halten; im Keil stehen weniger Kameraden in der Schusslinie, und mit der
+  längeren Laufzeit waren alle Gegner vor dem HUD-Teil tot (Sieg, das
+  Ergebnisfenster verdeckt die Leiste). Der HUD-Teil stellt jetzt zu Beginn
+  „Feuer halten“ her (wie sein Kommentar „later parts expect quiet“
+  verlangt); keine Prüfung entfernt.
 - Golden-Hash unverändert (`MoveTo` und KI-freie Szenarien unberührt).
