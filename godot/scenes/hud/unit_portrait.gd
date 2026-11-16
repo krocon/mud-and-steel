@@ -8,7 +8,11 @@ extends Node
 ## for the match. (Duplicating the unit's own model does not work: its
 ## static parts are merged at run time, prompt 016.) Headless runs get the
 ## texture too; it simply stays empty there.
+##
+## Prompt 058: a pre-rendered picture (`thumbnail.gd`) is used instead when
+## there is one; the rendering above is the fallback for the rest.
 
+const Thumbnail := preload("res://scenes/hud/thumbnail.gd")
 const SIZE := Vector2i(160, 112)
 
 ## Catalog id -> ViewportTexture.
@@ -20,6 +24,10 @@ var _textures: Dictionary[String, Texture2D] = {}
 func texture_for(type_id: String, build: Callable) -> Texture2D:
 	if _textures.has(type_id):
 		return _textures[type_id]
+	var picture := Thumbnail.texture(type_id)
+	if picture != null:
+		_textures[type_id] = picture
+		return picture
 	var copy := build.call() as Node3D
 	if copy == null:
 		_textures[type_id] = null

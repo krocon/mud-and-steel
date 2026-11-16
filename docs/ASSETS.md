@@ -617,6 +617,29 @@ godot/assets/audio/ambience/<layer>/*.wav     beds (loops) and one-shots (birds,
 - **Levels** are set in code (`music.gd` `MUSIC_DB`, `ambience.gd` per
   layer), the files stay normalized.
 
+## Thumbnails (prompt 058)
+
+Pictures of everything a player can build or produce, for the picker tiles
+and the unit panel: `godot/assets/thumbnails/<catalog id>.png` (Git LFS,
+with their `.import` files), 240 × 160 pixels, transparent background (the
+HUD draws a faction-tinted backdrop behind them).
+
+- **Which:** every id of `SimHost.buildable_ids()`, i.e. base buildings,
+  fortifications and production lists of `data/economy.toml` for all
+  factions. A new buildable needs a model and then `just thumbnails`.
+- **How:** `just thumbnails` (`godot/scenes/tools/thumbnail_render.gd`, needs a
+  window, Godot cannot render headless) builds each model like the match
+  does (forest camouflage and markings, borrowed houses for base buildings,
+  squads with their soldier look), renders it orthographically from the
+  front left, 30 degrees above, with a fixed key and fill light, three times
+  larger, then crops to the model's pixels and scales it into the picture
+  with a 5 % margin, standing on the lower edge. Squads show their first
+  five soldiers in a fixed tight group (real formations are too wide for a
+  tile). `just thumbnails --only=<id>,<id>` renders just these; `just
+  import` runs afterwards. [provisional] angle, light and size.
+- **Check:** `just gallery-check` fails if a buildable id has no thumbnail
+  or no catalog card.
+
 ## Markings
 
 National markings and numbers are decals at the `Socket_Marking_*` empties, never

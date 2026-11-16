@@ -1,0 +1,87 @@
+# Supply, consumption and repair rules (prompt 036). Integers only.
+# Compiled into the simulation (`sim::LogisticsRules::builtin`), loaded by
+# `Sim::new` and part of the state hash; see docs/GAME_DESIGN.md "Supply and
+# repair" and docs/ARCHITECTURE.md "Supply and repair".
+#
+# These are game rules, not catalog values: the catalog gives the rounds of
+# the main weapon (`ammo_carried`) and the road range (`range_road_km`,
+# converted by `[range] fuel` of data/scale.toml). Every value is
+# [provisional] until the user confirms the design.
+
+# Ammunition stock of a unit: salvos of its main weapon (the first weapon,
+# the indirect one of mortars, howitzers and self-propelled guns). A salvo
+# fires `count` rounds, so a full stock is `ammo_carried / count` salvos;
+# entries without `ammo_carried` get the default of their group. The result
+# is clamped to min_salvos..=max_salvos (a Panzerschreck team with its 6
+# real rockets would be useless after one target).
+[ammo]
+default_infantry = 150
+default_vehicle = 100
+default_gun = 60
+min_salvos = 12
+max_salvos = 2000
+# A unit at or below this share of its stock counts as "low" (HUD warning,
+# AI goes back to resupply).
+low_pct = 25
+
+# Fuel: vehicles only, the converted road range (no extra cost off road).
+[fuel]
+low_pct = 20
+
+# Vehicles at or below this share of their hit points cannot move until
+# they are repaired above it ("immobilized": tracks, wheels, engine).
+[damage]
+immobile_pct = 35
+
+# Resupply: units of the supplier's player and of their allies within
+# `radius_m` of a supplier regain `pct_per_s` percent of a full stock per
+# game second, ammunition and fuel at the same time. The receiving player
+# pays: a full refill costs `cost_pct` percent of the unit's ammunition
+# (fuel) price (data/economy.toml); without the money there is no refill.
+[resupply]
+pct_per_s = 5
+cost_pct = 50
+
+# Suppliers: completed base buildings (`building`, a structure id of
+# data/economy.toml) or units of a catalog category (`category`).
+[[supplier]]
+building = "base_hq"
+radius_m = 60
+
+[[supplier]]
+building = "base_depot"
+radius_m = 60
+
+[[supplier]]
+category = "truck"
+radius_m = 40
+
+# Repair: vehicles and towed guns of the repairer's player and their allies
+# within `radius_m` regain `pct_per_s` percent of their hit points per game
+# second (the best repairer in reach counts). Repair is free; it costs time.
+# Recovering an immobilized vehicle is repairing it above `immobile_pct`.
+[[repairer]]
+building = "base_factory"
+radius_m = 50
+pct_per_s = 2
+
+[[repairer]]
+category = "truck"
+radius_m = 25
+pct_per_s = 1
+
+[[repairer]]
+category = "inf_engineer"
+radius_m = 20
+pct_per_s = 1
+
+# Own buildings: repair on order (Command::Repair) and selling
+# (Command::Sell). A full repair costs `repair_cost_pct` percent of the
+# building's price, paid while it is repaired; selling a completed building
+# refunds `sell_refund_pct` percent of its price, cancelling a construction
+# site `cancel_refund_pct` percent.
+[buildings]
+repair_pct_per_s = 2
+repair_cost_pct = 50
+sell_refund_pct = 50
+cancel_refund_pct = 75

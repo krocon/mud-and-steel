@@ -4,8 +4,10 @@ extends PanelContainer
 ## - One unit: portrait (`unit_portrait.gd`), name, hit points, armor
 ##   (hull and turret front / side / rear), weapons with caliber and range,
 ##   soldiers of a squad, stance and fire mode; passengers and seats, the
-##   towed gun or the tractor (prompt 034).
-## - Several units: a grid of tiles with a short name and a health bar;
+##   towed gun or the tractor (prompt 034); ammunition and fuel bars with a
+##   warning when they run low or the vehicle is immobilized (prompt 036).
+## - Several units: a grid of tiles with a short name, a health bar and an
+##   ammunition bar (red when low);
 ##   click selects that unit alone, Shift + click removes it.
 ## - Hidden without a selection.
 
@@ -29,6 +31,10 @@ var _single: HBoxContainer
 var _portrait: TextureRect
 var _title: Label
 var _health: ProgressBar
+var _ammo_bar: ProgressBar
+var _fuel_bar: ProgressBar
+## Warning line of the single unit (prompt 036; self-test).
+var supply_warning := ""
 var _details: Label
 var _grid: GridContainer
 var _more: Label
@@ -67,10 +73,19 @@ func setup(main_node: Node3D) -> void:
 	_single.add_child(text)
 	_title = Label.new()
 	text.add_child(_title)
+	# Health, ammunition and fuel in one row, so the panel keeps its
+	# height (prompt 036).
+	var bars := HBoxContainer.new()
+	text.add_child(bars)
 	_health = ProgressBar.new()
 	_health.custom_minimum_size = Vector2(0, 14)
 	_health.show_percentage = false
-	text.add_child(_health)
+	_health.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	bars.add_child(_health)
+	_ammo_bar = _stock_bar(Color(0.95, 0.75, 0.25), "Ammunition")
+	bars.add_child(_ammo_bar)
+	_fuel_bar = _stock_bar(Color(0.45, 0.7, 1.0), "Fuel")
+	bars.add_child(_fuel_bar)
 	_details = Label.new()
 	_details.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_details.add_theme_font_size_override(&"font_size", 13)
@@ -133,6 +148,11 @@ func _show_single(id: int) -> void:
 	var hp_line := "Hit points %d / %d" % [info.hp, info.max_hp]
 	if info.has("soldiers"):
 		hp_line += "   ·   soldiers %d / %d" % [info.soldiers, info.squad_size]
+	# Only warnings, on the same line, so the panel keeps its height; the
+	# bars carry the percentages in their tooltips.
+	var warning := _supply_warning(id)
+	if not warning.is_empty():
+		hp_line += "   ·   " + warning
 	lines.append(hp_line)
 	var hull: PackedInt64Array = info.armor_hull
 	var turret: PackedInt64Array = info.armor_turret
@@ -185,6 +205,52 @@ func _transport_line(id: int, index: int) -> String:
 	return ", ".join(parts)
 
 
+## A thin bar for a stock (prompt 036).
+func _stock_bar(color: Color, tip: String) -> ProgressBar:
+	var bar := ProgressBar.new()
+	bar.custom_minimum_size = Vector2(70, 14)
+	bar.show_percentage = false
+	bar.max_value = 100
+	bar.tooltip_text = tip
+	var fill := StyleBoxFlat.new()
+	fill.bg_color = color
+	bar.add_theme_stylebox_override(&"fill", fill)
+	return bar
+
+
+## Sets the ammunition and fuel bars of unit `id` and returns its
+## warnings (prompt 036).
+func _supply_warning(id: int) -> String:
+	var index := sim_host.unit_ids().find(id)
+	var ammo := -1
+	var fuel := -1
+	var immobile := false
+	if index >= 0:
+		ammo = sim_host.unit_ammo()[index]
+		fuel = sim_host.unit_fuel()[index]
+		immobile = sim_host.unit_immobile()[index] != 0
+	_ammo_bar.visible = ammo >= 0
+	_ammo_bar.value = maxi(ammo, 0)
+	_ammo_bar.tooltip_text = "Ammunition %d %%" % ammo
+	_fuel_bar.visible = fuel >= 0
+	_fuel_bar.value = maxi(fuel, 0)
+	_fuel_bar.tooltip_text = "Fuel %d %%" % fuel
+	var low := sim_host.supply_low_pct()
+	var warnings: Array[String] = []
+	if ammo == 0:
+		warnings.append("OUT OF AMMUNITION")
+	elif ammo > 0 and low.size() == 2 and ammo <= low[0]:
+		warnings.append("low ammunition")
+	if fuel == 0:
+		warnings.append("OUT OF FUEL")
+	elif fuel > 0 and low.size() == 2 and fuel <= low[1]:
+		warnings.append("low fuel")
+	if immobile:
+		warnings.append("IMMOBILIZED")
+	supply_warning = ", ".join(warnings)
+	return supply_warning
+
+
 func _build_tiles(selected: Array[int]) -> void:
 	for child in _grid.get_children():
 		_grid.remove_child(child)
@@ -208,11 +274,17 @@ func _build_tiles(selected: Array[int]) -> void:
 func _update_tiles() -> void:
 	var ids := sim_host.unit_ids()
 	var health := sim_host.unit_health()
+	var ammo := sim_host.unit_ammo()
+	var low := sim_host.supply_low_pct()
+	var low_ammo: int = low[0] if low.size() == 2 else 0
 	for tile: Tile in _grid.get_children():
 		var index := ids.find(tile.unit)
 		var value := health[index] if index >= 0 else 0.0
-		if not is_equal_approx(value, tile.health):
+		var stock: int = ammo[index] if index >= 0 else -1
+		if not is_equal_approx(value, tile.health) or stock != tile.ammo:
 			tile.health = value
+			tile.ammo = stock
+			tile.low_ammo = low_ammo
 			tile.queue_redraw()
 
 
@@ -244,6 +316,9 @@ class Tile:
 	var unit := -1
 	var label := ""
 	var health := 1.0
+	## Ammunition in percent, -1 without a stock (prompt 036).
+	var ammo := -1
+	var low_ammo := 0
 
 	func _ready() -> void:
 		mouse_filter = Control.MOUSE_FILTER_STOP
@@ -264,3 +339,8 @@ class Tile:
 		draw_rect(bar, Color(0, 0, 0, 0.7))
 		var color := Color(0.3, 0.9, 0.3) if health > 0.5 else (Color(0.95, 0.75, 0.2) if health > 0.25 else Color(0.95, 0.3, 0.2))
 		draw_rect(Rect2(bar.position, Vector2(bar.size.x * health, bar.size.y)), color)
+		if ammo >= 0:
+			var stock := Rect2(4, size.y - 4, size.x - 8, 2)
+			draw_rect(stock, Color(0, 0, 0, 0.7))
+			var ammo_color := Color(0.95, 0.75, 0.25) if ammo > low_ammo else Color(0.95, 0.2, 0.15)
+			draw_rect(Rect2(stock.position, Vector2(stock.size.x * ammo / 100.0, stock.size.y)), ammo_color)
