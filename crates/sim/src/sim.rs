@@ -23,6 +23,7 @@ mod economy;
 mod fire;
 mod indirect;
 mod infantry;
+mod knockdown;
 mod logistics;
 mod orders;
 mod spatial;
@@ -310,6 +311,12 @@ pub struct SoldierSnapshot {
     pub hp: u32,
     /// The soldier uses cover (stands at a cover spot or in a building).
     pub in_cover: bool,
+    /// Ticks left knocked down by a blast (prompt 048); 0 = not.
+    pub knocked: u32,
+    /// Where the blast that knocked him down (last) went off.
+    pub knock_from: Vec2,
+    /// Map object whose cover spot he stands at (prompt 048: cover poses).
+    pub cover: Option<u32>,
 }
 
 impl UnitSnapshot {
@@ -1364,6 +1371,9 @@ impl Sim {
                             height: x.height,
                             hp: x.hp,
                             in_cover: inside || x.at_spot(),
+                            knocked: x.knocked,
+                            knock_from: x.knock_from,
+                            cover: x.cover.filter(|_| !inside && x.at_spot()),
                         })
                 }),
         );

@@ -30,6 +30,7 @@ mod economy_funcs;
 mod fire_funcs;
 mod hud_funcs;
 mod infantry_funcs;
+mod knockdown_funcs;
 mod lan;
 mod map_editor;
 mod match_funcs;

@@ -21,7 +21,12 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by prompt 036 (supply and repair): the rules of
+/// Last changed by prompt 048 (knockdown): the `[knockdown]` rules of
+/// `data/infantry.toml` and every soldier's knock-down state (ticks left,
+/// blast point) are in the hash; blasts and tank ammunition explosions
+/// knock soldiers down. The ammunition roll does not advance the shared
+/// generator, so the demo battle is unchanged (decided at tick 467, player 0
+/// wins). Before: `0x1971_0235_5cc0_0b3e`, prompt 036 (supply and repair): the rules of
 /// `data/logistics.toml`, every unit's ammunition and fuel stock, building
 /// repair orders and sold buildings are in the hash; units use up
 /// ammunition and fuel. The demo battle is unchanged (decided at tick 467,
@@ -131,7 +136,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x1971_0235_5cc0_0b3e;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x6ffe_d561_8b77_2415;
 
 #[test]
 fn golden_hash() {
