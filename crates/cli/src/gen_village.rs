@@ -191,8 +191,10 @@ impl Placer<'_> {
         let steps = (r1 / spacing).ceil() as i32;
         for j in -steps..=steps {
             for i in -steps..=steps {
-                let x = center.0 + f64::from(i) * spacing + self.random.range(-0.35, 0.35) * spacing;
-                let y = center.1 + f64::from(j) * spacing + self.random.range(-0.35, 0.35) * spacing;
+                let x =
+                    center.0 + f64::from(i) * spacing + self.random.range(-0.35, 0.35) * spacing;
+                let y =
+                    center.1 + f64::from(j) * spacing + self.random.range(-0.35, 0.35) * spacing;
                 let d = dist(x, y, center);
                 let roll = self.random.unit();
                 let pick = (self.random.unit() * kinds.len() as f64) as usize;
@@ -362,7 +364,12 @@ pub fn generate(options: &Options) -> Result<String, String> {
         (-14.0, 8.0, 0),
         (12.0, -12.0, 90),
     ] {
-        placer.put("env_market_stall", if h == 0 && y > 0.0 { "Empty" } else { "Stall" }, (x, y), h);
+        placer.put(
+            "env_market_stall",
+            if h == 0 && y > 0.0 { "Empty" } else { "Stall" },
+            (x, y),
+            h,
+        );
     }
     placer.put("env_cart_wood", "Cart", (17.0, 2.0), 20);
     placer.put("env_jars", "Group", (-17.0, 16.0), 0);
@@ -386,24 +393,39 @@ pub fn generate(options: &Options) -> Result<String, String> {
     let mut trees = placer.grove(&palms, OASIS, (POND_R + 3.0, 90.0), 6.5, 1500, |d| {
         (1.15 - (d - POND_R) / 70.0).clamp(0.1, 0.95)
     });
-    trees += placer.grove(&palms, (0.0, 0.0), (SQUARE_HALF + 10.0, VILLAGE_R), 9.0, 2500, |_| {
-        0.22
-    });
+    trees += placer.grove(
+        &palms,
+        (0.0, 0.0),
+        (SQUARE_HALF + 10.0, VILLAGE_R),
+        9.0,
+        2500,
+        |_| 0.22,
+    );
     trees += placer.grove(&palms, FORT, (20.0, 45.0), 8.0, 2500, |_| 0.25);
     let bushes = [("env_bush", "Round"), ("env_bush", "Wide")];
     let mut other = placer.grove(&bushes, OASIS, (POND_R + 2.0, 100.0), 9.0, 1500, |_| 0.3);
     // Thorn bushes and rocks in the open desert.
-    other += placer.grove(&bushes, (0.0, 0.0), (VILLAGE_R + 20.0, 560.0), 24.0, 3000, |_| {
-        0.12
-    });
+    other += placer.grove(
+        &bushes,
+        (0.0, 0.0),
+        (VILLAGE_R + 20.0, 560.0),
+        24.0,
+        3000,
+        |_| 0.12,
+    );
     let rocks = [
         ("env_rock", "Large"),
         ("env_rock", "Medium"),
         ("env_rock", "Medium"),
     ];
-    other += placer.grove(&rocks, (0.0, 0.0), (VILLAGE_R + 40.0, 560.0), 30.0, 3000, |_| {
-        0.1
-    });
+    other += placer.grove(
+        &rocks,
+        (0.0, 0.0),
+        (VILLAGE_R + 40.0, 560.0),
+        30.0,
+        3000,
+        |_| 0.1,
+    );
 
     let mut map = placer.map;
     // Keep the start areas clear.
@@ -412,7 +434,12 @@ pub fn generate(options: &Options) -> Result<String, String> {
     }
     map.save_dir(options.out)?;
     let objects = map.objects();
-    let count = |prefix: &str| objects.iter().filter(|o| o.kind.starts_with(prefix)).count();
+    let count = |prefix: &str| {
+        objects
+            .iter()
+            .filter(|o| o.kind.starts_with(prefix))
+            .count()
+    };
     Ok(format!(
         "wrote {}: {side} x {side} samples, heights {low:.2} .. {high:.2} m, {} objects \
          ({compounds} village compounds, {} houses, {} wall pieces, {} palms placed, {trees} trees and \
@@ -452,7 +479,11 @@ mod tests {
         let count = |prefix: &str| {
             map.objects()
                 .iter()
-                .filter(|o| map.object_kinds()[usize::from(o.kind)].id.starts_with(prefix))
+                .filter(|o| {
+                    map.object_kinds()[usize::from(o.kind)]
+                        .id
+                        .starts_with(prefix)
+                })
                 .count()
         };
         assert_eq!(map.starts().len(), 4, "{report}");
