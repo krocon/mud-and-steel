@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use sim::{Command, Fixed, UnitId, Vec2};
 
 /// Enemies within this distance of each other count as one group (m).
-const CLUSTER_M: i32 = 25;
+pub(crate) const CLUSTER_M: i32 = 25;
 /// No barrage lands within this distance of own troops (m): blast radius
 /// plus dispersion of a heavy shell.
 const SAFE_M: i32 = 60;
@@ -102,7 +102,7 @@ impl Ai {
             .filter(|u| u.alive() && self.type_info(u.unit_type).role != Role::Artillery)
             .map(|u| u.position)
             .collect();
-        if barrage_due && let Some(target) = largest_group(&enemies, &own) {
+        if barrage_due && let Some(target) = largest_group(&enemies, &own, SAFE_M) {
             let mut gunners = self.in_range(units, target, false);
             gunners.retain(|id| !busy.contains(id));
             if !gunners.is_empty() {
@@ -190,10 +190,10 @@ impl Ai {
 
 /// Center of the visible enemy with the most other enemies within
 /// [`CLUSTER_M`] (ties: the lower id), with no own unit (`own`) within
-/// [`SAFE_M`] of it: fragments hurt friends too.
-fn largest_group(enemies: &[&SeenUnit], own: &[Vec2]) -> Option<Vec2> {
+/// `safe_m` of it: fragments hurt friends too.
+pub(crate) fn largest_group(enemies: &[&SeenUnit], own: &[Vec2], safe_m: i32) -> Option<Vec2> {
     let radius = Fixed::from_num(CLUSTER_M);
-    let safe = Fixed::from_num(SAFE_M);
+    let safe = Fixed::from_num(safe_m);
     let mut best: Option<((usize, std::cmp::Reverse<UnitId>), Vec2)> = None;
     for e in enemies {
         let members: Vec<Vec2> = enemies
