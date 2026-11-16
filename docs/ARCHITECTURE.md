@@ -1357,8 +1357,9 @@ The full table is in `prompts/done/033-luftwaffe-flak.md`. In short:
   (HVAR, RS-82), no smoke or supply drops; one call per mission at a time.
 - Flak shoots only at aircraft, never at bombs; shells (032) and direct
   fire do not hit aircraft; aircraft guns do not hit map objects.
-- Wrecks of crashed aircraft are drawn only, they block nothing; no engine
-  sound yet (prompt 029 has no aircraft sounds).
+- Wrecks of crashed aircraft are drawn only, they block nothing. Engine,
+  flak, strafing and crash sounds since prompt 053 (`air_view.air_event`,
+  see [Audio](#stage-2-acoustics-and-voices-prompt-053)).
 - The approach direction follows the caller's start; players cannot pick
   it.
 
@@ -2567,7 +2568,7 @@ acceptance criterion needs a run on a quiet machine to confirm.
 | Listener | Above the camera's ground focus, hearing range scaled with zoom | At the camera itself a high view would hear everything equally faint. |
 | Voice limit | Fixed pools per group, priority and loudness decide, budget per frame | Hundreds of shots per second neither clip nor cost frame time; nothing is allocated during a battle. |
 | Fog | Muffled and slightly displaced, not silent | Battle noise is reconnaissance, an exact position is not. [provisional] |
-| Speed of sound | Not simulated | [provisional] With time running at factor 2 and a camera that sees at most a few hundred meters, a delay of 0.3–1 s would mostly read as lag. Easy to add later as a delay per distance for explosions. |
+| Speed of sound | Not simulated in 029; since prompt 053 far sounds wait for their travel time (see below) | 029: a delay could read as lag; 053 adds it with a 2.5 s cap and keeps notices and incoming whistles immediate. |
 | Mute without focus | On by default | [provisional] Usual for strategy games; a setting. |
 | Rockets | Own class `shot_rocket` for anti-tank squads | Panzerschreck, Panzerfaust and Bazooka have 60–150 mm calibers and would otherwise sound like tank guns. |
 
@@ -2575,12 +2576,86 @@ acceptance criterion needs a run on a quiet machine to confirm.
 
 - Listening: the set was made and balanced by measurement only; levels,
   ranges and recipes want a pass by ear (`just sound-gallery`).
-- No voices. Music and ambience: see below (prompt 030).
-- Infantry hits and deaths are silent; aircraft have no engine class yet.
+- Voices: structure since prompt 053, no files yet. Music and ambience:
+  see below (prompt 030).
+- Infantry hits and deaths are silent (053 adds only the `wounded` callout).
 - Indirect fire (prompt 032) is wired by its interface (weapon 255,
   `shell_incoming`, `smoke` events) as described in its merge notes; it was
   not merged yet when this was written, so its sounds are tested only once
   both are in main.
+
+### Stage 2: acoustics and voices (prompt 053)
+
+| Script | Does |
+|---|---|
+| `acoustics.gd` | Created by `battle_sound.gd`, driven from its `_process` (its time counts in the bench's "sound" column). Speed of sound queue, supersonic crack, reverb by surroundings, zoom filter, aircraft engines and air events |
+| `battle_voices.gd` | Created by `battle_sound.gd`, fed its combat events. Callouts of squads near the camera per faction |
+
+- **Speed of sound.** 343 m/s real × time factor 2 = 686 game m/s.
+  `battle_sound.play_far` (shots, hits, explosions, destruction, object and
+  crater events, flak, strafing, crashes) waits ground distance to the
+  camera focus / 686 s, at most 2.5 s [provisional]; under 0.04 s it plays
+  at once. `play_at` stays immediate (notices, incoming whistles, cracks,
+  voices). The queue is sorted by due time, at most 192 entries; when full,
+  small arms are dropped and stronger sounds push out the weakest. The
+  per-frame voice budget applies when a sound leaves the queue.
+- **Supersonic crack.** Once per simulation tick (only up to 200 m camera
+  distance) every projectile faster than 686 m/s is checked: if its
+  closest point to the hearing center (focus + 1.5 m) lies on its next
+  tick of flight and within 12 m (below 20 mm) or 25 m (shells),
+  `crack_bullet` / `crack_shell` plays there at once, so the crack comes
+  before the delayed muzzle report. No projectile ids are needed: each
+  stretch of flight is checked exactly once.
+- **Reverb by surroundings.** Every 0.5 s a 5 × 5 grid of
+  `wood_density_at` and `SimHost.buildings_near` (box-shaped objects from
+  3 m high; new read function in `audio_funcs.rs`) within 35 m × zoom (up
+  to 70 m) give shares of forest (density / 0.6), village (buildings / 8)
+  and open field. One `AudioEffectReverb` on the Effects bus blends three
+  presets [provisional, set without listening]: open nearly dry with a
+  late reflection, forest dense and dark, village short and bright.
+- **Zoom.** A low-pass on the Effects bus goes from 20 kHz at 40 m camera
+  distance to 2.2 kHz at 450 m (logarithmic); classes of priority ≤ 1
+  (rifles, MGs, bullet hits) lose up to 8 dB in the overview. Both effects
+  are reset when the match ends (`SoundBuses.reset_effects`).
+- **Blasts by size.** Shell hits get pitch (75 / caliber)^0.2 (0.75–1.2);
+  from 100 mm an `explosion_tail` (5 s roll, own group `tail`) follows,
+  louder with caliber (bombs included). Vehicle explosions (ammunition and
+  fuel) go lower with footprint and get the tail from medium-tank size.
+- **Weapon recordings.** `<class>@<key>` names (`sound_library.gd`) play
+  the files of `assets/audio/weapon/<key>/` with the settings of
+  `<class>`. A shot uses `<class>@<weapon slug>` if that folder has files,
+  else its synthesized class (checked once per unit type and weapon).
+- **Aircraft.** The three aircraft nearest the listener get
+  `engine_aircraft` or, from 18 m wingspan, `engine_bomber`; pitch by
+  Doppler (686 / (686 − radial speed), 0.75–1.35), higher while falling.
+  `air_view` emits `air_event` for every air event: heavy flak
+  `flak_burst` at the burst, light flak `shot_cannon_small` and MG flak
+  `shot_mg` at the gun, strafing `shot_mg` at the muzzle, crashes
+  `explosion_vehicle` with tail.
+- **Fires.** Burning map objects (`SimHost.fires`, keys ≥ 0, prompt 041)
+  join the wrecks for the fire loops (now 6): `fire_large` from 8 m, louder
+  by size (±6 dB), down to −12 dB as they burn out.
+- **Voices.** `voice@<faction>/<callout>` from
+  `assets/audio/voice/<faction>/<callout>/`; faction = prefix of the unit
+  type id. Callouts and triggers [provisional]: `contact` (a squad fires
+  after 20 s without firing), `reloading` (one shot in 12), `take_cover`
+  (a shell hits a squad), `wounded` (a bullet hits a squad); only up to
+  80 m camera distance, for visible squads within 50 m of the focus, one
+  callout per 4 s, per squad per 12 s; group `voice` (3 voices). No files
+  ship: without files a callout only counts (`missing`).
+
+| Group | Voices | New per frame | Classes |
+|---|---|---|---|
+| crack | 4 | 2 | `crack_bullet`, `crack_shell` |
+| tail | 4 | 2 | `explosion_tail` |
+| voice | 3 | 1 | callouts |
+| loops | 3 aircraft, 6 fires | every 0.2 s | `engine_aircraft`, `engine_bomber`, `fire`, `fire_large` |
+
+Self-test (`tools/sound_self_test.gd`): weapon slugs and fallback, a shot
+400 m away waits 0.58 s and then plays, a supersonic bullet passing 3 m
+away cracks while subsonic and receding ones do not, surrounding shares
+sum to 1, the Effects bus holds low-pass and reverb, the overview is
+darker than close up, a callout without files only counts.
 
 ### Music and ambience
 

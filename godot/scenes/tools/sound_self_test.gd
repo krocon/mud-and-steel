@@ -15,6 +15,9 @@ extends RefCounted
 ##   more voices than the pools hold nor starts more sounds per frame than
 ##   the budget, and stays cheap.
 ## - Notices: orders and selection played their UI sounds.
+## - Stage 2 (prompt 053): weapon folders fall back, far sounds wait for
+##   the speed of sound, supersonic bullets crack, surroundings and zoom
+##   set the Effects chain, callouts without files only count.
 
 const SoundLibrary := preload("res://scenes/audio/sound_library.gd")
 const SoundBuses := preload("res://scenes/audio/sound_buses.gd")

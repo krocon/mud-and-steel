@@ -3,6 +3,7 @@ extends RefCounted
 ## needed:
 ##
 ##     Master ─┬─ Effects ── Muffled (low-pass, quieter: sounds in the fog)
+##             │  (effects: zoom low-pass, reverb; prompt 053, `ensure_effects`)
 ##             ├─ UI
 ##             ├─ Music      (prompt 030)
 ##             └─ Ambience   (prompt 030)
