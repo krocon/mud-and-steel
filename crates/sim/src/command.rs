@@ -4,6 +4,7 @@ use crate::air::AirMission;
 use crate::combat::FireMode;
 use crate::infantry::StanceOrder;
 use crate::math::Vec2;
+use crate::works::{DigKind, LayKind};
 use serde::{Deserialize, Serialize};
 
 /// Stable identifier of a unit. Assigned by the simulation in spawn order.
@@ -106,6 +107,31 @@ pub enum Command {
     /// Sells the own completed `building` (part of its price back) or
     /// cancels the own construction site (prompt 036).
     Sell { building: UnitId },
+    /// Engineer squads among `units` lay mines, wire or anti-tank obstacles
+    /// along the line `from`..`to` (a point if both are equal), piece by
+    /// piece, and pay for every piece (prompt 035).
+    Lay {
+        units: Vec<UnitId>,
+        kind: LayKind,
+        from: Vec2,
+        to: Vec2,
+    },
+    /// Engineer squads dig a foxhole at `from` or a trench along
+    /// `from`..`to` (prompt 035).
+    Dig {
+        units: Vec<UnitId>,
+        kind: DigKind,
+        from: Vec2,
+        to: Vec2,
+    },
+    /// Engineer squads clear the known mines, wire and obstacles around
+    /// `target` (prompt 035).
+    Clear { units: Vec<UnitId>, target: Vec2 },
+    /// Engineer squads blow up the intact bridge `bridge` (index into
+    /// [`crate::Map::bridges`], prompt 035).
+    DemolishBridge { units: Vec<UnitId>, bridge: u32 },
+    /// Engineer squads rebuild the destroyed bridge `bridge` (prompt 035).
+    RepairBridge { units: Vec<UnitId>, bridge: u32 },
 }
 
 impl Command {
@@ -125,7 +151,12 @@ impl Command {
             | Self::Embark { units, .. }
             | Self::Disembark { units }
             | Self::Tow { units, .. }
-            | Self::Unlimber { units } => units,
+            | Self::Unlimber { units }
+            | Self::Lay { units, .. }
+            | Self::Dig { units, .. }
+            | Self::Clear { units, .. }
+            | Self::DemolishBridge { units, .. }
+            | Self::RepairBridge { units, .. } => units,
             Self::Surrender
             | Self::Build { .. }
             | Self::Produce { .. }

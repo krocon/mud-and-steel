@@ -38,6 +38,7 @@ pub mod terrain;
 pub mod transport;
 pub mod vision;
 pub mod weather;
+pub mod works;
 
 pub use air::{
     AirBlock, AirEvent, AirMission, AirOption, AirRules, AirType, AircraftSnapshot, BombSnapshot,
@@ -76,3 +77,4 @@ pub use terrain::{TerrainError, TerrainRules};
 pub use transport::{TransportRules, TransportType};
 pub use vision::{CellState, VisionGrid, VisionRules};
 pub use weather::{Daytime, Ground, Weather, WeatherRules, WeatherSetup};
+pub use works::{DigKind, LayKind, MineKind, MineView, WorkKind, WorkView, WorksRules};

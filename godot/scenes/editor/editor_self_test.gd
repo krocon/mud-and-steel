@@ -7,7 +7,7 @@ extends Node
 ## 1. Opens the editor from the main menu and creates a 256 m map.
 ## 2. Uses every tool through the same stroke functions as the mouse:
 ##    raise, lower, smooth, flatten, paint (road, ford), river, objects
-##    brush, place (bridge, house), erase, both start positions; checks that
+##    brush, place (bridge, house, minefield), erase, both start positions; checks that
 ##    the terrain is redrawn per dab and objects and water after strokes.
 ## 3. Undo and redo (objects and heights), the check (playable), saving to
 ##    data/maps/editor_selftest/.
@@ -139,6 +139,16 @@ func _tools_test(scene: Node3D, editor: MapEditor) -> void:
 	scene.stroke(_points([Vector2(-55, 0)], editor))
 	_check(editor.object_count() < trees, "erase removed nothing")
 	_check(scene.map_objects.object_instances == editor.object_count(), "objects drawn: %d of %d" % [scene.map_objects.object_instances, editor.object_count()])
+	# A hidden minefield (prompt 035): placed and drawn like an object in
+	# the editor; a match turns it into neutral mines (checked in the play
+	# test).
+	var before_mines := editor.object_count()
+	scene.tool = "place"
+	scene.place_kind = "fort_mine_ap:Mine"
+	scene.place_heading = 0
+	scene.stroke(_points([Vector2(40, -40)], editor))
+	_check(editor.object_count() == before_mines + 1, "the minefield was not placed")
+	_check(scene.map_objects.object_instances == editor.object_count(), "minefield not drawn in the editor")
 
 	for player in 2:
 		scene.tool = "start%d" % player
@@ -202,6 +212,9 @@ func _play_test(menu: Control, map_hash: String) -> void:
 			break
 		await get_tree().process_frame
 	var host: SimHost = main.sim_host
+	# The minefield of the edit test: hidden mines, nobody knows them.
+	_check(host.all_mines_count() > 0, "the map's minefield has no mines in the match")
+	_check(host.known_mines().is_empty(), "the map's hidden mines are known")
 	_check(host.map_name() == MAP_NAME, "match runs on '%s'" % host.map_name())
 	_check(host.map_hash() == map_hash, "match map hash %s, editor check %s" % [host.map_hash(), map_hash])
 	var weather: Dictionary = host.weather_info()

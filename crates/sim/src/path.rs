@@ -78,7 +78,11 @@ impl SizeClass {
     const fn blocking(self) -> u8 {
         match self {
             Self::Small => {
-                BLOCKED_TERRAIN | BLOCKED_STEEP | BLOCKED_OBSTACLE | BLOCKED_OBJECT_SMALL
+                BLOCKED_TERRAIN
+                    | BLOCKED_STEEP
+                    | BLOCKED_OBSTACLE
+                    | BLOCKED_OBJECT_SMALL
+                    | BLOCKED_WORK_SMALL
             }
             Self::Large => {
                 BLOCKED_TERRAIN
@@ -86,6 +90,7 @@ impl SizeClass {
                     | BLOCKED_OBSTACLE
                     | BLOCKED_MARGIN
                     | BLOCKED_OBJECT_LARGE
+                    | BLOCKED_WORK_LARGE
             }
         }
     }
@@ -190,8 +195,23 @@ const BLOCKED_MARGIN: u8 = 8;
 const BLOCKED_OBJECT_SMALL: u8 = 16;
 /// A map object that blocks large units overlaps the cell.
 const BLOCKED_OBJECT_LARGE: u8 = 32;
+/// A field work that blocks small units (wire, prompt 035) overlaps the
+/// cell.
+const BLOCKED_WORK_SMALL: u8 = 64;
+/// A field work that blocks large units (anti-tank obstacles, prompt 035)
+/// overlaps the cell.
+const BLOCKED_WORK_LARGE: u8 = 128;
 /// Flags that do not come from the map samples.
-const PLACED_FLAGS: u8 = BLOCKED_OBSTACLE | BLOCKED_OBJECT_SMALL | BLOCKED_OBJECT_LARGE;
+const PLACED_FLAGS: u8 = BLOCKED_OBSTACLE
+    | BLOCKED_OBJECT_SMALL
+    | BLOCKED_OBJECT_LARGE
+    | BLOCKED_WORK_SMALL
+    | BLOCKED_WORK_LARGE;
+
+/// Step cost factor in cells a search avoids (known minefields of the
+/// requesting player, prompt 035). They stay passable, so a unit inside a
+/// minefield still finds its way out.
+pub const AVOID_FACTOR: u32 = 10;
 
 /// Passability and costs of the path grid, derived from the map, the terrain
 /// rules and the unit types of a match.
@@ -572,6 +592,49 @@ impl PathGrid {
                 }
             }
         }
+    }
+
+    /// Clears the field work flags (prompt 035) of the cells in `rect` and
+    /// marks them again from `cells` (cell coordinates with the classes a
+    /// work there blocks; cells outside `rect` are skipped). Call
+    /// [`Self::rebuild_cells`] afterwards.
+    pub fn mark_works_in(
+        &mut self,
+        rect: CellRect,
+        cells: impl IntoIterator<Item = ((u32, u32), Blocks)>,
+    ) {
+        for y in rect.y0..=rect.y1 {
+            for x in rect.x0..=rect.x1 {
+                let i = self.index(x, y);
+                self.base[i] &= !(BLOCKED_WORK_SMALL | BLOCKED_WORK_LARGE);
+            }
+        }
+        for ((x, y), blocks) in cells {
+            if !rect.contains(x, y) {
+                continue;
+            }
+            let i = self.index(x, y);
+            if blocks.small() {
+                self.base[i] |= BLOCKED_WORK_SMALL;
+            }
+            if blocks.large() {
+                self.base[i] |= BLOCKED_WORK_LARGE;
+            }
+        }
+    }
+
+    /// Whether a field work blocks the cell for `class` (prompt 035).
+    pub fn work_blocked(&self, class: SizeClass, x: u32, y: u32) -> bool {
+        let flag = match class {
+            SizeClass::Small => BLOCKED_WORK_SMALL,
+            SizeClass::Large => BLOCKED_WORK_LARGE,
+        };
+        self.base[self.index(x, y)] & flag != 0
+    }
+
+    /// Row-major index of cell `(x, y)` (as in [`Path::cells`]).
+    pub const fn cell_index(&self, x: u32, y: u32) -> u32 {
+        y * self.width + x
     }
 
     /// Labels the components of the whole map again (after
@@ -1048,13 +1111,14 @@ impl PathGrid {
     /// (mean cost of the touched cells times the length, in the units of
     /// the search), or `None` if a touched cell (except the start cell) is
     /// blocked.
-    fn line_cost(&self, p: usize, a: Vec2, b: Vec2) -> Option<Fixed> {
+    fn line_cost(&self, p: usize, a: Vec2, b: Vec2, avoid: &[u32]) -> Option<Fixed> {
         let cost = &self.profiles[p].cost;
         let (sx, sy) = self.cell_of(a);
-        let mut sum = u64::from(cost[self.index(sx, sy)].max(MIN_CELL_COST));
+        let start = self.index(sx, sy);
+        let mut sum = u64::from(cost[start].max(MIN_CELL_COST)) * u64::from(avoided(avoid, start));
         let mut count = 1u64;
         let clear = self.walk_line(a, b, |i| {
-            sum += u64::from(cost[i]);
+            sum += u64::from(cost[i]) * u64::from(avoided(avoid, i));
             count += 1;
             cost[i] != 0
         });
@@ -1193,8 +1257,21 @@ impl PathGrid {
     /// Finds a path in one go (no budget). For tests and tools; the
     /// simulation uses [`Pathfinder`].
     pub fn find_path(&self, start: Vec2, goal: Vec2, profile: usize) -> Option<Path> {
+        self.find_path_avoiding(start, goal, profile, Vec::new())
+    }
+
+    /// [`Self::find_path`] that avoids the cells `avoid` (sorted cell
+    /// indices) like the simulation's searches for a player with known
+    /// minefields (prompt 035): they cost [`AVOID_FACTOR`] times as much.
+    pub fn find_path_avoiding(
+        &self,
+        start: Vec2,
+        goal: Vec2,
+        profile: usize,
+        avoid: Vec<u32>,
+    ) -> Option<Path> {
         let mut workspace = Workspace::default();
-        let search = match Search::begin(self, &mut workspace, start, goal, profile) {
+        let search = match Search::begin(self, &mut workspace, start, goal, profile, avoid) {
             Begin::Done(result) => return result,
             Begin::Search(search) => search,
         };
@@ -1211,7 +1288,7 @@ impl PathGrid {
     /// reached in a straight line over passable cells at no more cost than
     /// the skipped stretch of the raw path. Keeps units on roads and off
     /// expensive ground the search avoided.
-    fn smooth(&self, p: usize, cells: &[u32], start: Vec2, goal: Vec2) -> Vec<Vec2> {
+    fn smooth(&self, p: usize, cells: &[u32], start: Vec2, goal: Vec2, avoid: &[u32]) -> Vec<Vec2> {
         let n = cells.len() - 1;
         let cost = &self.profiles[p].cost;
         let point = |i: usize| {
@@ -1230,9 +1307,11 @@ impl PathGrid {
         let mut prefix = Vec::with_capacity(cells.len());
         prefix.push(Fixed::ZERO);
         for m in 0..n {
-            let a = cost[cells[m] as usize].max(MIN_CELL_COST);
-            let b = cost[cells[m + 1] as usize].max(MIN_CELL_COST);
-            let mean = Fixed::from_num(u32::from(a) + u32::from(b)) / 2;
+            let weight = |c: u32| {
+                u32::from(cost[c as usize].max(MIN_CELL_COST)) * avoided(avoid, c as usize)
+            };
+            let (a, b) = (weight(cells[m]), weight(cells[m + 1]));
+            let mean = Fixed::from_num(a + b) / 2;
             let length = (point(m + 1) - point(m)).length() / self.cell;
             prefix.push(prefix[m] + mean * length * Fixed::from_num(10));
         }
@@ -1244,7 +1323,7 @@ impl PathGrid {
             for j in i + 2..=n.min(i + SMOOTH_WINDOW) {
                 let stretch = prefix[j] - prefix[i];
                 if self
-                    .line_cost(p, point(i), point(j))
+                    .line_cost(p, point(i), point(j), avoid)
                     .is_none_or(|line| line > stretch)
                 {
                     break;
@@ -1261,6 +1340,15 @@ impl PathGrid {
         h.write_u32(self.width);
         h.write_u32(self.height);
         h.write_u32(self.version);
+    }
+}
+
+/// Cost factor of cell `i` for a search that avoids `avoid` (sorted).
+fn avoided(avoid: &[u32], i: usize) -> u32 {
+    if !avoid.is_empty() && u32::try_from(i).is_ok_and(|i| avoid.binary_search(&i).is_ok()) {
+        AVOID_FACTOR
+    } else {
+        1
     }
 }
 
@@ -1561,6 +1649,9 @@ struct Search {
     goal: Vec2,
     start_cell: u32,
     goal_cell: u32,
+    /// Cells to avoid (sorted indices, prompt 035).
+    #[serde(default)]
+    avoid: Vec<u32>,
 }
 
 impl Search {
@@ -1570,6 +1661,7 @@ impl Search {
         start: Vec2,
         goal: Vec2,
         profile: usize,
+        avoid: Vec<u32>,
     ) -> Begin {
         let (sx, sy) = grid.cell_of(start);
         let Some((start_cell, component)) = grid.search_start(profile, sx, sy, start) else {
@@ -1611,6 +1703,7 @@ impl Search {
             goal,
             start_cell,
             goal_cell,
+            avoid,
         })
     }
 
@@ -1663,7 +1756,8 @@ impl Search {
                 {
                     continue;
                 }
-                let step = (u32::from(own) + u32::from(cost[n])) * len / 2;
+                let step =
+                    (u32::from(own) + u32::from(cost[n])) * len / 2 * avoided(&self.avoid, n);
                 let g = g_here.saturating_add(step);
                 let node = &mut ws.nodes[n];
                 if node.mark == seen && g >= node.g {
@@ -1690,7 +1784,7 @@ impl Search {
         }
         cells.reverse();
         Path {
-            waypoints: grid.smooth(self.profile, &cells, self.start, self.goal),
+            waypoints: grid.smooth(self.profile, &cells, self.start, self.goal, &self.avoid),
             cost: ws.nodes[self.goal_cell as usize].g,
             cells,
             goal: self.goal,
@@ -1783,10 +1877,23 @@ impl Pathfinder {
     /// Requests that `wanted` rejects (nobody waits for them) are dropped.
     /// Returns the finished requests in queue order with their paths
     /// (`None`: no path).
+    #[cfg(test)]
     pub fn run(
         &mut self,
         budget: u32,
         wanted: impl Fn(u32) -> bool,
+    ) -> Vec<(Request, Option<Path>)> {
+        self.run_avoiding(budget, wanted, |_| Vec::new())
+    }
+
+    /// [`Self::run`] where every search avoids the cells `avoid` gives for
+    /// its request (sorted indices, prompt 035: known minefields of the
+    /// requesting player), asked once when the search starts.
+    pub fn run_avoiding(
+        &mut self,
+        budget: u32,
+        wanted: impl Fn(u32) -> bool,
+        avoid: impl Fn(&Request) -> Vec<u32>,
     ) -> Vec<(Request, Option<Path>)> {
         let mut left = budget;
         let mut finished = Vec::new();
@@ -1812,6 +1919,7 @@ impl Pathfinder {
                     front.start,
                     front.goal,
                     front.profile,
+                    avoid(front),
                 ) {
                     Begin::Done(result) => Some(result),
                     Begin::Search(search) => {

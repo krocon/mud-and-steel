@@ -245,6 +245,9 @@ func object_event(event: Dictionary) -> void:
 
 ## A crater appeared (`crater_view.gd`): earth rains down.
 func crater_event(event: Dictionary) -> void:
+	# Engineers digging (prompt 035) change the ground without a blast.
+	if float(event.get("caliber", 75.0)) <= 0.0:
+		return
 	var at: Vector3 = event.get("position", Vector3.ZERO)
 	play_at("crater", at, SoundClasses.caliber_gain_db(float(event.get("caliber", 75.0))))
 

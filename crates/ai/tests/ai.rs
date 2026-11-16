@@ -415,3 +415,52 @@ fn ai_sends_empty_units_to_resupply() {
     }
     assert!(sent, "the AI never sent the tank");
 }
+
+/// Prompt 035: Normal lays anti-tank mines with its engineers at a
+/// chokepoint; the enemy's view does not show them, the own view does.
+#[test]
+fn ai_lays_mines_that_the_enemy_does_not_see() {
+    let mut config = demo_config();
+    config.spawns.retain(|s| s.unit_type.contains("_inf_"));
+    let catalog = sim::Catalog::builtin().unwrap();
+    let scale = sim::Scale::builtin().unwrap();
+    config
+        .unit_types
+        .extend(sim::unit_types_from_catalog(&catalog, &scale, &["de_inf_engineer"]).unwrap());
+    let own = config.spawns[0].position;
+    let engineers = UnitId(u32::try_from(config.spawns.len()).unwrap());
+    config.spawns.push(sim::Spawn {
+        owner: PlayerId(0),
+        unit_type: "de_inf_engineer".into(),
+        position: own + Vec2::from_meters(0, 10),
+        fire_mode: FireMode::FireAtWill,
+    });
+    let players = [
+        (PlayerId(0), Difficulty::Normal),
+        (PlayerId(1), Difficulty::Passive),
+    ];
+    let mut game = Game::new(&config, builtin_map(), 4, &players).unwrap();
+    let mut laid = false;
+    while game.sim().all_mines().is_empty() && game.sim().tick() < MAX_TICKS {
+        let decisions = game.think();
+        for command in decisions.iter().flatten() {
+            if let Command::Lay { units, .. } = command {
+                laid |= units.contains(&engineers);
+            }
+        }
+        game.step(decisions);
+    }
+    assert!(laid, "no Lay order for the engineers");
+    let mines = game.sim().all_mines();
+    assert!(
+        !mines.is_empty(),
+        "no mines after {} ticks",
+        game.sim().tick()
+    );
+    assert!(mines.iter().all(|m| m.owner == Some(PlayerId(0))));
+    assert_eq!(
+        PlayerView::new(game.sim(), PlayerId(0)).mines.len(),
+        mines.len()
+    );
+    assert!(PlayerView::new(game.sim(), PlayerId(1)).mines.is_empty());
+}
