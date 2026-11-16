@@ -671,6 +671,12 @@ uncertain; see the list at the end of each faction.
 | env_hay_bale_square | Heuballen (eckig) / Small square hay bale | 1 | 0.91? × 0.46? × 0.36? | Two-string small square bale, common size 14 x 18 x 36 in (0.36 x 0.46 x 0.91 m)… |
 | env_hedge | Feldhecke (Segment) / Field hedge (one segment) | 1 | 3.00? × 1.20? × 2.20? | Managed field hedge without earth bank, 2.2 m high and 1.2 m wide (source: usual… |
 | fort_mine_sign | Minenwarnschild / Minefield warning sign | 1 | 0.06? × 0.40? × 1.20? | Generic marker on a wooden picket, 0.4 m board, top at 1.2 m, without inscriptio… |
+| env_house_town | Stadthaus (dreigeschossig, Reihe) / Town house (three-storey, terraced) | 1 | 12.00? × 10.00? × 14.50? | Plastered masonry town house of a small European town, eaves to the street (ridg… |
+| env_town_hall | Rathaus / Town hall | 1 | 22.00? × 13.00? × 17.00? | Generic two-storey ashlar town hall with high storeys and a steep roof, no regio… |
+| env_warehouse | Lagerhaus / Warehouse | 1 | 30.00? × 16.00? × 12.50? | Two-storey brick warehouse with loading doors on both long sides and a gable roo… |
+| env_house_log | Blockhaus / Log house | 1 | 9.00? × 7.00? × 6.00? | One-storey village log house for winter maps; the snow comes from the biome look |
+| env_dump_ammo | Munitionslager (Feldstapel) / Ammunition dump (field stacks) | 1 | 6.00? × 4.00? × 1.50? | Two rows of wooden ammunition crates on dunnage, about 1.5 m high |
+| env_dump_fuel | Treibstofflager (Fässer) / Fuel dump (drums) | 1 | 4.80? × 3.60? × 0.90 | Rows of standing 200 l drums with gaps on dunnage |
 
 ### Uncertain values
 
@@ -706,6 +712,12 @@ uncertain; see the list at the end of each faction.
 - `fort_mine_at`: height_mm
 - `fort_mine_ap`: height_mm
 - `fort_mine_sign`: length_mm, width_mm, height_mm
+- `env_house_town`: length_mm, width_mm, height_mm
+- `env_town_hall`: length_mm, width_mm, height_mm
+- `env_warehouse`: length_mm, width_mm, height_mm
+- `env_house_log`: length_mm, width_mm, height_mm
+- `env_dump_ammo`: length_mm, width_mm, height_mm
+- `env_dump_fuel`: length_mm, width_mm
 
 ### Sources
 
@@ -787,4 +799,17 @@ uncertain; see the list at the end of each faction.
   - https://en.wikipedia.org/wiki/S-mine (S-mine 35: diameter 102 mm, height 127 mm (infobox), body about 15 cm without sensor (text))
 - `fort_mine_sign`
   - TM-E 30-451 Handbook on German Military Forces (1945), ch. VIII (mines and minefields) (minefields were marked with warning signs and fences (no dimensions))
+- `env_house_town`
+  - https://en.wikipedia.org/wiki/Terraced_house (row houses sharing their side walls along a street)
+  - Urban architecture references (e.g. Wikipedia: Storey) (storey height about 3 m, three to four storeys under a pitched roof)
+- `env_town_hall`
+  - https://en.wikipedia.org/wiki/Town_hall (town halls of small towns as two- to three-storey masonry buildings on the market square)
+- `env_warehouse`
+  - https://en.wikipedia.org/wiki/Warehouse (brick storehouses with large loading doors, often near railways and harbors)
+- `env_house_log`
+  - https://en.wikipedia.org/wiki/Log_house (one-storey log houses of eastern and northern Europe with a gable roof)
+- `env_dump_ammo`
+  - FM 9-6 Ammunition Supply (US War Department, 1944), field storage (ammunition stored in the open in small dispersed stacks on dunnage, limited in height)
+- `env_dump_fuel`
+  - https://en.wikipedia.org/wiki/Drum_(container) (200 l steel drum outside diameter about 584 mm, height 876 mm)
 

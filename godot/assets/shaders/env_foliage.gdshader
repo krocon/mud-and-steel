@@ -157,6 +157,7 @@ void fragment() {
 	// snow sits on needles and on the tops of dense cards only
 	float snow_amount = env_snow * (pattern == 1 || pattern == 9 ? 0.7 : 0.45);
 	albedo = snow_cover(albedo, rough, normalize(v_world_normal) * vec3(1.0, 0.85, 1.0), p, snow_amount);
+	albedo = charred(albedo, env_char);
 	ALBEDO = albedo * mix(0.4, 1.0, ao);
 	AO = ao;
 	AO_LIGHT_AFFECT = 0.4;

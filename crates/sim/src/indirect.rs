@@ -404,6 +404,8 @@ pub struct SmokeSnapshot {
     /// Ticks since the cloud appeared and until it is gone.
     pub age_ticks: u32,
     pub ticks_left: u32,
+    /// Dark smoke of a fire (prompt 041), not of a smoke shell.
+    pub dark: bool,
 }
 
 #[cfg(test)]

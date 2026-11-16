@@ -14,6 +14,14 @@ instance uniform float env_dry = 0.0;
 instance uniform float env_snow = 0.0;
 instance uniform float env_dust = 0.0;
 instance uniform vec4 env_paint : source_color = vec4(0.33, 0.35, 0.32, 1.0);
+// Charred by fire (prompt 041, map_objects.gd set_charred): 0 = not, 1 = black.
+instance uniform float env_char = 0.0;
+
+// Soot over the albedo of a charred object; a little texture stays visible.
+vec3 charred(vec3 albedo, float amount) {
+	float l = dot(albedo, vec3(0.3, 0.59, 0.11));
+	return mix(albedo, vec3(0.035, 0.032, 0.03) + l * 0.12, clamp(amount, 0.0, 1.0) * 0.92);
+}
 
 // Wind, prepared as material parameters (prompt 015 drives them globally).
 uniform float wind_strength = 0.25;

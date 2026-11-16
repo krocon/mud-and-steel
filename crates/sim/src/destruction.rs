@@ -237,6 +237,8 @@ pub enum ObjectCause {
     Hit(UnitId),
     /// This vehicle drove over it.
     Crushed(UnitId),
+    /// It burned (prompt 041); the unit whose hit started the fire.
+    Fire(UnitId),
 }
 
 /// An object changed its stage during the last tick.

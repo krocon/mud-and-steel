@@ -591,3 +591,108 @@ source = [
 ]
 uncertain = ["length_mm", "width_mm", "height_mm"]
 note = "Generic marker on a wooden picket, 0.4 m board, top at 1.2 m, without inscriptions or national symbols (text would need localisation and real sign designs differed by army). Dimensions are judgement values."
+
+# --- Prompt 041: towns, winter, dumps ---------------------------------------
+
+[[unit]]
+id = "env_house_town"
+faction = "neutral"
+category = "env_building"
+name_de = "Stadthaus (dreigeschossig, Reihe)"
+name_en = "Town house (three-storey, terraced)"
+tier = 1
+model = "assets/models/neutral/env_house_town.glb"
+length_mm = 12000
+width_mm = 10000
+height_mm = 14500
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Terraced_house", covers = "row houses sharing their side walls along a street" },
+    { ref = "Urban architecture references (e.g. Wikipedia: Storey)", covers = "storey height about 3 m, three to four storeys under a pitched roof" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Plastered masonry town house of a small European town, eaves to the street (ridge along the length), so several stand side by side as a terrace. Height is the ridge height. Judgement values."
+
+[[unit]]
+id = "env_town_hall"
+faction = "neutral"
+category = "env_building"
+name_de = "Rathaus"
+name_en = "Town hall"
+tier = 1
+model = "assets/models/neutral/env_town_hall.glb"
+length_mm = 22000
+width_mm = 13000
+height_mm = 17000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Town_hall", covers = "town halls of small towns as two- to three-storey masonry buildings on the market square" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Generic two-storey ashlar town hall with high storeys and a steep roof, no regional or national details. Judgement values."
+
+[[unit]]
+id = "env_warehouse"
+faction = "neutral"
+category = "env_building"
+name_de = "Lagerhaus"
+name_en = "Warehouse"
+tier = 1
+model = "assets/models/neutral/env_warehouse.glb"
+length_mm = 30000
+width_mm = 16000
+height_mm = 12500
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Warehouse", covers = "brick storehouses with large loading doors, often near railways and harbors" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Two-storey brick warehouse with loading doors on both long sides and a gable roof. Judgement values."
+
+[[unit]]
+id = "env_house_log"
+faction = "neutral"
+category = "env_building"
+name_de = "Blockhaus"
+name_en = "Log house"
+tier = 1
+model = "assets/models/neutral/env_house_log.glb"
+length_mm = 9000
+width_mm = 7000
+height_mm = 6000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Log_house", covers = "one-storey log houses of eastern and northern Europe with a gable roof" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "One-storey village log house for winter maps; the snow comes from the biome look. Judgement values."
+
+[[unit]]
+id = "env_dump_ammo"
+faction = "neutral"
+category = "env_prop"
+name_de = "Munitionslager (Feldstapel)"
+name_en = "Ammunition dump (field stacks)"
+tier = 1
+model = "assets/models/neutral/env_dump_ammo.glb"
+length_mm = 6000
+width_mm = 4000
+height_mm = 1500
+source = [
+    { ref = "FM 9-6 Ammunition Supply (US War Department, 1944), field storage", covers = "ammunition stored in the open in small dispersed stacks on dunnage, limited in height" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Two rows of wooden ammunition crates on dunnage, about 1.5 m high. No markings. Explodes when it burns (data/fire.toml). Judgement values."
+
+[[unit]]
+id = "env_dump_fuel"
+faction = "neutral"
+category = "env_prop"
+name_de = "Treibstofflager (Fässer)"
+name_en = "Fuel dump (drums)"
+tier = 1
+model = "assets/models/neutral/env_dump_fuel.glb"
+length_mm = 4800
+width_mm = 3600
+height_mm = 900
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Drum_(container)", covers = "200 l steel drum outside diameter about 584 mm, height 876 mm" },
+]
+uncertain = ["length_mm", "width_mm"]
+note = "Rows of standing 200 l drums with gaps on dunnage. Height is one drum plus dunnage. Bursts when it burns (data/fire.toml)."

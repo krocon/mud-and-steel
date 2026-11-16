@@ -20,6 +20,7 @@ mod combat;
 mod craters;
 mod destruction;
 mod economy;
+mod fire;
 mod indirect;
 mod infantry;
 mod orders;
@@ -106,6 +107,8 @@ pub enum ConfigError {
     Economy(String),
     /// The built-in indirect fire rules do not parse (prompt 032).
     Indirect(String),
+    /// The built-in fire rules do not parse (prompt 041).
+    Fire(String),
     /// The built-in air rules do not parse (prompt 033).
     Air(String),
     /// The built-in transport rules do not parse (prompt 034).
@@ -126,7 +129,11 @@ impl fmt::Display for ConfigError {
             Self::SpawnOutsideMap(index) => write!(f, "spawn {index} lies outside the map"),
             Self::TooManyPlayers(n) => write!(f, "{n} players, at most {MAX_PLAYERS} allowed"),
             Self::Destruction(e) | Self::Economy(e) => write!(f, "{e}"),
-            Self::Craters(e) | Self::Indirect(e) | Self::Air(e) | Self::Transport(e) => {
+            Self::Craters(e)
+            | Self::Indirect(e)
+            | Self::Fire(e)
+            | Self::Air(e)
+            | Self::Transport(e) => {
                 write!(f, "{e}")
             }
         }
@@ -398,6 +405,8 @@ pub struct Sim {
     economy: economy::Economy,
     /// Indirect fire, shells and smoke (prompt 032).
     artillery: indirect::Artillery,
+    /// Burning objects and wrecks (prompt 041).
+    fire: fire::Fire,
     /// Air support and anti-aircraft fire (prompt 033).
     air: air::Air,
     /// Mounting, dismounting and towing (prompt 034).
@@ -508,6 +517,13 @@ impl Sim {
             &config.unit_types,
             config.tick_hz,
         );
+        let fire = fire::Fire::new(
+            crate::fire::FireRules::builtin().map_err(|e| ConfigError::Fire(e.to_string()))?,
+            &map,
+            &config.terrain,
+            config.tick_hz,
+        )
+        .map_err(ConfigError::Fire)?;
         let air = air::Air::new(
             crate::air::AirRules::builtin().map_err(|e| ConfigError::Air(e.to_string()))?,
             config,
@@ -544,6 +560,7 @@ impl Sim {
             unit_types: config.unit_types.clone(),
             economy,
             artillery,
+            fire,
             air,
             transport,
         };
@@ -634,6 +651,7 @@ impl Sim {
         self.fly_projectiles();
         self.fly_shells();
         self.update_air();
+        self.update_fire();
         self.transport_losses();
         done(Phase::Projectiles);
         self.apply_destruction();
@@ -1149,6 +1167,7 @@ impl Sim {
         self.craters.hash_into(&mut h);
         self.economy.hash_into(&mut h);
         self.artillery.hash_into(&mut h);
+        self.fire.hash_into(&mut h);
         self.hash_queues(&mut h);
         self.air.hash_into(&mut h);
         self.hash_transport(&mut h);

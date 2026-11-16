@@ -21,19 +21,32 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by the merge of prompt 034 (transport and towing) with 033
-/// (air support): the state of both is in the hash. The demo battle is
-/// unchanged (decided at tick 480, player 0 wins). Prompt 033 alone:
-/// `0x0dce_a06c_b8c7_2039` (the rules of `data/air.toml`, every faction's
-/// aircraft types, cooldowns, sorties, bombs and flak reload times, light
-/// and heavy flak as fortifications in the hashed economy rules).
-/// Before: prompt 034 alone (`0xe602_e2eb_a51e_1c8e`): the rules of
+/// Last changed by the merge of prompt 034 (transport and towing) with
+/// 041 (fire) and 033 (air support): the state of all three is in the hash.
+/// The demo battle is the one of 041 (decided at tick 467, player 0 wins).
+/// Prompt 034 alone (`0xe602_e2eb_a51e_1c8e`): the rules of
 /// `data/transport.toml`, transport tasks, links of passengers and towed
 /// guns and the hit points of loaded carriers are in the hash, and the
 /// economy rules (also hashed) produce trucks, AT guns and howitzers in
-/// the vehicle works instead of the AT gun position. The demo has no
-/// carriers or guns: its battle is unchanged (decided at tick 480, player
-/// 0 wins).
+/// the vehicle works instead of the AT gun position; the demo has no
+/// carriers or guns and its battle was unchanged.
+/// Before: the merge of 041 with 033 (`0xd8f0_f135_a14d_e016`).
+/// That merge:
+/// prompt 041: the fire rules of `data/fire.toml`, burning objects and
+/// wrecks, burnt-out objects and fire smoke clouds are in the hash; new
+/// catalog objects (town and log houses, town hall, warehouse, dumps) and
+/// destruction classes for hay, firewood and dumps change the hashed object
+/// and destruction rules. Destroyed tanks of the demo now burn as wrecks
+/// and hits roll whether trees and buildings catch fire, which draws from
+/// the match's random generator: the battle runs differently and is decided
+/// at tick 467 instead of 480, same winner.
+/// Before: prompt 033 (air support and anti-aircraft fire): the
+/// rules of `data/air.toml`, the aircraft types of every faction (catalog
+/// ids), every player's cooldowns and the (empty) sorties, aircraft, bombs
+/// and flak reload times are in the hash, and the economy rules (also
+/// hashed) list light and heavy flak as fortifications. The demo calls no
+/// aircraft and has no anti-aircraft weapons: its battle is unchanged
+/// (decided at tick 480, player 0 wins).
 /// Before: prompt 032 (indirect fire and smoke): the rules of
 /// `data/indirect.toml`, the indirect-fire state of units with mortars,
 /// howitzers and self-propelled guns, shells in flight, smoke clouds and
@@ -114,7 +127,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x4840_87ee_7761_1662;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x0b1d_7230_9f70_e885;
 
 #[test]
 fn golden_hash() {
@@ -164,10 +177,10 @@ fn demo_battle_is_decided() {
     let end = run_demo(42, 1000);
     let outcome = end.outcome().expect("the demo battle is decided");
     assert_eq!(outcome.winner, Some(sim::PlayerId(0)));
-    assert_eq!(outcome.tick, 480);
+    assert_eq!(outcome.tick, 467);
     assert_eq!(end.alive_units(sim::PlayerId(1)), 0);
     assert_eq!(
         end.standings()[1].defeat,
-        Some((sim::DefeatReason::Eliminated, 480))
+        Some((sim::DefeatReason::Eliminated, 467))
     );
 }

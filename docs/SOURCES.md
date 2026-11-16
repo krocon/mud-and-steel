@@ -49,6 +49,23 @@ In this order:
   Geneva Conventions and its use is restricted. Medics are marked by a plain white
   armband and a medical bag instead.
 
+## Fire, towns and dumps (prompt 041)
+
+- **Fire values** (`data/fire.toml`: chances, reaches, burn times, the
+  occupant damage, the dump blasts) are game rules, not historical data, and
+  marked provisional; the catalog has no flammability.
+- **New buildings** (town house, town hall, warehouse, log house) are
+  generic types with judgement dimensions; their catalog entries cite
+  general references (Wikipedia: Terraced house, Town hall, Warehouse, Log
+  house; storey heights) and list every dimension as `uncertain`. No real
+  building is reproduced.
+- **Dumps**: drum size from the 200 l steel drum (Wikipedia: Drum
+  (container)); field storage of ammunition in small dispersed stacks on
+  dunnage after FM 9-6 *Ammunition Supply* (US War Department, public
+  domain). No markings, stencils or national symbols on crates and drums.
+- **Maps**: generated maps carry no real place names; signposts (open, not
+  built yet) get blank boards.
+
 ## Infantry camouflage (prompt 042)
 
 The camouflage prints of the soldiers are procedural imitations by period
