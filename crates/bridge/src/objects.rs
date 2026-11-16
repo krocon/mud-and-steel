@@ -298,7 +298,7 @@ impl DecoRasters {
     }
 
     /// Wood density 0..1 at a point, bilinear over the wood cells.
-    fn wood_at(&self, x: f32, z: f32) -> f32 {
+    pub fn wood_at(&self, x: f32, z: f32) -> f32 {
         let (w, h) = self.wood_size;
         let gx = ((x + self.half.0) / WOOD_CELL_M - 0.5).clamp(0.0, (w - 1) as f32);
         let gz = ((z + self.half.1) / WOOD_CELL_M - 0.5).clamp(0.0, (h - 1) as f32);
