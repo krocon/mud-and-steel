@@ -52,6 +52,7 @@ const MEADOW_SHOTS: Array[Dictionary] = [
 	{"name": "open_15", "focus": Vector3(-6, 0, 44), "distance": 15.0, "yaw": 0.4},
 	{"name": "open_40", "focus": Vector3(-6, 0, 44), "distance": 40.0, "yaw": 0.4},
 ]
+const Settings := preload("res://scenes/menu/settings.gd")
 const SHOT_FRAMES := 20
 const WARMUP_FRAMES := 60
 const MEASURE_FRAMES := 240
@@ -62,6 +63,8 @@ var main: Node3D
 ## rendering then, which would make frame rates meaningless and movie frames
 ## stale.
 var forced_draws := 0
+## Sun elevation of the preset before MEADOW_AB changed it.
+var _sun_elevation := -1.0
 
 
 func _ready() -> void:
@@ -84,7 +87,20 @@ func _run() -> void:
 		main.sim_host.map_name(), get_viewport().get_visible_rect().size,
 		RenderingServer.get_video_adapter_name()
 	])
-	for view in VIEWS:
+	# Prompt 057: MEADOW_AB=1 measures every view once per variant, with
+	# one part of the meadow look turned off at a time (in one run, so a
+	# busy machine affects all variants alike).
+	var variants: Array[String] = [""]
+	if OS.get_environment("MEADOW_AB") == "1":
+		variants = ["all", "no_ground", "no_tufts", "no_dof", "old_sun", "old_blur", "none"]
+	var runs: Array = []
+	for v in VIEWS.size():
+		for k in variants.size():
+			# Rotate the order per view against drift.
+			runs.append([VIEWS[v], variants[(k + v) % variants.size()]])
+	for run: Array in runs:
+		var view: Dictionary = run[0]
+		await _set_meadow_variant(run[1])
 		var distance: float = view["distance"]
 		main.units_root.visible = not view.get("hide_units", false)
 		main.water.visible = not view.get("hide_water", false)
@@ -116,8 +132,8 @@ func _run() -> void:
 			draw_calls += RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_DRAW_CALLS_IN_FRAME)
 			triangles += RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_PRIMITIVES_IN_FRAME)
 		var seconds := (Time.get_ticks_usec() - began) / 1e6
-		print("terrain-bench: %-8s %4.0f m  %6.1f FPS  frame %5.2f ms (worst %5.2f)  render cpu %5.2f ms  gpu %s  %4d draw calls  %5.2f M triangles  chunk update %.2f ms  chunks per LOD %s" % [
-			view["name"], distance, MEASURE_FRAMES / seconds, seconds * 1000.0 / MEASURE_FRAMES, worst,
+		print("terrain-bench: %-18s %4.0f m  %6.1f FPS  frame %5.2f ms (worst %5.2f)  render cpu %5.2f ms  gpu %s  %4d draw calls  %5.2f M triangles  chunk update %.2f ms  chunks per LOD %s" % [
+			view["name"] + ("" if run[1].is_empty() else "/" + run[1]), distance, MEASURE_FRAMES / seconds, seconds * 1000.0 / MEASURE_FRAMES, worst,
 			cpu / MEASURE_FRAMES,
 			# Metal reports no GPU timestamps (0); show n/a then.
 			"%5.2f ms" % (gpu / MEASURE_FRAMES) if gpu > 0.0 else "n/a",
@@ -127,6 +143,32 @@ func _run() -> void:
 		])
 	print("terrain-bench: frames rendered by force_draw (window not drawable): %d" % forced_draws)
 	get_tree().quit()
+
+
+## Turns parts of the meadow look (prompt 057) off for MEADOW_AB:
+## "no_ground" terrain shader meadow, "no_tufts" blade tufts (013 clumps
+## instead), "no_dof" depth of field, "old_sun" sun at 42 degrees, "old_blur"
+## shadow blur 1, "none" all of them (the look before); "all" or "" everything on.
+func _set_meadow_variant(variant: String) -> void:
+	if variant.is_empty():
+		return
+	var off_all := variant == "none"
+	var preset: Resource = main.atmosphere.preset
+	if _sun_elevation < 0.0:
+		_sun_elevation = preset.sun_elevation_deg
+	Settings.set_value("depth_of_field", not (off_all or variant == "no_dof"))
+	preset.sun_elevation_deg = 42.0 if off_all or variant == "old_sun" else _sun_elevation
+	main.atmosphere.shadow_blur = 1.0 if off_all or variant == "old_blur" else 2.0
+	main.atmosphere.set_quality(main.atmosphere.quality)
+	main.terrain.apply_biome(preset)
+	if off_all or variant == "no_ground":
+		main.terrain._material.set_shader_parameter("meadow_strength", 0.0)
+		main.terrain._material.set_shader_parameter("flower_density", 0.0)
+	var tufts := not (off_all or variant == "no_tufts")
+	if main.map_objects.meadow_tufts != tufts:
+		main.map_objects.meadow_tufts = tufts
+		main.map_objects.set_biome(main.map_objects.biome)
+	await _frames(2)
 
 
 func _shots() -> void:

@@ -97,6 +97,9 @@ var biome := "forest"
 var object_instances := 0
 ## MultiMeshInstance3D nodes of map objects.
 var object_nodes := 0
+## Blade tufts instead of grass clumps in the meadow (prompt 057; the
+## terrain benchmark turns them off for comparisons, then calls set_biome).
+var meadow_tufts := true
 ## Decoration instances currently built, and their squares.
 var deco_instances := 0
 var deco_chunks := 0
@@ -498,7 +501,7 @@ func _build_deco(layer_index: int, square: Vector2i) -> void:
 	var z0 := -size.y * 0.5 + square.y * DECO_CHUNK_M
 	# Prompt 057: blade tufts instead of the grass clumps in the meadow,
 	# on a denser lattice.
-	var tufts: bool = layer.name == "grass" and MeadowTufts.active(biome)
+	var tufts: bool = layer.name == "grass" and meadow_tufts and MeadowTufts.active(biome)
 	var spacing: float = MeadowTufts.SPACING if tufts else layer.spacing
 	var buffers: Array = sim_host.scatter_deco(
 		x0, z0, DECO_CHUNK_M, spacing, layer.seed, PackedFloat32Array(layer.density),

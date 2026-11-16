@@ -14,7 +14,7 @@
 //   lush green, dry straw, damp dark green.
 // - Bare soil patches of a few meters and frayed soil at the edges of field
 //   tracks.
-// - Blades (near only): two layers of short strokes in 4.5 / 3.2 cm cells,
+// - Blades (near only): short strokes in 3.6 cm cells,
 //   bright tips, dark gaps, a common lean that changes over tens of meters
 //   (flattened along field tracks). Antialiased by the pixel footprint and
 //   skipped where a pixel is larger than about 2.5 cm.
@@ -110,10 +110,14 @@ void meadow_apply(vec2 p, float grass, vec3 grass_tex, vec3 grass_mean, float tr
 		return;
 	}
 	vec4 m_mid = meadow_mid(p);
-	vec4 m_small = meadow_small(p);
-	float speck = m_vnoise(p / 0.3);
+	// Blotches of a few meters only where they are larger than a few pixels
+	// (overview: two texture reads less per pixel).
+	vec4 m_small = px < 0.25 ? mix(meadow_small(p), vec4(0.5), smoothstep(0.15, 0.25, px)) : vec4(0.5);
+	// Speckles and the fine soil noise only where a pixel resolves them
+	// (they would shimmer beyond and cost for nothing).
+	float speck = px < 0.3 ? mix(m_vnoise(p / 0.3), 0.5, smoothstep(0.1, 0.3, px)) : 0.5;
 	float dry;
-	vec3 base = meadow_base(p, macro_far.g, m_mid, m_small, dry);
+	vec3 base = meadow_base(p, macro_far.g, m_mid, m_small, speck, dry);
 
 	// Light/dark pattern of the texture (blades, gaps), contrast raised.
 	float shade = m_luma(grass_tex) / max(m_luma(grass_mean), 1e-3);
@@ -133,9 +137,7 @@ void meadow_apply(vec2 p, float grass, vec3 grass_tex, vec3 grass_mean, float tr
 		// Clumps: the meadow is tufty, not a lawn.
 		float clump = m_clumps(p, 0.16);
 		meadow *= mix(1.0, mix(0.6, 1.2, clump), fade);
-		vec3 b1 = m_blades(p, 0.045, lean, spread, px, 0.0);
-		vec3 b2 = m_blades(p + vec2(0.017, 0.031), 0.032, lean, spread, px, 17.0);
-		vec3 b = b1.x >= b2.x ? b1 : b2;
+		vec3 b = m_blades(p, 0.036, lean, spread, px, 0.0);
 		float cov = b.x * fade;
 		// Gaps darker (the ground between blades lies in their shade),
 		// blades lighter towards the tip, a little yellower at the tip.
@@ -157,7 +159,8 @@ void meadow_apply(vec2 p, float grass, vec3 grass_tex, vec3 grass_mean, float tr
 	}
 
 	// Bare soil: patches of a few meters, frayed edges of field tracks.
-	float soil_n = m_small.b * 0.65 + m_vnoise(p / 0.9) * 0.35;
+	float soil_fine = px < 0.6 ? mix(m_vnoise(p / 0.9), 0.5, smoothstep(0.3, 0.6, px)) : 0.5;
+	float soil_n = m_small.b * 0.65 + soil_fine * 0.35;
 	float soil = smoothstep(0.66, 0.72, soil_n + (meadow_soil_amount - 0.5) * 0.2) * meadow_soil_amount;
 	float fray = smoothstep(0.08, 0.3, track_w) * (1.0 - smoothstep(0.45, 0.7, track_w));
 	soil = max(soil, fray * smoothstep(0.45, 0.65, speck * 0.6 + m_small.g * 0.4));

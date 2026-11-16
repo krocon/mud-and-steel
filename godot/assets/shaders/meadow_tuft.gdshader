@@ -32,7 +32,7 @@ void vertex() {
 	float far_g = textureLod(macro_tex, p / 420.0, 0.0).g;
 	vec4 m_mid = meadow_mid(p);
 	vec4 m_small = meadow_small(p);
-	v_base = meadow_base(p, far_g, m_mid, m_small, dry);
+	v_base = meadow_base(p, far_g, m_mid, m_small, m_vnoise(p / 0.3), dry);
 	// Every tuft a little different: some drier, some darker.
 	vec2 rh = m_hash2(p * 7.31);
 	v_base = mix(v_base, meadow_dry.rgb, rh.x * rh.x * 0.6) * mix(0.8, 1.15, rh.y);

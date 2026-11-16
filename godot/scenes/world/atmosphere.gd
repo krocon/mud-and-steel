@@ -65,6 +65,8 @@ void fragment() {
 """
 
 var preset: BiomePreset
+## Shadow blur of the sun (prompt 057: 2 for softer edges, was 1).
+var shadow_blur := 2.0
 var quality := GraphicsQuality.DEFAULT
 
 var _world_env: WorldEnvironment
@@ -165,7 +167,7 @@ func _apply_sun(q: Dictionary) -> void:
 	_sun.shadow_opacity = preset.shadow_opacity
 	# Softer shadow edges (prompt 057): the PCF kernel of the soft filters
 	# grows with the blur; hard shadows (low) stay hard.
-	_sun.shadow_blur = 2.0
+	_sun.shadow_blur = shadow_blur
 	_sun.shadow_bias = 0.05
 	_sun.shadow_normal_bias = 1.0
 	_sun.directional_shadow_blend_splits = int(q.cascades) == 4
@@ -281,6 +283,9 @@ func _follow_dof(d: float) -> void:
 		return
 	if _dof == null:
 		_dof = CameraAttributesPractical.new()
+		# Cheapest blur: the blurred band is ground texture, no bokeh highlights.
+		RenderingServer.camera_attributes_set_dof_blur_bokeh_shape(RenderingServer.DOF_BOKEH_BOX)
+		RenderingServer.camera_attributes_set_dof_blur_quality(RenderingServer.DOF_BLUR_QUALITY_VERY_LOW, false)
 		_dof.dof_blur_near_enabled = true
 		_dof.dof_blur_far_enabled = true
 	if camera.attributes != _dof:

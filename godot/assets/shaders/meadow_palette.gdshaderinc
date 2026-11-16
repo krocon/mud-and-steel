@@ -51,10 +51,10 @@ vec4 meadow_small(vec2 p) {
 
 // Grass color at `p` in four scales: macro_far_g (hundreds of meters, the
 // terrain's macro_far.g), m_mid (tens of meters), m_small (a few meters) and
-// speckles of single tufts. Averaged samples have less contrast, hence the
+// speckles of single tufts (`speck`, m_vnoise(p / 0.3), 0.5 where a pixel is
+// larger than the speckles). Averaged samples have less contrast, hence the
 // narrow ramps. Returns the color; `dry` gets the dryness 0..1.
-vec3 meadow_base(vec2 p, float macro_far_g, vec4 m_mid, vec4 m_small, out float dry) {
-	float speck = m_vnoise(p / 0.3);
+vec3 meadow_base(vec2 p, float macro_far_g, vec4 m_mid, vec4 m_small, float speck, out float dry) {
 	dry = smoothstep(0.5, 0.8, macro_far_g) * 0.7
 		+ smoothstep(0.5, 0.68, m_mid.r) * 0.45
 		+ smoothstep(0.5, 0.7, m_small.g) * 0.15
