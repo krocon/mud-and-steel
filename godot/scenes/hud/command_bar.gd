@@ -16,6 +16,7 @@ extends VBoxContainer
 
 const Settings := preload("res://scenes/menu/settings.gd")
 const TransportOrders := preload("res://scenes/selection/transport_orders.gd")
+const EngineerOrders := preload("res://scenes/selection/engineer_orders.gd")
 const REFRESH := 0.2
 ## id, label, action (key shown), kind: "mode" (targeted), "now", "stance".
 const BUTTONS: Array[Array] = [
@@ -35,6 +36,15 @@ const BUTTONS: Array[Array] = [
 	["stance_prone", "Prone", "stance_prone", "stance"],
 	["stance_auto", "Auto", "stance_auto", "stance"],
 	["build", "Build", "", "build"],
+	# Engineer orders (prompt 035): shown while engineers are selected.
+	["work_mines_at", "AT mines", "", "work"],
+	["work_mines_ap", "AP mines", "", "work"],
+	["work_wire", "Wire", "", "work"],
+	["work_hedgehogs", "Obstacles", "", "work"],
+	["work_foxhole", "Foxhole", "", "work"],
+	["work_trench", "Trench", "", "work"],
+	["work_clear", "Clear", "", "work"],
+	["work_bridge", "Bridge", "", "work"],
 ]
 
 var main: Node3D
@@ -79,7 +89,7 @@ func setup(main_node: Node3D) -> void:
 		b.name = "Order_" + spec[0]
 		b.custom_minimum_size = Vector2(92, 34)
 		b.focus_mode = Control.FOCUS_NONE
-		b.toggle_mode = spec[3] == "mode" or spec[3] == "build"
+		b.toggle_mode = spec[3] == "mode" or spec[3] == "build" or spec[3] == "work"
 		b.add_theme_font_size_override(&"font_size", 13)
 		b.pressed.connect(press.bind(spec[0]))
 		grid.add_child(b)
@@ -108,7 +118,7 @@ func press(id: String) -> void:
 		if spec[0] != id:
 			continue
 		match spec[3]:
-			"mode":
+			"mode", "work":
 				selection.set_command_mode("" if selection.command_mode == id else id)
 			"stance":
 				selection.set_stance({"stance_stand": 0, "stance_kneel": 1, "stance_prone": 2, "stance_auto": -1}[id])
@@ -163,6 +173,7 @@ func _update() -> void:
 	var economy: bool = sim_host.economy_state().get("enabled", false)
 	# Vehicles with passengers, towing links (prompt 034).
 	var transport := TransportOrders.counts(selection)
+	var engineers := EngineerOrders.engineers(selection).size()
 	for spec in BUTTONS:
 		var b: Button = buttons[spec[0]]
 		var key := Settings.action_key_name(spec[2]) if not (spec[2] as String).is_empty() else ""
@@ -183,6 +194,9 @@ func _update() -> void:
 			"build":
 				b.visible = economy
 				b.set_pressed_no_signal(build_open)
+			"work":
+				b.visible = engineers > 0
+				b.set_pressed_no_signal(selection.command_mode == spec[0])
 
 
 func _set_tooltips() -> void:
@@ -196,3 +210,22 @@ func _set_tooltips() -> void:
 	buttons["disembark"].tooltip_text = "Passengers of the selected vehicles get off once they stand. Right click a vehicle with squads selected to mount."
 	buttons["unlimber"].tooltip_text = "Selected vehicles drop their towed guns. Right click an own gun with vehicles selected to hitch it."
 	buttons["build"].tooltip_text = "Opens the build menu."
+	for spec in BUTTONS:
+		if spec[3] == "work":
+			var kind := EngineerOrders.kind_of(spec[0])
+			buttons[spec[0]].tooltip_text = _work_tooltip(kind)
+
+
+## Tooltip of an engineer button: what it does and what one piece costs.
+func _work_tooltip(kind: String) -> String:
+	match kind:
+		"clear":
+			return "Engineers: then left click an area. They clear known mines, wire and obstacles there."
+		"bridge":
+			return "Engineers: then left click a bridge. An intact one is blown up, a destroyed one repaired."
+	var cost := sim_host.work_cost(kind)
+	var price := ""
+	if cost.size() == 4:
+		price = " Each piece: fuel %d, ammo %d, manpower %d, %d s." % [cost[0], cost[1], cost[2], cost[3]]
+	var how := "two left clicks (start and end of the line)" if EngineerOrders.KINDS[kind][1] else "a left click"
+	return "Engineers: then %s.%s" % [how, price]

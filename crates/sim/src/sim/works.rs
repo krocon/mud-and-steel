@@ -1774,6 +1774,43 @@ impl Sim {
         })
     }
 
+    /// Places a section of neutral, hidden mines around `center`, like a
+    /// minefield of the map editor. For tools and the debug menu, never for
+    /// player commands (a match with it no longer replays). Returns the
+    /// number of mines placed.
+    pub fn place_minefield(&mut self, center: Vec2, kind: MineKind) -> usize {
+        if !within_world(center) {
+            return 0;
+        }
+        let rules = self.works.rules.mines;
+        let count = match kind {
+            MineKind::AntiTank => rules.map_at_count,
+            MineKind::AntiPersonnel => rules.map_ap_count,
+        };
+        let mut h = StableHasher::new();
+        h.write_u32(self.works.next_mine);
+        h.write_i64(center.x.to_bits());
+        h.write_i64(center.y.to_bits());
+        let mut rng = Rng::new(h.finish());
+        let section = mm(rules.section_mm);
+        let spots = self.works.layout(
+            &mut rng,
+            count,
+            (section, section),
+            center,
+            Vec2::new(Fixed::ONE, Fixed::ZERO),
+            Vec2::new(Fixed::ZERO, Fixed::ONE),
+        );
+        let mut placed = 0;
+        for p in spots {
+            if self.ground_for_works(p) {
+                self.works.add_mine(kind, None, p);
+                placed += 1;
+            }
+        }
+        placed
+    }
+
     /// The field work rules of this match.
     pub const fn works_rules(&self) -> &WorksRules {
         &self.works.rules
