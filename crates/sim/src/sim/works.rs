@@ -791,7 +791,7 @@ impl Sim {
         );
     }
 
-    /// `Demolish` / `Repair` of bridge `bridge`.
+    /// `DemolishBridge` / `RepairBridge` of bridge `bridge`.
     pub(super) fn order_bridge(
         &mut self,
         player: PlayerId,

@@ -1,7 +1,10 @@
 //! What a computer player may know about the match: the fog-of-war view of
 //! its player. The AI reads the simulation only through [`PlayerView`].
 
-use sim::{AirOption, FireMode, PlayerId, Resources, Sim, StructureView, SupplyView, UnitId, Vec2};
+use sim::{
+    AirOption, FireMode, PlayerId, Resources, Sim, StockView, StructureView, SupplySource,
+    SupplyView, UnitId, Vec2,
+};
 
 /// An own unit: everything the player knows about it.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -21,6 +24,8 @@ pub struct OwnUnit {
     pub passengers: u16,
     /// The gun it tows.
     pub towing: Option<UnitId>,
+    /// Ammunition, fuel and mobility (prompt 036).
+    pub stock: StockView,
 }
 
 impl OwnUnit {
@@ -81,6 +86,8 @@ pub struct PlayerView {
     pub air: Vec<AirOption>,
     /// Enemy aircraft the player sees now.
     pub enemy_aircraft: usize,
+    /// Own and allied suppliers and repairers (prompt 036).
+    pub sources: Vec<SupplySource>,
     /// Mines the player's team knows (prompt 035): its own and its
     /// allies', and the hostile ones it found. Never the others.
     pub mines: Vec<sim::MineView>,
@@ -110,6 +117,7 @@ impl PlayerView {
                     carrier: u.carrier,
                     passengers: u.passengers,
                     towing: u.towing,
+                    stock: u.stock,
                 });
             } else {
                 let seen = SeenUnit {
@@ -169,6 +177,7 @@ impl PlayerView {
                 .iter()
                 .filter(|a| !sim.allied(player, a.owner) && !a.crashing)
                 .count(),
+            sources: sim.supply_sources(player),
             mines: sim.mines_for(player),
             works: sim.works_for(player),
         }

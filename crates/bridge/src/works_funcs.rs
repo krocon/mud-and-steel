@@ -1,5 +1,5 @@
 //! `SimHost` functions for field works (prompt 035): the engineer orders
-//! (`Lay`, `Dig`, `Clear`, `Demolish`, `Repair`), the mines the local
+//! (`Lay`, `Dig`, `Clear`, `DemolishBridge`, `RepairBridge`), the mines the local
 //! player knows, the field works it sees, vehicles without their track and
 //! the state of the bridges. The simulation decides everything; Godot draws
 //! (`scenes/world/works_view.gd`) and picks the orders
@@ -86,9 +86,9 @@ impl SimHost {
             return GString::new();
         }
         let (command, name) = if b.intact {
-            (Command::Demolish { units, bridge }, "demolish")
+            (Command::DemolishBridge { units, bridge }, "demolish")
         } else {
-            (Command::Repair { units, bridge }, "repair")
+            (Command::RepairBridge { units, bridge }, "repair")
         };
         self.pending.push(command);
         GString::from(name)

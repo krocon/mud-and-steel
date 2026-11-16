@@ -22,6 +22,7 @@ pub mod fire;
 mod hash;
 pub mod indirect;
 pub mod infantry;
+pub mod logistics;
 pub mod map;
 mod math;
 pub mod objects;
@@ -58,6 +59,7 @@ pub use fire::{FireEvent, FireEventKind, FireRules, FireSource, FireView};
 pub use hash::StableHasher;
 pub use indirect::{IndirectRules, ShellSnapshot, SmokeSnapshot};
 pub use infantry::{InfantryRules, Stance, StanceOrder};
+pub use logistics::{LogisticsRules, LogisticsType};
 pub use map::{Biome, Map, MapError, MapRef};
 pub use math::{Fixed, Vec2};
 pub use objects::{Blocks, MapObject, ObjectKind, ObjectRules};
@@ -66,8 +68,8 @@ pub use rng::Rng;
 pub use scale::Scale;
 pub use sim::{
     BuildingCondition, BuyOption, ConfigError, MAX_PLAYERS, MAX_QUEUED, Phase, PlaceError,
-    RouteView, Sim, SimConfig, Snapshot, SoldierSnapshot, Spawn, StructureView, SupplyView,
-    UnitSnapshot, WORLD_LIMIT_M, formation_slots, formation_spacing,
+    RouteView, Sim, SimConfig, Snapshot, SoldierSnapshot, Spawn, StockView, StructureView,
+    SupplySource, SupplyView, UnitSnapshot, WORLD_LIMIT_M, formation_slots, formation_spacing,
 };
 pub use teams::Teams;
 pub use terrain::{TerrainError, TerrainRules};

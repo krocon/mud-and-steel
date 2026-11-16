@@ -101,6 +101,12 @@ pub enum Command {
     /// drop their gun, listed guns are dropped by their tractor (prompt
     /// 034).
     Unlimber { units: Vec<UnitId> },
+    /// Starts repairing the own completed, damaged `building` (paid while
+    /// it is repaired), or stops a running repair (prompt 036).
+    Repair { building: UnitId },
+    /// Sells the own completed `building` (part of its price back) or
+    /// cancels the own construction site (prompt 036).
+    Sell { building: UnitId },
     /// Engineer squads among `units` lay mines, wire or anti-tank obstacles
     /// along the line `from`..`to` (a point if both are equal), piece by
     /// piece, and pay for every piece (prompt 035).
@@ -123,9 +129,9 @@ pub enum Command {
     Clear { units: Vec<UnitId>, target: Vec2 },
     /// Engineer squads blow up the intact bridge `bridge` (index into
     /// [`crate::Map::bridges`], prompt 035).
-    Demolish { units: Vec<UnitId>, bridge: u32 },
+    DemolishBridge { units: Vec<UnitId>, bridge: u32 },
     /// Engineer squads rebuild the destroyed bridge `bridge` (prompt 035).
-    Repair { units: Vec<UnitId>, bridge: u32 },
+    RepairBridge { units: Vec<UnitId>, bridge: u32 },
 }
 
 impl Command {
@@ -149,15 +155,17 @@ impl Command {
             | Self::Lay { units, .. }
             | Self::Dig { units, .. }
             | Self::Clear { units, .. }
-            | Self::Demolish { units, .. }
-            | Self::Repair { units, .. } => units,
+            | Self::DemolishBridge { units, .. }
+            | Self::RepairBridge { units, .. } => units,
             Self::Surrender
             | Self::Build { .. }
             | Self::Produce { .. }
             | Self::CancelProduction { .. }
             | Self::SetRallyPoint { .. }
             | Self::CallAir { .. }
-            | Self::Ping { .. } => &[],
+            | Self::Ping { .. }
+            | Self::Repair { .. }
+            | Self::Sell { .. } => &[],
         }
     }
 }

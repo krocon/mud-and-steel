@@ -102,6 +102,8 @@ the time until the aircraft arrive. Enemy aircraft coming into sight post
 | Command bar: Build | Open the build menu (price, greyed out with the reason) |
 | Build menu: a building | Place it: left click (Shift: place more), right click or Esc cancels |
 | Select an own barracks or factory | Production bar above the command bar: queue units, cancel the last |
+| Build menu / production bar: tabs | Show one kind (base, defense, infantry, vehicles, guns, air); the tooltip of a tile lists its catalog values |
+| Alt + 1 … 9, 0 | Pick the first … tenth tile of the open tab: of the production bar if it shows, else of the build menu (prompt 058, [provisional]) |
 | Right click with only own buildings selected | Rally point |
 
 ## Screen

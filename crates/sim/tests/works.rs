@@ -377,7 +377,7 @@ fn bridges_are_demolished_and_repaired() {
     assert!(sim.path_grid().passable_at(SizeClass::Small, deck));
     sim.step(&[cmd(
         P0,
-        Command::Demolish {
+        Command::DemolishBridge {
             units: ids(&[0]),
             bridge: 0,
         },
@@ -387,7 +387,7 @@ fn bridges_are_demolished_and_repaired() {
     let fuel = sim.account(P0).unwrap()[0];
     sim.step(&[cmd(
         P0,
-        Command::Repair {
+        Command::RepairBridge {
             units: ids(&[0]),
             bridge: 0,
         },
