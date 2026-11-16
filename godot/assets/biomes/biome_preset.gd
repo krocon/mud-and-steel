@@ -70,6 +70,11 @@ const LAYER_COUNT := 10
 @export_range(0.0, 1.0) var snow_cover := 0.0
 ## Strength of the dry/lush color variation of grass, 0..1.
 @export_range(0.0, 1.0) var grass_variation := 1.0
+## Meadow look of the grass layer (prompt 057, terrain_meadow.gdshaderinc):
+## palette, blades, soil patches, 0..1. 0 where grass is drawn as sand or snow.
+@export_range(0.0, 1.0) var meadow_strength := 1.0
+## Flowers in the meadow (daisies, dandelions), 0..1.
+@export_range(0.0, 1.0) var flower_density := 1.0
 ## Top line of the map edge cut (sod, sand crust, snow).
 @export var edge_top := Color(0.045, 0.04, 0.025)
 ## Color multiplier of the soil layers in the map edge cut.

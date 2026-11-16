@@ -1849,6 +1849,39 @@ purely optical layers.
 The map ends in a vertical cut (`terrain_edge.gdshader`, soil layers) down to 12 m
 below the lowest point, like a diorama block.
 
+### Meadow (prompt 057)
+
+The grass layer was one olive texture with 0.7 m crossed-card clumps on top,
+which read as boxes from the high camera. Now the meadow is built from three
+cheap parts that share one palette (`assets/shaders/meadow_palette.gdshaderinc`:
+lush green, dry straw, damp dark green, all procedural from `terrain_macro.png`
+and hashes, no new textures):
+
+| Part | Where | What |
+|---|---|---|
+| Ground (`assets/materials/terrain_meadow.gdshaderinc`, one call in `terrain.gdshader` after the layer blend and before wet ground and snow) | Grass share of every pixel, `meadow_strength` per biome | Color in four scales: dry/lush areas (macro noise, hundreds of meters), clouds of 29/47 m and blotches of 3.7/6.1 m (two turned samples each, so the overview shows no repeat), speckles of 0.3 m. The grass texture only keeps its light/dark pattern (contrast 1.5). Near the camera (pixel < 2.5 cm) one layer of blade strokes in 3.6 cm cells and clumps of 16 cm with dark gaps; at middle zoom (pixel 1.5–8 cm) tufts of 45 cm. Bare soil patches, frayed soil at the edges of field tracks, grass pressed flat along tracks. Daisies and dandelions as 1.6–3.5 cm dots in loose groups (pixel < 6 cm, `flower_density` per biome). Everything antialiased by the pixel footprint and skipped where a pixel is too large to show it. |
+| Tufts (`scenes/world/meadow_tufts.gd`, `assets/shaders/meadow_tuft.gdshader`) | Decoration layer "grass" of `map_objects.gd` in the forest biome, 0.55 m lattice, up to 55 m from the camera | Procedural tufts of 14–18 single blades as opaque triangles (no alpha test, no card outlines), normals mostly up so blades are lit like the ground, color from the palette at the tuft (per instance in the vertex shader), dark roots, light tips, wind. Short and wide tufts have straight blades (one triangle); tall tufts are curved (three) and cast shadows. Desert and winter keep the clumps of prompt 013 with their biome look. |
+| Light (`atmosphere.gd`, `forest.tres`) | Whole scene | Forest sun at 37° instead of 42° (longer shadows) **[provisional]**, shadow blur 2 (softer edges on soft filters), round leaf blobs in the cheap foliage pattern of shadow passes (the square cells cast checkerboard shadows onto the meadow). Tilt-shift depth of field at close zoom (see "Light and atmosphere"). |
+
+Why not shell texturing or GPU particles for the grass: shells draw the
+terrain several times (8–16 passes over the ground near the camera) and still
+show layers at the grazing edge of the view; particles would need their own
+placement. The decoration lattice of prompt 013 already scatters by terrain
+type, wood density, map objects and craters, so the tufts reuse it with new
+meshes.
+
+Open: footprints and drag marks of soldiers (a presentation trail texture;
+prompt 040 brings tracks into the same shader), mowing stripes (pastures of
+the period were grazed, not mown), crater ejecta on grass, seasons (the biome
+is the only season so far).
+
+`SHOT_SET=meadow just terrain-shots <dir>` records the meadow at 15, 35, 110
+and 350 m near the village and two open views, without fog of war and HUD.
+`MEADOW_AB=1 just terrain-bench` measures every view once per variant with
+one part of the look turned off (`no_ground`, `no_tufts`, `no_dof`,
+`old_sun`, `old_blur`, `none` = the look before), in one run so a busy
+machine affects all variants alike.
+
 ### Region updates (craters, prompt 021)
 
 `terrain.heights_changed(rect)` re-reads a rectangle of samples (grown by 8 samples
@@ -2086,7 +2119,7 @@ dark and rutted. Forest is the identity. No extra textures are needed.
 
 | Element | Setting | Why |
 |---|---|---|
-| Sun | Direction from elevation and bearing per biome (forest 42°, desert 58°, winter 24°), from the south-east, so shadows fall to the north-west (upper left when looking north); no angular size (hard shadows), PCF filter by quality | Hard, readable shadows like the references; side light shows relief. |
+| Sun | Direction from elevation and bearing per biome (forest 37° since prompt 057 **[provisional]**, before 42°; desert 58°, winter 24°), from the south-east, so shadows fall to the north-west (upper left when looking north); no angular size, PCF filter by quality, shadow blur 2 (prompt 057) | Readable shadows like the references; side light shows relief; longer, softer shadows darken the meadow. |
 | Shadow cascades | 4 (low: 2), distance 1.8 × camera distance, splits at 45 / 58 / 75 % of it, blended | The ground is seen from about 0.8 to 1.5 camera distances; the default splits spent half the cascades on the air in front of the camera. |
 | Sky | `ProceduralSkyMaterial` per biome | No downloads; the sky is almost never on screen at 45–65° pitch, it serves as ambient light and haze color. Blue-ish shadow fill comes from it. |
 | Tonemapping | AgX, exposure and white per biome | Pleasant highlight roll-off on sand and snow without clipping. |
@@ -2094,7 +2127,7 @@ dark and rutted. Forest is the identity. No extra textures are needed.
 | Haze | Depth fog from 0.65–0.7 to 2.0–2.2 camera distances, curve 1.3, at most 35–45 %, aerial perspective | Foreground stays clear at every zoom, the upper screen edge lies in light haze. Exponential fog would grey the whole view at 600 m. |
 | SSAO | Radius 2.5 % of the camera distance (0.6–10 m) | Contact shadows under vehicles up close, soft shading of hollows and ditches far away. |
 | SSIL, SDFGI | Off | SSIL measured 0.5–0.7 ms on high with hardly a visible change on open ground; SDFGI costs too much on a 4 km map and leaks light. |
-| Depth of field | Not used | Tried far blur below 50 m: with the narrow 30° lens it smeared the upper screen edge and streaked at texture borders. |
+| Depth of field | Tilt-shift at close zoom (prompt 057): sharp from 0.86 to 1.1 camera distances along the view, blurred over 0.22 distances beyond, amount 0.09, fading out between 30 and 60 m camera distance; box bokeh, very low quality; off on quality low and with the setting "Depth of field at close zoom" **[provisional: on by default]** | Makes close views look like a photo of a model and hides the far edge of the decoration range. A far blur alone (tried in prompt 015) smeared the upper edge at every zoom; the narrow band around the focus only shows near the ground. |
 | Vignette | Canvas shader below the HUD, 25 % | Frames the view lightly. |
 | Snowfall | `GPUParticles3D` box around the camera focus, scaled with the camera distance (winter, medium and high) | Weather prepared; flakes stay visible at every zoom. |
 

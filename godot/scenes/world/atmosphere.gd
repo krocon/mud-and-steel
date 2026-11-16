@@ -13,6 +13,10 @@ extends Node
 ## - SSAO radius grows with the distance: contact shadows up close, shading of
 ##   hollows from far away;
 ## - the snowfall volume (winter) is scaled around the camera focus.
+## - tilt-shift depth of field (prompt 057): at close zoom the ground in front
+##   of and behind the focus blurs, so the upper and lower screen edges are
+##   soft like a photo of a model; fades out from 30 to 60 m camera distance.
+##   Setting "depth_of_field" (menu), never on quality low.
 ##
 ## Shadows: the rig sets `directional_shadow_max_distance` from the camera
 ## distance (`shadow_distance_factor`); the cascade splits here are
@@ -24,6 +28,7 @@ extends Node
 const BiomePreset := preload("res://assets/biomes/biome_preset.gd")
 const GraphicsQuality := preload("res://scenes/world/graphics_quality.gd")
 const WeatherLook := preload("res://scenes/world/weather_look.gd")
+const Settings := preload("res://scenes/menu/settings.gd")
 
 const BIOMES_DIR := "res://assets/biomes/"
 const BIOMES: Array[String] = ["forest", "desert", "winter"]
@@ -33,6 +38,14 @@ const SHADOW_DISTANCE_FACTOR := 1.8
 ## Cascade splits as fractions of the shadow distance (4 and 2 cascades).
 const SPLITS_4 := Vector3(0.45, 0.58, 0.75)
 const SPLIT_2 := 0.55
+## Tilt-shift depth of field (prompt 057): full below the first camera
+## distance (m), none above the second; sharp band from NEAR to FAR camera
+## distances along the view, blurred over TRANSITION distances beyond.
+const DOF_ZOOM := Vector2(30.0, 60.0)
+const DOF_NEAR := 0.86
+const DOF_FAR := 1.1
+const DOF_TRANSITION := 0.22
+const DOF_AMOUNT := 0.09
 ## SSAO radius in meters: distance * factor, clamped.
 const SSAO_RADIUS_FACTOR := 0.025
 const SSAO_RADIUS_RANGE := Vector2(0.6, 10.0)
@@ -40,6 +53,7 @@ const SSAO_RADIUS_RANGE := Vector2(0.6, 10.0)
 const WIND_MATERIALS: Array[String] = [
 	"res://assets/materials/env/bark.tres",
 	"res://assets/materials/env/foliage.tres",
+	"res://assets/materials/env/meadow_tuft.tres",
 ]
 const VIGNETTE_SHADER := """
 shader_type canvas_item;
@@ -52,6 +66,8 @@ void fragment() {
 """
 
 var preset: BiomePreset
+## Shadow blur of the sun (prompt 057: 2 for softer edges, was 1).
+var shadow_blur := 2.0
 var quality := GraphicsQuality.DEFAULT
 ## Weather and time of day of the match (prompt 040, `set_weather`): the
 ## preset is the biome's as it looks then (`WeatherLook.adjust`).
@@ -67,6 +83,7 @@ var _terrain: Node
 var _vignette: ShaderMaterial
 var _snow_root: Node3D
 var _snow: GPUParticles3D
+var _dof: CameraAttributesPractical
 
 
 func setup(world_env: WorldEnvironment, sun: DirectionalLight3D, camera_rig: Node3D, terrain: Node) -> void:
@@ -164,7 +181,9 @@ func _apply_sun(q: Dictionary) -> void:
 	_sun.light_angular_distance = 0.0
 	_sun.shadow_enabled = true
 	_sun.shadow_opacity = preset.shadow_opacity
-	_sun.shadow_blur = 1.0
+	# Softer shadow edges (prompt 057): the PCF kernel of the soft filters
+	# grows with the blur; hard shadows (low) stay hard.
+	_sun.shadow_blur = shadow_blur
 	_sun.shadow_bias = 0.05
 	_sun.shadow_normal_bias = 1.0
 	_sun.directional_shadow_blend_splits = int(q.cascades) == 4
@@ -264,6 +283,34 @@ func _follow_camera() -> void:
 	if _snow_root:
 		_snow_root.global_position = _rig.focus
 		_snow_root.scale = Vector3.ONE * clampf(d / 60.0, 0.4, 10.0)
+	_follow_dof(d)
+
+
+## Tilt-shift depth of field around the focus distance at close zoom.
+func _follow_dof(d: float) -> void:
+	var camera: Camera3D = _rig.get("camera")
+	if camera == null:
+		return
+	var amount := 1.0 - smoothstep(DOF_ZOOM.x, DOF_ZOOM.y, d)
+	var on := amount > 0.0 and quality != "low" and bool(Settings.get_value("depth_of_field"))
+	if not on:
+		if camera.attributes == _dof and _dof != null:
+			camera.attributes = null
+		return
+	if _dof == null:
+		_dof = CameraAttributesPractical.new()
+		# Cheapest blur: the blurred band is ground texture, no bokeh highlights.
+		RenderingServer.camera_attributes_set_dof_blur_bokeh_shape(RenderingServer.DOF_BOKEH_BOX)
+		RenderingServer.camera_attributes_set_dof_blur_quality(RenderingServer.DOF_BLUR_QUALITY_VERY_LOW, false)
+		_dof.dof_blur_near_enabled = true
+		_dof.dof_blur_far_enabled = true
+	if camera.attributes != _dof:
+		camera.attributes = _dof
+	_dof.dof_blur_amount = DOF_AMOUNT * amount
+	_dof.dof_blur_near_distance = d * DOF_NEAR
+	_dof.dof_blur_near_transition = d * DOF_TRANSITION
+	_dof.dof_blur_far_distance = d * DOF_FAR
+	_dof.dof_blur_far_transition = d * DOF_TRANSITION
 
 
 ## Snowfall: a box of falling flakes around the camera focus, in local

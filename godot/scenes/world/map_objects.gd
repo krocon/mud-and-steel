@@ -48,6 +48,7 @@ const OBJECT_CLASSES: Array[Dictionary] = [
 	{"prefix": "", "range": 300.0, "shadow": false},
 ]
 
+const MeadowTufts := preload("res://scenes/world/meadow_tufts.gd")
 ## Square size of decoration chunks in meters.
 const DECO_CHUNK_M := 64.0
 ## Decoration squares built per frame at most (keeps the frame time flat).
@@ -96,6 +97,9 @@ var biome := "forest"
 var object_instances := 0
 ## MultiMeshInstance3D nodes of map objects.
 var object_nodes := 0
+## Blade tufts instead of grass clumps in the meadow (prompt 057; the
+## terrain benchmark turns them off for comparisons, then calls set_biome).
+var meadow_tufts := true
 ## Decoration instances currently built, and their squares.
 var deco_instances := 0
 var deco_chunks := 0
@@ -495,15 +499,19 @@ func _build_deco(layer_index: int, square: Vector2i) -> void:
 	var size: Vector2 = sim_host.map_size()
 	var x0 := -size.x * 0.5 + square.x * DECO_CHUNK_M
 	var z0 := -size.y * 0.5 + square.y * DECO_CHUNK_M
+	# Prompt 057: blade tufts instead of the grass clumps in the meadow,
+	# on a denser lattice.
+	var tufts: bool = layer.name == "grass" and meadow_tufts and MeadowTufts.active(biome)
+	var spacing: float = MeadowTufts.SPACING if tufts else layer.spacing
 	var buffers: Array = sim_host.scatter_deco(
-		x0, z0, DECO_CHUNK_M, layer.spacing, layer.seed, PackedFloat32Array(layer.density),
+		x0, z0, DECO_CHUNK_M, spacing, layer.seed, PackedFloat32Array(layer.density),
 		layer.wood, layer.patchiness, PackedFloat32Array(layer.weights), layer.scale, layer.sink,
 		layer.get("shore", Vector2.ZERO)
 	)
 	var nodes: Array = []
 	for v in buffers.size():
 		var buffer: PackedFloat32Array = buffers[v]
-		var mesh: Mesh = _deco_meshes[layer_index][v]
+		var mesh: Mesh = MeadowTufts.mesh(v) if tufts else _deco_meshes[layer_index][v]
 		if buffer.is_empty() or mesh == null:
 			continue
 		var node := _multimesh(mesh, buffer, Transform3D.IDENTITY)
@@ -512,6 +520,12 @@ func _build_deco(layer_index: int, square: Vector2i) -> void:
 		node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if layer.shadow \
 			else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		node.visibility_range_end = layer.range
+		if tufts:
+			# Tall tufts cast their own small shadows (only up to the shadow
+			# distance, which follows the zoom); tufts end sooner than clumps.
+			if MeadowTufts.casts_shadow(v):
+				node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+			node.visibility_range_end = MeadowTufts.RANGE
 		node.visibility_range_end_margin = layer.range * 0.15
 		node.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
 		_deco_root.add_child(node)

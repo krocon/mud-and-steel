@@ -25,6 +25,10 @@ hedges and bushes.
 | `just fire-bench` | Fire on the town map (prompt 041): 40 units per side, 6000 ticks without fire and with a wood, a terrace and the dumps burning; mean and worst tick (ARCHITECTURE.md, "Fire") |
 | `just terrain-bench`, `objects-bench`, `effects-bench`, `infantry-view-bench` | Single systems of the presentation |
 
+`MEADOW_AB=1 just terrain-bench` (prompt 057) measures every terrain view once
+per variant of the meadow look (each part off in turn, and the look before)
+in one run; see ARCHITECTURE.md, "Meadow".
+
 **Phases** come from `Sim::step_observed(commands, done)`: the simulation
 calls `done(Phase)` after each phase of the tick; the caller reads the
 clock. The simulation itself never reads a clock (DETERMINISM.md).

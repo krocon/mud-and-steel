@@ -29,9 +29,14 @@ void vertex() {
 }
 
 // Cheap stand-in for leaves(): about 70 % of the cells filled, no search.
+// Each filled cell holds a round blob a little off its center (prompt 057:
+// square cells cast checkerboard shadows onto the meadow).
 vec2 leaves_cheap(vec2 uv, float cells) {
-	float h = hash2(floor(uv * cells));
-	return vec2(step(0.3, h), 0.75 + 0.5 * fract(h * 7.31));
+	vec2 id = floor(uv * cells);
+	float h = hash2(id);
+	vec2 d = fract(uv * cells) - 0.5 - (vec2(h, fract(h * 13.7)) - 0.5) * 0.3;
+	float blob = step(length(d), 0.5 + 0.12 * fract(h * 3.1));
+	return vec2(step(0.3, h) * blob, 0.75 + 0.5 * fract(h * 7.31));
 }
 
 // One leaf per grid cell (random offset and angle); returns (alpha, shade).
