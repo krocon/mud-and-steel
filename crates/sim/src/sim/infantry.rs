@@ -35,7 +35,7 @@ pub(super) struct Soldier {
     pub(super) height: Fixed,
     pub(super) hp: u32,
     /// Cover spot (or window in a building) while the squad stands.
-    spot: Option<Vec2>,
+    pub(super) spot: Option<Vec2>,
     /// Object whose soft cover the spot uses.
     pub(super) cover: Option<u32>,
     /// Ticks left knocked down by a blast (prompt 048): lying, getting up,
@@ -43,6 +43,9 @@ pub(super) struct Soldier {
     pub(super) knocked: u32,
     /// Where the blast that knocked him down (last) went off.
     pub(super) knock_from: Vec2,
+    /// Wounds and buddy aid (prompt 049).
+    #[serde(default)]
+    pub(super) wound: super::care::Wound,
 }
 
 impl Soldier {
@@ -94,6 +97,19 @@ impl Squad {
             .iter()
             .filter(|s| s.alive())
             .nth((k % alive) as usize)
+    }
+
+    /// The soldier shooters aim at: the `k`-th living one that is up
+    /// (counted cyclically), or any living one when all are down (prompt
+    /// 049: the heavily wounded lie and draw no aimed fire while comrades
+    /// stand).
+    pub(super) fn aim_soldier(&self, k: u32) -> Option<&Soldier> {
+        let up = |s: &&Soldier| s.alive() && !s.wound.lying();
+        let count = self.soldiers.iter().filter(up).count() as u32;
+        if count == 0 || count == self.alive_count() {
+            return self.living(k);
+        }
+        self.soldiers.iter().filter(up).nth((k % count) as usize)
     }
 
     pub(super) fn hash_into(&self, h: &mut StableHasher) {
@@ -458,6 +474,7 @@ impl Sim {
                     cover: None,
                     knocked: 0,
                     knock_from: Vec2::ZERO,
+                    wound: super::care::Wound::default(),
                 }
             })
             .collect();
@@ -932,8 +949,9 @@ impl Sim {
             return;
         }
         for (soldier, &(f, r)) in squad.soldiers.iter_mut().zip(&ty.places) {
-            // Knocked-down soldiers lie where the blast threw them.
-            if !soldier.alive() || soldier.knocked > 0 {
+            // Knocked-down soldiers lie where the blast threw them; the
+            // wounded and their helpers are placed by `sim/care.rs`.
+            if !soldier.alive() || soldier.knocked > 0 || soldier.wound.held {
                 continue;
             }
             let place = center + facing.scale(f) + right.scale(r);

@@ -196,6 +196,9 @@ struct TypeInfo {
     tows: bool,
     power_hp: u32,
     mass_kg: u32,
+    /// A crew that bailed out of a destroyed vehicle (prompt 049): own
+    /// crews stay where they are, enemy crews are no target or objective.
+    crew: bool,
 }
 
 /// Where an enemy unit was last seen.
@@ -411,8 +414,11 @@ impl Ai {
                     .is_some_and(|r| r.gun(category).is_some());
                 let tows = carrier.is_some_and(|c| c.tows) && t.transport.power_hp > 0;
                 let truck = carrier.is_some_and(|c| c.riders == 0) && (seats > 0 || tows);
+                let crew = sim::care::is_crew(t);
                 let role = if !t.mobile() {
                     Role::Structure
+                } else if crew {
+                    Role::Unarmed
                 } else if gun {
                     Role::Gun
                 } else if truck {
@@ -442,6 +448,7 @@ impl Ai {
                     tows,
                     power_hp: t.transport.power_hp,
                     mass_kg: t.mass_kg,
+                    crew,
                 }
             })
             .collect();
@@ -677,6 +684,7 @@ impl Ai {
                 tows: false,
                 power_hp: 0,
                 mass_kg: 0,
+                crew: false,
             })
     }
 
@@ -700,7 +708,7 @@ impl Ai {
     /// seeing the enemy there any more.
     fn remember(&mut self, view: &PlayerView) {
         for e in &view.enemies {
-            if e.alive() {
+            if e.alive() && !self.type_info(e.unit_type).crew {
                 self.memory.insert(
                     e.id,
                     Sighting {
@@ -744,7 +752,12 @@ impl Ai {
             .map(|u| self.type_info(u.unit_type).sight)
             .max()
             .unwrap_or(Fixed::ZERO);
-        let enemies: Vec<SeenUnit> = view.enemies.iter().filter(|e| e.alive()).copied().collect();
+        let enemies: Vec<SeenUnit> = view
+            .enemies
+            .iter()
+            .filter(|e| e.alive() && !self.type_info(e.unit_type).crew)
+            .copied()
+            .collect();
         let mut state = self.groups.remove(&role).unwrap_or(GroupState {
             order: Order::None,
             issued: 0,

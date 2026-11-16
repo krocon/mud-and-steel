@@ -11,6 +11,7 @@
 
 pub mod air;
 pub mod bridges;
+pub mod care;
 pub mod catalog;
 pub mod combat;
 mod command;
@@ -49,6 +50,7 @@ pub use air::{
     FlakClass, SortieSnapshot,
 };
 pub use bridges::Bridge;
+pub use care::CareRules;
 pub use catalog::Catalog;
 pub use combat::{
     CombatEvent, CombatRules, CombatType, Face, FireMode, HitKind, ProjectileSnapshot, Vec3,
@@ -78,10 +80,10 @@ pub use positions::{LayoutPiece, PositionRules, strongpoint_layout};
 pub use rng::Rng;
 pub use scale::Scale;
 pub use sim::{
-    BuildingCondition, BuyOption, ConfigError, DrillView, ExperienceView, MAX_PLAYERS, MAX_QUEUED,
-    Phase, PlaceError, RouteView, Sim, SimConfig, Snapshot, SoldierSnapshot, Spawn, StockView,
-    StructureView, SupplySource, SupplyView, UnitSnapshot, WORLD_LIMIT_M, formation_slots,
-    formation_spacing,
+    AidView, BuildingCondition, BuyOption, CareEvent, ConfigError, DrillView, ExperienceView,
+    MAX_PLAYERS, MAX_QUEUED, Phase, PlaceError, RouteView, Sim, SimConfig, Snapshot,
+    SoldierSnapshot, Spawn, StockView, StructureView, SupplySource, SupplyView, UnitSnapshot,
+    WORLD_LIMIT_M, WoundView, formation_slots, formation_spacing,
 };
 pub use teams::Teams;
 pub use terrain::{TerrainError, TerrainRules};

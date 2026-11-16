@@ -16,6 +16,7 @@ use std::fmt;
 use std::sync::Arc;
 
 mod air;
+mod care;
 mod combat;
 mod craters;
 mod crossings;
@@ -41,6 +42,7 @@ pub use vision::MAX_PLAYERS;
 use combat::{Attack, CombatState, Projectile, TypeCombat};
 use infantry::{InfantryRt, Squad};
 
+pub use care::{AidView, CareEvent, WoundView};
 pub use drill::DrillView;
 pub use economy::{BuyOption, PlaceError, StructureView, SupplyView};
 pub use experience::ExperienceView;
@@ -158,6 +160,8 @@ pub enum ConfigError {
     Experience(String),
     /// The built-in crossing rules do not parse (prompt 055).
     Crossings(String),
+    /// The built-in care rules do not parse (prompt 049).
+    Care(String),
 }
 
 impl fmt::Display for ConfigError {
@@ -183,7 +187,8 @@ impl fmt::Display for ConfigError {
             | Self::Weather(e)
             | Self::Works(e)
             | Self::Experience(e)
-            | Self::Crossings(e) => {
+            | Self::Crossings(e)
+            | Self::Care(e) => {
                 write!(f, "{e}")
             }
         }
@@ -341,6 +346,10 @@ pub struct SoldierSnapshot {
     pub knock_from: Vec2,
     /// Map object whose cover spot he stands at (prompt 048: cover poses).
     pub cover: Option<u32>,
+    /// Wound state (prompt 049).
+    pub wound: WoundView,
+    /// What he does for a comrade, or what is done with him (prompt 049).
+    pub aid: AidView,
 }
 
 impl UnitSnapshot {
@@ -493,6 +502,8 @@ pub struct Sim {
     /// Collapsing decks, swimmers, bridge-laying tanks, camouflage and
     /// paratroopers (prompt 055).
     crossings: crossings::Crossings,
+    /// Wounds, buddy aid, medics and bailed-out crews (prompt 049).
+    care: care::Care,
 }
 
 impl Sim {
@@ -661,6 +672,11 @@ impl Sim {
             crate::experience::ExperienceRules::builtin()
                 .map_err(|e| ConfigError::Experience(e.to_string()))?,
         );
+        let care = care::Care::new(
+            crate::care::CareRules::builtin().map_err(|e| ConfigError::Care(e.to_string()))?,
+            &config.unit_types,
+            config.tick_hz,
+        );
         let mut sim = Self {
             tick: 0,
             rng: Rng::new(seed),
@@ -693,6 +709,7 @@ impl Sim {
             works,
             experience,
             crossings,
+            care,
         };
         sim.init_weather();
         sim.init_economy();
@@ -769,6 +786,7 @@ impl Sim {
         self.plan_paths();
         done(Phase::Paths);
         self.update_stances();
+        self.care_speed();
         self.rebuild_unit_grid();
         self.aim_and_fire();
         self.update_drills();
@@ -799,6 +817,7 @@ impl Sim {
         self.update_economy();
         self.update_logistics();
         self.update_experience();
+        self.update_care();
         done(Phase::Economy);
         self.update_smoke();
         self.update_vision(false);
@@ -808,9 +827,11 @@ impl Sim {
         self.tick += 1;
         let units = &self.units;
         let teams = &self.teams;
+        let care = &self.care;
+        let crews = |u: &Unit| care.is_crew(u);
         self.standings.update(
             self.tick,
-            |player| alive_units(units, player),
+            |player| alive_units(units, player, crews),
             |a, b| teams.allied(a, b),
         );
         done(Phase::Standings);
@@ -854,7 +875,7 @@ impl Sim {
     /// Number of units of `player` that are not destroyed (for victory
     /// conditions).
     pub fn alive_units(&self, player: PlayerId) -> usize {
-        alive_units(&self.units, player)
+        alive_units(&self.units, player, |u| self.is_crew_unit(u))
     }
 
     /// Hit points of a unit (`None` if it does not exist).
@@ -1437,6 +1458,7 @@ impl Sim {
         self.works.hash_into(&mut h);
         self.hash_experience(&mut h);
         self.crossings.hash_into(&mut h);
+        self.hash_care(&mut h);
         h.finish()
     }
 
@@ -1497,9 +1519,9 @@ impl Sim {
                 .filter_map(|u| u.squad.as_ref().map(|s| (u, s)))
                 .flat_map(|(u, s)| {
                     let inside = s.garrison.is_some();
-                    (0u16..)
-                        .zip(&s.soldiers)
-                        .map(move |(index, x)| SoldierSnapshot {
+                    (0u16..).zip(&s.soldiers).map(move |(index, x)| {
+                        let (wound, aid) = self.care_view(u, usize::from(index), x);
+                        SoldierSnapshot {
                             unit: u.id,
                             index,
                             position: x.position,
@@ -1509,7 +1531,10 @@ impl Sim {
                             knocked: x.knocked,
                             knock_from: x.knock_from,
                             cover: x.cover.filter(|_| !inside && x.at_spot()),
-                        })
+                            wound,
+                            aid,
+                        }
+                    })
                 }),
         );
         self.artillery
@@ -1519,11 +1544,12 @@ impl Sim {
     }
 }
 
-/// Units of `player` that are not destroyed (see [`Sim::alive_units`]).
-fn alive_units(units: &[Unit], player: PlayerId) -> usize {
+/// Units of `player` that are not destroyed (see [`Sim::alive_units`]);
+/// bailed-out crews (`crew`, prompt 049) do not count.
+fn alive_units(units: &[Unit], player: PlayerId, crew: impl Fn(&Unit) -> bool) -> usize {
     units
         .iter()
-        .filter(|u| u.owner == player && u.alive())
+        .filter(|u| u.owner == player && u.alive() && !crew(u))
         .count()
 }
 

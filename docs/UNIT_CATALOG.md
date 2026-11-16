@@ -25,6 +25,7 @@ uncertain; see the list at the end of each faction.
 | de_inf_at | Panzerschreck-Trupp / Panzerschreck AT team | 2 | 2 | 1× 8.8 cm RPzB 54 Panzerschreck, 2× Panzerfaust 60, 1× P 38, 1× Kar98k? |
 | de_inf_flamethrower | Flammenwerfer-Trupp (FmW 41) / Flamethrower team (FmW 41) | 2 | 2 | 1× Flammenwerfer 41, 1× P 38, 1× Kar98k? |
 | de_inf_command | Zugtrupp (Zugführer und Funker) / Platoon HQ (leader and radio operator) | 2 | 2? | 1× MP 40, 1× Kar98k |
+| de_inf_tank_crew | Panzerbesatzung (ausgestiegen) / Tank crew (bailed out) | 2 | 5 | 1× MP 40, 4× P 38? |
 
 ### Vehicles
 
@@ -82,6 +83,7 @@ uncertain; see the list at the end of each faction.
 - `de_inf_at`: weapon
 - `de_inf_flamethrower`: weapon
 - `de_inf_command`: squad_size
+- `de_inf_tank_crew`: weapon
 - `de_pz2_l`: speed_offroad_kmh_x10, power_hp, armor_turret_front_mm
 - `de_pz4_h`: speed_offroad_kmh_x10, width_mm
 - `de_tiger1_e`: width_mm, height_mm, range_road_km, armor_hull_front_deg, speed_road_kmh_x10, weapon
@@ -145,6 +147,9 @@ uncertain; see the list at the end of each faction.
   - Gander/Chamberlain, Small Arms, Artillery and Special Weapons of the Third Reich (1978), Flammenwerfer 41 entry (fuel load enough for several short bursts (~10 s total))
 - `de_inf_command`
   - TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. II (rifle platoon headquarters) (platoon HQ: leader, messengers; radio equipment)
+- `de_inf_tank_crew`
+  - https://en.wikipedia.org/wiki/Panzer_IV (crew of five (commander, gunner, loader, driver, radio operator / hull gunner); from memory, not fetched for this entry)
+  - Gander/Chamberlain, Small Arms, Artillery and Special Weapons of the Third Reich (1978), MP 40 and P 38 entries (MP 40 and P 38 data)
 - `de_pz2_l`
   - https://en.wikipedia.org/wiki/Panzer_II (Ausf. L dimensions, 11.8 t, crew 4, 60 km/h, range 290 km, armor 30/20 mm, armament and ammunition 330/2250, 100 built Sep 1943-Jan 1944)
   - Chamberlain/Doyle, Encyclopedia of German Tanks of World War Two (rev. 1999), Pz.Kpfw. II Ausf. L (Maybach HL 66 P 180 PS, turret front 30 mm)
@@ -244,6 +249,7 @@ uncertain; see the list at the end of each faction.
 | su_inf_at | Panzerbüchsentrupp PTRD-41 / PTRD-41 Anti-Tank Rifle Team | 2 | 2 | 1× PTRD-41, 1× Mosin-Nagant M1891/30? |
 | su_inf_flamethrower | Flammenwerfertrupp ROKS-3 / ROKS-3 Flamethrower Team | 2 | 2? | 1× ROKS-3, 1× PPSh-41? |
 | su_inf_command | Führungstrupp (Offizier und Funker) / Command Team (Officer and Radio Operator) | 2 | 2 | 1× TT-33, 1× PPSh-41? |
+| su_inf_tank_crew | Panzerbesatzung (ausgestiegen) / Tank crew (bailed out) | 2 | 5 | 1× PPSh-41, 4× TT-33? |
 
 ### Vehicles
 
@@ -302,6 +308,7 @@ uncertain; see the list at the end of each faction.
 - `su_inf_at`: weapon
 - `su_inf_flamethrower`: squad_size, weapon
 - `su_inf_command`: weapon
+- `su_inf_tank_crew`: weapon
 - `su_t70m`: width_mm, mass_kg, speed_road_kmh_x10, speed_offroad_kmh_x10, armor_hull_front_mm, weapon
 - `su_t34_76_1943`: height_mm, mass_kg, speed_offroad_kmh_x10, range_road_km, armor_turret_front_mm, armor_turret_side_mm, armor_turret_rear_mm, weapon
 - `su_is2`: armor_hull_front_mm, speed_offroad_kmh_x10, weapon
@@ -368,6 +375,10 @@ uncertain; see the list at the end of each faction.
   - https://en.wikipedia.org/wiki/TT_pistol (infobox) (TT-33 data)
   - https://en.wikipedia.org/wiki/PPSh-41 (infobox) (PPSh-41 data)
   - Zaloga/Ness, Red Army Handbook 1939-1945 (Sutton 1998) (signals equipment at battalion/company level (not checked online))
+- `su_inf_tank_crew`
+  - https://en.wikipedia.org/wiki/T-34 (T-34-85 crew of five (T-34/76: four); from memory, not fetched for this entry)
+  - https://en.wikipedia.org/wiki/TT_pistol (infobox) (TT-33 muzzle velocity 420 m/s, effective range 50 m)
+  - https://en.wikipedia.org/wiki/PPSh-41 (infobox) (PPSh-41: 7.62x25, muzzle velocity 488 m/s, effective range 150-200 m)
 - `su_t70m`
   - https://en.wikipedia.org/wiki/T-70 (infobox and text) (T-70 1942: length 4.29 m, width 2.32 m, height 2.04 m, 9.2 t, crew 2, 2x GAZ-202 70 hp, 45 km/h, range 360 km, armor 10-50 mm (turret front 50, turret sides/rear 35, glacis 35, hull sides 15), 45 mm gun, DT; T-70M changes)
   - Zaloga/Grandsen, Soviet Tanks and Combat Vehicles of World War Two (Arms and Armour 1984) (T-70M (wider tracks, stronger suspension), mass 9.8 t, road speed 42 km/h (not checked online))
@@ -462,6 +473,7 @@ uncertain; see the list at the end of each faction.
 | us_inf_at | Panzerabwehrtrupp (Bazooka) / Bazooka Team | 2 | 2 | 1× 2.36 in Rocket Launcher M9 (Bazooka), 2× Carbine M1? |
 | us_inf_flamethrower | Flammenwerfertrupp (M2-2) / Flamethrower Team (M2-2) | 2 | 2? | 1× Portable Flame Thrower M2-2, 1× Rifle M1 (Garand), 1× Pistol M1911A1? |
 | us_inf_command | Führungstrupp (Offizier mit Funker) / Command Team (Officer and Radio Operator) | 2 | 2 | 2× Carbine M1, 1× Pistol M1911A1? |
+| us_inf_tank_crew | Panzerbesatzung (ausgestiegen) / Tank crew (bailed out) | 2 | 5 | 1× Submachine gun M3, 4× Pistol M1911A1? |
 
 ### Vehicles
 
@@ -517,6 +529,7 @@ uncertain; see the list at the end of each faction.
 - `us_inf_at`: weapon
 - `us_inf_flamethrower`: squad_size, weapon
 - `us_inf_command`: weapon
+- `us_inf_tank_crew`: weapon
 - `us_m5a1`: speed_offroad_kmh_x10, armor_hull_front_mm, armor_hull_side_mm, armor_hull_rear_mm, armor_turret_front_mm, armor_turret_side_mm, armor_turret_rear_mm, weapon
 - `us_m4a3_75`: speed_offroad_kmh_x10, weapon
 - `us_m26`: speed_offroad_kmh_x10, armor_hull_front_deg, armor_hull_rear_mm, armor_turret_front_mm, armor_turret_rear_mm
@@ -582,6 +595,9 @@ uncertain; see the list at the end of each faction.
   - TM 11-242 Radio Set SCR-300-A (1945) (radio manual (number confirmed via Wikipedia))
   - https://en.wikipedia.org/wiki/SCR-300 (backpack FM radio, 14.6-17.3 kg, range ~3 mi (4.8 km))
   - https://www.battleorder.org/post/usa-rifleco-1944 (platoon HQs used SCR-536 handie-talkies (6 per rifle company))
+- `us_inf_tank_crew`
+  - https://en.wikipedia.org/wiki/M4_Sherman (crew of five (commander, gunner, loader, driver, assistant driver); from memory, not fetched for this entry)
+  - https://en.wikipedia.org/wiki/M3_submachine_gun (M3: .45 ACP, about 450 rpm cyclic, 280 m/s, issued to tank crews; from memory, not fetched for this entry)
 - `us_m5a1`
   - https://en.wikipedia.org/wiki/M3_Stuart (M5A1 late production: 4.84 x 2.29 x 2.57 m (over AA MG), 33,500 lb, crew 4, 37 mm M6 with 147 rounds, twin Cadillac Series 42 220 hp, 36 mph, 100 mi)
   - Hunnicutt, Stuart: A History of the American Light Tank (1992) (armor values (not re-checked))

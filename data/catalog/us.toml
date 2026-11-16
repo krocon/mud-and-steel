@@ -313,6 +313,31 @@ source = [
 uncertain = ["weapon"]
 note = "Officer with carbine and pistol, radio operator with carbine (typical, not fixed by T/O&E). The SCR-300 served company-to-battalion nets; platoon leaders used the handheld SCR-536."
 
+[[unit]]
+id = "us_inf_tank_crew"
+faction = "us"
+category = "inf_crew"
+name_de = "Panzerbesatzung (ausgestiegen)"
+name_en = "Tank crew (bailed out)"
+designation = "Tank crew, dismounted"
+year_from = 1942
+year_to = 1945
+tier = 2
+model = "assets/models/us/us_inf_tank_crew.tscn"
+squad_size = 5
+speed_road_kmh_x10 = 50
+speed_offroad_kmh_x10 = 40
+weapon = [
+    { name = "Submachine gun M3", count = 1, caliber_mm_x10 = 114, ammo = ".45 ACP", rate_rpm = 450, muzzle_velocity_mps = 280, range_effective_m = 50 },
+    { name = "Pistol M1911A1", count = 4, caliber_mm_x10 = 114, ammo = ".45 ACP", muzzle_velocity_mps = 253, range_effective_m = 50 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/M4_Sherman", covers = "crew of five (commander, gunner, loader, driver, assistant driver); from memory, not fetched for this entry" },
+    { ref = "https://en.wikipedia.org/wiki/M3_submachine_gun", covers = "M3: .45 ACP, about 450 rpm cyclic, 280 m/s, issued to tank crews; from memory, not fetched for this entry" },
+]
+uncertain = ["weapon"]
+note = "Not built or bought: the survivors of a destroyed vehicle (prompt 049) bail out as this squad, 1-5 men by chance. squad_size is the largest crew of the faction's tanks (M4 Sherman, M26: 5). Personal weapons: M1911A1 pistols and one M3 submachine gun from the tank's stowage. The model carries the Thompson (no M3 model yet) and the M1 helmet instead of the tanker helmet."
+
 # ---------------------------------------------------------------------------
 # Vehicles
 # ---------------------------------------------------------------------------
