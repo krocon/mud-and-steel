@@ -68,6 +68,8 @@ const DEFAULTS := {
 	"zoom_sensitivity": 1.0,
 	"edge_scroll": true,
 	"health_bars": "damaged",
+	# Tilt-shift depth of field at close zoom (prompt 057).
+	"depth_of_field": true,
 }
 
 static var values := {}
