@@ -233,8 +233,8 @@ validate-squads:
 
 # Generate a test map from a seed into data/maps/<name>/ (see docs/MAPS.md)
 [group('maps')]
-gen-map name size_m="500" seed="1":
-    cargo run -q --release -p cli -- gen-map --name {{ name }} --size-m {{ size_m }} --seed {{ seed }}
+gen-map name size_m="500" seed="1" start_distance_m="120":
+    cargo run -q --release -p cli -- gen-map --name {{ name }} --size-m {{ size_m }} --seed {{ seed }} --start-distance-m {{ start_distance_m }}
 
 # Regenerate both committed test maps (changes the golden hash if test_small changes)
 [group('maps')]
