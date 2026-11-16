@@ -57,3 +57,15 @@ us = "us_m4a3_75"
 de = "de_inf_rifle_squad"
 su = "su_inf_rifle_squad"
 us = "us_inf_rifle_squad"
+
+# Tank groups of a faction in percent of `count` when the player picks a
+# faction (skirmish setup, LAN, tournaments; prompt 045 [provisional]):
+# battle armies of equal strength instead of equal numbers. Under the game
+# rules a Panzer IV outranges the T-34 and the M4A3 (375 m against 250 m,
+# catalog effective ranges x 1/4) and fires twice as fast as the T-34;
+# with 8 tanks each Germany won 71 % of all battles, the Soviet Union 25 %
+# (docs/BALANCE.md). The plain demo without a faction choice (golden hash,
+# tests) keeps its counts.
+[faction_count_pct]
+su = 125
+us = 112

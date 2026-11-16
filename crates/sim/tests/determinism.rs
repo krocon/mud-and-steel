@@ -21,7 +21,14 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by the merge of prompt 049 (wounds, buddy aid, medics,
+/// Last changed by prompt 045 (balancing): the economy rules (start
+/// account 500/600/500, income of headquarters, depots and supply points,
+/// the range factor of unit prices) and the resupply cost of
+/// `data/logistics.toml` (25 % instead of 50 %) are part of the hash and
+/// of the demo's accounts. The demo keeps 8 against 8 tanks (no faction is
+/// chosen, so the new `[faction_count_pct]` of the scenario does not
+/// apply). Before:
+/// `0xf8f2_b8a4_aead_460d`, set by the merge of prompt 049 (wounds, buddy aid, medics,
 /// bailed-out crews) with 047, 054 and 039: the care rules of
 /// `data/care.toml` and every soldier's wound state enter the hash once
 /// anything happened (the demo: at once); hits a man survives wound him
@@ -207,7 +214,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xf8f2_b8a4_aead_460d;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x164a_535e_3316_b34e;
 
 #[test]
 fn golden_hash() {

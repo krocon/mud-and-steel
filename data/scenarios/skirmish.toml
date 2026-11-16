@@ -1,6 +1,10 @@
 # Base-building skirmish (prompt 023, docs/GAME_DESIGN.md): every player
-# starts with a headquarters, a halftrack and two rifle squads, and the start
-# resources of data/economy.toml. None of them can hurt a building: tanks
+# starts with a headquarters, a truck and two rifle squads, and the start
+# resources of data/economy.toml. Prompt 045 [provisional]: the start
+# vehicle is an unarmed truck for every faction instead of a halftrack; the
+# halftracks were armed very differently (Soviet M3A1 scout car .50 + .30,
+# Sd.Kfz. 251/1 two MG 42, US M3 one .30) and their kills in the first
+# minutes decided base matches on small maps (docs/BALANCE.md). None of them can hurt a building: tanks
 # have to be built first. Integers only; the format is the one of
 # demo.toml.
 #
@@ -19,7 +23,7 @@ start_distance_pct = 70
 # then outwards, see start_distance_pct). Bases face the map center.
 [[group]]
 owner = 0
-unit = "de_sdkfz251_1"
+unit = "de_opel_blitz"
 count = 1
 columns = 1
 spacing_m = 12
@@ -27,7 +31,7 @@ center_m = [0, 60]
 
 [[group]]
 owner = 1
-unit = "su_m3a1_scout"
+unit = "su_zis5"
 count = 1
 columns = 1
 spacing_m = 12
@@ -70,9 +74,9 @@ spacing_m = 0
 center_m = [0, -88]
 
 [faction_units]
-de = "de_sdkfz251_1"
-su = "su_m3a1_scout"
-us = "us_m3_halftrack"
+de = "de_opel_blitz"
+su = "su_zis5"
+us = "us_gmc_cckw"
 
 [faction_infantry]
 de = "de_inf_rifle_squad"

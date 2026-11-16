@@ -9,8 +9,10 @@
 # these are not real durations).
 
 [account]
-# Every player starts with this much.
-start = [600, 600, 400]
+# Every player starts with this much. Prompt 045: 600/600/400 before; the
+# barracks, depot and vehicle works cost 450 manpower, so the first vehicle
+# always waited for manpower while fuel was left over (docs/BALANCE.md).
+start = [500, 600, 500]
 
 [construction]
 # At most this many construction sites per player at a time.
@@ -39,14 +41,16 @@ radius_m = 25
 # Seconds of uncontested presence to neutralize an enemy point, and again
 # to capture a neutral one.
 capture_s = 20
-# Income of a held point per minute.
-income_per_min = [60, 60, 30]
+# Income of a held point per minute (prompt 045: 60/60/30 before; more
+# ammunition and manpower, less fuel, see docs/BALANCE.md).
+income_per_min = [50, 90, 40]
 
 # Unit prices from catalog values (docs/GAME_DESIGN.md "Unit costs"):
 #   manpower = manpower_per_soldier * (squad size, else crew)
 #   fuel     = fuel_per_tonne * combat mass in tonnes (vehicles only)
 #   ammo     = ammo_base + sum over the weapons the simulation uses of
 #              caliber_mm^2 * count / ammo_caliber_div
+#              * range factor (direct fire, see range_ref_m below)
 #   time_s   = time_base_s + (fuel + ammo + manpower) / time_per_point_div
 [unit_cost]
 manpower_per_soldier = 6
@@ -55,6 +59,16 @@ ammo_base = 10
 ammo_caliber_div = 60
 time_base_s = 8
 time_per_point_div = 8
+# Prompt 045 [provisional]: the ammunition term of every direct-fire weapon
+# is scaled by its game range (catalog range x 1/4) relative to range_ref_m,
+# clamped to range_min_pct..range_max_pct percent; indirect weapons keep
+# 100 %. Without it a T-34 (250 m, 5 rounds/min) cost more than a Panzer IV
+# (375 m, 10 rounds/min) and lost 2:1 to it at the same price; the
+# Panzerschreck squad (37 m) cost ten times the Soviet AT squad
+# (docs/BALANCE.md). 0 switches the factor off.
+range_ref_m = 250
+range_min_pct = 50
+range_max_pct = 150
 
 # Base buildings. Sizes in millimeters match the borrowed models (see
 # docs/GAME_DESIGN.md); armor is the same on every face.
@@ -74,7 +88,9 @@ armor_mm = 40
 cost = [200, 0, 300]
 build_s = 60
 build_radius_m = 120
-income_per_min = [40, 70, 80]
+# Prompt 045: 40/70/80 before. Ammunition was the bottleneck of every AI
+# economy and fuel piled up unused (docs/BALANCE.md).
+income_per_min = [40, 100, 90]
 max_count = 0
 requires = []
 produces = ""
@@ -106,7 +122,8 @@ armor_mm = 25
 cost = [50, 0, 100]
 build_s = 25
 build_radius_m = 60
-income_per_min = [40, 50, 30]
+# Prompt 045: 40/50/30 before (see the headquarters).
+income_per_min = [30, 70, 40]
 max_count = 3
 requires = ["base_hq"]
 produces = ""

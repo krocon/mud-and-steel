@@ -37,19 +37,25 @@ developer has to be able to build, balance and maintain it, so:
 | **Manpower** (Personal) | soldiers and crews, every building | HQ, supply depots, supply points |
 
 - Every player has an account of the three resources; it starts with
-  **600 fuel, 600 ammunition, 400 manpower**. There is no storage limit.
+  **500 fuel, 600 ammunition, 500 manpower** (prompt 045; 600/600/400
+  before). There is no storage limit.
 - Income is paid continuously (every second of game time, in thousandths, so
   nothing is lost to rounding) from:
 
 | Source | Fuel / min | Ammunition / min | Manpower / min |
 |---|---|---|---|
-| Headquarters (completed) | 40 | 70 | 80 |
-| Supply depot (completed, each, at most 3) | 40 | 50 | 30 |
-| Supply point (held, each) | 60 | 60 | 30 |
+| Headquarters (completed) | 40 | 100 | 90 |
+| Supply depot (completed, each, at most 3) | 30 | 70 | 40 |
+| Supply point (held, each) | 50 | 90 | 40 |
 
 The first AI matches showed manpower and then ammunition as the bottleneck
 (the vehicle works was never affordable), so the headquarters and depot
-income was raised from the first draft (40/50/60 and 40/40/20).
+income was raised from the first draft (40/50/60 and 40/40/20). Prompt 045
+measured ammunition as the bottleneck of every AI economy (fuel piled up)
+and manpower as the second one for the United States, and shifted the
+income from fuel to ammunition and manpower (before: headquarters
+40/70/80, depot 40/50/30, point 60/60/30); resupply costs 25 % instead of
+50 % of the ammunition price. Measurements in [BALANCE.md](BALANCE.md).
 
 - **Supply points** are neutral spots on the map (map markers named
   `supply…`, see [MAPS.md](MAPS.md)). A player takes one by having units (not
@@ -70,21 +76,22 @@ for resources on the map" with one simple rule.
 ### Manpower as a limit (prompt 056) [provisional]
 
 Checked against the prices (`just economy-table`) and the income table
-above, with a full base (headquarters and three depots) per minute:
+above, with a full base (headquarters and three depots) per minute
+(numbers of prompt 045):
 
 | | Fuel | Ammunition | Manpower |
 |---|---|---|---|
-| Base without supply points | 160 | 220 | 170 |
-| Base with 3 points | 340 (+113 %) | 400 (+82 %) | 260 (+53 %) |
+| Base without supply points | 130 | 310 | 210 |
+| Base with 3 points | 280 (+115 %) | 580 (+87 %) | 330 (+57 %) |
 | Rifle squad (`de_inf_rifle_squad`) | 0 | 18 | 54 |
 | Panzer IV (`de_pz4_h`) | 100 | 103 | 30 |
 
-- **Manpower already limits infantry:** the base alone pays about three
+- **Manpower already limits infantry:** the base alone pays about four
   rifle squads a minute and has ammunition to spare; an army of tanks runs
-  out of fuel long before manpower (1.6 Panzer IV a minute use 48 of 170).
+  out of fuel long before manpower (1.3 Panzer IV a minute use 39 of 210).
   So each resource limits one arm, as the balancing principles want.
 - **Income falls without points:** a player who loses all points keeps
-  47 % of the fuel, 55 % of the ammunition and 65 % of the manpower.
+  46 % of the fuel, 53 % of the ammunition and 64 % of the manpower.
   Manpower falls least, deliberately: a beaten player can still raise
   infantry to win points back, but no armored counter-attack.
 - **No change of numbers here.** Making manpower scarcer (e.g. points
@@ -115,8 +122,10 @@ hit points of map objects in `data/destruction.toml`.
 | Vehicle works (`base_factory`) | 20 × 10 × 9 | 4000 | 30 | 150 / 50 / 200 | 45 s | HQ, depot | produces vehicles |
 | Rocket battery position (`base_rocket_battery`, prompt 054) | 6 × 4 × 2 | 1500 | 10 | 100 / 150 / 100 | 50 s | vehicle works | fires the heavy strike (below; max. 1) |
 
-Every player starts with a completed headquarters, a halftrack and two
-rifle squads (scenario `data/scenarios/skirmish.toml`). None of them can
+Every player starts with a completed headquarters, a truck and two
+rifle squads (scenario `data/scenarios/skirmish.toml`; a halftrack before
+prompt 045, whose armament differed so much between the factions that it
+decided matches on small maps, see [BALANCE.md](BALANCE.md)). None of them can
 hurt a building, so the first tanks or AT squads decide when a base falls.
 The bases stand at up to 70 % of half the map size from the center, on the
 line through the map's start positions (`start_distance_pct`; closer in
@@ -425,8 +434,13 @@ in the game, which is acceptable for now.
   scenario, every player with a headquarters, a few starting units and the
   start resources.
 - **Battle**: the fixed armies of the demo scenario, as before (also used by
-  the golden hash, the LAN tests and the self-test matches 1–3). Supply
-  points and accounts exist there too but have nothing to buy.
+  the golden hash, the LAN tests and the self-test matches 1–3).
+  Prompt 045 [provisional]: when the players pick factions, the tank
+  groups have equal strength instead of equal numbers: 8 Panzer IV, 10
+  T-34 (125 %), 9 M4A3 (112 %), `[faction_count_pct]` of
+  `data/scenarios/demo.toml`. With 8 each Germany won 71 % of all AI
+  battles, the Soviet Union 25 % ([BALANCE.md](BALANCE.md)). Supply
+  points and accounts exist in battle mode too but have nothing to buy.
 - LAN and online matches: the host chooses the mode (prompt 037).
 - **Teams** (prompt 037, [TEAMS.md](TEAMS.md)): 2 against 2 and 3 against
   3 with humans and computer players in both modes; allies share their

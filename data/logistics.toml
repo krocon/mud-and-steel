@@ -40,7 +40,10 @@ immobile_pct = 35
 # (fuel) price (data/economy.toml); without the money there is no refill.
 [resupply]
 pct_per_s = 5
-cost_pct = 50
+# Prompt 045: 50 before; a full refill of a Panzer IV cost 51 ammunition,
+# half a new tank, and resupply ate the ammunition income in long fights
+# (docs/BALANCE.md). [provisional]
+cost_pct = 25
 
 # Suppliers: completed base buildings (`building`, a structure id of
 # data/economy.toml) or units of a catalog category (`category`).
@@ -82,6 +85,6 @@ pct_per_s = 1
 # site `cancel_refund_pct` percent.
 [buildings]
 repair_pct_per_s = 2
-repair_cost_pct = 50
+repair_cost_pct = 25
 sell_refund_pct = 50
 cancel_refund_pct = 75

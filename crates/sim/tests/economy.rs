@@ -49,10 +49,10 @@ fn skirmish_starts_with_completed_headquarters_and_resources() {
     let structures = sim.structures();
     assert_eq!(structures.len(), 2);
     assert!(structures.iter().all(|s| s.completed()));
-    assert_eq!(sim.account(P0), Some([600, 600, 400]));
+    assert_eq!(sim.account(P0), Some([500, 600, 500]));
     assert_eq!(sim.faction(P0), Some("de"));
     assert_eq!(sim.faction(P1), Some("su"));
-    assert_eq!(sim.income(P0), [40, 70, 80]);
+    assert_eq!(sim.income(P0), [40, 100, 90]);
     // The headquarters faces the map center along the y axis.
     let (_, p0) = hq(&sim, P0);
     assert!(p0.y > Vec2::ZERO.y);
@@ -66,7 +66,7 @@ fn income_is_paid_every_second() {
     let mut sim = start(&peaceful());
     // One minute: exactly the income per minute.
     run(&mut sim, 60 * 20 + 1);
-    assert_eq!(sim.account(P0), Some([640, 670, 480]));
+    assert_eq!(sim.account(P0), Some([540, 700, 590]));
 }
 
 #[test]
@@ -177,7 +177,7 @@ fn construction_production_and_rally_point() {
         },
     );
     // Paid at once, a site appears with a tenth of its hit points.
-    assert_eq!(sim.account(P0), Some([600, 600, 250]));
+    assert_eq!(sim.account(P0), Some([500, 600, 350]));
     let site = sim
         .structures()
         .into_iter()
@@ -399,7 +399,8 @@ fn supply_points_are_taken_and_pay() {
         }
     }
     assert!(taken.is_some(), "the ford was taken");
-    assert_eq!(sim.income(P0), [100, 130, 110]);
+    // Headquarters 40/100/90 and the point 50/90/40 (prompt 045).
+    assert_eq!(sim.income(P0), [90, 190, 130]);
 }
 
 #[test]
@@ -467,7 +468,7 @@ fn economy_golden_hash() {
     let sim = run_economy(42, 5000);
     assert_eq!(
         sim.state_hash(),
-        0xa4a5_8dfc_9b57_0a72,
+        0x88ec_4656_950c_0751,
         "economy golden hash mismatch: got {:#018x}",
         sim.state_hash()
     );
