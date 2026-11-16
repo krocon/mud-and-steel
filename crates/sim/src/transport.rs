@@ -230,7 +230,7 @@ mod tests {
 
     #[test]
     fn invalid_rules_are_rejected() {
-        let bad = BUILTIN_TRANSPORT.replace("hit_pct = 25", "hit_pct = 250");
+        let bad = BUILTIN_TRANSPORT.replace("hit_pct = 50", "hit_pct = 250");
         assert!(TransportRules::parse(&bad).is_err());
         let wrong = BUILTIN_TRANSPORT.replace("category = \"gun_at\"", "category = \"truck\"");
         assert!(TransportRules::parse(&wrong).is_err());

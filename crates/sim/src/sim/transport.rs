@@ -820,27 +820,41 @@ impl Sim {
                 continue;
             }
             let Some(rules) = rules else { continue };
+            // Every round that hits the carrier hits a passenger with the
+            // rule's chance; hit points lost without a round (fragments of
+            // a shell) count as one damaging hit.
+            let (mut damaging, mut bounces) = (0u32, 0u32);
+            for e in &self.events {
+                if let CombatEvent::Hit {
+                    kind: HitKind::Unit(u),
+                    damage,
+                    ..
+                } = *e
+                    && u == carrier
+                {
+                    if damage > 0 {
+                        damaging += 1;
+                    } else {
+                        bounces += 1;
+                    }
+                }
+            }
             let hurt = self
                 .transport
                 .hp_seen
                 .get(&carrier)
                 .is_some_and(|&hp| self.units[c].hp < hp);
-            let bounces = u32::try_from(
-                self.events
-                    .iter()
-                    .filter(|e| {
-                        matches!(e, CombatEvent::Hit { kind: HitKind::Unit(u), damage: 0, .. } if *u == carrier)
-                    })
-                    .count(),
-            )
-            .unwrap_or(u32::MAX);
+            if hurt && damaging == 0 {
+                damaging = 1;
+            }
+            for (rolls, pct) in [(damaging, rules.hit_pct), (bounces, rules.bounce_pct)] {
+                for _ in 0..rolls {
+                    if pct > 0 && self.rng.below(100) < pct {
+                        self.kill_one_rider(&riders, by);
+                    }
+                }
+            }
             for &k in &riders {
-                if hurt {
-                    self.kill_riders(k, rules.hit_pct, 1, by);
-                }
-                if bounces > 0 {
-                    self.kill_riders(k, rules.bounce_pct, bounces, by);
-                }
                 if !self.units[k].alive() {
                     self.units[k].link = None;
                     self.transport.tasks.remove(&self.units[k].id);
@@ -869,6 +883,41 @@ impl Sim {
             }
         }
         self.transport.hp_seen = seen;
+    }
+
+    /// A random living soldier of the squads `riders` dies.
+    fn kill_one_rider(&mut self, riders: &[usize], by: UnitId) {
+        let alive = |u: &Unit| u.squad.as_ref().map_or(0, |s| s.alive_count());
+        let total: u32 = riders.iter().map(|&k| alive(&self.units[k])).sum();
+        if total == 0 {
+            return;
+        }
+        let mut pick = self.rng.below(total);
+        for &k in riders {
+            let n = alive(&self.units[k]);
+            if pick >= n {
+                pick -= n;
+                continue;
+            }
+            let unit = &mut self.units[k];
+            let Some(squad) = unit.squad.as_mut() else {
+                return;
+            };
+            if let Some(soldier) = squad
+                .soldiers
+                .iter_mut()
+                .filter(|s| s.alive())
+                .nth(pick as usize)
+            {
+                soldier.hp = 0;
+            }
+            unit.hp = squad.soldiers.iter().map(|s| s.hp).sum();
+            if unit.hp == 0 {
+                let at = Vec3::new(unit.position.x, unit.position.y, unit.height);
+                self.destroy(k, by, at);
+            }
+            return;
+        }
     }
 
     /// Every living soldier of squad `k` dies with `pct` percent, rolled

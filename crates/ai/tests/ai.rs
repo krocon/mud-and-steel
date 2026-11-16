@@ -292,3 +292,68 @@ fn hard_uses_artillery_and_smoke() {
     );
     assert!(shells > 0, "the mortar never fired");
 }
+
+/// Prompt 034: the AI carries its infantry to the front in a truck,
+/// unloads it short of the enemy, and fetches a towed gun from the rear and
+/// sets it up behind the army.
+#[test]
+fn ai_rides_trucks_and_tows_guns() {
+    let mut config = demo_config();
+    config.spawns.retain(|s| s.unit_type.contains("_inf_"));
+    for s in &mut config.spawns {
+        if s.owner == PlayerId(1) {
+            s.position.y -= sim::Fixed::from_num(150);
+        }
+    }
+    let catalog = sim::Catalog::builtin().unwrap();
+    let scale = sim::Scale::builtin().unwrap();
+    config.unit_types.extend(
+        sim::unit_types_from_catalog(&catalog, &scale, &["de_opel_blitz", "de_pak40"]).unwrap(),
+    );
+    let own = config.spawns[0].position;
+    let enemy = config
+        .spawns
+        .iter()
+        .find(|s| s.owner == PlayerId(1))
+        .unwrap()
+        .position;
+    let away = own - enemy;
+    let back = away.scale(sim::Fixed::from_num(120) / away.length());
+    let truck = UnitId(u32::try_from(config.spawns.len()).unwrap());
+    let gun = UnitId(truck.0 + 1);
+    for (unit, position) in [
+        ("de_opel_blitz", own + Vec2::from_meters(15, 0)),
+        ("de_pak40", own + back),
+    ] {
+        config.spawns.push(sim::Spawn {
+            owner: PlayerId(0),
+            unit_type: unit.into(),
+            position,
+            fire_mode: FireMode::FireAtWill,
+        });
+    }
+    let players = [
+        (PlayerId(0), Difficulty::Normal),
+        (PlayerId(1), Difficulty::Passive),
+    ];
+    let mut game = Game::new(&config, builtin_map(), 6, &players).unwrap();
+    let (mut rode, mut unloaded, mut towed, mut unlimbered) = (false, false, false, false);
+    while game.sim().outcome().is_none() && game.sim().tick() < MAX_TICKS {
+        let decisions = game.think();
+        for command in decisions.iter().flatten() {
+            match command {
+                Command::Disembark { units } if units.contains(&truck) => unloaded = true,
+                Command::Unlimber { .. } => unlimbered = true,
+                _ => {}
+            }
+        }
+        game.step(decisions);
+        let now = game.sim().snapshot();
+        rode |= now.units.iter().any(|u| u.carrier == Some(truck));
+        towed |= now.units.iter().any(|u| u.id == gun && u.carrier.is_some());
+    }
+    assert!(
+        rode && unloaded && towed && unlimbered,
+        "rode {rode}, unloaded {unloaded}, towed {towed}, unlimbered {unlimbered}"
+    );
+}
