@@ -93,6 +93,11 @@ pub struct PlayerView {
     pub mines: Vec<sim::MineView>,
     /// Field works: finished ones of everybody, sites of the own team.
     pub works: Vec<sim::WorkView>,
+    /// Own bridge-laying tanks (prompt 055).
+    pub layers: Vec<sim::LayerView>,
+    /// Whether every bridge of the map stands (public: one sees a bridge
+    /// is down), laid bridges after the map's own.
+    pub bridges_intact: Vec<bool>,
 }
 
 impl PlayerView {
@@ -180,6 +185,12 @@ impl PlayerView {
             sources: sim.supply_sources(player),
             mines: sim.mines_for(player),
             works: sim.works_for(player),
+            layers: sim
+                .layers()
+                .into_iter()
+                .filter(|l| l.owner == player)
+                .collect(),
+            bridges_intact: sim.map().bridges().iter().map(|b| b.intact).collect(),
         }
     }
 }

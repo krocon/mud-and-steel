@@ -13,6 +13,7 @@
 
 mod air;
 mod artillery;
+mod bridgelayer;
 mod economy;
 mod engineers;
 pub mod game;
@@ -308,6 +309,12 @@ pub struct Ai {
     supply: supply::SupplyState,
     /// Low ammunition and fuel in percent (`data/logistics.toml`).
     low_stock: (u8, u8),
+    /// The river crossing and the bridge-laying tank (prompt 055).
+    #[serde(default)]
+    layers: bridgelayer::LayerPlan,
+    /// Per unit type: a bridge-laying tank.
+    #[serde(default)]
+    is_layer: Vec<bool>,
 }
 
 impl Ai {
@@ -490,6 +497,16 @@ impl Ai {
             air: air::AirState::default(),
             transport: transport::TransportState::default(),
             engineers: engineers::EngineerState::new(map, home, enemy_home),
+            layers: bridgelayer::LayerPlan::new(map, home, enemy_home),
+            is_layer: config
+                .unit_types
+                .iter()
+                .map(|t| {
+                    sim::economy::builtin_catalog()
+                        .and_then(|c| c.get(&t.name))
+                        .is_some_and(|e| e.category == sim::catalog::Category::Bridgelayer)
+                })
+                .collect(),
             tow_min_hp_per_tonne: transport_rules
                 .as_ref()
                 .map_or(8, |r| r.towing.min_hp_per_tonne),
@@ -558,6 +575,7 @@ impl Ai {
         self.command_transport(view, &mut out);
         self.command_supply(view, &mut out);
         self.command_engineers(view, &mut out);
+        self.command_layers(view, &mut out);
         let mut roles: Vec<Role> = Vec::new();
         for u in view.own.iter().filter(|u| u.alive()) {
             let role = self.type_info(u.unit_type).role;
