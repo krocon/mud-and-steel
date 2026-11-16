@@ -1,0 +1,68 @@
+# Sound effects to generate with ElevenLabs (prompt 069): `just sfx-generate <group>`.
+# Read by tools/audio/elevenlabs_sfx.py; the output goes to docs/.sfx/generated/
+# (gitignored) for listening. Only what passes the listening test against real
+# recordings moves to assets-src/audio/, with a row in docs/SOURCES.md.
+#
+# Per [[sound]]: name (file name), group (what a run selects), class (target sound
+# class or weapon slug), prompt, duration_seconds (0.5 to 30; 40 credits per second),
+# variants (calls), loop, prompt_influence (0 to 1, default 0.3: higher follows the
+# prompt more closely and varies less), model.
+#
+# Prompts describe the sound (calibre, rate of fire, distance, surroundings) and never
+# name games, films or brands. Keep the file a plain list: strings, numbers, booleans.
+
+model = "eleven_text_to_sound_v2"
+prompt_influence = 0.5
+
+# --- first: the first run, 12 calls, gaps without a free recording ------------------
+
+[[sound]]
+name = "ricochet"
+group = "first"
+class = "hit_ricochet"
+prompt = "A solid steel anti-tank shot glances off thick sloped armour plate: one bright hard metallic clang, then the projectile whines away, falling in pitch. Outdoors, close, dry, no reverb, no music, no voices."
+duration_seconds = 1.5
+variants = 3
+
+[[sound]]
+name = "penetration"
+group = "first"
+class = "hit_penetration"
+prompt = "An armour-piercing shell punches through thick steel plate: a heavy sharp metal impact followed at once by a dull muffled bang inside a hollow steel hull. Close, dry, no reverb, no music, no voices."
+duration_seconds = 1.5
+variants = 3
+
+[[sound]]
+name = "mg_on_armor"
+group = "first"
+class = "hit_bullet_armor"
+prompt = "A short burst of rifle-calibre bullets hits thick steel plate: five quick hard metallic pings and ticks, some with a small whine. Close, dry, no gunshots, no reverb, no music, no voices."
+duration_seconds = 1.0
+variants = 3
+
+[[sound]]
+name = "tracks_loop"
+group = "first"
+class = "tracks"
+prompt = "Steel tank tracks of a 1940s tank rolling on a dirt road at steady speed: rhythmic metallic clatter and squeal of track links over the wheels, no engine sound. Steady, close, dry, no music, no voices."
+duration_seconds = 8.0
+loop = true
+variants = 1
+
+[[sound]]
+name = "engine_heavy_loop"
+group = "first"
+class = "engine_track_heavy"
+prompt = "A large 1940s petrol V12 tank engine under steady load at medium revs, heard from outside next to the hull: deep rumbling exhaust, no track noise. Steady, close, dry, no music, no voices."
+duration_seconds = 8.0
+loop = true
+variants = 1
+
+[[sound]]
+name = "engine_light_loop"
+group = "first"
+class = "engine_track_light"
+prompt = "A small 1940s six-cylinder petrol engine of a light tank under steady load at medium revs, heard from outside: rattling exhaust, higher and lighter than a heavy tank, no track noise. Steady, close, dry, no music, no voices."
+duration_seconds = 8.0
+loop = true
+variants = 1

@@ -1,4 +1,4 @@
-# Prompt 069 – Sound-Verbesserungen: Kettenfahrzeuge und MG
+# Prompt 069 – Sound-Verbesserungen: Kettenfahrzeuge, MG, Panzerschüsse, Treffer, Explosionen
 
 > In einer frischen Session im Repo-Ordner ausführen. Lies zuerst `CLAUDE.md`,
 > `docs/SOURCES.md` (Abschnitt „Sounds“), `docs/AUDIO_LIBRARY.md` (vor allem „Key
@@ -7,7 +7,7 @@
 
 ## 1. Ziel
 
-Zwei Klanggruppen überzeugen noch nicht und werden besser:
+Fünf Klanggruppen überzeugen noch nicht und werden besser:
 
 - **Kettenfahrzeuge:** Fahrgeräusch (Motor unter Last) und Kettenrasseln. Heute je eine
   synthetische Schleife in `engine_track_light`, `engine_track_heavy`,
@@ -15,8 +15,21 @@ Zwei Klanggruppen überzeugen noch nicht und werden besser:
 - **MG-Feuer:** die Klasse `shot_mg` (vier synthetische Varianten) und die Waffenordner
   `godot/assets/audio/weapon/mg_*` (heute Lubini 338242, laut Kommentar dort mit zu
   niedriger Feuerrate).
+- **Panzerschüsse:** `shot_cannon_small`, `shot_cannon_medium`, `shot_cannon_large`
+  (synthetisch). Es fehlen Druck, der scharfe Mündungsknall und der Nachhall im
+  Gelände; die Kaliber unterscheiden sich zu wenig.
+- **Treffer:** `hit_shell`, `hit_shell_small`, `hit_penetration`, `hit_ricochet`,
+  `hit_bullet_armor` (synthetisch). Ein Durchschlag, ein Abpraller und ein Einschlag
+  im Boden sollen sich auf Anhieb unterscheiden lassen.
+- **Explosionen:** `explosion_vehicle`, `explosion_tail`, `crater`, dazu der Einschlag
+  von Sprenggranaten. Es fehlen Wucht im Bass, Trümmer und ein langer Ausklang.
 
-Am Ende klingen ein fahrender Panzer und ein feuerndes MG im Spiel glaubwürdig, jede
+Für diese drei Gruppen hat der Nutzer keine Kandidaten genannt: die Session sucht
+selbst, zuerst in `docs/AUDIO_LIBRARY.md`, dann bei Freesound (CC0, CC BY), zuletzt
+über ElevenLabs.
+
+Am Ende klingen ein fahrender Panzer, ein feuerndes MG, ein Panzerschuss, sein Treffer
+und eine Explosion im Spiel glaubwürdig, jede
 neue Datei hat eine geklärte Lizenz und eine Zeile in `docs/SOURCES.md`, und es steht
 fest, ob ElevenLabs als Quelle für weitere Sounds taugt.
 
@@ -37,6 +50,12 @@ auf der Seite selbst nachgelesen wurde.
   solange die Prüfung in Schritt 1 nichts anderes ergibt.
 - Für Ketten liegen dort geprüfte Alternativen: Zeilen 10 (Sherman, CC BY-SA),
   11 (T-26, CC0), 12 und 13 (YleArkisto, CC BY 4.0).
+- Für Schüsse, Treffer und Explosionen liegen dort: Zeile 21 (Geschütz, CC0, schon in
+  `shot_howitzer`), 23 (Artillerie), 25 (EOD-Detonation), 26 und 27 (ferne
+  Explosionen, Ausklang), 28 (Trümmer), 29 (Beton), 30 (Metall-Einschläge, Foley).
+- Wie Schüsse, Treffer und Explosionen heute geschichtet werden (Knall, Ausklang,
+  Schallverzögerung, Hall, Zoom-Akustik), steht in `prompts/done/053-sound-stufe2.md`
+  und `prompts/done/054-explosionen-stufe2.md`.
 - Vier vom Nutzer mit ElevenLabs erzeugte MG-Dateien liegen in `docs/.sfx/MG-Sound/`
   (`Firing_sound_of_the__#1…#4-….wav`, je 5 s, 48 kHz, 16 bit, Stereo). Der Ordner
   `docs/.sfx/` ist gitignored und dient als Eingang für Rohmaterial.
@@ -88,9 +107,28 @@ auf der Seite selbst nachgelesen wurde.
    Varianten je Waffe, kein hörbares Wiederholungsmuster. Schnelle MG (MG 42) und
    langsame MG klingen verschieden. Überschallknall, Schallverzögerung und Hall aus
    Prompt 053 bleiben unverändert wirksam.
-5. **ElevenLabs bewerten** (siehe Abschnitt 5) und, wenn freigegeben, gezielt Lücken
+5. **Panzerschüsse einbauen.** Drei Kaliberstufen, die man blind auseinanderhält
+   (etwa 20–50 mm, 75–88 mm, ab 100 mm). Jeder Schuss aus Schichten: harter
+   Mündungsknall, Körper im Bass, Ausklang im Gelände; mindestens vier Varianten je
+   Stufe. Nah und fern müssen beide stimmen (Zoom-Akustik und Entfernungsfilter aus
+   053 anhören, nicht umbauen). Abgrenzen gegen `shot_howitzer` (dumpfer, länger).
+6. **Treffer einbauen.** Durchschlag (Metallschlag plus dumpfer Innenknall),
+   Abpraller (heller Schlag mit wegziehendem Sirren), Sprenggranate auf Panzerung,
+   Einschlag im Boden, MG-Garbe auf Panzerung (kurzes Prasseln). Kurz halten, damit
+   viele Treffer nacheinander nicht verschmieren; mindestens drei Varianten je Klasse.
+7. **Explosionen einbauen.** Fahrzeugexplosion mit Bass, Trümmern und Ausklang
+   (Munitionsbrand als eigene Schicht, wenn vorhanden), Granateinschlag nach
+   Kalibergröße gestaffelt, `explosion_tail` als ferner Nachhall. Echte Detonationen
+   bevorzugen (Zeilen 22, 25–28), mit Trümmer-Foley schichten. Pegel prüfen: zehn
+   Explosionen gleichzeitig dürfen nicht übersteuern (Begrenzer und Prioritäten aus
+   029/053 nutzen, nicht ändern).
+8. **Zusammen anhören.** Ein Gefecht mit Panzern, MG und Artillerie nachstellen und
+   prüfen, dass Schuss, Treffer und Explosion sich gegenseitig nicht zudecken und die
+   Reihenfolge (Schuss, Flugzeit, Treffer) hörbar bleibt. Kurze Aufnahme oder
+   Pegelmessung als Beleg im Abschlussbericht.
+9. **ElevenLabs bewerten** (siehe Abschnitt 5) und, wenn freigegeben, gezielt Lücken
    füllen.
-6. **Doku und Nachweise:** Zeilen in `docs/SOURCES.md` vor dem Commit, `CREDITS.md` bei
+10. **Doku und Nachweise:** Zeilen in `docs/SOURCES.md` vor dem Commit, `CREDITS.md` bei
    Nennungspflicht, `docs/AUDIO_LIBRARY.md` (neue Tabelle, „Key decisions“ ergänzen),
    `docs/ASSETS.md` falls sich die Ablage ändert. Danach `just audio`, `just import`.
 
@@ -98,7 +136,8 @@ auf der Seite selbst nachgelesen wurde.
 
 Der Nutzer hat ein Konto und fragt, ob es sinnvoll ist, Sounds über die API erzeugen zu
 lassen. Einschätzung vorab: sinnvoll für Varianten und Lücken (Kettenrasseln,
-Motorschleifen, Nachladen, entfernte Feuerstöße), weil Länge und Schleife steuerbar
+Motorschleifen, Nachladen, entfernte Feuerstöße, Treffer auf Panzerung, Abpraller,
+Trümmer), weil Länge und Schleife steuerbar
 sind und die Rechte beim bezahlten Tarif klar sind; nicht als Ersatz für echte
 Aufnahmen benannter Waffen, wo es welche gibt (Authentizität), und nur nach Hörprobe.
 
@@ -114,7 +153,8 @@ Aufnahmen benannter Waffen, wo es welche gibt (Authentizität), und nur nach Hö
    `ELEVENLABS_API_KEY`, die der Nutzer selbst setzt: nie ins Repo, nie in den Chat,
    nie in Protokolle.
 4. Vor dem ersten Lauf Anzahl der Aufrufe und geschätzte Kosten nennen und auf
-   Freigabe warten. Erster Lauf höchstens 12 Sounds.
+   Freigabe warten. Erster Lauf höchstens 12 Sounds, danach je
+   Gruppe neu freigeben lassen.
 5. Prompts beschreiben den Klang (Kaliber, Feuerrate, Entfernung, Umgebung,
    „trocken, ohne Hall, ohne Musik, ohne Stimmen“), nennen aber keine Spiele, Filme
    oder Marken.
@@ -123,8 +163,9 @@ Aufnahmen benannter Waffen, wo es welche gibt (Authentizität), und nur nach Hö
 ## 6. Nicht in diesem Prompt
 
 - Keine Änderung an `crates/sim`; der Golden-Hash bleibt.
-- Keine anderen Klangklassen (Explosionen, Stimmen, Musik, Ambiente), außer ein Fund
-  drängt sich auf: dann melden, nicht nebenbei einbauen.
+- Keine anderen Klangklassen (Stimmen, Musik, Ambiente, Flugzeuge, Gebäude, Feuer,
+  Oberfläche), außer ein Fund drängt sich auf: dann melden, nicht nebenbei einbauen.
+- Keine Änderung an den sichtbaren Explosionen (Prompt 054), nur am Ton.
 - Kein Umbau der Audio-Architektur aus Prompt 029/053 (Busse, Prioritäten, Hall).
 - Kein Abschluss eines Abos, kein Anlegen von Konten.
 
@@ -132,10 +173,13 @@ Aufnahmen benannter Waffen, wo es welche gibt (Authentizität), und nur nach Hö
 
 1. Jede Quelle aus Abschnitt 3 hat ein Urteil mit Beleg (Lizenzstelle, Datum der
    Prüfung) in `docs/AUDIO_LIBRARY.md`.
-2. `engine_track_*`, `tracks` und die MG-Klassen bzw. MG-Waffenordner spielen die
+2. `engine_track_*`, `tracks`, die MG-Klassen bzw. MG-Waffenordner, `shot_cannon_*`,
+   die Treffer-Klassen und die Explosions-Klassen aus Abschnitt 1 spielen die
    gewählten Dateien; jede davon hat ihre Zeile in `docs/SOURCES.md`, bei
    Nennungspflicht auch in `CREDITS.md`.
-3. Schleifen laufen ohne Knackser; MG-Ton und Feuerrate der Sim passen zusammen.
+3. Schleifen laufen ohne Knackser; MG-Ton und Feuerrate der Sim passen zusammen;
+   die drei Kaliberstufen und die Trefferarten sind nach Gehör unterscheidbar; ein
+   großes Gefecht übersteuert nicht.
 4. Kein Material mit Weitergabeverbot liegt in git.
 5. `just check` und `just selftest` grün.
 6. Abschlussbericht: was ersetzt wurde, woher, mit welcher Lizenz, wie ich es anhöre
@@ -150,6 +194,8 @@ Aufnahmen benannter Waffen, wo es welche gibt (Authentizität), und nur nach Hö
 | Welchen ElevenLabs-Tarif hast du, und mit welchem Prompt sind die vier MG-Dateien entstanden? | Ohne bezahlten Tarif keine kommerzielle Nutzung: dann nur als Hörvorlage. |
 | Echte Aufnahme oder KI, wenn beide gut klingen? | Echte Aufnahme für benannte Waffen und Fahrzeuge, KI für Varianten, Schleifen und Lücken. |
 | Ein Kettenklang je Gewichtsklasse oder je Nation? | Zuerst leicht/schwer plus Halbkette; Nationen nur, wenn passende Aufnahmen vorliegen (Sherman, T-26). |
+| Reihenfolge, wenn die Session zu groß wird? | Erst Panzerschüsse, Treffer und Explosionen (hört man ständig), dann MG, dann Ketten; jede Gruppe mit eigenem Commit, sodass ein Abbruch nichts Halbes hinterlässt. |
+| Eigene Klänge je Geschütz (8,8 cm, 7,5 cm, 76 mm)? | Nein, drei Kaliberstufen; einzelne Geschütze nur, wenn eine echte Aufnahme vorliegt (Ablage wie bei `weapon/<slug>/`). |
 | Epidemic Sound abonnieren? | Nein, solange freie Quellen und ElevenLabs reichen; nur vorlegen, falls die Lizenz Spiele ausdrücklich erlaubt. |
 
 ## Arbeitsweise

@@ -162,7 +162,7 @@ Zeichnungen bleiben Referenz auf dem Rechner.
 | 066 | [Einheitenwerte im Spiel](done/066-einheitenwerte-im-spiel.md) | Kennzahlen im Picker, Tooltip, Einheitenkarte, Nachschlagewerk im Hauptmenü | erledigt (Taste Umschalt + I statt I, weil I „Sichern“ ist; offen: Vorhersage beim Zielen, auf kleinen Fenstern verdeckt die Karte die Einheitenanzeige) |
 | 067 | [Typische Kampfentfernungen](done/067-typische-kampfentfernungen.md) | Typische statt maximale Reichweiten im Katalog, mit Quellen; Balance neu messen | erledigt (`range_typical_m` je Waffe, Klassenwerte mit Quellen; Direktfeuer × 1/4 bleibt; Gefecht 49 / 48 / 46 % statt 48 / 41 / 47 %; neuer Preisfaktor Mündungsgeschwindigkeit vorläufig; offen: USA im Basis-Modus 15 %, siehe `docs/BALANCE.md`) |
 | 068 | [Wiese: Artefakte bei Kamerabewegung](068-wiese-artefakte-bei-kamerabewegung.md) | Flimmern und Moiré des Rasens beim Bewegen des Bildausschnitts nachstellen, messen, Ursache eingrenzen; kleine Ursachen beheben | offen |
-| 069 | [Sound-Verbesserungen](069-sound-verbesserungen.md) | Kettenfahrzeuge (Motor, Kettenrasseln) und MG-Feuer mit besseren Aufnahmen; Pixabay-, Epidemic- und ElevenLabs-Kandidaten auf Lizenz und Klang prüfen; ElevenLabs-API als Quelle bewerten | offen |
+| 069 | [Sound-Verbesserungen](069-sound-verbesserungen.md) | Kettenfahrzeuge (Motor, Kettenrasseln), MG-Feuer, Panzerschüsse, Treffer und Explosionen mit besseren Aufnahmen; Pixabay-, Epidemic- und ElevenLabs-Kandidaten auf Lizenz und Klang prüfen; ElevenLabs-API als Quelle bewerten | offen |
 
 ```
 063 Vorab-Session ─┬─ 063 Modell-Sessions (9 parallel) ─ zusammenführen

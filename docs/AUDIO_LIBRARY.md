@@ -28,6 +28,9 @@ Sonniss GDC = https://sonniss.com/gdc-bundle-license/ .
 | Repo-safe licenses | CC0 and public domain: commit freely. CC BY / CC BY 4.0: commit, and add the author to the credits screen (prompt 044). CC BY-SA: commit; the edited sound file itself stays CC BY-SA (code is not affected); credit needed. |
 | Sonniss GDC bundles | Commercial use, no attribution, but the license forbids supplying the sounds "as sound effects" to others, modified or not, and forbids AI training. Fine for the shipped game and a private repository; **not** for a repository that is or may become public. Keep them out of git (a local `assets-src/audio-private/`, gitignored) until the repository's visibility is decided. |
 | Pixabay, Mixkit, 99Sounds, ZapSplat | Commercial use allowed, but standalone redistribution forbidden (and ZapSplat's free tier needs credit). Same handling as Sonniss; low priority, origin of uploads uncertain. |
+| Repository visibility (prompt 069) | The GitHub repository is **public** (checked 2026-11-16). Everything with a ban on standalone redistribution (Sonniss, Pixabay, ElevenLabs output, see below) therefore stays out of git: `assets-src/audio-private/` and `docs/.sfx/` are gitignored. The game files in `godot/assets/audio/` are committed too, so such material cannot be built into the game from this repository as long as it is public. |
+| ElevenLabs Sound Effects (prompt 069) | Output may be used and modified in games, commercially only on a paid plan (the free plan has no commercial license and needs the credit "elevenlabs.io"); content generated during a paid subscription stays usable. The terms forbid distributing output on a standalone basis or "as isolated audio files or samples": same handling as Pixabay, not in a public repository. Generation: `just sfx-generate` (40 credits per second), into `docs/.sfx/generated/` for listening only. |
+| Epidemic Sound (prompt 069) | Excluded. Subscription service; publishing in games and apps is a perk of the Business plan only, the clearance is tied to the active subscription, and no account exists. |
 | Excluded on purpose | CC BY-NC / CC BY-ND (e.g. most Fight2FlyPhoto P-51 and Bf 109 taxi files, smill.and.welson, HDVideoGuy M1 Carbine, RavenWolfProds); craigsmith "Vintage/SSE" packs on Freesound (labelled CC0, but transfers of 1930s–60s Hollywood and TV studio effects: film content, unclear rights chain); morganpurkis "MG42 SFX" (edited game sound); "Stuka siren" uploads (look like film rips); OpenGameArt "Tiny Naval Battle Sounds Set" (provenance complaint). |
 | Historical archive audio | WW2-era recordings are mostly still protected (US: until about 2040–2046 unless a US government work). Speeches and broadcasts are excluded anyway (no ideology). NARA, LoC and archive.org need a rights check per item; none passed. Use modern recordings of surviving hardware instead. |
 | Modern government footage (DVIDS, qubodup's US Army extracts) | Generally public domain as US government works, but DVIDS warns about third-party content and the source videos are often gone. Usable with a per-clip note; modern weapons, video-quality audio. |
@@ -103,6 +106,69 @@ CC0, designed from a motor), Firefight distant bed
 ([404334](https://freesound.org/people/TheBuilder15/sounds/404334/), CC0, 20 s), whistle
 for `shell_incoming` ([398255](https://freesound.org/people/morganpurkis/sounds/398255/),
 CC0, synthesized; the same uploader's MG42 is a game rip, so check before use).
+
+## Candidates named by the maintainer (prompt 069)
+
+Checked on 2026-11-16 by opening each page in a browser. Same columns as above, plus the
+verdict: **repo** (may be committed), **local** (only `assets-src/audio-private/` or
+`docs/.sfx/`, never git), **excluded**. Pixabay shows no sample rate or file size on the
+page; downloads are MP3.
+
+| # | Sound | Page | Author / origin | License | Comm. | Attr. | Format | Rate / bit | Size / length | Quality | Use (class) | Verdict |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| P1 | Tank Moving | [143104](https://pixabay.com/de/sound-effects/film-spezialeffekte-tank-moving-143104/) | DennisH18; origin n/s, generic description | [Pixabay Content License](https://pixabay.com/service/license-summary/): free, no credit, no standalone distribution | Yes | No | MP3 | n/s | n/s / 10 s | Not heard yet; origin of the recording unknown | `engine_track_*` | **local**, listening sample only until the origin is known |
+| P2 | Tank Moving sfx | [319878](https://pixabay.com/de/sound-effects/film-spezialeffekte-tank-moving-sfx-319878/) | Kave_msri ("composer for film and documentary"); origin n/s; asks for credit | Pixabay Content License | Yes | No (asked for) | MP3 | n/s | n/s / 2:00 | Not heard yet; 2 minutes would give long loops | `engine_track_*` | **local**, listening sample only |
+| P3 | Tank Track Ratteling | [197409](https://pixabay.com/de/sound-effects/film-spezialeffekte-tank-track-ratteling-197409/) | u_3rdmeaw7un (anonymous account, 3 followers); origin n/s | Pixabay Content License | Yes | No | MP3 | n/s | n/s / 5 s | Not heard yet; anonymous upload, could be taken from anywhere | `tracks` | **local**, listening sample only; lowest trust |
+| P4 | Semi-Auto Rifle Simulation | [74566](https://pixabay.com/de/sound-effects/film-spezialeffekte-semi-auto-rifle-simulation-74566/), original: [Freesound 235427](https://freesound.org/people/ALLANZ10D/sounds/235427/) | ALLANZ10D: "Mic capsules were tapped with a Popsicle stick", Zoom H1; no weapon | CC0 on Freesound (take it from there, not from Pixabay) | Yes | No | WAV st | 96 / 16 | 5.2 MB / 14 s | Imitation, a commenter hears a paintball gun; not a machine gun | – | **excluded** for `shot_mg` (license would allow the repo, the sound is not a weapon) |
+| E1 | Vehicles, Military (category: T-72 cannon shots, BMP-1, MT-LB, trucks) | [Epidemic Sound](https://www.epidemicsound.com/de/sound-effects/categories/vehicles/military/) | Epidemic Sound library; modern Soviet vehicles | Subscription; games and apps only in the Business plan, cleared only while subscribed | Only with plan | No | n/s | n/s | n/s | Professional | – | **excluded** |
+| E2 | Guns, Automatic, Machine Gun, PKM, Shots, Bursts, Perspective 1 | [Epidemic Sound](https://www.epidemicsound.com/sound-effects/tracks/14994f5a-4588-4769-9e1c-6a75d69c1eb8/) | Epidemic Sound library; PKM (1961), an MG42 file exists in the same series | as E1 | Only with plan | No | n/s | n/s | n/s | Professional | – | **excluded** |
+| L1 | Four machine-gun bursts, `docs/.sfx/MG-Sound/` | generated by the maintainer | ElevenLabs Sound Effects; prompt, model and plan still to be named | [ElevenCreative Terms](https://elevenlabs.io/sound-effects-terms), Exhibit 4 (updated 2026-10-09) | Paid plan only | Free plan only | WAV st | 48 / 16 | 938 KB / 5 s each | Measured: bursts of 0.6 to 2.2 s at 9 to 12 rounds/s, then silence; #1 has 43 % of its energy below 150 Hz, #4 almost none; rate fits Maxim, Vickers, Browning, DP, not the MG 42 (20/s) or MG 34 (15/s) | slow machine guns | **local**; single shots can be cut, but not committed to the public repository |
+
+## Shots, hits, explosions, tracks, machine guns (prompt 069)
+
+Shortlist of a Freesound search on 2026-11-16 for the classes the maintainer named no
+candidates for. License, author, origin and format were read on each sound's own page
+(automated fetch; 332935, 854183, 368671, 255268 and 256300 opened a second time as a
+spot check). **None has been listened to yet**; noise, voices and clipping are open
+until the downloads are agreed. All are repo-safe; CC BY rows need a credit.
+
+| Group | Freesound id | Title | Author / origin | License | Format, length | Use |
+|---|---|---|---|---|---|---|
+| Cannon, small | [854183–854186](https://freesound.org/s/854183/) | Autocannon Shot 1–3, Three Shot Burst | qubodup; likely 25 mm M242 on a LAV-25, USMC B-roll 2016 | CC0 | WAV mono 48/16, 0.9–1.9 s | `shot_cannon_small` |
+| Cannon, medium | [332935](https://freesound.org/s/332935/) | Big gun, cannon, 76 mm, single shots | YleArkisto; 76 mm field gun, 1958, Nagra tape | CC BY 4.0 | WAV st 48/24, 34 s | `shot_cannon_medium` |
+| Cannon, medium | [168707](https://freesound.org/s/168707/), [67525](https://freesound.org/s/67525/) | Tank Firing; xm360 canon shot 1 no echo | qubodup; US military videos | CC0 | FLAC st 44.1/24, 1 s each | `shot_cannon_medium` crack and body layers |
+| Cannon, large | [332934](https://freesound.org/s/332934/) | Big gun, cannon, 155 mm, 2 x, long hefty echo | YleArkisto; 155 mm field gun, 1957 | CC BY 4.0 | WAV st 48/24, 36 s | `shot_cannon_large` body and tail |
+| Cannon, large | [67519](https://freesound.org/s/67519/), [67520](https://freesound.org/s/67520/), [189344](https://freesound.org/s/189344/) | m1a1 abrams canon shot 1 (with and without echo); Tanks Shooting | qubodup; US military videos, 120 mm | CC0 | FLAC st, 0.4–35 s | `shot_cannon_large` crack layer |
+| Hit, armor | [530209](https://freesound.org/s/530209/), [329515](https://freesound.org/s/329515/), [386108](https://freesound.org/s/386108/) | Debris Falling on Tank 1; Big stereo metal hit; Anvil, hammer on 16 mm steel | Richard27, LPA134, ldezem; own foley | CC0 | WAV, 1.7–3.3 s | `hit_penetration`, `hit_shell_small` metal layer |
+| Hit, ricochet | [394183](https://freesound.org/s/394183/), [394187](https://freesound.org/s/394187/), [523403](https://freesound.org/s/523403/) | Ricochet 2, Ricochet 4; 22 caliber with ricochet | saturdaysoundguy (slingshot off rock), C-V (.22 rifle) | CC0 | WAV 48/24, 0.8–2.1 s | `hit_ricochet` |
+| Hit, ricochet | [74393](https://freesound.org/s/74393/) | Ricochet 1 | Benboncan; air rifle slug off granite | CC BY 4.0 | WAV st 44.1/16, 1.2 s | `hit_ricochet` |
+| Hit, bullets on metal | [182240](https://freesound.org/s/182240/) | Foley bullet hit metal | martian; foley, many hits | CC0 | WAV mono 44.1/16, 28 s | `hit_bullet_armor` |
+| Hit, bullets on metal | [237438](https://freesound.org/s/237438/) | bulletimpact_metal1 | NoiseCollector; steel BBs on a metal cover | CC BY 3.0 | WAV mono 48/16, 0.6 s | `hit_bullet_armor` |
+| Hit, earth | [569734](https://freesound.org/s/569734/), [319222](https://freesound.org/s/319222/), [640204](https://freesound.org/s/640204/) | Gravel Stone Dirt Debris Falling Small; Single Rock hit Dirt; Heavy Metal Thud on Ground | Sheyvan, worthahep88, 7of9Designs | CC0 | WAV / MP3, 0.8–2.2 s | `crater`, dirt layer of `hit_shell` |
+| Explosion | [182797](https://freesound.org/s/182797/) | Windy Explosion | qubodup; forced ammunition explosion, US government video | CC0 | FLAC st 48/16, 12 s | `explosion_vehicle` |
+| Explosion | [131555](https://freesound.org/s/131555/) | Miners Explosion | shaynecantly; blast at a coal mine | CC BY 3.0 | WAV st 44.1/16, 6 s | `explosion_vehicle`, `hit_shell` |
+| Explosion | [737321](https://freesound.org/s/737321/), [734094](https://freesound.org/s/734094/) | Pipe Bomb; Explosion Pine Forest 200m | modusmogulus; designed from own recordings | CC0 | WAV st 48, 5–7 s | `hit_shell`, `explosion_tail` |
+| Explosion | [256300](https://freesound.org/s/256300/), [256297](https://freesound.org/s/256297/) | hand grenade, echoing; echoing loud explosion, patter | YleArkisto; 1999 and 1989, DAT | CC BY 4.0 | WAV st 48/16, 8–18 s | `hit_shell` |
+| Explosion, distant | [256299](https://freesound.org/s/256299/), [256296](https://freesound.org/s/256296/) | Explosion in the woods little further away, echoing | YleArkisto; 1989 and 1984 | CC BY 4.0 | WAV st 48, 5–17 s | `explosion_tail` |
+| Debris | [587443](https://freesound.org/s/587443/), [378670](https://freesound.org/s/378670/) | Scrap metal dropping; Falling scrap metal | SamsterBirdies, 13FPanská_Tolar_David | CC0 | FLAC / WAV, 4–18 s | debris layer of `explosion_vehicle` |
+| Machine gun, slow | [160772](https://freesound.org/s/160772/) | Maxim Russian machinegun very near | poissonmort; own recording, 1–10 m | CC BY 4.0 | WAV st 44.1/16, 14 s | Maxim, DP, Browning, Vickers |
+| Machine gun, slow | [255270](https://freesound.org/s/255270/) | Russian Maxim, solid sustained fire nearby | YleArkisto; 1984, Nagra | CC BY 4.0 | WAV st 48/24, 1:48 | as above |
+| Machine gun, fast | [255268](https://freesound.org/s/255268/) | Russian Maxim with an accelerator, sustained fire | YleArkisto; 1984 | CC BY 4.0 | WAV st 48/24, 1:16 | stand-in for MG 34 / MG 42 if the cadence fits (measure) |
+| Machine gun | [854345](https://freesound.org/s/854345/), [854641](https://freesound.org/s/854641/) | Machine Gun 5 Shot Burst; single shot | qubodup; likely M240, US Army B-roll | CC0 | WAV mono 48/16, 0.6 s | single shots to rebuild a faster burst |
+| Machine gun, heavy | [183656](https://freesound.org/s/183656/) | 50 Caliber MG | qubodup; US government video | CC0 | FLAC st 48/16, 36 s | M2, DShK |
+| Tank engine | [368671](https://freesound.org/s/368671/), [368670](https://freesound.org/s/368670/) | Sherman E8 driving; starting up and running | nicStage; real M4A3E8 at Drive a Tank, Kasota | CC BY 4.0 | WAV mono 48/24, 83 s and 43 s | `engine_track_heavy`, idle |
+| Tank engine and tracks | [572293](https://freesound.org/s/572293/) | tank_ride_mono | monosfera; vehicle n/s | CC0 | WAV mono 48/16, 2:40 | `engine_track_light`, `tracks` |
+| Tracks | [386660](https://freesound.org/s/386660/) | Tanks on the street, tracks creaking | YleArkisto; 1969, Nagra | CC BY 4.0 | WAV st 48/24, 75 s | `tracks` |
+| Tracks | [161894](https://freesound.org/s/161894/) | Crawlers rattling and engine sounds | JoniHeinonen; Tampere 2011 | CC BY 3.0 | WAV mono 48/24, 43 s | `tracks` |
+
+Not found under CC0 or CC BY: a real MG 42, MG 34 or MG 3 besides Lubini 338242; Vickers,
+M1919 and DShK firing; a real shell hitting or penetrating armor; a large-calibre
+ricochet; a labelled 75 to 88 mm tank or anti-tank gun (the 76 mm field gun 332935 is
+the closest). Rejected after reading the page: uploads built from unnamed other
+samples (GaryQ 127845, CGEffex, mikiko850 854335), sounds without a stated origin
+(ryanconway 161429, Kinoton 516914, florianreichelt), pure synthesis where a recording
+exists, qubodup 169743 (the description doubts its own public-domain source) and
+JoniHeinonen 161882 (clipping reported).
 
 ## Ten best free packs
 

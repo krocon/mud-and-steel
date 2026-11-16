@@ -519,6 +519,11 @@ audio *classes:
 music *names:
     python3 tools/audio/music.py {{ names }}
 
+# Generate sound effects with ElevenLabs from tools/audio/sfx_prompts.toml into docs/.sfx/generated/ (dry run with the cost; `--yes` calls the API, needs ELEVENLABS_API_KEY; docs/AUDIO_LIBRARY.md)
+[group('sound')]
+sfx-generate *args:
+    python3 tools/audio/elevenlabs_sfx.py {{ args }}
+
 # Play every sound class once, then click to replay (`just sound-gallery --sound-gallery-once` quits after the round)
 [group('sound')]
 sound-gallery *args: build
