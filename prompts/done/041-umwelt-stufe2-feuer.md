@@ -77,3 +77,55 @@ für das Biom (Schnee, Staub, Trockenheit).
 | 9 | **Neue Objekte** aus dem Generator `house` (nur Baupläne): `env_house_town` (Stadthaus, drei Geschosse, Traufe zur Straße, Giebel bündig für Reihen), `env_town_hall` (Rathaus, Werkstein), `env_warehouse` (Lagerhaus, Backstein, Ladetore), `env_house_log` (Blockhaus für Winterkarten). Lager über neues Modul `parts_dumps.py` (einfache Kisten/Fässer, Budget 1500). Alle mit Intact/Damaged/Ruin bzw. Intact/Burnt, Fensterplätze (022) und Sicht (018). „Verschneite Varianten“ liefert der Biom-Shader (Schnee auf Oberseiten), kein eigenes Modell. | Baukasten wiederverwenden; Maße mit Quelle, als `uncertain` markiert. |
 | 10 | **Darstellung:** `fire_view.gd` zeichnet Flammen (Partikel „fire“ aus 019, Anzahl nach Objektgröße), dunkle Rauchsäule, flackerndes Licht (Budget der Grafikstufe, wirkt nachts) und lässt Flammen gegen Ende abklingen; ausgebrannte Objekte werden über ein neues Instanz-Uniform `env_char` verkohlt gezeichnet. Wolken mit `dark` zeichnet `artillery_view.gd` dunkel. Wracks zeichnet weiter `effects.gd`. | Godot zeichnet nur, was die Sim sagt. |
 | 11 | **Karte:** `cli gen-town` erzeugt die Kleinstadt-Karte `town_small` (600 m): Marktplatz mit Rathaus und Kirche, Häuserzeilen an zwei Straßen, Lagerhäuser, Gärten mit Heu und Holz, Bauernhöfe, Wälder (einer von einer Straße geteilt) und je ein Lagerplatz pro Seite. Bahnlinie offen. Keine echten Ortsnamen. | Eigener Generator statt Handarbeit: reproduzierbar, Feuer-Testgelände. |
+
+## Ergebnis
+
+Umgesetzt wie oben; Details in `docs/ARCHITECTURE.md` „Fire“, `docs/MAPS.md`
+„Small town“, `docs/ASSETS.md` (Stadt-/Winterhäuser, Lager, `env_char`),
+`docs/SOURCES.md` „Fire, towns and dumps“.
+
+- **Sim:** `data/fire.toml`, `crates/sim/src/fire.rs`, `crates/sim/src/sim/fire.rs`;
+  `Sim::detonate` (Lager-Explosion mit Splitterregeln aus 032), dunkle Feuerwolken
+  (Wolken aus 032 mit `dark`, auf der Leeseite), `ObjectCause::Fire`. Feuer im Hash
+  und im Snapshot (038). Arbeit jedes Feuers über die Ticks des 2-s-Intervalls
+  verteilt.
+- **Objekte:** `env_house_town`, `env_town_hall`, `env_warehouse`, `env_house_log`
+  (Baupläne für `house`), `env_dump_ammo`, `env_dump_fuel` (`parts_dumps.py`) mit
+  Katalog, Regeln, Zerstörung, Sicht, Fensterplätzen; Heu, Holzstapel und Lager
+  haben Zerstörungsklassen. Editor: Objektliste nach Gruppen.
+- **Darstellung:** `world/fire_view.gd` (Flammen, Rauchsäule, Licht, Verkohlen),
+  `env_char` in den Umwelt-Shadern, dunkle Wolken in `artillery_view.gd`.
+- **Karte:** `cli gen-town` → `data/maps/town_small` (600 m, 64 Stadthäuser, Rathaus,
+  Kirche, 2 Lagerhäuser, 6 Höfe, 1 298 Bäume, 8 Lager); `just map-check town_small` ok.
+- **Tests:** `crates/sim/tests/fire.rs` (Wald brennt und breitet sich aus, nicht
+  über eine 10-m-Lücke, über 4 m Gras ja, über eine Straße nicht; Scheune brennt ab
+  und steckt das Nachbarhaus an; Steinhaus bleibt beschädigt; Munitionslager
+  explodiert nach 3 s Spielzeit, beschädigt LKW und Trupp, zündet das Treibstofflager;
+  Besatzung nimmt Schaden; Granaten neben Heu zünden; Wracks brennen; gleicher Hash),
+  `crates/net/tests/fire_snapshot.rs` (Snapshot mitten im Brand mit laufender
+  Zündschnur), Einheitentests der Regeln, `gen_town`-Test, Godot-Selbsttest
+  `tools/fire_self_test.gd`.
+- **Messung** (`just fire-bench`, M1 Max, release): Stadtkarte, 40 Einheiten je
+  Seite, 6000 Ticks: ohne Feuer 0,09 ms/Tick (max 3,8 ms); mit 81 gelegten Bränden
+  (bis 673 gleichzeitig) 1,7 ms/Tick, max 19,8 ms (Budget 50 ms).
+- **Golden-Hashes** bewusst aktualisiert: Demo `0x3f46fd7493a4935a` (Schlacht jetzt
+  bei Tick 467 statt 480 entschieden, gleicher Sieger, weil brennende Wracks und
+  Zündwürfe den Zufallsgenerator nutzen), Basisbau `0x756aee2dcaf68ff9`.
+
+**Vorläufig (bitte bestätigen):** alle Werte in `data/fire.toml` (Zünd- und
+Ansteckchancen, Reichweiten, Brenndauern, Anteil der Lebenspunkte, Besatzungsschaden
+3 HP/s, Rauch, Lager-Explosion 15 cm / 12 cm mit 6 s / 2 s Zündschnur), Maße der
+neuen Gebäude (Schätzwerte), Lebenspunkte der neuen Zerstörungsklassen.
+
+**Offen:**
+- Objekte: Marktplatz-Ausstattung (Brunnen, Denkmal ohne Bezug), Fabrikhalle mit
+  Schlot, Bahnhof, Gleise, Bahnübergang, Güterwaggons, Wasserturm, Windmühle,
+  Tankstelle, Panzergraben, Wegweiser (leere Schilder); Wüste: Oase, Brunnen (Lehmhaus
+  gibt es schon); verschneite Varianten nur über den Biom-Shader; Bunker, MG-Nest und
+  Sandsackstellung gab es schon (007/008).
+- Karte mit Bahnlinie (braucht Gleise und Bahnhof).
+- Flammenwerfer zünden nicht (keine Sim-Waffe); Wind beeinflusst die Ausbreitung
+  nicht (040); Infanterie meidet Feuer nicht, die KI ignoriert Brände, brennende
+  Gebäude lassen sich noch betreten; kein Löschen.
+- Darstellung nur headless geprüft (Selbsttest zählt Flammen); Optik von Flammen,
+  Verkohlung und dunklem Rauch nicht visuell abgenommen; Feuer-Sounds fehlen (029).
