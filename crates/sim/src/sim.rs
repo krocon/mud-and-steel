@@ -20,6 +20,7 @@ mod combat;
 mod craters;
 mod destruction;
 mod economy;
+mod experience;
 mod fire;
 mod indirect;
 mod infantry;
@@ -37,6 +38,7 @@ use combat::{Attack, CombatState, Projectile, TypeCombat};
 use infantry::{InfantryRt, Squad};
 
 pub use economy::{BuyOption, PlaceError, StructureView, SupplyView};
+pub use experience::ExperienceView;
 pub use infantry::BuildingCondition;
 pub use logistics::{StockView, SupplySource};
 pub use orders::MAX_QUEUED;
@@ -147,6 +149,8 @@ pub enum ConfigError {
     Weather(String),
     /// The built-in field work rules do not parse (prompt 035).
     Works(String),
+    /// The built-in experience rules do not parse (prompt 050).
+    Experience(String),
 }
 
 impl fmt::Display for ConfigError {
@@ -170,7 +174,8 @@ impl fmt::Display for ConfigError {
             | Self::Transport(e)
             | Self::Logistics(e)
             | Self::Weather(e)
-            | Self::Works(e) => {
+            | Self::Works(e)
+            | Self::Experience(e) => {
                 write!(f, "{e}")
             }
         }
@@ -225,6 +230,9 @@ struct Unit {
     /// Ammunition and fuel (prompt 036).
     #[serde(default)]
     stock: logistics::Stock,
+    /// Experience points and kills (prompt 050).
+    #[serde(default)]
+    veterancy: experience::Veterancy,
 }
 
 impl Unit {
@@ -299,6 +307,8 @@ pub struct UnitSnapshot {
     pub loading: bool,
     /// Ammunition, fuel and mobility (prompt 036).
     pub stock: StockView,
+    /// Experience points, rank and kills (prompt 050).
+    pub experience: ExperienceView,
 }
 
 /// Presentation data of one soldier of a squad (prompt 022).
@@ -461,6 +471,8 @@ pub struct Sim {
     weather: weather::WeatherState,
     /// Field works of engineers: mines, obstacles, positions (prompt 035).
     works: works::Works,
+    /// Experience rules and promotions (prompt 050).
+    experience: experience::Experience,
 }
 
 impl Sim {
@@ -619,6 +631,10 @@ impl Sim {
             config.tick_hz,
             config.vision.sight_ratio,
         );
+        let experience = experience::Experience::new(
+            crate::experience::ExperienceRules::builtin()
+                .map_err(|e| ConfigError::Experience(e.to_string()))?,
+        );
         let mut sim = Self {
             tick: 0,
             rng: Rng::new(seed),
@@ -649,6 +665,7 @@ impl Sim {
             logistics,
             weather,
             works,
+            experience,
         };
         sim.init_weather();
         sim.init_economy();
@@ -750,6 +767,7 @@ impl Sim {
         done(Phase::Destruction);
         self.update_economy();
         self.update_logistics();
+        self.update_experience();
         done(Phase::Economy);
         self.update_smoke();
         self.update_vision(false);
@@ -1342,6 +1360,7 @@ impl Sim {
             self.weather.hash_into(&mut h);
         }
         self.works.hash_into(&mut h);
+        self.hash_experience(&mut h);
         h.finish()
     }
 
@@ -1386,6 +1405,7 @@ impl Sim {
                     towing: transport::load_of(&loads, u.id).1,
                     loading: self.transport_busy(u.id),
                     stock: self.stock_view(u),
+                    experience: self.experience.view(u.veterancy),
                 }),
         );
         out.projectiles.clear();
@@ -1856,6 +1876,7 @@ fn new_unit(n: &NewUnit<'_>) -> Unit {
         orders: orders::OrderQueue::default(),
         link: None,
         stock: logistics::Stock::default(),
+        veterancy: experience::Veterancy::default(),
     }
 }
 

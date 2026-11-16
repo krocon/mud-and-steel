@@ -26,6 +26,8 @@ pub struct OwnUnit {
     pub towing: Option<UnitId>,
     /// Ammunition, fuel and mobility (prompt 036).
     pub stock: StockView,
+    /// Rank index (prompt 050; 0 = recruit).
+    pub rank: u8,
 }
 
 impl OwnUnit {
@@ -118,6 +120,7 @@ impl PlayerView {
                     passengers: u.passengers,
                     towing: u.towing,
                     stock: u.stock,
+                    rank: u.experience.rank,
                 });
             } else {
                 let seen = SeenUnit {

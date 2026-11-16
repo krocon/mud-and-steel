@@ -27,6 +27,7 @@ mod combat_funcs;
 mod crater_funcs;
 mod destruction_funcs;
 mod economy_funcs;
+mod experience_funcs;
 mod fire_funcs;
 mod hud_funcs;
 mod infantry_funcs;
