@@ -43,6 +43,9 @@ func run(test: Node) -> void:
 		if s["clip"] == "prone":
 			prone += 1
 	test._check(prone >= 9, "only %d members play 'prone'" % prone)
+	# Prompt 048: they dived down on the way.
+	var motion_counts: Dictionary = main.infantry_view.motion.counts
+	test._check(int(motion_counts["dive"]) >= 9, "only %d members dived: %s" % [motion_counts["dive"], motion_counts])
 	test._key(KEY_B)
 	await test._ticks(20)
 	stances = sim_host.unit_stances()
