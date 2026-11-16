@@ -1,0 +1,108 @@
+keys,en,de
+EDITOR_TOOL_RAISE,Raise,Anheben
+EDITOR_TOOL_LOWER,Lower,Absenken
+EDITOR_TOOL_SMOOTH,Smooth,Glätten
+EDITOR_TOOL_FLATTEN,Flatten,Einebnen
+EDITOR_TOOL_RIDGE,Ridge,Grat
+EDITOR_TOOL_VALLEY,Valley,Tal
+EDITOR_TOOL_TERRACE,Terrace,Terrassen
+EDITOR_TOOL_ROAD,Road on slope,Hangstraße
+EDITOR_TOOL_PAINT,Paint terrain,Gelände malen
+EDITOR_TOOL_RIVER,River,Fluss
+EDITOR_TOOL_SCATTER,Vegetation / objects,Bewuchs / Objekte
+EDITOR_TOOL_PLACE,Place object,Objekt setzen
+EDITOR_TOOL_ERASE,Erase objects,Objekte löschen
+EDITOR_TOOL_START0,Start player 1,Start Spieler 1
+EDITOR_TOOL_START1,Start player 2,Start Spieler 2
+EDITOR_TOOL_START2,Start player 3,Start Spieler 3
+EDITOR_TOOL_START3,Start player 4,Start Spieler 4
+EDITOR_TOOL_START4,Start player 5,Start Spieler 5
+EDITOR_TOOL_START5,Start player 6,Start Spieler 6
+EDITOR_TOOL_STRONGPOINT,Strongpoint,Stützpunkt
+EDITOR_TOOL_COMPOUND,Place compound,Gehöft setzen
+EDITOR_TOOL_VILLAGE,Village (desert),Dorf (Wüste)
+EDITOR_TOOL_MISSION_AREA,Trigger area,Auslösebereich
+EDITOR_TOOL_MISSION_SPAWN,Spawn point,Spawnpunkt
+EDITOR_START_NO_TEAM,No team,Kein Team
+EDITOR_START_TEAM_1,Team 1,Team 1
+EDITOR_START_TEAM_2,Team 2,Team 2
+EDITOR_START_TEAM_3,Team 3,Team 3
+EDITOR_PRESET_DECIDUOUS,Deciduous wood,Laubwald
+EDITOR_PRESET_CONIFER,Conifer wood,Nadelwald
+EDITOR_PRESET_BIRCH,Birch grove,Birkenhain
+EDITOR_PRESET_PALMS,Palms,Palmen
+EDITOR_PRESET_BUSHES,Bushes,Büsche
+EDITOR_PRESET_ROCKS,Rocks,Felsen
+EDITOR_PRESET_HAY,Hay,Heu
+EDITOR_GROUP_TREES,Trees and plants,Bäume und Pflanzen
+EDITOR_GROUP_VILLAGE,Village buildings,Dorfgebäude
+EDITOR_GROUP_TOWN,Town buildings,Stadtgebäude
+EDITOR_GROUP_DESERT,Desert village,Wüstendorf
+EDITOR_GROUP_DUMPS,Supply dumps,Nachschublager
+EDITOR_GROUP_FENCES,"Fences, walls, hedges","Zäune, Mauern, Hecken"
+EDITOR_GROUP_BRIDGES,Bridges,Brücken
+EDITOR_GROUP_PROPS,Props,Kleinobjekte
+EDITOR_GROUP_FORTIFICATIONS,Fortifications,Befestigungen
+EDITOR_GROUP_OTHER,Other,Sonstiges
+EDITOR_NEW,New,Neu
+EDITOR_OPEN,Open,Öffnen
+EDITOR_CHECK,Check,Prüfen
+EDITOR_UNDO,Undo,Rückgängig
+EDITOR_REDO,Redo,Wiederholen
+EDITOR_MENU,Menu,Menü
+EDITOR_RADIUS,Radius (m),Radius (m)
+EDITOR_STRENGTH,Strength,Stärke
+EDITOR_DENSITY,Per hectare,Pro Hektar
+EDITOR_TERRAIN,Terrain,Gelände
+EDITOR_OBJECTS,Objects,Objekte
+EDITOR_OBJECT,Object,Objekt
+EDITOR_HEADING,Heading °,Ausrichtung °
+EDITOR_COMPOUND,Compound,Gehöft
+EDITOR_TEAM,Team,Team
+EDITOR_NAME,Name,Name
+EDITOR_NUMBERED,numbered,nummeriert
+EDITOR_TERRAIN_GRASS,Grass,Gras
+EDITOR_TERRAIN_DIRT_TRACK,Dirt track,Feldweg
+EDITOR_TERRAIN_ROAD,Road,Straße
+EDITOR_TERRAIN_SAND,Sand,Sand
+EDITOR_TERRAIN_MUD,Mud,Schlamm
+EDITOR_TERRAIN_SNOW,Snow,Schnee
+EDITOR_TERRAIN_SHALLOW_WATER,Shallow water,Flaches Wasser
+EDITOR_TERRAIN_DEEP_WATER,Deep water,Tiefes Wasser
+EDITOR_COMPOUND_HUT_YARD,Hut with yard,Hütte mit Hof
+EDITOR_COMPOUND_TWO_ROOM_YARD,Two-room house with yard,Zweiraumhaus mit Hof
+EDITOR_COMPOUND_LONG_HOUSE_YARD,Long house with yard,Langhaus mit Hof
+EDITOR_COMPOUND_L_HOUSE_YARD,L-shaped house with yard,L-förmiges Haus mit Hof
+EDITOR_COMPOUND_STAIR_HOUSE_YARD,House with outside stair and yard,Haus mit Außentreppe und Hof
+EDITOR_COMPOUND_ROOF_ROOM_YARD,House with roof room and yard,Haus mit Dachzimmer und Hof
+EDITOR_COMPOUND_TALL_HOUSE_YARD,Two-storey house with yard,Zweistöckiges Haus mit Hof
+EDITOR_COMPOUND_VAULT_HOUSE_YARD,Vaulted house with yard,Gewölbehaus mit Hof
+EDITOR_COMPOUND_MERCHANT_YARD,Merchant's house with yard and well,Händlerhaus mit Hof und Brunnen
+EDITOR_COMPOUND_SHOP_ROW,Shop house with market stalls,Ladenhaus mit Marktständen
+EDITOR_COMPOUND_MOSQUE_YARD,Village mosque with low wall,Dorfmoschee mit niedriger Mauer
+EDITOR_COMPOUND_POLICE_POST,Police post (fort) with walled yard,Polizeiposten (Fort) mit ummauertem Hof
+EDITOR_NEW_MAP,New map,Neue Karte
+EDITOR_OPEN_MAP,Open map,Karte öffnen
+EDITOR_SAVE_MAP,Save map,Karte speichern
+EDITOR_SIZE,Size,Größe
+EDITOR_BIOME,Biome,Biom
+EDITOR_BIOME_FOREST,Forest,Wald
+EDITOR_BIOME_DESERT,Desert,Wüste
+EDITOR_BIOME_WINTER,Winter,Winter
+EDITOR_CREATE,Create,Erstellen
+EDITOR_MAP,Map,Karte
+EDITOR_WEATHER,Weather,Wetter
+EDITOR_DAYTIME,Time of day,Tageszeit
+EDITOR_SAVE_HINT,"Saved under its name (data/maps/ in the repository, the player's own maps folder in the released game) and listed in the single-player menu.","Wird unter ihrem Namen gespeichert (im Repository in data/maps/, im fertigen Spiel im eigenen Kartenordner) und im Einzelspielermenü angezeigt."
+EDITOR_STATUS_OPENED,"Map '%s'. Left mouse paints, Ctrl+Z undoes.","Karte „%s“. Linke Maustaste malt, Strg+Z macht rückgängig."
+EDITOR_COMPOUNDS_PLACED,%d compounds placed,%d Gehöfte gesetzt
+EDITOR_ERROR_LINE,Error: %s,Fehler: %s
+EDITOR_WARNING_LINE,Warning: %s,Warnung: %s
+EDITOR_PLAYABLE,Map is playable (map hash %s).,Die Karte ist spielbar (Karten-Hash %s).
+EDITOR_PROTECTED_MAP,'%s' is a test map of the repository; save under another name.,„%s“ ist eine Testkarte des Repositorys; speichere sie unter einem anderen Namen.
+EDITOR_SAVED,Saved to {path}. {result},Gespeichert unter {path}. {result}
+EDITOR_SAVED_PLAYABLE,Playable in the single-player menu.,Im Einzelspielermenü spielbar.
+EDITOR_SAVED_NOT_PLAYABLE,Not playable yet: see the errors.,Noch nicht spielbar: siehe Fehler.
+EDITOR_MISSION_REMOVED,Mission place removed.,Missionsort entfernt.
+EDITOR_MISSION_AREA_ADDED,"Trigger area '{name}' ({radius} m) added; mission scripts name it in area = ""{name}"".","Auslösebereich „{name}“ ({radius} m) hinzugefügt; Missionsskripte nennen ihn mit area = ""{name}""."
+EDITOR_MISSION_SPAWN_ADDED,"Spawn point '{name}' added; mission scripts name it in at = ""{name}"".","Spawnpunkt „{name}“ hinzugefügt; Missionsskripte nennen ihn mit at = ""{name}""."

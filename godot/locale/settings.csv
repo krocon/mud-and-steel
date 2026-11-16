@@ -1,0 +1,105 @@
+keys,en,de
+SET_TAB_GRAPHICS,Graphics,Grafik
+SET_TAB_CONTROLS,Controls,Steuerung
+SET_TAB_AUDIO,Audio,Audio
+SET_TAB_CAMERA,Camera,Kamera
+SET_TAB_INTERFACE,Interface,Oberfläche
+SET_PRESS_KEY,Press a key …,Taste drücken …
+SET_QUALITY,Quality,Qualität
+SET_QUALITY_LOW,Low,Niedrig
+SET_QUALITY_MEDIUM,Medium,Mittel
+SET_QUALITY_HIGH,High,Hoch
+SET_QUALITY_HINT,"Low: hard shadows, no ambient occlusion, no snowfall. Medium: soft shadows. High: finest shadows and anti-aliasing. `--quality=<level>` on the command line overrides this.","Niedrig: harte Schatten, keine Umgebungsverdeckung, kein Schneefall. Mittel: weiche Schatten. Hoch: feinste Schatten und Kantenglättung. `--quality=<Stufe>` auf der Kommandozeile hat Vorrang."
+SET_DOF,Depth of field,Tiefenschärfe
+SET_DOF_SUBTLE,Subtle (close zoom only),Dezent (nur nah)
+SET_DOF_MINIATURE,Miniature (tilt-shift),Miniatur (Tilt-Shift)
+SET_DOF_HINT,"Miniature: the upper and lower screen edges blur and the colours are stronger, like a photo of a model. Units near the screen edges are harder to make out. Not on quality low.","Miniatur: oberer und unterer Bildrand verschwimmen, die Farben werden kräftiger – wie das Foto eines Modells. Einheiten am Bildrand sind schwerer zu erkennen. Nicht bei Qualität Niedrig."
+SET_WINDOW_MODE,Display mode,Anzeigemodus
+SET_WINDOWED,Window,Fenster
+SET_FULLSCREEN,Fullscreen (borderless),Vollbild (randlos)
+SET_EXCLUSIVE,Fullscreen (exclusive),Vollbild (exklusiv)
+SET_RESOLUTION,Window size,Fenstergröße
+SET_RESOLUTION_KEEP,As started,Wie beim Start
+SET_VSYNC,Vertical sync (VSync),Vertikale Synchronisation (VSync)
+SET_FPS_LIMIT,Frame rate limit,FPS-Begrenzung
+SET_FPS_NONE,None,Keine
+SET_RENDER_SCALE,Render scale,Renderauflösung
+SET_UPSCALER,Upscaling,Hochskalierung
+SET_UPSCALER_BILINEAR,Bilinear,Bilinear
+SET_UPSCALER_FSR1,AMD FSR 1,AMD FSR 1
+SET_UPSCALER_FSR2,AMD FSR 2,AMD FSR 2
+SET_RENDER_SCALE_HINT,"Below 1 the 3D scene is drawn at a lower resolution and scaled up: faster, a little softer. The interface stays sharp. Window size applies only in window mode.","Unter 1 wird die 3D-Szene mit geringerer Auflösung berechnet und hochskaliert: schneller, etwas weicher. Die Oberfläche bleibt scharf. Die Fenstergröße gilt nur im Fenstermodus."
+SET_CONTROLS_HINT,"Click a binding and press the new key, with Shift, Ctrl or Alt if you like (Esc cancels). Arrow keys also pan; the mouse wheel zooms and the middle button drags the map. Groups: Ctrl+1…9 stores, 1…9 recalls.","Belegung anklicken und die neue Taste drücken, gern mit Umschalt, Strg oder Alt (Esc bricht ab). Die Pfeiltasten schwenken ebenfalls; das Mausrad zoomt, die mittlere Maustaste zieht die Karte. Gruppen: Strg+1…9 speichert, 1…9 ruft ab."
+SET_VOLUME_MASTER,Master volume,Gesamtlautstärke
+SET_VOLUME_EFFECTS,Effects,Effekte
+SET_VOLUME_UI,Interface,Oberfläche
+SET_VOLUME_MUSIC,Music,Musik
+SET_VOLUME_AMBIENCE,Ambience,Umgebung
+SET_MUTE_UNFOCUSED,Mute when the window is in the background,"Stumm, wenn das Fenster im Hintergrund ist"
+SET_AUDIO_HINT,"Effects: weapons, impacts, engines. Interface: clicks and notices. Music and ambience come with a later update.","Effekte: Waffen, Einschläge, Motoren. Oberfläche: Klicks und Hinweise. Musik und Umgebungsklang folgen mit einem späteren Update."
+SET_PAN_SPEED,Pan speed,Schwenkgeschwindigkeit
+SET_ZOOM_SPEED,Zoom speed,Zoomgeschwindigkeit
+SET_EDGE_SCROLL,Pan at the screen edge,Am Bildschirmrand schwenken
+SET_LANGUAGE,Language,Sprache
+SET_LANGUAGE_AUTO,System language,Systemsprache
+SET_UI_SCALE,Interface scale,Oberflächenskalierung
+SET_FONT_SIZE,Font size,Schriftgröße
+SET_FONT_SMALL,Small,Klein
+SET_FONT_NORMAL,Normal,Normal
+SET_FONT_LARGE,Large,Groß
+SET_FONT_HUGE,Very large,Sehr groß
+SET_PALETTE,Player colors,Spielerfarben
+SET_PALETTE_STANDARD,Standard (green / blue / red),Standard (grün / blau / rot)
+SET_PALETTE_RED_GREEN,Red-green weakness (blue / yellow / orange),Rot-Grün-Schwäche (blau / gelb / orange)
+SET_PALETTE_BLUE_YELLOW,Blue-yellow weakness (teal / purple / vermilion),Blau-Gelb-Schwäche (türkis / violett / zinnober)
+SET_PALETTE_HINT,"Colors of own, allied and enemy units on the minimap, health bars, markers and mines.","Farben eigener, verbündeter und feindlicher Einheiten auf Minikarte, Lebensbalken, Markierungen und Minen."
+SET_SUBTITLES,Subtitles for warnings and callouts,Untertitel für Warnungen und Zurufe
+SET_SCREEN_SHAKE,Screen shake,Bildschirmwackeln
+SET_HEALTH_BARS,Health bars,Lebensbalken
+SET_HEALTH_DAMAGED,Damaged and selected units,Beschädigte und gewählte Einheiten
+SET_HEALTH_SELECTED,Selected units only,Nur gewählte Einheiten
+SET_HEALTH_NEVER,Never,Nie
+SET_KEY_CAMERA_PAN_FORWARD,Pan forward,Vorwärts schwenken
+SET_KEY_CAMERA_PAN_BACK,Pan back,Rückwärts schwenken
+SET_KEY_CAMERA_PAN_LEFT,Pan left,Links schwenken
+SET_KEY_CAMERA_PAN_RIGHT,Pan right,Rechts schwenken
+SET_KEY_CAMERA_ROTATE_LEFT,Rotate left,Links drehen
+SET_KEY_CAMERA_ROTATE_RIGHT,Rotate right,Rechts drehen
+SET_KEY_CAMERA_RESET_NORTH,Face north,Nach Norden ausrichten
+SET_KEY_ORDER_MOVE,Move (then click),Bewegen (dann klicken)
+SET_KEY_ORDER_ATTACK,Attack (then click),Angreifen (dann klicken)
+SET_KEY_ORDER_ATTACK_GROUND,Fire at ground (then click),Bodenziel beschießen (dann klicken)
+SET_KEY_ORDER_PATROL,Patrol (then click),Patrouille (dann klicken)
+SET_KEY_ORDER_GARRISON,Occupy building (then click),Gebäude besetzen (dann klicken)
+SET_KEY_ORDER_STOP,Stop,Halt
+SET_KEY_ORDER_FIRE_MODE,Hold fire / fire at will,Feuer halten / Feuer frei
+SET_KEY_STANCE_STAND,Stance: stand,Haltung: stehen
+SET_KEY_STANCE_KNEEL,Stance: kneel,Haltung: knien
+SET_KEY_STANCE_PRONE,Stance: prone,Haltung: liegen
+SET_KEY_STANCE_AUTO,Stance: automatic,Haltung: automatisch
+SET_KEY_CAMERA_FOLLOW,Camera follows selection,Kamera folgt der Auswahl
+SET_KEY_EVENT_JUMP,Jump to last event,Zum letzten Ereignis springen
+SET_KEY_ORDER_BARRAGE,Barrage at the cursor (artillery),Sperrfeuer auf den Mauszeiger (Artillerie)
+SET_KEY_ORDER_SMOKE,Smoke at the cursor (artillery),Nebel auf den Mauszeiger (Artillerie)
+SET_KEY_PING_ALLIES,Mark the spot for allies,Stelle für Verbündete markieren
+SET_KEY_ORDER_DISEMBARK,Dismount passengers,Absitzen
+SET_KEY_ORDER_UNLIMBER,Unlimber towed gun,Geschütz abprotzen
+SET_KEY_ORDER_ATTACK_MOVE,Attack-move (then click),Angriffsmarsch (dann klicken)
+SET_KEY_ORDER_SECURE,Secure area (then click),Gebiet sichern (dann klicken)
+SET_KEY_ORDER_FORMATION,Next formation,Nächste Formation
+SET_KEY_AIR_RECON,Air: recon flight (then click),Luft: Aufklärungsflug (dann klicken)
+SET_KEY_AIR_STRAFE,Air: fighter sweep (then click),Luft: Jagdeinsatz (dann klicken)
+SET_KEY_AIR_ATTACK,Air: ground attack (then click),Luft: Schlachtflug (dann klicken)
+SET_KEY_AIR_BOMB,Air: bombing run (then click),Luft: Bombenangriff (dann klicken)
+SET_KEY_AIR_AIRBORNE,Air: airborne drop (then click),Luft: Luftlandung (dann klicken)
+SET_KEY_STRIKE_ROCKETS,Heavy rocket strike (then click),Schwerer Raketenschlag (dann klicken)
+SUB_UNDER_ATTACK,We are under attack!,Wir werden angegriffen!
+SUB_UNIT_LOST,Unit lost.,Einheit verloren.
+SUB_UNIT_READY,Unit ready.,Einheit bereit.
+SUB_BUILD_COMPLETE,Construction complete.,Bau abgeschlossen.
+SUB_VICTORY,Victory!,Sieg!
+SUB_DEFEAT,Defeat.,Niederlage.
+SUB_CALLOUT_CONTACT,[Squad] Contact!,[Trupp] Feindkontakt!
+SUB_CALLOUT_TAKE_COVER,[Squad] Take cover!,[Trupp] Deckung!
+SUB_CALLOUT_RELOADING,[Squad] Reloading!,[Trupp] Nachladen!
+SUB_CALLOUT_WOUNDED,[Squad] Man hit!,[Trupp] Getroffen!

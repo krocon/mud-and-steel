@@ -17,6 +17,7 @@ const EventFeed := preload("res://scenes/hud/event_feed.gd")
 const Waypoints := preload("res://scenes/hud/waypoints.gd")
 const SupplyRings := preload("res://scenes/hud/supply_rings.gd")
 const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
+const Subtitles := preload("res://scenes/hud/subtitles.gd")
 
 var main: Node3D
 var minimap: Minimap
@@ -26,6 +27,8 @@ var event_feed: EventFeed
 var waypoints: Waypoints
 ## Supply and repair radii of selected sources (prompt 036).
 var supply_rings: SupplyRings
+## Text lines for warnings and callouts (prompt 043).
+var subtitles: Subtitles
 ## HUD time of the last frame in microseconds, and the largest so far.
 var usec := 0
 var max_usec := 0
@@ -58,6 +61,8 @@ func setup(main_node: Node3D) -> void:
 	add_child(event_feed)
 	event_feed.setup(main)
 	event_feed.ping.connect(minimap.add_ping)
+	subtitles = Subtitles.new()
+	add_child(subtitles)
 	_parts = [waypoints, supply_rings, minimap, unit_panel, command_bar, event_feed]
 
 
@@ -70,6 +75,7 @@ func _process(_delta: float) -> void:
 	usec = total
 	max_usec = maxi(max_usec, usec)
 	_keep_events_above_command_bar()
+	_keep_unit_panel_beside_command_bar()
 
 
 ## The event feed sits at the left edge; when the build menu or production
@@ -80,6 +86,23 @@ func _keep_events_above_command_bar() -> void:
 	var middle := get_viewport_rect().size.y * 0.5
 	var y := minf(middle - 40.0, top - event_feed.size.y - 8.0)
 	event_feed.global_position.y = maxf(y, 64.0)
+
+
+## The unit panel sits bottom center; on a narrow screen (or a large UI
+## scale, prompt 043) it moves right so it does not cover the command bar.
+## If it does not fit between command bar and minimap either, it goes
+## above the minimap.
+func _keep_unit_panel_beside_command_bar() -> void:
+	var screen := get_viewport_rect().size
+	var x := (screen.x - unit_panel.size.x) * 0.5
+	if command_bar.visible:
+		x = maxf(x, command_bar.get_global_rect().end.x + 8.0)
+	var map_rect := minimap.get_global_rect()
+	var y := screen.y - 8.0 - unit_panel.size.y
+	if minimap.visible and x + unit_panel.size.x > map_rect.position.x - 8.0:
+		x = screen.x - 8.0 - unit_panel.size.x
+		y = map_rect.position.y - 8.0 - unit_panel.size.y
+	unit_panel.global_position = Vector2(maxf(x, 0.0), y)
 
 
 ## Whether the screen point lies on a HUD panel (clicks there are not

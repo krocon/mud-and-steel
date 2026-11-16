@@ -6,6 +6,7 @@ extends Control
 const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
 const MatchSetup := preload("res://scenes/menu/match_setup.gd")
 const EditorData := preload("res://scenes/editor/editor_data.gd")
+const Language := preload("res://scenes/menu/language.gd")
 
 var main: Node3D
 var title: Label
@@ -51,13 +52,13 @@ func _ready() -> void:
 
 	var files := HFlowContainer.new()
 	box.add_child(files)
-	_button(files, "New", func() -> void: show_dialog("new"))
-	_button(files, "Open", func() -> void: show_dialog("open"))
-	_button(files, "Save", func() -> void: show_dialog("save"))
-	_button(files, "Check", main.validate_map)
-	undo_button = _button(files, "Undo", main.undo)
-	redo_button = _button(files, "Redo", main.redo)
-	_button(files, "Menu", main.back_to_menu)
+	_button(files, "EDITOR_NEW", func() -> void: show_dialog("new"))
+	_button(files, "EDITOR_OPEN", func() -> void: show_dialog("open"))
+	_button(files, "COMMON_SAVE", func() -> void: show_dialog("save"))
+	_button(files, "EDITOR_CHECK", main.validate_map)
+	undo_button = _button(files, "EDITOR_UNDO", main.undo)
+	redo_button = _button(files, "EDITOR_REDO", main.redo)
+	_button(files, "EDITOR_MENU", main.back_to_menu)
 
 	var tools := GridContainer.new()
 	tools.columns = 2
@@ -68,24 +69,28 @@ func _ready() -> void:
 		button.toggle_mode = true
 		button.button_group = group
 		button.custom_minimum_size = Vector2(140, 32)
+		# German labels are longer: trim them, the tooltip shows the whole name.
+		button.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		button.tooltip_text = EditorData.TOOLS[id]
 		tool_buttons[id] = button
 
-	radius_slider = _slider(box, "radius", "Radius (m)", 2.0, 120.0, main.radius, func(v: float) -> void: main.radius = v)
-	strength_slider = _slider(box, "strength", "Strength", 0.05, 1.0, main.strength, func(v: float) -> void: main.strength = v)
-	density_slider = _slider(box, "density", "Per hectare", 10.0, 1500.0, main.density, func(v: float) -> void: main.density = v)
+	radius_slider = _slider(box, "radius", "EDITOR_RADIUS", 2.0, 120.0, main.radius, func(v: float) -> void: main.radius = v)
+	strength_slider = _slider(box, "strength", "EDITOR_STRENGTH", 0.05, 1.0, main.strength, func(v: float) -> void: main.strength = v)
+	density_slider = _slider(box, "density", "EDITOR_DENSITY", 10.0, 1500.0, main.density, func(v: float) -> void: main.density = v)
 
 	terrain_option = OptionButton.new()
 	for name in main.editor.terrain_names():
-		terrain_option.add_item(name.replace("_", " "))
+		terrain_option.add_item(Language.code_text("EDITOR_TERRAIN_", name, name.replace("_", " ")))
 	terrain_option.select(main.terrain_id)
 	terrain_option.item_selected.connect(func(i: int) -> void: main.terrain_id = i)
-	_setting(box, "terrain", "Terrain", terrain_option)
+	_setting(box, "terrain", "EDITOR_TERRAIN", terrain_option)
 
 	preset_option = OptionButton.new()
 	for name: String in EditorData.SCATTER_PRESETS:
-		preset_option.add_item(name)
-	preset_option.item_selected.connect(func(i: int) -> void: main.scatter_preset = preset_option.get_item_text(i))
-	_setting(box, "preset", "Objects", preset_option)
+		preset_option.add_item(EditorData.SCATTER_LABELS.get(name, name))
+		preset_option.set_item_metadata(preset_option.item_count - 1, name)
+	preset_option.item_selected.connect(func(i: int) -> void: main.scatter_preset = preset_option.get_item_metadata(i))
+	_setting(box, "preset", "EDITOR_OBJECTS", preset_option)
 
 	place_option = OptionButton.new()
 	# Grouped (prompt 041): a separator with the group name before each group.
@@ -96,7 +101,7 @@ func _ready() -> void:
 			groups[group_of] = []
 		groups[group_of].append(kind)
 	var order: Array = EditorData.OBJECT_GROUPS.map(func(g: Array) -> String: return g[0])
-	order.append("Other")
+	order.append(EditorData.OTHER_GROUP)
 	for group_name: String in order:
 		if not groups.has(group_name):
 			continue
@@ -106,31 +111,31 @@ func _ready() -> void:
 			if kind == main.place_kind:
 				place_option.select(place_option.item_count - 1)
 	place_option.item_selected.connect(func(i: int) -> void: main.place_kind = place_option.get_item_text(i))
-	_setting(box, "place", "Object", place_option)
+	_setting(box, "place", "EDITOR_OBJECT", place_option)
 	heading_spin = SpinBox.new()
 	heading_spin.max_value = 359
 	heading_spin.step = 15
 	heading_spin.value_changed.connect(func(v: float) -> void: main.place_heading = int(v))
-	_setting(box, "heading", "Heading °", heading_spin)
+	_setting(box, "heading", "EDITOR_HEADING", heading_spin)
 	# Prompt 059: compounds of data/compounds.toml.
 	var compound_option := OptionButton.new()
 	for entry: String in main.editor.compound_names():
-		compound_option.add_item(entry.get_slice(":", 1))
+		compound_option.add_item(Language.code_text("EDITOR_COMPOUND_", entry.get_slice(":", 0), entry.get_slice(":", 1)))
 		compound_option.set_item_metadata(compound_option.item_count - 1, entry.get_slice(":", 0))
 		if entry.get_slice(":", 0) == main.compound_name:
 			compound_option.select(compound_option.item_count - 1)
 	compound_option.item_selected.connect(func(i: int) -> void: main.compound_name = compound_option.get_item_metadata(i))
-	_setting(box, "compound", "Compound", compound_option)
+	_setting(box, "compound", "EDITOR_COMPOUND", compound_option)
 	start_team_option = OptionButton.new()
 	for label in EditorData.START_TEAMS:
 		start_team_option.add_item(label)
 	start_team_option.item_selected.connect(func(i: int) -> void: main.set_start_team(i - 1))
-	_setting(box, "start_team", "Team", start_team_option)
+	_setting(box, "start_team", "EDITOR_TEAM", start_team_option)
 	# Prompt 039: name of the next trigger area or spawn point.
 	var point_name := LineEdit.new()
-	point_name.placeholder_text = "numbered"
+	point_name.placeholder_text = "EDITOR_NUMBERED"
 	point_name.text_changed.connect(func(text: String) -> void: main.mission_point_name = text)
-	_setting(box, "point_name", "Name", point_name)
+	_setting(box, "point_name", "EDITOR_NAME", point_name)
 
 	status = MenuTheme.hint("")
 	status.custom_minimum_size = Vector2(300, 0)
@@ -197,42 +202,42 @@ func show_dialog(dialog: String) -> void:
 
 
 func _build_dialogs() -> void:
-	var box := _dialog("new", "New map")
+	var box := _dialog("new", "EDITOR_NEW_MAP")
 	new_name = LineEdit.new()
 	new_name.text = "my_map"
-	box.add_child(_row("Name", new_name))
+	box.add_child(_row("EDITOR_NAME", new_name))
 	new_size = OptionButton.new()
 	for size in EditorData.SIZES:
 		new_size.add_item("%d m" % size)
 	new_size.select(1)
-	box.add_child(_row("Size", new_size))
+	box.add_child(_row("EDITOR_SIZE", new_size))
 	new_biome = OptionButton.new()
 	for biome in EditorData.BIOMES:
-		new_biome.add_item(biome)
-	box.add_child(_row("Biome", new_biome))
-	_dialog_buttons(box, "Create", _create_map)
+		new_biome.add_item("EDITOR_BIOME_" + biome.to_upper())
+	box.add_child(_row("EDITOR_BIOME", new_biome))
+	_dialog_buttons(box, "EDITOR_CREATE", _create_map)
 
-	box = _dialog("open", "Open map")
+	box = _dialog("open", "EDITOR_OPEN_MAP")
 	open_option = OptionButton.new()
-	box.add_child(_row("Map", open_option))
-	_dialog_buttons(box, "Open", _open_map)
+	box.add_child(_row("EDITOR_MAP", open_option))
+	_dialog_buttons(box, "EDITOR_OPEN", _open_map)
 
-	box = _dialog("save", "Save map")
+	box = _dialog("save", "EDITOR_SAVE_MAP")
 	save_name = LineEdit.new()
-	box.add_child(_row("Name", save_name))
+	box.add_child(_row("EDITOR_NAME", save_name))
 	# Without the "Map default" entry of the setup screen.
 	save_weather = OptionButton.new()
 	for id: String in MatchSetup.WEATHERS:
 		if not id.is_empty():
 			save_weather.add_item(MatchSetup.WEATHERS[id])
-	box.add_child(_row("Weather", save_weather))
+	box.add_child(_row("EDITOR_WEATHER", save_weather))
 	save_daytime = OptionButton.new()
 	for id: String in MatchSetup.DAYTIMES:
 		if not id.is_empty():
 			save_daytime.add_item(MatchSetup.DAYTIMES[id])
-	box.add_child(_row("Time of day", save_daytime))
-	box.add_child(MenuTheme.hint("Saved under its name (data/maps/ in the repository, the player's own maps folder in the released game) and listed in the single-player menu."))
-	_dialog_buttons(box, "Save", _save_map)
+	box.add_child(_row("EDITOR_DAYTIME", save_daytime))
+	box.add_child(MenuTheme.hint("EDITOR_SAVE_HINT"))
+	_dialog_buttons(box, "COMMON_SAVE", _save_map)
 
 
 func _create_map() -> void:
@@ -270,7 +275,7 @@ func _dialog_buttons(box: VBoxContainer, text: String, action: Callable) -> void
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_END
 	box.add_child(row)
-	_button(row, "Cancel", func() -> void: show_dialog(""))
+	_button(row, "COMMON_CANCEL", func() -> void: show_dialog(""))
 	_button(row, text, action)
 
 

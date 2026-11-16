@@ -49,6 +49,30 @@ if [[ $missing == 0 ]]; then
         fi
     done < <(find godot -path godot/.godot -prune -o -type f \( -name '*.wav' -o -name '*.ogg' -o -name '*.mp3' -o -name '*.png' -o -name '*.glb' -o -name '*.jpg' -o -name '*.webp' \) -print)
 fi
+# Translation tables (prompt 043): godot/locale/*.csv become
+# <name>.<lang>.translation next to them (not committed); a new or edited
+# table needs the import, or the game shows its keys or old texts.
+if [[ $missing == 0 ]]; then
+    for file in godot/locale/*.csv; do
+        [[ -e $file ]] || continue
+        first=${file%.csv}.en.translation
+        if [[ ! -f "$file.import" || ! -f $first ]]; then
+            echo "$file is not imported yet"
+            missing=1
+            break
+        fi
+        if [[ "$file" -nt "$first" ]]; then
+            recorded=$(sed -n 's/^source_md5="\(.*\)"$/\1/p' godot/.godot/imported/"$(basename "$file")"-*.md5 2>/dev/null | head -n 1)
+            actual=$( (md5 -q "$file" 2>/dev/null || md5sum "$file") | cut -d' ' -f1)
+            if [[ "$recorded" != "$actual" ]]; then
+                echo "$file changed since its import"
+                missing=1
+                break
+            fi
+            touch "$first"
+        fi
+    done
+fi
 if [[ $missing == 1 ]]; then
     echo "Running the Godot import"
     bash tools/godot-import.sh

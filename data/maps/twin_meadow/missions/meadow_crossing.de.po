@@ -1,0 +1,27 @@
+# Translation of the mission meadow_crossing (prompt 043). msgid: the English text of the
+# mission file; `just mission-po` adds new texts, see docs/MISSIONS.md.
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: de\n"
+
+msgid "Meadow crossing"
+msgstr "Wiesenübergang"
+
+msgid "A small German screen holds the western meadow and its supply point. Take the point with your tank company and the riflemen, then beat off the counterattack that will come from the north."
+msgstr "Ein schwacher deutscher Sicherungsschleier hält die westliche Wiese und ihren Versorgungspunkt. Nimm den Punkt mit deiner Panzerkompanie und den Schützen und schlage dann den Gegenangriff aus dem Norden ab."
+
+msgid "Take the supply point on the western meadow."
+msgstr "Nimm den Versorgungspunkt auf der westlichen Wiese."
+
+msgid "Destroy the German counterattack."
+msgstr "Zerschlage den deutschen Gegenangriff."
+
+msgid "Comrade commander: the meadow in front of you is held by a light German screen. Take the supply point there."
+msgstr "Genosse Kommandeur: Die Wiese vor dir hält ein schwacher deutscher Sicherungsschleier. Nimm dort den Versorgungspunkt."
+
+msgid "The point is ours. German tanks are coming from the north: hold the meadow."
+msgstr "Der Punkt gehört uns. Deutsche Panzer kommen von Norden: Halte die Wiese."
+
+msgid "The counterattack is beaten off. The meadow is ours."
+msgstr "Der Gegenangriff ist abgeschlagen. Die Wiese gehört uns."

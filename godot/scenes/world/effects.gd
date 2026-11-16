@@ -24,6 +24,7 @@ extends Node3D
 const EffectLibrary := preload("res://scenes/world/effect_library.gd")
 const EffectTextures := preload("res://scenes/world/effect_textures.gd")
 const GraphicsQuality := preload("res://scenes/world/graphics_quality.gd")
+const Settings := preload("res://scenes/menu/settings.gd")
 
 ## Emitters per burst kind at quality "high" (scaled by fx_pools). Sized so
 ## 50 explosions at once fit at high.
@@ -429,7 +430,8 @@ func _decal(at: Vector3, size_m: float) -> void:
 
 
 func _add_shake(at: Vector3, strength: float) -> void:
-	if not shake_enabled:
+	# Screen shake can be switched off in the settings (prompt 043).
+	if not shake_enabled or not Settings.get_value("screen_shake"):
 		return
 	var rig: Node3D = main.camera_rig
 	var reach: float = rig.distance * 1.5 + 50.0

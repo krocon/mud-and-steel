@@ -42,7 +42,7 @@ fn entry_card(e: &Entry) -> VarDictionary {
     }
     vdict! {
         "id" => e.id.as_str(),
-        "name" => e.name_en.as_str(),
+        "name" => crate::language_funcs::entry_name(e),
         "designation" => e.designation.as_str(),
         "faction" => e.faction.code(),
         "group" => group_code(e.category.group()),
@@ -112,7 +112,7 @@ impl SimHost {
                 .collect();
             return vdict! {
                 "id" => b.id.as_str(),
-                "name" => b.name.as_str(),
+                "name" => crate::economy_funcs::display_name(&b.id).as_str(),
                 "group" => "building",
                 "hp" => i64::from(b.hp),
                 "armor_mm" => i64::from(b.armor_mm),

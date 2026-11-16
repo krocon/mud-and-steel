@@ -15,7 +15,9 @@ extends VBoxContainer
 
 signal ping(point: Vector3)
 
+const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
 const GroundPick := preload("res://scenes/camera/ground_pick.gd")
+const Settings := preload("res://scenes/menu/settings.gd")
 
 const MAX_MESSAGES := 6
 const LIFETIME := 12.0
@@ -122,9 +124,9 @@ func post(kind: String, text: String, position: Vector3) -> void:
 	b.flat = true
 	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	b.focus_mode = Control.FOCUS_NONE
-	b.add_theme_font_size_override(&"font_size", 14)
+	b.add_theme_font_size_override(&"font_size", MenuTheme.font(14))
 	b.add_theme_color_override(&"font_color", COLORS.get(kind, Color.WHITE))
-	b.tooltip_text = "Click: camera there. Space: the newest message."
+	b.tooltip_text = tr("HUD_TIP_FEED") % Settings.action_key_name("event_jump")
 	b.set_meta(&"time", _now)
 	b.pressed.connect(jump_to.bind(index))
 	add_child(b)
@@ -139,7 +141,7 @@ func _on_combat_event(event: Dictionary) -> void:
 	if type == "destroyed":
 		var id: int = event["unit"]
 		if _owner_of(id) == sim_host.local_player():
-			post("lost", "Lost: %s" % _name_of(id), event["position"])
+			post("lost", tr("HUD_FEED_LOST") % _name_of(id), event["position"])
 	elif type == "hit" and int(event["target"]) >= 0:
 		if _owner_of(event["target"]) != sim_host.local_player():
 			return
@@ -147,7 +149,7 @@ func _on_combat_event(event: Dictionary) -> void:
 		_add_ping(at)
 		if _now - _last_fire >= FIRE_SECONDS:
 			_last_fire = _now
-			post("fire", "Under fire: %s" % _name_of(event["target"]), at)
+			post("fire", tr("HUD_FEED_UNDER_FIRE") % _name_of(event["target"]), at)
 
 
 func _add_ping(at: Vector3) -> void:
@@ -180,16 +182,16 @@ func _poll() -> void:
 			if not _known_own.has(id):
 				_known_own[id] = true
 				if _initialized and sim_host.unit_is_crew(id):
-					post("lost", "Crew bailed out: %s" % _name_of(id), positions[i])
+					post("lost", tr("HUD_FEED_CREW_BAILED") % _name_of(id), positions[i])
 				elif _initialized and not structures.has(id):
-					post("ready", "Ready: %s" % _name_of(id), positions[i])
+					post("ready", tr("HUD_FEED_READY") % _name_of(id), positions[i])
 		elif sim_host.relation(owners[i]) == 2:
 			visible_enemies[id] = true
 			if not _seen_enemies.has(id) and newly_sighted < 0:
 				newly_sighted = i
 	if _initialized and newly_sighted >= 0 and _now - _last_sighted >= SIGHTED_SECONDS:
 		_last_sighted = _now
-		post("sighted", "Enemy sighted: %s" % _name_of(ids[newly_sighted]), positions[newly_sighted])
+		post("sighted", tr("HUD_FEED_SIGHTED") % _name_of(ids[newly_sighted]), positions[newly_sighted])
 	_seen_enemies = visible_enemies
 	_poll_wounded(ids, owners, positions, me)
 	for id: int in structures:
@@ -199,13 +201,13 @@ func _poll() -> void:
 		_completed[id] = true
 		if _initialized:
 			var index := Array(ids).find(id)
-			post("built", "Completed: %s" % s.get("name", "building"), positions[index] if index >= 0 else Vector3.ZERO)
+			post("built", tr("HUD_FEED_COMPLETED") % s.get("name", tr("HUD_FEED_BUILDING")), positions[index] if index >= 0 else Vector3.ZERO)
 	_initialized = true
 	# Pings of the allies and our own (prompt 037).
 	for p: Dictionary in sim_host.take_pings():
 		var at: Vector3 = p["position"]
 		if not p["own"]:
-			post("ping", "Ally (player %d) marks a spot" % p["player"], at)
+			post("ping", tr("HUD_FEED_PING") % p["player"], at)
 		ping.emit(at)
 
 
@@ -225,7 +227,7 @@ func _poll_wounded(ids: PackedInt64Array, owners: PackedInt32Array, positions: P
 	_wounded = now_wounded
 	if newly >= 0 and _now - _last_wounded >= WOUNDED_SECONDS:
 		_last_wounded = _now
-		post("wounded", "Man wounded: %s" % _name_of(ids[newly]), positions[newly])
+		post("wounded", tr("HUD_FEED_WOUNDED") % _name_of(ids[newly]), positions[newly])
 
 
 func _owner_of(id: int) -> int:
@@ -237,4 +239,4 @@ func _owner_of(id: int) -> int:
 
 func _name_of(id: int) -> String:
 	var info := sim_host.unit_info(id)
-	return info.get("name", "unit")
+	return info.get("name", tr("HUD_FEED_UNIT"))

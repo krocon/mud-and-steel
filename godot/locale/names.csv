@@ -1,0 +1,10 @@
+keys,en,de
+NAME_BASE_HQ,Headquarters,Hauptquartier
+NAME_BASE_BARRACKS,Barracks,Kaserne
+NAME_BASE_DEPOT,Supply depot,Nachschublager
+NAME_BASE_FACTORY,Vehicle works,Fahrzeugwerk
+NAME_BASE_ROCKET_BATTERY,Rocket battery position,Raketenstellung
+RANK_RECRUIT,Recruit,Rekrut
+RANK_EXPERIENCED,Experienced,Erfahren
+RANK_VETERAN,Veteran,Veteran
+RANK_ELITE,Elite,Elite

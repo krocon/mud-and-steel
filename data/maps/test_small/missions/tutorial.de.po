@@ -1,0 +1,63 @@
+# Translation of the mission tutorial (prompt 043). msgid: the English text of the
+# mission file; `just mission-po` adds new texts, see docs/MISSIONS.md.
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: de\n"
+
+msgid "Basic training"
+msgstr "Grundausbildung"
+
+msgid "Learn to command a small battle group: the camera, selecting and moving units, attacking, infantry in cover, building a barracks, producing a squad and taking a supply point. Every step waits for you."
+msgstr "Lerne, eine kleine Kampfgruppe zu führen: Kamera, Einheiten wählen und bewegen, Angriff, Infanterie in Deckung, eine Kaserne bauen, einen Trupp ausbilden und einen Versorgungspunkt nehmen. Jeder Schritt wartet auf dich."
+
+msgid "Look around: pan, zoom or turn the camera."
+msgstr "Sieh dich um: Schwenke, zoome oder drehe die Kamera."
+
+msgid "Select your tanks."
+msgstr "Wähle deine Panzer aus."
+
+msgid "Move a tank into the marked field."
+msgstr "Fahre einen Panzer in das markierte Feld."
+
+msgid "Destroy the two training targets."
+msgstr "Zerstöre die beiden Übungsziele."
+
+msgid "Bring your rifle squad into the wood."
+msgstr "Bring deinen Schützentrupp in den Wald."
+
+msgid "Build a barracks near your headquarters."
+msgstr "Baue eine Kaserne nahe deinem Hauptquartier."
+
+msgid "Produce a rifle squad in the barracks."
+msgstr "Bilde in der Kaserne einen Schützentrupp aus."
+
+msgid "Take the supply point in the village."
+msgstr "Nimm den Versorgungspunkt im Dorf."
+
+msgid "Welcome to basic training. Move the camera: W A S D or the arrow keys pan (or push the mouse against the screen edge), the mouse wheel zooms, Q and E turn the view."
+msgstr "Willkommen zur Grundausbildung. Bewege die Kamera: W A S D oder die Pfeiltasten schwenken (oder schiebe die Maus an den Bildschirmrand), das Mausrad zoomt, Q und E drehen die Ansicht."
+
+msgid "Select units with a left click, or drag a box around several of them. Select your two tanks."
+msgstr "Wähle Einheiten mit einem Linksklick oder ziehe einen Rahmen um mehrere. Wähle deine beiden Panzer aus."
+
+msgid "Right click on the ground to move the selected units there. Drive a tank into the marked field."
+msgstr "Ein Rechtsklick auf den Boden schickt die gewählten Einheiten dorthin. Fahre einen Panzer in das markierte Feld."
+
+msgid "Two enemy light tanks appeared. Select your tanks and right click an enemy to attack it. They will not shoot back."
+msgstr "Zwei feindliche leichte Panzer sind aufgetaucht. Wähle deine Panzer und klicke mit rechts auf einen Feind, um ihn anzugreifen. Sie schießen nicht zurück."
+
+msgid "Infantry lives on cover. Woods, hedges, walls and houses protect soldiers; going prone (V) makes them harder to hit, Z stands them up. Move your rifle squad into the marked wood. A right click on a house makes infantry occupy it."
+msgstr "Infanterie lebt von Deckung. Wälder, Hecken, Mauern und Häuser schützen Soldaten; liegend (V) sind sie schwerer zu treffen, Z lässt sie aufstehen. Bring deinen Schützentrupp in den markierten Wald. Ein Rechtsklick auf ein Haus lässt Infanterie es besetzen."
+
+msgid "Now build. Open the build menu in the command bar, pick the barracks and place it with a left click near your headquarters. Building takes a little time."
+msgstr "Jetzt wird gebaut. Öffne das Baumenü in der Befehlsleiste, wähle die Kaserne und setze sie mit einem Linksklick nahe deinem Hauptquartier. Der Bau dauert etwas."
+
+msgid "The barracks is ready. Select it and click the rifle squad in its production bar. Production costs resources (top of the screen)."
+msgstr "Die Kaserne ist fertig. Wähle sie aus und klicke in ihrer Produktionsleiste auf den Schützentrupp. Produktion kostet Ressourcen (oben am Bildschirm)."
+
+msgid "Supply points bring a steady income. Send units to the flag in the village and keep them there until the point is yours; enemies nearby stop the capture."
+msgstr "Versorgungspunkte bringen stetiges Einkommen. Schicke Einheiten zur Flagge im Dorf und lass sie dort, bis der Punkt dir gehört; Feinde in der Nähe stoppen die Einnahme."
+
+msgid "Well done: basic training is complete."
+msgstr "Gut gemacht: Die Grundausbildung ist abgeschlossen."

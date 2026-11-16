@@ -33,6 +33,7 @@ const JOIN_M := 0.3
 ## Colors of the line preview.
 const PREVIEW := Color(1.0, 0.85, 0.3, 0.45)
 ## Colors of mine markers and sites.
+const RelationColors := preload("res://scenes/hud/relation_colors.gd")
 const OWN_MINE := Color(1.0, 0.85, 0.2)
 const ENEMY_MINE := Color(0.95, 0.2, 0.15)
 const SITE := Color(0.95, 0.85, 0.35, 0.35)
@@ -124,7 +125,7 @@ func _draw_mines() -> void:
 		var r := 0.6 if m.anti_tank else 0.35
 		var p: Vector3 = m.position
 		mm.set_instance_transform(i, Transform3D(Basis().scaled(Vector3(r, 1.0, r)), p + Vector3(0, 0.12, 0)))
-		mm.set_instance_color(i, OWN_MINE if m.friendly else ENEMY_MINE)
+		mm.set_instance_color(i, RelationColors.own_or(OWN_MINE) if m.friendly else RelationColors.enemy_or(ENEMY_MINE))
 	mine_markers = mines.size()
 
 

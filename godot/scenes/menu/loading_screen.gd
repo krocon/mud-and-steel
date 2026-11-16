@@ -27,8 +27,8 @@ func _init(map_name: String) -> void:
 	var box := VBoxContainer.new()
 	box.custom_minimum_size = Vector2(520, 0)
 	center.add_child(box)
-	box.add_child(MenuTheme.title("Loading", MenuTheme.HEADING_SIZE))
-	var info := MenuTheme.hint("Map: %s" % map_name)
+	box.add_child(MenuTheme.title("LOADING_TITLE", MenuTheme.HEADING_SIZE))
+	var info := MenuTheme.hint(tr("LOADING_MAP") % map_name)
 	info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(info)
 	_bar = ProgressBar.new()
@@ -42,7 +42,8 @@ func _init(map_name: String) -> void:
 	MatchSetup.last_loading_steps = []
 
 
-## Shows the step about to run and how far loading is (0–1).
+## Shows the step about to run (a translation key or text) and how far
+## loading is (0–1).
 func set_step(text: String, fraction: float) -> void:
 	_step.text = text
 	_bar.value = fraction

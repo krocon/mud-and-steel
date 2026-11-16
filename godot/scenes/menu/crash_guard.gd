@@ -59,9 +59,9 @@ func _write_report(session: String) -> String:
 	var out := FileAccess.open(path, FileAccess.WRITE)
 	if out == null:
 		return ""
-	out.store_string("Mud and Steel crash report (kept locally, never sent)\n")
+	out.store_string("Mud and Steel crash report (kept locally, never sent)\n")  # l10n-ignore (log file)
 	out.store_string("Session: %s" % session)
-	out.store_string("Report written by version %s on %s\n\n" % [
+	out.store_string("Report written by version %s on %s\n\n" % [  # l10n-ignore (log file)
 		ProjectSettings.get_setting("application/config/version", "?"), OS.get_name(),
 	])
 	if previous.is_empty():

@@ -6,12 +6,47 @@ extends RefCounted
 ## (shipped maps and the player's own maps, see `GamePaths`). Their headers
 ## come from `SimHost.mission_header`; the format is in `docs/MISSIONS.md`.
 ## The self-test keeps its progress in its own file.
+##
+## Texts (prompt 043): mission files are English; `<id>.<lang>.po` next to
+## the file translates them (msgid = English text, `just mission-po`).
+## `text(path, english)` gives the text in the interface language.
 
 const MatchSetup := preload("res://scenes/menu/match_setup.gd")
+const Language := preload("res://scenes/menu/language.gd")
 const PROGRESS_PATH := "user://missions.cfg"
 const SELF_TEST_PROGRESS_PATH := "user://missions-selftest.cfg"
 ## Id of the tutorial's mission file.
 const TUTORIAL_ID := "tutorial"
+
+
+## Loaded translations by PO path (null: no file).
+static var _translations := {}
+
+
+## `english` (a text of the mission file at `mission_path`) in the interface
+## language; unchanged without a translation.
+static func text(mission_path: String, english: String) -> String:
+	if Language.current == Language.FALLBACK or english.is_empty() or mission_path.is_empty():
+		return english
+	var po := "%s.%s.po" % [mission_path.get_basename(), Language.current]
+	if not _translations.has(po):
+		_translations[po] = load(po) if FileAccess.file_exists(po) else null
+	var translation: Translation = _translations[po]
+	if translation == null:
+		return english
+	var translated := String(translation.get_message(english))
+	return translated if not translated.is_empty() else english
+
+
+## Path of the mission file with this id (from `list`), "" if unknown.
+static func path_of(id: String) -> String:
+	var pending: String = MatchSetup.pending.get("mission", "")
+	if pending.get_file().get_basename() == id:
+		return pending
+	for m in list():
+		if m["id"] == id:
+			return m["path"]
+	return ""
 
 
 ## Every mission header (dictionaries of `SimHost.mission_header` plus

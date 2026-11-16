@@ -9,6 +9,10 @@ extends Node
 ## 2. Settings: change quality, pan speed and two key bindings (the second
 ##    one takes the key of the first, which gets the second's old key), save,
 ##    load again, then restore the defaults. Uses its own settings file.
+##    Language and accessibility (prompt 043, `l10n_self_test.gd`): every
+##    menu screen and settings tab in German without a missing translation,
+##    the new settings saved and read back; in match 1 the HUD and the pause
+##    menu in German, subtitles.
 ## 3. LAN: the lobby opens from the menu and its Back button returns; the
 ##    same for the online lobby (prompt 026), without initializing Steam.
 ## 4. Match 1 (test_small, Germany vs. Soviet Union, from the setup screen):
@@ -60,6 +64,7 @@ const Settings := preload("res://scenes/menu/settings.gd")
 const GameFiles := preload("res://scenes/menu/game_files.gd")
 const MusicSelfTest := preload("res://scenes/tools/music_self_test.gd")
 const MissionSelfTest := preload("res://scenes/menu/mission_self_test.gd")
+const L10nSelfTest := preload("res://scenes/menu/l10n_self_test.gd")
 ## Wall-clock limit for the whole flow (`--fixed-fps` decouples frame time);
 ## raised from 10 to 20 minutes for the tutorial and missions (prompt 039).
 const TIMEOUT_MS := 1200000
@@ -98,6 +103,7 @@ func _run() -> void:
 	for button: Button in [menu.single_player_button, menu.lan_button, menu.online_button, menu.settings_button, menu.quit_button]:
 		_check(button != null and button.is_visible_in_tree(), "main menu button missing")
 	await _settings_test(menu)
+	await L10nSelfTest.new(self).menu_test(menu)
 	await _credits_test(menu)
 	menu = await _lan_test(menu)
 	if menu != null:
@@ -114,6 +120,7 @@ func _run() -> void:
 	_check(MatchSetup.last_loading_steps.size() >= 5, "loading screen showed %s" % MatchSetup.last_loading_steps)
 	if not _match_done:
 		await match_tested
+	await L10nSelfTest.new(self).match_test(main)
 	await _pause_test(main)
 	await _surrender_test(main)
 	menu = await _back_to_menu(main)
@@ -201,7 +208,7 @@ func _run() -> void:
 func _finish() -> void:
 	set_process(false)
 	var ok := _errors.is_empty()
-	var message := "menu, settings, credits, LAN lobby, online lobby, loading, match tests, pause, surrender, combat victory, computer opponent, tutorial and missions, rain at night, base building, saving, loading, replay viewer, result and back ok" if ok else " ".join(_errors)
+	var message := "menu, settings, language and accessibility, credits, LAN lobby, online lobby, loading, match tests, pause, surrender, combat victory, computer opponent, tutorial and missions, rain at night, base building, saving, loading, replay viewer, result and back ok" if ok else " ".join(_errors)
 	print("flow self-test %s: %s" % ["PASSED" if ok else "FAILED", message])
 	get_tree().paused = false
 	get_tree().quit(0 if ok else 1)
@@ -280,7 +287,7 @@ func _credits_test(menu: Control) -> void:
 	_check(panel.tabs.get_tab_count() == 4, "credits screen has %d tabs" % panel.tabs.get_tab_count())
 	for view: TextEdit in panel.tabs.get_children():
 		# The third-party file only exists after a release build.
-		var minimum := 10 if view.name == "Third party" else 100
+		var minimum := 10 if view.name == "CREDITS_TAB_THIRD_PARTY" else 100
 		_check(view.text.length() > minimum, "credits tab '%s' is (nearly) empty" % view.name)
 	_check(panel.tabs.get_child(3).text.contains("Godot Engine"), "Godot license missing in the credits")
 	panel.back_button.pressed.emit()
@@ -747,7 +754,7 @@ func _replay_viewer_test(menu: Control, saved: Dictionary) -> void:
 	if not info.get("playable", false):
 		return
 	_check(info["ticks"] > saved["tick"] + 10 and info["map"] == "test_small", "replay does not continue the loaded match: %s" % info)
-	_check(GameFiles.players_text(info).contains("computer, normal"), "players: %s" % GameFiles.players_text(info))
+	_check(GameFiles.players_text(info).to_lower().contains("computer, normal"), "players: %s" % GameFiles.players_text(info))
 	# Only replays this process writes count: parallel self-tests in other
 	# worktrees share the replay folder.
 	GameFiles.last_replay_path = ""

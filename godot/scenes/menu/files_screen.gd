@@ -28,7 +28,7 @@ func _ready() -> void:
 	var box := VBoxContainer.new()
 	box.custom_minimum_size = Vector2(820, 0)
 	frame.add_child(box)
-	box.add_child(MenuTheme.title("Load game" if kind == "load" else "Replays", MenuTheme.HEADING_SIZE))
+	box.add_child(MenuTheme.title("MENU_LOAD_GAME" if kind == "load" else "MENU_REPLAYS", MenuTheme.HEADING_SIZE))
 	list = ItemList.new()
 	list.custom_minimum_size = Vector2(0, 340)
 	list.item_selected.connect(func(_index: int) -> void: _update_details())
@@ -40,11 +40,18 @@ func _ready() -> void:
 	var buttons := HBoxContainer.new()
 	buttons.alignment = BoxContainer.ALIGNMENT_END
 	box.add_child(buttons)
-	back_button = _button(buttons, "Back", func() -> void: back_pressed.emit())
-	action_button = _button(buttons, "Load" if kind == "load" else "Watch", activate)
+	back_button = _button(buttons, "COMMON_BACK", func() -> void: back_pressed.emit())
+	action_button = _button(buttons, "COMMON_LOAD" if kind == "load" else "FILES_WATCH", activate)
 	visibility_changed.connect(func() -> void:
 		if visible:
 			refresh())
+
+
+## The list lines are built with `tr`: read them again when the language
+## changes (prompt 043).
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_TRANSLATION_CHANGED and list != null and visible:
+		refresh()
 
 
 ## Reads the folder again.
@@ -60,7 +67,7 @@ func refresh() -> void:
 		if not entry["info"].get("playable", false):
 			list.set_item_custom_fg_color(index, MenuTheme.DEFEAT.darkened(0.2))
 	if entries.is_empty():
-		details.text = "No saved games yet. Save a single-player match from its pause menu (Esc)." if saved_games else "No replays yet. Every match is recorded when it ends."
+		details.text = "FILES_NO_SAVES" if saved_games else "FILES_NO_REPLAYS"
 	else:
 		list.select(0)
 	_update_details()
@@ -82,7 +89,7 @@ func activate() -> void:
 	var entry: Dictionary = entries[selected[0]]
 	var info: Dictionary = entry["info"]
 	if not info.get("playable", false):
-		details.text = "Cannot be used with this game version: %s" % info.get("error", "")
+		details.text = tr("FILES_INCOMPATIBLE") % info.get("error", "")
 		return
 	if kind == "load":
 		MatchSetup.pending = {"load": entry["path"], "map": info["map"]}
@@ -90,7 +97,7 @@ func activate() -> void:
 	else:
 		var error := GameFiles.open_replay(entry["path"])
 		if not error.is_empty():
-			details.text = "Cannot play this replay: %s" % error
+			details.text = tr("FILES_CANNOT_PLAY") % error
 			return
 		GameFiles.watch_replay(0, -1)
 		print("Menu: watching %s" % entry["path"])
@@ -108,8 +115,9 @@ func _update_details() -> void:
 		details.text = "%s\n%s" % [entry["name"], info.get("error", "")]
 		action_button.disabled = true
 		return
-	details.text = "%s\nGame version %s%s" % [
-		entry["name"], info["game_version"], ", multiplayer" if info["multiplayer"] else "",
+	details.text = "%s\n%s" % [
+		entry["name"],
+		(tr("FILES_VERSION_MULTIPLAYER") if info["multiplayer"] else tr("FILES_VERSION")) % info["game_version"],
 	]
 
 

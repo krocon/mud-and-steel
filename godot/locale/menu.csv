@@ -1,0 +1,130 @@
+keys,en,de
+MENU_SUBTITLE,"Real-time tactics, 1939–1945","Echtzeit-Taktik, 1939–1945"
+MENU_TUTORIAL,Tutorial,Tutorial
+MENU_MISSIONS,Missions,Missionen
+MENU_SINGLE_PLAYER,Single player,Einzelspieler
+MENU_LOAD_GAME,Load game,Spiel laden
+MENU_REPLAYS,Replays,Replays
+MENU_LAN_GAME,LAN game,LAN-Spiel
+MENU_ONLINE,Online (Steam),Online (Steam)
+MENU_MAP_EDITOR,Map editor,Karteneditor
+MENU_CREDITS,Credits,Mitwirkende
+MENU_BIOME_MAP,As the map says,Wie auf der Karte
+MENU_BIOME_FOREST,Forest (summer),Wald (Sommer)
+MENU_PAUSED,Paused,Pause
+MENU_MULTIPLAYER_MENU,Multiplayer menu,Mehrspielermenü
+MENU_NO_PAUSE_HINT,The match keeps running: a multiplayer game cannot be paused.,Die Partie läuft weiter: Ein Mehrspielerspiel kann nicht pausiert werden.
+MENU_RESUME,Resume,Fortsetzen
+MENU_SAVE_GAME,Save game,Spiel speichern
+MENU_SAVE_FAILED,This match cannot be saved.,Diese Partie kann nicht gespeichert werden.
+MENU_SAVED_AT,Saved at %s.,Gespeichert um %s.
+MENU_SURRENDER,Surrender,Aufgeben
+MENU_SURRENDER_CONFIRM,Give up this match? It counts as a defeat.,Diese Partie aufgeben? Sie zählt als Niederlage.
+MENU_SURRENDER_YES,"Yes, surrender","Ja, aufgeben"
+MENU_LEAVE_MATCH,Leave match,Partie verlassen
+MENU_QUIT_TO_MENU,Quit to main menu,Zum Hauptmenü
+RESULT_DRAW,DRAW,UNENTSCHIEDEN
+RESULT_KEEP_WATCHING,Keep watching,Weiter zusehen
+RESULT_BACK_TO_MENU,Back to main menu,Zurück zum Hauptmenü
+RESULT_MATCH_TIME,Match time: %d:%02d,Spielzeit: %d:%02d
+RESULT_PLAYER_UNITS,{player}{relation}: {units} units left,{player}{relation}: noch {units} Einheiten
+RESULT_SUFFIX_ALLY,(ally),(Verbündeter)
+RESULT_DEFEAT_SURRENDERED,surrendered,aufgegeben
+RESULT_DEFEAT_ELIMINATED,eliminated,vernichtet
+RESULT_DEFEAT_MISSION,mission failed,Mission gescheitert
+RESULT_REASON_DRAW,Every side lost in the same moment.,Alle Seiten haben im selben Moment verloren.
+RESULT_REASON_MISSION_WON,Mission accomplished.,Mission erfüllt.
+RESULT_REASON_MISSION_LOST,Mission failed.,Mission gescheitert.
+RESULT_REASON_YOU_SURRENDERED,You surrendered.,Du hast aufgegeben.
+RESULT_REASON_YOU_ELIMINATED,All your units were lost.,Alle deine Einheiten sind verloren.
+RESULT_REASON_TEAM_DEFEATED,Your team was defeated.,Dein Team wurde besiegt.
+RESULT_REASON_ENEMY_SURRENDERED,The enemy surrendered.,Der Feind hat aufgegeben.
+RESULT_REASON_ENEMY_ELIMINATED,All enemy units were destroyed.,Alle feindlichen Einheiten wurden vernichtet.
+MATCH_MAP,Map,Karte
+MATCH_SEASON,Season,Jahreszeit
+MATCH_WEATHER,Weather,Wetter
+MATCH_DAYTIME,Time of day,Tageszeit
+MATCH_YOUR_SIDE,Your side,Deine Seite
+MATCH_ENEMY,Enemy,Feind
+MATCH_OPPONENT,Opponent,Gegner
+MATCH_PLAYERS,Players,Spieler
+MATCH_MODE,Mode,Modus
+MATCH_SHARED_VISION,Allies share what they see,Verbündete teilen ihre Sicht
+MATCH_MODE_HINT,"Base building: build a base, hold supply points, produce an army. Battle: eight tanks per side. Win when the enemy surrenders or has no units left. The computer opponent sees only what its units see.","Basisbau: Baue eine Basis, halte Versorgungspunkte, stelle eine Armee auf. Schlacht: acht Panzer pro Seite. Du gewinnst, wenn der Feind aufgibt oder keine Einheiten mehr hat. Der Computergegner sieht nur, was seine Einheiten sehen."
+MATCH_TEAM_SIZE,%d vs %d,%d gegen %d
+MATCH_YOU,You,Du
+MATCH_SUFFIX_YOU,(you),(du)
+MATCH_BUILTIN_MAP,Built-in test map.,Eingebaute Testkarte.
+MATCH_LARGE_MAP,Large map: loading takes a few seconds.,Große Karte: Das Laden dauert einige Sekunden.
+MATCH_OPPONENT_PASSIVE,Passive (holds its ground),Passiv (hält die Stellung)
+MATCH_LEVEL_PASSIVE,Passive,Passiv
+MATCH_MODE_BASE,Base building,Basisbau
+MATCH_MODE_BATTLE,Battle (fixed armies),Schlacht (feste Armeen)
+MATCH_MAP_DEFAULT,Map default,Kartenvorgabe
+MATCH_WEATHER_CLEAR,Clear,Klar
+MATCH_WEATHER_OVERCAST,Overcast,Bewölkt
+MATCH_WEATHER_RAIN,Rain (mud),Regen (Schlamm)
+MATCH_WEATHER_SNOW,Snow,Schnee
+MATCH_WEATHER_FOG,Fog,Nebel
+MATCH_DAYTIME_MORNING,Morning,Morgen
+MATCH_DAYTIME_DAY,Day,Tag
+MATCH_DAYTIME_EVENING,Evening,Abend
+MATCH_DAYTIME_NIGHT,Night,Nacht
+MATCH_BIOME_FOREST,forest,Wald
+MATCH_BIOME_DESERT,desert,Wüste
+MATCH_BIOME_WINTER,winter,Winter
+MATCH_SLOT_OPEN,Open,Offen
+MATCH_SLOT_CLOSED,Closed,Geschlossen
+MATCH_SLOT_COMPUTER,Computer: %s,Computer: %s
+MATCH_SLOT_N,Slot %d,Platz %d
+MATCH_FACTION_SCENARIO,Scenario,Szenario
+FILES_WATCH,Watch,Ansehen
+FILES_NO_SAVES,No saved games yet. Save a single-player match from its pause menu (Esc).,Noch keine Spielstände. Speichere eine Einzelspielerpartie über ihr Pausenmenü (Esc).
+FILES_NO_REPLAYS,No replays yet. Every match is recorded when it ends.,Noch keine Replays. Jede Partie wird an ihrem Ende aufgezeichnet.
+FILES_INCOMPATIBLE,Cannot be used with this game version: %s,Mit dieser Spielversion nicht nutzbar: %s
+FILES_CANNOT_PLAY,Cannot play this replay: %s,Dieses Replay kann nicht abgespielt werden: %s
+FILES_VERSION,Game version %s,Spielversion %s
+FILES_VERSION_MULTIPLAYER,"Game version %s, multiplayer","Spielversion %s, Mehrspieler"
+FILES_UNREADABLE,{file} – unreadable: {error},{file} – nicht lesbar: {error}
+FILES_INCOMPATIBLE_TAG,incompatible,inkompatibel
+FILES_SUFFIX_PLAYER,(player),(Spieler)
+FILES_SUFFIX_COMPUTER,"(computer, %s)","(Computer, %s)"
+FILES_VERSUS,vs,gegen
+FILES_NOT_DECIDED,not decided,nicht entschieden
+FILES_DRAW,draw,unentschieden
+FILES_WON,%s won,%s hat gewonnen
+CREDITS_TAB_CREDITS,Credits,Mitwirkende
+CREDITS_TAB_LICENSE,License,Lizenz
+CREDITS_TAB_THIRD_PARTY,Third party,Drittanbieter
+CREDITS_TAB_GODOT,Godot Engine,Godot Engine
+CREDITS_THIRD_PARTY_MISSING,Made by the release build (tools/release/third_party_licenses.py).,Wird vom Release-Build erstellt (tools/release/third_party_licenses.py).
+CREDITS_FILE_MISSING,%s is missing.,%s fehlt.
+CREDITS_GODOT_LICENSE,"This game uses Godot Engine, available under the following license:","Dieses Spiel verwendet die Godot Engine, verfügbar unter folgender Lizenz:"
+CREDITS_GODOT_COMPONENTS,Third-party components of Godot Engine:,Komponenten von Drittanbietern in der Godot Engine:
+CREDITS_LICENSE_LINE,License: %s,Lizenz: %s
+LOADING_TITLE,Loading,Laden
+LOADING_MAP,Map: %s,Karte: %s
+LOADING_NET_MATCH,%s match,%s-Partie
+LOADING_PREPARING,Preparing the battlefield …,Schlachtfeld wird vorbereitet …
+LOADING_TERRAIN,Building the terrain …,Gelände wird aufgebaut …
+LOADING_WEATHER,Setting the weather …,Wetter wird eingestellt …
+LOADING_OBJECTS,Placing woods and villages …,Wälder und Dörfer werden platziert …
+CRASH_LAST_SESSION,"The game ended unexpectedly last time. A report was saved (not sent anywhere):
+%s","Das Spiel wurde beim letzten Mal unerwartet beendet. Ein Bericht wurde gespeichert (nirgendwohin gesendet):
+%s"
+NET_STATUS,player {player} of {players} · input delay {delay} ticks · RTT {rtt} · confirmed tick {tick},Spieler {player} von {players} · Eingabeverzögerung {delay} Ticks · RTT {rtt} · bestätigter Tick {tick}
+NET_WAITING,Waiting for the other players …,Warte auf die anderen Spieler …
+NET_MATCH_OVER,Match over. %s,Partie beendet. %s
+NET_MATCH_STOPPED,Match stopped: %s,Partie abgebrochen: %s
+NET_REPLAY_SAVED,Replay: %s,Replay: %s
+REPLAY_LABEL,REPLAY,REPLAY
+REPLAY_PLAY,Play,Abspielen
+REPLAY_PAUSE,Pause,Pause
+REPLAY_ENDED,Ended,Ende
+REPLAY_EXIT,Exit,Beenden
+REPLAY_VIEW_ALL,Everything,Alles
+MENU_MISSIONS_TITLE,Missions,Missionen
+MENU_MISSIONS_NONE,No missions found.,Keine Missionen gefunden.
+MENU_MISSION_BROKEN,{id} ({map}): cannot be read,{id} ({map}): nicht lesbar
+MENU_MISSION_TUTORIAL,Tutorial,Tutorial
+MENU_MISSION_WON,(won),(gewonnen)

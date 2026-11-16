@@ -6,6 +6,7 @@ extends CenterContainer
 const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
 const MatchSetup := preload("res://scenes/menu/match_setup.gd")
 const Missions := preload("res://scenes/menu/missions.gd")
+const Language := preload("res://scenes/menu/language.gd")
 
 signal back_pressed
 
@@ -24,7 +25,7 @@ func _ready() -> void:
 	var box := VBoxContainer.new()
 	box.custom_minimum_size = Vector2(720, 0)
 	frame.add_child(box)
-	box.add_child(MenuTheme.title("Missions", MenuTheme.HEADING_SIZE))
+	box.add_child(MenuTheme.title("MENU_MISSIONS_TITLE", MenuTheme.HEADING_SIZE))
 	list = ItemList.new()
 	list.custom_minimum_size = Vector2(0, 240)
 	list.item_selected.connect(func(_index: int) -> void: _update_details())
@@ -37,11 +38,16 @@ func _ready() -> void:
 	var buttons := HBoxContainer.new()
 	buttons.alignment = BoxContainer.ALIGNMENT_END
 	box.add_child(buttons)
-	back_button = _button(buttons, "Back", func() -> void: back_pressed.emit())
-	start_button = _button(buttons, "Start", start_selected)
+	back_button = _button(buttons, "COMMON_BACK", func() -> void: back_pressed.emit())
+	start_button = _button(buttons, "COMMON_START", start_selected)
 	visibility_changed.connect(func() -> void:
 		if visible:
 			refresh())
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_TRANSLATION_CHANGED and list != null and visible:
+		refresh()
 
 
 ## Reads the mission files again.
@@ -53,7 +59,7 @@ func refresh() -> void:
 		if not m.get("ok", false):
 			list.set_item_custom_fg_color(index, MenuTheme.DEFEAT.darkened(0.2))
 	if entries.is_empty():
-		details.text = "No missions found."
+		details.text = "MENU_MISSIONS_NONE"
 	else:
 		list.select(0)
 	_update_details()
@@ -62,10 +68,11 @@ func refresh() -> void:
 ## One list line: title, side, map, and "won" once it was won.
 static func describe(m: Dictionary) -> String:
 	if not m.get("ok", false):
-		return "%s (%s): cannot be read" % [m["id"], m["map"]]
-	var side: String = MatchSetup.FACTIONS.get(m.get("faction", ""), "")
-	var kind := "Tutorial" if m["kind"] == "tutorial" else side
-	return "%s   –   %s, %s%s" % [m["title"], kind, m["map"], "   (won)" if Missions.is_done(m["id"]) else ""]
+		return Language.t("MENU_MISSION_BROKEN").format({"id": m["id"], "map": m["map"]})
+	var side := Language.t(MatchSetup.FACTIONS.get(m.get("faction", ""), ""))
+	var kind := Language.t("MENU_MISSION_TUTORIAL") if m["kind"] == "tutorial" else side
+	var won := "   " + Language.t("MENU_MISSION_WON") if Missions.is_done(m["id"]) else ""
+	return "%s   –   %s, %s%s" % [Missions.text(m["path"], m["title"]), kind, m["map"], won]
 
 
 ## Index of the mission with this id, or -1.
@@ -92,7 +99,7 @@ func _update_details() -> void:
 		return
 	var m := entries[selected[0]]
 	start_button.disabled = not m.get("ok", false)
-	details.text = m.get("briefing", "") if m.get("ok", false) else m.get("error", "")
+	details.text = Missions.text(m["path"], m.get("briefing", "")) if m.get("ok", false) else m.get("error", "")
 
 
 func _button(parent: Control, text: String, action: Callable) -> Button:

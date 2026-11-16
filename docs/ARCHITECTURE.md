@@ -2183,7 +2183,8 @@ main menu ── Single player ─ setup (map, season, factions, opponent, mode)
   `SimHost.match_result()` is decided: victory, defeat or draw, why, match
   time, units left per player; "Back to main menu" (the replay is written as
   before).
-- `menu/settings.gd` (static, loaded by every entry scene): graphics quality
+- `menu/settings.gd` (static, loaded by every entry scene; language,
+  accessibility and display since prompt 043): graphics quality
   (`--quality` overrides it), keyboard bindings of the camera actions (a key
   taken by another action swaps), volumes per audio bus and mute without
   focus (prompt 029, see [Audio](#audio-presentation-only)), pan and zoom
@@ -2191,7 +2192,8 @@ main menu ── Single player ─ setup (map, season, factions, opponent, mode)
   `menu/settings_panel.gd` is the screen, used by the menu and the pause menu.
 - Look (`menu/menu_theme.gd`): dark field grey and olive with sand as the
   accent, Godot's default font, plain frames; factions appear by name only,
-  without insignia. UI texts are English like the rest of the UI.
+  without insignia. UI texts are translation keys, English and German
+  (prompt 043, see [Translations](#translations-accessibility-and-display-presentation-only)).
 
 **Self-test.** `just selftest` starts in the menu (`menu/flow_self_test.gd`,
 on the tree root so it survives scene changes): settings changed, saved and
@@ -2209,6 +2211,137 @@ the battle mode.
 Matches 1 and 2 choose the passive opponent, which gives no orders. `just lan-selftest` ends with the client
 surrendering: the host must show victory, the client defeat (since prompt 037 a 2 vs 2 with computer players, see
 [TEAMS.md](TEAMS.md)); the flow self-test also starts a 2 vs 2 from the setup screen.
+
+## Translations, accessibility and display (presentation only)
+
+Prompt 043. The game is English and German; more languages need one column
+per table and one PO file per mission. Nothing here reaches the simulation:
+the golden hash is unchanged.
+
+**Translation tables.** Every interface text is a key (`MENU_SKIRMISH`,
+`HUD_TIP_STOP`: upper case, area prefix, at least one underscore) in a
+Godot translation table `godot/locale/<area>.csv` with the columns
+`keys,en,de`:
+
+| Table | Prefixes | Texts |
+|---|---|---|
+| `common.csv` | `COMMON_` | words several screens share: Back, Save, factions, difficulties, resources |
+| `menu.csv` | `MENU_`, `MATCH_`, `RESULT_`, `FILES_`, `CREDITS_`, `LOADING_`, `NET_`, `REPLAY_`, `CRASH_` | main menu, setup, pause and result, saves and replays, credits, loading, network status |
+| `settings.csv` | `SET_`, `SUB_` | settings screen, key labels (`SET_KEY_<ACTION>`), subtitles |
+| `lobby.csv` | `LOBBY_` | LAN and Steam lobbies |
+| `hud.csv` | `HUD_` | HUD, picker, orders, base HUD, air bar, strike, events, mission panel |
+| `editor.csv` | `EDITOR_` | map editor |
+| `names.csv` | `NAME_`, `RANK_` | building names (`data/economy.toml`) and ranks (`data/experience.toml`) |
+
+Godot imports each table into `<area>.<lang>.translation` next to it (not
+committed, `*.translation` is ignored); `just build` runs the import when a
+table is new or changed (`tools/ensure-imported.sh`). `menu/language.gd`
+registers every translation in `res://locale/` (no list in
+`project.godot`, so a new table needs no other change) and switches the
+locale.
+
+**In code.** A static text assigns the key: `button.text = "MENU_SKIRMISH"`;
+a `Control` translates it when drawn and follows a language change. A text
+built at run time uses `tr("KEY") % value` or, with several values German
+may reorder, `tr("KEY").format({"name": ...})`; screens with such texts
+rebuild them on `NOTIFICATION_TRANSLATION_CHANGED` or in their periodic
+refresh. Static functions use `Language.t("KEY")`. Codes from the bridge
+(blocked reasons, air missions, biomes, defeat reasons) become keys with
+`Language.code_text("HUD_BLOCKED_", code)`, which falls back to the code.
+Developer tools (`scenes/tools/`, `scenes/debug/`), self-tests, logs and
+errors meant for developers stay English.
+
+**Adding a text.** Add the key with both texts to the table of its area,
+use the key in code, `just l10n-check`. German style: concise game German,
+the player is addressed with "du", buttons as infinitive or noun; the
+glossary of the first pass is in `prompts/done/043-sprache-barrierefreiheit.md`.
+
+**Names from data.** Catalog entries carry `name_de`/`name_en`;
+`SimHost.set_language` (called by `language.gd`) makes every name the
+bridge hands out (`unit_info`, buy options, `catalog_card`, the air
+bar's aircraft) come in the interface language
+(`crates/bridge/src/language_funcs.rs`). Buildings and ranks are translated
+in the bridge through the keys `NAME_<ID>` and `RANK_<NAME>` of
+`names.csv`, falling back to the English name of the data file. Weapon,
+map and player names are proper names and stay as they are.
+
+**Mission texts.** Mission files stay English; `<id>.<lang>.po` next to the
+file translates them, `msgid` being the English text
+(`sim::mission::mission_texts`: title, briefing, objectives, messages).
+`just mission-po` writes these files (new texts get an empty `msgstr`,
+existing translations are kept); `missions.gd` (`Missions.text`) loads them
+for the missions screen and the mission panel. A text without translation
+shows in English. Details in [MISSIONS.md](MISSIONS.md).
+
+**Checks.**
+
+- `just l10n-check` (`tools/l10n_check.py`, also run by `just selftest`):
+  tables have both texts, unique keys and the same placeholders per
+  language; every key literal in the game scripts exists; no hard-coded
+  interface text: a string literal that reads like prose (or any word on a
+  line that sets `text`, `tooltip_text`, `add_item` …) is an error unless
+  the line is logging, a node or file name, or ends with `# l10n-ignore`.
+  `cli mission-po --check`: every mission text has a German translation and
+  the PO files are up to date.
+- `just selftest` (`menu/l10n_self_test.gd` in the flow test): every menu
+  screen and settings tab in German without a text that holds a key without
+  translation; a catalog name and a mission title in German; every new
+  setting saved and read back from the file; during match 1 the HUD and the
+  pause menu in German and a subtitle for a warning. The other tests run in
+  English (`Language.resolve`: any `--…self-test` argument means English
+  unless the settings say otherwise; `--language=<code>` always wins).
+- `just l10n-shots [de] [build/l10n]` (needs a window): screenshots of every
+  menu screen, settings tab, the match HUD (tanks, a squad, the build menu),
+  the pause menu and the result, to check by eye that nothing overflows;
+  `--ui-scale=1.5` as extra argument for a second set.
+
+**Settings** (`menu/settings.gd`, tabs Graphics and Interface):
+
+| Key | Values | Effect |
+|---|---|---|
+| `language` | `auto` (system language if offered, else English), `en`, `de` | `TranslationServer` locale, names in the bridge |
+| `ui_scale` | 0.75–1.5 | `content_scale_factor` of the root window: all 2D (menus, HUD) |
+| `font_size` | 0.85, 1.0, 1.15, 1.3 | factor on the menu theme's font size and every font size override (`MenuTheme.font`) |
+| `color_palette` | `standard`, `red_green`, `blue_yellow` | own/ally/enemy colors (`hud/relation_colors.gd`): minimap, health bars, base markers, mines, strike areas, model tints |
+| `subtitles` | off by default | a line for warnings (UI notices: under attack, unit lost or ready, building complete, victory, defeat) and battle callouts (`hud/subtitles.gd`) |
+| `screen_shake` | on by default | camera shake of explosions (`effects.gd`) |
+| `window_mode` | `windowed`, `fullscreen` (borderless), `exclusive` | `DisplayServer.window_set_mode` |
+| `resolution` | "" (as started), 1280×720 … 3840×2160 | window size in window mode, centered, at most the screen |
+| `vsync`, `fps_limit` | on/off; 0 (none), 30, 60, 120, 144, 240 | VSync mode, `Engine.max_fps` |
+| `render_scale`, `upscaler` | 0.5–1.0; `bilinear`, `fsr1`, `fsr2` | `scaling_3d_scale`/`scaling_3d_mode` of the root viewport; the interface stays sharp |
+
+Display values apply only when they changed since the last time (benches
+that switch VSync off keep it), never headless; the first call of a run
+leaves a plain start untouched.
+
+**Keys.** Every order of the command bar, the camera, the air calls
+(Shift+1…5) and the rocket strike (Shift+6) are rebindable, with Shift,
+Ctrl, Alt or Meta (a binding is a physical keycode with modifier masks;
+older files with plain codes stay valid). Air calls and the strike are
+input actions added at run time (`Settings.RUNTIME_ACTIONS`). Fixed
+[provisional]: control groups (1…9, Ctrl+1…9), the picker's digit keys
+(Alt+digit) and the map editor's shortcuts.
+
+**Decisions** (with reasons in the prompt file):
+
+- Keys instead of English source texts: a missing translation shows as a
+  key and the self-test finds it; English wording can change without
+  touching code.
+- CSV per area instead of one file or PO: both languages side by side for
+  a solo developer; parallel prompts add rows to different files.
+- Mission texts as PO next to the mission instead of `_de` fields in the
+  TOML: the simulation and the mission format stay unchanged, and PO is
+  the format translation tools know.
+- [provisional] German addresses the player with "du".
+- [provisional] Palettes from the Okabe-Ito set; the standard palette keeps
+  each view's tuned shades.
+- [provisional] Subtitles off by default; callout lines show even while no
+  voice files ship (prompt 053), so the setting is useful now.
+
+**Open:** right-to-left and CJK languages (font with those glyphs);
+translating validation messages from the Rust crates (editor validation,
+lobby and network messages, file errors stay English); scaling the 3D
+labels over units with the UI scale.
 
 ## Missions and tutorial
 
