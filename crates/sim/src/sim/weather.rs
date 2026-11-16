@@ -7,7 +7,7 @@
 //!   ([`crate::path::PathGrid::set_ground_pct`]); movement reads them there.
 //!   In the rain the ground gets softer in steps; after a step the path costs
 //!   are computed again, [`RECOST_ROWS_PER_TICK`] rows per tick (a 4 km map
-//!   takes 16 ticks). Routes already planned stay as they are.
+//!   takes 63 ticks). Routes already planned stay as they are.
 //! - Muzzle flashes (night): a unit that fired is revealed for a moment to
 //!   every player with a unit nearby ([`Sim::reveal_flashes`], after the
 //!   vision update).
@@ -28,7 +28,7 @@ use serde::{Deserialize, Serialize};
 
 /// Path rows whose costs are computed again per tick after the ground got
 /// softer (a row of a 4 km map: 500 cells per profile).
-pub(super) const RECOST_ROWS_PER_TICK: u32 = 32;
+pub(super) const RECOST_ROWS_PER_TICK: u32 = 8;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub(super) struct WeatherState {

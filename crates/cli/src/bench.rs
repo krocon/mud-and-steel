@@ -86,6 +86,9 @@ struct Run {
     total: Duration,
     samples: Vec<Sample>,
     result: GameResult,
+    /// Path requests of the run (prompt 040: soft ground makes searches
+    /// longer).
+    paths: sim::path::PathStats,
 }
 
 fn play(config: &SimConfig, map: &Arc<Map>, options: &Options) -> Result<Run, String> {
@@ -132,6 +135,7 @@ fn play(config: &SimConfig, map: &Arc<Map>, options: &Options) -> Result<Run, St
         build,
         total: total.elapsed(),
         samples,
+        paths: game.sim().path_stats(),
         result: game.result(),
     })
 }
@@ -205,6 +209,12 @@ pub fn run(config: &SimConfig, map: Arc<Map>, options: &Options) -> Result<Strin
         result.alive,
         result.winner.map(|p| p.0),
         result.end_hash
+    );
+    let p = &first.paths;
+    let _ = writeln!(
+        out,
+        "  paths: {} requests, {} found, {} failed, {} dropped, {} nodes expanded",
+        p.requests, p.found, p.failed, p.dropped, p.expanded
     );
     let _ = writeln!(out);
     let _ = writeln!(

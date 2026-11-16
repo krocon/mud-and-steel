@@ -218,6 +218,12 @@ enum CliCommand {
         /// Print every game.
         #[arg(long)]
         verbose: bool,
+        /// Weather of every game (prompt 040); default: the map's.
+        #[arg(long)]
+        weather: Option<String>,
+        /// Time of day of every game; default: the map's.
+        #[arg(long)]
+        daytime: Option<String>,
     },
     /// Benchmarks vision (prompt 018): many moving units of two players.
     VisionBench {
@@ -603,6 +609,8 @@ fn main() {
             max_ticks,
             jobs,
             verbose,
+            weather,
+            daytime,
         } => {
             let team_size = match teams.as_deref() {
                 Some("2v2") => 2,
@@ -619,12 +627,14 @@ fn main() {
                 "base" => sim::scenario::SKIRMISH_SCENARIO,
                 other => fail(&format!("unknown mode '{other}' (battle, base)")),
             };
-            let config = if team_size > 1 {
+            let mut config = if team_size > 1 {
                 team_tournament_config(&map, &factions, scenario, team_size)
             } else {
                 tournament_config(&map, &factions, scenario)
             }
             .unwrap_or_else(|e| fail(&e));
+            set_weather(&mut config, weather.as_deref(), daytime.as_deref())
+                .unwrap_or_else(|e| fail(&e));
             let options = ai_tournament::Options {
                 games,
                 seed,

@@ -143,7 +143,7 @@ fn rain_softens_the_ground_and_the_path_costs_follow() {
     assert_eq!(ground, Ground::Wet);
     let cell = |sim: &Sim| sim.path_grid().costs(0)[100 * 200 + 100];
     let cost_start = cell(&sim);
-    // 120 game seconds per step, then 32 path rows per tick.
+    // 120 game seconds per step, then 8 path rows per tick.
     for _ in 0..(120 * 20 + 20) {
         sim.step(&[]);
     }
