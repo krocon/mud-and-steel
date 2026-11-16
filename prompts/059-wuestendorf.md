@@ -4,7 +4,7 @@
 > `docs/ASSETS.md`, `docs/SOURCES.md`, `docs/MAPS.md`, `docs/ARCHITECTURE.md`
 > (Kartenobjekte, Zerstörung, Infanterie in Gebäuden, Biome) und das Ergebnis von 041.
 >
-> **Entwurf:** vor dem Umsetzen konkretisieren: Ausgangslage im Code prüfen,
+> Konkretisiert (siehe unten). Ursprünglich Entwurf: Ausgangslage im Code prüfen,
 > Entscheidungen mit Begründung als Tabelle festhalten, Umfang schärfen.
 
 ## 1. Ziel
@@ -62,3 +62,70 @@ Gemeinsame Dateien (`sim.rs`, `bridge/src/lib.rs`, `main.gd`, `self_test.gd`,
 Ändert sich der Golden-Hash, den Grund im Commit nennen. Am Ende nach `prompts/done/`
 verschieben und `prompts/README.md` aktualisieren. Abschlussbericht: was gebaut wurde,
 wie ich es teste, Messwerte, was offen ist.
+
+## Konkretisierung (Ausgangslage und Entscheidungen)
+
+Ausgangslage im Code (nach 041/057): Kartenobjekte mit Regeln pro Katalog-Id
+(`data/objects.toml`, Zerstörung 020, Besetzen 022 als Kapazität und
+Trefferanteil pro Gebäude-Id – Fensterplätze als eigene Positionen gibt es
+nicht), Biom `desert` mit Licht, Staub in Sandfarbe und trockenen Pflanzen
+(015, 019), ein einzelnes `env_house_mud` (007), Palmen, Feuer (041),
+Objektgruppen in der Objektliste des Editors (041), `cli gen-town` als
+Vorbild für eigene Kartengeneratoren. Der Editor kennt nur Einzelobjekte
+und den Streupinsel.
+
+| # | Entscheidung | Begründung |
+|---|---|---|
+| 1 | **Priorität:** Baukasten-Teile, zehn Haustypen plus Moschee und Polizeiposten mit Intact/Damaged/Ruin, Hofmauer und Hof-Requisiten, Gehöfte, Editor-Pinsel „Dorf“, eine Dorfkarte mit Oase für 2 und 4 Spieler. Rest offen (Ergebnis). | Auftrag. |
+| 2 | **Jeder Haustyp ist eine eigene Katalog-Id** (`env_house_desert_*`), nicht eine Variante: Lebenspunkte, Kapazität, Sicht und Grundriss hängen an der Id; die Schadensstufen sind die Varianten. Präfix `env_house` bekommt so Sichtweite und Schatten der Häuser in `map_objects.gd` ohne Änderung. | Bestehende Regeln wiederverwenden, keine Sim-Änderung. |
+| 3 | **Ein Gehöft ist eine Gruppe gewöhnlicher Kartenobjekte** (Haus, Mauersegmente, Ecken, Tor, Requisiten), beschrieben in `data/compounds.toml` und ausgelegt von `editor::compound`; die Sim sieht nur die Objekte. Hofmauer aus 3-m-Segmenten, Teile im Haus entfallen. Drehen in 90°-Schritten. **[vorläufig]** | Keine neue Sim-Regel, kein Hash-Einfluss; der Editor ist ganzzahlig, 90° braucht keine Trigonometrie und passt zu Gassen und Wegegitter. |
+| 4 | **Hofmauern blockieren Fahrzeuge, nicht Infanterie** (wie die Trockenmauer), auch Tor und verfallene Segmente; Deckung über „blockiert Panzer“. Infanterie überklettert 2,2-m-Lehmmauern. **[vorläufig]** | Ein 3-m-Tor in einem 4-m-Wegegitter wäre für Infanterie sonst nicht sicher passierbar. |
+| 5 | **Lehm hält weniger als Stein:** Häuser 1 400–3 200 HP (Backstein 3 000, Stein 3 500), Mauer 800 (Trockenmauer 1 200), Moschee 4 500, Polizeiposten 5 500. Kapazitäten 4–20 inkl. Dachterrasse, Trefferanteile 8–25 % (schwer 25–50 %). Lehmhäuser brennen nicht (keine Feuerklasse). **[vorläufig]** | Spielregeln, keine historischen Werte. |
+| 6 | **Dachplätze** sind in der Kapazität enthalten, nicht als eigene Positionen. **[vorläufig]** | 022 kennt keine Positionen im Gebäude. |
+| 7 | **Modelle:** neuer Generator `desert_house` (Raumblöcke mit Brüstung, Dachkammer, Außentreppe, Gewölbe, Arkade, Balkon, Balkenköpfe, Wasserspeier, Läden statt Glas, abgeplatzter Putz, Sandverwehungen im `_Floor`), Tür/Hofseite immer +X; Mauer, Requisiten, Moschee (ohne Schrift/Symbole/Halbmond), Polizeiposten (ohne Hoheitszeichen) in `desert_props.py`. Budgets: Haus 3 000, Moschee/Posten 5 000 (wie Kirche), Requisiten 800. Zwei Subagenten parallel. | Baukasten, Budgets aus `docs/ASSETS.md`. |
+| 8 | **AO-Bake pro Variante** in `env.bake_env` (alle Varianten stehen am Ursprung und schatteten sich gegenseitig). Nur neu gebaute Modelle ändern sich. | Fehler im Baukasten, beim Bauen gefunden. |
+| 9 | **Karte:** `cli gen-village` → `desert_village`, 800 m, vier Starts in zwei Teams (2 Spieler nutzen 0 und 1), Piste durch den Dorfplatz, Moschee, Ladenzeilen, Brunnen, ~130 Gehöfte aus dem Dorf-Pinsel, Oase mit Teich, Palmenhain und Brunnen im Westen, Polizeiposten im Osten, Versorgungspunkte Dorfplatz/Brunnen/Fort. Objekte über `EditMap` (gleicher Code wie der Editor). | Reproduzierbar, Pinsel wird mitgetestet. |
+| 10 | **Darstellung:** Wüstenlicht, Staub in Sandfarbe und Biom-Look gibt es schon (015/019); Sandverwehungen als Modellteile an Mauern und Häusern, lose Sandflächen als Gelände. Keine Änderung an Shadern. | Vorhanden; gemeinsame Dateien klein halten. |
+
+## Ergebnis
+
+- **Modelle** (`tools/blender/kit/desert.py`, `desert_props.py`, 18
+  Baupläne): `env_house_desert_{hut,two,long,corner,stair,roofroom,tall,
+  vault,large,shop}`, `env_mosque`, `env_police_post` (je Intact/Damaged/Ruin),
+  `env_wall_mud` (Segment/Low/Broken/Gate/End/Corner), `env_awning`
+  (Cloth/Wide/Palm), `env_jars`, `env_well_desert`, `env_cart_wood`,
+  `env_market_stall`; Häuser 552–2 802 Dreiecke, Moschee 3 612, Posten 4 416.
+- **Regeln:** `data/objects.toml`, `destruction.toml`, `infantry.toml`
+  (Kapazität, Deckung hinter Krügen/Karren/Ständen), `vision.toml`.
+- **Editor:** `data/compounds.toml` (9 Gehöfte, Moschee, Polizeiposten,
+  Ladenzeile), Werkzeuge „Place compound“ und „Village (desert)“, Gruppe
+  „Desert village“ in der Objektliste; Tests in `crates/editor` und im
+  Editor-Selbsttest.
+- **Karte:** `data/maps/desert_village` (3 349 Objekte, 130 Gehöfte, 400
+  Palmen); `just map-check desert_village` ok.
+- **Messung** (M1 Max): `objects-bench` auf der Dorfkarte 1080p: nah
+  112 FPS, 120 m 91 FPS, Übersicht 600 m 66 FPS (3 265 Draw Calls), Dorf aus
+  150 m 60 FPS. `path-bench desert_village 200`: Planung im Mittel 11 ms/Tick
+  (max 52 ms), alle Ticks im Mittel 1,2 ms (vergleichbar mit `town_small`).
+- **Golden-Hashes** bewusst aktualisiert (Regeltabellen werden als Ganzes
+  gehasht): Demo `0x8ab2aa30ae0b23b5`, Basisbau `0x3e262432a66238fd`; die
+  Szenarien nutzen keine Wüstenobjekte, die Schlacht ist unverändert.
+- **Prüfungen:** `just check`, `kit-test`, `validate-assets`,
+  `gallery-check`, `map-check desert_village`, `editor-selftest`,
+  `selftest` grün.
+
+**Vorläufig (bitte bestätigen):** Lebenspunkte, Kapazitäten und
+Trefferanteile der Wüstenbauten; Hofmauern für Infanterie überkletterbar;
+Drehen von Gehöften nur in 90°-Schritten; Schadensanteile des Dorf-Pinsels
+(10 % beschädigt, 5 % Ruine, 8 % verfallene Mauern); alle Maße (Schätzwerte).
+
+**Offen:**
+- Ölmühle, Zisterne, Futterkrippe, Wasserschläuche als eigenes Objekt,
+  Dornbusch-Modell (die Karte nutzt `env_bush` mit Wüstenlook), Reifen- und
+  Kettenspuren im Sand, Treffer-Staub an Lehmwänden (Putzstaub).
+- Dachplätze als eigene Feuerstellungen (022 kennt keine Positionen),
+  Treppe zum Dach als Weg; Sonnensegel und Palmwedeldächer brennen nicht.
+- Gehöfte frei drehbar (nicht nur 90°); Gehöft-Vorschau im Editor vor dem
+  Klick.
+- Optik nur in Blender-Renders und Godot-Aufnahmen aus der Vogelperspektive
+  geprüft; Galerie in Godot nicht visuell abgenommen.

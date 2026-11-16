@@ -398,6 +398,41 @@ start. Starts at (0, ±250); markers `town_square`, `west_wood`,
 the streets. No real place names. A test generates it and checks its
 buildings, dumps and woods; `just map-check town_small` passes.
 
+### Desert village (prompt 059)
+
+`cli gen-village` (`crates/cli/src/gen_village.rs`, `just gen-village`)
+writes `data/maps/desert_village`: 800 m, biome `desert`, four starts in
+two teams (team 0 south at (∓90, 330), team 1 north; a two-player match
+uses players 0 and 1, diagonally opposite). Low dunes with loose sand on
+the crests, flat ground in the village, at the oasis and the post. A
+graded piste (road) runs north–south through the village square (48 m,
+packed earth) with the mosque on its west side, four shop rows with
+market stalls and a well; about 130 walled courtyard compounds fill the
+village (radius 165 m), placed by the editor's village brush. A field
+track leads west to an **oasis** (a pond of shallow water in a 2.4 m
+hollow, sand banks, a dense palm grove, bushes, a well and a gardener's
+yard) and east to the walled **police post** (fort). Palms stand in the
+yards and lanes, thorn bushes and rocks in the open. Markers `village`,
+`oasis`, `police_post` and the supply points `supply_square`,
+`supply_well`, `supply_fort`. A test generates it twice (same files) and
+checks starts, compounds, landmarks and palms; `just map-check
+desert_village` passes. No real place names.
+
+**Compounds** (`data/compounds.toml`, `editor::compound`): a compound is a
+group of ordinary map objects – a house with its walled yard, gate and yard
+props, or a landmark (mosque with a low wall, police post with its yard,
+shop row with stalls). The yard wall is laid out from the yard size in
+3 m segments with corner piers and one gate segment; pieces inside the
+compound's buildings are left out (the house wall closes the yard).
+Stamps turn in steps of 90°. The simulation never sees a compound, so
+compounds are not a rule and not hashed. The **village brush** packs the
+compounds marked `village` into its circle in rows: 2–4 m alleys between
+the yards of a row (infantry; mud walls stop vehicles, not infantry) and
+8 m lanes between the rows (tanks), random compounds and turns (gates
+mostly to the lanes), houses 10 % damaged and 5 % ruined, 8 % of the wall
+segments broken; never on tracks, roads or water or over existing objects;
+deterministic from the editor's seed.
+
 ## Map editor (prompt 028)
 
 Maps can be built in the game: main menu → **Map editor** (or
@@ -419,6 +454,8 @@ loads maps for the simulation (reasons and data flow:
 | Place object | any kind and variant of `objects.toml` with a heading; bridges snap to a multiple of 90° and onto a center line of the 4 m path grid |
 | Erase objects | removes the objects in the circle |
 | Start player 1 / 2 | sets the start positions (whole meters) |
+| Place compound | a compound of `data/compounds.toml` (house with walled yard, gate and props; mosque, police post, shop row) at the point, turned by the heading in 90° steps (prompt 059) |
+| Village (desert) | packs courtyard compounds into the circle with alleys and lanes (prompt 059, above) |
 
 Every stroke (mouse down to up) is one undo step (**Ctrl+Z**, **Ctrl+Y** or
 **Ctrl+Shift+Z**; up to 100 steps). `[` / `]` change the radius, **Ctrl+S**
