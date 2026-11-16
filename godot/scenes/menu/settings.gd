@@ -270,6 +270,14 @@ static func apply() -> void:
 	_apply_display()
 
 
+## The interface scale for a window `height` pixels high: the setting, but
+## at most so that the interface keeps 720 pixels of room (menus are built
+## for 1600×900) [provisional].
+static func ui_scale_for(height: int) -> float:
+	var wanted: float = values.get("ui_scale", 1.0)
+	return clampf(minf(wanted, float(height) / 720.0), 0.75, wanted) if height > 0 else wanted
+
+
 ## UI scale, window, VSync, frame limit and render scale (prompt 043). Only
 ## what changed since the last call is applied, so tools that set VSync or
 ## the window themselves keep it; nothing of it runs headless.
@@ -283,8 +291,8 @@ static func _apply_display() -> void:
 		wanted[key] = values[key]
 	var changed := func(key: String) -> bool:
 		return not _applied.has(key) or _applied[key] != wanted[key]
-	if changed.call("ui_scale"):
-		root.content_scale_factor = wanted["ui_scale"]
+	if changed.call("ui_scale") or changed.call("window_mode") or changed.call("resolution"):
+		root.content_scale_factor = ui_scale_for(root.size.y)
 	if changed.call("fps_limit"):
 		Engine.max_fps = wanted["fps_limit"]
 	if changed.call("render_scale") or changed.call("upscaler"):

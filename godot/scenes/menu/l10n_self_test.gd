@@ -129,7 +129,7 @@ func menu_test(menu: Control) -> void:
 	await flow._frames(2)
 	flow._check(RelationColors.palette == "red_green", "palette not applied")
 	flow._check(is_equal_approx(MenuTheme.font_scale, 1.15), "font size not applied")
-	flow._check(is_equal_approx(menu.get_tree().root.content_scale_factor, 1.25), "UI scale not applied")
+	flow._check(is_equal_approx(menu.get_tree().root.content_scale_factor, Settings.ui_scale_for(menu.get_tree().root.size.y)) and menu.get_tree().root.content_scale_factor > 1.0, "UI scale not applied")
 	flow._check(is_equal_approx(menu.get_tree().root.scaling_3d_scale, 0.75), "render scale not applied")
 	flow._check(Engine.max_fps == 60, "frame limit not applied")
 	panel.save_button.pressed.emit()

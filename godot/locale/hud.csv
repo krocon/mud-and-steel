@@ -195,7 +195,7 @@ HUD_FEED_COMPLETED,Completed: %s,Fertiggestellt: %s
 HUD_FEED_BUILDING,building,Gebäude
 HUD_FEED_UNIT,unit,Einheit
 HUD_FEED_PING,Ally (player %d) marks a spot,Verbündeter (Spieler %d) markiert eine Stelle
-HUD_FEED_PROMOTED,Promoted: {unit} is {rank} now,Befördert: {unit} ist jetzt {rank}
+HUD_FEED_PROMOTED,Promoted: {unit} is {rank} now,"Befördert: {unit}, neuer Rang: {rank}"
 HUD_RANK_N,rank %d,Rang %d
 HUD_AIR_RECON,Recon,Aufklärung
 HUD_AIR_STRAFE,Fighters,Jäger

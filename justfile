@@ -127,6 +127,11 @@ l10n-check:
     python3 tools/l10n_check.py
     cargo run -q -p cli -- mission-po --check
 
+# Screenshots of every menu screen, settings tab and the match HUD in a language (prompt 043; needs a window), e.g. `just l10n-shots de build/l10n`
+[group('godot')]
+l10n-shots language="de" dir="build/l10n" *args: build
+    {{ GODOT }} --path godot --always-on-top --resolution 1600x900 -- --l10n-shots={{ justfile_directory() }}/{{ dir }} --language={{ language }} --settings=user://settings-l10n-shots.cfg {{ args }}
+
 # Write the translation files of the mission texts (data/maps/*/missions/<id>.<lang>.po): new texts get an empty entry to translate
 [group('godot')]
 mission-po:

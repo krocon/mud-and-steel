@@ -126,6 +126,12 @@ func _ready() -> void:
 		MatchSetup.flow_test = test
 		# On the root, so it survives the scene changes it drives.
 		get_tree().root.add_child.call_deferred(test)
+	# Screenshots of menus and HUD (prompt 043, `just l10n-shots`).
+	if Array(OS.get_cmdline_user_args()).any(func(a: String) -> bool: return a.begins_with("--l10n-shots=")) \
+			and not get_tree().root.has_node("L10nShots"):
+		var shots: Node = load("res://scenes/tools/l10n_shots.gd").new()
+		shots.name = "L10nShots"
+		get_tree().root.add_child.call_deferred(shots)
 	# Map editor self-test (prompt 028, `just editor-selftest`).
 	if "--editor-self-test" in OS.get_cmdline_user_args() and not get_tree().root.has_node("EditorSelfTest"):
 		var editor_test := EditorSelfTest.new()
