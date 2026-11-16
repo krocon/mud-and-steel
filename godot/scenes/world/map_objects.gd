@@ -86,6 +86,15 @@ const DECO_LAYERS: Array[Dictionary] = [
 		"scale": Vector2(0.8, 1.2), "sink": 0.05, "range": 260.0, "shadow": true},
 ]
 
+## Winter (prompt 056): decoration layers thinned by snow, factor of
+## their density.
+const WINTER_SPARSE := {"grass": 0.08, "reeds": 0.4, "stones": 0.4}
+## Loose straw around haystacks (prompt 056): clumps per stack, ring
+## around it (m), view range (m).
+const STRAW_PER_STACK := 22
+const STRAW_RING := Vector2(1.6, 5.5)
+const STRAW_RANGE := 180.0
+
 ## Time of the last `_process` in microseconds (benchmark, prompt 016).
 var process_usec := 0
 ## SimHost, or MapEditor in the map editor (prompt 028).
@@ -100,6 +109,8 @@ var object_nodes := 0
 ## Blade tufts instead of grass clumps in the meadow (prompt 057; the
 ## terrain benchmark turns them off for comparisons, then calls set_biome).
 var meadow_tufts := true
+## Loose straw clumps around haystacks (prompt 056).
+var straw_instances := 0
 ## Decoration instances currently built, and their squares.
 var deco_instances := 0
 var deco_chunks := 0
@@ -195,6 +206,7 @@ func build(host: Object, view: Camera3D) -> void:
 				_group_buffers[key] = buffer
 			_group_nodes[key].append(node)
 
+	_build_straw(kinds)
 	for layer: Dictionary in DECO_LAYERS:
 		var meshes: Array = []
 		var model := _model(layer.model)
@@ -355,6 +367,13 @@ func set_charred(index: int, amount: float) -> void:
 		_char_node(node, charred[index])
 
 
+func _set_fallen(node: Node) -> void:
+	if node is GeometryInstance3D:
+		(node as GeometryInstance3D).set_instance_shader_parameter(&"env_fallen", 1.0)
+	for child in node.get_children():
+		_set_fallen(child)
+
+
 func _char_node(node: Node, amount: float) -> void:
 	if node is GeometryInstance3D:
 		(node as GeometryInstance3D).set_instance_shader_parameter(&"env_char", amount)
@@ -416,6 +435,8 @@ func _variant_node(id: String, variant: String, transform: Transform3D) -> Node3
 func _falling(node: Node3D, fall_deg: int, seconds: float, angle: float) -> Node3D:
 	var pivot := Node3D.new()
 	pivot.add_child(node)
+	# Lying still: no wind sway; snow stays on what was the top (prompt 056).
+	_set_fallen(node)
 	var heading := deg_to_rad(float(fall_deg))
 	var direction := Vector3(sin(heading), 0.0, -cos(heading))
 	var axis := Vector3.UP.cross(direction).normalized()
@@ -509,8 +530,13 @@ func _build_deco(layer_index: int, square: Vector2i) -> void:
 	# on a denser lattice.
 	var tufts: bool = layer.name == "grass" and meadow_tufts and MeadowTufts.active(biome)
 	var spacing: float = MeadowTufts.SPACING if tufts else layer.spacing
+	var density := PackedFloat32Array(layer.density)
+	if biome == "winter" and layer.name in WINTER_SPARSE:
+		# Snow covers most of the grass (prompt 056).
+		for k in density.size():
+			density[k] *= WINTER_SPARSE[layer.name]
 	var buffers: Array = sim_host.scatter_deco(
-		x0, z0, DECO_CHUNK_M, spacing, layer.seed, PackedFloat32Array(layer.density),
+		x0, z0, DECO_CHUNK_M, spacing, layer.seed, density,
 		layer.wood, layer.patchiness, PackedFloat32Array(layer.weights), layer.scale, layer.sink,
 		layer.get("shore", Vector2.ZERO)
 	)
@@ -575,6 +601,53 @@ func _multimesh(mesh: Mesh, buffer: PackedFloat32Array, local: Transform3D) -> M
 	return node
 
 
+## Loose straw around every haystack (prompt 056, presentation only):
+## flattened dry grass clumps scattered in a ring, the same every time (the
+## random stream is seeded by the stack's position). One MultiMesh.
+func _build_straw(kinds: PackedStringArray) -> void:
+	var model := _model("env_grass_clump")
+	var mesh_node := EnvLook.variant_node(model, "GrassTall") as MeshInstance3D if model else null
+	if mesh_node == null:
+		return
+	var transforms: Array[Transform3D] = []
+	var rng := RandomNumberGenerator.new()
+	for key: String in _group_buffers.keys():
+		var kind := int(key.get_slice(":", 0))
+		if not kinds[kind].begins_with("env_hay_bale"):
+			continue
+		var b: PackedFloat32Array = _group_buffers[key]
+		for o in range(0, b.size(), 12):
+			var at := Vector3(b[o + 3], b[o + 7], b[o + 11])
+			rng.seed = hash(Vector2i(roundi(at.x * 10.0), roundi(at.z * 10.0)))
+			for k in STRAW_PER_STACK:
+				var a := rng.randf() * TAU
+				var d := lerpf(STRAW_RING.x, STRAW_RING.y, sqrt(rng.randf()))
+				var x := at.x + cos(a) * d
+				var z := at.z + sin(a) * d
+				var size := rng.randf_range(0.6, 1.2)
+				var basis := Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3(size * 1.4, size * 0.3, size * 1.4))
+				transforms.append(Transform3D(basis, Vector3(x, sim_host.height_at(x, z) - 0.02, z)))
+	if transforms.is_empty():
+		return
+	var multimesh := MultiMesh.new()
+	multimesh.transform_format = MultiMesh.TRANSFORM_3D
+	multimesh.mesh = mesh_node.mesh
+	multimesh.instance_count = transforms.size()
+	for i in transforms.size():
+		multimesh.set_instance_transform(i, transforms[i])
+	var node := MultiMeshInstance3D.new()
+	node.name = "Straw"
+	node.multimesh = multimesh
+	node.set_meta(&"straw", true)
+	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	node.visibility_range_end = STRAW_RANGE
+	node.visibility_range_end_margin = STRAW_RANGE * 0.1
+	node.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
+	_apply_look(node)
+	_objects_root.add_child(node)
+	straw_instances = transforms.size()
+
+
 ## Biome look as instance uniforms (EnvLook.apply does the same for single
 ## meshes); `tint` scales the foliage color (grass clumps match the lighter
 ## ground texture). Every node with instance uniforms takes a few slots of
@@ -588,6 +661,11 @@ func _apply_look(node: GeometryInstance3D, tint := Color.WHITE) -> void:
 	node.set_instance_shader_parameter(&"env_snow", look.snow)
 	node.set_instance_shader_parameter(&"env_dust", look.dust)
 	node.set_instance_shader_parameter(&"env_paint", EnvLook.NEUTRAL_PAINT)
+	if node.has_meta(&"straw"):
+		# Straw: fully dry, a little lighter than standing grass.
+		node.set_instance_shader_parameter(&"env_dry", 1.0)
+		node.set_instance_shader_parameter(&"env_snow", look.snow * 0.3)
+		node.set_instance_shader_parameter(&"env_foliage", look.foliage * Color(1.3, 1.25, 1.0))
 
 
 ## The mesh parts of one model variant: [{name, mesh, transform, lod}] with

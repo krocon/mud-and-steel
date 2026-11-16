@@ -16,6 +16,9 @@ instance uniform float env_dust = 0.0;
 instance uniform vec4 env_paint : source_color = vec4(0.33, 0.35, 0.32, 1.0);
 // Charred by fire (prompt 041, map_objects.gd set_charred): 0 = not, 1 = black.
 instance uniform float env_char = 0.0;
+// Fallen or flattened (prompt 056, map_objects.gd _falling): 1 = lying, no
+// wind sway.
+instance uniform float env_fallen = 0.0;
 
 // Soot over the albedo of a charred object; a little texture stays visible.
 vec3 charred(vec3 albedo, float amount) {
@@ -74,6 +77,9 @@ vec3 wind_offset(vec3 vertex, float weight, float phase, vec3 instance_pos, floa
 	return off;
 }
 
+// `world_normal`: the normal the object had standing (its model normal;
+// objects only turn about the vertical), so snow stays where it lay when a
+// tree falls (prompt 056).
 vec3 snow_cover(vec3 albedo, inout float rough, vec3 world_normal, vec3 p, float amount) {
 	float s = amount * smoothstep(0.45, 0.8, world_normal.y + (fbm3(p * 2.0) - 0.5) * 0.5);
 	rough = mix(rough, 0.75, s);

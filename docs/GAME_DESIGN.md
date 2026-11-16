@@ -67,6 +67,32 @@ a source and a depot) would add path traffic, AI logistics and a unit type
 that is never fun to protect; captured supply points give the same "fight
 for resources on the map" with one simple rule.
 
+### Manpower as a limit (prompt 056) [provisional]
+
+Checked against the prices (`just economy-table`) and the income table
+above, with a full base (headquarters and three depots) per minute:
+
+| | Fuel | Ammunition | Manpower |
+|---|---|---|---|
+| Base without supply points | 160 | 220 | 170 |
+| Base with 3 points | 340 (+113 %) | 400 (+82 %) | 260 (+53 %) |
+| Rifle squad (`de_inf_rifle_squad`) | 0 | 18 | 54 |
+| Panzer IV (`de_pz4_h`) | 100 | 103 | 30 |
+
+- **Manpower already limits infantry:** the base alone pays about three
+  rifle squads a minute and has ammunition to spare; an army of tanks runs
+  out of fuel long before manpower (1.6 Panzer IV a minute use 48 of 170).
+  So each resource limits one arm, as the balancing principles want.
+- **Income falls without points:** a player who loses all points keeps
+  47 % of the fuel, 55 % of the ammunition and 65 % of the manpower.
+  Manpower falls least, deliberately: a beaten player can still raise
+  infantry to win points back, but no armored counter-attack.
+- **No change of numbers here.** Making manpower scarcer (e.g. points
+  paying more manpower, the headquarters less) is a balancing question
+  for the play tests of prompt 045, which records the resource history per
+  match; the computer players of `ai-tournament --mode base` play all
+  three new maps to their end (prompt 056 results).
+
 ### Consumption [provisional]
 
 Since prompt 036 units use up ammunition and fuel and are resupplied from
@@ -75,8 +101,10 @@ price of a unit still contains its first load.
 
 ## Buildings [provisional]
 
-Buildings are game objects, not catalog entries: their sizes match the
-models they borrow (`docs/ASSETS.md`), their strength is a game rule like the
+Buildings are game objects, not catalog entries: their sizes match their
+models (`docs/ASSETS.md`; since prompt 056 a steel hall for the vehicle
+works, a timber barracks hut and a store shed with crates and drums for
+the depot, the headquarters still a stone house), their strength is a game rule like the
 hit points of map objects in `data/destruction.toml`.
 
 | Building | Size (m) | Hit points | Armor (mm) | Cost F / A / M | Build time | Needs | Does |
@@ -356,6 +384,20 @@ never change armor, penetration, range or hit points.
 - **Computer players** pull veterans back earlier: on Normal a veteran or
   elite unit below 40 % of its hit points leaves the fight (recruits fight
   on), on Hard below 50 % (others below 30 %).
+
+## Ambush [provisional]
+
+Prompt 056: infantry standing still in a wood (a forest cell of the
+vision grid) or garrisoned in a building, and silent for 20 s, is seen
+only by enemies within 50 m (200 m real) that have it in sight. Its first
+shot reveals it for 20 s; standing silent again hides it again. With
+"hold fire" a squad waits in the edge of a wood or a house until the enemy
+is close and opens fire at short range. Moving squads, squads in the open
+and vehicles are not affected. Reason: woods and villages should favour
+the defender, as in the war; vision alone (16 m into a wood) let a squad
+at the forest edge be seen from 500 m. Rules in `data/vision.toml`
+`[ambush]`; details in
+[ARCHITECTURE.md](ARCHITECTURE.md#ambush-prompt-056-provisional).
 
 ## Victory [provisional]
 
