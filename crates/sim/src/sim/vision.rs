@@ -35,6 +35,10 @@ pub(super) struct Vision {
     /// Per unit type: eye height over the ground (mm) and sight radius (cells).
     eye_mm: Vec<i32>,
     radius: Vec<i32>,
+    /// Per unit type: sight range in cells without the downhill bonus
+    /// (`radius` includes it, prompt 060).
+    #[serde(default)]
+    base: Vec<i32>,
     /// Ray steps computed in the last tick (benchmark).
     pub(super) last_steps: u32,
     /// Per player slot (prompt 037): bit `t` = slot `t` is an ally (or the
@@ -73,8 +77,12 @@ impl Vision {
             .iter()
             .map(|&p| mask_of(&|q| p == q || (teams.shared_vision && teams.allied(p, q))))
             .collect();
-        let radius: Vec<i32> = types.iter().map(|&(_, c)| rules.range_cells(c)).collect();
-        let grid = VisionGrid::new(map, rules, &radius);
+        let base: Vec<i32> = types.iter().map(|&(_, c)| rules.range_cells(c)).collect();
+        // Ray tables also reach as far as the largest downhill bonus
+        // (prompt 060).
+        let radius: Vec<i32> = base.iter().map(|&r| rules.height.reach_cells(r)).collect();
+        let tables: Vec<i32> = base.iter().chain(&radius).copied().collect();
+        let grid = VisionGrid::new(map, rules, &tables);
         let cells = grid.cells();
         Self {
             rules: rules.clone(),
@@ -87,6 +95,7 @@ impl Vision {
             seen: vec![0; units],
             eye_mm: types.iter().map(|&(eye, _)| eye).collect(),
             radius,
+            base,
             last_steps: 0,
             allies,
             shares,
@@ -151,6 +160,27 @@ impl Vision {
         if let Some(s) = self.slot(player) {
             self.per_player[s].remove(&self.grid, shed);
         }
+    }
+
+    /// Camouflage (prompt 052): unit `i` of `owner` stays visible only to
+    /// the owner's allies and to the players who share the vision of one
+    /// of `spotters`.
+    pub(super) fn restrict(&mut self, i: usize, owner: PlayerId, spotters: &[PlayerId]) {
+        let Some(o) = self.slot(owner) else {
+            return;
+        };
+        let spotted = spotters
+            .iter()
+            .filter_map(|&p| self.slot(p))
+            .fold(0u64, |m, s| m | (1 << s));
+        let keep = (0..self.players.len()).fold(0u64, |m, s| {
+            if self.allies[s] & (1 << o) != 0 || self.shares[s] & spotted != 0 {
+                m | (1 << s)
+            } else {
+                m
+            }
+        });
+        self.seen[i] &= keep;
     }
 
     /// Lets `player`, and everyone who shares its vision, see unit `i`
@@ -246,7 +276,9 @@ impl Sim {
             let anchor = grid.index_of(unit.position);
             // Observers in a building look out over its roof (prompt 022).
             let eye = to_mm(unit.height).saturating_add(v.eye_mm[t].max(unit.elevation_mm));
-            let (shed, steps) = grid.viewshed(anchor, eye, v.radius[t]);
+            let base = v.base.get(t).copied().unwrap_or(v.radius[t]);
+            let radius = grid.downhill_radius(anchor, eye, base, v.radius[t]);
+            let (shed, steps) = grid.viewshed_downhill(anchor, eye, radius, base);
             let slot = v.slot(unit.owner).expect("owners are players");
             if let Some(old) = v.sheds[i].take() {
                 v.per_player[slot].remove(&grid, &old);
@@ -302,6 +334,8 @@ impl Sim {
                 u64::MAX
             };
         }
+        // Camouflage nets (prompt 052) hide units from distant observers.
+        self.restrict_camouflaged();
     }
 
     /// Queues every viewshed that covers a vision cell of `c0..=c1` ×

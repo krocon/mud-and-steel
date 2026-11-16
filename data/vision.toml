@@ -65,3 +65,14 @@ foliage = [
     "env_tree_birch",
     "env_tree_palm",
 ]
+
+[height]
+# Seeing downhill (prompt 060): beyond its sight range a unit also sees
+# vision cells whose ground lies more than `min_drop_m` below its eye (real
+# meters, heights are 1:1), `pct_per_10m` percent of the sight range farther
+# per 10 m of further drop, at most `max_pct` percent. A game rule
+# [provisional]: the line of sight already lets heights look over cover;
+# this adds the wider view over the valley.
+min_drop_m = 20
+pct_per_10m = 5
+max_pct = 25

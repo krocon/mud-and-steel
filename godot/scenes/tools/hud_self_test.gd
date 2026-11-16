@@ -37,6 +37,14 @@ func run(test: Node) -> void:
 	test._check(tanks.size() >= 3, "need 3 own tanks for the HUD test, %d alive" % tanks.size())
 	if tanks.size() < 3:
 		return
+	# Quiet again, as the parts below expect: the combat part leaves the
+	# selected tanks firing at will at enemies that hold fire, and whether
+	# they finish them off (deciding the match, the result screen then
+	# covers the HUD) before this part ends depends on where the formation
+	# of the order part put them and on how long the parts in between run.
+	print("self-test: hud starts at tick %d, %d enemy units alive" % [
+		main.sim_host.current_tick(), main.sim_host.alive_unit_count(1)])
+	main.sim_host.set_hold_fire(PackedInt64Array(test._ids_of(true)), true)
 	await _minimap_test(test, main, hud.minimap, tanks)
 	await _panel_test(test, main, hud.unit_panel, tanks)
 	Engine.time_scale = TIME_SCALE

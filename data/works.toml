@@ -126,3 +126,98 @@ cost = [0, 0, 0]
 build_s = 20
 clear_s = 0
 piece_mm = 4000
+
+# --- Prompt 052: positions tier 2 ---------------------------------------------
+# Zigzag trenches, firing positions, MG nests, dugouts, vehicle pits,
+# camouflage nets, bunkers at trench edges, concrete teeth and map
+# strongpoints (docs/ARCHITECTURE.md "Positions",
+# prompts/done/052-*.md). All values are PROVISIONAL game rules. These
+# rules and their state enter the state hash once a match uses them.
+[positions]
+# Fire trenches zigzag: every second corner lies this far (mm) beside the
+# ordered line (the corners are the firing bays).
+zigzag_mm = 1500
+# Firing positions along finished trenches every `spot_spacing_mm`,
+# `wall_mm` towards the squad's facing (the front wall); corners first.
+spot_spacing_mm = 2000
+wall_mm = 300
+# The parapet of a dug position stops direct fire only from shooters
+# farther away than `close_mm` and rounds that fall flatter than
+# `steep_pct` (rise per 100 of run; 58 = 30 degrees).
+close_mm = 25000
+steep_pct = 58
+# MG nests, dugouts and bunkers only within `edge_mm` of a finished
+# trench of the own team.
+edge_mm = 8000
+# Cover of a soldier on a sample of an MG nest / a dugout per stance
+# (stand, kneel, prone), instead of the trench values of [dig].
+nest_pct = [85, 90, 95]
+dugout_pct = [95, 95, 95]
+# Radius (mm) of the ground an MG nest, a dugout and a vehicle pit lower.
+nest_radius_mm = 1500
+dugout_radius_mm = 2000
+pit_radius_mm = 3000
+# A vehicle of the team that stands `enter_s` game seconds within
+# `pit_reach_mm` of a finished vehicle pit is dug in: only the turret
+# (the part above turret_height_pct of data/combat.toml) can be hit.
+pit_reach_mm = 3000
+enter_s = 8
+# Camouflage nets: units of the owner's team within `net_radius_mm` that
+# stand and have not fired for `fire_reveal_s` are seen by enemies only
+# with a ground unit within `spot_mm` (never from the air).
+net_radius_mm = 5000
+spot_mm = 80000
+fire_reveal_s = 20
+# Bunkers engineers build: the base-building fortification of the faction
+# (the first of these catalog ids with the faction's prefix).
+bunkers = ["de_bunker_tobruk", "su_bunker_dzot", "us_bunker_mg"]
+# Map markers named `<prefix><name>` become neutral strongpoints at the
+# start: a zigzag trench ring of `ring_sides` sides at `ring_mm`, MG
+# nests, communication trenches, dugouts and a wire ring at `wire_mm`.
+strongpoint_prefix = "strongpoint_"
+ring_mm = 16000
+ring_sides = 8
+wire_mm = 30000
+
+[positions.work.comm_trench]
+cost = [0, 0, 0]
+build_s = 15
+clear_s = 0
+piece_mm = 4000
+
+[positions.work.vehicle_pit]
+cost = [0, 0, 0]
+build_s = 60
+clear_s = 0
+piece_mm = 0
+
+[positions.work.mg_nest]
+cost = [0, 0, 10]
+build_s = 25
+clear_s = 0
+piece_mm = 0
+
+[positions.work.dugout]
+cost = [0, 0, 20]
+build_s = 60
+clear_s = 0
+piece_mm = 0
+
+[positions.work.camo_net]
+cost = [0, 0, 10]
+build_s = 10
+clear_s = 4
+piece_mm = 0
+
+[positions.work.bunker]
+cost = [0, 80, 60]
+build_s = 60
+clear_s = 0
+piece_mm = 0
+
+# Concrete teeth (Hoecker): one every 1.5 m, not crushed, slow to remove.
+[positions.work.teeth]
+cost = [0, 0, 15]
+build_s = 15
+clear_s = 30
+piece_mm = 1500

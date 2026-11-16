@@ -125,13 +125,13 @@ oder weggelassen; es werden keine Inhalte anderer Spiele übernommen.
 
 | Nr. | Prompt | Ziel | Status |
 |-----|--------|------|--------|
-| 046 | [Befehle und Formationen](046-befehle-formationen.md) | Angriffsbewegung, Gebiet sichern, Auto-Formation, Ausrichtung per Ziehen | Entwurf |
+| 046 | [Befehle und Formationen](done/046-befehle-formationen.md) | Angriffsbewegung, Gebiet sichern, Auto-Formation, Ausrichtung per Ziehen | erledigt (Schwellen und Tasten vorläufig, siehe Abschnitt 4) |
 | 047 | [Infanterie-Taktik](047-infanterie-taktik.md) | Feuertrupps, Deckung zu Deckung, Niederhalten, Blindfeuer | Entwurf |
-| 048 | [Animationen und Ragdolls](048-animationen-ragdolls.md) | Deckungs-, Kriech- und Rollanimationen, Ragdolls nur als Darstellung | Entwurf |
+| 048 | [Animationen und Ragdolls](done/048-animationen-ragdolls.md) | Deckungs-, Kriech- und Rollanimationen, Ragdolls nur als Darstellung | erledigt (Umwerf-Werte, Ragdoll-Budget und Trefferdarstellung vorläufig, siehe Ergebnis) |
 | 049 | [Verwundung und Kameradenhilfe](049-verwundung-kameradenhilfe.md) | Verwundete, Bergen, Sanitäter mit Trage, ausgestiegene Besatzungen | Entwurf |
 | 050 | [Erfahrung und Ränge](050-erfahrung-raenge.md) | Veteranenstufen mit moderaten Boni und Abzeichen | Entwurf |
 | 051 | [KI-Kommandeur Stufe 2](051-ki-kommandeur.md) | Aufklären, Lagebild, Konter, Versorgungskrieg, Aufgeben | Entwurf |
-| 052 | [Stellungen Stufe 2](052-stellungen-stufe2.md) | Gräben, Sperrlinien, eingegrabene Panzer, Tarnnetze, Bunker | Entwurf |
+| 052 | [Stellungen Stufe 2](done/052-stellungen-stufe2.md) | Gräben, Sperrlinien, eingegrabene Panzer, Tarnnetze, Bunker | erledigt (Werte vorläufig, siehe Ergebnis) |
 | 053 | [Sound Stufe 2](done/053-sound-stufe2.md) | Überschallknall, Schallverzögerung, Hall, Zoom-Akustik, Flugzeuge, Brände, Stimmen-Struktur | erledigt |
 | 054 | [Explosionen Stufe 2](054-explosionen-stufe2.md) | Druckwelle, Blitzlicht, Munitionsexplosion, schwerer Feuerschlag | Entwurf |
 | 055 | [Brücken, Pioniertechnik, Luftlande](055-bruecken-pioniertechnik-luftlande.md) | Brückeneinsturz, Ertrinken, Brückenleger, Fallschirmjäger | Entwurf |
@@ -139,7 +139,7 @@ oder weggelassen; es werden keine Inhalte anderer Spiele übernommen.
 | 057 | [Bodenoptik: Wiesen](done/057-bodenoptik-wiese.md) | Feines Gras, Farbvariation, Halmbüschel, Blüten, Übergänge, Tilt-Shift | erledigt |
 | 058 | [Bilder in der Produktionsauswahl](done/058-bilder-produktionsauswahl.md) | Vorgerenderte Bilder als Kacheln mit Kosten, Reiter; `just thumbnails` | erledigt |
 | 059 | [Wüstendorf](059-wuestendorf.md) | Flachdachhäuser mit Hofmauern, Palmenhaine, Dorfkarte Nordafrika | Entwurf |
-| 060 | [Berge und Täler](060-berge-taeler.md) | Gebirgs-Profile im Generator, Pässe, Hangregeln, Gebirgskarte | Entwurf |
+| 060 | [Berge und Täler](done/060-berge-taeler.md) | Gebirgs-Profile im Generator, Pässe, Hangregeln, Gebirgskarte | erledigt |
 | 061 | [Recherche: freie Soundeffekte](done/061-sound-recherche.md) | Geprüfte CC0/CC-BY-Aufnahmen, Pakete, Lücken, Ordnerstruktur in `docs/AUDIO_LIBRARY.md` | erledigt |
 
 Viele dieser Prompts ändern `sim.rs`, `command.rs`, `main.gd` und den Golden-Hash.

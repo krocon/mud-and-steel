@@ -312,7 +312,7 @@ func _make_laid(deck: Dictionary) -> Node3D:
 # --- Camouflage --------------------------------------------------------------------
 
 func _update_camouflage() -> void:
-	var ids := sim_host.camouflaged_units()
+	var ids := sim_host.vehicle_camouflage_units()
 	var wanted := {}
 	var biome: String = main.atmosphere.preset.camo_biome if main.get("atmosphere") != null else "forest"
 	for id in ids:

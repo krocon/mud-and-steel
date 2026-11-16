@@ -415,6 +415,67 @@ impl MapEditor {
         }
     }
 
+    /// Ridge (positive `amount` meters) or valley (negative) with a linear
+    /// falloff to the rim (prompt 060).
+    #[func]
+    fn ridge(&mut self, x: f32, z: f32, radius: f32, amount: f32) -> Rect2i {
+        let brush = self.brush(x, z, radius);
+        let rect = self.map.as_mut().and_then(|m| m.ridge(brush, mm(amount)));
+        self.edited(rect);
+        rect2i(rect)
+    }
+
+    /// Terraces of `step` meters (`strength` 0..1 at the center, prompt
+    /// 060).
+    #[func]
+    fn terrace(&mut self, x: f32, z: f32, radius: f32, step: f32, strength: f32) -> Rect2i {
+        let brush = self.brush(x, z, radius);
+        let rect = self
+            .map
+            .as_mut()
+            .and_then(|m| m.terrace(brush, radius_mm(step), pml(strength)));
+        self.edited(rect);
+        rect2i(rect)
+    }
+
+    /// A road piece from the previous dab at `(from_x, from_z)` and
+    /// `from_level` to this one at `level` meters, painted with terrain
+    /// `id`, with embankments and cuttings beside it (prompt 060).
+    #[func]
+    #[allow(clippy::too_many_arguments)]
+    fn road(
+        &mut self,
+        x: f32,
+        z: f32,
+        radius: f32,
+        level: f32,
+        from_x: f32,
+        from_z: f32,
+        from_level: f32,
+        id: i64,
+    ) -> Rect2i {
+        let brush = self.brush(x, z, radius);
+        let Ok(id) = u8::try_from(id) else {
+            return Rect2i::default();
+        };
+        let from = (mm(from_x), mm(from_z), mm(from_level));
+        let result = self
+            .map
+            .as_mut()
+            .map(|m| m.road(brush, mm(level), from, id));
+        match result {
+            Some(Ok(rect)) => {
+                self.edited(rect);
+                rect2i(rect)
+            }
+            Some(Err(e)) => {
+                self.fail(e);
+                Rect2i::default()
+            }
+            None => Rect2i::default(),
+        }
+    }
+
     /// Digs a river bed `depth` meters below `level` (the bank height).
     #[func]
     fn river(&mut self, x: f32, z: f32, radius: f32, level: f32, depth: f32) -> Rect2i {
@@ -523,6 +584,71 @@ impl MapEditor {
         };
         map.set_start(player, mm(x), mm(z));
         self.edited(None);
+    }
+
+    /// Adds a strongpoint marker at the ground point (prompt 052); returns
+    /// its name ("" without a map).
+    #[func]
+    fn add_strongpoint(&mut self, x: f32, z: f32) -> GString {
+        let Some(map) = self.map.as_mut() else {
+            return GString::new();
+        };
+        let name = map.add_strongpoint(mm(x), mm(z));
+        self.edited(None);
+        GString::from(name.as_str())
+    }
+
+    /// Removes the strongpoint markers within `radius` m of the point;
+    /// returns how many.
+    #[func]
+    fn remove_strongpoints(&mut self, x: f32, z: f32, radius: f32) -> i64 {
+        let Some(map) = self.map.as_mut() else {
+            return 0;
+        };
+        let n = map.remove_strongpoints(mm(x), mm(z), mm(radius));
+        if n > 0 {
+            self.edited(None);
+        }
+        i64::try_from(n).unwrap_or(0)
+    }
+
+    /// Strongpoint markers with their layout for the preview: per marker
+    /// `{name, position (Vector3), pieces: [{kind, from, to}]}`.
+    #[func]
+    fn strongpoints(&self) -> Array<VarDictionary> {
+        let Some(map) = &self.map else {
+            return Array::new();
+        };
+        let Ok(rules) = sim::PositionRules::builtin() else {
+            return Array::new();
+        };
+        let ground = |p: sim::Vec2| {
+            let (x, z) = (crate::fixed_to_f32(p.x), crate::fixed_to_f32(p.y));
+            Vector3::new(x, Self::height_f32(map, x, z), z)
+        };
+        map.meta()
+            .markers
+            .iter()
+            .filter(|(name, _)| name.starts_with(&rules.strongpoint_prefix))
+            .map(|(name, p)| {
+                let center = sim::Vec2::from_meters(p[0], p[1]);
+                let pieces: Array<VarDictionary> = sim::strongpoint_layout(&rules, center)
+                    .iter()
+                    .map(|piece| {
+                        let mut d = VarDictionary::new();
+                        d.set("kind", piece.kind.name());
+                        d.set("from", ground(piece.from));
+                        d.set("to", ground(piece.to));
+                        d
+                    })
+                    .collect();
+                let mut d = VarDictionary::new();
+                d.set("name", name.as_str());
+                d.set("position", ground(center));
+                d.set("pieces", &pieces);
+                d
+            })
+            .collect()
     }
 
     /// Suggested team of `player`'s start for the lobby (prompt 037); -1:

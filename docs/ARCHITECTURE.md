@@ -66,6 +66,8 @@ but never its issuer:
 | `QueueMove { units, target }` | Appends a waypoint: a formation slot around `target` per unit, driven to after the current order ([Waypoint chains](#waypoint-chains-and-patrols), prompt 031). |
 | `Patrol { units, target }` | Like `MoveTo`, then back and forth between the start and the target. |
 | `CallAir { mission, target }` | Calls air support of the player's faction on the ground point ([Air support](#air-support-and-anti-aircraft-fire), prompt 033). |
+| `FormationMove { units, target, formation, facing, engage }` | Drives the group to a formation around `target`, turned to `facing` (default: direction of travel); `engage` picks who halts to fight on the way (attack-move) ([Formations](#formations-attack-move-and-securing), prompt 046). |
+| `Secure { units, center, radius_m, formation, facing }` | Takes up the formation around `center` and holds the circle: attack enemies inside, return to the slots. |
 
 Movement commands (`MoveTo`, `Attack`, `AttackGround`, `Garrison`,
 `QueueMove`, `Patrol`) ignore units that cannot move (buildings).
@@ -89,8 +91,9 @@ footprint of the group (`UnitType::footprint_m` = larger of catalog length and w
 grid is axis-aligned. Units are assigned to slots in the order of their current
 position (y, then x, then id), slots in the same order, which avoids crossing paths
 in the common cases and makes the result independent of the order of ids in the
-command. Facing-aware formations (and a slot assignment along the direction of
-travel) are still open; see [Pathfinding](#pathfinding).
+command. Facing-aware formations with a slot assignment along the direction of
+travel came with prompt 046 (`FormationMove`, [below](#formations-attack-move-and-securing));
+`MoveTo` keeps the grid.
 
 **Scenarios** (`data/scenarios/*.toml`) name a map and place groups of catalog units
 per player in a grid. The compiled-in demo (`sim::scenario::demo_config`) has eight
@@ -128,7 +131,45 @@ targets (formation slots), at most `MAX_QUEUED` (64).
 |---|---|---|
 | New command or `queue` flag | Two new variants at the end of `Command` | `MoveTo` and old replays stay unchanged (postcard numbers variants in order). |
 | Paths along the chain | One per unit and leg | A shared group path would need the members to wait for each other; short legs cost little search budget. |
-| Formation choice, facing by right-drag | Not done | Optional in prompt 031; it changes the formation rules (golden hash) and was left for later. |
+| Formation choice, facing by right-drag | Done in prompt 046 as new commands | `MoveTo` keeps its grid, so the golden hash did not change. |
+
+### Formations, attack-move and securing
+
+Prompt 046, `crates/sim/src/formation.rs` (shapes) and
+`crates/sim/src/sim/drill.rs` (orders); decisions with reasons in
+`prompts/done/046-befehle-formationen.md`.
+
+- **Shapes** (`Formation`): line (at most 8 per rank), wedge (point and two
+  ranks, a platoon of 5; more follow in ranks of 5), column (two files from 9
+  units), broad wedge (inverted), dispersed (staggered, twice the gap). Laid
+  out in units of the spacing (1.5 × largest footprint, as `MoveTo`) across
+  and along the facing, then centered: the mean of the slots is the target.
+  Slots are filled rank by rank from the front; the units most forward along
+  the facing take the front rank, within a rank from left to right.
+- **Auto** is resolved once, when the command is applied: free width across
+  the facing at the target below 3 slots (for the group's most restrictive
+  size class) → column; 30 % or more of the area around the target blocked
+  for tanks by objects → dispersed; target on a road and half the way on
+  roads → column; else wedge (with vehicles) or line (infantry only).
+  [provisional] thresholds.
+- **Attack-move** (`engage`: `Never`, `Infantry` = right-click default,
+  `All`): a unit with the task halts while it has an automatic target (an
+  enemy in range it sees and can hurt) and then plans its own path to its
+  slot again. Hold fire never halts. Runs right after `aim_and_fire`.
+- **Securing**: every `retarget_ticks` a unit without a target attacks the
+  nearest enemy its player sees inside the circle that it can hurt (an
+  ordinary attack order, so search and sight rules apply); the attack is
+  dropped once the target leaves the circle, and the unit returns to its
+  slot.
+- **Facing:** a standing unit without a fight turns its hull to the facing
+  of the order (turret speed rules: `hull_step`); squads turn their soldier
+  formation with it.
+- Other orders drop task and facing; a waypoint (`QueueMove`) only ends
+  securing, and a queue continues after an attack-move (`idle` waits for it).
+- **State:** `Unit::drill` (serde, so in saved games); hashed after all other
+  state only for units that have a task or a facing, so the golden hash did
+  not change. `Sim::drill_view` and `Sim::auto_formation_for` serve the HUD
+  (`SimHost.unit_drill`, `auto_formation`).
 
 ## Map and movement
 
@@ -524,6 +565,20 @@ cross-multiplication (integers only, no division):
 
 A cell is visible when the point 2 m above its ground is not below either
 horizon. The result is a bit field over the sight square (≈ 2 KB per unit).
+
+**Seeing downhill** (prompt 060, `[height]` in `data/vision.toml`
+[provisional]): beyond its sight range a unit also sees cells whose ground
+lies more than 20 m below its eye, 5 % of the range farther per 10 m of
+further drop, at most 25 % (500 m → 625 m). The line of sight already lets
+heights look over cover; this adds the wider view over a valley, and only
+downwards (the valley does not see the height farther). Such a unit uses a
+ray table of the longer reach, but only when some ground within that reach
+is low enough: the grid keeps the lowest ground per block of 8 × 8 cells
+(updated with craters), so units on flat ground keep their usual table and
+cost. Beyond the sight range a ray stops as soon as its horizon rules out
+every further cell. `test_small` has no 20 m drops within sight, so the
+demo is unchanged; on `mountain_pass` vision-bench takes about 18 % more ray
+steps than before (250 000 instead of 212 000 per tick, 500 units).
 
 ### Updates and budget
 
@@ -1760,6 +1815,89 @@ through the height field, editor minefields neutral.
 - Thrown tracks are repaired by the crew only (prompt 036 adds repairs);
   not checked in a rendered frame (headless tests only).
 
+### Positions (prompt 052)
+
+Positions tier 2 build on the field works: new kinds appended to `WorkKind`
+(and `LayKind` / `DigKind`, no new `Command` variants), rules in
+`[positions]` of `data/works.toml` (`sim::PositionRules`, part of
+`WorksRules`), code in `crates/sim/src/positions.rs` (rules, strongpoint
+layout) and `crates/sim/src/sim/positions.rs` (the update). Decisions:
+`prompts/done/052-stellungen-stufe2.md`.
+
+| Order | Kind | Effect |
+|---|---|---|
+| `Dig` | `Trench` | now a **zigzag**: every second corner `zigzag_mm` (1.5 m) beside the line, the ends and the middle on it |
+| `Dig` | `CommTrench` | a straight communication trench (4 m pieces) |
+| `Dig` | `VehiclePit` | a pit (`pit_radius_mm`); a vehicle of the team standing `enter_s` within `pit_reach_mm` is **dug in** |
+| `Dig` | `MgNest` / `Dugout` | a dug nest / dugout at a trench edge (`edge_mm` of a finished trench of the team or a strongpoint) |
+| `Lay` | `CamoNet` | a camouflage net over a point (`net_radius_mm`) |
+| `Lay` | `Bunker` | at a trench edge; `to` gives the facing; finished, it becomes the faction's fortification of `positions.bunkers` as a completed structure |
+| `Lay` | `Teeth` | concrete teeth along a line, one per `piece_mm` (1.5 m): block large units like hedgehogs, never crushed, 30 s to clear |
+
+- **Firing positions:** `Sim::trench_spots` gives standing squads the
+  corners of finished fire trenches and MG nests and points every
+  `spot_spacing_mm` along the walls, `wall_mm` towards the squad's facing;
+  `choose_spots` (prompt 022) takes them like crater spots.
+- **Parapets:** a direct-fire round at a soldier on a sample engineers dug
+  is caught by the rim (prompt 021/035 cover roll) only when its shooter is
+  farther than `close_mm` and it falls flatter than `steep_pct`
+  (`Sim::trench_exposed`); MG nest and dugout samples cover with
+  `nest_pct` / `dugout_pct` instead of `[dig]` (also against fragments,
+  so dugouts protect from artillery).
+- **Dug-in vehicles:** hits below the turret line of the hit zones of prompt
+  017 (`turret_height_pct`) strike the parapet (a ground hit); shooters aim
+  at the turret. Driving off ends it at once; digging in again takes
+  `enter_s`. `Sim::dug_in`.
+- **Camouflage nets:** a standing unit of the net owner's team within the
+  net that has not fired for `fire_reveal_s` is seen by enemies only when one
+  of their ground units within `spot_mm` sees it (`Sim::restrict_camouflaged`
+  after the vision update, `Vision::restrict`); reconnaissance aircraft
+  (prompt 033) never reveal it. `works_for` hides finished enemy works under
+  a net (and the net) the same way. Shots of units under a net are noted from
+  the combat events.
+- **Strongpoints:** map markers named `strongpoint_<name>` (prefix
+  `strongpoint_prefix`) become neutral, finished works in the first tick
+  (`crate::positions::strongpoint_layout`): a zigzag fire trench ring of
+  `ring_sides` sides at `ring_mm`, an MG nest at every second corner, two
+  communication trenches to two dugouts beside the center and a wire ring
+  at `wire_mm` with two gaps. Owner `NEUTRAL_OWNER` (no player): everybody
+  sees and uses them. `Sim::place_strongpoint` (tools, debug),
+  `SimHost.debug_strongpoint`.
+- **Dig steps** are applied one after the other within a tick (each plan
+  relative to the ground the previous one left), so pieces that share
+  samples at their joints do not dig them twice.
+- **State** (`Positions` in `Works`, `#[serde(default)]`: dug-in vehicles,
+  last shots under nets, nest/dugout samples, works a shell struck) is in
+  saved games (`crates/net/tests/snapshot_positions.rs`) and enters the
+  state hash with the `[positions]` rules only once a match used anything of
+  this prompt (a positions kind, a fire trench, a strongpoint marker), so
+  the golden hash did not change.
+- **Bridge and Godot:** `positions_funcs.rs` (`dug_in_units`,
+  `camouflaged_units`, `damaged_works`, `strongpoint_layout`,
+  `debug_strongpoint`, `debug_work`); `work_cost` also returns the piece
+  length. `world/trench_builder.gd` builds the dug works as procedural
+  meshes (see "Presentation" in `prompts/done/052-*.md`): duckboards, plank
+  or wattle revetment with posts, irregular earth parapets on both sides,
+  sandbags at the zigzag corners, a trodden path behind fire trenches, torn
+  parapets and scattered bags where a shell struck; mitered joints. The
+  height field keeps the 0.5 m cut (2 m raster); the meshes make the trench
+  look about 1.1 m deep. Camouflage nets (`fort_camo_net`) and teeth
+  (`fort_dragon_teeth`) are catalog models; dug-in vehicles get an earth
+  collar. `engineer_orders.gd` gives the new orders; while a line is drawn,
+  `works_view.gd` shows it with length, pieces and the total price.
+  Screenshots: `just position-shots build/positions`.
+- **Tests:** `crates/sim/tests/positions.rs`,
+  `crates/net/tests/snapshot_positions.rs`,
+  `crates/ai/tests/ai.rs::ai_digs_a_position_after_its_mines`,
+  `tools/positions_self_test.gd` (self-test part 17).
+
+Open: firing positions do not prefer corners over walls (nearest spot
+wins); the zigzag is cut into the 2 m height raster (corners round off);
+no exit delay when a dug-in vehicle drives off; strongpoints are neutral
+and all-round (no front); bunkers in strongpoints are map objects
+(`fort_bunker_mg`, garrisoned) placed separately; the trench meshes are
+not cut into the terrain (no hole in the ground mesh).
+
 ## Bridges, bridge-laying tanks and camouflage
 
 Prompt 055. Rules: `data/crossings.toml` (`sim::CrossingRules`, loaded by
@@ -1842,7 +1980,7 @@ the intact flags (`crates/net/tests/snapshot_crossings.rs`). Queries:
 `can_camouflage_type`, `type_of_unit`. `crates/bridge/src/crossing_funcs.rs`:
 `lay_bridge`, `pick_up_bridge`, `bridge_gap`, `is_bridgelayer`,
 `bridge_layers`, `bridge_decks`, `set_camouflage`, `can_camouflage`,
-`camouflage_state`, `camouflaged_units`, `swimming_units`, `parachutes`,
+`camouflage_state`, `vehicle_camouflage_units`, `swimming_units`, `parachutes`,
 `call_air_line`, `air_carpet_max_m`, `take_crossing_events`. `SimHost.bridges`
 (prompt 014) leaves laid bridges out. `world/crossing_view.gd` breaks a
 collapsing deck into tumbling pieces with splashes, swings the carried

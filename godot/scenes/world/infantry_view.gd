@@ -47,6 +47,7 @@ const TURN_RATE := 8.0
 const TIME_FACTOR := 2.0
 const STANCE_SUFFIX: Array[String] = ["stand", "kneel", "prone"]
 const IDLE_CLIPS: Array[String] = ["idle", "kneel", "prone"]
+const Motion := preload("res://scenes/world/soldier_motion.gd")
 
 var main: Node3D
 var sim_host: SimHost
@@ -68,12 +69,19 @@ var _impostor_keys: Dictionary[int, Array] = {}
 ## Faction prefix per unit id (`_faction_of`).
 var _factions: Dictionary[int, String] = {}
 var _biome := ""
+## Ragdolls, flying helmets and the clip choice of prompt 048
+## (`soldier_motion.gd`).
+var motion: Motion
 
 
 func setup(main_node: Node3D) -> void:
 	main = main_node
 	sim_host = main.sim_host
 	main.combat_view.combat_event.connect(_on_combat_event)
+	motion = Motion.new()
+	motion.name = "SoldierMotion"
+	add_child(motion)
+	motion.setup(self)
 
 
 ## The squad scene of a catalog id (`assets/models/<faction>/<id>.tscn`), or
@@ -90,6 +98,9 @@ static func squad_model(models_dir: String, type_id: String) -> Node3D:
 
 
 func _on_combat_event(event: Dictionary) -> void:
+	if event["type"] == "hit":
+		motion.on_hit(event)
+		return
 	if event["type"] != "shot":
 		return
 	var keys: Array = _by_unit.get(int(event["unit"]), [])
@@ -146,6 +157,10 @@ func _draw(delta: float) -> void:
 	var current := sim_host.soldier_positions()
 	var previous := sim_host.soldier_previous_positions()
 	var hp := sim_host.soldier_hp()
+	# Prompt 048: knocked down, blast point, cover object.
+	var knocked := sim_host.soldier_knocked()
+	var knock_from := sim_host.soldier_knock_from()
+	var covers := sim_host.soldier_cover_objects()
 	var alpha := sim_host.interpolation_alpha()
 	var tick_rate := float(sim_host.tick_rate())
 	var camera_position: Vector3 = main.camera.global_position
@@ -203,7 +218,14 @@ func _draw(delta: float) -> void:
 		var speed := step.length() * tick_rate
 		var moving := speed > MOVING_FROM and hp[k] > 0
 		var yaw: float = atan2(-step.x, -step.z) if moving else aims[u]
-		s["yaw"] = lerp_angle(s["yaw"], yaw, turn)
+		# Prompt 048 (`soldier_motion.gd`): the cheap common case is checked
+		# here, the rest only for the few soldiers that need it.
+		if moving and stances[u] == 2:
+			yaw = motion.body_yaw(s, yaw, aims[u], moving, stances[u], knocked[k] > 0)
+		else:
+			s["roll_dir"] = 0
+		if not s.get("hold_yaw", false):
+			s["yaw"] = lerp_angle(s["yaw"], yaw, turn if moving else turn * motion.STANDING_TURN)
 		var distance := position.distance_to(camera_position)
 		if distance > IMPOSTOR_M:
 			member.visible = false
@@ -216,7 +238,17 @@ func _draw(delta: float) -> void:
 		# Members are top-level nodes (`_make`): world transforms.
 		member.position = position
 		member.rotation.y = s["yaw"]
-		_animate(s, hp[k] <= 0, moving, speed, stances[u], now)
+		if s["dead"]:
+			pass
+		elif hp[k] > 0 and knocked[k] == 0 and not s.get("down", false):
+			# Remember the last blast point: a killing blast changes it.
+			s["knock_from"] = knock_from[k]
+			s["knocked"] = 0
+			_animate(s, false, moving, speed, stances[u], now, covers[k])
+		elif not motion.animate(s, hp[k] <= 0, knocked[k], knock_from[k], position, camera_position, tick_rate):
+			_animate(s, hp[k] <= 0, moving, speed, stances[u], now, covers[k])
+		if distance < NEAR_M or s.has("lead"):
+			motion.lead(s, yaw, distance < NEAR_M)
 		_advance(s, delta, distance)
 	_flush_impostors(unit_index)
 
@@ -366,7 +398,8 @@ func _make(node: Node3D, key: int, index: int) -> Dictionary:
 	return s
 
 
-func _animate(s: Dictionary, dead: bool, moving: bool, speed: float, stance: int, now: int) -> void:
+func _animate(s: Dictionary, dead: bool, moving: bool, speed: float, stance: int, now: int,
+		cover := -1) -> void:
 	var player: AnimationPlayer = s["player"]
 	if player == null or s["dead"]:
 		return
@@ -375,19 +408,28 @@ func _animate(s: Dictionary, dead: bool, moving: bool, speed: float, stance: int
 	if dead:
 		s["dead"] = true
 		clip = DEATH_CLIPS[int(s["seed"]) % DEATH_CLIPS.size()]
+	elif (int(s.get("last_stance", stance)) != stance or s["clip"] == "dive") \
+			and motion.one_shot(s, stance, moving, now):
+		return
 	elif moving:
-		clip = "crawl" if stance == 2 else ("run" if speed >= RUN_FROM else "walk")
+		clip = motion.moving_clip(s, stance, speed)
+		if clip.is_empty():
+			clip = "crawl" if stance == 2 else ("run" if speed >= RUN_FROM else "walk")
 		var authored: float = SoldierLook.clips().get(clip, {}).get("speed", 1.0)
 		scale = speed / maxf(authored, 0.01)
 	else:
 		var since := now - int(s["fired"])
 		var suffix := STANCE_SUFFIX[clampi(stance, 0, 2)]
-		if since < FIRE_SECONDS * 1000.0:
+		var phase := 2 if since < FIRE_SECONDS * 1000.0 else (1 if since < AIM_SECONDS * 1000.0 else 0)
+		if phase == 2:
 			clip = "fire_" + suffix
-		elif since < AIM_SECONDS * 1000.0:
+		elif phase == 1:
 			clip = "aim_" + suffix
 		else:
 			clip = IDLE_CLIPS[clampi(stance, 0, 2)]
+		if cover >= 0 or phase == 0:
+			clip = motion.standing_clip(s, stance, phase, cover, clip)
+	s["last_stance"] = stance
 	player.speed_scale = scale
 	if clip != s["clip"] and player.has_animation(clip):
 		s["clip"] = clip
@@ -417,6 +459,9 @@ func _advance(s: Dictionary, delta: float, distance: float) -> void:
 	# Far squads are only drawn every FAR_SQUAD_STEP frames (`_skip_squad`);
 	# their soldiers advance whenever drawn.
 	var step := MID_STEP if band == 1 else 1
-	if step == 1 or (_frame + int(s["phase"])) % step == 0:
+	# A frozen ragdoll keeps its pose (prompt 048).
+	if (s["node"] as Node).has_meta(&"frozen_pose"):
+		s["accum"] = 0.0
+	elif step == 1 or (_frame + int(s["phase"])) % step == 0:
 		player.advance(s["accum"])
 		s["accum"] = 0.0

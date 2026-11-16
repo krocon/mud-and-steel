@@ -58,21 +58,21 @@ const HEDGEHOG_RADIUS_MM: i32 = 800;
 
 /// A site or a finished work.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-struct Work {
-    id: u32,
-    kind: WorkKind,
-    owner: PlayerId,
-    from: Vec2,
-    to: Vec2,
+pub(super) struct Work {
+    pub(super) id: u32,
+    pub(super) kind: WorkKind,
+    pub(super) owner: PlayerId,
+    pub(super) from: Vec2,
+    pub(super) to: Vec2,
     /// Ticks of work done and needed.
     done: u32,
     total: u32,
-    paid: Resources,
+    pub(super) paid: Resources,
     /// Ticks without an engineer job for it.
     idle: u32,
     /// Engineers worked on it in the last tick.
     worked: bool,
-    built: bool,
+    pub(super) built: bool,
     /// Dig steps applied (foxholes, trenches).
     steps: u32,
     /// Mine positions of a mine section.
@@ -199,7 +199,7 @@ pub(super) struct Works {
     /// Per unit type: does engineer work.
     engineer: Vec<bool>,
     /// Sites and finished works, by id.
-    works: Vec<Work>,
+    pub(super) works: Vec<Work>,
     next_work: u32,
     /// Armed mines, by id.
     mines: Vec<Mine>,
@@ -209,15 +209,18 @@ pub(super) struct Works {
     jobs: BTreeMap<UnitId, Job>,
     track_off: BTreeMap<UnitId, TrackOff>,
     /// Map samples dug by engineers (cover, prompt 022).
-    dug: BTreeSet<u32>,
+    pub(super) dug: BTreeSet<u32>,
     /// Dig steps of this tick: (work id, step), applied after the craters.
     pending_digs: Vec<(u32, u32)>,
     /// Mines per section of each faction (from the catalog): (anti-tank,
     /// anti-personnel), each `(count, length mm, width mm)`.
     sections: BTreeMap<String, [(u32, u32, u32); 2]>,
+    /// Positions tier 2 (prompt 052).
+    #[serde(default)]
+    pub(super) positions: super::positions::Positions,
 }
 
-fn mm(v: u32) -> Fixed {
+pub(super) fn mm(v: u32) -> Fixed {
     Fixed::from_num(v) / 1000
 }
 
@@ -226,7 +229,7 @@ fn dot(a: Vec2, b: Vec2) -> Fixed {
 }
 
 /// The point of segment `a`..`b` nearest to `p`.
-fn nearest_on(a: Vec2, b: Vec2, p: Vec2) -> Vec2 {
+pub(super) fn nearest_on(a: Vec2, b: Vec2, p: Vec2) -> Vec2 {
     let d = b - a;
     let len2 = dot(d, d);
     if len2 == Fixed::ZERO {
@@ -242,7 +245,7 @@ fn bucket(p: Vec2) -> (i32, i32) {
 }
 
 /// Unit vector from `a` to `b`, or +x if they are equal.
-fn direction(a: Vec2, b: Vec2) -> Vec2 {
+pub(super) fn direction(a: Vec2, b: Vec2) -> Vec2 {
     let d = b - a;
     let len = d.length();
     if len > Fixed::ZERO {
@@ -282,6 +285,7 @@ impl Works {
             dug: BTreeSet::new(),
             pending_digs: Vec::new(),
             sections,
+            positions: super::positions::Positions::default(),
         };
         works.place_map_minefields(map);
         works
@@ -426,7 +430,7 @@ impl Works {
         self.works.binary_search_by_key(&id, |w| w.id).ok()
     }
 
-    fn ticks(&self, s: u32) -> u32 {
+    pub(super) fn ticks(&self, s: u32) -> u32 {
         s.saturating_mul(self.tick_hz).max(1)
     }
 
@@ -471,6 +475,7 @@ impl Works {
             h.write_u32(*w);
             h.write_u32(*s);
         }
+        self.positions.hash_into(h, &self.rules.positions);
     }
 }
 
@@ -606,7 +611,17 @@ impl Sim {
         } else {
             (from, to)
         };
-        let pieces = self.pieces(player, kind, from, to, center);
+        let mut pieces = self.pieces(player, kind, from, to, center);
+        // Prompt 052: nests, dugouts and bunkers only at a trench edge;
+        // bunkers need the faction's fortification type.
+        if kind.is_positions() {
+            pieces.retain(|(a, ..)| {
+                !super::positions::needs_trench(kind) || self.near_trench(player, *a)
+            });
+            if kind == WorkKind::Bunker && self.bunker_type(player, squads[0]).is_none() {
+                return;
+            }
+        }
         let open = self
             .works
             .works
@@ -643,6 +658,7 @@ impl Sim {
         if ids.is_empty() {
             return;
         }
+        self.works.positions.used |= kind.is_positions() || kind == WorkKind::Trench;
         self.assign_job(
             &squads,
             &Job::Build {
@@ -653,9 +669,50 @@ impl Sim {
         );
     }
 
+    /// Adds a finished work at once (map strongpoints, prompt 052): holes
+    /// are dug to full depth in this tick, obstacles block.
+    pub(super) fn add_finished_work(
+        &mut self,
+        kind: WorkKind,
+        owner: PlayerId,
+        from: Vec2,
+        to: Vec2,
+    ) {
+        let id = self.works.next_work;
+        self.works.next_work = self.works.next_work.wrapping_add(1);
+        let steps = if kind.is_dig() {
+            self.works.rules.dig.steps
+        } else {
+            0
+        };
+        self.works.works.push(Work {
+            id,
+            kind,
+            owner,
+            from,
+            to,
+            done: 1,
+            total: 1,
+            paid: [0; 3],
+            idle: 0,
+            worked: false,
+            built: true,
+            steps,
+            plan: Vec::new(),
+        });
+        if kind.is_dig() {
+            self.works.pending_digs.push((id, steps));
+        }
+        if kind.is_obstacle() {
+            let k = self.works.works.len() - 1;
+            let rect = self.work_cells_rect(k);
+            self.refresh_work_cells(rect);
+        }
+    }
+
     /// Whether field works may stand at `p` (on the map, on passable
     /// ground, not on a bridge deck).
-    fn ground_for_works(&self, p: Vec2) -> bool {
+    pub(super) fn ground_for_works(&self, p: Vec2) -> bool {
         self.map.contains(p)
             && self.map.deck_at(p).is_none()
             && self
@@ -667,7 +724,7 @@ impl Sim {
 
     /// The pieces of an order: `(from, to, mine positions)`, valid ground
     /// only.
-    fn pieces(
+    pub(super) fn pieces(
         &mut self,
         player: PlayerId,
         kind: WorkKind,
@@ -737,12 +794,26 @@ impl Sim {
                     }
                 }
             }
-            WorkKind::Wire | WorkKind::Trench | WorkKind::Hedgehogs => {
+            WorkKind::Wire
+            | WorkKind::Trench
+            | WorkKind::CommTrench
+            | WorkKind::Hedgehogs
+            | WorkKind::Teeth => {
                 let piece = mm(self.works.rules.rule(kind).piece_mm);
                 let n = (length / piece).ceil().to_num::<u32>().max(1);
-                let point =
-                    |k: u32| from + dir.scale(length * Fixed::from_num(k) / Fixed::from_num(n));
-                if kind == WorkKind::Hedgehogs {
+                // Fire trenches zigzag (prompt 052): every second corner
+                // lies beside the line, the ends stay on it.
+                let zigzag = if kind == WorkKind::Trench {
+                    mm(self.works.rules.positions.zigzag_mm)
+                } else {
+                    Fixed::ZERO
+                };
+                let across = Vec2::new(-dir.y, dir.x);
+                let point = |k: u32| {
+                    let on = from + dir.scale(length * Fixed::from_num(k) / Fixed::from_num(n));
+                    on + across.scale(zigzag * super::positions::zigzag_side(k, n))
+                };
+                if matches!(kind, WorkKind::Hedgehogs | WorkKind::Teeth) {
                     let count = if length == Fixed::ZERO { 1 } else { n + 1 };
                     for k in 0..count {
                         let p = point(k);
@@ -764,9 +835,25 @@ impl Sim {
                     }
                 }
             }
-            WorkKind::Foxhole => {
+            WorkKind::Foxhole
+            | WorkKind::VehiclePit
+            | WorkKind::MgNest
+            | WorkKind::Dugout
+            | WorkKind::CamoNet => {
                 if self.ground_for_works(from) {
                     out.push((from, from, Vec::new()));
+                }
+            }
+            WorkKind::Bunker => {
+                // `to` gives the facing; a point order faces away from the
+                // engineers.
+                let facing = if length > Fixed::ZERO {
+                    dir
+                } else {
+                    direction(engineers, from)
+                };
+                if self.ground_for_works(from) {
+                    out.push((from, from + facing.scale(Fixed::from_num(4)), Vec::new()));
                 }
             }
         }
@@ -844,6 +931,8 @@ impl Sim {
                 | Command::Patrol { .. }
                 | Command::QueueMove { .. }
                 | Command::Embark { .. }
+                | Command::FormationMove { .. }
+                | Command::Secure { .. }
         ) || self.works.jobs.is_empty()
         {
             return;
@@ -895,6 +984,7 @@ impl Sim {
         }
         self.crush_wire();
         self.fit_tracks();
+        self.update_positions();
     }
 
     fn advance_jobs(&mut self) {
@@ -1095,11 +1185,18 @@ impl Sim {
                     self.works.add_mine(kind, Some(owner), p);
                 }
             }
-            WorkKind::Wire | WorkKind::Hedgehogs => {
+            WorkKind::Wire | WorkKind::Hedgehogs | WorkKind::Teeth => {
                 let rect = self.work_cells_rect(k);
                 self.refresh_work_cells(rect);
             }
-            WorkKind::Foxhole | WorkKind::Trench => {}
+            WorkKind::Bunker => self.finish_bunker(k),
+            WorkKind::Foxhole
+            | WorkKind::Trench
+            | WorkKind::CommTrench
+            | WorkKind::VehiclePit
+            | WorkKind::MgNest
+            | WorkKind::Dugout
+            | WorkKind::CamoNet => {}
         }
     }
 
@@ -1154,7 +1251,7 @@ impl Sim {
                     out.push((grid.cell_of(p), Blocks::Small));
                 }
             }
-            WorkKind::Hedgehogs => {
+            WorkKind::Hedgehogs | WorkKind::Teeth => {
                 let r = Fixed::from_num(HEDGEHOG_RADIUS_MM) / 1000;
                 let rect = grid.cells_in(w.from - Vec2::new(r, r), w.from + Vec2::new(r, r));
                 for y in rect.y0..=rect.y1 {
@@ -1185,7 +1282,7 @@ impl Sim {
             .works
             .works
             .iter()
-            .filter(|w| w.built && matches!(w.kind, WorkKind::Wire | WorkKind::Hedgehogs))
+            .filter(|w| w.built && w.kind.is_obstacle())
             .flat_map(|w| self.cells_of(w))
             .collect();
         let grid = &mut self.paths.grid;
@@ -1233,7 +1330,7 @@ impl Sim {
             }
         }
         for w in &self.works.works {
-            if !w.built || !matches!(w.kind, WorkKind::Wire | WorkKind::Hedgehogs) {
+            if !w.built || !(w.kind.is_obstacle() || w.kind == WorkKind::CamoNet) {
                 continue;
             }
             let p = nearest_on(w.from, w.to, center);
@@ -1590,16 +1687,16 @@ impl Sim {
             return;
         }
         let pending = std::mem::take(&mut self.works.pending_digs);
-        let mut plans = Vec::new();
         for (id, step) in pending {
             let Some(k) = self.works.work_index(id) else {
                 continue;
             };
+            // One after the other: a plan is relative to the ground the
+            // previous ones left (pieces share samples at their joints).
             if let Some(plan) = self.dig_plan(k, step) {
-                plans.push(plan);
+                self.deform(vec![plan]);
             }
         }
-        self.deform(plans);
     }
 
     /// The samples dig step `step` of work `k` changes.
@@ -1618,13 +1715,20 @@ impl Sim {
                 holes.push(k);
             }
         }
+        // Pits, nests and dugouts (prompt 052) lower a round area.
+        let (kind, center) = (w.kind, w.from);
+        holes.extend(self.dig_area(kind, center));
         holes.sort_unstable();
         holes.dedup();
         if holes.is_empty() {
             return None;
         }
+        let class = super::positions::sample_class(kind);
         for &h in &holes {
             self.works.dug.insert(h as u32);
+            if let Some(class) = class {
+                self.works.positions.classes.insert(h as u32, class);
+            }
         }
         let rules = self.works.rules.dig;
         let steps = rules.steps.max(1);
@@ -1690,6 +1794,9 @@ impl Sim {
         stance: crate::infantry::Stance,
     ) -> Option<u32> {
         let sample = u32::try_from(sample).ok()?;
+        if let Some(pct) = self.class_cover_pct(sample, stance) {
+            return Some(pct);
+        }
         self.works
             .dug
             .contains(&sample)
@@ -1738,6 +1845,7 @@ impl Sim {
             .works
             .iter()
             .filter(|w| w.built || self.teams.allied(w.owner, player))
+            .filter(|w| self.work_seen(w, player))
             .map(|w| WorkView {
                 id: w.id,
                 kind: w.kind,

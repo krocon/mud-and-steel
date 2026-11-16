@@ -1,0 +1,8 @@
+# One concrete anti-tank tooth on its footing (prompt 052).
+unit = "fort_dragon_teeth"
+assembly = "env"
+
+[[variant]]
+name = "Tooth"
+part = "dragon_tooth"
+seed = 3

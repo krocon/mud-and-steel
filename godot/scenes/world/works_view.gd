@@ -12,11 +12,26 @@ extends Node3D
 ##   events update the terrain) plus a low earth parapet strip.
 ## - draws own sites as translucent outlines, with dust while engineers dig.
 ## - lays a thrown track beside vehicles that hit an anti-tank mine.
+## - prompt 052: hand-dug trenches, MG nests, dugouts, vehicle pits and
+##   foxholes as procedural meshes (`trench_builder.gd`; pieces join with
+##   mitered ends, sandbags at the zigzag corners, torn parapets where a
+##   shell struck), camouflage nets and concrete teeth as models, an earth
+##   collar around dug-in vehicles, and the preview of a line being drawn
+##   (length, pieces, total price).
 ## - hides the model of a demolished bridge and shows it again once repaired.
 ##
 ## Created by `main.gd`.
 
+const TrenchBuilder := preload("res://scenes/world/trench_builder.gd")
+const EngineerOrders := preload("res://scenes/selection/engineer_orders.gd")
+const GroundPick := preload("res://scenes/camera/ground_pick.gd")
 const REFRESH := 0.25
+## Kinds drawn by `trench_builder.gd`.
+const DUG := ["trench", "comm_trench", "foxhole", "mg_nest", "dugout", "vehicle_pit"]
+## Ends of trench pieces closer than this (m) are joined.
+const JOIN_M := 0.3
+## Colors of the line preview.
+const PREVIEW := Color(1.0, 0.85, 0.3, 0.45)
 ## Colors of mine markers and sites.
 const OWN_MINE := Color(1.0, 0.85, 0.2)
 const ENEMY_MINE := Color(0.95, 0.2, 0.15)
@@ -32,6 +47,10 @@ var work_nodes := 0
 var dust_emitters := 0
 var tracks_drawn := 0
 var bridges_hidden := 0
+## Prompt 052, for the self-test.
+var trench_meshes := 0
+var dug_in_drawn := 0
+var preview_text := ""
 
 var _refresh_left := 0.0
 var _mines: MultiMeshInstance3D
@@ -41,6 +60,15 @@ var _work_keys: Dictionary[int, String] = {}
 ## Vehicle id -> track node.
 var _tracks: Dictionary[int, Node3D] = {}
 var _bridges_intact := PackedByteArray()
+## Joints of trench pieces: work id -> {miter_from, miter_to, bay_from, bay_to}.
+var _joints: Dictionary[int, Dictionary] = {}
+## All works of the last refresh (dugout entrances, nest facings).
+var _all_works: Array[Dictionary] = []
+var _damaged: Dictionary[int, bool] = {}
+## Vehicle id -> earth collar node.
+var _collars: Dictionary[int, Node3D] = {}
+var _preview: MeshInstance3D
+var _preview_label: Label3D
 
 
 func setup(main_node: Node3D) -> void:
@@ -70,6 +98,7 @@ func setup(main_node: Node3D) -> void:
 func _process(delta: float) -> void:
 	if sim_host == null:
 		return
+	_draw_preview()
 	_refresh_left -= delta
 	if _refresh_left > 0.0:
 		return
@@ -83,6 +112,7 @@ func refresh() -> void:
 	_draw_works()
 	_draw_tracks()
 	_update_bridges()
+	_draw_dug_in()
 
 
 func _draw_mines() -> void:
@@ -101,10 +131,17 @@ func _draw_mines() -> void:
 func _draw_works() -> void:
 	var seen: Dictionary[int, bool] = {}
 	var dust := 0
-	for w: Dictionary in sim_host.field_works():
+	_all_works = sim_host.field_works()
+	_damaged.clear()
+	for id: int in sim_host.damaged_works():
+		_damaged[id] = true
+	_joints = _trench_joints(_all_works)
+	for w: Dictionary in _all_works:
 		var id: int = w.id
 		seen[id] = true
-		var key := "%s:%s:%s" % [w.kind, w.built, w.active]
+		var key := "%s:%s:%s:%s" % [w.kind, w.built, w.active, _damaged.has(id)]
+		if _joints.has(id):
+			key += ":%s" % str(_joints[id])
 		if _work_keys.get(id, "") != key:
 			if _works.has(id):
 				_works[id].queue_free()
@@ -121,6 +158,12 @@ func _draw_works() -> void:
 			_work_keys.erase(id)
 	work_nodes = _works.size()
 	dust_emitters = dust
+	var meshes := 0
+	for node: Node3D in _works.values():
+		for child in node.get_children():
+			if child is MeshInstance3D and (child as MeshInstance3D).material_override == TrenchBuilder.material():
+				meshes += 1
+	trench_meshes = meshes
 
 
 ## The node of one work: models when built, an outline while it is a site.
@@ -145,16 +188,34 @@ func _work_node(w: Dictionary) -> Node3D:
 					_add_model(node, "fort_barbed_wire", "Segment", p, yaw)
 			"hedgehogs":
 				_add_model(node, "fort_hedgehog", "Hedgehog", from, yaw)
-			"foxhole", "trench":
-				node.add_child(_strip(from, to, 0.6, 0.12, Color(0.32, 0.25, 0.17)))
+			"teeth":
+				_add_model(node, "fort_dragon_teeth", "Tooth", from, yaw + float(w.id % 7) * 0.05)
+			"camo_net":
+				_add_model(node, "fort_camo_net", "Net", from, float(w.id % 13) * 0.4)
+			"trench", "comm_trench":
+				var opts: Dictionary = _joints.get(w.id, {}).duplicate()
+				opts["comm"] = kind == "comm_trench"
+				opts["damaged"] = _damaged.has(w.id)
+				opts["path"] = kind == "trench"
+				node.add_child(TrenchBuilder.trench(sim_host, from, to, opts))
+			"foxhole":
+				node.add_child(TrenchBuilder.foxhole(sim_host, from))
+			"mg_nest":
+				node.add_child(TrenchBuilder.nest(sim_host, from, _away_from_trench(from), _damaged.has(w.id)))
+			"dugout":
+				node.add_child(TrenchBuilder.dugout(sim_host, from, _to_comm_trench(from)))
+			"vehicle_pit":
+				node.add_child(TrenchBuilder.pit(sim_host, from))
 		return node
 	if not w.own:
 		return node
 	var width := 1.4
 	if kind == "mines_at" or kind == "mines_ap":
 		width = maxf(length, 4.0)
+	if kind in ["mg_nest", "dugout", "camo_net", "vehicle_pit", "bunker"] and length < 0.01:
+		width = {"mg_nest": 3.0, "dugout": 4.0, "camo_net": 8.8, "vehicle_pit": 7.0, "bunker": 4.4}[kind]
 	node.add_child(_strip(from, to, width, 0.05, SITE))
-	if w.active and (kind == "foxhole" or kind == "trench"):
+	if w.active and kind in DUG:
 		node.add_child(_dust(from.lerp(to, 0.5)))
 	return node
 
@@ -247,6 +308,167 @@ func _draw_tracks() -> void:
 				_tracks[id].queue_free()
 			_tracks.erase(id)
 	tracks_drawn = _tracks.size()
+
+
+## Joints of the finished trench pieces: the mitered across vector at
+## each end that meets another piece, and whether the end is a firing bay
+## (the line turns there: a zigzag corner).
+func _trench_joints(works: Array[Dictionary]) -> Dictionary[int, Dictionary]:
+	var pieces: Array[Dictionary] = []
+	for w in works:
+		if w.built and (w.kind == "trench" or w.kind == "comm_trench"):
+			pieces.append(w)
+	var out: Dictionary[int, Dictionary] = {}
+	for w in pieces:
+		var d := _dir(w)
+		var across := Vector3(-d.z, 0, d.x)
+		var joint := {}
+		for end: Array in [["from", -1.0], ["to", 1.0]]:
+			var p: Vector3 = w[end[0]]
+			for o in pieces:
+				if o.id == w.id:
+					continue
+				var od := _dir(o)
+				# The direction the line runs through the joint.
+				var c: Vector3
+				if end[1] > 0.0:
+					if (o.from as Vector3).distance_to(p) < JOIN_M:
+						c = od
+					elif (o.to as Vector3).distance_to(p) < JOIN_M:
+						c = -od
+					else:
+						continue
+				else:
+					if (o.to as Vector3).distance_to(p) < JOIN_M:
+						c = od
+					elif (o.from as Vector3).distance_to(p) < JOIN_M:
+						c = -od
+					else:
+						continue
+				var m := (across + Vector3(-c.z, 0, c.x)).normalized()
+				var cosine := m.dot(across)
+				if cosine > 0.3:
+					joint["miter_" + end[0]] = m / cosine
+				joint["bay_" + end[0]] = absf(d.dot(c)) < 0.995 and o.kind == "trench" and w.kind == "trench"
+				break
+		if not joint.is_empty():
+			out[w.id] = joint
+	return out
+
+
+static func _dir(w: Dictionary) -> Vector3:
+	var d: Vector3 = (w.to as Vector3) - (w.from as Vector3)
+	d.y = 0.0
+	return d.normalized() if d.length() > 0.01 else Vector3(0, 0, 1)
+
+
+## From the nearest finished trench towards `at` (an MG nest faces out).
+func _away_from_trench(at: Vector3) -> Vector3:
+	var best := INF
+	var out := Vector3.ZERO
+	for w in _all_works:
+		if not w.built or not (w.kind == "trench" or w.kind == "comm_trench"):
+			continue
+		var p := Geometry3D.get_closest_point_to_segment(at, w.from, w.to)
+		var d := p.distance_to(at)
+		if d < best:
+			best = d
+			out = at - p
+	out.y = 0.0
+	return out
+
+
+## From `at` towards the nearest end of a communication trench.
+func _to_comm_trench(at: Vector3) -> Vector3:
+	var best := INF
+	var out := Vector3.ZERO
+	for w in _all_works:
+		if w.kind != "comm_trench":
+			continue
+		for p: Vector3 in [w.from, w.to]:
+			var d := p.distance_to(at)
+			if d < best:
+				best = d
+				out = p - at
+	out.y = 0.0
+	return out
+
+
+## An earth collar around every dug-in vehicle (a child of its node, so it
+## hides with it under fog of war): the hull disappears behind it.
+func _draw_dug_in() -> void:
+	var dug := {}
+	for id: int in sim_host.dug_in_units():
+		dug[id] = true
+		if _collars.has(id) and is_instance_valid(_collars[id]):
+			continue
+		var unit: Node3D = main._unit_nodes.get(id)
+		if unit == null:
+			continue
+		var torus := TorusMesh.new()
+		torus.inner_radius = 2.6
+		torus.outer_radius = 4.2
+		torus.rings = 16
+		torus.ring_segments = 6
+		var mat := StandardMaterial3D.new()
+		mat.albedo_color = Color(0.43, 0.34, 0.23)
+		mat.roughness = 1.0
+		torus.material = mat
+		var collar := MeshInstance3D.new()
+		collar.name = "DugInCollar"
+		collar.mesh = torus
+		collar.scale = Vector3(0.85, 0.55, 1.35)
+		collar.position = Vector3(0, 0.3, 0)
+		unit.add_child(collar)
+		_collars[id] = collar
+	for id: int in _collars.keys():
+		if not dug.has(id):
+			if is_instance_valid(_collars[id]):
+				_collars[id].queue_free()
+			_collars.erase(id)
+	dug_in_drawn = _collars.size()
+
+
+## The line an engineer order is drawing: a strip from its start to the
+## cursor with length, pieces and the total price (prompt 052).
+func _draw_preview() -> void:
+	var selection: Control = main.get("selection")
+	var line: Dictionary = {}
+	if selection != null:
+		var hit: Variant = null
+		var camera: Camera3D = selection.get("camera")
+		if camera != null:
+			hit = GroundPick.from_screen(camera, get_viewport().get_mouse_position())
+		if hit != null:
+			line = EngineerOrders.line_preview(selection, hit as Vector3)
+	if line.is_empty():
+		if _preview != null:
+			_preview.visible = false
+			_preview_label.visible = false
+		preview_text = ""
+		return
+	if _preview == null:
+		_preview = MeshInstance3D.new()
+		_preview.name = "LinePreview"
+		_preview.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		add_child(_preview)
+		_preview_label = Label3D.new()
+		_preview_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		_preview_label.no_depth_test = true
+		_preview_label.font_size = 40
+		_preview_label.outline_size = 8
+		add_child(_preview_label)
+	var from: Vector3 = line.from
+	var to: Vector3 = line.to
+	var node := _strip(from, to, 1.0, 0.08, PREVIEW)
+	_preview.mesh = node.mesh
+	_preview.transform = node.transform
+	node.free()
+	_preview.visible = true
+	preview_text = line.text
+	_preview_label.text = preview_text
+	_preview_label.position = to + Vector3(0, 3.0, 0)
+	_preview_label.visible = true
 
 
 ## Hides the models of destroyed bridges in the map objects.

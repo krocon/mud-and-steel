@@ -614,3 +614,67 @@ def mine_sign(model, name, p, box):
         mb.style(kind=1)
         tri = [(-bh * 0.35, top - bh * 0.15), (bh * 0.35, top - bh * 0.15), (0, top - bh * 0.85)]
         mb.extrude([(x, -0.051, z) for x, z in tri], (0, -0.004, 0), "Paint")
+
+
+# -- prompt 052: camouflage net, concrete teeth ---------------------------------
+
+
+@env_part("camo_net")
+def camo_net(model, name, p, box):
+    """Garnished drape net on poles: a square net (the box footprint) that
+    sags between a center pole and four corner poles, with dry and green
+    foliage cards as garnish and the net edges pegged down. `seed`."""
+    r = rng(p.get("seed", 1))
+    mb = model.mb(name)
+    hw, hl, H = box.width / 2, box.length / 2, box.height
+    # Sagging net surface: highest over the center pole, edges lower.
+
+    def height(u, v):
+        d = max(abs(u), abs(v))
+        sag = 0.25 * math.sin(math.pi * abs(u)) * math.sin(math.pi * abs(v))
+        return H - 0.9 * d * d - sag + r.uniform(-0.04, 0.04)
+
+    # The net itself is not drawn as a sheet: dense garnish cards make it
+    # (gaps between them read as the netting).
+    # Garnish: cards lying on the net, alternating green and dry.
+    for k in range(320):
+        u, v = r.uniform(-0.97, 0.97), r.uniform(-0.97, 0.97)
+        z = height(u, v) + 0.03
+        a = r.uniform(0, math.pi)
+        right = Vector((math.cos(a), math.sin(a), 0))
+        up = Vector((-math.sin(a), math.cos(a), r.uniform(0.1, 0.4)))
+        mb.style(kind=(0, 3, 0, 2)[k % 4], phase=k, wind=True)
+        mb.card((u * hw, v * hl, z), right, up, r.uniform(1.0, 1.6), r.uniform(0.7, 1.2), CARD_SHRUB,
+                mat="Foliage")
+    mb.style(kind=0, wind=False)
+    # Poles: one in the middle, four at the corners (shorter), guy pegs.
+    mb.cylinder((0, 0, 0), (0, 0, H), 0.05, seg=6, mat="Wood")
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            x, y = sx * hw * 0.8, sy * hl * 0.8
+            top = height(sx * 0.8, sy * 0.8)
+            mb.cylinder((x, y, 0), (x, y, top), 0.04, seg=6, mat="Wood")
+            mb.cylinder((sx * hw, sy * hl, 0), (sx * hw * 1.02, sy * hl * 1.02, 0.25), 0.02, seg=4, mat="Wood")
+
+
+@env_part("dragon_tooth")
+def dragon_tooth(model, name, p, box):
+    """Concrete anti-tank tooth: a truncated square pyramid on a low footing,
+    slightly irregular (cast in place). `seed`."""
+    r = rng(p.get("seed", 1))
+    mb = model.mb(name)
+    hw, hl, H = box.width / 2, box.length / 2, box.height
+    foot = 0.12
+    mb.style(kind=2)
+    mb.box((0, 0, foot / 2), (box.width, box.length, foot), "Stone")
+    top_w, top_l = hw * 0.32, hl * 0.32
+    lean = (r.uniform(-0.03, 0.03), r.uniform(-0.03, 0.03))
+    low = [(-hw * 0.88, -hl * 0.88, foot), (hw * 0.88, -hl * 0.88, foot), (hw * 0.88, hl * 0.88, foot),
+           (-hw * 0.88, hl * 0.88, foot)]
+    high = [(x * top_w / (hw * 0.88) + lean[0], y * top_l / (hl * 0.88) + lean[1], H) for x, y, _ in low]
+    lv = mb.verts(low)
+    hv = mb.verts(high)
+    for i in range(4):
+        j = (i + 1) % 4
+        mb.face([lv[i], lv[j], hv[j], hv[i]], "Stone")
+    mb.face(hv, "Stone")

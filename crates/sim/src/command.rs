@@ -2,6 +2,7 @@
 
 use crate::air::AirMission;
 use crate::combat::FireMode;
+use crate::formation::{Engage, Formation};
 use crate::infantry::StanceOrder;
 use crate::math::Vec2;
 use crate::works::{DigKind, LayKind};
@@ -132,6 +133,28 @@ pub enum Command {
     DemolishBridge { units: Vec<UnitId>, bridge: u32 },
     /// Engineer squads rebuild the destroyed bridge `bridge` (prompt 035).
     RepairBridge { units: Vec<UnitId>, bridge: u32 },
+    /// `units` drive to `formation` around `target`, turned so that the
+    /// formation's front points along `facing` (default: the direction of
+    /// travel), and turn their hulls that way once they stand. `engage`
+    /// picks who halts to fight enemies in range on the way (attack-move,
+    /// prompt 046).
+    FormationMove {
+        units: Vec<UnitId>,
+        target: Vec2,
+        formation: Formation,
+        facing: Option<Vec2>,
+        engage: Engage,
+    },
+    /// `units` take up `formation` around `center` and hold the circle of
+    /// `radius_m` meters: they attack enemies inside it, do not chase them
+    /// out of it, and return to their places (prompt 046).
+    Secure {
+        units: Vec<UnitId>,
+        center: Vec2,
+        radius_m: u16,
+        formation: Formation,
+        facing: Option<Vec2>,
+    },
     /// Bridge-laying tanks among `units` drive to the narrow gap (water,
     /// ditch) nearest to `target` that their bridge spans and lay it across
     /// (prompt 055). Ignored for tanks whose bridge is already laid.
@@ -175,6 +198,8 @@ impl Command {
             | Self::Clear { units, .. }
             | Self::DemolishBridge { units, .. }
             | Self::RepairBridge { units, .. }
+            | Self::FormationMove { units, .. }
+            | Self::Secure { units, .. }
             | Self::LayBridge { units, .. }
             | Self::PickUpBridge { units }
             | Self::SetCamouflage { units, .. } => units,

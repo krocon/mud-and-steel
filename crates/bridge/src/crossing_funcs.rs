@@ -214,9 +214,10 @@ impl SimHost {
         }
     }
 
-    /// Ids of the units with camouflage (being put up or up).
+    /// Ids of the units with branches or nets of their own (being put up
+    /// or up; prompt 055, not the placed nets of prompt 052).
     #[func]
-    fn camouflaged_units(&self) -> PackedInt64Array {
+    fn vehicle_camouflage_units(&self) -> PackedInt64Array {
         let Some(game) = &self.game else {
             return PackedInt64Array::new();
         };

@@ -21,14 +21,31 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by prompt 055 (bridges, bridge-laying tanks, camouflage,
-/// paratroopers): the hashed air rules gained the `airborne` mission, the
-/// hit points of transport aircraft, the bomb carpet length and the
-/// paratrooper rules; the air types of the match include the transport
-/// aircraft and every player has a fifth cooldown. The crossing rules and
-/// state enter the hash only once one of them acted (not in the demo). The
-/// demo battle is unchanged. Before: `0x738f_0759_efe2_a7bd`, the merge of
-/// prompt 035 (engineers, mines, obstacles,
+/// Last changed by the merge of prompt 055 (bridges, bridge-laying tanks,
+/// camouflage, paratroopers): the hashed air rules gained the `airborne`
+/// mission, the hit points of transport aircraft, the bomb carpet length
+/// and the paratrooper rules; the air types of the match include the
+/// transport aircraft and every player has a fifth cooldown. The crossing
+/// rules and state enter the hash only once one of them acted (not in the
+/// demo). The demo battle is unchanged. Prompt 055 alone:
+/// `0xef27_60b4_5add_ed7b`. Before: `0x9b87_57bd_bec7_96f8`, the merge of
+/// prompt 060:
+///
+/// The merge of prompt 060 (mountains): the downhill
+/// sight rules (`[height]` in `data/vision.toml`) are in the hash. Nothing
+/// else changes: `test_small` has no ground 20 m below any eye, so every
+/// viewshed keeps its sight range (checked: without hashing the new
+/// rules the hash stays the one before). Before:
+/// `0x934d_db12_191d_9a20` (prompt 048, below); prompt 060 alone
+/// `0x1fa2_761f_1d8f_77f6`.
+///
+/// Prompt 048 (knockdown): the `[knockdown]` rules of
+/// `data/infantry.toml` and every soldier's knock-down state (ticks left,
+/// blast point) are in the hash; blasts and tank ammunition explosions
+/// knock soldiers down. The ammunition roll does not advance the shared
+/// generator, so the demo battle is unchanged (decided at tick 467, player 0
+/// wins). Before: `0x738f_0759_efe2_a7bd`, the merge of prompt 035 with 036.
+/// The merge of prompt 035 (engineers, mines, obstacles,
 /// positions) with 036 (supply and repair). Prompt 035: the rules of
 /// `data/works.toml` and the (empty) field works, mines, engineer jobs,
 /// thrown tracks and dug samples are in the hash, and the economy rules
@@ -146,7 +163,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xef27_60b4_5add_ed7b;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x92fb_909b_2e81_c158;
 
 #[test]
 fn golden_hash() {

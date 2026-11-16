@@ -84,7 +84,12 @@ sees nothing but enemy armor; unarmed units stay where they are. Per group, ever
    within 60 m + 8 m per unit of the center), then drive as one group (`MoveTo`
    with formation) to the freshest sighting, else to the enemy's start position
    (from the map), else to random points. A move is repeated only when its
-   target moved by more than 40 m or the group stopped early.
+   target moved by more than 40 m or the group stopped early. Normal and
+   Hard advance with attack-move (prompt 046: `FormationMove` with
+   `engage = All`, formation Auto): every unit halts while an enemy is in
+   its range and drives on afterwards; at the rally point of a base match
+   the group faces the enemy's home. Easy keeps plain `MoveTo`
+   [provisional].
 5. At its first think the AI sets all own units to fire at will.
 
 ## Base building (prompt 023)
@@ -253,6 +258,14 @@ way, at most two per match. Hostile mines the player knows
 first. Units avoid known hostile fields by themselves (path search). Test:
 `crates/ai/tests/ai.rs::ai_lays_mines_that_the_enemy_does_not_see`.
 [provisional]
+
+Positions (prompt 052): once its mines are laid (or while it has no
+ammunition for them) the AI defends its chokepoints: at the next one it
+digs a 16 m zigzag trench across the way to the enemy 20 m behind the
+point, then 24 m of wire 12 m in front of the trench, an MG nest and a
+camouflage net, one step whenever no site is under way and it can pay six
+pieces; at most two positions per match. Test:
+`ai_digs_a_position_after_its_mines`. [provisional]
 
 ## Bridge-laying tanks (prompt 055)
 

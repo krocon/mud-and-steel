@@ -154,6 +154,7 @@ func build(host: Object) -> void:
 	_build_edge()
 	if _biome:
 		apply_biome(_biome)
+	_apply_relief()
 	_dirty = true
 	print("terrain: map '%s', %d x %d samples, %d x %d chunks of %d m, built in %d ms" % [
 		host.map_name(), _samples.x, _samples.y, _chunks.x, _chunks.y,
@@ -356,6 +357,34 @@ func apply_biome(preset: Resource) -> void:
 	_material.set_shader_parameter("flower_density", preset.flower_density)
 	_edge_material.set_shader_parameter("top_color", preset.edge_top)
 	_edge_material.set_shader_parameter("soil_tint", preset.edge_tint)
+	_apply_relief()
+
+
+## Mountain look (prompt 060): scree and a snow line on maps whose height
+## range exceeds `MOUNTAIN_RELIEF` (fully at its second value). The snow
+## line lies at a fraction of the height range: `SNOW_LINE` for forest
+## maps, `SNOW_LINE_WINTER` in winter, none in the desert [provisional].
+const MOUNTAIN_RELIEF := Vector2(120.0, 220.0)
+const SNOW_LINE := 0.8
+const SNOW_LINE_WINTER := 0.45
+
+
+func _apply_relief() -> void:
+	if _material == null or _ranges.is_empty():
+		return
+	var low := INF
+	var high := -INF
+	for r in _ranges:
+		low = minf(low, r.x)
+		high = maxf(high, r.y)
+	var relief := high - low
+	var mountain := smoothstep(MOUNTAIN_RELIEF.x, MOUNTAIN_RELIEF.y, relief)
+	_material.set_shader_parameter("mountain", mountain)
+	var id: String = _biome.id if _biome else "forest"
+	var line := 1.0e6
+	if mountain > 0.0 and id != "desert":
+		line = low + relief * (SNOW_LINE_WINTER if id == "winter" else SNOW_LINE)
+	_material.set_shader_parameter("snow_line", line)
 
 
 ## Rain-soaked ground (prompt 040, world/weather_look.gd), 0..1.

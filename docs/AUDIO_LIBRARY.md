@@ -2,8 +2,9 @@
 
 Research result of prompt 061 (November 2026). It lists free recordings that may be
 used in a commercial game, as candidates to replace or layer the synthesized classes in
-`godot/assets/audio/sounds.json` (prompt 053, "real recordings"). Nothing here is
-downloaded or committed yet; every file still goes through the rules in
+`godot/assets/audio/sounds.json` (prompt 053, "real recordings"). Rows 1, 14, 16, 17,
+21, 22, 23, 24, 28 and 34 are in the game since 2026-11-16 (the Sounds table in
+SOURCES.md names the exact files); every further file goes through the rules in
 [SOURCES.md](SOURCES.md#sounds) (a row there before the commit, downloads agreed first).
 
 How it was checked: every row of the sound table comes from fetching the sound's own
