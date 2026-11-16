@@ -43,6 +43,7 @@ mod transport_funcs;
 mod vision_funcs;
 mod water;
 mod water_funcs;
+mod weather_funcs;
 
 pub use lan::LanLobby;
 pub use replay_funcs::ReplayPlayer;
@@ -273,6 +274,14 @@ pub struct SimHost {
     /// frame changes, so a match plays the same at any speed (self-tests).
     #[export]
     speed: f64,
+    /// Weather of the next single-player start (prompt 040): `clear`,
+    /// `overcast`, `rain`, `snow`, `fog`; empty: the map's default.
+    #[export]
+    weather: GString,
+    /// Time of day of the next single-player start: `morning`, `day`,
+    /// `evening`, `night`; empty: the map's default.
+    #[export]
+    daytime: GString,
     /// Computer players of the next single-player start with their
     /// difficulty (prompt 037, `start_slots`); empty: `ai_opponent` for
     /// every other player.
@@ -308,6 +317,8 @@ impl INode for SimHost {
             process_ticks: 0,
             mode: GString::new(),
             speed: 1.0,
+            weather: GString::new(),
+            daytime: GString::new(),
             computers: Vec::new(),
             load_error: String::new(),
             loaded_settings: Vec::new(),
@@ -462,6 +473,7 @@ impl SimHost {
 
     /// Starts a single-player match of `config` on `map`.
     fn start_config(&mut self, seed: i64, map: Arc<Map>, mut config: SimConfig) -> bool {
+        weather_funcs::apply_choice(self, &mut config);
         if self.hold_fire_at_start {
             for spawn in &mut config.spawns {
                 spawn.fire_mode = sim::FireMode::HoldFire;

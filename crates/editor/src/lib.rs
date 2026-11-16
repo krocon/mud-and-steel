@@ -56,6 +56,8 @@ pub struct Meta {
     pub generator: Option<String>,
     pub biome: Biome,
     pub water_flow_deg: u16,
+    /// Default weather and time of day of matches (prompt 040).
+    pub weather: sim::WeatherSetup,
     /// `(player, [x, y] meters)`, sorted by player.
     pub starts: Vec<(u8, [i32; 2])>,
     /// `(player, team)` for starts with a suggested team (prompt 037),
@@ -161,6 +163,7 @@ impl EditMap {
             generator: Some("map editor".into()),
             biome,
             water_flow_deg: sim::map::DEFAULT_WATER_FLOW_DEG,
+            weather: sim::WeatherSetup::default(),
             starts: vec![(0, [0, d]), (1, [0, -d])],
             start_teams: Vec::new(),
             markers: Vec::new(),
@@ -201,6 +204,7 @@ impl EditMap {
             generator,
             biome: map.biome(),
             water_flow_deg: map.water_flow_deg(),
+            weather: map.weather(),
             starts,
             start_teams,
             markers: map
@@ -438,6 +442,11 @@ impl EditMap {
 
     pub fn set_biome(&mut self, biome: Biome) {
         self.edit_meta(|m| m.biome = biome);
+    }
+
+    /// Sets the default weather and time of day of matches (prompt 040).
+    pub fn set_weather(&mut self, weather: sim::WeatherSetup) {
+        self.edit_meta(|m| m.weather = weather);
     }
 
     /// Sets (or moves) the start position of `player`, rounded to whole

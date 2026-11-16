@@ -259,6 +259,13 @@ enum CliCommand {
         /// busy machine.
         #[arg(long, default_value_t = 1)]
         runs: u32,
+        /// Weather of the match (prompt 040): clear, overcast, rain, snow,
+        /// fog; default: the map's.
+        #[arg(long)]
+        weather: Option<String>,
+        /// Time of day: morning, day, evening, night; default: the map's.
+        #[arg(long)]
+        daytime: Option<String>,
     },
     /// Generates the procedural ground textures of the terrain shader.
     GenTerrainTextures {
@@ -657,8 +664,12 @@ fn main() {
             ai,
             windows,
             runs,
+            weather,
+            daytime,
         } => {
-            let (config, map) = bench_config(&scenario).unwrap_or_else(|e| fail(&e));
+            let (mut config, map) = bench_config(&scenario).unwrap_or_else(|e| fail(&e));
+            set_weather(&mut config, weather.as_deref(), daytime.as_deref())
+                .unwrap_or_else(|e| fail(&e));
             let options = bench::Options {
                 ticks,
                 seed,
@@ -820,6 +831,23 @@ fn load_map_dir(dir: &Path) -> Result<sim::Map, String> {
             .map_err(|e| format!("{}: {e}", dir.display()))?;
     }
     Ok(map)
+}
+
+/// Overrides the weather and time of day of `config` (prompt 040).
+fn set_weather(
+    config: &mut sim::SimConfig,
+    weather: Option<&str>,
+    daytime: Option<&str>,
+) -> Result<(), String> {
+    if let Some(name) = weather {
+        config.weather.weather =
+            sim::Weather::from_name(name).ok_or_else(|| format!("unknown weather '{name}'"))?;
+    }
+    if let Some(name) = daytime {
+        config.weather.daytime =
+            sim::Daytime::from_name(name).ok_or_else(|| format!("unknown daytime '{name}'"))?;
+    }
+    Ok(())
 }
 
 /// A scenario file and its map from `data/maps/`.

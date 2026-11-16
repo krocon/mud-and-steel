@@ -356,3 +356,27 @@ fn large_height_ranges_are_saved_with_coarser_steps() {
     assert!(map.files().map_toml.contains("height_step_mm = 2"));
     let _ = std::fs::remove_dir_all(&dir);
 }
+
+#[test]
+fn the_default_weather_is_saved_and_starts_the_match() {
+    let mut map = build();
+    let rain_night = sim::WeatherSetup {
+        weather: sim::Weather::Rain,
+        daytime: sim::Daytime::Night,
+    };
+    map.set_weather(rain_night);
+    let files = map.files();
+    assert!(files.map_toml.contains("weather = \"rain\""));
+    let dir = temp_dir("editor_weather");
+    files.write_dir(&dir).unwrap();
+    let loaded = EditMap::load_dir(&dir).unwrap();
+    assert_eq!(loaded.meta().weather, rain_night);
+    let played = MapFiles::read_dir(&dir).unwrap().load().unwrap();
+    assert_eq!(played.weather(), rain_night);
+    // The map hash ignores the weather; the match takes it as its default.
+    assert_eq!(played.hash(), build().files().load().unwrap().hash());
+    assert_eq!(demo_on(&played).weather, rain_night);
+    // Clear by day writes nothing.
+    assert!(!build().files().map_toml.contains("weather"));
+    let _ = std::fs::remove_dir_all(&dir);
+}

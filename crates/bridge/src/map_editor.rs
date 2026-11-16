@@ -293,6 +293,33 @@ impl MapEditor {
         true
     }
 
+    /// Default weather and time of day of matches on this map (prompt
+    /// 040): names as in `SimHost.weather_names()` / `daytime_names()`.
+    #[func]
+    fn set_map_weather(&mut self, weather: GString, daytime: GString) -> bool {
+        let (Some(map), Some(weather), Some(daytime)) = (
+            self.map.as_mut(),
+            sim::Weather::from_name(&weather.to_string()),
+            sim::Daytime::from_name(&daytime.to_string()),
+        ) else {
+            return false;
+        };
+        map.set_weather(sim::WeatherSetup { weather, daytime });
+        true
+    }
+
+    /// `[weather, time of day]` names of the map's default.
+    #[func]
+    fn map_weather(&self) -> PackedStringArray {
+        self.map.as_ref().map_or_else(PackedStringArray::new, |m| {
+            let w = m.meta().weather;
+            [w.weather.name(), w.daytime.name()]
+                .iter()
+                .map(|s| GString::from(*s))
+                .collect()
+        })
+    }
+
     /// Checks the map like a match will load it: `{ok: bool, errors,
     /// warnings: PackedStringArray, map_hash: String}`.
     #[func]

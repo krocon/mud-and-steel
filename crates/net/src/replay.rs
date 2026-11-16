@@ -35,8 +35,9 @@ use std::sync::Arc;
 pub const MAGIC: [u8; 4] = *b"MSRP";
 
 /// Version of the body layout. Bump on every incompatible change of
-/// [`Replay`] or of the types it contains (commands, config).
-pub const FORMAT_VERSION: u16 = 7;
+/// [`Replay`] or of the types it contains (commands, config). 8 since
+/// prompt 040 (`SimConfig::weather`).
+pub const FORMAT_VERSION: u16 = 8;
 
 /// Version of the game that writes replays and saved games.
 pub const GAME_VERSION: &str = env!("CARGO_PKG_VERSION");

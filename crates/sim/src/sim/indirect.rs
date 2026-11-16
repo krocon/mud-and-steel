@@ -331,6 +331,13 @@ impl Artillery {
         self.wind
     }
 
+    /// Scales the wind by the weather (prompt 040), in percent.
+    pub(super) fn scale_wind(&mut self, pct: u32) {
+        if pct != 100 {
+            self.wind = self.wind.scale(Fixed::from_num(pct) / 100);
+        }
+    }
+
     /// Fragmentation radius of a shell of `caliber_mm_x10` (prompt 041:
     /// exploding dumps).
     pub(super) fn blast_radius(&self, caliber_mm_x10: u32) -> Fixed {

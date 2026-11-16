@@ -102,6 +102,7 @@ fn sim(map: &Arc<Map>, spawns: &[(&str, i32, i32)]) -> Sim {
         vision: sim::VisionRules::builtin().unwrap(),
         infantry: sim::InfantryRules::builtin().unwrap(),
         teams: sim::Teams::default(),
+        weather: sim::WeatherSetup::default(),
     };
     Sim::new(&config, Arc::clone(map), 7).unwrap()
 }

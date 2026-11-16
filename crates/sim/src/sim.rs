@@ -27,6 +27,7 @@ mod orders;
 mod spatial;
 mod transport;
 mod vision;
+mod weather;
 
 pub use vision::MAX_PLAYERS;
 
@@ -74,6 +75,10 @@ pub struct SimConfig {
     /// themselves.
     #[serde(default)]
     pub teams: crate::teams::Teams,
+    /// Weather and time of day (prompt 040); default: clear by day, which
+    /// changes nothing.
+    #[serde(default)]
+    pub weather: crate::weather::WeatherSetup,
 }
 
 impl SimConfig {
@@ -85,6 +90,22 @@ impl SimConfig {
         players.sort_unstable();
         players.dedup();
         players
+    }
+
+    /// The vision rules with the sight ranges of this match's weather and
+    /// time of day (prompt 040): `self.vision` for clear weather by day.
+    pub fn effective_vision(&self) -> VisionRules {
+        let mut vision = self.vision.clone();
+        if !self.weather.is_default()
+            && let Ok(rules) = crate::weather::WeatherRules::builtin()
+        {
+            let pct = rules.sight_pct(self.weather);
+            if pct != 100 {
+                vision.sight_ratio.0 = vision.sight_ratio.0.saturating_mul(pct);
+                vision.sight_ratio.1 = vision.sight_ratio.1.saturating_mul(100);
+            }
+        }
+        vision
     }
 }
 
@@ -117,6 +138,8 @@ pub enum ConfigError {
     Air(String),
     /// The built-in transport rules do not parse (prompt 034).
     Transport(String),
+    /// The built-in weather rules do not parse (prompt 040).
+    Weather(String),
 }
 
 impl fmt::Display for ConfigError {
@@ -137,7 +160,8 @@ impl fmt::Display for ConfigError {
             | Self::Indirect(e)
             | Self::Fire(e)
             | Self::Air(e)
-            | Self::Transport(e) => {
+            | Self::Transport(e)
+            | Self::Weather(e) => {
                 write!(f, "{e}")
             }
         }
@@ -417,6 +441,8 @@ pub struct Sim {
     teams: crate::teams::Teams,
     /// Mounting, dismounting and towing (prompt 034).
     transport: transport::Transport,
+    /// Weather, soft ground and time of day (prompt 040).
+    weather: weather::WeatherState,
 }
 
 impl Sim {
@@ -441,6 +467,17 @@ impl Sim {
         if players.len() > MAX_PLAYERS {
             return Err(ConfigError::TooManyPlayers(players.len()));
         }
+        // Weather and time of day shorten every sight range (prompt 040).
+        let weather_config;
+        let config = if config.weather.is_default() {
+            config
+        } else {
+            weather_config = SimConfig {
+                vision: config.effective_vision(),
+                ..config.clone()
+            };
+            &weather_config
+        };
         let infantry = InfantryRt::new(&config.infantry, &config.unit_types, &map, config.tick_hz);
 
         let mut units = Vec::with_capacity(config.spawns.len());
@@ -544,6 +581,15 @@ impl Sim {
             config.tick_hz,
         );
         let grid = PathGrid::new(&map, &config.terrain, &config.unit_types);
+        let weather = weather::WeatherState::new(
+            crate::weather::WeatherRules::builtin()
+                .map_err(|e| ConfigError::Weather(e.to_string()))?,
+            config.weather,
+            &config.unit_types,
+            &config.terrain,
+            config.tick_hz,
+            config.vision.sight_ratio,
+        );
         let mut sim = Self {
             tick: 0,
             rng: Rng::new(seed),
@@ -571,7 +617,9 @@ impl Sim {
             air,
             teams: config.teams.clone(),
             transport,
+            weather,
         };
+        sim.init_weather();
         sim.init_economy();
         sim.apply_destruction();
         sim.update_vision(true);
@@ -664,11 +712,13 @@ impl Sim {
         done(Phase::Projectiles);
         self.apply_destruction();
         self.apply_craters();
+        self.update_weather();
         done(Phase::Destruction);
         self.update_economy();
         done(Phase::Economy);
         self.update_smoke();
         self.update_vision(false);
+        self.reveal_flashes();
         done(Phase::Vision);
         self.tick += 1;
         let units = &self.units;
@@ -897,7 +947,8 @@ impl Sim {
             let profile = unit.unit_type as usize;
             let keep_clear = |p: Vec2| grid.passable_for(profile, p);
             let from = unit.position;
-            if move_unit(unit, push, &self.map, &self.terrain, keep_clear) == Moved::Blocked {
+            let ground = (&self.terrain, grid.ground_pct(profile));
+            if move_unit(unit, push, &self.map, ground, keep_clear) == Moved::Blocked {
                 blocked.push(index);
             }
             // The hull points where the unit drove.
@@ -1212,6 +1263,11 @@ impl Sim {
         self.air.hash_into(&mut h);
         self.teams.hash_into(&mut h);
         self.hash_transport(&mut h);
+        // Clear weather by day changes nothing and is left out, so matches
+        // without weather keep their hashes (prompt 040).
+        if !self.weather.is_default() {
+            self.weather.hash_into(&mut h);
+        }
         h.finish()
     }
 
@@ -1521,13 +1577,16 @@ enum Moved {
 /// cells that `clear` accepts (passable for the unit's size class) unless
 /// the unit already stands on a blocked cell; the direct step follows the
 /// planned leg and needs no such check.
+/// `ground`: the terrain rules and the unit's soft-ground speeds per
+/// terrain id (prompt 040, [`PathGrid::ground_pct`]).
 fn move_unit(
     unit: &mut Unit,
     push: Vec2,
     map: &Map,
-    rules: &TerrainRules,
+    ground: (&TerrainRules, &[u32]),
     clear: impl Fn(Vec2) -> bool,
 ) -> Moved {
+    let (rules, ground_pct) = ground;
     let Route::Following {
         waypoints, next, ..
     } = &unit.route
@@ -1536,7 +1595,7 @@ fn move_unit(
     };
     let (waypoint, last) = (waypoints[*next], *next + 1 == waypoints.len());
     if let Some(direction) = heading(unit) {
-        let Some(speed) = ground_speed(unit, direction, map, rules) else {
+        let Some(speed) = ground_speed(unit, direction, map, rules, ground_pct) else {
             return Moved::Blocked;
         };
         let (from, from_height) = (unit.position, unit.height);
@@ -1645,9 +1704,22 @@ fn stop(unit: &mut Unit) {
 /// Terrain picks road or cross-country speed and scales it; the result never
 /// exceeds the road speed. The grade is the height difference over the next
 /// meter.
-fn ground_speed(unit: &Unit, direction: Vec2, map: &Map, rules: &TerrainRules) -> Option<Fixed> {
-    let terrain = &rules.types[usize::from(map.terrain_at(unit.position))];
+fn ground_speed(
+    unit: &Unit,
+    direction: Vec2,
+    map: &Map,
+    rules: &TerrainRules,
+    ground_pct: &[u32],
+) -> Option<Fixed> {
+    let id = usize::from(map.terrain_at(unit.position));
+    let terrain = &rules.types[id];
     let mut speed = terrain.speed(unit.speed_offroad, unit.speed_road);
+    // Soft ground (prompt 040).
+    if let Some(&pct) = ground_pct.get(id)
+        && pct != 100
+    {
+        speed = speed * Fixed::from_num(pct) / 100;
+    }
     if unit.speed_pct != 100 {
         speed = speed * Fixed::from_num(unit.speed_pct) / 100;
     }
@@ -1796,6 +1868,7 @@ mod tests {
             vision: crate::vision::VisionRules::builtin().unwrap(),
             infantry: crate::infantry::InfantryRules::builtin().unwrap(),
             teams: crate::teams::Teams::default(),
+            weather: crate::weather::WeatherSetup::default(),
         }
     }
 
@@ -2299,6 +2372,7 @@ mod object_tests {
             vision: crate::vision::VisionRules::builtin().unwrap(),
             infantry: crate::infantry::InfantryRules::builtin().unwrap(),
             teams: crate::teams::Teams::default(),
+            weather: crate::weather::WeatherSetup::default(),
         };
         (Sim::new(&config, map.clone(), 1).unwrap(), map)
     }

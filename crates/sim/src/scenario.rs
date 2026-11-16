@@ -345,6 +345,8 @@ fn parse_scenario_inner(
         infantry: crate::infantry::InfantryRules::builtin()
             .map_err(|e| ScenarioError(e.to_string()))?,
         teams: crate::teams::Teams::default(),
+        // The map's default weather (prompt 040); the setup may override it.
+        weather: map.weather(),
     })
 }
 
