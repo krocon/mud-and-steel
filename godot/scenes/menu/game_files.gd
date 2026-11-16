@@ -13,6 +13,8 @@ const MatchSetup := preload("res://scenes/menu/match_setup.gd")
 const Language := preload("res://scenes/menu/language.gd")
 const SAVE_DIR := "user://saves"
 const REPLAY_DIR := "user://replays"
+## Prompt 045: post-match statistics as JSON.
+const STATS_DIR := "user://stats"
 const SAVE_EXTENSION := "mssave"
 const REPLAY_EXTENSION := "msreplay"
 ## Playback speeds of the replay viewer.
@@ -126,6 +128,26 @@ static func save_game(sim_host: SimHost, settings: Dictionary) -> String:
 	file.close()
 	var absolute := ProjectSettings.globalize_path(path)
 	print("game saved: %s (tick %d)" % [absolute, sim_host.current_tick()])
+	return absolute
+
+
+## Writes the statistics of the match as JSON (prompt 045) to
+## `user://stats/<date-time>.json`; returns the absolute path or "".
+static func save_stats(sim_host: SimHost) -> String:
+	var json := sim_host.match_stats_json()
+	if json.is_empty():
+		return ""
+	DirAccess.make_dir_recursive_absolute(STATS_DIR)
+	var stamp := Time.get_datetime_string_from_system().replace(":", "-")
+	var path := unique_path(STATS_DIR, stamp, "json")
+	var file := FileAccess.open(path, FileAccess.WRITE)
+	if file == null:
+		push_error("cannot write statistics %s: %s" % [path, error_string(FileAccess.get_open_error())])
+		return ""
+	file.store_string(json)
+	file.close()
+	var absolute := ProjectSettings.globalize_path(path)
+	print("match statistics: %s" % absolute)
 	return absolute
 
 

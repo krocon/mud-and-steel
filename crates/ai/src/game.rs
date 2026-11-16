@@ -7,6 +7,7 @@ use crate::{Ai, Difficulty, PlayerView};
 use net::{
     HostedState, LocalTransport, LockstepConfig, LockstepSession, Replay, ReplayRecorder, SaveGame,
 };
+use sim::stats::MatchStats;
 use sim::{Command, Map, PlayerId, Sim, SimConfig, StableHasher};
 use std::sync::Arc;
 
@@ -56,6 +57,8 @@ pub struct Game {
     ais: Vec<Ai>,
     commands: Vec<usize>,
     seed: u64,
+    /// Post-match statistics (prompt 045), fed after every tick.
+    stats: MatchStats,
 }
 
 impl Game {
@@ -95,7 +98,10 @@ impl Game {
         for ai in &ais {
             recorder.set_kind(ai.player(), &format!("ai:{}", ai.difficulty()));
         }
+        let mut stats = MatchStats::new(config);
+        stats.observe(&sim);
         Ok(Self {
+            stats,
             sim,
             session,
             transport: LocalTransport,
@@ -168,6 +174,18 @@ impl Game {
         let commands = self.session.next_commands().expect("all frames are local");
         self.recorder.record(&commands);
         self.sim.step_observed(&commands, done);
+        self.stats.observe(&self.sim);
+    }
+
+    /// Statistics of the match so far (prompt 045).
+    pub const fn stats(&self) -> &MatchStats {
+        &self.stats
+    }
+
+    /// Adds a last sample to the statistics (call once when a match stops
+    /// undecided).
+    pub fn finish_stats(&mut self) {
+        self.stats.finish(&self.sim);
     }
 
     /// Plays until the match is decided or `max_ticks` ticks were
@@ -251,7 +269,10 @@ impl Game {
         for &p in &all[1..] {
             session.host_player(p);
         }
+        let mut stats = MatchStats::new(&save.replay.config);
+        stats.observe(&sim);
         Ok(Self {
+            stats,
             sim,
             session,
             transport: LocalTransport,

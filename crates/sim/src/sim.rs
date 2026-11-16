@@ -942,6 +942,20 @@ impl Sim {
         Some(self.units[index].hp)
     }
 
+    /// Every unit (buildings and crews included) with owner, type index
+    /// and whether it is alive, in id order. Read-only, for the match
+    /// statistics (prompt 045, `stats`).
+    pub fn unit_roster(&self) -> impl Iterator<Item = (UnitId, PlayerId, u32, bool)> + '_ {
+        self.units
+            .iter()
+            .map(|u| (u.id, u.owner, u.unit_type, u.alive()))
+    }
+
+    /// Ticks per second.
+    pub const fn tick_hz(&self) -> u32 {
+        self.tick_hz
+    }
+
     /// Events of the last tick.
     pub fn events(&self) -> &[CombatEvent] {
         &self.events

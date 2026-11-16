@@ -45,6 +45,7 @@ mod orders_funcs;
 mod positions_funcs;
 mod replay_funcs;
 mod save_funcs;
+mod stats_funcs;
 mod steam_lobby;
 mod strike_funcs;
 mod supply_funcs;
@@ -130,6 +131,8 @@ struct Game {
     /// Pings of the local player and its allies since the last
     /// `take_pings` (prompt 037, `team_funcs`).
     pings: Vec<(PlayerId, Vec2)>,
+    /// Post-match statistics (prompt 045, `stats_funcs`).
+    stats: sim::stats::MatchStats,
 }
 
 impl Game {
@@ -176,6 +179,7 @@ impl Game {
         self.recorder.record(&commands);
         team_funcs::collect_pings(self, &commands);
         self.sim.step(&commands);
+        self.stats.observe(&self.sim);
         self.session
             .record_hash(self.sim.tick(), self.sim.state_hash(), &mut self.transport)?;
         if self.sim.tick().is_multiple_of(DELAY_CHECK_INTERVAL) {
@@ -564,7 +568,10 @@ impl SimHost {
         self.crossing_events.clear();
         self.strike_events.clear();
         self.accumulator = 0.0;
+        let mut stats = sim::stats::MatchStats::new(&config);
+        stats.observe(&sim);
         self.game = Some(Game {
+            stats,
             recorder: ReplayRecorder::new(seed, config.clone(), &players),
             display_offsets: Vec::new(),
             deco: std::cell::OnceCell::new(),

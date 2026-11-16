@@ -20,6 +20,7 @@ const Settings := preload("res://scenes/menu/settings.gd")
 const SettingsPanel := preload("res://scenes/menu/settings_panel.gd")
 const GameFiles := preload("res://scenes/menu/game_files.gd")
 const Language := preload("res://scenes/menu/language.gd")
+const StatsChart := preload("res://scenes/menu/stats_chart.gd")
 
 var main: Node3D
 
@@ -29,6 +30,11 @@ var result_panel: PanelContainer
 var result_title: Label
 var result_reason: Label
 var result_details: Label
+## Prompt 045: losses, kills and points per player, resource curves.
+var result_stats: Label
+var result_chart: Control
+## Absolute path of the statistics JSON of this match ("" if not written).
+var stats_path := ""
 var settings_panel: PanelContainer
 var resume_button: Button
 var surrender_button: Button
@@ -178,6 +184,11 @@ func _build_result() -> void:
 	box.add_child(result_reason)
 	result_details = MenuTheme.hint("")
 	box.add_child(result_details)
+	result_stats = MenuTheme.hint("")
+	box.add_child(result_stats)
+	result_chart = StatsChart.new()
+	box.add_child(result_chart)
+	box.add_child(MenuTheme.hint("RESULT_STATS_LEGEND"))
 	var buttons := HBoxContainer.new()
 	buttons.alignment = BoxContainer.ALIGNMENT_CENTER
 	box.add_child(buttons)
@@ -243,10 +254,39 @@ func _show_result(result: Dictionary) -> void:
 			line += " – " + Language.code_text("RESULT_DEFEAT_", player["reason"])
 		lines.append(line)
 	result_details.text = "\n".join(lines)
+	_show_stats(me)
 	result_panel.visible = true
 	_shade.visible = true
 	menu_button.grab_focus()
 	print("Match decided at tick %d: %s (%s)" % [result["tick"], result_title.text, result_reason.text])
+
+
+## Prompt 045: statistics of every player, the best unit types of the
+## local player and its resource curves; writes them as JSON as well.
+func _show_stats(me: int) -> void:
+	var lines: PackedStringArray = []
+	for player: Dictionary in main.sim_host.match_stats():
+		var id: int = player["id"]
+		var faction: String = _factions.get(id, player["faction"])
+		lines.append(tr("RESULT_STATS_PLAYER").format({
+			"player": tr(MatchSetup.FACTIONS[faction]) if MatchSetup.FACTIONS.has(faction) else tr("COMMON_PLAYER_N") % id,
+			"lost": player["lost"],
+			"kills": player["kills"],
+			"points": player["points_captured"],
+		}))
+		if id != me:
+			continue
+		var best: PackedStringArray = []
+		for row: Dictionary in player["types"]:
+			if row["kills"] > 0 and best.size() < 3:
+				best.append("%s %d" % [row["name"], row["kills"]])
+		if not best.is_empty():
+			lines.append(tr("RESULT_STATS_BEST") % ", ".join(best))
+		result_chart.set_samples(player["samples"])
+	stats_path = GameFiles.save_stats(main.sim_host)
+	if not stats_path.is_empty():
+		lines.append(tr("RESULT_STATS_SAVED") % stats_path.get_file())
+	result_stats.text = "\n".join(lines)
 
 
 func _reason(winner: int, me: int, own: Dictionary, players: Array, won: bool) -> String:

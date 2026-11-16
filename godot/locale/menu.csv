@@ -40,6 +40,10 @@ RESULT_REASON_YOU_ELIMINATED,All your units were lost.,Alle deine Einheiten sind
 RESULT_REASON_TEAM_DEFEATED,Your team was defeated.,Dein Team wurde besiegt.
 RESULT_REASON_ENEMY_SURRENDERED,The enemy surrendered.,Der Feind hat aufgegeben.
 RESULT_REASON_ENEMY_ELIMINATED,All enemy units were destroyed.,Alle feindlichen Einheiten wurden vernichtet.
+RESULT_STATS_PLAYER,"{player}: {lost} units lost, {kills} enemies destroyed, {points} supply points taken","{player}: {lost} Einheiten verloren, {kills} Feinde vernichtet, {points} Versorgungspunkte genommen"
+RESULT_STATS_BEST,Most kills: %s,Meiste Abschüsse: %s
+RESULT_STATS_SAVED,Statistics saved: %s,Statistik gespeichert: %s
+RESULT_STATS_LEGEND,"Your account over the match: fuel (yellow), ammunition (red), manpower (blue)","Dein Konto im Spielverlauf: Treibstoff (gelb), Munition (rot), Personal (blau)"
 MATCH_MAP,Map,Karte
 MATCH_SEASON,Season,Jahreszeit
 MATCH_WEATHER,Weather,Wetter
