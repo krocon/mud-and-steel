@@ -127,14 +127,23 @@ fn every_computer_player_builds_in_a_team_base_match() {
     let levels: Vec<(PlayerId, Difficulty)> =
         (0..4).map(|p| (PlayerId(p), Difficulty::Normal)).collect();
     let mut game = Game::new(&config, map, 5, &levels).unwrap();
-    game.run(3000);
-    for p in 0..4 {
-        let built = game
-            .sim()
-            .structures()
-            .iter()
-            .filter(|s| s.owner == PlayerId(p))
-            .count();
-        assert!(built > 1, "player {p} built nothing");
+    // Most structures each player had at once (air strikes, prompt 033,
+    // may raze a base before the end).
+    let mut most = [0usize; 4];
+    for _ in 0..3000 {
+        let decisions = game.think();
+        game.step(decisions);
+        for (p, most) in (0u8..).zip(&mut most) {
+            let now = game
+                .sim()
+                .structures()
+                .iter()
+                .filter(|s| s.owner == PlayerId(p))
+                .count();
+            *most = (*most).max(now);
+        }
+    }
+    for (p, most) in most.iter().enumerate() {
+        assert!(*most > 1, "player {p} built nothing");
     }
 }

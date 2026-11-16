@@ -11,6 +11,7 @@
 //! iteration, no clocks, its own seeded [`Rng`]) so that tournaments give
 //! the same results on every platform. See `docs/AI.md`.
 
+mod air;
 mod artillery;
 mod economy;
 pub mod game;
@@ -276,6 +277,8 @@ pub struct Ai {
     eco: economy::EcoState,
     /// Barrages and smoke of the artillery (prompt 032).
     fire: artillery::FireState,
+    /// Air support calls and flak (prompt 033).
+    air: air::AirState,
 }
 
 impl Ai {
@@ -419,6 +422,7 @@ impl Ai {
             costs: unit_costs(config),
             eco: economy::EcoState::default(),
             fire: artillery::FireState::default(),
+            air: air::AirState::default(),
         }
     }
 
@@ -473,6 +477,7 @@ impl Ai {
         }
 
         self.think_economy(view, &mut out);
+        self.think_air(view, &mut out);
         let mut roles: Vec<Role> = Vec::new();
         for u in view.own.iter().filter(|u| u.alive()) {
             let role = self.type_info(u.unit_type).role;

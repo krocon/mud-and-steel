@@ -1,7 +1,7 @@
 //! What a computer player may know about the match: the fog-of-war view of
 //! its player. The AI reads the simulation only through [`PlayerView`].
 
-use sim::{FireMode, PlayerId, Resources, Sim, StructureView, SupplyView, UnitId, Vec2};
+use sim::{AirOption, FireMode, PlayerId, Resources, Sim, StructureView, SupplyView, UnitId, Vec2};
 
 /// An own unit: everything the player knows about it.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -71,6 +71,10 @@ pub struct PlayerView {
     /// For every structure type the player can build right now: the first
     /// free spot around its headquarters (or its start), by type index.
     pub sites: Vec<(u32, Vec2)>,
+    /// Air missions the player can call (prompt 033).
+    pub air: Vec<AirOption>,
+    /// Enemy aircraft the player sees now.
+    pub enemy_aircraft: usize,
 }
 
 impl PlayerView {
@@ -145,6 +149,12 @@ impl PlayerView {
             structures,
             supply: sim.supply_points(),
             sites,
+            air: sim.air_options(player),
+            enemy_aircraft: snapshot
+                .aircraft
+                .iter()
+                .filter(|a| !sim.allied(player, a.owner) && !a.crashing)
+                .count(),
         }
     }
 }

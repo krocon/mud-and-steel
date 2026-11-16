@@ -1,5 +1,6 @@
 //! Player commands: the only way to change the simulation from outside.
 
+use crate::air::AirMission;
 use crate::combat::FireMode;
 use crate::infantry::StanceOrder;
 use crate::math::Vec2;
@@ -76,6 +77,11 @@ pub enum Command {
     /// `units` drive to `target`, then back and forth between their start
     /// and the target (prompt 031).
     Patrol { units: Vec<UnitId>, target: Vec2 },
+    /// Calls air support on the ground point `target` (prompt 033): the
+    /// aircraft of the player's faction for `mission` fly in from the map
+    /// edge. Ignored while the mission cools down or the player cannot
+    /// pay (`data/air.toml`).
+    CallAir { mission: AirMission, target: Vec2 },
     /// Marks `target` on the map of the issuer's allies (prompt 037). Has
     /// no effect on the simulation; it travels through the lockstep session
     /// (and into the replay) so that every ally's game can show it.
@@ -101,6 +107,7 @@ impl Command {
             | Self::Produce { .. }
             | Self::CancelProduction { .. }
             | Self::SetRallyPoint { .. }
+            | Self::CallAir { .. }
             | Self::Ping { .. } => &[],
         }
     }

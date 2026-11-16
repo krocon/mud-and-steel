@@ -65,6 +65,19 @@ become waypoints).
 | U | Occupy the clicked building (infantry) |
 | Barrage / Smoke buttons | Mortars and guns fire at the clicked point (the keys G / T fire at the cursor at once) |
 
+## Air support (prompt 033)
+
+| Input | Effect |
+|---|---|
+| Air bar (above the command bar): Recon / Fighters / Attack / Bombers | Wait for a left click on the map, then call the mission there; right click or Esc cancels |
+| Shift + 1 / 2 / 3 / 4 | The same as the four buttons [provisional] |
+
+The buttons show the price (fuel / ammunition / manpower) or the seconds
+until the mission can be called again; the tooltip names the aircraft. Own
+missions show their approach as a dashed line to a ring on the target with
+the time until the aircraft arrive. Enemy aircraft coming into sight post
+**Enemy aircraft!** in the event feed.
+
 ## Base building (skirmish)
 
 | Input | Effect |

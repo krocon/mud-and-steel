@@ -115,6 +115,29 @@ impl Vision {
         self.players.binary_search(&player).ok()
     }
 
+    /// Adds a viewshed that belongs to no unit (a reconnaissance aircraft,
+    /// prompt 033) to the vision of `player`.
+    pub(super) fn add_air_shed(&mut self, player: PlayerId, shed: &Viewshed) {
+        if let Some(s) = self.slot(player) {
+            self.per_player[s].add(&self.grid, shed);
+        }
+    }
+
+    /// Removes a viewshed added by [`Self::add_air_shed`].
+    pub(super) fn remove_air_shed(&mut self, player: PlayerId, shed: &Viewshed) {
+        if let Some(s) = self.slot(player) {
+            self.per_player[s].remove(&self.grid, shed);
+        }
+    }
+
+    /// Makes sure viewsheds of `radius` cells can be computed (prompt 033:
+    /// reconnaissance aircraft).
+    pub(super) fn ensure_radius(&mut self, radius: i32) {
+        if !self.grid.has_table(radius) {
+            Arc::make_mut(&mut self.grid).add_table(radius);
+        }
+    }
+
     pub(super) fn hash_into(&self, h: &mut StableHasher) {
         self.rules.hash_into(h);
         for shed in &self.sheds {

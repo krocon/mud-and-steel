@@ -73,9 +73,30 @@ cross a 4 km map in about 10 s. Instead:
   crosses a 4 km map in ~45 s, enough to see and react to it.
 - Aircraft are not placed on the map. They **enter from the map edge**, fly their
   mission (strafing run, bombing, reconnaissance pass) and leave again.
-- They do not take part in ground pathfinding; flight altitude is visual only until a
-  later prompt needs it.
+- They do not take part in ground pathfinding.
 - Sizes stay 1:1 (B-25J: 20.6 m wingspan).
+
+Prompt 033 (air support, [ARCHITECTURE.md](ARCHITECTURE.md#air-support-and-anti-aircraft-fire))
+uses the **cruise speed** (else the maximum) × 1/2: Fi 156 18 m/s, Ju 87 D-5
+44 m/s, He 111 54 m/s, P-51D 81 m/s, Fw 190 A-8 (no cruise value) 91 m/s.
+
+- **Altitude** is a game rule in game meters (`data/air.toml`, [provisional]):
+  cruise 200–500 m, over the target 30 m (fighters strafing), 150 m (ground
+  attack), 500 m (bombers). Real attack altitudes (1–4 km) would be far above
+  every camera view and every compressed flak range.
+- **Flak range** is the catalog's effective anti-aircraft range or ceiling
+  (`range_aa_m`) × the direct-fire factor 1/4, capped per class: 2 cm Flak 38
+  2200 m → 550 m, 37 mm 61-K 3000 m → 750 m, 40 mm Bofors 3500 m → 875 m,
+  heavy flak (8.8 cm 8000 m, 85 mm 10.5 km, 90 mm 13.3 km) capped at 1500 m;
+  AA machine guns 1000 m → 250 m. Heavy flak does not fire below 100 m.
+- **Rate of fire** of AA weapons: as in combat (automatic weapons 25 % of the
+  cyclic rate), durations ÷ time factor 2. Aircraft guns use their real cyclic
+  rate (aircraft have no time factor): a P-47's eight .50s fire 53 rounds in
+  a 0.5 s burst.
+- **Bombs** fall `sqrt(2h/g)` real seconds (no time factor, like the aircraft):
+  10 s from 500 m, 5.5 s from 150 m. Blast and near-miss radii are sizes
+  (1:1): SC 250 → 31 m fragment radius.
+- **Reconnaissance** sees 2000 m real × 1/4 = 500 m around its track.
 
 ## What this means on the map
 

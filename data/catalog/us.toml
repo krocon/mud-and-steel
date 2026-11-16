@@ -384,7 +384,7 @@ armor_turret_side_mm = 51
 armor_turret_rear_mm = 51
 weapon = [
     { name = "75 mm Gun M3 (mount M34A1)", caliber_mm_x10 = 750, ammo = "M61 APC, M72 AP, M48 HE, M89 smoke", rate_rpm = 10, muzzle_velocity_mps = 619, range_effective_m = 1000, ammo_carried = 104 },
-    { name = "Browning M2HB (AA, turret roof)", caliber_mm_x10 = 127, rate_rpm = 500, muzzle_velocity_mps = 887, ammo_carried = 300 },
+    { name = "Browning M2HB (AA, turret roof)", caliber_mm_x10 = 127, rate_rpm = 500, muzzle_velocity_mps = 887, aa = true, ammo_carried = 300 },
     { name = "Browning M1919A4 (coaxial, bow)", count = 2, caliber_mm_x10 = 76, rate_rpm = 500, muzzle_velocity_mps = 853, ammo_carried = 4750 },
 ]
 source = [
@@ -426,7 +426,7 @@ armor_turret_side_mm = 76
 armor_turret_rear_mm = 76
 weapon = [
     { name = "90 mm Gun M3", caliber_mm_x10 = 900, ammo = "M82 APC, T30E16 HVAP, M71 HE", rate_rpm = 8, muzzle_velocity_mps = 853, range_effective_m = 1500, ammo_carried = 70 },
-    { name = "Browning M2HB (AA)", caliber_mm_x10 = 127, rate_rpm = 500, muzzle_velocity_mps = 887, ammo_carried = 550 },
+    { name = "Browning M2HB (AA)", caliber_mm_x10 = 127, rate_rpm = 500, muzzle_velocity_mps = 887, aa = true, ammo_carried = 550 },
     { name = "Browning M1919A4 (coaxial, bow)", count = 2, caliber_mm_x10 = 76, rate_rpm = 500, muzzle_velocity_mps = 853, ammo_carried = 5000 },
 ]
 source = [
@@ -466,7 +466,7 @@ armor_turret_side_mm = 25
 armor_turret_rear_mm = 25
 weapon = [
     { name = "3 in Gun M7 (mount M5)", caliber_mm_x10 = 762, ammo = "M62 APC, M79 AP, M42A1 HE, M93 HVAP (late 1944)", rate_rpm = 8, muzzle_velocity_mps = 792, range_effective_m = 1500, ammo_carried = 54 },
-    { name = "Browning M2HB (AA)", caliber_mm_x10 = 127, rate_rpm = 500, muzzle_velocity_mps = 887, ammo_carried = 300 },
+    { name = "Browning M2HB (AA)", caliber_mm_x10 = 127, rate_rpm = 500, muzzle_velocity_mps = 887, aa = true, ammo_carried = 300 },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/M10_tank_destroyer", covers = "6.83 m with gun, 5.97 m hull, 3.05 m, 2.90 m over AA MG, 65,200 lb, crew 5, glacis 1.5 in, upper sides/rear 0.75 in, turret side 1 in, gun shield 2.25 in, 3 in M7 with 54 rounds, 375 hp, 25-30 mph, 200 mi" },
@@ -504,7 +504,7 @@ armor_turret_side_mm = 51
 armor_turret_rear_mm = 25
 weapon = [
     { name = "105 mm Howitzer M4 (mount M52)", caliber_mm_x10 = 1050, ammo = "M1 HE, M67 HEAT, M84 smoke", rate_rpm = 4, muzzle_velocity_mps = 472, range_effective_m = 11160, ammo_carried = 66 },
-    { name = "Browning M2HB (AA)", caliber_mm_x10 = 127, rate_rpm = 500, muzzle_velocity_mps = 887, ammo_carried = 600 },
+    { name = "Browning M2HB (AA)", caliber_mm_x10 = 127, rate_rpm = 500, muzzle_velocity_mps = 887, aa = true, ammo_carried = 600 },
     { name = "Browning M1919A4 (coaxial, bow)", count = 2, caliber_mm_x10 = 76, rate_rpm = 500, muzzle_velocity_mps = 853, ammo_carried = 4000 },
 ]
 source = [
@@ -605,7 +605,7 @@ armor_turret_rear_mm = 19
 weapon = [
     { name = "37 mm Gun M6", caliber_mm_x10 = 370, ammo = "M51 APC, M63 HE, M2 canister", rate_rpm = 20, muzzle_velocity_mps = 884, range_effective_m = 800, ammo_carried = 80 },
     { name = "Browning M1919A4 (coaxial)", caliber_mm_x10 = 76, rate_rpm = 500, muzzle_velocity_mps = 853, ammo_carried = 1500 },
-    { name = "Browning M2HB (AA, ring mount)", caliber_mm_x10 = 127, rate_rpm = 500, muzzle_velocity_mps = 887, ammo_carried = 400 },
+    { name = "Browning M2HB (AA, ring mount)", caliber_mm_x10 = 127, rate_rpm = 500, muzzle_velocity_mps = 887, aa = true, ammo_carried = 400 },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/M8_Greyhound", covers = "4.70 x 2.31 x 1.91 m, ~7.4 t, crew 4, armor up to 25 mm, 37 mm with 80 rounds, .30 MG 1,500 rds, .50 MG 400 rds, 110 hp, 55 mph road, 32 mph cross-country, 200-400 mi road" },
@@ -639,7 +639,7 @@ armor_hull_side_mm = 13
 armor_hull_rear_mm = 13
 weapon = [
     { name = "105 mm Howitzer M2A1 (mount M4)", caliber_mm_x10 = 1050, ammo = "M1 HE, M67 HEAT, M84 smoke", rate_rpm = 4, muzzle_velocity_mps = 472, range_effective_m = 11160, ammo_carried = 69 },
-    { name = "Browning M2HB (AA, pulpit)", caliber_mm_x10 = 127, rate_rpm = 500, muzzle_velocity_mps = 887, ammo_carried = 300 },
+    { name = "Browning M2HB (AA, pulpit)", caliber_mm_x10 = 127, rate_rpm = 500, muzzle_velocity_mps = 887, aa = true, ammo_carried = 300 },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/M7_Priest", covers = "6.02 x 2.87 m (with sandshields), 2.54 m (2.95 m over AA MG), 22.97 t, crew 8, armor 12-62 mm, 105 mm M2 howitzer with 69 rounds, M2HB with 300 rds, R-975 C1 400 hp, 24 mph road / 15 mph off-road, 120 mi" },
@@ -699,7 +699,7 @@ height_mm = 2010
 mass_kg = 2520
 crew = 11
 weapon = [
-    { name = "40 mm Automatic Gun M1 (L/60)", caliber_mm_x10 = 400, ammo = "M2 HE-T, M81 AP-T", rate_rpm = 120, muzzle_velocity_mps = 874, range_effective_m = 7160 },
+    { name = "40 mm Automatic Gun M1 (L/60)", caliber_mm_x10 = 400, ammo = "M2 HE-T, M81 AP-T", rate_rpm = 120, muzzle_velocity_mps = 874, range_effective_m = 7160, range_aa_m = 3500 },
 ]
 source = [
     { ref = "TM 9-252 40-mm Automatic Gun M1 (AA) and 40-mm Antiaircraft Gun Carriages M2 and M2A1 (1944), https://www.bulletpicker.com/pdf/TM-9-252.pdf", covers = "primary manual (existence confirmed; tables not read)" },
@@ -725,7 +725,7 @@ height_mm = 3100
 mass_kg = 14700
 crew = 8
 weapon = [
-    { name = "90 mm Gun M2 (L/50)", caliber_mm_x10 = 900, ammo = "M71 HE (time/VT fuze), M77 AP-T, M82 APC", rate_rpm = 24, muzzle_velocity_mps = 823, range_effective_m = 19042 },
+    { name = "90 mm Gun M2 (L/50)", caliber_mm_x10 = 900, ammo = "M71 HE (time/VT fuze), M77 AP-T, M82 APC", rate_rpm = 24, muzzle_velocity_mps = 823, range_effective_m = 19042, range_aa_m = 13300 },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/90_mm_gun_M1/M2/M3", covers = "M2 weight 32,300 lb (14,700 kg), crew 8, up to 24 rpm with fuze setter-rammer; M1A1 travel dimensions 9.0 x 4.1 x 3.1 m, horizontal range 19,042 m, ceiling 13,300 m; M2 mount depresses to -10 deg" },
@@ -885,7 +885,7 @@ ceiling_m = 12770
 power_hp = 1510
 weapon = [
     { name = "Browning AN/M2 .50", count = 6, caliber_mm_x10 = 127, ammo = "M8 API, M20 API-T, M2 ball", rate_rpm = 800, muzzle_velocity_mps = 870, ammo_carried = 1880 },
-    { name = "1,000 lb GP bomb AN-M65 or 5 in HVAR", count = 2, ammo = "bombs on wing racks (alternative: up to 10 HVAR rockets)" },
+    { name = "1,000 lb GP bomb AN-M65 or 5 in HVAR", count = 2, bomb_kg = 454, ammo = "bombs on wing racks (alternative: up to 10 HVAR rockets)" },
 ]
 source = [
     { ref = "National Museum of the USAF, P-51 fact sheet (archived), https://webarchive.library.unt.edu/web/20130215041416/http://www.nationalmuseum.af.mil/factsheets/factsheet.asp?id=2214", covers = "span 37 ft, length 32 ft 3 in, height 13 ft 8 in, max speed 437 mph, ceiling 41,900 ft, max weight 12,100 lb (via search excerpt)" },
@@ -916,7 +916,7 @@ ceiling_m = 12800
 power_hp = 2028
 weapon = [
     { name = "Browning AN/M2 .50", count = 8, caliber_mm_x10 = 127, ammo = "M8 API, M20 API-T, M2 ball", rate_rpm = 800, muzzle_velocity_mps = 870, ammo_carried = 3400 },
-    { name = "500 lb GP bomb AN-M64", count = 2, ammo = "wing racks; up to 2,500 lb total incl. centerline" },
+    { name = "500 lb GP bomb AN-M64", count = 2, bomb_kg = 227, ammo = "wing racks; up to 2,500 lb total incl. centerline" },
     { name = "5 in HVAR rocket", count = 10 },
 ]
 source = [
@@ -947,7 +947,7 @@ ceiling_m = 7380
 power_hp = 3751
 weapon = [
     { name = "Browning AN/M2 .50", count = 13, caliber_mm_x10 = 127, ammo = "M8 API, M20 API-T, M2 ball", rate_rpm = 800, muzzle_velocity_mps = 870 },
-    { name = "500 lb GP bomb AN-M64", count = 6, ammo = "3,000 lb normal internal load" },
+    { name = "500 lb GP bomb AN-M64", count = 6, bomb_kg = 227, ammo = "3,000 lb normal internal load" },
 ]
 source = [
     { ref = "https://planesoffame.org/aircraft/plane-B-25J", covers = "crew 6, span 67 ft 7 in, length 52 ft 11 in, height 16 ft 4 in, max takeoff 41,800 lb, 2x R-2600-92 1,850 hp, 272 mph, cruise 230 mph, ceiling 24,200 ft, eleven .50 MGs, 6,000 lb bombs" },

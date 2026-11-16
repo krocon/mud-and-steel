@@ -172,6 +172,14 @@ pub struct Weapon {
     /// Real effective range in meters (before range compression).
     pub range_effective_m: Option<u32>,
     pub ammo_carried: Option<u32>,
+    /// Real effective range against aircraft (slant range / ceiling) in
+    /// meters, for anti-aircraft guns (prompt 033).
+    pub range_aa_m: Option<u32>,
+    /// The weapon sits on an anti-aircraft mount (MGs, prompt 033).
+    #[serde(default)]
+    pub aa: bool,
+    /// Nominal mass of one bomb in kilograms (aircraft, prompt 033).
+    pub bomb_kg: Option<u32>,
 }
 
 const fn one() -> u16 {
@@ -512,6 +520,18 @@ fn validate(e: &Entry) -> Vec<String> {
                 "weapon '{}': range_effective_m above 30000",
                 w.name
             ));
+        }
+        if w.range_aa_m.is_some_and(|r| !(100..=20_000).contains(&r)) {
+            errors.push(format!(
+                "weapon '{}': range_aa_m outside 100..=20000",
+                w.name
+            ));
+        }
+        if w.bomb_kg.is_some_and(|kg| !(1..=5_000).contains(&kg)) {
+            errors.push(format!("weapon '{}': bomb_kg outside 1..=5000", w.name));
+        }
+        if w.bomb_kg.is_some() && group != Group::Aircraft {
+            errors.push(format!("weapon '{}': bombs only on aircraft", w.name));
         }
     }
     if e.source.is_empty() {

@@ -105,7 +105,11 @@ about 90 m. Fortifications come from the catalog:
 |---|---|---|---|---|---|---|
 | MG bunker | `de_bunker_tobruk`, `su_bunker_dzot`, `us_bunker_mg` | 2500 | 60 | 0 / 80 / 60 | 20 s | barracks |
 | AT gun position | `de_pak40`, `su_zis3`, `us_57mm_m1` | 1000 (rules) | catalog shield | formula | formula | vehicle works |
+| Light flak (prompt 033) | `de_flak38`, `su_61k`, `us_bofors_m1` | 1000 (rules) | – | formula | formula | barracks |
+| Heavy flak (prompt 033) | `de_flak36`, `su_52k`, `us_90mm_m2` | 1000 (rules) | – | formula | formula | vehicle works |
 
+- Flak fires at aircraft (`data/air.toml`) and with its catalog weapon at
+  ground targets like the AT gun.
 - Bunkers and gun positions fight with their catalog weapons; they cannot
   move. Towed guns cannot be moved by the simulation yet anyway (prompt 017),
   so the gun position is the first way to use them.
@@ -184,6 +188,25 @@ this table is a snapshot, `cli economy-table` shows the current ones. The
 formula only counts the weapons the simulation fires (prompt 017), so the
 Soviet AT squad (PTRD rifle, 14.5 mm) is cheap and weak against armor;
 single units can get their own price with an override if that matters.
+
+## Air support [provisional]
+
+Prompt 033, rules in `data/air.toml`, technical details in
+[ARCHITECTURE.md](ARCHITECTURE.md#air-support-and-anti-aircraft-fire).
+Every player can call aircraft of their faction on a ground point, paid
+from the account (also in battles without base building, where the start
+account is all there is):
+
+| Mission | Aircraft (de / su / us) | Cost F / A / M | Cooldown | Effect |
+|---|---|---|---|---|
+| Recon | Fi 156 / Po-2 / L-4 | 40 / 0 / 10 | 60 s | one aircraft reveals 500 m around its track |
+| Fighters | Fw 190 A-8 / La-5FN / P-51D | 60 / 60 / 10 | 90 s | two aircraft strafe the point at 30 m |
+| Ground attack | Ju 87 D-5 / Il-2M3 / P-47D | 80 / 100 / 10 | 120 s | two aircraft bomb from 150 m and strafe |
+| Bombers | He 111 H-16 / Pe-2 / B-25J | 120 / 160 / 20 | 180 s | three aircraft drop sticks from 500 m |
+
+No buildings are needed: air support is the commander's tool in both
+modes. Light and heavy flak are the answer (fortifications above), and
+tanks of the US and the late Soviet heavies carry AA machine guns.
 
 ## Victory [provisional]
 
