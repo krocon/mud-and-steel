@@ -22,6 +22,7 @@ mod ai_funcs;
 mod air_funcs;
 mod artillery_funcs;
 mod audio_funcs;
+mod catalog_funcs;
 mod combat_funcs;
 mod crater_funcs;
 mod destruction_funcs;

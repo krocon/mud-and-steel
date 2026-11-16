@@ -2,7 +2,9 @@ extends Node
 ## Records fixed views of base building (prompt 023) as PNG files, started by
 ## `main.gd` with `-- --mode=base --base-shots=<dir>` (`just base-shots
 ## <dir>`): the own base with a placement preview, a construction site, the
-## completed barracks with its production bar, and the enemy base. Needs a
+## completed barracks with its production bar, and the enemy base. The build
+## menu is open in the first two, two orders are queued in the fourth (picture
+## tiles, prompt 058). Needs a
 ## window (not headless). Quits when done.
 
 var main: Node3D
@@ -27,6 +29,7 @@ func _run() -> void:
 	for o: Dictionary in host.build_options():
 		if o["id"] == "base_barracks":
 			barracks = o["type"]
+	main.hud.command_bar.press("build")
 	hud.start_placing(barracks)
 	# Move the preview over a valid and an invalid spot.
 	var spot := Vector3.ZERO
@@ -38,6 +41,7 @@ func _run() -> void:
 	await _shot_at(hud, spot, "1_preview_valid.png")
 	await _shot_at(hud, hq, "2_preview_blocked.png")
 	hud.place_at(spot)
+	main.hud.command_bar.press("build")
 	hud.cancel_placing()
 	host.speed = 4.0
 	await _frames(90)
@@ -53,6 +57,9 @@ func _run() -> void:
 		await _frames(10)
 	host.speed = 1.0
 	await _frames(30)
+	for t: int in hud.production_picker.tiles.keys().slice(0, 2):
+		hud.production_picker.press_type(t)
+	await _frames(40)
 	await _save("4_barracks_selected.png")
 	main.camera_rig.snap_to(_hq(host, 1) + Vector3(0, 0, 35), 75.0, deg_to_rad(200.0))
 	await _frames(60)

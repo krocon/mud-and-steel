@@ -491,7 +491,13 @@ func _base_building_test(main: Node3D) -> void:
 		if s["owner"] == 0 and s["type_id"] == "base_hq":
 			var index := Array(host.unit_ids()).find(s["id"])
 			hq = host.current_positions()[index]
-	hud.start_placing(barracks)
+	# Through the build menu's picture tile (prompt 058).
+	main.hud.command_bar.press("build")
+	await _frames(20)
+	_check(hud._build_panel.visible, "build menu not shown")
+	hud.build_picker.open_tab(hud.build_picker.tab_of({"id": "base_barracks", "structure": true}))
+	_check_tiles(hud.build_picker)
+	_check(hud.build_picker.press_type(barracks) and hud.placing == barracks, "barracks tile does not start placing")
 	var placed := false
 	for r: float in [20.0, 30.0, 40.0, 50.0]:
 		for k in 16:
@@ -500,6 +506,7 @@ func _base_building_test(main: Node3D) -> void:
 			if not placed and host.placement_check(barracks, p.x, p.z).is_empty():
 				placed = hud.place_at(Vector3(p.x, 0, p.z))
 	hud.cancel_placing()
+	main.hud.command_bar.press("build")
 	_check(placed, "no valid spot for a barracks near the headquarters")
 	var before: Dictionary = host.economy_state()
 	# Wait until it is completed (25 s game time).
@@ -533,10 +540,18 @@ func _base_building_test(main: Node3D) -> void:
 				n += 1
 		return n
 	var units_before: int = own_units.call()
-	var buttons: Array = hud._production_options.get_children().filter(func(c: Node) -> bool: return c is Button and not (c as Button).disabled)
-	_check(not buttons.is_empty(), "no production button enabled")
-	if not buttons.is_empty():
-		(buttons[0] as Button).pressed.emit()
+	# Through the production bar's picture tiles (prompt 058).
+	var picker: Control = hud.production_picker
+	_check_tiles(picker)
+	var produced := -1
+	for t: int in picker.tiles:
+		if produced < 0 and picker.press_type(t):
+			produced = t
+	_check(produced >= 0, "no production tile enabled")
+	await _frames(20)
+	if produced >= 0:
+		var count := picker.tiles[produced].get_node("Count") as Label
+		_check(count.visible or own_units.call() > units_before, "queued order not shown on its tile")
 	frames = 1200
 	while own_units.call() == units_before and frames > 0:
 		frames -= 1
@@ -550,7 +565,22 @@ func _base_building_test(main: Node3D) -> void:
 			ai_buildings += 1
 	_check(ai_buildings >= 2, "the computer opponent built nothing")
 	host.speed = 1.0
-	print("flow self-test: base building ok (barracks built, unit produced, computer opponent has %d buildings, tick %d)" % [ai_buildings, host.current_tick()])
+	print("flow self-test: base building ok (barracks built and unit produced via picture tiles, computer opponent has %d buildings, tick %d)" % [ai_buildings, host.current_tick()])
+
+
+## Every tile of the picker's open tab has its picture, name and costs.
+func _check_tiles(picker: Control) -> void:
+	_check(not picker.tiles.is_empty(), "picker '%s' shows no tiles" % picker.tab)
+	for t: int in picker.tiles:
+		var tile: Button = picker.tiles[t]
+		_check(not tile.find_children("*", "TextureRect", false, false).is_empty(), "tile %s has no picture" % tile.name)
+		_check(not (tile.get_node("Cost") as Label).text.is_empty(), "tile %s shows no costs" % tile.name)
+		_check(not tile.tooltip_text.is_empty(), "tile %s has no tooltip" % tile.name)
+	var key := InputEventKey.new()
+	key.pressed = true
+	key.alt_pressed = true
+	key.physical_keycode = KEY_2
+	_check(picker.hotkey_index(key) == 1, "Alt + 2 does not pick the second tile")
 
 
 # --- Saved games and replays (prompt 038) ------------------------------

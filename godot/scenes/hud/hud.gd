@@ -69,6 +69,17 @@ func _process(_delta: float) -> void:
 		part.set("usec", 0)
 	usec = total
 	max_usec = maxi(max_usec, usec)
+	_keep_events_above_command_bar()
+
+
+## The event feed sits at the left edge; when the build menu or production
+## bar (prompt 058 picture tiles) makes the command bar tall, it moves up
+## so the two do not overlap.
+func _keep_events_above_command_bar() -> void:
+	var top := command_bar.get_global_rect().position.y
+	var middle := get_viewport_rect().size.y * 0.5
+	var y := minf(middle - 40.0, top - event_feed.size.y - 8.0)
+	event_feed.global_position.y = maxf(y, 64.0)
 
 
 ## Whether the screen point lies on a HUD panel (clicks there are not
