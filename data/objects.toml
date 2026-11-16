@@ -358,3 +358,16 @@ blocks = "none"
 id = "fort_trench_section"
 variants = ["Straight", "Corner", "Tee", "End"]
 blocks = "none"
+
+# Prompt 035: hidden minefields for the map editor. Each object becomes a
+# 20 m x 20 m section of neutral mines when a match starts (data/works.toml,
+# docs/ARCHITECTURE.md "Field works"); matches do not draw it.
+[[object]]
+id = "fort_mine_at"
+variants = ["Mine"]
+blocks = "none"
+
+[[object]]
+id = "fort_mine_ap"
+variants = ["Mine"]
+blocks = "none"

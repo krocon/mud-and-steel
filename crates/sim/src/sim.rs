@@ -19,6 +19,7 @@ mod air;
 mod combat;
 mod craters;
 mod destruction;
+mod drill;
 mod economy;
 mod fire;
 mod indirect;
@@ -29,12 +30,14 @@ mod spatial;
 mod transport;
 mod vision;
 mod weather;
+mod works;
 
 pub use vision::MAX_PLAYERS;
 
 use combat::{Attack, CombatState, Projectile, TypeCombat};
 use infantry::{InfantryRt, Squad};
 
+pub use drill::DrillView;
 pub use economy::{BuyOption, PlaceError, StructureView, SupplyView};
 pub use infantry::BuildingCondition;
 pub use logistics::{StockView, SupplySource};
@@ -144,6 +147,8 @@ pub enum ConfigError {
     Logistics(String),
     /// The built-in weather rules do not parse (prompt 040).
     Weather(String),
+    /// The built-in field work rules do not parse (prompt 035).
+    Works(String),
 }
 
 impl fmt::Display for ConfigError {
@@ -166,7 +171,8 @@ impl fmt::Display for ConfigError {
             | Self::Air(e)
             | Self::Transport(e)
             | Self::Logistics(e)
-            | Self::Weather(e) => {
+            | Self::Weather(e)
+            | Self::Works(e) => {
                 write!(f, "{e}")
             }
         }
@@ -221,6 +227,9 @@ struct Unit {
     /// Ammunition and fuel (prompt 036).
     #[serde(default)]
     stock: logistics::Stock,
+    /// Formation facing, attack-move and securing (prompt 046).
+    #[serde(default)]
+    drill: drill::Drill,
 }
 
 impl Unit {
@@ -455,6 +464,8 @@ pub struct Sim {
     logistics: logistics::Logistics,
     /// Weather, soft ground and time of day (prompt 040).
     weather: weather::WeatherState,
+    /// Field works of engineers: mines, obstacles, positions (prompt 035).
+    works: works::Works,
 }
 
 impl Sim {
@@ -597,6 +608,12 @@ impl Sim {
                 .map_err(|e| ConfigError::Logistics(e.to_string()))?,
             &config.unit_types,
         );
+        let works = works::Works::new(
+            crate::works::WorksRules::builtin().map_err(|e| ConfigError::Works(e.to_string()))?,
+            &config.unit_types,
+            &map,
+            config.tick_hz,
+        );
         let grid = PathGrid::new(&map, &config.terrain, &config.unit_types);
         let weather = weather::WeatherState::new(
             crate::weather::WeatherRules::builtin()
@@ -636,6 +653,7 @@ impl Sim {
             transport,
             logistics,
             weather,
+            works,
         };
         sim.init_weather();
         sim.init_economy();
@@ -713,6 +731,7 @@ impl Sim {
         self.update_stances();
         self.rebuild_unit_grid();
         self.aim_and_fire();
+        self.update_drills();
         self.fire_indirect();
         done(Phase::Combat);
         self.halt_stranded();
@@ -723,6 +742,7 @@ impl Sim {
         done(Phase::Squads);
         self.crush_objects();
         self.rebuild_unit_grid();
+        self.update_works();
         self.fly_projectiles();
         self.fly_shells();
         self.update_air();
@@ -731,6 +751,7 @@ impl Sim {
         done(Phase::Projectiles);
         self.apply_destruction();
         self.apply_craters();
+        self.apply_digs();
         self.update_weather();
         done(Phase::Destruction);
         self.update_economy();
@@ -869,9 +890,19 @@ impl Sim {
     /// Gives the path queue its budget and hands finished paths to the
     /// units waiting for them.
     fn plan_paths(&mut self) {
+        // Known minefields of every player (prompt 035).
+        let avoid_by = self.avoid_by_player();
         let units = &self.units;
         let wanted = |id: u32| units.iter().any(|u| u.route == Route::Waiting(id));
-        let finished = self.paths.run(NODE_BUDGET_PER_TICK, wanted);
+        let avoid = |request: &Request| {
+            request
+                .units
+                .first()
+                .and_then(|&(id, _)| units.binary_search_by_key(&id, |u| u.id).ok())
+                .and_then(|i| avoid_by.iter().find(|(p, _)| *p == units[i].owner))
+                .map_or_else(Vec::new, |(_, cells)| cells.clone())
+        };
+        let finished = self.paths.run_avoiding(NODE_BUDGET_PER_TICK, wanted, avoid);
         for (request, path) in finished {
             self.take_path(&request, path.as_ref());
         }
@@ -1006,6 +1037,8 @@ impl Sim {
     fn apply(&mut self, command: &PlayerCommand) {
         self.drop_replaced_queues(command);
         self.drop_transport_tasks(command);
+        self.drop_work_jobs(command);
+        self.drop_drills(command);
         match &command.command {
             Command::MoveTo { units, target } => {
                 if !within_world(*target) {
@@ -1130,6 +1163,55 @@ impl Sim {
             Command::Unlimber { units } => self.order_unlimber(command.player, units),
             Command::Repair { building } => self.order_repair(command.player, *building),
             Command::Sell { building } => self.order_sell(command.player, *building),
+            Command::Lay {
+                units,
+                kind,
+                from,
+                to,
+            } => self.order_works(command.player, units, (*kind).into(), (*from, *to)),
+            Command::Dig {
+                units,
+                kind,
+                from,
+                to,
+            } => self.order_works(command.player, units, (*kind).into(), (*from, *to)),
+            Command::Clear { units, target } => self.order_clear(command.player, units, *target),
+            Command::DemolishBridge { units, bridge } => {
+                self.order_bridge(command.player, units, *bridge, false);
+            }
+            Command::RepairBridge { units, bridge } => {
+                self.order_bridge(command.player, units, *bridge, true);
+            }
+            Command::FormationMove {
+                units,
+                target,
+                formation,
+                facing,
+                engage,
+            } => {
+                self.order_formation_move(
+                    command.player,
+                    units,
+                    *target,
+                    *formation,
+                    *facing,
+                    *engage,
+                );
+            }
+            Command::Secure {
+                units,
+                center,
+                radius_m,
+                formation,
+                facing,
+            } => self.order_secure(
+                command.player,
+                units,
+                *center,
+                *radius_m,
+                *formation,
+                *facing,
+            ),
         }
     }
 
@@ -1291,11 +1373,13 @@ impl Sim {
         self.teams.hash_into(&mut h);
         self.hash_transport(&mut h);
         self.hash_logistics(&mut h);
+        self.hash_drills(&mut h);
         // Clear weather by day changes nothing and is left out, so matches
         // without weather keep their hashes (prompt 040).
         if !self.weather.is_default() {
             self.weather.hash_into(&mut h);
         }
+        self.works.hash_into(&mut h);
         h.finish()
     }
 
@@ -1810,6 +1894,7 @@ fn new_unit(n: &NewUnit<'_>) -> Unit {
         orders: orders::OrderQueue::default(),
         link: None,
         stock: logistics::Stock::default(),
+        drill: drill::Drill::default(),
     }
 }
 

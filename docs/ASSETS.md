@@ -616,6 +616,42 @@ godot/assets/audio/sounds.json        manifest: class -> group, bus, level, rang
   `sound_classes.gd` or `battle_sound.gd`. `just sound-gallery` plays it;
   the self-test checks that every class has a loadable file.
 
+### Weapon recordings and battle voices (prompt 053)
+
+```
+assets-src/audio/weapon/<slug>/*.wav|ogg|mp3|flac              recordings of one weapon type
+assets-src/audio/voice/<faction>/<callout>/*.wav|ogg|mp3|flac  battle voices
+        │  just audio   (or: just audio weapon / just audio voice)
+godot/assets/audio/weapon/<slug>/ext_*.wav
+godot/assets/audio/voice/<faction>/<callout>/ext_*.wav
+```
+
+- **Weapons.** The slug is the catalog weapon name without parentheses,
+  lower case, every run of other characters one `_`: `MG 42` → `mg_42`,
+  `Kar98k` → `kar98k`, `Browning M2HB (AA)` → `browning_m2hb`.
+  `python3 tools/audio/synth.py --weapons` lists every slug of the
+  catalog with its file count. A weapon with files plays them at the
+  levels, ranges and pitch spread of its class (`shot_mg`,
+  `shot_cannon_large` …); without files it keeps the synthesized class.
+  One-shots, dry or with a short natural tail: the game adds distance,
+  delay and reverb. Several takes per weapon are welcome (random pick).
+- **Voices.** Factions `de`, `su`, `us` (prefix of the unit type ids);
+  callouts `contact`, `take_cover`, `reloading`, `wounded`. Short (0.4–1.5
+  s), dry, mono, one line per file, 2–4 takes and speakers per callout.
+  Recorded or provided by the user; nothing ships yet. Tactical calls in
+  the faction's language only: no slogans, no ideology, no names of real
+  people or units. [provisional] Suggested lines:
+
+  | Callout | de | su | us |
+  |---|---|---|---|
+  | `contact` | „Feind!“, „Feind gesichtet!“ | „Противник!“ (Protivnik!) | "Contact!", "Enemy spotted!" |
+  | `take_cover` | „Deckung!“, „Runter!“ | „Ложись!“ (Lozhis'!) | "Take cover!", "Get down!" |
+  | `reloading` | „Lade nach!“ | „Перезаряжаю!“ (Perezaryazhayu!) | "Reloading!" |
+  | `wounded` | „Sanitäter!“, „Getroffen!“ | „Санитар!“ (Sanitar!) | "Medic!", "I'm hit!" |
+
+- Every file needs a row in [SOURCES.md](SOURCES.md#sounds) before it is
+  committed (own recording: speaker's consent and date).
+
 ### Music and ambience (prompt 030)
 
 ```

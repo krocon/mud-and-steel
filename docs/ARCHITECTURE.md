@@ -66,6 +66,8 @@ but never its issuer:
 | `QueueMove { units, target }` | Appends a waypoint: a formation slot around `target` per unit, driven to after the current order ([Waypoint chains](#waypoint-chains-and-patrols), prompt 031). |
 | `Patrol { units, target }` | Like `MoveTo`, then back and forth between the start and the target. |
 | `CallAir { mission, target }` | Calls air support of the player's faction on the ground point ([Air support](#air-support-and-anti-aircraft-fire), prompt 033). |
+| `FormationMove { units, target, formation, facing, engage }` | Drives the group to a formation around `target`, turned to `facing` (default: direction of travel); `engage` picks who halts to fight on the way (attack-move) ([Formations](#formations-attack-move-and-securing), prompt 046). |
+| `Secure { units, center, radius_m, formation, facing }` | Takes up the formation around `center` and holds the circle: attack enemies inside, return to the slots. |
 
 Movement commands (`MoveTo`, `Attack`, `AttackGround`, `Garrison`,
 `QueueMove`, `Patrol`) ignore units that cannot move (buildings).
@@ -89,8 +91,9 @@ footprint of the group (`UnitType::footprint_m` = larger of catalog length and w
 grid is axis-aligned. Units are assigned to slots in the order of their current
 position (y, then x, then id), slots in the same order, which avoids crossing paths
 in the common cases and makes the result independent of the order of ids in the
-command. Facing-aware formations (and a slot assignment along the direction of
-travel) are still open; see [Pathfinding](#pathfinding).
+command. Facing-aware formations with a slot assignment along the direction of
+travel came with prompt 046 (`FormationMove`, [below](#formations-attack-move-and-securing));
+`MoveTo` keeps the grid.
 
 **Scenarios** (`data/scenarios/*.toml`) name a map and place groups of catalog units
 per player in a grid. The compiled-in demo (`sim::scenario::demo_config`) has eight
@@ -128,7 +131,45 @@ targets (formation slots), at most `MAX_QUEUED` (64).
 |---|---|---|
 | New command or `queue` flag | Two new variants at the end of `Command` | `MoveTo` and old replays stay unchanged (postcard numbers variants in order). |
 | Paths along the chain | One per unit and leg | A shared group path would need the members to wait for each other; short legs cost little search budget. |
-| Formation choice, facing by right-drag | Not done | Optional in prompt 031; it changes the formation rules (golden hash) and was left for later. |
+| Formation choice, facing by right-drag | Done in prompt 046 as new commands | `MoveTo` keeps its grid, so the golden hash did not change. |
+
+### Formations, attack-move and securing
+
+Prompt 046, `crates/sim/src/formation.rs` (shapes) and
+`crates/sim/src/sim/drill.rs` (orders); decisions with reasons in
+`prompts/done/046-befehle-formationen.md`.
+
+- **Shapes** (`Formation`): line (at most 8 per rank), wedge (point and two
+  ranks, a platoon of 5; more follow in ranks of 5), column (two files from 9
+  units), broad wedge (inverted), dispersed (staggered, twice the gap). Laid
+  out in units of the spacing (1.5 × largest footprint, as `MoveTo`) across
+  and along the facing, then centered: the mean of the slots is the target.
+  Slots are filled rank by rank from the front; the units most forward along
+  the facing take the front rank, within a rank from left to right.
+- **Auto** is resolved once, when the command is applied: free width across
+  the facing at the target below 3 slots (for the group's most restrictive
+  size class) → column; 30 % or more of the area around the target blocked
+  for tanks by objects → dispersed; target on a road and half the way on
+  roads → column; else wedge (with vehicles) or line (infantry only).
+  [provisional] thresholds.
+- **Attack-move** (`engage`: `Never`, `Infantry` = right-click default,
+  `All`): a unit with the task halts while it has an automatic target (an
+  enemy in range it sees and can hurt) and then plans its own path to its
+  slot again. Hold fire never halts. Runs right after `aim_and_fire`.
+- **Securing**: every `retarget_ticks` a unit without a target attacks the
+  nearest enemy its player sees inside the circle that it can hurt (an
+  ordinary attack order, so search and sight rules apply); the attack is
+  dropped once the target leaves the circle, and the unit returns to its
+  slot.
+- **Facing:** a standing unit without a fight turns its hull to the facing
+  of the order (turret speed rules: `hull_step`); squads turn their soldier
+  formation with it.
+- Other orders drop task and facing; a waypoint (`QueueMove`) only ends
+  securing, and a queue continues after an attack-move (`idle` waits for it).
+- **State:** `Unit::drill` (serde, so in saved games); hashed after all other
+  state only for units that have a task or a facing, so the golden hash did
+  not change. `Sim::drill_view` and `Sim::auto_formation_for` serve the HUD
+  (`SimHost.unit_drill`, `auto_formation`).
 
 ## Map and movement
 
@@ -1357,8 +1398,9 @@ The full table is in `prompts/done/033-luftwaffe-flak.md`. In short:
   (HVAR, RS-82), no smoke or supply drops; one call per mission at a time.
 - Flak shoots only at aircraft, never at bombs; shells (032) and direct
   fire do not hit aircraft; aircraft guns do not hit map objects.
-- Wrecks of crashed aircraft are drawn only, they block nothing; no engine
-  sound yet (prompt 029 has no aircraft sounds).
+- Wrecks of crashed aircraft are drawn only, they block nothing. Engine,
+  flak, strafing and crash sounds since prompt 053 (`air_view.air_event`,
+  see [Audio](#stage-2-acoustics-and-voices-prompt-053)).
 - The approach direction follows the caller's start; players cannot pick
   it.
 
@@ -1602,6 +1644,162 @@ the numbers in `data/logistics.toml` (`sim::LogisticsRules`, loaded by
   `supply_radius`, `repair_building`, `sell_building`). The unit panel
   shows the bars and warnings, `hud/supply_rings.gd` the radii of selected
   sources, `world/base_hud.gd` the Repair and Sell buttons.
+
+## Field works
+
+Prompt 035. Engineer squads (catalog category `inf_engineer`) lay
+minefields, barbed wire and anti-tank obstacles, dig foxholes and trenches,
+clear mines and obstacles, and demolish or repair bridges. Rules:
+`data/works.toml` (`sim::WorksRules`, loaded by `Sim::new` like the
+transport rules, in the state hash, not part of `SimConfig`). Code:
+`crates/sim/src/works.rs` (rules, public kinds and views) and
+`crates/sim/src/sim/works.rs` (orders, sites, jobs, mines, obstacles,
+digging, bridges). Decisions and provisional values:
+`prompts/done/035-pioniere-minen-stellungen.md`. Prompt 052 extends this
+(lines of obstacles, vehicle pits, camouflage nets, trench strongpoints):
+new kinds are appended to `WorkKind`, new pieces go through the same sites
+and jobs.
+
+### Orders, sites and jobs
+
+| Command | Effect |
+|---|---|
+| `Lay { units, kind, from, to }` | AT or AP mine sections, wire or hedgehogs along the line (a point if `from == to`) |
+| `Dig { units, kind, from, to }` | A foxhole at `from` or a trench along the line |
+| `Clear { units, target }` | Clear the known mines, wire and hedgehogs within `clear_radius_mm` |
+| `DemolishBridge { units, bridge }` / `RepairBridge { units, bridge }` | Blow up an intact bridge (index into `Map::bridges`) / rebuild a destroyed one |
+
+Only engineer squads among `units` take these orders. A line is cut into
+**pieces** (`piece_mm`: wire and trench 4 m, a hedgehog every 3 m; mines in
+sections whose size and count come from the catalog entry
+`<faction>_minefield_at|ap`, 20 m × 20 m with 20 AT or 40–50 AP mines; a
+point order faces the engineers' side). Every piece is a **site** paid for
+when it is placed (`cost`, the account of prompt 023; pieces the player
+cannot pay are dropped, at most `max_sites` open sites per player) and
+built in `build_s` game seconds by one squad; every squad within `reach_mm`
+adds one tick of work per tick. All squads of an order work the sites in
+order, starting at the end nearest to them. A site nobody works on or walks
+to for `abandon_s` is given up (refunded if no work was done).
+
+Each engineer has at most one **job** (`Works::jobs`, by unit id): build a
+list of sites, clear around a point, or work on a bridge. Move, attack,
+stop, garrison, patrol, waypoint and embark orders end it. Squads walk to
+their work with ordinary path requests (a few retries if no path is found).
+
+### Mines
+
+Mines are not units: `Works::mines` (by id) with kind, owner (`None`:
+placed with the map) and a bit mask of the players who found one, plus a
+bucket index (16 m) for the trigger checks. Every tick (after the unit grid
+is rebuilt behind the movement):
+
+- a **vehicle** whose hull (the blast body of prompt 032) covers a mine and
+  whose catalog mass reaches the trigger (`at_trigger_kg` 150,
+  `ap_trigger_kg` 5) sets it off; a **soldier** (counted as `soldier_kg`
+  100) within `ap_reach_mm` of an AP mine sets it off. Mines never go off
+  under units of their owner's team (prompt 037).
+- **Anti-tank:** vehicles with armor up to `open_armor_mm`
+  (`data/indirect.toml`) are destroyed; others lose `at_damage_pct` of
+  their hit points and their track: speed 0 (no move orders; turret and
+  weapons work) until the crew fitted it after `track_repair_s`; a crater
+  of `at_crater_caliber_mm_x10`. **Anti-personnel:** the soldier falls,
+  then the blast of `ap_caliber_mm_x10` (fragments, a vehicle above it, the
+  crater) through `Sim::detonate`. Combat events name
+  `sim::works::MINE_SHOOTER` as the shooter.
+- An explosion shows the victim's player the mines within `reveal_mm`;
+  engineer squads find hostile mines within `detect_mm` (every 10 ticks) and
+  the whole clear radius when they start clearing. Knowledge counts for the
+  whole team.
+
+**Visibility:** mines never appear in a `Snapshot`. `Sim::mines_for(player)`
+returns the mines the player's team knows (own, allied, found); `PlayerView`
+(prompt 024) gets exactly these, so the enemy's view never contains hidden
+mines. `Sim::all_mines` is for tests and tools.
+
+**Avoiding known minefields per player:** the path grid stays shared. Every
+search gets a sorted list of cells to avoid when it starts
+(`Pathfinder::run_avoiding`, kept in the resumable search): the cells of
+the hostile mines the requesting unit's team knows and their neighbors (a
+hull reaches over the edge of the cell its center drives through). A* pays
+`AVOID_FACTOR` (10) times the step cost there, and the smoothing compares
+shortcuts with the same weights, so routes go round known fields but a unit
+inside one still finds its way out. When a team learns of mines, units
+whose route touches them plan again. Formation offsets of a group are not
+checked against the list (members may brush the edge of a field).
+
+### Obstacles and digging
+
+- **Wire** blocks small units, **hedgehogs** large ones: two path flags
+  (`BLOCKED_WORK_SMALL`, `BLOCKED_WORK_LARGE`, the last free bits of the
+  cell flags) set by `PathGrid::mark_works_in` from every finished
+  obstacle overlapping the changed cells; components and routes are updated
+  like for destroyed objects. Moving vehicles of at least `crush.wire_kg`
+  flatten the wire piece they drive over.
+- **Foxholes and trenches** lower the height field through the crater
+  machinery of prompt 021 (`Sim::deform`, `CraterPlan`): `steps` steps of
+  `depth_mm` with a parapet of `parapet_mm` on the neighboring samples; the
+  dug samples turn to mud. Path cells, vision cells, unit heights, the
+  `MapDelta` of saved games and the terrain in Godot (crater events with
+  caliber 0, no sound) follow. On the 2 m raster a sample may lie only
+  600 mm below its neighbors before the cell is too steep for infantry, so
+  holes are 0.5 m deep [provisional]; prompt 052 cuts real trenches. Dug
+  samples (`Works::dug`) give a standing squad cover like a crater, with the
+  stance values of `[dig]` (60/75/85 %) instead of the crater's.
+- **Bridges:** engineers work at the nearer end of the deck; demolishing
+  calls `Sim::set_bridge_intact(false)` and detonates a charge of
+  `demolish_caliber_mm_x10` on the deck, repairing restores the deck. The
+  price is paid when the work is done (the job waits for the money).
+
+### Map editor minefields
+
+Objects `fort_mine_at` / `fort_mine_ap` (variant `Mine`, `data/objects.toml`)
+are placed like other objects in the editor (group "Fortifications"). When
+a match starts, each becomes a hidden section of **neutral** mines
+(`map_at_count` / `map_ap_count`, `section_mm`, the object's heading), laid
+out from a hash of the object (not the match's random numbers). Matches do
+not draw these objects (`map_objects.show_minefields`). `twin_meadow` has
+an AT and an AP section in the middle (the LAN self-test drives into them).
+
+### State, snapshot, bridge and Godot
+
+Sites, mines, jobs, thrown tracks, dug samples and pending dig steps are in
+the state hash (last) and, as fields of `Sim`, in saved games
+(`crates/net/tests/snapshot_works.rs`). Views: `Sim::mines_for`,
+`works_for` (finished works of everybody like map objects, sites of the own
+team), `tracks_off`, `is_engineer_type`, `engineer_job`, `place_minefield`
+(tools, debug). `SimHost.order_works`, `clear_works`, `order_bridge_work`,
+`is_engineer`, `engineer_job`, `known_mines`, `field_works`, `tracks_off`,
+`bridges_intact`, `bridge_objects`, `work_cost`, `debug_minefield`
+(offline only) in `crates/bridge/src/works_funcs.rs`.
+`world/works_view.gd` marks the known mines (own and allied yellow, found
+hostile ones red), draws finished wire and hedgehogs with the models of
+prompt 007, own sites as translucent outlines with dust while engineers
+dig, a thrown track beside immobilized vehicles, and hides demolished
+bridges in the map objects. `selection/engineer_orders.gd` and eight
+command bar buttons (shown while engineers are selected) give the orders.
+Tests: `crates/sim/tests/works.rs`, `tools/works_self_test.gd` (a debug
+minefield in front of an own tank), the editor self-test (a minefield
+placed, hidden mines in the match), the LAN self-test (tanks drive into
+the minefields of `twin_meadow` without a desync).
+
+### Decisions
+
+See the table in `prompts/done/035-pioniere-minen-stellungen.md`: own
+simulation layer instead of runtime map objects, pieces per line, avoid
+lists instead of a per-player grid, mines never under the own team, digging
+through the height field, editor minefields neutral.
+
+### Open
+
+- Provisional values in `data/works.toml` (costs, times, damage, trigger
+  masses, cover, depth, avoid factor).
+- Trenches are shallow (2 m raster) and look like ditches; prompt 052 makes
+  real trenches, lines of obstacles, vehicle pits and camouflage nets.
+- Mines cannot be destroyed by artillery; engineers clear without risk;
+  no lanes through own fields; wire sites have no model (an outline); the
+  editor shows a minefield as a single mine model.
+- Thrown tracks are repaired by the crew only (prompt 036 adds repairs);
+  not checked in a rendered frame (headless tests only).
 
 ## Victory conditions and game flow
 
@@ -2411,7 +2609,7 @@ acceptance criterion needs a run on a quiet machine to confirm.
 | Listener | Above the camera's ground focus, hearing range scaled with zoom | At the camera itself a high view would hear everything equally faint. |
 | Voice limit | Fixed pools per group, priority and loudness decide, budget per frame | Hundreds of shots per second neither clip nor cost frame time; nothing is allocated during a battle. |
 | Fog | Muffled and slightly displaced, not silent | Battle noise is reconnaissance, an exact position is not. [provisional] |
-| Speed of sound | Not simulated | [provisional] With time running at factor 2 and a camera that sees at most a few hundred meters, a delay of 0.3–1 s would mostly read as lag. Easy to add later as a delay per distance for explosions. |
+| Speed of sound | Not simulated in 029; since prompt 053 far sounds wait for their travel time (see below) | 029: a delay could read as lag; 053 adds it with a 2.5 s cap and keeps notices and incoming whistles immediate. |
 | Mute without focus | On by default | [provisional] Usual for strategy games; a setting. |
 | Rockets | Own class `shot_rocket` for anti-tank squads | Panzerschreck, Panzerfaust and Bazooka have 60–150 mm calibers and would otherwise sound like tank guns. |
 
@@ -2419,12 +2617,97 @@ acceptance criterion needs a run on a quiet machine to confirm.
 
 - Listening: the set was made and balanced by measurement only; levels,
   ranges and recipes want a pass by ear (`just sound-gallery`).
-- No voices. Music and ambience: see below (prompt 030).
-- Infantry hits and deaths are silent; aircraft have no engine class yet.
+- Voices: structure since prompt 053, no files yet. Music and ambience:
+  see below (prompt 030).
+- Infantry hits and deaths are silent (053 adds only the `wounded` callout).
 - Indirect fire (prompt 032) is wired by its interface (weapon 255,
   `shell_incoming`, `smoke` events) as described in its merge notes; it was
   not merged yet when this was written, so its sounds are tested only once
   both are in main.
+
+### Stage 2: acoustics and voices (prompt 053)
+
+| Script | Does |
+|---|---|
+| `acoustics.gd` | Created by `battle_sound.gd`, driven from its `_process` (its time counts in the bench's "sound" column). Speed of sound queue, supersonic crack, reverb by surroundings, zoom filter, aircraft engines and air events |
+| `battle_voices.gd` | Created by `battle_sound.gd`, fed its combat events. Callouts of squads near the camera per faction |
+
+- **Speed of sound.** 343 m/s real × time factor 2 = 686 game m/s.
+  `battle_sound.play_far` (shots, hits, explosions, destruction, object and
+  crater events, flak, strafing, crashes) waits ground distance to the
+  camera focus / 686 s, at most 2.5 s [provisional]; under 0.04 s it plays
+  at once. `play_at` stays immediate (notices, incoming whistles, cracks,
+  voices). The queue is sorted by due time, at most 192 entries; when full,
+  small arms are dropped and stronger sounds push out the weakest. The
+  per-frame voice budget applies when a sound leaves the queue.
+- **Supersonic crack.** Once per simulation tick (only up to 200 m camera
+  distance) every projectile faster than 686 m/s is checked: if its
+  closest point to the hearing center (focus + 1.5 m) lies on its next
+  tick of flight and within 12 m (below 20 mm) or 25 m (shells),
+  `crack_bullet` / `crack_shell` plays there at once, so the crack comes
+  before the delayed muzzle report. No projectile ids are needed: each
+  stretch of flight is checked exactly once.
+- **Reverb by surroundings.** Every 0.5 s a 5 × 5 grid of
+  `wood_density_at` and `SimHost.buildings_near` (box-shaped objects from
+  3 m high; new read function in `audio_funcs.rs`) within 35 m × zoom (up
+  to 70 m) give shares of forest (density / 0.6), village (buildings / 8)
+  and open field. One `AudioEffectReverb` on the Effects bus blends three
+  presets [provisional, set without listening]: open nearly dry with a
+  late reflection, forest dense and dark, village short and bright.
+- **Zoom.** A low-pass on the Effects bus goes from 20 kHz at 40 m camera
+  distance to 2.2 kHz at 450 m (logarithmic); classes of priority ≤ 1
+  (rifles, MGs, bullet hits) lose up to 8 dB in the overview. Both effects
+  are reset when the match ends (`SoundBuses.reset_effects`).
+- **Blasts by size.** Shell hits get pitch (75 / caliber)^0.2 (0.75–1.2);
+  from 100 mm an `explosion_tail` (5 s roll, own group `tail`) follows,
+  louder with caliber (bombs included). Vehicle explosions (ammunition and
+  fuel) go lower with footprint and get the tail from medium-tank size.
+- **Weapon recordings.** `<class>@<key>` names (`sound_library.gd`) play
+  the files of `assets/audio/weapon/<key>/` with the settings of
+  `<class>`. A shot uses `<class>@<weapon slug>` if that folder has files,
+  else its synthesized class (checked once per unit type and weapon).
+- **Aircraft.** The three aircraft nearest the listener get
+  `engine_aircraft` or, from 18 m wingspan, `engine_bomber`; pitch by
+  Doppler (686 / (686 − radial speed), 0.75–1.35), higher while falling.
+  `air_view` emits `air_event` for every air event: heavy flak
+  `flak_burst` at the burst, light flak `shot_cannon_small` and MG flak
+  `shot_mg` at the gun, strafing `shot_mg` at the muzzle, crashes
+  `explosion_vehicle` with tail.
+- **Fires.** Burning map objects (`SimHost.fires`, keys ≥ 0, prompt 041)
+  join the wrecks for the fire loops (now 6): `fire_large` from 8 m, louder
+  by size (±6 dB), down to −12 dB as they burn out.
+- **Voices.** `voice@<faction>/<callout>` from
+  `assets/audio/voice/<faction>/<callout>/`; faction = prefix of the unit
+  type id. Callouts and triggers [provisional]: `contact` (a squad fires
+  after 20 s without firing), `reloading` (one shot in 12), `take_cover`
+  (a shell hits a squad), `wounded` (a bullet hits a squad); only up to
+  80 m camera distance, for visible squads within 50 m of the focus, one
+  callout per 4 s, per squad per 12 s; group `voice` (3 voices). No files
+  ship: without files a callout only counts (`missing`).
+
+| Group | Voices | New per frame | Classes |
+|---|---|---|---|
+| crack | 4 | 2 | `crack_bullet`, `crack_shell` |
+| tail | 4 | 2 | `explosion_tail` |
+| voice | 3 | 1 | callouts |
+| loops | 3 aircraft, 6 fires | every 0.2 s | `engine_aircraft`, `engine_bomber`, `fire`, `fire_large` |
+
+Self-test (`tools/sound_self_test.gd`): weapon slugs and fallback, a shot
+400 m away waits 0.58 s and then plays, a supersonic bullet passing 3 m
+away cracks while subsonic and receding ones do not, surrounding shares
+sum to 1, the Effects bus holds low-pass and reverb, the overview is
+darker than close up, a callout without files only counts.
+
+Measurements (`just bench-view`, Apple M1 Max, debug bridge, load average
+80–160 from parallel sessions, one run each): the "sound" column
+(`battle_sound._process` including `acoustics.update`) is 0.13–0.14 ms
+standing and 0.21–0.27 ms in the battle (029: 0.11–0.20 ms), under 2 % of
+a 60 FPS frame. FPS with / without sound: battle 40 m 53.1 / 50.1, 150 m
+47.8 / 55.3, 600 m 43.0 / 46.9; standing 79.9 / 77.6, 78.5 / 70.8, 87.4 /
+82.5. The spread comes from the machine load (the same views differ by
+±10 % in either direction). The self-test stress measures 18–27 µs per
+combat event in the sound code under that load (limit 60 µs; 029: 8 µs
+on a quieter machine).
 
 ### Music and ambience
 

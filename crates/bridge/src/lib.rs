@@ -35,6 +35,7 @@ mod map_editor;
 mod match_funcs;
 mod object_funcs;
 mod objects;
+mod orders_funcs;
 mod replay_funcs;
 mod save_funcs;
 mod steam_lobby;
@@ -46,6 +47,7 @@ mod vision_funcs;
 mod water;
 mod water_funcs;
 mod weather_funcs;
+mod works_funcs;
 
 pub use lan::LanLobby;
 pub use replay_funcs::ReplayPlayer;

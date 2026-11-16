@@ -88,13 +88,13 @@ impl Craters {
     }
 
     /// Deviation of sample `k` from the loaded map (mm).
-    fn delta(&self, k: usize) -> i32 {
+    pub(super) fn delta(&self, k: usize) -> i32 {
         self.delta_mm.get(k).map_or(0, |&d| i32::from(d))
     }
 }
 
 /// Index of the map sample nearest to `p` (`None` outside the map).
-fn nearest_sample(map: &Map, p: Vec2) -> Option<usize> {
+pub(super) fn nearest_sample(map: &Map, p: Vec2) -> Option<usize> {
     if !map.contains(p) {
         return None;
     }
@@ -115,7 +115,7 @@ fn to_mm(v: Fixed) -> i64 {
 }
 
 /// Ground point of sample `(i, j)`.
-fn sample_point(map: &Map, i: u32, j: u32) -> Vec2 {
+pub(super) fn sample_point(map: &Map, i: u32, j: u32) -> Vec2 {
     let (hx, hy) = map.half_mm();
     let cell = i64::from(map.cell_size_mm());
     let mm = |v: i64| i32::try_from(v).unwrap_or(i32::MAX);
@@ -156,6 +156,13 @@ impl Sim {
                 plans.push(plan);
             }
         }
+        self.deform(plans);
+    }
+
+    /// Changes the ground by `plans` (craters, and since prompt 035 the
+    /// digging of engineers) and brings everything that depends on it up to
+    /// date. Plans with caliber 0 (digging) are not counted as craters.
+    pub(super) fn deform(&mut self, plans: Vec<CraterPlan>) {
         if plans.is_empty() {
             return;
         }
@@ -189,7 +196,9 @@ impl Sim {
                 h.write_u8(terrain[k]);
             }
             c.checksum = h.finish();
-            c.count += 1;
+            if plan.event.caliber_mm_x10 > 0 {
+                c.count += 1;
+            }
             areas.push(plan.area);
             c.events.push(plan.event);
         }
@@ -360,7 +369,10 @@ impl Sim {
         if self.craters.delta(sample) > -i32::try_from(cover.min_depth_mm).unwrap_or(i32::MAX) {
             return false;
         }
-        let pct = cover.pct(squad.stance);
+        // Foxholes and trenches of engineers (prompt 035) cover better.
+        let pct = self
+            .dug_cover_pct(sample, squad.stance)
+            .unwrap_or_else(|| cover.pct(squad.stance));
         pct > 0 && self.rng.below(100) < pct
     }
 
@@ -430,10 +442,11 @@ impl Sim {
 }
 
 /// Samples a crater changes, with its ground area and event.
-struct CraterPlan {
-    samples: Vec<(usize, i64, bool)>,
-    area: (Vec2, Vec2),
-    event: CraterEvent,
+pub(super) struct CraterPlan {
+    /// `(sample index, height change in mm, becomes bowl terrain)`.
+    pub(super) samples: Vec<(usize, i64, bool)>,
+    pub(super) area: (Vec2, Vec2),
+    pub(super) event: CraterEvent,
 }
 
 /// Passability of every size class over `rect`, for comparison.

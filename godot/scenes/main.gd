@@ -100,6 +100,7 @@ const ReplayBar := preload("res://scenes/replay/replay_bar.gd")
 const BattleSound := preload("res://scenes/audio/battle_sound.gd")
 const MatchHud := preload("res://scenes/hud/hud.gd")
 const TransportView := preload("res://scenes/world/transport_view.gd")
+const WorksView := preload("res://scenes/world/works_view.gd")
 const SEED := 42
 ## Map folders, relative to the Godot project (repository checkout only).
 const REPLAY_DIR := "user://replays"
@@ -166,6 +167,8 @@ var effects: Effects
 var infantry_view: InfantryView
 ## Passengers and their seats (prompt 034).
 var transport_view: TransportView
+## Mines, wire, obstacles, sites, thrown tracks, bridges (prompt 035).
+var works_view: WorksView
 var destruction_view: Node
 ## Burning objects: flames, smoke, light, charring (prompt 041).
 var fire_view: Node
@@ -265,6 +268,10 @@ func _ready() -> void:
 	transport_view.name = "TransportView"
 	add_child(transport_view)
 	transport_view.setup(self)
+	works_view = WorksView.new()
+	works_view.name = "WorksView"
+	add_child(works_view)
+	works_view.setup(self)
 	effects = Effects.new()
 	effects.name = "Effects"
 	add_child(effects)

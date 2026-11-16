@@ -84,7 +84,12 @@ sees nothing but enemy armor; unarmed units stay where they are. Per group, ever
    within 60 m + 8 m per unit of the center), then drive as one group (`MoveTo`
    with formation) to the freshest sighting, else to the enemy's start position
    (from the map), else to random points. A move is repeated only when its
-   target moved by more than 40 m or the group stopped early.
+   target moved by more than 40 m or the group stopped early. Normal and
+   Hard advance with attack-move (prompt 046: `FormationMove` with
+   `engage = All`, formation Auto): every unit halts while an enemy is in
+   its range and drives on afterwards; at the rally point of a base match
+   the group faces the enemy's home. Easy keeps plain `MoveTo`
+   [provisional].
 5. At its first think the AI sets all own units to fire at will.
 
 ## Base building (prompt 023)
@@ -237,6 +242,22 @@ repairers (`PlayerView::sources`).
   sells.
 
 Test: `ai_sends_empty_units_to_resupply` (`crates/ai/tests/ai.rs`).
+
+## Engineers (prompt 035)
+
+`crates/ai/src/engineers.rs`, Normal and Hard only. Engineer squads have
+their own role (not part of the infantry group). With a base the AI
+produces one engineer squad once its vehicle works stand (earlier it
+starved the build order of Hard). Chokepoints come from the public map when
+the AI starts: the own end of every intact bridge on the own half (16 m
+beyond the deck, nearest to the line between both homes first), then the
+points at 30 % and 40 % of the way to the enemy. The engineers lay one
+anti-tank section at the next chokepoint whenever they have no site under
+way, at most two per match. Hostile mines the player knows
+(`PlayerView::mines`) within 150 m of the army or the home are cleared
+first. Units avoid known hostile fields by themselves (path search). Test:
+`crates/ai/tests/ai.rs::ai_lays_mines_that_the_enemy_does_not_see`.
+[provisional]
 
 ## Difficulties
 

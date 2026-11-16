@@ -14,6 +14,7 @@
 mod air;
 mod artillery;
 mod economy;
+mod engineers;
 pub mod game;
 mod supply;
 mod transport;
@@ -22,7 +23,9 @@ mod view;
 pub use view::{OwnUnit, PlayerView, SeenUnit};
 
 use serde::{Deserialize, Serialize};
-use sim::{Command, FireMode, Fixed, Map, PlayerId, Rng, SimConfig, UnitId, Vec2};
+use sim::{
+    Command, Engage, FireMode, Fixed, Formation, Map, PlayerId, Rng, SimConfig, UnitId, Vec2,
+};
 use std::collections::BTreeMap;
 use std::fmt;
 use std::str::FromStr;
@@ -59,6 +62,7 @@ impl Difficulty {
                 regroup: false,
                 retreat_hp_pct: 0,
                 patience_ticks: 0,
+                attack_move: false,
             },
             Self::Easy => Params {
                 think_ticks: 80,
@@ -66,6 +70,7 @@ impl Difficulty {
                 regroup: false,
                 retreat_hp_pct: 0,
                 patience_ticks: 1600,
+                attack_move: false,
             },
             Self::Normal => Params {
                 think_ticks: 20,
@@ -73,6 +78,7 @@ impl Difficulty {
                 regroup: true,
                 retreat_hp_pct: 0,
                 patience_ticks: 800,
+                attack_move: true,
             },
             Self::Hard => Params {
                 think_ticks: 10,
@@ -80,6 +86,7 @@ impl Difficulty {
                 regroup: true,
                 retreat_hp_pct: 30,
                 patience_ticks: 800,
+                attack_move: true,
             },
         }
     }
@@ -129,6 +136,9 @@ struct Params {
     /// moves round to the enemy's flank (wrecks and comrades in the line of
     /// fire, a crest in between).
     patience_ticks: u64,
+    /// Advances as attack-move in an automatic formation, facing the
+    /// enemy (prompt 046); otherwise plain `MoveTo`.
+    attack_move: bool,
 }
 
 /// Role of a unit; every role is commanded as its own group. Infantry
@@ -152,6 +162,9 @@ enum Role {
     /// Towed guns (prompt 034): fetched by a transport, set up behind the
     /// army, fire at will.
     Gun,
+    /// Engineer squads (prompt 035): lay mines at chokepoints, clear the
+    /// enemy's.
+    Engineer,
 }
 
 /// What the AI knows about a unit type from the (public) config.
@@ -295,6 +308,9 @@ pub struct Ai {
     air: air::AirState,
     /// Boarding and towing jobs (prompt 034).
     transport: transport::TransportState,
+    /// Mines and clearing (prompt 035).
+    #[serde(default)]
+    engineers: engineers::EngineerState,
     /// Towing rule: engine hp per tonne of tractor and gun.
     tow_min_hp_per_tonne: u32,
     /// Supply trips and building repairs (prompt 036).
@@ -331,6 +347,8 @@ impl Ai {
         let transport_rules = sim::TransportRules::builtin().ok();
         // Sight ranges under the match's weather (prompt 040).
         let vision = config.effective_vision();
+        // Engineers (`data/works.toml`, prompt 035).
+        let works_rules = sim::WorksRules::builtin().ok();
         let types = config
             .unit_types
             .iter()
@@ -374,6 +392,11 @@ impl Ai {
                     Role::Artillery
                 } else if t.combat.weapons.is_empty() && indirect.is_none() {
                     Role::Unarmed
+                } else if works_rules
+                    .as_ref()
+                    .is_some_and(|r| r.is_engineer(category))
+                {
+                    Role::Engineer
                 } else if t.combat.is_infantry() {
                     Role::Infantry
                 } else {
@@ -475,6 +498,7 @@ impl Ai {
             fire: artillery::FireState::default(),
             air: air::AirState::default(),
             transport: transport::TransportState::default(),
+            engineers: engineers::EngineerState::new(map, home, enemy_home),
             tow_min_hp_per_tonne: transport_rules
                 .as_ref()
                 .map_or(8, |r| r.towing.min_hp_per_tonne),
@@ -542,6 +566,7 @@ impl Ai {
         self.think_air(view, &mut out);
         self.command_transport(view, &mut out);
         self.command_supply(view, &mut out);
+        self.command_engineers(view, &mut out);
         let mut roles: Vec<Role> = Vec::new();
         for u in view.own.iter().filter(|u| u.alive()) {
             let role = self.type_info(u.unit_type).role;
@@ -567,7 +592,7 @@ impl Ai {
             match role {
                 Role::Armor | Role::Infantry => self.command_group(role, &units, view, &mut out),
                 Role::Artillery => self.command_artillery(&units, view, &mut out),
-                Role::Unarmed | Role::Structure | Role::Transport | Role::Gun => {}
+                Role::Unarmed | Role::Structure | Role::Transport | Role::Gun | Role::Engineer => {}
             }
         }
         out
@@ -839,7 +864,15 @@ impl Ai {
         if let Some(hold) = self.hold_point(role, ids.len(), center, view) {
             if dist(center, hold) > Fixed::from_num(ARRIVED_M) {
                 let idle = fighting.iter().all(|u| u.target.is_none());
-                self.move_group(&mut state, &ids, hold, stale && idle, view.tick, out);
+                let facing = Some(self.enemy_home - hold);
+                self.move_group(
+                    &mut state,
+                    &ids,
+                    (hold, facing),
+                    stale && idle,
+                    view.tick,
+                    out,
+                );
             }
             self.groups.insert(role, state);
             return;
@@ -903,7 +936,14 @@ impl Ai {
             }
         } else {
             let idle = fighting.iter().all(|u| u.target.is_none());
-            self.move_group(&mut state, &ids, target, stale && idle, view.tick, out);
+            self.move_group(
+                &mut state,
+                &ids,
+                (target, None),
+                stale && idle,
+                view.tick,
+                out,
+            );
         }
         self.groups.insert(role, state);
     }
@@ -957,12 +997,14 @@ impl Ai {
         Objective::Explore(point)
     }
 
-    /// Sends the group to `target` unless it already drives there.
+    /// Sends the group to `target` unless it already drives there; with
+    /// attack-move (prompt 046) in an automatic formation facing `facing`
+    /// (default: the direction of travel).
     fn move_group(
         &self,
         state: &mut GroupState,
         ids: &[UnitId],
-        target: Vec2,
+        (target, facing): (Vec2, Option<Vec2>),
         repeat: bool,
         tick: u64,
         out: &mut Vec<Command>,
@@ -979,10 +1021,20 @@ impl Ai {
             return;
         }
         let target = self.clamp_to_map(target);
-        out.push(Command::MoveTo {
-            units: ids.to_vec(),
-            target,
-        });
+        if self.params.attack_move {
+            out.push(Command::FormationMove {
+                units: ids.to_vec(),
+                target,
+                formation: Formation::Auto,
+                facing,
+                engage: Engage::All,
+            });
+        } else {
+            out.push(Command::MoveTo {
+                units: ids.to_vec(),
+                target,
+            });
+        }
         state.order = Order::Move {
             target,
             units: ids.to_vec(),
