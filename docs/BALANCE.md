@@ -4,9 +4,9 @@ Prompt 045. How the balance of the three factions is measured, what was
 measured, and which rule values were changed because of it. The unit
 values are real (catalog, [SOURCES.md](SOURCES.md)) and never tuned; only
 game rules in `data/*.toml` and scenario data are. Every value changed
-here is **[provisional]** until the user confirms it after playtests
-([PLAYTEST.md](PLAYTEST.md)); nothing in [GAME_DESIGN.md](GAME_DESIGN.md)
-is marked confirmed by this prompt.
+here was **[provisional]** until the user confirmed it; the user confirmed
+the changes 1–8 on 2026-11-16 and asked for two more (rate of fire in the
+price, defeat without base), see "Decisions of the user (2026-11-16)".
 
 ## Tools
 
@@ -119,7 +119,7 @@ The statistics show two causes:
   In the traced game the US built engineers and flak, one M4A3 in 20
   games.
 
-## Changes [provisional]
+## Changes (confirmed 2026-11-16)
 
 Each change is one rule or scenario value, with the measurement that led
 to it. (Measured in steps; "E1", "E2", "E3" are the economy variants
@@ -236,7 +236,8 @@ causes, and they are AI decisions, not prices:
 after: both armies reach the unit limit, rebuild what they lose, and
 neither AI pushes through to the other base (1.6 km apart). This is the
 AI's end game and the victory condition (a player with any building is
-not defeated), not the economy any more; see PLAYTEST.md decision 6.
+not defeated), not the economy any more; see PLAYTEST.md decision 6
+(implemented since, see "Decisions of the user").
 With 30 minutes instead of 20 (de–su, 10 games, `--base-ticks 36000`)
 every game is still open.
 
@@ -259,9 +260,105 @@ minutes, a base round on `test_small`, `twin_meadow` and `skirmish` about
 25 minutes (Apple M1 Max, release, all cores; several rounds ran at the
 same time, so these are upper bounds).
 
+## Decisions of the user (2026-11-16)
+
+The user answered the six questions of [PLAYTEST.md](PLAYTEST.md):
+changes 1–8 above are **confirmed** (economy values, equal strength in
+battle mode, range factor of prices, unarmed start vehicle); weapon ranges
+(decision 3) are handled by prompt 067. Two rules were added on the
+user's request:
+
+| # | File | Value | Before | After | Why |
+|---|---|---|---|---|---|
+| 9 | `data/economy.toml` `[unit_cost]` | rate factor of the ammunition price | – | `rate_ref_rpm = 10`, 75–150 % | Decision 4: rate of fire enters the price. A gun that fires twice as fast deals about twice the damage in the same time (reload follows the catalog rate). The reference is the common 75 mm tank gun (KwK 40, M3: 10 rounds/min). |
+| 10 | `data/economy.toml` `[defeat]` (new) | defeat without base | a player with any unit left plays on | `without_base = true`, `base_buildings = ["base_hq", "base_barracks", "base_factory"]` | Decision 6: a player of a base match without completed headquarters and production is defeated (`DefeatReason::BaseLost`). |
+
+### Prices with the rate factor
+
+Ammunition price (total in brackets), `just economy-table`:
+
+| Unit | rate (rounds/min) | before (range factor only) | after |
+|---|---|---|---|
+| Panzer IV H | 10 | 150 (280) | 150 (280) |
+| M4A3 (75) | 10 | 103 (259) | 103 (259) |
+| T-34/76 (1943) | 5 | 106 (253) | **82 (229)** |
+| StuG III G | 8 | 150 (269) | 122 (241) |
+| Tiger I | 6 | 203 (461) | **154 (412)** |
+| IS-2 | 2 | 382 (590) | **287 (495)** |
+| SU-85 | 6 | 190 (332) | 144 (286) |
+| M10 | 8 | 155 (303) | 126 (274) |
+| M26 | 8 | 212 (409) | 172 (369) |
+| Pak 40 | 14 | 150 (186) | **206 (242)** |
+| ZiS-3 | 15 | 106 (148) | 155 (197) |
+| 57 mm M1 | 15 | 64 (106) | 91 (133) |
+| Rifle squad de / su / us | 40 (rifles) | 14 / 14 / 15 (68 / 68 / 87) | 16 / 15 / 18 (70 / 69 / 90) |
+| AT squad de / su / us | 4 / 8 / 4 | 75 / 12 / 40 (87 / 24 / 52) | 58 / 11 / 33 (70 / 23 / 45) |
+
+Rates are those of the main gun (catalog). Machine guns and rifles reach
+the upper bound of 150 %, but their caliber term is small (a rifle squad pays 1–3 more). The lower
+bound is 75 %, not 50 %: with 50 % the T-34 cost 205 and the Tiger's
+ammunition price fell below the Panzer IV's (balancing principle 1, "a
+stronger unit is never cheaper", checked by `economy::tests`).
+
+**Equal price ≈ equal strength.** The duels did not change (no combat
+rule changed; tables above): the Panzer IV beats the T-34 from the front
+at every distance and the M4A3 at 200 m and more; the T-34 wins only from
+behind. Battle mode measured equal strength at 8 Panzer IV, 10 T-34, 9
+M4A3 (change 7). What these armies cost:
+
+| Army | before | after |
+|---|---|---|
+| 8 Panzer IV | 2240 | 2240 |
+| 10 T-34 | 2530 (+13 %) | **2290 (+2 %)** |
+| 9 M4A3 | 2331 (+4 %) | 2331 (+4 %) |
+
+So equal strength now costs the same within 4 % for all three main tanks
+(`crates/sim/tests/prices.rs` checks 5 %). Before, the Soviet player paid
+13 % more for the same strength.
+
+### Base mode with both rules (20 minutes)
+
+`just balance --modes base --maps test_small,twin_meadow,skirmish --games
+10` (Hard vs Hard, seeds from 1; before = after the changes 1–8):
+
+| Map | de – su before | after | de – us before | after | su – us before | after |
+|---|---|---|---|---|---|---|
+| test_small | 90 / 0 / 10 | 100 / 0 / 0 | 30 / 70 / 0 | 30 / 60 / 10 | 0 / 80 / 20 | 10 / 80 / 10 |
+| twin_meadow | 0 / 50 / 50 | 0 / 40 / 60 | 60 / 10 / 30 | 50 / 30 / 20 | 80 / 0 / 20 | 80 / 0 / 20 |
+| skirmish | 0 / 0 / 100 | 0 / 0 / 100 | 0 / 0 / 100 | 0 / 0 / 100 | 0 / 0 / 100 | 10 / 0 / 90 |
+
+| Faction (test_small + twin_meadow, 40 games each) | before | after |
+|---|---|---|
+| de | 45 % | 45 % |
+| su | 33 % | 33 % |
+| us | 40 % | 43 % |
+
+Undecided games: 43 of 90 before, 41 of 90 after. The defeat rule ends the
+matches that got to a base: 49 headquarters fell in these 90 games, and
+every decided match now ends when the base falls instead of when the last
+squad is hunted down (mean decided time 360–490 s on the small maps). It
+does not decide `skirmish`: the AI armies (1.6 km apart) still do not
+reach the other base in 20 minutes; one of 30 games got there (after 19
+minutes). With 30 minutes (`--base-ticks 36000`, de–su, 10 games) every
+game is still open, as before the rule.
+
+`just ai-tournament --mode base --a hard --b normal --games 20
+--max-ticks 24000` (`test_small`): with the rule 11 / 9 wins, no
+timeout, mean 453 s; the same with `without_base = false` 10 / 7 wins
+and 3 timeouts.
+
+The per-faction sums did not move: the rate factor makes T-34 and Tiger
+cheaper, but the Soviet base AI spends most of its manpower on AT squads
+and MG teams (689 AT squads, kills per loss 0.06), see "Open".
+
 ## Golden hash
 
 The golden hash of `crates/sim/tests/determinism.rs` changed to
+`0x0b95_b29d_5ff1_d003` with the decisions of 2026-11-16 (the rate factor
+and `[defeat]` are hashed economy rules, the hashed prices of the match's
+types changed, the players who have had a base are in the economy hash;
+the demo battle is unchanged; the economy golden hash is
+`0xe007_c7b9_cb19_a7b3`). Before, prompt 045 changed it to
 `0x164a_535e_3316_b34e`: the economy rules (income, start account, the
 range factor of prices) and the logistics rules (resupply cost) are part
 of the state hash and of the demo's accounts. The demo keeps 8 against 8
@@ -270,13 +367,10 @@ apply).
 
 ## Open, for the user
 
-See [PLAYTEST.md](PLAYTEST.md) "Decisions waiting for the user". In short:
-whether battle mode should give equal numbers (historical tanks, unequal
-strength) or equal strength (more Soviet and US tanks, as now); whether
-weapon ranges should come from the catalog's effective ranges as they are
-(the Panzer IV's 375 m against 250 m decides most tank fights); whether
-rate of fire and range should enter the unit price; whether base matches
-should end when headquarters and production are lost; the start vehicle.
+Nothing: the decisions of [PLAYTEST.md](PLAYTEST.md) were answered on
+2026-11-16. Weapon ranges follow in prompt 067, which has to measure the
+duels, the battle armies and the price check of
+`crates/sim/tests/prices.rs` again.
 
 ## Open
 
@@ -284,12 +378,12 @@ should end when headquarters and production are lost; the start vehicle.
   below 0.25 for every faction); the counter-production should only buy
   them with cover or ambush tactics. Lost engineers are rebuilt again and
   again. The end game of base matches on maps of 1.5 km and more (see
-  `skirmish`).
+  `skirmish`): with the defeat rule a single push to the enemy
+  headquarters and works would decide them, but the AI armies do not
+  get there.
 - **Per-map swings** in base mode (Soviet Union 0 % on `test_small`,
   United States 5 % on `twin_meadow`) need more games per row and a look
   at single replays; the JSON statistics of the tournaments are not
   written to disk yet (only the summed tables).
-- **Rate of fire** is not part of the price (the T-34 fires half as fast
-  as the Panzer IV and costs about the same now).
 - More measurements: base mode on the other seven maps, Easy/Normal
   against Hard per faction, team matches.
