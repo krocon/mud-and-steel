@@ -233,8 +233,8 @@ validate-squads:
 
 # Generate a test map from a seed into data/maps/<name>/ (see docs/MAPS.md)
 [group('maps')]
-gen-map name size_m="500" seed="1":
-    cargo run -q --release -p cli -- gen-map --name {{ name }} --size-m {{ size_m }} --seed {{ seed }}
+gen-map name size_m="500" seed="1" start_distance_m="120":
+    cargo run -q --release -p cli -- gen-map --name {{ name }} --size-m {{ size_m }} --seed {{ seed }} --start-distance-m {{ start_distance_m }}
 
 # Regenerate both committed test maps (changes the golden hash if test_small changes)
 [group('maps')]
@@ -405,6 +405,11 @@ crater-view-bench map="test_small": build
 [group('sound')]
 audio *classes:
     python3 tools/audio/synth.py {{ classes }}
+
+# Compose the music and ambience into godot/assets/audio/music/ and ambience/ (all, or names starting with the given ones; needs numpy and lame; then: just import)
+[group('sound')]
+music *names:
+    python3 tools/audio/music.py {{ names }}
 
 # Play every sound class once, then click to replay (`just sound-gallery --sound-gallery-once` quits after the round)
 [group('sound')]
