@@ -114,4 +114,4 @@ längere Reichweite des Panzer IV ohne Platz für eine Flanke), klarer Sieg gege
 alte Hard (Gegner erkennen, bevor man ihn sieht), entschiedene KI-gegen-KI-Basispartien
 (Wirtschaftsbalance, Prompt 045), Schutz eigener LKW über „hinter der Armee“ hinaus,
 Beobachter für die Artillerie, Gelände (Kämme, Wald, Häuser) bei der Achsenwahl,
-Normal ist gegen Passiv auf manchen Karten schwächer als vorher (farms 0 %).
+Normal gegen Passiv auf farms nur 0 % Siege (40 % Kapitulationen, 60 % Zeitablauf).
