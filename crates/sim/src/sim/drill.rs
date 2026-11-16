@@ -66,6 +66,11 @@ impl Drill {
     pub(super) const fn busy(&self) -> bool {
         self.task.is_some()
     }
+
+    /// The unit attack-moves (prompt 047: squads bound).
+    pub(super) const fn advancing(&self) -> bool {
+        matches!(self.task, Some(Task::Advance { .. }))
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -377,8 +382,14 @@ impl Sim {
     }
 
     fn advance(&mut self, i: usize, slot: Vec2, halted: bool) {
+        // Prompt 047: squads of two fire teams bound on instead of halting;
+        // mortar teams halt only for targets of their mortar.
+        let bounds = self.bounds_on_advance(i);
+        let mortar = self.mortar_halts(i);
         let unit = &mut self.units[i];
-        let fighting = unit.combat.auto_target.is_some() && unit.combat.attack.is_none();
+        let fighting = mortar.unwrap_or_else(|| {
+            unit.combat.auto_target.is_some() && unit.combat.attack.is_none() && !bounds
+        });
         let task = if fighting {
             if unit.route != Route::None || unit.target.is_some() {
                 stop(unit);

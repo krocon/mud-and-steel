@@ -46,6 +46,7 @@ mod save_funcs;
 mod steam_lobby;
 mod strike_funcs;
 mod supply_funcs;
+mod tactics_funcs;
 mod team_funcs;
 mod terrain_layers;
 mod transport_funcs;

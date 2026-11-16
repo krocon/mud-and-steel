@@ -170,6 +170,11 @@ lineup:
 kit-test:
     {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python tools/blender/kit_test.py
 
+# Serve the unit browser (web/units/): every catalog entry with picture, 3D model, camouflage and values; opens http://localhost:8137/web/units/
+[group('assets')]
+units-web *args:
+    python3 tools/units_web.py {{ args }}
+
 # Build the bridge and open the model gallery (all models, camouflage switch)
 [group('godot')]
 gallery: build

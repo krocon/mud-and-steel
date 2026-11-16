@@ -126,7 +126,7 @@ oder weggelassen; es werden keine Inhalte anderer Spiele übernommen.
 | Nr. | Prompt | Ziel | Status |
 |-----|--------|------|--------|
 | 046 | [Befehle und Formationen](done/046-befehle-formationen.md) | Angriffsbewegung, Gebiet sichern, Auto-Formation, Ausrichtung per Ziehen | erledigt (Schwellen und Tasten vorläufig, siehe Abschnitt 4) |
-| 047 | [Infanterie-Taktik](047-infanterie-taktik.md) | Feuertrupps, Deckung zu Deckung, Niederhalten, Blindfeuer | Entwurf |
+| 047 | [Infanterie-Taktik](done/047-infanterie-taktik.md) | Feuertrupps, Deckung zu Deckung, Niederhalten, Blindfeuer | erledigt (Sprungweiten, Niederhalt-Werte, Ladehemmung vorläufig, siehe Ergebnis) |
 | 048 | [Animationen und Ragdolls](done/048-animationen-ragdolls.md) | Deckungs-, Kriech- und Rollanimationen, Ragdolls nur als Darstellung | erledigt (Umwerf-Werte, Ragdoll-Budget und Trefferdarstellung vorläufig, siehe Ergebnis) |
 | 049 | [Verwundung und Kameradenhilfe](049-verwundung-kameradenhilfe.md) | Verwundete, Bergen, Sanitäter mit Trage, ausgestiegene Besatzungen | Entwurf |
 | 050 | [Erfahrung und Ränge](done/050-erfahrung-raenge.md) | Veteranenstufen mit moderaten Boni und Abzeichen | erledigt (Werte vorläufig, siehe Ergebnis) |
@@ -141,6 +141,7 @@ oder weggelassen; es werden keine Inhalte anderer Spiele übernommen.
 | 059 | [Wüstendorf](done/059-wuestendorf.md) | Flachdachhäuser mit Hofmauern, Palmenhaine, Dorfkarte Nordafrika | erledigt |
 | 060 | [Berge und Täler](done/060-berge-taeler.md) | Gebirgs-Profile im Generator, Pässe, Hangregeln, Gebirgskarte | erledigt |
 | 061 | [Recherche: freie Soundeffekte](done/061-sound-recherche.md) | Geprüfte CC0/CC-BY-Aufnahmen, Pakete, Lücken, Ordnerstruktur in `docs/AUDIO_LIBRARY.md` | erledigt |
+| 062 | [Raketenwerfer und Sturmpanzer](062-raketenwerfer-sturmpanzer.md) | Fahrbare Raketenwerfer je Fraktion mit Salven-Regel, deutscher Sturmpanzer; Katalog, Modelle, KI | Entwurf |
 
 Viele dieser Prompts ändern `sim.rs`, `command.rs`, `main.gd` und den Golden-Hash.
 Parallel laufende Sessions übernehmen vor dem Abschluss den aktuellen `main`.

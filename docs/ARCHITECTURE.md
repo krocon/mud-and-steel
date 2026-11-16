@@ -157,6 +157,8 @@ Prompt 046, `crates/sim/src/formation.rs` (shapes) and
   `All`): a unit with the task halts while it has an automatic target (an
   enemy in range it sees and can hurt) and then plans its own path to its
   slot again. Hold fire never halts. Runs right after `aim_and_fire`.
+  Prompt 047: squads of two fire teams bound instead of halting, and mortar
+  teams halt only for targets of their mortar (INFANTRY.md "Tactics").
 - **Securing**: every `retarget_ticks` a unit without a target attacks the
   nearest enemy its player sees inside the circle that it can hurt (an
   ordinary attack order, so search and sight rules apply); the attack is
@@ -2662,7 +2664,7 @@ dark and rutted. Forest is the identity. No extra textures are needed.
 | Haze | Depth fog from 0.65–0.7 to 2.0–2.2 camera distances, curve 1.3, at most 35–45 %, aerial perspective | Foreground stays clear at every zoom, the upper screen edge lies in light haze. Exponential fog would grey the whole view at 600 m. |
 | SSAO | Radius 2.5 % of the camera distance (0.6–10 m) | Contact shadows under vehicles up close, soft shading of hollows and ditches far away. |
 | SSIL, SDFGI | Off | SSIL measured 0.5–0.7 ms on high with hardly a visible change on open ground; SDFGI costs too much on a 4 km map and leaks light. |
-| Depth of field | Tilt-shift at close zoom (prompt 057): sharp from 0.86 to 1.1 camera distances along the view, blurred over 0.22 distances beyond, amount 0.09, fading out between 30 and 60 m camera distance; box bokeh, very low quality; off on quality low and with the setting "Depth of field at close zoom" **[provisional: on by default]** | Makes close views look like a photo of a model and hides the far edge of the decoration range. A far blur alone (tried in prompt 015) smeared the upper edge at every zoom; the narrow band around the focus only shows near the ground. |
+| Depth of field | Tilt-shift, setting "Depth of field" with three modes (`DOF_MODES` in `atmosphere.gd`), off on quality low. **Subtle** (prompt 057, the default **[provisional]**): sharp from 0.86 to 1.1 camera distances along the view, blurred over 0.22 distances beyond, amount 0.09, fading out between 30 and 60 m camera distance; box bokeh, very low quality. **Miniature**: sharp from 0.95 to 1.05, blurred over 0.2 distances beyond, amount 0.22, fading out between 150 and 350 m; hexagon bokeh, medium quality; saturation × 1.18 and contrast × 1.05, fading with the blur **[provisional values]**. **Off**: none. | Subtle makes close views look like a photo of a model and hides the far edge of the decoration range. A far blur alone (tried in prompt 015) smeared the upper edge at every zoom; the narrow band around the focus only shows near the ground. Miniature is the full model-railway look as an option: the 45–65° view down already is the angle of such photos, and the depth-based blur keeps a band across the middle of the screen sharp. It is not the default because units near the upper and lower screen edges are harder to make out. |
 | Vignette | Canvas shader below the HUD, 25 % | Frames the view lightly. |
 | Snowfall | `GPUParticles3D` box around the camera focus, scaled with the camera distance (winter, medium and high) | Weather prepared; flakes stay visible at every zoom. |
 
