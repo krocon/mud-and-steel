@@ -86,10 +86,7 @@ func _run() -> void:
 	await _shot("picker_vehicles")
 	var first: int = picker.tiles.keys()[0]
 	var tile: Button = picker.tiles[first]
-	var tip := _tooltip(tile)
-	await _frames(5)
-	await _shot("tooltip_vehicle")
-	tip.queue_free()
+	await _tooltip_shot(tile, "tooltip_vehicle")
 	# Right click on the tile: the unit card next to the production bar.
 	_right_click(tile.get_global_rect().get_center())
 	await _frames(10)
@@ -162,8 +159,37 @@ func _build(main: Node3D, id: String) -> int:
 	return -1
 
 
-## The tooltip of `tile` as a panel next to it (the real one needs the
-## mouse to rest on the tile).
+## A picture of the tooltip of `tile`: the mouse rests on it until the
+## engine shows the real tooltip (embedded in the window, so it is in the
+## picture); if that does not come, its panel is put next to the tile.
+func _tooltip_shot(tile: Button, shot_name: String) -> void:
+	var root := get_viewport()
+	root.gui_embed_subwindows = true
+	var at := tile.get_global_rect().get_center()
+	for offset: Vector2 in [Vector2(-6, 0), Vector2(-3, 0), Vector2.ZERO]:
+		_motion(at + offset)
+		await _frames(2)
+	await get_tree().create_timer(1.5).timeout
+	var real := not root.get_embedded_subwindows().is_empty()
+	var stand_in: Control = null if real else _tooltip(tile)
+	print("unit card shots: %s tooltip" % ("the engine's" if real else "stand-in"))
+	await _frames(5)
+	await _shot(shot_name)
+	if stand_in != null:
+		stand_in.queue_free()
+	_motion(Vector2(root.get_visible_rect().size.x * 0.6, 200))
+	await _frames(10)
+	root.gui_embed_subwindows = false
+
+
+func _motion(at: Vector2) -> void:
+	var motion := InputEventMouseMotion.new()
+	motion.position = at
+	motion.global_position = at
+	get_viewport().push_input(motion)
+
+
+## The tooltip of `tile` as a panel next to it.
 func _tooltip(tile: Button) -> Control:
 	var panel := PanelContainer.new()
 	panel.theme_type_variation = &"TooltipPanel"

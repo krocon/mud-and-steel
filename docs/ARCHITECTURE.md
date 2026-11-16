@@ -3459,12 +3459,15 @@ decides anything; orders go through `selection.gd` or `SimHost`.
   is a panel with their numbers (prompt 066, see "Unit values in the
   interface" below); base buildings keep the catalog values of
   `SimHost.catalog_card` (hit points, income, requirements). A right click
-  on a tile emits `info_requested` (the unit card). The thumbnails are PNGs in
+  on a tile emits `info_requested` (the unit card). Two rows of tiles
+  show, the rest scrolls; in a window lower than 800 interface pixels one
+  row, so the docked menus stay inside a window 720 pixels high. The
+  thumbnails are PNGs in
   `godot/assets/thumbnails/` (`hud/thumbnail.gd`, docs/ASSETS.md), rendered
   by `just thumbnails` for every id of `SimHost.buildable_ids()`; any own
   structure with production options gets the production bar. When the
   docked panels make the command bar tall, `hud.gd` moves the event feed
-  above it.
+  above it, or beside it when there is no room above (prompt 066).
 - **Event feed** (`event_feed.gd`, left edge): own unit lost, building
   completed, unit ready, enemy sighted (at most every 15 s), under fire (at
   most every 10 s), from the combat event stream and a poll of the snapshot

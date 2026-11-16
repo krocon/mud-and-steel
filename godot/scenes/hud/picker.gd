@@ -12,7 +12,7 @@ extends VBoxContainer
 ## reason.
 ##
 ## Prompt 066: every tile shows the five ratings of its unit type as a
-## strip of symbols with steps (`rating_bars.gd`); the tooltip names the
+## strip of symbols with bars (`rating_bars.gd`); the tooltip names the
 ## type, its ratings with their numbers, a few game values and what it is
 ## good against and vulnerable to (`unit_stats.gd`, from
 ## `SimHost.unit_stats`; base buildings keep their catalog values). A right
