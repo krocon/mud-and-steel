@@ -68,8 +68,14 @@ replay file:
 
 # Build the GDExtension (debug)
 [group('godot')]
-build: && (_steam-lib "debug")
+build: && (_steam-lib "debug") _ensure-imported
     cargo build -p bridge
+
+# Import the Godot project when a script declares a class_name Godot does not
+# know yet (after a merge or a fresh clone), so scripts using it parse
+[private]
+_ensure-imported:
+    bash tools/ensure-imported.sh
 
 # Copy the Steam API library (from the steamworks-sys build) next to the
 # bridge, where it is loaded from (prompt 026, docs/ONLINE.md)
