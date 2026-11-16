@@ -1101,7 +1101,7 @@ whistle (prompt 029). Muzzle flashes and explosions come from the usual
 
 - Provisional values (marked in `data/indirect.toml`): minimum ranges,
   setup times, elevations, dispersion, blast and smoke figures, the fixed
-  wind (until weather, prompt 040).
+  wind (scaled by the weather since prompt 040).
 - Towed guns are fielded since prompt 034 (see "Transport and towing");
   the Soviet catalog entries name no smoke rounds, and tanks have no smoke
   dischargers in the catalog (the 75 mm M89 smoke round of US tank guns is
@@ -1465,6 +1465,99 @@ linked units with the same id.
   as passengers (it rides with the gun); bridges check the tractor's mass
   only; no tractors for the 88 mm and 90 mm AA guns in the catalog; no
   path profile for a tractor with a gun.
+
+## Weather, mud and time of day
+
+Prompt 040. A match has one weather (`clear`, `overcast`, `rain`, `snow`,
+`fog`) and one time of day (`morning`, `day`, `evening`, `night`) for its
+whole length: `SimConfig::weather` (`sim::WeatherSetup`), by default the
+map's (`map.toml`, [MAPS.md](MAPS.md#weather-and-time-of-day)), chosen in the
+setup screen (`SimHost.weather` / `daytime`). The rules are
+`data/weather.toml` (`sim::WeatherRules`, compiled in, loaded by `Sim::new`
+like fire and craters); the state `crate::sim::weather::WeatherState`.
+
+**Clear weather by day is neutral.** Every factor is 100 % there (the parser
+refuses rules that change the default), the ground is dry, and the weather
+state is only fed into the state hash when the setup is not the default:
+matches without weather keep their hashes (the golden hash did not change).
+
+### Rules
+
+| What | How | Values ([provisional]) |
+|---|---|---|
+| Sight | every sight range × weather × time of day; applied once in `Sim::new` through the sight factor of the vision rules (`SimConfig::effective_vision`), so unit viewsheds, recon aircraft (033) and the AI (024) follow | rain 70, snow 60, fog 35, overcast 90; morning/evening 80, night 45 % |
+| Soft ground | one softness per match (0..100 %, kind wet or snow); speed = terrain speed × (100 % − loss(gear, kind) × softness(terrain, kind) × level), at least 8 % | losses wet/snow: wheeled 80/60, half-track 50/35, tracked 35/25, foot 30/40 %; terrain wet/snow: dirt track 100/80, grass 70/100, road 0/30, mud 100/60, sand 20/100, snow 40/0 % |
+| Rain | the ground starts half soaked and gets 10 % softer every 120 game seconds up to 100 % (after ten minutes) | snow: 100 % from the start; fog: 20 % wet; clear/overcast: dry |
+| Running gear | catalog category (`[[ground.gear]]`), single ids override (M3A1 Scout Car: wheeled); towed guns roll on wheels; aircraft and buildings are not slowed | |
+| Muzzle flash | at night a unit that fires a direct-fire weapon is seen for 2 game seconds by every player with a unit within 2000 m real (500 m game), without a line of sight | |
+| Wind | scales the smoke drift of `data/indirect.toml` | rain 150, snow 120, overcast 130, fog 20 % |
+| Fire (041) | catch chance × `fire_catch_pct` (wet wood) × (1 + 0.5 · cos(wind, way to the neighbor) · wind strength) | rain 40, snow 30, fog 70, overcast 90 % |
+
+Wheels in mud "get stuck" as a crawl (a truck on a soaked mud field drives at
+8 % of its terrain speed), not by a recovery mechanic; roads stay fast in the
+rain, so convoys keep to them.
+
+### Per tick
+
+- Movement: `move_unit` scales the terrain speed by the unit's soft-ground
+  factor of the terrain it stands on (`PathGrid::ground_pct`).
+- Path costs: every profile of the path grid has the soft-ground factors per
+  terrain id (`PathGrid::set_ground_pct`); `terrain_times` scales the terrain
+  speeds with them, so the cell costs follow and A* prefers roads in the
+  rain. At the start all costs are computed at once; after a rain step
+  `Sim::update_weather` (destruction phase) recomputes 8 path rows per
+  tick (`PathGrid::recost_rows`; a 4 km map takes 63 ticks, at most 1.6 ms each). Passability does
+  not change, so components stay; routes already planned are kept (new paths
+  use the new costs), which avoids flooding the path queue.
+- Muzzle flashes: `update_weather` notes the shooters of this tick's `Shot`
+  events; after the vision update `Sim::reveal_flashes` sets their `seen`
+  bits for the nearby players (`Vision::reveal`), so they can be fired at in
+  the next tick.
+
+### Snapshot, bridge and Godot
+
+`WeatherState` (level, next step, the row band being recomputed, flashes) and
+the soft-ground factors in the path grid are fields of `Sim`: saved games
+(038) restore them exactly (`crates/net/tests/weather_snapshot.rs`). Replay
+format 8 and protocol 4 carry the new `SimConfig` field.
+
+Bridge: `SimHost.weather` / `daytime` (choice of the next single-player
+start, empty = the map's), `weather_info()` (weather, time of day, ground
+kind and softness, sight percent, wind), `weather_names()`,
+`daytime_names()`; map editor `set_map_weather` / `map_weather`.
+
+Godot (`world/weather_look.gd`, presentation only): `WeatherLook.adjust`
+turns the biome preset into the weather's look (cloud cover dims the sun
+and greys the sky, rain and fog thicken the haze, snow adds snowfall and
+snow cover, morning and evening bring a low warm sun from the east or west,
+night a weak cold moonlight with a blue sky); `atmosphere.gd` applies it
+(`set_weather`). Rain streaks fall in a box around the camera focus (count
+from the snow budget of the quality level); the terrain shader's `wetness`
+uniform darkens the ground, makes it glossy and fills puddles on flat soft
+ground, following the soaking of the match; the ambience (030) plays rain.
+Fires (041) and muzzle flashes light up the night through their existing
+lights.
+
+### Measurements
+
+See the result of prompt 040 in `prompts/done/040-wetter-schlamm-tageszeit.md`.
+
+### Decisions
+
+- One weather per match, no weather change during it; the ground changes.
+- Softness per terrain type, not per cell (craters already make mud cells).
+- Running gear from the catalog category, no new catalog field (the values
+  are game rules, not historical data).
+- Routes are not replanned when the ground softens.
+
+### Open
+
+- Weather changing during a match; flares at night; per-cell wetness (low
+  ground wetter), tire tracks in the mud (decals), splashes.
+- LAN and online lobbies offer no weather choice (they use the map's).
+- Aircraft fly in any weather and at night.
+- The look is checked in a few rendered frames only (rain by day, clear
+  night); the 2 ms budget is measured on the CPU (the rain moves on the GPU).
 
 ## Supply and repair
 

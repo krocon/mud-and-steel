@@ -336,6 +336,8 @@ impl Ai {
         let indirect_rules = sim::IndirectRules::builtin().ok();
         // Seats and towing (`data/transport.toml`, prompt 034).
         let transport_rules = sim::TransportRules::builtin().ok();
+        // Sight ranges under the match's weather (prompt 040).
+        let vision = config.effective_vision();
         // Engineers (`data/works.toml`, prompt 035).
         let works_rules = sim::WorksRules::builtin().ok();
         let types = config
@@ -394,7 +396,7 @@ impl Ai {
                 TypeInfo {
                     role,
                     range,
-                    sight: config.vision.range_m(t.combat.category),
+                    sight: vision.range_m(t.combat.category),
                     anti_tank: t.combat.weapons.iter().any(|w| w.caliber_mm_x10 >= 200),
                     indirect,
                     seats,

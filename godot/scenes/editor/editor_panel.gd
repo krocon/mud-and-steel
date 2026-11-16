@@ -29,6 +29,9 @@ var new_size: OptionButton
 var new_biome: OptionButton
 var open_option: OptionButton
 var save_name: LineEdit
+## Default weather and time of day of matches on the map (prompt 040).
+var save_weather: OptionButton
+var save_daytime: OptionButton
 
 var _settings: Dictionary[String, Control] = {}
 
@@ -171,6 +174,10 @@ func show_dialog(dialog: String) -> void:
 				open_option.add_item(name)
 		"save":
 			save_name.text = main.editor.map_name()
+			var current: PackedStringArray = main.editor.map_weather()
+			if current.size() == 2:
+				save_weather.select(maxi(MatchSetup.WEATHERS.keys().find(current[0]) - 1, 0))
+				save_daytime.select(maxi(MatchSetup.DAYTIMES.keys().find(current[1]) - 1, 0))
 
 
 func _build_dialogs() -> void:
@@ -197,6 +204,17 @@ func _build_dialogs() -> void:
 	box = _dialog("save", "Save map")
 	save_name = LineEdit.new()
 	box.add_child(_row("Name", save_name))
+	# Without the "Map default" entry of the setup screen.
+	save_weather = OptionButton.new()
+	for id: String in MatchSetup.WEATHERS:
+		if not id.is_empty():
+			save_weather.add_item(MatchSetup.WEATHERS[id])
+	box.add_child(_row("Weather", save_weather))
+	save_daytime = OptionButton.new()
+	for id: String in MatchSetup.DAYTIMES:
+		if not id.is_empty():
+			save_daytime.add_item(MatchSetup.DAYTIMES[id])
+	box.add_child(_row("Time of day", save_daytime))
 	box.add_child(MenuTheme.hint("Saved under its name (data/maps/ in the repository, the player's own maps folder in the released game) and listed in the single-player menu."))
 	_dialog_buttons(box, "Save", _save_map)
 
@@ -211,6 +229,7 @@ func _open_map() -> void:
 
 
 func _save_map() -> void:
+	main.editor.set_map_weather(MatchSetup.WEATHERS.keys()[save_weather.selected + 1], MatchSetup.DAYTIMES.keys()[save_daytime.selected + 1])
 	if main.save_as(save_name.text):
 		show_dialog("")
 

@@ -138,6 +138,13 @@ fn map_toml(map: &EditMap, base: i32, step: u32) -> String {
     let _ = writeln!(t, "height_step_mm = {step}");
     let _ = writeln!(t, "biome = {}", quoted(meta.biome.name()));
     let _ = writeln!(t, "water_flow_deg = {}", meta.water_flow_deg);
+    // Prompt 040: written only when not clear by day (the default).
+    if meta.weather.weather != sim::Weather::default() {
+        let _ = writeln!(t, "weather = {}", quoted(meta.weather.weather.name()));
+    }
+    if meta.weather.daytime != sim::Daytime::default() {
+        let _ = writeln!(t, "daytime = {}", quoted(meta.weather.daytime.name()));
+    }
     for (player, p) in &meta.starts {
         let team = meta
             .start_team(*player)

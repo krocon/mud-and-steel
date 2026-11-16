@@ -130,6 +130,18 @@ impl Vision {
         }
     }
 
+    /// Lets `player`, and everyone who shares its vision, see unit `i`
+    /// until the next vision update (prompt 040: muzzle flashes at night).
+    pub(super) fn reveal(&mut self, i: usize, player: PlayerId) {
+        if let Some(s) = self.slot(player) {
+            for t in 0..self.players.len() {
+                if self.shares[t] & (1 << s) != 0 {
+                    self.seen[i] |= 1 << t;
+                }
+            }
+        }
+    }
+
     /// Makes sure viewsheds of `radius` cells can be computed (prompt 033:
     /// reconnaissance aircraft).
     pub(super) fn ensure_radius(&mut self, radius: i32) {

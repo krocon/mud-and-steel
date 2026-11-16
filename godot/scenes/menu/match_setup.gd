@@ -41,10 +41,29 @@ const MODES: Dictionary[String, String] = {
 }
 const DEFAULT_MODE := "base"
 
+## Weather and time of day (prompt 040, `SimHost.weather` / `daytime`):
+## "" keeps the map's default (`weather` / `daytime` in map.toml).
+const WEATHERS: Dictionary[String, String] = {
+	"": "Map default",
+	"clear": "Clear",
+	"overcast": "Overcast",
+	"rain": "Rain (mud)",
+	"snow": "Snow",
+	"fog": "Fog",
+}
+const DAYTIMES: Dictionary[String, String] = {
+	"": "Map default",
+	"morning": "Morning",
+	"day": "Day",
+	"evening": "Evening",
+	"night": "Night",
+}
+
 ## The match to start: `map` (folder name in `data/maps/`, or BUILTIN_MAP for
 ## the compiled-in map), `biome` ("" = the map's), `factions` (faction id per
 ## player, local player first), `ai` (difficulty of the computer opponent,
-## see OPPONENTS), `mode` (see MODES). Empty when nothing is pending.
+## see OPPONENTS), `mode` (see MODES), `weather` and `daytime` (see
+## WEATHERS, DAYTIMES). Empty when nothing is pending.
 static var pending := {}
 ## The menu self-test that drives the whole flow, or null. While it runs,
 ## `main.gd` adds the match self-test only when `run_match_test` is set.
@@ -90,6 +109,7 @@ static func describe_map(map_name: String) -> String:
 	var samples := 0
 	var cell_mm := 0
 	var biome := ""
+	var weather := ""
 	for line in text.split("\n"):
 		var parts := line.split("=", true, 1)
 		if parts.size() != 2:
@@ -105,11 +125,13 @@ static func describe_map(map_name: String) -> String:
 				cell_mm = int(value)
 			"biome":
 				biome = value
+			"weather", "daytime":
+				weather += (", " if not weather.is_empty() else "") + value
 	var size := ""
 	if samples > 1 and cell_mm > 0:
 		var meters := (samples - 1) * cell_mm / 1000
 		size = "%d m × %d m" % [meters, meters] if meters < 1000 else "%.1f km × %.1f km" % [meters / 1000.0, meters / 1000.0]
-	return "%s%s" % [size, (", " + biome) if not biome.is_empty() else ""]
+	return "%s%s%s" % [size, (", " + biome) if not biome.is_empty() else "", (", " + weather) if not weather.is_empty() else ""]
 
 
 ## Start positions of a map from its `map.toml` (prompt 037): dictionaries

@@ -59,8 +59,12 @@ func _run() -> void:
 	var report: Dictionary = scene.validate_map()
 	_check(report["ok"], "the built map is not playable: %s" % report.get("errors"))
 	_check(report["map_hash"] != hash_before, "the map hash did not change")
+	# Default weather of the map (prompt 040): the match below plays in it.
+	_check(editor.set_map_weather("fog", "evening"), "setting the map weather failed")
+	_check(editor.map_weather() == PackedStringArray(["fog", "evening"]), "map weather %s" % editor.map_weather())
 	_check(scene.save_as(MAP_NAME), "saving failed")
 	var dir: String = scene.map_dir(MAP_NAME)
+	_check(FileAccess.get_file_as_string(dir.path_join("map.toml")).contains("weather = \"fog\""), "map.toml without the weather")
 	for file in ["map.toml", "height.png", "terrain.png", "objects.csv"]:
 		_check(FileAccess.file_exists(dir.path_join(file)), "%s not written" % file)
 	_check(scene.save_as("test_small") == false, "the editor overwrote test_small")
@@ -213,6 +217,8 @@ func _play_test(menu: Control, map_hash: String) -> void:
 	_check(host.known_mines().is_empty(), "the map's hidden mines are known")
 	_check(host.map_name() == MAP_NAME, "match runs on '%s'" % host.map_name())
 	_check(host.map_hash() == map_hash, "match map hash %s, editor check %s" % [host.map_hash(), map_hash])
+	var weather: Dictionary = host.weather_info()
+	_check(weather.get("weather") == "fog" and weather.get("daytime") == "evening", "match weather %s, map default fog in the evening" % weather)
 	var ids := host.unit_ids()
 	var owners := host.unit_owners()
 	var own := PackedInt64Array()
@@ -231,7 +237,7 @@ func _play_test(menu: Control, map_hash: String) -> void:
 		if owners[i] == host.local_player() and now[i].distance_to(positions[i]) > 2.0:
 			moved += 1
 	_check(moved >= 4, "only %d tanks drove" % moved)
-	print("editor self-test: match on '%s' ok (map hash %s, %d tanks drove, tick %d)" % [MAP_NAME, map_hash, moved, host.current_tick()])
+	print("editor self-test: match on '%s' ok (map hash %s, %s in the %s, %d tanks drove, tick %d)" % [MAP_NAME, map_hash, weather.get("weather"), weather.get("daytime"), moved, host.current_tick()])
 
 
 func _finish() -> void:

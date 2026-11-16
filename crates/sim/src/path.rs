@@ -169,6 +169,10 @@ struct Profile {
     cost: Vec<u16>,
     /// Cost per cell assumed by the A* heuristic.
     heuristic: u16,
+    /// Speed on soft ground in percent of the terrain speed, per terrain id
+    /// (prompt 040, weather); empty: 100 % everywhere.
+    #[serde(default)]
+    ground_pct: Vec<u32>,
 }
 
 /// Cells around changed areas within which
@@ -305,6 +309,7 @@ impl PathGrid {
                         components: index,
                         cost: vec![0; count],
                         heuristic: heuristic_cost(t),
+                        ground_pct: Vec::new(),
                     }
                 })
                 .collect(),
@@ -426,6 +431,42 @@ impl PathGrid {
     pub fn restriction(&self, profile: usize) -> (SizeClass, u32) {
         let p = &self.profiles[profile];
         (p.class, p.tier)
+    }
+
+    /// Speed on soft ground of profile `profile` in percent of the terrain
+    /// speed, per terrain id (prompt 040); empty: 100 % everywhere.
+    pub fn ground_pct(&self, profile: usize) -> &[u32] {
+        &self.profiles[profile].ground_pct
+    }
+
+    /// Sets the soft-ground speeds of every profile (prompt 040, one list
+    /// per profile, see [`Self::ground_pct`]). The costs follow only with
+    /// [`Self::recost_rows`].
+    pub fn set_ground_pct(&mut self, per_profile: Vec<Vec<u32>>) {
+        for (profile, pct) in self.profiles.iter_mut().zip(per_profile) {
+            profile.ground_pct = pct;
+        }
+    }
+
+    /// Computes the costs of every profile again in the cell rows
+    /// `y0..=y1` (clamped to the grid), after [`Self::set_ground_pct`].
+    /// Passability and components do not change.
+    pub fn recost_rows(&mut self, map: &Map, rules: &TerrainRules, y0: u32, y1: u32) {
+        let y1 = y1.min(self.height - 1);
+        if y0 > y1 {
+            return;
+        }
+        self.version = self.version.wrapping_add(1);
+        for p in 0..self.profiles.len() {
+            let times = terrain_times(rules, &self.profiles[p]);
+            for y in y0..=y1 {
+                for x in 0..self.width {
+                    let cost = self.cell_cost(map, &times, p, x, y);
+                    let i = self.index(x, y);
+                    self.profiles[p].cost[i] = cost;
+                }
+            }
+        }
     }
 
     /// The bridge (index into [`crate::Map::bridges`]) whose intact deck
@@ -1487,7 +1528,14 @@ fn terrain_times(rules: &TerrainRules, profile: &Profile) -> Vec<Fixed> {
     let speeds: Vec<Fixed> = rules
         .types
         .iter()
-        .map(|t| t.speed(profile.offroad, profile.road))
+        .enumerate()
+        .map(|(id, t)| {
+            let speed = t.speed(profile.offroad, profile.road);
+            match profile.ground_pct.get(id) {
+                Some(&pct) if pct != 100 => speed * Fixed::from_num(pct) / 100,
+                _ => speed,
+            }
+        })
         .collect();
     let fastest = rules
         .types

@@ -93,7 +93,8 @@ radius_mm_per_mm = 150
 lifetime_ms = 90000
 height_mm = 10000
 # The wind drifts every cloud by this many mm per real second (x east,
-# y south). Fixed until weather (prompt 040). [provisional]
+# y south), scaled by the weather's `wind_pct` (data/weather.toml, prompt 040).
+# [provisional]
 wind_x_mm_per_s = 800
 wind_y_mm_per_s = 300
 # At most this many clouds at once; the oldest one dissolves first.

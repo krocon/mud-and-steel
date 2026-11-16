@@ -67,6 +67,7 @@ const DebugMenu := preload("res://scenes/debug/debug_menu.gd")
 const GroundPick := preload("res://scenes/camera/ground_pick.gd")
 const PathDebug := preload("res://scenes/debug/path_debug.gd")
 const Atmosphere := preload("res://scenes/world/atmosphere.gd")
+const WeatherLook := preload("res://scenes/world/weather_look.gd")
 const GraphicsQuality := preload("res://scenes/world/graphics_quality.gd")
 const MapObjects := preload("res://scenes/world/map_objects.gd")
 const Water := preload("res://scenes/world/water.gd")
@@ -150,6 +151,8 @@ var _enemy_material: StandardMaterial3D
 var _ally_material: StandardMaterial3D
 ## Lighting, haze and biome look (prompt 015).
 var atmosphere: Atmosphere
+## Rain, wet ground, weather sounds (prompt 040).
+var weather_look: WeatherLook
 ## Tracers, health bars, wrecks (prompt 017).
 var combat_view: CombatView
 ## Shells, impact markers, smoke clouds (prompt 032).
@@ -221,6 +224,10 @@ func _ready() -> void:
 	add_child(atmosphere)
 	atmosphere.setup($WorldEnvironment, sun, camera_rig, terrain)
 	atmosphere.quality = Settings.quality()
+	# Weather and time of day of the match (prompt 040).
+	var weather: Dictionary = sim_host.weather_info()
+	atmosphere.weather = weather.get("weather", "clear")
+	atmosphere.daytime = weather.get("daytime", "day")
 	var biome: String = MatchSetup.pending.get("biome", "")
 	atmosphere.set_biome(biome if not biome.is_empty() else Atmosphere.biome_from(sim_host.map_biome()))
 	MatchSetup.pending = {}
@@ -302,6 +309,10 @@ func _ready() -> void:
 		add_child(battle_sound)
 		battle_sound.setup(self)
 		battle_sound.visible_at = effects.visible_at
+	weather_look = WeatherLook.new()
+	weather_look.name = "WeatherLook"
+	add_child(weather_look)
+	weather_look.setup(self)
 
 	selection.sim_host = sim_host
 	selection.camera = camera
@@ -452,9 +463,17 @@ func _start_simulation() -> bool:
 	# Computer opponent (prompt 024): from the setup screen, or `--ai=<level>`
 	# for direct starts; none for LAN matches.
 	sim_host.ai_opponent = MatchSetup.pending.get("ai", "")
+	# Weather and time of day (prompt 040): setup screen or `--weather=`,
+	# `--daytime=`; empty: the map's default.
+	sim_host.weather = MatchSetup.pending.get("weather", "")
+	sim_host.daytime = MatchSetup.pending.get("daytime", "")
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--ai="):
 			sim_host.ai_opponent = arg.trim_prefix("--ai=")
+		if arg.begins_with("--weather="):
+			sim_host.weather = arg.trim_prefix("--weather=")
+		if arg.begins_with("--daytime="):
+			sim_host.daytime = arg.trim_prefix("--daytime=")
 	if GameFiles.is_pending(MatchSetup.pending):
 		return GameFiles.start(sim_host, MatchSetup.pending)
 	if not MatchSetup.pending.is_empty():

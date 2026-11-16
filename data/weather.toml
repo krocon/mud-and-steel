@@ -1,0 +1,215 @@
+# Weather, soft ground and time of day (prompt 040). Integers only. Compiled
+# into the simulation (`sim::WeatherRules::builtin`, loaded by `Sim::new`);
+# see docs/ARCHITECTURE.md "Weather, mud and time of day".
+#
+# These are game rules, not historical values: the catalog has no ground
+# pressure or mud mobility. They follow the well-known pattern (wheels sink
+# first, tracks spread the load, roads stay firm) in round numbers.
+# Values marked [provisional] wait for confirmation.
+#
+# A match has one weather and one time of day for its whole length (chosen in
+# the setup, default from map.toml). The default "clear" by "day" changes
+# nothing: every factor below is 100 % there, and the weather state is not
+# even part of the state hash, so matches in clear weather keep their hashes.
+#
+# Times are game seconds (the match clock), distances real meters where they
+# are sight ranges (compressed like data/vision.toml).
+
+# --- Weather -------------------------------------------------------------------
+# Every [[weather]]:
+#   name              identifier (setup, map.toml, Godot)
+#   sight_pct         percent of every sight range (units and recon aircraft)
+#   ground            "dry", "wet" (rain soaks the soil) or "snow" (snow cover)
+#   ground_start_pct  softness of the ground at the start, 0..=100
+#   ground_step_pct   the softness rises by this much every `ground_step_s`
+#   ground_step_s     game seconds per step (0: the ground stays as it starts)
+#   wind_pct          strength of the wind (smoke drift of data/indirect.toml,
+#                     fire spread) in percent of the normal wind
+#   fire_catch_pct    percent of the catch chance of data/fire.toml (wet wood)
+
+[[weather]]
+name = "clear"
+sight_pct = 100
+ground = "dry"
+ground_start_pct = 0
+ground_step_pct = 0
+ground_step_s = 0
+wind_pct = 100
+fire_catch_pct = 100
+
+# Overcast: no rain, the ground is still firm. Gusty.
+[[weather]]
+name = "overcast"
+sight_pct = 90
+ground = "dry"
+ground_start_pct = 0
+ground_step_pct = 0
+ground_step_s = 0
+wind_pct = 130
+fire_catch_pct = 90
+
+# Rain: it has rained for a while when the match starts (half soaked); every
+# two minutes the ground gets softer until it is soaked (after ten minutes).
+# [provisional]
+[[weather]]
+name = "rain"
+sight_pct = 70
+ground = "wet"
+ground_start_pct = 50
+ground_step_pct = 10
+ground_step_s = 120
+wind_pct = 150
+fire_catch_pct = 40
+
+# Snow: a closed snow cover from the start.
+[[weather]]
+name = "snow"
+sight_pct = 60
+ground = "snow"
+ground_start_pct = 100
+ground_step_pct = 0
+ground_step_s = 0
+wind_pct = 120
+fire_catch_pct = 30
+
+# Fog: calm, damp ground, very short sight. [provisional]
+[[weather]]
+name = "fog"
+sight_pct = 35
+ground = "wet"
+ground_start_pct = 20
+ground_step_pct = 0
+ground_step_s = 0
+wind_pct = 20
+fire_catch_pct = 70
+
+# --- Time of day -----------------------------------------------------------------
+# Every [[daytime]]:
+#   name            identifier
+#   sight_pct       percent of every sight range (multiplies the weather's)
+#   muzzle_flash    shots reveal the shooter ([flash])
+
+[[daytime]]
+name = "morning"
+sight_pct = 80
+muzzle_flash = false
+
+[[daytime]]
+name = "day"
+sight_pct = 100
+muzzle_flash = false
+
+[[daytime]]
+name = "evening"
+sight_pct = 80
+muzzle_flash = false
+
+# Night without moon or flares: about 200 m real (50 m game) sight in the
+# open would be realistic, but makes a match unplayable; 45 % keeps the
+# battle moving and the flashes do the rest. [provisional]
+[[daytime]]
+name = "night"
+sight_pct = 45
+muzzle_flash = true
+
+# --- Muzzle flash ------------------------------------------------------------
+# At a time of day with `muzzle_flash`, a unit that fires a direct-fire weapon
+# is seen for `reveal_s` game seconds by every player who has a unit within
+# `range_real_m` (real meters, compressed like sight ranges), without a line
+# of sight: the flash lights up the night. [provisional]
+[flash]
+reveal_s = 2
+range_real_m = 2000
+
+# --- Ground ------------------------------------------------------------------
+# Speed on soft ground: the terrain speed of data/terrain.toml times
+#   100 % - loss_pct(gear, ground) x softness(terrain, ground) x level
+# where level is the weather's ground softness (0..100 %), but never below
+# `min_speed_pct`. Path costs follow the same factors (prompt 012 grid).
+[ground]
+min_speed_pct = 8
+
+# Running gear. Every [[ground.gear]]:
+#   name            identifier
+#   wet_loss_pct    speed loss on fully soaked, fully soft ground
+#   snow_loss_pct   speed loss in full snow
+#   categories      catalog categories with this running gear
+#   ids             single catalog ids (override the categories)
+# Categories not listed (aircraft, buildings) are not slowed. Wheels sink in
+# and spin, half-tracks carry the front on wheels, tracks spread the load;
+# infantry slogs. [provisional]
+[[ground.gear]]
+name = "foot"
+wet_loss_pct = 30
+snow_loss_pct = 40
+categories = [
+    "inf_rifle", "inf_lmg", "inf_hmg", "inf_mortar_light", "inf_mortar_medium",
+    "inf_recon", "inf_sniper", "inf_medic", "inf_engineer", "inf_at",
+    "inf_flamethrower", "inf_command", "mortar_heavy",
+]
+ids = []
+
+[[ground.gear]]
+name = "wheeled"
+wet_loss_pct = 80
+snow_loss_pct = 60
+categories = ["truck", "recon_vehicle", "gun_at", "gun_aa_light", "gun_aa_heavy", "gun_howitzer"]
+# The M3A1 Scout Car is a 4x4 armored car (see its catalog note), filed as
+# the Red Army's half-track.
+ids = ["su_m3a1_scout"]
+
+[[ground.gear]]
+name = "halftrack"
+wet_loss_pct = 50
+snow_loss_pct = 35
+categories = ["halftrack"]
+ids = []
+
+[[ground.gear]]
+name = "tracked"
+wet_loss_pct = 35
+snow_loss_pct = 25
+categories = ["tank_light", "tank_medium", "tank_heavy", "tank_destroyer", "assault_gun", "self_propelled"]
+ids = []
+
+# How soft each terrain type of data/terrain.toml gets, in percent (0: stays
+# firm). Terrain types not listed stay firm. Paved roads shed water and are
+# cleared of snow first; dirt tracks turn to mud first. [provisional]
+[[ground.terrain]]
+name = "grass"
+wet_pct = 70
+snow_pct = 100
+
+[[ground.terrain]]
+name = "dirt_track"
+wet_pct = 100
+snow_pct = 80
+
+[[ground.terrain]]
+name = "road"
+wet_pct = 0
+snow_pct = 30
+
+[[ground.terrain]]
+name = "sand"
+wet_pct = 20
+snow_pct = 100
+
+[[ground.terrain]]
+name = "mud"
+wet_pct = 100
+snow_pct = 60
+
+[[ground.terrain]]
+name = "snow"
+wet_pct = 40
+snow_pct = 0
+
+# --- Fire ----------------------------------------------------------------------
+# Fire spreads more easily downwind (prompt 041 [spread]): the catch chance
+# of a neighbor is scaled by 100 % + `downwind_pct` x cos(angle between the
+# wind and the way from the fire to the neighbor) x wind strength, where the
+# normal wind of data/indirect.toml is strength 1 (stronger winds count up to
+# 2). Upwind neighbors catch less. [provisional]
+[fire]
+downwind_pct = 50

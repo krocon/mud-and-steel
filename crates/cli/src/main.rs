@@ -218,6 +218,12 @@ enum CliCommand {
         /// Print every game.
         #[arg(long)]
         verbose: bool,
+        /// Weather of every game (prompt 040); default: the map's.
+        #[arg(long)]
+        weather: Option<String>,
+        /// Time of day of every game; default: the map's.
+        #[arg(long)]
+        daytime: Option<String>,
     },
     /// Benchmarks vision (prompt 018): many moving units of two players.
     VisionBench {
@@ -259,6 +265,13 @@ enum CliCommand {
         /// busy machine.
         #[arg(long, default_value_t = 1)]
         runs: u32,
+        /// Weather of the match (prompt 040): clear, overcast, rain, snow,
+        /// fog; default: the map's.
+        #[arg(long)]
+        weather: Option<String>,
+        /// Time of day: morning, day, evening, night; default: the map's.
+        #[arg(long)]
+        daytime: Option<String>,
     },
     /// Generates the procedural ground textures of the terrain shader.
     GenTerrainTextures {
@@ -596,6 +609,8 @@ fn main() {
             max_ticks,
             jobs,
             verbose,
+            weather,
+            daytime,
         } => {
             let team_size = match teams.as_deref() {
                 Some("2v2") => 2,
@@ -612,12 +627,14 @@ fn main() {
                 "base" => sim::scenario::SKIRMISH_SCENARIO,
                 other => fail(&format!("unknown mode '{other}' (battle, base)")),
             };
-            let config = if team_size > 1 {
+            let mut config = if team_size > 1 {
                 team_tournament_config(&map, &factions, scenario, team_size)
             } else {
                 tournament_config(&map, &factions, scenario)
             }
             .unwrap_or_else(|e| fail(&e));
+            set_weather(&mut config, weather.as_deref(), daytime.as_deref())
+                .unwrap_or_else(|e| fail(&e));
             let options = ai_tournament::Options {
                 games,
                 seed,
@@ -657,8 +674,12 @@ fn main() {
             ai,
             windows,
             runs,
+            weather,
+            daytime,
         } => {
-            let (config, map) = bench_config(&scenario).unwrap_or_else(|e| fail(&e));
+            let (mut config, map) = bench_config(&scenario).unwrap_or_else(|e| fail(&e));
+            set_weather(&mut config, weather.as_deref(), daytime.as_deref())
+                .unwrap_or_else(|e| fail(&e));
             let options = bench::Options {
                 ticks,
                 seed,
@@ -820,6 +841,23 @@ fn load_map_dir(dir: &Path) -> Result<sim::Map, String> {
             .map_err(|e| format!("{}: {e}", dir.display()))?;
     }
     Ok(map)
+}
+
+/// Overrides the weather and time of day of `config` (prompt 040).
+fn set_weather(
+    config: &mut sim::SimConfig,
+    weather: Option<&str>,
+    daytime: Option<&str>,
+) -> Result<(), String> {
+    if let Some(name) = weather {
+        config.weather.weather =
+            sim::Weather::from_name(name).ok_or_else(|| format!("unknown weather '{name}'"))?;
+    }
+    if let Some(name) = daytime {
+        config.weather.daytime =
+            sim::Daytime::from_name(name).ok_or_else(|| format!("unknown daytime '{name}'"))?;
+    }
+    Ok(())
 }
 
 /// A scenario file and its map from `data/maps/`.

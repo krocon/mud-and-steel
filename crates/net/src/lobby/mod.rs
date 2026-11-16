@@ -23,5 +23,6 @@ pub use wire::{CHANNEL_COUNT, LobbyPlayer, LobbySetup, LobbySlot, SlotKind, Star
 
 /// Version of the multiplayer protocol (lobby messages, LAN discovery and
 /// lockstep messages). Peers with a different version are rejected when
-/// joining. 3 since prompt 037 (slots, teams, `Command::Ping`).
-pub const PROTOCOL_VERSION: u16 = 3;
+/// joining. 3 since prompt 037 (slots, teams, `Command::Ping`); 4 since
+/// prompt 040 (`SimConfig::weather`).
+pub const PROTOCOL_VERSION: u16 = 4;

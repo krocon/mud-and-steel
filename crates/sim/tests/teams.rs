@@ -70,6 +70,7 @@ fn sim_with(
         vision: VisionRules::builtin().unwrap(),
         infantry: sim::InfantryRules::builtin().unwrap(),
         teams: Teams::new(teams, shared_vision),
+        weather: sim::WeatherSetup::default(),
     };
     Sim::new(&config, map, 7).unwrap()
 }
