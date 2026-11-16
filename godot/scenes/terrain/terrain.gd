@@ -356,6 +356,12 @@ func apply_biome(preset: Resource) -> void:
 	_edge_material.set_shader_parameter("soil_tint", preset.edge_tint)
 
 
+## Rain-soaked ground (prompt 040, world/weather_look.gd), 0..1.
+func set_wetness(value: float) -> void:
+	if _material:
+		_material.set_shader_parameter("wetness", value)
+
+
 ## Current value of a terrain shader parameter (for the self-test).
 func shader_parameter(name: StringName) -> Variant:
 	return _material.get_shader_parameter(name) if _material else null

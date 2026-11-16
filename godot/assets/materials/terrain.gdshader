@@ -23,6 +23,10 @@
 // darker and glossier (wet band); the river bed under water is only a little
 // darker, the water surface (water.gdshader) tints it.
 //
+// Weather (prompt 040): `wetness` (0..1, set by world/weather_look.gd)
+// darkens the ground, makes it glossy and fills puddles on flat soft
+// ground (tracks, mud, bare earth first).
+//
 // Layer order: see LAYERS in crates/cli/src/gen_textures.rs.
 shader_type spatial;
 render_mode cull_back;
@@ -63,6 +67,8 @@ uniform int layer_source[LAYER_COUNT];
 uniform vec4 layer_tint[LAYER_COUNT] : source_color;
 uniform float snow_cover = 0.0;
 uniform float grass_variation = 1.0;
+// Rain-soaked ground (prompt 040), 0..1.
+uniform float wetness = 0.0;
 // 1: tint every chunk by its LOD level (debug menu).
 uniform bool show_lod = false;
 uniform sampler2D water_tex : filter_linear, repeat_disable;
@@ -268,6 +274,20 @@ void fragment() {
 			rough = mix(rough, 0.25, wet * dry_above);
 			detail *= 1.0 - 0.4 * wet;
 		}
+	}
+
+	// Rain (prompt 040): darker and glossier everywhere, puddles on flat
+	// soft ground (driven tracks, mud and bare earth more than grass).
+	if (wetness > 0.0) {
+		float flat_wet = smoothstep(0.3, 0.08, grade);
+		float soil = clamp(w[TRACK] + w[EARTH] + w[4] + 0.35 * w[0], 0.0, 1.0);
+		float puddle = smoothstep(0.62, 0.7, macro_near.r + 0.25 * soil + 0.15 * wetness - 0.2)
+			* flat_wet * soil * wetness * (1.0 - far * 0.5);
+		albedo *= mix(1.0, 0.62, wetness);
+		rough = mix(rough, 0.32, wetness * 0.6);
+		albedo = mix(albedo, albedo * 0.45 + vec3(0.02, 0.025, 0.03), puddle);
+		rough = mix(rough, 0.04, puddle);
+		detail *= 1.0 - 0.8 * puddle;
 	}
 
 	// Snow cover (winter): on flat ground, patchy, thinner on roads and

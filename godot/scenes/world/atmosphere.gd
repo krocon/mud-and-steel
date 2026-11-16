@@ -23,6 +23,7 @@ extends Node
 
 const BiomePreset := preload("res://assets/biomes/biome_preset.gd")
 const GraphicsQuality := preload("res://scenes/world/graphics_quality.gd")
+const WeatherLook := preload("res://scenes/world/weather_look.gd")
 
 const BIOMES_DIR := "res://assets/biomes/"
 const BIOMES: Array[String] = ["forest", "desert", "winter"]
@@ -52,6 +53,11 @@ void fragment() {
 
 var preset: BiomePreset
 var quality := GraphicsQuality.DEFAULT
+## Weather and time of day of the match (prompt 040, `set_weather`): the
+## preset is the biome's as it looks then (`WeatherLook.adjust`).
+var weather := "clear"
+var daytime := "day"
+var _biome_preset: BiomePreset
 
 var _world_env: WorldEnvironment
 var _env: Environment
@@ -107,8 +113,18 @@ static func load_preset(id: String) -> BiomePreset:
 
 
 func set_biome(id: String) -> void:
-	preset = load_preset(id)
+	_biome_preset = load_preset(id)
+	preset = WeatherLook.adjust(_biome_preset, weather, daytime)
 	_apply()
+
+
+## Weather and time of day (prompt 040); applies at once if a biome is set.
+func set_weather(weather_name: String, daytime_name: String) -> void:
+	weather = weather_name
+	daytime = daytime_name
+	if _biome_preset:
+		preset = WeatherLook.adjust(_biome_preset, weather, daytime)
+		_apply()
 
 
 func set_quality(level: String) -> void:
