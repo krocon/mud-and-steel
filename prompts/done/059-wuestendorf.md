@@ -108,8 +108,10 @@ und den Streupinsel.
   150 m 60 FPS. `path-bench desert_village 200`: Planung im Mittel 11 ms/Tick
   (max 52 ms), alle Ticks im Mittel 1,2 ms (vergleichbar mit `town_small`).
 - **Golden-Hashes** bewusst aktualisiert (Regeltabellen werden als Ganzes
-  gehasht): Demo `0x8ab2aa30ae0b23b5`, Basisbau `0x3e262432a66238fd`; die
-  Szenarien nutzen keine Wüstenobjekte, die Schlacht ist unverändert.
+  gehasht): allein Demo `0x8ab2aa30ae0b23b5`, Basisbau `0x3e262432a66238fd`;
+  nach dem Merge mit `main` (035/036/046/048/053) Demo `0x0773c8ed1eac669d`,
+  Basisbau `0x787fc4698fa2b0d1`. Die Szenarien nutzen keine Wüstenobjekte,
+  die Schlacht ist unverändert.
 - **Prüfungen:** `just check`, `kit-test`, `validate-assets`,
   `gallery-check`, `map-check desert_village`, `editor-selftest`,
   `selftest` grün.
