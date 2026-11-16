@@ -433,6 +433,67 @@ impl MapEditor {
         }
     }
 
+    /// Ridge (positive `amount` meters) or valley (negative) with a linear
+    /// falloff to the rim (prompt 060).
+    #[func]
+    fn ridge(&mut self, x: f32, z: f32, radius: f32, amount: f32) -> Rect2i {
+        let brush = self.brush(x, z, radius);
+        let rect = self.map.as_mut().and_then(|m| m.ridge(brush, mm(amount)));
+        self.edited(rect);
+        rect2i(rect)
+    }
+
+    /// Terraces of `step` meters (`strength` 0..1 at the center, prompt
+    /// 060).
+    #[func]
+    fn terrace(&mut self, x: f32, z: f32, radius: f32, step: f32, strength: f32) -> Rect2i {
+        let brush = self.brush(x, z, radius);
+        let rect = self
+            .map
+            .as_mut()
+            .and_then(|m| m.terrace(brush, radius_mm(step), pml(strength)));
+        self.edited(rect);
+        rect2i(rect)
+    }
+
+    /// A road piece from the previous dab at `(from_x, from_z)` and
+    /// `from_level` to this one at `level` meters, painted with terrain
+    /// `id`, with embankments and cuttings beside it (prompt 060).
+    #[func]
+    #[allow(clippy::too_many_arguments)]
+    fn road(
+        &mut self,
+        x: f32,
+        z: f32,
+        radius: f32,
+        level: f32,
+        from_x: f32,
+        from_z: f32,
+        from_level: f32,
+        id: i64,
+    ) -> Rect2i {
+        let brush = self.brush(x, z, radius);
+        let Ok(id) = u8::try_from(id) else {
+            return Rect2i::default();
+        };
+        let from = (mm(from_x), mm(from_z), mm(from_level));
+        let result = self
+            .map
+            .as_mut()
+            .map(|m| m.road(brush, mm(level), from, id));
+        match result {
+            Some(Ok(rect)) => {
+                self.edited(rect);
+                rect2i(rect)
+            }
+            Some(Err(e)) => {
+                self.fail(e);
+                Rect2i::default()
+            }
+            None => Rect2i::default(),
+        }
+    }
+
     /// Digs a river bed `depth` meters below `level` (the bank height).
     #[func]
     fn river(&mut self, x: f32, z: f32, radius: f32, level: f32, depth: f32) -> Rect2i {

@@ -98,6 +98,10 @@ enum CliCommand {
         /// Start positions for 2, 4 or 6 players in two teams (prompt 037).
         #[arg(long, default_value_t = 2, value_parser = clap::value_parser!(u8).range(2..=6))]
         players: u8,
+        /// Terrain profile (prompt 060): gentle (the test maps), hilly or
+        /// mountains.
+        #[arg(long, default_value = "gentle", value_parser = gen_map::Relief::NAMES)]
+        relief: String,
     },
     /// Generates the desert village map (prompt 059): courtyard compounds,
     /// square with mosque and market, oasis, police post; two or four players.
@@ -519,8 +523,10 @@ fn main() {
             start_distance_m,
             out,
             players,
+            relief,
         } => {
             let out = out.unwrap_or_else(|| Path::new(MAPS_DIR).join(&name));
+            let relief = gen_map::Relief::parse(&relief).unwrap_or_else(|e| fail(&e));
             let options = gen_map::Options {
                 name: &name,
                 size_m,
@@ -529,6 +535,7 @@ fn main() {
                 biome: &biome,
                 start_distance_m,
                 out: &out,
+                relief,
             };
             match gen_map::generate(&options) {
                 Ok(report) => println!("{report}"),

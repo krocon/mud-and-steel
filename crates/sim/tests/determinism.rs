@@ -24,8 +24,17 @@ fn different_seed_gives_different_hash() {
 /// Last changed by the merge of prompt 059 (desert village: new entries
 /// in the hashed rule tables of `data/destruction.toml`,
 /// `data/infantry.toml` and `data/vision.toml`; the demo uses none of
-/// them, battle unchanged). Before (`0x934d_db12_191d_9a20`):
-/// prompt 048 (knockdown): the `[knockdown]` rules of
+/// them, battle unchanged) with 060. Before (`0x9b87_57bd_bec7_96f8`),
+/// 059 with 048 alone `0x0773_c8ed_1eac_669d`:
+/// the merge of prompt 060 (mountains): the downhill
+/// sight rules (`[height]` in `data/vision.toml`) are in the hash. Nothing
+/// else changes: `test_small` has no ground 20 m below any eye, so every
+/// viewshed keeps its sight range (checked: without hashing the new
+/// rules the hash stays the one before). Before:
+/// `0x934d_db12_191d_9a20` (prompt 048, below); prompt 060 alone
+/// `0x1fa2_761f_1d8f_77f6`.
+///
+/// Prompt 048 (knockdown): the `[knockdown]` rules of
 /// `data/infantry.toml` and every soldier's knock-down state (ticks left,
 /// blast point) are in the hash; blasts and tank ammunition explosions
 /// knock soldiers down. The ammunition roll does not advance the shared
@@ -149,7 +158,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x0773_c8ed_1eac_669d;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x04d1_0b77_115d_59c5;
 
 #[test]
 fn golden_hash() {

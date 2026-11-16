@@ -24,6 +24,10 @@ pub const RIVER_BANK_MM: i32 = 300;
 /// waterline).
 pub const RIVER_DEEP_MM: i32 = 800;
 
+/// Grade of the embankments and cuttings beside a road dab, per mille
+/// (prompt 060; 50 %: steep, but passable below the 60 % limit).
+pub const ROAD_SIDE_PML: u32 = 500;
+
 /// Terrain the object brush does not plant on: field tracks, roads,
 /// shallow and deep water.
 const NO_SCATTER: [u8; 4] = [1, 2, SHALLOW_WATER, DEEP_WATER];
@@ -183,6 +187,87 @@ impl EditMap {
                 map.terrain[k],
             )
         })
+    }
+
+    /// Raises the ground by `amount_mm` at the center (negative: lowers)
+    /// with a linear falloff to the rim (prompt 060): dragged along a
+    /// line it builds a ridge with a sharp crest, or a V-shaped valley.
+    pub fn ridge(&mut self, brush: Brush, amount_mm: i32) -> Option<SampleRect> {
+        let r = i64::from(brush.radius_mm).max(1);
+        self.paint_samples(brush, |map, i, j, _, d2| {
+            let k = map.index(i, j);
+            let d = i64::try_from(d2.max(0).unsigned_abs().isqrt()).unwrap_or(r);
+            let weight = (r - d).max(0) * WEIGHT_ONE / r;
+            let h = i64::from(map.heights[k]) + i64::from(amount_mm) * weight / WEIGHT_ONE;
+            (clamp_height(h), map.terrain[k])
+        })
+    }
+
+    /// Moves the ground towards the nearest multiple of `step_mm` by
+    /// `strength_pml` per mille at the center (prompt 060): slopes become
+    /// flat benches with steep risers (terraces, cliff bands).
+    pub fn terrace(&mut self, brush: Brush, step_mm: u32, strength_pml: u32) -> Option<SampleRect> {
+        let step = i64::from(step_mm.max(1));
+        self.paint_samples(brush, |map, i, j, weight, _| {
+            let k = map.index(i, j);
+            let h = i64::from(map.heights[k]);
+            let target = (h + step / 2).div_euclid(step) * step;
+            (
+                clamp_height(h + fraction(target - h, weight, strength_pml)),
+                map.terrain[k],
+            )
+        })
+    }
+
+    /// A road piece (prompt 060) from the previous dab `from` (`(x_mm,
+    /// y_mm, level_mm)`) to the brush center at `level_mm`: samples within
+    /// half the radius of that segment are set to the level interpolated
+    /// along it and painted with terrain `id` (samples behind `from` keep
+    /// what the previous piece made of them); farther out the ground is cut
+    /// or filled to at most [`ROAD_SIDE_PML`] per mille of grade towards it,
+    /// so the road gets embankments and cuttings. The map editor keeps the
+    /// level of successive dabs within a grade limit.
+    pub fn road(
+        &mut self,
+        brush: Brush,
+        level_mm: i32,
+        from: (i32, i32, i32),
+        id: u8,
+    ) -> Result<Option<SampleRect>, String> {
+        if usize::from(id) >= self.terrain_rules.types.len() {
+            return Err(format!("unknown terrain id {id}"));
+        }
+        let core = i64::from(brush.radius_mm / 2);
+        let (ax, ay, a_level) = (i64::from(from.0), i64::from(from.1), i64::from(from.2));
+        let (bx, by) = (i64::from(brush.x_mm), i64::from(brush.y_mm));
+        let b_level = i64::from(level_mm);
+        let (dx, dy) = (bx - ax, by - ay);
+        let len2 = dx * dx + dy * dy;
+        Ok(self.paint_samples(brush, |map, i, j, _, _| {
+            let k = map.index(i, j);
+            let (x, y) = map.sample_position(i, j);
+            let (px, py) = (i64::from(x) - ax, i64::from(y) - ay);
+            // Behind `from` the previous piece has shaped the road.
+            if len2 > 0 && px * dx + py * dy < 0 {
+                return (map.heights[k], map.terrain[k]);
+            }
+            // Position along the segment in 1/1024 and distance to it.
+            let t = if len2 > 0 {
+                ((px * dx + py * dy) * WEIGHT_ONE / len2).clamp(0, WEIGHT_ONE)
+            } else {
+                WEIGHT_ONE
+            };
+            let (ox, oy) = (px - dx * t / WEIGHT_ONE, py - dy * t / WEIGHT_ONE);
+            let d =
+                i64::try_from((ox * ox + oy * oy).unsigned_abs().isqrt()).unwrap_or(i64::MAX / 2);
+            let level = a_level + (b_level - a_level) * t / WEIGHT_ONE;
+            if d <= core {
+                return (clamp_height(level), id);
+            }
+            let wall = (d - core) * i64::from(ROAD_SIDE_PML) / 1000;
+            let h = i64::from(map.heights[k]).clamp(level - wall, level + wall);
+            (clamp_height(h), map.terrain[k])
+        }))
     }
 
     /// Paints terrain `id` on every sample within the circle.

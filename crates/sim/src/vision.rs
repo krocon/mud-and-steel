@@ -52,12 +52,42 @@ pub struct ObjectSight {
     pub foliage: Vec<String>,
 }
 
+/// Seeing downhill (prompt 060): a vision cell whose ground lies more than
+/// `min_drop_m` below the eye is seen farther than the sight range, by
+/// `pct_per_10m` percent per 10 m of further drop, at most `max_pct`.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct HeightRules {
+    pub min_drop_m: u32,
+    pub pct_per_10m: u32,
+    pub max_pct: u32,
+}
+
+impl HeightRules {
+    /// Sight radius in cells including the largest bonus.
+    pub fn reach_cells(&self, radius: i32) -> i32 {
+        let pct = 100 + self.max_pct as i32;
+        (radius * pct + 99) / 100
+    }
+
+    /// Bonus in percent of the sight range for ground `drop_mm` below the
+    /// eye.
+    pub fn bonus_pct(&self, drop_mm: i64) -> i64 {
+        let over = drop_mm - i64::from(self.min_drop_m) * 1000;
+        if over <= 0 {
+            return 0;
+        }
+        (over * i64::from(self.pct_per_10m) / 10_000).min(i64::from(self.max_pct))
+    }
+}
+
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 struct File {
     grid: GridRules,
     sight: SightRules,
     objects: ObjectSight,
+    height: HeightRules,
 }
 
 /// All vision rules, with the sight range factor of `data/scale.toml`
@@ -69,6 +99,9 @@ pub struct VisionRules {
     pub objects: ObjectSight,
     /// `range.sight` of the scale, `(num, den)`.
     pub sight_ratio: (u32, u32),
+    /// Seeing farther downhill (prompt 060).
+    #[serde(default)]
+    pub height: HeightRules,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -116,12 +149,17 @@ impl VisionRules {
             1,
             100_000_000,
         )?;
+        let hr = &file.height;
+        check("height.min_drop_m", hr.min_drop_m, 0, 10_000)?;
+        check("height.pct_per_10m", hr.pct_per_10m, 0, 100)?;
+        check("height.max_pct", hr.max_pct, 0, 100)?;
         let ratio = (scale.sight_range.num, scale.sight_range.den);
         let rules = Self {
             grid: file.grid,
             sight: file.sight,
             objects: file.objects,
             sight_ratio: ratio,
+            height: file.height,
         };
         let ranges = std::iter::once(rules.sight.range_real_m)
             .chain(rules.sight.categories.iter().map(|o| o.range_real_m));
@@ -187,6 +225,9 @@ impl VisionRules {
             self.sight.range_real_m,
             self.sight_ratio.0,
             self.sight_ratio.1,
+            self.height.min_drop_m,
+            self.height.pct_per_10m,
+            self.height.max_pct,
         ] {
             h.write_u32(v);
         }
@@ -282,7 +323,18 @@ pub struct VisionGrid {
     /// Trees per cell that make forest.
     foliage_min: u32,
     tables: Vec<RayTable>,
+    /// Seeing farther downhill (prompt 060).
+    #[serde(default)]
+    height: HeightRules,
+    /// Lowest ground (mm) per block of [`BLOCK_CELLS`] × [`BLOCK_CELLS`]
+    /// cells, row-major: decides cheaply whether a unit can see anything
+    /// beyond its sight range at all (prompt 060).
+    #[serde(default)]
+    block_min_mm: Vec<i32>,
 }
+
+/// Edge of a block of [`VisionGrid::lowest_within`] in vision cells.
+const BLOCK_CELLS: u32 = 8;
 
 impl VisionGrid {
     /// Builds the grid of `map`; `radii` are the sight radii (cells) used.
@@ -358,7 +410,7 @@ impl VisionGrid {
         let mut wanted: Vec<i32> = radii.to_vec();
         wanted.sort_unstable();
         wanted.dedup();
-        Self {
+        let mut grid = Self {
             origin,
             cell,
             columns,
@@ -371,6 +423,76 @@ impl VisionGrid {
             foliage_depth: rules.grid.foliage_depth_cells as i32,
             foliage_min: rules.grid.foliage_min_objects,
             tables: wanted.into_iter().map(RayTable::new).collect(),
+            height: rules.height,
+            block_min_mm: Vec::new(),
+        };
+        grid.block_min_mm = vec![i32::MAX; grid.blocks().0 as usize * grid.blocks().1 as usize];
+        for i in 0..grid.ground_mm.len() as u32 {
+            grid.update_block(i);
+        }
+        grid
+    }
+
+    /// Number of blocks across and down.
+    const fn blocks(&self) -> (u32, u32) {
+        (
+            self.columns.div_ceil(BLOCK_CELLS),
+            self.rows.div_ceil(BLOCK_CELLS),
+        )
+    }
+
+    /// Recomputes the lowest ground of the block that holds cell `i`.
+    fn update_block(&mut self, i: u32) {
+        let (bc, br) = (
+            i % self.columns / BLOCK_CELLS,
+            i / self.columns / BLOCK_CELLS,
+        );
+        let mut low = i32::MAX;
+        for r in br * BLOCK_CELLS..((br + 1) * BLOCK_CELLS).min(self.rows) {
+            for c in bc * BLOCK_CELLS..((bc + 1) * BLOCK_CELLS).min(self.columns) {
+                low = low.min(self.ground_mm[(r * self.columns + c) as usize]);
+            }
+        }
+        let b = (br * self.blocks().0 + bc) as usize;
+        self.block_min_mm[b] = low;
+    }
+
+    /// A lower bound of the ground (mm) of every cell within `radius`
+    /// cells (a square) of cell `anchor`.
+    pub(crate) fn lowest_within(&self, anchor: u32, radius: i32) -> i32 {
+        let (ac, ar) = (
+            (anchor % self.columns) as i32,
+            (anchor / self.columns) as i32,
+        );
+        let block = BLOCK_CELLS as i32;
+        let (bw, bh) = self.blocks();
+        let span = |center: i32, n: u32| {
+            (
+                ((center - radius).max(0) / block) as u32,
+                ((center + radius).min(n as i32 - 1) / block) as u32,
+            )
+        };
+        let (c0, c1) = span(ac, self.columns);
+        let (r0, r1) = span(ar, self.rows);
+        let mut low = i32::MAX;
+        for r in r0..=r1.min(bh - 1) {
+            for c in c0..=c1.min(bw - 1) {
+                low = low.min(self.block_min_mm[(r * bw + c) as usize]);
+            }
+        }
+        low
+    }
+
+    /// Sight radius for an eye at `eye_mm` in cell `anchor` with sight
+    /// range `base` and longest reach `reach` (cells, prompt 060): the
+    /// reach only if some ground within it is low enough for the downhill
+    /// bonus.
+    pub(crate) fn downhill_radius(&self, anchor: u32, eye_mm: i32, base: i32, reach: i32) -> i32 {
+        let low = self.lowest_within(anchor, reach);
+        if reach > base && self.height.bonus_pct(i64::from(eye_mm) - i64::from(low)) > 0 {
+            reach
+        } else {
+            base
         }
     }
 
@@ -458,6 +580,9 @@ impl VisionGrid {
         for &(i, mm) in changes {
             self.ground_mm[i as usize] = mm;
         }
+        for &(i, _) in changes {
+            self.update_block(i);
+        }
     }
 
     /// Puts smoke up to `height_mm` above the ground over cell `index`, or
@@ -539,6 +664,20 @@ impl VisionGrid {
     /// `anchor` with sight radius `radius` (cells). Returns it and the
     /// number of ray steps taken.
     pub(crate) fn viewshed(&self, anchor: u32, eye_mm: i32, radius: i32) -> (Viewshed, u32) {
+        self.viewshed_downhill(anchor, eye_mm, radius, radius)
+    }
+
+    /// Like [`Self::viewshed`], but the eye sees cells beyond its sight
+    /// range of `base` cells (up to `radius`, see
+    /// [`HeightRules::reach_cells`]) whose ground lies far enough below it
+    /// (prompt 060, [`HeightRules`]).
+    pub(crate) fn viewshed_downhill(
+        &self,
+        anchor: u32,
+        eye_mm: i32,
+        radius: i32,
+        base: i32,
+    ) -> (Viewshed, u32) {
         let table = self
             .tables
             .iter()
@@ -564,14 +703,28 @@ impl VisionGrid {
         let mut canopy: Vec<(i64, i64)> = Vec::with_capacity(keep + 1);
         // `a/b > c/d` for positive `b`, `d`.
         let steeper = |(a, b): (i64, i64), (c, d): (i64, i64)| a * d > c * b;
+        let base2 = i64::from(base) * i64::from(base);
+        // Beyond the sight range only ground this far below the line from
+        // the eye at the target height can be seen (prompt 060).
+        let min_rise = target - i64::from(self.height.min_drop_m) * 1000;
         for ray in table.starts.windows(2) {
             // Horizon of ground and solid obstacles; `None` = open.
             let mut horizon: Option<(i64, i64)> = None;
             canopy.clear();
+            let ray_steps = i64::from(ray[1] - ray[0]);
             for (k, &(dx, dy)) in (1i32..).zip(&table.offsets[ray[0] as usize..ray[1] as usize]) {
                 let c = ac + i32::from(dx);
                 let r = ar + i32::from(dy);
                 if c < 0 || r < 0 || c >= self.columns as i32 || r >= self.rows as i32 {
+                    break;
+                }
+                let d2 = i64::from(dx) * i64::from(dx) + i64::from(dy) * i64::from(dy);
+                let far = d2 > base2;
+                // Beyond the sight range a cell needs ground below the eye
+                // by more than `min_drop` and above the horizon. The horizon
+                // only rises along the ray, so once `horizon * ray_steps`
+                // is above `target - min_drop` no later cell qualifies.
+                if far && horizon.is_some_and(|(num, den)| num * ray_steps > min_rise * den) {
                     break;
                 }
                 steps += 1;
@@ -583,7 +736,12 @@ impl VisionGrid {
                 // eye (prompt 032).
                 let smoke = self.smoke_mm[i];
                 let smoked = smoke != NONE && k > 1 && ground + target < i64::from(smoke);
-                let visible = !smoked
+                let in_range = !far || {
+                    let pct = 100 + self.height.bonus_pct(eye - ground);
+                    d2 * 10_000 <= base2 * pct * pct
+                };
+                let visible = in_range
+                    && !smoked
                     && horizon.is_none_or(|h| !steeper(h, line))
                     && (canopy.len() < keep || !steeper(canopy[keep - 1], line));
                 if visible {
@@ -785,6 +943,18 @@ mod tests {
                 }
             }
         }
+    }
+
+    #[test]
+    fn downhill_bonus_follows_the_rules() {
+        let h = VisionRules::builtin().unwrap().height;
+        assert_eq!(h.reach_cells(62), 78);
+        assert_eq!(h.bonus_pct(0), 0);
+        assert_eq!(h.bonus_pct(20_000), 0);
+        // 5 % per 10 m beyond the first 20 m, at most 25 %.
+        assert_eq!(h.bonus_pct(40_000), 10);
+        assert_eq!(h.bonus_pct(69_999), 24);
+        assert_eq!(h.bonus_pct(300_000), 25);
     }
 
     #[test]

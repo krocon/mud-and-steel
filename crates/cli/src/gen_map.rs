@@ -17,6 +17,9 @@ use std::fmt::Write as _;
 use std::path::Path;
 
 mod objects;
+pub mod relief;
+
+pub use relief::Relief;
 
 const CELL_M: f64 = 2.0;
 
@@ -104,6 +107,9 @@ pub struct Options<'a> {
     /// maps); a larger distance gives each start a flat meadow of its own.
     pub start_distance_m: u32,
     pub out: &'a Path,
+    /// Terrain profile (prompt 060, [`Relief`]); `Gentle` keeps the test
+    /// maps as they are.
+    pub relief: Relief,
 }
 
 /// Start distance of the test maps: both starts in the central meadow.
@@ -271,6 +277,13 @@ struct Layout {
     roads: Vec<Path2>,
     noise: Vec<(ValueNoise, f64)>,
     mud: ValueNoise,
+    /// Terrain profile (prompt 060).
+    relief: Relief,
+    /// Mountains of the `mountains` profile.
+    mountains: Option<relief::Mountains>,
+    /// Natural heights at the centers of `start_meadows` and `squares`
+    /// (computed once, see [`Layout::cache_levels`]).
+    levels: Vec<f64>,
 }
 
 fn layout(random: &mut Random, size: f64, seed: u64, start_distance: f64) -> Layout {
@@ -418,6 +431,9 @@ fn layout(random: &mut Random, size: f64, seed: u64, start_distance: f64) -> Lay
         roads,
         noise,
         mud,
+        relief: Relief::Gentle,
+        mountains: None,
+        levels: Vec::new(),
     };
     add_crossings(&mut layout, seed);
     layout
@@ -523,7 +539,39 @@ impl Layout {
     fn natural_height(&self, x: f64, y: f64) -> f64 {
         let mut h: f64 = self.noise.iter().map(|(n, amp)| n.at(x, y) * amp).sum();
         h += self.hills.iter().map(|hill| hill.at(x, y)).sum::<f64>();
-        h
+        match self.relief {
+            Relief::Gentle => h,
+            Relief::Hilly => h * relief::HILLY_FACTOR,
+            Relief::Mountains => {
+                h + self
+                    .mountains
+                    .as_ref()
+                    .map_or(0.0, |m| m.height(self, x, y))
+            }
+        }
+    }
+
+    /// Sets the relief profile and computes what depends on it.
+    fn set_relief(&mut self, relief: Relief, seed: u64) {
+        self.relief = relief;
+        if relief == Relief::Mountains {
+            self.mountains = Some(relief::Mountains::new(seed, self));
+        }
+    }
+
+    /// Natural heights at the centers of the flattened areas (once instead
+    /// of once per sample; the same values).
+    fn cache_levels(&mut self) {
+        let centers: Vec<(f64, f64)> = self
+            .start_meadows
+            .iter()
+            .map(|&(x, y, _)| (x, y))
+            .chain(self.squares.iter().map(|s| (s.x, s.y)))
+            .collect();
+        self.levels = centers
+            .into_iter()
+            .map(|(x, y)| self.natural_height(x, y))
+            .collect();
     }
 
     fn sample(&self, x: f64, y: f64) -> (f64, u8) {
@@ -536,20 +584,29 @@ impl Layout {
         h *= blend;
 
         // Flat meadows around distant starts, at their natural center height.
-        for &(sx, sy, radius) in &self.start_meadows {
+        for (k, &(sx, sy, radius)) in self.start_meadows.iter().enumerate() {
             let d = ((x - sx) * (x - sx) + (y - sy) * (y - sy)).sqrt();
-            let level = self.natural_height(sx, sy);
+            let level = self.levels[k];
             let blend = smoothstep(radius, radius + 40.0, d);
             h = level + (h - level) * blend;
         }
 
         // Flat village squares at their natural center height.
-        for square in &self.squares {
+        for (k, square) in self.squares.iter().enumerate() {
             let d = ((x - square.x) * (x - square.x) + (y - square.y) * (y - square.y)).sqrt();
-            let level = self.natural_height(square.x, square.y);
+            let level = self.levels[self.start_meadows.len() + k];
             let blend = smoothstep(square.radius, square.radius + 25.0, d);
             h = level + (h - level) * blend;
             if d < square.radius {
+                terrain = ROAD;
+            }
+        }
+
+        // Serpentine road up to the lookout (mountains, prompt 060).
+        if let Some(m) = &self.mountains {
+            let (shaped, road) = m.serpentine.apply(x, y, h);
+            h = shaped;
+            if road {
                 terrain = ROAD;
             }
         }
@@ -767,6 +824,22 @@ fn place_bridges(
     Ok(placed)
 }
 
+/// Mountains (prompt 060): mud only collects on flat ground; on slopes
+/// steeper than 20 % it is grass.
+fn dry_slopes(samples: usize, heights: &[f64], terrain: &mut [u8]) {
+    for j in 0..samples - 1 {
+        for i in 0..samples - 1 {
+            let k = j * samples + i;
+            let grade = ((heights[k + 1] - heights[k]).abs()
+                + (heights[k + samples] - heights[k]).abs())
+                / CELL_M;
+            if terrain[k] == MUD && grade > 0.2 {
+                terrain[k] = GRASS;
+            }
+        }
+    }
+}
+
 /// Where the track to the east edge (the third track) crosses the river.
 fn ford_point(layout: &Layout) -> (f64, f64) {
     let mut best = (f64::INFINITY, 0.0, 0.0);
@@ -820,7 +893,9 @@ pub fn generate(options: &Options) -> Result<String, String> {
         return Err("--start-distance-m must leave at least 150 m to the map edge".into());
     }
     let mut random = Random(Rng::new(options.seed));
-    let layout = layout(&mut random, size, options.seed, start_distance);
+    let mut layout = layout(&mut random, size, options.seed, start_distance);
+    layout.set_relief(options.relief, options.seed);
+    layout.cache_levels();
 
     let mut heights = Vec::with_capacity(samples * samples);
     let mut terrain = Vec::with_capacity(samples * samples);
@@ -833,6 +908,9 @@ pub fn generate(options: &Options) -> Result<String, String> {
     }
 
     let bridges = place_bridges(&layout, samples, &mut heights, &mut terrain)?;
+    if options.relief == Relief::Mountains {
+        dry_slopes(samples, &heights, &mut terrain);
+    }
 
     let low = heights.iter().copied().fold(f64::MAX, f64::min);
     let high = heights.iter().copied().fold(f64::MIN, f64::max);
@@ -937,6 +1015,18 @@ pub fn generate(options: &Options) -> Result<String, String> {
             "\n\n[[marker]]\nname = \"{name}\"\nposition_m = [{x}, {y}]"
         );
     }
+    // Mountains (prompt 060): the lookout plateau at the end of the
+    // serpentine, with a supply point.
+    if let Some(m) = &layout.mountains {
+        let (x, y, _) = m.serpentine.plateau;
+        let (x, y) = (x.round() as i32, y.round() as i32);
+        for name in ["lookout", "supply_lookout"] {
+            let _ = write!(
+                bridge_markers,
+                "\n\n[[marker]]\nname = \"{name}\"\nposition_m = [{x}, {y}]"
+            );
+        }
+    }
     let mut starts = String::new();
     for (player, team, x, y) in start_positions(options.players, options.start_distance_m) {
         let team = if options.players > 2 {
@@ -959,12 +1049,17 @@ pub fn generate(options: &Options) -> Result<String, String> {
     } else {
         format!(" --start-distance-m {}", options.start_distance_m)
     };
+    let relief_arg = if options.relief == Relief::Gentle {
+        String::new()
+    } else {
+        format!(" --relief {}", options.relief.name())
+    };
     let mut toml = String::new();
     let _ = writeln!(
         toml,
         "# Generated by `cli gen-map`; edit the PNGs freely (docs/MAPS.md).\n\
          name = \"{}\"\n\
-         generator = \"cli gen-map --name {} --size-m {} --seed {}{start_arg}{generator_players}\"\n\
+         generator = \"cli gen-map --name {} --size-m {} --seed {}{start_arg}{generator_players}{relief_arg}\"\n\
          cell_size_mm = 2000\n\
          samples = [{side}, {side}]\n\
          height_base_mm = {base_mm}\n\
@@ -1040,6 +1135,7 @@ mod tests {
             biome: "forest",
             start_distance_m: crate::gen_map::DEFAULT_START_DISTANCE_M,
             out: &dir,
+            relief: super::Relief::Gentle,
         };
         generate(&options).unwrap();
         let read = |f: &str| std::fs::read(dir.join(f)).unwrap();
@@ -1049,6 +1145,86 @@ mod tests {
             .unwrap();
         let _ = std::fs::remove_dir_all(&dir);
         map
+    }
+
+    /// A small map with the `mountains` profile (prompt 060).
+    fn mountain_map() -> Map {
+        let dir = std::env::temp_dir().join(format!("mas-gen-mountains-{}", std::process::id()));
+        let options = Options {
+            name: "mountain_test",
+            size_m: 1200,
+            seed: 60,
+            players: 2,
+            biome: "forest",
+            start_distance_m: 600,
+            out: &dir,
+            relief: super::Relief::Mountains,
+        };
+        generate(&options).unwrap();
+        let read = |f: &str| std::fs::read(dir.join(f)).unwrap();
+        let toml = String::from_utf8(read("map.toml")).unwrap();
+        assert!(toml.contains("--relief mountains"), "{toml}");
+        let mut map = Map::load(&toml, &read("height.png"), &read("terrain.png")).unwrap();
+        map.add_objects(&String::from_utf8(read("objects.csv")).unwrap())
+            .unwrap();
+        let _ = std::fs::remove_dir_all(&dir);
+        map
+    }
+
+    /// Mountains: hundreds of meters of relief, impassable rock, the
+    /// starts connected over the pass, and the lookout reached only by the
+    /// serpentine (a tank's path there is much longer than the straight
+    /// line, and every leg stays under the grade limit).
+    #[test]
+    fn mountains_have_passes_and_a_serpentine() {
+        let map = mountain_map();
+        let (sx, sy) = map.samples();
+        let heights: Vec<i32> = (0..sy)
+            .flat_map(|j| (0..sx).map(move |i| (i, j)))
+            .map(|(i, j)| map.sample_height_mm(i, j))
+            .collect();
+        let relief = heights.iter().max().unwrap() - heights.iter().min().unwrap();
+        assert!(relief > 250_000, "relief {relief} mm");
+        let catalog = Catalog::builtin().unwrap();
+        let scale = Scale::builtin().unwrap();
+        let types =
+            sim::unit_types_from_catalog(&catalog, &scale, &["de_inf_rifle_squad", "de_pz4_h"])
+                .unwrap();
+        let grid = PathGrid::new(&map, &TerrainRules::builtin().unwrap(), &types);
+        let (w, h) = grid.size();
+        let blocked = (0..h)
+            .flat_map(|y| (0..w).map(move |x| (x, y)))
+            .filter(|&(x, y)| !grid.passable(sim::path::SizeClass::Large, x, y))
+            .count();
+        assert!(
+            blocked * 100 > (w * h) as usize * 15,
+            "only {blocked} of {} cells blocked",
+            w * h
+        );
+        let start = |p: u8| {
+            map.starts()
+                .iter()
+                .find(|s| s.player == p)
+                .unwrap()
+                .position
+        };
+        let (a, b) = (start(0), start(1));
+        let over_pass = grid.find_path(a, b, 1).unwrap();
+        assert_eq!(grid.cell_of(over_pass.goal), grid.cell_of(b));
+        let lookout = map.marker("lookout").unwrap();
+        assert!(map.height_at(lookout) > sim::Fixed::from_num(60));
+        let meadow = Vec2::from_meters(-100, -50);
+        let path = grid.find_path(meadow, lookout, 1).unwrap();
+        assert!((path.goal - lookout).length() < sim::Fixed::from_num(10));
+        assert!(
+            path.length() > (lookout - meadow).length() * 3,
+            "the tank took a short cut: {} m",
+            path.length()
+        );
+        for pair in path.waypoints.windows(2) {
+            let rise = (map.height_at(pair[1]) - map.height_at(pair[0])).abs();
+            assert!(rise * 100 <= (pair[1] - pair[0]).length() * 60);
+        }
     }
 
     /// Every crossing of `test_small` connects both banks: infantry and a

@@ -368,6 +368,7 @@ just test-maps                 # regenerate test_small (500 m, seed 7) and test_
 just map-info test_large       # measurements as above
 just run-map test_large        # play the demo on a map from data/maps/
 just gen-map skirmish 2400 21 1200   # the default match map (starts 1.2 km apart)
+just gen-mountains             # mountain_pass (prompt 060, --relief mountains)
 ```
 
 **Start distance.** By default both starts lie 60 m north and south of the
@@ -384,6 +385,80 @@ Regenerating `test_small` changes the golden hash: that is a rule change in the 
 of [DETERMINISM.md](DETERMINISM.md) and needs to be named in the commit. A test
 generates a small map twice and compares `objects.csv`; another checks that every
 variant in `data/objects.toml` exists in the model's blueprint.
+
+### Relief profiles and mountains (prompt 060)
+
+`--relief gentle|hilly|mountains` (default `gentle`) picks the terrain
+profile (`crates/cli/src/gen_map/relief.rs`). The layout (meadows, river,
+tracks, villages, bridges) and the objects' random stream stay the same;
+`gentle` gives exactly the files of before (the test maps regenerate
+bit-identically, checked).
+
+- **hilly:** ground noise and hills 1.7 times as high (steepest hill grade
+  just under the 60 % limit).
+- **mountains:** ridged noise (crests where value noise crosses zero, four
+  octaves 700/300/120/50 m, squared so foothills stay gentle) under a
+  large-scale massif noise, up to 600 m at the very top (`mountain_pass`:
+  about 330 m above the pass). Every track, road and the river runs in a
+  valley: within 22 m of a track (the river: its width plus 50 m) the
+  ground stays at the level of the central meadow, and the mountains rise
+  to full height over 220 m. Where a track crosses the range it is a
+  **pass**. Starts far from the center (`--start-distance-m`) lie in
+  **basins** 30 m below the passes (flat 210 m around the start, rising
+  over 230 m). **Cliff bands** where a cliff noise is high: the mountain
+  height is quantized into 24 m benches with risers over the last fifth of
+  each step (rock walls, impassable). A **serpentine** climbs from the
+  west rim of the central meadow: six legs of 100 m, 26 m apart, joined by
+  hairpins (radius 13 m), an 11 % grade, a 12 m flat bed (gravel road 6 m
+  wide) with 120 % cuttings and embankments (rock walls) beside it, cut
+  into a mountainside 30 m above its ramp; at the top a plateau of 24 m
+  radius (marker `lookout`, supply point `supply_lookout`, about 85 m above
+  the pass). Mud only on slopes under 20 %. Objects: woods above 25 m are
+  conifer stands, no trees above 200 m (tree line) or on slopes over 60 %,
+  boulders on scree slopes (35–60 %).
+
+`mountain_pass` (`just gen-mountains`: 2 km, seed 60, starts 1.2 km apart,
+four starts for 2 or 4 players, forest): two basins north and south with
+the starts, the central meadow on the pass between them, the river in a
+valley in the east with two bridges and a ford, the serpentine to the
+lookout in the west. 42 % of the map is under 20 % grade, 32 % steeper than
+the 60 % limit. All supply points are reachable (map-check), and
+`ai-tournament --map mountain_pass` plays it (1v1 and 2v2).
+
+Measurements (`just map-info mountain_pass`, release, machine under load
+of other sessions): 1 001 × 1 001 samples, heights −32 … 329 m, height step
+6 mm (16-bit PNG; 500 m of relief would need 8 mm, still finer than any
+rule needs), files 1.6 MB, 5.0 MB in memory, decode + validate + hash
+19 ms, 14 818 objects. Path bench (200 single orders, ±1800 m): 212
+requests, 46 000 expansions each, planning ticks 5.4 ms mean / 8.2 ms p99
+(best of three runs; `test_large` in the same session 7.6 ms mean). Vision
+bench (500 units): 250 000 ray steps per tick, 7.3 ms mean per tick
+(`test_large`: 208 000, 7.7 ms). Terrain bench: near 123 FPS, middle 125,
+overview 102, river 55 FPS (`test_large` in the same session 106 / 105 /
+86 / 47 FPS; the machine was busy, so absolute rates are low).
+
+**Rules on slopes** (unchanged, decided here): one grade limit (60 %) and
+one uphill penalty for every unit; infantry slows uphill like vehicles.
+Per-vehicle climbing ability and wheels versus tracks are not modeled: the
+catalog has no sourced climbing values, and a grade limit per vehicle would
+need one passability and component grid per limit [provisional]. Slopes
+give cover through the line of sight (reverse slopes, crests). New is the
+downhill sight bonus of heights
+([ARCHITECTURE.md](ARCHITECTURE.md#viewsheds)).
+
+**Presentation:** on maps with more than 120–220 m of relief
+(`terrain.gd`, from the chunk height ranges) the terrain shader keeps grass
+on steeper slopes (bare earth from about 42 %, rock from about 62 %), draws
+strata on rock walls, scree between earth and rock, and snow above 80 % of
+the height range (45 % in winter, none in the desert) on all but the
+steepest rock [provisional]. The camera already keeps its focus on the
+ground and stays above hillsides. `SHOT_SET=mountains just terrain-shots
+<dir> mountain_pass` records views of the pass, the serpentine, the
+lookout, a basin and the range.
+
+Open: fog in valleys, contour lines on the minimap, a serpentine on other
+than the west side or more than one, rivers that follow valley floors
+downhill (the river still runs north–south through the range).
 
 ### Small town (prompt 041)
 
@@ -460,6 +535,9 @@ loads maps for the simulation (reasons and data flow:
 | Place object | any kind and variant of `objects.toml` with a heading; bridges snap to a multiple of 90° and onto a center line of the 4 m path grid |
 | Erase objects | removes the objects in the circle |
 | Start player 1 / 2 | sets the start positions (whole meters) |
+| Ridge / Valley | raise or lower like Raise/Lower, but with a linear falloff: dragged along a line it builds a sharp crest or a V-shaped valley (prompt 060) |
+| Terrace | pulls the ground onto multiples of 5 m: benches with steep risers, cliff bands |
+| Road on slope | a road piece from dab to dab, painted with the chosen terrain (road or field track, otherwise road): the bed (half the radius) follows the ground one radius ahead, but its level changes by at most 12 % [provisional] per meter driven; beyond the bed 50 % cuttings and embankments |
 | Place compound | a compound of `data/compounds.toml` (house with walled yard, gate and props; mosque, police post, shop row) at the point, turned by the heading in 90° steps (prompt 059) |
 | Village (desert) | packs courtyard compounds into the circle with alleys and lanes (prompt 059, above) |
 
@@ -488,6 +566,9 @@ DIR` for any map folder) loads the files the way a match does (`Map::load`,
 - whether the tanks of every faction can drive from one start to the other
   (an error) and whether infantry can (a warning), with the path finder of
   the simulation (`PathGrid::find_path`),
+- whether every supply point (markers `supply*`) can be reached from
+  player 0's start, within 20 m (prompt 060): an error if no unit type
+  gets there, a warning listing the types that do not,
 - the map hash a match on it will use.
 
 The editing code is the crate `crates/editor` (`EditMap`, brushes, undo,
