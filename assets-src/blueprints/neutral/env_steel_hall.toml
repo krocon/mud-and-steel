@@ -1,0 +1,27 @@
+# Vehicle works (prompt 056): steel-clad hall on a brick plinth. Three damage levels.
+unit = "env_steel_hall"
+assembly = "env"
+
+[[variant]]
+name = "Intact"
+part = "steel_hall"
+role = "intact"
+seed = 5
+
+[[variant]]
+name = "Damaged"
+part = "steel_hall"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 5
+
+[[variant]]
+name = "Ruin"
+part = "steel_hall"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 5

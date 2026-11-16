@@ -1,0 +1,27 @@
+# Timber barracks hut (prompt 056). Three damage levels.
+unit = "env_barracks"
+assembly = "env"
+
+[[variant]]
+name = "Intact"
+part = "barracks"
+role = "intact"
+seed = 5
+
+[[variant]]
+name = "Damaged"
+part = "barracks"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 5
+
+[[variant]]
+name = "Ruin"
+part = "barracks"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 5
