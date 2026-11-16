@@ -21,6 +21,7 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
+<<<<<<< HEAD
 /// Last changed by prompt 050 (experience and ranks): the rules of
 /// `data/experience.toml` and every unit's experience points and kills are
 /// in the hash, and units that gain a rank shoot more accurately and
@@ -28,6 +29,15 @@ fn different_seed_gives_different_hash() {
 /// battle runs differently and is decided at tick 412 instead of 467, same
 /// winner (player 0). Before: `0x738f_0759_efe2_a7bd`, set by
 /// the merge of prompt 035 (engineers, mines, obstacles,
+=======
+/// Last changed by prompt 048 (knockdown): the `[knockdown]` rules of
+/// `data/infantry.toml` and every soldier's knock-down state (ticks left,
+/// blast point) are in the hash; blasts and tank ammunition explosions
+/// knock soldiers down. The ammunition roll does not advance the shared
+/// generator, so the demo battle is unchanged (decided at tick 467, player 0
+/// wins). Before: `0x738f_0759_efe2_a7bd`, the merge of prompt 035 with 036.
+/// The merge of prompt 035 (engineers, mines, obstacles,
+>>>>>>> main
 /// positions) with 036 (supply and repair). Prompt 035: the rules of
 /// `data/works.toml` and the (empty) field works, mines, engineer jobs,
 /// thrown tracks and dug samples are in the hash, and the economy rules
@@ -145,7 +155,11 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
+<<<<<<< HEAD
 const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x2987_e0e3_3ecf_9286;
+=======
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x934d_db12_191d_9a20;
+>>>>>>> main
 
 #[test]
 fn golden_hash() {

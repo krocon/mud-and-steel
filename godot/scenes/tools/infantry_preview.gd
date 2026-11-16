@@ -227,6 +227,7 @@ func _run_self_test() -> void:
 			await get_tree().process_frame
 	errors.append_array(_check_materials())
 	errors.append_array(_check_camo())
+	errors.append_array(await _check_motion())
 	if errors.is_empty():
 		print("infantry self-test: ok (%d soldiers, %d clips, %d biomes)" % [
 			_soldiers.size(), clips.size(), SoldierLook.BIOMES.size()])
@@ -288,4 +289,97 @@ func _check_materials() -> Array[String]:
 				if mi.get_surface_override_material(i) == null:
 					errors.append("%s/%s: %s surface %d has no slot material" % [
 						s.faction, s.role, mi.name, i])
+	return errors
+
+
+## Prompt 048: a ragdoll falls, settles and freezes its pose; a knocked-down
+## ragdoll is released into the animation; the head leads a turn; a helmet
+## flies off and comes to rest. Presentation only.
+func _check_motion() -> Array[String]:
+	var errors: Array[String] = []
+	var armed: Array[Dictionary] = []
+	for s in _soldiers:
+		if s.role == "rifleman":
+			armed.append(s)
+	if armed.size() < 3:
+		return ["motion: fewer than three riflemen"]
+	var ragdolls := preload("res://scenes/world/ragdolls.gd").new()
+	add_child(ragdolls)
+	# A dead soldier thrown backwards: falls, settles, keeps the pose.
+	var dead: Node3D = armed[0].node
+	(armed[0].player as AnimationPlayer).play("death_a")
+	if not ragdolls.start(dead, Vector3(0, 3.0, 2.4), Vector3(4.0, 0, 0), 0.0, "dead"):
+		errors.append("motion: ragdoll did not start")
+	var skeleton := SoldierLook.find_skeleton(dead)
+	var hips := skeleton.find_bone("Hips")
+	var head := skeleton.find_bone("Head")
+	for i in int((ragdolls.SETTLE_SECONDS + 0.4) * Engine.physics_ticks_per_second):
+		await get_tree().physics_frame
+	(armed[0].player as AnimationPlayer).active = false
+	await get_tree().process_frame
+	if not dead.has_meta(&"frozen_pose"):
+		errors.append("motion: dead ragdoll not frozen")
+	if ragdolls.active_count() != 0:
+		errors.append("motion: %d ragdolls still active" % ragdolls.active_count())
+	var head_y := (skeleton.global_transform * skeleton.get_bone_global_pose(head).origin).y
+	if head_y > 0.8 or head_y < -0.2:
+		errors.append("motion: frozen body's head at %.2f m (not lying on the ground)" % head_y)
+	# A knocked-down soldier: lies, is released into the get-up clip.
+	var down: Node3D = armed[1].node
+	var down_skeleton := SoldierLook.find_skeleton(down)
+	ragdolls.start(down, Vector3(-2.0, 3.0, 0), Vector3(0, 0, 4.0), 0.0, "down")
+	for i in 70:
+		await get_tree().physics_frame
+	var lying: Dictionary = ragdolls.lying(down)
+	if lying.is_empty():
+		errors.append("motion: no lying state of a knocked-down ragdoll")
+	elif (lying["hips"] as Vector3).y > 0.6:
+		errors.append("motion: knocked-down hips still %.2f m up" % (lying["hips"] as Vector3).y)
+	(armed[1].player as AnimationPlayer).play("get_up_back" if lying.get("back", true) else "get_up_front")
+	ragdolls.release(down, 0.2)
+	for i in 30:
+		await get_tree().physics_frame
+	if ragdolls.is_active(down) or down_skeleton.find_child("Ragdoll", false, false) != null and \
+			not (down_skeleton.get_node("Ragdoll") as Node).is_queued_for_deletion():
+		errors.append("motion: released ragdoll still there")
+	# Head first: the head turns further than the hips.
+	var turner: Node3D = armed[2].node
+	var t_skeleton := SoldierLook.find_skeleton(turner)
+	var t_player := armed[2].player as AnimationPlayer
+	t_player.play("idle")
+	t_player.active = false
+	await get_tree().process_frame
+	var t_head := t_skeleton.find_bone("Head")
+	var before := t_skeleton.get_bone_global_pose(t_head).basis * Vector3(0, 0, -1)
+	var lead := preload("res://scenes/world/turn_lead.gd").new()
+	t_skeleton.add_child(lead)
+	lead.target = 1.0
+	# Modifier results are read while they apply (Godot restores the poses).
+	var seen: Array[Vector3] = [before]
+	lead.modification_processed.connect(func() -> void:
+		seen[0] = t_skeleton.get_bone_global_pose(t_head).basis * Vector3(0, 0, -1))
+	for i in 40:
+		await get_tree().process_frame
+	var after := seen[0]
+	var turned := absf(Vector2(before.x, before.z).angle_to(Vector2(after.x, after.z)))
+	if turned < deg_to_rad(30.0):
+		errors.append("motion: head leads the turn by only %.0f deg" % rad_to_deg(turned))
+	lead.queue_free()
+	# A helmet flies off and lands.
+	var helmets := preload("res://scenes/world/helmets.gd").new()
+	add_child(helmets)
+	var hatless: Node3D = armed[3 % armed.size()].node if armed.size() > 3 else armed[0].node
+	if not helmets.knock_off(hatless, "de", "forest", Vector3(1.5, 3.0, 0), Vector3(0, 8, 3), 0.0):
+		errors.append("motion: helmet not knocked off")
+	var gear := hatless.find_child("Gear", true, false) as GeometryInstance3D
+	if gear == null or gear.get_instance_shader_parameter(&"helmet_off") != 1.0:
+		errors.append("motion: helmet still drawn on the head")
+	for i in 120:
+		await get_tree().process_frame
+		if helmets.flying() == 0:
+			break
+	if helmets.flying() != 0:
+		errors.append("motion: helmet still flying")
+	ragdolls.queue_free()
+	helmets.queue_free()
 	return errors

@@ -84,7 +84,12 @@ sees nothing but enemy armor; unarmed units stay where they are. Per group, ever
    within 60 m + 8 m per unit of the center), then drive as one group (`MoveTo`
    with formation) to the freshest sighting, else to the enemy's start position
    (from the map), else to random points. A move is repeated only when its
-   target moved by more than 40 m or the group stopped early.
+   target moved by more than 40 m or the group stopped early. Normal and
+   Hard advance with attack-move (prompt 046: `FormationMove` with
+   `engage = All`, formation Auto): every unit halts while an enemy is in
+   its range and drives on afterwards; at the rally point of a base match
+   the group faces the enemy's home. Easy keeps plain `MoveTo`
+   [provisional].
 5. At its first think the AI sets all own units to fire at will.
 
 ## Base building (prompt 023)

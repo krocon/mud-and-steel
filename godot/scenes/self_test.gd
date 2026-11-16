@@ -79,6 +79,7 @@ const AirSelfTest := preload("res://scenes/tools/air_self_test.gd")
 const TransportSelfTest := preload("res://scenes/tools/transport_self_test.gd")
 const SupplySelfTest := preload("res://scenes/tools/supply_self_test.gd")
 const WorksSelfTest := preload("res://scenes/tools/works_self_test.gd")
+const FormationSelfTest := preload("res://scenes/tools/formation_self_test.gd")
 const ExperienceSelfTest := preload("res://scenes/tools/experience_self_test.gd")
 const MatchSetup := preload("res://scenes/menu/match_setup.gd")
 
@@ -122,12 +123,13 @@ func _run() -> void:
 	await AirSelfTest.new().run(self)
 	await TransportSelfTest.new().run(self)
 	await SupplySelfTest.new().run(self)
+	await FormationSelfTest.new().run(self)
 	_replay_test()
 	# After the replay test: its debug minefield is no command (prompt 035).
 	await WorksSelfTest.new().run(self)
 	await ExperienceSelfTest.new().run(self)
 	var ok := _errors.is_empty()
-	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, fog, combat, infantry, destruction, fire, craters, sound, music, water, hud, air, transport, supply, replay, works and experience ok" if ok else " ".join(_errors)
+	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, fog, combat, infantry, destruction, fire, craters, sound, music, water, hud, air, transport, supply, formations, replay, works and experience ok" if ok else " ".join(_errors)
 	print("self-test %s: %s" % ["PASSED" if ok else "FAILED", message])
 	# Started from the menu flow test (prompt 027): it continues the flow.
 	var flow: Node = MatchSetup.flow_test
@@ -352,12 +354,12 @@ func _order_test() -> void:
 		"max step per tick on grass %.4f m, expected %.4f m" % [max_grass_step, EXPECTED_STEP])
 
 	var positions := _positions_of(own)
-	var low := positions[0]
-	var high := positions[0]
+	# Formations of prompt 046 (a wedge here) are centered by their mean.
+	var center := Vector3.ZERO
 	for p in positions:
-		low = low.min(p)
-		high = high.max(p)
-	var center := (low + high) * 0.5
+		center += p
+	center /= positions.size()
+	center.y = 0.0
 	_check(center.distance_to(aimed) < 0.01, "formation centered at %s, ordered %s" % [center, aimed])
 	var spacing := sim_host.unit_footprints()[_indices(own)[0]] * 1.5
 	var closest := INF
