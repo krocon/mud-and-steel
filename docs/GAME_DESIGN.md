@@ -104,15 +104,16 @@ about 90 m. Fortifications come from the catalog:
 | Fortification | Catalog ids (de / su / us) | Hit points | Armor (mm) | Cost F / A / M | Build time | Needs |
 |---|---|---|---|---|---|---|
 | MG bunker | `de_bunker_tobruk`, `su_bunker_dzot`, `us_bunker_mg` | 2500 | 60 | 0 / 80 / 60 | 20 s | barracks |
-| AT gun position | `de_pak40`, `su_zis3`, `us_57mm_m1` | 1000 (rules) | catalog shield | formula | formula | vehicle works |
 | Light flak (prompt 033) | `de_flak38`, `su_61k`, `us_bofors_m1` | 1000 (rules) | – | formula | formula | barracks |
 | Heavy flak (prompt 033) | `de_flak36`, `su_52k`, `us_90mm_m2` | 1000 (rules) | – | formula | formula | vehicle works |
 
 - Flak fires at aircraft (`data/air.toml`) and with its catalog weapon at
-  ground targets like the AT gun.
-- Bunkers and gun positions fight with their catalog weapons; they cannot
-  move. Towed guns cannot be moved by the simulation yet anyway (prompt 017),
-  so the gun position is the first way to use them.
+  ground targets. Flak positions are fortifications: they cannot move or be
+  towed.
+- Bunkers fight with their catalog weapons; they cannot move. The AT gun
+  position of prompt 023 is gone since prompt 034: AT guns and howitzers are
+  produced in the vehicle works and towed by trucks and halftracks
+  (ARCHITECTURE.md "Transport and towing"). [provisional]
 - Armor of buildings is the same on every face. 25–60 mm keep rifles and
   machine guns out (their penetration is ≈ 14 mm) but not tank and AT guns:
   **buildings need heavy weapons**, which keeps infantry rushes from razing a
@@ -146,9 +147,9 @@ about 90 m. Fortifications come from the catalog:
 
 | Faction | Barracks | Vehicle works |
 |---|---|---|
-| de | rifle squad, MG 42 team, HMG team, AT squad, 8 cm mortar team | Sd.Kfz. 222, Sd.Kfz. 251/1, Panzer IV H, StuG III G, Tiger I, Wespe |
-| su | rifle squad, MG team, HMG team, AT squad, 82 mm mortar team | BA-64B, T-70M, T-34/76, SU-85, IS-2, ISU-152 |
-| us | rifle squad, MG team, HMG team, AT squad, 81 mm mortar team | M8 Greyhound, M3 halftrack, M4A3 (75), M10, M26, M7 Priest |
+| de | rifle squad, MG 42 team, HMG team, AT squad, 8 cm mortar team | Sd.Kfz. 222, Sd.Kfz. 251/1, Panzer IV H, StuG III G, Tiger I, Wespe, Opel Blitz, 7.5 cm Pak 40, 10.5 cm leFH 18 |
+| su | rifle squad, MG team, HMG team, AT squad, 82 mm mortar team | BA-64B, T-70M, T-34/76, SU-85, IS-2, ISU-152, ZiS-5, ZiS-3, M-30 |
+| us | rifle squad, MG team, HMG team, AT squad, 81 mm mortar team | M8 Greyhound, M3 halftrack, M4A3 (75), M10, M26, M7 Priest, GMC CCKW, 57 mm M1, 105 mm M2A1 |
 
 - Each producing building has a queue of up to **5** orders. The cost is paid
   when an order is queued; cancelling the last order refunds it in full.
@@ -232,9 +233,10 @@ in the game, which is acceptable for now.
 
 The AI (prompt 024) plays the economy with the same commands as a human:
 
-- a fixed build order (barracks, depot, vehicle works, depot, MG bunker; Hard
-  also an AT gun), placed on the first free spot of a spiral around its
-  headquarters;
+- a fixed build order (barracks, depot, vehicle works, depot, MG bunker),
+  placed on the first free spot of a spiral around its headquarters (the
+  AT gun position of Hard is gone since prompt 034: Normal produces a towed
+  AT gun instead);
 - keeps both production queues filled while it can pay, choosing units from
   a per-difficulty mix (Hard prefers tanks);
 - keeps the price of the next building of its build order in reserve, so
@@ -262,7 +264,7 @@ open.
 4. **No instant power.** Build and production times grow with the price;
    the starting resources buy a barracks and a few squads or one tank, not an
    army.
-5. **Static defense is real but finite.** Bunkers and gun positions use real
+5. **Static defense is real but finite.** Bunkers and towed guns use real
    weapons, but buildings cannot hurt tanks with small arms and every
    fortification costs ammunition the army also needs.
 6. **Change one number at a time** in `data/economy.toml`, run

@@ -798,6 +798,8 @@ impl Sim {
             if !unit.alive()
                 || unit.combat.fire_mode == FireMode::HoldFire
                 || self.air.aa.get(t).is_none_or(Vec::is_empty)
+                // Passengers and towed guns do not fire (prompt 034).
+                || self.transport_blocks_fire(i)
             {
                 continue;
             }

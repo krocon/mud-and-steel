@@ -99,14 +99,16 @@ the economy (`crates/ai/src/economy.rs`), with the same commands as a human:
   not see; a construction site cannot go where one stands, which a human
   learns from the red preview as well.
 - **Build order:** barracks, depot, vehicle works, depot, MG bunker of the
-  faction; Hard also an AT gun position. One step at a time; the price of the
+  faction (the AT gun position of Hard went with prompt 034). One step at a
+  time; the price of the
   missing step is kept in reserve before anything is produced, otherwise
   infantry eats the manpower and the vehicle works is never built.
 - **Production:** every think, completed barracks and vehicle works get an
   order while their queue is shorter than 1 (Hard 2), from a mix per
   difficulty (indices into the faction's list in `data/economy.toml`:
   Normal infantry rifle, MG, rifle, AT and vehicles medium, medium, tank
-  destroyer, light; Hard more AT and heavy tanks; Easy cheaper units). The AI
+  destroyer, light (de/us: the halftrack), AT gun (prompt 034); Hard more
+  AT and heavy tanks; Easy cheaper units). The AI
   saves up for the next unit of the mix instead of skipping it. Rally points
   are set once to a point 45 m in front of the headquarters.
 - **Waves:** with a base, a group with nothing in sight goes to the nearest
@@ -120,16 +122,22 @@ the economy (`crates/ai/src/economy.rs`), with the same commands as a human:
 
 `just ai-tournament --mode base` plays the base-building skirmish. Results
 (10 games per pairing, at most 24 000 ticks = 20 min, test_small, seeds
-1–10, Apple M1 Max, release, 21 s together):
+1–10, Apple M1 Max, release, 16 s together; prompt 034: halftracks carry
+infantry, Normal builds an AT gun, Hard no gun position; before in
+brackets, measured with the code of prompt 038):
 
 | Pairing (A vs B) | A wins | B wins | timeouts | mean decided |
 |---|---|---|---|---|
-| hard vs passive | 100 % | 0 % | 0 | 216 s |
-| normal vs passive | 100 % | 0 % | 0 | 215 s |
-| easy vs passive | 100 % | 0 % | 0 | 215 s |
-| hard vs normal | 20 % | 10 % | 7 | 825 s |
-| hard vs easy | 10 % | 10 % | 8 | 807 s |
-| normal vs easy | 50 % | 20 % | 3 | 522 s |
+| hard vs passive | 100 % (100) | 0 % | 0 | 218 s |
+| normal vs passive | 100 % (100) | 0 % | 0 | 215 s |
+| easy vs passive | 100 % (100) | 0 % | 0 | 216 s |
+| hard vs normal | 30 % (10) | 10 % (10) | 6 (8) | 614 s |
+| hard vs easy | 60 % (20) | 0 % (10) | 4 (7) | 591 s |
+| normal vs easy | 0 % (50) | 20 % (20) | 8 (3) | 733 s |
+
+Normal against Easy got worse: both lose their halftrack to transport duty
+(Easy builds halftracks too) and Normal spends on an AT gun; with 10 games
+and many timeouts the numbers are noisy. [provisional]
 
 Against the passive enemy every level builds, produces and razes the base.
 On `test_small` the bases stand only about 180 m apart (the free ground of
@@ -184,6 +192,30 @@ after this prompt): the battle AI was tuned on `test_small`, where the
 armies start inside each other's range. Tuning the approach (stopping at
 the own range, moving as one front with the ally) and the hunt for the
 last units is open.
+
+## Transport (prompt 034)
+
+`crates/ai/src/transport.rs`. Trucks and halftracks are the role
+`Transport`, towed guns the role `Gun` (both not commanded as groups;
+squads aboard or on their way to a carrier are left out of the infantry
+group):
+
+- An empty carrier first fetches a towed gun that stands more than 150 m
+  from its place (`Tow`, if the carrier is strong enough), else takes the
+  idle squads within 120 m that are more than 200 m from the objective
+  (`Embark`, as many as its seats hold).
+- A loaded carrier leaves once nobody is still walking up to it (with a
+  base: once the infantry or armor wave has left), drives to 180 m short of
+  the objective (the visible enemies' center, else the freshest sighting,
+  else the enemy start) and unloads there (`Disembark`), or at once when an
+  enemy comes within 180 m.
+- A tractor with a gun drives to the guns' place (the base's gathering
+  point, else 60 m behind the army towards home) and unlimbers there; the
+  gun then fires at will.
+- Boarding and towing jobs are given up after 600 ticks.
+
+Tank riders are not used by the AI (players only). Test:
+`ai_rides_trucks_and_tows_guns` (`crates/ai/tests/ai.rs`).
 
 ## Difficulties
 

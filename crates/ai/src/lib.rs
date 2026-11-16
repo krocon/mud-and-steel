@@ -15,6 +15,7 @@ mod air;
 mod artillery;
 mod economy;
 pub mod game;
+mod transport;
 mod view;
 
 pub use view::{OwnUnit, PlayerView, SeenUnit};
@@ -145,6 +146,11 @@ enum Role {
     /// Buildings and fortifications (prompt 023): never commanded as a
     /// group; enemy ones are attacked last.
     Structure,
+    /// Trucks and halftracks (prompt 034): carry infantry, tow guns.
+    Transport,
+    /// Towed guns (prompt 034): fetched by a transport, set up behind the
+    /// army, fire at will.
+    Gun,
 }
 
 /// What the AI knows about a unit type from the (public) config.
@@ -160,6 +166,13 @@ struct TypeInfo {
     anti_tank: bool,
     /// Indirect weapon (prompt 032): minimum and maximum range, smoke.
     indirect: Option<(Fixed, Fixed, bool)>,
+    /// Soldiers it carries (prompt 034, 0: none), soldiers of a squad.
+    seats: u32,
+    squad: u16,
+    /// Can tow guns; engine power (hp) and mass (kg) for the towing rule.
+    tows: bool,
+    power_hp: u32,
+    mass_kg: u32,
 }
 
 /// Where an enemy unit was last seen.
@@ -279,6 +292,10 @@ pub struct Ai {
     fire: artillery::FireState,
     /// Air support calls and flak (prompt 033).
     air: air::AirState,
+    /// Boarding and towing jobs (prompt 034).
+    transport: transport::TransportState,
+    /// Towing rule: engine hp per tonne of tractor and gun.
+    tow_min_hp_per_tonne: u32,
 }
 
 impl Ai {
@@ -305,6 +322,8 @@ impl Ai {
         // Minimum ranges of indirect weapons (`data/indirect.toml`, public
         // like the config).
         let indirect_rules = sim::IndirectRules::builtin().ok();
+        // Seats and towing (`data/transport.toml`, prompt 034).
+        let transport_rules = sim::TransportRules::builtin().ok();
         let types = config
             .unit_types
             .iter()
@@ -322,8 +341,28 @@ impl Ai {
                         .map_or(10, |r| r.category(t.combat.category).min_range_pct);
                     (w.range_m * Fixed::from_num(pct) / 100, w.range_m, w.smoke)
                 });
+                let category = t.combat.category;
+                let carrier = transport_rules
+                    .as_ref()
+                    .and_then(|r| r.carrier(category).copied());
+                let seats = carrier.map_or(0, |c| {
+                    if c.riders > 0 {
+                        c.riders
+                    } else {
+                        u32::from(t.transport.passengers)
+                    }
+                });
+                let gun = transport_rules
+                    .as_ref()
+                    .is_some_and(|r| r.gun(category).is_some());
+                let tows = carrier.is_some_and(|c| c.tows) && t.transport.power_hp > 0;
+                let truck = carrier.is_some_and(|c| c.riders == 0) && (seats > 0 || tows);
                 let role = if !t.mobile() {
                     Role::Structure
+                } else if gun {
+                    Role::Gun
+                } else if truck {
+                    Role::Transport
                 } else if indirect.is_some() && difficulty == Difficulty::Hard {
                     Role::Artillery
                 } else if t.combat.weapons.is_empty() && indirect.is_none() {
@@ -339,6 +378,11 @@ impl Ai {
                     sight: config.vision.range_m(t.combat.category),
                     anti_tank: t.combat.weapons.iter().any(|w| w.caliber_mm_x10 >= 200),
                     indirect,
+                    seats,
+                    squad: t.combat.squad_size,
+                    tows,
+                    power_hp: t.transport.power_hp,
+                    mass_kg: t.mass_kg,
                 }
             })
             .collect();
@@ -423,6 +467,10 @@ impl Ai {
             eco: economy::EcoState::default(),
             fire: artillery::FireState::default(),
             air: air::AirState::default(),
+            transport: transport::TransportState::default(),
+            tow_min_hp_per_tonne: transport_rules
+                .as_ref()
+                .map_or(8, |r| r.towing.min_hp_per_tonne),
         }
     }
 
@@ -478,6 +526,7 @@ impl Ai {
 
         self.think_economy(view, &mut out);
         self.think_air(view, &mut out);
+        self.command_transport(view, &mut out);
         let mut roles: Vec<Role> = Vec::new();
         for u in view.own.iter().filter(|u| u.alive()) {
             let role = self.type_info(u.unit_type).role;
@@ -487,16 +536,22 @@ impl Ai {
         }
         roles.sort_unstable();
         for role in roles {
+            // Passengers and squads on their way to a carrier are left to
+            // the transport (prompt 034).
             let units: Vec<OwnUnit> = view
                 .own
                 .iter()
                 .filter(|u| u.alive() && self.type_info(u.unit_type).role == role)
+                .filter(|u| u.carrier.is_none() && !self.transport.boarding(u.id, view.tick))
                 .copied()
                 .collect();
+            if units.is_empty() {
+                continue;
+            }
             match role {
                 Role::Armor | Role::Infantry => self.command_group(role, &units, view, &mut out),
                 Role::Artillery => self.command_artillery(&units, view, &mut out),
-                Role::Unarmed | Role::Structure => {}
+                Role::Unarmed | Role::Structure | Role::Transport | Role::Gun => {}
             }
         }
         out
@@ -536,7 +591,27 @@ impl Ai {
                 sight: Fixed::ZERO,
                 anti_tank: false,
                 indirect: None,
+                seats: 0,
+                squad: 0,
+                tows: false,
+                power_hp: 0,
+                mass_kg: 0,
             })
+    }
+
+    /// Soldiers of a squad type (0: no squad).
+    fn squad_size(&self, unit_type: u32) -> u16 {
+        self.type_info(unit_type).squad
+    }
+
+    /// Whether a vehicle of type `tractor` can pull a gun of type `gun`
+    /// (`data/transport.toml`: power per tonne of both).
+    fn can_pull(&self, tractor: u32, gun: u32) -> bool {
+        let (t, g) = (self.type_info(tractor), self.type_info(gun));
+        let min = self.tow_min_hp_per_tonne;
+        t.tows
+            && u64::from(t.power_hp) * 1000
+                >= u64::from(min) * (u64::from(t.mass_kg) + u64::from(g.mass_kg))
     }
 
     /// Updates the memory of enemy positions: visible units are recorded,

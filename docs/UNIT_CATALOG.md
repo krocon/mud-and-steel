@@ -35,8 +35,8 @@ uncertain; see the list at the end of each faction.
 | de_tiger1_e | Panzerkampfwagen VI Tiger Ausf. E / Tiger I Ausf. E | Sd.Kfz. 181 | 1942–1945 | 2 | 8.45 × 3.71? × 3.00? | 57.0 | 5 | 45.4? / 20.0 | 100 / 100 | 8.8 cm KwK 36 L/56? |
 | de_jgdpz38t | Jagdpanzer 38(t) "Hetzer" / Jagdpanzer 38(t) Hetzer | Sd.Kfz. 138/2 | 1944–1945 | 2 | 6.27 × 2.63 × 2.17 | 15.8 | 4 | 42.0 / 15.0? | 60 / 60 | 7.5 cm PaK 39 L/48 |
 | de_stug3_g | Sturmgeschütz III Ausf. G / StuG III Ausf. G | Sd.Kfz. 142/1 | 1942–1945 | 2 | 6.85? × 2.95 × 2.16 | 23.9 | 4 | 40.0 / 15.0? | 80 / 80 | 7.5 cm StuK 40 L/48 |
-| de_sdkfz251_1 | Mittlerer Schützenpanzerwagen Sd.Kfz. 251/1 Ausf. D / Sd.Kfz. 251/1 Ausf. D halftrack | Sd.Kfz. 251/1 Ausf. D | 1943–1945 | 1 | 5.80 × 2.10 × 1.75 | 8.5 | 2 | 52.5 / 21.2 | 15 /  | 2× MG 42 |
-| de_opel_blitz | Opel Blitz 3,6-36S / Opel Blitz 3.6-36S truck | Opel Blitz 3.6-36S (3 t, 4x2) | 1937–1945 | 2 | 6.02? × 2.27? × 2.18? | 6.6? | 2 | 85.0? / 30.0? |  /  |  |
+| de_sdkfz251_1 | Mittlerer Schützenpanzerwagen Sd.Kfz. 251/1 Ausf. D / Sd.Kfz. 251/1 Ausf. D halftrack | Sd.Kfz. 251/1 Ausf. D | 1943–1945 | 1 | 5.80 × 2.10 × 1.75 | 8.5 | 2 + 10 | 52.5 / 21.2 | 15 /  | 2× MG 42 |
+| de_opel_blitz | Opel Blitz 3,6-36S / Opel Blitz 3.6-36S truck | Opel Blitz 3.6-36S (3 t, 4x2) | 1937–1945 | 2 | 6.02? × 2.27? × 2.18? | 6.6? | 2 + 16? | 85.0? / 30.0? |  /  |  |
 | de_sdkfz222 | Leichter Panzerspähwagen (2 cm) Sd.Kfz. 222 / Sd.Kfz. 222 light armoured car | Sd.Kfz. 222 | 1936–1945 | 2 | 4.80 × 1.95 × 2.00? | 4.8 | 3 | 80.0 / 40.0? | 30 / 8 | 2 cm KwK 38 L/55 |
 | de_wespe | Leichte Feldhaubitze 18/2 auf Fahrgestell Panzerkampfwagen II (Sf) "Wespe" / Wespe self-propelled howitzer | Sd.Kfz. 124 | 1943–1945 | 2 | 4.81 × 2.28 × 2.30 | 11.0 | 5 | 40.0 / 20.0? | 30? / 10? | 10.5 cm leFH 18/2 L/28? |
 
@@ -85,7 +85,7 @@ uncertain; see the list at the end of each faction.
 - `de_tiger1_e`: width_mm, height_mm, range_road_km, armor_hull_front_deg, speed_road_kmh_x10, weapon
 - `de_jgdpz38t`: speed_offroad_kmh_x10, armor_hull_side_mm, armor_hull_rear_mm
 - `de_stug3_g`: length_mm, length_hull_mm, speed_offroad_kmh_x10
-- `de_opel_blitz`: length_mm, width_mm, height_mm, mass_kg, speed_road_kmh_x10, speed_offroad_kmh_x10, range_road_km, power_hp
+- `de_opel_blitz`: passengers, length_mm, width_mm, height_mm, mass_kg, speed_road_kmh_x10, speed_offroad_kmh_x10, range_road_km, power_hp
 - `de_sdkfz222`: height_mm, speed_offroad_kmh_x10
 - `de_wespe`: speed_offroad_kmh_x10, armor_hull_front_mm, armor_turret_front_mm, weapon
 - `de_pak40`: width_mm, height_mm, crew
@@ -243,8 +243,8 @@ uncertain; see the list at the end of each faction.
 | su_is2 | IS-2 Modell 1944 / IS-2 Model 1944 | IS-2 obr. 1944 (straightened glacis) | 1944–1945 | 2 | 9.90 × 3.09 × 2.73 | 46.0 | 4 | 37.0 / 19.0? | 120? / 100 | 122 mm D-25T L/43? |
 | su_su85 | SU-85 / SU-85 | SU-85 tank destroyer | 1943–1945 | 2 | 8.15 × 3.00 × 2.45 | 29.6 | 4 | 55.0 / 25.0? | 45 / 60? | 85 mm D-5S L/52? |
 | su_su76m | SU-76M / SU-76M | SU-76M self-propelled gun | 1943–1945 | 2 | 4.97 × 2.72 × 2.10 | 10.5 | 4 | 45.0 / 25.0? | 35 / 25 | 76.2 mm ZiS-3Sh? |
-| su_m3a1_scout | M3A1 Scout Car (Lend-Lease) / M3A1 Scout Car (Lend-Lease) | Scout Car M3A1 | 1942–1945 | 2 | 5.61 × 2.03 × 1.96 | 5.7 | 2 | 80.0 / 40.0? | 13 /  | Browning M2HB? |
-| su_zis5 | ZiS-5V / ZiS-5V | ZiS-5V 3-ton truck | 1942–1945 | 1 | 6.06 × 2.24 × 2.16 | 3.1? | 1 | 60.0 / 25.0? |  /  |  |
+| su_m3a1_scout | M3A1 Scout Car (Lend-Lease) / M3A1 Scout Car (Lend-Lease) | Scout Car M3A1 | 1942–1945 | 2 | 5.61 × 2.03 × 1.96 | 5.7 | 2 + 6 | 80.0 / 40.0? | 13 /  | Browning M2HB? |
+| su_zis5 | ZiS-5V / ZiS-5V | ZiS-5V 3-ton truck | 1942–1945 | 1 | 6.06 × 2.24 × 2.16 | 3.1? | 1 + 25 | 60.0 / 25.0? |  /  |  |
 | su_ba64b | BA-64B / BA-64B | BA-64B light armored car | 1943–1945 | 2 | 3.66 × 1.74? × 1.90 | 2.4 | 2 | 80.0 / 30.0? | 15 /  | DT |
 | su_isu152 | ISU-152 / ISU-152 | ISU-152 heavy self-propelled gun | 1943–1945 | 2 | 9.18 × 3.07 × 2.48 | 46.0? | 5? | 30.0 / 15.0? | 90 / 90 | 152 mm ML-20S L/29? |
 
@@ -450,8 +450,8 @@ uncertain; see the list at the end of each faction.
 | us_m26 | Schwerer Panzer M26 Pershing / M26 Pershing | Heavy Tank T26E3 / M26 | 1945–1951 | 2 | 8.65 × 3.51 × 2.78 | 41.9 | 5 | 48.0 / 26.0? | 102 / 114? | 90 mm Gun M3 |
 | us_m10 | Jagdpanzer M10 Wolverine / M10 Gun Motor Carriage | 3-inch Gun Motor Carriage M10 | 1942–1945 | 2 | 6.83 × 3.05 × 2.90 | 29.6 | 5 | 48.0? / 26.0? | 38 / 57 | 3 in Gun M7 (mount M5) |
 | us_m4a3_105 | Sturmhaubitze M4A3 (105) / M4A3 (105) Sherman | Medium Tank M4A3 (105 mm Howitzer) | 1944–1945 | 2 | 5.91? × 2.62 × 2.81 | 31.1 | 5 | 42.0 / 25.0? | 64 / 76 | 105 mm Howitzer M4 (mount M52)? |
-| us_m3_halftrack | Halbkettenfahrzeug M3 / M3 Half-track | Carrier, Personnel, Half-track, M3 | 1941–1945 | 1 | 6.16 × 1.96? × 2.30 | 9.1? | 1 | 72.0 / 35.0? | 13 /  | Browning M1919A4 (pedestal mount M25) |
-| us_gmc_cckw | Lkw GMC CCKW 353 (2½ t, 6x6) / GMC CCKW 353 2½-ton Truck | Truck, 2½-ton, 6x6, GMC CCKW-353 | 1941–1945 | 2 | 6.86 × 2.24 × 2.77 | 7.4 | 2? | 72.0 / 35.0? |  /  |  |
+| us_m3_halftrack | Halbkettenfahrzeug M3 / M3 Half-track | Carrier, Personnel, Half-track, M3 | 1941–1945 | 1 | 6.16 × 1.96? × 2.30 | 9.1? | 1 + 12 | 72.0 / 35.0? | 13 /  | Browning M1919A4 (pedestal mount M25) |
+| us_gmc_cckw | Lkw GMC CCKW 353 (2½ t, 6x6) / GMC CCKW 353 2½-ton Truck | Truck, 2½-ton, 6x6, GMC CCKW-353 | 1941–1945 | 2 | 6.86 × 2.24 × 2.77 | 7.4 | 2? + 16? | 72.0 / 35.0? |  /  |  |
 | us_m8_greyhound | Panzerspähwagen M8 Greyhound / M8 Greyhound | Light Armored Car M8 | 1943–1945 | 2 | 4.70 × 2.31 × 1.91? | 7.4 | 4 | 89.0 / 51.0 | 19? / 25 | 37 mm Gun M6 |
 | us_m7_priest | Selbstfahrlafette M7 Priest / M7 Priest | 105 mm Howitzer Motor Carriage M7 | 1942–1945 | 2 | 6.02 × 2.87 × 2.54 | 23.0 | 8 | 39.0 / 24.0 | 62? /  | 105 mm Howitzer M2A1 (mount M4) |
 
@@ -500,7 +500,7 @@ uncertain; see the list at the end of each faction.
 - `us_m10`: speed_road_kmh_x10, speed_offroad_kmh_x10, armor_hull_front_deg
 - `us_m4a3_105`: length_mm, speed_offroad_kmh_x10, range_road_km, weapon
 - `us_m3_halftrack`: width_mm, mass_kg, speed_offroad_kmh_x10
-- `us_gmc_cckw`: speed_offroad_kmh_x10, crew
+- `us_gmc_cckw`: passengers, speed_offroad_kmh_x10, crew
 - `us_m8_greyhound`: height_mm, range_road_km, armor_hull_front_mm, armor_hull_side_mm, armor_hull_rear_mm, armor_turret_side_mm, armor_turret_rear_mm
 - `us_m7_priest`: armor_hull_front_mm, armor_hull_side_mm, armor_hull_rear_mm
 - `us_57mm_m1`: length_mm, mass_kg, crew, weapon

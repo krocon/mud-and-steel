@@ -499,7 +499,9 @@ impl Sim {
                 self.artillery.guns.remove(&id);
                 continue;
             }
-            let moving = self.units[i].route != Route::None;
+            // Towed, limbering or unlimbering counts as moving (prompt 034).
+            let blocked = self.transport_blocks_fire(i);
+            let moving = self.units[i].route != Route::None || blocked;
             let gun = self.artillery.guns.entry(id).or_default();
             gun.reload = gun.reload.saturating_sub(1);
             if moving {
@@ -509,7 +511,7 @@ impl Sim {
             }
             let order = gun.order;
             // Squads inside a building cannot fire their mortar.
-            if super::infantry::inside(&self.units[i]) {
+            if super::infantry::inside(&self.units[i]) || blocked {
                 continue;
             }
             let point = match order {

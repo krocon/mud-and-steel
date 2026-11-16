@@ -15,6 +15,7 @@ extends VBoxContainer
 ## production bar as before.
 
 const Settings := preload("res://scenes/menu/settings.gd")
+const TransportOrders := preload("res://scenes/selection/transport_orders.gd")
 const REFRESH := 0.2
 ## id, label, action (key shown), kind: "mode" (targeted), "now", "stance".
 const BUTTONS: Array[Array] = [
@@ -27,6 +28,8 @@ const BUTTONS: Array[Array] = [
 	["garrison", "Occupy", "order_garrison", "mode"],
 	["barrage", "Barrage", "order_barrage", "mode"],
 	["smoke", "Smoke", "order_smoke", "mode"],
+	["disembark", "Dismount", "order_disembark", "now"],
+	["unlimber", "Unlimber", "order_unlimber", "now"],
 	["stance_stand", "Stand", "stance_stand", "stance"],
 	["stance_kneel", "Kneel", "stance_kneel", "stance"],
 	["stance_prone", "Prone", "stance_prone", "stance"],
@@ -117,6 +120,10 @@ func press(id: String) -> void:
 			"now":
 				if id == "stop":
 					selection.stop_selected()
+				elif id == "disembark":
+					TransportOrders.disembark(selection)
+				elif id == "unlimber":
+					TransportOrders.unlimber(selection)
 				else:
 					selection.toggle_hold_fire()
 	_update()
@@ -154,6 +161,8 @@ func _update() -> void:
 			if weapon.z > 0.0:
 				smoke += 1
 	var economy: bool = sim_host.economy_state().get("enabled", false)
+	# Vehicles with passengers, towing links (prompt 034).
+	var transport := TransportOrders.counts(selection)
 	for spec in BUTTONS:
 		var b: Button = buttons[spec[0]]
 		var key := Settings.action_key_name(spec[2]) if not (spec[2] as String).is_empty() else ""
@@ -169,7 +178,8 @@ func _update() -> void:
 			"stance":
 				b.disabled = squads == 0
 			"now":
-				b.disabled = selected.is_empty()
+				b.disabled = selected.is_empty() or (spec[0] == "disembark" and transport.x == 0) \
+						or (spec[0] == "unlimber" and transport.y == 0)
 			"build":
 				b.visible = economy
 				b.set_pressed_no_signal(build_open)
@@ -183,4 +193,6 @@ func _set_tooltips() -> void:
 	buttons["garrison"].tooltip_text = "Then left click a building: squads occupy it."
 	buttons["barrage"].tooltip_text = "Mortars and guns: then left click a point. The key fires at the cursor at once."
 	buttons["smoke"].tooltip_text = "Mortars and guns with smoke rounds: then left click a point. The key fires at the cursor at once."
+	buttons["disembark"].tooltip_text = "Passengers of the selected vehicles get off once they stand. Right click a vehicle with squads selected to mount."
+	buttons["unlimber"].tooltip_text = "Selected vehicles drop their towed guns. Right click an own gun with vehicles selected to hitch it."
 	buttons["build"].tooltip_text = "Opens the build menu."

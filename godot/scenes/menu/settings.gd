@@ -44,6 +44,9 @@ const BINDABLE: Dictionary[String, String] = {
 	"order_smoke": "Smoke at the cursor (artillery)",
 	# Teams (prompt 037).
 	"ping_allies": "Mark the spot for allies",
+	# Transport (prompt 034).
+	"order_disembark": "Dismount passengers",
+	"order_unlimber": "Unlimber towed gun",
 }
 
 ## Health bars over units (prompt 031): `damaged` (damaged and selected

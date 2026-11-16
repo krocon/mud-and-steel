@@ -15,6 +15,12 @@ pub struct OwnUnit {
     pub hp: u32,
     pub max_hp: u32,
     pub fire_mode: FireMode,
+    /// The vehicle it rides in or is towed by (prompt 034).
+    pub carrier: Option<UnitId>,
+    /// Soldiers riding in or on it.
+    pub passengers: u16,
+    /// The gun it tows.
+    pub towing: Option<UnitId>,
 }
 
 impl OwnUnit {
@@ -96,6 +102,9 @@ impl PlayerView {
                     hp: u.hp,
                     max_hp: u.max_hp,
                     fire_mode: u.fire_mode,
+                    carrier: u.carrier,
+                    passengers: u.passengers,
+                    towing: u.towing,
                 });
             } else {
                 let seen = SeenUnit {

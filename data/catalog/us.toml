@@ -531,6 +531,7 @@ width_mm = 1962
 height_mm = 2300
 mass_kg = 9100
 crew = 1
+passengers = 12
 speed_road_kmh_x10 = 720
 speed_offroad_kmh_x10 = 350
 range_road_km = 320
@@ -565,6 +566,7 @@ width_mm = 2240
 height_mm = 2770
 mass_kg = 7400
 crew = 2
+passengers = 16
 speed_road_kmh_x10 = 720
 speed_offroad_kmh_x10 = 350
 range_road_km = 480
@@ -573,8 +575,8 @@ source = [
     { ref = "https://en.wikipedia.org/wiki/GMC_CCKW_2%C2%BD-ton_6%C3%976_truck", covers = "CCKW-353: 6.86 x 2.24 m, height 2.36 m to cab / 2.77 m overall, empty 4,000 kg, loaded 7,400 kg, GMC 270 91.5-104 hp, 45 mph, 300 mi" },
     { ref = "TM 9-801 2 1/2-ton 6x6 Truck (GMC CCKW-352, 353) (1944), https://ia802603.us.archive.org/33/items/TM9-801/TM9-801.pdf", covers = "primary manual (existence confirmed; tables not read)" },
 ]
-uncertain = ["speed_offroad_kmh_x10", "crew"]
-note = "CCKW-353 long wheelbase cargo truck. mass_kg = loaded (gross) weight. Height overall (with canvas top). crew = driver + assistant driver (often just a driver). Offroad speed estimated. power_hp = 104 gross hp converted. No armor."
+uncertain = ["passengers", "speed_offroad_kmh_x10", "crew"]
+note = "CCKW-353 long wheelbase cargo truck. mass_kg = loaded (gross) weight. Height overall (with canvas top). crew = driver + assistant driver (often just a driver). Offroad speed estimated. power_hp = 104 gross hp converted. No armor. passengers = 16 is an estimate (folding troop seats along both sides of the cargo body, prompt 034); no source found offline."
 
 [[unit]]
 id = "us_m8_greyhound"

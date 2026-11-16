@@ -472,8 +472,9 @@ aim. Hulls follow the simulation's `facing`.
 
 ### Open
 
-- Guns (`gun_*`) cannot be driven yet (no ground speed; limbering);
-  AT guns and flak are placed as fortifications (prompts 023, 033).
+- Guns (`gun_*`) are pushed by their crew or towed since prompt 034
+  ([Transport and towing](#transport-and-towing)); flak is placed as
+  fortifications (prompt 033).
   Aircraft: [Air support](#air-support-and-anti-aircraft-fire). Damaged
   modules, ammunition limits.
   Indirect fire, HE fragments and smoke: see
@@ -1034,7 +1035,7 @@ closing in), not in the direct-fire attack order, so a mortar squad fires
 its rifles at will while the mortar follows the order. Out of range a unit
 drives up to 90 % of its range; inside the minimum range it holds fire.
 Indirect weapons fire only standing and set up (`setup_ms` after every
-move; towed guns cannot move until prompt 034). `MoveTo` and `Stop` cancel
+move; towed guns also not while towed, limbered or unlimbered, prompt 034). `MoveTo` and `Stop` cancel
 the order.
 
 ### Per tick
@@ -1101,7 +1102,7 @@ whistle (prompt 029). Muzzle flashes and explosions come from the usual
 - Provisional values (marked in `data/indirect.toml`): minimum ranges,
   setup times, elevations, dispersion, blast and smoke figures, the fixed
   wind (until weather, prompt 040).
-- Towed guns and heavy mortars cannot be fielded until towing (prompt 034);
+- Towed guns are fielded since prompt 034 (see "Transport and towing");
   the Soviet catalog entries name no smoke rounds, and tanks have no smoke
   dischargers in the catalog (the 75 mm M89 smoke round of US tank guns is
   not used for direct fire).
@@ -1360,6 +1361,110 @@ The full table is in `prompts/done/033-luftwaffe-flak.md`. In short:
   sound yet (prompt 029 has no aircraft sounds).
 - The approach direction follows the caller's start; players cannot pick
   it.
+
+## Transport and towing
+
+Prompt 034. Squads ride in trucks and halftracks and on tanks (tank
+desant); trucks and halftracks tow guns. Rules: `data/transport.toml`
+(`sim::TransportRules`, loaded by `Sim::new` like the indirect-fire rules,
+in the state hash, not part of `SimConfig`). Code:
+`crates/sim/src/transport.rs` (rules, `TransportType` from the catalog) and
+`crates/sim/src/sim/transport.rs` (orders, tasks, following, losses).
+Decisions and provisional values: `prompts/done/034-transport-schleppen.md`.
+
+### Data
+
+- **Seats:** catalog field `passengers` (trucks, halftracks); tanks carry
+  `riders` of the rules (light 6, medium and heavy 10). Seats count living
+  soldiers; a squad mounts only as a whole.
+- **Towing:** a carrier category with `tows` pulls a gun if its catalog
+  `power_hp ≥ min_hp_per_tonne × (its mass + gun mass)` (8 hp/t). Towing
+  sets the tractor's speed share to `mass / (mass + gun mass)`.
+- **Guns** (`Group::Gun`) are mobile now: `UnitType::from_catalog` gives
+  them the rules' `manhandle_kmh_x10` × time factor (Pak 2 km/h real,
+  howitzer 1 km/h). They fire only standing, not while towed, being
+  limbered or unlimbered; indirect guns then need their setup time too.
+- Times (`embark_ms`, `disembark_ms`, `limber_ms`, `unlimber_ms`) are real
+  and divided by the time factor.
+
+### Orders and tasks
+
+| Command | Effect |
+|---|---|
+| `Embark { units, carrier }` | Squads walk behind the own vehicle (planning again when it moves), then mount after `embark_ms` while both stand |
+| `Disembark { units }` | Listed vehicles unload everybody, listed passengers get off; `disembark_ms` while the vehicle stands, then behind it (sides or front if blocked) |
+| `Tow { units, gun }` | The nearest listed vehicle that can pull the gun and tows nothing drives to it, limbers it (`limber_ms`) and hitches it |
+| `Unlimber { units }` | Towed guns of listed vehicles (or listed guns) are unhitched after `unlimber_ms` while the tractor stands, facing the way the tractor drove; a hitch under way is called off |
+
+A unit has at most one task (`Transport::tasks`, by unit id). Move, attack,
+stop, garrison, barrage, patrol, embark and tow orders call off walking to a
+vehicle or driving to a gun, not a dismount or an unhitch under way.
+
+### Passengers and towed guns
+
+The links live on the unit (`Unit::link`: `Aboard(vehicle)` or
+`Towed(tractor)`); ids, per-index arrays and the unit list stay as they are.
+
+| | Passenger (`Aboard`) | Towed gun (`Towed`) |
+|---|---|---|
+| Position | the vehicle's center, soldiers too | trails the hook: `hook + dir × (gap + length/2)`, `dir` from the hook towards the gun (a trailer), muzzle away from the tractor |
+| Unit grid (hits, separation, targets) | not listed: cannot be hit or chosen | listed (it can be hit), no separation |
+| Vision | seen only by its owner (`seen` mask), keeps its own viewshed | normal |
+| Orders | only `Disembark` (`owned_indices` skips passengers) | no moves (`mobile_indices`); fire mode and `Unlimber` |
+| Fire | none | none |
+| Squads | `update_squads` skips it, no soldiers in the snapshot | – |
+
+Order within a tick: `update_transport` after the movement (tasks, then
+`carry_along`), `transport_losses` after projectiles and shells:
+
+- every Hit event on a loaded carrier (and hit points lost without one:
+  shell fragments) kills one random passenger with `hit_pct` (damaging
+  rounds) or `bounce_pct` (rounds without damage: tank riders under fire);
+- a destroyed carrier kills every passenger soldier with `destroyed_pct`;
+  the survivors jump off at once; a destroyed tractor drops its gun, which
+  is not ready until its unlimber time is over;
+- links of destroyed passengers and guns are dropped.
+
+Tasks, links and the hit points of loaded carriers are in the state hash
+(after the order queues) and, as fields of `Sim`, in saved games (prompt
+038; `crates/net/tests/snapshot_transport.rs`). Tests:
+`crates/sim/tests/transport.rs`.
+
+### Snapshot, bridge and Godot
+
+`UnitSnapshot::carrier`, `passengers`, `towing`, `loading`; `Sim::seats`,
+`can_tow`, `transport_load`, `is_towed_gun_type`. `SimHost.embark_units`,
+`disembark_units`, `tow_gun`, `unlimber_units`, `unit_carriers`,
+`unit_passengers`, `unit_towing`, `unit_loading`, `unit_seats`, `can_tow`,
+`is_towed_gun` (`crates/bridge/src/transport_funcs.rs`).
+`selection/transport_orders.gd` turns right clicks and the keys J and O
+into orders; `world/transport_view.gd` hides riding squads and seats one
+rifleman figure (pose `kneel`) per passenger at the model's
+`Socket_Passenger_NN` empties, or in two rows over the rear half of the
+model's bounding box for tanks (they have no rider sockets). Towed guns
+need nothing extra: the simulation places them at the hook (catalog sizes
+1:1, `Socket_Tow` exists on every vehicle and gun model).
+
+### Decisions
+
+See the table in `prompts/done/034-transport-schleppen.md`: seats from the
+catalog, towing from engine power, rules file outside `SimConfig`, the AT
+gun position of prompt 023 replaced by produced towed guns, passengers as
+linked units with the same id.
+
+### Open
+
+- Provisional values in `data/transport.toml` (times, losses, rider
+  counts, towing threshold); the seats of the Opel Blitz and GMC CCKW are
+  estimates.
+- Rider sockets on the tank models (the kit has none; Godot spreads riders
+  over the deck); the `mount` / `dismount` clips of prompt 042 are not
+  played yet (figures appear seated, soldiers appear behind the vehicle).
+  Not checked in a rendered frame (headless tests only).
+- Passengers do not fire from open vehicles; the gun crew is not modelled
+  as passengers (it rides with the gun); bridges check the tractor's mass
+  only; no tractors for the 88 mm and 90 mm AA guns in the catalog; no
+  path profile for a tractor with a gun.
 
 ## Victory conditions and game flow
 

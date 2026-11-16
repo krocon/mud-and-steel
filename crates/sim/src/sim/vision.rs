@@ -223,7 +223,19 @@ impl Sim {
         }
         v.last_steps = spent;
         for (i, unit) in self.units.iter().enumerate() {
-            v.seen[i] = if unit.alive() {
+            v.seen[i] = if super::transport::aboard(unit) {
+                // Passengers are hidden in their vehicle (prompt 034): only
+                // their owner and the owner's allies (prompt 037) see them.
+                v.slot(unit.owner).map_or(0, |owner| {
+                    (0..v.players.len()).fold(1u64 << owner, |mask, s| {
+                        if v.allies[s] & (1 << owner) != 0 {
+                            mask | (1 << s)
+                        } else {
+                            mask
+                        }
+                    })
+                })
+            } else if unit.alive() {
                 let cell = grid.index_of(unit.position) as usize;
                 // Squads in a building are seen at their windows (prompt 022).
                 let windows: Vec<usize> = match &unit.squad {

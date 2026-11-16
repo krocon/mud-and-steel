@@ -98,6 +98,7 @@ const GameFiles := preload("res://scenes/menu/game_files.gd")
 const ReplayBar := preload("res://scenes/replay/replay_bar.gd")
 const BattleSound := preload("res://scenes/audio/battle_sound.gd")
 const MatchHud := preload("res://scenes/hud/hud.gd")
+const TransportView := preload("res://scenes/world/transport_view.gd")
 const SEED := 42
 ## Map folders, relative to the Godot project (repository checkout only).
 const REPLAY_DIR := "user://replays"
@@ -160,6 +161,8 @@ var fog_of_war: FogOfWar
 var effects: Effects
 ## Soldiers of infantry squads (prompt 022).
 var infantry_view: InfantryView
+## Passengers and their seats (prompt 034).
+var transport_view: TransportView
 var destruction_view: Node
 ## Burning objects: flames, smoke, light, charring (prompt 041).
 var fire_view: Node
@@ -251,6 +254,10 @@ func _ready() -> void:
 	infantry_view.name = "InfantryView"
 	add_child(infantry_view)
 	infantry_view.setup(self)
+	transport_view = TransportView.new()
+	transport_view.name = "TransportView"
+	add_child(transport_view)
+	transport_view.setup(self)
 	effects = Effects.new()
 	effects.name = "Effects"
 	add_child(effects)

@@ -34,6 +34,7 @@ mod sim;
 pub mod snapshot;
 pub mod teams;
 pub mod terrain;
+pub mod transport;
 pub mod vision;
 
 pub use air::{
@@ -69,4 +70,5 @@ pub use sim::{
 };
 pub use teams::Teams;
 pub use terrain::{TerrainError, TerrainRules};
+pub use transport::{TransportRules, TransportType};
 pub use vision::{CellState, VisionGrid, VisionRules};

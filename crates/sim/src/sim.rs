@@ -25,6 +25,7 @@ mod indirect;
 mod infantry;
 mod orders;
 mod spatial;
+mod transport;
 mod vision;
 
 pub use vision::MAX_PLAYERS;
@@ -114,6 +115,8 @@ pub enum ConfigError {
     Fire(String),
     /// The built-in air rules do not parse (prompt 033).
     Air(String),
+    /// The built-in transport rules do not parse (prompt 034).
+    Transport(String),
 }
 
 impl fmt::Display for ConfigError {
@@ -130,7 +133,11 @@ impl fmt::Display for ConfigError {
             Self::SpawnOutsideMap(index) => write!(f, "spawn {index} lies outside the map"),
             Self::TooManyPlayers(n) => write!(f, "{n} players, at most {MAX_PLAYERS} allowed"),
             Self::Destruction(e) | Self::Economy(e) => write!(f, "{e}"),
-            Self::Craters(e) | Self::Indirect(e) | Self::Fire(e) | Self::Air(e) => {
+            Self::Craters(e)
+            | Self::Indirect(e)
+            | Self::Fire(e)
+            | Self::Air(e)
+            | Self::Transport(e) => {
                 write!(f, "{e}")
             }
         }
@@ -179,6 +186,9 @@ struct Unit {
     vision_dirty: bool,
     /// Queued waypoints and patrol (prompt 031).
     orders: orders::OrderQueue,
+    /// Riding in or on a vehicle, or towed by one (prompt 034).
+    #[serde(default)]
+    link: Option<transport::Link>,
 }
 
 impl Unit {
@@ -242,6 +252,15 @@ pub struct UnitSnapshot {
     pub changing_stance: bool,
     /// Width for formations: the footprint, or a squad's formation width.
     pub spread: Fixed,
+    /// The vehicle a passenger rides in, or the tractor of a towed gun
+    /// (prompt 034).
+    pub carrier: Option<UnitId>,
+    /// Soldiers riding in or on this vehicle.
+    pub passengers: u16,
+    /// The gun this vehicle tows.
+    pub towing: Option<UnitId>,
+    /// Mounting, dismounting, limbering or unlimbering is under way.
+    pub loading: bool,
 }
 
 /// Presentation data of one soldier of a squad (prompt 022).
@@ -396,6 +415,8 @@ pub struct Sim {
     air: air::Air,
     /// Teams of the match (prompt 037, `SimConfig::teams`).
     teams: crate::teams::Teams,
+    /// Mounting, dismounting and towing (prompt 034).
+    transport: transport::Transport,
 }
 
 impl Sim {
@@ -516,6 +537,12 @@ impl Sim {
         );
         let mut vision = vision;
         vision.ensure_radius(air.recon_radius);
+        let transport = transport::Transport::new(
+            crate::transport::TransportRules::builtin()
+                .map_err(|e| ConfigError::Transport(e.to_string()))?,
+            &config.unit_types,
+            config.tick_hz,
+        );
         let grid = PathGrid::new(&map, &config.terrain, &config.unit_types);
         let mut sim = Self {
             tick: 0,
@@ -543,6 +570,7 @@ impl Sim {
             fire,
             air,
             teams: config.teams.clone(),
+            transport,
         };
         sim.init_economy();
         sim.apply_destruction();
@@ -622,6 +650,7 @@ impl Sim {
         self.fire_indirect();
         done(Phase::Combat);
         self.move_units();
+        self.update_transport();
         done(Phase::Movement);
         self.update_squads();
         done(Phase::Squads);
@@ -631,6 +660,7 @@ impl Sim {
         self.fly_shells();
         self.update_air();
         self.update_fire();
+        self.transport_losses();
         done(Phase::Projectiles);
         self.apply_destruction();
         self.apply_craters();
@@ -899,6 +929,7 @@ impl Sim {
 
     fn apply(&mut self, command: &PlayerCommand) {
         self.drop_replaced_queues(command);
+        self.drop_transport_tasks(command);
         match &command.command {
             Command::MoveTo { units, target } => {
                 if !within_world(*target) {
@@ -1015,14 +1046,21 @@ impl Sim {
             }
             // Presentation only (prompt 037): the games of the allies show it.
             Command::Ping { .. } => {}
+            Command::Embark { units, carrier } => {
+                self.order_embark(command.player, units, *carrier);
+            }
+            Command::Disembark { units } => self.order_disembark(command.player, units),
+            Command::Tow { units, gun } => self.order_tow(command.player, units, *gun),
+            Command::Unlimber { units } => self.order_unlimber(command.player, units),
         }
     }
 
     /// [`Self::owned_indices`] without units that cannot move (buildings,
-    /// prompt 023).
+    /// prompt 023; towed guns, prompt 034).
     fn mobile_indices(&self, player: PlayerId, ids: &[UnitId]) -> Vec<usize> {
         let mut indices = self.owned_indices(player, ids);
-        indices.retain(|&i| self.units[i].speed_offroad > Fixed::ZERO);
+        indices
+            .retain(|&i| self.units[i].speed_offroad > Fixed::ZERO && self.units[i].link.is_none());
         indices
     }
 
@@ -1068,12 +1106,16 @@ impl Sim {
     }
 
     /// Indices into `self.units` of the listed units that exist and belong to
-    /// `player`, sorted and without duplicates.
+    /// `player`, sorted and without duplicates. Passengers (prompt 034) take
+    /// no orders but `Disembark`.
     fn owned_indices(&self, player: PlayerId, ids: &[UnitId]) -> Vec<usize> {
         let mut indices: Vec<usize> = ids
             .iter()
             .filter_map(|&id| self.units.binary_search_by_key(&id, |u| u.id).ok())
-            .filter(|&index| self.units[index].owner == player && self.units[index].alive())
+            .filter(|&index| {
+                let u = &self.units[index];
+                u.owner == player && u.alive() && !transport::aboard(u)
+            })
             .collect();
         indices.sort_unstable();
         indices.dedup();
@@ -1169,6 +1211,7 @@ impl Sim {
         self.hash_queues(&mut h);
         self.air.hash_into(&mut h);
         self.teams.hash_into(&mut h);
+        self.hash_transport(&mut h);
         h.finish()
     }
 
@@ -1185,6 +1228,7 @@ impl Sim {
     /// [`Self::snapshot_for`].
     pub fn snapshot_into(&self, player: Option<PlayerId>, out: &mut Snapshot) {
         let shown = |u: &Unit| player.is_none_or(|p| self.visible_to(p, u.id));
+        let loads = self.transport_loads();
         out.tick = self.tick;
         out.units.clear();
         out.units.extend(
@@ -1207,6 +1251,10 @@ impl Sim {
                     garrison: u.squad.as_ref().and_then(|s| s.garrison),
                     changing_stance: u.squad.as_ref().is_some_and(|s| s.changing > 0),
                     spread: u.spread,
+                    carrier: transport::carrier_of(u),
+                    passengers: transport::load_of(&loads, u.id).0,
+                    towing: transport::load_of(&loads, u.id).1,
+                    loading: self.transport_busy(u.id),
                 }),
         );
         out.projectiles.clear();
@@ -1218,7 +1266,7 @@ impl Sim {
         out.soldiers.extend(
             self.units
                 .iter()
-                .filter(|u| shown(u))
+                .filter(|u| shown(u) && !transport::aboard(u))
                 .filter_map(|u| u.squad.as_ref().map(|s| (u, s)))
                 .flat_map(|(u, s)| {
                     let inside = s.garrison.is_some();
@@ -1402,7 +1450,7 @@ fn separation(
     for &j in near {
         let j = j as usize;
         let other = &units[j];
-        if j == i || !other.alive() || infantry::inside(other) {
+        if j == i || !other.alive() || infantry::inside(other) || other.link.is_some() {
             continue;
         }
         let reach = (me.spread + other.spread) / 2;
@@ -1659,6 +1707,7 @@ fn new_unit(n: &NewUnit<'_>) -> Unit {
         elevation_mm: 0,
         vision_dirty: false,
         orders: orders::OrderQueue::default(),
+        link: None,
     }
 }
 
@@ -1678,6 +1727,7 @@ mod tests {
             footprint_m: Fixed::from_num(6),
             mass_kg: 0,
             combat: crate::combat::CombatType::default(),
+            transport: crate::transport::TransportType::default(),
         }
     }
 
@@ -2186,6 +2236,7 @@ mod object_tests {
             footprint_m: Fixed::from_num(footprint_m),
             mass_kg: 0,
             combat: crate::combat::CombatType::default(),
+            transport: crate::transport::TransportType::default(),
         }
     }
 

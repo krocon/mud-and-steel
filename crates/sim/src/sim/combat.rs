@@ -38,7 +38,7 @@ pub(super) struct CombatState {
     pub(super) fire_mode: FireMode,
     pub(super) attack: Option<Attack>,
     /// The unit drives towards its attack target.
-    attack_moving: bool,
+    pub(super) attack_moving: bool,
     /// Automatically chosen target.
     pub(super) auto_target: Option<UnitId>,
     /// Where the player last saw the target of an attack order (prompt 018).
@@ -431,7 +431,7 @@ impl Sim {
             .tick
             .is_multiple_of(u64::from(self.combat_rules.fire.retarget_ticks));
         for i in 0..self.units.len() {
-            if !self.units[i].alive() {
+            if !self.units[i].alive() || self.transport_blocks_fire(i) {
                 continue;
             }
             let ty = self.units[i].unit_type as usize;

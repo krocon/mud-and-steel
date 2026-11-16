@@ -39,6 +39,7 @@ mod save_funcs;
 mod steam_lobby;
 mod team_funcs;
 mod terrain_layers;
+mod transport_funcs;
 mod vision_funcs;
 mod water;
 mod water_funcs;

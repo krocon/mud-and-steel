@@ -104,9 +104,10 @@ fn all_mobile_entries_convert_to_unit_types() {
     let catalog = catalog();
     let scale = Scale::builtin().unwrap();
     for entry in &catalog.entries {
+        // Towed guns move as fast as their crew pushes them (prompt 034).
         let mobile = matches!(
             entry.category.group(),
-            Group::Infantry | Group::Vehicle | Group::Aircraft
+            Group::Infantry | Group::Vehicle | Group::Aircraft | Group::Gun
         );
         let unit_type = UnitType::from_catalog(entry, &scale);
         assert_eq!(unit_type.is_some(), mobile, "{}", entry.id);

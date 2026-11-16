@@ -223,6 +223,8 @@ pub struct Entry {
     pub mass_kg: Option<u32>,
 
     pub crew: Option<u16>,
+    /// Troop seats besides the crew (trucks and halftracks, prompt 034).
+    pub passengers: Option<u16>,
     pub squad_size: Option<u16>,
 
     pub speed_road_kmh_x10: Option<u32>,
@@ -269,6 +271,7 @@ pub const FIELD_NAMES: &[&str] = &[
     "wingspan_mm",
     "mass_kg",
     "crew",
+    "passengers",
     "squad_size",
     "speed_road_kmh_x10",
     "speed_offroad_kmh_x10",
@@ -452,6 +455,11 @@ fn validate(e: &Entry) -> Vec<String> {
         if value.is_some_and(|v| v > 300) {
             errors.push(format!("{name} above 300"));
         }
+    }
+    if let Some(v) = e.passengers
+        && (group != Group::Vehicle || !(1..=30).contains(&v))
+    {
+        errors.push(format!("passengers = {v}: only vehicles, 1..=30"));
     }
     if e.armor_hull_front_deg.is_some_and(|v| v > 80) {
         errors.push("armor_hull_front_deg above 80".into());

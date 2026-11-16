@@ -142,7 +142,14 @@ fn table(out: &mut String, group: Group, rows: &[&Entry]) {
                 e.tier.to_string(),
                 dims(e, "width_mm", e.width_mm),
                 u("mass_kg", e.mass_kg.map_or_else(String::new, tonnes)),
-                u("crew", opt(e.crew.map(u32::from))),
+                match e.passengers {
+                    Some(p) => format!(
+                        "{} + {}",
+                        u("crew", opt(e.crew.map(u32::from))),
+                        u("passengers", p.to_string())
+                    ),
+                    None => u("crew", opt(e.crew.map(u32::from))),
+                },
                 format!(
                     "{} / {}",
                     u("speed_road_kmh_x10", tenths(e.speed_road_kmh_x10)),

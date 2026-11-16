@@ -25,6 +25,9 @@ pub struct UnitType {
     pub mass_kg: u32,
     /// Weapons, armor and hit box (prompt 017).
     pub combat: CombatType,
+    /// Troop seats and engine power (prompt 034).
+    #[serde(default)]
+    pub transport: crate::transport::TransportType,
 }
 
 /// Footprint of entries without dimensions (infantry): one soldier.
@@ -58,22 +61,39 @@ impl UnitType {
                 let speed = entry.speed_cruise_kmh_x10.or(entry.speed_max_kmh_x10)?;
                 (speed, speed)
             }
-            Group::Gun | Group::Fortification | Group::Environment => return None,
+            Group::Gun => {
+                // Towed guns move only as fast as their crew pushes them
+                // (prompt 034); the speed is already a game speed.
+                let speed = crate::transport::manhandle_speed(entry, scale)?;
+                return Some(Self::from_parts(entry, scale, speed, speed));
+            }
+            Group::Fortification | Group::Environment => return None,
         };
+        Some(Self::from_parts(
+            entry,
+            scale,
+            scale.game_speed(entry.category, speed),
+            scale.game_speed(entry.category, road),
+        ))
+    }
+
+    /// A unit type of a catalog entry with the given game speeds.
+    fn from_parts(entry: &Entry, scale: &Scale, offroad: Fixed, road: Fixed) -> Self {
         let footprint_mm = entry
             .length_mm
             .into_iter()
             .chain(entry.width_mm)
             .max()
             .unwrap_or(DEFAULT_FOOTPRINT_MM);
-        Some(Self {
+        Self {
             name: entry.id.clone(),
-            speed_m_per_s: scale.game_speed(entry.category, speed),
-            road_speed_m_per_s: scale.game_speed(entry.category, road),
+            speed_m_per_s: offroad,
+            road_speed_m_per_s: road,
             footprint_m: Fixed::from_num(footprint_mm) / Fixed::from_num(1000),
             mass_kg: entry.mass_kg.unwrap_or(0),
             combat: CombatType::from_catalog(entry, scale),
-        })
+            transport: crate::transport::TransportType::from_catalog(entry),
+        }
     }
 }
 
@@ -103,6 +123,7 @@ impl UnitType {
                 range_ratio: (scale.direct_fire_range.num, scale.direct_fire_range.den),
                 ..CombatType::default()
             },
+            transport: crate::transport::TransportType::default(),
         }
     }
 
@@ -128,6 +149,7 @@ impl UnitType {
             footprint_m: Fixed::from_num(footprint_mm) / Fixed::from_num(1000),
             mass_kg: entry.mass_kg.unwrap_or(0),
             combat,
+            transport: crate::transport::TransportType::default(),
         }
     }
 

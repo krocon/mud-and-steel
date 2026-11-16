@@ -25,6 +25,10 @@ extends Control
 ##   salvos within 25 m) and T (`order_smoke`) smoke (2 salvos within 15 m) of the selected mortars and guns at
 ##   the ground point under the cursor; Ctrl+right click fires at a point
 ##   until stopped, right click on an enemy fires at it while it is seen.
+## - Transport (prompt 034, `transport_orders.gd`): right click with squads
+##   on an own vehicle with seats mounts them, with vehicles on an own towed
+##   gun hitches it; J dismounts, O unlimbers. Passengers cannot be
+##   selected.
 ##
 ## Sits full-screen in a CanvasLayer and draws the selection box itself. It
 ## ignores the mouse for GUI purposes and works from `_unhandled_input`.
@@ -35,8 +39,11 @@ signal garrison_ordered(building: int)
 ## The targeted order waiting for a click changed ("" = none).
 signal command_mode_changed(mode: String)
 signal barrage_ordered(point: Vector3, smoke: bool)
+## A mount or tow order on the own unit `target` (prompt 034).
+signal embark_ordered(target: int)
 
 const GroundPick := preload("res://scenes/camera/ground_pick.gd")
+const TransportOrders := preload("res://scenes/selection/transport_orders.gd")
 ## Pointer travel in pixels before a left press becomes a box drag.
 const DRAG_THRESHOLD := 6.0
 ## Minimum click radius around a unit in pixels (for far zoom levels).
@@ -141,6 +148,8 @@ func _unhandled_input(event: InputEvent) -> void:
 				set_command_mode("")
 			elif button.ctrl_pressed or button.meta_pressed:
 				_order_attack_ground(button.position)
+			elif TransportOrders.right_click(self, button.position):
+				pass
 			elif not _order_attack(button.position):
 				_order_move(button.position, button.shift_pressed)
 			get_viewport().set_input_as_handled()
@@ -161,6 +170,10 @@ func _on_action(event: InputEvent) -> bool:
 		toggle_hold_fire()
 	elif event.is_action_pressed("camera_follow", false, true):
 		set_follow(not follow)
+	elif event.is_action_pressed("order_disembark", false, true):
+		TransportOrders.disembark(self)
+	elif event.is_action_pressed("order_unlimber", false, true):
+		TransportOrders.unlimber(self)
 	else:
 		for action: String in BARRAGE_ACTIONS:
 			if event.is_action_pressed(action, false, true):
@@ -530,14 +543,17 @@ func _set_selection(ids: Array) -> void:
 		set_command_mode("")
 
 
-## Indices (into the SimHost arrays) of the local player's living units.
+## Indices (into the SimHost arrays) of the local player's living units
+## (not passengers, prompt 034).
 func _own_indices() -> Array[int]:
 	var owners := sim_host.unit_owners()
 	var alive := sim_host.unit_alive()
+	var carriers := sim_host.unit_carriers()
+	var stances := sim_host.unit_stances()
 	var me := sim_host.local_player()
 	var result: Array[int] = []
 	for i in owners.size():
-		if owners[i] == me and alive[i] != 0:
+		if owners[i] == me and alive[i] != 0 and (carriers[i] < 0 or stances[i] < 0):
 			result.append(i)
 	return result
 

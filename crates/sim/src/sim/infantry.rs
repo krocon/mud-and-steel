@@ -628,6 +628,22 @@ impl Sim {
         unit.vision_dirty = true;
     }
 
+    /// Puts every soldier of squad `i` at `at`, out of cover (mounting and
+    /// dismounting, prompt 034).
+    pub(super) fn set_squad_at(&mut self, i: usize, at: Vec2) {
+        let height = self.map.height_at(at);
+        let Some(s) = &mut self.units[i].squad else {
+            return;
+        };
+        for soldier in &mut s.soldiers {
+            soldier.position = at;
+            soldier.height = height;
+            soldier.spot = None;
+            soldier.cover = None;
+        }
+        s.spots_at = None;
+    }
+
     /// Stances and speed factors of every squad, before firing and moving.
     pub(super) fn update_stances(&mut self) {
         for unit in &mut self.units {
@@ -669,7 +685,10 @@ impl Sim {
     /// squads enter buildings.
     pub(super) fn update_squads(&mut self) {
         for i in 0..self.units.len() {
-            if self.units[i].squad.is_none() || !self.units[i].alive() {
+            if self.units[i].squad.is_none()
+                || !self.units[i].alive()
+                || super::transport::aboard(&self.units[i])
+            {
                 continue;
             }
             // A building that collapses around its occupants (prompt 020).

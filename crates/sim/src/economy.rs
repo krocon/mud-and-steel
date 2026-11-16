@@ -537,8 +537,10 @@ mod tests {
         // Light and heavy flak (prompt 033).
         assert!(names.contains(&"de_flak38") && names.contains(&"de_flak36"));
         assert!(names.contains(&"de_tiger1_e") && !names.contains(&"su_is2"));
-        assert!(types.iter().take(8).all(|t| !t.mobile()));
-        assert!(types[8..].iter().all(UnitType::mobile));
+        // Four buildings, the bunker and two flak positions (prompt 033);
+        // the AT gun is produced and towed since prompt 034.
+        assert!(types.iter().take(7).all(|t| !t.mobile()));
+        assert!(types[7..].iter().all(UnitType::mobile));
         assert_eq!(faction_of("de_pz4_h"), Some("de"));
         assert_eq!(faction_of("base_hq"), None);
     }

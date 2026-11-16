@@ -21,7 +21,17 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by the merge of prompt 041 (fire) with 033 (air):
+/// Last changed by the merge of prompt 034 (transport and towing) with
+/// 041 (fire) and 033 (air support): the state of all three is in the hash.
+/// The demo battle is the one of 041 (decided at tick 467, player 0 wins).
+/// Prompt 034 alone (`0xe602_e2eb_a51e_1c8e`): the rules of
+/// `data/transport.toml`, transport tasks, links of passengers and towed
+/// guns and the hit points of loaded carriers are in the hash, and the
+/// economy rules (also hashed) produce trucks, AT guns and howitzers in
+/// the vehicle works instead of the AT gun position; the demo has no
+/// carriers or guns and its battle was unchanged.
+/// Before: the merge of 041 with 033 (`0xd8f0_f135_a14d_e016`).
+/// That merge:
 /// prompt 041: the fire rules of `data/fire.toml`, burning objects and
 /// wrecks, burnt-out objects and fire smoke clouds are in the hash; new
 /// catalog objects (town and log houses, town hall, warehouse, dumps) and
@@ -117,7 +127,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xd8f0_f135_a14d_e016;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x0b1d_7230_9f70_e885;
 
 #[test]
 fn golden_hash() {

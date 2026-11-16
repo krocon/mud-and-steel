@@ -3,7 +3,8 @@ extends PanelContainer
 ##
 ## - One unit: portrait (`unit_portrait.gd`), name, hit points, armor
 ##   (hull and turret front / side / rear), weapons with caliber and range,
-##   soldiers of a squad, stance and fire mode.
+##   soldiers of a squad, stance and fire mode; passengers and seats, the
+##   towed gun or the tractor (prompt 034).
 ## - Several units: a grid of tiles with a short name and a health bar;
 ##   click selects that unit alone, Shift + click removes it.
 ## - Hidden without a selection.
@@ -159,8 +160,29 @@ func _show_single(id: int) -> void:
 			state.append("patrolling")
 		elif queued > 0:
 			state.append("%d waypoint%s queued" % [queued, "" if queued == 1 else "s"])
+		# Same line, so the panel keeps its height (prompt 034).
+		var transport := _transport_line(id, index)
+		if not transport.is_empty():
+			state.append(transport)
 		lines.append(", ".join(state))
 	_details.text = "\n".join(lines)
+
+
+## Passengers, towing and loading state of unit `id` (prompt 034).
+func _transport_line(id: int, index: int) -> String:
+	var parts: Array[String] = []
+	var seats := sim_host.unit_seats(id)
+	if seats > 0 and sim_host.unit_passengers()[index] > 0:
+		parts.append("Passengers %d / %d" % [sim_host.unit_passengers()[index], seats])
+	var towing: int = sim_host.unit_towing()[index]
+	if towing >= 0:
+		parts.append("towing " + str(sim_host.unit_info(towing).get("name", "a gun")))
+	var carrier: int = sim_host.unit_carriers()[index]
+	if carrier >= 0:
+		parts.append("towed by " + str(sim_host.unit_info(carrier).get("name", "a vehicle")))
+	if sim_host.unit_loading()[index] != 0:
+		parts.append("loading")
+	return ", ".join(parts)
 
 
 func _build_tiles(selected: Array[int]) -> void:

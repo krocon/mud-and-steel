@@ -72,6 +72,7 @@ fn unit_type(name: &str, footprint_m: i32, mass_kg: u32) -> UnitType {
         footprint_m: Fixed::from_num(footprint_m),
         mass_kg,
         combat: sim::CombatType::default(),
+        transport: sim::TransportType::default(),
     }
 }
 
