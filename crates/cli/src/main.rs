@@ -4,8 +4,10 @@ mod ai_tournament;
 mod bench;
 mod catalog_doc;
 mod crater_bench;
+mod fire_bench;
 mod gen_map;
 mod gen_textures;
+mod gen_town;
 mod infantry_bench;
 mod lan;
 mod path_bench;
@@ -89,6 +91,21 @@ enum CliCommand {
         #[arg(long)]
         out: Option<PathBuf>,
     },
+    /// Generates the small-town map (prompt 041): market square, terraces,
+    /// warehouses, farms, woods and supply dumps.
+    GenTown {
+        /// Map name, written into map.toml.
+        #[arg(long, default_value = "town_small")]
+        name: String,
+        #[arg(long, default_value_t = 41)]
+        seed: u64,
+        /// Climate look written into map.toml (presentation only).
+        #[arg(long, default_value = "forest", value_parser = ["forest", "desert", "winter"])]
+        biome: String,
+        /// Output folder (default: data/maps/<name>).
+        #[arg(long)]
+        out: Option<PathBuf>,
+    },
     /// Loads a map folder and reports load time, memory and height range.
     MapInfo {
         /// Map folder, e.g. data/maps/test_large.
@@ -136,6 +153,20 @@ enum CliCommand {
         /// Craters land within this distance of the map center per axis (m).
         #[arg(long, default_value_t = 200)]
         range_m: i32,
+        #[arg(long, default_value_t = 1)]
+        seed: u64,
+    },
+    /// Fire on the town map (prompt 041): ticks timed without and with a
+    /// burning wood, terrace and dumps.
+    FireBench {
+        /// Map folder.
+        #[arg(long, default_value = "data/maps/town_small")]
+        map: PathBuf,
+        /// Units per player.
+        #[arg(long, default_value_t = 40)]
+        units: u32,
+        #[arg(long, default_value_t = 6000)]
+        ticks: u64,
         #[arg(long, default_value_t = 1)]
         seed: u64,
     },
@@ -461,6 +492,24 @@ fn main() {
                 Err(e) => fail(&e),
             }
         }
+        CliCommand::GenTown {
+            name,
+            seed,
+            biome,
+            out,
+        } => {
+            let out = out.unwrap_or_else(|| Path::new(MAPS_DIR).join(&name));
+            let options = gen_town::Options {
+                name: &name,
+                seed,
+                biome: &biome,
+                out: &out,
+            };
+            match gen_town::generate(&options) {
+                Ok(report) => println!("{report}"),
+                Err(e) => fail(&e),
+            }
+        }
         CliCommand::MapInfo { dir } => map_info(&dir),
         CliCommand::PathBench {
             map,
@@ -501,6 +550,19 @@ fn main() {
             };
             match crater_bench::run(map, &options) {
                 Ok(report) => println!("{report}"),
+                Err(e) => fail(&e),
+            }
+        }
+        CliCommand::FireBench {
+            map,
+            units,
+            ticks,
+            seed,
+        } => {
+            let map = Arc::new(load_map_dir(&map).unwrap_or_else(|e| fail(&e)));
+            let options = fire_bench::Options { units, ticks, seed };
+            match fire_bench::run(map, &options) {
+                Ok(report) => print!("{report}"),
                 Err(e) => fail(&e),
             }
         }
