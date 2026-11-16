@@ -56,10 +56,59 @@ pub fn run(options: &BalanceOptions) -> String {
         };
         for map_name in &options.maps {
             let map = crate::find_map(map_name);
-            for pair in &options.pairs {
-                let (x, y) = pair
-                    .split_once('-')
-                    .unwrap_or_else(|| crate::fail(&format!("pairing '{pair}' is not like de-su")));
+            let pairs: Vec<(&str, &str)> = options
+                .pairs
+                .iter()
+                .map(|pair| {
+                    pair.split_once('-').unwrap_or_else(|| {
+                        crate::fail(&format!("pairing '{pair}' is not like de-su"))
+                    })
+                })
+                .collect();
+            // Every pairing in both orders at the same time (a series of
+            // five games keeps only five cores busy).
+            let series: Vec<Vec<ai_tournament::Summary>> = std::thread::scope(|scope| {
+                let handles: Vec<_> = pairs
+                    .iter()
+                    .map(|&(x, y)| {
+                        let map = &map;
+                        scope.spawn(move || {
+                            [[x, y], [y, x]]
+                                .iter()
+                                .enumerate()
+                                .map(|(i, order)| {
+                                    let factions: Vec<String> =
+                                        order.iter().map(|f| (*f).to_string()).collect();
+                                    let config = crate::tournament_config(map, &factions, scenario)
+                                        .unwrap_or_else(|e| crate::fail(&e));
+                                    let half =
+                                        options.games / 2 + u64::from(i == 0) * (options.games % 2);
+                                    let tournament = Options {
+                                        games: half,
+                                        seed: options.seed + i as u64 * 1000,
+                                        max_ticks,
+                                        jobs: options.jobs,
+                                        verbose: false,
+                                        trace: 0,
+                                    };
+                                    ai_tournament::series(
+                                        &config,
+                                        map,
+                                        options.a,
+                                        options.b,
+                                        &tournament,
+                                    )
+                                })
+                                .collect()
+                        })
+                    })
+                    .collect();
+                handles
+                    .into_iter()
+                    .map(|h| h.join().expect("series thread"))
+                    .collect()
+            });
+            for (&(x, y), both) in pairs.iter().zip(&series) {
                 let mut row = Row {
                     mode: mode.clone(),
                     map: map_name.clone(),
@@ -73,20 +122,7 @@ pub fn run(options: &BalanceOptions) -> String {
                 };
                 let mut decided_ticks = 0u64;
                 let mut decided = 0u64;
-                for (i, order) in [[x, y], [y, x]].iter().enumerate() {
-                    let factions: Vec<String> = order.iter().map(|f| (*f).to_string()).collect();
-                    let config = crate::tournament_config(&map, &factions, scenario)
-                        .unwrap_or_else(|e| crate::fail(&e));
-                    let half = options.games / 2 + u64::from(i == 0) * (options.games % 2);
-                    let tournament = Options {
-                        games: half,
-                        seed: options.seed + i as u64 * 1000,
-                        max_ticks,
-                        jobs: options.jobs,
-                        verbose: false,
-                        trace: 0,
-                    };
-                    let s = ai_tournament::series(&config, &map, options.a, options.b, &tournament);
+                for s in both {
                     row.games += s.games;
                     row.undecided += s.timeouts + s.draws;
                     let wins = |f: &str| s.balance.factions.get(f).map_or(0, |&(_, w)| w);
