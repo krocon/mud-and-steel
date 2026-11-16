@@ -740,6 +740,9 @@ uncertain; see the list at the end of each faction.
 | env_well_desert | Brunnen mit Holzgestell / Well with wooden frame | 1 | 2.40? × 2.00? × 3.00? | Round masonry curb (1.6 m, 0.8 m high), two posts with a cross beam and pulley, … |
 | env_cart_wood | Zweirädriger Holzkarren / Two-wheeled wooden cart | 1 | 3.40? × 1.60? × 1.30? | Wooden cart with two spoked wheels of about 1.2 m and shafts |
 | env_market_stall | Marktstand / Market stall | 1 | 3.00? × 2.00? × 2.40? | Wooden table under a cloth roof with baskets and jars (variant: empty) |
+| env_steel_hall | Stahlhalle / Steel hall | 1 | 20.00? × 10.00? × 9.00? | Workshop hall of the vehicle works: steel-clad on a brick plinth, sliding door a… |
+| env_barracks | Baracke / Barracks hut | 1 | 12.00? × 8.00? × 7.50? | Timber barracks hut with a steep plank roof, porch and stove pipes |
+| env_depot | Versorgungslager / Supply depot | 1 | 14.00? × 9.00? × 8.00? | Timber store shed with a steel roof and wide doors, crate stacks at one end and … |
 
 ### Uncertain values
 
@@ -801,6 +804,9 @@ uncertain; see the list at the end of each faction.
 - `env_well_desert`: length_mm, width_mm, height_mm
 - `env_cart_wood`: length_mm, width_mm, height_mm
 - `env_market_stall`: length_mm, width_mm, height_mm
+- `env_steel_hall`: length_mm, width_mm, height_mm
+- `env_barracks`: length_mm, width_mm, height_mm
+- `env_depot`: length_mm, width_mm, height_mm
 
 ### Sources
 
@@ -942,4 +948,13 @@ uncertain; see the list at the end of each faction.
   - https://en.wikipedia.org/wiki/Cart (two-wheeled animal-drawn cart)
 - `env_market_stall`
   - https://en.wikipedia.org/wiki/Souq (market stalls)
+- `env_steel_hall`
+  - https://en.wikipedia.org/wiki/Steel_building (steel portal-frame halls clad in corrugated sheet, roof lanterns)
+  - https://en.wikipedia.org/wiki/Corrugated_galvanised_iron (corrugated sheet cladding and roofing)
+- `env_barracks`
+  - https://en.wikipedia.org/wiki/Barracks (military accommodation, prefabricated timber huts)
+  - https://de.wikipedia.org/wiki/Baracke (timber huts of tarred boards with stoves)
+- `env_depot`
+  - https://en.wikipedia.org/wiki/Military_supply-chain_management (supply dumps of crates and fuel drums)
+  - https://en.wikipedia.org/wiki/Drum_(container) (200 l steel drums for fuel)
 

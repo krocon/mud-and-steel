@@ -1047,3 +1047,60 @@ source = [
 ]
 uncertain = ["length_mm", "width_mm", "height_mm"]
 note = "Wooden table under a cloth roof with baskets and jars (variant: empty). Judgement values."
+
+# --- Base buildings (prompt 056): models of the vehicle works, barracks and
+# supply depot of data/economy.toml (same sizes) -----------------------------
+
+[[unit]]
+id = "env_steel_hall"
+faction = "neutral"
+category = "env_building"
+name_de = "Stahlhalle"
+name_en = "Steel hall"
+tier = 1
+model = "assets/models/neutral/env_steel_hall.glb"
+length_mm = 20000
+width_mm = 10000
+height_mm = 9000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Steel_building", covers = "steel portal-frame halls clad in corrugated sheet, roof lanterns" },
+    { ref = "https://en.wikipedia.org/wiki/Corrugated_galvanised_iron", covers = "corrugated sheet cladding and roofing" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Workshop hall of the vehicle works: steel-clad on a brick plinth, sliding door at the gable, roof lantern, brick chimney (top of the chimney = height). Size of base_factory in data/economy.toml; judgement values."
+
+[[unit]]
+id = "env_barracks"
+faction = "neutral"
+category = "env_building"
+name_de = "Baracke"
+name_en = "Barracks hut"
+tier = 1
+model = "assets/models/neutral/env_barracks.glb"
+length_mm = 12000
+width_mm = 8000
+height_mm = 7500
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Barracks", covers = "military accommodation, prefabricated timber huts" },
+    { ref = "https://de.wikipedia.org/wiki/Baracke", covers = "timber huts of tarred boards with stoves" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Timber barracks hut with a steep plank roof, porch and stove pipes. Size of base_barracks in data/economy.toml; judgement values."
+
+[[unit]]
+id = "env_depot"
+faction = "neutral"
+category = "env_building"
+name_de = "Versorgungslager"
+name_en = "Supply depot"
+tier = 1
+model = "assets/models/neutral/env_depot.glb"
+length_mm = 14000
+width_mm = 9000
+height_mm = 8000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Military_supply-chain_management", covers = "supply dumps of crates and fuel drums" },
+    { ref = "https://en.wikipedia.org/wiki/Drum_(container)", covers = "200 l steel drums for fuel" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Timber store shed with a steel roof and wide doors, crate stacks at one end and 200 l drums at the other. Size of base_depot in data/economy.toml; judgement values."

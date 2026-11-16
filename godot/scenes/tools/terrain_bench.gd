@@ -192,7 +192,11 @@ func _shots() -> void:
 	var meadow := OS.get_environment("SHOT_SET") == "meadow"
 	var mountains := OS.get_environment("SHOT_SET") == "mountains"
 	var shots := MEADOW_SHOTS if meadow else (MOUNTAIN_SHOTS if mountains else SHOTS)
-	if meadow or mountains:
+	# Prompt 056 (`SHOT_SET=land`): the whole map and every supply point.
+	var land := OS.get_environment("SHOT_SET") == "land"
+	if land:
+		shots = _land_shots()
+	if meadow or mountains or land:
 		# Clean ground views: no fog of war over the village, no HUD.
 		main.fog_of_war.set_fog_enabled(false)
 		main.get_node("Hud").visible = false
@@ -215,6 +219,8 @@ func _shots() -> void:
 			# Just inside the south-east corner; the camera hangs outside the
 			# map and looks north-west at the edge cut.
 			focus = Vector3(half.x - 50.0, 0.0, half.y - 50.0)
+		if shot.get("fell", false):
+			focus = _fell_trees(focus)
 		main.terrain.set_show_lod(shot.get("lod", false))
 		if shot.get("crater", false):
 			for k in 3:
@@ -228,6 +234,43 @@ func _shots() -> void:
 		print("terrain-shots: view %d '%s' in frames %d..%d" % [i, shot["name"], i * SHOT_FRAMES, i * SHOT_FRAMES + SHOT_FRAMES - 1])
 		await _frames(SHOT_FRAMES)
 	get_tree().quit()
+
+
+## Views of a landscape map (prompt 056): the map from above, then every
+## supply point from the middle distance and close up.
+func _land_shots() -> Array[Dictionary]:
+	var shots: Array[Dictionary] = [
+		{"name": "overview", "focus": Vector3.ZERO, "distance": 1250.0, "yaw": 0.4, "pitch": 55.0},
+		{"name": "overview_low", "focus": Vector3.ZERO, "distance": 700.0, "yaw": 2.2, "pitch": 30.0},
+	]
+	# Trees felled near the first supply point (drawn only, the
+	# simulation is untouched): fallen snowy trees keep their snow.
+	shots.append({"name": "fallen_trees", "fell": true, "distance": 45.0, "yaw": 0.9, "pitch": 35.0})
+	for p: Dictionary in main.sim_host.supply_points():
+		shots.append({"name": p["name"], "focus": p["position"], "distance": 130.0, "yaw": 0.6, "pitch": 38.0})
+		shots.append({"name": p["name"] + "_near", "focus": p["position"], "distance": 50.0, "yaw": -0.8, "pitch": 32.0})
+	return shots
+
+
+## Draws the nearest trees to the first supply point as felled (presentation
+## only) and returns the point to look at.
+func _fell_trees(_focus: Vector3) -> Vector3:
+	var points: Array = main.sim_host.supply_points()
+	var at: Vector3 = points[0]["position"] if not points.is_empty() else Vector3.ZERO
+	var felled := 0
+	var center := at
+	for id in ["env_tree_conifer", "env_tree_deciduous", "env_tree_birch"]:
+		var near: PackedInt64Array = main.sim_host.destructible_objects_near(id, at.x, at.z, 400.0)
+		for k in mini(near.size(), 3):
+			var state: Dictionary = main.sim_host.object_state(near[k])
+			state["stage"] = "destroyed"
+			state["remains"] = "fallen"
+			state["fall_deg"] = 60 * felled
+			main.map_objects.set_object_state(state, false)
+			if felled == 0:
+				center = main.sim_host.object_position(near[k])
+			felled += 1
+	return center
 
 
 func _frames(count: int) -> void:

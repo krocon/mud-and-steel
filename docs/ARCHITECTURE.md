@@ -611,6 +611,23 @@ count, the queue, the masks and the number of explored cells per player.
   player has never seen in this order are dropped. Ground attacks are
   unchanged.
 
+### Ambush (prompt 056) [provisional]
+
+`crates/sim/src/sim/vision/ambush.rs`, rules in `data/vision.toml`
+`[ambush]`: a squad that stands (no route, not aboard) in a forest cell of
+the vision grid (`Sight::Foliage`) or is garrisoned in a building, and has
+not fired for `reveal_s` (20 s), is seen only by its team and by players
+with a hostile unit within `spot_real_m` (200 m real, 50 m game) that has
+it in sight. It runs at the end of the vision update, after the camouflage
+nets of prompt 052, whose pattern it follows (`Vision::restrict`). The
+squad's own shots (`CombatEvent::Shot`) reveal it for `reveal_s`; standing
+silent hides it again. Since targets are chosen among seen units, a hidden
+squad draws no fire from afar and opens fire at the range it chooses (hold
+fire until the enemy is close). The rule and the last shots are hashed
+only once a squad has been hidden (`Ambush::used`), so matches without
+infantry in cover keep their hashes (the golden hash did not change).
+`spot_real_m = 0` turns it off.
+
 ### Snapshot, bridge and Godot
 
 `Sim::snapshot_for(player)` leaves out enemy units the player does not see
@@ -852,8 +869,10 @@ rings around a point in a fixed order (the computer player).
 dictionaries and queues the commands; `SimHost.mode` picks the battle or the
 base-building scenario for `start_match`, `SimHost.speed` runs more ticks per
 frame (self-tests). `scenes/world/base_view.gd` gives the `base_*` buildings
-borrowed house models (prompt 007, with the `Damaged` and `Ruin` variants of
-prompt 020), lets a site's model grow with its progress, and draws supply
+their models (the headquarters a borrowed stone house of prompt 007; since
+prompt 056 the vehicle works `env_steel_hall`, the barracks `env_barracks`
+and the depot `env_depot`, built by `tools/blender/kit/base_buildings.py`;
+all with the `Damaged` and `Ruin` variants of prompt 020), lets a site's model grow with its progress, and draws supply
 points as flags in the colour of their holder with a ring that fills while
 they are taken. `scenes/world/base_hud.gd`: resource bar, build menu with
 prices (greyed out with the reason), placement preview (a box of the
@@ -2489,6 +2508,24 @@ from `crates/bridge/src/objects.rs`.
   65 536 overflowed at ~10 000 nodes and turned foliage black).
 - **Wind** comes from the env shaders (per-instance phase from the instance
   position, which `MODEL_MATRIX` includes for MultiMesh instances).
+- **Variety (prompt 056):** `env.gdshader` derives a seed from each
+  object's position (`v_seed`, the instance origin on a 2 m grid) and picks
+  per house the paint of lime-plastered and whitewashed walls (seven
+  colours, a few stay bare), the roof covering (red, brown or weathered clay
+  tiles, about a fifth dark cement tiles; slate blue-grey to black), the
+  brick tone and the boards' weathering. Deterministic and presentation
+  only: the same house always looks the same, nothing new is stored.
+  Corrugated steel (Metal kinds rust and galvanized) gets ribs.
+- **Snow on fallen objects (prompt 056):** snow cover is computed from the
+  model normal (objects only turn about the vertical), so a falling tree
+  keeps its snow on what was its top; needle branches carry snow on all
+  but their undersides. Fallen and flattened objects get `env_fallen = 1`
+  (no wind sway).
+- **Loose straw (prompt 056):** `_build_straw` scatters 22 flattened, dry
+  grass clumps in a ring of 1.6–5.5 m around every haystack (one
+  MultiMesh, 180 m view distance, seeded by the stack's position).
+- **Winter:** grass clumps are thinned to 8 %, reeds and stones to 40 %
+  (snow covers them).
 
 ### Decoration
 

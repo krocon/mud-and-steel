@@ -18,13 +18,16 @@ uniform float detail_distance = 70.0;
 
 varying vec3 v_local;
 varying vec3 v_world_normal;
+// Normal of the standing model: snow stays on fallen trees (prompt 056).
+varying vec3 v_rest_normal;
 varying float v_tint;
 
 void vertex() {
 	v_local = VERTEX;
 	vec3 inst = (MODEL_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
-	VERTEX += wind_offset(VERTEX, COLOR.g, COLOR.b, inst, TIME);
+	VERTEX += wind_offset(VERTEX, COLOR.g, COLOR.b, inst, TIME) * (1.0 - env_fallen);
 	v_world_normal = normalize((MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz);
+	v_rest_normal = normalize(NORMAL);
 	v_tint = hash1(inst * 0.37 + vec3(COLOR.b * 13.0));
 }
 
@@ -160,8 +163,14 @@ void fragment() {
 	albedo *= shade * (0.85 + 0.3 * v_tint);
 	float rough = 0.85;
 	// snow sits on needles and on the tops of dense cards only
-	float snow_amount = env_snow * (pattern == 1 || pattern == 9 ? 0.7 : 0.45);
-	albedo = snow_cover(albedo, rough, normalize(v_world_normal) * vec3(1.0, 0.85, 1.0), p, snow_amount);
+	// (prompt 056: needle branches hold more, on all but their undersides;
+	// the normal of the standing tree keeps the snow on a fallen one)
+	// Far crowns (9) are flat cards: less snow, or they read as white flags.
+	bool needles = pattern == 1;
+	float snow_amount = env_snow * (needles ? 1.0 : (pattern == 9 ? 0.5 : 0.45));
+	vec3 rest = normalize(v_rest_normal);
+	vec3 up = needles ? vec3(0.0, 0.62 + 0.4 * max(rest.y, 0.0), 0.0) : rest * vec3(1.0, 0.85, 1.0);
+	albedo = snow_cover(albedo, rough, up, p, snow_amount);
 	albedo = charred(albedo, env_char);
 	ALBEDO = albedo * mix(0.4, 1.0, ao);
 	AO = ao;
