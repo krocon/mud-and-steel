@@ -43,3 +43,38 @@ Gemeinsame Dateien (`sim.rs`, `bridge/src/lib.rs`, `main.gd`, `self_test.gd`,
 Ändert sich der Golden-Hash, den Grund im Commit nennen. Am Ende nach `prompts/done/`
 verschieben und `prompts/README.md` aktualisieren. Abschlussbericht: was gebaut wurde,
 wie ich es teste, Messwerte, was offen ist.
+
+## 4. Konkretisierung (Ausgangslage und Entscheidungen)
+
+Stand vor dem Umsetzen: Steuerung in `docs/CONTROLS.md` (031 HUD, 046
+Formationen/Angriffsbewegung, 058 Bildkacheln, 033 Luftleiste, 034
+Transport, 035 Pioniere, 036 Nachschub); KI als normaler Spieler mit
+Befehlen (024, `crates/ai`); Szenarien als Startaufstellung
+(`data/scenarios`); Sieg/Niederlage in `sim::outcome` (027); Speichern und
+Replays über `SimConfig` + Befehle + Snapshots (038); Teams (037); Editor
+mit Markern und Startpunkten, Karten in `data/maps/<name>/` (028).
+
+| Frage | Entscheidung | Begründung |
+|---|---|---|
+| Wo läuft das Skript? | In der Simulation (`sim::mission`, `sim/mission.rs`), als Teil von `SimConfig::mission` | Auslöser lesen den vollen Zustand (Gebiete, Zerstörung, Versorgungspunkte), Aktionen erzeugen Einheiten und entscheiden das Spiel. Ein Skript-Spieler mit Befehlen bräuchte dafür neue Schummel-Befehle (Einheiten erzeugen, Sieg setzen) und sähe nur seine Nebel-Sicht. In der Sim ist das Skript automatisch deterministisch, im Replay, im Spielstand (Snapshot) und im Hash. |
+| Was die Sim nicht weiß (Kamera, Auswahl) | Neuer Befehl `Command::MissionSignal { name }` (am Ende des Enums), gesendet vom Missions-HUD nur für Signale, auf die ein scharfer Auslöser wartet | Läuft durch Lockstep und Replay wie jeder Befehl; die Sim bleibt die einzige Wahrheit. Nur der Missionsspieler darf signalisieren. |
+| Reine Darstellung | Text und Kamerafahrt sind Zustand der Mission (letzte Nachricht/Kamera mit Tick), Godot zeigt sie an | Zustand statt Ereignis: übersteht mehrere Ticks pro Frame, Spielstände und Replays ohne Ereignis-Sammeln in `lib.rs`. |
+| Gegner in Missionen | Normale KI-Spieler (`[[computer]]`, Beispiele: `passive`) plus Skript-Aktion `order` (FormationMove als Befehl des Besitzers, in der Sim) | KI bleibt normaler Spieler; Gegenstöße sind geskriptet und dadurch planbar. [vorläufig] |
+| Sieg/Niederlage | `victory`/`defeat` entscheiden die Wertung mit `DefeatReason::Mission`; `elimination = false` lässt Gegner ohne Einheiten nicht verlieren (der Spieler verliert weiterhin mit der letzten Einheit) | Missionen mit späteren Verstärkungen und das Tutorial mit Übungszielen. |
+| Dateien | Skript `data/maps/<karte>/missions/<id>.toml` (Handarbeit), Orte `data/maps/<karte>/mission_points.toml` (Editor) | „Neben der Karte“; mehrere Missionen pro Karte; der Editor schreibt nie in das handgeschriebene Skript (Kommentare bleiben). [vorläufig] |
+| Format | Flache TOML-Tabellen mit `when = "…"` und Aktionen als Inline-Tabellen `{ do = "…" }`, Namen statt Indizes, Fehler mit Trigger-Namen | Gut von Hand schreibbar, `deny_unknown_fields` findet Tippfehler. |
+| Auslöser | `time`, `area`, `destroyed`, `eliminated`, `captured`, `signal`, `units`; Ketten über `after`, `delay_s` | Deckt die geforderten (Tick, Gebiet betreten, Einheit zerstört, Punkt erobert) und das Tutorial (Bauen, Produzieren) ab. |
+| Aktionen | `text`, `objective`, `spawn`, `order`, `fire`, `camera`, `victory`, `defeat` | Wie gefordert; `order`/`fire` für Gegenstöße und Übungsziele. Gebäude können nicht gespawnt werden (die Wirtschaft müsste sie registrieren). |
+| Hash | Missionszustand nur im Hash, wenn es eine Mission gibt | Golden-Hash und Gefechte unverändert. |
+| Formate | Replay-Format 9, Lobby-Protokoll 5 | Neues `SimConfig`-Feld und neuer Befehl ändern das postcard-Layout. |
+| Tutorial | Eigene Mission auf `test_small` mit 8 Schritten (Kamera, Auswahl, Bewegen, Angreifen, Infanterie und Deckung, Bauen, Produzieren, Versorgungspunkt) | Jeder Schritt wartet per Auslöser auf die Handlung; kleine, schnell ladende Karte. |
+| Beispielmissionen | Sowjetunion auf `twin_meadow`, USA auf `desert_village`, Deutschland auf `town_small` (Winter-Look) | Je Fraktion eine kleine Lage auf vorhandenen Karten, keine neuen Kartendaten. Keine historischen Verbände oder Abzeichen. |
+| Editor | Werkzeuge „Trigger area“ und „Spawn point“ mit Namensfeld, Klick ins Gebiet entfernt; ohne Undo | Einfach; die Orte sind kein Teil der Kartendaten (Karten-Hash bleibt). [vorläufig] |
+| Menü/Fortschritt | Hauptmenü „Tutorial“ und „Missions“ (Liste mit Briefing, „(won)“); `user://missions.cfg` | Wie gefordert; der Selbsttest nutzt eine eigene Datei. |
+| Selbsttest | Autopilot folgt den Zielen (Angriff auf den nächsten sichtbaren Gegner beim Zielgebiet, sonst Bewegung dorthin; Bauen über die Platzierung der Basis-HUD); dieselbe Logik als Rust-Test in `crates/ai/tests/missions.rs` | Prüft jede Mission bis zum Sieg, ohne Missionsspezifisches im Test. |
+
+## 5. Ergebnis
+
+Umgesetzt wie oben, Referenz in `docs/MISSIONS.md`. Offen: Mehrspieler-/
+Koop-Missionen, Kampagne mit Freischalten, Zielmarker auf der Minikarte,
+Skript-Editor im Spiel, Übersetzung der Missionstexte (043).

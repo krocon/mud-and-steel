@@ -4,7 +4,8 @@ How to play Mud and Steel with mouse and keyboard. Keys marked *(rebindable)*
 can be changed in **Settings → Controls**; the command bar always shows the
 current key. Technical details: [ARCHITECTURE.md](ARCHITECTURE.md#selection-presentation-only)
 and [the HUD section](ARCHITECTURE.md#hud-presentation-only). The tutorial
-(prompt 039) builds on this page.
+(prompt 039, main menu → Tutorial, [MISSIONS.md](MISSIONS.md)) builds on
+this page.
 
 ## Camera
 
