@@ -37,6 +37,7 @@ mod objects;
 mod replay_funcs;
 mod save_funcs;
 mod steam_lobby;
+mod supply_funcs;
 mod team_funcs;
 mod terrain_layers;
 mod transport_funcs;

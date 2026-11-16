@@ -15,6 +15,7 @@ const UnitPanel := preload("res://scenes/hud/unit_panel.gd")
 const CommandBar := preload("res://scenes/hud/command_bar.gd")
 const EventFeed := preload("res://scenes/hud/event_feed.gd")
 const Waypoints := preload("res://scenes/hud/waypoints.gd")
+const SupplyRings := preload("res://scenes/hud/supply_rings.gd")
 const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
 
 var main: Node3D
@@ -23,6 +24,8 @@ var unit_panel: UnitPanel
 var command_bar: CommandBar
 var event_feed: EventFeed
 var waypoints: Waypoints
+## Supply and repair radii of selected sources (prompt 036).
+var supply_rings: SupplyRings
 ## HUD time of the last frame in microseconds, and the largest so far.
 var usec := 0
 var max_usec := 0
@@ -39,6 +42,9 @@ func setup(main_node: Node3D) -> void:
 	waypoints = Waypoints.new()
 	add_child(waypoints)
 	waypoints.setup(main)
+	supply_rings = SupplyRings.new()
+	add_child(supply_rings)
+	supply_rings.setup(main)
 	minimap = Minimap.new()
 	add_child(minimap)
 	minimap.setup(main)
@@ -52,7 +58,7 @@ func setup(main_node: Node3D) -> void:
 	add_child(event_feed)
 	event_feed.setup(main)
 	event_feed.ping.connect(minimap.add_ping)
-	_parts = [waypoints, minimap, unit_panel, command_bar, event_feed]
+	_parts = [waypoints, supply_rings, minimap, unit_panel, command_bar, event_feed]
 
 
 func _process(_delta: float) -> void:

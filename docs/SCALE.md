@@ -15,6 +15,7 @@ of integers, so the simulation applies it exactly in fixed point.
 | Sight range | real × **1/4** | confirmed 2026-11-15 |
 | Indirect-fire range | real × **1/8** | confirmed 2026-11-15 |
 | Aircraft speed | real × **1/2** (instead of the time factor) | confirmed 2026-11-15 |
+| Fuel range | real road range × **1/20** (prompt 036) | provisional |
 
 ### Sizes 1:1
 
@@ -63,6 +64,11 @@ by different factors per kind:
 
 Formula: `game_range = real_range × num / den` (`Scale::direct_fire_range_m`,
 `sight_range_m`, `indirect_fire_range_m`).
+
+- **Fuel × 1/20** (prompt 036, provisional). A full tank lasts the real road range
+  times 1/20: Panzer IV 10.5 km, Tiger 9.75 km, Opel Blitz 16 km. Real ranges
+  (200–400 km) would never run out on maps of 2–4 km; at 1/20 an army that crosses
+  the map two or three times has to refuel (`Scale::fuel_range_m`).
 
 ### Aircraft
 

@@ -14,6 +14,9 @@ extends Control
 ##   what it makes, the queue with the progress of the first order, and a
 ##   button that cancels the last order (full refund). Right click on the
 ##   ground sets the building's rally point.
+## - Prompt 036: with one own building or construction site selected, the
+##   bar has "Repair" (start / stop, paid while it runs) and "Sell" (a
+##   site: "Cancel site"); see docs/GAME_DESIGN.md "Supply and repair".
 ##
 ## Hidden in matches without base building. Created by `main.gd` in the HUD.
 ## Prompt 031: the command bar docks the build menu and the production bar
@@ -37,6 +40,8 @@ var placing := -1
 var placement_reason := ""
 ## Unit ids of the buildings the production bar shows.
 var production_building := -1
+## The own building the Repair and Sell buttons act on (prompt 036), or -1.
+var service_building := -1
 
 var _resources: Label
 var _build_box: VBoxContainer
@@ -46,6 +51,8 @@ var _production_box: VBoxContainer
 var _production_options: VBoxContainer
 var _queue_label: Label
 var _cancel: Button
+var _repair: Button
+var _sell: Button
 var _hint: Label
 var _ghost: MeshInstance3D
 var _ghost_material: StandardMaterial3D
@@ -103,6 +110,22 @@ func setup(main_node: Node3D, view: Node) -> void:
 		if production_building >= 0:
 			sim_host.cancel_production(production_building))
 	_production_box.add_child(_cancel)
+	var service := HBoxContainer.new()
+	_production_box.add_child(service)
+	_repair = Button.new()
+	_repair.text = "Repair"
+	_repair.tooltip_text = "Repair the building over time (half its price for a full repair); again to stop"
+	_repair.pressed.connect(func() -> void:
+		if service_building >= 0:
+			sim_host.repair_building(service_building))
+	service.add_child(_repair)
+	_sell = Button.new()
+	_sell.text = "Sell"
+	_sell.pressed.connect(func() -> void:
+		if service_building >= 0:
+			sim_host.sell_building(service_building)
+			main.selection.set_selection([]))
+	service.add_child(_sell)
 	_production_panel.visible = false
 	add_child(_production_panel)
 
@@ -263,7 +286,11 @@ func _refresh_production() -> void:
 		if s.get("type_id", "") in ["base_barracks", "base_factory"]:
 			production_building = id
 			break
-	_production_panel.visible = production_building >= 0
+	service_building = own[0] if own.size() == 1 and main.selection.selected.size() == 1 else -1
+	_production_panel.visible = production_building >= 0 or service_building >= 0
+	_refresh_service()
+	for part: Control in [_production_options, _queue_label, _cancel]:
+		part.visible = production_building >= 0
 	if production_building < 0:
 		return
 	var s: Dictionary = base_view.structures[production_building]
@@ -281,6 +308,27 @@ func _refresh_production() -> void:
 		names = ["under construction %d %%" % int(float(s.built) * 100.0)]
 	_queue_label.text = "Queue: " + (", ".join(names) if not names.is_empty() else "empty")
 	_cancel.disabled = queue.is_empty()
+
+
+## Repair and Sell of the selected own building (prompt 036).
+func _refresh_service() -> void:
+	_repair.get_parent().visible = service_building >= 0
+	if service_building < 0:
+		return
+	var s: Dictionary = base_view.structures.get(service_building, {})
+	var site := float(s.get("built", 1.0)) < 1.0
+	_sell.text = "Cancel site" if site else "Sell"
+	_sell.tooltip_text = "Cancel the construction site (75 % back)" if site else "Sell the building (half its price back)"
+	var hp := 0
+	var max_hp := 1
+	var index := sim_host.unit_ids().find(service_building)
+	if index >= 0:
+		var info := sim_host.unit_info(service_building)
+		hp = int(info.get("hp", 0))
+		max_hp = maxi(int(info.get("max_hp", 1)), 1)
+	var repairing := sim_host.building_repairing(service_building)
+	_repair.text = "Stop repair" if repairing else "Repair"
+	_repair.disabled = site or (hp >= max_hp and not repairing)
 
 
 ## Rebuilds a panel with a title and one button per option.
