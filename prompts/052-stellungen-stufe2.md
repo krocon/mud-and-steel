@@ -26,6 +26,15 @@ verbergen Stellungen vor Luftaufklärung.
    verringern Sichtweite des Gegners, solange nicht gefeuert wird.
 5. **Bunker und MG-Nester** am Grabenrand als baubare Stellungen (Modelle aus 041).
 6. **KI** baut Stellungen an Engstellen, wenn sie verteidigt.
+7. **Grabenstellung wie im Referenzbild des Nutzers** (nicht im Repo, nur Wirkung):
+   ein Zickzack-Graben mit Schulterwehr aus Erde, Sandsäcken und Holzverschalung,
+   Schützenständen in den Knicken, Querriegeln, Verbindungsgräben nach hinten und
+   Unterständen; als Stützpunkt um einen Versorgungspunkt (Flagge) gelegt.
+   - **Vorgefertigte Grabenstellungen** als Kartenobjekte (Editor 028), damit Karten
+     schon zu Beginn befestigte Punkte haben; Bau durch Pioniere wie in 035.
+   - Gräben schneiden sichtbar ins Gelände (Höhenfeld wie Krater aus 021 oder als
+     eigenes Mesh mit Boden-Ausschnitt); Infanterie darin ist nur von oben/nah treffbar.
+   - Darstellung: aufgeworfene Erde am Rand, Trampelpfade, zerschossene Stellen.
 
 ## 3. Akzeptanzkriterien
 
