@@ -116,10 +116,15 @@ run *args: build
 editor: build
     {{ GODOT }} --path godot -e
 
-# Build the bridge and run the headless self-test: menu, settings, three matches (one against the computer), result (exit code 0 = passed)
+# Build the bridge and run the headless self-test: translations, menu, settings, three matches (one against the computer), result (exit code 0 = passed)
 [group('godot')]
-selftest: build
+selftest: l10n-check build
     {{ GODOT }} --path godot --headless --fixed-fps 60 -- --self-test
+
+# Check the translations (prompt 043): tables complete, no hard-coded interface text in the game scripts, every mission text translated
+[group('godot')]
+l10n-check:
+    python3 tools/l10n_check.py
 
 # Export a .blend file to godot/assets/models/<name>.glb
 [group('assets')]

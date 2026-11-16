@@ -34,6 +34,7 @@ mod hud_funcs;
 mod infantry_funcs;
 mod knockdown_funcs;
 mod lan;
+mod language_funcs;
 mod map_editor;
 mod match_funcs;
 mod mission_funcs;

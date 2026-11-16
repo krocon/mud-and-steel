@@ -12,11 +12,11 @@ pub(crate) fn display_name(sim_type: &str) -> String {
     if let Ok(rules) = sim::EconomyRules::builtin()
         && let Some(b) = rules.buildings.iter().find(|b| b.id == sim_type)
     {
-        return b.name.clone();
+        return crate::language_funcs::translated("NAME_", &b.id, &b.name);
     }
     sim::economy::builtin_catalog()
         .and_then(|c| c.get(sim_type))
-        .map_or_else(|| sim_type.to_owned(), |e| e.name_en.clone())
+        .map_or_else(|| sim_type.to_owned(), |e| crate::language_funcs::entry_name(e).to_owned())
 }
 
 fn point(x: f32, z: f32) -> Option<Vec2> {
