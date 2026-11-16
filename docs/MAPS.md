@@ -197,6 +197,12 @@ Bridges are written first, then everything else.
 Git LFS like the PNGs (`test_large`: 98 000 lines, 4.2 MB). A compact binary format
 would only pay off far beyond that; parsing takes about 50 ms.
 
+Hidden minefields (prompt 035): `fort_mine_at` and `fort_mine_ap` (variant
+`Mine`, blocks nothing) become a 20 m × 20 m section of neutral, hidden
+mines each when a match starts (see ARCHITECTURE.md "Field works"); matches
+do not draw them, the editor does. `twin_meadow` has one of each in the
+middle.
+
 ### Bridges
 
 Bridges (prompt 014) are map objects whose kind has a **deck** rule in

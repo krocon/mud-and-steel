@@ -147,9 +147,9 @@ about 90 m. Fortifications come from the catalog:
 
 | Faction | Barracks | Vehicle works |
 |---|---|---|
-| de | rifle squad, MG 42 team, HMG team, AT squad, 8 cm mortar team | Sd.Kfz. 222, Sd.Kfz. 251/1, Panzer IV H, StuG III G, Tiger I, Wespe, Opel Blitz, 7.5 cm Pak 40, 10.5 cm leFH 18 |
-| su | rifle squad, MG team, HMG team, AT squad, 82 mm mortar team | BA-64B, T-70M, T-34/76, SU-85, IS-2, ISU-152, ZiS-5, ZiS-3, M-30 |
-| us | rifle squad, MG team, HMG team, AT squad, 81 mm mortar team | M8 Greyhound, M3 halftrack, M4A3 (75), M10, M26, M7 Priest, GMC CCKW, 57 mm M1, 105 mm M2A1 |
+| de | rifle squad, MG 42 team, HMG team, AT squad, 8 cm mortar team, engineer squad | Sd.Kfz. 222, Sd.Kfz. 251/1, Panzer IV H, StuG III G, Tiger I, Wespe, Opel Blitz, 7.5 cm Pak 40, 10.5 cm leFH 18 |
+| su | rifle squad, MG team, HMG team, AT squad, 82 mm mortar team, sapper squad | BA-64B, T-70M, T-34/76, SU-85, IS-2, ISU-152, ZiS-5, ZiS-3, M-30 |
+| us | rifle squad, MG team, HMG team, AT squad, 81 mm mortar team, engineer squad | M8 Greyhound, M3 halftrack, M4A3 (75), M10, M26, M7 Priest, GMC CCKW, 57 mm M1, 105 mm M2A1 |
 
 - Each producing building has a queue of up to **5** orders. The cost is paid
   when an order is queued; cancelling the last order refunds it in full.
@@ -189,6 +189,30 @@ this table is a snapshot, `cli economy-table` shows the current ones. The
 formula only counts the weapons the simulation fires (prompt 017), so the
 Soviet AT squad (PTRD rifle, 14.5 mm) is cheap and weak against armor;
 single units can get their own price with an override if that matters.
+
+## Field works [provisional]
+
+Engineer squads (barracks, last in the list) build field works for
+resources (prompt 035, `data/works.toml`; mechanics in
+[ARCHITECTURE.md](ARCHITECTURE.md#field-works)). Prices are per piece and
+paid when the site is placed; times are game seconds for one squad (two
+squads are twice as fast).
+
+| Work | Piece | Price (fuel / ammo / manpower) | Time |
+|---|---|---|---|
+| Anti-tank mines | a 20 m × 20 m section (20 mines, catalog) | 0 / 60 / 0 | 40 s |
+| Anti-personnel mines | a section (40–50 mines) | 0 / 40 / 0 | 30 s |
+| Barbed wire | 4 m of line | 0 / 0 / 6 | 6 s |
+| Anti-tank obstacles | one hedgehog every 3 m | 0 / 0 / 10 | 10 s |
+| Foxhole | one | free | 15 s |
+| Trench | 4 m of line | free | 20 s |
+| Demolish a bridge | – | 0 / 40 / 0 (when done) | 30 s |
+| Repair a bridge | – | 40 / 0 / 80 (when done) | 90 s |
+
+Clearing takes 3 s per mine, 5 s per wire piece, 8 s per hedgehog. At most
+24 unfinished sites per player; sites left alone for 30 s are given up
+(refunded if not started). Mines do not go off under the own team; the
+enemy sees them only after his engineers found them or one went off.
 
 ## Air support [provisional]
 
@@ -274,7 +298,9 @@ open.
 ## Open (not in this version)
 
 Supply trucks and consumption, selling or repairing buildings, cancelling a
-construction site, upgrades, aircraft and artillery production, walls and
-mines as buildable objects, supply points in the map editor, sharing
+construction site, upgrades, aircraft and artillery production, walls as
+buildable objects (mines, wire, obstacles and dug positions are built by
+engineers since prompt 035, see "Field works"), supply points in the map
+editor, sharing
 resources with allies, tuning the AI's end game in base matches (prompt
 037 made a first step, see [AI.md](AI.md#teams-prompt-037)).
