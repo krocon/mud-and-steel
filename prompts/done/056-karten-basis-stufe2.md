@@ -91,7 +91,7 @@ fallen schon in 3D (020), der Schnee kommt aber aus der Welt-Normale.
   `crates/sim/src/sim/vision/ambush.rs`, drei Tests (`tests/ambush.rs`);
   der Deckungstest in `tests/infantry.rs` läuft ohne die Regel (er misst
   Treffer auf einen Trupp, der sonst unsichtbar bliebe).
-- **Golden-Hash unverändert** (`0x7681_c049_8fc9_19b3` nach dem Merge mit
+- **Golden-Hash unverändert** (`0x9ca9_6477_eff5_75ef` nach dem letzten Merge mit
   `main`, Basisbau-Hash ebenso): der Hinterhalt wird erst gehasht, wenn ein
   Trupp versteckt war, und die Basismodelle ändern keine Regel.
 - **Prüfungen:** `just check`, `map-check` (alle drei ok, 0 Warnungen),
