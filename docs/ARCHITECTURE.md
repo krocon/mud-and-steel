@@ -2657,6 +2657,17 @@ away cracks while subsonic and receding ones do not, surrounding shares
 sum to 1, the Effects bus holds low-pass and reverb, the overview is
 darker than close up, a callout without files only counts.
 
+Measurements (`just bench-view`, Apple M1 Max, debug bridge, load average
+80–160 from parallel sessions, one run each): the "sound" column
+(`battle_sound._process` including `acoustics.update`) is 0.13–0.14 ms
+standing and 0.21–0.27 ms in the battle (029: 0.11–0.20 ms), under 2 % of
+a 60 FPS frame. FPS with / without sound: battle 40 m 53.1 / 50.1, 150 m
+47.8 / 55.3, 600 m 43.0 / 46.9; standing 79.9 / 77.6, 78.5 / 70.8, 87.4 /
+82.5. The spread comes from the machine load (the same views differ by
+±10 % in either direction). The self-test stress measures 18–27 µs per
+combat event in the sound code under that load (limit 60 µs; 029: 8 µs
+on a quieter machine).
+
 ### Music and ambience
 
 Prompt 030. Files from `tools/audio/music.py` (`just music`, conventions in

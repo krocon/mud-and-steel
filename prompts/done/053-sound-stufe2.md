@@ -73,3 +73,14 @@ Geschwindigkeiten in Spiel-m/s (real × Zeitfaktor 2).
 | Wetter/Nacht (040) | keine Änderung | Regen hat ein eigenes Ambiente-Bett; Nacht-Akustik wäre Feinschliff ohne Abhören |
 | Stimmen | `battle_voices.gd`: Rufe `contact` (Feind gesichtet: erster Schuss eines Trupps nach 20 s Ruhe), `take_cover` (Granate ≥ 20 mm schlägt in ≤ 15 m bei einem Trupp ein), `reloading` (zufällig 1 von 12 Schüssen eines Trupps), `wounded` (Trupp getroffen); nur bis 80 m Kameraabstand, Trupp sichtbar und ≤ 50 m vom Fokus, Abklingzeit 4 s global, 12 s pro Trupp; Fraktion = Präfix der Typ-ID (`de`, `su`, `us`); Dateien `assets-src/audio/voice/<fraktion>/<ruf>/` → `godot/assets/audio/voice/…`. **Es werden keine Stimmdateien ausgeliefert**; ohne Dateien zählt der Ruf nur (`voices_missing`) [provisional: Auslöser und Wortlaut] | Aufnahmen kommen später vom Nutzer; keine Parolen, nur taktische Rufe (Vorschläge in `docs/ASSETS.md`) |
 | Kosten | Überschallprüfung nur bei Tickwechsel, Umgebung alle 0,5 s, Flugzeuge mit den Schleifen alle 0,2 s; Ziel: `battle_sound` bleibt unter 0,3 ms pro Frame (029: 0,11–0,20 ms) | Budget aus 029 (≤ 5 % FPS) |
+
+## Ergebnis
+
+Umgesetzt wie in der Tabelle (`godot/scenes/audio/acoustics.gd`, `battle_voices.gd`,
+neue Klassen in `tools/audio/synth.py`, `SimHost.buildings_near`; Doku in
+`docs/ARCHITECTURE.md` „Stage 2: acoustics and voices“, `docs/ASSETS.md`,
+`docs/SOURCES.md`). `just check`, `just selftest`, `just lan-selftest` grün,
+Golden-Hash unverändert. Benchmark: Sound-Skript 0,13–0,27 ms pro Frame.
+Offen: alles nach Gehör abstimmen (Hall-Presets, Pegel, Verzögerungsgrenze), echte
+Waffenaufnahmen und Stimmen liefern, Luft-Sounds sind im Selbsttest nicht eigens
+geprüft (der Lufttest läuft nach dem Soundtest).
