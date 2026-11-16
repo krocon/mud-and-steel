@@ -522,6 +522,19 @@ impl VisionGrid {
         }
     }
 
+    /// Whether viewsheds of `radius` cells can be computed.
+    pub(crate) fn has_table(&self, radius: i32) -> bool {
+        self.tables.iter().any(|t| t.radius == radius)
+    }
+
+    /// Adds the ray table for viewsheds of `radius` cells (prompt 033).
+    pub(crate) fn add_table(&mut self, radius: i32) {
+        if !self.has_table(radius) {
+            self.tables.push(RayTable::new(radius));
+            self.tables.sort_by_key(|t| t.radius);
+        }
+    }
+
     /// Computes the viewshed of an eye at absolute height `eye_mm` in cell
     /// `anchor` with sight radius `radius` (cells). Returns it and the
     /// number of ray steps taken.

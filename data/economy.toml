@@ -145,6 +145,21 @@ hp = 0
 armor_mm = 0
 requires = ["base_factory"]
 
+# Anti-aircraft guns (prompt 033): they fire at aircraft (data/air.toml) and,
+# with their catalog weapon, at ground targets. Light flak needs the
+# barracks, heavy flak the vehicle works. [provisional]
+[[fortification]]
+ids = ["de_flak38", "su_61k", "us_bofors_m1"]
+hp = 0
+armor_mm = 0
+requires = ["base_barracks"]
+
+[[fortification]]
+ids = ["de_flak36", "su_52k", "us_90mm_m2"]
+hp = 0
+armor_mm = 0
+requires = ["base_factory"]
+
 # What producing buildings make, per faction (catalog ids). Mortar teams and
 # self-propelled guns fire indirectly (prompt 032).
 [produce.infantry]

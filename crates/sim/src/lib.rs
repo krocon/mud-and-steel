@@ -9,6 +9,7 @@
 //! - no iteration over hash-based collections,
 //! - no Godot dependency.
 
+pub mod air;
 pub mod bridges;
 pub mod catalog;
 pub mod combat;
@@ -33,6 +34,10 @@ pub mod snapshot;
 pub mod terrain;
 pub mod vision;
 
+pub use air::{
+    AirBlock, AirEvent, AirMission, AirOption, AirRules, AirType, AircraftSnapshot, BombSnapshot,
+    FlakClass, SortieSnapshot,
+};
 pub use bridges::Bridge;
 pub use catalog::Catalog;
 pub use combat::{
