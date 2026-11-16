@@ -50,6 +50,8 @@ struct RangeSection {
     direct_fire: Ratio,
     sight: Ratio,
     indirect_fire: Ratio,
+    /// Fuel range (prompt 036).
+    fuel: Ratio,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize)]
@@ -86,6 +88,8 @@ pub struct Scale {
     pub sight_range: Ratio,
     pub indirect_fire_range: Ratio,
     pub aircraft_speed: Ratio,
+    /// Real road range to the distance a full tank drives (prompt 036).
+    pub fuel_range: Ratio,
 }
 
 impl Scale {
@@ -102,6 +106,7 @@ impl Scale {
             sight_range: file.range.sight,
             indirect_fire_range: file.range.indirect_fire,
             aircraft_speed: file.aircraft.speed,
+            fuel_range: file.range.fuel,
         };
         let mut ratios = vec![
             scale.time_factor,
@@ -109,6 +114,7 @@ impl Scale {
             scale.sight_range,
             scale.indirect_fire_range,
             scale.aircraft_speed,
+            scale.fuel_range,
         ];
         ratios.extend(scale.time_overrides.iter().map(|o| o.factor));
         // Bounded so that no conversion can overflow Fixed.
@@ -162,6 +168,14 @@ impl Scale {
     /// Game range in meters of a real sight range.
     pub fn sight_range_m(&self, real_m: u32) -> Fixed {
         self.sight_range.apply(Fixed::from_num(real_m))
+    }
+
+    /// Meters a vehicle with a real road range of `road_km` drives on a
+    /// full tank (prompt 036).
+    pub fn fuel_range_m(&self, road_km: u32) -> u32 {
+        let m = u64::from(road_km) * 1000 * u64::from(self.fuel_range.num)
+            / u64::from(self.fuel_range.den);
+        u32::try_from(m).unwrap_or(u32::MAX)
     }
 
     /// Game range in meters of a real indirect-fire range.
