@@ -458,6 +458,11 @@ terrain-bench map="test_large" *args: build
 terrain-shots dir map="test_large" *args: build
     {{ GODOT }} --path godot --always-on-top --fixed-fps 30 --write-movie "{{ dir }}/f.png" res://scenes/main.tscn -- --terrain-shots --map={{ map }} {{ args }}
 
+# Record two camera rides and measure whether the ground texture sticks to the ground (prompt 071; opens a window; args: [dir] [--png])
+[group('terrain')]
+ground-motion *args: build
+    bash tools/ground-motion.sh {{ args }}
+
 # --- Map objects (prompt 013) ---------------------------------------------------------
 
 # Measure frame rate, draw calls and instances over the densest wood and a village (opens a window)

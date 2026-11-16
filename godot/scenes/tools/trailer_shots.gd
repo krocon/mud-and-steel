@@ -219,6 +219,17 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"map": "town_small", "scene": "survey", "seed": 1, "start_s": 0.5, "seconds": 1.0, "stills": [0.5],
 		"camera": [{"t": 0.0, "at": Vector2(0, 0), "dist": 1141.0, "yaw": 0.0, "pitch": 89.0, "haze": 4000.0}],
 	},
+	# Prompt 071: meadow and road near a corner of the 4 km map, panned, zoomed
+	# and turned at once, to measure whether the ground texture sticks to the
+	# ground (`just ground-motion`, tools/ground_flicker.py).
+	"survey_ground": {
+		"map": "test_large", "scene": "survey", "seed": 1, "start_s": 0.5, "seconds": 6.0,
+		"stills": [0.5, 3.0, 5.5],
+		"camera": [
+			{"t": 0.0, "at": Vector2(-1720, 1180), "dist": 150.0, "yaw": 0.0, "pitch": 52.0},
+			{"t": 6.0, "at": Vector2(-1680, 1220), "dist": 80.0, "yaw": 40.0, "pitch": 46.0},
+		],
+	},
 	"survey_twin_meadow": {
 		"map": "twin_meadow", "scene": "survey", "seed": 1, "start_s": 0.5, "seconds": 1.0, "stills": [0.5],
 		"camera": [{"t": 0.0, "at": Vector2(0, 0), "dist": 1902.0, "yaw": 0.0, "pitch": 89.0, "haze": 4000.0}],
