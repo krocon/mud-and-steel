@@ -107,6 +107,37 @@ pub struct BuildingKind {
     pub heavy_exposure_pct: u32,
 }
 
+/// Blasts knock soldiers down (prompt 048, `[knockdown]`).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct KnockdownRules {
+    pub radius_mm_per_mm: u32,
+    pub kneel_pct: u32,
+    pub prone_pct: u32,
+    pub cover_pct: u32,
+    pub throw_mm: u32,
+    pub down_ms: u32,
+    pub ammo_explosion_pct: u32,
+    pub ammo_radius_mm: u32,
+    pub ammo_min_caliber_mm_x10: u32,
+}
+
+impl KnockdownRules {
+    /// Knock-down radius of a high-explosive charge in mm.
+    pub const fn radius_mm(&self, caliber_mm_x10: u32) -> u32 {
+        caliber_mm_x10.saturating_mul(self.radius_mm_per_mm) / 10
+    }
+
+    /// Share of the radius that knocks a soldier in `stance` down.
+    pub const fn stance_pct(&self, stance: Stance) -> u32 {
+        match stance {
+            Stance::Stand => 100,
+            Stance::Kneel => self.kneel_pct,
+            Stance::Prone => self.prone_pct,
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct BuildingRules {
@@ -129,6 +160,7 @@ pub struct InfantryRules {
     pub formation: FormationRules,
     pub stance: StanceRules,
     pub soldier: SoldierRules,
+    pub knockdown: KnockdownRules,
     pub cover: CoverRules,
     pub building: BuildingRules,
 }
@@ -183,6 +215,21 @@ impl InfantryRules {
             rules.soldier.half_width_mm,
             50,
             2000,
+        )?;
+        let k = &rules.knockdown;
+        check("knockdown.radius_mm_per_mm", k.radius_mm_per_mm, 0, 1000)?;
+        check("knockdown.kneel_pct", k.kneel_pct, 0, 100)?;
+        check("knockdown.prone_pct", k.prone_pct, 0, 100)?;
+        check("knockdown.cover_pct", k.cover_pct, 0, 100)?;
+        check("knockdown.throw_mm", k.throw_mm, 0, 10_000)?;
+        check("knockdown.down_ms", k.down_ms, 0, 60_000)?;
+        check("knockdown.ammo_explosion_pct", k.ammo_explosion_pct, 0, 100)?;
+        check("knockdown.ammo_radius_mm", k.ammo_radius_mm, 0, 50_000)?;
+        check(
+            "knockdown.ammo_min_caliber_mm_x10",
+            k.ammo_min_caliber_mm_x10,
+            0,
+            10_000,
         )?;
         check("cover.search_mm", c.search_mm, 0, 50_000)?;
         check("cover.spot_spacing_mm", c.spot_spacing_mm, 300, 20_000)?;
@@ -258,6 +305,20 @@ impl InfantryRules {
             h.write_u32(v.dispersion_pct);
         }
         h.write_u32(self.soldier.half_width_mm);
+        let k = &self.knockdown;
+        for v in [
+            k.radius_mm_per_mm,
+            k.kneel_pct,
+            k.prone_pct,
+            k.cover_pct,
+            k.throw_mm,
+            k.down_ms,
+            k.ammo_explosion_pct,
+            k.ammo_radius_mm,
+            k.ammo_min_caliber_mm_x10,
+        ] {
+            h.write_u32(v);
+        }
         let c = &self.cover;
         for v in [c.search_mm, c.spot_spacing_mm, c.gap_mm, c.reach_mm] {
             h.write_u32(v);
@@ -295,6 +356,11 @@ mod tests {
         assert_eq!(rules.cover_pct("env_house_farm"), 0);
         assert_eq!(rules.building("env_house_farm").unwrap().capacity, 12);
         assert!(rules.building("env_hedge").is_none());
+        // 8 cm: 4.8 m knock-down radius.
+        assert_eq!(rules.knockdown.radius_mm(800), 4800);
+        assert_eq!(rules.knockdown.stance_pct(Stance::Prone), 40);
+        let bad = BUILTIN_INFANTRY.replace("kneel_pct = 75", "kneel_pct = 101");
+        assert!(InfantryRules::parse(&bad).is_err());
         let bad = BUILTIN_INFANTRY.replace("row_size = 5", "row_size = 0");
         assert!(InfantryRules::parse(&bad).is_err());
         let unknown = format!("{BUILTIN_INFANTRY}\n[extra]\nx = 1\n");
