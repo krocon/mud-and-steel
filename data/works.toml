@@ -1,0 +1,128 @@
+# Field works of engineers (prompt 035): mines, wire, anti-tank obstacles,
+# foxholes and trenches, clearing, demolishing and repairing bridges.
+# Integers only. Compiled into the simulation (`sim::works::WorksRules::builtin`,
+# loaded by `Sim::new` and part of the state hash); the design and the reasons
+# are in docs/ARCHITECTURE.md "Field works" and prompts/done/035-*.md.
+#
+# Costs are [fuel, ammunition, manpower] like data/economy.toml; times are
+# game seconds (no time factor, like the economy). All values here are
+# PROVISIONAL game rules to be confirmed by the user, except where a comment
+# names a real value.
+
+[engineers]
+# Unit categories (data/catalog/SCHEMA.md) that do engineer work.
+categories = ["inf_engineer"]
+# A squad works on a site when it is within this distance (mm) of it.
+reach_mm = 6000
+# Engineers detect hostile mines within this distance (mm) of the squad.
+detect_mm = 10000
+# Clearing takes everything (known mines, wire, obstacles) within this
+# distance (mm) of the ordered point.
+clear_radius_mm = 15000
+# Most unfinished sites per player.
+max_sites = 24
+# Unfinished sites nobody works on or walks to for this long are given up
+# (refunded if no work was done yet).
+abandon_s = 30
+# Longest line of one order (mm).
+max_line_mm = 200000
+
+[mines]
+# Trigger mass: a vehicle (catalog mass) triggers an anti-tank mine from
+# `at_trigger_kg`, everything from `ap_trigger_kg`; a soldier with his kit
+# counts as `soldier_kg`. Real orders of magnitude: Tellermine about 90 to
+# 180 kg, S-mine 3 to 7 kg (TM-E 30-451, ch. VIII).
+at_trigger_kg = 150
+ap_trigger_kg = 5
+soldier_kg = 100
+# A soldier within this distance (mm) of an anti-personnel mine sets it off.
+ap_reach_mm = 500
+# Anti-tank mine: vehicles with armor up to `open_armor_mm` of
+# data/indirect.toml are destroyed, others lose `at_damage_pct` of their hit
+# points and their track: they cannot move until the crew has fitted it
+# again after `track_repair_s`.
+at_damage_pct = 30
+track_repair_s = 90
+# Explosions: caliber (tenths of mm) used for the crater (anti-tank) and for
+# the fragments and crater (anti-personnel, data/indirect.toml blast rules).
+at_crater_caliber_mm_x10 = 1500
+ap_caliber_mm_x10 = 600
+# An explosion shows the victim's player the mines within this distance (mm).
+reveal_mm = 15000
+# Mines per section laid by players come from the catalog entry
+# `<faction>_minefield_at|ap` (weapon counts, length and width); sections
+# placed in the map editor (neutral) use these counts and `section_mm`.
+map_at_count = 20
+map_ap_count = 40
+section_mm = 20000
+# Mines lie on a staggered grid, shifted by up to this much (mm).
+jitter_mm = 1500
+
+[dig]
+# Foxholes and trenches lower the ground (prompt 021 height field) by
+# `depth_mm` in `steps` steps and raise a parapet of `parapet_mm` beside
+# them. On the 2 m height raster a sample may lie at most 600 mm below a
+# neighbor before the path cell counts as too steep for infantry (60 %
+# grade, data/terrain.toml), so the hole stays shallow here; prompt 052
+# cuts real trenches.
+depth_mm = 500
+parapet_mm = 100
+steps = 4
+# Cover of a soldier of a standing squad on a dug sample (instead of the
+# crater cover of data/craters.toml), per stance.
+stand_pct = 60
+kneel_pct = 75
+prone_pct = 85
+
+[bridge]
+demolish_s = 30
+demolish_cost = [0, 40, 0]
+# Caliber (tenths of mm) of the demolition charge's blast.
+demolish_caliber_mm_x10 = 2000
+repair_s = 90
+repair_cost = [40, 0, 80]
+
+[crush]
+# Vehicles of at least this mass (kg) flatten wire they drive over (like
+# fort_barbed_wire in data/destruction.toml).
+wire_kg = 5000
+
+# Per kind: cost and build time of one piece (a mine section, a wire piece,
+# a hedgehog, a foxhole, a trench piece), time to clear one item (a mine, a
+# wire piece, a hedgehog; 0 = cannot be cleared), and the length of a piece
+# along an ordered line (mm; 0 = one piece per point or section).
+[work.mines_at]
+cost = [0, 60, 0]
+build_s = 40
+clear_s = 3
+piece_mm = 0
+
+[work.mines_ap]
+cost = [0, 40, 0]
+build_s = 30
+clear_s = 3
+piece_mm = 0
+
+[work.wire]
+cost = [0, 0, 6]
+build_s = 6
+clear_s = 5
+piece_mm = 4000
+
+[work.hedgehogs]
+cost = [0, 0, 10]
+build_s = 10
+clear_s = 8
+piece_mm = 3000
+
+[work.foxhole]
+cost = [0, 0, 0]
+build_s = 15
+clear_s = 0
+piece_mm = 0
+
+[work.trench]
+cost = [0, 0, 0]
+build_s = 20
+clear_s = 0
+piece_mm = 4000

@@ -57,6 +57,11 @@ func _process(_delta: float) -> void:
 		print("LAN self-test: tick %d confirmed by all, %d orders, input delay %d" % [
 			status["verified_tick"], _orders, status["input_delay"],
 		])
+		# Prompt 035: twin_meadow has two hidden minefields in the middle;
+		# mines that went off under the tanks must not desync the peers.
+		print("LAN self-test: %d mines left, %d known to this player, %d thrown tracks" % [
+			sim_host.all_mines_count(), sim_host.known_mines().size(), sim_host.tracks_off().size(),
+		])
 		if sim_host.local_player() == 1:
 			sim_host.surrender()
 	var result := sim_host.match_result()

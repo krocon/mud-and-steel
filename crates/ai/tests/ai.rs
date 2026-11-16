@@ -415,3 +415,90 @@ fn ai_sends_empty_units_to_resupply() {
     }
     assert!(sent, "the AI never sent the tank");
 }
+
+/// Prompt 035: Normal lays anti-tank mines with its engineers at a
+/// chokepoint; the enemy's view does not show them, the own view does.
+#[test]
+fn ai_lays_mines_that_the_enemy_does_not_see() {
+    let mut config = demo_config();
+    config.spawns.retain(|s| s.unit_type.contains("_inf_"));
+    let catalog = sim::Catalog::builtin().unwrap();
+    let scale = sim::Scale::builtin().unwrap();
+    config
+        .unit_types
+        .extend(sim::unit_types_from_catalog(&catalog, &scale, &["de_inf_engineer"]).unwrap());
+    let own = config.spawns[0].position;
+    let engineers = UnitId(u32::try_from(config.spawns.len()).unwrap());
+    config.spawns.push(sim::Spawn {
+        owner: PlayerId(0),
+        unit_type: "de_inf_engineer".into(),
+        position: own + Vec2::from_meters(0, 10),
+        fire_mode: FireMode::FireAtWill,
+    });
+    let players = [
+        (PlayerId(0), Difficulty::Normal),
+        (PlayerId(1), Difficulty::Passive),
+    ];
+    let mut game = Game::new(&config, builtin_map(), 4, &players).unwrap();
+    let mut laid = false;
+    while game.sim().all_mines().is_empty() && game.sim().tick() < MAX_TICKS {
+        let decisions = game.think();
+        for command in decisions.iter().flatten() {
+            if let Command::Lay { units, .. } = command {
+                laid |= units.contains(&engineers);
+            }
+        }
+        game.step(decisions);
+    }
+    assert!(laid, "no Lay order for the engineers");
+    let mines = game.sim().all_mines();
+    assert!(
+        !mines.is_empty(),
+        "no mines after {} ticks",
+        game.sim().tick()
+    );
+    assert!(mines.iter().all(|m| m.owner == Some(PlayerId(0))));
+    assert_eq!(
+        PlayerView::new(game.sim(), PlayerId(0)).mines.len(),
+        mines.len()
+    );
+    assert!(PlayerView::new(game.sim(), PlayerId(1)).mines.is_empty());
+}
+
+/// Prompt 046: Normal and Hard advance with attack-move in an automatic
+/// formation; Easy keeps plain moves.
+#[test]
+fn normal_advances_with_attack_move_easy_does_not() {
+    // The infantry of the demo, out of sight of each other.
+    let mut config = demo_config();
+    config.spawns.retain(|s| s.unit_type.contains("_inf_"));
+    for s in &mut config.spawns {
+        if s.owner == PlayerId(1) {
+            s.position.y -= sim::Fixed::from_num(150);
+        }
+    }
+    let players = [
+        (PlayerId(0), Difficulty::Normal),
+        (PlayerId(1), Difficulty::Easy),
+    ];
+    let mut game = Game::new(&config, builtin_map(), 5, &players).unwrap();
+    let mut attack_moves = [0, 0];
+    while game.sim().outcome().is_none() && game.sim().tick() < MAX_TICKS {
+        let decisions = game.think();
+        for (k, commands) in decisions.iter().enumerate() {
+            for command in commands {
+                if let Command::FormationMove {
+                    engage, formation, ..
+                } = command
+                {
+                    assert_eq!(*engage, sim::Engage::All);
+                    assert_eq!(*formation, sim::Formation::Auto);
+                    attack_moves[k] += 1;
+                }
+            }
+        }
+        game.step(decisions);
+    }
+    assert!(attack_moves[0] > 0, "Normal never attack-moved");
+    assert_eq!(attack_moves[1], 0, "Easy attack-moved");
+}

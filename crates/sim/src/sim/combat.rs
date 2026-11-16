@@ -115,7 +115,7 @@ pub(super) struct TypeCombat {
     /// `(sin, cos)` of the turret turn per tick; `None` = instant.
     turret_step: Option<(Fixed, Fixed)>,
     /// `(sin, cos)` of the hull turn per tick (casemates).
-    hull_step: Option<(Fixed, Fixed)>,
+    pub(super) hull_step: Option<(Fixed, Fixed)>,
     /// Cosine of half the casemate traverse; `None` = turret.
     arc_cos: Option<Fixed>,
     weapons: Vec<WeaponRt>,
@@ -423,6 +423,15 @@ impl Sim {
         unit.combat.attack = Some(attack);
         unit.combat.attack_moving = false;
         unit.combat.last_seen = None;
+    }
+
+    /// Whether some weapon of unit `i` can hurt unit `j` from half its
+    /// range (prompt 046: who a securing unit goes after).
+    pub(super) fn could_hurt(&self, i: usize, j: usize) -> bool {
+        let mine = &self.types[self.units[i].unit_type as usize];
+        let theirs = &self.types[self.units[j].unit_type as usize];
+        (0..mine.weapons.len())
+            .any(|w| mine.can_damage(w, &self.combat_rules, theirs, mine.weapons[w].range / 2))
     }
 
     /// Target selection, attack movement, aiming and firing of every unit.
@@ -1240,7 +1249,11 @@ impl Sim {
 /// Rotates `current` towards `want` by at most one step `(sin, cos)`;
 /// `None` turns at once. Returns the new direction and whether it reached
 /// `want`.
-fn rotate_towards(current: Vec2, want: Vec2, step: Option<(Fixed, Fixed)>) -> (Vec2, bool) {
+pub(super) fn rotate_towards(
+    current: Vec2,
+    want: Vec2,
+    step: Option<(Fixed, Fixed)>,
+) -> (Vec2, bool) {
     let Some((sin, cos)) = step else {
         return (want, true);
     };

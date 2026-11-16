@@ -59,15 +59,19 @@ const fn replaces_queue(command: &Command) -> bool {
             | Command::Garrison { .. }
             | Command::Barrage { .. }
             | Command::Patrol { .. }
+            | Command::FormationMove { .. }
+            | Command::Secure { .. }
     )
 }
 
-/// The unit has nothing to do: no target, no route, no attack order.
+/// The unit has nothing to do: no target, no route, no attack order, no
+/// attack-move or secured area (prompt 046).
 fn idle(unit: &Unit) -> bool {
     unit.alive()
         && unit.target.is_none()
         && unit.route == Route::None
         && unit.combat.attack.is_none()
+        && !unit.drill.busy()
 }
 
 impl Sim {

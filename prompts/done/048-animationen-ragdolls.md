@@ -67,6 +67,48 @@ Einschläge am Boden.
 | 9 | **Gräben:** Soldaten stehen in 022 0,7 m *hinter* einem Grabenstück; ob sie *im* Graben stehen, entscheidet 035. Die Graben-Clips werden schon gewählt, die Figur aber nicht abgesenkt. **[provisional]** | Paralleler Prompt 035 baut Stellungen; keine doppelte Regel. |
 | 10 | **Kein neues Katalogfeld, kein neuer Mesh-Slot, Speicherformat unverändert** (Spielstände prüfen Regel-Hash und Spielversion wie bei 040/041). | Klein halten. |
 
+## Ergebnis
+
+Umgesetzt wie in der Tabelle oben; Details in `docs/INFANTRY.md` („Knocked down by
+blasts (prompt 048)“, „Prompt 048“ unter Presentation und Performance).
+
+- **Sim:** `data/infantry.toml` `[knockdown]`, `crate::infantry::KnockdownRules`,
+  `crates/sim/src/sim/knockdown.rs` (`blast_reach`, `knock_down`, `ammo_explosion`);
+  Haken in `Sim::explode` (vor den Splittern berechnet, danach angewendet) und
+  `Sim::destroy`; Umgeworfene schießen nicht, folgen ihrem Platz nicht und haben die
+  liegende Trefferbox. `SoldierSnapshot` mit `knocked`, `knock_from`, `cover`.
+  Golden-Hash geändert (Regeln und Soldatenzustand im Hash; Demo-Schlacht unverändert).
+- **Bridge:** `crates/bridge/src/knockdown_funcs.rs` (`soldier_knocked`,
+  `soldier_knock_from`, `soldier_cover_objects`, `cover_object_info`).
+- **Blender:** 20 neue Clips in `tools/blender/soldier/animation.py` (`_clips_048`),
+  alle 57 Soldaten neu gebaut (55 Clips); Posen als Kontaktbögen gerendert und
+  angesehen (Seiten- und Schrägansicht).
+- **Godot:** `world/soldier_motion.gd` (Clip-Wahl, Fallen und Aufstehen, Helme,
+  Trefferrichtung), `world/ragdolls.gd`, `world/turn_lead.gd`, `world/helmets.gd`;
+  kleine Haken in `infantry_view.gd`, `effects.gd` (Soldatentreffer: Staub- und
+  dunkler Puff statt Funken), `soldier.gdshader` (Instanz-Uniform `helmet_off`).
+- **Tests:** `crates/sim/tests/knockdown.rs` (Wurf weg von der Explosion, liegt still,
+  steht nach 60 Ticks auf; Liegende seltener umgeworfen; Munitionsexplosion wirft den
+  Trupp neben dem Panzer um, ohne Explosion niemand; deterministisch), Regeltest in
+  `infantry.rs`; Infanterie-Vorschau-Selbsttest: Ragdoll fällt, ruht, friert ein;
+  Umgeworfener wird ins Aufstehen übergeblendet; Kopf führt die Drehung; Helm fliegt
+  und landet; Spiel-Selbsttest: Trupp wirft sich hin (`dive`).
+- **Selbsttests nach dem Merge von `main`** (035, 046, 053): `just check`, `kit-test`,
+  `validate-assets`, `gallery-check`, `infantry-selftest`, `lan-selftest` grün.
+  `just selftest` scheitert ab dem Befehlsleisten-Test von 046 (die Partie ist in
+  Tick 4198 schon entschieden: „move button left mode ''“, Transport, Formationen,
+  Pause, Aufgeben). Derselbe Fehler tritt mit abgeschalteter Umwerf-Regel *und* den
+  Godot-Dateien von `main` auf, liegt also nicht an 048; vor dem Merge war
+  `just selftest` mit 048 grün.
+- **Messung:** Infanterie-Benchmark A/B höchstens 3 % langsamer (Tabelle in
+  INFANTRY.md), Simulation unverändert. Ragdoll-Budget: 8 gleichzeitig, bis 60 m.
+
+Offen: Ragdolls kollidieren nur mit einer flachen Bodenplatte (keine Hänge, Mauern,
+anderen Körper); Soldaten in gegrabenen Gräben (035) bekommen die Graben-Clips nicht
+(der Snapshot unterscheidet Krater und Graben nicht), Grabenstücke senken die Figur
+nicht ab; Panzer-Direktfeuer mit Sprenggranaten hat in der Sim keine Sprengwirkung,
+wirft also niemanden um; Werte und Härte der Trefferdarstellung vorläufig.
+
 ## Arbeitsweise
 
 Wie in den vorigen Prompts: Deutsch mit mir, Englisch im Repo, kein Push ohne Freigabe,

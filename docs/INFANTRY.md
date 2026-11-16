@@ -469,6 +469,16 @@ but enemy armor stop instead of walking into it. Tested in
 `crates/ai/tests/ai.rs`. The AI does not use stances, cover or buildings
 yet.
 
+### Foxholes and trenches (prompt 035)
+
+Engineer squads dig foxholes and trenches into the height field (crater
+machinery of prompt 021). Their samples are cover spots like crater samples;
+a standing squad's soldier on a dug sample is caught by its rim with the
+values of `data/works.toml` `[dig]` (60 % standing, 75 % kneeling, 85 %
+prone) instead of the crater values. Engineers (`inf_engineer`) also lay
+and clear mines, wire and obstacles and work on bridges (ARCHITECTURE.md
+"Field works"); anti-personnel mines kill the soldier who steps on one.
+
 ### Knocked down by blasts (prompt 048)
 
 `[knockdown]` in `data/infantry.toml`, `crates/sim/src/sim/knockdown.rs`,
