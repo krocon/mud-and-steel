@@ -376,8 +376,8 @@ source = [
     { ref = "https://en.wikipedia.org/wiki/T-70 (infobox and text)", covers = "T-70 1942: length 4.29 m, width 2.32 m, height 2.04 m, 9.2 t, crew 2, 2x GAZ-202 70 hp, 45 km/h, range 360 km, armor 10-50 mm (turret front 50, turret sides/rear 35, glacis 35, hull sides 15), 45 mm gun, DT; T-70M changes" },
     { ref = "Zaloga/Grandsen, Soviet Tanks and Combat Vehicles of World War Two (Arms and Armour 1984)", covers = "T-70M (wider tracks, stronger suspension), mass 9.8 t, road speed 42 km/h (not checked online)" },
 ]
-uncertain = ["width_mm", "mass_kg", "speed_road_kmh_x10", "speed_offroad_kmh_x10", "armor_hull_front_mm", "weapon"]
-note = "T-70M (from Oct 1942), in service through 1945. Wikipedia only gives T-70 (1942) values (9.2 t, 2.32 m wide, 45 km/h); the heavier, wider-tracked T-70M is commonly given as 9.8 t, ~2.35 m wide and 42 km/h, not confirmed online. Hull front: upper glacis 35 mm at 60 deg, lower plate commonly given as 45 mm; thickest plate entered, slope is the upper plate's. Hull rear omitted (no fetched value). Off-road speed estimated. Gun designation conflicts (20-K vs 45 mm Model 1938) in Wikipedia; muzzle velocity and stowage (70-90 rounds) not confirmed online. DT rate is cyclic."
+uncertain = ["width_mm", "mass_kg", "speed_road_kmh_x10", "speed_offroad_kmh_x10", "armor_hull_front_mm", "weapon", "range_road_km", "power_hp", "armor_turret_front_mm"]
+note = "T-70M (from Oct 1942), in service through 1945. Wikipedia only gives T-70 (1942) values (9.2 t, 2.32 m wide, 45 km/h); the heavier, wider-tracked T-70M is commonly given as 9.8 t, ~2.35 m wide and 42 km/h, not confirmed online. Hull front: upper glacis 35 mm at 60 deg, lower plate commonly given as 45 mm; thickest plate entered, slope is the upper plate's. Hull rear omitted (no fetched value). Off-road speed estimated. Gun designation conflicts (20-K vs 45 mm Model 1938) in Wikipedia; muzzle velocity and stowage (70-90 rounds) not confirmed online. DT rate is cyclic. Differs from onwar.com (data/vehicles, a rank-4 source; the values above keep their sources): range_road_km 300, power_hp 170, armor_turret_front_mm 60, width_mm 2500, armor_hull_front_mm 35, weapon.ammo_carried 94."
 
 [[unit]]
 id = "su_t34_76_1943"
@@ -417,8 +417,8 @@ source = [
     { ref = "https://ru.wikipedia.org/wiki/76-мм_дивизионная_пушка_образца_1942_года_(ЗИС-3) (section Characteristics and ammunition)", covers = "BR-350A muzzle velocity 662 m/s (same 76.2x385R ammunition family as F-34)" },
     { ref = "Zaloga, T-34/76 Medium Tank 1941-45 (Osprey New Vanguard 9, 1994)", covers = "1943 model (hexagonal turret, cupola), mass (not checked online)" },
 ]
-uncertain = ["height_mm", "mass_kg", "speed_offroad_kmh_x10", "range_road_km", "armor_turret_front_mm", "armor_turret_side_mm", "armor_turret_rear_mm", "weapon"]
-note = "Western 'Model 1943' (officially obr. 1942 in part): hexagonal turret, from mid-1943 with commander's cupola. Height 2.46 m (en) vs 2.405 m (ru), without cupola. Mass 30.9 t is the upper end of the ru range (1943 production); other sources give 30.0 t. Road speed 53-54 km/h; off-road 36 km/h per ru Wikipedia (family value, may be optimistic). Road range 330 km (en) vs 380 km (ru) on internal fuel; more with external tanks. Hexagonal turret armor not given explicitly in fetched sources: ru gives turret front 45-52 mm, sides/rear 45 mm for the family; en gives up to 70 mm for the Model 1943 overall; values marked uncertain. F-34 muzzle velocity taken from the BR-350A ZiS-3 table (similar barrel length); DT ammunition count omitted (sources give 2,898-3,150). Main gun rate practical, DT rate cyclic."
+uncertain = ["height_mm", "mass_kg", "speed_offroad_kmh_x10", "range_road_km", "armor_turret_front_mm", "armor_turret_side_mm", "armor_turret_rear_mm", "weapon", "armor_hull_rear_mm"]
+note = "Western 'Model 1943' (officially obr. 1942 in part): hexagonal turret, from mid-1943 with commander's cupola. Height 2.46 m (en) vs 2.405 m (ru), without cupola. Mass 30.9 t is the upper end of the ru range (1943 production); other sources give 30.0 t. Road speed 53-54 km/h; off-road 36 km/h per ru Wikipedia (family value, may be optimistic). Road range 330 km (en) vs 380 km (ru) on internal fuel; more with external tanks. Hexagonal turret armor not given explicitly in fetched sources: ru gives turret front 45-52 mm, sides/rear 45 mm for the family; en gives up to 70 mm for the Model 1943 overall; values marked uncertain. F-34 muzzle velocity taken from the BR-350A ZiS-3 table (similar barrel length); DT ammunition count omitted (sources give 2,898-3,150). Main gun rate practical, DT rate cyclic. Differs from onwar.com (data/vehicles, a rank-4 source; the values above keep their sources): armor_hull_rear_mm 45, height_mm 2600, armor_turret_front_mm 70, armor_turret_side_mm 52, armor_turret_rear_mm 52."
 
 [[unit]]
 id = "su_is2"
@@ -455,8 +455,8 @@ source = [
     { ref = "https://en.wikipedia.org/wiki/IS-2 (infobox; Protection/Production)", covers = "46 t, length 9.90 m, width 3.09 m, height 2.73 m, crew 4, armor (hull front 100-120 mm/60 deg, lower 100 mm/30 deg, turret 100 mm, mantlet 120 mm, hull sides 90-130 mm, turret sides 90 mm), D-25T 28 rounds, DShK + 3 DT with 2,079 rounds, V-2IS 520 hp, 37 km/h, range 240 km road / 180 km cross-country, OF-471 800 m/s" },
     { ref = "Zaloga, IS-2 Heavy Tank 1944-73 (Osprey New Vanguard 7, 1994)", covers = "1944 model, hull length, BR-471 velocity (not checked online)" },
 ]
-uncertain = ["armor_hull_front_mm", "speed_offroad_kmh_x10", "weapon"]
-note = "IS-2 obr. 1944 with single-piece glacis at 60 deg; Wikipedia's infobox says 100 mm but its text says a 120 mm casting, so uncertain. Hull rear omitted (no fetched value). Off-road speed estimated. D-25T: 800 m/s is the OF-471 HE figure; ~781 m/s for BR-471 APHE is not confirmed online. MG ammunition is 2,079 rounds total for DT and DShK (split unknown, so omitted). DShK AA mount from late 1944. Main gun rate practical (two-piece ammunition), MG rates cyclic."
+uncertain = ["armor_hull_front_mm", "speed_offroad_kmh_x10", "weapon", "range_road_km", "power_hp"]
+note = "IS-2 obr. 1944 with single-piece glacis at 60 deg; Wikipedia's infobox says 100 mm but its text says a 120 mm casting, so uncertain. Hull rear omitted (no fetched value). Off-road speed estimated. D-25T: 800 m/s is the OF-471 HE figure; ~781 m/s for BR-471 APHE is not confirmed online. MG ammunition is 2,079 rounds total for DT and DShK (split unknown, so omitted). DShK AA mount from late 1944. Main gun rate practical (two-piece ammunition), MG rates cyclic. Differs from onwar.com (data/vehicles, a rank-4 source; the values above keep their sources): range_road_km 150, power_hp 600."
 
 [[unit]]
 id = "su_su85"
@@ -496,7 +496,7 @@ source = [
     { ref = "Zaloga/Grandsen, Soviet Tanks and Combat Vehicles of World War Two (Arms and Armour 1984)", covers = "production 1943-44, 48 rounds (not checked online)" },
 ]
 uncertain = ["gun_traverse_deg", "speed_offroad_kmh_x10", "armor_hull_front_deg", "armor_turret_front_mm", "weapon"]
-note = "SU-85 on T-34 chassis with fixed casemate; Wikipedia gives a uniform 45 mm (flagged as needing clarification). 50 deg superstructure slope and ~60 mm mantlet not confirmed online. Wikipedia names the gun D-5T; the SU-85 mounting is usually designated D-5S. 48 rounds not confirmed online. No machine gun fitted. Off-road speed estimated. Rate practical."
+note = "SU-85 on T-34 chassis with fixed casemate; Wikipedia gives a uniform 45 mm (flagged as needing clarification). 50 deg superstructure slope and ~60 mm mantlet not confirmed online. Wikipedia names the gun D-5T; the SU-85 mounting is usually designated D-5S. 48 rounds not confirmed online. No machine gun fitted. Off-road speed estimated. Rate practical. Differs from onwar.com (data/vehicles, a rank-4 source; the values above keep their sources): armor_turret_front_mm 75."
 
 [[unit]]
 id = "su_su76m"
@@ -533,8 +533,8 @@ source = [
     { ref = "https://ru.wikipedia.org/wiki/76-мм_дивизионная_пушка_образца_1942_года_(ЗИС-3) (ammunition table)", covers = "BR-350A 662 m/s" },
     { ref = "Zaloga/Grandsen, Soviet Tanks and Combat Vehicles of World War Two (Arms and Armour 1984)", covers = "SU-76M open-top variant, role (not checked online)" },
 ]
-uncertain = ["speed_offroad_kmh_x10", "armor_hull_front_deg", "weapon"]
-note = "SU-76M (from mid-1943), open-topped light SPG for infantry support. Front armor 25-35 mm (35 mm hull, 25 mm superstructure), sides 10-15 mm; 60 deg slope not confirmed online. Wikipedia lists a DT as secondary (not always carried; omitted). 60 rounds not confirmed online. Off-road speed estimated. Rate practical."
+uncertain = ["speed_offroad_kmh_x10", "armor_hull_front_deg", "weapon", "mass_kg", "power_hp", "armor_hull_front_mm"]
+note = "SU-76M (from mid-1943), open-topped light SPG for infantry support. Front armor 25-35 mm (35 mm hull, 25 mm superstructure), sides 10-15 mm; 60 deg slope not confirmed online. Wikipedia lists a DT as secondary (not always carried; omitted). 60 rounds not confirmed online. Off-road speed estimated. Rate practical. Differs from onwar.com (data/vehicles, a rank-4 source; the values above keep their sources): mass_kg 11200, power_hp 170, armor_hull_front_mm 30."
 
 [[unit]]
 id = "su_m3a1_scout"
@@ -664,8 +664,8 @@ source = [
     { ref = "https://en.wikipedia.org/wiki/ISU-152 (infobox and text)", covers = "47.3 t max, length 9.18 m, width 3.07 m, height 2.48 m, crew 4-5, armor (upper hull front 60, lower hull front/lower sides/superstructure front 90, upper sides 75, mantlet up to 120 mm), ML-20S with 18 rounds, BR-540 600 m/s, max range 6,200 m, panoramic direct fire to 3,500 m, DShK 200 rounds, V-2IS 520 hp, 30 km/h road / 15-20 cross-country, range 200 km road" },
     { ref = "Zaloga, IS-2 Heavy Tank 1944-73 (Osprey New Vanguard 7, 1994)", covers = "IS chassis, hull length (not checked online)" },
 ]
-uncertain = ["mass_kg", "crew", "speed_offroad_kmh_x10", "weapon"]
-note = "Heavy assault gun / SPG on IS chassis (accepted Nov 1943), used for direct fire against fortifications and tanks (panoramic sight to 3,500 m) and for indirect fire; range_effective_m is the indirect maximum (6,200 m). mass_kg 46 t is the common combat weight; Wikipedia gives 47.3 t maximum. Crew 4-5. Off-road 15-20 km/h. Armor: superstructure front 90 mm (in armor_turret_front_mm), mantlet up to 120 mm; hull front lower 90 mm, upper 60 mm. Ammunition 18 rounds per Wikipedia infobox (other sources 20-21). Rear armor omitted (no fetched value). DShK AA mount from 1945. Main gun rate practical (1-2 rpm), DShK cyclic."
+uncertain = ["mass_kg", "crew", "speed_offroad_kmh_x10", "weapon", "speed_road_kmh_x10", "range_road_km", "power_hp"]
+note = "Heavy assault gun / SPG on IS chassis (accepted Nov 1943), used for direct fire against fortifications and tanks (panoramic sight to 3,500 m) and for indirect fire; range_effective_m is the indirect maximum (6,200 m). mass_kg 46 t is the common combat weight; Wikipedia gives 47.3 t maximum. Crew 4-5. Off-road 15-20 km/h. Armor: superstructure front 90 mm (in armor_turret_front_mm), mantlet up to 120 mm; hull front lower 90 mm, upper 60 mm. Ammunition 18 rounds per Wikipedia infobox (other sources 20-21). Rear armor omitted (no fetched value). DShK AA mount from 1945. Main gun rate practical (1-2 rpm), DShK cyclic. Differs from onwar.com (data/vehicles, a rank-4 source; the values above keep their sources): speed_road_kmh_x10 370, range_road_km 150, power_hp 600, weapon.ammo_carried 20."
 
 # ---------------------------------------------------------------------------
 # Guns

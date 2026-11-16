@@ -9,6 +9,7 @@
 import { parse } from 'smol-toml';
 import { BIOMES, Viewer, loadLook } from './viewer.js';
 import { Weather, calm, countUp, reveal } from './fx.js';
+import { RATINGS, gameValues, ratingBars, techData } from './stats.js';
 
 const ROOT = new URL('../../', import.meta.url);
 const url = (path) => new URL(path, ROOT).href;
@@ -113,6 +114,10 @@ const state = {
   entries: [],
   byId: new Map(),
   costs: new Map(),
+  vehicles: new Map(), // technical data per id (data/vehicles/*.json)
+  stats: {}, // game values per id (stats.json, from `cli unit-stats`)
+  statsReference: null,
+  sort: 'default',
   faction: 'de',
   group: 'all',
   query: '',
@@ -126,10 +131,11 @@ try {
   const saved = JSON.parse(localStorage.getItem('units-web') || '{}');
   if (FACTIONS.some(([id]) => id === saved.faction)) state.faction = saved.faction;
   if (BIOMES.includes(saved.biome)) state.biome = saved.biome;
+  if (RATINGS.some(([key]) => key === saved.sort)) state.sort = saved.sort;
 } catch { /* storage unavailable: defaults */ }
 function remember() {
   try {
-    localStorage.setItem('units-web', JSON.stringify({ faction: state.faction, biome: state.biome }));
+    localStorage.setItem('units-web', JSON.stringify({ faction: state.faction, biome: state.biome, sort: state.sort }));
   } catch { /* ignore */ }
 }
 
@@ -174,6 +180,22 @@ async function loadData() {
     }
   } catch {
     $('status').textContent = 'Keine Preise: economy.md fehlt (`just units-web` oder `just units-web-sync`).';
+  }
+  // Technical data of the armored vehicles (prompt 064), keyed by catalog id.
+  for (const faction of ARMIES) {
+    try {
+      for (const record of JSON.parse(await text(`data/vehicles/${faction}.json`))) state.vehicles.set(record.id, record);
+    } catch { /* no database for this faction: the sheet shows the catalog only */ }
+  }
+  // Game values come from the simulation (`cli unit-stats`), written next to this page.
+  try {
+    const response = await fetch(new URL('stats.json', import.meta.url));
+    if (!response.ok) throw new Error(`stats.json: HTTP ${response.status}`);
+    const stats = await response.json();
+    state.stats = stats.units || {};
+    state.statsReference = stats.reference || null;
+  } catch {
+    $('status').textContent += ' Keine Spielwerte: stats.json fehlt (`just units-web` oder `just units-web-sync`).';
   }
 }
 
@@ -544,6 +566,11 @@ function renderList() {
   for (const [group, title] of GROUPS) {
     const members = shown.filter((e) => groupOf(e.category) === group);
     if (!members.length) continue;
+    if (state.sort !== 'default') {
+      // Highest rating first; entries without that rating keep their order at the end.
+      const rating = (e) => state.stats[e.id]?.ratings?.[state.sort] ?? -1;
+      members.sort((a, b) => rating(b) - rating(a));
+    }
     state.shown.push(...members.map((e) => e.id));
     sections.push(
       h('h3', { class: 'group' }, title, h('small', null, String(members.length))),
@@ -554,7 +581,9 @@ function renderList() {
       picture(e),
       h('span', { class: 'cat' }, categoryName(e), e.year_from != null ? h('em', null, years(e)) : null),
       h('span', { class: 'name' }, e.name_de),
-      h('span', { class: 'facts' }, cardFacts(e).map((fact) => h('i', null, fact)))))));
+      h('span', { class: 'facts' }, cardFacts(e).map((fact) => h('i', null, fact)),
+        state.sort !== 'default' && state.stats[e.id]?.ratings?.[state.sort] != null
+          ? h('i', { class: 'score' }, `${RATINGS.find(([key]) => key === state.sort)[1]} ${state.stats[e.id].ratings[state.sort]}`) : null)))));
   }
   $('list').replaceChildren(...(sections.length ? sections : [h('p', { class: 'empty' }, 'Keine Treffer.')]));
 }
@@ -777,9 +806,13 @@ function renderSheet() {
   row('Voraussetzung', ['requires'], (a) => a.join(', ') || '–');
   row('Produziert', ['produces'], (a) => a || '–');
 
-  const armor = armorDiagram(e, unsure);
+  const record = state.vehicles.get(e.id);
+  const card = state.stats[e.id];
+  const sheetCtx = { h, num, name: (id) => state.byId.get(id)?.name_de || id };
+  // With a database entry its armor table (every assembly and face) replaces the diagram.
+  const armor = record ? null : armorDiagram(e, unsure);
   const armorFields = ['front', 'side', 'rear'].flatMap((s) => [`armor_hull_${s}_mm`, `armor_turret_${s}_mm`]);
-  if (armor) {
+  if (armor || record) {
     armorFields.concat('armor_hull_front_deg').forEach((f) => used.add(f));
   } else {
     // No hull (towed guns): the gun shield and whatever else exists as plain rows.
@@ -815,6 +848,7 @@ function renderSheet() {
         e.tier && e.faction !== 'neutral' ? h('span', null, e.tier === 1 ? 'Kerneinheit' : 'Stufe 2') : null,
         h('span', { class: 'id' }, e.id)),
       e.year_from != null && e.year_to != null ? timeline(e) : null),
+    card?.ratings ? section('Kennzahlen im Spiel', ratingBars(sheetCtx, card)) : null,
     cost ? section(cost.builtIn && cost.builtIn !== '–' ? `Kosten im Spiel · ${cost.builtIn}` : 'Kosten im Spiel',
       h('div', { class: 'cost' },
         costTile('fuel', 'Treibstoff', cost.fuel), costTile('ammo', 'Munition', cost.ammo),
@@ -824,6 +858,8 @@ function renderSheet() {
       rows.length ? h('dl', null, rows) : null),
     armor ? section('Panzerung', armor) : null,
     (e.weapon || []).length ? section(unsure.has('weapon') ? 'Bewaffnung · unsicher' : 'Bewaffnung', weaponList(e)) : null,
+    record ? section('Technische Daten', ...techData(sheetCtx, e, record)) : null,
+    card ? section('Spielwerte', ...gameValues(sheetCtx, e, card, state.statsReference)) : null,
     e.note ? section('Anmerkung', h('p', { class: 'note' }, e.note)) : null,
     sources.length ? h('details', { class: 'sources' },
       h('summary', null, `Quellen (${sources.length})`),
@@ -880,6 +916,22 @@ async function start() {
   $('duel').addEventListener('reveal', renderDuel);
 
   $('search').addEventListener('input', (event) => { state.query = event.target.value; renderList(); });
+  $('sort').replaceChildren(
+    h('option', { value: 'default' }, 'Sortierung: Katalog'),
+    ...RATINGS.map(([key, label]) => h('option', { value: key }, `Sortierung: ${label}`)));
+  $('sort').value = state.sort;
+  $('sort').addEventListener('change', (event) => { state.sort = event.target.value; remember(); renderList(); });
+  // Impressum and Datenschutz: one dialog, opened from the footer and from the data sheet.
+  const legal = $('legal');
+  for (const link of document.querySelectorAll('[data-legal]')) {
+    link.addEventListener('click', (event) => {
+      event.preventDefault();
+      for (const part of legal.querySelectorAll('section')) part.hidden = part.id !== link.dataset.legal;
+      legal.showModal();
+      legal.scrollTop = 0;
+    });
+  }
+  legal.querySelector('[data-legal-close]').addEventListener('click', () => legal.close());
   $('spin').addEventListener('change', (event) => { viewer.controls.autoRotate = event.target.checked; });
   $('measure').addEventListener('change', () => viewer.setDimensions(dimensions(state.byId.get(state.selected))));
   $('variant').addEventListener('change', (event) => viewer.setVariant(Number(event.target.value), true));

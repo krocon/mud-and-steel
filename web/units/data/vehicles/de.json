@@ -1,0 +1,5692 @@
+[
+  {
+    "id": "de_aufkl38t",
+    "name": "Aufklarer auf Fgst 38(t)",
+    "type": "Recon Tank",
+    "family": "PzKpfw 35(t) and 38(t)",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge003aufk38t.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT"
+      ]
+    },
+    "general": {
+      "other_designations": "Aufklarer auf Fahrgestell Panzerkampfwagen 38(t) mit 2cm KwK38 oder 7.5cm KwK38 L/24",
+      "manufacturer": "BMM",
+      "production_quantity": 50,
+      "production_period": "Feb.-Mar. 1944",
+      "crew": 4,
+      "length_mm": 4510,
+      "width_mm": 2140,
+      "height_mm": 2170,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 9750,
+      "radio": "FuG12",
+      "text": {
+        "production_quantity": "50 converted"
+      }
+    },
+    "firepower": {
+      "main_gun": "2cm KwK38 L/55",
+      "main_gun_caliber_mm_x10": 200,
+      "main_gun_length_cal_x10": 550,
+      "traverse_deg": 360,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -40,
+      "elevation_max_deg_x10": 700,
+      "sight": "TZF3a",
+      "secondary": "1 x 7.92mm MG34 (coaxial)"
+    },
+    "mobility": {
+      "engine": "Praga EPA/2",
+      "engine_type": "Liquid, L6, 7.8 liters",
+      "displacement_cc": 7800,
+      "power_hp": 140,
+      "power_rpm": 2500,
+      "power_to_weight_hp_per_t_x10": 144,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "range_road_km": 210,
+      "speed_road_kmh_x10": 420
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 50, "deg": 75 },
+        "side": { "mm": 15, "deg": 90 },
+        "rear": { "mm": 15, "deg": 78 },
+        "top_bottom": { "mm": 8, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 50, "deg": 65 },
+        "side": { "mm": 15, "deg": 60 },
+        "rear": { "mm": 15, "deg": 90 },
+        "top_bottom": { "mm": 8, "deg": 0 }
+      },
+      "turret": {
+        "front": { "mm": 30, "deg": 50 },
+        "side": { "mm": 8, "deg": 50 },
+        "rear": { "mm": 8, "deg": 50 },
+        "top_bottom": { "text": "open" }
+      },
+      "mantlet": {
+        "front": { "mm": 30, "text": "30mm @round" }
+      }
+    }
+  },
+  {
+    "id": "de_elefant",
+    "name": "Ferdinand/Elefant",
+    "type": "Assault Gun",
+    "family": "Tiger",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge005elefant.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT",
+        "GT",
+        "TIA",
+        "BP1"
+      ]
+    },
+    "general": {
+      "designation": "Sturmgeschuetz mit 8.8cm PaK43/2 (Sd.Kfz. 184)",
+      "manufacturer": "Nibelungenwerke",
+      "production_quantity": 90,
+      "production_period": "Apr. 1943 - May 1943",
+      "crew": 6,
+      "length_mm": 8140,
+      "width_mm": 3380,
+      "height_mm": 2970,
+      "barrel_overhang_mm": 1340,
+      "mass_kg": 65000,
+      "radio": "FuG5"
+    },
+    "firepower": {
+      "main_gun": "88mm PaK 43/2 L/71",
+      "main_gun_caliber_mm_x10": 880,
+      "main_gun_length_cal_x10": 710,
+      "main_ammo": 50,
+      "traverse_deg": 28,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -80,
+      "elevation_max_deg_x10": 140,
+      "sight": "SflZF",
+      "secondary": "2 x 7.92 mm MG34 (bow, loose)*",
+      "secondary_ammo": 600
+    },
+    "mobility": {
+      "engine": "2 x Maybach HL120TRM",
+      "engine_type": "V12, 11.8 litres",
+      "displacement_cc": 11800,
+      "power_hp": 600,
+      "power_rpm": 3000,
+      "power_to_weight_hp_per_t_x10": 92,
+      "gearbox": "Continuous",
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 950,
+      "consumption_road_l_per_100km": 833,
+      "consumption_offroad_l_per_100km": 1056,
+      "range_road_km": 150,
+      "range_offroad_km": 90,
+      "speed_road_kmh_x10": 300,
+      "track_width_mm": 650,
+      "track_ground_contact_mm": 4190,
+      "ground_pressure_psi_x10": 176,
+      "ground_pressure_kpa_x10": 1213,
+      "ground_clearance_mm": 480,
+      "turning_radius_mm": 2150,
+      "gradient_deg": 22,
+      "vertical_obstacle_mm": 780,
+      "fording_mm": 1000,
+      "trench_crossing_mm": 2640,
+      "text": {
+        "power_hp": "2 x 300hp @3000rpm"
+      }
+    },
+    "armor": {
+      "hull_upper": {
+        "front": { "mm": 200, "deg": 78, "text": "100+100mm @78°" },
+        "side": { "mm": 80, "deg": 90 },
+        "rear": { "mm": 80, "deg": 50 },
+        "top_bottom": { "mm": 30, "deg": 0 }
+      },
+      "hull_lower": {
+        "front": { "mm": 200, "deg": 55, "text": "100+100mm @55°" },
+        "side": { "mm": 60, "deg": 90 },
+        "rear": { "mm": 80, "deg": 90 },
+        "top_bottom": { "mm_min": 20, "mm_max": 50, "deg": 0, "text": "20-50mm @0°" }
+      },
+      "superstructure": {
+        "front": { "mm": 200, "deg": 65 },
+        "side": { "mm": 80, "deg": 60 },
+        "rear": { "mm": 80, "deg": 70 },
+        "top_bottom": { "mm": 30, "deg": 4 }
+      },
+      "mantlet": {
+        "front": { "mm": 25, "text": "25mm @90° + 100mm @round" }
+      }
+    },
+    "notes": [
+      "*Rebuilt vehicles only"
+    ]
+  },
+  {
+    "id": "de_flakpz38t",
+    "name": "Flakpanzer 38(t)",
+    "type": "SP AA Gun",
+    "family": "PzKpfw 35(t) and 38(t)",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge006flkpz38t.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT"
+      ]
+    },
+    "general": {
+      "other_designations": "Flakpanzer 38(t) auf Selbstfahrlafette 38(t) Ausf. M (SdKfz 140)",
+      "manufacturer": "BMM",
+      "production_quantity": 140,
+      "production_period": "Nov. 1943-Feb. 1944",
+      "crew": 4,
+      "length_mm": 4610,
+      "width_mm": 2150,
+      "height_mm": 2250,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 9800,
+      "radio": "FuG5 or FuG2",
+      "text": {
+        "production_quantity": "140 + 1 converted"
+      }
+    },
+    "firepower": {
+      "main_gun": "2cm FlaK38 L/112.5",
+      "main_gun_caliber_mm_x10": 200,
+      "main_gun_length_cal_x10": 1125,
+      "main_ammo": 1040,
+      "traverse_deg": 360,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -50,
+      "elevation_max_deg_x10": 900,
+      "sight": "Flakvisier 38"
+    },
+    "mobility": {
+      "engine": "Praga AC",
+      "engine_type": "Liquid, L6, 7.8 liters",
+      "displacement_cc": 7800,
+      "power_hp": 140,
+      "power_rpm": 2500,
+      "power_to_weight_hp_per_t_x10": 143,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "range_road_km": 210,
+      "speed_road_kmh_x10": 420
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 15, "deg": 75 },
+        "side": { "mm": 15, "deg": 90 },
+        "rear": { "mm": 10, "deg": 49 },
+        "top_bottom": { "mm": 10, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 10, "deg": 23 },
+        "side": { "mm": 10, "deg": 65 },
+        "rear": { "mm": 10, "deg": 65 },
+        "top_bottom": { "mm": 8, "deg": 0 }
+      },
+      "gun_shield": {
+        "front": { "mm": 10, "deg": 73 },
+        "side": { "mm": 10, "deg": 65 },
+        "rear": { "mm": 10, "deg": 65 },
+        "top_bottom": { "text": "open" }
+      }
+    }
+  },
+  {
+    "id": "de_grille_h",
+    "name": "Grille",
+    "type": "SP Gun",
+    "family": "PzKpfw 35(t) and 38(t)",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge007grilleh.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT"
+      ]
+    },
+    "general": {
+      "other_designations": "15cm Schweres Infanteriegeshutz 33 (Sf) auf PzKpfw 38(t) Ausf. H, Grille (SdKfz 138/1)",
+      "manufacturer": "BMM",
+      "production_quantity": 90,
+      "production_period": "Feb.-Apr. 1943",
+      "crew": 5,
+      "length_mm": 4610,
+      "width_mm": 2160,
+      "height_mm": 2400,
+      "mass_kg": 11500,
+      "radio": "FuG16"
+    },
+    "firepower": {
+      "main_gun": "15cm sIG33/1 L/12",
+      "main_gun_caliber_mm_x10": 1500,
+      "main_gun_length_cal_x10": 120,
+      "main_ammo": 15,
+      "traverse_deg": 10,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -30,
+      "elevation_max_deg_x10": 720,
+      "sight": "Rblf36",
+      "secondary": "1 x 7.92mm MG34 (Loose)"
+    },
+    "mobility": {
+      "engine": "Praga EPA/2",
+      "engine_type": "Liquid, L6, 7.8 liters",
+      "displacement_cc": 7800,
+      "power_hp": 140,
+      "power_rpm": 2500,
+      "power_to_weight_hp_per_t_x10": 122,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "range_road_km": 185,
+      "speed_road_kmh_x10": 350
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 50, "deg": 75 },
+        "side": { "mm": 15, "deg": 90 },
+        "rear": { "mm": 15, "deg": 74 },
+        "top_bottom": { "mm": 8, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 25, "deg": 78 },
+        "side": { "mm": 15 },
+        "rear": { "mm": 15, "deg": 80 },
+        "top_bottom": { "text": "open" }
+      },
+      "mantlet": {
+        "front": { "mm": 15, "deg": 78 }
+      }
+    }
+  },
+  {
+    "id": "de_hummel",
+    "name": "Hummel",
+    "type": "SP Gun",
+    "family": "PzKpfw IV",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge009hummel.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT",
+        "P4V",
+        "BP14",
+        "GT"
+      ]
+    },
+    "general": {
+      "designation": "15cm Schwere Panzerhaubitze auf Fahrgestell Panzerkampfwagen III/IV (SdKfz 165), Hummel, Gerat 807",
+      "manufacturer": "Alkett, Deutsche-Eisenwerke",
+      "production_quantity": 100,
+      "production_period": "1943-1945",
+      "crew": 6,
+      "length_mm": 7170,
+      "width_mm": 2970,
+      "height_mm": 2810,
+      "mass_kg": 24000,
+      "radio": "FuG Spr f",
+      "text": {
+        "production_quantity": "100+"
+      }
+    },
+    "firepower": {
+      "main_gun": "150mm sFH18/1 L/30",
+      "main_gun_caliber_mm_x10": 1500,
+      "main_gun_length_cal_x10": 300,
+      "main_ammo": 18,
+      "traverse_deg": 30,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -30,
+      "elevation_max_deg_x10": 420,
+      "sight": "Rblf36",
+      "secondary": "1 x 7.92mm MG34 (loose)",
+      "secondary_ammo": 600
+    },
+    "mobility": {
+      "engine": "Maybach HL120TRM",
+      "engine_type": "V12, 11.9 liters",
+      "displacement_cc": 11900,
+      "power_hp": 300,
+      "power_rpm": 3000,
+      "power_to_weight_hp_per_t_x10": 125,
+      "gearbox": "6 forward, 1 reverse",
+      "gears_forward": 6,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 470,
+      "consumption_road_l_per_100km": 219,
+      "range_road_km": 215,
+      "range_offroad_km": 130,
+      "speed_road_kmh_x10": 420,
+      "speed_offroad_kmh_x10": 240,
+      "track_width_mm": 400,
+      "track_ground_contact_mm": 3800,
+      "track_links": 104,
+      "ground_pressure_psi_x10": 121,
+      "ground_pressure_kpa_x10": 834,
+      "ground_clearance_mm": 400,
+      "turning_radius_mm": 5920,
+      "gradient_deg": 30,
+      "vertical_obstacle_mm": 600,
+      "fording_mm": 1000,
+      "trench_crossing_mm": 2350,
+      "text": {
+        "power_to_weight_hp_per_t_x10": "12.5 hp/t0"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 30, "deg": 70 },
+        "side": { "mm": 20, "deg": 90 },
+        "rear": { "mm": 20, "deg": 80 },
+        "top_bottom": { "mm": 15, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 10, "deg": 63 },
+        "side": { "mm": 10, "deg": 74 },
+        "rear": { "mm": 10, "deg": 80 },
+        "top_bottom": { "text": "open" }
+      },
+      "gun_shield": {
+        "front": { "mm": 10, "deg": 63 }
+      }
+    }
+  },
+  {
+    "id": "de_jagdpanther",
+    "name": "Jagdpanther",
+    "type": "Tank Destroyer",
+    "family": "Panther",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge011jagdpanther.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT",
+        "PV",
+        "PIA",
+        "TD1",
+        "GT",
+        "PF",
+        "George R. Bradford"
+      ]
+    },
+    "general": {
+      "other_designations": "Panzerjager fur 8.8cm PaK 43 auf Fgst Panther I (SdKfz 173)",
+      "manufacturer": "MIAG, MNH",
+      "production_quantity": 392,
+      "production_period": "Jan. 1944 - Mar. 1945",
+      "crew": 5,
+      "length_mm": 9870,
+      "length_hull_mm": 6600,
+      "width_mm": 3270,
+      "width_skirts_mm": 3420,
+      "height_mm": 2720,
+      "barrel_overhang_mm": 3000,
+      "mass_kg": 45500,
+      "radio": "FuG5 + FuG2"
+    },
+    "firepower": {
+      "main_gun": "88mm PaK 43/3 L/71",
+      "main_gun_caliber_mm_x10": 880,
+      "main_gun_length_cal_x10": 710,
+      "main_ammo": 57,
+      "traverse_deg": 26,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -80,
+      "elevation_max_deg_x10": 140,
+      "sight": "SflZF5",
+      "secondary": "1 x 7.92mm MG34 (bow)",
+      "secondary_ammo": 600
+    },
+    "mobility": {
+      "engine": "Maybach HL230P30",
+      "engine_type": "V12, 23.1 liters",
+      "displacement_cc": 23100,
+      "power_hp": 700,
+      "power_rpm": 3000,
+      "power_to_weight_hp_per_t_x10": 154,
+      "gearbox": "7 forward, 1 reverse",
+      "gears_forward": 7,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 720,
+      "consumption_road_l_per_100km": 280,
+      "consumption_offroad_l_per_100km": 700,
+      "range_road_km": 250,
+      "range_offroad_km": 100,
+      "speed_road_kmh_x10": 550,
+      "speed_offroad_kmh_x10": 300,
+      "track_width_mm": 660,
+      "track_ground_contact_mm": 3920,
+      "track_links": 86,
+      "ground_pressure_psi_x10": 129,
+      "ground_pressure_kpa_x10": 889,
+      "ground_clearance_mm": 560,
+      "turning_radius_mm": 10000,
+      "gradient_deg": 30,
+      "vertical_obstacle_mm": 900,
+      "fording_mm": 1600,
+      "trench_crossing_mm": 2450
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 60, "deg": 35 },
+        "side": { "mm": 40, "deg": 90 },
+        "rear": { "mm": 40, "deg": 65 },
+        "top_bottom": { "mm_min": 16, "mm_max": 25, "deg": 0, "text": "16-25mm @00°" }
+      },
+      "superstructure": {
+        "front": { "mm": 80, "deg": 35 },
+        "side": { "mm": 50, "deg": 60 },
+        "rear": { "mm": 40, "deg": 55 },
+        "top_bottom": { "mm": 25, "deg": 7 }
+      },
+      "mantlet": {
+        "front": { "mm": 100, "text": "100mm @Saukopf" }
+      }
+    }
+  },
+  {
+    "id": "de_jagdtiger",
+    "name": "Jagdtiger",
+    "type": "Heavy Tank Destroyer",
+    "family": "Tiger",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge012jagdtiger.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT",
+        "GT",
+        "TIA"
+      ]
+    },
+    "general": {
+      "designation": "Jagdtiger (SdKfz 186), Jagdpanzer VI",
+      "manufacturer": "Nibelungenwerke",
+      "production_quantity": 77,
+      "production_period": "Jul. 1944 - Mar. 1945",
+      "crew": 6,
+      "length_mm": 10650,
+      "width_mm": 3630,
+      "height_mm": 2820,
+      "barrel_overhang_mm": 2860,
+      "mass_kg": 71700
+    },
+    "firepower": {
+      "main_gun": "128mm PaK 44 L/55",
+      "main_gun_caliber_mm_x10": 1280,
+      "main_gun_length_cal_x10": 550,
+      "main_ammo": 40,
+      "traverse_deg": 20,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -75,
+      "elevation_max_deg_x10": 150,
+      "sight": "WZF2/7",
+      "secondary": "2 x 7.92 mm MG34 (bow, loose)",
+      "secondary_ammo": 1500
+    },
+    "mobility": {
+      "engine": "Maybach HL230P30",
+      "engine_type": "V12, 23.9 liters",
+      "displacement_cc": 23900,
+      "power_hp": 700,
+      "power_rpm": 3000,
+      "power_to_weight_hp_per_t_x10": 98,
+      "gearbox": "8 forward, 4 reverse",
+      "gears_forward": 8,
+      "gears_reverse": 4,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 865,
+      "consumption_road_l_per_100km": 515,
+      "consumption_offroad_l_per_100km": 715,
+      "range_road_km": 170,
+      "range_offroad_km": 121,
+      "speed_road_kmh_x10": 380,
+      "speed_offroad_kmh_x10": 170,
+      "track_width_mm": 790,
+      "track_ground_contact_mm": 4240,
+      "ground_pressure_psi_x10": 152,
+      "ground_pressure_kpa_x10": 1048,
+      "ground_clearance_mm": 460,
+      "turning_radius_mm": 4800,
+      "gradient_deg": 35,
+      "vertical_obstacle_mm": 850,
+      "fording_mm": 1800,
+      "trench_crossing_mm": 2490
+    },
+    "armor": {
+      "hull_upper": {
+        "front": { "mm": 150, "deg": 40 },
+        "top_bottom": { "mm": 40, "deg": 0 }
+      },
+      "hull_lower": {
+        "front": { "mm": 100, "deg": 40 },
+        "side": { "mm": 80, "deg": 90 },
+        "rear": { "mm": 80, "deg": 60 },
+        "top_bottom": { "mm_min": 25, "mm_max": 40, "deg": 0, "text": "25-40mm @0°" }
+      },
+      "superstructure": {
+        "front": { "mm": 250, "deg": 75 },
+        "side": { "mm": 80, "deg": 65 },
+        "rear": { "mm": 80, "deg": 85 },
+        "top_bottom": { "mm": 40, "deg": 5 }
+      },
+      "mantlet": {
+        "front": { "mm": 100, "text": "100mm @Saukopf" }
+      }
+    }
+  },
+  {
+    "id": "de_jgdpz38t",
+    "name": "Hetzer",
+    "type": "Tank Destroyer",
+    "family": "PzKpfw 35(t) and 38(t)",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge008hetzer.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT",
+        "GT",
+        "P38IA",
+        "BP04"
+      ]
+    },
+    "general": {
+      "designation": "Jagdpanzer 38(t) Hetzer (Panzerjager 38(t)) fur 7.5cm PaK39",
+      "manufacturer": "BMM, Skoda",
+      "production_quantity": 2584,
+      "production_period": "Apr. 1944-May 1945",
+      "crew": 4,
+      "length_mm": 6270,
+      "length_hull_mm": 4870,
+      "width_mm": 2630,
+      "height_mm": 2170,
+      "barrel_overhang_mm": 1400,
+      "mass_kg": 15750,
+      "radio": "FuG5 and FuG Spr f"
+    },
+    "firepower": {
+      "main_gun": "75mm PaK39 L/48",
+      "main_gun_caliber_mm_x10": 750,
+      "main_gun_length_cal_x10": 480,
+      "main_ammo": 41,
+      "traverse_deg": 16,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -60,
+      "elevation_max_deg_x10": 120,
+      "sight": "SflZF1a",
+      "secondary": "1 x 7.92 MG34 or MG42 (roof mount)",
+      "secondary_ammo": 1200
+    },
+    "mobility": {
+      "engine": "Praga EPA AC/2",
+      "engine_type": "Liquid, L6, 7.8 liters",
+      "displacement_cc": 7800,
+      "power_hp": 158,
+      "power_rpm": 2600,
+      "power_to_weight_hp_per_t_x10": 100,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 386,
+      "consumption_road_l_per_100km": 217,
+      "consumption_offroad_l_per_100km": 398,
+      "range_road_km": 178,
+      "range_offroad_km": 97,
+      "speed_road_kmh_x10": 420,
+      "speed_offroad_kmh_x10": 160,
+      "track_width_mm": 350,
+      "track_ground_contact_mm": 2690,
+      "track_links": 96,
+      "ground_pressure_psi_x10": 114,
+      "ground_pressure_kpa_x10": 786,
+      "ground_clearance_mm": 410,
+      "turning_radius_mm": 4500,
+      "gradient_deg": 25,
+      "vertical_obstacle_mm": 650,
+      "fording_mm": 890,
+      "trench_crossing_mm": 1310,
+      "text": {
+        "gradient_deg": "25°-37°"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 60, "deg": 50 },
+        "side": { "mm": 20, "deg": 75 },
+        "rear": { "mm": 20, "deg": 75 },
+        "top_bottom": { "mm": 10, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 60, "deg": 30 },
+        "side": { "mm": 20, "deg": 50 },
+        "rear": { "mm": 8, "deg": 20 },
+        "top_bottom": { "mm": 8, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 60, "text": "60mm@Saukopf." }
+      }
+    }
+  },
+  {
+    "id": "de_jgdpz4",
+    "name": "Jagdpanzer IV",
+    "type": "Tank Destroyer",
+    "family": "PzKpfw IV",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge010jagdpanzer4.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "P4V",
+        "St3IA",
+        "EGT",
+        "MM????"
+      ]
+    },
+    "general": {
+      "designation": "Sturmgeschuetz neuer Art mit 7.5cm PaK L/48 auf Fahrgestell Panzerkampfwagen IV (SdKfz 162)",
+      "manufacturer": "Vomag",
+      "production_quantity": 769,
+      "production_period": "Jan. 1944 - Nov. 1944",
+      "crew": 4,
+      "length_mm": 6850,
+      "height_mm": 1850,
+      "mass_kg": 24000,
+      "radio": "FuG Spr f",
+      "text": {
+        "width_mm": "3.17/n.a."
+      }
+    },
+    "firepower": {
+      "main_gun": "75mm PaK 39 L/48",
+      "main_gun_caliber_mm_x10": 750,
+      "main_gun_length_cal_x10": 480,
+      "main_ammo": 79,
+      "traverse_deg": 20,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -50,
+      "elevation_max_deg_x10": 150,
+      "sight": "SflZf1a",
+      "secondary": "1 x 7.92mm MG42 (loose)",
+      "secondary_ammo": 600
+    },
+    "mobility": {
+      "engine": "Maybach HL120TRM",
+      "engine_type": "V12, 11.9 litres",
+      "displacement_cc": 11900,
+      "power_hp": 300,
+      "power_rpm": 3000,
+      "power_to_weight_hp_per_t_x10": 125,
+      "gearbox": "6 forward, 1 reverse",
+      "gears_forward": 6,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 470,
+      "consumption_road_l_per_100km": 224,
+      "consumption_offroad_l_per_100km": 362,
+      "range_road_km": 210,
+      "range_offroad_km": 130,
+      "speed_road_kmh_x10": 400,
+      "track_width_mm": 400,
+      "track_ground_contact_mm": 3520,
+      "track_links": 99,
+      "ground_pressure_psi_x10": 122,
+      "ground_pressure_kpa_x10": 841,
+      "ground_clearance_mm": 400,
+      "turning_radius_mm": 5920,
+      "gradient_deg": 30,
+      "vertical_obstacle_mm": 600,
+      "fording_mm": 1000,
+      "trench_crossing_mm": 2200
+    },
+    "armor": {
+      "hull_upper": {
+        "front": { "mm": 60, "deg": 45 },
+        "side": { "mm": 30, "deg": 90 },
+        "rear": { "mm": 20, "deg": 79 },
+        "top_bottom": { "mm": 10, "deg": 0 }
+      },
+      "hull_lower": {
+        "front": { "mm": 50, "deg": 35 },
+        "side": { "mm": 30, "deg": 90 },
+        "rear": { "mm": 20, "deg": 81 },
+        "top_bottom": { "mm": 10, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 60, "deg": 40 },
+        "side": { "mm": 30, "deg": 60 },
+        "rear": { "mm": 20, "deg": 55 },
+        "top_bottom": { "mm": 20, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 80, "text": "80mm @Saukopf" }
+      }
+    }
+  },
+  {
+    "id": "de_lefh18_39h",
+    "name": "leFH18(Sf) auf 39H(f)",
+    "type": "SP AT Gun",
+    "family": "10.5cm leFH auf 39H(f)",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge014fh1839h.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT"
+      ]
+    },
+    "general": {
+      "designation": "10.5cm leFH18(Sf) auf Geschutzwagen 39H(f)",
+      "production_quantity": 48,
+      "production_period": "1942",
+      "crew": 4,
+      "mass_kg": 12500,
+      "radio": "FuG Spr d",
+      "text": {
+        "production_quantity": "48 converted"
+      }
+    },
+    "firepower": {
+      "main_gun": "105mm leFH18 L/28",
+      "main_gun_caliber_mm_x10": 1050,
+      "main_gun_length_cal_x10": 280,
+      "traverse_deg": 60,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -50,
+      "elevation_max_deg_x10": 220,
+      "sight": "Rblf36",
+      "secondary": "1 x 7.92mm MG34 (loose)"
+    },
+    "mobility": {
+      "engine": "Hotchkiss",
+      "engine_type": "6cyl., 6.0 liters",
+      "displacement_cc": 6000,
+      "power_hp": 120,
+      "power_rpm": 2800,
+      "power_to_weight_hp_per_t_x10": 96,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "range_road_km": 150,
+      "speed_road_kmh_x10": 360
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm_min": 29, "mm_max": 34, "deg": 60, "text": "29-34mm @60°" },
+        "side": { "mm": 34, "deg": 90 },
+        "rear": { "mm": 22, "deg": 60 },
+        "top_bottom": { "mm": 12, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 20, "deg": 60 },
+        "side": { "mm": 20, "deg": 50 },
+        "rear": { "mm": 10, "deg": 70 }
+      },
+      "gun_shield": {
+        "front": { "mm": 20, "deg": 60 },
+        "side": { "mm": 20, "deg": 80 },
+        "rear": { "mm": 10, "deg": 65 },
+        "top_bottom": { "text": "open" }
+      }
+    }
+  },
+  {
+    "id": "de_marder1",
+    "name": "PaK40/1 auf LS(f)",
+    "type": "SP AT Gun",
+    "family": "7.5cm PaK40 auf GWL(f)",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge021pak40lorraine.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT",
+        "GT",
+        "ET"
+      ]
+    },
+    "general": {
+      "designation": "7.5cm PaK40/1 auf Geschutzenwagen Lorraine Schlepper (f) (SdKfz 135)",
+      "manufacturer": "Alfred Becker",
+      "production_quantity": 170,
+      "production_period": "Jul.-Aug.1942",
+      "crew": 5,
+      "length_mm": 5180,
+      "width_mm": 1880,
+      "height_mm": 2130,
+      "mass_kg": 8000,
+      "radio": "FuG5"
+    },
+    "firepower": {
+      "main_gun": "75mm PaK40/1 L/46",
+      "main_gun_caliber_mm_x10": 750,
+      "main_gun_length_cal_x10": 460,
+      "traverse_deg": 64,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -50,
+      "elevation_max_deg_x10": 220,
+      "sight": "ZF3x8",
+      "secondary": "1 x 7.92mm MG34 (loose)"
+    },
+    "mobility": {
+      "engine": "DelaHaye 103TT",
+      "engine_type": "L6, 3.6 liters",
+      "displacement_cc": 3600,
+      "power_hp": 70,
+      "power_rpm": 2800,
+      "power_to_weight_hp_per_t_x10": 88,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 111,
+      "consumption_road_l_per_100km": 82,
+      "range_road_km": 135,
+      "range_offroad_km": 88,
+      "speed_road_kmh_x10": 340,
+      "speed_offroad_kmh_x10": 130,
+      "track_width_mm": 240,
+      "track_ground_contact_mm": 2740,
+      "ground_pressure_psi_x10": 87,
+      "ground_pressure_kpa_x10": 600,
+      "ground_clearance_mm": 180,
+      "gradient_deg": 24,
+      "vertical_obstacle_mm": 560,
+      "fording_mm": 850,
+      "trench_crossing_mm": 1800
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 12, "text": "12mm @round" },
+        "side": { "mm": 9, "deg": 90 },
+        "rear": { "mm": 9, "deg": 54 },
+        "top_bottom": { "mm": 5, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 9, "deg": 55 },
+        "side": { "mm": 9, "deg": 45 },
+        "rear": { "mm": 9, "deg": 55 },
+        "top_bottom": { "mm": 5, "deg": 0 }
+      },
+      "gun_shield": {
+        "front": { "mm": 10, "deg": 57 },
+        "side": { "mm": 9, "deg": 70 },
+        "rear": { "mm": 7, "deg": 72 },
+        "top_bottom": { "text": "open" }
+      }
+    }
+  },
+  {
+    "id": "de_marder2",
+    "name": "Marder II",
+    "type": "Tank Destroyer",
+    "family": "PzKpfw II",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge015marder2.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT",
+        "GT",
+        "George R. Bradford"
+      ]
+    },
+    "general": {
+      "designation": "7.5cm PaK40/2 auf Fahrgestell Panzerkampfwagen II (Sf) (SdKfz 131)",
+      "manufacturer": "FAMO, MAN, Daimler-Benz",
+      "production_quantity": 576,
+      "production_period": "July 1943-Mar. 1944",
+      "crew": 3,
+      "length_mm": 6360,
+      "width_mm": 2280,
+      "height_mm": 2200,
+      "mass_kg": 10800,
+      "radio": "FuG Spr d",
+      "text": {
+        "production_quantity": "576+75 converted from PzKpfw II"
+      }
+    },
+    "firepower": {
+      "main_gun": "75mm PaK40/2 L/48",
+      "main_gun_caliber_mm_x10": 750,
+      "main_gun_length_cal_x10": 480,
+      "main_ammo": 37,
+      "traverse_deg": 57,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -80,
+      "elevation_max_deg_x10": 100,
+      "secondary": "1 x 7.92 MG34 (loose)",
+      "secondary_ammo": 600
+    },
+    "mobility": {
+      "engine": "Maybach HL62TRM",
+      "engine_type": "L6, 6.2 liters",
+      "displacement_cc": 6200,
+      "power_hp": 140,
+      "power_rpm": 2600,
+      "power_to_weight_hp_per_t_x10": 129,
+      "gearbox": "6 forward, 1 reverse",
+      "gears_forward": 6,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 205,
+      "consumption_road_l_per_100km": 109,
+      "consumption_offroad_l_per_100km": 188,
+      "range_road_km": 190,
+      "range_offroad_km": 126,
+      "speed_road_kmh_x10": 400,
+      "speed_offroad_kmh_x10": 190,
+      "track_width_mm": 300,
+      "track_ground_contact_mm": 2400,
+      "track_links": 106,
+      "ground_pressure_psi_x10": 106,
+      "ground_pressure_kpa_x10": 731,
+      "ground_clearance_mm": 340,
+      "gradient_deg": 30,
+      "vertical_obstacle_mm": 420,
+      "fording_mm": 910
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 35, "deg": 77 },
+        "side": { "mm": 15, "deg": 90 },
+        "rear": { "mm": 15, "deg": 83 },
+        "top_bottom": { "mm": 5, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 30, "deg": 80 },
+        "side": { "mm": 10, "deg": 82 },
+        "rear": { "mm": 10, "deg": 90 },
+        "top_bottom": { "mm": 10, "text": "10mm @0° & open" }
+      },
+      "mantlet": {
+        "front": { "mm": 8, "deg": 60, "text": "4+4mm @60°" }
+      }
+    }
+  },
+  {
+    "id": "de_marder3_139",
+    "name": "Marder III",
+    "type": "SP AT Gun",
+    "family": "PzKpfw 35(t) and 38(t)",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge016marder3.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT",
+        "BP10"
+      ]
+    },
+    "general": {
+      "designation": "Panzerjager 38(t) fur 7.62cm PaK36(r) (SdKfz 139), Marder III",
+      "manufacturer": "BMM",
+      "production_quantity": 344,
+      "production_period": "Apr.-Oct. 1942",
+      "crew": 4,
+      "length_mm": 5850,
+      "width_mm": 2160,
+      "height_mm": 2500,
+      "mass_kg": 10700,
+      "radio": "FuG Spr d",
+      "text": {
+        "production_quantity": "344 + 19 converted*"
+      }
+    },
+    "firepower": {
+      "main_gun": "76.2mm PaK36(r)",
+      "main_gun_caliber_mm_x10": 762,
+      "main_ammo": 30,
+      "traverse_deg": 42,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -140,
+      "elevation_max_deg_x10": 250,
+      "sight": "ZF3x8",
+      "secondary": "1 x 7.92mm MG37(t) (bow)",
+      "secondary_ammo": 1200
+    },
+    "mobility": {
+      "engine": "Praga EPA or EPA/2",
+      "engine_type": "Liquid, L6, 7.8 liters",
+      "displacement_cc": 7800,
+      "power_hp": 125,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 218,
+      "consumption_road_l_per_100km": 118,
+      "range_road_km": 185,
+      "range_offroad_km": 140,
+      "speed_road_kmh_x10": 420,
+      "speed_offroad_kmh_x10": 150,
+      "track_links": 93,
+      "ground_pressure_psi_x10": 98,
+      "ground_pressure_kpa_x10": 676,
+      "ground_clearance_mm": 400,
+      "gradient_deg": 30,
+      "vertical_obstacle_mm": 850,
+      "fording_mm": 900,
+      "trench_crossing_mm": 1900,
+      "text": {
+        "power_hp": "125hp @2200rpm or 140hp @2500rpm",
+        "power_to_weight_hp_per_t_x10": "11.7 or 13.1 hp/t",
+        "track_width_mm": "29.3",
+        "track_ground_contact_mm": "2.92"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 50, "deg": 74 },
+        "side": { "mm": 15, "deg": 90 },
+        "rear": { "mm": 15, "deg": 74 },
+        "top_bottom": { "mm": 18, "deg": 0, "text": "10+8mm @0°" }
+      },
+      "superstructure": {
+        "front": { "mm": 50, "deg": 73 },
+        "side": { "mm": 16, "text": "16mm @79°&76°" },
+        "rear": { "mm": 10, "deg": 65 },
+        "top_bottom": { "mm": 10, "deg": 0 }
+      },
+      "gun_shield": {
+        "front": { "mm": 11, "deg": 59 },
+        "side": { "mm": 11, "deg": 78 },
+        "rear": { "text": "open" },
+        "top_bottom": { "text": "open" }
+      }
+    },
+    "notes": [
+      "*Conversion of Pz.Kpfw. 38(t) in 1943"
+    ]
+  },
+  {
+    "id": "de_marder3_m",
+    "name": "Marder III",
+    "type": "Tank Destroyer",
+    "family": "PzKpfw 35(t) and 38(t)",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge017marder3m.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT",
+        "GT",
+        "AFVG",
+        "George R. Bradford"
+      ]
+    },
+    "general": {
+      "designation": "Panzerjager 38(t) mit 7.5cm PaK 40/3 Ausf. M (SdKfz 138), Marder III",
+      "manufacturer": "BMM",
+      "production_quantity": 975,
+      "production_period": "Apr. 1943 - May 1944",
+      "crew": 4,
+      "length_mm": 4950,
+      "width_mm": 2150,
+      "height_mm": 2480,
+      "mass_kg": 10500,
+      "radio": "FuG Spr d"
+    },
+    "firepower": {
+      "main_gun": "75mm PaK 40/3 L/46",
+      "main_gun_caliber_mm_x10": 750,
+      "main_gun_length_cal_x10": 460,
+      "main_ammo": 27,
+      "traverse_deg": 42,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -50,
+      "elevation_max_deg_x10": 130,
+      "sight": "ZF3x8",
+      "secondary": "1 x 7.92mm MG34 (loose)"
+    },
+    "mobility": {
+      "engine": "Praga AC",
+      "engine_type": "Liquid, L6, 7.8 liters",
+      "displacement_cc": 7800,
+      "power_hp": 150,
+      "power_rpm": 2600,
+      "power_to_weight_hp_per_t_x10": 142,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 218,
+      "consumption_road_l_per_100km": 114,
+      "range_road_km": 190,
+      "speed_road_kmh_x10": 420,
+      "ground_pressure_psi_x10": 86,
+      "ground_pressure_kpa_x10": 593,
+      "ground_clearance_mm": 400,
+      "vertical_obstacle_mm": 840,
+      "fording_mm": 900,
+      "trench_crossing_mm": 2080
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 15, "deg": 75 },
+        "side": { "mm": 15, "deg": 90 },
+        "rear": { "mm": 10, "deg": 59 },
+        "top_bottom": { "mm": 10, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 10, "deg": 60 },
+        "side": { "mm": 10, "deg": 75 },
+        "rear": { "mm": 10, "deg": 90 },
+        "top_bottom": { "mm": 8, "deg": 0 }
+      },
+      "gun_shield": {
+        "front": { "mm": 6, "deg": 62 },
+        "side": { "mm": 10, "deg": 74 },
+        "rear": { "mm": 10, "deg": 73 },
+        "top_bottom": { "text": "open" }
+      }
+    }
+  },
+  {
+    "id": "de_nashorn",
+    "name": "Nashorn",
+    "type": "Tank Destroyer",
+    "family": "PzKpfw IV",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge019nashorn.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT",
+        "GT",
+        "P4V"
+      ]
+    },
+    "general": {
+      "designation": "8.8cm PaK43/1 (L/71) auf Fahrgestell Panzerkampfwagen III/IV (Sf), also Nashorn or Hornisse (SdKfz 164)",
+      "manufacturer": "Deutsche-Eisenwerke",
+      "production_quantity": 494,
+      "production_period": "Feb. 1943 - Mar. 1945",
+      "crew": 4,
+      "length_mm": 8440,
+      "width_mm": 2860,
+      "height_mm": 2650,
+      "barrel_overhang_mm": 2640,
+      "mass_kg": 24000,
+      "radio": "FuG Spr f"
+    },
+    "firepower": {
+      "main_gun": "88mm PaK43/1 L/71",
+      "main_gun_caliber_mm_x10": 880,
+      "main_gun_length_cal_x10": 710,
+      "main_ammo": 40,
+      "traverse_deg": 30,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -50,
+      "elevation_max_deg_x10": 200,
+      "sight": "SflZF1a, Rblf36",
+      "secondary": "1 x 7.92mm MG34 (loose)",
+      "secondary_ammo": 600
+    },
+    "mobility": {
+      "engine": "Maybach HL120TRM",
+      "engine_type": "V12, 11.9 liters",
+      "displacement_cc": 11900,
+      "power_hp": 300,
+      "power_rpm": 3000,
+      "power_to_weight_hp_per_t_x10": 125,
+      "gearbox": "6 forward, 1 reverse",
+      "gears_forward": 6,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 470,
+      "consumption_road_l_per_100km": 260,
+      "consumption_offroad_l_per_100km": 130,
+      "range_road_km": 200,
+      "range_offroad_km": 130,
+      "speed_road_kmh_x10": 400,
+      "speed_offroad_kmh_x10": 240,
+      "track_width_mm": 400,
+      "track_ground_contact_mm": 3800,
+      "track_links": 104,
+      "ground_pressure_psi_x10": 121,
+      "ground_pressure_kpa_x10": 834,
+      "ground_clearance_mm": 400,
+      "turning_radius_mm": 5920,
+      "gradient_deg": 30,
+      "vertical_obstacle_mm": 600,
+      "fording_mm": 1000,
+      "trench_crossing_mm": 2300
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 30, "deg": 70 },
+        "side": { "mm": 20, "deg": 74 },
+        "rear": { "mm": 20, "deg": 80 },
+        "top_bottom": { "mm": 15, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 10, "deg": 53 },
+        "side": { "mm": 10, "deg": 74 },
+        "rear": { "mm": 10, "deg": 80 },
+        "top_bottom": { "text": "open" }
+      },
+      "mantlet": {
+        "front": { "mm": 10, "deg": 53 }
+      }
+    }
+  },
+  {
+    "id": "de_pak40_39h",
+    "name": "PaK40 auf 39H(f)",
+    "type": "SP AT Gun",
+    "family": "7.5cm PaK40 auf 39H(f)",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge022pak4039h.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT"
+      ]
+    },
+    "general": {
+      "designation": "7.5cm PaK40(Sf) auf Geschutzwagen 39H(f)",
+      "production_quantity": 24,
+      "production_period": "1942",
+      "crew": 4,
+      "mass_kg": 12500,
+      "radio": "FuG Spr d",
+      "text": {
+        "production_quantity": "24 converted"
+      }
+    },
+    "firepower": {
+      "main_gun": "75mm PaK40 L/46",
+      "main_gun_caliber_mm_x10": 750,
+      "main_gun_length_cal_x10": 460,
+      "traverse_deg": 60,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -50,
+      "elevation_max_deg_x10": 220,
+      "sight": "ZF3x8",
+      "secondary": "1 x 7.92mm MG34 (loose)"
+    },
+    "mobility": {
+      "engine": "Hotchkiss",
+      "engine_type": "6cyl., 6.0 liters",
+      "displacement_cc": 6000,
+      "power_hp": 120,
+      "power_rpm": 2800,
+      "power_to_weight_hp_per_t_x10": 96,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "range_road_km": 150,
+      "speed_road_kmh_x10": 360
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm_min": 29, "mm_max": 34, "deg": 60, "text": "29-34mm @60°" },
+        "side": { "mm": 34, "deg": 90 },
+        "rear": { "mm": 22, "deg": 60 },
+        "top_bottom": { "mm": 12, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 20, "deg": 60 },
+        "side": { "mm": 20, "deg": 50 },
+        "rear": { "mm": 10, "deg": 70 }
+      },
+      "gun_shield": {
+        "front": { "mm": 20, "deg": 60 },
+        "side": { "mm": 20, "deg": 80 },
+        "rear": { "mm": 10, "deg": 65 },
+        "top_bottom": { "text": "open" }
+      }
+    }
+  },
+  {
+    "id": "de_pak47_35r",
+    "name": "4.7cm PaK(t) auf 35R(f)",
+    "type": "SP/AT Gun",
+    "family": "4.7cm (t) auf 35R(f)",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge001pak47t35r.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT"
+      ]
+    },
+    "general": {
+      "designation": "4.7cm PaK(t) auf Panzerkampfwagen 35R(f) ohne Turm",
+      "manufacturer": "Alkett",
+      "production_quantity": 174,
+      "production_period": "May-Oct.1941",
+      "crew": 3,
+      "length_mm": 4300,
+      "width_mm": 1870,
+      "height_mm": 2110,
+      "mass_kg": 10500,
+      "radio": "FuG Spr d",
+      "text": {
+        "production_quantity": "174 converted"
+      }
+    },
+    "firepower": {
+      "main_gun": "47mm PaK(t) L/43.4",
+      "main_gun_caliber_mm_x10": 470,
+      "main_gun_length_cal_x10": 434,
+      "traverse_deg": 34,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -80,
+      "elevation_max_deg_x10": 120,
+      "sight": "ZF2x30"
+    },
+    "mobility": {
+      "engine": "Renault",
+      "engine_type": "4cyl., 5.8 liters",
+      "displacement_cc": 5800,
+      "power_hp": 80,
+      "power_rpm": 2200,
+      "power_to_weight_hp_per_t_x10": 76,
+      "gearbox": "4 forward, 1 reverse",
+      "gears_forward": 4,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "range_road_km": 140,
+      "speed_road_kmh_x10": 190
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 32, "text": "32mm @round" },
+        "side": { "mm": 40, "deg": 90 },
+        "rear": { "mm": 40, "deg": 55 },
+        "top_bottom": { "mm": 14, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 32, "deg": 75 },
+        "side": { "mm": 40, "deg": 80 },
+        "rear": { "mm": 40, "deg": 79 },
+        "top_bottom": { "mm": 15, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 20, "deg": 60 }
+      },
+      "gun_shield": {
+        "front": { "mm": 20, "deg": 60 },
+        "side": { "mm": 10, "deg": 80 },
+        "rear": { "mm": 10, "deg": 90 },
+        "top_bottom": { "text": "open" }
+      }
+    }
+  },
+  {
+    "id": "de_panther_a",
+    "name": "Panther Ausf. A",
+    "type": "Medium/Heavy Tank",
+    "family": "Panther",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge023panthera.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "PIA",
+        "PV",
+        "EGT",
+        "GT",
+        "PF"
+      ]
+    },
+    "general": {
+      "other_designations": "Panzerkampfwagen V Ausf. A, Panther, SdKfz 171",
+      "manufacturer": "MAN, Daimler Benz, Demag, MNH",
+      "production_quantity": 2000,
+      "production_period": "Aug. 1943 - May 1944",
+      "crew": 5,
+      "length_mm": 8660,
+      "length_hull_mm": 6600,
+      "width_mm": 3270,
+      "width_skirts_mm": 3420,
+      "height_mm": 3000,
+      "barrel_overhang_mm": 1790,
+      "mass_kg": 44800,
+      "radio": "FuG5"
+    },
+    "firepower": {
+      "main_gun": "75mm KwK 42 L/70",
+      "main_gun_caliber_mm_x10": 750,
+      "main_gun_length_cal_x10": 700,
+      "main_ammo": 82,
+      "traverse_deg": 360,
+      "traverse_drive": "hydraulic",
+      "elevation_min_deg_x10": -80,
+      "elevation_max_deg_x10": 180,
+      "traverse_time_360_s": 60,
+      "sight": "TZF12/TZF12a",
+      "secondary": "2 x 7.92mm MG34 (coaxial, bow)",
+      "text": {
+        "secondary_ammo": "4200-5100"
+      }
+    },
+    "mobility": {
+      "engine": "Maybach HL230P30",
+      "engine_type": "V12, 23.1 liters",
+      "displacement_cc": 23100,
+      "power_hp": 700,
+      "power_rpm": 3000,
+      "power_to_weight_hp_per_t_x10": 155,
+      "gearbox": "7 forward, 1 reverse",
+      "gears_forward": 7,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 720,
+      "consumption_road_l_per_100km": 280,
+      "consumption_offroad_l_per_100km": 700,
+      "range_road_km": 250,
+      "range_offroad_km": 100,
+      "track_width_mm": 660,
+      "track_ground_contact_mm": 3920,
+      "track_links": 86,
+      "ground_pressure_psi_x10": 128,
+      "ground_pressure_kpa_x10": 883,
+      "ground_clearance_mm": 560,
+      "turning_radius_mm": 10000,
+      "gradient_deg": 30,
+      "vertical_obstacle_mm": 900,
+      "fording_mm": 1900,
+      "trench_crossing_mm": 2450,
+      "text": {
+        "speed_road_kmh_x10": "46-55/30 km/h"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 60, "deg": 35 },
+        "side": { "mm": 40, "deg": 90 },
+        "rear": { "mm": 40, "deg": 60 },
+        "top_bottom": { "mm_min": 16, "mm_max": 30, "deg": 0, "text": "16-30mm @0°" }
+      },
+      "superstructure": {
+        "front": { "mm": 80, "deg": 35 },
+        "side": { "mm": 40, "deg": 50 },
+        "top_bottom": { "mm": 16, "deg": 0 }
+      },
+      "turret": {
+        "front": { "mm": 110, "deg": 79 },
+        "side": { "mm": 45, "deg": 65 },
+        "rear": { "mm": 45, "deg": 65 },
+        "top_bottom": { "mm": 16, "text": "16mm @0-6°" }
+      },
+      "mantlet": {
+        "front": { "mm": 100, "text": "100mm @round" }
+      }
+    }
+  },
+  {
+    "id": "de_panther_d",
+    "name": "Panther Ausf. D",
+    "type": "Medium/Heavy Tank",
+    "family": "Panther",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge024pantherd.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "PIA",
+        "PV",
+        "EGT",
+        "GT",
+        "PF"
+      ]
+    },
+    "general": {
+      "other_designations": "Panzerkampfwagen V Ausf. D, Panther (Sd. Kfz. 171)",
+      "manufacturer": "MAN, Daimler-Benz, MNH, Henschel",
+      "production_quantity": 850,
+      "production_period": "Jan. 1943 - Sept. 1943",
+      "crew": 5,
+      "length_mm": 8660,
+      "length_hull_mm": 6870,
+      "width_mm": 3270,
+      "width_skirts_mm": 3420,
+      "height_mm": 2850,
+      "barrel_overhang_mm": 1790,
+      "mass_kg": 44800,
+      "radio": "FuG5"
+    },
+    "firepower": {
+      "main_gun": "75mm KwK 42 L/70",
+      "main_gun_caliber_mm_x10": 750,
+      "main_gun_length_cal_x10": 700,
+      "main_ammo": 79,
+      "traverse_deg": 360,
+      "traverse_drive": "hydraulic",
+      "elevation_min_deg_x10": -80,
+      "elevation_max_deg_x10": 180,
+      "traverse_time_360_s": 60,
+      "sight": "TZF12",
+      "secondary": "2 x 7.92mm MG34 (coaxial, bow)",
+      "text": {
+        "secondary_ammo": "4200-5100"
+      }
+    },
+    "mobility": {
+      "engine": "Maybach HL230P30",
+      "engine_type": "V12, 23.1 liters",
+      "displacement_cc": 23100,
+      "power_hp": 700,
+      "power_rpm": 3000,
+      "power_to_weight_hp_per_t_x10": 155,
+      "gearbox": "7 forward, 1 reverse",
+      "gears_forward": 7,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 720,
+      "consumption_road_l_per_100km": 280,
+      "consumption_offroad_l_per_100km": 700,
+      "range_road_km": 250,
+      "range_offroad_km": 100,
+      "track_width_mm": 660,
+      "track_ground_contact_mm": 3920,
+      "track_links": 86,
+      "ground_pressure_psi_x10": 128,
+      "ground_pressure_kpa_x10": 883,
+      "ground_clearance_mm": 560,
+      "turning_radius_mm": 10000,
+      "gradient_deg": 30,
+      "vertical_obstacle_mm": 900,
+      "fording_mm": 1900,
+      "trench_crossing_mm": 2450,
+      "text": {
+        "speed_road_kmh_x10": "46-55/30 km/h"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 60, "deg": 35 },
+        "side": { "mm": 40, "deg": 90 },
+        "rear": { "mm": 40, "deg": 60 },
+        "top_bottom": { "mm_min": 16, "mm_max": 30, "deg": 0, "text": "16-30mm @0°" }
+      },
+      "superstructure": {
+        "front": { "mm": 80, "deg": 35 },
+        "side": { "mm": 40, "deg": 50 },
+        "top_bottom": { "mm": 16, "deg": 0 }
+      },
+      "turret": {
+        "front": { "mm": 100, "deg": 80 },
+        "side": { "mm": 45, "deg": 65 },
+        "rear": { "mm": 45, "deg": 65 },
+        "top_bottom": { "mm": 16, "text": "16mm @0-7°" }
+      },
+      "mantlet": {
+        "front": { "mm": 100, "text": "100mm @round" }
+      }
+    }
+  },
+  {
+    "id": "de_panther_g",
+    "name": "Panther Ausf. G",
+    "type": "Medium/Heavy Tank",
+    "family": "Panther",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge026pantherg.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT",
+        "PV",
+        "PIA",
+        "TD1",
+        "GT",
+        "PF"
+      ]
+    },
+    "general": {
+      "other_designations": "Panzerkampfwagen V Ausf. G, Panther (SdKfz 171)",
+      "manufacturer": "MAN, Daimler-Benz, MNH",
+      "production_quantity": 3126,
+      "production_period": "Mar. 1944 - Apr. 1945",
+      "crew": 5,
+      "length_mm": 8660,
+      "length_hull_mm": 6600,
+      "width_mm": 3270,
+      "width_skirts_mm": 3420,
+      "height_mm": 2850,
+      "barrel_overhang_mm": 1790,
+      "mass_kg": 45500,
+      "radio": "FuG5"
+    },
+    "firepower": {
+      "main_gun": "75mm KwK 42 L/70",
+      "main_gun_caliber_mm_x10": 750,
+      "main_gun_length_cal_x10": 700,
+      "main_ammo": 79,
+      "traverse_deg": 360,
+      "traverse_drive": "hydraulic",
+      "elevation_min_deg_x10": -80,
+      "elevation_max_deg_x10": 180,
+      "traverse_time_360_s": 60,
+      "sight": "TZF12a",
+      "secondary": "2 x 7.92 mm MG34 (coaxial, bow)",
+      "text": {
+        "secondary_ammo": "4200-4800"
+      }
+    },
+    "mobility": {
+      "engine": "Maybach HL230P30",
+      "engine_type": "V12, 23.1 liters",
+      "displacement_cc": 23100,
+      "power_hp": 700,
+      "power_rpm": 3000,
+      "power_to_weight_hp_per_t_x10": 154,
+      "gearbox": "7 forward, 1 reverse",
+      "gears_forward": 7,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 720,
+      "consumption_road_l_per_100km": 280,
+      "consumption_offroad_l_per_100km": 700,
+      "range_road_km": 250,
+      "range_offroad_km": 100,
+      "track_width_mm": 660,
+      "track_ground_contact_mm": 3920,
+      "track_links": 86,
+      "ground_pressure_psi_x10": 128,
+      "ground_pressure_kpa_x10": 883,
+      "ground_clearance_mm": 560,
+      "turning_radius_mm": 10000,
+      "gradient_deg": 30,
+      "vertical_obstacle_mm": 900,
+      "fording_mm": 1900,
+      "trench_crossing_mm": 2450,
+      "text": {
+        "speed_road_kmh_x10": "46-55/30 km/h"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 60, "deg": 35 },
+        "side": { "mm": 40, "deg": 90 },
+        "rear": { "mm": 40, "deg": 60 },
+        "top_bottom": { "mm_min": 16, "mm_max": 30, "deg": 0, "text": "16-30mm @0°" }
+      },
+      "superstructure": {
+        "front": { "mm": 80, "deg": 35 },
+        "side": { "mm": 50, "deg": 60 },
+        "top_bottom": { "deg": 0, "text": "40&16mm @0°" }
+      },
+      "turret": {
+        "front": { "mm": 110, "deg": 79 },
+        "side": { "mm": 45, "deg": 65 },
+        "rear": { "mm": 45, "deg": 65 },
+        "top_bottom": { "mm": 16, "text": "16mm @0-6°" }
+      },
+      "mantlet": {
+        "front": { "mm": 100, "text": "100mm @round" }
+      }
+    }
+  },
+  {
+    "id": "de_pz1_a",
+    "name": "PzKpfw I Ausf. A",
+    "type": "Light Tank",
+    "family": "PzKpfw I",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge027pz1a.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT",
+        "GT",
+        "Pztrp"
+      ]
+    },
+    "general": {
+      "designation": "Panzerkampfwagen I Ausf. A (Sd.Kfz 101)",
+      "manufacturer": "Krupp, Henschel, MAN, Krupp-Gruson, Daimler-Benz",
+      "production_quantity": 818,
+      "production_period": "Jul. 1934-Jun. 1936",
+      "crew": 2,
+      "length_mm": 4020,
+      "width_mm": 2060,
+      "height_mm": 1720,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 5400,
+      "radio": "FuG2"
+    },
+    "firepower": {
+      "main_gun": "2 x 7.92 MG34",
+      "main_ammo": 2250,
+      "traverse_deg": 360,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -120,
+      "elevation_max_deg_x10": 180
+    },
+    "mobility": {
+      "engine": "Krupp M305",
+      "engine_type": "Air, H4, 3.5 liters",
+      "displacement_cc": 3500,
+      "power_hp": 57,
+      "power_rpm": 2500,
+      "power_to_weight_hp_per_t_x10": 106,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 145,
+      "consumption_road_l_per_100km": 100,
+      "consumption_offroad_l_per_100km": 149,
+      "range_road_km": 145,
+      "range_offroad_km": 97,
+      "speed_road_kmh_x10": 370,
+      "track_width_mm": 280,
+      "track_ground_contact_mm": 2470,
+      "track_links": 84,
+      "ground_pressure_psi_x10": 57,
+      "ground_pressure_kpa_x10": 393,
+      "ground_clearance_mm": 290,
+      "turning_radius_mm": 2100,
+      "gradient_deg": 30,
+      "vertical_obstacle_mm": 360,
+      "fording_mm": 580,
+      "trench_crossing_mm": 1400
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 13, "deg": 63 },
+        "side": { "mm": 13, "deg": 90 },
+        "rear": { "mm": 13, "deg": 75 },
+        "top_bottom": { "mm": 6, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 13, "deg": 68 },
+        "side": { "mm": 13, "deg": 68 },
+        "rear": { "mm": 13, "deg": 73 },
+        "top_bottom": { "mm": 6, "text": "6mm @0-8°" }
+      },
+      "turret": {
+        "front": { "mm": 13, "deg": 80 },
+        "side": { "mm": 13, "deg": 68 },
+        "rear": { "mm": 13, "deg": 68 },
+        "top_bottom": { "mm": 8, "text": "8mm @0-8°" }
+      },
+      "mantlet": {
+        "front": { "mm": 13, "text": "13mm @round" }
+      }
+    }
+  },
+  {
+    "id": "de_pz1_b",
+    "name": "PzKpfw I Ausf. B",
+    "type": "Light Tank",
+    "family": "PzKpfw I",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge028pz1b.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT",
+        "GT",
+        "Pztrp"
+      ]
+    },
+    "general": {
+      "designation": "Panzerkampfwagen I Ausf. B (SdKfz 101)",
+      "manufacturer": "Henschel, MAN, Daimler-Benz, Krupp-Gruson, Wegmann",
+      "production_quantity": 675,
+      "production_period": "Aug. 1935-Jun. 1937",
+      "crew": 2,
+      "length_mm": 4420,
+      "width_mm": 2060,
+      "height_mm": 1720,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 5800,
+      "radio": "FuG2"
+    },
+    "firepower": {
+      "main_gun": "2 x 7.92 MG13",
+      "main_ammo": 2250,
+      "traverse_deg": 360,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -120,
+      "elevation_max_deg_x10": 180
+    },
+    "mobility": {
+      "engine": "Maybach NL38TR",
+      "engine_type": "L6, 3.8 liters",
+      "displacement_cc": 3800,
+      "power_hp": 100,
+      "power_rpm": 3000,
+      "power_to_weight_hp_per_t_x10": 172,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 145,
+      "consumption_road_l_per_100km": 103,
+      "consumption_offroad_l_per_100km": 126,
+      "range_road_km": 140,
+      "range_offroad_km": 115,
+      "speed_road_kmh_x10": 400,
+      "track_width_mm": 280,
+      "track_ground_contact_mm": 2740,
+      "track_links": 100,
+      "ground_pressure_psi_x10": 60,
+      "ground_pressure_kpa_x10": 414,
+      "ground_clearance_mm": 290,
+      "turning_radius_mm": 2100,
+      "gradient_deg": 30,
+      "vertical_obstacle_mm": 360,
+      "fording_mm": 580,
+      "trench_crossing_mm": 1400
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 13, "deg": 63 },
+        "side": { "mm": 13, "deg": 90 },
+        "rear": { "mm": 13, "deg": 71 },
+        "top_bottom": { "mm": 6, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 13, "deg": 63 },
+        "side": { "mm": 13, "deg": 68 },
+        "rear": { "mm": 13, "deg": 90 },
+        "top_bottom": { "mm": 6, "text": "6mm @0-7°" }
+      },
+      "turret": {
+        "front": { "mm": 13, "deg": 80 },
+        "side": { "mm": 13, "deg": 68 },
+        "rear": { "mm": 13, "deg": 68 },
+        "top_bottom": { "mm": 8, "text": "8mm @8-0°" }
+      },
+      "mantlet": {
+        "front": { "mm": 13, "text": "13mm @round" }
+      }
+    }
+  },
+  {
+    "id": "de_pz1_c",
+    "name": "PzKpfw I Ausf. C",
+    "type": "Light/Recon Tank",
+    "family": "PzKpfw I",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge029pz1c.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT"
+      ]
+    },
+    "general": {
+      "other_designations": "Panzerkampfwagen I Ausf. C., PzKpfw I nA, VK601",
+      "manufacturer": "Krauss-Maffei",
+      "production_quantity": 40,
+      "production_period": "Jul.-Dec. 1942",
+      "crew": 2,
+      "length_mm": 4190,
+      "width_mm": 1920,
+      "height_mm": 1940,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 8000,
+      "radio": "FuG Spr Ger 'a'"
+    },
+    "firepower": {
+      "main_gun": "1 x EW141 MG",
+      "traverse_deg": 360,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -100,
+      "elevation_max_deg_x10": 200,
+      "sight": "TZF10",
+      "secondary": "1 x 7.92mm MG34 (coaxial)"
+    },
+    "mobility": {
+      "engine": "Maybach HL45P",
+      "engine_type": "Liquid, L6, 4.7 liters",
+      "displacement_cc": 4700,
+      "power_hp": 150,
+      "power_rpm": 3800,
+      "power_to_weight_hp_per_t_x10": 188,
+      "gearbox": "8 forward, 2 reverse",
+      "gears_forward": 8,
+      "gears_reverse": 2,
+      "fuel": "Gasoline (Petrol)",
+      "range_road_km": 300,
+      "speed_road_kmh_x10": 790
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 30, "deg": 70 },
+        "side": { "mm": 20, "deg": 90 },
+        "rear": { "mm": 20, "deg": 60 },
+        "top_bottom": { "mm": 10, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 30, "deg": 80 },
+        "side": { "mm": 20, "deg": 90 },
+        "rear": { "mm": 20, "deg": 75 },
+        "top_bottom": { "mm": 10, "text": "10mm @0-7°" }
+      },
+      "turret": {
+        "front": { "mm": 30, "deg": 77 },
+        "side": { "mm": 20, "deg": 66 },
+        "rear": { "mm": 20, "deg": 83 },
+        "top_bottom": { "mm": 10, "text": "10mm @0-10°" }
+      },
+      "mantlet": {
+        "front": { "mm": 30, "text": "30mm @round" }
+      }
+    }
+  },
+  {
+    "id": "de_pz1_f",
+    "name": "PzKpfw I Ausf. F",
+    "type": "Infantry Support Tank",
+    "family": "PzKpfw I",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge030pz1f.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT"
+      ]
+    },
+    "general": {
+      "other_designations": "Panzerkampfwagen I Ausf. F, PzKpfw I nA Verstarkt, VK1801",
+      "manufacturer": "Krauss-Maffei",
+      "production_quantity": 30,
+      "production_period": "Apr.-Dec. 1942",
+      "crew": 2,
+      "length_mm": 4380,
+      "width_mm": 2640,
+      "height_mm": 2050,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 21000,
+      "radio": "FuG5"
+    },
+    "firepower": {
+      "main_gun": "2 x 7.92 MG34",
+      "traverse_deg": 360,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -100,
+      "elevation_max_deg_x10": 200,
+      "sight": "TZF8"
+    },
+    "mobility": {
+      "engine": "Maybach HL45P",
+      "engine_type": "Liquid, L6, 4.7 liters",
+      "displacement_cc": 4700,
+      "power_hp": 150,
+      "power_rpm": 3800,
+      "power_to_weight_hp_per_t_x10": 71,
+      "gearbox": "4 forward, 1 reverse",
+      "gears_forward": 4,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "range_road_km": 150,
+      "speed_road_kmh_x10": 250
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 80, "deg": 70 },
+        "side": { "mm": 50, "deg": 90 },
+        "rear": { "mm": 50, "deg": 76 },
+        "top_bottom": { "mm": 25, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 80, "deg": 80 },
+        "side": { "mm": 50, "deg": 90 },
+        "rear": { "mm": 50, "deg": 80 },
+        "top_bottom": { "mm": 25, "deg": 0 }
+      },
+      "turret": {
+        "front": { "mm": 80, "deg": 90 },
+        "side": { "mm": 50, "deg": 80 },
+        "rear": { "mm": 50, "deg": 80 },
+        "top_bottom": { "mm": 25, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 80, "text": "80mm @round" }
+      }
+    }
+  },
+  {
+    "id": "de_pz2_c",
+    "name": "PzKpfw II Ausf. c",
+    "type": "Light Tank",
+    "family": "PzKpfw II",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge031pz2c.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT",
+        "Pztrp",
+        "AFVG"
+      ]
+    },
+    "general": {
+      "designation": "Panzerkampfwagen II Ausf. c (SdKfz 121)",
+      "manufacturer": "MAN, Daimler-Benz, Henschel, Wegmann, Alkett, MIAG, FAMO*",
+      "production_quantity": 1113,
+      "production_period": "Mar. 1937-Apr. 1940*",
+      "crew": 3,
+      "length_mm": 4810,
+      "width_mm": 2220,
+      "height_mm": 1990,
+      "mass_kg": 8900,
+      "radio": "FuG5",
+      "text": {
+        "production_quantity": "1113*"
+      }
+    },
+    "firepower": {
+      "main_gun": "20mm KwK 38 L/55",
+      "main_gun_caliber_mm_x10": 200,
+      "main_gun_length_cal_x10": 550,
+      "main_ammo": 180,
+      "traverse_deg": 360,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -90,
+      "elevation_max_deg_x10": 200,
+      "secondary": "1 x 7.92 MG34 (coaxial)",
+      "secondary_ammo": 2250
+    },
+    "mobility": {
+      "engine": "Maybach HL62TR",
+      "engine_type": "L6, 6.2 liters",
+      "displacement_cc": 6200,
+      "power_hp": 140,
+      "power_rpm": 2600,
+      "power_to_weight_hp_per_t_x10": 157,
+      "gearbox": "6 forward, 1 reverse",
+      "gears_forward": 6,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "range_road_km": 200,
+      "speed_road_kmh_x10": 400,
+      "track_width_mm": 305,
+      "vertical_obstacle_mm": 420,
+      "fording_mm": 850
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 15, "text": "15mm @round" },
+        "side": { "mm": 15, "deg": 90 },
+        "rear": { "mm": 15, "deg": 84 },
+        "top_bottom": { "mm": 15, "text": "15mm @17-27°" }
+      },
+      "superstructure": {
+        "front": { "mm": 15, "deg": 81 },
+        "side": { "mm": 15, "deg": 90 },
+        "rear": { "mm": 15, "deg": 81 },
+        "top_bottom": { "mm": 10, "text": "10mm @0-9°" }
+      },
+      "turret": {
+        "front": { "mm": 15, "text": "15mm @round" },
+        "side": { "mm": 15, "deg": 68 },
+        "rear": { "mm": 15, "deg": 68 },
+        "top_bottom": { "mm": 10, "text": "10mm @0-4°" }
+      },
+      "mantlet": {
+        "front": { "mm": 30, "text": "30mm @round" }
+      }
+    },
+    "notes": [
+      "*Includes production of Ausf. A, B and C"
+    ]
+  },
+  {
+    "id": "de_pz2_f",
+    "name": "PzKpfw II Ausf. F",
+    "type": "Light Tank",
+    "family": "PzKpfw II",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge032pz2f.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT",
+        "GT"
+      ]
+    },
+    "general": {
+      "designation": "Panzerkampfwagen II Ausf. F (SdKfz 121)",
+      "manufacturer": "FAMO",
+      "production_quantity": 524,
+      "production_period": "Mar. 1941-Dec. 1942",
+      "crew": 3,
+      "length_mm": 4810,
+      "width_mm": 2280,
+      "height_mm": 2150,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 9500,
+      "radio": "FuG5"
+    },
+    "firepower": {
+      "main_gun": "20mm KwK30 L/55",
+      "main_gun_caliber_mm_x10": 200,
+      "main_gun_length_cal_x10": 550,
+      "main_ammo": 180,
+      "traverse_deg": 360,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -95,
+      "elevation_max_deg_x10": 200,
+      "secondary": "1 x 7.92mm MG34",
+      "secondary_ammo": 2700
+    },
+    "mobility": {
+      "engine": "Maybach HL62TR",
+      "engine_type": "L6, 6.2 liters",
+      "displacement_cc": 6200,
+      "power_hp": 140,
+      "power_rpm": 2600,
+      "power_to_weight_hp_per_t_x10": 147,
+      "gearbox": "6 forward, 1 reverse",
+      "gears_forward": 6,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 170,
+      "consumption_road_l_per_100km": 85,
+      "range_road_km": 200,
+      "range_offroad_km": 100,
+      "speed_road_kmh_x10": 400,
+      "track_width_mm": 300,
+      "track_ground_contact_mm": 2400,
+      "track_links": 106,
+      "ground_pressure_psi_x10": 94,
+      "ground_pressure_kpa_x10": 648,
+      "ground_clearance_mm": 340,
+      "turning_radius_mm": 4800,
+      "gradient_deg": 30,
+      "vertical_obstacle_mm": 420,
+      "fording_mm": 920,
+      "trench_crossing_mm": 1700
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 35, "deg": 77 },
+        "side": { "mm": 15, "deg": 90 },
+        "rear": { "mm": 15, "deg": 83 },
+        "top_bottom": { "mm": 5, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 30, "deg": 80 },
+        "side": { "mm": 15, "deg": 90 },
+        "rear": { "mm": 15, "deg": 81 },
+        "top_bottom": { "mm": 15, "deg": 0 }
+      },
+      "turret": {
+        "front": { "mm": 30, "text": "30mm @round" },
+        "side": { "mm": 15, "deg": 69 },
+        "rear": { "mm": 15, "deg": 69 },
+        "top_bottom": { "mm": 10, "text": "10mm @0-13°" }
+      },
+      "mantlet": {
+        "front": { "mm": 30, "text": "30mm @round" }
+      }
+    }
+  },
+  {
+    "id": "de_pz2_l",
+    "name": "PzKpfw II Ausf. L",
+    "type": "Light/Recon Tank",
+    "family": "PzKpfw II",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge033pz2l.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT",
+        "GT",
+        "AFVG"
+      ]
+    },
+    "general": {
+      "designation": "Panzerkampfwagen II Ausf. L (SdKfz 123), Luchs [Lynx]",
+      "manufacturer": "MAN",
+      "production_quantity": 100,
+      "production_period": "Sept. 1943-Jan. 1944",
+      "crew": 4,
+      "length_mm": 4630,
+      "width_mm": 2480,
+      "height_mm": 2210,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 13000,
+      "radio": "FuG12 and FuG Spr a",
+      "text": {
+        "production_quantity": "100+4 converted from VK1301"
+      }
+    },
+    "firepower": {
+      "main_gun": "20mm KwK 38 L/55",
+      "main_gun_caliber_mm_x10": 200,
+      "main_gun_length_cal_x10": 550,
+      "main_ammo": 330,
+      "traverse_deg": 360,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -90,
+      "elevation_max_deg_x10": 180,
+      "secondary": "1 x 7.92mm MG34",
+      "secondary_ammo": 2250
+    },
+    "mobility": {
+      "engine": "Maybach HL66P",
+      "engine_type": "L6, 6.75 liters",
+      "displacement_cc": 6750,
+      "power_hp": 180,
+      "power_rpm": 3200,
+      "power_to_weight_hp_per_t_x10": 138,
+      "gearbox": "6 forward, 1 reverse",
+      "gears_forward": 6,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 290,
+      "consumption_road_l_per_100km": 95,
+      "consumption_offroad_l_per_100km": 236,
+      "range_road_km": 250,
+      "range_offroad_km": 150,
+      "speed_road_kmh_x10": 600,
+      "track_width_mm": 360,
+      "track_ground_contact_mm": 2200,
+      "track_links": 96,
+      "ground_pressure_psi_x10": 107,
+      "ground_pressure_kpa_x10": 738,
+      "ground_clearance_mm": 340,
+      "gradient_deg": 30,
+      "fording_mm": 1320
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 30, "deg": 68 },
+        "side": { "mm": 20, "deg": 90 },
+        "rear": { "mm": 20, "deg": 62 },
+        "top_bottom": { "mm": 10, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 30, "deg": 80 },
+        "side": { "mm": 20, "deg": 90 },
+        "rear": { "mm": 20, "deg": 62 },
+        "top_bottom": { "mm": 10, "text": "10mm @0-4°" }
+      },
+      "turret": {
+        "front": { "mm": 30, "deg": 80 },
+        "side": { "mm": 20, "deg": 69 },
+        "rear": { "mm": 20, "deg": 69 },
+        "top_bottom": { "mm": 12, "text": "12mm @0-11°" }
+      },
+      "mantlet": {
+        "front": { "mm": 30, "text": "30mm @round" }
+      }
+    }
+  },
+  {
+    "id": "de_pz35t",
+    "name": "PzKpfw 35(t)",
+    "type": "Light Tank",
+    "family": "PzKpfw 35(t) and 38(t)",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge049pz35.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT",
+        "GT",
+        "S35",
+        "AFVG"
+      ]
+    },
+    "general": {
+      "designation": "Panzerkampfwagen 35(t)",
+      "manufacturer": "Skoda, CKD",
+      "production_quantity": 219,
+      "production_period": "1935-1938",
+      "crew": 4,
+      "length_mm": 4900,
+      "width_mm": 2100,
+      "height_mm": 2350,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 10500,
+      "radio": "FuG37(t)",
+      "text": {
+        "production_quantity": "219*"
+      }
+    },
+    "firepower": {
+      "main_gun": "37mm KwK 34(t) L/40",
+      "main_gun_caliber_mm_x10": 370,
+      "main_gun_length_cal_x10": 400,
+      "main_ammo": 72,
+      "traverse_deg": 360,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -100,
+      "elevation_max_deg_x10": 250,
+      "sight": "TZF(t)",
+      "secondary": "2 x 7.92mm MG37(t) (coaxial, bow)",
+      "secondary_ammo": 1800
+    },
+    "mobility": {
+      "engine": "Skoda T11",
+      "engine_type": "Liquid, L4, 8.5 liters",
+      "displacement_cc": 8500,
+      "power_hp": 120,
+      "power_rpm": 1800,
+      "power_to_weight_hp_per_t_x10": 114,
+      "gearbox": "6 forward, 6 reverse",
+      "gears_forward": 6,
+      "gears_reverse": 6,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 153,
+      "consumption_road_l_per_100km": 81,
+      "consumption_offroad_l_per_100km": 133,
+      "range_road_km": 190,
+      "range_offroad_km": 115,
+      "speed_road_kmh_x10": 350,
+      "track_width_mm": 320,
+      "track_ground_contact_mm": 3140,
+      "track_links": 105,
+      "ground_pressure_psi_x10": 74,
+      "ground_pressure_kpa_x10": 510,
+      "ground_clearance_mm": 350,
+      "turning_radius_mm": 4900,
+      "gradient_deg": 29,
+      "vertical_obstacle_mm": 790,
+      "fording_mm": 790,
+      "trench_crossing_mm": 2010
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 25, "deg": 80 },
+        "side": { "mm": 15, "deg": 76 },
+        "rear": { "mm": 15, "deg": 75 },
+        "top_bottom": { "mm": 8, "text": "8mm @0°&9°" }
+      },
+      "superstructure": {
+        "front": { "mm": 25, "deg": 73 },
+        "side": { "mm": 16, "deg": 90 },
+        "rear": { "mm": 15, "deg": 30 },
+        "top_bottom": { "mm": 8, "text": "8mm @0°&5°" }
+      },
+      "turret": {
+        "front": { "mm": 25, "deg": 80 },
+        "side": { "mm": 15, "deg": 80 },
+        "rear": { "mm": 15, "deg": 80 },
+        "top_bottom": { "mm": 10, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 25, "text": "25mm @round" }
+      }
+    },
+    "notes": [
+      "*Confiscated from Czech Army in 1939"
+    ]
+  },
+  {
+    "id": "de_pz38t_a",
+    "name": "PzKpfw 38(t) Ausf. A",
+    "type": "Light Tank",
+    "family": "PzKpfw 35(t) and 38(t)",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge051pz38ta.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT",
+        "GT",
+        "AFVG",
+        "P38IA"
+      ]
+    },
+    "general": {
+      "designation": "Panzerkampfwagen 38(t) Ausf. A",
+      "manufacturer": "BMM",
+      "production_quantity": 150,
+      "production_period": "May-November 1939",
+      "crew": 4,
+      "length_mm": 4600,
+      "width_mm": 2120,
+      "height_mm": 2370,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 9400,
+      "radio": "FuG37(t)"
+    },
+    "firepower": {
+      "main_gun": "37mm KwK 38(t) L/47.8",
+      "main_gun_caliber_mm_x10": 370,
+      "main_gun_length_cal_x10": 478,
+      "traverse_deg": 360,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -100,
+      "elevation_max_deg_x10": 250,
+      "sight": "TZF(t)",
+      "secondary": "2 x 7.92mm MG37(t) (coaxial, bow)",
+      "secondary_ammo": 2400,
+      "text": {
+        "main_ammo": "72-90"
+      }
+    },
+    "mobility": {
+      "engine": "Praga EPA",
+      "engine_type": "Liquid, L6, 7.8 liters",
+      "displacement_cc": 7800,
+      "power_hp": 125,
+      "power_rpm": 2200,
+      "power_to_weight_hp_per_t_x10": 133,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 218,
+      "consumption_road_l_per_100km": 95,
+      "consumption_offroad_l_per_100km": 132,
+      "range_road_km": 230,
+      "range_offroad_km": 165,
+      "speed_road_kmh_x10": 420,
+      "speed_offroad_kmh_x10": 150,
+      "track_width_mm": 293,
+      "track_ground_contact_mm": 2920,
+      "ground_pressure_psi_x10": 83,
+      "ground_pressure_kpa_x10": 572,
+      "ground_clearance_mm": 400,
+      "turning_radius_mm": 4500,
+      "gradient_deg": 29,
+      "vertical_obstacle_mm": 800,
+      "fording_mm": 900,
+      "trench_crossing_mm": 1860,
+      "text": {
+        "track_links": "87-90/track"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 30, "deg": 74 },
+        "side": { "mm": 15, "deg": 90 },
+        "rear": { "mm": 15, "deg": 78 },
+        "top_bottom": { "mm": 8, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 25, "deg": 73 },
+        "side": { "mm": 15, "deg": 90 },
+        "rear": { "mm": 10, "deg": 30 },
+        "top_bottom": { "mm": 8, "deg": 0 }
+      },
+      "turret": {
+        "front": { "mm": 25, "deg": 80 },
+        "side": { "mm": 15, "deg": 80 },
+        "rear": { "mm": 15, "deg": 80 },
+        "top_bottom": { "mm": 10, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 25, "text": "25mm @round" }
+      }
+    }
+  },
+  {
+    "id": "de_pz38t_e",
+    "name": "PzKpfw 38(t) Ausf. E",
+    "type": "Light Tank",
+    "family": "PzKpfw 35(t) and 38(t)",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge052pz38te.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT",
+        "GT",
+        "AFVG",
+        "P38IA"
+      ]
+    },
+    "general": {
+      "designation": "Panzerkampfwagen 38(t) Ausf. E",
+      "manufacturer": "BMM",
+      "production_quantity": 275,
+      "production_period": "Nov. 1940 - 1941",
+      "crew": 4,
+      "length_mm": 4610,
+      "width_mm": 2140,
+      "height_mm": 2400,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 9850,
+      "radio": "FuG5"
+    },
+    "firepower": {
+      "main_gun": "37mm KwK 38(t) L/47.8",
+      "main_gun_caliber_mm_x10": 370,
+      "main_gun_length_cal_x10": 478,
+      "main_ammo": 42,
+      "traverse_deg": 360,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -100,
+      "elevation_max_deg_x10": 250,
+      "sight": "TZF(t)",
+      "secondary": "2 x 7.92mm MG37(t) (coaxial, bow)",
+      "secondary_ammo": 2400
+    },
+    "mobility": {
+      "engine": "Praga EPA",
+      "engine_type": "Liquid, L6, 7.8 liters",
+      "displacement_cc": 7800,
+      "power_hp": 125,
+      "power_rpm": 2200,
+      "power_to_weight_hp_per_t_x10": 127,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 218,
+      "consumption_road_l_per_100km": 95,
+      "consumption_offroad_l_per_100km": 132,
+      "range_road_km": 230,
+      "range_offroad_km": 165,
+      "speed_road_kmh_x10": 420,
+      "speed_offroad_kmh_x10": 150,
+      "track_width_mm": 293,
+      "track_ground_contact_mm": 2920,
+      "ground_pressure_psi_x10": 82,
+      "ground_pressure_kpa_x10": 565,
+      "ground_clearance_mm": 400,
+      "turning_radius_mm": 4500,
+      "gradient_deg": 29,
+      "vertical_obstacle_mm": 800,
+      "fording_mm": 900,
+      "trench_crossing_mm": 1860,
+      "text": {
+        "track_links": "87-90/track"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 50, "deg": 74, "text": "25+25mm @74°" },
+        "side": { "mm": 15, "deg": 90 },
+        "rear": { "mm": 15, "deg": 78 },
+        "top_bottom": { "mm": 8, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 50, "deg": 73, "text": "25+25mm @73°" },
+        "side": { "mm": 30, "deg": 90, "text": "15+15mm @90°" },
+        "rear": { "mm": 10, "deg": 30 },
+        "top_bottom": { "mm": 8, "deg": 0 }
+      },
+      "turret": {
+        "front": { "mm": 50, "deg": 80, "text": "25+25mm @80°" },
+        "side": { "mm": 30, "deg": 80 },
+        "rear": { "mm": 22, "deg": 80 },
+        "top_bottom": { "mm": 15, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 25, "text": "25mm @round" }
+      }
+    }
+  },
+  {
+    "id": "de_pz3_f",
+    "name": "PzKpfw III Ausf. F",
+    "type": "Medium Tank",
+    "family": "PzKpfw III",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge034pz3f.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "P3V",
+        "EGT",
+        "GT",
+        "George R. Bradford"
+      ]
+    },
+    "general": {
+      "designation": "Panzerkampfwagen III Ausf. F (SdKfz 141)",
+      "manufacturer": "Daimler-Benz, Henschel, MAN, Alkett, FAMO",
+      "production_quantity": 435,
+      "production_period": "Sept. 1939-July 1940",
+      "crew": 5,
+      "length_mm": 5380,
+      "width_mm": 2910,
+      "height_mm": 2440,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 19500,
+      "radio": "FuG5"
+    },
+    "firepower": {
+      "main_gun": "37mm KwK L/46.2",
+      "main_gun_caliber_mm_x10": 370,
+      "main_gun_length_cal_x10": 462,
+      "traverse_deg": 360,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -100,
+      "elevation_max_deg_x10": 200,
+      "sight": "TZF5a",
+      "secondary": "2 x 7.92mm MG34 (coaxial, bow)",
+      "text": {
+        "main_ammo": "120-131",
+        "secondary_ammo": "3750-4500"
+      }
+    },
+    "mobility": {
+      "engine": "Maybach HL120TRM",
+      "engine_type": "V12, 11.9 liters",
+      "displacement_cc": 11900,
+      "power_hp": 300,
+      "power_rpm": 3000,
+      "power_to_weight_hp_per_t_x10": 154,
+      "gearbox": "10 forward, 1 reverse",
+      "gears_forward": 10,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 320,
+      "consumption_road_l_per_100km": 187,
+      "consumption_offroad_l_per_100km": 336,
+      "range_road_km": 165,
+      "range_offroad_km": 95,
+      "speed_road_kmh_x10": 400,
+      "speed_offroad_kmh_x10": 180,
+      "track_width_mm": 360,
+      "track_ground_contact_mm": 2860,
+      "track_links": 99,
+      "ground_pressure_psi_x10": 144,
+      "ground_pressure_kpa_x10": 993,
+      "ground_clearance_mm": 385,
+      "turning_radius_mm": 5850,
+      "gradient_deg": 30,
+      "vertical_obstacle_mm": 600,
+      "fording_mm": 800,
+      "trench_crossing_mm": 2300
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 30, "deg": 69 },
+        "side": { "mm": 30, "deg": 90 },
+        "rear": { "mm": 21, "deg": 80 },
+        "top_bottom": { "mm": 16, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 30, "deg": 81 },
+        "side": { "mm": 30, "deg": 90 },
+        "rear": { "mm": 21, "deg": 61 },
+        "top_bottom": { "mm": 17, "text": "17mm @0-13°" }
+      },
+      "turret": {
+        "front": { "mm": 30, "deg": 75 },
+        "side": { "mm": 30, "deg": 65 },
+        "rear": { "mm": 30, "text": "30mm @69-90°" },
+        "top_bottom": { "mm": 12, "text": "12mm @0-7°" }
+      },
+      "mantlet": {
+        "front": { "mm": 30, "text": "30mm @round" }
+      }
+    }
+  },
+  {
+    "id": "de_pz3_g",
+    "name": "PzKpfw III Ausf. G",
+    "type": "Medium Tank",
+    "family": "PzKpfw III",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge035pz3g.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "P3V",
+        "EGT",
+        "GT"
+      ]
+    },
+    "general": {
+      "designation": "Panzerkampfwagen III Ausf. G (SdKfz 141)",
+      "manufacturer": "Daimler-Benz, MAN, Alkett, Henschel, Wegmann, FAMO, MNH",
+      "production_quantity": 600,
+      "production_period": "Apr. 1940-Feb. 1941",
+      "crew": 5,
+      "length_mm": 5380,
+      "width_mm": 2910,
+      "height_mm": 2440,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 19500,
+      "radio": "FuG5"
+    },
+    "firepower": {
+      "main_gun": "37mm KwK L/46.2 or 50mm KwK 38 L/42",
+      "main_ammo": 99,
+      "traverse_deg": 360,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -100,
+      "elevation_max_deg_x10": 200,
+      "sight": "TZF5d",
+      "secondary": "2 x 7.92mm MG34 (coaxial, bow)",
+      "text": {
+        "main_gun_caliber_mm_x10": "37mm KwK L/46.2 or 50mm KwK 38 L/42",
+        "main_gun_length_cal_x10": "37mm KwK L/46.2 or 50mm KwK 38 L/42",
+        "secondary_ammo": "2700-3750"
+      }
+    },
+    "mobility": {
+      "engine": "Maybach HL120TRM",
+      "engine_type": "V12, 11.9 liters",
+      "displacement_cc": 11900,
+      "power_hp": 300,
+      "power_rpm": 3000,
+      "power_to_weight_hp_per_t_x10": 154,
+      "gearbox": "10 forward, 1 reverse",
+      "gears_forward": 10,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 320,
+      "consumption_road_l_per_100km": 187,
+      "consumption_offroad_l_per_100km": 336,
+      "range_road_km": 165,
+      "range_offroad_km": 95,
+      "speed_road_kmh_x10": 400,
+      "speed_offroad_kmh_x10": 180,
+      "track_width_mm": 360,
+      "track_ground_contact_mm": 2860,
+      "track_links": 99,
+      "ground_pressure_psi_x10": 144,
+      "ground_pressure_kpa_x10": 993,
+      "ground_clearance_mm": 385,
+      "turning_radius_mm": 5850,
+      "gradient_deg": 30,
+      "vertical_obstacle_mm": 600,
+      "fording_mm": 800,
+      "trench_crossing_mm": 2300
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 30, "deg": 69 },
+        "side": { "mm": 30, "deg": 90 },
+        "rear": { "mm": 30, "deg": 80 },
+        "top_bottom": { "mm": 16, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 30, "deg": 81 },
+        "side": { "mm": 30, "deg": 90 },
+        "rear": { "mm": 30, "deg": 60 },
+        "top_bottom": { "mm": 17, "text": "17mm @0-13°" }
+      },
+      "turret": {
+        "front": { "mm": 30, "deg": 65 },
+        "side": { "mm": 30, "deg": 65 },
+        "rear": { "mm": 30, "text": "30mm @69-90°" },
+        "top_bottom": { "mm": 12, "text": "12mm @0-7°" }
+      },
+      "mantlet": {
+        "front": { "mm": 37, "text": "37mm @45-90°" }
+      }
+    }
+  },
+  {
+    "id": "de_pz3_h",
+    "name": "PzKpfw III Ausf. H",
+    "type": "Medium Tank",
+    "family": "PzKpfw III",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge036pz3h.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "P3V",
+        "EGT",
+        "GT"
+      ]
+    },
+    "general": {
+      "designation": "Panzerkampfwagen III Ausf. H (SdKfz 141)",
+      "manufacturer": "MAN, Alkett, Henschel, Wegmann, MNH, MIAG",
+      "production_quantity": 308,
+      "production_period": "Oct. 1940-Apr. 1941",
+      "crew": 5,
+      "length_mm": 5520,
+      "width_mm": 2950,
+      "height_mm": 2500,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 21600,
+      "radio": "FuG5"
+    },
+    "firepower": {
+      "main_gun": "50mm KwK 38 L/42",
+      "main_gun_caliber_mm_x10": 500,
+      "main_gun_length_cal_x10": 420,
+      "main_ammo": 99,
+      "traverse_deg": 360,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -100,
+      "elevation_max_deg_x10": 200,
+      "sight": "TZF5d",
+      "secondary": "2 x 7.92mm MG34 (coaxial, bow)",
+      "text": {
+        "secondary_ammo": "2700-3750"
+      }
+    },
+    "mobility": {
+      "engine": "Maybach HL120TRM",
+      "engine_type": "V12, 11.9 liters",
+      "displacement_cc": 11900,
+      "power_hp": 300,
+      "power_rpm": 3000,
+      "power_to_weight_hp_per_t_x10": 139,
+      "gearbox": "6 forward, 1 reverse",
+      "gears_forward": 6,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 320,
+      "consumption_road_l_per_100km": 182,
+      "consumption_offroad_l_per_100km": 336,
+      "range_road_km": 165,
+      "range_offroad_km": 95,
+      "speed_road_kmh_x10": 400,
+      "speed_offroad_kmh_x10": 180,
+      "track_width_mm": 400,
+      "track_ground_contact_mm": 2860,
+      "track_links": 99,
+      "ground_pressure_psi_x10": 135,
+      "ground_pressure_kpa_x10": 931,
+      "ground_clearance_mm": 385,
+      "turning_radius_mm": 5850,
+      "gradient_deg": 30,
+      "vertical_obstacle_mm": 600,
+      "fording_mm": 800,
+      "trench_crossing_mm": 2600
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 60, "deg": 67, "text": "30+30mm @67°" },
+        "side": { "mm": 30, "deg": 90 },
+        "rear": { "mm": 60, "deg": 82, "text": "30+30mm @82°" },
+        "top_bottom": { "mm": 16, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 60, "deg": 81, "text": "30+30mm @81°" },
+        "side": { "mm": 30, "deg": 90 },
+        "rear": { "mm": 30, "deg": 60 },
+        "top_bottom": { "mm": 17, "text": "17mm @0-13°" }
+      },
+      "turret": {
+        "front": { "mm": 30, "deg": 77 },
+        "side": { "mm": 30, "deg": 65 },
+        "rear": { "mm": 30, "deg": 77 },
+        "top_bottom": { "mm": 10, "text": "10mm @0-5°" }
+      },
+      "mantlet": {
+        "front": { "mm": 37, "text": "37mm @45-90°" }
+      }
+    }
+  },
+  {
+    "id": "de_pz3_j",
+    "name": "PzKpfw III Ausf. J",
+    "type": "Medium Tank",
+    "family": "PzKpfw III",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge037pz3j.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "P3V",
+        "EGT",
+        "GT",
+        "BP32"
+      ]
+    },
+    "general": {
+      "designation": "Panzerkampfwagen III Ausf. J (SdKfz 141)",
+      "manufacturer": "Daimler-Benz, MAN, Alkett, Henschel, Wegmann, MIAG, MNH",
+      "production_quantity": 1549,
+      "production_period": "Mar. 1941-July 1942",
+      "crew": 5,
+      "length_mm": 5560,
+      "width_mm": 2950,
+      "height_mm": 2500,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 21500,
+      "radio": "FuG5"
+    },
+    "firepower": {
+      "main_gun": "50mm KwK 38 L/42",
+      "main_gun_caliber_mm_x10": 500,
+      "main_gun_length_cal_x10": 420,
+      "main_ammo": 99,
+      "traverse_deg": 360,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -100,
+      "elevation_max_deg_x10": 200,
+      "sight": "TZF5d",
+      "secondary": "2 x 7.92mm MG34 (coaxial, bow)",
+      "secondary_ammo": 2700
+    },
+    "mobility": {
+      "engine": "Maybach HL120TRM",
+      "engine_type": "V12, 11.9 liters",
+      "displacement_cc": 11900,
+      "power_hp": 300,
+      "power_rpm": 3000,
+      "power_to_weight_hp_per_t_x10": 140,
+      "gearbox": "6 forward, 1 reverse",
+      "gears_forward": 6,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 320,
+      "consumption_road_l_per_100km": 182,
+      "consumption_offroad_l_per_100km": 376,
+      "range_road_km": 145,
+      "range_offroad_km": 85,
+      "speed_road_kmh_x10": 400,
+      "speed_offroad_kmh_x10": 190,
+      "track_width_mm": 400,
+      "track_ground_contact_mm": 2860,
+      "track_links": 99,
+      "ground_pressure_psi_x10": 136,
+      "ground_pressure_kpa_x10": 938,
+      "ground_clearance_mm": 400,
+      "turning_radius_mm": 5850,
+      "gradient_deg": 30,
+      "vertical_obstacle_mm": 600,
+      "fording_mm": 800,
+      "trench_crossing_mm": 2000
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 50, "deg": 69 },
+        "side": { "mm": 30, "deg": 90 },
+        "rear": { "mm": 50, "deg": 80 },
+        "top_bottom": { "mm": 16, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 50, "deg": 81 },
+        "side": { "mm": 30, "deg": 90 },
+        "rear": { "mm": 50, "deg": 75 },
+        "top_bottom": { "mm": 17, "text": "17mm @0-15°" }
+      },
+      "turret": {
+        "front": { "mm": 30, "deg": 75 },
+        "side": { "mm": 30, "deg": 65 },
+        "rear": { "mm": 30, "deg": 78 },
+        "top_bottom": { "mm": 10, "text": "10mm @0-7°" }
+      },
+      "mantlet": {
+        "front": { "mm": 50, "text": "50mm @45-90°" }
+      }
+    }
+  },
+  {
+    "id": "de_pz3_l",
+    "name": "PzKpfw III Ausf. L",
+    "type": "Medium Tank",
+    "family": "PzKpfw III",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge038pz3l.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "P3V",
+        "EGT",
+        "GT",
+        "George R. Bradford"
+      ]
+    },
+    "general": {
+      "designation": "Panzerkampfwagen III Ausf. L (SdKfz 141/1)",
+      "manufacturer": "Henschel, Wegmann, Alkett, MNH, MIAG, MAN, Daimler-Benz",
+      "production_quantity": 653,
+      "production_period": "June-December 1942",
+      "crew": 5,
+      "length_mm": 5560,
+      "width_mm": 2950,
+      "height_mm": 2500,
+      "barrel_overhang_mm": 890,
+      "mass_kg": 21300,
+      "radio": "FuG5"
+    },
+    "firepower": {
+      "main_gun": "50mm KwK 39 L/60",
+      "main_gun_caliber_mm_x10": 500,
+      "main_gun_length_cal_x10": 600,
+      "main_ammo": 92,
+      "traverse_deg": 360,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -100,
+      "elevation_max_deg_x10": 200,
+      "sight": "TZF5e",
+      "secondary": "2 x 7.92mm MG34 (coaxial, bow)",
+      "secondary_ammo": 4950
+    },
+    "mobility": {
+      "engine": "Maybach HL120TRM",
+      "engine_type": "V12, 11.9 liters",
+      "displacement_cc": 11900,
+      "power_hp": 300,
+      "power_rpm": 3000,
+      "power_to_weight_hp_per_t_x10": 140,
+      "gearbox": "6 forward, 1 reverse",
+      "gears_forward": 6,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 320,
+      "consumption_road_l_per_100km": 182,
+      "range_road_km": 155,
+      "range_offroad_km": 95,
+      "speed_road_kmh_x10": 400,
+      "speed_offroad_kmh_x10": 190,
+      "track_width_mm": 400,
+      "track_ground_contact_mm": 2860,
+      "track_links": 99,
+      "ground_pressure_psi_x10": 136,
+      "ground_pressure_kpa_x10": 938,
+      "ground_clearance_mm": 400,
+      "turning_radius_mm": 5850,
+      "gradient_deg": 30,
+      "vertical_obstacle_mm": 600,
+      "fording_mm": 800,
+      "trench_crossing_mm": 2000
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 50, "deg": 69 },
+        "side": { "mm": 30, "deg": 90 },
+        "rear": { "mm": 50, "deg": 81 },
+        "top_bottom": { "mm": 16, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 70, "deg": 81, "text": "50+20mm @81°" },
+        "side": { "mm": 30, "deg": 90 },
+        "rear": { "mm": 50, "deg": 73 },
+        "top_bottom": { "mm": 18, "deg": 11 }
+      },
+      "turret": {
+        "front": { "mm": 57, "deg": 65 },
+        "side": { "mm": 30, "deg": 65 },
+        "rear": { "mm": 30, "deg": 78 },
+        "top_bottom": { "mm": 10, "text": "10mm @0-7°" }
+      },
+      "mantlet": {
+        "front": { "mm": 70, "text": "50+20mm @45-90°" }
+      }
+    }
+  },
+  {
+    "id": "de_pz3_m",
+    "name": "PzKpfw III Ausf. M",
+    "type": "Medium Tank",
+    "family": "PzKpfw III",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge039pz3m.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT",
+        "GT",
+        "BP20"
+      ]
+    },
+    "general": {
+      "designation": "Panzerkampfwagen III Ausf. M (SdKfz 141/1)",
+      "manufacturer": "Wegmann, MAN, MIAG, MNH",
+      "production_quantity": 250,
+      "production_period": "Oct. 1942-Feb. 1943",
+      "crew": 5,
+      "length_mm": 6410,
+      "width_mm": 2950,
+      "height_mm": 2500,
+      "barrel_overhang_mm": 890,
+      "mass_kg": 22700,
+      "radio": "FuG5"
+    },
+    "firepower": {
+      "main_gun": "50mm KwK39 L/60",
+      "main_gun_caliber_mm_x10": 500,
+      "main_gun_length_cal_x10": 600,
+      "main_ammo": 92,
+      "traverse_deg": 360,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -100,
+      "elevation_max_deg_x10": 200,
+      "sight": "TZF5e",
+      "secondary": "2 x 7.92mm MG34 (coaxial, bow)",
+      "secondary_ammo": 3750
+    },
+    "mobility": {
+      "engine": "Maybach HL120TRM",
+      "engine_type": "V12, 11.9 liters",
+      "displacement_cc": 11900,
+      "power_hp": 300,
+      "power_rpm": 3000,
+      "power_to_weight_hp_per_t_x10": 132,
+      "gearbox": "6 forward, 1 reverse",
+      "gears_forward": 6,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 320,
+      "consumption_road_l_per_100km": 183,
+      "range_road_km": 155,
+      "range_offroad_km": 97,
+      "speed_road_kmh_x10": 400,
+      "speed_offroad_kmh_x10": 190,
+      "track_width_mm": 400,
+      "track_ground_contact_mm": 2860,
+      "track_links": 99,
+      "ground_pressure_psi_x10": 134,
+      "ground_pressure_kpa_x10": 924,
+      "ground_clearance_mm": 410,
+      "gradient_deg": 30,
+      "vertical_obstacle_mm": 600,
+      "fording_mm": 1300,
+      "trench_crossing_mm": 2590
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 50, "deg": 69 },
+        "side": { "mm": 30, "deg": 90 },
+        "rear": { "mm": 50, "deg": 81 },
+        "top_bottom": { "mm": 16, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 70, "deg": 81, "text": "50+20mm @81°" },
+        "side": { "mm": 30, "deg": 90 },
+        "rear": { "mm": 50, "deg": 73 },
+        "top_bottom": { "mm": 18, "text": "18mm @0-11°" }
+      },
+      "turret": {
+        "front": { "mm": 57, "deg": 75 },
+        "side": { "mm": 30, "deg": 65 },
+        "rear": { "mm": 30, "deg": 78 },
+        "top_bottom": { "mm": 10, "text": "10mm @0-7°" }
+      },
+      "mantlet": {
+        "front": { "mm": 70, "text": "50+20mm @45-90°" }
+      }
+    }
+  },
+  {
+    "id": "de_pz3_n",
+    "name": "PzKpfw III Ausf. N",
+    "type": "Medium Support Tank",
+    "family": "PzKpfw III",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge040pz3n.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "P3V",
+        "EGT",
+        "GT",
+        "BP20"
+      ]
+    },
+    "general": {
+      "designation": "Panzerkampfwagen III Ausf. N (SdKfz 141/2)",
+      "manufacturer": "Henschel, Wegmann, MNH, MIAG, MAN",
+      "production_quantity": 663,
+      "production_period": "June 1942 - Aug. 1943",
+      "crew": 5,
+      "length_mm": 5650,
+      "width_mm": 2950,
+      "height_mm": 2500,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 23000,
+      "radio": "FuG5"
+    },
+    "firepower": {
+      "main_gun": "75mm KwK L/24",
+      "main_gun_caliber_mm_x10": 750,
+      "main_gun_length_cal_x10": 240,
+      "main_ammo": 64,
+      "traverse_deg": 360,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -80,
+      "elevation_max_deg_x10": 200,
+      "sight": "TZF5b",
+      "secondary": "2 x 7.92mm MG34 (coaxial, bow)",
+      "secondary_ammo": 3750
+    },
+    "mobility": {
+      "engine": "Maybach HL120TRM",
+      "engine_type": "V12, 11.9 liters",
+      "displacement_cc": 11900,
+      "power_hp": 300,
+      "power_rpm": 3000,
+      "power_to_weight_hp_per_t_x10": 130,
+      "gearbox": "6 forward, 1 reverse",
+      "gears_forward": 6,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 320,
+      "consumption_road_l_per_100km": 206,
+      "consumption_offroad_l_per_100km": 337,
+      "range_road_km": 155,
+      "range_offroad_km": 95,
+      "speed_road_kmh_x10": 400,
+      "speed_offroad_kmh_x10": 190,
+      "track_width_mm": 400,
+      "track_ground_contact_mm": 2860,
+      "track_links": 99,
+      "ground_pressure_psi_x10": 146,
+      "ground_pressure_kpa_x10": 1007,
+      "ground_clearance_mm": 390,
+      "turning_radius_mm": 5800,
+      "gradient_deg": 30,
+      "vertical_obstacle_mm": 600,
+      "fording_mm": 1300,
+      "trench_crossing_mm": 2000
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 50, "deg": 69 },
+        "side": { "mm": 30, "deg": 90 },
+        "rear": { "mm": 50, "deg": 81 },
+        "top_bottom": { "mm": 16, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 70, "deg": 81, "text": "50+20mm @81°" },
+        "side": { "mm": 30, "deg": 90 },
+        "rear": { "mm": 50, "deg": 73 },
+        "top_bottom": { "mm": 18, "text": "18mm @0-11°" }
+      },
+      "turret": {
+        "front": { "mm": 57, "deg": 75 },
+        "side": { "mm": 30, "deg": 65 },
+        "rear": { "mm": 30, "deg": 78 },
+        "top_bottom": { "mm": 10, "text": "10mm @0-7°" }
+      },
+      "mantlet": {
+        "front": { "mm": 50, "text": "50mm @45-90°" }
+      }
+    }
+  },
+  {
+    "id": "de_pz4_70a",
+    "name": "Panzer IV/70(A)",
+    "type": "Tank Destroyer",
+    "family": "PzKpfw IV",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge053pz470a.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT",
+        "BP32"
+      ]
+    },
+    "general": {
+      "designation": "Panzer IV/70(A), Panzerwagen 604/9, Gerat 558",
+      "manufacturer": "Nibelungenwerke",
+      "production_quantity": 278,
+      "production_period": "Aug.1944-Mar.1945",
+      "crew": 4,
+      "length_mm": 8440,
+      "width_mm": 2880,
+      "height_mm": 2350,
+      "mass_kg": 28000,
+      "radio": "FuG5"
+    },
+    "firepower": {
+      "main_gun": "75mm PaK42 L/70",
+      "main_gun_caliber_mm_x10": 750,
+      "main_gun_length_cal_x10": 700,
+      "main_ammo": 60,
+      "traverse_deg": 20,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -50,
+      "elevation_max_deg_x10": 150,
+      "sight": "SflZF",
+      "secondary": "1 x 7.92mm MG42 (loose)",
+      "text": {
+        "main_ammo": "60+"
+      }
+    },
+    "mobility": {
+      "engine": "Maybach HL120TRM or HL120TRM 112",
+      "engine_type": "V12, 11.9 liters",
+      "displacement_cc": 11900,
+      "power_hp": 300,
+      "gearbox": "6 forward, 1 reverse",
+      "gears_forward": 6,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 680,
+      "consumption_road_l_per_100km": 213,
+      "range_road_km": 320,
+      "range_offroad_km": 210,
+      "speed_road_kmh_x10": 380,
+      "track_width_mm": 400,
+      "track_ground_contact_mm": 3520,
+      "track_links": 99,
+      "ground_pressure_psi_x10": 140,
+      "ground_pressure_kpa_x10": 965,
+      "ground_clearance_mm": 400,
+      "turning_radius_mm": 10800,
+      "vertical_obstacle_mm": 600,
+      "fording_mm": 1000,
+      "trench_crossing_mm": 2200,
+      "text": {
+        "power_hp": "300hp @3000rpm or 272hp @2800rpm",
+        "power_to_weight_hp_per_t_x10": "10.7 or 9.7 hp/t"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 30, "text": "30mm @26°(lower)" },
+        "side": { "mm": 30, "deg": 90 },
+        "rear": { "mm": 20, "deg": 90 },
+        "top_bottom": { "mm": 10, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 20, "text": "20mm @17°(glacis)" },
+        "side": { "mm": 40, "deg": 60 },
+        "rear": { "mm": 20, "text": "20mm @90°(lower)" },
+        "top_bottom": { "mm": 10, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 80, "text": "80mm @Saukopf" }
+      }
+    }
+  },
+  {
+    "id": "de_pz4_70v",
+    "name": "Panzer IV/70(V)",
+    "type": "Tank Destroyer",
+    "family": "PzKpfw IV",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge054pz470v.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT",
+        "P4V",
+        "BP30",
+        "GT"
+      ]
+    },
+    "general": {
+      "designation": "Panzer IV/70(V) (SdKfz 162/1), Panzerwagen 604/10, Gerat 559",
+      "manufacturer": "Vomag",
+      "production_quantity": 930,
+      "production_period": "Aug.1944-Mar.1945",
+      "crew": 4,
+      "length_mm": 8500,
+      "width_mm": 3170,
+      "height_mm": 1850,
+      "barrel_overhang_mm": 2990,
+      "mass_kg": 25800,
+      "radio": "FuG Spr f"
+    },
+    "firepower": {
+      "main_gun": "75mm PaK42 L/70",
+      "main_gun_caliber_mm_x10": 750,
+      "main_gun_length_cal_x10": 700,
+      "main_ammo": 55,
+      "traverse_deg": 20,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -50,
+      "elevation_max_deg_x10": 150,
+      "sight": "SflZF",
+      "secondary": "1 x 7.92mm MG42 (loose)",
+      "secondary_ammo": 600
+    },
+    "mobility": {
+      "engine": "Maybach HL120TRM",
+      "engine_type": "V12, 11.9 liters",
+      "displacement_cc": 11900,
+      "power_hp": 300,
+      "power_rpm": 3000,
+      "power_to_weight_hp_per_t_x10": 116,
+      "gearbox": "6 forward, 1 reverse",
+      "gears_forward": 6,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 470,
+      "consumption_road_l_per_100km": 220,
+      "consumption_offroad_l_per_100km": 360,
+      "range_road_km": 210,
+      "range_offroad_km": 130,
+      "speed_road_kmh_x10": 350,
+      "speed_offroad_kmh_x10": 160,
+      "track_width_mm": 400,
+      "track_ground_contact_mm": 3570,
+      "track_links": 99,
+      "ground_pressure_psi_x10": 128,
+      "ground_pressure_kpa_x10": 883,
+      "ground_clearance_mm": 400,
+      "turning_radius_mm": 5920,
+      "gradient_deg": 30,
+      "vertical_obstacle_mm": 600,
+      "fording_mm": 1000,
+      "trench_crossing_mm": 2200
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 50, "text": "50mm @35°(lower)" },
+        "side": { "mm": 30, "deg": 90 },
+        "rear": { "mm": 20, "text": "20mm @81°(lower)" },
+        "top_bottom": { "mm": 22, "deg": 0, "text": "12+10mm or 10mm @0°" }
+      },
+      "superstructure": {
+        "front": { "mm": 80, "deg": 40 },
+        "side": { "mm": 40, "deg": 60 },
+        "rear": { "mm": 20, "deg": 55 },
+        "top_bottom": { "mm": 20, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 80, "text": "80mm @Saukopf" }
+      }
+    }
+  },
+  {
+    "id": "de_pz4_a",
+    "name": "PzKpfw IV Ausf. A",
+    "type": "Medium Tank",
+    "family": "PzKpfw IV",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge041pz4a.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT",
+        "GT",
+        "P4V",
+        "P4IA"
+      ]
+    },
+    "general": {
+      "designation": "Panzerkampfwagen IV Ausf. A (SdKfz 161)",
+      "manufacturer": "Krupp-Gruson",
+      "production_quantity": 35,
+      "production_period": "Oct. 1937- Mar. 1938",
+      "crew": 5,
+      "length_mm": 5600,
+      "width_mm": 2900,
+      "height_mm": 2650,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 18400,
+      "radio": "FuG5"
+    },
+    "firepower": {
+      "main_gun": "75mm KwK37 L/24",
+      "main_gun_caliber_mm_x10": 750,
+      "main_gun_length_cal_x10": 240,
+      "main_ammo": 122,
+      "traverse_deg": 360,
+      "traverse_drive": "electric",
+      "elevation_min_deg_x10": -100,
+      "elevation_max_deg_x10": 300,
+      "sight": "TZF5b",
+      "secondary": "2 x 7.92mm MG34 (coaxial, bow)",
+      "secondary_ammo": 3000
+    },
+    "mobility": {
+      "engine": "Maybach HL108TR",
+      "engine_type": "V12, 10.8 liters",
+      "displacement_cc": 10800,
+      "power_hp": 250,
+      "power_rpm": 3000,
+      "power_to_weight_hp_per_t_x10": 136,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 470,
+      "consumption_road_l_per_100km": 313,
+      "range_road_km": 150,
+      "range_offroad_km": 100,
+      "speed_road_kmh_x10": 310,
+      "speed_offroad_kmh_x10": 170,
+      "track_width_mm": 380,
+      "track_ground_contact_mm": 3520,
+      "track_links": 101,
+      "ground_pressure_psi_x10": 92,
+      "ground_pressure_kpa_x10": 634,
+      "ground_clearance_mm": 400,
+      "turning_radius_mm": 5920,
+      "gradient_deg": 35,
+      "vertical_obstacle_mm": 600,
+      "fording_mm": 800,
+      "trench_crossing_mm": 2300
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 15, "deg": 78 },
+        "side": { "mm": 15, "deg": 90 },
+        "rear": { "mm": 15, "deg": 80 },
+        "top_bottom": { "mm": 5, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 15, "deg": 83 },
+        "side": { "mm": 15, "deg": 90 },
+        "rear": { "mm": 15, "deg": 80 },
+        "top_bottom": { "mm": 12, "text": "12mm @0-5°" }
+      },
+      "turret": {
+        "front": { "mm": 15, "deg": 80 },
+        "side": { "mm": 15, "deg": 65 },
+        "rear": { "mm": 15, "text": "15mm @65-90°" },
+        "top_bottom": { "mm": 10, "text": "10mm @0-7°" }
+      },
+      "mantlet": {
+        "front": { "mm": 15, "text": "15mm @round" }
+      }
+    }
+  },
+  {
+    "id": "de_pz4_c",
+    "name": "PzKpfw IV Ausf. C",
+    "type": "Medium Tank",
+    "family": "PzKpfw IV",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge042pz4c.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT",
+        "GT",
+        "P4V",
+        "P4IA"
+      ]
+    },
+    "general": {
+      "designation": "Panzerkampfwagen IV Ausf. C (SdKfz 161)",
+      "manufacturer": "Krupp-Gruson",
+      "production_quantity": 134,
+      "production_period": "Sep.1938-Aug.1939",
+      "crew": 5,
+      "length_mm": 5920,
+      "width_mm": 2830,
+      "height_mm": 2680,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 19000,
+      "radio": "FuG5"
+    },
+    "firepower": {
+      "main_gun": "75mm KwK37 L/24",
+      "main_gun_caliber_mm_x10": 750,
+      "main_gun_length_cal_x10": 240,
+      "main_ammo": 80,
+      "traverse_deg": 360,
+      "traverse_drive": "electric",
+      "elevation_min_deg_x10": -100,
+      "elevation_max_deg_x10": 200,
+      "sight": "TZF5b",
+      "secondary": "1 x 7.92mm MG34 (coaxial)",
+      "secondary_ammo": 2400
+    },
+    "mobility": {
+      "engine": "Maybach HL120TR or HL120TRM",
+      "engine_type": "V12, 11.9 liters",
+      "displacement_cc": 11900,
+      "power_hp": 300,
+      "power_rpm": 3000,
+      "power_to_weight_hp_per_t_x10": 158,
+      "gearbox": "6 forward, 1 reverse",
+      "gears_forward": 6,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 470,
+      "consumption_road_l_per_100km": 235,
+      "range_road_km": 200,
+      "range_offroad_km": 130,
+      "speed_road_kmh_x10": 400,
+      "speed_offroad_kmh_x10": 200,
+      "track_width_mm": 380,
+      "track_ground_contact_mm": 3520,
+      "track_links": 101,
+      "ground_pressure_psi_x10": 107,
+      "ground_pressure_kpa_x10": 738,
+      "ground_clearance_mm": 400,
+      "turning_radius_mm": 5920,
+      "gradient_deg": 30,
+      "vertical_obstacle_mm": 600,
+      "fording_mm": 800,
+      "trench_crossing_mm": 2300
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 30, "deg": 78 },
+        "side": { "mm": 15, "deg": 90 },
+        "rear": { "mm": 15, "deg": 80 },
+        "top_bottom": { "mm": 5, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 30, "deg": 83 },
+        "side": { "mm": 15, "deg": 90 },
+        "rear": { "mm": 15, "deg": 80 },
+        "top_bottom": { "mm": 12, "text": "12mm @0-5°" }
+      },
+      "turret": {
+        "front": { "mm": 30, "deg": 80 },
+        "side": { "mm": 15, "deg": 65 },
+        "rear": { "mm": 15, "text": "15mm @66-90°" },
+        "top_bottom": { "mm": 10, "text": "10mm @0-7°" }
+      },
+      "mantlet": {
+        "front": { "mm": 30, "text": "30mm @round" }
+      }
+    }
+  },
+  {
+    "id": "de_pz4_d",
+    "name": "PzKpfw IV Ausf. D",
+    "type": "Medium Tank",
+    "family": "PzKpfw IV",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge043pz4d.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT",
+        "GT",
+        "P4V",
+        "P4IA"
+      ]
+    },
+    "general": {
+      "designation": "Panzerkampfwagen IV Ausf. D (SdKfz 161)",
+      "manufacturer": "Krupp-Gruson",
+      "production_quantity": 229,
+      "production_period": "Oct. 1939-May 1941",
+      "crew": 5,
+      "length_mm": 5920,
+      "width_mm": 2840,
+      "height_mm": 2680,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 20000,
+      "radio": "FuG5"
+    },
+    "firepower": {
+      "main_gun": "75mm KwK 37 L/24",
+      "main_gun_caliber_mm_x10": 750,
+      "main_gun_length_cal_x10": 240,
+      "main_ammo": 80,
+      "traverse_deg": 360,
+      "traverse_drive": "electric",
+      "elevation_min_deg_x10": -80,
+      "elevation_max_deg_x10": 200,
+      "sight": "TZF5b",
+      "secondary": "2 x 7.92mm MG34 (coaxial, bow)",
+      "secondary_ammo": 2700
+    },
+    "mobility": {
+      "engine": "Maybach HL120TRM",
+      "engine_type": "V12, 11.9 liters",
+      "displacement_cc": 11900,
+      "power_hp": 300,
+      "power_rpm": 3000,
+      "power_to_weight_hp_per_t_x10": 150,
+      "gearbox": "6 forward, 1 reverse",
+      "gears_forward": 6,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 470,
+      "consumption_road_l_per_100km": 250,
+      "consumption_offroad_l_per_100km": 350,
+      "range_road_km": 200,
+      "range_offroad_km": 130,
+      "speed_road_kmh_x10": 420,
+      "speed_offroad_kmh_x10": 200,
+      "track_width_mm": 380,
+      "track_ground_contact_mm": 3520,
+      "track_links": 101,
+      "ground_pressure_psi_x10": 112,
+      "ground_pressure_kpa_x10": 772,
+      "ground_clearance_mm": 400,
+      "turning_radius_mm": 5920,
+      "gradient_deg": 30,
+      "vertical_obstacle_mm": 600,
+      "fording_mm": 1000,
+      "trench_crossing_mm": 2300,
+      "text": {
+        "fuel_capacity_l": "470 (3 tanks)"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 30, "deg": 78 },
+        "side": { "mm": 20, "deg": 90 },
+        "rear": { "mm": 20, "deg": 80 },
+        "top_bottom": { "mm": 10, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 30, "deg": 83 },
+        "side": { "mm": 20, "deg": 90 },
+        "rear": { "mm": 20, "deg": 81 },
+        "top_bottom": { "mm": 12, "text": "12mm @0-6°" }
+      },
+      "turret": {
+        "front": { "mm": 30, "deg": 80 },
+        "side": { "mm": 20, "deg": 65 },
+        "rear": { "mm": 20, "text": "20mm @66-90°" },
+        "top_bottom": { "mm": 10, "text": "10mm @0-7°" }
+      },
+      "mantlet": {
+        "front": { "mm": 35, "text": "35mm @61-90°" }
+      }
+    }
+  },
+  {
+    "id": "de_pz4_f",
+    "name": "PzKpfw IV Ausf. F",
+    "type": "Medium Tank",
+    "family": "PzKpfw IV",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge044pz4f.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT",
+        "GT",
+        "P4V",
+        "P4IA"
+      ]
+    },
+    "general": {
+      "designation": "Panzerkampfwagen IV Ausf. F (SdKfz 161)",
+      "manufacturer": "Krupp-Gruson, Vomag, Nibelungenwerke",
+      "production_quantity": 462,
+      "production_period": "Apr. 1941-Mar. 1942",
+      "crew": 5,
+      "length_mm": 5920,
+      "width_mm": 2880,
+      "height_mm": 2680,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 22300,
+      "radio": "FuG5"
+    },
+    "firepower": {
+      "main_gun": "75mm KwK 37 L/24",
+      "main_gun_caliber_mm_x10": 750,
+      "main_gun_length_cal_x10": 240,
+      "main_ammo": 80,
+      "traverse_deg": 360,
+      "traverse_drive": "electric",
+      "elevation_min_deg_x10": -80,
+      "elevation_max_deg_x10": 200,
+      "sight": "TFZ5b",
+      "secondary": "2 x 7.92mm MG34 (coaxial, bow)",
+      "secondary_ammo": 3192
+    },
+    "mobility": {
+      "engine": "Maybach HL120TRM",
+      "engine_type": "V12, 11.9 liters",
+      "displacement_cc": 11900,
+      "power_hp": 300,
+      "power_rpm": 3000,
+      "power_to_weight_hp_per_t_x10": 135,
+      "gearbox": "6 forward, 1 reverse",
+      "gears_forward": 6,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 470,
+      "consumption_road_l_per_100km": 250,
+      "consumption_offroad_l_per_100km": 350,
+      "range_road_km": 200,
+      "range_offroad_km": 130,
+      "speed_road_kmh_x10": 420,
+      "speed_offroad_kmh_x10": 200,
+      "track_width_mm": 400,
+      "track_ground_contact_mm": 3520,
+      "track_links": 99,
+      "ground_pressure_psi_x10": 115,
+      "ground_pressure_kpa_x10": 793,
+      "ground_clearance_mm": 400,
+      "turning_radius_mm": 5920,
+      "gradient_deg": 30,
+      "vertical_obstacle_mm": 600,
+      "fording_mm": 1000,
+      "trench_crossing_mm": 2300,
+      "text": {
+        "fuel_capacity_l": "470 (3 tanks)"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 50, "deg": 78 },
+        "side": { "mm": 30, "deg": 90 },
+        "rear": { "mm": 20, "deg": 81 },
+        "top_bottom": { "mm": 10, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 50, "deg": 80 },
+        "side": { "mm": 30, "deg": 90 },
+        "rear": { "mm": 20, "deg": 78 },
+        "top_bottom": { "mm": 12, "text": "12mm @0-5°" }
+      },
+      "turret": {
+        "front": { "mm": 50, "deg": 79 },
+        "side": { "mm": 30, "deg": 64 },
+        "rear": { "mm": 30, "deg": 74 },
+        "top_bottom": { "mm": 10, "text": "10mm @0-7°" }
+      },
+      "mantlet": {
+        "front": { "mm": 50, "text": "50mm @60-90°" }
+      }
+    }
+  },
+  {
+    "id": "de_pz4_f2",
+    "name": "PzKpfw IV Ausf. F2",
+    "type": "Medium Tank",
+    "family": "PzKpfw IV",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge045pz4f2.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT",
+        "GT",
+        "P4V",
+        "P4IA",
+        "George R. Bradford"
+      ]
+    },
+    "general": {
+      "designation": "Panzerkampfwagen IV Ausf. F2 (SdKfz 161/1)",
+      "manufacturer": "Krupp-Gruson, Vomag, Nibelungenwerke",
+      "production_quantity": 175,
+      "production_period": "March-July 1942",
+      "crew": 5,
+      "length_mm": 6630,
+      "width_mm": 2880,
+      "height_mm": 2680,
+      "barrel_overhang_mm": 700,
+      "mass_kg": 23000,
+      "radio": "FuG5",
+      "text": {
+        "production_quantity": "175+25 (converted F)"
+      }
+    },
+    "firepower": {
+      "main_gun": "75mm KwK 40 L/43",
+      "main_gun_caliber_mm_x10": 750,
+      "main_gun_length_cal_x10": 430,
+      "main_ammo": 87,
+      "traverse_deg": 360,
+      "traverse_drive": "electric",
+      "elevation_min_deg_x10": -80,
+      "elevation_max_deg_x10": 200,
+      "sight": "TZF5f",
+      "secondary": "2 x 7.92mm MG34 (coaxial, bow)",
+      "secondary_ammo": 3192
+    },
+    "mobility": {
+      "engine": "Maybach HL120TRM",
+      "engine_type": "V12, 11.7 liters",
+      "displacement_cc": 11700,
+      "power_hp": 300,
+      "power_rpm": 3000,
+      "power_to_weight_hp_per_t_x10": 113,
+      "gearbox": "6 forward, 1 reverse",
+      "gears_forward": 6,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 470,
+      "consumption_road_l_per_100km": 250,
+      "consumption_offroad_l_per_100km": 350,
+      "range_road_km": 210,
+      "range_offroad_km": 130,
+      "speed_road_kmh_x10": 400,
+      "speed_offroad_kmh_x10": 160,
+      "track_width_mm": 400,
+      "track_ground_contact_mm": 3520,
+      "track_links": 99,
+      "ground_pressure_psi_x10": 118,
+      "ground_pressure_kpa_x10": 814,
+      "ground_clearance_mm": 400,
+      "turning_radius_mm": 5920,
+      "gradient_deg": 30,
+      "vertical_obstacle_mm": 600,
+      "fording_mm": 1000,
+      "trench_crossing_mm": 2200,
+      "text": {
+        "fuel_capacity_l": "470 (3 tanks)"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 50, "deg": 78 },
+        "side": { "mm": 30, "deg": 90 },
+        "rear": { "mm": 20, "deg": 81 },
+        "top_bottom": { "mm": 10, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 50, "deg": 80 },
+        "side": { "mm": 30, "deg": 90 },
+        "rear": { "mm": 20, "deg": 78 },
+        "top_bottom": { "mm": 12, "text": "12mm @0-5°" }
+      },
+      "turret": {
+        "front": { "mm": 50, "deg": 79 },
+        "side": { "mm": 30, "deg": 64 },
+        "rear": { "mm": 30, "deg": 74 },
+        "top_bottom": { "mm": 10, "text": "10mm @0-7°" }
+      },
+      "mantlet": {
+        "front": { "mm": 50, "text": "50mm @60-90°" }
+      }
+    }
+  },
+  {
+    "id": "de_pz4_g",
+    "name": "PzKpfw IV Ausf. G",
+    "type": "Medium Tank",
+    "family": "PzKpfw IV",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge046pz4g.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT",
+        "GT",
+        "P4V",
+        "P4IA"
+      ]
+    },
+    "general": {
+      "designation": "Panzerkampfwagen IV Ausf. G (SdKfz 161/1 und 161/2)",
+      "manufacturer": "Krupp-Gruson, Vomag, Nibelungenwerke",
+      "production_quantity": 1687,
+      "production_period": "May 1942 - June 1943",
+      "crew": 5,
+      "length_mm": 6620,
+      "width_mm": 2880,
+      "height_mm": 2680,
+      "mass_kg": 23500,
+      "radio": "FuG5",
+      "text": {
+        "barrel_overhang_mm": "72"
+      }
+    },
+    "firepower": {
+      "main_gun": "75mm KwK 40 L/43",
+      "main_gun_caliber_mm_x10": 750,
+      "main_gun_length_cal_x10": 430,
+      "main_ammo": 87,
+      "traverse_deg": 360,
+      "traverse_drive": "electric",
+      "elevation_min_deg_x10": -80,
+      "elevation_max_deg_x10": 200,
+      "sight": "TZF5f/1",
+      "secondary": "2 x MG34 (coaxial, bow)",
+      "secondary_ammo": 2250
+    },
+    "mobility": {
+      "engine": "Maybach HL120TRM",
+      "engine_type": "V12, 11.7 liters",
+      "displacement_cc": 11700,
+      "power_hp": 300,
+      "power_rpm": 3000,
+      "power_to_weight_hp_per_t_x10": 113,
+      "gearbox": "6 forward, 1 reverse",
+      "gears_forward": 6,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 470,
+      "consumption_road_l_per_100km": 250,
+      "consumption_offroad_l_per_100km": 350,
+      "range_road_km": 210,
+      "range_offroad_km": 130,
+      "speed_road_kmh_x10": 400,
+      "speed_offroad_kmh_x10": 160,
+      "track_width_mm": 400,
+      "track_ground_contact_mm": 3520,
+      "track_links": 99,
+      "ground_pressure_psi_x10": 118,
+      "ground_pressure_kpa_x10": 814,
+      "ground_clearance_mm": 400,
+      "turning_radius_mm": 5920,
+      "gradient_deg": 30,
+      "vertical_obstacle_mm": 600,
+      "fording_mm": 1000,
+      "trench_crossing_mm": 2200,
+      "text": {
+        "fuel_capacity_l": "470 (3 tanks)"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "deg": 78, "text": "50/50+30mm @78°" },
+        "side": { "mm": 30, "deg": 90 },
+        "rear": { "mm": 20, "deg": 81 },
+        "top_bottom": { "mm": 10, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "deg": 80, "text": "50/50+30mm @80°" },
+        "side": { "mm": 30, "deg": 90 },
+        "rear": { "mm": 20, "deg": 78 },
+        "top_bottom": { "mm": 12, "text": "12mm @0-5°" }
+      },
+      "turret": {
+        "front": { "mm": 50, "deg": 79 },
+        "side": { "mm": 30, "deg": 64 },
+        "rear": { "mm": 30, "deg": 80 },
+        "top_bottom": { "mm": 10, "text": "10mm @0-7°" }
+      },
+      "mantlet": {
+        "front": { "mm": 50, "text": "50mm @60-90°" }
+      }
+    }
+  },
+  {
+    "id": "de_pz4_h",
+    "name": "PzKpfw IV Ausf. H",
+    "type": "Medium Tank",
+    "family": "PzKpfw IV",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge047pz4h.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT",
+        "GT",
+        "P4V",
+        "P4IA"
+      ]
+    },
+    "general": {
+      "designation": "Panzerkampfwagen IV Ausf. H (SdKfz 161/2)",
+      "manufacturer": "Krupp-Gruson, Vomag, Nibelungenwerke",
+      "production_quantity": 3774,
+      "production_period": "Apr. 1943 - July 1944",
+      "crew": 5,
+      "length_mm": 7020,
+      "width_mm": 2880,
+      "width_skirts_mm": 3330,
+      "height_mm": 2680,
+      "barrel_overhang_mm": 1130,
+      "mass_kg": 26000,
+      "radio": "FuG5"
+    },
+    "firepower": {
+      "main_gun": "75mm KwK 40 L/48",
+      "main_gun_caliber_mm_x10": 750,
+      "main_gun_length_cal_x10": 480,
+      "main_ammo": 87,
+      "traverse_deg": 360,
+      "traverse_drive": "electric",
+      "elevation_min_deg_x10": -80,
+      "elevation_max_deg_x10": 200,
+      "sight": "TZF5f/1",
+      "secondary": "2 x MG34 (coaxial, bow)",
+      "secondary_ammo": 3150
+    },
+    "mobility": {
+      "engine": "Maybach HL120TRM",
+      "engine_type": "V12, 11.7 liters",
+      "displacement_cc": 11700,
+      "power_hp": 300,
+      "power_rpm": 3000,
+      "power_to_weight_hp_per_t_x10": 115,
+      "gearbox": "6 forward, 1 reverse",
+      "gears_forward": 6,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 470,
+      "consumption_road_l_per_100km": 250,
+      "consumption_offroad_l_per_100km": 350,
+      "range_road_km": 210,
+      "range_offroad_km": 130,
+      "speed_road_kmh_x10": 380,
+      "speed_offroad_kmh_x10": 160,
+      "track_width_mm": 400,
+      "track_ground_contact_mm": 3520,
+      "track_links": 99,
+      "ground_pressure_psi_x10": 126,
+      "ground_pressure_kpa_x10": 869,
+      "ground_clearance_mm": 400,
+      "turning_radius_mm": 5920,
+      "gradient_deg": 30,
+      "vertical_obstacle_mm": 600,
+      "fording_mm": 1200,
+      "trench_crossing_mm": 2200,
+      "text": {
+        "fuel_capacity_l": "470 (3 tanks)"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 80, "deg": 76 },
+        "side": { "mm": 30, "deg": 90 },
+        "rear": { "mm": 20, "deg": 82 },
+        "top_bottom": { "mm": 10, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 80, "deg": 80 },
+        "side": { "mm": 30, "deg": 90 },
+        "rear": { "mm": 20, "deg": 79 },
+        "top_bottom": { "mm": 12, "text": "12mm @0-5°" }
+      },
+      "turret": {
+        "front": { "mm": 50, "deg": 80 },
+        "side": { "mm": 30, "deg": 64 },
+        "rear": { "mm": 30, "deg": 75 },
+        "top_bottom": { "mm": 15, "text": "15mm @0-7°" }
+      },
+      "mantlet": {
+        "front": { "mm": 50, "text": "50mm @60-90°" }
+      }
+    }
+  },
+  {
+    "id": "de_pz4_j",
+    "name": "PzKpfw IV Ausf. J",
+    "type": "Medium Tank",
+    "family": "PzKpfw IV",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge048pz4j.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT",
+        "GT",
+        "P4V",
+        "P4IA"
+      ]
+    },
+    "general": {
+      "designation": "Panzerkampfwagen IV Ausf. J (SdKfz 161/2)",
+      "manufacturer": "Nibelungenwerke",
+      "production_quantity": 1758,
+      "production_period": "June 1944 - Mar. 1945",
+      "crew": 5,
+      "length_mm": 7020,
+      "width_mm": 2880,
+      "width_skirts_mm": 3300,
+      "height_mm": 2680,
+      "barrel_overhang_mm": 1130,
+      "mass_kg": 25000,
+      "radio": "FuG5"
+    },
+    "firepower": {
+      "main_gun": "75mm KwK 40 L/48",
+      "main_gun_caliber_mm_x10": 750,
+      "main_gun_length_cal_x10": 480,
+      "main_ammo": 87,
+      "traverse_deg": 360,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -80,
+      "elevation_max_deg_x10": 200,
+      "sight": "TZF5f/2",
+      "secondary": "2 x MG34 (coaxial, bow)",
+      "secondary_ammo": 3150
+    },
+    "mobility": {
+      "engine": "Maybach HL120TRM",
+      "engine_type": "V12, 11.7 liters",
+      "displacement_cc": 11700,
+      "power_hp": 300,
+      "power_rpm": 3000,
+      "power_to_weight_hp_per_t_x10": 115,
+      "gearbox": "6 forward, 1 reverse",
+      "gears_forward": 6,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 680,
+      "consumption_road_l_per_100km": 250,
+      "consumption_offroad_l_per_100km": 350,
+      "range_road_km": 320,
+      "range_offroad_km": 210,
+      "speed_road_kmh_x10": 380,
+      "speed_offroad_kmh_x10": 160,
+      "track_width_mm": 400,
+      "track_ground_contact_mm": 3520,
+      "track_links": 99,
+      "ground_pressure_psi_x10": 126,
+      "ground_pressure_kpa_x10": 869,
+      "ground_clearance_mm": 400,
+      "turning_radius_mm": 5920,
+      "gradient_deg": 30,
+      "vertical_obstacle_mm": 600,
+      "fording_mm": 1200,
+      "trench_crossing_mm": 2200,
+      "text": {
+        "fuel_capacity_l": "680 (4 tanks)"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 80, "deg": 75 },
+        "side": { "mm": 30, "deg": 90 },
+        "rear": { "mm": 20, "deg": 80 },
+        "top_bottom": { "mm": 10, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 80, "deg": 82 },
+        "side": { "mm": 30, "deg": 90 },
+        "rear": { "mm": 20, "deg": 80 },
+        "top_bottom": { "mm": 12, "text": "12mm @0-5°" }
+      },
+      "turret": {
+        "front": { "mm": 50, "deg": 80 },
+        "side": { "mm": 30, "deg": 65 },
+        "rear": { "mm": 30, "deg": 75 },
+        "top_bottom": { "mm": 18, "deg": 4 }
+      },
+      "mantlet": {
+        "front": { "mm": 50, "text": "50mm @60-90°" }
+      }
+    }
+  },
+  {
+    "id": "de_pzbef1_b",
+    "name": "Kleiner Panzerbefehlswagen",
+    "type": "Command Vehicle",
+    "family": "PzKpfw I",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge013kleinerpanzer.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT",
+        "GT"
+      ]
+    },
+    "general": {
+      "designation": "Kleiner Panzerbefehlswagen (SdKfz 265)",
+      "manufacturer": "Daimler-Benz",
+      "production_quantity": 184,
+      "production_period": "1935-1937",
+      "crew": 3,
+      "length_mm": 4420,
+      "width_mm": 2060,
+      "height_mm": 1990,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 5900,
+      "radio": "FuG6 and FuG2"
+    },
+    "firepower": {
+      "main_gun": "7.92mm MG13 or 34",
+      "main_gun_caliber_mm_x10": 79,
+      "main_ammo": 900
+    },
+    "mobility": {
+      "engine": "Maybach NL38TR",
+      "engine_type": "L6, 3.8 liters",
+      "displacement_cc": 3800,
+      "power_hp": 100,
+      "power_rpm": 3000,
+      "power_to_weight_hp_per_t_x10": 169,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 145,
+      "consumption_road_l_per_100km": 85,
+      "range_road_km": 170,
+      "range_offroad_km": 115,
+      "speed_road_kmh_x10": 400,
+      "track_width_mm": 280,
+      "track_ground_contact_mm": 2470,
+      "track_links": 100,
+      "ground_pressure_psi_x10": 61,
+      "ground_pressure_kpa_x10": 421,
+      "ground_clearance_mm": 290,
+      "turning_radius_mm": 2100,
+      "gradient_deg": 30,
+      "vertical_obstacle_mm": 360,
+      "fording_mm": 580,
+      "trench_crossing_mm": 1400
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 13, "deg": 65 },
+        "side": { "mm": 13, "deg": 90 },
+        "rear": { "mm": 13, "deg": 70 },
+        "top_bottom": { "mm": 6, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 13, "deg": 67 },
+        "side": { "mm": 13, "deg": 67 },
+        "rear": { "mm": 13, "deg": 70 },
+        "top_bottom": { "mm": 8, "deg": 0 }
+      }
+    }
+  },
+  {
+    "id": "de_pzjg1",
+    "name": "Panzerjager I",
+    "type": "Tank Destroyer",
+    "family": "PzKpfw I",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge055pzjager1.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT",
+        "GT",
+        "BP01",
+        "George R. Bradford"
+      ]
+    },
+    "general": {
+      "designation": "4.7cm PaK(t) (Sf) auf Panzerkampfwagen I",
+      "manufacturer": "Daimler-Benz, Skoda",
+      "production_quantity": 202,
+      "production_period": "Mar. 1940-Feb. 1941",
+      "crew": 3,
+      "length_mm": 6400,
+      "width_mm": 2060,
+      "height_mm": 2250,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 6400,
+      "radio": "FuG2",
+      "text": {
+        "production_quantity": "202 converted from PzKpfw. I Ausf. B"
+      }
+    },
+    "firepower": {
+      "main_gun": "47mm PaK(t) L/43.4",
+      "main_gun_caliber_mm_x10": 470,
+      "main_gun_length_cal_x10": 434,
+      "main_ammo": 86,
+      "traverse_deg": 34,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -80,
+      "elevation_max_deg_x10": 120,
+      "sight": "ZF2x30°"
+    },
+    "mobility": {
+      "engine": "Maybach NL38TR",
+      "engine_type": "Liquid, L6, 3.8 liters",
+      "displacement_cc": 3800,
+      "power_hp": 100,
+      "power_rpm": 3000,
+      "power_to_weight_hp_per_t_x10": 156,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 148,
+      "consumption_road_l_per_100km": 105,
+      "consumption_offroad_l_per_100km": 156,
+      "range_road_km": 140,
+      "range_offroad_km": 95,
+      "speed_road_kmh_x10": 400,
+      "speed_offroad_kmh_x10": 190,
+      "track_width_mm": 280,
+      "track_ground_contact_mm": 2440,
+      "track_links": 100,
+      "ground_pressure_psi_x10": 67,
+      "ground_pressure_kpa_x10": 462,
+      "ground_clearance_mm": 290,
+      "gradient_deg": 30,
+      "vertical_obstacle_mm": 360,
+      "fording_mm": 580,
+      "trench_crossing_mm": 1400
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 13, "deg": 68 },
+        "side": { "mm": 13, "deg": 68 },
+        "rear": { "mm": 13, "deg": 90 },
+        "top_bottom": { "mm": 6, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 13, "deg": 68 },
+        "side": { "mm": 13, "deg": 68 },
+        "rear": { "mm": 13, "deg": 90 },
+        "top_bottom": { "mm": 6, "deg": 0 }
+      },
+      "gun_shield": {
+        "front": { "mm": 15, "deg": 63 },
+        "side": { "mm": 15, "deg": 63 },
+        "rear": { "text": "open" },
+        "top_bottom": { "text": "open" }
+      }
+    }
+  },
+  {
+    "id": "de_sfh13_lorraine",
+    "name": "sFH13/1 (Sf) auf LS(f)",
+    "type": "SP Gun",
+    "family": "15cm auf GWL(f)",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge056sfh131lor.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT",
+        "BP10",
+        "GT"
+      ]
+    },
+    "general": {
+      "designation": "15cm sFH13/1 (Sf) auf Geschutzenwagen Lorraine Schlepper (f) (Sd.Kfz. 135/1)",
+      "manufacturer": "Alfred Becker",
+      "production_quantity": 94,
+      "production_period": "July 1942",
+      "crew": 4,
+      "length_mm": 5310,
+      "width_mm": 1830,
+      "height_mm": 2230,
+      "barrel_overhang_mm": 520,
+      "mass_kg": 8500,
+      "radio": "FuG Spr f"
+    },
+    "firepower": {
+      "main_gun": "150mm sFH13/1",
+      "main_gun_caliber_mm_x10": 1500,
+      "main_ammo": 8,
+      "traverse_deg": 10,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": 0,
+      "elevation_max_deg_x10": 400,
+      "sight": "Rblf36"
+    },
+    "mobility": {
+      "engine": "DelaHaye 103TT",
+      "engine_type": "In6, 3.6 liters",
+      "displacement_cc": 3600,
+      "power_hp": 70,
+      "power_rpm": 2800,
+      "power_to_weight_hp_per_t_x10": 82,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 111,
+      "consumption_road_l_per_100km": 82,
+      "range_road_km": 135,
+      "range_offroad_km": 88,
+      "speed_road_kmh_x10": 340,
+      "speed_offroad_kmh_x10": 130,
+      "track_width_mm": 240,
+      "track_ground_contact_mm": 2740,
+      "ground_pressure_psi_x10": 92,
+      "ground_pressure_kpa_x10": 634,
+      "ground_clearance_mm": 180,
+      "gradient_deg": 24,
+      "vertical_obstacle_mm": 560,
+      "fording_mm": 850,
+      "trench_crossing_mm": 1800
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 12, "text": "12mm @round" },
+        "side": { "mm": 9, "deg": 90 },
+        "rear": { "mm": 9, "deg": 54 },
+        "top_bottom": { "mm": 5, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 9, "deg": 55 },
+        "side": { "mm": 9, "text": "9mm @80°&55°" },
+        "rear": { "mm": 9, "deg": 79 },
+        "top_bottom": { "mm": 6, "deg": 0 }
+      },
+      "gun_shield": {
+        "front": { "mm": 10, "deg": 82 },
+        "side": { "mm": 9, "deg": 78 },
+        "rear": { "mm": 7, "deg": 78 },
+        "top_bottom": { "text": "open" }
+      }
+    }
+  },
+  {
+    "id": "de_sig33_jgdpz38t",
+    "name": "sIG33/2 auf Hetzer",
+    "type": "SP Gun",
+    "family": "PzKpfw 35(t) and 38(t)",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge058sig33hetzer.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT"
+      ]
+    },
+    "general": {
+      "other_designations": "15cm Schweres Infanteriegeschutz 33/2 (Sf) auf Jagdpanzer 38(t) Hetzer",
+      "manufacturer": "BMM",
+      "production_quantity": 24,
+      "production_period": "Dec. 1944-?",
+      "crew": 4,
+      "length_mm": 4870,
+      "width_mm": 2630,
+      "height_mm": 2200,
+      "mass_kg": 16500,
+      "radio": "FuG16",
+      "text": {
+        "production_quantity": "24 + 6 converted"
+      }
+    },
+    "firepower": {
+      "main_gun": "15cm sIG33/2 (Sf)",
+      "main_gun_caliber_mm_x10": 1500,
+      "main_ammo": 15,
+      "traverse_deg": 10,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": 0,
+      "elevation_max_deg_x10": 730,
+      "sight": "Rblf36",
+      "secondary": "1 x 7.92mm MG34 or MG42 (loose)"
+    },
+    "mobility": {
+      "engine": "Praga AC/2",
+      "engine_type": "Liquid, L6, 7.8 liters",
+      "displacement_cc": 7800,
+      "power_hp": 160,
+      "power_rpm": 2800,
+      "power_to_weight_hp_per_t_x10": 97,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "range_road_km": 130,
+      "speed_road_kmh_x10": 320
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 60, "deg": 50 },
+        "side": { "mm": 20, "deg": 75 },
+        "rear": { "mm": 20, "deg": 75 },
+        "top_bottom": { "mm": 10, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 60, "text": "60mm @30°&50°" },
+        "side": { "mm": 20, "deg": 50 },
+        "rear": { "mm": 8, "deg": 70 },
+        "top_bottom": { "text": "open" }
+      },
+      "mantlet": {
+        "front": { "mm": 10, "deg": 81 }
+      }
+    }
+  },
+  {
+    "id": "de_stug3_a",
+    "name": "StuG III Ausf. A",
+    "type": "Assault Gun",
+    "family": "PzKpfw III",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge059stug3a.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT",
+        "SV",
+        "S3IA",
+        "P3V"
+      ]
+    },
+    "general": {
+      "designation": "Gepanzerter Selbstfahrlafette fur Sturmgeschutz 7.5cm Kanone Ausf. A (SdKfz 142)",
+      "manufacturer": "Alkett",
+      "production_quantity": 30,
+      "production_period": "Jan. 1940 -May 1940",
+      "crew": 4,
+      "length_mm": 5380,
+      "width_mm": 2920,
+      "height_mm": 1950,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 19600,
+      "radio": "FuG15 or FuG16"
+    },
+    "firepower": {
+      "main_gun": "75mm StuK. 37 L/24",
+      "main_gun_caliber_mm_x10": 750,
+      "main_gun_length_cal_x10": 240,
+      "main_ammo": 44,
+      "traverse_deg": 24,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -100,
+      "elevation_max_deg_x10": 200,
+      "sight": "Rblf32"
+    },
+    "mobility": {
+      "engine": "Maybach HL120TRM",
+      "engine_type": "V12, 11.8 litres",
+      "displacement_cc": 11800,
+      "power_hp": 300,
+      "power_rpm": 3000,
+      "power_to_weight_hp_per_t_x10": 153,
+      "gearbox": "10 forward, 4 reverse",
+      "gears_forward": 10,
+      "gears_reverse": 4,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 310,
+      "consumption_road_l_per_100km": 187,
+      "consumption_offroad_l_per_100km": 310,
+      "range_road_km": 160,
+      "range_offroad_km": 100,
+      "speed_road_kmh_x10": 300,
+      "track_width_mm": 360,
+      "track_ground_contact_mm": 2860,
+      "track_links": 93,
+      "ground_pressure_psi_x10": 133,
+      "ground_pressure_kpa_x10": 917,
+      "ground_clearance_mm": 385,
+      "turning_radius_mm": 5850,
+      "gradient_deg": 30,
+      "vertical_obstacle_mm": 600,
+      "fording_mm": 800,
+      "trench_crossing_mm": 2300
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 50, "deg": 69 },
+        "side": { "mm": 30, "deg": 90 },
+        "rear": { "mm": 30, "text": "30mm @60°&80°" },
+        "top_bottom": { "mm": 16, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 50, "deg": 80 },
+        "side": { "mm": 30, "deg": 90 },
+        "rear": { "mm": 30, "deg": 60 },
+        "top_bottom": { "mm": 11, "text": "11mm @0-12°" }
+      }
+    }
+  },
+  {
+    "id": "de_stug3_b",
+    "name": "StuG III Ausf. B",
+    "type": "Assault Gun",
+    "family": "PzKpfw III",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge060stug3b.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT",
+        "GT",
+        "SV",
+        "S3IA"
+      ]
+    },
+    "general": {
+      "designation": "Gepanzerter Selbstfahrlafette fur Sturmgeschutz 7.5cm Kanone Ausf. B (SdKfz 142)",
+      "manufacturer": "Alkett",
+      "production_quantity": 320,
+      "production_period": "June 1940 - May 1941",
+      "crew": 4,
+      "length_mm": 5400,
+      "width_mm": 2950,
+      "height_mm": 1960,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 22000,
+      "radio": "FuG15 or FuG16"
+    },
+    "firepower": {
+      "main_gun": "75mm StuK. 37 L/24",
+      "main_gun_caliber_mm_x10": 750,
+      "main_gun_length_cal_x10": 240,
+      "main_ammo": 44,
+      "traverse_deg": 24,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -100,
+      "elevation_max_deg_x10": 200,
+      "sight": "Rblf32"
+    },
+    "mobility": {
+      "engine": "Maybach HL120TRM",
+      "engine_type": "V12, 11.8 liters",
+      "displacement_cc": 11800,
+      "power_hp": 300,
+      "power_rpm": 3000,
+      "power_to_weight_hp_per_t_x10": 136,
+      "gearbox": "6 forward, 1 reverse",
+      "gears_forward": 6,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 310,
+      "consumption_road_l_per_100km": 187,
+      "consumption_offroad_l_per_100km": 326,
+      "range_road_km": 165,
+      "range_offroad_km": 95,
+      "speed_road_kmh_x10": 400,
+      "speed_offroad_kmh_x10": 240,
+      "track_width_mm": 400,
+      "track_ground_contact_mm": 2860,
+      "track_links": 93,
+      "ground_pressure_psi_x10": 135,
+      "ground_pressure_kpa_x10": 931,
+      "ground_clearance_mm": 375,
+      "turning_radius_mm": 5850,
+      "gradient_deg": 30,
+      "vertical_obstacle_mm": 600,
+      "fording_mm": 800,
+      "trench_crossing_mm": 2450
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 50, "deg": 69 },
+        "side": { "mm": 30, "deg": 90 },
+        "rear": { "mm": 30, "text": "30mm @60°&80°" },
+        "top_bottom": { "mm": 16, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 50, "deg": 80 },
+        "side": { "mm": 30, "deg": 79 },
+        "rear": { "mm": 30, "deg": 60 },
+        "top_bottom": { "mm": 11, "text": "11mm @0-12°" }
+      },
+      "mantlet": {
+        "front": { "mm": 50, "deg": 75 }
+      }
+    }
+  },
+  {
+    "id": "de_stug3_d",
+    "name": "StuG III Ausf. D",
+    "type": "Assault Gun",
+    "family": "PzKpfw III",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge061stug3d.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT",
+        "SV",
+        "S3IA",
+        "P3V"
+      ]
+    },
+    "general": {
+      "designation": "Gepanzerter Selbstfahrlafette fur Sturmgeschutz 7.5cm Kanone Ausf. D (SdKfz 142/1)",
+      "manufacturer": "Alkett",
+      "production_quantity": 150,
+      "production_period": "May 1941 - Sept. 1941",
+      "crew": 4,
+      "length_mm": 5400,
+      "width_mm": 2930,
+      "height_mm": 1980,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 20200,
+      "radio": "FuG15 or FuG16"
+    },
+    "firepower": {
+      "main_gun": "75mm StuK. 37 L/24",
+      "main_gun_caliber_mm_x10": 750,
+      "main_gun_length_cal_x10": 240,
+      "main_ammo": 44,
+      "traverse_deg": 24,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -100,
+      "elevation_max_deg_x10": 200,
+      "sight": "Rblf32"
+    },
+    "mobility": {
+      "engine": "Maybach HL120TRM",
+      "engine_type": "V12, 11.8 liters",
+      "displacement_cc": 11800,
+      "power_hp": 300,
+      "power_rpm": 3000,
+      "power_to_weight_hp_per_t_x10": 136,
+      "gearbox": "6 forward, 1 reverse",
+      "gears_forward": 6,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 310,
+      "consumption_road_l_per_100km": 195,
+      "range_road_km": 165,
+      "range_offroad_km": 94,
+      "speed_road_kmh_x10": 400,
+      "track_width_mm": 400,
+      "track_ground_contact_mm": 2860,
+      "track_links": 93,
+      "ground_pressure_psi_x10": 132,
+      "ground_pressure_kpa_x10": 910,
+      "ground_clearance_mm": 380,
+      "turning_radius_mm": 5850,
+      "gradient_deg": 30,
+      "vertical_obstacle_mm": 600,
+      "fording_mm": 800,
+      "trench_crossing_mm": 2590
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 50, "deg": 69 },
+        "side": { "mm": 30, "deg": 90 },
+        "rear": { "mm": 30, "text": "30mm @60°&80°" },
+        "top_bottom": { "mm": 16, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 50, "deg": 80 },
+        "side": { "mm": 30, "deg": 90 },
+        "rear": { "mm": 30, "deg": 60 },
+        "top_bottom": { "mm": 11, "text": "11mm @0-1°" }
+      },
+      "mantlet": {
+        "front": { "mm": 50, "deg": 75 }
+      }
+    }
+  },
+  {
+    "id": "de_stug3_e",
+    "name": "StuG III Ausf. E",
+    "type": "Assault Gun",
+    "family": "PzKpfw III",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge062stug3e.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT",
+        "SV"
+      ]
+    },
+    "general": {
+      "designation": "Gepanzerter Selbstfahrlafette fur Sturmgeschutz 7.5cm Kanone Ausf. E (SdKfz 142), StuG Ausf. E",
+      "manufacturer": "Alkett",
+      "production_quantity": 272,
+      "production_period": "Sep. 1941-Mar.1942",
+      "crew": 4,
+      "length_mm": 5400,
+      "width_mm": 2930,
+      "height_mm": 1980,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 20800,
+      "radio": "FuG15 or FuG16"
+    },
+    "firepower": {
+      "main_gun": "75mm StuK37 L/24",
+      "main_gun_caliber_mm_x10": 750,
+      "main_gun_length_cal_x10": 240,
+      "main_ammo": 44,
+      "traverse_deg": 24,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -100,
+      "elevation_max_deg_x10": 200,
+      "sight": "Rblf32",
+      "secondary": "1 x 7.92mm MG34 (loose)",
+      "secondary_ammo": 600,
+      "text": {
+        "main_ammo": "44(50)"
+      }
+    },
+    "mobility": {
+      "engine": "Maybach HL120TRM",
+      "engine_type": "V12, 11.9 liters",
+      "displacement_cc": 11900,
+      "power_hp": 300,
+      "power_rpm": 3000,
+      "power_to_weight_hp_per_t_x10": 144,
+      "gearbox": "6 forward, 1 reverse",
+      "gears_forward": 6,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 300,
+      "consumption_road_l_per_100km": 182,
+      "range_road_km": 165,
+      "range_offroad_km": 95,
+      "speed_road_kmh_x10": 400,
+      "track_width_mm": 400,
+      "track_ground_contact_mm": 2860,
+      "track_links": 93,
+      "ground_pressure_psi_x10": 132,
+      "ground_pressure_kpa_x10": 910,
+      "ground_clearance_mm": 380,
+      "turning_radius_mm": 5850,
+      "gradient_deg": 30,
+      "vertical_obstacle_mm": 600,
+      "fording_mm": 800,
+      "trench_crossing_mm": 2590
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 50, "deg": 69 },
+        "side": { "mm": 30, "deg": 90 },
+        "rear": { "mm": 30, "text": "30mm @60°&80°" },
+        "top_bottom": { "mm": 16, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 50, "deg": 80 },
+        "side": { "mm": 30, "deg": 90 },
+        "rear": { "mm": 30, "deg": 60 },
+        "top_bottom": { "mm": 17, "text": "17mm @0-12°" }
+      },
+      "mantlet": {
+        "front": { "mm": 50, "deg": 75 }
+      }
+    }
+  },
+  {
+    "id": "de_stug3_f",
+    "name": "StuG III Ausf. F",
+    "type": "Assault Gun",
+    "family": "PzKpfw III",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge063stug3f.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT",
+        "SV",
+        "S3IA",
+        "P3V"
+      ]
+    },
+    "general": {
+      "designation": "7.5cm Sturmgeschutz 40 Ausf. F (SdKfz 142/1)",
+      "manufacturer": "Alkett",
+      "production_quantity": 359,
+      "production_period": "Mar. 1942 - Sept. 1942",
+      "crew": 4,
+      "length_mm": 6310,
+      "width_mm": 2920,
+      "height_mm": 2150,
+      "mass_kg": 21600,
+      "radio": "FuG15 or FuG16"
+    },
+    "firepower": {
+      "main_gun": "75mm StuK. 40 L/43 or L/48",
+      "main_gun_caliber_mm_x10": 750,
+      "main_ammo": 44,
+      "traverse_deg": 20,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -60,
+      "elevation_max_deg_x10": 200,
+      "sight": "SflZF1a",
+      "secondary": "1 x 7.92mm MG34 (loose)",
+      "secondary_ammo": 600,
+      "text": {
+        "main_gun_length_cal_x10": "75mm StuK. 40 L/43 or L/48"
+      }
+    },
+    "mobility": {
+      "engine": "Maybach HL120TRM",
+      "engine_type": "V12, 11.8 liters",
+      "displacement_cc": 11800,
+      "power_hp": 300,
+      "power_rpm": 3000,
+      "power_to_weight_hp_per_t_x10": 123,
+      "gearbox": "6 forward, 1 reverse",
+      "gears_forward": 6,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 310,
+      "consumption_road_l_per_100km": 187,
+      "range_road_km": 165,
+      "range_offroad_km": 95,
+      "speed_road_kmh_x10": 400,
+      "track_width_mm": 400,
+      "track_ground_contact_mm": 2860,
+      "track_links": 93,
+      "ground_pressure_psi_x10": 132,
+      "ground_pressure_kpa_x10": 910,
+      "ground_clearance_mm": 390,
+      "turning_radius_mm": 5850,
+      "gradient_deg": 30,
+      "vertical_obstacle_mm": 600,
+      "fording_mm": 800,
+      "trench_crossing_mm": 2300
+    },
+    "armor": {
+      "hull": {
+        "front": { "deg": 69, "text": "50/50+30mm @69°" },
+        "side": { "mm": 30, "deg": 90 },
+        "rear": { "mm": 30, "deg": 60 },
+        "top_bottom": { "mm": 16, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "deg": 80, "text": "50/50+30mm @80°" },
+        "side": { "mm": 30, "deg": 80 },
+        "rear": { "mm": 30, "deg": 60 },
+        "top_bottom": { "mm": 11, "text": "11mm @0-12°" }
+      },
+      "mantlet": {
+        "front": { "mm": 50, "deg": 90 },
+        "side": { "mm": 30, "deg": 73 },
+        "top_bottom": { "mm": 30, "deg": 0 }
+      }
+    }
+  },
+  {
+    "id": "de_stug3_g",
+    "name": "StuG III Ausf. G",
+    "type": "Assault Gun",
+    "family": "PzKpfw III",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge064stug3g.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT",
+        "GT",
+        "SV",
+        "S3IA",
+        "P3V",
+        "HGMF"
+      ]
+    },
+    "general": {
+      "designation": "7.5cm Sturmgeschutz 40 Ausf. G (SdKfz 142/1)",
+      "manufacturer": "Alkett, MIAG",
+      "production_quantity": 7720,
+      "production_period": "Dec. 1942 - Mar. 1945",
+      "crew": 4,
+      "length_mm": 6850,
+      "width_mm": 2950,
+      "height_mm": 2160,
+      "barrel_overhang_mm": 1430,
+      "mass_kg": 23900,
+      "radio": "FuG15 or FuG16",
+      "text": {
+        "production_quantity": "7720+173 converted from PzKpfw III"
+      }
+    },
+    "firepower": {
+      "main_gun": "75mm StuK. 40 L/48",
+      "main_gun_caliber_mm_x10": 750,
+      "main_gun_length_cal_x10": 480,
+      "main_ammo": 54,
+      "traverse_deg": 20,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -60,
+      "elevation_max_deg_x10": 200,
+      "sight": "SflZF1a",
+      "secondary": "1 or 2 x 7.92mm MG34 (loose)",
+      "secondary_ammo": 600
+    },
+    "mobility": {
+      "engine": "Maybach HL120TRM",
+      "engine_type": "V12, 11.8 liters",
+      "displacement_cc": 11800,
+      "power_hp": 300,
+      "power_rpm": 3000,
+      "power_to_weight_hp_per_t_x10": 126,
+      "gearbox": "6 forward, 1 reverse",
+      "gears_forward": 6,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 310,
+      "consumption_road_l_per_100km": 200,
+      "consumption_offroad_l_per_100km": 326,
+      "range_road_km": 155,
+      "range_offroad_km": 95,
+      "speed_road_kmh_x10": 400,
+      "track_width_mm": 400,
+      "track_ground_contact_mm": 2860,
+      "track_links": 93,
+      "ground_pressure_psi_x10": 135,
+      "ground_pressure_kpa_x10": 931,
+      "ground_clearance_mm": 390,
+      "turning_radius_mm": 5850,
+      "gradient_deg": 30,
+      "vertical_obstacle_mm": 600,
+      "fording_mm": 800,
+      "trench_crossing_mm": 2450
+    },
+    "armor": {
+      "hull": {
+        "front": { "deg": 69, "text": "50+30/80mm @69°" },
+        "side": { "mm": 30, "deg": 90 },
+        "rear": { "mm": 50, "deg": 80 },
+        "top_bottom": { "mm": 16, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "deg": 80, "text": "50+30/80mm @80°" },
+        "side": { "mm": 30, "deg": 79 },
+        "rear": { "mm": 30, "deg": 90 },
+        "top_bottom": { "mm_min": 11, "mm_max": 17, "text": "11-17mm @0-15°" }
+      },
+      "mantlet": {
+        "front": { "mm": 80, "text": "80mm @Saukopf" }
+      }
+    }
+  },
+  {
+    "id": "de_stug4",
+    "name": "StuG IV",
+    "type": "Assault Gun",
+    "family": "PzKpfw IV",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge065stug4.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "StV",
+        "St3IA",
+        "EGT",
+        "P4V"
+      ]
+    },
+    "general": {
+      "designation": "Sturmgeschutz IV (7.5cm StuK40 L/48) (SdKfz 167)",
+      "manufacturer": "Krupp-Gruson",
+      "production_quantity": 1108,
+      "production_period": "Dec. 1943 - Mar. 1945",
+      "crew": 4,
+      "length_mm": 6700,
+      "width_mm": 2950,
+      "height_mm": 2200,
+      "mass_kg": 23000,
+      "radio": "FuG15 or FuG16",
+      "text": {
+        "production_quantity": "1108 + 31 converted from PzKpfw IV"
+      }
+    },
+    "firepower": {
+      "main_gun": "75mm StuK40 L/48",
+      "main_gun_caliber_mm_x10": 750,
+      "main_gun_length_cal_x10": 480,
+      "main_ammo": 63,
+      "traverse_deg": 20,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -60,
+      "elevation_max_deg_x10": 200,
+      "sight": "SflZf1a",
+      "secondary": "1 x 7.92mm MG34 (loose)",
+      "secondary_ammo": 600
+    },
+    "mobility": {
+      "engine": "Maybach HL120TRM",
+      "engine_type": "V12, 11.9 litres",
+      "displacement_cc": 11900,
+      "power_hp": 300,
+      "power_rpm": 3000,
+      "power_to_weight_hp_per_t_x10": 130,
+      "gearbox": "6 forward, 1 reverse",
+      "gears_forward": 6,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 430,
+      "consumption_road_l_per_100km": 205,
+      "consumption_offroad_l_per_100km": 330,
+      "range_road_km": 210,
+      "range_offroad_km": 130,
+      "speed_road_kmh_x10": 380,
+      "track_width_mm": 400,
+      "track_ground_contact_mm": 3520,
+      "track_links": 99,
+      "ground_pressure_psi_x10": 114,
+      "ground_pressure_kpa_x10": 786,
+      "ground_clearance_mm": 400,
+      "turning_radius_mm": 5920,
+      "gradient_deg": 30,
+      "vertical_obstacle_mm": 600,
+      "fording_mm": 1200,
+      "trench_crossing_mm": 2200
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 80, "deg": 76 },
+        "side": { "mm": 30, "deg": 90 },
+        "rear": { "mm": 20, "deg": 80 },
+        "top_bottom": { "mm": 10, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 80, "deg": 80 },
+        "side": { "mm": 30, "deg": 79 },
+        "rear": { "mm": 30, "deg": 90 },
+        "top_bottom": { "mm": 11, "text": "11mm @0-15°" }
+      },
+      "mantlet": {
+        "front": { "mm": 80, "text": "80mm @Saukopf" }
+      }
+    }
+  },
+  {
+    "id": "de_stuig33b",
+    "name": "sIG 33B",
+    "type": "Armored SP Gun",
+    "family": "PzKpfw III",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge057sig33b.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT",
+        "P3V"
+      ]
+    },
+    "general": {
+      "designation": "Sturminfanteriegeschutz 33B",
+      "manufacturer": "Alkett",
+      "production_quantity": 24,
+      "production_period": "Dec. 1941-Oct. 1942",
+      "crew": 5,
+      "length_mm": 5400,
+      "width_mm": 2900,
+      "height_mm": 2300,
+      "mass_kg": 21000,
+      "radio": "FuG Spr d"
+    },
+    "firepower": {
+      "main_gun": "150mm Stu. I.G. L/11",
+      "main_gun_caliber_mm_x10": 1500,
+      "main_gun_length_cal_x10": 110,
+      "main_ammo": 30,
+      "traverse_deg": 6,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -30,
+      "elevation_max_deg_x10": 250,
+      "sight": "Rblf36 + SflZF1",
+      "secondary": "1 x 7.92mm MG34 (hull)",
+      "secondary_ammo": 600
+    },
+    "mobility": {
+      "engine": "Maybach HL120TRM",
+      "engine_type": "V12, 11.9 liters",
+      "displacement_cc": 11900,
+      "power_hp": 300,
+      "power_rpm": 3000,
+      "power_to_weight_hp_per_t_x10": 143,
+      "gearbox": "6 forward, 1 reverse",
+      "gears_forward": 6,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 320,
+      "consumption_road_l_per_100km": 291,
+      "range_road_km": 110,
+      "range_offroad_km": 85,
+      "speed_road_kmh_x10": 200,
+      "track_width_mm": 400,
+      "track_ground_contact_mm": 2860,
+      "track_links": 93,
+      "ground_pressure_psi_x10": 127,
+      "ground_pressure_kpa_x10": 876,
+      "ground_clearance_mm": 400,
+      "turning_radius_mm": 5850,
+      "gradient_deg": 30,
+      "vertical_obstacle_mm": 600,
+      "fording_mm": 800,
+      "trench_crossing_mm": 2300
+    },
+    "armor": {
+      "hull": {
+        "front": { "deg": 79, "text": "30+50/50mm@79°" },
+        "side": { "mm": 30, "deg": 90 },
+        "rear": { "deg": 80, "text": "30/50mm@80°" },
+        "top_bottom": { "mm": 16, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 80, "deg": 80 },
+        "side": { "mm": 50, "deg": 65 },
+        "rear": { "mm": 15, "deg": 90 },
+        "top_bottom": { "mm": 10, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 30, "deg": 80 }
+      }
+    }
+  },
+  {
+    "id": "de_stupz4",
+    "name": "Brummbar",
+    "type": "Heavy Assault Gun",
+    "family": "PzKpfw IV",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge004brummbar.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT",
+        "BP4",
+        "P4V",
+        "GT"
+      ]
+    },
+    "general": {
+      "designation": "Sturmpanzer IV (SdKfz 166), Brummbar, StuG IV mit 15cm StuH43",
+      "manufacturer": "Deutsche Eisenwerke",
+      "production_quantity": 298,
+      "production_period": "Apr.1943-Mar.1945",
+      "crew": 5,
+      "length_mm": 5930,
+      "width_mm": 2880,
+      "height_mm": 2520,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 28200,
+      "radio": "FuG5 + FuG2",
+      "text": {
+        "production_quantity": "298 + 8 converted from PzKpfw IV"
+      }
+    },
+    "firepower": {
+      "main_gun": "150mm StuH43 L/12",
+      "main_gun_caliber_mm_x10": 1500,
+      "main_gun_length_cal_x10": 120,
+      "main_ammo": 38,
+      "traverse_deg": 20,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -50,
+      "elevation_max_deg_x10": 300,
+      "sight": "SflZF",
+      "secondary": "1 or 2 x 7.92 MG34 (loose, hull mounted)*",
+      "secondary_ammo": 600
+    },
+    "mobility": {
+      "engine": "Maybach HL120TRM or HL120TRM112",
+      "engine_type": "V12, 11.9 liters",
+      "displacement_cc": 11900,
+      "power_hp": 300,
+      "gearbox": "6 forward, 1 reverse",
+      "gears_forward": 6,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 470,
+      "consumption_road_l_per_100km": 224,
+      "range_road_km": 210,
+      "range_offroad_km": 130,
+      "speed_road_kmh_x10": 380,
+      "speed_offroad_kmh_x10": 150,
+      "track_width_mm": 400,
+      "track_ground_contact_mm": 3520,
+      "track_links": 98,
+      "ground_pressure_psi_x10": 139,
+      "ground_pressure_kpa_x10": 958,
+      "ground_clearance_mm": 400,
+      "turning_radius_mm": 5920,
+      "gradient_deg": 30,
+      "vertical_obstacle_mm": 600,
+      "fording_mm": 950,
+      "trench_crossing_mm": 2020,
+      "text": {
+        "power_hp": "300hp @3000rpm or 272hp @2800rpm",
+        "power_to_weight_hp_per_t_x10": "10.6 or 9.6 hp/t"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 80, "deg": 78 },
+        "side": { "mm": 30, "deg": 90 },
+        "rear": { "mm": 20, "deg": 80 },
+        "top_bottom": { "mm": 10, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 100, "deg": 50 },
+        "side": { "mm": 50, "deg": 75 },
+        "rear": { "mm": 30, "text": "30mm @65°&90°" },
+        "top_bottom": { "mm": 20, "deg": 0, "text": "20mm @7°, 10@0°" }
+      }
+    },
+    "notes": [
+      "*Late production version only"
+    ]
+  },
+  {
+    "id": "de_tiger1_e",
+    "name": "Tiger I",
+    "type": "Heavy Tank",
+    "family": "Tiger",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge067tiger1.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT",
+        "GT",
+        "TIA"
+      ]
+    },
+    "general": {
+      "designation": "Panzerkampfwagen VI Ausf. E, Tiger I (SdKfz 181), VK4501(H)",
+      "manufacturer": "Henschel, Wegmann",
+      "production_quantity": 1354,
+      "production_period": "July 1942 - Aug. 1944",
+      "crew": 5,
+      "length_mm": 8450,
+      "width_mm": 3700,
+      "height_mm": 2930,
+      "barrel_overhang_mm": 2040,
+      "mass_kg": 57000,
+      "radio": "FuG5"
+    },
+    "firepower": {
+      "main_gun": "88mm KwK 36 L/56",
+      "main_gun_caliber_mm_x10": 880,
+      "main_gun_length_cal_x10": 560,
+      "main_ammo": 92,
+      "traverse_deg": 360,
+      "elevation_min_deg_x10": -65,
+      "elevation_max_deg_x10": 170,
+      "sight": "TZF9b, later TZF9c",
+      "secondary": "2 x 7.92mm MG34 (coaxial, bow)",
+      "secondary_ammo": 4800
+    },
+    "mobility": {
+      "engine": "Maybach HL210P45",
+      "engine_type": "V12, 21.4 liters",
+      "displacement_cc": 21400,
+      "power_hp": 690,
+      "power_rpm": 3000,
+      "power_to_weight_hp_per_t_x10": 121,
+      "gearbox": "8 forward, 4 reverse",
+      "gears_forward": 8,
+      "gears_reverse": 4,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 682,
+      "range_road_km": 140,
+      "range_offroad_km": 85,
+      "speed_road_kmh_x10": 380,
+      "speed_offroad_kmh_x10": 160,
+      "track_width_mm": 725,
+      "track_ground_contact_mm": 3610,
+      "track_links": 96,
+      "ground_pressure_psi_x10": 139,
+      "ground_pressure_kpa_x10": 958,
+      "ground_clearance_mm": 430,
+      "turning_radius_mm": 7000,
+      "gradient_deg": 30,
+      "vertical_obstacle_mm": 790,
+      "trench_crossing_mm": 2290,
+      "text": {
+        "fording_mm": "1.22-1.56"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 100, "deg": 66 },
+        "side": { "mm": 60, "deg": 90 },
+        "rear": { "mm": 80, "deg": 82 },
+        "top_bottom": { "mm": 25, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 100, "deg": 80 },
+        "side": { "mm": 80, "deg": 90 },
+        "top_bottom": { "mm": 25, "deg": 0 }
+      },
+      "turret": {
+        "front": { "mm": 100, "deg": 82 },
+        "side": { "mm": 80, "deg": 90 },
+        "rear": { "mm": 80, "deg": 90 },
+        "top_bottom": { "mm": 25, "text": "25mm @0-9°" }
+      },
+      "mantlet": {
+        "front": { "mm_min": 100, "mm_max": 110, "deg": 90, "text": "100-110mm @90°" }
+      }
+    }
+  },
+  {
+    "id": "de_tiger2",
+    "name": "Tiger II",
+    "type": "Heavy Tank",
+    "family": "Tiger",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge068tiger2.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT",
+        "GT",
+        "TIA",
+        "KTHT"
+      ]
+    },
+    "general": {
+      "designation": "Panzerkampfwagen VI Ausf. B, Tiger II (SdKfz 182), Konigstiger, VK4503",
+      "manufacturer": "Henschel",
+      "production_quantity": 489,
+      "production_period": "Jan. 1944 - Mar. 1945",
+      "crew": 5,
+      "length_mm": 10300,
+      "width_mm": 3760,
+      "height_mm": 3080,
+      "barrel_overhang_mm": 3000,
+      "mass_kg": 70000,
+      "radio": "FuG5"
+    },
+    "firepower": {
+      "main_gun": "88mm KwK 43 L/71",
+      "main_gun_caliber_mm_x10": 880,
+      "main_gun_length_cal_x10": 710,
+      "main_ammo": 72,
+      "traverse_deg": 360,
+      "traverse_drive": "hydraulic",
+      "elevation_min_deg_x10": -74,
+      "elevation_max_deg_x10": 150,
+      "sight": "TZF9b, later TZF9d",
+      "secondary": "2 x 7.92 mm MG34 (coaxial, bow)",
+      "secondary_ammo": 5850
+    },
+    "mobility": {
+      "engine": "Maybach HL230P30",
+      "engine_type": "V12, 23.9 liters",
+      "displacement_cc": 23900,
+      "power_hp": 700,
+      "power_rpm": 3000,
+      "power_to_weight_hp_per_t_x10": 100,
+      "gearbox": "8 forward, 4 reverse",
+      "gears_forward": 8,
+      "gears_reverse": 4,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 1036,
+      "consumption_road_l_per_100km": 601,
+      "consumption_offroad_l_per_100km": 863,
+      "range_road_km": 170,
+      "range_offroad_km": 120,
+      "track_width_mm": 800,
+      "track_ground_contact_mm": 4130,
+      "track_links": 96,
+      "ground_pressure_psi_x10": 137,
+      "ground_pressure_kpa_x10": 945,
+      "ground_clearance_mm": 490,
+      "turning_radius_mm": 4800,
+      "gradient_deg": 35,
+      "vertical_obstacle_mm": 850,
+      "fording_mm": 1630,
+      "trench_crossing_mm": 3000,
+      "text": {
+        "speed_road_kmh_x10": "35-42/14-30 km/h"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 100, "deg": 40 },
+        "side": { "mm": 80, "deg": 90 },
+        "rear": { "mm": 80, "deg": 60 },
+        "top_bottom": { "mm_min": 25, "mm_max": 40, "deg": 0, "text": "25-40mm @0°" }
+      },
+      "superstructure": {
+        "front": { "mm": 150, "deg": 40 },
+        "side": { "mm": 80, "deg": 65 },
+        "top_bottom": { "mm": 40, "deg": 0 }
+      },
+      "turret": {
+        "front": { "mm": 180, "deg": 81 },
+        "side": { "mm": 80, "deg": 69 },
+        "rear": { "mm": 80, "deg": 69 },
+        "top_bottom": { "mm": 40, "text": "40mm @0-12°" }
+      },
+      "mantlet": {
+        "front": { "mm": 100, "text": "100mm @Saukopf" }
+      }
+    }
+  },
+  {
+    "id": "de_wespe",
+    "name": "Wespe",
+    "type": "Self-Propelled Gun",
+    "family": "PzKpfw II",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge069wespe.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT",
+        "GT",
+        "BP05"
+      ]
+    },
+    "general": {
+      "designation": "Leichte Feldhaubitze 18/2 auf Fahrgestell Panzerkampfwagen II (Sf) (SdKfz 124), Wespe, Gerat 803",
+      "manufacturer": "FAMO",
+      "production_quantity": 676,
+      "production_period": "Feb. 1943-Jul. 1944",
+      "crew": 4,
+      "length_mm": 4810,
+      "width_mm": 2280,
+      "height_mm": 2300,
+      "mass_kg": 11000,
+      "radio": "FuG Spr f"
+    },
+    "firepower": {
+      "main_gun": "105mm leFH18M L/28",
+      "main_gun_caliber_mm_x10": 1050,
+      "main_gun_length_cal_x10": 280,
+      "main_ammo": 32,
+      "traverse_deg": 34,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -50,
+      "elevation_max_deg_x10": 420,
+      "secondary": "1 x 7.92mm MG34 (loose)"
+    },
+    "mobility": {
+      "engine": "Maybach HL62TR",
+      "engine_type": "Liquid, L6, 6.2 liters",
+      "displacement_cc": 6200,
+      "power_hp": 140,
+      "power_rpm": 2600,
+      "power_to_weight_hp_per_t_x10": 127,
+      "gearbox": "6 forward, 1 reverse",
+      "gears_forward": 6,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 170,
+      "consumption_road_l_per_100km": 121,
+      "range_road_km": 140,
+      "range_offroad_km": 95,
+      "speed_road_kmh_x10": 400,
+      "speed_offroad_kmh_x10": 200,
+      "track_width_mm": 280,
+      "track_ground_contact_mm": 2400,
+      "track_links": 106,
+      "ground_pressure_psi_x10": 117,
+      "ground_pressure_kpa_x10": 807,
+      "ground_clearance_mm": 360,
+      "turning_radius_mm": 4800,
+      "gradient_deg": 30,
+      "vertical_obstacle_mm": 560,
+      "fording_mm": 850,
+      "trench_crossing_mm": 1700
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 30, "deg": 75 },
+        "side": { "mm": 15, "deg": 90 },
+        "rear": { "mm": 15, "deg": 71 },
+        "top_bottom": { "mm": 5, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 20, "deg": 60 },
+        "side": { "mm": 15, "deg": 90 },
+        "rear": { "mm": 8, "deg": 90 },
+        "top_bottom": { "mm": 10, "deg": 0 }
+      },
+      "gun_shield": {
+        "front": { "mm": 10, "deg": 66 },
+        "side": { "mm": 10, "deg": 73 },
+        "rear": { "mm": 10, "deg": 74 },
+        "top_bottom": { "text": "open" }
+      }
+    }
+  }
+]

@@ -385,8 +385,8 @@ source = [
     { ref = "https://en.wikipedia.org/wiki/Panzer_II", covers = "Ausf. L dimensions, 11.8 t, crew 4, 60 km/h, range 290 km, armor 30/20 mm, armament and ammunition 330/2250, 100 built Sep 1943-Jan 1944" },
     { ref = "Chamberlain/Doyle, Encyclopedia of German Tanks of World War Two (rev. 1999), Pz.Kpfw. II Ausf. L", covers = "Maybach HL 66 P 180 PS, turret front 30 mm" },
 ]
-uncertain = ["speed_offroad_kmh_x10", "power_hp", "armor_turret_front_mm"]
-note = "Only 100 built (Sep 1943-Jan 1944), served with recon units in East and West to 1945. Off-road speed not found in sources; 30 km/h estimated. Wikipedia gives 20 mm for the whole turret; Chamberlain/Doyle 30 mm front. 2 cm rate_rpm is cyclic (~450, as for the Flak 38); practical ~180-220."
+uncertain = ["speed_offroad_kmh_x10", "power_hp", "armor_turret_front_mm", "mass_kg"]
+note = "Only 100 built (Sep 1943-Jan 1944), served with recon units in East and West to 1945. Off-road speed not found in sources; 30 km/h estimated. Wikipedia gives 20 mm for the whole turret; Chamberlain/Doyle 30 mm front. 2 cm rate_rpm is cyclic (~450, as for the Flak 38); practical ~180-220. Differs from onwar.com (data/vehicles, a rank-4 source; the values above keep their sources): mass_kg 13000."
 
 [[unit]]
 id = "de_pz4_h"
@@ -428,7 +428,7 @@ source = [
     { ref = "https://panzerivtheworkhorse.blogspot.com/2015/03/panzerkampfwagen-iv-ausf-h-part-i.html", covers = "Ausf. H armor angles: superstructure (driver) front 80 mm / 10 deg, hull nose 80 mm / 14 deg, turret front 50 / 10 deg" },
 ]
 uncertain = ["speed_offroad_kmh_x10", "width_mm"]
-note = "Ausf. H (production June 1943 - mid 1944), the most numerous Pz IV in 1943-45. Width 2.88 m without Schürzen; with the 5 mm hull skirts fitted (standard on Ausf. H) about 3.3 m (not verified by a fetched source). Road range 210 km (cross-country 130 km) confirmed by two sources citing Jentz/Doyle; Wikipedia's 235-360 km spans all Pz IV variants. Off-road speed conflicts: 16 km/h (Wikipedia), ~19 km/h (12 mph, workhorse blog), 25 km/h (Tanks Encyclopedia). Superstructure (driver) front plate 80 mm at 10 degrees from vertical; hull nose plate 80 mm at 14 degrees. MG ammunition is the total for both MG 34. range_effective_m is a typical engagement range, not a hard limit."
+note = "Ausf. H (production June 1943 - mid 1944), the most numerous Pz IV in 1943-45. Width 2.88 m without Schürzen; with the 5 mm hull skirts fitted (standard on Ausf. H) about 3.3 m (not verified by a fetched source). Road range 210 km (cross-country 130 km) confirmed by two sources citing Jentz/Doyle; Wikipedia's 235-360 km spans all Pz IV variants. Off-road speed conflicts: 16 km/h (Wikipedia), ~19 km/h (12 mph, workhorse blog), 25 km/h (Tanks Encyclopedia). Superstructure (driver) front plate 80 mm at 10 degrees from vertical; hull nose plate 80 mm at 14 degrees. MG ammunition is the total for both MG 34. range_effective_m is a typical engagement range, not a hard limit. Differs from onwar.com (data/vehicles, a rank-4 source; the values above keep their sources): width_mm 3330."
 
 [[unit]]
 id = "de_tiger1_e"
@@ -468,7 +468,7 @@ source = [
     { ref = "Jentz/Doyle, Germany's Tiger Tanks: D.W. to Tiger I (2000)", covers = "front plate angles, KwK 36 PzGr 39 muzzle velocity 773 m/s (not re-verified)" },
 ]
 uncertain = ["width_mm", "height_mm", "range_road_km", "armor_hull_front_deg", "speed_road_kmh_x10", "weapon"]
-note = "Late Ausf. E (HL 230, 1943-44). Width 3.705 m over combat tracks (Panzerworld citing Jentz/Doyle; Quartermaster Section 3.70 m, WW2DB 3.72 m); Wikipedia gives 3.56 m. Height 3.00 m (Wikipedia) vs 2.885 m (Panzerworld). Road range 195 km (Wikipedia) vs 125 km (Panzerworld). PzGr 39 muzzle velocity 773 m/s and front plate angle from memory. MG ammunition 4800 (Wikipedia, Ausf. E) vs 4500 (Panzerworld). Road speed 45.4 km/h is the maximum; the engine was later governed so ~38 km/h is a practical maximum. Hull side: 80 mm upper, 60 mm lower. Mantlet 100-200 mm. Front plate almost vertical (~9 degrees)."
+note = "Late Ausf. E (HL 230, 1943-44). Width 3.705 m over combat tracks (Panzerworld citing Jentz/Doyle; Quartermaster Section 3.70 m, WW2DB 3.72 m); Wikipedia gives 3.56 m. Height 3.00 m (Wikipedia) vs 2.885 m (Panzerworld). Road range 195 km (Wikipedia) vs 125 km (Panzerworld). PzGr 39 muzzle velocity 773 m/s and front plate angle from memory. MG ammunition 4800 (Wikipedia, Ausf. E) vs 4500 (Panzerworld). Road speed 45.4 km/h is the maximum; the engine was later governed so ~38 km/h is a practical maximum. Hull side: 80 mm upper, 60 mm lower. Mantlet 100-200 mm. Front plate almost vertical (~9 degrees). Differs from onwar.com (data/vehicles, a rank-4 source; the values above keep their sources): speed_road_kmh_x10 380, range_road_km 140."
 
 [[unit]]
 id = "de_jgdpz38t"
@@ -508,7 +508,7 @@ source = [
     { ref = "Chamberlain/Doyle, Encyclopedia of German Tanks of World War Two (rev. 1999), Jagdpanzer 38", covers = "side armor 20 mm, rear 8 mm" },
 ]
 uncertain = ["speed_offroad_kmh_x10", "armor_hull_side_mm", "armor_hull_rear_mm"]
-note = "Built April 1944 - May 1945. Off-road speed not in sources; 15 km/h estimated. The MG (MG 34 or MG 42) is on a remote mount on the roof. Superstructure front uses the same 60 mm sloped plate (in armor_turret_front_mm)."
+note = "Built April 1944 - May 1945. Off-road speed not in sources; 15 km/h estimated. The MG (MG 34 or MG 42) is on a remote mount on the roof. Superstructure front uses the same 60 mm sloped plate (in armor_turret_front_mm). Differs from onwar.com (data/vehicles, a rank-4 source; the values above keep their sources): armor_hull_rear_mm 20."
 
 [[unit]]
 id = "de_stug3_g"
@@ -682,8 +682,8 @@ source = [
     { ref = "https://en.wikipedia.org/wiki/10.5_cm_leFH_18", covers = "leFH 18 muzzle velocity 470 m/s, max range 10,675 m, 6-8 rpm" },
     { ref = "Chamberlain/Doyle, Encyclopedia of German Tanks of World War Two (rev. 1999), Wespe", covers = "32 rounds stowed, superstructure 10 mm, MG 34" },
 ]
-uncertain = ["speed_offroad_kmh_x10", "armor_hull_front_mm", "armor_turret_front_mm", "weapon"]
-note = "Production Feb 1943 - mid 1944, used to 1945. range_effective_m is maximum indirect range. Ammunition: Wikipedia 40 rounds, Chamberlain/Doyle 32 (from memory); 32 used. Hull front 30 mm taken as the upper bound of the Wikipedia range; open superstructure 10 mm (in armor_turret_front_mm). Off-road speed ~20 km/h estimated."
+uncertain = ["speed_offroad_kmh_x10", "armor_hull_front_mm", "armor_turret_front_mm", "weapon", "crew", "range_road_km"]
+note = "Production Feb 1943 - mid 1944, used to 1945. range_effective_m is maximum indirect range. Ammunition: Wikipedia 40 rounds, Chamberlain/Doyle 32 (from memory); 32 used. Hull front 30 mm taken as the upper bound of the Wikipedia range; open superstructure 10 mm (in armor_turret_front_mm). Off-road speed ~20 km/h estimated. Differs from onwar.com (data/vehicles, a rank-4 source; the values above keep their sources): crew 4, range_road_km 140, armor_turret_front_mm 20."
 
 # ---------------------------------------------------------------------------
 # Guns (height and mass in firing position unless noted)

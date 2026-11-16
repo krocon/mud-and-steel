@@ -377,8 +377,8 @@ source = [
     { ref = "https://en.wikipedia.org/wiki/M3_Stuart", covers = "M5A1 late production: 4.84 x 2.29 x 2.57 m (over AA MG), 33,500 lb, crew 4, 37 mm M6 with 147 rounds, twin Cadillac Series 42 220 hp, 36 mph, 100 mi" },
     { ref = "Hunnicutt, Stuart: A History of the American Light Tank (1992)", covers = "armor values (not re-checked)" },
 ]
-uncertain = ["speed_offroad_kmh_x10", "armor_hull_front_mm", "armor_hull_side_mm", "armor_hull_rear_mm", "armor_turret_front_mm", "armor_turret_side_mm", "armor_turret_rear_mm", "weapon"]
-note = "M5A1 (production Nov 1942 - Jun 1944), the standard US light tank 1943-45 until the M24. Length incl. sand shields and stowage box; height over the AA MG. power_hp = 220 hp (net) converted. Armor values are from memory of Hunnicutt and not confirmed by a fetched source (Wikipedia gives only 9.5-50.8 mm overall); turret front 51 mm = gun shield. Offroad speed estimated. 37 mm practical rate_rpm and MG ammunition are estimates; MG rate_rpm = cyclic."
+uncertain = ["speed_offroad_kmh_x10", "armor_hull_front_mm", "armor_hull_side_mm", "armor_hull_rear_mm", "armor_turret_front_mm", "armor_turret_side_mm", "armor_turret_rear_mm", "weapon", "power_hp"]
+note = "M5A1 (production Nov 1942 - Jun 1944), the standard US light tank 1943-45 until the M24. Length incl. sand shields and stowage box; height over the AA MG. power_hp = 220 hp (net) converted. Armor values are from memory of Hunnicutt and not confirmed by a fetched source (Wikipedia gives only 9.5-50.8 mm overall); turret front 51 mm = gun shield. Offroad speed estimated. 37 mm practical rate_rpm and MG ammunition are estimates; MG rate_rpm = cyclic. Differs from onwar.com (data/vehicles, a rank-4 source; the values above keep their sources): power_hp 296, armor_hull_front_mm 64."
 
 [[unit]]
 id = "us_m4a3_75"
@@ -418,8 +418,8 @@ source = [
     { ref = "https://en.wikipedia.org/wiki/M4_Sherman", covers = "crew 5, off-road speed 15-20 mph (24-32 km/h) across variants" },
     { ref = "TM 9-759 Medium Tank M4A3 (1942)", covers = "base M4A3 manual (existence confirmed; contents not read)" },
 ]
-uncertain = ["speed_offroad_kmh_x10", "weapon"]
-note = "M4A3(75)W with VVSS, large-hatch 47 deg hull, wet stowage (built Feb 1944 - Mar 1945). Length 6,270 mm is the hull with sandshields; the 75 mm barrel hardly overhangs, so it is used as overall length. Height over the cupola. armor_hull_front_mm = upper glacis (the cast/rolled lower nose is 51-108 mm). armor_turret_front_mm = turret face 76 mm; gun shield 89 mm. power_hp = 500 gross hp converted (450 net). Offroad speed estimated within the 24-32 km/h range Wikipedia gives for Shermans. 75 mm practical rate_rpm and effective range are estimates; MG rate_rpm = cyclic."
+uncertain = ["speed_offroad_kmh_x10", "weapon", "armor_hull_front_mm", "armor_turret_front_mm"]
+note = "M4A3(75)W with VVSS, large-hatch 47 deg hull, wet stowage (built Feb 1944 - Mar 1945). Length 6,270 mm is the hull with sandshields; the 75 mm barrel hardly overhangs, so it is used as overall length. Height over the cupola. armor_hull_front_mm = upper glacis (the cast/rolled lower nose is 51-108 mm). armor_turret_front_mm = turret face 76 mm; gun shield 89 mm. power_hp = 500 gross hp converted (450 net). Offroad speed estimated within the 24-32 km/h range Wikipedia gives for Shermans. 75 mm practical rate_rpm and effective range are estimates; MG rate_rpm = cyclic. Differs from onwar.com (data/vehicles, a rank-4 source; the values above keep their sources): armor_hull_front_mm 108, armor_turret_front_mm 89."
 
 [[unit]]
 id = "us_m26"
@@ -458,8 +458,8 @@ source = [
     { ref = "https://en.wikipedia.org/wiki/M26_Pershing", covers = "8.649 m with gun, 6.337 m hull, 3.51 m, 2.781 m, 41.9 t, crew 5, upper hull 102 mm, turret sides 76 mm, hull sides 50-75 mm, 90 mm M3 with 70 rounds, 2x M1919 (5,000), M2 (550), Ford GAF 450-500 hp, 48 km/h, 160 km" },
     { ref = "Hunnicutt, Pershing: A History of the Medium Tank T20 Series (1971)", covers = "glacis angle 46 deg, mantlet 4.5 in, rear armor (not re-checked)" },
 ]
-uncertain = ["speed_offroad_kmh_x10", "armor_hull_front_deg", "armor_hull_rear_mm", "armor_turret_front_mm", "armor_turret_rear_mm"]
-note = "T26E3/M26 as used in Europe Feb-May 1945 (in service until Korea, reclassified medium tank 1946). armor_turret_front_mm 114 = gun mantlet (turret face 102 mm); not in the fetched source. Wikipedia lists an off-road speed of 5.25 mph (8.45 km/h), which looks like a grade/soft-ground figure; 26 km/h is an estimate. power_hp = 500 gross hp converted. MG rate_rpm = cyclic."
+uncertain = ["speed_offroad_kmh_x10", "armor_hull_front_deg", "armor_hull_rear_mm", "armor_turret_front_mm", "armor_turret_rear_mm", "speed_road_kmh_x10"]
+note = "T26E3/M26 as used in Europe Feb-May 1945 (in service until Korea, reclassified medium tank 1946). armor_turret_front_mm 114 = gun mantlet (turret face 102 mm); not in the fetched source. Wikipedia lists an off-road speed of 5.25 mph (8.45 km/h), which looks like a grade/soft-ground figure; 26 km/h is an estimate. power_hp = 500 gross hp converted. MG rate_rpm = cyclic. Differs from onwar.com (data/vehicles, a rank-4 source; the values above keep their sources): speed_road_kmh_x10 400."
 
 [[unit]]
 id = "us_m10"
@@ -497,8 +497,8 @@ source = [
     { ref = "https://en.wikipedia.org/wiki/M10_tank_destroyer", covers = "6.83 m with gun, 5.97 m hull, 3.05 m, 2.90 m over AA MG, 65,200 lb, crew 5, glacis 1.5 in, upper sides/rear 0.75 in, turret side 1 in, gun shield 2.25 in, 3 in M7 with 54 rounds, 375 hp, 25-30 mph, 200 mi" },
     { ref = "Zaloga, M10 and M36 Tank Destroyers 1942-53, Osprey New Vanguard 57 (2002)", covers = "service, .50 AA MG (not re-checked)" },
 ]
-uncertain = ["speed_road_kmh_x10", "speed_offroad_kmh_x10", "armor_hull_front_deg"]
-note = "M10 (GM 6046 twin diesel; the M10A1 used the Ford GAA). Open-topped turret. Height over the AA MG. armor_hull_front_mm = glacis 38 mm; the 55 deg slope is from memory, not confirmed. Turret front 57 mm = gun shield. Road speed: Wikipedia gives 25-30 mph, 30 mph used. power_hp = 375 hp converted. Offroad speed estimated."
+uncertain = ["speed_road_kmh_x10", "speed_offroad_kmh_x10", "armor_hull_front_deg", "armor_hull_front_mm", "armor_hull_side_mm", "armor_hull_rear_mm"]
+note = "M10 (GM 6046 twin diesel; the M10A1 used the Ford GAA). Open-topped turret. Height over the AA MG. armor_hull_front_mm = glacis 38 mm; the 55 deg slope is from memory, not confirmed. Turret front 57 mm = gun shield. Road speed: Wikipedia gives 25-30 mph, 30 mph used. power_hp = 375 hp converted. Offroad speed estimated. Differs from onwar.com (data/vehicles, a rank-4 source; the values above keep their sources): armor_hull_front_mm 51, armor_hull_side_mm 25, armor_hull_rear_mm 25, speed_road_kmh_x10 400."
 
 [[unit]]
 id = "us_m4a3_105"

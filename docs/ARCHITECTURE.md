@@ -528,6 +528,63 @@ aim. Hulls follow the simulation's `facing`.
 - Target leading: rounds fly at the target's position at the moment of the
   shot; at 75 m per tick this matters only for fast targets far away.
 
+## Unit stats (display only)
+
+`crates/sim/src/unit_stats.rs` (prompt 065) turns a catalog entry and the rule files
+into one card of game values, with the rule functions the simulation itself uses. It
+is a set of pure functions outside the simulation state: no rule reads it, the state
+hash and the golden hash do not depend on it. `cli unit-stats` prints all cards as
+JSON (the unit page shows them), `SimHost.unit_stats(type_id)` returns one as a
+dictionary (prompt 066). There is no second calculation anywhere: JavaScript and
+GDScript only format.
+
+All numbers are integers with the unit in the key; `game` values are what the
+simulation computes with, `real` values the historical ones. Base values: dry ground,
+no experience bonus, no weather.
+
+| Card section | Values | From |
+|---|---|---|
+| `movement` | game speeds on road and cross-country | `UnitType::from_catalog` (catalog speed × `data/scale.toml` time factor) |
+| | hull and turret turn rate, gun traverse | `data/combat.toml` `[aim]`, catalog `gun_traverse_deg` |
+| | speed in mud and deep snow | `WeatherRules::speed_pct` at full softness, slowest terrain (`data/weather.toml`) |
+| | steepest grade and the speed there | `data/terrain.toml` `[slope]` |
+| | what the vehicle flattens | `crush_min_mass_kg` of `data/destruction.toml` against catalog `mass_kg` |
+| `protection` | hit points | `CombatRules::max_hp`, fortifications from `data/economy.toml` |
+| | armor per face, effective hull front | catalog armor as `combat::Armor`; front slope and `min_cos_pct` as in the armor check of a hit |
+| | `versus`: reach of each comparison weapon per face, hits to destroy | `CombatRules::penetration_at` (largest real distance, 10 m steps, that still penetrates; no random spread, straight impact), `vehicle_damage`, `infantry_damage` |
+| | hurt by shell fragments | `open_armor_mm` of `data/indirect.toml` |
+| `weapons` | game and real range, shots per game minute | `CombatType::from_catalog`, `CombatRules::reload_ticks` |
+| | penetration at 100/500/1000/1500 m real, damage | `penetration_at`, `vehicle_damage`, `infantry_damage` |
+| `against_vehicles` | strongest gun at 500 m real, which reference tank it knocks out from front, side and rear | as `versus`, against the hulls of the other factions' reference tanks |
+| `against_infantry` | damage per hit, automatic weapons, soldiers per game minute | `infantry_damage`, `reload_ticks`, `soldier_hp`; shells: one soldier per shell |
+| `against_structures` | hits until reference objects collapse, or "no effect" | hit points and `min_caliber_mm` of `data/destruction.toml`, `vehicle_damage` |
+| `indirect` | range, minimum range, setup, blast radius, direct hit | `IndirectWeapon::from_catalog`, `data/indirect.toml` |
+| `other` | sight, ammunition (salvos, minutes of fire), fuel, seats, cost, build time | `VisionRules::range_m`, `LogisticsType::from_catalog`, `EconomyRules::unit_cost` / `structure_cost` |
+| `object` | hit points, minimum caliber, crush mass of map objects | `data/destruction.toml` |
+
+Comparison weapons, targets and objects are the constants `REFERENCE_WEAPONS`
+(rifle, machine gun, 3.7 cm, 5.7 cm, 7.5 cm, 8.8 cm, Panzerschreck: catalog weapons),
+`REFERENCE_TARGETS` (a light, medium and heavy tank per faction) and
+`REFERENCE_OBJECTS`. Only weapons the simulation fires appear: a catalog weapon
+without caliber, rate, muzzle velocity and range (many vehicle machine guns) is not
+a game weapon and so not on the card. Aircraft attack through the air-support rules
+and have no weapon sections.
+
+**Ratings.** Five display numbers 0–100 with fixed reference values (the block
+`RATINGS`), so they do not shift when units are added. Each is
+`min(100, value × 100 / reference)`:
+
+| Rating | Value | Reference (= 100) |
+|---|---|---|
+| `speed` | mean of road and cross-country game speed | 30 m/s in the game (54 km/h real) |
+| `protection` | armored: 10 + 90 % of effective armor (front 50 %, side 30 %, rear 20 %, hull and turret averaged) | 150 mm |
+| | unarmored vehicles, guns: 10; infantry: 2 per soldier, at most 20 | – |
+| `anti_vehicle` | best penetration at 500 m real (or at the weapon's range if shorter), times 50–100 % for a range of 0–500 m | 200 mm |
+| `anti_infantry` | soldiers put out of action per game minute if every round hits | 600 |
+| `anti_structure` | damage per game minute of the strongest weapon of at least the minimum caliber | 20 000 |
+
+They are a display, not a rule: the AI and the simulation never read them.
+
 ## Vision and fog of war
 
 Prompt 018. Every player sees only what their units see; hills, forests,

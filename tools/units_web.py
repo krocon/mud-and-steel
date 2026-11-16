@@ -2,12 +2,14 @@
 """Serve the unit browser (web/units/) from the repository root, or sync its copy.
 
 Served locally, the page reads the catalog, the camouflage palettes and the models
-straight from the repository; the only generated file is the price table of the
-simulation (`cli economy-table` -> web/units/economy.md). Usage: `just units-web`.
+straight from the repository; the only generated files are the price table and the
+game values of the simulation (`cli economy-table` -> web/units/economy.md,
+`cli unit-stats` -> web/units/stats.json). Usage: `just units-web`.
 
 The website serves web/units/ as its root, so there the page finds the same files
 under web/units/ itself. `--sync` (`just units-web-sync`) copies every file the page
-loads to that place, removes copies that are no longer needed and writes the prices.
+loads to that place, removes copies that are no longer needed and writes the prices
+and game values.
 """
 
 import argparse
@@ -71,6 +73,26 @@ def write_prices():
     return True
 
 
+def write_stats():
+    """Game values of every unit, computed by the simulation (`cli unit-stats`)."""
+    try:
+        cards = subprocess.run(
+            ["cargo", "run", "-q", "-p", "cli", "--", "unit-stats"],
+            cwd=ROOT, check=True, stdout=subprocess.PIPE,
+        ).stdout
+    except (OSError, subprocess.CalledProcessError) as error:
+        print(f"units-web: no game values ({error})", flush=True)
+        return
+    (WEB / "stats.json").write_bytes(cards)
+    return True
+
+
+def write_generated():
+    """Both generated files, one cargo run after the other."""
+    prices = write_prices()
+    return write_stats() and prices
+
+
 def page_files():
     """Repository paths of every file the page loads (see app.js and viewer.js)."""
     catalogs = [f"data/catalog/{f}.toml" for f in ("de", "su", "us", "neutral")]
@@ -120,7 +142,7 @@ def sync():
     no_thumb = [i for i in ids if not (ROOT / f"godot/assets/thumbnails/{i}.png").is_file()]
     if no_thumb:
         print(f"units-web: no thumbnail, run: just thumbnails --only={','.join(no_thumb)}", flush=True)
-    return write_prices() and not missing
+    return write_generated() and not missing
 
 
 def main():
@@ -132,7 +154,7 @@ def main():
     if args.sync:
         raise SystemExit(0 if sync() else 1)
 
-    threading.Thread(target=write_prices, daemon=True).start()
+    threading.Thread(target=write_generated, daemon=True).start()
     handler = functools.partial(Handler, directory=str(ROOT))
     server = Server(("127.0.0.1", args.port), handler)
     address = f"http://localhost:{args.port}/web/units/"

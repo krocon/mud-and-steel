@@ -1,0 +1,2182 @@
+[
+  {
+    "id": "us_m10",
+    "name": "M10 Tank Destroyer",
+    "type": "Tank Destroyer",
+    "family": "3 inch GMC M10",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/usa/us021m10.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "Sh",
+        "ShIA",
+        "USTDIA"
+      ]
+    },
+    "general": {
+      "other_designations": "3 inch Gun Motor Carriage M10",
+      "production_quantity": 4993,
+      "production_period": "Sept. 1942-Dec. 1943",
+      "crew": 5,
+      "length_mm": 6830,
+      "length_hull_mm": 5970,
+      "width_mm": 3050,
+      "height_mm": 2900,
+      "barrel_overhang_mm": 860,
+      "mass_kg": 29600,
+      "radio": "SCR610"
+    },
+    "firepower": {
+      "main_gun": "76.2mm Gun M7",
+      "main_gun_caliber_mm_x10": 762,
+      "main_ammo": 54,
+      "traverse_deg": 360,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -100,
+      "elevation_max_deg_x10": 300
+    },
+    "mobility": {
+      "engine": "GM 6046",
+      "engine_type": "In12, 13.9 liters",
+      "displacement_cc": 13900,
+      "power_hp": 375,
+      "power_rpm": 2100,
+      "power_to_weight_hp_per_t_x10": 127,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Diesel",
+      "fuel_capacity_l": 750,
+      "consumption_road_l_per_100km": 233,
+      "range_road_km": 322,
+      "speed_road_kmh_x10": 400,
+      "track_width_mm": 421,
+      "track_ground_contact_mm": 3734,
+      "track_links": 79,
+      "ground_pressure_psi_x10": 134,
+      "ground_pressure_kpa_x10": 924,
+      "ground_clearance_mm": 430,
+      "turning_radius_mm": 18900,
+      "gradient_deg": 31,
+      "vertical_obstacle_mm": 610,
+      "fording_mm": 910,
+      "trench_crossing_mm": 2300
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 51, "text": "51mm @34-90°" },
+        "side": { "mm": 25, "deg": 90 },
+        "rear": { "mm": 25, "deg": 90 },
+        "top_bottom": { "mm": 13, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 38, "deg": 35 },
+        "side": { "mm": 19, "deg": 52 },
+        "rear": { "mm": 19, "deg": 52 },
+        "top_bottom": { "mm": 19, "text": "19mm @0°(front)" }
+      },
+      "turret": {
+        "side": { "mm": 25, "deg": 75 },
+        "rear": { "mm": 25, "deg": 90 },
+        "top_bottom": { "mm": 19, "deg": 0 }
+      },
+      "gun_shield": {
+        "front": { "mm": 57, "deg": 45 }
+      }
+    }
+  },
+  {
+    "id": "us_m18",
+    "name": "M18 Hellcat",
+    "type": "Tank Destroyer",
+    "family": "M18 Hellcat",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/usa/us024tdm18.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "St",
+        "USTDIA"
+      ]
+    },
+    "general": {
+      "other_designations": "76mm Gun Motor Carriage M18 Hellcat",
+      "production_quantity": 2507,
+      "production_period": "Jul. 1943-Oct. 1944",
+      "crew": 5,
+      "length_mm": 6650,
+      "length_hull_mm": 5280,
+      "width_mm": 2870,
+      "height_mm": 2570,
+      "barrel_overhang_mm": 1370,
+      "mass_kg": 17700,
+      "radio": "SCR610"
+    },
+    "firepower": {
+      "main_gun": "76mm Gun M1A1, M1A1C or M1A2",
+      "main_gun_caliber_mm_x10": 760,
+      "main_ammo": 45,
+      "traverse_deg": 360,
+      "traverse_drive": "hydraulic",
+      "elevation_min_deg_x10": -100,
+      "elevation_max_deg_x10": 200,
+      "traverse_time_360_s": 15,
+      "secondary": "1 x .50 caliber MG HB M2 (AA)",
+      "secondary_ammo": 800
+    },
+    "mobility": {
+      "engine": "Continental R-975-C4",
+      "engine_type": "R9, 15.9 liters",
+      "displacement_cc": 15900,
+      "power_hp": 460,
+      "power_rpm": 2400,
+      "power_to_weight_hp_per_t_x10": 260,
+      "gearbox": "3 forward, 1 reverse",
+      "gears_forward": 3,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 750,
+      "consumption_road_l_per_100km": 466,
+      "range_road_km": 161,
+      "speed_road_kmh_x10": 800,
+      "track_width_mm": 305,
+      "track_ground_contact_mm": 2959,
+      "track_links": 83,
+      "ground_pressure_psi_x10": 126,
+      "ground_pressure_kpa_x10": 869,
+      "ground_clearance_mm": 360,
+      "turning_radius_mm": 20100,
+      "gradient_deg": 31,
+      "vertical_obstacle_mm": 910,
+      "fording_mm": 1220,
+      "trench_crossing_mm": 1860
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 13, "text": "13mm @37°(lower)" },
+        "side": { "mm": 13, "deg": 90 },
+        "rear": { "mm": 13, "deg": 55 },
+        "top_bottom": { "mm": 5, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 13, "text": "13mm @52°(lower)" },
+        "side": { "mm": 13, "deg": 67 },
+        "rear": { "mm": 13, "deg": 77 },
+        "top_bottom": { "mm": 8, "deg": 0 }
+      },
+      "turret": {
+        "front": { "mm": 25, "deg": 67 },
+        "side": { "mm": 13, "deg": 70 },
+        "rear": { "mm": 13, "deg": 81 },
+        "top_bottom": { "text": "open" }
+      },
+      "mantlet": {
+        "front": { "mm": 19, "text": "19mm @30-90°" }
+      }
+    }
+  },
+  {
+    "id": "us_m22",
+    "name": "M22 Locust",
+    "type": "Light/Airborne Tank",
+    "family": "M22 Locust",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/usa/us005ltm22.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "St"
+      ]
+    },
+    "general": {
+      "other_designations": "Light Tank, M22 Locust",
+      "production_quantity": 830,
+      "production_period": "Apr. 1943-Feb. 1944",
+      "crew": 4,
+      "length_mm": 3960,
+      "length_hull_mm": 3930,
+      "width_mm": 2250,
+      "height_mm": 1840,
+      "barrel_overhang_mm": 30,
+      "mass_kg": 7400,
+      "radio": "SCR510"
+    },
+    "firepower": {
+      "main_gun": "37mm Gun M6",
+      "main_gun_caliber_mm_x10": 370,
+      "main_ammo": 50,
+      "traverse_deg": 360,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -100,
+      "elevation_max_deg_x10": 300,
+      "secondary": "1 x .30 caliber MG M1919A4 (coaxial)",
+      "secondary_ammo": 2500
+    },
+    "mobility": {
+      "engine": "Lycoming 0-435T",
+      "engine_type": "HO6, 7.1 liters",
+      "displacement_cc": 7100,
+      "power_hp": 192,
+      "power_rpm": 2800,
+      "power_to_weight_hp_per_t_x10": 259,
+      "gearbox": "4 forward, 1 reverse",
+      "gears_forward": 4,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 259,
+      "consumption_road_l_per_100km": 146,
+      "range_road_km": 177,
+      "speed_road_kmh_x10": 580,
+      "track_width_mm": 286,
+      "track_ground_contact_mm": 2310,
+      "track_links": 106,
+      "ground_pressure_psi_x10": 71,
+      "ground_pressure_kpa_x10": 490,
+      "ground_clearance_mm": 250,
+      "turning_radius_mm": 11600,
+      "gradient_deg": 27,
+      "vertical_obstacle_mm": 460,
+      "fording_mm": 910,
+      "trench_crossing_mm": 1680
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 25, "deg": 90 },
+        "side": { "mm": 13, "deg": 90 },
+        "rear": { "mm": 13, "deg": 81 },
+        "top_bottom": { "mm": 13, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 13, "deg": 25 },
+        "side": { "mm": 10, "deg": 45 },
+        "top_bottom": { "mm": 10, "deg": 0 }
+      },
+      "turret": {
+        "front": { "mm": 25, "deg": 60 },
+        "side": { "mm": 25, "deg": 85 },
+        "rear": { "mm": 25, "deg": 90 },
+        "top_bottom": { "mm_min": 10, "mm_max": 19, "deg": 0, "text": "10-19mm @0°" }
+      },
+      "mantlet": {
+        "front": { "mm": 25, "deg": 40 }
+      }
+    }
+  },
+  {
+    "id": "us_m24",
+    "name": "M24 Chaffee",
+    "type": "Light Tank",
+    "family": "M24 Chaffee",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/usa/us006ltm24.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "St",
+        "StIA"
+      ]
+    },
+    "general": {
+      "other_designations": "Light Tank M24 Chaffee",
+      "production_quantity": 4731,
+      "production_period": "Apr. 1944-Aug. 1945",
+      "crew": 4,
+      "length_mm": 5560,
+      "length_hull_mm": 5030,
+      "width_mm": 3000,
+      "height_mm": 2770,
+      "barrel_overhang_mm": 530,
+      "mass_kg": 18400,
+      "radio": "SCR508/528/538",
+      "text": {
+        "length_mm": "5.56/5.03",
+        "length_hull_mm": "5.56/5.03"
+      }
+    },
+    "firepower": {
+      "main_gun": "75mm Gun M6",
+      "main_gun_caliber_mm_x10": 750,
+      "main_ammo": 48,
+      "traverse_deg": 360,
+      "traverse_drive": "hydraulic",
+      "elevation_min_deg_x10": -100,
+      "elevation_max_deg_x10": 150,
+      "traverse_time_360_s": 15,
+      "secondary": "1 x .50 caliber MG HB M2 (AA)",
+      "secondary_ammo": 440
+    },
+    "mobility": {
+      "engine": "2 x Cadillac Series 44T24",
+      "engine_type": "2 x V8, 5.7 liters",
+      "power_hp": 296,
+      "power_rpm": 3200,
+      "power_to_weight_hp_per_t_x10": 161,
+      "gearbox": "2 forward, 1 reverse",
+      "gears_forward": 2,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 500,
+      "consumption_road_l_per_100km": 311,
+      "range_road_km": 161,
+      "speed_road_kmh_x10": 560,
+      "track_width_mm": 406,
+      "track_ground_contact_mm": 2858,
+      "track_links": 75,
+      "ground_pressure_psi_x10": 113,
+      "ground_pressure_kpa_x10": 779,
+      "ground_clearance_mm": 460,
+      "turning_radius_mm": 14000,
+      "gradient_deg": 31,
+      "vertical_obstacle_mm": 910,
+      "fording_mm": 1020,
+      "trench_crossing_mm": 2440,
+      "text": {
+        "power_hp": "2 x 148hp @3200rpm"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 25, "deg": 45 },
+        "side": { "mm": 25, "text": "25mm @88° (front)" },
+        "rear": { "mm": 19, "deg": 48 },
+        "top_bottom": { "mm": 13, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 25, "deg": 30 },
+        "rear": { "mm": 19, "deg": 90 },
+        "top_bottom": { "mm": 13, "deg": 0 }
+      },
+      "turret": {
+        "front": { "mm": 38, "text": "38mm @30-90°" },
+        "side": { "mm": 25, "text": "25mm @65° R" },
+        "rear": { "mm": 25, "deg": 90 },
+        "top_bottom": { "mm": 25, "text": "25mm @0-22°" }
+      },
+      "mantlet": {
+        "front": { "mm": 38, "text": "38mm @30-90°" }
+      }
+    }
+  },
+  {
+    "id": "us_m26",
+    "name": "M26 Pershing",
+    "type": "Medium Tank",
+    "family": "M26 Pershing",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/usa/us022m26.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "Pe"
+      ]
+    },
+    "general": {
+      "other_designations": "M26 (T26E3) Pershing",
+      "manufacturer": "Fisher Tank Arsenal, Detroit Tank Arsenal (Chrysler)",
+      "production_quantity": 1436,
+      "production_period": "Nov. 1944 - Jun. 1945",
+      "crew": 5,
+      "length_mm": 8650,
+      "width_mm": 3510,
+      "height_mm": 2780,
+      "barrel_overhang_mm": 2320,
+      "mass_kg": 41900,
+      "radio": "SCR508/528",
+      "text": {
+        "production_quantity": "1436*"
+      }
+    },
+    "firepower": {
+      "main_gun": "90mm Gun M3 (T7)",
+      "main_gun_caliber_mm_x10": 900,
+      "main_ammo": 70,
+      "traverse_deg": 360,
+      "elevation_min_deg_x10": -100,
+      "elevation_max_deg_x10": 200,
+      "traverse_time_360_s": 15,
+      "sight": "M71C",
+      "secondary": "2 x .30 caliber MG M1919A4 (coaxial, bow)",
+      "secondary_ammo": 5000
+    },
+    "mobility": {
+      "engine": "Ford GAF",
+      "engine_type": "V8, 18.0 liters",
+      "displacement_cc": 18000,
+      "power_hp": 500,
+      "power_rpm": 2600,
+      "power_to_weight_hp_per_t_x10": 119,
+      "gearbox": "3 forward, 1 reverse",
+      "gears_forward": 3,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 832,
+      "consumption_road_l_per_100km": 517,
+      "range_road_km": 161,
+      "speed_road_kmh_x10": 400,
+      "track_links": 82,
+      "ground_pressure_psi_x10": 125,
+      "ground_pressure_kpa_x10": 862,
+      "ground_clearance_mm": 440,
+      "turning_radius_mm": 18300,
+      "gradient_deg": 31,
+      "vertical_obstacle_mm": 1170,
+      "fording_mm": 1220,
+      "trench_crossing_mm": 2440,
+      "text": {
+        "track_width_mm": "61.0 or 58.4 cm",
+        "track_ground_contact_mm": "384.8 cm L 395.0 cm R"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 76, "deg": 37 },
+        "side": { "mm": 76, "text": "76mm @90°(front)" },
+        "rear": { "mm": 19, "deg": 28 },
+        "top_bottom": { "mm": 25, "text": "25mm @0° (front)" }
+      },
+      "superstructure": {
+        "front": { "mm": 102, "deg": 44 },
+        "rear": { "mm": 51, "deg": 80 },
+        "top_bottom": { "mm": 22, "deg": 0 }
+      },
+      "turret": {
+        "front": { "mm": 102, "deg": 90 },
+        "side": { "mm": 76, "text": "76mm @82-90°" },
+        "rear": { "mm": 76, "text": "76mm @85-90°" },
+        "top_bottom": { "mm": 25, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 114, "deg": 90 }
+      }
+    },
+    "notes": [
+      "*Production continued beyond June 1945 with a total of over 2000 completed by the end of 1945."
+    ]
+  },
+  {
+    "id": "us_m36",
+    "name": "M36 Tank Destroyer",
+    "type": "Tank Destroyer",
+    "family": "90mm GMC M36",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/usa/us023m36.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "Sh",
+        "USTDIA"
+      ]
+    },
+    "general": {
+      "other_designations": "90mm Gun Motor Carriage M36",
+      "production_quantity": 1413,
+      "production_period": "Apr. 1944-July 1945",
+      "crew": 5,
+      "length_mm": 7460,
+      "length_hull_mm": 5970,
+      "width_mm": 3050,
+      "height_mm": 3280,
+      "barrel_overhang_mm": 1490,
+      "mass_kg": 28600,
+      "radio": "SCR610"
+    },
+    "firepower": {
+      "main_gun": "90mm Gun M3",
+      "main_gun_caliber_mm_x10": 900,
+      "main_ammo": 47,
+      "traverse_deg": 360,
+      "elevation_min_deg_x10": -100,
+      "elevation_max_deg_x10": 200,
+      "traverse_time_360_s": 15
+    },
+    "mobility": {
+      "engine": "Ford GAA",
+      "engine_type": "V8, 18 liters",
+      "displacement_cc": 18000,
+      "power_hp": 500,
+      "power_rpm": 2600,
+      "power_to_weight_hp_per_t_x10": 175,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 873,
+      "consumption_road_l_per_100km": 568,
+      "consumption_offroad_l_per_100km": 758,
+      "range_road_km": 249,
+      "range_offroad_km": 177,
+      "track_width_mm": 421,
+      "track_ground_contact_mm": 3734,
+      "track_links": 79,
+      "ground_pressure_psi_x10": 129,
+      "ground_pressure_kpa_x10": 889,
+      "ground_clearance_mm": 430,
+      "turning_radius_mm": 18900,
+      "gradient_deg": 31,
+      "vertical_obstacle_mm": 610,
+      "fording_mm": 910,
+      "trench_crossing_mm": 2300,
+      "text": {
+        "speed_road_kmh_x10": "42/8-32 km/h"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm_min": 51, "mm_max": 108, "text": "51-108mm @34-90°" },
+        "side": { "mm": 25, "deg": 90 },
+        "rear": { "mm": 19, "text": "19mm @52-90°" },
+        "top_bottom": { "mm": 13, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 38, "deg": 35 },
+        "side": { "mm": 19, "deg": 52 },
+        "rear": { "mm": 19, "text": "19mm @52-90°" },
+        "top_bottom": { "mm": 19, "text": "19mm @0°(front)" }
+      },
+      "turret": {
+        "side": { "mm": 32, "deg": 85 },
+        "rear": { "mm_min": 44, "mm_max": 127, "deg": 90, "text": "44-127mm @90°" },
+        "top_bottom": { "mm": 10, "deg": 0 }
+      },
+      "gun_shield": {
+        "front": { "mm": 76, "deg": 45 }
+      }
+    }
+  },
+  {
+    "id": "us_m3_lee",
+    "name": "M3 Lee",
+    "type": "Medium Tank",
+    "family": "M3 Lee",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/usa/us010m3med.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "Sh"
+      ]
+    },
+    "general": {
+      "other_designations": "Medium Tank M3 Lee",
+      "production_quantity": 4924,
+      "production_period": "Jun. 1941-Aug. 1942",
+      "width_mm": 2720,
+      "height_mm": 3120,
+      "mass_kg": 27900,
+      "radio": "SCR508",
+      "text": {
+        "crew": "6 or 7",
+        "length_mm": "6.12 or 5.64*/5.64",
+        "barrel_overhang_mm": "0.48 or 0*"
+      }
+    },
+    "firepower": {
+      "main_gun": "75mm Gun M2 or M3 (hull mounted)",
+      "main_gun_caliber_mm_x10": 750,
+      "main_ammo": 75,
+      "traverse_time_360_s": 75,
+      "sight": "75mm: n.a.",
+      "secondary": "3 x .30 caliber MG M1919A4 (turret, coaxial with 37mm, bow)",
+      "secondary_ammo": 9200,
+      "text": {
+        "main_ammo": "75mm: 50",
+        "traverse_deg": "75mm: 30° (15 L or R)",
+        "elevation_min_deg_x10": "75mm: -9° to +20°",
+        "traverse_time_360_s": "75mm: Manual"
+      }
+    },
+    "mobility": {
+      "engine": "Wright (Continental) R975 EC2",
+      "engine_type": "R9, 15.9 liters",
+      "displacement_cc": 15900,
+      "power_hp": 400,
+      "power_rpm": 2400,
+      "power_to_weight_hp_per_t_x10": 143,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 796,
+      "consumption_road_l_per_100km": 412,
+      "range_road_km": 193,
+      "speed_road_kmh_x10": 340,
+      "track_ground_contact_mm": 3734,
+      "track_links": 79,
+      "ground_pressure_psi_x10": 126,
+      "ground_pressure_kpa_x10": 869,
+      "ground_clearance_mm": 430,
+      "turning_radius_mm": 18900,
+      "gradient_deg": 31,
+      "vertical_obstacle_mm": 610,
+      "fording_mm": 1000,
+      "trench_crossing_mm": 2300,
+      "text": {
+        "track_width_mm": "40.6 or 42.1 cm"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 51, "text": "51mm @45-90°" },
+        "side": { "mm": 38, "deg": 90 },
+        "rear": { "mm": 38, "text": "38mm @80°-90°" },
+        "top_bottom": { "mm": 25, "text": "25mm @0°(front) 13mm @0°(rear)" }
+      },
+      "superstructure": {
+        "front": { "mm": 38, "text": "38mm @37°(lower) 51mm @60°(upper)" },
+        "side": { "mm": 38, "deg": 90 },
+        "top_bottom": { "mm": 13, "text": "13mm @0-7°" }
+      },
+      "turret": {
+        "front": { "mm": 51, "deg": 43 },
+        "side": { "mm": 51, "deg": 85 },
+        "rear": { "mm": 51, "deg": 85 },
+        "top_bottom": { "mm": 22, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 89, "deg": 90 }
+      }
+    },
+    "notes": [
+      "*M3 or M2 gun respectively"
+    ]
+  },
+  {
+    "id": "us_m3_stuart",
+    "name": "M3 Stuart",
+    "type": "Light Tank",
+    "family": "M3 Stuart",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/usa/us001ltm3.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "St",
+        "StIA"
+      ]
+    },
+    "general": {
+      "other_designations": "Light Tank, M3 Stuart",
+      "production_quantity": 4526,
+      "production_period": "Mar. 1941-Oct. 1942",
+      "crew": 4,
+      "length_mm": 4530,
+      "width_mm": 2240,
+      "height_mm": 2640,
+      "mass_kg": 12700,
+      "radio": "SCR210"
+    },
+    "firepower": {
+      "main_gun": "37mm Gun M5",
+      "main_gun_caliber_mm_x10": 370,
+      "main_ammo": 103,
+      "traverse_deg": 360,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -100,
+      "elevation_max_deg_x10": 200,
+      "sight": "M5A1",
+      "secondary": "5 x .30 caliber MG M1919A4 (AA, coaxial, bow, 2 x sponson)",
+      "secondary_ammo": 8270
+    },
+    "mobility": {
+      "engine": "Continental W-670-9A",
+      "engine_type": "R7, 10.9 liters",
+      "displacement_cc": 10900,
+      "power_hp": 262,
+      "power_rpm": 2400,
+      "power_to_weight_hp_per_t_x10": 206,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 245,
+      "consumption_road_l_per_100km": 216,
+      "range_road_km": 113,
+      "speed_road_kmh_x10": 580,
+      "track_width_mm": 295,
+      "track_ground_contact_mm": 2972,
+      "track_links": 66,
+      "ground_pressure_psi_x10": 103,
+      "ground_pressure_kpa_x10": 710,
+      "ground_clearance_mm": 420,
+      "turning_radius_mm": 12800,
+      "gradient_deg": 31,
+      "vertical_obstacle_mm": 610,
+      "fording_mm": 910,
+      "trench_crossing_mm": 1830
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 44, "deg": 67 },
+        "side": { "mm": 25, "deg": 90 },
+        "rear": { "mm": 25, "deg": 70 },
+        "top_bottom": { "mm": 13, "text": "13mm @0°(front)" }
+      },
+      "superstructure": {
+        "front": { "mm": 16, "text": "16mm @21°(lower)" },
+        "side": { "mm": 25, "deg": 90 },
+        "rear": { "mm": 25, "text": "25mm @90°(lower)" },
+        "top_bottom": { "mm": 13, "deg": 0 }
+      },
+      "turret": {
+        "front": { "mm": 38, "deg": 80 },
+        "side": { "mm": 25, "deg": 90 },
+        "rear": { "mm": 25, "deg": 90 },
+        "top_bottom": { "mm": 13, "text": "13mm @0-15°" }
+      },
+      "mantlet": {
+        "front": { "mm": 38, "text": "38mm @76-90°" }
+      }
+    }
+  },
+  {
+    "id": "us_m3a1_lee",
+    "name": "M3A1 Lee",
+    "type": "Medium Tank",
+    "family": "M3 Lee",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/usa/us007m3a1med.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "Sh"
+      ]
+    },
+    "general": {
+      "other_designations": "M3A1 Lee",
+      "production_quantity": 300,
+      "production_period": "Jan. 1942-Jul. 1942",
+      "width_mm": 2720,
+      "height_mm": 3120,
+      "mass_kg": 28600,
+      "radio": "SCR508",
+      "text": {
+        "crew": "6 or 7",
+        "length_mm": "6.12-5.64*/5.64",
+        "barrel_overhang_mm": "0.48 or 0*"
+      }
+    },
+    "firepower": {
+      "main_gun": "75mm Gun M2 or M3 (hull mounted)",
+      "main_gun_caliber_mm_x10": 750,
+      "main_ammo": 75,
+      "traverse_time_360_s": 75,
+      "sight": "75mm: n.a.",
+      "secondary": "3 x .30 caliber MG M1919A4 (turret, coaxial with 37mm, bow)",
+      "secondary_ammo": 9200,
+      "text": {
+        "main_ammo": "75mm: 50",
+        "traverse_deg": "75mm: 30° (15° L or R)",
+        "elevation_min_deg_x10": "75mm: -9° to +20°",
+        "traverse_time_360_s": "75mm: Manual"
+      }
+    },
+    "mobility": {
+      "engine": "Wright (Continental) R975 EC2",
+      "engine_type": "R9, 15.9 liters",
+      "displacement_cc": 15900,
+      "power_hp": 400,
+      "power_rpm": 2400,
+      "power_to_weight_hp_per_t_x10": 140,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 796,
+      "consumption_road_l_per_100km": 412,
+      "range_road_km": 193,
+      "speed_road_kmh_x10": 340,
+      "track_ground_contact_mm": 3734,
+      "track_links": 79,
+      "ground_pressure_psi_x10": 129,
+      "ground_pressure_kpa_x10": 889,
+      "ground_clearance_mm": 430,
+      "turning_radius_mm": 18900,
+      "gradient_deg": 31,
+      "vertical_obstacle_mm": 610,
+      "fording_mm": 1000,
+      "trench_crossing_mm": 2300,
+      "text": {
+        "track_width_mm": "40.6 or 42.1 cm"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 51, "text": "51mm @45-90°" },
+        "side": { "mm": 38, "deg": 90 },
+        "rear": { "mm": 38, "text": "38mm @80-90°" },
+        "top_bottom": { "mm": 25, "text": "25mm @0°(front) 13mm @0°(rear)" }
+      },
+      "superstructure": {
+        "front": { "mm": 38, "text": "38mm @37°(lower) 51mm @60°(upper)" },
+        "side": { "mm": 38, "deg": 90 },
+        "top_bottom": { "mm": 13, "text": "13mm @0-7°" }
+      },
+      "turret": {
+        "front": { "mm": 51, "deg": 43 },
+        "side": { "mm": 51, "deg": 85 },
+        "rear": { "mm": 51, "deg": 85 },
+        "top_bottom": { "mm": 22, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 89, "deg": 90 }
+      }
+    },
+    "notes": [
+      "*M3 or M2 gun respectively"
+    ]
+  },
+  {
+    "id": "us_m3a1_stuart",
+    "name": "M3A1 Stuart",
+    "type": "Light Tank",
+    "family": "M3 Stuart",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/usa/us002ltm3a1.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "St",
+        "StIA"
+      ]
+    },
+    "general": {
+      "other_designations": "Light Tank, M3A1 Stuart",
+      "production_quantity": 4410,
+      "production_period": "May 1942-Jan. 1943",
+      "crew": 4,
+      "length_mm": 4530,
+      "width_mm": 2240,
+      "height_mm": 2390,
+      "mass_kg": 12900,
+      "radio": "SCR508"
+    },
+    "firepower": {
+      "main_gun": "37mm Gun M6",
+      "main_gun_caliber_mm_x10": 370,
+      "main_ammo": 106,
+      "traverse_deg": 360,
+      "traverse_drive": "hydraulic",
+      "elevation_min_deg_x10": -100,
+      "elevation_max_deg_x10": 200,
+      "traverse_time_360_s": 15,
+      "secondary": "3 x .30 caliber MG M1919A4 (AA, coaxial, bow)",
+      "secondary_ammo": 7220
+    },
+    "mobility": {
+      "engine": "Continental W-670-9A",
+      "engine_type": "R7, 10.9 liters",
+      "displacement_cc": 10900,
+      "power_hp": 262,
+      "power_rpm": 2400,
+      "power_to_weight_hp_per_t_x10": 203,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 245,
+      "consumption_road_l_per_100km": 217,
+      "range_road_km": 113,
+      "speed_road_kmh_x10": 580,
+      "track_width_mm": 295,
+      "track_ground_contact_mm": 2972,
+      "track_links": 66,
+      "ground_pressure_psi_x10": 105,
+      "ground_pressure_kpa_x10": 724,
+      "ground_clearance_mm": 420,
+      "turning_radius_mm": 12800,
+      "gradient_deg": 31,
+      "vertical_obstacle_mm": 610,
+      "fording_mm": 910,
+      "trench_crossing_mm": 1830,
+      "text": {
+        "fuel_capacity_l": "245 + 2x114 auxiliary",
+        "range_road_km": "113(217)"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 44, "deg": 67 },
+        "side": { "mm": 25, "deg": 90 },
+        "rear": { "mm": 25, "deg": 70 },
+        "top_bottom": { "mm": 13, "text": "13mm @0°(front)" }
+      },
+      "superstructure": {
+        "front": { "mm": 16, "text": "16mm @21°(lower)" },
+        "side": { "mm": 25, "deg": 90 },
+        "rear": { "mm": 25, "text": "25mm @90°(lower)" },
+        "top_bottom": { "mm": 13, "deg": 0 }
+      },
+      "turret": {
+        "front": { "mm": 38, "deg": 80 },
+        "side": { "mm": 25, "deg": 90 },
+        "rear": { "mm": 25, "deg": 90 },
+        "top_bottom": { "mm": 13, "text": "13mm @0-15°" }
+      },
+      "mantlet": {
+        "front": { "mm": 38, "text": "38mm @76-90°" }
+      }
+    }
+  },
+  {
+    "id": "us_m3a3_lee",
+    "name": "M3A3 Lee",
+    "type": "Medium Tank",
+    "family": "M3 Lee",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/usa/us008m3a3med.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "Sh"
+      ]
+    },
+    "general": {
+      "other_designations": "M3A3 Lee",
+      "production_quantity": 322,
+      "production_period": "Mar. 1942-Dec. 1942",
+      "width_mm": 2720,
+      "height_mm": 3120,
+      "mass_kg": 27900,
+      "radio": "SCR508",
+      "text": {
+        "crew": "6 or 7",
+        "length_mm": "6.12 or 5.64*/5.64",
+        "barrel_overhang_mm": "0.48 or 0*"
+      }
+    },
+    "firepower": {
+      "main_gun": "75mm Gun M2 or M3 (hull mounted)",
+      "main_gun_caliber_mm_x10": 750,
+      "main_ammo": 75,
+      "traverse_time_360_s": 75,
+      "sight": "75mm: n.a.",
+      "secondary": "3 x .30 caliber MG M1919A4 (turret, coaxial with 37mm, bow)",
+      "secondary_ammo": 9200,
+      "text": {
+        "main_ammo": "75mm: 50",
+        "traverse_deg": "75mm: 30° (15° L or R)",
+        "elevation_min_deg_x10": "75mm: -9° to +20°",
+        "traverse_time_360_s": "75mm: Manual"
+      }
+    },
+    "mobility": {
+      "engine": "GM 6046",
+      "engine_type": "2 x In6, 13.9 liters",
+      "power_hp": 410,
+      "power_rpm": 2900,
+      "power_to_weight_hp_per_t_x10": 147,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Diesel",
+      "fuel_capacity_l": 673,
+      "consumption_road_l_per_100km": 279,
+      "range_road_km": 241,
+      "speed_road_kmh_x10": 400,
+      "track_ground_contact_mm": 3734,
+      "track_links": 79,
+      "ground_pressure_psi_x10": 129,
+      "ground_pressure_kpa_x10": 889,
+      "ground_clearance_mm": 430,
+      "turning_radius_mm": 18900,
+      "gradient_deg": 31,
+      "vertical_obstacle_mm": 610,
+      "fording_mm": 900,
+      "trench_crossing_mm": 2300,
+      "text": {
+        "track_width_mm": "40.6 or 42.1 cm"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 51, "text": "51mm @45-90°" },
+        "side": { "mm": 38, "deg": 9 },
+        "rear": { "mm": 38, "text": "38mm @80°-90°" },
+        "top_bottom": { "mm": 25, "text": "25mm @0°(front) 13mm @0°(rear)" }
+      },
+      "superstructure": {
+        "front": { "mm": 38, "text": "38mm @37°(lower) 51mm @60°(upper)" },
+        "side": { "mm": 38, "deg": 90 },
+        "top_bottom": { "mm": 13, "text": "13mm @0-7°" }
+      },
+      "turret": {
+        "front": { "mm": 51, "deg": 43 },
+        "side": { "mm": 51, "deg": 85 },
+        "rear": { "mm": 51, "deg": 85 },
+        "top_bottom": { "mm": 22, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 89, "deg": 90 }
+      }
+    },
+    "notes": [
+      "*M3 or M2 gun respectively"
+    ]
+  },
+  {
+    "id": "us_m3a3_stuart",
+    "name": "M3A3 Stuart",
+    "type": "Light Tank",
+    "family": "M3 Stuart",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/usa/us003ltm3a3.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "St",
+        "StIA"
+      ]
+    },
+    "general": {
+      "other_designations": "Light Tank, M3A3 Stuart",
+      "production_quantity": 3427,
+      "production_period": "Sept. 1942-Sept. 1943",
+      "crew": 4,
+      "length_mm": 5030,
+      "width_mm": 2520,
+      "height_mm": 2570,
+      "mass_kg": 14700,
+      "radio": "SCR508/528/538"
+    },
+    "firepower": {
+      "main_gun": "37mm Gun M6",
+      "main_gun_caliber_mm_x10": 370,
+      "main_ammo": 174,
+      "traverse_deg": 360,
+      "traverse_drive": "hydraulic",
+      "elevation_min_deg_x10": -100,
+      "elevation_max_deg_x10": 200,
+      "traverse_time_360_s": 15,
+      "secondary": "3 x .30 caliber MG M1919A4 (AA, coaxial, bow)",
+      "secondary_ammo": 7500
+    },
+    "mobility": {
+      "engine": "Continental W-670-9A",
+      "engine_type": "R7, 10.9 liters",
+      "displacement_cc": 10900,
+      "power_hp": 262,
+      "power_rpm": 2400,
+      "power_to_weight_hp_per_t_x10": 178,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 500,
+      "consumption_road_l_per_100km": 230,
+      "range_road_km": 217,
+      "speed_road_kmh_x10": 500,
+      "track_width_mm": 295,
+      "track_ground_contact_mm": 2972,
+      "track_links": 66,
+      "ground_pressure_psi_x10": 119,
+      "ground_pressure_kpa_x10": 820,
+      "ground_clearance_mm": 420,
+      "turning_radius_mm": 12800,
+      "gradient_deg": 31,
+      "vertical_obstacle_mm": 610,
+      "fording_mm": 910,
+      "trench_crossing_mm": 1830
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 44, "deg": 67 },
+        "side": { "mm": 25, "deg": 90 },
+        "rear": { "mm": 25, "deg": 70 },
+        "top_bottom": { "mm": 13, "text": "13mm @0°(front)" }
+      },
+      "superstructure": {
+        "front": { "mm": 25, "deg": 42 },
+        "side": { "mm": 25, "deg": 70 },
+        "rear": { "mm": 25, "text": "25mm @90°(lower)" },
+        "top_bottom": { "mm": 13, "deg": 0 }
+      },
+      "turret": {
+        "front": { "mm": 38, "deg": 80 },
+        "side": { "mm": 32, "deg": 90 },
+        "rear": { "mm": 32, "deg": 90 },
+        "top_bottom": { "mm": 13, "text": "13mm @0-15°" }
+      },
+      "mantlet": {
+        "front": { "mm": 51, "text": "51mm @76-90°" }
+      }
+    }
+  },
+  {
+    "id": "us_m3a4_lee",
+    "name": "M3A4 Lee",
+    "type": "Medium Tank",
+    "family": "M3 Lee",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/usa/us009m3a4med.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "Sh"
+      ]
+    },
+    "general": {
+      "other_designations": "M3A4 Lee",
+      "production_quantity": 109,
+      "production_period": "Jun. 1942-Aug. 1942",
+      "width_mm": 2640,
+      "height_mm": 3120,
+      "mass_kg": 29000,
+      "radio": "SCR508",
+      "text": {
+        "crew": "6 or 7",
+        "length_mm": "6.63 or 6.15*/6.15",
+        "barrel_overhang_mm": "0.48 or 0*"
+      }
+    },
+    "firepower": {
+      "main_gun": "75mm Gun M2 or M3 (hull mounted)",
+      "main_gun_caliber_mm_x10": 750,
+      "main_ammo": 75,
+      "traverse_time_360_s": 75,
+      "sight": "75mm: n.a.",
+      "secondary": "3 x .30 caliber MG M1919A4 (turret, coaxial with 37mm, bow)",
+      "secondary_ammo": 9200,
+      "text": {
+        "main_ammo": "75mm: 50",
+        "traverse_deg": "75mm: 30° (15 L or R)",
+        "elevation_min_deg_x10": "75mm: -9° to +20°",
+        "traverse_time_360_s": "75mm: Manual"
+      }
+    },
+    "mobility": {
+      "engine": "Chrysler A57",
+      "engine_type": "Multibank 30, 20.5 liters",
+      "displacement_cc": 20500,
+      "power_hp": 425,
+      "power_rpm": 2850,
+      "power_to_weight_hp_per_t_x10": 147,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 727,
+      "consumption_road_l_per_100km": 452,
+      "range_road_km": 161,
+      "speed_road_kmh_x10": 320,
+      "track_ground_contact_mm": 4064,
+      "track_links": 83,
+      "ground_pressure_psi_x10": 121,
+      "ground_pressure_kpa_x10": 834,
+      "ground_clearance_mm": 410,
+      "turning_radius_mm": 21300,
+      "gradient_deg": 31,
+      "vertical_obstacle_mm": 610,
+      "fording_mm": 1000,
+      "trench_crossing_mm": 2400,
+      "text": {
+        "track_width_mm": "40.6 or 42.1 cm"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 51, "text": "51mm @45-90°" },
+        "side": { "mm": 38, "deg": 90 },
+        "rear": { "mm": 38, "text": "38mm @80°-90°" },
+        "top_bottom": { "mm": 25, "text": "25mm @0°(front) 13mm @0°(rear)" }
+      },
+      "superstructure": {
+        "front": { "mm": 38, "text": "38mm @37°(lower) 51mm @60°(upper)" },
+        "side": { "mm": 38, "deg": 90 },
+        "top_bottom": { "mm": 13, "text": "13mm @0-7°" }
+      },
+      "turret": {
+        "front": { "mm": 51, "deg": 43 },
+        "side": { "mm": 51, "deg": 85 },
+        "rear": { "mm": 51, "deg": 85 },
+        "top_bottom": { "mm": 22, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 89, "deg": 90 }
+      }
+    },
+    "notes": [
+      "*M3 or M2 gun respectively"
+    ]
+  },
+  {
+    "id": "us_m4",
+    "name": "M4 Sherman",
+    "type": "Medium Tank",
+    "family": "M4 Sherman",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/usa/us011m4.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "Sh",
+        "ShIA"
+      ]
+    },
+    "general": {
+      "other_designations": "M4 (Sherman I) [mid production]",
+      "manufacturer": "Pressed Steel Car Co., Baldwin Locomotive Works, American Locomotive Co., Pullman Standard Car Co., Detroit Tank Arsenal",
+      "production_quantity": 6748,
+      "production_period": "July 1942-Jan. 1944",
+      "crew": 5,
+      "length_mm": 5890,
+      "width_mm": 2620,
+      "height_mm": 2740,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 30300,
+      "radio": "SCR508/528/538"
+    },
+    "firepower": {
+      "main_gun": "75mm Gun M3",
+      "main_gun_caliber_mm_x10": 750,
+      "main_ammo": 97,
+      "traverse_deg": 360,
+      "elevation_min_deg_x10": -100,
+      "elevation_max_deg_x10": 250,
+      "traverse_time_360_s": 15,
+      "sight": "M55, M38",
+      "secondary": "2 x .30 caliber MG M1919A4 (coaxial, bow)",
+      "secondary_ammo": 4750
+    },
+    "mobility": {
+      "engine": "Continental R975 C1",
+      "engine_type": "R9, 15.9 liters",
+      "displacement_cc": 15900,
+      "power_hp": 400,
+      "power_rpm": 2400,
+      "power_to_weight_hp_per_t_x10": 132,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 796,
+      "consumption_road_l_per_100km": 412,
+      "range_road_km": 193,
+      "speed_road_kmh_x10": 340,
+      "track_width_mm": 421,
+      "track_ground_contact_mm": 3734,
+      "track_links": 79,
+      "ground_pressure_psi_x10": 137,
+      "ground_pressure_kpa_x10": 945,
+      "ground_clearance_mm": 430,
+      "turning_radius_mm": 18900,
+      "gradient_deg": 31,
+      "vertical_obstacle_mm": 610,
+      "fording_mm": 1000,
+      "trench_crossing_mm": 2300
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 51, "text": "51mm @34-90°" },
+        "side": { "mm": 38, "deg": 90 },
+        "rear": { "mm": 38, "text": "38mm @80°-90°" },
+        "top_bottom": { "mm": 25, "text": "25mm @0°(front) 13mm @0°(rear)" }
+      },
+      "superstructure": {
+        "front": { "mm": 51, "deg": 34 },
+        "top_bottom": { "mm": 19, "text": "19mm @0-7°" }
+      },
+      "turret": {
+        "front": { "mm": 76, "deg": 60 },
+        "side": { "mm": 51, "deg": 85 },
+        "rear": { "mm": 51, "deg": 90 },
+        "top_bottom": { "mm": 25, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 89, "deg": 90 }
+      }
+    }
+  },
+  {
+    "id": "us_m4a1",
+    "name": "M4A1 Sherman",
+    "type": "Medium Tank",
+    "family": "M4 Sherman",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/usa/us012m4a1.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "Sh",
+        "ShIA"
+      ]
+    },
+    "general": {
+      "designation": "M4A1 (Sherman II) [early production]",
+      "manufacturer": "Lima Locomotive Works, Pressed Steel Car Co., Pacific Car and Foundry",
+      "production_quantity": 6281,
+      "production_period": "Feb. 1942-Dec. 1943",
+      "crew": 5,
+      "length_mm": 5840,
+      "width_mm": 2620,
+      "height_mm": 2740,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 30300,
+      "radio": "SCR508/528/538"
+    },
+    "firepower": {
+      "main_gun": "75mm Gun M3",
+      "main_gun_caliber_mm_x10": 750,
+      "main_ammo": 90,
+      "traverse_deg": 360,
+      "elevation_min_deg_x10": -120,
+      "elevation_max_deg_x10": 250,
+      "traverse_time_360_s": 15,
+      "sight": "M38",
+      "secondary": "2 x .30 caliber MG M1919A4 (coaxial, bow)",
+      "secondary_ammo": 4750
+    },
+    "mobility": {
+      "engine": "Continental R975 C1",
+      "engine_type": "R9, 15.9 liters",
+      "displacement_cc": 15900,
+      "power_hp": 400,
+      "power_rpm": 2400,
+      "power_to_weight_hp_per_t_x10": 132,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 796,
+      "consumption_road_l_per_100km": 412,
+      "range_road_km": 193,
+      "speed_road_kmh_x10": 340,
+      "track_width_mm": 421,
+      "track_ground_contact_mm": 3734,
+      "track_links": 79,
+      "ground_pressure_psi_x10": 137,
+      "ground_pressure_kpa_x10": 945,
+      "ground_clearance_mm": 430,
+      "turning_radius_mm": 18900,
+      "gradient_deg": 31,
+      "vertical_obstacle_mm": 610,
+      "fording_mm": 1000,
+      "trench_crossing_mm": 2300
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 51, "text": "51mm @45-90°" },
+        "side": { "mm": 38, "deg": 90 },
+        "rear": { "mm": 38, "text": "38mm @80°-90°" },
+        "top_bottom": { "mm": 25, "text": "25mm @0°(front)" }
+      },
+      "superstructure": {
+        "front": { "mm": 51, "text": "51mm @35-53°" },
+        "top_bottom": { "mm_min": 13, "mm_max": 19, "text": "13-19mm @0-7°" }
+      },
+      "turret": {
+        "front": { "mm": 76, "deg": 60 },
+        "side": { "mm": 51, "deg": 85 },
+        "rear": { "mm": 51, "deg": 90 },
+        "top_bottom": { "mm": 25, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 76, "deg": 90 }
+      }
+    }
+  },
+  {
+    "id": "us_m4a1_76w",
+    "name": "M4A1(76)W Sherman",
+    "type": "Medium Tank",
+    "family": "M4 Sherman",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/usa/us017m4a176w.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "Sh",
+        "ShIA"
+      ]
+    },
+    "general": {
+      "other_designations": "M4A1(76)W (Sherman IIA)",
+      "manufacturer": "Pressed Steel Car Co.",
+      "production_quantity": 3426,
+      "production_period": "Jan. 1944-Jul. 1945",
+      "crew": 5,
+      "length_mm": 7470,
+      "length_hull_mm": 5840,
+      "width_mm": 2670,
+      "height_mm": 2970,
+      "barrel_overhang_mm": 1270,
+      "mass_kg": 32000,
+      "radio": "SCR508/528/538"
+    },
+    "firepower": {
+      "main_gun": "76mm Gun M1A1, M1A1C, or M1A2",
+      "main_gun_caliber_mm_x10": 760,
+      "main_ammo": 71,
+      "traverse_deg": 360,
+      "elevation_min_deg_x10": -100,
+      "elevation_max_deg_x10": 250,
+      "traverse_time_360_s": 15,
+      "sight": "M71D, M47A2",
+      "secondary": "2 x .30 caliber MG M1919A4 (coaxial, bow)",
+      "secondary_ammo": 6250
+    },
+    "mobility": {
+      "engine": "Continental R975 C4",
+      "engine_type": "R9, 15.9 liters",
+      "displacement_cc": 15900,
+      "power_hp": 460,
+      "power_rpm": 2400,
+      "power_to_weight_hp_per_t_x10": 144,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 796,
+      "consumption_road_l_per_100km": 494,
+      "range_road_km": 161,
+      "speed_road_kmh_x10": 340,
+      "track_width_mm": 421,
+      "track_ground_contact_mm": 3734,
+      "track_links": 79,
+      "ground_pressure_psi_x10": 145,
+      "ground_pressure_kpa_x10": 1000,
+      "ground_clearance_mm": 430,
+      "turning_radius_mm": 18900,
+      "gradient_deg": 31,
+      "vertical_obstacle_mm": 610,
+      "fording_mm": 1000,
+      "trench_crossing_mm": 2300
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm_min": 51, "mm_max": 108, "text": "51-108mm @34-90°" },
+        "side": { "mm": 38, "deg": 90 },
+        "rear": { "mm": 38, "text": "38mm @70-90°" },
+        "top_bottom": { "mm": 25, "text": "25mm @0°(front)" }
+      },
+      "superstructure": {
+        "front": { "mm": 64, "text": "64mm @35-53°" },
+        "top_bottom": { "mm": 19, "text": "19mm @0-7°" }
+      },
+      "turret": {
+        "front": { "mm": 64, "text": "64mm @45-50°" },
+        "side": { "mm": 64, "text": "64mm @77-90°" },
+        "rear": { "mm": 64, "deg": 90 },
+        "top_bottom": { "mm": 25, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 89, "deg": 90 }
+      }
+    }
+  },
+  {
+    "id": "us_m4a2",
+    "name": "M4A2 Sherman",
+    "type": "Medium Tank",
+    "family": "M4 Sherman",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/usa/us013m4a2.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "Sh",
+        "ShIA"
+      ]
+    },
+    "general": {
+      "other_designations": "M4A2 (Sherman III)",
+      "manufacturer": "Fisher Tank Arsenal, Pullman Standard Car Co., American Locomotive Co., Baldwin Locomotive Works, Federal Machine and Welder Co.",
+      "production_quantity": 8053,
+      "production_period": "Apr. 1942-May 1944",
+      "crew": 5,
+      "length_mm": 5920,
+      "width_mm": 2620,
+      "height_mm": 2740,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 31800,
+      "radio": "SCR508/528/538"
+    },
+    "firepower": {
+      "main_gun": "75mm Gun M3",
+      "main_gun_caliber_mm_x10": 750,
+      "main_ammo": 97,
+      "traverse_deg": 360,
+      "elevation_min_deg_x10": -100,
+      "elevation_max_deg_x10": 250,
+      "traverse_time_360_s": 15,
+      "sight": "M55, M38",
+      "secondary": "2 x .30 caliber MG M1919A4 (coaxial, bow)",
+      "secondary_ammo": 4750
+    },
+    "mobility": {
+      "engine": "GM 6046",
+      "engine_type": "In12, 13.9 liters",
+      "displacement_cc": 13900,
+      "power_hp": 410,
+      "power_rpm": 2900,
+      "power_to_weight_hp_per_t_x10": 129,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Diesel",
+      "fuel_capacity_l": 673,
+      "consumption_road_l_per_100km": 279,
+      "range_road_km": 241,
+      "speed_road_kmh_x10": 340,
+      "track_width_mm": 421,
+      "track_ground_contact_mm": 3734,
+      "track_links": 79,
+      "ground_pressure_psi_x10": 144,
+      "ground_pressure_kpa_x10": 993,
+      "ground_clearance_mm": 430,
+      "turning_radius_mm": 18900,
+      "gradient_deg": 31,
+      "vertical_obstacle_mm": 610,
+      "fording_mm": 1000,
+      "trench_crossing_mm": 2300
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm_min": 51, "mm_max": 108, "text": "51-108mm @34-90°" },
+        "side": { "mm": 38, "deg": 90 },
+        "rear": { "mm": 38, "text": "38mm @80°-90°" },
+        "top_bottom": { "mm": 25, "text": "25mm @0°(front)" }
+      },
+      "superstructure": {
+        "front": { "mm": 64, "deg": 43 },
+        "top_bottom": { "mm": 19, "text": "19mm @0-7°" }
+      },
+      "turret": {
+        "front": { "mm": 76, "deg": 60 },
+        "side": { "mm": 51, "deg": 85 },
+        "rear": { "mm": 51, "deg": 90 },
+        "top_bottom": { "mm": 25, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 89, "deg": 90 }
+      }
+    }
+  },
+  {
+    "id": "us_m4a2_76w",
+    "name": "M4A2(76)W Sherman",
+    "type": "Medium Tank",
+    "family": "M4 Sherman",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/usa/us018m4a276w.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "Sh",
+        "ShIA"
+      ]
+    },
+    "general": {
+      "other_designations": "M4A2(76)W (Sherman IIIA)",
+      "manufacturer": "Fisher Tank Arsenal, Pressed Steel Car Co.",
+      "production_quantity": 2915,
+      "production_period": "May 1944-May 1945",
+      "crew": 5,
+      "length_mm": 7570,
+      "length_hull_mm": 5920,
+      "width_mm": 2670,
+      "height_mm": 2970,
+      "barrel_overhang_mm": 1270,
+      "mass_kg": 33300,
+      "radio": "SCR508/528/538"
+    },
+    "firepower": {
+      "main_gun": "76mm Gun M1A1, M1A1C, or M1A2",
+      "main_gun_caliber_mm_x10": 760,
+      "main_ammo": 71,
+      "traverse_deg": 360,
+      "elevation_min_deg_x10": -100,
+      "elevation_max_deg_x10": 250,
+      "traverse_time_360_s": 15,
+      "sight": "M71D, M47A2",
+      "secondary": "2 x .30 caliber MG M1919A4 (coaxial, bow)",
+      "secondary_ammo": 6250
+    },
+    "mobility": {
+      "engine": "GM 6046",
+      "engine_type": "In12, 13.9 liters",
+      "displacement_cc": 13900,
+      "power_hp": 410,
+      "power_rpm": 2900,
+      "power_to_weight_hp_per_t_x10": 123,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Diesel",
+      "fuel_capacity_l": 673,
+      "consumption_road_l_per_100km": 418,
+      "range_road_km": 161,
+      "speed_road_kmh_x10": 340,
+      "track_width_mm": 421,
+      "track_ground_contact_mm": 3734,
+      "track_links": 79,
+      "ground_pressure_psi_x10": 151,
+      "ground_pressure_kpa_x10": 1041,
+      "ground_clearance_mm": 430,
+      "turning_radius_mm": 18900,
+      "gradient_deg": 31,
+      "vertical_obstacle_mm": 610,
+      "fording_mm": 1000,
+      "trench_crossing_mm": 2300
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm_min": 51, "mm_max": 108, "text": "51-108mm @34-90°" },
+        "side": { "mm": 38, "deg": 90 },
+        "rear": { "mm": 38, "text": "38mm @80°-90°" },
+        "top_bottom": { "mm": 25, "text": "25mm @0°(front)" }
+      },
+      "superstructure": {
+        "front": { "mm": 64, "deg": 43 },
+        "top_bottom": { "mm": 19, "text": "19mm @0-7°" }
+      },
+      "turret": {
+        "front": { "mm": 64, "text": "64mm @45-50°" },
+        "side": { "mm": 64, "text": "64mm @77°-90°" },
+        "rear": { "mm": 64, "deg": 90 },
+        "top_bottom": { "mm": 25, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 89, "deg": 90 }
+      }
+    }
+  },
+  {
+    "id": "us_m4a3",
+    "name": "M4A3 Sherman",
+    "type": "Medium Tank",
+    "family": "M4 Sherman",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/usa/us014m4a3.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "Sh",
+        "ShIA"
+      ]
+    },
+    "general": {
+      "other_designations": "M4A3 (Sherman IV) [mid-production]",
+      "manufacturer": "Ford Motor Co.",
+      "production_quantity": 1690,
+      "production_period": "June 1942-Sept. 1943",
+      "crew": 5,
+      "length_mm": 5910,
+      "width_mm": 2610,
+      "height_mm": 2740,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 30300,
+      "radio": "SCR508/528/538"
+    },
+    "firepower": {
+      "main_gun": "75mm Gun M3",
+      "main_gun_caliber_mm_x10": 750,
+      "main_ammo": 97,
+      "traverse_deg": 360,
+      "elevation_min_deg_x10": -100,
+      "elevation_max_deg_x10": 250,
+      "traverse_time_360_s": 15,
+      "sight": "M55, M38",
+      "secondary": "2 x .30 caliber MG M1919A4 (coaxial, bow)",
+      "secondary_ammo": 4750
+    },
+    "mobility": {
+      "engine": "Ford GAA",
+      "engine_type": "V8, 18.0 liters",
+      "displacement_cc": 18000,
+      "power_hp": 500,
+      "power_rpm": 2600,
+      "power_to_weight_hp_per_t_x10": 165,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 764,
+      "consumption_road_l_per_100km": 366,
+      "range_road_km": 209,
+      "speed_road_kmh_x10": 420,
+      "track_width_mm": 421,
+      "track_ground_contact_mm": 3734,
+      "track_links": 79,
+      "ground_pressure_psi_x10": 137,
+      "ground_pressure_kpa_x10": 945,
+      "ground_clearance_mm": 430,
+      "turning_radius_mm": 19000,
+      "gradient_deg": 31,
+      "vertical_obstacle_mm": 610,
+      "fording_mm": 910,
+      "trench_crossing_mm": 2300
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 51, "text": "51mm @34-90°" },
+        "side": { "mm": 38, "deg": 90 },
+        "rear": { "mm": 38, "text": "38mm @68-80°" },
+        "top_bottom": { "mm": 25, "text": "25mm @0°(front)" }
+      },
+      "superstructure": {
+        "front": { "mm": 51, "deg": 34 },
+        "top_bottom": { "mm": 19, "text": "19mm @0-7°" }
+      },
+      "turret": {
+        "front": { "mm": 76, "deg": 60 },
+        "side": { "mm": 51, "deg": 85 },
+        "rear": { "mm": 51, "deg": 90 },
+        "top_bottom": { "mm": 25, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 89, "deg": 90 }
+      }
+    }
+  },
+  {
+    "id": "us_m4a3_75",
+    "name": "M4A3(75)W Sherman",
+    "type": "Medium Tank",
+    "family": "M4 Sherman",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/usa/us019m4a375w.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "Sh",
+        "ShIA"
+      ]
+    },
+    "general": {
+      "other_designations": "M4A3(75)W (Sherman IV)",
+      "manufacturer": "Fisher Tank Arsenal, Detroit Tank Arsenal (Chrysler)",
+      "production_quantity": 3071,
+      "production_period": "Feb. 1944-Mar. 1945",
+      "crew": 5,
+      "length_mm": 6270,
+      "width_mm": 2670,
+      "height_mm": 2940,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 31600,
+      "radio": "SCR508/528/538"
+    },
+    "firepower": {
+      "main_gun": "75mm Gun M3",
+      "main_gun_caliber_mm_x10": 750,
+      "main_ammo": 104,
+      "traverse_deg": 360,
+      "elevation_min_deg_x10": -100,
+      "elevation_max_deg_x10": 250,
+      "traverse_time_360_s": 15,
+      "sight": "M70F, M38A2",
+      "secondary": "2 x .30 caliber MG M1919A4 (coaxial, bow)",
+      "secondary_ammo": 6250
+    },
+    "mobility": {
+      "engine": "Ford GAA",
+      "engine_type": "V8, 18.0 liters",
+      "displacement_cc": 18000,
+      "power_hp": 500,
+      "power_rpm": 2600,
+      "power_to_weight_hp_per_t_x10": 158,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 764,
+      "consumption_road_l_per_100km": 475,
+      "range_road_km": 161,
+      "speed_road_kmh_x10": 420,
+      "track_width_mm": 421,
+      "track_ground_contact_mm": 3734,
+      "track_links": 79,
+      "ground_pressure_psi_x10": 143,
+      "ground_pressure_kpa_x10": 986,
+      "ground_clearance_mm": 430,
+      "turning_radius_mm": 18900,
+      "gradient_deg": 31,
+      "vertical_obstacle_mm": 610,
+      "fording_mm": 910,
+      "trench_crossing_mm": 2300
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm_min": 64, "mm_max": 108, "text": "64-108mm @34-90°" },
+        "side": { "mm": 38, "deg": 90 },
+        "rear": { "mm": 38, "text": "38mm @68-80°" },
+        "top_bottom": { "mm": 25, "text": "25mm @0°(front)" }
+      },
+      "superstructure": {
+        "front": { "mm": 64, "deg": 43 },
+        "side": { "mm": 38, "deg": 50 },
+        "top_bottom": { "mm": 19, "text": "19mm @0-7°" }
+      },
+      "turret": {
+        "front": { "mm": 76, "deg": 60 },
+        "side": { "mm": 51, "deg": 85 },
+        "rear": { "mm": 51, "deg": 90 },
+        "top_bottom": { "mm": 25, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 89, "deg": 90 }
+      }
+    }
+  },
+  {
+    "id": "us_m4a3_76w_hvss",
+    "name": "M4A3(76)W HVSS Sherman",
+    "type": "Medium Tank",
+    "family": "M4 Sherman",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/usa/us020m4a376w.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "Sh",
+        "ShIA"
+      ]
+    },
+    "general": {
+      "other_designations": "M4A3(76)W HVSS (Sherman IIIAY), M4A3E8, also Easy Eight",
+      "manufacturer": "Detroit Tank Arsenal (Chrysler), Fisher Tank Arsenal",
+      "production_quantity": 4542,
+      "production_period": "Mar. 1944-Apr. 1945*",
+      "crew": 5,
+      "length_mm": 7540,
+      "width_mm": 3000,
+      "height_mm": 2970,
+      "barrel_overhang_mm": 1270,
+      "mass_kg": 33650,
+      "radio": "SCR508/528/538",
+      "text": {
+        "production_quantity": "4542*"
+      }
+    },
+    "firepower": {
+      "main_gun": "76mm Gun M1A1, M1A1C, or M1A2",
+      "main_gun_caliber_mm_x10": 760,
+      "main_ammo": 71,
+      "traverse_deg": 360,
+      "elevation_min_deg_x10": -100,
+      "elevation_max_deg_x10": 250,
+      "traverse_time_360_s": 15,
+      "sight": "M71D, M47A2",
+      "secondary": "2 x .30 caliber MG M1919A4 (coaxial, bow)",
+      "secondary_ammo": 6250
+    },
+    "mobility": {
+      "engine": "Ford GAA",
+      "engine_type": "V8, 18.0 liters",
+      "displacement_cc": 18000,
+      "power_hp": 500,
+      "power_rpm": 2600,
+      "power_to_weight_hp_per_t_x10": 149,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 764,
+      "consumption_road_l_per_100km": 475,
+      "range_road_km": 161,
+      "speed_road_kmh_x10": 420,
+      "track_width_mm": 584,
+      "track_ground_contact_mm": 3835,
+      "track_links": 79,
+      "ground_pressure_psi_x10": 110,
+      "ground_pressure_kpa_x10": 758,
+      "ground_clearance_mm": 430,
+      "turning_radius_mm": 18900,
+      "gradient_deg": 31,
+      "vertical_obstacle_mm": 610,
+      "fording_mm": 910,
+      "trench_crossing_mm": 2300
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm_min": 50, "mm_max": 108, "text": "50-108mm @34-90°" },
+        "side": { "mm": 38, "deg": 90 },
+        "rear": { "mm": 38, "text": "38mm @68-80°" },
+        "top_bottom": { "mm": 25, "text": "25mm @0°(front)" }
+      },
+      "superstructure": {
+        "front": { "mm": 63, "deg": 43 },
+        "side": { "mm": 76, "deg": 90 },
+        "top_bottom": { "mm": 19, "text": "19mm @0-7°" }
+      },
+      "turret": {
+        "front": { "mm": 63, "text": "63mm @45-50°" },
+        "side": { "mm": 63, "text": "63mm @77-90°" },
+        "rear": { "mm": 63, "deg": 90 },
+        "top_bottom": { "mm": 25, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 89, "deg": 90 }
+      }
+    },
+    "notes": [
+      "*Total production of the M4A3 wet stowage with the 76mm gun. At least 1400 vehicles produced were equipped with VVS prior to the introduction of the HVSS."
+    ]
+  },
+  {
+    "id": "us_m4a3e2",
+    "name": "M4A3E2 Sherman",
+    "type": "Assault Tank",
+    "family": "M4 Sherman",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/usa/us015m4a3e2.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "Sh",
+        "ShIA"
+      ]
+    },
+    "general": {
+      "other_designations": "M4A3E2, also Jumbo",
+      "manufacturer": "Fisher Tank Arsenal",
+      "production_quantity": 254,
+      "production_period": "June 1944-July 1944",
+      "crew": 5,
+      "length_mm": 6270,
+      "width_mm": 2940,
+      "height_mm": 2950,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 38100,
+      "radio": "SCR508/528/538"
+    },
+    "firepower": {
+      "main_gun": "75mm Gun M3",
+      "main_gun_caliber_mm_x10": 750,
+      "main_ammo": 104,
+      "traverse_deg": 360,
+      "elevation_min_deg_x10": -100,
+      "elevation_max_deg_x10": 250,
+      "traverse_time_360_s": 15,
+      "sight": "M71G, M38A2",
+      "secondary": "2 x .30 caliber MG M1919A4 (coaxial, bow)",
+      "secondary_ammo": 6250
+    },
+    "mobility": {
+      "engine": "Ford GAA",
+      "engine_type": "V8, 18.0 liters",
+      "displacement_cc": 18000,
+      "power_hp": 500,
+      "power_rpm": 2600,
+      "power_to_weight_hp_per_t_x10": 131,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 764,
+      "consumption_road_l_per_100km": 475,
+      "range_road_km": 161,
+      "speed_road_kmh_x10": 350,
+      "track_width_mm": 511,
+      "track_ground_contact_mm": 3734,
+      "track_links": 79,
+      "ground_pressure_psi_x10": 142,
+      "ground_pressure_kpa_x10": 979,
+      "ground_clearance_mm": 430,
+      "turning_radius_mm": 23000,
+      "gradient_deg": 31,
+      "vertical_obstacle_mm": 610,
+      "fording_mm": 910,
+      "trench_crossing_mm": 2300
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm_min": 114, "mm_max": 140, "text": "114-140mm @34-90°" },
+        "side": { "mm": 38, "deg": 90 },
+        "rear": { "mm": 38, "text": "38mm @68-80°" },
+        "top_bottom": { "mm": 25, "text": "25mm @0°(front)" }
+      },
+      "superstructure": {
+        "front": { "mm": 102, "deg": 43 },
+        "side": { "mm": 76, "deg": 90 },
+        "top_bottom": { "mm": 19, "text": "19mm @0-7°" }
+      },
+      "turret": {
+        "front": { "mm": 152, "deg": 78 },
+        "side": { "mm": 152, "deg": 84 },
+        "rear": { "mm": 152, "deg": 88 },
+        "top_bottom": { "mm": 25, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 178, "deg": 90 }
+      }
+    }
+  },
+  {
+    "id": "us_m4a4",
+    "name": "M4A4 Sherman",
+    "type": "Medium Tank",
+    "family": "M4 Sherman",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/usa/us016m4a4.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "Sh",
+        "ShIA"
+      ]
+    },
+    "general": {
+      "other_designations": "M4A4 (Sherman V) [early production]",
+      "manufacturer": "Detroit Tank Arsenal (Chrysler)",
+      "production_quantity": 7499,
+      "production_period": "July 1942-Sept. 1943",
+      "crew": 5,
+      "length_mm": 6060,
+      "width_mm": 2620,
+      "height_mm": 2740,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 31600,
+      "radio": "SCR508/528/538"
+    },
+    "firepower": {
+      "main_gun": "75mm Gun M3",
+      "main_gun_caliber_mm_x10": 750,
+      "main_ammo": 97,
+      "traverse_deg": 360,
+      "elevation_min_deg_x10": -120,
+      "elevation_max_deg_x10": 250,
+      "traverse_time_360_s": 15,
+      "sight": "M38",
+      "secondary": "2 x .30 caliber MG M1919A4 (coaxial, bow)",
+      "secondary_ammo": 4750
+    },
+    "mobility": {
+      "engine": "Chrysler A57",
+      "engine_type": "Multibank 30, 20.5 liters",
+      "displacement_cc": 20500,
+      "power_hp": 425,
+      "power_rpm": 2600,
+      "power_to_weight_hp_per_t_x10": 134,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 727,
+      "consumption_road_l_per_100km": 452,
+      "range_road_km": 161,
+      "speed_road_kmh_x10": 320,
+      "track_width_mm": 421,
+      "track_ground_contact_mm": 4064,
+      "track_links": 83,
+      "ground_pressure_psi_x10": 132,
+      "ground_pressure_kpa_x10": 910,
+      "ground_clearance_mm": 410,
+      "turning_radius_mm": 21000,
+      "gradient_deg": 31,
+      "vertical_obstacle_mm": 610,
+      "fording_mm": 1070,
+      "trench_crossing_mm": 2400
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 51, "text": "51mm @45-90°" },
+        "side": { "mm": 38, "deg": 90 },
+        "rear": { "mm": 38, "text": "38mm @70°-90°" },
+        "top_bottom": { "mm": 25, "text": "25mm @0°(front)" }
+      },
+      "superstructure": {
+        "front": { "mm": 51, "deg": 34 },
+        "top_bottom": { "mm": 19, "text": "19mm @0-7°" }
+      },
+      "turret": {
+        "front": { "mm": 76, "deg": 60 },
+        "side": { "mm": 51, "deg": 85 },
+        "rear": { "mm": 51, "deg": 90 },
+        "top_bottom": { "mm": 25, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 76, "deg": 90 }
+      }
+    }
+  },
+  {
+    "id": "us_m5a1",
+    "name": "M5A1 Stuart",
+    "type": "Light Tank",
+    "family": "M3 Stuart",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/usa/us004ltm5a1.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "St",
+        "StIA"
+      ]
+    },
+    "general": {
+      "other_designations": "Light Tank, M5A1 Stuart",
+      "production_quantity": 6810,
+      "production_period": "Nov. 1942-Jun. 1944",
+      "crew": 4,
+      "length_mm": 4840,
+      "width_mm": 2290,
+      "height_mm": 2570,
+      "mass_kg": 15500,
+      "radio": "SCR508/528/538"
+    },
+    "firepower": {
+      "main_gun": "37mm Gun M6",
+      "main_gun_caliber_mm_x10": 370,
+      "main_ammo": 147,
+      "traverse_deg": 360,
+      "traverse_drive": "hydraulic",
+      "elevation_min_deg_x10": -120,
+      "elevation_max_deg_x10": 200,
+      "traverse_time_360_s": 15,
+      "secondary": "3 x .30 caliber MG M1919A4 (AA, coaxial, bow)",
+      "secondary_ammo": 6750
+    },
+    "mobility": {
+      "engine": "2 x Cadillac Series 42",
+      "engine_type": "2 x V8, 5.7 liters",
+      "power_hp": 296,
+      "power_rpm": 3200,
+      "power_to_weight_hp_per_t_x10": 191,
+      "gearbox": "4 forward, 1 reverse",
+      "gears_forward": 4,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 405,
+      "consumption_road_l_per_100km": 252,
+      "range_road_km": 161,
+      "speed_road_kmh_x10": 580,
+      "track_width_mm": 295,
+      "track_ground_contact_mm": 2972,
+      "track_links": 66,
+      "ground_pressure_psi_x10": 126,
+      "ground_pressure_kpa_x10": 869,
+      "ground_clearance_mm": 420,
+      "turning_radius_mm": 12800,
+      "gradient_deg": 31,
+      "vertical_obstacle_mm": 460,
+      "fording_mm": 910,
+      "trench_crossing_mm": 1620,
+      "text": {
+        "power_hp": "2 x 148hp @3200rpm"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm_min": 38, "mm_max": 64, "text": "38-64mm @67-90°" },
+        "side": { "mm": 29, "text": "29mm @90°(front)" },
+        "rear": { "mm": 25, "deg": 73 },
+        "top_bottom": { "mm": 13, "text": "13mm @0°(front)" }
+      },
+      "superstructure": {
+        "front": { "mm": 29, "deg": 42 },
+        "rear": { "mm": 25, "text": "25mm @90°(lower)" },
+        "top_bottom": { "mm": 13, "deg": 0 }
+      },
+      "turret": {
+        "front": { "mm": 44, "deg": 80 },
+        "side": { "mm": 32, "deg": 90 },
+        "rear": { "mm": 32, "deg": 90 },
+        "top_bottom": { "mm": 13, "text": "13mm @0-15°" }
+      },
+      "mantlet": {
+        "front": { "mm": 51, "text": "51mm @76-90°" }
+      }
+    }
+  }
+]
