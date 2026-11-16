@@ -1820,6 +1820,7 @@ mod tests {
             footprint_m: Fixed::ONE,
             mass_kg: 0,
             combat: crate::combat::CombatType::default(),
+            transport: crate::transport::TransportType::default(),
         }
     }
 
@@ -1831,6 +1832,7 @@ mod tests {
             footprint_m: Fixed::from_num(7),
             mass_kg: 0,
             combat: crate::combat::CombatType::default(),
+            transport: crate::transport::TransportType::default(),
         }
     }
 

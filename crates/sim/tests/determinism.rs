@@ -21,7 +21,14 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by prompt 032 (indirect fire and smoke): the rules of
+/// Last changed by prompt 034 (transport and towing): the rules of
+/// `data/transport.toml`, transport tasks, links of passengers and towed
+/// guns and the hit points of loaded carriers are in the hash, and the
+/// economy rules (also hashed) produce trucks, AT guns and howitzers in
+/// the vehicle works instead of the AT gun position. The demo has no
+/// carriers or guns: its battle is unchanged (decided at tick 480, player
+/// 0 wins).
+/// Before: prompt 032 (indirect fire and smoke): the rules of
 /// `data/indirect.toml`, the indirect-fire state of units with mortars,
 /// howitzers and self-propelled guns, shells in flight, smoke clouds and
 /// the vision cells under smoke are in the hash, and the economy rules
@@ -101,7 +108,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xadff_a9a0_054b_53f1;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x1177_8e91_72d7_1035;
 
 #[test]
 fn golden_hash() {

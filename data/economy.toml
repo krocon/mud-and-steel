@@ -139,20 +139,17 @@ cost = [0, 80, 60]
 build_s = 20
 requires = ["base_barracks"]
 
-[[fortification]]
-ids = ["de_pak40", "su_zis3", "us_57mm_m1"]
-hp = 0
-armor_mm = 0
-requires = ["base_factory"]
-
 # What producing buildings make, per faction (catalog ids). Mortar teams and
-# self-propelled guns fire indirectly (prompt 032).
+# self-propelled guns fire indirectly (prompt 032). Trucks, AT guns and
+# howitzers come last (prompt 034): the guns are towed by trucks and
+# halftracks; they replace the AT gun position of prompt 023 (a towed gun
+# that could not move).
 [produce.infantry]
 de = ["de_inf_rifle_squad", "de_inf_mg42_team", "de_inf_hmg_team", "de_inf_at", "de_inf_mortar_medium"]
 su = ["su_inf_rifle_squad", "su_inf_mg_team", "su_inf_hmg_team", "su_inf_at", "su_inf_mortar_medium"]
 us = ["us_inf_rifle_squad", "us_inf_mg_team", "us_inf_hmg_team", "us_inf_at", "us_inf_mortar_medium"]
 
 [produce.vehicles]
-de = ["de_sdkfz222", "de_sdkfz251_1", "de_pz4_h", "de_stug3_g", "de_tiger1_e", "de_wespe"]
-su = ["su_ba64b", "su_t70m", "su_t34_76_1943", "su_su85", "su_is2", "su_isu152"]
-us = ["us_m8_greyhound", "us_m3_halftrack", "us_m4a3_75", "us_m10", "us_m26", "us_m7_priest"]
+de = ["de_sdkfz222", "de_sdkfz251_1", "de_pz4_h", "de_stug3_g", "de_tiger1_e", "de_wespe", "de_opel_blitz", "de_pak40", "de_lefh18"]
+su = ["su_ba64b", "su_t70m", "su_t34_76_1943", "su_su85", "su_is2", "su_isu152", "su_zis5", "su_zis3", "su_m30"]
+us = ["us_m8_greyhound", "us_m3_halftrack", "us_m4a3_75", "us_m10", "us_m26", "us_m7_priest", "us_gmc_cckw", "us_57mm_m1", "us_m2a1_105"]

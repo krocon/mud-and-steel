@@ -31,6 +31,7 @@ pub mod scenario;
 mod sim;
 pub mod snapshot;
 pub mod terrain;
+pub mod transport;
 pub mod vision;
 
 pub use bridges::Bridge;
@@ -60,4 +61,5 @@ pub use sim::{
     UnitSnapshot, WORLD_LIMIT_M, formation_slots, formation_spacing,
 };
 pub use terrain::{TerrainError, TerrainRules};
+pub use transport::{TransportRules, TransportType};
 pub use vision::{CellState, VisionGrid, VisionRules};

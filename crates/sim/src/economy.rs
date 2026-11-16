@@ -535,8 +535,10 @@ mod tests {
         );
         assert!(names.contains(&"de_bunker_tobruk") && names.contains(&"de_pak40"));
         assert!(names.contains(&"de_tiger1_e") && !names.contains(&"su_is2"));
-        assert!(types.iter().take(6).all(|t| !t.mobile()));
-        assert!(types[6..].iter().all(UnitType::mobile));
+        // Four buildings and the bunker; the AT gun is produced and towed
+        // since prompt 034.
+        assert!(types.iter().take(5).all(|t| !t.mobile()));
+        assert!(types[5..].iter().all(UnitType::mobile));
         assert_eq!(faction_of("de_pz4_h"), Some("de"));
         assert_eq!(faction_of("base_hq"), None);
     }

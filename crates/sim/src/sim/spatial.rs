@@ -36,8 +36,9 @@ pub(super) struct UnitGrid {
 }
 
 impl UnitGrid {
-    /// Sorts the units (all of them, dead ones too: wrecks stop rounds)
-    /// into the cells of a map of `size` centered on the origin.
+    /// Sorts the units (all of them, dead ones too: wrecks stop rounds;
+    /// not passengers, prompt 034: they are inside their vehicle) into the
+    /// cells of a map of `size` centered on the origin.
     /// `reach` is the hit-box reach of a unit (its largest is kept).
     pub(super) fn rebuild(&mut self, units: &[Unit], size: Vec2, reach: impl Fn(&Unit) -> Fixed) {
         let cell = Fixed::from_num(CELL_M);
@@ -47,7 +48,8 @@ impl UnitGrid {
         let cells = (self.columns * self.rows) as usize;
         self.start.clear();
         self.start.resize(cells + 1, 0);
-        for u in units {
+        let listed = |u: &Unit| !super::transport::aboard(u);
+        for u in units.iter().filter(|u| listed(u)) {
             let c = self.cell_index(u.position);
             self.start[c + 1] += 1;
         }
@@ -55,9 +57,9 @@ impl UnitGrid {
             self.start[c + 1] += self.start[c];
         }
         self.items.clear();
-        self.items.resize(units.len(), 0);
+        self.items.resize(self.start[cells] as usize, 0);
         let mut next = self.start.clone();
-        for (i, u) in (0u32..).zip(units) {
+        for (i, u) in (0u32..).zip(units).filter(|(_, u)| listed(u)) {
             let c = self.cell_index(u.position);
             self.items[next[c] as usize] = i;
             next[c] += 1;

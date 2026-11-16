@@ -6,15 +6,15 @@ use crate::{Ai, Difficulty, PlayerView, centroid, dist, toward};
 use serde::{Deserialize, Serialize};
 use sim::{Command, Fixed, Vec2};
 
-/// What the AI builds, in this order (base building ids, or a fortification
-/// kind for the player's faction).
-const BUILD_ORDER: [Step; 6] = [
+/// What the AI builds, in this order (base building ids, or the MG bunker
+/// of the player's faction). The AT gun position of prompt 023 is gone:
+/// AT guns are produced and towed since prompt 034.
+const BUILD_ORDER: [Step; 5] = [
     Step::Building("base_barracks"),
     Step::Building("base_depot"),
     Step::Building("base_factory"),
     Step::Building("base_depot"),
     Step::Bunker,
-    Step::Gun,
 ];
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -22,8 +22,6 @@ enum Step {
     Building(&'static str),
     /// The faction's MG bunker.
     Bunker,
-    /// The faction's AT gun position (Hard only).
-    Gun,
 }
 
 /// Production mixes per difficulty: indices into the production list of
@@ -173,11 +171,7 @@ impl Ai {
         let faction = self.faction(view)?;
         let name = match step {
             Step::Building(name) => name.to_owned(),
-            Step::Bunker => self.fortification(faction, "bunker")?,
-            Step::Gun if self.difficulty == Difficulty::Hard => {
-                self.fortification(faction, "gun")?
-            }
-            Step::Gun => return None,
+            Step::Bunker => self.bunker(faction)?,
         };
         self.type_index(&name)
     }
@@ -189,16 +183,15 @@ impl Ai {
             .find_map(|u| sim::economy::faction_of(self.name_of(u.unit_type)))
     }
 
-    /// The faction's fortification of a kind: `bunker` (category
-    /// `fort_bunker`) or `gun` (anything else of the rules).
-    fn fortification(&self, faction: &str, kind: &str) -> Option<String> {
+    /// The faction's MG bunker (a fortification of the rules).
+    fn bunker(&self, faction: &str) -> Option<String> {
         let rules = sim::EconomyRules::builtin().ok()?;
         rules
             .fortifications
             .iter()
             .flat_map(|f| &f.ids)
             .filter(|id| sim::economy::faction_of(id) == Some(faction))
-            .find(|id| id.contains("bunker") == (kind == "bunker"))
+            .find(|id| id.contains("bunker"))
             .cloned()
     }
 

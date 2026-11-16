@@ -76,6 +76,20 @@ pub enum Command {
     /// `units` drive to `target`, then back and forth between their start
     /// and the target (prompt 031).
     Patrol { units: Vec<UnitId>, target: Vec2 },
+    /// Infantry squads walk to the own vehicle `carrier` (truck, halftrack,
+    /// or a tank for riders) and mount it if its seats suffice (prompt
+    /// 034).
+    Embark { units: Vec<UnitId>, carrier: UnitId },
+    /// Passengers dismount once their vehicle stands: listed vehicles
+    /// unload everybody, listed passengers get off alone (prompt 034).
+    Disembark { units: Vec<UnitId> },
+    /// The nearest free vehicle of `units` that can pull the own towed gun
+    /// `gun` drives to it and hitches it (prompt 034).
+    Tow { units: Vec<UnitId>, gun: UnitId },
+    /// Towed guns are unhitched and brought into action: listed vehicles
+    /// drop their gun, listed guns are dropped by their tractor (prompt
+    /// 034).
+    Unlimber { units: Vec<UnitId> },
 }
 
 impl Command {
@@ -91,7 +105,11 @@ impl Command {
             | Self::Garrison { units, .. }
             | Self::Barrage { units, .. }
             | Self::QueueMove { units, .. }
-            | Self::Patrol { units, .. } => units,
+            | Self::Patrol { units, .. }
+            | Self::Embark { units, .. }
+            | Self::Disembark { units }
+            | Self::Tow { units, .. }
+            | Self::Unlimber { units } => units,
             Self::Surrender
             | Self::Build { .. }
             | Self::Produce { .. }

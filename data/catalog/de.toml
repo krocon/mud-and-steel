@@ -542,6 +542,7 @@ width_mm = 2100
 height_mm = 1750
 mass_kg = 8500
 crew = 2
+passengers = 10
 speed_road_kmh_x10 = 525
 speed_offroad_kmh_x10 = 212
 range_road_km = 300
@@ -575,6 +576,7 @@ width_mm = 2265
 height_mm = 2175
 mass_kg = 6590
 crew = 2
+passengers = 16
 speed_road_kmh_x10 = 850
 speed_offroad_kmh_x10 = 300
 range_road_km = 320
@@ -584,8 +586,8 @@ source = [
     { ref = "https://truck-encyclopedia.com/ww2/germany/Opel-Blitz.php", covers = "Blitz 3.6 (1937): length 5.95-6.02 m, width 2.26-2.34 m, height 2.17-3.18 m, payload up to 3.5 t, six-cylinder 74-75 hp, 80 km/h, range 300-400 km" },
     { ref = "https://www.landmarkscout.com/opel-blitz-36-36s-sd-kfz-305-german-3-tons-flatbed-truck", covers = "3.6-36S: six-cylinder 68 HP, 85 km/h, range 320 km" },
 ]
-uncertain = ["length_mm", "width_mm", "height_mm", "mass_kg", "speed_road_kmh_x10", "speed_offroad_kmh_x10", "range_road_km", "power_hp"]
-note = "4x2 version (Blitz A is the 4x4). No fetched source gives a clean 3.6-36S data sheet. Dimensions 6.02 x 2.265 m, height 2.175 m at cab (canvas cover higher) lie inside the Truck Encyclopedia ranges. Mass = empty ~3.29 t (from memory) + 3.3 t payload = 6.59 t loaded. Power 68-75 hp and top speed 80-85 km/h conflict between sources; range 320 km (Landmark Scout; 300-400 km elsewhere). Off-road speed for a 4x2 truck is an estimate. Crew: driver and co-driver."
+uncertain = ["passengers", "length_mm", "width_mm", "height_mm", "mass_kg", "speed_road_kmh_x10", "speed_offroad_kmh_x10", "range_road_km", "power_hp"]
+note = "4x2 version (Blitz A is the 4x4). No fetched source gives a clean 3.6-36S data sheet. Dimensions 6.02 x 2.265 m, height 2.175 m at cab (canvas cover higher) lie inside the Truck Encyclopedia ranges. Mass = empty ~3.29 t (from memory) + 3.3 t payload = 6.59 t loaded. Power 68-75 hp and top speed 80-85 km/h conflict between sources; range 320 km (Landmark Scout; 300-400 km elsewhere). Off-road speed for a 4x2 truck is an estimate. Crew: driver and co-driver. passengers = 16 is an estimate (two benches along the 3.6 m cargo bed, prompt 034); no source found offline."
 
 [[unit]]
 id = "de_sdkfz222"

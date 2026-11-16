@@ -36,6 +36,7 @@ mod replay_funcs;
 mod save_funcs;
 mod steam_lobby;
 mod terrain_layers;
+mod transport_funcs;
 mod vision_funcs;
 mod water;
 mod water_funcs;

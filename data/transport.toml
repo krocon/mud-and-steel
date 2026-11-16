@@ -1,0 +1,128 @@
+# Transport, mounting and towing rules (prompt 034). Integers only.
+# Compiled into the simulation (`sim::TransportRules::builtin`), loaded by
+# `Sim::new` and part of the state hash; see docs/ARCHITECTURE.md
+# "Transport and towing".
+#
+# These are game rules, not catalog values: the catalog gives the troop
+# seats of trucks and halftracks (`passengers`), engine power and masses.
+# Times are real milliseconds; the time factor of data/scale.toml applies
+# (20 s real = 10 s game). Values marked [provisional] wait for
+# confirmation (docs).
+
+# Carriers by category. `riders` > 0: soldiers ride on the outside of the
+# hull (tank desant); 0: seats from the catalog field `passengers`.
+#   open           passengers sit in the open: drawn sitting on the vehicle
+#   embark_ms      mounting, once the squad stands next to the carrier
+#   disembark_ms   dismounting (the carrier must stand)
+#   hit_pct        chance per passenger soldier to be killed when the
+#                  carrier loses hit points (fragments, rounds through the
+#                  thin sides)
+#   bounce_pct     same for hits that do not hurt the carrier (rounds and
+#                  fragments glancing off a tank hit the men on its deck)
+#   destroyed_pct  chance per passenger soldier to die when the carrier is
+#                  destroyed; the others jump off
+#   tows           can tow guns (power permitting, see [towing])
+# [provisional]
+[[carrier]]
+category = "truck"
+riders = 0
+open = true
+embark_ms = 20000
+disembark_ms = 10000
+hit_pct = 25
+bounce_pct = 0
+destroyed_pct = 60
+tows = true
+
+[[carrier]]
+category = "halftrack"
+riders = 0
+open = true
+embark_ms = 12000
+disembark_ms = 8000
+hit_pct = 15
+bounce_pct = 0
+destroyed_pct = 50
+tows = true
+
+[[carrier]]
+category = "tank_light"
+riders = 6
+open = true
+embark_ms = 10000
+disembark_ms = 4000
+hit_pct = 40
+bounce_pct = 25
+destroyed_pct = 70
+tows = false
+
+[[carrier]]
+category = "tank_medium"
+riders = 10
+open = true
+embark_ms = 10000
+disembark_ms = 4000
+hit_pct = 40
+bounce_pct = 25
+destroyed_pct = 70
+tows = false
+
+[[carrier]]
+category = "tank_heavy"
+riders = 10
+open = true
+embark_ms = 10000
+disembark_ms = 4000
+hit_pct = 40
+bounce_pct = 25
+destroyed_pct = 70
+tows = false
+
+# Towed guns by category: hitching to a tractor (limbering), unhitching and
+# bringing into action (unlimbering), and the speed at which the crew
+# pushes the gun without a tractor (real km/h × 10, time factor applies).
+# Indirect weapons also need their setup time of data/indirect.toml after
+# unlimbering. [provisional]
+[[gun]]
+category = "gun_at"
+limber_ms = 30000
+unlimber_ms = 30000
+manhandle_kmh_x10 = 20
+
+[[gun]]
+category = "gun_howitzer"
+limber_ms = 40000
+unlimber_ms = 40000
+manhandle_kmh_x10 = 10
+
+[[gun]]
+category = "gun_aa_light"
+limber_ms = 30000
+unlimber_ms = 30000
+manhandle_kmh_x10 = 10
+
+[[gun]]
+category = "gun_aa_heavy"
+limber_ms = 120000
+unlimber_ms = 120000
+manhandle_kmh_x10 = 5
+
+[[gun]]
+category = "mortar_heavy"
+limber_ms = 20000
+unlimber_ms = 20000
+manhandle_kmh_x10 = 15
+
+[towing]
+# A tractor tows a gun only if its engine gives at least this much power
+# per tonne of tractor and gun together (catalog `power_hp` and `mass_kg`).
+# 8 hp/t lets every truck and halftrack tow its faction's AT gun and light
+# howitzer; no vehicle of the catalog moves an 88 mm or 90 mm AA gun (their
+# tractors are not in the catalog). Towing slows the tractor to
+# mass / (mass + gun mass) of its speed. [provisional]
+min_hp_per_tonne = 8
+# Gap between the tractor's rear and the gun's trail (mm).
+hitch_gap_mm = 500
+# How close (beyond both hulls) a squad or tractor must come before
+# mounting or hitching starts (mm).
+reach_mm = 4000
