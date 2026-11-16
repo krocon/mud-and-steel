@@ -1,0 +1,1079 @@
+# Catalog: su. Field reference: data/catalog/SCHEMA.md
+
+# ---------------------------------------------------------------------------
+# Infantry
+# Infantry speeds use the project default (50 road / 40 offroad); no field
+# manual value was found. Balancing belongs into scale overrides.
+# rate_rpm: cyclic for automatic weapons, practical for everything else.
+# ---------------------------------------------------------------------------
+
+[[unit]]
+id = "su_inf_rifle_squad"
+faction = "su"
+category = "inf_rifle"
+name_de = "Schützengruppe"
+name_en = "Rifle Squad"
+designation = "Strelkovoye otdeleniye (shtat 04/550, 1943/44)"
+year_from = 1943
+year_to = 1945
+tier = 1
+model = "assets/models/su/su_inf_rifle_squad.tscn"
+squad_size = 9
+speed_road_kmh_x10 = 50
+speed_offroad_kmh_x10 = 40
+weapon = [
+    { name = "Mosin-Nagant M1891/30", count = 6, caliber_mm_x10 = 76, ammo = "7.62x54R ball", rate_rpm = 10, muzzle_velocity_mps = 865, range_effective_m = 500 },
+    { name = "PPSh-41", count = 2, caliber_mm_x10 = 76, ammo = "7.62x25 Tokarev, 71-round drum or 35-round box", rate_rpm = 1000, muzzle_velocity_mps = 488, range_effective_m = 200 },
+    { name = "DP-27", count = 1, caliber_mm_x10 = 76, ammo = "7.62x54R ball, 47-round pan", rate_rpm = 550, muzzle_velocity_mps = 840, range_effective_m = 800 },
+]
+source = [
+    { ref = "https://battleorder.org/ussr-rifle-co-1944 (seen as search excerpt; direct fetch returned 404)", covers = "shtat 04/550 with early-1944 changes: squad of leader/deputy, DP-27 gunner, assistant gunner and riflemen; PPSh replacing some rifles from mid-1943" },
+    { ref = "https://community.battlefront.com/topic/28010-soviet-squad-orgs/ (forum, secondary)", covers = "squad type 1: leader, LMG gunner, assistant, 6 riflemen (= 9)" },
+    { ref = "Zaloga/Ness, Red Army Handbook 1939-1945 (Sutton 1998), rifle division organisation", covers = "squad strength and weapons mix 1943/44 (not checked online)" },
+    { ref = "https://en.wikipedia.org/wiki/Mosin%E2%80%93Nagant (infobox)", covers = "M1891/30: 7.62x54R, muzzle velocity ~865 m/s, effective range 500 m (iron sights)" },
+    { ref = "https://en.wikipedia.org/wiki/PPSh-41 (infobox)", covers = "PPSh-41: 7.62x25, muzzle velocity 488 m/s, effective range 150-200 m, 71-round drum / 35-round box, rate 1250 rpm" },
+    { ref = "https://en.wikipedia.org/wiki/DP_machine_gun (infobox and text)", covers = "DP-27: 7.62x54R, 550 rpm, combat rate up to 80 rpm, 840 m/s, effective range 800 m, 47-round pan" },
+]
+uncertain = ["squad_size", "weapon"]
+note = "Rifle squad per shtat 04/550 (1943/44): squad leader, DP-27 gunner and assistant, 6 riflemen = 9. Sources agree on one DP team plus 6-8 riflemen; exact headcount differs. The number of PPSh-41 grew during 1943-45 and varied by unit (2 is a typical value; assistant gunner and some riflemen received SMGs). Rifle rate is practical. Automatic weapons use cyclic rates: PPSh-41 given as 900-1250 rpm across sources (Wikipedia infobox 1250), 1000 chosen, practical ~100 rpm; DP-27 practical (combat) rate up to 80 rpm."
+
+[[unit]]
+id = "su_inf_mg_team"
+faction = "su"
+category = "inf_lmg"
+name_de = "MG-Trupp DP-27"
+name_en = "DP-27 Machine Gun Team"
+designation = "DP-27 light machine gun team"
+year_from = 1943
+year_to = 1945
+tier = 1
+model = "assets/models/su/su_inf_mg_team.tscn"
+squad_size = 2
+speed_road_kmh_x10 = 50
+speed_offroad_kmh_x10 = 40
+weapon = [
+    { name = "DP-27", count = 1, caliber_mm_x10 = 76, ammo = "7.62x54R ball, 47-round pan", rate_rpm = 550, muzzle_velocity_mps = 840, range_effective_m = 800 },
+    { name = "Mosin-Nagant M1891/30", count = 1, caliber_mm_x10 = 76, ammo = "7.62x54R ball", rate_rpm = 10, muzzle_velocity_mps = 865, range_effective_m = 500 },
+]
+source = [
+    { ref = "https://battleorder.org/ussr-rifle-co-1943 (seen as search excerpt; direct fetch returned 404)", covers = "each squad had a DP-27 gunner and an assistant, assistant with Mosin-Nagant (later sometimes PPSh-41/PPS-43)" },
+    { ref = "https://en.wikipedia.org/wiki/DP_machine_gun (infobox and text)", covers = "DP-27: 7.62x54R, 550 rpm, combat rate up to 80 rpm, 840 m/s, 800 m, 47-round pan, 9.12 kg empty" },
+    { ref = "https://en.wikipedia.org/wiki/Mosin%E2%80%93Nagant (infobox)", covers = "M1891/30 muzzle velocity and effective range" },
+]
+uncertain = ["weapon"]
+note = "DP-27 gunner and assistant (ammunition carrier) as found in the rifle squad. rate_rpm is the cyclic rate (550); practical combat rate up to 80 rpm. From mid-1943 the assistant's rifle was sometimes replaced by a PPSh-41 or PPS-43."
+
+[[unit]]
+id = "su_inf_hmg_team"
+faction = "su"
+category = "inf_hmg"
+name_de = "sMG-Trupp Maxim"
+name_en = "Maxim Heavy Machine Gun Team"
+designation = "Maxim M1910/30 on Sokolov mount"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/su/su_inf_hmg_team.tscn"
+squad_size = 5
+speed_road_kmh_x10 = 50
+speed_offroad_kmh_x10 = 40
+weapon = [
+    { name = "Maxim M1910/30", count = 1, caliber_mm_x10 = 76, ammo = "7.62x54R heavy ball M1930, 250-round belt", rate_rpm = 600, muzzle_velocity_mps = 800, range_effective_m = 1000 },
+    { name = "Mosin-Nagant M1938 carbine", count = 4, caliber_mm_x10 = 76, ammo = "7.62x54R" },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/PM_M1910 (infobox and M1910/30 section)", covers = "7.62x54R, 600 rpm, gun 23.8 kg, 62.66 kg on wheeled mount, M1910/30 changes incl. heavy-bullet cartridge, effective range 2,700 m, muzzle velocity 740 m/s" },
+    { ref = "Zaloga/Ness, Red Army Handbook 1939-1945 (Sutton 1998)", covers = "HMG crew strength (not checked online)" },
+]
+uncertain = ["squad_size", "weapon"]
+note = "Maxim M1910/30 on the wheeled Sokolov mount (~63 kg). Crew given as 5-6 depending on source; 5 chosen. Cyclic 600 rpm; practical sustained rate ~250 rpm. Muzzle velocity: Wikipedia gives 740 m/s (not tied to a cartridge); ~800 m/s is commonly given for the M1930 heavy ball, so marked uncertain. Effective range 1,000 m chosen for direct fire; Wikipedia's 2,700 m is the sight/indirect range. Crew personal weapons estimated (carbines; muzzle velocity not given because sources disagree)."
+
+[[unit]]
+id = "su_inf_mortar_light"
+faction = "su"
+category = "inf_mortar_light"
+name_de = "Leichter Granatwerfer 50-PM 40"
+name_en = "50 mm Company Mortar 50-PM 40"
+designation = "50-PM 40 (50-mm rotny minomyot obr. 1940)"
+year_from = 1940
+year_to = 1945
+tier = 2
+model = "assets/models/su/su_inf_mortar_light.tscn"
+squad_size = 2
+speed_road_kmh_x10 = 50
+speed_offroad_kmh_x10 = 40
+weapon = [
+    { name = "50-PM 40", count = 1, caliber_mm_x10 = 500, ammo = "0.85 kg HE bomb", rate_rpm = 30, range_effective_m = 800 },
+    { name = "Mosin-Nagant M1938 carbine", count = 2, caliber_mm_x10 = 76, ammo = "7.62x54R" },
+]
+source = [
+    { ref = "https://jaegerplatoon.net/MORTARS3.htm (seen as search excerpt)", covers = "PM-40: 630 mm barrel, 12.1 kg, max range 800 m at 45 deg; crew given as 4 in Finnish use" },
+    { ref = "Zaloga/Ness, Red Army Handbook 1939-1945 (Sutton 1998)", covers = "company mortar employment, withdrawal from rifle companies 1943 (not checked online)" },
+]
+uncertain = ["squad_size", "weapon"]
+note = "Company mortar. Max range 800 m at 45 deg (indirect). Weight 9.3 kg vs 12.1 kg depending on source; crew 2 (Soviet two-man load) vs 4 (Finnish practice). Rate of fire and muzzle velocity not confirmed by a fetched source (velocity omitted). Withdrawn from first-line use during 1943. Crew small arms estimated."
+
+[[unit]]
+id = "su_inf_mortar_medium"
+faction = "su"
+category = "inf_mortar_medium"
+name_de = "Bataillons-Granatwerfer 82-BM-37"
+name_en = "82 mm Battalion Mortar 82-BM-37"
+designation = "82-BM-37 (82-mm batalyonny minomyot obr. 1937)"
+year_from = 1937
+year_to = 1945
+tier = 2
+model = "assets/models/su/su_inf_mortar_medium.tscn"
+squad_size = 5
+speed_road_kmh_x10 = 50
+speed_offroad_kmh_x10 = 40
+weapon = [
+    { name = "82-BM-37", count = 1, caliber_mm_x10 = 820, ammo = "O-832D 3.05 kg HE-frag bomb", rate_rpm = 15, muzzle_velocity_mps = 211, range_effective_m = 3040 },
+    { name = "Mosin-Nagant M1938 carbine", count = 4, caliber_mm_x10 = 76, ammo = "7.62x54R" },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/82-BM-37 (infobox)", covers = "mass 56 kg, rate 25-30 rpm, muzzle velocity 211 m/s, max range 3,040 m, bomb 3.05 kg" },
+]
+uncertain = ["squad_size", "weapon"]
+note = "82-BM-37 chosen as the most common battalion mortar (82-BM-41/43 also in service). Mass 56 kg, carried in three loads. Wikipedia gives 25-30 rpm (maximum); 15 rpm chosen as sustained practical rate. Crew of 5 is the usual figure but not confirmed by the fetched source. Crew small arms estimated."
+
+[[unit]]
+id = "su_inf_recon"
+faction = "su"
+category = "inf_recon"
+name_de = "Aufklärungstrupp (Raswedtschiki)"
+name_en = "Scout Squad (Razvedchiki)"
+designation = "Razvedyvatelnoye otdeleniye (divisional/regimental scouts)"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/su/su_inf_recon.tscn"
+squad_size = 7
+speed_road_kmh_x10 = 50
+speed_offroad_kmh_x10 = 40
+weapon = [
+    { name = "PPSh-41", count = 6, caliber_mm_x10 = 76, ammo = "7.62x25 Tokarev", rate_rpm = 1000, muzzle_velocity_mps = 488, range_effective_m = 200 },
+    { name = "Mosin-Nagant M1891/30", count = 1, caliber_mm_x10 = 76, ammo = "7.62x54R", rate_rpm = 10, muzzle_velocity_mps = 865, range_effective_m = 500 },
+]
+source = [
+    { ref = "Zaloga/Ness, Red Army Handbook 1939-1945 (Sutton 1998)", covers = "regimental scout platoon organisation (not checked online)" },
+    { ref = "https://en.wikipedia.org/wiki/PPSh-41 (infobox)", covers = "PPSh-41 data" },
+    { ref = "https://en.wikipedia.org/wiki/Mosin%E2%80%93Nagant (infobox)", covers = "M1891/30 data" },
+]
+uncertain = ["squad_size", "weapon"]
+note = "Scouts were mostly SMG-armed volunteers; exact squad strength varied (6-9). PPSh-41 cyclic rate (sources 900-1250 rpm), practical ~100 rpm."
+
+[[unit]]
+id = "su_inf_sniper"
+faction = "su"
+category = "inf_sniper"
+name_de = "Scharfschützentrupp"
+name_en = "Sniper Team"
+designation = "Mosin-Nagant M1891/30 with PU scope"
+year_from = 1942
+year_to = 1945
+tier = 2
+model = "assets/models/su/su_inf_sniper.tscn"
+squad_size = 2
+speed_road_kmh_x10 = 50
+speed_offroad_kmh_x10 = 40
+weapon = [
+    { name = "Mosin-Nagant M1891/30 PU sniper rifle", count = 1, caliber_mm_x10 = 76, ammo = "7.62x54R heavy ball / sniper", rate_rpm = 5, muzzle_velocity_mps = 865, range_effective_m = 850 },
+    { name = "Mosin-Nagant M1891/30", count = 1, caliber_mm_x10 = 76, ammo = "7.62x54R", rate_rpm = 10, muzzle_velocity_mps = 865, range_effective_m = 500 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Mosin%E2%80%93Nagant (infobox and sniper section)", covers = "M91/30 with 3.5x PU scope from 1942, effective range 850 m with optical sights, 500 m iron sights, ~865 m/s" },
+]
+uncertain = ["weapon"]
+note = "Sniper and observer pair; observer armament varied (rifle or SMG). Rates are practical (sniper rate an estimate)."
+
+[[unit]]
+id = "su_inf_medic"
+faction = "su"
+category = "inf_medic"
+name_de = "Sanitätstrupp"
+name_en = "Medic Team"
+designation = "Sanitarny instruktor and sanitar (company medical team)"
+year_from = 1941
+year_to = 1945
+tier = 2
+model = "assets/models/su/su_inf_medic.tscn"
+squad_size = 2
+speed_road_kmh_x10 = 50
+speed_offroad_kmh_x10 = 40
+weapon = [
+    { name = "TT-33", count = 1, caliber_mm_x10 = 76, ammo = "7.62x25 Tokarev", rate_rpm = 20, muzzle_velocity_mps = 420, range_effective_m = 50 },
+    { name = "Mosin-Nagant M1938 carbine", count = 1, caliber_mm_x10 = 76, ammo = "7.62x54R" },
+]
+source = [
+    { ref = "Zaloga/Ness, Red Army Handbook 1939-1945 (Sutton 1998)", covers = "company medical personnel (not checked online)" },
+    { ref = "https://en.wikipedia.org/wiki/TT_pistol (infobox)", covers = "TT-33 muzzle velocity 420 m/s, effective range 50 m" },
+]
+uncertain = ["squad_size", "weapon"]
+note = "Company sanitary instructor plus one orderly; Soviet medics (many of them women) were often armed. Armament is an estimate; TT-33 rate is practical (semi-automatic). Model must show no Red Cross marking (project rule)."
+
+[[unit]]
+id = "su_inf_engineer"
+faction = "su"
+category = "inf_engineer"
+name_de = "Pioniergruppe"
+name_en = "Sapper Squad"
+designation = "Sapyornoye otdeleniye"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/su/su_inf_engineer.tscn"
+squad_size = 7
+speed_road_kmh_x10 = 50
+speed_offroad_kmh_x10 = 40
+weapon = [
+    { name = "PPSh-41", count = 1, caliber_mm_x10 = 76, ammo = "7.62x25 Tokarev", rate_rpm = 1000, muzzle_velocity_mps = 488, range_effective_m = 200 },
+    { name = "Mosin-Nagant M1938 carbine", count = 6, caliber_mm_x10 = 76, ammo = "7.62x54R" },
+]
+source = [
+    { ref = "Zaloga/Ness, Red Army Handbook 1939-1945 (Sutton 1998)", covers = "divisional sapper battalion and assault engineer (ShISBr) organisation (not checked online)" },
+    { ref = "https://en.wikipedia.org/wiki/PPSh-41 (infobox)", covers = "PPSh-41 data" },
+]
+uncertain = ["squad_size", "weapon"]
+note = "Sapper squad of a divisional sapper battalion, carbine-armed, with demolition charges, mine detectors (VIM-203) and tools (not listed as weapons). Assault engineer brigades (ShISBr) were far more SMG- and flamethrower-heavy. Strength 6-8 depending on table; 7 chosen. PPSh-41 rate is cyclic."
+
+[[unit]]
+id = "su_inf_at"
+faction = "su"
+category = "inf_at"
+name_de = "Panzerbüchsentrupp PTRD-41"
+name_en = "PTRD-41 Anti-Tank Rifle Team"
+designation = "PTRD-41 (14.5-mm protivotankovoye ruzhyo Degtyaryova)"
+year_from = 1941
+year_to = 1945
+tier = 2
+model = "assets/models/su/su_inf_at.tscn"
+squad_size = 2
+speed_road_kmh_x10 = 50
+speed_offroad_kmh_x10 = 40
+weapon = [
+    { name = "PTRD-41", count = 1, caliber_mm_x10 = 145, ammo = "14.5x114 B-32 API, BS-41 API", rate_rpm = 8, muzzle_velocity_mps = 1012, range_effective_m = 300 },
+    { name = "Mosin-Nagant M1891/30", count = 1, caliber_mm_x10 = 76, ammo = "7.62x54R", rate_rpm = 10, muzzle_velocity_mps = 865, range_effective_m = 500 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/PTRD-41 (infobox)", covers = "14.5x114 (B-32, BS-41), mass 16 kg, 8-10 rpm, 1,012 m/s, effective range 300 m, crew 2" },
+]
+uncertain = ["weapon"]
+note = "Gunner and assistant; single-shot bolt action. Effective range 300 m per Wikipedia (other sources give up to 500 m against armor). By 1943-45 effective mainly against light vehicles and side armor. Assistant's weapon estimated."
+
+[[unit]]
+id = "su_inf_flamethrower"
+faction = "su"
+category = "inf_flamethrower"
+name_de = "Flammenwerfertrupp ROKS-3"
+name_en = "ROKS-3 Flamethrower Team"
+designation = "ROKS-3 (ranzevy ognemyot Klyuyeva-Sergeyeva)"
+year_from = 1942
+year_to = 1945
+tier = 2
+model = "assets/models/su/su_inf_flamethrower.tscn"
+squad_size = 2
+speed_road_kmh_x10 = 50
+speed_offroad_kmh_x10 = 40
+weapon = [
+    { name = "ROKS-3", count = 1, ammo = "~9 l flame fuel", range_effective_m = 25 },
+    { name = "PPSh-41", count = 1, caliber_mm_x10 = 76, ammo = "7.62x25 Tokarev", rate_rpm = 1000, muzzle_velocity_mps = 488, range_effective_m = 200 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/ROKS-3 (infobox)", covers = "mass 22.7 kg, ~9 l fuel, effective range 25 m, maximum range 45 m, crew 1" },
+    { ref = "Zaloga/Ness, Red Army Handbook 1939-1945 (Sutton 1998)", covers = "flamethrower companies (ORRO) and use in assault engineer brigades (not checked online)" },
+]
+uncertain = ["squad_size", "weapon"]
+note = "Operator with ROKS-3 (infobox crew 1) plus a covering SMG-armed soldier; second man is an estimate. Effective range 25 m, maximum 45 m. PPSh-41 rate is cyclic."
+
+[[unit]]
+id = "su_inf_command"
+faction = "su"
+category = "inf_command"
+name_de = "Führungstrupp (Offizier und Funker)"
+name_en = "Command Team (Officer and Radio Operator)"
+designation = "Platoon/company command group with RB-M radio"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/su/su_inf_command.tscn"
+squad_size = 2
+speed_road_kmh_x10 = 50
+speed_offroad_kmh_x10 = 40
+weapon = [
+    { name = "TT-33", count = 1, caliber_mm_x10 = 76, ammo = "7.62x25 Tokarev", rate_rpm = 20, muzzle_velocity_mps = 420, range_effective_m = 50 },
+    { name = "PPSh-41", count = 1, caliber_mm_x10 = 76, ammo = "7.62x25 Tokarev", rate_rpm = 1000, muzzle_velocity_mps = 488, range_effective_m = 200 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/TT_pistol (infobox)", covers = "TT-33 data" },
+    { ref = "https://en.wikipedia.org/wiki/PPSh-41 (infobox)", covers = "PPSh-41 data" },
+    { ref = "Zaloga/Ness, Red Army Handbook 1939-1945 (Sutton 1998)", covers = "signals equipment at battalion/company level (not checked online)" },
+]
+uncertain = ["weapon"]
+note = "Officer (TT-33, often also a PPSh) and radio operator with a portable set such as the RB-M; radios were scarce below battalion level in the Red Army, so this is a gameplay abstraction. TT-33 rate practical, PPSh-41 cyclic."
+
+[[unit]]
+id = "su_inf_tank_crew"
+faction = "su"
+category = "inf_crew"
+name_de = "Panzerbesatzung (ausgestiegen)"
+name_en = "Tank crew (bailed out)"
+designation = "Tank crew, dismounted"
+year_from = 1939
+year_to = 1945
+tier = 2
+model = "assets/models/su/su_inf_tank_crew.tscn"
+squad_size = 5
+speed_road_kmh_x10 = 50
+speed_offroad_kmh_x10 = 40
+weapon = [
+    { name = "PPSh-41", count = 1, caliber_mm_x10 = 76, ammo = "7.62x25 Tokarev, 71-round drum or 35-round box", rate_rpm = 1000, muzzle_velocity_mps = 488, range_effective_m = 200 },
+    { name = "TT-33", count = 4, caliber_mm_x10 = 76, ammo = "7.62x25 Tokarev", rate_rpm = 20, muzzle_velocity_mps = 420, range_effective_m = 50 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/T-34", covers = "T-34-85 crew of five (T-34/76: four); from memory, not fetched for this entry" },
+    { ref = "https://en.wikipedia.org/wiki/TT_pistol (infobox)", covers = "TT-33 muzzle velocity 420 m/s, effective range 50 m" },
+    { ref = "https://en.wikipedia.org/wiki/PPSh-41 (infobox)", covers = "PPSh-41: 7.62x25, muzzle velocity 488 m/s, effective range 150-200 m" },
+]
+uncertain = ["weapon"]
+note = "Not built or bought: the survivors of a destroyed vehicle (prompt 049) bail out as this squad, 1-5 men by chance. squad_size is the largest crew of the faction's tanks (T-34-85: 5). Personal weapons: TT-33 pistols and one PPSh-41 carried in the tank, an assumption. The model shows the field uniform with the pilotka; the padded tank helmet is not modeled."
+
+# ---------------------------------------------------------------------------
+# Vehicles
+# ---------------------------------------------------------------------------
+
+[[unit]]
+id = "su_t70m"
+faction = "su"
+category = "tank_light"
+name_de = "T-70M"
+name_en = "T-70M"
+designation = "T-70M light tank"
+year_from = 1942
+year_to = 1945
+tier = 2
+model = "assets/models/su/su_t70m.glb"
+length_mm = 4290
+width_mm = 2348
+height_mm = 2040
+mass_kg = 9800
+crew = 2
+speed_road_kmh_x10 = 420
+speed_offroad_kmh_x10 = 200
+range_road_km = 360
+power_hp = 140
+armor_hull_front_mm = 45
+armor_hull_front_deg = 60
+armor_hull_side_mm = 15
+armor_turret_front_mm = 50
+armor_turret_side_mm = 35
+armor_turret_rear_mm = 35
+weapon = [
+    { name = "45 mm 20-K M1938", caliber_mm_x10 = 450, ammo = "BR-240 APHE, O-240 HE", rate_rpm = 7, muzzle_velocity_mps = 760, range_effective_m = 1000, ammo_carried = 70 },
+    { name = "DT", caliber_mm_x10 = 76, rate_rpm = 600, ammo_carried = 945 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/T-70 (infobox and text)", covers = "T-70 1942: length 4.29 m, width 2.32 m, height 2.04 m, 9.2 t, crew 2, 2x GAZ-202 70 hp, 45 km/h, range 360 km, armor 10-50 mm (turret front 50, turret sides/rear 35, glacis 35, hull sides 15), 45 mm gun, DT; T-70M changes" },
+    { ref = "Zaloga/Grandsen, Soviet Tanks and Combat Vehicles of World War Two (Arms and Armour 1984)", covers = "T-70M (wider tracks, stronger suspension), mass 9.8 t, road speed 42 km/h (not checked online)" },
+]
+uncertain = ["width_mm", "mass_kg", "speed_road_kmh_x10", "speed_offroad_kmh_x10", "armor_hull_front_mm", "weapon"]
+note = "T-70M (from Oct 1942), in service through 1945. Wikipedia only gives T-70 (1942) values (9.2 t, 2.32 m wide, 45 km/h); the heavier, wider-tracked T-70M is commonly given as 9.8 t, ~2.35 m wide and 42 km/h, not confirmed online. Hull front: upper glacis 35 mm at 60 deg, lower plate commonly given as 45 mm; thickest plate entered, slope is the upper plate's. Hull rear omitted (no fetched value). Off-road speed estimated. Gun designation conflicts (20-K vs 45 mm Model 1938) in Wikipedia; muzzle velocity and stowage (70-90 rounds) not confirmed online. DT rate is cyclic."
+
+[[unit]]
+id = "su_t34_76_1943"
+faction = "su"
+category = "tank_medium"
+name_de = "T-34/76 Modell 1943"
+name_en = "T-34/76 Model 1943"
+designation = "T-34 obr. 1943 (hexagonal turret)"
+year_from = 1942
+year_to = 1945
+tier = 1
+model = "assets/models/su/su_t34_76_1943.glb"
+length_mm = 6680
+length_hull_mm = 5920
+width_mm = 3000
+height_mm = 2460
+mass_kg = 30900
+crew = 4
+speed_road_kmh_x10 = 540
+speed_offroad_kmh_x10 = 360
+range_road_km = 330
+power_hp = 500
+armor_hull_front_mm = 45
+armor_hull_front_deg = 60
+armor_hull_side_mm = 45
+armor_hull_rear_mm = 40
+armor_turret_front_mm = 52
+armor_turret_side_mm = 45
+armor_turret_rear_mm = 45
+weapon = [
+    { name = "76.2 mm F-34 L/41.5", caliber_mm_x10 = 762, ammo = "BR-350A APHE, BR-350P APCR, OF-350 HE", rate_rpm = 5, muzzle_velocity_mps = 662, range_effective_m = 1000, ammo_carried = 100 },
+    { name = "DT", count = 2, caliber_mm_x10 = 76, rate_rpm = 600 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/T-34 (infobox; Design > Overview table)", covers = "length 6.68 m, width 3.00 m, height 2.46 m, crew 4, V-2-34 500 hp, max speed 53 km/h, road range 330 km, hull armor 45 mm/60 deg front, 40 mm rear; Model 1943 100 rounds, armor 20-70 mm" },
+    { ref = "https://ru.wikipedia.org/wiki/Т-34 (infobox; sections Бронирование, Вооружение, Подвижность)", covers = "combat mass 26.5-30.9 t, hull length 5,920 mm, width 3,000 mm, height 2,405 mm, hull side 45 mm from 1942, turret front 45-52 mm, mantlet 40 mm, turret side/rear 45 mm, F-34 L/41.5 with 100 rounds, 54 km/h road, 36 km/h off-road, 380 km road range" },
+    { ref = "https://ru.wikipedia.org/wiki/76-мм_дивизионная_пушка_образца_1942_года_(ЗИС-3) (section Characteristics and ammunition)", covers = "BR-350A muzzle velocity 662 m/s (same 76.2x385R ammunition family as F-34)" },
+    { ref = "Zaloga, T-34/76 Medium Tank 1941-45 (Osprey New Vanguard 9, 1994)", covers = "1943 model (hexagonal turret, cupola), mass (not checked online)" },
+]
+uncertain = ["height_mm", "mass_kg", "speed_offroad_kmh_x10", "range_road_km", "armor_turret_front_mm", "armor_turret_side_mm", "armor_turret_rear_mm", "weapon"]
+note = "Western 'Model 1943' (officially obr. 1942 in part): hexagonal turret, from mid-1943 with commander's cupola. Height 2.46 m (en) vs 2.405 m (ru), without cupola. Mass 30.9 t is the upper end of the ru range (1943 production); other sources give 30.0 t. Road speed 53-54 km/h; off-road 36 km/h per ru Wikipedia (family value, may be optimistic). Road range 330 km (en) vs 380 km (ru) on internal fuel; more with external tanks. Hexagonal turret armor not given explicitly in fetched sources: ru gives turret front 45-52 mm, sides/rear 45 mm for the family; en gives up to 70 mm for the Model 1943 overall; values marked uncertain. F-34 muzzle velocity taken from the BR-350A ZiS-3 table (similar barrel length); DT ammunition count omitted (sources give 2,898-3,150). Main gun rate practical, DT rate cyclic."
+
+[[unit]]
+id = "su_is2"
+faction = "su"
+category = "tank_heavy"
+name_de = "IS-2 Modell 1944"
+name_en = "IS-2 Model 1944"
+designation = "IS-2 obr. 1944 (straightened glacis)"
+year_from = 1944
+year_to = 1945
+tier = 2
+model = "assets/models/su/su_is2.glb"
+length_mm = 9900
+length_hull_mm = 6770
+width_mm = 3090
+height_mm = 2730
+mass_kg = 46000
+crew = 4
+speed_road_kmh_x10 = 370
+speed_offroad_kmh_x10 = 190
+range_road_km = 240
+power_hp = 520
+armor_hull_front_mm = 120
+armor_hull_front_deg = 60
+armor_hull_side_mm = 90
+armor_turret_front_mm = 100
+armor_turret_side_mm = 90
+weapon = [
+    { name = "122 mm D-25T L/43", caliber_mm_x10 = 1220, ammo = "BR-471 APHE, BR-471B APHEBC, OF-471 HE", rate_rpm = 2, muzzle_velocity_mps = 781, range_effective_m = 1500, ammo_carried = 28 },
+    { name = "DT", count = 3, caliber_mm_x10 = 76, rate_rpm = 600 },
+    { name = "DShK", caliber_mm_x10 = 127, rate_rpm = 600, aa = true },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/IS-2 (infobox; Protection/Production)", covers = "46 t, length 9.90 m, width 3.09 m, height 2.73 m, crew 4, armor (hull front 100-120 mm/60 deg, lower 100 mm/30 deg, turret 100 mm, mantlet 120 mm, hull sides 90-130 mm, turret sides 90 mm), D-25T 28 rounds, DShK + 3 DT with 2,079 rounds, V-2IS 520 hp, 37 km/h, range 240 km road / 180 km cross-country, OF-471 800 m/s" },
+    { ref = "Zaloga, IS-2 Heavy Tank 1944-73 (Osprey New Vanguard 7, 1994)", covers = "1944 model, hull length, BR-471 velocity (not checked online)" },
+]
+uncertain = ["armor_hull_front_mm", "speed_offroad_kmh_x10", "weapon"]
+note = "IS-2 obr. 1944 with single-piece glacis at 60 deg; Wikipedia's infobox says 100 mm but its text says a 120 mm casting, so uncertain. Hull rear omitted (no fetched value). Off-road speed estimated. D-25T: 800 m/s is the OF-471 HE figure; ~781 m/s for BR-471 APHE is not confirmed online. MG ammunition is 2,079 rounds total for DT and DShK (split unknown, so omitted). DShK AA mount from late 1944. Main gun rate practical (two-piece ammunition), MG rates cyclic."
+
+[[unit]]
+id = "su_su85"
+faction = "su"
+category = "tank_destroyer"
+name_de = "SU-85"
+name_en = "SU-85"
+designation = "SU-85 tank destroyer"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/su/su_su85.glb"
+length_mm = 8150
+length_hull_mm = 6100
+width_mm = 3000
+height_mm = 2450
+mass_kg = 29600
+crew = 4
+speed_road_kmh_x10 = 550
+speed_offroad_kmh_x10 = 250
+range_road_km = 280
+power_hp = 500
+armor_hull_front_mm = 45
+armor_hull_front_deg = 50
+armor_hull_side_mm = 45
+armor_hull_rear_mm = 45
+armor_turret_front_mm = 60
+armor_turret_side_mm = 45
+gun_traverse_deg = 20
+weapon = [
+    { name = "85 mm D-5S L/52", caliber_mm_x10 = 850, ammo = "BR-365 APHE, O-365 HE", rate_rpm = 6, muzzle_velocity_mps = 792, range_effective_m = 1500, ammo_carried = 48 },
+]
+source = [
+    { ref = "https://www.quartermastersection.com/russian/afvs/827/SU-85", covers = "gun traverse 10 deg left and right (manual)" },
+    { ref = "https://en.wikipedia.org/wiki/SU-85 (infobox)", covers = "29.6 t, length 8.15 m / hull 6.10 m, width 3.00 m, height 2.45 m, crew 4, armor 45 mm, 85 mm D-5 gun, V-2 500 PS, 55 km/h road, range 280 km road (400 km with extra tanks), 140 km cross-country" },
+    { ref = "https://en.wikipedia.org/wiki/85_mm_air_defense_gun_M1939_(52-K) (infobox)", covers = "85 mm ballistics, muzzle velocity 792 m/s (D-5 is based on 52-K ballistics)" },
+    { ref = "Zaloga/Grandsen, Soviet Tanks and Combat Vehicles of World War Two (Arms and Armour 1984)", covers = "production 1943-44, 48 rounds (not checked online)" },
+]
+uncertain = ["gun_traverse_deg", "speed_offroad_kmh_x10", "armor_hull_front_deg", "armor_turret_front_mm", "weapon"]
+note = "SU-85 on T-34 chassis with fixed casemate; Wikipedia gives a uniform 45 mm (flagged as needing clarification). 50 deg superstructure slope and ~60 mm mantlet not confirmed online. Wikipedia names the gun D-5T; the SU-85 mounting is usually designated D-5S. 48 rounds not confirmed online. No machine gun fitted. Off-road speed estimated. Rate practical."
+
+[[unit]]
+id = "su_su76m"
+faction = "su"
+category = "assault_gun"
+name_de = "SU-76M"
+name_en = "SU-76M"
+designation = "SU-76M self-propelled gun"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/su/su_su76m.glb"
+length_mm = 4970
+width_mm = 2720
+height_mm = 2100
+mass_kg = 10500
+crew = 4
+speed_road_kmh_x10 = 450
+speed_offroad_kmh_x10 = 250
+range_road_km = 250
+power_hp = 140
+armor_hull_front_mm = 35
+armor_hull_front_deg = 60
+armor_hull_side_mm = 15
+armor_turret_front_mm = 25
+armor_turret_side_mm = 10
+gun_traverse_deg = 30
+weapon = [
+    { name = "76.2 mm ZiS-3Sh", caliber_mm_x10 = 762, ammo = "BR-350A APHE, OF-350 HE", rate_rpm = 10, muzzle_velocity_mps = 662, range_effective_m = 1000, ammo_carried = 60 },
+]
+source = [
+    { ref = "https://www.ospreypublishing.com/us/discover/osprey-publishing/machine-of-the-month/su-76m", covers = "ZiS-3 mount traverse 15 deg to either side" },
+    { ref = "https://en.wikipedia.org/wiki/SU-76 (infobox, SU-76M)", covers = "10,500 kg, length 4.97 m, width 2.72 m, height 2.10 m, crew 4, armor front 25-35 mm / side 10-15 mm, ZiS-3 gun, DT secondary, 2x 70 hp, 45 km/h, range 250 km road / 175 km cross-country" },
+    { ref = "https://ru.wikipedia.org/wiki/76-мм_дивизионная_пушка_образца_1942_года_(ЗИС-3) (ammunition table)", covers = "BR-350A 662 m/s" },
+    { ref = "Zaloga/Grandsen, Soviet Tanks and Combat Vehicles of World War Two (Arms and Armour 1984)", covers = "SU-76M open-top variant, role (not checked online)" },
+]
+uncertain = ["speed_offroad_kmh_x10", "armor_hull_front_deg", "weapon"]
+note = "SU-76M (from mid-1943), open-topped light SPG for infantry support. Front armor 25-35 mm (35 mm hull, 25 mm superstructure), sides 10-15 mm; 60 deg slope not confirmed online. Wikipedia lists a DT as secondary (not always carried; omitted). 60 rounds not confirmed online. Off-road speed estimated. Rate practical."
+
+[[unit]]
+id = "su_m3a1_scout"
+faction = "su"
+category = "halftrack"
+name_de = "M3A1 Scout Car (Lend-Lease)"
+name_en = "M3A1 Scout Car (Lend-Lease)"
+designation = "Scout Car M3A1"
+year_from = 1942
+year_to = 1945
+tier = 2
+model = "assets/models/su/su_m3a1_scout.glb"
+length_mm = 5610
+width_mm = 2030
+height_mm = 1960
+mass_kg = 5670
+crew = 2
+passengers = 6
+speed_road_kmh_x10 = 800
+speed_offroad_kmh_x10 = 400
+range_road_km = 400
+power_hp = 110
+armor_hull_front_mm = 13
+armor_hull_side_mm = 6
+armor_hull_rear_mm = 6
+weapon = [
+    { name = "Browning M2HB", caliber_mm_x10 = 127, rate_rpm = 500, muzzle_velocity_mps = 890, range_effective_m = 1800 },
+    { name = "Browning M1919A4", caliber_mm_x10 = 76, rate_rpm = 500, muzzle_velocity_mps = 850, range_effective_m = 1000 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/M3_scout_car (infobox; Lend-Lease section)", covers = "M3A1: 5.67 t, length 5.61 m, width 2.03 m, height 1.96 m, crew 8, armor max 13 mm, M2 .50 + 1-2 .30 cal, Hercules JXD 110 hp, 80 km/h, range 400 km; 3,310 to the USSR" },
+    { ref = "TM 9-705, Scout Car M3A1 (War Department)", covers = "side/rear armor 1/4 in (not checked online)" },
+]
+uncertain = ["speed_offroad_kmh_x10", "armor_hull_side_mm", "armor_hull_rear_mm", "weapon"]
+note = "Wheeled 4x4 armored car, not a halftrack; placed in category halftrack as the Red Army's troop carrier. The Red Army had no domestic APC; about 3,310 M3A1 were supplied via Lend-Lease and used for reconnaissance, command, towing and troop carrying. crew = 2 (driver, commander); Wikipedia counts 8 including 6 passengers. Off-road speed estimated. MG rates are cyclic (M2HB 450-575, M1919A4 400-600 rpm); muzzle velocities and ranges not confirmed online; ammunition counts omitted (vary by TM edition)."
+
+[[unit]]
+id = "su_zis5"
+faction = "su"
+category = "truck"
+name_de = "ZiS-5V"
+name_en = "ZiS-5V"
+designation = "ZiS-5V 3-ton truck"
+year_from = 1942
+year_to = 1945
+tier = 1
+model = "assets/models/su/su_zis5.glb"
+length_mm = 6060
+width_mm = 2235
+height_mm = 2160
+mass_kg = 3100
+crew = 1
+passengers = 25
+speed_road_kmh_x10 = 600
+speed_offroad_kmh_x10 = 250
+range_road_km = 180
+power_hp = 73
+source = [
+    { ref = "https://en.wikipedia.org/wiki/ZIS-5_(truck) (specifications; ZIS-5V variant section)", covers = "length 6,060 mm with bumper, width 2,235 mm, cab height 2,160 mm, curb weight 3,100 kg, 3 t payload, 73 hp at 2,300 rpm (76 hp from Jan 1944), 60 km/h, 34 l/100 km; ZiS-5V production from 1942 and simplifications" },
+    { ref = "Zaloga/Ness, Red Army Handbook 1939-1945 (Sutton 1998)", covers = "role as standard Soviet 3-ton truck (not checked online)" },
+]
+uncertain = ["mass_kg", "speed_offroad_kmh_x10", "range_road_km", "power_hp"]
+note = "ZiS-5V: wartime simplified ZiS-5 (wooden cab, flat fenders, no front brakes, often one headlight, no bumpers), built from 1942. mass_kg is the ZiS-5 curb weight; no separate ZiS-5V weight found. Engine 73 hp, 76 hp from January 1944 (investigators estimate real output 67-68 hp). Range not stated in sources: estimated from 34 l/100 km and a ~60 l tank (tank capacity not confirmed). Off-road speed estimated. Driver plus up to 2 in cab; 25 troops on benches in the cargo body."
+
+[[unit]]
+id = "su_ba64b"
+faction = "su"
+category = "recon_vehicle"
+name_de = "BA-64B"
+name_en = "BA-64B"
+designation = "BA-64B light armored car"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/su/su_ba64b.glb"
+length_mm = 3660
+width_mm = 1740
+height_mm = 1900
+mass_kg = 2400
+crew = 2
+speed_road_kmh_x10 = 800
+speed_offroad_kmh_x10 = 300
+range_road_km = 500
+power_hp = 50
+armor_hull_front_mm = 15
+armor_hull_side_mm = 6
+weapon = [
+    { name = "DT", caliber_mm_x10 = 76, rate_rpm = 600, muzzle_velocity_mps = 840, range_effective_m = 800, ammo_carried = 1070 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/BA-64 (infobox and text)", covers = "2.4 t, length 3.66 m, width 1.74 m, height 1.9 m (hull), crew 2, DT with 1,070 rounds, GAZ-MM 50 hp, 80 km/h, range 500 km, armor 15 mm front to 6 mm sides; BA-64B wider track" },
+    { ref = "https://en.wikipedia.org/wiki/DP_machine_gun (infobox)", covers = "DP/DT family ballistics (840 m/s, 800 m)" },
+]
+uncertain = ["width_mm", "speed_offroad_kmh_x10"]
+note = "BA-64B (from 1943, wider track) on GAZ-67 chassis, open-topped turret with one DT. Wikipedia's infobox covers the BA-64 family; BA-64B width may differ. Turret armor omitted (no fetched value). Off-road speed estimated. DT rate is cyclic."
+
+[[unit]]
+id = "su_isu152"
+faction = "su"
+category = "self_propelled"
+name_de = "ISU-152"
+name_en = "ISU-152"
+designation = "ISU-152 heavy self-propelled gun"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/su/su_isu152.glb"
+length_mm = 9180
+length_hull_mm = 6770
+width_mm = 3070
+height_mm = 2480
+mass_kg = 46000
+crew = 5
+speed_road_kmh_x10 = 300
+speed_offroad_kmh_x10 = 150
+range_road_km = 200
+power_hp = 520
+armor_hull_front_mm = 90
+armor_hull_side_mm = 90
+armor_turret_front_mm = 90
+armor_turret_side_mm = 75
+weapon = [
+    { name = "152 mm ML-20S L/29", caliber_mm_x10 = 1520, ammo = "OF-540 HE-frag, BR-540 APHE, G-530 concrete-piercing", rate_rpm = 1, muzzle_velocity_mps = 600, range_effective_m = 6200, ammo_carried = 18 },
+    { name = "DShK", caliber_mm_x10 = 127, rate_rpm = 600, ammo_carried = 200, aa = true },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/ISU-152 (infobox and text)", covers = "47.3 t max, length 9.18 m, width 3.07 m, height 2.48 m, crew 4-5, armor (upper hull front 60, lower hull front/lower sides/superstructure front 90, upper sides 75, mantlet up to 120 mm), ML-20S with 18 rounds, BR-540 600 m/s, max range 6,200 m, panoramic direct fire to 3,500 m, DShK 200 rounds, V-2IS 520 hp, 30 km/h road / 15-20 cross-country, range 200 km road" },
+    { ref = "Zaloga, IS-2 Heavy Tank 1944-73 (Osprey New Vanguard 7, 1994)", covers = "IS chassis, hull length (not checked online)" },
+]
+uncertain = ["mass_kg", "crew", "speed_offroad_kmh_x10", "weapon"]
+note = "Heavy assault gun / SPG on IS chassis (accepted Nov 1943), used for direct fire against fortifications and tanks (panoramic sight to 3,500 m) and for indirect fire; range_effective_m is the indirect maximum (6,200 m). mass_kg 46 t is the common combat weight; Wikipedia gives 47.3 t maximum. Crew 4-5. Off-road 15-20 km/h. Armor: superstructure front 90 mm (in armor_turret_front_mm), mantlet up to 120 mm; hull front lower 90 mm, upper 60 mm. Ammunition 18 rounds per Wikipedia infobox (other sources 20-21). Rear armor omitted (no fetched value). DShK AA mount from 1945. Main gun rate practical (1-2 rpm), DShK cyclic."
+
+# ---------------------------------------------------------------------------
+# Guns
+# ---------------------------------------------------------------------------
+
+[[unit]]
+id = "su_zis3"
+faction = "su"
+category = "gun_at"
+name_de = "76-mm-Divisionskanone ZiS-3"
+name_en = "76 mm Divisional Gun M1942 (ZiS-3)"
+designation = "76-mm divizionnaya pushka obr. 1942 (ZiS-3)"
+year_from = 1942
+year_to = 1945
+tier = 1
+model = "assets/models/su/su_zis3.glb"
+length_mm = 6100
+width_mm = 1600
+height_mm = 1370
+mass_kg = 1116
+crew = 7
+armor_turret_front_mm = 5
+weapon = [
+    { name = "76.2 mm ZiS-3 L/42.6", caliber_mm_x10 = 762, ammo = "BR-350A APHE, BR-350P APCR, OF-350 HE-frag", rate_rpm = 15, muzzle_velocity_mps = 662, range_effective_m = 1000 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/76_mm_divisional_gun_M1942_(ZiS-3) (infobox; ammunition table)", covers = "mass 1,116 kg combat / 2,150 kg travel, barrel 3.4 m (L/42.6), width 1.6 m, height 1.37 m, crew 7, up to 25 rpm, max range 13.29 km, BR-350A 700 m/s, OF-350 680 m/s, BR-350A penetration to 2,000 m" },
+    { ref = "https://ru.wikipedia.org/wiki/76-мм_дивизионная_пушка_образца_1942_года_(ЗИС-3) (Characteristics and ammunition properties)", covers = "mass 1,200 kg firing / 1,850 kg travel, shield 5 mm, max range 13,000 m, direct-fire range 820 m, BR-350A 662 m/s, BR-350B 655 m/s, OF-350 680 m/s" },
+    { ref = "https://www.historyofwar.org/articles/weapons_76_2mm_divisional_gun_1942_ZiS3.html (seen as search excerpt)", covers = "length 6.1 m, width ~1.65 m, height ~1.38 m" },
+]
+uncertain = ["length_mm", "mass_kg", "crew", "weapon"]
+note = "Length 6.1 m is the travel-position figure (barrel forward, trails closed); width 1.6 m and height 1.37 m per en Wikipedia (other sources 1.645 m / 1.375 m); firing-position height is about the same (shield top), not separately sourced. Mass in firing position: 1,116 kg (en and most sources) vs 1,200 kg (ru). Crew 7 (en; usual figure), ru lists 4 named roles. Muzzle velocity of BR-350A: 662 m/s (ru table) vs 700 m/s (en); 680 m/s with OF-350 HE. Practical anti-tank rate ~15 rpm (maximum 25). Effective anti-tank range ~1,000 m chosen (ru direct-fire range 820 m; penetration tables to 2,000 m); max indirect range 13,000-13,290 m."
+
+[[unit]]
+id = "su_61k"
+faction = "su"
+category = "gun_aa_light"
+name_de = "37-mm-Flak 61-K"
+name_en = "37 mm AA Gun M1939 (61-K)"
+designation = "37-mm avtomaticheskaya zenitnaya pushka obr. 1939 (61-K)"
+year_from = 1939
+year_to = 1945
+tier = 2
+model = "assets/models/su/su_61k.glb"
+length_mm = 5500
+width_mm = 1790
+height_mm = 2110
+mass_kg = 2100
+crew = 8
+weapon = [
+    { name = "37 mm 61-K L/67", caliber_mm_x10 = 370, ammo = "OR-167 HE-T, UBR-167 AP-T, 5-round clips", rate_rpm = 170, muzzle_velocity_mps = 880, range_effective_m = 4000, range_aa_m = 3000 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/37_mm_automatic_air_defense_gun_M1939_(61-K) (infobox; specifications table)", covers = "2,100 kg, length 5.5 m, width 1.79 m, height 2.11 m, crew 8, 160-170 rpm cyclic, 80 rpm practical, 880 m/s, effective range 4 km, max ceiling 5 km, 3,000 m against air targets" },
+    { ref = "https://ru.wikipedia.org/wiki/61-К (infobox; ballistics section)", covers = "2,100 kg travel and firing, 5,500 x 1,765 x 2,100 mm travel, crew 7, 160-170 rpm (practical 120), OR-167 880 m/s, UBR-167 872 m/s, tabular range 4,000 m (HE, self-destruct), 1,500 m (AP)" },
+]
+uncertain = ["width_mm", "crew"]
+note = "Dimensions are travel position on the four-wheel carriage (width 1.79 m en vs 1.765 m ru); firing position lowered on outriggers, not separately sourced. Crew 8 (en) vs 7 (ru). rate_rpm is cyclic (160-170); practical 80-120 rpm. range_effective_m = horizontal tabular range of the HE round (4,000 m, fuze self-destruct); AP rounds 1,500 m. Ceiling: effective ~3,000 m, maximum ~5,000 m."
+
+[[unit]]
+id = "su_52k"
+faction = "su"
+category = "gun_aa_heavy"
+name_de = "85-mm-Flak 52-K"
+name_en = "85 mm AA Gun M1939 (52-K)"
+designation = "85-mm zenitnaya pushka obr. 1939 (52-K)"
+year_from = 1939
+year_to = 1945
+tier = 2
+model = "assets/models/su/su_52k.glb"
+length_mm = 7050
+width_mm = 2150
+height_mm = 2250
+mass_kg = 4500
+crew = 7
+weapon = [
+    { name = "85 mm 52-K L/55", caliber_mm_x10 = 850, ammo = "O-365K HE-frag (time fuze), BR-365 APHE", rate_rpm = 12, muzzle_velocity_mps = 792, range_effective_m = 15650, range_aa_m = 10500 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/85_mm_air_defense_gun_M1939_(52-K) (infobox)", covers = "4,500 kg combat and travel, length 7.05 m, width 2.15 m, height 2.25 m, crew 7, 10-12 rpm, 792 m/s, vertical range 10,500 m, maximum firing range 15.65 km" },
+]
+uncertain = ["mass_kg"]
+note = "Dimensions are travel position on the four-wheel carriage; firing position on cruciform outriggers not separately sourced. Mass 4,500 kg per Wikipedia (other sources 4,220-4,300 kg). range_effective_m = maximum horizontal range (15,650 m); vertical reach 10,500 m. Rate practical (10-12 rpm, 15-20 in some sources). Also used as an anti-tank gun in direct fire."
+
+[[unit]]
+id = "su_m30"
+faction = "su"
+category = "gun_howitzer"
+name_de = "122-mm-Haubitze M-30"
+name_en = "122 mm Howitzer M1938 (M-30)"
+designation = "122-mm gaubitsa obr. 1938 (M-30)"
+year_from = 1939
+year_to = 1945
+tier = 2
+model = "assets/models/su/su_m30.glb"
+length_mm = 5900
+width_mm = 1980
+height_mm = 1820
+mass_kg = 2450
+crew = 8
+weapon = [
+    { name = "122 mm M-30 L/22.7", caliber_mm_x10 = 1220, ammo = "OF-462 HE-frag, BP-460A HEAT (from 1943)", rate_rpm = 5, muzzle_velocity_mps = 515, range_effective_m = 11800 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/122_mm_howitzer_M1938_(M-30) (infobox; ammunition table)", covers = "2,450 kg combat / 3,100 kg travel, length 5.9 m with limber, width 1.98 m, height 1.82 m, crew 8, 5-6 rpm, max range 11.8 km, OF-462 515 m/s" },
+]
+uncertain = ["length_mm", "height_mm"]
+note = "Length 5.9 m is the travel figure with limber; height 1.82 m not specified as travel or firing. Firing-position footprint with spread trails not sourced. Mass in firing position. Has a gun shield (thickness not found, omitted). Rate practical; range_effective_m is maximum indirect range."
+
+[[unit]]
+id = "su_pm38"
+faction = "su"
+category = "mortar_heavy"
+name_de = "120-mm-Granatwerfer 120-PM-38"
+name_en = "120 mm Regimental Mortar 120-PM-38"
+designation = "120-mm polkovoy minomyot obr. 1938 (120-PM-38)"
+year_from = 1939
+year_to = 1945
+tier = 2
+model = "assets/models/su/su_pm38.glb"
+length_mm = 1860
+width_mm = 1300
+height_mm = 1500
+mass_kg = 280
+crew = 6
+weapon = [
+    { name = "120-PM-38", caliber_mm_x10 = 1200, ammo = "OF-843A 16 kg HE-frag bomb", rate_rpm = 10, muzzle_velocity_mps = 272, range_effective_m = 5800 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/M1938_mortar (infobox; ammunition table)", covers = "280 kg combat / 477 kg travel, barrel 1.86 m (L/15.5), crew 6, 10 rpm, 272 m/s, effective range 6 km, max range 5.35-5.8 km by shell, 16 kg bomb" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Mass in firing position (wheeled carriage removed). Firing-position footprint estimated: length ~ barrel length (1,862 mm, actual horizontal extent smaller at 45-80 deg), width ~ baseplate/bipod spread, height of muzzle at typical elevation. range_effective_m = maximum range of the longest-ranged bomb (5,800 m); infobox gives 6 km. Rate practical."
+
+# ---------------------------------------------------------------------------
+# Fortifications (not verified online; no reliable fetched source found)
+# ---------------------------------------------------------------------------
+
+[[unit]]
+id = "su_bunker_dzot"
+faction = "su"
+category = "fort_bunker"
+name_de = "Holz-Erde-Bunker (DZOT)"
+name_en = "Wood-and-Earth MG Bunker (DZOT)"
+designation = "DZOT (derevo-zemlyanaya ognevaya tochka)"
+year_from = 1941
+year_to = 1945
+tier = 2
+model = "assets/models/su/su_bunker_dzot.glb"
+length_mm = 6000
+width_mm = 5000
+height_mm = 1000
+weapon = [
+    { name = "Maxim M1910/30", caliber_mm_x10 = 76, rate_rpm = 600, muzzle_velocity_mps = 800, range_effective_m = 1000 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Pillbox_(military)", covers = "DZOT as Soviet field-built log-and-earth firing point, secondary (not checked online)" },
+    { ref = "Zaloga/Ness, Red Army Handbook 1939-1945 (Sutton 1998)", covers = "field fortification practice (not checked online)" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm", "weapon"]
+note = "Field-built log bunker covered by 1-2 m of earth, typically for one HMG (sometimes an AT gun). No standard size: dimensions are an estimate of the outer earth mound (interior ~2.5 x 2.5 m), height above ground ~1 m with the rest dug in. Weapon is a typical occupant (cyclic rate)."
+
+[[unit]]
+id = "su_minefield_at"
+faction = "su"
+category = "fort_minefield_at"
+name_de = "Panzerminenfeld (TM-41)"
+name_en = "Anti-Tank Minefield (TM-41)"
+designation = "TM-41 anti-tank mine section"
+year_from = 1941
+year_to = 1945
+tier = 2
+model = "assets/models/su/su_minefield_at.glb"
+length_mm = 20000
+width_mm = 20000
+height_mm = 0
+weapon = [
+    { name = "TM-41", count = 20, ammo = "~4 kg explosive charge, pressure fuze" },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/TM-41_mine", covers = "TM-41: mass ~5.5 kg, ~4 kg explosive, pressure-activated (not checked online)" },
+    { ref = "Zaloga/Ness, Red Army Handbook 1939-1945 (Sutton 1998)", covers = "minefield densities in prepared defences (not checked online)" },
+]
+uncertain = ["weapon"]
+note = "Standard 20 m x 20 m section, laid flush. Soviet doctrine 1943 called for roughly 750-1,000 AT mines per km of front (~1 per metre of frontage), at Kursk higher; 20 mines per 20 m section follows that density. TM-35 also used. Not verified online."
+
+[[unit]]
+id = "su_minefield_ap"
+faction = "su"
+category = "fort_minefield_ap"
+name_de = "Schützenminenfeld (PMD-6 / POMZ-2)"
+name_en = "Anti-Personnel Minefield (PMD-6 / POMZ-2)"
+designation = "PMD-6 and POMZ-2 anti-personnel mine section"
+year_from = 1941
+year_to = 1945
+tier = 2
+model = "assets/models/su/su_minefield_ap.glb"
+length_mm = 20000
+width_mm = 20000
+height_mm = 0
+weapon = [
+    { name = "PMD-6", count = 40, ammo = "200 g TNT, wooden box, MUV fuze" },
+    { name = "POMZ-2", count = 10, ammo = "75 g TNT, fragmentation stake mine, tripwire" },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/PMD-6_mine", covers = "PMD-6: wooden box mine, ~200 g TNT (not checked online)" },
+    { ref = "https://en.wikipedia.org/wiki/POMZ", covers = "POMZ-2: stake fragmentation mine, 75 g TNT, tripwire (not checked online)" },
+    { ref = "Zaloga/Ness, Red Army Handbook 1939-1945 (Sutton 1998)", covers = "minefield densities (not checked online)" },
+]
+uncertain = ["weapon"]
+note = "Standard 20 m x 20 m section. Doctrinal AP density roughly 2,000-3,000 mines per km of front (2-3 per metre of frontage); 40 PMD-6 plus 10 POMZ-2 per 20 m section follows that. Mix is an estimate. POMZ-2 stakes stand ~0.3 m but the field is treated as height 0. Not verified online."
+
+# ---------------------------------------------------------------------------
+# Aircraft (aircraft gun rates are cyclic)
+# ---------------------------------------------------------------------------
+
+[[unit]]
+id = "su_la5fn"
+faction = "su"
+category = "aircraft_fighter"
+name_de = "La-5FN"
+name_en = "La-5FN"
+designation = "Lavochkin La-5FN"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/su/su_la5fn.glb"
+length_mm = 8670
+wingspan_mm = 9800
+height_mm = 2540
+mass_kg = 3168
+crew = 1
+speed_max_kmh_x10 = 6480
+ceiling_m = 11000
+power_hp = 1850
+weapon = [
+    { name = "ShVAK", count = 2, caliber_mm_x10 = 200, ammo = "20x99R HE, AP-I", rate_rpm = 750, muzzle_velocity_mps = 790, ammo_carried = 340 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Lavochkin_La-5 (Specifications, La-5FN)", covers = "length 8.67 m, wingspan 9.8 m, height 2.54 m, 3,168 kg gross / 3,402 kg max, ASh-82FN 1,960 hp, 648 km/h at 6,250 m, 583 km/h at sea level, ceiling 11,000 m, 2x ShVAK with 170 rpg, 2x 100 kg bombs" },
+    { ref = "Gordon/Khazanov, Soviet Combat Aircraft of the Second World War, Vol. 1 (Midland 1998)", covers = "La-5FN engine rating 1,850 hp (not checked online)" },
+]
+uncertain = ["mass_kg", "ceiling_m", "power_hp"]
+note = "La-5FN (1943). Max speed 648 km/h at 6,250 m. mass_kg = gross takeoff weight per Wikipedia (other sources 3,265-3,360 kg normal). Ceiling 11,000 m per Wikipedia; 9,500 m is also often given. ASh-82FN takeoff rating usually 1,850 hp; Wikipedia says 1,960 hp. ShVAK cyclic rate and velocity not confirmed online. Bombs not listed as weapon."
+
+[[unit]]
+id = "su_il2m3"
+faction = "su"
+category = "aircraft_attack"
+name_de = "Il-2M3"
+name_en = "Il-2M3"
+designation = "Ilyushin Il-2M3 (two-seat)"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/su/su_il2m3.glb"
+length_mm = 11650
+wingspan_mm = 14600
+height_mm = 4170
+mass_kg = 6160
+crew = 2
+speed_max_kmh_x10 = 4100
+speed_cruise_kmh_x10 = 2750
+ceiling_m = 4525
+power_hp = 1720
+weapon = [
+    { name = "VYa-23", count = 2, caliber_mm_x10 = 230, ammo = "23x152B HE-I, AP-I", rate_rpm = 600, muzzle_velocity_mps = 905, ammo_carried = 300 },
+    { name = "ShKAS", count = 2, caliber_mm_x10 = 76, rate_rpm = 1800, muzzle_velocity_mps = 825, ammo_carried = 1500 },
+    { name = "UBT (rear gunner)", caliber_mm_x10 = 127, rate_rpm = 1000, muzzle_velocity_mps = 860, ammo_carried = 300 },
+    { name = "Bombs and rockets", count = 6, bomb_kg = 100, ammo = "6x 100 kg bombs or 192 PTAB-2.5 HEAT bomblets; 8x RS-82 or 4x RS-132 rockets" },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Ilyushin_Il-2 (Specifications, Il-2M3)", covers = "crew 2, length 11.65 m, wingspan 14.60 m, height 4.17 m (tail up), 6,360 kg max takeoff, AM-38F 1,720 hp, 410 km/h at 1,500 m, range quoted at 275 km/h, service ceiling 4,525 m, 2x VYa-23 150 rpg, 2x ShKAS 750 rpg, UBT 300 rounds, bombs and rockets" },
+    { ref = "Gordon/Khazanov, Soviet Combat Aircraft of the Second World War, Vol. 2 (Midland 1999)", covers = "normal takeoff weight (not checked online)" },
+]
+uncertain = ["mass_kg", "speed_cruise_kmh_x10", "weapon"]
+note = "Il-2M3 (1943) with AM-38F and VYa-23 cannon. Max speed 410 km/h at 1,500 m. Wikipedia gives only max takeoff weight (6,360 kg); normal takeoff 6,060-6,160 kg in other sources. Cruise value is the speed at which range is quoted. Gun rates cyclic; velocities not confirmed online."
+
+[[unit]]
+id = "su_pe2"
+faction = "su"
+category = "aircraft_bomber"
+name_de = "Pe-2"
+name_en = "Pe-2"
+designation = "Petlyakov Pe-2"
+year_from = 1941
+year_to = 1945
+tier = 2
+model = "assets/models/su/su_pe2.glb"
+length_mm = 12660
+wingspan_mm = 17160
+height_mm = 3420
+mass_kg = 7536
+crew = 3
+speed_max_kmh_x10 = 5400
+speed_cruise_kmh_x10 = 4280
+ceiling_m = 8800
+power_hp = 2200
+weapon = [
+    { name = "ShKAS (fixed forward)", caliber_mm_x10 = 76, rate_rpm = 1800, muzzle_velocity_mps = 825 },
+    { name = "UBK (fixed forward, 1943+)", caliber_mm_x10 = 127, rate_rpm = 1000, muzzle_velocity_mps = 860 },
+    { name = "UBT (dorsal, 1943+)", caliber_mm_x10 = 127, rate_rpm = 1000, muzzle_velocity_mps = 860 },
+    { name = "ShKAS (ventral)", caliber_mm_x10 = 76, rate_rpm = 1800, muzzle_velocity_mps = 825 },
+    { name = "Bombs", count = 6, bomb_kg = 100, ammo = "600 kg normal, 1,000 kg max" },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Petlyakov_Pe-2 (Specifications, early production)", covers = "crew 3, length 12.66 m, wingspan 17.16 m, height 3.42 m, 7,536 kg gross, 2x M-105RA 1,100 hp, 540 km/h at 5,000 m, cruise 428 km/h, ceiling 8,800 m, 2x ShKAS forward + 2x ShKAS rear, 1,000 kg bombs" },
+    { ref = "Gordon/Khazanov, Soviet Combat Aircraft of the Second World War, Vol. 2 (Midland 1999)", covers = "1943 series changes (M-105PF, UBK forward gun, UBT dorsal turret) (not checked online)" },
+]
+uncertain = ["mass_kg", "speed_max_kmh_x10", "power_hp", "weapon"]
+note = "Performance values are Wikipedia's early-production Pe-2 (2x M-105RA, 1,100 hp each; power_hp is total). 1943+ series had M-105PF (2x 1,210 hp) and heavier armament; their speed is usually given slightly lower (~530 km/h) because of added weight. Weapon list shows the 1943+ fit (UBK forward, UBT dorsal), not confirmed online. Gun rates cyclic. The normal 600 kg bomb load is entered as 6 x FAB-100 (bomb_kg, prompt 033); the split is an assumption."
+
+[[unit]]
+id = "su_po2"
+faction = "su"
+category = "aircraft_recon"
+name_de = "Po-2"
+name_en = "Po-2"
+designation = "Polikarpov Po-2 (U-2)"
+year_from = 1929
+year_to = 1945
+tier = 2
+model = "assets/models/su/su_po2.glb"
+length_mm = 8170
+wingspan_mm = 11400
+height_mm = 3100
+mass_kg = 1030
+crew = 2
+speed_max_kmh_x10 = 1520
+speed_cruise_kmh_x10 = 1100
+ceiling_m = 3000
+power_hp = 125
+weapon = [
+    { name = "ShKAS (rear cockpit, U-2VS/LNB)", caliber_mm_x10 = 76, rate_rpm = 1800, muzzle_velocity_mps = 825 },
+    { name = "Bombs", count = 6, bomb_kg = 50, ammo = "6x FAB-50 (U-2VS/LNB)" },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Polikarpov_Po-2 (Specifications, U-2)", covers = "crew 2, length 8.17 m, wingspan 11.4 m, height 3.1 m, 1,030 kg gross, M-11D 125 hp, 152 km/h, cruise 110 km/h, ceiling 3,000 m, ShKAS and 6x FAB-50 (U-2VS/LNB)" },
+    { ref = "Gordon/Khazanov, Soviet Combat Aircraft of the Second World War, Vol. 1 (Midland 1998)", covers = "liaison and night bomber use (not checked online)" },
+]
+uncertain = ["mass_kg"]
+note = "Biplane trainer used for liaison, reconnaissance and night harassment bombing (U-2VS / Po-2LNB). Wikipedia's specifications are uncited. mass_kg is the trainer/liaison gross weight; the night bomber with bombs was heavier (~1,350 kg). Designated U-2 until 1944. ShKAS rate cyclic."
+
+# ---------------------------------------------------------------------------
+# Prompt 055: bridge-laying tank (Lend-Lease) and transport aircraft
+# ---------------------------------------------------------------------------
+
+[[unit]]
+id = "su_valentine_bridgelayer"
+faction = "su"
+category = "bridgelayer"
+name_de = "Valentine-Brückenleger (Lend-Lease)"
+name_en = "Valentine Bridgelayer (Lend-Lease)"
+designation = "Valentine Bridgelayer"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/su/su_valentine_bridgelayer.glb"
+length_mm = 5900
+length_hull_mm = 5410
+width_mm = 2900
+height_mm = 3400
+mass_kg = 20000
+crew = 2
+speed_road_kmh_x10 = 240
+speed_offroad_kmh_x10 = 130
+range_road_km = 145
+power_hp = 131
+armor_hull_front_mm = 60
+armor_hull_side_mm = 60
+armor_hull_rear_mm = 60
+bridge_length_mm = 10360
+bridge_load_kg = 30480
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Valentine_tank", covers = "Valentine Bridgelayer: turretless Valentine II with a 34 ft (10.36 m) scissors bridge, Class 30 (30 long tons), spanning about 30 ft; 25 delivered to the Soviet Union under Lend-Lease; Valentine hull 5.41 m long, 2.63 m wide, armor up to 60 mm, AEC diesel 131 hp, 15 mph road (from memory, not fetched for this entry)" },
+    { ref = "https://en.wikipedia.org/wiki/Lend-Lease", covers = "British tanks (Valentine) supplied to the Soviet Union 1941-45" },
+    { ref = "Fletcher, Valentine Infantry Tank 1938-45 (Osprey New Vanguard 2008), bridgelayer", covers = "scissors bridge, Class 30, use by the Red Army (book not consulted for this entry)" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm", "mass_kg", "speed_offroad_kmh_x10", "range_road_km"]
+note = "The Red Army had no bridge-laying tank of its own in 1943-45; it used Valentine bridgelayers from Lend-Lease (Wikipedia gives 25 delivered; book not consulted) [provisional]. The scissors bridge folded in half on the hull: carried about 5.2 m long, laid 10.36 m. Overall length with the folded bridge, height, width (bridge 9 ft 6 in = 2.9 m) and weight (Valentine II about 16 t plus the bridge) are estimates. bridge_load_kg = Class 30 (30 long tons)."
+
+[[unit]]
+id = "su_li2"
+faction = "su"
+category = "aircraft_transport"
+name_de = "Lisunow Li-2"
+name_en = "Lisunov Li-2"
+designation = "Li-2"
+year_from = 1940
+year_to = 1945
+tier = 2
+model = "assets/models/su/su_li2.glb"
+length_mm = 19650
+wingspan_mm = 28810
+height_mm = 5150
+mass_kg = 11280
+crew = 4
+passengers = 25
+speed_max_kmh_x10 = 3200
+speed_cruise_kmh_x10 = 2500
+ceiling_m = 5600
+power_hp = 2000
+weapon = [
+    { name = "ShKAS (dorsal turret)", count = 1, caliber_mm_x10 = 76, rate_rpm = 1800, muzzle_velocity_mps = 825 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Lisunov_Li-2", covers = "licence-built DC-3: crew 4, 19.65 m, 28.81 m, 5.15 m, max takeoff 11,280 kg, 2 x Shvetsov ASh-62IR 1000 hp, 320 km/h, ceiling 5,600 m, up to 25 troops; military versions with a dorsal turret (from memory, not fetched for this entry)" },
+    { ref = "https://en.wikipedia.org/wiki/Dnieper_Airborne_Operation", covers = "Li-2 used to drop Soviet paratroopers (Dnieper 1943)" },
+]
+uncertain = ["speed_cruise_kmh_x10", "weapon", "passengers"]
+note = "Soviet licence-built Douglas DC-3, the main transport and paratroop aircraft of the VVS. Cruise speed estimated. The dorsal ShKAS (later UBT 12.7 mm) turret of the military versions is listed as its only gun."

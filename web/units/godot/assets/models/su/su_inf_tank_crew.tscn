@@ -1,0 +1,22 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" uid="uid://hp0t0p68vdj0" path="res://assets/models/su/infantry/crew_commander.glb" id="1_crew_commander"]
+[ext_resource type="PackedScene" uid="uid://xpniwp5u1x0d" path="res://assets/models/su/infantry/crewman.glb" id="2_crewman"]
+
+[node name="su_inf_tank_crew" type="Node3D"]
+metadata/extras = {"cat_id": "su_inf_tank_crew", "cat_faction": "su", "cat_category": "inf_crew", "cat_name_de": "Panzerbesatzung (ausgestiegen)", "cat_name_en": "Tank crew (bailed out)", "cat_designation": "Tank crew, dismounted", "cat_year_from": 1939, "cat_year_to": 1945, "cat_speed_road_kmh_x10": 50, "cat_speed_offroad_kmh_x10": 40, "cat_weapons": "PPSh-41; 4× TT-33", "cat_squad_size": 5, "squad": true, "squad_roles": ["crew_commander", "crewman", "crewman", "crewman", "crewman"], "squad_notes": ["commander (PPSh-41)", "gunner (TT-33)", "loader (TT-33)", "driver (TT-33)", "radio operator / hull gunner (TT-33)"], "squad_clips": ["idle", "idle", "idle", "kneel", "kneel"], "squad_file": "assets-src/blueprints/su/squads/su_inf_tank_crew.toml", "source_hash": "a7454b20b995c686"}
+
+[node name="Member_01" parent="." instance=ExtResource("1_crew_commander")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.6)
+
+[node name="Member_02" parent="." instance=ExtResource("2_crewman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.2, 0, 0.2)
+
+[node name="Member_03" parent="." instance=ExtResource("2_crewman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2, 0, 0.2)
+
+[node name="Member_04" parent="." instance=ExtResource("2_crewman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6, 0, 1.3)
+
+[node name="Member_05" parent="." instance=ExtResource("2_crewman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6, 0, 1.3)

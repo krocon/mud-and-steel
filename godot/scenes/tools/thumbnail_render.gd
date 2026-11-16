@@ -149,6 +149,9 @@ static func build_model(id: String) -> Node3D:
 		return squad
 	var path := "%s%s/%s.glb" % [MODELS_DIR, faction, id]
 	if not ResourceLoader.exists(path):
+		# Environment objects and fortifications (env_*, fort_*) live in neutral/.
+		path = "%sneutral/%s.glb" % [MODELS_DIR, id]
+	if not ResourceLoader.exists(path):
 		return null
 	var model := (load(path) as PackedScene).instantiate() as Node3D
 	if EnvLook.is_env_model(model):

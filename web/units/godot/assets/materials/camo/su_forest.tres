@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="CamoPalette" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://assets/shaders/camo_palette.gd" id="1_pal"]
+
+[resource]
+script = ExtResource("1_pal")
+faction = "su"
+biome = "forest"
+base = Color(0.290, 0.330, 0.200, 1)
+color_1 = Color(0.360, 0.280, 0.180, 1)
+color_2 = Color(0.200, 0.230, 0.150, 1)
+pattern = 2
+scale = 2.2
+coverage = 0.18
+winter_wash = 0.0
+snow = 0.0
+mud = 0.7
+mud_color = Color(0.240, 0.190, 0.130, 1)
+dust = 0.0
+wear = 0.5
+note = "Soviet 4BO protective green, occasional brown disruptive patches."

@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" uid="uid://dpvjys2rwye68" path="res://assets/models/de/infantry/medic.glb" id="1_medic"]
+[ext_resource type="PackedScene" uid="uid://8gejsvbo7clf" path="res://assets/models/de/infantry/stretcher_bearer.glb" id="2_stretcher_bearer"]
+
+[node name="de_inf_medic" type="Node3D"]
+metadata/extras = {"cat_id": "de_inf_medic", "cat_faction": "de", "cat_category": "inf_medic", "cat_name_de": "Sanitätstrupp", "cat_name_en": "Medic team", "cat_designation": "Sanitätsdienstgrad / Krankenträger", "cat_year_from": 1943, "cat_year_to": 1945, "cat_speed_road_kmh_x10": 50, "cat_speed_offroad_kmh_x10": 40, "cat_weapons": "2× P 38", "cat_squad_size": 2, "squad": true, "squad_roles": ["medic", "stretcher_bearer"], "squad_notes": ["Sanitätsdienstgrad (P 38)", "Krankenträger (P 38)"], "squad_clips": ["medic_treat", "aim_kneel"], "squad_file": "assets-src/blueprints/de/squads/de_inf_medic.toml", "source_hash": "01b611662df6d69d"}
+
+[node name="Member_01" parent="." instance=ExtResource("1_medic")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.5)
+
+[node name="Member_02" parent="." instance=ExtResource("2_stretcher_bearer")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2, 0, 0.3)

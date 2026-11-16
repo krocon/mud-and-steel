@@ -33,9 +33,16 @@ only, converted solely via `data/scale.toml` (`docs/SCALE.md`). Every catalog va
 needs a source (`docs/SOURCES.md`: no data from other games, no swastika/SS runes, no
 Red Cross). Model conventions and budgets: `docs/ASSETS.md`.
 
-After every change to a model (units, soldiers, buildings), re-render its picker
-thumbnails: `just thumbnails --only=<id>,<id>` (needs a window; without `--only` it
-renders all). A changed soldier affects every squad and crew picture that shows him.
+After every change to a model (units, soldiers, buildings, environment objects),
+re-render its thumbnails in `godot/assets/thumbnails/<id>.png`:
+`just thumbnails --only=<id>,<id>` (needs a window; without `--only` it renders only the
+buildables). Every catalog entry with a model needs one, also new and non-buildable
+ones (the unit page shows them). A changed soldier affects every squad and crew
+picture that shows him.
+
+The website serves `web/units/` as its root and needs copies of everything the unit
+page loads. After changes to the catalog, models, palettes or thumbnails run
+`just units-web-sync`; it also names catalog entries that still lack a thumbnail.
 
 ## Commands
 

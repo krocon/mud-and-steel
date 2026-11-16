@@ -191,6 +191,11 @@ kit-test:
 units-web *args:
     python3 tools/units_web.py {{ args }}
 
+# Copy every file the unit page loads (catalog, palettes, models, thumbnails) to web/units/ and write its prices; run before uploading web/units/ to the website
+[group('assets')]
+units-web-sync:
+    python3 tools/units_web.py --sync
+
 # Download vehicle reference data and drawings from onwar.com into docs/.vorlagen/fahrzeuge (not in git); --nation GER|US|RU, --limit N, --force
 [group('assets')]
 vehicle-refs *args:

@@ -1,0 +1,38 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="PackedScene" uid="uid://dw8m1sgb55qcl" path="res://assets/models/de/infantry/ammo_bearer.glb" id="1_ammo_bearer"]
+[ext_resource type="PackedScene" uid="uid://d1rxpbqv7ilp5" path="res://assets/models/de/infantry/engineer.glb" id="2_engineer"]
+[ext_resource type="PackedScene" uid="uid://c33yoa3dnq10q" path="res://assets/models/de/infantry/mg_assistant.glb" id="3_mg_assistant"]
+[ext_resource type="PackedScene" uid="uid://cu1e5xcags30a" path="res://assets/models/de/infantry/mg_gunner.glb" id="4_mg_gunner"]
+[ext_resource type="PackedScene" uid="uid://3nvmjkwu2ptd" path="res://assets/models/de/infantry/rifleman.glb" id="5_rifleman"]
+[ext_resource type="PackedScene" uid="uid://fnwiuysnj51v" path="res://assets/models/de/infantry/squad_leader.glb" id="6_squad_leader"]
+
+[node name="de_inf_engineer" type="Node3D"]
+metadata/extras = {"cat_id": "de_inf_engineer", "cat_faction": "de", "cat_category": "inf_engineer", "cat_name_de": "Pioniergruppe", "cat_name_en": "Engineer squad", "cat_designation": "Pioniergruppe (1944)", "cat_year_from": 1943, "cat_year_to": 1945, "cat_speed_road_kmh_x10": 50, "cat_speed_offroad_kmh_x10": 40, "cat_weapons": "MP 40; MG 42; 6× Kar98k; 2× P 38; 4× Geballte Ladung / 3 kg Sprengbüchse 24", "cat_squad_size": 9, "squad": true, "squad_roles": ["squad_leader", "mg_gunner", "mg_assistant", "ammo_bearer", "engineer", "engineer", "engineer", "engineer", "rifleman"], "squad_notes": ["Gruppenführer (MP 40)", "MG-Schütze 1 (MG 42, P 38)", "MG-Schütze 2 (P 38)", "Schütze 3, ammunition bearer (Kar98k)", "Pionier (Kar98k, Geballte Ladung)", "Pionier (Kar98k, 3 kg Sprengbüchse 24)", "Pionier (Kar98k, 3 kg Sprengbüchse 24)", "Pionier (Kar98k, Geballte Ladung)", "Schütze (Kar98k)"], "squad_clips": ["kneel", "aim_prone", "prone", "idle", "kneel", "idle", "aim_kneel", "idle", "aim_stand"], "squad_file": "assets-src/blueprints/de/squads/de_inf_engineer.toml", "source_hash": "945be393bed78d44"}
+
+[node name="Member_01" parent="." instance=ExtResource("6_squad_leader")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2.2)
+
+[node name="Member_02" parent="." instance=ExtResource("4_mg_gunner")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.8, 0, -1.2)
+
+[node name="Member_03" parent="." instance=ExtResource("3_mg_assistant")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.8, 0, -0.2)
+
+[node name="Member_04" parent="." instance=ExtResource("1_ammo_bearer")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, 1.2)
+
+[node name="Member_05" parent="." instance=ExtResource("2_engineer")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.4, 0, -1.4)
+
+[node name="Member_06" parent="." instance=ExtResource("2_engineer")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.6, 0, -0.4)
+
+[node name="Member_07" parent="." instance=ExtResource("2_engineer")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2, 0, 0.4)
+
+[node name="Member_08" parent="." instance=ExtResource("2_engineer")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6, 0, 1)
+
+[node name="Member_09" parent="." instance=ExtResource("5_rifleman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.8, 0, 2)

@@ -1,0 +1,1106 @@
+# Catalog: neutral. Field reference: data/catalog/SCHEMA.md
+
+[[unit]]
+id = "env_tree_deciduous"
+faction = "neutral"
+category = "env_tree"
+name_de = "Laubbaum (Eiche/Buche)"
+name_en = "Deciduous tree (oak/beech)"
+tier = 1
+model = "assets/models/neutral/env_tree_deciduous.glb"
+length_mm = 16000
+width_mm = 16000
+height_mm = 25000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Quercus_robur", covers = "oak typically about 20 m, up to 40 m" },
+    { ref = "https://en.wikipedia.org/wiki/Fagus_sylvatica", covers = "beech typically 25-35 m" },
+]
+uncertain = ["length_mm", "width_mm"]
+note = "Mature free-standing oak/beech; height 25 m is between oak (about 20 m) and beech (25-35 m). Crown diameter 16 m (length=width) is not given by the sources and is a judgement value."
+
+[[unit]]
+id = "env_tree_conifer"
+faction = "neutral"
+category = "env_tree"
+name_de = "Nadelbaum (Fichte/Kiefer)"
+name_en = "Conifer (spruce/pine)"
+tier = 1
+model = "assets/models/neutral/env_tree_conifer.glb"
+length_mm = 6000
+width_mm = 6000
+height_mm = 35000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Picea_abies", covers = "Norway spruce 35-55 m" },
+    { ref = "https://en.wikipedia.org/wiki/Pinus_sylvestris", covers = "Scots pine mature trees about 35 m" },
+]
+uncertain = ["length_mm", "width_mm"]
+note = "Mature spruce/pine in a stand, height 35 m (spruce 35-55 m, pine about 35 m). Crown diameter 6 m (length=width) is a judgement value, not in the sources."
+
+[[unit]]
+id = "env_tree_birch"
+faction = "neutral"
+category = "env_tree"
+name_de = "Birke"
+name_en = "Birch"
+tier = 1
+model = "assets/models/neutral/env_tree_birch.glb"
+length_mm = 7000
+width_mm = 7000
+height_mm = 20000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Betula_pendula", covers = "silver birch 15-25 m, occasionally 31 m" },
+]
+uncertain = ["length_mm", "width_mm"]
+note = "Mature silver birch, height 20 m is the middle of the 15-25 m range. Crown diameter 7 m (length=width) is a judgement value."
+
+[[unit]]
+id = "env_tree_palm"
+faction = "neutral"
+category = "env_tree"
+name_de = "Dattelpalme"
+name_en = "Date palm"
+tier = 1
+model = "assets/models/neutral/env_tree_palm.glb"
+length_mm = 8000
+width_mm = 8000
+height_mm = 20000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Phoenix_dactylifera", covers = "height up to about 30 m; crown spans about 6-10 m, fronds 4-6 m" },
+]
+uncertain = ["height_mm"]
+note = "Mature date palm, crown 8 m (middle of 6-10 m, length=width). Height 20 m is a judgement value: the source says up to about 30 m, oasis palms are usually shorter."
+
+[[unit]]
+id = "env_bush"
+faction = "neutral"
+category = "env_bush"
+name_de = "Busch (Haselstrauch)"
+name_en = "Bush (hazel-like shrub)"
+tier = 1
+model = "assets/models/neutral/env_bush.glb"
+length_mm = 3500
+width_mm = 3500
+height_mm = 4000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Corylus_avellana", covers = "common hazel usually 3-8 m tall" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Hazel-like shrub/hedgerow bush, height 4 m (source: usually 3-8 m). Spread 3.5 m is a judgement value."
+
+[[unit]]
+id = "env_grass_clump"
+faction = "neutral"
+category = "env_grass"
+name_de = "Grasbüschel"
+name_en = "Grass clump"
+tier = 1
+model = "assets/models/neutral/env_grass_clump.glb"
+length_mm = 500
+width_mm = 500
+height_mm = 600
+source = [
+    { ref = "General botany reference for tussock grasses (e.g. Wikipedia: Bunchgrass)", covers = "clump spread and height" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Judgement value for a tall tussock/meadow grass clump, no single authoritative figure."
+
+[[unit]]
+id = "env_rock"
+faction = "neutral"
+category = "env_rock"
+name_de = "Fels (Findling)"
+name_en = "Rock (boulder)"
+tier = 1
+model = "assets/models/neutral/env_rock.glb"
+length_mm = 1500
+width_mm = 1200
+height_mm = 1000
+source = [
+    { ref = "Geology general knowledge; glacial erratics (Wikipedia: Glacial erratic)", covers = "typical boulder size" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Boulder with 1.5 m longest axis as specified by the project brief; width and height are plausible proportions."
+
+[[unit]]
+id = "env_house_farm"
+faction = "neutral"
+category = "env_building"
+name_de = "Bauernhaus"
+name_en = "Farmhouse (European)"
+tier = 1
+model = "assets/models/neutral/env_house_farm.glb"
+length_mm = 14000
+width_mm = 9000
+height_mm = 8000
+source = [
+    { ref = "Rural architecture references (e.g. Wikipedia: Farmhouse, Hallenhaus; Fachwerkhaus)", covers = "typical footprint and ridge height" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Typical north-west European two-storey farmhouse with gabled roof; height is ridge height. Regional variation is large."
+
+[[unit]]
+id = "env_barn"
+faction = "neutral"
+category = "env_building"
+name_de = "Scheune"
+name_en = "Barn"
+tier = 1
+model = "assets/models/neutral/env_barn.glb"
+length_mm = 20000
+width_mm = 10000
+height_mm = 9000
+source = [
+    { ref = "Rural architecture references (e.g. Wikipedia: Barn)", covers = "typical footprint and ridge height" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Typical timber/brick threshing barn, ridge height 9 m."
+
+[[unit]]
+id = "env_house_stone"
+faction = "neutral"
+category = "env_building"
+name_de = "Steinhaus (zweigeschossig)"
+name_en = "Stone house (two-storey)"
+tier = 1
+model = "assets/models/neutral/env_house_stone.glb"
+length_mm = 10000
+width_mm = 8000
+height_mm = 9000
+source = [
+    { ref = "Rural/village architecture references (e.g. Wikipedia: Vernacular architecture)", covers = "typical footprint and ridge height" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Two-storey village house in masonry with pitched roof, height at ridge."
+
+[[unit]]
+id = "env_house_mud"
+faction = "neutral"
+category = "env_building"
+name_de = "Lehmziegelhaus (Nordafrika)"
+name_en = "Mud-brick house (North Africa)"
+tier = 1
+model = "assets/models/neutral/env_house_mud.glb"
+length_mm = 8000
+width_mm = 6000
+height_mm = 3500
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Adobe", covers = "adobe bricks e.g. 25x10x36 cm; walls rarely above two storeys" },
+    { ref = "https://en.wikipedia.org/wiki/Mudbrick", covers = "construction material only, no dwelling dimensions" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Single-storey flat-roofed mud-brick dwelling, 3.5 m including parapet. Overall footprint and height are judgement values; the sources give only brick sizes and construction type."
+
+[[unit]]
+id = "env_church"
+faction = "neutral"
+category = "env_building"
+name_de = "Dorfkirche mit Turm"
+name_en = "Village church with tower"
+tier = 1
+model = "assets/models/neutral/env_church.glb"
+length_mm = 20000
+width_mm = 10000
+height_mm = 30000
+source = [
+    { ref = "Church architecture references (e.g. Wikipedia: Church (building), Parish church)", covers = "typical nave size and tower height" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Nave about 14 m x 9 m plus tower, overall footprint 20 m x 10 m; height is the top of the tower/spire (range 20-40 m)."
+
+[[unit]]
+id = "env_bridge_wood"
+faction = "neutral"
+category = "env_bridge"
+name_de = "Holzbrücke (einspurig)"
+name_en = "Timber road bridge (single lane, one span)"
+tier = 1
+model = "assets/models/neutral/env_bridge_wood.glb"
+length_mm = 12000
+width_mm = 4500
+height_mm = 3000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Timber_bridge", covers = "general bridge type only; example Rudolf IV bridge about 4 m wide" },
+    { ref = "US Army FM 5-15 / FM 5-34 timber bridging (not checked for this entry)", covers = "none, dimensions are judgement values" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "One span 12 m, overall width 4.5 m including railings, height 3 m deck-plus-railing above the abutment base. All dimensions are judgement values; sources give only the bridge type."
+
+[[unit]]
+id = "env_bridge_stone"
+faction = "neutral"
+category = "env_bridge"
+name_de = "Steinbogenbrücke"
+name_en = "Stone arch road bridge"
+tier = 1
+model = "assets/models/neutral/env_bridge_stone.glb"
+length_mm = 20000
+width_mm = 6000
+height_mm = 6000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Arch_bridge", covers = "general bridge type only, no typical road-bridge dimensions" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Single or double arch road bridge, 20 m long, 6 m wide with parapets, 6 m above water to top of parapet. All dimensions are judgement values; the source gives only extreme examples."
+
+[[unit]]
+id = "env_fence_wood"
+faction = "neutral"
+category = "env_fence"
+name_de = "Holzzaun (Segment)"
+name_en = "Wooden fence (one segment)"
+tier = 1
+model = "assets/models/neutral/env_fence_wood.glb"
+length_mm = 2500
+width_mm = 100
+height_mm = 1200
+source = [
+    { ref = "Rural construction practice; typical post-and-rail fence (Wikipedia: Fence)", covers = "post spacing and fence height" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Post-and-rail fence, one segment between posts 2.5 m, height 1.2 m."
+
+[[unit]]
+id = "env_wall_stone"
+faction = "neutral"
+category = "env_fence"
+name_de = "Trockenmauer (Segment)"
+name_en = "Dry-stone wall (one segment)"
+tier = 1
+model = "assets/models/neutral/env_wall_stone.glb"
+length_mm = 3000
+width_mm = 600
+height_mm = 1200
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Dry_stone", covers = "dry-stone wall form; Cornish hedge rule height = base width, top half of base width" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "One segment of 3 m, base width 0.6 m, height 1.2 m (field walls typically 1.0-1.5 m). Dimensions are judgement values; the source does not give typical numbers."
+
+[[unit]]
+id = "env_pole_telegraph"
+faction = "neutral"
+category = "env_pole"
+name_de = "Telegrafenmast"
+name_en = "Telegraph pole"
+tier = 1
+model = "assets/models/neutral/env_pole_telegraph.glb"
+length_mm = 1000
+width_mm = 250
+height_mm = 8000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Utility_pole", covers = "UK poles typically 8-10 m long, US about 10 m (about 2 m buried); Morse 1844 posts at least 8 in butt diameter" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Wooden pole, about 8 m above ground, 250 mm base diameter (Morse 1844 spec: 8 in, about 200 mm); length 1000 mm is the cross-arm span, a judgement value."
+
+[[unit]]
+id = "env_hay_bale"
+faction = "neutral"
+category = "env_prop"
+name_de = "Heuhaufen"
+name_en = "Hay stack (loose haystack)"
+tier = 1
+model = "assets/models/neutral/env_hay_bale.glb"
+length_mm = 4000
+width_mm = 3000
+height_mm = 3500
+source = [
+    { ref = "Agricultural history references (e.g. Wikipedia: Haystack)", covers = "typical size of a period loose haystack/rick" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Period loose haystack (rick), not a modern bale. Judgement value for a typical field stack."
+
+[[unit]]
+id = "env_crate"
+faction = "neutral"
+category = "env_prop"
+name_de = "Holzkiste (Munition/Nachschub)"
+name_en = "Wooden crate (ammo/supply)"
+tier = 1
+model = "assets/models/neutral/env_crate.glb"
+length_mm = 900
+width_mm = 450
+height_mm = 450
+source = [
+    { ref = "US Army ordnance packing practice (e.g. wooden ammunition box for .50 cal, about 0.4 m scale)", covers = "approximate crate size" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Representative wooden ammunition/supply crate; sizes vary widely by contents."
+
+[[unit]]
+id = "env_barrel"
+faction = "neutral"
+category = "env_prop"
+name_de = "Fass (200 l Stahl)"
+name_en = "Barrel (200 l steel drum)"
+tier = 1
+model = "assets/models/neutral/env_barrel.glb"
+length_mm = 584
+width_mm = 584
+height_mm = 876
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Drum_(container)", covers = "200 l steel drum outside diameter about 584 mm, height 876 mm (ANSI MH2)" },
+]
+uncertain = []
+note = "Standard 200 l steel drum, outside diameter 584 mm, height 876 mm."
+
+[[unit]]
+id = "fort_trench_section"
+faction = "neutral"
+category = "fort_trench"
+name_de = "Schützengraben (Abschnitt)"
+name_en = "Infantry fire trench section"
+tier = 1
+model = "assets/models/neutral/fort_trench_section.glb"
+length_mm = 5000
+width_mm = 1200
+height_mm = 1700
+source = [
+    { ref = "US Army FM 5-15 Field Fortifications (14 Feb 1944), para. 48b and fig. 40 (printed pp. 81-83)", covers = "standard trench 4 ft wide at top, 2 ft at bottom, 5.5 ft deep, built in short irregular sections, spoil parapet 3 ft wide each side" },
+    { ref = "US Army FM 5-15 (1944), para. 32 and fig. 17 (pp. 48-49)", covers = "one-man foxhole 2 ft x 3.5 ft, 4-5 ft deep, for comparison" },
+]
+uncertain = ["length_mm"]
+note = "Standard trench (width = 4 ft top, 1220 mm rounded to 1200; height field holds depth, 5.5 ft = 1676 mm rounded to 1700). Length 5 m per section is a choice: FM 5-15 only says short irregular sections. Parapet not included in the height."
+
+[[unit]]
+id = "fort_sandbag_position"
+faction = "neutral"
+category = "fort_sandbag"
+name_de = "Sandsackstellung (MG)"
+name_en = "Sandbag MG/rifle position"
+tier = 1
+model = "assets/models/neutral/fort_sandbag_position.glb"
+length_mm = 2000
+width_mm = 3000
+height_mm = 1000
+source = [
+    { ref = "US Army FM 5-15 Field Fortifications (1944), para. 26 (p. 45)", covers = "breastworks/parapets at least 3 ft thick at the top (protection against .30 bullets)" },
+    { ref = "US Army FM 5-15 (1944), para. 24 (p. 38)", covers = "standard filled sandbag about 4.75 x 10 x 19 in" },
+    { ref = "US Army FM 5-15 (1944), para. 39 and figs. 24-25 (pp. 57-59)", covers = "light MG horseshoe emplacement: parapet 3 ft thick, chest-high gun platform, trench about 2 ft wide" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Sandbag breastwork around an MG/rifle position, thickness at least 3 ft (914 mm) per FM 5-15. Footprint 3 m frontage (width) x 2 m depth (length, open at the rear) and height 1 m (about 8 sandbag courses of 4.75 in) are my derivations, not stated in the manual."
+
+[[unit]]
+id = "fort_hedgehog"
+faction = "neutral"
+category = "fort_obstacle"
+name_de = "Panzerigel"
+name_en = "Czech hedgehog (steel beams)"
+tier = 1
+model = "assets/models/neutral/fort_hedgehog.glb"
+length_mm = 1420
+width_mm = 1550
+height_mm = 1160
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Czech_hedgehog", covers = "angle beams L 140/140/13 mm, about 1.8 m (original) to 2.1 m (later) long, about 198-240 kg; overall height not stated" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Three crossed steel angle beams of 1.8 m (original Czechoslovak type; later 2.1 m), mutually perpendicular and standing on three beam ends. No source gives the overall size, so the bounding box is derived from that geometry: height 1.8 m / sqrt(3) + flange = 1.16 m, plan 1.55 m x 1.42 m (prompt 007; the earlier estimate 1.8 x 1.8 x 1.5 m ignored that the beams cross at an angle). No German/US WW2 manual figure found: the TM-E 30-451 text on lonesentry.com does not mention hedgehogs."
+
+[[unit]]
+id = "fort_barbed_wire"
+faction = "neutral"
+category = "fort_wire"
+name_de = "Stacheldrahtverhau (Doppelzaun)"
+name_en = "Barbed wire (double apron fence section)"
+tier = 1
+model = "assets/models/neutral/fort_barbed_wire.glb"
+length_mm = 3000
+width_mm = 3000
+height_mm = 1400
+source = [
+    { ref = "TM-E 30-451 Handbook on German Military Forces (1945), ch. V sec. II para. 7c", covers = "double-apron fence 4 to 5 feet high (middle 4.5 ft = 1372 mm, rounded to 1400)" },
+    { ref = "War Department MIS Special Series No. 15, German Coastal Defenses (15 Jun 1943), sec. III item 10b(2)", covers = "apron fences 4-5 ft high, up to 30 ft wide" },
+    { ref = "https://tpub.com/seabee/5-2.htm (US Navy Seabee manual, derived from FM 5-30 practice)", covers = "double-apron fence 4-and-2 pace and 6-and-3 pace types; anchor pickets 2 paces each side of the centre line" },
+]
+uncertain = ["length_mm", "width_mm"]
+note = "Double apron fence (not concertina); height from TM-E 30-451. The 3 m section length and 3 m width (about 4 paces between anchor pickets for the 4-and-2 pace type) are estimates; FM 5-15 (1944) does not cover obstacles (it refers to FM 5-30), and FM 5-30 itself was not found."
+
+# ---------------------------------------------------------------------------
+# Added with prompt 007 (environment objects tier 1)
+# ---------------------------------------------------------------------------
+
+[[unit]]
+id = "env_house_farm_brick"
+faction = "neutral"
+category = "env_building"
+name_de = "Bauernhaus (Backstein, eingeschossig)"
+name_en = "Farmhouse (brick, one storey with attic)"
+tier = 1
+model = "assets/models/neutral/env_house_farm_brick.glb"
+length_mm = 12000
+width_mm = 8000
+height_mm = 7500
+source = [
+    { ref = "Rural architecture references (e.g. Wikipedia: Farmhouse, Hallenhaus)", covers = "typical footprint and ridge height of a small farmhouse" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Smaller single-storey brick farmhouse with a steep gabled roof and an attic; the second farmhouse design next to env_house_farm. All dimensions are judgement values of the same kind as env_house_farm."
+
+[[unit]]
+id = "env_tree_stump"
+faction = "neutral"
+category = "env_prop"
+name_de = "Baumstumpf"
+name_en = "Tree stump"
+tier = 1
+model = "assets/models/neutral/env_tree_stump.glb"
+length_mm = 1200
+width_mm = 1200
+height_mm = 600
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Quercus_robur", covers = "mature oak size (trunk of a 20-40 m tree), used to derive the stump size" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Stump of a felled or shot-off mature tree, trunk about 0.6 m, root flares to 1.2 m, 0.6 m high. Derived from the tree entries, judgement values."
+
+[[unit]]
+id = "env_log_fallen"
+faction = "neutral"
+category = "env_prop"
+name_de = "Umgestürzter Baumstamm"
+name_en = "Fallen tree trunk"
+tier = 1
+model = "assets/models/neutral/env_log_fallen.glb"
+length_mm = 10000
+width_mm = 800
+height_mm = 800
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Picea_abies", covers = "spruce trunk size (used to derive a fallen trunk length and diameter)" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Trunk section without crown, 10 m long, about 0.6 m diameter plus branch stubs (0.8 m bounding box). Judgement values derived from the tree entries."
+
+[[unit]]
+id = "env_woodpile"
+faction = "neutral"
+category = "env_prop"
+name_de = "Holzstapel (Brennholz)"
+name_en = "Firewood stack"
+tier = 1
+model = "assets/models/neutral/env_woodpile.glb"
+length_mm = 2440
+width_mm = 1220
+height_mm = 1220
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Cord_(unit)", covers = "a cord: stack 4 ft high, 8 ft wide, 4 ft deep (128 cu ft)" },
+]
+uncertain = []
+note = "One cord of firewood: 8 ft x 4 ft x 4 ft = 2.44 m x 1.22 m x 1.22 m, logs 4 ft long across the depth."
+
+[[unit]]
+id = "env_hay_bale_square"
+faction = "neutral"
+category = "env_prop"
+name_de = "Heuballen (eckig)"
+name_en = "Small square hay bale"
+tier = 1
+model = "assets/models/neutral/env_hay_bale_square.glb"
+length_mm = 910
+width_mm = 460
+height_mm = 360
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Hay_baler", covers = "small square balers were the original type, automatic pick-up balers took their modern form in 1938; first production round baler only in 1947" },
+    { ref = "https://en.wikipedia.org/wiki/Hay", covers = "small rectangular bales light enough for one person, 32-45 kg, two-tie and three-tie variants" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Two-string small square bale, common size 14 x 18 x 36 in (0.36 x 0.46 x 0.91 m); the sources give no dimensions, so the size is a judgement value. Round bales are post-war (Roto-Baler 1947), so the round hay object is the loose haystack env_hay_bale."
+
+[[unit]]
+id = "env_hedge"
+faction = "neutral"
+category = "env_fence"
+name_de = "Feldhecke (Segment)"
+name_en = "Field hedge (one segment)"
+tier = 1
+model = "assets/models/neutral/env_hedge.glb"
+length_mm = 3000
+width_mm = 1200
+height_mm = 2200
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Hedge", covers = "hedgerows usually no wider than about 1 m; dense hedgerow above 2 m rates highest (Hedgelink); Normandy bocage banks 3-12 ft topped by a 1-3 ft hedge" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Managed field hedge without earth bank, 2.2 m high and 1.2 m wide (source: usually up to about 1 m wide, dense hedges above 2 m); one segment of 3 m. The tall Normandy bocage bank-hedge is a later variant."
+
+[[unit]]
+id = "fort_bunker_mg"
+faction = "neutral"
+category = "fort_bunker"
+name_de = "MG-Bunker (Beton, sechseckig)"
+name_en = "Concrete MG pillbox (hexagonal)"
+tier = 1
+model = "assets/models/neutral/fort_bunker_mg.glb"
+length_mm = 3810
+width_mm = 4400
+height_mm = 2000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Type_22_pillbox", covers = "Type 22: regular hexagon, walls about 6 ft (1.8 m), 12 in (30 cm) bulletproof walls, embrasures on five sides, entrance on the sixth" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Generic hexagonal concrete pillbox after the Type 22 plan, without national features. Walls about 2.1 m (6-7 ft) give 4.2 m across the corners (width, X), roof slab overhang 0.1 m: 4.4 m; across the flats (length, Y, front wall facing +Y) 4.4 x 0.866 = 3.81 m. Height 2.0 m above ground is a judgement value (no source gives the height)."
+
+[[unit]]
+id = "fort_mine_at"
+faction = "neutral"
+category = "fort_minefield_at"
+name_de = "Panzermine (einzeln, sichtbar)"
+name_en = "Anti-tank mine (single, visible)"
+tier = 1
+model = "assets/models/neutral/fort_mine_at.glb"
+length_mm = 318
+width_mm = 318
+height_mm = 100
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Tellermine_35", covers = "Tellermine 35: diameter 31.8 cm, height 76 mm" },
+]
+uncertain = ["height_mm"]
+note = "Single visible pressure mine for engineers and debug views (minefields themselves are the faction entries). Disc of 318 mm diameter; height 100 mm includes the fuze cap above the 76 mm body."
+
+[[unit]]
+id = "fort_mine_ap"
+faction = "neutral"
+category = "fort_minefield_ap"
+name_de = "Schützenmine (einzeln, sichtbar)"
+name_en = "Anti-personnel mine (single, visible)"
+tier = 1
+model = "assets/models/neutral/fort_mine_ap.glb"
+length_mm = 102
+width_mm = 102
+height_mm = 150
+source = [
+    { ref = "https://en.wikipedia.org/wiki/S-mine", covers = "S-mine 35: diameter 102 mm, height 127 mm (infobox), body about 15 cm without sensor (text)" },
+]
+uncertain = ["height_mm"]
+note = "Single visible bounding mine for engineers and debug views. Body 102 mm diameter; 150 mm height includes the fuze rod and prongs (the sources disagree on the body height, 127 or about 150 mm)."
+
+[[unit]]
+id = "fort_mine_sign"
+faction = "neutral"
+category = "env_prop"
+name_de = "Minenwarnschild"
+name_en = "Minefield warning sign"
+tier = 1
+model = "assets/models/neutral/fort_mine_sign.glb"
+length_mm = 60
+width_mm = 400
+height_mm = 1200
+source = [
+    { ref = "TM-E 30-451 Handbook on German Military Forces (1945), ch. VIII (mines and minefields)", covers = "minefields were marked with warning signs and fences (no dimensions)" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Generic marker on a wooden picket, 0.4 m board, top at 1.2 m, without inscriptions or national symbols (text would need localisation and real sign designs differed by army). Dimensions are judgement values."
+
+# --- Prompt 041: towns, winter, dumps ---------------------------------------
+
+[[unit]]
+id = "env_house_town"
+faction = "neutral"
+category = "env_building"
+name_de = "Stadthaus (dreigeschossig, Reihe)"
+name_en = "Town house (three-storey, terraced)"
+tier = 1
+model = "assets/models/neutral/env_house_town.glb"
+length_mm = 12000
+width_mm = 10000
+height_mm = 14500
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Terraced_house", covers = "row houses sharing their side walls along a street" },
+    { ref = "Urban architecture references (e.g. Wikipedia: Storey)", covers = "storey height about 3 m, three to four storeys under a pitched roof" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Plastered masonry town house of a small European town, eaves to the street (ridge along the length), so several stand side by side as a terrace. Height is the ridge height. Judgement values."
+
+[[unit]]
+id = "env_town_hall"
+faction = "neutral"
+category = "env_building"
+name_de = "Rathaus"
+name_en = "Town hall"
+tier = 1
+model = "assets/models/neutral/env_town_hall.glb"
+length_mm = 22000
+width_mm = 13000
+height_mm = 17000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Town_hall", covers = "town halls of small towns as two- to three-storey masonry buildings on the market square" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Generic two-storey ashlar town hall with high storeys and a steep roof, no regional or national details. Judgement values."
+
+[[unit]]
+id = "env_warehouse"
+faction = "neutral"
+category = "env_building"
+name_de = "Lagerhaus"
+name_en = "Warehouse"
+tier = 1
+model = "assets/models/neutral/env_warehouse.glb"
+length_mm = 30000
+width_mm = 16000
+height_mm = 12500
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Warehouse", covers = "brick storehouses with large loading doors, often near railways and harbors" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Two-storey brick warehouse with loading doors on both long sides and a gable roof. Judgement values."
+
+[[unit]]
+id = "env_house_log"
+faction = "neutral"
+category = "env_building"
+name_de = "Blockhaus"
+name_en = "Log house"
+tier = 1
+model = "assets/models/neutral/env_house_log.glb"
+length_mm = 9000
+width_mm = 7000
+height_mm = 6000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Log_house", covers = "one-storey log houses of eastern and northern Europe with a gable roof" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "One-storey village log house for winter maps; the snow comes from the biome look. Judgement values."
+
+[[unit]]
+id = "env_dump_ammo"
+faction = "neutral"
+category = "env_prop"
+name_de = "Munitionslager (Feldstapel)"
+name_en = "Ammunition dump (field stacks)"
+tier = 1
+model = "assets/models/neutral/env_dump_ammo.glb"
+length_mm = 6000
+width_mm = 4000
+height_mm = 1500
+source = [
+    { ref = "FM 9-6 Ammunition Supply (US War Department, 1944), field storage", covers = "ammunition stored in the open in small dispersed stacks on dunnage, limited in height" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Two rows of wooden ammunition crates on dunnage, about 1.5 m high. No markings. Explodes when it burns (data/fire.toml). Judgement values."
+
+[[unit]]
+id = "env_dump_fuel"
+faction = "neutral"
+category = "env_prop"
+name_de = "Treibstofflager (Fässer)"
+name_en = "Fuel dump (drums)"
+tier = 1
+model = "assets/models/neutral/env_dump_fuel.glb"
+length_mm = 4800
+width_mm = 3600
+height_mm = 900
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Drum_(container)", covers = "200 l steel drum outside diameter about 584 mm, height 876 mm" },
+]
+uncertain = ["length_mm", "width_mm"]
+note = "Rows of standing 200 l drums with gaps on dunnage. Height is one drum plus dunnage. Bursts when it burns (data/fire.toml)."
+
+# --- Prompt 052: positions tier 2 ------------------------------------------
+
+[[unit]]
+id = "fort_camo_net"
+faction = "neutral"
+category = "env_prop"
+name_de = "Tarnnetz (auf Stangen)"
+name_en = "Camouflage net (on poles)"
+tier = 1
+model = "assets/models/neutral/fort_camo_net.glb"
+length_mm = 8840
+width_mm = 8840
+height_mm = 2800
+source = [
+    { ref = "US War Department FM 5-20 Camouflage, Basic Principles (1944), drape and flat-top nets", covers = "garnished fish nets or chicken-wire nets stretched over positions on poles, kept clear of the object so that its shape and shadow disappear; standard net sizes such as 29 x 29 ft" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Garnished drape net of 29 x 29 ft (8.84 m) held by poles about 2.8 m high over an MG, gun or vehicle position. The net size is one of several standard sizes (not checked against the manual's table); the pole height is a judgement value. Used for camouflage nets engineers lay (data/works.toml, prompt 052)."
+
+[[unit]]
+id = "fort_dragon_teeth"
+faction = "neutral"
+category = "fort_obstacle"
+name_de = "Höckerhindernis (Betonhöcker)"
+name_en = "Concrete anti-tank teeth (dragon's teeth)"
+tier = 1
+model = "assets/models/neutral/fort_dragon_teeth.glb"
+length_mm = 1200
+width_mm = 1200
+height_mm = 1200
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Dragon%27s_teeth_(fortification)", covers = "square-pyramidal reinforced-concrete blocks set in rows on a common foundation to stop tanks (Siegfried Line), rows of increasing height" },
+    { ref = "TM-E 30-451 Handbook on German Military Forces (1945), ch. V sec. II", covers = "rows of concrete teeth as anti-tank obstacles of the West Wall" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "One truncated concrete pyramid on its footing. Real teeth varied from below 1 m to about 1.5 m with the row; 1.2 m base and height is a judgement value. One tooth per 1.5 m of an ordered line (data/works.toml, prompt 052)."
+
+# --- Prompt 059: desert village (houses, compounds, mosque, police post, props) ---
+
+[[unit]]
+id = "env_house_desert_hut"
+faction = "neutral"
+category = "env_building"
+name_de = "Lehmhaus, ein Raum (Nordafrika)"
+name_en = "Mud-brick house, one room (North Africa)"
+tier = 1
+model = "assets/models/neutral/env_house_desert_hut.glb"
+length_mm = 5000
+width_mm = 4000
+height_mm = 3200
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Adobe", covers = "adobe brick construction, flat roofs on timber beams" },
+    { ref = "https://en.wikipedia.org/wiki/Mudbrick", covers = "material only" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "One room of about 4 x 3 m inside, flat earth roof on palm-trunk beams, low parapet. Judgement values after period photographs of Libyan and Tunisian villages; no specific building."
+
+[[unit]]
+id = "env_house_desert_two"
+faction = "neutral"
+category = "env_building"
+name_de = "Lehmhaus, zwei Räume"
+name_en = "Mud-brick house, two rooms"
+tier = 1
+model = "assets/models/neutral/env_house_desert_two.glb"
+length_mm = 8000
+width_mm = 4500
+height_mm = 3300
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Adobe", covers = "adobe construction; room spans limited by roof beams (about 3-4 m)" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Two rooms in a row, room depth limited by the palm or timber roof beams (about 3.5 m). Judgement values."
+
+[[unit]]
+id = "env_house_desert_long"
+faction = "neutral"
+category = "env_building"
+name_de = "Lehmhaus, drei Räume"
+name_en = "Mud-brick house, three rooms"
+tier = 1
+model = "assets/models/neutral/env_house_desert_long.glb"
+length_mm = 12000
+width_mm = 5000
+height_mm = 3400
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Adobe", covers = "adobe construction; room spans limited by roof beams" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Three rooms in a row along the courtyard, one door per room. Judgement values."
+
+[[unit]]
+id = "env_house_desert_corner"
+faction = "neutral"
+category = "env_building"
+name_de = "Lehmhaus, L-Form"
+name_en = "Mud-brick house, L-shaped"
+tier = 1
+model = "assets/models/neutral/env_house_desert_corner.glb"
+length_mm = 10000
+width_mm = 8000
+height_mm = 3400
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Courtyard_house", covers = "rooms arranged around a walled courtyard" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Two wings at a right angle in the corner of a courtyard; the box is the bounding box of the L. Judgement values."
+
+[[unit]]
+id = "env_house_desert_stair"
+faction = "neutral"
+category = "env_building"
+name_de = "Lehmhaus mit Außentreppe"
+name_en = "Mud-brick house with outside stair"
+tier = 1
+model = "assets/models/neutral/env_house_desert_stair.glb"
+length_mm = 8000
+width_mm = 6000
+height_mm = 3400
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Flat_roof", covers = "flat roofs used as living and drying space, reached by stairs" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Two rooms (5 m deep) with a solid outside stair to the roof along one long wall; width includes the stair. Judgement values."
+
+[[unit]]
+id = "env_house_desert_roofroom"
+faction = "neutral"
+category = "env_building"
+name_de = "Lehmhaus mit Dachkammer"
+name_en = "Mud-brick house with roof room"
+tier = 1
+model = "assets/models/neutral/env_house_desert_roofroom.glb"
+length_mm = 9000
+width_mm = 7000
+height_mm = 6000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Flat_roof", covers = "flat roofs used as living space; small rooms built on the roof" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Single-storey block with a small room and stair head on the roof; height at the roof room parapet. Judgement values."
+
+[[unit]]
+id = "env_house_desert_tall"
+faction = "neutral"
+category = "env_building"
+name_de = "Zweigeschossiges Haus (verputzt)"
+name_en = "Two-storey plastered house"
+tier = 1
+model = "assets/models/neutral/env_house_desert_tall.glb"
+length_mm = 7000
+width_mm = 6000
+height_mm = 6600
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Storey", covers = "storey heights about 3 m" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Two storeys of plastered stone or mud brick, flat roof with parapet. Judgement values."
+
+[[unit]]
+id = "env_house_desert_vault"
+faction = "neutral"
+category = "env_building"
+name_de = "Gewölbehaus"
+name_en = "Barrel-vaulted house"
+tier = 1
+model = "assets/models/neutral/env_house_desert_vault.glb"
+length_mm = 10000
+width_mm = 5000
+height_mm = 4000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Barrel_vault", covers = "barrel vault form" },
+    { ref = "https://en.wikipedia.org/wiki/Djerba", covers = "vaulted whitewashed rural houses (menzel) of southern Tunisia" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Two barrel-vaulted rooms side by side, whitewashed; height at the vault crown. Generic type, no specific building."
+
+[[unit]]
+id = "env_house_desert_large"
+faction = "neutral"
+category = "env_building"
+name_de = "Kaufmannshaus"
+name_en = "Merchant's house"
+tier = 1
+model = "assets/models/neutral/env_house_desert_large.glb"
+length_mm = 13000
+width_mm = 10000
+height_mm = 6800
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Courtyard_house", covers = "larger houses with two storeys around a courtyard" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Two-storey main block and a one-storey wing, roof terrace with parapet. Judgement values."
+
+[[unit]]
+id = "env_house_desert_shop"
+faction = "neutral"
+category = "env_building"
+name_de = "Ladenhaus mit Laubengang"
+name_en = "Shop house with arcade"
+tier = 1
+model = "assets/models/neutral/env_house_desert_shop.glb"
+length_mm = 10000
+width_mm = 6500
+height_mm = 3600
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Arcade_(architecture)", covers = "arcade of arches in front of shops" },
+    { ref = "https://en.wikipedia.org/wiki/Souq", covers = "rows of small shops on a market" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Three small shops behind an arcade of plastered arches (1.5 m deep) on a market square. Judgement values."
+
+[[unit]]
+id = "env_mosque"
+faction = "neutral"
+category = "env_building"
+name_de = "Dorfmoschee mit Minarett"
+name_en = "Village mosque with minaret"
+tier = 1
+model = "assets/models/neutral/env_mosque.glb"
+length_mm = 15000
+width_mm = 11000
+height_mm = 16000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Mosque", covers = "prayer hall, courtyard, minaret" },
+    { ref = "https://en.wikipedia.org/wiki/Minaret", covers = "square minarets of the Maghreb" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Small whitewashed prayer hall with a low dome and a square minaret (height at the minaret top). No writing, symbols or ornaments that carry meaning. Generic type."
+
+[[unit]]
+id = "env_police_post"
+faction = "neutral"
+category = "env_building"
+name_de = "Kolonialer Polizeiposten (Fort)"
+name_en = "Colonial police post (fort)"
+tier = 1
+model = "assets/models/neutral/env_police_post.glb"
+length_mm = 16000
+width_mm = 12000
+height_mm = 9000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Italian_Libya", covers = "Italian colonial administration and outposts in Libya 1912-1943" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Two-storey plastered post with crenellated parapet and a corner watchtower (height at the tower). No insignia, flags or writing. Generic type."
+
+[[unit]]
+id = "env_wall_mud"
+faction = "neutral"
+category = "env_fence"
+name_de = "Hofmauer aus Lehm (Segment)"
+name_en = "Mud courtyard wall (one segment)"
+tier = 1
+model = "assets/models/neutral/env_wall_mud.glb"
+length_mm = 3000
+width_mm = 500
+height_mm = 2200
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Courtyard_house", covers = "walled courtyards" },
+    { ref = "https://en.wikipedia.org/wiki/Adobe", covers = "adobe walls" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "One 3 m segment of a plastered mud-brick courtyard wall, 0.5 m thick, 2.2 m high (variants: low 1.4 m, broken, gate). Judgement values."
+
+[[unit]]
+id = "env_awning"
+faction = "neutral"
+category = "env_prop"
+name_de = "Sonnensegel"
+name_en = "Cloth awning"
+tier = 1
+model = "assets/models/neutral/env_awning.glb"
+length_mm = 3000
+width_mm = 2500
+height_mm = 2300
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Awning", covers = "fabric awnings on poles" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Woven cloth on four wooden poles (variants: wide cloth, palm-frond shelter). Judgement values."
+
+[[unit]]
+id = "env_jars"
+faction = "neutral"
+category = "env_prop"
+name_de = "Tonkrüge"
+name_en = "Clay jars"
+tier = 1
+model = "assets/models/neutral/env_jars.glb"
+length_mm = 1600
+width_mm = 1200
+height_mm = 900
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Amphora", covers = "storage jars" },
+    { ref = "https://en.wikipedia.org/wiki/Waterskin", covers = "water skins" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "A group of unglazed storage jars of 0.5-0.9 m, a water skin. Judgement values."
+
+[[unit]]
+id = "env_well_desert"
+faction = "neutral"
+category = "env_prop"
+name_de = "Brunnen mit Holzgestell"
+name_en = "Well with wooden frame"
+tier = 1
+model = "assets/models/neutral/env_well_desert.glb"
+length_mm = 2400
+width_mm = 2000
+height_mm = 3000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Well", covers = "draw well with masonry curb and pulley frame" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Round masonry curb (1.6 m, 0.8 m high), two posts with a cross beam and pulley, bucket. Judgement values."
+
+[[unit]]
+id = "env_cart_wood"
+faction = "neutral"
+category = "env_prop"
+name_de = "Zweirädriger Holzkarren"
+name_en = "Two-wheeled wooden cart"
+tier = 1
+model = "assets/models/neutral/env_cart_wood.glb"
+length_mm = 3400
+width_mm = 1600
+height_mm = 1300
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Cart", covers = "two-wheeled animal-drawn cart" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Wooden cart with two spoked wheels of about 1.2 m and shafts. Judgement values."
+
+[[unit]]
+id = "env_market_stall"
+faction = "neutral"
+category = "env_prop"
+name_de = "Marktstand"
+name_en = "Market stall"
+tier = 1
+model = "assets/models/neutral/env_market_stall.glb"
+length_mm = 3000
+width_mm = 2000
+height_mm = 2400
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Souq", covers = "market stalls" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Wooden table under a cloth roof with baskets and jars (variant: empty). Judgement values."
+
+# --- Base buildings (prompt 056): models of the vehicle works, barracks and
+# supply depot of data/economy.toml (same sizes) -----------------------------
+
+[[unit]]
+id = "env_steel_hall"
+faction = "neutral"
+category = "env_building"
+name_de = "Stahlhalle"
+name_en = "Steel hall"
+tier = 1
+model = "assets/models/neutral/env_steel_hall.glb"
+length_mm = 20000
+width_mm = 10000
+height_mm = 9000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Steel_building", covers = "steel portal-frame halls clad in corrugated sheet, roof lanterns" },
+    { ref = "https://en.wikipedia.org/wiki/Corrugated_galvanised_iron", covers = "corrugated sheet cladding and roofing" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Workshop hall of the vehicle works: steel-clad on a brick plinth, sliding door at the gable, roof lantern, brick chimney (top of the chimney = height). Size of base_factory in data/economy.toml; judgement values."
+
+[[unit]]
+id = "env_barracks"
+faction = "neutral"
+category = "env_building"
+name_de = "Baracke"
+name_en = "Barracks hut"
+tier = 1
+model = "assets/models/neutral/env_barracks.glb"
+length_mm = 12000
+width_mm = 8000
+height_mm = 7500
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Barracks", covers = "military accommodation, prefabricated timber huts" },
+    { ref = "https://de.wikipedia.org/wiki/Baracke", covers = "timber huts of tarred boards with stoves" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Timber barracks hut with a steep plank roof, porch and stove pipes. Size of base_barracks in data/economy.toml; judgement values."
+
+[[unit]]
+id = "env_depot"
+faction = "neutral"
+category = "env_building"
+name_de = "Versorgungslager"
+name_en = "Supply depot"
+tier = 1
+model = "assets/models/neutral/env_depot.glb"
+length_mm = 14000
+width_mm = 9000
+height_mm = 8000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Military_supply-chain_management", covers = "supply dumps of crates and fuel drums" },
+    { ref = "https://en.wikipedia.org/wiki/Drum_(container)", covers = "200 l steel drums for fuel" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Timber store shed with a steel roof and wide doors, crate stacks at one end and 200 l drums at the other. Size of base_depot in data/economy.toml; judgement values."

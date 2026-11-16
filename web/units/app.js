@@ -2,7 +2,9 @@
 // full catalog with a data sheet per entry (3D model, dimensions, armor, weapons, sources).
 // Reads the repository files directly (no build step): data/catalog/*.toml,
 // data/economy.toml, the camouflage palettes and the models under godot/assets/.
-// Start it with `just units-web` (serves the repository root).
+// Start it with `just units-web` (serves the repository root). The website serves
+// web/units/ as its root, where `../../` stays at the root: `just units-web-sync` puts
+// copies of those files under web/units/ for it.
 
 import { parse } from 'smol-toml';
 import { BIOMES, Viewer, loadLook } from './viewer.js';
@@ -155,9 +157,12 @@ async function loadData() {
     }
     for (const w of e.weapon || []) state.maxRange = Math.max(state.maxRange, w.range_effective_m || 0, w.range_aa_m || 0);
   }
-  // Prices come from the simulation (`cli economy-table`), written by tools/units_web.py.
+  // Prices come from the simulation (`cli economy-table`), written by tools/units_web.py
+  // next to this page.
   try {
-    const table = await text('build/units-web/economy.md');
+    const response = await fetch(new URL('economy.md', import.meta.url));
+    if (!response.ok) throw new Error(`economy.md: HTTP ${response.status}`);
+    const table = await response.text();
     for (const line of table.split('\n')) {
       const cells = line.split('|').map((c) => c.trim());
       const id = (cells[2] || '').match(/^`(.+)`$/);
@@ -168,7 +173,7 @@ async function loadData() {
       });
     }
   } catch {
-    $('status').textContent = 'Keine Preise: build/units-web/economy.md fehlt (Seite mit `just units-web` starten).';
+    $('status').textContent = 'Keine Preise: economy.md fehlt (`just units-web` oder `just units-web-sync`).';
   }
 }
 

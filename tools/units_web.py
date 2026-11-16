@@ -1,15 +1,21 @@
 #!/usr/bin/env python3
-"""Serve the unit browser (web/units/) from the repository root.
+"""Serve the unit browser (web/units/) from the repository root, or sync its copy.
 
-The page reads the catalog, the camouflage palettes and the models straight from
-the repository, so the only generated file is the price table of the simulation
-(`cli economy-table` -> build/units-web/economy.md). Usage: `just units-web`.
+Served locally, the page reads the catalog, the camouflage palettes and the models
+straight from the repository; the only generated file is the price table of the
+simulation (`cli economy-table` -> web/units/economy.md). Usage: `just units-web`.
+
+The website serves web/units/ as its root, so there the page finds the same files
+under web/units/ itself. `--sync` (`just units-web-sync`) copies every file the page
+loads to that place, removes copies that are no longer needed and writes the prices.
 """
 
 import argparse
 import functools
 import http.server
 import pathlib
+import re
+import shutil
 import subprocess
 import threading
 import webbrowser
@@ -45,10 +51,14 @@ class Server(http.server.ThreadingHTTPServer):
     daemon_threads = True
 
 
+WEB = ROOT / "web" / "units"
+# Top-level folders of the copy under web/units/ (everything in them is synced).
+MIRRORED = ("data", "godot")
+
+
 def write_prices():
-    """Runs in the background: cargo may wait for another build to finish."""
-    out = ROOT / "build" / "units-web" / "economy.md"
-    out.parent.mkdir(parents=True, exist_ok=True)
+    """Runs in the background when serving: cargo may wait for another build."""
+    out = WEB / "economy.md"
     try:
         table = subprocess.run(
             ["cargo", "run", "-q", "-p", "cli", "--", "economy-table"],
@@ -58,13 +68,67 @@ def write_prices():
         print(f"units-web: no prices ({error})", flush=True)
         return
     out.write_bytes(table)
+    return True
+
+
+def page_files():
+    """Repository paths of every file the page loads (see app.js and viewer.js)."""
+    catalogs = [f"data/catalog/{f}.toml" for f in ("de", "su", "us", "neutral")]
+    files = set(catalogs) | {"data/economy.toml", "godot/assets/models/infantry/uniform_palettes.json"}
+    files |= {p.relative_to(ROOT).as_posix() for p in (ROOT / "godot/assets/materials/camo").glob("*.tres")}
+    files |= {p.relative_to(ROOT).as_posix() for p in (ROOT / "godot/assets/thumbnails").glob("*.png")}
+    for source in catalogs + ["data/economy.toml"]:
+        for model in re.findall(r'^model\s*=\s*"([^"]+)"', (ROOT / source).read_text(), re.M):
+            files.add(f"godot/{model}")
+            if model.endswith(".tscn"):
+                scene = (ROOT / "godot" / model).read_text()
+                files |= {f"godot/{p}" for p in re.findall(r'\[ext_resource [^\]]*path="res://([^"]+)"', scene)}
+    return files
+
+
+def sync():
+    """Copies the page's files to web/units/ and removes copies nobody loads."""
+    wanted = page_files()
+    missing = sorted(f for f in wanted if not (ROOT / f).is_file())
+    copied = removed = 0
+    for f in sorted(wanted - set(missing)):
+        source, target = ROOT / f, WEB / f
+        if target.is_file() and target.read_bytes() == source.read_bytes():
+            continue
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, target)
+        copied += 1
+    for top in MIRRORED:
+        for target in sorted((WEB / top).rglob("*"), reverse=True):
+            if target.is_file() and target.relative_to(WEB).as_posix() not in wanted:
+                target.unlink()
+                removed += 1
+            elif target.is_dir() and not any(target.iterdir()):
+                target.rmdir()
+    print(f"units-web: {len(wanted)} files, {copied} copied, {removed} removed", flush=True)
+    for f in missing:
+        print(f"units-web: missing in the repository: {f}", flush=True)
+    # Every catalog entry with a model gets a list picture (`just thumbnails --only=...`).
+    ids = []
+    for source in [f"data/catalog/{f}.toml" for f in ("de", "su", "us", "neutral")]:
+        for block in (ROOT / source).read_text().split("[[unit]]")[1:]:
+            entry = re.search(r'^id\s*=\s*"([^"]+)"', block, re.M)
+            if entry and re.search(r"^model\s*=", block, re.M):
+                ids.append(entry.group(1))
+    no_thumb = [i for i in ids if not (ROOT / f"godot/assets/thumbnails/{i}.png").is_file()]
+    if no_thumb:
+        print(f"units-web: no thumbnail, run: just thumbnails --only={','.join(no_thumb)}", flush=True)
+    return write_prices() and not missing
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--port", type=int, default=8137)
     parser.add_argument("--no-open", action="store_true", help="do not open the browser")
+    parser.add_argument("--sync", action="store_true", help="sync the copy under web/units/ and exit")
     args = parser.parse_args()
+    if args.sync:
+        raise SystemExit(0 if sync() else 1)
 
     threading.Thread(target=write_prices, daemon=True).start()
     handler = functools.partial(Handler, directory=str(ROOT))

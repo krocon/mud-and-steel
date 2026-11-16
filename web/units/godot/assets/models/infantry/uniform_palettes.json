@@ -1,0 +1,128 @@
+{
+  "_comment": "Infantry slot colors (sRGB hex) per faction and biome. Single source for Blender (tools/blender/soldier/materials.py) and Godot (godot/scenes/tools/soldier_look.gd). Approximate period colors; see docs/ASSETS.md, section Infantry.",
+  "fixed": {
+    "Skin": "#c39a7c",
+    "Metal": "#3b3c3d",
+    "Wood": "#6e4a2c",
+    "Rubber": "#232323",
+    "Glass": "#1d2a2a",
+    "Insignia": "#e6e6e0"
+  },
+  "factions": {
+    "de": {
+      "forest": {
+        "Cloth": "#5c5e4b",
+        "Canvas": "#6d6651",
+        "Leather": "#2b2623",
+        "Paint": "#4e5245"
+      },
+      "desert": {
+        "Cloth": "#9e8b5c",
+        "Canvas": "#b3a27c",
+        "Leather": "#6a4a2f",
+        "Paint": "#b09868"
+      },
+      "winter": {
+        "Cloth": "#dcdcd5",
+        "Canvas": "#c7c5bb",
+        "Leather": "#2b2623",
+        "Paint": "#e1e1db"
+      }
+    },
+    "su": {
+      "forest": {
+        "Cloth": "#6f6a46",
+        "Canvas": "#6a6249",
+        "Leather": "#2f2721",
+        "Paint": "#4d5939"
+      },
+      "desert": {
+        "Cloth": "#a49a70",
+        "Canvas": "#9c8f6d",
+        "Leather": "#3c2f23",
+        "Paint": "#8e8962"
+      },
+      "winter": {
+        "Cloth": "#d7d7d1",
+        "Canvas": "#c3c1b7",
+        "Leather": "#2f2721",
+        "Paint": "#dfdfd9"
+      }
+    },
+    "us": {
+      "forest": {
+        "Cloth": "#6a6247",
+        "Canvas": "#7e7657",
+        "Leather": "#5a3c25",
+        "Paint": "#4f5238"
+      },
+      "desert": {
+        "Cloth": "#a7956f",
+        "Canvas": "#a29476",
+        "Leather": "#6b4629",
+        "Paint": "#8a8464"
+      },
+      "winter": {
+        "Cloth": "#d9d9d3",
+        "Canvas": "#c8c6bc",
+        "Leather": "#5a3c25",
+        "Paint": "#dddbd3"
+      }
+    }
+  },
+  "_comment_camo": "Camouflage garments (prompt 042), worn in the forest biome only: pattern (splinter, amoeba, frogskin), cut (smock: rest height above camo_min_z; overall/uniform: whole garment), helmet cover, pattern size in m, roles that wear it by default, colors base + 1..4 (sRGB approximations of the period prints, sources in docs/SOURCES.md). winter_soil = grime on the white winter over-garments.",
+  "camo": {
+    "de": {
+      "pattern": "splinter",
+      "camo_min_z": 0.62,
+      "helmet": true,
+      "scale": 0.11,
+      "roles": [
+        "sniper",
+        "scout"
+      ],
+      "note": "Heer Splittertarn (1931-45): brown and green splinters on grey-beige, dark green rain strokes; smock and helmet cover",
+      "colors": [
+        "#a39b80",
+        "#56603f",
+        "#6e4c33",
+        "#2f3a25",
+        "#6e4c33"
+      ]
+    },
+    "su": {
+      "pattern": "amoeba",
+      "camo_min_z": -1.0,
+      "helmet": false,
+      "scale": 0.16,
+      "roles": [
+        "sniper",
+        "scout"
+      ],
+      "note": "Soviet camouflage suit for snipers and scouts: dark amoeba blobs on olive khaki; whole overall",
+      "colors": [
+        "#8b8558",
+        "#3b3226",
+        "#5a5a3a",
+        "#3b3226",
+        "#3b3226"
+      ]
+    },
+    "us": {
+      "pattern": "frogskin",
+      "camo_min_z": -1.0,
+      "helmet": false,
+      "scale": 0.07,
+      "roles": [],
+      "note": "M1942 frogskin, green side: spots of four greens and browns on pale green; two-piece uniform; variant only",
+      "colors": [
+        "#a2aa84",
+        "#7f8c5c",
+        "#58663f",
+        "#39452e",
+        "#5f4b35"
+      ]
+    }
+  },
+  "winter_soil": 0.7
+}

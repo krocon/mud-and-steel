@@ -1,0 +1,22 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" uid="uid://djcqc6ttlxviu" path="res://assets/models/su/infantry/carbineer.glb" id="1_carbineer"]
+[ext_resource type="PackedScene" uid="uid://dsfhgohqhvna6" path="res://assets/models/su/infantry/mortar_gunner_medium.glb" id="2_mortar_gunner_medium"]
+
+[node name="su_inf_mortar_medium" type="Node3D"]
+metadata/extras = {"cat_id": "su_inf_mortar_medium", "cat_faction": "su", "cat_category": "inf_mortar_medium", "cat_name_de": "Bataillons-Granatwerfer 82-BM-37", "cat_name_en": "82 mm Battalion Mortar 82-BM-37", "cat_designation": "82-BM-37 (82-mm batalyonny minomyot obr. 1937)", "cat_year_from": 1937, "cat_year_to": 1945, "cat_speed_road_kmh_x10": 50, "cat_speed_offroad_kmh_x10": 40, "cat_weapons": "82-BM-37; 4× Mosin-Nagant M1938 carbine", "cat_squad_size": 5, "squad": true, "squad_roles": ["mortar_gunner_medium", "carbineer", "carbineer", "carbineer", "carbineer"], "squad_notes": ["gunner / layer (82-BM-37)", "loader (Mosin-Nagant M1938)", "ammunition carrier (Mosin-Nagant M1938)", "ammunition carrier (Mosin-Nagant M1938)", "ammunition carrier (Mosin-Nagant M1938)"], "squad_clips": ["mortar_operate", "kneel", "kneel", "kneel", "prone"], "squad_file": "assets-src/blueprints/su/squads/su_inf_mortar_medium.toml", "source_hash": "b78f8ed1f9cde159"}
+
+[node name="Member_01" parent="." instance=ExtResource("2_mortar_gunner_medium")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1)
+
+[node name="Member_02" parent="." instance=ExtResource("1_carbineer")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.3, 0, -1.2)
+
+[node name="Member_03" parent="." instance=ExtResource("1_carbineer")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.4, 0, 0.6)
+
+[node name="Member_04" parent="." instance=ExtResource("1_carbineer")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 0, 1)
+
+[node name="Member_05" parent="." instance=ExtResource("1_carbineer")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2.2)

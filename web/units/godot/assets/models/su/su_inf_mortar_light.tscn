@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" uid="uid://djcqc6ttlxviu" path="res://assets/models/su/infantry/carbineer.glb" id="1_carbineer"]
+[ext_resource type="PackedScene" uid="uid://hns3nejse23b" path="res://assets/models/su/infantry/mortar_gunner.glb" id="2_mortar_gunner"]
+
+[node name="su_inf_mortar_light" type="Node3D"]
+metadata/extras = {"cat_id": "su_inf_mortar_light", "cat_faction": "su", "cat_category": "inf_mortar_light", "cat_name_de": "Leichter Granatwerfer 50-PM 40", "cat_name_en": "50 mm Company Mortar 50-PM 40", "cat_designation": "50-PM 40 (50-mm rotny minomyot obr. 1940)", "cat_year_from": 1940, "cat_year_to": 1945, "cat_speed_road_kmh_x10": 50, "cat_speed_offroad_kmh_x10": 40, "cat_weapons": "50-PM 40; 2× Mosin-Nagant M1938 carbine", "cat_squad_size": 2, "squad": true, "squad_roles": ["mortar_gunner", "carbineer"], "squad_notes": ["mortar gunner (50-PM 40)", "loader / ammunition carrier (Mosin-Nagant M1938)"], "squad_clips": ["mortar_operate", "kneel"], "squad_file": "assets-src/blueprints/su/squads/su_inf_mortar_light.toml", "source_hash": "14df61e409895d0b"}
+
+[node name="Member_01" parent="." instance=ExtResource("2_mortar_gunner")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.5)
+
+[node name="Member_02" parent="." instance=ExtResource("1_carbineer")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2, 0, 0)

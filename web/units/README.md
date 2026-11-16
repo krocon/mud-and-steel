@@ -6,17 +6,24 @@ data sheet per entry (3D view with dimension lines, armor, weapons, sources). St
 with `just units-web` (serves the repository root on `http://localhost:8137/web/units/`;
 `--port N`, `--no-open`). `…/web/units/#<id>` opens the data sheet of that entry.
 
-There is no build step and no copy of the data. The page reads at runtime:
+There is no build step. Served locally, the page reads at runtime (paths from the
+repository root):
 
 | What | From |
 |---|---|
 | Units and their real values | `data/catalog/*.toml` |
 | Base buildings | `data/economy.toml` |
-| Prices and build times | `cli economy-table`, written to `build/units-web/economy.md` by `tools/units_web.py` |
+| Prices and build times | `cli economy-table`, written to `web/units/economy.md` by `tools/units_web.py` |
 | Models, squad scenes | `godot/assets/models/` (`.glb`, squads from their `.tscn`) |
 | Camouflage (forest, desert, winter) | `godot/assets/materials/camo/*.tres` |
 | Infantry colors | `godot/assets/models/infantry/uniform_palettes.json` |
 | List pictures | `godot/assets/thumbnails/<id>.png`, else a snapshot of the 3D model |
+
+The website serves `web/units/` itself as its root, so `app.js` resolves the paths
+above against that root. `just units-web-sync` copies every file in the table to the
+same path under `web/units/` (`data/`, `godot/`), removes copies nothing loads any more
+and writes `economy.md`. Run it after changes to the catalog, models, palettes or
+thumbnails and before uploading `web/units/`; never edit the copies by hand.
 
 Files:
 

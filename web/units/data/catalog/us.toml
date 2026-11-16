@@ -1,0 +1,1045 @@
+# Catalog: us. Field reference: data/catalog/SCHEMA.md
+
+# ---------------------------------------------------------------------------
+# Infantry
+# ---------------------------------------------------------------------------
+
+[[unit]]
+id = "us_inf_rifle_squad"
+faction = "us"
+category = "inf_rifle"
+name_de = "Schützengruppe"
+name_en = "Rifle Squad"
+designation = "Rifle squad, T/O&E 7-17 (26 Feb 1944)"
+year_from = 1943
+year_to = 1945
+tier = 1
+model = "assets/models/us/us_inf_rifle_squad.tscn"
+squad_size = 12
+speed_road_kmh_x10 = 50
+speed_offroad_kmh_x10 = 40
+weapon = [
+    { name = "Rifle M1 (Garand)", count = 9, caliber_mm_x10 = 76, ammo = ".30-06 M2 ball, M2 AP", rate_rpm = 40, muzzle_velocity_mps = 853, range_effective_m = 457 },
+    { name = "Rifle M1 with grenade launcher M7", count = 2, caliber_mm_x10 = 76, ammo = ".30-06 M2 ball; M9A1 AT rifle grenade", rate_rpm = 40, muzzle_velocity_mps = 853, range_effective_m = 457 },
+    { name = "Browning Automatic Rifle M1918A2", count = 1, caliber_mm_x10 = 76, ammo = ".30-06 M2 ball, 20-round magazine", rate_rpm = 375, muzzle_velocity_mps = 860, range_effective_m = 550 },
+]
+source = [
+    { ref = "https://www.battleorder.org/post/usa-rifleco-1944", covers = "1944 rifle squad of 12: leader (M1), assistant leader (M1 + M7), BAR man, assistant BAR man (M1), ammunition bearer (M1), 2 rifle grenadiers (M1 + M7), 2 scouts and 3 riflemen (M1)" },
+    { ref = "War Department T/O&E 7-17, Infantry Rifle Company (26 Feb 1944), scan at https://www.scribd.com/document/543078786/7-17-26Feb44", covers = "two M7 grenade launchers per rifle squad; supersedes T/O&E 7-17 of 15 Jul 1943 (confirmed via search excerpt)" },
+    { ref = "FM 7-10 Rifle Company, Rifle Regiment (1944), https://ciehub.info/ref/FM/7-10_1944.pdf", covers = "squad organization (not re-read in detail)" },
+    { ref = "https://en.wikipedia.org/wiki/M1_Garand", covers = "M1: 853 m/s, effective range 500 yd (457 m), rate 40-50 rpm" },
+    { ref = "https://en.wikipedia.org/wiki/M1918_Browning_Automatic_Rifle", covers = "BAR M1918A2: slow cyclic 300-450 rpm, fast 500-650 rpm, 860 m/s" },
+]
+uncertain = ["weapon"]
+note = "Rifle squad per T/O&E 7-17 of 26 Feb 1944 (ETO). The 1943 squad had an M1903 rifle with M1 launcher; the 1944 table replaced it with two M1 rifles with M7 launchers. Many units informally added a second BAR. BAR rate_rpm = middle of the slow cyclic setting; M1 rate_rpm = lower end of the 40-50 rpm figure. BAR range_effective_m 550 m is a practical figure (estimate; Wikipedia gives a sight-adjusted maximum effective range of 1,372 m). Marching speed uses the project convention (5 km/h road, 4 km/h cross-country)."
+
+[[unit]]
+id = "us_inf_mg_team"
+faction = "us"
+category = "inf_lmg"
+name_de = "Leichter MG-Trupp (M1919A4)"
+name_en = "Light Machine Gun Squad (M1919A4)"
+designation = "LMG squad, weapons platoon, T/O&E 7-17 (1944)"
+year_from = 1943
+year_to = 1945
+tier = 1
+model = "assets/models/us/us_inf_mg_team.tscn"
+squad_size = 5
+speed_road_kmh_x10 = 50
+speed_offroad_kmh_x10 = 40
+weapon = [
+    { name = "Browning M1919A4 (tripod M2)", count = 1, caliber_mm_x10 = 76, ammo = ".30-06 M2 ball, M1 tracer, 250-round belts", rate_rpm = 500, muzzle_velocity_mps = 853, range_effective_m = 1370 },
+    { name = "Rifle M1 with grenade launcher M7", count = 1, caliber_mm_x10 = 76, ammo = ".30-06 M2 ball; M9A1 AT rifle grenade", rate_rpm = 40, muzzle_velocity_mps = 853, range_effective_m = 457 },
+    { name = "Carbine M1", count = 2, caliber_mm_x10 = 76, ammo = ".30 Carbine M1 ball", rate_rpm = 30, muzzle_velocity_mps = 600, range_effective_m = 300 },
+    { name = "Pistol M1911A1", count = 2, caliber_mm_x10 = 114, ammo = ".45 ACP", muzzle_velocity_mps = 253, range_effective_m = 50 },
+]
+source = [
+    { ref = "https://www.battleorder.org/post/usa-rifleco-1944", covers = "LMG squad of 5: leader (M1 + M7), gunner (M1919A4, M1911A1), assistant gunner (M1911A1), 2 ammunition bearers (M1 carbine); 2 squads per LMG section" },
+    { ref = "https://en.wikipedia.org/wiki/M1919_Browning_machine_gun", covers = "5-man squad, rate 400-600 rpm, 853 m/s, effective range 1,500 yd (1,370 m)" },
+    { ref = "FM 23-45 Browning Machine Gun, Caliber .30, HB, M1919A4, Ground (April 1943)", covers = "gun manual (existence confirmed in a manual inventory; contents not read)" },
+    { ref = "https://en.wikipedia.org/wiki/M1_Garand", covers = "M1 rifle data" },
+]
+note = "Squad composition and personal weapons per the 1944 rifle company weapons platoon. MG rate_rpm = cyclic (400-600). Carbine and pistol values are standard published figures (not re-fetched)."
+
+[[unit]]
+id = "us_inf_hmg_team"
+faction = "us"
+category = "inf_hmg"
+name_de = "Schwerer MG-Trupp (M1917A1)"
+name_en = "Heavy Machine Gun Squad (M1917A1)"
+designation = "HMG squad, heavy weapons company (1944)"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/us/us_inf_hmg_team.tscn"
+squad_size = 7
+speed_road_kmh_x10 = 50
+speed_offroad_kmh_x10 = 40
+weapon = [
+    { name = "Browning M1917A1 (water-cooled, tripod M1917A1)", count = 1, caliber_mm_x10 = 76, ammo = ".30-06 M2 ball, M1 tracer, 250-round belts", rate_rpm = 500, muzzle_velocity_mps = 853, range_effective_m = 1830 },
+    { name = "Carbine M1", count = 5, caliber_mm_x10 = 76, ammo = ".30 Carbine M1 ball", rate_rpm = 30, muzzle_velocity_mps = 600, range_effective_m = 300 },
+    { name = "Pistol M1911A1", count = 2, caliber_mm_x10 = 114, ammo = ".45 ACP", muzzle_velocity_mps = 253, range_effective_m = 50 },
+]
+source = [
+    { ref = "FM 23-55 Browning Machine Gun, Cal. .30, M1917 (1940)", covers = "gun manual (existence confirmed in a manual inventory; contents not read)" },
+    { ref = "https://en.wikipedia.org/wiki/M1917_Browning_machine_gun", covers = "M1917A1 450-600 rpm, 853 m/s, max range ~3,200 m (M2 ball) to 5,000 m (M1 ball)" },
+]
+uncertain = ["squad_size", "weapon"]
+note = "Squad strength 7 (leader, gunner, assistant, ammunition bearers, jeep driver) is an estimate; no heavy weapons company T/O&E was consulted. rate_rpm = cyclic. range_effective_m is the usual sustained-fire figure for the tripod-mounted gun (~2,000 yd), estimate."
+
+[[unit]]
+id = "us_inf_mortar_light"
+faction = "us"
+category = "inf_mortar_light"
+name_de = "Leichter Granatwerfertrupp (60 mm M2)"
+name_en = "60 mm Mortar Squad (M2)"
+designation = "60 mm mortar squad, weapons platoon, T/O&E 7-17 (1944)"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/us/us_inf_mortar_light.tscn"
+squad_size = 5
+speed_road_kmh_x10 = 50
+speed_offroad_kmh_x10 = 40
+weapon = [
+    { name = "60 mm Mortar M2 (mount M2)", count = 1, caliber_mm_x10 = 600, ammo = "M49A2 HE, M302 WP, M83 illuminating", rate_rpm = 18, muzzle_velocity_mps = 158, range_effective_m = 1815 },
+    { name = "Rifle M1 (Garand)", count = 1, caliber_mm_x10 = 76, ammo = ".30-06 M2 ball, M2 AP", rate_rpm = 40, muzzle_velocity_mps = 853, range_effective_m = 457 },
+    { name = "Carbine M1", count = 2, caliber_mm_x10 = 76, ammo = ".30 Carbine M1 ball", rate_rpm = 30, muzzle_velocity_mps = 600, range_effective_m = 300 },
+    { name = "Pistol M1911A1", count = 2, caliber_mm_x10 = 114, ammo = ".45 ACP", muzzle_velocity_mps = 253, range_effective_m = 50 },
+]
+source = [
+    { ref = "https://www.battleorder.org/post/usa-rifleco-1944", covers = "mortar section, 3 squads of 5: leader (M1), gunner and assistant (M1911A1), 2 ammunition bearers (M1 carbine)" },
+    { ref = "https://en.wikipedia.org/wiki/M2_mortar", covers = "crew 5, 18 rpm, 158 m/s, max range 1.8 km" },
+    { ref = "FM 23-85 60-mm Mortar M2 (1942)", covers = "mortar manual (existence confirmed in a manual inventory; contents not read)" },
+]
+note = "range_effective_m = maximum range (indirect fire, 1,985 yd with M49A2). rate_rpm = sustained rate (30-35 rpm maximum)."
+
+[[unit]]
+id = "us_inf_mortar_medium"
+faction = "us"
+category = "inf_mortar_medium"
+name_de = "Mittlerer Granatwerfertrupp (81 mm M1)"
+name_en = "81 mm Mortar Squad (M1)"
+designation = "81 mm mortar squad, heavy weapons company (1944)"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/us/us_inf_mortar_medium.tscn"
+squad_size = 8
+speed_road_kmh_x10 = 50
+speed_offroad_kmh_x10 = 40
+weapon = [
+    { name = "81 mm Mortar M1 (mount M4)", count = 1, caliber_mm_x10 = 812, ammo = "M43A1 light HE, M56 heavy HE, M57 WP", rate_rpm = 18, muzzle_velocity_mps = 210, range_effective_m = 3018 },
+    { name = "Carbine M1", count = 6, caliber_mm_x10 = 76, ammo = ".30 Carbine M1 ball", rate_rpm = 30, muzzle_velocity_mps = 600, range_effective_m = 300 },
+    { name = "Pistol M1911A1", count = 2, caliber_mm_x10 = 114, ammo = ".45 ACP", muzzle_velocity_mps = 253, range_effective_m = 50 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/M1_mortar", covers = "crew 8 (leader, gunner, assistant, 5 ammunition bearers), 62 kg, 18 rpm sustained / 30-35 max, 210 m/s, max range 3,300 yd (M43A1), 2,655 yd (M56)" },
+    { ref = "FM 23-90 81-mm Mortar M1 (1942, Changes 1 Jan 1943)", covers = "mortar manual (existence confirmed in a library record; contents not read)" },
+]
+uncertain = ["weapon"]
+note = "range_effective_m = maximum range with M43A1 light HE (indirect). Personal weapons split (carbines/pistols) is an estimate."
+
+[[unit]]
+id = "us_inf_recon"
+faction = "us"
+category = "inf_recon"
+name_de = "Aufklärungstrupp (I&R-Zug)"
+name_en = "Intelligence & Reconnaissance Squad"
+designation = "I&R squad, I&R platoon, regimental HQ company (1944)"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/us/us_inf_recon.tscn"
+squad_size = 6
+speed_road_kmh_x10 = 50
+speed_offroad_kmh_x10 = 40
+weapon = [
+    { name = "Rifle M1 (Garand)", count = 3, caliber_mm_x10 = 76, ammo = ".30-06 M2 ball, M2 AP", rate_rpm = 40, muzzle_velocity_mps = 853, range_effective_m = 457 },
+    { name = "Carbine M1", count = 2, caliber_mm_x10 = 76, ammo = ".30 Carbine M1 ball", rate_rpm = 30, muzzle_velocity_mps = 600, range_effective_m = 300 },
+    { name = "Submachine gun M1A1 (Thompson)", count = 1, caliber_mm_x10 = 114, ammo = ".45 ACP", rate_rpm = 700, muzzle_velocity_mps = 285, range_effective_m = 50 },
+]
+source = [
+    { ref = "https://www.battleorder.org/us-army-rifle-co-1945", covers = "US infantry regiment context (I&R platoon not detailed there)" },
+    { ref = "https://en.wikipedia.org/wiki/Thompson_submachine_gun", covers = "M1A1 rate of fire and muzzle velocity" },
+    { ref = "https://en.wikipedia.org/wiki/M1_Garand", covers = "M1 rifle data" },
+]
+uncertain = ["squad_size", "weapon"]
+note = "Dismounted team of one regimental I&R squad (the platoon was jeep-mounted). Strength and weapons mix are estimates; no T/O&E for the regimental HQ company was consulted. Thompson rate_rpm = cyclic. Thompson values not re-fetched."
+
+[[unit]]
+id = "us_inf_sniper"
+faction = "us"
+category = "inf_sniper"
+name_de = "Scharfschütze (M1903A4)"
+name_en = "Sniper (M1903A4)"
+designation = "Sniper, rifle company (M1903A4 with Weaver M73B1 scope)"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/us/us_inf_sniper.tscn"
+squad_size = 2
+speed_road_kmh_x10 = 50
+speed_offroad_kmh_x10 = 40
+weapon = [
+    { name = "Rifle M1903A4 (sniper's, M73B1 2.5x scope)", count = 1, caliber_mm_x10 = 76, ammo = ".30-06 M2 ball, M2 AP", rate_rpm = 10, muzzle_velocity_mps = 853, range_effective_m = 600 },
+    { name = "Rifle M1 (Garand)", count = 1, caliber_mm_x10 = 76, ammo = ".30-06 M2 ball, M2 AP", rate_rpm = 40, muzzle_velocity_mps = 853, range_effective_m = 457 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/M1903_Springfield", covers = "M1903A4 adoption (1943), scope M73B1, muzzle velocity (not re-fetched)" },
+    { ref = "https://en.wikipedia.org/wiki/M1_Garand", covers = "M1 rifle data" },
+]
+uncertain = ["squad_size", "weapon"]
+note = "US doctrine had no fixed sniper team; snipers were individual riflemen in the rifle company. Modeled as sniper plus observer with M1 rifle (assumption). Effective range of the M1903A4 with 2.5x scope ~600 m (estimate); rate_rpm is a rough aimed rate."
+
+[[unit]]
+id = "us_inf_medic"
+faction = "us"
+category = "inf_medic"
+name_de = "Sanitäter"
+name_en = "Company Aid Man"
+designation = "Company aid man, regimental medical detachment (1944)"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/us/us_inf_medic.tscn"
+squad_size = 1
+speed_road_kmh_x10 = 50
+speed_offroad_kmh_x10 = 40
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Combat_medic", covers = "company aid men in WWII, non-combatant status under the Geneva Convention (not re-fetched)" },
+]
+uncertain = ["squad_size"]
+note = "One company aid man attached from the battalion medical section. Medics in the ETO were normally unarmed (Geneva Convention), so no weapon is listed. squad_size 1 is a modeling choice. Red Cross markings: not to be modeled (note only)."
+
+[[unit]]
+id = "us_inf_engineer"
+faction = "us"
+category = "inf_engineer"
+name_de = "Pioniergruppe"
+name_en = "Combat Engineer Squad"
+designation = "Engineer squad, engineer combat battalion (1944)"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/us/us_inf_engineer.tscn"
+squad_size = 12
+speed_road_kmh_x10 = 50
+speed_offroad_kmh_x10 = 40
+weapon = [
+    { name = "Rifle M1 (Garand)", count = 11, caliber_mm_x10 = 76, ammo = ".30-06 M2 ball, M2 AP", rate_rpm = 40, muzzle_velocity_mps = 853, range_effective_m = 457 },
+    { name = "Browning Automatic Rifle M1918A2", count = 1, caliber_mm_x10 = 76, ammo = ".30-06 M2 ball, 20-round magazine", rate_rpm = 375, muzzle_velocity_mps = 860, range_effective_m = 550 },
+    { name = "Demolition charges (TNT, Composition C2) and Bangalore torpedo M1A1", count = 1, ammo = "satchel / block charges" },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Combat_engineer", covers = "role and equipment of WWII US combat engineers (not re-fetched)" },
+    { ref = "https://en.wikipedia.org/wiki/M1_Garand", covers = "M1 rifle data" },
+]
+uncertain = ["squad_size", "weapon"]
+note = "Squad of 12 including squad leader and assistant (estimate; the engineer combat battalion T/O&E 5-15 was not consulted). BAR allocation per squad is approximate. Demolitions entry has no caliber."
+
+[[unit]]
+id = "us_inf_at"
+faction = "us"
+category = "inf_at"
+name_de = "Panzerabwehrtrupp (Bazooka)"
+name_en = "Bazooka Team"
+designation = "Rocket launcher team, 2.36 in M1A1 / M9"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/us/us_inf_at.tscn"
+squad_size = 2
+speed_road_kmh_x10 = 50
+speed_offroad_kmh_x10 = 40
+weapon = [
+    { name = "2.36 in Rocket Launcher M9 (Bazooka)", count = 1, caliber_mm_x10 = 600, ammo = "M6A3 HEAT rocket", rate_rpm = 4, muzzle_velocity_mps = 81, range_effective_m = 110, ammo_carried = 6 },
+    { name = "Carbine M1", count = 2, caliber_mm_x10 = 76, ammo = ".30 Carbine M1 ball", rate_rpm = 30, muzzle_velocity_mps = 600, range_effective_m = 300 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Bazooka", covers = "crew 2 (operator, loader); M1A1 effective 150 yd, M9 120 yd (claimed), max 400-500 yd; M6A3 rocket 265 ft/s; penetration up to 4 in (102 mm)" },
+]
+uncertain = ["weapon"]
+note = "M1A1 in 1943-44, M9/M9A1 from late 1944; modeled as M9 (effective 120 yd = 110 m). Gunner and loader with carbines. ammo_carried (rockets carried by the team) and practical rate_rpm are estimates."
+
+[[unit]]
+id = "us_inf_flamethrower"
+faction = "us"
+category = "inf_flamethrower"
+name_de = "Flammenwerfertrupp (M2-2)"
+name_en = "Flamethrower Team (M2-2)"
+designation = "Portable flame thrower M2-2 team"
+year_from = 1944
+year_to = 1945
+tier = 2
+model = "assets/models/us/us_inf_flamethrower.tscn"
+squad_size = 2
+speed_road_kmh_x10 = 50
+speed_offroad_kmh_x10 = 40
+weapon = [
+    { name = "Portable Flame Thrower M2-2", count = 1, ammo = "thickened fuel (napalm) or gasoline, 2x 2 US gal (7.6 l) tanks", range_effective_m = 20, ammo_carried = 7 },
+    { name = "Rifle M1 (Garand)", count = 1, caliber_mm_x10 = 76, ammo = ".30-06 M2 ball, M2 AP", rate_rpm = 40, muzzle_velocity_mps = 853, range_effective_m = 457 },
+    { name = "Pistol M1911A1", count = 1, caliber_mm_x10 = 114, ammo = ".45 ACP", muzzle_velocity_mps = 253, range_effective_m = 50 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/M2_flamethrower", covers = "19.5 kg empty / 30.8 kg filled, two 2-gal fuel tanks, effective range 20 m, maximum 40 m, burn time ~7 s" },
+]
+uncertain = ["squad_size", "weapon"]
+note = "Operator with pistol, assistant with M1 rifle (team of 2 is a modeling choice; the source lists crew 1). ammo_carried = seconds of burn time (~7 s, no caliber). range_effective_m = effective range; maximum 40 m with thickened fuel."
+
+[[unit]]
+id = "us_inf_command"
+faction = "us"
+category = "inf_command"
+name_de = "Führungstrupp (Offizier mit Funker)"
+name_en = "Command Team (Officer and Radio Operator)"
+designation = "Company/battalion command element with SCR-300 radio"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/us/us_inf_command.tscn"
+squad_size = 2
+speed_road_kmh_x10 = 50
+speed_offroad_kmh_x10 = 40
+weapon = [
+    { name = "Carbine M1", count = 2, caliber_mm_x10 = 76, ammo = ".30 Carbine M1 ball", rate_rpm = 30, muzzle_velocity_mps = 600, range_effective_m = 300 },
+    { name = "Pistol M1911A1", count = 1, caliber_mm_x10 = 114, ammo = ".45 ACP", muzzle_velocity_mps = 253, range_effective_m = 50 },
+]
+source = [
+    { ref = "TM 11-242 Radio Set SCR-300-A (1945)", covers = "radio manual (number confirmed via Wikipedia)" },
+    { ref = "https://en.wikipedia.org/wiki/SCR-300", covers = "backpack FM radio, 14.6-17.3 kg, range ~3 mi (4.8 km)" },
+    { ref = "https://www.battleorder.org/post/usa-rifleco-1944", covers = "platoon HQs used SCR-536 handie-talkies (6 per rifle company)" },
+]
+uncertain = ["weapon"]
+note = "Officer with carbine and pistol, radio operator with carbine (typical, not fixed by T/O&E). The SCR-300 served company-to-battalion nets; platoon leaders used the handheld SCR-536."
+
+[[unit]]
+id = "us_inf_tank_crew"
+faction = "us"
+category = "inf_crew"
+name_de = "Panzerbesatzung (ausgestiegen)"
+name_en = "Tank crew (bailed out)"
+designation = "Tank crew, dismounted"
+year_from = 1942
+year_to = 1945
+tier = 2
+model = "assets/models/us/us_inf_tank_crew.tscn"
+squad_size = 5
+speed_road_kmh_x10 = 50
+speed_offroad_kmh_x10 = 40
+weapon = [
+    { name = "Submachine gun M3", count = 1, caliber_mm_x10 = 114, ammo = ".45 ACP", rate_rpm = 450, muzzle_velocity_mps = 280, range_effective_m = 50 },
+    { name = "Pistol M1911A1", count = 4, caliber_mm_x10 = 114, ammo = ".45 ACP", muzzle_velocity_mps = 253, range_effective_m = 50 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/M4_Sherman", covers = "crew of five (commander, gunner, loader, driver, assistant driver); from memory, not fetched for this entry" },
+    { ref = "https://en.wikipedia.org/wiki/M3_submachine_gun", covers = "M3: .45 ACP, about 450 rpm cyclic, 280 m/s, issued to tank crews; from memory, not fetched for this entry" },
+]
+uncertain = ["weapon"]
+note = "Not built or bought: the survivors of a destroyed vehicle (prompt 049) bail out as this squad, 1-5 men by chance. squad_size is the largest crew of the faction's tanks (M4 Sherman, M26: 5). Personal weapons: M1911A1 pistols and one M3 submachine gun from the tank's stowage. The model carries the Thompson (no M3 model yet) and the M1 helmet instead of the tanker helmet."
+
+# ---------------------------------------------------------------------------
+# Vehicles
+# ---------------------------------------------------------------------------
+
+[[unit]]
+id = "us_m5a1"
+faction = "us"
+category = "tank_light"
+name_de = "Leichter Panzer M5A1 Stuart"
+name_en = "M5A1 Stuart"
+designation = "Light Tank M5A1"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/us/us_m5a1.glb"
+length_mm = 4840
+width_mm = 2290
+height_mm = 2570
+mass_kg = 15200
+crew = 4
+speed_road_kmh_x10 = 580
+speed_offroad_kmh_x10 = 300
+range_road_km = 160
+power_hp = 223
+armor_hull_front_mm = 29
+armor_hull_front_deg = 48
+armor_hull_side_mm = 29
+armor_hull_rear_mm = 25
+armor_turret_front_mm = 51
+armor_turret_side_mm = 32
+armor_turret_rear_mm = 32
+weapon = [
+    { name = "37 mm Gun M6", caliber_mm_x10 = 370, ammo = "M51 APC, M63 HE, M2 canister", rate_rpm = 20, muzzle_velocity_mps = 884, range_effective_m = 800, ammo_carried = 147 },
+    { name = "Browning M1919A4", count = 3, caliber_mm_x10 = 76, rate_rpm = 500, muzzle_velocity_mps = 853, ammo_carried = 6250 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/M3_Stuart", covers = "M5A1 late production: 4.84 x 2.29 x 2.57 m (over AA MG), 33,500 lb, crew 4, 37 mm M6 with 147 rounds, twin Cadillac Series 42 220 hp, 36 mph, 100 mi" },
+    { ref = "Hunnicutt, Stuart: A History of the American Light Tank (1992)", covers = "armor values (not re-checked)" },
+]
+uncertain = ["speed_offroad_kmh_x10", "armor_hull_front_mm", "armor_hull_side_mm", "armor_hull_rear_mm", "armor_turret_front_mm", "armor_turret_side_mm", "armor_turret_rear_mm", "weapon"]
+note = "M5A1 (production Nov 1942 - Jun 1944), the standard US light tank 1943-45 until the M24. Length incl. sand shields and stowage box; height over the AA MG. power_hp = 220 hp (net) converted. Armor values are from memory of Hunnicutt and not confirmed by a fetched source (Wikipedia gives only 9.5-50.8 mm overall); turret front 51 mm = gun shield. Offroad speed estimated. 37 mm practical rate_rpm and MG ammunition are estimates; MG rate_rpm = cyclic."
+
+[[unit]]
+id = "us_m4a3_75"
+faction = "us"
+category = "tank_medium"
+name_de = "Mittlerer Panzer M4A3 (75)W Sherman"
+name_en = "M4A3 (75)W Sherman"
+designation = "Medium Tank M4A3 (75 mm), wet stowage"
+year_from = 1944
+year_to = 1945
+tier = 1
+model = "assets/models/us/us_m4a3_75.glb"
+length_mm = 6270
+width_mm = 2670
+height_mm = 2940
+mass_kg = 31600
+crew = 5
+speed_road_kmh_x10 = 420
+speed_offroad_kmh_x10 = 250
+range_road_km = 161
+power_hp = 507
+armor_hull_front_mm = 64
+armor_hull_front_deg = 47
+armor_hull_side_mm = 38
+armor_hull_rear_mm = 38
+armor_turret_front_mm = 76
+armor_turret_side_mm = 51
+armor_turret_rear_mm = 51
+weapon = [
+    { name = "75 mm Gun M3 (mount M34A1)", caliber_mm_x10 = 750, ammo = "M61 APC, M72 AP, M48 HE, M89 smoke", rate_rpm = 10, muzzle_velocity_mps = 619, range_effective_m = 1000, ammo_carried = 104 },
+    { name = "Browning M2HB (AA, turret roof)", caliber_mm_x10 = 127, rate_rpm = 500, muzzle_velocity_mps = 887, aa = true, ammo_carried = 300 },
+    { name = "Browning M1919A4 (coaxial, bow)", count = 2, caliber_mm_x10 = 76, rate_rpm = 500, muzzle_velocity_mps = 853, ammo_carried = 4750 },
+]
+source = [
+    { ref = "https://afvdatabase.com/usa/m4sherman.html", covers = "M4A3(75)W: 69,600 lb, length 247 in without gun with sandshields, width 105 in, height 115.7 in over cupola, armor (upper hull 2.5 in at 47 deg, lower 2.0-4.25 in, sides/rear 1.5 in, turret 3.0/2.0/2.0 in, gun shield 3.5 in), Ford GAA 500 gross / 450 net hp, 26 mph sustained, ~100 mi, 104 rounds 75 mm, 300 rds .50, 4,750 rds .30" },
+    { ref = "https://www.historyofwar.org/articles/weapons_medium_tank_M4A3_sherman_IV.html", covers = "cross-check: same dimensions, weight 69,600 lb, armor, 26 mph, 100 mi; M4A3(75)W built Feb 1944 - Mar 1945" },
+    { ref = "https://en.wikipedia.org/wiki/M4_Sherman", covers = "crew 5, off-road speed 15-20 mph (24-32 km/h) across variants" },
+    { ref = "TM 9-759 Medium Tank M4A3 (1942)", covers = "base M4A3 manual (existence confirmed; contents not read)" },
+]
+uncertain = ["speed_offroad_kmh_x10", "weapon"]
+note = "M4A3(75)W with VVSS, large-hatch 47 deg hull, wet stowage (built Feb 1944 - Mar 1945). Length 6,270 mm is the hull with sandshields; the 75 mm barrel hardly overhangs, so it is used as overall length. Height over the cupola. armor_hull_front_mm = upper glacis (the cast/rolled lower nose is 51-108 mm). armor_turret_front_mm = turret face 76 mm; gun shield 89 mm. power_hp = 500 gross hp converted (450 net). Offroad speed estimated within the 24-32 km/h range Wikipedia gives for Shermans. 75 mm practical rate_rpm and effective range are estimates; MG rate_rpm = cyclic."
+
+[[unit]]
+id = "us_m26"
+faction = "us"
+category = "tank_heavy"
+name_de = "Schwerer Panzer M26 Pershing"
+name_en = "M26 Pershing"
+designation = "Heavy Tank T26E3 / M26"
+year_from = 1945
+year_to = 1951
+tier = 2
+model = "assets/models/us/us_m26.glb"
+length_mm = 8650
+length_hull_mm = 6330
+width_mm = 3510
+height_mm = 2780
+mass_kg = 41900
+crew = 5
+speed_road_kmh_x10 = 480
+speed_offroad_kmh_x10 = 260
+range_road_km = 160
+power_hp = 507
+armor_hull_front_mm = 102
+armor_hull_front_deg = 46
+armor_hull_side_mm = 76
+armor_hull_rear_mm = 51
+armor_turret_front_mm = 114
+armor_turret_side_mm = 76
+armor_turret_rear_mm = 76
+weapon = [
+    { name = "90 mm Gun M3", caliber_mm_x10 = 900, ammo = "M82 APC, T30E16 HVAP, M71 HE", rate_rpm = 8, muzzle_velocity_mps = 853, range_effective_m = 1500, ammo_carried = 70 },
+    { name = "Browning M2HB (AA)", caliber_mm_x10 = 127, rate_rpm = 500, muzzle_velocity_mps = 887, aa = true, ammo_carried = 550 },
+    { name = "Browning M1919A4 (coaxial, bow)", count = 2, caliber_mm_x10 = 76, rate_rpm = 500, muzzle_velocity_mps = 853, ammo_carried = 5000 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/M26_Pershing", covers = "8.649 m with gun, 6.337 m hull, 3.51 m, 2.781 m, 41.9 t, crew 5, upper hull 102 mm, turret sides 76 mm, hull sides 50-75 mm, 90 mm M3 with 70 rounds, 2x M1919 (5,000), M2 (550), Ford GAF 450-500 hp, 48 km/h, 160 km" },
+    { ref = "Hunnicutt, Pershing: A History of the Medium Tank T20 Series (1971)", covers = "glacis angle 46 deg, mantlet 4.5 in, rear armor (not re-checked)" },
+]
+uncertain = ["speed_offroad_kmh_x10", "armor_hull_front_deg", "armor_hull_rear_mm", "armor_turret_front_mm", "armor_turret_rear_mm"]
+note = "T26E3/M26 as used in Europe Feb-May 1945 (in service until Korea, reclassified medium tank 1946). armor_turret_front_mm 114 = gun mantlet (turret face 102 mm); not in the fetched source. Wikipedia lists an off-road speed of 5.25 mph (8.45 km/h), which looks like a grade/soft-ground figure; 26 km/h is an estimate. power_hp = 500 gross hp converted. MG rate_rpm = cyclic."
+
+[[unit]]
+id = "us_m10"
+faction = "us"
+category = "tank_destroyer"
+name_de = "Jagdpanzer M10 Wolverine"
+name_en = "M10 Gun Motor Carriage"
+designation = "3-inch Gun Motor Carriage M10"
+year_from = 1942
+year_to = 1945
+tier = 2
+model = "assets/models/us/us_m10.glb"
+length_mm = 6830
+length_hull_mm = 5970
+width_mm = 3050
+height_mm = 2900
+mass_kg = 29600
+crew = 5
+speed_road_kmh_x10 = 480
+speed_offroad_kmh_x10 = 260
+range_road_km = 320
+power_hp = 380
+armor_hull_front_mm = 38
+armor_hull_front_deg = 55
+armor_hull_side_mm = 19
+armor_hull_rear_mm = 19
+armor_turret_front_mm = 57
+armor_turret_side_mm = 25
+armor_turret_rear_mm = 25
+weapon = [
+    { name = "3 in Gun M7 (mount M5)", caliber_mm_x10 = 762, ammo = "M62 APC, M79 AP, M42A1 HE, M93 HVAP (late 1944)", rate_rpm = 8, muzzle_velocity_mps = 792, range_effective_m = 1500, ammo_carried = 54 },
+    { name = "Browning M2HB (AA)", caliber_mm_x10 = 127, rate_rpm = 500, muzzle_velocity_mps = 887, aa = true, ammo_carried = 300 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/M10_tank_destroyer", covers = "6.83 m with gun, 5.97 m hull, 3.05 m, 2.90 m over AA MG, 65,200 lb, crew 5, glacis 1.5 in, upper sides/rear 0.75 in, turret side 1 in, gun shield 2.25 in, 3 in M7 with 54 rounds, 375 hp, 25-30 mph, 200 mi" },
+    { ref = "Zaloga, M10 and M36 Tank Destroyers 1942-53, Osprey New Vanguard 57 (2002)", covers = "service, .50 AA MG (not re-checked)" },
+]
+uncertain = ["speed_road_kmh_x10", "speed_offroad_kmh_x10", "armor_hull_front_deg"]
+note = "M10 (GM 6046 twin diesel; the M10A1 used the Ford GAA). Open-topped turret. Height over the AA MG. armor_hull_front_mm = glacis 38 mm; the 55 deg slope is from memory, not confirmed. Turret front 57 mm = gun shield. Road speed: Wikipedia gives 25-30 mph, 30 mph used. power_hp = 375 hp converted. Offroad speed estimated."
+
+[[unit]]
+id = "us_m4a3_105"
+faction = "us"
+category = "assault_gun"
+name_de = "Sturmhaubitze M4A3 (105)"
+name_en = "M4A3 (105) Sherman"
+designation = "Medium Tank M4A3 (105 mm Howitzer)"
+year_from = 1944
+year_to = 1945
+tier = 2
+model = "assets/models/us/us_m4a3_105.glb"
+length_mm = 5906
+width_mm = 2620
+height_mm = 2811
+mass_kg = 31100
+crew = 5
+speed_road_kmh_x10 = 420
+speed_offroad_kmh_x10 = 250
+range_road_km = 160
+power_hp = 507
+armor_hull_front_mm = 64
+armor_hull_front_deg = 47
+armor_hull_side_mm = 38
+armor_hull_rear_mm = 38
+armor_turret_front_mm = 76
+armor_turret_side_mm = 51
+armor_turret_rear_mm = 25
+weapon = [
+    { name = "105 mm Howitzer M4 (mount M52)", caliber_mm_x10 = 1050, ammo = "M1 HE, M67 HEAT, M84 smoke", rate_rpm = 4, muzzle_velocity_mps = 472, range_effective_m = 11160, ammo_carried = 66 },
+    { name = "Browning M2HB (AA)", caliber_mm_x10 = 127, rate_rpm = 500, muzzle_velocity_mps = 887, aa = true, ammo_carried = 600 },
+    { name = "Browning M1919A4 (coaxial, bow)", count = 2, caliber_mm_x10 = 76, rate_rpm = 500, muzzle_velocity_mps = 853, ammo_carried = 4000 },
+]
+source = [
+    { ref = "https://afvdatabase.com/usa/m4sherman.html", covers = "M4A3(105): ~68,500 lb, length 232.5 in without howitzer with sandshields, width 103 in, height 110.7 in, hull and turret armor (turret 3.0/2.0/1.0 in, howitzer shield 3.6 in), Ford GAA, 66 rounds 105 mm, 600 rds .50, 4,000 rds .30" },
+    { ref = "https://en.wikipedia.org/wiki/M4_Sherman_variants", covers = "500 VVSS vehicles Apr-Aug 1944, later HVSS; role" },
+    { ref = "https://en.wikipedia.org/wiki/M101_howitzer", covers = "105 mm ballistics: 472 m/s, max range ~11.3 km" },
+]
+uncertain = ["length_mm", "speed_offroad_kmh_x10", "range_road_km", "weapon"]
+note = "Assault gun of the tank battalion HQ companies. Length is without the howitzer (afvdatabase); the short barrel overhangs a little, so overall length is somewhat larger. armor_turret_front_mm = turret 76 mm (howitzer shield 91 mm). Speed and range taken as M4A3(75)W (not in the fetched excerpt). range_effective_m = maximum indirect range of the M2A1 family; the M4 tank howitzer is similar (estimate)."
+
+[[unit]]
+id = "us_m3_halftrack"
+faction = "us"
+category = "halftrack"
+name_de = "Halbkettenfahrzeug M3"
+name_en = "M3 Half-track"
+designation = "Carrier, Personnel, Half-track, M3"
+year_from = 1941
+year_to = 1945
+tier = 1
+model = "assets/models/us/us_m3_halftrack.glb"
+length_mm = 6163
+width_mm = 1962
+height_mm = 2300
+mass_kg = 9100
+crew = 1
+passengers = 12
+speed_road_kmh_x10 = 720
+speed_offroad_kmh_x10 = 350
+range_road_km = 320
+power_hp = 149
+armor_hull_front_mm = 13
+armor_hull_side_mm = 6
+armor_hull_rear_mm = 6
+weapon = [
+    { name = "Browning M1919A4 (pedestal mount M25)", caliber_mm_x10 = 76, ammo = ".30-06 M2 ball, M1 tracer", rate_rpm = 500, muzzle_velocity_mps = 853, range_effective_m = 1370, ammo_carried = 4000 },
+]
+source = [
+    { ref = "https://afvdatabase.com/usa/halftrackm3.html", covers = "M3: combat weight 20,000 lb, length 242.63 in with roller, width 77.25 in, height 89 in, White 160AX 147 net hp, 45 mph, ~200 mi, 60 gal, 13 men, M1919A4 on pedestal M25 with 4,000 rds; armor windshield cover 0.5 in, radiator louvres/sides/rear 0.25 in; reference TM 9-710" },
+    { ref = "https://en.wikipedia.org/wiki/M3_half-track", covers = "crew 1 (driver) + 12 passengers; 17,650 lb (M3), 18,425 lb (M3A1); 6.17 x 2.223 x 2.26 m; range 200 mi (320 km)" },
+    { ref = "TM 9-710 Basic Half-track Vehicles (White, Autocar and Diamond T), 23 Feb 1944, https://webarchive.library.unt.edu/web/20121010045806/http:/usacac.army.mil/cac2/cgsc/carl/wwIItms/TM9_710_1944.pdf", covers = "primary manual (existence confirmed; tables not read)" },
+]
+uncertain = ["width_mm", "mass_kg", "speed_offroad_kmh_x10"]
+note = "M3 personnel carrier (with front roller). crew = driver; carries 12 passengers (13 men total). Width: afvdatabase gives 77.25 in for the M3 and 87.5 in over mine racks for the M3A1 (Wikipedia 2.223 m) - sources conflict. Mass: afvdatabase combat weight 20,000 lb vs Wikipedia 17,650 lb (likely unladen gross). Armament per afvdatabase: early M3 .30 M1919A4 on pedestal M25; many vehicles carried a .50 M2HB, and the M3A1 (1943) had the M49 ring mount (.50 with 700 rds plus two .30). armor_hull_front_mm = windshield armor cover 12.7 mm (radiator louvres 6.35 mm). power_hp = 147 net hp converted. Offroad speed estimated. MG rate_rpm = cyclic."
+
+[[unit]]
+id = "us_gmc_cckw"
+faction = "us"
+category = "truck"
+name_de = "Lkw GMC CCKW 353 (2½ t, 6x6)"
+name_en = "GMC CCKW 353 2½-ton Truck"
+designation = "Truck, 2½-ton, 6x6, GMC CCKW-353"
+year_from = 1941
+year_to = 1945
+tier = 2
+model = "assets/models/us/us_gmc_cckw.glb"
+length_mm = 6860
+width_mm = 2240
+height_mm = 2770
+mass_kg = 7400
+crew = 2
+passengers = 16
+speed_road_kmh_x10 = 720
+speed_offroad_kmh_x10 = 350
+range_road_km = 480
+power_hp = 105
+source = [
+    { ref = "https://en.wikipedia.org/wiki/GMC_CCKW_2%C2%BD-ton_6%C3%976_truck", covers = "CCKW-353: 6.86 x 2.24 m, height 2.36 m to cab / 2.77 m overall, empty 4,000 kg, loaded 7,400 kg, GMC 270 91.5-104 hp, 45 mph, 300 mi" },
+    { ref = "TM 9-801 2 1/2-ton 6x6 Truck (GMC CCKW-352, 353) (1944), https://ia802603.us.archive.org/33/items/TM9-801/TM9-801.pdf", covers = "primary manual (existence confirmed; tables not read)" },
+]
+uncertain = ["passengers", "speed_offroad_kmh_x10", "crew"]
+note = "CCKW-353 long wheelbase cargo truck. mass_kg = loaded (gross) weight. Height overall (with canvas top). crew = driver + assistant driver (often just a driver). Offroad speed estimated. power_hp = 104 gross hp converted. No armor. passengers = 16 is an estimate (folding troop seats along both sides of the cargo body, prompt 034); no source found offline."
+
+[[unit]]
+id = "us_m8_greyhound"
+faction = "us"
+category = "recon_vehicle"
+name_de = "Panzerspähwagen M8 Greyhound"
+name_en = "M8 Greyhound"
+designation = "Light Armored Car M8"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/us/us_m8_greyhound.glb"
+length_mm = 4700
+width_mm = 2310
+height_mm = 1910
+mass_kg = 7400
+crew = 4
+speed_road_kmh_x10 = 890
+speed_offroad_kmh_x10 = 510
+range_road_km = 560
+power_hp = 112
+armor_hull_front_mm = 19
+armor_hull_side_mm = 10
+armor_hull_rear_mm = 10
+armor_turret_front_mm = 25
+armor_turret_side_mm = 19
+armor_turret_rear_mm = 19
+weapon = [
+    { name = "37 mm Gun M6", caliber_mm_x10 = 370, ammo = "M51 APC, M63 HE, M2 canister", rate_rpm = 20, muzzle_velocity_mps = 884, range_effective_m = 800, ammo_carried = 80 },
+    { name = "Browning M1919A4 (coaxial)", caliber_mm_x10 = 76, rate_rpm = 500, muzzle_velocity_mps = 853, ammo_carried = 1500 },
+    { name = "Browning M2HB (AA, ring mount)", caliber_mm_x10 = 127, rate_rpm = 500, muzzle_velocity_mps = 887, aa = true, ammo_carried = 400 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/M8_Greyhound", covers = "4.70 x 2.31 x 1.91 m, ~7.4 t, crew 4, armor up to 25 mm, 37 mm with 80 rounds, .30 MG 1,500 rds, .50 MG 400 rds, 110 hp, 55 mph road, 32 mph cross-country, 200-400 mi road" },
+    { ref = "TM 9-743 Light Armored Car M8 and Armored Utility Car M20", covers = "primary manual (existence confirmed; contents not read)" },
+]
+uncertain = ["height_mm", "range_road_km", "armor_hull_front_mm", "armor_hull_side_mm", "armor_hull_rear_mm", "armor_turret_side_mm", "armor_turret_rear_mm"]
+note = "M8, 6x6. Dimensions per Wikipedia (other published figures are up to 5.0 x 2.54 x 2.25 m; height 1.91 m is probably to the hull/turret roof without the AA MG). Armor split by face is from memory (Wikipedia gives only max 25 mm); turret front 25 mm. Range 560 km chosen within the 320-640 km road range. M2HB ring mount added from late 1944 (not on all vehicles). power_hp = 110 hp converted. MG rate_rpm = cyclic."
+
+[[unit]]
+id = "us_m7_priest"
+faction = "us"
+category = "self_propelled"
+name_de = "Selbstfahrlafette M7 Priest"
+name_en = "M7 Priest"
+designation = "105 mm Howitzer Motor Carriage M7"
+year_from = 1942
+year_to = 1945
+tier = 2
+model = "assets/models/us/us_m7_priest.glb"
+length_mm = 6020
+width_mm = 2870
+height_mm = 2540
+mass_kg = 22970
+crew = 8
+speed_road_kmh_x10 = 390
+speed_offroad_kmh_x10 = 240
+range_road_km = 190
+power_hp = 405
+armor_hull_front_mm = 62
+armor_hull_side_mm = 13
+armor_hull_rear_mm = 13
+weapon = [
+    { name = "105 mm Howitzer M2A1 (mount M4)", caliber_mm_x10 = 1050, ammo = "M1 HE, M67 HEAT, M84 smoke", rate_rpm = 4, muzzle_velocity_mps = 472, range_effective_m = 11160, ammo_carried = 69 },
+    { name = "Browning M2HB (AA, pulpit)", caliber_mm_x10 = 127, rate_rpm = 500, muzzle_velocity_mps = 887, aa = true, ammo_carried = 300 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/M7_Priest", covers = "6.02 x 2.87 m (with sandshields), 2.54 m (2.95 m over AA MG), 22.97 t, crew 8, armor 12-62 mm, 105 mm M2 howitzer with 69 rounds, M2HB with 300 rds, R-975 C1 400 hp, 24 mph road / 15 mph off-road, 120 mi" },
+    { ref = "https://en.wikipedia.org/wiki/M101_howitzer", covers = "105 mm ballistics" },
+]
+uncertain = ["armor_hull_front_mm", "armor_hull_side_mm", "armor_hull_rear_mm"]
+note = "M7 on M3 medium tank chassis (M7B1 on M4A3 from 1944 is similar). Height without AA MG. Open-topped superstructure. armor_hull_front_mm = maximum of the 12-62 mm range, assumed to be the lower front; sides/rear 12.7 mm (estimate). range_effective_m = maximum indirect range. power_hp = 400 gross hp converted."
+
+# ---------------------------------------------------------------------------
+# Guns
+# ---------------------------------------------------------------------------
+
+[[unit]]
+id = "us_57mm_m1"
+faction = "us"
+category = "gun_at"
+name_de = "57-mm-Panzerabwehrkanone M1"
+name_en = "57 mm Gun M1"
+designation = "57 mm Gun M1 on Carriage M2"
+year_from = 1943
+year_to = 1945
+tier = 1
+model = "assets/models/us/us_57mm_m1.glb"
+length_mm = 4230
+width_mm = 1800
+height_mm = 1280
+mass_kg = 1275
+crew = 7
+armor_turret_front_mm = 6
+weapon = [
+    { name = "57 mm Gun M1 (L/50)", caliber_mm_x10 = 570, ammo = "M86 APC, M70 AP, M303 HE (1944), British APDS (late 1944)", rate_rpm = 15, muzzle_velocity_mps = 823, range_effective_m = 1000 },
+]
+source = [
+    { ref = "https://www.lonesentry.com/blog/57-mm-gun-m1.html", covers = "wartime data sheet: weight of gun and carriage travelling 2,915 lb; M70 AP 2,970 ft/s, M86 APC 2,700 ft/s; elevation -5 to +15 deg, traverse 90 deg; 20-30 rpm" },
+    { ref = "https://www.historyofwar.org/articles/weapons_57mm_gun_m1_antitank.html", covers = "weight 2,810 lb (in action, label unclear); three guns per battalion AT platoon" },
+    { ref = "https://www.quartermastersection.com/american/artillery/231/57mmM1A3", covers = "squad: leader, gunner, assistant gunner, 2 loaders, 2 drivers; max rate 15 rpm; gun shield 6.35 mm; APC 823 m/s, AP 853 m/s" },
+    { ref = "https://en.wikipedia.org/wiki/Ordnance_QF_6-pounder", covers = "US M1 L/50: width 1.8 m, height 1.28 m, 15 rpm, effective range 1,650 yd, max 5,000 yd" },
+    { ref = "FM 23-75 57-mm Gun M1 (June 1944)", covers = "service of the piece (existence confirmed; contents not read)" },
+]
+uncertain = ["length_mm", "mass_kg", "crew", "weapon"]
+note = "US licence version of the British 6-pounder on carriage M2 (1944, caster wheel on right trail). mass_kg = 2,810 lb in firing position (historyofwar; travelling 2,915 lb per Lone Sentry; one manual excerpt says 2,700 lb). Height 1.28 m (firing position, over shield). length_mm is an estimate (no overall length found; tube 2.97 m). crew 7 = squad incl. 2 drivers per quartermastersection; Wikipedia mentions 10 in US AT use, 6 in its table. armor_turret_front_mm = gun shield 6.35 mm. muzzle_velocity_mps = M86 APC (M70 AP 853-905 m/s by source). rate_rpm 15 (wiki, quartermastersection); Lone Sentry gives 20-30. range_effective_m against tanks ~1,000 m is an estimate (Wikipedia: 1,510 m)."
+
+[[unit]]
+id = "us_bofors_m1"
+faction = "us"
+category = "gun_aa_light"
+name_de = "40-mm-Flak M1 (Bofors)"
+name_en = "40 mm Automatic Gun M1 (Bofors)"
+designation = "40 mm Automatic Gun M1 on Carriage M2A1"
+year_from = 1941
+year_to = 1945
+tier = 2
+model = "assets/models/us/us_bofors_m1.glb"
+length_mm = 5690
+width_mm = 1830
+height_mm = 2010
+mass_kg = 2520
+crew = 11
+weapon = [
+    { name = "40 mm Automatic Gun M1 (L/60)", caliber_mm_x10 = 400, ammo = "M2 HE-T, M81 AP-T", rate_rpm = 120, muzzle_velocity_mps = 874, range_effective_m = 7160, range_aa_m = 3500 },
+]
+source = [
+    { ref = "TM 9-252 40-mm Automatic Gun M1 (AA) and 40-mm Antiaircraft Gun Carriages M2 and M2A1 (1944), https://www.bulletpicker.com/pdf/TM-9-252.pdf", covers = "primary manual (existence confirmed; tables not read)" },
+    { ref = "https://en.wikipedia.org/wiki/Bofors_40_mm_L/60_gun", covers = "rate 120-140 rpm, muzzle velocity 850-880 m/s, maximum firing range 7,160 m" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm", "mass_kg", "crew", "weapon"]
+note = "Towed single Bofors of the AAA automatic weapons battalions. Dimensions (travel order) and mass are from memory and not confirmed by a fetched source. crew = US gun section (~11 incl. director crew); 4-6 serve the gun. rate_rpm = cyclic 120 rpm. range_effective_m = maximum horizontal (ground) range per Wikipedia. Ceiling: effective ~3,500 m, maximum vertical reach ~6,800 m (estimates)."
+
+[[unit]]
+id = "us_90mm_m2"
+faction = "us"
+category = "gun_aa_heavy"
+name_de = "90-mm-Flak M2"
+name_en = "90 mm AA Gun M2"
+designation = "90 mm Gun M2 on Mount M2"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/us/us_90mm_m2.glb"
+length_mm = 9000
+width_mm = 4100
+height_mm = 3100
+mass_kg = 14700
+crew = 8
+weapon = [
+    { name = "90 mm Gun M2 (L/50)", caliber_mm_x10 = 900, ammo = "M71 HE (time/VT fuze), M77 AP-T, M82 APC", rate_rpm = 24, muzzle_velocity_mps = 823, range_effective_m = 19042, range_aa_m = 13300 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/90_mm_gun_M1/M2/M3", covers = "M2 weight 32,300 lb (14,700 kg), crew 8, up to 24 rpm with fuze setter-rammer; M1A1 travel dimensions 9.0 x 4.1 x 3.1 m, horizontal range 19,042 m, ceiling 13,300 m; M2 mount depresses to -10 deg" },
+    { ref = "https://www.quartermastersection.com/american/artillery/229/90mmM1A1", covers = "cross-check: width 4.16 m, height 3.07 m (M1A1); M2 14,651 kg in action, 17,812 kg in transit (via search excerpt)" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm", "weapon"]
+note = "Dimensions are travel order of the M1A1 mount (M2 values not found); in firing position the outriggers are spread wider. mass_kg = M2 in action (14,651-14,700 kg). range_effective_m = maximum horizontal (ground) range (M1A1 data). Ceiling 43,500 ft (13,300 m). muzzle_velocity_mps is the M3 tank gun HE/AP figure (820 m/s), assumed similar. The M2 mount could depress to -10 deg for ground/AT fire."
+
+[[unit]]
+id = "us_m2a1_105"
+faction = "us"
+category = "gun_howitzer"
+name_de = "105-mm-Haubitze M2A1"
+name_en = "105 mm Howitzer M2A1"
+designation = "105 mm Howitzer M2A1 on Carriage M2A1"
+year_from = 1941
+year_to = 1945
+tier = 2
+model = "assets/models/us/us_m2a1_105.glb"
+length_mm = 5940
+width_mm = 2210
+height_mm = 1730
+mass_kg = 2260
+crew = 8
+weapon = [
+    { name = "105 mm Howitzer M2A1", caliber_mm_x10 = 1050, ammo = "M1 HE, M67 HEAT, M84 smoke, M60 WP", rate_rpm = 4, muzzle_velocity_mps = 472, range_effective_m = 11270 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/M101_howitzer", covers = "M101A1 (= M2A2 on carriage M2A2, near-identical): 4,980 lb (2,260 kg), 5.94 x 2.21 x 1.73 m, 472 m/s, max range 11,270 m" },
+    { ref = "FM 6-75 Service of the Piece, 105-mm Howitzer M2, Truck-drawn (1941), https://ibiblio.org/hyperwar/USA/ref/FM/PDFs/FM6-75.pdf", covers = "section organization, rates of fire (existence confirmed; contents not read in detail)" },
+    { ref = "TM 9-325 105-mm Howitzer Materiel M2 (1941/42)", covers = "materiel manual (existence confirmed; contents not read)" },
+]
+uncertain = ["length_mm", "height_mm", "crew", "weapon"]
+note = "Dimensions and mass from the post-war M101A1 data (practically identical gun and carriage); travel/firing height not separated in the source. crew 8 (section) and rate_rpm 4 sustained (~10 max) are from memory, not confirmed by a fetched source. range_effective_m = maximum range (indirect)."
+
+[[unit]]
+id = "us_m2_42in"
+faction = "us"
+category = "mortar_heavy"
+name_de = "4,2-Zoll-Chemiemörser M2"
+name_en = "4.2 in Chemical Mortar M2"
+designation = "4.2-inch Chemical Mortar M2"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/us/us_m2_42in.glb"
+length_mm = 1500
+width_mm = 800
+height_mm = 1200
+mass_kg = 151
+crew = 6
+weapon = [
+    { name = "4.2 in Mortar M2 (rifled)", caliber_mm_x10 = 1067, ammo = "M3 HE, M2 WP smoke", rate_rpm = 5, muzzle_velocity_mps = 256, range_effective_m = 4000 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/M2_4.2-inch_mortar", covers = "weight 151 kg, barrel 1 m, 5 rpm for 20 min / 1 rpm indefinitely, 256 m/s (M3 HE), max range 4 km HE, 3.9 km WP" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm", "crew"]
+note = "Chemical Warfare Service mortar used by the chemical mortar battalions for HE and smoke. Dimensions of the emplaced weapon (barrel, standard, baseplate) are estimates. crew = mortar squad (estimate, 5-7; not in the source). range_effective_m = maximum range with M3 HE (indirect); rate_rpm = rate sustainable for 20 minutes."
+
+# ---------------------------------------------------------------------------
+# Fortifications
+# ---------------------------------------------------------------------------
+
+[[unit]]
+id = "us_bunker_mg"
+faction = "us"
+category = "fort_bunker"
+name_de = "MG-Stellung (Holz und Sandsäcke)"
+name_en = "Covered MG Emplacement (logs and sandbags)"
+designation = "Covered machine-gun emplacement, FM 5-15 (1944)"
+year_from = 1942
+year_to = 1945
+tier = 2
+model = "assets/models/us/us_bunker_mg.glb"
+length_mm = 3000
+width_mm = 2500
+height_mm = 900
+source = [
+    { ref = "FM 5-15 Field Fortifications (1944), listed at https://www.ibiblio.org/hyperwar/USA/ref/FM/index.html", covers = "MG emplacement types with log and sandbag overhead cover (existence confirmed; drawings not re-read)" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Field-built covered emplacement for a light or heavy MG: dug-in pit with log roof and sandbag/earth cover. Dimensions are a typical outer footprint (estimate after FM 5-15 drawings); height = part above ground level. Garrison and gun are separate units."
+
+[[unit]]
+id = "us_minefield_at"
+faction = "us"
+category = "fort_minefield_at"
+name_de = "Panzerminenfeld (M1A1)"
+name_en = "Antitank Minefield (M1A1)"
+designation = "AT minefield section, mine M1A1, FM 5-31 (1943)"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/us/us_minefield_at.glb"
+length_mm = 20000
+width_mm = 20000
+height_mm = 0
+weapon = [
+    { name = "Mine, antitank, HE, M1A1", count = 20, ammo = "6 lb TNT charge, ~250-500 lb pressure fuze M1" },
+]
+source = [
+    { ref = "FM 5-31 Land Mines and Booby Traps (1 Nov 1943)", covers = "US minefield patterns and densities (existence confirmed; contents not re-read)" },
+    { ref = "TM 9-1940 Land Mines (Jul 1943)", covers = "M1A1 mine data (existence confirmed via bibliography; contents not read)" },
+]
+uncertain = ["weapon"]
+note = "Standard section 20 m x 20 m. Doctrinal density for a deliberate AT minefield ~1 mine per metre (about 1 per yard) of front, giving ~20 mines in a 20 m wide strip (estimate)."
+
+[[unit]]
+id = "us_minefield_ap"
+faction = "us"
+category = "fort_minefield_ap"
+name_de = "Schützenminenfeld (M2A1 / M3)"
+name_en = "Antipersonnel Minefield (M2A1 / M3)"
+designation = "AP minefield section, mines M2A1 and M3, FM 5-31 (1943)"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/us/us_minefield_ap.glb"
+length_mm = 20000
+width_mm = 20000
+height_mm = 0
+weapon = [
+    { name = "Mine, antipersonnel, M2A1 (bounding)", count = 30, ammo = "60 mm mortar shell body, 0.34 lb TNT, tripwire or pressure" },
+    { name = "Mine, antipersonnel, M3 (fragmentation block)", count = 10, ammo = "cast iron block, 0.9 lb TNT, tripwire or pressure" },
+]
+source = [
+    { ref = "FM 5-31 Land Mines and Booby Traps (1 Nov 1943)", covers = "AP mine employment and densities (existence confirmed; contents not re-read)" },
+    { ref = "TM 9-1940 Land Mines (Jul 1943)", covers = "M2A1 and M3 mine data (existence confirmed via bibliography; contents not read)" },
+]
+uncertain = ["weapon"]
+note = "Standard section 20 m x 20 m. Density ~2 AP mines per metre of front (estimate), split here 3:1 between bounding M2A1 and M3 blocks. Mine counts are illustrative, not a fixed doctrinal pattern."
+
+# ---------------------------------------------------------------------------
+# Aircraft
+# ---------------------------------------------------------------------------
+
+[[unit]]
+id = "us_p51d"
+faction = "us"
+category = "aircraft_fighter"
+name_de = "North American P-51D Mustang"
+name_en = "P-51D Mustang"
+designation = "North American P-51D"
+year_from = 1944
+year_to = 1945
+tier = 2
+model = "assets/models/us/us_p51d.glb"
+length_mm = 9830
+wingspan_mm = 11280
+height_mm = 4170
+mass_kg = 4580
+crew = 1
+speed_max_kmh_x10 = 7030
+speed_cruise_kmh_x10 = 5800
+ceiling_m = 12770
+power_hp = 1510
+weapon = [
+    { name = "Browning AN/M2 .50", count = 6, caliber_mm_x10 = 127, ammo = "M8 API, M20 API-T, M2 ball", rate_rpm = 800, muzzle_velocity_mps = 870, ammo_carried = 1880 },
+    { name = "1,000 lb GP bomb AN-M65 or 5 in HVAR", count = 2, bomb_kg = 454, ammo = "bombs on wing racks (alternative: up to 10 HVAR rockets)" },
+]
+source = [
+    { ref = "National Museum of the USAF, P-51 fact sheet (archived), https://webarchive.library.unt.edu/web/20130215041416/http://www.nationalmuseum.af.mil/factsheets/factsheet.asp?id=2214", covers = "span 37 ft, length 32 ft 3 in, height 13 ft 8 in, max speed 437 mph, ceiling 41,900 ft, max weight 12,100 lb (via search excerpt)" },
+    { ref = "https://en.wikipedia.org/wiki/North_American_P-51_Mustang", covers = "gross weight 10,100 lb, cruise 362 mph, 1,880 rounds, V-1650-7 1,490 hp (specs section not fetched)" },
+]
+uncertain = ["mass_kg", "speed_cruise_kmh_x10", "power_hp"]
+note = "P-51D-20/25. speed_max_kmh_x10 at 25,000 ft (7,600 m). mass_kg = normal gross weight 10,100 lb with internal fuel (max 12,100 lb with drop tanks); not confirmed by a fetched page. power_hp = 1,490 hp converted. Bomb entry has no caliber."
+
+[[unit]]
+id = "us_p47d"
+faction = "us"
+category = "aircraft_attack"
+name_de = "Republic P-47D Thunderbolt"
+name_en = "P-47D Thunderbolt"
+designation = "Republic P-47D-30/40"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/us/us_p47d.glb"
+length_mm = 11020
+wingspan_mm = 12430
+height_mm = 4470
+mass_kg = 6001
+crew = 1
+speed_max_kmh_x10 = 6920
+speed_cruise_kmh_x10 = 5600
+ceiling_m = 12800
+power_hp = 2028
+weapon = [
+    { name = "Browning AN/M2 .50", count = 8, caliber_mm_x10 = 127, ammo = "M8 API, M20 API-T, M2 ball", rate_rpm = 800, muzzle_velocity_mps = 870, ammo_carried = 3400 },
+    { name = "500 lb GP bomb AN-M64", count = 2, bomb_kg = 227, ammo = "wing racks; up to 2,500 lb total incl. centerline" },
+    { name = "5 in HVAR rocket", count = 10 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Republic_P-47_Thunderbolt", covers = "P-47D-40: 11.02 m, 12.43 m, 4.47 m, empty 4,536 kg, gross 6,001 kg, max 7,938 kg, R-2800-59 2,000 hp (2,300 hp water injection), 430 mph at 25,400 ft (444 mph at 23,200 ft with water injection), cruise 350 mph, ceiling 42,000 ft, 8x .50 with 425 rpg, 2,500 lb bombs, 10 HVAR" },
+]
+uncertain = ["weapon"]
+note = "P-47D-30/40 bubble-canopy fighter-bomber (9th AF); data from the D-40 sheet. speed_max_kmh_x10 = 430 mph at 25,400 ft without water injection (715 km/h with). mass_kg = normal gross weight. Bomb/rocket mix is one typical load. power_hp = 2,000 hp take-off converted."
+
+[[unit]]
+id = "us_b25j"
+faction = "us"
+category = "aircraft_bomber"
+name_de = "North American B-25J Mitchell"
+name_en = "B-25J Mitchell"
+designation = "North American B-25J"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/us/us_b25j.glb"
+length_mm = 16130
+wingspan_mm = 20600
+height_mm = 4980
+mass_kg = 15880
+crew = 6
+speed_max_kmh_x10 = 4380
+speed_cruise_kmh_x10 = 3700
+ceiling_m = 7380
+power_hp = 3751
+weapon = [
+    { name = "Browning AN/M2 .50", count = 13, caliber_mm_x10 = 127, ammo = "M8 API, M20 API-T, M2 ball", rate_rpm = 800, muzzle_velocity_mps = 870 },
+    { name = "500 lb GP bomb AN-M64", count = 6, bomb_kg = 227, ammo = "3,000 lb normal internal load" },
+]
+source = [
+    { ref = "https://planesoffame.org/aircraft/plane-B-25J", covers = "crew 6, span 67 ft 7 in, length 52 ft 11 in, height 16 ft 4 in, max takeoff 41,800 lb, 2x R-2600-92 1,850 hp, 272 mph, cruise 230 mph, ceiling 24,200 ft, eleven .50 MGs, 6,000 lb bombs" },
+    { ref = "https://aero-web.org/museums/mn/pfam/44-86747.htm", covers = "B-25J gross weight 35,000 lb, empty 19,480 lb (via search excerpt)" },
+]
+uncertain = ["weapon", "power_hp"]
+note = "B-25J glazed-nose bomber. Gun count: Planes of Fame gives 11, the usual breakdown (1 flexible + 2 fixed nose, 4 package guns, 2 dorsal, 2 waist, 2 tail) gives 13; strafer versions 14-18. Bomb load 3,000 lb normal, up to 6,000 lb short range. speed_max_kmh_x10 at ~13,000 ft (3,960 m). mass_kg = normal gross 35,000 lb (max 41,800). power_hp = 2x 1,850 hp take-off converted (1,700 hp normal rating also published)."
+
+[[unit]]
+id = "us_l4"
+faction = "us"
+category = "aircraft_recon"
+name_de = "Piper L-4 Grasshopper"
+name_en = "L-4 Grasshopper"
+designation = "Piper L-4H/L-4J Grasshopper"
+year_from = 1942
+year_to = 1945
+tier = 2
+model = "assets/models/us/us_l4.glb"
+length_mm = 6830
+wingspan_mm = 10740
+height_mm = 2030
+mass_kg = 550
+crew = 2
+speed_max_kmh_x10 = 1370
+speed_cruise_kmh_x10 = 1210
+ceiling_m = 3658
+power_hp = 66
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Piper_J-3_Cub", covers = "J3C-65: 6.83 m, 10.74 m, 2.03 m, max takeoff 1,220 lb (550 kg), 65 hp; L-4: 85 mph (137 km/h), cruise 75 mph (121 km/h), ceiling 12,000 ft (3,658 m), pilot + 1" },
+]
+note = "Air OP aircraft of the field artillery (pilot + observer). Unarmed, so no weapon is listed (field-modified bazooka-armed L-4s were exceptions). Dimensions from the J3C-65 sheet. speed_max_kmh_x10 with pilot only. power_hp = 65 hp converted."
+
+# ---------------------------------------------------------------------------
+# Prompt 055: transport aircraft (no bridge-laying tank: see the note below)
+# ---------------------------------------------------------------------------
+# The US Army fielded no bridge-laying tank in combat in 1943-45 (bridges
+# came from engineer units: treadway and Bailey bridges); the Churchill ARK
+# and the Valentine and Churchill bridgelayers were British. So `us` has no
+# bridgelayer entry [provisional].
+
+[[unit]]
+id = "us_c47"
+faction = "us"
+category = "aircraft_transport"
+name_de = "Douglas C-47 Skytrain"
+name_en = "Douglas C-47 Skytrain"
+designation = "C-47A"
+year_from = 1942
+year_to = 1945
+tier = 2
+model = "assets/models/us/us_c47.glb"
+length_mm = 19430
+wingspan_mm = 29110
+height_mm = 5180
+mass_kg = 14060
+crew = 4
+passengers = 28
+speed_max_kmh_x10 = 3600
+speed_cruise_kmh_x10 = 2570
+ceiling_m = 8045
+power_hp = 2400
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Douglas_C-47_Skytrain", covers = "C-47: crew 4, 28 troops, 63 ft 9 in (19.43 m), 95 ft 6 in (29.11 m), 16 ft 11 in (5.18 m), max takeoff 31,000 lb (14,060 kg), 2 x P&W R-1830 1200 hp, 224 mph (360 km/h), cruise 160 mph (257 km/h), ceiling 26,400 ft (8,045 m), unarmed (from memory, not fetched for this entry)" },
+    { ref = "https://en.wikipedia.org/wiki/Operation_Overlord", covers = "C-47 dropping the 82nd and 101st Airborne Divisions (sticks of 15-18 paratroopers)" },
+]
+uncertain = ["passengers"]
+note = "Standard US transport and paratroop aircraft. Unarmed, so no weapon is listed. passengers = troop seats (28); a paratroop stick was 15-18 men."
