@@ -840,6 +840,8 @@ impl Sim {
                 | Command::Patrol { .. }
                 | Command::QueueMove { .. }
                 | Command::Embark { .. }
+                | Command::FormationMove { .. }
+                | Command::Secure { .. }
         ) || self.works.jobs.is_empty()
         {
             return;

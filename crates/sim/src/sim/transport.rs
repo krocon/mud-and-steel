@@ -437,6 +437,8 @@ impl Sim {
                 | Command::Patrol { .. }
                 | Command::Embark { .. }
                 | Command::Tow { .. }
+                | Command::FormationMove { .. }
+                | Command::Secure { .. }
         ) || self.transport.tasks.is_empty()
         {
             return;

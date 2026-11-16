@@ -47,6 +47,10 @@ const BINDABLE: Dictionary[String, String] = {
 	# Transport (prompt 034).
 	"order_disembark": "Dismount passengers",
 	"order_unlimber": "Unlimber towed gun",
+	# Formations (prompt 046).
+	"order_attack_move": "Attack-move (then click)",
+	"order_secure": "Secure area (then click)",
+	"order_formation": "Next formation",
 }
 
 ## Health bars over units (prompt 031): `damaged` (damaged and selected
