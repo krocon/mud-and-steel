@@ -21,7 +21,16 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by the merge of prompt 055 (bridges, bridge-laying tanks,
+/// Last changed by the merge of prompt 054 (heavy strike) with main: the
+/// new base building `base_rocket_battery` in `data/economy.toml` is part
+/// of the hashed economy rules, and every unit type after it moves one
+/// index up. Nothing else changes: no strike is called in the demo, and the
+/// strike state is only hashed once one was (checked: with the old
+/// `economy.toml` the hash stays the one before). 054 alone:
+/// `0xeca6_c2de_63a8_f16d`. Before: `0x2022_32ed_b313_f95a`, set by
+/// the merge of prompt 055:
+///
+/// The merge of prompt 055 (bridges, bridge-laying tanks,
 /// camouflage, paratroopers): the hashed air rules gained the `airborne`
 /// mission, the hit points of transport aircraft, the bomb carpet length
 /// and the paratrooper rules; the air types of the match include the
@@ -176,7 +185,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x2022_32ed_b313_f95a;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x7681_c049_8fc9_19b3;
 
 #[test]
 fn golden_hash() {

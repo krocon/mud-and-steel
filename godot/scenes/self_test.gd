@@ -678,6 +678,13 @@ func _combat_test() -> void:
 	_check(counts.get("sparks", 0) + counts.get("fountain", 0) > 0, "no impact effects: %s" % counts)
 	_check(counts.get("fireball", 0) > 0 and counts.get("wreck", 0) >= 1, "no explosion or wreck fire: %s" % counts)
 	_check(main.effects.burning_wrecks() >= 1, "no burning wreck")
+	# Big blasts and the heavy strike (prompt 054): dome, rings and flash at
+	# an own unit; the strike's call bar is there.
+	var blasts: Dictionary = main.blast_effects.counts
+	var big: int = blasts.get("big_blast", 0)
+	main.blast_effects.big_blast((main._unit_nodes[own[0]] as Node3D).global_position, 150.0)
+	_check(blasts.get("big_blast", 0) == big + 1 and blasts.get("big_flash", 0) > 0, "no big blast: %s" % blasts)
+	_check(main.strike_view.bar != null, "no strike bar")
 	print("self-test: combat ok at tick %d: %d shots, %d hits, %d penetrations, %d destroyed, %d enemies left" % [
 		sim_host.current_tick(), view.shots, view.hits, view.penetrations, view.destroyed, sim_host.alive_unit_count(1)
 	])

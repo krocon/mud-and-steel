@@ -475,7 +475,8 @@ mod tests {
     fn builtin_rules_parse() {
         let r = rules();
         assert_eq!(r.account.start, [600, 600, 400]);
-        assert_eq!(r.buildings.len(), 4);
+        // HQ, barracks, depot, works and the rocket battery (prompt 054).
+        assert_eq!(r.buildings.len(), 5);
         assert!(matches!(
             r.structure("base_hq"),
             Some(StructureRule::Building(b)) if b.build_radius_m == 120
@@ -537,10 +538,12 @@ mod tests {
         // Light and heavy flak (prompt 033).
         assert!(names.contains(&"de_flak38") && names.contains(&"de_flak36"));
         assert!(names.contains(&"de_tiger1_e") && !names.contains(&"su_is2"));
-        // Four buildings, the bunker and two flak positions (prompt 033);
-        // the AT gun is produced and towed since prompt 034.
-        assert!(types.iter().take(7).all(|t| !t.mobile()));
-        assert!(types[7..].iter().all(UnitType::mobile));
+        // Five buildings (the rocket battery since prompt 054), the bunker
+        // and two flak positions (prompt 033); the AT gun is produced and
+        // towed since prompt 034.
+        assert_eq!(names[4], "base_rocket_battery");
+        assert!(types.iter().take(8).all(|t| !t.mobile()));
+        assert!(types[8..].iter().all(UnitType::mobile));
         assert_eq!(faction_of("de_pz4_h"), Some("de"));
         assert_eq!(faction_of("base_hq"), None);
     }

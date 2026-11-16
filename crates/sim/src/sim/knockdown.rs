@@ -117,6 +117,12 @@ impl Sim {
             return;
         }
         let at = unit.position;
+        // The presentation blows the turret off (prompt 054).
+        let event = crate::strike::StrikeEvent::AmmoExplosion {
+            unit: unit.id,
+            at: crate::combat::Vec3::new(at.x, at.y, unit.height),
+        };
+        self.strikes.events.push(event);
         let thrown = self.blast_reach(at, rules.ammo_radius_mm);
         self.knock_down(&thrown, at);
     }

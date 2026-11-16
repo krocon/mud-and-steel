@@ -1,0 +1,59 @@
+# Heavy rocket strike (prompt 054). Integers only. Compiled into the
+# simulation (`sim::StrikeRules::builtin`); part of the state hash once a
+# strike was called. See docs/ARCHITECTURE.md "Heavy strike".
+#
+# A late-game strike with a warning, WW2 style instead of modern weapons: a
+# player with a completed rocket battery position (`building`, a base
+# building of data/economy.toml) calls a salvo on a ground point. Coloured
+# smoke marks the point and a siren sounds for everybody; the battery
+# position is revealed to every enemy. If the enemy destroys the position
+# within `warning_s`, the strike is called off (the price is lost). Else the
+# rockets leave the position one after the other and land at random points
+# within `radius_m` of the target: shells of the faction's rocket caliber
+# with the usual fragments, craters, knockdowns and fires (data/indirect.toml,
+# data/craters.toml, data/infantry.toml [knockdown]).
+#
+# Game rules, not catalog values; all numbers [provisional] (balancing,
+# prompt 045). The calibers are the real rocket calibers (sources below);
+# each rocket explodes like a shell of that caliber, as bombs and dumps do.
+
+# Base building that fires the strike (data/economy.toml).
+building = "base_rocket_battery"
+# Simulated seconds after the start before the first strike can be called
+# (late game).
+unlock_s = 600
+# Fuel, ammunition, manpower per strike (paid when called).
+cost = [60, 250, 30]
+# Simulated seconds between two calls of the same player.
+cooldown_s = 300
+# Warning time: smoke and siren, the position can be destroyed.
+warning_s = 30
+# Rockets per strike, launched `ripple_ms` apart.
+rockets = 24
+ripple_ms = 250
+# Rockets land uniformly within this radius of the target (meters).
+radius_m = 60
+# Flight: straight-line speed over the ground (m/s), apex of the arc in
+# percent of the distance, and at least `min_flight_ms`.
+speed_m_per_s = 300
+apex_pct = 12
+min_flight_ms = 3000
+
+# Rocket caliber per faction (tenths of a millimeter).
+# de: 15 cm Wurfgranate 41 of the 15 cm Nebelwerfer 41 (158.5 mm body,
+#     counted as 150 mm), https://en.wikipedia.org/wiki/Nebelwerfer
+# su: 132 mm M-13 of the BM-13 "Katyusha",
+#     https://en.wikipedia.org/wiki/Katyusha_rocket_launcher
+# us: 4.5 in (114 mm) M8 of the T34 "Calliope",
+#     https://en.wikipedia.org/wiki/T34_Calliope
+[[faction]]
+faction = "de"
+caliber_mm_x10 = 1500
+
+[[faction]]
+faction = "su"
+caliber_mm_x10 = 1320
+
+[[faction]]
+faction = "us"
+caliber_mm_x10 = 1140

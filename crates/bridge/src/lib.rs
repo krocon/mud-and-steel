@@ -43,6 +43,7 @@ mod positions_funcs;
 mod replay_funcs;
 mod save_funcs;
 mod steam_lobby;
+mod strike_funcs;
 mod supply_funcs;
 mod team_funcs;
 mod terrain_layers;
@@ -270,6 +271,8 @@ pub struct SimHost {
     air_events: Vec<(u64, sim::AirEvent)>,
     /// Crossing events since the last `take_crossing_events` (prompt 055).
     crossing_events: Vec<(u64, sim::CrossingEvent)>,
+    /// Strike events since the last `take_strike_events` (prompt 054).
+    strike_events: Vec<(u64, sim::StrikeEvent)>,
     /// Debug: draw everything without fog (prompt 018, presentation only).
     reveal_all: bool,
     /// Time of the last `process` (ticks, AI, snapshots) in microseconds
@@ -323,6 +326,7 @@ impl INode for SimHost {
             crater_events: Vec::new(),
             air_events: Vec::new(),
             crossing_events: Vec::new(),
+            strike_events: Vec::new(),
             reveal_all: false,
             process_usec: 0,
             process_ticks: 0,
@@ -399,6 +403,7 @@ impl SimHost {
             crater_funcs::collect_events(&mut self.crater_events, &game.sim);
             air_funcs::collect_events(&mut self.air_events, &game.sim);
             crossing_funcs::collect_events(&mut self.crossing_events, &game.sim);
+            strike_funcs::collect_events(&mut self.strike_events, &game.sim);
             self.accumulator -= tick_seconds;
             ticks += 1;
         }
@@ -553,6 +558,7 @@ impl SimHost {
         self.crater_events.clear();
         self.air_events.clear();
         self.crossing_events.clear();
+        self.strike_events.clear();
         self.accumulator = 0.0;
         self.game = Some(Game {
             recorder: ReplayRecorder::new(seed, config.clone(), &players),

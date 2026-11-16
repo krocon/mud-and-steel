@@ -100,6 +100,10 @@ pub struct PlayerView {
     /// Whether every bridge of the map stands (public: one sees a bridge
     /// is down), laid bridges after the map's own.
     pub bridges_intact: Vec<bool>,
+    /// Whether and when the player can call a heavy strike (prompt 054).
+    pub strike: sim::StrikeOption,
+    /// Every called strike (public: smoke, siren, revealed position).
+    pub strikes: Vec<sim::StrikeView>,
 }
 
 impl PlayerView {
@@ -194,6 +198,8 @@ impl PlayerView {
                 .filter(|l| l.owner == player)
                 .collect(),
             bridges_intact: sim.map().bridges().iter().map(|b| b.intact).collect(),
+            strike: sim.strike_option(player),
+            strikes: sim.strikes(),
         }
     }
 }
