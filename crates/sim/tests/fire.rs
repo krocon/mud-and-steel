@@ -62,6 +62,7 @@ fn sim_with(map: Arc<Map>, spawns: &[(PlayerId, &str, i32, i32)], seed: u64) -> 
         combat: CombatRules::builtin().unwrap(),
         vision: VisionRules::builtin().unwrap(),
         infantry: sim::InfantryRules::builtin().unwrap(),
+        teams: sim::Teams::default(),
     };
     Sim::new(&config, map, seed).unwrap()
 }
