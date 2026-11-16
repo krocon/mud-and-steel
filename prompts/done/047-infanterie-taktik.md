@@ -62,6 +62,45 @@ serde. Niederhalten wirkte bisher nur auf die automatische Haltung.
 | 12 | **Zustand:** pro Trupp `Squad::tactics` (serde, Hash), damit im Spielstand (038); Darstellung über `Sim::squad_tactics`/`soldier_tactics` und die Bridge-Datei `tactics_funcs.rs`; keine neuen `SoldierSnapshot`-Felder, kein neues Kommando. | Additiv, keine Formatänderung des Snapshots für Godot. |
 | 13 | **KI:** keine neuen Befehle; leere Transporter fahren aus der Feuerzone zurück (nach dem Abladen standen sie sonst bis zur Zerstörung). | Der KI-Test „rides trucks and tows guns“ hing an diesem Zufall, sobald Gefechte länger dauern. |
 
+## Ergebnis
+
+Umgesetzt wie in der Tabelle oben; Details in `docs/INFANTRY.md` („Tactics (prompt
+047)“), Regeln in `data/tactics.toml`.
+
+- **Sim:** `crates/sim/src/tactics.rs` (Regeln), `crates/sim/src/sim/tactics.rs`
+  (Feuertrupps, Sprünge, Niederhalten, Blindfeuer, Mörser, Ladehemmung); Haken in
+  `infantry.rs` (Haltung, Soldaten folgen Linie/Halt, Deckungspunkte nur für den
+  Bewegungstrupp), `combat.rs` (Truppfeuer: Laufende und Gehemmte schießen nicht,
+  Streuung × Niederhalten × Erfahrung (050), Blindfeuer, Treffer), `drill.rs`,
+  `indirect.rs`, `air.rs`, `sim.rs` (Halt ohne „Stall“: eine Einheit mit Tempo 0
+  gibt ihren Wegpunkt nicht auf). Zustand `Squad::tactics` im Hash und im Spielstand.
+- **Bridge:** `crates/bridge/src/tactics_funcs.rs` (`soldier_tactics`,
+  `squad_tactics`). **Godot:** `infantry_view.gd` spielt bei Ladehemmung
+  `reload`/`reload_kneel`/`reload_prone`; geduckt laufen, Hinwerfen, Deckungsposen
+  kommen aus den vorhandenen Clips (048); `unit_panel.gd` zeigt „suppressed N %“,
+  „pinned down“, „bounding“.
+- **KI:** leere Transporter fahren nach dem Abladen aus der Feuerzone zurück.
+- **Tests:** `crates/sim/tests/tactics.rs` (Teams wechseln sich ab, Sprünge enden in
+  Deckung, MG hält nieder und es klingt ab, Niederhalten bremst, Niedergehaltene
+  treffen weniger, Rückfeuer auf dem Marsch, liegend im Nahkampf, Blindfeuer in
+  Rauch, Mörser hält und feuert, Mörser trifft aufgeklärte Ziele hinter Häusern,
+  gleicher Hash, Ladehemmungen selten), `crates/net/tests/snapshot_tactics.rs`
+  (Spielstand mitten im Sprung läuft identisch weiter).
+- **Golden-Hash:** `0x3d9a_b414_771f_2276` (Wirtschaft `0xe06d_4822_417f_100e`):
+  Regeln und Truppzustand im Hash, Gefechte laufen anders. Die Demo-Schlacht ist
+  erst in Tick 1017 statt 412 entschieden (gleicher Sieger); der Test
+  `demo_battle_is_decided` läuft deshalb 1100 Ticks (Golden-Hash weiter nach 1000).
+- **Prüfungen nach dem Merge von `main` (050, 055, 059):** `just check`,
+  `just selftest`, `just lan-selftest`, `just infantry-selftest` grün;
+  `just ai-tournament --matrix --games 8`: keine Unentschieden/Zeitüberschreitungen,
+  gegen Passiv 100 %, Turnier-Hash `0x2c73_15a7_daa5_9825`.
+- **Messung** (`just infantry-bench`, Apple M1 Max): stehend 0,027 ms, Marsch
+  0,22 ms (vorher 0,22), erste 10 s Feuer 0,16 ms (vorher 0,24) im Mittel – hält.
+
+Offen: der Pfad selbst sucht keine Deckung (nur das Sprungende); Trupps eines
+Spielers stimmen ihre Sprünge nicht ab; kein Rückzug/Moral; Fahrzeugwaffen hemmen
+nicht; ob Ladehemmungen eine Partie-Option werden; alle Werte vorläufig bis 045.
+
 ## Arbeitsweise
 
 Wie in den vorigen Prompts: Deutsch mit mir, Englisch im Repo, kein Push ohne Freigabe,
