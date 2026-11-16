@@ -34,6 +34,7 @@ extends Node3D
 ## share the fire loops, and a weapon with real recordings in
 ## `assets/audio/weapon/<slug>/` plays them instead of its class.
 
+const Subtitles := preload("res://scenes/hud/subtitles.gd")
 const SoundLibrary := preload("res://scenes/audio/sound_library.gd")
 const SoundClasses := preload("res://scenes/audio/sound_classes.gd")
 const SoundBuses := preload("res://scenes/audio/sound_buses.gd")
@@ -649,6 +650,7 @@ func notice(sound_class: String) -> void:
 	_notice_at[sound_class] = _time
 	notices[sound_class] = notices.get(sound_class, 0) + 1
 	UiSound.play(sound_class)
+	Subtitles.notice(sound_class)
 
 
 ## Polled with the loops: selection, new own units, finished buildings, the

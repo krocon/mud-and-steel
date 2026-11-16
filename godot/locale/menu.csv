@@ -123,3 +123,8 @@ REPLAY_PAUSE,Pause,Pause
 REPLAY_ENDED,Ended,Ende
 REPLAY_EXIT,Exit,Beenden
 REPLAY_VIEW_ALL,Everything,Alles
+MENU_MISSIONS_TITLE,Missions,Missionen
+MENU_MISSIONS_NONE,No missions found.,Keine Missionen gefunden.
+MENU_MISSION_BROKEN,{id} ({map}): cannot be read,{id} ({map}): nicht lesbar
+MENU_MISSION_TUTORIAL,Tutorial,Tutorial
+MENU_MISSION_WON,(won),(gewonnen)

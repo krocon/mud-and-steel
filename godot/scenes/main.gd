@@ -123,6 +123,7 @@ const MARKER_SECONDS := 1.0
 const TURN_RATE := 6.0
 ## Selection ring radius relative to the unit footprint.
 const RING_SCALE := 0.65
+const RelationColors := preload("res://scenes/hud/relation_colors.gd")
 ## Tint over the models of other players (until real markings exist).
 const ENEMY_TINT := Color(0.85, 0.2, 0.15, 0.22)
 ## Units of allies (prompt 037) [provisional].
@@ -205,11 +206,11 @@ var _loaded := false
 
 func _ready() -> void:
 	_enemy_material = StandardMaterial3D.new()
-	_enemy_material.albedo_color = ENEMY_TINT
+	_enemy_material.albedo_color = RelationColors.enemy_or(ENEMY_TINT)
 	_enemy_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	_enemy_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	_ally_material = _enemy_material.duplicate()
-	_ally_material.albedo_color = ALLY_TINT
+	_ally_material.albedo_color = RelationColors.ally_or(ALLY_TINT)
 
 	Settings.ensure_loaded()
 	# Matches from the menu or the LAN lobby are built in steps behind a

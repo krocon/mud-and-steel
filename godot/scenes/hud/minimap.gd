@@ -15,6 +15,7 @@ extends PanelContainer
 const GroundPick := preload("res://scenes/camera/ground_pick.gd")
 ## Longer side of the map on screen, pixels.
 const SIZE := 220.0
+const RelationColors := preload("res://scenes/hud/relation_colors.gd")
 const DOT_PX := 3.0
 const PING_SECONDS := 1.6
 ## Player colors: own units first in `_colors()`.
@@ -167,12 +168,12 @@ func _colors() -> PackedColorArray:
 	for player in last:
 		match sim_host.relation(player):
 			0:
-				colors.append(OWN_COLOR)
+				colors.append(RelationColors.own_or(OWN_COLOR))
 			1:
-				colors.append(ALLY_COLOR)
+				colors.append(RelationColors.ally_or(ALLY_COLOR))
 			_:
-				colors.append(ENEMY_COLOR)
-	colors.append(ENEMY_COLOR)
+				colors.append(RelationColors.enemy_or(ENEMY_COLOR))
+	colors.append(RelationColors.enemy_or(ENEMY_COLOR))
 	return colors
 
 

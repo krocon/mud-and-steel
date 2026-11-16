@@ -27,9 +27,17 @@ static var current := FALLBACK
 
 ## The language `setting` stands for: `auto` follows the system language
 ## when it is offered, otherwise English.
+## `--language=<code>` on the command line wins; self-tests (any
+## `--…self-test` argument) run in English unless they set a language.
 static func resolve(setting: String) -> String:
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--language=") and arg.trim_prefix("--language=") in LANGUAGES:
+			return arg.trim_prefix("--language=")
 	if setting in LANGUAGES:
 		return setting
+	for arg in OS.get_cmdline_user_args():
+		if arg.ends_with("self-test"):
+			return FALLBACK
 	var system := OS.get_locale_language()
 	return system if system in LANGUAGES else FALLBACK
 

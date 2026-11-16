@@ -113,12 +113,12 @@ func setup(main_node: Node3D, view: Node) -> void:
 			sim_host.produce(production_building, o.type))
 	_production_box.add_child(production_picker)
 	_queue_label = Label.new()
-	_queue_label.add_theme_font_size_override(&"font_size", 13)
+	_queue_label.add_theme_font_size_override(&"font_size", MenuTheme.font(13))
 	_queue_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_production_box.add_child(_queue_label)
 	_cancel = Button.new()
 	_cancel.text = "HUD_CANCEL_LAST"
-	_cancel.add_theme_font_size_override(&"font_size", 13)
+	_cancel.add_theme_font_size_override(&"font_size", MenuTheme.font(13))
 	_cancel.pressed.connect(func() -> void:
 		if production_building >= 0:
 			sim_host.cancel_production(production_building))

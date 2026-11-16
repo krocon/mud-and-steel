@@ -125,6 +125,12 @@ selftest: l10n-check build
 [group('godot')]
 l10n-check:
     python3 tools/l10n_check.py
+    cargo run -q -p cli -- mission-po --check
+
+# Write the translation files of the mission texts (data/maps/*/missions/<id>.<lang>.po): new texts get an empty entry to translate
+[group('godot')]
+mission-po:
+    cargo run -q -p cli -- mission-po
 
 # Export a .blend file to godot/assets/models/<name>.glb
 [group('assets')]

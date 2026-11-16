@@ -17,6 +17,7 @@ const EventFeed := preload("res://scenes/hud/event_feed.gd")
 const Waypoints := preload("res://scenes/hud/waypoints.gd")
 const SupplyRings := preload("res://scenes/hud/supply_rings.gd")
 const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
+const Subtitles := preload("res://scenes/hud/subtitles.gd")
 
 var main: Node3D
 var minimap: Minimap
@@ -26,6 +27,8 @@ var event_feed: EventFeed
 var waypoints: Waypoints
 ## Supply and repair radii of selected sources (prompt 036).
 var supply_rings: SupplyRings
+## Text lines for warnings and callouts (prompt 043).
+var subtitles: Subtitles
 ## HUD time of the last frame in microseconds, and the largest so far.
 var usec := 0
 var max_usec := 0
@@ -58,6 +61,8 @@ func setup(main_node: Node3D) -> void:
 	add_child(event_feed)
 	event_feed.setup(main)
 	event_feed.ping.connect(minimap.add_ping)
+	subtitles = Subtitles.new()
+	add_child(subtitles)
 	_parts = [waypoints, supply_rings, minimap, unit_panel, command_bar, event_feed]
 
 

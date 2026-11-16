@@ -66,7 +66,7 @@ func _init() -> void:
 	add_theme_constant_override(&"separation", GAP)
 	_title = Label.new()
 	_title.add_theme_color_override(&"font_color", MenuTheme.ACCENT)
-	_title.add_theme_font_size_override(&"font_size", 14)
+	_title.add_theme_font_size_override(&"font_size", MenuTheme.font(14))
 	add_child(_title)
 	_tab_bar = HBoxContainer.new()
 	_tab_bar.add_theme_constant_override(&"separation", 2)
@@ -204,7 +204,7 @@ func _rebuild_tabs() -> void:
 		b.text = spec[1]
 		b.toggle_mode = true
 		b.focus_mode = Control.FOCUS_NONE
-		b.add_theme_font_size_override(&"font_size", 13)
+		b.add_theme_font_size_override(&"font_size", MenuTheme.font(13))
 		b.pressed.connect(open_tab.bind(spec[0]))
 		_tab_bar.add_child(b)
 		_tab_buttons[spec[0]] = b
@@ -377,7 +377,7 @@ func _place(tile: Control, child: Control, rect: Rect2) -> void:
 func _label(text: String, size: int, color: Color) -> Label:
 	var label := Label.new()
 	label.text = text
-	label.add_theme_font_size_override(&"font_size", size)
+	label.add_theme_font_size_override(&"font_size", MenuTheme.font(size))
 	label.add_theme_color_override(&"font_color", color)
 	return label
 

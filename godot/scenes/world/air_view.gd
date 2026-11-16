@@ -28,6 +28,7 @@ const TRACER_SECONDS := 0.15
 const WARN_SECONDS := 15.0
 ## Wrecks burn and smoke this long.
 const WRECK_SECONDS := 90.0
+const RelationColors := preload("res://scenes/hud/relation_colors.gd")
 const ENEMY_TINT := Color(0.85, 0.2, 0.15, 0.18)
 const ROUTE_COLOR := Color(0.55, 0.85, 1.0, 0.85)
 const SHADOW_COLOR := Color(0.0, 0.0, 0.0, 0.45)
@@ -120,7 +121,7 @@ func setup(main_node: Node3D) -> void:
 	_ring_mesh.ring_segments = 4
 	_ring_mesh.material = _glow(ROUTE_COLOR)
 	_enemy_material = StandardMaterial3D.new()
-	_enemy_material.albedo_color = ENEMY_TINT
+	_enemy_material.albedo_color = RelationColors.enemy_or(ENEMY_TINT)
 	_enemy_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	_wreck_material = StandardMaterial3D.new()
 	_wreck_material.albedo_color = Color(0.05, 0.04, 0.03, 0.75)

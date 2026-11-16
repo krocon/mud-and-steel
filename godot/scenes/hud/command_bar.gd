@@ -18,6 +18,7 @@ extends VBoxContainer
 ## of the next moves (`selection.formation`, key `,` cycles); attack-move
 ## ("Advance") and secure are targeted orders like move.
 
+const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
 const TransportOrders := preload("res://scenes/selection/transport_orders.gd")
 const EngineerOrders := preload("res://scenes/selection/engineer_orders.gd")
@@ -115,7 +116,7 @@ func setup(main_node: Node3D) -> void:
 		b.focus_mode = Control.FOCUS_NONE
 		b.toggle_mode = spec[3] == "mode" or spec[3] == "build" or spec[3] == "work" \
 				or spec[3] == "layer"
-		b.add_theme_font_size_override(&"font_size", 13)
+		b.add_theme_font_size_override(&"font_size", MenuTheme.font(13))
 		b.pressed.connect(press.bind(spec[0]))
 		grid.add_child(b)
 		buttons[spec[0]] = b
@@ -144,7 +145,7 @@ func _add_formation_choice(grid: GridContainer) -> void:
 	label.custom_minimum_size = Vector2(92, 34)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	label.add_theme_font_size_override(&"font_size", 13)
+	label.add_theme_font_size_override(&"font_size", MenuTheme.font(13))
 	grid.add_child(label)
 	formation_choice = OptionButton.new()
 	formation_choice.name = "Formation"
@@ -152,7 +153,7 @@ func _add_formation_choice(grid: GridContainer) -> void:
 	formation_choice.focus_mode = Control.FOCUS_NONE
 	formation_choice.fit_to_longest_item = false
 	formation_choice.clip_text = true
-	formation_choice.add_theme_font_size_override(&"font_size", 13)
+	formation_choice.add_theme_font_size_override(&"font_size", MenuTheme.font(13))
 	for code in FormationOrders.LABELS.size():
 		formation_choice.add_item(FormationOrders.label(code), code)
 	formation_choice.tooltip_text = tr("HUD_TIP_FORMATION") % Settings.action_key_name("order_formation")

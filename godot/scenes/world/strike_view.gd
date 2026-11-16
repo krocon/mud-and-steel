@@ -19,14 +19,17 @@ extends Node3D
 ## shells (`artillery_view.gd`) and explode with the ordinary effects plus
 ## the big blasts of `blast_effects.gd`. [provisional] colours, keys, siren.
 
+const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
 const EffectLibrary := preload("res://scenes/world/effect_library.gd")
 const EffectTextures := preload("res://scenes/world/effect_textures.gd")
 const GroundPick := preload("res://scenes/camera/ground_pick.gd")
 const Picker := preload("res://scenes/hud/picker.gd")
+const Settings := preload("res://scenes/menu/settings.gd")
 
 const READ_INTERVAL := 0.2
 ## Red marker smoke (WW2 coloured smoke grenades and candles). [provisional]
 const SMOKE_COLOR := Color(0.72, 0.07, 0.05)
+const RelationColors := preload("res://scenes/hud/relation_colors.gd")
 const OWN_COLOR := Color(1.0, 0.75, 0.25, 0.75)
 const ENEMY_COLOR := Color(1.0, 0.2, 0.15, 0.8)
 ## Seconds the smoke keeps rising after the last rocket.
@@ -94,7 +97,7 @@ func setup_hud(hud: Control) -> void:
 	_countdown.offset_left = -300
 	_countdown.offset_right = 300
 	_countdown.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_countdown.add_theme_font_size_override(&"font_size", 22)
+	_countdown.add_theme_font_size_override(&"font_size", MenuTheme.font(22))
 	_countdown.add_theme_color_override(&"font_outline_color", Color.BLACK)
 	_countdown.add_theme_constant_override(&"outline_size", 6)
 	_countdown.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -194,16 +197,16 @@ func _make_marker(s: Dictionary, allied: bool) -> Dictionary:
 	var r: float = s["radius"]
 	area.scale = Vector3(r, 2.0, r)
 	area.position = target + Vector3.UP * 0.5
-	area.material_override = _flat(OWN_COLOR if allied else ENEMY_COLOR)
+	area.material_override = _flat(RelationColors.own_or(OWN_COLOR) if allied else RelationColors.enemy_or(ENEMY_COLOR))
 	root.add_child(area)
 	var beam := MeshInstance3D.new()
 	beam.mesh = _beam_mesh
-	beam.material_override = _flat(Color(ENEMY_COLOR, 0.35))
+	beam.material_override = _flat(Color(RelationColors.enemy_or(ENEMY_COLOR), 0.35))
 	root.add_child(beam)
 	var base_ring := MeshInstance3D.new()
 	base_ring.mesh = _area_mesh
 	base_ring.scale = Vector3(9.0, 2.0, 9.0)
-	base_ring.material_override = _flat(ENEMY_COLOR)
+	base_ring.material_override = _flat(RelationColors.enemy_or(ENEMY_COLOR))
 	root.add_child(base_ring)
 	return {"root": root, "smoke": smoke, "area": area, "beam": beam, "base_ring": base_ring, "warning": 0.0, "radius": r}
 
@@ -381,13 +384,13 @@ class StrikeBar:
 		button.custom_minimum_size = Vector2(120, 40)
 		button.focus_mode = Control.FOCUS_NONE
 		button.toggle_mode = true
-		button.add_theme_font_size_override(&"font_size", 12)
+		button.add_theme_font_size_override(&"font_size", MenuTheme.font(12))
 		button.pressed.connect(func() -> void: set_pending(not pending))
 		box.add_child(button)
 		_hint = Label.new()
 		_hint.text = HINT
 		_hint.visible = false
-		_hint.add_theme_font_size_override(&"font_size", 12)
+		_hint.add_theme_font_size_override(&"font_size", MenuTheme.font(12))
 		_hint.add_theme_color_override(&"font_color", Color(1, 0.95, 0.6))
 		box.add_child(_hint)
 		_refresh()
@@ -419,7 +422,7 @@ class StrikeBar:
 		button.disabled = not blocked.is_empty()
 		var reason := Picker.blocked_text(blocked)
 		button.tooltip_text = tr("HUD_TIP_STRIKE").format({
-			"rockets": int(o["rockets"]), "radius": int(o["radius"]), "warning": int(o["warning"]),
+			"key": Settings.action_key_name("strike_rockets"), "rockets": int(o["rockets"]), "radius": int(o["radius"]), "warning": int(o["warning"]),
 			"fuel": cost[0], "ammo": cost[1], "manpower": cost[2]}) \
 			+ ("" if reason.is_empty() else "\n" + reason[0].to_upper() + reason.substr(1))
 		button.set_pressed_no_signal(pending)
@@ -448,8 +451,8 @@ class StrikeBar:
 
 	func _input(event: InputEvent) -> void:
 		var key := event as InputEventKey
-		if key != null and key.pressed and not key.echo and key.shift_pressed and key.keycode == KEY_6 \
-				and not key.ctrl_pressed and not key.meta_pressed and not key.alt_pressed:
+		if key != null and key.pressed and not key.echo and InputMap.has_action("strike_rockets") \
+				and key.is_action_pressed("strike_rockets", false, true):
 			if visible and not button.disabled:
 				set_pending(not pending)
 			get_viewport().set_input_as_handled()

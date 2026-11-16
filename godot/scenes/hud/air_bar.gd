@@ -2,7 +2,7 @@ extends PanelContainer
 ## Air support call bar (prompt 033), docked above the command bar.
 ##
 ## One button per mission with its price and cooldown (`SimHost.air_options`).
-## A button (or Shift + 1…5) waits for a left click on the map, which calls
+## A button (or its key, Shift + 1…5 by default) waits for a left click on the map, which calls
 ## the mission there (`SimHost.call_air`); right click or Escape cancels.
 ## Dragging instead of clicking (prompt 055) aims along the line
 ## (`SimHost.call_air_line`): the aircraft fly from its start to its end,
@@ -11,8 +11,10 @@ extends PanelContainer
 ## Presentation only: the simulation checks cooldown and price again.
 ## [provisional] keys and layout.
 
+const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
 const GroundPick := preload("res://scenes/camera/ground_pick.gd")
 const Picker := preload("res://scenes/hud/picker.gd")
+const Settings := preload("res://scenes/menu/settings.gd")
 const REFRESH := 0.2
 const MISSIONS: Array[Array] = [
 	["recon", "HUD_AIR_RECON"],
@@ -52,7 +54,7 @@ func setup(main_node: Node3D) -> void:
 	box.add_child(row)
 	var title := Label.new()
 	title.text = "HUD_TAB_AIR"
-	title.add_theme_font_size_override(&"font_size", 13)
+	title.add_theme_font_size_override(&"font_size", MenuTheme.font(13))
 	row.add_child(title)
 	for k in MISSIONS.size():
 		var spec: Array = MISSIONS[k]
@@ -61,14 +63,14 @@ func setup(main_node: Node3D) -> void:
 		b.custom_minimum_size = Vector2(88, 40)
 		b.focus_mode = Control.FOCUS_NONE
 		b.toggle_mode = true
-		b.add_theme_font_size_override(&"font_size", 12)
+		b.add_theme_font_size_override(&"font_size", MenuTheme.font(12))
 		b.pressed.connect(_on_button.bind(spec[0]))
 		row.add_child(b)
 		buttons[spec[0]] = b
 	_hint = Label.new()
 	_hint.text = HINT
 	_hint.visible = false
-	_hint.add_theme_font_size_override(&"font_size", 12)
+	_hint.add_theme_font_size_override(&"font_size", MenuTheme.font(12))
 	_hint.add_theme_color_override(&"font_color", Color(1, 0.95, 0.6))
 	box.add_child(_hint)
 	_refresh()
@@ -102,7 +104,7 @@ func _refresh() -> void:
 		b.disabled = not blocked.is_empty()
 		var reason := Picker.blocked_text(blocked)
 		b.tooltip_text = tr("HUD_TIP_AIR").format({
-			"mission": tr(spec[1]), "key": k + 1,
+			"mission": tr(spec[1]), "key": Settings.action_key_name("air_" + str(spec[0])),
 			"aircraft": str(o.get("aircraft_name", "")) if str(o["aircraft"]) != "" else tr("HUD_BLOCKED_NO_AIRCRAFT"),
 			"fuel": cost[0], "ammo": cost[1], "manpower": cost[2]}) \
 			+ ("" if reason.is_empty() else "\n" + reason[0].to_upper() + reason.substr(1))
@@ -153,15 +155,15 @@ func call_along(from: Vector3, to: Vector3) -> bool:
 
 func _input(event: InputEvent) -> void:
 	var key := event as InputEventKey
-	if key != null and key.pressed and not key.echo and key.shift_pressed \
-			and not key.ctrl_pressed and not key.meta_pressed and not key.alt_pressed:
-		var k := int(key.keycode - KEY_1)
-		if k >= 0 and k < MISSIONS.size():
-			var mission: String = MISSIONS[k][0]
-			if not buttons[mission].disabled:
-				set_pending("" if pending == mission else mission)
-			get_viewport().set_input_as_handled()
-			return
+	# Keys of the calls (Shift+1…5 by default, rebindable, prompt 043).
+	if key != null and key.pressed and not key.echo:
+		for spec in MISSIONS:
+			var mission: String = spec[0]
+			if InputMap.has_action("air_" + mission) and key.is_action_pressed("air_" + mission, false, true):
+				if not buttons[mission].disabled:
+					set_pending("" if pending == mission else mission)
+				get_viewport().set_input_as_handled()
+				return
 	if pending.is_empty():
 		return
 	if key != null and key.pressed and key.keycode == KEY_ESCAPE:

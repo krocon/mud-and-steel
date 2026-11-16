@@ -15,6 +15,7 @@ extends VBoxContainer
 
 signal ping(point: Vector3)
 
+const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
 const GroundPick := preload("res://scenes/camera/ground_pick.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
 
@@ -118,7 +119,7 @@ func post(kind: String, text: String, position: Vector3) -> void:
 	b.flat = true
 	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	b.focus_mode = Control.FOCUS_NONE
-	b.add_theme_font_size_override(&"font_size", 14)
+	b.add_theme_font_size_override(&"font_size", MenuTheme.font(14))
 	b.add_theme_color_override(&"font_color", COLORS.get(kind, Color.WHITE))
 	b.tooltip_text = tr("HUD_TIP_FEED") % Settings.action_key_name("event_jump")
 	b.set_meta(&"time", _now)

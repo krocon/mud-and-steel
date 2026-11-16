@@ -59,7 +59,7 @@ signal panned_by_hand
 ## Light whose shadow distance follows the zoom. Optional.
 @export var sun: DirectionalLight3D
 
-@export_group("Trackpad and mouse")
+@export_group("Trackpad and mouse")  # l10n-ignore (editor inspector)
 ## Screen pixels the map moves per unit of a trackpad two-finger pan gesture
 ## (macOS reports trackpad scrolling as InputEventPanGesture).
 @export var trackpad_pan_scale := 40.0

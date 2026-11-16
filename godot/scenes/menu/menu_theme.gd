@@ -24,6 +24,19 @@ const TITLE_SIZE := 44
 const HEADING_SIZE := 26
 
 static var _theme: Theme
+## Factor on all font sizes (setting `font_size`, prompt 043).
+static var font_scale := 1.0
+
+
+## `size` times the font size setting, for font size overrides.
+static func font(size: int) -> int:
+	return roundi(size * font_scale)
+
+
+## Sets the font size factor; the shared theme follows at once.
+static func set_font_scale(factor: float) -> void:
+	font_scale = factor
+	get_theme().default_font_size = font(FONT_SIZE)
 
 
 static func get_theme() -> Theme:
@@ -36,7 +49,7 @@ static func get_theme() -> Theme:
 static func title(text: String, size := TITLE_SIZE) -> Label:
 	var label := Label.new()
 	label.text = text
-	label.add_theme_font_size_override("font_size", size)
+	label.add_theme_font_size_override("font_size", font(size))
 	label.add_theme_color_override("font_color", ACCENT)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	return label
@@ -68,7 +81,7 @@ static func background() -> Control:
 
 static func _build() -> Theme:
 	var theme := Theme.new()
-	theme.default_font_size = FONT_SIZE
+	theme.default_font_size = font(FONT_SIZE)
 	for type in ["Label", "Button", "CheckBox", "OptionButton", "LineEdit", "SpinBox", "ItemList", "TabContainer"]:
 		theme.set_color("font_color", type, TEXT)
 	theme.set_color("font_hover_color", "Button", ACCENT)

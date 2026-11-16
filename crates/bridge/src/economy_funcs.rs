@@ -16,7 +16,10 @@ pub(crate) fn display_name(sim_type: &str) -> String {
     }
     sim::economy::builtin_catalog()
         .and_then(|c| c.get(sim_type))
-        .map_or_else(|| sim_type.to_owned(), |e| crate::language_funcs::entry_name(e).to_owned())
+        .map_or_else(
+            || sim_type.to_owned(),
+            |e| crate::language_funcs::entry_name(e).to_owned(),
+        )
 }
 
 fn point(x: f32, z: f32) -> Option<Vec2> {

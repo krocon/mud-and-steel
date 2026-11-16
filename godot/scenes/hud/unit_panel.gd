@@ -12,6 +12,7 @@ extends PanelContainer
 ##   click selects that unit alone, Shift + click removes it.
 ## - Hidden without a selection.
 
+const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
 const UnitPortrait := preload("res://scenes/hud/unit_portrait.gd")
 const RankBadge := preload("res://scenes/hud/rank_badge.gd")
 const UNIT_SCENE: PackedScene = preload("res://scenes/unit.tscn")
@@ -105,7 +106,7 @@ func setup(main_node: Node3D) -> void:
 	bars.add_child(_xp_bar)
 	_details = Label.new()
 	_details.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_details.add_theme_font_size_override(&"font_size", 13)
+	_details.add_theme_font_size_override(&"font_size", MenuTheme.font(13))
 	text.add_child(_details)
 
 	_grid = GridContainer.new()

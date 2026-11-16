@@ -34,12 +34,22 @@ pub(crate) fn translated(prefix: &str, code: &str, english: &str) -> String {
     }
     let key: String = format!("{prefix}{code}")
         .chars()
-        .map(|c| if c.is_ascii_alphanumeric() { c.to_ascii_uppercase() } else { '_' })
+        .map(|c| {
+            if c.is_ascii_alphanumeric() {
+                c.to_ascii_uppercase()
+            } else {
+                '_'
+            }
+        })
         .collect();
     let text = TranslationServer::singleton()
         .translate(&StringName::from(key.as_str()))
         .to_string();
-    if text == key { english.to_owned() } else { text }
+    if text == key {
+        english.to_owned()
+    } else {
+        text
+    }
 }
 
 #[godot_api(secondary)]

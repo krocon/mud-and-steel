@@ -26,6 +26,7 @@ const CAMERA_TURN := 0.3
 const WIDTH := 380.0
 const RING_COLOR := Color(0.95, 0.8, 0.3)
 
+var _mission_path := ""
 var main: Node3D
 var sim_host: SimHost
 var title: Label
@@ -102,10 +103,10 @@ func refresh() -> void:
 		var done := objectives.filter(func(o: Dictionary) -> bool: return o["state"] == "done").size()
 		title.text = tr(TEXT_STEP) % [mini(done + 1, objectives.size()), objectives.size()]
 	else:
-		title.text = info["title"]
+		title.text = Missions.text(_path(), info["title"])
 	if info["message_tick"] != _message_tick:
 		_message_tick = info["message_tick"]
-		message.text = info["message"]
+		message.text = Missions.text(_path(), info["message"])
 		message.visible = not message.text.is_empty()
 	var key := ",".join(shown.map(func(o: Dictionary) -> String: return o["id"] + ":" + o["state"]))
 	if key != _objective_key:
@@ -119,6 +120,13 @@ func refresh() -> void:
 	_send_signals(info["wanted"])
 
 
+## Path of the running mission's file, for its translations (prompt 043).
+func _path() -> String:
+	if _mission_path.is_empty():
+		_mission_path = Missions.path_of(str(info.get("id", "")))
+	return _mission_path
+
+
 func _show_objectives(shown: Array) -> void:
 	for child in objectives_box.get_children():
 		child.queue_free()
@@ -129,13 +137,13 @@ func _show_objectives(shown: Array) -> void:
 		label.custom_minimum_size = Vector2(WIDTH - 16.0, 0)
 		match o["state"]:
 			"done":
-				label.text = tr(TEXT_DONE) % o["text"]
+				label.text = tr(TEXT_DONE) % Missions.text(_path(), o["text"])
 				label.add_theme_color_override("font_color", MenuTheme.VICTORY)
 			"failed":
-				label.text = tr(TEXT_FAILED) % o["text"]
+				label.text = tr(TEXT_FAILED) % Missions.text(_path(), o["text"])
 				label.add_theme_color_override("font_color", MenuTheme.DEFEAT)
 			_:
-				label.text = "• " + o["text"]
+				label.text = "• " + Missions.text(_path(), o["text"])
 				open += 1
 		objectives_box.add_child(label)
 	if open == 0 and not shown.is_empty():

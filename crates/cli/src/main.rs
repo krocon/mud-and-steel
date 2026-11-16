@@ -11,6 +11,7 @@ mod gen_town;
 mod gen_village;
 mod infantry_bench;
 mod lan;
+mod mission_po;
 mod path_bench;
 mod save_bench;
 #[cfg(feature = "steam")]
@@ -361,6 +362,12 @@ enum CliCommand {
         code: Option<u64>,
         #[command(flatten)]
         play: LanPlayArgs,
+    },
+    /// Writes the translations of the mission texts (prompt 043):
+    /// `data/maps/*/missions/<id>.<lang>.po`; `--check` only reports.
+    MissionPo {
+        #[arg(long)]
+        check: bool,
     },
     /// Writes docs/UNIT_CATALOG.md (or the given path) from the built-in catalog.
     CatalogDoc {
@@ -749,6 +756,16 @@ fn main() {
         }
         CliCommand::CatalogCheck { files } => catalog_check(&files),
         CliCommand::EconomyTable => economy_table(),
+        CliCommand::MissionPo { check } => {
+            let problems = mission_po::run(std::path::Path::new("data/maps"), check);
+            for p in &problems {
+                eprintln!("{p}");
+            }
+            if !problems.is_empty() {
+                std::process::exit(1);
+            }
+            println!("mission texts: translations complete");
+        }
         CliCommand::CatalogDoc { out } => {
             let catalog = sim::Catalog::builtin().unwrap_or_else(|e| fail(&e.to_string()));
             std::fs::write(&out, catalog_doc::render(&catalog))

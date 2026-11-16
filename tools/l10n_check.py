@@ -14,6 +14,8 @@ Scripts of developer tools stay English and are not checked: `scenes/tools/`,
 `scenes/debug/`, and the self-tests (`*self_test*.gd`). See
 docs/ARCHITECTURE.md, "Translations".
 
+Mission texts are checked by `cli mission-po --check` (same recipe).
+
 Exit code 0 when everything is fine, 1 otherwise. `--unused` also lists keys
 no script names literally (many are built at run time, so only a hint).
 """
@@ -72,6 +74,8 @@ def load_tables():
             if not row or not row[0]:
                 continue
             key = row[0]
+            if len(row) != len(rows[0]):
+                errors.append(f"{where}: {len(row)} columns, the header has {len(rows[0])} (quote texts with commas)")
             if not KEY.match(key):
                 errors.append(f"{where}: '{key}' is no key (UPPER_CASE with an underscore)")
             if key in keys:

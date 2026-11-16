@@ -209,8 +209,8 @@ HUD_AIR_MISSION_BOMB,Bombers,Bomber
 HUD_AIR_MISSION_AIRBORNE,Paratroopers,Fallschirmjäger
 HUD_HINT_AIR,Air support: left click the target or drag the run  ·  right click cancels,Luftunterstützung: Linksklick auf das Ziel oder Anflug ziehen  ·  Rechtsklick bricht ab
 HUD_HINT_AIR_DRAG,Air support: release to fly the run (%d m)  ·  right click cancels,Luftunterstützung: loslassen für den Anflug (%d m)  ·  Rechtsklick bricht ab
-HUD_TIP_AIR,"{mission} (Shift+{key}): {aircraft}
-Fuel {fuel}, ammo {ammo}, manpower {manpower}","{mission} (Umschalt+{key}): {aircraft}
+HUD_TIP_AIR,"{mission} ({key}): {aircraft}
+Fuel {fuel}, ammo {ammo}, manpower {manpower}","{mission} ({key}): {aircraft}
 Treibstoff {fuel}, Munition {ammo}, Personal {manpower}"
 HUD_FEED_ENEMY_AIRCRAFT,Enemy aircraft!,Feindliche Flugzeuge!
 HUD_FEED_AIRCRAFT_DOWN,Aircraft shot down,Flugzeug abgeschossen
@@ -229,8 +229,8 @@ HUD_STRIKE_NO_BATTERY,no battery,keine Stellung
 HUD_STRIKE_BUTTON,"Rockets
 %s","Raketen
 %s"
-HUD_TIP_STRIKE,"Heavy rocket strike (Shift+6): {rockets} rockets within {radius} m, {warning} s warning.
+HUD_TIP_STRIKE,"Heavy rocket strike ({key}): {rockets} rockets within {radius} m, {warning} s warning.
 Needs a rocket battery position; the enemy can destroy it before the salvo.
-Fuel {fuel}, ammo {ammo}, manpower {manpower}","Schwerer Raketenschlag (Umschalt+6): {rockets} Raketen im Umkreis von {radius} m, {warning} s Vorwarnung.
+Fuel {fuel}, ammo {ammo}, manpower {manpower}","Schwerer Raketenschlag ({key}): {rockets} Raketen im Umkreis von {radius} m, {warning} s Vorwarnung.
 Braucht eine Raketenstellung; der Feind kann sie vor der Salve zerstören.
 Treibstoff {fuel}, Munition {ammo}, Personal {manpower}"
