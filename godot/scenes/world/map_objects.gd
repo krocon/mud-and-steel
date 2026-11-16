@@ -518,9 +518,10 @@ func _build_deco(layer_index: int, square: Vector2i) -> void:
 			else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		node.visibility_range_end = layer.range
 		if tufts:
-			# Tufts cast their own small shadows (only up to the shadow
-			# distance, which follows the zoom) and end sooner than clumps.
-			node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+			# Tall tufts cast their own small shadows (only up to the shadow
+			# distance, which follows the zoom); tufts end sooner than clumps.
+			if MeadowTufts.casts_shadow(v):
+				node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 			node.visibility_range_end = MeadowTufts.RANGE
 		node.visibility_range_end_margin = layer.range * 0.15
 		node.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF

@@ -22,11 +22,18 @@ extends RefCounted
 const MATERIAL := preload("res://assets/materials/env/meadow_tuft.tres")
 
 ## Per variant: blades, height range (m), radius of the roots (m), lean range
-## (radians from upright), blade width at the root (m), seed.
+## (radians from upright), blade width at the root (m), whether a blade is
+## curved (three triangles) or straight (one), whether the tufts cast
+## shadows, seed. Only the tall tufts are curved and cast shadows: shadows
+## draw a tuft once per cascade, and short straight blades are a third of
+## the triangles (prompt 016 budget).
 const VARIANTS: Array[Dictionary] = [
-	{"blades": 18, "height": Vector2(0.2, 0.42), "radius": 0.12, "lean": Vector2(0.35, 1.0), "width": 0.022, "seed": 3},
-	{"blades": 14, "height": Vector2(0.35, 0.62), "radius": 0.1, "lean": Vector2(0.25, 0.8), "width": 0.02, "seed": 5},
-	{"blades": 18, "height": Vector2(0.15, 0.32), "radius": 0.2, "lean": Vector2(0.6, 1.2), "width": 0.022, "seed": 7},
+	{"blades": 18, "height": Vector2(0.2, 0.42), "radius": 0.12, "lean": Vector2(0.35, 1.0), "width": 0.022,
+		"curved": false, "shadow": false, "seed": 3},
+	{"blades": 14, "height": Vector2(0.35, 0.62), "radius": 0.1, "lean": Vector2(0.25, 0.8), "width": 0.02,
+		"curved": true, "shadow": true, "seed": 5},
+	{"blades": 18, "height": Vector2(0.15, 0.32), "radius": 0.2, "lean": Vector2(0.6, 1.2), "width": 0.022,
+		"curved": false, "shadow": false, "seed": 7},
 ]
 
 static var _meshes: Array[Mesh] = []
@@ -45,6 +52,11 @@ static func mesh(index: int) -> Mesh:
 const RANGE := 55.0
 ## Lattice spacing of the tufts (m); the 013 clumps used 0.7 m.
 const SPACING := 0.55
+
+
+## Whether tufts of variant `index` cast shadows.
+static func casts_shadow(index: int) -> bool:
+	return bool(VARIANTS[clampi(index, 0, VARIANTS.size() - 1)].shadow)
 
 
 ## Whether the meadow tufts replace the 013 grass clumps for this EnvLook
@@ -82,8 +94,9 @@ static func _build(v: Dictionary) -> ArrayMesh:
 			var bend := lean * (0.4 + 0.6 * t)
 			points.append(root + lean_dir * sin(bend) * h * t + Vector3.UP * cos(bend) * h * t)
 		var base := verts.size()
-		# Root and middle pairs, then the tip.
-		for k in 2:
+		# Root pair, middle pair (curved blades only), then the tip.
+		var pairs := 2 if v.curved else 1
+		for k in pairs:
 			var w := width * (1.0 - 0.45 * k)
 			for s in [-1.0, 1.0]:
 				verts.append(points[k] + side * w * 0.5 * s)
@@ -92,9 +105,12 @@ static func _build(v: Dictionary) -> ArrayMesh:
 		colors.append(Color(1.0, 1.0, shade))
 		# Lit like the ground: up, tilted a little along the blade.
 		var n := (Vector3.UP * 0.85 + lean_dir * 0.35).normalized()
-		for k in 5:
+		for k in pairs * 2 + 1:
 			normals.append(n)
-		indices.append_array([base, base + 2, base + 1, base + 1, base + 2, base + 3, base + 2, base + 4, base + 3])
+		if v.curved:
+			indices.append_array([base, base + 2, base + 1, base + 1, base + 2, base + 3, base + 2, base + 4, base + 3])
+		else:
+			indices.append_array([base, base + 2, base + 1])
 	var arrays := []
 	arrays.resize(Mesh.ARRAY_MAX)
 	arrays[Mesh.ARRAY_VERTEX] = verts
