@@ -80,3 +80,25 @@ Einkommen). Indirektes Feuer (032) hat Einschlag, Splitter, Krater und Zerstöru
 | 12 | **KI (Normal, Hard):** ruft höchstens alle 400 Ticks Bomber (≥ 5 Einheiten), Schlachtflug oder Jäger auf die größte gesichtete Gruppe (≥ 3 Einheiten, keine eigene Einheit im Umkreis 150 m: die Flugzeuge brauchen 10–30 s, bis dahin sind die Linien sonst ineinander), Aufklärung auf die zuletzt gesehene Feindposition, wenn 60 s kein Feind zu sehen war; im Basisbau nur mit doppeltem Preis auf dem Konto. Sieht sie feindliche Flugzeuge, baut sie eine leichte Flak (Basisbau). | „Normaler Spieler, nur Befehle“; Ansammlungen wie bei der Artillerie (032). Mit 80 m Abstand rief die KI in der Demo schon in Tick 0 Bomber auf die 120 m entfernte Front und bombte sich selbst. |
 | 13 | **Bedienung:** Abruf-Leiste im HUD über der Befehlsleiste (vier Knöpfe mit Kosten, Abklingzeit, Taste Shift+1…4), Zielwahl per Linksklick, Anzeige des eigenen Anflugs (Linie Einflug → Ziel, Restzeit) und Warnung „Enemy aircraft“ im Ereignis-Feed. Darstellung: Katalog-Modelle aus 008, Schatten am Boden (Projektion), drehender Propeller (Knoten `Propeller*`, sonst Scheibe), Rauchfahne ab 50 % Schaden, Flak-Wölkchen/Leuchtspur, fallende Bomben, Einschläge und Krater über die vorhandenen `hit`-Ereignisse. | Godot zeichnet nur; vorhandene Effekte und Töne werden wiederverwendet. |
 | 14 | Kein Luftkampf, keine Abfangjäger, keine Flugplätze, keine Raketen (HVAR/RS-82). | Umfang; als „offen“ dokumentiert. |
+
+## Ergebnis
+
+Umgesetzt wie oben; Details in `docs/ARCHITECTURE.md` „Air support and anti-aircraft
+fire“, `docs/SCALE.md` (Flugzeuge), `docs/GAME_DESIGN.md` (Preise, Flak-Stellungen),
+`docs/AI.md` (Luftunterstützung), `docs/CONTROLS.md` (Abruf-Leiste). Regeln in
+`data/air.toml`, Katalogfelder `range_aa_m`, `aa`, `bomb_kg` (`data/catalog/SCHEMA.md`).
+
+Tests: `crates/sim/tests/air.rs` (Anflug vom Kartenrand über das Ziel und hinaus,
+Kosten und Abklingzeit, Bomben auf Infanterie und LKW mit Kratern, Flak-Abschuss mit
+Absturz, Feuerhalt der Flak, Aufklärung deckt verdeckten LKW auf und wieder zu,
+Sichtbarkeit feindlicher Flugzeuge, gleicher Hash bei zwei Läufen), Einheitentests in
+`crates/sim/src/air.rs`, `crates/net/tests/air_snapshot.rs` (Speichern während eines
+Luftangriffs, 3 Zeitpunkte, Bomben im Fall), `crates/ai/tests/air.rs`, Godot-Selbsttest
+`scenes/tools/air_self_test.gd` (Bomber über die Abruf-Leiste mit Shift+4 und Klick).
+Golden-Hashes (Demo, Basisbau) bewusst aktualisiert: Luft-Regeln und -Zustand im Hash,
+zwei neue Stellungstypen; die Demo-Schlacht ist unverändert (Tick 480, Spieler 0 gewinnt).
+
+Offen: Darstellung nur headless geprüft (Modelle, Schatten, Propeller, Rauch nicht
+visuell begutachtet); kein Triebwerksgeräusch; kein Luftkampf, keine Raketen; alle Werte
+in `data/air.toml` und die Tastenbelegung Shift+1…4 sind vorläufig; Anflugrichtung folgt
+dem eigenen Start; die KI nutzt keine schwere Flak.

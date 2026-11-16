@@ -93,7 +93,7 @@ Umsetzen von ihrer Session konkretisiert.
 | 030 | [Musik und Umgebungsklang](done/030-musik-ambiente.md) | Biom-Ambiente, Musik ruhig/Gefecht, Menü | erledigt |
 | 031 | [HUD, Minikarte, Befehle](done/031-hud-minimap-befehle.md) | Minikarte, Einheitenanzeige, Befehlsleiste, Wegpunktketten; Steuerung in `docs/CONTROLS.md` | erledigt |
 | 032 | [Indirektes Feuer und Rauch](done/032-indirektes-feuer-rauch.md) | Mörser, Haubitzen, Splitter, Rauch blockiert Sicht | erledigt |
-| 033 | [Flugzeuge und Flak](033-luftwaffe-flak.md) | Luftunterstützung als Abruf, Flugabwehr | Entwurf |
+| 033 | [Flugzeuge und Flak](done/033-luftwaffe-flak.md) | Luftunterstützung als Abruf (Aufklärung, Jäger, Schlachtflug, Bomber), Flak und Fliegerabwehr-MGs | erledigt |
 | 034 | [Transport und Schleppen](034-transport-schleppen.md) | Aufsitzen, Geschütze ziehen und abprotzen | Entwurf |
 | 035 | [Pioniere, Minen, Stellungen](035-pioniere-minen-stellungen.md) | Minen, Draht, Gräben, Brücken reparieren/sprengen | Entwurf |
 | 036 | [Nachschub und Reparatur](036-nachschub-reparatur.md) | Verbrauch pro Einheit, Versorgungs-LKW, Reparatur, Bergung | Entwurf |
