@@ -243,6 +243,16 @@ repairers (`PlayerView::sources`).
 
 Test: `ai_sends_empty_units_to_resupply` (`crates/ai/tests/ai.rs`).
 
+## Experience (prompt 050)
+
+`OwnUnit::rank` carries the rank of every own unit. Normal and Hard pull a
+damaged unit of rank veteran or better (index 2 of `data/experience.toml`)
+back out of the fight earlier than others (Normal below 40 %, Hard below
+50 % of its hit points; for squads the hit points are the living
+soldiers), once per fight, while healthier units of the group stay;
+recruits are pulled back as before (Hard below 30 %, Normal never). Test:
+`normal_pulls_back_hurt_veterans` (`crates/ai/tests/ai.rs`). [provisional]
+
 ## Engineers (prompt 035)
 
 `crates/ai/src/engineers.rs`, Normal and Hard only. Engineer squads have
@@ -276,6 +286,7 @@ pieces; at most two positions per match. Test:
 | Common target | – | nearest | nearest | weakest in range |
 | Gathers stragglers | – | no | yes | yes |
 | Pulls back damaged units | – | no | no | below 30 % |
+| Pulls back veterans (prompt 050) | – | no | below 40 % | below 50 % |
 | Patience before flanking | – | 1600 ticks | 800 ticks | 800 ticks |
 | Artillery (prompt 032) | – | with the group | with the group | own role: barrages, smoke |
 

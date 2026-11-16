@@ -1,0 +1,59 @@
+# Experience and ranks (prompt 050). Integers only.
+# Compiled into the simulation (`sim::ExperienceRules::builtin`), loaded by
+# `Sim::new` and part of the state hash; see docs/GAME_DESIGN.md
+# "Experience and ranks" and docs/ARCHITECTURE.md "Experience".
+#
+# These are game rules, not catalog values (no historical source gives
+# "veterancy"). Every value is [provisional] until balancing (prompt 045).
+
+# Experience points (XP) of a unit (a vehicle, gun or whole squad).
+[gain]
+# Destroying a whole enemy unit through damage is worth `damage_xp`
+# points, shared out by the damage of every hit: a hit that takes a
+# quarter of the target's hit points gives a quarter. So a rifle squad
+# that wipes out a squad earns as much as a tank that destroys a tank.
+damage_xp = 100
+# Extra points for the unit that fires the hit that destroys an enemy.
+kill_xp = 25
+# A unit that takes a damaging enemy hit and is still alive after the
+# tick ("survived fire"); at most once per tick.
+survived_hit_xp = 2
+# Per game second a squad is suppressed (pinned down by close enemy fire)
+# and alive.
+suppressed_xp_per_s = 1
+
+# Ranks in ascending order; the first one starts at 0 XP and has no bonus.
+# Bonuses in percent of the recruit value, applied to the whole unit:
+# - dispersion_pct: spread of every shot (smaller = more accurate),
+# - reload_pct: time between two salvos (smaller = faster),
+# - suppression_pct: how long close fire pins a squad down (smaller =
+#   steadier nerves).
+# Moderate on purpose: an elite unit is clearly better, not a different
+# unit; armor, penetration and hit points never change.
+[[rank]]
+name = "Recruit"
+xp = 0
+dispersion_pct = 100
+reload_pct = 100
+suppression_pct = 100
+
+[[rank]]
+name = "Experienced"
+xp = 100
+dispersion_pct = 92
+reload_pct = 96
+suppression_pct = 85
+
+[[rank]]
+name = "Veteran"
+xp = 300
+dispersion_pct = 84
+reload_pct = 92
+suppression_pct = 70
+
+[[rank]]
+name = "Elite"
+xp = 700
+dispersion_pct = 76
+reload_pct = 88
+suppression_pct = 55

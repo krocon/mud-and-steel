@@ -21,7 +21,15 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by the merge of prompt 059 (desert village: new entries
+/// Last changed by prompt 050 (experience and ranks): the rules of
+/// `data/experience.toml` and every unit's experience points and kills are
+/// in the hash, and units that gain a rank shoot more accurately and
+/// reload faster. The demo's tanks gain ranks from their first kill: the
+/// battle runs differently and is decided at tick 412 instead of 467, same
+/// winner (player 0). Before: `0x04d1_0b77_115d_59c5`, set by
+/// the merge of prompt 059, see below.
+///
+/// The merge of prompt 059 (desert village: new entries
 /// in the hashed rule tables of `data/destruction.toml`,
 /// `data/infantry.toml` and `data/vision.toml`; the demo uses none of
 /// them, battle unchanged) with 060. Before (`0x9b87_57bd_bec7_96f8`),
@@ -158,7 +166,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x04d1_0b77_115d_59c5;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xb608_35fb_c1d7_09a8;
 
 #[test]
 fn golden_hash() {
@@ -208,10 +216,10 @@ fn demo_battle_is_decided() {
     let end = run_demo(42, 1000);
     let outcome = end.outcome().expect("the demo battle is decided");
     assert_eq!(outcome.winner, Some(sim::PlayerId(0)));
-    assert_eq!(outcome.tick, 467);
+    assert_eq!(outcome.tick, 412);
     assert_eq!(end.alive_units(sim::PlayerId(1)), 0);
     assert_eq!(
         end.standings()[1].defeat,
-        Some((sim::DefeatReason::Eliminated, 467))
+        Some((sim::DefeatReason::Eliminated, 412))
     );
 }

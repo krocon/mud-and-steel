@@ -15,6 +15,8 @@ extends Node3D
 ##   after a shot: `aim_<stance>`;
 ## - else `idle`, `kneel` or `prone`.
 ## Squads in a building are hidden (their soldiers stand at the windows).
+## The squad's rank (prompt 050) changes the soldiers' kit: worn uniforms,
+## captured camouflage garments (`SoldierLook.apply`).
 ##
 ## Animation LOD: every AnimationPlayer runs in manual mode. Members within
 ## NEAR_M of the camera advance every frame and cast shadows, up to MID_M
@@ -134,7 +136,7 @@ func _draw(delta: float) -> void:
 	if biome != _biome:
 		_biome = biome
 		for s: Dictionary in _soldiers.values():
-			SoldierLook.apply(s["node"], s["faction"], _biome, s["seed"])
+			SoldierLook.apply(s["node"], s["faction"], _biome, s["seed"], "auto", s["rank"])
 		# The far MultiMeshes carry the old palette: build them again.
 		for node: Node in _impostor_nodes.values():
 			node.queue_free()
@@ -148,6 +150,7 @@ func _draw(delta: float) -> void:
 	var stances := sim_host.unit_stances()
 	var garrisons := sim_host.unit_garrisons()
 	var aims := sim_host.unit_aim_yaws()
+	var ranks := sim_host.unit_ranks()
 	var unit_index := {}
 	for i in unit_ids.size():
 		if stances[i] >= 0:
@@ -200,6 +203,9 @@ func _draw(delta: float) -> void:
 				continue
 		var member: Node3D = s["node"]
 		var u: int = unit_index[unit_id]
+		if u < ranks.size() and ranks[u] != int(s["rank"]):
+			s["rank"] = ranks[u]
+			SoldierLook.apply(member, s["faction"], _biome, s["seed"], "auto", s["rank"])
 		(_by_unit.get_or_add(unit_id, []) as Array).append(key)
 		var position := previous[k].lerp(current[k], alpha)
 		s["position"] = position
@@ -387,7 +393,7 @@ func _make(node: Node3D, key: int, index: int) -> Dictionary:
 		"node": member, "player": player, "faction": faction, "seed": seed,
 		"clip": "", "dead": false, "fired": -100000, "yaw": 0.0, "accum": 0.0,
 		"phase": key % MID_STEP, "meshes": meshes, "details": details, "shadows": false,
-		"far": false, "impostor": false,
+		"far": false, "impostor": false, "rank": 0,
 		"position": Vector3.ZERO,
 	}
 	_soldiers[key] = s

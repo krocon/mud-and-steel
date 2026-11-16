@@ -970,6 +970,7 @@ impl Sim {
             if self.teams.allied(unit.owner, owner) || !unit.alive() {
                 continue;
             }
+            let veterancy = unit.veterancy;
             let Some(s) = &mut unit.squad else {
                 continue;
             };
@@ -985,7 +986,10 @@ impl Sim {
                 .iter()
                 .any(|x| x.alive() && (x.position - point).length() <= radius)
             {
-                s.suppressed = ty.suppressed_ticks;
+                // Veterans keep their nerve longer (prompt 050).
+                s.suppressed = self
+                    .experience
+                    .suppression_ticks(veterancy, ty.suppressed_ticks);
             }
         }
     }
