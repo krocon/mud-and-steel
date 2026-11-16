@@ -134,6 +134,9 @@ func _build_ui() -> void:
 	_maps = MatchSetup.available_maps()
 	for map_name in _maps:
 		_map.add_item(map_name)
+	# Self-tests keep the small built-in map unless they name one.
+	if not _args.has("--steam-self-test"):
+		_map.select(MatchSetup.default_map_index(_maps))
 	if _args.has("--map") and _args["--map"] in _maps:
 		_map.select(Array(_maps).find(_args["--map"]))
 	_setup.add_child(_labeled("Map (host)", _map))

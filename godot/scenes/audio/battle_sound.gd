@@ -31,6 +31,8 @@ const SoundClasses := preload("res://scenes/audio/sound_classes.gd")
 const SoundBuses := preload("res://scenes/audio/sound_buses.gd")
 const UiSound := preload("res://scenes/audio/ui_sound.gd")
 const BaseView := preload("res://scenes/world/base_view.gd")
+const Ambience := preload("res://scenes/audio/ambience.gd")
+const MatchMusic := preload("res://scenes/audio/match_music.gd")
 
 ## Camera distance up to which the hearing range is the manifest's.
 const HEARING_REF_DISTANCE := 150.0
@@ -92,6 +94,10 @@ var main: Node3D
 var sim_host: SimHost
 var listener: AudioListener3D
 var hearing_scale := 1.0
+## Wind, birds, water and the rest of the landscape; calm or combat music
+## (prompt 030).
+var ambience: Ambience
+var match_music: MatchMusic
 var _time := 0.0
 ## Group -> Array of voices `{player, priority, score, started, ends}`.
 var _pools: Dictionary[String, Array] = {}
@@ -152,6 +158,14 @@ func setup(main_node: Node3D) -> void:
 	selection.attack_ordered.connect(func(_target: int) -> void: notice("ui_order"))
 	selection.garrison_ordered.connect(func(_building: int) -> void: notice("ui_order"))
 	_update_listener()
+	ambience = Ambience.new()
+	ambience.name = "Ambience"
+	add_child(ambience)
+	ambience.setup(main, self)
+	match_music = MatchMusic.new()
+	match_music.name = "MatchMusic"
+	add_child(match_music)
+	match_music.setup(main, self)
 
 
 func _process(delta: float) -> void:

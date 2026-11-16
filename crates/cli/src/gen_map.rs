@@ -96,8 +96,15 @@ pub struct Options<'a> {
     pub seed: u64,
     /// `biome` in map.toml (presentation only).
     pub biome: &'a str,
+    /// Distance between the two start positions on the north-south axis.
+    /// The default 120 m keeps both starts in the central meadow (test
+    /// maps); a larger distance gives each start a flat meadow of its own.
+    pub start_distance_m: u32,
     pub out: &'a Path,
 }
+
+/// Start distance of the test maps: both starts in the central meadow.
+pub const DEFAULT_START_DISTANCE_M: u32 = 120;
 
 /// Random numbers in `[0, 1)` from the simulation's generator.
 struct Random(Rng);
@@ -248,6 +255,8 @@ struct Square {
 struct Layout {
     half: f64,
     meadow_radius: f64,
+    /// Flat meadows around starts outside the central meadow (x, y, radius).
+    start_meadows: Vec<(f64, f64, f64)>,
     hills: Vec<Hill>,
     river: Path2,
     river_width: f64,
@@ -261,9 +270,26 @@ struct Layout {
     mud: ValueNoise,
 }
 
-fn layout(random: &mut Random, size: f64, seed: u64) -> Layout {
+fn layout(random: &mut Random, size: f64, seed: u64, start_distance: f64) -> Layout {
     let half = size / 2.0;
     let meadow_radius = (0.38 * half).min(160.0);
+    // Starts far from the center get their own flat meadow; hills and
+    // villages keep clear of it like of the central meadow.
+    let start_meadows: Vec<(f64, f64, f64)> =
+        if start_distance > f64::from(DEFAULT_START_DISTANCE_M) {
+            let radius = meadow_radius.min(100.0);
+            vec![
+                (0.0, start_distance / 2.0, radius),
+                (0.0, -start_distance / 2.0, radius),
+            ]
+        } else {
+            Vec::new()
+        };
+    let near_start = |x: f64, y: f64, margin: f64| {
+        start_meadows
+            .iter()
+            .any(|&(sx, sy, r)| ((x - sx) * (x - sx) + (y - sy) * (y - sy)).sqrt() < r + margin)
+    };
     // The river runs roughly north-south on the east side, the landmark
     // hill stands north-west of the meadow, villages lie in the south-west.
     let river_x = 0.6 * half;
@@ -301,6 +327,7 @@ fn layout(random: &mut Random, size: f64, seed: u64) -> Layout {
         if (x * x + y * y).sqrt() < meadow_radius + radius * 0.8
             || (x - river_x).abs() < radius * 0.7 + 0.1 * half
             || to_landmark < radius + landmark.radius
+            || near_start(x, y, radius)
         {
             continue;
         }
@@ -327,7 +354,10 @@ fn layout(random: &mut Random, size: f64, seed: u64) -> Layout {
             random.range(-0.85, 0.85) * half,
             random.range(-0.85, 0.85) * half,
         );
-        if (x * x + y * y).sqrt() < meadow_radius * 2.0 || (x - river_x).abs() < 0.25 * half {
+        if (x * x + y * y).sqrt() < meadow_radius * 2.0
+            || (x - river_x).abs() < 0.25 * half
+            || near_start(x, y, 80.0)
+        {
             continue;
         }
         squares.push(Square {
@@ -374,6 +404,7 @@ fn layout(random: &mut Random, size: f64, seed: u64) -> Layout {
     let mut layout = Layout {
         half,
         meadow_radius,
+        start_meadows,
         hills,
         river,
         river_width,
@@ -500,6 +531,14 @@ impl Layout {
         let d = (x * x + y * y).sqrt();
         let blend = smoothstep(self.meadow_radius, self.meadow_radius + 40.0, d);
         h *= blend;
+
+        // Flat meadows around distant starts, at their natural center height.
+        for &(sx, sy, radius) in &self.start_meadows {
+            let d = ((x - sx) * (x - sx) + (y - sy) * (y - sy)).sqrt();
+            let level = self.natural_height(sx, sy);
+            let blend = smoothstep(radius, radius + 40.0, d);
+            h = level + (h - level) * blend;
+        }
 
         // Flat village squares at their natural center height.
         for square in &self.squares {
@@ -750,8 +789,14 @@ pub fn generate(options: &Options) -> Result<String, String> {
     let rules = TerrainRules::builtin().map_err(|e| e.to_string())?;
     let size = f64::from(options.size_m);
     let samples = (options.size_m / 2 + 1) as usize;
+    let start_distance = f64::from(options.start_distance_m);
+    if options.start_distance_m != DEFAULT_START_DISTANCE_M
+        && (start_distance < 2.0 || start_distance / 2.0 > size / 2.0 - 150.0)
+    {
+        return Err("--start-distance-m must leave at least 150 m to the map edge".into());
+    }
     let mut random = Random(Rng::new(options.seed));
-    let layout = layout(&mut random, size, options.seed);
+    let layout = layout(&mut random, size, options.seed, start_distance);
 
     let mut heights = Vec::with_capacity(samples * samples);
     let mut terrain = Vec::with_capacity(samples * samples);
@@ -848,20 +893,26 @@ pub fn generate(options: &Options) -> Result<String, String> {
             "\n\n[[marker]]\nname = \"{name}\"\nposition_m = [{x}, {y}]"
         );
     }
+    let start_y = options.start_distance_m / 2;
+    let start_arg = if options.start_distance_m == DEFAULT_START_DISTANCE_M {
+        String::new()
+    } else {
+        format!(" --start-distance-m {}", options.start_distance_m)
+    };
     let mut toml = String::new();
     let _ = writeln!(
         toml,
         "# Generated by `cli gen-map`; edit the PNGs freely (docs/MAPS.md).\n\
          name = \"{}\"\n\
-         generator = \"cli gen-map --name {} --size-m {} --seed {}\"\n\
+         generator = \"cli gen-map --name {} --size-m {} --seed {}{start_arg}\"\n\
          cell_size_mm = 2000\n\
          samples = [{side}, {side}]\n\
          height_base_mm = {base_mm}\n\
          height_step_mm = {step_mm}\n\
          biome = \"{}\"\n\
          water_flow_deg = 180\n\n\
-         [[start]]\nplayer = 0\nposition_m = [0, 60]\n\n\
-         [[start]]\nplayer = 1\nposition_m = [0, -60]\n\n\
+         [[start]]\nplayer = 0\nposition_m = [0, {start_y}]\n\n\
+         [[start]]\nplayer = 1\nposition_m = [0, -{start_y}]\n\n\
          [[marker]]\nname = \"hill_top\"\nposition_m = [{hill_x}, {hill_y}]\n\n\
          [[marker]]\nname = \"village\"\nposition_m = [{}, {}]{bridge_markers}",
         options.name,
@@ -922,6 +973,7 @@ mod tests {
             size_m: 500,
             seed: 7,
             biome: "forest",
+            start_distance_m: crate::gen_map::DEFAULT_START_DISTANCE_M,
             out: &dir,
         };
         generate(&options).unwrap();
