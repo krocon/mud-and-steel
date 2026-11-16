@@ -84,3 +84,53 @@ nur auf `Sim::snapshot_for` auf; Teams (037) teilen Sicht.
 | 13 | **Produktion:** Pioniertrupps der drei Fraktionen kommen ans Ende der Infanterie-Liste der Kaserne (`data/economy.toml`). | Ohne Produktion gäbe es im Basisbau keine Pioniere; Listenende lässt die KI-Mischungen (Indizes) unverändert. |
 | 14 | **KI** (Normal, Hard): baut einen Pioniertrupp; legt Panzerminen an der eigenen Seite der Brücke, die der Linie zum Gegner am nächsten liegt (sonst auf 30 % der Strecke dorthin), höchstens zwei Abschnitte; räumt bekannte feindliche Minen in der Nähe der eigenen Armee. Der Pioniertrupp gehört nicht zur Infanteriegruppe. **[vorläufig]** | „Legt Minen an Engstellen, räumt sie mit Pionieren“, nur über normale Befehle und den `PlayerView`. |
 | 15 | **Darstellung:** Minenmarker (eigene/verbündete gelb, entdeckte feindliche rot) nur für Spieler, die sie kennen; fertiger Draht und Igel als Modelle aus 007 für alle sichtbar (wie Kartenobjekte), Baustellen halbtransparent nur für den Besitzer; Staub an Grabungsstellen; abgesprungene Kette als Kettenstück neben dem Fahrzeug. Befehlsleiste: Schaltflächen für die Pionierbefehle (aktiv mit Pionieren), Linien mit zwei Klicks. | Wie gefordert; keine neuen Modelle nötig. |
+
+## Ergebnis
+
+Umgesetzt wie oben; Details in `docs/ARCHITECTURE.md` „Field works“,
+`docs/GAME_DESIGN.md` „Field works“ (Preise, Zeiten; „Open“ bereinigt),
+`docs/CONTROLS.md` (Pionier-Schaltflächen), `docs/AI.md` „Engineers“,
+`docs/MAPS.md` (Minenfelder im Editor), `docs/INFANTRY.md` (Schützenlöcher, Gräben).
+
+- **Sim:** `data/works.toml`, `crates/sim/src/works.rs`, `crates/sim/src/sim/works.rs`;
+  Befehle `Lay`, `Dig`, `Clear`, `DemolishBridge`, `RepairBridge` am Enum-Ende;
+  zwei neue Blockier-Flags und Meide-Listen im Wegfinder (`run_avoiding`,
+  `find_path_avoiding`); Graben über `Sim::deform` (Krater-Maschinerie) mit eigener
+  Deckung; Kette ab nach Panzermine (Besatzung montiert nach 90 s); Pioniere in der
+  Kaserne; Kartenobjekte `fort_mine_at/ap` werden neutrale verdeckte Minen.
+  Zustand im Hash und im Spielstand.
+- **KI:** `crates/ai/src/engineers.rs` (eigene Rolle, ein Pioniertrupp nach dem
+  Fahrzeugwerk, Panzerminen an Brückenenden/auf dem Weg zum Gegner, Räumen bekannter
+  Minen); `PlayerView::mines` (nur bekannte) und `PlayerView::works`.
+- **Godot:** `works_funcs.rs`, `world/works_view.gd` (Minenmarker nur für Kenner,
+  Draht-/Igel-Modelle, Baustellen-Umrisse, Grabungsstaub, abgesprungene Kette,
+  gesprengte Brücken ausgeblendet), `selection/engineer_orders.gd`, acht
+  Pionier-Schaltflächen in der Befehlsleiste (Linien mit zwei Klicks); Vorschaubilder
+  der Pioniertrupps (058).
+- **Tests:** `crates/sim/tests/works.rs` (Kartenminen neutral und verdeckt, Panzermine
+  nur nach Masse und Kette ab, gelegte Minen für den Gegner unsichtbar bis zur
+  Entdeckung, Räumen, bekannte Felder werden umfahren, Graben senkt das Gelände und gibt
+  Deckung, Draht sperrt Infanterie und wird plattgewalzt, Igel sperren Panzer, Brücke
+  sprengen/reparieren ändert die Wegzellen, Abbruch und Erstattung, nur Pioniere,
+  gleicher Hash), `crates/net/tests/snapshot_works.rs`,
+  `crates/ai/tests/ai.rs::ai_lays_mines_that_the_enemy_does_not_see`,
+  Selbsttest-Teil `tools/works_self_test.gd` (verdecktes Debug-Minenfeld, Panzer verliert
+  die Kette, Marker erst danach), Editor-Selbsttest (Minenfeld platziert, im Spiel
+  verdeckt), LAN-Selbsttest (`twin_meadow` hat zwei Minenfelder in der Mitte: 24–28
+  Minen gehen hoch, 5–6 Ketten ab, kein Desync).
+- **Golden-Hash** bewusst aktualisiert (Regeln und Zustand der Feldbefestigungen im
+  Hash, Pioniere in den gehashten Produktionslisten): 035 allein
+  `0x0b1d_7230_9f70_e885` → `0xfe4f_ccdf_7c02_97e0`, nach dem Zusammenführen mit 036
+  `0x738f_0759_efe2_a7bd`; Demo-Schlacht unverändert (Tick 467, Spieler 0 gewinnt).
+  Basisbau-Golden-Hash ebenso (`0x87ed_9b47_05ad_8899`).
+- **Messwerte:** `ai-tournament --matrix --games 10` (Schlacht, keine Pioniere):
+  Hard–Normal 50/50 %, Hard–Easy 70/20 %, Normal–Easy 50/50 %, alle gegen Passive
+  100 %. Basisbau Hard gegen Normal (6 Spiele, 20 000 Ticks): 16/66 %, 1 Zeitüberschreitung
+  (verrauscht; beide KIs bauen Pioniere und legen bis zu zwei Abschnitte).
+
+Offen: vorläufige Regelwerte in `data/works.toml`; Gräben flach (2-m-Raster) und als
+Graben-Optik erst mit 052; Minen nicht durch Artillerie zerstörbar, Räumen ohne Risiko,
+keine Gassen; keine Tasten für Pionierbefehle (nur Schaltflächen); Draht-Baustellen ohne
+Modell; der Editor zeigt ein Minenfeld als einzelne Mine; Darstellung nur headless
+geprüft (kein gerendertes Bild); `twin_meadow`-Minenfelder gehen verloren, wenn die
+Karte neu generiert wird.
