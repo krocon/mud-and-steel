@@ -1,0 +1,279 @@
+keys,en,de
+UNIT_RATING_SPEED,Speed,Tempo
+UNIT_RATING_PROTECTION,Protection,Schutz
+UNIT_RATING_ANTI_VEHICLE,Against vehicles,Gegen Fahrzeuge
+UNIT_RATING_ANTI_INFANTRY,Against infantry,Gegen Infanterie
+UNIT_RATING_ANTI_STRUCTURE,Against structures,Gegen Bauten
+UNIT_WORD_NONE,none,keine
+UNIT_WORD_WEAK,weak,schwach
+UNIT_WORD_MEDIUM,medium,mittel
+UNIT_WORD_STRONG,strong,stark
+UNIT_TIP_SPEED,Road {road} km/h · cross-country {offroad} km/h,Straße {road} km/h · Gelände {offroad} km/h
+UNIT_TIP_SPEED_AIR,Top speed {speed} km/h,Höchstgeschwindigkeit {speed} km/h
+UNIT_TIP_SPEED_GAME,Speed {speed} m/s in the game,Tempo {speed} m/s im Spiel
+UNIT_TIP_UNARMORED,"Unarmored, {hp} hit points","Ungepanzert, {hp} Trefferpunkte"
+UNIT_TIP_GUN,"{weapon}: {mm} mm at {distance} m, range {range} m in the game","{weapon}: {mm} mm auf {distance} m, Reichweite {range} m im Spiel"
+UNIT_TIP_WEAPON,{weapon}: range {range} m in the game,{weapon}: Reichweite {range} m im Spiel
+UNIT_TIP_INDIRECT,"{weapon}: indirect fire, {min}–{max} m in the game","{weapon}: indirektes Feuer, {min}–{max} m im Spiel"
+UNIT_TIP_EFFECT,Against infantry: {infantry} · against structures: {structures},Gegen Infanterie: {infantry} · gegen Bauten: {structures}
+UNIT_TIP_GOOD,Good against: %s,Gut gegen: %s
+UNIT_TIP_VULNERABLE,vulnerable to: %s,verwundbar durch: %s
+UNIT_TIP_CARD,Right click: unit card,Rechtsklick: Einheitenkarte
+UNIT_VS_ALL_TANKS,all tanks,alle Panzer
+UNIT_VS_TANK_LIGHT,light tanks,leichte Panzer
+UNIT_VS_TANK_MEDIUM,medium tanks,mittlere Panzer
+UNIT_VS_TANK_HEAVY,heavy tanks,schwere Panzer
+UNIT_VS_SIDE,%s from the side,%s von der Seite
+UNIT_VS_INFANTRY,infantry,Infanterie
+UNIT_VS_STRUCTURES,structures,Bauten
+UNIT_BY_SMALL_ARMS,rifles and machine guns,Gewehre und MG
+UNIT_BY_ANY_WEAPON,any weapon,jede Waffe
+UNIT_BY_FRAGMENTS,shell fragments,Granatsplitter
+UNIT_BY_FROM,%s and heavier,%s und stärker
+UNIT_BY_FRONT,%s and heavier from the front,%s und stärker von vorn
+UNIT_BY_SIDE,%s from the side,%s von der Seite
+UNIT_WEAPON_RIFLE,rifle,Gewehr
+UNIT_WEAPON_MACHINE_GUN,machine gun,MG
+UNIT_WEAPON_GUN_37MM,3.7 cm gun,"3,7-cm-Kanone"
+UNIT_WEAPON_GUN_57MM,5.7 cm gun,"5,7-cm-Kanone"
+UNIT_WEAPON_GUN_75MM,7.5 cm gun,"7,5-cm-Kanone"
+UNIT_WEAPON_GUN_88MM,8.8 cm gun,"8,8-cm-Kanone"
+UNIT_WEAPON_ROCKET_LAUNCHER,Panzerschreck,Panzerschreck
+UNIT_CARD_TAB_GAME,Game values,Spielwerte
+UNIT_CARD_TAB_TECH,Technical data,Technische Daten
+UNIT_CARD_CLOSE,Close (Esc),Schließen (Esc)
+UNIT_CARD_NOT_BUILDABLE,Not in the build or production menu,Nicht im Bau- oder Produktionsmenü
+UNIT_CARD_SERVICE,in service %s,im Dienst %s
+UNIT_CARD_RANK,Rank bonus (not in the values): %s,Rangbonus (nicht in den Werten): %s
+UNIT_CARD_BUTTON,Values,Werte
+UNIT_CARD_BUTTON_TIP,Unit card: all values of this unit type (key %s),Einheitenkarte: alle Werte dieses Einheitentyps (Taste %s)
+UNIT_REF_TITLE,Units,Einheiten
+UNIT_REF_GENERAL,General,Allgemein
+UNIT_REF_CAMO,Camouflage,Tarnung
+UNIT_REF_MODEL_HINT,"Drag to turn, wheel to zoom","Ziehen dreht, Mausrad zoomt"
+UNIT_REF_NOT_BUILDABLE,Not in the build menus,Nicht in den Baumenüs
+UNIT_GROUP_MOVEMENT,Movement,Bewegung
+UNIT_GROUP_PROTECTION,Vulnerability,Empfindlichkeit
+UNIT_GROUP_WEAPONS,Weapons in the game,Waffen im Spiel
+UNIT_GROUP_VS_VEHICLES,Against vehicles,Gegen Fahrzeuge
+UNIT_GROUP_VS_INFANTRY,Against infantry,Gegen Infanterie
+UNIT_GROUP_VS_STRUCTURES,Against walls and buildings,Gegen Mauern und Gebäude
+UNIT_GROUP_INDIRECT,Indirect fire,Indirektes Feuer
+UNIT_GROUP_OTHER,Other,Sonstiges
+UNIT_GROUP_OBJECT,Destructibility,Zerstörbarkeit
+UNIT_GROUP_BUILDING,Building,Gebäude
+UNIT_L_ROAD,Road,Straße
+UNIT_L_OFFROAD,Cross-country,Gelände
+UNIT_L_CRUISE,Cruise,Reiseflug
+UNIT_L_HULL_TURN,Hull turns,Wanne dreht
+UNIT_L_TURRET_TURN,Turret turns,Turm dreht
+UNIT_L_TRAVERSE,Gun traverse,Seitenrichtbereich
+UNIT_L_MUD,In mud,Im Schlamm
+UNIT_L_SNOW,In deep snow,Im Tiefschnee
+UNIT_L_GRADE,Grade,Steigung
+UNIT_L_CRUSHES,Runs over,Überrollt
+UNIT_L_HIT_POINTS,Hit points,Trefferpunkte
+UNIT_L_ARMOR_HULL,Hull armor,Panzerung Wanne
+UNIT_L_ARMOR_TURRET,Turret armor,Panzerung Turm
+UNIT_L_FRONT_EFFECTIVE,Hull front effective,Bug wirksam
+UNIT_L_ARMOR,Armor,Panzerung
+UNIT_L_FRAGMENTS,Shell fragments,Granatsplitter
+UNIT_L_STRONGEST,Strongest weapon,Stärkste Waffe
+UNIT_L_PENETRATION,Penetration,Durchschlag
+UNIT_L_HITS_TO_DESTROY,Hits to knock out,Treffer bis zum Ausfall
+UNIT_L_DAMAGE_PER_HIT,Damage per hit,Schaden je Treffer
+UNIT_L_HITS_PER_SOLDIER,Hits per soldier,Treffer je Soldat
+UNIT_L_AUTOMATIC,Automatic weapons,Automatische Waffen
+UNIT_L_BLAST_RADIUS,Fragment radius,Splitterradius
+UNIT_L_SOLDIERS_PER_MIN,Soldiers per minute,Soldaten je Minute
+UNIT_L_WEAPON,Weapon,Waffe
+UNIT_L_RANGE,Range,Reichweite
+UNIT_L_SETUP,Setup time,Aufbauzeit
+UNIT_L_ROUNDS_PER_MIN,Rounds per minute,Schuss je Minute
+UNIT_L_DIRECT_HIT,Direct hit,Volltreffer
+UNIT_L_SMOKE,Smoke shells,Nebelgranaten
+UNIT_L_SIGHT,Sight,Sichtweite
+UNIT_L_AMMO,Ammunition,Munition
+UNIT_L_FUEL,Fuel,Kraftstoff
+UNIT_L_SQUAD,Squad size,Truppstärke
+UNIT_L_CREW,Crew,Besatzung
+UNIT_L_SEATS,Seats,Sitzplätze
+UNIT_L_MIN_CALIBER,Minimum caliber,Mindestkaliber
+UNIT_L_CRUSHABLE,Run over from,Überrollbar ab
+UNIT_L_INCOME,Income per minute,Einkommen je Minute
+UNIT_L_PRODUCES,Produces,Produziert
+UNIT_L_REQUIRES,Requires,Benötigt
+UNIT_V_REAL_GAME,{real} real · {game} in the game,{real} real · {game} im Spiel
+UNIT_V_GAME,{game} in the game,{game} im Spiel
+UNIT_V_REAL,{real} real,{real} real
+UNIT_V_RANGE,{game} m in the game ({real} m real),{game} m im Spiel ({real} m real)
+UNIT_V_FUEL,{game} m in the game ({real} km real),{game} m im Spiel ({real} km real)
+UNIT_V_CASEMATE,{deg}° (casemate),{deg}° (Kasematte)
+UNIT_V_OF_SPEED,{pct} % of the speed,{pct} % vom Tempo
+UNIT_V_GRADE,"up to {pct} %, there {speed} % of the speed","bis {pct} %, dort {speed} % vom Tempo"
+UNIT_V_NOTHING,nothing,nichts
+UNIT_V_SOLDIERS,{hp} ({n} × {each}),{hp} ({n} × {each})
+UNIT_V_EFFECTIVE,{mm} mm at {deg}° slope,{mm} mm bei {deg}° Neigung
+UNIT_V_NO_ARMOR,none: every hit counts,keine: jeder Treffer wirkt
+UNIT_V_FRAGMENTS_YES,vulnerable,verwundbar
+UNIT_V_FRAGMENTS_NO,direct hit only,nur direkter Treffer
+UNIT_V_PER_SOLDIER,{n} per soldier,{n} je Soldat
+UNIT_V_ALWAYS,always,immer
+UNIT_V_PEN_AT,{mm} mm at {m} m,{mm} mm auf {m} m
+UNIT_V_ONLY_WITHIN,within {m} m,erst ab {m} m
+UNIT_V_DAMAGE_SOLDIER,{damage} (a soldier has {hp} hit points),{damage} (ein Soldat hat {hp} Trefferpunkte)
+UNIT_V_AUTOMATIC,"{n}, together {rounds} rounds per minute","{n}, zusammen {rounds} Schuss je Minute"
+UNIT_V_IF_ALL_HIT,{n} (if every round hits),{n} (wenn jeder Schuss trifft)
+UNIT_V_NO_EFFECT,No effect: below the minimum caliber of {mm} mm.,Wirkungslos: unter dem Mindestkaliber von {mm} mm.
+UNIT_V_RANGE_INDIRECT,{min}–{max} m in the game ({real} m real),{min}–{max} m im Spiel ({real} m real)
+UNIT_V_DIRECT_HIT,"{damage} damage, goes through roofs up to {mm} mm","{damage} Schaden, durchschlägt Dächer bis {mm} mm"
+UNIT_V_SALVOS,{n} salvos,{n} Salven
+UNIT_V_SALVOS_MIN,"{n} salvos, {min} min of sustained fire","{n} Salven, {min} min Dauerfeuer"
+UNIT_V_INDESTRUCTIBLE,cannot be shot down,nicht zu zerschießen
+UNIT_V_CRUSH_FROM,{t} t vehicle mass,{t} t Fahrzeugmasse
+UNIT_V_COST,fuel {fuel} · ammunition {ammo} · manpower {manpower},Treibstoff {fuel} · Munition {ammo} · Personal {manpower}
+UNIT_V_QUOTE,“%s”,„%s“
+UNIT_V_TURNS_ON_SPOT,turns on the spot,dreht auf der Stelle
+UNIT_U_HP,hp,PS
+UNIT_T_REFERENCE_WEAPON,Comparison weapon,Vergleichswaffe
+UNIT_T_HULL_FRONT,Hull front,Wanne Front
+UNIT_T_TURRET_FRONT,Turret front,Turm Front
+UNIT_T_FRONT,Front,Front
+UNIT_T_SIDE,Side,Seite
+UNIT_T_REAR,Rear,Heck
+UNIT_T_HITS,Hits,Treffer
+UNIT_T_WEAPON,Weapon,Waffe
+UNIT_T_RANGE,Range,Reichweite
+UNIT_T_ROUNDS_MIN,Rounds/min,Schuss/min
+UNIT_T_TARGET,Target,Ziel
+UNIT_T_OBJECT,Object,Objekt
+UNIT_T_HIT_POINTS,Hit points,Trefferpunkte
+UNIT_T_HITS_TO_COLLAPSE,Hits to collapse,Treffer bis zum Einsturz
+UNIT_T_ASSEMBLY,Assembly,Baugruppe
+UNIT_NOTE_VERSUS,"Up to which real distance the weapon gets through that face (no spread, straight impact); “–” = never, “always” = at its whole range. Hits = penetrating hits to knock it out.","Bis zu welcher realen Entfernung die Waffe die Seite durchschlägt (ohne Streuung, senkrechter Aufprall); „–“ = nie, „immer“ = auf ihre ganze Reichweite. Treffer = durchschlagende Treffer bis zum Ausfall."
+UNIT_NOTE_PENETRATION,Penetration of a vertical plate by real distance; dimmed = beyond the weapon's range. Shaped charges lose nothing.,Durchschlag gegen eine senkrechte Platte nach realer Entfernung; abgeblendet = jenseits der Reichweite der Waffe. Hohlladungen verlieren nichts.
+UNIT_NOTE_DUEL,Whether it gets through the target's hull at {m} m real.,Ob sie die Wanne des Ziels auf {m} m real durchschlägt.
+UNIT_NOTE_BASE,"Base values on dry ground, without experience and weather. Rules and so the game values are provisional and change with balancing.","Grundwerte bei trockenem Boden, ohne Erfahrung und Wetter. Regeln und damit Spielwerte sind vorläufig und ändern sich mit dem Balancing."
+UNIT_NOTE_NO_RECORD,The vehicle database has no entry for this unit.,Für diese Einheit gibt es keinen Eintrag in der Fahrzeugdatenbank.
+UNIT_NOTE_TECH_ARMOR,"Thickness and angle from the horizontal (90° = vertical), as in the source.","Dicke und Winkel gegen die Waagerechte (90° = senkrecht), wie in der Quelle."
+UNIT_NOTE_SOURCE_WORDING,* Wording of the source: %s.,* Wortlaut der Quelle: %s.
+UNIT_NOTE_SOURCE_NOTES,Notes of the source: %s,Anmerkungen der Quelle: %s
+UNIT_NOTE_CATALOG_RULES,"Where the database differs from the game values, the game uses its catalog.","Wo die Datenbank von den Spielwerten abweicht, gilt im Spiel der Katalog."
+UNIT_NOTE_SOURCE,"Source: {name}, retrieved {date}","Quelle: {name}, abgerufen am {date}"
+UNIT_NOTE_SOURCE_REFS,; literature there: %s,; Literatur dort: %s
+UNIT_SECTION_GENERAL,General,Allgemein
+UNIT_SECTION_FIREPOWER,Firepower,Feuerkraft
+UNIT_SECTION_MOBILITY,Mobility,Beweglichkeit
+UNIT_SECTION_ARMOR,Armor,Panzerung
+UNIT_FACE_FRONT,Front,Front
+UNIT_FACE_SIDE,Side,Seite
+UNIT_FACE_REAR,Rear,Heck
+UNIT_FACE_TOP_BOTTOM,Roof / floor,Dach / Boden
+UNIT_PART_HULL,Hull,Wanne
+UNIT_PART_HULL_UPPER,Upper hull,Wanne oben
+UNIT_PART_HULL_LOWER,Lower hull,Wanne unten
+UNIT_PART_SUPERSTRUCTURE,Superstructure,Aufbau
+UNIT_PART_TURRET,Turret,Turm
+UNIT_PART_MAIN_TURRET,Main turret,Hauptturm
+UNIT_PART_UPPER_TURRET,Upper turret,Oberer Turm
+UNIT_PART_LOWER_TURRET,Lower turret,Unterer Turm
+UNIT_PART_GUN_TURRETS,Gun turrets,Geschütztürme
+UNIT_PART_MG_TURRETS,MG turrets,MG-Türme
+UNIT_PART_MANTLET,Mantlet,Blende
+UNIT_PART_GUN_SHIELD,Gun shield,Schild
+UNIT_FIELD_DESIGNATION,Designation,Bezeichnung
+UNIT_FIELD_OTHER_DESIGNATIONS,Other designations,Weitere Bezeichnungen
+UNIT_FIELD_MANUFACTURER,Manufacturer,Hersteller
+UNIT_FIELD_PRODUCTION_QUANTITY,Number built,Stückzahl
+UNIT_FIELD_PRODUCTION_PERIOD,Production period,Bauzeitraum
+UNIT_FIELD_CREW,Crew,Besatzung
+UNIT_FIELD_LENGTH_MM,Length overall,Länge über alles
+UNIT_FIELD_LENGTH_HULL_MM,Hull length,Wannenlänge
+UNIT_FIELD_WIDTH_MM,Width,Breite
+UNIT_FIELD_WIDTH_SKIRTS_MM,Width with skirts,Breite mit Schürzen
+UNIT_FIELD_HEIGHT_MM,Height,Höhe
+UNIT_FIELD_BARREL_OVERHANG_MM,Barrel overhang,Rohrüberstand
+UNIT_FIELD_MASS_KG,Combat weight,Gefechtsgewicht
+UNIT_FIELD_RADIO,Radio,Funkgerät
+UNIT_FIELD_MAIN_GUN,Main armament,Hauptbewaffnung
+UNIT_FIELD_MAIN_GUN_CALIBER_MM_X10,Caliber,Kaliber
+UNIT_FIELD_MAIN_GUN_LENGTH_CAL_X10,Barrel length,Rohrlänge
+UNIT_FIELD_MAIN_AMMO,Main gun rounds,Munition Hauptwaffe
+UNIT_FIELD_TRAVERSE_DEG,Traverse,Seitenrichtbereich
+UNIT_FIELD_TRAVERSE_DRIVE,Traverse drive,Richtantrieb
+UNIT_FIELD_ELEVATION_MIN_DEG_X10,Elevation from,Höhenrichtbereich von
+UNIT_FIELD_ELEVATION_MAX_DEG_X10,Elevation to,Höhenrichtbereich bis
+UNIT_FIELD_TRAVERSE_TIME_360_S,Turret turn 360°,Turmdrehung 360°
+UNIT_FIELD_SIGHT,Gun sight,Zieloptik
+UNIT_FIELD_SECONDARY,Secondary armament,Nebenbewaffnung
+UNIT_FIELD_SECONDARY_AMMO,Secondary rounds,Munition Nebenwaffen
+UNIT_FIELD_ENGINE,Engine,Motor
+UNIT_FIELD_ENGINE_TYPE,Type,Bauart
+UNIT_FIELD_DISPLACEMENT_CC,Displacement,Hubraum
+UNIT_FIELD_POWER_HP,Power,Leistung
+UNIT_FIELD_POWER_RPM,at,bei Drehzahl
+UNIT_FIELD_POWER_TO_WEIGHT_HP_PER_T_X10,Power to weight,Leistungsgewicht
+UNIT_FIELD_GEARBOX,Gearbox,Getriebe
+UNIT_FIELD_GEARS_FORWARD,Forward gears,Vorwärtsgänge
+UNIT_FIELD_GEARS_REVERSE,Reverse gears,Rückwärtsgänge
+UNIT_FIELD_FUEL,Fuel,Kraftstoff
+UNIT_FIELD_FUEL_CAPACITY_L,Fuel capacity,Tankinhalt
+UNIT_FIELD_CONSUMPTION_ROAD_L_PER_100KM,Consumption on road,Verbrauch Straße
+UNIT_FIELD_CONSUMPTION_OFFROAD_L_PER_100KM,Consumption cross-country,Verbrauch Gelände
+UNIT_FIELD_RANGE_ROAD_KM,Range on road,Reichweite Straße
+UNIT_FIELD_RANGE_OFFROAD_KM,Range cross-country,Reichweite Gelände
+UNIT_FIELD_SPEED_ROAD_KMH_X10,Speed on road,Geschwindigkeit Straße
+UNIT_FIELD_SPEED_OFFROAD_KMH_X10,Speed cross-country,Geschwindigkeit Gelände
+UNIT_FIELD_SPEED_WATER_KMH_X10,Speed in water,Geschwindigkeit im Wasser
+UNIT_FIELD_TRACK_WIDTH_MM,Track width,Kettenbreite
+UNIT_FIELD_TRACK_GROUND_CONTACT_MM,Track on ground,Kettenauflage
+UNIT_FIELD_TRACK_LINKS,Links per track,Kettenglieder je Kette
+UNIT_FIELD_GROUND_PRESSURE_PSI_X10,Ground pressure (psi),Bodendruck (psi)
+UNIT_FIELD_GROUND_PRESSURE_KPA_X10,Ground pressure,Bodendruck
+UNIT_FIELD_GROUND_CLEARANCE_MM,Ground clearance,Bodenfreiheit
+UNIT_FIELD_TURNING_RADIUS_MM,Turning radius,Wendekreis
+UNIT_FIELD_GRADIENT_DEG,Gradient,Steigfähigkeit
+UNIT_FIELD_VERTICAL_OBSTACLE_MM,Vertical obstacle,Kletterfähigkeit
+UNIT_FIELD_FORDING_MM,Fording depth,Watfähigkeit
+UNIT_FIELD_TRENCH_CROSSING_MM,Trench crossing,Grabenüberschreitung
+UNIT_CAT_INF_RIFLE,Rifle squad,Schützengruppe
+UNIT_CAT_INF_LMG,Light MG team,lMG-Trupp
+UNIT_CAT_INF_HMG,Heavy MG team,sMG-Trupp
+UNIT_CAT_INF_MORTAR_LIGHT,Light mortar,Leichter Granatwerfer
+UNIT_CAT_INF_MORTAR_MEDIUM,Medium mortar,Mittlerer Granatwerfer
+UNIT_CAT_INF_RECON,Scout team,Spähtrupp
+UNIT_CAT_INF_SNIPER,Snipers,Scharfschützen
+UNIT_CAT_INF_MEDIC,Medics,Sanitäter
+UNIT_CAT_INF_ENGINEER,Engineers,Pioniere
+UNIT_CAT_INF_AT,Anti-tank team,Panzerabwehrtrupp
+UNIT_CAT_INF_FLAMETHROWER,Flamethrower,Flammenwerfer
+UNIT_CAT_INF_COMMAND,Command team,Führungstrupp
+UNIT_CAT_INF_CREW,Crew,Besatzung
+UNIT_CAT_TANK_LIGHT,Light tank,Leichter Panzer
+UNIT_CAT_TANK_MEDIUM,Medium tank,Mittlerer Panzer
+UNIT_CAT_TANK_HEAVY,Heavy tank,Schwerer Panzer
+UNIT_CAT_TANK_DESTROYER,Tank destroyer,Jagdpanzer
+UNIT_CAT_ASSAULT_GUN,Assault gun,Sturmgeschütz
+UNIT_CAT_HALFTRACK,Halftrack,Halbkette
+UNIT_CAT_TRUCK,Truck,Lkw
+UNIT_CAT_RECON_VEHICLE,Scout car,Spähwagen
+UNIT_CAT_SELF_PROPELLED,Self-propelled gun,Selbstfahrlafette
+UNIT_CAT_BRIDGELAYER,Bridge-laying tank,Brückenleger
+UNIT_CAT_GUN_AT,Anti-tank gun,Pak
+UNIT_CAT_GUN_AA_LIGHT,Light anti-aircraft gun,Leichte Flak
+UNIT_CAT_GUN_AA_HEAVY,Heavy anti-aircraft gun,Schwere Flak
+UNIT_CAT_GUN_HOWITZER,Howitzer,Haubitze
+UNIT_CAT_MORTAR_HEAVY,Heavy mortar,Schwerer Granatwerfer
+UNIT_CAT_FORT_BUNKER,Bunker,Bunker
+UNIT_CAT_FORT_TRENCH,Trench,Graben
+UNIT_CAT_FORT_SANDBAG,Sandbag position,Sandsackstellung
+UNIT_CAT_FORT_OBSTACLE,Obstacle,Sperre
+UNIT_CAT_FORT_WIRE,Barbed wire,Stacheldraht
+UNIT_CAT_FORT_MINEFIELD_AT,Anti-tank minefield,Panzerminenfeld
+UNIT_CAT_FORT_MINEFIELD_AP,Anti-personnel minefield,Schützenminenfeld
+UNIT_CAT_AIRCRAFT_FIGHTER,Fighter,Jäger
+UNIT_CAT_AIRCRAFT_ATTACK,Ground-attack aircraft,Schlachtflugzeug
+UNIT_CAT_AIRCRAFT_BOMBER,Bomber,Bomber
+UNIT_CAT_AIRCRAFT_RECON,Reconnaissance aircraft,Aufklärer
+UNIT_CAT_AIRCRAFT_TRANSPORT,Transport aircraft,Transporter
+UNIT_CAT_BASE,Base building,Basisgebäude

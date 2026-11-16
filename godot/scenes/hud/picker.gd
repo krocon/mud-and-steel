@@ -9,7 +9,14 @@ extends VBoxContainer
 ## backdrop, name, costs (fuel, ammunition, manpower), build time, hotkey,
 ## a count of queued orders or construction sites and the progress of the
 ## first as a bar over the picture. Unavailable tiles are dimmed with the
-## reason. The tooltip lists catalog values (`SimHost.catalog_card`).
+## reason.
+##
+## Prompt 066: every tile shows the five ratings of its unit type as a
+## strip of symbols with steps (`rating_bars.gd`); the tooltip names the
+## type, its ratings with their numbers, a few game values and what it is
+## good against and vulnerable to (`unit_stats.gd`, from
+## `SimHost.unit_stats`; base buildings keep their catalog values). A right
+## click on a tile asks for the unit card (`info_requested`).
 ##
 ## Tabs group the tiles by kind: base buildings, other placeable things
 ## (defense), then by catalog group: infantry, vehicles, guns, aircraft.
@@ -20,15 +27,23 @@ extends VBoxContainer
 ## sends the order through `SimHost` (the simulation checks it again).
 
 signal picked(option: Dictionary)
+## Right click on a tile: show the unit card of this catalog id.
+signal info_requested(id: String)
 
 const Thumbnail := preload("res://scenes/hud/thumbnail.gd")
 const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
 const Language := preload("res://scenes/menu/language.gd")
+const UnitStats := preload("res://scenes/hud/unit_stats.gd")
+const RatingBars := preload("res://scenes/hud/rating_bars.gd")
 ## Pixel sizes at UI scale 1 (prompt 043 will scale the whole HUD).
-const TILE := Vector2(116, 124)
+const TILE := Vector2(116, 138)
 const PICTURE_HEIGHT := 77.0
 const COLUMNS := 4
 const VISIBLE_ROWS := 2
+## Below this window height (in interface pixels) one row shows and the
+## rest scrolls: two rows of tiles with ratings (prompt 066) push the
+## docked menus out of a window 720 pixels high.
+const TWO_ROWS_FROM_HEIGHT := 800.0
 const GAP := 4
 ## Tab id, label (translation key); in this order.
 const TABS: Array[Array] = [
@@ -99,6 +114,7 @@ func set_options(title: String, options: Array, counts: Dictionary, progress: Di
 	# Rebuilt only when the tab or the list changed, so a click is never
 	# lost; costs, blocks, counts and progress update in place.
 	_update_tiles()
+	_fit_rows()
 
 
 func _update_tiles() -> void:
@@ -223,15 +239,26 @@ func _rebuild_tiles() -> void:
 		_grid.add_child(tile)
 		tiles[int(shown[i].type)] = tile
 	_update_tiles()
-	var rows := ceili(float(shown.size()) / COLUMNS)
-	_scroll.custom_minimum_size = Vector2(
-			COLUMNS * TILE.x + (COLUMNS - 1) * GAP,
-			mini(rows, VISIBLE_ROWS) * (TILE.y + GAP) - GAP)
+	_fit_rows()
+
+
+## Height of the tile area: the rows of the open tab, at most
+## `VISIBLE_ROWS` (one in a low window).
+func _fit_rows() -> void:
+	var rows := ceili(float(tiles.size()) / COLUMNS)
+	var room := VISIBLE_ROWS
+	if is_inside_tree() and get_viewport_rect().size.y < TWO_ROWS_FROM_HEIGHT:
+		room = 1
+	var wanted := Vector2(COLUMNS * TILE.x + (COLUMNS - 1) * GAP, mini(rows, room) * (TILE.y + GAP) - GAP)
+	if _scroll.custom_minimum_size != wanted:
+		_scroll.custom_minimum_size = wanted
 
 
 func _make_tile(option: Dictionary, index: int) -> Button:
 	var id := str(option.id)
-	var tile := Button.new()
+	var tile := Tile.new()
+	tile.picker = self
+	tile.option = option
 	tile.name = "Tile_" + id
 	tile.custom_minimum_size = TILE
 	tile.focus_mode = Control.FOCUS_NONE
@@ -284,6 +311,10 @@ func _make_tile(option: Dictionary, index: int) -> Button:
 	var cost := _label("", 11, MenuTheme.TEXT_DIM)
 	cost.name = "Cost"
 	_place(tile, cost, Rect2(5, PICTURE_HEIGHT + 22, TILE.x - 10, 16))
+	# The five ratings (prompt 066); empty for base buildings.
+	var ratings := RatingBars.new(RatingBars.Layout.STRIP, UnitStats.ratings(id))
+	ratings.name = "Ratings"
+	_place(tile, ratings, Rect2(3, PICTURE_HEIGHT + 40, TILE.x - 6, RatingBars.STRIP_CELL.y))
 	var reason := _label("", 11, Color(0.95, 0.75, 0.6))
 	reason.name = "Reason"
 	reason.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -293,6 +324,11 @@ func _make_tile(option: Dictionary, index: int) -> Button:
 	tile.set_meta(&"index", index)
 	var tile_option := option
 	tile.pressed.connect(func() -> void: picked.emit(tile_option))
+	tile.gui_input.connect(func(event: InputEvent) -> void:
+		var button := event as InputEventMouseButton
+		if button != null and button.pressed and button.button_index == MOUSE_BUTTON_RIGHT:
+			info_requested.emit(id)
+			tile.accept_event())
 	return tile
 
 
@@ -313,58 +349,73 @@ func _update_tile(tile: Button, option: Dictionary, count: int, progress: float)
 	var signature := "%s|%d|%d|%d|%s|%s" % [option.time, option.fuel, option.ammo, option.manpower, blocked, TranslationServer.get_locale()]
 	if tile.get_meta(&"tooltip_for", "") != signature:
 		tile.set_meta(&"tooltip_for", signature)
-		tile.tooltip_text = _tooltip(option, int(tile.get_meta(&"index", -1)))
+		(tile as Tile).option = option
+		tile.tooltip_text = "\n".join(tooltip_lines(option, int(tile.get_meta(&"index", -1))))
 
 
-func _tooltip(option: Dictionary, index: int) -> String:
-	var card := card_of(str(option.id))
-	var lines: Array[String] = []
-	var title := str(option.name)
-	if not str(card.get("designation", "")).is_empty() and card.designation != title:
-		title += "  (%s)" % card.designation
-	lines.append(title)
-	lines.append(tr("HUD_COST_LINE") % [option.fuel, option.ammo, option.manpower, int(option.time)])
+## The lines of a tile's tooltip (prompt 066): name with designation and
+## year, price, the ratings with their numbers, at most
+## `UnitStats.MAX_TIP_LINES` values, what the type is good against and
+## vulnerable to, the hotkey and why it is blocked. Base buildings have no
+## game value card and list their catalog values instead.
+static func tooltip_lines(option: Dictionary, index: int) -> Array[String]:
+	var id := str(option.id)
+	var card := UnitStats.info(id)
+	var lines: Array[String] = [UnitStats.title_line(id, str(option.name))]
+	lines.append(Language.t("HUD_COST_LINE") % [option.fuel, option.ammo, option.manpower, int(option.time)])
 	if card.get("group", "") == "building":
-		lines.append(tr("HUD_BUILDING_STATS") % [card.hp, card.armor_mm])
+		lines.append(Language.t("HUD_BUILDING_STATS") % [card.hp, card.armor_mm])
 		var income: PackedInt64Array = card.income
 		if income.size() == 3 and (income[0] + income[1] + income[2]) > 0:
-			lines.append(tr("HUD_INCOME") % [income[0], income[1], income[2]])
+			lines.append(Language.t("HUD_INCOME") % [income[0], income[1], income[2]])
 		if not str(card.produces).is_empty():
-			lines.append(tr("HUD_PRODUCES") % Language.code_text("HUD_PRODUCES_", str(card.produces)))
+			lines.append(Language.t("HUD_PRODUCES") % Language.code_text("HUD_PRODUCES_", str(card.produces)))
 		var requires: PackedStringArray = card.requires
 		if not requires.is_empty():
-			lines.append(tr("HUD_REQUIRES") % ", ".join(requires))
-	elif not card.is_empty():
-		var men := tr("HUD_SQUAD_OF") % card.squad_size if int(card.squad_size) > 0 else tr("HUD_CREW") % card.crew
-		var body: Array[String] = [men]
-		if float(card.mass_t) > 0.0:
-			body.append("%.1f t" % card.mass_t)
-		if float(card.speed_road_kmh) > 0.0:
-			body.append(tr("HUD_ROAD_SPEED") % roundi(card.speed_road_kmh))
-		if int(card.passengers) > 0:
-			body.append(tr("HUD_SEATS") % card.passengers)
-		if int(card.year) > 0:
-			body.append(tr("HUD_FROM_YEAR") % card.year)
-		lines.append(" · ".join(body))
-		var hull: PackedInt64Array = card.armor_hull
-		var turret: PackedInt64Array = card.armor_turret
-		if hull.size() == 3 and hull[0] > 0:
-			var armor := tr("HUD_ARMOR_HULL") % [hull[0], hull[1], hull[2]]
-			if turret.size() == 3 and turret[0] > 0:
-				armor += ", " + tr("HUD_ARMOR_TURRET") % [turret[0], turret[1], turret[2]]
-			lines.append(armor + " " + tr("HUD_ARMOR_SIDES"))
-		for w: Dictionary in card.weapons:
-			var text := ("%d× " % w.count if int(w.count) > 1 else "") + str(w.name)
-			if float(w.caliber_mm) > 0.0:
-				text += " (%s mm)" % String.num(w.caliber_mm, 1).trim_suffix(".0")
-			if int(w.range_m) > 0:
-				text += ", " + tr("HUD_EFFECTIVE_RANGE") % w.range_m
-			lines.append(text)
+			lines.append(Language.t("HUD_REQUIRES") % ", ".join(requires))
+	else:
+		var ratings := UnitStats.ratings_line(id)
+		if not ratings.is_empty():
+			lines.append(ratings)
+		lines.append_array(UnitStats.summary_lines(id))
+		var matchup := UnitStats.matchup_line(id)
+		if not matchup.is_empty():
+			lines.append(matchup)
 	if index >= 0 and index < HOTKEYS.size():
-		lines.append(tr("HUD_KEY_ALT") % OS.get_keycode_string(HOTKEYS[index]))
+		lines.append(Language.t("HUD_KEY_ALT") % OS.get_keycode_string(HOTKEYS[index]))
+	lines.append(Language.t("UNIT_TIP_CARD"))
 	if not str(option.blocked).is_empty():
-		lines.append(tr("HUD_NOT_AVAILABLE") % blocked_text(str(option.blocked)))
-	return "\n".join(lines)
+		lines.append(Language.t("HUD_NOT_AVAILABLE") % blocked_text(str(option.blocked)))
+	return lines
+
+
+## The tooltip of a tile as a panel: the lines of `tooltip_lines` with the
+## ratings drawn as bars instead of their text line.
+static func tooltip_panel(option: Dictionary, index: int) -> Control:
+	var id := str(option.id)
+	# Its own opaque panel: the engine's tooltip frame is translucent.
+	var panel := PanelContainer.new()
+	panel.theme = MenuTheme.get_theme()
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override(&"separation", 3)
+	panel.add_child(box)
+	var ratings_text := UnitStats.ratings_line(id)
+	var lines := tooltip_lines(option, index)
+	for i in lines.size():
+		if not ratings_text.is_empty() and lines[i] == ratings_text:
+			var bars := RatingBars.new(RatingBars.Layout.FULL, UnitStats.ratings(id))
+			bars.bar_width = 110.0
+			box.add_child(bars)
+			continue
+		var label := Label.new()
+		label.text = lines[i]
+		label.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+		label.add_theme_font_size_override(&"font_size", MenuTheme.font(14 if i == 0 else 12))
+		label.add_theme_color_override(&"font_color", MenuTheme.ACCENT if i == 0 else MenuTheme.TEXT)
+		label.custom_minimum_size = Vector2(380, 0)
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		box.add_child(label)
+	return panel
 
 
 func _place(tile: Control, child: Control, rect: Rect2) -> void:
@@ -391,3 +442,15 @@ func _badge(text: String) -> Label:
 	style.set_corner_radius_all(3)
 	label.add_theme_stylebox_override(&"normal", style)
 	return label
+
+
+## A tile: a button whose tooltip is a panel with rating bars
+## (`tooltip_panel`).
+class Tile:
+	extends Button
+
+	var picker: Control
+	var option: Dictionary = {}
+
+	func _make_custom_tooltip(_for_text: String) -> Object:
+		return picker.call(&"tooltip_panel", option, int(get_meta(&"index", -1)))
