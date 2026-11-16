@@ -21,7 +21,8 @@ extends Node3D
 ##
 ## `-- --self-test`: loads all models of all categories, checks imports
 ## (shaders, sockets, catalog extras, variants, skeletons, clips), plays every
-## clip and switches through all biomes, quits with 0/1.
+## clip and switches through all biomes, checks that everything buildable
+## has a picker thumbnail (prompt 058), quits with 0/1.
 ## `-- --screenshots <dir> [--category units|infantry|environment] [--focus <id>]
 ## [--yaw <deg>] [--clip <name>]`: saves one screenshot per biome and quits
 ## (needs a window).
@@ -667,6 +668,7 @@ func _run_self_test() -> void:
 	_check_units(errors)
 	_check_infantry(errors)
 	_check_environment(errors)
+	_check_thumbnails(errors)
 	# switch through all categories and biomes, play every clip a few frames
 	for c in CATEGORIES:
 		_set_category(c)
@@ -693,6 +695,23 @@ func _run_self_test() -> void:
 		for e in errors:
 			printerr("self-test: FAIL " + e)
 		get_tree().quit(1)
+
+
+## Every id a player can build or produce has a thumbnail for the picker
+## (`just thumbnails`) and a catalog card for its tooltip (prompt 058).
+func _check_thumbnails(errors: Array[String]) -> void:
+	var ids := SimHost.buildable_ids()
+	if ids.is_empty():
+		errors.append("SimHost.buildable_ids() is empty")
+	var missing: Array[String] = []
+	for id in ids:
+		if not ResourceLoader.exists("res://assets/thumbnails/%s.png" % id):
+			missing.append(id)
+		if SimHost.catalog_card(id).is_empty():
+			errors.append("%s: no catalog card for the picker tooltip" % id)
+	if not missing.is_empty():
+		errors.append("no thumbnail (run `just thumbnails`): " + ", ".join(missing))
+	print("self-test: %d buildable ids, %d with thumbnails" % [ids.size(), ids.size() - missing.size()])
 
 
 func _env_variant_count() -> int:
