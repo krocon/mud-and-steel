@@ -31,6 +31,13 @@
 // terrain.gd from the height range) scree covers slopes between bare earth
 // and rock, and snow lies above `snow_line` on all but the steepest rock.
 //
+// Rule (prompt 071): every texture coordinate of the ground depends on the
+// world position only. Values that depend on the camera (distance, `far`,
+// pixel footprint) only steer weights: cross-fades, fading in and out. A
+// texture scale that followed the camera distance slid the texture over the
+// ground and sheared it into 1 px streaks whenever the camera moved
+// (`just ground-motion` measures it).
+//
 // Layer order: see LAYERS in crates/cli/src/gen_textures.rs.
 shader_type spatial;
 render_mode cull_back;
@@ -43,6 +50,11 @@ const int SHALLOW = 6;
 const int DEEP = 7;
 const int ROCK = 8;
 const int EARTH = 9;
+// Size of the second (rotated) sample of every layer against tiling, as a
+// factor on the layer's tile: near, and far away (from 250 m on); cross-faded
+// between 40 and 250 m.
+const float B_SCALE_NEAR = 1.37;
+const float B_SCALE_FAR = 1.37 * 4.0;
 
 // Map data (set by terrain.gd).
 uniform sampler2D height_tex : filter_nearest, repeat_disable;
@@ -213,20 +225,32 @@ void fragment() {
 			gy = vec2(dot(dpdy, across), dot(dpdy, along));
 		}
 		// Two de-correlated samples: rotated, scaled and (far away) much
-		// larger, blended by noise, so the repeat is hard to see.
-		float scale_b = 1.37 * mix(1.0, 4.0, far);
+		// larger, blended by noise, so the repeat is hard to see. The b
+		// sample has two fixed sizes, cross-faded by `far` (see the rule at
+		// the top: a size that followed the camera slid the texture).
 		float angle_b = i == TRACK ? 0.0 : 1.1 + float(i);
 		vec2 uv_a = q / tile;
-		vec2 uv_b = rotate(q, angle_b) / (tile * scale_b) + vec2(0.31, 0.71) * float(i + 1);
 		vec2 gax = gx / tile;
 		vec2 gay = gy / tile;
-		vec2 gbx = rotate(gx, angle_b) / (tile * scale_b);
-		vec2 gby = rotate(gy, angle_b) / (tile * scale_b);
 		float src = use_biome ? float(layer_source[i]) : float(i);
 		vec4 ca = textureGrad(albedo_array, vec3(uv_a, src), gax, gay);
-		vec4 cb = textureGrad(albedo_array, vec3(uv_b, src), gbx, gby);
 		vec4 na = textureGrad(normal_array, vec3(uv_a, src), gax, gay);
-		vec4 nb = textureGrad(normal_array, vec3(uv_b, src), gbx, gby);
+		vec2 qb = rotate(q, angle_b) / tile;
+		vec2 gbx = rotate(gx, angle_b) / tile;
+		vec2 gby = rotate(gy, angle_b) / tile;
+		vec2 offset_b = vec2(0.31, 0.71) * float(i + 1);
+		vec4 cb = vec4(0.0);
+		vec4 nb = vec4(0.0);
+		if (far < 1.0) {
+			float s = 1.0 / B_SCALE_NEAR;
+			cb += (1.0 - far) * textureGrad(albedo_array, vec3(qb * s + offset_b, src), gbx * s, gby * s);
+			nb += (1.0 - far) * textureGrad(normal_array, vec3(qb * s + offset_b, src), gbx * s, gby * s);
+		}
+		if (far > 0.0) {
+			float s = 1.0 / B_SCALE_FAR;
+			cb += far * textureGrad(albedo_array, vec3(qb * s + offset_b, src), gbx * s, gby * s);
+			nb += far * textureGrad(normal_array, vec3(qb * s + offset_b, src), gbx * s, gby * s);
+		}
 		// The b normal is rotated with its uv; turn it back.
 		vec2 nbxy = rotate(nb.xy * 2.0 - 1.0, -angle_b) * 0.5 + 0.5;
 		nb = vec4(nbxy, nb.zw);

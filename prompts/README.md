@@ -179,7 +179,7 @@ Zeichnungen bleiben Referenz auf dem Rechner.
 
 | Nr. | Prompt | Ziel | Status |
 |-----|--------|------|--------|
-| 071 | [Bodentextur gleitet bei Kamerabewegung](071-bodentextur-gleitet-bei-kamerabewegung.md) | Wandernde Schlieren auf Wiese und Straße beheben: der Maßstab der zweiten Texturabtastung in `terrain.gdshader` hängt vom Kameraabstand ab; zwei feste Maßstäbe überblenden, mit `tools/ground_flicker.py` nachmessen | offen |
+| 071 | [Bodentextur gleitet bei Kamerabewegung](done/071-bodentextur-gleitet-bei-kamerabewegung.md) | Wandernde Schlieren auf Wiese und Straße beheben: der Maßstab der zweiten Texturabtastung in `terrain.gdshader` hängt vom Kameraabstand ab; zwei feste Maßstäbe überblenden, mit `tools/ground_flicker.py` nachmessen | erledigt (zwei feste Maßstäbe überblendet, `just ground-motion`; Wiese gleitet 4,7 → 0,2 Pixel/Bild; offen: Straße im 2–4-Pixel-Band 0,52, Nahbereich aus 068, Demo-Video neu aufnehmen) |
 
 ## Festgelegte Grundsätze
 

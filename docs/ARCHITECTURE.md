@@ -2584,9 +2584,38 @@ purely optical layers.
   about 20–34 % grade and in a few worn patches, rock above about 45 %.
 - **Height blending:** each layer's height (albedo alpha) shifts its weight, so
   grass grows into the edges of a track instead of fading.
-- **Against tiling:** two samples per layer (one rotated and scaled, and much larger
-  in the distance), blended by noise; low-frequency macro noise varies brightness
-  and dry/lush tint across hundreds of meters.
+- **Against tiling:** two samples per layer, blended by noise: the tile itself and a
+  rotated one of 1.37 tiles, which gives way to one of 5.5 tiles between 40 and 250 m
+  camera distance (cross-faded, `B_SCALE_NEAR`/`B_SCALE_FAR`); low-frequency macro
+  noise varies brightness and dry/lush tint across hundreds of meters.
+- **Rule (prompt 071):** every texture coordinate of the ground depends on the world
+  position only; camera distance and pixel footprint only steer weights. Until
+  prompt 071 the rotated sample grew continuously with the camera distance of each
+  pixel: whenever the camera moved, that texture slid over the ground (by up to
+  `|position from the map centre| × 0.011` meters per meter of distance change) and
+  the change of scale across the screen sheared it into 1 px streaks on meadow and
+  road, at every camera distance between 40 and 250 m.
+- **Measuring it:** `just ground-motion [dir] [--png]` records the trailer shots
+  `column_high` (farms) and `survey_ground` (test_large, near a corner) and measures
+  fixed windows of pure ground with `tools/ground_flicker.py`: how far the fine
+  texture slides against the ground (px/frame) and how well consecutive frames match
+  per wavelength band once the ground motion is undone. `--png` records lossless
+  frames; the MJPEG of the default recording dominates the 2–4 px band.
+
+  | Window (lossless, frames 120–149 / 150–179) | Slide before → after | Match 4–8 px | Match 2–4 px |
+  |---|---|---|---|
+  | `column_high` meadow | 4.73 → 0.19 px/frame | 0.60 → 0.96 | 0.33 → 0.76 |
+  | `column_high` road | 1.22 → 0.30 px/frame | 0.59 → 0.90 | 0.05 → 0.52 |
+  | `survey_ground` meadow (corner of 4 km) | 0.11 → 0.11 px/frame | 0.91 → 0.99 | 0.69 → 0.91 |
+
+  Near a corner the old sample changed so fast that it turned into per-pixel noise
+  instead of a sliding pattern, which shows in the 2–4 px band, not in the slide.
+  What is left on the road at 2–4 px is probably gravel detail at the pixel limit,
+  resampled differently at every sub-pixel position (not measured further; a
+  candidate is a small mip bias on the road layer).
+  Cost: two texture reads more per visible layer, only between 40 and 250 m;
+  `just terrain-bench` middle (120 m) 107.5 → 103.3 FPS, the other views and
+  `just bench-view` (high, same session, old against new) unchanged within noise.
 - **Field tracks:** the track layer is sampled in a frame turned along the track
   direction from the `track` raster, so ruts follow curves.
 - **Water:** river beds are darkened and made glossy as a stand-in until prompt 014
