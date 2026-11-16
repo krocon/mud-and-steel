@@ -26,6 +26,8 @@ pub struct OwnUnit {
     pub towing: Option<UnitId>,
     /// Ammunition, fuel and mobility (prompt 036).
     pub stock: StockView,
+    /// Rank index (prompt 050; 0 = recruit).
+    pub rank: u8,
 }
 
 impl OwnUnit {
@@ -93,6 +95,11 @@ pub struct PlayerView {
     pub mines: Vec<sim::MineView>,
     /// Field works: finished ones of everybody, sites of the own team.
     pub works: Vec<sim::WorkView>,
+    /// Own bridge-laying tanks (prompt 055).
+    pub layers: Vec<sim::LayerView>,
+    /// Whether every bridge of the map stands (public: one sees a bridge
+    /// is down), laid bridges after the map's own.
+    pub bridges_intact: Vec<bool>,
     /// Whether and when the player can call a heavy strike (prompt 054).
     pub strike: sim::StrikeOption,
     /// Every called strike (public: smoke, siren, revealed position).
@@ -122,6 +129,7 @@ impl PlayerView {
                     passengers: u.passengers,
                     towing: u.towing,
                     stock: u.stock,
+                    rank: u.experience.rank,
                 });
             } else {
                 let seen = SeenUnit {
@@ -184,6 +192,12 @@ impl PlayerView {
             sources: sim.supply_sources(player),
             mines: sim.mines_for(player),
             works: sim.works_for(player),
+            layers: sim
+                .layers()
+                .into_iter()
+                .filter(|l| l.owner == player)
+                .collect(),
+            bridges_intact: sim.map().bridges().iter().map(|b| b.intact).collect(),
             strike: sim.strike_option(player),
             strikes: sim.strikes(),
         }

@@ -1702,6 +1702,43 @@ the numbers in `data/logistics.toml` (`sim::LogisticsRules`, loaded by
   shows the bars and warnings, `hud/supply_rings.gd` the radii of selected
   sources, `world/base_hud.gd` the Repair and Sell buttons.
 
+## Experience
+
+Prompt 050; the game rules are in [GAME_DESIGN.md](GAME_DESIGN.md#experience-and-ranks-provisional),
+the numbers in `data/experience.toml` (`sim::ExperienceRules`, loaded by
+`Sim::new`, hashed; not part of `SimConfig`, like `data/logistics.toml`).
+
+- **State:** every unit has a `Veterancy` (`sim/experience.rs`):
+  experience in hundredths of a point (small hits add up exactly), kills
+  and vehicle kills. The rank is derived from the points, never stored.
+- **Gain:** `update_experience` runs after `update_logistics`, when the
+  tick's `CombatEvent`s are complete. `Hit` events of kind `Unit` with
+  damage between enemies (`Teams::allied`) are grouped per target; the
+  target's real loss this tick (its hit points at the end of the last tick,
+  kept in `Experience::last_hp`, minus now; no overkill) is shared out by
+  each shooter's damage. `Destroyed` gives the kill; survivors of a damaging
+  hit and (once per game second) suppressed squads get their points.
+  Shooters that are not units (`MINE_SHOOTER`, `AIR_SHOOTER`) are skipped.
+- **Bonuses:** `fire` and `fire_squad` (`sim/combat.rs`) scale the spread
+  by the rank's `dispersion_pct` and the reload of the fired weapon by
+  `reload_pct` (rounded, at least one tick); `near_miss`, shell blasts and
+  air attacks scale the suppression time by `suppression_pct`. Indirect
+  fire reload and anti-aircraft fire are unchanged.
+- **State and saves:** rules and every unit's points and kills are in the
+  state hash (`hash_experience`) and, as serde fields, in saved games; the
+  promotions of the last tick and `last_hp` are derived and not hashed.
+- **Queries:** `UnitSnapshot::experience` (`ExperienceView`: points, rank,
+  kills), `Sim::unit_experience`, `Sim::promotions` (last tick),
+  `Sim::experience_rules`; `Sim::set_unit_experience` for tests and the
+  debug function `SimHost.debug_set_experience` (no command: not in
+  replays). The AI reads the rank through `OwnUnit::rank`.
+- **Presentation** (`bridge/src/experience_funcs.rs`): `unit_ranks`,
+  `unit_vehicle_kills`, `unit_experience(id)`, `rank_names`. The unit panel
+  draws the insignia (`hud/rank_badge.gd`), `world/veterancy_view.gd` the
+  kill rings under the model's `Gun` node (gun origin to `Socket_Muzzle`)
+  and the promotion messages, `infantry_view.gd` re-dresses soldiers when
+  their squad's rank changes (`SoldierLook.apply(.., rank)`).
+
 ## Field works
 
 Prompt 035. Engineer squads (catalog category `inf_engineer`) lay
@@ -1940,6 +1977,114 @@ no exit delay when a dug-in vehicle drives off; strongpoints are neutral
 and all-round (no front); bunkers in strongpoints are map objects
 (`fort_bunker_mg`, garrisoned) placed separately; the trench meshes are
 not cut into the terrain (no hole in the ground mesh).
+
+## Bridges, bridge-laying tanks and camouflage
+
+Prompt 055. Rules: `data/crossings.toml` (`sim::CrossingRules`, loaded by
+`Sim::new` like the works rules, not part of `SimConfig`). Code:
+`crates/sim/src/crossings.rs` (rules, views, events) and
+`crates/sim/src/sim/crossings.rs` (update). Paratroopers and dragged air
+calls extend the air support (`crates/sim/src/sim/air.rs`). Decisions and
+provisional values: `prompts/done/055-bruecken-pioniertechnik-luftlande.md`.
+Rules and state enter the state hash only once one of the rules acted, so
+matches without them keep their hashes.
+
+| Command | Effect |
+|---|---|
+| `LayBridge { units, target }` | Bridge-laying tanks drive to the gap nearest to `target` and lay their bridge across it |
+| `PickUpBridge { units }` | They drive to their laid bridge and take it up once nobody is on it |
+| `SetCamouflage { units, on }` | Vehicles and guns put up (or take off) branches and nets |
+| `CallAirLine { mission, from, to }` | `CallAir` along the dragged line: bombers lay a carpet, transports drop along it |
+
+- **Collapsing decks:** the engineers' demolition calls
+  `Sim::collapse_bridge`: every unit whose center stands on the deck (within
+  `deck_reach_mm` of its height) falls with it. Vehicles and guns are
+  destroyed (passengers by the rules of prompt 034), squads fall into the
+  water (`fall_loss_pct` per soldier). Event `CrossingEvent::Collapsed`,
+  `Fell` per unit.
+- **Swimming and drowning:** before the movement, `update_swimmers` finds
+  every squad whose center lies in deep water (impassable terrain whose name
+  contains "water") and moves it at `speed_mm_per_s` straight to the nearest
+  path cell it may stand on (`search_m`); its orders are dropped while it
+  swims. Every soldier gets a breath of `breath_min_s`..`breath_max_s` (sim
+  RNG) when he falls in and drowns when it runs out in deep water. The squad
+  is ashore when its center reached that cell and nobody is in the water.
+  Applies to paratroopers landing in a river too.
+- **Bridge-laying tanks** (catalog category `bridgelayer`, span and load from
+  `bridge_length_mm` / `bridge_load_kg`): `Sim::find_gap` searches the gap
+  nearest to the target (within `search_m`): a straight line along a
+  path-grid axis over ground the tank cannot stand on (impassable terrain or
+  steeper than the terrain's `max_grade_pct`), whose wet part plus twice
+  `bearing_mm` fits the bridge, with cells the tank can reach before and
+  after it and both ends within `max_grade_pct`. The deck covers the bank
+  cells (abutments), so cells next to the water get no margin from it. The
+  tank drives to `reach_m` before the nearer end, faces the gap and lays
+  the bridge in `lay_s`: `Map::put_laid_bridge` (copy-on-write like a
+  destroyed bridge) adds a bridge without map object (`Bridge::laid_by`,
+  `object = u32::MAX`, deck terrain "road"), `PathGrid::sync_bridge` takes
+  over its cells and railing direction (a new load limit adds a load tier
+  and labels every component grid again), units plan again. Every tank has
+  one slot in `Map::bridges` and lays there again after `PickUpBridge`
+  (`pickup_s`, waits while units stand on the deck). Engineers may blow a
+  laid bridge up (the tank has lost it) but not repair it.
+- **Camouflage:** `Crossings::camo` per unit: `apply_s` of standing to put
+  it up; the unit then counts how long it stood still and did not fire.
+  After `settle_s`, `hide_camouflaged` (right after the vision update)
+  clears the bit of every hostile player from the unit's seen mask unless a
+  unit of that player (or of an ally whose eyes it shares) is within
+  `seen_pct` of its sight range and has the target's cell in its viewshed.
+  Allies always see it. Targeting, snapshots and the AI's view follow the
+  mask.
+- **Paratroopers:** `AirMission::Airborne` (`data/air.toml`: mission
+  `airborne`, `[airborne]`): transport aircraft (`aircraft_transport`, seats
+  = catalog `passengers`) fly like the others and release their sticks
+  where bombers release bombs (no lead). A stick is a `Para`: the
+  faction's first unit type of `airborne.category` in the match, sinking at
+  `descent_mm_per_s` from the release altitude to a landing point scattered
+  by `scatter_m` (triangular). On landing it becomes a squad
+  (`Sim::spawn_unit`; next to roofs and walls if it would land on them).
+  `Sim::parachutes(player)` lists the sticks in the air (to the player's
+  team, or over ground the player sees).
+- **Dragged air calls:** `order_air_line` aims the track along the line
+  through its middle; bombers spread their bombs evenly over at most
+  `bombs.carpet_max_m`, transports drop one stick at each point of the line.
+
+### State, snapshot, bridge and Godot
+
+Jobs, bridge slots, swimmers with their breath, camouflage timers and
+sticks in the air are fields of `Sim` (saved games); laid bridges are part
+of the map and saved in `MapDelta::laid` (index and deck), restored before
+the intact flags (`crates/net/tests/snapshot_crossings.rs`). Queries:
+`crossing_events`, `find_gap`, `layers`, `layer_gap`, `swimmers`,
+`parachutes`, `camouflage_of`, `camouflage_hides`, `is_bridgelayer_type`,
+`can_camouflage_type`, `type_of_unit`. `crates/bridge/src/crossing_funcs.rs`:
+`lay_bridge`, `pick_up_bridge`, `bridge_gap`, `is_bridgelayer`,
+`bridge_layers`, `bridge_decks`, `set_camouflage`, `can_camouflage`,
+`camouflage_state`, `vehicle_camouflage_units`, `swimming_units`, `parachutes`,
+`call_air_line`, `air_carpet_max_m`, `take_crossing_events`. `SimHost.bridges`
+(prompt 014) leaves laid bridges out. `world/crossing_view.gd` breaks a
+collapsing deck into tumbling pieces with splashes, swings the carried
+bridge (`Bridge` object of the model, not merged by `unit_merge.gd`) open
+while it is laid, hides it while laid and draws the laid treadway deck,
+puts branches or a net on camouflaged units, draws the sticks under their
+canopies and lifts swimming soldiers to the water surface
+(`infantry_view.gd` asks it). `selection/crossing_orders.gd` and three
+command bar buttons (Lay bridge, Take up, Camouflage); the air bar has a
+fifth mission and aims by dragging. Tests: `crates/sim/tests/crossings.rs`,
+`crates/ai/tests/bridgelayer.rs`, `tools/crossing_self_test.gd`.
+
+### Open
+
+- Provisional values in `data/crossings.toml` and the airborne rules in
+  `data/air.toml`; catalog values of the bridge-laying tanks and transports
+  from memory (marked uncertain).
+- Shells and bombs do not destroy bridges; paratroopers under their
+  canopies cannot be shot; swimmers still fire; no dedicated paratrooper
+  squads (the rifle squad jumps) and no gliders; the US has no bridge-laying
+  tank.
+- Laid bridges only along the 4 m path grid axes; ditches are found by
+  slope only; the laid deck is drawn as a treadway, not as the unfolded kit
+  model.
 
 ## Victory conditions and game flow
 

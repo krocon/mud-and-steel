@@ -733,3 +733,317 @@ source = [
 ]
 uncertain = ["length_mm", "width_mm", "height_mm"]
 note = "One truncated concrete pyramid on its footing. Real teeth varied from below 1 m to about 1.5 m with the row; 1.2 m base and height is a judgement value. One tooth per 1.5 m of an ordered line (data/works.toml, prompt 052)."
+
+# --- Prompt 059: desert village (houses, compounds, mosque, police post, props) ---
+
+[[unit]]
+id = "env_house_desert_hut"
+faction = "neutral"
+category = "env_building"
+name_de = "Lehmhaus, ein Raum (Nordafrika)"
+name_en = "Mud-brick house, one room (North Africa)"
+tier = 1
+model = "assets/models/neutral/env_house_desert_hut.glb"
+length_mm = 5000
+width_mm = 4000
+height_mm = 3200
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Adobe", covers = "adobe brick construction, flat roofs on timber beams" },
+    { ref = "https://en.wikipedia.org/wiki/Mudbrick", covers = "material only" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "One room of about 4 x 3 m inside, flat earth roof on palm-trunk beams, low parapet. Judgement values after period photographs of Libyan and Tunisian villages; no specific building."
+
+[[unit]]
+id = "env_house_desert_two"
+faction = "neutral"
+category = "env_building"
+name_de = "Lehmhaus, zwei Räume"
+name_en = "Mud-brick house, two rooms"
+tier = 1
+model = "assets/models/neutral/env_house_desert_two.glb"
+length_mm = 8000
+width_mm = 4500
+height_mm = 3300
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Adobe", covers = "adobe construction; room spans limited by roof beams (about 3-4 m)" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Two rooms in a row, room depth limited by the palm or timber roof beams (about 3.5 m). Judgement values."
+
+[[unit]]
+id = "env_house_desert_long"
+faction = "neutral"
+category = "env_building"
+name_de = "Lehmhaus, drei Räume"
+name_en = "Mud-brick house, three rooms"
+tier = 1
+model = "assets/models/neutral/env_house_desert_long.glb"
+length_mm = 12000
+width_mm = 5000
+height_mm = 3400
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Adobe", covers = "adobe construction; room spans limited by roof beams" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Three rooms in a row along the courtyard, one door per room. Judgement values."
+
+[[unit]]
+id = "env_house_desert_corner"
+faction = "neutral"
+category = "env_building"
+name_de = "Lehmhaus, L-Form"
+name_en = "Mud-brick house, L-shaped"
+tier = 1
+model = "assets/models/neutral/env_house_desert_corner.glb"
+length_mm = 10000
+width_mm = 8000
+height_mm = 3400
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Courtyard_house", covers = "rooms arranged around a walled courtyard" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Two wings at a right angle in the corner of a courtyard; the box is the bounding box of the L. Judgement values."
+
+[[unit]]
+id = "env_house_desert_stair"
+faction = "neutral"
+category = "env_building"
+name_de = "Lehmhaus mit Außentreppe"
+name_en = "Mud-brick house with outside stair"
+tier = 1
+model = "assets/models/neutral/env_house_desert_stair.glb"
+length_mm = 8000
+width_mm = 6000
+height_mm = 3400
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Flat_roof", covers = "flat roofs used as living and drying space, reached by stairs" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Two rooms (5 m deep) with a solid outside stair to the roof along one long wall; width includes the stair. Judgement values."
+
+[[unit]]
+id = "env_house_desert_roofroom"
+faction = "neutral"
+category = "env_building"
+name_de = "Lehmhaus mit Dachkammer"
+name_en = "Mud-brick house with roof room"
+tier = 1
+model = "assets/models/neutral/env_house_desert_roofroom.glb"
+length_mm = 9000
+width_mm = 7000
+height_mm = 6000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Flat_roof", covers = "flat roofs used as living space; small rooms built on the roof" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Single-storey block with a small room and stair head on the roof; height at the roof room parapet. Judgement values."
+
+[[unit]]
+id = "env_house_desert_tall"
+faction = "neutral"
+category = "env_building"
+name_de = "Zweigeschossiges Haus (verputzt)"
+name_en = "Two-storey plastered house"
+tier = 1
+model = "assets/models/neutral/env_house_desert_tall.glb"
+length_mm = 7000
+width_mm = 6000
+height_mm = 6600
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Storey", covers = "storey heights about 3 m" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Two storeys of plastered stone or mud brick, flat roof with parapet. Judgement values."
+
+[[unit]]
+id = "env_house_desert_vault"
+faction = "neutral"
+category = "env_building"
+name_de = "Gewölbehaus"
+name_en = "Barrel-vaulted house"
+tier = 1
+model = "assets/models/neutral/env_house_desert_vault.glb"
+length_mm = 10000
+width_mm = 5000
+height_mm = 4000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Barrel_vault", covers = "barrel vault form" },
+    { ref = "https://en.wikipedia.org/wiki/Djerba", covers = "vaulted whitewashed rural houses (menzel) of southern Tunisia" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Two barrel-vaulted rooms side by side, whitewashed; height at the vault crown. Generic type, no specific building."
+
+[[unit]]
+id = "env_house_desert_large"
+faction = "neutral"
+category = "env_building"
+name_de = "Kaufmannshaus"
+name_en = "Merchant's house"
+tier = 1
+model = "assets/models/neutral/env_house_desert_large.glb"
+length_mm = 13000
+width_mm = 10000
+height_mm = 6800
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Courtyard_house", covers = "larger houses with two storeys around a courtyard" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Two-storey main block and a one-storey wing, roof terrace with parapet. Judgement values."
+
+[[unit]]
+id = "env_house_desert_shop"
+faction = "neutral"
+category = "env_building"
+name_de = "Ladenhaus mit Laubengang"
+name_en = "Shop house with arcade"
+tier = 1
+model = "assets/models/neutral/env_house_desert_shop.glb"
+length_mm = 10000
+width_mm = 6500
+height_mm = 3600
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Arcade_(architecture)", covers = "arcade of arches in front of shops" },
+    { ref = "https://en.wikipedia.org/wiki/Souq", covers = "rows of small shops on a market" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Three small shops behind an arcade of plastered arches (1.5 m deep) on a market square. Judgement values."
+
+[[unit]]
+id = "env_mosque"
+faction = "neutral"
+category = "env_building"
+name_de = "Dorfmoschee mit Minarett"
+name_en = "Village mosque with minaret"
+tier = 1
+model = "assets/models/neutral/env_mosque.glb"
+length_mm = 15000
+width_mm = 11000
+height_mm = 16000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Mosque", covers = "prayer hall, courtyard, minaret" },
+    { ref = "https://en.wikipedia.org/wiki/Minaret", covers = "square minarets of the Maghreb" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Small whitewashed prayer hall with a low dome and a square minaret (height at the minaret top). No writing, symbols or ornaments that carry meaning. Generic type."
+
+[[unit]]
+id = "env_police_post"
+faction = "neutral"
+category = "env_building"
+name_de = "Kolonialer Polizeiposten (Fort)"
+name_en = "Colonial police post (fort)"
+tier = 1
+model = "assets/models/neutral/env_police_post.glb"
+length_mm = 16000
+width_mm = 12000
+height_mm = 9000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Italian_Libya", covers = "Italian colonial administration and outposts in Libya 1912-1943" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Two-storey plastered post with crenellated parapet and a corner watchtower (height at the tower). No insignia, flags or writing. Generic type."
+
+[[unit]]
+id = "env_wall_mud"
+faction = "neutral"
+category = "env_fence"
+name_de = "Hofmauer aus Lehm (Segment)"
+name_en = "Mud courtyard wall (one segment)"
+tier = 1
+model = "assets/models/neutral/env_wall_mud.glb"
+length_mm = 3000
+width_mm = 500
+height_mm = 2200
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Courtyard_house", covers = "walled courtyards" },
+    { ref = "https://en.wikipedia.org/wiki/Adobe", covers = "adobe walls" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "One 3 m segment of a plastered mud-brick courtyard wall, 0.5 m thick, 2.2 m high (variants: low 1.4 m, broken, gate). Judgement values."
+
+[[unit]]
+id = "env_awning"
+faction = "neutral"
+category = "env_prop"
+name_de = "Sonnensegel"
+name_en = "Cloth awning"
+tier = 1
+model = "assets/models/neutral/env_awning.glb"
+length_mm = 3000
+width_mm = 2500
+height_mm = 2300
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Awning", covers = "fabric awnings on poles" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Woven cloth on four wooden poles (variants: wide cloth, palm-frond shelter). Judgement values."
+
+[[unit]]
+id = "env_jars"
+faction = "neutral"
+category = "env_prop"
+name_de = "Tonkrüge"
+name_en = "Clay jars"
+tier = 1
+model = "assets/models/neutral/env_jars.glb"
+length_mm = 1600
+width_mm = 1200
+height_mm = 900
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Amphora", covers = "storage jars" },
+    { ref = "https://en.wikipedia.org/wiki/Waterskin", covers = "water skins" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "A group of unglazed storage jars of 0.5-0.9 m, a water skin. Judgement values."
+
+[[unit]]
+id = "env_well_desert"
+faction = "neutral"
+category = "env_prop"
+name_de = "Brunnen mit Holzgestell"
+name_en = "Well with wooden frame"
+tier = 1
+model = "assets/models/neutral/env_well_desert.glb"
+length_mm = 2400
+width_mm = 2000
+height_mm = 3000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Well", covers = "draw well with masonry curb and pulley frame" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Round masonry curb (1.6 m, 0.8 m high), two posts with a cross beam and pulley, bucket. Judgement values."
+
+[[unit]]
+id = "env_cart_wood"
+faction = "neutral"
+category = "env_prop"
+name_de = "Zweirädriger Holzkarren"
+name_en = "Two-wheeled wooden cart"
+tier = 1
+model = "assets/models/neutral/env_cart_wood.glb"
+length_mm = 3400
+width_mm = 1600
+height_mm = 1300
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Cart", covers = "two-wheeled animal-drawn cart" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Wooden cart with two spoked wheels of about 1.2 m and shafts. Judgement values."
+
+[[unit]]
+id = "env_market_stall"
+faction = "neutral"
+category = "env_prop"
+name_de = "Marktstand"
+name_en = "Market stall"
+tier = 1
+model = "assets/models/neutral/env_market_stall.glb"
+length_mm = 3000
+width_mm = 2000
+height_mm = 2400
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Souq", covers = "market stalls" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Wooden table under a cloth roof with baskets and jars (variant: empty). Judgement values."

@@ -480,6 +480,10 @@ func _update_bridges() -> void:
 	var indices := sim_host.bridge_objects()
 	var hidden := 0
 	for i in intact.size():
+		# Bridges laid by bridge-laying tanks (prompt 055) have no map
+		# object; `crossing_view.gd` draws them.
+		if indices[i] >= 4294967295:
+			continue
 		var was := _bridges_intact[i] if i < _bridges_intact.size() else 1
 		if objects != null and objects.has_method("_instance_transform") and intact[i] != was:
 			objects._instance_transform(indices[i], intact[i] == 0)

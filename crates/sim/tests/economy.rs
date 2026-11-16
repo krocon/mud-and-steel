@@ -425,11 +425,22 @@ fn scripted_production_chain_is_deterministic() {
 
 /// Golden hash of the scripted skirmish (prompt 023): construction,
 /// production, rally points, supply points and the fight of the starting
-/// units. Recorded on macOS ARM64. Last changed by prompt 054 (the rocket
-/// battery position is a fifth base building of the hashed economy rules
-/// and shifts the unit type indices; checked: with the old
-/// `data/economy.toml` the hash stays `0x2f4e_e467_b3e8_4f64`). Before:
+/// units. Recorded on macOS ARM64. Last changed by the merge of prompt 054
+/// with main (the rocket battery position is a fifth base building of the
+/// hashed economy rules and shifts the unit type indices; checked: with
+/// the old `data/economy.toml` the hash stays the one before;
+/// 054 alone `0xd7bb_f247_09d6_e516`). Before (`0xd6cd_83ac_0539_44dd`):
 /// the merge of prompt
+/// 055: the air rules gained paratroopers (see `determinism.rs`) and the
+/// vehicle works produce bridge-laying tanks (de, su); 055 alone
+/// `0x285b_b16d_4efa_0ea0`. Before (`0x8ce5_3de4_6339_50aa`): prompt 050
+/// (experience
+/// rules and every unit's experience points in the hash; ranked units
+/// shoot more accurately). Before (`0x81bd_862b_c792_ce79`): the merge of prompt 059
+/// (desert village entries in the hashed destruction, infantry and vision
+/// rule tables; the skirmish uses none of them; 059 with 048 alone
+/// `0x787f_c469_8fa2_b0d1`) with 060. Before (`0x2f4e_e467_b3e8_4f64`): the
+/// merge of prompt
 /// 060 (downhill sight rules hashed; see `determinism.rs`; 060 alone
 /// `0x69cf_fbce_474c_7b62`). Before (`0x6316_8c90_a213_4d1c`): prompt 048
 /// (knockdown rules and every soldier's knock-down state in the hash). Before
@@ -450,7 +461,7 @@ fn economy_golden_hash() {
     let sim = run_economy(42, 5000);
     assert_eq!(
         sim.state_hash(),
-        0xd7bb_f247_09d6_e516,
+        0x656a_58c4_9caa_aed9,
         "economy golden hash mismatch: got {:#018x}",
         sim.state_hash()
     );

@@ -1,0 +1,27 @@
+# Small whitewashed village mosque with a square minaret at +X/-Y (prompt 059).
+unit = "env_mosque"
+assembly = "env"
+
+[[variant]]
+name = "Intact"
+part = "mosque"
+role = "intact"
+seed = 1
+
+[[variant]]
+name = "Damaged"
+part = "mosque"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 1
+
+[[variant]]
+name = "Ruin"
+part = "mosque"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 1

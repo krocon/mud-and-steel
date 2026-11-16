@@ -8,7 +8,7 @@ extends Node3D
 ##   (both public, like in the simulation).
 ## - The battery position of an enemy strike is marked (beam and ring) and
 ##   the HUD counts down: destroy it in time and the strike is called off.
-## - The call bar ("Rockets", Shift+5) waits for a left click on the map,
+## - The call bar ("Rockets", Shift+6) waits for a left click on the map,
 ##   like the air bar (prompt 033).
 ## - `launchers()` builds the launch frames that `base_view.gd` puts on the
 ##   battery position's borrowed model.
@@ -416,7 +416,7 @@ class StrikeBar:
 			line = "no battery"
 		button.text = "Rockets\n%s" % line
 		button.disabled = not blocked.is_empty()
-		button.tooltip_text = "Heavy rocket strike (Shift+5): %d rockets within %d m, %d s warning.\nNeeds a rocket battery position; the enemy can destroy it before the salvo.\nFuel %d, ammo %d, manpower %d%s" % [
+		button.tooltip_text = "Heavy rocket strike (Shift+6): %d rockets within %d m, %d s warning.\nNeeds a rocket battery position; the enemy can destroy it before the salvo.\nFuel %d, ammo %d, manpower %d%s" % [
 			int(o["rockets"]), int(o["radius"]), int(o["warning"]), cost[0], cost[1], cost[2],
 			"" if blocked.is_empty() else "\n" + blocked.capitalize()]
 		button.set_pressed_no_signal(pending)
@@ -445,7 +445,7 @@ class StrikeBar:
 
 	func _input(event: InputEvent) -> void:
 		var key := event as InputEventKey
-		if key != null and key.pressed and not key.echo and key.shift_pressed and key.keycode == KEY_5 \
+		if key != null and key.pressed and not key.echo and key.shift_pressed and key.keycode == KEY_6 \
 				and not key.ctrl_pressed and not key.meta_pressed and not key.alt_pressed:
 			if visible and not button.disabled:
 				set_pending(not pending)

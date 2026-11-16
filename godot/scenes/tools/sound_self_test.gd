@@ -195,6 +195,13 @@ func _acoustics(test: Node, main: Node3D, sound: Node3D) -> void:
 	far_at.y = main.sim_host.height_at(far_at.x, far_at.z)
 	var wait: float = acoustics.delay_of(far_at)
 	test._check(absf(wait - 400.0 / 686.0) < 0.02, "a sound 400 m away waits %.2f s" % wait)
+	# Let the loud close shots of the stress part ring out first: a far
+	# shot cannot take a voice from them (it passed before only while the
+	# match's own battle played large guns, prompt 050).
+	var settle := 0
+	while sound.busy_voices().get("cannon", 0) > 0 and settle < 300:
+		settle += 1
+		await test._frames(1)
 	var played_before: int = sound.played.get("shot_cannon_large", 0)
 	var delayed_before: int = acoustics.delayed
 	sound.play_far("shot_cannon_large", far_at)

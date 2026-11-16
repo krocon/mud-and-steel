@@ -45,10 +45,19 @@ pub enum AirMission {
     /// Bombers drop sticks of bombs across the target.
     #[serde(rename = "bomb")]
     Bomb,
+    /// Transport aircraft drop paratroopers over the target (prompt 055).
+    #[serde(rename = "airborne")]
+    Airborne,
 }
 
 impl AirMission {
-    pub const ALL: [Self; 4] = [Self::Recon, Self::Strafe, Self::Attack, Self::Bomb];
+    pub const ALL: [Self; 5] = [
+        Self::Recon,
+        Self::Strafe,
+        Self::Attack,
+        Self::Bomb,
+        Self::Airborne,
+    ];
 
     pub const fn name(self) -> &'static str {
         match self {
@@ -56,6 +65,7 @@ impl AirMission {
             Self::Strafe => "strafe",
             Self::Attack => "attack",
             Self::Bomb => "bomb",
+            Self::Airborne => "airborne",
         }
     }
 
@@ -66,6 +76,7 @@ impl AirMission {
             Self::Strafe => Category::AircraftFighter,
             Self::Attack => Category::AircraftAttack,
             Self::Bomb => Category::AircraftBomber,
+            Self::Airborne => Category::AircraftTransport,
         }
     }
 
@@ -152,6 +163,41 @@ pub struct BombRules {
     pub error_attack_m: u32,
     pub error_bomb_m: u32,
     pub gravity_mm_per_s2: u32,
+    /// Longest bomb carpet aimed by dragging (`Command::CallAirLine`,
+    /// prompt 055).
+    #[serde(default = "default_carpet_max_m")]
+    pub carpet_max_m: u32,
+}
+
+const fn default_carpet_max_m() -> u32 {
+    300
+}
+
+/// Paratroopers (prompt 055): who jumps, how they come down and how far
+/// they scatter.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct AirborneRules {
+    /// Every aircraft drops this many squads of the faction's first unit
+    /// type of `category` in the match (if its seats hold them).
+    pub category: Category,
+    pub squads_per_aircraft: u32,
+    /// Sink rate under the canopy (real; aircraft and parachutes do not use
+    /// the time factor).
+    pub descent_mm_per_s: u32,
+    /// Error of the landing point per axis (triangular).
+    pub scatter_m: u32,
+}
+
+impl Default for AirborneRules {
+    fn default() -> Self {
+        Self {
+            category: Category::InfRifle,
+            squads_per_aircraft: 1,
+            descent_mm_per_s: 5000,
+            scatter_m: 40,
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
@@ -205,6 +251,9 @@ pub struct AirRules {
     pub recon: ReconRules,
     pub flak: Vec<FlakRules>,
     pub flak_rules: FlakCommon,
+    /// Paratroopers (prompt 055).
+    #[serde(default)]
+    pub airborne: AirborneRules,
 }
 
 impl AirRules {
@@ -249,6 +298,7 @@ impl AirRules {
             Category::AircraftFighter,
             Category::AircraftAttack,
             Category::AircraftBomber,
+            Category::AircraftTransport,
         ] {
             if !rules.hp.iter().any(|h| h.category == c) {
                 return Err(AirError(format!("no hp for '{}'", c.code())));
@@ -288,6 +338,22 @@ impl AirRules {
         check("bombs.error_attack_m", b.error_attack_m, 0, 1000)?;
         check("bombs.error_bomb_m", b.error_bomb_m, 0, 1000)?;
         check("bombs.gravity_mm_per_s2", b.gravity_mm_per_s2, 1, 100_000)?;
+        check("bombs.carpet_max_m", b.carpet_max_m, 0, 2000)?;
+        let a = &rules.airborne;
+        if a.category.group() != Group::Infantry {
+            return Err(AirError(format!(
+                "airborne.category '{}' is no infantry",
+                a.category.code()
+            )));
+        }
+        check("airborne.squads_per_aircraft", a.squads_per_aircraft, 1, 4)?;
+        check(
+            "airborne.descent_mm_per_s",
+            a.descent_mm_per_s,
+            1000,
+            20_000,
+        )?;
+        check("airborne.scatter_m", a.scatter_m, 0, 500)?;
         check("recon.sight_real_m", rules.recon.sight_real_m, 100, 20_000)?;
         for class in [FlakClass::Mg, FlakClass::Light, FlakClass::Heavy] {
             if rules.flak.iter().filter(|f| f.class == class).count() != 1 {
@@ -407,9 +473,14 @@ impl AirRules {
             r.sight_real_m,
             f.ref_wingspan_m,
             f.damage_per_mm,
+            b.carpet_max_m,
+            self.airborne.squads_per_aircraft,
+            self.airborne.descent_mm_per_s,
+            self.airborne.scatter_m,
         ] {
             h.write_u32(v);
         }
+        h.write_bytes(self.airborne.category.code().as_bytes());
     }
 }
 
@@ -452,6 +523,9 @@ pub struct AirType {
     pub guns: Vec<AirGun>,
     /// Bombs per aircraft and nominal mass (bombing missions only).
     pub bombs: Option<(u16, u32)>,
+    /// Troop seats (transport aircraft, prompt 055).
+    #[serde(default)]
+    pub seats: u16,
 }
 
 impl AirType {
@@ -493,7 +567,13 @@ impl AirType {
         } else {
             None
         };
+        let seats = if mission == AirMission::Airborne {
+            entry.passengers.unwrap_or(0)
+        } else {
+            0
+        };
         if (mission == AirMission::Strafe && guns.is_empty())
+            || (mission == AirMission::Airborne && seats == 0)
             || (mission == AirMission::Bomb && bombs.is_none())
             || (mission == AirMission::Attack && guns.is_empty() && bombs.is_none())
         {
@@ -510,6 +590,7 @@ impl AirType {
             hp: rules.hp(entry.category),
             guns,
             bombs,
+            seats,
         })
     }
 

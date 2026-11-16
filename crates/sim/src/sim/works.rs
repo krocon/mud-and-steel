@@ -894,7 +894,11 @@ impl Sim {
         } else {
             self.works.rules.bridge.demolish_cost
         };
-        if b.intact == repair || !self.economy.can_pay(player, cost) {
+        // Laid bridges (prompt 055) are taken up by their tank, not rebuilt.
+        if b.intact == repair
+            || (repair && b.laid_by.is_some())
+            || !self.economy.can_pay(player, cost)
+        {
             return;
         }
         let left = self.works.ticks(if repair {
@@ -1662,10 +1666,12 @@ impl Sim {
 
     /// Demolishes or repairs a bridge.
     fn finish_bridge(&mut self, bridge: usize, repair: bool, by: UnitId, owner: PlayerId) {
-        self.set_bridge_intact(bridge, repair);
         if repair {
+            self.set_bridge_intact(bridge, true);
             return;
         }
+        // The deck falls into the river with everybody on it (prompt 055).
+        self.collapse_bridge(bridge, by);
         let b = &self.map.bridges()[bridge];
         let z = (b.height_start + b.height_end) / 2;
         let at = Vec3::new(b.center.x, b.center.y, z);

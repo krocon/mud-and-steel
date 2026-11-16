@@ -39,6 +39,7 @@ uncertain; see the list at the end of each faction.
 | de_opel_blitz | Opel Blitz 3,6-36S / Opel Blitz 3.6-36S truck | Opel Blitz 3.6-36S (3 t, 4x2) | 1937–1945 | 2 | 6.02? × 2.27? × 2.18? | 6.6? | 2 + 16? | 85.0? / 30.0? |  /  |  |
 | de_sdkfz222 | Leichter Panzerspähwagen (2 cm) Sd.Kfz. 222 / Sd.Kfz. 222 light armoured car | Sd.Kfz. 222 | 1936–1945 | 2 | 4.80 × 1.95 × 2.00? | 4.8 | 3 | 80.0 / 40.0? | 30 / 8 | 2 cm KwK 38 L/55 |
 | de_wespe | Leichte Feldhaubitze 18/2 auf Fahrgestell Panzerkampfwagen II (Sf) "Wespe" / Wespe self-propelled howitzer | Sd.Kfz. 124 | 1943–1945 | 2 | 4.81 × 2.28 × 2.30 | 11.0 | 5 | 40.0 / 20.0? | 30? / 10? | 10.5 cm leFH 18/2 L/28? |
+| de_brueckenleger4 | Brückenleger IV b / Brückenleger IV b bridge-laying tank | Brückenleger IV b | 1940–1941 | 2 | 11.00 × 3.00 × 3.54? | 28.0? | 2 | 40.0 / 20.0? | 30 /  |  |
 
 ### Guns
 
@@ -66,6 +67,7 @@ uncertain; see the list at the end of each faction.
 | de_ju87_d5 | Junkers Ju 87 D-5 / Junkers Ju 87 D-5 Stuka | 1943–1945 | 2 | 11.50? × 15.00? × 3.90 | 6585 | 2 | 402.0 | 7300? |
 | de_he111_h16 | Heinkel He 111 H-16 / Heinkel He 111 H-16 | 1942–1945 | 2 | 16.40 × 22.60 × 4.00 | 14000 | 5 | 434.0 | 8500 |
 | de_fi156 | Fieseler Fi 156 C Storch / Fieseler Fi 156 C Storch | 1939–1945 | 2 | 9.91 × 14.25 × 3.05 | 1324 | 2 | 175.0 | 4600 |
+| de_ju52_3m | Junkers Ju 52/3m g4e / Junkers Ju 52/3m g4e | 1936–1945 | 2 | 18.90 × 29.25 × 4.50 | 10500 | 3 | 265.0 | 5500 |
 
 ### Uncertain values
 
@@ -99,6 +101,8 @@ uncertain; see the list at the end of each faction.
 - `de_ju87_d5`: length_mm, wingspan_mm, speed_cruise_kmh_x10, ceiling_m, weapon
 - `de_he111_h16`: power_hp, weapon
 - `de_fi156`: weapon
+- `de_brueckenleger4`: mass_kg, height_mm, speed_offroad_kmh_x10, range_road_km, bridge_length_mm, bridge_load_kg
+- `de_ju52_3m`: speed_cruise_kmh_x10, weapon, passengers
 
 ### Sources
 
@@ -214,6 +218,13 @@ uncertain; see the list at the end of each faction.
   - https://en.wikipedia.org/wiki/Heinkel_He_111 (H-16: empty 6900 kg, loaded 14,000 kg, 434 km/h at 6000 m, cruise 390 km/h, ceiling 8500 m, 2 x Jumo 211F-2, MG 131 nose and dorsal, MG 81Z beams and ventral, 8 ESAC cells; spec block (H-1 data): 16.4 m, 22.6 m, 4.0 m, crew 5, 2000 kg internal bombs)
 - `de_fi156`
   - https://en.wikipedia.org/wiki/Fieseler_Fi_156_Storch (C-2: crew 2, 9.91 m, 14.25 m, 3.05 m, empty 930 kg, gross 1324 kg, 175 km/h at sea level, cruise 130 km/h, ceiling 4600 m, range 390 km, Argus As 10 240 hp, 1 x MG 15)
+- `de_brueckenleger4`
+  - https://en.wikipedia.org/wiki/Br%C3%BCckenleger_IV (bridge-laying tank on the Panzer IV Ausf. C/D chassis by Krupp and Magirus, 20 built in 1940, issued to the engineer companies of the panzer divisions (France 1940, Soviet Union 1941), later rebuilt as tanks; crew 2, about 28 t, 11 m long with the bridge, 3 m wide, 3.54 m high, Maybach HL 120 TRM 300 PS, 40 km/h; bridge 11 m (from memory, not fetched for this entry))
+  - Spielberger, Der Panzerkampfwagen IV und seine Abarten (Motorbuch, Stuttgart 1975), Brückenleger IV (chassis, number built and use (book not consulted for this entry))
+  - https://en.wikipedia.org/wiki/Panzer_IV (Ausf. C/D hull: 5.92 m long, hull front 30 mm, sides and rear 20 mm, range about 200 km on roads)
+- `de_ju52_3m`
+  - https://en.wikipedia.org/wiki/Junkers_Ju_52 (Ju 52/3m g4e: crew 2-3, 17 passengers, 18.9 m, 29.25 m, 4.5 m, max takeoff 10,500 kg, 3 x BMW 132T 725 PS, 265 km/h, cruise 211 km/h, ceiling 5,500 m, 1 x MG 15 dorsal (from memory, not fetched for this entry))
+  - https://en.wikipedia.org/wiki/Fallschirmj%C3%A4ger (Ju 52 as the standard aircraft of the German paratroopers (Crete 1941, Netherlands 1940), sticks of 12-13 jumpers)
 
 ## Soviet Union (`su`)
 
@@ -247,6 +258,7 @@ uncertain; see the list at the end of each faction.
 | su_zis5 | ZiS-5V / ZiS-5V | ZiS-5V 3-ton truck | 1942–1945 | 1 | 6.06 × 2.24 × 2.16 | 3.1? | 1 + 25 | 60.0 / 25.0? |  /  |  |
 | su_ba64b | BA-64B / BA-64B | BA-64B light armored car | 1943–1945 | 2 | 3.66 × 1.74? × 1.90 | 2.4 | 2 | 80.0 / 30.0? | 15 /  | DT |
 | su_isu152 | ISU-152 / ISU-152 | ISU-152 heavy self-propelled gun | 1943–1945 | 2 | 9.18 × 3.07 × 2.48 | 46.0? | 5? | 30.0 / 15.0? | 90 / 90 | 152 mm ML-20S L/29? |
+| su_valentine_bridgelayer | Valentine-Brückenleger (Lend-Lease) / Valentine Bridgelayer (Lend-Lease) | Valentine Bridgelayer | 1943–1945 | 2 | 5.90? × 2.90? × 3.40? | 20.0? | 2 | 24.0 / 13.0? | 60 /  |  |
 
 ### Guns
 
@@ -274,6 +286,7 @@ uncertain; see the list at the end of each faction.
 | su_il2m3 | Il-2M3 / Il-2M3 | 1943–1945 | 2 | 11.65 × 14.60 × 4.17 | 6160? | 2 | 410.0 | 4525 |
 | su_pe2 | Pe-2 / Pe-2 | 1941–1945 | 2 | 12.66 × 17.16 × 3.42 | 7536? | 3 | 540.0? | 8800 |
 | su_po2 | Po-2 / Po-2 | 1929–1945 | 2 | 8.17 × 11.40 × 3.10 | 1030? | 2 | 152.0 | 3000 |
+| su_li2 | Lisunow Li-2 / Lisunov Li-2 | 1940–1945 | 2 | 19.65 × 28.81 × 5.15 | 11280 | 4 | 320.0 | 5600 |
 
 ### Uncertain values
 
@@ -310,6 +323,8 @@ uncertain; see the list at the end of each faction.
 - `su_il2m3`: mass_kg, speed_cruise_kmh_x10, weapon
 - `su_pe2`: mass_kg, speed_max_kmh_x10, power_hp, weapon
 - `su_po2`: mass_kg
+- `su_valentine_bridgelayer`: length_mm, width_mm, height_mm, mass_kg, speed_offroad_kmh_x10, range_road_km
+- `su_li2`: speed_cruise_kmh_x10, weapon, passengers
 
 ### Sources
 
@@ -421,6 +436,13 @@ uncertain; see the list at the end of each faction.
 - `su_po2`
   - https://en.wikipedia.org/wiki/Polikarpov_Po-2 (Specifications, U-2) (crew 2, length 8.17 m, wingspan 11.4 m, height 3.1 m, 1,030 kg gross, M-11D 125 hp, 152 km/h, cruise 110 km/h, ceiling 3,000 m, ShKAS and 6x FAB-50 (U-2VS/LNB))
   - Gordon/Khazanov, Soviet Combat Aircraft of the Second World War, Vol. 1 (Midland 1998) (liaison and night bomber use (not checked online))
+- `su_valentine_bridgelayer`
+  - https://en.wikipedia.org/wiki/Valentine_tank (Valentine Bridgelayer: turretless Valentine II with a 34 ft (10.36 m) scissors bridge, Class 30 (30 long tons), spanning about 30 ft; 25 delivered to the Soviet Union under Lend-Lease; Valentine hull 5.41 m long, 2.63 m wide, armor up to 60 mm, AEC diesel 131 hp, 15 mph road (from memory, not fetched for this entry))
+  - https://en.wikipedia.org/wiki/Lend-Lease (British tanks (Valentine) supplied to the Soviet Union 1941-45)
+  - Fletcher, Valentine Infantry Tank 1938-45 (Osprey New Vanguard 2008), bridgelayer (scissors bridge, Class 30, use by the Red Army (book not consulted for this entry))
+- `su_li2`
+  - https://en.wikipedia.org/wiki/Lisunov_Li-2 (licence-built DC-3: crew 4, 19.65 m, 28.81 m, 5.15 m, max takeoff 11,280 kg, 2 x Shvetsov ASh-62IR 1000 hp, 320 km/h, ceiling 5,600 m, up to 25 troops; military versions with a dorsal turret (from memory, not fetched for this entry))
+  - https://en.wikipedia.org/wiki/Dnieper_Airborne_Operation (Li-2 used to drop Soviet paratroopers (Dnieper 1943))
 
 ## United States (`us`)
 
@@ -481,6 +503,7 @@ uncertain; see the list at the end of each faction.
 | us_p47d | Republic P-47D Thunderbolt / P-47D Thunderbolt | 1943–1945 | 2 | 11.02 × 12.43 × 4.47 | 6001 | 1 | 692.0 | 12800 |
 | us_b25j | North American B-25J Mitchell / B-25J Mitchell | 1943–1945 | 2 | 16.13 × 20.60 × 4.98 | 15880 | 6 | 438.0 | 7380 |
 | us_l4 | Piper L-4 Grasshopper / L-4 Grasshopper | 1942–1945 | 2 | 6.83 × 10.74 × 2.03 | 550 | 2 | 137.0 | 3658 |
+| us_c47 | Douglas C-47 Skytrain / Douglas C-47 Skytrain | 1942–1945 | 2 | 19.43 × 29.11 × 5.18 | 14060 | 4 | 360.0 | 8045 |
 
 ### Uncertain values
 
@@ -514,6 +537,7 @@ uncertain; see the list at the end of each faction.
 - `us_p51d`: mass_kg, speed_cruise_kmh_x10, power_hp
 - `us_p47d`: weapon
 - `us_b25j`: weapon, power_hp
+- `us_c47`: passengers
 
 ### Sources
 
@@ -625,6 +649,9 @@ uncertain; see the list at the end of each faction.
   - https://aero-web.org/museums/mn/pfam/44-86747.htm (B-25J gross weight 35,000 lb, empty 19,480 lb (via search excerpt))
 - `us_l4`
   - https://en.wikipedia.org/wiki/Piper_J-3_Cub (J3C-65: 6.83 m, 10.74 m, 2.03 m, max takeoff 1,220 lb (550 kg), 65 hp; L-4: 85 mph (137 km/h), cruise 75 mph (121 km/h), ceiling 12,000 ft (3,658 m), pilot + 1)
+- `us_c47`
+  - https://en.wikipedia.org/wiki/Douglas_C-47_Skytrain (C-47: crew 4, 28 troops, 63 ft 9 in (19.43 m), 95 ft 6 in (29.11 m), 16 ft 11 in (5.18 m), max takeoff 31,000 lb (14,060 kg), 2 x P&W R-1830 1200 hp, 224 mph (360 km/h), cruise 160 mph (257 km/h), ceiling 26,400 ft (8,045 m), unarmed (from memory, not fetched for this entry))
+  - https://en.wikipedia.org/wiki/Operation_Overlord (C-47 dropping the 82nd and 101st Airborne Divisions (sticks of 15-18 paratroopers))
 
 ## Neutral (`neutral`)
 
@@ -679,6 +706,24 @@ uncertain; see the list at the end of each faction.
 | env_dump_ammo | Munitionslager (Feldstapel) / Ammunition dump (field stacks) | 1 | 6.00? × 4.00? × 1.50? | Two rows of wooden ammunition crates on dunnage, about 1.5 m high |
 | env_dump_fuel | Treibstofflager (Fässer) / Fuel dump (drums) | 1 | 4.80? × 3.60? × 0.90 | Rows of standing 200 l drums with gaps on dunnage |
 | fort_camo_net | Tarnnetz (auf Stangen) / Camouflage net (on poles) | 1 | 8.84? × 8.84? × 2.80? | Garnished drape net of 29 x 29 ft (8.84 m) held by poles about 2.8 m high over a… |
+| env_house_desert_hut | Lehmhaus, ein Raum (Nordafrika) / Mud-brick house, one room (North Africa) | 1 | 5.00? × 4.00? × 3.20? | One room of about 4 x 3 m inside, flat earth roof on palm-trunk beams, low parap… |
+| env_house_desert_two | Lehmhaus, zwei Räume / Mud-brick house, two rooms | 1 | 8.00? × 4.50? × 3.30? | Two rooms in a row, room depth limited by the palm or timber roof beams (about 3… |
+| env_house_desert_long | Lehmhaus, drei Räume / Mud-brick house, three rooms | 1 | 12.00? × 5.00? × 3.40? | Three rooms in a row along the courtyard, one door per room |
+| env_house_desert_corner | Lehmhaus, L-Form / Mud-brick house, L-shaped | 1 | 10.00? × 8.00? × 3.40? | Two wings at a right angle in the corner of a courtyard; the box is the bounding… |
+| env_house_desert_stair | Lehmhaus mit Außentreppe / Mud-brick house with outside stair | 1 | 8.00? × 6.00? × 3.40? | Two rooms (5 m deep) with a solid outside stair to the roof along one long wall;… |
+| env_house_desert_roofroom | Lehmhaus mit Dachkammer / Mud-brick house with roof room | 1 | 9.00? × 7.00? × 6.00? | Single-storey block with a small room and stair head on the roof; height at the … |
+| env_house_desert_tall | Zweigeschossiges Haus (verputzt) / Two-storey plastered house | 1 | 7.00? × 6.00? × 6.60? | Two storeys of plastered stone or mud brick, flat roof with parapet |
+| env_house_desert_vault | Gewölbehaus / Barrel-vaulted house | 1 | 10.00? × 5.00? × 4.00? | Two barrel-vaulted rooms side by side, whitewashed; height at the vault crown |
+| env_house_desert_large | Kaufmannshaus / Merchant's house | 1 | 13.00? × 10.00? × 6.80? | Two-storey main block and a one-storey wing, roof terrace with parapet |
+| env_house_desert_shop | Ladenhaus mit Laubengang / Shop house with arcade | 1 | 10.00? × 6.50? × 3.60? | Three small shops behind an arcade of plastered arches (1.5 m deep) on a market … |
+| env_mosque | Dorfmoschee mit Minarett / Village mosque with minaret | 1 | 15.00? × 11.00? × 16.00? | Small whitewashed prayer hall with a low dome and a square minaret (height at th… |
+| env_police_post | Kolonialer Polizeiposten (Fort) / Colonial police post (fort) | 1 | 16.00? × 12.00? × 9.00? | Two-storey plastered post with crenellated parapet and a corner watchtower (heig… |
+| env_wall_mud | Hofmauer aus Lehm (Segment) / Mud courtyard wall (one segment) | 1 | 3.00? × 0.50? × 2.20? | One 3 m segment of a plastered mud-brick courtyard wall, 0.5 m thick, 2.2 m high… |
+| env_awning | Sonnensegel / Cloth awning | 1 | 3.00? × 2.50? × 2.30? | Woven cloth on four wooden poles (variants: wide cloth, palm-frond shelter) |
+| env_jars | Tonkrüge / Clay jars | 1 | 1.60? × 1.20? × 0.90? | A group of unglazed storage jars of 0.5-0.9 m, a water skin |
+| env_well_desert | Brunnen mit Holzgestell / Well with wooden frame | 1 | 2.40? × 2.00? × 3.00? | Round masonry curb (1.6 m, 0.8 m high), two posts with a cross beam and pulley, … |
+| env_cart_wood | Zweirädriger Holzkarren / Two-wheeled wooden cart | 1 | 3.40? × 1.60? × 1.30? | Wooden cart with two spoked wheels of about 1.2 m and shafts |
+| env_market_stall | Marktstand / Market stall | 1 | 3.00? × 2.00? × 2.40? | Wooden table under a cloth roof with baskets and jars (variant: empty) |
 
 ### Uncertain values
 
@@ -722,6 +767,24 @@ uncertain; see the list at the end of each faction.
 - `env_dump_fuel`: length_mm, width_mm
 - `fort_camo_net`: length_mm, width_mm, height_mm
 - `fort_dragon_teeth`: length_mm, width_mm, height_mm
+- `env_house_desert_hut`: length_mm, width_mm, height_mm
+- `env_house_desert_two`: length_mm, width_mm, height_mm
+- `env_house_desert_long`: length_mm, width_mm, height_mm
+- `env_house_desert_corner`: length_mm, width_mm, height_mm
+- `env_house_desert_stair`: length_mm, width_mm, height_mm
+- `env_house_desert_roofroom`: length_mm, width_mm, height_mm
+- `env_house_desert_tall`: length_mm, width_mm, height_mm
+- `env_house_desert_vault`: length_mm, width_mm, height_mm
+- `env_house_desert_large`: length_mm, width_mm, height_mm
+- `env_house_desert_shop`: length_mm, width_mm, height_mm
+- `env_mosque`: length_mm, width_mm, height_mm
+- `env_police_post`: length_mm, width_mm, height_mm
+- `env_wall_mud`: length_mm, width_mm, height_mm
+- `env_awning`: length_mm, width_mm, height_mm
+- `env_jars`: length_mm, width_mm, height_mm
+- `env_well_desert`: length_mm, width_mm, height_mm
+- `env_cart_wood`: length_mm, width_mm, height_mm
+- `env_market_stall`: length_mm, width_mm, height_mm
 
 ### Sources
 
@@ -821,4 +884,46 @@ uncertain; see the list at the end of each faction.
 - `fort_dragon_teeth`
   - https://en.wikipedia.org/wiki/Dragon%27s_teeth_(fortification) (square-pyramidal reinforced-concrete blocks set in rows on a common foundation to stop tanks (Siegfried Line), rows of increasing height)
   - TM-E 30-451 Handbook on German Military Forces (1945), ch. V sec. II (rows of concrete teeth as anti-tank obstacles of the West Wall)
+- `env_house_desert_hut`
+  - https://en.wikipedia.org/wiki/Adobe (adobe brick construction, flat roofs on timber beams)
+  - https://en.wikipedia.org/wiki/Mudbrick (material only)
+- `env_house_desert_two`
+  - https://en.wikipedia.org/wiki/Adobe (adobe construction; room spans limited by roof beams (about 3-4 m))
+- `env_house_desert_long`
+  - https://en.wikipedia.org/wiki/Adobe (adobe construction; room spans limited by roof beams)
+- `env_house_desert_corner`
+  - https://en.wikipedia.org/wiki/Courtyard_house (rooms arranged around a walled courtyard)
+- `env_house_desert_stair`
+  - https://en.wikipedia.org/wiki/Flat_roof (flat roofs used as living and drying space, reached by stairs)
+- `env_house_desert_roofroom`
+  - https://en.wikipedia.org/wiki/Flat_roof (flat roofs used as living space; small rooms built on the roof)
+- `env_house_desert_tall`
+  - https://en.wikipedia.org/wiki/Storey (storey heights about 3 m)
+- `env_house_desert_vault`
+  - https://en.wikipedia.org/wiki/Barrel_vault (barrel vault form)
+  - https://en.wikipedia.org/wiki/Djerba (vaulted whitewashed rural houses (menzel) of southern Tunisia)
+- `env_house_desert_large`
+  - https://en.wikipedia.org/wiki/Courtyard_house (larger houses with two storeys around a courtyard)
+- `env_house_desert_shop`
+  - https://en.wikipedia.org/wiki/Arcade_(architecture) (arcade of arches in front of shops)
+  - https://en.wikipedia.org/wiki/Souq (rows of small shops on a market)
+- `env_mosque`
+  - https://en.wikipedia.org/wiki/Mosque (prayer hall, courtyard, minaret)
+  - https://en.wikipedia.org/wiki/Minaret (square minarets of the Maghreb)
+- `env_police_post`
+  - https://en.wikipedia.org/wiki/Italian_Libya (Italian colonial administration and outposts in Libya 1912-1943)
+- `env_wall_mud`
+  - https://en.wikipedia.org/wiki/Courtyard_house (walled courtyards)
+  - https://en.wikipedia.org/wiki/Adobe (adobe walls)
+- `env_awning`
+  - https://en.wikipedia.org/wiki/Awning (fabric awnings on poles)
+- `env_jars`
+  - https://en.wikipedia.org/wiki/Amphora (storage jars)
+  - https://en.wikipedia.org/wiki/Waterskin (water skins)
+- `env_well_desert`
+  - https://en.wikipedia.org/wiki/Well (draw well with masonry curb and pulley frame)
+- `env_cart_wood`
+  - https://en.wikipedia.org/wiki/Cart (two-wheeled animal-drawn cart)
+- `env_market_stall`
+  - https://en.wikipedia.org/wiki/Souq (market stalls)
 

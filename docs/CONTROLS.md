@@ -89,6 +89,13 @@ the number of pieces and the total price (and the price per meter). A
 vehicle that stands in an own vehicle pit for 8 s is dug in; any move order
 drives it out.
 
+**Bridge-laying tanks and camouflage** (prompt 055): with bridge-laying
+tanks selected the command bar shows Lay bridge (then a left click near a
+narrow river or ditch: the tank lays its bridge across the nearest gap its
+bridge spans) and Take up (it fetches its laid bridge). With vehicles or
+guns selected, Camouflage puts up branches and nets (Uncover takes them off
+when all of them have them). [provisional: no keys yet]
+
 Passengers are hidden in their vehicle and cannot be selected; the unit
 panel shows "Passengers 9 / 10", "towing …" or "towed by …" and "loading"
 while mounting, dismounting, limbering or unlimbering runs. Dismount and
@@ -108,8 +115,10 @@ groups remember their formation; there are no named squads [provisional].
 
 | Input | Effect |
 |---|---|
-| Air bar (above the command bar): Recon / Fighters / Attack / Bombers | Wait for a left click on the map, then call the mission there; right click or Esc cancels |
-| Shift + 1 / 2 / 3 / 4 | The same as the four buttons [provisional] |
+| Air bar (above the command bar): Recon / Fighters / Attack / Bombers / Paratroopers | Wait for a left click on the map, then call the mission there; right click or Esc cancels |
+| Shift + 1 / 2 / 3 / 4 / 5 | The same as the five buttons [provisional] |
+| Air bar: Paratroopers (prompt 055) | Transport aircraft drop three squads of paratroopers around the clicked point |
+| Drag instead of click (prompt 055) | The aircraft fly along the dragged line; bombers lay a carpet over it (at most 300 m), transports drop along it |
 
 The buttons show the price (fuel / ammunition / manpower) or the seconds
 until the mission can be called again; the tooltip names the aircraft. Own
@@ -122,7 +131,7 @@ the time until the aircraft arrive. Enemy aircraft coming into sight post
 | Input | Effect |
 |---|---|
 | Strike bar (above the command bar, base matches): Rockets | Wait for a left click on the map, then call the rocket strike there; right click or Esc cancels |
-| Shift + 5 | The same as the button [provisional] |
+| Shift + 6 | The same as the button (Shift + 5 is the paratroopers of prompt 055) [provisional] |
 
 The button shows the price, the time until the strike unlocks, the
 cooldown, or "no battery" while there is no completed rocket battery

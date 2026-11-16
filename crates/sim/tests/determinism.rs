@@ -21,14 +21,39 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by prompt 054 (heavy strike): the new base building
-/// `base_rocket_battery` in `data/economy.toml` is part of the hashed
-/// economy rules, and every unit type after it moves one index up. Nothing
-/// else changes: no strike is called in the demo, and the strike state is
-/// only hashed once one was (checked: with the old `economy.toml` the hash
-/// stays the one before). Before: `0x9b87_57bd_bec7_96f8` (below).
+/// Last changed by the merge of prompt 054 (heavy strike) with main: the
+/// new base building `base_rocket_battery` in `data/economy.toml` is part
+/// of the hashed economy rules, and every unit type after it moves one
+/// index up. Nothing else changes: no strike is called in the demo, and the
+/// strike state is only hashed once one was (checked: with the old
+/// `economy.toml` the hash stays the one before). 054 alone:
+/// `0xeca6_c2de_63a8_f16d`. Before: `0x2022_32ed_b313_f95a`, set by
+/// the merge of prompt 055:
 ///
-/// Changed by the merge of prompt 060 (mountains): the downhill
+/// The merge of prompt 055 (bridges, bridge-laying tanks,
+/// camouflage, paratroopers): the hashed air rules gained the `airborne`
+/// mission, the hit points of transport aircraft, the bomb carpet length
+/// and the paratrooper rules; the air types of the match include the
+/// transport aircraft and every player has a fifth cooldown. The crossing
+/// rules and state enter the hash only once one of them acted (not in the
+/// demo). The demo battle is unchanged (decided at tick 412). Prompt 055
+/// alone: `0xef27_60b4_5add_ed7b`. Before: `0xb608_35fb_c1d7_09a8`, set by
+/// prompt 050:
+///
+/// Prompt 050 (experience and ranks): the rules of
+/// `data/experience.toml` and every unit's experience points and kills are
+/// in the hash, and units that gain a rank shoot more accurately and
+/// reload faster. The demo's tanks gain ranks from their first kill: the
+/// battle runs differently and is decided at tick 412 instead of 467, same
+/// winner (player 0). Before: `0x04d1_0b77_115d_59c5`, set by
+/// the merge of prompt 059, see below.
+///
+/// The merge of prompt 059 (desert village: new entries
+/// in the hashed rule tables of `data/destruction.toml`,
+/// `data/infantry.toml` and `data/vision.toml`; the demo uses none of
+/// them, battle unchanged) with 060. Before (`0x9b87_57bd_bec7_96f8`),
+/// 059 with 048 alone `0x0773_c8ed_1eac_669d`:
+/// the merge of prompt 060 (mountains): the downhill
 /// sight rules (`[height]` in `data/vision.toml`) are in the hash. Nothing
 /// else changes: `test_small` has no ground 20 m below any eye, so every
 /// viewshed keeps its sight range (checked: without hashing the new
@@ -160,7 +185,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xeca6_c2de_63a8_f16d;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x7681_c049_8fc9_19b3;
 
 #[test]
 fn golden_hash() {
@@ -210,10 +235,10 @@ fn demo_battle_is_decided() {
     let end = run_demo(42, 1000);
     let outcome = end.outcome().expect("the demo battle is decided");
     assert_eq!(outcome.winner, Some(sim::PlayerId(0)));
-    assert_eq!(outcome.tick, 467);
+    assert_eq!(outcome.tick, 412);
     assert_eq!(end.alive_units(sim::PlayerId(1)), 0);
     assert_eq!(
         end.standings()[1].defeat,
-        Some((sim::DefeatReason::Eliminated, 467))
+        Some((sim::DefeatReason::Eliminated, 412))
     );
 }

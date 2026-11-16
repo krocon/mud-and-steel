@@ -1,0 +1,55 @@
+# Two barrel-vaulted rooms, whitewashed, thick end walls with buttresses.
+# Generator: desert_house (tools/blender/kit/desert.py); plan in m from the -X/-Y corner, +X = door side.
+unit = "env_house_desert_vault"
+assembly = "env"
+
+[[variant]]
+name = "Intact"
+part = "desert_house"
+role = "intact"
+seed = 18
+plaster = 2
+skirt = 0.35
+skirt_kind = 2
+vault_spring = 2.3
+end_t = 0.7
+blocks = [[0, 0, 5, 5, 4.0], [0, 5, 5, 10, 4.0]]
+vaults = [0, 1]
+doors = [[0, "+x", 2.6, 0.9], [1, "+x", 7.4, 0.9]]
+windows = [[0, "-x", 2.6], [1, "-x", 7.4], [1, "+x", 8.6]]
+
+[[variant]]
+name = "Damaged"
+part = "desert_house"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 18
+plaster = 2
+skirt = 0.35
+skirt_kind = 2
+vault_spring = 2.3
+end_t = 0.7
+blocks = [[0, 0, 5, 5, 4.0], [0, 5, 5, 10, 4.0]]
+vaults = [0, 1]
+doors = [[0, "+x", 2.6, 0.9], [1, "+x", 7.4, 0.9]]
+windows = [[0, "-x", 2.6], [1, "-x", 7.4], [1, "+x", 8.6]]
+
+[[variant]]
+name = "Ruin"
+part = "desert_house"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 18
+plaster = 2
+skirt = 0.35
+skirt_kind = 2
+vault_spring = 2.3
+end_t = 0.7
+blocks = [[0, 0, 5, 5, 4.0], [0, 5, 5, 10, 4.0]]
+vaults = [0, 1]
+doors = [[0, "+x", 2.6, 0.9], [1, "+x", 7.4, 0.9]]
+windows = [[0, "-x", 2.6], [1, "-x", 7.4], [1, "+x", 8.6]]

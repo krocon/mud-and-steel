@@ -1,0 +1,190 @@
+# Compounds (prompt 059): groups of map objects that the map editor places
+# as one stamp ("Compound" tool, "Village" brush) and `cli gen-village`
+# builds villages from. Read by `crates/editor` (`editor::compound`); the
+# simulation never sees a compound, only its objects (houses, wall
+# segments, props), so compounds are no game rule and not in any hash.
+#
+# Coordinates are millimeters relative to the yard center at heading 0:
+# x east, y south (like map coordinates). A compound can be turned in
+# steps of 90°; its objects turn with it.
+#
+# [wall]: the courtyard wall. `kind` with the variants `segment` (normal),
+#   `low`, `broken`, `gate` and `corner`; `segment_mm` = length of one
+#   segment (the catalog length; segments run along their heading).
+#
+# Every [[compound]]:
+#   name     id used by the editor and the generator
+#   label    shown in the editor
+#   yard_mm  [x, y] size of the walled yard, multiples of `segment_mm`;
+#            [0, 0] = no wall
+#   gate     side of the gate segment: "north", "south", "east" or "west"
+#            (the middle segment of that side)
+#   wall     variant of the wall segments (default: the `segment` variant)
+#   village  true: the village brush and generator may pick it
+#   [[compound.object]]  kind, variant, x_mm, y_mm, heading_deg (0..359)
+#
+# Wall segments and corner piers whose center lies inside a building of
+# the compound (its catalog box plus 0.5 m) are left out: the house's own
+# wall closes the yard there. Houses stand with their outer wall 0.25 m
+# beyond the yard edge and their door side (model +X) towards the yard.
+
+[wall]
+kind = "env_wall_mud"
+segment_mm = 3000
+segment = "Segment"
+low = "Low"
+broken = "Broken"
+gate = "Gate"
+corner = "Corner"
+
+# --- Courtyard houses (village) ------------------------------------------------
+
+[[compound]]
+name = "hut_yard"
+label = "Hut with yard"
+yard_mm = [12000, 12000]
+gate = "south"
+village = true
+objects = [
+    { kind = "env_house_desert_hut", variant = "Intact", x_mm = -4250, y_mm = -3750, heading_deg = 0 },
+    { kind = "env_jars", variant = "Group", x_mm = 3500, y_mm = -4300, heading_deg = 90 },
+    { kind = "env_awning", variant = "Cloth", x_mm = 3000, y_mm = 1500, heading_deg = 90 },
+    { kind = "env_woodpile", variant = "Stack", x_mm = 4500, y_mm = 4300, heading_deg = 0 },
+]
+
+[[compound]]
+name = "two_room_yard"
+label = "Two-room house with yard"
+yard_mm = [12000, 15000]
+gate = "south"
+village = true
+objects = [
+    { kind = "env_house_desert_two", variant = "Intact", x_mm = -4000, y_mm = -3750, heading_deg = 0 },
+    { kind = "env_awning", variant = "Palm", x_mm = 3500, y_mm = -1000, heading_deg = 0 },
+    { kind = "env_cart_wood", variant = "Cart", x_mm = 3200, y_mm = 5000, heading_deg = 90 },
+    { kind = "env_jars", variant = "Single", x_mm = -3500, y_mm = 3000, heading_deg = 0 },
+]
+
+[[compound]]
+name = "long_house_yard"
+label = "Long house with yard"
+yard_mm = [15000, 15000]
+gate = "south"
+village = true
+objects = [
+    { kind = "env_house_desert_long", variant = "Intact", x_mm = -5250, y_mm = -1750, heading_deg = 0 },
+    { kind = "env_awning", variant = "Palm", x_mm = 4000, y_mm = 2500, heading_deg = 0 },
+    { kind = "env_jars", variant = "Group", x_mm = 4500, y_mm = -5300, heading_deg = 90 },
+    { kind = "env_woodpile", variant = "Stack", x_mm = 5800, y_mm = -1500, heading_deg = 0 },
+]
+
+[[compound]]
+name = "l_house_yard"
+label = "L-shaped house with yard"
+yard_mm = [15000, 15000]
+gate = "south"
+village = true
+objects = [
+    { kind = "env_house_desert_corner", variant = "Intact", x_mm = -3750, y_mm = -2750, heading_deg = 0 },
+    { kind = "env_jars", variant = "Large", x_mm = 5000, y_mm = 3000, heading_deg = 0 },
+    { kind = "env_awning", variant = "Cloth", x_mm = 4000, y_mm = -4500, heading_deg = 0 },
+    { kind = "env_cart_wood", variant = "Cart", x_mm = -4000, y_mm = 5000, heading_deg = 90 },
+]
+
+[[compound]]
+name = "stair_house_yard"
+label = "House with outside stair and yard"
+yard_mm = [12000, 12000]
+gate = "south"
+village = true
+objects = [
+    { kind = "env_house_desert_stair", variant = "Intact", x_mm = -3250, y_mm = -2250, heading_deg = 0 },
+    { kind = "env_jars", variant = "Single", x_mm = 4300, y_mm = 4300, heading_deg = 0 },
+    { kind = "env_awning", variant = "Cloth", x_mm = 3800, y_mm = -3800, heading_deg = 90 },
+]
+
+[[compound]]
+name = "roof_room_yard"
+label = "House with roof room and yard"
+yard_mm = [15000, 12000]
+gate = "south"
+village = true
+objects = [
+    { kind = "env_house_desert_roofroom", variant = "Intact", x_mm = -4250, y_mm = -1750, heading_deg = 0 },
+    { kind = "env_cart_wood", variant = "Cart", x_mm = 4800, y_mm = -2500, heading_deg = 0 },
+    { kind = "env_jars", variant = "Group", x_mm = 4500, y_mm = 3800, heading_deg = 90 },
+]
+
+[[compound]]
+name = "tall_house_yard"
+label = "Two-storey house with yard"
+yard_mm = [12000, 12000]
+gate = "south"
+village = true
+objects = [
+    { kind = "env_house_desert_tall", variant = "Intact", x_mm = -3250, y_mm = -2750, heading_deg = 0 },
+    { kind = "env_awning", variant = "Palm", x_mm = 3500, y_mm = 1500, heading_deg = 0 },
+    { kind = "env_woodpile", variant = "Stack", x_mm = 4300, y_mm = -4300, heading_deg = 90 },
+]
+
+[[compound]]
+name = "vault_house_yard"
+label = "Vaulted house with yard"
+yard_mm = [15000, 12000]
+gate = "south"
+village = true
+objects = [
+    { kind = "env_house_desert_vault", variant = "Intact", x_mm = -5250, y_mm = -1250, heading_deg = 0 },
+    { kind = "env_jars", variant = "Group", x_mm = 3500, y_mm = -3500, heading_deg = 0 },
+    { kind = "env_awning", variant = "Cloth", x_mm = 4500, y_mm = 2500, heading_deg = 0 },
+]
+
+[[compound]]
+name = "merchant_yard"
+label = "Merchant's house with yard and well"
+yard_mm = [18000, 18000]
+gate = "south"
+village = true
+objects = [
+    { kind = "env_house_desert_large", variant = "Intact", x_mm = -4250, y_mm = -2750, heading_deg = 0 },
+    { kind = "env_well_desert", variant = "Frame", x_mm = 5000, y_mm = 4000, heading_deg = 0 },
+    { kind = "env_awning", variant = "Wide", x_mm = 5500, y_mm = -5500, heading_deg = 90 },
+    { kind = "env_jars", variant = "Group", x_mm = -3500, y_mm = 7000, heading_deg = 90 },
+    { kind = "env_cart_wood", variant = "Cart", x_mm = 7500, y_mm = 6500, heading_deg = 0 },
+]
+
+# --- Landmarks (placed by hand or by the generator) --------------------------------
+
+[[compound]]
+name = "shop_row"
+label = "Shop house with market stalls"
+yard_mm = [0, 0]
+objects = [
+    { kind = "env_house_desert_shop", variant = "Intact", x_mm = -2000, y_mm = 0, heading_deg = 0 },
+    { kind = "env_market_stall", variant = "Stall", x_mm = 4000, y_mm = -3000, heading_deg = 0 },
+    { kind = "env_market_stall", variant = "Stall", x_mm = 4000, y_mm = 1000, heading_deg = 0 },
+    { kind = "env_jars", variant = "Group", x_mm = 3500, y_mm = 4500, heading_deg = 0 },
+]
+
+[[compound]]
+name = "mosque_yard"
+label = "Village mosque with low wall"
+yard_mm = [21000, 21000]
+gate = "east"
+wall = "Low"
+objects = [
+    { kind = "env_mosque", variant = "Intact", x_mm = -5250, y_mm = 0, heading_deg = 0 },
+    { kind = "env_jars", variant = "Large", x_mm = 6500, y_mm = -6500, heading_deg = 0 },
+]
+
+[[compound]]
+name = "police_post"
+label = "Police post (fort) with walled yard"
+yard_mm = [24000, 24000]
+gate = "east"
+objects = [
+    { kind = "env_police_post", variant = "Intact", x_mm = -6250, y_mm = 0, heading_deg = 0 },
+    { kind = "env_cart_wood", variant = "Cart", x_mm = 7000, y_mm = -7500, heading_deg = 90 },
+    { kind = "env_awning", variant = "Wide", x_mm = 6500, y_mm = 6500, heading_deg = 90 },
+    { kind = "env_jars", variant = "Group", x_mm = 2500, y_mm = 9500, heading_deg = 90 },
+]

@@ -18,9 +18,11 @@ use std::sync::Arc;
 mod air;
 mod combat;
 mod craters;
+mod crossings;
 mod destruction;
 mod drill;
 mod economy;
+mod experience;
 mod fire;
 mod indirect;
 mod infantry;
@@ -42,6 +44,7 @@ use infantry::{InfantryRt, Squad};
 
 pub use drill::DrillView;
 pub use economy::{BuyOption, PlaceError, StructureView, SupplyView};
+pub use experience::ExperienceView;
 pub use infantry::BuildingCondition;
 pub use logistics::{StockView, SupplySource};
 pub use orders::MAX_QUEUED;
@@ -154,6 +157,10 @@ pub enum ConfigError {
     Weather(String),
     /// The built-in field work rules do not parse (prompt 035).
     Works(String),
+    /// The built-in experience rules do not parse (prompt 050).
+    Experience(String),
+    /// The built-in crossing rules do not parse (prompt 055).
+    Crossings(String),
 }
 
 impl fmt::Display for ConfigError {
@@ -178,7 +185,9 @@ impl fmt::Display for ConfigError {
             | Self::Transport(e)
             | Self::Logistics(e)
             | Self::Weather(e)
-            | Self::Works(e) => {
+            | Self::Works(e)
+            | Self::Experience(e)
+            | Self::Crossings(e) => {
                 write!(f, "{e}")
             }
         }
@@ -236,6 +245,9 @@ struct Unit {
     /// Formation facing, attack-move and securing (prompt 046).
     #[serde(default)]
     drill: drill::Drill,
+    /// Experience points and kills (prompt 050).
+    #[serde(default)]
+    veterancy: experience::Veterancy,
 }
 
 impl Unit {
@@ -310,6 +322,8 @@ pub struct UnitSnapshot {
     pub loading: bool,
     /// Ammunition, fuel and mobility (prompt 036).
     pub stock: StockView,
+    /// Experience points, rank and kills (prompt 050).
+    pub experience: ExperienceView,
 }
 
 /// Presentation data of one soldier of a squad (prompt 022).
@@ -478,6 +492,11 @@ pub struct Sim {
     weather: weather::WeatherState,
     /// Field works of engineers: mines, obstacles, positions (prompt 035).
     works: works::Works,
+    /// Experience rules and promotions (prompt 050).
+    experience: experience::Experience,
+    /// Collapsing decks, swimmers, bridge-laying tanks, camouflage and
+    /// paratroopers (prompt 055).
+    crossings: crossings::Crossings,
     /// Heavy rocket strikes (prompt 054).
     strikes: strike::Strikes,
 }
@@ -633,6 +652,12 @@ impl Sim {
             &map,
             config.tick_hz,
         );
+        let crossings = crossings::Crossings::new(
+            crate::crossings::CrossingRules::builtin()
+                .map_err(|e| ConfigError::Crossings(e.to_string()))?,
+            config,
+            &config.terrain,
+        );
         let grid = PathGrid::new(&map, &config.terrain, &config.unit_types);
         let weather = weather::WeatherState::new(
             crate::weather::WeatherRules::builtin()
@@ -642,6 +667,10 @@ impl Sim {
             &config.terrain,
             config.tick_hz,
             config.vision.sight_ratio,
+        );
+        let experience = experience::Experience::new(
+            crate::experience::ExperienceRules::builtin()
+                .map_err(|e| ConfigError::Experience(e.to_string()))?,
         );
         let mut sim = Self {
             tick: 0,
@@ -673,6 +702,8 @@ impl Sim {
             logistics,
             weather,
             works,
+            experience,
+            crossings,
             strikes,
         };
         sim.init_weather();
@@ -741,6 +772,7 @@ impl Sim {
     pub fn step_observed(&mut self, commands: &[PlayerCommand], mut done: impl FnMut(Phase)) {
         self.events.clear();
         self.air.events.clear();
+        self.crossings.events.clear();
         self.strikes.events.clear();
         for command in commands {
             self.apply(command);
@@ -757,6 +789,7 @@ impl Sim {
         self.update_strikes();
         done(Phase::Combat);
         self.halt_stranded();
+        self.update_swimmers();
         self.move_units();
         self.update_transport();
         done(Phase::Movement);
@@ -768,6 +801,7 @@ impl Sim {
         self.fly_projectiles();
         self.fly_shells();
         self.update_air();
+        self.update_crossings();
         self.update_fire();
         self.transport_losses();
         done(Phase::Projectiles);
@@ -778,9 +812,11 @@ impl Sim {
         done(Phase::Destruction);
         self.update_economy();
         self.update_logistics();
+        self.update_experience();
         done(Phase::Economy);
         self.update_smoke();
         self.update_vision(false);
+        self.hide_camouflaged();
         self.reveal_flashes();
         self.reveal_strikes();
         done(Phase::Vision);
@@ -1062,6 +1098,7 @@ impl Sim {
         self.drop_transport_tasks(command);
         self.drop_work_jobs(command);
         self.drop_drills(command);
+        self.drop_crossing_jobs(command);
         match &command.command {
             Command::MoveTo { units, target } => {
                 if !within_world(*target) {
@@ -1235,6 +1272,16 @@ impl Sim {
                 *formation,
                 *facing,
             ),
+            Command::LayBridge { units, target } => {
+                self.order_lay_bridge(command.player, units, *target);
+            }
+            Command::PickUpBridge { units } => self.order_pick_up_bridge(command.player, units),
+            Command::SetCamouflage { units, on } => {
+                self.order_camouflage(command.player, units, *on);
+            }
+            Command::CallAirLine { mission, from, to } => {
+                self.order_air_line(command.player, *mission, (*from, *to));
+            }
             Command::HeavyStrike { target } => self.order_strike(command.player, *target),
         }
     }
@@ -1404,6 +1451,8 @@ impl Sim {
             self.weather.hash_into(&mut h);
         }
         self.works.hash_into(&mut h);
+        self.hash_experience(&mut h);
+        self.crossings.hash_into(&mut h);
         // Left out until the first strike, so other matches keep their
         // hashes (prompt 054).
         if self.strikes.used() {
@@ -1453,6 +1502,7 @@ impl Sim {
                     towing: transport::load_of(&loads, u.id).1,
                     loading: self.transport_busy(u.id),
                     stock: self.stock_view(u),
+                    experience: self.experience.view(u.veterancy),
                 }),
         );
         out.projectiles.clear();
@@ -1927,6 +1977,7 @@ fn new_unit(n: &NewUnit<'_>) -> Unit {
         link: None,
         stock: logistics::Stock::default(),
         drill: drill::Drill::default(),
+        veterancy: experience::Veterancy::default(),
     }
 }
 

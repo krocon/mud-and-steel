@@ -155,6 +155,24 @@ pub enum Command {
         formation: Formation,
         facing: Option<Vec2>,
     },
+    /// Bridge-laying tanks among `units` drive to the narrow gap (water,
+    /// ditch) nearest to `target` that their bridge spans and lay it across
+    /// (prompt 055). Ignored for tanks whose bridge is already laid.
+    LayBridge { units: Vec<UnitId>, target: Vec2 },
+    /// Bridge-laying tanks among `units` drive to the bridge they laid and
+    /// take it up again once nobody is on it (prompt 055).
+    PickUpBridge { units: Vec<UnitId> },
+    /// Vehicles and guns among `units` put up branches and nets (`on`,
+    /// takes a while) or take them off (prompt 055).
+    SetCamouflage { units: Vec<UnitId>, on: bool },
+    /// [`Command::CallAir`] aimed by dragging (prompt 055): the aircraft
+    /// fly along `from` → `to` over its middle; bombers lay a carpet and
+    /// transports drop their paratroopers along the line.
+    CallAirLine {
+        mission: AirMission,
+        from: Vec2,
+        to: Vec2,
+    },
     /// The player's rocket battery position fires a heavy strike on the
     /// ground point `target` after a warning time (prompt 054,
     /// `data/strike.toml`). Ignored while it is locked, cools down, another
@@ -186,7 +204,10 @@ impl Command {
             | Self::DemolishBridge { units, .. }
             | Self::RepairBridge { units, .. }
             | Self::FormationMove { units, .. }
-            | Self::Secure { units, .. } => units,
+            | Self::Secure { units, .. }
+            | Self::LayBridge { units, .. }
+            | Self::PickUpBridge { units }
+            | Self::SetCamouflage { units, .. } => units,
             Self::Surrender
             | Self::Build { .. }
             | Self::Produce { .. }
@@ -196,6 +217,7 @@ impl Command {
             | Self::Ping { .. }
             | Self::Repair { .. }
             | Self::Sell { .. }
+            | Self::CallAirLine { .. }
             | Self::HeavyStrike { .. } => &[],
         }
     }
