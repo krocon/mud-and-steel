@@ -101,6 +101,14 @@ order_garrison={
 "deadzone": 0.2,
 "events": [Object(InputEventKey,"physical_keycode":85)]
 }
+order_disembark={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":74)]
+}
+order_unlimber={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":75)]
+}
 stance_stand={
 "deadzone": 0.2,
 "events": [Object(InputEventKey,"physical_keycode":90)]

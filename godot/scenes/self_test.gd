@@ -42,6 +42,8 @@ extends Node
 ##    right click, selection through the unit panel, a waypoint chain by
 ##    Shift + right click, orders from the command bar, event jump, health
 ##    bar setting.
+## 13. Transport (prompt 034, `tools/transport_self_test.gd`): a squad
+##    mounts an own tank by right click and dismounts with J.
 
 ## Panzer IV H: 16 km/h cross-country (catalog) × time factor 2 = 8.889 m/s,
 ## i.e. 0.4444 m per tick at 20 Hz. Terrain scales it (data/terrain.toml).
@@ -61,6 +63,7 @@ const DestructionSelfTest := preload("res://scenes/tools/destruction_self_test.g
 const CraterSelfTest := preload("res://scenes/tools/crater_self_test.gd")
 const SoundSelfTest := preload("res://scenes/tools/sound_self_test.gd")
 const HudSelfTest := preload("res://scenes/tools/hud_self_test.gd")
+const TransportSelfTest := preload("res://scenes/tools/transport_self_test.gd")
 const MatchSetup := preload("res://scenes/menu/match_setup.gd")
 
 ## Screen size for the test (see `_ready`).
@@ -98,9 +101,10 @@ func _run() -> void:
 	await CraterSelfTest.new().run(self)
 	await SoundSelfTest.new().run(self)
 	await hud_test.run(self)
+	await TransportSelfTest.new().run(self)
 	_replay_test()
 	var ok := _errors.is_empty()
-	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, fog, combat, infantry, destruction, craters, sound, water, hud and replay ok" if ok else " ".join(_errors)
+	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, fog, combat, infantry, destruction, craters, sound, water, hud, transport and replay ok" if ok else " ".join(_errors)
 	print("self-test %s: %s" % ["PASSED" if ok else "FAILED", message])
 	# Started from the menu flow test (prompt 027): it continues the flow.
 	var flow: Node = MatchSetup.flow_test
