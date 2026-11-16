@@ -52,6 +52,11 @@ const OVERRUN_M: i32 = 60;
 /// this long (m, ticks).
 const CREEP_M: i32 = 60;
 const CREEP_TICKS: u64 = 200;
+/// The front is sampled every `WATCH_TICKS`; closer by `ADVANCE_M` means
+/// it advances, for `ADVANCING_TICKS`.
+const WATCH_TICKS: u64 = 60;
+const ADVANCE_M: i32 = 12;
+const ADVANCING_TICKS: u64 = 300;
 /// A fight is reviewed after this long (ticks).
 const REVIEW_TICKS: u64 = 300;
 /// Below this share (percent) of damage dealt to damage taken the army
@@ -73,6 +78,8 @@ pub(crate) enum Phase {
     Fight,
     /// Pulling back out of reach after a lost fight.
     Withdraw,
+    /// The enemy advances: waiting for it in line.
+    Hold,
 }
 
 /// The army's plan against one front.
@@ -94,6 +101,10 @@ pub(crate) struct ArmyPlan {
     /// The staging point and the last point the lead was sent to.
     stage: Option<Vec2>,
     sent: Option<(Vec2, u64)>,
+    /// Last sample of the front's center, and until when the enemy counts
+    /// as advancing.
+    watch: Option<(Vec2, u64)>,
+    advancing_until: u64,
     /// Distance of the staging point from the front.
     reach: Option<Fixed>,
     /// Distance of the assault after creeping closer.
@@ -361,6 +372,7 @@ impl Ai {
             }
         }
         self.army.target = Some(front.center);
+        let advancing = !virtual_front && self.watch_front(&front, center, tick);
         let in_range = near
             .iter()
             .any(|e| dist(e.position, center) <= range + Fixed::from_num(30));
@@ -386,6 +398,26 @@ impl Ai {
                 self.army.axis = None;
             }
             _ => {}
+        }
+        // The enemy comes on: receive it in line where the army stands
+        // instead of driving into its fire (prompt 051).
+        if advancing && !in_range && self.army.phase != Phase::Withdraw {
+            self.army.phase = Phase::Hold;
+            let facing = Some(front.center - center);
+            self.send(
+                &ids,
+                center,
+                facing,
+                Formation::Line,
+                Engage::All,
+                tick,
+                out,
+            );
+            return true;
+        }
+        if self.army.phase == Phase::Hold {
+            self.army.phase = Phase::Free;
+            self.army.axis = None;
         }
         if in_range {
             self.start_fight(units, tick);
@@ -485,6 +517,26 @@ impl Ai {
         true
     }
 
+    /// Samples the front every `WATCH_TICKS`: it advances if it came
+    /// `ADVANCE_M` closer to the army since the last sample.
+    fn watch_front(&mut self, front: &Front, center: Vec2, tick: u64) -> bool {
+        match self.army.watch {
+            Some((p, t)) if tick < t + WATCH_TICKS => {
+                let _ = p;
+            }
+            Some((p, _)) => {
+                let before = dist(p, center);
+                let now = dist(front.center, center);
+                if before > now + Fixed::from_num(ADVANCE_M) {
+                    self.army.advancing_until = tick + ADVANCING_TICKS;
+                }
+                self.army.watch = Some((front.center, tick));
+            }
+            None => self.army.watch = Some((front.center, tick)),
+        }
+        tick < self.army.advancing_until
+    }
+
     fn start_fight(&mut self, units: &[OwnUnit], tick: u64) {
         self.army.phase = Phase::Fight;
         self.army.since = tick;
@@ -574,6 +626,9 @@ impl Ai {
             .filter(|e| self.type_info(e.unit_type).role == Role::Armor)
             .map(|e| e.position)
             .collect();
+        if tick < self.army.advancing_until {
+            return false;
+        }
         let outranges = self.standoff(front, range).is_some();
         let (targets, close) = if !armor.is_empty() {
             if outranges {
