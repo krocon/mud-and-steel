@@ -133,6 +133,10 @@ order_smoke={
 "deadzone": 0.2,
 "events": [Object(InputEventKey,"physical_keycode":84)]
 }
+ping_allies={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":75)]
+}
 
 [importer_defaults]
 

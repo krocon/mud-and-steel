@@ -216,7 +216,9 @@ func _show_result(result: Dictionary) -> void:
 	for player: Dictionary in players:
 		if player["id"] == me:
 			own = player
-	if winner == me:
+	# Teams (prompt 037): the whole team of the winner wins.
+	var won: bool = winner == me or (winner >= 0 and main.sim_host.local_team_won())
+	if won:
 		result_title.text = "VICTORY"
 		result_title.add_theme_color_override("font_color", MenuTheme.VICTORY)
 	elif winner < 0:
@@ -224,14 +226,15 @@ func _show_result(result: Dictionary) -> void:
 	else:
 		result_title.text = "DEFEAT"
 		result_title.add_theme_color_override("font_color", MenuTheme.DEFEAT)
-	result_reason.text = _reason(winner, me, own, players)
+	result_reason.text = _reason(winner, me, own, players, won)
 	var seconds: int = result["tick"] / maxi(main.sim_host.tick_rate(), 1)
 	var lines: PackedStringArray = ["Match time: %d:%02d" % [seconds / 60, seconds % 60]]
 	for player: Dictionary in players:
 		var id: int = player["id"]
+		var relation: int = main.sim_host.relation(id)
 		lines.append("%s%s: %d units left%s" % [
 			MatchSetup.FACTIONS.get(_factions.get(id, ""), "Player %d" % id),
-			" (you)" if id == me else "",
+			" (you)" if id == me else (" (ally)" if relation == 1 else ""),
 			player["units"],
 			" – %s" % player["reason"] if player["defeated"] else "",
 		])
@@ -242,13 +245,15 @@ func _show_result(result: Dictionary) -> void:
 	print("Match decided at tick %d: %s (%s)" % [result["tick"], result_title.text, result_reason.text])
 
 
-func _reason(winner: int, me: int, own: Dictionary, players: Array) -> String:
+func _reason(winner: int, me: int, own: Dictionary, players: Array, won: bool) -> String:
 	if winner < 0:
 		return "Every side lost in the same moment."
-	if winner != me:
-		return "You surrendered." if own.get("reason", "") == "surrendered" else "All your units were lost."
+	if not won:
+		if own.get("defeated", false):
+			return "You surrendered." if own.get("reason", "") == "surrendered" else "All your units were lost."
+		return "Your team was defeated."
 	for player: Dictionary in players:
-		if player["id"] != me and player["reason"] == "surrendered":
+		if main.sim_host.relation(player["id"]) == 2 and player["reason"] == "surrendered":
 			return "The enemy surrendered."
 	return "All enemy units were destroyed."
 

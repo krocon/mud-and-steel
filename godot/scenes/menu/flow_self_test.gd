@@ -38,6 +38,12 @@ extends Node
 ##    snapshot), the perspective of player 1 and of everything, and the end
 ##    of the replay reaches its recorded end hash; back to the menu.
 ##
+## 9. Team match (prompt 037, after match 3): 2 against 2 on twin_meadow
+##    from the setup screen, with a passive computer ally and two passive
+##    computer enemies: four players, the ally's units tinted and counted
+##    as allies, a ping reaches the minimap; surrendering does not decide
+##    the match while the ally stands; leave to the menu.
+##
 ## Matches 1 and 2 choose the passive opponent, which gives no orders, so
 ## they play as before the computer opponent existed. Matches 1 to 3 play
 ## the "battle" mode (the fixed armies of the demo scenario).
@@ -125,6 +131,16 @@ func _run() -> void:
 		return
 	await _ai_opponent_test(main)
 	menu = await _back_to_menu(main)
+	if menu == null:
+		_finish()
+		return
+
+	# --- Team match (prompt 037) -----------------------------------------
+	main = await _team_test(menu)
+	if main == null:
+		_finish()
+		return
+	menu = await _quit_to_menu(main)
 	if menu == null:
 		_finish()
 		return
@@ -295,6 +311,63 @@ func _start_match(menu: Control, biome: int, own: int, enemy: int, map_name: Str
 		await get_tree().process_frame
 	_check(main._loaded, "match did not finish loading")
 	print("flow self-test: match loaded (%s), loading steps %s" % [map_name, MatchSetup.last_loading_steps])
+	return main
+
+
+## 2 against 2 with computers (prompt 037).
+func _team_test(menu: Control) -> Node3D:
+	menu.single_player_button.pressed.emit()
+	await _frames(1)
+	var map_index := Array(menu._maps).find("twin_meadow")
+	_check(map_index >= 0, "map twin_meadow not offered")
+	menu.map_option.select(maxi(map_index, 0))
+	menu.map_option.item_selected.emit(maxi(map_index, 0))
+	menu.biome_option.select(0)
+	menu.faction_option.select(0)
+	menu.enemy_option.select(1)
+	menu.opponent_option.select(MatchSetup.OPPONENTS.keys().find("passive"))
+	menu.mode_option.select(MatchSetup.MODES.keys().find("battle"))
+	_check(menu.players_option.item_count >= 2, "twin_meadow offers no 2 vs 2")
+	menu.players_option.select(1)
+	menu.players_option.item_selected.emit(1)
+	var slots: Array = menu.slot_list.slots()
+	_check(slots.size() == 4 and menu.slot_list.visible, "2 vs 2 shows %d slots" % slots.size())
+	MatchSetup.run_match_test = false
+	menu.start_button.pressed.emit()
+	var main: Node3D = await _wait_scene("Main")
+	if main == null:
+		return null
+	var frames := 600
+	while not main._loaded and frames > 0:
+		frames -= 1
+		await get_tree().process_frame
+	_check(main._loaded, "team match did not finish loading")
+	var host: SimHost = main.sim_host
+	await _frames(30)
+	var players: Array = host.match_players()
+	_check(players.size() == 4, "team match has %d players" % players.size())
+	_check(host.relation(0) == 0 and host.relation(2) == 1 and host.relation(1) == 2 and host.relation(3) == 2,
+		"relations %s" % [players])
+	var relations := host.unit_relations()
+	_check(Array(relations).has(1), "no allied units in the snapshot")
+	var ally_tinted := false
+	var ids := host.unit_ids()
+	var owners := host.unit_owners()
+	for i in ids.size():
+		if owners[i] == 2 and main._unit_nodes.has(ids[i]):
+			ally_tinted = true
+	_check(ally_tinted, "allied units are not drawn")
+	var pings_before: int = main.hud.minimap.ping_count
+	host.ping(0.0, 0.0)
+	await _frames(40)
+	_check(main.hud.minimap.ping_count > pings_before, "the ping did not reach the minimap")
+	# Surrender: the passive ally still stands, so the match goes on.
+	host.surrender()
+	await _frames(30)
+	var result: Dictionary = host.match_result()
+	_check(not result["decided"], "the surrender decided the team match: %s" % result)
+	_check(result["players"][0]["defeated"], "player 0 not defeated after surrendering")
+	print("flow self-test: team match ok (%d players, ping, surrender keeps the ally in)" % players.size())
 	return main
 
 

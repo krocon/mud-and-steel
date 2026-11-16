@@ -26,6 +26,12 @@ const OPPONENTS: Dictionary[String, String] = {
 	"hard": "Hard",
 }
 const DEFAULT_OPPONENT := "normal"
+## Short names of the difficulties for the slot lists (prompt 037).
+const LEVEL_NAMES: Dictionary[String, String] = {
+	"passive": "Passive", "easy": "Easy", "normal": "Normal", "hard": "Hard",
+}
+## Most players of a match (the largest maps have six starts).
+const MAX_PLAYERS := 6
 
 ## Game modes (prompt 023, `SimHost.mode`): base building with resources
 ## and production, or the fixed armies of the demo scenario.
@@ -93,6 +99,39 @@ static func describe_map(map_name: String) -> String:
 		var meters := (samples - 1) * cell_mm / 1000
 		size = "%d m × %d m" % [meters, meters] if meters < 1000 else "%.1f km × %.1f km" % [meters / 1000.0, meters / 1000.0]
 	return "%s%s" % [size, (", " + biome) if not biome.is_empty() else ""]
+
+
+## Start positions of a map from its `map.toml` (prompt 037): dictionaries
+## with `player` and `team` (the map's suggestion, else player % 2), by
+## player. The built-in map has two.
+static func map_starts(map_name: String) -> Array[Dictionary]:
+	var starts: Array[Dictionary] = []
+	var text := FileAccess.get_file_as_string(GamePaths.map_dir(map_name).path_join("map.toml"))
+	var current: Dictionary = {}
+	for line in text.split("\n"):
+		var trimmed := line.strip_edges()
+		if trimmed.begins_with("["):
+			if not current.is_empty():
+				starts.append(current)
+			current = {"player": -1, "team": -1} if trimmed == "[[start]]" else {}
+			continue
+		var parts := trimmed.split("=", true, 1)
+		if current.is_empty() or parts.size() != 2:
+			continue
+		var key := parts[0].strip_edges()
+		if key == "player" or key == "team":
+			current[key] = int(parts[1].strip_edges())
+	if not current.is_empty():
+		starts.append(current)
+	starts.assign(starts.filter(func(s: Dictionary) -> bool: return s["player"] >= 0))
+	if starts.is_empty():
+		for p in 2:
+			starts.append({"player": p, "team": p % 2})
+	for s in starts:
+		if s["team"] < 0:
+			s["team"] = s["player"] % 2
+	starts.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a["player"] < b["player"])
+	return starts
 
 
 ## Whether `map` is large enough that loading takes a while.

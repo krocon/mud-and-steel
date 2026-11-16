@@ -24,12 +24,20 @@ fn difficulty(host: &SimHost) -> Option<ai::Difficulty> {
 }
 
 /// Players of the single-player session: only the local one, or everyone
-/// when computer players take part.
+/// when computer players take part (the local one and the computers of
+/// `start_slots`, prompt 037).
 pub(crate) fn session_players(
     host: &SimHost,
     config: &SimConfig,
     local: PlayerId,
 ) -> Vec<PlayerId> {
+    if !host.computers.is_empty() {
+        let mut players: Vec<PlayerId> = host.computers.iter().map(|&(p, _)| p).collect();
+        players.push(local);
+        players.sort_unstable();
+        players.dedup();
+        return players;
+    }
     if difficulty(host).is_none() {
         return vec![local];
     }
@@ -41,9 +49,18 @@ pub(crate) fn session_players(
     players
 }
 
-/// Hosts a computer player for every player but the local one. Returns
-/// `true` (the match started either way).
+/// Hosts a computer player for every player but the local one (or the
+/// computers of `start_slots`). Returns `true` (the match started either
+/// way).
 pub(crate) fn attach(host: &mut SimHost, seed: u64) -> bool {
+    if !host.computers.is_empty() {
+        let computers = std::mem::take(&mut host.computers);
+        if let Some(game) = host.game.as_mut() {
+            host_computers(game, &computers, seed);
+            game.networked = false;
+        }
+        return true;
+    }
     let Some(difficulty) = difficulty(host) else {
         return true;
     };
@@ -71,6 +88,33 @@ pub(crate) fn attach(host: &mut SimHost, seed: u64) -> bool {
         game.ais.iter().map(|a| a.player().0).collect::<Vec<_>>()
     );
     true
+}
+
+/// Hosts the given computer players in the session of `game` (single
+/// player with slots, or the host of a network match, prompt 037).
+pub(crate) fn host_computers(game: &mut Game, computers: &[(PlayerId, ai::Difficulty)], seed: u64) {
+    for &(player, difficulty) in computers {
+        if player == game.session.local_player() {
+            continue;
+        }
+        game.session.host_player(player);
+        game.ais.push(ai::Ai::new(
+            player,
+            difficulty,
+            &game.config,
+            game.map(),
+            seed,
+        ));
+    }
+    if !game.ais.is_empty() {
+        godot_print!(
+            "computer players: {:?}",
+            game.ais
+                .iter()
+                .map(|a| format!("{} {}", a.player().0, a.difficulty()))
+                .collect::<Vec<_>>()
+        );
+    }
 }
 
 /// Sends the frames of the hosted computer players for the tick of the

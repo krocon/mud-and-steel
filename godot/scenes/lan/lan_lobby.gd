@@ -15,11 +15,21 @@ extends Control
 ##   --lan-discovery-port=<p>   search port (default 47811)
 ##   --lan-self-test            play automatically, quit with exit code 0/1
 ##   --map=<name>              host: play on data/maps/<name>/
+##   --lan-computers=<n>       host: the last n slots get passive computer
+##                             players on one team, the humans on the other
+##                             (prompt 037; the self-test plays 2 against 2)
+##   --mode=<battle|base>      host: the mode
+##
+## Slots (prompt 037): the host sets who plays in each slot (open, closed,
+## a computer and its difficulty), teams and factions; a client changes
+## its own team and faction. The number of slots is the map's start
+## positions. Computer players run on the host.
 
 const LanMatch := preload("res://scenes/lan/lan_match.gd")
 const MatchSetup := preload("res://scenes/menu/match_setup.gd")
 const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
+const SlotList := preload("res://scenes/menu/slot_list.gd")
 const MAIN_SCENE := "res://scenes/main.tscn"
 const SEED := 42
 ## Milliseconds between search queries while the search is on.
@@ -47,6 +57,10 @@ var _status: Label
 var _setup: Control
 var _map: OptionButton
 var _maps: PackedStringArray = []
+var _mode: OptionButton
+var _shared_vision: CheckBox
+var _slot_list: SlotList
+var _slot_hint: Label
 ## Returns to the main menu (prompt 027).
 var back_button: Button
 
@@ -116,6 +130,15 @@ func _build_ui() -> void:
 	if _args.has("--map") and _args["--map"] in _maps:
 		_map.select(Array(_maps).find(_args["--map"]))
 	_setup.add_child(_labeled("Map (host)", _map))
+	_mode = OptionButton.new()
+	for id in MatchSetup.MODES:
+		_mode.add_item(MatchSetup.MODES[id])
+	_mode.select(MatchSetup.MODES.keys().find(_args.get("--mode", "battle")))
+	_setup.add_child(_labeled("Mode (host)", _mode))
+	_shared_vision = CheckBox.new()
+	_shared_vision.text = "Allies share what they see"
+	_shared_vision.button_pressed = true
+	_setup.add_child(_shared_vision)
 
 	var host := Button.new()
 	host.text = "Host game"
@@ -149,6 +172,15 @@ func _build_ui() -> void:
 
 	_players = Label.new()
 	box.add_child(_players)
+	_slot_list = SlotList.new()
+	_slot_list.allow_open = true
+	_slot_list.kind_changed.connect(func(index: int, kind: String, level: String) -> void:
+		_lobby.set_slot_kind(index, kind, level))
+	_slot_list.side_changed.connect(func(index: int, team: int, faction: String) -> void:
+		_lobby.set_slot_side(index, team, faction))
+	box.add_child(_slot_list)
+	_slot_hint = MenuTheme.hint("")
+	box.add_child(_slot_hint)
 	_ready_box = CheckBox.new()
 	_ready_box.text = "Ready"
 	_ready_box.toggled.connect(func(on: bool) -> void: _lobby.set_ready(on))
@@ -193,6 +225,34 @@ func _on_host() -> void:
 	_searching = false
 	if _lobby.host(_name.text, int(_port.value), int(_discovery_port.value)):
 		print("LAN: hosting on port %d" % _lobby.port())
+		_apply_match_settings()
+
+
+## Host: map, mode, shared vision and one slot per start position of the
+## map, with the teams the map suggests (prompt 037).
+func _apply_match_settings() -> void:
+	var map_name := _selected_map()
+	var starts := MatchSetup.map_starts(map_name)
+	var mode: String = MatchSetup.MODES.keys()[_mode.selected]
+	_lobby.set_match(map_name, mode, _shared_vision.button_pressed, starts.size())
+	for s in starts:
+		_lobby.set_slot_side(s["player"], s["team"], "")
+	if _args.has("--lan-computers"):
+		var computers := int(_args["--lan-computers"])
+		var slots := starts.size()
+		for i in slots:
+			var computer := i >= slots - computers
+			if computer:
+				_lobby.set_slot_kind(i, "computer", "passive")
+			_lobby.set_slot_side(i, 1 if computer else 0, "")
+		# Nobody fires on their own: the test ends by surrender.
+		_lobby.hold_fire_at_start = LanMatch.self_test
+
+
+func _selected_map() -> String:
+	if _args.has("--map") and _args["--map"] in _maps:
+		return _args["--map"]
+	return _maps[_map.selected]
 
 
 func _on_search() -> void:
@@ -274,7 +334,18 @@ func _update_lobby() -> void:
 			"  – ready" if player["ready"] else "",
 		])
 	_players.text = "\n".join(lines)
-	_players.visible = in_game
+	_players.visible = false
+	_slot_list.visible = state == "lobby"
+	_slot_list.host = _lobby.is_host()
+	if state == "lobby":
+		_slot_list.show_slots(_lobby.slots())
+		var settings := _lobby.match_settings()
+		_slot_hint.text = "Map: %s, mode: %s%s. %s" % [
+			settings.get("map", ""), MatchSetup.MODES.get(settings.get("mode", ""), ""),
+			", allies share their sight" if settings.get("shared_vision", false) else "",
+			"Set who plays in each slot, teams and factions." if _lobby.is_host() else "Choose your team and faction.",
+		]
+	_slot_hint.visible = state == "lobby"
 	var status: String
 	match state:
 		"idle":
@@ -321,5 +392,11 @@ func _auto_step() -> void:
 		_join(_lobby.found_games()[0]["address"])
 	elif state == "lobby" and not _lobby.is_host() and not _ready_box.button_pressed:
 		_ready_box.button_pressed = true
-	elif state == "lobby" and _lobby.can_start():
+	elif state == "lobby" and _lobby.can_start() and not _has_open_slot():
 		_on_start()
+
+
+## Whether a slot still waits for a human (the automatic host starts only
+## when every slot is taken, prompt 037).
+func _has_open_slot() -> bool:
+	return _lobby.slots().any(func(s: Dictionary) -> bool: return s["kind"] == "open")

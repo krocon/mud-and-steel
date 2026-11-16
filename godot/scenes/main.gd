@@ -112,6 +112,8 @@ const TURN_RATE := 6.0
 const RING_SCALE := 0.65
 ## Tint over the models of other players (until real markings exist).
 const ENEMY_TINT := Color(0.85, 0.2, 0.15, 0.22)
+## Units of allies (prompt 037) [provisional].
+const ALLY_TINT := Color(0.2, 0.45, 0.95, 0.22)
 
 @onready var sim_host: SimHost = $SimHost
 @onready var camera_rig: Node3D = $RtsCamera
@@ -141,6 +143,7 @@ var _frame := 0
 var draw_usec := 0
 var _marker_time_left := 0.0
 var _enemy_material: StandardMaterial3D
+var _ally_material: StandardMaterial3D
 ## Lighting, haze and biome look (prompt 015).
 var atmosphere: Atmosphere
 ## Tracers, health bars, wrecks (prompt 017).
@@ -174,6 +177,8 @@ func _ready() -> void:
 	_enemy_material.albedo_color = ENEMY_TINT
 	_enemy_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	_enemy_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	_ally_material = _enemy_material.duplicate()
+	_ally_material.albedo_color = ALLY_TINT
 
 	Settings.ensure_loaded()
 	# Matches from the menu or the LAN lobby are built in steps behind a
@@ -426,6 +431,9 @@ func _start_simulation() -> bool:
 	if not MatchSetup.pending.is_empty():
 		var setup := MatchSetup.pending
 		sim_host.mode = setup.get("mode", "battle")
+		# Teams with computer allies and enemies (prompt 037).
+		if setup.has("slots"):
+			return sim_host.start_slots(SEED, MatchSetup.map_dir(setup["map"]), setup["slots"], setup.get("shared_vision", true))
 		return sim_host.start_match(SEED, MatchSetup.map_dir(setup["map"]), setup["factions"])
 	if LanMatch.lobby != null:
 		var lobby := LanMatch.lobby
@@ -541,7 +549,8 @@ func _unit_node(id: int, index: int) -> Node3D:
 		var radius := footprints[index] * RING_SCALE
 		ring.scale = Vector3(radius, 0.3, radius)
 		if owners[index] != sim_host.local_player():
-			_tint(node, _enemy_material)
+			var ally: bool = sim_host.relation(owners[index]) == 1
+			_tint(node, _ally_material if ally else _enemy_material)
 	return _unit_nodes[id]
 
 

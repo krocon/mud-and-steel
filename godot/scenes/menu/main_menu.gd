@@ -22,6 +22,7 @@ const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
 const SettingsPanel := preload("res://scenes/menu/settings_panel.gd")
 const CreditsPanel := preload("res://scenes/menu/credits_panel.gd")
 const FlowSelfTest := preload("res://scenes/menu/flow_self_test.gd")
+const SlotList := preload("res://scenes/menu/slot_list.gd")
 const LAN_SCENE := "res://scenes/lan/lan_lobby.tscn"
 const ONLINE_SCENE := "res://scenes/online/steam_lobby.tscn"
 const EDITOR_SCENE := "res://scenes/editor/map_editor.tscn"
@@ -56,6 +57,11 @@ var faction_option: OptionButton
 var enemy_option: OptionButton
 var opponent_option: OptionButton
 var mode_option: OptionButton
+## Teams (prompt 037): 1 vs 1 (the options above), 2 vs 2 or 3 vs 3 with
+## computer allies and enemies in `slot_list`.
+var players_option: OptionButton
+var shared_vision_box: CheckBox
+var slot_list: SlotList
 var start_button: Button
 var settings_panel: PanelContainer
 var credits_panel: PanelContainer
@@ -123,6 +129,9 @@ func start_skirmish() -> void:
 		"ai": MatchSetup.OPPONENTS.keys()[opponent_option.selected],
 		"mode": MatchSetup.MODES.keys()[mode_option.selected],
 	}
+	if team_size() > 1:
+		MatchSetup.pending["slots"] = slot_list.slots()
+		MatchSetup.pending["shared_vision"] = shared_vision_box.button_pressed
 	print("Menu: starting %s" % MatchSetup.pending)
 	get_tree().change_scene_to_file(MatchSetup.MAIN_SCENE)
 
@@ -184,7 +193,9 @@ func _skirmish_screen() -> Control:
 	_maps = MatchSetup.available_maps()
 	for map_name in _maps:
 		map_option.add_item(map_name)
-	map_option.item_selected.connect(func(_index: int) -> void: _update_map_info())
+	map_option.item_selected.connect(func(_index: int) -> void:
+		_update_map_info()
+		_update_team_sizes())
 	box.add_child(_row("Map", map_option))
 	_map_info = MenuTheme.hint("")
 	box.add_child(_map_info)
@@ -208,6 +219,18 @@ func _skirmish_screen() -> Control:
 		opponent_option.add_item(MatchSetup.OPPONENTS[id])
 	opponent_option.select(MatchSetup.OPPONENTS.keys().find(MatchSetup.DEFAULT_OPPONENT))
 	box.add_child(_row("Opponent", opponent_option))
+	players_option = OptionButton.new()
+	box.add_child(_row("Players", players_option))
+	shared_vision_box = CheckBox.new()
+	shared_vision_box.text = "Allies share what they see"
+	shared_vision_box.button_pressed = true
+	box.add_child(shared_vision_box)
+	slot_list = SlotList.new()
+	slot_list.side_changed.connect(_on_slot_side)
+	slot_list.kind_changed.connect(_on_slot_kind)
+	box.add_child(slot_list)
+	for option in [faction_option, enemy_option, opponent_option, players_option]:
+		(option as OptionButton).item_selected.connect(func(_index: int) -> void: _build_slots())
 	mode_option = OptionButton.new()
 	for id in MatchSetup.MODES:
 		mode_option.add_item(MatchSetup.MODES[id])
@@ -221,7 +244,64 @@ func _skirmish_screen() -> Control:
 	_button(buttons, "Back", func() -> void: show_screen("main"))
 	start_button = _button(buttons, "Start", start_skirmish)
 	_update_map_info()
+	_update_team_sizes()
 	return box.get_meta(&"screen")
+
+
+## Players per team chosen (1 = one against one).
+func team_size() -> int:
+	return players_option.selected + 1 if players_option.selected >= 0 else 1
+
+
+## The sizes the map's start positions allow (prompt 037).
+func _update_team_sizes() -> void:
+	var starts := MatchSetup.map_starts(_maps[map_option.selected]).size()
+	var keep := players_option.selected
+	players_option.clear()
+	for n in range(1, maxi(starts / 2, 1) + 1):
+		players_option.add_item("%d vs %d" % [n, n])
+	players_option.select(clampi(keep, 0, players_option.item_count - 1))
+	_build_slots()
+
+
+## Slots for the chosen size: you in slot 0, computers of the opponent's
+## level everywhere else, teams as the map suggests, your faction for
+## your team and the enemy's for the other.
+func _build_slots() -> void:
+	var size := team_size()
+	slot_list.visible = size > 1
+	shared_vision_box.visible = size > 1
+	if size <= 1:
+		return
+	var own: String = MatchSetup.FACTIONS.keys()[faction_option.selected]
+	var enemy: String = MatchSetup.FACTIONS.keys()[enemy_option.selected]
+	var level: String = MatchSetup.OPPONENTS.keys()[opponent_option.selected]
+	var starts := MatchSetup.map_starts(_maps[map_option.selected])
+	var own_team: int = starts[0]["team"]
+	var slots: Array = []
+	for s in starts.slice(0, size * 2):
+		var i: int = s["player"]
+		var team: int = s["team"]
+		slots.append({
+			"index": i, "kind": "human" if i == 0 else "computer", "level": level,
+			"team": team, "faction": own if team == own_team else enemy,
+			"name": "You" if i == 0 else "", "local": i == 0, "ready": false,
+		})
+	slot_list.show_slots(slots)
+
+
+func _on_slot_kind(index: int, kind: String, level: String) -> void:
+	var slots := slot_list.slots()
+	slots[index]["kind"] = kind
+	slots[index]["level"] = level
+	slot_list.show_slots(slots)
+
+
+func _on_slot_side(index: int, team: int, faction: String) -> void:
+	var slots := slot_list.slots()
+	slots[index]["team"] = team
+	slots[index]["faction"] = faction
+	slot_list.show_slots(slots)
 
 
 func _settings_screen() -> Control:

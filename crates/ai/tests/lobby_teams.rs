@@ -4,8 +4,8 @@
 //! exchange checks every tick.
 
 use ai::{Ai, Difficulty, PlayerView};
-use net::lobby::{LobbyNode, LobbyState, MemoryLink, MemoryNetwork, SlotKind};
 use net::LockstepSession;
+use net::lobby::{LobbyNode, LobbyState, MemoryLink, MemoryNetwork, SlotKind};
 use sim::scenario::{DEMO_SCENARIO, SlotSetup, parse_scenario_for_slots};
 use sim::{Command, Map, PlayerId, Sim, Vec2};
 use std::path::Path;
