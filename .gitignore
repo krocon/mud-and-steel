@@ -33,3 +33,4 @@ data/maps/editor_selftest/
 # Game files prepared from the private sound repository (tools/audio/synth.py)
 /godot/assets/audio/**/priv_*
 /.env
+/.temp/

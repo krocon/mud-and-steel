@@ -161,7 +161,7 @@ Zeichnungen bleiben Referenz auf dem Rechner.
 | 065 | [Webseite: Fahrzeugdaten und Spielwerte](done/065-webseite-fahrzeugdaten-spielwerte.md) | Technische Daten in der Detailansicht, Spielwerte aus der Sim (`cli unit-stats`), fünf Kennzahlen | erledigt (offen: Hosting-Anbieter in der Datenschutzerklärung eintragen) |
 | 066 | [Einheitenwerte im Spiel](done/066-einheitenwerte-im-spiel.md) | Kennzahlen im Picker, Tooltip, Einheitenkarte, Nachschlagewerk im Hauptmenü | erledigt (Taste Umschalt + I statt I, weil I „Sichern“ ist; offen: Vorhersage beim Zielen, auf kleinen Fenstern verdeckt die Karte die Einheitenanzeige) |
 | 067 | [Typische Kampfentfernungen](done/067-typische-kampfentfernungen.md) | Typische statt maximale Reichweiten im Katalog, mit Quellen; Balance neu messen | erledigt (`range_typical_m` je Waffe, Klassenwerte mit Quellen; Direktfeuer × 1/4 bleibt; Gefecht 49 / 48 / 46 % statt 48 / 41 / 47 %; neuer Preisfaktor Mündungsgeschwindigkeit vorläufig; offen: USA im Basis-Modus 15 %, siehe `docs/BALANCE.md`) |
-| 068 | [Wiese: Artefakte bei Kamerabewegung](068-wiese-artefakte-bei-kamerabewegung.md) | Flimmern und Moiré des Rasens beim Bewegen des Bildausschnitts nachstellen, messen, Ursache eingrenzen; kleine Ursachen beheben | offen |
+| 068 | [Wiese: Artefakte bei Kamerabewegung](068-wiese-artefakte-bei-kamerabewegung.md) | Flimmern und Moiré des Rasens beim Bewegen des Bildausschnitts nachstellen, messen, Ursache eingrenzen; kleine Ursachen beheben | offen (Hauptursache am 16.11.2026 gefunden, Behebung in 071; danach entscheiden, ob für den Nahbereich etwas bleibt) |
 | 069 | [Sound-Verbesserungen](done/069-sound-verbesserungen.md) | Kettenfahrzeuge (Motor, Kettenrasseln), MG-Feuer, Panzerschüsse, Treffer und Explosionen mit besseren Aufnahmen; Pixabay-, Epidemic- und ElevenLabs-Kandidaten auf Lizenz und Klang prüfen; ElevenLabs-API als Quelle bewerten | erledigt (Panzerschüsse, Durchschlag, Abpraller, Explosionen, Nachhall und Kettenrasseln aus Freesound, CC0 / CC BY; MG und Motoren schwer/leicht mit ElevenLabs über das private Repo `mud-and-steel-sfx`, `priv_*.wav`; `just sfx-generate`; Pixabay nur lokal, Epidemic ausgeschlossen; offen: MG-Treffer auf Panzerung und Halbkette bleiben synthetisch, MG 42 weiter Lubini, kein Begrenzer auf den Bussen, Extremfall übersteuert) |
 
 ```
@@ -174,6 +174,12 @@ Zeichnungen bleiben Referenz auf dem Rechner.
 | Nr. | Prompt | Ziel | Status |
 |-----|--------|------|--------|
 | 070 | [YouTube-Demo-Video](periodic/070-youtube-demo-video.md) | Demo-Video von 1 bis 4 Minuten: geskriptete Spielszenen aus wechselnden Blickwinkeln (`just trailer-shots`, Movie Maker), Schnitt als Promo im Video-Projekt `videoserien`; Freigabe vor dem Rendern, kein Upload | erledigt (16.11.2026: 1:39, 17 Einstellungen auf 5 Karten; wiederholbar, liegt in `periodic/`) |
+
+### Außer der Reihe: Darstellung (071)
+
+| Nr. | Prompt | Ziel | Status |
+|-----|--------|------|--------|
+| 071 | [Bodentextur gleitet bei Kamerabewegung](071-bodentextur-gleitet-bei-kamerabewegung.md) | Wandernde Schlieren auf Wiese und Straße beheben: der Maßstab der zweiten Texturabtastung in `terrain.gdshader` hängt vom Kameraabstand ab; zwei feste Maßstäbe überblenden, mit `tools/ground_flicker.py` nachmessen | offen |
 
 ## Festgelegte Grundsätze
 
