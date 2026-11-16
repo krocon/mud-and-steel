@@ -577,9 +577,17 @@ fn normal_advances_with_attack_move_easy_does_not() {
                     engage, formation, ..
                 } = command
                 {
-                    assert_eq!(*engage, sim::Engage::All);
-                    assert_eq!(*formation, sim::Formation::Auto);
-                    attack_moves[k] += 1;
+                    if *engage == sim::Engage::All {
+                        attack_moves[k] += 1;
+                    }
+                    // Attack-move; the commander (prompt 051) also moves
+                    // round a flank or closes in with vehicles that drive
+                    // on (`Engage::Infantry`), and stages in line.
+                    assert_ne!(*engage, sim::Engage::Never);
+                    assert!(
+                        matches!(*formation, sim::Formation::Auto | sim::Formation::Line),
+                        "{formation:?}"
+                    );
                 }
             }
         }

@@ -84,6 +84,9 @@ pub struct PlayerView {
     /// For every structure type the player can build right now: the first
     /// free spot around its headquarters (or its start), by type index.
     pub sites: Vec<(u32, Vec2)>,
+    /// The same, searched from 100 m in front of the headquarters towards
+    /// the map center (prompt 051: forward depots).
+    pub forward_sites: Vec<(u32, Vec2)>,
     /// Air missions the player can call (prompt 033).
     pub air: Vec<AirOption>,
     /// Enemy aircraft the player sees now.
@@ -165,12 +168,30 @@ impl PlayerView {
             .and_then(|s| sim.unit_position(s.unit))
             .or_else(|| own.first().map(|u| u.position))
             .unwrap_or_default();
-        let sites = sim
+        let options: Vec<u32> = sim
             .build_options(player)
             .into_iter()
             .filter(|o| o.blocked.is_none())
-            .filter_map(|o| Some((o.unit_type, sim.find_site(player, o.unit_type, base)?)))
+            .map(|o| o.unit_type)
             .collect();
+        let sites = options
+            .iter()
+            .filter_map(|&t| Some((t, sim.find_site(player, t, base)?)))
+            .collect();
+        let ahead = base.length();
+        let front = if ahead > sim::Fixed::from_num(100) {
+            base - base.scale(sim::Fixed::from_num(100) / ahead)
+        } else {
+            base
+        };
+        let forward_sites = if structures.is_empty() {
+            Vec::new()
+        } else {
+            options
+                .iter()
+                .filter_map(|&t| Some((t, sim.find_site(player, t, front)?)))
+                .collect()
+        };
         Self {
             player,
             tick: snapshot.tick,
@@ -183,6 +204,7 @@ impl PlayerView {
             structures,
             supply: sim.supply_points(),
             sites,
+            forward_sites,
             air: sim.air_options(player),
             enemy_aircraft: snapshot
                 .aircraft

@@ -130,7 +130,7 @@ oder weggelassen; es werden keine Inhalte anderer Spiele übernommen.
 | 048 | [Animationen und Ragdolls](done/048-animationen-ragdolls.md) | Deckungs-, Kriech- und Rollanimationen, Ragdolls nur als Darstellung | erledigt (Umwerf-Werte, Ragdoll-Budget und Trefferdarstellung vorläufig, siehe Ergebnis) |
 | 049 | [Verwundung und Kameradenhilfe](done/049-verwundung-kameradenhilfe.md) | Verwundete, Bergen, Sanitäter mit Trage, ausgestiegene Besatzungen | erledigt (Werte vorläufig; Gefangene und Wiederbesetzen offen, siehe Ergebnis) |
 | 050 | [Erfahrung und Ränge](done/050-erfahrung-raenge.md) | Veteranenstufen mit moderaten Boni und Abzeichen | erledigt (Werte vorläufig, siehe Ergebnis) |
-| 051 | [KI-Kommandeur Stufe 2](051-ki-kommandeur.md) | Aufklären, Lagebild, Konter, Versorgungskrieg, Aufgeben | Entwurf |
+| 051 | [KI-Kommandeur Stufe 2](done/051-ki-kommandeur.md) | Aufklären, Lagebild, Konter, Versorgungskrieg, Aufgeben | erledigt (Ziele nur teilweise erreicht, Werte vorläufig, siehe Ergebnis) |
 | 052 | [Stellungen Stufe 2](done/052-stellungen-stufe2.md) | Gräben, Sperrlinien, eingegrabene Panzer, Tarnnetze, Bunker | erledigt (Werte vorläufig, siehe Ergebnis) |
 | 053 | [Sound Stufe 2](done/053-sound-stufe2.md) | Überschallknall, Schallverzögerung, Hall, Zoom-Akustik, Flugzeuge, Brände, Stimmen-Struktur | erledigt |
 | 054 | [Explosionen Stufe 2](done/054-explosionen-stufe2.md) | Druckwelle, Blitzlicht, Munitionsexplosion, schwerer Feuerschlag | erledigt (Werte vorläufig, siehe Ergebnis) |

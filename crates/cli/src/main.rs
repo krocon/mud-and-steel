@@ -250,6 +250,10 @@ enum CliCommand {
         /// Print every game.
         #[arg(long)]
         verbose: bool,
+        /// Print the living units every this many ticks (tuning, with
+        /// `--games 1`).
+        #[arg(long, default_value_t = 0)]
+        trace: u64,
         /// Weather of every game (prompt 040); default: the map's.
         #[arg(long)]
         weather: Option<String>,
@@ -683,6 +687,7 @@ fn main() {
             max_ticks,
             jobs,
             verbose,
+            trace,
             weather,
             daytime,
         } => {
@@ -717,6 +722,7 @@ fn main() {
                     std::thread::available_parallelism().map_or(1, std::num::NonZero::get)
                 }),
                 verbose,
+                trace,
             };
             let start = std::time::Instant::now();
             if matrix {
