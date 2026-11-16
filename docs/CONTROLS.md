@@ -51,7 +51,7 @@ this page.
 | H *(rebindable)* | Stop (also drops the waypoints) |
 | F *(rebindable)* | Hold fire / fire at will |
 | Z / X / V / B *(rebindable)* | Infantry: stand / kneel / prone / automatic stance |
-| G / T *(rebindable)* | Mortars and guns: barrage / smoke at the ground point under the cursor (prompt 032) |
+| G / T *(rebindable)* | Mortars, guns and rocket launchers: barrage / smoke at the ground point under the cursor (prompt 032; a rocket launcher fires whole salvos, prompt 062) |
 | Right click with squads on an own truck, halftrack or tank | Mount it (if its seats suffice; prompt 034) |
 | Right click with vehicles on an own towed gun | The nearest vehicle strong enough hitches it |
 | J *(rebindable)* | Passengers of the selected vehicles get off once the vehicle stands |

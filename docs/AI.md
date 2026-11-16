@@ -445,7 +445,7 @@ waves. The AI does not call paratroopers. Test:
 | Pulls back damaged units | – | no | no | below 30 % |
 | Pulls back veterans (prompt 050) | – | no | below 40 % | below 50 % |
 | Patience before flanking | – | 1600 ticks | 800 ticks | 800 ticks |
-| Artillery (prompt 032) | – | with the group | with the group | own role: barrages, smoke |
+| Artillery (prompt 032) | – | with the group | rocket launchers only (prompt 062) | own role: barrages, smoke |
 | Commander (prompt 051) | – | no | yes, axes 0/±45° | yes, axes 0/±30/±60/±90° |
 | Withdraws below (share of the front) | – | – | 40 % | 60 % |
 | Surrenders when hopeless | no | yes | yes | yes (`HardOld`: no) |
@@ -470,6 +470,14 @@ their attack orders into indirect fire.
 - Hard builds a mortar team in its infantry mix. Not the self-propelled gun:
   with it in the vehicle mix, saving up for it starved the tank production
   and Hard lost 4 of 8 base matches against Normal (before: 8 timeouts).
+- Rocket launchers (prompt 062) are artillery on Normal too. Their barrage
+  is one salvo of all tubes, and its target keeps 120 m (instead of 60 m)
+  from own and allied troops: the rockets scatter ±55 m at the longest
+  range. Normal and Hard build a rocket launcher and an assault howitzer
+  (Sturmpanzer IV, M4A3 (105); the Soviet list has none, so the IS-2) once
+  per two rounds of their vehicle mix: the mix entries `ROCKETS` and
+  `ASSAULT_HOWITZER` find them by catalog category wherever they stand in
+  the list (`crates/ai/src/economy.rs`). [provisional]
 
 ## Air support (prompt 033)
 

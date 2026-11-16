@@ -1142,7 +1142,8 @@ and an upload together with decoration rebuilds.
 ## Indirect fire and smoke
 
 Prompt 032. Mortars (`inf_mortar_*`, `mortar_heavy`), howitzers
-(`gun_howitzer`) and self-propelled guns (`self_propelled`) fire their first
+(`gun_howitzer`), self-propelled guns (`self_propelled`) and rocket
+launchers (`rocket_launcher`, prompt 062, below) fire their first
 catalog weapon indirectly; their other catalog weapons (the crew's small
 arms) are ordinary direct weapons. Rules: `data/indirect.toml`
 (`sim::IndirectRules`, loaded by `Sim::new` like the crater rules, in the
@@ -1235,6 +1236,36 @@ whistle (prompt 029). Muzzle flashes and explosions come from the usual
 | Dispersion and blast in real meters | Sizes are 1:1 | A 16 m blast radius is a size, not a range. |
 | Armor | Direct hits only, roof = half the thinnest plate | The catalog has no roof armor. |
 | Smoke in vision | A height per cell, not just a flag | Observers on hills see over smoke; same ray code as walls. |
+
+### Rocket launchers (prompt 062)
+
+Category `rocket_launcher` (vehicles: 15 cm Panzerwerfer 42, BM-13-16 on the
+ZiS-6, T34 Calliope on the M4A3) fires indirectly like the categories above,
+with two category values of `data/indirect.toml` that are 0 elsewhere:
+
+- `ripple_ms`: the first weapon's catalog `count` (tubes or rails) is one
+  salvo. A fire order launches the first rocket, the rest follow
+  `ripple_ms` (real, time factor applies) apart, then the launcher reloads
+  as a whole. The catalog `rate_rpm` of a launcher is the sustained rate
+  (salvo plus reloading), so the reload after the last rocket is
+  count × 60 s / rate − (count − 1) × ripple (Panzerwerfer 42: 10 rockets,
+  5 ticks apart, then 1455 ticks). `Gun::ripple` counts the rockets still to
+  come (hashed). A salvo broken off by moving is lost (full reload).
+- `mrad_x10`: the category's own dispersion (8 mrad instead of 3).
+
+Every rocket is a shell of its caliber (fragments, craters, fires,
+knockdown: no new damage rule). A `Barrage` counts whole salvos, each rocket
+at its own random point in the circle. The stock of prompt 036 already
+counts a salvo as `count` rounds; a salvo pays one salvo of the stock with
+its first rocket. The presentation shows each launch at the model's
+`Socket_Rocket_NN` (flash, back blast, a short smoke trail in
+`artillery_view.gd`, sound `shot_rocket`); prompt 076 replaces these simple
+effects.
+
+The Sturmpanzer IV (prompt 062) needs no new rule: its 15 cm StuH 43
+(240 m/s, below `heat_below_velocity_mps`) counts as a shaped charge
+(240 mm) and a hit costs 2250 points (caliber² × 0.1), two hits destroy a
+bunker (2500) or a farmhouse.
 
 ### Open
 

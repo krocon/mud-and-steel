@@ -124,7 +124,7 @@ der Rest ist von der ausführenden Session konkretisiert.
 | Feuerrate im Katalog | `rate_rpm` des Werfers ist die Dauerfeuerrate (Salve plus Nachladen, Raketen pro Minute); daraus folgt die Nachladezeit nach der Salve. |
 | Salvenabstand | `ripple_ms = 500` (reale ms, Zeitfaktor gilt) als neuer Kategoriewert in `data/indirect.toml`; 0 = keine Salve (alle bisherigen Kategorien). |
 | Streuung | Eigener Kategoriewert `mrad_x10 = 80` (8 mrad statt 3 mrad global), 0 = globaler Wert. |
-| Mindestreichweite, Aufbau, Erhöhung | `rocket_launcher`: 20 % der Reichweite, 30 s Aufbau (real), 45°. |
+| Mindestreichweite, Aufbau, Erhöhung | `rocket_launcher`: 5 % der Reichweite (die 300 m des Panzerwerfers 42 aus der Quelle), 30 s Aufbau (real), 45°. |
 | Munition | Eine Salve kostet einen „salvo“ des Vorrats (Regel 036), abgebucht mit der ersten Rakete; die übrigen Raketen der Salve brauchen keinen Vorrat mehr. |
 | Unterbrochene Salve | Bewegt sich der Werfer mitten in der Salve, verfällt der Rest und er lädt ganz nach. |
 | Kosten | Formel unverändert: der indirekte Waffenterm zählt schon nur ein Rohr (Kaliber² ohne `count`), also bepreist sie eine Salve wie einen Schuss des Kalibers; das passt zur Dauerfeuerrate (siehe GAME_DESIGN.md). |

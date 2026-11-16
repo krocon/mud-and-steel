@@ -191,9 +191,20 @@ about 90 m. Fortifications come from the catalog:
 
 | Faction | Barracks | Vehicle works |
 |---|---|---|
-| de | rifle squad, MG 42 team, HMG team, AT squad, 8 cm mortar team, engineer squad | Sd.Kfz. 222, Sd.Kfz. 251/1, Panzer IV H, StuG III G, Tiger I, Wespe, Opel Blitz, 7.5 cm Pak 40, 10.5 cm leFH 18 |
-| su | rifle squad, MG team, HMG team, AT squad, 82 mm mortar team, sapper squad | BA-64B, T-70M, T-34/76, SU-85, IS-2, ISU-152, ZiS-5, ZiS-3, M-30 |
-| us | rifle squad, MG team, HMG team, AT squad, 81 mm mortar team, engineer squad | M8 Greyhound, M3 halftrack, M4A3 (75), M10, M26, M7 Priest, GMC CCKW, 57 mm M1, 105 mm M2A1 |
+| de | rifle squad, MG 42 team, HMG team, AT squad, 8 cm mortar team, engineer squad | Sd.Kfz. 222, Sd.Kfz. 251/1, Panzer IV H, StuG III G, Tiger I, Wespe, Opel Blitz, 7.5 cm Pak 40, 10.5 cm leFH 18, Brückenleger IV, Sturmpanzer IV, 15 cm Panzerwerfer 42 |
+| su | rifle squad, MG team, HMG team, AT squad, 82 mm mortar team, sapper squad | BA-64B, T-70M, T-34/76, SU-85, IS-2, ISU-152, ZiS-5, ZiS-3, M-30, Valentine bridgelayer, BM-13-16 |
+| us | rifle squad, MG team, HMG team, AT squad, 81 mm mortar team, engineer squad | M8 Greyhound, M3 halftrack, M4A3 (75), M10, M26, M7 Priest, GMC CCKW, 57 mm M1, 105 mm M2A1, M4A3 (105), T34 Calliope |
+
+- **Rocket launchers and assault howitzers (prompt 062)** [provisional]: a
+  rocket launcher fires all its tubes as one salvo of inaccurate rockets on
+  an area, then reloads for a long time (Panzerwerfer 42: 10 × 15 cm, then
+  about 73 s; BM-13-16: 16 × 132 mm, about 2 min; Calliope: 60 × 114 mm,
+  about 5 min). Strong against infantry, guns and positions, weak against
+  tanks (only direct hits hurt them), defenceless up close (no main gun;
+  the BM-13 is an unarmored truck). The Sturmpanzer IV and the M4A3 (105)
+  smash buildings, bunkers and positions with a short large howitzer at
+  close range. The heavy strike of the rocket battery position stays: it is
+  a late, expensive event with a warning, the launcher an ordinary weapon.
 
 - Each producing building has a queue of up to **5** orders. The cost is paid
   when an order is queued; cancelling the last order refunds it in full.
@@ -243,6 +254,15 @@ prompt 067, the value before it in brackets where it changed):
 | IS-2 | 184 | 404 (287) | 24 | 84.5 s |
 | M4A3 (75) | 126 | 103 | 30 | 40.3 s |
 | Pak 40 | 0 | 206 | 36 | 38.2 s |
+
+Rocket launchers (prompt 062, checked): the indirect weapon term counts
+one tube (caliber² without `count`), so a salvo costs what one round of its
+caliber costs in a howitzer's price. That fits, because howitzer prices do
+not scale with the rate of fire either and the launchers' sustained rates
+(4-6 rockets per minute) are those of a light howitzer; the salvo's burst
+is paid for by the long reload and the wide dispersion. Prices: Panzerwerfer
+42 28/385/18, BM-13-16 28/300/36, Calliope 134/226/30 (Wespe 44/193/30);
+the formula stays unchanged.
 
 The code computes the values (`sim::economy::EconomyRules::unit_cost`);
 this table is a snapshot, `cli economy-table` shows the current ones. The

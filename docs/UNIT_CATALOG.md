@@ -339,7 +339,7 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 | su_su76m | SU-76M / SU-76M | SU-76M self-propelled gun | 1943–1945 | 2 | 4.97 × 2.72 × 2.10 | 10.5? | 4 | 45.0 / 25.0? | 35? / 25 | 76.2 mm ZiS-3Sh? |
 | su_m3a1_scout | M3A1 Scout Car (Lend-Lease) / M3A1 Scout Car (Lend-Lease) | Scout Car M3A1 | 1942–1945 | 2 | 5.61 × 2.03 × 1.96 | 5.7 | 2 + 6 | 80.0 / 40.0? | 13 /  | Browning M2HB? |
 | su_zis5 | ZiS-5V / ZiS-5V | ZiS-5V 3-ton truck | 1942–1945 | 1 | 6.06 × 2.24 × 2.16 | 3.1? | 1 + 25 | 60.0 / 25.0? |  /  |  |
-| su_bm13 | BM-13-16 "Katjuscha" auf ZiS-6 / BM-13-16 "Katyusha" on ZiS-6 | BM-13-16 (ZiS-6) | 1941–1945 | 2 | 6.55? × 2.30? × 2.80? | 7.2? | 6 | 50.0? / 20.0? |  /  | 16× BM-13-16 launcher (16 rails)? |
+| su_bm13 | BM-13-16 "Katjuscha" auf ZiS-6 / BM-13-16 "Katyusha" on ZiS-6 | BM-13-16 (ZiS-6) | 1941–1945 | 2 | 6.20? × 2.30? × 2.60? | 7.2? | 6 | 50.0? / 20.0? |  /  | 16× BM-13-16 launcher (16 rails)? |
 | su_ba64b | BA-64B / BA-64B | BA-64B light armored car | 1943–1945 | 2 | 3.66 × 1.74? × 1.90 | 2.4 | 2 | 80.0 / 30.0? | 15 /  | DT? |
 | su_isu152 | ISU-152 / ISU-152 | ISU-152 heavy self-propelled gun | 1943–1945 | 2 | 9.18 × 3.07 × 2.48 | 46.0? | 5? | 30.0? / 15.0? | 90 / 90 | 152 mm ML-20S L/29? |
 | su_valentine_bridgelayer | Valentine-Brückenleger (Lend-Lease) / Valentine Bridgelayer (Lend-Lease) | Valentine Bridgelayer | 1943–1945 | 2 | 5.90? × 2.90? × 3.40? | 20.0? | 2 | 24.0 / 13.0? | 60 /  |  |
