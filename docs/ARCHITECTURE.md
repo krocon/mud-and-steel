@@ -535,7 +535,8 @@ into one card of game values, with the rule functions the simulation itself uses
 is a set of pure functions outside the simulation state: no rule reads it, the state
 hash and the golden hash do not depend on it. `cli unit-stats` prints all cards as
 JSON (the unit page shows them), `SimHost.unit_stats(type_id)` returns one as a
-dictionary (prompt 066). There is no second calculation anywhere: JavaScript and
+dictionary (prompt 066; how the game shows them: "Unit values in the interface"
+in the HUD section). There is no second calculation anywhere: JavaScript and
 GDScript only format.
 
 All numbers are integers with the unit in the key; `game` values are what the
@@ -2299,6 +2300,7 @@ Godot translation table `godot/locale/<area>.csv` with the columns
 | `hud.csv` | `HUD_` | HUD, picker, orders, base HUD, air bar, strike, events, mission panel |
 | `editor.csv` | `EDITOR_` | map editor |
 | `names.csv` | `NAME_`, `RANK_` | building names (`data/economy.toml`) and ranks (`data/experience.toml`) |
+| `units.csv` | `UNIT_` | ratings, tile tooltip, unit card, unit reference, names of categories and vehicle database fields (prompt 066) |
 
 Godot imports each table into `<area>.<lang>.translation` next to it (not
 committed, `*.translation` is ignored); `just build` runs the import when a
@@ -2382,9 +2384,11 @@ that switch VSync off keep it), never headless; the first call of a run
 leaves a plain start untouched.
 
 **Keys.** Every order of the command bar, the camera, the air calls
-(Shift+1…5) and the rocket strike (Shift+6) are rebindable, with Shift,
+(Shift+1…5), the rocket strike (Shift+6) and the unit card (Shift+I,
+prompt 066) are rebindable, with Shift,
 Ctrl, Alt or Meta (a binding is a physical keycode with modifier masks;
-older files with plain codes stay valid). Air calls and the strike are
+older files with plain codes stay valid). Air calls, the strike and the
+unit card are
 input actions added at run time (`Settings.RUNTIME_ACTIONS`). Fixed
 [provisional]: control groups (1…9, Ctrl+1…9), the picker's digit keys
 (Alt+digit) and the map editor's shortcuts.
@@ -3429,7 +3433,10 @@ decides anything; orders go through `selection.gd` or `SimHost`.
   Not redrawn after craters.
 - **Unit panel** (`unit_panel.gd`, bottom center): `SimHost.unit_info` (name,
   hit points, armor per face, weapons with caliber and game range, soldiers);
-  stance, fire mode and queued waypoints from the per-unit arrays. The
+  stance, fire mode and queued waypoints from the per-unit arrays; under
+  the portrait the five ratings of the unit's type, in its corner the
+  button to its unit card, and the bonuses of its rank as a line of their
+  own (prompt 066). The
   portrait (`unit_portrait.gd`, [provisional]) is rendered once per unit type
   in its own `SubViewport` from a fresh model (duplicating a unit's model
   fails: its parts are merged at run time); a pre-rendered thumbnail
@@ -3448,9 +3455,11 @@ decides anything; orders go through `selection.gd` or `SimHost`.
   buildings, other structures (defense), then by catalog group (infantry,
   vehicles, guns, aircraft); empty tabs are hidden. Everything comes from
   `build_options` / `production_options`, so new buildables appear without
-  changes. The tooltip reads `SimHost.catalog_card` (catalog values: armor,
-  weapons with real effective range, crew, mass, speed; for base buildings
-  hit points, income, requirements). The thumbnails are PNGs in
+  changes. Every tile shows the five ratings of its type and its tooltip
+  is a panel with their numbers (prompt 066, see "Unit values in the
+  interface" below); base buildings keep the catalog values of
+  `SimHost.catalog_card` (hit points, income, requirements). A right click
+  on a tile emits `info_requested` (the unit card). The thumbnails are PNGs in
   `godot/assets/thumbnails/` (`hud/thumbnail.gd`, docs/ASSETS.md), rendered
   by `just thumbnails` for every id of `SimHost.buildable_ids()`; any own
   structure with production options gets the production bar. When the
@@ -3467,6 +3476,86 @@ decides anything; orders go through `selection.gd` or `SimHost`.
   (damaged and selected units, default), `selected` or `never`.
 - **Cost:** every part adds its `_process`/`_draw` time to `hud.usec`;
   `--perf-bench` prints it per view (column "hud").
+
+### Unit values in the interface
+
+Prompt 066. The game shows the cards of `sim::unit_stats` (see "Unit stats
+(display only)") in four places; GDScript only formats, no value is
+computed there.
+
+- **`hud/unit_stats.gd`** (static): fetches `SimHost.unit_stats(id)` once
+  per type and keeps it (the bridge computes a card on every call;
+  `fetches` counts the calls for the self-test), likewise
+  `unit_stats_reference`, `vehicle_record` and `catalog_card` (per
+  language, for names). `num` writes numbers in the interface language
+  (German `1.234,5`, English `1,234.5`). It builds the tooltip's lines: at
+  most eight values (speed, armor, main weapon with penetration at 500 m
+  and game range, effect against infantry and structures in a word, men and
+  seats) and the "good against … / vulnerable to …" line. That line is read
+  off the card: the reference tanks of `against_vehicles.targets` grouped
+  by their category (all of a class penetrated from the front, or only from
+  the side), the ratings (strong from 60), and the first comparison weapon
+  of `protection.versus` that gets through the hull front and the side. The
+  words: 0 "none", below 25 "weak", below 60 "medium", else "strong".
+- **`hud/rating_bars.gd`**: draws the ratings. `STRIP` (tiles, unit
+  panel): a symbol per rating with a bar under it; `FULL` (tooltip, card):
+  rows with symbol, name, bar and number. One sand tone and a symbol per
+  rating, so the display does not depend on the color palette; a rating the
+  type lacks is left out, a rating of 0 dims its symbol.
+- **`hud/unit_card.gd`**: the unit card, a panel with head (picture or 3D
+  model, name, designation, category, faction, service years, price,
+  ratings, the rank's bonuses for an own unit) and two tabs: "Game values"
+  (every section of the card in the layout of `web/units/stats.js`) and
+  "Technical data" (the entry of the vehicle database with its source; a
+  note where there is none). Base buildings are no catalog entries and
+  show the values of `catalog_card` (which also carries `cost`, `build_s`
+  and, for catalog entries, `year_to` since this prompt).
+- **In a match** `hud.gd` owns one card: `show_unit_card(type_id, unit)`
+  from a tile's right click (`picker.gd` `info_requested`), the unit
+  panel's button and the input action `unit_card` (Shift + I, a run-time
+  action of `settings.gd` like the air calls; plain I is `order_secure` and
+  every letter is taken). It sits top right: right of the command bar,
+  above the minimap, above the unit panel when that sits over the minimap
+  and enough room is left; on a small window it gets narrower and its pages
+  scroll. It takes no keyboard focus (order keys reach `selection.gd`),
+  stops only the mouse clicks on itself (`covers`), and `hud.gd` closes it
+  on Escape in `_input`, before the pause menu sees the key. Nothing is
+  paused and no command is involved: lockstep matches are unaffected.
+- **In the main menu** `menu/units_screen.gd` ("Units") lists
+  `SimHost.catalog_ids()` (base buildings, then every catalog entry that is
+  no environment object) by faction ("General": base buildings and the
+  common field fortifications) and kind; entries in no build or production
+  menu (`buildable_ids`) follow under their own heading. It shows the same
+  card with `with_model`: `menu/unit_model_view.gd`, a `SubViewport` with
+  the model of `tools/thumbnail_render.gd` `build_model(id, biome)` (the
+  one the thumbnails and the model gallery's looks use: `UnitCamo`,
+  `SoldierLook`, `EnvLook`), turned by dragging, zoomed by the wheel, with
+  a camouflage choice (forest, desert, winter).
+- **Texts** are in `locale/units.csv` (`UNIT_`): ratings, groups, labels,
+  value patterns, table heads, notes, and the names built from codes:
+  `UNIT_CAT_<CATEGORY>`, `UNIT_FIELD_<DATABASE FIELD>`,
+  `UNIT_PART_<ASSEMBLY>`, `UNIT_WEAPON_<COMPARISON WEAPON>`. Texts of the
+  vehicle database's source stay as the source wrote them.
+- **Decisions.** Ratings on every tile, not only in the tooltip: as a
+  symbol with a bar they stay readable at interface scale 1 (checked on
+  screenshots); four signal-like steps next to each symbol were tried
+  first and read as noise at that size. Technical data in the match too, as
+  the second tab, so the first stays short. Shift + I instead of I (taken).
+  The unit panel keeps its size (a wider or higher one covered units the
+  self-test clicks, and so a player's), so its ratings are a strip under a
+  slightly smaller portrait and the button sits in the portrait's corner. No forecast at
+  the cursor while aiming (see GAME_DESIGN.md).
+- **Checks.** `tools/hud_self_test.gd`: tooltip and card for every
+  buildable id in English and German without a missing text, sample
+  numbers against `SimHost.unit_stats` (the function behind
+  `cli unit-stats`), one fetch per type, the ratings on every tile, right
+  click, button, key, Escape, orders while the card is open, its place on
+  the screen. `tools/experience_self_test.gd`: the rank line.
+  `tools/units_self_test.gd` (flow test): every entry of the reference.
+  `just unit-card-shots` (`tools/unit_card_shots.gd`, needs a window):
+  screenshots of reference, picker, tooltip, card and unit panel in German
+  and English at interface scale 1 and 1.25 and in German at 1280 × 720,
+  into `build/unit-cards/`.
 
 The self-test (`tools/hud_self_test.gd`) clicks and drags the minimap,
 changes the selection through the unit panel, drives a waypoint chain by

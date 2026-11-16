@@ -428,6 +428,51 @@ never change armor, penetration, range or hit points.
   elite unit below 40 % of its hit points leaves the fight (recruits fight
   on), on Hard below 50 % (others below 30 %).
 
+## What a unit can do: the five ratings [provisional]
+
+Prompt 066. Every unit type carries five numbers from 0 to 100. They are a
+reading aid, not a rule: the simulation never looks at them, they are worked
+out from the same values the fight uses (formulas in
+[ARCHITECTURE.md](ARCHITECTURE.md#unit-stats-display-only)), and they
+are the same on the unit page of the website. They describe the type on dry
+ground: no rank, no damage, no weather.
+
+| Rating | Symbol | What it tells you | 100 means |
+|---|---|---|---|
+| Speed | two chevrons | how fast it gets around, road and cross-country together | as fast as the fastest trucks and scout cars |
+| Protection | shield | how much it takes to stop it: mostly armor, the front counting most | armor like the heaviest tanks; unarmored vehicles and guns have 10, a squad up to 20 |
+| Against vehicles | tank | what its best gun punches through at 500 m; weapons that reach less far count less | goes through 200 mm, every tank from the front |
+| Against infantry | soldier | how many soldiers it could put out of action in a minute if every round hit | several machine guns firing at once |
+| Against structures | house | how fast it knocks down walls and houses; weapons below 20 mm caliber do nothing | a heavy howitzer or mortar |
+
+- **Where you see them.** On every tile of the build menu and the
+  production bar (a symbol with a bar under it), in the tile's tooltip with
+  their numbers, in the unit panel of a selected unit, and on the unit card.
+  A rating a unit does not have is left out (a bunker has no speed, a truck
+  no weapons); a rating of 0 shows its symbol dimmed.
+- **In a word.** The tooltip says "none" for 0, "weak" below 25, "medium"
+  below 60 and "strong" from 60 on.
+- **Good against / vulnerable to.** The tooltip names the tank classes
+  (light, medium, heavy: one reference tank per faction) whose hull front
+  the best gun penetrates at 500 m, or those it only gets through from the
+  side; infantry and structures where that rating is strong. Vulnerable to:
+  the weakest comparison weapon (rifle, machine gun, 3.7, 5.7, 7.5 and
+  8.8 cm gun, Panzerschreck) that gets through the hull front and the one
+  that gets through the side; unarmored units to any weapon, squads to
+  small arms; shell fragments where they hurt.
+- **The unit card** (right click on a tile, Shift + I for the selected unit,
+  the button in the unit panel; main menu → Units for everything in the
+  catalog) lists every game value behind the ratings and, for vehicles of
+  the vehicle database, the technical data with its source. The match goes
+  on while it is open.
+- **Ranks stay apart.** The bonuses of a rank (dispersion, reload time,
+  pinned down) are a line of their own in the unit panel and on the card;
+  the ratings and values are always those of the type.
+- **Not in this version:** a forecast at the cursor while aiming ("this
+  shot penetrates the front: yes / no"). Proposal for later; open whether
+  it is wanted in multiplayer, where it takes the judgement away from the
+  player.
+
 ## Ambush [provisional]
 
 Prompt 056: infantry standing still in a wood (a forest cell of the

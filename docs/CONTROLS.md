@@ -34,6 +34,8 @@ this page.
 | 1…9 | Recall the group (and its formation); twice quickly: camera there |
 | Unit panel: click a tile | Select only that unit |
 | Unit panel: Shift + click a tile | Remove that unit from the selection |
+| Shift + I *(rebindable)* | Unit card of the selected unit (the first of several); again closes it (prompt 066) |
+| Unit panel: "Values" in the corner of the picture | The same as the key |
 
 ## Orders
 
@@ -147,7 +149,8 @@ the enemy's battery position (beam and ring) and pings it on the minimap.
 | Command bar: Build | Open the build menu (price, greyed out with the reason) |
 | Build menu: a building | Place it: left click (Shift: place more), right click or Esc cancels |
 | Select an own barracks or factory | Production bar above the command bar: queue units, cancel the last |
-| Build menu / production bar: tabs | Show one kind (base, defense, infantry, vehicles, guns, air); the tooltip of a tile lists its catalog values |
+| Build menu / production bar: tabs | Show one kind (base, defense, infantry, vehicles, guns, air); a tile shows the five ratings of its unit, its tooltip their numbers, a few values and what it is good against and vulnerable to (prompt 066) |
+| Build menu / production bar: right click on a tile | Unit card of that unit; the left click still builds it |
 | Alt + 1 … 9, 0 | Pick the first … tenth tile of the open tab: of the production bar if it shows, else of the build menu (prompt 058, [provisional]) |
 | Right click with only own buildings selected | Rally point |
 
@@ -164,5 +167,15 @@ the enemy's battery position (beam and ring) and pings it on the minimap.
   sighted, under fire. Click one to look there.
 - **Health bars**: over damaged and selected units; Settings → Interface
   can limit them to selected units or hide them.
-- **Esc**: pause menu (settings, surrender, quit).
+- **Unit card** (top right, prompt 066): all game values of a unit type and,
+  for vehicles of the vehicle database, its technical data, in two tabs. It
+  opens by a right click on a tile of the build menu or the production bar,
+  by Shift + I for the selected unit and by the button in the unit panel;
+  Esc or its ✕ closes it. The match goes on while it is open and every
+  order still works. Plain I is "Secure"; every letter key has an order, so
+  the card got Shift + I. The same card for everything in the catalog, with
+  the 3D model to turn and a camouflage choice: main menu → Units. What the
+  five ratings mean: [GAME_DESIGN.md](GAME_DESIGN.md#what-a-unit-can-do-the-five-ratings-provisional).
+- **Esc**: closes the unit card if it is open; else the pause menu
+  (settings, surrender, quit).
 - **F3**: debug menu.
