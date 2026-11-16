@@ -1259,7 +1259,7 @@ fn winter_village(seed: u64) -> Result<Built, String> {
             &stands,
             6.5,
             FULL,
-            &|x, y| wn.at(x, y) > 0.6 && dist((x, y), (0.0, 0.0)) > 200.0,
+            &|x, y| wn.at(x, y) > 0.66 && dist((x, y), (0.0, 0.0)) > 200.0,
             &stand_noise,
         );
         // Single trees on the snowfields.
@@ -1358,6 +1358,13 @@ fn farms(seed: u64) -> Result<Built, String> {
         for (k, &(_, c)) in FARMS.iter().enumerate() {
             let house = ["env_house_farm", "env_house_farm_brick", "env_house_stone"][k % 3];
             o.farmstead(c, &garden, house, k == 3);
+            // Cottages of the farm hands and a second barn outside the fence.
+            let cottages = ["env_house_farm_brick", "env_house_stone", "env_house_log"];
+            for (dx, dy, heading) in [(-52.0, -12.0, 0), (52.0, 18.0, 180), (-22.0, -48.0, 90)] {
+                let kind = o.pick(&cottages);
+                o.place(kind, "Intact", (c.0 + dx, c.1 + dy), heading, 2.0);
+            }
+            o.place("env_barn", "Intact", (c.0 + 26.0, c.1 - 46.0), 90, 2.0);
         }
         // Hedgerows along the field tracks (not the road).
         for t in &tracks {
@@ -1478,8 +1485,11 @@ fn river_land(seed: u64) -> Result<Built, String> {
         ));
     }
     for &c in &RL_FARMS {
+        // From the fence gap on the side towards the center (the yard
+        // stays free).
+        let gap = (c.0, c.1 - c.1.signum() * 34.0);
         plan.ways
-            .push(Way::new(&[c, (c.0 * 0.4, c.1 * 0.2)], 2.0, DIRT_TRACK));
+            .push(Way::new(&[gap, (c.0 * 0.4, c.1 * 0.2)], 2.0, DIRT_TRACK));
     }
     let meta = Meta {
         biome: "forest",

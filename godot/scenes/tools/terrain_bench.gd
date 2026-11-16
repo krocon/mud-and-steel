@@ -192,7 +192,11 @@ func _shots() -> void:
 	var meadow := OS.get_environment("SHOT_SET") == "meadow"
 	var mountains := OS.get_environment("SHOT_SET") == "mountains"
 	var shots := MEADOW_SHOTS if meadow else (MOUNTAIN_SHOTS if mountains else SHOTS)
-	if meadow or mountains:
+	# Prompt 056 (`SHOT_SET=land`): the whole map and every supply point.
+	var land := OS.get_environment("SHOT_SET") == "land"
+	if land:
+		shots = _land_shots()
+	if meadow or mountains or land:
 		# Clean ground views: no fog of war over the village, no HUD.
 		main.fog_of_war.set_fog_enabled(false)
 		main.get_node("Hud").visible = false
@@ -228,6 +232,19 @@ func _shots() -> void:
 		print("terrain-shots: view %d '%s' in frames %d..%d" % [i, shot["name"], i * SHOT_FRAMES, i * SHOT_FRAMES + SHOT_FRAMES - 1])
 		await _frames(SHOT_FRAMES)
 	get_tree().quit()
+
+
+## Views of a landscape map (prompt 056): the map from above, then every
+## supply point from the middle distance and close up.
+func _land_shots() -> Array[Dictionary]:
+	var shots: Array[Dictionary] = [
+		{"name": "overview", "focus": Vector3.ZERO, "distance": 1250.0, "yaw": 0.4, "pitch": 55.0},
+		{"name": "overview_low", "focus": Vector3.ZERO, "distance": 700.0, "yaw": 2.2, "pitch": 30.0},
+	]
+	for p: Dictionary in main.sim_host.supply_points():
+		shots.append({"name": p["name"], "focus": p["position"], "distance": 130.0, "yaw": 0.6, "pitch": 38.0})
+		shots.append({"name": p["name"] + "_near", "focus": p["position"], "distance": 50.0, "yaw": -0.8, "pitch": 32.0})
+	return shots
 
 
 func _frames(count: int) -> void:
