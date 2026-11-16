@@ -166,6 +166,31 @@ capacity = 16
 exposure_pct = 10
 heavy_exposure_pct = 25
 
+# Prompt 041: town and winter buildings.
+[[building.kind]]
+id = "env_house_town"
+capacity = 12
+exposure_pct = 10
+heavy_exposure_pct = 35
+
+[[building.kind]]
+id = "env_town_hall"
+capacity = 20
+exposure_pct = 8
+heavy_exposure_pct = 25
+
+[[building.kind]]
+id = "env_warehouse"
+capacity = 24
+exposure_pct = 15
+heavy_exposure_pct = 40
+
+[[building.kind]]
+id = "env_house_log"
+capacity = 6
+exposure_pct = 20
+heavy_exposure_pct = 45
+
 [[building.kind]]
 id = "fort_bunker_mg"
 capacity = 4

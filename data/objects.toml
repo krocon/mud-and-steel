@@ -116,6 +116,27 @@ id = "env_church"
 variants = ["Intact", "Damaged", "Ruin"]
 blocks = "all"
 
+# Prompt 041: town and winter buildings.
+[[object]]
+id = "env_house_town"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_town_hall"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_warehouse"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_house_log"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
 # --- Boundaries ------------------------------------------------------------------
 
 [[object]]
@@ -193,6 +214,18 @@ blocks = "none"
 [[object]]
 id = "env_barrel"
 variants = ["Standing", "Lying", "Group"]
+blocks = "none"
+
+# Prompt 041: dumps that burn and explode (data/fire.toml); `Burnt` is what
+# is left.
+[[object]]
+id = "env_dump_ammo"
+variants = ["Intact", "Burnt"]
+blocks = "none"
+
+[[object]]
+id = "env_dump_fuel"
+variants = ["Intact", "Burnt"]
 blocks = "none"
 
 # --- Field fortifications (for scenarios and the map editor) ----------------------

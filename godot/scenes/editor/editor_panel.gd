@@ -85,10 +85,23 @@ func _ready() -> void:
 	_setting(box, "preset", "Objects", preset_option)
 
 	place_option = OptionButton.new()
+	# Grouped (prompt 041): a separator with the group name before each group.
+	var groups: Dictionary[String, Array] = {}
 	for kind in main.editor.object_catalog():
-		place_option.add_item(kind)
-		if kind == main.place_kind:
-			place_option.select(place_option.item_count - 1)
+		var group_of := EditorData.object_group(kind)
+		if not groups.has(group_of):
+			groups[group_of] = []
+		groups[group_of].append(kind)
+	var order: Array = EditorData.OBJECT_GROUPS.map(func(g: Array) -> String: return g[0])
+	order.append("Other")
+	for group_name: String in order:
+		if not groups.has(group_name):
+			continue
+		place_option.add_separator(group_name)
+		for kind: String in groups[group_name]:
+			place_option.add_item(kind)
+			if kind == main.place_kind:
+				place_option.select(place_option.item_count - 1)
 	place_option.item_selected.connect(func(i: int) -> void: main.place_kind = place_option.get_item_text(i))
 	_setting(box, "place", "Object", place_option)
 	heading_spin = SpinBox.new()

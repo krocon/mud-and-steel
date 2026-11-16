@@ -110,14 +110,14 @@ pub struct Options<'a> {
 pub const DEFAULT_START_DISTANCE_M: u32 = 120;
 
 /// Random numbers in `[0, 1)` from the simulation's generator.
-struct Random(Rng);
+pub(crate) struct Random(pub(crate) Rng);
 
 impl Random {
-    fn unit(&mut self) -> f64 {
+    pub(crate) fn unit(&mut self) -> f64 {
         (self.0.next_u64() >> 11) as f64 / (1u64 << 53) as f64
     }
 
-    fn range(&mut self, min: f64, max: f64) -> f64 {
+    pub(crate) fn range(&mut self, min: f64, max: f64) -> f64 {
         min + (max - min) * self.unit()
     }
 }
@@ -998,7 +998,12 @@ pub fn generate(options: &Options) -> Result<String, String> {
     ))
 }
 
-fn write_png(path: &Path, side: u32, data: &[u8], palette: Option<Vec<u8>>) -> Result<(), String> {
+pub(crate) fn write_png(
+    path: &Path,
+    side: u32,
+    data: &[u8],
+    palette: Option<Vec<u8>>,
+) -> Result<(), String> {
     let file = std::fs::File::create(path).map_err(|e| format!("{}: {e}", path.display()))?;
     let mut encoder = png::Encoder::new(std::io::BufWriter::new(file), side, side);
     match palette {

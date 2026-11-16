@@ -376,7 +376,8 @@ blueprints like units, but have their own builder, structure and checks.
 data/catalog/neutral.toml                  main dimensions (real values, sources)
 assets-src/blueprints/neutral/<id>.toml    assembly = "env", one [[variant]] per variant
         │  just env [<id> ...]   (tools/blender/build_env.py + kit/env.py, vegetation.py,
-        │                         parts_neutral.py, buildings.py)
+        │                         parts_neutral.py, buildings.py,
+        │                         parts_dumps.py)
 assets-src/blender/neutral/<id>.blend      generated, Git LFS
 godot/assets/models/neutral/<id>.glb       exported, Git LFS
         │  just import   (env materials from godot/assets/materials/env/)
@@ -493,6 +494,16 @@ biome variants cost nothing.
   weights, so trunks stay rooted and leaves flutter.
 - In the game the biome comes from the map (`map.toml`, prompt 015): unit
   palettes and `EnvLook` follow the preset's `camo_biome` and `env_biome`.
+- **Charred** (prompt 041): the instance uniform `env_char` (0..1) blackens
+  any environment mesh (`charred()` in `env_common.gdshaderinc`); the fire
+  presentation sets it on objects that burned. No separate charred models,
+  except the `Burnt` remains of the dumps.
+- **Town and winter buildings** (prompt 041) are blueprints of the `house`
+  generator only: `env_house_town` (three storeys, eaves to the street,
+  flush gables, so several stand in a row), `env_town_hall` (ashlar),
+  `env_warehouse` (brick, loading doors), `env_house_log` (log walls, plank
+  roof). Snow on winter maps comes from the biome look, not from extra
+  variants.
 
 ### Distance: far meshes instead of impostors
 
@@ -523,6 +534,7 @@ the frame ([ARCHITECTURE.md](ARCHITECTURE.md#map-objects-and-decoration-presenta
 | Bridge | ≤ 3 000 | no budget in the table above; same as a house |
 | Fence, wall, hedge segment; fortification | ≤ 2 000 | |
 | Prop, pole, mine, sign | ≤ 800 | like small parts |
+| Supply dump (`env_dump_ammo`, `env_dump_fuel`) | ≤ 1 500 | many crates or drums (prompt 041) |
 
 ### Checks and previews
 

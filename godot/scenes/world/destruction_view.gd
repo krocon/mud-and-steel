@@ -29,6 +29,9 @@ func _process(_delta: float) -> void:
 		return
 	for event: Dictionary in sim_host.take_object_events():
 		main.map_objects.set_object_state(event, true)
+		# Burned down (prompt 041): sooty already, black once burned out.
+		if event.cause == "fire":
+			main.map_objects.set_charred(event.object, 0.6)
 		if main.effects != null:
 			main.effects.object_event(event)
 		if main.battle_sound != null:

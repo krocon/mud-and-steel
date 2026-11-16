@@ -51,6 +51,10 @@ solid = [
     "env_house_mud",
     "env_barn",
     "env_church",
+    "env_house_town",
+    "env_town_hall",
+    "env_warehouse",
+    "env_house_log",
     "env_hedge",
     "env_wall_stone",
 ]

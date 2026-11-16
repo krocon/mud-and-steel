@@ -139,3 +139,63 @@ ruin_blocks = "large"
 ruin_height_pct = 30
 damaged_variant = "Damaged"
 ruin_variant = "Ruin"
+
+# --- Prompt 041: town and winter buildings, flammable props, dumps -----------------
+# Fire (data/fire.toml) damages objects through these hit points too.
+
+[[class]]
+ids = ["env_house_log"]
+hp = 2000
+damaged_pct = 50
+remains = "ruin"
+ruin_blocks = "large"
+ruin_height_pct = 30
+damaged_variant = "Damaged"
+ruin_variant = "Ruin"
+
+[[class]]
+ids = ["env_house_town"]
+hp = 3500
+damaged_pct = 50
+remains = "ruin"
+ruin_blocks = "large"
+ruin_height_pct = 40
+damaged_variant = "Damaged"
+ruin_variant = "Ruin"
+
+[[class]]
+ids = ["env_warehouse"]
+hp = 4500
+damaged_pct = 50
+remains = "ruin"
+ruin_blocks = "large"
+ruin_height_pct = 35
+damaged_variant = "Damaged"
+ruin_variant = "Ruin"
+
+[[class]]
+ids = ["env_town_hall"]
+hp = 5000
+damaged_pct = 50
+remains = "ruin"
+ruin_blocks = "large"
+ruin_height_pct = 40
+damaged_variant = "Damaged"
+ruin_variant = "Ruin"
+
+# Hay and firewood only burn (they block nothing, so no round hits them).
+[[class]]
+ids = ["env_hay_bale", "env_hay_bale_square", "env_woodpile"]
+hp = 300
+damaged_pct = 0
+remains = "gone"
+
+# Dumps burn and explode; charred remains block nothing.
+[[class]]
+ids = ["env_dump_ammo", "env_dump_fuel"]
+hp = 400
+damaged_pct = 0
+remains = "ruin"
+ruin_blocks = "none"
+ruin_height_pct = 20
+ruin_variant = "Burnt"

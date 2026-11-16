@@ -363,6 +363,25 @@ of [DETERMINISM.md](DETERMINISM.md) and needs to be named in the commit. A test
 generates a small map twice and compares `objects.csv`; another checks that every
 variant in `data/objects.toml` exists in the model's blueprint.
 
+### Small town (prompt 041)
+
+`cli gen-town` (`crates/cli/src/gen_town.rs`, `just gen-town`) writes
+`data/maps/town_small`: 600 m, gentle bumps flattened towards the town, a
+paved main street (east–west) and cross street (north–south, start to
+start, 8 m wide) meeting at a 48 m market square; the town hall and the
+church at the square, two warehouses behind it, terraces of four town houses
+(12 m frontage, 3 m from the street, doors to the street, 8 m alleys)
+along both streets, gardens with hay ricks and firewood behind them, six
+farms (farmhouse, barn, hay) on the outskirts with dirt tracks, a conifer
+wood in the west split by the main street (a firebreak for fire, prompt
+041), broadleaf and birch woods in the east, two orchards, and a supply
+dump (two ammunition stacks, two fuel dumps, 14 m apart) in front of each
+start. Starts at (0, ±250); markers `town_square`, `west_wood`,
+`dump_south`, `dump_north` and the supply points `supply_square`,
+`supply_west`, `supply_east`. Objects are placed without overlaps and off
+the streets. No real place names. A test generates it and checks its
+buildings, dumps and woods; `just map-check town_small` passes.
+
 ## Map editor (prompt 028)
 
 Maps can be built in the game: main menu → **Map editor** (or

@@ -243,6 +243,16 @@ test-maps:
     just gen-map test_large 4000 11 120 --players 6
     just gen-map twin_meadow 1000 21 120 --players 4
 
+# Generate the small-town map (prompt 041) into data/maps/town_small/
+[group('maps')]
+gen-town:
+    cargo run -q --release -p cli -- gen-town
+
+# Fire benchmark on the town map (prompt 041): ticks without and with a burning wood, terrace and dumps
+[group('maps')]
+fire-bench units="40" ticks="6000":
+    cargo run -q --release -p cli -- fire-bench --units {{ units }} --ticks {{ ticks }}
+
 # Load a map and report load time, memory, height range and terrain shares
 [group('maps')]
 map-info name="test_large":

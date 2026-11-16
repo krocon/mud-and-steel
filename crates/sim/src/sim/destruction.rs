@@ -161,7 +161,7 @@ impl Destruction {
 
     /// Indices of the indexed objects whose bucket overlaps `low..high`
     /// (ascending, each once).
-    fn query(&self, low: Vec2, high: Vec2) -> Vec<u32> {
+    pub(super) fn query(&self, low: Vec2, high: Vec2) -> Vec<u32> {
         let (c0, r0) = self.bucket(low);
         let (c1, r1) = self.bucket(high);
         let mut found = Vec::new();
@@ -277,6 +277,23 @@ impl Destruction {
             state.fall_deg = heading_deg(direction);
         }
         self.set(map, i, state, stage, at, ObjectCause::Hit(shooter));
+        taken
+    }
+
+    /// Fire (prompt 041) takes `damage` hit points of object `i`; the
+    /// fire was started by `by`. Returns the damage taken.
+    pub(super) fn burn(&mut self, map: &Map, i: u32, damage: u32, at: Vec3, by: UnitId) -> u32 {
+        let Some(class) = self.class(map, i) else {
+            return 0;
+        };
+        let mut state = self.state(map, i);
+        if class.hp == 0 || state.stage == ObjectStage::Destroyed || damage == 0 {
+            return 0;
+        }
+        let taken = damage.min(state.hp);
+        state.hp -= taken;
+        let stage = class.stage_at(state.hp);
+        self.set(map, i, state, stage, at, ObjectCause::Fire(by));
         taken
     }
 

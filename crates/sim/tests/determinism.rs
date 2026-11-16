@@ -21,7 +21,16 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by prompt 033 (air support and anti-aircraft fire): the
+/// Last changed by the merge of prompt 041 (fire) with 033 (air):
+/// prompt 041: the fire rules of `data/fire.toml`, burning objects and
+/// wrecks, burnt-out objects and fire smoke clouds are in the hash; new
+/// catalog objects (town and log houses, town hall, warehouse, dumps) and
+/// destruction classes for hay, firewood and dumps change the hashed object
+/// and destruction rules. Destroyed tanks of the demo now burn as wrecks
+/// and hits roll whether trees and buildings catch fire, which draws from
+/// the match's random generator: the battle runs differently and is decided
+/// at tick 467 instead of 480, same winner.
+/// Before: prompt 033 (air support and anti-aircraft fire): the
 /// rules of `data/air.toml`, the aircraft types of every faction (catalog
 /// ids), every player's cooldowns and the (empty) sorties, aircraft, bombs
 /// and flak reload times are in the hash, and the economy rules (also
@@ -108,7 +117,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x0dce_a06c_b8c7_2039;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xd8f0_f135_a14d_e016;
 
 #[test]
 fn golden_hash() {
@@ -158,10 +167,10 @@ fn demo_battle_is_decided() {
     let end = run_demo(42, 1000);
     let outcome = end.outcome().expect("the demo battle is decided");
     assert_eq!(outcome.winner, Some(sim::PlayerId(0)));
-    assert_eq!(outcome.tick, 480);
+    assert_eq!(outcome.tick, 467);
     assert_eq!(end.alive_units(sim::PlayerId(1)), 0);
     assert_eq!(
         end.standings()[1].defeat,
-        Some((sim::DefeatReason::Eliminated, 480))
+        Some((sim::DefeatReason::Eliminated, 467))
     );
 }
