@@ -1,0 +1,9 @@
+[gd_resource type="ShaderMaterial" load_steps=3 format=3]
+
+[ext_resource type="Shader" path="res://assets/shaders/meadow_tuft.gdshader" id="1_tuft"]
+[ext_resource type="Texture2D" path="res://assets/textures/terrain/terrain_macro.png" id="2_macro"]
+
+[resource]
+resource_name = "MeadowTuft"
+shader = ExtResource("1_tuft")
+shader_parameter/macro_tex = ExtResource("2_macro")
