@@ -549,6 +549,72 @@ impl PathGrid {
         self.rebuild(map, rules, rect)
     }
 
+    /// Takes over bridge `bridge` of `map` after it was added or moved
+    /// (bridges laid by bridge-laying tanks, prompt 055): its cells and
+    /// railing direction, and the load tiers if its load limit is new
+    /// (then every component grid is labeled again). Returns the cells
+    /// whose flags may depend on it, before and after; the caller rebuilds
+    /// them ([`Self::rebuild`]).
+    pub fn sync_bridge(&mut self, map: &Map, bridge: usize) -> Option<CellRect> {
+        let b = map.bridges().get(bridge)?;
+        let two_cells = self.cell * 2;
+        let (lo, hi) = b.bounds();
+        let grow = Vec2::new(two_cells, two_cells);
+        let rect = self.cells_in(lo - grow, hi + grow);
+        let old = if bridge < self.bridge_cells.len() {
+            let old = self.bridge_cells[bridge];
+            self.bridge_cells[bridge] = rect;
+            self.bridge_right[bridge] = b.right;
+            Some(old)
+        } else if bridge == self.bridge_cells.len() {
+            self.bridge_cells.push(rect);
+            self.bridge_right.push(b.right);
+            None
+        } else {
+            return None;
+        };
+        self.retier(map);
+        Some(old.map_or(rect, |o| CellRect {
+            x0: o.x0.min(rect.x0),
+            y0: o.y0.min(rect.y0),
+            x1: o.x1.max(rect.x1),
+            y1: o.y1.max(rect.y1),
+        }))
+    }
+
+    /// Load tiers and component grids from the load limits of every bridge
+    /// of `map`; labels every component grid again if they changed.
+    fn retier(&mut self, map: &Map) {
+        let mut loads: Vec<u32> = map.bridges().iter().map(|b| b.max_load_kg).collect();
+        loads.sort_unstable();
+        loads.dedup();
+        let tier = |mass: u32| loads.iter().filter(|&&l| l < mass).count() as u32;
+        if self.profiles.iter().all(|p| p.tier == tier(p.mass_kg)) {
+            return;
+        }
+        let count = (self.width * self.height) as usize;
+        let mut components: Vec<ComponentGrid> = Vec::new();
+        for p in &mut self.profiles {
+            p.tier = tier(p.mass_kg);
+            let (class, tier) = (p.class, p.tier);
+            p.components = components
+                .iter()
+                .position(|c| c.class == class && c.tier == tier)
+                .unwrap_or_else(|| {
+                    components.push(ComponentGrid {
+                        class,
+                        tier,
+                        component: vec![0; count],
+                        last_label: 0,
+                    });
+                    components.len() - 1
+                });
+        }
+        self.components = components;
+        self.version = self.version.wrapping_add(1);
+        self.relabel_components();
+    }
+
     /// Recomputes flags, slope, class passability, costs and components
     /// after the map samples or obstacles of the cells in `rect` changed.
     /// Returns the affected rectangle (`rect` and its neighbor cells, whose

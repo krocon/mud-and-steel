@@ -85,6 +85,7 @@ hit points of map objects in `data/destruction.toml`.
 | Barracks (`base_barracks`) | 12 × 8 × 7.5 | 3000 | 25 | 0 / 0 / 150 | 25 s | HQ | produces infantry |
 | Supply depot (`base_depot`) | 14 × 9 × 8 | 2500 | 25 | 50 / 0 / 100 | 25 s | HQ | income (max. 3) |
 | Vehicle works (`base_factory`) | 20 × 10 × 9 | 4000 | 30 | 150 / 50 / 200 | 45 s | HQ, depot | produces vehicles |
+| Rocket battery position (`base_rocket_battery`, prompt 054) | 6 × 4 × 2 | 1500 | 10 | 100 / 150 / 100 | 50 s | vehicle works | fires the heavy strike (below; max. 1) |
 
 Every player starts with a completed headquarters, a halftrack and two
 rifle squads (scenario `data/scenarios/skirmish.toml`). None of them can
@@ -241,6 +242,28 @@ account is all there is):
 No buildings are needed: air support is the commander's tool in both
 modes. Light and heavy flak are the answer (fortifications above), and
 tanks of the US and the late Soviet heavies carry AA machine guns.
+
+## Heavy strike [provisional]
+
+Prompt 054, rules in `data/strike.toml`, technical details in
+[ARCHITECTURE.md](ARCHITECTURE.md#heavy-strike). A late-game strike with a
+warning, WW2 style (a rocket battery salvo, nothing nuclear or modern): a
+player with a completed rocket battery position calls a salvo on a ground
+point once the match has run 600 s.
+
+| What | Value |
+|---|---|
+| Unlock | 600 s after the start |
+| Cost F / A / M | 60 / 250 / 30 per strike, paid when called |
+| Cooldown | 300 s; one strike of a player at a time |
+| Warning | 30 s: red smoke on the target, a siren for everybody, the battery position revealed to every enemy |
+| Salvo | 24 rockets, 0.25 s apart, landing uniformly within 60 m |
+| Rockets | de 15 cm (Nebelwerfer 41), su 132 mm (BM-13), us 4.5 in (T34 Calliope): each explodes like a shell of its caliber (fragments, craters, knockdowns, fires) |
+
+The answer is to destroy the position within the warning time (the strike
+is called off, the price is lost) or to leave the marked area. It is
+neither an air call-in (prompt 055) nor indirect fire of units (prompt 032):
+the position is a base building, which only base matches have.
 
 ## Supply and repair [provisional]
 

@@ -118,6 +118,7 @@ categories! {
         Truck = "truck",
         ReconVehicle = "recon_vehicle",
         SelfPropelled = "self_propelled",
+        Bridgelayer = "bridgelayer",
     ],
     Gun => [
         GunAt = "gun_at",
@@ -140,6 +141,7 @@ categories! {
         AircraftAttack = "aircraft_attack",
         AircraftBomber = "aircraft_bomber",
         AircraftRecon = "aircraft_recon",
+        AircraftTransport = "aircraft_transport",
     ],
     Environment => [
         EnvTree = "env_tree",
@@ -226,6 +228,10 @@ pub struct Entry {
     /// Troop seats besides the crew (trucks and halftracks, prompt 034).
     pub passengers: Option<u16>,
     pub squad_size: Option<u16>,
+    /// Length of the carried bridge (bridge-laying tanks, prompt 055).
+    pub bridge_length_mm: Option<u32>,
+    /// Load limit of the carried bridge in kilograms (prompt 055).
+    pub bridge_load_kg: Option<u32>,
 
     pub speed_road_kmh_x10: Option<u32>,
     pub speed_offroad_kmh_x10: Option<u32>,
@@ -273,6 +279,8 @@ pub const FIELD_NAMES: &[&str] = &[
     "crew",
     "passengers",
     "squad_size",
+    "bridge_length_mm",
+    "bridge_load_kg",
     "speed_road_kmh_x10",
     "speed_offroad_kmh_x10",
     "speed_water_kmh_x10",
@@ -457,9 +465,32 @@ fn validate(e: &Entry) -> Vec<String> {
         }
     }
     if let Some(v) = e.passengers
-        && (group != Group::Vehicle || !(1..=30).contains(&v))
+        && (!matches!(group, Group::Vehicle | Group::Aircraft) || !(1..=30).contains(&v))
     {
-        errors.push(format!("passengers = {v}: only vehicles, 1..=30"));
+        errors.push(format!(
+            "passengers = {v}: only vehicles and aircraft, 1..=30"
+        ));
+    }
+    if e.category == Category::AircraftTransport && e.passengers.is_none() {
+        errors.push("missing passengers".into());
+    }
+    if e.category == Category::Bridgelayer {
+        need_bridge(
+            &mut errors,
+            "bridge_length_mm",
+            e.bridge_length_mm,
+            4_000,
+            30_000,
+        );
+        need_bridge(
+            &mut errors,
+            "bridge_load_kg",
+            e.bridge_load_kg,
+            5_000,
+            80_000,
+        );
+    } else if e.bridge_length_mm.is_some() || e.bridge_load_kg.is_some() {
+        errors.push("bridge_length_mm / bridge_load_kg: only bridgelayer".into());
     }
     if e.armor_hull_front_deg.is_some_and(|v| v > 80) {
         errors.push("armor_hull_front_deg above 80".into());
@@ -499,7 +530,10 @@ fn validate(e: &Entry) -> Vec<String> {
         }
     }
     // Medics and liaison/recon aircraft may be unarmed.
-    let may_be_unarmed = matches!(e.category, Category::InfMedic | Category::AircraftRecon);
+    let may_be_unarmed = matches!(
+        e.category,
+        Category::InfMedic | Category::AircraftRecon | Category::AircraftTransport
+    );
     let armed_group = matches!(group, Group::Infantry | Group::Gun | Group::Aircraft);
     let combat_vehicle = matches!(
         e.category,
@@ -556,6 +590,17 @@ fn validate(e: &Entry) -> Vec<String> {
         }
     }
     errors
+}
+
+/// A required field of a bridge-laying tank (prompt 055).
+fn need_bridge(errors: &mut Vec<String>, name: &str, value: Option<u32>, min: u32, max: u32) {
+    match value {
+        None => errors.push(format!("missing {name}")),
+        Some(v) if !(min..=max).contains(&v) => {
+            errors.push(format!("{name} = {v} outside {min}..={max}"));
+        }
+        Some(_) => {}
+    }
 }
 
 #[cfg(test)]

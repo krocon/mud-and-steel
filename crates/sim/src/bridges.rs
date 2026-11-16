@@ -11,9 +11,28 @@
 //! bridge logic of their own; the path grid opens the cells along the deck
 //! (`crate::path`). Design and reasons: `docs/MAPS.md` ("Bridges").
 
+use crate::command::UnitId;
 use crate::hash::StableHasher;
 use crate::math::{Fixed, Vec2};
 use crate::objects::{Deck, MapObject, Shape};
+use serde::{Deserialize, Serialize};
+
+/// A bridge laid by a bridge-laying tank (prompt 055): no map object, the
+/// deck alone. Saved in the [`crate::snapshot::MapDelta`] of a match.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct LaidBridge {
+    /// The bridge-laying tank that carries it.
+    pub layer: UnitId,
+    pub center: Vec2,
+    /// Unit vector along the deck.
+    pub forward: Vec2,
+    pub half_length: Fixed,
+    pub half_width: Fixed,
+    pub height_start: Fixed,
+    pub height_end: Fixed,
+    pub max_load_kg: u32,
+    pub terrain: u8,
+}
 
 /// A bridge on the map, derived from a placed object.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -37,6 +56,9 @@ pub struct Bridge {
     pub terrain: u8,
     /// Destroyed bridges (`intact == false`) have no deck.
     pub intact: bool,
+    /// The bridge-laying tank of a laid bridge (prompt 055); `object` is
+    /// `u32::MAX` then.
+    pub laid_by: Option<UnitId>,
     /// Axis-aligned bounds of the deck.
     lo: Vec2,
     hi: Vec2,
@@ -74,8 +96,50 @@ impl Bridge {
             max_load_kg: deck.max_load_kg,
             terrain: deck.terrain,
             intact: true,
+            laid_by: None,
             lo: object.position - extent,
             hi: object.position + extent,
+        })
+    }
+
+    /// The deck of a laid bridge (intact).
+    pub fn laid(l: &LaidBridge) -> Self {
+        let forward = l.forward;
+        let right = Vec2::new(-forward.y, forward.x);
+        let extent = Vec2::new(
+            l.half_length * forward.x.abs() + l.half_width * right.x.abs(),
+            l.half_length * forward.y.abs() + l.half_width * right.y.abs(),
+        );
+        Self {
+            object: u32::MAX,
+            center: l.center,
+            forward,
+            right,
+            half_length: l.half_length,
+            half_width: l.half_width,
+            height_start: l.height_start,
+            height_end: l.height_end,
+            max_load_kg: l.max_load_kg,
+            terrain: l.terrain,
+            intact: true,
+            laid_by: Some(l.layer),
+            lo: l.center - extent,
+            hi: l.center + extent,
+        }
+    }
+
+    /// What describes a laid bridge (`None` for bridges of the map).
+    pub fn laid_spec(&self) -> Option<LaidBridge> {
+        Some(LaidBridge {
+            layer: self.laid_by?,
+            center: self.center,
+            forward: self.forward,
+            half_length: self.half_length,
+            half_width: self.half_width,
+            height_start: self.height_start,
+            height_end: self.height_end,
+            max_load_kg: self.max_load_kg,
+            terrain: self.terrain,
         })
     }
 
@@ -120,6 +184,23 @@ impl Bridge {
         // Nothing for maps without bridges, so their state hash is unchanged.
         for b in bridges {
             h.write_u8(u8::from(b.intact));
+            // Laid bridges (prompt 055): where they lie.
+            if let Some(l) = b.laid_spec() {
+                h.write_u32(l.layer.0);
+                for v in [
+                    l.center.x,
+                    l.center.y,
+                    l.forward.x,
+                    l.forward.y,
+                    l.half_length,
+                    l.half_width,
+                    l.height_start,
+                    l.height_end,
+                ] {
+                    h.write_i64(v.to_bits());
+                }
+                h.write_u32(l.max_load_kg);
+            }
         }
     }
 }

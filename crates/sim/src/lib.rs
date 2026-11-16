@@ -15,6 +15,7 @@ pub mod catalog;
 pub mod combat;
 mod command;
 pub mod craters;
+pub mod crossings;
 mod data;
 pub mod destruction;
 pub mod economy;
@@ -37,6 +38,7 @@ pub mod scale;
 pub mod scenario;
 mod sim;
 pub mod snapshot;
+pub mod strike;
 pub mod teams;
 pub mod terrain;
 pub mod transport;
@@ -55,6 +57,9 @@ pub use combat::{
 };
 pub use command::{Command, PlayerCommand, PlayerId, UnitId};
 pub use craters::{CraterEvent, CraterRules};
+pub use crossings::{
+    CrossingEvent, CrossingRules, Gap, LayerState, LayerView, ParachuteView, SwimmerView,
+};
 pub use data::{DEFAULT_FOOTPRINT_MM, DataError, UnitType, unit_types_from_catalog};
 pub use destruction::{
     DestructionRules, ObjectCause, ObjectEvent, ObjectStage, ObjectState, Remains,
@@ -81,6 +86,7 @@ pub use sim::{
     StockView, StructureView, SupplySource, SupplyView, UnitSnapshot, WORLD_LIMIT_M,
     formation_slots, formation_spacing,
 };
+pub use strike::{StrikeBlock, StrikeEvent, StrikeOption, StrikeRules, StrikeView};
 pub use teams::Teams;
 pub use terrain::{TerrainError, TerrainRules};
 pub use transport::{TransportRules, TransportType};

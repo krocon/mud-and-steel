@@ -39,6 +39,7 @@ uncertain; see the list at the end of each faction.
 | de_opel_blitz | Opel Blitz 3,6-36S / Opel Blitz 3.6-36S truck | Opel Blitz 3.6-36S (3 t, 4x2) | 1937–1945 | 2 | 6.02? × 2.27? × 2.18? | 6.6? | 2 + 16? | 85.0? / 30.0? |  /  |  |
 | de_sdkfz222 | Leichter Panzerspähwagen (2 cm) Sd.Kfz. 222 / Sd.Kfz. 222 light armoured car | Sd.Kfz. 222 | 1936–1945 | 2 | 4.80 × 1.95 × 2.00? | 4.8 | 3 | 80.0 / 40.0? | 30 / 8 | 2 cm KwK 38 L/55 |
 | de_wespe | Leichte Feldhaubitze 18/2 auf Fahrgestell Panzerkampfwagen II (Sf) "Wespe" / Wespe self-propelled howitzer | Sd.Kfz. 124 | 1943–1945 | 2 | 4.81 × 2.28 × 2.30 | 11.0 | 5 | 40.0 / 20.0? | 30? / 10? | 10.5 cm leFH 18/2 L/28? |
+| de_brueckenleger4 | Brückenleger IV b / Brückenleger IV b bridge-laying tank | Brückenleger IV b | 1940–1941 | 2 | 11.00 × 3.00 × 3.54? | 28.0? | 2 | 40.0 / 20.0? | 30 /  |  |
 
 ### Guns
 
@@ -66,6 +67,7 @@ uncertain; see the list at the end of each faction.
 | de_ju87_d5 | Junkers Ju 87 D-5 / Junkers Ju 87 D-5 Stuka | 1943–1945 | 2 | 11.50? × 15.00? × 3.90 | 6585 | 2 | 402.0 | 7300? |
 | de_he111_h16 | Heinkel He 111 H-16 / Heinkel He 111 H-16 | 1942–1945 | 2 | 16.40 × 22.60 × 4.00 | 14000 | 5 | 434.0 | 8500 |
 | de_fi156 | Fieseler Fi 156 C Storch / Fieseler Fi 156 C Storch | 1939–1945 | 2 | 9.91 × 14.25 × 3.05 | 1324 | 2 | 175.0 | 4600 |
+| de_ju52_3m | Junkers Ju 52/3m g4e / Junkers Ju 52/3m g4e | 1936–1945 | 2 | 18.90 × 29.25 × 4.50 | 10500 | 3 | 265.0 | 5500 |
 
 ### Uncertain values
 
@@ -99,6 +101,8 @@ uncertain; see the list at the end of each faction.
 - `de_ju87_d5`: length_mm, wingspan_mm, speed_cruise_kmh_x10, ceiling_m, weapon
 - `de_he111_h16`: power_hp, weapon
 - `de_fi156`: weapon
+- `de_brueckenleger4`: mass_kg, height_mm, speed_offroad_kmh_x10, range_road_km, bridge_length_mm, bridge_load_kg
+- `de_ju52_3m`: speed_cruise_kmh_x10, weapon, passengers
 
 ### Sources
 
@@ -214,6 +218,13 @@ uncertain; see the list at the end of each faction.
   - https://en.wikipedia.org/wiki/Heinkel_He_111 (H-16: empty 6900 kg, loaded 14,000 kg, 434 km/h at 6000 m, cruise 390 km/h, ceiling 8500 m, 2 x Jumo 211F-2, MG 131 nose and dorsal, MG 81Z beams and ventral, 8 ESAC cells; spec block (H-1 data): 16.4 m, 22.6 m, 4.0 m, crew 5, 2000 kg internal bombs)
 - `de_fi156`
   - https://en.wikipedia.org/wiki/Fieseler_Fi_156_Storch (C-2: crew 2, 9.91 m, 14.25 m, 3.05 m, empty 930 kg, gross 1324 kg, 175 km/h at sea level, cruise 130 km/h, ceiling 4600 m, range 390 km, Argus As 10 240 hp, 1 x MG 15)
+- `de_brueckenleger4`
+  - https://en.wikipedia.org/wiki/Br%C3%BCckenleger_IV (bridge-laying tank on the Panzer IV Ausf. C/D chassis by Krupp and Magirus, 20 built in 1940, issued to the engineer companies of the panzer divisions (France 1940, Soviet Union 1941), later rebuilt as tanks; crew 2, about 28 t, 11 m long with the bridge, 3 m wide, 3.54 m high, Maybach HL 120 TRM 300 PS, 40 km/h; bridge 11 m (from memory, not fetched for this entry))
+  - Spielberger, Der Panzerkampfwagen IV und seine Abarten (Motorbuch, Stuttgart 1975), Brückenleger IV (chassis, number built and use (book not consulted for this entry))
+  - https://en.wikipedia.org/wiki/Panzer_IV (Ausf. C/D hull: 5.92 m long, hull front 30 mm, sides and rear 20 mm, range about 200 km on roads)
+- `de_ju52_3m`
+  - https://en.wikipedia.org/wiki/Junkers_Ju_52 (Ju 52/3m g4e: crew 2-3, 17 passengers, 18.9 m, 29.25 m, 4.5 m, max takeoff 10,500 kg, 3 x BMW 132T 725 PS, 265 km/h, cruise 211 km/h, ceiling 5,500 m, 1 x MG 15 dorsal (from memory, not fetched for this entry))
+  - https://en.wikipedia.org/wiki/Fallschirmj%C3%A4ger (Ju 52 as the standard aircraft of the German paratroopers (Crete 1941, Netherlands 1940), sticks of 12-13 jumpers)
 
 ## Soviet Union (`su`)
 
@@ -247,6 +258,7 @@ uncertain; see the list at the end of each faction.
 | su_zis5 | ZiS-5V / ZiS-5V | ZiS-5V 3-ton truck | 1942–1945 | 1 | 6.06 × 2.24 × 2.16 | 3.1? | 1 + 25 | 60.0 / 25.0? |  /  |  |
 | su_ba64b | BA-64B / BA-64B | BA-64B light armored car | 1943–1945 | 2 | 3.66 × 1.74? × 1.90 | 2.4 | 2 | 80.0 / 30.0? | 15 /  | DT |
 | su_isu152 | ISU-152 / ISU-152 | ISU-152 heavy self-propelled gun | 1943–1945 | 2 | 9.18 × 3.07 × 2.48 | 46.0? | 5? | 30.0 / 15.0? | 90 / 90 | 152 mm ML-20S L/29? |
+| su_valentine_bridgelayer | Valentine-Brückenleger (Lend-Lease) / Valentine Bridgelayer (Lend-Lease) | Valentine Bridgelayer | 1943–1945 | 2 | 5.90? × 2.90? × 3.40? | 20.0? | 2 | 24.0 / 13.0? | 60 /  |  |
 
 ### Guns
 
@@ -274,6 +286,7 @@ uncertain; see the list at the end of each faction.
 | su_il2m3 | Il-2M3 / Il-2M3 | 1943–1945 | 2 | 11.65 × 14.60 × 4.17 | 6160? | 2 | 410.0 | 4525 |
 | su_pe2 | Pe-2 / Pe-2 | 1941–1945 | 2 | 12.66 × 17.16 × 3.42 | 7536? | 3 | 540.0? | 8800 |
 | su_po2 | Po-2 / Po-2 | 1929–1945 | 2 | 8.17 × 11.40 × 3.10 | 1030? | 2 | 152.0 | 3000 |
+| su_li2 | Lisunow Li-2 / Lisunov Li-2 | 1940–1945 | 2 | 19.65 × 28.81 × 5.15 | 11280 | 4 | 320.0 | 5600 |
 
 ### Uncertain values
 
@@ -310,6 +323,8 @@ uncertain; see the list at the end of each faction.
 - `su_il2m3`: mass_kg, speed_cruise_kmh_x10, weapon
 - `su_pe2`: mass_kg, speed_max_kmh_x10, power_hp, weapon
 - `su_po2`: mass_kg
+- `su_valentine_bridgelayer`: length_mm, width_mm, height_mm, mass_kg, speed_offroad_kmh_x10, range_road_km
+- `su_li2`: speed_cruise_kmh_x10, weapon, passengers
 
 ### Sources
 
@@ -421,6 +436,13 @@ uncertain; see the list at the end of each faction.
 - `su_po2`
   - https://en.wikipedia.org/wiki/Polikarpov_Po-2 (Specifications, U-2) (crew 2, length 8.17 m, wingspan 11.4 m, height 3.1 m, 1,030 kg gross, M-11D 125 hp, 152 km/h, cruise 110 km/h, ceiling 3,000 m, ShKAS and 6x FAB-50 (U-2VS/LNB))
   - Gordon/Khazanov, Soviet Combat Aircraft of the Second World War, Vol. 1 (Midland 1998) (liaison and night bomber use (not checked online))
+- `su_valentine_bridgelayer`
+  - https://en.wikipedia.org/wiki/Valentine_tank (Valentine Bridgelayer: turretless Valentine II with a 34 ft (10.36 m) scissors bridge, Class 30 (30 long tons), spanning about 30 ft; 25 delivered to the Soviet Union under Lend-Lease; Valentine hull 5.41 m long, 2.63 m wide, armor up to 60 mm, AEC diesel 131 hp, 15 mph road (from memory, not fetched for this entry))
+  - https://en.wikipedia.org/wiki/Lend-Lease (British tanks (Valentine) supplied to the Soviet Union 1941-45)
+  - Fletcher, Valentine Infantry Tank 1938-45 (Osprey New Vanguard 2008), bridgelayer (scissors bridge, Class 30, use by the Red Army (book not consulted for this entry))
+- `su_li2`
+  - https://en.wikipedia.org/wiki/Lisunov_Li-2 (licence-built DC-3: crew 4, 19.65 m, 28.81 m, 5.15 m, max takeoff 11,280 kg, 2 x Shvetsov ASh-62IR 1000 hp, 320 km/h, ceiling 5,600 m, up to 25 troops; military versions with a dorsal turret (from memory, not fetched for this entry))
+  - https://en.wikipedia.org/wiki/Dnieper_Airborne_Operation (Li-2 used to drop Soviet paratroopers (Dnieper 1943))
 
 ## United States (`us`)
 
@@ -481,6 +503,7 @@ uncertain; see the list at the end of each faction.
 | us_p47d | Republic P-47D Thunderbolt / P-47D Thunderbolt | 1943–1945 | 2 | 11.02 × 12.43 × 4.47 | 6001 | 1 | 692.0 | 12800 |
 | us_b25j | North American B-25J Mitchell / B-25J Mitchell | 1943–1945 | 2 | 16.13 × 20.60 × 4.98 | 15880 | 6 | 438.0 | 7380 |
 | us_l4 | Piper L-4 Grasshopper / L-4 Grasshopper | 1942–1945 | 2 | 6.83 × 10.74 × 2.03 | 550 | 2 | 137.0 | 3658 |
+| us_c47 | Douglas C-47 Skytrain / Douglas C-47 Skytrain | 1942–1945 | 2 | 19.43 × 29.11 × 5.18 | 14060 | 4 | 360.0 | 8045 |
 
 ### Uncertain values
 
@@ -514,6 +537,7 @@ uncertain; see the list at the end of each faction.
 - `us_p51d`: mass_kg, speed_cruise_kmh_x10, power_hp
 - `us_p47d`: weapon
 - `us_b25j`: weapon, power_hp
+- `us_c47`: passengers
 
 ### Sources
 
@@ -625,6 +649,9 @@ uncertain; see the list at the end of each faction.
   - https://aero-web.org/museums/mn/pfam/44-86747.htm (B-25J gross weight 35,000 lb, empty 19,480 lb (via search excerpt))
 - `us_l4`
   - https://en.wikipedia.org/wiki/Piper_J-3_Cub (J3C-65: 6.83 m, 10.74 m, 2.03 m, max takeoff 1,220 lb (550 kg), 65 hp; L-4: 85 mph (137 km/h), cruise 75 mph (121 km/h), ceiling 12,000 ft (3,658 m), pilot + 1)
+- `us_c47`
+  - https://en.wikipedia.org/wiki/Douglas_C-47_Skytrain (C-47: crew 4, 28 troops, 63 ft 9 in (19.43 m), 95 ft 6 in (29.11 m), 16 ft 11 in (5.18 m), max takeoff 31,000 lb (14,060 kg), 2 x P&W R-1830 1200 hp, 224 mph (360 km/h), cruise 160 mph (257 km/h), ceiling 26,400 ft (8,045 m), unarmed (from memory, not fetched for this entry))
+  - https://en.wikipedia.org/wiki/Operation_Overlord (C-47 dropping the 82nd and 101st Airborne Divisions (sticks of 15-18 paratroopers))
 
 ## Neutral (`neutral`)
 

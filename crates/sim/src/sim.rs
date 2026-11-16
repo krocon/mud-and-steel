@@ -18,6 +18,7 @@ use std::sync::Arc;
 mod air;
 mod combat;
 mod craters;
+mod crossings;
 mod destruction;
 mod drill;
 mod economy;
@@ -31,6 +32,7 @@ mod mission;
 mod orders;
 mod positions;
 mod spatial;
+mod strike;
 mod transport;
 mod vision;
 mod weather;
@@ -151,6 +153,8 @@ pub enum ConfigError {
     Fire(String),
     /// The built-in air rules do not parse (prompt 033).
     Air(String),
+    /// The built-in strike rules do not parse (prompt 054).
+    Strike(String),
     /// The built-in transport rules do not parse (prompt 034).
     Transport(String),
     /// The built-in logistics rules do not parse (prompt 036).
@@ -161,6 +165,8 @@ pub enum ConfigError {
     Works(String),
     /// The built-in experience rules do not parse (prompt 050).
     Experience(String),
+    /// The built-in crossing rules do not parse (prompt 055).
+    Crossings(String),
 }
 
 impl fmt::Display for ConfigError {
@@ -181,11 +187,13 @@ impl fmt::Display for ConfigError {
             | Self::Indirect(e)
             | Self::Fire(e)
             | Self::Air(e)
+            | Self::Strike(e)
             | Self::Transport(e)
             | Self::Logistics(e)
             | Self::Weather(e)
             | Self::Works(e)
-            | Self::Experience(e) => {
+            | Self::Experience(e)
+            | Self::Crossings(e) => {
                 write!(f, "{e}")
             }
         }
@@ -492,6 +500,11 @@ pub struct Sim {
     works: works::Works,
     /// Experience rules and promotions (prompt 050).
     experience: experience::Experience,
+    /// Collapsing decks, swimmers, bridge-laying tanks, camouflage and
+    /// paratroopers (prompt 055).
+    crossings: crossings::Crossings,
+    /// Heavy rocket strikes (prompt 054).
+    strikes: strike::Strikes,
     /// The mission script and its progress (prompt 039).
     #[serde(default)]
     mission: Option<Box<mission::MissionRt>>,
@@ -626,6 +639,11 @@ impl Sim {
         );
         let mut vision = vision;
         vision.ensure_radius(air.recon_radius);
+        let strikes = strike::Strikes::new(
+            crate::strike::StrikeRules::builtin()
+                .map_err(|e| ConfigError::Strike(e.to_string()))?,
+            config,
+        );
         let transport = transport::Transport::new(
             crate::transport::TransportRules::builtin()
                 .map_err(|e| ConfigError::Transport(e.to_string()))?,
@@ -642,6 +660,12 @@ impl Sim {
             &config.unit_types,
             &map,
             config.tick_hz,
+        );
+        let crossings = crossings::Crossings::new(
+            crate::crossings::CrossingRules::builtin()
+                .map_err(|e| ConfigError::Crossings(e.to_string()))?,
+            config,
+            &config.terrain,
         );
         let grid = PathGrid::new(&map, &config.terrain, &config.unit_types);
         let weather = weather::WeatherState::new(
@@ -688,6 +712,8 @@ impl Sim {
             weather,
             works,
             experience,
+            crossings,
+            strikes,
             mission: config
                 .mission
                 .as_ref()
@@ -759,6 +785,8 @@ impl Sim {
     pub fn step_observed(&mut self, commands: &[PlayerCommand], mut done: impl FnMut(Phase)) {
         self.events.clear();
         self.air.events.clear();
+        self.crossings.events.clear();
+        self.strikes.events.clear();
         for command in commands {
             self.apply(command);
         }
@@ -771,8 +799,10 @@ impl Sim {
         self.aim_and_fire();
         self.update_drills();
         self.fire_indirect();
+        self.update_strikes();
         done(Phase::Combat);
         self.halt_stranded();
+        self.update_swimmers();
         self.move_units();
         self.update_transport();
         done(Phase::Movement);
@@ -784,6 +814,7 @@ impl Sim {
         self.fly_projectiles();
         self.fly_shells();
         self.update_air();
+        self.update_crossings();
         self.update_fire();
         self.transport_losses();
         done(Phase::Projectiles);
@@ -798,7 +829,9 @@ impl Sim {
         done(Phase::Economy);
         self.update_smoke();
         self.update_vision(false);
+        self.hide_camouflaged();
         self.reveal_flashes();
+        self.reveal_strikes();
         done(Phase::Vision);
         self.tick += 1;
         // The mission script (prompt 039) may decide the match first.
@@ -1093,6 +1126,7 @@ impl Sim {
         self.drop_transport_tasks(command);
         self.drop_work_jobs(command);
         self.drop_drills(command);
+        self.drop_crossing_jobs(command);
         match &command.command {
             Command::MoveTo { units, target } => {
                 if !within_world(*target) {
@@ -1266,6 +1300,17 @@ impl Sim {
                 *formation,
                 *facing,
             ),
+            Command::LayBridge { units, target } => {
+                self.order_lay_bridge(command.player, units, *target);
+            }
+            Command::PickUpBridge { units } => self.order_pick_up_bridge(command.player, units),
+            Command::SetCamouflage { units, on } => {
+                self.order_camouflage(command.player, units, *on);
+            }
+            Command::CallAirLine { mission, from, to } => {
+                self.order_air_line(command.player, *mission, (*from, *to));
+            }
+            Command::HeavyStrike { target } => self.order_strike(command.player, *target),
             Command::MissionSignal { name } => self.mission_signal(command.player, name),
         }
     }
@@ -1436,6 +1481,12 @@ impl Sim {
         }
         self.works.hash_into(&mut h);
         self.hash_experience(&mut h);
+        self.crossings.hash_into(&mut h);
+        // Left out until the first strike, so other matches keep their
+        // hashes (prompt 054).
+        if self.strikes.used() {
+            self.strikes.hash_into(&mut h);
+        }
         // Only matches with a mission (prompt 039): the others keep their hash.
         if let Some(m) = &self.mission {
             m.hash_into(&mut h);

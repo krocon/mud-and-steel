@@ -416,7 +416,7 @@ impl Map {
             let k = ((v - o) / cell).floor();
             o + k * cell + cell / 2
         };
-        for b in &self.bridges {
+        for b in self.bridges.iter().filter(|b| b.laid_by.is_none()) {
             let o = &self.objects.objects[b.object as usize];
             let kind = &self.objects.kinds[usize::from(o.kind)];
             let err = |what: &str| {
@@ -540,6 +540,31 @@ impl Map {
                 true
             }
             _ => false,
+        }
+    }
+
+    /// Puts a laid bridge (prompt 055) at index `bridge`: replaces the
+    /// laid bridge there, or appends it if `bridge` is the number of
+    /// bridges. Returns its index, `None` if `bridge` is a bridge of the map
+    /// or out of range. Use through the simulation, which also updates the
+    /// path grid.
+    pub fn put_laid_bridge(
+        &mut self,
+        bridge: usize,
+        laid: &crate::bridges::LaidBridge,
+    ) -> Option<usize> {
+        let b = Bridge::laid(laid);
+        let count = self.bridges.len();
+        match self.bridges.get_mut(bridge) {
+            Some(old) if old.laid_by.is_some() => {
+                *old = b;
+                Some(bridge)
+            }
+            None if bridge == count => {
+                self.bridges.push(b);
+                Some(bridge)
+            }
+            _ => None,
         }
     }
 

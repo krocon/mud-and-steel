@@ -1,0 +1,57 @@
+# Rivers, bridges and vehicle camouflage (prompt 055). Integers only.
+# Compiled into the simulation (`sim::CrossingRules::builtin`), loaded by
+# `Sim::new` like data/works.toml; part of the state hash only once one of
+# its rules acted (a bridge laid, a unit in the water, a vehicle
+# camouflaged), so matches without them keep their hashes.
+#
+# These are game rules, not catalog values: span and load of a carried
+# bridge come from the catalog (`bridge_length_mm`, `bridge_load_kg` of the
+# bridgelayer entries). Times are game seconds (the time factor of
+# data/scale.toml does not apply), distances game meters (1:1).
+# Every value is [provisional].
+
+# Soldiers in deep water (impassable terrain, e.g. after a bridge collapsed
+# under them or a parachute came down in a river). The squad swims at
+# `speed_mm_per_s` towards the nearest bank (path cells passable for it
+# within `search_m`); every soldier keeps afloat for a random time between
+# `breath_min_s` and `breath_max_s` (drawn when he falls in) and drowns if
+# he is still in deep water then. `fall_loss_pct`: chance per soldier to be
+# lost at once when a deck collapses under him.
+[swim]
+speed_mm_per_s = 700
+breath_min_s = 20
+breath_max_s = 60
+search_m = 80
+fall_loss_pct = 10
+
+# A collapsing deck takes down every unit whose center stands on it (at
+# most `deck_reach_mm` above or below the deck): vehicles and guns are lost
+# in the river, squads fall into the water (see [swim]).
+[collapse]
+deck_reach_mm = 1500
+
+# Bridge-laying tanks. `LayBridge` searches the gap nearest to the clicked
+# point within `search_m`: a straight line along a path-grid axis through
+# ground the tank cannot cross (deep water, ditches), at most the carried
+# bridge's length minus `bearing_mm` on each bank. The tank drives to
+# `reach_m` before the near bank and lays the bridge in `lay_s`; taking it
+# up again (`PickUpBridge`, nobody on it) takes `pickup_s`. Both ends may
+# differ in height by at most `max_grade_pct` of the span.
+[layer]
+lay_s = 60
+pickup_s = 90
+reach_m = 10
+search_m = 30
+bearing_mm = 1000
+max_grade_pct = 20
+
+# Vehicle camouflage with branches and nets. Putting it up takes `apply_s`
+# (the vehicle must stand); taking it off is instant. A camouflaged vehicle
+# or gun that has stood still for `settle_s` is seen by an enemy only within
+# `seen_pct` of that enemy unit's sight range (and in its viewshed);
+# firing reveals it as before. Driving keeps the branches on but hides
+# nothing.
+[camouflage]
+apply_s = 30
+settle_s = 3
+seen_pct = 40

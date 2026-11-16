@@ -1419,6 +1419,49 @@ The full table is in `prompts/done/033-luftwaffe-flak.md`. In short:
 - The approach direction follows the caller's start; players cannot pick
   it.
 
+## Heavy strike
+
+Prompt 054. Rules: `data/strike.toml` (`sim::StrikeRules`), state and update:
+`crates/sim/src/sim/strike.rs`, public types: `crates/sim/src/strike.rs`.
+Design and numbers: GAME_DESIGN.md "Heavy strike".
+
+- **Call:** `Command::HeavyStrike { target }` (the last variant of the
+  enum). It needs a completed, unsold rocket battery position of the player
+  (`building`, a base building of `data/economy.toml`), the unlock time
+  (`unlock_s` after the start), no cooldown, no other strike of the player
+  under way, the faction's rocket caliber and the price, which is paid at
+  once. `Sim::strike_option` says why not (`StrikeBlock`).
+- **Warning:** `warning_s`. The strike is public (`Sim::strikes`,
+  `StrikeEvent::Called`): every player's game shows the smoke and plays the
+  siren. After every vision update `Sim::reveal_strikes` shows the battery
+  position to every player who is not allied with the owner
+  (`Vision::reveal`, like muzzle flashes at night), so the enemy can find
+  and destroy it. A position that is destroyed or sold before the first
+  rocket leaves calls the strike off (`StrikeEvent::Cancelled`); one lost
+  during the salvo fires no more rockets.
+- **Salvo:** `Sim::update_strikes` runs after the indirect fire. Every
+  `ripple_ms` a rocket leaves the position (`Sim::launch_shell` in
+  `indirect.rs`): an ordinary high-explosive shell of the faction's caliber
+  aimed at a uniform random point within `radius_m` (rejection sampling with
+  the simulation's generator, like a barrage), flying distance /
+  `speed_m_per_s` (at least `min_flight_ms`) over an arc of `apex_pct` of the
+  distance. From then on it is a shell: `fly_shells` moves it, and on impact
+  the usual direct hit, object, crater, fire, fragment and knockdown rules
+  apply. The shooter of its hits is the battery position.
+- **Hash:** the strike state (rules, cooldowns, strikes, next id) is hashed
+  only once a strike was called, so matches without strikes keep their
+  hashes. It is saved with the rest of `Sim` (prompt 038); a copy taken in
+  the warning time continues identically (`tests/strike.rs`).
+- **Events:** `Sim::strike_events` also carries
+  `StrikeEvent::AmmoExplosion` (prompt 048's ammunition explosion of a
+  destroyed vehicle), so the presentation can blow the turret off.
+- **Bridge:** `SimHost.call_strike`, `strike_option`, `strikes`,
+  `take_strike_events` (`crates/bridge/src/strike_funcs.rs`).
+- **Presentation:** `world/strike_view.gd` (marker smoke, area ring, siren,
+  countdown, enemy battery marker, call bar, launch frames for the
+  borrowed ammunition dump model of the position) and
+  `world/blast_effects.gd` (see "Effects", big blasts).
+
 ## Transport and towing
 
 Prompt 034. Squads ride in trucks and halftracks and on tanks (tank
@@ -1935,6 +1978,114 @@ no exit delay when a dug-in vehicle drives off; strongpoints are neutral
 and all-round (no front); bunkers in strongpoints are map objects
 (`fort_bunker_mg`, garrisoned) placed separately; the trench meshes are
 not cut into the terrain (no hole in the ground mesh).
+
+## Bridges, bridge-laying tanks and camouflage
+
+Prompt 055. Rules: `data/crossings.toml` (`sim::CrossingRules`, loaded by
+`Sim::new` like the works rules, not part of `SimConfig`). Code:
+`crates/sim/src/crossings.rs` (rules, views, events) and
+`crates/sim/src/sim/crossings.rs` (update). Paratroopers and dragged air
+calls extend the air support (`crates/sim/src/sim/air.rs`). Decisions and
+provisional values: `prompts/done/055-bruecken-pioniertechnik-luftlande.md`.
+Rules and state enter the state hash only once one of the rules acted, so
+matches without them keep their hashes.
+
+| Command | Effect |
+|---|---|
+| `LayBridge { units, target }` | Bridge-laying tanks drive to the gap nearest to `target` and lay their bridge across it |
+| `PickUpBridge { units }` | They drive to their laid bridge and take it up once nobody is on it |
+| `SetCamouflage { units, on }` | Vehicles and guns put up (or take off) branches and nets |
+| `CallAirLine { mission, from, to }` | `CallAir` along the dragged line: bombers lay a carpet, transports drop along it |
+
+- **Collapsing decks:** the engineers' demolition calls
+  `Sim::collapse_bridge`: every unit whose center stands on the deck (within
+  `deck_reach_mm` of its height) falls with it. Vehicles and guns are
+  destroyed (passengers by the rules of prompt 034), squads fall into the
+  water (`fall_loss_pct` per soldier). Event `CrossingEvent::Collapsed`,
+  `Fell` per unit.
+- **Swimming and drowning:** before the movement, `update_swimmers` finds
+  every squad whose center lies in deep water (impassable terrain whose name
+  contains "water") and moves it at `speed_mm_per_s` straight to the nearest
+  path cell it may stand on (`search_m`); its orders are dropped while it
+  swims. Every soldier gets a breath of `breath_min_s`..`breath_max_s` (sim
+  RNG) when he falls in and drowns when it runs out in deep water. The squad
+  is ashore when its center reached that cell and nobody is in the water.
+  Applies to paratroopers landing in a river too.
+- **Bridge-laying tanks** (catalog category `bridgelayer`, span and load from
+  `bridge_length_mm` / `bridge_load_kg`): `Sim::find_gap` searches the gap
+  nearest to the target (within `search_m`): a straight line along a
+  path-grid axis over ground the tank cannot stand on (impassable terrain or
+  steeper than the terrain's `max_grade_pct`), whose wet part plus twice
+  `bearing_mm` fits the bridge, with cells the tank can reach before and
+  after it and both ends within `max_grade_pct`. The deck covers the bank
+  cells (abutments), so cells next to the water get no margin from it. The
+  tank drives to `reach_m` before the nearer end, faces the gap and lays
+  the bridge in `lay_s`: `Map::put_laid_bridge` (copy-on-write like a
+  destroyed bridge) adds a bridge without map object (`Bridge::laid_by`,
+  `object = u32::MAX`, deck terrain "road"), `PathGrid::sync_bridge` takes
+  over its cells and railing direction (a new load limit adds a load tier
+  and labels every component grid again), units plan again. Every tank has
+  one slot in `Map::bridges` and lays there again after `PickUpBridge`
+  (`pickup_s`, waits while units stand on the deck). Engineers may blow a
+  laid bridge up (the tank has lost it) but not repair it.
+- **Camouflage:** `Crossings::camo` per unit: `apply_s` of standing to put
+  it up; the unit then counts how long it stood still and did not fire.
+  After `settle_s`, `hide_camouflaged` (right after the vision update)
+  clears the bit of every hostile player from the unit's seen mask unless a
+  unit of that player (or of an ally whose eyes it shares) is within
+  `seen_pct` of its sight range and has the target's cell in its viewshed.
+  Allies always see it. Targeting, snapshots and the AI's view follow the
+  mask.
+- **Paratroopers:** `AirMission::Airborne` (`data/air.toml`: mission
+  `airborne`, `[airborne]`): transport aircraft (`aircraft_transport`, seats
+  = catalog `passengers`) fly like the others and release their sticks
+  where bombers release bombs (no lead). A stick is a `Para`: the
+  faction's first unit type of `airborne.category` in the match, sinking at
+  `descent_mm_per_s` from the release altitude to a landing point scattered
+  by `scatter_m` (triangular). On landing it becomes a squad
+  (`Sim::spawn_unit`; next to roofs and walls if it would land on them).
+  `Sim::parachutes(player)` lists the sticks in the air (to the player's
+  team, or over ground the player sees).
+- **Dragged air calls:** `order_air_line` aims the track along the line
+  through its middle; bombers spread their bombs evenly over at most
+  `bombs.carpet_max_m`, transports drop one stick at each point of the line.
+
+### State, snapshot, bridge and Godot
+
+Jobs, bridge slots, swimmers with their breath, camouflage timers and
+sticks in the air are fields of `Sim` (saved games); laid bridges are part
+of the map and saved in `MapDelta::laid` (index and deck), restored before
+the intact flags (`crates/net/tests/snapshot_crossings.rs`). Queries:
+`crossing_events`, `find_gap`, `layers`, `layer_gap`, `swimmers`,
+`parachutes`, `camouflage_of`, `camouflage_hides`, `is_bridgelayer_type`,
+`can_camouflage_type`, `type_of_unit`. `crates/bridge/src/crossing_funcs.rs`:
+`lay_bridge`, `pick_up_bridge`, `bridge_gap`, `is_bridgelayer`,
+`bridge_layers`, `bridge_decks`, `set_camouflage`, `can_camouflage`,
+`camouflage_state`, `vehicle_camouflage_units`, `swimming_units`, `parachutes`,
+`call_air_line`, `air_carpet_max_m`, `take_crossing_events`. `SimHost.bridges`
+(prompt 014) leaves laid bridges out. `world/crossing_view.gd` breaks a
+collapsing deck into tumbling pieces with splashes, swings the carried
+bridge (`Bridge` object of the model, not merged by `unit_merge.gd`) open
+while it is laid, hides it while laid and draws the laid treadway deck,
+puts branches or a net on camouflaged units, draws the sticks under their
+canopies and lifts swimming soldiers to the water surface
+(`infantry_view.gd` asks it). `selection/crossing_orders.gd` and three
+command bar buttons (Lay bridge, Take up, Camouflage); the air bar has a
+fifth mission and aims by dragging. Tests: `crates/sim/tests/crossings.rs`,
+`crates/ai/tests/bridgelayer.rs`, `tools/crossing_self_test.gd`.
+
+### Open
+
+- Provisional values in `data/crossings.toml` and the airborne rules in
+  `data/air.toml`; catalog values of the bridge-laying tanks and transports
+  from memory (marked uncertain).
+- Shells and bombs do not destroy bridges; paratroopers under their
+  canopies cannot be shot; swimmers still fire; no dedicated paratrooper
+  squads (the rifle squad jumps) and no gliders; the US has no bridge-laying
+  tank.
+- Laid bridges only along the 4 m path grid axes; ditches are found by
+  slope only; the laid deck is drawn as a treadway, not as the unfolded kit
+  model.
 
 ## Victory conditions and game flow
 
@@ -2626,6 +2777,34 @@ and a burning wreck.
   per-projectile arrays yet.
 - Smoke does not block line of sight; smoke shells and screens are game
   rules for later prompts.
+
+### Big blasts (prompt 054)
+
+`world/blast_effects.gd` adds to every hit of at least 110 mm (12.2 cm
+howitzers and up, bombs, the rockets of the heavy strike, exploding dumps)
+and to a tank's ammunition explosion:
+
+- a **shock-wave dome**: a white hemisphere that grows to 0.075 m per mm of
+  caliber in 0.32 s, slowing down, with a bright rim and a nearly clear
+  middle, fading (the condensation of the shock front); a flat **pressure
+  ring** to twice that radius in 0.55 s; a **dust ring** thrown outwards
+  along the ground in the ground's colour (12 pooled domes and rings, 4–8
+  dust rings by quality);
+- a heavier fireball, a grey-brown cloud of earth and smoke and debris on
+  top of the ordinary impact of `effects.gd`;
+- a **flash light**: an omni light of 30–66 m range for 0.32 s that lights
+  up the ground and the buildings around; at most 1 / 2 / 4 at once (low /
+  medium / high, the oldest is reused); at night 3× as strong and 1.45× as
+  far, at dawn and dusk 1.7× (prompt 040);
+- more camera shake.
+
+A tank whose ammunition explodes (`StrikeEvent::AmmoExplosion`) also
+throws its turret: the `Turret` node leaves the model, flies up 10–15 m/s
+with a spin, lands and stays (6 in the air, 16 lying at most); it gets the
+wreck tint and no longer follows the aim. Pictures: `just blast-shots`
+(fixed views by day and by night into `build/explosions/`) and `just
+strike-shots` (a real strike on the base skirmish; fails if smoke, siren,
+countdown or launch are missing). [provisional] sizes, colours, threshold.
 
 ## Audio (presentation only)
 

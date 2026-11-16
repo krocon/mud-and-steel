@@ -171,3 +171,35 @@ min_altitude_m = 100
 [flak_rules]
 ref_wingspan_m = 12
 damage_per_mm = 10
+
+# --- Prompt 055 ---------------------------------------------------------------
+# Paratroopers: transport aircraft (category aircraft_transport, troop seats =
+# catalog `passengers`) drop `squads_per_aircraft` squads each over the
+# target. A squad is the faction's first unit type of `category` in the match
+# (the rifle squad; dedicated paratrooper squads are open). The troops jump
+# at `attack_m`, sink at `descent_mm_per_s` (real, like the aircraft) and
+# land within `scatter_m` per axis (triangular) of their release point; in
+# deep water they swim or drown (data/crossings.toml). A shot-down aircraft
+# loses the troops it has not dropped yet. Dragging the target
+# (`Command::CallAirLine`) spreads the drops along the line, and a bomb
+# carpet over at most `bombs.carpet_max_m` (default 300 m). [provisional]
+[[mission]]
+mission = "airborne"
+cost = [100, 40, 120]
+cooldown_s = 300
+aircraft = 3
+altitude_m = 300
+attack_m = 150
+dive_m = 400
+lateral_m = 60
+trail_m = 200
+
+[[hp]]
+category = "aircraft_transport"
+hp = 1200
+
+[airborne]
+category = "inf_rifle"
+squads_per_aircraft = 1
+descent_mm_per_s = 5000
+scatter_m = 40

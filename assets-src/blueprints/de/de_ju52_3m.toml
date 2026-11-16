@@ -1,0 +1,152 @@
+# Junkers Ju 52/3m g4e (prompt 055): three-engine low-wing transport with a
+# slab-sided fuselage, a thick tapered Junkers wing, one BMW 132 in the nose
+# and one in each wing, fixed main gear with spats and a tail wheel. Main
+# dimensions from data/catalog/de.toml (length 18.9 m, span 29.25 m, height
+# 4.5 m). Modeling estimates from Ju 52 three-views: root/tip chord 5.6/1.9
+# m, wing engines 4.6 m off the center line, three-blade propellers 2.9 m
+# (the nose one counts for the length), main wheels 1.1 m on a 5.2 m track,
+# tailplane span about 8 m. The corrugated skin is not modeled. Drawn level
+# (fin top = catalog height).
+unit = "de_ju52_3m"
+assembly = "aircraft"
+
+[layout]
+cg_chord = 0.3
+
+[fuselage]
+part = "fuselage"
+# [y, width, height, z_center, exponent], tail -> nose; y = 0 at the wing root leading edge
+sections = [[-12.30, 0.05, 0.20, 2.70, 2.0], [-10.80, 0.55, 0.85, 2.60, 3.0], [-6.50, 1.60, 2.00, 2.40, 4.0],
+            [-2.00, 1.90, 2.35, 2.30, 4.0], [1.80, 1.90, 2.35, 2.30, 4.0], [3.80, 1.75, 2.10, 2.25, 3.5],
+            [5.30, 1.30, 1.40, 2.10, 2.4], [6.40, 0.30, 0.30, 2.05, 2.0]]
+segments = 14
+
+[wing]
+part = "wing"
+y = 0.6
+z = 1.40
+root_chord = 5.60
+tip_chord = 1.90
+sweep_deg = 9.0
+dihedral_deg = 3.0
+thickness = 0.17
+aileron = [0.55, 0.95]
+
+[tail]
+part = "tail"
+y = -9.30
+z = 2.70
+span = 8.00
+root_chord = 2.50
+tip_chord = 1.40
+fin_height = 1.80
+fin_root_chord = 2.60
+fin_tip_chord = 1.40
+fin_sweep_deg = 20
+
+[canopy]
+part = "canopy"                # cockpit windows
+y = [3.40, 4.60]
+z = 3.25
+width = 1.40
+height = 0.30
+
+[landing_gear]
+part = "landing_gear"
+fixed = true
+spats = true
+main_y = 0.20
+main_track = 5.20
+main_wheel_diameter = 1.10
+strut_top_z = 1.20
+tail_y = -10.80
+tail_wheel_diameter = 0.45
+tail_strut_top_z = 2.10
+
+[[propeller]]
+part = "propeller"
+name = "Propeller"
+position = [0.0, 6.55, 2.05]
+diameter = 2.90
+blades = 3
+
+[[propeller]]
+part = "propeller"
+name = "Propeller_L"
+position = [-4.60, 2.75, 1.55]
+diameter = 2.90
+blades = 3
+
+[[propeller]]
+part = "propeller"
+name = "Propeller_R"
+position = [4.60, 2.75, 1.55]
+diameter = 2.90
+blades = 3
+
+[[part]]
+part = "nacelle"               # BMW 132 in the wings
+x = 4.60
+y = [-0.80, 2.60]
+z = 1.55
+diameter = 1.30
+
+[[part]]
+part = "flex_mg"               # MG 15, dorsal position
+position = [0.0, -2.40, 3.60]
+direction = [0.0, -1.0, 0.25]
+length = 0.70
+
+[[part]]
+part = "socket"
+name = "Socket_Passenger_01"
+position = [-1.00, -5.00, 1.50]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [-4.60, 0.8, 2.0]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [4.60, 0.8, 2.0]
+
+[[part]]
+part = "marking"
+name = "Wing_L"
+position = [-10.5, -2.3, 2.0]
+normal = [0.0, 0.0, 1.0]
+size = 1.6
+
+[[part]]
+part = "marking"
+name = "Wing_R"
+position = [10.5, -2.3, 2.0]
+normal = [0.0, 0.0, 1.0]
+size = 1.6
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-0.95, -7.2, 2.40]
+normal = [-1.0, 0.0, 0.0]
+size = 1.1
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [0.95, -7.2, 2.40]
+normal = [1.0, 0.0, 0.0]
+size = 1.1
+
+[[part]]
+part = "socket"                # tracer origin: tip of the dorsal MG
+name = "Socket_Muzzle"
+position = [0.0, -3.08, 3.77]
+
+[[part]]
+part = "shadow_proxy"
+
+[validate]
+exclude_height = ["Propeller*"]
