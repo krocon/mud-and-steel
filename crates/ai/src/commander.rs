@@ -61,6 +61,8 @@ const ADVANCING_TICKS: u64 = 300;
 /// logic for `PUSH_TICKS`.
 const ASSAULT_MAX_TICKS: u64 = 1200;
 const PUSH_TICKS: u64 = 2400;
+/// An enemy seen moving counts as maneuvering for this long (ticks).
+const ACTIVE_TICKS: u64 = 2400;
 /// A fight is reviewed after this long (ticks).
 const REVIEW_TICKS: u64 = 300;
 /// Below this share (percent) of damage dealt to damage taken the army
@@ -352,6 +354,15 @@ impl Ai {
         };
         let found = self.current_front(center, view);
         let virtual_front = found.is_none();
+        // Nothing seen yet: advance straight (attack-move, group logic);
+        // the maneuver starts at the first contact, when the enemy turns
+        // out to stand.
+        if virtual_front {
+            self.army.phase = Phase::Free;
+            self.army.target = None;
+            self.army.axis = None;
+            return false;
+        }
         let Some(front) = found.or_else(|| self.home_front()) else {
             self.army.phase = Phase::Free;
             self.army.target = None;
@@ -387,6 +398,37 @@ impl Ai {
             .iter()
             .any(|e| dist(e.position, center) <= range + Fixed::from_num(30));
         let ids: Vec<UnitId> = units.iter().map(|u| u.id).collect();
+
+        // Against an enemy that maneuvers (it was seen moving within the
+        // last two minutes) the army does not go round it: it receives an
+        // advance in line and otherwise advances with the group logic
+        // (attack-move). Staged flank attacks are for static defenses.
+        let active = self.enemy_active(tick);
+        if active
+            && !in_range
+            && matches!(
+                self.army.phase,
+                Phase::Free | Phase::Stage | Phase::Assault | Phase::Hold
+            )
+        {
+            if advancing {
+                self.army.phase = Phase::Hold;
+                let facing = Some(front.center - center);
+                self.send(
+                    &ids,
+                    center,
+                    facing,
+                    Formation::Line,
+                    Engage::All,
+                    tick,
+                    out,
+                );
+                return true;
+            }
+            self.army.phase = Phase::Free;
+            self.army.axis = None;
+            return false;
+        }
 
         match self.army.phase {
             Phase::Withdraw => {
@@ -559,6 +601,13 @@ impl Ai {
         self.commander && self.army.phase == Phase::Assault && tick <= self.army.since + 200
     }
 
+    /// The enemy was seen moving within `ACTIVE_TICKS`.
+    fn enemy_active(&self, tick: u64) -> bool {
+        self.intel
+            .moved_tick
+            .is_some_and(|t| tick < t + ACTIVE_TICKS)
+    }
+
     /// Samples the front every `WATCH_TICKS`: it advances if it came
     /// `ADVANCE_M` closer to the army since the last sample.
     fn watch_front(&mut self, front: &Front, center: Vec2, tick: u64) -> bool {
@@ -624,7 +673,7 @@ impl Ai {
             self.withdraw(&ids, center, front, threat, tick, out);
             return true;
         }
-        if lost > 0 && dealt * 100 < lost * EXCHANGE_PCT {
+        if lost > 0 && dealt * 100 < lost * EXCHANGE_PCT && !self.enemy_active(tick) {
             // Bad exchange: try the enemy's flank at the own range.
             let dir = unit_vec(center - front.center).unwrap_or(Vec2::ZERO);
             self.army.failed.push(dir);
@@ -668,7 +717,9 @@ impl Ai {
             .filter(|e| self.type_info(e.unit_type).role == Role::Armor)
             .map(|e| e.position)
             .collect();
-        if tick < self.army.advancing_until {
+        // Against a maneuvering or advancing enemy the army fights where it
+        // stands: driving up under fire loses the exchange.
+        if tick < self.army.advancing_until || self.enemy_active(tick) {
             return false;
         }
         let outranges = self.standoff(front, range).is_some();

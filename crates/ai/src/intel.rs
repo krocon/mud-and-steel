@@ -18,6 +18,8 @@ const LOSS_TICKS: u64 = 2400;
 const LOSS_RADIUS_M: i32 = 120;
 /// Losses kept at most (the oldest go first).
 const MAX_LOSSES: usize = 64;
+/// A known enemy seen this far from its last sighting has moved (m).
+const MOVED_M: i32 = 8;
 /// Sightings within this distance of each other belong to one front (m).
 const FRONT_LINK_M: i32 = 160;
 
@@ -41,6 +43,9 @@ pub(crate) struct Intel {
     pub(crate) known: Vec<(UnitId, Sighting)>,
     /// Any enemy unit was seen (the enemy's weapons are no guess any more).
     pub(crate) seen_any: bool,
+    /// When an enemy unit was last seen somewhere else than before: the
+    /// enemy maneuvers (it is not a static defense).
+    pub(crate) moved_tick: Option<u64>,
 }
 
 /// A cluster of fresh sightings: one front of the enemy.
@@ -122,7 +127,15 @@ impl Ai {
             }
             if let Some(&s) = self.memory.get(&e.id) {
                 match pos {
-                    Some(i) => self.intel.known[i].1 = s,
+                    Some(i) => {
+                        let before = self.intel.known[i].1;
+                        if before.unit_type == s.unit_type
+                            && dist(before.position, s.position) > Fixed::from_num(MOVED_M)
+                        {
+                            self.intel.moved_tick = Some(view.tick);
+                        }
+                        self.intel.known[i].1 = s;
+                    }
                     None => self.intel.known.push((e.id, s)),
                 }
             }
