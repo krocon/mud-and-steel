@@ -1,0 +1,64 @@
+# Two-storey ashlar town hall with high storeys and a steep slate roof
+# (prompt 041).
+unit = "env_town_hall"
+assembly = "env"
+
+[[variant]]
+name = "Intact"
+part = "house"
+role = "intact"
+seed = 12
+wall = "Stone"
+wall_kind = 1
+wall_t = 0.6
+plinth = 0.8
+storeys = 2
+storey_h = 4.2
+windows_long = 5
+windows_short = 2
+window = [1.1, 2.0]
+attic_windows = 2
+door = ["+x", 2.0]
+roof_kind = 1
+
+[[variant]]
+name = "Damaged"
+part = "house"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 12
+wall = "Stone"
+wall_kind = 1
+wall_t = 0.6
+plinth = 0.8
+storeys = 2
+storey_h = 4.2
+windows_long = 5
+windows_short = 2
+window = [1.1, 2.0]
+attic_windows = 2
+door = ["+x", 2.0]
+roof_kind = 1
+
+[[variant]]
+name = "Ruin"
+part = "house"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 12
+wall = "Stone"
+wall_kind = 1
+wall_t = 0.6
+plinth = 0.8
+storeys = 2
+storey_h = 4.2
+windows_long = 5
+windows_short = 2
+window = [1.1, 2.0]
+attic_windows = 2
+door = ["+x", 2.0]
+roof_kind = 1

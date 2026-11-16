@@ -1,0 +1,66 @@
+# One-storey log house for winter maps with a plank roof (prompt 041).
+unit = "env_house_log"
+assembly = "env"
+
+[[variant]]
+name = "Intact"
+part = "house"
+role = "intact"
+seed = 14
+wall = "Wood"
+wall_kind = 2
+wall_t = 0.3
+plinth = 0.5
+storeys = 1
+storey_h = 2.6
+knee = 0.6
+windows_long = 3
+windows_short = 1
+attic_windows = 1
+door = ["-y", 1.0]
+roof_kind = 3
+chimney = true
+
+[[variant]]
+name = "Damaged"
+part = "house"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 14
+wall = "Wood"
+wall_kind = 2
+wall_t = 0.3
+plinth = 0.5
+storeys = 1
+storey_h = 2.6
+knee = 0.6
+windows_long = 3
+windows_short = 1
+attic_windows = 1
+door = ["-y", 1.0]
+roof_kind = 3
+chimney = true
+
+[[variant]]
+name = "Ruin"
+part = "house"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 14
+wall = "Wood"
+wall_kind = 2
+wall_t = 0.3
+plinth = 0.5
+storeys = 1
+storey_h = 2.6
+knee = 0.6
+windows_long = 3
+windows_short = 1
+attic_windows = 1
+door = ["-y", 1.0]
+roof_kind = 3
+chimney = true
