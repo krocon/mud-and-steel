@@ -106,6 +106,19 @@ pct = 20
 id = "env_barrel"
 pct = 20
 
+# Prompt 059: desert village props.
+[[cover.object]]
+id = "env_jars"
+pct = 30
+
+[[cover.object]]
+id = "env_cart_wood"
+pct = 25
+
+[[cover.object]]
+id = "env_market_stall"
+pct = 15
+
 [building]
 # A squad enters its building when it is within this distance of the
 # building's walls.
@@ -190,6 +203,81 @@ id = "env_house_log"
 capacity = 6
 exposure_pct = 20
 heavy_exposure_pct = 45
+
+
+# Prompt 059: desert village. Capacity includes the roof terrace (the
+# parapet is a firing step); mud walls let more rounds through. [provisional]
+[[building.kind]]
+id = "env_house_desert_hut"
+capacity = 4
+exposure_pct = 25
+heavy_exposure_pct = 50
+
+[[building.kind]]
+id = "env_house_desert_two"
+capacity = 6
+exposure_pct = 25
+heavy_exposure_pct = 50
+
+[[building.kind]]
+id = "env_house_desert_long"
+capacity = 8
+exposure_pct = 25
+heavy_exposure_pct = 50
+
+[[building.kind]]
+id = "env_house_desert_corner"
+capacity = 8
+exposure_pct = 25
+heavy_exposure_pct = 50
+
+[[building.kind]]
+id = "env_house_desert_stair"
+capacity = 6
+exposure_pct = 25
+heavy_exposure_pct = 50
+
+[[building.kind]]
+id = "env_house_desert_roofroom"
+capacity = 8
+exposure_pct = 20
+heavy_exposure_pct = 45
+
+[[building.kind]]
+id = "env_house_desert_tall"
+capacity = 10
+exposure_pct = 15
+heavy_exposure_pct = 40
+
+[[building.kind]]
+id = "env_house_desert_vault"
+capacity = 6
+exposure_pct = 15
+heavy_exposure_pct = 35
+
+[[building.kind]]
+id = "env_house_desert_large"
+capacity = 16
+exposure_pct = 15
+heavy_exposure_pct = 40
+
+[[building.kind]]
+id = "env_house_desert_shop"
+capacity = 6
+exposure_pct = 25
+heavy_exposure_pct = 50
+
+[[building.kind]]
+id = "env_mosque"
+capacity = 16
+exposure_pct = 10
+heavy_exposure_pct = 30
+
+[[building.kind]]
+id = "env_police_post"
+capacity = 20
+exposure_pct = 8
+heavy_exposure_pct = 25
 
 [[building.kind]]
 id = "fort_bunker_mg"

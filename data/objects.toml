@@ -137,6 +137,68 @@ id = "env_house_log"
 variants = ["Intact", "Damaged", "Ruin"]
 blocks = "all"
 
+
+# Prompt 059: desert village houses, mosque and police post (block everybody).
+[[object]]
+id = "env_house_desert_hut"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_house_desert_two"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_house_desert_long"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_house_desert_corner"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_house_desert_stair"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_house_desert_roofroom"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_house_desert_tall"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_house_desert_vault"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_house_desert_large"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_house_desert_shop"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_mosque"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_police_post"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
 # --- Boundaries ------------------------------------------------------------------
 
 [[object]]
@@ -148,6 +210,20 @@ blocks = "large"
 id = "env_wall_stone"
 variants = ["Segment", "End", "Corner"]
 blocks = "large"
+
+# Prompt 059: mud courtyard walls (2.2 m; infantry climbs over, like the
+# dry-stone wall). End and corner piers are small boxes.
+[[object]]
+id = "env_wall_mud"
+variants = ["Segment", "Low", "Broken", "Gate", "End", "Corner"]
+blocks = "large"
+
+[object.variant.End]
+length_mm = 500
+
+[object.variant.Corner]
+length_mm = 600
+width_mm = 600
 
 [[object]]
 id = "env_fence_wood"
@@ -226,6 +302,33 @@ blocks = "none"
 [[object]]
 id = "env_dump_fuel"
 variants = ["Intact", "Burnt"]
+blocks = "none"
+
+# Prompt 059: desert village props. The well's curb stops vehicles.
+[[object]]
+id = "env_awning"
+variants = ["Cloth", "Wide", "Palm"]
+blocks = "none"
+
+[[object]]
+id = "env_jars"
+variants = ["Group", "Single", "Large"]
+blocks = "none"
+
+[[object]]
+id = "env_well_desert"
+variants = ["Frame"]
+blocks = "large"
+radius_mm = 900
+
+[[object]]
+id = "env_cart_wood"
+variants = ["Cart"]
+blocks = "none"
+
+[[object]]
+id = "env_market_stall"
+variants = ["Stall", "Empty"]
 blocks = "none"
 
 # --- Field fortifications (for scenarios and the map editor) ----------------------
