@@ -27,3 +27,4 @@ Thumbs.db
 __pycache__/
 # Written and deleted by `just editor-selftest` (prompt 028)
 data/maps/editor_selftest/
+/docs/.sfx/
