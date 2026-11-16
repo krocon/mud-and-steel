@@ -34,8 +34,13 @@ pub struct MapDelta {
     pub map: MapRef,
     pub heights: Vec<(u32, i32)>,
     pub terrain: Vec<(u32, u8)>,
-    /// One flag per bridge of the map, in map order.
+    /// One flag per bridge of the map, in map order (laid bridges
+    /// included).
     pub bridges_intact: Vec<bool>,
+    /// Bridges laid by bridge-laying tanks (prompt 055), by index into
+    /// the bridges of the map, ascending; they follow the map's own.
+    #[serde(default)]
+    pub laid: Vec<(u32, crate::bridges::LaidBridge)>,
 }
 
 /// A snapshot for writing: borrows the simulation.
@@ -131,6 +136,10 @@ impl MapDelta {
             heights,
             terrain,
             bridges_intact: now.bridges().iter().map(|b| b.intact).collect(),
+            laid: (0u32..)
+                .zip(now.bridges())
+                .filter_map(|(i, b)| Some((i, b.laid_spec()?)))
+                .collect(),
         }
     }
 
@@ -142,7 +151,7 @@ impl MapDelta {
                 actual: loaded.reference(),
             });
         }
-        if self.bridges_intact.len() != loaded.bridges().len() {
+        if self.bridges_intact.len() != loaded.bridges().len() + self.laid.len() {
             return Err(SnapshotError::BadDelta);
         }
         let bridges_changed = loaded
@@ -150,10 +159,19 @@ impl MapDelta {
             .iter()
             .zip(&self.bridges_intact)
             .any(|(b, &intact)| b.intact != intact);
-        if self.heights.is_empty() && self.terrain.is_empty() && !bridges_changed {
+        if self.heights.is_empty()
+            && self.terrain.is_empty()
+            && !bridges_changed
+            && self.laid.is_empty()
+        {
             return Ok(loaded);
         }
         let mut map = Arc::unwrap_or_clone(loaded);
+        for (index, laid) in &self.laid {
+            if map.put_laid_bridge(*index as usize, laid).is_none() {
+                return Err(SnapshotError::BadDelta);
+            }
+        }
         let (heights, terrain) = map.rasters_mut();
         for &(i, h) in &self.heights {
             *heights.get_mut(i as usize).ok_or(SnapshotError::BadDelta)? = h;

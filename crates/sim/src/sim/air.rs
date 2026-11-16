@@ -156,7 +156,7 @@ pub(super) struct Air {
     /// Players in slot order, their start centers and cooldowns (ticks).
     players: Vec<PlayerId>,
     homes: Vec<Vec2>,
-    cooldowns: Vec<[u32; 4]>,
+    cooldowns: Vec<[u32; AirMission::ALL.len()]>,
     sorties: Vec<Sortie>,
     planes: Vec<Plane>,
     bombs: Vec<Bomb>,
@@ -249,7 +249,7 @@ impl Air {
             rt,
             aa,
             sight,
-            cooldowns: vec![[0; 4]; players.len()],
+            cooldowns: vec![[0; AirMission::ALL.len()]; players.len()],
             players,
             homes,
             sorties: Vec::new(),
@@ -447,9 +447,50 @@ fn fall_seconds(height: Fixed, gravity_mm_per_s2: u32) -> Fixed {
 }
 
 impl Sim {
+    /// The air rules of the match (prompt 055: paratroopers).
+    pub(super) const fn air_rules(&self) -> &AirRules {
+        &self.air.rules
+    }
+
+    /// [`crate::Command::CallAirLine`] (prompt 055): `mission` along
+    /// `from` → `to`, over its middle.
+    pub(super) fn order_air_line(
+        &mut self,
+        player: PlayerId,
+        mission: AirMission,
+        (from, to): (Vec2, Vec2),
+    ) {
+        if !within_world(from) || !within_world(to) {
+            return;
+        }
+        let d = to - from;
+        let length = d.length();
+        if length < Fixed::ONE {
+            self.order_air_on(player, mission, from, None);
+            return;
+        }
+        let dir = Vec2::new(d.x / length, d.y / length);
+        let max = Fixed::from_num(self.air.rules.bombs.carpet_max_m);
+        let length = length.min(max);
+        let mid = Vec2::new((from.x + to.x) / 2, (from.y + to.y) / 2);
+        self.order_air_on(player, mission, mid, Some((dir, length)));
+    }
+
     /// Calls `mission` on `target` for `player` if the player's faction
     /// has the aircraft, the mission is ready and the player can pay.
     pub(super) fn order_air(&mut self, player: PlayerId, mission: AirMission, target: Vec2) {
+        self.order_air_on(player, mission, target, None);
+    }
+
+    /// [`Self::order_air`], optionally along a line: direction and length
+    /// (prompt 055).
+    fn order_air_on(
+        &mut self,
+        player: PlayerId,
+        mission: AirMission,
+        target: Vec2,
+        line: Option<(Vec2, Fixed)>,
+    ) {
         if !within_world(target) || !self.map.contains(target) {
             return;
         }
@@ -466,7 +507,7 @@ impl Sim {
             return;
         }
         self.air.cooldowns[slot][mission.index()] = self.air.cooldown_ticks(mission);
-        self.launch(player, slot, mission, kind, target);
+        self.launch(player, slot, mission, kind, target, line);
     }
 
     /// Why `player` cannot call `mission` now (`None`: it can).
@@ -482,7 +523,15 @@ impl Sim {
         {
             return Some(AirBlock::Defeated);
         }
-        if self.air.kind_of(self.faction(player), mission).is_none() {
+        let Some(kind) = self.air.kind_of(self.faction(player), mission) else {
+            return Some(AirBlock::NoAircraft);
+        };
+        // Paratroopers need a squad type of the faction in the match.
+        if mission == AirMission::Airborne
+            && self
+                .para_type(player, self.air.types[usize::from(kind)].seats)
+                .is_none()
+        {
             return Some(AirBlock::NoAircraft);
         }
         if self.air.cooldowns[slot][mission.index()] > 0 {
@@ -505,12 +554,22 @@ impl Sim {
         mission: AirMission,
         kind: u16,
         target: Vec2,
+        line: Option<(Vec2, Fixed)>,
     ) {
+        // Paratroopers: squads per aircraft instead of bombs (prompt 055).
+        let squads = if mission == AirMission::Airborne {
+            let seats = self.air.types[usize::from(kind)].seats;
+            self.para_type(owner, seats).map_or(0, |(_, _, n)| n)
+        } else {
+            0
+        };
         let air = &mut self.air;
         let rules = air.rules.mission(mission);
         let d = target - air.homes[slot];
         let length = d.length();
-        let dir = if length > Fixed::ONE {
+        let dir = if let Some((dir, _)) = line {
+            dir
+        } else if length > Fixed::ONE {
             Vec2::new(d.x / length, d.y / length)
         } else {
             Vec2::new(Fixed::ZERO, -Fixed::ONE)
@@ -552,15 +611,42 @@ impl Sim {
             .round()
             .max(Fixed::ONE);
         let lead = speed * fall_ticks;
-        let bombs = ty.bombs.map_or(0, |(n, _)| u32::from(n));
+        let bombs = ty.bombs.map_or(squads, |(n, _)| u32::from(n));
         let stick = Fixed::from_num(b_rules.stick_m);
-        let releases: Vec<(Fixed, Fixed)> = (0..bombs)
-            .map(|k| {
-                let off = stick * Fixed::from_num(2 * i64::from(k) - i64::from(bombs) + 1) / 2;
-                let impact = back + off;
-                (impact - lead, impact)
-            })
-            .collect();
+        // Paratroopers jump over their landing point.
+        let lead = if mission == AirMission::Airborne {
+            Fixed::ZERO
+        } else {
+            lead
+        };
+        let carpet = line.map_or(Fixed::ZERO, |(_, l)| l);
+        let n = rules.aircraft;
+        // A carpet (prompt 055): every bomber spreads its bombs over the
+        // whole line; every transport drops at its own point of the line.
+        let spread = |k: u32, count: u32| {
+            if count <= 1 {
+                Fixed::ZERO
+            } else {
+                -carpet / 2 + carpet * Fixed::from_num(k) / Fixed::from_num(count - 1)
+            }
+        };
+        let releases_of = |plane: u32| -> Vec<(Fixed, Fixed)> {
+            (0..bombs)
+                .map(|k| {
+                    let off = if carpet == Fixed::ZERO {
+                        stick * Fixed::from_num(2 * i64::from(k) - i64::from(bombs) + 1) / 2
+                    } else if mission == AirMission::Airborne {
+                        spread(plane * bombs + k, n * bombs)
+                    } else {
+                        spread(k, bombs)
+                    };
+                    let impact = back + off;
+                    (impact - lead, impact)
+                })
+                .collect()
+        };
+        let mut releases: Vec<(Fixed, Fixed)> = (0..n).flat_map(releases_of).collect();
+        releases.sort_unstable();
         let gun_lead = Fixed::from_num(s_rules.lead_m);
         let mut zone = (back, back);
         if !air.rt[usize::from(kind)].guns.is_empty() {
@@ -575,7 +661,6 @@ impl Sim {
                 zone.1.max(last.1),
             );
         }
-        let n = rules.aircraft;
         let left = Vec2::new(-dir.y, dir.x);
         let max_hp = ty.hp;
         for k in 0..n {
@@ -606,7 +691,7 @@ impl Sim {
                 ),
                 velocity: Vec3::default(),
                 crash: None,
-                releases: releases.clone(),
+                releases: releases_of(k),
                 burst: 0,
                 firing: false,
                 shed: None,
@@ -1181,6 +1266,11 @@ impl Sim {
                 let (_, impact_s) = p.releases.remove(0);
                 let (owner, origin, dir, position, mission, plane) =
                     (p.owner, p.origin, p.dir, p.position, p.mission, p.id);
+                if mission == AirMission::Airborne {
+                    // A stick of paratroopers jumps (prompt 055).
+                    self.drop_paratroopers(owner, position, origin + dir.scale(impact_s), dir);
+                    continue;
+                }
                 let kg = self.air.types[usize::from(p.kind)]
                     .bombs
                     .map_or(0, |(_, kg)| kg);

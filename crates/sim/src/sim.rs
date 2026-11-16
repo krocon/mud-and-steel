@@ -18,6 +18,7 @@ use std::sync::Arc;
 mod air;
 mod combat;
 mod craters;
+mod crossings;
 mod destruction;
 mod economy;
 mod fire;
@@ -147,6 +148,8 @@ pub enum ConfigError {
     Weather(String),
     /// The built-in field work rules do not parse (prompt 035).
     Works(String),
+    /// The built-in crossing rules do not parse (prompt 055).
+    Crossings(String),
 }
 
 impl fmt::Display for ConfigError {
@@ -170,7 +173,8 @@ impl fmt::Display for ConfigError {
             | Self::Transport(e)
             | Self::Logistics(e)
             | Self::Weather(e)
-            | Self::Works(e) => {
+            | Self::Works(e)
+            | Self::Crossings(e) => {
                 write!(f, "{e}")
             }
         }
@@ -461,6 +465,9 @@ pub struct Sim {
     weather: weather::WeatherState,
     /// Field works of engineers: mines, obstacles, positions (prompt 035).
     works: works::Works,
+    /// Collapsing decks, swimmers, bridge-laying tanks, camouflage and
+    /// paratroopers (prompt 055).
+    crossings: crossings::Crossings,
 }
 
 impl Sim {
@@ -609,6 +616,12 @@ impl Sim {
             &map,
             config.tick_hz,
         );
+        let crossings = crossings::Crossings::new(
+            crate::crossings::CrossingRules::builtin()
+                .map_err(|e| ConfigError::Crossings(e.to_string()))?,
+            config,
+            &config.terrain,
+        );
         let grid = PathGrid::new(&map, &config.terrain, &config.unit_types);
         let weather = weather::WeatherState::new(
             crate::weather::WeatherRules::builtin()
@@ -649,6 +662,7 @@ impl Sim {
             logistics,
             weather,
             works,
+            crossings,
         };
         sim.init_weather();
         sim.init_economy();
@@ -716,6 +730,7 @@ impl Sim {
     pub fn step_observed(&mut self, commands: &[PlayerCommand], mut done: impl FnMut(Phase)) {
         self.events.clear();
         self.air.events.clear();
+        self.crossings.events.clear();
         for command in commands {
             self.apply(command);
         }
@@ -729,6 +744,7 @@ impl Sim {
         self.fire_indirect();
         done(Phase::Combat);
         self.halt_stranded();
+        self.update_swimmers();
         self.move_units();
         self.update_transport();
         done(Phase::Movement);
@@ -740,6 +756,7 @@ impl Sim {
         self.fly_projectiles();
         self.fly_shells();
         self.update_air();
+        self.update_crossings();
         self.update_fire();
         self.transport_losses();
         done(Phase::Projectiles);
@@ -753,6 +770,7 @@ impl Sim {
         done(Phase::Economy);
         self.update_smoke();
         self.update_vision(false);
+        self.hide_camouflaged();
         self.reveal_flashes();
         done(Phase::Vision);
         self.tick += 1;
@@ -1032,6 +1050,7 @@ impl Sim {
         self.drop_replaced_queues(command);
         self.drop_transport_tasks(command);
         self.drop_work_jobs(command);
+        self.drop_crossing_jobs(command);
         match &command.command {
             Command::MoveTo { units, target } => {
                 if !within_world(*target) {
@@ -1174,6 +1193,16 @@ impl Sim {
             }
             Command::RepairBridge { units, bridge } => {
                 self.order_bridge(command.player, units, *bridge, true);
+            }
+            Command::LayBridge { units, target } => {
+                self.order_lay_bridge(command.player, units, *target);
+            }
+            Command::PickUpBridge { units } => self.order_pick_up_bridge(command.player, units),
+            Command::SetCamouflage { units, on } => {
+                self.order_camouflage(command.player, units, *on);
+            }
+            Command::CallAirLine { mission, from, to } => {
+                self.order_air_line(command.player, *mission, (*from, *to));
             }
         }
     }
@@ -1342,6 +1371,7 @@ impl Sim {
             self.weather.hash_into(&mut h);
         }
         self.works.hash_into(&mut h);
+        self.crossings.hash_into(&mut h);
         h.finish()
     }
 

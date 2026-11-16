@@ -543,6 +543,31 @@ impl Map {
         }
     }
 
+    /// Puts a laid bridge (prompt 055) at index `bridge`: replaces the
+    /// laid bridge there, or appends it if `bridge` is the number of
+    /// bridges. Returns its index, `None` if `bridge` is a bridge of the map
+    /// or out of range. Use through the simulation, which also updates the
+    /// path grid.
+    pub fn put_laid_bridge(
+        &mut self,
+        bridge: usize,
+        laid: &crate::bridges::LaidBridge,
+    ) -> Option<usize> {
+        let b = Bridge::laid(laid);
+        let count = self.bridges.len();
+        match self.bridges.get_mut(bridge) {
+            Some(old) if old.laid_by.is_some() => {
+                *old = b;
+                Some(bridge)
+            }
+            None if bridge == count => {
+                self.bridges.push(b);
+                Some(bridge)
+            }
+            _ => None,
+        }
+    }
+
     /// Feeds the state of the bridges (intact or not) into a hash. Writes
     /// nothing for maps without bridges.
     pub(crate) fn hash_bridge_state(&self, h: &mut StableHasher) {

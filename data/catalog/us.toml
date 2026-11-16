@@ -982,3 +982,39 @@ source = [
     { ref = "https://en.wikipedia.org/wiki/Piper_J-3_Cub", covers = "J3C-65: 6.83 m, 10.74 m, 2.03 m, max takeoff 1,220 lb (550 kg), 65 hp; L-4: 85 mph (137 km/h), cruise 75 mph (121 km/h), ceiling 12,000 ft (3,658 m), pilot + 1" },
 ]
 note = "Air OP aircraft of the field artillery (pilot + observer). Unarmed, so no weapon is listed (field-modified bazooka-armed L-4s were exceptions). Dimensions from the J3C-65 sheet. speed_max_kmh_x10 with pilot only. power_hp = 65 hp converted."
+
+# ---------------------------------------------------------------------------
+# Prompt 055: transport aircraft (no bridge-laying tank: see the note below)
+# ---------------------------------------------------------------------------
+# The US Army fielded no bridge-laying tank in combat in 1943-45 (bridges
+# came from engineer units: treadway and Bailey bridges); the Churchill ARK
+# and the Valentine and Churchill bridgelayers were British. So `us` has no
+# bridgelayer entry [provisional].
+
+[[unit]]
+id = "us_c47"
+faction = "us"
+category = "aircraft_transport"
+name_de = "Douglas C-47 Skytrain"
+name_en = "Douglas C-47 Skytrain"
+designation = "C-47A"
+year_from = 1942
+year_to = 1945
+tier = 2
+model = "assets/models/us/us_c47.glb"
+length_mm = 19430
+wingspan_mm = 29110
+height_mm = 5180
+mass_kg = 14060
+crew = 4
+passengers = 28
+speed_max_kmh_x10 = 3600
+speed_cruise_kmh_x10 = 2570
+ceiling_m = 8045
+power_hp = 2400
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Douglas_C-47_Skytrain", covers = "C-47: crew 4, 28 troops, 63 ft 9 in (19.43 m), 95 ft 6 in (29.11 m), 16 ft 11 in (5.18 m), max takeoff 31,000 lb (14,060 kg), 2 x P&W R-1830 1200 hp, 224 mph (360 km/h), cruise 160 mph (257 km/h), ceiling 26,400 ft (8,045 m), unarmed (from memory, not fetched for this entry)" },
+    { ref = "https://en.wikipedia.org/wiki/Operation_Overlord", covers = "C-47 dropping the 82nd and 101st Airborne Divisions (sticks of 15-18 paratroopers)" },
+]
+uncertain = ["passengers"]
+note = "Standard US transport and paratroop aircraft. Unarmed, so no weapon is listed. passengers = troop seats (28); a paratroop stick was 15-18 men."

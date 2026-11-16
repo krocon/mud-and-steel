@@ -15,6 +15,7 @@ pub mod catalog;
 pub mod combat;
 mod command;
 pub mod craters;
+pub mod crossings;
 mod data;
 pub mod destruction;
 pub mod economy;
@@ -51,6 +52,9 @@ pub use combat::{
 };
 pub use command::{Command, PlayerCommand, PlayerId, UnitId};
 pub use craters::{CraterEvent, CraterRules};
+pub use crossings::{
+    CrossingEvent, CrossingRules, Gap, LayerState, LayerView, ParachuteView, SwimmerView,
+};
 pub use data::{DEFAULT_FOOTPRINT_MM, DataError, UnitType, unit_types_from_catalog};
 pub use destruction::{
     DestructionRules, ObjectCause, ObjectEvent, ObjectStage, ObjectState, Remains,

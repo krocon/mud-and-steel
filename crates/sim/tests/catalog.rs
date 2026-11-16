@@ -75,6 +75,11 @@ fn every_faction_covers_every_military_category() {
                     | Category::FortObstacle
                     | Category::FortWire
             );
+            // Bridge-laying tanks only where one is documented (prompt 055):
+            // the US Army fielded none.
+            if *category == Category::Bridgelayer && faction == Faction::Us {
+                continue;
+            }
             let present = catalog
                 .entries
                 .iter()

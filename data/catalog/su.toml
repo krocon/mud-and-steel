@@ -982,3 +982,72 @@ source = [
 ]
 uncertain = ["mass_kg"]
 note = "Biplane trainer used for liaison, reconnaissance and night harassment bombing (U-2VS / Po-2LNB). Wikipedia's specifications are uncited. mass_kg is the trainer/liaison gross weight; the night bomber with bombs was heavier (~1,350 kg). Designated U-2 until 1944. ShKAS rate cyclic."
+
+# ---------------------------------------------------------------------------
+# Prompt 055: bridge-laying tank (Lend-Lease) and transport aircraft
+# ---------------------------------------------------------------------------
+
+[[unit]]
+id = "su_valentine_bridgelayer"
+faction = "su"
+category = "bridgelayer"
+name_de = "Valentine-Brückenleger (Lend-Lease)"
+name_en = "Valentine Bridgelayer (Lend-Lease)"
+designation = "Valentine Bridgelayer"
+year_from = 1943
+year_to = 1945
+tier = 2
+model = "assets/models/su/su_valentine_bridgelayer.glb"
+length_mm = 5900
+length_hull_mm = 5410
+width_mm = 2900
+height_mm = 3400
+mass_kg = 20000
+crew = 2
+speed_road_kmh_x10 = 240
+speed_offroad_kmh_x10 = 130
+range_road_km = 145
+power_hp = 131
+armor_hull_front_mm = 60
+armor_hull_side_mm = 60
+armor_hull_rear_mm = 60
+bridge_length_mm = 10360
+bridge_load_kg = 30480
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Valentine_tank", covers = "Valentine Bridgelayer: turretless Valentine II with a 34 ft (10.36 m) scissors bridge, Class 30 (30 long tons), spanning about 30 ft; 25 delivered to the Soviet Union under Lend-Lease; Valentine hull 5.41 m long, 2.63 m wide, armor up to 60 mm, AEC diesel 131 hp, 15 mph road (from memory, not fetched for this entry)" },
+    { ref = "https://en.wikipedia.org/wiki/Lend-Lease", covers = "British tanks (Valentine) supplied to the Soviet Union 1941-45" },
+    { ref = "Fletcher, Valentine Infantry Tank 1938-45 (Osprey New Vanguard 2008), bridgelayer", covers = "scissors bridge, Class 30, use by the Red Army (book not consulted for this entry)" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm", "mass_kg", "speed_offroad_kmh_x10", "range_road_km"]
+note = "The Red Army had no bridge-laying tank of its own in 1943-45; it used Valentine bridgelayers from Lend-Lease (Wikipedia gives 25 delivered; book not consulted) [provisional]. The scissors bridge folded in half on the hull: carried about 5.2 m long, laid 10.36 m. Overall length with the folded bridge, height, width (bridge 9 ft 6 in = 2.9 m) and weight (Valentine II about 16 t plus the bridge) are estimates. bridge_load_kg = Class 30 (30 long tons)."
+
+[[unit]]
+id = "su_li2"
+faction = "su"
+category = "aircraft_transport"
+name_de = "Lisunow Li-2"
+name_en = "Lisunov Li-2"
+designation = "Li-2"
+year_from = 1940
+year_to = 1945
+tier = 2
+model = "assets/models/su/su_li2.glb"
+length_mm = 19650
+wingspan_mm = 28810
+height_mm = 5150
+mass_kg = 11280
+crew = 4
+passengers = 25
+speed_max_kmh_x10 = 3200
+speed_cruise_kmh_x10 = 2500
+ceiling_m = 5600
+power_hp = 2000
+weapon = [
+    { name = "ShKAS (dorsal turret)", count = 1, caliber_mm_x10 = 76, rate_rpm = 1800, muzzle_velocity_mps = 825 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Lisunov_Li-2", covers = "licence-built DC-3: crew 4, 19.65 m, 28.81 m, 5.15 m, max takeoff 11,280 kg, 2 x Shvetsov ASh-62IR 1000 hp, 320 km/h, ceiling 5,600 m, up to 25 troops; military versions with a dorsal turret (from memory, not fetched for this entry)" },
+    { ref = "https://en.wikipedia.org/wiki/Dnieper_Airborne_Operation", covers = "Li-2 used to drop Soviet paratroopers (Dnieper 1943)" },
+]
+uncertain = ["speed_cruise_kmh_x10", "weapon", "passengers"]
+note = "Soviet licence-built Douglas DC-3, the main transport and paratroop aircraft of the VVS. Cruise speed estimated. The dorsal ShKAS (later UBT 12.7 mm) turret of the military versions is listed as its only gun."
