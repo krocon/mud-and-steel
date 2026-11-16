@@ -8,6 +8,8 @@
 //! lose their viewshed at once. Afterwards every unit gets the set of
 //! players that see it.
 
+mod ambush;
+
 use super::Sim;
 use crate::command::{PlayerId, UnitId};
 use crate::hash::StableHasher;
@@ -47,6 +49,9 @@ pub(super) struct Vision {
     /// Per player slot: bit `t` = this player sees what slot `t` sees
     /// (itself, plus its allies with shared vision).
     shares: Vec<u64>,
+    /// Infantry ambush (prompt 056).
+    #[serde(default)]
+    pub(super) ambush: ambush::Ambush,
 }
 
 /// Most players a match can have (one bit each in [`Vision::seen`]).
@@ -99,6 +104,7 @@ impl Vision {
             last_steps: 0,
             allies,
             shares,
+            ambush: ambush::Ambush::default(),
         }
     }
 
@@ -204,6 +210,7 @@ impl Vision {
         for p in &self.per_player {
             p.hash_into(h);
         }
+        self.ambush.hash_into(h, &self.rules.ambush);
     }
 }
 
@@ -313,6 +320,8 @@ impl Sim {
         }
         // Camouflage nets (prompt 052) hide units from distant observers.
         self.restrict_camouflaged();
+        // Infantry in woods and buildings (prompt 056).
+        self.update_ambush();
     }
 
     /// Queues every viewshed that covers a vision cell of `c0..=c1` ×
