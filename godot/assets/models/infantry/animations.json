@@ -180,6 +180,106 @@
       "length": 1.6,
       "rise": -1.0,
       "advance": 0.45
+    },
+    "crouch": {
+      "loop": true,
+      "speed": 0.0,
+      "length": 2.4
+    },
+    "crouch_walk": {
+      "loop": true,
+      "speed": 1.0,
+      "length": 1.0
+    },
+    "dive": {
+      "loop": false,
+      "speed": 0.0,
+      "length": 0.9
+    },
+    "roll_right": {
+      "loop": true,
+      "speed": 0.68,
+      "length": 1.4
+    },
+    "roll_left": {
+      "loop": true,
+      "speed": 0.68,
+      "length": 1.4
+    },
+    "knockdown": {
+      "loop": false,
+      "speed": 0.0,
+      "length": 1.2
+    },
+    "get_up_back": {
+      "loop": false,
+      "speed": 0.0,
+      "length": 2.6
+    },
+    "get_up_front": {
+      "loop": false,
+      "speed": 0.0,
+      "length": 2.6
+    },
+    "cover_low": {
+      "loop": true,
+      "speed": 0.0,
+      "length": 2.4
+    },
+    "cover_low_aim": {
+      "loop": true,
+      "speed": 0.0,
+      "length": 1.0
+    },
+    "cover_low_fire": {
+      "loop": true,
+      "speed": 0.0,
+      "length": 0.3
+    },
+    "cover_tall": {
+      "loop": true,
+      "speed": 0.0,
+      "length": 2.4
+    },
+    "cover_peek_r_aim": {
+      "loop": true,
+      "speed": 0.0,
+      "length": 1.0
+    },
+    "cover_peek_r_fire": {
+      "loop": true,
+      "speed": 0.0,
+      "length": 0.3
+    },
+    "cover_peek_l_aim": {
+      "loop": true,
+      "speed": 0.0,
+      "length": 1.0
+    },
+    "cover_peek_l_fire": {
+      "loop": true,
+      "speed": 0.0,
+      "length": 0.3
+    },
+    "trench_idle": {
+      "loop": true,
+      "speed": 0.0,
+      "length": 2.4
+    },
+    "trench_aim": {
+      "loop": true,
+      "speed": 0.0,
+      "length": 1.0
+    },
+    "trench_fire": {
+      "loop": true,
+      "speed": 0.0,
+      "length": 0.3
+    },
+    "turn_in_place": {
+      "loop": true,
+      "speed": 0.0,
+      "length": 1.0
     }
   }
 }
