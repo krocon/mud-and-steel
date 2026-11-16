@@ -2,158 +2,298 @@
 # chassis from 1942, 2 cm KwK 38). Main dimensions from data/catalog/de.toml:
 # length 4.80 m, width 1.95 m, height 2.00 m. The catalog height is taken as
 # including the folding grenade screen (catalog note), so the turret wall
-# height is fixed below and the screen ridge ends at the catalog height.
+# height is fixed below and the screen top ends at the catalog height.
+# The catalog length is taken over the front bumper and the rear mudguards;
+# the armored body itself is shorter ([layout] hull_length).
 # Modeling estimates from photographs and general-arrangement drawings
-# (Wikipedia "Leichter Panzerspähwagen"; Panzerworld): 4x4 Horch chassis,
-# wheelbase about 2.80 m, track about 1.60 m, 210-18 tires (~0.84 m); faceted
-# body with lower plates flaring out and upper plates leaning in, engine at
-# the rear; open ten-sided turret with sloped walls, 2 cm KwK 38 and coaxial
-# MG 34 on a pedestal mount firing over the turret front, wire-mesh grenade
-# screen in two halves folding outward (the halves are Hatch_01/02).
-# Catalog has no length_hull_mm: the hull is the catalog length.
+# (Wikipedia "Leichter Panzerspähwagen"; Panzerworld) and the pictures in
+# docs/.vorlagen/Leichter-Panzerspähwagen-(2-cm)-Sd.Kfz.-222: 4x4 Horch
+# chassis, wheelbase about 2.80 m, track about 1.60 m, 210-18 tires (~0.88 m).
+# Faceted body: lower plates flaring out to a chine at mudguard height, upper
+# plates leaning in; in plan the body is widest beside the turret and tapers
+# to the wedge-shaped nose and to the engine compartment at the rear. Angular
+# mudguards over all four wheels, stowage boxes between the wheels on the
+# left, the covered spare wheel on the right. Open ten-sided turret with
+# sloped walls, 2 cm KwK 38 and MG 34 (left of it) on a common pedestal
+# mount firing through the turret front, wire-mesh grenade screen in two
+# halves folding outward (the halves are Hatch_01/02).
 unit = "de_sdkfz222"
 assembly = "armored_car"
 
 [layout]
-turret_y = 0.05
+turret_y = 0.02
 turret_ring_diameter = 1.15
+hull_length = 4.50            # armored body; bumper and rear mudguards reach the catalog length
 
 [[axle]]
 y = 1.40
-diameter = 0.84
-width = 0.21
+diameter = 0.88
+width = 0.22
 track = 1.60
 
 [[axle]]
 y = -1.40
-diameter = 0.84
-width = 0.21
+diameter = 0.88
+width = 0.22
 track = 1.60
 
 [hull]
 part = "section_hull"
 height = "keep"               # the turret and the screen set the height
+# nose (undercut lower plate), glacis, driver's front plate, fighting
+# compartment (widest beside the turret), engine deck, sloped rear plate, tail
 sections = [
-    { y = 2.40, bottom_z = 0.62, bottom_hw = 0.40, chine_z = 0.82, chine_hw = 0.62, top_z = 0.92, top_hw = 0.48 },
-    { y = 1.85, bottom_z = 0.58, bottom_hw = 0.50, chine_z = 1.00, chine_hw = 0.94, top_z = 1.22, top_hw = 0.72 },
-    { y = 0.85, bottom_z = 0.58, bottom_hw = 0.50, chine_z = 1.02, chine_hw = 0.975, top_z = 1.45, top_hw = 0.72 },
-    { y = -0.75, bottom_z = 0.58, bottom_hw = 0.50, chine_z = 1.02, chine_hw = 0.975, top_z = 1.45, top_hw = 0.72 },
-    { y = -1.85, bottom_z = 0.58, bottom_hw = 0.50, chine_z = 1.00, chine_hw = 0.94, top_z = 1.30, top_hw = 0.66 },
-    { y = -2.40, bottom_z = 0.66, bottom_hw = 0.42, chine_z = 0.86, chine_hw = 0.66, top_z = 1.06, top_hw = 0.50 },
+    { y = 2.25, bottom_z = 0.78, bottom_hw = 0.40, chine_z = 0.88, chine_hw = 0.46, top_z = 0.98, top_hw = 0.40 },
+    { y = 2.05, bottom_z = 0.56, bottom_hw = 0.36, chine_z = 0.89, chine_hw = 0.50, top_z = 1.018, top_hw = 0.43 },
+    { y = 0.98, bottom_z = 0.50, bottom_hw = 0.42, chine_z = 0.98, chine_hw = 0.62, top_z = 1.22, top_hw = 0.56 },
+    { y = 0.78, bottom_z = 0.50, bottom_hw = 0.46, chine_z = 1.02, chine_hw = 0.90, top_z = 1.50, top_hw = 0.66 },
+    { y = 0.10, bottom_z = 0.50, bottom_hw = 0.50, chine_z = 1.02, chine_hw = 0.975, top_z = 1.50, top_hw = 0.72 },
+    { y = -0.75, bottom_z = 0.50, bottom_hw = 0.50, chine_z = 1.02, chine_hw = 0.93, top_z = 1.50, top_hw = 0.68 },
+    { y = -1.75, bottom_z = 0.52, bottom_hw = 0.44, chine_z = 1.00, chine_hw = 0.72, top_z = 1.30, top_hw = 0.52 },
+    { y = -2.17, bottom_z = 0.56, bottom_hw = 0.40, chine_z = 0.90, chine_hw = 0.62, top_z = 0.98, top_hw = 0.50 },
+    { y = -2.25, bottom_z = 0.66, bottom_hw = 0.38, chine_z = 0.84, chine_hw = 0.56, top_z = 0.90, top_hw = 0.46 },
 ]
 
 [turret]
 part = "plate_turret"
 open_top = true
-height = 0.36                 # fixed: rim at 1.81 m, screen ridge at the catalog height
+height = 0.34                 # fixed: rim at 1.84 m, screen top at the catalog height
 # ten-sided turret
-plan = [[0.0, 0.70], [0.41, 0.57], [0.67, 0.22], [0.67, -0.22], [0.41, -0.57], [0.0, -0.70],
-        [-0.41, -0.57], [-0.67, -0.22], [-0.67, 0.22], [-0.41, 0.57]]
-side_slope_deg = 28
+plan = [[0.0, 0.74], [0.43, 0.60], [0.70, 0.23], [0.70, -0.23], [0.43, -0.60], [0.0, -0.74],
+        [-0.43, -0.60], [-0.70, -0.23], [-0.70, 0.23], [-0.43, 0.60]]
+side_slope_deg = 26
 
 [gun]
 part = "tank_gun"
-trunnion = [0.22, 0.30]
-mantlet = { kind = "box", size = [0.34, 0.12, 0.22] }
-sleeve = [0.30, 0.045]
-segments = [[1.00, 0.024, 0.022]]       # 2 cm KwK 38: fixed, stays inside the hull length
+trunnion = [0.40, 0.28]
+mantlet = { kind = "box", size = [0.30, 0.10, 0.18] }   # cradle behind the turret front
+sleeve = [0.26, 0.04]
+segments = [[0.22, 0.032, 0.030], [0.62, 0.020, 0.018]]  # 2 cm KwK 38: fixed, stays inside the hull length
 muzzle_brake = "thread_protector"
 
-[[mg]]  # MG 34 beside the 2 cm gun in the common pedestal mount
-part = "mg"
-mount = "coax"
-position = [-0.16, 0.05, 0.0]
-length = 0.9
+[[mg]]  # MG 34 left of the 2 cm gun in the common pedestal mount
+part = "pintle_mg"
+position = [-0.17, 0.25, 1.74]
+length = 1.0
+post = 0.0
+parent = "Turret"
 
+# --- mudguards -------------------------------------------------------------------
+[[part]]
+part = "fender"               # front: flat top over the wheel, flaps down in front and behind
+profile = [[2.24, 0.66], [1.90, 0.96], [0.96, 0.96], [0.78, 0.66]]
+x = [0.45, "full"]
+
+[[part]]
+part = "fender"               # rolled outer edge
+profile = [[2.24, 0.66], [1.90, 0.96], [0.96, 0.96], [0.78, 0.66]]
+x = [0.955, "full"]
+thickness = 0.05
+
+[[part]]
+part = "fender"               # rear, reaching back to the catalog length
+profile = [[-0.80, 0.64], [-0.98, 0.98], [-1.92, 0.98], [-2.40, 0.62]]
+x = [0.50, "full"]
+
+[[part]]
+part = "fender"
+profile = [[-0.80, 0.64], [-0.98, 0.98], [-1.92, 0.98], [-2.40, 0.62]]
+x = [0.955, "full"]
+thickness = 0.05
+
+# --- turret ----------------------------------------------------------------------
 [[part]]
 part = "de.grenade_screen"
-half_width = 0.50
-y = [-0.50, 0.50]
-ridge = 0.17
-bars = 5
+height = 0.15
+inset = 0.13
 gap = 0.10
+mesh = 0.13
+
+# --- front -----------------------------------------------------------------------
+[[part]]
+part = "de.flap"              # driver's and co-driver's visor flaps in the front plate
+position = [0.28, 0.87, 1.37]
+normal = [0.0, 0.81, 0.58]
+size = [0.36, 0.17]
+slit = true
+mirror = true
 
 [[part]]
-part = "box_prop"             # driver's armored vision block in the front plate
-center = [-0.30, 1.88, 1.18]
-size = [0.32, 0.08, 0.12]
+part = "de.flap"              # side visor flaps behind the front corners
+position = [0.82, 0.46, 1.31]
+normal = [0.87, 0.10, 0.48]
+size = [0.30, 0.15]
+slit = true
+mirror = true
 
 [[part]]
-part = "box_prop"             # engine air intake louvres on the rear deck
-center = [0.0, -1.95, 1.27]
-size = [0.80, 0.50, 0.04]
+part = "de.flap"              # access hatch on the nose plate
+position = [0.0, 1.50, 1.12]
+normal = [0.0, 0.19, 1.0]
+size = [0.50, 0.45]
+thickness = 0.015
 
 [[part]]
-part = "headlight"
-position = [-0.55, 2.10, 1.05]
-blackout = true
+part = "plate"                # apron plate under the bumper
+corners = [[-0.42, 2.27, 0.76], [0.42, 2.27, 0.76], [0.40, 2.22, 0.42], [-0.40, 2.22, 0.42]]
 
 [[part]]
-part = "de.notek"
-position = [0.55, 2.05, 1.00]
+part = "cylinder_prop"        # front bumper bar: front end of the catalog length
+from = [-0.68, 2.37, 0.66]
+to = [0.68, 2.37, 0.66]
+radius = 0.03
+segments = 6
 
 [[part]]
-part = "box_prop"             # stowage bins on the side fenders
-center = [-0.88, -0.10, 1.10]
-size = [0.14, 0.75, 0.22]
+part = "box_prop"             # bumper brackets
+center = [-0.34, 2.31, 0.68]
+size = [0.05, 0.14, 0.05]
+bevel = 0.0
 
 [[part]]
 part = "box_prop"
-center = [0.88, -0.10, 1.10]
-size = [0.14, 0.75, 0.22]
+center = [0.34, 2.31, 0.68]
+size = [0.05, 0.14, 0.05]
+bevel = 0.0
 
 [[part]]
-part = "tool"
-kind = "shovel"
-position = [0.86, 1.15, 1.08]
+part = "headlight"
+position = [-0.60, 2.12, 0.97]
+diameter = 0.22
 
 [[part]]
-part = "antenna"              # rod antenna at the right rear
-position = [0.60, -1.60, 1.30]
-length = 1.6
+part = "headlight"
+position = [0.60, 2.12, 0.97]
+diameter = 0.22
+
+[[part]]
+part = "de.notek"
+position = [-0.80, 1.86, 0.96]
+
+[[part]]
+part = "cylinder_prop"        # width indicator rods on the front mudguards
+from = [-0.94, 1.92, 0.96]
+to = [-0.94, 1.92, 1.40]
+radius = 0.008
+segments = 4
+material = "Metal"
+
+[[part]]
+part = "cylinder_prop"
+from = [0.94, 1.92, 0.96]
+to = [0.94, 1.92, 1.40]
+radius = 0.008
+segments = 4
+material = "Metal"
+
+# --- sides -----------------------------------------------------------------------
+[[part]]
+part = "box_prop"             # large stowage box between the wheels, left side
+center = [-0.805, -0.36, 0.72]
+size = [0.34, 0.84, 0.48]
+
+[[part]]
+part = "box_prop"             # its lid edge
+center = [-0.80, -0.36, 0.87]
+size = [0.35, 0.86, 0.025]
+bevel = 0.0
+
+[[part]]
+part = "box_prop"             # low box under it
+center = [-0.83, -0.36, 0.42]
+size = [0.26, 0.66, 0.12]
+bevel = 0.0
+
+[[part]]
+part = "box_prop"             # small box behind the left front wheel
+center = [-0.82, 0.42, 0.66]
+size = [0.28, 0.40, 0.32]
+
+[[part]]
+part = "de.spare_wheel"       # covered spare wheel, right side
+position = [0.70, -0.12, 0.70]
+diameter = 0.86
+width = 0.275
+
+[[part]]
+part = "cylinder_prop"        # shovel on the left upper side plate: handle ...
+from = [-0.89, 0.52, 1.15]
+to = [-0.79, -0.40, 1.38]
+radius = 0.018
+segments = 6
+material = "Wood"
+
+[[part]]
+part = "de.flap"              # ... and blade
+position = [-0.87, 0.63, 1.13]
+normal = [-0.89, 0.0, 0.46]
+size = [0.26, 0.20]
+thickness = 0.03
+material = "Metal"
+
+# --- rear ------------------------------------------------------------------------
+[[part]]
+part = "de.flap"              # engine deck hatches
+position = [0.24, -1.25, 1.40]
+normal = [0.0, -0.20, 1.0]
+size = [0.40, 0.72]
+thickness = 0.015
+mirror = true
+
+[[part]]
+part = "de.flap"              # armored radiator louvres in the sloped rear plate
+position = [0.0, -1.96, 1.14]
+normal = [0.0, -0.61, 0.80]
+size = [0.80, 0.40]
+bars = 4
+
+[[part]]
+part = "antenna"              # rod antenna at the right rear of the roof
+position = [0.60, -0.60, 1.50]
+length = 1.4
 
 [[part]]
 part = "exhaust"
 kind = "pipe"
-position = [-0.55, -2.12, 0.62]
-length = 0.24
+position = [-0.62, -2.08, 0.62]
+length = 0.25
 diameter = 0.07
 
 [[part]]
 part = "tow_hook"
-position = [0.0, -2.34, 0.66]
+position = [0.0, -2.25, 0.72]
 
 [[part]]
 part = "socket"
 name = "Socket_Fire_"
-position = [0.0, -1.6, 1.35]
+position = [0.0, -1.3, 1.42]
 
 [[part]]
 part = "socket"
 name = "Socket_Fire_"
-position = [0.0, 1.2, 1.25]
+position = [0.0, 1.5, 1.15]
 
 [[part]]
 part = "marking"
 name = "Hull_L"
-position = [-0.85, -0.90, 1.22]
-normal = [-0.86, 0.0, 0.5]
-size = 0.32
+position = [-0.85, -0.50, 1.29]
+normal = [-0.89, 0.0, 0.46]
+size = 0.30
 
 [[part]]
 part = "marking"
 name = "Hull_R"
-position = [0.85, -0.90, 1.22]
-normal = [0.86, 0.0, 0.5]
-size = 0.32
+position = [0.85, -0.50, 1.29]
+normal = [0.89, 0.0, 0.46]
+size = 0.30
 
 [[part]]
 part = "marking"
 name = "Hull_Rear"
 kind = "number"
-position = [0.0, -2.30, 1.12]
-normal = [0.0, -0.8, 0.6]
-size = 0.25
+position = [0.25, -2.25, 0.76]
+normal = [0.0, -1.0, 0.0]
+size = 0.20
 
 [validate]
 exclude_height = ["Antenna_*"]
