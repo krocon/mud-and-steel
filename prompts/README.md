@@ -140,6 +140,7 @@ oder weggelassen; es werden keine Inhalte anderer Spiele übernommen.
 | 058 | [Bilder in der Produktionsauswahl](058-bilder-produktionsauswahl.md) | Vorgerenderte Bilder als Kacheln mit Kosten, Reiter | Entwurf |
 | 059 | [Wüstendorf](059-wuestendorf.md) | Flachdachhäuser mit Hofmauern, Palmenhaine, Dorfkarte Nordafrika | Entwurf |
 | 060 | [Berge und Täler](060-berge-taeler.md) | Gebirgs-Profile im Generator, Pässe, Hangregeln, Gebirgskarte | Entwurf |
+| 061 | [Recherche: freie Soundeffekte](done/061-sound-recherche.md) | Geprüfte CC0/CC-BY-Aufnahmen, Pakete, Lücken, Ordnerstruktur in `docs/AUDIO_LIBRARY.md` | erledigt |
 
 Viele dieser Prompts ändern `sim.rs`, `command.rs`, `main.gd` und den Golden-Hash.
 Parallel laufende Sessions übernehmen vor dem Abschluss den aktuellen `main`.
