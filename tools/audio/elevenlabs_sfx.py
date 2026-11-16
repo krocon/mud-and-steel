@@ -34,6 +34,7 @@ from __future__ import annotations
 import datetime
 import json
 import os
+import ssl
 import sys
 import urllib.error
 import urllib.request
@@ -127,7 +128,11 @@ def generate(call: dict, key: str) -> bytes:
         headers={"xi-api-key": key, "Content-Type": "application/json"},
         method="POST",
     )
-    with urllib.request.urlopen(request, timeout=180) as response:
+    # python.org builds of Python on macOS ship without root certificates;
+    # the system bundle works for them and for every other build.
+    bundle = Path("/etc/ssl/cert.pem")
+    context = ssl.create_default_context(cafile=str(bundle) if bundle.exists() else None)
+    with urllib.request.urlopen(request, timeout=180, context=context) as response:
         return response.read()
 
 
