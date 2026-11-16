@@ -48,6 +48,7 @@ fn entry_card(e: &Entry) -> VarDictionary {
         "group" => group_code(e.category.group()),
         "category" => e.category.code(),
         "year" => i64::from(e.year_from.unwrap_or(0)),
+        "year_to" => i64::from(e.year_to.unwrap_or(0)),
         "crew" => i64::from(e.crew.unwrap_or(0)),
         "squad_size" => i64::from(e.squad_size.unwrap_or(0)),
         "passengers" => i64::from(e.passengers.unwrap_or(0)),
@@ -89,15 +90,38 @@ impl SimHost {
             .collect()
     }
 
+    /// Every id the unit reference of the main menu lists (prompt 066):
+    /// the base buildings of the economy rules, then every catalog entry
+    /// that is not an environment object, in catalog order.
+    #[func]
+    fn catalog_ids() -> PackedStringArray {
+        let buildings = sim::EconomyRules::builtin()
+            .map(|rules| rules.buildings.iter().map(|b| b.id.clone()).collect())
+            .unwrap_or_else(|_| Vec::new());
+        let entries = sim::economy::builtin_catalog().map_or_else(Vec::new, |c| {
+            c.entries
+                .iter()
+                .filter(|e| e.category.group() != Group::Environment)
+                .map(|e| e.id.clone())
+                .collect()
+        });
+        buildings
+            .iter()
+            .chain(&entries)
+            .map(|id| GString::from(id.as_str()))
+            .collect()
+    }
+
     /// What the picker's tooltip shows of `type_id` (empty if unknown):
     /// `id`, `name`, `group` (`building`, or the catalog group `infantry`,
     /// `vehicle`, `gun`, `fortification`, `aircraft`) and, for catalog
-    /// entries, `designation`, `faction`, `category`, `year`, `crew`,
+    /// entries, `designation`, `faction`, `category`, `year`, `year_to`, `crew`,
     /// `squad_size`, `passengers`, `mass_t`, `speed_road_kmh`,
     /// `speed_offroad_kmh`, `armor_hull` / `armor_turret` (front, side, rear
     /// mm; empty if unknown), `weapons` (`name`, `count`, `caliber_mm`,
     /// `range_m` = real effective range). Base buildings have `hp`,
-    /// `armor_mm`, `income` (per minute), `produces` and `requires` (names).
+    /// `armor_mm`, `income` (per minute), `cost` (fuel, ammunition,
+    /// manpower), `build_s`, `produces` and `requires` (names).
     #[func]
     fn catalog_card(type_id: GString) -> VarDictionary {
         let id = type_id.to_string();
@@ -105,6 +129,7 @@ impl SimHost {
             && let Some(b) = rules.buildings.iter().find(|b| b.id == id)
         {
             let income: PackedInt64Array = b.income_per_min.iter().map(|&v| i64::from(v)).collect();
+            let cost: PackedInt64Array = b.cost.iter().map(|&v| i64::from(v)).collect();
             let requires: PackedStringArray = b
                 .requires
                 .iter()
@@ -117,6 +142,8 @@ impl SimHost {
                 "hp" => i64::from(b.hp),
                 "armor_mm" => i64::from(b.armor_mm),
                 "income" => &income,
+                "cost" => &cost,
+                "build_s" => i64::from(b.build_s),
                 "produces" => b.produces.as_str(),
                 "requires" => &requires,
             };
