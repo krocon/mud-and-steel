@@ -155,6 +155,11 @@ pub enum Command {
         formation: Formation,
         facing: Option<Vec2>,
     },
+    /// The player's rocket battery position fires a heavy strike on the
+    /// ground point `target` after a warning time (prompt 054,
+    /// `data/strike.toml`). Ignored while it is locked, cools down, another
+    /// strike of the player is under way, or the player cannot pay.
+    HeavyStrike { target: Vec2 },
 }
 
 impl Command {
@@ -190,7 +195,8 @@ impl Command {
             | Self::CallAir { .. }
             | Self::Ping { .. }
             | Self::Repair { .. }
-            | Self::Sell { .. } => &[],
+            | Self::Sell { .. }
+            | Self::HeavyStrike { .. } => &[],
         }
     }
 }

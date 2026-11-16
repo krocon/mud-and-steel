@@ -127,6 +127,26 @@ max_count = 0
 requires = ["base_hq", "base_depot"]
 produces = "vehicles"
 
+# Rocket battery position (prompt 054): fires the heavy strike of
+# data/strike.toml late in the match; the enemy can destroy it during the
+# warning time. One per player. Borrowed model: the ammunition dump of
+# prompt 041 with launch frames (presentation). [provisional]
+[[building]]
+id = "base_rocket_battery"
+name = "Rocket battery position"
+length_mm = 6000
+width_mm = 4000
+height_mm = 2000
+hp = 1500
+armor_mm = 10
+cost = [100, 150, 100]
+build_s = 50
+build_radius_m = 0
+income_per_min = [0, 0, 0]
+max_count = 1
+requires = ["base_factory"]
+produces = ""
+
 # Fortifications from the catalog: placed like buildings, fight with their
 # catalog weapons, cannot move, extend no build radius.
 #   hp / armor_mm   0 = from the combat rules / the catalog

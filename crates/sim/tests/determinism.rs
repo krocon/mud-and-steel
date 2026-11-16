@@ -21,7 +21,14 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by the merge of prompt 060 (mountains): the downhill
+/// Last changed by prompt 054 (heavy strike): the new base building
+/// `base_rocket_battery` in `data/economy.toml` is part of the hashed
+/// economy rules, and every unit type after it moves one index up. Nothing
+/// else changes: no strike is called in the demo, and the strike state is
+/// only hashed once one was (checked: with the old `economy.toml` the hash
+/// stays the one before). Before: `0x9b87_57bd_bec7_96f8` (below).
+///
+/// Changed by the merge of prompt 060 (mountains): the downhill
 /// sight rules (`[height]` in `data/vision.toml`) are in the hash. Nothing
 /// else changes: `test_small` has no ground 20 m below any eye, so every
 /// viewshed keeps its sight range (checked: without hashing the new
@@ -153,7 +160,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x9b87_57bd_bec7_96f8;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xeca6_c2de_63a8_f16d;
 
 #[test]
 fn golden_hash() {
