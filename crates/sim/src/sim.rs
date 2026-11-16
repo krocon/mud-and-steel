@@ -880,8 +880,14 @@ impl Sim {
         let units = &self.units;
         let teams = &self.teams;
         let care = &self.care;
+        let economy = &self.economy;
         let crews = |u: &Unit| care.is_crew(u);
-        self.standings.update(
+        let alive = |id: UnitId| {
+            units
+                .binary_search_by_key(&id, |u| u.id)
+                .is_ok_and(|i| units[i].alive())
+        };
+        self.standings.update_with_bases(
             self.tick,
             |player| {
                 if exempt.contains(&player) {
@@ -890,6 +896,8 @@ impl Sim {
                     alive_units(units, player, crews)
                 }
             },
+            // Decision 6 of prompt 045: a base match is also lost with the base.
+            |player| !exempt.contains(&player) && economy.base_lost(player, alive),
             |a, b| teams.allied(a, b),
         );
         done(Phase::Standings);

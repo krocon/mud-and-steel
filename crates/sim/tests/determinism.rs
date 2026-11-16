@@ -21,7 +21,12 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by prompt 045 (balancing): the economy rules (start
+/// Last changed by the decisions of prompt 045 (2026-11-16): the economy rules
+/// gained the rate-of-fire factor of unit prices and the `[defeat]` rule
+/// (a base match is lost with the base); both are hashed, the prices of
+/// the match's unit types too, and so is the list of players who have had
+/// a base. The demo has no buildings, its battle is unchanged. Before
+/// (`0x164a_535e_3316_b34e`): prompt 045 (balancing): the economy rules (start
 /// account 500/600/500, income of headquarters, depots and supply points,
 /// the range factor of unit prices) and the resupply cost of
 /// `data/logistics.toml` (25 % instead of 50 %) are part of the hash and
@@ -214,7 +219,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x164a_535e_3316_b34e;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x0b95_b29d_5ff1_d003;
 
 #[test]
 fn golden_hash() {

@@ -69,6 +69,38 @@ time_per_point_div = 8
 range_ref_m = 250
 range_min_pct = 50
 range_max_pct = 150
+# Decision 4 of prompt 045 (confirmed by the user 2026-11-16):
+# the same term is also scaled by the weapon's catalog rate of fire
+# relative to rate_ref_rpm, clamped to rate_min_pct..rate_max_pct percent.
+# A gun that fires twice as fast deals about twice the damage in the same
+# time (reload_ticks in crates/sim/src/combat.rs follows the catalog rate);
+# without it a T-34 (F-34, 5 rounds/min) cost almost as much as a Panzer IV
+# or an M4A3 (10 rounds/min) and lost to both at the same price
+# (docs/BALANCE.md). The reference is the rate of the common 75 mm tank
+# guns, so those keep their price; machine guns and rifles hit the upper
+# bound (their caliber term is small). The lower bound is 75 %, not 50 %:
+# aiming and hit chance, not only the reload, decide a tank fight, and with
+# 75 % ten T-34 cost what eight Panzer IV cost (the measured equal
+# strength of battle mode) while the Tiger (6 rounds/min) keeps a higher
+# ammunition price than the Panzer IV. Indirect weapons keep 100 %.
+# 0 switches the factor off.
+rate_ref_rpm = 10
+rate_min_pct = 75
+rate_max_pct = 150
+
+[defeat]
+# Decision 6 of prompt 045 (confirmed by the user 2026-11-16):
+# a player who has had a completed building of base_buildings (in a base
+# match: the headquarters from the start) is defeated at the end of the
+# tick in which none of them is left completed and alive, even with units
+# still on the field. Construction sites do not count. Without it, base
+# matches on large maps never ended: both AIs rebuilt their armies at the
+# unit limit (docs/BALANCE.md). Players without such a building from the
+# start (battle mode) are not affected, mission sides that cannot be
+# eliminated (prompt 039) neither. false switches the rule off.
+without_base = true
+# The headquarters and every building that produces units.
+base_buildings = ["base_hq", "base_barracks", "base_factory"]
 
 # Base buildings. Sizes in millimeters match the borrowed models (see
 # docs/GAME_DESIGN.md); armor is the same on every face.

@@ -297,11 +297,20 @@ func _reason(winner: int, me: int, own: Dictionary, players: Array, won: bool) -
 		return tr("RESULT_REASON_MISSION_WON") if won else tr("RESULT_REASON_MISSION_LOST")
 	if not won:
 		if own.get("defeated", false):
-			return tr("RESULT_REASON_YOU_SURRENDERED") if own.get("reason", "") == "surrendered" else tr("RESULT_REASON_YOU_ELIMINATED")
+			match own.get("reason", ""):
+				"surrendered":
+					return tr("RESULT_REASON_YOU_SURRENDERED")
+				"base_lost":
+					# Decision 6 of prompt 045: no headquarters and no production left.
+					return tr("RESULT_REASON_YOU_BASE_LOST")
+			return tr("RESULT_REASON_YOU_ELIMINATED")
 		return tr("RESULT_REASON_TEAM_DEFEATED")
 	for player: Dictionary in players:
 		if main.sim_host.relation(player["id"]) == 2 and player["reason"] == "surrendered":
 			return tr("RESULT_REASON_ENEMY_SURRENDERED")
+	for player: Dictionary in players:
+		if main.sim_host.relation(player["id"]) == 2 and player["reason"] == "base_lost":
+			return tr("RESULT_REASON_ENEMY_BASE_LOST")
 	return tr("RESULT_REASON_ENEMY_ELIMINATED")
 
 

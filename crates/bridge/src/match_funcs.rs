@@ -64,6 +64,7 @@ impl SimHost {
                 Some((DefeatReason::Surrendered, tick)) => ("surrendered", tick_i64(tick)),
                 Some((DefeatReason::Eliminated, tick)) => ("eliminated", tick_i64(tick)),
                 Some((DefeatReason::Mission, tick)) => ("mission", tick_i64(tick)),
+                Some((DefeatReason::BaseLost, tick)) => ("base_lost", tick_i64(tick)),
             };
             let entry = vdict! {
                 "id" => i64::from(standing.player.0),

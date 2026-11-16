@@ -1,7 +1,10 @@
 //! Victory conditions (prompt 027): who is defeated, and when the match is
 //! decided.
 //!
-//! A player is defeated when they surrender or have no living units left.
+//! A player is defeated when they surrender or have no living units left,
+//! or, in a base match, when their base is lost (decision 6 of prompt
+//! 045: no completed headquarters and no completed production building,
+//! see `[defeat]` in `data/economy.toml`).
 //! The match is decided as soon as at most one player is undefeated: that
 //! player wins, or it is a draw if the last players fall in the same tick.
 //! Only matches that start with at least two players can be decided.
@@ -22,6 +25,9 @@ pub enum DefeatReason {
     Eliminated,
     /// The mission script decided (prompt 039).
     Mission,
+    /// The player had a base and lost every building of it that keeps a
+    /// player in the match (decision 6 of prompt 045).
+    BaseLost,
 }
 
 /// A player of the match and whether (and when) they lost.
@@ -118,18 +124,36 @@ impl Standings {
     /// End-of-tick check: players without living units are eliminated, then
     /// the match is decided if the undefeated players are all `allied`
     /// (at most one team, or one player without teams, is left).
+    #[cfg(test)]
     pub(crate) fn update(
         &mut self,
         tick: u64,
         living_units: impl Fn(PlayerId) -> usize,
         allied: impl Fn(PlayerId, PlayerId) -> bool,
     ) {
+        self.update_with_bases(tick, living_units, |_| false, allied);
+    }
+
+    /// Marks players without living units as eliminated and players whose
+    /// base is lost as such, then decides the match if at most one team
+    /// is left.
+    pub(crate) fn update_with_bases(
+        &mut self,
+        tick: u64,
+        living_units: impl Fn(PlayerId) -> usize,
+        base_lost: impl Fn(PlayerId) -> bool,
+        allied: impl Fn(PlayerId, PlayerId) -> bool,
+    ) {
         if self.outcome.is_some() || self.players.len() < 2 {
             return;
         }
         for standing in &mut self.players {
-            if standing.defeat.is_none() && living_units(standing.player) == 0 {
-                standing.defeat = Some((DefeatReason::Eliminated, tick));
+            if standing.defeat.is_none() {
+                if living_units(standing.player) == 0 {
+                    standing.defeat = Some((DefeatReason::Eliminated, tick));
+                } else if base_lost(standing.player) {
+                    standing.defeat = Some((DefeatReason::BaseLost, tick));
+                }
             }
         }
         let mut undefeated = self.players.iter().filter(|s| s.defeat.is_none());
@@ -164,6 +188,7 @@ impl Standings {
                         DefeatReason::Surrendered => 1,
                         DefeatReason::Eliminated => 2,
                         DefeatReason::Mission => 3,
+                        DefeatReason::BaseLost => 4,
                     });
                     h.write_u64(tick);
                 }

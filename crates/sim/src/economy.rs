@@ -85,6 +85,28 @@ pub struct UnitCostRules {
     pub range_min_pct: u32,
     #[serde(default)]
     pub range_max_pct: u32,
+    /// Decision 4 of prompt 045: the ammunition term of a direct-fire weapon is also
+    /// scaled by its catalog rate of fire relative to this rate (rounds
+    /// per minute; 0 = no scaling), clamped to `rate_min_pct..=rate_max_pct`
+    /// percent.
+    #[serde(default)]
+    pub rate_ref_rpm: u32,
+    #[serde(default)]
+    pub rate_min_pct: u32,
+    #[serde(default)]
+    pub rate_max_pct: u32,
+}
+
+/// When a player of a base match loses (decision 6 of prompt 045).
+#[derive(Clone, Debug, Default, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct DefeatRules {
+    /// A player who has had a completed building of `base_buildings` is
+    /// defeated once none of them is left (construction sites do not
+    /// count).
+    pub without_base: bool,
+    /// Ids of `[[building]]`s that keep a player in the match.
+    pub base_buildings: Vec<String>,
 }
 
 /// A base building (not in the catalog).
@@ -132,6 +154,8 @@ struct EconomyFile {
     production: ProductionRules,
     supply: SupplyRules,
     unit_cost: UnitCostRules,
+    #[serde(default)]
+    defeat: DefeatRules,
     building: Vec<BuildingRule>,
     fortification: Vec<FortificationRule>,
     produce: BTreeMap<String, BTreeMap<String, Vec<String>>>,
@@ -160,6 +184,7 @@ pub struct EconomyRules {
     pub production: ProductionRules,
     pub supply: SupplyRules,
     pub unit_cost: UnitCostRules,
+    pub defeat: DefeatRules,
     pub buildings: Vec<BuildingRule>,
     pub fortifications: Vec<FortificationRule>,
     /// Production list name -> faction -> catalog ids.
@@ -181,6 +206,7 @@ impl EconomyRules {
             production: file.production,
             supply: file.supply,
             unit_cost: file.unit_cost,
+            defeat: file.defeat,
             buildings: file.building,
             fortifications: file.fortification,
             produce: file.produce,
@@ -230,6 +256,11 @@ impl EconomyRules {
                 }
             }
         }
+        for id in &self.defeat.base_buildings {
+            if !self.buildings.iter().any(|b| &b.id == id) {
+                return err(format!("defeat.base_buildings: unknown building '{id}'"));
+            }
+        }
         let mut sorted = ids.clone();
         sorted.sort_unstable();
         sorted.dedup();
@@ -274,6 +305,17 @@ impl EconomyRules {
                     .clamp(r.range_min_pct, r.range_max_pct.max(r.range_min_pct)),
             )
         };
+        // Rate factor in percent (decision 4 of prompt 045): a gun that fires faster is
+        // worth more; indirect weapons keep 100 %.
+        let rate_pct = |rpm: u32| -> u64 {
+            if r.rate_ref_rpm == 0 {
+                return 100;
+            }
+            u64::from(
+                (rpm.saturating_mul(100) / r.rate_ref_rpm)
+                    .clamp(r.rate_min_pct, r.rate_max_pct.max(r.rate_min_pct)),
+            )
+        };
         let squares: u64 = combat
             .weapons
             .iter()
@@ -281,7 +323,7 @@ impl EconomyRules {
                 (
                     w.caliber_mm_x10,
                     w.count,
-                    range_pct(w.range_m.to_num::<u32>()),
+                    range_pct(w.range_m.to_num::<u32>()) * rate_pct(w.rate_rpm) / 100,
                 )
             })
             .chain(combat.indirect.iter().map(|w| (w.caliber_mm_x10, 1, 100)))
@@ -422,8 +464,16 @@ impl EconomyRules {
             u.range_ref_m,
             u.range_min_pct,
             u.range_max_pct,
+            u.rate_ref_rpm,
+            u.rate_min_pct,
+            u.rate_max_pct,
         ] {
             h.write_u32(v);
+        }
+        h.write_u8(u8::from(self.defeat.without_base));
+        h.write_u64(self.defeat.base_buildings.len() as u64);
+        for id in &self.defeat.base_buildings {
+            text(h, id);
         }
         h.write_u64(self.buildings.len() as u64);
         for b in &self.buildings {
@@ -526,6 +576,10 @@ mod tests {
             "requires = [\"base_hq\", \"base_depot\"]",
             "requires = [\"base_nothing\"]",
         );
+        assert!(EconomyRules::parse(&bad).is_err());
+        // Decision 6 of prompt 045: the base buildings of `[defeat]` must exist.
+        let bad = BUILTIN_ECONOMY.replace("\"base_barracks\", \"base_factory\"]", "\"base_x\"]");
+        assert_ne!(bad, BUILTIN_ECONOMY);
         assert!(EconomyRules::parse(&bad).is_err());
     }
 

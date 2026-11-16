@@ -229,6 +229,10 @@ struct TypeInfo {
     /// A crew that bailed out of a destroyed vehicle (prompt 049): own
     /// crews stay where they are, enemy crews are no target or objective.
     crew: bool,
+    /// A base building whose loss defeats its owner (decision 6 of prompt 045,
+    /// `[defeat] base_buildings`): headquarters and production.
+    #[serde(default)]
+    keeps_base: bool,
 }
 
 /// Where an enemy unit was last seen, and what it looked like then.
@@ -444,6 +448,16 @@ impl Ai {
         let vision = config.effective_vision();
         // Engineers (`data/works.toml`, prompt 035).
         let works_rules = sim::WorksRules::builtin().ok();
+        // Buildings whose loss defeats their owner (decision 6 of prompt 045).
+        let base_buildings: Vec<String> = sim::EconomyRules::builtin()
+            .map(|r| {
+                if r.defeat.without_base {
+                    r.defeat.base_buildings
+                } else {
+                    Vec::new()
+                }
+            })
+            .unwrap_or_default();
         let types = config
             .unit_types
             .iter()
@@ -516,6 +530,7 @@ impl Ai {
                     power_hp: t.transport.power_hp,
                     mass_kg: t.mass_kg,
                     crew,
+                    keeps_base: base_buildings.contains(&t.name),
                 }
             })
             .collect();
@@ -834,6 +849,7 @@ impl Ai {
                 power_hp: 0,
                 mass_kg: 0,
                 crew: false,
+                keeps_base: false,
             })
     }
 
@@ -1015,6 +1031,14 @@ impl Ai {
                 .filter(|e| !armor(e) && !structure(e))
                 .collect(),
             _ => near,
+        };
+        // Decision 6 of prompt 045: a player without headquarters and
+        // production is defeated, so among buildings alone those come first.
+        let keeps_base = |e: &&SeenUnit| self.type_info(e.unit_type).keeps_base;
+        let near: Vec<&SeenUnit> = if near.iter().all(structure) && near.iter().any(keeps_base) {
+            near.into_iter().filter(keeps_base).collect()
+        } else {
+            near
         };
         if self.commander
             && self.command_army(role, &fighting, center, range, &near, view, &mut state, out)

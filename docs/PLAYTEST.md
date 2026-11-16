@@ -112,35 +112,47 @@ Rules I want changed (section, what, why):
    reason and the measurement in BALANCE.md and the commit (balancing
    principle 6 of GAME_DESIGN.md).
 
-## Decisions waiting for the user
+## Decisions of prompt 045
 
 Collected by prompt 045 (details and measurements in
 [BALANCE.md](BALANCE.md), decisions in
-`prompts/done/045-balancing-playtest.md`):
+`prompts/done/045-balancing-playtest.md`). **The user answered all six on
+2026-11-16:** 1, 2, 4, 5 and 6 are confirmed (4 and 6 with the additions
+below, both implemented and measured in BALANCE.md); 3 is handled by
+prompt 067 (typical combat ranges instead of maximum ranges). No decision
+of this list is open any more.
 
-1. **Economy ratios** (GAME_DESIGN.md "Resources"): ammunition and
+1. **Economy ratios** **[confirmed 2026-11-16]** (GAME_DESIGN.md "Resources"): ammunition and
    manpower income raised, fuel lowered, start account 500/600/500,
    resupply 25 % of the price instead of 50 %, because ammunition was the
    bottleneck of every AI economy and manpower starved the US. Confirm
    after matches 3–5.
-2. **Battle mode: equal numbers or equal strength** (GAME_DESIGN.md "Game
-   modes"): with 8 tanks each Germany won 71 % of the AI battles (Panzer
+2. **Battle mode: equal numbers or equal strength** **[confirmed
+   2026-11-16: equal strength]** (GAME_DESIGN.md "Game modes"): with 8 tanks each Germany won 71 % of the AI battles (Panzer
    IV 375 m and 10 rounds/min against T-34 250 m and 5 rounds/min, catalog
    values). Now 8 Panzer IV, 10 T-34, 9 M4A3 when factions are chosen
    (47 / 41 / 49 %). Alternative: equal numbers and accept the historical
    imbalance.
-3. **Weapon ranges** (SCALE.md): the catalog's `range_effective_m` mixes
+3. **Weapon ranges** **[decided 2026-11-16: typical combat ranges,
+   prompt 067]** (SCALE.md): the catalog's `range_effective_m` mixes
    typical and maximum effective ranges; the Panzer IV's 375 m against
    250 m decides most tank fights and makes a passive German line
    unbeatable for Soviet tanks on small maps. A common rule (e.g. one range
-   per gun class) would be a scale decision; not changed.
-4. **Unit prices** (GAME_DESIGN.md "Unit costs"): the ammunition price of
+   per gun class) would be a scale decision; prompt 067 changes the
+   catalog to typical combat ranges.
+4. **Unit prices** **[confirmed 2026-11-16, rate of fire added]**
+   (GAME_DESIGN.md "Unit costs"): the ammunition price of
    direct-fire weapons now scales with their range (reference 250 m,
    50–150 %): Panzer IV 280 instead of 233, Panzerschreck squad 87 instead
-   of 152. Whether rate of fire should enter the price too.
-5. **Start vehicle** (GAME_DESIGN.md "Buildings"): an unarmed truck for
+   of 152. The user confirmed it and asked for the rate of fire in the
+   price too: the same term now also scales with the catalog rate of fire
+   (reference 10 rounds/min, 75–150 %): T-34 229 instead of 253, Tiger
+   412 instead of 461.
+5. **Start vehicle** **[confirmed 2026-11-16]** (GAME_DESIGN.md
+   "Buildings"): an unarmed truck for
    every faction instead of the differently armed halftracks.
-6. **Victory condition** (GAME_DESIGN.md "Victory"): a player with any
-   building or unit left is not defeated, which keeps AI matches on large
-   maps open; a rule like "headquarters and all production lost =
-   defeated" would decide them. Not changed.
+6. **Victory condition** **[confirmed 2026-11-16, implemented]**
+   (GAME_DESIGN.md "Victory"): a player with any building or unit left
+   was not defeated, which kept AI matches on large maps open. Now a
+   player of a base match without completed headquarters, barracks and
+   vehicle works is defeated ("base lost").
