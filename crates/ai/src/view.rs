@@ -81,6 +81,11 @@ pub struct PlayerView {
     pub air: Vec<AirOption>,
     /// Enemy aircraft the player sees now.
     pub enemy_aircraft: usize,
+    /// Mines the player's team knows (prompt 035): its own and its
+    /// allies', and the hostile ones it found. Never the others.
+    pub mines: Vec<sim::MineView>,
+    /// Field works: finished ones of everybody, sites of the own team.
+    pub works: Vec<sim::WorkView>,
 }
 
 impl PlayerView {
@@ -164,6 +169,8 @@ impl PlayerView {
                 .iter()
                 .filter(|a| !sim.allied(player, a.owner) && !a.crashing)
                 .count(),
+            mines: sim.mines_for(player),
+            works: sim.works_for(player),
         }
     }
 }

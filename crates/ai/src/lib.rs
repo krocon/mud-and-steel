@@ -14,6 +14,7 @@
 mod air;
 mod artillery;
 mod economy;
+mod engineers;
 pub mod game;
 mod transport;
 mod view;
@@ -151,6 +152,9 @@ enum Role {
     /// Towed guns (prompt 034): fetched by a transport, set up behind the
     /// army, fire at will.
     Gun,
+    /// Engineer squads (prompt 035): lay mines at chokepoints, clear the
+    /// enemy's.
+    Engineer,
 }
 
 /// What the AI knows about a unit type from the (public) config.
@@ -294,6 +298,9 @@ pub struct Ai {
     air: air::AirState,
     /// Boarding and towing jobs (prompt 034).
     transport: transport::TransportState,
+    /// Mines and clearing (prompt 035).
+    #[serde(default)]
+    engineers: engineers::EngineerState,
     /// Towing rule: engine hp per tonne of tractor and gun.
     tow_min_hp_per_tonne: u32,
 }
@@ -324,6 +331,8 @@ impl Ai {
         let indirect_rules = sim::IndirectRules::builtin().ok();
         // Seats and towing (`data/transport.toml`, prompt 034).
         let transport_rules = sim::TransportRules::builtin().ok();
+        // Engineers (`data/works.toml`, prompt 035).
+        let works_rules = sim::WorksRules::builtin().ok();
         let types = config
             .unit_types
             .iter()
@@ -367,6 +376,11 @@ impl Ai {
                     Role::Artillery
                 } else if t.combat.weapons.is_empty() && indirect.is_none() {
                     Role::Unarmed
+                } else if works_rules
+                    .as_ref()
+                    .is_some_and(|r| r.is_engineer(category))
+                {
+                    Role::Engineer
                 } else if t.combat.is_infantry() {
                     Role::Infantry
                 } else {
@@ -468,6 +482,7 @@ impl Ai {
             fire: artillery::FireState::default(),
             air: air::AirState::default(),
             transport: transport::TransportState::default(),
+            engineers: engineers::EngineerState::new(map, home, enemy_home),
             tow_min_hp_per_tonne: transport_rules
                 .as_ref()
                 .map_or(8, |r| r.towing.min_hp_per_tonne),
@@ -527,6 +542,7 @@ impl Ai {
         self.think_economy(view, &mut out);
         self.think_air(view, &mut out);
         self.command_transport(view, &mut out);
+        self.command_engineers(view, &mut out);
         let mut roles: Vec<Role> = Vec::new();
         for u in view.own.iter().filter(|u| u.alive()) {
             let role = self.type_info(u.unit_type).role;
@@ -551,7 +567,7 @@ impl Ai {
             match role {
                 Role::Armor | Role::Infantry => self.command_group(role, &units, view, &mut out),
                 Role::Artillery => self.command_artillery(&units, view, &mut out),
-                Role::Unarmed | Role::Structure | Role::Transport | Role::Gun => {}
+                Role::Unarmed | Role::Structure | Role::Transport | Role::Gun | Role::Engineer => {}
             }
         }
         out
