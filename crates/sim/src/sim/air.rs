@@ -1080,6 +1080,7 @@ impl Sim {
                 if let Some(s) = &mut self.units[j].squad {
                     s.suppressed = s.suppressed.max(ticks);
                 }
+                self.suppress_blast(j);
                 if taken > 0 {
                     hit_events.push((j, taken));
                     if !self.units[j].alive() {

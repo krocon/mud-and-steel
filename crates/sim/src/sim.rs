@@ -29,6 +29,7 @@ mod logistics;
 mod orders;
 mod positions;
 mod spatial;
+mod tactics;
 mod transport;
 mod vision;
 mod weather;
@@ -44,6 +45,7 @@ pub use economy::{BuyOption, PlaceError, StructureView, SupplyView};
 pub use infantry::BuildingCondition;
 pub use logistics::{StockView, SupplySource};
 pub use orders::MAX_QUEUED;
+pub use tactics::{SquadTactics, soldier_flags};
 
 /// Move targets farther than this from the origin (in meters, per axis) are
 /// ignored. Keeps all position arithmetic far away from `Fixed` overflow, even
@@ -151,6 +153,8 @@ pub enum ConfigError {
     Weather(String),
     /// The built-in field work rules do not parse (prompt 035).
     Works(String),
+    /// The built-in tactics rules do not parse (prompt 047).
+    Tactics(String),
 }
 
 impl fmt::Display for ConfigError {
@@ -174,7 +178,8 @@ impl fmt::Display for ConfigError {
             | Self::Transport(e)
             | Self::Logistics(e)
             | Self::Weather(e)
-            | Self::Works(e) => {
+            | Self::Works(e)
+            | Self::Tactics(e) => {
                 write!(f, "{e}")
             }
         }
@@ -474,6 +479,8 @@ pub struct Sim {
     weather: weather::WeatherState,
     /// Field works of engineers: mines, obstacles, positions (prompt 035).
     works: works::Works,
+    /// Infantry tactics rules (prompt 047); the state is in the squads.
+    tactics: tactics::TacticsRt,
 }
 
 impl Sim {
@@ -622,6 +629,12 @@ impl Sim {
             &map,
             config.tick_hz,
         );
+        let tactics = tactics::TacticsRt::new(
+            crate::tactics::TacticsRules::builtin()
+                .map_err(|e| ConfigError::Tactics(e.to_string()))?,
+            &config.unit_types,
+            config.tick_hz,
+        );
         let grid = PathGrid::new(&map, &config.terrain, &config.unit_types);
         let weather = weather::WeatherState::new(
             crate::weather::WeatherRules::builtin()
@@ -662,6 +675,7 @@ impl Sim {
             logistics,
             weather,
             works,
+            tactics,
         };
         sim.init_weather();
         sim.init_economy();
@@ -740,6 +754,7 @@ impl Sim {
         self.rebuild_unit_grid();
         self.aim_and_fire();
         self.update_drills();
+        self.update_tactics();
         self.fire_indirect();
         done(Phase::Combat);
         self.halt_stranded();
@@ -1388,6 +1403,7 @@ impl Sim {
             self.weather.hash_into(&mut h);
         }
         self.works.hash_into(&mut h);
+        self.tactics.hash_into(&mut h);
         h.finish()
     }
 
@@ -1717,6 +1733,11 @@ fn move_unit(
     else {
         return Moved::Ok;
     };
+    // Halted (stance change, a fire team's bound, prompt 047): no step and
+    // no stall, the route waits.
+    if unit.speed_pct == 0 {
+        return Moved::Ok;
+    }
     let (waypoint, last) = (waypoints[*next], *next + 1 == waypoints.len());
     if let Some(direction) = heading(unit) {
         let Some(speed) = ground_speed(unit, direction, map, rules, ground_pct) else {

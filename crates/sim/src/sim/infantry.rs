@@ -8,6 +8,7 @@
 //! and speed), aiming and firing, unit movement, [`Sim::update_squads`]
 //! (soldiers follow their places, cover, entering buildings), projectiles.
 
+use super::tactics::Follow;
 use super::{Route, Sim, Unit, stop};
 use crate::command::{PlayerId, UnitId};
 use crate::hash::StableHasher;
@@ -55,6 +56,11 @@ impl Soldier {
         self.spot
             .is_some_and(|s| (s - self.position).length() < Fixed::ONE / 2)
     }
+
+    /// Whether the soldier has a cover spot (prompt 047).
+    pub(super) const fn has_spot(&self) -> bool {
+        self.spot.is_some()
+    }
 }
 
 /// Infantry state of a unit.
@@ -77,6 +83,9 @@ pub(super) struct Squad {
     pub(super) turn: u32,
     /// Squad position for which the cover spots were chosen.
     pub(super) spots_at: Option<Vec2>,
+    /// Fire teams, suppression, blind fire, jams (prompt 047).
+    #[serde(default)]
+    pub(super) tactics: super::tactics::Tactics,
 }
 
 impl Squad {
@@ -86,14 +95,21 @@ impl Squad {
 
     /// The `k`-th living soldier (counted cyclically), if any lives.
     pub(super) fn living(&self, k: u32) -> Option<&Soldier> {
+        self.living_index(k).map(|i| &self.soldiers[i])
+    }
+
+    /// Index of the `k`-th living soldier (counted cyclically).
+    pub(super) fn living_index(&self, k: u32) -> Option<usize> {
         let alive = self.alive_count();
         if alive == 0 {
             return None;
         }
         self.soldiers
             .iter()
-            .filter(|s| s.alive())
+            .enumerate()
+            .filter(|(_, s)| s.alive())
             .nth((k % alive) as usize)
+            .map(|(i, _)| i)
     }
 
     pub(super) fn hash_into(&self, h: &mut StableHasher) {
@@ -136,6 +152,7 @@ impl Squad {
                 h.write_i64(p.y.to_bits());
             }
         }
+        self.tactics.hash_into(h);
     }
 }
 
@@ -472,6 +489,7 @@ impl Sim {
             enter: None,
             turn: 0,
             spots_at: None,
+            tactics: super::tactics::Tactics::default(),
         }))
     }
 
@@ -685,6 +703,8 @@ impl Sim {
                     StanceOrder::Auto => Stance::Kneel,
                 }
             };
+            // Pinned, close firefights, moving in contact (prompt 047).
+            let wanted = super::tactics::auto_stance(s, moving, wanted);
             if wanted != s.stance && s.changing == 0 {
                 s.stance = wanted;
                 s.changing = ty.change_ticks;
@@ -797,6 +817,46 @@ impl Sim {
         if self.spots_in_ruin(i) {
             return;
         }
+        let ty = self.infantry.types[self.units[i].unit_type as usize]
+            .as_ref()
+            .expect("squads have infantry types");
+        let places: Vec<Option<(Fixed, Fixed)>> = ty.places.iter().copied().map(Some).collect();
+        self.choose_spots_for(i, &places);
+        let center = self.units[i].position;
+        if let Some(s) = &mut self.units[i].squad {
+            s.spots_at = Some(center);
+        }
+    }
+
+    /// Formation place of soldier `k` of squad `i`: (forward, right).
+    pub(super) fn formation_place(&self, i: usize, k: usize) -> (Fixed, Fixed) {
+        self.infantry.types[self.units[i].unit_type as usize]
+            .as_ref()
+            .and_then(|t| t.places.get(k).copied())
+            .unwrap_or((Fixed::ZERO, Fixed::ZERO))
+    }
+
+    /// Number of cover spots of objects (and craters) within `half` of
+    /// `center` (prompt 047: where a bound ends).
+    pub(super) fn cover_spots_near(&self, center: Vec2, half: Fixed) -> u32 {
+        let objects = self
+            .infantry
+            .index
+            .near(center, half)
+            .into_iter()
+            .filter(|&o| {
+                let kind = usize::from(self.map.objects()[o as usize].kind);
+                self.infantry.cover_spot[kind] && self.gives_cover(o)
+            })
+            .count();
+        let craters = self.crater_spots(center, half).len().min(8);
+        u32::try_from(objects + craters).unwrap_or(u32::MAX)
+    }
+
+    /// Picks cover spots near the given places (forward, right) of the
+    /// soldiers of squad `i`; soldiers without a place keep their spot
+    /// (prompt 047: only the moving fire team takes new spots).
+    pub(super) fn choose_spots_for(&mut self, i: usize, wanted: &[Option<(Fixed, Fixed)>]) {
         let rules = &self.infantry.rules.cover;
         let (gap, spacing, search) = (
             mm(rules.gap_mm),
@@ -841,10 +901,23 @@ impl Sim {
         let grid = &self.paths.grid;
         let map = &self.map;
         spots.retain(|&(p, _)| map.contains(p) && grid.passable_for(profile, p));
-        let mut used = vec![false; spots.len()];
         let unit = &mut self.units[i];
         let squad = unit.squad.as_mut().expect("checked");
-        for (soldier, &(f, r)) in squad.soldiers.iter_mut().zip(&ty.places) {
+        // Spots kept by soldiers without a new place are taken.
+        let mut used: Vec<bool> = spots
+            .iter()
+            .map(|&(p, _)| {
+                squad
+                    .soldiers
+                    .iter()
+                    .zip(wanted)
+                    .any(|(s, w)| w.is_none() && s.spot == Some(p))
+            })
+            .collect();
+        for (soldier, place) in squad.soldiers.iter_mut().zip(wanted) {
+            let Some((f, r)) = *place else {
+                continue;
+            };
             let place = center + facing.scale(f) + right.scale(r);
             let best = spots
                 .iter()
@@ -865,7 +938,7 @@ impl Sim {
                 }
             }
         }
-        squad.spots_at = Some(center);
+        squad.spots_at = None;
     }
 
     /// A squad standing in a ruin (prompt 020) spreads its soldiers over
@@ -927,19 +1000,36 @@ impl Sim {
                 && terrain.types[usize::from(map.terrain_at(p))].passable
                 && grid.passable_for(profile, p)
         };
+        let spacing = mm(rules.formation.spacing_mm);
+        // Soldiers holding while their fire team bounds stay within the
+        // squad's reach (hit tests look that far around it).
+        let hold_limit = self.units[i].spread - Fixed::ONE;
         let squad = self.units[i].squad.as_mut().expect("checked");
         if squad.garrison.is_some() {
             return;
         }
-        for (soldier, &(f, r)) in squad.soldiers.iter_mut().zip(&ty.places) {
+        let (bound, pinned) = (squad.tactics.bound, squad.tactics.pinned);
+        let n = squad.soldiers.len();
+        for (k, (soldier, &(f, r))) in squad.soldiers.iter_mut().zip(&ty.places).enumerate() {
+            let follow = super::tactics::follow(bound, pinned, (k, n), standing, spacing);
             // Knocked-down soldiers lie where the blast threw them.
             if !soldier.alive() || soldier.knocked > 0 {
                 continue;
             }
             let place = center + facing.scale(f) + right.scale(r);
-            let wanted = match soldier.spot {
-                Some(spot) if standing => spot,
-                _ => place,
+            // Fire teams (prompt 047).
+            let wanted = match follow {
+                Follow::Hold if (soldier.position - center).length() <= hold_limit => continue,
+                Follow::Hold | Follow::Formation { standing: false } => place,
+                Follow::Formation { standing: true } => soldier.spot.unwrap_or(place),
+                Follow::Line {
+                    forward,
+                    right: side,
+                    spot,
+                } => match soldier.spot {
+                    Some(s) if spot => s,
+                    _ => center + facing.scale(forward) + right.scale(side),
+                },
             };
             let wanted = if ok(wanted) { wanted } else { center };
             let delta = wanted - soldier.position;
@@ -959,8 +1049,9 @@ impl Sim {
         }
     }
 
-    /// Marks squads near `point` as under fire (rounds of other players).
-    pub(super) fn near_miss(&mut self, point: Vec2, shooter: UnitId) {
+    /// Marks squads near `point` as under fire (rounds of other players)
+    /// and suppresses them (prompt 047).
+    pub(super) fn near_miss(&mut self, point: Vec2, shooter: UnitId, caliber_mm_x10: u32) {
         let owner = match self.units.binary_search_by_key(&shooter, |u| u.id) {
             Ok(k) => self.units[k].owner,
             Err(_) => return,
@@ -986,6 +1077,7 @@ impl Sim {
                 .any(|x| x.alive() && (x.position - point).length() <= radius)
             {
                 s.suppressed = ty.suppressed_ticks;
+                self.tactics.near_miss(s, caliber_mm_x10);
             }
         }
     }

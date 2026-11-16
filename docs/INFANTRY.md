@@ -514,6 +514,80 @@ tests in `crates/sim/tests/knockdown.rs`. [provisional]
   `soldier_knock_from`, `soldier_cover_objects`, `cover_object_info`
   (`crates/bridge/src/knockdown_funcs.rs`).
 
+### Tactics (prompt 047)
+
+Rules: `data/tactics.toml` (`sim::TacticsRules`, loaded by `Sim::new` like the
+other rule files, in the state hash, not part of `SimConfig`); simulation:
+`crates/sim/src/sim/tactics.rs` with small hooks in `sim/infantry.rs`
+(stance, soldiers following, cover spots), `sim/combat.rs` (squad fire, blind
+fire, hits), `sim/drill.rs` (attack-move) and `sim/indirect.rs` (mortar
+targets, blasts). Tests: `crates/sim/tests/tactics.rs`,
+`crates/net/tests/snapshot_tactics.rs`. Values are [provisional] until the
+playtests of prompt 045.
+
+- **Fire teams:** a squad of at least 6 living soldiers (both halves with at
+  least two) splits by roster order: the first half (leader and the squad's
+  automatic weapon: MG group, BAR team) is the base of fire, the rest the
+  maneuver team. MG, mortar and sniper teams move as one team.
+- **Bounds:** squads bound on attack-move (prompt 046) and, with fire at
+  will, on a plain move while in contact (a target within 60 % of their
+  longest range; a target farther away is engaged while closing in, and fire
+  from an enemy they do not see only makes them crouch). The squad first
+  halts and the base of fire takes cover; then the maneuver team runs to a
+  line half a bound ahead while the squad position advances 10-20 m along
+  its route, the base of fire holding where it is and firing. The squad
+  position halts, the moving team takes cover spots near its line, settles
+  for 2 s real, and the teams swap. Rushing soldiers do not fire; holding
+  ones fire without the moving penalty. A single team halts for 4 s real
+  between bounds and returns fire. Hold fire: no bounds, the squad runs.
+  The squad position always stays between the teams, so every soldier stays
+  within the squad's reach for hit tests (a holding soldier farther than
+  the squad's spread moves up).
+- **Fire superiority on attack-move:** the next bound starts only when the
+  squad has no target or its target squad is suppressed to at least 30;
+  until then both teams fire from cover. Plain moves bound regardless.
+- **Cover to cover:** the advance of a bound is the sample (every 2.5 m
+  between 10 and 20 m) where the moving team's line finds the most cover
+  spots within 6 m (objects, craters, trench positions); the route itself
+  is the planned path. Moving in contact the squad crouches (automatic
+  stance kneel, `crouch_walk`).
+- **Suppression** (0..100 per squad): every round of another player that
+  lands within 3 m of a soldier adds 8 (20 mm and more: 20), every hit on a
+  soldier 10, every shell or bomb within its blast radius 35; a squad lying
+  down takes half. It recovers 8 per real second once nothing added to it
+  for 3 s real. Effects grow linearly: at 100 the squad's dispersion is
+  150 % larger and its speed half (not when crawling). From 60 the squad is
+  **pinned**: it goes to ground (automatic stance prone), bounds pause, only
+  half its soldiers fire, without aiming over their cover; it recovers
+  below 30. Experience (prompt 050) can multiply its own accuracy and
+  morale factors on top: suppression is a separate factor
+  (`TacticsRt::dispersion_pct`) and a separate gain (`TacticsRt::add`).
+- **Close firefights** (target within 60 m): automatic stance prone.
+- **Blind fire:** when its target goes out of sight (around a corner, behind
+  cover, into smoke), a squad keeps firing at the point where it last saw it
+  for 6 s real, with half its soldiers and three times the dispersion (few
+  hits, but suppression).
+- **Mortar teams** (squads with an indirect weapon) fire at will at every
+  enemy their player has spotted in range, not only at what they see
+  themselves; on attack-move they halt for such a target (not for targets
+  of their small arms), set up (`setup_ms`, prompt 032) and fire, then
+  advance again.
+- **Weapon jams** (`[jams] enabled = 1`, switch off with 0): every round a
+  soldier fires jams his weapon with 1 % (a simulated round stands for
+  several real ones); he clears it for 5 s real and does not fire. Rolled
+  from the simulation's generator; vehicles' weapons do not jam.
+  [provisional, also whether it becomes a match option]
+
+State per squad (`Squad::tactics`: suppression, pinned, contact, bound,
+blind-fire memory, jams) is in the state hash and the save snapshot (prompt
+038). `Sim::squad_tactics`, `Sim::soldier_tactics`; bridge
+`SimHost.squad_tactics`, `soldier_tactics` (`crates/bridge/src/tactics_funcs.rs`).
+Presentation uses the clips of prompts 022/048: rushing soldiers walk or run
+crouched by their speed, pinned squads `dive` and lie, soldiers at cover
+spots take the cover poses, a soldier clearing a jam plays `reload` /
+`reload_kneel` / `reload_prone`. The unit panel shows "suppressed N %",
+"pinned down" and "bounding".
+
 ### Transport (prompt 034)
 
 - A squad mounts a truck, halftrack (catalog `passengers`) or tank (10 or 6
@@ -702,8 +776,11 @@ same as before (standing 0.023 ms, marching 0.19 ms, first 10 s of fire
   that infantry may cross (fences, hedges for small units).
 - Prone soldiers' hit boxes are square (not body length); stance does not
   change how far a squad sees or how well it is seen.
-- No grenades, assaults or melee, no morale or retreat; suppression only
-  drives the automatic stance (no accuracy penalty).
+- No grenades, assaults or melee, no morale or retreat (suppression of
+  prompt 047 pins squads down, but they never fall back).
+- Bounds follow the planned path; the path itself does not detour through
+  cover (only where a bound ends depends on cover). Squads of one player do
+  not coordinate their bounds (each squad bounds on its own).
 - Garrisoned squads have no floors or window directions; the window spots
   ignore the building's real openings.
 - Ground picking: a click on a roof picks the ground behind it, so a

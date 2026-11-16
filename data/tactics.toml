@@ -1,0 +1,111 @@
+# Infantry tactics (prompt 047): fire teams, bounds from cover to cover,
+# suppression, blind fire, mortar teams and weapon jams. Integers only.
+# Compiled into the simulation (`sim::TacticsRules::builtin`), loaded by
+# `Sim::new` like the other rule files and part of the state hash; see
+# docs/INFANTRY.md "Tactics (prompt 047)".
+#
+# These are game rules, not catalog values. Durations are real
+# milliseconds (the infantry time factor 2 applies), distances game
+# millimeters. Values marked [provisional] wait for playtests (prompt 045).
+
+[fire_teams]
+# Squads with at least this many living soldiers split into two fire
+# teams: the first half of the roster (leader and the squad's automatic
+# weapon: MG group, BAR team) is the base of fire, the rest the maneuver
+# team. Smaller squads (MG, mortar, sniper teams) move as one team.
+min_size = 6
+# The squad position advances between `bound_min_mm` and `bound_max_mm`
+# per bound (the first bound: `bound_min_mm`); the moving team runs to a
+# line half a bound ahead of it, so the two teams end up about one bound
+# apart (a rush of a few seconds). The advance is the sample (every
+# `sample_mm`) where the moving team finds the most cover spots within
+# `cover_radius_mm` (objects, craters, trench positions). [provisional]
+bound_min_mm = 10000
+bound_max_mm = 20000
+sample_mm = 2500
+cover_radius_mm = 6000
+# After its bound the team settles (takes its cover spots, gets ready to
+# fire) for `settle_ms`; then the other team moves. A team that has not
+# arrived after `timeout_ms` counts as arrived. [provisional]
+settle_ms = 2000
+timeout_ms = 20000
+# Squads in contact first halt and take cover (the base of fire, or all of
+# a single team), then the maneuver team bounds. Squads of one team halt and
+# return fire this long between bounds.
+overwatch_ms = 4000
+# Contact lasts this long after the squad last had a target (an enemy it
+# sees and can hurt). On a plain move with fire at will, squads in contact
+# bound instead of walking on; with hold fire they keep running. Coming
+# under fire from an enemy they do not see only makes them crouch.
+contact_ms = 8000
+# Only targets within this share of the squad's longest weapon range count
+# as contact; farther ones it engages while it closes in (returning fire at
+# the edge of its range achieves little). [provisional]
+contact_range_pct = 60
+# On attack-move the next bound starts only when the squad has no target or
+# its target squad is suppressed to at least this (fire superiority first);
+# until then both teams fire from cover. On a plain move the teams bound
+# regardless (the player wants the squad there). [provisional]
+advance_at = 30
+
+[suppression]
+# Suppression is a value of 0..100 per squad. Every round of another player
+# that lands within `stance.near_miss_mm` (data/infantry.toml) of one of
+# its soldiers adds `near_miss` (rounds of `heavy_caliber_mm_x10` and more:
+# `heavy_near_miss`), every hit on a soldier `hit`, every shell or bomb
+# within its blast radius `blast`. [provisional]
+near_miss = 8
+heavy_near_miss = 20
+heavy_caliber_mm_x10 = 200
+hit = 10
+blast = 35
+# Squads lying down take this share: the rounds crack over them.
+prone_pct = 50
+# Recovery: `recover_per_s` points per real second once nothing added to
+# it for `recover_delay_ms`.
+recover_delay_ms = 3000
+recover_per_s = 8
+# From `pinned_at` the squad is pinned: it goes to ground (automatic stance
+# prone), bounds pause, and only `pinned_fire_pct` of its soldiers fire,
+# without aiming, over their cover (the dispersion of their suppression).
+# It recovers below `unpinned_at`.
+pinned_at = 60
+unpinned_at = 30
+pinned_fire_pct = 50
+# Effect grows linearly with suppression: at 100 the squad's dispersion is
+# `dispersion_pct` percent larger and its speed `speed_pct` percent lower
+# (not when crawling: lying down is slow enough).
+# Experience (prompt 050) multiplies its own factors on top.
+dispersion_pct = 150
+speed_pct = 50
+
+[close]
+# A squad in automatic stance whose target is closer than this (game
+# meters) fights lying down.
+prone_within_mm = 60000
+
+[blind_fire]
+# A squad whose target went out of sight (around a corner, behind cover)
+# keeps firing at the point where it last saw it for `remember_ms`, with
+# `fire_pct` of its soldiers and `dispersion_pct` of the normal dispersion:
+# few hits, but it keeps the enemy's heads down.
+remember_ms = 6000
+fire_pct = 50
+dispersion_pct = 300
+
+[mortar]
+# Mortar teams (squads with an indirect weapon) fire at will at every enemy
+# their player has spotted in range, not only at what they see themselves;
+# on attack-move they halt for such a target, set up and engage it.
+# 0 = off, 1 = on.
+spotted_targets = 1
+halt_on_attack_move = 1
+
+[jams]
+# Rare weapon jams of small arms: every round a soldier fires jams his
+# weapon with `per_100k` / 100 000; he clears it for `clear_ms` and does
+# not fire meanwhile. Rolled from the simulation's generator. 0 = off.
+# [provisional]
+enabled = 1
+per_100k = 1000
+clear_ms = 5000

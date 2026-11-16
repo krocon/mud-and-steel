@@ -21,6 +21,14 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
+/// Last changed by prompt 047 (infantry tactics): the rules of
+/// `data/tactics.toml` and every squad's tactical state (suppression,
+/// pinning, contact, bounds, blind-fire memory, jams) are in the hash, and
+/// the rules change the fight: suppression widens the dispersion and pins
+/// squads down, squads in contact crouch and bound, jams draw from the
+/// generator. The demo battle is now decided at tick 922 instead of 467, same
+/// winner (player 0). Before: `0x9b87_57bd_bec7_96f8` (the merge of prompt 060, below).
+///
 /// Last changed by the merge of prompt 060 (mountains): the downhill
 /// sight rules (`[height]` in `data/vision.toml`) are in the hash. Nothing
 /// else changes: `test_small` has no ground 20 m below any eye, so every
@@ -153,7 +161,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x9b87_57bd_bec7_96f8;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x354a_2456_e67e_c2ca;
 
 #[test]
 fn golden_hash() {
@@ -203,10 +211,10 @@ fn demo_battle_is_decided() {
     let end = run_demo(42, 1000);
     let outcome = end.outcome().expect("the demo battle is decided");
     assert_eq!(outcome.winner, Some(sim::PlayerId(0)));
-    assert_eq!(outcome.tick, 467);
+    assert_eq!(outcome.tick, 922);
     assert_eq!(end.alive_units(sim::PlayerId(1)), 0);
     assert_eq!(
         end.standings()[1].defeat,
-        Some((sim::DefeatReason::Eliminated, 467))
+        Some((sim::DefeatReason::Eliminated, 922))
     );
 }
