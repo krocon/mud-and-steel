@@ -155,6 +155,18 @@ known, else it hunts on its own):
 [provisional] all distances and shares above; they were tuned against the
 passive enemy and the old Hard on the ten maps of the tournament.
 
+**Typical combat distances (prompt 067).** The AI's fighting distances are
+shares of the weapon ranges it reads from the unit types (90 %, 85 %, 60 %
+of the range, 1.5 × the own range before anything was seen) and of the
+sight ranges, so they followed the shorter ranges without a change in
+`crates/ai`: armor that fought from 225–340 m now fights from 105–160 m
+(75 mm guns reach 175 m instead of 250–375 m). The fixed distances (staging
+70 m outside the front's reach, fronts of 160 m, danger within 120 m,
+scouts turning back 200 m) are map distances, not weapon ranges, and were
+kept; the battle tournament of [BALANCE.md](BALANCE.md) was measured with
+them. The numbers quoted below from prompts 024–051 are from before
+prompt 067 (Panzer IV 375 m, T-34 250 m).
+
 **Scouting** (`scout.rs`): reconnaissance vehicles (catalog category
 `recon_vehicle`) are their own role. They drive to the 200 m cell the
 player saw longest ago (nearer to the enemy's home and to the scout first,

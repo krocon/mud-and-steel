@@ -211,33 +211,38 @@ From the catalog entry of the unit (`data/economy.toml`, `[unit_cost]`):
 - **Manpower** = 6 × soldiers (squad size, or crew of vehicles and guns).
 - **Fuel** = 4 per tonne of combat mass (vehicles only).
 - **Ammunition** = 10 + Σ over the weapons the simulation uses
-  (caliber in mm)² × count / 60 × range factor × rate factor. The range
-  factor (prompt 045) is the weapon's game range / 250 m, clamped to
+  (caliber in mm)² × count / 60 × range factor × rate factor × velocity
+  factor. The range factor (prompt 045) is the weapon's game range /
+  175 m (the 75 mm class guns; 250 m before prompt 067), clamped to
   50–150 %; the rate factor (decision 4 of prompt 045) is the catalog
-  rate of fire / 10 rounds per minute, clamped to 75–150 %. Both apply to
-  direct-fire weapons; indirect weapons count 100 %. Without them a T-34
-  (250 m, 5 rounds/min) cost more than a Panzer IV (375 m, 10 rounds/min)
-  and lost 2:1 to it; now ten T-34 cost what eight Panzer IV cost, the
-  equal strength measured in battle mode ([BALANCE.md](BALANCE.md)).
+  rate of fire / 10 rounds per minute, clamped to 75–150 %; the velocity
+  factor (prompt 067, **[provisional]**) is (muzzle velocity / 650 m/s)³,
+  clamped to 100–150 %. All three apply to direct-fire weapons; indirect
+  weapons count 100 %. Without range and rate a T-34 cost more than a
+  Panzer IV and lost 2:1 to it; now ten T-34 cost what eight Panzer IV
+  cost, the equal strength measured in battle mode
+  ([BALANCE.md](BALANCE.md)). The velocity factor replaces what the range
+  factor did by accident before prompt 067, when the catalog ranges of the
+  high-velocity guns were longer: caliber² × velocity³ is the square of
+  the combat rules' muzzle penetration.
   Range and rate of fire in the price are **[confirmed 2026-11-16]**; the
   reference values stay tunable.
 - **Build time** (game seconds) = 8 + (fuel + ammunition + manpower) / 8.
 
-Examples (`just economy-table` prints the full table; ammunition with
-range and rate factor, with the range factor only (prompt 045) in
-brackets where it changed):
+Examples (`just economy-table` prints the full table; ammunition since
+prompt 067, the value before it in brackets where it changed):
 
 | Unit | Fuel | Ammunition | Manpower | Time |
 |---|---|---|---|---|
-| Rifle squad (de) | 0 | 16 (14) | 54 | 16.7 s |
-| AT squad (de, Panzerschreck) | 0 | 58 (75) | 12 | 16.7 s |
-| AT squad (us, bazooka) | 0 | 33 (40) | 12 | 13.6 s |
+| Rifle squad (de) | 0 | 19 (16) | 54 | 17.1 s |
+| AT squad (de, Panzerschreck) | 0 | 58 | 12 | 16.7 s |
+| AT squad (us, bazooka) | 0 | 33 | 12 | 13.6 s |
 | Panzer IV H | 100 | 150 | 30 | 43.0 s |
-| T-34/76 (1943) | 123 | 82 (106) | 24 | 36.6 s |
-| Tiger I | 228 | 154 (203) | 30 | 59.5 s |
-| IS-2 | 184 | 287 (382) | 24 | 69.8 s |
+| T-34/76 (1943) | 123 | 85 (82) | 24 | 37.0 s |
+| Tiger I | 228 | 215 (154) | 30 | 67.1 s |
+| IS-2 | 184 | 404 (287) | 24 | 84.5 s |
 | M4A3 (75) | 126 | 103 | 30 | 40.3 s |
-| Pak 40 | 0 | 206 (150) | 36 | 38.2 s |
+| Pak 40 | 0 | 206 | 36 | 38.2 s |
 
 The code computes the values (`sim::economy::EconomyRules::unit_cost`);
 this table is a snapshot, `cli economy-table` shows the current ones. The

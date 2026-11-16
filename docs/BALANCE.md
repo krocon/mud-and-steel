@@ -351,7 +351,208 @@ The per-faction sums did not move: the rate factor makes T-34 and Tiger
 cheaper, but the Soviet base AI spends most of its manpower on AT squads
 and MG teams (689 AT squads, kills per loss 0.06), see "Open".
 
+## Typical combat distances (prompt 067)
+
+Decision 3 of [PLAYTEST.md](PLAYTEST.md) (user, 2026-11-16): weapon ranges
+are **typical combat distances**. The catalog got a second range per
+weapon, `range_typical_m` (definition and class table in
+[`data/catalog/SCHEMA.md`](../data/catalog/SCHEMA.md), scale in
+[SCALE.md](SCALE.md#typical-combat-distances-prompt-067)); direct fire uses
+only this value × 1/4. This is a catalog and scale change, not a tuned rule:
+the values are class values with sources, the same for every faction.
+
+| Weapon | game range before | after |
+|---|---|---|
+| Panzer IV (KwK 40) | 375 m | 175 m |
+| T-34 (F-34), M4A3 (75 mm M3) | 250 m | 175 m |
+| Tiger (KwK 36) | 500 m | 250 m |
+| Pak 40 / ZiS-3 / 57 mm M1 | 450 / 250 / 250 m | 175 m |
+| Rifles (Kar98k, Mosin / M1) | 125 / 114 m | 75 m |
+| MG 42, DP-27 on the bipod / BAR | 200 / 137 m | 100 m |
+| Tripod machine guns (Lafette 42 / Maxim / M1917A1) | 750 / 250 / 457 m | 200 m |
+| 8.8 cm Flak 36 against ground targets | 3715 m | 250 m |
+
+All measurements: Hard against Hard, 10 games per row, seeds from 1;
+"before" is `main` before prompt 067 (the state after the decisions of
+2026-11-16), measured again on the same day.
+
+### The scale factor
+
+Typical distances are about half the old values, so the direct-fire factor
+was checked again. Battle mode, 10 maps × 3 pairings (600 games each; these
+two runs without the new velocity factor of the prices, which the AI's
+unit values use):
+
+| Direct-fire factor | game ranges (rifle / 75 mm / 88 mm) | de | su | us |
+|---|---|---|---|---|
+| 1/4 (kept) | 75 / 175 / 250 m | 51 % | 45 % | 47 % |
+| 1/3 | 100 / 233 / 333 m | 50 % | 39 % | 51 % |
+
+1/4 stays (SCALE.md).
+
+### Battle mode (10 maps × 3 pairings)
+
+| Faction | before | after |
+|---|---|---|
+| de | 48 % (97 of 200) | **49 %** (98 of 200) |
+| su | 41 % (83 of 200) | **48 %** (96 of 200) |
+| us | 47 % (94 of 200) | **46 %** (93 of 200) |
+
+Sum of the distances from 50 %: 14 points before, 7 after. Undecided
+games: 26 of 300 before, 13 after. Tank kills per loss: Panzer IV 1.55 →
+1.40, M4A3 1.20 → 1.10, T-34 0.80 → **1.02**. The battle armies stay at
+8 Panzer IV, 10 T-34, 9 M4A3 (`[faction_count_pct]`): the Panzer IV still
+penetrates more and fires twice as fast as the T-34.
+
+| Map | de – su before | after | de – us before | after | su – us before | after |
+|---|---|---|---|---|---|---|
+| desert_village | 10 / 80 / 10 | 30 / 70 / 0 | 20 / 40 / 40 | 30 / 70 / 0 | 40 / 50 / 10 | 70 / 30 / 0 |
+| farms | 100 / 0 / 0 | 40 / 50 / 10 | 30 / 70 / 0 | 60 / 40 / 0 | 30 / 70 / 0 | 50 / 50 / 0 |
+| mountain_pass | 0 / 70 / 30 | 60 / 40 / 0 | 30 / 40 / 30 | 60 / 30 / 10 | 70 / 20 / 10 | 60 / 30 / 10 |
+| river_land | 50 / 40 / 10 | 80 / 20 / 0 | 10 / 60 / 30 | 60 / 40 / 0 | 20 / 80 / 0 | 40 / 50 / 10 |
+| skirmish | 80 / 20 / 0 | 20 / 80 / 0 | 90 / 10 / 0 | 80 / 20 / 0 | 60 / 40 / 0 | 80 / 20 / 0 |
+| test_large | 50 / 50 / 0 | 40 / 60 / 0 | 30 / 70 / 0 | 20 / 80 / 0 | 50 / 50 / 0 | 60 / 40 / 0 |
+| test_small | 50 / 50 / 0 | 80 / 20 / 0 | 0 / 100 / 0 | 20 / 80 / 0 | 60 / 40 / 0 | 50 / 50 / 0 |
+| town_small | 30 / 40 / 30 | 10 / 70 / 20 | 90 / 0 / 10 | 20 / 40 / 40 | 40 / 50 / 10 | 30 / 60 / 10 |
+| twin_meadow | 100 / 0 / 0 | 100 / 0 / 0 | 90 / 10 / 0 | 60 / 40 / 0 | 30 / 70 / 0 | 40 / 60 / 0 |
+| winter_village | 40 / 40 / 20 | 50 / 40 / 10 | 70 / 20 / 10 | 60 / 40 / 0 | 40 / 50 / 10 | 30 / 60 / 10 |
+
+(X wins / Y wins / undecided in percent.) Rows at 100 % for one side: three
+before (farms and twin_meadow de – su, test_small de – us), one after.
+**Exception:** `twin_meadow` de – su stays 100 / 0. The armies start 170 m
+apart on open ground, inside the range of every tank from the first tick;
+the fight is the frontal duel below, which the Panzer IV wins at every
+distance. Single rows still swing by ±15 % and more (10 games).
+
+### Duels
+
+20 runs per cell, both standing, A's wins / B's wins / undecided in
+percent; "–" = out of range for both.
+
+| Duel | 100 m | 150 m | 200 m | 300 m |
+|---|---|---|---|---|
+| Panzer IV (A) vs T-34, A in front, before | 100 / 0 / 0 | 100 / 0 / 0 | 85 / 0 / 15 | 100 / 0 / 0 (T-34 out of range) |
+| after | 100 / 0 / 0 | 100 / 0 / 0 | – | – |
+| T-34 (A) vs Panzer IV, A behind it, before | 100 / 0 / 0 | 100 / 0 / 0 | 95 / 5 / 0 | 0 / 100 / 0 (T-34 out of range) |
+| after | 100 / 0 / 0 | 100 / 0 / 0 | – | – |
+| M4A3 (A) vs Panzer IV, front, before | 0 / 5 / 95 | 0 / 100 / 0 | 5 / 95 / 0 | 0 / 100 / 0 (M4A3 out of range) |
+| after | 0 / 5 / 95 | 0 / 100 / 0 | – | – |
+| M4A3 (A) vs T-34, front, before | 25 / 45 / 30 | 35 / 40 / 25 | 45 / 55 / 0 | – |
+| after | 25 / 45 / 30 | 35 / 40 / 25 | – | – |
+| German (A) vs Soviet rifle squad, before | 75 / 25 / 0 | 100 / 0 / 0 | 90 / 10 / 0 | – |
+| after | 95 / 5 / 0 | – | – | – |
+| German (A) vs US rifle squad, before | 10 / 90 / 0 | 100 / 0 / 0 | 100 / 0 / 0 | – |
+| after | 100 / 0 / 0 | – | – | – |
+
+Inside the common range nothing changed for the tanks (hit chance and
+penetration work on the real distance, which is the same at the same game
+distance). What is gone is the band in which only one side could fire:
+125 m for the Panzer IV against T-34 and M4A3. The Panzer IV still wins
+the frontal duel; the T-34 and the M4A3 win from the side and from behind,
+now at every distance they can fire from.
+
+Infantry: the German squad now beats the US squad at 100 m (before the US
+squad won there): the MG 42 and the BAR reach 100 m, the rifles 75 m, so
+at 100 m one MG 42 fights one BAR. At 50 m the German squad beats the
+Soviet one (before the reverse): the PPSh-41 reaches 25 m instead of 50 m.
+Fights at 75–100 m are 300–400 m in reality, where nearly every aimed
+round hits: a squad in the open is wiped out in a few seconds, and who
+fires first wins.
+
+### Prices
+
+`range_ref_m` follows the 75 mm class (250 m → 175 m). With typical
+distances the Panzer IV would have lost its range surcharge and cost what
+a T-34 costs (233 against 229) while it still beats it from the front;
+`crates/sim/tests/prices.rs` (equal strength, 8 Panzer IV = 10 T-34 = 9
+M4A3, within 5 % of the same price) failed. New rule, **[provisional]**:
+
+| # | File | Value | Before | After | Why |
+|---|---|---|---|---|---|
+| 11 | `data/economy.toml` `[unit_cost]` | range reference | `range_ref_m = 250` | `175` | The reference is the game range of the 75 mm class guns, which keep 100 %. |
+| 12 | `data/economy.toml` `[unit_cost]` (new) | velocity factor of the ammunition price | – | `velocity_ref_mps = 650`, 100–150 %, cubic | Caliber² × velocity³ is the square of the combat rules' muzzle penetration. Before, the longer catalog ranges of the high-velocity guns did this by accident. Lower bound 100 %: shaped charges and howitzers do not get cheaper. |
+
+| Unit | before (total) | after (total) |
+|---|---|---|
+| Panzer IV H | 150 (280) | 150 (280) |
+| M4A3 (75) | 103 (259) | 103 (259) |
+| T-34/76 (1943) | 82 (229) | 85 (232) |
+| StuG III G / M10 / Pak 40 | 122 / 126 / 206 | unchanged |
+| ZiS-3 | 155 (197) | 161 (203) |
+| 57 mm M1 | 91 (133) | **131 (173)** |
+| Tiger I | 154 (412) | **215 (473)** |
+| IS-2 | 287 (495) | **404 (612)** |
+| SU-85 | 144 (286) | **201 (343)** |
+| M26 | 172 (369) | **238 (435)** |
+| 8.8 cm Flak 36 / 85 mm 52-K / 90 mm M2 | 300 / 226 / 313 | **421 / 317 / 440** |
+| 2 cm Flak 38 / 37 mm 61-K / 40 mm Bofors | 25 / 61 / 70 | 18 / 46 / 52 |
+| Rifle squad de / su / us | 16 / 15 / 18 | 19 / 16 / 23 |
+| AT squad de / su / us | 58 / 11 / 33 | 58 / 12 / 33 |
+
+Armies of equal strength: 8 Panzer IV 2240, 10 T-34 2320 (+3.6 %), 9 M4A3
+2331 (+4.1 %); the price test holds unchanged. **Deviation:** the guns of
+the 88 mm class cost 15–24 % more than before. They reach 250 m against
+175 m (143 %) and are fast (150 %); before, range alone was capped at
+150 % for them and for the Panzer IV alike, so their longer reach over the
+Panzer IV was free. Not measured separately; if heavy tanks become too
+rare, `range_max_pct` is the lever.
+
+### Base mode (20 minutes, test_small and twin_meadow)
+
+| Map | de – su before | after | de – us before | after | su – us before | after |
+|---|---|---|---|---|---|---|
+| test_small | 100 / 0 / 0 | 70 / 10 / 20 | 30 / 60 / 10 | 80 / 0 / 20 | 10 / 80 / 10 | 40 / 50 / 10 |
+| twin_meadow | 0 / 40 / 60 | 20 / 20 / 60 | 50 / 30 / 20 | 70 / 0 / 30 | 80 / 0 / 20 | 60 / 10 / 30 |
+
+| Faction (40 games each) | before | after |
+|---|---|---|
+| de | 45 % (18) | **60 %** (24) |
+| su | 32 % (13) | 32 % (13) |
+| us | 42 % (17) | **15 %** (6) |
+
+**Base mode got worse for the United States** (the acceptance criterion of
+prompt 067 is about battle mode; this is a deviation to decide on).
+Germany against the United States went from 8 : 9 wins to 15 : 0 in 20
+games. The statistics name three causes:
+
+- **Rifle squads.** Kills per loss of the US rifle squad fell from 1.44 to
+  0.51 (German 1.31 → 1.28, Soviet 0.36 → 0.61). Before, eleven M1 rifles
+  at 40 rounds/min out-shot every other squad between 100 and 114 m; now
+  all rifles reach 75 m and the squads meet at 100 m, where the German
+  squad has an MG 42 (1200 rounds/min) and the US squad a BAR (375). The
+  squad's armament is historical; the US answer in the game is the
+  machine-gun team (tripod M1919A4, 200 m: kills per loss 0.32 → 1.67).
+- **Longer matches, more heavy tanks.** Fights start at half the distance,
+  so armies need longer to decide a match (mean decided time 360–490 s →
+  390–790 s). More matches reach the heavy tanks: 30 Tigers instead of 17,
+  with 117 kills for 4 losses; the Tiger reaches 250 m against the 175 m
+  of every US gun except the M26's.
+- **AT squads.** The US AI answered the armor with 304 bazooka squads
+  (before 106; 1 kill, 245 lost): the counter-production of prompt 051
+  wastes manpower, as noted under "Open" before; with more enemy armor
+  alive it wastes more.
+
+40 games per faction give about ±15 %, so the German 60 % and the Soviet
+32 % are within the noise of before; the US 15 % is not.
+
+### Tests and AI
+
+- AI distances are shares of the weapon and sight ranges (AI.md), so
+  `crates/ai` needed no change. Easy against Passive as the Soviet side
+  takes up to 6740 ticks instead of under 6000 (its squads must close in to
+  75 m under the passive tanks' fire); it still wins every match.
+- The demo battle (8 Panzer IV against 8 T-34) is decided at tick 1834
+  instead of 1013, same winner: the rifle squads start 176 m apart, out of
+  each other's range.
+- Sight ranges (`data/vision.toml`) are unchanged; every direct-fire weapon
+  now reaches less far than its unit sees.
+
 ## Golden hash
+
+Prompt 067 changed the golden hash to `0x3ad2_633d_388d_e4f8` (economy
+golden hash `0x57e7_5da9_31e6_20dd`): weapon ranges come from
+`range_typical_m`, so the demo battle runs differently, and the hashed
+price rules changed (range reference, velocity factor). Before:
 
 The golden hash of `crates/sim/tests/determinism.rs` changed to
 `0x0b95_b29d_5ff1_d003` with the decisions of 2026-11-16 (the rate factor
@@ -367,10 +568,23 @@ apply).
 
 ## Open, for the user
 
-Nothing: the decisions of [PLAYTEST.md](PLAYTEST.md) were answered on
-2026-11-16. Weapon ranges follow in prompt 067, which has to measure the
-duels, the battle armies and the price check of
-`crates/sim/tests/prices.rs` again.
+The decisions of [PLAYTEST.md](PLAYTEST.md) were answered on 2026-11-16.
+From prompt 067 (typical combat distances, see above):
+
+1. **Velocity factor of the prices** (change 12, provisional) and the
+   higher prices of the 88 mm class guns (Tiger 473 instead of 412, IS-2
+   612 instead of 495): confirm, or cap the range factor at 100 %
+   (`range_max_pct`), which gives the heavy guns their old prices.
+2. **United States in base mode** (15 % of 40 games, before 42 %): the US
+   rifle squad loses to the German and Soviet squads at 75–100 m. Rule
+   levers, none decided: the price of the US squad (12 men = 72 manpower),
+   the AI's choice of machine-gun teams instead of rifle and AT squads,
+   or a second BAR per squad as many units carried in 1944–45 (a catalog
+   decision that needs a source).
+3. **Class estimates** of `range_typical_m` (machine guns, submachine
+   guns, anti-tank rockets, light guns; Soviet and US guns by analogy with
+   the German 75 mm and 88 mm data): listed in `uncertain`; better sources
+   are welcome (SCHEMA.md).
 
 ## Open
 

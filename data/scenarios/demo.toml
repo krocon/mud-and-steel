@@ -66,6 +66,10 @@ us = "us_inf_rifle_squad"
 # with 8 tanks each Germany won 71 % of all battles, the Soviet Union 25 %
 # (docs/BALANCE.md). The plain demo without a faction choice (golden hash,
 # tests) keeps its counts.
+# Prompt 067: with typical combat distances all three tanks reach 175 m;
+# the Panzer IV still penetrates more and fires twice as fast as the T-34,
+# and measured again with these counts the factions win 49 / 48 / 46 % of
+# the battles, so the counts stay.
 [faction_count_pct]
 su = 125
 us = 112
