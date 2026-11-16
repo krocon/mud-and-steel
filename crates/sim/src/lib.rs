@@ -18,6 +18,7 @@ pub mod craters;
 mod data;
 pub mod destruction;
 pub mod economy;
+pub mod fire;
 mod hash;
 pub mod indirect;
 pub mod infantry;
@@ -50,6 +51,7 @@ pub use destruction::{
     DestructionRules, ObjectCause, ObjectEvent, ObjectStage, ObjectState, Remains,
 };
 pub use economy::{Cost, EconomyRules, RESOURCE_NAMES, Resources};
+pub use fire::{FireEvent, FireEventKind, FireRules, FireSource, FireView};
 pub use hash::StableHasher;
 pub use indirect::{IndirectRules, ShellSnapshot, SmokeSnapshot};
 pub use infantry::{InfantryRules, Stance, StanceOrder};

@@ -1,0 +1,18 @@
+# Fuel dump: standing 200 l drums on dunnage; burns and bursts (prompt 041,
+# data/fire.toml).
+unit = "env_dump_fuel"
+assembly = "env"
+
+[[variant]]
+name = "Intact"
+part = "dump_fuel"
+seed = 22
+
+[[variant]]
+name = "Burnt"
+part = "dump_fuel"
+role = "ruin"
+damage_of = "Intact"
+seed = 22
+burnt = true
+dims_m = [4.8, 3.6, 0.6]

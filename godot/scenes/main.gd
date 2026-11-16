@@ -79,6 +79,7 @@ const AirView := preload("res://scenes/world/air_view.gd")
 const FogOfWar := preload("res://scenes/world/fog_of_war.gd")
 const Effects := preload("res://scenes/world/effects.gd")
 const DestructionView := preload("res://scenes/world/destruction_view.gd")
+const FireView := preload("res://scenes/world/fire_view.gd")
 const CraterView := preload("res://scenes/world/crater_view.gd")
 const CraterBench := preload("res://scenes/tools/crater_bench.gd")
 const EffectsBench := preload("res://scenes/tools/effects_bench.gd")
@@ -157,6 +158,8 @@ var effects: Effects
 ## Soldiers of infantry squads (prompt 022).
 var infantry_view: InfantryView
 var destruction_view: Node
+## Burning objects: flames, smoke, light, charring (prompt 041).
+var fire_view: Node
 ## Craters (prompt 021): terrain and decoration updates.
 var crater_view: Node
 ## Buildings, sites, supply points and the base HUD (prompt 023).
@@ -257,6 +260,10 @@ func _ready() -> void:
 	destruction_view.name = "DestructionView"
 	add_child(destruction_view)
 	destruction_view.setup(self)
+	fire_view = FireView.new()
+	fire_view.name = "FireView"
+	add_child(fire_view)
+	fire_view.setup(self)
 	crater_view = CraterView.new()
 	crater_view.name = "CraterView"
 	add_child(crater_view)

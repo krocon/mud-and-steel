@@ -43,6 +43,9 @@ extends Node
 ##    right click, selection through the unit panel, a waypoint chain by
 ##    Shift + right click, orders from the command bar, event jump, health
 ##    bar setting.
+## 13. Fire (prompt 041, `tools/fire_self_test.gd`, after 9): the own tanks
+##    shell the ground next to hay or a barn until it burns; the flames are
+##    drawn, the replay re-simulates the fire.
 
 ## Panzer IV H: 16 km/h cross-country (catalog) × time factor 2 = 8.889 m/s,
 ## i.e. 0.4444 m per tick at 20 Hz. Terrain scales it (data/terrain.toml).
@@ -60,6 +63,7 @@ const WaterSelfTest := preload("res://scenes/tools/water_self_test.gd")
 const InfantrySelfTest := preload("res://scenes/tools/infantry_self_test.gd")
 const DestructionSelfTest := preload("res://scenes/tools/destruction_self_test.gd")
 const CraterSelfTest := preload("res://scenes/tools/crater_self_test.gd")
+const FireSelfTest := preload("res://scenes/tools/fire_self_test.gd")
 const SoundSelfTest := preload("res://scenes/tools/sound_self_test.gd")
 const MusicSelfTest := preload("res://scenes/tools/music_self_test.gd")
 const HudSelfTest := preload("res://scenes/tools/hud_self_test.gd")
@@ -98,6 +102,7 @@ func _run() -> void:
 	await _combat_test()
 	await InfantrySelfTest.new().run(self)
 	await DestructionSelfTest.new().run(self)
+	await FireSelfTest.new().run(self)
 	await CraterSelfTest.new().run(self)
 	await SoundSelfTest.new().run(self)
 	await MusicSelfTest.new().run(self)
@@ -105,7 +110,7 @@ func _run() -> void:
 	await AirSelfTest.new().run(self)
 	_replay_test()
 	var ok := _errors.is_empty()
-	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, fog, combat, infantry, destruction, craters, sound, music, water, hud, air and replay ok" if ok else " ".join(_errors)
+	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, fog, combat, infantry, destruction, fire, craters, sound, music, water, hud, air and replay ok" if ok else " ".join(_errors)
 	print("self-test %s: %s" % ["PASSED" if ok else "FAILED", message])
 	# Started from the menu flow test (prompt 027): it continues the flow.
 	var flow: Node = MatchSetup.flow_test

@@ -96,7 +96,7 @@ BUDGETS = {
     "fort_bunker": 2000, "fort_trench": 2000, "fort_sandbag": 2000, "fort_obstacle": 2000,
     "fort_wire": 2000, "fort_minefield_at": 800, "fort_minefield_ap": 800,
 }
-BUDGET_OVERRIDES = {"env_church": 5000}
+BUDGET_OVERRIDES = {"env_church": 5000, "env_dump_ammo": 1500, "env_dump_fuel": 1500}
 FAR_BUDGET = 200
 
 ENV_PARTS = {}

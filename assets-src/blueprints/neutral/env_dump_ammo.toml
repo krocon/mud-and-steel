@@ -1,0 +1,18 @@
+# Ammunition dump: two rows of crate stacks on dunnage; burns and explodes
+# (prompt 041, data/fire.toml).
+unit = "env_dump_ammo"
+assembly = "env"
+
+[[variant]]
+name = "Intact"
+part = "dump_ammo"
+seed = 21
+
+[[variant]]
+name = "Burnt"
+part = "dump_ammo"
+role = "ruin"
+damage_of = "Intact"
+seed = 21
+burnt = true
+dims_m = [6.0, 4.0, 0.3]

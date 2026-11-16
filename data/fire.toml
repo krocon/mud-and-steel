@@ -1,0 +1,204 @@
+# Fire and burning map objects (prompt 041). Integers only. Compiled into the
+# simulation (`sim::FireRules::builtin`, loaded by `Sim::new` and part of the
+# state hash); see docs/ARCHITECTURE.md "Fire".
+#
+# These are game rules, not historical values: the catalog has no
+# flammability. Times are real milliseconds (the time factor of
+# data/scale.toml applies), distances real millimeters (sizes are 1:1).
+# Values marked [provisional] wait for confirmation (docs/ARCHITECTURE.md).
+#
+# What burns: every map object whose catalog id is in a [[class]] below. It
+# must also have hit points in data/destruction.toml, because fire damages
+# it through them (stage damaged, then destroyed: ruin, felled tree, gap).
+# Vehicle wrecks burn too ([wreck]). Infantry is not set on fire; soldiers in
+# a burning building take [occupants] damage.
+
+[ignite]
+# A direct hit of at least this caliber on a burning-capable object ignites
+# it with the class's `hit_pct`. [provisional]
+min_caliber_mm = 20
+# A shell or high-explosive round of at least `burst_min_caliber_mm` that
+# bursts on the ground ignites burning-capable objects whose outline lies
+# within `burst_radius_mm` of the impact with the class's `hit_pct`. Covers
+# artillery falling into a wood (trunks are rarely hit directly).
+# [provisional]
+burst_min_caliber_mm = 50
+burst_radius_mm = 4000
+
+[spread]
+# Every `interval_ms` each fire rolls once per neighbor within its `reach_mm`
+# (gap between the two outlines) that can burn: the neighbor catches with
+# its class's `catch_pct`. The same step deals the fire's damage. [provisional]
+interval_ms = 2000
+# Fire does not spread across these terrain types (data/terrain.toml):
+# three points on the gap between the two outlines are checked.
+firebreak = ["road", "shallow_water", "deep_water"]
+
+[smoke]
+# Burning objects of classes with `smoke_radius_mm` put a dark smoke cloud
+# (prompt 032 clouds: they drift with the wind and block sight) next to
+# themselves on the downwind side (the object and its flames stay visible)
+# every `interval_ms`, living `lifetime_ms`, as long as fewer than
+# `max_clouds` fire clouds exist. [provisional]
+interval_ms = 20000
+lifetime_ms = 40000
+max_clouds = 24
+
+[wreck]
+# A destroyed vehicle burns this long (the presentation shows 60 s of
+# flames, prompt 019) and sets neighbors within `reach_mm` on fire.
+burn_ms = 120000
+reach_mm = 5000
+
+[occupants]
+# Every soldier inside a burning building loses this many hit points per
+# real second (soldier_hp = 100, data/combat.toml). [provisional]
+damage_per_s = 3
+
+# --- Classes -----------------------------------------------------------------
+# Every [[class]]:
+#   ids              catalog ids (data/catalog/neutral.toml)
+#   hit_pct          chance that a hit ([ignite]) sets it on fire
+#   catch_pct        chance per spread roll that a burning neighbor sets it
+#                    on fire
+#   reach_mm         how far its own flames reach (gap between outlines)
+#   burn_ms          how long it burns
+#   burn_hp_pct      share of its intact hit points the fire destroys over
+#                    the burn (100: burns down; stone houses keep their walls)
+#   smoke_radius_mm  radius of its smoke clouds (0: none)
+#   blast_caliber_mm explodes like a shell of this caliber (data/indirect.toml
+#                    [blast]) `fuse_ms` after it caught fire (0: never)
+#   fuse_ms          time from catching fire to the explosion
+
+# Woods: conifers burn best, broadleaf trees less, palms hardly. Reaches
+# cover the tree spacing of generated woods (6.5 m, cli gen-map) and of the
+# editor's wood brushes (4-6 m).
+[[class]]
+ids = ["env_tree_conifer"]
+hit_pct = 25
+catch_pct = 40
+reach_mm = 7000
+burn_ms = 180000
+burn_hp_pct = 100
+smoke_radius_mm = 6000
+
+[[class]]
+ids = ["env_tree_deciduous", "env_tree_birch"]
+hit_pct = 15
+catch_pct = 25
+reach_mm = 6000
+burn_ms = 180000
+burn_hp_pct = 100
+smoke_radius_mm = 6000
+
+[[class]]
+ids = ["env_tree_palm"]
+hit_pct = 10
+catch_pct = 15
+reach_mm = 5000
+burn_ms = 120000
+burn_hp_pct = 100
+
+[[class]]
+ids = ["env_hedge"]
+hit_pct = 10
+catch_pct = 25
+reach_mm = 4000
+burn_ms = 120000
+burn_hp_pct = 100
+
+# Hay and firewood.
+[[class]]
+ids = ["env_hay_bale", "env_hay_bale_square"]
+hit_pct = 60
+catch_pct = 70
+reach_mm = 5000
+burn_ms = 120000
+burn_hp_pct = 100
+smoke_radius_mm = 5000
+
+[[class]]
+ids = ["env_woodpile"]
+hit_pct = 30
+catch_pct = 50
+reach_mm = 4000
+burn_ms = 240000
+burn_hp_pct = 100
+
+# Buildings with timber: they burn down to a ruin.
+[[class]]
+ids = ["env_barn"]
+hit_pct = 30
+catch_pct = 50
+reach_mm = 9000
+burn_ms = 480000
+burn_hp_pct = 100
+smoke_radius_mm = 12000
+
+[[class]]
+ids = ["env_house_farm", "env_house_log"]
+hit_pct = 20
+catch_pct = 35
+reach_mm = 8000
+burn_ms = 600000
+burn_hp_pct = 100
+smoke_radius_mm = 10000
+
+[[class]]
+ids = ["env_house_town", "env_warehouse"]
+hit_pct = 12
+catch_pct = 20
+reach_mm = 8000
+burn_ms = 720000
+burn_hp_pct = 100
+smoke_radius_mm = 12000
+
+# Masonry: roof and floors burn out, the walls stay (damaged stage).
+[[class]]
+ids = ["env_house_farm_brick", "env_house_stone", "env_town_hall"]
+hit_pct = 8
+catch_pct = 10
+reach_mm = 6000
+burn_ms = 480000
+burn_hp_pct = 55
+smoke_radius_mm = 10000
+
+[[class]]
+ids = ["env_church"]
+hit_pct = 5
+catch_pct = 8
+reach_mm = 8000
+burn_ms = 900000
+burn_hp_pct = 45
+smoke_radius_mm = 14000
+
+[[class]]
+ids = ["env_house_mud"]
+hit_pct = 5
+catch_pct = 5
+reach_mm = 4000
+burn_ms = 240000
+burn_hp_pct = 30
+
+# Dumps: ammunition cooks off, fuel drums burst. [provisional]
+[[class]]
+ids = ["env_dump_ammo"]
+hit_pct = 80
+catch_pct = 60
+reach_mm = 6000
+burn_ms = 180000
+burn_hp_pct = 100
+smoke_radius_mm = 8000
+blast_caliber_mm = 150
+fuse_ms = 6000
+
+[[class]]
+ids = ["env_dump_fuel"]
+hit_pct = 90
+catch_pct = 80
+reach_mm = 10000
+burn_ms = 300000
+burn_hp_pct = 100
+smoke_radius_mm = 14000
+blast_caliber_mm = 120
+fuse_ms = 2000
