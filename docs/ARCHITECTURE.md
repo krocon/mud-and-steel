@@ -1106,6 +1106,109 @@ whistle (prompt 029). Muzzle flashes and explosions come from the usual
   objects around the impact point (only the one hit); no counter-battery,
   sound ranging or ammunition limits.
 
+## Fire
+
+Prompt 041. Map objects of a fire class burn: woods, hedges, hay, firewood,
+buildings and supply dumps; destroyed vehicles burn as wrecks. Rules:
+`data/fire.toml` (`sim::FireRules`, loaded by `Sim::new` like the crater and
+indirect-fire rules, in the state hash, not part of `SimConfig`). Code:
+`crates/sim/src/fire.rs` (rules, public types) and
+`crates/sim/src/sim/fire.rs` (the update).
+
+### Rules
+
+Per class (catalog ids): `hit_pct` (a hit sets it on fire), `catch_pct` (a
+burning neighbor does), `reach_mm` (how far its flames reach: the gap
+between the two outlines), `burn_ms`, `burn_hp_pct` (share of its intact
+hit points the fire destroys: timber burns down to a ruin, masonry keeps its
+walls and ends damaged), `smoke_radius_mm`, and for dumps `blast_caliber_mm`
+with `fuse_ms`. Every class id must have hit points in
+`data/destruction.toml`: fire damages objects only through them (cause
+`ObjectCause::Fire`), so ruins, felled trees, path and vision cells follow
+exactly as for shell hits (prompt 020). Hay, firewood and dumps got
+destruction classes for that (they block nothing, so no round hits them).
+
+### Per tick
+
+`update_fire` runs after `fly_shells` and before `apply_destruction`:
+
+1. **Ignition** from this tick's combat events: a `Hit` on an object with
+   at least `min_caliber_mm` rolls the object's `hit_pct`; a ground hit of
+   at least `burst_min_caliber_mm` rolls it for every burning-capable object
+   whose outline lies within `burst_radius_mm` (artillery into a wood rarely
+   hits a trunk); a `Destroyed` vehicle (not infantry) becomes a burning
+   wreck for `wreck.burn_ms`. Destroyed and burnt-out objects never ignite.
+2. **Dumps** whose fuse ran out explode: `Sim::detonate` fires the blast of
+   an HE shell of `blast_caliber_mm` at the dump (fragments, open vehicles,
+   crater; prompt 032 rules), the dump is destroyed (charred remains) and
+   burns on; objects within half the blast radius roll `catch_pct`
+   (chain reactions between dumps).
+3. **Interval step**, once per `spread.interval_ms` for every fire, on a
+   tick chosen by its object index or wreck unit id, so a large fire spreads
+   its work over the ticks: damage in proportion to the burn time passed;
+   burnt-out fires (into `burnt`); spreading: one roll per burning-capable
+   neighbor within reach (destruction buckets, ascending index) unless a
+   `firebreak` terrain (road, water) lies on one of three points of the gap;
+   soldiers in a burning building lose `occupants.damage_per_s`; smoke:
+   every `smoke.interval_ms` a dark cloud (prompt 032 clouds with
+   `dark = true`: drift, sight blocking) next to the fire on the downwind
+   side, at most `smoke.max_clouds` fire clouds.
+4. Ignition from the events steps 2 and 3 caused (wrecks of vehicles the
+   blasts destroyed).
+
+Rolls use the match's random generator in index order and only when there
+is something to roll for. Burning objects (who started them, start, end,
+damage dealt, fuse, next smoke), wrecks, burnt-out objects and fire clouds
+are fields of `Sim`: in the state hash and in the save snapshot (prompt
+038; `crates/net/tests/fire_snapshot.rs` restores a burning wood with a
+running fuse). `Sim::ignite_object` sets an object on fire directly (tests,
+tools; a state change like a command).
+
+### Bridge and Godot
+
+`SimHost.fires` (position, flame radius), `fire_keys` (object index, or
+`-1 - unit id` for wrecks), `fire_life`, `burnt_objects`, `smoke_dark`;
+object states carry `burnt` and the cause `"fire"`. `world/fire_view.gd`
+draws flames sized to the object (the `fire` particles of prompt 019), a
+dark smoke column and a flickering light within the quality budget
+(`fx_fires` × 3 fires with particles, `fx_fire_lights` lights; the light
+carries at night); flames die down in the last fifth. Burnt-out objects are
+drawn charred: `map_objects.set_charred` sets the instance uniform
+`env_char` of the environment shaders (`charred()` in
+`env_common.gdshaderinc`); an object destroyed by fire is sooty at once.
+Fire clouds are drawn dark by `artillery_view.gd`; wrecks keep their flames
+from `effects.gd`.
+
+### Measurements (`just fire-bench`, Apple M1 Max, release)
+
+`town_small`, 40 units per side driving into the town, 6000 ticks (5 min):
+without fire 0.09 ms per tick (worst 3.8 ms); with every tenth conifer of
+the west wood, a terrace of town houses and all four dumps set on fire (81
+fires, up to 673 burning at once, 665 burnt out) 1.7 ms per tick, worst
+19.8 ms (budget 50 ms). Before the interval steps were spread over the
+ticks the worst tick was 41 ms.
+
+### Decisions
+
+| Topic | Decision | Why |
+|---|---|---|
+| Damage | Through the hit points of prompt 020 | Ruins, felled trees, paths and sight are solved there. |
+| Spread | One roll per neighbor and interval, reach as a gap between outlines, firebreak terrain | Deterministic, cheap with the destruction buckets; a road stops a fire. |
+| Explosions | The blast of an HE shell (prompt 032) | No second damage model. |
+| Smoke | Clouds of prompt 032, downwind of the fire, capped | Sight blocking for free; the burning object stays visible. |
+| Wind | Not in the spread yet | Weather comes with prompt 040. |
+
+### Open
+
+- Provisional values (marked in `data/fire.toml`): every chance, reach,
+  burn time, the occupant damage, smoke and the dump blasts.
+- Flamethrowers do not ignite anything: they have no simulation weapon yet.
+- Wind does not bias the spread; fires do not jump across roads even in a
+  gale; infantry is not set on fire and does not avoid fires; burning
+  buildings can still be entered; the AI ignores fires.
+- Burning objects are not extinguished; wrecks burn as long as the
+  presentation's flames, independent of fuel or ammunition on board.
+
 ## Victory conditions and game flow
 
 Prompt 027. `crates/sim/src/outcome.rs` decides the match; Godot only shows it.
