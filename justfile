@@ -254,6 +254,11 @@ test-maps:
 gen-town:
     cargo run -q --release -p cli -- gen-town
 
+# Generate the desert village map (prompt 059) into data/maps/desert_village/
+[group('maps')]
+gen-village:
+    cargo run -q --release -p cli -- gen-village
+
 # Fire benchmark on the town map (prompt 041): ticks without and with a burning wood, terrace and dumps
 [group('maps')]
 fire-bench units="40" ticks="6000":

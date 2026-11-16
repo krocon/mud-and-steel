@@ -8,6 +8,7 @@ mod fire_bench;
 mod gen_map;
 mod gen_textures;
 mod gen_town;
+mod gen_village;
 mod infantry_bench;
 mod lan;
 mod path_bench;
@@ -97,6 +98,18 @@ enum CliCommand {
         /// Start positions for 2, 4 or 6 players in two teams (prompt 037).
         #[arg(long, default_value_t = 2, value_parser = clap::value_parser!(u8).range(2..=6))]
         players: u8,
+    },
+    /// Generates the desert village map (prompt 059): courtyard compounds,
+    /// square with mosque and market, oasis, police post; two or four players.
+    GenVillage {
+        /// Map name, written into map.toml.
+        #[arg(long, default_value = "desert_village")]
+        name: String,
+        #[arg(long, default_value_t = 59)]
+        seed: u64,
+        /// Output folder (default: data/maps/<name>).
+        #[arg(long)]
+        out: Option<PathBuf>,
     },
     /// Generates the small-town map (prompt 041): market square, terraces,
     /// warehouses, farms, woods and supply dumps.
@@ -518,6 +531,18 @@ fn main() {
                 out: &out,
             };
             match gen_map::generate(&options) {
+                Ok(report) => println!("{report}"),
+                Err(e) => fail(&e),
+            }
+        }
+        CliCommand::GenVillage { name, seed, out } => {
+            let out = out.unwrap_or_else(|| Path::new(MAPS_DIR).join(&name));
+            let options = gen_village::Options {
+                name: &name,
+                seed,
+                out: &out,
+            };
+            match gen_village::generate(&options) {
                 Ok(report) => println!("{report}"),
                 Err(e) => fail(&e),
             }
