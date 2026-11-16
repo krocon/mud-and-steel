@@ -19,64 +19,20 @@ impl SimHost {
     /// Returns `false` (and logs why) if the mission is invalid.
     #[func]
     fn start_mission(&mut self, seed: i64, mission_path: GString) -> bool {
-        let path = mission_path.to_string();
-        let result = (|| -> Result<_, String> {
-            let file = Path::new(&path);
-            let text = std::fs::read_to_string(file).map_err(|e| e.to_string())?;
-            let id = file
-                .file_stem()
-                .map(|s| s.to_string_lossy().into_owned())
-                .unwrap_or_default();
-            // <map>/missions/<id>.toml
-            let map_dir = file
-                .parent()
-                .and_then(Path::parent)
-                .ok_or("a mission lies in <map>/missions/")?;
-            let map_name = map_dir
-                .file_name()
-                .map(|s| s.to_string_lossy().into_owned())
-                .unwrap_or_default();
-            let map = if map_name == BUILTIN_MAP_NAME {
-                builtin_map()
-            } else {
-                Arc::new(load_map_dir(map_dir)?)
-            };
-            let points = std::fs::read_to_string(map_dir.join(POINTS_FILE)).ok();
-            let catalog = Catalog::builtin().map_err(|e| e.to_string())?;
-            let scale = Scale::builtin().map_err(|e| e.to_string())?;
-            let terrain = TerrainRules::builtin().map_err(|e| e.to_string())?;
-            let config = parse_mission(
-                &id,
-                &text,
-                points.as_deref(),
-                &catalog,
-                &scale,
-                &terrain,
-                &map,
-            )
-            .map_err(|e| e.to_string())?;
-            Ok((map, config))
-        })();
-        let (map, config) = match result {
-            Ok(started) => started,
-            Err(e) => {
-                godot_error!("cannot start mission {path}: {e}");
-                return false;
-            }
-        };
-        let mission = config.mission.clone().unwrap_or_else(|| unreachable!());
-        self.computers.clear();
-        for (player, difficulty) in &mission.computers {
-            match difficulty.parse() {
-                Ok(d) => self.computers.push((*player, d)),
-                Err(e) => {
-                    godot_error!("{e}; player {} gets no orders", player.0);
-                }
-            }
-        }
-        // Players without a computer give no orders (training targets).
-        self.ai_opponent = GString::new();
-        self.start_config(seed, map, config)
+        self.start_mission_file(seed, &mission_path.to_string(), None)
+    }
+
+    /// Like `start_mission`, for a script that does not lie next to its map:
+    /// `mission_path` (absolute) runs on the map in `map_dir`. For scripted
+    /// recordings (`data/trailer/`, prompt 070), which are no missions of
+    /// the menu.
+    #[func]
+    fn start_mission_on(&mut self, seed: i64, mission_path: GString, map_dir: GString) -> bool {
+        self.start_mission_file(
+            seed,
+            &mission_path.to_string(),
+            Some(Path::new(&map_dir.to_string())),
+        )
     }
 
     /// Every text of a mission file the player reads (title, briefing,
@@ -288,5 +244,72 @@ impl MapEditor {
             });
         }
         out
+    }
+}
+
+impl SimHost {
+    /// Starts the mission file `path` on the map in `map_dir`, or on the map
+    /// the file lies next to (`<map>/missions/<id>.toml`).
+    fn start_mission_file(&mut self, seed: i64, path: &str, map_dir: Option<&Path>) -> bool {
+        let result = (|| -> Result<_, String> {
+            let file = Path::new(path);
+            let text = std::fs::read_to_string(file).map_err(|e| e.to_string())?;
+            let id = file
+                .file_stem()
+                .map(|s| s.to_string_lossy().into_owned())
+                .unwrap_or_default();
+            let map_dir = match map_dir {
+                Some(dir) => dir,
+                // <map>/missions/<id>.toml
+                None => file
+                    .parent()
+                    .and_then(Path::parent)
+                    .ok_or("a mission lies in <map>/missions/")?,
+            };
+            let map_name = map_dir
+                .file_name()
+                .map(|s| s.to_string_lossy().into_owned())
+                .unwrap_or_default();
+            let map = if map_name == BUILTIN_MAP_NAME {
+                builtin_map()
+            } else {
+                Arc::new(load_map_dir(map_dir)?)
+            };
+            let points = std::fs::read_to_string(map_dir.join(POINTS_FILE)).ok();
+            let catalog = Catalog::builtin().map_err(|e| e.to_string())?;
+            let scale = Scale::builtin().map_err(|e| e.to_string())?;
+            let terrain = TerrainRules::builtin().map_err(|e| e.to_string())?;
+            let config = parse_mission(
+                &id,
+                &text,
+                points.as_deref(),
+                &catalog,
+                &scale,
+                &terrain,
+                &map,
+            )
+            .map_err(|e| e.to_string())?;
+            Ok((map, config))
+        })();
+        let (map, config) = match result {
+            Ok(started) => started,
+            Err(e) => {
+                godot_error!("cannot start mission {path}: {e}");
+                return false;
+            }
+        };
+        let mission = config.mission.clone().unwrap_or_else(|| unreachable!());
+        self.computers.clear();
+        for (player, difficulty) in &mission.computers {
+            match difficulty.parse() {
+                Ok(d) => self.computers.push((*player, d)),
+                Err(e) => {
+                    godot_error!("{e}; player {} gets no orders", player.0);
+                }
+            }
+        }
+        // Players without a computer give no orders (training targets).
+        self.ai_opponent = GString::new();
+        self.start_config(seed, map, config)
     }
 }

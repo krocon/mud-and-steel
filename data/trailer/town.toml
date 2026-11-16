@@ -1,0 +1,83 @@
+# Trailer scene (prompt 070): US riflemen with light armour fight German infantry, a machine gun and
+# an anti-tank gun for the square of `town_small`.
+# Format: docs/MISSIONS.md; played by godot/scenes/tools/trailer_shots.gd.
+
+[mission]
+title = "Trailer: town"
+player = 0
+elimination = false
+
+[[spawn]]
+name = "square"
+position_m = [0, 0]
+
+[[spawn]]
+name = "south_street"
+position_m = [0, 60]
+
+[[group]]
+name = "gis"
+owner = 0
+unit = "us_inf_rifle_squad"
+count = 2
+position_m = [0, 58]
+spacing_m = 14
+
+[[group]]
+name = "gi_mg"
+owner = 0
+unit = "us_inf_mg_team"
+count = 1
+position_m = [14, 78]
+
+[[group]]
+name = "stuarts"
+owner = 0
+unit = "us_m5a1"
+count = 2
+position_m = [0, 230]
+
+[[group]]
+name = "greyhound"
+owner = 0
+unit = "us_m8_greyhound"
+count = 1
+position_m = [0, 262]
+
+[[group]]
+name = "grenadiers"
+owner = 1
+unit = "de_inf_rifle_squad"
+count = 3
+position_m = [0, -20]
+
+[[group]]
+name = "mg"
+owner = 1
+unit = "de_inf_mg42_team"
+count = 1
+position_m = [8, -5]
+
+[[group]]
+name = "pak"
+owner = 1
+unit = "de_pak40"
+count = 1
+position_m = [-4, -45]
+
+[[group]]
+name = "scout"
+owner = 1
+unit = "de_sdkfz222"
+count = 1
+position_m = [20, -60]
+
+[[trigger]]
+id = "go"
+when = "time"
+actions = [
+  { do = "order", group = "gis", to = "square", order = "advance" },
+  { do = "order", group = "gi_mg", to = "south_street", order = "advance" },
+  { do = "order", group = "stuarts", to = "square", order = "advance" },
+  { do = "order", group = "greyhound", to = "south_street", order = "advance" },
+]

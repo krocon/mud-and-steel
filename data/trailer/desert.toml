@@ -1,0 +1,89 @@
+# Trailer scene (prompt 070): US tanks and riflemen drive north into `desert_village`; German guns,
+# tanks and infantry hold it.
+# Format: docs/MISSIONS.md; played by godot/scenes/tools/trailer_shots.gd.
+
+[mission]
+title = "Trailer: desert"
+player = 0
+elimination = false
+
+[[spawn]]
+name = "square"
+position_m = [0, 0]
+
+[[spawn]]
+name = "edge"
+position_m = [0, 90]
+
+[[group]]
+name = "shermans"
+owner = 0
+unit = "us_m4a3_75"
+count = 5
+position_m = [0, 300]
+
+[[group]]
+name = "m10s"
+owner = 0
+unit = "us_m10"
+count = 2
+position_m = [30, 330]
+
+[[group]]
+name = "halftracks"
+owner = 0
+unit = "us_m3_halftrack"
+count = 2
+position_m = [-20, 340]
+
+[[group]]
+name = "gis"
+owner = 0
+unit = "us_inf_rifle_squad"
+count = 3
+position_m = [0, 230]
+
+[[group]]
+name = "paks"
+owner = 1
+unit = "de_pak40"
+count = 2
+position_m = [12, 30]
+
+[[group]]
+name = "stug"
+owner = 1
+unit = "de_stug3_g"
+count = 1
+position_m = [-40, -10]
+
+[[group]]
+name = "panzers"
+owner = 1
+unit = "de_pz4_h"
+count = 2
+position_m = [50, -40]
+
+[[group]]
+name = "mg"
+owner = 1
+unit = "de_inf_mg42_team"
+count = 1
+position_m = [-20, 40]
+
+[[group]]
+name = "grenadiers"
+owner = 1
+unit = "de_inf_rifle_squad"
+count = 2
+position_m = [20, 10]
+
+[[trigger]]
+id = "go"
+when = "time"
+actions = [
+  { do = "order", group = "shermans", to = "square", order = "advance" },
+  { do = "order", group = "m10s", to = "edge", order = "advance" },
+  { do = "order", group = "halftracks", to = "edge", order = "advance" },
+  { do = "order", group = "gis", to = "square", order = "advance" },
+]

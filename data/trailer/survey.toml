@@ -1,0 +1,21 @@
+# Trailer tool (prompt 070): an almost empty scene to look at a map from
+# above while planning shots (`--trailer=survey_<map>`).
+
+[mission]
+title = "Trailer: survey"
+player = 0
+elimination = false
+
+[[group]]
+name = "a"
+owner = 0
+unit = "de_opel_blitz"
+count = 1
+position_m = [0, 0]
+
+[[group]]
+name = "b"
+owner = 1
+unit = "su_zis5"
+count = 1
+position_m = [10, 0]

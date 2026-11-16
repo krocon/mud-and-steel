@@ -2245,7 +2245,7 @@ main menu ── Single player ─ setup (map, season, factions, opponent, mode)
   steps (simulation and path grid, terrain, atmosphere, map objects) and
   waits a frame after each behind `menu/loading_screen.gd`; the simulation and
   the HUD are disabled until it is done. `test_large` loads in about 1.6 s
-  (debug bridge, M1 Max). Direct starts (`--map`, `--demo`, benchmarks,
+  (debug bridge, M1 Max). Direct starts (`--map`, `--trailer`, benchmarks,
   `--skip-menu`) skip the menu and load in one frame as before.
 - `menu/game_menu.gd`: **Esc** opens the pause menu. In single player it
   pauses the scene tree (simulation, camera, units); multiplayer cannot pause
@@ -3743,6 +3743,38 @@ Perspective was chosen over orthographic: depth and height read better, the view
 the slightly perspective look of the style references, and zoom works by moving the
 camera, which makes pitch changes and distance-based shadows and LOD natural. The small
 field of view keeps distortion low.
+
+## Trailer recordings (presentation only)
+
+`just trailer-shots [--only=<shot>,…] [--stills]` records the shots of the demo video
+(prompt 070) as `build/trailer/<shot>.avi`: 1920 × 1080, 60 frames per second, picture
+and sound, written by Godot's Movie Maker (`--write-movie`, `--fixed-fps 60`; the
+`movie` overrides in `project.godot` set the size).
+
+- **Shots** are a table in `godot/scenes/tools/trailer_shots.gd`: map, scene, seed,
+  start time, length, weather and time of day, HUD on or off, and camera keys (look-at
+  point or unit, distance, yaw, pitch, field of view), interpolated with Catmull-Rom.
+  `main.gd` starts the tool with `-- --trailer=<shot>`.
+- **Scenes** are mission scripts in `data/trailer/<scene>.toml` ([MISSIONS.md](MISSIONS.md)):
+  groups and `order` actions, nothing else. They are no missions of the menu;
+  `SimHost.start_mission_on(seed, script, map_dir)` runs one on a map it does not lie
+  next to. The simulation is untouched: who hits whom is decided by the rules, the
+  shot only picks seed, moment and camera. Several shots show one scene from other
+  angles (same script, seed, weather).
+- **Run-up:** the tool runs the simulation at high speed and muted to two seconds
+  before the shot's start, then at normal speed. Movie Maker writes from the first
+  frame, so the tool prints the first frame of the shot and `tools/trailer-shots.sh`
+  cuts the run-up off with ffmpeg (stream copy, exact to the frame).
+- **Camera:** the rig stands still (no input, no edge scrolling); the tool places the
+  `Camera3D` itself, lower and flatter than the game allows, and hands focus and
+  distance to the rig, which haze, depth of field and sound follow. Without `hud` the
+  interface is off: HUD layer, health bars, fog of war, relation tint, supply point
+  markers; pause menu and result screen are always off.
+- **Sound:** fixed bus volumes with 9 dB headroom, no music (a cut would chop it).
+- **Finding a shot:** `-- --trailer=<shot> --trailer-scout=<seconds>` (headless, with
+  `--fixed-fps 60`) plays the shot's scene without a camera and prints every destroyed
+  unit with time and place, shots and hits per five seconds and where the groups
+  stand; the `survey_<map>` shots show a map from above.
 
 ## Data flow (multiplayer)
 

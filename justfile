@@ -497,6 +497,11 @@ blast-shots dir="build/explosions": build
 strike-shots dir="build/explosions": build
     {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- --mode=base --strike-live "--blast-shots={{ justfile_directory() }}/{{ dir }}"
 
+# Record the trailer shots of scenes/tools/trailer_shots.gd as build/trailer/<shot>.avi (1920 x 1080, 60 fps, with sound; prompt 070); `--only=<shot>,<shot>` records some, `--stills` saves still pictures to build/trailer/stills/ instead (needs a window, bash and ffmpeg)
+[group('godot')]
+trailer-shots *args: build
+    bash tools/trailer-shots.sh {{ args }}
+
 # Measure the frame rate with 50 explosions at once in every graphics quality (opens a window)
 [group('godot')]
 effects-bench: build

@@ -1,0 +1,89 @@
+# Trailer scene (prompt 070): Soviet heavy tanks and riflemen advance through the snow on
+# `winter_village`; German tanks and a gun wait at its southern edge.
+# Format: docs/MISSIONS.md; played by godot/scenes/tools/trailer_shots.gd.
+
+[mission]
+title = "Trailer: winter"
+player = 0
+elimination = false
+
+[[spawn]]
+name = "village"
+position_m = [0, 0]
+
+[[spawn]]
+name = "approach"
+position_m = [0, 150]
+
+[[group]]
+name = "is2s"
+owner = 0
+unit = "su_is2"
+count = 2
+position_m = [0, 380]
+
+[[group]]
+name = "t34s"
+owner = 0
+unit = "su_t34_76_1943"
+count = 5
+position_m = [10, 420]
+
+[[group]]
+name = "su76s"
+owner = 0
+unit = "su_su76m"
+count = 2
+position_m = [-30, 440]
+
+[[group]]
+name = "riflemen"
+owner = 0
+unit = "su_inf_rifle_squad"
+count = 3
+position_m = [0, 330]
+
+[[group]]
+name = "tiger"
+owner = 1
+unit = "de_tiger1_e"
+count = 1
+position_m = [-10, 50]
+
+[[group]]
+name = "stugs"
+owner = 1
+unit = "de_stug3_g"
+count = 2
+position_m = [40, 70]
+
+[[group]]
+name = "panzers"
+owner = 1
+unit = "de_pz4_h"
+count = 2
+position_m = [-60, 40]
+
+[[group]]
+name = "pak"
+owner = 1
+unit = "de_pak40"
+count = 1
+position_m = [15, 95]
+
+[[group]]
+name = "grenadiers"
+owner = 1
+unit = "de_inf_rifle_squad"
+count = 2
+position_m = [-20, 80]
+
+[[trigger]]
+id = "go"
+when = "time"
+actions = [
+  { do = "order", group = "is2s", to = "village", order = "advance" },
+  { do = "order", group = "t34s", to = "village", order = "advance" },
+  { do = "order", group = "su76s", to = "approach", order = "advance" },
+  { do = "order", group = "riflemen", to = "village", order = "advance" },
+]

@@ -16,8 +16,9 @@ extends Node3D
 ## Start with `-- --self-test` to drive camera, selection and orders
 ## automatically and quit with exit code 0 (pass) or 1 (fail); see
 ## `self_test.gd`. Start with `-- --camera-shots` (together with
-## `--write-movie`) to record three fixed camera views, or with `-- --demo` to
-## play the scripted demo in `tools/demo_reel.gd`. `-- --terrain-bench`
+## `--write-movie`) to record three fixed camera views, or with
+## `-- --trailer=<shot>` to play a scripted recording of
+## `tools/trailer_shots.gd` (prompt 070). `-- --terrain-bench`
 ## measures frame rate and draw calls (`tools/terrain_bench.gd`). F3 opens the
 ## debug menu (`debug/debug_menu.gd`); `-- --objects-bench` / `--objects-shots`
 ## measure and record the map objects (`tools/objects_bench.gd`); F4 / F5 show the path cost grid and the
@@ -61,7 +62,7 @@ extends Node3D
 
 const UNIT_SCENE: PackedScene = preload("res://scenes/unit.tscn")
 const SelfTest := preload("res://scenes/self_test.gd")
-const DemoReel := preload("res://scenes/tools/demo_reel.gd")
+const TrailerShots := preload("res://scenes/tools/trailer_shots.gd")
 const TerrainBench := preload("res://scenes/tools/terrain_bench.gd")
 const DebugMenu := preload("res://scenes/debug/debug_menu.gd")
 const GroundPick := preload("res://scenes/camera/ground_pick.gd")
@@ -357,7 +358,8 @@ func _ready() -> void:
 	hud.setup(self)
 	air_view.setup_hud(hud)
 	strike_view.setup_hud(hud)
-	if sim_host.mission_info()["active"]:
+	# A trailer scene is a mission script, but nobody plays it (prompt 070).
+	if sim_host.mission_info()["active"] and TrailerShots.requested().is_empty():
 		mission_hud = MissionHud.new()
 		$Hud.add_child(mission_hud)
 		mission_hud.setup(self)
@@ -446,10 +448,10 @@ func _ready() -> void:
 			var position_shots := PositionShots.new()
 			position_shots.main = self
 			add_child(position_shots)
-	if "--demo" in OS.get_cmdline_user_args():
-		var demo := DemoReel.new()
-		demo.main = self
-		add_child(demo)
+	if not TrailerShots.requested().is_empty():
+		var trailer := TrailerShots.new()
+		trailer.main = self
+		add_child(trailer)
 
 
 func _process(delta: float) -> void:
@@ -530,6 +532,9 @@ func _start_simulation() -> bool:
 			sim_host.daytime = arg.trim_prefix("--daytime=")
 	if GameFiles.is_pending(MatchSetup.pending):
 		return GameFiles.start(sim_host, MatchSetup.pending)
+	# Scripted recordings bring their own scene (prompt 070).
+	if MatchSetup.pending.is_empty() and not TrailerShots.requested().is_empty():
+		return TrailerShots.start(sim_host)
 	# Missions and the tutorial (prompt 039) start with fire at will.
 	if MatchSetup.pending.has("mission"):
 		sim_host.hold_fire_at_start = false

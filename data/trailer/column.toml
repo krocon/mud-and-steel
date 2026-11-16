@@ -1,0 +1,62 @@
+# Trailer scene (prompt 070): a German tank column drives north on the road across `farms` and meets
+# Soviet tanks that come south.
+# Format: docs/MISSIONS.md; played by godot/scenes/tools/trailer_shots.gd.
+
+[mission]
+title = "Trailer: column"
+player = 0
+elimination = false
+
+[[spawn]]
+name = "fields"
+position_m = [0, 150]
+
+[[spawn]]
+name = "farm"
+position_m = [-10, 40]
+
+[[group]]
+name = "panzers"
+owner = 0
+unit = "de_pz4_h"
+count = 6
+position_m = [0, 440]
+
+[[group]]
+name = "carriers"
+owner = 0
+unit = "de_sdkfz251_1"
+count = 2
+position_m = [0, 475]
+
+[[group]]
+name = "t34s"
+owner = 1
+unit = "su_t34_76_1943"
+count = 6
+position_m = [-20, -230]
+
+[[trigger]]
+id = "go"
+when = "time"
+actions = [
+  { do = "order", group = "panzers", to = "fields", order = "move" },
+  { do = "order", group = "carriers", to = "fields", order = "move" },
+]
+
+[[trigger]]
+id = "soviets"
+when = "time"
+delay_s = 16
+actions = [
+  { do = "order", group = "t34s", to = "farm", order = "advance" },
+]
+
+[[trigger]]
+id = "attack"
+when = "time"
+delay_s = 26
+actions = [
+  { do = "order", group = "panzers", to = "farm", order = "advance" },
+  { do = "order", group = "carriers", to = "fields", order = "advance" },
+]

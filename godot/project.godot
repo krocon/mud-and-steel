@@ -24,6 +24,12 @@ file_logging/max_log_files=10
 
 window/size/viewport_width=1600
 window/size/viewport_height=900
+window/size/viewport_width.movie=1920
+window/size/viewport_height.movie=1080
+
+[editor]
+
+movie_writer/mjpeg_quality=0.93
 
 [rendering]
 

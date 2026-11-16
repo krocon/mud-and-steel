@@ -1,0 +1,103 @@
+# Trailer scene (prompt 070): Soviet tanks and riflemen attack across the stone bridge of `river_land`;
+# German tanks, assault guns and anti-tank guns hold the west bank.
+# Format: docs/MISSIONS.md; played by godot/scenes/tools/trailer_shots.gd.
+
+[mission]
+title = "Trailer: bridge"
+player = 0
+elimination = false
+
+[[spawn]]
+name = "west_bank"
+position_m = [-50, 0]
+
+[[spawn]]
+name = "village_west"
+position_m = [-120, 1]
+
+[[spawn]]
+name = "east_bank"
+position_m = [60, 1]
+
+[[group]]
+name = "panzers"
+owner = 0
+unit = "de_pz4_h"
+count = 4
+position_m = [-260, 0]
+
+[[group]]
+name = "tiger"
+owner = 0
+unit = "de_tiger1_e"
+count = 1
+position_m = [-290, 0]
+
+[[group]]
+name = "stugs"
+owner = 0
+unit = "de_stug3_g"
+count = 2
+position_m = [-230, 30]
+
+[[group]]
+name = "paks"
+owner = 0
+unit = "de_pak40"
+count = 2
+position_m = [-70, 28]
+
+[[group]]
+name = "grenadiers"
+owner = 0
+unit = "de_inf_rifle_squad"
+count = 2
+position_m = [-80, -25]
+
+[[group]]
+name = "mg"
+owner = 0
+unit = "de_inf_mg42_team"
+count = 1
+position_m = [-60, -18]
+
+[[group]]
+name = "t34s"
+owner = 1
+unit = "su_t34_76_1943"
+count = 8
+position_m = [280, 10]
+
+[[group]]
+name = "su85s"
+owner = 1
+unit = "su_su85"
+count = 2
+position_m = [320, 30]
+
+[[group]]
+name = "is2"
+owner = 1
+unit = "su_is2"
+count = 1
+position_m = [340, 0]
+
+[[group]]
+name = "riflemen"
+owner = 1
+unit = "su_inf_rifle_squad"
+count = 3
+position_m = [240, -10]
+
+[[trigger]]
+id = "go"
+when = "time"
+actions = [
+  { do = "order", group = "panzers", to = "west_bank", order = "advance" },
+  { do = "order", group = "stugs", to = "west_bank", order = "advance" },
+  { do = "order", group = "tiger", to = "west_bank", order = "advance" },
+  { do = "order", group = "t34s", to = "village_west", order = "advance" },
+  { do = "order", group = "su85s", to = "east_bank", order = "advance" },
+  { do = "order", group = "is2", to = "village_west", order = "advance" },
+  { do = "order", group = "riflemen", to = "village_west", order = "advance" },
+]

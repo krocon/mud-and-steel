@@ -64,6 +64,7 @@ just bench / just bench-view  # overall benchmark: simulation / frame rate (docs
 just catalog-doc           # regenerate docs/UNIT_CATALOG.md after catalog changes
 just vehicle-db / just vehicle-db-check  # write data/vehicles/*.json from the reference folder / check it against the catalog
 just units-web             # unit browser in the web browser: pictures, 3D models, values (web/units/)
+just trailer-shots         # record the demo video's shots to build/trailer/ (--only=<shot>, --stills; docs/ARCHITECTURE.md)
 just export / just export-selftest  # exported .pck and its self-test; release builds: docs/RELEASE.md
 just export-model assets-src/blender/X.blend
 just model-tank            # regenerate placeholder tank
