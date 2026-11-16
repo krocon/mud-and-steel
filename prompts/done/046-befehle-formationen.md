@@ -77,6 +77,10 @@ wie ich es teste, Messwerte, was offen ist.
 | 12 | HUD: Formationswahl als erste zwei Zellen der Befehlsleiste (5 statt 4 Spalten, damit sie nicht höher wird; Taste `,` schaltet weiter), Zielbefehle „Advance“ = Angriffsbewegung (Taste Y) und „Secure“ (Taste I) [provisional]; M bleibt „reine Bewegung“ (auch Infanterie hält nicht an). Ziehen mit rechts zeigt einen Pfeil; Sicherungskreise und Angriffsbewegungswege zeigt das Wegpunkt-Overlay. | Freie Tasten, alle neu belegbar. Eine höhere Leiste hätte Klickpunkte des Selbsttests und der Karte verdeckt. |
 | 13 | KI (Normal, Schwer): Vormarsch zu Sichtung/Gegnerbasis/Versorgungspunkt als `FormationMove` mit `engage = All`, Formation Auto, Blickrichtung zum Ziel; Sammelpunkt vor dem Angriff mit Blick zur Gegnerbasis. Leicht bleibt bei `MoveTo` [provisional]. | „KI nutzt Angriffsbewegung und Ausrichtung zum Gegner“; Leicht soll leicht bleiben. |
 
+**Ergebnis:** `just check`, `just selftest`, `just lan-selftest`, `just editor-selftest` grün; Golden-Hash unverändert (`0x1971_0235_5cc0_0b3e`). Kurzes KI-Turnier (`--matrix --games 10`): hard vs normal 50 : 50, normal vs easy 50 : 50, alle gegen passiv 100 %.
+
+**Offen:** Formation unterwegs neu wählen (Auto nur beim Befehl); Angriffsbewegung als Wegpunkt (Shift) setzt noch einfache Wegpunkte; Trupp-Namen; Formationsvorschau beim Ziehen (nur Pfeil); 047 baut auf `Engage`/`Drill` auf.
+
 **Umsetzung und Erfahrungen:**
 
 - Ein Keil aus 8 Panzern ohne Begrenzung war 120 m breit; die Selbsttest-
