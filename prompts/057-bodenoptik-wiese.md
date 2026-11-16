@@ -34,7 +34,23 @@ Nutzers (nicht im Repo): nur die Wirkung zählt, nichts wird übernommen.
    (GPU-Partikel/MultiMesh mit Wind) die Wiese nah besser machen als die Büschel aus 013.
 5. **Übergänge:** Wege mit ausgefransten Rändern, Fahrspuren mit plattgedrücktem Gras,
    Krater (021) mit Erdauswurf.
-6. **Vorher/Nachher-Bilder** in den Abschlussbericht.
+6. **Nahaufnahme** (zweiter Screenshot des Nutzers, nächste Zoomstufe): Dort trägt die
+   Wirkung vor allem
+   - **einzelne Halmbüschel** in unterschiedlicher Höhe und Neigung, dicht und ohne
+     sichtbares Raster, mit hellen Spitzen und dunklem Grund dazwischen;
+   - **verstreute kleine Blüten** (weiße Gänseblümchen, gelber Löwenzahn) als winzige
+     flache Punkte über die ganze Fläche, unregelmäßig in lockeren Gruppen; nach Biom
+     und Jahreszeit (keine Blüten im Winter und in der Wüste);
+   - **dunkle Erdflecken** und kahle Stellen, Fußspuren/Schleifspuren, wo Soldaten
+     gelaufen oder gekrochen sind (Darstellung, verblassen langsam);
+   - **lange, weiche Schatten** von Gebäuden, Mauern und Bäumen, die das Gras deutlich
+     abdunkeln, und Gras, das selbst Schatten wirft bzw. Kontaktschatten an Objekten;
+   - **Tiefenunschärfe** an den Bildrändern bei naher Zoomstufe (Tilt-Shift-Wirkung),
+     abschaltbar in den Einstellungen.
+   Halme, Blüten und Spuren müssen sich mit Wind (013) und mit den Budgets aus 016
+   vertragen; Blüten als Teil des Bodenshaders oder als billige Instanzen, nicht als
+   eigene Nodes.
+7. **Vorher/Nachher-Bilder** aus allen Zoomstufen in den Abschlussbericht.
 
 ## 4. Akzeptanzkriterien
 
