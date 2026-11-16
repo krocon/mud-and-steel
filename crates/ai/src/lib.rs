@@ -197,6 +197,9 @@ struct TypeInfo {
     tows: bool,
     power_hp: u32,
     mass_kg: u32,
+    /// A crew that bailed out of a destroyed vehicle (prompt 049): own
+    /// crews stay where they are, enemy crews are no target or objective.
+    crew: bool,
 }
 
 /// Where an enemy unit was last seen.
@@ -285,6 +288,9 @@ const RETREAT_M: i32 = 80;
 /// Orders are repeated after this many ticks: units drop attack orders on
 /// targets they lose sight of, and moves can end early.
 const REISSUE_TICKS: u64 = 100;
+/// Own bailed-out crews farther than this from home walk back (prompt 049).
+const CREW_HOME_M: i32 = 40;
+
 /// Groups engage enemies within this share of their sight range (percent).
 const ENGAGE_SIGHT_PCT: i64 = 100;
 
@@ -415,8 +421,11 @@ impl Ai {
                     .is_some_and(|r| r.gun(category).is_some());
                 let tows = carrier.is_some_and(|c| c.tows) && t.transport.power_hp > 0;
                 let truck = carrier.is_some_and(|c| c.riders == 0) && (seats > 0 || tows);
+                let crew = sim::care::is_crew(t);
                 let role = if !t.mobile() {
                     Role::Structure
+                } else if crew {
+                    Role::Unarmed
                 } else if gun {
                     Role::Gun
                 } else if truck {
@@ -446,6 +455,7 @@ impl Ai {
                     tows,
                     power_hp: t.transport.power_hp,
                     mass_kg: t.mass_kg,
+                    crew,
                 }
             })
             .collect();
@@ -639,10 +649,28 @@ impl Ai {
             match role {
                 Role::Armor | Role::Infantry => self.command_group(role, &units, view, &mut out),
                 Role::Artillery => self.command_artillery(&units, view, &mut out),
-                Role::Unarmed | Role::Structure | Role::Transport | Role::Gun | Role::Engineer => {}
+                Role::Unarmed => self.send_crews_home(&units, &mut out),
+                Role::Structure | Role::Transport | Role::Gun | Role::Engineer => {}
             }
         }
         out
+    }
+
+    /// Bailed-out crews (prompt 049) walk back home out of the fight: left
+    /// at their wrecks they stood in the line of fire of the own tanks.
+    fn send_crews_home(&self, units: &[OwnUnit], out: &mut Vec<Command>) {
+        let crews: Vec<UnitId> = units
+            .iter()
+            .filter(|u| self.type_info(u.unit_type).crew && u.target.is_none())
+            .filter(|u| dist(u.position, self.home) > Fixed::from_num(CREW_HOME_M))
+            .map(|u| u.id)
+            .collect();
+        if !crews.is_empty() {
+            out.push(Command::MoveTo {
+                units: crews,
+                target: self.home,
+            });
+        }
     }
 
     /// Heads for the nearest home of an undefeated enemy that was not
@@ -684,6 +712,7 @@ impl Ai {
                 tows: false,
                 power_hp: 0,
                 mass_kg: 0,
+                crew: false,
             })
     }
 
@@ -707,7 +736,7 @@ impl Ai {
     /// seeing the enemy there any more.
     fn remember(&mut self, view: &PlayerView) {
         for e in &view.enemies {
-            if e.alive() {
+            if e.alive() && !self.type_info(e.unit_type).crew {
                 self.memory.insert(
                     e.id,
                     Sighting {
@@ -751,7 +780,12 @@ impl Ai {
             .map(|u| self.type_info(u.unit_type).sight)
             .max()
             .unwrap_or(Fixed::ZERO);
-        let enemies: Vec<SeenUnit> = view.enemies.iter().filter(|e| e.alive()).copied().collect();
+        let enemies: Vec<SeenUnit> = view
+            .enemies
+            .iter()
+            .filter(|e| e.alive() && !self.type_info(e.unit_type).crew)
+            .copied()
+            .collect();
         let mut state = self.groups.remove(&role).unwrap_or(GroupState {
             order: Order::None,
             issued: 0,

@@ -1761,6 +1761,26 @@ the numbers in `data/experience.toml` (`sim::ExperienceRules`, loaded by
   and the promotion messages, `infantry_view.gd` re-dresses soldiers when
   their squad's rank changes (`SoldierLook.apply(.., rank)`).
 
+## Wounds and care
+
+Prompt 049; rules in `data/care.toml` (`sim::CareRules`, loaded by `Sim::new`,
+hashed once anything happened; not part of `SimConfig`), behavior in
+`sim/care.rs`, the game rules in [INFANTRY.md](INFANTRY.md#wounds-and-buddy-aid-prompt-049).
+
+- **One hook for all damage:** `update_care` runs after `update_experience`
+  and compares every soldier's hit points with `Wound::seen_hp`, so direct
+  fire, fragments, aircraft, fire and mines wound alike without changes at
+  the damage sites. It also reads the tick's `Destroyed` events for crews
+  that bail out (`spawn_unit` with the faction's crew type).
+- **Movement:** soldiers the care update places (`Wound::held`: lying,
+  dragged, on a stretcher, helping) are skipped by `follow_places`;
+  `care_speed` runs right after `update_stances` and caps a squad's
+  `speed_pct` (limping, carrying, stretcher).
+- **Combat:** `fire_squad` skips men who may not fire (`Wound::can_fire`),
+  `unit_hit` gives lying men the prone box, `aim_point` picks a man who is
+  up (`Squad::aim_soldier`) and aims low at lying men.
+- **Victory:** `alive_units` leaves bailed-out crews out.
+
 ## Field works
 
 Prompt 035. Engineer squads (catalog category `inf_engineer`) lay

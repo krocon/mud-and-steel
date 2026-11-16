@@ -300,6 +300,11 @@ fn hits_of_shooters(suppressed: bool, seed: u64) -> (u32, u32) {
         spawns.push((P1, MG, 150, 0, FIRE));
     }
     let mut sim = sim_with(map_with(&[]), seed, &spawns);
+    // This measures suppression, not wounds (prompt 049): every hit a man
+    // survives wounds him lightly, so he fights on as before.
+    let mut care = *sim.care_rules();
+    care.wound.heavy_pct = 0;
+    sim.set_care_rules(care);
     let (mut shots, mut hits) = (0, 0);
     for _ in 0..20 * 10 {
         sim.step(&[]);

@@ -103,8 +103,9 @@ fn run(sim: &mut Sim, ticks: u32) {
 }
 
 /// Rounds fired and hits that wounded soldiers of `unit` during `ticks`
-/// (or until the squad is wiped out). Every shot of the test is aimed at
-/// `unit`, so `hits / shots` is the chance that a round wounds.
+/// (or until the squad is wiped out or every man is down). Every shot of
+/// the test is aimed at `unit`, so `hits / shots` is the chance that a
+/// round wounds.
 #[derive(Clone, Copy, Debug, Default)]
 struct Tally {
     shots: u32,
@@ -128,10 +129,18 @@ impl std::ops::Add for Tally {
     }
 }
 
+///
+/// Since prompt 049 heavily wounded men lie on the ground (hit like prone
+/// men, whatever the squad's stance): the tally stops once no man of the
+/// squad is up any more, so it measures the stance and cover of the squad.
 fn tally(sim: &mut Sim, unit: UnitId, ticks: u32) -> Tally {
     let mut t = Tally::default();
     for _ in 0..ticks {
-        if sim.unit_hp(unit) == Some(0) {
+        let up =
+            sim.snapshot().soldiers.iter().any(|s| {
+                s.unit == unit && s.hp > 0 && !matches!(s.wound, sim::WoundView::Down { .. })
+            });
+        if sim.unit_hp(unit) == Some(0) || !up {
             break;
         }
         sim.step(&[]);

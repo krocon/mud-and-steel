@@ -231,8 +231,12 @@ fn ai_squads_attack_only_what_they_can_hurt() {
         game.step(decisions);
     }
     assert!(!targets.is_empty(), "the squads got no attack order");
+    let snapshot = game.sim().snapshot();
     for target in &targets {
-        let name = &config.spawns[target.0 as usize].unit_type;
+        // Units made during the match (bailed-out crews, prompt 049) are
+        // not among the spawns.
+        let unit = snapshot.units.iter().find(|u| u.id == *target).unwrap();
+        let name = &config.unit_types[unit.unit_type as usize].name;
         assert!(name.contains("_inf_"), "squads attacked {name}");
     }
 }

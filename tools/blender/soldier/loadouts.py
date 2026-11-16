@@ -198,3 +198,23 @@ TIER2_ROLES = tuple(_TIER2)
 # plain white armband and a medical bag (no Red Cross, docs/SOURCES.md).
 ROLES.setdefault("stretcher_bearer", {})["de"] = dict(
     weapon="p38", extra=["holster", "medic_bags", "armband"], drop=["pouches_de", "bayonet"])
+
+# --- prompt 049: crews that bailed out of a destroyed vehicle --------------------------
+# Catalog *_inf_tank_crew: one submachine gun carried in the vehicle (commander) and
+# pistols for the others; no packs, field cap (us: the M1 helmet is the faction "cap").
+# Panzer wrap, padded tank helmet and tanker jacket are not modeled [provisional].
+_CREW_DROP = {
+    "de": ["y_straps", "pouches_de", "bread_bag", "shovel_side", "gasmask_can", "bayonet"],
+    "su": ["ammo_pouch_su", "gasmask_bag", "shovel_side", "veshmeshok", "skatka"],
+    "us": ["us_haversack"],
+}
+_CREW = {
+    "crew_commander": {"de": "mp40", "su": "ppsh41", "us": "thompson"},
+    "crewman": {"de": "p38", "su": "tt33", "us": "m1911a1"},
+}
+for _role, _per in _CREW.items():
+    for _faction, _weapon in _per.items():
+        ROLES.setdefault(_role, {})[_faction] = dict(
+            weapon=_weapon, extra=["holster"], drop=_CREW_DROP[_faction], headgear="cap")
+
+CREW_ROLES = tuple(_CREW)

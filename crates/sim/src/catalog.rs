@@ -107,6 +107,8 @@ categories! {
         InfAt = "inf_at",
         InfFlamethrower = "inf_flamethrower",
         InfCommand = "inf_command",
+        // Prompt 049: survivors of a destroyed vehicle; never built.
+        InfCrew = "inf_crew",
     ],
     Vehicle => [
         TankLight = "tank_light",

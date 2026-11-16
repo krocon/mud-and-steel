@@ -107,8 +107,15 @@ fn destroying_all_enemy_units_eliminates() {
         sim.standings()[1].defeat,
         Some((DefeatReason::Eliminated, outcome.tick))
     );
-    // Wrecks stay in the match.
-    assert_eq!(sim.snapshot().units.len(), 20);
+    // Wrecks stay in the match; the crews that bailed out of them (prompt
+    // 049) are new units that do not count.
+    let snapshot = sim.snapshot();
+    let crews = snapshot
+        .units
+        .iter()
+        .filter(|u| sim.is_bailed_crew(u.id))
+        .count();
+    assert_eq!(snapshot.units.len() - crews, 20);
 }
 
 #[test]

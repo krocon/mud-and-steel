@@ -24,10 +24,12 @@ const SIGHTED_SECONDS := 15.0
 const FIRE_SECONDS := 10.0
 const PING_SECONDS := 2.0
 const PING_RADIUS := 60.0
+## Prompt 049: "man wounded" at most every WOUNDED_SECONDS.
+const WOUNDED_SECONDS := 8.0
 const COLORS := {
 	"lost": Color(1.0, 0.45, 0.4), "fire": Color(1.0, 0.7, 0.35), "sighted": Color(1.0, 0.85, 0.4),
 	"built": Color(0.55, 0.9, 1.0), "ready": Color(0.6, 1.0, 0.6),
-	"ping": Color(0.45, 0.7, 1.0),
+	"ping": Color(0.45, 0.7, 1.0), "wounded": Color(1.0, 0.6, 0.55),
 }
 
 var main: Node3D
@@ -48,6 +50,9 @@ var _last_fire := -1e9
 var _pings: Array[Dictionary] = []
 ## Owner per unit id, refreshed every poll (hits come many per frame).
 var _owners: Dictionary[int, int] = {}
+## Wounded men per own unit at the last poll (prompt 049).
+var _wounded: Dictionary[int, int] = {}
+var _last_wounded := -1e9
 
 
 func setup(main_node: Node3D) -> void:
@@ -174,7 +179,9 @@ func _poll() -> void:
 		if owners[i] == me:
 			if not _known_own.has(id):
 				_known_own[id] = true
-				if _initialized and not structures.has(id):
+				if _initialized and sim_host.unit_is_crew(id):
+					post("lost", "Crew bailed out: %s" % _name_of(id), positions[i])
+				elif _initialized and not structures.has(id):
 					post("ready", "Ready: %s" % _name_of(id), positions[i])
 		elif sim_host.relation(owners[i]) == 2:
 			visible_enemies[id] = true
@@ -184,6 +191,7 @@ func _poll() -> void:
 		_last_sighted = _now
 		post("sighted", "Enemy sighted: %s" % _name_of(ids[newly_sighted]), positions[newly_sighted])
 	_seen_enemies = visible_enemies
+	_poll_wounded(ids, owners, positions, me)
 	for id: int in structures:
 		var s: Dictionary = structures[id]
 		if int(s.get("owner", -1)) != me or float(s.get("built", 0.0)) < 1.0 or _completed.has(id):
@@ -199,6 +207,25 @@ func _poll() -> void:
 		if not p["own"]:
 			post("ping", "Ally (player %d) marks a spot" % p["player"], at)
 		ping.emit(at)
+
+
+## "Man wounded" when an own squad has more wounded men than at the last
+## poll (prompt 049), at most every WOUNDED_SECONDS.
+func _poll_wounded(ids: PackedInt64Array, owners: PackedInt32Array, positions: PackedVector3Array, me: int) -> void:
+	var counts := sim_host.unit_wounded_counts()
+	var now_wounded: Dictionary[int, int] = {}
+	var newly := -1
+	for id: int in counts:
+		var c: Vector2i = counts[id]
+		now_wounded[id] = c.x + c.y
+		if _initialized and c.x + c.y > int(_wounded.get(id, 0)) and newly < 0:
+			var index := Array(ids).find(id)
+			if index >= 0 and owners[index] == me:
+				newly = index
+	_wounded = now_wounded
+	if newly >= 0 and _now - _last_wounded >= WOUNDED_SECONDS:
+		_last_wounded = _now
+		post("wounded", "Man wounded: %s" % _name_of(ids[newly]), positions[newly])
 
 
 func _owner_of(id: int) -> int:

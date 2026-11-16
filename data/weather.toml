@@ -145,7 +145,7 @@ snow_loss_pct = 40
 categories = [
     "inf_rifle", "inf_lmg", "inf_hmg", "inf_mortar_light", "inf_mortar_medium",
     "inf_recon", "inf_sniper", "inf_medic", "inf_engineer", "inf_at",
-    "inf_flamethrower", "inf_command", "mortar_heavy",
+    "inf_flamethrower", "inf_command", "inf_crew", "mortar_heavy",
 ]
 ids = []
 

@@ -357,6 +357,10 @@ function renderSheet() {
 // --- start --------------------------------------------------------------------------
 
 async function main() {
+  // The detail panel sticks below the fixed header, whose height depends on wrapping.
+  const header = document.querySelector('header');
+  const measure = () => document.documentElement.style.setProperty('--header-h', `${header.offsetHeight}px`);
+  new ResizeObserver(measure).observe(header);
   $('status').textContent = 'Lade Katalog …';
   const look = await loadLook(text);
   await loadData();
@@ -375,6 +379,7 @@ async function main() {
   const wanted = decodeURIComponent(location.hash.slice(1));
   if (state.byId.has(wanted)) state.faction = state.byId.get(wanted).faction;
   renderControls();
+  measure();
   renderList();
   const first = state.byId.has(wanted) ? wanted
     : (state.entries.find((e) => e.faction === state.faction && e.tier === 1 && groupOf(e.category) === 'veh')

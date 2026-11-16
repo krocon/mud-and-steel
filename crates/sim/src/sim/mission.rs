@@ -11,7 +11,7 @@
 //! only triggers armed in that tick can take them. The presentation asks
 //! [`Sim::mission_wanted_signals`] which ones are of use.
 
-use super::{Sim, alive_units, formation_slots, formation_spacing};
+use super::{Sim, formation_slots, formation_spacing};
 use crate::command::{Command, PlayerCommand, PlayerId, UnitId};
 use crate::formation::Formation;
 use crate::hash::StableHasher;
@@ -288,7 +288,7 @@ impl Sim {
                             .map_or(true, |i| !self.units[i].alive())
                     })
             }
-            Condition::Eliminated { player } => alive_units(&self.units, *player) == 0,
+            Condition::Eliminated { player } => self.alive_units(*player) == 0,
             Condition::Captured { point, player } => self
                 .supply_points()
                 .iter()

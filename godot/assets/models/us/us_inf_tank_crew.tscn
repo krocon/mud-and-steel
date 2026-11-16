@@ -1,0 +1,22 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/us/infantry/crew_commander.glb" id="1_crew_commander"]
+[ext_resource type="PackedScene" path="res://assets/models/us/infantry/crewman.glb" id="2_crewman"]
+
+[node name="us_inf_tank_crew" type="Node3D"]
+metadata/extras = {"cat_id": "us_inf_tank_crew", "cat_faction": "us", "cat_category": "inf_crew", "cat_name_de": "Panzerbesatzung (ausgestiegen)", "cat_name_en": "Tank crew (bailed out)", "cat_designation": "Tank crew, dismounted", "cat_year_from": 1942, "cat_year_to": 1945, "cat_speed_road_kmh_x10": 50, "cat_speed_offroad_kmh_x10": 40, "cat_weapons": "Submachine gun M3; 4× Pistol M1911A1", "cat_squad_size": 5, "squad": true, "squad_roles": ["crew_commander", "crewman", "crewman", "crewman", "crewman"], "squad_notes": ["commander (Thompson for the M3)", "gunner (M1911A1)", "loader (M1911A1)", "driver (M1911A1)", "radio operator / hull gunner (M1911A1)"], "squad_clips": ["idle", "idle", "idle", "kneel", "kneel"], "squad_file": "assets-src/blueprints/us/squads/us_inf_tank_crew.toml", "source_hash": "3092032a1293c5ea"}
+
+[node name="Member_01" parent="." instance=ExtResource("1_crew_commander")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.6)
+
+[node name="Member_02" parent="." instance=ExtResource("2_crewman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.2, 0, 0.2)
+
+[node name="Member_03" parent="." instance=ExtResource("2_crewman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2, 0, 0.2)
+
+[node name="Member_04" parent="." instance=ExtResource("2_crewman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6, 0, 1.3)
+
+[node name="Member_05" parent="." instance=ExtResource("2_crewman")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6, 0, 1.3)

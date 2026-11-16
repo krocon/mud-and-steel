@@ -21,7 +21,17 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by the merge of prompt 047 (infantry tactics) with 054:
+/// Last changed by the merge of prompt 049 (wounds, buddy aid, medics,
+/// bailed-out crews) with 047, 054 and 039: the care rules of
+/// `data/care.toml` and every soldier's wound state enter the hash once
+/// anything happened (the demo: at once); hits a man survives wound him
+/// (heavily wounded men lie, do not fire and bleed out; aimed fire goes to
+/// men who are up and low at lying ones), comrades drag and carry the
+/// wounded, and the survivors of destroyed tanks bail out as crew squads
+/// (catalog `*_inf_tank_crew`, part of the match's unit types) and
+/// withdraw away from the tank that destroyed theirs. The demo battle is
+/// decided at tick 1013 instead of 1017, same winner. 049 alone (before 047): `0x5f35_7247_d536_22a3`.
+/// Before: `0x9ca9_6477_eff5_75ef`, the merge of prompt 047 (infantry tactics) with 054:
 /// the rules of `data/tactics.toml` and every squad's tactical state
 /// (suppression, pinning, contact, bounds, blind-fire memory, jams) are in
 /// the hash, and the rules change the fight: suppression widens the
@@ -197,7 +207,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x9ca9_6477_eff5_75ef;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xf8f2_b8a4_aead_460d;
 
 #[test]
 fn golden_hash() {
@@ -231,10 +241,11 @@ fn demo_is_a_battle() {
     assert!(destroyed >= 8, "only {destroyed} units destroyed");
     let start = sim::scenario::demo_config();
     for player in start.players() {
+        // Bailed-out crews (prompt 049) do not keep a player alive.
         let alive = snapshot
             .units
             .iter()
-            .filter(|u| u.owner == player && u.alive())
+            .filter(|u| u.owner == player && u.alive() && !end.is_bailed_crew(u.id))
             .count();
         assert_eq!(end.alive_units(player), alive);
     }
@@ -242,17 +253,18 @@ fn demo_is_a_battle() {
 
 /// The demo battle ends by elimination (prompt 027): the result is part of
 /// the golden state above. Since prompt 047 the last suppressed squad
-/// holds out until tick 1017, so the run is 1100 ticks long (the golden
-/// hash above stays at 1000 ticks).
+/// holds out until about tick 1000 (1013 with the wounds of prompt 049),
+/// so the run is 1100 ticks long (the golden hash above stays at 1000
+/// ticks).
 #[test]
 fn demo_battle_is_decided() {
     let end = run_demo(42, 1100);
     let outcome = end.outcome().expect("the demo battle is decided");
     assert_eq!(outcome.winner, Some(sim::PlayerId(0)));
-    assert_eq!(outcome.tick, 1017);
+    assert_eq!(outcome.tick, 1013);
     assert_eq!(end.alive_units(sim::PlayerId(1)), 0);
     assert_eq!(
         end.standings()[1].defeat,
-        Some((sim::DefeatReason::Eliminated, 1017))
+        Some((sim::DefeatReason::Eliminated, 1013))
     );
 }

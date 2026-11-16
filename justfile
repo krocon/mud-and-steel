@@ -175,6 +175,11 @@ kit-test:
 units-web *args:
     python3 tools/units_web.py {{ args }}
 
+# Download vehicle reference data and drawings from onwar.com into docs/.vorlagen/fahrzeuge (not in git); --nation GER|US|RU, --limit N, --force
+[group('assets')]
+vehicle-refs *args:
+    node tools/onwar_download.mjs {{ args }}
+
 # Build the bridge and open the model gallery (all models, camouflage switch)
 [group('godot')]
 gallery: build

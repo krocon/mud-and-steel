@@ -59,6 +59,9 @@ extends Node
 ## 19. Crossings (prompt 055, `tools/crossing_self_test.gd`, before the
 ##    replay test): camouflage from the command bar, paratroopers called by
 ##    a drag, a collapsing deck and a laid bridge drawn.
+## 20. Wounds (prompt 049, `tools/care_self_test.gd`, after the replay
+##    test): debug-wounded men of an own squad in the feed, the unit panel and
+##    their clips; a comrade carries the heavily wounded man along.
 
 ## Panzer IV H: 16 km/h cross-country (catalog) × time factor 2 = 8.889 m/s,
 ## i.e. 0.4444 m per tick at 20 Hz. Terrain scales it (data/terrain.toml).
@@ -88,6 +91,7 @@ const PositionsSelfTest := preload("res://scenes/tools/positions_self_test.gd")
 const FormationSelfTest := preload("res://scenes/tools/formation_self_test.gd")
 const ExperienceSelfTest := preload("res://scenes/tools/experience_self_test.gd")
 const CrossingSelfTest := preload("res://scenes/tools/crossing_self_test.gd")
+const CareSelfTest := preload("res://scenes/tools/care_self_test.gd")
 const MatchSetup := preload("res://scenes/menu/match_setup.gd")
 
 ## Screen size for the test (see `_ready`).
@@ -137,8 +141,9 @@ func _run() -> void:
 	await WorksSelfTest.new().run(self)
 	await PositionsSelfTest.new().run(self)
 	await ExperienceSelfTest.new().run(self)
+	await CareSelfTest.new().run(self)
 	var ok := _errors.is_empty()
-	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, fog, combat, infantry, destruction, fire, craters, sound, music, water, hud, air, transport, supply, formations, crossings, replay, works, positions and experience ok" if ok else " ".join(_errors)
+	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, fog, combat, infantry, destruction, fire, craters, sound, music, water, hud, air, transport, supply, formations, crossings, replay, works, positions, experience and care ok" if ok else " ".join(_errors)
 	print("self-test %s: %s" % ["PASSED" if ok else "FAILED", message])
 	# Started from the menu flow test (prompt 027): it continues the flow.
 	var flow: Node = MatchSetup.flow_test
@@ -729,7 +734,8 @@ func _ticks(count: int) -> void:
 
 
 ## Ids of the own (or the other players') tanks, ascending; with `squads`
-## their infantry squads instead (prompt 022).
+## their infantry squads instead (prompt 022), without crews that bailed
+## out of destroyed tanks (prompt 049).
 func _ids_of(own: bool, squads := false) -> Array[int]:
 	var sim_host: SimHost = main.sim_host
 	var ids := sim_host.unit_ids()
@@ -737,7 +743,8 @@ func _ids_of(own: bool, squads := false) -> Array[int]:
 	var stances := sim_host.unit_stances()
 	var result: Array[int] = []
 	for i in ids.size():
-		if (owners[i] == sim_host.local_player()) == own and (stances[i] >= 0) == squads:
+		if (owners[i] == sim_host.local_player()) == own and (stances[i] >= 0) == squads \
+				and not (squads and sim_host.unit_is_crew(ids[i])):
 			result.append(ids[i])
 	result.sort()
 	return result

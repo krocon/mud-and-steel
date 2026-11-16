@@ -565,6 +565,7 @@ def clip_library(kind):
 
     _more_clips(P, kind, add, pouch)
     _clips_048(P, kind, add)
+    _clips_049(P, kind, add)
     return lib
 
 
@@ -971,6 +972,113 @@ def _clips_048(P, kind, add):
         p["hips"] = Vector((0.015 * math.sin(2 * math.pi * phase), 0, -0.02))
         return single(p)
     add("turn_in_place", 1.0, turn, loop=True)
+
+
+
+# ---------------------------------------------------------------------------------------
+# Prompt 049: wounds and buddy aid. Limping on a wounded left leg, dressing the wound,
+# dragging a comrade (walking backwards) and being dragged, carrying a stretcher,
+# pulling a comrade up. The stretcher and the bandage are drawn by the game.
+# ---------------------------------------------------------------------------------------
+
+LIMP_SPEED = 0.9       # m/s real, limping on the wounded left leg
+DRAG_SPEED = 0.8       # m/s real, dragging a man by the collar, walking backwards
+STRETCHER_SPEED = 0.7  # m/s real, carrying a loaded stretcher
+STRETCHER_GRIP = 0.27  # m, half the distance between the stretcher poles
+STRETCHER_HEIGHT = 0.72  # m, height of the hands on the poles
+
+
+def _clips_049(P, kind, add):
+    root = lambda x, y, z: ("anchor", "Root", (x, y, z))  # noqa: E731
+    thigh = lambda x, y, z: ("anchor", "LeftUpperLeg", (x, y, z))  # noqa: E731
+
+    # Limp: the left leg is stiff (little lift, no toe-off), the body dips and leans
+    # over the right leg while the left one carries.
+    def limp(t):
+        period = 1.4
+        p = gait(t, period, LIMP_SPEED, 0.62, 0.08, 0.02, 6, "ready", P, 8)
+        phase = (t / period) % 1.0
+        (pos, pitch), infl = p["foot_l"]
+        pos = pos.copy()
+        pos.z = 0.09 + (pos.z - 0.09) * 0.35
+        p["foot_l"] = ((pos, pitch * 0.3), infl)
+        load = math.sin(math.pi * phase / 0.62) if phase < 0.62 else 0.0
+        p["hips"] = p["hips"] + Vector((0.02 * load, 0, -0.035 * load))
+        rot = dict(p["rot"])
+        rot["Spine"] = (rot["Spine"][0] - 4, 7 * load, rot["Spine"][2])
+        rot["Head"] = (0, -4 * load, 0)
+        p["rot"] = rot
+        return single(p)
+    add("limp", 1.4, limp, loop=True, speed=LIMP_SPEED)
+
+    # Bandage: kneeling on the right knee, the left leg forward, both hands winding a
+    # dressing around the left thigh; the weapon on the back.
+    def bandage(t):
+        a = 2 * math.pi * t / 1.6
+        p = _slung(P, P.kneel("ready"))
+        p["rot"] = {"Spine": (-30, 0, 8), "Chest": (-10, 0, 0), "Neck": (-10, 0, 0),
+                    "Head": (-20, 0, 5)}
+        p["hand_l"] = (thigh(-0.17 + 0.03 * math.cos(a), 0.0 + 0.05 * math.sin(a), 0.70), 1.0)
+        p["hand_r"] = (thigh(-0.03 - 0.03 * math.cos(a), 0.09 - 0.04 * math.sin(a), 0.72), 1.0)
+        return single(p)
+    add("bandage", 1.6, bandage, loop=True)
+
+    # Drag: crouched, walking backwards, both hands low in front gripping the collar of
+    # the man behind (played facing him; the game moves the pair).
+    def drag(t):
+        period = 1.2
+        p = gait(t, period, -DRAG_SPEED, 0.64, 0.06, 0.02, 30, "ready", P, 0, drop=0.30)
+        p = _slung(P, p)
+        tug = 0.04 * math.sin(4 * math.pi * t / period)
+        p["hand_l"] = (root(-0.13, 0.55 + tug, 0.38), 1.0)
+        p["hand_r"] = (root(0.13, 0.55 + tug, 0.38), 1.0)
+        p["rot"] = {**p["rot"], "Neck": (25, 0, 0), "Head": (10, 0, 0)}
+        return single(p)
+    add("drag", 1.2, drag, loop=True, speed=DRAG_SPEED)
+
+    # Dragged: lying on the back, pulled by the collar towards the head (model -Y),
+    # arms trailing over the head, heels on the ground.
+    def dragged(t):
+        w = math.sin(2 * math.pi * t / 1.2)
+        p = P.lying_back()
+        p["rot"] = {**p["rot"], "Neck": (-25, 0, 4 * w), "Head": (-10, 0, 10 * w),
+                    **both("UpperArm", (-150, 20, 0)), **both("LowerArm", (20, 0, 0)),
+                    **both("UpperLeg", (10 + 4 * w, -4, 0)), **both("LowerLeg", (-8, 0, 0)),
+                    **both("Foot", (-40, 0, 0))}
+        p["hips"] = Vector((0, 0.25, -0.80))
+        if kind != "none":
+            p["weapon"] = hold(kind, "slung")
+        p["hand_l"] = (None, 0.0)
+        p["hand_r"] = (None, 0.0)
+        return single(p)
+    add("dragged", 1.2, dragged, loop=True)
+
+    # Stretcher: walking with both hands down at the sides on the poles (the stretcher
+    # is level, so the hands stay at one height); weapon on the back.
+    def stretcher(t):
+        period = 1.2
+        p = gait(t, period, STRETCHER_SPEED, 0.62, 0.07, 0.02, 4, "ready", P, 0)
+        p = _slung(P, p)
+        p["hand_l"] = (root(-STRETCHER_GRIP, 0.08, STRETCHER_HEIGHT), 1.0)
+        p["hand_r"] = (root(STRETCHER_GRIP, 0.08, STRETCHER_HEIGHT), 1.0)
+        p["rot"] = {**p["rot"], **both("UpperArm", (0, 10, 0))}
+        return single(p)
+    add("stretcher", 1.2, stretcher, loop=True, speed=STRETCHER_SPEED)
+
+    # Help up: feet apart, bent over the man on the ground in front, both hands under
+    # his arms, pulling.
+    def help_up(t):
+        a = 0.5 - 0.5 * math.cos(2 * math.pi * t / 2.0)
+        p = _slung(P, P.stand("ready"))
+        p["rot"] = {"Spine": (-40 + 12 * a, 0, 0), "Chest": (-12, 0, 0), "Neck": (20, 0, 0),
+                    **both("UpperLeg", (40 - 15 * a, 0, 0)), **both("LowerLeg", (-55 + 20 * a, 0, 0))}
+        p["hips"] = Vector((0, -0.12, -0.28 + 0.12 * a))
+        p["foot_l"] = (foot("L", y=0.10, x=-0.10), 1.0)
+        p["foot_r"] = (foot("R", y=-0.05, x=0.10), 1.0)
+        p["hand_l"] = (root(-0.16, 0.55, 0.40 + 0.25 * a), 1.0)
+        p["hand_r"] = (root(0.16, 0.55, 0.40 + 0.25 * a), 1.0)
+        return single(p)
+    add("help_up", 2.0, help_up, loop=True)
 
 
 CLIP_NAMES = list(clip_library("rifle").keys())
