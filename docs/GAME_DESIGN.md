@@ -278,6 +278,49 @@ the player never loads trucks or picks ammunition types.
   repairer and repair damaged buildings when they can pay
   ([AI.md](AI.md)).
 
+## Experience and ranks [provisional]
+
+Prompt 050, rules in `data/experience.toml`, reasons per decision in
+`prompts/done/050-erfahrung-raenge.md`. Every value is provisional until
+balancing (prompt 045).
+
+**Idea: men who survive and fight get better, a little.** A veteran crew is
+worth protecting, but a fresh Tiger still beats an elite Panzer IV: ranks
+never change armor, penetration, range or hit points.
+
+| Points (XP) | For |
+|---|---|
+| 100 | all the damage it takes to destroy one enemy unit, shared out by damage (a hit that takes a quarter of a squad's hit points: 25) |
+| +25 | the hit that destroys an enemy unit (a kill) |
+| +2 | surviving a tick with a damaging enemy hit |
+| +1 | every game second a squad is pinned down (suppressed) and alive |
+
+| Rank | From XP | Dispersion | Reload time | Pinned down |
+|---|---|---|---|---|
+| Recruit | 0 | 100 % | 100 % | 100 % |
+| Experienced | 100 | 92 % | 96 % | 85 % |
+| Veteran | 300 | 84 % | 92 % | 70 % |
+| Elite | 700 | 76 % | 88 % | 55 % |
+
+- Experience belongs to the unit: a vehicle with its crew, a gun, a whole
+  squad (its survivors keep it). Every unit starts as a recruit.
+- Only enemy units count; hits by mines and aircraft have no shooter.
+  Blast damage of shells and bombs around the impact counts only through
+  the kill (the shell's direct target gets its share).
+- A tank that destroys its first enemy tank is experienced (125); about
+  three destroyed units make a veteran, six an elite.
+- **Visible:** the unit panel shows the rank insignia (German sleeve
+  chevrons, US chevrons, Soviet shoulder-board stripes), rank name, kills
+  and a bar to the next rank; multiple selection tiles show the insignia.
+  Soldiers of experienced squads wear sun-bleached, worn uniforms; German
+  and Soviet veterans got hold of camouflage smocks or suits (half of a
+  veteran squad, all of an elite one, forest biome). Vehicles and guns
+  carry a white ring round the barrel per destroyed enemy vehicle. Nothing
+  modern: no optics, lights, body armor.
+- **Computer players** pull veterans back earlier: on Normal a veteran or
+  elite unit below 40 % of its hit points leaves the fight (recruits fight
+  on), on Hard below 50 % (others below 30 %).
+
 ## Victory [provisional]
 
 Unchanged from prompt 027: a player who has no living unit left is defeated.
@@ -342,7 +385,10 @@ open.
 
 ## Open (not in this version)
 
-Replacing soldiers of squads, towing immobilized tanks, recovery
+Replacing soldiers of squads (and what replacements do to a squad's
+experience, prompt 050), veteran units at the start of missions,
+experience for artillery spotting and blast damage, captured weapons as
+a visible veteran kit (all prompt 050), towing immobilized tanks, recovery
 vehicles, supply trucks with a stock of their own (all prompt 036), upgrades, aircraft and artillery production, walls as
 buildable objects (mines, wire, obstacles and dug positions are built by
 engineers since prompt 035, see "Field works"), supply points in the map

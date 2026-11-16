@@ -101,6 +101,7 @@ const BattleSound := preload("res://scenes/audio/battle_sound.gd")
 const MatchHud := preload("res://scenes/hud/hud.gd")
 const TransportView := preload("res://scenes/world/transport_view.gd")
 const WorksView := preload("res://scenes/world/works_view.gd")
+const VeterancyView := preload("res://scenes/world/veterancy_view.gd")
 const SEED := 42
 ## Map folders, relative to the Godot project (repository checkout only).
 const REPLAY_DIR := "user://replays"
@@ -169,6 +170,8 @@ var infantry_view: InfantryView
 var transport_view: TransportView
 ## Mines, wire, obstacles, sites, thrown tracks, bridges (prompt 035).
 var works_view: WorksView
+## Kill rings on gun barrels, promotion messages (prompt 050).
+var veterancy_view: VeterancyView
 var destruction_view: Node
 ## Burning objects: flames, smoke, light, charring (prompt 041).
 var fire_view: Node
@@ -272,6 +275,10 @@ func _ready() -> void:
 	works_view.name = "WorksView"
 	add_child(works_view)
 	works_view.setup(self)
+	veterancy_view = VeterancyView.new()
+	veterancy_view.name = "VeterancyView"
+	add_child(veterancy_view)
+	veterancy_view.setup(self)
 	effects = Effects.new()
 	effects.name = "Effects"
 	add_child(effects)
