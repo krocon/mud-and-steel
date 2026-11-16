@@ -271,11 +271,14 @@ static func apply() -> void:
 
 
 ## The interface scale for a window `height` pixels high: the setting, but
-## at most so that the interface keeps 720 pixels of room (menus are built
-## for 1600×900) [provisional].
+## enlarged at most so that the interface keeps 720 pixels of room (menus
+## are built for 1600×900) [provisional]. Headless (self-test) it is the
+## setting.
 static func ui_scale_for(height: int) -> float:
 	var wanted: float = values.get("ui_scale", 1.0)
-	return clampf(minf(wanted, float(height) / 720.0), 0.75, wanted) if height > 0 else wanted
+	if wanted <= 1.0 or height <= 0 or DisplayServer.get_name() == "headless":
+		return wanted
+	return clampf(float(height) / 720.0, 1.0, wanted)
 
 
 ## UI scale, window, VSync, frame limit and render scale (prompt 043). Only

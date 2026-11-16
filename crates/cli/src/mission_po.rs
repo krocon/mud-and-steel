@@ -87,10 +87,10 @@ pub fn parse_po(text: &str) -> BTreeMap<String, String> {
         } else if let Some(rest) = line.strip_prefix("msgstr ") {
             finish(&mut current, &mut id);
             current = Some((true, quoted(rest)));
-        } else if line.starts_with('"') {
-            if let Some((_, value)) = current.as_mut() {
-                value.push_str(&quoted(line));
-            }
+        } else if line.starts_with('"')
+            && let Some((_, value)) = current.as_mut()
+        {
+            value.push_str(&quoted(line));
         }
     }
     finish(&mut current, &mut id);

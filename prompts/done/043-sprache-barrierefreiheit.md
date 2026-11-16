@@ -93,3 +93,19 @@ Lobby-/Netzwerkmeldungen, Dateifehler); Dezimalzahlen im deutschen Format
 Sprachen (RTL/CJK bräuchten eine Schrift); 3D-Beschriftungen skalieren nicht
 mit der UI-Skalierung; Feinschliff der deutschen Begriffe beim Spielen
 (Liste der unsicheren Begriffe im Abschlussbericht).
+
+### Glossar (erste Fassung, [vorläufig])
+
+Gefecht (skirmish), Partie (match), Trupp (squad), Geschütz (gun),
+Sperrfeuer (barrage), Nebel (smoke), Angriffsmarsch / Vorrücken
+(attack-move / advance), Gebiet sichern (secure area), Gebäude besetzen
+(garrison), Haltung stehen/knien/liegen (stance), Feuer halten / Feuer frei,
+Bodenziel (fire at ground), aufsitzen/absitzen, aufprotzen/abprotzen,
+Pionier, Stacheldraht, Graben, Schützenloch, Nachschub, Versorgungspunkt,
+bergen (recover), Aufklärungsflug, Jäger, Schlachtflug, Bomber,
+Fallschirmjäger, Wegpunkt, Rang, Treibstoff/Munition/Personal (T/M/P),
+Hauptquartier, Kaserne, Nachschublager, Fahrzeugwerk, Raketenstellung,
+Sammelpunkt, Ziel (objective), Sieg/Niederlage, Aufgeben, Mitwirkende
+(credits). Unsicher: „Spawnpunkt“, „Kleinobjekte“ (props), „Gehöft“
+(compound), „Fz.-Deckung“, „Verb.-Graben“, „S-Minen“, „Höcker“,
+„festgenagelt/niedergehalten“ (pinned/suppressed), „Schlag läuft“.

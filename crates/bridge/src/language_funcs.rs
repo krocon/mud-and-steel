@@ -58,6 +58,6 @@ impl SimHost {
     /// anything else is English). Called by `language.gd`.
     #[func]
     fn set_language(code: GString) {
-        GERMAN.store(code.to_string() == "de", Ordering::Relaxed);
+        GERMAN.store(code == "de", Ordering::Relaxed);
     }
 }
