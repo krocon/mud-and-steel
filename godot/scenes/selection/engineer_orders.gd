@@ -13,6 +13,11 @@ extends RefCounted
 ##   obstacles around it.
 ## - Bridge: one click near a bridge; an intact one is demolished, a
 ##   destroyed one repaired.
+## - Prompt 052: communication trench and concrete teeth are lines; vehicle
+##   pit, MG nest, dugout and camouflage net one click; a bunker two clicks
+##   (its place, then the direction it faces). While a line waits for its
+##   end, `works_view.gd` draws it with length, pieces and the total price
+##   (`line_preview`).
 
 const GroundPick := preload("res://scenes/camera/ground_pick.gd")
 ## Kinds of the command bar: id -> [label, needs a line].
@@ -25,7 +30,16 @@ const KINDS := {
 	"trench": ["Trench", true],
 	"clear": ["Clear", false],
 	"bridge": ["Bridge", false],
+	"comm_trench": ["Comm. trench", true],
+	"teeth": ["Teeth", true],
+	"vehicle_pit": ["Vehicle pit", false],
+	"mg_nest": ["MG nest", false],
+	"dugout": ["Dugout", false],
+	"camo_net": ["Camo net", false],
+	"bunker": ["Bunker", true],
 }
+## Kinds whose pieces are points along the line (one more than segments).
+const POINT_LINES := ["hedgehogs", "teeth"]
 const START_META := &"work_line_start"
 
 
@@ -74,6 +88,35 @@ static func order(selection: Control, kind: String, point: Vector3) -> bool:
 	return true
 
 
+## The line an engineer mode is drawing towards `cursor` (a ground point):
+## `{from, to, length, pieces, cost, text}`, empty when no line waits.
+static func line_preview(selection: Control, cursor: Vector3) -> Dictionary:
+	var kind := kind_of(selection.command_mode)
+	if kind.is_empty() or not selection.has_meta(START_META):
+		return {}
+	var start: Variant = selection.get_meta(START_META)
+	if (start as Array)[0] != kind:
+		return {}
+	var sim_host: SimHost = selection.sim_host
+	var a: Vector2 = (start as Array)[1]
+	var from := Vector3(a.x, sim_host.height_at(a.x, a.y), a.y)
+	var to := cursor
+	var length := Vector2(to.x - from.x, to.z - from.z).length()
+	var cost := sim_host.work_cost(kind)
+	var pieces := 1
+	if cost.size() >= 5 and cost[4] > 0 and kind != "bunker":
+		var n := maxi(1, ceili(length * 1000.0 / float(cost[4])))
+		pieces = n + 1 if kind in POINT_LINES and length > 0.0 else n
+	var text := "%.0f m" % length
+	if cost.size() >= 3:
+		var total := [cost[0] * pieces, cost[1] * pieces, cost[2] * pieces]
+		var per_m := ""
+		if length >= 1.0 and kind != "bunker":
+			per_m = "  (%.1f per m)" % (float(total[0] + total[1] + total[2]) / length)
+		text += "  ·  %d pieces  ·  fuel %d ammo %d manpower %d%s" % [pieces, total[0], total[1], total[2], per_m]
+	return {"from": from, "to": to, "length": length, "pieces": pieces, "cost": cost, "text": text}
+
+
 ## Forgets a line start (the mode changed).
 static func reset(selection: Control) -> void:
 	if selection.has_meta(START_META):
@@ -102,6 +145,10 @@ static func hint(selection: Control) -> String:
 			return "Bridge: left click a bridge (demolish / repair)"
 	if not KINDS[kind][1]:
 		return "%s: left click a point" % label
+	if kind == "bunker":
+		if selection.has_meta(START_META):
+			return "Bunker: left click the direction it faces"
+		return "Bunker: left click a point at a trench edge"
 	if selection.has_meta(START_META):
 		return "%s: left click the end of the line" % label
 	return "%s: left click the start of the line" % label

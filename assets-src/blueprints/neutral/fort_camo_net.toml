@@ -1,0 +1,9 @@
+# Garnished camouflage net on poles (prompt 052). The net sags between the
+# poles; foliage cards are the garnish.
+unit = "fort_camo_net"
+assembly = "env"
+
+[[variant]]
+name = "Net"
+part = "camo_net"
+seed = 5

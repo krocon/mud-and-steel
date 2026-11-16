@@ -55,6 +55,8 @@ var map_objects: Node3D
 var water: Node3D
 var atmosphere: Atmosphere
 var panel: EditorPanel
+## Strongpoints drawn (self-test).
+var strongpoint_outlines := 0
 ## Current tool (key of TOOLS) and brush settings.
 var tool := "raise"
 var radius := 12.0
@@ -64,6 +66,8 @@ var terrain_id := 2
 var scatter_preset := "Deciduous wood"
 var place_kind := "env_house_farm:Intact"
 var place_heading := 0
+## Compound of the "compound" tool (prompt 059, data/compounds.toml).
+var compound_name := "hut_yard"
 ## Counters for the self-test.
 var strokes := 0
 var world_rebuilds := 0
@@ -76,6 +80,8 @@ var _last_dab := Vector3.INF
 var _cursor: MeshInstance3D
 var _cursor_mesh: ImmediateMesh
 var _start_markers: Array[MeshInstance3D] = []
+## Outlines of the strongpoint markers (prompt 052).
+var _strongpoint_mesh: MeshInstance3D
 var _hover: Variant = null
 ## Road tool (prompt 060): the previous dab and the road level there.
 var _road_from := Vector3.ZERO
@@ -153,6 +159,20 @@ func stroke_begin(point: Vector3) -> void:
 			var placed: Variant = editor.place_object(place_kind, point.x, point.z, place_heading)
 			if placed == null:
 				set_status(editor.last_error(), true)
+		"strongpoint":
+			# A click on a strongpoint removes it, elsewhere adds one.
+			if editor.remove_strongpoints(point.x, point.z, EditorData.STRONGPOINT_PICK_M) == 0:
+				editor.add_strongpoint(point.x, point.z)
+			_update_strongpoints()
+		"compound":
+			if editor.place_compound(compound_name, point.x, point.z, place_heading) < 0:
+				set_status(editor.last_error(), true)
+		"village":
+			var n: int = editor.village(point.x, point.z, radius)
+			if n < 0:
+				set_status(editor.last_error(), true)
+			else:
+				set_status("%d compounds placed" % n)
 		"start0", "start1", "start2", "start3", "start4", "start5":
 			var player := int(tool.right(1))
 			var new_start: bool = not editor.start_positions().has(player)
@@ -419,7 +439,7 @@ func _draw_cursor() -> void:
 	if _hover == null:
 		return
 	var center: Vector3 = _hover
-	var r := radius if tool not in ["place"] + EditorData.START_TOOLS else 3.0
+	var r := radius if tool not in ["place", "compound"] + EditorData.START_TOOLS else 3.0
 	_cursor_mesh.surface_begin(Mesh.PRIMITIVE_LINE_STRIP)
 	for k in 49:
 		var angle := TAU * k / 48.0
@@ -470,3 +490,48 @@ func _update_starts() -> void:
 		marker.position = starts[player] + Vector3(0, 6.0, 0)
 		add_child(marker)
 		_start_markers.append(marker)
+	_update_strongpoints()
+
+
+## Outlines of the strongpoints the map's markers make in a match (prompt
+## 052): trenches brown, wire grey, nests and dugouts as rings.
+func _update_strongpoints() -> void:
+	if _strongpoint_mesh == null:
+		_strongpoint_mesh = MeshInstance3D.new()
+		_strongpoint_mesh.name = "Strongpoints"
+		_strongpoint_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		var material := StandardMaterial3D.new()
+		material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		material.vertex_color_use_as_albedo = true
+		_strongpoint_mesh.material_override = material
+		add_child(_strongpoint_mesh)
+	var mesh := ImmediateMesh.new()
+	var any := false
+	for sp: Dictionary in editor.strongpoints():
+		for piece: Dictionary in sp.pieces:
+			var from: Vector3 = piece.from
+			var to: Vector3 = piece.to
+			var color := Color(0.45, 0.3, 0.15)
+			match piece.kind:
+				"wire":
+					color = Color(0.7, 0.7, 0.7)
+				"comm_trench":
+					color = Color(0.6, 0.45, 0.25)
+			if not any:
+				mesh.surface_begin(Mesh.PRIMITIVE_LINES)
+				any = true
+			if from.distance_to(to) < 0.1:
+				for k in 12:
+					var a := TAU * k / 12.0
+					var b := TAU * (k + 1) / 12.0
+					mesh.surface_set_color(Color(0.9, 0.8, 0.4))
+					mesh.surface_add_vertex(from + Vector3(cos(a) * 1.5, 0.5, sin(a) * 1.5))
+					mesh.surface_add_vertex(from + Vector3(cos(b) * 1.5, 0.5, sin(b) * 1.5))
+			else:
+				mesh.surface_set_color(color)
+				mesh.surface_add_vertex(from + Vector3(0, 0.5, 0))
+				mesh.surface_add_vertex(to + Vector3(0, 0.5, 0))
+	if any:
+		mesh.surface_end()
+	_strongpoint_mesh.mesh = mesh
+	strongpoint_outlines = editor.strongpoints().size()

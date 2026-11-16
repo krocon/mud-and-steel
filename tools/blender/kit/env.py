@@ -96,7 +96,8 @@ BUDGETS = {
     "fort_bunker": 2000, "fort_trench": 2000, "fort_sandbag": 2000, "fort_obstacle": 2000,
     "fort_wire": 2000, "fort_minefield_at": 800, "fort_minefield_ap": 800,
 }
-BUDGET_OVERRIDES = {"env_church": 5000, "env_dump_ammo": 1500, "env_dump_fuel": 1500}
+BUDGET_OVERRIDES = {"env_church": 5000, "env_dump_ammo": 1500, "env_dump_fuel": 1500,
+                    "env_mosque": 5000, "env_police_post": 5000}
 FAR_BUDGET = 200
 
 ENV_PARTS = {}
@@ -434,7 +435,17 @@ def bake_env(objects):
     from .bake import bake
 
     meshes = [o for o in objects if o.type == "MESH"]
-    bake(meshes)
+    # All variants stand at the origin: bake each variant (a direct child of
+    # the root with its parts) on its own, so they do not shade each other
+    # (prompt 059; models built before keep their bake until rebuilt).
+    groups = {}
+    for o in meshes:
+        top = o
+        while top.parent is not None and top.parent.parent is not None:
+            top = top.parent
+        groups.setdefault(top.name, []).append(o)
+    for name in sorted(groups):
+        bake(groups[name])
     for o in meshes:
         me = o.data
         col = me.color_attributes["Color"]

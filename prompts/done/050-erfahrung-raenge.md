@@ -101,9 +101,9 @@ erreichbar). Details in `docs/GAME_DESIGN.md` „Experience and ranks“,
   vorzeitig vernichtet und das Spiel entschieden). Die Prüfung „verzögerter Schuss“
   im Soundtest bestand bisher nur dank Kanonenschüssen des laufenden Gefechts; sie
   wartet jetzt, bis die Stimmen des Stresstests frei sind.
-- **Golden-Hash** bewusst geändert (nach Merge mit 048 und 060):
-  `0x9b87_57bd_bec7_96f8` → `0x755b_b848_ef42_04fb`; Demo-Schlacht jetzt bei Tick 412
-  statt 467 entschieden, gleicher Sieger. Basisbau-Hash → `0x6b44_7fb3_d882_5c93`.
+- **Golden-Hash** bewusst geändert (nach Merge mit 048, 059 und 060):
+  `0x04d1_0b77_115d_59c5` → `0xb608_35fb_c1d7_09a8`; Demo-Schlacht jetzt bei Tick 412
+  statt 467 entschieden, gleicher Sieger. Basisbau-Hash → `0x8ce5_3de4_6339_50aa`.
 - **Messwerte:** `just ai-tournament` (40 Spiele je Paarung): Hard/Normal gegen Passive
   100 %, Easy gegen Passive 97 % (1 Zeitüberschreitung), Hard–Normal 50 %, Hard–Easy
   87 %, Normal–Easy 50 %; Turnier-Hash `0x1fd191937a744a88`. `just check`,

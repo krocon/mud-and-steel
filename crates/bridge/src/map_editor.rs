@@ -103,6 +103,24 @@ fn strings<'a>(items: impl IntoIterator<Item = &'a String>) -> PackedStringArray
 }
 
 impl MapEditor {
+    /// Result of a counting edit for GDScript: the count, or -1 after
+    /// recording the error.
+    fn counted(&mut self, result: Option<Result<usize, String>>) -> i64 {
+        match result {
+            Some(Ok(n)) => {
+                if n > 0 {
+                    self.edited(None);
+                }
+                i64::try_from(n).unwrap_or(i64::MAX)
+            }
+            Some(Err(e)) => {
+                self.fail(e);
+                -1
+            }
+            None => -1,
+        }
+    }
+
     fn fail(&mut self, message: String) -> bool {
         godot_warn!("map editor: {message}");
         self.error = message;
@@ -563,6 +581,42 @@ impl MapEditor {
         }
     }
 
+    /// Places a compound of `data/compounds.toml` (prompt 059) centered at
+    /// the point, turned by `heading_deg` (rounded to 90°). Returns how
+    /// many objects were placed (-1 on an error).
+    #[func]
+    fn place_compound(&mut self, name: GString, x: f32, z: f32, heading_deg: i64) -> i64 {
+        let heading = u16::try_from(heading_deg.rem_euclid(360)).unwrap_or(0);
+        let result = self
+            .map
+            .as_mut()
+            .map(|m| m.place_compound(&name.to_string(), mm(x), mm(z), heading));
+        self.counted(result)
+    }
+
+    /// Village brush (prompt 059): packs courtyard compounds into the
+    /// circle. Returns how many compounds were placed (-1 on an error).
+    #[func]
+    fn village(&mut self, x: f32, z: f32, radius: f32) -> i64 {
+        let brush = self.brush(x, z, radius);
+        let result = self.map.as_mut().map(|m| m.village(brush));
+        self.counted(result)
+    }
+
+    /// Names and labels of the compounds: `"<name>:<label>"`.
+    #[func]
+    fn compound_names(&self) -> PackedStringArray {
+        editor::compound::Compounds::builtin().map_or_else(
+            |_| PackedStringArray::new(),
+            |c| {
+                c.list
+                    .iter()
+                    .map(|c| GString::from(format!("{}:{}", c.name, c.label).as_str()))
+                    .collect()
+            },
+        )
+    }
+
     /// Removes objects in the circle (only catalog id `kind` unless empty).
     #[func]
     fn erase_objects(&mut self, x: f32, z: f32, radius: f32, kind: GString) -> i64 {
@@ -584,6 +638,71 @@ impl MapEditor {
         };
         map.set_start(player, mm(x), mm(z));
         self.edited(None);
+    }
+
+    /// Adds a strongpoint marker at the ground point (prompt 052); returns
+    /// its name ("" without a map).
+    #[func]
+    fn add_strongpoint(&mut self, x: f32, z: f32) -> GString {
+        let Some(map) = self.map.as_mut() else {
+            return GString::new();
+        };
+        let name = map.add_strongpoint(mm(x), mm(z));
+        self.edited(None);
+        GString::from(name.as_str())
+    }
+
+    /// Removes the strongpoint markers within `radius` m of the point;
+    /// returns how many.
+    #[func]
+    fn remove_strongpoints(&mut self, x: f32, z: f32, radius: f32) -> i64 {
+        let Some(map) = self.map.as_mut() else {
+            return 0;
+        };
+        let n = map.remove_strongpoints(mm(x), mm(z), mm(radius));
+        if n > 0 {
+            self.edited(None);
+        }
+        i64::try_from(n).unwrap_or(0)
+    }
+
+    /// Strongpoint markers with their layout for the preview: per marker
+    /// `{name, position (Vector3), pieces: [{kind, from, to}]}`.
+    #[func]
+    fn strongpoints(&self) -> Array<VarDictionary> {
+        let Some(map) = &self.map else {
+            return Array::new();
+        };
+        let Ok(rules) = sim::PositionRules::builtin() else {
+            return Array::new();
+        };
+        let ground = |p: sim::Vec2| {
+            let (x, z) = (crate::fixed_to_f32(p.x), crate::fixed_to_f32(p.y));
+            Vector3::new(x, Self::height_f32(map, x, z), z)
+        };
+        map.meta()
+            .markers
+            .iter()
+            .filter(|(name, _)| name.starts_with(&rules.strongpoint_prefix))
+            .map(|(name, p)| {
+                let center = sim::Vec2::from_meters(p[0], p[1]);
+                let pieces: Array<VarDictionary> = sim::strongpoint_layout(&rules, center)
+                    .iter()
+                    .map(|piece| {
+                        let mut d = VarDictionary::new();
+                        d.set("kind", piece.kind.name());
+                        d.set("from", ground(piece.from));
+                        d.set("to", ground(piece.to));
+                        d
+                    })
+                    .collect();
+                let mut d = VarDictionary::new();
+                d.set("name", name.as_str());
+                d.set("position", ground(center));
+                d.set("pieces", &pieces);
+                d
+            })
+            .collect()
     }
 
     /// Suggested team of `player`'s start for the lobby (prompt 037); -1:

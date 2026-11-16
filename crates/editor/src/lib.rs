@@ -12,6 +12,7 @@
 //! though, not part of the simulation: `crates/sim` stays the game rules.
 
 pub mod brush;
+pub mod compound;
 mod files;
 pub mod history;
 pub mod validate;
@@ -462,6 +463,57 @@ impl EditMap {
             m.starts.push((player, p));
             m.starts.sort_by_key(|s| s.0);
         });
+    }
+
+    /// Adds a strongpoint marker (prompt 052: `<prefix><n>`, a neutral trench
+    /// strongpoint in matches) at the point, rounded to whole meters and
+    /// kept on the map. Returns its name.
+    pub fn add_strongpoint(&mut self, x_mm: i32, y_mm: i32) -> String {
+        let prefix = sim::PositionRules::builtin()
+            .map_or_else(|_| "strongpoint_".to_string(), |r| r.strongpoint_prefix);
+        let to_m = |v: i32, half: i32| {
+            let v = v.clamp(-half, half);
+            (v + v.signum() * 500) / 1000
+        };
+        let p = [to_m(x_mm, self.half_x_mm), to_m(y_mm, self.half_y_mm)];
+        let mut n = 1;
+        while self
+            .meta
+            .markers
+            .iter()
+            .any(|(name, _)| *name == format!("{prefix}{n}"))
+        {
+            n += 1;
+        }
+        let name = format!("{prefix}{n}");
+        let added = name.clone();
+        self.edit_meta(|m| m.markers.push((added, p)));
+        name
+    }
+
+    /// Removes the strongpoint markers within `radius_mm` of the point;
+    /// returns how many.
+    pub fn remove_strongpoints(&mut self, x_mm: i32, y_mm: i32, radius_mm: i32) -> usize {
+        let prefix = sim::PositionRules::builtin()
+            .map_or_else(|_| "strongpoint_".to_string(), |r| r.strongpoint_prefix);
+        let near = |p: &[i32; 2]| {
+            let dx = i64::from(p[0]) * 1000 - i64::from(x_mm);
+            let dy = i64::from(p[1]) * 1000 - i64::from(y_mm);
+            dx * dx + dy * dy <= i64::from(radius_mm) * i64::from(radius_mm)
+        };
+        let count = self
+            .meta
+            .markers
+            .iter()
+            .filter(|(name, p)| name.starts_with(&prefix) && near(p))
+            .count();
+        if count > 0 {
+            self.edit_meta(|m| {
+                m.markers
+                    .retain(|(name, p)| !(name.starts_with(&prefix) && near(p)))
+            });
+        }
+        count
     }
 
     /// Removes the start position of `player` (and its team).

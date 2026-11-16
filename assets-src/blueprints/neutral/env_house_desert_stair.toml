@@ -1,0 +1,55 @@
+# Two rooms with a solid outside stair to the roof along the +x wall.
+# Generator: desert_house (tools/blender/kit/desert.py); plan in m from the -X/-Y corner, +X = door side.
+unit = "env_house_desert_stair"
+assembly = "env"
+
+[[variant]]
+name = "Intact"
+part = "desert_house"
+role = "intact"
+seed = 15
+plaster = 0
+coping = 2
+blocks = [[0, 0, 5, 4, 3.4], [0, 4, 5, 8, 3.4]]
+stair = [5, 0.3, 6, 5.0]
+stair_up = "-y"
+stair_landing = 1.3
+stair_passage = true
+doors = [[0, "+x", 0.95, 0.85], [1, "+x", 6.2, 0.9]]
+windows = [[1, "+x", 7.3], [0, "-x", 2.0], [1, "-x", 6.0], [0, "-y", 2.5], [1, "+y", 2.5]]
+
+[[variant]]
+name = "Damaged"
+part = "desert_house"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 15
+plaster = 0
+coping = 2
+blocks = [[0, 0, 5, 4, 3.4], [0, 4, 5, 8, 3.4]]
+stair = [5, 0.3, 6, 5.0]
+stair_up = "-y"
+stair_landing = 1.3
+stair_passage = true
+doors = [[0, "+x", 0.95, 0.85], [1, "+x", 6.2, 0.9]]
+windows = [[1, "+x", 7.3], [0, "-x", 2.0], [1, "-x", 6.0], [0, "-y", 2.5], [1, "+y", 2.5]]
+
+[[variant]]
+name = "Ruin"
+part = "desert_house"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 15
+plaster = 0
+coping = 2
+blocks = [[0, 0, 5, 4, 3.4], [0, 4, 5, 8, 3.4]]
+stair = [5, 0.3, 6, 5.0]
+stair_up = "-y"
+stair_landing = 1.3
+stair_passage = true
+doors = [[0, "+x", 0.95, 0.85], [1, "+x", 6.2, 0.9]]
+windows = [[1, "+x", 7.3], [0, "-x", 2.0], [1, "-x", 6.0], [0, "-y", 2.5], [1, "+y", 2.5]]

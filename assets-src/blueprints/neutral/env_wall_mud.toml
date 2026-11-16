@@ -1,0 +1,54 @@
+# Courtyard wall of plastered mud brick (prompt 059): segments chain along Y
+# every 3 m; low, broken and gate segments; end and corner piers.
+unit = "env_wall_mud"
+assembly = "env"
+
+[[variant]]
+name = "Segment"
+part = "wall_mud"
+role = "segment"
+seed = 1
+
+[[variant]]
+name = "Low"
+part = "wall_mud"
+role = "segment"
+dims_m = [3.0, 0.5, 1.4]
+seed = 2
+kind = 1
+patches = 2
+drift = 0.3
+
+[[variant]]
+name = "Broken"
+part = "wall_mud"
+role = "segment"
+piece = "broken"
+kind = 1
+seed = 3
+
+[[variant]]
+name = "Gate"
+part = "wall_mud"
+role = "segment"
+piece = "gate"
+dims_m = [3.0, 0.7, 2.7]
+seed = 4
+
+[[variant]]
+name = "End"
+part = "wall_mud"
+role = "end"
+piece = "pier"
+dims_m = [0.5, 0.5, 2.3]
+patches = 1
+seed = 5
+
+[[variant]]
+name = "Corner"
+part = "wall_mud"
+role = "corner"
+piece = "pier"
+dims_m = [0.6, 0.6, 2.3]
+patches = 2
+seed = 6

@@ -259,6 +259,11 @@ gen-mountains:
 gen-town:
     cargo run -q --release -p cli -- gen-town
 
+# Generate the desert village map (prompt 059) into data/maps/desert_village/
+[group('maps')]
+gen-village:
+    cargo run -q --release -p cli -- gen-village
+
 # Fire benchmark on the town map (prompt 041): ticks without and with a burning wood, terrace and dumps
 [group('maps')]
 fire-bench units="40" ticks="6000":
@@ -410,6 +415,11 @@ effects-shots dir: build
 [group('godot')]
 base-shots dir: build
     {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- --mode=base --ai=normal "--base-shots={{ dir }}"
+
+# Record a trench strongpoint (prompt 052) as PNG files into a folder: overview, firing bay, dugouts, ring and wire (needs a window)
+[group('godot')]
+position-shots dir="build/positions": build
+    {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- "--position-shots={{ dir }}"
 
 # Measure the frame rate with 50 explosions at once in every graphics quality (opens a window)
 [group('godot')]

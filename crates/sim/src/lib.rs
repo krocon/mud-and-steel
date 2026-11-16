@@ -30,6 +30,7 @@ mod math;
 pub mod objects;
 mod outcome;
 pub mod path;
+pub mod positions;
 mod rng;
 pub mod scale;
 pub mod scenario;
@@ -69,6 +70,7 @@ pub use map::{Biome, Map, MapError, MapRef};
 pub use math::{Fixed, Vec2};
 pub use objects::{Blocks, MapObject, ObjectKind, ObjectRules};
 pub use outcome::{DefeatReason, Outcome, PlayerStanding};
+pub use positions::{LayoutPiece, PositionRules, strongpoint_layout};
 pub use rng::Rng;
 pub use scale::Scale;
 pub use sim::{

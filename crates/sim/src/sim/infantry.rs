@@ -835,6 +835,9 @@ impl Sim {
         // Craters (prompt 021): spots without an object, cover all round.
         let crater_spots = self.crater_spots(center, ty.spread / 2 + search);
         spots.extend(crater_spots.into_iter().map(|p| (p, None)));
+        // Firing positions of trenches and MG nests (prompt 052).
+        let trench_spots = self.trench_spots(center, ty.spread / 2 + search, facing);
+        spots.extend(trench_spots.into_iter().map(|p| (p, None)));
         let grid = &self.paths.grid;
         let map = &self.map;
         spots.retain(|&(p, _)| map.contains(p) && grid.passable_for(profile, p));

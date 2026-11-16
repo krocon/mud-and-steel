@@ -492,6 +492,14 @@ prone) instead of the crater values. Engineers (`inf_engineer`) also lay
 and clear mines, wire and obstacles and work on bridges (ARCHITECTURE.md
 "Field works"); anti-personnel mines kill the soldier who steps on one.
 
+Prompt 052: fire trenches zigzag; a standing squad near a finished trench
+or MG nest takes its firing positions (the corners, then every 2 m along
+the wall towards its facing). The parapet stops direct fire only from
+shooters farther than 25 m and rounds flatter than 30 degrees; MG nests
+cover 85/90/95 %, dugouts 95 % (also against artillery fragments).
+Standing units under a camouflage net that did not fire for 20 s are seen
+only from within 80 m. [provisional]
+
 ### Knocked down by blasts (prompt 048)
 
 `[knockdown]` in `data/infantry.toml`, `crates/sim/src/sim/knockdown.rs`,

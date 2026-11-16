@@ -52,6 +52,14 @@ const BUTTONS: Array[Array] = [
 	["work_trench", "Trench", "", "work"],
 	["work_clear", "Clear", "", "work"],
 	["work_bridge", "Bridge", "", "work"],
+	# Positions (prompt 052).
+	["work_comm_trench", "Comm. trench", "", "work"],
+	["work_mg_nest", "MG nest", "", "work"],
+	["work_dugout", "Dugout", "", "work"],
+	["work_vehicle_pit", "Vehicle pit", "", "work"],
+	["work_camo_net", "Camo net", "", "work"],
+	["work_bunker", "Bunker", "", "work"],
+	["work_teeth", "Teeth", "", "work"],
 ]
 
 var main: Node3D
@@ -263,7 +271,7 @@ func _work_tooltip(kind: String) -> String:
 			return "Engineers: then left click a bridge. An intact one is blown up, a destroyed one repaired."
 	var cost := sim_host.work_cost(kind)
 	var price := ""
-	if cost.size() == 4:
+	if cost.size() >= 4:
 		price = " Each piece: fuel %d, ammo %d, manpower %d, %d s." % [cost[0], cost[1], cost[2], cost[3]]
 	var how := "two left clicks (start and end of the line)" if EngineerOrders.KINDS[kind][1] else "a left click"
 	return "Engineers: then %s.%s" % [how, price]

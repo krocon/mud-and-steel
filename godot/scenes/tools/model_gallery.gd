@@ -47,7 +47,7 @@ const REQUIRED_ENV: Array[String] = [
 	"env_grass_clump", "env_rock", "env_house_farm", "env_barn", "env_house_stone", "env_house_mud",
 	"env_church", "env_bridge_wood", "env_bridge_stone", "env_fence_wood", "env_wall_stone", "env_hedge",
 	"fort_barbed_wire", "fort_hedgehog", "fort_sandbag_position", "fort_bunker_mg", "fort_trench_section",
-	"fort_mine_at", "fort_mine_ap", "fort_mine_sign"]
+	"fort_mine_at", "fort_mine_ap", "fort_mine_sign", "fort_camo_net", "fort_dragon_teeth"]
 ## Environment rows: group name -> catalog categories.
 const ENV_GROUPS: Array = [
 	["Trees", ["env_tree"]],
