@@ -66,6 +66,8 @@ but never its issuer:
 | `QueueMove { units, target }` | Appends a waypoint: a formation slot around `target` per unit, driven to after the current order ([Waypoint chains](#waypoint-chains-and-patrols), prompt 031). |
 | `Patrol { units, target }` | Like `MoveTo`, then back and forth between the start and the target. |
 | `CallAir { mission, target }` | Calls air support of the player's faction on the ground point ([Air support](#air-support-and-anti-aircraft-fire), prompt 033). |
+| `FormationMove { units, target, formation, facing, engage }` | Drives the group to a formation around `target`, turned to `facing` (default: direction of travel); `engage` picks who halts to fight on the way (attack-move) ([Formations](#formations-attack-move-and-securing), prompt 046). |
+| `Secure { units, center, radius_m, formation, facing }` | Takes up the formation around `center` and holds the circle: attack enemies inside, return to the slots. |
 
 Movement commands (`MoveTo`, `Attack`, `AttackGround`, `Garrison`,
 `QueueMove`, `Patrol`) ignore units that cannot move (buildings).
@@ -89,8 +91,9 @@ footprint of the group (`UnitType::footprint_m` = larger of catalog length and w
 grid is axis-aligned. Units are assigned to slots in the order of their current
 position (y, then x, then id), slots in the same order, which avoids crossing paths
 in the common cases and makes the result independent of the order of ids in the
-command. Facing-aware formations (and a slot assignment along the direction of
-travel) are still open; see [Pathfinding](#pathfinding).
+command. Facing-aware formations with a slot assignment along the direction of
+travel came with prompt 046 (`FormationMove`, [below](#formations-attack-move-and-securing));
+`MoveTo` keeps the grid.
 
 **Scenarios** (`data/scenarios/*.toml`) name a map and place groups of catalog units
 per player in a grid. The compiled-in demo (`sim::scenario::demo_config`) has eight
@@ -128,7 +131,45 @@ targets (formation slots), at most `MAX_QUEUED` (64).
 |---|---|---|
 | New command or `queue` flag | Two new variants at the end of `Command` | `MoveTo` and old replays stay unchanged (postcard numbers variants in order). |
 | Paths along the chain | One per unit and leg | A shared group path would need the members to wait for each other; short legs cost little search budget. |
-| Formation choice, facing by right-drag | Not done | Optional in prompt 031; it changes the formation rules (golden hash) and was left for later. |
+| Formation choice, facing by right-drag | Done in prompt 046 as new commands | `MoveTo` keeps its grid, so the golden hash did not change. |
+
+### Formations, attack-move and securing
+
+Prompt 046, `crates/sim/src/formation.rs` (shapes) and
+`crates/sim/src/sim/drill.rs` (orders); decisions with reasons in
+`prompts/done/046-befehle-formationen.md`.
+
+- **Shapes** (`Formation`): line (at most 8 per rank), wedge (point and two
+  ranks, a platoon of 5; more follow in ranks of 5), column (two files from 9
+  units), broad wedge (inverted), dispersed (staggered, twice the gap). Laid
+  out in units of the spacing (1.5 × largest footprint, as `MoveTo`) across
+  and along the facing, then centered: the mean of the slots is the target.
+  Slots are filled rank by rank from the front; the units most forward along
+  the facing take the front rank, within a rank from left to right.
+- **Auto** is resolved once, when the command is applied: free width across
+  the facing at the target below 3 slots (for the group's most restrictive
+  size class) → column; 30 % or more of the area around the target blocked
+  for tanks by objects → dispersed; target on a road and half the way on
+  roads → column; else wedge (with vehicles) or line (infantry only).
+  [provisional] thresholds.
+- **Attack-move** (`engage`: `Never`, `Infantry` = right-click default,
+  `All`): a unit with the task halts while it has an automatic target (an
+  enemy in range it sees and can hurt) and then plans its own path to its
+  slot again. Hold fire never halts. Runs right after `aim_and_fire`.
+- **Securing**: every `retarget_ticks` a unit without a target attacks the
+  nearest enemy its player sees inside the circle that it can hurt (an
+  ordinary attack order, so search and sight rules apply); the attack is
+  dropped once the target leaves the circle, and the unit returns to its
+  slot.
+- **Facing:** a standing unit without a fight turns its hull to the facing
+  of the order (turret speed rules: `hull_step`); squads turn their soldier
+  formation with it.
+- Other orders drop task and facing; a waypoint (`QueueMove`) only ends
+  securing, and a queue continues after an attack-move (`idle` waits for it).
+- **State:** `Unit::drill` (serde, so in saved games); hashed after all other
+  state only for units that have a task or a facing, so the golden hash did
+  not change. `Sim::drill_view` and `Sim::auto_formation_for` serve the HUD
+  (`SimHost.unit_drill`, `auto_formation`).
 
 ## Map and movement
 

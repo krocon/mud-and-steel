@@ -23,7 +23,7 @@ pub enum Formation {
     /// Side by side across the facing, at most [`LINE_WIDTH`] per rank.
     Line,
     /// Point first, the others behind it to both sides (a "V" pointing
-    /// forward).
+    /// forward); from [`WEDGE_SIZE`] units on, the rest follows in ranks.
     Wedge,
     /// One behind the other (two files from [`TWO_FILES_FROM`] units).
     Column,
@@ -102,6 +102,10 @@ impl Engage {
 /// Units per rank of a line; more form further ranks behind.
 pub const LINE_WIDTH: usize = 8;
 
+/// Units in the wedge itself (point and two ranks, a tank platoon); more
+/// follow in ranks behind it.
+pub const WEDGE_SIZE: usize = 5;
+
 /// From this many units a column has two files.
 pub const TWO_FILES_FROM: usize = 9;
 
@@ -141,13 +145,24 @@ fn layout(formation: Formation, count: usize) -> Vec<(i64, i64)> {
         }
         Formation::Wedge | Formation::BroadWedge => {
             let sign = if formation == Formation::Wedge { -1 } else { 1 };
-            (0..n)
+            let size = i64::try_from(WEDGE_SIZE).unwrap_or(5);
+            let wedge = n.min(size);
+            let mut slots: Vec<(i64, i64)> = (0..wedge)
                 .map(|k| {
                     let rank = (k + 1) / 2;
                     let side = if k % 2 == 1 { -1 } else { 1 };
                     (2 * side * rank, 2 * sign * rank)
                 })
-                .collect()
+                .collect();
+            // Further units follow in ranks behind the rearmost slot.
+            let rear = slots.iter().map(|s| s.1).min().unwrap_or(0);
+            let rest = n - wedge;
+            slots.extend((0..rest).map(|k| {
+                let row = k / size;
+                let in_row = size.min(rest - row * size);
+                (2 * (k % size) - (in_row - 1), rear - 2 * (row + 1))
+            }));
+            slots
         }
     }
 }

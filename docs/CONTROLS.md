@@ -29,8 +29,8 @@ and [the HUD section](ARCHITECTURE.md#hud-presentation-only). The tutorial
 | Shift + left click | Add or remove a unit |
 | Left drag | Selection box (buildings only if nothing else is in it) |
 | Double click on a unit | All visible own units of that type |
-| Ctrl + 1…9 (Cmd on macOS) | Store the selection as group |
-| 1…9 | Recall the group; twice quickly: camera there |
+| Ctrl + 1…9 (Cmd on macOS) | Store the selection as group (with the current formation) |
+| 1…9 | Recall the group (and its formation); twice quickly: camera there |
 | Unit panel: click a tile | Select only that unit |
 | Unit panel: Shift + click a tile | Remove that unit from the selection |
 
@@ -38,7 +38,8 @@ and [the HUD section](ARCHITECTURE.md#hud-presentation-only). The tutorial
 
 | Input | Effect |
 |---|---|
-| Right click on the ground | Move there (in formation) |
+| Right click on the ground | Move there in the formation of the command bar; infantry halts to fight enemies in range on the way (prompt 046) |
+| Right drag on the ground | Move to where the drag started; the formation faces the drag direction and the units (tanks: their front armor) turn that way on arrival |
 | Shift + right click | Add a waypoint: the units drive there after their current orders; lines and markers show the chain |
 | Right click on an enemy | Attack it |
 | Ctrl + right click (Cmd on macOS) | Fire at the ground point |
@@ -53,6 +54,7 @@ and [the HUD section](ARCHITECTURE.md#hud-presentation-only). The tutorial
 | J *(rebindable)* | Passengers of the selected vehicles get off once the vehicle stands |
 | O *(rebindable)* | Selected vehicles drop their towed guns; selected towed guns are unhitched |
 | K *(rebindable)* | Mark the ground point under the cursor for your allies (ping, prompt 037) |
+| , *(rebindable)* | Next formation: Auto, Line, Wedge, Column, Broad wedge, Dispersed (prompt 046) [provisional] |
 | Minimap: Alt + left click | Mark that point for your allies |
 
 **Targeted orders** from the command bar or their key wait for a left click
@@ -62,7 +64,9 @@ become waypoints).
 
 | Key *(rebindable)* | Order |
 |---|---|
-| M | Move to the clicked point |
+| M | Move to the clicked point; nobody halts on the way (also infantry) |
+| Y | Attack-move ("Advance"): every unit halts to fight enemies in range on the way, then drives on (prompt 046) [provisional] |
+| I | Secure: take up the formation around the clicked point and hold 80 m around it; enemies inside are attacked, the units return to their places [provisional] |
 | R | Attack the clicked enemy |
 | L | Fire at the clicked ground point |
 | P | Patrol: drive to the clicked point and back, again and again |
@@ -73,6 +77,16 @@ Passengers are hidden in their vehicle and cannot be selected; the unit
 panel shows "Passengers 9 / 10", "towing …" or "towed by …" and "loading"
 while mounting, dismounting, limbering or unlimbering runs. Dismount and
 Unlimber are also buttons of the command bar.
+
+## Formations (prompt 046)
+
+The first two cells of the command bar choose the formation of the next
+moves (key `,` switches). **Auto** looks at the ground at the target:
+column on roads and in narrows, dispersed in woods, wedge with vehicles and
+line for infantry in the open. Every formation stands across its facing (the
+direction of travel, or the right-drag direction). Selected units show an
+attack-move route in orange and a secured area as a red circle. Control
+groups remember their formation; there are no named squads [provisional].
 
 ## Air support (prompt 033)
 
