@@ -828,6 +828,44 @@ impl Sim {
         }
     }
 
+    /// Puts a high-explosive round from `origin` to `target` in the air
+    /// that arrives after `total` ticks over an arc of `apex` meters
+    /// (prompt 054: the rockets of a heavy strike). It flies, is drawn and
+    /// explodes like a shell; the shot event is the launch.
+    #[allow(clippy::too_many_arguments)]
+    pub(super) fn launch_shell(
+        &mut self,
+        shooter: UnitId,
+        owner: PlayerId,
+        origin: Vec3,
+        target: Vec3,
+        apex: Fixed,
+        total: u32,
+        caliber_mm_x10: u32,
+    ) {
+        let id = self.next_projectile;
+        self.next_projectile = self.next_projectile.wrapping_add(1);
+        self.artillery.shells.push(Shell {
+            id,
+            shooter,
+            owner,
+            origin,
+            target,
+            apex,
+            total: total.max(1),
+            elapsed: 0,
+            caliber_mm_x10,
+            smoke: false,
+        });
+        self.events.push(CombatEvent::Shot {
+            unit: shooter,
+            weapon: INDIRECT_WEAPON,
+            projectile: id,
+            muzzle: origin,
+            caliber_mm_x10,
+        });
+    }
+
     /// Moves every shell one tick; shells that arrive explode (or release
     /// their smoke).
     pub(super) fn fly_shells(&mut self) {

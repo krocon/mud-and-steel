@@ -21,18 +21,28 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by prompt 047 (infantry tactics), merged with 050 and
-/// 055: the rules of `data/tactics.toml` and every squad's tactical state
+/// Last changed by the merge of prompt 047 (infantry tactics) with 054:
+/// the rules of `data/tactics.toml` and every squad's tactical state
 /// (suppression, pinning, contact, bounds, blind-fire memory, jams) are in
 /// the hash, and the rules change the fight: suppression widens the
 /// dispersion and pins squads down, squads in contact crouch and bound, jams
 /// draw from the generator. The last enemy squad now holds out longer: the
 /// demo battle is decided at tick 1017 instead of 412 (same winner, player
 /// 0), after the 1000 ticks of the golden run (see
-/// `demo_battle_is_decided`). 047 alone (with 060): `0x354a_2456_e67e_c2ca`.
-/// Before: `0x2022_32ed_b313_f95a` (the merge of prompt 055, below).
+/// `demo_battle_is_decided`). 047 with 050/055 (before 054):
+/// `0x3d9a_b414_771f_2276`. Before: `0x7681_c049_8fc9_19b3` (the merge of
+/// prompt 054, below).
 ///
-/// Last changed by the merge of prompt 055 (bridges, bridge-laying tanks,
+/// Last changed by the merge of prompt 054 (heavy strike) with main: the
+/// new base building `base_rocket_battery` in `data/economy.toml` is part
+/// of the hashed economy rules, and every unit type after it moves one
+/// index up. Nothing else changes: no strike is called in the demo, and the
+/// strike state is only hashed once one was (checked: with the old
+/// `economy.toml` the hash stays the one before). 054 alone:
+/// `0xeca6_c2de_63a8_f16d`. Before: `0x2022_32ed_b313_f95a`, set by
+/// the merge of prompt 055:
+///
+/// The merge of prompt 055 (bridges, bridge-laying tanks,
 /// camouflage, paratroopers): the hashed air rules gained the `airborne`
 /// mission, the hit points of transport aircraft, the bomb carpet length
 /// and the paratrooper rules; the air types of the match include the
@@ -187,7 +197,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x3d9a_b414_771f_2276;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x9ca9_6477_eff5_75ef;
 
 #[test]
 fn golden_hash() {
@@ -230,9 +240,10 @@ fn demo_is_a_battle() {
     }
 }
 
-/// The demo battle ends by elimination (prompt 027). Since prompt 047 the
-/// last suppressed squad holds out until tick 1017, so the run is 1100
-/// ticks long (the golden hash above stays at 1000 ticks).
+/// The demo battle ends by elimination (prompt 027): the result is part of
+/// the golden state above. Since prompt 047 the last suppressed squad
+/// holds out until tick 1017, so the run is 1100 ticks long (the golden
+/// hash above stays at 1000 ticks).
 #[test]
 fn demo_battle_is_decided() {
     let end = run_demo(42, 1100);

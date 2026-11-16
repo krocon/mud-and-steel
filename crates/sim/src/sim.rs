@@ -31,6 +31,7 @@ mod logistics;
 mod orders;
 mod positions;
 mod spatial;
+mod strike;
 mod tactics;
 mod transport;
 mod vision;
@@ -148,6 +149,8 @@ pub enum ConfigError {
     Fire(String),
     /// The built-in air rules do not parse (prompt 033).
     Air(String),
+    /// The built-in strike rules do not parse (prompt 054).
+    Strike(String),
     /// The built-in transport rules do not parse (prompt 034).
     Transport(String),
     /// The built-in logistics rules do not parse (prompt 036).
@@ -182,6 +185,7 @@ impl fmt::Display for ConfigError {
             | Self::Indirect(e)
             | Self::Fire(e)
             | Self::Air(e)
+            | Self::Strike(e)
             | Self::Transport(e)
             | Self::Logistics(e)
             | Self::Weather(e)
@@ -500,6 +504,8 @@ pub struct Sim {
     /// Collapsing decks, swimmers, bridge-laying tanks, camouflage and
     /// paratroopers (prompt 055).
     crossings: crossings::Crossings,
+    /// Heavy rocket strikes (prompt 054).
+    strikes: strike::Strikes,
 }
 
 impl Sim {
@@ -631,6 +637,11 @@ impl Sim {
         );
         let mut vision = vision;
         vision.ensure_radius(air.recon_radius);
+        let strikes = strike::Strikes::new(
+            crate::strike::StrikeRules::builtin()
+                .map_err(|e| ConfigError::Strike(e.to_string()))?,
+            config,
+        );
         let transport = transport::Transport::new(
             crate::transport::TransportRules::builtin()
                 .map_err(|e| ConfigError::Transport(e.to_string()))?,
@@ -707,6 +718,7 @@ impl Sim {
             tactics,
             experience,
             crossings,
+            strikes,
         };
         sim.init_weather();
         sim.init_economy();
@@ -775,6 +787,7 @@ impl Sim {
         self.events.clear();
         self.air.events.clear();
         self.crossings.events.clear();
+        self.strikes.events.clear();
         for command in commands {
             self.apply(command);
         }
@@ -788,6 +801,7 @@ impl Sim {
         self.update_drills();
         self.update_tactics();
         self.fire_indirect();
+        self.update_strikes();
         done(Phase::Combat);
         self.halt_stranded();
         self.update_swimmers();
@@ -819,6 +833,7 @@ impl Sim {
         self.update_vision(false);
         self.hide_camouflaged();
         self.reveal_flashes();
+        self.reveal_strikes();
         done(Phase::Vision);
         self.tick += 1;
         let units = &self.units;
@@ -1282,6 +1297,7 @@ impl Sim {
             Command::CallAirLine { mission, from, to } => {
                 self.order_air_line(command.player, *mission, (*from, *to));
             }
+            Command::HeavyStrike { target } => self.order_strike(command.player, *target),
         }
     }
 
@@ -1453,6 +1469,11 @@ impl Sim {
         self.tactics.hash_into(&mut h);
         self.hash_experience(&mut h);
         self.crossings.hash_into(&mut h);
+        // Left out until the first strike, so other matches keep their
+        // hashes (prompt 054).
+        if self.strikes.used() {
+            self.strikes.hash_into(&mut h);
+        }
         h.finish()
     }
 

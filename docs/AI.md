@@ -345,6 +345,26 @@ aircraft in sight.
   base (one, needs barracks).
 - Easy and Passive never call aircraft.
 
+## Heavy strike (prompt 054)
+
+Normal and Hard use the rocket strike of `data/strike.toml`
+(`crates/ai/src/strike.rs`); the view carries the player's strike option
+(`Sim::strike_option`) and every called strike (`Sim::strikes`, public).
+
+- In base matches the battery position is placed once the vehicle works
+  stand and the strike unlocks within 120 s.
+- A call needs twice its price in the account. Target: the largest visible
+  enemy group of four or more (as for the artillery), else a visible enemy
+  building, else the enemy's base; never within the strike radius + 60 m of
+  own or allied units.
+- Against an enemy strike, own units within its radius + 40 m move out of
+  the marked area (busy for the warning time + 30 s: the groups leave them
+  alone); the Hard AI also sends its four nearest tanks against the
+  revealed battery position.
+- Easy and Passive never use it. On `test_small` AI matches are usually
+  decided before the unlock (about 8 minutes), so the tournament rarely sees
+  a strike. [provisional]
+
 ## Game and menu
 
 - Single-player setup: **Opponent** Passive / Easy / Normal (default) / Hard

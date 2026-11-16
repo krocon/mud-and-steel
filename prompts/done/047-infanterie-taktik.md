@@ -86,7 +86,7 @@ Umgesetzt wie in der Tabelle oben; Details in `docs/INFANTRY.md` („Tactics (pr
   Rauch, Mörser hält und feuert, Mörser trifft aufgeklärte Ziele hinter Häusern,
   gleicher Hash, Ladehemmungen selten), `crates/net/tests/snapshot_tactics.rs`
   (Spielstand mitten im Sprung läuft identisch weiter).
-- **Golden-Hash:** `0x3d9a_b414_771f_2276` (Wirtschaft `0xe06d_4822_417f_100e`):
+- **Golden-Hash:** `0x9ca9_6477_eff5_75ef` nach dem Merge mit 054 (Wirtschaft `0x745c_45c6_528b_58ee`; vor 054: `0x3d9a_b414_771f_2276`):
   Regeln und Truppzustand im Hash, Gefechte laufen anders. Die Demo-Schlacht ist
   erst in Tick 1017 statt 412 entschieden (gleicher Sieger); der Test
   `demo_battle_is_decided` läuft deshalb 1100 Ticks (Golden-Hash weiter nach 1000).
