@@ -108,9 +108,15 @@ Umgesetzt wie oben; Details in `docs/ARCHITECTURE.md` „Fire“, `docs/MAPS.md`
 - **Messung** (`just fire-bench`, M1 Max, release): Stadtkarte, 40 Einheiten je
   Seite, 6000 Ticks: ohne Feuer 0,09 ms/Tick (max 3,8 ms); mit 81 gelegten Bränden
   (bis 673 gleichzeitig) 1,7 ms/Tick, max 19,8 ms (Budget 50 ms).
-- **Golden-Hashes** bewusst aktualisiert: Demo `0x3f46fd7493a4935a` (Schlacht jetzt
-  bei Tick 467 statt 480 entschieden, gleicher Sieger, weil brennende Wracks und
-  Zündwürfe den Zufallsgenerator nutzen), Basisbau `0x756aee2dcaf68ff9`.
+- **Golden-Hashes** bewusst aktualisiert (nach dem Merge mit 033): Demo
+  `0xd8f0f135a14de016` (Schlacht jetzt bei Tick 467 statt 480 entschieden, gleicher
+  Sieger, weil brennende Wracks und Zündwürfe den Zufallsgenerator nutzen), Basisbau
+  `0x756aee2dcaf68ff9` vor bzw. `0x78285ee224aed5f3` nach dem Merge.
+- **Prüfungen:** `just check`, `kit-test`, `gallery-check`, `selftest`,
+  `editor-selftest`, `lan-selftest` grün. `validate-assets`: Umwelt, Soldaten und
+  Trupps grün; 23 Einheitenmodelle aus `main` (Flak, Flugzeuge, einige Panzer) sind
+  nach den Katalogänderungen von 033 veraltet (`just unit …` fehlt dort) – nicht Teil
+  dieses Prompts, nicht neu gebaut.
 
 **Vorläufig (bitte bestätigen):** alle Werte in `data/fire.toml` (Zünd- und
 Ansteckchancen, Reichweiten, Brenndauern, Anteil der Lebenspunkte, Besatzungsschaden
