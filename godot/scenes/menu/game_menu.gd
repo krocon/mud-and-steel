@@ -248,6 +248,9 @@ func _show_result(result: Dictionary) -> void:
 func _reason(winner: int, me: int, own: Dictionary, players: Array, won: bool) -> String:
 	if winner < 0:
 		return "Every side lost in the same moment."
+	# Prompt 039: the mission script decided.
+	if own.get("reason", "") == "mission" or (won and players.any(func(p: Dictionary) -> bool: return p["reason"] == "mission")):
+		return "Mission accomplished." if won else "Mission failed."
 	if not won:
 		if own.get("defeated", false):
 			return "You surrendered." if own.get("reason", "") == "surrendered" else "All your units were lost."

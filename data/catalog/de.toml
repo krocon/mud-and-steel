@@ -1000,3 +1000,72 @@ source = [
 ]
 uncertain = ["weapon"]
 note = "C-2 (observation version with rear MG 15). Max speed 175 km/h at sea level (its best altitude for this low-powered type). MG 15 rate/velocity from memory."
+
+# ---------------------------------------------------------------------------
+# Prompt 055: bridge-laying tank and transport aircraft
+# ---------------------------------------------------------------------------
+
+[[unit]]
+id = "de_brueckenleger4"
+faction = "de"
+category = "bridgelayer"
+name_de = "Brückenleger IV b"
+name_en = "Brückenleger IV b bridge-laying tank"
+designation = "Brückenleger IV b"
+year_from = 1940
+year_to = 1941
+tier = 2
+model = "assets/models/de/de_brueckenleger4.glb"
+length_mm = 11000
+length_hull_mm = 5920
+width_mm = 3000
+height_mm = 3540
+mass_kg = 28000
+crew = 2
+speed_road_kmh_x10 = 400
+speed_offroad_kmh_x10 = 200
+range_road_km = 200
+power_hp = 300
+armor_hull_front_mm = 30
+armor_hull_side_mm = 20
+armor_hull_rear_mm = 20
+bridge_length_mm = 11000
+bridge_load_kg = 28000
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Br%C3%BCckenleger_IV", covers = "bridge-laying tank on the Panzer IV Ausf. C/D chassis by Krupp and Magirus, 20 built in 1940, issued to the engineer companies of the panzer divisions (France 1940, Soviet Union 1941), later rebuilt as tanks; crew 2, about 28 t, 11 m long with the bridge, 3 m wide, 3.54 m high, Maybach HL 120 TRM 300 PS, 40 km/h; bridge 11 m (from memory, not fetched for this entry)" },
+    { ref = "Spielberger, Der Panzerkampfwagen IV und seine Abarten (Motorbuch, Stuttgart 1975), Brückenleger IV", covers = "chassis, number built and use (book not consulted for this entry)" },
+    { ref = "https://en.wikipedia.org/wiki/Panzer_IV", covers = "Ausf. C/D hull: 5.92 m long, hull front 30 mm, sides and rear 20 mm, range about 200 km on roads" },
+]
+uncertain = ["mass_kg", "height_mm", "speed_offroad_kmh_x10", "range_road_km", "bridge_length_mm", "bridge_load_kg"]
+note = "Brückenleger IV b (Krupp, 1940). The bridge lay on top of the hull and was pushed forward over the gap on a launching frame. Only 20 vehicles; by 1942 the type had been withdrawn and most were rebuilt as tanks, so it is outside the 1943-45 main period of the game and kept as the only documented German bridge-laying tank [provisional]. Values from memory of the Wikipedia article and standard Panzer IV references, not checked online for this entry: overall length 11 m equals the bridge length; load limit of the bridge given as 28 t (the vehicle's own weight). Off-road speed and road range are Panzer IV Ausf. D values."
+
+[[unit]]
+id = "de_ju52_3m"
+faction = "de"
+category = "aircraft_transport"
+name_de = "Junkers Ju 52/3m g4e"
+name_en = "Junkers Ju 52/3m g4e"
+designation = "Ju 52/3m g4e"
+year_from = 1936
+year_to = 1945
+tier = 2
+model = "assets/models/de/de_ju52_3m.glb"
+length_mm = 18900
+wingspan_mm = 29250
+height_mm = 4500
+mass_kg = 10500
+crew = 3
+passengers = 17
+speed_max_kmh_x10 = 2650
+speed_cruise_kmh_x10 = 2110
+ceiling_m = 5500
+power_hp = 2175
+weapon = [
+    { name = "MG 15 (dorsal, rear)", count = 1, caliber_mm_x10 = 79, rate_rpm = 1000, muzzle_velocity_mps = 755 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Junkers_Ju_52", covers = "Ju 52/3m g4e: crew 2-3, 17 passengers, 18.9 m, 29.25 m, 4.5 m, max takeoff 10,500 kg, 3 x BMW 132T 725 PS, 265 km/h, cruise 211 km/h, ceiling 5,500 m, 1 x MG 15 dorsal (from memory, not fetched for this entry)" },
+    { ref = "https://en.wikipedia.org/wiki/Fallschirmj%C3%A4ger", covers = "Ju 52 as the standard aircraft of the German paratroopers (Crete 1941, Netherlands 1940), sticks of 12-13 jumpers" },
+]
+uncertain = ["speed_cruise_kmh_x10", "weapon", "passengers"]
+note = "Standard German transport and paratroop aircraft. passengers = troop seats (17 seated soldiers; a paratroop stick was 12-13 men with their containers). The dorsal MG 15 was often replaced by an MG 131 later in the war."

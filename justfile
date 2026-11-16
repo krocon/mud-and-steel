@@ -426,6 +426,16 @@ base-shots dir: build
 position-shots dir="build/positions": build
     {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- "--position-shots={{ dir }}"
 
+# Record big blasts, a tank's ammunition explosion and a heavy rocket strike by day and night as PNG files (prompt 054, needs a window)
+[group('godot')]
+blast-shots dir="build/explosions": build
+    {{ GODOT }} --path godot --always-on-top --fixed-fps 30 res://scenes/main.tscn -- "--blast-shots={{ justfile_directory() }}/{{ dir }}"
+
+# Play a real heavy rocket strike on the base skirmish and record it as PNG files; fails if it does not show (prompt 054, needs a window)
+[group('godot')]
+strike-shots dir="build/explosions": build
+    {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- --mode=base --strike-live "--blast-shots={{ justfile_directory() }}/{{ dir }}"
+
 # Measure the frame rate with 50 explosions at once in every graphics quality (opens a window)
 [group('godot')]
 effects-bench: build

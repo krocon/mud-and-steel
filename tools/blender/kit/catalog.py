@@ -19,6 +19,8 @@ BUDGETS = {
     "mortar_heavy": 3000,
     "aircraft_fighter": 6000, "aircraft_attack": 6000, "aircraft_recon": 6000,
     "aircraft_bomber": 10000,
+    # prompt 055
+    "bridgelayer": 8000, "aircraft_transport": 10000,
 }
 
 

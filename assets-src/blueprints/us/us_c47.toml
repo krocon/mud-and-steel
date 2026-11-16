@@ -1,0 +1,132 @@
+# Douglas C-47 Skytrain (prompt 055): twin-engine low-wing transport with a
+# round fuselage, tapered wing with a swept leading edge and straight
+# trailing edge, two P&W R-1830 nacelles, retractable main gear, tail wheel.
+# Main dimensions from data/catalog/us.toml (length 19.43 m, span 29.11 m,
+# height 5.18 m). Modeling estimates from DC-3/C-47 three-views: root/tip
+# chord 4.9/1.6 m, nacelle axes 2.85 m off the center line, three-blade
+# Hamilton Standard propellers 3.5 m, main wheels 1.14 m, tailplane span
+# about 8 m. Drawn level (fin top = catalog height); a passenger socket at
+# the cargo door on the left side behind the wing.
+unit = "us_c47"
+assembly = "aircraft"
+
+[layout]
+cg_chord = 0.3
+
+[fuselage]
+part = "fuselage"
+# [y, width, height, z_center, exponent], tail -> nose; y = 0 at the wing root leading edge
+sections = [[-13.25, 0.05, 0.20, 2.75, 2.0], [-11.60, 0.60, 0.90, 2.62, 2.2], [-7.50, 1.85, 2.15, 2.45, 2.3],
+            [-3.00, 2.35, 2.55, 2.40, 2.4], [1.00, 2.40, 2.60, 2.40, 2.4], [3.40, 2.25, 2.40, 2.42, 2.3],
+            [5.10, 1.55, 1.70, 2.40, 2.2], [6.10, 0.40, 0.45, 2.35, 2.0]]
+segments = 14
+
+[wing]
+part = "wing"
+y = 0.0
+z = 1.45
+root_chord = 4.90
+tip_chord = 1.60
+sweep_deg = 15.0
+dihedral_deg = 6.0
+thickness = 0.15
+aileron = [0.6, 0.95]
+
+[tail]
+part = "tail"
+y = -9.50
+z = 2.75
+span = 8.00
+root_chord = 2.60
+tip_chord = 1.30
+fin_height = 2.40
+fin_root_chord = 3.00
+fin_tip_chord = 1.20
+fin_sweep_deg = 30
+
+[canopy]
+part = "canopy"                # cockpit windows
+y = [3.70, 4.90]
+z = 3.35
+width = 1.40
+height = 0.30
+
+[landing_gear]
+part = "landing_gear"
+main_y = 0.80
+main_track = 5.70
+main_wheel_diameter = 1.14
+strut_top_z = 1.25
+tail_y = -11.40
+tail_wheel_diameter = 0.50
+tail_strut_top_z = 2.10
+
+[[propeller]]
+part = "propeller"
+name = "Propeller_L"
+position = [-2.85, 3.05, 1.70]
+diameter = 3.50
+blades = 3
+
+[[propeller]]
+part = "propeller"
+name = "Propeller_R"
+position = [2.85, 3.05, 1.70]
+diameter = 3.50
+blades = 3
+
+[[part]]
+part = "nacelle"               # P&W R-1830
+x = 2.85
+y = [-2.20, 2.90]
+z = 1.70
+diameter = 1.40
+
+[[part]]
+part = "socket"
+name = "Socket_Passenger_01"
+position = [-1.25, -6.20, 1.60]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [-2.85, 0.5, 2.1]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [2.85, 0.5, 2.1]
+
+[[part]]
+part = "marking"
+name = "Wing_L"
+position = [-10.5, -3.8, 2.55]
+normal = [0.0, 0.0, 1.0]
+size = 1.6
+
+[[part]]
+part = "marking"
+name = "Wing_R"
+position = [10.5, -3.8, 2.55]
+normal = [0.0, 0.0, 1.0]
+size = 1.6
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-1.10, -8.4, 2.45]
+normal = [-1.0, 0.0, 0.0]
+size = 1.2
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [1.10, -8.4, 2.45]
+normal = [1.0, 0.0, 0.0]
+size = 1.2
+
+[[part]]
+part = "shadow_proxy"
+
+[validate]
+exclude_height = ["Propeller_*"]

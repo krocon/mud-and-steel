@@ -20,6 +20,8 @@ pub enum DefeatReason {
     Surrendered,
     /// The player had no living units left.
     Eliminated,
+    /// The mission script decided (prompt 039).
+    Mission,
 }
 
 /// A player of the match and whether (and when) they lost.
@@ -83,6 +85,36 @@ impl Standings {
         }
     }
 
+    /// The mission script decides (prompt 039): with `won`, `player` and
+    /// its allies win and everyone else is defeated; otherwise `player` and
+    /// its allies are defeated and the lowest other undefeated player wins
+    /// (a draw if there is none). Ignored once the match is decided.
+    pub(crate) fn decide(
+        &mut self,
+        tick: u64,
+        player: PlayerId,
+        won: bool,
+        allied: impl Fn(PlayerId, PlayerId) -> bool,
+    ) {
+        if self.outcome.is_some() {
+            return;
+        }
+        for standing in &mut self.players {
+            if standing.defeat.is_none() && allied(player, standing.player) != won {
+                standing.defeat = Some((DefeatReason::Mission, tick));
+            }
+        }
+        let winner = if won {
+            Some(player)
+        } else {
+            self.players
+                .iter()
+                .find(|s| s.defeat.is_none())
+                .map(|s| s.player)
+        };
+        self.outcome = Some(Outcome { winner, tick });
+    }
+
     /// End-of-tick check: players without living units are eliminated, then
     /// the match is decided if the undefeated players are all `allied`
     /// (at most one team, or one player without teams, is left).
@@ -131,6 +163,7 @@ impl Standings {
                     h.write_u8(match reason {
                         DefeatReason::Surrendered => 1,
                         DefeatReason::Eliminated => 2,
+                        DefeatReason::Mission => 3,
                     });
                     h.write_u64(tick);
                 }
@@ -218,6 +251,28 @@ mod tests {
                 tick: 3
             })
         );
+    }
+
+    #[test]
+    fn the_mission_decides_for_the_player_or_against_it() {
+        let mut won = Standings::new(&P);
+        won.decide(7, P[0], true, ffa);
+        assert_eq!(
+            won.outcome(),
+            Some(Outcome {
+                winner: Some(P[0]),
+                tick: 7
+            })
+        );
+        assert_eq!(won.players()[0].defeat, None);
+        assert_eq!(won.players()[2].defeat, Some((DefeatReason::Mission, 7)));
+        let mut lost = Standings::new(&P);
+        lost.decide(9, P[0], false, ffa);
+        assert_eq!(lost.outcome().map(|o| o.winner), Some(Some(P[1])));
+        assert_eq!(lost.players()[0].defeat, Some((DefeatReason::Mission, 9)));
+        // Final.
+        lost.decide(10, P[0], true, ffa);
+        assert_eq!(lost.outcome().map(|o| o.tick), Some(9));
     }
 
     #[test]

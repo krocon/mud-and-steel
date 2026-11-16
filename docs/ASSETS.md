@@ -149,6 +149,7 @@ demo of each, `just kit-test-render` renders them):
 | Assembly | Build order | Fitted to the catalog | Example |
 |---|---|---|---|
 | `casemate` | layout, running gear, hull, `[casemate]`, cupola, `[[part]]`, gun (model space trunnion, parent Hull), `[[mg]]` | casemate roof (or open wall top) = height, barrel = length | `de/de_stug3_g.toml` |
+| `bridgelayer` | layout (`fender_overhang`: catalog width is the bridge's), running gear, hull, `[[part]]` (the bridge: parts with `parent = "Bridge"`) | catalog length, width and height include the bridge | `su/su_valentine_bridgelayer.toml` |
 | `armored_car` | `[[axle]]`, hull (`section_hull`, `height = "keep"` with a turret), turret, cupola, `[[part]]`, gun, `[[mg]]` | hull length, turret top = height, barrel = length | `su/su_ba64b.toml` |
 | `aa_gun` | `[carriage]` (cruciform_platform), `[[axle]]`, `[mount]` (aa_mount), gun (field_gun on Mount), `[[part]]` | side arms = width, barrel = length (from the rear end) | `us/us_bofors_m1.toml` |
 | `mortar` | baseplate, tube, bipod, `[[axle]]` (transport wheels), `[[part]]` | elevation = height, bipod feet = length and width | `us/us_m2_42in.toml` |
@@ -234,6 +235,7 @@ side `L`/`R`, two-digit index). The root object is named after the catalog id.
 |---|---|---|---|
 | Hull / body | `Hull` | root | origin |
 | Turret | `Turret` | `Hull` | turret ring center, rotates around Z |
+| Carried bridge (bridge-laying tanks, prompt 055) | `Bridge` | `Hull` | origin; the game folds it out and hides it, it is not merged |
 | Gun / barrel | `Gun` | `Turret` (or `Hull` for casemates, `Carriage` for towed guns) | trunnion, elevates around X |
 | Towed gun carriage | `Carriage` | root | origin |
 | Gun shield | `Shield` | `Carriage` | – |

@@ -277,6 +277,20 @@ camouflage net, one step whenever no site is under way and it can pay six
 pieces; at most two positions per match. Test:
 `ai_digs_a_position_after_its_mines`. [provisional]
 
+## Bridge-laying tanks (prompt 055)
+
+`crates/ai/src/bridgelayer.rs`, Normal and Hard only. When the AI starts it
+looks for deep water on the line from its home to the enemy (public map):
+the first river there and points along it (every 40 m, up to 200 m to both
+sides). While no bridge of the map stands within 150 m of the crossing
+(`PlayerView::bridges_intact`), it builds one bridge-laying tank of its
+faction in the vehicle works (at most two per match; the US has none) and
+sends it `LayBridge` at these points in turn until one leads to a laid
+bridge (`PlayerView::layers`). The army uses the bridge through the path
+search. The tank has no weapon (role `Unarmed`) and stays out of the attack
+waves. The AI does not call paratroopers. Test:
+`crates/ai/tests/bridgelayer.rs`. [provisional]
+
 ## Difficulties
 
 | | Passive | Easy | Normal | Hard |
@@ -330,6 +344,26 @@ aircraft in sight.
 - Once enemy aircraft appeared, the AI builds the faction's light flak in its
   base (one, needs barracks).
 - Easy and Passive never call aircraft.
+
+## Heavy strike (prompt 054)
+
+Normal and Hard use the rocket strike of `data/strike.toml`
+(`crates/ai/src/strike.rs`); the view carries the player's strike option
+(`Sim::strike_option`) and every called strike (`Sim::strikes`, public).
+
+- In base matches the battery position is placed once the vehicle works
+  stand and the strike unlocks within 120 s.
+- A call needs twice its price in the account. Target: the largest visible
+  enemy group of four or more (as for the artillery), else a visible enemy
+  building, else the enemy's base; never within the strike radius + 60 m of
+  own or allied units.
+- Against an enemy strike, own units within its radius + 40 m move out of
+  the marked area (busy for the warning time + 30 s: the groups leave them
+  alone); the Hard AI also sends its four nearest tanks against the
+  revealed battery position.
+- Easy and Passive never use it. On `test_small` AI matches are usually
+  decided before the unlock (about 8 minutes), so the tournament rarely sees
+  a strike. [provisional]
 
 ## Game and menu
 

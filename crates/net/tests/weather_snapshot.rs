@@ -49,6 +49,7 @@ fn new_sim(map: Arc<Map>) -> Sim {
             weather: Weather::Rain,
             daytime: Daytime::Night,
         },
+        mission: None,
     };
     Sim::new(&config, map, 5).unwrap()
 }

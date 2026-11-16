@@ -1,0 +1,94 @@
+# Example mission (prompt 039), German side. Format: docs/MISSIONS.md.
+# Areas and spawn points: ../mission_points.toml (map editor).
+
+[mission]
+title = "Town in the snow"
+kind = "mission"
+order = 3
+faction = "de"
+briefing = """
+A Soviet outpost holds the square of a small town. Take it with your Panzer IV \
+company and the riflemen, then stop the Soviet relief from the north."""
+player = 0
+biome = "winter"
+elimination = false
+
+[[computer]]
+player = 1
+difficulty = "passive"
+
+[[group]]
+name = "company"
+owner = 0
+unit = "de_pz4_h"
+count = 4
+at = "south_entry"
+
+[[group]]
+name = "riflemen"
+owner = 0
+unit = "de_inf_rifle_squad"
+count = 2
+position_m = [0, 275]
+
+[[group]]
+name = "outpost"
+owner = 1
+unit = "su_inf_rifle_squad"
+count = 1
+at = "square_south"
+
+[[group]]
+name = "outpost"
+owner = 1
+unit = "su_t70m"
+count = 1
+position_m = [20, 0]
+
+[[objective]]
+id = "square"
+text = "Destroy the Soviet outpost on the town square."
+area = "square"
+shown = true
+
+[[objective]]
+id = "relief"
+text = "Stop the Soviet relief."
+area = "square"
+
+[[trigger]]
+id = "briefing"
+when = "time"
+actions = [
+  { do = "text", text = "The town square lies straight ahead. Advance carefully: the houses give the enemy cover." },
+]
+
+[[trigger]]
+id = "outpost_gone"
+when = "destroyed"
+group = "outpost"
+actions = [
+  { do = "objective", objective = "square", state = "done" },
+  { do = "text", text = "The square is ours. Soviet tanks approach from the north!" },
+  { do = "spawn", group = "relief", owner = 1, unit = "su_t34_76_1943", count = 2, at = "north_entry" },
+  { do = "order", group = "relief", to = "square", order = "move" },
+  { do = "objective", objective = "relief", state = "active" },
+  { do = "camera", at = "north_entry" },
+]
+
+[[trigger]]
+id = "relief_gone"
+after = ["outpost_gone"]
+when = "destroyed"
+group = "relief"
+actions = [
+  { do = "objective", objective = "relief", state = "done" },
+  { do = "text", text = "The relief is destroyed. The town is held." },
+]
+
+[[trigger]]
+id = "victory"
+after = ["relief_gone"]
+when = "time"
+delay_s = 3
+actions = [{ do = "victory" }]

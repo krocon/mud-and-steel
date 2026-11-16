@@ -1,0 +1,236 @@
+# Tutorial (prompt 039): short steps that wait for the player's action.
+# Format: docs/MISSIONS.md. Areas and spawn points are in this file because
+# test_small is a protected test map (the editor does not save it).
+# Places are in meters, x east, y south; times in game seconds.
+
+[mission]
+title = "Basic training"
+kind = "tutorial"
+order = 0
+faction = "de"
+briefing = """
+Learn to command a small battle group: the camera, selecting and moving units, \
+attacking, infantry in cover, building a barracks, producing a squad and \
+taking a supply point. Every step waits for you."""
+player = 0
+# The training targets may be destroyed without ending the match.
+elimination = false
+economy = true
+
+# The enemy only exists as training targets: nobody gives them orders.
+
+[[group]]
+name = "tanks"
+owner = 0
+unit = "de_pz4_h"
+count = 2
+position_m = [-20, 80]
+
+[[group]]
+name = "rifles"
+owner = 0
+unit = "de_inf_rifle_squad"
+count = 1
+position_m = [15, 92]
+
+[[group]]
+name = "hq"
+owner = 0
+unit = "base_hq"
+count = 1
+position_m = [-25, 150]
+
+# An enemy outpost far away; it holds fire and plays no part in the steps.
+[[group]]
+name = "outpost"
+owner = 1
+unit = "su_inf_rifle_squad"
+count = 1
+position_m = [200, -215]
+hold_fire = true
+
+[[area]]
+name = "field"
+center_m = [-60, 40]
+radius_m = 30
+
+[[area]]
+name = "range"
+center_m = [-40, -30]
+radius_m = 30
+
+[[area]]
+name = "wood"
+center_m = [60, 100]
+radius_m = 25
+
+[[area]]
+name = "village"
+center_m = [-138, 138]
+radius_m = 25
+
+[[spawn]]
+name = "targets"
+position_m = [-40, -30]
+
+# --- Objectives (one per step) ------------------------------------------------
+
+[[objective]]
+id = "camera"
+text = "Look around: pan, zoom or turn the camera."
+
+[[objective]]
+id = "select"
+text = "Select your tanks."
+
+[[objective]]
+id = "move"
+text = "Move a tank into the marked field."
+area = "field"
+
+[[objective]]
+id = "attack"
+text = "Destroy the two training targets."
+area = "range"
+
+[[objective]]
+id = "cover"
+text = "Bring your rifle squad into the wood."
+area = "wood"
+
+[[objective]]
+id = "build"
+text = "Build a barracks near your headquarters."
+unit = "base_barracks"
+
+[[objective]]
+id = "produce"
+text = "Produce a rifle squad in the barracks."
+unit = "de_inf_rifle_squad"
+
+[[objective]]
+id = "supply"
+text = "Take the supply point in the village."
+area = "village"
+
+# --- Steps --------------------------------------------------------------------
+
+[[trigger]]
+id = "camera"
+when = "time"
+delay_s = 1
+actions = [
+  { do = "text", text = "Welcome to basic training. Move the camera: W A S D or the arrow keys pan (or push the mouse against the screen edge), the mouse wheel zooms, Q and E turn the view." },
+  { do = "objective", objective = "camera", state = "active" },
+]
+
+[[trigger]]
+id = "camera_done"
+after = ["camera"]
+when = "signal"
+signal = "camera"
+actions = [
+  { do = "objective", objective = "camera", state = "done" },
+  { do = "objective", objective = "select", state = "active" },
+  { do = "camera", at = "tanks_view" },
+  { do = "text", text = "Select units with a left click, or drag a box around several of them. Select your two tanks." },
+]
+
+[[trigger]]
+id = "select_done"
+after = ["camera_done"]
+when = "signal"
+signal = "select"
+actions = [
+  { do = "objective", objective = "select", state = "done" },
+  { do = "objective", objective = "move", state = "active" },
+  { do = "text", text = "Right click on the ground to move the selected units there. Drive a tank into the marked field." },
+]
+
+[[trigger]]
+id = "move_done"
+after = ["select_done"]
+when = "area"
+area = "field"
+unit = "de_pz4_h"
+actions = [
+  { do = "objective", objective = "move", state = "done" },
+  { do = "spawn", group = "targets", owner = 1, unit = "su_t70m", count = 2, at = "targets", hold_fire = true },
+  { do = "camera", at = "targets" },
+  { do = "objective", objective = "attack", state = "active" },
+  { do = "text", text = "Two enemy light tanks appeared. Select your tanks and right click an enemy to attack it. They will not shoot back." },
+]
+
+[[trigger]]
+id = "attack_done"
+after = ["move_done"]
+when = "destroyed"
+group = "targets"
+actions = [
+  { do = "objective", objective = "attack", state = "done" },
+  { do = "objective", objective = "cover", state = "active" },
+  { do = "camera", at = "wood" },
+  { do = "text", text = "Infantry lives on cover. Woods, hedges, walls and houses protect soldiers; going prone (V) makes them harder to hit, Z stands them up. Move your rifle squad into the marked wood. A right click on a house makes infantry occupy it." },
+]
+
+[[trigger]]
+id = "cover_done"
+after = ["attack_done"]
+when = "area"
+area = "wood"
+unit = "de_inf"
+actions = [
+  { do = "objective", objective = "cover", state = "done" },
+  { do = "objective", objective = "build", state = "active" },
+  { do = "camera", at = "hq" },
+  { do = "text", text = "Now build. Open the build menu in the command bar, pick the barracks and place it with a left click near your headquarters. Building takes a little time." },
+]
+
+[[trigger]]
+id = "build_done"
+after = ["cover_done"]
+when = "units"
+unit = "base_barracks"
+actions = [
+  { do = "objective", objective = "build", state = "done" },
+  { do = "objective", objective = "produce", state = "active" },
+  { do = "text", text = "The barracks is ready. Select it and click the rifle squad in its production bar. Production costs resources (top of the screen)." },
+]
+
+[[trigger]]
+id = "produce_done"
+after = ["build_done"]
+when = "units"
+unit = "de_inf_rifle_squad"
+count = 2
+actions = [
+  { do = "objective", objective = "produce", state = "done" },
+  { do = "objective", objective = "supply", state = "active" },
+  { do = "camera", at = "village" },
+  { do = "text", text = "Supply points bring a steady income. Send units to the flag in the village and keep them there until the point is yours; enemies nearby stop the capture." },
+]
+
+[[trigger]]
+id = "supply_done"
+after = ["produce_done"]
+when = "captured"
+point = "supply_village"
+actions = [
+  { do = "objective", objective = "supply", state = "done" },
+  { do = "text", text = "Well done: basic training is complete." },
+]
+
+[[trigger]]
+id = "end"
+after = ["supply_done"]
+when = "time"
+delay_s = 3
+actions = [{ do = "victory" }]
+
+[[spawn]]
+name = "tanks_view"
+position_m = [-20, 80]
+
+[[spawn]]
+name = "hq"
+position_m = [-25, 150]

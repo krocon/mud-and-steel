@@ -18,8 +18,12 @@ const MODELS := {
 	"base_barracks": "env_barracks",
 	"base_depot": "env_depot",
 	"base_factory": "env_steel_hall",
+	# Prompt 054: the ammunition dump of prompt 041; `strike_view.gd` adds
+	# the launch frames. [provisional]
+	"base_rocket_battery": "env_dump_ammo",
 }
 const MODELS_DIR := "res://assets/models/neutral/"
+const StrikeView := preload("res://scenes/world/strike_view.gd")
 ## A site this far built shows at least this much of its model's height.
 const MIN_SITE_SCALE := 0.12
 const OWN_COLOR := Color(0.35, 0.6, 0.95)
@@ -68,6 +72,8 @@ static func attach_model(node: Node3D, type_id: String, biome: String) -> void:
 	var box := _intact_box(model)
 	if box.size.x > box.size.z:
 		model.rotation.y = PI * 0.5
+	if type_id == "base_rocket_battery":
+		holder.add_child(StrikeView.launchers())
 	node.add_child(holder)
 	holder.set_meta(&"stage", "Intact")
 
@@ -154,7 +160,11 @@ func _update_buildings() -> void:
 			stage = "Damaged"
 		if holder.get_meta(&"stage") != stage:
 			holder.set_meta(&"stage", stage)
-			EnvLook.show_variant(holder.get_node("House"), stage)
+			var house := holder.get_node("House")
+			# Models without damage variants (the dump: Intact, Burnt).
+			if EnvLook.variant_node(house, stage) == null:
+				stage = "Burnt" if stage == "Ruin" and EnvLook.variant_node(house, "Burnt") != null else "Intact"
+			EnvLook.show_variant(house, stage)
 
 
 ## The rally point of the selected own producing building.

@@ -130,6 +130,29 @@ impl Vision {
         self.players.binary_search(&player).ok()
     }
 
+    /// Who sees unit `j` (bit per player slot) and, per slot, its allies
+    /// and the slots whose eyes it uses: for camouflage (prompt 055).
+    pub(super) fn seen_by(&self, j: usize) -> u64 {
+        self.seen.get(j).copied().unwrap_or(0)
+    }
+
+    pub(super) fn set_seen_by(&mut self, j: usize, mask: u64) {
+        if let Some(m) = self.seen.get_mut(j) {
+            *m = mask;
+        }
+    }
+
+    /// `(slot, allies, shares)` of `player`.
+    pub(super) fn slot_masks(&self, player: PlayerId) -> Option<(usize, u64, u64)> {
+        let s = self.slot(player)?;
+        Some((s, self.allies[s], self.shares[s]))
+    }
+
+    /// Players in slot order.
+    pub(super) fn slot_players(&self) -> &[PlayerId] {
+        &self.players
+    }
+
     /// Adds a viewshed that belongs to no unit (a reconnaissance aircraft,
     /// prompt 033) to the vision of `player`.
     pub(super) fn add_air_shed(&mut self, player: PlayerId, shed: &Viewshed) {

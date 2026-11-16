@@ -20,7 +20,13 @@ const TOOLS: Dictionary[String, String] = {
 	"strongpoint": "Strongpoint",
 	# Prompt 059: compounds (house, walled yard, props) and the village brush.
 	"compound": "Place compound", "village": "Village (desert)",
+	# Prompt 039: places for mission scripts (mission_points.toml).
+	"mission_area": "Trigger area", "mission_spawn": "Spawn point",
 }
+## Mission tools (prompt 039): a click inside an area or this close (m) to
+## a spawn point removes it, elsewhere adds one.
+const MISSION_TOOLS: Array[String] = ["mission_area", "mission_spawn"]
+const MISSION_PICK_M := 6.0
 ## A strongpoint click within this distance (m) of one removes it.
 const STRONGPOINT_PICK_M := 20.0
 ## Mountain tools (prompt 060).
