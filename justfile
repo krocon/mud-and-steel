@@ -180,6 +180,12 @@ gallery: build
 gallery-check: build
     {{ GODOT }} --path godot --headless res://scenes/tools/model_gallery.tscn -- --self-test
 
+# Render the picker thumbnails of every buildable unit and building into godot/assets/thumbnails/ (prompt 058; needs a window), e.g. `just thumbnails --only=de_pz4_h`
+[group('godot')]
+thumbnails *args: build
+    {{ GODOT }} --path godot res://scenes/tools/thumbnail_render.tscn {{ if args != "" { "-- " + args } else { "" } }}
+    just import
+
 # --- Infantry (prompt 005) -----------------------------------------------------------
 
 # Build one soldier: .blend + godot/assets/models/<faction>/infantry/<role>.glb
