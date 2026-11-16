@@ -1679,16 +1679,16 @@ impl Sim {
             return;
         }
         let pending = std::mem::take(&mut self.works.pending_digs);
-        let mut plans = Vec::new();
         for (id, step) in pending {
             let Some(k) = self.works.work_index(id) else {
                 continue;
             };
+            // One after the other: a plan is relative to the ground the
+            // previous ones left (pieces share samples at their joints).
             if let Some(plan) = self.dig_plan(k, step) {
-                plans.push(plan);
+                self.deform(vec![plan]);
             }
         }
-        self.deform(plans);
     }
 
     /// The samples dig step `step` of work `k` changes.

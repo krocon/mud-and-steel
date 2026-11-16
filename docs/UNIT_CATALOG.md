@@ -678,7 +678,7 @@ uncertain; see the list at the end of each faction.
 | env_house_log | Blockhaus / Log house | 1 | 9.00? × 7.00? × 6.00? | One-storey village log house for winter maps; the snow comes from the biome look |
 | env_dump_ammo | Munitionslager (Feldstapel) / Ammunition dump (field stacks) | 1 | 6.00? × 4.00? × 1.50? | Two rows of wooden ammunition crates on dunnage, about 1.5 m high |
 | env_dump_fuel | Treibstofflager (Fässer) / Fuel dump (drums) | 1 | 4.80? × 3.60? × 0.90 | Rows of standing 200 l drums with gaps on dunnage |
-| fort_camo_net | Tarnnetz (auf Stangen) / Camouflage net (on poles) | 1 | 8.84? × 8.84? × 2.40? | Garnished drape net of 29 x 29 ft (8.84 m) held by poles about 2.4 m high over a… |
+| fort_camo_net | Tarnnetz (auf Stangen) / Camouflage net (on poles) | 1 | 8.84? × 8.84? × 2.80? | Garnished drape net of 29 x 29 ft (8.84 m) held by poles about 2.8 m high over a… |
 
 ### Uncertain values
 

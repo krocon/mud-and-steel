@@ -95,6 +95,7 @@ const GameMenu := preload("res://scenes/menu/game_menu.gd")
 const BaseView := preload("res://scenes/world/base_view.gd")
 const BaseHud := preload("res://scenes/world/base_hud.gd")
 const BaseShots := preload("res://scenes/tools/base_shots.gd")
+const PositionShots := preload("res://scenes/tools/position_shots.gd")
 const GameFiles := preload("res://scenes/menu/game_files.gd")
 const ReplayBar := preload("res://scenes/replay/replay_bar.gd")
 const BattleSound := preload("res://scenes/audio/battle_sound.gd")
@@ -398,6 +399,11 @@ func _ready() -> void:
 			var shots := BaseShots.new()
 			shots.main = self
 			add_child(shots)
+		if arg.begins_with("--position-shots="):
+			camera_rig.edge_scroll_enabled = false
+			var position_shots := PositionShots.new()
+			position_shots.main = self
+			add_child(position_shots)
 	if "--demo" in OS.get_cmdline_user_args():
 		var demo := DemoReel.new()
 		demo.main = self
@@ -458,6 +464,9 @@ func _start_simulation() -> bool:
 	# The effects tools trigger their own effects (prompt 019).
 	sim_host.hold_fire_at_start = sim_host.hold_fire_at_start or _effects_tool()
 	sim_host.hold_fire_at_start = sim_host.hold_fire_at_start or "--effects-craters" in OS.get_cmdline_user_args()
+	# The position shots (prompt 052) want a calm field.
+	sim_host.hold_fire_at_start = sim_host.hold_fire_at_start or Array(OS.get_cmdline_user_args()).any(
+		func(a: String) -> bool: return a.begins_with("--position-shots="))
 	# The infantry bench opens fire itself (prompt 022).
 	sim_host.hold_fire_at_start = sim_host.hold_fire_at_start or "--infantry-bench" in OS.get_cmdline_user_args()
 	# Computer opponent (prompt 024): from the setup screen, or `--ai=<level>`

@@ -77,6 +77,14 @@ bridge (an intact one is blown up, a destroyed one repaired). The tooltip
 names the price of one piece. Known mines are marked on the ground (own
 yellow, found enemy mines red). [provisional: no keys yet]
 
+Positions (prompt 052): Comm. trench and Teeth take two clicks like a
+trench; Vehicle pit, MG nest, Dugout and Camo net one click; Bunker two
+(its place at a trench edge, then the direction it faces). While a line
+waits for its end, a strip from its start to the cursor shows its length,
+the number of pieces and the total price (and the price per meter). A
+vehicle that stands in an own vehicle pit for 8 s is dug in; any move order
+drives it out.
+
 Passengers are hidden in their vehicle and cannot be selected; the unit
 panel shows "Passengers 9 / 10", "towing …" or "towed by …" and "loading"
 while mounting, dismounting, limbering or unlimbering runs. Dismount and

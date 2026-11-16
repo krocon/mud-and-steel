@@ -6,7 +6,7 @@
 
 use crate::{SimHost, ground_to_godot, meters_to_millimeters};
 use godot::prelude::*;
-use sim::Vec2;
+use sim::{Vec2, WorkKind};
 
 fn ground_point(x: f32, z: f32) -> Option<Vec2> {
     Some(Vec2::from_millimeters(
@@ -88,5 +88,28 @@ impl SimHost {
             return 0;
         };
         i64::try_from(game.sim.place_strongpoint(p)).unwrap_or(0)
+    }
+
+    /// Debug and screenshots: a finished work of `kind` (names of
+    /// `order_works`) of the local player from `from` to `to` at once. Only
+    /// in matches without other human players. Returns the pieces placed.
+    #[func]
+    fn debug_work(&mut self, kind: GString, from: Vector2, to: Vector2) -> i64 {
+        let Some(game) = self.game.as_mut() else {
+            return 0;
+        };
+        if game.networked {
+            godot_warn!("debug works are not possible in network matches");
+            return 0;
+        }
+        let (Some(kind), Some(a), Some(b)) = (
+            WorkKind::from_name(&kind.to_string()),
+            ground_point(from.x, from.y),
+            ground_point(to.x, to.y),
+        ) else {
+            return 0;
+        };
+        let owner = game.session.local_player();
+        i64::try_from(game.sim.place_finished_work(kind, owner, a, b)).unwrap_or(0)
     }
 }

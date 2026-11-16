@@ -14,7 +14,11 @@ const TOOLS: Dictionary[String, String] = {
 	# Prompt 037: up to six players in teams.
 	"start2": "Start player 3", "start3": "Start player 4",
 	"start4": "Start player 5", "start5": "Start player 6",
+	# Prompt 052: neutral trench strongpoints (map markers).
+	"strongpoint": "Strongpoint",
 }
+## A strongpoint click within this distance (m) of one removes it.
+const STRONGPOINT_PICK_M := 20.0
 ## Start tools (prompt 037).
 const START_TOOLS: Array[String] = ["start0", "start1", "start2", "start3", "start4", "start5"]
 ## Team choices of a start: -1 none, then teams 1 to 3.

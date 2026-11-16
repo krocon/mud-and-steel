@@ -45,6 +45,14 @@ const BUTTONS: Array[Array] = [
 	["work_trench", "Trench", "", "work"],
 	["work_clear", "Clear", "", "work"],
 	["work_bridge", "Bridge", "", "work"],
+	# Positions (prompt 052).
+	["work_comm_trench", "Comm. trench", "", "work"],
+	["work_mg_nest", "MG nest", "", "work"],
+	["work_dugout", "Dugout", "", "work"],
+	["work_vehicle_pit", "Vehicle pit", "", "work"],
+	["work_camo_net", "Camo net", "", "work"],
+	["work_bunker", "Bunker", "", "work"],
+	["work_teeth", "Teeth", "", "work"],
 ]
 
 var main: Node3D

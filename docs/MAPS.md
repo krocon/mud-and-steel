@@ -219,6 +219,14 @@ mines each when a match starts (see ARCHITECTURE.md "Field works"); matches
 do not draw them, the editor does. `twin_meadow` has one of each in the
 middle.
 
+Strongpoints (prompt 052): a marker named `strongpoint_<name>` (in
+`map.toml`, `[[marker]]`) becomes a neutral trench strongpoint in the
+first tick of a match: a zigzag fire trench ring (16 m), four MG nests,
+communication trenches to two dugouts and a wire ring (30 m) with two
+gaps (ARCHITECTURE.md "Positions"). Put it on a supply point marker
+(`supply_*`) to fortify the flag. The map editor places and removes them
+with the "Strongpoint" tool. [provisional]
+
 ### Bridges
 
 Bridges (prompt 014) are map objects whose kind has a **deck** rule in

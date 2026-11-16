@@ -627,7 +627,6 @@ def camo_net(model, name, p, box):
     r = rng(p.get("seed", 1))
     mb = model.mb(name)
     hw, hl, H = box.width / 2, box.length / 2, box.height
-    n = 8
     # Sagging net surface: highest over the center pole, edges lower.
 
     def height(u, v):
@@ -635,24 +634,16 @@ def camo_net(model, name, p, box):
         sag = 0.25 * math.sin(math.pi * abs(u)) * math.sin(math.pi * abs(v))
         return H - 0.9 * d * d - sag + r.uniform(-0.04, 0.04)
 
-    zs = [[height(i / n * 2 - 1, j / n * 2 - 1) for i in range(n + 1)] for j in range(n + 1)]
-    mb.style(kind=0)
-    # Top and (1.5 cm lower, reversed) underside: seen from below too.
-    for drop, flip in ((0.0, False), (0.015, True)):
-        grid = [[mb.verts([((i / n * 2 - 1) * hw, (j / n * 2 - 1) * hl, zs[j][i] - drop)])[0]
-                 for i in range(n + 1)] for j in range(n + 1)]
-        for j in range(n):
-            for i in range(n):
-                q = [grid[j][i], grid[j][i + 1], grid[j + 1][i + 1], grid[j + 1][i]]
-                mb.face(q[::-1] if flip else q, "Canvas")
+    # The net itself is not drawn as a sheet: dense garnish cards make it
+    # (gaps between them read as the netting).
     # Garnish: cards lying on the net, alternating green and dry.
-    for k in range(190):
+    for k in range(320):
         u, v = r.uniform(-0.97, 0.97), r.uniform(-0.97, 0.97)
         z = height(u, v) + 0.03
         a = r.uniform(0, math.pi)
         right = Vector((math.cos(a), math.sin(a), 0))
         up = Vector((-math.sin(a), math.cos(a), r.uniform(0.1, 0.4)))
-        mb.style(kind=0 if k % 3 else 2, phase=k, wind=True)
+        mb.style(kind=(0, 3, 0, 2)[k % 4], phase=k, wind=True)
         mb.card((u * hw, v * hl, z), right, up, r.uniform(1.0, 1.6), r.uniform(0.7, 1.2), CARD_SHRUB,
                 mat="Foliage")
     mb.style(kind=0, wind=False)

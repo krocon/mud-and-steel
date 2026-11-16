@@ -587,6 +587,28 @@ impl Sim {
         placed
     }
 
+    /// Adds a finished work of `kind` for `owner` at once, like a
+    /// strongpoint (tools, screenshots and the debug menu; never for player
+    /// commands: a match with it no longer replays). Bunkers are refused.
+    pub fn place_finished_work(
+        &mut self,
+        kind: WorkKind,
+        owner: PlayerId,
+        from: Vec2,
+        to: Vec2,
+    ) -> usize {
+        if kind == WorkKind::Bunker || kind.is_mines() || !super::within_world(from) {
+            return 0;
+        }
+        let pieces = self.pieces(owner, kind, from, to, from);
+        let n = pieces.len();
+        for (a, b, _) in pieces {
+            self.add_finished_work(kind, owner, a, b);
+        }
+        self.works.positions.used |= n > 0;
+        n
+    }
+
     /// Bunkers engineers built become completed structures.
     pub(super) fn add_built_structure(
         &mut self,

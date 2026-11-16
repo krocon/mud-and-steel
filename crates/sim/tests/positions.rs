@@ -429,3 +429,49 @@ fn positions_are_deterministic() {
     };
     assert_eq!(play(), play());
 }
+
+#[test]
+fn infantry_crosses_trenches_and_reaches_a_strongpoint() {
+    let mut sim = sim_on(
+        flat_map(&[("strongpoint_a", 0, 60)]),
+        &hold(&[(P0, ENGINEERS, 0, -20), (P0, RIFLES, 30, -30)]),
+        &[],
+    );
+    sim.step(&[dig(P0, &[0], DigKind::Trench, (-12, 0), (12, 0))]);
+    run_until(&mut sim, 20 * 300, |s| {
+        s.works_for(P0)
+            .iter()
+            .filter(|w| w.owner == P0)
+            .all(|w| w.built)
+    });
+    // Across the trench, then into the strongpoint's center.
+    sim.step(&[move_to(P0, &[1], 0, 20)]);
+    run_until(&mut sim, 20 * 120, |s| {
+        s.unit_position(UnitId(1))
+            .is_some_and(|p| (p - Vec2::from_meters(0, 20)).length() < Fixed::from_num(6))
+    });
+    sim.step(&[move_to(P0, &[1], 0, 60)]);
+    run_until(&mut sim, 20 * 180, |s| {
+        s.unit_position(UnitId(1))
+            .is_some_and(|p| (p - Vec2::from_meters(0, 60)).length() < Fixed::from_num(6))
+    });
+}
+
+#[test]
+fn infantry_walks_into_a_strongpoint_placed_during_the_match() {
+    let mut sim = sim_on(
+        flat_map(&[]),
+        &hold(&[(P0, RIFLES, 0, -35), (P0, RIFLES, 12, -35)]),
+        &[],
+    );
+    run(&mut sim, 20);
+    assert!(sim.place_strongpoint(Vec2::from_meters(0, 0)) > 20);
+    // Two squads: their places lie 11 m beside the center, inside the ring.
+    sim.step(&[move_to(P0, &[0, 1], 0, 0)]);
+    run_until(&mut sim, 20 * 120, |s| {
+        [0, 1].iter().all(|&u| {
+            s.unit_position(UnitId(u))
+                .is_some_and(|p| p.length() < Fixed::from_num(14))
+        })
+    });
+}

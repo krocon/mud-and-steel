@@ -709,12 +709,12 @@ tier = 1
 model = "assets/models/neutral/fort_camo_net.glb"
 length_mm = 8840
 width_mm = 8840
-height_mm = 2400
+height_mm = 2800
 source = [
     { ref = "US War Department FM 5-20 Camouflage, Basic Principles (1944), drape and flat-top nets", covers = "garnished fish nets or chicken-wire nets stretched over positions on poles, kept clear of the object so that its shape and shadow disappear; standard net sizes such as 29 x 29 ft" },
 ]
 uncertain = ["length_mm", "width_mm", "height_mm"]
-note = "Garnished drape net of 29 x 29 ft (8.84 m) held by poles about 2.4 m high over an MG or gun position. The net size is one of several standard sizes (not checked against the manual's table); the pole height is a judgement value. Used for camouflage nets engineers lay (data/works.toml, prompt 052)."
+note = "Garnished drape net of 29 x 29 ft (8.84 m) held by poles about 2.8 m high over an MG, gun or vehicle position. The net size is one of several standard sizes (not checked against the manual's table); the pole height is a judgement value. Used for camouflage nets engineers lay (data/works.toml, prompt 052)."
 
 [[unit]]
 id = "fort_dragon_teeth"
