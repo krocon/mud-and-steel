@@ -13,8 +13,11 @@ extends RefCounted
 ## - I (secure, then click): hold a circle of `SECURE_RADIUS` meters.
 ## - `,` cycles the formation; control groups remember theirs.
 
-## Display names by formation code (`SimHost.formation_names` order).
-const LABELS: Array[String] = ["Auto", "Line", "Wedge", "Column", "Broad wedge", "Dispersed"]
+## Display names (translation keys) by formation code (`SimHost.formation_names` order).
+const LABELS: Array[String] = [
+	"HUD_FORMATION_AUTO", "HUD_FORMATION_LINE", "HUD_FORMATION_WEDGE",
+	"HUD_FORMATION_COLUMN", "HUD_FORMATION_BROAD_WEDGE", "HUD_FORMATION_DISPERSED",
+]
 const ENGAGE_NEVER := 0
 const ENGAGE_INFANTRY := 1
 const ENGAGE_ALL := 2
@@ -40,6 +43,6 @@ static func secure(selection: Control, point: Vector3, facing := Vector3.ZERO) -
 	selection.move_ordered.emit(point)
 
 
-## Label of a formation code.
+## Label (translation key) of a formation code.
 static func label(code: int) -> String:
 	return LABELS[code] if code >= 0 and code < LABELS.size() else LABELS[0]

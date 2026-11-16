@@ -75,7 +75,7 @@ func _ready() -> void:
 	add_child(MenuTheme.background())
 	_build_ui()
 	if _args.has("--no-steam") or _args.has("--self-test"):
-		_status.text = "Steam is not used in this run (--no-steam)."
+		_status.text = "LOBBY_NO_STEAM_RUN"
 		return
 	_connect_steam()
 
@@ -98,13 +98,13 @@ func _connect_steam() -> void:
 	_retry.visible = not _connected
 	_setup.visible = _connected
 	if not _connected:
-		_account.text = "Steam is not available."
+		_account.text = "LOBBY_STEAM_UNAVAILABLE"
 		_status.text = _lobby.message()
 		if _is_auto():
 			push_error("Steam lobby: %s" % _lobby.message())
 			get_tree().quit(1)
 		return
-	_account.text = "Signed in to Steam as %s (app %d)" % [_lobby.user_name(), SteamLobby.app_id()]
+	_account.text = tr("LOBBY_STEAM_SIGNED_IN").format({"name": _lobby.user_name(), "app": SteamLobby.app_id()})
 	var code := SteamLobby.launch_lobby_code()
 	if _args.has("--steam-host"):
 		_on_host()
@@ -125,11 +125,11 @@ func _build_ui() -> void:
 	box.add_theme_constant_override("separation", 8)
 	panel.add_child(box)
 
-	box.add_child(MenuTheme.title("Online (Steam)", MenuTheme.HEADING_SIZE))
-	_account = MenuTheme.hint("Connecting to Steam …")
+	box.add_child(MenuTheme.title("LOBBY_ONLINE_TITLE", MenuTheme.HEADING_SIZE))
+	_account = MenuTheme.hint("LOBBY_STEAM_CONNECTING")
 	box.add_child(_account)
 	_retry = Button.new()
-	_retry.text = "Try again"
+	_retry.text = "LOBBY_TRY_AGAIN"
 	_retry.visible = false
 	_retry.pressed.connect(_connect_steam)
 	box.add_child(_retry)
@@ -146,32 +146,32 @@ func _build_ui() -> void:
 		_map.select(MatchSetup.default_map_index(_maps))
 	if _args.has("--map") and _args["--map"] in _maps:
 		_map.select(Array(_maps).find(_args["--map"]))
-	_setup.add_child(_labeled("Map (host)", _map))
+	_setup.add_child(_labeled("LOBBY_MAP_HOST", _map))
 	_mode = OptionButton.new()
 	for id in MatchSetup.MODES:
 		_mode.add_item(MatchSetup.MODES[id])
 	_mode.select(MatchSetup.MODES.keys().find("battle"))
-	_setup.add_child(_labeled("Mode (host)", _mode))
+	_setup.add_child(_labeled("LOBBY_MODE_HOST", _mode))
 	_shared_vision = CheckBox.new()
-	_shared_vision.text = "Allies share what they see"
+	_shared_vision.text = "LOBBY_SHARED_VISION"
 	_shared_vision.button_pressed = true
 	_setup.add_child(_shared_vision)
 	_public = CheckBox.new()
-	_public.text = "Listed for everyone (otherwise friends only)"
+	_public.text = "LOBBY_PUBLIC"
 	_public.button_pressed = not _args.has("--steam-friends-only")
 	_setup.add_child(_public)
 	var host := Button.new()
-	host.text = "Host game"
+	host.text = "LOBBY_HOST_GAME"
 	host.pressed.connect(_on_host)
 	_setup.add_child(host)
 
 	var list_row := HBoxContainer.new()
 	var list_label := Label.new()
-	list_label.text = "Open games"
+	list_label.text = "LOBBY_OPEN_GAMES"
 	list_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	list_row.add_child(list_label)
 	var refresh := Button.new()
-	refresh.text = "Refresh"
+	refresh.text = "LOBBY_REFRESH"
 	refresh.pressed.connect(_refresh)
 	list_row.add_child(refresh)
 	_setup.add_child(list_row)
@@ -180,16 +180,16 @@ func _build_ui() -> void:
 	_lobbies.item_activated.connect(func(_index: int) -> void: _on_join_selected())
 	_setup.add_child(_lobbies)
 	var join := Button.new()
-	join.text = "Join selected game"
+	join.text = "LOBBY_JOIN_SELECTED"
 	join.pressed.connect(_on_join_selected)
 	_setup.add_child(join)
 
 	_code = LineEdit.new()
-	_code.placeholder_text = "Lobby code from a friend"
+	_code.placeholder_text = "LOBBY_CODE_HINT"
 	_code.text_submitted.connect(func(_text: String) -> void: _on_join_code())
 	_code.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var by_code := Button.new()
-	by_code.text = "Join code"
+	by_code.text = "LOBBY_JOIN_CODE"
 	by_code.pressed.connect(_on_join_code)
 	var code_row := HBoxContainer.new()
 	code_row.add_child(_code)
@@ -206,10 +206,10 @@ func _build_ui() -> void:
 	box.add_child(_in_lobby)
 	_lobby_code = Label.new()
 	var copy := Button.new()
-	copy.text = "Copy code"
+	copy.text = "LOBBY_COPY_CODE"
 	copy.pressed.connect(func() -> void: DisplayServer.clipboard_set(_lobby.lobby_code()))
 	var invite := Button.new()
-	invite.text = "Invite friends"
+	invite.text = "LOBBY_INVITE"
 	invite.pressed.connect(func() -> void: _lobby.invite_friends())
 	var code_line := HBoxContainer.new()
 	_lobby_code.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -227,15 +227,15 @@ func _build_ui() -> void:
 		_lobby.set_slot_side(index, team, faction))
 	_in_lobby.add_child(_slot_list)
 	_ready_box = CheckBox.new()
-	_ready_box.text = "Ready"
+	_ready_box.text = "LOBBY_READY"
 	_ready_box.toggled.connect(func(on: bool) -> void: _lobby.set_ready(on))
 	_in_lobby.add_child(_ready_box)
 	_start = Button.new()
-	_start.text = "Start match"
+	_start.text = "LOBBY_START_MATCH"
 	_start.pressed.connect(_on_start)
 	_in_lobby.add_child(_start)
 	var leave := Button.new()
-	leave.text = "Leave"
+	leave.text = "LOBBY_LEAVE"
 	leave.pressed.connect(_on_leave)
 	_in_lobby.add_child(leave)
 
@@ -243,7 +243,7 @@ func _build_ui() -> void:
 	_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	box.add_child(_status)
 	back_button = Button.new()
-	back_button.text = "Back to main menu"
+	back_button.text = "LOBBY_BACK_TO_MENU"
 	back_button.pressed.connect(_on_back)
 	box.add_child(back_button)
 
@@ -327,7 +327,7 @@ func _update_lobbies() -> void:
 		var compatible: bool = entry["compatible"]
 		lines.append("%s  (%d/%d)%s" % [
 			entry["name"], entry["players"], entry["max_players"],
-			"" if compatible else "  incompatible version",
+			"" if compatible else "  " + tr("LOBBY_INCOMPATIBLE"),
 		])
 	if lines == _lobby_lines:
 		return
@@ -349,16 +349,16 @@ func _update_lobby(state: String) -> void:
 	_start.visible = state == "lobby" and _lobby.is_host()
 	_start.disabled = not _lobby.can_start()
 	var code := _lobby.lobby_code()
-	_lobby_code.text = "Lobby code: %s" % code if code != "" else ""
+	_lobby_code.text = tr("LOBBY_CODE") % code if code != "" else ""
 	var invitation := _lobby.invitation_code()
 	_invitation.visible = invitation != ""
-	_invitation.text = "Invitation received: join lobby %s" % invitation
+	_invitation.text = tr("LOBBY_INVITATION") % invitation
 	var lines: PackedStringArray = []
 	for player in _lobby.players():
-		lines.append("Player %d: %s%s%s" % [
-			player["id"], player["name"],
-			"  (you)" if player["local"] else "",
-			"  – ready" if player["ready"] else "",
+		lines.append("%s: %s%s%s" % [
+			tr("COMMON_PLAYER_N") % player["id"], player["name"],
+			"  " + tr("LOBBY_YOU") if player["local"] else "",
+			"  – " + tr("LOBBY_READY_MARK") if player["ready"] else "",
 		])
 	_players.text = "\n".join(lines)
 	_players.visible = false
@@ -371,20 +371,19 @@ func _update_lobby(state: String) -> void:
 	var status: String
 	match state:
 		"idle":
-			status = "Host a game, or join one from the list or with a code."
+			status = tr("LOBBY_IDLE_STEAM")
 		"creating":
-			status = "Creating the Steam lobby …"
+			status = tr("LOBBY_CREATING")
 		"joining":
-			status = "Joining the Steam lobby …"
+			status = tr("LOBBY_JOINING")
 		"connecting":
-			status = "Connecting to the host …"
+			status = tr("LOBBY_CONNECTING_HOST")
 		"lobby":
-			status = ("Waiting until everyone is ready. Friends join from the Steam friends list or with the code.") \
-				if _lobby.is_host() else "In the lobby. Tick Ready when you are."
+			status = tr("LOBBY_WAITING_STEAM") if _lobby.is_host() else tr("LOBBY_IN_LOBBY")
 		"started":
-			status = "Starting …"
+			status = tr("LOBBY_STARTING")
 		_:
-			status = "Closed."
+			status = tr("LOBBY_CLOSED")
 	var message := _lobby.message()
 	_status.text = status if message.is_empty() else "%s\n%s" % [status, message]
 	if state == "started":

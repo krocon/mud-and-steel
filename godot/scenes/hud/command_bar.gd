@@ -24,48 +24,48 @@ const EngineerOrders := preload("res://scenes/selection/engineer_orders.gd")
 const FormationOrders := preload("res://scenes/selection/formation_orders.gd")
 const CrossingOrders := preload("res://scenes/selection/crossing_orders.gd")
 const REFRESH := 0.2
-## id, label, action (key shown), kind: "mode" (targeted), "now", "stance".
+## id, label (translation key), action (key shown), kind: "mode" (targeted), "now", "stance".
 const BUTTONS: Array[Array] = [
-	["move", "Move", "order_move", "mode"],
-	["attack", "Attack", "order_attack", "mode"],
-	["attack_ground", "Ground", "order_attack_ground", "mode"],
-	["patrol", "Patrol", "order_patrol", "mode"],
-	["attack_move", "Advance", "order_attack_move", "mode"],
-	["secure", "Secure", "order_secure", "mode"],
-	["stop", "Stop", "order_stop", "now"],
-	["fire", "Hold fire", "order_fire_mode", "now"],
-	["garrison", "Occupy", "order_garrison", "mode"],
-	["barrage", "Barrage", "order_barrage", "mode"],
-	["smoke", "Smoke", "order_smoke", "mode"],
-	["disembark", "Dismount", "order_disembark", "now"],
-	["unlimber", "Unlimber", "order_unlimber", "now"],
-	["stance_stand", "Stand", "stance_stand", "stance"],
-	["stance_kneel", "Kneel", "stance_kneel", "stance"],
-	["stance_prone", "Prone", "stance_prone", "stance"],
-	["stance_auto", "Auto", "stance_auto", "stance"],
-	["build", "Build", "", "build"],
+	["move", "HUD_CMD_MOVE", "order_move", "mode"],
+	["attack", "HUD_CMD_ATTACK", "order_attack", "mode"],
+	["attack_ground", "HUD_CMD_GROUND", "order_attack_ground", "mode"],
+	["patrol", "HUD_CMD_PATROL", "order_patrol", "mode"],
+	["attack_move", "HUD_CMD_ADVANCE", "order_attack_move", "mode"],
+	["secure", "HUD_CMD_SECURE", "order_secure", "mode"],
+	["stop", "HUD_CMD_STOP", "order_stop", "now"],
+	["fire", "HUD_CMD_HOLD_FIRE", "order_fire_mode", "now"],
+	["garrison", "HUD_CMD_OCCUPY", "order_garrison", "mode"],
+	["barrage", "HUD_CMD_BARRAGE", "order_barrage", "mode"],
+	["smoke", "HUD_CMD_SMOKE", "order_smoke", "mode"],
+	["disembark", "HUD_CMD_DISMOUNT", "order_disembark", "now"],
+	["unlimber", "HUD_CMD_UNLIMBER", "order_unlimber", "now"],
+	["stance_stand", "HUD_CMD_STAND", "stance_stand", "stance"],
+	["stance_kneel", "HUD_CMD_KNEEL", "stance_kneel", "stance"],
+	["stance_prone", "HUD_CMD_PRONE", "stance_prone", "stance"],
+	["stance_auto", "HUD_CMD_AUTO", "stance_auto", "stance"],
+	["build", "HUD_CMD_BUILD", "", "build"],
 	# Engineer orders (prompt 035): shown while engineers are selected.
-	["work_mines_at", "AT mines", "", "work"],
-	["work_mines_ap", "AP mines", "", "work"],
-	["work_wire", "Wire", "", "work"],
-	["work_hedgehogs", "Obstacles", "", "work"],
-	["work_foxhole", "Foxhole", "", "work"],
-	["work_trench", "Trench", "", "work"],
-	["work_clear", "Clear", "", "work"],
-	["work_bridge", "Bridge", "", "work"],
+	["work_mines_at", "HUD_WORK_MINES_AT", "", "work"],
+	["work_mines_ap", "HUD_WORK_MINES_AP", "", "work"],
+	["work_wire", "HUD_WORK_WIRE", "", "work"],
+	["work_hedgehogs", "HUD_WORK_HEDGEHOGS", "", "work"],
+	["work_foxhole", "HUD_WORK_FOXHOLE", "", "work"],
+	["work_trench", "HUD_WORK_TRENCH", "", "work"],
+	["work_clear", "HUD_WORK_CLEAR", "", "work"],
+	["work_bridge", "HUD_WORK_BRIDGE", "", "work"],
 	# Positions (prompt 052).
-	["work_comm_trench", "Comm. trench", "", "work"],
-	["work_mg_nest", "MG nest", "", "work"],
-	["work_dugout", "Dugout", "", "work"],
-	["work_vehicle_pit", "Vehicle pit", "", "work"],
-	["work_camo_net", "Camo net", "", "work"],
-	["work_bunker", "Bunker", "", "work"],
-	["work_teeth", "Teeth", "", "work"],
+	["work_comm_trench", "HUD_WORK_COMM_TRENCH", "", "work"],
+	["work_mg_nest", "HUD_WORK_MG_NEST", "", "work"],
+	["work_dugout", "HUD_WORK_DUGOUT", "", "work"],
+	["work_vehicle_pit", "HUD_WORK_VEHICLE_PIT", "", "work"],
+	["work_camo_net", "HUD_WORK_CAMO_NET", "", "work"],
+	["work_bunker", "HUD_WORK_BUNKER", "", "work"],
+	["work_teeth", "HUD_WORK_TEETH", "", "work"],
 	# Bridge-laying tanks and camouflage (prompt 055): shown while such
 	# units are selected.
-	["bridge_lay", "Lay bridge", "", "layer"],
-	["bridge_pickup", "Take up", "", "layer_now"],
-	["camouflage", "Camouflage", "", "camo"],
+	["bridge_lay", "HUD_CMD_LAY_BRIDGE", "", "layer"],
+	["bridge_pickup", "HUD_CMD_TAKE_UP", "", "layer_now"],
+	["camouflage", "HUD_CMD_CAMOUFLAGE", "", "camo"],
 ]
 
 var main: Node3D
@@ -140,7 +140,7 @@ func _process(delta: float) -> void:
 ## cells of the grid.
 func _add_formation_choice(grid: GridContainer) -> void:
 	var label := Label.new()
-	label.text = "Formation"
+	label.text = "HUD_FORMATION"
 	label.custom_minimum_size = Vector2(92, 34)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -155,7 +155,7 @@ func _add_formation_choice(grid: GridContainer) -> void:
 	formation_choice.add_theme_font_size_override(&"font_size", 13)
 	for code in FormationOrders.LABELS.size():
 		formation_choice.add_item(FormationOrders.label(code), code)
-	formation_choice.tooltip_text = "Formation of the next moves (key " + Settings.action_key_name("order_formation") + " switches). Auto picks by the ground at the target: column on roads and in narrows, dispersed in woods, wedge (vehicles) or line (infantry) in the open. Control groups remember theirs."
+	formation_choice.tooltip_text = tr("HUD_TIP_FORMATION") % Settings.action_key_name("order_formation")
 	formation_choice.item_selected.connect(func(index: int) -> void: main.selection.set_formation(index))
 	main.selection.formation_changed.connect(func(code: int) -> void: formation_choice.select(code))
 	formation_choice.select(main.selection.formation)
@@ -234,9 +234,9 @@ func _update() -> void:
 	for spec in BUTTONS:
 		var b: Button = buttons[spec[0]]
 		var key := Settings.action_key_name(spec[2]) if not (spec[2] as String).is_empty() else ""
-		var label: String = spec[1]
+		var label := tr(spec[1])
 		if spec[0] == "fire":
-			label = "Fire at will" if holding > 0 and holding == selected.size() else "Hold fire"
+			label = tr("HUD_CMD_FIRE_AT_WILL") if holding > 0 and holding == selected.size() else tr("HUD_CMD_HOLD_FIRE")
 		b.text = label if key.is_empty() else "%s [%s]" % [label, key]
 		match spec[3]:
 			"mode":
@@ -265,25 +265,33 @@ func _update() -> void:
 				for id: int in camo:
 					if sim_host.camouflage_state(id) > 0:
 						on += 1
-				b.text = "Uncover" if on > 0 and on == camo.size() else "Camouflage"
+				b.text = tr("HUD_CMD_UNCOVER") if on > 0 and on == camo.size() else tr("HUD_CMD_CAMOUFLAGE")
+
+
+func _notification(what: int) -> void:
+	# Tooltips with numbers and keys are built text: rebuild them in the
+	# new language.
+	if what == NOTIFICATION_TRANSLATION_CHANGED and sim_host != null and not buttons.is_empty():
+		_set_tooltips()
+		formation_choice.tooltip_text = tr("HUD_TIP_FORMATION") % Settings.action_key_name("order_formation")
 
 
 func _set_tooltips() -> void:
-	buttons["move"].tooltip_text = "Then left click the target. Right click moves at once; Shift + right click adds a waypoint."
-	buttons["attack"].tooltip_text = "Then left click an enemy. Right click on an enemy attacks at once."
-	buttons["attack_ground"].tooltip_text = "Then left click a ground point. Ctrl + right click fires there at once."
-	buttons["attack_move"].tooltip_text = "Attack-move: then left click a point; every unit halts to fight enemies in range on the way, then drives on. Right click does this for infantry only; M moves without halting."
-	buttons["secure"].tooltip_text = "Then left click the center: the units hold %d m around it, attack enemies inside and return to their places." % FormationOrders.SECURE_RADIUS
-	buttons["patrol"].tooltip_text = "Then left click a point: the units drive back and forth."
-	buttons["garrison"].tooltip_text = "Then left click a building: squads occupy it."
-	buttons["barrage"].tooltip_text = "Mortars and guns: then left click a point. The key fires at the cursor at once."
-	buttons["smoke"].tooltip_text = "Mortars and guns with smoke rounds: then left click a point. The key fires at the cursor at once."
-	buttons["disembark"].tooltip_text = "Passengers of the selected vehicles get off once they stand. Right click a vehicle with squads selected to mount."
-	buttons["unlimber"].tooltip_text = "Selected vehicles drop their towed guns. Right click an own gun with vehicles selected to hitch it."
-	buttons["build"].tooltip_text = "Opens the build menu."
-	buttons["bridge_lay"].tooltip_text = "Bridge-laying tanks: then left click a narrow river or ditch. The tank lays its bridge across the nearest gap its bridge spans."
-	buttons["bridge_pickup"].tooltip_text = "Bridge-laying tanks take their laid bridge up again once nobody is on it."
-	buttons["camouflage"].tooltip_text = "Vehicles and guns put up branches and nets (takes a while, standing). Standing still they are seen only from close by; driving or firing gives them away."
+	buttons["move"].tooltip_text = "HUD_TIP_MOVE"
+	buttons["attack"].tooltip_text = "HUD_TIP_ATTACK"
+	buttons["attack_ground"].tooltip_text = "HUD_TIP_GROUND"
+	buttons["attack_move"].tooltip_text = tr("HUD_TIP_ADVANCE") % Settings.action_key_name("order_move")
+	buttons["secure"].tooltip_text = tr("HUD_TIP_SECURE") % FormationOrders.SECURE_RADIUS
+	buttons["patrol"].tooltip_text = "HUD_TIP_PATROL"
+	buttons["garrison"].tooltip_text = "HUD_TIP_OCCUPY"
+	buttons["barrage"].tooltip_text = "HUD_TIP_BARRAGE"
+	buttons["smoke"].tooltip_text = "HUD_TIP_SMOKE"
+	buttons["disembark"].tooltip_text = "HUD_TIP_DISMOUNT"
+	buttons["unlimber"].tooltip_text = "HUD_TIP_UNLIMBER"
+	buttons["build"].tooltip_text = "HUD_TIP_BUILD"
+	buttons["bridge_lay"].tooltip_text = "HUD_TIP_LAY_BRIDGE"
+	buttons["bridge_pickup"].tooltip_text = "HUD_TIP_TAKE_UP"
+	buttons["camouflage"].tooltip_text = "HUD_TIP_CAMOUFLAGE"
 	for spec in BUTTONS:
 		if spec[3] == "work":
 			var kind := EngineerOrders.kind_of(spec[0])
@@ -294,12 +302,12 @@ func _set_tooltips() -> void:
 func _work_tooltip(kind: String) -> String:
 	match kind:
 		"clear":
-			return "Engineers: then left click an area. They clear known mines, wire and obstacles there."
+			return tr("HUD_TIP_WORK_CLEAR")
 		"bridge":
-			return "Engineers: then left click a bridge. An intact one is blown up, a destroyed one repaired."
+			return tr("HUD_TIP_WORK_BRIDGE")
 	var cost := sim_host.work_cost(kind)
 	var price := ""
 	if cost.size() >= 4:
-		price = " Each piece: fuel %d, ammo %d, manpower %d, %d s." % [cost[0], cost[1], cost[2], cost[3]]
-	var how := "two left clicks (start and end of the line)" if EngineerOrders.KINDS[kind][1] else "a left click"
-	return "Engineers: then %s.%s" % [how, price]
+		price = " " + tr("HUD_TIP_WORK_PRICE") % [cost[0], cost[1], cost[2], cost[3]]
+	var how := tr("HUD_TIP_WORK_LINE") if EngineerOrders.KINDS[kind][1] else tr("HUD_TIP_WORK_POINT")
+	return how + price

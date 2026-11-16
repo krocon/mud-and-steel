@@ -280,7 +280,7 @@ func _credits_test(menu: Control) -> void:
 	_check(panel.tabs.get_tab_count() == 4, "credits screen has %d tabs" % panel.tabs.get_tab_count())
 	for view: TextEdit in panel.tabs.get_children():
 		# The third-party file only exists after a release build.
-		var minimum := 10 if view.name == "Third party" else 100
+		var minimum := 10 if view.name == "CREDITS_TAB_THIRD_PARTY" else 100
 		_check(view.text.length() > minimum, "credits tab '%s' is (nearly) empty" % view.name)
 	_check(panel.tabs.get_child(3).text.contains("Godot Engine"), "Godot license missing in the credits")
 	panel.back_button.pressed.emit()

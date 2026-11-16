@@ -31,7 +31,11 @@ const WRECK_SECONDS := 90.0
 const ENEMY_TINT := Color(0.85, 0.2, 0.15, 0.18)
 const ROUTE_COLOR := Color(0.55, 0.85, 1.0, 0.85)
 const SHADOW_COLOR := Color(0.0, 0.0, 0.0, 0.45)
-const MISSION_NAMES := {"recon": "Recon", "strafe": "Fighters", "attack": "Ground attack", "bomb": "Bombers", "airborne": "Paratroopers"}
+## Mission names: translation key per mission code.
+const MISSION_NAMES := {
+	"recon": "HUD_AIR_MISSION_RECON", "strafe": "HUD_AIR_MISSION_STRAFE", "attack": "HUD_AIR_MISSION_ATTACK",
+	"bomb": "HUD_AIR_MISSION_BOMB", "airborne": "HUD_AIR_MISSION_AIRBORNE",
+}
 
 var main: Node3D
 var sim_host: SimHost
@@ -292,7 +296,7 @@ func _warn(at: Vector3) -> void:
 	warnings += 1
 	var hud: Node = main.get("hud")
 	if hud != null and hud.get("event_feed") != null:
-		hud.event_feed.post("air", "Enemy aircraft!", Vector3(at.x, sim_host.height_at(at.x, at.z), at.z))
+		hud.event_feed.post("air", tr("HUD_FEED_ENEMY_AIRCRAFT"), Vector3(at.x, sim_host.height_at(at.x, at.z), at.z))
 	var sound: Node = main.get("battle_sound")
 	if sound != null:
 		sound.notice("ui_under_attack")
@@ -359,8 +363,8 @@ func _draw_sorties() -> void:
 		var pulse := 0.9 + 0.1 * sin(_now * 6.0)
 		_rings[i].transform = Transform3D(Basis.IDENTITY.scaled(Vector3(14, 0.3, 14) * pulse), target + Vector3.UP * 0.5)
 		var seconds: float = s.seconds
-		var title: String = MISSION_NAMES.get(s.mission, str(s.mission))
-		_labels[i].text = "%s: %d s" % [title, ceili(seconds)] if seconds > 0.0 else title
+		var title := tr(MISSION_NAMES.get(s.mission, str(s.mission)))
+		_labels[i].text = title + ": " + tr("COMMON_SECONDS") % ceili(seconds) if seconds > 0.0 else title
 		_labels[i].position = target + Vector3.UP * 12.0
 		if seconds <= 0.0:
 			continue
@@ -403,9 +407,9 @@ func _on_event(event: Dictionary) -> void:
 				_flash(at, 4.0, 0.15)
 				_puff(at, 6.0, Color(0.1, 0.09, 0.08), 1.6)
 			if int(event["owner"]) == sim_host.local_player():
-				_post("lost", "Aircraft shot down", at)
+				_post("lost", tr("HUD_FEED_AIRCRAFT_DOWN"), at)
 			else:
-				_post("air", "Enemy aircraft shot down", at)
+				_post("air", tr("HUD_FEED_ENEMY_AIRCRAFT_DOWN"), at)
 		"crashed":
 			_crash(event)
 

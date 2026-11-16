@@ -9,15 +9,15 @@ extends PanelContainer
 ## or turned) and `select` (own units are selected). A won mission is
 ## recorded in the progress file (`menu/missions.gd`).
 ##
-## All texts come from the mission file; the few own ones are plain
-## English constants below (prompt 043 translates them).
+## All texts come from the mission file; the few own ones are the
+## translation keys below (prompt 043).
 
 const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
 const Missions := preload("res://scenes/menu/missions.gd")
-const TEXT_STEP := "Training – step %d of %d"
-const TEXT_DONE := "Done: %s"
-const TEXT_FAILED := "Failed: %s"
-const TEXT_ALL_DONE := "All objectives complete."
+const TEXT_STEP := "HUD_MISSION_STEP"
+const TEXT_DONE := "HUD_MISSION_DONE"
+const TEXT_FAILED := "HUD_MISSION_FAILED"
+const TEXT_ALL_DONE := "HUD_MISSION_ALL_DONE"
 ## The camera counts as moved after this many meters, this zoom factor or
 ## this turn (radians).
 const CAMERA_MOVE_M := 12.0
@@ -100,7 +100,7 @@ func refresh() -> void:
 	var shown := objectives.filter(func(o: Dictionary) -> bool: return o["state"] != "hidden")
 	if info["tutorial"]:
 		var done := objectives.filter(func(o: Dictionary) -> bool: return o["state"] == "done").size()
-		title.text = TEXT_STEP % [mini(done + 1, objectives.size()), objectives.size()]
+		title.text = tr(TEXT_STEP) % [mini(done + 1, objectives.size()), objectives.size()]
 	else:
 		title.text = info["title"]
 	if info["message_tick"] != _message_tick:
@@ -129,10 +129,10 @@ func _show_objectives(shown: Array) -> void:
 		label.custom_minimum_size = Vector2(WIDTH - 16.0, 0)
 		match o["state"]:
 			"done":
-				label.text = TEXT_DONE % o["text"]
+				label.text = tr(TEXT_DONE) % o["text"]
 				label.add_theme_color_override("font_color", MenuTheme.VICTORY)
 			"failed":
-				label.text = TEXT_FAILED % o["text"]
+				label.text = tr(TEXT_FAILED) % o["text"]
 				label.add_theme_color_override("font_color", MenuTheme.DEFEAT)
 			_:
 				label.text = "• " + o["text"]

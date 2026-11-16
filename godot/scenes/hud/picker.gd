@@ -23,21 +23,22 @@ signal picked(option: Dictionary)
 
 const Thumbnail := preload("res://scenes/hud/thumbnail.gd")
 const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
+const Language := preload("res://scenes/menu/language.gd")
 ## Pixel sizes at UI scale 1 (prompt 043 will scale the whole HUD).
 const TILE := Vector2(116, 124)
 const PICTURE_HEIGHT := 77.0
 const COLUMNS := 4
 const VISIBLE_ROWS := 2
 const GAP := 4
-## Tab id, label; in this order.
+## Tab id, label (translation key); in this order.
 const TABS: Array[Array] = [
-	["base", "Base"],
-	["defense", "Defense"],
-	["infantry", "Infantry"],
-	["vehicles", "Vehicles"],
-	["guns", "Guns"],
-	["air", "Air"],
-	["other", "Other"],
+	["base", "HUD_TAB_BASE"],
+	["defense", "HUD_TAB_DEFENSE"],
+	["infantry", "HUD_TAB_INFANTRY"],
+	["vehicles", "HUD_TAB_VEHICLES"],
+	["guns", "HUD_TAB_GUNS"],
+	["air", "HUD_TAB_AIR"],
+	["other", "HUD_TAB_OTHER"],
 ]
 const HOTKEYS: Array[Key] = [KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8, KEY_9, KEY_0]
 const BLOCKED_SHADE := Color(0.05, 0.05, 0.05, 0.62)
@@ -173,6 +174,12 @@ static func tab_of(option: Dictionary) -> String:
 	return "other"
 
 
+## Why an option is blocked, in the interface language: `blocked` is a
+## code of the simulation ("not enough resources", "too steep", ...).
+static func blocked_text(blocked: String) -> String:
+	return Language.code_text("HUD_BLOCKED_", blocked.replace(" ", "_"), blocked)
+
+
 static func card_of(id: String) -> Dictionary:
 	if not _cards.has(id):
 		_cards[id] = SimHost.catalog_card(id)
@@ -266,7 +273,7 @@ func _make_tile(option: Dictionary, index: int) -> Button:
 	count.name = "Count"
 	count.add_theme_color_override(&"font_color", MenuTheme.ACCENT)
 	_place(tile, count, Rect2(TILE.x - 31, 5, 26, 16))
-	var time := _badge("%d s" % int(option.time))
+	var time := _badge(tr("COMMON_SECONDS") % int(option.time))
 	time.name = "Time"
 	_place(tile, time, Rect2(TILE.x - 41, PICTURE_HEIGHT - 17, 36, 16))
 	var name_label := _label(str(option.name), 12, MenuTheme.TEXT)
@@ -293,8 +300,9 @@ func _update_tile(tile: Button, option: Dictionary, count: int, progress: float)
 	var blocked := str(option.blocked)
 	tile.disabled = not blocked.is_empty()
 	(tile.get_node("Shade") as Control).visible = tile.disabled
-	(tile.get_node("Reason") as Label).text = (blocked[0].to_upper() + blocked.substr(1)) if tile.disabled else ""
-	(tile.get_node("Cost") as Label).text = "F %d · A %d · M %d" % [option.fuel, option.ammo, option.manpower]
+	var reason := blocked_text(blocked) if tile.disabled else ""
+	(tile.get_node("Reason") as Label).text = (reason[0].to_upper() + reason.substr(1)) if not reason.is_empty() else ""
+	(tile.get_node("Cost") as Label).text = tr("HUD_COST_SHORT") % [option.fuel, option.ammo, option.manpower]
 	var count_label := tile.get_node("Count") as Label
 	count_label.text = "×%d" % count
 	count_label.visible = count > 0
@@ -302,7 +310,7 @@ func _update_tile(tile: Button, option: Dictionary, count: int, progress: float)
 	bar.visible = progress >= 0.0 and count > 0
 	(tile.get_node("Track") as Control).visible = bar.visible
 	bar.size.x = (TILE.x - 6) * clampf(progress, 0.0, 1.0)
-	var signature := "%s|%d|%d|%d|%s" % [option.time, option.fuel, option.ammo, option.manpower, blocked]
+	var signature := "%s|%d|%d|%d|%s|%s" % [option.time, option.fuel, option.ammo, option.manpower, blocked, TranslationServer.get_locale()]
 	if tile.get_meta(&"tooltip_for", "") != signature:
 		tile.set_meta(&"tooltip_for", signature)
 		tile.tooltip_text = _tooltip(option, int(tile.get_meta(&"index", -1)))
@@ -315,47 +323,47 @@ func _tooltip(option: Dictionary, index: int) -> String:
 	if not str(card.get("designation", "")).is_empty() and card.designation != title:
 		title += "  (%s)" % card.designation
 	lines.append(title)
-	lines.append("Fuel %d · Ammunition %d · Manpower %d · %d s" % [option.fuel, option.ammo, option.manpower, int(option.time)])
+	lines.append(tr("HUD_COST_LINE") % [option.fuel, option.ammo, option.manpower, int(option.time)])
 	if card.get("group", "") == "building":
-		lines.append("Hit points %d · armor %d mm" % [card.hp, card.armor_mm])
+		lines.append(tr("HUD_BUILDING_STATS") % [card.hp, card.armor_mm])
 		var income: PackedInt64Array = card.income
 		if income.size() == 3 and (income[0] + income[1] + income[2]) > 0:
-			lines.append("Income per minute: fuel %d · ammunition %d · manpower %d" % [income[0], income[1], income[2]])
+			lines.append(tr("HUD_INCOME") % [income[0], income[1], income[2]])
 		if not str(card.produces).is_empty():
-			lines.append("Produces %s" % card.produces)
+			lines.append(tr("HUD_PRODUCES") % Language.code_text("HUD_PRODUCES_", str(card.produces)))
 		var requires: PackedStringArray = card.requires
 		if not requires.is_empty():
-			lines.append("Requires " + ", ".join(requires))
+			lines.append(tr("HUD_REQUIRES") % ", ".join(requires))
 	elif not card.is_empty():
-		var men := "Squad of %d" % card.squad_size if int(card.squad_size) > 0 else "Crew %d" % card.crew
+		var men := tr("HUD_SQUAD_OF") % card.squad_size if int(card.squad_size) > 0 else tr("HUD_CREW") % card.crew
 		var body: Array[String] = [men]
 		if float(card.mass_t) > 0.0:
 			body.append("%.1f t" % card.mass_t)
 		if float(card.speed_road_kmh) > 0.0:
-			body.append("road %d km/h" % roundi(card.speed_road_kmh))
+			body.append(tr("HUD_ROAD_SPEED") % roundi(card.speed_road_kmh))
 		if int(card.passengers) > 0:
-			body.append("%d seats" % card.passengers)
+			body.append(tr("HUD_SEATS") % card.passengers)
 		if int(card.year) > 0:
-			body.append("from %d" % card.year)
+			body.append(tr("HUD_FROM_YEAR") % card.year)
 		lines.append(" · ".join(body))
 		var hull: PackedInt64Array = card.armor_hull
 		var turret: PackedInt64Array = card.armor_turret
 		if hull.size() == 3 and hull[0] > 0:
-			var armor := "Armor hull %d / %d / %d mm" % [hull[0], hull[1], hull[2]]
+			var armor := tr("HUD_ARMOR_HULL") % [hull[0], hull[1], hull[2]]
 			if turret.size() == 3 and turret[0] > 0:
-				armor += ", turret %d / %d / %d mm" % [turret[0], turret[1], turret[2]]
-			lines.append(armor + " (front / side / rear)")
+				armor += ", " + tr("HUD_ARMOR_TURRET") % [turret[0], turret[1], turret[2]]
+			lines.append(armor + " " + tr("HUD_ARMOR_SIDES"))
 		for w: Dictionary in card.weapons:
 			var text := ("%d× " % w.count if int(w.count) > 1 else "") + str(w.name)
 			if float(w.caliber_mm) > 0.0:
 				text += " (%s mm)" % String.num(w.caliber_mm, 1).trim_suffix(".0")
 			if int(w.range_m) > 0:
-				text += ", effective range %d m" % w.range_m
+				text += ", " + tr("HUD_EFFECTIVE_RANGE") % w.range_m
 			lines.append(text)
 	if index >= 0 and index < HOTKEYS.size():
-		lines.append("Key: Alt + %s" % OS.get_keycode_string(HOTKEYS[index]))
+		lines.append(tr("HUD_KEY_ALT") % OS.get_keycode_string(HOTKEYS[index]))
 	if not str(option.blocked).is_empty():
-		lines.append("Not available: %s" % option.blocked)
+		lines.append(tr("HUD_NOT_AVAILABLE") % blocked_text(str(option.blocked)))
 	return "\n".join(lines)
 
 

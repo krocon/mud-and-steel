@@ -63,7 +63,7 @@ var radius := 12.0
 var strength := 0.5
 var density := 300.0
 var terrain_id := 2
-var scatter_preset := "Deciduous wood"
+var scatter_preset := "Deciduous wood"  # l10n-ignore (preset id)
 var place_kind := "env_house_farm:Intact"
 var place_heading := 0
 ## Compound of the "compound" tool (prompt 059, data/compounds.toml).
@@ -133,7 +133,7 @@ func _ready() -> void:
 	panel.main = self
 	$Hud.add_child(panel)
 	_update_starts()
-	set_status("Map '%s'. Left mouse paints, Ctrl+Z undoes." % editor.map_name())
+	set_status(tr("EDITOR_STATUS_OPENED") % editor.map_name())
 
 
 func _exit_tree() -> void:
@@ -180,7 +180,7 @@ func stroke_begin(point: Vector3) -> void:
 			if n < 0:
 				set_status(editor.last_error(), true)
 			else:
-				set_status("%d compounds placed" % n)
+				set_status(tr("EDITOR_COMPOUNDS_PLACED") % n)
 		"start0", "start1", "start2", "start3", "start4", "start5":
 			var player := int(tool.right(1))
 			var new_start: bool = not editor.start_positions().has(player)
@@ -328,11 +328,11 @@ func validate_map() -> Dictionary:
 	last_report = editor.validate()
 	var lines: PackedStringArray = []
 	for e: String in last_report.get("errors", []):
-		lines.append("Error: " + e)
+		lines.append(tr("EDITOR_ERROR_LINE") % e)
 	for w: String in last_report.get("warnings", []):
-		lines.append("Warning: " + w)
+		lines.append(tr("EDITOR_WARNING_LINE") % w)
 	if last_report.get("ok", false):
-		lines.insert(0, "Map is playable (map hash %s)." % last_report["map_hash"])
+		lines.insert(0, tr("EDITOR_PLAYABLE") % last_report["map_hash"])
 	set_status("\n".join(lines), not last_report.get("ok", false))
 	return last_report
 
@@ -341,7 +341,7 @@ func validate_map() -> Dictionary:
 func save_as(map_name: String) -> bool:
 	map_name = map_name.strip_edges()
 	if map_name in PROTECTED_MAPS:
-		set_status("'%s' is a test map of the repository; save under another name." % map_name, true)
+		set_status(tr("EDITOR_PROTECTED_MAP") % map_name, true)
 		return false
 	if not editor.set_map_name(map_name):
 		set_status(editor.last_error(), true)
@@ -350,7 +350,7 @@ func save_as(map_name: String) -> bool:
 		set_status(editor.last_error(), true)
 		return false
 	var report := validate_map()
-	set_status("Saved to %s. %s" % [map_dir(map_name), "Playable in the single-player menu." if report["ok"] else "Not playable yet: see the errors."], not report["ok"])
+	set_status(tr("EDITOR_SAVED").format({"path": map_dir(map_name), "result": tr("EDITOR_SAVED_PLAYABLE" if report["ok"] else "EDITOR_SAVED_NOT_PLAYABLE")}), not report["ok"])
 	panel.update_title()
 	return true
 
@@ -554,13 +554,13 @@ func _update_strongpoints() -> void:
 ## `mission_points.toml`; not part of undo [provisional]).
 func _mission_point_click(point: Vector3) -> void:
 	if editor.remove_mission_points(point.x, point.z, EditorData.MISSION_PICK_M) > 0:
-		set_status("Mission place removed.")
+		set_status(tr("EDITOR_MISSION_REMOVED"))
 	elif tool == "mission_area":
 		var added: String = editor.add_mission_area(point.x, point.z, radius, mission_point_name)
-		set_status("Trigger area '%s' (%d m) added; mission scripts name it in area = \"%s\"." % [added, roundi(radius), added])
+		set_status(tr("EDITOR_MISSION_AREA_ADDED").format({"name": added, "radius": roundi(radius)}))
 	else:
 		var added: String = editor.add_mission_spawn(point.x, point.z, mission_point_name)
-		set_status("Spawn point '%s' added; mission scripts name it in at = \"%s\"." % [added, added])
+		set_status(tr("EDITOR_MISSION_SPAWN_ADDED").format({"name": added}))
 	_update_mission_points()
 
 

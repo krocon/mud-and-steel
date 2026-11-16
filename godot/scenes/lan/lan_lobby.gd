@@ -107,20 +107,20 @@ func _build_ui() -> void:
 	box.add_theme_constant_override("separation", 8)
 	panel.add_child(box)
 
-	box.add_child(MenuTheme.title("LAN game", MenuTheme.HEADING_SIZE))
+	box.add_child(MenuTheme.title("LOBBY_LAN_TITLE", MenuTheme.HEADING_SIZE))
 
 	_setup = VBoxContainer.new()
 	box.add_child(_setup)
 	_name = LineEdit.new()
-	_name.placeholder_text = "Your name"
-	_name.text = _args.get("--lan-name", "Player")
-	_setup.add_child(_labeled("Name", _name))
+	_name.placeholder_text = "LOBBY_YOUR_NAME"
+	_name.text = _args.get("--lan-name", tr("LOBBY_DEFAULT_NAME"))
+	_setup.add_child(_labeled("LOBBY_NAME", _name))
 
 	_port = _spin(_args.get("--lan-port", str(LanLobby.DEFAULT_GAME_PORT)))
 	_discovery_port = _spin(_args.get("--lan-discovery-port", str(LanLobby.DEFAULT_DISCOVERY_PORT)))
 	var ports := HBoxContainer.new()
-	ports.add_child(_labeled("Game port", _port))
-	ports.add_child(_labeled("Search port", _discovery_port))
+	ports.add_child(_labeled("LOBBY_GAME_PORT", _port))
+	ports.add_child(_labeled("LOBBY_SEARCH_PORT", _discovery_port))
 	_setup.add_child(ports)
 
 	_map = OptionButton.new()
@@ -132,24 +132,24 @@ func _build_ui() -> void:
 		_map.select(MatchSetup.default_map_index(_maps))
 	if _args.has("--map") and _args["--map"] in _maps:
 		_map.select(Array(_maps).find(_args["--map"]))
-	_setup.add_child(_labeled("Map (host)", _map))
+	_setup.add_child(_labeled("LOBBY_MAP_HOST", _map))
 	_mode = OptionButton.new()
 	for id in MatchSetup.MODES:
 		_mode.add_item(MatchSetup.MODES[id])
 	_mode.select(MatchSetup.MODES.keys().find(_args.get("--mode", "battle")))
-	_setup.add_child(_labeled("Mode (host)", _mode))
+	_setup.add_child(_labeled("LOBBY_MODE_HOST", _mode))
 	_shared_vision = CheckBox.new()
-	_shared_vision.text = "Allies share what they see"
+	_shared_vision.text = "LOBBY_SHARED_VISION"
 	_shared_vision.button_pressed = true
 	_setup.add_child(_shared_vision)
 
 	var host := Button.new()
-	host.text = "Host game"
+	host.text = "LOBBY_HOST_GAME"
 	host.pressed.connect(_on_host)
 	_setup.add_child(host)
 
 	var search := Button.new()
-	search.text = "Search LAN"
+	search.text = "LOBBY_SEARCH_LAN"
 	search.pressed.connect(_on_search)
 	_setup.add_child(search)
 	_games = ItemList.new()
@@ -157,15 +157,15 @@ func _build_ui() -> void:
 	_games.item_activated.connect(func(_index: int) -> void: _on_join_selected())
 	_setup.add_child(_games)
 	var join := Button.new()
-	join.text = "Join selected game"
+	join.text = "LOBBY_JOIN_SELECTED"
 	join.pressed.connect(_on_join_selected)
 	_setup.add_child(join)
 
 	_address = LineEdit.new()
-	_address.placeholder_text = "192.168.1.20 or 192.168.1.20:47810"
+	_address.placeholder_text = "LOBBY_ADDRESS_HINT"
 	_address.text_submitted.connect(func(_text: String) -> void: _on_join_address())
 	var by_address := Button.new()
-	by_address.text = "Join address"
+	by_address.text = "LOBBY_JOIN_ADDRESS"
 	by_address.pressed.connect(_on_join_address)
 	var address_row := HBoxContainer.new()
 	_address.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -185,22 +185,22 @@ func _build_ui() -> void:
 	_slot_hint = MenuTheme.hint("")
 	box.add_child(_slot_hint)
 	_ready_box = CheckBox.new()
-	_ready_box.text = "Ready"
+	_ready_box.text = "LOBBY_READY"
 	_ready_box.toggled.connect(func(on: bool) -> void: _lobby.set_ready(on))
 	box.add_child(_ready_box)
 	_start = Button.new()
-	_start.text = "Start match"
+	_start.text = "LOBBY_START_MATCH"
 	_start.pressed.connect(_on_start)
 	box.add_child(_start)
 	_leave = Button.new()
-	_leave.text = "Leave"
+	_leave.text = "LOBBY_LEAVE"
 	_leave.pressed.connect(_on_leave)
 	box.add_child(_leave)
 	_status = Label.new()
 	_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	box.add_child(_status)
 	back_button = Button.new()
-	back_button.text = "Back to main menu"
+	back_button.text = "LOBBY_BACK_TO_MENU"
 	back_button.pressed.connect(_on_back)
 	box.add_child(back_button)
 
@@ -314,7 +314,7 @@ func _update_games() -> void:
 		var compatible: bool = game["compatible"]
 		_games.add_item("%s  –  %s  (%d/%d)%s" % [
 			game["name"], game["address"], game["players"], game["max_players"],
-			"" if compatible else "  incompatible version",
+			"" if compatible else "  " + tr("LOBBY_INCOMPATIBLE"),
 		])
 	if not selected.is_empty() and selected[0] < _games.item_count:
 		_games.select(selected[0])
@@ -331,10 +331,10 @@ func _update_lobby() -> void:
 	back_button.visible = not in_game
 	var lines: PackedStringArray = []
 	for player in _lobby.players():
-		lines.append("Player %d: %s%s%s" % [
-			player["id"], player["name"],
-			"  (you)" if player["local"] else "",
-			"  – ready" if player["ready"] else "",
+		lines.append("%s: %s%s%s" % [
+			tr("COMMON_PLAYER_N") % player["id"], player["name"],
+			"  " + tr("LOBBY_YOU") if player["local"] else "",
+			"  – " + tr("LOBBY_READY_MARK") if player["ready"] else "",
 		])
 	_players.text = "\n".join(lines)
 	_players.visible = false
@@ -343,25 +343,24 @@ func _update_lobby() -> void:
 	if state == "lobby":
 		_slot_list.show_slots(_lobby.slots())
 		var settings := _lobby.match_settings()
-		_slot_hint.text = "Map: %s, mode: %s%s. %s" % [
-			settings.get("map", ""), MatchSetup.MODES.get(settings.get("mode", ""), ""),
-			", allies share their sight" if settings.get("shared_vision", false) else "",
-			"Set who plays in each slot, teams and factions." if _lobby.is_host() else "Choose your team and faction.",
+		var summary := "LOBBY_SETTINGS_SHARED" if settings.get("shared_vision", false) else "LOBBY_SETTINGS"
+		_slot_hint.text = "%s %s" % [
+			tr(summary).format({"map": settings.get("map", ""), "mode": tr(MatchSetup.MODES.get(settings.get("mode", ""), ""))}),
+			tr("LOBBY_HINT_HOST_SLOTS" if _lobby.is_host() else "LOBBY_HINT_CLIENT_SLOTS"),
 		]
 	_slot_hint.visible = state == "lobby"
 	var status: String
 	match state:
 		"idle":
-			status = "Searching …" if _searching else "Host a game or join one."
+			status = tr("LOBBY_SEARCHING" if _searching else "LOBBY_IDLE_LAN")
 		"connecting":
-			status = "Connecting …"
+			status = tr("LOBBY_CONNECTING")
 		"lobby":
-			status = ("Hosting on port %d. Waiting until everyone is ready." % _lobby.port()) \
-				if _lobby.is_host() else "In the lobby. Tick Ready when you are."
+			status = (tr("LOBBY_HOSTING") % _lobby.port()) if _lobby.is_host() else tr("LOBBY_IN_LOBBY")
 		"started":
-			status = "Starting …"
+			status = tr("LOBBY_STARTING")
 		_:
-			status = "Closed."
+			status = tr("LOBBY_CLOSED")
 	var message := _lobby.message()
 	_status.text = status if message.is_empty() else "%s\n%s" % [status, message]
 	if state == "started":

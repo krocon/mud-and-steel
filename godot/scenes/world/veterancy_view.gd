@@ -82,11 +82,11 @@ func _post_promotion(id: int, index: int, rank: int) -> void:
 	var hud: Node = main.get("hud")
 	if hud == null or hud.get("event_feed") == null:
 		return
-	var rank_name := _rank_names[rank] if rank < _rank_names.size() else "rank %d" % rank
-	var unit_name := str(sim_host.unit_info(id).get("name", "unit"))
+	var rank_name := _rank_names[rank] if rank < _rank_names.size() else tr("HUD_RANK_N") % rank
+	var unit_name := str(sim_host.unit_info(id).get("name", tr("HUD_FEED_UNIT")))
 	var positions := sim_host.current_positions()
 	var at := positions[index] if index < positions.size() else Vector3.ZERO
-	hud.event_feed.post("ready", "Promoted: %s is %s now" % [unit_name, rank_name], at)
+	hud.event_feed.post("ready", tr("HUD_FEED_PROMOTED").format({"unit": unit_name, "rank": rank_name}), at)
 	promotions_posted += 1
 
 

@@ -5,23 +5,25 @@ extends RefCounted
 const SIZES: Array[int] = [256, 500, 1000, 2000, 4000]
 const BIOMES: Array[String] = ["forest", "desert", "winter"]
 
-## Tools: id → label.
+## Tools: id → label (translation key).
 const TOOLS: Dictionary[String, String] = {
-	"raise": "Raise", "lower": "Lower", "smooth": "Smooth", "flatten": "Flatten",
+	"raise": "EDITOR_TOOL_RAISE", "lower": "EDITOR_TOOL_LOWER", "smooth": "EDITOR_TOOL_SMOOTH",
+	"flatten": "EDITOR_TOOL_FLATTEN",
 	# Prompt 060: mountains.
-	"ridge": "Ridge", "valley": "Valley", "terrace": "Terrace", "road": "Road on slope",
-	"paint": "Paint terrain", "river": "River", "scatter": "Vegetation / objects",
-	"place": "Place object", "erase": "Erase objects", "start0": "Start player 1",
-	"start1": "Start player 2",
+	"ridge": "EDITOR_TOOL_RIDGE", "valley": "EDITOR_TOOL_VALLEY", "terrace": "EDITOR_TOOL_TERRACE",
+	"road": "EDITOR_TOOL_ROAD",
+	"paint": "EDITOR_TOOL_PAINT", "river": "EDITOR_TOOL_RIVER", "scatter": "EDITOR_TOOL_SCATTER",
+	"place": "EDITOR_TOOL_PLACE", "erase": "EDITOR_TOOL_ERASE", "start0": "EDITOR_TOOL_START0",
+	"start1": "EDITOR_TOOL_START1",
 	# Prompt 037: up to six players in teams.
-	"start2": "Start player 3", "start3": "Start player 4",
-	"start4": "Start player 5", "start5": "Start player 6",
+	"start2": "EDITOR_TOOL_START2", "start3": "EDITOR_TOOL_START3",
+	"start4": "EDITOR_TOOL_START4", "start5": "EDITOR_TOOL_START5",
 	# Prompt 052: neutral trench strongpoints (map markers).
-	"strongpoint": "Strongpoint",
+	"strongpoint": "EDITOR_TOOL_STRONGPOINT",
 	# Prompt 059: compounds (house, walled yard, props) and the village brush.
-	"compound": "Place compound", "village": "Village (desert)",
+	"compound": "EDITOR_TOOL_COMPOUND", "village": "EDITOR_TOOL_VILLAGE",
 	# Prompt 039: places for mission scripts (mission_points.toml).
-	"mission_area": "Trigger area", "mission_spawn": "Spawn point",
+	"mission_area": "EDITOR_TOOL_MISSION_AREA", "mission_spawn": "EDITOR_TOOL_MISSION_SPAWN",
 }
 ## Mission tools (prompt 039): a click inside an area or this close (m) to
 ## a spawn point removes it, elsewhere adds one.
@@ -33,39 +35,52 @@ const STRONGPOINT_PICK_M := 20.0
 const MOUNTAIN_TOOLS: Array[String] = ["ridge", "valley", "terrace", "road"]
 ## Start tools (prompt 037).
 const START_TOOLS: Array[String] = ["start0", "start1", "start2", "start3", "start4", "start5"]
-## Team choices of a start: -1 none, then teams 1 to 3.
-const START_TEAMS: Array[String] = ["No team", "Team 1", "Team 2", "Team 3"]
-## Object brush presets: kinds ("id:variant") and spacing in meters.
+## Team choices of a start (translation keys): -1 none, then teams 1 to 3.
+const START_TEAMS: Array[String] = ["EDITOR_START_NO_TEAM", "EDITOR_START_TEAM_1", "EDITOR_START_TEAM_2", "EDITOR_START_TEAM_3"]
+## Object brush presets: kinds ("id:variant") and spacing in meters. The
+## names are ids (`map_editor.gd` scatter_preset); SCATTER_LABELS shows them.
 const SCATTER_PRESETS: Dictionary[String, Dictionary] = {
-	"Deciduous wood": {"kinds": ["env_tree_deciduous:Oak", "env_tree_deciduous:Beech", "env_tree_deciduous:OakYoung"], "spacing": 5.0},
-	"Conifer wood": {"kinds": ["env_tree_conifer:Spruce", "env_tree_conifer:Pine", "env_tree_conifer:SpruceYoung"], "spacing": 4.5},
-	"Birch grove": {"kinds": ["env_tree_birch:Birch", "env_tree_birch:BirchYoung"], "spacing": 4.0},
-	"Palms": {"kinds": ["env_tree_palm:Palm", "env_tree_palm:PalmShort", "env_tree_palm:PalmLeaning"], "spacing": 6.0},
-	"Bushes": {"kinds": ["env_bush:Hazel", "env_bush:Round", "env_bush:Wide"], "spacing": 3.0},
-	"Rocks": {"kinds": ["env_rock:Medium", "env_rock:Large"], "spacing": 4.0},
-	"Hay": {"kinds": ["env_hay_bale:Rick", "env_hay_bale:Round"], "spacing": 6.0},
+	"Deciduous wood": {"kinds": ["env_tree_deciduous:Oak", "env_tree_deciduous:Beech", "env_tree_deciduous:OakYoung"], "spacing": 5.0},  # l10n-ignore
+	"Conifer wood": {"kinds": ["env_tree_conifer:Spruce", "env_tree_conifer:Pine", "env_tree_conifer:SpruceYoung"], "spacing": 4.5},  # l10n-ignore
+	"Birch grove": {"kinds": ["env_tree_birch:Birch", "env_tree_birch:BirchYoung"], "spacing": 4.0},  # l10n-ignore
+	"Palms": {"kinds": ["env_tree_palm:Palm", "env_tree_palm:PalmShort", "env_tree_palm:PalmLeaning"], "spacing": 6.0},  # l10n-ignore
+	"Bushes": {"kinds": ["env_bush:Hazel", "env_bush:Round", "env_bush:Wide"], "spacing": 3.0},  # l10n-ignore
+	"Rocks": {"kinds": ["env_rock:Medium", "env_rock:Large"], "spacing": 4.0},  # l10n-ignore
+	"Hay": {"kinds": ["env_hay_bale:Rick", "env_hay_bale:Round"], "spacing": 6.0},  # l10n-ignore
 }
-## Groups of the "Place object" list (prompt 041): group name -> catalog id
-## prefixes or ids, in this order; kinds no group names come last ("Other").
+## Labels (translation keys) of the object brush presets, by id.
+const SCATTER_LABELS: Dictionary[String, String] = {
+	"Deciduous wood": "EDITOR_PRESET_DECIDUOUS",  # l10n-ignore
+	"Conifer wood": "EDITOR_PRESET_CONIFER",  # l10n-ignore
+	"Birch grove": "EDITOR_PRESET_BIRCH",  # l10n-ignore
+	"Palms": "EDITOR_PRESET_PALMS",  # l10n-ignore
+	"Bushes": "EDITOR_PRESET_BUSHES",  # l10n-ignore
+	"Rocks": "EDITOR_PRESET_ROCKS",  # l10n-ignore
+	"Hay": "EDITOR_PRESET_HAY",  # l10n-ignore
+}
+## Groups of the "Place object" list (prompt 041): group name (translation
+## key) -> catalog id prefixes or ids, in this order; kinds no group names
+## come last (OTHER_GROUP).
 const OBJECT_GROUPS: Array = [
-	["Trees and plants", ["env_tree", "env_bush", "env_log", "env_grass"]],
-	["Village buildings", ["env_house_farm", "env_house_stone", "env_house_mud", "env_house_log", "env_barn", "env_church"]],
-	["Town buildings", ["env_house_town", "env_town_hall", "env_warehouse"]],
-	["Desert village", ["env_house_desert", "env_mosque", "env_police_post", "env_wall_mud",
+	["EDITOR_GROUP_TREES", ["env_tree", "env_bush", "env_log", "env_grass"]],
+	["EDITOR_GROUP_VILLAGE", ["env_house_farm", "env_house_stone", "env_house_mud", "env_house_log", "env_barn", "env_church"]],
+	["EDITOR_GROUP_TOWN", ["env_house_town", "env_town_hall", "env_warehouse"]],
+	["EDITOR_GROUP_DESERT", ["env_house_desert", "env_mosque", "env_police_post", "env_wall_mud",
 		"env_awning", "env_jars", "env_well_desert", "env_cart_wood", "env_market_stall"]],
-	["Supply dumps", ["env_dump"]],
-	["Fences, walls, hedges", ["env_fence", "env_wall", "env_hedge"]],
-	["Bridges", ["env_bridge"]],
-	["Props", ["env_hay", "env_woodpile", "env_crate", "env_barrel", "env_pole", "env_rock"]],
-	["Fortifications", ["fort_"]],
+	["EDITOR_GROUP_DUMPS", ["env_dump"]],
+	["EDITOR_GROUP_FENCES", ["env_fence", "env_wall", "env_hedge"]],
+	["EDITOR_GROUP_BRIDGES", ["env_bridge"]],
+	["EDITOR_GROUP_PROPS", ["env_hay", "env_woodpile", "env_crate", "env_barrel", "env_pole", "env_rock"]],
+	["EDITOR_GROUP_FORTIFICATIONS", ["fort_"]],
 ]
+const OTHER_GROUP := "EDITOR_GROUP_OTHER"
 
 
-## The group of a placeable kind ("id:variant"), or "Other".
+## The group of a placeable kind ("id:variant"), or OTHER_GROUP.
 static func object_group(kind: String) -> String:
 	var id := kind.get_slice(":", 0)
 	for group: Array in OBJECT_GROUPS:
 		for prefix: String in group[1]:
 			if id.begins_with(prefix):
 				return group[0]
-	return "Other"
+	return OTHER_GROUP

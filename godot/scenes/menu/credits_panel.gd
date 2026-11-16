@@ -11,12 +11,14 @@ extends PanelContainer
 signal closed
 
 const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
+const Language := preload("res://scenes/menu/language.gd")
 
 const LICENSE_DIR := "res://licenses"
+## Tab title keys (also the tab node names) with their files.
 const FILES: Dictionary[String, String] = {
-	"Credits": "CREDITS.md",
-	"License": "LICENSE.txt",
-	"Third party": "THIRD_PARTY_LICENSES.txt",
+	"CREDITS_TAB_CREDITS": "CREDITS.md",
+	"CREDITS_TAB_LICENSE": "LICENSE.txt",
+	"CREDITS_TAB_THIRD_PARTY": "THIRD_PARTY_LICENSES.txt",
 }
 
 var tabs: TabContainer
@@ -27,18 +29,18 @@ func _ready() -> void:
 	custom_minimum_size = Vector2(900, 620)
 	var box := VBoxContainer.new()
 	add_child(box)
-	box.add_child(MenuTheme.title("Credits", MenuTheme.HEADING_SIZE))
+	box.add_child(MenuTheme.title("MENU_CREDITS", MenuTheme.HEADING_SIZE))
 	tabs = TabContainer.new()
 	tabs.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	box.add_child(tabs)
 	for title in FILES:
 		_add_tab(title, read_text(FILES[title]))
-	_add_tab("Godot Engine", godot_licenses())
+	_add_tab("CREDITS_TAB_GODOT", godot_licenses())
 	var buttons := HBoxContainer.new()
 	buttons.alignment = BoxContainer.ALIGNMENT_END
 	box.add_child(buttons)
 	back_button = Button.new()
-	back_button.text = "Back"
+	back_button.text = "COMMON_BACK"
 	back_button.custom_minimum_size = Vector2(140, 44)
 	back_button.pressed.connect(func() -> void: closed.emit())
 	buttons.add_child(back_button)
@@ -52,23 +54,23 @@ static func read_text(file_name: String) -> String:
 	var repo := ProjectSettings.globalize_path("res://..").path_join(file_name).simplify_path()
 	if not GamePaths.is_exported() and FileAccess.file_exists(repo):
 		return FileAccess.get_file_as_string(repo)
-	if file_name == FILES["Third party"]:
-		return "Made by the release build (tools/release/third_party_licenses.py)."
-	return "%s is missing." % file_name
+	if file_name == FILES["CREDITS_TAB_THIRD_PARTY"]:
+		return Language.t("CREDITS_THIRD_PARTY_MISSING")
+	return Language.t("CREDITS_FILE_MISSING") % file_name
 
 
 ## Godot's license, copyright notices of its components and their license texts.
 static func godot_licenses() -> String:
 	var lines: PackedStringArray = [
-		"This game uses Godot Engine, available under the following license:", "",
-		Engine.get_license_text(), "", "Third-party components of Godot Engine:", "",
+		Language.t("CREDITS_GODOT_LICENSE"), "",
+		Engine.get_license_text(), "", Language.t("CREDITS_GODOT_COMPONENTS"), "",
 	]
 	for info: Dictionary in Engine.get_copyright_info():
 		lines.append(info["name"])
 		for part: Dictionary in info["parts"]:
 			for line: String in part["copyright"]:
 				lines.append("    © " + line)
-			lines.append("    License: " + part["license"])
+			lines.append("    " + Language.t("CREDITS_LICENSE_LINE") % part["license"])
 		lines.append("")
 	var licenses := Engine.get_license_info()
 	for license_name: String in licenses:

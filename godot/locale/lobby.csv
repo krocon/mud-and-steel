@@ -1,0 +1,53 @@
+keys,en,de
+LOBBY_LAN_TITLE,LAN game,LAN-Spiel
+LOBBY_ONLINE_TITLE,Online (Steam),Online (Steam)
+LOBBY_NAME,Name,Name
+LOBBY_YOUR_NAME,Your name,Dein Name
+LOBBY_DEFAULT_NAME,Player,Spieler
+LOBBY_GAME_PORT,Game port,Spielport
+LOBBY_SEARCH_PORT,Search port,Suchport
+LOBBY_MAP_HOST,Map (host),Karte (Host)
+LOBBY_MODE_HOST,Mode (host),Modus (Host)
+LOBBY_SHARED_VISION,Allies share what they see,Verbündete teilen ihre Sicht
+LOBBY_PUBLIC,Listed for everyone (otherwise friends only),Für alle sichtbar (sonst nur für Freunde)
+LOBBY_HOST_GAME,Host game,Spiel hosten
+LOBBY_SEARCH_LAN,Search LAN,LAN durchsuchen
+LOBBY_JOIN_SELECTED,Join selected game,Ausgewähltem Spiel beitreten
+LOBBY_ADDRESS_HINT,192.168.1.20 or 192.168.1.20:47810,192.168.1.20 oder 192.168.1.20:47810
+LOBBY_JOIN_ADDRESS,Join address,Adresse beitreten
+LOBBY_OPEN_GAMES,Open games,Offene Spiele
+LOBBY_REFRESH,Refresh,Aktualisieren
+LOBBY_CODE_HINT,Lobby code from a friend,Lobby-Code eines Freundes
+LOBBY_JOIN_CODE,Join code,Code beitreten
+LOBBY_COPY_CODE,Copy code,Code kopieren
+LOBBY_INVITE,Invite friends,Freunde einladen
+LOBBY_CODE,Lobby code: %s,Lobby-Code: %s
+LOBBY_INVITATION,Invitation received: join lobby %s,Einladung erhalten: Lobby %s beitreten
+LOBBY_READY,Ready,Bereit
+LOBBY_READY_MARK,ready,bereit
+LOBBY_YOU,(you),(du)
+LOBBY_START_MATCH,Start match,Partie starten
+LOBBY_LEAVE,Leave,Verlassen
+LOBBY_BACK_TO_MENU,Back to main menu,Zurück zum Hauptmenü
+LOBBY_INCOMPATIBLE,incompatible version,inkompatible Version
+LOBBY_SETTINGS,"Map: {map}, mode: {mode}.","Karte: {map}, Modus: {mode}."
+LOBBY_SETTINGS_SHARED,"Map: {map}, mode: {mode}, allies share their sight.","Karte: {map}, Modus: {mode}, Verbündete teilen ihre Sicht."
+LOBBY_HINT_HOST_SLOTS,"Set who plays in each slot, teams and factions.","Lege fest, wer auf welchem Platz spielt, sowie Teams und Fraktionen."
+LOBBY_HINT_CLIENT_SLOTS,Choose your team and faction.,Wähle dein Team und deine Fraktion.
+LOBBY_SEARCHING,Searching …,Suche läuft …
+LOBBY_IDLE_LAN,Host a game or join one.,Hoste ein Spiel oder tritt einem bei.
+LOBBY_IDLE_STEAM,"Host a game, or join one from the list or with a code.",Hoste ein Spiel oder tritt einem aus der Liste oder per Code bei.
+LOBBY_CONNECTING,Connecting …,Verbinde …
+LOBBY_HOSTING,Hosting on port %d. Waiting until everyone is ready.,"Spiel läuft auf Port %d. Warte, bis alle bereit sind."
+LOBBY_IN_LOBBY,In the lobby. Tick Ready when you are.,"In der Lobby. Hake „Bereit“ an, sobald du so weit bist."
+LOBBY_STARTING,Starting …,Starte …
+LOBBY_CLOSED,Closed.,Geschlossen.
+LOBBY_NO_STEAM_RUN,Steam is not used in this run (--no-steam).,Steam wird in diesem Lauf nicht verwendet (--no-steam).
+LOBBY_STEAM_CONNECTING,Connecting to Steam …,Verbinde mit Steam …
+LOBBY_STEAM_UNAVAILABLE,Steam is not available.,Steam ist nicht verfügbar.
+LOBBY_STEAM_SIGNED_IN,Signed in to Steam as {name} (app {app}),Bei Steam angemeldet als {name} (App {app})
+LOBBY_TRY_AGAIN,Try again,Erneut versuchen
+LOBBY_CREATING,Creating the Steam lobby …,Erstelle die Steam-Lobby …
+LOBBY_JOINING,Joining the Steam lobby …,Trete der Steam-Lobby bei …
+LOBBY_CONNECTING_HOST,Connecting to the host …,Verbinde mit dem Host …
+LOBBY_WAITING_STEAM,Waiting until everyone is ready. Friends join from the Steam friends list or with the code.,"Warte, bis alle bereit sind. Freunde treten über die Steam-Freundesliste oder mit dem Code bei."

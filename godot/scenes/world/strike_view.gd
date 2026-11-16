@@ -22,6 +22,7 @@ extends Node3D
 const EffectLibrary := preload("res://scenes/world/effect_library.gd")
 const EffectTextures := preload("res://scenes/world/effect_textures.gd")
 const GroundPick := preload("res://scenes/camera/ground_pick.gd")
+const Picker := preload("res://scenes/hud/picker.gd")
 
 const READ_INTERVAL := 0.2
 ## Red marker smoke (WW2 coloured smoke grenades and candles). [provisional]
@@ -122,15 +123,15 @@ func _on_event(event: Dictionary) -> void:
 	var allied := own or sim_host.relation(int(event.get("owner", -1))) == 1
 	match kind:
 		"called":
-			var text := "Rocket strike called: %d s" % ceili(float(event["warning"])) if allied \
-				else "Enemy rocket strike! Destroy the battery position"
+			var text := tr("HUD_FEED_STRIKE_CALLED") % ceili(float(event["warning"])) if allied \
+				else tr("HUD_FEED_ENEMY_STRIKE")
 			_post("strike", text, event["target"])
 			if not allied and _hud != null and _hud.get("minimap") != null:
 				_hud.minimap.add_ping(event["from"])
 		"cancelled":
-			_post("strike", "Rocket strike called off" if allied else "Enemy rocket strike called off", event["target"])
+			_post("strike", tr("HUD_FEED_STRIKE_OFF") if allied else tr("HUD_FEED_ENEMY_STRIKE_OFF"), event["target"])
 		"launched":
-			_post("strike", "Rockets away!" if allied else "Rockets incoming!", event["target"])
+			_post("strike", tr("HUD_FEED_ROCKETS_AWAY") if allied else tr("HUD_FEED_ROCKETS_INCOMING"), event["target"])
 		"ammo_explosion":
 			blast_effects.ammo_explosion(int(event["unit"]), event["position"])
 
@@ -174,8 +175,8 @@ func _update_strikes() -> void:
 	if _countdown != null:
 		_countdown.visible = warning >= 0.0
 		if warning >= 0.0:
-			_countdown.text = ("ENEMY ROCKET STRIKE in %d s - destroy the marked battery position" if enemy_warning
-				else "Rocket strike in %d s") % ceili(warning)
+			_countdown.text = tr("HUD_STRIKE_ENEMY_COUNTDOWN" if enemy_warning
+				else "HUD_STRIKE_COUNTDOWN") % ceili(warning)
 			_countdown.add_theme_color_override(&"font_color", Color(1, 0.35, 0.3) if enemy_warning else Color(1, 0.85, 0.4))
 
 
@@ -356,7 +357,7 @@ class StrikeBar:
 	extends PanelContainer
 
 	const REFRESH := 0.25
-	const HINT := "Rocket strike: left click the target  ·  right click cancels"
+	const HINT := "HUD_HINT_STRIKE"
 
 	var main: Node3D
 	var sim_host: SimHost
@@ -409,16 +410,18 @@ class StrikeBar:
 		var blocked: String = o["blocked"]
 		var line := "%d/%d/%d" % [cost[0], cost[1], cost[2]]
 		if float(o["unlock"]) > 0.0:
-			line = "in %d:%02d" % [int(o["unlock"]) / 60, int(o["unlock"]) % 60]
+			line = tr("HUD_STRIKE_UNLOCK") % [int(o["unlock"]) / 60, int(o["unlock"]) % 60]
 		elif float(o["cooldown"]) > 0.0:
-			line = "%d s" % ceili(float(o["cooldown"]))
+			line = tr("COMMON_SECONDS") % ceili(float(o["cooldown"]))
 		elif blocked == "no rocket battery":
-			line = "no battery"
-		button.text = "Rockets\n%s" % line
+			line = tr("HUD_STRIKE_NO_BATTERY")
+		button.text = tr("HUD_STRIKE_BUTTON") % line
 		button.disabled = not blocked.is_empty()
-		button.tooltip_text = "Heavy rocket strike (Shift+6): %d rockets within %d m, %d s warning.\nNeeds a rocket battery position; the enemy can destroy it before the salvo.\nFuel %d, ammo %d, manpower %d%s" % [
-			int(o["rockets"]), int(o["radius"]), int(o["warning"]), cost[0], cost[1], cost[2],
-			"" if blocked.is_empty() else "\n" + blocked.capitalize()]
+		var reason := Picker.blocked_text(blocked)
+		button.tooltip_text = tr("HUD_TIP_STRIKE").format({
+			"rockets": int(o["rockets"]), "radius": int(o["radius"]), "warning": int(o["warning"]),
+			"fuel": cost[0], "ammo": cost[1], "manpower": cost[2]}) \
+			+ ("" if reason.is_empty() else "\n" + reason[0].to_upper() + reason.substr(1))
 		button.set_pressed_no_signal(pending)
 		if pending and button.disabled:
 			set_pending(false)

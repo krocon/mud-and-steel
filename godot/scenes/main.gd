@@ -215,12 +215,12 @@ func _ready() -> void:
 	# Matches from the menu or the LAN lobby are built in steps behind a
 	# loading screen (prompt 027); direct starts load in one frame as before.
 	if not MatchSetup.pending.is_empty() or LanMatch.lobby != null:
-		var map_name: String = MatchSetup.pending.get("map", "%s match" % LanMatch.kind)
+		var map_name: String = MatchSetup.pending.get("map", tr("LOADING_NET_MATCH") % LanMatch.kind)
 		_loading = LoadingScreen.new(map_name)
 		add_child(_loading)
 		sim_host.set_process(false)
 		$Hud.process_mode = Node.PROCESS_MODE_DISABLED
-		await _loading_step("Preparing the battlefield …", 0.05)
+		await _loading_step("LOADING_PREPARING", 0.05)
 	if not _start_simulation():
 		push_error("SimHost failed to start")
 		get_tree().quit(1)
@@ -232,9 +232,9 @@ func _ready() -> void:
 	var map_size := sim_host.map_size()
 	camera_rig.bounds = Rect2(-map_size * 0.5, map_size)
 	camera_rig.snap_to(Vector3(0, 0, 40), 140.0)
-	await _loading_step("Building the terrain …", 0.35)
+	await _loading_step("LOADING_TERRAIN", 0.35)
 	terrain.build(sim_host)
-	await _loading_step("Setting the weather …", 0.6)
+	await _loading_step("LOADING_WEATHER", 0.6)
 	atmosphere = Atmosphere.new()
 	atmosphere.name = "Atmosphere"
 	add_child(atmosphere)
@@ -248,7 +248,7 @@ func _ready() -> void:
 	atmosphere.set_biome(biome if not biome.is_empty() else Atmosphere.biome_from(sim_host.map_biome()))
 	MatchSetup.pending = {}
 	print("Mud and Steel: biome '%s', graphics quality '%s'" % [atmosphere.preset.id, atmosphere.quality])
-	await _loading_step("Placing woods and villages …", 0.7)
+	await _loading_step("LOADING_OBJECTS", 0.7)
 	map_objects = MapObjects.new()
 	map_objects.name = "MapObjects"
 	add_child(map_objects)

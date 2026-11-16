@@ -1,0 +1,236 @@
+keys,en,de
+HUD_CMD_MOVE,Move,Bewegen
+HUD_CMD_ATTACK,Attack,Angreifen
+HUD_CMD_GROUND,Ground,Bodenziel
+HUD_CMD_PATROL,Patrol,Patrouille
+HUD_CMD_ADVANCE,Advance,Vorrücken
+HUD_CMD_SECURE,Secure,Sichern
+HUD_CMD_STOP,Stop,Halt
+HUD_CMD_HOLD_FIRE,Hold fire,Feuer halten
+HUD_CMD_FIRE_AT_WILL,Fire at will,Feuer frei
+HUD_CMD_OCCUPY,Occupy,Besetzen
+HUD_CMD_BARRAGE,Barrage,Sperrfeuer
+HUD_CMD_SMOKE,Smoke,Nebel
+HUD_CMD_DISMOUNT,Dismount,Absitzen
+HUD_CMD_UNLIMBER,Unlimber,Abprotzen
+HUD_CMD_STAND,Stand,Stehen
+HUD_CMD_KNEEL,Kneel,Knien
+HUD_CMD_PRONE,Prone,Liegen
+HUD_CMD_AUTO,Auto,Auto
+HUD_CMD_BUILD,Build,Bauen
+HUD_CMD_LAY_BRIDGE,Lay bridge,Brücke legen
+HUD_CMD_TAKE_UP,Take up,Aufnehmen
+HUD_CMD_CAMOUFLAGE,Camouflage,Tarnen
+HUD_CMD_UNCOVER,Uncover,Enttarnen
+HUD_WORK_MINES_AT,AT mines,Panzerminen
+HUD_WORK_MINES_AP,AP mines,S-Minen
+HUD_WORK_WIRE,Wire,Stacheldraht
+HUD_WORK_HEDGEHOGS,Obstacles,Hindernisse
+HUD_WORK_FOXHOLE,Foxhole,Schützenloch
+HUD_WORK_TRENCH,Trench,Graben
+HUD_WORK_CLEAR,Clear,Räumen
+HUD_WORK_BRIDGE,Bridge,Brücke
+HUD_WORK_COMM_TRENCH,Comm. trench,Verb.-Graben
+HUD_WORK_MG_NEST,MG nest,MG-Nest
+HUD_WORK_DUGOUT,Dugout,Unterstand
+HUD_WORK_VEHICLE_PIT,Vehicle pit,Fz.-Deckung
+HUD_WORK_CAMO_NET,Camo net,Tarnnetz
+HUD_WORK_BUNKER,Bunker,Bunker
+HUD_WORK_TEETH,Teeth,Höcker
+HUD_FORMATION,Formation,Formation
+HUD_TIP_FORMATION,"Formation of the next moves (key %s switches). Auto picks by the ground at the target: column on roads and in narrows, dispersed in woods, wedge (vehicles) or line (infantry) in the open. Control groups remember theirs.","Formation der nächsten Bewegungen (Taste %s wechselt). Auto wählt nach dem Gelände am Ziel: Kolonne auf Straßen und in Engstellen, aufgelockert im Wald, Keil (Fahrzeuge) oder Linie (Infanterie) im offenen Gelände. Gruppen merken sich ihre Formation."
+HUD_TIP_MOVE,Then left click the target. Right click moves at once; Shift + right click adds a waypoint.,Dann Linksklick auf das Ziel. Rechtsklick bewegt sofort; Umschalt + Rechtsklick fügt einen Wegpunkt an.
+HUD_TIP_ATTACK,Then left click an enemy. Right click on an enemy attacks at once.,Dann Linksklick auf einen Feind. Rechtsklick auf einen Feind greift sofort an.
+HUD_TIP_GROUND,Then left click a ground point. Ctrl + right click fires there at once.,Dann Linksklick auf einen Geländepunkt. Strg + Rechtsklick beschießt ihn sofort.
+HUD_TIP_ADVANCE,"Attack-move: then left click a point; every unit halts to fight enemies in range on the way, then drives on. Right click does this for infantry only; %s moves without halting.","Angriffsmarsch: dann Linksklick auf einen Punkt; jede Einheit hält unterwegs an, um Feinde in Reichweite zu bekämpfen, und fährt dann weiter. Rechtsklick tut das nur für Infanterie; %s bewegt ohne anzuhalten."
+HUD_TIP_SECURE,"Then left click the center: the units hold %d m around it, attack enemies inside and return to their places.","Dann Linksklick auf den Mittelpunkt: Die Einheiten halten %d m um ihn herum, greifen Feinde darin an und kehren auf ihre Plätze zurück."
+HUD_TIP_PATROL,Then left click a point: the units drive back and forth.,Dann Linksklick auf einen Punkt: Die Einheiten fahren hin und her.
+HUD_TIP_OCCUPY,Then left click a building: squads occupy it.,Dann Linksklick auf ein Gebäude: Trupps besetzen es.
+HUD_TIP_BARRAGE,Mortars and guns: then left click a point. The key fires at the cursor at once.,Mörser und Geschütze: dann Linksklick auf einen Punkt. Die Taste feuert sofort auf die Mausposition.
+HUD_TIP_SMOKE,Mortars and guns with smoke rounds: then left click a point. The key fires at the cursor at once.,Mörser und Geschütze mit Nebelgranaten: dann Linksklick auf einen Punkt. Die Taste feuert sofort auf die Mausposition.
+HUD_TIP_DISMOUNT,Passengers of the selected vehicles get off once they stand. Right click a vehicle with squads selected to mount.,"Die Insassen der gewählten Fahrzeuge sitzen ab, sobald diese stehen. Mit gewählten Trupps Rechtsklick auf ein Fahrzeug zum Aufsitzen."
+HUD_TIP_UNLIMBER,Selected vehicles drop their towed guns. Right click an own gun with vehicles selected to hitch it.,Die gewählten Fahrzeuge setzen ihre geschleppten Geschütze ab. Mit gewählten Fahrzeugen Rechtsklick auf ein eigenes Geschütz zum Aufprotzen.
+HUD_TIP_BUILD,Opens the build menu.,Öffnet das Baumenü.
+HUD_TIP_LAY_BRIDGE,Bridge-laying tanks: then left click a narrow river or ditch. The tank lays its bridge across the nearest gap its bridge spans.,"Brückenleger: dann Linksklick auf einen schmalen Fluss oder Graben. Der Panzer legt seine Brücke über die nächste Lücke, die sie überspannt."
+HUD_TIP_TAKE_UP,Bridge-laying tanks take their laid bridge up again once nobody is on it.,"Brückenleger nehmen ihre gelegte Brücke wieder auf, sobald niemand darauf ist."
+HUD_TIP_CAMOUFLAGE,"Vehicles and guns put up branches and nets (takes a while, standing). Standing still they are seen only from close by; driving or firing gives them away.","Fahrzeuge und Geschütze bringen Zweige und Netze an (dauert eine Weile, im Stand). Stehend sind sie nur aus der Nähe zu sehen; Fahren oder Feuern verrät sie."
+HUD_TIP_WORK_CLEAR,"Engineers: then left click an area. They clear known mines, wire and obstacles there.","Pioniere: dann Linksklick auf ein Gebiet. Sie räumen dort bekannte Minen, Stacheldraht und Hindernisse."
+HUD_TIP_WORK_BRIDGE,"Engineers: then left click a bridge. An intact one is blown up, a destroyed one repaired.","Pioniere: dann Linksklick auf eine Brücke. Eine intakte wird gesprengt, eine zerstörte repariert."
+HUD_TIP_WORK_LINE,Engineers: then two left clicks (start and end of the line).,Pioniere: dann zwei Linksklicks (Anfang und Ende der Linie).
+HUD_TIP_WORK_POINT,Engineers: then a left click.,Pioniere: dann ein Linksklick.
+HUD_TIP_WORK_PRICE,"Each piece: fuel %d, ammo %d, manpower %d, %d s.","Je Stück: Treibstoff %d, Munition %d, Personal %d, %d s."
+HUD_FORMATION_AUTO,Auto,Auto
+HUD_FORMATION_LINE,Line,Linie
+HUD_FORMATION_WEDGE,Wedge,Keil
+HUD_FORMATION_COLUMN,Column,Kolonne
+HUD_FORMATION_BROAD_WEDGE,Broad wedge,Breitkeil
+HUD_FORMATION_DISPERSED,Dispersed,Aufgelockert
+HUD_HINT_MOVE,Move: left click a point (Shift: waypoint),Bewegen: Linksklick auf einen Punkt (Umschalt: Wegpunkt)
+HUD_HINT_ATTACK,Attack: left click an enemy,Angreifen: Linksklick auf einen Feind
+HUD_HINT_GROUND,Fire at ground: left click a point,Bodenziel beschießen: Linksklick auf einen Punkt
+HUD_HINT_PATROL,Patrol: left click a point,Patrouille: Linksklick auf einen Punkt
+HUD_HINT_OCCUPY,Occupy: left click a building,Besetzen: Linksklick auf ein Gebäude
+HUD_HINT_BARRAGE,Barrage: left click a point,Sperrfeuer: Linksklick auf einen Punkt
+HUD_HINT_SMOKE,Smoke: left click a point,Nebel: Linksklick auf einen Punkt
+HUD_HINT_ADVANCE,Attack-move: left click a point (Shift: waypoint),Angriffsmarsch: Linksklick auf einen Punkt (Umschalt: Wegpunkt)
+HUD_HINT_SECURE,Secure: left click the center of the area,Gebiet sichern: Linksklick auf den Mittelpunkt
+HUD_HINT_LAY_BRIDGE,Lay bridge: left click a narrow river or ditch,Brücke legen: Linksklick auf einen schmalen Fluss oder Graben
+HUD_HINT_RIGHT_CANCELS,right click cancels,Rechtsklick bricht ab
+HUD_CAMERA_FOLLOWS,Camera follows the selection (%s),Kamera folgt der Auswahl (%s)
+HUD_HINT_WORK_CLEAR,Clear: left click the area,Räumen: Linksklick auf das Gebiet
+HUD_HINT_WORK_BRIDGE,Bridge: left click a bridge (demolish / repair),Brücke: Linksklick auf eine Brücke (sprengen / reparieren)
+HUD_HINT_WORK_POINT,%s: left click a point,%s: Linksklick auf einen Punkt
+HUD_HINT_BUNKER_FACING,Bunker: left click the direction it faces,Bunker: Linksklick in die Blickrichtung
+HUD_HINT_BUNKER_START,Bunker: left click a point at a trench edge,Bunker: Linksklick auf einen Punkt am Grabenrand
+HUD_HINT_LINE_END,%s: left click the end of the line,%s: Linksklick auf das Ende der Linie
+HUD_HINT_LINE_START,%s: left click the start of the line,%s: Linksklick auf den Anfang der Linie
+HUD_LINE_COST,%d pieces  ·  fuel %d ammo %d manpower %d,%d Stück  ·  Treibstoff %d Munition %d Personal %d
+HUD_LINE_PER_M,(%.1f per m),(%.1f je m)
+HUD_EXPERIENCE,Experience,Erfahrung
+HUD_HIT_POINTS,Hit points %d / %d,Trefferpunkte %d / %d
+HUD_SOLDIERS,soldiers %d / %d,Soldaten %d / %d
+HUD_ARMOR_HULL,Armor hull %d / %d / %d mm,Panzerung Wanne %d / %d / %d mm
+HUD_ARMOR_TURRET,turret %d / %d / %d mm,Turm %d / %d / %d mm
+HUD_ARMOR_SIDES,(front / side / rear),(vorn / Seite / hinten)
+HUD_WEAPONS,Weapons: %s,Waffen: %s
+HUD_WEAPONS_NONE,none,keine
+HUD_STANCE,Stance %s,Haltung: %s
+HUD_STANCE_STANDING,standing,stehend
+HUD_STANCE_KNEELING,kneeling,kniend
+HUD_STANCE_PRONE,prone,liegend
+HUD_STATE_PINNED,pinned down,festgenagelt
+HUD_STATE_SUPPRESSED,suppressed %d %%,niedergehalten %d %%
+HUD_STATE_BOUNDING,bounding,geht sprungweise vor
+HUD_STATE_HOLDING_FIRE,holding fire,hält das Feuer
+HUD_STATE_FIRE_AT_WILL,fire at will,Feuer frei
+HUD_STATE_PATROLLING,patrolling,auf Patrouille
+HUD_STATE_LOADING,loading,lädt
+HUD_WAYPOINTS_ONE,%d waypoint queued,%d Wegpunkt geplant
+HUD_WAYPOINTS_N,%d waypoints queued,%d Wegpunkte geplant
+HUD_KILLS_ONE,%d kill,%d Abschuss
+HUD_KILLS_N,%d kills,%d Abschüsse
+HUD_XP_MAX,"{rank}: {xp} experience, highest rank","{rank}: {xp} Erfahrung, höchster Rang"
+HUD_XP_NEXT,{rank}: {xp} / {next} experience to the next rank,{rank}: {xp} / {next} Erfahrung bis zum nächsten Rang
+HUD_XP_BONUS,"{rank}: dispersion {dispersion} %, reload {reload} %, pinned down {pinned} % of a recruit's","{rank}: Streuung {dispersion} %, Nachladezeit {reload} %, Niederhalten {pinned} % eines Rekruten"
+HUD_XP_NO_BONUS,%s: no bonus yet,%s: noch kein Bonus
+HUD_PASSENGERS,Passengers %d / %d,Insassen %d / %d
+HUD_TOWING,towing %s,schleppt %s
+HUD_TOWED_BY,towed by %s,geschleppt von %s
+HUD_A_GUN,a gun,ein Geschütz
+HUD_A_VEHICLE,a vehicle,einem Fahrzeug
+HUD_AMMO_PCT,Ammunition %d %%,Munition %d %%
+HUD_FUEL_PCT,Fuel %d %%,Treibstoff %d %%
+HUD_WARN_NO_AMMO,OUT OF AMMUNITION,KEINE MUNITION
+HUD_WARN_LOW_AMMO,low ammunition,wenig Munition
+HUD_WARN_NO_FUEL,OUT OF FUEL,KEIN TREIBSTOFF
+HUD_WARN_LOW_FUEL,low fuel,wenig Treibstoff
+HUD_WARN_IMMOBILIZED,IMMOBILIZED,BEWEGUNGSUNFÄHIG
+HUD_MORE,+%d more,+%d weitere
+HUD_TIP_TILE,Click: select only this unit. Shift + click: remove it.,Klick: nur diese Einheit wählen. Umschalt + Klick: sie abwählen.
+HUD_TAB_BASE,Base,Basis
+HUD_TAB_DEFENSE,Defense,Verteidigung
+HUD_TAB_INFANTRY,Infantry,Infanterie
+HUD_TAB_VEHICLES,Vehicles,Fahrzeuge
+HUD_TAB_GUNS,Guns,Geschütze
+HUD_TAB_AIR,Air,Luft
+HUD_TAB_OTHER,Other,Sonstiges
+HUD_COST_SHORT,F %d · A %d · M %d,T %d · M %d · P %d
+HUD_COST_LINE,Fuel %d · Ammunition %d · Manpower %d · %d s,Treibstoff %d · Munition %d · Personal %d · %d s
+HUD_BUILDING_STATS,Hit points %d · armor %d mm,Trefferpunkte %d · Panzerung %d mm
+HUD_INCOME,Income per minute: fuel %d · ammunition %d · manpower %d,Einkommen pro Minute: Treibstoff %d · Munition %d · Personal %d
+HUD_PRODUCES,Produces %s,Produziert %s
+HUD_PRODUCES_INFANTRY,infantry,Infanterie
+HUD_PRODUCES_VEHICLES,vehicles,Fahrzeuge
+HUD_REQUIRES,Requires %s,Benötigt %s
+HUD_SQUAD_OF,Squad of %d,Trupp mit %d Mann
+HUD_CREW,Crew %d,Besatzung %d
+HUD_ROAD_SPEED,road %d km/h,Straße %d km/h
+HUD_SEATS,%d seats,%d Sitzplätze
+HUD_FROM_YEAR,from %d,ab %d
+HUD_EFFECTIVE_RANGE,effective range %d m,wirksame Reichweite %d m
+HUD_KEY_ALT,Key: Alt + %s,Taste: Alt + %s
+HUD_NOT_AVAILABLE,Not available: %s,Nicht verfügbar: %s
+HUD_BLOCKED_INVALID,invalid,ungültig
+HUD_BLOCKED_NOT_BUILDABLE,not buildable,nicht baubar
+HUD_BLOCKED_REQUIRES_ANOTHER_BUILDING,requires another building,benötigt ein anderes Gebäude
+HUD_BLOCKED_LIMIT_REACHED,limit reached,Limit erreicht
+HUD_BLOCKED_TOO_MANY_CONSTRUCTION_SITES,too many construction sites,zu viele Baustellen
+HUD_BLOCKED_NOT_ENOUGH_RESOURCES,not enough resources,nicht genug Ressourcen
+HUD_BLOCKED_OUTSIDE_THE_BUILD_RADIUS,outside the build radius,außerhalb des Bauradius
+HUD_BLOCKED_OUTSIDE_THE_MAP,outside the map,außerhalb der Karte
+HUD_BLOCKED_BLOCKED,blocked,blockiert
+HUD_BLOCKED_TOO_STEEP,too steep,zu steil
+HUD_BLOCKED_UNITS_IN_THE_WAY,units in the way,Einheiten im Weg
+HUD_BLOCKED_DEFEATED,defeated,besiegt
+HUD_BLOCKED_NO_ROCKETS,no rockets,keine Raketen
+HUD_BLOCKED_NO_ROCKET_BATTERY,no rocket battery,keine Raketenstellung
+HUD_BLOCKED_NOT_YET_AVAILABLE,not yet available,noch nicht verfügbar
+HUD_BLOCKED_NOT_READY,not ready,nicht bereit
+HUD_BLOCKED_STRIKE_UNDER_WAY,strike under way,Schlag läuft
+HUD_BLOCKED_NO_AIRCRAFT,no aircraft,keine Flugzeuge
+HUD_RESOURCE_AMOUNT,%s %d (+%d/min),%s %d (+%d/min)
+HUD_CANCEL_LAST,Cancel last,Letzten abbrechen
+HUD_REPAIR,Repair,Reparieren
+HUD_STOP_REPAIR,Stop repair,Reparatur beenden
+HUD_TIP_REPAIR,Repair the building over time (half its price for a full repair); again to stop,Repariert das Gebäude nach und nach (halber Preis für eine volle Reparatur); erneut drücken zum Beenden
+HUD_SELL,Sell,Verkaufen
+HUD_CANCEL_SITE,Cancel site,Baustelle abbrechen
+HUD_TIP_SELL,Sell the building (half its price back),Verkauft das Gebäude (halber Preis zurück)
+HUD_TIP_CANCEL_SITE,Cancel the construction site (75 % back),Bricht die Baustelle ab (75 % zurück)
+HUD_CANNOT_BUILD,Cannot build here: %s,Hier nicht baubar: %s
+HUD_PLACE_HINT,Place: left click · cancel: right click,Platzieren: Linksklick · Abbrechen: Rechtsklick
+HUD_UNDER_CONSTRUCTION,under construction %d %%,im Bau %d %%
+HUD_QUEUE,Queue: %s,Warteschlange: %s
+HUD_QUEUE_EMPTY,empty,leer
+HUD_MISSION_STEP,Training – step %d of %d,Training – Schritt %d von %d
+HUD_MISSION_DONE,Done: %s,Erledigt: %s
+HUD_MISSION_FAILED,Failed: %s,Gescheitert: %s
+HUD_MISSION_ALL_DONE,All objectives complete.,Alle Ziele erfüllt.
+HUD_TIP_FEED,Click: camera there. %s: the newest message.,Klick: Kamera dorthin. %s: neueste Meldung.
+HUD_FEED_LOST,Lost: %s,Verloren: %s
+HUD_FEED_UNDER_FIRE,Under fire: %s,Unter Beschuss: %s
+HUD_FEED_READY,Ready: %s,Bereit: %s
+HUD_FEED_SIGHTED,Enemy sighted: %s,Feind gesichtet: %s
+HUD_FEED_COMPLETED,Completed: %s,Fertiggestellt: %s
+HUD_FEED_BUILDING,building,Gebäude
+HUD_FEED_UNIT,unit,Einheit
+HUD_FEED_PING,Ally (player %d) marks a spot,Verbündeter (Spieler %d) markiert eine Stelle
+HUD_FEED_PROMOTED,Promoted: {unit} is {rank} now,Befördert: {unit} ist jetzt {rank}
+HUD_RANK_N,rank %d,Rang %d
+HUD_AIR_RECON,Recon,Aufklärung
+HUD_AIR_STRAFE,Fighters,Jäger
+HUD_AIR_ATTACK,Attack,Schlachtflug
+HUD_AIR_BOMB,Bombers,Bomber
+HUD_AIR_AIRBORNE,Paratroopers,Fallschirmjäger
+HUD_AIR_MISSION_RECON,Recon,Aufklärungsflug
+HUD_AIR_MISSION_STRAFE,Fighters,Jäger
+HUD_AIR_MISSION_ATTACK,Ground attack,Schlachtflug
+HUD_AIR_MISSION_BOMB,Bombers,Bomber
+HUD_AIR_MISSION_AIRBORNE,Paratroopers,Fallschirmjäger
+HUD_HINT_AIR,Air support: left click the target or drag the run  ·  right click cancels,Luftunterstützung: Linksklick auf das Ziel oder Anflug ziehen  ·  Rechtsklick bricht ab
+HUD_HINT_AIR_DRAG,Air support: release to fly the run (%d m)  ·  right click cancels,Luftunterstützung: loslassen für den Anflug (%d m)  ·  Rechtsklick bricht ab
+HUD_TIP_AIR,"{mission} (Shift+{key}): {aircraft}
+Fuel {fuel}, ammo {ammo}, manpower {manpower}","{mission} (Umschalt+{key}): {aircraft}
+Treibstoff {fuel}, Munition {ammo}, Personal {manpower}"
+HUD_FEED_ENEMY_AIRCRAFT,Enemy aircraft!,Feindliche Flugzeuge!
+HUD_FEED_AIRCRAFT_DOWN,Aircraft shot down,Flugzeug abgeschossen
+HUD_FEED_ENEMY_AIRCRAFT_DOWN,Enemy aircraft shot down,Feindflugzeug abgeschossen
+HUD_FEED_STRIKE_CALLED,Rocket strike called: %d s,Raketenschlag angefordert: %d s
+HUD_FEED_ENEMY_STRIKE,Enemy rocket strike! Destroy the battery position,Feindlicher Raketenschlag! Zerstöre die Raketenstellung
+HUD_FEED_STRIKE_OFF,Rocket strike called off,Raketenschlag abgebrochen
+HUD_FEED_ENEMY_STRIKE_OFF,Enemy rocket strike called off,Feindlicher Raketenschlag abgebrochen
+HUD_FEED_ROCKETS_AWAY,Rockets away!,Raketen abgefeuert!
+HUD_FEED_ROCKETS_INCOMING,Rockets incoming!,Raketen im Anflug!
+HUD_STRIKE_ENEMY_COUNTDOWN,ENEMY ROCKET STRIKE in %d s - destroy the marked battery position,FEINDLICHER RAKETENSCHLAG in %d s - zerstöre die markierte Raketenstellung
+HUD_STRIKE_COUNTDOWN,Rocket strike in %d s,Raketenschlag in %d s
+HUD_HINT_STRIKE,Rocket strike: left click the target  ·  right click cancels,Raketenschlag: Linksklick auf das Ziel  ·  Rechtsklick bricht ab
+HUD_STRIKE_UNLOCK,in %d:%02d,in %d:%02d
+HUD_STRIKE_NO_BATTERY,no battery,keine Stellung
+HUD_STRIKE_BUTTON,"Rockets
+%s","Raketen
+%s"
+HUD_TIP_STRIKE,"Heavy rocket strike (Shift+6): {rockets} rockets within {radius} m, {warning} s warning.
+Needs a rocket battery position; the enemy can destroy it before the salvo.
+Fuel {fuel}, ammo {ammo}, manpower {manpower}","Schwerer Raketenschlag (Umschalt+6): {rockets} Raketen im Umkreis von {radius} m, {warning} s Vorwarnung.
+Braucht eine Raketenstellung; der Feind kann sie vor der Salve zerstören.
+Treibstoff {fuel}, Munition {ammo}, Personal {manpower}"

@@ -53,6 +53,7 @@ const TransportOrders := preload("res://scenes/selection/transport_orders.gd")
 const EngineerOrders := preload("res://scenes/selection/engineer_orders.gd")
 const FormationOrders := preload("res://scenes/selection/formation_orders.gd")
 const CrossingOrders := preload("res://scenes/selection/crossing_orders.gd")
+const Settings := preload("res://scenes/menu/settings.gd")
 ## Pointer travel in pixels before a left press becomes a box drag.
 const DRAG_THRESHOLD := 6.0
 ## Minimum click radius around a unit in pixels (for far zoom levels).
@@ -70,18 +71,18 @@ const MODE_ACTIONS := {
 	"order_patrol": "patrol", "order_garrison": "garrison",
 	"order_attack_move": "attack_move", "order_secure": "secure",
 }
-## Hint shown while a targeted order waits for its click.
+## Hint (translation key) shown while a targeted order waits for its click.
 const MODE_HINTS := {
-	"move": "Move: left click a point (Shift: waypoint)",
-	"attack": "Attack: left click an enemy",
-	"attack_ground": "Fire at ground: left click a point",
-	"patrol": "Patrol: left click a point",
-	"garrison": "Occupy: left click a building",
-	"barrage": "Barrage: left click a point",
-	"smoke": "Smoke: left click a point",
-	"attack_move": "Attack-move: left click a point (Shift: waypoint)",
-	"secure": "Secure: left click the center of the area",
-	"bridge_lay": "Lay bridge: left click a narrow river or ditch",
+	"move": "HUD_HINT_MOVE",
+	"attack": "HUD_HINT_ATTACK",
+	"attack_ground": "HUD_HINT_GROUND",
+	"patrol": "HUD_HINT_PATROL",
+	"garrison": "HUD_HINT_OCCUPY",
+	"barrage": "HUD_HINT_BARRAGE",
+	"smoke": "HUD_HINT_SMOKE",
+	"attack_move": "HUD_HINT_ADVANCE",
+	"secure": "HUD_HINT_SECURE",
+	"bridge_lay": "HUD_HINT_LAY_BRIDGE",
 }
 ## Barrage actions (prompt 032, actions since 031): smoke?, salvos, radius
 ## in meters. They fire at the ground point under the cursor at once.
@@ -671,7 +672,7 @@ func _draw() -> void:
 	if not command_mode.is_empty():
 		var size := get_viewport_rect().size
 		draw_string(ThemeDB.fallback_font, Vector2(size.x * 0.5 - 180, 70),
-			MODE_HINTS.get(command_mode, EngineerOrders.hint(self)) + "  ·  right click cancels",
+			(tr(MODE_HINTS[command_mode]) if MODE_HINTS.has(command_mode) else EngineerOrders.hint(self)) + "  ·  " + tr("HUD_HINT_RIGHT_CANCELS"),
 			HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color(1, 0.95, 0.6, 0.95))
 	if _right_pressing and _right_drag.distance_to(_right_press) > DRAG_THRESHOLD:
 		# Facing arrow of a right-drag (prompt 046).
@@ -681,7 +682,7 @@ func _draw() -> void:
 		draw_line(_right_drag, _right_drag + back.rotated(-0.5), FACING_LINE, 2.0, true)
 	if follow:
 		var font := ThemeDB.fallback_font
-		draw_string(font, Vector2(16, 28), "Kamera folgt der Auswahl (C)",
+		draw_string(font, Vector2(16, 28), tr("HUD_CAMERA_FOLLOWS") % Settings.action_key_name("camera_follow"),
 			HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color(1, 1, 1, 0.85))
 	if not _dragging:
 		return

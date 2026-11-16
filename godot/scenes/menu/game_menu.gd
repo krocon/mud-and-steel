@@ -19,6 +19,7 @@ const MatchSetup := preload("res://scenes/menu/match_setup.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
 const SettingsPanel := preload("res://scenes/menu/settings_panel.gd")
 const GameFiles := preload("res://scenes/menu/game_files.gd")
+const Language := preload("res://scenes/menu/language.gd")
 
 var main: Node3D
 
@@ -104,9 +105,9 @@ func save_game() -> void:
 	last_saved_path = GameFiles.save_game(main.sim_host, settings)
 	save_label.visible = true
 	if last_saved_path.is_empty():
-		save_label.text = "This match cannot be saved."
+		save_label.text = "MENU_SAVE_FAILED"
 	else:
-		save_label.text = "Saved at %s." % GameFiles.now_text()
+		save_label.text = tr("MENU_SAVED_AT") % GameFiles.now_text()
 
 
 func surrender() -> void:
@@ -143,27 +144,27 @@ func _process(_delta: float) -> void:
 func _build_pause() -> void:
 	pause_panel = _panel(360)
 	var box: VBoxContainer = pause_panel.get_child(0)
-	box.add_child(MenuTheme.title("Multiplayer menu" if is_networked() else "Paused", MenuTheme.HEADING_SIZE))
+	box.add_child(MenuTheme.title("MENU_MULTIPLAYER_MENU" if is_networked() else "MENU_PAUSED", MenuTheme.HEADING_SIZE))
 	if is_networked():
-		box.add_child(MenuTheme.hint("The match keeps running: a multiplayer game cannot be paused."))
-	resume_button = _button(box, "Resume", close_pause)
-	_button(box, "Settings", func() -> void:
+		box.add_child(MenuTheme.hint("MENU_NO_PAUSE_HINT"))
+	resume_button = _button(box, "MENU_RESUME", close_pause)
+	_button(box, "COMMON_SETTINGS", func() -> void:
 		pause_panel.visible = false
 		settings_panel.visible = true)
-	save_button = _button(box, "Save game", save_game)
+	save_button = _button(box, "MENU_SAVE_GAME", save_game)
 	save_button.visible = main.sim_host.can_save()
 	save_label = MenuTheme.hint("")
 	save_label.visible = false
 	box.add_child(save_label)
-	surrender_button = _button(box, "Surrender", func() -> void:
+	surrender_button = _button(box, "MENU_SURRENDER", func() -> void:
 		confirm_box.visible = not confirm_box.visible)
 	surrender_button.visible = not main.sim_host.is_replay()
 	confirm_box = VBoxContainer.new()
 	confirm_box.visible = false
-	confirm_box.add_child(MenuTheme.hint("Give up this match? It counts as a defeat."))
-	confirm_surrender_button = _button(confirm_box, "Yes, surrender", surrender)
+	confirm_box.add_child(MenuTheme.hint("MENU_SURRENDER_CONFIRM"))
+	confirm_surrender_button = _button(confirm_box, "MENU_SURRENDER_YES", surrender)
 	box.add_child(confirm_box)
-	leave_button = _button(box, "Leave match" if is_networked() else "Quit to main menu", back_to_menu)
+	leave_button = _button(box, "MENU_LEAVE_MATCH" if is_networked() else "MENU_QUIT_TO_MENU", back_to_menu)
 
 
 func _build_result() -> void:
@@ -180,10 +181,10 @@ func _build_result() -> void:
 	var buttons := HBoxContainer.new()
 	buttons.alignment = BoxContainer.ALIGNMENT_CENTER
 	box.add_child(buttons)
-	watch_button = _button(buttons, "Keep watching", func() -> void:
+	watch_button = _button(buttons, "RESULT_KEEP_WATCHING", func() -> void:
 		result_panel.visible = false
 		_shade.visible = false)
-	menu_button = _button(buttons, "Back to main menu", back_to_menu)
+	menu_button = _button(buttons, "RESULT_BACK_TO_MENU", back_to_menu)
 
 
 func _build_settings() -> void:
@@ -219,25 +220,28 @@ func _show_result(result: Dictionary) -> void:
 	# Teams (prompt 037): the whole team of the winner wins.
 	var won: bool = winner == me or (winner >= 0 and main.sim_host.local_team_won())
 	if won:
-		result_title.text = "VICTORY"
+		result_title.text = tr("COMMON_VICTORY")
 		result_title.add_theme_color_override("font_color", MenuTheme.VICTORY)
 	elif winner < 0:
-		result_title.text = "DRAW"
+		result_title.text = tr("RESULT_DRAW")
 	else:
-		result_title.text = "DEFEAT"
+		result_title.text = tr("COMMON_DEFEAT")
 		result_title.add_theme_color_override("font_color", MenuTheme.DEFEAT)
 	result_reason.text = _reason(winner, me, own, players, won)
 	var seconds: int = result["tick"] / maxi(main.sim_host.tick_rate(), 1)
-	var lines: PackedStringArray = ["Match time: %d:%02d" % [seconds / 60, seconds % 60]]
+	var lines: PackedStringArray = [tr("RESULT_MATCH_TIME") % [seconds / 60, seconds % 60]]
 	for player: Dictionary in players:
 		var id: int = player["id"]
 		var relation: int = main.sim_host.relation(id)
-		lines.append("%s%s: %d units left%s" % [
-			MatchSetup.FACTIONS.get(_factions.get(id, ""), "Player %d" % id),
-			" (you)" if id == me else (" (ally)" if relation == 1 else ""),
-			player["units"],
-			" – %s" % player["reason"] if player["defeated"] else "",
-		])
+		var faction: String = _factions.get(id, "")
+		var line := tr("RESULT_PLAYER_UNITS").format({
+			"player": tr(MatchSetup.FACTIONS[faction]) if MatchSetup.FACTIONS.has(faction) else tr("COMMON_PLAYER_N") % id,
+			"relation": (" " + tr("MATCH_SUFFIX_YOU")) if id == me else ((" " + tr("RESULT_SUFFIX_ALLY")) if relation == 1 else ""),
+			"units": player["units"],
+		})
+		if player["defeated"]:
+			line += " – " + Language.code_text("RESULT_DEFEAT_", player["reason"])
+		lines.append(line)
 	result_details.text = "\n".join(lines)
 	result_panel.visible = true
 	_shade.visible = true
@@ -247,18 +251,18 @@ func _show_result(result: Dictionary) -> void:
 
 func _reason(winner: int, me: int, own: Dictionary, players: Array, won: bool) -> String:
 	if winner < 0:
-		return "Every side lost in the same moment."
+		return tr("RESULT_REASON_DRAW")
 	# Prompt 039: the mission script decided.
 	if own.get("reason", "") == "mission" or (won and players.any(func(p: Dictionary) -> bool: return p["reason"] == "mission")):
-		return "Mission accomplished." if won else "Mission failed."
+		return tr("RESULT_REASON_MISSION_WON") if won else tr("RESULT_REASON_MISSION_LOST")
 	if not won:
 		if own.get("defeated", false):
-			return "You surrendered." if own.get("reason", "") == "surrendered" else "All your units were lost."
-		return "Your team was defeated."
+			return tr("RESULT_REASON_YOU_SURRENDERED") if own.get("reason", "") == "surrendered" else tr("RESULT_REASON_YOU_ELIMINATED")
+		return tr("RESULT_REASON_TEAM_DEFEATED")
 	for player: Dictionary in players:
 		if main.sim_host.relation(player["id"]) == 2 and player["reason"] == "surrendered":
-			return "The enemy surrendered."
-	return "All enemy units were destroyed."
+			return tr("RESULT_REASON_ENEMY_SURRENDERED")
+	return tr("RESULT_REASON_ENEMY_ELIMINATED")
 
 
 func _panel(width: float) -> PanelContainer:

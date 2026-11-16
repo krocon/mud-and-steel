@@ -10,6 +10,7 @@ extends RefCounted
 ## Static, so the open replay survives the scene rebuilds of a jump.
 
 const MatchSetup := preload("res://scenes/menu/match_setup.gd")
+const Language := preload("res://scenes/menu/language.gd")
 const SAVE_DIR := "user://saves"
 const REPLAY_DIR := "user://replays"
 const SAVE_EXTENSION := "mssave"
@@ -56,7 +57,7 @@ static func list(dir: String, extension: String) -> Array[Dictionary]:
 static func describe(entry: Dictionary, saved_game := false) -> String:
 	var info: Dictionary = entry["info"]
 	if not info.get("ok", false):
-		return "%s – unreadable: %s" % [entry["name"], info.get("error", "")]
+		return Language.t("FILES_UNREADABLE").format({"file": entry["name"], "error": info.get("error", "")})
 	var created: String = info["created"] if not String(info["created"]).is_empty() else String(entry["name"]).get_basename()
 	var seconds: int = info["seconds"]
 	var parts: PackedStringArray = [
@@ -69,7 +70,7 @@ static func describe(entry: Dictionary, saved_game := false) -> String:
 		parts.append(result_text(info))
 	var line := " · ".join(parts)
 	if not info["playable"]:
-		line += "  [incompatible]"
+		line += "  [%s]" % Language.t("FILES_INCOMPATIBLE_TAG")
 	return line
 
 
@@ -77,27 +78,35 @@ static func describe(entry: Dictionary, saved_game := false) -> String:
 static func players_text(info: Dictionary) -> String:
 	var names: PackedStringArray = []
 	for player: Dictionary in info["players"]:
-		var faction: String = MatchSetup.FACTIONS.get(player["faction"], "Player %d" % player["id"])
+		var faction := faction_name(player["faction"], player["id"])
 		var kind: String = player["kind"]
 		if kind == "human":
-			faction += " (player)" if info["multiplayer"] else " (you)"
+			faction += " " + (Language.t("FILES_SUFFIX_PLAYER") if info["multiplayer"] else Language.t("MATCH_SUFFIX_YOU"))
 		elif kind.begins_with("ai:"):
-			faction += " (computer, %s)" % kind.trim_prefix("ai:")
+			var level := kind.trim_prefix("ai:")
+			faction += " " + Language.t("FILES_SUFFIX_COMPUTER") % Language.t(MatchSetup.LEVEL_NAMES.get(level, level))
 		names.append(faction)
-	return " vs ".join(names)
+	return (" %s " % Language.t("FILES_VERSUS")).join(names)
+
+
+## Display name of `faction` (an id), or "Player <id>" for an unknown one.
+static func faction_name(faction: String, id: int) -> String:
+	if MatchSetup.FACTIONS.has(faction):
+		return Language.t(MatchSetup.FACTIONS[faction])
+	return Language.t("COMMON_PLAYER_N") % id
 
 
 ## Who won, from the replay info.
 static func result_text(info: Dictionary) -> String:
 	if not info["decided"]:
-		return "not decided"
+		return Language.t("FILES_NOT_DECIDED")
 	var winner: int = info["winner"]
 	if winner < 0:
-		return "draw"
+		return Language.t("FILES_DRAW")
 	for player: Dictionary in info["players"]:
 		if player["id"] == winner:
-			return "%s won" % MatchSetup.FACTIONS.get(player["faction"], "Player %d" % winner)
-	return "player %d won" % winner
+			return Language.t("FILES_WON") % faction_name(player["faction"], winner)
+	return Language.t("FILES_WON") % (Language.t("COMMON_PLAYER_N") % winner)
 
 
 ## Writes the running match as a saved game; returns the absolute path or
