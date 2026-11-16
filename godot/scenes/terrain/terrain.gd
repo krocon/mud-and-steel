@@ -352,6 +352,8 @@ func apply_biome(preset: Resource) -> void:
 	_material.set_shader_parameter("use_biome", true)
 	_material.set_shader_parameter("snow_cover", preset.snow_cover)
 	_material.set_shader_parameter("grass_variation", preset.grass_variation)
+	_material.set_shader_parameter("meadow_strength", preset.meadow_strength)
+	_material.set_shader_parameter("flower_density", preset.flower_density)
 	_edge_material.set_shader_parameter("top_color", preset.edge_top)
 	_edge_material.set_shader_parameter("soil_tint", preset.edge_tint)
 

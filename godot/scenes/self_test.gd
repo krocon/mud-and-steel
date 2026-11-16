@@ -484,6 +484,10 @@ func _biome_test() -> void:
 			"terrain layer sources do not follow the '%s' preset" % id)
 		_check(is_equal_approx(main.terrain.shader_parameter(&"snow_cover"), preset.snow_cover),
 			"terrain snow cover does not follow the '%s' preset" % id)
+		# Prompt 057: meadow and flowers only where grass is drawn as grass.
+		_check(is_equal_approx(main.terrain.shader_parameter(&"meadow_strength"), preset.meadow_strength)
+			and is_equal_approx(main.terrain.shader_parameter(&"flower_density"), preset.flower_density),
+			"terrain meadow look does not follow the '%s' preset" % id)
 		var env: Environment = main.get_node("WorldEnvironment").environment
 		_check(env.fog_enabled and env.fog_depth_end > env.fog_depth_begin, "no haze in '%s'" % id)
 		_check(main.sun.shadow_enabled, "sun casts no shadows in '%s'" % id)
