@@ -22,10 +22,11 @@ use crate::indirect::{
     INDIRECT_WEAPON, IndirectRules, IndirectWeapon, ShellSnapshot, SmokeSnapshot, flight,
 };
 use crate::math::{Fixed, Vec2};
+use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
 /// An indirect-fire order.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub(super) enum Order {
     /// Fire at a unit the player sees, until it is destroyed or lost.
     Unit(UnitId),
@@ -41,7 +42,7 @@ pub(super) enum Order {
 }
 
 /// Indirect-fire state of one unit.
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 struct Gun {
     order: Option<Order>,
     /// Ticks until the next round.
@@ -53,7 +54,7 @@ struct Gun {
 }
 
 /// The indirect weapon of a unit type with the rules applied.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 struct GunType {
     weapon: IndirectWeapon,
     range: Fixed,
@@ -64,7 +65,7 @@ struct GunType {
 }
 
 /// What every unit type looks like to a shell.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 struct Body {
     infantry: bool,
     half_length: Fixed,
@@ -74,7 +75,7 @@ struct Body {
 
 /// A shell in flight: a parabola from `origin` to `target` over `total`
 /// ticks with its apex `apex` above the straight line.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 struct Shell {
     id: u32,
     shooter: UnitId,
@@ -124,7 +125,7 @@ impl Shell {
 }
 
 /// A smoke cloud.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 struct Cloud {
     id: u32,
     center: Vec2,
@@ -134,7 +135,7 @@ struct Cloud {
 }
 
 /// Indirect fire and smoke of a match.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub(super) struct Artillery {
     rules: IndirectRules,
     /// Per unit type.

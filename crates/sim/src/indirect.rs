@@ -44,7 +44,7 @@ impl fmt::Display for IndirectError {
 impl std::error::Error for IndirectError {}
 
 /// Rules of one indirect-fire category.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct CategoryRules {
     pub category: Category,
@@ -53,13 +53,13 @@ pub struct CategoryRules {
     pub elevation_deg: u32,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct IndirectBallistics {
     pub gravity_mm_per_s2: u32,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct IndirectDispersion {
     pub mrad_x10: u32,
@@ -67,7 +67,7 @@ pub struct IndirectDispersion {
     pub blind_pct: u32,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct BlastRules {
     pub radius_mm_per_mm: u32,
@@ -80,7 +80,7 @@ pub struct BlastRules {
     pub roof_pct: u32,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct SmokeRules {
     pub radius_mm_per_mm: u32,
@@ -91,7 +91,7 @@ pub struct SmokeRules {
     pub max_clouds: u32,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct BarrageRules {
     pub max_salvos: u32,
@@ -99,7 +99,7 @@ pub struct BarrageRules {
 }
 
 /// Rules of `data/indirect.toml`.
-#[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct IndirectRules {
     #[serde(rename = "category")]

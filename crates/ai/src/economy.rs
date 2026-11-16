@@ -3,6 +3,7 @@
 //! its [`PlayerView`] and answers with ordinary commands.
 
 use crate::{Ai, Difficulty, PlayerView, centroid, dist, toward};
+use serde::{Deserialize, Serialize};
 use sim::{Command, Fixed, Vec2};
 
 /// What the AI builds, in this order (base building ids, or a fortification
@@ -51,7 +52,7 @@ pub(crate) const fn wave_size(difficulty: Difficulty) -> usize {
 }
 
 /// Economy state of a computer player.
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub(crate) struct EcoState {
     /// Next entry of the mix per producing building kind (infantry,
     /// vehicles).

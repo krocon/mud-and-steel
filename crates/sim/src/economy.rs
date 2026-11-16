@@ -10,7 +10,7 @@ use crate::combat::CombatType;
 use crate::data::{DataError, UnitType, unit_types_from_catalog};
 use crate::hash::StableHasher;
 use crate::scale::Scale;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fmt;
 use std::sync::OnceLock;
@@ -35,13 +35,13 @@ impl fmt::Display for EconomyError {
 
 impl std::error::Error for EconomyError {}
 
-#[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct AccountRules {
     pub start: Resources,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ConstructionRules {
     pub max_sites: u32,
@@ -50,7 +50,7 @@ pub struct ConstructionRules {
     pub clearance_m: u32,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ProductionRules {
     pub max_queue: u32,
@@ -58,7 +58,7 @@ pub struct ProductionRules {
     pub rally_m: u32,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct SupplyRules {
     pub marker_prefix: String,
@@ -67,7 +67,7 @@ pub struct SupplyRules {
     pub income_per_min: Resources,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct UnitCostRules {
     pub manpower_per_soldier: u32,
@@ -79,7 +79,7 @@ pub struct UnitCostRules {
 }
 
 /// A base building (not in the catalog).
-#[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct BuildingRule {
     pub id: String,
@@ -99,7 +99,7 @@ pub struct BuildingRule {
 }
 
 /// Catalog entries that can be placed like buildings.
-#[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct FortificationRule {
     pub ids: Vec<String>,
@@ -129,7 +129,7 @@ struct EconomyFile {
 }
 
 /// Price and production time of something a player can buy.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Cost {
     pub resources: Resources,
     /// Game milliseconds to build or produce it.
@@ -144,7 +144,7 @@ pub enum StructureRule<'a> {
 }
 
 /// The validated economy rules.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct EconomyRules {
     pub account: AccountRules,
     pub construction: ConstructionRules,

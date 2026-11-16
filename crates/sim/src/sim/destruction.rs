@@ -24,6 +24,7 @@ use crate::map::Map;
 use crate::math::{Fixed, Vec2};
 use crate::objects::{Blocks, MapObject, Shape, sin_cos_deg};
 use crate::vision::{Sight, VisionRules};
+use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
@@ -40,7 +41,7 @@ pub(super) struct Effective {
 }
 
 /// Destruction state of a match.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub(super) struct Destruction {
     rules: DestructionRules,
     /// Per map object kind: index into `rules.classes`.

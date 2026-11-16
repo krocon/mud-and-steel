@@ -15,13 +15,18 @@ use crate::economy::{Cost, EconomyRules, Resources, StructureRule, faction_of};
 use crate::hash::StableHasher;
 use crate::math::{Fixed, Vec2};
 use crate::path::SizeClass;
+use serde::{Deserialize, Serialize};
 
 /// Account values are kept in this many parts of a resource unit, so an
 /// income per minute pays exactly every second.
 const PARTS: u64 = 60_000;
 
+/// A faction id from [`faction_of`]. An alias, so that serde's derive does
+/// not see the `&'static str` (it would borrow it and bind `'de: 'static`).
+type StaticFaction = Option<&'static str>;
+
 /// What the economy knows about a unit type of the match.
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub(super) struct TypeEco {
     /// The type is a structure (base building or fortification).
     structure: bool,
@@ -40,13 +45,14 @@ pub(super) struct TypeEco {
     /// Production list name (base buildings).
     produces: String,
     /// Faction of a catalog type (`de`, `su`, `us`).
-    faction: Option<&'static str>,
+    #[serde(with = "static_faction")]
+    faction: StaticFaction,
     /// Half length (along the facing) and half width in meters.
     half: (Fixed, Fixed),
 }
 
 /// One order of a production queue.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub(super) struct Order {
     unit_type: u32,
     /// Ticks still needed.
@@ -56,7 +62,7 @@ pub(super) struct Order {
 }
 
 /// A unit that is a structure.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub(super) struct Structure {
     unit: UnitId,
     owner: PlayerId,
@@ -69,7 +75,7 @@ pub(super) struct Structure {
 }
 
 /// A supply point from a map marker.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub(super) struct SupplyPoint {
     name: String,
     position: Vec2,
@@ -79,17 +85,18 @@ pub(super) struct SupplyPoint {
     progress: u32,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 struct Account {
     player: PlayerId,
     /// In [`PARTS`] per resource unit.
     parts: [u64; 3],
     /// Faction of the player (from their first catalog unit).
-    faction: Option<&'static str>,
+    #[serde(with = "static_faction")]
+    faction: StaticFaction,
 }
 
 /// Economy state of a match.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub(super) struct Economy {
     rules: EconomyRules,
     pub(super) types: Vec<TypeEco>,
@@ -1144,4 +1151,29 @@ fn pml(done: u32, total: u32) -> u32 {
 
 fn to_mm(v: Fixed) -> i32 {
     (v * Fixed::from_num(1000)).round().to_num::<i32>()
+}
+
+/// Serde for the faction ids (`&'static str` from [`faction_of`]) in
+/// snapshots (prompt 038).
+mod static_faction {
+    use super::faction_of;
+    use serde::{Deserialize, Deserializer, Serialize, Serializer};
+
+    #[allow(clippy::ref_option)] // the signature serde's `with` expects
+    pub fn serialize<S: Serializer>(
+        faction: &Option<&'static str>,
+        s: S,
+    ) -> Result<S::Ok, S::Error> {
+        faction.serialize(s)
+    }
+
+    pub fn deserialize<'de, D: Deserializer<'de>>(d: D) -> Result<Option<&'static str>, D::Error> {
+        let id: Option<String> = Option::deserialize(d)?;
+        match id {
+            None => Ok(None),
+            Some(id) => faction_of(&format!("{id}_"))
+                .map(Some)
+                .ok_or_else(|| serde::de::Error::custom(format!("unknown faction '{id}'"))),
+        }
+    }
 }

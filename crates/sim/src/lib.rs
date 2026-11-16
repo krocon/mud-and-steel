@@ -29,6 +29,7 @@ mod rng;
 pub mod scale;
 pub mod scenario;
 mod sim;
+pub mod snapshot;
 pub mod terrain;
 pub mod vision;
 

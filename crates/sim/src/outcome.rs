@@ -21,7 +21,7 @@ pub enum DefeatReason {
 }
 
 /// A player of the match and whether (and when) they lost.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct PlayerStanding {
     pub player: PlayerId,
     /// Reason and tick (number of ticks simulated when it was decided).
@@ -29,7 +29,7 @@ pub struct PlayerStanding {
 }
 
 /// The result of a decided match.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Outcome {
     /// `None` for a draw.
     pub winner: Option<PlayerId>,
@@ -38,7 +38,7 @@ pub struct Outcome {
 }
 
 /// Standings of all players, part of the simulation state.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub(crate) struct Standings {
     /// Ascending by player id.
     players: Vec<PlayerStanding>,

@@ -86,7 +86,7 @@ impl std::error::Error for VisionError {}
 const MAX_RANGE_M: u32 = 2000;
 
 /// How a map object affects sight.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Sight {
     Clear,
     Solid,
@@ -209,7 +209,7 @@ impl VisionRules {
 const NONE: i32 = i32::MIN;
 
 /// The rays of a sight radius: cell offsets, ray by ray.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 struct RayTable {
     radius: i32,
     /// Offsets of all rays, one after the other.
@@ -263,7 +263,7 @@ const fn round_div(a: i32, b: i32) -> i32 {
 }
 
 /// The static vision data of a map: cell heights and obstacles.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct VisionGrid {
     pub origin: Vec2,
     pub cell: Fixed,
@@ -602,7 +602,7 @@ impl VisionGrid {
 }
 
 /// The cells one unit sees: a bit field over the square around its anchor.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub(crate) struct Viewshed {
     /// Cell index of the eye.
     pub(crate) anchor: u32,
@@ -670,7 +670,7 @@ pub enum CellState {
 
 /// Vision of one player: how many own viewsheds contain each cell, and
 /// which cells were ever seen.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub(crate) struct PlayerVision {
     counts: Vec<u32>,
     explored: Vec<u64>,

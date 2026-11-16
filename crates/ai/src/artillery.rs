@@ -4,6 +4,7 @@
 //! and the enemy when the enemy comes into sight. Ordinary commands only.
 
 use crate::{Ai, OwnUnit, PlayerView, Role, SeenUnit, centroid, dist, toward};
+use serde::{Deserialize, Serialize};
 use sim::{Command, Fixed, UnitId, Vec2};
 
 /// Enemies within this distance of each other count as one group (m).
@@ -27,7 +28,7 @@ const BEHIND_M: i32 = 80;
 const PLACED_M: i32 = 40;
 
 /// When the artillery fired last.
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub(crate) struct FireState {
     barrage_tick: Option<u64>,
     smoke_tick: Option<u64>,

@@ -16,6 +16,7 @@ use crate::map::Map;
 use crate::math::{Fixed, Vec2};
 use crate::objects::Shape;
 use crate::path::PathGrid;
+use serde::{Deserialize, Serialize};
 
 /// State of a building as far as infantry cares (prompt 020 decides it).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -27,7 +28,7 @@ pub enum BuildingCondition {
 }
 
 /// One soldier of a squad.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub(super) struct Soldier {
     pub(super) position: Vec2,
     /// Ground height at `position` in meters.
@@ -52,7 +53,7 @@ impl Soldier {
 }
 
 /// Infantry state of a unit.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub(super) struct Squad {
     pub(super) soldiers: Vec<Soldier>,
     pub(super) stance: Stance,
@@ -131,7 +132,7 @@ impl Squad {
 }
 
 /// Infantry values of a unit type with the rules applied.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub(super) struct TypeInfantry {
     /// Formation places relative to the squad: (forward, right) in meters.
     places: Vec<(Fixed, Fixed)>,
@@ -142,7 +143,7 @@ pub(super) struct TypeInfantry {
 }
 
 /// Infantry rules with per-type and per-object values, built once.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub(super) struct InfantryRt {
     pub(super) rules: InfantryRules,
     /// Per unit type; `None` for vehicles.
@@ -276,7 +277,7 @@ impl InfantryRt {
 }
 
 /// Map objects bucketed by 16 m cells, for area queries.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 struct Buckets {
     origin: Vec2,
     columns: u32,

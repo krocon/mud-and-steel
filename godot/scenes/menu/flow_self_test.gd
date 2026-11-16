@@ -30,6 +30,14 @@ extends Node
 ##    computer opponent builds too; supply points are drawn; surrender and
 ##    back to the menu.
 ##
+## 8. Saved game and replay viewer (prompt 038): match 4 is saved from the
+##    pause menu before the surrender; "Load game" continues it at the saved
+##    tick and state hash with its computer opponent; leaving writes the
+##    replay of the whole match. "Replays" lists it (and greys out a file of
+##    an older format); watching it: 8× speed, pause, a jump (from a
+##    snapshot), the perspective of player 1 and of everything, and the end
+##    of the replay reaches its recorded end hash; back to the menu.
+##
 ## Matches 1 and 2 choose the passive opponent, which gives no orders, so
 ## they play as before the computer opponent existed. Matches 1 to 3 play
 ## the "battle" mode (the fixed armies of the demo scenario).
@@ -38,6 +46,7 @@ signal match_tested
 
 const MatchSetup := preload("res://scenes/menu/match_setup.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
+const GameFiles := preload("res://scenes/menu/game_files.gd")
 ## Wall-clock limit for the whole flow (`--fixed-fps` decouples frame time).
 const TIMEOUT_MS := 600000
 
@@ -126,15 +135,29 @@ func _run() -> void:
 		_finish()
 		return
 	await _base_building_test(main)
+	var saved := await _save_test(main)
 	await _surrender_test(main)
 	menu = await _back_to_menu(main)
+	if menu == null or saved.is_empty():
+		_finish()
+		return
+
+	# --- Saved game and replay viewer (prompt 038) ---------------------
+	main = await _load_test(menu, saved)
+	if main == null:
+		_finish()
+		return
+	menu = await _quit_to_menu(main)
+	if menu != null:
+		await _replay_viewer_test(menu, saved)
+	DirAccess.remove_absolute(saved["path"])
 	_finish()
 
 
 func _finish() -> void:
 	set_process(false)
 	var ok := _errors.is_empty()
-	var message := "menu, settings, credits, LAN lobby, online lobby, loading, match tests, pause, surrender, combat victory, computer opponent, base building, result and back ok" if ok else " ".join(_errors)
+	var message := "menu, settings, credits, LAN lobby, online lobby, loading, match tests, pause, surrender, combat victory, computer opponent, base building, saving, loading, replay viewer, result and back ok" if ok else " ".join(_errors)
 	print("flow self-test %s: %s" % ["PASSED" if ok else "FAILED", message])
 	get_tree().paused = false
 	get_tree().quit(0 if ok else 1)
@@ -448,6 +471,179 @@ func _base_building_test(main: Node3D) -> void:
 	_check(ai_buildings >= 2, "the computer opponent built nothing")
 	host.speed = 1.0
 	print("flow self-test: base building ok (barracks built, unit produced, computer opponent has %d buildings, tick %d)" % [ai_buildings, host.current_tick()])
+
+
+# --- Saved games and replays (prompt 038) ------------------------------
+
+
+## Saves the running match from the pause menu; returns `path`, `name`,
+## `tick` and `hash` of the saved state, or {} on failure.
+func _save_test(main: Node3D) -> Dictionary:
+	var game_menu: CanvasLayer = main.game_menu
+	var host: SimHost = main.sim_host
+	game_menu.open_pause()
+	await _frames(2)
+	_check(game_menu.save_button.is_visible_in_tree(), "no Save game button in the single-player pause menu")
+	var tick := host.current_tick()
+	var hash := host.state_hash()
+	game_menu.save_button.pressed.emit()
+	var path: String = game_menu.last_saved_path
+	_check(not path.is_empty() and FileAccess.file_exists(path), "saved game not written")
+	_check(game_menu.save_label.text.begins_with("Saved"), "save message: %s" % game_menu.save_label.text)
+	_check(host.current_tick() == tick, "the game ran while saving")
+	game_menu.close_pause()
+	if path.is_empty():
+		return {}
+	print("flow self-test: saved at tick %d (%s, %d bytes)" % [tick, path, FileAccess.get_file_as_bytes(path).size()])
+	return {"path": path, "name": path.get_file(), "tick": tick, "hash": hash}
+
+
+## Loads the saved game from the menu; it continues at the saved state with
+## its computer opponent.
+func _load_test(menu: Control, saved: Dictionary) -> Node3D:
+	menu.load_button.pressed.emit()
+	await _frames(2)
+	var screen: Control = menu.screens["load"]
+	_check(screen.visible, "load screen not shown")
+	var index: int = screen.find(saved["name"])
+	_check(index >= 0, "saved game %s not listed" % saved["name"])
+	if index < 0:
+		return null
+	_check(screen.list.get_item_text(index).contains("test_small"), "list line: %s" % screen.list.get_item_text(index))
+	screen.list.select(index)
+	screen.activate()
+	var main: Node3D = await _wait_scene("Main")
+	if main == null:
+		return null
+	var frames := 600
+	while not main._loaded and frames > 0:
+		frames -= 1
+		await get_tree().process_frame
+	var host: SimHost = main.sim_host
+	var state: Dictionary = host.loaded_state()
+	_check(state.get("tick", -1) == saved["tick"], "loaded at tick %s, saved at %d" % [state.get("tick"), saved["tick"]])
+	_check(state.get("hash", "") == saved["hash"], "loaded state %s, saved %s" % [state.get("hash"), saved["hash"]])
+	_check(host.ai_status()["difficulty"] == "normal", "computer opponent not restored: %s" % host.ai_status())
+	_check(host.economy_state()["enabled"], "economy not restored")
+	_check(main.game_menu.save_button != null, "pause menu missing")
+	await _frames(60)
+	_check(host.current_tick() > saved["tick"], "the loaded game does not run")
+	print("flow self-test: saved game loaded at tick %d, running at tick %d" % [saved["tick"], host.current_tick()])
+	return main
+
+
+## Leaves the match through the pause menu (writes its replay).
+func _quit_to_menu(main: Node3D) -> Control:
+	main.game_menu.open_pause()
+	await _frames(1)
+	main.game_menu.leave_button.pressed.emit()
+	var menu: Control = await _wait_scene("MainMenu")
+	_check(not get_tree().paused, "tree still paused in the menu")
+	return menu
+
+
+func _replay_viewer_test(menu: Control, saved: Dictionary) -> void:
+	# A replay of the format before prompt 038 is listed, but not playable.
+	var old_path := ProjectSettings.globalize_path(GameFiles.REPLAY_DIR.path_join("zz-flow-self-test-old.msreplay"))
+	var old := FileAccess.open(old_path, FileAccess.WRITE)
+	old.store_buffer(PackedByteArray([0x4D, 0x53, 0x52, 0x50, 5, 0, 1, 2, 3, 4]))
+	old.close()
+	menu.replays_button.pressed.emit()
+	await _frames(2)
+	var screen: Control = menu.screens["replays"]
+	_check(screen.visible, "replay screen not shown")
+	var old_index: int = screen.find(old_path.get_file())
+	_check(old_index >= 0 and not screen.entries[old_index]["info"]["playable"], "old replay not listed as unplayable")
+	if old_index >= 0:
+		_check(String(screen.entries[old_index]["info"]["error"]).contains("older game version"), "old replay: %s" % screen.entries[old_index]["info"])
+	DirAccess.remove_absolute(old_path)
+	# The replay written when the loaded game was left: the whole match.
+	var index: int = screen.find(GameFiles.last_replay_path.get_file())
+	_check(index >= 0, "replay of the loaded game not listed: %s" % GameFiles.last_replay_path)
+	if index < 0:
+		return
+	var info: Dictionary = screen.entries[index]["info"]
+	_check(info.get("playable", false), "replay of the loaded game not playable: %s" % info)
+	if not info.get("playable", false):
+		return
+	_check(info["ticks"] > saved["tick"] + 10 and info["map"] == "test_small", "replay does not continue the loaded match: %s" % info)
+	_check(GameFiles.players_text(info).contains("computer, normal"), "players: %s" % GameFiles.players_text(info))
+	var replays_before := DirAccess.get_files_at(GameFiles.REPLAY_DIR).size()
+	screen.list.select(index)
+	screen.activate()
+	var main := await _wait_replay()
+	if main == null:
+		return
+	var host: SimHost = main.sim_host
+	var bar: CanvasLayer = main.get_node("ReplayBar")
+	_check(host.is_replay() and not host.can_save(), "replay mode not active")
+	_check(not main.game_menu.surrender_button.visible, "surrender offered in a replay")
+	var ticks: int = host.replay_status()["ticks"]
+	_check(ticks == info["ticks"], "replay has %d ticks, list said %d" % [ticks, info["ticks"]])
+	# Speed and pause.
+	bar.set_speed(8.0)
+	_check(is_equal_approx(host.speed, 8.0), "speed 8× not set")
+	var tick := host.current_tick()
+	await _frames(60)
+	_check(host.current_tick() >= tick + 60, "8× played only %d ticks in 60 frames" % (host.current_tick() - tick))
+	bar.toggle_pause()
+	tick = host.current_tick()
+	await _frames(20)
+	_check(host.current_tick() == tick, "replay ran while paused")
+	# Jump (paused, so the tick stays where it landed).
+	bar.jump_to(700)
+	main = await _wait_replay()
+	if main == null:
+		return
+	host = main.sim_host
+	_check(host.current_tick() == 700, "jump landed at tick %d" % host.current_tick())
+	_check(Array(GameFiles.replay_player.keyframe_ticks()).has(600), "no snapshot at tick 600: %s" % GameFiles.replay_player.keyframe_ticks())
+	# Perspectives.
+	main.get_node("ReplayBar").set_view(1)
+	main = await _wait_replay()
+	if main == null:
+		return
+	host = main.sim_host
+	_check(host.local_player() == 1 and not host.is_reveal_all(), "view of player 1 not shown")
+	_check(host.current_tick() == 700, "perspective change moved to tick %d" % host.current_tick())
+	main.get_node("ReplayBar").set_view(-1)
+	main = await _wait_replay()
+	if main == null:
+		return
+	host = main.sim_host
+	_check(host.is_reveal_all() and host.replay_status()["view"] == -1, "everything-visible view not shown")
+	# The end: the recorded end hash.
+	main.get_node("ReplayBar").jump_to(ticks - 40)
+	main = await _wait_replay()
+	if main == null:
+		return
+	host = main.sim_host
+	main.get_node("ReplayBar").set_speed(8.0)
+	var frames := 600
+	while not host.replay_status()["ended"] and frames > 0:
+		frames -= 1
+		await get_tree().process_frame
+	_check(host.replay_status()["ended"], "replay did not reach its end")
+	_check(host.state_hash() == GameFiles.replay_player.end_hash(), "replay ended in %s, recorded %s" % [host.state_hash(), GameFiles.replay_player.end_hash()])
+	print("flow self-test: replay viewer ok (%d ticks, snapshots at %s, end hash %s)" % [ticks, GameFiles.replay_player.keyframe_ticks(), host.state_hash()])
+	main.get_node("ReplayBar").leave()
+	menu = await _wait_scene("MainMenu")
+	_check(DirAccess.get_files_at(GameFiles.REPLAY_DIR).size() == replays_before, "watching a replay wrote a replay")
+
+
+## Waits for `main.tscn` with a replay, loaded.
+func _wait_replay() -> Node3D:
+	# The scene of the previous view goes first.
+	await _frames(2)
+	var main: Node3D = await _wait_scene("Main")
+	if main == null:
+		return null
+	var frames := 600
+	while not main._loaded and frames > 0:
+		frames -= 1
+		await get_tree().process_frame
+	_check(main._loaded and main.sim_host.is_replay(), "replay did not load")
+	return main
 
 
 func _wait_result(game_menu: CanvasLayer) -> void:

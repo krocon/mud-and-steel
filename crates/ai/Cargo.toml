@@ -9,6 +9,8 @@ publish.workspace = true
 [dependencies]
 sim.workspace = true
 net.workspace = true
+serde.workspace = true
+postcard.workspace = true
 
 [lints.clippy]
 float_arithmetic = "deny"

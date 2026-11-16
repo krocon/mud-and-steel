@@ -7,7 +7,8 @@ extends Control
 ## handed to `main.tscn` through `match_setup.gd`; LAN opens
 ## `lan/lan_lobby.tscn`, "Online (Steam)" `online/steam_lobby.tscn`
 ## (prompt 026), also right away when Steam started the game with
-## `+connect_lobby <code>` to join a friend.
+## `+connect_lobby <code>` to join a friend. "Load game" and "Replays" list
+## saved games and replays (prompt 038, `files_screen.gd`).
 ##
 ## Direct starts skip the menu: `-- --skip-menu` and the arguments that used
 ## to start the match right away (`--map=…`, `--biome=…`, `--demo`,
@@ -27,6 +28,7 @@ const EDITOR_SCENE := "res://scenes/editor/map_editor.tscn"
 ## Sound gallery (prompt 029): `-- --sound-gallery` / `--sound-gallery-once`.
 const SOUND_GALLERY_SCENE := "res://scenes/tools/sound_gallery.tscn"
 const EditorSelfTest := preload("res://scenes/editor/editor_self_test.gd")
+const FilesScreen := preload("res://scenes/menu/files_screen.gd")
 const DIRECT_FLAGS: Array[String] = [
 	"--skip-menu", "--demo", "--camera-shots", "--path-debug",
 	"--terrain-bench", "--terrain-shots", "--objects-bench", "--objects-shots",
@@ -36,7 +38,7 @@ const BIOMES: Dictionary[String, String] = {
 	"": "As the map says", "forest": "Forest (summer)", "desert": "Desert", "winter": "Winter",
 }
 
-## Screens, by name: "main", "skirmish", "settings", "credits".
+## Screens, by name: "main", "skirmish", "settings", "credits", "load", "replays".
 var screens: Dictionary[String, Control] = {}
 var single_player_button: Button
 var lan_button: Button
@@ -45,6 +47,9 @@ var editor_button: Button
 var settings_button: Button
 var credits_button: Button
 var quit_button: Button
+## Saved games and replays (prompt 038).
+var load_button: Button
+var replays_button: Button
 var map_option: OptionButton
 var biome_option: OptionButton
 var faction_option: OptionButton
@@ -76,6 +81,13 @@ func _ready() -> void:
 	screens["skirmish"] = _skirmish_screen()
 	screens["settings"] = _settings_screen()
 	screens["credits"] = _credits_screen()
+	for kind in ["load", "replays"]:
+		var files := FilesScreen.new()
+		files.kind = kind
+		files.visible = false
+		files.back_pressed.connect(func() -> void: show_screen("main"))
+		add_child(files)
+		screens[kind] = files
 	show_screen("main")
 	# Steam starts the game like this when the player joins a friend.
 	if SteamLobby.launch_lobby_code() != "" and not _launch_handled:
@@ -147,6 +159,8 @@ func _main_screen() -> Control:
 	box.add_child(subtitle)
 	box.add_child(_spacer(24))
 	single_player_button = _button(box, "Single player", func() -> void: show_screen("skirmish"))
+	load_button = _button(box, "Load game", func() -> void: show_screen("load"))
+	replays_button = _button(box, "Replays", func() -> void: show_screen("replays"))
 	lan_button = _button(box, "LAN game", open_lan)
 	online_button = _button(box, "Online (Steam)", open_online)
 	editor_button = _button(box, "Map editor", open_editor)

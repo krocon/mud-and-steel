@@ -126,15 +126,44 @@ Additional rules:
   two headless Godot instances.
 - `crates/net/tests/replay.rs` records a lockstep match, encodes and decodes it, and
   re-simulates it to the same end hash; a tampered command is reported.
+- `crates/net/tests/snapshot.rs` and `crates/ai/tests/save.rs` (prompt 038): restored
+  snapshots and loaded games continue tick for tick like the original.
 
 ## Replays
 
 A replay (`net::Replay`) is the seed, the resolved `SimConfig`, the merged commands of
 every tick and the end hash. Playback is just `Sim::new` plus `step` with the recorded
 commands, so any rule above that is broken shows up as an end-hash mismatch in
-`just replay`. A replay is tied to the simulation rules: after an intentional rule
-change (new golden hash), older replays report a mismatch. That is expected; bump
+`just replay`. A replay is tied to the simulation rules: it carries the rules hash of
+the build that wrote it (prompt 038), and a build with other rules rejects it up front
+(`ReplayError::RulesChanged`) instead of reporting a mismatch at the end. Bump
 `net::replay::FORMAT_VERSION` only when the file layout changes.
+
+## Snapshots and the rules hash
+
+Prompt 038. A snapshot (`sim::snapshot`, `net::snapshot`) saves every field of `Sim`
+through serde, the map as changes against the loaded map. Rules for state:
+
+- **Every new state type derives `Serialize` and `Deserialize`.** `Sim` derives both,
+  so the compiler refuses a field that does not. Do not `#[serde(skip)]` state: a
+  skipped field comes back as its default and the restored simulation diverges. Only
+  the map is skipped, because `Sim::restore` puts it back.
+- Derived data (caches, grids, indices) is saved as well. If one of them must not be
+  saved, rebuild it in `Sim::restore` and prove it with the round-trip test.
+- No `skip_serializing_if`, `flatten` or `untagged` in state types: postcard is not
+  self-describing.
+- `crates/net/tests/snapshot.rs` restores the demo at several ticks (with craters)
+  and steps original and restored copy side by side: the state hash must agree every
+  tick; `crates/net/tests/snapshot_indirect.rs` does the same with mortar shells in
+  flight and smoke clouds drifting (prompt 032). `crates/ai/tests/save.rs` saves matches between computer players (battle and
+  base building), loads and continues them: identical to the never-saved match, and the
+  replay re-simulated from tick 0 ends in the snapshot's state.
+
+`net::snapshot::rules_hash()` hashes the snapshot bytes after a fixed reference run of
+the demo. It changes with every rule change (the state differs) and every new state
+field (the bytes differ), so replays and saved games of other builds are rejected
+without a version constant to maintain. It also changes with catalog edits of demo
+units **[provisional]**, see ARCHITECTURE.md, "Saved games and replay viewer".
 
 If the golden hash changes, either a rule above was broken or the simulation rules
 changed on purpose. Only in the latter case update the constant, and say so in the

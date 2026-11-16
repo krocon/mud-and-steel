@@ -18,13 +18,14 @@ mod view;
 
 pub use view::{OwnUnit, PlayerView, SeenUnit};
 
+use serde::{Deserialize, Serialize};
 use sim::{Command, FireMode, Fixed, Map, PlayerId, Rng, SimConfig, UnitId, Vec2};
 use std::collections::BTreeMap;
 use std::fmt;
 use std::str::FromStr;
 
 /// How well a computer player plays.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum Difficulty {
     /// Issues no commands: units stand and fire at will. Baseline for
     /// tests and tournaments; the enemy of the matches before prompt 024.
@@ -99,7 +100,7 @@ impl FromStr for Difficulty {
 }
 
 /// How a group picks a common target.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 enum Focus {
     /// No attack orders (passive).
     None,
@@ -111,7 +112,7 @@ enum Focus {
 }
 
 /// Behavior switches of a difficulty (table in `docs/AI.md`).
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 struct Params {
     /// The AI acts every this many ticks (reaction time); 0 = never.
     think_ticks: u64,
@@ -129,7 +130,7 @@ struct Params {
 
 /// Role of a unit; every role is commanded as its own group. Infantry
 /// (prompt 022) and builders (prompt 023) get their own rules here.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 enum Role {
     /// Armed vehicles.
     Armor,
@@ -146,7 +147,7 @@ enum Role {
 }
 
 /// What the AI knows about a unit type from the (public) config.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 struct TypeInfo {
     role: Role,
     /// Longest weapon range (game meters).
@@ -161,14 +162,14 @@ struct TypeInfo {
 }
 
 /// Where an enemy unit was last seen.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 struct Sighting {
     position: Vec2,
     tick: u64,
 }
 
 /// The last order a group got.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 enum Order {
     None,
     Move {
@@ -193,7 +194,7 @@ enum Objective {
     Explore(Vec2),
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 struct GroupState {
     order: Order,
     /// Tick of the last command for `order`.
@@ -222,7 +223,7 @@ const REISSUE_TICKS: u64 = 100;
 const ENGAGE_SIGHT_PCT: i64 = 100;
 
 /// A computer player.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Ai {
     player: PlayerId,
     difficulty: Difficulty,
@@ -257,6 +258,17 @@ pub struct Ai {
 }
 
 impl Ai {
+    /// The complete state of this computer player, for saved games
+    /// (prompt 038, `net::HostedState`).
+    pub fn save_state(&self) -> Vec<u8> {
+        postcard::to_allocvec(self).expect("serializing into a Vec cannot fail")
+    }
+
+    /// A computer player from [`save_state`](Self::save_state).
+    pub fn load_state(bytes: &[u8]) -> Result<Self, String> {
+        postcard::from_bytes(bytes).map_err(|e| format!("malformed computer player state: {e}"))
+    }
+
     /// A computer player for `player` of the match `config` on `map` (both
     /// public knowledge). `seed` drives its random choices.
     pub fn new(

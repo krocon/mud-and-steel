@@ -66,6 +66,16 @@ record file ticks="1000" seed="42":
 replay file:
     cargo run -q -p cli -- replay "{{ file }}"
 
+# Check a saved game (prompt 038): restore its snapshot and re-simulate its replay; both must agree
+[group('replay')]
+save-check file:
+    cargo run -q -p cli -- save-check "{{ file }}"
+
+# What loading costs (prompt 038): re-simulating a replay vs. writing and restoring a snapshot, e.g. `just save-bench --scenario data/scenarios/skirmish.toml`
+[group('replay')]
+save-bench *args:
+    cargo run -q --release -p cli -- save-bench {{ args }}
+
 # Build the GDExtension (debug)
 [group('godot')]
 build: && (_steam-lib "debug") _ensure-imported

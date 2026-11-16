@@ -4,7 +4,9 @@
 //! the game does, and the match is recorded as a replay.
 
 use crate::{Ai, Difficulty, PlayerView};
-use net::{LocalTransport, LockstepConfig, LockstepSession, Replay, ReplayRecorder};
+use net::{
+    HostedState, LocalTransport, LockstepConfig, LockstepSession, Replay, ReplayRecorder, SaveGame,
+};
 use sim::{Command, Map, PlayerId, Sim, SimConfig, StableHasher};
 use std::sync::Arc;
 
@@ -89,11 +91,15 @@ impl Game {
         for &p in &all[1..] {
             session.host_player(p);
         }
+        let mut recorder = ReplayRecorder::new(seed, config.clone(), &all);
+        for ai in &ais {
+            recorder.set_kind(ai.player(), &format!("ai:{}", ai.difficulty()));
+        }
         Ok(Self {
             sim,
             session,
             transport: LocalTransport,
-            recorder: ReplayRecorder::new(seed, config.clone(), &all),
+            recorder,
             commands: vec![0; ais.len()],
             ais,
             seed,
@@ -200,5 +206,59 @@ impl Game {
     /// The replay of the match so far.
     pub fn replay(&self) -> Replay {
         self.recorder.finish(&self.sim)
+    }
+
+    /// The match as a saved game (prompt 038); `loaded` is the map as
+    /// loaded (the one given to [`Game::new`]).
+    pub fn save(&self, loaded: &Map) -> SaveGame {
+        let replay = self.replay();
+        SaveGame {
+            info: replay.info.clone(),
+            snapshot: net::snapshot::encode(&self.sim, loaded),
+            pending: self.session.pending_frames(),
+            input_delay: self.session.input_delay(),
+            hosted: self
+                .ais
+                .iter()
+                .map(|ai| HostedState {
+                    player: ai.player(),
+                    state: ai.save_state(),
+                })
+                .collect(),
+            settings: Vec::new(),
+            replay,
+        }
+    }
+
+    /// Continues a saved game; `loaded` is its map as loaded.
+    pub fn load(save: &SaveGame, loaded: Arc<Map>) -> Result<Self, String> {
+        let sim = save.restore(loaded).map_err(|e| e.to_string())?;
+        let ais = save
+            .hosted
+            .iter()
+            .map(|h| Ai::load_state(&h.state))
+            .collect::<Result<Vec<Ai>, String>>()?;
+        let all: Vec<PlayerId> = ais.iter().map(Ai::player).collect();
+        if all != save.replay.config.players() {
+            return Err("the saved computer players do not match the scenario".into());
+        }
+        let lockstep = LockstepConfig {
+            players: all.clone(),
+            input_delay: save.input_delay,
+            hash_interval: 20,
+        };
+        let mut session = LockstepSession::resume(all[0], &lockstep, save.pending.clone());
+        for &p in &all[1..] {
+            session.host_player(p);
+        }
+        Ok(Self {
+            sim,
+            session,
+            transport: LocalTransport,
+            recorder: ReplayRecorder::resume(&save.replay),
+            commands: vec![0; ais.len()],
+            ais,
+            seed: save.replay.seed,
+        })
     }
 }

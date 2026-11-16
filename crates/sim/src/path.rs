@@ -19,6 +19,7 @@ use crate::map::Map;
 use crate::math::{Fixed, Vec2};
 use crate::objects::{Blocks, MapObject, Shape};
 use crate::terrain::TerrainRules;
+use serde::{Deserialize, Serialize};
 use std::cmp::Reverse;
 use std::collections::{BinaryHeap, VecDeque};
 
@@ -53,7 +54,7 @@ const SMALL_MAX_FOOTPRINT_M: i32 = 4;
 /// Clearance classes. For large units, impassable ground is grown by a
 /// margin before cells are judged, so a unit whose center follows passable
 /// cells keeps its hull off water and cliffs.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum SizeClass {
     /// Infantry and small vehicles (footprint up to 4 m): no margin.
     Small,
@@ -98,7 +99,7 @@ impl SizeClass {
 }
 
 /// Inclusive rectangle of path cells.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CellRect {
     pub x0: u32,
     pub y0: u32,
@@ -125,14 +126,14 @@ impl CellRect {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 struct ClassGrid {
     passable: Vec<bool>,
 }
 
 /// Connected regions for all profiles with the same size class and load
 /// tier (they block exactly the same cells).
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 struct ComponentGrid {
     class: SizeClass,
     tier: u32,
@@ -148,7 +149,7 @@ struct ComponentGrid {
 }
 
 /// Movement profile of one unit type: its class and its cost per cell.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 struct Profile {
     class: SizeClass,
     offroad: Fixed,
@@ -197,7 +198,7 @@ const PLACED_FLAGS: u8 = BLOCKED_OBSTACLE | BLOCKED_OBJECT_SMALL | BLOCKED_OBJEC
 /// would refuse some point in it. Cell `(x, y)` owns samples
 /// `x * stride .. x * stride + stride`; samples left over at the far edges
 /// belong to no cell.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PathGrid {
     width: u32,
     height: u32,
@@ -1447,7 +1448,7 @@ fn heuristic(cost: u16, ax: u32, ay: u32, bx: u32, by: u32) -> u32 {
 /// Search state of one cell. Valid only if `mark` belongs to the current
 /// generation: `2 * generation` = seen, `2 * generation + 1` = closed.
 /// One array of these keeps a neighbor's state in one cache line.
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Clone, Copy, Debug, Default, Serialize, Deserialize)]
 struct Node {
     g: u32,
     parent: u32,
@@ -1455,7 +1456,7 @@ struct Node {
 }
 
 /// Search arrays, reused by all searches of a [`Pathfinder`].
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct Workspace {
     nodes: Vec<Node>,
     generation: u32,
@@ -1505,7 +1506,7 @@ enum Begin {
 }
 
 /// A resumable A* search.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 struct Search {
     profile: usize,
     start: Vec2,
@@ -1650,7 +1651,7 @@ impl Search {
 }
 
 /// A queued path request: one path for a group of units.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub(crate) struct Request {
     pub id: u32,
     pub start: Vec2,
@@ -1663,7 +1664,7 @@ pub(crate) struct Request {
 }
 
 /// Counters for tools and benchmarks (not part of the state hash).
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct PathStats {
     pub requests: u64,
     pub found: u64,
@@ -1676,7 +1677,7 @@ pub struct PathStats {
 }
 
 /// The path request queue with its per-tick node budget.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub(crate) struct Pathfinder {
     pub grid: PathGrid,
     workspace: Workspace,
