@@ -65,3 +65,81 @@ fallen schon in 3D (020), der Schnee kommt aber aus der Welt-Normale.
 | 7 | **Basis-Optik:** neue Env-Modelle `env_steel_hall` (Fahrzeugwerk), `env_barracks` (Kaserne), `env_depot` (Depot mit Kisten und Fässern) im Baukasten (`base_buildings.py`, auf dem `house`-Generator), Maße = `data/economy.toml`; Hauptquartier bleibt das Steinhaus. `just thumbnails` neu gerendert. | Maße unverändert → keine Regeländerung, Hash bleibt; drei Schadensstufen wie bisher. |
 | 8 | **Personal:** Prüfung mit Preisen und Einkommen (Tabelle in `GAME_DESIGN.md`): Personal begrenzt schon die Infanterie, ohne Punkte sinkt es am wenigsten (65 %). Keine Zahlenänderung, Abgleich in 045. **[vorläufig]** | Balancing gehört in die Spieltests von 045; hier nur die Prüfung. |
 | 9 | **Hinterhalt als Sim-Regel** (`data/vision.toml` `[ambush]`): stehender Trupp im Waldfeld oder im Gebäude, 20 s ohne Schuss → nur für Feinde ≤ 50 m (200 m real) sichtbar; der Schuss enthüllt 20 s. Zustand erst gehasht, wenn ein Trupp versteckt war. **[vorläufig]** | Muster der Tarnnetze (052); der Golden-Hash bleibt, weil die Demo-Trupps nie im Waldfeld stehen. |
+
+## Ergebnis
+
+- **Karten** (`cli gen-land`, `just gen-land [map]`, `crates/cli/src/gen_land.rs`):
+  `winter_village` (63 Gebäude, 5 201 Bäume, 17 % Schneeverwehung),
+  `farms` (33 Gebäude, ~2 000 Heckensegmente, 190 Heuhaufen),
+  `river_land` (3 Brücken, 2 Furten, 29 Gebäude); je 1 km, 501 × 501
+  Stützstellen, vier Starts. Ein Test erzeugt jede Karte zweimal (gleiche
+  Dateien) und prüft Starts, Versorgungspunkte, Gebäude, Heu, Bäume,
+  Grabenmarker, Hecken und Brücken. Doku: `docs/MAPS.md` „Landscape maps“.
+- **Versorgungspunkte an Orten:** Dorfplatz, Grabenstellung auf dem Hügel
+  (052), Gehöft (winter_village); fünf Gehöfte (farms); drei Brückenköpfe
+  und zwei Gehöfte (river_land).
+- **Abwechslung:** Putzfarbe, Dachdeckung, Backstein- und Brettton je Haus
+  aus der Position (`env.gdshader`), Wellblech-Rippen; Schnee bleibt auf
+  gefällten Bäumen, Nadelbäume verschneiter, liegende Objekte ohne Wind;
+  Strohreste um Heuhaufen; Gras im Winter ausgedünnt (`map_objects.gd`).
+- **Basis:** `env_steel_hall` (Fahrzeugwerk), `env_barracks` (Kaserne),
+  `env_depot` (Depot mit Kisten und Fässern), je 1 576–1 600 Dreiecke,
+  drei Schadensstufen, `base_view.gd` nutzt sie; Bilder neu (`just thumbnails`).
+- **Personal:** Prüfung in `docs/GAME_DESIGN.md` („Manpower as a limit“),
+  keine Zahlenänderung.
+- **Hinterhalt:** `data/vision.toml` `[ambush]`,
+  `crates/sim/src/sim/vision/ambush.rs`, drei Tests (`tests/ambush.rs`);
+  der Deckungstest in `tests/infantry.rs` läuft ohne die Regel (er misst
+  Treffer auf einen Trupp, der sonst unsichtbar bliebe).
+- **Golden-Hash unverändert** (`0x7681_c049_8fc9_19b3` nach dem Merge mit
+  `main`, Basisbau-Hash ebenso): der Hinterhalt wird erst gehasht, wenn ein
+  Trupp versteckt war, und die Basismodelle ändern keine Regel.
+- **Prüfungen:** `just check`, `map-check` (alle drei ok, 0 Warnungen),
+  `editor-selftest`, `selftest`, `gallery-check`, `validate-assets`,
+  `kit-test` grün; Testkarten erzeugen sich unverändert (Ausnahme seit 035:
+  `twin_meadow` enthält zwei von Hand gesetzte Minenfelder, die der
+  Generator nicht schreibt).
+
+**Messungen** (Apple M1 Max, Release, Maschine durch andere Sitzungen
+belastet):
+
+| | winter_village | farms | river_land |
+|---|---|---|---|
+| Laden + Prüfen (`map-check`) | 82 ms | 103 ms | 97 ms |
+| `path-bench` 200 Einheiten: Planung Mittel / p99 | 7,6 / 9,2 ms | 7,0 / 8,8 ms | 5,2 / 7,0 ms |
+| `vision-bench` 500 Einheiten: Mittel / p99 | 6,1 / 9,6 ms | 7,0 / 9,9 ms | 4,9 / 8,4 ms |
+| `terrain-bench` 1080p nah / 120 m / 600 m | 55 / 39 / 94 FPS | 99 / 79 / 88 FPS | 108 / 110 / 92 FPS |
+
+Die Winterwerte nah/mittel liegen niedriger, weil der feste Messweg der
+Bank (ab (−300, 200)) dort über einem dichten Wald liegt (640 Bäume im
+Umkreis von 120 m, `farms` 106); Wetter, Biom und die neuen Shader ändern
+daran nichts (gemessen: gleiche Werte mit klarem Wetter, Waldbiom und den
+alten Shadern).
+
+KI-Turnier (`ai-tournament --a hard --b normal`, je 4 Spiele): Schlacht
+(Demo-Armeen, 6 000 Ticks): winter_village 4 Zeitablauf (Schnee, 840 m
+Startabstand), farms 2 Siege Normal + 2 Zeitablauf, river_land 1 : 3
+entschieden. Basisbau (24 000 Ticks = 20 Spielminuten): auf allen drei
+Karten 4 Zeitablauf; die KI braucht für 1-km-Karten länger als 20 Minuten.
+
+Bilder: `build/maps2/<karte>/` (Übersicht, flach, gefällte Bäume, jeder
+Versorgungspunkt mittel und nah), erzeugt mit `SHOT_SET=land just
+terrain-shots <dir> <karte>`.
+
+**Vorläufig (bitte bestätigen):** Punkte an Orten ohne eigene Regel
+(Gebäude gehören nur optisch dazu); Farb- und Dachpalette der Häuser;
+Hinterhalt (50 m Entdeckung, 20 s Ruhe, nur stehende Trupps im Waldfeld
+oder im Gebäude); Personal-Zahlen unverändert; Maße der drei Basisbauten
+(= Wirtschaftsmaße); Schneeverwehungen als Gelände (60 % Tempo) auf 17 %
+der Winterkarte; Standardwetter Schnee bzw. bedeckt.
+
+**Offen:**
+- Basisbau-KI: Spiele auf 1-km-Karten werden in 20 Minuten nicht entschieden
+  (Abgleich mit 045/051).
+- Dachformen (Walmdach, Krüppelwalm) als Modellvarianten; Hauptquartier
+  ohne eigenes Modell; Baugerüst statt skalierter Baustelle.
+- Anzeige „im Hinterhalt“ für eigene Trupps im HUD; KI nutzt den Hinterhalt
+  nicht gezielt (047/051).
+- Versorgungspunkte im Karteneditor setzen (bisher nur Generator/Text);
+  Gebäude-Zustand als Einfluss auf das Einkommen eines Punkts.
+- Strohreste brennen nicht mit; Schnee rieselt beim Fallen nicht ab.
