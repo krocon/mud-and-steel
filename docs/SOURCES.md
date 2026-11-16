@@ -104,3 +104,6 @@ that name) and get a row here before they are committed:
   "royalty-free" packs whose license forbids redistribution in source
   form (the repository ships the WAV files).
 - Downloads are agreed with the maintainer first.
+
+Candidate recordings with checked licenses, the free packs worth using, known gaps
+and the source library layout: [AUDIO_LIBRARY.md](AUDIO_LIBRARY.md) (prompt 061).

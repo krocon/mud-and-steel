@@ -1,0 +1,173 @@
+# Air support and anti-aircraft fire (prompt 033). Integers only. Compiled
+# into the simulation (`sim::AirRules::builtin`), loaded by `Sim::new` and part
+# of the state hash; see docs/ARCHITECTURE.md "Air support and anti-aircraft
+# fire".
+#
+# These are game rules, not catalog values. From the catalog come: which
+# aircraft a faction flies on each mission (by category), their speed (cruise,
+# else maximum; × aircraft.speed of data/scale.toml), wingspan, guns (caliber,
+# count, rate, muzzle velocity) and bombs (count, bomb_kg); the anti-aircraft
+# weapons of every unit (range_aa_m of AA guns, `aa = true` of MG mounts).
+# Values marked [provisional] wait for confirmation (docs).
+#
+# Altitudes and distances are game meters (sizes are 1:1), times game
+# seconds; resources are [fuel, ammunition, manpower] like data/economy.toml.
+
+# One entry per mission. `aircraft` flown per call, `cost` paid from the
+# account (data/economy.toml), `cooldown_s` until the player may call the
+# same mission again. Altitude: `altitude_m` while cruising, `attack_m`
+# over the target, changing linearly over `dive_m` of flight before and
+# after the attack zone. Formation: aircraft k flies `lateral_m` × (k -
+# (n - 1) / 2) to the side and `trail_m` × k behind the first. [provisional]
+[[mission]]
+mission = "recon"
+cost = [40, 0, 10]
+cooldown_s = 60
+aircraft = 1
+altitude_m = 250
+attack_m = 250
+dive_m = 0
+lateral_m = 0
+trail_m = 0
+
+[[mission]]
+mission = "strafe"
+cost = [60, 60, 10]
+cooldown_s = 90
+aircraft = 2
+altitude_m = 200
+attack_m = 30
+dive_m = 400
+lateral_m = 0
+trail_m = 300
+
+[[mission]]
+mission = "attack"
+cost = [80, 100, 10]
+cooldown_s = 120
+aircraft = 2
+altitude_m = 350
+attack_m = 150
+dive_m = 500
+lateral_m = 30
+trail_m = 250
+
+[[mission]]
+mission = "bomb"
+cost = [120, 160, 20]
+cooldown_s = 180
+aircraft = 3
+altitude_m = 500
+attack_m = 500
+dive_m = 0
+lateral_m = 50
+trail_m = 0
+
+[approach]
+# Aircraft appear this far outside the map edge and leave as far beyond
+# the opposite edge.
+edge_margin_m = 300
+
+# Hit points of an aircraft per category. [provisional]
+[[hp]]
+category = "aircraft_recon"
+hp = 300
+
+[[hp]]
+category = "aircraft_fighter"
+hp = 600
+
+[[hp]]
+category = "aircraft_attack"
+hp = 1000
+
+[[hp]]
+category = "aircraft_bomber"
+hp = 1500
+
+[crash]
+# A shot-down aircraft flies on burning for this long (game ms), sinking to
+# the ground, and explodes like a shell of this caliber (tenths of mm).
+fall_ms = 6000
+caliber_mm_x10 = 1000
+
+# Guns of fighters and attack aircraft against ground targets. [provisional]
+[strafe]
+# Guns fire from this far before the target to this far behind it.
+before_m = 300
+after_m = 100
+# One burst every this many ticks; its rounds land in a strip `width_m`
+# wide, `lead_m` ahead of the aircraft, as long as the aircraft flies
+# during the burst.
+burst_ticks = 10
+lead_m = 150
+width_m = 10
+# Chance per burst that a soldier in the strip is hit (times the stance
+# height share and `cover_pct` at a cover spot, like fragments of
+# data/indirect.toml); a hit costs the caliber's infantry damage
+# (data/combat.toml).
+soldier_pct = 25
+# Chance per round that a vehicle in the strip is hit. Rounds penetrate
+# the roof (data/indirect.toml roof_pct of the thinnest plate) with the
+# catalog muzzle penetration (data/combat.toml formula, no distance
+# loss); vehicles whose thinnest plate is at most `open_armor_mm` (data/
+# indirect.toml) take `open_damage_per_mm` per mm of caliber instead.
+vehicle_pct = 10
+open_damage_per_mm = 3
+
+# Bombs. [provisional]
+[bombs]
+# Blast like a shell of `caliber_mm_per_cbrt_kg` × cube root of the bomb
+# mass (SC 250: 158 mm, 32 m fragment radius with data/indirect.toml).
+caliber_mm_per_cbrt_kg = 25
+# Armored vehicles within `near_miss_dm_per_cbrt_kg` / 10 × cube root of
+# the mass (SC 250: 7.6 m) take up to `near_miss_damage` (linear to 0).
+near_miss_dm_per_cbrt_kg = 12
+near_miss_damage = 600
+# Spacing of the bombs of one aircraft along its track (a stick).
+stick_m = 15
+# Error of the impact point per axis (triangular), per mission.
+error_attack_m = 10
+error_bomb_m = 25
+# Gravity for the fall time sqrt(2 h / g) (aircraft and bombs do not use
+# the time factor).
+gravity_mm_per_s2 = 9807
+
+# Reconnaissance: a viewshed from flight altitude, real sight range ×
+# range.sight of data/scale.toml (2000 m → 500 m).
+[recon]
+sight_real_m = 2000
+
+# Anti-aircraft fire per class. Light and heavy: weapons of gun_aa_light /
+# gun_aa_heavy with their catalog range_aa_m; mg: weapons with `aa = true`
+# reaching `range_real_m`. Ranges are real meters × range.direct_fire of
+# data/scale.toml, capped at `max_range_m` (game). A shot (one round per
+# barrel, at the rate of data/combat.toml: automatic weapons 25 % of the
+# cyclic rate) hits with `hit_pct` × (1 - d / 2R) × wingspan /
+# `ref_wingspan_m` and costs `damage_per_mm` per mm of caliber (2 cm: 200,
+# 8.8 cm: 880). Slow aircraft stay longer in range, so they are hit more
+# often. No class fires at aircraft below `min_altitude_m`. [provisional]
+[[flak]]
+class = "mg"
+range_real_m = 1000
+max_range_m = 400
+hit_pct = 3
+min_altitude_m = 0
+
+[[flak]]
+class = "light"
+range_real_m = 0
+max_range_m = 900
+hit_pct = 3
+min_altitude_m = 0
+
+[[flak]]
+class = "heavy"
+range_real_m = 0
+max_range_m = 1500
+hit_pct = 4
+min_altitude_m = 100
+
+[flak_rules]
+ref_wingspan_m = 12
+damage_per_mm = 10

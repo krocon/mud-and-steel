@@ -75,6 +75,7 @@ const LanMatch := preload("res://scenes/lan/lan_match.gd")
 const NetStatus := preload("res://scenes/lan/net_status.gd")
 const CombatView := preload("res://scenes/world/combat_view.gd")
 const ArtilleryView := preload("res://scenes/world/artillery_view.gd")
+const AirView := preload("res://scenes/world/air_view.gd")
 const FogOfWar := preload("res://scenes/world/fog_of_war.gd")
 const Effects := preload("res://scenes/world/effects.gd")
 const DestructionView := preload("res://scenes/world/destruction_view.gd")
@@ -148,6 +149,8 @@ var atmosphere: Atmosphere
 var combat_view: CombatView
 ## Shells, impact markers, smoke clouds (prompt 032).
 var artillery_view: ArtilleryView
+## Aircraft, flak, bombs and the call bar (prompt 033).
+var air_view: AirView
 ## Fog overlay (prompt 018).
 var fog_of_war: FogOfWar
 ## Smoke, fire, impacts, dust (prompt 019).
@@ -235,6 +238,10 @@ func _ready() -> void:
 	artillery_view.name = "ArtilleryView"
 	add_child(artillery_view)
 	artillery_view.setup(self)
+	air_view = AirView.new()
+	air_view.name = "AirView"
+	add_child(air_view)
+	air_view.setup(self)
 	infantry_view = InfantryView.new()
 	infantry_view.name = "InfantryView"
 	add_child(infantry_view)
@@ -285,6 +292,7 @@ func _ready() -> void:
 	hud = MatchHud.new()
 	$Hud.add_child(hud)
 	hud.setup(self)
+	air_view.setup_hud(hud)
 	var debug_menu := DebugMenu.new()
 	debug_menu.main = self
 	$Hud.add_child(debug_menu)

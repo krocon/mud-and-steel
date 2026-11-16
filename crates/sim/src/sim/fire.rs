@@ -380,7 +380,13 @@ impl Sim {
             let at = at3(&self.map, p);
             let map = Arc::clone(&self.map);
             self.destruction.burn(&map, o, u32::MAX, at, by);
-            self.detonate(at, caliber, by);
+            let id = self.next_projectile;
+            self.next_projectile = self.next_projectile.wrapping_add(1);
+            let owner = self
+                .units
+                .binary_search_by_key(&by, |u| u.id)
+                .map_or(crate::command::PlayerId(0), |i| self.units[i].owner);
+            self.detonate(id, by, owner, at, at, caliber);
             self.fire.events.push(FireEvent {
                 source: FireSource::Object(o),
                 kind: FireEventKind::Exploded,

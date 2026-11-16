@@ -755,6 +755,45 @@ impl Sim {
         }
     }
 
+    /// Fragmentation rules (prompt 033: strafing and bombs use them too).
+    pub(super) const fn indirect_blast(&self) -> &crate::indirect::BlastRules {
+        &self.artillery.rules.blast
+    }
+
+    /// A high-explosive charge of `caliber_mm_x10` explodes at `at`, coming
+    /// from `origin` (prompt 033: bombs and crashing aircraft; prompt 041:
+    /// exploding dumps): the same direct hit, object, crater and fragment
+    /// rules as a shell.
+    pub(super) fn detonate(
+        &mut self,
+        id: u32,
+        shooter: UnitId,
+        owner: PlayerId,
+        origin: Vec3,
+        at: Vec3,
+        caliber_mm_x10: u32,
+    ) {
+        let shell = Shell {
+            id,
+            shooter,
+            owner,
+            origin,
+            target: at,
+            apex: Fixed::ZERO,
+            total: 1,
+            elapsed: 1,
+            caliber_mm_x10,
+            smoke: false,
+        };
+        let mut destroyed: Vec<(usize, UnitId, Vec3)> = Vec::new();
+        self.explode(&shell, at, &mut destroyed);
+        for (j, by, at) in destroyed {
+            if !self.units[j].alive() {
+                self.destroy(j, by, at);
+            }
+        }
+    }
+
     /// Moves every shell one tick; shells that arrive explode (or release
     /// their smoke).
     pub(super) fn fly_shells(&mut self) {
@@ -988,38 +1027,6 @@ impl Sim {
             damage: total,
             caliber_mm_x10: caliber,
         });
-    }
-
-    /// An explosion that is no shell (prompt 041: a dump blowing up): the
-    /// blast of a high-explosive shell of `caliber_mm_x10` at `at`, credited
-    /// to `by`.
-    pub(super) fn detonate(&mut self, at: Vec3, caliber_mm_x10: u32, by: UnitId) {
-        let id = self.next_projectile;
-        self.next_projectile = self.next_projectile.wrapping_add(1);
-        let owner = self
-            .units
-            .binary_search_by_key(&by, |u| u.id)
-            .map_or(PlayerId(0), |i| self.units[i].owner);
-        let shell = Shell {
-            id,
-            shooter: by,
-            owner,
-            origin: at,
-            target: at,
-            apex: Fixed::ZERO,
-            total: 1,
-            elapsed: 1,
-            caliber_mm_x10,
-            smoke: false,
-        };
-        let mut destroyed: Vec<(usize, UnitId, Vec3)> = Vec::new();
-        self.explode(&shell, at, &mut destroyed);
-        for (j, by, at) in destroyed {
-            if self.units[j].alive() {
-                continue;
-            }
-            self.destroy(j, by, at);
-        }
     }
 
     /// Drifts the smoke clouds, dissolves old ones and puts the smoke into

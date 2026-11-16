@@ -67,6 +67,7 @@ const FireSelfTest := preload("res://scenes/tools/fire_self_test.gd")
 const SoundSelfTest := preload("res://scenes/tools/sound_self_test.gd")
 const MusicSelfTest := preload("res://scenes/tools/music_self_test.gd")
 const HudSelfTest := preload("res://scenes/tools/hud_self_test.gd")
+const AirSelfTest := preload("res://scenes/tools/air_self_test.gd")
 const MatchSetup := preload("res://scenes/menu/match_setup.gd")
 
 ## Screen size for the test (see `_ready`).
@@ -106,9 +107,10 @@ func _run() -> void:
 	await SoundSelfTest.new().run(self)
 	await MusicSelfTest.new().run(self)
 	await hud_test.run(self)
+	await AirSelfTest.new().run(self)
 	_replay_test()
 	var ok := _errors.is_empty()
-	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, fog, combat, infantry, destruction, fire, craters, sound, music, water, hud and replay ok" if ok else " ".join(_errors)
+	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, fog, combat, infantry, destruction, fire, craters, sound, music, water, hud, air and replay ok" if ok else " ".join(_errors)
 	print("self-test %s: %s" % ["PASSED" if ok else "FAILED", message])
 	# Started from the menu flow test (prompt 027): it continues the flow.
 	var flow: Node = MatchSetup.flow_test

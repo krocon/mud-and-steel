@@ -21,14 +21,22 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by prompt 041 (fire): the fire rules of `data/fire.toml`,
-/// burning objects and wrecks, burnt-out objects and fire smoke clouds are
-/// in the hash; new catalog objects (town and log houses, town hall,
-/// warehouse, dumps) and destruction classes for hay, firewood and dumps
-/// change the hashed object and destruction rules. Destroyed tanks of the
-/// demo now burn as wrecks and hits roll whether trees and buildings catch
-/// fire, which draws from the match's random generator: the battle runs
-/// differently and is decided at tick 467 instead of 480, same winner.
+/// Last changed by the merge of prompt 041 (fire) with 033 (air):
+/// prompt 041: the fire rules of `data/fire.toml`, burning objects and
+/// wrecks, burnt-out objects and fire smoke clouds are in the hash; new
+/// catalog objects (town and log houses, town hall, warehouse, dumps) and
+/// destruction classes for hay, firewood and dumps change the hashed object
+/// and destruction rules. Destroyed tanks of the demo now burn as wrecks
+/// and hits roll whether trees and buildings catch fire, which draws from
+/// the match's random generator: the battle runs differently and is decided
+/// at tick 467 instead of 480, same winner.
+/// Before: prompt 033 (air support and anti-aircraft fire): the
+/// rules of `data/air.toml`, the aircraft types of every faction (catalog
+/// ids), every player's cooldowns and the (empty) sorties, aircraft, bombs
+/// and flak reload times are in the hash, and the economy rules (also
+/// hashed) list light and heavy flak as fortifications. The demo calls no
+/// aircraft and has no anti-aircraft weapons: its battle is unchanged
+/// (decided at tick 480, player 0 wins).
 /// Before: prompt 032 (indirect fire and smoke): the rules of
 /// `data/indirect.toml`, the indirect-fire state of units with mortars,
 /// howitzers and self-propelled guns, shells in flight, smoke clouds and
@@ -109,7 +117,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x3f46_fd74_93a4_935a;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xd8f0_f135_a14d_e016;
 
 #[test]
 fn golden_hash() {
