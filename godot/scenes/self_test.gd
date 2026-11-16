@@ -54,7 +54,9 @@ extends Node
 ##    test): a hidden debug minefield, an own tank throws its track in it.
 ## 17. Positions (prompt 052, `tools/positions_self_test.gd`): a debug
 ##    strongpoint is drawn as trenches, a squad walks in, a line shows its price.
-## 18. Crossings (prompt 055, `tools/crossing_self_test.gd`, before the
+## 18. Experience (prompt 050, `tools/experience_self_test.gd`, after the
+##    replay test): kill rings, rank in the unit panel, an elite squad's kit.
+## 19. Crossings (prompt 055, `tools/crossing_self_test.gd`, before the
 ##    replay test): camouflage from the command bar, paratroopers called by
 ##    a drag, a collapsing deck and a laid bridge drawn.
 
@@ -84,6 +86,7 @@ const SupplySelfTest := preload("res://scenes/tools/supply_self_test.gd")
 const WorksSelfTest := preload("res://scenes/tools/works_self_test.gd")
 const PositionsSelfTest := preload("res://scenes/tools/positions_self_test.gd")
 const FormationSelfTest := preload("res://scenes/tools/formation_self_test.gd")
+const ExperienceSelfTest := preload("res://scenes/tools/experience_self_test.gd")
 const CrossingSelfTest := preload("res://scenes/tools/crossing_self_test.gd")
 const MatchSetup := preload("res://scenes/menu/match_setup.gd")
 
@@ -133,8 +136,9 @@ func _run() -> void:
 	# After the replay test: its debug minefield is no command (prompt 035).
 	await WorksSelfTest.new().run(self)
 	await PositionsSelfTest.new().run(self)
+	await ExperienceSelfTest.new().run(self)
 	var ok := _errors.is_empty()
-	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, fog, combat, infantry, destruction, fire, craters, sound, music, water, hud, air, transport, supply, formations, crossings, replay, works and positions ok" if ok else " ".join(_errors)
+	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, fog, combat, infantry, destruction, fire, craters, sound, music, water, hud, air, transport, supply, formations, crossings, replay, works, positions and experience ok" if ok else " ".join(_errors)
 	print("self-test %s: %s" % ["PASSED" if ok else "FAILED", message])
 	# Started from the menu flow test (prompt 027): it continues the flow.
 	var flow: Node = MatchSetup.flow_test
@@ -662,6 +666,10 @@ func _combat_test() -> void:
 	for i in _indices(main.selection.selected):
 		holding += hold[i]
 	_check(holding == 0, "F left %d selected units holding fire" % holding)
+	# Quiet again (prompt 050): own tanks that gained a rank from the kill
+	# shoot better, and firing at will at enemies that hold fire they would
+	# finish them off and decide the match before the later parts.
+	main.sim_host.set_hold_fire(PackedInt64Array(own), true)
 	view.combat_event.disconnect(on_event)
 	# Effects (prompt 019) follow the events: flashes, impacts, the explosion
 	# and the burning wreck.

@@ -102,8 +102,8 @@ camouflage“, `docs/CONTROLS.md` (Brückenleger, Tarnung, Luftleiste), `docs/AI
   Linie; Brücke legen, leichter Panzer fährt drüber, IS-2 zu schwer, aufnehmen und neu
   legen; Tarnung; Bombenteppich; gleicher Hash), `crates/net/tests/snapshot_crossings.rs`,
   `crates/ai/tests/bridgelayer.rs`, Selbsttest-Teil `tools/crossing_self_test.gd`.
-- **Golden-Hash:** `0x92fb_909b_2e81_c158` nach dem Zusammenführen mit main (055 allein
-  `0xef27_60b4_5add_ed7b`), Economy `0xafcd_c136_ed2a_d7ef`; Grund: Luftregeln (siehe 11).
+- **Golden-Hash:** `0x2022_32ed_b313_f95a` nach dem Zusammenführen mit main (bis 050) (055 allein
+  `0xef27_60b4_5add_ed7b`), Economy `0xd6cd_83ac_0539_44dd`; Grund: Luftregeln (siehe 11).
 
 Offen: vorläufige Werte (`data/crossings.toml`, `[airborne]`), Katalogwerte aus dem
 Gedächtnis (nicht online geprüft), keine eigenen Fallschirmjäger-Trupps, keine

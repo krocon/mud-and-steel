@@ -706,6 +706,24 @@ uncertain; see the list at the end of each faction.
 | env_dump_ammo | Munitionslager (Feldstapel) / Ammunition dump (field stacks) | 1 | 6.00? × 4.00? × 1.50? | Two rows of wooden ammunition crates on dunnage, about 1.5 m high |
 | env_dump_fuel | Treibstofflager (Fässer) / Fuel dump (drums) | 1 | 4.80? × 3.60? × 0.90 | Rows of standing 200 l drums with gaps on dunnage |
 | fort_camo_net | Tarnnetz (auf Stangen) / Camouflage net (on poles) | 1 | 8.84? × 8.84? × 2.80? | Garnished drape net of 29 x 29 ft (8.84 m) held by poles about 2.8 m high over a… |
+| env_house_desert_hut | Lehmhaus, ein Raum (Nordafrika) / Mud-brick house, one room (North Africa) | 1 | 5.00? × 4.00? × 3.20? | One room of about 4 x 3 m inside, flat earth roof on palm-trunk beams, low parap… |
+| env_house_desert_two | Lehmhaus, zwei Räume / Mud-brick house, two rooms | 1 | 8.00? × 4.50? × 3.30? | Two rooms in a row, room depth limited by the palm or timber roof beams (about 3… |
+| env_house_desert_long | Lehmhaus, drei Räume / Mud-brick house, three rooms | 1 | 12.00? × 5.00? × 3.40? | Three rooms in a row along the courtyard, one door per room |
+| env_house_desert_corner | Lehmhaus, L-Form / Mud-brick house, L-shaped | 1 | 10.00? × 8.00? × 3.40? | Two wings at a right angle in the corner of a courtyard; the box is the bounding… |
+| env_house_desert_stair | Lehmhaus mit Außentreppe / Mud-brick house with outside stair | 1 | 8.00? × 6.00? × 3.40? | Two rooms (5 m deep) with a solid outside stair to the roof along one long wall;… |
+| env_house_desert_roofroom | Lehmhaus mit Dachkammer / Mud-brick house with roof room | 1 | 9.00? × 7.00? × 6.00? | Single-storey block with a small room and stair head on the roof; height at the … |
+| env_house_desert_tall | Zweigeschossiges Haus (verputzt) / Two-storey plastered house | 1 | 7.00? × 6.00? × 6.60? | Two storeys of plastered stone or mud brick, flat roof with parapet |
+| env_house_desert_vault | Gewölbehaus / Barrel-vaulted house | 1 | 10.00? × 5.00? × 4.00? | Two barrel-vaulted rooms side by side, whitewashed; height at the vault crown |
+| env_house_desert_large | Kaufmannshaus / Merchant's house | 1 | 13.00? × 10.00? × 6.80? | Two-storey main block and a one-storey wing, roof terrace with parapet |
+| env_house_desert_shop | Ladenhaus mit Laubengang / Shop house with arcade | 1 | 10.00? × 6.50? × 3.60? | Three small shops behind an arcade of plastered arches (1.5 m deep) on a market … |
+| env_mosque | Dorfmoschee mit Minarett / Village mosque with minaret | 1 | 15.00? × 11.00? × 16.00? | Small whitewashed prayer hall with a low dome and a square minaret (height at th… |
+| env_police_post | Kolonialer Polizeiposten (Fort) / Colonial police post (fort) | 1 | 16.00? × 12.00? × 9.00? | Two-storey plastered post with crenellated parapet and a corner watchtower (heig… |
+| env_wall_mud | Hofmauer aus Lehm (Segment) / Mud courtyard wall (one segment) | 1 | 3.00? × 0.50? × 2.20? | One 3 m segment of a plastered mud-brick courtyard wall, 0.5 m thick, 2.2 m high… |
+| env_awning | Sonnensegel / Cloth awning | 1 | 3.00? × 2.50? × 2.30? | Woven cloth on four wooden poles (variants: wide cloth, palm-frond shelter) |
+| env_jars | Tonkrüge / Clay jars | 1 | 1.60? × 1.20? × 0.90? | A group of unglazed storage jars of 0.5-0.9 m, a water skin |
+| env_well_desert | Brunnen mit Holzgestell / Well with wooden frame | 1 | 2.40? × 2.00? × 3.00? | Round masonry curb (1.6 m, 0.8 m high), two posts with a cross beam and pulley, … |
+| env_cart_wood | Zweirädriger Holzkarren / Two-wheeled wooden cart | 1 | 3.40? × 1.60? × 1.30? | Wooden cart with two spoked wheels of about 1.2 m and shafts |
+| env_market_stall | Marktstand / Market stall | 1 | 3.00? × 2.00? × 2.40? | Wooden table under a cloth roof with baskets and jars (variant: empty) |
 
 ### Uncertain values
 
@@ -749,6 +767,24 @@ uncertain; see the list at the end of each faction.
 - `env_dump_fuel`: length_mm, width_mm
 - `fort_camo_net`: length_mm, width_mm, height_mm
 - `fort_dragon_teeth`: length_mm, width_mm, height_mm
+- `env_house_desert_hut`: length_mm, width_mm, height_mm
+- `env_house_desert_two`: length_mm, width_mm, height_mm
+- `env_house_desert_long`: length_mm, width_mm, height_mm
+- `env_house_desert_corner`: length_mm, width_mm, height_mm
+- `env_house_desert_stair`: length_mm, width_mm, height_mm
+- `env_house_desert_roofroom`: length_mm, width_mm, height_mm
+- `env_house_desert_tall`: length_mm, width_mm, height_mm
+- `env_house_desert_vault`: length_mm, width_mm, height_mm
+- `env_house_desert_large`: length_mm, width_mm, height_mm
+- `env_house_desert_shop`: length_mm, width_mm, height_mm
+- `env_mosque`: length_mm, width_mm, height_mm
+- `env_police_post`: length_mm, width_mm, height_mm
+- `env_wall_mud`: length_mm, width_mm, height_mm
+- `env_awning`: length_mm, width_mm, height_mm
+- `env_jars`: length_mm, width_mm, height_mm
+- `env_well_desert`: length_mm, width_mm, height_mm
+- `env_cart_wood`: length_mm, width_mm, height_mm
+- `env_market_stall`: length_mm, width_mm, height_mm
 
 ### Sources
 
@@ -848,4 +884,46 @@ uncertain; see the list at the end of each faction.
 - `fort_dragon_teeth`
   - https://en.wikipedia.org/wiki/Dragon%27s_teeth_(fortification) (square-pyramidal reinforced-concrete blocks set in rows on a common foundation to stop tanks (Siegfried Line), rows of increasing height)
   - TM-E 30-451 Handbook on German Military Forces (1945), ch. V sec. II (rows of concrete teeth as anti-tank obstacles of the West Wall)
+- `env_house_desert_hut`
+  - https://en.wikipedia.org/wiki/Adobe (adobe brick construction, flat roofs on timber beams)
+  - https://en.wikipedia.org/wiki/Mudbrick (material only)
+- `env_house_desert_two`
+  - https://en.wikipedia.org/wiki/Adobe (adobe construction; room spans limited by roof beams (about 3-4 m))
+- `env_house_desert_long`
+  - https://en.wikipedia.org/wiki/Adobe (adobe construction; room spans limited by roof beams)
+- `env_house_desert_corner`
+  - https://en.wikipedia.org/wiki/Courtyard_house (rooms arranged around a walled courtyard)
+- `env_house_desert_stair`
+  - https://en.wikipedia.org/wiki/Flat_roof (flat roofs used as living and drying space, reached by stairs)
+- `env_house_desert_roofroom`
+  - https://en.wikipedia.org/wiki/Flat_roof (flat roofs used as living space; small rooms built on the roof)
+- `env_house_desert_tall`
+  - https://en.wikipedia.org/wiki/Storey (storey heights about 3 m)
+- `env_house_desert_vault`
+  - https://en.wikipedia.org/wiki/Barrel_vault (barrel vault form)
+  - https://en.wikipedia.org/wiki/Djerba (vaulted whitewashed rural houses (menzel) of southern Tunisia)
+- `env_house_desert_large`
+  - https://en.wikipedia.org/wiki/Courtyard_house (larger houses with two storeys around a courtyard)
+- `env_house_desert_shop`
+  - https://en.wikipedia.org/wiki/Arcade_(architecture) (arcade of arches in front of shops)
+  - https://en.wikipedia.org/wiki/Souq (rows of small shops on a market)
+- `env_mosque`
+  - https://en.wikipedia.org/wiki/Mosque (prayer hall, courtyard, minaret)
+  - https://en.wikipedia.org/wiki/Minaret (square minarets of the Maghreb)
+- `env_police_post`
+  - https://en.wikipedia.org/wiki/Italian_Libya (Italian colonial administration and outposts in Libya 1912-1943)
+- `env_wall_mud`
+  - https://en.wikipedia.org/wiki/Courtyard_house (walled courtyards)
+  - https://en.wikipedia.org/wiki/Adobe (adobe walls)
+- `env_awning`
+  - https://en.wikipedia.org/wiki/Awning (fabric awnings on poles)
+- `env_jars`
+  - https://en.wikipedia.org/wiki/Amphora (storage jars)
+  - https://en.wikipedia.org/wiki/Waterskin (water skins)
+- `env_well_desert`
+  - https://en.wikipedia.org/wiki/Well (draw well with masonry curb and pulley frame)
+- `env_cart_wood`
+  - https://en.wikipedia.org/wiki/Cart (two-wheeled animal-drawn cart)
+- `env_market_stall`
+  - https://en.wikipedia.org/wiki/Souq (market stalls)
 

@@ -507,6 +507,28 @@ biome variants cost nothing.
   roof). Snow on winter maps comes from the biome look, not from extra
   variants.
 
+- **Desert village** (prompt 059): ten house types from the generator
+  `desert_house` (`kit/desert.py`, data-driven room blocks with flat roofs
+  and parapets, roof rooms, outside stairs, barrel vaults, arcade,
+  balcony; palm-trunk beam ends, drain spouts, shutters and grilles
+  instead of glass, spalled plaster showing brick, sand drifts in
+  `_Floor` with Ground kind 3), all with the door / courtyard side on +X:
+  `env_house_desert_hut`, `_two`, `_long`, `_corner` (L), `_stair`,
+  `_roofroom`, `_tall`, `_vault`, `_large`, `_shop`. `kit/desert_props.py`:
+  the courtyard wall `env_wall_mud` (`Segment`, `Low`, `Broken`, `Gate`,
+  `End`, `Corner`), the props `env_awning` (`Cloth`, `Wide`, `Palm`
+  frond shelter), `env_jars`, `env_well_desert`, `env_cart_wood`,
+  `env_market_stall`, and the landmarks `env_mosque` (whitewashed hall,
+  dome, square minaret as `_Tower`; no writing, symbols or crescent) and
+  `env_police_post` (colonial post with crenellations and watchtower; no
+  insignia or flags). Mosque and police post have the church's budget
+  (5 000). Nothing modern. Compounds of these objects:
+  [MAPS.md](MAPS.md#desert-village-prompt-059).
+- **AO bake per variant** (prompt 059): `bake_env` bakes each variant (a
+  child of the root with its parts) on its own; before, all variants
+  standing at the origin shaded each other (inner variants came out
+  darker). Models built before keep their old bake until rebuilt.
+
 ### Distance: far meshes instead of impostors
 
 Trees have a `<Variant>_Far` mesh: low trunk plus three crossed and one or two
@@ -532,7 +554,7 @@ the frame ([ARCHITECTURE.md](ARCHITECTURE.md#map-objects-and-decoration-presenta
 |---|---|---|
 | Tree | ≤ 2 000 (far ≤ 200) | per variant, not per file |
 | Bush / grass clump / rock | ≤ 500 / 50 / 300 | |
-| House / church | ≤ 3 000 / 5 000 | per damage variant, all parts together |
+| House / church, mosque, police post | ≤ 3 000 / 5 000 | per damage variant, all parts together |
 | Bridge | ≤ 3 000 | no budget in the table above; same as a house |
 | Fence, wall, hedge segment; fortification | ≤ 2 000 | |
 | Prop, pole, mine, sign | ≤ 800 | like small parts |

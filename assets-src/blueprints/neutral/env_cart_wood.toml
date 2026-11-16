@@ -1,0 +1,8 @@
+# Two-wheeled wooden cart, unhitched, shafts on a prop (prompt 059).
+unit = "env_cart_wood"
+assembly = "env"
+
+[[variant]]
+name = "Cart"
+part = "cart_wood"
+seed = 1

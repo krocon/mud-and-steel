@@ -1,0 +1,23 @@
+# Unglazed clay storage jars (prompt 059): a group with a water skin, a
+# single jar, a large storage jar on a stone ring.
+unit = "env_jars"
+assembly = "env"
+
+[[variant]]
+name = "Group"
+part = "jars"
+seed = 1
+
+[[variant]]
+name = "Single"
+part = "jars"
+arrangement = "single"
+dims_m = [0.55, 0.55, 0.8]
+seed = 2
+
+[[variant]]
+name = "Large"
+part = "jars"
+arrangement = "large"
+dims_m = [0.9, 0.9, 1.3]
+seed = 3

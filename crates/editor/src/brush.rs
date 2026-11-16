@@ -310,7 +310,7 @@ impl EditMap {
 
     // --- Objects ------------------------------------------------------
 
-    fn check_kind(&self, kind: &str, variant: &str) -> Result<(), String> {
+    pub(crate) fn check_kind(&self, kind: &str, variant: &str) -> Result<(), String> {
         self.rules
             .find(kind, variant)
             .map(|_| ())

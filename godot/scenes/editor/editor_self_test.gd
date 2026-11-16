@@ -223,6 +223,20 @@ func _history_test(scene: Node3D, editor: MapEditor) -> void:
 	_check(scene.world_rebuilds > rebuilds and scene.map_objects.object_instances == count - 1, "objects not redrawn after undo")
 	scene.redo()
 	_check(editor.object_count() == count, "redo did not bring the house back")
+	# Prompt 059: a compound and the village brush, each one undo step.
+	scene.tool = "compound"
+	scene.compound_name = "merchant_yard"
+	scene.place_heading = 90
+	scene.stroke(_points([Vector2(-60, 60)], editor))
+	_check(editor.object_count() > count + 15, "compound placed %d objects" % (editor.object_count() - count))
+	scene.undo()
+	_check(editor.object_count() == count, "undo kept the compound")
+	scene.tool = "village"
+	scene.radius = 40.0
+	scene.stroke(_points([Vector2(-60, 60)], editor))
+	_check(editor.object_count() > count + 30, "village brush placed %d objects" % (editor.object_count() - count))
+	scene.undo()
+	_check(editor.object_count() == count, "undo kept the village")
 	# Heights: undo a raise, the terrain shows the old height again.
 	var before := editor.height_at(0, -20)
 	scene.tool = "raise"

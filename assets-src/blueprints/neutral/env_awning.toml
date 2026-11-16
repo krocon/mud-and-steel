@@ -1,0 +1,26 @@
+# Shade awnings (prompt 059): woven cloth on crooked poles, a wide cloth on
+# six poles, a palm-frond shelter.
+unit = "env_awning"
+assembly = "env"
+
+[[variant]]
+name = "Cloth"
+part = "awning"
+seed = 1
+
+[[variant]]
+name = "Wide"
+part = "awning"
+dims_m = [5.0, 3.0, 2.6]
+poles = 3
+sag = 0.15
+seed = 2
+
+[[variant]]
+name = "Palm"
+part = "awning"
+dims_m = [4.0, 3.0, 2.4]
+style = "palm"
+poles = 3
+slope = 0.2
+seed = 3

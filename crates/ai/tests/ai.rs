@@ -465,6 +465,39 @@ fn ai_lays_mines_that_the_enemy_does_not_see() {
     assert!(PlayerView::new(game.sim(), PlayerId(1)).mines.is_empty());
 }
 
+/// Prompt 050: on Normal, a badly hurt veteran pulls back out of the fight
+/// while a recruit with the same losses fights on.
+#[test]
+fn normal_pulls_back_hurt_veterans() {
+    let catalog = sim::Catalog::builtin().unwrap();
+    let scale = sim::Scale::builtin().unwrap();
+    let mut config = demo_config();
+    config.unit_types = sim::unit_types_from_catalog(&catalog, &scale, &["de_pz4_h"]).unwrap();
+    let spawn = |owner: u8, x: i32| sim::Spawn {
+        owner: PlayerId(owner),
+        unit_type: "de_pz4_h".into(),
+        position: Vec2::from_meters(x, 0),
+        fire_mode: FireMode::FireAtWill,
+    };
+    config.spawns = vec![spawn(0, -100), spawn(0, -90), spawn(0, -80), spawn(1, 100)];
+    let map = builtin_map();
+    let sim = Sim::new(&config, map.clone(), 1).unwrap();
+    let base = PlayerView::new(&sim, PlayerId(0));
+    assert!(!base.enemies.is_empty(), "the enemy tank is not in sight");
+    let pulled_back = |rank: u8| {
+        let mut view = base.clone();
+        let hurt = &mut view.own[0];
+        hurt.hp = hurt.max_hp * 35 / 100;
+        hurt.rank = rank;
+        let mut ai = Ai::new(PlayerId(0), Difficulty::Normal, &config, &map, 3);
+        ai.think(&view)
+            .iter()
+            .any(|c| matches!(c, Command::MoveTo { units, .. } if units.as_slice() == [UnitId(0)]))
+    };
+    assert!(!pulled_back(0), "a recruit pulled back on Normal");
+    assert!(pulled_back(2), "the veteran stayed in the fight");
+}
+
 /// Prompt 052: after its mines, the AI fortifies the chokepoint it defends:
 /// a trench, wire, an MG nest and a camouflage net.
 #[test]

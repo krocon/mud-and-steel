@@ -1162,6 +1162,9 @@ impl Sim {
                 let ticks = self.infantry.types[self.units[j].unit_type as usize]
                     .as_ref()
                     .map_or(0, |t| t.suppressed_ticks);
+                let ticks = self
+                    .experience
+                    .suppression_ticks(self.units[j].veterancy, ticks);
                 if let Some(s) = &mut self.units[j].squad {
                     s.suppressed = s.suppressed.max(ticks);
                 }

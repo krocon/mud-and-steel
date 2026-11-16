@@ -1659,6 +1659,43 @@ the numbers in `data/logistics.toml` (`sim::LogisticsRules`, loaded by
   shows the bars and warnings, `hud/supply_rings.gd` the radii of selected
   sources, `world/base_hud.gd` the Repair and Sell buttons.
 
+## Experience
+
+Prompt 050; the game rules are in [GAME_DESIGN.md](GAME_DESIGN.md#experience-and-ranks-provisional),
+the numbers in `data/experience.toml` (`sim::ExperienceRules`, loaded by
+`Sim::new`, hashed; not part of `SimConfig`, like `data/logistics.toml`).
+
+- **State:** every unit has a `Veterancy` (`sim/experience.rs`):
+  experience in hundredths of a point (small hits add up exactly), kills
+  and vehicle kills. The rank is derived from the points, never stored.
+- **Gain:** `update_experience` runs after `update_logistics`, when the
+  tick's `CombatEvent`s are complete. `Hit` events of kind `Unit` with
+  damage between enemies (`Teams::allied`) are grouped per target; the
+  target's real loss this tick (its hit points at the end of the last tick,
+  kept in `Experience::last_hp`, minus now; no overkill) is shared out by
+  each shooter's damage. `Destroyed` gives the kill; survivors of a damaging
+  hit and (once per game second) suppressed squads get their points.
+  Shooters that are not units (`MINE_SHOOTER`, `AIR_SHOOTER`) are skipped.
+- **Bonuses:** `fire` and `fire_squad` (`sim/combat.rs`) scale the spread
+  by the rank's `dispersion_pct` and the reload of the fired weapon by
+  `reload_pct` (rounded, at least one tick); `near_miss`, shell blasts and
+  air attacks scale the suppression time by `suppression_pct`. Indirect
+  fire reload and anti-aircraft fire are unchanged.
+- **State and saves:** rules and every unit's points and kills are in the
+  state hash (`hash_experience`) and, as serde fields, in saved games; the
+  promotions of the last tick and `last_hp` are derived and not hashed.
+- **Queries:** `UnitSnapshot::experience` (`ExperienceView`: points, rank,
+  kills), `Sim::unit_experience`, `Sim::promotions` (last tick),
+  `Sim::experience_rules`; `Sim::set_unit_experience` for tests and the
+  debug function `SimHost.debug_set_experience` (no command: not in
+  replays). The AI reads the rank through `OwnUnit::rank`.
+- **Presentation** (`bridge/src/experience_funcs.rs`): `unit_ranks`,
+  `unit_vehicle_kills`, `unit_experience(id)`, `rank_names`. The unit panel
+  draws the insignia (`hud/rank_badge.gd`), `world/veterancy_view.gd` the
+  kill rings under the model's `Gun` node (gun origin to `Socket_Muzzle`)
+  and the promotion messages, `infantry_view.gd` re-dresses soldiers when
+  their squad's rank changes (`SoldierLook.apply(.., rank)`).
+
 ## Field works
 
 Prompt 035. Engineer squads (catalog category `inf_engineer`) lay

@@ -1,0 +1,53 @@
+# Saved by the map editor (prompt 028); format: docs/MAPS.md.
+name = "desert_village"
+generator = "cli gen-village --name desert_village --seed 59"
+cell_size_mm = 2000
+samples = [401, 401]
+height_base_mm = -4000
+height_step_mm = 1
+biome = "desert"
+water_flow_deg = 180
+
+[[start]]
+player = 0
+team = 0
+position_m = [-90, 330]
+
+[[start]]
+player = 1
+team = 1
+position_m = [90, -330]
+
+[[start]]
+player = 2
+team = 0
+position_m = [90, 330]
+
+[[start]]
+player = 3
+team = 1
+position_m = [-90, -330]
+
+[[marker]]
+name = "village"
+position_m = [0, 0]
+
+[[marker]]
+name = "oasis"
+position_m = [-235, 70]
+
+[[marker]]
+name = "police_post"
+position_m = [235, -30]
+
+[[marker]]
+name = "supply_square"
+position_m = [0, 0]
+
+[[marker]]
+name = "supply_well"
+position_m = [-188, 40]
+
+[[marker]]
+name = "supply_fort"
+position_m = [235, -30]

@@ -19,6 +19,7 @@ pub mod crossings;
 mod data;
 pub mod destruction;
 pub mod economy;
+pub mod experience;
 pub mod fire;
 pub mod formation;
 mod hash;
@@ -62,6 +63,7 @@ pub use destruction::{
     DestructionRules, ObjectCause, ObjectEvent, ObjectStage, ObjectState, Remains,
 };
 pub use economy::{Cost, EconomyRules, RESOURCE_NAMES, Resources};
+pub use experience::{ExperienceRules, RankRules};
 pub use fire::{FireEvent, FireEventKind, FireRules, FireSource, FireView};
 pub use formation::{Engage, Formation};
 pub use hash::StableHasher;
@@ -76,8 +78,8 @@ pub use positions::{LayoutPiece, PositionRules, strongpoint_layout};
 pub use rng::Rng;
 pub use scale::Scale;
 pub use sim::{
-    BuildingCondition, BuyOption, ConfigError, DrillView, MAX_PLAYERS, MAX_QUEUED, Phase,
-    PlaceError, RouteView, Sim, SimConfig, Snapshot, SoldierSnapshot, Spawn, StockView,
+    BuildingCondition, BuyOption, ConfigError, DrillView, ExperienceView, MAX_PLAYERS, MAX_QUEUED,
+    Phase, PlaceError, RouteView, Sim, SimConfig, Snapshot, SoldierSnapshot, Spawn, StockView,
     StructureView, SupplySource, SupplyView, UnitSnapshot, WORLD_LIMIT_M, formation_slots,
     formation_spacing,
 };
