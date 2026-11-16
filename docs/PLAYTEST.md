@@ -139,7 +139,12 @@ of this list is open any more.
    250 m decides most tank fights and makes a passive German line
    unbeatable for Soviet tanks on small maps. A common rule (e.g. one range
    per gun class) would be a scale decision; prompt 067 changes the
-   catalog to typical combat ranges.
+   catalog to typical combat ranges. **Done (prompt 067):** every weapon
+   has `range_typical_m`, one value per weapon class (75 mm class guns
+   700 m real = 175 m in the game for all three factions, rifles 75 m);
+   see SCALE.md "Typical combat distances" and BALANCE.md "Typical combat
+   distances (prompt 067)". To check in a match: fights start at about
+   half the distances of before, and infantry in the open dies faster.
 4. **Unit prices** **[confirmed 2026-11-16, rate of fire added]**
    (GAME_DESIGN.md "Unit costs"): the ammunition price of
    direct-fire weapons now scales with their range (reference 250 m,

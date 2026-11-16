@@ -4,7 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://bnaxdg14rm806" path="res://assets/models/su/infantry/at_gunner.glb" id="2_at_gunner"]
 
 [node name="su_inf_at" type="Node3D"]
-metadata/extras = {"cat_id": "su_inf_at", "cat_faction": "su", "cat_category": "inf_at", "cat_name_de": "Panzerbüchsentrupp PTRD-41", "cat_name_en": "PTRD-41 Anti-Tank Rifle Team", "cat_designation": "PTRD-41 (14.5-mm protivotankovoye ruzhyo Degtyaryova)", "cat_year_from": 1941, "cat_year_to": 1945, "cat_speed_road_kmh_x10": 50, "cat_speed_offroad_kmh_x10": 40, "cat_weapons": "PTRD-41; Mosin-Nagant M1891/30", "cat_squad_size": 2, "squad": true, "squad_roles": ["at_gunner", "at_assistant"], "squad_notes": ["gunner (PTRD-41)", "assistant, ammunition (Mosin-Nagant M1891/30)"], "squad_clips": ["aim_prone", "prone"], "squad_file": "assets-src/blueprints/su/squads/su_inf_at.toml", "source_hash": "a1b0d46d15362846"}
+metadata/extras = {"cat_id": "su_inf_at", "cat_faction": "su", "cat_category": "inf_at", "cat_name_de": "Panzerbüchsentrupp PTRD-41", "cat_name_en": "PTRD-41 Anti-Tank Rifle Team", "cat_designation": "PTRD-41 (14.5-mm protivotankovoye ruzhyo Degtyaryova)", "cat_year_from": 1941, "cat_year_to": 1945, "cat_speed_road_kmh_x10": 50, "cat_speed_offroad_kmh_x10": 40, "cat_weapons": "PTRD-41; Mosin-Nagant M1891/30", "cat_squad_size": 2, "squad": true, "squad_roles": ["at_gunner", "at_assistant"], "squad_notes": ["gunner (PTRD-41)", "assistant, ammunition (Mosin-Nagant M1891/30)"], "squad_clips": ["aim_prone", "prone"], "squad_file": "assets-src/blueprints/su/squads/su_inf_at.toml", "source_hash": "10a4cb25f26adc29"}
 
 [node name="Member_01" parent="." instance=ExtResource("2_at_gunner")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.5)

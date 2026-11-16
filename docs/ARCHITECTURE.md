@@ -476,12 +476,15 @@ After commands and path planning, before movement:
    infantry_per_mm` of his `soldier_hp`); soft cover and buildings may
    catch it first ([INFANTRY.md](INFANTRY.md#behavior-prompt-022)).
 
-| Gun (catalog) | Muzzle penetration | At 375 m game (1500 m real) |
+Ranges are the catalog's typical combat distances × 1/4 since prompt 067
+([SCALE.md](SCALE.md#typical-combat-distances-prompt-067)).
+
+| Gun (catalog) | Muzzle penetration | At its range limit (game / real) |
 |---|---|---|
-| 7.5 cm KwK 40 L/48 (Panzer IV H, 750 m/s) | 130 mm | 91 mm |
-| 8.8 cm KwK 36 L/56 (Tiger I, 773 m/s) | 159 mm | 111 mm |
-| 76.2 mm F-34 (T-34, 662 m/s) | 109 mm | – (range 250 m) |
-| Bazooka M9 (HEAT, 81 m/s) | 96 mm | 96 mm |
+| 7.5 cm KwK 40 L/48 (Panzer IV H, 750 m/s) | 130 mm | 112 mm (175 m / 700 m) |
+| 8.8 cm KwK 36 L/56 (Tiger I, 773 m/s) | 159 mm | 127 mm (250 m / 1000 m) |
+| 76.2 mm F-34 (T-34, 662 m/s) | 109 mm | 94 mm (175 m / 700 m) |
+| Bazooka M9 (HEAT, 81 m/s) | 96 mm | 96 mm (25 m / 100 m) |
 
 ### Snapshot and queries
 

@@ -173,8 +173,15 @@ pub struct Weapon {
     /// Rounds per minute: cyclic for automatic weapons, practical otherwise.
     pub rate_rpm: Option<u32>,
     pub muzzle_velocity_mps: Option<u32>,
-    /// Real effective range in meters (before range compression).
+    /// Real effective range in meters (before range compression): the
+    /// maximum or sight value of direct-fire weapons, the maximum range of
+    /// indirect ones (which the simulation uses for them).
     pub range_effective_m: Option<u32>,
+    /// Real typical combat distance in meters (prompt 067): the usual
+    /// distance at which the weapon was used with effect against its main
+    /// target. The simulation's direct fire uses only this value. Absent
+    /// for the indirect weapon of mortars, howitzers and self-propelled guns.
+    pub range_typical_m: Option<u32>,
     pub ammo_carried: Option<u32>,
     /// Real effective range against aircraft (slant range / ceiling) in
     /// meters, for anti-aircraft guns (prompt 033).
@@ -564,6 +571,32 @@ fn validate(e: &Entry) -> Vec<String> {
                 "weapon '{}': range_effective_m above 30000",
                 w.name
             ));
+        }
+        // Typical combat distance (prompt 067): every weapon with a range
+        // has one, except the indirect weapon (the first weapon of an
+        // indirect category), whose range is a maximum range by definition.
+        let indirect_main = crate::indirect::is_indirect_category(e.category)
+            && e.weapon.first().is_some_and(|first| std::ptr::eq(first, w));
+        match (w.range_effective_m, w.range_typical_m) {
+            (_, Some(_)) if indirect_main => errors.push(format!(
+                "weapon '{}': the indirect weapon has no range_typical_m",
+                w.name
+            )),
+            (Some(_), None) if !indirect_main => errors.push(format!(
+                "weapon '{}': range_effective_m without range_typical_m",
+                w.name
+            )),
+            (None, Some(_)) => errors.push(format!(
+                "weapon '{}': range_typical_m without range_effective_m",
+                w.name
+            )),
+            (Some(effective), Some(typical)) if typical == 0 || typical > effective => {
+                errors.push(format!(
+                    "weapon '{}': range_typical_m must be 1..=range_effective_m",
+                    w.name
+                ));
+            }
+            _ => {}
         }
         if w.range_aa_m.is_some_and(|r| !(100..=20_000).contains(&r)) {
             errors.push(format!(

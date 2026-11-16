@@ -138,5 +138,7 @@ fn hard_attacks_from_the_flank() {
         off.y.abs() * 2 > off.length(),
         "attacked along the direct line from {center:?}"
     );
-    assert!(off.length() > Fixed::from_num(150), "{center:?}");
+    // From a distance: more than 60 % of the T-34's range (175 m since
+    // prompt 067: 105 m; 150 m of 250 m before).
+    assert!(off.length() > Fixed::from_num(105), "{center:?}");
 }

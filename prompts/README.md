@@ -146,7 +146,7 @@ oder weggelassen; es werden keine Inhalte anderer Spiele übernommen.
 Viele dieser Prompts ändern `sim.rs`, `command.rs`, `main.gd` und den Golden-Hash.
 Parallel laufende Sessions übernehmen vor dem Abschluss den aktuellen `main`.
 
-### Stufe 4: Fahrzeugdaten (063–066)
+### Stufe 4: Fahrzeugdaten (063–068)
 
 Die Vorlagen in `docs/.vorlagen/fahrzeuge/` (nicht im Repo, geladen mit
 `just vehicle-refs`) enthalten technische Daten und Zeichnungen zu 141 Panzerfahrzeugen.
@@ -160,7 +160,8 @@ Zeichnungen bleiben Referenz auf dem Rechner.
 | 064 | [Fahrzeug-Datenbank](done/064-fahrzeug-datenbank.md) | `data/vehicles/*.json` mit Schema, Quelle und Prüfung gegen den Katalog; Zugriff für Spiel und Webseite | erledigt (130 Einträge; dabei aus 063 vorgezogen: `tools/vehicle_refs.py`, `data/vehicles/index.json`, `docs/VEHICLE_REFS.md`) |
 | 065 | [Webseite: Fahrzeugdaten und Spielwerte](done/065-webseite-fahrzeugdaten-spielwerte.md) | Technische Daten in der Detailansicht, Spielwerte aus der Sim (`cli unit-stats`), fünf Kennzahlen | erledigt (offen: Hosting-Anbieter in der Datenschutzerklärung eintragen) |
 | 066 | [Einheitenwerte im Spiel](done/066-einheitenwerte-im-spiel.md) | Kennzahlen im Picker, Tooltip, Einheitenkarte, Nachschlagewerk im Hauptmenü | erledigt (Taste Umschalt + I statt I, weil I „Sichern“ ist; offen: Vorhersage beim Zielen, auf kleinen Fenstern verdeckt die Karte die Einheitenanzeige) |
-| 067 | [Typische Kampfentfernungen](067-typische-kampfentfernungen.md) | Typische statt maximale Reichweiten im Katalog, mit Quellen; Balance neu messen | offen |
+| 067 | [Typische Kampfentfernungen](done/067-typische-kampfentfernungen.md) | Typische statt maximale Reichweiten im Katalog, mit Quellen; Balance neu messen | erledigt (`range_typical_m` je Waffe, Klassenwerte mit Quellen; Direktfeuer × 1/4 bleibt; Gefecht 49 / 48 / 46 % statt 48 / 41 / 47 %; neuer Preisfaktor Mündungsgeschwindigkeit vorläufig; offen: USA im Basis-Modus 15 %, siehe `docs/BALANCE.md`) |
+| 068 | [Wiese: Artefakte bei Kamerabewegung](068-wiese-artefakte-bei-kamerabewegung.md) | Flimmern und Moiré des Rasens beim Bewegen des Bildausschnitts nachstellen, messen, Ursache eingrenzen; kleine Ursachen beheben | offen |
 
 ```
 063 Vorab-Session ─┬─ 063 Modell-Sessions (9 parallel) ─ zusammenführen

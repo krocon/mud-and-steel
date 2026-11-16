@@ -55,10 +55,56 @@ pub fn render(catalog: &Catalog) -> String {
                 out.push('\n');
             }
         }
+        ranges_table(&mut out, &entries);
         uncertain_list(&mut out, &entries);
         sources_list(&mut out, &entries);
     }
     out
+}
+
+/// Every weapon with a range, once per name and pair of values (prompt
+/// 067): the typical combat distance the simulation's direct fire uses, and
+/// the maximum or sight value.
+fn ranges_table(out: &mut String, entries: &[&Entry]) {
+    let mut rows: Vec<(&str, Option<u32>, u32, Vec<&str>)> = Vec::new();
+    for e in entries {
+        for w in &e.weapon {
+            let Some(effective) = w.range_effective_m else {
+                continue;
+            };
+            match rows
+                .iter_mut()
+                .find(|r| r.0 == w.name && r.1 == w.range_typical_m && r.2 == effective)
+            {
+                Some(row) => row.3.push(&e.id),
+                None => rows.push((&w.name, w.range_typical_m, effective, vec![&e.id])),
+            }
+        }
+    }
+    if rows.is_empty() {
+        return;
+    }
+    out.push_str(
+        "### Weapon ranges\n\n\
+         Typical: the usual combat distance (`range_typical_m`), used by direct fire. \
+         Effective: maximum or sight value, for indirect weapons (no typical value) the \
+         maximum range the simulation uses.\n\n\
+         | Weapon | Typical (m) | Effective (m) | Entries |\n|---|---|---|---|\n",
+    );
+    for (name, typical, effective, ids) in rows {
+        let _ = writeln!(
+            out,
+            "| {} | {} | {} | {} |",
+            escape(name),
+            opt(typical),
+            effective,
+            ids.iter()
+                .map(|id| format!("`{id}`"))
+                .collect::<Vec<_>>()
+                .join(", ")
+        );
+    }
+    out.push('\n');
 }
 
 fn table(out: &mut String, group: Group, rows: &[&Entry]) {

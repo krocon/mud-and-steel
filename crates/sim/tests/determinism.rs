@@ -21,7 +21,14 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by the decisions of prompt 045 (2026-11-16): the economy rules
+/// Last changed by prompt 067 (typical combat distances): direct fire uses
+/// the catalog's `range_typical_m` instead of `range_effective_m` (Panzer IV
+/// 175 m instead of 375 m, T-34 175 m instead of 250 m, rifles 75 m instead
+/// of 125 m), so the demo battle runs differently (decided at tick 1834
+/// instead of 1013, same winner); the unit prices changed too (range
+/// reference 175 m, the new velocity factor, both hashed economy rules).
+/// Before (`0x0b95_b29d_5ff1_d003`), the decisions of prompt 045
+/// (2026-11-16): the economy rules
 /// gained the rate-of-fire factor of unit prices and the `[defeat]` rule
 /// (a base match is lost with the base); both are hashed, the prices of
 /// the match's unit types too, and so is the list of players who have had
@@ -219,7 +226,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x0b95_b29d_5ff1_d003;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x3ad2_633d_388d_e4f8;
 
 #[test]
 fn golden_hash() {
@@ -265,18 +272,20 @@ fn demo_is_a_battle() {
 
 /// The demo battle ends by elimination (prompt 027): the result is part of
 /// the golden state above. Since prompt 047 the last suppressed squad
-/// holds out until about tick 1000 (1013 with the wounds of prompt 049),
-/// so the run is 1100 ticks long (the golden hash above stays at 1000
-/// ticks).
+/// holds out until about tick 1000 (1013 with the wounds of prompt 049).
+/// With the typical combat distances of prompt 067 the rifle squads start
+/// out of each other's range (176 m apart, rifles reach 75 m) and the last
+/// Soviet squad falls at tick 1834, so the run is 1900 ticks long (the
+/// golden hash above stays at 1000 ticks).
 #[test]
 fn demo_battle_is_decided() {
-    let end = run_demo(42, 1100);
+    let end = run_demo(42, 1900);
     let outcome = end.outcome().expect("the demo battle is decided");
     assert_eq!(outcome.winner, Some(sim::PlayerId(0)));
-    assert_eq!(outcome.tick, 1013);
+    assert_eq!(outcome.tick, 1834);
     assert_eq!(end.alive_units(sim::PlayerId(1)), 0);
     assert_eq!(
         end.standings()[1].defeat,
-        Some((sim::DefeatReason::Eliminated, 1013))
+        Some((sim::DefeatReason::Eliminated, 1834))
     );
 }

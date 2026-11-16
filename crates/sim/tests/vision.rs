@@ -241,7 +241,7 @@ fn hidden_targets_draw_no_fire_and_seen_ones_do() {
     let shots = |y: i32| {
         let mut sim = sim_with(
             map_with(hill, ""),
-            &[(P0, TANK, 0, 200, FIRE), (P1, ENEMY, 0, y, HOLD)],
+            &[(P0, TANK, 0, 150, FIRE), (P1, ENEMY, 0, y, HOLD)],
         );
         let mut shots = 0;
         for _ in 0..200 {
@@ -255,7 +255,7 @@ fn hidden_targets_draw_no_fire_and_seen_ones_do() {
         shots
     };
     // Within weapon range in both cases.
-    assert_eq!(shots(-120), 0);
+    assert_eq!(shots(-20), 0);
     assert!(shots(0) > 0);
 }
 

@@ -29,10 +29,10 @@ fn flat_map() -> Arc<Map> {
 
 fn setup(map: Arc<Map>) -> Sim {
     let spawns = [
-        (P0, "de_inf_rifle_squad", 0, 100, FIRE),
-        (P0, "de_inf_rifle_squad", 30, 100, FIRE),
-        (P1, "su_inf_rifle_squad", 0, -100, FIRE),
-        (P1, "su_inf_mg_team", 40, -100, FIRE),
+        (P0, "de_inf_rifle_squad", 0, 50, FIRE),
+        (P0, "de_inf_rifle_squad", 30, 50, FIRE),
+        (P1, "su_inf_rifle_squad", 0, -50, FIRE),
+        (P1, "su_inf_mg_team", 40, -50, FIRE),
     ];
     let catalog = Catalog::builtin().unwrap();
     let scale = Scale::builtin().unwrap();
@@ -73,7 +73,7 @@ fn snapshot_mid_bound_continues_identically() {
         P0,
         Command::FormationMove {
             units: vec![UnitId(0), UnitId(1)],
-            target: Vec2::from_meters(0, -60),
+            target: Vec2::from_meters(0, -30),
             formation: Formation::Line,
             facing: None,
             engage: Engage::All,

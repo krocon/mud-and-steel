@@ -14,7 +14,9 @@ const P1: PlayerId = PlayerId(1);
 const FIRE: FireMode = FireMode::FireAtWill;
 const HOLD: FireMode = FireMode::HoldFire;
 const SQUAD: &str = "de_inf_rifle_squad";
-const MG: &str = "su_inf_mg_team";
+// The tripod machine gun: it reaches 200 m (800 m real typical distance,
+// prompt 067); the bipod gun of `su_inf_mg_team` reaches 100 m.
+const MG: &str = "su_inf_hmg_team";
 
 /// 800 m × 800 m flat map around the origin with the given objects
 /// (`kind,variant,x_mm,y_mm,heading_deg` lines).
@@ -331,7 +333,7 @@ fn squads_occupy_buildings_up_to_their_capacity() {
         1,
         &[
             (P0, SQUAD, -40, 0, HOLD),
-            (P0, MG, -40, 20, HOLD),
+            (P0, "su_inf_mg_team", -40, 20, HOLD),
             (P0, SQUAD, -40, -25, HOLD),
             (P1, "de_inf_mg42_team", 40, 0, HOLD),
         ],

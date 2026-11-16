@@ -95,6 +95,17 @@ pub struct UnitCostRules {
     pub rate_min_pct: u32,
     #[serde(default)]
     pub rate_max_pct: u32,
+    /// Prompt 067: the ammunition term of a direct-fire weapon is also
+    /// scaled by the cube of its muzzle velocity relative to this velocity
+    /// (m/s; 0 = no scaling), clamped to
+    /// `velocity_min_pct..=velocity_max_pct` percent. With the squared
+    /// caliber this is the square of the combat rules' muzzle penetration.
+    #[serde(default)]
+    pub velocity_ref_mps: u32,
+    #[serde(default)]
+    pub velocity_min_pct: u32,
+    #[serde(default)]
+    pub velocity_max_pct: u32,
 }
 
 /// When a player of a base match loses (decision 6 of prompt 045).
@@ -316,6 +327,18 @@ impl EconomyRules {
                     .clamp(r.rate_min_pct, r.rate_max_pct.max(r.rate_min_pct)),
             )
         };
+        // Velocity factor in percent (prompt 067): the cube of the muzzle
+        // velocity relative to the reference; indirect weapons keep 100 %.
+        let velocity_pct = |mps: u32| -> u64 {
+            if r.velocity_ref_mps == 0 {
+                return 100;
+            }
+            let (v, reference) = (u64::from(mps), u64::from(r.velocity_ref_mps));
+            (v * v * v * 100 / (reference * reference * reference)).clamp(
+                u64::from(r.velocity_min_pct),
+                u64::from(r.velocity_max_pct.max(r.velocity_min_pct)),
+            )
+        };
         let squares: u64 = combat
             .weapons
             .iter()
@@ -323,7 +346,9 @@ impl EconomyRules {
                 (
                     w.caliber_mm_x10,
                     w.count,
-                    range_pct(w.range_m.to_num::<u32>()) * rate_pct(w.rate_rpm) / 100,
+                    range_pct(w.range_m.to_num::<u32>()) * rate_pct(w.rate_rpm) / 100
+                        * velocity_pct(w.muzzle_velocity_mps)
+                        / 100,
                 )
             })
             .chain(combat.indirect.iter().map(|w| (w.caliber_mm_x10, 1, 100)))
@@ -467,6 +492,9 @@ impl EconomyRules {
             u.rate_ref_rpm,
             u.rate_min_pct,
             u.rate_max_pct,
+            u.velocity_ref_mps,
+            u.velocity_min_pct,
+            u.velocity_max_pct,
         ] {
             h.write_u32(v);
         }

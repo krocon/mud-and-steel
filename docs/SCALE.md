@@ -11,7 +11,7 @@ of integers, so the simulation applies it exactly in fixed point.
 |---|---|---|
 | Sizes | **1:1** in real meters, infantry included (reference figure 1.80 m) | fixed |
 | Time | **factor 2**: speeds × 2, durations ÷ 2; overridable per category | fixed |
-| Direct-fire range | real × **1/4** | confirmed 2026-11-15 |
+| Direct-fire range | real **typical combat distance** (`range_typical_m`) × **1/4** | typical distances decided 2026-11-16 (prompt 067); factor confirmed 2026-11-15, re-checked 2026-11-16 |
 | Sight range | real × **1/4** | confirmed 2026-11-15 |
 | Indirect-fire range | real × **1/8** | confirmed 2026-11-15 |
 | Aircraft speed | real × **1/2** (instead of the time factor) | confirmed 2026-11-15 |
@@ -49,10 +49,11 @@ With 1:1 sizes, real combat ranges are far too long for the screen: a PaK 40 hit
 targets at 1.5 km, a field howitzer at over 10 km. Ranges are therefore compressed,
 by different factors per kind:
 
-- **Direct fire × 1/4.** Rifles (real ~400 m) reach ~100 m, half a screen at medium
-  zoom; anti-tank guns (real ~1 500 m) ~375 m, about two screens at medium zoom and
-  still within the overview. Duels stay visible, and range differences between weapons
-  are kept in proportion.
+- **Direct fire × 1/4 of the typical combat distance** (prompt 067, see "Typical
+  combat distances" below). Rifles (typical 300 m) reach 75 m, 0.4 screens at medium
+  zoom; the 75 mm class tank and anti-tank guns (700 m) 175 m, about one screen;
+  88 mm class guns (1000 m) 250 m. A duel fits on one screen, and range differences
+  between weapon classes are kept in proportion.
 - **Sight × 1/4**, the same as direct fire, so a unit can see what it can shoot. Real
   ~2 km in open terrain becomes ~500 m; hills, forests and buildings reduce it (prompt
   018). The catalog has no sight values: `data/vision.toml` sets them as rules in real
@@ -64,6 +65,55 @@ by different factors per kind:
 
 Formula: `game_range = real_range × num / den` (`Scale::direct_fire_range_m`,
 `sight_range_m`, `indirect_fire_range_m`).
+
+### Typical combat distances (prompt 067)
+
+Decision of the user (2026-11-16): the game computes direct fire with **typical
+combat distances**, not with maximum ranges. Until then the catalog had one value,
+`range_effective_m`, and its sources meant different things by it: 1500 m for the
+KwK 40 of the Panzer IV, 1000 m for the F-34 of the T-34 and the 75 mm M3 of the
+M4A3, 3000 m for an MG 42 on its tripod, 14 860 m (the maximum horizontal range) for
+the 8.8 cm Flak 36. In the game the Panzer IV outranged the T-34 by 125 m for no
+historical reason.
+
+- The catalog has two values per weapon now: `range_effective_m` (the maximum or
+  sight value, kept for reference) and `range_typical_m`, the usual distance at
+  which the weapon was used with effect against its main target. Definition, rules
+  and the class table: [`data/catalog/SCHEMA.md`](../data/catalog/SCHEMA.md).
+- **Direct fire** uses only `range_typical_m × 1/4` (`sim::combat::WeaponType::range_m`).
+  Weapons of one class have one value in every faction; what differs between guns
+  (penetration, velocity, rate of fire) stays in their own values.
+- **Indirect fire** (mortars, howitzers, self-propelled guns) is unchanged: these
+  weapons have no typical distance, their `range_effective_m` is a maximum range by
+  definition and is compressed × 1/8.
+- **Anti-aircraft fire** is unchanged: `range_aa_m` × 1/4 with the caps of
+  `data/air.toml`. Against ground targets an anti-aircraft gun uses its
+  `range_typical_m` like any gun (8.8 cm Flak 36: 250 m instead of 3715 m).
+- **Sight** is unchanged (`data/vision.toml`: 2 km real → 500 m, recon and snipers
+  700 m). Every direct-fire weapon now reaches less far than its unit sees (the
+  longest: 250 m); before, tripod machine guns and anti-aircraft guns reached beyond
+  sight.
+
+**The factor was re-checked** (2026-11-16) with battle tournaments (10 maps × 3
+pairings × 10 games, Hard against Hard, [BALANCE.md](BALANCE.md)): with 1/4 the
+factions win 51 / 45 / 47 %, with 1/3 (which would keep the game ranges about as
+long as before: rifles 100 m, 75 mm guns 233 m) 50 / 39 / 51 %. 1/4 stays: it is
+the better balanced of the two, it keeps one factor for sight, direct fire and
+anti-aircraft fire, and the shorter ranges fit a fight on one screen.
+
+| Class | Typical (m, real) | Game (m) | Before (m) |
+|---|---|---|---|
+| Pistols / .45 submachine guns / other submachine guns | 25 / 50 / 100 | 6 / 12 / 25 | 12 / 12 / 25–50 |
+| Rifles | 300 | 75 | 114–125 |
+| M1 carbine | 200 | 50 | 75 |
+| Sniper rifles | 400 | 100 | 150–212 |
+| Bipod and vehicle machine guns, BAR | 400 | 100 | 137–342 |
+| Tripod machine guns, .50 on a vehicle | 800 | 200 | 250–750 |
+| Panzerfaust 60 / anti-tank rockets / anti-tank rifle | 60 / 100 / 150 | 15 / 25 / 37 | 15 / 27–37 / 75 |
+| 20 mm cannon / light guns 37–45 mm | 400 / 500 | 100 / 125 | 150 / 200–250 (flak in the ground role up to 1790) |
+| 57–76 mm tank and anti-tank guns | 700 | 175 | 250–450 |
+| 85–122 mm high-velocity guns | 1000 | 250 | 375–500 (heavy flak up to 4760) |
+| 105 mm howitzer of the M4A3 (105) in direct fire | 500 | 125 | 2790 |
 
 - **Fuel × 1/20** (prompt 036, provisional). A full tank lasts the real road range
   times 1/20: Panzer IV 10.5 km, Tiger 9.75 km, Opel Blitz 16 km. Real ranges
@@ -132,16 +182,20 @@ Computed from the catalog on 2026-11-15; recompute after catalog changes.
 
 ### Combat ranges
 
-Game range = real range × factor. Screen width: 190 m at medium zoom, 570 m in the overview.
+Game range = real range × factor; the real range of direct fire is the typical
+combat distance (`range_typical_m`), of indirect fire the maximum range. Screen
+width: 190 m at medium zoom, 570 m in the overview.
 
 | Weapon | Real (m) | Factor | Game (m) | Medium-zoom screens | Overview screens |
 |---|---|---|---|---|---|
-| Kar98k (`de_inf_rifle_squad`) | 500 | 1/4 direct | 125 | 0.7 | 0.2 |
-| MG 42 (`de_inf_mg42_team`) | 800 | 1/4 direct | 200 | 1.1 | 0.4 |
-| 2.36 in Rocket Launcher M9 (Bazooka) (`us_inf_at`) | 110 | 1/4 direct | 28 | 0.1 | 0.0 |
-| 7.5 cm PaK 40 L/46 (`de_pak40`) | 1800 | 1/4 direct | 450 | 2.4 | 0.8 |
-| 7.5 cm KwK 40 L/48 (`de_pz4_h`) | 1500 | 1/4 direct | 375 | 2.0 | 0.7 |
-| 8.8 cm KwK 36 L/56 (`de_tiger1_e`) | 2000 | 1/4 direct | 500 | 2.6 | 0.9 |
+| Kar98k (`de_inf_rifle_squad`) | 300 | 1/4 direct | 75 | 0.4 | 0.1 |
+| MG 42 (`de_inf_mg42_team`) | 400 | 1/4 direct | 100 | 0.5 | 0.2 |
+| MG 42 on Lafette 42 (`de_inf_hmg_team`) | 800 | 1/4 direct | 200 | 1.1 | 0.4 |
+| 2.36 in Rocket Launcher M9 (Bazooka) (`us_inf_at`) | 100 | 1/4 direct | 25 | 0.1 | 0.0 |
+| 7.5 cm PaK 40 L/46 (`de_pak40`) | 700 | 1/4 direct | 175 | 0.9 | 0.3 |
+| 7.5 cm KwK 40 L/48 (`de_pz4_h`) | 700 | 1/4 direct | 175 | 0.9 | 0.3 |
+| 76.2 mm F-34 (`su_t34_76_1943`), 75 mm M3 (`us_m4a3_75`) | 700 | 1/4 direct | 175 | 0.9 | 0.3 |
+| 8.8 cm KwK 36 L/56 (`de_tiger1_e`) | 1000 | 1/4 direct | 250 | 1.3 | 0.4 |
 | 60 mm Mortar M2 (mount M2) (`us_inf_mortar_light`) | 1815 | 1/8 indirect | 227 | 1.2 | 0.4 |
 | 8 cm s.GrW 34 (`de_inf_mortar_medium`) | 2400 | 1/8 indirect | 300 | 1.6 | 0.5 |
 | 10.5 cm leFH 18M L/28 (`de_lefh18`) | 12325 | 1/8 indirect | 1541 | 8.1 | 2.7 |
@@ -151,8 +205,8 @@ Combat (prompt 017, [ARCHITECTURE.md](ARCHITECTURE.md#combat)) uses these game
 ranges, the interval between rounds ÷ time factor (Panzer IV: 10 rounds per minute
 real → one round every 3 s), projectile speeds × time factor (750 m/s → 1500 m/s)
 and gravity × time factor². Penetration loss and dispersion work on real distances
-(game distance × 4), so a shot at 375 m in the game is as likely to hit and
-penetrate as one at 1.5 km in reality. Combat rules (not catalog values) are in
+(game distance × 4), so a shot at 175 m in the game is as likely to hit and
+penetrate as one at 700 m in reality. Combat rules (not catalog values) are in
 `data/combat.toml`.
 
 Indirect fire (prompt 032, [ARCHITECTURE.md](ARCHITECTURE.md#indirect-fire-and-smoke))
@@ -179,13 +233,16 @@ Observations for balancing:
 - Infantry crossing 4 km takes 30 min of game time. That is slow but fits the
   role of infantry on a large map; trucks and halftracks move it. If it feels too
   slow, a `[[time.override]]` for infantry categories is the intended lever.
-- Short-range infantry anti-tank weapons (bazooka 110 m real) end up at ~30 m. They
+- Short-range infantry anti-tank weapons (bazooka 100 m real) end up at 25 m. They
   may need a minimum game range rather than pure compression. Prompt 017 keeps pure
   compression; revisit with infantry behavior (prompt 022).
 - Artillery covers 1.5 km, a large part of a 2–4 km map, as intended.
-- Light mortars end up very short: the 5 cm leGrW 36 (520 m real) reaches
-  65 m, shorter than a rifle (125 m). A minimum game range or a separate
-  factor for infantry mortars is a balancing option (prompt 045).
+- Light mortars: the 5 cm leGrW 36 (520 m real) reaches 65 m, about as far as a
+  rifle (75 m since prompt 067; 125 m before).
+- With typical distances (prompt 067) fights happen at shorter real distances,
+  where rounds hit more often (dispersion works on the real distance): a rifle
+  squad in the open 75 m from an enemy squad (300 m real) is wiped out within a few
+  seconds. Cover, stance and suppression matter more than before.
 
 ## Map scale
 

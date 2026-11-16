@@ -14,7 +14,7 @@ uncertain; see the list at the end of each faction.
 | ID | Name | Tier | Size | Weapons |
 |---|---|---|---|---|
 | de_inf_rifle_squad | Schützengruppe (1944) / Rifle squad (1944) | 1 | 9 | 1× MP 40, 1× MG 42, 6× Kar98k, 2× P 38, 9× Stielhandgranate 24? |
-| de_inf_mg42_team | le. MG-Trupp (MG 42) / Light MG team (MG 42) | 1 | 3 | 1× MG 42, 2× P 38, 1× Kar98k |
+| de_inf_mg42_team | le. MG-Trupp (MG 42) / Light MG team (MG 42) | 1 | 3 | 1× MG 42, 2× P 38, 1× Kar98k? |
 | de_inf_hmg_team | s. MG-Trupp (MG 42 auf Lafette 42) / Heavy MG team (MG 42 on Lafette 42) | 2 | 6 | 1× MG 42 on Lafette 42, 1× MP 40, 2× P 38, 3× Kar98k? |
 | de_inf_mortar_light | leichter Granatwerfer-Trupp (5 cm leGrW 36) / Light mortar team (5 cm leGrW 36) | 2 | 3 | 1× 5 cm leGrW 36, 2× P 38, 1× Kar98k? |
 | de_inf_mortar_medium | Granatwerfer-Trupp (8 cm s.GrW 34) / Medium mortar team (8 cm GrW 34) | 2 | 6? | 1× 8 cm s.GrW 34, 1× MP 40, 2× P 38, 3× Kar98k? |
@@ -24,21 +24,21 @@ uncertain; see the list at the end of each faction.
 | de_inf_engineer | Pioniergruppe / Engineer squad | 2 | 9? | 1× MP 40, 1× MG 42, 6× Kar98k, 2× P 38, 4× Geballte Ladung / 3 kg Sprengbüchse 24? |
 | de_inf_at | Panzerschreck-Trupp / Panzerschreck AT team | 2 | 2 | 1× 8.8 cm RPzB 54 Panzerschreck, 2× Panzerfaust 60, 1× P 38, 1× Kar98k? |
 | de_inf_flamethrower | Flammenwerfer-Trupp (FmW 41) / Flamethrower team (FmW 41) | 2 | 2 | 1× Flammenwerfer 41, 1× P 38, 1× Kar98k? |
-| de_inf_command | Zugtrupp (Zugführer und Funker) / Platoon HQ (leader and radio operator) | 2 | 2? | 1× MP 40, 1× Kar98k |
+| de_inf_command | Zugtrupp (Zugführer und Funker) / Platoon HQ (leader and radio operator) | 2 | 2? | 1× MP 40, 1× Kar98k? |
 | de_inf_tank_crew | Panzerbesatzung (ausgestiegen) / Tank crew (bailed out) | 2 | 5 | 1× MP 40, 4× P 38? |
 
 ### Vehicles
 
 | ID | Name | Designation | Years | Tier | L × W × H (m) | Mass (t) | Crew | Road / off (km/h) | Armor hull / turret front (mm) | Main weapon |
 |---|---|---|---|---|---|---|---|---|---|---|
-| de_pz2_l | Panzerkampfwagen II Ausf. L "Luchs" / Panzer II Ausf. L Luchs | Sd.Kfz. 123 | 1943–1945 | 2 | 4.63 × 2.48 × 2.21 | 11.8? | 4 | 60.0 / 30.0? | 30 / 30? | 2 cm KwK 38 L/55 |
+| de_pz2_l | Panzerkampfwagen II Ausf. L "Luchs" / Panzer II Ausf. L Luchs | Sd.Kfz. 123 | 1943–1945 | 2 | 4.63 × 2.48 × 2.21 | 11.8? | 4 | 60.0 / 30.0? | 30 / 30? | 2 cm KwK 38 L/55? |
 | de_pz4_h | Panzerkampfwagen IV Ausf. H / Panzer IV Ausf. H | Sd.Kfz. 161/2 | 1943–1945 | 1 | 7.02 × 2.88? × 2.68 | 25.0 | 5 | 38.0 / 16.0? | 80 / 50 | 7.5 cm KwK 40 L/48 |
 | de_tiger1_e | Panzerkampfwagen VI Tiger Ausf. E / Tiger I Ausf. E | Sd.Kfz. 181 | 1942–1945 | 2 | 8.45 × 3.71? × 3.00? | 57.0 | 5 | 45.4? / 20.0 | 100 / 100 | 8.8 cm KwK 36 L/56? |
 | de_jgdpz38t | Jagdpanzer 38(t) "Hetzer" / Jagdpanzer 38(t) Hetzer | Sd.Kfz. 138/2 | 1944–1945 | 2 | 6.27 × 2.63 × 2.17 | 15.8 | 4 | 42.0 / 15.0? | 60 / 60 | 7.5 cm PaK 39 L/48 |
 | de_stug3_g | Sturmgeschütz III Ausf. G / StuG III Ausf. G | Sd.Kfz. 142/1 | 1942–1945 | 2 | 6.85? × 2.95 × 2.16 | 23.9 | 4 | 40.0 / 15.0? | 80 / 80 | 7.5 cm StuK 40 L/48 |
-| de_sdkfz251_1 | Mittlerer Schützenpanzerwagen Sd.Kfz. 251/1 Ausf. D / Sd.Kfz. 251/1 Ausf. D halftrack | Sd.Kfz. 251/1 Ausf. D | 1943–1945 | 1 | 5.80 × 2.10 × 1.75 | 8.5 | 2 + 10 | 52.5 / 21.2 | 15 /  | 2× MG 42 |
+| de_sdkfz251_1 | Mittlerer Schützenpanzerwagen Sd.Kfz. 251/1 Ausf. D / Sd.Kfz. 251/1 Ausf. D halftrack | Sd.Kfz. 251/1 Ausf. D | 1943–1945 | 1 | 5.80 × 2.10 × 1.75 | 8.5 | 2 + 10 | 52.5 / 21.2 | 15 /  | 2× MG 42? |
 | de_opel_blitz | Opel Blitz 3,6-36S / Opel Blitz 3.6-36S truck | Opel Blitz 3.6-36S (3 t, 4x2) | 1937–1945 | 2 | 6.02? × 2.27? × 2.18? | 6.6? | 2 + 16? | 85.0? / 30.0? |  /  |  |
-| de_sdkfz222 | Leichter Panzerspähwagen (2 cm) Sd.Kfz. 222 / Sd.Kfz. 222 light armoured car | Sd.Kfz. 222 | 1936–1945 | 2 | 4.80 × 1.95 × 2.00? | 4.8 | 3 | 80.0 / 40.0? | 30 / 8 | 2 cm KwK 38 L/55 |
+| de_sdkfz222 | Leichter Panzerspähwagen (2 cm) Sd.Kfz. 222 / Sd.Kfz. 222 light armoured car | Sd.Kfz. 222 | 1936–1945 | 2 | 4.80 × 1.95 × 2.00? | 4.8 | 3 | 80.0 / 40.0? | 30 / 8 | 2 cm KwK 38 L/55? |
 | de_wespe | Leichte Feldhaubitze 18/2 auf Fahrgestell Panzerkampfwagen II (Sf) "Wespe" / Wespe self-propelled howitzer | Sd.Kfz. 124 | 1943–1945 | 2 | 4.81 × 2.28 × 2.30 | 11.0 | 5? | 40.0 / 20.0? | 30? / 10? | 10.5 cm leFH 18/2 L/28? |
 | de_brueckenleger4 | Brückenleger IV b / Brückenleger IV b bridge-laying tank | Brückenleger IV b | 1940–1941 | 2 | 11.00 × 3.00 × 3.54? | 28.0? | 2 | 40.0 / 20.0? | 30 /  |  |
 
@@ -47,7 +47,7 @@ uncertain; see the list at the end of each faction.
 | ID | Name | Years | Tier | L × W × H (m) | Mass (kg) | Crew | Weapon | Range (m) |
 |---|---|---|---|---|---|---|---|---|
 | de_pak40 | 7,5 cm Panzerabwehrkanone 40 / 7.5 cm PaK 40 anti-tank gun | 1942–1945 | 1 | 6.20 × 2.00? × 1.25? | 1425 | 6? | 7.5 cm PaK 40 L/46 | 1800 |
-| de_flak38 | 2 cm Flugabwehrkanone 38 / 2 cm Flak 38 | 1940–1945 | 2 | 4.08? × 1.81? × 1.60? | 405? | 5 | 2 cm Flak 38 L/65 | 5783 |
+| de_flak38 | 2 cm Flugabwehrkanone 38 / 2 cm Flak 38 | 1940–1945 | 2 | 4.08? × 1.81? × 1.60? | 405? | 5 | 2 cm Flak 38 L/65? | 5783? |
 | de_flak36 | 8,8 cm Flugabwehrkanone 36/37 / 8.8 cm Flak 36/37 | 1936–1945 | 2 | 5.79? × 2.30? × 2.10 | 7407 | 10 | 8.8 cm Flak 36 L/56 | 14860 |
 | de_lefh18 | 10,5 cm leichte Feldhaubitze 18M / 10.5 cm leFH 18M howitzer | 1941–1945 | 2 | 6.10 × 1.98 × 1.88 | 1985 | 6 | 10.5 cm leFH 18M L/28 | 12325 |
 | de_grw42 | 12 cm Granatwerfer 42 / 12 cm GrW 42 heavy mortar | 1943–1945 | 2 | 1.90? × 1.30? × 1.60? | 280 | 6? | 12 cm GrW 42? | 6050? |
@@ -70,9 +70,40 @@ uncertain; see the list at the end of each faction.
 | de_fi156 | Fieseler Fi 156 C Storch / Fieseler Fi 156 C Storch | 1939–1945 | 2 | 9.91 × 14.25 × 3.05 | 1324 | 2 | 175.0 | 4600 |
 | de_ju52_3m | Junkers Ju 52/3m g4e / Junkers Ju 52/3m g4e | 1936–1945 | 2 | 18.90 × 29.25 × 4.50 | 10500 | 3 | 265.0 | 5500 |
 
+### Weapon ranges
+
+Typical: the usual combat distance (`range_typical_m`), used by direct fire. Effective: maximum or sight value, for indirect weapons (no typical value) the maximum range the simulation uses.
+
+| Weapon | Typical (m) | Effective (m) | Entries |
+|---|---|---|---|
+| MP 40 | 100 | 100 | `de_inf_rifle_squad`, `de_inf_hmg_team`, `de_inf_mortar_medium`, `de_inf_recon`, `de_inf_engineer`, `de_inf_command`, `de_inf_tank_crew`, `de_sdkfz222` |
+| MG 42 | 400 | 800 | `de_inf_rifle_squad`, `de_inf_mg42_team`, `de_inf_engineer`, `de_sdkfz251_1` |
+| Kar98k | 300 | 500 | `de_inf_rifle_squad`, `de_inf_mg42_team`, `de_inf_hmg_team`, `de_inf_mortar_light`, `de_inf_mortar_medium`, `de_inf_recon`, `de_inf_sniper`, `de_inf_engineer`, `de_inf_at`, `de_inf_flamethrower`, `de_inf_command` |
+| P 38 | 25 | 50 | `de_inf_rifle_squad`, `de_inf_mg42_team`, `de_inf_hmg_team`, `de_inf_mortar_light`, `de_inf_mortar_medium`, `de_inf_medic`, `de_inf_engineer`, `de_inf_at`, `de_inf_flamethrower`, `de_inf_tank_crew` |
+| MG 42 on Lafette 42 | 800 | 3000 | `de_inf_hmg_team` |
+| 5 cm leGrW 36 |  | 520 | `de_inf_mortar_light` |
+| 8 cm s.GrW 34 |  | 2400 | `de_inf_mortar_medium` |
+| Kar98k mit ZF 39 (4x) | 400 | 800 | `de_inf_sniper` |
+| 8.8 cm RPzB 54 Panzerschreck | 100 | 150 | `de_inf_at` |
+| Panzerfaust 60 | 60 | 60 | `de_inf_at` |
+| Flammenwerfer 41 | 32 | 32 | `de_inf_flamethrower` |
+| 2 cm KwK 38 L/55 | 400 | 600 | `de_pz2_l`, `de_sdkfz222` |
+| 7.5 cm KwK 40 L/48 | 700 | 1500 | `de_pz4_h` |
+| 8.8 cm KwK 36 L/56 | 1000 | 2000 | `de_tiger1_e` |
+| 7.5 cm PaK 39 L/48 | 700 | 1500 | `de_jgdpz38t` |
+| 7.5 cm StuK 40 L/48 | 700 | 1500 | `de_stug3_g` |
+| 10.5 cm leFH 18/2 L/28 |  | 10675 | `de_wespe` |
+| 7.5 cm PaK 40 L/46 | 700 | 1800 | `de_pak40` |
+| 2 cm Flak 38 L/65 | 400 | 5783 | `de_flak38` |
+| 8.8 cm Flak 36 L/56 | 1000 | 14860 | `de_flak36` |
+| 10.5 cm leFH 18M L/28 |  | 12325 | `de_lefh18` |
+| 12 cm GrW 42 |  | 6050 | `de_grw42` |
+| MG 34 / MG 42 | 400 | 1000 | `de_bunker_tobruk` |
+
 ### Uncertain values
 
 - `de_inf_rifle_squad`: weapon
+- `de_inf_mg42_team`: weapon
 - `de_inf_hmg_team`: weapon
 - `de_inf_mortar_light`: weapon
 - `de_inf_mortar_medium`: squad_size, weapon
@@ -82,18 +113,19 @@ uncertain; see the list at the end of each faction.
 - `de_inf_engineer`: squad_size, weapon
 - `de_inf_at`: weapon
 - `de_inf_flamethrower`: weapon
-- `de_inf_command`: squad_size
+- `de_inf_command`: squad_size, weapon
 - `de_inf_tank_crew`: weapon
-- `de_pz2_l`: speed_offroad_kmh_x10, power_hp, armor_turret_front_mm, mass_kg
+- `de_pz2_l`: speed_offroad_kmh_x10, power_hp, armor_turret_front_mm, mass_kg, weapon
 - `de_pz4_h`: speed_offroad_kmh_x10, width_mm
 - `de_tiger1_e`: width_mm, height_mm, range_road_km, armor_hull_front_deg, speed_road_kmh_x10, weapon
 - `de_jgdpz38t`: speed_offroad_kmh_x10, armor_hull_side_mm, armor_hull_rear_mm
 - `de_stug3_g`: length_mm, length_hull_mm, speed_offroad_kmh_x10
+- `de_sdkfz251_1`: weapon
 - `de_opel_blitz`: passengers, length_mm, width_mm, height_mm, mass_kg, speed_road_kmh_x10, speed_offroad_kmh_x10, range_road_km, power_hp
-- `de_sdkfz222`: height_mm, speed_offroad_kmh_x10
+- `de_sdkfz222`: height_mm, speed_offroad_kmh_x10, weapon
 - `de_wespe`: speed_offroad_kmh_x10, armor_hull_front_mm, armor_turret_front_mm, weapon, crew, range_road_km
 - `de_pak40`: width_mm, height_mm, crew
-- `de_flak38`: mass_kg, length_mm, width_mm, height_mm
+- `de_flak38`: mass_kg, length_mm, width_mm, height_mm, weapon
 - `de_flak36`: length_mm, width_mm
 - `de_grw42`: length_mm, width_mm, height_mm, crew, weapon
 - `de_bunker_tobruk`: length_mm, width_mm, height_mm, weapon
@@ -115,38 +147,55 @@ uncertain; see the list at the end of each faction.
   - https://en.wikipedia.org/wiki/MG_42 (MG 42 cyclic rate, muzzle velocity, squad MG ammunition 1800 rounds)
   - https://en.wikipedia.org/wiki/Karabiner_98k (Kar98k muzzle velocity and effective range)
   - Gander/Chamberlain, Small Arms, Artillery and Special Weapons of the Third Reich (1978), MP 40 and P 38 entries (MP 40 and P 38 data)
+  - N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346 (range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd)
+  - TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII sec. II, https://lonesentry.com/manuals/tme30/ch7sec2sub6.html (range_typical_m: MG 34 / MG 42 effective range as light MG 600-800 yd, as heavy MG (tripod) 2,000-2,500 yd: upper bounds for the typical distance)
 - `de_inf_mg42_team`
   - https://en.wikipedia.org/wiki/MG_42 (three-man light MG team (gunner, assistant, ammunition carrier), cyclic rate ~1200 rpm (practical ~150), muzzle velocity 740 m/s, 1800 rounds per squad)
   - TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. II (MG team within the rifle squad, side arms)
   - https://en.wikipedia.org/wiki/Karabiner_98k (Kar98k data)
+  - N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346 (range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd)
+  - TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII sec. II, https://lonesentry.com/manuals/tme30/ch7sec2sub6.html (range_typical_m: MG 34 / MG 42 effective range as light MG 600-800 yd, as heavy MG (tripod) 2,000-2,500 yd: upper bounds for the typical distance)
 - `de_inf_hmg_team`
   - https://en.wikipedia.org/wiki/MG_42 (six-man tripod crew, Lafette 42 20.5 kg, 3000 m direct fire with optical sight, 3500 m indirect)
   - TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. II (heavy machine-gun platoon) (heavy MG section organization)
+  - TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII sec. II, https://lonesentry.com/manuals/tme30/ch7sec2sub6.html (range_typical_m: MG 34 / MG 42 effective range as light MG 600-800 yd, as heavy MG (tripod) 2,000-2,500 yd: upper bounds for the typical distance)
+  - FM 7-15 Heavy Weapons Company, Rifle Regiment (US War Dept., 1942), https://ibiblio.org/hyperwar/USA/ref/FM/PDFs/FM7-15.PDF (search excerpt, not read in full) (range_typical_m: direct machine-gun fire is limited by observation, rarely effective beyond 2,000 yd: upper bound for the typical distance of tripod machine guns)
+  - N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346 (range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd)
 - `de_inf_mortar_light`
   - Gander/Chamberlain, Small Arms, Artillery and Special Weapons of the Third Reich (1978), 5 cm leGrW 36 entry (caliber, weight 14 kg, max range 520 m, muzzle velocity 75 m/s, shell 0.91 kg)
   - https://www.lonesentry.com/manuals/tme30/ch7sec3.html (TM-E 30-451 (1945): le.GrW 36 total weight 31 lb, max range 570 yd (521 m), shell 2.2 lb)
+  - N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346 (range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd)
 - `de_inf_mortar_medium`
   - https://en.wikipedia.org/wiki/8_cm_Granatwerfer_34 (caliber 81.4 mm, weight 62 kg, rate 15-25 rpm, muzzle velocity 174 m/s, range 2.4 km, shell 3.5 kg)
   - https://www.lonesentry.com/manuals/tme30/ch7sec3.html (TM-E 30-451 (1945): s.GrW 34 total weight 124 lb, max range 2625 yd (2400 m) with 4th charge, shell 7.7 lb)
+  - N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346 (range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd)
 - `de_inf_recon`
   - TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. IV (tactics, reconnaissance patrols) (patrol composition (small task-organized patrols of a few men led by an NCO))
   - Gander/Chamberlain, Small Arms, Artillery and Special Weapons of the Third Reich (1978) (weapon data)
+  - N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346 (range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd)
 - `de_inf_sniper`
   - https://en.wikipedia.org/wiki/Karabiner_98k (ZF 39 4x scope, graduated 100-800 (some 1000) m, aimed hits to ~600 m, harassing fire to 1000 m, muzzle velocity)
+  - H. Widhofner, interview with the snipers M. Hetzenauer, J. Allerberger and H. Wirnsberger, Truppendienst (Austrian Armed Forces, 1967), English text at https://shadowspear.com/threads/german-snipers-in-ww-ii.1045 (range_typical_m: 65-80 % of the hits below 400 m, the rest up to 600 m; sure hits on a head up to 400 m, on a standing man up to 600 m)
+  - N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346 (range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd)
 - `de_inf_medic`
   - TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. II (company aid men / stretcher bearers) (company medical personnel)
 - `de_inf_engineer`
   - TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. II (engineer battalion, pioneer company) (pioneer squad organization and equipment)
   - Gander/Chamberlain, Small Arms, Artillery and Special Weapons of the Third Reich (1978) (weapon and demolition charge data)
+  - N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346 (range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd)
+  - TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII sec. II, https://lonesentry.com/manuals/tme30/ch7sec2sub6.html (range_typical_m: MG 34 / MG 42 effective range as light MG 600-800 yd, as heavy MG (tripod) 2,000-2,500 yd: upper bounds for the typical distance)
 - `de_inf_at`
   - https://en.wikipedia.org/wiki/Panzerschreck (RPzB 54: 88 mm, 11 kg with shield, 110 m/s, effective range 150 m (54/1: 180 m), penetration ~230 mm RHA (German tests), RPzB Gr 4322)
   - Gander/Chamberlain, Small Arms, Artillery and Special Weapons of the Third Reich (1978), Panzerfaust entries (Panzerfaust 60: 149 mm warhead, ~45 m/s, 60 m range)
   - TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII (antitank rocket launcher) (two-man team (gunner, loader))
+  - N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346 (range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd)
 - `de_inf_flamethrower`
   - https://en.wikipedia.org/wiki/Flammenwerfer_41 (11.8 l Flammöl 19, range 32 m, weight 18 kg (body text 28.7 kg), 1941-1945)
   - Gander/Chamberlain, Small Arms, Artillery and Special Weapons of the Third Reich (1978), Flammenwerfer 41 entry (fuel load enough for several short bursts (~10 s total))
+  - N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346 (range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd)
 - `de_inf_command`
   - TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. II (rifle platoon headquarters) (platoon HQ: leader, messengers; radio equipment)
+  - N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346 (range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd)
 - `de_inf_tank_crew`
   - https://en.wikipedia.org/wiki/Panzer_IV (crew of five (commander, gunner, loader, driver, radio operator / hull gunner); from memory, not fetched for this entry)
   - Gander/Chamberlain, Small Arms, Artillery and Special Weapons of the Third Reich (1978), MP 40 and P 38 entries (MP 40 and P 38 data)
@@ -159,23 +208,32 @@ uncertain; see the list at the end of each faction.
   - https://tanks-encyclopedia.com/ww2/nazi_germany/panzer_iv_ausf_h (Ausf. H range 210 km road / 130 km cross-country, 38 km/h road, 25 km/h cross-country, 87 + 3150 rounds (cites Jentz/Doyle Panzer Tracts 4-3))
   - https://www.historyofwar.org/articles/weapons_panzer_IV_ausf_H.html (Ausf. H range 210 km, armor table hull/superstructure 80/30/20, turret 50/30/30)
   - https://panzerivtheworkhorse.blogspot.com/2015/03/panzerkampfwagen-iv-ausf-h-part-i.html (Ausf. H armor angles: superstructure (driver) front 80 mm / 10 deg, hull nose 80 mm / 14 deg, turret front 50 / 10 deg)
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+  - A. D. Coox / L. Van Loan Naisawald, Survey of Allied Tank Casualties in World War II, ORO-T-117 (Operations Research Office, 1951); figures from secondary quotations, report not read (range_typical_m: cross-check: average range at which Allied tanks were knocked out by gunfire just under 800 yd (US sample about 774 yd = 708 m))
 - `de_tiger1_e`
   - https://en.wikipedia.org/wiki/Tiger_I (57 t (Ausf. E), 8.45 / 6.316 m, 3.56 m, 3.00 m, crew 5, 700 PS, 45.4 km/h road, 20-25 km/h off-road, range 195 km, armor 100 front, 80 upper side, 100/80 turret, 92 rounds, 4800 MG rounds)
   - https://panzerworld.com/pz-kpfw-tiger-ausf-e (57 t, 8.450 m, width 3.705 m, height 2.885 m, max 45 km/h, range 125 km road / 80 km cross-country, hull sides/rear 60-80 mm, HL 230 P 45 700 hp, 92 rounds (cites Jentz/Doyle, Germany's Tiger Tanks and Panzer Tracts 6))
   - Jentz/Doyle, Germany's Tiger Tanks: D.W. to Tiger I (2000) (front plate angles, KwK 36 PzGr 39 muzzle velocity 773 m/s (not re-verified))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
 - `de_jgdpz38t`
   - https://www.historyofwar.org/articles/weapons_jagdpanzer38t_hetzer.html (gun traverse 5 deg left, 11 deg right)
   - https://en.wikipedia.org/wiki/Jagdpanzer_38(t) (15.75 t, 6.27 / 4.77 m, 2.63 m, 2.17 m, crew 4, Praga 160 PS, 42 km/h, range 180 km road / 130 km cross-country, armor 8-60 mm, front 60 mm at 60 degrees, PaK 39 41 rounds, MG 1200 rounds, 1944-45)
   - Chamberlain/Doyle, Encyclopedia of German Tanks of World War Two (rev. 1999), Jagdpanzer 38 (side armor 20 mm, rear 8 mm)
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+  - A. D. Coox / L. Van Loan Naisawald, Survey of Allied Tank Casualties in World War II, ORO-T-117 (Operations Research Office, 1951); figures from secondary quotations, report not read (range_typical_m: cross-check: average range at which Allied tanks were knocked out by gunfire just under 800 yd (US sample about 774 yd = 708 m))
 - `de_stug3_g`
   - https://www.militarytrader.com/the-stug-iii-the-last-in-the-line-of-tracked-afvs-and-a-wermacht-battlehorse (StuK 40 L/48 traverse 10 deg either side of the center line)
   - https://en.wikipedia.org/wiki/Sturmgesch%C3%BCtz_III (Ausf. G: 23.9 t, 6.85 m, 2.95 m, 2.16 m, crew 4, HL 120 TRM 300 PS, 40 km/h, range 155 km road / 75 km cross-country, 80 mm front from May 1943, StuK 40 L/48 54 rounds, MG 600 rounds)
   - https://www.historyofwar.org/articles/weapons_StuG_III_Ausf_G.html (Ausf. G armor: hull 80/30/50 (front/side/rear), superstructure 80/30/30; 6.77 m, 2.95 m, 2.16 m, 23.9 t, 155 km)
   - https://panzerworld.com/sturmgeschutz-iii (StuG III series: hull lengths 5.38-5.40 m, cross-country speed 12-15 km/h, road range 140-160 km / cross-country 85-100 km)
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+  - A. D. Coox / L. Van Loan Naisawald, Survey of Allied Tank Casualties in World War II, ORO-T-117 (Operations Research Office, 1951); figures from secondary quotations, report not read (range_typical_m: cross-check: average range at which Allied tanks were knocked out by gunfire just under 800 yd (US sample about 774 yd = 708 m))
 - `de_sdkfz251_1`
   - https://en.wikipedia.org/wiki/Sd.Kfz._251 (7.81 t, 5.80 m, 2.10 m, 1.75 m, crew 2 + 10 passengers, armor 6-14.5 mm, Maybach HL 42 100 PS, 52.5 km/h, range 300 km, Ausf. D most produced (10,602), 251/1 with front and rear MG 34/42)
   - https://panzerworld.com/sd-kfz-251 (251/1: 6.8 t factory, 7.0 t combat ready, 8.5 t fully loaded; 5.80 x 2.10 x 1.75 m; 52.5 km/h road, 21.2 km/h cross-country; range 300 km road / 150 km cross-country; front 14.5 mm, sides/rear 5.5-8 mm; HL 42 TUKRM 100 hp; 2010 MG rounds (cites D 660/4 1943, Waffen-Revue W 127))
   - https://www.americanheritagemuseum.org/jml/sd-kfz-251-1-ausf-d (251/1 Ausf. D: 8.6 t, crew 2 + 10, range 186 mi (300 km), HL 42 99 hp, 10,602 Ausf. D built)
+  - N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346 (range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd)
+  - TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII sec. II, https://lonesentry.com/manuals/tme30/ch7sec2sub6.html (range_typical_m: MG 34 / MG 42 effective range as light MG 600-800 yd, as heavy MG (tripod) 2,000-2,500 yd: upper bounds for the typical distance)
 - `de_opel_blitz`
   - https://en.wikipedia.org/wiki/Opel_Blitz (3-tonne Blitz 3.6 used in large numbers by the Wehrmacht from 1939, variants)
   - https://truck-encyclopedia.com/ww2/germany/Opel-Blitz.php (Blitz 3.6 (1937): length 5.95-6.02 m, width 2.26-2.34 m, height 2.17-3.18 m, payload up to 3.5 t, six-cylinder 74-75 hp, 80 km/h, range 300-400 km)
@@ -191,11 +249,14 @@ uncertain; see the list at the end of each faction.
   - https://en.wikipedia.org/wiki/7.5_cm_Pak_40 (1425 kg combat, length 6.2 m with carriage, barrel 3.45 m (L/46), width 2.08 m (2.0 m in characteristics list), height 1.2 m (1.25 m in list), crew 6, PzGr 39 790 m/s, PzGr 40 990 m/s, HL 450 m/s, HE 550 m/s, 14 rpm, effective 1800 m, max 7678 m, elevation -5/+22, traverse 65)
   - https://panzerworld.com/7-5-cm-pak-40 (1425 kg firing / 1500 kg travel, length 6.20 m (travel), width 1.98 m (travel), height 1.26 m combat-ready, firing height 0.98 m, 12-15 rpm, PzGr 39 790 m/s, PzGr 40 990 m/s, max range 8100 m (cites Überblick über den Rüstungsstand des Heeres 1942-44, Waffen-Revue W 127))
   - https://collection.lonesentry.com/manuals/tme30/ch7sec5sub2.html (TM-E 30-451 (1945): Pak 40 weight in action 3136 lb (1422 kg), tube length 11 ft 4 in)
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+  - A. D. Coox / L. Van Loan Naisawald, Survey of Allied Tank Casualties in World War II, ORO-T-117 (Operations Research Office, 1951); figures from secondary quotations, report not read (range_typical_m: cross-check: average range at which Allied tanks were knocked out by gunfire just under 800 yd (US sample about 774 yd = 708 m))
 - `de_flak38`
   - https://en.wikipedia.org/wiki/2_cm_Flak_30/38/Flakvierling (405 kg (420 kg in text), 4.08 m, 1.81 m, 1.6 m, crew 5, 450 rpm cyclic / 180 practical, 900 m/s, AA effective 2200 m, ground max 5783 m, 20-round box)
 - `de_flak36`
   - https://en.wikipedia.org/wiki/8.8_cm_Flak_18/36/37/41 (7407 kg firing, 5.791 m, 2.3 m, height 2.10 m firing, crew 10, 15-20 rpm, 820 m/s, effective ceiling 8000 m, ground range 14,860 m)
   - TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII (8.8 cm Flak 36) (cross-check of weights and performance)
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
 - `de_lefh18`
   - https://en.wikipedia.org/wiki/10.5_cm_leFH_18 (leFH 18 base data: 1985 kg combat, 6.10 m, 1.977 m, 1.88 m, crew 6, 6-8 rpm, 470 m/s, 10,675 m, L/28)
   - https://en.wikipedia.org/wiki/10.5_cm_leFH_18M (18M: 1985 kg in action, muzzle velocity 540 m/s, max range 12,325 m)
@@ -207,6 +268,8 @@ uncertain; see the list at the end of each faction.
 - `de_bunker_tobruk`
   - https://de.wikipedia.org/wiki/Ringstand (Ringstand concept: small buried concrete position with circular opening, variants 58c (MG), 58d, 67 (tank turret))
   - Rudi Rolf, Der Atlantikwall: Bauten der deutschen Küstenbefestigungen 1940-1945 (1998) (Regelbau 58c type, construction class, typical dimensions)
+  - N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346 (range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd)
+  - TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII sec. II, https://lonesentry.com/manuals/tme30/ch7sec2sub6.html (range_typical_m: MG 34 / MG 42 effective range as light MG 600-800 yd, as heavy MG (tripod) 2,000-2,500 yd: upper bounds for the typical distance)
 - `de_minefield_at`
   - TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VIII (mines and minefields) (Tellermine data, German minefield patterns and densities)
   - Gander/Chamberlain, Small Arms, Artillery and Special Weapons of the Third Reich (1978), mines (Tellermine 35/42 charge and fuzes)
@@ -262,7 +325,7 @@ uncertain; see the list at the end of each faction.
 | su_su76m | SU-76M / SU-76M | SU-76M self-propelled gun | 1943–1945 | 2 | 4.97 × 2.72 × 2.10 | 10.5? | 4 | 45.0 / 25.0? | 35? / 25 | 76.2 mm ZiS-3Sh? |
 | su_m3a1_scout | M3A1 Scout Car (Lend-Lease) / M3A1 Scout Car (Lend-Lease) | Scout Car M3A1 | 1942–1945 | 2 | 5.61 × 2.03 × 1.96 | 5.7 | 2 + 6 | 80.0 / 40.0? | 13 /  | Browning M2HB? |
 | su_zis5 | ZiS-5V / ZiS-5V | ZiS-5V 3-ton truck | 1942–1945 | 1 | 6.06 × 2.24 × 2.16 | 3.1? | 1 + 25 | 60.0 / 25.0? |  /  |  |
-| su_ba64b | BA-64B / BA-64B | BA-64B light armored car | 1943–1945 | 2 | 3.66 × 1.74? × 1.90 | 2.4 | 2 | 80.0 / 30.0? | 15 /  | DT |
+| su_ba64b | BA-64B / BA-64B | BA-64B light armored car | 1943–1945 | 2 | 3.66 × 1.74? × 1.90 | 2.4 | 2 | 80.0 / 30.0? | 15 /  | DT? |
 | su_isu152 | ISU-152 / ISU-152 | ISU-152 heavy self-propelled gun | 1943–1945 | 2 | 9.18 × 3.07 × 2.48 | 46.0? | 5? | 30.0? / 15.0? | 90 / 90 | 152 mm ML-20S L/29? |
 | su_valentine_bridgelayer | Valentine-Brückenleger (Lend-Lease) / Valentine Bridgelayer (Lend-Lease) | Valentine Bridgelayer | 1943–1945 | 2 | 5.90? × 2.90? × 3.40? | 20.0? | 2 | 24.0 / 13.0? | 60 /  |  |
 
@@ -271,8 +334,8 @@ uncertain; see the list at the end of each faction.
 | ID | Name | Years | Tier | L × W × H (m) | Mass (kg) | Crew | Weapon | Range (m) |
 |---|---|---|---|---|---|---|---|---|
 | su_zis3 | 76-mm-Divisionskanone ZiS-3 / 76 mm Divisional Gun M1942 (ZiS-3) | 1942–1945 | 1 | 6.10? × 1.60 × 1.37 | 1116? | 7? | 76.2 mm ZiS-3 L/42.6? | 1000? |
-| su_61k | 37-mm-Flak 61-K / 37 mm AA Gun M1939 (61-K) | 1939–1945 | 2 | 5.50 × 1.79? × 2.11 | 2100 | 8? | 37 mm 61-K L/67 | 4000 |
-| su_52k | 85-mm-Flak 52-K / 85 mm AA Gun M1939 (52-K) | 1939–1945 | 2 | 7.05 × 2.15 × 2.25 | 4500? | 7 | 85 mm 52-K L/55 | 15650 |
+| su_61k | 37-mm-Flak 61-K / 37 mm AA Gun M1939 (61-K) | 1939–1945 | 2 | 5.50 × 1.79? × 2.11 | 2100 | 8? | 37 mm 61-K L/67? | 4000? |
+| su_52k | 85-mm-Flak 52-K / 85 mm AA Gun M1939 (52-K) | 1939–1945 | 2 | 7.05 × 2.15 × 2.25 | 4500? | 7 | 85 mm 52-K L/55? | 15650? |
 | su_m30 | 122-mm-Haubitze M-30 / 122 mm Howitzer M1938 (M-30) | 1939–1945 | 2 | 5.90? × 1.98 × 1.82? | 2450 | 8 | 122 mm M-30 L/22.7 | 11800 |
 | su_pm38 | 120-mm-Granatwerfer 120-PM-38 / 120 mm Regimental Mortar 120-PM-38 | 1939–1945 | 2 | 1.86? × 1.30? × 1.50? | 280 | 6 | 120-PM-38 | 5800 |
 
@@ -293,6 +356,37 @@ uncertain; see the list at the end of each faction.
 | su_pe2 | Pe-2 / Pe-2 | 1941–1945 | 2 | 12.66 × 17.16 × 3.42 | 7536? | 3 | 540.0? | 8800 |
 | su_po2 | Po-2 / Po-2 | 1929–1945 | 2 | 8.17 × 11.40 × 3.10 | 1030? | 2 | 152.0 | 3000 |
 | su_li2 | Lisunow Li-2 / Lisunov Li-2 | 1940–1945 | 2 | 19.65 × 28.81 × 5.15 | 11280 | 4 | 320.0 | 5600 |
+
+### Weapon ranges
+
+Typical: the usual combat distance (`range_typical_m`), used by direct fire. Effective: maximum or sight value, for indirect weapons (no typical value) the maximum range the simulation uses.
+
+| Weapon | Typical (m) | Effective (m) | Entries |
+|---|---|---|---|
+| Mosin-Nagant M1891/30 | 300 | 500 | `su_inf_rifle_squad`, `su_inf_mg_team`, `su_inf_recon`, `su_inf_sniper`, `su_inf_at` |
+| PPSh-41 | 100 | 200 | `su_inf_rifle_squad`, `su_inf_recon`, `su_inf_engineer`, `su_inf_flamethrower`, `su_inf_command`, `su_inf_tank_crew` |
+| DP-27 | 400 | 800 | `su_inf_rifle_squad`, `su_inf_mg_team` |
+| Maxim M1910/30 | 800 | 1000 | `su_inf_hmg_team`, `su_bunker_dzot` |
+| 50-PM 40 |  | 800 | `su_inf_mortar_light` |
+| 82-BM-37 |  | 3040 | `su_inf_mortar_medium` |
+| Mosin-Nagant M1891/30 PU sniper rifle | 400 | 850 | `su_inf_sniper` |
+| TT-33 | 25 | 50 | `su_inf_medic`, `su_inf_command`, `su_inf_tank_crew` |
+| PTRD-41 | 150 | 300 | `su_inf_at` |
+| ROKS-3 | 25 | 25 | `su_inf_flamethrower` |
+| 45 mm 20-K M1938 | 500 | 1000 | `su_t70m` |
+| 76.2 mm F-34 L/41.5 | 700 | 1000 | `su_t34_76_1943` |
+| 122 mm D-25T L/43 | 1000 | 1500 | `su_is2` |
+| 85 mm D-5S L/52 | 1000 | 1500 | `su_su85` |
+| 76.2 mm ZiS-3Sh | 700 | 1000 | `su_su76m` |
+| Browning M2HB | 800 | 1800 | `su_m3a1_scout` |
+| Browning M1919A4 | 400 | 1000 | `su_m3a1_scout` |
+| DT | 400 | 800 | `su_ba64b` |
+| 152 mm ML-20S L/29 |  | 6200 | `su_isu152` |
+| 76.2 mm ZiS-3 L/42.6 | 700 | 1000 | `su_zis3` |
+| 37 mm 61-K L/67 | 500 | 4000 | `su_61k` |
+| 85 mm 52-K L/55 | 1000 | 15650 | `su_52k` |
+| 122 mm M-30 L/22.7 |  | 11800 | `su_m30` |
+| 120-PM-38 |  | 5800 | `su_pm38` |
 
 ### Uncertain values
 
@@ -316,11 +410,11 @@ uncertain; see the list at the end of each faction.
 - `su_su76m`: speed_offroad_kmh_x10, armor_hull_front_deg, weapon, mass_kg, power_hp, armor_hull_front_mm
 - `su_m3a1_scout`: speed_offroad_kmh_x10, armor_hull_side_mm, armor_hull_rear_mm, weapon
 - `su_zis5`: mass_kg, speed_offroad_kmh_x10, range_road_km, power_hp
-- `su_ba64b`: width_mm, speed_offroad_kmh_x10
+- `su_ba64b`: width_mm, speed_offroad_kmh_x10, weapon
 - `su_isu152`: mass_kg, crew, speed_offroad_kmh_x10, weapon, speed_road_kmh_x10, range_road_km, power_hp
 - `su_zis3`: length_mm, mass_kg, crew, weapon
-- `su_61k`: width_mm, crew
-- `su_52k`: mass_kg
+- `su_61k`: width_mm, crew, weapon
+- `su_52k`: mass_kg, weapon
 - `su_m30`: length_mm, height_mm
 - `su_pm38`: length_mm, width_mm, height_mm
 - `su_bunker_dzot`: length_mm, width_mm, height_mm, weapon
@@ -342,13 +436,19 @@ uncertain; see the list at the end of each faction.
   - https://en.wikipedia.org/wiki/Mosin%E2%80%93Nagant (infobox) (M1891/30: 7.62x54R, muzzle velocity ~865 m/s, effective range 500 m (iron sights))
   - https://en.wikipedia.org/wiki/PPSh-41 (infobox) (PPSh-41: 7.62x25, muzzle velocity 488 m/s, effective range 150-200 m, 71-round drum / 35-round box, rate 1250 rpm)
   - https://en.wikipedia.org/wiki/DP_machine_gun (infobox and text) (DP-27: 7.62x54R, 550 rpm, combat rate up to 80 rpm, 840 m/s, effective range 800 m, 47-round pan)
+  - N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346 (range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd)
+  - TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII sec. II, https://lonesentry.com/manuals/tme30/ch7sec2sub6.html (range_typical_m: MG 34 / MG 42 effective range as light MG 600-800 yd, as heavy MG (tripod) 2,000-2,500 yd: upper bounds for the typical distance)
 - `su_inf_mg_team`
   - https://battleorder.org/ussr-rifle-co-1943 (seen as search excerpt; direct fetch returned 404) (each squad had a DP-27 gunner and an assistant, assistant with Mosin-Nagant (later sometimes PPSh-41/PPS-43))
   - https://en.wikipedia.org/wiki/DP_machine_gun (infobox and text) (DP-27: 7.62x54R, 550 rpm, combat rate up to 80 rpm, 840 m/s, 800 m, 47-round pan, 9.12 kg empty)
   - https://en.wikipedia.org/wiki/Mosin%E2%80%93Nagant (infobox) (M1891/30 muzzle velocity and effective range)
+  - N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346 (range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd)
+  - TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII sec. II, https://lonesentry.com/manuals/tme30/ch7sec2sub6.html (range_typical_m: MG 34 / MG 42 effective range as light MG 600-800 yd, as heavy MG (tripod) 2,000-2,500 yd: upper bounds for the typical distance)
 - `su_inf_hmg_team`
   - https://en.wikipedia.org/wiki/PM_M1910 (infobox and M1910/30 section) (7.62x54R, 600 rpm, gun 23.8 kg, 62.66 kg on wheeled mount, M1910/30 changes incl. heavy-bullet cartridge, effective range 2,700 m, muzzle velocity 740 m/s)
   - Zaloga/Ness, Red Army Handbook 1939-1945 (Sutton 1998) (HMG crew strength (not checked online))
+  - TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII sec. II, https://lonesentry.com/manuals/tme30/ch7sec2sub6.html (range_typical_m: MG 34 / MG 42 effective range as light MG 600-800 yd, as heavy MG (tripod) 2,000-2,500 yd: upper bounds for the typical distance)
+  - FM 7-15 Heavy Weapons Company, Rifle Regiment (US War Dept., 1942), https://ibiblio.org/hyperwar/USA/ref/FM/PDFs/FM7-15.PDF (search excerpt, not read in full) (range_typical_m: direct machine-gun fire is limited by observation, rarely effective beyond 2,000 yd: upper bound for the typical distance of tripod machine guns)
 - `su_inf_mortar_light`
   - https://jaegerplatoon.net/MORTARS3.htm (seen as search excerpt) (PM-40: 630 mm barrel, 12.1 kg, max range 800 m at 45 deg; crew given as 4 in Finnish use)
   - Zaloga/Ness, Red Army Handbook 1939-1945 (Sutton 1998) (company mortar employment, withdrawal from rifle companies 1943 (not checked online))
@@ -358,8 +458,11 @@ uncertain; see the list at the end of each faction.
   - Zaloga/Ness, Red Army Handbook 1939-1945 (Sutton 1998) (regimental scout platoon organisation (not checked online))
   - https://en.wikipedia.org/wiki/PPSh-41 (infobox) (PPSh-41 data)
   - https://en.wikipedia.org/wiki/Mosin%E2%80%93Nagant (infobox) (M1891/30 data)
+  - N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346 (range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd)
 - `su_inf_sniper`
   - https://en.wikipedia.org/wiki/Mosin%E2%80%93Nagant (infobox and sniper section) (M91/30 with 3.5x PU scope from 1942, effective range 850 m with optical sights, 500 m iron sights, ~865 m/s)
+  - H. Widhofner, interview with the snipers M. Hetzenauer, J. Allerberger and H. Wirnsberger, Truppendienst (Austrian Armed Forces, 1967), English text at https://shadowspear.com/threads/german-snipers-in-ww-ii.1045 (range_typical_m: 65-80 % of the hits below 400 m, the rest up to 600 m; sure hits on a head up to 400 m, on a standing man up to 600 m)
+  - N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346 (range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd)
 - `su_inf_medic`
   - Zaloga/Ness, Red Army Handbook 1939-1945 (Sutton 1998) (company medical personnel (not checked online))
   - https://en.wikipedia.org/wiki/TT_pistol (infobox) (TT-33 muzzle velocity 420 m/s, effective range 50 m)
@@ -368,6 +471,7 @@ uncertain; see the list at the end of each faction.
   - https://en.wikipedia.org/wiki/PPSh-41 (infobox) (PPSh-41 data)
 - `su_inf_at`
   - https://en.wikipedia.org/wiki/PTRD-41 (infobox) (14.5x114 (B-32, BS-41), mass 16 kg, 8-10 rpm, 1,012 m/s, effective range 300 m, crew 2)
+  - N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346 (range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd)
 - `su_inf_flamethrower`
   - https://en.wikipedia.org/wiki/ROKS-3 (infobox) (mass 22.7 kg, ~9 l fuel, effective range 25 m, maximum range 45 m, crew 1)
   - Zaloga/Ness, Red Army Handbook 1939-1945 (Sutton 1998) (flamethrower companies (ORRO) and use in assault engineer brigades (not checked online))
@@ -387,28 +491,39 @@ uncertain; see the list at the end of each faction.
   - https://ru.wikipedia.org/wiki/Т-34 (infobox; sections Бронирование, Вооружение, Подвижность) (combat mass 26.5-30.9 t, hull length 5,920 mm, width 3,000 mm, height 2,405 mm, hull side 45 mm from 1942, turret front 45-52 mm, mantlet 40 mm, turret side/rear 45 mm, F-34 L/41.5 with 100 rounds, 54 km/h road, 36 km/h off-road, 380 km road range)
   - https://ru.wikipedia.org/wiki/76-мм_дивизионная_пушка_образца_1942_года_(ЗИС-3) (section Characteristics and ammunition) (BR-350A muzzle velocity 662 m/s (same 76.2x385R ammunition family as F-34))
   - Zaloga, T-34/76 Medium Tank 1941-45 (Osprey New Vanguard 9, 1994) (1943 model (hexagonal turret, cupola), mass (not checked online))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+  - A. D. Coox / L. Van Loan Naisawald, Survey of Allied Tank Casualties in World War II, ORO-T-117 (Operations Research Office, 1951); figures from secondary quotations, report not read (range_typical_m: cross-check: average range at which Allied tanks were knocked out by gunfire just under 800 yd (US sample about 774 yd = 708 m))
 - `su_is2`
   - https://en.wikipedia.org/wiki/IS-2 (infobox; Protection/Production) (46 t, length 9.90 m, width 3.09 m, height 2.73 m, crew 4, armor (hull front 100-120 mm/60 deg, lower 100 mm/30 deg, turret 100 mm, mantlet 120 mm, hull sides 90-130 mm, turret sides 90 mm), D-25T 28 rounds, DShK + 3 DT with 2,079 rounds, V-2IS 520 hp, 37 km/h, range 240 km road / 180 km cross-country, OF-471 800 m/s)
   - Zaloga, IS-2 Heavy Tank 1944-73 (Osprey New Vanguard 7, 1994) (1944 model, hull length, BR-471 velocity (not checked online))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
 - `su_su85`
   - https://www.quartermastersection.com/russian/afvs/827/SU-85 (gun traverse 10 deg left and right (manual))
   - https://en.wikipedia.org/wiki/SU-85 (infobox) (29.6 t, length 8.15 m / hull 6.10 m, width 3.00 m, height 2.45 m, crew 4, armor 45 mm, 85 mm D-5 gun, V-2 500 PS, 55 km/h road, range 280 km road (400 km with extra tanks), 140 km cross-country)
   - https://en.wikipedia.org/wiki/85_mm_air_defense_gun_M1939_(52-K) (infobox) (85 mm ballistics, muzzle velocity 792 m/s (D-5 is based on 52-K ballistics))
   - Zaloga/Grandsen, Soviet Tanks and Combat Vehicles of World War Two (Arms and Armour 1984) (production 1943-44, 48 rounds (not checked online))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
 - `su_su76m`
   - https://www.ospreypublishing.com/us/discover/osprey-publishing/machine-of-the-month/su-76m (ZiS-3 mount traverse 15 deg to either side)
   - https://en.wikipedia.org/wiki/SU-76 (infobox, SU-76M) (10,500 kg, length 4.97 m, width 2.72 m, height 2.10 m, crew 4, armor front 25-35 mm / side 10-15 mm, ZiS-3 gun, DT secondary, 2x 70 hp, 45 km/h, range 250 km road / 175 km cross-country)
   - https://ru.wikipedia.org/wiki/76-мм_дивизионная_пушка_образца_1942_года_(ЗИС-3) (ammunition table) (BR-350A 662 m/s)
   - Zaloga/Grandsen, Soviet Tanks and Combat Vehicles of World War Two (Arms and Armour 1984) (SU-76M open-top variant, role (not checked online))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+  - A. D. Coox / L. Van Loan Naisawald, Survey of Allied Tank Casualties in World War II, ORO-T-117 (Operations Research Office, 1951); figures from secondary quotations, report not read (range_typical_m: cross-check: average range at which Allied tanks were knocked out by gunfire just under 800 yd (US sample about 774 yd = 708 m))
 - `su_m3a1_scout`
   - https://en.wikipedia.org/wiki/M3_scout_car (infobox; Lend-Lease section) (M3A1: 5.67 t, length 5.61 m, width 2.03 m, height 1.96 m, crew 8, armor max 13 mm, M2 .50 + 1-2 .30 cal, Hercules JXD 110 hp, 80 km/h, range 400 km; 3,310 to the USSR)
   - TM 9-705, Scout Car M3A1 (War Department) (side/rear armor 1/4 in (not checked online))
+  - FM 7-15 Heavy Weapons Company, Rifle Regiment (US War Dept., 1942), https://ibiblio.org/hyperwar/USA/ref/FM/PDFs/FM7-15.PDF (search excerpt, not read in full) (range_typical_m: direct machine-gun fire is limited by observation, rarely effective beyond 2,000 yd: upper bound for the typical distance of tripod machine guns)
+  - N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346 (range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd)
+  - TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII sec. II, https://lonesentry.com/manuals/tme30/ch7sec2sub6.html (range_typical_m: MG 34 / MG 42 effective range as light MG 600-800 yd, as heavy MG (tripod) 2,000-2,500 yd: upper bounds for the typical distance)
 - `su_zis5`
   - https://en.wikipedia.org/wiki/ZIS-5_(truck) (specifications; ZIS-5V variant section) (length 6,060 mm with bumper, width 2,235 mm, cab height 2,160 mm, curb weight 3,100 kg, 3 t payload, 73 hp at 2,300 rpm (76 hp from Jan 1944), 60 km/h, 34 l/100 km; ZiS-5V production from 1942 and simplifications)
   - Zaloga/Ness, Red Army Handbook 1939-1945 (Sutton 1998) (role as standard Soviet 3-ton truck (not checked online))
 - `su_ba64b`
   - https://en.wikipedia.org/wiki/BA-64 (infobox and text) (2.4 t, length 3.66 m, width 1.74 m, height 1.9 m (hull), crew 2, DT with 1,070 rounds, GAZ-MM 50 hp, 80 km/h, range 500 km, armor 15 mm front to 6 mm sides; BA-64B wider track)
   - https://en.wikipedia.org/wiki/DP_machine_gun (infobox) (DP/DT family ballistics (840 m/s, 800 m))
+  - N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346 (range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd)
+  - TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII sec. II, https://lonesentry.com/manuals/tme30/ch7sec2sub6.html (range_typical_m: MG 34 / MG 42 effective range as light MG 600-800 yd, as heavy MG (tripod) 2,000-2,500 yd: upper bounds for the typical distance)
 - `su_isu152`
   - https://en.wikipedia.org/wiki/ISU-152 (infobox and text) (47.3 t max, length 9.18 m, width 3.07 m, height 2.48 m, crew 4-5, armor (upper hull front 60, lower hull front/lower sides/superstructure front 90, upper sides 75, mantlet up to 120 mm), ML-20S with 18 rounds, BR-540 600 m/s, max range 6,200 m, panoramic direct fire to 3,500 m, DShK 200 rounds, V-2IS 520 hp, 30 km/h road / 15-20 cross-country, range 200 km road)
   - Zaloga, IS-2 Heavy Tank 1944-73 (Osprey New Vanguard 7, 1994) (IS chassis, hull length (not checked online))
@@ -416,11 +531,14 @@ uncertain; see the list at the end of each faction.
   - https://en.wikipedia.org/wiki/76_mm_divisional_gun_M1942_(ZiS-3) (infobox; ammunition table) (mass 1,116 kg combat / 2,150 kg travel, barrel 3.4 m (L/42.6), width 1.6 m, height 1.37 m, crew 7, up to 25 rpm, max range 13.29 km, BR-350A 700 m/s, OF-350 680 m/s, BR-350A penetration to 2,000 m)
   - https://ru.wikipedia.org/wiki/76-мм_дивизионная_пушка_образца_1942_года_(ЗИС-3) (Characteristics and ammunition properties) (mass 1,200 kg firing / 1,850 kg travel, shield 5 mm, max range 13,000 m, direct-fire range 820 m, BR-350A 662 m/s, BR-350B 655 m/s, OF-350 680 m/s)
   - https://www.historyofwar.org/articles/weapons_76_2mm_divisional_gun_1942_ZiS3.html (seen as search excerpt) (length 6.1 m, width ~1.65 m, height ~1.38 m)
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+  - A. D. Coox / L. Van Loan Naisawald, Survey of Allied Tank Casualties in World War II, ORO-T-117 (Operations Research Office, 1951); figures from secondary quotations, report not read (range_typical_m: cross-check: average range at which Allied tanks were knocked out by gunfire just under 800 yd (US sample about 774 yd = 708 m))
 - `su_61k`
   - https://en.wikipedia.org/wiki/37_mm_automatic_air_defense_gun_M1939_(61-K) (infobox; specifications table) (2,100 kg, length 5.5 m, width 1.79 m, height 2.11 m, crew 8, 160-170 rpm cyclic, 80 rpm practical, 880 m/s, effective range 4 km, max ceiling 5 km, 3,000 m against air targets)
   - https://ru.wikipedia.org/wiki/61-К (infobox; ballistics section) (2,100 kg travel and firing, 5,500 x 1,765 x 2,100 mm travel, crew 7, 160-170 rpm (practical 120), OR-167 880 m/s, UBR-167 872 m/s, tabular range 4,000 m (HE, self-destruct), 1,500 m (AP))
 - `su_52k`
   - https://en.wikipedia.org/wiki/85_mm_air_defense_gun_M1939_(52-K) (infobox) (4,500 kg combat and travel, length 7.05 m, width 2.15 m, height 2.25 m, crew 7, 10-12 rpm, 792 m/s, vertical range 10,500 m, maximum firing range 15.65 km)
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
 - `su_m30`
   - https://en.wikipedia.org/wiki/122_mm_howitzer_M1938_(M-30) (infobox; ammunition table) (2,450 kg combat / 3,100 kg travel, length 5.9 m with limber, width 1.98 m, height 1.82 m, crew 8, 5-6 rpm, max range 11.8 km, OF-462 515 m/s)
 - `su_pm38`
@@ -428,6 +546,8 @@ uncertain; see the list at the end of each faction.
 - `su_bunker_dzot`
   - https://en.wikipedia.org/wiki/Pillbox_(military) (DZOT as Soviet field-built log-and-earth firing point, secondary (not checked online))
   - Zaloga/Ness, Red Army Handbook 1939-1945 (Sutton 1998) (field fortification practice (not checked online))
+  - TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII sec. II, https://lonesentry.com/manuals/tme30/ch7sec2sub6.html (range_typical_m: MG 34 / MG 42 effective range as light MG 600-800 yd, as heavy MG (tripod) 2,000-2,500 yd: upper bounds for the typical distance)
+  - FM 7-15 Heavy Weapons Company, Rifle Regiment (US War Dept., 1942), https://ibiblio.org/hyperwar/USA/ref/FM/PDFs/FM7-15.PDF (search excerpt, not read in full) (range_typical_m: direct machine-gun fire is limited by observation, rarely effective beyond 2,000 yd: upper bound for the typical distance of tripod machine guns)
 - `su_minefield_at`
   - https://en.wikipedia.org/wiki/TM-41_mine (TM-41: mass ~5.5 kg, ~4 kg explosive, pressure-activated (not checked online))
   - Zaloga/Ness, Red Army Handbook 1939-1945 (Sutton 1998) (minefield densities in prepared defences (not checked online))
@@ -462,9 +582,9 @@ uncertain; see the list at the end of each faction.
 | ID | Name | Tier | Size | Weapons |
 |---|---|---|---|---|
 | us_inf_rifle_squad | Schützengruppe / Rifle Squad | 1 | 12 | 9× Rifle M1 (Garand), 2× Rifle M1 with grenade launcher M7, 1× Browning Automatic Rifle M1918A2? |
-| us_inf_mg_team | Leichter MG-Trupp (M1919A4) / Light Machine Gun Squad (M1919A4) | 1 | 5 | 1× Browning M1919A4 (tripod M2), 1× Rifle M1 with grenade launcher M7, 2× Carbine M1, 2× Pistol M1911A1 |
+| us_inf_mg_team | Leichter MG-Trupp (M1919A4) / Light Machine Gun Squad (M1919A4) | 1 | 5 | 1× Browning M1919A4 (tripod M2), 1× Rifle M1 with grenade launcher M7, 2× Carbine M1, 2× Pistol M1911A1? |
 | us_inf_hmg_team | Schwerer MG-Trupp (M1917A1) / Heavy Machine Gun Squad (M1917A1) | 2 | 7? | 1× Browning M1917A1 (water-cooled, tripod M1917A1), 5× Carbine M1, 2× Pistol M1911A1? |
-| us_inf_mortar_light | Leichter Granatwerfertrupp (60 mm M2) / 60 mm Mortar Squad (M2) | 2 | 5 | 1× 60 mm Mortar M2 (mount M2), 1× Rifle M1 (Garand), 2× Carbine M1, 2× Pistol M1911A1 |
+| us_inf_mortar_light | Leichter Granatwerfertrupp (60 mm M2) / 60 mm Mortar Squad (M2) | 2 | 5 | 1× 60 mm Mortar M2 (mount M2), 1× Rifle M1 (Garand), 2× Carbine M1, 2× Pistol M1911A1? |
 | us_inf_mortar_medium | Mittlerer Granatwerfertrupp (81 mm M1) / 81 mm Mortar Squad (M1) | 2 | 8 | 1× 81 mm Mortar M1 (mount M4), 6× Carbine M1, 2× Pistol M1911A1? |
 | us_inf_recon | Aufklärungstrupp (I&R-Zug) / Intelligence & Reconnaissance Squad | 2 | 6? | 3× Rifle M1 (Garand), 2× Carbine M1, 1× Submachine gun M1A1 (Thompson)? |
 | us_inf_sniper | Scharfschütze (M1903A4) / Sniper (M1903A4) | 2 | 2? | 1× Rifle M1903A4 (sniper's, M73B1 2.5x scope), 1× Rifle M1 (Garand)? |
@@ -481,12 +601,12 @@ uncertain; see the list at the end of each faction.
 |---|---|---|---|---|---|---|---|---|---|---|
 | us_m5a1 | Leichter Panzer M5A1 Stuart / M5A1 Stuart | Light Tank M5A1 | 1943–1945 | 2 | 4.84 × 2.29 × 2.57 | 15.2 | 4 | 58.0 / 30.0? | 29? / 51? | 37 mm Gun M6? |
 | us_m4a3_75 | Mittlerer Panzer M4A3 (75)W Sherman / M4A3 (75)W Sherman | Medium Tank M4A3 (75 mm), wet stowage | 1944–1945 | 1 | 6.27 × 2.67 × 2.94 | 31.6 | 5 | 42.0 / 25.0? | 64? / 76? | 75 mm Gun M3 (mount M34A1)? |
-| us_m26 | Schwerer Panzer M26 Pershing / M26 Pershing | Heavy Tank T26E3 / M26 | 1945–1951 | 2 | 8.65 × 3.51 × 2.78 | 41.9 | 5 | 48.0? / 26.0? | 102 / 114? | 90 mm Gun M3 |
-| us_m10 | Jagdpanzer M10 Wolverine / M10 Gun Motor Carriage | 3-inch Gun Motor Carriage M10 | 1942–1945 | 2 | 6.83 × 3.05 × 2.90 | 29.6 | 5 | 48.0? / 26.0? | 38? / 57 | 3 in Gun M7 (mount M5) |
+| us_m26 | Schwerer Panzer M26 Pershing / M26 Pershing | Heavy Tank T26E3 / M26 | 1945–1951 | 2 | 8.65 × 3.51 × 2.78 | 41.9 | 5 | 48.0? / 26.0? | 102 / 114? | 90 mm Gun M3? |
+| us_m10 | Jagdpanzer M10 Wolverine / M10 Gun Motor Carriage | 3-inch Gun Motor Carriage M10 | 1942–1945 | 2 | 6.83 × 3.05 × 2.90 | 29.6 | 5 | 48.0? / 26.0? | 38? / 57 | 3 in Gun M7 (mount M5)? |
 | us_m4a3_105 | Sturmhaubitze M4A3 (105) / M4A3 (105) Sherman | Medium Tank M4A3 (105 mm Howitzer) | 1944–1945 | 2 | 5.91? × 2.62 × 2.81 | 31.1 | 5 | 42.0 / 25.0? | 64 / 76 | 105 mm Howitzer M4 (mount M52)? |
-| us_m3_halftrack | Halbkettenfahrzeug M3 / M3 Half-track | Carrier, Personnel, Half-track, M3 | 1941–1945 | 1 | 6.16 × 1.96? × 2.30 | 9.1? | 1 + 12 | 72.0 / 35.0? | 13 /  | Browning M1919A4 (pedestal mount M25) |
+| us_m3_halftrack | Halbkettenfahrzeug M3 / M3 Half-track | Carrier, Personnel, Half-track, M3 | 1941–1945 | 1 | 6.16 × 1.96? × 2.30 | 9.1? | 1 + 12 | 72.0 / 35.0? | 13 /  | Browning M1919A4 (pedestal mount M25)? |
 | us_gmc_cckw | Lkw GMC CCKW 353 (2½ t, 6x6) / GMC CCKW 353 2½-ton Truck | Truck, 2½-ton, 6x6, GMC CCKW-353 | 1941–1945 | 2 | 6.86 × 2.24 × 2.77 | 7.4 | 2? + 16? | 72.0 / 35.0? |  /  |  |
-| us_m8_greyhound | Panzerspähwagen M8 Greyhound / M8 Greyhound | Light Armored Car M8 | 1943–1945 | 2 | 4.70 × 2.31 × 1.91? | 7.4 | 4 | 89.0 / 51.0 | 19? / 25 | 37 mm Gun M6 |
+| us_m8_greyhound | Panzerspähwagen M8 Greyhound / M8 Greyhound | Light Armored Car M8 | 1943–1945 | 2 | 4.70 × 2.31 × 1.91? | 7.4 | 4 | 89.0 / 51.0 | 19? / 25 | 37 mm Gun M6? |
 | us_m7_priest | Selbstfahrlafette M7 Priest / M7 Priest | 105 mm Howitzer Motor Carriage M7 | 1942–1945 | 2 | 6.02 × 2.87 × 2.54 | 23.0 | 8 | 39.0 / 24.0 | 62? /  | 105 mm Howitzer M2A1 (mount M4) |
 
 ### Guns
@@ -517,10 +637,45 @@ uncertain; see the list at the end of each faction.
 | us_l4 | Piper L-4 Grasshopper / L-4 Grasshopper | 1942–1945 | 2 | 6.83 × 10.74 × 2.03 | 550 | 2 | 137.0 | 3658 |
 | us_c47 | Douglas C-47 Skytrain / Douglas C-47 Skytrain | 1942–1945 | 2 | 19.43 × 29.11 × 5.18 | 14060 | 4 | 360.0 | 8045 |
 
+### Weapon ranges
+
+Typical: the usual combat distance (`range_typical_m`), used by direct fire. Effective: maximum or sight value, for indirect weapons (no typical value) the maximum range the simulation uses.
+
+| Weapon | Typical (m) | Effective (m) | Entries |
+|---|---|---|---|
+| Rifle M1 (Garand) | 300 | 457 | `us_inf_rifle_squad`, `us_inf_mortar_light`, `us_inf_recon`, `us_inf_sniper`, `us_inf_engineer`, `us_inf_flamethrower` |
+| Rifle M1 with grenade launcher M7 | 300 | 457 | `us_inf_rifle_squad`, `us_inf_mg_team` |
+| Browning Automatic Rifle M1918A2 | 400 | 550 | `us_inf_rifle_squad`, `us_inf_engineer` |
+| Browning M1919A4 (tripod M2) | 800 | 1370 | `us_inf_mg_team` |
+| Carbine M1 | 200 | 300 | `us_inf_mg_team`, `us_inf_hmg_team`, `us_inf_mortar_light`, `us_inf_mortar_medium`, `us_inf_recon`, `us_inf_at`, `us_inf_command` |
+| Pistol M1911A1 | 25 | 50 | `us_inf_mg_team`, `us_inf_hmg_team`, `us_inf_mortar_light`, `us_inf_mortar_medium`, `us_inf_flamethrower`, `us_inf_command`, `us_inf_tank_crew` |
+| Browning M1917A1 (water-cooled, tripod M1917A1) | 800 | 1830 | `us_inf_hmg_team` |
+| 60 mm Mortar M2 (mount M2) |  | 1815 | `us_inf_mortar_light` |
+| 81 mm Mortar M1 (mount M4) |  | 3018 | `us_inf_mortar_medium` |
+| Submachine gun M1A1 (Thompson) | 50 | 50 | `us_inf_recon` |
+| Rifle M1903A4 (sniper's, M73B1 2.5x scope) | 400 | 600 | `us_inf_sniper` |
+| 2.36 in Rocket Launcher M9 (Bazooka) | 100 | 110 | `us_inf_at` |
+| Portable Flame Thrower M2-2 | 20 | 20 | `us_inf_flamethrower` |
+| Submachine gun M3 | 50 | 50 | `us_inf_tank_crew` |
+| 37 mm Gun M6 | 500 | 800 | `us_m5a1`, `us_m8_greyhound` |
+| 75 mm Gun M3 (mount M34A1) | 700 | 1000 | `us_m4a3_75` |
+| 90 mm Gun M3 | 1000 | 1500 | `us_m26` |
+| 3 in Gun M7 (mount M5) | 700 | 1500 | `us_m10` |
+| 105 mm Howitzer M4 (mount M52) | 500 | 11160 | `us_m4a3_105` |
+| Browning M1919A4 (pedestal mount M25) | 400 | 1370 | `us_m3_halftrack` |
+| 105 mm Howitzer M2A1 (mount M4) |  | 11160 | `us_m7_priest` |
+| 57 mm Gun M1 (L/50) | 700 | 1000 | `us_57mm_m1` |
+| 40 mm Automatic Gun M1 (L/60) | 500 | 7160 | `us_bofors_m1` |
+| 90 mm Gun M2 (L/50) | 1000 | 19042 | `us_90mm_m2` |
+| 105 mm Howitzer M2A1 |  | 11270 | `us_m2a1_105` |
+| 4.2 in Mortar M2 (rifled) |  | 4000 | `us_m2_42in` |
+
 ### Uncertain values
 
 - `us_inf_rifle_squad`: weapon
+- `us_inf_mg_team`: weapon
 - `us_inf_hmg_team`: squad_size, weapon
+- `us_inf_mortar_light`: weapon
 - `us_inf_mortar_medium`: weapon
 - `us_inf_recon`: squad_size, weapon
 - `us_inf_sniper`: squad_size, weapon
@@ -532,12 +687,12 @@ uncertain; see the list at the end of each faction.
 - `us_inf_tank_crew`: weapon
 - `us_m5a1`: speed_offroad_kmh_x10, armor_hull_front_mm, armor_hull_side_mm, armor_hull_rear_mm, armor_turret_front_mm, armor_turret_side_mm, armor_turret_rear_mm, weapon, power_hp
 - `us_m4a3_75`: speed_offroad_kmh_x10, weapon, armor_hull_front_mm, armor_turret_front_mm
-- `us_m26`: speed_offroad_kmh_x10, armor_hull_front_deg, armor_hull_rear_mm, armor_turret_front_mm, armor_turret_rear_mm, speed_road_kmh_x10
-- `us_m10`: speed_road_kmh_x10, speed_offroad_kmh_x10, armor_hull_front_deg, armor_hull_front_mm, armor_hull_side_mm, armor_hull_rear_mm
+- `us_m26`: speed_offroad_kmh_x10, armor_hull_front_deg, armor_hull_rear_mm, armor_turret_front_mm, armor_turret_rear_mm, speed_road_kmh_x10, weapon
+- `us_m10`: speed_road_kmh_x10, speed_offroad_kmh_x10, armor_hull_front_deg, armor_hull_front_mm, armor_hull_side_mm, armor_hull_rear_mm, weapon
 - `us_m4a3_105`: length_mm, speed_offroad_kmh_x10, range_road_km, weapon
-- `us_m3_halftrack`: width_mm, mass_kg, speed_offroad_kmh_x10
+- `us_m3_halftrack`: width_mm, mass_kg, speed_offroad_kmh_x10, weapon
 - `us_gmc_cckw`: passengers, speed_offroad_kmh_x10, crew
-- `us_m8_greyhound`: height_mm, range_road_km, armor_hull_front_mm, armor_hull_side_mm, armor_hull_rear_mm, armor_turret_side_mm, armor_turret_rear_mm
+- `us_m8_greyhound`: height_mm, range_road_km, armor_hull_front_mm, armor_hull_side_mm, armor_hull_rear_mm, armor_turret_side_mm, armor_turret_rear_mm, weapon
 - `us_m7_priest`: armor_hull_front_mm, armor_hull_side_mm, armor_hull_rear_mm
 - `us_57mm_m1`: length_mm, mass_kg, crew, weapon
 - `us_bofors_m1`: length_mm, width_mm, height_mm, mass_kg, crew, weapon
@@ -560,18 +715,26 @@ uncertain; see the list at the end of each faction.
   - FM 7-10 Rifle Company, Rifle Regiment (1944), https://ciehub.info/ref/FM/7-10_1944.pdf (squad organization (not re-read in detail))
   - https://en.wikipedia.org/wiki/M1_Garand (M1: 853 m/s, effective range 500 yd (457 m), rate 40-50 rpm)
   - https://en.wikipedia.org/wiki/M1918_Browning_Automatic_Rifle (BAR M1918A2: slow cyclic 300-450 rpm, fast 500-650 rpm, 860 m/s)
+  - N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346 (range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd)
+  - TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII sec. II, https://lonesentry.com/manuals/tme30/ch7sec2sub6.html (range_typical_m: MG 34 / MG 42 effective range as light MG 600-800 yd, as heavy MG (tripod) 2,000-2,500 yd: upper bounds for the typical distance)
 - `us_inf_mg_team`
   - https://www.battleorder.org/post/usa-rifleco-1944 (LMG squad of 5: leader (M1 + M7), gunner (M1919A4, M1911A1), assistant gunner (M1911A1), 2 ammunition bearers (M1 carbine); 2 squads per LMG section)
   - https://en.wikipedia.org/wiki/M1919_Browning_machine_gun (5-man squad, rate 400-600 rpm, 853 m/s, effective range 1,500 yd (1,370 m))
   - FM 23-45 Browning Machine Gun, Caliber .30, HB, M1919A4, Ground (April 1943) (gun manual (existence confirmed in a manual inventory; contents not read))
   - https://en.wikipedia.org/wiki/M1_Garand (M1 rifle data)
+  - TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII sec. II, https://lonesentry.com/manuals/tme30/ch7sec2sub6.html (range_typical_m: MG 34 / MG 42 effective range as light MG 600-800 yd, as heavy MG (tripod) 2,000-2,500 yd: upper bounds for the typical distance)
+  - FM 7-15 Heavy Weapons Company, Rifle Regiment (US War Dept., 1942), https://ibiblio.org/hyperwar/USA/ref/FM/PDFs/FM7-15.PDF (search excerpt, not read in full) (range_typical_m: direct machine-gun fire is limited by observation, rarely effective beyond 2,000 yd: upper bound for the typical distance of tripod machine guns)
+  - N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346 (range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd)
 - `us_inf_hmg_team`
   - FM 23-55 Browning Machine Gun, Cal. .30, M1917 (1940) (gun manual (existence confirmed in a manual inventory; contents not read))
   - https://en.wikipedia.org/wiki/M1917_Browning_machine_gun (M1917A1 450-600 rpm, 853 m/s, max range ~3,200 m (M2 ball) to 5,000 m (M1 ball))
+  - TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII sec. II, https://lonesentry.com/manuals/tme30/ch7sec2sub6.html (range_typical_m: MG 34 / MG 42 effective range as light MG 600-800 yd, as heavy MG (tripod) 2,000-2,500 yd: upper bounds for the typical distance)
+  - FM 7-15 Heavy Weapons Company, Rifle Regiment (US War Dept., 1942), https://ibiblio.org/hyperwar/USA/ref/FM/PDFs/FM7-15.PDF (search excerpt, not read in full) (range_typical_m: direct machine-gun fire is limited by observation, rarely effective beyond 2,000 yd: upper bound for the typical distance of tripod machine guns)
 - `us_inf_mortar_light`
   - https://www.battleorder.org/post/usa-rifleco-1944 (mortar section, 3 squads of 5: leader (M1), gunner and assistant (M1911A1), 2 ammunition bearers (M1 carbine))
   - https://en.wikipedia.org/wiki/M2_mortar (crew 5, 18 rpm, 158 m/s, max range 1.8 km)
   - FM 23-85 60-mm Mortar M2 (1942) (mortar manual (existence confirmed in a manual inventory; contents not read))
+  - N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346 (range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd)
 - `us_inf_mortar_medium`
   - https://en.wikipedia.org/wiki/M1_mortar (crew 8 (leader, gunner, assistant, 5 ammunition bearers), 62 kg, 18 rpm sustained / 30-35 max, 210 m/s, max range 3,300 yd (M43A1), 2,655 yd (M56))
   - FM 23-90 81-mm Mortar M1 (1942, Changes 1 Jan 1943) (mortar manual (existence confirmed in a library record; contents not read))
@@ -579,18 +742,24 @@ uncertain; see the list at the end of each faction.
   - https://www.battleorder.org/us-army-rifle-co-1945 (US infantry regiment context (I&R platoon not detailed there))
   - https://en.wikipedia.org/wiki/Thompson_submachine_gun (M1A1 rate of fire and muzzle velocity)
   - https://en.wikipedia.org/wiki/M1_Garand (M1 rifle data)
+  - N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346 (range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd)
 - `us_inf_sniper`
   - https://en.wikipedia.org/wiki/M1903_Springfield (M1903A4 adoption (1943), scope M73B1, muzzle velocity (not re-fetched))
   - https://en.wikipedia.org/wiki/M1_Garand (M1 rifle data)
+  - H. Widhofner, interview with the snipers M. Hetzenauer, J. Allerberger and H. Wirnsberger, Truppendienst (Austrian Armed Forces, 1967), English text at https://shadowspear.com/threads/german-snipers-in-ww-ii.1045 (range_typical_m: 65-80 % of the hits below 400 m, the rest up to 600 m; sure hits on a head up to 400 m, on a standing man up to 600 m)
+  - N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346 (range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd)
 - `us_inf_medic`
   - https://en.wikipedia.org/wiki/Combat_medic (company aid men in WWII, non-combatant status under the Geneva Convention (not re-fetched))
 - `us_inf_engineer`
   - https://en.wikipedia.org/wiki/Combat_engineer (role and equipment of WWII US combat engineers (not re-fetched))
   - https://en.wikipedia.org/wiki/M1_Garand (M1 rifle data)
+  - N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346 (range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd)
+  - TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII sec. II, https://lonesentry.com/manuals/tme30/ch7sec2sub6.html (range_typical_m: MG 34 / MG 42 effective range as light MG 600-800 yd, as heavy MG (tripod) 2,000-2,500 yd: upper bounds for the typical distance)
 - `us_inf_at`
   - https://en.wikipedia.org/wiki/Bazooka (crew 2 (operator, loader); M1A1 effective 150 yd, M9 120 yd (claimed), max 400-500 yd; M6A3 rocket 265 ft/s; penetration up to 4 in (102 mm))
 - `us_inf_flamethrower`
   - https://en.wikipedia.org/wiki/M2_flamethrower (19.5 kg empty / 30.8 kg filled, two 2-gal fuel tanks, effective range 20 m, maximum 40 m, burn time ~7 s)
+  - N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346 (range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd)
 - `us_inf_command`
   - TM 11-242 Radio Set SCR-300-A (1945) (radio manual (number confirmed via Wikipedia))
   - https://en.wikipedia.org/wiki/SCR-300 (backpack FM radio, 14.6-17.3 kg, range ~3 mi (4.8 km))
@@ -606,12 +775,17 @@ uncertain; see the list at the end of each faction.
   - https://www.historyofwar.org/articles/weapons_medium_tank_M4A3_sherman_IV.html (cross-check: same dimensions, weight 69,600 lb, armor, 26 mph, 100 mi; M4A3(75)W built Feb 1944 - Mar 1945)
   - https://en.wikipedia.org/wiki/M4_Sherman (crew 5, off-road speed 15-20 mph (24-32 km/h) across variants)
   - TM 9-759 Medium Tank M4A3 (1942) (base M4A3 manual (existence confirmed; contents not read))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+  - A. D. Coox / L. Van Loan Naisawald, Survey of Allied Tank Casualties in World War II, ORO-T-117 (Operations Research Office, 1951); figures from secondary quotations, report not read (range_typical_m: cross-check: average range at which Allied tanks were knocked out by gunfire just under 800 yd (US sample about 774 yd = 708 m))
 - `us_m26`
   - https://en.wikipedia.org/wiki/M26_Pershing (8.649 m with gun, 6.337 m hull, 3.51 m, 2.781 m, 41.9 t, crew 5, upper hull 102 mm, turret sides 76 mm, hull sides 50-75 mm, 90 mm M3 with 70 rounds, 2x M1919 (5,000), M2 (550), Ford GAF 450-500 hp, 48 km/h, 160 km)
   - Hunnicutt, Pershing: A History of the Medium Tank T20 Series (1971) (glacis angle 46 deg, mantlet 4.5 in, rear armor (not re-checked))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
 - `us_m10`
   - https://en.wikipedia.org/wiki/M10_tank_destroyer (6.83 m with gun, 5.97 m hull, 3.05 m, 2.90 m over AA MG, 65,200 lb, crew 5, glacis 1.5 in, upper sides/rear 0.75 in, turret side 1 in, gun shield 2.25 in, 3 in M7 with 54 rounds, 375 hp, 25-30 mph, 200 mi)
   - Zaloga, M10 and M36 Tank Destroyers 1942-53, Osprey New Vanguard 57 (2002) (service, .50 AA MG (not re-checked))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+  - A. D. Coox / L. Van Loan Naisawald, Survey of Allied Tank Casualties in World War II, ORO-T-117 (Operations Research Office, 1951); figures from secondary quotations, report not read (range_typical_m: cross-check: average range at which Allied tanks were knocked out by gunfire just under 800 yd (US sample about 774 yd = 708 m))
 - `us_m4a3_105`
   - https://afvdatabase.com/usa/m4sherman.html (M4A3(105): ~68,500 lb, length 232.5 in without howitzer with sandshields, width 103 in, height 110.7 in, hull and turret armor (turret 3.0/2.0/1.0 in, howitzer shield 3.6 in), Ford GAA, 66 rounds 105 mm, 600 rds .50, 4,000 rds .30)
   - https://en.wikipedia.org/wiki/M4_Sherman_variants (500 VVSS vehicles Apr-Aug 1944, later HVSS; role)
@@ -620,6 +794,8 @@ uncertain; see the list at the end of each faction.
   - https://afvdatabase.com/usa/halftrackm3.html (M3: combat weight 20,000 lb, length 242.63 in with roller, width 77.25 in, height 89 in, White 160AX 147 net hp, 45 mph, ~200 mi, 60 gal, 13 men, M1919A4 on pedestal M25 with 4,000 rds; armor windshield cover 0.5 in, radiator louvres/sides/rear 0.25 in; reference TM 9-710)
   - https://en.wikipedia.org/wiki/M3_half-track (crew 1 (driver) + 12 passengers; 17,650 lb (M3), 18,425 lb (M3A1); 6.17 x 2.223 x 2.26 m; range 200 mi (320 km))
   - TM 9-710 Basic Half-track Vehicles (White, Autocar and Diamond T), 23 Feb 1944, https://webarchive.library.unt.edu/web/20121010045806/http:/usacac.army.mil/cac2/cgsc/carl/wwIItms/TM9_710_1944.pdf (primary manual (existence confirmed; tables not read))
+  - N. A. Hitchman, Operational Requirements for an Infantry Hand Weapon, ORO-T-160 (Operations Research Office, Johns Hopkins University, for the US Dept. of the Army, 1952), https://archive.org/details/DTIC_AD0000346 (range_typical_m: about 80 % of the effective rifle and LMG fire in the European actions of WW2 took place at less than 200 yd, 90 % at less than 300 yd (275 m); frequently used rifle ranges do not exceed 300 yd)
+  - TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII sec. II, https://lonesentry.com/manuals/tme30/ch7sec2sub6.html (range_typical_m: MG 34 / MG 42 effective range as light MG 600-800 yd, as heavy MG (tripod) 2,000-2,500 yd: upper bounds for the typical distance)
 - `us_gmc_cckw`
   - https://en.wikipedia.org/wiki/GMC_CCKW_2%C2%BD-ton_6%C3%976_truck (CCKW-353: 6.86 x 2.24 m, height 2.36 m to cab / 2.77 m overall, empty 4,000 kg, loaded 7,400 kg, GMC 270 91.5-104 hp, 45 mph, 300 mi)
   - TM 9-801 2 1/2-ton 6x6 Truck (GMC CCKW-352, 353) (1944), https://ia802603.us.archive.org/33/items/TM9-801/TM9-801.pdf (primary manual (existence confirmed; tables not read))
@@ -635,12 +811,15 @@ uncertain; see the list at the end of each faction.
   - https://www.quartermastersection.com/american/artillery/231/57mmM1A3 (squad: leader, gunner, assistant gunner, 2 loaders, 2 drivers; max rate 15 rpm; gun shield 6.35 mm; APC 823 m/s, AP 853 m/s)
   - https://en.wikipedia.org/wiki/Ordnance_QF_6-pounder (US M1 L/50: width 1.8 m, height 1.28 m, 15 rpm, effective range 1,650 yd, max 5,000 yd)
   - FM 23-75 57-mm Gun M1 (June 1944) (service of the piece (existence confirmed; contents not read))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+  - A. D. Coox / L. Van Loan Naisawald, Survey of Allied Tank Casualties in World War II, ORO-T-117 (Operations Research Office, 1951); figures from secondary quotations, report not read (range_typical_m: cross-check: average range at which Allied tanks were knocked out by gunfire just under 800 yd (US sample about 774 yd = 708 m))
 - `us_bofors_m1`
   - TM 9-252 40-mm Automatic Gun M1 (AA) and 40-mm Antiaircraft Gun Carriages M2 and M2A1 (1944), https://www.bulletpicker.com/pdf/TM-9-252.pdf (primary manual (existence confirmed; tables not read))
   - https://en.wikipedia.org/wiki/Bofors_40_mm_L/60_gun (rate 120-140 rpm, muzzle velocity 850-880 m/s, maximum firing range 7,160 m)
 - `us_90mm_m2`
   - https://en.wikipedia.org/wiki/90_mm_gun_M1/M2/M3 (M2 weight 32,300 lb (14,700 kg), crew 8, up to 24 rpm with fuze setter-rammer; M1A1 travel dimensions 9.0 x 4.1 x 3.1 m, horizontal range 19,042 m, ceiling 13,300 m; M2 mount depresses to -10 deg)
   - https://www.quartermastersection.com/american/artillery/229/90mmM1A1 (cross-check: width 4.16 m, height 3.07 m (M1A1); M2 14,651 kg in action, 17,812 kg in transit (via search excerpt))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
 - `us_m2a1_105`
   - https://en.wikipedia.org/wiki/M101_howitzer (M101A1 (= M2A2 on carriage M2A2, near-identical): 4,980 lb (2,260 kg), 5.94 x 2.21 x 1.73 m, 472 m/s, max range 11,270 m)
   - FM 6-75 Service of the Piece, 105-mm Howitzer M2, Truck-drawn (1941), https://ibiblio.org/hyperwar/USA/ref/FM/PDFs/FM6-75.pdf (section organization, rates of fire (existence confirmed; contents not read in detail))

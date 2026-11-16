@@ -67,11 +67,58 @@ Rules:
 | `ammo` | string | Main ammunition types, e.g. `PzGr 39 APCBC, Sprgr 34 HE`. |
 | `rate_rpm` | int | Rounds per minute: cyclic rate for automatic weapons (MGs, SMGs, automatic cannon), practical rate for everything else. Practical rate of automatic weapons goes into `note`. |
 | `muzzle_velocity_mps` | int | Of the main AP (or standard) round. |
-| `range_effective_m` | int | Real effective range (direct fire) or maximum range (indirect fire). |
+| `range_effective_m` | int | Direct fire: the real maximum effective range or sight value (what a manual or data sheet calls "effective range"); kept for reference, **not used by the simulation**. Indirect fire (the first weapon of mortars, howitzers, self-propelled guns): the maximum range, which the simulation uses. |
+| `range_typical_m` | int | Real typical combat distance (prompt 067), see below. Required for every weapon with `range_effective_m` except the indirect weapon; at most `range_effective_m`. The simulation's direct fire uses only this value. |
 | `ammo_carried` | int | Rounds carried. |
 | `range_aa_m` | int | Anti-aircraft guns: real effective range against aircraft (slant range or effective ceiling) in meters (prompt 033). |
 | `aa` | bool | The weapon sits on an anti-aircraft mount (MGs with "AA" in name or note; prompt 033). Default `false`. |
 | `bomb_kg` | int | Aircraft: nominal mass of one bomb in kilograms (SC 250 = 250, 500 lb = 227; prompt 033). `count` is the number of bombs. |
+
+### Typical combat distance (`range_typical_m`)
+
+Decision of the user (2026-11-16, prompt 067): ranges in the game are **typical
+combat distances**, not maximum ranges.
+
+**Definition.** The usual distance, in real meters, at which the weapon was used
+with effect against its main target in ground combat: the distance within which the
+bulk of its effective fire or of its hits took place (from combat analyses), not the
+farthest distance at which it could hit, penetrate or was sighted. The main target is
+infantry for small arms and machine guns, armor for tank, anti-tank and anti-aircraft
+guns in the ground role and for anti-tank weapons.
+
+**Rules.**
+
+- Weapons of the same class get the same value, whichever faction built them: the
+  distance of a fight depends on terrain, sights and tactics far more than on the
+  single gun, and sources document classes ("75 mm guns"), not models. What differs
+  between guns of a class (penetration, velocity, rate of fire) is in their own fields.
+- A value documented for the weapon or its class by a combat analysis is cited in
+  `source` (`covers` starts with `range_typical_m:`). A value taken over from another
+  class or estimated is a **class estimate**: the entry lists `weapon` in `uncertain`
+  and its `note` gives the reasoning.
+- **Indirect weapons** (first weapon of `inf_mortar_*`, `mortar_heavy`,
+  `gun_howitzer`, `self_propelled`) have no typical distance: they are fired at a map
+  position, and their `range_effective_m` is a maximum range by definition
+  (compressed by the indirect factor of `data/scale.toml`).
+- **Anti-aircraft fire** keeps `range_aa_m` (the effective slant range or ceiling);
+  the `range_typical_m` of an anti-aircraft gun is its distance against ground
+  targets.
+- **Flamethrowers**: the jet range, equal to `range_effective_m`.
+- Never values from other games.
+
+| Class | Weapons | Typical (m) | Basis |
+|---|---|---|---|
+| Rifles | Kar98k, Mosin-Nagant, M1 | 300 | ORO-T-160 (Hitchman 1952): 80 % of the effective rifle and LMG fire of the European actions within 200 yd, 90 % within 300 yd |
+| Sniper rifles | Kar98k ZF 39, Mosin PU, M1903A4 | 400 | Truppendienst 1967 (German snipers): 65–80 % of the hits below 400 m; class estimate for su, us |
+| Bipod and flexible-mount MGs, squad automatic rifle | MG 42, DP-27, BAR M1918A2, DT, M1919A4 on vehicles, ring mounts | 400 | class estimate between ORO-T-160 (300 yd) and TM-E 30-451 (600–800 yd effective as light MG) |
+| Tripod MGs, .50 MG on a vehicle | MG 42 on Lafette 42, Maxim, M1917A1, M1919A4 on tripod, M2HB | 800 | class estimate: twice the bipod value; TM-E 30-451 and FM 7-15 give 2,000 yd and more as the limit |
+| Submachine guns | MP 40, PPSh-41 / Thompson, M3 | 100 / 50 | class estimate: battle sight setting; .45 ACP weapons their effective range |
+| Carbine / pistols | M1 carbine / P 38, TT-33, M1911A1 | 200 / 25 | class estimates |
+| Anti-tank rockets / Panzerfaust 60 / anti-tank rifle | Panzerschreck, Bazooka / Panzerfaust 60 / PTRD-41 | 100 / 60 / 150 | class estimates |
+| 20 mm cannon / light guns 37–45 mm | KwK 38, Flak 38 / M6, 20-K, 61-K, Bofors | 400 / 500 | class estimates below the 75 mm class |
+| Tank and anti-tank guns 57–76 mm | KwK 40, StuK 40, PaK 39, PaK 40, F-34, ZiS-3, 75 mm M3, 3 in M7, 57 mm M1 | 700 | NII-48 (1942–44): German 75 mm guns fire mostly from 100 to 700 m; ORO-T-117: Allied tanks knocked out by gunfire at just under 800 yd on average; class estimate for su, us |
+| High-velocity guns 85–122 mm | 8.8 cm KwK 36 and Flak 36, D-5S, 52-K, D-25T, 90 mm M3 and M2 | 1000 | NII-48: German 88 mm guns fire mostly from 600 to 1300 m (at T-34 tanks 400–1100 m); class estimate for su, us |
+| Howitzer in direct fire | 105 mm M4 of the M4A3 (105) | 500 | class estimate |
 
 ## Categories
 
@@ -113,7 +160,7 @@ power_hp = 300
 armor_hull_front_mm = 80
 armor_hull_front_deg = 10
 weapon = [
-    { name = "7.5 cm KwK 40 L/48", caliber_mm_x10 = 750, ammo = "PzGr 39 APCBC, Sprgr 34 HE", muzzle_velocity_mps = 790, range_effective_m = 1500, ammo_carried = 87 },
+    { name = "7.5 cm KwK 40 L/48", caliber_mm_x10 = 750, ammo = "PzGr 39 APCBC, Sprgr 34 HE", muzzle_velocity_mps = 790, range_effective_m = 1500, range_typical_m = 700, ammo_carried = 87 },
     { name = "MG 34", count = 2, caliber_mm_x10 = 79, rate_rpm = 900, ammo_carried = 3150 },
 ]
 source = [
