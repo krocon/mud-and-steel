@@ -106,7 +106,7 @@ erreichbar). Details in `docs/GAME_DESIGN.md` „Experience and ranks“,
   statt 467 entschieden, gleicher Sieger. Basisbau-Hash → `0x8ce5_3de4_6339_50aa`.
 - **Messwerte:** `just ai-tournament` (40 Spiele je Paarung): Hard/Normal gegen Passive
   100 %, Easy gegen Passive 97 % (1 Zeitüberschreitung), Hard–Normal 50 %, Hard–Easy
-  87 %, Normal–Easy 50 %; Turnier-Hash `0x1fd191937a744a88`. `just check`,
+  87 %, Normal–Easy 50 %; Turnier-Hash `0x52362251182b6f8c`. `just check`,
   `just selftest`, `just lan-selftest`, `just validate-assets` grün.
 
 Offen: Bestätigung aller Werte (Balancing 045); erbeutete Waffen an Veteranen;
