@@ -1,11 +1,16 @@
 <!doctype html>
-<html lang="de">
+<html lang="de" data-biome="forest">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mud and Steel – Einheiten</title>
+<title>Mud and Steel – Arsenal</title>
+<meta name="description" content="Mud and Steel: Echtzeit-Strategie im Zweiten Weltkrieg mit echten Maßen und belegten Werten. Alle Einheiten mit 3D-Modell, Tarnung und Datenblatt.">
+<meta name="theme-color" content="#12100c">
+<!-- Pinned CDN versions; the page needs internet access for the fonts and these three modules. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Stencil:opsz,wght@10..72,700;10..72,900&family=Big+Shoulders:opsz,wght@10..72,500;10..72,700;10..72,900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="style.css">
-<!-- Pinned CDN versions; the page needs internet access for these three modules. -->
 <script type="importmap">
 {
   "imports": {
@@ -17,30 +22,148 @@
 </script>
 </head>
 <body>
-<header>
-  <h1>Mud and Steel <span>Einheiten</span></h1>
-  <nav id="factions" class="seg" aria-label="Fraktion"></nav>
-  <input id="search" type="search" placeholder="Suchen (Name, ID, Waffe)" aria-label="Suchen">
-  <nav id="biomes" class="seg" aria-label="Tarnung"></nav>
-  <nav id="groups" class="chips" aria-label="Gruppe"></nav>
+<div class="progress" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
+
+<header id="nav">
+  <a class="brand" href="#top">Mud <i>and</i> Steel</a>
+  <nav class="links" aria-label="Seite">
+    <a href="#spiel">Das Spiel</a>
+    <a href="#armeen">Armeen</a>
+    <a href="#duell">Duell</a>
+    <a href="#arsenal">Arsenal</a>
+  </nav>
+  <div class="seg biomes" data-biomes role="group" aria-label="Schauplatz"></div>
 </header>
+
 <main>
-  <section id="list" aria-label="Einheitenliste"></section>
-  <aside id="detail" aria-live="polite">
-    <div id="stage">
-      <canvas id="view"></canvas>
-      <img id="still" alt="" hidden>
-      <p id="stage-msg" hidden></p>
-      <div id="stage-tools">
-        <select id="variant" hidden aria-label="Variante"></select>
-        <label><input id="spin" type="checkbox" checked> Drehen</label>
-        <span>Raster 1 m</span>
+  <section id="top" class="hero">
+    <div class="sky" aria-hidden="true"><i class="sky-forest"></i><i class="sky-desert"></i><i class="sky-winter"></i></div>
+    <h1 class="title" id="title" aria-label="Mud and Steel">
+      <span class="word">MUD</span><span class="word hollow">AND</span><span class="word">STEEL</span>
+    </h1>
+    <canvas id="hero-view" aria-hidden="true"></canvas>
+    <canvas id="weather" aria-hidden="true"></canvas>
+    <div class="hero-copy">
+      <p class="kicker">Echtzeit-Strategie · Zweiter Weltkrieg</p>
+      <p class="lede">Echte Maße. Belegte Werte.<br>Jeder Panzer so lang, so schwer und so schnell wie sein Vorbild.</p>
+      <div class="cta">
+        <a class="btn primary" href="#arsenal">Arsenal öffnen</a>
+        <a class="btn" href="#spiel">Das Spiel</a>
       </div>
     </div>
-    <div id="sheet"></div>
-  </aside>
+    <aside class="plate" id="plate" aria-live="polite"></aside>
+    <dl class="kpis" id="kpis"></dl>
+  </section>
+
+  <section id="spiel" class="band">
+    <header class="head" data-reveal>
+      <span class="no">01</span>
+      <h2>Das Spiel</h2>
+      <p>Ein isometrisches Echtzeit-Strategiespiel, das seine Fahrzeuge ernst nimmt: Panzerung nach Seiten, Reichweiten nach Quellenlage, Schlamm nach Wetter.</p>
+    </header>
+    <div class="features">
+      <article data-reveal style="--i:0">
+        <b>1:1</b>
+        <h3>Echte Meter</h3>
+        <p>Fahrzeuge, Geschütze, Soldaten und Bäume stehen in ihrer wirklichen Größe auf der Karte. Nichts wird vergrößert – nur die Zeit läuft doppelt so schnell.</p>
+      </article>
+      <article data-reveal style="--i:1">
+        <b>?</b>
+        <h3>Belegt statt geschätzt</h3>
+        <p>Hinter jedem Wert im Katalog steht eine Quelle. Was umstritten oder unsicher ist, trägt ein Fragezeichen – im Spiel wie hier im Arsenal.</p>
+      </article>
+      <article data-reveal style="--i:2">
+        <b>3</b>
+        <h3>Nachschub entscheidet</h3>
+        <p>Treibstoff, Munition, Personal. Eine kompakte Basis liefert den Grundstock, doch der schnellste Weg zu mehr führt über die Versorgungspunkte der Karte.</p>
+      </article>
+      <article data-reveal style="--i:3">
+        <b>20&thinsp;Hz</b>
+        <h3>Deterministisch im Gleichschritt</h3>
+        <p>Jeder Rechner berechnet dieselbe Schlacht, Tick für Tick. So spielt ihr im LAN oder online über Steam – Mensch und Computer gemischt, bis 3 gegen 3.</p>
+      </article>
+      <article data-reveal style="--i:4">
+        <b>KI</b>
+        <h3>Ein Gegner, der nicht schummelt</h3>
+        <p>Der Computergegner ist ein normaler Spieler: Er sieht nur, was der Nebel des Krieges freigibt, und gibt dieselben Befehle wie du.</p>
+      </article>
+      <article data-reveal style="--i:5">
+        <b>+</b>
+        <h3>Karten und Missionen</h3>
+        <p>Ein eigener Karteneditor, ein Tutorial und Missionen als Skripte: Wer will, baut sich sein Gefechtsfeld selbst.</p>
+      </article>
+    </div>
+  </section>
+
+  <section id="armeen" class="band">
+    <header class="head" data-reveal>
+      <span class="no">02</span>
+      <h2>Drei Armeen</h2>
+      <p>Jede mit Infanterie, Panzern, Geschützen, Flugzeugen und Stellungen – und jede in drei Tarnungen: Wald, Wüste, Winter.</p>
+    </header>
+    <div class="armies" id="armies"></div>
+  </section>
+
+  <section id="duell" class="band">
+    <header class="head" data-reveal>
+      <span class="no">03</span>
+      <h2>Duell</h2>
+      <p>Zwei Einheiten, die realen Werte, Seite an Seite. Wer weiter schießt, dicker gepanzert ist oder billiger vom Band läuft, steht hier schwarz auf weiß.</p>
+    </header>
+    <div class="duel" id="duel" data-reveal></div>
+  </section>
+
+  <section id="arsenal" class="band">
+    <header class="head" data-reveal>
+      <span class="no">04</span>
+      <h2>Arsenal</h2>
+      <p>Der vollständige Katalog. Ein Klick öffnet das Datenblatt mit drehbarem 3D-Modell, Maßen, Panzerung, Bewaffnung und Quellen.</p>
+    </header>
+    <div class="toolbar" id="toolbar">
+      <div class="tabs" id="factions" role="group" aria-label="Fraktion"></div>
+      <input id="search" type="search" placeholder="Suchen: Name, ID, Waffe …" aria-label="Suchen">
+      <div class="chips" id="groups" role="group" aria-label="Gruppe"></div>
+    </div>
+    <div id="list" aria-label="Einheitenliste"></div>
+  </section>
 </main>
-<p id="status"></p>
+
+<footer>
+  <span class="brand">Mud <i>and</i> Steel</span>
+  <p>Rust-Simulation, Godot-Darstellung. Diese Seite liest Katalog, Modelle und Tarnungen direkt aus dem Projekt.</p>
+  <p id="status" role="status"></p>
+</footer>
+
+<dialog id="dossier" aria-label="Datenblatt">
+  <div class="stage" id="stage">
+    <div class="sky" aria-hidden="true"><i class="sky-forest"></i><i class="sky-desert"></i><i class="sky-winter"></i></div>
+    <div class="watermark" id="watermark" aria-hidden="true"></div>
+    <canvas id="view"></canvas>
+    <div class="dims" id="dims" aria-hidden="true"></div>
+    <img id="still" alt="" hidden>
+    <p id="stage-msg" hidden></p>
+    <div class="stage-top">
+      <div class="seg biomes" data-biomes role="group" aria-label="Tarnung"></div>
+    </div>
+    <div class="stage-tools">
+      <select id="variant" hidden aria-label="Variante"></select>
+      <label class="toggle"><input id="spin" type="checkbox" checked><span>Drehen</span></label>
+      <label class="toggle"><input id="measure" type="checkbox" checked><span>Maße</span></label>
+      <span class="hint">Ziehen dreht · Rad zoomt · Raster 1 m</span>
+    </div>
+  </div>
+  <div class="sheet-wrap">
+    <div class="sheet-bar">
+      <button id="prev" class="icon-btn" aria-label="Vorherige Einheit" title="Vorherige (←)">←</button>
+      <span id="position"></span>
+      <button id="next" class="icon-btn" aria-label="Nächste Einheit" title="Nächste (→)">→</button>
+      <button id="close" class="icon-btn close" aria-label="Schließen" title="Schließen (Esc)">✕</button>
+    </div>
+    <div id="sheet"></div>
+  </div>
+</dialog>
+
 <script type="module" src="app.js"></script>
 </body>
 </html>
