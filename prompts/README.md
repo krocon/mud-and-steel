@@ -160,7 +160,7 @@ Zeichnungen bleiben Referenz auf dem Rechner.
 | 064 | [Fahrzeug-Datenbank](done/064-fahrzeug-datenbank.md) | `data/vehicles/*.json` mit Schema, Quelle und Prüfung gegen den Katalog; Zugriff für Spiel und Webseite | erledigt (130 Einträge; dabei aus 063 vorgezogen: `tools/vehicle_refs.py`, `data/vehicles/index.json`, `docs/VEHICLE_REFS.md`) |
 | 065 | [Webseite: Fahrzeugdaten und Spielwerte](065-webseite-fahrzeugdaten-spielwerte.md) | Technische Daten in der Detailansicht, Spielwerte aus der Sim (`cli unit-stats`), fünf Kennzahlen | offen |
 | 066 | [Einheitenwerte im Spiel](066-einheitenwerte-im-spiel.md) | Kennzahlen im Picker, Tooltip, Einheitenkarte, Nachschlagewerk im Hauptmenü | offen |
-| 067 | [Typische Kampfentfernungen](067-typische-kampfentfernungen.md) | Typische statt maximale Reichweiten im Katalog, mit Quellen; Balance neu messen | offen |
+| 067 | [Typische Kampfentfernungen](done/067-typische-kampfentfernungen.md) | Typische statt maximale Reichweiten im Katalog, mit Quellen; Balance neu messen | erledigt (`range_typical_m` je Waffe, Klassenwerte mit Quellen; Direktfeuer × 1/4 bleibt; Gefecht 49 / 48 / 46 % statt 48 / 41 / 47 %; neuer Preisfaktor Mündungsgeschwindigkeit vorläufig; offen: USA im Basis-Modus 15 %, siehe `docs/BALANCE.md`) |
 
 ```
 063 Vorab-Session ─┬─ 063 Modell-Sessions (9 parallel) ─ zusammenführen
