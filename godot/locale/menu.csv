@@ -8,6 +8,7 @@ MENU_REPLAYS,Replays,Replays
 MENU_LAN_GAME,LAN game,LAN-Spiel
 MENU_ONLINE,Online (Steam),Online (Steam)
 MENU_MAP_EDITOR,Map editor,Karteneditor
+MENU_UNITS,Units,Einheiten
 MENU_CREDITS,Credits,Mitwirkende
 MENU_BIOME_MAP,As the map says,Wie auf der Karte
 MENU_BIOME_FOREST,Forest (summer),Wald (Sommer)

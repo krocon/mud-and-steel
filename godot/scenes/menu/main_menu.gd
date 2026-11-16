@@ -8,7 +8,8 @@ extends Control
 ## `lan/lan_lobby.tscn`, "Online (Steam)" `online/steam_lobby.tscn`
 ## (prompt 026), also right away when Steam started the game with
 ## `+connect_lobby <code>` to join a friend. "Load game" and "Replays" list
-## saved games and replays (prompt 038, `files_screen.gd`).
+## saved games and replays (prompt 038, `files_screen.gd`). "Units" opens
+## the unit reference (prompt 066, `units_screen.gd`).
 ##
 ## Direct starts skip the menu: `-- --skip-menu` and the arguments that used
 ## to start the match right away (`--map=…`, `--biome=…`, `--demo`,
@@ -34,6 +35,8 @@ const FilesScreen := preload("res://scenes/menu/files_screen.gd")
 ## Tutorial and missions (prompt 039).
 const MissionsScreen := preload("res://scenes/menu/missions_screen.gd")
 const Missions := preload("res://scenes/menu/missions.gd")
+## Unit reference (prompt 066).
+const UnitsScreen := preload("res://scenes/menu/units_screen.gd")
 const DIRECT_FLAGS: Array[String] = [
 	"--skip-menu", "--demo", "--camera-shots", "--path-debug",
 	"--terrain-bench", "--terrain-shots", "--objects-bench", "--objects-shots",
@@ -46,7 +49,7 @@ const BIOMES: Dictionary[String, String] = {
 }
 
 ## Screens, by name: "main", "skirmish", "settings", "credits", "load",
-## "replays", "missions".
+## "replays", "missions", "units".
 var screens: Dictionary[String, Control] = {}
 var single_player_button: Button
 var lan_button: Button
@@ -62,6 +65,9 @@ var replays_button: Button
 var tutorial_button: Button
 var missions_button: Button
 var missions_screen: MissionsScreen
+## Unit reference (prompt 066).
+var units_button: Button
+var units_screen: UnitsScreen
 var map_option: OptionButton
 var biome_option: OptionButton
 ## Weather and time of day (prompt 040).
@@ -114,6 +120,11 @@ func _ready() -> void:
 	missions_screen.back_pressed.connect(func() -> void: show_screen("main"))
 	add_child(missions_screen)
 	screens["missions"] = missions_screen
+	units_screen = UnitsScreen.new()
+	units_screen.visible = false
+	units_screen.back_pressed.connect(func() -> void: show_screen("main"))
+	add_child(units_screen)
+	screens["units"] = units_screen
 	show_screen("main")
 	# Steam starts the game like this when the player joins a friend.
 	if SteamLobby.launch_lobby_code() != "" and not _launch_handled:
@@ -132,6 +143,12 @@ func _ready() -> void:
 		var shots: Node = load("res://scenes/tools/l10n_shots.gd").new()
 		shots.name = "L10nShots"
 		get_tree().root.add_child.call_deferred(shots)
+	# Screenshots of the unit values (prompt 066, `just unit-card-shots`).
+	if Array(OS.get_cmdline_user_args()).any(func(a: String) -> bool: return a.begins_with("--unit-card-shots=")) \
+			and not get_tree().root.has_node("UnitCardShots"):
+		var card_shots: Node = load("res://scenes/tools/unit_card_shots.gd").new()
+		card_shots.name = "UnitCardShots"
+		get_tree().root.add_child.call_deferred(card_shots)
 	# Map editor self-test (prompt 028, `just editor-selftest`).
 	if "--editor-self-test" in OS.get_cmdline_user_args() and not get_tree().root.has_node("EditorSelfTest"):
 		var editor_test := EditorSelfTest.new()
@@ -210,7 +227,7 @@ func _main_screen() -> Control:
 	var subtitle := MenuTheme.hint("MENU_SUBTITLE")
 	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(subtitle)
-	box.add_child(_spacer(24))
+	box.add_child(_spacer(4))
 	tutorial_button = _button(box, "MENU_TUTORIAL", start_tutorial)
 	missions_button = _button(box, "MENU_MISSIONS", func() -> void: show_screen("missions"))
 	single_player_button = _button(box, "MENU_SINGLE_PLAYER", func() -> void: show_screen("skirmish"))
@@ -219,9 +236,15 @@ func _main_screen() -> Control:
 	lan_button = _button(box, "MENU_LAN_GAME", open_lan)
 	online_button = _button(box, "MENU_ONLINE", open_online)
 	editor_button = _button(box, "MENU_MAP_EDITOR", open_editor)
+	units_button = _button(box, "MENU_UNITS", func() -> void: show_screen("units"))
 	settings_button = _button(box, "COMMON_SETTINGS", func() -> void: show_screen("settings"))
 	credits_button = _button(box, "MENU_CREDITS", func() -> void: show_screen("credits"))
 	quit_button = _button(box, "COMMON_QUIT", func() -> void: get_tree().quit())
+	# Twelve entries fit a window 720 pixels high (prompt 066).
+	box.add_theme_constant_override(&"separation", 8)
+	for button in box.get_children():
+		if button is Button:
+			(button as Button).custom_minimum_size.y = 40
 	single_player_button.grab_focus.call_deferred()
 	# Prompt 044: a crash report of the last session, kept locally.
 	if not CrashGuard.last_report.is_empty():
