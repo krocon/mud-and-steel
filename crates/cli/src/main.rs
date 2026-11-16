@@ -453,6 +453,9 @@ enum CliCommand {
     /// Prints the prices and production times of everything the economy
     /// sells (prompt 023, data/economy.toml) as a Markdown table.
     EconomyTable,
+    /// Prints the game values of every catalog entry as JSON (prompt 065,
+    /// `sim::unit_stats`): what the unit page and the game display.
+    UnitStats,
     /// Validates catalog files (default: the built-in catalog) and prints all errors.
     CatalogCheck {
         /// Catalog TOML files, named `<faction>.toml`.
@@ -915,6 +918,10 @@ fn main() {
         }
         CliCommand::CatalogCheck { files } => catalog_check(&files),
         CliCommand::EconomyTable => economy_table(),
+        CliCommand::UnitStats => {
+            let rules = sim::unit_stats::StatRules::builtin().unwrap_or_else(|e| fail(&e));
+            print!("{}", sim::unit_stats::document(&rules).to_json());
+        }
         CliCommand::MissionPo { check } => {
             let problems = mission_po::run(std::path::Path::new("data/maps"), check);
             for p in &problems {

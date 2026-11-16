@@ -45,6 +45,7 @@ pub mod tactics;
 pub mod teams;
 pub mod terrain;
 pub mod transport;
+pub mod unit_stats;
 pub mod vision;
 pub mod weather;
 pub mod works;

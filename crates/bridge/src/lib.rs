@@ -53,6 +53,7 @@ mod tactics_funcs;
 mod team_funcs;
 mod terrain_layers;
 mod transport_funcs;
+mod unit_stats_funcs;
 mod vehicle_funcs;
 mod vision_funcs;
 mod water;
