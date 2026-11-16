@@ -26,7 +26,27 @@ const BINDABLE: Dictionary[String, String] = {
 	"camera_rotate_left": "Rotate left",
 	"camera_rotate_right": "Rotate right",
 	"camera_reset_north": "Face north",
+	# Orders and HUD (prompt 031).
+	"order_move": "Move (then click)",
+	"order_attack": "Attack (then click)",
+	"order_attack_ground": "Fire at ground (then click)",
+	"order_patrol": "Patrol (then click)",
+	"order_garrison": "Occupy building (then click)",
+	"order_stop": "Stop",
+	"order_fire_mode": "Hold fire / fire at will",
+	"stance_stand": "Stance: stand",
+	"stance_kneel": "Stance: kneel",
+	"stance_prone": "Stance: prone",
+	"stance_auto": "Stance: automatic",
+	"camera_follow": "Camera follows selection",
+	"event_jump": "Jump to last event",
+	"order_barrage": "Barrage at the cursor (artillery)",
+	"order_smoke": "Smoke at the cursor (artillery)",
 }
+
+## Health bars over units (prompt 031): `damaged` (damaged and selected
+## units), `selected` (selected units only), `never`.
+const HEALTH_BAR_MODES: Array[String] = ["damaged", "selected", "never"]
 
 ## Section "game" of the file. Sensitivities are factors on the camera's
 ## tuned speeds (0.25–3).
@@ -42,6 +62,7 @@ const DEFAULTS := {
 	"pan_sensitivity": 1.0,
 	"zoom_sensitivity": 1.0,
 	"edge_scroll": true,
+	"health_bars": "damaged",
 }
 
 static var values := {}
@@ -82,6 +103,7 @@ static func load_file() -> void:
 			if code > 0:
 				bindings[action] = code
 	values["quality"] = values["quality"] if values["quality"] in GraphicsQuality.LEVELS else GraphicsQuality.DEFAULT
+	values["health_bars"] = values["health_bars"] if values["health_bars"] in HEALTH_BAR_MODES else "damaged"
 	apply()
 
 
@@ -125,6 +147,13 @@ static func bind(action: String, code: int) -> void:
 			bindings[other] = bindings[action]
 	bindings[action] = code
 	apply()
+
+
+## Name of the key bound to `action` ("" if none), for button hints.
+static func action_key_name(action: String) -> String:
+	ensure_loaded()
+	var code: int = bindings.get(action, 0)
+	return key_name(code) if code > 0 else ""
 
 
 ## Name of the physical key `code` on the current keyboard layout.

@@ -69,6 +69,13 @@ pub enum Command {
         salvos: u16,
         smoke: bool,
     },
+    /// Appends a waypoint: `units` drive to a formation around `target`
+    /// once they are done with their current order (prompt 031). Like
+    /// `MoveTo` if all of them are idle.
+    QueueMove { units: Vec<UnitId>, target: Vec2 },
+    /// `units` drive to `target`, then back and forth between their start
+    /// and the target (prompt 031).
+    Patrol { units: Vec<UnitId>, target: Vec2 },
 }
 
 impl Command {
@@ -82,7 +89,9 @@ impl Command {
             | Self::SetFireMode { units, .. }
             | Self::SetStance { units, .. }
             | Self::Garrison { units, .. }
-            | Self::Barrage { units, .. } => units,
+            | Self::Barrage { units, .. }
+            | Self::QueueMove { units, .. }
+            | Self::Patrol { units, .. } => units,
             Self::Surrender
             | Self::Build { .. }
             | Self::Produce { .. }

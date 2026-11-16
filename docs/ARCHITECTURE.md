@@ -63,9 +63,11 @@ but never its issuer:
 | `Produce { building, unit_type }` | Queues and pays a unit in an own completed producing building. |
 | `CancelProduction { building }` | Removes the last order of the queue with a full refund. |
 | `SetRallyPoint { building, point }` | Units of the building drive there when they are done. |
+| `QueueMove { units, target }` | Appends a waypoint: a formation slot around `target` per unit, driven to after the current order ([Waypoint chains](#waypoint-chains-and-patrols), prompt 031). |
+| `Patrol { units, target }` | Like `MoveTo`, then back and forth between the start and the target. |
 
-Movement commands (`MoveTo`, `Attack`, `AttackGround`, `Garrison`) ignore
-units that cannot move (buildings).
+Movement commands (`MoveTo`, `Attack`, `AttackGround`, `Garrison`,
+`QueueMove`, `Patrol`) ignore units that cannot move (buildings).
 
 The simulation consumes `PlayerCommand { player, command }`. Only the lockstep layer
 builds these, from the sender of the frame, so a peer cannot command another player's
@@ -94,6 +96,38 @@ per player in a grid. The compiled-in demo (`sim::scenario::demo_config`) has ei
 Panzer IV H and two rifle squads (player 0) against eight T-34/76 and two rifle
 squads (player 1), the tanks 120 m apart, on the built-in map `test_small`. Unit ids
 follow file order (the squads, appended in prompt 022, have ids 16–19).
+
+### Waypoint chains and patrols
+
+Prompt 031, `crates/sim/src/sim/orders.rs`. Every unit has a queue of move
+targets (formation slots), at most `MAX_QUEUED` (64).
+
+- `QueueMove` assigns slots around the waypoint exactly like `MoveTo` (grid,
+  units in the order of their position) and appends each unit's slot. If all
+  units of the order are idle and have empty queues, it is a plain `MoveTo`
+  (one group path).
+- Right after the commands of a tick, every living unit without target,
+  route and attack order takes the next waypoint and plans its **own** path
+  there (a group does not share paths along the chain: its members reach a
+  waypoint in different ticks). A finished attack order therefore continues
+  the chain.
+- `Patrol` is a `MoveTo` to the target; the queue then holds the start and
+  the slot at the target and cycles (a taken waypoint goes back to the end).
+- `MoveTo`, `Stop`, `Attack`, `AttackGround`, `Garrison`, `Barrage`
+  (prompt 032) and `Patrol` drop the queues of their units; destroyed units
+  lose theirs. A unit with an indirect fire order is not idle: the chain
+  waits until the barrage is over.
+- **State hash:** only units with a queue (or a patrol) are written, after all
+  other state (unit id, patrol flag, waypoints). Matches without chains keep
+  their hash, so the golden hash did not change.
+- `Sim::queued_waypoints(id)` serves the presentation (`SimHost.unit_waypoints`,
+  `unit_queue_length`, `unit_patrols`).
+
+| Question | Decision | Why |
+|---|---|---|
+| New command or `queue` flag | Two new variants at the end of `Command` | `MoveTo` and old replays stay unchanged (postcard numbers variants in order). |
+| Paths along the chain | One per unit and leg | A shared group path would need the members to wait for each other; short legs cost little search budget. |
+| Formation choice, facing by right-drag | Not done | Optional in prompt 031; it changes the formation rules (golden hash) and was left for later. |
 
 ## Map and movement
 
@@ -1879,14 +1913,70 @@ player are selectable; destroyed units leave the selection.
 | Ctrl+1…9 (Cmd on macOS) | Store the selection as a group |
 | 1…9 | Recall the group; twice within 0.4 s also centers the camera on it |
 | Right click | Move the selection to the ground point (green marker for 1 s) |
+| Shift + right click | Append a waypoint (`SimHost.queue_move`, prompt 031) |
 | Right click on an enemy unit | Attack it |
 | Ctrl+right click (Cmd on macOS) | Fire at the ground point |
 | H | Stop the selection |
 | F | Hold fire / fire at will for the selection |
+| M, R, L, P, U | Targeted order (move, attack, fire at ground, patrol, occupy): waits for the next left click (`command_mode`; Shift keeps it and queues moves), right click cancels |
+
+Since prompt 031 the order, stance, follow and event keys are input actions
+(`order_*`, `stance_*`, `camera_follow`, `event_jump` in `project.godot`),
+rebindable in the settings; control groups stay on the fixed keys 1…9. A
+box drag that started on the map ends wherever the button is released, also
+over a HUD panel (`selection.gd` takes the release in `_input`). The player's
+overview of all inputs is [CONTROLS.md](CONTROLS.md).
 
 Picking projects unit positions to the screen (`Camera3D.unproject_position`); the pick
 radius is half the footprint on screen, at least 14 px. Selected units show a green
 ring; units of other players carry a red tint overlay.
+
+## HUD (presentation only)
+
+Prompt 031, `godot/scenes/hud/` (created by `main.gd` as `hud`): minimap,
+unit panel, command bar, event feed and waypoint lines. Nothing here
+decides anything; orders go through `selection.gd` or `SimHost`.
+
+- **Minimap** (`minimap.gd`, bottom right): `SimHost.minimap_image` renders
+  the ground once in Rust, one RGB pixel per 8 m vision cell (terrain color,
+  hill shading from the vision grid's heights, roads if any sample of the
+  cell is a road, forest and solid obstacles from the vision grid). One
+  canvas shader multiplies it with the fog texture of `fog_of_war.gd` (the
+  same grid; never seen 12 %, explored 45 %). Units are one
+  `MultiMeshInstance2D` whose buffer (2D transform + color per dot) comes
+  from `SimHost.minimap_dots` in one call, only for the units of the local
+  player's snapshot. The camera's view is the screen corners on the ground
+  (the focus height where a ray misses); pings mark hits on own units. Left
+  click/drag looks there, right click moves the selection (Shift: waypoint).
+  Not redrawn after craters.
+- **Unit panel** (`unit_panel.gd`, bottom center): `SimHost.unit_info` (name,
+  hit points, armor per face, weapons with caliber and game range, soldiers);
+  stance, fire mode and queued waypoints from the per-unit arrays. The
+  portrait (`unit_portrait.gd`, [provisional]) is rendered once per unit type
+  in its own `SubViewport` from a fresh model (duplicating a unit's model
+  fails: its parts are merged at run time). Several units: tiles with health
+  bars; click selects one, Shift + click removes it.
+- **Command bar** (`command_bar.gd`, bottom left): buttons with the bound key
+  for every order; targeted orders set `selection.command_mode`. The build
+  menu and the production bar of `world/base_hud.gd` are docked above it
+  (`BaseHud.dock_into`, [provisional]); "Build" opens the build menu.
+- **Event feed** (`event_feed.gd`, left edge): own unit lost, building
+  completed, unit ready, enemy sighted (at most every 15 s), under fire (at
+  most every 10 s), from the combat event stream and a poll of the snapshot
+  every 0.25 s. Click looks there, `event_jump` (Space) jumps to the newest.
+- **Waypoint lines** (`waypoints.gd`): for up to 48 selected units the
+  remaining route and the queued waypoints (`SimHost.unit_waypoints`),
+  projected to the screen; markers at queued waypoints, patrols in blue.
+- **Health bars** (`combat_view.gd`): setting `health_bars` = `damaged`
+  (damaged and selected units, default), `selected` or `never`.
+- **Cost:** every part adds its `_process`/`_draw` time to `hud.usec`;
+  `--perf-bench` prints it per view (column "hud").
+
+The self-test (`tools/hud_self_test.gd`) clicks and drags the minimap,
+changes the selection through the unit panel, drives a waypoint chain by
+Shift + right click, gives orders through the command bar and jumps to an
+event. It sets the headless window to 1600 × 900: at the headless default of
+64 × 64 pixels the HUD would cover the whole screen.
 
 ## Replays
 
@@ -1920,6 +2010,9 @@ Decisions:
   010) added map reference and terrain rules, version 3 (prompt 017) combat rules,
   combat data of unit types, the start fire mode of spawns and the combat commands,
   version 4 (prompt 014) the unit mass (`UnitType::mass_kg`, bridge load limits).
+  Prompt 031 appended `QueueMove` and `Patrol` to `Command` without a version
+  change: old files decode as before; an older build fails to decode a file
+  that uses them.
 - **Merged commands per tick, sparse.** The replay stores exactly what `Sim::step` got
   (player-tagged, in apply order), so playback needs no lockstep session and does not
   depend on input delay. Ticks without commands are omitted; the tick count marks the

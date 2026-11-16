@@ -403,6 +403,15 @@ impl Sim {
         }
     }
 
+    /// Whether unit `i` has an indirect fire order (waypoint chains wait
+    /// for it, prompt 031).
+    pub(super) fn has_indirect_order(&self, i: usize) -> bool {
+        self.artillery
+            .guns
+            .get(&self.units[i].id)
+            .is_some_and(|g| g.order.is_some())
+    }
+
     /// Ends the order of unit `i`; a unit driving into range stops.
     fn end_order(&mut self, i: usize) {
         let id = self.units[i].id;

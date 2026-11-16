@@ -9,6 +9,8 @@ extends Node3D
 
 signal combat_event(event: Dictionary)
 
+const Settings := preload("res://scenes/menu/settings.gd")
+
 ## How fast turrets follow the simulation's aim (presentation only).
 const TURRET_TURN_RATE := 10.0
 ## Tracer length per m/s of projectile speed (seconds of flight shown).
@@ -174,7 +176,8 @@ func _tint(node: Node, material: Material) -> void:
 		_tint(child, material)
 
 
-## Health bars over damaged and selected units, drawn on the HUD.
+## Health bars over damaged and selected units, drawn on the HUD; the
+## setting "Health bars" limits them to selected units or hides them.
 class HealthBars:
 	extends Control
 
@@ -196,6 +199,11 @@ class HealthBars:
 
 	func _draw() -> void:
 		drawn = 0
+		# Setting "Health bars" (prompt 031): damaged, selected or never.
+		var mode: String = Settings.get_value("health_bars")
+		if mode == "never":
+			return
+		var damaged_too := mode != "selected"
 		var sim_host: SimHost = view.sim_host
 		var camera: Camera3D = view.main.camera
 		var selection: Control = view.main.selection
@@ -205,7 +213,7 @@ class HealthBars:
 		var owners := sim_host.unit_owners()
 		var me := sim_host.local_player()
 		for i in ids.size():
-			if alive[i] == 0 or (health[i] >= 1.0 and not selection.is_selected(ids[i])):
+			if alive[i] == 0 or ((health[i] >= 1.0 or not damaged_too) and not selection.is_selected(ids[i])):
 				continue
 			var node: Node3D = view.main._unit_nodes.get(ids[i])
 			if node == null:

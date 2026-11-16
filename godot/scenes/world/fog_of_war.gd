@@ -130,6 +130,12 @@ func _refresh() -> void:
 	updates += 1
 
 
+## The cell states as a texture (L8, one texel per vision cell), shared
+## with the minimap (prompt 031); null before the first upload.
+func fog_texture() -> ImageTexture:
+	return _texture
+
+
 ## Share of cells with the given state byte (0, 128, 255), for tests.
 func share_of(state: int) -> float:
 	if _host == null:

@@ -59,3 +59,48 @@ fn tampered_replay_is_reported() {
         .unwrap();
     assert!(!report.matches());
 }
+
+/// Waypoint chains and patrols (prompt 031) are recorded and replay to the
+/// same hash.
+#[test]
+fn waypoint_chains_replay_to_the_same_hash() {
+    use net::ReplayRecorder;
+    use sim::{PlayerCommand, PlayerId, Sim, UnitId};
+
+    let config = sim::scenario::demo_config();
+    let mut recorder = ReplayRecorder::new(7, config.clone(), &config.players());
+    let mut sim = Sim::new(&config, sim::scenario::builtin_map(), 7).unwrap();
+    let chain = |units: Vec<UnitId>, x: i32, y: i32| {
+        PlayerCommand::new(
+            PlayerId(0),
+            Command::QueueMove {
+                units,
+                target: Vec2::from_meters(x, y),
+            },
+        )
+    };
+    let tanks: Vec<UnitId> = (0..4).map(UnitId).collect();
+    for tick in 0..600 {
+        let commands = match tick {
+            5 => vec![
+                chain(tanks.clone(), -40, 60),
+                chain(tanks.clone(), 0, 90),
+                chain(tanks.clone(), 40, 60),
+            ],
+            9 => vec![PlayerCommand::new(
+                PlayerId(0),
+                Command::Patrol {
+                    units: vec![UnitId(4), UnitId(5)],
+                    target: Vec2::from_meters(-60, 40),
+                },
+            )],
+            _ => Vec::new(),
+        };
+        recorder.record(&commands);
+        sim.step(&commands);
+    }
+    let replay = Replay::decode(&recorder.finish(&sim).encode()).unwrap();
+    let report = replay.verify(sim::scenario::builtin_map()).unwrap();
+    assert!(report.matches(), "{report:?}");
+    assert_eq!(report.actual_hash, sim.state_hash());
+}

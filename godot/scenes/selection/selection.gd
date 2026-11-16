@@ -16,8 +16,13 @@ extends Control
 ## - Infantry (prompt 022): right click on a building sends the selected
 ##   squads into it (other units drive there); Z stand, X kneel, V prone,
 ##   B automatic stance.
-## - Indirect fire (prompt 032): G fires a barrage (3 salvos within 25 m)
-##   and T smoke (2 salvos within 15 m) of the selected mortars and guns at
+## - Prompt 031: Shift + right click appends a waypoint (`SimHost.queue_move`).
+##   Targeted orders from the command bar or their keys (M move, R attack,
+##   L fire at ground, P patrol, U occupy) wait for the next left click
+##   (`command_mode`; Shift keeps the mode and queues moves); right click
+##   cancels. Order keys are input actions, rebindable in the settings.
+## - Indirect fire (prompt 032): G (`order_barrage`) fires a barrage (3
+##   salvos within 25 m) and T (`order_smoke`) smoke (2 salvos within 15 m) of the selected mortars and guns at
 ##   the ground point under the cursor; Ctrl+right click fires at a point
 ##   until stopped, right click on an enemy fires at it while it is seen.
 ##
@@ -27,6 +32,8 @@ extends Control
 signal move_ordered(point: Vector3)
 signal attack_ordered(target: int)
 signal garrison_ordered(building: int)
+## The targeted order waiting for a click changed ("" = none).
+signal command_mode_changed(mode: String)
 signal barrage_ordered(point: Vector3, smoke: bool)
 
 const GroundPick := preload("res://scenes/camera/ground_pick.gd")
@@ -38,10 +45,27 @@ const MIN_PICK_RADIUS := 14.0
 const PICK_HEIGHT := 1.2
 ## Two presses of the same group key within this time center the camera.
 const DOUBLE_PRESS_MS := 400
-## Stance keys (prompt 022): stance code for `SimHost.set_stance`.
-const STANCE_KEYS := {KEY_Z: 0, KEY_X: 1, KEY_V: 2, KEY_B: -1}
-## Barrage keys (prompt 032): smoke?, salvos, radius in meters.
-const BARRAGE_KEYS := {KEY_G: [false, 3, 25], KEY_T: [true, 2, 15]}
+## Stance actions (prompt 022, actions since 031): stance code for
+## `SimHost.set_stance`.
+const STANCE_ACTIONS := {"stance_stand": 0, "stance_kneel": 1, "stance_prone": 2, "stance_auto": -1}
+## Actions that start a targeted order (prompt 031): action -> mode.
+const MODE_ACTIONS := {
+	"order_move": "move", "order_attack": "attack", "order_attack_ground": "attack_ground",
+	"order_patrol": "patrol", "order_garrison": "garrison",
+}
+## Hint shown while a targeted order waits for its click.
+const MODE_HINTS := {
+	"move": "Move: left click a point (Shift: waypoint)",
+	"attack": "Attack: left click an enemy",
+	"attack_ground": "Fire at ground: left click a point",
+	"patrol": "Patrol: left click a point",
+	"garrison": "Occupy: left click a building",
+	"barrage": "Barrage: left click a point",
+	"smoke": "Smoke: left click a point",
+}
+## Barrage actions (prompt 032, actions since 031): smoke?, salvos, radius
+## in meters. They fire at the ground point under the cursor at once.
+const BARRAGE_ACTIONS := {"order_barrage": [false, 3, 25], "order_smoke": [true, 2, 15]}
 const BOX_FILL := Color(0.45, 0.85, 0.45, 0.12)
 const BOX_LINE := Color(0.55, 0.95, 0.55, 0.9)
 
@@ -56,6 +80,8 @@ var groups: Dictionary[int, Array] = {}
 ## catch units leave buildings out. Set by `main.gd`.
 var is_structure := func(_id: int) -> bool: return false
 
+## Targeted order waiting for the next left click ("" = none, prompt 031).
+var command_mode := ""
 var _pressing := false
 var _dragging := false
 var _double_click := false
@@ -81,31 +107,114 @@ func is_selected(id: int) -> bool:
 	return selected.has(id)
 
 
-func _unhandled_input(event: InputEvent) -> void:
-	var button := event as InputEventMouseButton
-	if button != null:
-		if button.button_index == MOUSE_BUTTON_LEFT:
-			_on_left_button(button)
-			get_viewport().set_input_as_handled()
-		elif button.button_index == MOUSE_BUTTON_RIGHT and button.pressed:
-			if button.ctrl_pressed or button.meta_pressed:
-				_order_attack_ground(button.position)
-			elif not _order_attack(button.position):
-				_order_move(button.position)
-			get_viewport().set_input_as_handled()
+## A box drag that started on the map ends wherever the mouse is released,
+## also over a HUD panel (prompt 031): the release and the motion are taken
+## before the GUI sees them.
+func _input(event: InputEvent) -> void:
+	if not _pressing:
 		return
 	var motion := event as InputEventMouseMotion
-	if motion != null and _pressing:
+	if motion != null:
 		_drag_position = motion.position
 		if not _dragging and _drag_position.distance_to(_press_position) > DRAG_THRESHOLD:
 			_dragging = true
 		if _dragging:
 			queue_redraw()
 		return
+	var button := event as InputEventMouseButton
+	if button != null and button.button_index == MOUSE_BUTTON_LEFT and not button.pressed:
+		_on_left_button(button)
+		get_viewport().set_input_as_handled()
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	var button := event as InputEventMouseButton
+	if button != null:
+		if button.button_index == MOUSE_BUTTON_LEFT:
+			if not command_mode.is_empty() and button.pressed:
+				click_command(button.position, button.shift_pressed)
+			else:
+				_on_left_button(button)
+			get_viewport().set_input_as_handled()
+		elif button.button_index == MOUSE_BUTTON_RIGHT and button.pressed:
+			if not command_mode.is_empty():
+				set_command_mode("")
+			elif button.ctrl_pressed or button.meta_pressed:
+				_order_attack_ground(button.position)
+			elif not _order_attack(button.position):
+				_order_move(button.position, button.shift_pressed)
+			get_viewport().set_input_as_handled()
+		return
+	# Drag motion: see `_input`.
 	var key := event as InputEventKey
 	if key != null and key.pressed and not key.echo:
-		if _on_key(key):
+		if _on_action(key) or _on_key(key):
 			get_viewport().set_input_as_handled()
+
+
+## Order and stance keys (input actions, prompt 031). Modifiers must match
+## exactly, so Ctrl+key stays free.
+func _on_action(event: InputEvent) -> bool:
+	if event.is_action_pressed("order_stop", false, true):
+		stop_selected()
+	elif event.is_action_pressed("order_fire_mode", false, true):
+		toggle_hold_fire()
+	elif event.is_action_pressed("camera_follow", false, true):
+		set_follow(not follow)
+	else:
+		for action: String in BARRAGE_ACTIONS:
+			if event.is_action_pressed(action, false, true):
+				var b: Array = BARRAGE_ACTIONS[action]
+				return order_barrage(get_viewport().get_mouse_position(), b[0], b[1], b[2])
+		for action: String in STANCE_ACTIONS:
+			if event.is_action_pressed(action, false, true):
+				set_stance(STANCE_ACTIONS[action])
+				return true
+		for action: String in MODE_ACTIONS:
+			if event.is_action_pressed(action, false, true):
+				set_command_mode(MODE_ACTIONS[action])
+				return true
+		return false
+	return true
+
+
+## Starts (or with "" cancels) a targeted order; only with a selection.
+func set_command_mode(mode: String) -> void:
+	var next := mode if not selected.is_empty() else ""
+	if next == command_mode:
+		return
+	command_mode = next
+	Input.set_default_cursor_shape(Input.CURSOR_CROSS if not next.is_empty() else Input.CURSOR_ARROW)
+	command_mode_changed.emit(command_mode)
+	queue_redraw()
+
+
+## Carries out the waiting targeted order at `screen_position`. Shift
+## keeps the mode (and makes moves waypoints); otherwise it ends once the
+## order went out.
+func click_command(screen_position: Vector2, shift := false) -> void:
+	var done := false
+	match command_mode:
+		"move":
+			done = _order_move(screen_position, shift)
+		"attack":
+			done = _order_attack(screen_position)
+		"attack_ground":
+			done = _order_attack_ground(screen_position)
+		"patrol":
+			var hit: Variant = GroundPick.from_screen(camera, screen_position)
+			if hit != null and not selected.is_empty():
+				var point := hit as Vector3
+				sim_host.patrol_units(PackedInt64Array(selected), point.x, point.z)
+				move_ordered.emit(point)
+				done = true
+		"garrison":
+			done = _order_garrison(screen_position)
+		"barrage", "smoke":
+			var b: Array = BARRAGE_ACTIONS["order_" + command_mode]
+			done = order_barrage(screen_position, b[0], b[1], b[2])
+	if done and not shift:
+		set_command_mode("")
 
 
 func _on_left_button(button: InputEventMouseButton) -> void:
@@ -135,23 +244,8 @@ func _on_left_button(button: InputEventMouseButton) -> void:
 		_click(_unit_at(button.position), button.shift_pressed)
 
 
+## Control groups (fixed keys 1…9).
 func _on_key(key: InputEventKey) -> bool:
-	if key.keycode == KEY_H and not key.ctrl_pressed and not key.meta_pressed:
-		stop_selected()
-		return true
-	if key.keycode == KEY_F and not key.ctrl_pressed and not key.meta_pressed:
-		toggle_hold_fire()
-		return true
-	if key.keycode == KEY_C and not key.ctrl_pressed and not key.meta_pressed:
-		set_follow(not follow)
-		return true
-	if BARRAGE_KEYS.has(key.keycode) and not key.ctrl_pressed and not key.meta_pressed:
-		var b: Array = BARRAGE_KEYS[key.keycode]
-		return order_barrage(get_viewport().get_mouse_position(), b[0], b[1], b[2])
-	var stance: int = STANCE_KEYS.get(key.keycode, -2)
-	if stance > -2 and not key.ctrl_pressed and not key.meta_pressed:
-		set_stance(stance)
-		return true
 	if key.keycode < KEY_1 or key.keycode > KEY_9:
 		return false
 	var number := int(key.keycode - KEY_0)
@@ -243,22 +337,51 @@ func order_barrage(screen_position: Vector2, smoke: bool, salvos: int, radius: i
 	return true
 
 
-func _order_attack_ground(screen_position: Vector2) -> void:
+func _order_attack_ground(screen_position: Vector2) -> bool:
 	if selected.is_empty():
-		return
+		return false
 	var hit: Variant = GroundPick.from_screen(camera, screen_position)
 	if hit != null:
 		var point := hit as Vector3
 		sim_host.attack_ground(PackedInt64Array(selected), point.x, point.z)
+	return hit != null
 
 
-func _order_move(screen_position: Vector2) -> void:
-	if selected.is_empty():
-		return
+## Occupy order of the command bar: squads into the building under the
+## cursor (false if there is none or no squad is selected).
+func _order_garrison(screen_position: Vector2) -> bool:
 	var hit: Variant = GroundPick.from_screen(camera, screen_position)
 	if hit == null:
-		return
+		return false
 	var point := hit as Vector3
+	var building := sim_host.building_at(point.x, point.z)
+	var squads := _selected_squads()
+	if building < 0 or squads.is_empty():
+		return false
+	sim_host.garrison_units(PackedInt64Array(squads), building)
+	garrison_ordered.emit(building)
+	return true
+
+
+func _order_move(screen_position: Vector2, queue := false) -> bool:
+	if selected.is_empty():
+		return false
+	var hit: Variant = GroundPick.from_screen(camera, screen_position)
+	if hit == null:
+		return false
+	order_move_to(hit as Vector3, queue)
+	return true
+
+
+## Moves the selection to the ground point (minimap, command bar); with
+## `queue` the point becomes a waypoint after the current orders.
+func order_move_to(point: Vector3, queue := false) -> void:
+	if selected.is_empty():
+		return
+	if queue:
+		sim_host.queue_move(PackedInt64Array(selected), point.x, point.z)
+		move_ordered.emit(point)
+		return
 	# A building under the cursor: squads go in, vehicles drive there.
 	var building := sim_host.building_at(point.x, point.z)
 	var squads := _selected_squads() if building >= 0 else ([] as Array[int])
@@ -272,6 +395,11 @@ func _order_move(screen_position: Vector2) -> void:
 		return
 	sim_host.move_units(PackedInt64Array(selected), point.x, point.z)
 	move_ordered.emit(point)
+
+
+## Selects exactly `ids` (unit panel, prompt 031); own living units only.
+func set_selection(ids: Array) -> void:
+	_set_selection(ids.filter(func(id: int) -> bool: return _own_index(id) >= 0))
 
 
 func _click(id: int, additive: bool) -> void:
@@ -398,6 +526,8 @@ func _set_selection(ids: Array) -> void:
 			next.append(id)
 	next.sort()
 	selected = next
+	if selected.is_empty() and not command_mode.is_empty():
+		set_command_mode("")
 
 
 ## Indices (into the SimHost arrays) of the local player's living units.
@@ -439,6 +569,11 @@ func _own_index(id: int) -> int:
 
 
 func _draw() -> void:
+	if not command_mode.is_empty():
+		var size := get_viewport_rect().size
+		draw_string(ThemeDB.fallback_font, Vector2(size.x * 0.5 - 180, 70),
+			MODE_HINTS.get(command_mode, "") + "  ·  right click cancels",
+			HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color(1, 0.95, 0.6, 0.95))
 	if follow:
 		var font := ThemeDB.fallback_font
 		draw_string(font, Vector2(16, 28), "Kamera folgt der Auswahl (C)",

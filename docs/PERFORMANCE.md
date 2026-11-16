@@ -174,6 +174,14 @@ Script time per system is printed by the bench; after the changes, in the
 battle: units 0.7 ms, infantry 1.6 ms, combat view 0.6 ms, effects
 0.8–1.0 ms, terrain chunks 0.9–1.3 ms.
 
+**HUD** (prompt 031: minimap, unit panel, command bar, events, waypoint
+lines; budget 1 ms per frame): the bench prints it as "hud"; the battle views
+have a dozen units selected. Measured with five other sessions building and
+testing on the same machine (frame rates of that run are not comparable to
+the table above): standing 0.24–0.27 ms, battle 0.70–0.83 ms per frame. The
+minimap dots are one MultiMesh buffer filled by the bridge; the ground image
+is built once (`test_large`: 500 × 500 cells).
+
 
 ## Decisions
 

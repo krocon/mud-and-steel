@@ -16,6 +16,8 @@ extends Control
 ##   ground sets the building's rally point.
 ##
 ## Hidden in matches without base building. Created by `main.gd` in the HUD.
+## Prompt 031: the command bar docks the build menu and the production bar
+## (`dock_into`); its "Build" button opens the build menu.
 
 const GroundPick := preload("res://scenes/camera/ground_pick.gd")
 const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
@@ -49,6 +51,8 @@ var _ghost: MeshInstance3D
 var _ghost_material: StandardMaterial3D
 var _refresh_left := 0.0
 var _enabled := false
+## The command bar holding the panels (prompt 031), or null.
+var _command_bar: Node
 
 
 func setup(main_node: Node3D, view: Node) -> void:
@@ -130,6 +134,24 @@ func _process(delta: float) -> void:
 		_refresh()
 	if placing >= 0:
 		_update_ghost(get_viewport().get_mouse_position())
+
+
+## Moves the build menu and the production bar into `dock` (the command
+## bar, prompt 031); `bar.build_menu_open()` decides whether the build menu
+## shows.
+func dock_into(dock: Control, bar: Node) -> void:
+	_command_bar = bar
+	for panel: Control in [_production_panel, _build_panel]:
+		remove_child(panel)
+		panel.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
+		panel.grow_vertical = Control.GROW_DIRECTION_END
+		dock.add_child(panel)
+	_refresh()
+
+
+## Rebuilds the panels now (the command bar opened the build menu).
+func refresh_now() -> void:
+	_refresh()
 
 
 ## Starts placing `unit_type` (also used by the self-test).
@@ -217,6 +239,9 @@ func _refresh() -> void:
 	var state := sim_host.economy_state()
 	_enabled = state.get("enabled", false)
 	visible = _enabled
+	if _command_bar != null:
+		_build_panel.visible = _enabled and _command_bar.build_menu_open()
+		_production_panel.visible = _production_panel.visible and _enabled
 	if not _enabled:
 		return
 	var income: PackedInt64Array = state.income
