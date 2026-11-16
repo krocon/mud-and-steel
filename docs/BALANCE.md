@@ -237,12 +237,20 @@ after: both armies reach the unit limit, rebuild what they lose, and
 neither AI pushes through to the other base (1.6 km apart). This is the
 AI's end game and the victory condition (a player with any building is
 not defeated), not the economy any more; see PLAYTEST.md decision 6.
-SKIRMISH_LONG
+With 30 minutes instead of 20 (de–su, 10 games, `--base-ticks 36000`)
+every game is still open.
 
 ### Duels after the changes
 
 The duels measure catalog values under the combat rules; no combat rule
 was changed, so they are the same as before (see above).
+
+### Difficulty matrix (`just ai-tournament`)
+
+The default matrix (demo armies 8 against 8, `test_small`, 40 games, no
+faction choice) after the changes: Hard–Normal 55/45, Hard–Easy 87/12,
+Hard–Passive 100/0, Normal–Easy 55/45, Normal–Passive 100/0,
+Easy–Passive 97/0 (one timeout); tournament hash `0xc83fb9773681200e`.
 
 ### Time
 
@@ -269,3 +277,19 @@ weapon ranges should come from the catalog's effective ranges as they are
 (the Panzer IV's 375 m against 250 m decides most tank fights); whether
 rate of fire and range should enter the unit price; whether base matches
 should end when headquarters and production are lost; the start vehicle.
+
+## Open
+
+- **AI:** AT squads walk into the open and are wasted (kills per loss
+  below 0.25 for every faction); the counter-production should only buy
+  them with cover or ambush tactics. Lost engineers are rebuilt again and
+  again. The end game of base matches on maps of 1.5 km and more (see
+  `skirmish`).
+- **Per-map swings** in base mode (Soviet Union 0 % on `test_small`,
+  United States 5 % on `twin_meadow`) need more games per row and a look
+  at single replays; the JSON statistics of the tournaments are not
+  written to disk yet (only the summed tables).
+- **Rate of fire** is not part of the price (the T-34 fires half as fast
+  as the Panzer IV and costs about the same now).
+- More measurements: base mode on the other seven maps, Easy/Normal
+  against Hard per faction, team matches.

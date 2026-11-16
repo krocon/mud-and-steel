@@ -105,7 +105,7 @@ Umsetzen von ihrer Session konkretisiert.
 | 042 | [Infanterie-Texturen](done/042-infanterie-texturen.md) | Prozedurale Uniform-Texturen, Tarnmuster, Pistolen, zehn neue Clips | erledigt |
 | 043 | [Sprache und Barrierefreiheit](done/043-sprache-barrierefreiheit.md) | Deutsch/Englisch, Farbpaletten, UI-Skalierung, Grafikoptionen | erledigt (vorläufige Entscheidungen im Prompt zu bestätigen) |
 | 044 | [Release-Builds und Steam](done/044-release-builds-steam.md) | Export für drei Systeme, Release-CI, SteamPipe, Credits | erledigt (erster Export mit Godot-Export-Templates steht aus, `docs/RELEASE.md`) |
-| 045 | [Balancing und Playtest](045-balancing-playtest.md) | Statistik, Turniere, Gefechtssimulator, bestätigtes Design | Entwurf |
+| 045 | [Balancing und Playtest](done/045-balancing-playtest.md) | Statistik, Turniere, Gefechtssimulator, bestätigtes Design | erledigt (Bestätigung durch Playtests offen) |
 
 ```
 Welle 10:  029 Sound │ 031 HUD │ 032 Indirektes Feuer │ 038 Speichern │ 042 Infanterie │ 044 Release

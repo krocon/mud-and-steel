@@ -87,4 +87,24 @@ wie ich es teste, Messwerte, was offen ist.
 Acceptance criterion 1 (no faction above 60 % at equal AI level): see the
 results in `docs/BALANCE.md`; exceptions are named there.
 
-RESULTS_PROMPT
+### Results
+
+- Statistics: `sim::stats::MatchStats`, result screen (losses, kills,
+  points, best unit types, account chart), JSON in `user://stats/`;
+  self-test checks screen and file.
+- Tools: `just balance`, `just duel`; `ai-tournament` collects the
+  statistics.
+- Measured and tuned (details `docs/BALANCE.md`): battle mode de/su/us
+  71/25/41 % → 48/40/48 %; base mode (test_small + twin_meadow) 45/90/5 %
+  → 45/33/40 %; `skirmish` base matches stay undecided after 20 and 30
+  minutes (AI end game and victory condition, not the economy any more:
+  ammunition no longer runs dry, armies reach the unit limit).
+- Exceptions: map rows above 60 % (open maps favor the Panzer IV's range;
+  10 games per row); Hard against Passive as the Soviet side stays at
+  0–50 % on small maps (outranged attacker against a static line, not
+  solvable by the AI).
+- Golden hash `0xf8f2_b8a4_aead_460d` → `0x164a_535e_3316_b34e` (economy
+  and resupply rules in the hash), economy golden hash
+  `0xa4a5_8dfc_9b57_0a72` → `0x88ec_4656_950c_0751`.
+- Open for the user: the decisions in `docs/PLAYTEST.md`; nothing marked
+  confirmed.
