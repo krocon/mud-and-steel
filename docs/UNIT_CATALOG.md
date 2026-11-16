@@ -639,6 +639,7 @@ uncertain; see the list at the end of each faction.
 | fort_bunker_mg | MG-Bunker (Beton, sechseckig) / Concrete MG pillbox (hexagonal) | 1 | 3.81? × 4.40? × 2.00? | Generic hexagonal concrete pillbox after the Type 22 plan, without national feat… |
 | fort_mine_at | Panzermine (einzeln, sichtbar) / Anti-tank mine (single, visible) | 1 | 0.32 × 0.32 × 0.10? | Single visible pressure mine for engineers and debug views (minefields themselve… |
 | fort_mine_ap | Schützenmine (einzeln, sichtbar) / Anti-personnel mine (single, visible) | 1 | 0.10 × 0.10 × 0.15? | Single visible bounding mine for engineers and debug views |
+| fort_dragon_teeth | Höckerhindernis (Betonhöcker) / Concrete anti-tank teeth (dragon's teeth) | 1 | 1.20? × 1.20? × 1.20? | One truncated concrete pyramid on its footing |
 
 ### Environment
 
@@ -677,6 +678,7 @@ uncertain; see the list at the end of each faction.
 | env_house_log | Blockhaus / Log house | 1 | 9.00? × 7.00? × 6.00? | One-storey village log house for winter maps; the snow comes from the biome look |
 | env_dump_ammo | Munitionslager (Feldstapel) / Ammunition dump (field stacks) | 1 | 6.00? × 4.00? × 1.50? | Two rows of wooden ammunition crates on dunnage, about 1.5 m high |
 | env_dump_fuel | Treibstofflager (Fässer) / Fuel dump (drums) | 1 | 4.80? × 3.60? × 0.90 | Rows of standing 200 l drums with gaps on dunnage |
+| fort_camo_net | Tarnnetz (auf Stangen) / Camouflage net (on poles) | 1 | 8.84? × 8.84? × 2.40? | Garnished drape net of 29 x 29 ft (8.84 m) held by poles about 2.4 m high over a… |
 
 ### Uncertain values
 
@@ -718,6 +720,8 @@ uncertain; see the list at the end of each faction.
 - `env_house_log`: length_mm, width_mm, height_mm
 - `env_dump_ammo`: length_mm, width_mm, height_mm
 - `env_dump_fuel`: length_mm, width_mm
+- `fort_camo_net`: length_mm, width_mm, height_mm
+- `fort_dragon_teeth`: length_mm, width_mm, height_mm
 
 ### Sources
 
@@ -812,4 +816,9 @@ uncertain; see the list at the end of each faction.
   - FM 9-6 Ammunition Supply (US War Department, 1944), field storage (ammunition stored in the open in small dispersed stacks on dunnage, limited in height)
 - `env_dump_fuel`
   - https://en.wikipedia.org/wiki/Drum_(container) (200 l steel drum outside diameter about 584 mm, height 876 mm)
+- `fort_camo_net`
+  - US War Department FM 5-20 Camouflage, Basic Principles (1944), drape and flat-top nets (garnished fish nets or chicken-wire nets stretched over positions on poles, kept clear of the object so that its shape and shadow disappear; standard net sizes such as 29 x 29 ft)
+- `fort_dragon_teeth`
+  - https://en.wikipedia.org/wiki/Dragon%27s_teeth_(fortification) (square-pyramidal reinforced-concrete blocks set in rows on a common foundation to stop tanks (Siegfried Line), rows of increasing height)
+  - TM-E 30-451 Handbook on German Military Forces (1945), ch. V sec. II (rows of concrete teeth as anti-tank obstacles of the West Wall)
 
