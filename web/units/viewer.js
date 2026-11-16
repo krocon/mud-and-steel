@@ -300,11 +300,23 @@ async function buildModel(entry, biome, ctx) {
 }
 
 export class Viewer {
-  /** `ctx` = { look, text(path), url(path) }. Non-interactive viewers only make snapshots. */
-  constructor(canvas, ctx, { interactive = true } = {}) {
+  /**
+   * `ctx` = { look, text(path), url(path) }. Non-interactive viewers only make snapshots.
+   * `controls: false` leaves the camera to the caller (`onFrame` + `setOrbit`), `labels`
+   * is the element that receives the texts of the dimension lines.
+   */
+  constructor(canvas, ctx, { interactive = true, controls = interactive, grid = interactive, labels = null } = {}) {
     this.ctx = ctx;
     this.canvas = canvas;
     this.interactive = interactive;
+    this.showGrid = grid;
+    this.gridColor = 0x000000;
+    this.margin = 1.02; // distance of the fitted camera, 1 = model touches the frame
+    this.labels = labels;
+    this.onFrame = null;
+    this.dimSpec = null;
+    this.dimLines = null;
+    this.dimAnchors = [];
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, preserveDrawingBuffer: !interactive });
     this.renderer.setPixelRatio(interactive ? Math.min(window.devicePixelRatio, 2) : 1);
     this.renderer.shadowMap.enabled = true;
@@ -330,14 +342,16 @@ export class Viewer {
     this.token = 0;
     this.clock = new THREE.Clock();
     if (interactive) {
-      this.controls = new OrbitControls(this.camera, canvas);
-      this.controls.enableDamping = true;
-      this.controls.autoRotate = true;
-      this.controls.autoRotateSpeed = 1.2;
-      this.controls.maxPolarAngle = Math.PI * 0.495;
+      if (controls) {
+        this.controls = new OrbitControls(this.camera, canvas);
+        this.controls.enableDamping = true;
+        this.controls.autoRotate = true;
+        this.controls.autoRotateSpeed = 1.2;
+        this.controls.maxPolarAngle = Math.PI * 0.495;
+      }
       new ResizeObserver(() => this.resize()).observe(canvas);
       this.resize();
-      this.renderer.setAnimationLoop(() => this.frame());
+      this.setRunning(true);
     } else {
       this.renderer.setSize(canvas.width, canvas.height, false);
       this.camera.aspect = canvas.width / canvas.height;
@@ -354,11 +368,108 @@ export class Viewer {
     this.camera.updateProjectionMatrix();
   }
 
+  /** Starts or pauses the render loop (a hidden view should not cost frames). */
+  setRunning(on) {
+    if (this.running === on) return;
+    this.running = on;
+    this.clock.getDelta();
+    this.renderer.setAnimationLoop(on ? () => this.frame() : null);
+  }
+
   frame() {
-    const dt = this.clock.getDelta();
+    const dt = Math.min(this.clock.getDelta(), 0.1);
     for (const mixer of this.mixers) mixer.update(dt);
-    this.controls.update();
+    if (this.controls) this.controls.update();
+    if (this.onFrame) this.onFrame(dt);
     this.renderer.render(this.scene, this.camera);
+    if (this.dimAnchors.length) this.placeLabels();
+  }
+
+  /** Puts the camera on a sphere around the model: angles in radians, distance as a factor of the fitted one. */
+  setOrbit(azimuth, elevation, factor = 1) {
+    if (!this.center) return;
+    const d = this.fitDistance * factor;
+    const flat = Math.cos(elevation) * d;
+    this.camera.position.set(
+      this.center.x + flat * Math.sin(azimuth),
+      this.center.y + Math.sin(elevation) * d,
+      this.center.z + flat * Math.cos(azimuth));
+    this.camera.near = d / 100;
+    this.camera.far = d * 10;
+    this.camera.updateProjectionMatrix();
+    this.camera.lookAt(this.center);
+  }
+
+  setGrid(on) {
+    this.showGrid = on;
+    if (this.model) this.fit(true);
+  }
+
+  /**
+   * Dimension lines along the bounding box, labelled with the real catalog values:
+   * `{ length, width, height }` in meters plus `text: { length, width, height }` and `color`,
+   * or null for none.
+   */
+  setDimensions(spec) {
+    this.dimSpec = spec;
+    if (this.model) this.fit(true);
+  }
+
+  buildDimensions(box) {
+    if (this.dimLines) {
+      this.scene.remove(this.dimLines);
+      this.dimLines.geometry.dispose();
+      this.dimLines.material.dispose();
+    }
+    this.dimLines = null;
+    this.dimAnchors = [];
+    if (this.labels) this.labels.replaceChildren();
+    const spec = this.dimSpec;
+    if (!spec || !this.labels || box.isEmpty()) return;
+    const { min, max } = box;
+    const size = box.getSize(new THREE.Vector3());
+    // The catalog length belongs to the horizontal axis it fits better.
+    const lengthOnX = Math.abs(size.x - spec.length) + Math.abs(size.z - spec.width)
+      <= Math.abs(size.z - spec.length) + Math.abs(size.x - spec.width);
+    const gap = Math.max(size.x, size.z) * 0.07 + 0.15;
+    const tick = gap * 0.35;
+    const y = 0.02;
+    const points = [];
+    const v = (x, yy, z) => new THREE.Vector3(x, yy, z);
+    const seg = (a, b) => points.push(a.x, a.y, a.z, b.x, b.y, b.z);
+    const dim = (a, b, out, text) => {
+      seg(a, b);
+      for (const end of [a, b]) seg(end.clone().addScaledVector(out, -gap), end.clone().addScaledVector(out, tick));
+      const label = document.createElement('span');
+      label.className = 'dim';
+      label.textContent = text;
+      this.labels.append(label);
+      this.dimAnchors.push({ at: a.clone().lerp(b, 0.5).addScaledVector(out, tick), label });
+    };
+    // On the two sides that face the fitted camera, the height at the corner to their left.
+    dim(v(min.x, y, min.z - gap), v(max.x, y, min.z - gap), v(0, 0, -1), lengthOnX ? spec.text.length : spec.text.width);
+    dim(v(max.x + gap, y, min.z), v(max.x + gap, y, max.z), v(1, 0, 0), lengthOnX ? spec.text.width : spec.text.length);
+    dim(v(max.x, 0, max.z + gap), v(max.x, max.y, max.z + gap), v(0, 0, 1), spec.text.height);
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(points, 3));
+    const material = new THREE.LineBasicMaterial({ color: spec.color || 0xffffff, transparent: true, opacity: 0.9, depthTest: false });
+    this.dimLines = new THREE.LineSegments(geometry, material);
+    this.dimLines.renderOrder = 10;
+    this.scene.add(this.dimLines);
+  }
+
+  placeLabels() {
+    const w = this.canvas.clientWidth;
+    const h = this.canvas.clientHeight;
+    const p = new THREE.Vector3();
+    for (const { at, label } of this.dimAnchors) {
+      p.copy(at).project(this.camera);
+      // Kept inside the view, so a label at the edge stays readable.
+      const x = Math.min(Math.max(((p.x + 1) / 2) * w, 48), w - 48);
+      const y = Math.min(Math.max(((1 - p.y) / 2) * h, 16), h - 16);
+      label.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%)`;
+      label.style.visibility = p.z < 1 ? 'visible' : 'hidden';
+    }
   }
 
   clear() {
@@ -369,6 +480,7 @@ export class Viewer {
     this.grid = null;
     this.mixers = [];
     this.variants = [];
+    this.buildDimensions(new THREE.Box3());
   }
 
   /** Shows an entry; resolves to the names of its variants. Throws if the model fails to load. */
@@ -409,15 +521,15 @@ export class Viewer {
     this.ground.scale.setScalar(r * 3);
     if (this.grid) this.scene.remove(this.grid);
     this.grid = null;
-    if (this.interactive) {
+    if (this.showGrid) {
       const cells = Math.max(4, Math.ceil(r * 1.5) * 2);
-      this.grid = new THREE.GridHelper(cells, cells, 0x000000, 0x000000);
+      this.grid = new THREE.GridHelper(cells, cells, this.gridColor, this.gridColor);
       this.grid.material.transparent = true;
       this.grid.material.opacity = 0.14;
       this.grid.position.set(Math.round(flat.x), 0.005, Math.round(flat.z));
       this.scene.add(this.grid);
     }
-    this.sun.position.copy(center).add(new THREE.Vector3(-0.9, 1.7, 1.1).multiplyScalar(r * 2));
+    this.sun.position.copy(center).add(new THREE.Vector3(-0.9, 1.7, -1.1).multiplyScalar(r * 2));
     this.sun.target.position.copy(center);
     const cam = this.sun.shadow.camera;
     cam.left = cam.bottom = -r * 1.6;
@@ -425,15 +537,19 @@ export class Viewer {
     cam.near = 0.1;
     cam.far = r * 8;
     cam.updateProjectionMatrix();
-    if (keepView && this.controls) {
-      this.controls.target.copy(center);
-      return;
-    }
+    this.buildDimensions(box);
     const half = THREE.MathUtils.degToRad(this.camera.fov / 2);
     const fitV = r / Math.sin(half);
     const fitH = r / Math.sin(Math.atan(Math.tan(half) * this.camera.aspect));
-    const distance = Math.max(fitV, fitH) * 1.02;
-    this.camera.position.copy(center).add(new THREE.Vector3(0.62, 0.48, 0.62).normalize().multiplyScalar(distance));
+    const distance = Math.max(fitV, fitH) * this.margin;
+    this.center = center.clone();
+    this.fitDistance = distance;
+    if (keepView) {
+      if (this.controls) this.controls.target.copy(center);
+      return;
+    }
+    // Models look along -Z: the camera stands in front of them, like in the game's thumbnails.
+    this.camera.position.copy(center).add(new THREE.Vector3(0.62, 0.48, -0.62).normalize().multiplyScalar(distance));
     this.camera.near = distance / 100;
     this.camera.far = distance * 10;
     this.camera.updateProjectionMatrix();
