@@ -17,6 +17,8 @@ use sim::Command;
 const HOPELESS_TICKS: u64 = 1200;
 /// Own strength below this share (percent) of the known enemy's.
 const HOPELESS_PCT: u64 = 15;
+/// With production but without headquarters: below this share.
+const CRUSHED_PCT: u64 = 10;
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub(crate) struct SurrenderState {
@@ -50,7 +52,14 @@ impl Ai {
         let produces = view.structures.iter().any(|s| {
             s.completed() && matches!(self.name_of(s.unit_type), "base_barracks" | "base_factory")
         });
-        if produces {
+        // With production left the player fights on while its
+        // headquarters stands; without it, only while it is not crushed.
+        let hq = view
+            .structures
+            .iter()
+            .any(|s| self.name_of(s.unit_type) == "base_hq");
+        let crushed = produces && !hq;
+        if produces && !crushed {
             return None;
         }
         let armed: Vec<_> = view
@@ -94,7 +103,8 @@ impl Ai {
             })
             .sum();
         let enemy = self.known_enemy(view).0;
-        (own * 100 < enemy * HOPELESS_PCT)
-            .then(|| format!("strength {own} against {enemy} known (below {HOPELESS_PCT} %)"))
+        let pct = if crushed { CRUSHED_PCT } else { HOPELESS_PCT };
+        (own * 100 < enemy * pct)
+            .then(|| format!("strength {own} against {enemy} known (below {pct} %)"))
     }
 }

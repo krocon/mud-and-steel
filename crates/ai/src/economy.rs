@@ -42,6 +42,10 @@ fn mix(difficulty: Difficulty, vehicles: bool) -> &'static [usize] {
     }
 }
 
+/// After this long without the money for the next unit of the mix the
+/// commander builds an affordable substitute (ticks, 30 s).
+const WAIT_TICKS: u64 = 600;
+
 /// Units an attack wave needs before it leaves the base.
 pub(crate) const fn wave_size(difficulty: Difficulty) -> usize {
     match difficulty {
@@ -61,6 +65,10 @@ pub(crate) struct EcoState {
     rallied: Vec<sim::UnitId>,
     /// Per role: the wave has left the base (until it shrinks to half).
     pub(crate) launched: Vec<crate::Role>,
+    /// Per producing building kind: since when the next unit of the mix
+    /// is waited for (prompt 051).
+    #[serde(default)]
+    waiting: [Option<u64>; 2],
 }
 
 impl Ai {
@@ -119,6 +127,9 @@ impl Ai {
             let mut index = order[self.eco.next[kind] % order.len()];
             if self.commander {
                 index = self.counter_pick(kind == 1, index, self.eco.next[kind]);
+                if kind == 1 {
+                    index = self.support_vehicle(index, &options, view);
+                }
             }
             let index = index.min(options.len() - 1);
             let unit_type = options[index];
@@ -134,12 +145,56 @@ impl Ai {
                 .all(|((&have, c), r)| have >= c.saturating_add(r));
             if affordable {
                 self.eco.next[kind] += 1;
+                self.eco.waiting[kind] = None;
                 out.push(Command::Produce {
                     building: s.unit,
                     unit_type,
                 });
+            } else if self.commander {
+                // One resource short for long (prompt 051: ammunition runs
+                // dry while manpower piles up): build what the account
+                // allows meanwhile instead of standing idle.
+                let since = *self.eco.waiting[kind].get_or_insert(view.tick);
+                if view.tick >= since + WAIT_TICKS
+                    && let Some(t) = self.affordable_substitute(kind == 1, &options, view, reserve)
+                {
+                    self.eco.waiting[kind] = Some(view.tick);
+                    out.push(Command::Produce {
+                        building: s.unit,
+                        unit_type: t,
+                    });
+                }
             }
         }
+    }
+
+    /// The first unit of a fallback list (infantry: rifle squad, MG team,
+    /// AT squad; vehicles: medium tank, tank destroyer, light vehicle) that
+    /// the account pays now.
+    fn affordable_substitute(
+        &self,
+        vehicles: bool,
+        options: &[u32],
+        view: &PlayerView,
+        reserve: sim::Resources,
+    ) -> Option<u32> {
+        let order: &[usize] = if vehicles { &[2, 3, 0] } else { &[0, 1, 3] };
+        order
+            .iter()
+            .filter_map(|&i| options.get(i).copied())
+            .find(|&t| {
+                self.costs
+                    .get(t as usize)
+                    .copied()
+                    .flatten()
+                    .is_some_and(|cost| {
+                        view.account
+                            .iter()
+                            .zip(cost)
+                            .zip(reserve)
+                            .all(|((&have, c), r)| have >= c.saturating_add(r))
+                    })
+            })
     }
 
     /// Counter-production (prompt 051): the mix entry `index` replaced by
@@ -173,6 +228,26 @@ impl Ai {
         }
     }
 
+    /// The commander's support vehicles (prompt 051): a reconnaissance car
+    /// (vehicle 0) whenever none is left, every sixth vehicle at most, and
+    /// from the fourth vehicle on a supply truck (vehicle 6) whenever none
+    /// is left: it rides with the army and refills it near the front.
+    fn support_vehicle(&self, index: usize, options: &[u32], view: &PlayerView) -> usize {
+        let have = |i: usize| {
+            options
+                .get(i)
+                .is_some_and(|&t| view.own.iter().any(|u| u.alive() && u.unit_type == t))
+        };
+        let n = self.eco.next[1];
+        if options.len() > 6 && n >= 3 && n % 3 == 0 && !have(6) {
+            return 6;
+        }
+        if n % 6 == 1 && !have(0) {
+            return 0;
+        }
+        index
+    }
+
     /// The next missing entry of the build order, placed on the spot the
     /// view offers. Returns its price while it is not placed yet.
     fn build(&self, view: &PlayerView, out: &mut Vec<Command>) -> Option<sim::Resources> {
@@ -191,7 +266,14 @@ impl Ai {
             if have >= wanted {
                 continue;
             }
-            if let Some(&(_, position)) = view.sites.iter().find(|(t, _)| *t == unit_type) {
+            // The commander builds the second depot and the bunker towards
+            // the front (prompt 051: forward depots resupply there).
+            let forward = self.commander && (wanted > 1 || matches!(step, Step::Bunker));
+            let spot = forward
+                .then(|| view.forward_sites.iter().find(|(t, _)| *t == unit_type))
+                .flatten()
+                .or_else(|| view.sites.iter().find(|(t, _)| *t == unit_type));
+            if let Some(&(_, position)) = spot {
                 out.push(Command::Build {
                     unit_type,
                     position,
@@ -266,7 +348,7 @@ impl Ai {
             .iter()
             .filter(|u| u.alive() && !view.structures.iter().any(|s| s.unit == u.id))
             .count();
-        if mobile >= self.all_in_units {
+        if mobile >= self.all_in_units || self.superior(view) {
             return false;
         }
         let wave = wave_size(self.difficulty);
@@ -294,7 +376,7 @@ impl Ai {
             .iter()
             .filter(|u| u.alive() && !view.structures.iter().any(|s| s.unit == u.id))
             .count();
-        if mobile >= self.all_in_units {
+        if mobile >= self.all_in_units || (self.commander && self.superior(view)) {
             return None;
         }
         let wave = wave_size(self.difficulty);

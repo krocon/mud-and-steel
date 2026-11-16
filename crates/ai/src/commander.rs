@@ -202,7 +202,7 @@ impl Ai {
     }
 
     /// Whether a point is open ground the army can stand on.
-    fn standable(&self, p: Vec2) -> bool {
+    pub(crate) fn standable(&self, p: Vec2) -> bool {
         let m = Fixed::from_num(30);
         if p.x.abs() > self.half.x - m || p.y.abs() > self.half.y - m {
             return false;
@@ -353,12 +353,10 @@ impl Ai {
         };
         let threat = self.reach_of(&front, role, range);
         let d = dist(center, front.center);
-        // Base matches: the group logic holds the army until its wave is
-        // complete, unless the front is upon it.
-        if Self::has_base(view)
-            && d > threat + Fixed::from_num(STAGE_MARGIN_M)
-            && self.wave_waiting(role, units.len(), view)
-        {
+        // Base matches: the group logic holds the army (and defends) until
+        // its wave is complete.
+
+        if Self::has_base(view) && self.wave_waiting(role, units.len(), view) {
             return false;
         }
         if self
@@ -517,6 +515,33 @@ impl Ai {
         true
     }
 
+    /// The own armed units are at least twice as strong as every enemy unit
+    /// known (prompt 051): base matches attack with everything.
+    pub(crate) fn superior(&self, view: &PlayerView) -> bool {
+        let own: u64 = view
+            .own
+            .iter()
+            .filter(|u| self.effective(u))
+            .filter(|u| {
+                matches!(
+                    self.type_info(u.unit_type).role,
+                    Role::Armor | Role::Infantry
+                )
+            })
+            .map(|u| {
+                let pct = u64::from(u.hp) * 100 / u64::from(u.max_hp.max(1));
+                u64::from(self.value_of(u.unit_type)) * pct / 100
+            })
+            .sum();
+        let (enemy, _) = self.known_enemy(view);
+        enemy > 0 && own >= 2 * enemy
+    }
+
+    /// The army began an assault just now (the artillery lays smoke).
+    pub(crate) fn assault_starting(&self, tick: u64) -> bool {
+        self.commander && self.army.phase == Phase::Assault && tick <= self.army.since + 200
+    }
+
     /// Samples the front every `WATCH_TICKS`: it advances if it came
     /// `ADVANCE_M` closer to the army since the last sample.
     fn watch_front(&mut self, front: &Front, center: Vec2, tick: u64) -> bool {
@@ -594,7 +619,7 @@ impl Ai {
                 target: goal,
                 formation: Formation::Auto,
                 facing: Some(front.center - goal),
-                engage: Engage::Never,
+                engage: Engage::Infantry,
             });
             self.army.axis = Some(axis);
             self.army.sent = Some((goal, tick));
@@ -659,7 +684,7 @@ impl Ai {
             target: goal,
             formation: Formation::Line,
             facing: Some(nearest - goal),
-            engage: Engage::Never,
+            engage: Engage::Infantry,
         });
         self.army.sent = Some((goal, tick));
         true

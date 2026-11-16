@@ -74,7 +74,8 @@ impl Ai {
             .fire
             .smoke_tick
             .is_none_or(|t| view.tick >= t + SMOKE_TICKS)
-            && view.tick <= self.fire.quiet_tick + SMOKE_TICKS / 2;
+            && (view.tick <= self.fire.quiet_tick + SMOKE_TICKS / 2
+                || self.assault_starting(view.tick));
         let mut busy: Vec<UnitId> = Vec::new();
         if smoke_due && let Some(army_center) = army_center {
             let screen = toward(army_center, enemy_center, -Fixed::from_num(SMOKE_AHEAD_M));

@@ -19,6 +19,7 @@ mod economy;
 mod engineers;
 pub mod game;
 mod intel;
+mod scout;
 mod strike;
 mod supply;
 mod surrender;
@@ -201,6 +202,8 @@ enum Role {
     /// Engineer squads (prompt 035): lay mines at chokepoints, clear the
     /// enemy's.
     Engineer,
+    /// Reconnaissance vehicles under the commander (prompt 051): scout.
+    Scout,
 }
 
 /// What the AI knows about a unit type from the (public) config.
@@ -400,6 +403,9 @@ pub struct Ai {
     /// Giving up when hopeless (prompt 051).
     #[serde(default)]
     surrender: surrender::SurrenderState,
+    /// When the player last saw every part of the map (prompt 051).
+    #[serde(default)]
+    knowledge: scout::Knowledge,
 }
 
 impl Ai {
@@ -482,6 +488,10 @@ impl Ai {
                     Role::Engineer
                 } else if t.combat.is_infantry() {
                     Role::Infantry
+                } else if difficulty.commander()
+                    && category == Some(sim::catalog::Category::ReconVehicle)
+                {
+                    Role::Scout
                 } else {
                     Role::Armor
                 };
@@ -608,6 +618,7 @@ impl Ai {
             intel: intel::Intel::default(),
             army: commander::ArmyPlan::default(),
             surrender: surrender::SurrenderState::default(),
+            knowledge: scout::Knowledge::default(),
             ground: if difficulty.commander() {
                 intel::Ground::new(map)
             } else {
@@ -673,6 +684,9 @@ impl Ai {
         self.remember(view);
         if !self.legacy {
             self.update_intel(view);
+            if self.commander {
+                self.update_knowledge(view);
+            }
             self.think_surrender(view, &mut out);
             if self.surrender.done {
                 return out;
@@ -729,6 +743,7 @@ impl Ai {
             match role {
                 Role::Armor | Role::Infantry => self.command_group(role, &units, view, &mut out),
                 Role::Artillery => self.command_artillery(&units, view, &mut out),
+                Role::Scout => self.command_scouts(&units, view, &mut out),
                 Role::Unarmed | Role::Structure | Role::Transport | Role::Gun | Role::Engineer => {}
             }
         }
@@ -946,8 +961,13 @@ impl Ai {
         // buildings once no enemy infantry is left near.
         let anti_tank = units.iter().any(|u| self.type_info(u.unit_type).anti_tank);
         let soft_near = near.iter().any(|e| !armor(e) && !structure(e));
+        // Raids (prompt 051): with no enemy armor near, the commander's
+        // armor shoots the enemy's trucks and halftracks first.
+        let carrier = |e: &&SeenUnit| self.type_info(e.unit_type).role == Role::Transport;
+        let carrier_near = self.commander && near.iter().any(carrier);
         let near: Vec<&SeenUnit> = match role {
             Role::Armor if armor_near => near.into_iter().filter(armor).collect(),
+            Role::Armor if carrier_near => near.into_iter().filter(carrier).collect(),
             Role::Armor if mobile_near => near.into_iter().filter(|e| !structure(e)).collect(),
             Role::Infantry if anti_tank && !soft_near => {
                 if mobile_near {

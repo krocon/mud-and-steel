@@ -95,6 +95,27 @@ fn play(
                 if ai.difficulty() != Difficulty::Passive {
                     println!("  {}", ai.status());
                 }
+                let sim = game.sim();
+                let buildings: Vec<String> = sim
+                    .structures()
+                    .iter()
+                    .filter(|s| s.owner == ai.player())
+                    .map(|s| {
+                        format!(
+                            "{}{} {:?}",
+                            config.unit_types[s.unit_type as usize].name,
+                            if s.completed() { "" } else { "(site)" },
+                            s.queue
+                        )
+                    })
+                    .collect();
+                if !buildings.is_empty() {
+                    println!(
+                        "  p{} account {:?} buildings {buildings:?}",
+                        ai.player().0,
+                        sim.account(ai.player()).unwrap_or_default()
+                    );
+                }
             }
             for line in survivors(game.sim(), config) {
                 println!("  {line}");
