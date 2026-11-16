@@ -19,9 +19,9 @@ mod wire;
 pub use link::{Link, LinkEvent};
 pub use memory::{MemoryLink, MemoryNetwork};
 pub use node::{LobbyNode, LobbyState};
-pub use wire::{CHANNEL_COUNT, LobbyPlayer, StartInfo};
+pub use wire::{CHANNEL_COUNT, LobbyPlayer, LobbySetup, LobbySlot, SlotKind, StartInfo};
 
 /// Version of the multiplayer protocol (lobby messages, LAN discovery and
 /// lockstep messages). Peers with a different version are rejected when
-/// joining.
-pub const PROTOCOL_VERSION: u16 = 2;
+/// joining. 3 since prompt 037 (slots, teams, `Command::Ping`).
+pub const PROTOCOL_VERSION: u16 = 3;

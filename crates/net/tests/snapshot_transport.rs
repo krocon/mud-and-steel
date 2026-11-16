@@ -58,6 +58,7 @@ fn convoy(map: Arc<Map>) -> Sim {
         combat: CombatRules::builtin().unwrap(),
         vision: sim::VisionRules::builtin().unwrap(),
         infantry: sim::InfantryRules::builtin().unwrap(),
+        teams: sim::Teams::default(),
     };
     Sim::new(&config, map, 9).unwrap()
 }

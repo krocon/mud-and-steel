@@ -51,7 +51,9 @@ and [the HUD section](ARCHITECTURE.md#hud-presentation-only). The tutorial
 | Right click with squads on an own truck, halftrack or tank | Mount it (if its seats suffice; prompt 034) |
 | Right click with vehicles on an own towed gun | The nearest vehicle strong enough hitches it |
 | J *(rebindable)* | Passengers of the selected vehicles get off once the vehicle stands |
-| K *(rebindable)* | Selected vehicles drop their towed guns; selected towed guns are unhitched |
+| O *(rebindable)* | Selected vehicles drop their towed guns; selected towed guns are unhitched |
+| K *(rebindable)* | Mark the ground point under the cursor for your allies (ping, prompt 037) |
+| Minimap: Alt + left click | Mark that point for your allies |
 
 **Targeted orders** from the command bar or their key wait for a left click
 (the cursor turns into a cross, a hint shows at the top); right click

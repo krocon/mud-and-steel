@@ -280,13 +280,71 @@ impl SteamLobby {
         false
     }
 
-    /// Host: starts the demo scenario for everyone, on the built-in map or
+    /// Slots of the lobby (prompt 037), see `team_funcs::lobby_slots`.
+    #[func]
+    fn slots(&self) -> Array<VarDictionary> {
+        #[cfg(feature = "steam")]
+        if let Some(node) = self.lobby.as_ref().and_then(OnlineLobby::node) {
+            return crate::team_funcs::lobby_slots(node);
+        }
+        Array::new()
+    }
+
+    /// Map, mode and shared vision of the lobby.
+    #[func]
+    fn match_settings(&self) -> VarDictionary {
+        #[cfg(feature = "steam")]
+        if let Some(node) = self.lobby.as_ref().and_then(OnlineLobby::node) {
+            return crate::team_funcs::lobby_match(node);
+        }
+        VarDictionary::new()
+    }
+
+    /// Host: `open`, `closed` or `computer` (with difficulty `level`) for
+    /// slot `index`.
+    #[func]
+    fn set_slot_kind(&mut self, index: i64, kind: GString, level: GString) {
+        #[cfg(feature = "steam")]
+        if let Some(node) = self.lobby.as_mut().and_then(OnlineLobby::node_mut) {
+            crate::team_funcs::set_slot_kind(node, index, &kind.to_string(), &level.to_string());
+        }
+        let _ = (index, kind, level);
+    }
+
+    /// Team and faction of slot `index` (a client only its own).
+    #[func]
+    fn set_slot_side(&mut self, index: i64, team: i64, faction: GString) {
+        #[cfg(feature = "steam")]
+        if let Some(node) = self.lobby.as_mut().and_then(OnlineLobby::node_mut) {
+            crate::team_funcs::set_slot_side(node, index, team, &faction.to_string());
+        }
+        let _ = (index, team, faction);
+    }
+
+    /// Host: map name, mode (`battle`, `base`), shared vision and number
+    /// of slots (the map's starts).
+    #[func]
+    fn set_match(&mut self, map: GString, mode: GString, shared_vision: bool, slots: i64) {
+        #[cfg(feature = "steam")]
+        if let Some(node) = self.lobby.as_mut().and_then(OnlineLobby::node_mut) {
+            crate::team_funcs::set_lobby_match(
+                node,
+                &map.to_string(),
+                &mode.to_string(),
+                shared_vision,
+                slots,
+            );
+        }
+        let _ = (map, mode, shared_vision, slots);
+    }
+
+    /// Host: starts the lobby's match for everyone, on the built-in map or
     /// the map folder `map_dir` (absolute path, "" = built-in).
     #[func]
     fn start_match(&mut self, seed: i64, map_dir: GString) -> bool {
         #[cfg(feature = "steam")]
         if let Some(node) = self.lobby.as_mut().and_then(OnlineLobby::node_mut) {
-            return match crate::lan::start_demo(node, seed, &map_dir.to_string()) {
+            return match crate::team_funcs::start_setup(node, seed, &map_dir.to_string(), false) {
                 Ok(()) => true,
                 Err(e) => self.fail(e),
             };

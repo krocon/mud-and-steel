@@ -42,6 +42,9 @@ pub struct MapRef {
 pub struct StartPosition {
     pub player: u8,
     pub position: Vec2,
+    /// Suggested team for the lobby (prompt 037, `team` in `map.toml`):
+    /// players sharing a number start as allies. Not part of the hash.
+    pub team: Option<u8>,
 }
 
 /// A named point from `map.toml` (for tools and tests, e.g. `hill_top`).
@@ -98,6 +101,8 @@ struct PointEntry {
 #[serde(deny_unknown_fields)]
 struct StartEntry {
     player: u8,
+    #[serde(default)]
+    team: Option<u8>,
     #[serde(flatten)]
     point: PointEntry,
 }
@@ -256,6 +261,7 @@ impl Map {
                 .map(|s| StartPosition {
                     player: s.player,
                     position: point(&s.point),
+                    team: s.team,
                 })
                 .collect(),
             markers: file

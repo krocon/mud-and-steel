@@ -947,7 +947,7 @@ impl Sim {
         };
         let radius = mm(self.infantry.rules.stance.near_miss_mm);
         for unit in &mut self.units {
-            if unit.owner == owner || !unit.alive() {
+            if self.teams.allied(unit.owner, owner) || !unit.alive() {
                 continue;
             }
             let Some(s) = &mut unit.squad else {

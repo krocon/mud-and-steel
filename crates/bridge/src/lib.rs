@@ -37,6 +37,7 @@ mod objects;
 mod replay_funcs;
 mod save_funcs;
 mod steam_lobby;
+mod team_funcs;
 mod terrain_layers;
 mod transport_funcs;
 mod vision_funcs;
@@ -112,6 +113,9 @@ struct Game {
     ais: Vec<ai::Ai>,
     /// A replay playing instead of a match (prompt 038, `replay_funcs`).
     playback: Option<replay_funcs::Playback>,
+    /// Pings of the local player and its allies since the last
+    /// `take_pings` (prompt 037, `team_funcs`).
+    pings: Vec<(PlayerId, Vec2)>,
 }
 
 impl Game {
@@ -156,6 +160,7 @@ impl Game {
             return Ok(false);
         };
         self.recorder.record(&commands);
+        team_funcs::collect_pings(self, &commands);
         self.sim.step(&commands);
         self.session
             .record_hash(self.sim.tick(), self.sim.state_hash(), &mut self.transport)?;
@@ -268,6 +273,10 @@ pub struct SimHost {
     /// frame changes, so a match plays the same at any speed (self-tests).
     #[export]
     speed: f64,
+    /// Computer players of the next single-player start with their
+    /// difficulty (prompt 037, `start_slots`); empty: `ai_opponent` for
+    /// every other player.
+    computers: Vec<(PlayerId, ai::Difficulty)>,
     /// Why the last `load_game` / `start_replay` failed (prompt 038).
     load_error: String,
     /// Settings saved with the loaded game (prompt 038).
@@ -299,6 +308,7 @@ impl INode for SimHost {
             process_ticks: 0,
             mode: GString::new(),
             speed: 1.0,
+            computers: Vec::new(),
             load_error: String::new(),
             loaded_settings: Vec::new(),
             loaded_state: None,
@@ -526,6 +536,7 @@ impl SimHost {
             water: std::cell::OnceCell::new(),
             ais: Vec::new(),
             playback: None,
+            pings: Vec::new(),
             sim,
             map_top: map
                 .heights_mm()
@@ -1152,17 +1163,9 @@ impl SimHost {
     }
 }
 
-/// The demo scenario from the catalog, scale and terrain rules compiled
-/// into `sim`, on `map`, with the units of the players in `factions`
-/// replaced by those of their faction.
-/// The demo scenario (LAN matches).
-fn demo_config(
-    map: &Map,
-    factions: &[(PlayerId, &str)],
-) -> Result<SimConfig, Box<dyn std::error::Error>> {
-    scenario_config(DEMO_SCENARIO, map, factions)
-}
-
+/// `scenario` from the catalog, scale and terrain rules compiled into
+/// `sim`, on `map`, with the units of the players in `factions` replaced by
+/// those of their faction.
 fn scenario_config(
     scenario: &str,
     map: &Map,

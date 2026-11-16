@@ -9,9 +9,13 @@ extends VBoxContainer
 ## (Space) jumps to the newest one. Messages fade after LIFETIME seconds.
 ##
 ## Everything comes from the snapshot and the combat event stream; nothing
-## here reaches the simulation.
+## here reaches the simulation. Exception (prompt 037): `ping_allies` (K)
+## marks the ground under the mouse for the allies (`SimHost.ping`, a
+## command without effect); pings of allies appear here and on the minimap.
 
 signal ping(point: Vector3)
+
+const GroundPick := preload("res://scenes/camera/ground_pick.gd")
 
 const MAX_MESSAGES := 6
 const LIFETIME := 12.0
@@ -23,6 +27,7 @@ const PING_RADIUS := 60.0
 const COLORS := {
 	"lost": Color(1.0, 0.45, 0.4), "fire": Color(1.0, 0.7, 0.35), "sighted": Color(1.0, 0.85, 0.4),
 	"built": Color(0.55, 0.9, 1.0), "ready": Color(0.6, 1.0, 0.6),
+	"ping": Color(0.45, 0.7, 1.0),
 }
 
 var main: Node3D
@@ -82,6 +87,17 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("event_jump", false, true) and not history.is_empty():
 		jump_to(history.size() - 1)
 		get_viewport().set_input_as_handled()
+	if event.is_action_pressed("ping_allies", false, true):
+		var mouse := get_viewport().get_mouse_position()
+		var hit: Variant = GroundPick.from_screen(main.camera, mouse)
+		if hit != null:
+			ping_at(hit)
+			get_viewport().set_input_as_handled()
+
+
+## Pings the ground point for the allies (prompt 037).
+func ping_at(point: Vector3) -> void:
+	sim_host.ping(point.x, point.z)
 
 
 ## Moves the camera to message `index` of `history`.
@@ -160,7 +176,7 @@ func _poll() -> void:
 				_known_own[id] = true
 				if _initialized and not structures.has(id):
 					post("ready", "Ready: %s" % _name_of(id), positions[i])
-		else:
+		elif sim_host.relation(owners[i]) == 2:
 			visible_enemies[id] = true
 			if not _seen_enemies.has(id) and newly_sighted < 0:
 				newly_sighted = i
@@ -177,6 +193,12 @@ func _poll() -> void:
 			var index := Array(ids).find(id)
 			post("built", "Completed: %s" % s.get("name", "building"), positions[index] if index >= 0 else Vector3.ZERO)
 	_initialized = true
+	# Pings of the allies and our own (prompt 037).
+	for p: Dictionary in sim_host.take_pings():
+		var at: Vector3 = p["position"]
+		if not p["own"]:
+			post("ping", "Ally (player %d) marks a spot" % p["player"], at)
+		ping.emit(at)
 
 
 func _owner_of(id: int) -> int:

@@ -36,7 +36,7 @@ pub const MAGIC: [u8; 4] = *b"MSRP";
 
 /// Version of the body layout. Bump on every incompatible change of
 /// [`Replay`] or of the types it contains (commands, config).
-pub const FORMAT_VERSION: u16 = 6;
+pub const FORMAT_VERSION: u16 = 7;
 
 /// Version of the game that writes replays and saved games.
 pub const GAME_VERSION: &str = env!("CARGO_PKG_VERSION");

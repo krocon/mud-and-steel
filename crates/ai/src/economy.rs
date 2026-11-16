@@ -237,6 +237,15 @@ impl Ai {
         if !Self::has_base(view) {
             return None;
         }
+        // End game (prompt 037): near the unit limit everything attacks.
+        let mobile = view
+            .own
+            .iter()
+            .filter(|u| u.alive() && !view.structures.iter().any(|s| s.unit == u.id))
+            .count();
+        if mobile >= self.all_in_units {
+            return None;
+        }
         let wave = wave_size(self.difficulty);
         let launched = self.eco.launched.contains(&role);
         if launched && units * 2 >= wave {
@@ -258,7 +267,10 @@ impl Ai {
         let point = view
             .supply
             .iter()
-            .filter(|p| p.owner != Some(view.player))
+            .filter(|p| {
+                p.owner
+                    .is_none_or(|o| view.enemy_players.iter().any(|&(q, _)| q == o))
+            })
             .filter(|p| dist(p.position, base) < dist(p.position, self.enemy_home))
             .min_by_key(|p| (dist(p.position, center), p.name.clone()))
             .map(|p| p.position);

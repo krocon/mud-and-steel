@@ -135,6 +135,107 @@ pub fn scenario_factions(text: &str) -> Result<Vec<String>, ScenarioError> {
     Ok(file.faction_units.into_keys().collect())
 }
 
+/// One player of a match with teams (prompt 037): its team and, if not
+/// the scenario's, its faction.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct SlotSetup {
+    pub player: PlayerId,
+    pub team: u8,
+    /// Faction id (`"de"`, `"su"`, `"us"`); `None` keeps the units the
+    /// scenario (or its template player) has.
+    pub faction: Option<String>,
+}
+
+/// Like [`parse_scenario_with_factions`], for the players in `slots` and
+/// their teams (prompt 037). Players the scenario has no groups for get
+/// the groups of the scenario player whose start is nearest to theirs, on
+/// their own start (the map must have one). Groups of players not in
+/// `slots` are left out. Every player on a team of their own gives a
+/// free-for-all ([`Teams::is_free_for_all`](crate::Teams::is_free_for_all)),
+/// so a 1-against-1 matches [`parse_scenario_with_factions`] exactly.
+pub fn parse_scenario_for_slots(
+    text: &str,
+    slots: &[SlotSetup],
+    shared_vision: bool,
+    catalog: &Catalog,
+    scale: &Scale,
+    terrain: &TerrainRules,
+    map: &Map,
+) -> Result<SimConfig, ScenarioError> {
+    let factions: Vec<(PlayerId, &str)> = slots
+        .iter()
+        .filter_map(|s| Some((s.player, s.faction.as_deref()?)))
+        .collect();
+    let mut config =
+        parse_scenario_inner(text, Some(slots), &factions, catalog, scale, terrain, map)?;
+    let members: Vec<(PlayerId, u8)> = slots.iter().map(|s| (s.player, s.team)).collect();
+    config.teams = crate::teams::Teams::new(&members, shared_vision);
+    Ok(config)
+}
+
+/// Gives every player of `slots` without groups the groups of the
+/// scenario player whose start is nearest to theirs, and drops the groups
+/// of players not in `slots`.
+fn expand_for_slots(
+    groups: &mut Vec<Group>,
+    slots: &[SlotSetup],
+    map: &Map,
+) -> Result<(), ScenarioError> {
+    let mut templates: Vec<u8> = groups.iter().map(|g| g.owner).collect();
+    templates.sort_unstable();
+    templates.dedup();
+    let start_of = |player: u8| {
+        map.starts()
+            .iter()
+            .find(|s| s.player == player)
+            .map(|s| s.position)
+    };
+    let anchor_of = |player: u8| {
+        groups
+            .iter()
+            .find(|g| g.owner == player)
+            .map(|g| Vec2::from_meters(g.center_m[0], g.center_m[1]))
+            .unwrap_or_default()
+    };
+    let mut extra = Vec::new();
+    for slot in slots {
+        let player = slot.player.0;
+        if templates.contains(&player) {
+            continue;
+        }
+        let start = start_of(player).ok_or_else(|| {
+            ScenarioError(format!(
+                "map '{}' has no start position for player {player}",
+                map.name()
+            ))
+        })?;
+        let distance_bits = |p: Vec2| {
+            let d = p - start;
+            let (x, y) = (i128::from(d.x.to_bits()), i128::from(d.y.to_bits()));
+            x * x + y * y
+        };
+        let Some(&template) = templates.iter().min_by_key(|&&t| {
+            let at = start_of(t).unwrap_or_else(|| anchor_of(t));
+            (distance_bits(at), t)
+        }) else {
+            return Err(ScenarioError("scenario has no groups".into()));
+        };
+        extra.extend(
+            groups
+                .iter()
+                .filter(|g| g.owner == template)
+                .cloned()
+                .map(|mut g| {
+                    g.owner = player;
+                    g
+                }),
+        );
+    }
+    groups.retain(|g| slots.iter().any(|s| s.player.0 == g.owner));
+    groups.extend(extra);
+    Ok(())
+}
+
 /// Like [`parse_scenario`], but every group of a player listed in
 /// `factions` uses the unit the scenario's `[faction_units]` table names for
 /// that player's faction. Positions and counts stay as in the file.
@@ -146,7 +247,22 @@ pub fn parse_scenario_with_factions(
     terrain: &TerrainRules,
     map: &Map,
 ) -> Result<SimConfig, ScenarioError> {
+    parse_scenario_inner(text, None, factions, catalog, scale, terrain, map)
+}
+
+fn parse_scenario_inner(
+    text: &str,
+    slots: Option<&[SlotSetup]>,
+    factions: &[(PlayerId, &str)],
+    catalog: &Catalog,
+    scale: &Scale,
+    terrain: &TerrainRules,
+    map: &Map,
+) -> Result<SimConfig, ScenarioError> {
     let mut file: ScenarioFile = toml::from_str(text).map_err(|e| ScenarioError(e.to_string()))?;
+    if let Some(slots) = slots {
+        expand_for_slots(&mut file.group, slots, map)?;
+    }
     for &(player, faction) in factions {
         for group in file.group.iter_mut().filter(|g| g.owner == player.0) {
             let table = match group.role {
@@ -228,6 +344,7 @@ pub fn parse_scenario_with_factions(
         vision: crate::vision::VisionRules::builtin().map_err(|e| ScenarioError(e.to_string()))?,
         infantry: crate::infantry::InfantryRules::builtin()
             .map_err(|e| ScenarioError(e.to_string()))?,
+        teams: crate::teams::Teams::default(),
     })
 }
 

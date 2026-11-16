@@ -59,6 +59,8 @@ impl Ai {
             .iter()
             .filter(|u| u.alive())
             .map(|u| u.position)
+            // Allies (prompt 037) are friends for the bombs too.
+            .chain(view.allies.iter().filter(|a| a.alive()).map(|a| a.position))
             .collect();
         let call = if let Some((members, target)) = self.air_target(&enemies, &own) {
             let wanted: &[AirMission] = if members >= BOMBER_GROUP {

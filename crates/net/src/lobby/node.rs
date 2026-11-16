@@ -3,7 +3,10 @@
 
 use super::PROTOCOL_VERSION;
 use super::link::{Link, LinkEvent};
-use super::wire::{CONTROL_CHANNEL, Control, GAME_CHANNEL, LobbyPlayer, StartInfo, decode, encode};
+use super::wire::{
+    CONTROL_CHANNEL, Control, GAME_CHANNEL, LobbyPlayer, LobbySetup, SlotKind, StartInfo, decode,
+    encode,
+};
 use crate::{PlayerId, Transport, TransportError};
 use sim::SimConfig;
 use std::collections::{BTreeMap, VecDeque};
@@ -24,7 +27,6 @@ enum Role<P> {
     Host {
         /// Connected peers and their player once they said hello.
         peers: BTreeMap<P, Option<PlayerId>>,
-        max_players: usize,
     },
     Client {
         server: P,
@@ -41,6 +43,9 @@ pub struct LobbyNode<L: Link> {
     name: String,
     local: Option<PlayerId>,
     lobby: Vec<LobbyPlayer>,
+    /// Slots, map and mode (prompt 037); the host's, or the last one a
+    /// client received.
+    setup: LobbySetup,
     start: Option<StartInfo>,
     state: LobbyState,
     /// Received lockstep packets, in arrival order.
@@ -48,16 +53,17 @@ pub struct LobbyNode<L: Link> {
 }
 
 impl<L: Link> LobbyNode<L> {
-    /// Hosts a game on `link` for up to `max_players` players including the
-    /// host, who is player 0. Peers connect through the link.
+    /// Hosts a game on `link` with `max_players` slots including the host,
+    /// who is player 0 (the others open; change them with
+    /// [`edit_setup`](Self::edit_setup)). Peers connect through the link.
     pub fn new_host(link: L, name: &str, max_players: usize) -> Self {
         let local = PlayerId(0);
         Self {
             link,
             role: Role::Host {
                 peers: BTreeMap::new(),
-                max_players: max_players.clamp(1, usize::from(u8::MAX)),
             },
+            setup: LobbySetup::new(max_players.clamp(1, usize::from(u8::MAX))),
             name: name.to_owned(),
             local: Some(local),
             lobby: vec![LobbyPlayer {
@@ -80,6 +86,7 @@ impl<L: Link> LobbyNode<L> {
             name: name.to_owned(),
             local: None,
             lobby: Vec::new(),
+            setup: LobbySetup::new(0),
             start: None,
             state: LobbyState::Connecting,
             inbox: VecDeque::new(),
@@ -112,10 +119,79 @@ impl<L: Link> LobbyNode<L> {
         &self.lobby
     }
 
-    pub const fn max_players(&self) -> Option<usize> {
+    /// Host: slots that are not closed.
+    pub fn max_players(&self) -> Option<usize> {
         match self.role {
-            Role::Host { max_players, .. } => Some(max_players),
+            Role::Host { .. } => Some(
+                self.setup
+                    .slots
+                    .iter()
+                    .filter(|s| s.kind != SlotKind::Closed)
+                    .count(),
+            ),
             Role::Client { .. } => None,
+        }
+    }
+
+    /// Slots, map and mode of the match (prompt 037).
+    pub const fn setup(&self) -> &LobbySetup {
+        &self.setup
+    }
+
+    /// Host: changes the setup and sends it to everyone. Slots of humans
+    /// stay theirs whatever `edit` does (they only change team and
+    /// faction); no slot becomes human; the slot count never drops below
+    /// a human's slot.
+    pub fn edit_setup(&mut self, edit: impl FnOnce(&mut LobbySetup)) {
+        if !self.is_host() || self.state != LobbyState::Lobby {
+            return;
+        }
+        let before = self.setup.clone();
+        edit(&mut self.setup);
+        self.normalize_setup();
+        if self.setup != before {
+            self.broadcast_setup();
+        }
+    }
+
+    /// Client: asks the host for this team and faction for our slot.
+    pub fn choose(&mut self, team: u8, faction: &str) {
+        let Role::Client { server } = &self.role else {
+            return;
+        };
+        let server = *server;
+        let choice = Control::Choose {
+            team,
+            faction: faction.to_owned(),
+        };
+        self.send_control(server, &choice);
+        self.link.flush();
+    }
+
+    /// Humans keep their slots, nobody else holds a human slot.
+    fn normalize_setup(&mut self) {
+        let slots = &mut self.setup.slots;
+        let needed = self
+            .lobby
+            .iter()
+            .map(|p| usize::from(p.player.0) + 1)
+            .max()
+            .unwrap_or(1);
+        while slots.len() < needed {
+            let team = u8::try_from(slots.len() % 2).unwrap_or(0);
+            slots.push(super::wire::LobbySlot {
+                kind: SlotKind::Open,
+                team,
+                faction: String::new(),
+            });
+        }
+        for (i, slot) in slots.iter_mut().enumerate() {
+            let human = self.lobby.iter().any(|p| usize::from(p.player.0) == i);
+            if human {
+                slot.kind = SlotKind::Human;
+            } else if slot.kind == SlotKind::Human {
+                slot.kind = SlotKind::Open;
+            }
         }
     }
 
@@ -124,11 +200,13 @@ impl<L: Link> LobbyNode<L> {
         self.start.as_ref()
     }
 
-    /// Host: whether at least two players are in the lobby and all are ready.
+    /// Host: whether at least two players (humans or computers, prompt
+    /// 037) on at least two teams take part and every human is ready.
     pub fn can_start(&self) -> bool {
         self.is_host()
             && self.state == LobbyState::Lobby
-            && self.lobby.len() >= 2
+            && self.setup.participants().len() >= 2
+            && self.setup.team_count() >= 2
             && self.lobby.iter().all(|p| p.ready)
     }
 
@@ -145,7 +223,8 @@ impl<L: Link> LobbyNode<L> {
         self.link.flush();
     }
 
-    /// Host: starts the match with all lobby players. Fails unless
+    /// Host: starts the match with all players of the setup (humans and
+    /// computers; `config` must be made for them). Fails unless
     /// [`can_start`](Self::can_start). Late joiners are rejected afterwards.
     pub fn start(
         &mut self,
@@ -160,7 +239,8 @@ impl<L: Link> LobbyNode<L> {
         let info = StartInfo {
             seed,
             config,
-            players: self.lobby.iter().map(|p| p.player).collect(),
+            players: self.setup.participants(),
+            computers: self.setup.computers(),
             input_delay,
             hash_interval,
         };
@@ -245,7 +325,9 @@ impl<L: Link> LobbyNode<L> {
                     self.close_state(format!("player {} left the game", player.0));
                 } else {
                     self.lobby.retain(|p| p.player != player);
+                    self.normalize_setup();
                     self.broadcast_lobby();
+                    self.broadcast_setup();
                 }
             }
             Role::Client { server } => {
@@ -312,6 +394,17 @@ impl<L: Link> LobbyNode<L> {
                 self.close_state(format!("rejected by the host: {reason}"));
             }
             (Role::Client { .. }, Control::Lobby { players }) => self.lobby = players,
+            (Role::Client { .. }, Control::Setup(setup)) => self.setup = setup,
+            (Role::Host { peers, .. }, Control::Choose { team, faction }) => {
+                if let Some(Some(player)) = peers.get(&from).copied()
+                    && self.state == LobbyState::Lobby
+                    && let Some(slot) = self.setup.slots.get_mut(usize::from(player.0))
+                {
+                    slot.team = team;
+                    slot.faction = faction;
+                    self.broadcast_setup();
+                }
+            }
             (Role::Client { .. }, Control::Start(info)) => {
                 if self
                     .local
@@ -332,7 +425,7 @@ impl<L: Link> LobbyNode<L> {
     }
 
     fn on_hello(&mut self, from: L::Peer, protocol: u16, name: String) {
-        let Role::Host { peers, max_players } = &mut self.role else {
+        let Role::Host { peers } = &mut self.role else {
             return;
         };
         // A link without connect events (Steam) may deliver the hello first.
@@ -346,7 +439,7 @@ impl<L: Link> LobbyNode<L> {
             ))
         } else if self.state != LobbyState::Lobby {
             Some("the match already started".into())
-        } else if self.lobby.len() >= *max_players {
+        } else if !self.setup.slots.iter().any(|s| s.kind == SlotKind::Open) {
             Some("the game is full".into())
         } else {
             None
@@ -357,11 +450,14 @@ impl<L: Link> LobbyNode<L> {
             self.link.disconnect(from, false);
             return;
         }
-        // Smallest free id; the host is 0.
-        let player = (1..=u8::MAX)
-            .map(PlayerId)
-            .find(|id| self.lobby.iter().all(|p| p.player != *id))
-            .expect("max_players is below 256");
+        // The first open slot; the host is 0.
+        let index = self
+            .setup
+            .slots
+            .iter()
+            .position(|s| s.kind == SlotKind::Open)
+            .expect("checked above");
+        let player = PlayerId(u8::try_from(index).expect("at most 255 slots"));
         peers.insert(from, Some(player));
         self.lobby.push(LobbyPlayer {
             player,
@@ -369,13 +465,20 @@ impl<L: Link> LobbyNode<L> {
             ready: false,
         });
         self.lobby.sort_by_key(|p| p.player);
+        self.normalize_setup();
         self.send_control(from, &Control::Welcome { player });
         self.broadcast_lobby();
+        self.broadcast_setup();
     }
 
     fn broadcast_lobby(&mut self) {
         let players = self.lobby.clone();
         self.broadcast_control(&Control::Lobby { players });
+    }
+
+    fn broadcast_setup(&mut self) {
+        let setup = self.setup.clone();
+        self.broadcast_control(&Control::Setup(setup));
     }
 
     /// Host: sends to every accepted client.

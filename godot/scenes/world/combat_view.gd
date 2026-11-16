@@ -222,7 +222,8 @@ class HealthBars:
 			if camera.is_position_behind(world):
 				continue
 			var at := camera.unproject_position(world) - Vector2(WIDTH * 0.5, 0)
-			var color := Color(0.3, 0.9, 0.3) if owners[i] == me else Color(0.95, 0.3, 0.2)
+			var color := Color(0.3, 0.9, 0.3) if owners[i] == me else (
+				Color(0.35, 0.6, 1.0) if sim_host.relation(owners[i]) == 1 else Color(0.95, 0.3, 0.2))
 			draw_rect(Rect2(at - Vector2(1, 1), Vector2(WIDTH + 2, HEIGHT + 2)), Color(0, 0, 0, 0.6))
 			draw_rect(Rect2(at, Vector2(WIDTH * health[i], HEIGHT)), color)
 			drawn += 1

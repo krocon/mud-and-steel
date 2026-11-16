@@ -1437,7 +1437,7 @@ Tasks, links and the hit points of loaded carriers are in the state hash
 `disembark_units`, `tow_gun`, `unlimber_units`, `unit_carriers`,
 `unit_passengers`, `unit_towing`, `unit_loading`, `unit_seats`, `can_tow`,
 `is_towed_gun` (`crates/bridge/src/transport_funcs.rs`).
-`selection/transport_orders.gd` turns right clicks and the keys J and K
+`selection/transport_orders.gd` turns right clicks and the keys J and O
 into orders; `world/transport_view.gd` hides riding squads and seats one
 rifleman figure (pose `kneel`) per passenger at the model's
 `Socket_Passenger_NN` empties, or in two rows over the rear half of the
@@ -1478,7 +1478,9 @@ Prompt 027. `crates/sim/src/outcome.rs` decides the match; Godot only shows it.
   player wins, or it is a draw when the last players fall in the same tick.
   The result (`Sim::outcome`, with the tick) never changes afterwards; the
   simulation keeps running so the field stays visible. A match that starts
-  with a single player is never decided. There are no teams yet.
+  with a single player is never decided. With teams (prompt 037,
+  [TEAMS.md](TEAMS.md)) the match is decided once every undefeated player is
+  an ally of the others.
 - The standings enter the state hash only once someone is defeated. Before
   that they hold nothing beyond the player list, so undecided matches hash
   as before. The demo battle is decided at tick 515 since the rifle squads of
@@ -1543,7 +1545,8 @@ times the speed: a barracks placed through the preview, completed, selected, a u
 produced from its production bar, the opponent builds too, surrender. Matches 1–3 play
 the battle mode.
 Matches 1 and 2 choose the passive opponent, which gives no orders. `just lan-selftest` ends with the client
-surrendering: the host must show victory, the client defeat.
+surrendering: the host must show victory, the client defeat (since prompt 037 a 2 vs 2 with computer players, see
+[TEAMS.md](TEAMS.md)); the flow self-test also starts a 2 vs 2 from the setup screen.
 
 ## Map editor
 

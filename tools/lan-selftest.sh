@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # Two headless Godot instances play a LAN match over localhost (prompt 025):
 # one hosts, the other finds it with the LAN search, joins and gets ready;
-# both order their tanks around until tick 400 is confirmed by both.
+# both order their tanks around until tick 400 is confirmed by both. Since
+# prompt 037 it is a 2-against-2 on twin_meadow: the two humans against two
+# computer players that the host runs (LAN_COMPUTERS=0: the old 1 against 1).
 # Exit code 0 only if both instances pass. Logs: build/lan-selftest/.
 #
 # Ports can be changed with LAN_PORT and LAN_DISCOVERY_PORT. Needs bash
@@ -20,7 +22,12 @@ run() {
         --lan-self-test --lan-port="$PORT" --lan-discovery-port="$DISCOVERY" "$@"
 }
 
-run --lan-host --lan-name=host > "$LOGS/host.log" 2>&1 &
+COMPUTERS="${LAN_COMPUTERS:-2}"
+TEAM_ARGS=()
+if [[ "$COMPUTERS" -gt 0 ]]; then
+    TEAM_ARGS=(--map=twin_meadow --lan-computers="$COMPUTERS")
+fi
+run --lan-host --lan-name=host ${TEAM_ARGS[@]+"${TEAM_ARGS[@]}"} > "$LOGS/host.log" 2>&1 &
 HOST=$!
 sleep 1
 run --lan-join --lan-name=client > "$LOGS/client.log" 2>&1 &

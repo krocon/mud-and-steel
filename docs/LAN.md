@@ -78,6 +78,8 @@ ENet channel 0, lobby messages (postcard, `net::lobby`; the same over Steam):
 | `Ready(bool)` | client → host | |
 | `Start(StartInfo)` | host → all | seed, resolved `SimConfig`, players, initial input delay, hash interval |
 | `PeerLeft(player)` | host → all | a player left the running match; it ends |
+| `Setup(LobbySetup)` | host → all | slots (open, human, computer with difficulty, closed; team, faction), map, mode, shared vision (prompt 037, [TEAMS.md](TEAMS.md)) |
+| `Choose { team, faction }` | client → host | team and faction of the client's own slot |
 
 ENet channel 1 carries the opaque lockstep messages of `net::Transport`
 (`CommandFrame`, `HashReport`).
@@ -112,14 +114,18 @@ Timeouts: ENet disconnects a peer that did not answer for 3 to 10 s; pings every
 
 **Computer players** (prompt 024, [AI.md](AI.md)): a peer can host further
 players (`LockstepSession::host_player` / `submit_hosted`) and sends their frames
-and hash reports as if they had their own peer. The lobby offers no AI slots yet.
+and hash reports as if they had their own peer. Since prompt 037 the lobby has
+slots ([TEAMS.md](TEAMS.md)): the host picks map, mode and shared vision before
+hosting and then sets every slot (open, computer with difficulty, closed; team
+and faction), a client its own team and faction; the host runs the computer
+players. `PROTOCOL_VERSION` is 3.
 
 ## Tests
 
 | Command | What it does |
 |---------|--------------|
 | `just check` | includes `crates/net/tests/lan.rs` (two and three peers over UDP on localhost, rejection, lost peer, discovery) and `crates/cli/tests/lan.rs` (two `cli` processes; the client finds the host by search; end hash equals the single-process `run_demo`; a provoked desync is reported by both, with replays) |
-| `just lan-selftest` | two headless Godot instances: host, search, join, ready, start, both hold fire and order their tanks until tick 400 is confirmed by both; then the client surrenders and both must show the result (host victory, client defeat) at a confirmed tick. Logs in `build/lan-selftest/` |
+| `just lan-selftest` | two headless Godot instances: host, search, join, ready, start, both hold fire and order their tanks until tick 400 is confirmed by both. Since prompt 037 a 2 vs 2 on `twin_meadow`: the two humans against two computer players the host runs; the client surrenders (the match goes on), then the host, and both must show the computers' team winning at a confirmed tick (`LAN_COMPUTERS=0 just lan-selftest`: the old 1 vs 1 with host victory and client defeat). Logs in `build/lan-selftest/` |
 | `just lan-host` / `just lan-join [address]` | headless CLI peers playing the demo, e.g. one per machine |
 
 ## Testing with two machines

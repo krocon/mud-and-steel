@@ -7,7 +7,7 @@ extends RefCounted
 ## - Right click with vehicles selected on an own towed gun: the nearest
 ##   vehicle strong enough hitches it (`SimHost.tow_gun`).
 ## - J (`order_disembark`): passengers of the selected vehicles get off.
-## - K (`order_unlimber`): the selected vehicles drop their guns, selected
+## - O (`order_unlimber`): the selected vehicles drop their guns, selected
 ##   towed guns are unhitched.
 
 ## The order a right click at `screen_position` gives, if it is a
@@ -45,7 +45,7 @@ static func disembark(selection: Control) -> bool:
 	return true
 
 
-## K: the selected vehicles drop their guns; selected towed guns are
+## O: the selected vehicles drop their guns; selected towed guns are
 ## unhitched.
 static func unlimber(selection: Control) -> bool:
 	var sim_host: SimHost = selection.sim_host

@@ -4,8 +4,10 @@
 //! A player is defeated when they surrender or have no living units left.
 //! The match is decided as soon as at most one player is undefeated: that
 //! player wins, or it is a draw if the last players fall in the same tick.
-//! Only matches that start with at least two players can be decided. There
-//! are no teams yet: every player fights every other.
+//! Only matches that start with at least two players can be decided.
+//! With teams (prompt 037) the match is decided once at most one team has
+//! an undefeated player; the lowest undefeated player of that team is the
+//! `winner`. A surrender hands nothing to the allies.
 
 use crate::command::PlayerId;
 use crate::hash::StableHasher;
@@ -82,8 +84,14 @@ impl Standings {
     }
 
     /// End-of-tick check: players without living units are eliminated, then
-    /// the match is decided if at most one player is left.
-    pub(crate) fn update(&mut self, tick: u64, living_units: impl Fn(PlayerId) -> usize) {
+    /// the match is decided if the undefeated players are all `allied`
+    /// (at most one team, or one player without teams, is left).
+    pub(crate) fn update(
+        &mut self,
+        tick: u64,
+        living_units: impl Fn(PlayerId) -> usize,
+        allied: impl Fn(PlayerId, PlayerId) -> bool,
+    ) {
         if self.outcome.is_some() || self.players.len() < 2 {
             return;
         }
@@ -93,15 +101,16 @@ impl Standings {
             }
         }
         let mut undefeated = self.players.iter().filter(|s| s.defeat.is_none());
-        match (undefeated.next(), undefeated.next()) {
-            (Some(_), Some(_)) => {}
-            (winner, _) => {
-                self.outcome = Some(Outcome {
-                    winner: winner.map(|s| s.player),
-                    tick,
-                });
-            }
+        let first = undefeated.next().map(|s| s.player);
+        if let Some(first) = first
+            && undefeated.any(|s| !allied(first, s.player))
+        {
+            return;
         }
+        self.outcome = Some(Outcome {
+            winner: first,
+            tick,
+        });
     }
 
     /// Feeds the standings into the state hash, but only once a player has
@@ -149,12 +158,16 @@ mod tests {
 
     const P: [PlayerId; 3] = [PlayerId(0), PlayerId(1), PlayerId(2)];
 
+    fn ffa(a: PlayerId, b: PlayerId) -> bool {
+        a == b
+    }
+
     #[test]
     fn last_players_falling_together_is_a_draw() {
         let mut standings = Standings::new(&P[..2]);
-        standings.update(5, |_| 3);
+        standings.update(5, |_| 3, ffa);
         assert_eq!(standings.outcome(), None);
-        standings.update(6, |_| 0);
+        standings.update(6, |_| 0, ffa);
         assert_eq!(
             standings.outcome(),
             Some(Outcome {
@@ -173,13 +186,13 @@ mod tests {
     #[test]
     fn three_players_decide_when_one_is_left() {
         let mut standings = Standings::new(&P);
-        standings.update(1, |p| usize::from(p != P[2]));
+        standings.update(1, |p| usize::from(p != P[2]), ffa);
         assert_eq!(standings.outcome(), None);
         standings.surrender(P[0], 2);
-        standings.update(2, |p| usize::from(p != P[2]));
+        standings.update(2, |p| usize::from(p != P[2]), ffa);
         assert_eq!(standings.outcome().map(|o| o.winner), Some(Some(P[1])));
         // Final: later changes do not matter.
-        standings.update(3, |_| 0);
+        standings.update(3, |_| 0, ffa);
         assert_eq!(
             standings.outcome().map(|o| (o.winner, o.tick)),
             Some((Some(P[1]), 2))
@@ -187,9 +200,30 @@ mod tests {
     }
 
     #[test]
+    fn a_team_wins_when_every_enemy_is_defeated() {
+        let p: [PlayerId; 4] = [PlayerId(0), PlayerId(1), PlayerId(2), PlayerId(3)];
+        let mut standings = Standings::new(&p);
+        // Teams {0, 2} and {1, 3}.
+        let allied = |a: PlayerId, b: PlayerId| a.0 % 2 == b.0 % 2;
+        standings.surrender(p[0], 1);
+        standings.update(1, |_| 4, allied);
+        assert_eq!(standings.outcome(), None, "player 2 still fights");
+        standings.update(2, |q| usize::from(q != p[1]), allied);
+        assert_eq!(standings.outcome(), None, "player 3 still fights");
+        standings.update(3, |q| usize::from(q == p[2]), allied);
+        assert_eq!(
+            standings.outcome(),
+            Some(Outcome {
+                winner: Some(p[2]),
+                tick: 3
+            })
+        );
+    }
+
+    #[test]
     fn single_player_is_never_decided() {
         let mut standings = Standings::new(&P[..1]);
-        standings.update(1, |_| 0);
+        standings.update(1, |_| 0, ffa);
         assert_eq!(standings.outcome(), None);
     }
 }

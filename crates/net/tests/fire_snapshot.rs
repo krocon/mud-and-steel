@@ -56,6 +56,7 @@ fn new_sim(map: Arc<Map>) -> Sim {
         combat: CombatRules::builtin().unwrap(),
         vision: VisionRules::builtin().unwrap(),
         infantry: sim::InfantryRules::builtin().unwrap(),
+        teams: sim::Teams::default(),
     };
     Sim::new(&config, map, 11).unwrap()
 }

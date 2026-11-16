@@ -9,6 +9,12 @@ extends Node
 ## result screen, the host as victory and the client as defeat, and the
 ## result tick is confirmed. Fails (exit code 1) on a desync, a lost
 ## connection or after TIMEOUT seconds.
+##
+## Teams (prompt 037, `just lan-selftest`: `--lan-computers=2` on
+## `twin_meadow`): the two humans play together against two passive
+## computer players the host runs; every unit starts with hold fire. The
+## client surrenders first: the match must go on (its ally still stands);
+## then the host surrenders and both must see the computers' team win.
 
 const TICKS := 400
 const ORDER_INTERVAL := 40
@@ -29,6 +35,7 @@ var _last_order_tick := -1
 var _orders := 0
 var _passed_ms := -1
 var _surrendered := false
+var _host_surrendered := false
 
 
 func _ready() -> void:
@@ -53,6 +60,14 @@ func _process(_delta: float) -> void:
 		if sim_host.local_player() == 1:
 			sim_host.surrender()
 	var result := sim_host.match_result()
+	if _teams() and _surrendered and not _host_surrendered and sim_host.local_player() == 0 \
+			and result["players"][1]["defeated"] and status["verified_tick"] >= int(result["players"][1]["defeat_tick"]):
+		if result["decided"]:
+			_fail("the match ended with the first surrender: %s" % result)
+			return
+		_host_surrendered = true
+		print("LAN self-test: player 1 surrendered, the match goes on; the host surrenders too")
+		sim_host.surrender()
 	if _surrendered and result["decided"] and status["verified_tick"] >= int(result["tick"]):
 		_check_result(result)
 		return
@@ -68,12 +83,15 @@ func _process(_delta: float) -> void:
 ## Both peers must agree: player 0 wins because player 1 surrendered, and
 ## the result screen says so.
 func _check_result(result: Dictionary) -> void:
-	var expected := "VICTORY" if sim_host.local_player() == 0 else "DEFEAT"
+	var expected := "VICTORY" if sim_host.local_player() == 0 and not _teams() else "DEFEAT"
+	var winner := 2 if _teams() else 0
 	if not main.game_menu.result_panel.visible:
 		return  # shown in the game menu's next _process
 	var shown: String = main.game_menu.result_title.text
-	if result["winner"] != 0 or result["players"][1]["reason"] != "surrendered":
+	if result["winner"] != winner or result["players"][1]["reason"] != "surrendered":
 		_fail("unexpected result %s" % result)
+	elif _teams() and (result["players"][0]["reason"] != "surrendered" or sim_host.match_players().size() != 4):
+		_fail("unexpected team result %s" % result)
 	elif shown != expected:
 		_fail("result screen shows '%s', expected %s" % [shown, expected])
 	else:
@@ -82,6 +100,11 @@ func _check_result(result: Dictionary) -> void:
 			sim_host.state_hash(),
 		])
 		_passed_ms = Time.get_ticks_msec()
+
+
+## A team match (more than two players).
+func _teams() -> bool:
+	return sim_host.match_players().size() > 2
 
 
 func _own_units() -> PackedInt64Array:

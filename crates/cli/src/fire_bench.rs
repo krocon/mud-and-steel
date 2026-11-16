@@ -49,6 +49,7 @@ fn new_sim(map: &Arc<Map>, options: &Options) -> Result<Sim, String> {
         combat: sim::CombatRules::builtin().map_err(|e| e.to_string())?,
         vision: sim::VisionRules::builtin().map_err(|e| e.to_string())?,
         infantry: sim::InfantryRules::builtin().map_err(|e| e.to_string())?,
+        teams: sim::Teams::default(),
     };
     Sim::new(&config, Arc::clone(map), options.seed).map_err(|e| e.to_string())
 }

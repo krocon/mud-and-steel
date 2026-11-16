@@ -65,6 +65,7 @@ fn run_once(map: &Arc<Map>, options: &Options, vision: VisionRules) -> Result<Ru
         combat: sim::CombatRules::builtin().map_err(|e| e.to_string())?,
         vision,
         infantry: sim::InfantryRules::builtin().map_err(|e| e.to_string())?,
+        teams: sim::Teams::default(),
     };
     let build = Instant::now();
     let mut sim = Sim::new(&config, Arc::clone(map), options.seed).map_err(|e| e.to_string())?;

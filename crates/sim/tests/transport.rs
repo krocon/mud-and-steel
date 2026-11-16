@@ -56,6 +56,7 @@ fn sim_with(spawns: &[(PlayerId, &str, i32, i32)], seed: u64) -> Sim {
         combat: CombatRules::builtin().unwrap(),
         vision: sim::VisionRules::builtin().unwrap(),
         infantry: sim::InfantryRules::builtin().unwrap(),
+        teams: sim::Teams::default(),
     };
     Sim::new(&config, map, seed).unwrap()
 }

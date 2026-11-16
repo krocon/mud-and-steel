@@ -27,7 +27,7 @@ extends Control
 ##   until stopped, right click on an enemy fires at it while it is seen.
 ## - Transport (prompt 034, `transport_orders.gd`): right click with squads
 ##   on an own vehicle with seats mounts them, with vehicles on an own towed
-##   gun hitches it; J dismounts, K unlimbers. Passengers cannot be
+##   gun hitches it; J dismounts, O unlimbers. Passengers cannot be
 ##   selected.
 ##
 ## Sits full-screen in a CanvasLayer and draws the selection box itself. It
@@ -558,14 +558,14 @@ func _own_indices() -> Array[int]:
 	return result
 
 
-## Indices of the other players' living units.
+## Indices of the enemies' living units (allies are no targets, prompt 037).
 func _other_indices() -> Array[int]:
 	var owners := sim_host.unit_owners()
 	var alive := sim_host.unit_alive()
-	var me := sim_host.local_player()
+	var relations := sim_host.unit_relations()
 	var result: Array[int] = []
 	for i in owners.size():
-		if owners[i] != me and alive[i] != 0:
+		if relations[i] == 2 and alive[i] != 0:
 			result.append(i)
 	return result
 
