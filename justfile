@@ -25,6 +25,7 @@ check:
     cargo clippy -p bridge --no-default-features --all-targets -- -D warnings
     cargo clippy -p cli --features steam --all-targets -- -D warnings
     cargo test --workspace
+    python3 tools/vehicle_refs.py --check
 
 # Format all Rust code
 [group('rust')]
@@ -200,6 +201,16 @@ units-web-sync:
 [group('assets')]
 vehicle-refs *args:
     node tools/onwar_download.mjs {{ args }}
+
+# Write the vehicle database data/vehicles/*.json and docs/VEHICLE_REFS.md from docs/.vorlagen/fahrzeuge (needs `just vehicle-refs` first), then check it
+[group('assets')]
+vehicle-db:
+    python3 tools/vehicle_refs.py --write --check
+
+# Check the vehicle database against its schema, data/vehicles/index.json and the catalog (part of `just check`; needs no reference folder)
+[group('assets')]
+vehicle-db-check *args:
+    python3 tools/vehicle_refs.py --check {{ args }}
 
 # Build the bridge and open the model gallery (all models, camouflage switch)
 [group('godot')]

@@ -31,7 +31,7 @@ uncertain; see the list at the end of each faction.
 
 | ID | Name | Designation | Years | Tier | L × W × H (m) | Mass (t) | Crew | Road / off (km/h) | Armor hull / turret front (mm) | Main weapon |
 |---|---|---|---|---|---|---|---|---|---|---|
-| de_pz2_l | Panzerkampfwagen II Ausf. L "Luchs" / Panzer II Ausf. L Luchs | Sd.Kfz. 123 | 1943–1945 | 2 | 4.63 × 2.48 × 2.21 | 11.8 | 4 | 60.0 / 30.0? | 30 / 30? | 2 cm KwK 38 L/55 |
+| de_pz2_l | Panzerkampfwagen II Ausf. L "Luchs" / Panzer II Ausf. L Luchs | Sd.Kfz. 123 | 1943–1945 | 2 | 4.63 × 2.48 × 2.21 | 11.8? | 4 | 60.0 / 30.0? | 30 / 30? | 2 cm KwK 38 L/55 |
 | de_pz4_h | Panzerkampfwagen IV Ausf. H / Panzer IV Ausf. H | Sd.Kfz. 161/2 | 1943–1945 | 1 | 7.02 × 2.88? × 2.68 | 25.0 | 5 | 38.0 / 16.0? | 80 / 50 | 7.5 cm KwK 40 L/48 |
 | de_tiger1_e | Panzerkampfwagen VI Tiger Ausf. E / Tiger I Ausf. E | Sd.Kfz. 181 | 1942–1945 | 2 | 8.45 × 3.71? × 3.00? | 57.0 | 5 | 45.4? / 20.0 | 100 / 100 | 8.8 cm KwK 36 L/56? |
 | de_jgdpz38t | Jagdpanzer 38(t) "Hetzer" / Jagdpanzer 38(t) Hetzer | Sd.Kfz. 138/2 | 1944–1945 | 2 | 6.27 × 2.63 × 2.17 | 15.8 | 4 | 42.0 / 15.0? | 60 / 60 | 7.5 cm PaK 39 L/48 |
@@ -39,7 +39,7 @@ uncertain; see the list at the end of each faction.
 | de_sdkfz251_1 | Mittlerer Schützenpanzerwagen Sd.Kfz. 251/1 Ausf. D / Sd.Kfz. 251/1 Ausf. D halftrack | Sd.Kfz. 251/1 Ausf. D | 1943–1945 | 1 | 5.80 × 2.10 × 1.75 | 8.5 | 2 + 10 | 52.5 / 21.2 | 15 /  | 2× MG 42 |
 | de_opel_blitz | Opel Blitz 3,6-36S / Opel Blitz 3.6-36S truck | Opel Blitz 3.6-36S (3 t, 4x2) | 1937–1945 | 2 | 6.02? × 2.27? × 2.18? | 6.6? | 2 + 16? | 85.0? / 30.0? |  /  |  |
 | de_sdkfz222 | Leichter Panzerspähwagen (2 cm) Sd.Kfz. 222 / Sd.Kfz. 222 light armoured car | Sd.Kfz. 222 | 1936–1945 | 2 | 4.80 × 1.95 × 2.00? | 4.8 | 3 | 80.0 / 40.0? | 30 / 8 | 2 cm KwK 38 L/55 |
-| de_wespe | Leichte Feldhaubitze 18/2 auf Fahrgestell Panzerkampfwagen II (Sf) "Wespe" / Wespe self-propelled howitzer | Sd.Kfz. 124 | 1943–1945 | 2 | 4.81 × 2.28 × 2.30 | 11.0 | 5 | 40.0 / 20.0? | 30? / 10? | 10.5 cm leFH 18/2 L/28? |
+| de_wespe | Leichte Feldhaubitze 18/2 auf Fahrgestell Panzerkampfwagen II (Sf) "Wespe" / Wespe self-propelled howitzer | Sd.Kfz. 124 | 1943–1945 | 2 | 4.81 × 2.28 × 2.30 | 11.0 | 5? | 40.0 / 20.0? | 30? / 10? | 10.5 cm leFH 18/2 L/28? |
 | de_brueckenleger4 | Brückenleger IV b / Brückenleger IV b bridge-laying tank | Brückenleger IV b | 1940–1941 | 2 | 11.00 × 3.00 × 3.54? | 28.0? | 2 | 40.0 / 20.0? | 30 /  |  |
 
 ### Guns
@@ -84,14 +84,14 @@ uncertain; see the list at the end of each faction.
 - `de_inf_flamethrower`: weapon
 - `de_inf_command`: squad_size
 - `de_inf_tank_crew`: weapon
-- `de_pz2_l`: speed_offroad_kmh_x10, power_hp, armor_turret_front_mm
+- `de_pz2_l`: speed_offroad_kmh_x10, power_hp, armor_turret_front_mm, mass_kg
 - `de_pz4_h`: speed_offroad_kmh_x10, width_mm
 - `de_tiger1_e`: width_mm, height_mm, range_road_km, armor_hull_front_deg, speed_road_kmh_x10, weapon
 - `de_jgdpz38t`: speed_offroad_kmh_x10, armor_hull_side_mm, armor_hull_rear_mm
 - `de_stug3_g`: length_mm, length_hull_mm, speed_offroad_kmh_x10
 - `de_opel_blitz`: passengers, length_mm, width_mm, height_mm, mass_kg, speed_road_kmh_x10, speed_offroad_kmh_x10, range_road_km, power_hp
 - `de_sdkfz222`: height_mm, speed_offroad_kmh_x10
-- `de_wespe`: speed_offroad_kmh_x10, armor_hull_front_mm, armor_turret_front_mm, weapon
+- `de_wespe`: speed_offroad_kmh_x10, armor_hull_front_mm, armor_turret_front_mm, weapon, crew, range_road_km
 - `de_pak40`: width_mm, height_mm, crew
 - `de_flak38`: mass_kg, length_mm, width_mm, height_mm
 - `de_flak36`: length_mm, width_mm
@@ -255,15 +255,15 @@ uncertain; see the list at the end of each faction.
 
 | ID | Name | Designation | Years | Tier | L × W × H (m) | Mass (t) | Crew | Road / off (km/h) | Armor hull / turret front (mm) | Main weapon |
 |---|---|---|---|---|---|---|---|---|---|---|
-| su_t70m | T-70M / T-70M | T-70M light tank | 1942–1945 | 2 | 4.29 × 2.35? × 2.04 | 9.8? | 2 | 42.0? / 20.0? | 45? / 50 | 45 mm 20-K M1938? |
+| su_t70m | T-70M / T-70M | T-70M light tank | 1942–1945 | 2 | 4.29 × 2.35? × 2.04 | 9.8? | 2 | 42.0? / 20.0? | 45? / 50? | 45 mm 20-K M1938? |
 | su_t34_76_1943 | T-34/76 Modell 1943 / T-34/76 Model 1943 | T-34 obr. 1943 (hexagonal turret) | 1942–1945 | 1 | 6.68 × 3.00 × 2.46? | 30.9? | 4 | 54.0 / 36.0? | 45 / 52? | 76.2 mm F-34 L/41.5? |
 | su_is2 | IS-2 Modell 1944 / IS-2 Model 1944 | IS-2 obr. 1944 (straightened glacis) | 1944–1945 | 2 | 9.90 × 3.09 × 2.73 | 46.0 | 4 | 37.0 / 19.0? | 120? / 100 | 122 mm D-25T L/43? |
 | su_su85 | SU-85 / SU-85 | SU-85 tank destroyer | 1943–1945 | 2 | 8.15 × 3.00 × 2.45 | 29.6 | 4 | 55.0 / 25.0? | 45 / 60? | 85 mm D-5S L/52? |
-| su_su76m | SU-76M / SU-76M | SU-76M self-propelled gun | 1943–1945 | 2 | 4.97 × 2.72 × 2.10 | 10.5 | 4 | 45.0 / 25.0? | 35 / 25 | 76.2 mm ZiS-3Sh? |
+| su_su76m | SU-76M / SU-76M | SU-76M self-propelled gun | 1943–1945 | 2 | 4.97 × 2.72 × 2.10 | 10.5? | 4 | 45.0 / 25.0? | 35? / 25 | 76.2 mm ZiS-3Sh? |
 | su_m3a1_scout | M3A1 Scout Car (Lend-Lease) / M3A1 Scout Car (Lend-Lease) | Scout Car M3A1 | 1942–1945 | 2 | 5.61 × 2.03 × 1.96 | 5.7 | 2 + 6 | 80.0 / 40.0? | 13 /  | Browning M2HB? |
 | su_zis5 | ZiS-5V / ZiS-5V | ZiS-5V 3-ton truck | 1942–1945 | 1 | 6.06 × 2.24 × 2.16 | 3.1? | 1 + 25 | 60.0 / 25.0? |  /  |  |
 | su_ba64b | BA-64B / BA-64B | BA-64B light armored car | 1943–1945 | 2 | 3.66 × 1.74? × 1.90 | 2.4 | 2 | 80.0 / 30.0? | 15 /  | DT |
-| su_isu152 | ISU-152 / ISU-152 | ISU-152 heavy self-propelled gun | 1943–1945 | 2 | 9.18 × 3.07 × 2.48 | 46.0? | 5? | 30.0 / 15.0? | 90 / 90 | 152 mm ML-20S L/29? |
+| su_isu152 | ISU-152 / ISU-152 | ISU-152 heavy self-propelled gun | 1943–1945 | 2 | 9.18 × 3.07 × 2.48 | 46.0? | 5? | 30.0? / 15.0? | 90 / 90 | 152 mm ML-20S L/29? |
 | su_valentine_bridgelayer | Valentine-Brückenleger (Lend-Lease) / Valentine Bridgelayer (Lend-Lease) | Valentine Bridgelayer | 1943–1945 | 2 | 5.90? × 2.90? × 3.40? | 20.0? | 2 | 24.0 / 13.0? | 60 /  |  |
 
 ### Guns
@@ -309,15 +309,15 @@ uncertain; see the list at the end of each faction.
 - `su_inf_flamethrower`: squad_size, weapon
 - `su_inf_command`: weapon
 - `su_inf_tank_crew`: weapon
-- `su_t70m`: width_mm, mass_kg, speed_road_kmh_x10, speed_offroad_kmh_x10, armor_hull_front_mm, weapon
-- `su_t34_76_1943`: height_mm, mass_kg, speed_offroad_kmh_x10, range_road_km, armor_turret_front_mm, armor_turret_side_mm, armor_turret_rear_mm, weapon
-- `su_is2`: armor_hull_front_mm, speed_offroad_kmh_x10, weapon
+- `su_t70m`: width_mm, mass_kg, speed_road_kmh_x10, speed_offroad_kmh_x10, armor_hull_front_mm, weapon, range_road_km, power_hp, armor_turret_front_mm
+- `su_t34_76_1943`: height_mm, mass_kg, speed_offroad_kmh_x10, range_road_km, armor_turret_front_mm, armor_turret_side_mm, armor_turret_rear_mm, weapon, armor_hull_rear_mm
+- `su_is2`: armor_hull_front_mm, speed_offroad_kmh_x10, weapon, range_road_km, power_hp
 - `su_su85`: gun_traverse_deg, speed_offroad_kmh_x10, armor_hull_front_deg, armor_turret_front_mm, weapon
-- `su_su76m`: speed_offroad_kmh_x10, armor_hull_front_deg, weapon
+- `su_su76m`: speed_offroad_kmh_x10, armor_hull_front_deg, weapon, mass_kg, power_hp, armor_hull_front_mm
 - `su_m3a1_scout`: speed_offroad_kmh_x10, armor_hull_side_mm, armor_hull_rear_mm, weapon
 - `su_zis5`: mass_kg, speed_offroad_kmh_x10, range_road_km, power_hp
 - `su_ba64b`: width_mm, speed_offroad_kmh_x10
-- `su_isu152`: mass_kg, crew, speed_offroad_kmh_x10, weapon
+- `su_isu152`: mass_kg, crew, speed_offroad_kmh_x10, weapon, speed_road_kmh_x10, range_road_km, power_hp
 - `su_zis3`: length_mm, mass_kg, crew, weapon
 - `su_61k`: width_mm, crew
 - `su_52k`: mass_kg
@@ -480,9 +480,9 @@ uncertain; see the list at the end of each faction.
 | ID | Name | Designation | Years | Tier | L × W × H (m) | Mass (t) | Crew | Road / off (km/h) | Armor hull / turret front (mm) | Main weapon |
 |---|---|---|---|---|---|---|---|---|---|---|
 | us_m5a1 | Leichter Panzer M5A1 Stuart / M5A1 Stuart | Light Tank M5A1 | 1943–1945 | 2 | 4.84 × 2.29 × 2.57 | 15.2 | 4 | 58.0 / 30.0? | 29? / 51? | 37 mm Gun M6? |
-| us_m4a3_75 | Mittlerer Panzer M4A3 (75)W Sherman / M4A3 (75)W Sherman | Medium Tank M4A3 (75 mm), wet stowage | 1944–1945 | 1 | 6.27 × 2.67 × 2.94 | 31.6 | 5 | 42.0 / 25.0? | 64 / 76 | 75 mm Gun M3 (mount M34A1)? |
-| us_m26 | Schwerer Panzer M26 Pershing / M26 Pershing | Heavy Tank T26E3 / M26 | 1945–1951 | 2 | 8.65 × 3.51 × 2.78 | 41.9 | 5 | 48.0 / 26.0? | 102 / 114? | 90 mm Gun M3 |
-| us_m10 | Jagdpanzer M10 Wolverine / M10 Gun Motor Carriage | 3-inch Gun Motor Carriage M10 | 1942–1945 | 2 | 6.83 × 3.05 × 2.90 | 29.6 | 5 | 48.0? / 26.0? | 38 / 57 | 3 in Gun M7 (mount M5) |
+| us_m4a3_75 | Mittlerer Panzer M4A3 (75)W Sherman / M4A3 (75)W Sherman | Medium Tank M4A3 (75 mm), wet stowage | 1944–1945 | 1 | 6.27 × 2.67 × 2.94 | 31.6 | 5 | 42.0 / 25.0? | 64? / 76? | 75 mm Gun M3 (mount M34A1)? |
+| us_m26 | Schwerer Panzer M26 Pershing / M26 Pershing | Heavy Tank T26E3 / M26 | 1945–1951 | 2 | 8.65 × 3.51 × 2.78 | 41.9 | 5 | 48.0? / 26.0? | 102 / 114? | 90 mm Gun M3 |
+| us_m10 | Jagdpanzer M10 Wolverine / M10 Gun Motor Carriage | 3-inch Gun Motor Carriage M10 | 1942–1945 | 2 | 6.83 × 3.05 × 2.90 | 29.6 | 5 | 48.0? / 26.0? | 38? / 57 | 3 in Gun M7 (mount M5) |
 | us_m4a3_105 | Sturmhaubitze M4A3 (105) / M4A3 (105) Sherman | Medium Tank M4A3 (105 mm Howitzer) | 1944–1945 | 2 | 5.91? × 2.62 × 2.81 | 31.1 | 5 | 42.0 / 25.0? | 64 / 76 | 105 mm Howitzer M4 (mount M52)? |
 | us_m3_halftrack | Halbkettenfahrzeug M3 / M3 Half-track | Carrier, Personnel, Half-track, M3 | 1941–1945 | 1 | 6.16 × 1.96? × 2.30 | 9.1? | 1 + 12 | 72.0 / 35.0? | 13 /  | Browning M1919A4 (pedestal mount M25) |
 | us_gmc_cckw | Lkw GMC CCKW 353 (2½ t, 6x6) / GMC CCKW 353 2½-ton Truck | Truck, 2½-ton, 6x6, GMC CCKW-353 | 1941–1945 | 2 | 6.86 × 2.24 × 2.77 | 7.4 | 2? + 16? | 72.0 / 35.0? |  /  |  |
@@ -530,10 +530,10 @@ uncertain; see the list at the end of each faction.
 - `us_inf_flamethrower`: squad_size, weapon
 - `us_inf_command`: weapon
 - `us_inf_tank_crew`: weapon
-- `us_m5a1`: speed_offroad_kmh_x10, armor_hull_front_mm, armor_hull_side_mm, armor_hull_rear_mm, armor_turret_front_mm, armor_turret_side_mm, armor_turret_rear_mm, weapon
-- `us_m4a3_75`: speed_offroad_kmh_x10, weapon
-- `us_m26`: speed_offroad_kmh_x10, armor_hull_front_deg, armor_hull_rear_mm, armor_turret_front_mm, armor_turret_rear_mm
-- `us_m10`: speed_road_kmh_x10, speed_offroad_kmh_x10, armor_hull_front_deg
+- `us_m5a1`: speed_offroad_kmh_x10, armor_hull_front_mm, armor_hull_side_mm, armor_hull_rear_mm, armor_turret_front_mm, armor_turret_side_mm, armor_turret_rear_mm, weapon, power_hp
+- `us_m4a3_75`: speed_offroad_kmh_x10, weapon, armor_hull_front_mm, armor_turret_front_mm
+- `us_m26`: speed_offroad_kmh_x10, armor_hull_front_deg, armor_hull_rear_mm, armor_turret_front_mm, armor_turret_rear_mm, speed_road_kmh_x10
+- `us_m10`: speed_road_kmh_x10, speed_offroad_kmh_x10, armor_hull_front_deg, armor_hull_front_mm, armor_hull_side_mm, armor_hull_rear_mm
 - `us_m4a3_105`: length_mm, speed_offroad_kmh_x10, range_road_km, weapon
 - `us_m3_halftrack`: width_mm, mass_kg, speed_offroad_kmh_x10
 - `us_gmc_cckw`: passengers, speed_offroad_kmh_x10, crew

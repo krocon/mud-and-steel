@@ -1,0 +1,4363 @@
+[
+  {
+    "id": "su_bt2",
+    "name": "BT-2 Model 1932",
+    "type": "Medium/Cruiser Tank",
+    "family": "BT",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/ussr/su001bt2m32.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "RT",
+        "MM0182",
+        "OOBTr",
+        "BT1r",
+        "ST",
+        "RTAV",
+        "Russian Military Zone"
+      ]
+    },
+    "general": {
+      "other_designations": "BT-2 Model 1932",
+      "manufacturer": "Factory No. 183 Kharkov Locomotive Works (KhPZ)",
+      "production_quantity": 300,
+      "production_period": "Sept. 1931 - 1932",
+      "crew": 3,
+      "length_mm": 5500,
+      "width_mm": 2230,
+      "height_mm": 2200,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 11000,
+      "text": {
+        "production_quantity": "about 300 [1]"
+      }
+    },
+    "firepower": {
+      "main_gun": "37mm Gun M1930",
+      "main_gun_caliber_mm_x10": 370,
+      "main_ammo": 96,
+      "traverse_deg": 360,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -40,
+      "elevation_max_deg_x10": 400,
+      "secondary": "1 x 7.62mm MG DT (turret)",
+      "secondary_ammo": 2709
+    },
+    "mobility": {
+      "engine": "Liberty Aero/M-5",
+      "engine_type": "V12",
+      "power_hp": 400,
+      "power_rpm": 2000,
+      "power_to_weight_hp_per_t_x10": 364,
+      "gearbox": "4 forward, 1 reverse",
+      "gears_forward": 4,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 400,
+      "consumption_road_l_per_100km": 267,
+      "range_road_km": 150,
+      "speed_road_kmh_x10": 520,
+      "track_width_mm": 260,
+      "track_ground_contact_mm": 3600,
+      "track_links": 73,
+      "ground_pressure_psi_x10": 84,
+      "ground_pressure_kpa_x10": 579,
+      "ground_clearance_mm": 350,
+      "turning_radius_mm": 12200,
+      "gradient_deg": 40,
+      "vertical_obstacle_mm": 750,
+      "fording_mm": 1200,
+      "trench_crossing_mm": 2100,
+      "text": {
+        "consumption_road_l_per_100km": "267(160) [2] L/100km",
+        "range_road_km": "150(250) [2] km",
+        "speed_road_kmh_x10": "52(72) [2] km/h"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 13, "text": "13mm @31° (lower) 13mm @70° (nose)" },
+        "side": { "mm": 13, "deg": 90 },
+        "rear": { "mm": 13, "deg": 90 },
+        "top_bottom": { "mm_min": 6, "mm_max": 10, "deg": 0, "text": "6-10mm @0°" }
+      },
+      "superstructure": {
+        "front": { "mm": 13, "text": "13mm @28° (glacis) 13mm @78° (driver)" },
+        "top_bottom": { "mm": 10, "deg": 0 }
+      },
+      "turret": {
+        "front": { "mm": 13, "deg": 90 },
+        "side": { "mm": 13, "deg": 90 },
+        "rear": { "mm": 13, "deg": 90 },
+        "top_bottom": { "mm": 10, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 13, "text": "13mm @round" }
+      }
+    },
+    "notes": [
+      "BT production for 1932 is given as 396 in ST. It is assumed that this figure is representative of total production and that about 75% of these vehicles conformed to this configuration.",
+      "The data refers to operation of the vehicle on road with tracks (wheels)."
+    ]
+  },
+  {
+    "id": "su_bt5",
+    "name": "BT-5 Model 1934",
+    "type": "Medium/Cruiser Tank",
+    "family": "BT",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/ussr/su002bt5m34.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "RT",
+        "ST",
+        "MM0182",
+        "MM0494",
+        "RTAV",
+        "TBTr",
+        "OOBTr",
+        "Russian Military Zone",
+        "George R. Bradford"
+      ]
+    },
+    "general": {
+      "designation": "BT-5 Model 1934 [1]",
+      "manufacturer": "Factory No. 183 Kharkov Locomotive Works (KhPZ)",
+      "production_quantity": 1800,
+      "production_period": "1933-1935",
+      "crew": 3,
+      "length_mm": 5500,
+      "width_mm": 2230,
+      "height_mm": 2200,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 11500,
+      "radio": "None/71-TK-1",
+      "text": {
+        "production_quantity": "about 1800 [2]"
+      }
+    },
+    "firepower": {
+      "main_gun": "45mm Gun M1932",
+      "main_gun_caliber_mm_x10": 450,
+      "traverse_deg": 360,
+      "elevation_min_deg_x10": -40,
+      "elevation_max_deg_x10": 400,
+      "sight": "TSMF, PT-1",
+      "secondary": "1 or 2 x 7.62mm DT MG (coaxial, possibly turret)",
+      "secondary_ammo": 2709,
+      "text": {
+        "main_ammo": "72/115 [3]"
+      }
+    },
+    "mobility": {
+      "engine": "M-5",
+      "engine_type": "V12",
+      "power_hp": 400,
+      "power_rpm": 2000,
+      "power_to_weight_hp_per_t_x10": 348,
+      "gearbox": "4 forward, 1 reverse",
+      "gears_forward": 4,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 400,
+      "consumption_road_l_per_100km": 270,
+      "range_road_km": 150,
+      "speed_road_kmh_x10": 520,
+      "track_width_mm": 260,
+      "track_ground_contact_mm": 3600,
+      "track_links": 73,
+      "ground_pressure_psi_x10": 87,
+      "ground_pressure_kpa_x10": 600,
+      "ground_clearance_mm": 350,
+      "turning_radius_mm": 12200,
+      "gradient_deg": 40,
+      "vertical_obstacle_mm": 750,
+      "fording_mm": 1200,
+      "trench_crossing_mm": 2000,
+      "text": {
+        "consumption_road_l_per_100km": "270(160)* l/100km",
+        "range_road_km": "150(250) [4] km",
+        "speed_road_kmh_x10": "52(72)* km/h"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 13, "text": "13mm @31°(lower)" },
+        "side": { "mm": 13, "deg": 90 },
+        "rear": { "mm": 13, "deg": 90 },
+        "top_bottom": { "mm_min": 6, "mm_max": 10, "deg": 0, "text": "6-10mm @0°" }
+      },
+      "superstructure": {
+        "front": { "mm": 13, "text": "13mm @28°(glacis)" },
+        "top_bottom": { "mm": 10, "deg": 0 }
+      },
+      "turret": {
+        "front": { "mm": 13, "deg": 90 },
+        "side": { "mm": 13, "deg": 90 },
+        "rear": { "mm": 13, "deg": 90 },
+        "top_bottom": { "mm": 10, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 13, "text": "13mm @round" }
+      }
+    },
+    "notes": [
+      "The model year provided here was not used by the Soviets but it serves to distinguish this tank from the original version of the BT-5 which used a modified BT-2 turret.",
+      "This estimate is based on an analysis of BT series production and Soviet tank production statistics.",
+      "With/without radio equipment installed.",
+      "The data refers to operation of the vehicle on tracks (wheels)."
+    ]
+  },
+  {
+    "id": "su_bt7",
+    "name": "BT-7 Model 1937",
+    "type": "Medium/Cruiser Tank",
+    "family": "BT",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/ussr/su003bt7m37.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "RT",
+        "ST",
+        "MM0182",
+        "MM0895",
+        "OOBTr",
+        "RTAV",
+        "Russian Military Zone",
+        "George R. Bradford"
+      ]
+    },
+    "general": {
+      "designation": "BT-7 Model 1937",
+      "manufacturer": "Factory No. 183 Kharkov Locomotive Works (KhPZ)",
+      "production_quantity": 1200,
+      "production_period": "1937-1939",
+      "crew": 3,
+      "length_mm": 5660,
+      "width_mm": 2290,
+      "height_mm": 2420,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 13800,
+      "radio": "None/71-TK-1",
+      "text": {
+        "production_quantity": "about 1200 [1]"
+      }
+    },
+    "firepower": {
+      "main_gun": "45mm Gun M1934",
+      "main_gun_caliber_mm_x10": 450,
+      "traverse_deg": 360,
+      "elevation_min_deg_x10": -40,
+      "elevation_max_deg_x10": 400,
+      "secondary": "2 x 7.62mm DT MG (coaxial, turret)",
+      "secondary_ammo": 2394,
+      "text": {
+        "main_ammo": "172/188 [2]"
+      }
+    },
+    "mobility": {
+      "engine": "M-17",
+      "engine_type": "V12",
+      "power_hp": 450,
+      "power_rpm": 1750,
+      "power_to_weight_hp_per_t_x10": 326,
+      "gearbox": "3 forward, 1 reverse",
+      "gears_forward": 3,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 790,
+      "consumption_road_l_per_100km": 230,
+      "range_road_km": 350,
+      "speed_road_kmh_x10": 520,
+      "track_width_mm": 260,
+      "track_ground_contact_mm": 3600,
+      "track_links": 73,
+      "ground_pressure_psi_x10": 105,
+      "ground_pressure_kpa_x10": 724,
+      "ground_clearance_mm": 400,
+      "turning_radius_mm": 12200,
+      "gradient_deg": 40,
+      "vertical_obstacle_mm": 750,
+      "fording_mm": 1200,
+      "trench_crossing_mm": 2000,
+      "text": {
+        "consumption_road_l_per_100km": "230(160)* l/100km",
+        "range_road_km": "350(500) [3] km",
+        "speed_road_kmh_x10": "52(72)* km/h"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 22, "text": "22mm @round(nose)" },
+        "side": { "mm": 13, "deg": 90 },
+        "rear": { "mm": 13, "text": "13mm @32°(lower)" },
+        "top_bottom": { "mm_min": 6, "mm_max": 10, "deg": 0, "text": "6-10mm @0°" }
+      },
+      "superstructure": {
+        "front": { "mm": 15, "text": "15mm @30°(glacis)" },
+        "rear": { "mm": 10, "deg": 35 },
+        "top_bottom": { "mm": 10, "deg": 0 }
+      },
+      "turret": {
+        "front": { "mm": 15, "deg": 78 },
+        "side": { "mm": 15, "deg": 78 },
+        "rear": { "mm": 15, "deg": 75 },
+        "top_bottom": { "mm": 15, "text": "15mm @0-5°" }
+      },
+      "mantlet": {
+        "front": { "mm": 15, "text": "15mm @round" }
+      }
+    },
+    "notes": [
+      "This estimate is based on an analysis of BT series production and Soviet tank production statistics.",
+      "With/without radio equipment installed.",
+      "The data refers to operation of the vehicle on tracks (wheels)."
+    ]
+  },
+  {
+    "id": "su_is1",
+    "name": "IS-1",
+    "type": "Heavy Tank",
+    "family": "IS",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/ussr/su004is1.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "RT",
+        "RTAV",
+        "OOBTr",
+        "TW",
+        "IS2",
+        "PH28r",
+        "IS2",
+        "Russian Military Zone"
+      ]
+    },
+    "general": {
+      "other_designations": "IS-1 [IS - Iosef Stalin, also IS-85, and JS-1]",
+      "manufacturer": "Factory No.100 Kirovskiy Works in Chelyabinsk (ChKZ or Tankograd)",
+      "production_quantity": 107,
+      "production_period": "Late 1943 - Early 1944",
+      "crew": 4,
+      "length_mm": 8300,
+      "width_mm": 3100,
+      "height_mm": 2700,
+      "barrel_overhang_mm": 1600,
+      "mass_kg": 44000,
+      "radio": "10R or 10RK",
+      "text": {
+        "production_quantity": "107 [1]"
+      }
+    },
+    "firepower": {
+      "main_gun": "85mm Gun D-5T85",
+      "main_gun_caliber_mm_x10": 850,
+      "main_ammo": 59,
+      "traverse_deg": 360,
+      "elevation_min_deg_x10": -40,
+      "elevation_max_deg_x10": 230,
+      "sight": "10T-15, PT-4-15",
+      "secondary": "3 x 7.62mm DT MG (coaxial, turret rear, bow)",
+      "secondary_ammo": 2520
+    },
+    "mobility": {
+      "engine": "V-2-IS (V-2K)",
+      "engine_type": "V12, 38.9 liters",
+      "displacement_cc": 38900,
+      "power_hp": 600,
+      "power_rpm": 2000,
+      "power_to_weight_hp_per_t_x10": 136,
+      "gearbox": "4 forward, 1 reverse",
+      "gears_forward": 4,
+      "gears_reverse": 1,
+      "fuel": "Diesel",
+      "fuel_capacity_l": 520,
+      "consumption_road_l_per_100km": 330,
+      "range_road_km": 150,
+      "speed_road_kmh_x10": 370,
+      "speed_offroad_kmh_x10": 190,
+      "track_width_mm": 650,
+      "track_ground_contact_mm": 4360,
+      "ground_pressure_psi_x10": 111,
+      "ground_pressure_kpa_x10": 765,
+      "ground_clearance_mm": 460,
+      "turning_radius_mm": 0,
+      "gradient_deg": 36,
+      "vertical_obstacle_mm": 1000,
+      "fording_mm": 1300,
+      "trench_crossing_mm": 2500,
+      "text": {
+        "fuel_capacity_l": "520 (+ 360 external) [2] l",
+        "range_road_km": "150(260) km",
+        "track_links": "87-90/track"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 100, "deg": 60 },
+        "side": { "mm": 90, "deg": 90 },
+        "rear": { "mm": 60, "deg": 49 },
+        "top_bottom": { "mm": 30, "text": "30mm @0°(front)" }
+      },
+      "superstructure": {
+        "front": { "mm": 120, "text": "120mm @60°(driver)" },
+        "side": { "mm": 90, "deg": 75 },
+        "rear": { "mm": 60, "deg": 41 },
+        "top_bottom": { "mm": 30, "deg": 0 }
+      },
+      "turret": {
+        "front": { "mm": 100, "text": "100mm @round" },
+        "side": { "mm": 100, "deg": 72 },
+        "rear": { "mm": 100, "deg": 60 },
+        "top_bottom": { "mm": 30, "text": "30mm @0-5°" }
+      },
+      "mantlet": {
+        "front": { "mm": 100, "text": "100mm @round" }
+      }
+    },
+    "notes": [
+      "At least 102 of these vehicles were later rearmed with the 122mm D-25 gun. It is unclear whether any of the vehicles with the original configuration were actually used in combat.",
+      "It is assumed here that the four 90 liter tanks were all used for fuel."
+    ]
+  },
+  {
+    "id": "su_is2",
+    "name": "IS-2m",
+    "type": "Heavy Tank",
+    "family": "IS",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/ussr/su005is2m.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "SHT",
+        "IS2",
+        "RT",
+        "ST",
+        "RTAV",
+        "OOBTr",
+        "PH28r",
+        "RAH",
+        "Russian Military Zone"
+      ]
+    },
+    "general": {
+      "designation": "IS-2 Model 1944 (also IS-2M) [1]",
+      "manufacturer": "Factory No.100 Kirovskiy Works in Chelyabinsk (ChKZ or Tankograd)",
+      "production_quantity": 3475,
+      "production_period": "Apr. 1944-Jun. 1945**",
+      "crew": 4,
+      "length_mm": 9800,
+      "width_mm": 3100,
+      "height_mm": 2700,
+      "barrel_overhang_mm": 3100,
+      "mass_kg": 46000,
+      "radio": "10R or 10RK",
+      "text": {
+        "production_quantity": "3475 [2]"
+      }
+    },
+    "firepower": {
+      "main_gun": "122mm Gun D-25T",
+      "main_gun_caliber_mm_x10": 1220,
+      "main_ammo": 28,
+      "traverse_deg": 360,
+      "elevation_min_deg_x10": -30,
+      "elevation_max_deg_x10": 200,
+      "sight": "TSh-17, POP"
+    },
+    "mobility": {
+      "engine": "V-2-IS (V-2-10)",
+      "engine_type": "V12, 38.9 liters",
+      "displacement_cc": 38900,
+      "power_hp": 600,
+      "power_rpm": 2000,
+      "power_to_weight_hp_per_t_x10": 130,
+      "gearbox": "4 forward, 1 reverse",
+      "gears_forward": 4,
+      "gears_reverse": 1,
+      "fuel": "Diesel",
+      "fuel_capacity_l": 520,
+      "consumption_road_l_per_100km": 340,
+      "range_road_km": 150,
+      "speed_road_kmh_x10": 370,
+      "speed_offroad_kmh_x10": 190,
+      "track_width_mm": 650,
+      "track_ground_contact_mm": 4360,
+      "ground_pressure_psi_x10": 115,
+      "ground_pressure_kpa_x10": 793,
+      "ground_clearance_mm": 460,
+      "turning_radius_mm": 0,
+      "gradient_deg": 36,
+      "vertical_obstacle_mm": 1000,
+      "fording_mm": 1300,
+      "trench_crossing_mm": 2500,
+      "text": {
+        "fuel_capacity_l": "520 (+270 external) [3] l",
+        "range_road_km": "150(230) km",
+        "track_links": "87-90/track"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 120, "deg": 60 },
+        "side": { "mm": 90, "deg": 90 },
+        "rear": { "mm": 60, "deg": 49 },
+        "top_bottom": { "mm": 20, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 120, "deg": 30 },
+        "side": { "mm": 90, "deg": 75 },
+        "rear": { "mm": 60, "deg": 41 },
+        "top_bottom": { "mm": 30, "deg": 0 }
+      },
+      "turret": {
+        "front": { "mm": 90, "text": "90mm @round" },
+        "side": { "mm": 90, "deg": 72 },
+        "rear": { "mm": 90, "deg": 60 },
+        "top_bottom": { "mm": 30, "text": "30mm @0-5°" }
+      },
+      "mantlet": {
+        "front": { "mm": 100, "text": "100mm @round" }
+      }
+    },
+    "notes": [
+      "Soviet nomenclature is unclear. These Designations are usually found in references to the vehicle specified here. However, there was also a postwar modernization of the IS-2 which the Soviets formally designated the IS-2M.",
+      "This is an estimate of IS-2 Model 1944 production during the noted production period. Production continued after this period. Higher estimates seem to include IS-1 and early IS-2 production.",
+      "It is assumed here that three 90 liter tanks are used for fuel."
+    ]
+  },
+  {
+    "id": "su_is3",
+    "name": "IS-3",
+    "type": "Heavy Tank",
+    "family": "IS",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/ussr/su006is3.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "JWAFV",
+        "RT",
+        "IS2",
+        "GBT",
+        "RTAV",
+        "OOBTr",
+        "PH30r",
+        "Russian Military Zone"
+      ]
+    },
+    "general": {
+      "designation": "IS-3 Model 1945",
+      "manufacturer": "Factory No.100 Kirovskiy Works in Chelyabinsk (ChKZ or Tankograd)",
+      "production_quantity": 350,
+      "production_period": "1945*",
+      "crew": 4,
+      "length_mm": 10000,
+      "width_mm": 3200,
+      "height_mm": 2450,
+      "barrel_overhang_mm": 3300,
+      "mass_kg": 46500,
+      "radio": "10RK",
+      "text": {
+        "production_quantity": "350*"
+      }
+    },
+    "firepower": {
+      "main_gun": "122mm Gun D-25",
+      "main_gun_caliber_mm_x10": 1220,
+      "main_ammo": 28,
+      "traverse_deg": 360,
+      "elevation_min_deg_x10": -30,
+      "elevation_max_deg_x10": 200,
+      "sight": "TSh-17, POP"
+    },
+    "mobility": {
+      "engine": "V-2-IS (V-2K)",
+      "engine_type": "V12, 38.9 liters",
+      "displacement_cc": 38900,
+      "power_hp": 600,
+      "power_rpm": 2000,
+      "power_to_weight_hp_per_t_x10": 110,
+      "gearbox": "4 forward, 1 reverse",
+      "gears_forward": 4,
+      "gears_reverse": 1,
+      "fuel": "Diesel",
+      "fuel_capacity_l": 520,
+      "consumption_road_l_per_100km": 350,
+      "consumption_offroad_l_per_100km": 450,
+      "range_road_km": 150,
+      "speed_road_kmh_x10": 370,
+      "speed_offroad_kmh_x10": 190,
+      "track_width_mm": 650,
+      "track_ground_contact_mm": 4360,
+      "ground_pressure_psi_x10": 117,
+      "ground_pressure_kpa_x10": 807,
+      "ground_clearance_mm": 450,
+      "turning_radius_mm": 0,
+      "gradient_deg": 36,
+      "vertical_obstacle_mm": 1000,
+      "fording_mm": 1300,
+      "trench_crossing_mm": 2500,
+      "text": {
+        "fuel_capacity_l": "520 (+ 270 external) l",
+        "range_road_km": "150(225)/120(175) km",
+        "track_links": "87-90/track"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 120, "deg": 47 },
+        "side": { "mm": 90, "deg": 90 },
+        "rear": { "mm": 60, "deg": 49 },
+        "top_bottom": { "mm": 20, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 120, "text": "120mm @32°(glacis)" },
+        "side": { "mm": 90, "deg": 60, "text": "90mm @30° + 30mm @60°" },
+        "rear": { "mm": 60, "deg": 42 },
+        "top_bottom": { "mm": 20, "deg": 0 }
+      },
+      "turret": {
+        "front": { "mm": 160, "text": "160mm @round" },
+        "side": { "mm_min": 100, "mm_max": 220, "deg": 40, "text": "100-220mm @40°" },
+        "rear": { "mm_min": 110, "mm_max": 220, "deg": 50, "text": "110-220mm @50°" },
+        "top_bottom": { "mm": 20, "text": "20mm @0-6°" }
+      },
+      "mantlet": {
+        "front": { "mm": 200, "text": "200mm @round" }
+      }
+    },
+    "notes": [
+      "*A prototype was completed in November 1944. Production began sometime in 1945. The production quantity estimate is believed to be for the first six months of 1945. Production continued in the postwar period. The IS-3 is not believed to have not been ready for employment before hostilities ceased in the European theater of operations."
+    ]
+  },
+  {
+    "id": "su_isu122",
+    "name": "ISU-122 (Early)",
+    "type": "Assault Gun",
+    "family": "IS",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/ussr/su007isu122a.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "BP22",
+        "ST",
+        "RTAV",
+        "RT",
+        "IS2",
+        "Russian Military Zone"
+      ]
+    },
+    "general": {
+      "other_designations": "ISU-122",
+      "manufacturer": "Factory No.100 Kirovskiy Works in Chelyabinsk (ChKZ or Tankograd)",
+      "production_quantity": 645,
+      "production_period": "Late 1943 - 1944",
+      "crew": 5,
+      "length_mm": 9800,
+      "width_mm": 3100,
+      "height_mm": 2500,
+      "barrel_overhang_mm": 3000,
+      "mass_kg": 46000,
+      "radio": "10RF",
+      "text": {
+        "production_quantity": "about 645 [1]"
+      }
+    },
+    "firepower": {
+      "main_gun": "122mm Gun A-19S",
+      "main_gun_caliber_mm_x10": 1220,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -40,
+      "elevation_max_deg_x10": 190,
+      "sight": "ST-18",
+      "secondary": "12.7mm DShK MG (AA)",
+      "secondary_ammo": 500,
+      "text": {
+        "main_ammo": "20-30",
+        "traverse_deg": "Manual (11°)"
+      }
+    },
+    "mobility": {
+      "engine": "V-2-IS",
+      "engine_type": "V12, 38.9 liters",
+      "displacement_cc": 38900,
+      "power_hp": 600,
+      "power_rpm": 2000,
+      "power_to_weight_hp_per_t_x10": 130,
+      "gearbox": "4 forward, 1 reverse",
+      "gears_forward": 4,
+      "gears_reverse": 1,
+      "fuel": "Diesel",
+      "fuel_capacity_l": 520,
+      "consumption_road_l_per_100km": 350,
+      "range_road_km": 150,
+      "speed_road_kmh_x10": 370,
+      "speed_offroad_kmh_x10": 160,
+      "track_width_mm": 650,
+      "track_ground_contact_mm": 4360,
+      "ground_pressure_psi_x10": 115,
+      "ground_pressure_kpa_x10": 793,
+      "ground_clearance_mm": 460,
+      "turning_radius_mm": 0,
+      "gradient_deg": 36,
+      "vertical_obstacle_mm": 1000,
+      "fording_mm": 1300,
+      "trench_crossing_mm": 2500,
+      "text": {
+        "fuel_capacity_l": "520 (+270 external) [2] L",
+        "range_road_km": "150(230) km",
+        "track_links": "87-90/track"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 90, "deg": 60 },
+        "side": { "mm": 90, "deg": 90 },
+        "rear": { "mm": 60, "deg": 49 },
+        "top_bottom": { "mm": 20, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 60, "text": "60mm @12°(glacis)" },
+        "side": { "mm": 75, "deg": 75 },
+        "rear": { "mm": 60, "deg": 41 },
+        "top_bottom": { "mm": 30, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm_min": 60, "mm_max": 65, "text": "60-65mm @round" }
+      }
+    },
+    "notes": [
+      "Total ISU-122, ISU-122S and ISU-152 production is claimed to be 4075 by June 1945 by Zaloga. The estimate provided here assume 50% of 1943 production and 25% of 1944 production.",
+      "It is assumed here that three 90 liter tanks are used for fuel."
+    ]
+  },
+  {
+    "id": "su_isu122s",
+    "name": "ISU-122S",
+    "type": "Assault Gun",
+    "family": "IS",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/ussr/su008isu122b.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "BP22",
+        "ST",
+        "RTAV",
+        "RT",
+        "IS2",
+        "Russian Military Zone"
+      ]
+    },
+    "general": {
+      "other_designations": "ISU-122S",
+      "manufacturer": "Factory No.100 Kirovskiy Works in Chelyabinsk (ChKZ or Tankograd)",
+      "production_quantity": 1400,
+      "production_period": "1944-1945",
+      "crew": 5,
+      "length_mm": 9800,
+      "width_mm": 3100,
+      "height_mm": 2500,
+      "barrel_overhang_mm": 3000,
+      "mass_kg": 46000,
+      "radio": "10RF",
+      "text": {
+        "production_quantity": "about 1400 [1]"
+      }
+    },
+    "firepower": {
+      "main_gun": "122mm Gun D-25S",
+      "main_gun_caliber_mm_x10": 1220,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -30,
+      "elevation_max_deg_x10": 160,
+      "sight": "TSh-17",
+      "secondary": "12.7mm DShK MG (AA)",
+      "secondary_ammo": 500,
+      "text": {
+        "main_ammo": "20-30",
+        "traverse_deg": "Manual (14°)"
+      }
+    },
+    "mobility": {
+      "engine": "V-2-IS",
+      "engine_type": "V12, 38.9 liters",
+      "displacement_cc": 38900,
+      "power_hp": 600,
+      "power_rpm": 2000,
+      "power_to_weight_hp_per_t_x10": 130,
+      "gearbox": "4 forward, 1 reverse",
+      "gears_forward": 4,
+      "gears_reverse": 1,
+      "fuel": "Diesel",
+      "fuel_capacity_l": 520,
+      "consumption_road_l_per_100km": 350,
+      "range_road_km": 150,
+      "speed_road_kmh_x10": 370,
+      "speed_offroad_kmh_x10": 160,
+      "track_width_mm": 650,
+      "track_ground_contact_mm": 4360,
+      "ground_pressure_psi_x10": 115,
+      "ground_pressure_kpa_x10": 793,
+      "ground_clearance_mm": 460,
+      "turning_radius_mm": 0,
+      "gradient_deg": 36,
+      "vertical_obstacle_mm": 1000,
+      "fording_mm": 1300,
+      "trench_crossing_mm": 2500,
+      "text": {
+        "fuel_capacity_l": "520 (+ 270 external) [2] L",
+        "range_road_km": "150(230) km",
+        "track_links": "87-90/track"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 90, "deg": 60 },
+        "side": { "mm": 90, "deg": 90 },
+        "rear": { "mm": 60, "deg": 49 },
+        "top_bottom": { "mm": 20, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 60, "text": "60mm @12°(glacis)" },
+        "side": { "mm": 75, "deg": 75 },
+        "rear": { "mm": 60, "deg": 41 },
+        "top_bottom": { "mm": 30, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 100, "text": "100mm @round" }
+      }
+    },
+    "notes": [
+      "Total ISU-122, ISU-122S and ISU-152 production is claimed to be 4075 by June 1945 by Zaloga. The estimate provided here assumes 25% of 1944 production and 50% of 1945 production.",
+      "It is assumed here that three 90 liter tanks are used for fuel."
+    ]
+  },
+  {
+    "id": "su_isu152",
+    "name": "ISU-152",
+    "type": "Assault Gun",
+    "family": "IS",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/ussr/su009isu152.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "TD1",
+        "MCE",
+        "TWWII",
+        "ST",
+        "RTAV"
+      ]
+    },
+    "general": {
+      "designation": "ISU-152 [IS is short for Iosef Stalin]",
+      "manufacturer": "Factory No.100 Kirovskiy Works in Chelyabinsk (ChKZ or Tankograd)",
+      "production_quantity": 2000,
+      "production_period": "1943-1945",
+      "crew": 5,
+      "length_mm": 9000,
+      "width_mm": 3100,
+      "height_mm": 2500,
+      "barrel_overhang_mm": 2200,
+      "mass_kg": 46000,
+      "text": {
+        "production_quantity": "about 2000 [1]"
+      }
+    },
+    "firepower": {
+      "main_gun": "152mm Howitzer (ML-20S)",
+      "main_gun_caliber_mm_x10": 1520,
+      "main_ammo": 20,
+      "traverse_deg": 20,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -30,
+      "elevation_max_deg_x10": 200,
+      "sight": "PT-5, T-5",
+      "secondary": "12.7mm DShK MG (AA)",
+      "secondary_ammo": 1000
+    },
+    "mobility": {
+      "engine": "V-2-IS",
+      "engine_type": "V12, 38.9 liters",
+      "displacement_cc": 38900,
+      "power_hp": 600,
+      "power_rpm": 2000,
+      "power_to_weight_hp_per_t_x10": 130,
+      "gearbox": "4 forward, 1 reverse",
+      "gears_forward": 4,
+      "gears_reverse": 1,
+      "fuel": "Diesel",
+      "fuel_capacity_l": 520,
+      "consumption_road_l_per_100km": 350,
+      "range_road_km": 150,
+      "speed_road_kmh_x10": 370,
+      "speed_offroad_kmh_x10": 160,
+      "track_width_mm": 650,
+      "track_ground_contact_mm": 4360,
+      "ground_pressure_psi_x10": 115,
+      "ground_pressure_kpa_x10": 793,
+      "ground_clearance_mm": 460,
+      "turning_radius_mm": 0,
+      "gradient_deg": 36,
+      "vertical_obstacle_mm": 1000,
+      "fording_mm": 1300,
+      "trench_crossing_mm": 2500,
+      "text": {
+        "fuel_capacity_l": "520 (+270 external) [2] l",
+        "range_road_km": "150(230) km",
+        "track_links": "87-90/track"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 90, "text": "90mm @60°(lower)" },
+        "side": { "mm": 90, "deg": 90 },
+        "rear": { "mm": 60, "text": "60mm @49°(lower)" },
+        "top_bottom": { "mm": 20, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 90, "deg": 60 },
+        "side": { "mm": 75, "deg": 65 },
+        "rear": { "mm": 60, "deg": 90 },
+        "top_bottom": { "mm": 30, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 65, "text": "65mm @round" }
+      }
+    },
+    "notes": [
+      "Total ISU-122, ISU-122S and ISU-152 production is claimed to be 4075 by June 1945 by Zaloga. The estimate provided here assumes 50% of the total production was ISU-152.",
+      "It is assumed here that three 90 liter tanks are used for fuel."
+    ]
+  },
+  {
+    "id": "su_kv1_1939",
+    "name": "KV-1 Model 1939",
+    "type": "Heavy Tank",
+    "family": "KV",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/ussr/su011kv1m39.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "RT",
+        "SHT",
+        "ST",
+        "RTAV",
+        "SKVr",
+        "OOBTr",
+        "RAH",
+        "PH22r"
+      ]
+    },
+    "general": {
+      "designation": "KV-1 Model 1939 [sometimes referred to as the \"initial\" Model 1940, KV is an abbreviation for Klimenti Voroshilov -- then Soviet Defense Commissar]",
+      "manufacturer": "Factory No.100 Kirovskiy Works in Leningrad (LKZ)",
+      "production_quantity": 100,
+      "production_period": "1940",
+      "crew": 5,
+      "length_mm": 6800,
+      "width_mm": 3300,
+      "height_mm": 2700,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 43500,
+      "radio": "71-TK-3",
+      "text": {
+        "production_quantity": "about 100 [1]"
+      }
+    },
+    "firepower": {
+      "main_gun": "76.2mm Gun L-11",
+      "main_gun_caliber_mm_x10": 762,
+      "main_ammo": 111,
+      "traverse_deg": 360,
+      "elevation_min_deg_x10": -40,
+      "elevation_max_deg_x10": 250,
+      "sight": "TOD-6, PT-6",
+      "secondary": "3 x 7.62mm DT MG (coaxial, bow, turret rear)",
+      "secondary_ammo": 3024
+    },
+    "mobility": {
+      "engine": "V-2K",
+      "engine_type": "V12, n.a.",
+      "power_hp": 600,
+      "power_rpm": 2000,
+      "power_to_weight_hp_per_t_x10": 138,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Diesel",
+      "fuel_capacity_l": 600,
+      "consumption_road_l_per_100km": 240,
+      "range_road_km": 250,
+      "speed_road_kmh_x10": 350,
+      "track_width_mm": 650,
+      "track_ground_contact_mm": 4330,
+      "ground_pressure_psi_x10": 110,
+      "ground_pressure_kpa_x10": 758,
+      "ground_clearance_mm": 450,
+      "turning_radius_mm": 9450,
+      "gradient_deg": 36,
+      "vertical_obstacle_mm": 1000,
+      "fording_mm": 1500,
+      "trench_crossing_mm": 2700,
+      "text": {
+        "track_links": "87-90/track"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 75, "deg": 60 },
+        "side": { "mm": 75, "deg": 90 },
+        "rear": { "mm": 70, "text": "70mm @round" },
+        "top_bottom": { "mm": 40, "text": "40mm @0°(front)" }
+      },
+      "superstructure": {
+        "front": { "mm": 40, "text": "40mm @25°(glacis)" },
+        "rear": { "mm": 60, "deg": 40 },
+        "top_bottom": { "mm": 40, "text": "40mm @0°(front)" }
+      },
+      "turret": {
+        "front": { "mm": 75, "deg": 70 },
+        "side": { "mm": 75, "deg": 75 },
+        "rear": { "mm": 75, "deg": 75 },
+        "top_bottom": { "mm": 40, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 90, "text": "90mm @round" }
+      }
+    },
+    "notes": [
+      "Total KV-1 production during 1940 was 141 units."
+    ]
+  },
+  {
+    "id": "su_kv1_1941",
+    "name": "KV-1 Model 1941",
+    "type": "Heavy Tank",
+    "family": "KV",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/ussr/su012kv1m41.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "RT",
+        "TD",
+        "SHT",
+        "BP04",
+        "ST",
+        "SKVr",
+        "PH21r",
+        "PH22r",
+        "OOBTr",
+        "RTAV",
+        "RAH"
+      ]
+    },
+    "general": {
+      "designation": "KV-1 Model 1941",
+      "manufacturer": "Factory No.100 Kirovskiy Works in Leningrad (LKZ) which was relocated to Chelyabinsk during 1941 and redesignated Factory No.100 Kirovskiy Works in Chelyabinsk (ChKZ or Tankograd)",
+      "production_period": "1941-1942",
+      "crew": 5,
+      "length_mm": 7100,
+      "width_mm": 3300,
+      "height_mm": 2700,
+      "barrel_overhang_mm": 300,
+      "mass_kg": 45000,
+      "radio": "71-TK-3",
+      "text": {
+        "production_quantity": "several hundred [1]"
+      }
+    },
+    "firepower": {
+      "main_gun": "76.2mm Gun ZiS-5 or F-34",
+      "main_gun_caliber_mm_x10": 762,
+      "main_ammo": 114,
+      "traverse_deg": 360,
+      "elevation_min_deg_x10": -40,
+      "elevation_max_deg_x10": 250,
+      "sight": "TMFD, PTK",
+      "secondary": "3 x 7.62mm DT (coaxial, bow, turret rear)",
+      "secondary_ammo": 3024
+    },
+    "mobility": {
+      "engine": "V-2K",
+      "engine_type": "V12, n.a.",
+      "power_hp": 600,
+      "power_rpm": 2000,
+      "power_to_weight_hp_per_t_x10": 133,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Diesel",
+      "fuel_capacity_l": 600,
+      "consumption_road_l_per_100km": 240,
+      "range_road_km": 250,
+      "speed_road_kmh_x10": 350,
+      "track_width_mm": 650,
+      "track_ground_contact_mm": 4330,
+      "ground_pressure_psi_x10": 114,
+      "ground_pressure_kpa_x10": 786,
+      "ground_clearance_mm": 450,
+      "turning_radius_mm": 9450,
+      "gradient_deg": 36,
+      "vertical_obstacle_mm": 1000,
+      "fording_mm": 1500,
+      "trench_crossing_mm": 2700,
+      "text": {
+        "track_links": "87-90/track"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 75, "deg": 60 },
+        "side": { "mm": 75, "deg": 90 },
+        "rear": { "mm": 70, "text": "70mm @round" },
+        "top_bottom": { "mm": 40, "text": "40mm @0°(front)" }
+      },
+      "superstructure": {
+        "front": { "mm": 40, "text": "40mm @25°(glacis)" },
+        "rear": { "mm": 60, "deg": 40 },
+        "top_bottom": { "mm": 40, "text": "40mm @0°(front)" }
+      },
+      "turret": {
+        "front": { "mm": 75, "deg": 70 },
+        "side": { "mm": 75, "deg": 75 },
+        "rear": { "mm": 75, "deg": 75 },
+        "top_bottom": { "mm": 40, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 90, "text": "90mm @round" }
+      }
+    },
+    "notes": [
+      "Total KV-1 variants produced during 1941 exceeded 1,121 and in 1942 equalled 1,753."
+    ]
+  },
+  {
+    "id": "su_kv1e",
+    "name": "KV-1E Model 1940",
+    "type": "Heavy Tank",
+    "family": "KV",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/ussr/su010kv1em40.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "RT",
+        "SHT",
+        "BP04",
+        "ST",
+        "SKVr",
+        "PH21r",
+        "PH22r",
+        "OOBTr",
+        "RTAV",
+        "RAH",
+        "George R. Bradford"
+      ]
+    },
+    "general": {
+      "designation": "KV-1E Model 1940 [E stands for \"s ekranami\" -- with appliqu° armor]",
+      "manufacturer": "Factory No.100 Kirovskiy Works in Leningrad (LKZ)",
+      "production_period": "Spring-Summer 1941",
+      "crew": 5,
+      "length_mm": 6800,
+      "width_mm": 3300,
+      "height_mm": 2700,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 47500,
+      "radio": "71-TK-3",
+      "text": {
+        "production_quantity": "several hundred [1]"
+      }
+    },
+    "firepower": {
+      "main_gun": "76.2mm Gun F-32",
+      "main_gun_caliber_mm_x10": 762,
+      "main_ammo": 111,
+      "traverse_deg": 360,
+      "elevation_min_deg_x10": -40,
+      "elevation_max_deg_x10": 250,
+      "sight": "TOD-6, PT-6 [2]",
+      "secondary": "3 x 7.62mm DT MG (coaxial, bow, turret rear)",
+      "secondary_ammo": 3024
+    },
+    "mobility": {
+      "engine": "V-2K",
+      "engine_type": "V12, n.a.",
+      "power_hp": 600,
+      "power_rpm": 2000,
+      "power_to_weight_hp_per_t_x10": 126,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Diesel",
+      "fuel_capacity_l": 600,
+      "consumption_road_l_per_100km": 240,
+      "range_road_km": 250,
+      "speed_road_kmh_x10": 300,
+      "track_width_mm": 650,
+      "track_ground_contact_mm": 4330,
+      "ground_pressure_psi_x10": 119,
+      "ground_pressure_kpa_x10": 820,
+      "ground_clearance_mm": 450,
+      "turning_radius_mm": 9450,
+      "gradient_deg": 36,
+      "vertical_obstacle_mm": 1000,
+      "fording_mm": 1500,
+      "trench_crossing_mm": 2700,
+      "text": {
+        "track_links": "87-90/track"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 110, "deg": 60, "text": "35+75mm @60°" },
+        "side": { "mm": 75, "deg": 90, "text": "75mm @90° or 35+75mm @90°" },
+        "rear": { "mm": 70, "text": "70mm @round" },
+        "top_bottom": { "mm": 40, "text": "40mm @0°(front)" }
+      },
+      "superstructure": {
+        "front": { "mm": 40, "text": "40mm @25°(glacis)" },
+        "rear": { "mm": 60, "deg": 40 },
+        "top_bottom": { "mm": 40, "text": "40mm @0°(front)" }
+      },
+      "turret": {
+        "front": { "mm": 75, "deg": 70 },
+        "side": { "mm": 110, "deg": 75, "text": "35+75mm @75°" },
+        "rear": { "mm": 75, "deg": 75 },
+        "top_bottom": { "mm": 40, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 90, "text": "90mm @round" }
+      }
+    },
+    "notes": [
+      "Total KV-1 variants produced during 1941 exceeded 1,121.",
+      "Sources suggest the F-32 gun used the same sights as the L-11 gun."
+    ]
+  },
+  {
+    "id": "su_kv1s",
+    "name": "KV-1s (Model 1942)",
+    "type": "Heavy Tank",
+    "family": "KV",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/ussr/su013kv1s.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "RT",
+        "SHT",
+        "ST",
+        "SKVr",
+        "PH22r",
+        "OOBTr",
+        "RTAV",
+        "George R. Bradford"
+      ]
+    },
+    "general": {
+      "designation": "KV-1s (Model 1942)",
+      "manufacturer": "Factory No.100 Kirovskiy Works in Chelyabinsk (ChKZ or Tankograd)",
+      "production_quantity": 1370,
+      "production_period": "Aug. 1942-Apr. 1943",
+      "crew": 5,
+      "length_mm": 7000,
+      "width_mm": 3300,
+      "height_mm": 2800,
+      "barrel_overhang_mm": 200,
+      "mass_kg": 42500,
+      "radio": "9R or 10R"
+    },
+    "firepower": {
+      "main_gun": "76.2mm Gun ZiS-5",
+      "main_gun_caliber_mm_x10": 762,
+      "main_ammo": 102,
+      "traverse_deg": 360,
+      "elevation_min_deg_x10": -40,
+      "elevation_max_deg_x10": 250,
+      "sight": "TMFD, PTK",
+      "secondary": "3 x 7.62mm DT (coaxial, bow, turret rear)",
+      "secondary_ammo": 3042
+    },
+    "mobility": {
+      "engine": "V-2K-s",
+      "engine_type": "V12, n.a.",
+      "power_hp": 600,
+      "power_rpm": 1900,
+      "power_to_weight_hp_per_t_x10": 141,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Diesel",
+      "fuel_capacity_l": 600,
+      "consumption_road_l_per_100km": 240,
+      "range_road_km": 250,
+      "range_offroad_km": 177,
+      "speed_road_kmh_x10": 430,
+      "speed_offroad_kmh_x10": 190,
+      "track_width_mm": 670,
+      "track_ground_contact_mm": 4330,
+      "ground_pressure_psi_x10": 104,
+      "ground_pressure_kpa_x10": 717,
+      "ground_clearance_mm": 450,
+      "turning_radius_mm": 9450,
+      "gradient_deg": 36,
+      "vertical_obstacle_mm": 1000,
+      "fording_mm": 1500,
+      "trench_crossing_mm": 2700,
+      "text": {
+        "track_links": "87-90/track"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 60, "deg": 65 },
+        "side": { "mm": 60, "deg": 90 },
+        "rear": { "mm": 60, "text": "60mm @round" },
+        "top_bottom": { "mm": 30, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 50, "text": "50mm @20°(glacis)" },
+        "rear": { "mm": 60, "text": "60mm @round" },
+        "top_bottom": { "mm": 40, "text": "40mm @0°(front)" }
+      },
+      "turret": {
+        "front": { "mm": 82, "text": "82mm @round" },
+        "side": { "mm": 75, "deg": 75 },
+        "rear": { "mm": 75, "deg": 75 },
+        "top_bottom": { "mm": 40, "deg": 0 }
+      }
+    }
+  },
+  {
+    "id": "su_kv2",
+    "name": "KV-2 Model 1940",
+    "type": "Heavy Assault Tank",
+    "family": "KV",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/ussr/su014kv2m40.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "RTAV",
+        "OOBTr",
+        "ST",
+        "RT",
+        "SKVr",
+        "PH21r",
+        "PH22r",
+        "BP04"
+      ]
+    },
+    "general": {
+      "other_designations": "KV-2 Model 1940 (Klim Voroshilov) [also KV-II, KV-IIB, KV-2B]",
+      "manufacturer": "Factory No.100 Kirovskiy Works in Leningrad (LKZ)",
+      "production_quantity": 330,
+      "production_period": "1940-1941",
+      "crew": 6,
+      "length_mm": 7000,
+      "width_mm": 3250,
+      "height_mm": 3300,
+      "barrel_overhang_mm": 200,
+      "mass_kg": 52000,
+      "radio": "71-TK-3",
+      "text": {
+        "barrel_overhang_mm": "about 0.2"
+      }
+    },
+    "firepower": {
+      "main_gun": "152.4mm Howitzer M-10",
+      "main_gun_caliber_mm_x10": 1524,
+      "main_ammo": 36,
+      "traverse_deg": 360,
+      "elevation_min_deg_x10": -40,
+      "elevation_max_deg_x10": 245,
+      "secondary": "3 x 7.62mm DT MG",
+      "text": {
+        "secondary_ammo": "2475-3087"
+      }
+    },
+    "mobility": {
+      "engine": "V-2K",
+      "engine_type": "V12",
+      "power_hp": 600,
+      "power_rpm": 2000,
+      "power_to_weight_hp_per_t_x10": 115,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Diesel",
+      "fuel_capacity_l": 600,
+      "consumption_road_l_per_100km": 240,
+      "range_road_km": 250,
+      "speed_road_kmh_x10": 260,
+      "track_width_mm": 650,
+      "track_ground_contact_mm": 4330,
+      "ground_pressure_psi_x10": 130,
+      "ground_pressure_kpa_x10": 896,
+      "ground_clearance_mm": 450,
+      "turning_radius_mm": 9450,
+      "gradient_deg": 30,
+      "vertical_obstacle_mm": 1200,
+      "fording_mm": 1600,
+      "trench_crossing_mm": 2700,
+      "text": {
+        "track_links": "87-90/track"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 75, "text": "75mm @60°(nose)" },
+        "side": { "mm": 75, "deg": 90 },
+        "rear": { "mm": 70, "text": "70mm @round" },
+        "top_bottom": { "mm": 40, "text": "40mm @0°(front)" }
+      },
+      "superstructure": {
+        "front": { "mm": 40, "text": "40mm @25°(glacis)" },
+        "rear": { "mm": 60, "deg": 40 },
+        "top_bottom": { "mm": 40, "text": "40mm @0°(front)" }
+      },
+      "turret": {
+        "front": { "mm": 75, "deg": 90 },
+        "side": { "mm": 75, "deg": 90 },
+        "rear": { "mm": 75, "deg": 90 },
+        "top_bottom": { "mm": 40, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 110, "text": "110mm @round" }
+      }
+    }
+  },
+  {
+    "id": "su_kv85",
+    "name": "KV-85",
+    "type": "Heavy Tank",
+    "family": "KV",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/ussr/su015kv85.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "RT",
+        "IS",
+        "ST",
+        "SHT",
+        "RAH",
+        "SKVr PH22r",
+        "OOBTr",
+        "RTAV",
+        "George R. Bradford"
+      ]
+    },
+    "general": {
+      "designation": "KV-85",
+      "manufacturer": "Factory No.100 Kirovskiy Works in Chelyabinsk (ChKZ or Tankograd)",
+      "production_quantity": 130,
+      "production_period": "Sept.-Nov. 1943",
+      "crew": 4,
+      "length_mm": 8490,
+      "width_mm": 3250,
+      "height_mm": 2800,
+      "barrel_overhang_mm": 1690,
+      "mass_kg": 46000,
+      "radio": "9R or 10R"
+    },
+    "firepower": {
+      "main_gun": "85mm Gun D-5T85",
+      "main_gun_caliber_mm_x10": 850,
+      "main_ammo": 71,
+      "traverse_deg": 360,
+      "elevation_min_deg_x10": -40,
+      "elevation_max_deg_x10": 230,
+      "secondary": "3 x 7.62mm DT",
+      "secondary_ammo": 3276
+    },
+    "mobility": {
+      "engine": "V-2K-s",
+      "engine_type": "V12, n.a.",
+      "power_hp": 600,
+      "power_rpm": 1900,
+      "power_to_weight_hp_per_t_x10": 130,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Diesel",
+      "fuel_capacity_l": 550,
+      "consumption_road_l_per_100km": 219,
+      "range_road_km": 251,
+      "range_offroad_km": 150,
+      "speed_road_kmh_x10": 350,
+      "speed_offroad_kmh_x10": 120,
+      "track_width_mm": 670,
+      "track_ground_contact_mm": 4330,
+      "ground_pressure_psi_x10": 112,
+      "ground_pressure_kpa_x10": 772,
+      "ground_clearance_mm": 400,
+      "turning_radius_mm": 9450,
+      "gradient_deg": 36,
+      "vertical_obstacle_mm": 1200,
+      "fording_mm": 1600,
+      "trench_crossing_mm": 2700,
+      "text": {
+        "track_links": "87-90/track"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 75, "text": "75mm @60°(nose)" },
+        "side": { "mm": 60, "deg": 90 },
+        "rear": { "mm": 75, "text": "75mm @round" },
+        "top_bottom": { "mm": 30, "text": "30mm @0°(front)" }
+      },
+      "superstructure": {
+        "front": { "mm": 40, "text": "40mm @25°(glacis)" },
+        "rear": { "mm": 40, "text": "40mm @round" },
+        "top_bottom": { "mm": 40, "text": "40mm @0°(front)" }
+      },
+      "turret": {
+        "front": { "mm": 100, "text": "100mm @round" },
+        "side": { "mm": 100, "deg": 75 },
+        "rear": { "mm": 100, "deg": 60 },
+        "top_bottom": { "text": "40@0-5°" }
+      },
+      "mantlet": {
+        "front": { "mm": 95, "text": "95mm @round" }
+      }
+    }
+  },
+  {
+    "id": "su_ot133",
+    "name": "OT-130",
+    "type": "Flamethrower Tank",
+    "family": "T-26",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/ussr/su016ot130.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "ST",
+        "RT",
+        "RTAV",
+        "OOBTr",
+        "Russian Military Zone",
+        "George R. Bradford"
+      ]
+    },
+    "general": {
+      "designation": "OT-130",
+      "manufacturer": "Factory No.185 Kirov Works (in Leningrad)",
+      "production_period": "1938",
+      "crew": 3,
+      "length_mm": 4800,
+      "width_mm": 2400,
+      "height_mm": 2400,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 11500,
+      "text": {
+        "production_quantity": "unknown number rebuilt from T-26 series tanks"
+      }
+    },
+    "firepower": {
+      "main_gun": "Flamethrower Model 38",
+      "main_ammo": 40,
+      "traverse_deg": 360,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -100,
+      "elevation_max_deg_x10": 400,
+      "secondary": "1 x 7.62mm DT MG",
+      "secondary_ammo": 2000,
+      "text": {
+        "main_ammo": "40 x 6-second burst (360 liters)",
+        "secondary_ammo": "about 2000"
+      }
+    },
+    "mobility": {
+      "engine": "GAZ T-26",
+      "engine_type": "HO8",
+      "power_hp": 90,
+      "power_rpm": 2200,
+      "power_to_weight_hp_per_t_x10": 78,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 285,
+      "consumption_road_l_per_100km": 160,
+      "consumption_offroad_l_per_100km": 240,
+      "range_road_km": 180,
+      "range_offroad_km": 120,
+      "speed_road_kmh_x10": 300,
+      "track_width_mm": 260,
+      "track_ground_contact_mm": 2970,
+      "track_links": 95,
+      "ground_pressure_psi_x10": 106,
+      "ground_pressure_kpa_x10": 731,
+      "ground_clearance_mm": 380,
+      "turning_radius_mm": 13000,
+      "gradient_deg": 32,
+      "vertical_obstacle_mm": 700,
+      "fording_mm": 800,
+      "trench_crossing_mm": 1800
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 15, "deg": 28 },
+        "side": { "mm": 15, "deg": 90 },
+        "rear": { "mm": 15, "deg": 81 },
+        "top_bottom": { "mm": 6, "text": "6mm @0,8°" }
+      },
+      "superstructure": {
+        "front": { "mm": 7, "text": "7mm @10°(glacis)" },
+        "side": { "mm": 15, "deg": 90 },
+        "rear": { "mm": 15, "deg": 90 },
+        "top_bottom": { "mm": 6, "deg": 10 }
+      },
+      "turret": {
+        "front": { "mm": 15, "deg": 90 },
+        "side": { "mm": 15, "deg": 90 },
+        "rear": { "mm": 15, "deg": 90 },
+        "top_bottom": { "mm": 10, "text": "10mm @0,5°" }
+      },
+      "mantlet": {
+        "front": { "mm": 15, "text": "15mm @round" }
+      }
+    }
+  },
+  {
+    "id": "su_su100",
+    "name": "SU-100",
+    "type": "Tank Destroyer",
+    "family": "T-34",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/ussr/su021su100.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "TD1",
+        "TWWII",
+        "T34IA",
+        "BP02",
+        "ST",
+        "RTAV",
+        "Russian Military Zone"
+      ]
+    },
+    "general": {
+      "designation": "SU-100",
+      "manufacturer": "Factory No.9 Ural Heavy Machinery Factory (UTZM or Uralmash)",
+      "production_quantity": 1675,
+      "production_period": "Nov. 1944 - Jun.1945",
+      "crew": 4,
+      "length_mm": 9450,
+      "width_mm": 3000,
+      "height_mm": 2250,
+      "barrel_overhang_mm": 3350,
+      "mass_kg": 31600,
+      "radio": "10-RF-26",
+      "text": {
+        "production_quantity": "1675 [1]"
+      }
+    },
+    "firepower": {
+      "main_gun": "100mm Gun D-10S",
+      "main_gun_caliber_mm_x10": 1000,
+      "main_ammo": 34,
+      "traverse_deg": 20,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -30,
+      "elevation_max_deg_x10": 200,
+      "sight": "TSh-19, n.a."
+    },
+    "mobility": {
+      "engine": "V-2-34M",
+      "engine_type": "V12, 38.9 liters",
+      "displacement_cc": 38900,
+      "power_hp": 520,
+      "power_rpm": 2000,
+      "power_to_weight_hp_per_t_x10": 165,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Diesel",
+      "fuel_capacity_l": 500,
+      "consumption_road_l_per_100km": 180,
+      "range_road_km": 280,
+      "speed_road_kmh_x10": 500,
+      "track_width_mm": 550,
+      "track_ground_contact_mm": 3720,
+      "track_links": 72,
+      "ground_pressure_psi_x10": 110,
+      "ground_pressure_kpa_x10": 758,
+      "ground_clearance_mm": 400,
+      "turning_radius_mm": 7600,
+      "gradient_deg": 35,
+      "vertical_obstacle_mm": 800,
+      "fording_mm": 1300,
+      "trench_crossing_mm": 2500,
+      "text": {
+        "fuel_capacity_l": "500 (+ 270 external) [2] L",
+        "range_road_km": "280+/170+ km"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 45, "deg": 35 },
+        "side": { "mm": 45, "deg": 90 },
+        "rear": { "mm": 45, "deg": 45 },
+        "top_bottom": { "mm": 20, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 75, "deg": 40 },
+        "side": { "mm": 45, "text": "45mm @70°(front) [3]" },
+        "rear": { "mm": 45, "deg": 42 },
+        "top_bottom": { "mm": 20, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 75, "text": "75mm @round" },
+        "top_bottom": { "mm": 40, "deg": 0 }
+      }
+    },
+    "notes": [
+      "Production may have continued after June 1945, i.e., the period consider here.",
+      "In general, one of the four 90 liters external fuel tanks was reserved for oil.",
+      "Commanders cupola protruded on the right side of the Superstructure at 45mm @90°."
+    ]
+  },
+  {
+    "id": "su_su122",
+    "name": "SU-122",
+    "type": "Assault Gun",
+    "family": "T-34",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/ussr/su022su122.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "TWWII",
+        "PV",
+        "T-34IA",
+        "ST",
+        "RTAV",
+        "George R. Bradford"
+      ]
+    },
+    "general": {
+      "designation": "SU-122",
+      "manufacturer": "Factory No.9 Ural Heavy Machinery Factory (UTZM or Uralmash)",
+      "production_quantity": 1148,
+      "production_period": "Dec. 1942 - early 1944",
+      "crew": 5,
+      "length_mm": 6950,
+      "width_mm": 3000,
+      "height_mm": 2320,
+      "barrel_overhang_mm": 1030,
+      "mass_kg": 30900,
+      "radio": "9R"
+    },
+    "firepower": {
+      "main_gun": "122mm Howitzer M-30S",
+      "main_gun_caliber_mm_x10": 1220,
+      "main_ammo": 40,
+      "traverse_deg": 20,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -30,
+      "elevation_max_deg_x10": 250
+    },
+    "mobility": {
+      "engine": "V-2-34",
+      "engine_type": "V12, 38.9 liters",
+      "displacement_cc": 38900,
+      "power_hp": 500,
+      "power_rpm": 1800,
+      "power_to_weight_hp_per_t_x10": 162,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Diesel",
+      "fuel_capacity_l": 420,
+      "consumption_road_l_per_100km": 155,
+      "range_road_km": 270,
+      "speed_road_kmh_x10": 550,
+      "track_width_mm": 550,
+      "track_ground_contact_mm": 3720,
+      "track_links": 72,
+      "ground_pressure_psi_x10": 107,
+      "ground_pressure_kpa_x10": 738,
+      "ground_clearance_mm": 400,
+      "turning_radius_mm": 7600,
+      "gradient_deg": 35,
+      "vertical_obstacle_mm": 800,
+      "fording_mm": 1300,
+      "trench_crossing_mm": 2500,
+      "text": {
+        "fuel_capacity_l": "420 (+ 270 external) [1] L",
+        "range_road_km": "270+/165+ km"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 45, "deg": 30 },
+        "side": { "mm": 45, "deg": 90 },
+        "rear": { "mm": 45, "deg": 45 },
+        "top_bottom": { "mm": 20, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 45, "deg": 40 },
+        "side": { "mm": 45, "text": "45mm @70°(front)" },
+        "rear": { "mm": 45, "deg": 50 },
+        "top_bottom": { "mm": 20, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 65, "text": "65mm @rounded" }
+      }
+    },
+    "notes": [
+      "In general, one of the four 90 liters external fuel tanks was reserved for oil."
+    ]
+  },
+  {
+    "id": "su_su152",
+    "name": "SU-152",
+    "type": "Assault Gun",
+    "family": "KV",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/ussr/su023su152.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "SKVr",
+        "PH22r",
+        "ST",
+        "RAH",
+        "RTAV",
+        "RT"
+      ]
+    },
+    "general": {
+      "other_designations": "SU-152",
+      "manufacturer": "Factory No.100 Kirovskiy Works in Chelyabinsk (ChKZ or Tankograd)",
+      "production_quantity": 704,
+      "production_period": "1943",
+      "crew": 5,
+      "length_mm": 8950,
+      "width_mm": 3250,
+      "height_mm": 2450,
+      "barrel_overhang_mm": 2250,
+      "mass_kg": 45500,
+      "radio": "10R"
+    },
+    "firepower": {
+      "main_gun": "152.4 Howitzer ML-20S",
+      "main_ammo": 20,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -50,
+      "elevation_max_deg_x10": 180,
+      "sight": "KT-5, ST-10",
+      "text": {
+        "traverse_deg": "Manual (12°)"
+      }
+    },
+    "mobility": {
+      "engine": "V-2K-s",
+      "engine_type": "V12, n.a.",
+      "power_hp": 600,
+      "power_rpm": 1900,
+      "power_to_weight_hp_per_t_x10": 132,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Diesel",
+      "fuel_capacity_l": 600,
+      "consumption_road_l_per_100km": 295,
+      "consumption_offroad_l_per_100km": 813,
+      "range_road_km": 330,
+      "range_offroad_km": 120,
+      "speed_road_kmh_x10": 430,
+      "speed_offroad_kmh_x10": 190,
+      "track_width_mm": 670,
+      "track_ground_contact_mm": 4330,
+      "ground_pressure_psi_x10": 111,
+      "ground_pressure_kpa_x10": 765,
+      "ground_clearance_mm": 450,
+      "turning_radius_mm": 9450,
+      "gradient_deg": 36,
+      "vertical_obstacle_mm": 1000,
+      "fording_mm": 1500,
+      "trench_crossing_mm": 2700,
+      "text": {
+        "fuel_capacity_l": "600 (+ 375 external) l",
+        "track_links": "87-90/track"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 60, "deg": 60 },
+        "side": { "mm": 60, "deg": 90 },
+        "rear": { "mm": 60, "text": "60mm @round" },
+        "top_bottom": { "mm_min": 20, "mm_max": 30, "deg": 0, "text": "20-30mm @0°" }
+      },
+      "superstructure": {
+        "front": { "mm": 60, "text": "60mm @20°(glacis)" },
+        "side": { "mm": 60, "deg": 65 },
+        "rear": { "mm": 60, "text": "60mm @" },
+        "top_bottom": { "mm": 20, "text": "20mm @0°(crew)" }
+      },
+      "mantlet": {
+        "front": { "mm": 65, "text": "65mm @round" }
+      }
+    }
+  },
+  {
+    "id": "su_su76",
+    "name": "SU-76",
+    "type": "Self-Propelled Gun",
+    "family": "SU-76",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/ussr/su018su76.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "ST",
+        "TWWII",
+        "WWW2",
+        "FSM0192",
+        "BP35",
+        "RTAV",
+        "Russian Military Zone"
+      ]
+    },
+    "general": {
+      "designation": "SU-76",
+      "manufacturer": "GAZ, Factory No. 38",
+      "production_quantity": 800,
+      "production_period": "Dec. 1942 - May 1943",
+      "crew": 4,
+      "length_mm": 4900,
+      "width_mm": 2700,
+      "height_mm": 2200,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 10800,
+      "radio": "9R",
+      "text": {
+        "production_quantity": "about 800 [1]"
+      }
+    },
+    "firepower": {
+      "main_gun": "76.2mm Gun ZiS-3 Model 1942",
+      "main_gun_caliber_mm_x10": 762,
+      "main_ammo": 60,
+      "traverse_deg": 32,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -30,
+      "elevation_max_deg_x10": 250
+    },
+    "mobility": {
+      "engine": "2 x GAZ-202",
+      "engine_type": "2 x In6",
+      "power_hp": 140,
+      "power_rpm": 3000,
+      "power_to_weight_hp_per_t_x10": 130,
+      "gearbox": "4 forward, 1 reverse",
+      "gears_forward": 4,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 420,
+      "consumption_road_l_per_100km": 130,
+      "range_road_km": 320,
+      "range_offroad_km": 190,
+      "speed_road_kmh_x10": 450,
+      "track_width_mm": 300,
+      "track_ground_contact_mm": 3300,
+      "track_links": 89,
+      "ground_pressure_psi_x10": 78,
+      "ground_pressure_kpa_x10": 538,
+      "ground_clearance_mm": 300,
+      "turning_radius_mm": 12500,
+      "gradient_deg": 25,
+      "vertical_obstacle_mm": 700,
+      "fording_mm": 900,
+      "trench_crossing_mm": 2000,
+      "text": {
+        "power_hp": "2 x 70hp @3000rpm",
+        "turning_radius_mm": "over 12.5 m (41' 0\")"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 30, "deg": 60 },
+        "side": { "mm": 15, "deg": 90 },
+        "rear": { "mm": 15, "deg": 60 },
+        "top_bottom": { "mm": 7, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 25, "deg": 30 },
+        "side": { "mm": 10, "deg": 70 },
+        "rear": { "mm": 15, "deg": 0 },
+        "top_bottom": { "mm": 7, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 15, "text": "15mm @round" }
+      }
+    },
+    "notes": [
+      "Total production of SU-76, SU-76M and ZSU-37 is estimated to be 12661, according to Fleischer. Only \"several hundred\" ZSU-37 were manufactured from 1944, according to Zaloga."
+    ]
+  },
+  {
+    "id": "su_su76m",
+    "name": "SU-76M",
+    "type": "Self-Propelled Gun",
+    "family": "SU-76",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/ussr/su019su76m.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "TD1",
+        "ST",
+        "TWWII",
+        "WWW2",
+        "FSM0192",
+        "BP35",
+        "RTAV",
+        "Russian Military Zone"
+      ]
+    },
+    "general": {
+      "designation": "SU-76M (SU-76 Model 1943)",
+      "manufacturer": "GAZ, Factory No. 38, Factory No. 40",
+      "production_quantity": 11300,
+      "production_period": "May 1943 -1945",
+      "crew": 4,
+      "length_mm": 4900,
+      "width_mm": 2700,
+      "height_mm": 2200,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 11200,
+      "radio": "9RM",
+      "text": {
+        "production_quantity": "about 11300 [1]"
+      }
+    },
+    "firepower": {
+      "main_gun": "76.2mm Gun ZiS-3 Model 1942",
+      "main_gun_caliber_mm_x10": 762,
+      "main_ammo": 60,
+      "traverse_deg": 36,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -30,
+      "elevation_max_deg_x10": 250
+    },
+    "mobility": {
+      "engine": "2 x GAZ-203",
+      "engine_type": "2 x In6",
+      "power_hp": 170,
+      "power_rpm": 3600,
+      "power_to_weight_hp_per_t_x10": 152,
+      "gearbox": "4 forward, 1 reverse",
+      "gears_forward": 4,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 420,
+      "consumption_road_l_per_100km": 170,
+      "range_road_km": 250,
+      "speed_road_kmh_x10": 450,
+      "track_width_mm": 300,
+      "track_ground_contact_mm": 3300,
+      "track_links": 89,
+      "ground_pressure_psi_x10": 81,
+      "ground_pressure_kpa_x10": 558,
+      "ground_clearance_mm": 300,
+      "turning_radius_mm": 12500,
+      "gradient_deg": 25,
+      "vertical_obstacle_mm": 700,
+      "fording_mm": 900,
+      "trench_crossing_mm": 2000,
+      "text": {
+        "power_hp": "2 x 85hp @3600rpm",
+        "turning_radius_mm": "over 12.5 m (41' 0\")"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 30, "deg": 60 },
+        "side": { "mm": 15, "deg": 90 },
+        "rear": { "mm": 15, "deg": 60 },
+        "top_bottom": { "mm": 7, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 25, "deg": 30 },
+        "side": { "mm": 10, "deg": 70 },
+        "rear": { "mm": 15, "deg": 0 },
+        "top_bottom": { "mm": 7, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 15, "text": "15mm @round" }
+      }
+    },
+    "notes": [
+      "Total production of SU-76, SU-76M and ZSU-37 is estimated to be 12661, according to Fleischer. Only \"several hundred\" ZSU-37 were manufactured from 1944, according to Zaloga."
+    ]
+  },
+  {
+    "id": "su_su85",
+    "name": "SU-85",
+    "type": "Tank Destroyer",
+    "family": "T-34",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/ussr/su020su85.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "TD1",
+        "TWWII",
+        "T34IA",
+        "BP07",
+        "ST",
+        "RTAV",
+        "Russian Military Zone"
+      ]
+    },
+    "general": {
+      "designation": "SU-85",
+      "manufacturer": "Factory No.9 Ural Heavy Machinery Factory (UTZM or Uralmash)",
+      "production_quantity": 2050,
+      "production_period": "Aug. 1943 - Jul. 1944",
+      "crew": 4,
+      "length_mm": 8150,
+      "width_mm": 3000,
+      "height_mm": 2450,
+      "barrel_overhang_mm": 2230,
+      "mass_kg": 29600,
+      "radio": "9R"
+    },
+    "firepower": {
+      "main_gun": "85mm Gun D-5S",
+      "main_gun_caliber_mm_x10": 850,
+      "main_ammo": 48,
+      "traverse_deg": 20,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -30,
+      "elevation_max_deg_x10": 200,
+      "sight": "TSh-15"
+    },
+    "mobility": {
+      "engine": "V-2-34",
+      "engine_type": "V12, 38.9 liters",
+      "displacement_cc": 38900,
+      "power_hp": 500,
+      "power_rpm": 1800,
+      "power_to_weight_hp_per_t_x10": 169,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Diesel",
+      "fuel_capacity_l": 420,
+      "consumption_road_l_per_100km": 150,
+      "range_road_km": 280,
+      "speed_road_kmh_x10": 550,
+      "track_width_mm": 550,
+      "track_ground_contact_mm": 3720,
+      "track_links": 72,
+      "ground_pressure_psi_x10": 103,
+      "ground_pressure_kpa_x10": 710,
+      "ground_clearance_mm": 400,
+      "turning_radius_mm": 7600,
+      "gradient_deg": 35,
+      "vertical_obstacle_mm": 800,
+      "fording_mm": 1300,
+      "trench_crossing_mm": 2500,
+      "text": {
+        "fuel_capacity_l": "420 (+ 270 external) [1] L",
+        "range_road_km": "280+/175+ km"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 45, "deg": 30 },
+        "side": { "mm": 45, "deg": 90 },
+        "rear": { "mm": 45, "deg": 45 },
+        "top_bottom": { "mm": 20, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 45, "deg": 40 },
+        "side": { "mm": 45, "text": "45mm @70°(front)" },
+        "rear": { "mm": 45, "deg": 42 },
+        "top_bottom": { "mm": 20, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 75, "text": "75mm @round" }
+      }
+    },
+    "notes": [
+      "In general, one of the four 90 liters external fuel tanks was reserved for oil."
+    ]
+  },
+  {
+    "id": "su_t26_1933",
+    "name": "T-26 Model 1933",
+    "type": "Light Tank",
+    "family": "T-26",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/ussr/su025t26m33.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "ST",
+        "RT",
+        "RTAV",
+        "OOBTr",
+        "Russian Military Zone",
+        "George R. Bradford"
+      ]
+    },
+    "general": {
+      "designation": "T-26 Model 1933 (sometimes T-26B)",
+      "manufacturer": "Bolshevik Factory No.232 (in Leningrad) [later Factory No.185 Kirov Works (in Leningrad)], Factory No. 174 K.E. Voroshilov (in Omsk), Red Putilov Factory (in Leningrad) [later Factory No.100 Kirovskiy Works]",
+      "production_quantity": 5500,
+      "production_period": "1933-1936",
+      "crew": 3,
+      "length_mm": 4800,
+      "width_mm": 2400,
+      "height_mm": 2400,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 9400,
+      "text": {
+        "production_quantity": "about 5500"
+      }
+    },
+    "firepower": {
+      "main_gun": "45mm Gun Model 32",
+      "main_gun_caliber_mm_x10": 450,
+      "main_ammo": 100,
+      "traverse_deg": 360,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -100,
+      "elevation_max_deg_x10": 400,
+      "sight": "TOP",
+      "secondary": "2 x 7.62mm DT MG",
+      "secondary_ammo": 2848
+    },
+    "mobility": {
+      "engine": "GAZ T-26",
+      "engine_type": "HO8",
+      "power_hp": 90,
+      "power_rpm": 2200,
+      "power_to_weight_hp_per_t_x10": 96,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 285,
+      "consumption_road_l_per_100km": 160,
+      "consumption_offroad_l_per_100km": 240,
+      "range_road_km": 180,
+      "range_offroad_km": 120,
+      "speed_road_kmh_x10": 300,
+      "track_width_mm": 260,
+      "track_ground_contact_mm": 2970,
+      "track_links": 95,
+      "ground_pressure_psi_x10": 87,
+      "ground_pressure_kpa_x10": 600,
+      "ground_clearance_mm": 380,
+      "turning_radius_mm": 13000,
+      "gradient_deg": 32,
+      "vertical_obstacle_mm": 700,
+      "fording_mm": 800,
+      "trench_crossing_mm": 1800
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 15, "deg": 28 },
+        "side": { "mm": 15, "deg": 90 },
+        "rear": { "mm": 15, "deg": 81 },
+        "top_bottom": { "mm": 6, "text": "6mm @0,8°" }
+      },
+      "superstructure": {
+        "front": { "mm": 7, "text": "7mm @10°(glacis)" },
+        "side": { "mm": 15, "deg": 90 },
+        "rear": { "mm": 15, "deg": 90 },
+        "top_bottom": { "mm": 6, "deg": 10 }
+      },
+      "turret": {
+        "front": { "mm": 15, "deg": 90 },
+        "side": { "mm": 15, "deg": 90 },
+        "rear": { "mm": 15, "deg": 90 },
+        "top_bottom": { "mm": 10, "text": "10mm @0,5°" }
+      },
+      "mantlet": {
+        "front": { "mm": 15, "text": "15mm @round" }
+      }
+    }
+  },
+  {
+    "id": "su_t26s_1937",
+    "name": "T-26S Model 1937",
+    "type": "Light Tank",
+    "family": "T-26",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/ussr/su026t26sm37.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "ST",
+        "RT",
+        "RTAV",
+        "OOBTr",
+        "Russian Military Zone",
+        "George R. Bradford"
+      ]
+    },
+    "general": {
+      "designation": "T-26S Model 1937 (sometimes T-26C) [1]",
+      "manufacturer": "Bolshevik Factory No.232 (in Leningrad) [later Factory No.185 Kirov Works (in Leningrad)], Factory No. 174 K.E. Voroshilov (in Omsk), Red Putilov Factory (in Leningrad) [later Factory No.100 Kirovskiy Works]",
+      "production_quantity": 2400,
+      "production_period": "1938-1939",
+      "crew": 3,
+      "length_mm": 4800,
+      "width_mm": 2400,
+      "height_mm": 2300,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 10500,
+      "radio": "none/71-TK-1",
+      "text": {
+        "production_quantity": "about 2400 [2]"
+      }
+    },
+    "firepower": {
+      "main_gun": "45mm Gun Model 38",
+      "main_gun_caliber_mm_x10": 450,
+      "main_ammo": 165,
+      "traverse_deg": 360,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -100,
+      "elevation_max_deg_x10": 400,
+      "sight": "TOP",
+      "secondary": "2 x 7.62mm DT MG",
+      "secondary_ammo": 3654
+    },
+    "mobility": {
+      "engine": "GAZ T-26",
+      "engine_type": "HO8",
+      "power_hp": 90,
+      "power_rpm": 2200,
+      "power_to_weight_hp_per_t_x10": 86,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 285,
+      "consumption_road_l_per_100km": 160,
+      "consumption_offroad_l_per_100km": 240,
+      "range_road_km": 180,
+      "range_offroad_km": 120,
+      "speed_road_kmh_x10": 300,
+      "track_width_mm": 260,
+      "track_ground_contact_mm": 2970,
+      "track_links": 95,
+      "ground_pressure_psi_x10": 97,
+      "ground_pressure_kpa_x10": 669,
+      "ground_clearance_mm": 380,
+      "turning_radius_mm": 13000,
+      "gradient_deg": 32,
+      "vertical_obstacle_mm": 700,
+      "fording_mm": 800,
+      "trench_crossing_mm": 1800
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 15, "deg": 28 },
+        "side": { "mm": 15, "deg": 90 },
+        "rear": { "mm": 15, "deg": 81 },
+        "top_bottom": { "mm": 6, "text": "6mm @0,8°" }
+      },
+      "superstructure": {
+        "front": { "mm": 7, "text": "7mm @10°(glacis)" },
+        "side": { "mm": 15, "deg": 90 },
+        "rear": { "mm": 15, "deg": 90 },
+        "top_bottom": { "mm": 6, "deg": 10 }
+      },
+      "turret": {
+        "front": { "mm": 15, "text": "15mm @round" },
+        "side": { "mm": 15, "deg": 72 },
+        "rear": { "mm": 15, "deg": 72 },
+        "top_bottom": { "mm": 10, "text": "10mm @10,0,3°" }
+      },
+      "mantlet": {
+        "front": { "mm": 15, "text": "15mm @round" }
+      }
+    },
+    "notes": [
+      "Some of the original T-26 Model 1937 vehicles were retrofitted with the new sloped armor turret developed in 1938 for use on T-26, BT-7 and T-35 series.",
+      "Estimate based on total T-26 series production estimate of 12,000 from 1931 to 1940."
+    ]
+  },
+  {
+    "id": "su_t26s_1939",
+    "name": "T-26S Model 1939",
+    "type": "Light Tank",
+    "family": "T-26",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/ussr/su027t26sm39.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "ST",
+        "RT",
+        "RTAV",
+        "OOBTr",
+        "Russian Military Zone",
+        "George R. Bradford"
+      ]
+    },
+    "general": {
+      "designation": "T-26S Model 1939 (sometimes T-26C)",
+      "manufacturer": "Bolshevik Factory No.232 (in Leningrad) [later Factory No.185 Kirov Works (in Leningrad)], Factory No. 174 K.E. Voroshilov (in Omsk), Red Putilov Factory (in Leningrad) [later Factory No.100 Kirovskiy Works]",
+      "production_quantity": 2400,
+      "production_period": "1939-1940",
+      "crew": 3,
+      "length_mm": 4800,
+      "width_mm": 2400,
+      "height_mm": 2300,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 10500,
+      "radio": "none/71-TK-1",
+      "text": {
+        "production_quantity": "about 2400 [1]"
+      }
+    },
+    "firepower": {
+      "main_gun": "45mm Gun Model 38",
+      "main_gun_caliber_mm_x10": 450,
+      "main_ammo": 165,
+      "traverse_deg": 360,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -100,
+      "elevation_max_deg_x10": 400,
+      "sight": "TOP, PT-1",
+      "secondary": "2 x 7.62mm DT MG",
+      "secondary_ammo": 3654
+    },
+    "mobility": {
+      "engine": "GAZ T-26",
+      "engine_type": "HO8",
+      "power_hp": 90,
+      "power_rpm": 2200,
+      "power_to_weight_hp_per_t_x10": 86,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 292,
+      "consumption_road_l_per_100km": 160,
+      "consumption_offroad_l_per_100km": 240,
+      "range_road_km": 180,
+      "range_offroad_km": 120,
+      "speed_road_kmh_x10": 300,
+      "track_width_mm": 260,
+      "track_ground_contact_mm": 2970,
+      "track_links": 95,
+      "ground_pressure_psi_x10": 97,
+      "ground_pressure_kpa_x10": 669,
+      "ground_clearance_mm": 380,
+      "turning_radius_mm": 13000,
+      "gradient_deg": 32,
+      "vertical_obstacle_mm": 700,
+      "fording_mm": 800,
+      "trench_crossing_mm": 1800
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 15, "deg": 28 },
+        "side": { "mm": 15, "deg": 90 },
+        "rear": { "mm": 15, "deg": 81 },
+        "top_bottom": { "mm": 6, "text": "6mm @0,8°" }
+      },
+      "superstructure": {
+        "front": { "mm": 7, "text": "7mm @10°(glacis)" },
+        "side": { "mm": 15, "deg": 67 },
+        "rear": { "mm": 15, "deg": 90 },
+        "top_bottom": { "mm": 6, "deg": 10 }
+      },
+      "turret": {
+        "front": { "mm": 15, "text": "15mm @round" },
+        "side": { "mm": 15, "deg": 72 },
+        "rear": { "mm": 15, "deg": 72 },
+        "top_bottom": { "mm": 10, "text": "10mm @10,0,3°" }
+      },
+      "mantlet": {
+        "front": { "mm": 15, "text": "15mm @round" }
+      }
+    },
+    "notes": [
+      "Estimate based on total T-26 series production estimate of 12,000 from 1931 to 1940."
+    ]
+  },
+  {
+    "id": "su_t27a",
+    "name": "T-27A",
+    "type": "Tankette",
+    "family": "T-27",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/ussr/su028t27a.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "ST",
+        "RT",
+        "RTAV",
+        "OOBTr"
+      ]
+    },
+    "general": {
+      "designation": "T-27A (Model 1932)",
+      "manufacturer": "Factory No. 37 (in Moscow)",
+      "production_quantity": 1693,
+      "production_period": "1932",
+      "crew": 2,
+      "length_mm": 2600,
+      "width_mm": 1830,
+      "height_mm": 1450,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 2700,
+      "text": {
+        "production_quantity": "1693 [1]"
+      }
+    },
+    "firepower": {
+      "main_gun": "7.92mm DT MG",
+      "main_gun_caliber_mm_x10": 79,
+      "main_ammo": 2520,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -100,
+      "elevation_max_deg_x10": 100,
+      "text": {
+        "traverse_deg": "Manual (20°)"
+      }
+    },
+    "mobility": {
+      "engine": "GAZ AA",
+      "engine_type": "4 cylinder",
+      "power_hp": 40,
+      "power_rpm": 1700,
+      "power_to_weight_hp_per_t_x10": 148,
+      "gearbox": "3 forward, 1 reverse",
+      "gears_forward": 3,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 46,
+      "consumption_road_l_per_100km": 55,
+      "consumption_offroad_l_per_100km": 80,
+      "range_road_km": 85,
+      "range_offroad_km": 60,
+      "speed_road_kmh_x10": 400,
+      "speed_offroad_kmh_x10": 320,
+      "track_width_mm": 140,
+      "track_ground_contact_mm": 1460,
+      "track_links": 108,
+      "ground_clearance_mm": 240,
+      "turning_radius_mm": 4000,
+      "gradient_deg": 40,
+      "vertical_obstacle_mm": 500,
+      "fording_mm": 500,
+      "trench_crossing_mm": 1200,
+      "text": {
+        "ground_pressure_psi_x10": "0.66 kg/cm2 (9.4 psi)"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 10, "deg": 75 },
+        "side": { "mm": 10, "deg": 90 },
+        "rear": { "mm": 10, "deg": 90 },
+        "top_bottom": { "mm": 6, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 10, "text": "10mm @15°(glacis)" },
+        "side": { "mm": 10, "deg": 90 },
+        "top_bottom": { "mm": 6, "deg": 0 }
+      }
+    },
+    "notes": [
+      "A total of 2540 T-27 series tankettes were produced. The estimate for T-27A production is based on total production for 1932."
+    ]
+  },
+  {
+    "id": "su_t28",
+    "name": "T-28 Model 1934",
+    "type": "Medium Tank",
+    "family": "T-28",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/ussr/su029t28m34.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "WWW2",
+        "ST",
+        "RT",
+        "RTAV",
+        "OOBT"
+      ]
+    },
+    "general": {
+      "designation": "T-28 Model 1934",
+      "manufacturer": "Red Putilov Factory later renamed Factory No.100 Kirovskiy Works",
+      "production_quantity": 318,
+      "production_period": "1934-1938",
+      "crew": 6,
+      "length_mm": 7400,
+      "width_mm": 2900,
+      "height_mm": 2800,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 28000,
+      "radio": "71-TK-1",
+      "text": {
+        "production_quantity": "about 318 [1]"
+      }
+    },
+    "firepower": {
+      "main_gun": "76.2mm Gun KT-28",
+      "main_gun_caliber_mm_x10": 762,
+      "main_ammo": 70,
+      "traverse_deg": 360,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -100,
+      "elevation_max_deg_x10": 400,
+      "sight": "TOP, POP",
+      "secondary": "3-4 x 7.62mm DT MG (coaxial, 1 x 2 MG turrets, turret rear)",
+      "secondary_ammo": 7938
+    },
+    "mobility": {
+      "engine": "M-17",
+      "engine_type": "V12",
+      "power_hp": 450,
+      "power_rpm": 1750,
+      "power_to_weight_hp_per_t_x10": 161,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 650,
+      "consumption_road_l_per_100km": 295,
+      "range_road_km": 220,
+      "range_offroad_km": 160,
+      "speed_road_kmh_x10": 370,
+      "track_width_mm": 390,
+      "track_ground_contact_mm": 5350,
+      "track_links": 76,
+      "ground_pressure_psi_x10": 95,
+      "ground_pressure_kpa_x10": 655,
+      "ground_clearance_mm": 560,
+      "gradient_deg": 45,
+      "vertical_obstacle_mm": 1000,
+      "fording_mm": 800,
+      "trench_crossing_mm": 2900
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 30, "deg": 65 },
+        "side": { "mm": 20, "deg": 90 },
+        "rear": { "mm": 20, "deg": 20 },
+        "top_bottom": { "mm": 15, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 15, "text": "15mm @25°(glacis)" },
+        "side": { "mm": 20, "deg": 80 },
+        "rear": { "mm": 10, "deg": 85 },
+        "top_bottom": { "mm_min": 10, "mm_max": 15, "deg": 0, "text": "10-15mm @0°" }
+      },
+      "turret": {
+        "front": { "mm": 20, "deg": 90 },
+        "side": { "mm": 20, "text": "20mm @90" },
+        "rear": { "mm": 20, "text": "20mm @90" },
+        "top_bottom": { "mm": 15, "deg": 0 }
+      },
+      "mg_turrets": {
+        "front": { "mm": 22, "deg": 90 },
+        "side": { "mm": 20, "deg": 90 },
+        "rear": { "mm": 20, "deg": 90 },
+        "top_bottom": { "mm": 10, "text": "10mm @0-5°" }
+      },
+      "mantlet": {
+        "front": { "mm": 20, "deg": 90 }
+      }
+    },
+    "notes": [
+      "Estimate based on Kirov production statistics of the T-28 for the years 1934-1938 found in RTAV."
+    ]
+  },
+  {
+    "id": "su_t34_76_1940",
+    "name": "T-34-76 Model 1940",
+    "type": "Medium Tank",
+    "family": "T-34",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/ussr/su042t3476m40.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "RT",
+        "T34IA",
+        "ST",
+        "FSM0194",
+        "BP25",
+        "OOBTr",
+        "RTAV",
+        "RAH",
+        "PV",
+        "Russian Military Zone",
+        "George R. Bradford"
+      ]
+    },
+    "general": {
+      "designation": "T-34-76 Model 1940 [also T-34A]",
+      "manufacturer": "Factory No.183 Kharkov Locomotive Works (KhPZ) [possibly] Stalingrad Tractor Factory (STZ)",
+      "production_quantity": 950,
+      "production_period": "mid 1940 - mid 1941",
+      "crew": 4,
+      "length_mm": 5920,
+      "width_mm": 3000,
+      "height_mm": 2410,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 26000,
+      "radio": "none/71-TK-3 [2]",
+      "text": {
+        "production_quantity": "about 950 [1]"
+      }
+    },
+    "firepower": {
+      "main_gun": "76.2mm Gun L-11",
+      "main_gun_caliber_mm_x10": 762,
+      "main_ammo": 77,
+      "traverse_deg": 360,
+      "traverse_drive": "electric",
+      "elevation_min_deg_x10": -50,
+      "elevation_max_deg_x10": 290,
+      "traverse_time_360_s": 10,
+      "sight": "TOD-6, PT-6",
+      "secondary": "2 x 7.62mm DT MG (coaxial, bow)",
+      "text": {
+        "secondary_ammo": "2898/4725 [3]"
+      }
+    },
+    "mobility": {
+      "engine": "V-2-34",
+      "engine_type": "V12, 38.9 liters",
+      "displacement_cc": 38900,
+      "power_hp": 500,
+      "power_rpm": 1800,
+      "power_to_weight_hp_per_t_x10": 192,
+      "gearbox": "4 forward, 1 reverse",
+      "gears_forward": 4,
+      "gears_reverse": 1,
+      "fuel": "Diesel",
+      "fuel_capacity_l": 420,
+      "consumption_road_l_per_100km": 140,
+      "range_road_km": 300,
+      "speed_road_kmh_x10": 550,
+      "speed_offroad_kmh_x10": 400,
+      "track_width_mm": 550,
+      "track_ground_contact_mm": 3720,
+      "track_links": 74,
+      "ground_pressure_psi_x10": 91,
+      "ground_pressure_kpa_x10": 627,
+      "ground_clearance_mm": 400,
+      "turning_radius_mm": 7600,
+      "gradient_deg": 35,
+      "vertical_obstacle_mm": 800,
+      "fording_mm": 1300,
+      "trench_crossing_mm": 2500,
+      "text": {
+        "fuel_capacity_l": "420 (+ 140 external) l",
+        "range_road_km": "300+/225+ km"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 45, "deg": 30 },
+        "side": { "mm": 45, "deg": 90 },
+        "rear": { "mm": 45, "deg": 45 },
+        "top_bottom": { "mm": 20, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 45, "deg": 30 },
+        "side": { "mm": 45, "deg": 50 },
+        "rear": { "mm": 45, "deg": 48 },
+        "top_bottom": { "mm": 20, "deg": 0 }
+      },
+      "turret": {
+        "front": { "mm": 45, "text": "45mm @round" },
+        "side": { "mm": 45, "deg": 60 },
+        "rear": { "mm": 45, "deg": 60 },
+        "top_bottom": { "mm": 20, "text": "20mm @0&6°" }
+      },
+      "mantlet": {
+        "front": { "mm": 45, "text": "45mm @30&90°" }
+      }
+    },
+    "notes": [
+      "Data for T-34 production for 1940 (115) and the first half of 1941 (835) represents a rough estimate of the number of vehicles conforming to this configuration.",
+      "Only command vehicles had radios.",
+      "With/without radio equipment."
+    ]
+  },
+  {
+    "id": "su_t34_76_1941",
+    "name": "T-34-76 Model 1941",
+    "type": "Medium Tank",
+    "family": "T-34",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/ussr/su043t3476m41.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "RT",
+        "T34IA",
+        "ST",
+        "RAH",
+        "OOBTr",
+        "RTAV",
+        "PV",
+        "Russian Military Zone",
+        "George R. Bradford"
+      ]
+    },
+    "general": {
+      "designation": "T-34-76 Model 1941 [also T-34B]",
+      "production_quantity": 9290,
+      "production_period": "early 1941 - 1942",
+      "crew": 4,
+      "length_mm": 6680,
+      "width_mm": 3000,
+      "height_mm": 2450,
+      "barrel_overhang_mm": 760,
+      "mass_kg": 28000,
+      "radio": "none/71-TK-3 or 9R [2]",
+      "text": {
+        "production_quantity": "about 9290 [1]"
+      }
+    },
+    "firepower": {
+      "main_gun": "76.2mm Gun F-34",
+      "main_gun_caliber_mm_x10": 762,
+      "main_ammo": 77,
+      "traverse_deg": 360,
+      "traverse_drive": "electric",
+      "elevation_min_deg_x10": -50,
+      "elevation_max_deg_x10": 290,
+      "traverse_time_360_s": 10,
+      "sight": "TOD-7, PT-7",
+      "secondary": "2 x 7.62mm DT MG (coaxial, bow)",
+      "text": {
+        "secondary_ammo": "2898/4725 [3]"
+      }
+    },
+    "mobility": {
+      "engine": "V-2-34",
+      "engine_type": "V12, 38.9 liters",
+      "displacement_cc": 38900,
+      "power_hp": 500,
+      "power_rpm": 1800,
+      "power_to_weight_hp_per_t_x10": 179,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Diesel",
+      "fuel_capacity_l": 420,
+      "consumption_road_l_per_100km": 140,
+      "range_road_km": 300,
+      "speed_road_kmh_x10": 550,
+      "speed_offroad_kmh_x10": 400,
+      "track_ground_contact_mm": 3720,
+      "ground_clearance_mm": 400,
+      "turning_radius_mm": 7600,
+      "gradient_deg": 35,
+      "vertical_obstacle_mm": 800,
+      "fording_mm": 1300,
+      "trench_crossing_mm": 2500,
+      "text": {
+        "fuel_capacity_l": "420 (+ 140 external) l",
+        "range_road_km": "300+/210+ km",
+        "track_width_mm": "55.0/50.0 cm (22\"/20\")",
+        "track_links": "74 or 72/track",
+        "ground_pressure_psi_x10": "0.68/0.75 kg/cm² (9.7/10.7 psi)"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 45, "deg": 30 },
+        "side": { "mm": 45, "deg": 90 },
+        "rear": { "mm": 45, "deg": 45 },
+        "top_bottom": { "mm": 20, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 45, "deg": 30 },
+        "side": { "mm": 45, "deg": 50 },
+        "rear": { "mm": 45, "deg": 48 },
+        "top_bottom": { "mm": 20, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 40, "text": "40mm @30&90°" }
+      }
+    },
+    "notes": [
+      "Data for T-34 production for 1941 (3014) and 50% of 1942 (12553) represents a rough estimate of the number of vehicles conforming to this configuration.",
+      "Only command vehicles had radios. Later production had the new 9R radios.",
+      "With/without radio equipment.",
+      "Data is for the cast turret introduced early in 1941. Welded turrets of this period probably had the same armor specifications as the original T-34-76 Model 1940."
+    ]
+  },
+  {
+    "id": "su_t34_76_1942",
+    "name": "T-34-76 Model 1942/43",
+    "type": "Medium Tank",
+    "family": "T-34",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/ussr/su044t3476m42.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "RT",
+        "ST",
+        "T34IA",
+        "RAH",
+        "OOBTr",
+        "RTAV",
+        "PV",
+        "Russian Military Zone"
+      ]
+    },
+    "general": {
+      "designation": "T-34-76 Model 1942 [also T-34C and sometimes designated Model 1943]",
+      "production_quantity": 14041,
+      "production_period": "mid 1942 - mid 1943",
+      "crew": 4,
+      "length_mm": 6750,
+      "width_mm": 3000,
+      "height_mm": 2450,
+      "barrel_overhang_mm": 830,
+      "mass_kg": 30000,
+      "radio": "none/9R [2]",
+      "text": {
+        "production_quantity": "14041 [1]"
+      }
+    },
+    "firepower": {
+      "main_gun": "76.2mm Gun F-34",
+      "main_gun_caliber_mm_x10": 762,
+      "main_ammo": 100,
+      "traverse_deg": 360,
+      "traverse_drive": "electric",
+      "elevation_min_deg_x10": -50,
+      "elevation_max_deg_x10": 290,
+      "traverse_time_360_s": 14,
+      "sight": "TMFD, PT-4-7",
+      "secondary": "2 x 7.62mm DT MG (coaxial, bow)",
+      "text": {
+        "secondary_ammo": "2394/3150 [3]"
+      }
+    },
+    "mobility": {
+      "engine": "V-2-34",
+      "engine_type": "V12, 38.9 liters",
+      "displacement_cc": 38900,
+      "power_hp": 500,
+      "power_rpm": 1800,
+      "power_to_weight_hp_per_t_x10": 167,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Diesel",
+      "fuel_capacity_l": 420,
+      "consumption_road_l_per_100km": 150,
+      "range_road_km": 280,
+      "speed_road_kmh_x10": 550,
+      "speed_offroad_kmh_x10": 400,
+      "track_width_mm": 550,
+      "track_ground_contact_mm": 3720,
+      "track_links": 72,
+      "ground_pressure_psi_x10": 104,
+      "ground_pressure_kpa_x10": 717,
+      "ground_clearance_mm": 400,
+      "turning_radius_mm": 7600,
+      "gradient_deg": 35,
+      "vertical_obstacle_mm": 800,
+      "fording_mm": 1300,
+      "trench_crossing_mm": 2500,
+      "text": {
+        "fuel_capacity_l": "420 (+ 140 external) l",
+        "range_road_km": "280+/180+ km"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 45, "deg": 30 },
+        "side": { "mm": 45, "deg": 90 },
+        "rear": { "mm": 45, "deg": 45 },
+        "top_bottom": { "mm": 20, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 45, "deg": 30 },
+        "side": { "mm": 45, "deg": 50 },
+        "rear": { "mm": 45, "deg": 48 },
+        "top_bottom": { "mm": 20, "deg": 0 }
+      },
+      "turret": {
+        "front": { "mm": 70, "text": "70mm @60°&round" },
+        "side": { "mm": 52, "deg": 70 },
+        "rear": { "mm": 52, "deg": 70 },
+        "top_bottom": { "mm": 20, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 40, "text": "40mm @30&90°" }
+      }
+    },
+    "notes": [
+      "About 50% of T-34 production for 1942 (12553) and 1943 (15529) represents a rough estimate of the number of vehicles conforming to this configuration.",
+      "Only command vehicles had radios during 1942. Beginning in 1943, all vehicles were radio equipped.",
+      "With/without radio equipment."
+    ]
+  },
+  {
+    "id": "su_t34_76_1943",
+    "name": "T-34-76 Model 1943",
+    "type": "Medium Tank",
+    "family": "T-34",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/ussr/su045t3476m43.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "RT",
+        "ST",
+        "T34IA",
+        "RAH",
+        "OOBTr",
+        "RTAV",
+        "PV",
+        "PzT2",
+        "Russian Military Zone",
+        "George R. Bradford"
+      ]
+    },
+    "general": {
+      "other_designations": "T-34-76 Model 1943",
+      "manufacturer": "Factory No.183 UVZ, Factory No.112, Factory No.174, Factory No.100 ChKZ",
+      "production_quantity": 10760,
+      "production_period": "mid 1943 - early 1944",
+      "crew": 4,
+      "length_mm": 6750,
+      "width_mm": 3000,
+      "height_mm": 2600,
+      "barrel_overhang_mm": 650,
+      "mass_kg": 30900,
+      "radio": "9R",
+      "text": {
+        "production_quantity": "10760 [1]"
+      }
+    },
+    "firepower": {
+      "main_gun": "76.2mm Gun F-34",
+      "main_gun_caliber_mm_x10": 762,
+      "main_ammo": 100,
+      "traverse_deg": 360,
+      "traverse_drive": "electric",
+      "elevation_min_deg_x10": -50,
+      "elevation_max_deg_x10": 290,
+      "traverse_time_360_s": 14,
+      "sight": "TMFD, PTK-5",
+      "secondary": "2 x 7.62mm DT MG (coaxial, bow)",
+      "secondary_ammo": 2394
+    },
+    "mobility": {
+      "engine": "V-2-34",
+      "engine_type": "V12, 38.9 liters",
+      "displacement_cc": 38900,
+      "power_hp": 500,
+      "power_rpm": 1800,
+      "power_to_weight_hp_per_t_x10": 162,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Diesel",
+      "fuel_capacity_l": 540,
+      "consumption_road_l_per_100km": 155,
+      "range_road_km": 350,
+      "speed_road_kmh_x10": 550,
+      "speed_offroad_kmh_x10": 400,
+      "track_width_mm": 550,
+      "track_ground_contact_mm": 3720,
+      "track_links": 72,
+      "ground_pressure_psi_x10": 107,
+      "ground_pressure_kpa_x10": 738,
+      "ground_clearance_mm": 400,
+      "turning_radius_mm": 7600,
+      "gradient_deg": 35,
+      "vertical_obstacle_mm": 800,
+      "fording_mm": 1300,
+      "trench_crossing_mm": 2500,
+      "text": {
+        "fuel_capacity_l": "540 (+ 180 external) [2] L",
+        "range_road_km": "350+/220+ km"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 45, "deg": 30 },
+        "side": { "mm": 45, "deg": 90 },
+        "rear": { "mm": 45, "deg": 45 },
+        "top_bottom": { "mm": 20, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 45, "deg": 30 },
+        "side": { "mm": 45, "deg": 50 },
+        "rear": { "mm": 45, "deg": 48 },
+        "top_bottom": { "mm": 20, "deg": 0 }
+      },
+      "turret": {
+        "front": { "mm": 70, "text": "70mm @60°&round" },
+        "side": { "mm": 52, "deg": 70 },
+        "rear": { "mm": 52, "deg": 70 },
+        "top_bottom": { "mm": 20, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 40, "text": "40mm @30&90°" }
+      }
+    },
+    "notes": [
+      "About 50% of T-34-76 production for 1943 (15529) and total 1944 production (2995) represents a rough estimate of the number of vehicles conforming to this configuration.",
+      "In general, one of the three 90 liters external fuel tanks was reserved for oil."
+    ]
+  },
+  {
+    "id": "su_t34_85_1943",
+    "name": "T-34-85 Model 1943",
+    "type": "Medium Tank",
+    "family": "T-34",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/ussr/su046t3485m43.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "T34IA",
+        "T3485",
+        "BP04",
+        "RT",
+        "RTAV",
+        "ST",
+        "OOBTr",
+        "Russian Military Zone"
+      ]
+    },
+    "general": {
+      "other_designations": "T-34-85 Model 1943",
+      "manufacturer": "Factory No.112 Red Sormovo Works",
+      "production_quantity": 800,
+      "production_period": "Jan. 1944 - Mar. 1944",
+      "crew": 5,
+      "length_mm": 8150,
+      "width_mm": 3000,
+      "height_mm": 2720,
+      "barrel_overhang_mm": 2050,
+      "mass_kg": 32000,
+      "radio": "9RM",
+      "text": {
+        "production_quantity": "about 800"
+      }
+    },
+    "firepower": {
+      "main_gun": "85mm Gun D-5T",
+      "main_gun_caliber_mm_x10": 850,
+      "main_ammo": 56,
+      "traverse_deg": 360,
+      "traverse_drive": "electric",
+      "elevation_min_deg_x10": -50,
+      "elevation_max_deg_x10": 220,
+      "traverse_time_360_s": 21,
+      "sight": "TSh-15, PTK-5",
+      "secondary": "2 x 7.62mm DTM MG (coaxial, bow)",
+      "secondary_ammo": 1890
+    },
+    "mobility": {
+      "engine": "V-2-34",
+      "engine_type": "V12, 38.9 liters",
+      "displacement_cc": 38900,
+      "power_hp": 500,
+      "power_rpm": 1800,
+      "power_to_weight_hp_per_t_x10": 156,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Diesel",
+      "fuel_capacity_l": 540,
+      "consumption_road_l_per_100km": 160,
+      "range_road_km": 340,
+      "speed_road_kmh_x10": 550,
+      "speed_offroad_kmh_x10": 400,
+      "track_width_mm": 550,
+      "track_ground_contact_mm": 3720,
+      "track_links": 72,
+      "ground_pressure_psi_x10": 111,
+      "ground_pressure_kpa_x10": 765,
+      "ground_clearance_mm": 400,
+      "turning_radius_mm": 7600,
+      "gradient_deg": 35,
+      "vertical_obstacle_mm": 800,
+      "fording_mm": 1300,
+      "trench_crossing_mm": 2500,
+      "text": {
+        "fuel_capacity_l": "540 (+ 180 external) [1] L",
+        "range_road_km": "340+/200+ km"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 45, "deg": 30 },
+        "side": { "mm": 45, "deg": 0 },
+        "rear": { "mm": 45, "deg": 45 },
+        "top_bottom": { "mm": 20, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 45, "deg": 30 },
+        "side": { "mm": 45, "deg": 50 },
+        "rear": { "mm": 45, "deg": 42 },
+        "top_bottom": { "mm": 20, "deg": 0 }
+      },
+      "turret": {
+        "front": { "mm": 90, "text": "90mm @round" },
+        "side": { "mm": 75, "deg": 70 },
+        "rear": { "mm": 52, "deg": 80 },
+        "top_bottom": { "mm": 20, "text": "20mm @0-14°" }
+      },
+      "mantlet": {
+        "front": { "mm": 90, "text": "90mm @round" }
+      }
+    },
+    "notes": [
+      "In general, one of the three 90 liters external fuel tanks was reserved for oil."
+    ]
+  },
+  {
+    "id": "su_t34_85_1944",
+    "name": "T-34-85 Model 1944",
+    "type": "Medium Tank",
+    "family": "T-34",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/ussr/su047t3485m44.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "RT",
+        "ST",
+        "T34IA",
+        "T3485",
+        "TD1",
+        "GBT",
+        "BP04",
+        "RAH",
+        "OOBTr",
+        "RTAV",
+        "PV",
+        "Russian Military Zone"
+      ]
+    },
+    "general": {
+      "designation": "T-34-85 Model 1944",
+      "manufacturer": "Factory No.183 UVZ, Factory No.112, Factory No.174",
+      "production_quantity": 17680,
+      "production_period": "Mar. 1944 - May 1945",
+      "crew": 5,
+      "length_mm": 8150,
+      "width_mm": 3000,
+      "height_mm": 2720,
+      "barrel_overhang_mm": 2050,
+      "mass_kg": 32000,
+      "radio": "9RM",
+      "text": {
+        "production_quantity": "17680 [1]"
+      }
+    },
+    "firepower": {
+      "main_gun": "85mm gun ZiS-S-53",
+      "main_gun_caliber_mm_x10": 850,
+      "traverse_deg": 360,
+      "traverse_drive": "electric",
+      "elevation_min_deg_x10": -50,
+      "elevation_max_deg_x10": 220,
+      "traverse_time_360_s": 21,
+      "sight": "TSh-16, MK-4",
+      "secondary": "2 x 7.62mm DTM MG (coaxial, bow)",
+      "secondary_ammo": 1890,
+      "text": {
+        "main_ammo": "56-60"
+      }
+    },
+    "mobility": {
+      "engine": "V-2-34M",
+      "engine_type": "V12, 38.9 liters",
+      "displacement_cc": 38900,
+      "power_hp": 520,
+      "power_rpm": 2000,
+      "power_to_weight_hp_per_t_x10": 163,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Diesel",
+      "fuel_capacity_l": 540,
+      "consumption_road_l_per_100km": 180,
+      "range_road_km": 300,
+      "speed_road_kmh_x10": 550,
+      "speed_offroad_kmh_x10": 300,
+      "track_width_mm": 550,
+      "track_ground_contact_mm": 3720,
+      "track_links": 72,
+      "ground_pressure_psi_x10": 111,
+      "ground_pressure_kpa_x10": 765,
+      "ground_clearance_mm": 400,
+      "turning_radius_mm": 7600,
+      "gradient_deg": 35,
+      "vertical_obstacle_mm": 800,
+      "fording_mm": 1300,
+      "trench_crossing_mm": 2500,
+      "text": {
+        "fuel_capacity_l": "540 (+ 180 external) [2] L",
+        "range_road_km": "300+/180+ km"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 45, "deg": 30 },
+        "side": { "mm": 45, "deg": 0 },
+        "rear": { "mm": 45, "deg": 45 },
+        "top_bottom": { "mm": 20, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 45, "deg": 30 },
+        "side": { "mm": 45, "deg": 50 },
+        "rear": { "mm": 45, "deg": 42 },
+        "top_bottom": { "mm": 20, "deg": 0 }
+      },
+      "turret": {
+        "front": { "mm": 90, "text": "90mm @round" },
+        "side": { "mm": 75, "deg": 70 },
+        "rear": { "mm": 52, "deg": 80 },
+        "top_bottom": { "mm": 20, "text": "20mm @0-14°" }
+      },
+      "mantlet": {
+        "front": { "mm": 90, "text": "90mm @round" }
+      }
+    },
+    "notes": [
+      "Production continued afterward. This figure is the number produced in the production period noted.",
+      "In general, one of the three 90 liters external fuel tanks was reserved for oil."
+    ]
+  },
+  {
+    "id": "su_t35_1935",
+    "name": "T-35 Model 1935",
+    "type": "Heavy Tank",
+    "family": "T-35",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/ussr/su030t35m35.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "TWWII",
+        "WWW2",
+        "ST",
+        "RT",
+        "RTAV",
+        "OOBTr",
+        "Russian Military Zone"
+      ]
+    },
+    "general": {
+      "designation": "T-35 Model 1935",
+      "manufacturer": "Factory No.183 Kharkov Locomotive Works (KhPZ)",
+      "production_quantity": 35,
+      "production_period": "1935-1937",
+      "crew": 11,
+      "length_mm": 9720,
+      "width_mm": 3200,
+      "height_mm": 3430,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 45000,
+      "radio": "71-TK-1"
+    },
+    "firepower": {
+      "main_gun": "Main Turret: 76.2mm Gun PS-3",
+      "main_gun_caliber_mm_x10": 762,
+      "main_ammo": 96,
+      "traverse_deg": 360,
+      "elevation_min_deg_x10": -50,
+      "elevation_max_deg_x10": 250,
+      "sight": "POP, PT-1",
+      "secondary": "6 x 7.62mm DT MG (3 x coaxial, 2 x MG Turrets, Main Turret rear)",
+      "secondary_ammo": 10080
+    },
+    "mobility": {
+      "engine": "M-17T",
+      "engine_type": "V12",
+      "power_hp": 500,
+      "power_rpm": 2200,
+      "power_to_weight_hp_per_t_x10": 111,
+      "gearbox": "4 forward, 1 reverse",
+      "gears_forward": 4,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 910,
+      "consumption_road_l_per_100km": 600,
+      "range_road_km": 150,
+      "range_offroad_km": 70,
+      "speed_road_kmh_x10": 300,
+      "speed_offroad_kmh_x10": 190,
+      "track_width_mm": 500,
+      "track_ground_contact_mm": 6500,
+      "ground_pressure_psi_x10": 98,
+      "ground_pressure_kpa_x10": 676,
+      "ground_clearance_mm": 530,
+      "gradient_deg": 30,
+      "vertical_obstacle_mm": 1200,
+      "fording_mm": 1200,
+      "trench_crossing_mm": 4000
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm_min": 15, "mm_max": 30, "text": "15-30mm @various" },
+        "side": { "mm": 20, "deg": 90 },
+        "rear": { "mm": 20, "text": "20mm @various" },
+        "top_bottom": { "mm": 10, "text": "10mm @0°(bottom)" }
+      },
+      "main_turret": {
+        "front": { "mm": 20, "deg": 90 },
+        "side": { "mm": 20, "deg": 90 },
+        "rear": { "mm": 20, "deg": 90 },
+        "top_bottom": { "mm": 15, "deg": 0 }
+      },
+      "gun_turrets": {
+        "front": { "mm": 20, "deg": 90 },
+        "side": { "mm": 20, "deg": 90 },
+        "rear": { "mm": 20, "deg": 90 },
+        "top_bottom": { "mm": 10, "deg": 0 }
+      },
+      "mg_turrets": {
+        "front": { "mm": 20, "deg": 90 },
+        "side": { "mm": 20, "deg": 90 },
+        "rear": { "mm": 20, "deg": 90 },
+        "top_bottom": { "mm": 10, "deg": 0 }
+      }
+    }
+  },
+  {
+    "id": "su_t37a",
+    "name": "T-37A",
+    "type": "Amphibious Light Tank",
+    "family": "T-37",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/ussr/su032t37a.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "RT",
+        "OOBTr",
+        "RTAV",
+        "ST",
+        "Russian Military Zone"
+      ]
+    },
+    "general": {
+      "other_designations": "T-37A",
+      "manufacturer": "Factory No.37 (in Moscow)",
+      "production_quantity": 1130,
+      "production_period": "1933-1936",
+      "crew": 2,
+      "length_mm": 3750,
+      "width_mm": 2000,
+      "height_mm": 1820,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 3200,
+      "radio": "none [2]",
+      "text": {
+        "production_quantity": "about 1130 [1]"
+      }
+    },
+    "firepower": {
+      "main_gun": "7.62mm DT MG",
+      "main_gun_caliber_mm_x10": 76,
+      "main_ammo": 585,
+      "traverse_deg": 360,
+      "elevation_min_deg_x10": -50,
+      "elevation_max_deg_x10": 50,
+      "sight": "MP"
+    },
+    "mobility": {
+      "engine": "GAZ-AA",
+      "engine_type": "4 cylinder",
+      "power_hp": 40,
+      "power_rpm": 2200,
+      "power_to_weight_hp_per_t_x10": 125,
+      "gearbox": "4 forward, 1 reverse",
+      "gears_forward": 4,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 100,
+      "consumption_road_l_per_100km": 50,
+      "consumption_offroad_l_per_100km": 100,
+      "range_road_km": 200,
+      "range_offroad_km": 100,
+      "speed_road_kmh_x10": 350,
+      "speed_water_kmh_x10": 60,
+      "track_width_mm": 200,
+      "track_ground_contact_mm": 1600,
+      "track_links": 90,
+      "ground_pressure_psi_x10": 71,
+      "ground_pressure_kpa_x10": 490,
+      "ground_clearance_mm": 300,
+      "turning_radius_mm": 6000,
+      "vertical_obstacle_mm": 500,
+      "trench_crossing_mm": 1600,
+      "text": {
+        "gradient_deg": "35-40°",
+        "fording_mm": "floats"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 9, "text": "9mm @60°(nose)" },
+        "side": { "mm": 9, "deg": 90 },
+        "rear": { "mm": 6, "text": "6mm @30&45°" },
+        "top_bottom": { "mm": 6, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 6, "text": "6mm @15°(glacis)" },
+        "rear": { "mm": 9, "deg": 90 },
+        "top_bottom": { "mm": 6, "deg": 0 }
+      },
+      "turret": {
+        "front": { "mm": 9, "deg": 90 },
+        "side": { "mm": 9, "deg": 90 },
+        "rear": { "mm": 9, "deg": 90 },
+        "top_bottom": { "mm": 6, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 9, "text": "9mm @round" }
+      }
+    },
+    "notes": [
+      "About 1200 T-37s of all variations were built. The estimated 70 T-37 vehicles built in 1933 were probably a pre-production version that were extensively tested in 1933. Production vehicles, conformed to the T-37A configuration. Later Soviet documents dispensed with the \"A\" when referring to the T-37A.",
+      "Commander's vehicles were equipped with a radio."
+    ]
+  },
+  {
+    "id": "su_t38",
+    "name": "T-38",
+    "type": "Amphibious Light Tank",
+    "family": "T-38",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/ussr/su033t38.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "RT",
+        "ST",
+        "RTAV",
+        "OOBTr",
+        "Russian Military Zone"
+      ]
+    },
+    "general": {
+      "other_designations": "T-38",
+      "manufacturer": "Gorki Automobile Factory No.1 (GAZ), Factory No.37 (in Moscow)",
+      "production_quantity": 400,
+      "production_period": "1937-1938",
+      "crew": 2,
+      "length_mm": 3780,
+      "width_mm": 2330,
+      "height_mm": 1630,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 3300,
+      "radio": "none/71-TK-1 [2]",
+      "text": {
+        "production_quantity": "about 400 [1]"
+      }
+    },
+    "firepower": {
+      "main_gun": "7.62 mm DT MG",
+      "main_gun_caliber_mm_x10": 76,
+      "main_ammo": 1512,
+      "traverse_deg": 360,
+      "elevation_min_deg_x10": -50,
+      "elevation_max_deg_x10": 50,
+      "sight": "MP"
+    },
+    "mobility": {
+      "engine": "GAZ-AA",
+      "engine_type": "4 cylinder",
+      "power_hp": 40,
+      "power_rpm": 2200,
+      "power_to_weight_hp_per_t_x10": 121,
+      "gearbox": "4 forward, 1 reverse",
+      "gears_forward": 4,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 115,
+      "consumption_road_l_per_100km": 50,
+      "consumption_offroad_l_per_100km": 90,
+      "range_road_km": 230,
+      "range_offroad_km": 130,
+      "track_width_mm": 220,
+      "track_ground_contact_mm": 1900,
+      "track_links": 146,
+      "ground_pressure_psi_x10": 55,
+      "ground_pressure_kpa_x10": 379,
+      "ground_clearance_mm": 300,
+      "turning_radius_mm": 6100,
+      "gradient_deg": 40,
+      "vertical_obstacle_mm": 500,
+      "trench_crossing_mm": 1700,
+      "text": {
+        "speed_road_kmh_x10": "40-45/6 km/h",
+        "fording_mm": "floats"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 9, "text": "9mm @72°(nose)" },
+        "side": { "mm": 9, "deg": 90 },
+        "rear": { "mm": 9, "deg": 30 },
+        "top_bottom": { "mm": 4, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 6, "text": "6mm @5°(glacis)" },
+        "rear": { "mm": 9, "deg": 65 },
+        "top_bottom": { "mm": 6, "text": "6mm @0&3°" }
+      },
+      "turret": {
+        "front": { "mm": 9, "deg": 90 },
+        "side": { "mm": 9, "deg": 90 },
+        "rear": { "mm": 9, "deg": 90 },
+        "top_bottom": { "mm": 6, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 9, "text": "9mm @round" }
+      }
+    },
+    "notes": [
+      "This is an estimate based on an analysis of Soviet tank production.",
+      "Only commander's vehicles were equipped with radios."
+    ]
+  },
+  {
+    "id": "su_t40",
+    "name": "T-40",
+    "type": "Amphibious Light Tank",
+    "family": "T-40",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/ussr/su034t40.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "WWW2",
+        "RT",
+        "MM0289",
+        "ST",
+        "OOBTr",
+        "RTAV",
+        "Russian Military Zone"
+      ]
+    },
+    "general": {
+      "other_designations": "T-40",
+      "manufacturer": "Factory No.37 (in Moscow)",
+      "production_quantity": 225,
+      "production_period": "1941-1942",
+      "crew": 2,
+      "length_mm": 4110,
+      "width_mm": 2330,
+      "height_mm": 1950,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 5500,
+      "radio": "none/71-TK-3 [1]"
+    },
+    "firepower": {
+      "main_gun": "12.7mm DShK MG",
+      "main_gun_caliber_mm_x10": 127,
+      "main_ammo": 550,
+      "traverse_deg": 360,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -100,
+      "elevation_max_deg_x10": 400,
+      "sight": "TMFD",
+      "secondary": "1 x 7.62mm DT MG (optional, coaxial)",
+      "secondary_ammo": 2016
+    },
+    "mobility": {
+      "engine": "GAZ-202",
+      "engine_type": "V6",
+      "power_hp": 85,
+      "power_rpm": 3600,
+      "power_to_weight_hp_per_t_x10": 155,
+      "gearbox": "4 forward, 1 reverse",
+      "gears_forward": 4,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 207,
+      "consumption_road_l_per_100km": 58,
+      "consumption_offroad_l_per_100km": 112,
+      "range_road_km": 360,
+      "range_offroad_km": 185,
+      "speed_road_kmh_x10": 450,
+      "speed_water_kmh_x10": 50,
+      "track_width_mm": 260,
+      "track_ground_contact_mm": 2360,
+      "track_links": 70,
+      "ground_pressure_psi_x10": 64,
+      "ground_pressure_kpa_x10": 441,
+      "ground_clearance_mm": 360,
+      "turning_radius_mm": 12100,
+      "gradient_deg": 34,
+      "vertical_obstacle_mm": 600,
+      "trench_crossing_mm": 1700,
+      "text": {
+        "fording_mm": "floats"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 9, "deg": 60 },
+        "side": { "mm": 9, "deg": 90 },
+        "rear": { "mm": 9, "text": "9mm @15&50&60°" },
+        "top_bottom": { "mm": 6, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 6, "deg": 15 },
+        "side": { "mm": 9, "text": "9mm @65&20°(R)" },
+        "rear": { "mm": 9, "deg": 55 },
+        "top_bottom": { "mm": 6, "text": "6mm @0&15°" }
+      },
+      "turret": {
+        "front": { "mm": 10, "deg": 65 },
+        "side": { "mm": 10, "deg": 65 },
+        "rear": { "mm": 10, "deg": 65 },
+        "top_bottom": { "mm": 6, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm_min": 6, "mm_max": 15, "text": "6-15mm @0-90°" }
+      }
+    },
+    "notes": [
+      "Only commander's vehicles were equipped with radios."
+    ]
+  },
+  {
+    "id": "su_t44",
+    "name": "T-44",
+    "type": "Medium Tank",
+    "family": "T-34",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/ussr/su036t44.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "ST",
+        "RT",
+        "OOBTr",
+        "RTAV",
+        "Russian Military Zone",
+        "George R. Bradford"
+      ]
+    },
+    "general": {
+      "other_designations": "T-44",
+      "manufacturer": "Factory No.75 Kharkov Diesel Factory",
+      "production_quantity": 200,
+      "production_period": "1945",
+      "crew": 4,
+      "length_mm": 7650,
+      "width_mm": 3100,
+      "height_mm": 2400,
+      "barrel_overhang_mm": 1600,
+      "mass_kg": 31500,
+      "radio": "9RM",
+      "text": {
+        "production_quantity": "200 [1]"
+      }
+    },
+    "firepower": {
+      "main_gun": "85mm Gun ZiS-S-53",
+      "main_gun_caliber_mm_x10": 850,
+      "main_ammo": 58,
+      "traverse_deg": 360,
+      "elevation_min_deg_x10": -50,
+      "elevation_max_deg_x10": 250,
+      "sight": "TSh-16",
+      "secondary": "2 x 7.62mm DTM MG (coaxial, bow [2])",
+      "secondary_ammo": 1890
+    },
+    "mobility": {
+      "engine": "V-44",
+      "engine_type": "V12, n.a.",
+      "power_hp": 520,
+      "power_rpm": 2000,
+      "power_to_weight_hp_per_t_x10": 165,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Diesel",
+      "fuel_capacity_l": 500,
+      "consumption_road_l_per_100km": 250,
+      "range_road_km": 200,
+      "speed_road_kmh_x10": 500,
+      "speed_offroad_kmh_x10": 260,
+      "track_width_mm": 500,
+      "track_ground_contact_mm": 3850,
+      "track_links": 72,
+      "ground_pressure_psi_x10": 116,
+      "ground_pressure_kpa_x10": 800,
+      "ground_clearance_mm": 450,
+      "turning_radius_mm": 7600,
+      "gradient_deg": 32,
+      "vertical_obstacle_mm": 1000,
+      "fording_mm": 1300,
+      "trench_crossing_mm": 2500,
+      "text": {
+        "fuel_capacity_l": "500 (+150 external) l",
+        "range_road_km": "200+/140+ km"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 90, "deg": 30 },
+        "side": { "mm": 75, "deg": 90 },
+        "rear": { "mm": 30, "deg": 20 },
+        "top_bottom": { "mm": 20, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 90, "deg": 30 },
+        "side": { "mm": 75, "deg": 90 },
+        "rear": { "mm": 45, "deg": 90 },
+        "top_bottom": { "mm": 15, "deg": 0 }
+      },
+      "turret": {
+        "front": { "mm": 90, "text": "90mm @rounded" },
+        "side": { "mm": 90, "deg": 70 },
+        "rear": { "mm": 75, "deg": 78 },
+        "top_bottom": { "mm": 15, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 120, "text": "120mm @rounded" }
+      }
+    },
+    "notes": [
+      "Production continued afterward. This figure is the number produced in the production period noted.",
+      "The bow MG was electrically operated."
+    ]
+  },
+  {
+    "id": "su_t50",
+    "name": "T-50",
+    "type": "Light Infantry Tank",
+    "family": "T-50",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/ussr/su037t50.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "ST",
+        "RT",
+        "OOBTr",
+        "RTAV",
+        "MM????"
+      ]
+    },
+    "general": {
+      "designation": "T-50",
+      "manufacturer": "Factory No. 174 (in Omsk)",
+      "production_quantity": 65,
+      "production_period": "1941",
+      "crew": 4,
+      "length_mm": 5200,
+      "width_mm": 2470,
+      "height_mm": 2160,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 14000,
+      "radio": "9R"
+    },
+    "firepower": {
+      "main_gun": "45mm TP Model 38",
+      "main_gun_caliber_mm_x10": 450,
+      "main_ammo": 150,
+      "traverse_deg": 360,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -100,
+      "elevation_max_deg_x10": 400,
+      "secondary": "7.92mm DT MG",
+      "secondary_ammo": 4000
+    },
+    "mobility": {
+      "engine": "GAZ V-4",
+      "engine_type": "In6",
+      "power_hp": 300,
+      "power_rpm": 2000,
+      "power_to_weight_hp_per_t_x10": 214,
+      "gearbox": "5 forward, 1 reverse",
+      "gears_forward": 5,
+      "gears_reverse": 1,
+      "fuel": "Diesel",
+      "fuel_capacity_l": 350,
+      "consumption_road_l_per_100km": 100,
+      "consumption_offroad_l_per_100km": 125,
+      "range_road_km": 350,
+      "range_offroad_km": 280,
+      "speed_road_kmh_x10": 500,
+      "speed_offroad_kmh_x10": 400,
+      "track_width_mm": 430,
+      "track_ground_contact_mm": 2900,
+      "track_links": 110,
+      "ground_pressure_psi_x10": 80,
+      "ground_pressure_kpa_x10": 552,
+      "ground_clearance_mm": 350,
+      "turning_radius_mm": 14000,
+      "gradient_deg": 35,
+      "vertical_obstacle_mm": 700,
+      "fording_mm": 1100,
+      "trench_crossing_mm": 2200
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 37, "deg": 25 },
+        "side": { "mm": 25, "deg": 90 },
+        "rear": { "mm": 25, "deg": 90 },
+        "top_bottom": { "mm_min": 12, "mm_max": 15, "deg": 0, "text": "12-15mm@0°" }
+      },
+      "superstructure": {
+        "front": { "mm": 37, "text": "37mm@45°(glacis)" },
+        "side": { "mm": 37, "deg": 45 },
+        "rear": { "mm": 37, "deg": 25 },
+        "top_bottom": { "mm_min": 12, "mm_max": 15, "deg": 0, "text": "12-15mm@0°" }
+      },
+      "turret": {
+        "front": { "mm": 37, "text": "37mm@round" },
+        "side": { "mm": 15, "deg": 65 },
+        "rear": { "mm": 15, "deg": 78 },
+        "top_bottom": { "mm_min": 12, "mm_max": 15, "deg": 3, "text": "12-15mm@3°" }
+      },
+      "mantlet": {
+        "front": { "mm": 37, "text": "37mm@round" }
+      }
+    }
+  },
+  {
+    "id": "su_t60_1941",
+    "name": "T-60 Model 1941",
+    "type": "Light Tank",
+    "family": "T-60",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/ussr/su038t60m41.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "TD1",
+        "WWW2",
+        "RT",
+        "ST",
+        "RTAV",
+        "OOBTr",
+        "Russian Military Zone",
+        "George R. Bradford"
+      ]
+    },
+    "general": {
+      "designation": "T-60 Model 1941",
+      "manufacturer": "Factory No. 37, Factory No. 38, GAZ",
+      "production_quantity": 4200,
+      "production_period": "July 1941-1942",
+      "crew": 2,
+      "length_mm": 4100,
+      "width_mm": 2300,
+      "height_mm": 1800,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 5800,
+      "radio": "71-TK-3",
+      "text": {
+        "production_quantity": "about 4200 [1]"
+      }
+    },
+    "firepower": {
+      "main_gun": "20mm Gun TNSh",
+      "main_gun_caliber_mm_x10": 200,
+      "main_ammo": 780,
+      "traverse_deg": 360,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -100,
+      "elevation_max_deg_x10": 400,
+      "secondary": "1 x 7.62mm DT MG (coaxial)",
+      "secondary_ammo": 945
+    },
+    "mobility": {
+      "engine": "GAZ-202",
+      "engine_type": "In6",
+      "power_hp": 70,
+      "power_rpm": 2800,
+      "power_to_weight_hp_per_t_x10": 121,
+      "gearbox": "4 forward, 1 reverse",
+      "gears_forward": 4,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 320,
+      "consumption_road_l_per_100km": 55,
+      "consumption_offroad_l_per_100km": 110,
+      "range_road_km": 600,
+      "range_offroad_km": 300,
+      "speed_road_kmh_x10": 450,
+      "track_width_mm": 180,
+      "track_ground_contact_mm": 2290,
+      "track_links": 70,
+      "ground_pressure_psi_x10": 100,
+      "ground_pressure_kpa_x10": 689,
+      "ground_clearance_mm": 300,
+      "turning_radius_mm": 12100,
+      "gradient_deg": 29,
+      "vertical_obstacle_mm": 600,
+      "fording_mm": 900,
+      "trench_crossing_mm": 1700
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 20, "deg": 62 },
+        "side": { "mm": 15, "deg": 90 },
+        "rear": { "mm": 15, "deg": 65 },
+        "top_bottom": { "mm": 10, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 15, "text": "15mm @20°(glacis)" },
+        "top_bottom": { "mm": 10, "deg": 0 }
+      },
+      "turret": {
+        "front": { "mm": 15, "deg": 65 },
+        "side": { "mm": 15, "deg": 65 },
+        "rear": { "mm": 15, "deg": 65 },
+        "top_bottom": { "mm": 10, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 20, "deg": 90 }
+      }
+    },
+    "notes": [
+      "Total T-60 series production was 6292, according to Fleischer, 6022 according to Zaloga."
+    ]
+  },
+  {
+    "id": "su_t60_1942",
+    "name": "T-60 Model 1942",
+    "type": "Light Tank",
+    "family": "T-60",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/ussr/su039t60m42.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "TD1",
+        "WWW2",
+        "RT",
+        "ST",
+        "RTAV",
+        "OOBTr",
+        "Russian Military Zone"
+      ]
+    },
+    "general": {
+      "designation": "T-60 Model 1942 (or T-60A)",
+      "manufacturer": "Factory No. 37, Factory No. 38, GAZ",
+      "production_quantity": 2000,
+      "production_period": "Summer-Sept. 1942",
+      "crew": 2,
+      "length_mm": 4100,
+      "width_mm": 2300,
+      "height_mm": 1800,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 6400,
+      "radio": "9R",
+      "text": {
+        "production_quantity": "about 2000 [1]"
+      }
+    },
+    "firepower": {
+      "main_gun": "20mm Gun TNSh",
+      "main_gun_caliber_mm_x10": 200,
+      "main_ammo": 780,
+      "traverse_deg": 360,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -100,
+      "elevation_max_deg_x10": 400,
+      "secondary": "1 x 7.62mm DT MG (coaxial)",
+      "secondary_ammo": 945
+    },
+    "mobility": {
+      "engine": "GAZ-203",
+      "engine_type": "In6",
+      "power_hp": 85,
+      "power_rpm": 3600,
+      "power_to_weight_hp_per_t_x10": 133,
+      "gearbox": "4 forward, 1 reverse",
+      "gears_forward": 4,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 320,
+      "consumption_road_l_per_100km": 55,
+      "consumption_offroad_l_per_100km": 110,
+      "range_road_km": 600,
+      "range_offroad_km": 300,
+      "speed_road_kmh_x10": 450,
+      "track_width_mm": 180,
+      "track_ground_contact_mm": 2290,
+      "track_links": 70,
+      "ground_pressure_psi_x10": 110,
+      "ground_pressure_kpa_x10": 758,
+      "ground_clearance_mm": 300,
+      "turning_radius_mm": 12100,
+      "gradient_deg": 29,
+      "vertical_obstacle_mm": 600,
+      "fording_mm": 900,
+      "trench_crossing_mm": 1700
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 35, "deg": 62 },
+        "side": { "mm": 15, "deg": 90 },
+        "rear": { "mm": 25, "deg": 65 },
+        "top_bottom": { "mm": 10, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 15, "text": "15mm @20° (glacis)" },
+        "top_bottom": { "mm_min": 10, "mm_max": 13, "deg": 0, "text": "10-13mm @0°" }
+      },
+      "turret": {
+        "front": { "mm": 25, "deg": 65 },
+        "side": { "mm": 25, "deg": 65 },
+        "rear": { "mm": 25, "deg": 65 },
+        "top_bottom": { "mm": 10, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 20, "deg": 90 }
+      }
+    },
+    "notes": [
+      "Total T-60 series production was 6292, according to Fleischer, 6022 according to Zaloga."
+    ]
+  },
+  {
+    "id": "su_t70_1942",
+    "name": "T-70 Model 1942",
+    "type": "Light Tank",
+    "family": "T-70",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/ussr/su040t70m42.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "TD1",
+        "WWW2",
+        "RT",
+        "ST",
+        "RTAV",
+        "OOBTr"
+      ]
+    },
+    "general": {
+      "designation": "T-70 Model 1942",
+      "manufacturer": "Factory No. 37, Gorki Automobile Factory No.1 (GAZ), Factory No. 38",
+      "production_quantity": 7500,
+      "production_period": "Mar. 1942 - Aug. 1943",
+      "crew": 2,
+      "length_mm": 4300,
+      "width_mm": 2400,
+      "height_mm": 2000,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 9200,
+      "radio": "12RT (9R)",
+      "text": {
+        "production_quantity": "about 7500 [1]"
+      }
+    },
+    "firepower": {
+      "main_gun": "45mm Gun Model 38",
+      "main_gun_caliber_mm_x10": 450,
+      "main_ammo": 94,
+      "traverse_deg": 360,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -60,
+      "elevation_max_deg_x10": 200,
+      "sight": "PT-1, TOP",
+      "secondary": "1 x 7.62mm DT MG (coaxial)",
+      "secondary_ammo": 945
+    },
+    "mobility": {
+      "engine": "2 x GAZ-202",
+      "engine_type": "In6",
+      "power_hp": 140,
+      "power_rpm": 2800,
+      "power_to_weight_hp_per_t_x10": 152,
+      "gearbox": "4 forward, 1 reverse",
+      "gears_forward": 4,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 440,
+      "consumption_road_l_per_100km": 120,
+      "consumption_offroad_l_per_100km": 240,
+      "range_road_km": 360,
+      "range_offroad_km": 180,
+      "speed_road_kmh_x10": 450,
+      "speed_offroad_kmh_x10": 350,
+      "track_width_mm": 190,
+      "track_ground_contact_mm": 3120,
+      "track_links": 91,
+      "ground_pressure_psi_x10": 110,
+      "ground_pressure_kpa_x10": 758,
+      "ground_clearance_mm": 300,
+      "turning_radius_mm": 12500,
+      "gradient_deg": 34,
+      "vertical_obstacle_mm": 700,
+      "fording_mm": 900,
+      "trench_crossing_mm": 1800,
+      "text": {
+        "power_hp": "2 x 70hp @2800rpm"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 35, "deg": 60 },
+        "side": { "mm": 15, "deg": 90 },
+        "rear": { "mm": 15, "deg": 50 },
+        "top_bottom": { "mm": 10, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 35, "text": "35mm @30° (glacis)" },
+        "top_bottom": { "mm": 10, "text": "10mm @0&16°" }
+      },
+      "turret": {
+        "front": { "mm": 35, "deg": 55 },
+        "side": { "mm": 35, "deg": 65 },
+        "rear": { "mm": 35, "deg": 60 },
+        "top_bottom": { "mm": 10, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 60, "text": "60mm @round" }
+      }
+    },
+    "notes": [
+      "Total T-70 series production 8226 vehicles from Mar. 1942 to Oct. 1943."
+    ]
+  },
+  {
+    "id": "su_t70m",
+    "name": "T-70 Model 1943",
+    "type": "Light Tank",
+    "family": "T-70",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/ussr/su041t70m43.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "TD1",
+        "WWW2",
+        "RT",
+        "ST",
+        "RTAV",
+        "OOBTr"
+      ]
+    },
+    "general": {
+      "designation": "T-70 Model 1943 (or T-70A)",
+      "manufacturer": "Factory No. 37, Factory No. 38, Gorki Automobile Factory No.1 (GAZ)",
+      "production_quantity": 800,
+      "production_period": "Sep. - Oct. 1943",
+      "crew": 2,
+      "length_mm": 4400,
+      "width_mm": 2500,
+      "height_mm": 2000,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 10000,
+      "radio": "12RT (9R)",
+      "text": {
+        "production_quantity": "about 800 [1]"
+      }
+    },
+    "firepower": {
+      "main_gun": "45mm Gun Model 38",
+      "main_gun_caliber_mm_x10": 450,
+      "main_ammo": 94,
+      "traverse_deg": 360,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": -60,
+      "elevation_max_deg_x10": 200,
+      "sight": "PT-1, TOP",
+      "secondary": "1 x 7.62mm DT MG (coaxial)",
+      "secondary_ammo": 945
+    },
+    "mobility": {
+      "engine": "2 x GAZ-203",
+      "engine_type": "In6",
+      "power_hp": 170,
+      "power_rpm": 3600,
+      "power_to_weight_hp_per_t_x10": 170,
+      "gearbox": "4 forward, 1 reverse",
+      "gears_forward": 4,
+      "gears_reverse": 1,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 440,
+      "consumption_road_l_per_100km": 150,
+      "range_road_km": 300,
+      "speed_road_kmh_x10": 450,
+      "track_width_mm": 190,
+      "track_ground_contact_mm": 3120,
+      "track_links": 91,
+      "ground_pressure_psi_x10": 120,
+      "ground_pressure_kpa_x10": 827,
+      "ground_clearance_mm": 300,
+      "turning_radius_mm": 12500,
+      "gradient_deg": 34,
+      "vertical_obstacle_mm": 700,
+      "fording_mm": 900,
+      "trench_crossing_mm": 1800,
+      "text": {
+        "power_hp": "2 x 85hp @3600rpm"
+      }
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 35, "deg": 60 },
+        "side": { "mm": 15, "deg": 90 },
+        "rear": { "mm": 15, "deg": 50 },
+        "top_bottom": { "mm": 10, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 35, "text": "35mm @30°(glacis)" },
+        "top_bottom": { "mm": 10, "text": "10mm @0&16°" }
+      },
+      "turret": {
+        "front": { "mm": 35, "deg": 55 },
+        "side": { "mm": 35, "deg": 65 },
+        "rear": { "mm": 35, "deg": 60 },
+        "top_bottom": { "mm": 10, "deg": 0 }
+      },
+      "mantlet": {
+        "front": { "mm": 60, "text": "60mm @round" }
+      }
+    },
+    "notes": [
+      "Total T-70 series production 8226 vehicles from Mar. 1942 to Oct. 1943."
+    ]
+  }
+]

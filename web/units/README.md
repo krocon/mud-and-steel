@@ -13,6 +13,7 @@ repository root):
 |---|---|
 | Units and their real values | `data/catalog/*.toml` |
 | Base buildings | `data/economy.toml` |
+| Technical data of armored vehicles | `data/vehicles/{de,su,us}.json` (prompt 064, `data/vehicles/SCHEMA.md`) |
 | Prices and build times | `cli economy-table`, written to `web/units/economy.md` by `tools/units_web.py` |
 | Models, squad scenes | `godot/assets/models/` (`.glb`, squads from their `.tscn`) |
 | Camouflage (forest, desert, winter) | `godot/assets/materials/camo/*.tres` |

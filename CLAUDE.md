@@ -62,6 +62,7 @@ just map-check <name>      # validate data/maps/<name>/ like the editor
 just ai-tournament         # AI against AI over many seeds, statistics (docs/AI.md)
 just bench / just bench-view  # overall benchmark: simulation / frame rate (docs/PERFORMANCE.md)
 just catalog-doc           # regenerate docs/UNIT_CATALOG.md after catalog changes
+just vehicle-db / just vehicle-db-check  # write data/vehicles/*.json from the reference folder / check it against the catalog
 just units-web             # unit browser in the web browser: pictures, 3D models, values (web/units/)
 just export / just export-selftest  # exported .pck and its self-test; release builds: docs/RELEASE.md
 just export-model assets-src/blender/X.blend
@@ -83,10 +84,11 @@ web/units/       unit browser (static page; reads data/catalog and godot/assets 
 assets-src/blender/  .blend sources (Git LFS)
 tools/           Blender scripts, Godot import helper
 data/            unit catalog (catalog/*.toml, real values) and scale.toml
+data/vehicles/   vehicle database (JSON, generated; reference work, never rule input; SCHEMA.md)
 docs/            ARCHITECTURE.md, DETERMINISM.md, VERSIONS.md, SCALE.md, ASSETS.md,
                  SOURCES.md, INFANTRY.md, LAN.md, ONLINE.md, AI.md, GAME_DESIGN.md,
                  PERFORMANCE.md, RELEASE.md, CONTROLS.md (player controls), TEAMS.md,
                  AUDIO_LIBRARY.md (free sound candidates), MISSIONS.md (mission scripts),
-                 UNIT_CATALOG.md (generated)
+                 UNIT_CATALOG.md (generated), VEHICLE_REFS.md (generated: reference folders and ids)
 prompts/         task prompts (roadmap in prompts/README.md); finished ones: git mv to prompts/done/
 ```

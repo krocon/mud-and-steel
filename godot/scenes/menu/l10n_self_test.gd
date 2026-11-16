@@ -101,6 +101,11 @@ func menu_test(menu: Control) -> void:
 	# Names from the catalog and the mission texts follow the language.
 	var card: Dictionary = SimHost.catalog_card("de_pz4_h")
 	flow._check(card.get("name", "") == "Panzerkampfwagen IV Ausf. H", "catalog name in German: %s" % card.get("name", ""))
+	# The vehicle database (prompt 064) is compiled into the bridge.
+	var record: Dictionary = SimHost.vehicle_record("de_tiger1_e")
+	flow._check(record.get("general", {}).get("mass_kg", 0) == 57000 and record.get("armor", {}).get("turret", {}).get("front", {}).get("mm", 0) == 100,
+		"vehicle record of the Tiger I: %s" % record.get("general", {}))
+	flow._check(SimHost.vehicle_record("de_opel_blitz").is_empty(), "vehicle record for a unit without one")
 	var tutorial: Dictionary = Missions.tutorial()
 	flow._check(Missions.text(tutorial.get("path", ""), tutorial.get("title", "")) == "Grundausbildung",
 		"tutorial title in German: %s" % Missions.text(tutorial.get("path", ""), tutorial.get("title", "")))

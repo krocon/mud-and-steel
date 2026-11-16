@@ -75,6 +75,8 @@ def page_files():
     """Repository paths of every file the page loads (see app.js and viewer.js)."""
     catalogs = [f"data/catalog/{f}.toml" for f in ("de", "su", "us", "neutral")]
     files = set(catalogs) | {"data/economy.toml", "godot/assets/models/infantry/uniform_palettes.json"}
+    # Vehicle database (prompt 064): technical data per faction.
+    files |= {f"data/vehicles/{f}.json" for f in ("de", "su", "us")}
     files |= {p.relative_to(ROOT).as_posix() for p in (ROOT / "godot/assets/materials/camo").glob("*.tres")}
     files |= {p.relative_to(ROOT).as_posix() for p in (ROOT / "godot/assets/thumbnails").glob("*.png")}
     for source in catalogs + ["data/economy.toml"]:

@@ -23,6 +23,19 @@ In this order:
 4. **Secondary web sources** such as Wikipedia, cited with the article URL. Values
    from here should be cross-checked where they matter for gameplay.
 
+## Vehicle database
+
+`data/vehicles/*.json` (prompt 064, schema in `data/vehicles/SCHEMA.md`) holds the
+technical data of the armored vehicles from the reference folder
+`docs/.vorlagen/fahrzeuge/`, loaded with `just vehicle-refs` from onwar.com (Ralph
+Zuljan, "Tanks of World War II"). Each entry names its page (`source.url`), the day it
+was fetched and the literature codes the page cites. onwar.com is a secondary web
+source (rank 4): the database is a reference work for display, and where it disagrees
+with the catalog, the catalog's own sources win; the field is then listed in the
+catalog entry's `uncertain` and the difference named in its `note`
+(`just vehicle-db-check` enforces that). Only facts are taken over: no drawings, no
+photos, no file names of them, no text except the short notes of the data tables.
+
 ## What may be used how
 
 - **Facts and dimensions** (lengths, masses, armor, speeds, calibers) are not

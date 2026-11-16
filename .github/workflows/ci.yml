@@ -50,6 +50,12 @@ jobs:
       - name: Headless run
         run: cargo run -p cli -- run --ticks 1000 --seed 42
 
+      # Vehicle database (prompt 064): schema, index and agreement with the
+      # catalog. Plain Python 3, no reference folder needed.
+      - name: Vehicle database
+        if: runner.os == 'Linux'
+        run: python3 tools/vehicle_refs.py --check
+
   # Performance (prompt 016, docs/PERFORMANCE.md): the overall benchmark on
   # one runner. Informational only: shared CI machines are too noisy for a
   # hard limit, so this job never blocks a merge. The table lands in the
