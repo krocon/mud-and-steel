@@ -239,7 +239,7 @@ impl Ai {
                 .is_some_and(|&t| view.own.iter().any(|u| u.alive() && u.unit_type == t))
         };
         let n = self.eco.next[1];
-        if options.len() > 6 && n >= 3 && n % 3 == 0 && !have(6) {
+        if options.len() > 6 && n >= 3 && n.is_multiple_of(3) && !have(6) {
             return 6;
         }
         if n % 6 == 1 && !have(0) {

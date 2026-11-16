@@ -57,6 +57,10 @@ const CREEP_TICKS: u64 = 200;
 const WATCH_TICKS: u64 = 60;
 const ADVANCE_M: i32 = 12;
 const ADVANCING_TICKS: u64 = 300;
+/// An assault without contact for this long hands over to the group
+/// logic for `PUSH_TICKS`.
+const ASSAULT_MAX_TICKS: u64 = 1200;
+const PUSH_TICKS: u64 = 2400;
 /// A fight is reviewed after this long (ticks).
 const REVIEW_TICKS: u64 = 300;
 /// Below this share (percent) of damage dealt to damage taken the army
@@ -105,6 +109,9 @@ pub(crate) struct ArmyPlan {
     /// as advancing.
     watch: Option<(Vec2, u64)>,
     advancing_until: u64,
+    /// Until then the group logic leads (after an assault without
+    /// contact).
+    push_until: u64,
     /// Distance of the staging point from the front.
     reach: Option<Fixed>,
     /// Distance of the assault after creeping closer.
@@ -234,7 +241,7 @@ impl Ai {
             };
             let r = reach * (10 - shrink) / 10;
             let stage = front.center + dir.scale(r);
-            let mut score: i64 = -15 * i64::from(shrink);
+            let mut score: i64 = -15 * shrink;
             // Hulls towards us cost, flanks and rear gain (-100..100).
             if front.facing != Vec2::ZERO {
                 score -= (dot(front.facing, dir) * 100).to_num::<i64>();
@@ -351,6 +358,11 @@ impl Ai {
             self.army.axis = None;
             return false;
         };
+        // An assault that found nothing to shoot for long pushes on with
+        // the group logic (attack-move to the sightings, buildings too).
+        if tick < self.army.push_until {
+            return false;
+        }
         let threat = self.reach_of(&front, role, range);
         let d = dist(center, front.center);
         // Base matches: the group logic holds the army (and defends) until
@@ -483,6 +495,11 @@ impl Ai {
         if self.army.phase != Phase::Assault {
             self.army.creep = None;
             self.army.since = tick;
+        } else if tick > self.army.since + ASSAULT_MAX_TICKS {
+            self.army.push_until = tick + PUSH_TICKS;
+            self.army.phase = Phase::Free;
+            self.army.axis = None;
+            return false;
         }
         self.army.phase = Phase::Assault;
         let mut close = if role == Role::Armor && threat == Fixed::ZERO {
