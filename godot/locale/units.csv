@@ -259,6 +259,7 @@ UNIT_CAT_TRUCK,Truck,Lkw
 UNIT_CAT_RECON_VEHICLE,Scout car,Spähwagen
 UNIT_CAT_SELF_PROPELLED,Self-propelled gun,Selbstfahrlafette
 UNIT_CAT_BRIDGELAYER,Bridge-laying tank,Brückenleger
+UNIT_CAT_ROCKET_LAUNCHER,Rocket launcher,Raketenwerfer
 UNIT_CAT_GUN_AT,Anti-tank gun,Pak
 UNIT_CAT_GUN_AA_LIGHT,Light anti-aircraft gun,Leichte Flak
 UNIT_CAT_GUN_AA_HEAVY,Heavy anti-aircraft gun,Schwere Flak

@@ -3644,6 +3644,423 @@
         "build_game_s_x10": 413
       }
     },
+    "de_pzwerfer42": {
+      "id": "de_pzwerfer42",
+      "category": "rocket_launcher",
+      "ratings": {
+        "speed": 55,
+        "protection": 17,
+        "anti_vehicle": 0,
+        "anti_infantry": 1,
+        "anti_structure": 90
+      },
+      "movement": {
+        "road_game_mps_x10": 222,
+        "offroad_game_mps_x10": 111,
+        "road_real_kmh_x10": 400,
+        "offroad_real_kmh_x10": 200,
+        "hull_turn_game_deg_per_s": 60,
+        "mud_speed_pct": 50,
+        "snow_speed_pct": 65,
+        "max_grade_pct": 60,
+        "steepest_grade_speed_pct": 20,
+        "crushes": [
+          "env_fence_wood"
+        ]
+      },
+      "protection": {
+        "hp": 1000,
+        "armor_hull_mm": [15, 8, 8],
+        "hull_front_slope_deg": 0,
+        "hull_front_effective_mm": 15,
+        "hurt_by_fragments": true,
+        "versus": [
+          {
+            "weapon": "rifle",
+            "name": "Kar98k",
+            "range_real_m": 300,
+            "hits_to_destroy": 167,
+            "hull_front_real_m": -1,
+            "hull_side_real_m": 300,
+            "hull_rear_real_m": 300
+          },
+          {
+            "weapon": "machine_gun",
+            "name": "MG 42",
+            "range_real_m": 400,
+            "hits_to_destroy": 167,
+            "hull_front_real_m": -1,
+            "hull_side_real_m": 400,
+            "hull_rear_real_m": 400
+          },
+          {
+            "weapon": "gun_37mm",
+            "name": "37 mm Gun M6",
+            "range_real_m": 500,
+            "hits_to_destroy": 8,
+            "hull_front_real_m": 500,
+            "hull_side_real_m": 500,
+            "hull_rear_real_m": 500
+          },
+          {
+            "weapon": "gun_57mm",
+            "name": "57 mm Gun M1 (L/50)",
+            "range_real_m": 700,
+            "hits_to_destroy": 4,
+            "hull_front_real_m": 700,
+            "hull_side_real_m": 700,
+            "hull_rear_real_m": 700
+          },
+          {
+            "weapon": "gun_75mm",
+            "name": "7.5 cm PaK 40 L/46",
+            "range_real_m": 700,
+            "hits_to_destroy": 2,
+            "hull_front_real_m": 700,
+            "hull_side_real_m": 700,
+            "hull_rear_real_m": 700
+          },
+          {
+            "weapon": "gun_88mm",
+            "name": "8.8 cm KwK 36 L/56",
+            "range_real_m": 1000,
+            "hits_to_destroy": 2,
+            "hull_front_real_m": 1000,
+            "hull_side_real_m": 1000,
+            "hull_rear_real_m": 1000
+          },
+          {
+            "weapon": "rocket_launcher",
+            "name": "8.8 cm RPzB 54 Panzerschreck",
+            "range_real_m": 100,
+            "hits_to_destroy": 2,
+            "hull_front_real_m": 100,
+            "hull_side_real_m": 100,
+            "hull_rear_real_m": 100
+          }
+        ]
+      },
+      "indirect": {
+        "name": "15 cm Panzerwerfer 42 (10 tubes)",
+        "caliber_mm_x10": 1500,
+        "range_game_m": 863,
+        "range_real_m": 6900,
+        "min_range_game_m": 173,
+        "setup_game_s_x10": 150,
+        "shots_per_game_min_x10": 80,
+        "blast_radius_game_m_x10": 300,
+        "soldier_damage": 100,
+        "direct_hit_damage": 2250,
+        "direct_hit_roof_mm": 37,
+        "smoke": true
+      },
+      "against_infantry": {
+        "soldier_hp": 100,
+        "blast_radius_game_m_x10": 300,
+        "soldiers_per_game_min_x10": 80
+      },
+      "against_structures": {
+        "min_caliber_mm": 20,
+        "effective": true,
+        "damage_per_hit": 2250,
+        "damage_per_game_min": 18000,
+        "objects": [
+          {
+            "id": "env_tree_deciduous",
+            "hp": 400,
+            "hits": 1
+          },
+          {
+            "id": "env_wall_stone",
+            "hp": 1200,
+            "hits": 1
+          },
+          {
+            "id": "env_house_farm",
+            "hp": 2500,
+            "hits": 2
+          },
+          {
+            "id": "env_house_farm_brick",
+            "hp": 3000,
+            "hits": 2
+          }
+        ]
+      },
+      "other": {
+        "sight_game_m": 500,
+        "sight_real_m": 2000,
+        "ammo_salvos": 12,
+        "ammo_game_min_x10": 15,
+        "fuel_game_m": 6500,
+        "fuel_real_km": 130,
+        "crew": 3,
+        "cost": [28, 385, 18],
+        "build_game_s_x10": 618
+      }
+    },
+    "de_sturmpanzer4": {
+      "id": "de_sturmpanzer4",
+      "category": "assault_gun",
+      "ratings": {
+        "speed": 59,
+        "protection": 46,
+        "anti_vehicle": 100,
+        "anti_infantry": 34,
+        "anti_structure": 45
+      },
+      "movement": {
+        "road_game_mps_x10": 222,
+        "offroad_game_mps_x10": 133,
+        "road_real_kmh_x10": 400,
+        "offroad_real_kmh_x10": 240,
+        "hull_turn_game_deg_per_s": 60,
+        "gun_traverse_deg": 30,
+        "mud_speed_pct": 65,
+        "snow_speed_pct": 75,
+        "max_grade_pct": 60,
+        "steepest_grade_speed_pct": 20,
+        "crushes": [
+          "env_fence_wood",
+          "fort_barbed_wire"
+        ]
+      },
+      "protection": {
+        "hp": 1000,
+        "armor_hull_mm": [80, 30, 20],
+        "armor_turret_mm": [100, 50, 30],
+        "hull_front_slope_deg": 0,
+        "hull_front_effective_mm": 80,
+        "hurt_by_fragments": false,
+        "versus": [
+          {
+            "weapon": "rifle",
+            "name": "Kar98k",
+            "range_real_m": 300,
+            "hits_to_destroy": 167,
+            "hull_front_real_m": -1,
+            "hull_side_real_m": -1,
+            "hull_rear_real_m": -1,
+            "turret_front_real_m": -1,
+            "turret_side_real_m": -1,
+            "turret_rear_real_m": -1
+          },
+          {
+            "weapon": "machine_gun",
+            "name": "MG 42",
+            "range_real_m": 400,
+            "hits_to_destroy": 167,
+            "hull_front_real_m": -1,
+            "hull_side_real_m": -1,
+            "hull_rear_real_m": -1,
+            "turret_front_real_m": -1,
+            "turret_side_real_m": -1,
+            "turret_rear_real_m": -1
+          },
+          {
+            "weapon": "gun_37mm",
+            "name": "37 mm Gun M6",
+            "range_real_m": 500,
+            "hits_to_destroy": 8,
+            "hull_front_real_m": 120,
+            "hull_side_real_m": 500,
+            "hull_rear_real_m": 500,
+            "turret_front_real_m": -1,
+            "turret_side_real_m": 500,
+            "turret_rear_real_m": 500
+          },
+          {
+            "weapon": "gun_57mm",
+            "name": "57 mm Gun M1 (L/50)",
+            "range_real_m": 700,
+            "hits_to_destroy": 4,
+            "hull_front_real_m": 700,
+            "hull_side_real_m": 700,
+            "hull_rear_real_m": 700,
+            "turret_front_real_m": 590,
+            "turret_side_real_m": 700,
+            "turret_rear_real_m": 700
+          },
+          {
+            "weapon": "gun_75mm",
+            "name": "7.5 cm PaK 40 L/46",
+            "range_real_m": 700,
+            "hits_to_destroy": 2,
+            "hull_front_real_m": 700,
+            "hull_side_real_m": 700,
+            "hull_rear_real_m": 700,
+            "turret_front_real_m": 700,
+            "turret_side_real_m": 700,
+            "turret_rear_real_m": 700
+          },
+          {
+            "weapon": "gun_88mm",
+            "name": "8.8 cm KwK 36 L/56",
+            "range_real_m": 1000,
+            "hits_to_destroy": 2,
+            "hull_front_real_m": 1000,
+            "hull_side_real_m": 1000,
+            "hull_rear_real_m": 1000,
+            "turret_front_real_m": 1000,
+            "turret_side_real_m": 1000,
+            "turret_rear_real_m": 1000
+          },
+          {
+            "weapon": "rocket_launcher",
+            "name": "8.8 cm RPzB 54 Panzerschreck",
+            "range_real_m": 100,
+            "hits_to_destroy": 2,
+            "hull_front_real_m": 100,
+            "hull_side_real_m": 100,
+            "hull_rear_real_m": 100,
+            "turret_front_real_m": 100,
+            "turret_side_real_m": 100,
+            "turret_rear_real_m": 100
+          }
+        ]
+      },
+      "weapons": [
+        {
+          "name": "15 cm StuH 43 L/12",
+          "count": 1,
+          "caliber_mm_x10": 1500,
+          "range_game_m": 125,
+          "range_real_m": 500,
+          "shots_per_game_min_x10": 40,
+          "automatic": false,
+          "shaped_charge": true,
+          "penetration_mm": [240, 240, 240, 240],
+          "vehicle_damage": 2250,
+          "hits_to_destroy_vehicle": 1,
+          "infantry_damage": 1200,
+          "damages_objects": true
+        },
+        {
+          "name": "MG 34 (ball mount)",
+          "count": 1,
+          "caliber_mm_x10": 79,
+          "range_game_m": 100,
+          "range_real_m": 400,
+          "shots_per_game_min_x10": 4000,
+          "automatic": true,
+          "shaped_charge": false,
+          "penetration_mm": [14, 12, 11, 10],
+          "vehicle_damage": 6,
+          "hits_to_destroy_vehicle": 167,
+          "infantry_damage": 63,
+          "damages_objects": false
+        }
+      ],
+      "against_vehicles": {
+        "weapon": "15 cm StuH 43 L/12",
+        "distance_real_m": 500,
+        "penetration_mm": 240,
+        "hits_to_destroy": 1,
+        "targets": [
+          {
+            "id": "su_t70m",
+            "hull_front": true,
+            "hull_front_real_m": 500,
+            "hull_side": true,
+            "hull_side_real_m": 500,
+            "hull_rear": true,
+            "hull_rear_real_m": 500
+          },
+          {
+            "id": "su_t34_76_1943",
+            "hull_front": true,
+            "hull_front_real_m": 500,
+            "hull_side": true,
+            "hull_side_real_m": 500,
+            "hull_rear": true,
+            "hull_rear_real_m": 500
+          },
+          {
+            "id": "su_is2",
+            "hull_front": true,
+            "hull_front_real_m": 500,
+            "hull_side": true,
+            "hull_side_real_m": 500,
+            "hull_rear": true,
+            "hull_rear_real_m": 500
+          },
+          {
+            "id": "us_m5a1",
+            "hull_front": true,
+            "hull_front_real_m": 500,
+            "hull_side": true,
+            "hull_side_real_m": 500,
+            "hull_rear": true,
+            "hull_rear_real_m": 500
+          },
+          {
+            "id": "us_m4a3_75",
+            "hull_front": true,
+            "hull_front_real_m": 500,
+            "hull_side": true,
+            "hull_side_real_m": 500,
+            "hull_rear": true,
+            "hull_rear_real_m": 500
+          },
+          {
+            "id": "us_m26",
+            "hull_front": true,
+            "hull_front_real_m": 500,
+            "hull_side": true,
+            "hull_side_real_m": 500,
+            "hull_rear": true,
+            "hull_rear_real_m": 500
+          }
+        ]
+      },
+      "against_infantry": {
+        "soldier_hp": 100,
+        "damage_per_hit": 1200,
+        "hits_per_soldier": 1,
+        "automatic_weapons": 1,
+        "automatic_shots_per_game_min_x10": 4000,
+        "soldiers_per_game_min_x10": 2040
+      },
+      "against_structures": {
+        "min_caliber_mm": 20,
+        "effective": true,
+        "damage_per_hit": 2250,
+        "damage_per_game_min": 9000,
+        "objects": [
+          {
+            "id": "env_tree_deciduous",
+            "hp": 400,
+            "hits": 1
+          },
+          {
+            "id": "env_wall_stone",
+            "hp": 1200,
+            "hits": 1
+          },
+          {
+            "id": "env_house_farm",
+            "hp": 2500,
+            "hits": 2
+          },
+          {
+            "id": "env_house_farm_brick",
+            "hp": 3000,
+            "hits": 2
+          }
+        ]
+      },
+      "other": {
+        "sight_game_m": 500,
+        "sight_real_m": 2000,
+        "ammo_salvos": 38,
+        "ammo_game_min_x10": 95,
+        "fuel_game_m": 10500,
+        "fuel_real_km": 210,
+        "crew": 5,
+        "cost": [112, 210, 30],
+        "build_game_s_x10": 520
+      }
+    },
     "de_pak40": {
       "id": "de_pak40",
       "category": "gun_at",
@@ -7905,6 +8322,138 @@
         "passengers": 25,
         "cost": [12, 10, 6],
         "build_game_s_x10": 115
+      }
+    },
+    "su_bm13": {
+      "id": "su_bm13",
+      "category": "rocket_launcher",
+      "ratings": {
+        "speed": 64,
+        "protection": 10,
+        "anti_vehicle": 0,
+        "anti_infantry": 1,
+        "anti_structure": 69
+      },
+      "movement": {
+        "road_game_mps_x10": 278,
+        "offroad_game_mps_x10": 111,
+        "road_real_kmh_x10": 500,
+        "offroad_real_kmh_x10": 200,
+        "hull_turn_game_deg_per_s": 60,
+        "mud_speed_pct": 20,
+        "snow_speed_pct": 40,
+        "max_grade_pct": 60,
+        "steepest_grade_speed_pct": 20,
+        "crushes": [
+          "env_fence_wood"
+        ]
+      },
+      "protection": {
+        "hp": 1000,
+        "unarmored": true,
+        "hurt_by_fragments": true,
+        "versus": [
+          {
+            "weapon": "rifle",
+            "name": "Kar98k",
+            "range_real_m": 300,
+            "hits_to_destroy": 167
+          },
+          {
+            "weapon": "machine_gun",
+            "name": "MG 42",
+            "range_real_m": 400,
+            "hits_to_destroy": 167
+          },
+          {
+            "weapon": "gun_37mm",
+            "name": "37 mm Gun M6",
+            "range_real_m": 500,
+            "hits_to_destroy": 8
+          },
+          {
+            "weapon": "gun_57mm",
+            "name": "57 mm Gun M1 (L/50)",
+            "range_real_m": 700,
+            "hits_to_destroy": 4
+          },
+          {
+            "weapon": "gun_75mm",
+            "name": "7.5 cm PaK 40 L/46",
+            "range_real_m": 700,
+            "hits_to_destroy": 2
+          },
+          {
+            "weapon": "gun_88mm",
+            "name": "8.8 cm KwK 36 L/56",
+            "range_real_m": 1000,
+            "hits_to_destroy": 2
+          },
+          {
+            "weapon": "rocket_launcher",
+            "name": "8.8 cm RPzB 54 Panzerschreck",
+            "range_real_m": 100,
+            "hits_to_destroy": 2
+          }
+        ]
+      },
+      "indirect": {
+        "name": "BM-13-16 launcher (16 rails)",
+        "caliber_mm_x10": 1320,
+        "range_game_m": 1093,
+        "range_real_m": 8740,
+        "min_range_game_m": 219,
+        "setup_game_s_x10": 150,
+        "shots_per_game_min_x10": 80,
+        "blast_radius_game_m_x10": 264,
+        "soldier_damage": 100,
+        "direct_hit_damage": 1742,
+        "direct_hit_roof_mm": 33,
+        "smoke": false
+      },
+      "against_infantry": {
+        "soldier_hp": 100,
+        "blast_radius_game_m_x10": 264,
+        "soldiers_per_game_min_x10": 80
+      },
+      "against_structures": {
+        "min_caliber_mm": 20,
+        "effective": true,
+        "damage_per_hit": 1742,
+        "damage_per_game_min": 13936,
+        "objects": [
+          {
+            "id": "env_tree_deciduous",
+            "hp": 400,
+            "hits": 1
+          },
+          {
+            "id": "env_wall_stone",
+            "hp": 1200,
+            "hits": 1
+          },
+          {
+            "id": "env_house_farm",
+            "hp": 2500,
+            "hits": 2
+          },
+          {
+            "id": "env_house_farm_brick",
+            "hp": 3000,
+            "hits": 2
+          }
+        ]
+      },
+      "other": {
+        "sight_game_m": 500,
+        "sight_real_m": 2000,
+        "ammo_salvos": 12,
+        "ammo_game_min_x10": 15,
+        "fuel_game_m": 9000,
+        "fuel_real_km": 180,
+        "crew": 6,
+        "cost": [28, 300, 36],
+        "build_game_s_x10": 535
       }
     },
     "su_ba64b": {
@@ -12378,6 +12927,184 @@
         "crew": 5,
         "cost": [124, 107, 30],
         "build_game_s_x10": 406
+      }
+    },
+    "us_t34_calliope": {
+      "id": "us_t34_calliope",
+      "category": "rocket_launcher",
+      "ratings": {
+        "speed": 62,
+        "protection": 48,
+        "anti_vehicle": 0,
+        "anti_infantry": 2,
+        "anti_structure": 77
+      },
+      "movement": {
+        "road_game_mps_x10": 233,
+        "offroad_game_mps_x10": 139,
+        "road_real_kmh_x10": 420,
+        "offroad_real_kmh_x10": 250,
+        "hull_turn_game_deg_per_s": 60,
+        "mud_speed_pct": 65,
+        "snow_speed_pct": 75,
+        "max_grade_pct": 60,
+        "steepest_grade_speed_pct": 20,
+        "crushes": [
+          "env_fence_wood",
+          "fort_barbed_wire"
+        ]
+      },
+      "protection": {
+        "hp": 1000,
+        "armor_hull_mm": [64, 38, 38],
+        "armor_turret_mm": [76, 51, 51],
+        "hull_front_slope_deg": 47,
+        "hull_front_effective_mm": 94,
+        "hurt_by_fragments": false,
+        "versus": [
+          {
+            "weapon": "rifle",
+            "name": "Kar98k",
+            "range_real_m": 300,
+            "hits_to_destroy": 167,
+            "hull_front_real_m": -1,
+            "hull_side_real_m": -1,
+            "hull_rear_real_m": -1,
+            "turret_front_real_m": -1,
+            "turret_side_real_m": -1,
+            "turret_rear_real_m": -1
+          },
+          {
+            "weapon": "machine_gun",
+            "name": "MG 42",
+            "range_real_m": 400,
+            "hits_to_destroy": 167,
+            "hull_front_real_m": -1,
+            "hull_side_real_m": -1,
+            "hull_rear_real_m": -1,
+            "turret_front_real_m": -1,
+            "turret_side_real_m": -1,
+            "turret_rear_real_m": -1
+          },
+          {
+            "weapon": "gun_37mm",
+            "name": "37 mm Gun M6",
+            "range_real_m": 500,
+            "hits_to_destroy": 8,
+            "hull_front_real_m": -1,
+            "hull_side_real_m": 500,
+            "hull_rear_real_m": 500,
+            "turret_front_real_m": 360,
+            "turret_side_real_m": 500,
+            "turret_rear_real_m": 500
+          },
+          {
+            "weapon": "gun_57mm",
+            "name": "57 mm Gun M1 (L/50)",
+            "range_real_m": 700,
+            "hits_to_destroy": 4,
+            "hull_front_real_m": 700,
+            "hull_side_real_m": 700,
+            "hull_rear_real_m": 700,
+            "turret_front_real_m": 700,
+            "turret_side_real_m": 700,
+            "turret_rear_real_m": 700
+          },
+          {
+            "weapon": "gun_75mm",
+            "name": "7.5 cm PaK 40 L/46",
+            "range_real_m": 700,
+            "hits_to_destroy": 2,
+            "hull_front_real_m": 700,
+            "hull_side_real_m": 700,
+            "hull_rear_real_m": 700,
+            "turret_front_real_m": 700,
+            "turret_side_real_m": 700,
+            "turret_rear_real_m": 700
+          },
+          {
+            "weapon": "gun_88mm",
+            "name": "8.8 cm KwK 36 L/56",
+            "range_real_m": 1000,
+            "hits_to_destroy": 2,
+            "hull_front_real_m": 1000,
+            "hull_side_real_m": 1000,
+            "hull_rear_real_m": 1000,
+            "turret_front_real_m": 1000,
+            "turret_side_real_m": 1000,
+            "turret_rear_real_m": 1000
+          },
+          {
+            "weapon": "rocket_launcher",
+            "name": "8.8 cm RPzB 54 Panzerschreck",
+            "range_real_m": 100,
+            "hits_to_destroy": 2,
+            "hull_front_real_m": 100,
+            "hull_side_real_m": 100,
+            "hull_rear_real_m": 100,
+            "turret_front_real_m": 100,
+            "turret_side_real_m": 100,
+            "turret_rear_real_m": 100
+          }
+        ]
+      },
+      "indirect": {
+        "name": "Rocket Launcher T34 (60 tubes)",
+        "caliber_mm_x10": 1140,
+        "range_game_m": 525,
+        "range_real_m": 4200,
+        "min_range_game_m": 105,
+        "setup_game_s_x10": 150,
+        "shots_per_game_min_x10": 120,
+        "blast_radius_game_m_x10": 228,
+        "soldier_damage": 100,
+        "direct_hit_damage": 1299,
+        "direct_hit_roof_mm": 28,
+        "smoke": false
+      },
+      "against_infantry": {
+        "soldier_hp": 100,
+        "blast_radius_game_m_x10": 228,
+        "soldiers_per_game_min_x10": 120
+      },
+      "against_structures": {
+        "min_caliber_mm": 20,
+        "effective": true,
+        "damage_per_hit": 1299,
+        "damage_per_game_min": 15588,
+        "objects": [
+          {
+            "id": "env_tree_deciduous",
+            "hp": 400,
+            "hits": 1
+          },
+          {
+            "id": "env_wall_stone",
+            "hp": 1200,
+            "hits": 1
+          },
+          {
+            "id": "env_house_farm",
+            "hp": 2500,
+            "hits": 2
+          },
+          {
+            "id": "env_house_farm_brick",
+            "hp": 3000,
+            "hits": 3
+          }
+        ]
+      },
+      "other": {
+        "sight_game_m": 500,
+        "sight_real_m": 2000,
+        "ammo_salvos": 12,
+        "ammo_game_min_x10": 10,
+        "fuel_game_m": 8050,
+        "fuel_real_km": 161,
+        "crew": 5,
+        "cost": [134, 226, 30],
+        "build_game_s_x10": 567
       }
     },
     "us_m3_halftrack": {

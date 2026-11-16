@@ -37,7 +37,7 @@ const CATEGORY_NAMES = {
   inf_command: 'Führungstrupp', inf_crew: 'Besatzung',
   tank_light: 'leichter Panzer', tank_medium: 'mittlerer Panzer', tank_heavy: 'schwerer Panzer',
   tank_destroyer: 'Jagdpanzer', assault_gun: 'Sturmgeschütz', halftrack: 'Halbkette',
-  truck: 'Lkw', recon_vehicle: 'Spähwagen', self_propelled: 'Selbstfahrlafette',
+  truck: 'Lkw', recon_vehicle: 'Spähwagen', self_propelled: 'Selbstfahrlafette', rocket_launcher: 'Raketenwerfer',
   bridgelayer: 'Brückenleger',
   gun_at: 'Pak', gun_aa_light: 'leichte Flak', gun_aa_heavy: 'schwere Flak',
   gun_howitzer: 'Haubitze', mortar_heavy: 'schwerer Granatwerfer',

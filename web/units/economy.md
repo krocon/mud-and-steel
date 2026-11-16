@@ -42,6 +42,8 @@
 | Vehicle works | `de_pak40` | 0 | 206 | 36 | 38.2 |
 | Vehicle works | `de_lefh18` | 0 | 193 | 36 | 36.6 |
 | Vehicle works | `de_brueckenleger4` | 112 | 10 | 12 | 24.7 |
+| Vehicle works | `de_sturmpanzer4` | 112 | 210 | 30 | 52.0 |
+| Vehicle works | `de_pzwerfer42` | 28 | 385 | 18 | 61.8 |
 | Vehicle works | `su_ba64b` | 9 | 11 | 12 | 12.0 |
 | Vehicle works | `su_t70m` | 39 | 36 | 12 | 18.8 |
 | Vehicle works | `su_t34_76_1943` | 123 | 85 | 24 | 37.0 |
@@ -52,6 +54,7 @@
 | Vehicle works | `su_zis3` | 0 | 161 | 42 | 33.3 |
 | Vehicle works | `su_m30` | 0 | 258 | 48 | 46.2 |
 | Vehicle works | `su_valentine_bridgelayer` | 80 | 10 | 12 | 20.7 |
+| Vehicle works | `su_bm13` | 28 | 300 | 36 | 53.5 |
 | Vehicle works | `us_m8_greyhound` | 29 | 46 | 24 | 20.3 |
 | Vehicle works | `us_m3_halftrack` | 36 | 11 | 6 | 14.6 |
 | Vehicle works | `us_m4a3_75` | 126 | 103 | 30 | 40.3 |
@@ -61,3 +64,5 @@
 | Vehicle works | `us_gmc_cckw` | 29 | 10 | 12 | 14.3 |
 | Vehicle works | `us_57mm_m1` | 0 | 131 | 42 | 29.6 |
 | Vehicle works | `us_m2a1_105` | 0 | 193 | 48 | 38.1 |
+| Vehicle works | `us_m4a3_105` | 124 | 107 | 30 | 40.6 |
+| Vehicle works | `us_t34_calliope` | 134 | 226 | 30 | 56.7 |

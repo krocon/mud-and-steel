@@ -13,6 +13,7 @@ extends Node3D
 signal shell_incoming(position: Vector3, caliber_mm: float, smoke: bool)
 
 const EffectTextures := preload("res://scenes/world/effect_textures.gd")
+const Effects := preload("res://scenes/world/effects.gd")
 ## Seconds before the impact at which `shell_incoming` fires.
 const WHISTLE_SECONDS := 1.5
 ## Drawn shell size per mm of caliber (exaggerated so it can be seen).
@@ -22,6 +23,10 @@ const MARKER_COLOR := Color(1.0, 0.35, 0.2, 0.8)
 const MARKER_SMOKE_COLOR := Color(0.85, 0.85, 0.85, 0.8)
 ## Puffs per cloud and their look.
 const PUFFS := 9
+## Smoke trail of vehicle rockets (prompt 062): puffs this far apart (s)
+## while the motor burns, the first seconds of the flight.
+const TRAIL_INTERVAL_S := 0.08
+const TRAIL_BURN_S := 1.2
 const SMOKE_COLOR := Color(0.78, 0.78, 0.76)
 ## Fire smoke (prompt 041): dark, oily.
 const FIRE_SMOKE_COLOR := Color(0.16, 0.15, 0.14)
@@ -46,6 +51,8 @@ var _dark_puff_mesh: QuadMesh
 ## units of the radius).
 var _clouds: Dictionary[int, Array] = {}
 var _whistled: Dictionary[int, bool] = {}
+## Rocket id -> time (ms) of its last trail puff (prompt 062).
+var _trail_last: Dictionary[int, int] = {}
 
 
 func setup(main_node: Node3D) -> void:
@@ -135,6 +142,7 @@ func _draw_shells() -> void:
 			_markers[i].material_override = _marker_smoke_material if smoke else _marker_material
 			_markers[i].transform = Transform3D(Basis.IDENTITY.scaled(Vector3(radius, 0.2, radius) * pulse), targets[i] + Vector3.UP * 0.3)
 		live[ids[i]] = true
+		_rocket_trail(ids[i], at, velocity)
 		if left[i] <= WHISTLE_SECONDS and not _whistled.has(ids[i]):
 			_whistled[ids[i]] = true
 			incoming += 1
@@ -142,7 +150,24 @@ func _draw_shells() -> void:
 	for id in _whistled.keys():
 		if not live.has(id):
 			_whistled.erase(id)
+	for id in _trail_last.keys():
+		if not live.has(id):
+			_trail_last.erase(id)
 	shells_drawn = positions.size()
+
+
+## Smoke trail of a rocket of a vehicle launcher while its motor burns
+## (prompt 062; the launch is marked by `effects.gd`). Prompt 076 builds
+## the real rocket look.
+func _rocket_trail(id: int, at: Vector3, velocity: Vector3) -> void:
+	var effects := main.get("effects") as Effects if main != null else null
+	if effects == null or effects.rocket_age(id) > TRAIL_BURN_S:
+		return
+	var now := Time.get_ticks_msec()
+	if now - int(_trail_last.get(id, -100000)) < int(TRAIL_INTERVAL_S * 1000.0):
+		return
+	_trail_last[id] = now
+	effects.rocket_trail(at, velocity)
 
 
 func _grow(pool: Array[MeshInstance3D], count: int, mesh: Mesh) -> void:

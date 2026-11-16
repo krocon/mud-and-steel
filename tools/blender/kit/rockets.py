@@ -4,9 +4,9 @@ rocket launchers (15 cm Panzerwerfer 42, BM-13-16, T34 Calliope).
 One generic part, `rocket_rack`: a block of `rows` x `cols` tubes or rails,
 raised by `elevation_deg` around its rear edge and turned by `yaw_deg`,
 with an optional frame around it. Parented to `Hull` (fixed racks) or
-`Turret` (racks that turn with the turret). Adds `Socket_Muzzle` at the
-front center of the block: the presentation fires its launch flash there
-(prompt 019 effects) for every rocket of a salvo.
+`Turret` (racks that turn with the turret). Adds `Socket_Rocket_NN` at the
+front center of the block: the presentation (`godot/scenes/world/effects.gd`)
+shows the launch of every rocket of a salvo there and starts its trail.
 """
 
 import math
@@ -45,9 +45,9 @@ def rocket_rack(model, p, ctx):
       `parent = "Turret"` and no turret yet, `turret_pivot` [x, y, z] (center
       of the turntable) creates `Turret` on `Hull`: the launcher of the
       Panzerwerfer 42 turns on its roof like a turret
-    - `muzzle` (default true): `Socket_Muzzle` at the front center;
-      `muzzle_name` names it differently (the Calliope's tank gun has the
-      `Socket_Muzzle`, its launcher `Socket_Rocket_01`)
+    - `muzzle` (default true): `Socket_Rocket_01` at the front center, where
+      the presentation shows every launch of a salvo (prompt 062; the tank
+      gun of the Calliope keeps its `Socket_Muzzle`)
     """
     parent = p.get("parent", "Hull")
     if parent == "Turret" and not model.has("Turret"):
@@ -103,7 +103,6 @@ def rocket_rack(model, p, ctx):
             for z in (-0.02, top + 0.02):
                 mb.cylinder(at(-side, y, z), at(side, y, z), 0.03, seg=4, mat="Metal", smooth=False,
                             phase=math.pi / 4)
-    muzzle_name = p.get("muzzle_name", "Socket_Muzzle")
     if p.get("muzzle", True):
-        model.socket(muzzle_name, parent, at(0.0, length, top / 2))
+        model.socket(model.next_index("Socket_Rocket_"), parent, at(0.0, length, top / 2))
     return {"rack_top": at(0.0, length, top)}

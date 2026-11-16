@@ -746,9 +746,11 @@ func _check_units(errors: Array[String]) -> void:
 					camo_surfaces += 1
 		if camo_surfaces == 0:
 			errors.append("%s: no unit_camo surfaces" % id)
-		# unarmed vehicles (trucks) have no muzzle
-		if str(cat.get("cat_weapons", "")) != "" and model.find_child("Socket_Muzzle", true, false) == null:
-			errors.append("%s: Socket_Muzzle missing" % id)
+		# unarmed vehicles (trucks) have no muzzle; rocket launchers (prompt
+		# 062) launch from Socket_Rocket_01 on their rack
+		var muzzle_name := "Socket_Rocket_01" if str(cat.get("cat_category", "")) == "rocket_launcher" else "Socket_Muzzle"
+		if str(cat.get("cat_weapons", "")) != "" and model.find_child(muzzle_name, true, false) == null:
+			errors.append("%s: %s missing" % [id, muzzle_name])
 		if model.find_child("Decal", true, false) == null:
 			errors.append("%s: no marking decal" % id)
 		print("self-test: unit %s loaded, %d camo surfaces, %d triangles" % [id, camo_surfaces, _triangles(model)])

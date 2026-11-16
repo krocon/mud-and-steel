@@ -45,6 +45,10 @@ const TERRAIN_WATER_SHALLOW := 6
 const TERRAIN_WATER_DEEP := 7
 ## Below this caliber (mm) a round is small arms: tiny flashes and puffs.
 const SMALL_CALIBER := 20.0
+## `weapon` of shot events of indirect fire (prompt 032).
+const INDIRECT_WEAPON := 255
+## Rocket ids older than this (s) are forgotten (prompt 062).
+const ROCKET_FORGET_S := 120.0
 ## Bursts smaller than this on screen (pixels) are skipped.
 const MIN_PIXELS := 3.0
 ## A burst of this many pixels gets all its particles; smaller ones fewer.
@@ -91,8 +95,11 @@ var _decal_next := 0
 var _wrecks: Array[Dictionary] = []
 ## Unit id -> {dust, exhausts, kind, strength, last, frame}.
 var _vehicles: Dictionary[int, Dictionary] = {}
-## Unit id -> sockets of the model (muzzles, fires, exhausts).
+## Unit id -> sockets of the model (muzzles, fires, exhausts, rocket racks).
 var _sockets: Dictionary[int, Dictionary] = {}
+## Rockets of vehicle launchers in flight (prompt 062): projectile id ->
+## launch time (`_time`). `artillery_view.gd` draws their smoke trail.
+var rocket_projectiles: Dictionary[int, float] = {}
 var _index_cache: Dictionary[int, int] = {}
 var _index_frame := -1
 var _shake := 0.0
@@ -146,7 +153,8 @@ func _process_effects(delta: float) -> void:
 func on_combat_event(event: Dictionary) -> void:
 	match event["type"]:
 		"shot":
-			_shot(event["unit"], event["position"], event["caliber_mm"])
+			_shot(event["unit"], event["position"], event["caliber_mm"], int(event.get("weapon", -1)),
+					int(event.get("projectile", -1)))
 		"hit":
 			match event["surface"]:
 				"ground":
@@ -162,11 +170,59 @@ func on_combat_event(event: Dictionary) -> void:
 			destroyed(event["unit"], event["position"])
 
 
-func _shot(unit: int, sim_muzzle: Vector3, caliber: float) -> void:
-	var muzzle := _muzzle_of(unit, sim_muzzle)
+func _shot(unit: int, sim_muzzle: Vector3, caliber: float, weapon := -1, projectile := -1) -> void:
 	var index := _index_of(unit)
 	var yaw: float = _aim_yaws[index] if index >= 0 and index < _aim_yaws.size() else 0.0
-	muzzle_flash(muzzle, Vector3(-sin(yaw), 0.0, -cos(yaw)), caliber)
+	var direction := Vector3(-sin(yaw), 0.0, -cos(yaw))
+	# Rocket launchers (prompt 062): indirect shots leave the rack
+	# (`Socket_Rocket_*`), with a back blast and a smoke trail.
+	var racks: Array = _sockets_of(unit).rockets
+	if weapon == INDIRECT_WEAPON and not racks.is_empty():
+		var rack: Node3D = racks[0]
+		rocket_launch(rack.global_position, direction, caliber)
+		if projectile >= 0:
+			_note_rocket(projectile)
+		return
+	muzzle_flash(_muzzle_of(unit, sim_muzzle), direction, caliber)
+
+
+## Launch of one rocket of a salvo (prompt 062): the flash and powder smoke
+## of a gun plus the back blast of the motor, which raises dust behind the
+## launcher. Reuses the bursts of prompt 019; prompt 076 may replace it.
+func rocket_launch(at: Vector3, direction: Vector3, caliber: float) -> void:
+	muzzle_flash(at, direction, caliber * 0.6)
+	if not visible_at.call(at):
+		return
+	var back := -direction.normalized() if direction.length() > 0.01 else Vector3.BACK
+	var s := clampf(caliber / 100.0, 0.6, 1.4)
+	_burst("powder", at + back * 1.5, Basis.looking_at(back), s)
+	var ground := at + back * 3.0
+	ground.y = sim_host.height_at(ground.x, ground.z) + 0.2
+	_burst("blast_dust", ground, Basis.IDENTITY, s * 0.7, _ground_color(ground))
+
+
+## One puff of a rocket's smoke trail at `at` (called by
+## `artillery_view.gd` while the motor burns).
+func rocket_trail(at: Vector3, velocity: Vector3) -> void:
+	if not visible_at.call(at):
+		return
+	var back := -velocity.normalized() if velocity.length() > 0.01 else Vector3.UP
+	_burst("powder", at, Basis.looking_at(back, Vector3.UP if absf(back.y) < 0.99 else Vector3.RIGHT), 0.45)
+
+
+## Seconds since rocket `projectile` was launched (INF: not a rocket).
+func rocket_age(projectile: int) -> float:
+	if not rocket_projectiles.has(projectile):
+		return INF
+	return _time - rocket_projectiles[projectile]
+
+
+func _note_rocket(projectile: int) -> void:
+	rocket_projectiles[projectile] = _time
+	if rocket_projectiles.size() > 256:
+		for id: int in rocket_projectiles.keys():
+			if _time - rocket_projectiles[id] > ROCKET_FORGET_S:
+				rocket_projectiles.erase(id)
 
 
 ## Muzzle flash, powder smoke and (large guns) dust blown off the ground.
@@ -734,13 +790,14 @@ func _index_of(unit: int) -> int:
 func _sockets_of(unit: int) -> Dictionary:
 	if _sockets.has(unit):
 		return _sockets[unit]
-	var entry := {"muzzles": [], "fires": [], "exhausts": []}
+	var entry := {"muzzles": [], "fires": [], "exhausts": [], "rockets": []}
 	var node: Node3D = main._unit_nodes.get(unit)
 	var model := node.get_node_or_null("Model") if node != null else null
 	if model != null:
 		entry.muzzles = model.find_children("Socket_Muzzle*", "", true, false)
 		entry.fires = model.find_children("Socket_Fire_*", "", true, false)
 		entry.exhausts = model.find_children("Socket_Exhaust_*", "", true, false)
+		entry.rockets = model.find_children("Socket_Rocket_*", "", true, false)
 	_sockets[unit] = entry
 	return entry
 

@@ -11,6 +11,7 @@ extends RefCounted
 ## | from 20 mm in an anti-tank squad (`inf_at`: Panzerschreck, Panzerfaust, Bazooka) | `shot_rocket` |
 ## | mortar (category `inf_mortar_*` / `mortar_heavy`, or "mortar" / "GrW" in the name) | `shot_mortar` |
 ## | howitzer (category `gun_howitzer`, or `self_propelled` from 100 mm) | `shot_howitzer` |
+## | indirect fire of a `rocket_launcher` (prompt 062) | `shot_rocket` |
 ## | 20–36 mm | `shot_cannon_small` |
 ## | 37–74 mm | `shot_cannon_medium` |
 ## | from 75 mm | `shot_cannon_large` |
@@ -53,8 +54,11 @@ static func shot_class(category: String, weapon: Dictionary) -> String:
 	return shot_class_by_caliber(caliber)
 
 
-## Shells of indirect fire (prompt 032: shot events with weapon 255).
+## Shells of indirect fire (prompt 032: shot events with weapon 255);
+## rocket launchers (prompt 062) launch with `shot_rocket`.
 static func indirect_shot_class(category: String) -> String:
+	if category == "rocket_launcher":
+		return "shot_rocket"
 	return "shot_mortar" if category.begins_with("inf_mortar") or category == "mortar_heavy" else "shot_howitzer"
 
 

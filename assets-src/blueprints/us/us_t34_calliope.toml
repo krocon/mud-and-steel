@@ -283,7 +283,6 @@ pitch = [0.14, 0.14]
 length = 2.90
 diameter = 0.125
 segments = 6
-muzzle_name = "Socket_Rocket_01"
 
 [[part]]
 part = "rocket_rack"     # left jettisonable group of 12 below
