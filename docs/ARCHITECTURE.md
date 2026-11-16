@@ -1886,13 +1886,88 @@ acceptance criterion needs a run on a quiet machine to confirm.
 
 - Listening: the set was made and balanced by measurement only; levels,
   ranges and recipes want a pass by ear (`just sound-gallery`).
-- No voices, music or ambience (wind, birds; prompt 030 owns the Music and
-  Ambience buses).
+- No voices. Music and ambience: see below (prompt 030).
 - Infantry hits and deaths are silent; aircraft have no engine class yet.
 - Indirect fire (prompt 032) is wired by its interface (weapon 255,
   `shell_incoming`, `smoke` events) as described in its merge notes; it was
   not merged yet when this was written, so its sounds are tested only once
   both are in main.
+
+### Music and ambience
+
+Prompt 030. Files from `tools/audio/music.py` (`just music`, conventions in
+[ASSETS.md](ASSETS.md#music-and-ambience-prompt-030), origin in
+[SOURCES.md](SOURCES.md#sounds)).
+
+| Script | Does |
+|---|---|
+| `music.gd` | One node under the tree root for the whole run (like `ui_sound.gd`), so music plays on across scene changes. Moods `menu`, `calm`, `combat`, `victory`, `defeat`; two players on the `Music` bus cross-fade (4 s between moods, 2 s overlap between pieces). Static `play(mood)`, `stop()`, `current_mood()`. Silent with `-- --no-sound`. |
+| `match_music.gd` | Created by `battle_sound.gd`. Calm when the match is loaded (the menu piece plays on behind the loading screen), combat by intensity, victory or defeat from `match_result()`; a draw fades out. |
+| `ambience.gd` | Created by `battle_sound.gd`. Wind, insects, leaves, water, rain, birds and rumble on the `Ambience` bus. |
+
+The main menu sets `menu`; the lobbies and the map editor keep whatever
+plays.
+
+**Calm and combat.** Every combat event the player sees adds to an
+intensity (small-arms shot 0.5, gun shot from 20 mm 1.5, hit from 20 mm 1,
+destroyed unit 6) that decays with 10 s. Combat starts from 12 (a few tanks
+or squads fighting in sight) and ends below 4, at the earliest 25 s after it
+began. Fighting in the fog is heard muffled but does not change the music.
+Calm pieces have 20–60 s of silence between them; combat pieces follow one
+another.
+
+**Ambience.** Per biome (`atmosphere.preset.id`, followed at runtime) a wind
+bed, an insect bed (meadow crickets, desert cicadas, none in winter) and a
+bird set. Every 0.5 s a 7 × 7 grid around the listener (radius 40 m ×
+`hearing_scale`) reads `terrain_at` (water) and the new bridge read
+`SimHost.wood_density_at` (the decoration's wood raster, 8 m cells): water
+and leaves are one `AudioStreamPlayer3D` each at the center of their
+samples, without distance attenuation, as loud as their share of the grid
+(silent below 2 %); the position only gives the direction. Camera distance
+mixes near and far: at 60 m and closer the details (insects, leaves, water,
+birds) are full and the wind 8 dB lower; at 450 m and beyond the details are
+24 dB lower and the wind full; logarithmic in between. Birds call at wooded
+samples every few seconds (forest 2–7 s, desert 8–20 s, winter 9–24 s); any
+combat event within 250 m × `hearing_scale` of the listener silences them
+for 60 s, then they come back over 20 s. A distant rumble every 40–120 s
+from a random direction 400 m away. `rain` (0..1) is ready for the weather
+of a later prompt: a rain bed, fewer birds, quieter insects.
+
+**Memory.** Music: 7 pieces, 7.4 MB of MP3 in total, decoded while
+playing (Godot's `AudioStreamMP3` holds only the compressed data, about
+16 KB per second instead of 176 KB as PCM). Ambience: 8 beds and 18
+one-shots, 17 MB of WAV on disk, QOA in memory (about a fifth).
+
+**Self-test** (`tools/music_self_test.gd`, in `just selftest`): every mood
+has a compressed, non-looping piece; every ambience layer loads and the beds
+loop; the match starts calm, one shot does not switch, ten gun shots do,
+combat ends only after the minimum time; each biome plays its wind and
+insects; the grid hears water and wood of the map; close up the wind is
+lower and the insects louder than in the overview; birds are silent right
+after combat nearby and sing later; a rumble plays. The flow test checks
+in the demo battle of match 2 that the music switches from calm to combat
+and ends with the victory piece, and that the menu plays the menu music
+again.
+
+| Question | Decision | Why |
+|---|---|---|
+| Origin | Composed and rendered with numpy (`music.py`) | No downloads, no rights questions, reproducible. [provisional] Made without listening, kept simple and restrained; any piece can be replaced by a file in `assets-src/music/`. |
+| Format | MP3 (LAME) for music, WAV loops for ambience | No Vorbis encoder without installing one; MP3 decodes while playing. Pieces are cross-faded, not looped, so MP3's padding at the ends does not matter. Ambience loops need to be seamless: WAV. |
+| One node for music | Under the tree root, like `ui_sound.gd` | Music must not break off at scene changes (menu → loading → match). |
+| Loading screen | No own piece, the menu piece plays on | Loading takes seconds. |
+| Thresholds | Combat from 12, calm below 4 after 25 s, decay 10 s | Hysteresis against switching back and forth. [provisional] |
+| Music level | −8 dB under the bus slider | Music sits under the battle. [provisional] |
+| Wood | Bridge read of the decoration's wood raster | Trees are map objects, not a terrain type; the raster exists already. Presentation only, no sim change. |
+| Birds after combat | Silent 60 s, back over 20 s | [provisional] |
+
+Open:
+
+- Listening pass: the pieces, levels and thresholds were made by numbers.
+  The music is deliberately plain (pads, piano-like phrases, low strings,
+  timpani); it is a placeholder quality that a composer or user-provided
+  files should replace.
+- Rain waits for the weather prompt (set `ambience.rain`).
+- Ambience in the map editor, and pieces per faction or biome.
 
 ## Selection (presentation only)
 
