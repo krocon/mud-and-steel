@@ -8,6 +8,8 @@ const BIOMES: Array[String] = ["forest", "desert", "winter"]
 ## Tools: id → label.
 const TOOLS: Dictionary[String, String] = {
 	"raise": "Raise", "lower": "Lower", "smooth": "Smooth", "flatten": "Flatten",
+	# Prompt 060: mountains.
+	"ridge": "Ridge", "valley": "Valley", "terrace": "Terrace", "road": "Road on slope",
 	"paint": "Paint terrain", "river": "River", "scatter": "Vegetation / objects",
 	"place": "Place object", "erase": "Erase objects", "start0": "Start player 1",
 	"start1": "Start player 2",
@@ -19,6 +21,8 @@ const TOOLS: Dictionary[String, String] = {
 }
 ## A strongpoint click within this distance (m) of one removes it.
 const STRONGPOINT_PICK_M := 20.0
+## Mountain tools (prompt 060).
+const MOUNTAIN_TOOLS: Array[String] = ["ridge", "valley", "terrace", "road"]
 ## Start tools (prompt 037).
 const START_TOOLS: Array[String] = ["start0", "start1", "start2", "start3", "start4", "start5"]
 ## Team choices of a start: -1 none, then teams 1 to 3.

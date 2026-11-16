@@ -133,9 +133,10 @@ func select_tool(id: String) -> void:
 	main.tool = id
 	tool_buttons[id].set_pressed_no_signal(true)
 	var uses: Dictionary[String, Array] = {
-		"radius": ["raise", "lower", "smooth", "flatten", "paint", "river", "scatter", "erase"],
-		"strength": ["raise", "lower", "smooth", "flatten", "river"],
-		"density": ["scatter"], "preset": ["scatter"], "terrain": ["paint"],
+		"radius": ["raise", "lower", "smooth", "flatten", "paint", "river", "scatter", "erase"]
+			+ EditorData.MOUNTAIN_TOOLS,
+		"strength": ["raise", "lower", "smooth", "flatten", "river", "ridge", "valley", "terrace"],
+		"density": ["scatter"], "preset": ["scatter"], "terrain": ["paint", "road"],
 		"place": ["place"], "heading": ["place"],
 		"start_team": EditorData.START_TOOLS,
 	}

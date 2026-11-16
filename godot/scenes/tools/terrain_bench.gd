@@ -52,6 +52,19 @@ const MEADOW_SHOTS: Array[Dictionary] = [
 	{"name": "open_15", "focus": Vector3(-6, 0, 44), "distance": 15.0, "yaw": 0.4},
 	{"name": "open_40", "focus": Vector3(-6, 0, 44), "distance": 40.0, "yaw": 0.4},
 ]
+## Prompt 060: the mountain map (`SHOT_SET=mountains just terrain-shots <dir>
+## mountain_pass`): the pass, the serpentine and the lookout, a basin, the
+## range from above.
+const MOUNTAIN_SHOTS: Array[Dictionary] = [
+	{"name": "pass", "focus": Vector3(0, 0, 0), "distance": 600.0, "yaw": 0.0, "pitch": 30.0},
+	{"name": "serpentine", "marker": "lookout", "offset": Vector3(100, 0, 0), "distance": 260.0, "yaw": 1.3, "pitch": 40.0},
+	{"name": "serpentine_near", "marker": "lookout", "offset": Vector3(130, 0, 20), "distance": 90.0, "yaw": 2.2, "pitch": 35.0},
+	{"name": "lookout", "marker": "lookout", "distance": 120.0, "yaw": 1.6, "pitch": 25.0},
+	{"name": "basin", "focus": Vector3(0, 0, 560), "distance": 700.0, "yaw": 3.14, "pitch": 28.0},
+	{"name": "range", "focus": Vector3(-500, 0, -150), "distance": 900.0, "yaw": 0.9, "pitch": 30.0},
+	{"name": "cliffs", "focus": Vector3(450, 0, -650), "distance": 400.0, "yaw": -0.5, "pitch": 35.0},
+	{"name": "overview", "focus": Vector3(0, 0, 0), "distance": 2200.0, "yaw": 0.4, "pitch": 45.0},
+]
 const Settings := preload("res://scenes/menu/settings.gd")
 const SHOT_FRAMES := 20
 const WARMUP_FRAMES := 60
@@ -177,8 +190,9 @@ func _shots() -> void:
 	rig.edge_scroll_enabled = false
 	var half: Vector2 = main.sim_host.map_size() * 0.5
 	var meadow := OS.get_environment("SHOT_SET") == "meadow"
-	var shots := MEADOW_SHOTS if meadow else SHOTS
-	if meadow:
+	var mountains := OS.get_environment("SHOT_SET") == "mountains"
+	var shots := MEADOW_SHOTS if meadow else (MOUNTAIN_SHOTS if mountains else SHOTS)
+	if meadow or mountains:
 		# Clean ground views: no fog of war over the village, no HUD.
 		main.fog_of_war.set_fog_enabled(false)
 		main.get_node("Hud").visible = false
@@ -205,6 +219,11 @@ func _shots() -> void:
 		if shot.get("crater", false):
 			for k in 3:
 				main.terrain.debug_crater(focus + Vector3(-8.0 + 8.0 * k, 0.0, 4.0 * k), 3.0 + k, 1.0)
+		# Mountain views (prompt 060): a lower camera and longer distances.
+		if shot.has("pitch"):
+			rig.pitch_near_deg = shot["pitch"]
+			rig.pitch_far_deg = shot["pitch"]
+			rig.max_distance = maxf(rig.max_distance, shot["distance"])
 		rig.snap_to(focus, shot["distance"], shot["yaw"])
 		print("terrain-shots: view %d '%s' in frames %d..%d" % [i, shot["name"], i * SHOT_FRAMES, i * SHOT_FRAMES + SHOT_FRAMES - 1])
 		await _frames(SHOT_FRAMES)

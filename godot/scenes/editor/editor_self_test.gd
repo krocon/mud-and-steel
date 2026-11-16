@@ -7,7 +7,8 @@ extends Node
 ## 1. Opens the editor from the main menu and creates a 256 m map.
 ## 2. Uses every tool through the same stroke functions as the mouse:
 ##    raise, lower, smooth, flatten, paint (road, ford), river, objects
-##    brush, place (bridge, house, minefield), erase, both start positions; checks that
+##    brush, place (bridge, house, minefield), erase, both start positions,
+##    and the mountain tools (prompt 060); checks that
 ##    the terrain is redrawn per dab and objects and water after strokes.
 ## 3. Undo and redo (objects and heights), the check (playable), saving to
 ##    data/maps/editor_selftest/.
@@ -54,6 +55,7 @@ func _run() -> void:
 	_check(editor.map_name() == MAP_NAME and editor.map_size() == Vector2(256, 256), "new map is %s %s" % [editor.map_name(), editor.map_size()])
 	var hash_before: String = editor.validate()["map_hash"]
 	await _tools_test(scene, editor)
+	await _mountain_tools_test(scene, editor)
 	await _history_test(scene, editor)
 
 	var report: Dictionary = scene.validate_map()
@@ -172,6 +174,41 @@ func _tools_test(scene: Node3D, editor: MapEditor) -> void:
 	scene.set_start_team(1)
 	_check(editor.start_teams() == {2: 1} and scene.has_node("Start2"), "start team not changed: %s" % [editor.start_teams()])
 	await _frames(5)
+
+
+## Prompt 060: ridge, valley, terrace and a road up the ridge, east of the
+## starts (paths between them stay open).
+func _mountain_tools_test(scene: Node3D, editor: MapEditor) -> void:
+	scene.radius = 18.0
+	scene.strength = 1.0
+	scene.tool = "ridge"
+	for k in 4:
+		scene.stroke(_line(Vector2(35, -112), Vector2(70, -112), 3.0, editor), 0.5)
+	var crest := editor.height_at(52, -112)
+	_check(crest > 8.0, "ridge: crest only %.2f m" % crest)
+	_check(editor.height_at(52, -103) < crest - 2.0, "ridge: no sharp crest")
+	scene.tool = "valley"
+	scene.stroke(_line(Vector2(40, -40), Vector2(60, -40), 3.0, editor), 0.5)
+	_check(editor.height_at(50, -40) < -1.0, "valley: %.2f m" % editor.height_at(50, -40))
+	scene.tool = "terrace"
+	scene.radius = 10.0
+	scene.stroke(_points([Vector2(52, -112), Vector2(52, -112), Vector2(52, -112)], editor), 1.0)
+	var bench := editor.height_at(52, -112)
+	_check(absf(bench - roundf(bench / 5.0) * 5.0) < 0.05, "terrace: %.2f m is not on a 5 m step" % bench)
+	# A road from the foot of the ridge up its flank: never steeper than
+	# the road grade between two points 4 m apart.
+	scene.tool = "road"
+	scene.terrain_id = 2
+	scene.radius = 8.0
+	scene.stroke(_line(Vector2(30, -88), Vector2(75, -100), 2.0, editor))
+	_check(editor.terrain_at(52, -94) == 2, "road on the slope not painted")
+	var worst := 0.0
+	for k in 9:
+		var a := Vector2(34, -89).lerp(Vector2(70, -98.6), k / 9.0)
+		var b := Vector2(34, -89).lerp(Vector2(70, -98.6), (k + 1) / 9.0)
+		worst = maxf(worst, absf(editor.height_at(b.x, b.y) - editor.height_at(a.x, a.y)) / a.distance_to(b))
+	_check(worst <= scene.ROAD_GRADE + 0.03, "road grade %.2f" % worst)
+	await _frames(2)
 
 
 func _history_test(scene: Node3D, editor: MapEditor) -> void:

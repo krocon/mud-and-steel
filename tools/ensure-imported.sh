@@ -18,9 +18,9 @@ else
         fi
     done < <(grep -rhoE '^class_name [A-Za-z_][A-Za-z0-9_]*' godot --include='*.gd' --exclude-dir=.godot | awk '{print $2}' | sort -u)
 fi
-# Asset files Godot imports (audio, images, models) whose imported data is
-# missing from godot/.godot/imported (new files after a merge: the .import
-# file is committed, the imported data is not).
+# Asset files Godot imports (audio, images, models) whose imported data in
+# godot/.godot/imported is missing or older than the file (new or rebuilt
+# files after a merge: the .import file is committed, the imported data is not).
 if [[ $missing == 0 ]]; then
     while IFS= read -r file; do
         if [[ ! -f "$file.import" ]]; then
@@ -33,6 +33,19 @@ if [[ $missing == 0 ]]; then
             echo "$file is not imported yet"
             missing=1
             break
+        fi
+        # Newer than its imported data: compare with the source checksum
+        # Godot recorded (a checkout touches files without changing them);
+        # an unchanged file only gets its imported data touched.
+        if [[ -n $dest && "$file" -nt "godot/$dest" ]]; then
+            recorded=$(sed -n 's/^source_md5="\(.*\)"$/\1/p' "godot/${dest%.*}.md5" 2>/dev/null)
+            actual=$( (md5 -q "$file" 2>/dev/null || md5sum "$file") | cut -d' ' -f1)
+            if [[ "$recorded" != "$actual" ]]; then
+                echo "$file changed since its import"
+                missing=1
+                break
+            fi
+            touch "godot/$dest"
         fi
     done < <(find godot -path godot/.godot -prune -o -type f \( -name '*.wav' -o -name '*.ogg' -o -name '*.mp3' -o -name '*.png' -o -name '*.glb' -o -name '*.jpg' -o -name '*.webp' \) -print)
 fi

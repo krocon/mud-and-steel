@@ -249,6 +249,11 @@ test-maps:
     just gen-map test_large 4000 11 120 --players 6
     just gen-map twin_meadow 1000 21 120 --players 4
 
+# Generate the mountain map (prompt 060) into data/maps/mountain_pass/: basins, a pass, a serpentine, 4 starts
+[group('maps')]
+gen-mountains:
+    just gen-map mountain_pass 2000 60 1200 --players 4 --relief mountains
+
 # Generate the small-town map (prompt 041) into data/maps/town_small/
 [group('maps')]
 gen-town:
