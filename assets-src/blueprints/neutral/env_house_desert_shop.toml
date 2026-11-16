@@ -1,0 +1,52 @@
+# Three small shops behind an arcade of plastered round arches.
+# Generator: desert_house (tools/blender/kit/desert.py); plan in m from the -X/-Y corner, +X = door side.
+unit = "env_house_desert_shop"
+assembly = "env"
+
+[[variant]]
+name = "Intact"
+part = "desert_house"
+role = "intact"
+seed = 20
+plaster = 2
+coping = 0
+arches = 4
+window = [0.5, 0.55]
+blocks = [[0, 0, 4.6, 3.4, 3.6], [0, 3.4, 4.6, 6.6, 3.45], [0, 6.6, 4.6, 10, 3.6], [4.6, 0, 6.5, 10, 3.6]]
+arcade = 3
+doors = [[0, "+x", 1.7, 1.4, 0, 2.2], [1, "+x", 5.0, 1.3, 0, 2.2], [2, "+x", 8.3, 1.4, 0, 2.2]]
+windows = [[0, "+x", 2.9], [2, "+x", 7.1], [0, "-x", 1.7], [2, "-x", 8.3], [0, "-y", 2.3], [2, "+y", 2.3]]
+
+[[variant]]
+name = "Damaged"
+part = "desert_house"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 20
+plaster = 2
+coping = 0
+arches = 4
+window = [0.5, 0.55]
+blocks = [[0, 0, 4.6, 3.4, 3.6], [0, 3.4, 4.6, 6.6, 3.45], [0, 6.6, 4.6, 10, 3.6], [4.6, 0, 6.5, 10, 3.6]]
+arcade = 3
+doors = [[0, "+x", 1.7, 1.4, 0, 2.2], [1, "+x", 5.0, 1.3, 0, 2.2], [2, "+x", 8.3, 1.4, 0, 2.2]]
+windows = [[0, "+x", 2.9], [2, "+x", 7.1], [0, "-x", 1.7], [2, "-x", 8.3], [0, "-y", 2.3], [2, "+y", 2.3]]
+
+[[variant]]
+name = "Ruin"
+part = "desert_house"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 20
+plaster = 2
+coping = 0
+arches = 4
+window = [0.5, 0.55]
+blocks = [[0, 0, 4.6, 3.4, 3.6], [0, 3.4, 4.6, 6.6, 3.45], [0, 6.6, 4.6, 10, 3.6], [4.6, 0, 6.5, 10, 3.6]]
+arcade = 3
+doors = [[0, "+x", 1.7, 1.4, 0, 2.2], [1, "+x", 5.0, 1.3, 0, 2.2], [2, "+x", 8.3, 1.4, 0, 2.2]]
+windows = [[0, "+x", 2.9], [2, "+x", 7.1], [0, "-x", 1.7], [2, "-x", 8.3], [0, "-y", 2.3], [2, "+y", 2.3]]

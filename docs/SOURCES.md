@@ -66,6 +66,23 @@ In this order:
 - **Maps**: generated maps carry no real place names; signposts (open, not
   built yet) get blank boards.
 
+## Desert village (prompt 059)
+
+- **Houses, walls, mosque, police post** are generic types of North
+  African villages 1940–43 (Libya, Tunisia, Egypt) with judgement
+  dimensions; the catalog cites general references (Wikipedia: Adobe,
+  Mudbrick, Courtyard house, Flat roof, Barrel vault, Djerba, Arcade,
+  Souq, Mosque, Minaret, Italian Libya) and lists every dimension as
+  `uncertain`. Facts from literature and period photographs serve as
+  reference only; no real building is reproduced and nothing comes from
+  other games.
+- **No writing, symbols or insignia**: the mosque has no inscriptions,
+  ornaments with meaning or crescent; the police post has no insignia,
+  flags or fasces. Nothing modern (no plastic tanks, satellite dishes, air
+  conditioners, power lines).
+- **Rules** (hit points, garrison capacities, cover) are game rules, marked
+  provisional. The map carries no real place names.
+
 ## Infantry camouflage (prompt 042)
 
 The camouflage prints of the soldiers are procedural imitations by period

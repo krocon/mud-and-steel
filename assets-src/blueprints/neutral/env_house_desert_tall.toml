@@ -1,0 +1,52 @@
+# Two-storey plastered house, small upper windows, parapet.
+# Generator: desert_house (tools/blender/kit/desert.py); plan in m from the -X/-Y corner, +X = door side.
+unit = "env_house_desert_tall"
+assembly = "env"
+
+[[variant]]
+name = "Intact"
+part = "desert_house"
+role = "intact"
+seed = 17
+plaster = 3
+coping = 0
+parapet = 0.6
+storey_h = 3.1
+window = [0.55, 0.7]
+blocks = [[0, 0, 6, 7, 6.6]]
+doors = [[0, "+x", 3.5, 1.0]]
+windows = [[0, "+x", 1.6], [0, "+x", 5.4], [0, "-x", 2.2], [0, "+y", 3.0], [0, "+x", 1.6, 1], [0, "+x", 3.5, 1], [0, "+x", 5.4, 1], [0, "-x", 2.2, 1], [0, "-x", 4.8, 1], [0, "-y", 3.0, 1], [0, "+y", 3.0, 1]]
+
+[[variant]]
+name = "Damaged"
+part = "desert_house"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 17
+plaster = 3
+coping = 0
+parapet = 0.6
+storey_h = 3.1
+window = [0.55, 0.7]
+blocks = [[0, 0, 6, 7, 6.6]]
+doors = [[0, "+x", 3.5, 1.0]]
+windows = [[0, "+x", 1.6], [0, "+x", 5.4], [0, "-x", 2.2], [0, "+y", 3.0], [0, "+x", 1.6, 1], [0, "+x", 3.5, 1], [0, "+x", 5.4, 1], [0, "-x", 2.2, 1], [0, "-x", 4.8, 1], [0, "-y", 3.0, 1], [0, "+y", 3.0, 1]]
+
+[[variant]]
+name = "Ruin"
+part = "desert_house"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 17
+plaster = 3
+coping = 0
+parapet = 0.6
+storey_h = 3.1
+window = [0.55, 0.7]
+blocks = [[0, 0, 6, 7, 6.6]]
+doors = [[0, "+x", 3.5, 1.0]]
+windows = [[0, "+x", 1.6], [0, "+x", 5.4], [0, "-x", 2.2], [0, "+y", 3.0], [0, "+x", 1.6, 1], [0, "+x", 3.5, 1], [0, "+x", 5.4, 1], [0, "-x", 2.2, 1], [0, "-x", 4.8, 1], [0, "-y", 3.0, 1], [0, "+y", 3.0, 1]]

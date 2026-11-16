@@ -12,6 +12,7 @@
 //! though, not part of the simulation: `crates/sim` stays the game rules.
 
 pub mod brush;
+pub mod compound;
 mod files;
 pub mod history;
 pub mod validate;

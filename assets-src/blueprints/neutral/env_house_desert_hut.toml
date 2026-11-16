@@ -1,0 +1,46 @@
+# One-room mud-brick house, door to the courtyard (+x), parapet.
+# Generator: desert_house (tools/blender/kit/desert.py); plan in m from the -X/-Y corner, +X = door side.
+unit = "env_house_desert_hut"
+assembly = "env"
+
+[[variant]]
+name = "Intact"
+part = "desert_house"
+role = "intact"
+seed = 11
+plaster = 1
+coping = -1
+parapet = 0.45
+blocks = [[0, 0, 4, 5, 3.2]]
+doors = [[0, "+x", 1.9, 0.9]]
+windows = [[0, "+x", 3.7], [0, "-y", 2.0]]
+
+[[variant]]
+name = "Damaged"
+part = "desert_house"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 11
+plaster = 1
+coping = -1
+parapet = 0.45
+blocks = [[0, 0, 4, 5, 3.2]]
+doors = [[0, "+x", 1.9, 0.9]]
+windows = [[0, "+x", 3.7], [0, "-y", 2.0]]
+
+[[variant]]
+name = "Ruin"
+part = "desert_house"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 11
+plaster = 1
+coping = -1
+parapet = 0.45
+blocks = [[0, 0, 4, 5, 3.2]]
+doors = [[0, "+x", 1.9, 0.9]]
+windows = [[0, "+x", 3.7], [0, "-y", 2.0]]
