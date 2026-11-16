@@ -19,6 +19,7 @@ mod air;
 mod combat;
 mod craters;
 mod destruction;
+mod drill;
 mod economy;
 mod fire;
 mod indirect;
@@ -35,6 +36,7 @@ pub use vision::MAX_PLAYERS;
 use combat::{Attack, CombatState, Projectile, TypeCombat};
 use infantry::{InfantryRt, Squad};
 
+pub use drill::DrillView;
 pub use economy::{BuyOption, PlaceError, StructureView, SupplyView};
 pub use infantry::BuildingCondition;
 pub use logistics::{StockView, SupplySource};
@@ -221,6 +223,9 @@ struct Unit {
     /// Ammunition and fuel (prompt 036).
     #[serde(default)]
     stock: logistics::Stock,
+    /// Formation facing, attack-move and securing (prompt 046).
+    #[serde(default)]
+    drill: drill::Drill,
 }
 
 impl Unit {
@@ -713,6 +718,7 @@ impl Sim {
         self.update_stances();
         self.rebuild_unit_grid();
         self.aim_and_fire();
+        self.update_drills();
         self.fire_indirect();
         done(Phase::Combat);
         self.halt_stranded();
@@ -1006,6 +1012,7 @@ impl Sim {
     fn apply(&mut self, command: &PlayerCommand) {
         self.drop_replaced_queues(command);
         self.drop_transport_tasks(command);
+        self.drop_drills(command);
         match &command.command {
             Command::MoveTo { units, target } => {
                 if !within_world(*target) {
@@ -1130,6 +1137,36 @@ impl Sim {
             Command::Unlimber { units } => self.order_unlimber(command.player, units),
             Command::Repair { building } => self.order_repair(command.player, *building),
             Command::Sell { building } => self.order_sell(command.player, *building),
+            Command::FormationMove {
+                units,
+                target,
+                formation,
+                facing,
+                engage,
+            } => {
+                self.order_formation_move(
+                    command.player,
+                    units,
+                    *target,
+                    *formation,
+                    *facing,
+                    *engage,
+                );
+            }
+            Command::Secure {
+                units,
+                center,
+                radius_m,
+                formation,
+                facing,
+            } => self.order_secure(
+                command.player,
+                units,
+                *center,
+                *radius_m,
+                *formation,
+                *facing,
+            ),
         }
     }
 
@@ -1291,6 +1328,7 @@ impl Sim {
         self.teams.hash_into(&mut h);
         self.hash_transport(&mut h);
         self.hash_logistics(&mut h);
+        self.hash_drills(&mut h);
         // Clear weather by day changes nothing and is left out, so matches
         // without weather keep their hashes (prompt 040).
         if !self.weather.is_default() {
@@ -1810,6 +1848,7 @@ fn new_unit(n: &NewUnit<'_>) -> Unit {
         orders: orders::OrderQueue::default(),
         link: None,
         stock: logistics::Stock::default(),
+        drill: drill::Drill::default(),
     }
 }
 

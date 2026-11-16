@@ -2,6 +2,7 @@
 
 use crate::air::AirMission;
 use crate::combat::FireMode;
+use crate::formation::{Engage, Formation};
 use crate::infantry::StanceOrder;
 use crate::math::Vec2;
 use serde::{Deserialize, Serialize};
@@ -106,6 +107,28 @@ pub enum Command {
     /// Sells the own completed `building` (part of its price back) or
     /// cancels the own construction site (prompt 036).
     Sell { building: UnitId },
+    /// `units` drive to `formation` around `target`, turned so that the
+    /// formation's front points along `facing` (default: the direction of
+    /// travel), and turn their hulls that way once they stand. `engage`
+    /// picks who halts to fight enemies in range on the way (attack-move,
+    /// prompt 046).
+    FormationMove {
+        units: Vec<UnitId>,
+        target: Vec2,
+        formation: Formation,
+        facing: Option<Vec2>,
+        engage: Engage,
+    },
+    /// `units` take up `formation` around `center` and hold the circle of
+    /// `radius_m` meters: they attack enemies inside it, do not chase them
+    /// out of it, and return to their places (prompt 046).
+    Secure {
+        units: Vec<UnitId>,
+        center: Vec2,
+        radius_m: u16,
+        formation: Formation,
+        facing: Option<Vec2>,
+    },
 }
 
 impl Command {
@@ -125,7 +148,9 @@ impl Command {
             | Self::Embark { units, .. }
             | Self::Disembark { units }
             | Self::Tow { units, .. }
-            | Self::Unlimber { units } => units,
+            | Self::Unlimber { units }
+            | Self::FormationMove { units, .. }
+            | Self::Secure { units, .. } => units,
             Self::Surrender
             | Self::Build { .. }
             | Self::Produce { .. }

@@ -3,8 +3,8 @@
 > In einer frischen Session im Repo-Ordner ausführen. Lies zuerst `CLAUDE.md`,
 > `docs/CONTROLS.md`, `docs/ARCHITECTURE.md` (Auswahl, Befehlsketten aus 031, Wegfindung).
 >
-> **Entwurf:** vor dem Umsetzen konkretisieren: Ausgangslage im Code prüfen,
-> Entscheidungen mit Begründung als Tabelle festhalten, Umfang schärfen.
+> **Konkretisiert** (siehe Abschnitt 4): Ausgangslage geprüft, Entscheidungen
+> mit Begründung als Tabelle festgehalten.
 
 ## 1. Ziel
 
@@ -42,3 +42,37 @@ Gemeinsame Dateien (`sim.rs`, `bridge/src/lib.rs`, `main.gd`, `self_test.gd`,
 Ändert sich der Golden-Hash, den Grund im Commit nennen. Am Ende nach `prompts/done/`
 verschieben und `prompts/README.md` aktualisieren. Abschlussbericht: was gebaut wurde,
 wie ich es teste, Messwerte, was offen ist.
+
+## 4. Konkretisierung (Ausgangslage und Entscheidungen)
+
+**Ausgangslage im Code (main nach 031, 034, 036, 037, 038, 040):**
+
+- `MoveTo` stellt eine Gruppe in ein quadratisches Raster um das Ziel
+  (`formation_slots`), ein gemeinsamer Gruppenpfad (`request_group_path`),
+  jede Einheit folgt ihm mit ihrem Versatz (`formation_route`).
+- Einheiten mit „Feuer frei“ wählen selbst Ziele (`auto_target`) und
+  schießen auch während der Fahrt; ein `Attack` fährt in Reichweite.
+- 031: Wegpunktketten und Patrouille in `sim/orders.rs` (`OrderQueue` pro
+  Einheit), HUD-Befehlsleiste mit Zielbefehlen (`command_mode`),
+  Steuergruppen nur in Godot (`selection.gd`, 1…9).
+- 038: `Sim` wird komplett per serde gespeichert; neue Felder sind
+  automatisch im Spielstand, der Rules-Hash erkennt geänderte Layouts.
+- KI (`crates/ai`) bewegt Gruppen mit `MoveTo` und greift mit `Attack` an.
+
+**Entscheidungen:**
+
+| # | Entscheidung | Begründung |
+|---|---|---|
+| 1 | Zwei neue Befehle am Enum-Ende: `FormationMove { units, target, formation, facing, engage }` und `Secure { units, center, radius_m, formation, facing }`. `MoveTo` bleibt unverändert. | Ein Befehl für alle Formationsbewegungen statt je einer für Bewegen/Angriffsbewegung; `MoveTo` bleibt für Wegpunkte, KI-Rückzug und alte Replays gleich (Golden-Hash unverändert). |
+| 2 | Angriffsbewegung = `FormationMove` mit `engage`: `Never` (reine Bewegung), `Infantry` (Standard bei Rechtsklick: nur Trupps halten an), `All` (Angriffsbewegung für alle). | Erfüllt „Standard für Infanterie, wählbar für Fahrzeuge“ auch in gemischten Gruppen, ohne die Gruppe auf zwei Befehle (und zwei Formationen) aufzuteilen. |
+| 3 | Eine Einheit mit Angriffsbewegung hält an, solange sie ein automatisches Ziel hat (Feind in Reichweite, gesehen, verwundbar), und fährt danach mit eigenem Pfad zu ihrem Platz weiter. „Feuer halten“ hält nie an. | Nutzt die vorhandene Zielwahl (017/018) statt einer zweiten; „in Reichweite“ steht so im Prompt. |
+| 4 | `Secure`: Gruppe nimmt die Formation um den Mittelpunkt ein; jede Einheit greift (alle `retarget_ticks`) den nächsten Feind an, den ihr Spieler im Kreis sieht und den sie verwunden kann; verlässt das Ziel den Kreis, bricht sie ab und kehrt auf ihren Platz zurück. Radius 10–300 m, im HUD 80 m [provisional]. | „Nicht weiter als ein Radius verfolgen“: das Ziel muss im Kreis sein, die Einheit fährt nur bis in Waffenreichweite, bleibt also nahe am Kreis. Wiederverwendung von `Attack` (Suche, Sichtregeln). |
+| 5 | Formationen: Linie (max. 8 je Glied), Keil, Kolonne (ab 9 Einheiten zwei Reihen), Breitkeil (umgekehrter Keil), aufgelockert (versetzte Reihen, doppelter Abstand); Abstand wie bisher `formation_spacing` der größten Einheit [provisional]. | Einfache, ganzzahlige Formen; Werte sind Spielregeln, keine Katalogwerte. |
+| 6 | **Auto** wird beim Befehl in der Sim aufgelöst (einmal, nicht unterwegs neu): 1. freie Breite quer zur Blickrichtung am Ziel < 3 Plätze (für die einschränkendste Größenklasse) → Kolonne; 2. ≥ 30 % der Zellen um das Ziel durch Objekte für Panzer gesperrt → aufgelockert; 3. Ziel auf Straße und ≥ 50 % des Wegs Straße → Kolonne; 4. sonst Keil (mit Fahrzeugen) bzw. Linie (nur Infanterie). Schwellen [provisional]. | Deterministisch, billig (wenige Stichproben), kein neuer Zustand. Unterwegs umformieren würde den Gruppenpfad (009) neu bauen und ist für Stufe 2 zu viel. |
+| 7 | Plätze werden Glied für Glied von vorn vergeben: die vordersten Einheiten (entlang der Blickrichtung) ins vorderste Glied, im Glied von links nach rechts. | Unabhängig von der Reihenfolge im Befehl, wenig Kreuzen. |
+| 8 | Ausrichtung: `facing` im Befehl (Standard: Fahrtrichtung); die Formation steht senkrecht dazu, und stehende Einheiten ohne Ziel drehen ihre Wanne dorthin (Panzer zeigen die Frontpanzerung; Trupps drehen ihre Formation). Rechtsklick-Ziehen in Godot liefert Zielpunkt (Drücken) und Richtung (Loslassen). | Drehen nur im Stand, damit Kampf (Turm/Kasematte) Vorrang hat. |
+| 9 | Neuer Zustand `Unit::drill` (Blickrichtung, Aufgabe) in `sim/drill.rs`; gespeichert per serde (038), im State-Hash nur für Einheiten mit Aufgabe/Blickrichtung (hinten angehängt). | Spiele ohne die neuen Befehle behalten ihren Hash: Golden-Hash unverändert. |
+| 10 | Andere Befehle (`MoveTo`, `Stop`, `Attack`, `Garrison`, `Patrol`, `Embark` …) beenden Aufgabe und Blickrichtung; ein Wegpunkt (Shift) beendet nur das Sichern, nach einer Angriffsbewegung geht die Kette danach weiter. | Wie die Ketten aus 031. |
+| 11 | Eigene Trupps: **die Steuergruppen reichen**; jede Gruppe merkt sich in Godot ihre Formation (Abruf setzt die Formation der Leiste). Keine Namen [provisional]. | Kein neuer Sim-Zustand, die Formation reist ohnehin im Befehl mit. Namen bringen ohne Gruppenleiste wenig. |
+| 12 | HUD: Formationswahl in der Befehlsleiste (Auswahlliste, Taste `,` schaltet weiter), Zielbefehle Angriffsbewegung (Taste Y) und Sichern (Taste I) [provisional]; M bleibt „reine Bewegung“ (auch Infanterie hält nicht an). | Freie Tasten; alle neu belegbar. |
+| 13 | KI (Normal, Schwer): Vormarsch zu Sichtung/Gegnerbasis/Versorgungspunkt als `FormationMove` mit `engage = All`, Formation Auto, Blickrichtung zum Ziel; Sammelpunkt vor dem Angriff mit Blick zur Gegnerbasis. Leicht bleibt bei `MoveTo` [provisional]. | „KI nutzt Angriffsbewegung und Ausrichtung zum Gegner“; Leicht soll leicht bleiben. |
