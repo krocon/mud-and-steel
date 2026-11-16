@@ -74,3 +74,67 @@ fährt aber auf Rädern).
 | 11 | **Setup und Editor:** Karten-Standard in `map.toml` (`weather`, `daytime`, nicht im Karten-Hash, wie `biome`), Editor-Felder; Spiel-Setup mit „Kartenstandard“ + Auswahl; `--weather=`/`--daytime=` für Direktstarts. LAN/Online nutzen den Kartenstandard. **[vorläufig]** | Kleine, additive Änderung; Lobby-Option bräuchte Protokoll- und Lobby-UI-Änderungen (offen). |
 | 12 | **Darstellung:** `world/weather_look.gd` passt das Biom-Preset an (Sonne nach Tageszeit, Himmel/Licht bei Bedeckung/Regen, dichter Dunst bei Nebel, Schneefall bei Schnee) und baut Regen-Partikel um den Kamerafokus; das Terrain bekommt ein Uniform `wetness` (dunkler, glänzender Boden, Pfützen in Senken, additiv im Shader). Ambiente: `rain`-Regler. Fahrspuren im Schlamm: offen. **[vorläufig]** | Kleine Eingriffe in `atmosphere.gd` und den Terrain-Shader (057 arbeitet am Gras). |
 | 13 | **KI:** keine eigene Wetterlogik; sie bekommt die Bodenkosten über die Wegfindung und die kürzere Sicht über `effective_vision`. Turnier läuft weiter. | Spec: „prüfen“. |
+
+## Ergebnis
+
+Umgesetzt wie oben; Details in `docs/ARCHITECTURE.md` „Weather, mud and time of
+day“ und `docs/MAPS.md` „Weather and time of day“.
+
+- **Sim:** `data/weather.toml`, `crates/sim/src/weather.rs` (Regeln, `Weather`,
+  `Daytime`, `WeatherSetup`), `crates/sim/src/sim/weather.rs` (Bodenwert,
+  Regen-Stufen, Neuberechnung der Wegkosten in Zeilenbändern, Mündungsfeuer,
+  Feuer-Faktor). `SimConfig::weather` (Standard aus `map.toml`),
+  `SimConfig::effective_vision`, `PathGrid::set_ground_pct` / `recost_rows` /
+  `ground_pct`, `Vision::reveal`, `Artillery::scale_wind`. Replay-Format 8,
+  Protokoll 4.
+- **KI:** Sichtweiten über `effective_vision`; Bodenkosten über die Wegfindung.
+  Turnier: Hard gegen Passive gewinnt auch bei Regen in der Nacht und im Nebel
+  10 von 10 (mittlere Dauer 78 s bzw. 70 s statt 31 s).
+- **Bridge/Godot:** `SimHost.weather` / `daytime`, `weather_info()`,
+  `weather_names()`, `daytime_names()`; `MapEditor.set_map_weather` /
+  `map_weather`. `world/weather_look.gd` (Preset-Anpassung, Regen, Nässe,
+  Ambiente-Regen), Uniform `wetness` im Terrain-Shader (additiv, ein Block vor
+  dem Schnee), `atmosphere.set_weather`. Spiel-Setup: „Weather“ und „Time of
+  day“ (Kartenstandard voreingestellt); Editor: im Speichern-Dialog;
+  `--weather=` / `--daytime=` für Direktstarts; `cli bench` und
+  `cli ai-tournament` mit `--weather` / `--daytime`.
+- **Tests:** `crates/sim/tests/weather.rs` (Schlamm bremst Rad stärker als
+  Kette, Straße bleibt bei Regen gleich schnell, Schnee auf Straßen weniger als
+  auf Gras, Regen weicht den Boden auf und die Wegkosten folgen, Nebel und Nacht
+  verkürzen die Sicht, Mündungsfeuer verrät den Schützen nachts, gleicher Hash),
+  Regel-Tests in `weather.rs`, `crates/net/tests/weather_snapshot.rs` (Snapshot
+  mitten in der Neuberechnung bei Regen in der Nacht, gleicher Weiterlauf),
+  Editor-Test (Standardwetter gespeichert, Karten-Hash unverändert, Partie
+  übernimmt es). Godot: Flow-Selbsttest spielt eine Regen-Nacht-Partie
+  (Boden 50 %, Sicht 31 %, Nässe 0,68, Regen an), Editor-Selbsttest eine
+  Nebel-Abend-Partie.
+- **Golden-Hash unverändert** (`0x1971_0235_5cc0_0b3e` nach dem Merge mit 036):
+  klar/Tag ist neutral und wird nicht gehasht; der Windbonus der
+  Feuerausbreitung ändert die Demo-Schlacht nicht.
+- **Messung** (`cli bench`, `bench_large` auf `test_large` 4 km, 504 Einheiten,
+  3000 Ticks, 2 Läufe, M1 Max, release; andere Sessions liefen parallel):
+  klar 6,5 ms/Tick im Mittel; Regen in der Nacht 3,1 ms/Tick (die Armeen
+  sehen sich später), Neuberechnung der Wegkosten nach einer Regen-Stufe
+  höchstens 1,6 ms pro Tick über 63 Ticks, `Sim::new` +60 ms (alle Kosten beim
+  Start). Godot: Wetter-Darstellung 8,8 µs CPU pro Frame (Selbsttest, headless;
+  die Regen-Partikel laufen auf der GPU, nicht gemessen). Budget 2 ms: ja.
+- **Prüfungen:** `just check`, `just selftest`, `just lan-selftest`,
+  `just editor-selftest`, `just ai-tournament --matrix --games 10` grün.
+  Optik in einzelnen Bildern angesehen (Regen am Tag, klare Nacht).
+
+**Vorläufig (bitte bestätigen):** alle Werte in `data/weather.toml`
+(Sichtfaktoren, Bodenverluste nach Fahrwerk, Weichheit der Geländearten,
+Regen-Ablauf 50 % + 10 % alle 120 s, Mündungsfeuer 2 s / 2000 m, Wind- und
+Feuerfaktoren, Mindesttempo 8 %), ein Wetter pro Partie, Fahrwerk aus der
+Kategorie (gezogene Geschütze = Rad), LAN/Online nur mit Kartenstandard, die
+Optik von Nacht, Regen, Nebel und Pfützen.
+
+**Offen:**
+- Wetterwechsel während der Partie; Leuchtgeschosse; Feuchte pro Zelle (Senken
+  nasser); Fahrspuren im Schlamm (Decals), Spritzer, nasse Fahrzeuge.
+- Wetter-Auswahl in LAN- und Online-Lobby (Protokoll und Lobby-UI).
+- Flugzeuge fliegen bei jedem Wetter und nachts; KI hat keine Wetter-Taktik
+  (meidet z. B. Schlamm nur über die Wegkosten).
+- Optik von Nebel, Schnee-Wetter, Morgen und Abend nicht in Bildern geprüft;
+  GPU-Kosten der Regen-Partikel nicht gemessen (nur headless und zwei
+  Testbilder).
