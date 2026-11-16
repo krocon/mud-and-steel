@@ -25,6 +25,7 @@ mod indirect;
 mod infantry;
 mod logistics;
 mod orders;
+mod positions;
 mod spatial;
 mod transport;
 mod vision;

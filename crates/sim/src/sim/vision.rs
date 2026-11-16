@@ -130,6 +130,27 @@ impl Vision {
         }
     }
 
+    /// Camouflage (prompt 052): unit `i` of `owner` stays visible only to
+    /// the owner's allies and to the players who share the vision of one
+    /// of `spotters`.
+    pub(super) fn restrict(&mut self, i: usize, owner: PlayerId, spotters: &[PlayerId]) {
+        let Some(o) = self.slot(owner) else {
+            return;
+        };
+        let spotted = spotters
+            .iter()
+            .filter_map(|&p| self.slot(p))
+            .fold(0u64, |m, s| m | (1 << s));
+        let keep = (0..self.players.len()).fold(0u64, |m, s| {
+            if self.allies[s] & (1 << o) != 0 || self.shares[s] & spotted != 0 {
+                m | (1 << s)
+            } else {
+                m
+            }
+        });
+        self.seen[i] &= keep;
+    }
+
     /// Lets `player`, and everyone who shares its vision, see unit `i`
     /// until the next vision update (prompt 040: muzzle flashes at night).
     pub(super) fn reveal(&mut self, i: usize, player: PlayerId) {
@@ -279,6 +300,8 @@ impl Sim {
                 u64::MAX
             };
         }
+        // Camouflage nets (prompt 052) hide units from distant observers.
+        self.restrict_camouflaged();
     }
 
     /// Queues every viewshed that covers a vision cell of `c0..=c1` ×

@@ -35,6 +35,7 @@ mod map_editor;
 mod match_funcs;
 mod object_funcs;
 mod objects;
+mod positions_funcs;
 mod replay_funcs;
 mod save_funcs;
 mod steam_lobby;
