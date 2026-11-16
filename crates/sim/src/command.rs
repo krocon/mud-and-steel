@@ -155,6 +155,11 @@ pub enum Command {
         formation: Formation,
         facing: Option<Vec2>,
     },
+    /// The human player's presentation reports something the simulation
+    /// cannot see (camera moved, units selected) to the mission script
+    /// (prompt 039). Ignored without a mission, from other players and for
+    /// names longer than `crate::mission::MAX_SIGNAL_LEN`.
+    MissionSignal { name: String },
 }
 
 impl Command {
@@ -190,7 +195,8 @@ impl Command {
             | Self::CallAir { .. }
             | Self::Ping { .. }
             | Self::Repair { .. }
-            | Self::Sell { .. } => &[],
+            | Self::Sell { .. }
+            | Self::MissionSignal { .. } => &[],
         }
     }
 }

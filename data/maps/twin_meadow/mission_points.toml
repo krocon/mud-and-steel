@@ -1,0 +1,24 @@
+# Trigger areas and spawn points of this map for mission scripts
+# (prompt 039, docs/MISSIONS.md). Written by the map editor.
+
+[[area]]
+name = "meadow_west"
+center_m = [-120, 0]
+radius_m = 30
+
+[[area]]
+name = "meadow_east"
+center_m = [120, 0]
+radius_m = 30
+
+[[spawn]]
+name = "south_west"
+position_m = [-120, 300]
+
+[[spawn]]
+name = "north_west"
+position_m = [-110, -330]
+
+[[spawn]]
+name = "west_outpost"
+position_m = [-120, -10]

@@ -27,6 +27,7 @@ pub mod infantry;
 pub mod logistics;
 pub mod map;
 mod math;
+pub mod mission;
 pub mod objects;
 mod outcome;
 pub mod path;
@@ -68,6 +69,7 @@ pub use infantry::{InfantryRules, Stance, StanceOrder};
 pub use logistics::{LogisticsRules, LogisticsType};
 pub use map::{Biome, Map, MapError, MapRef};
 pub use math::{Fixed, Vec2};
+pub use mission::{Mission, MissionError, ObjectiveState};
 pub use objects::{Blocks, MapObject, ObjectKind, ObjectRules};
 pub use outcome::{DefeatReason, Outcome, PlayerStanding};
 pub use positions::{LayoutPiece, PositionRules, strongpoint_layout};
@@ -75,9 +77,9 @@ pub use rng::Rng;
 pub use scale::Scale;
 pub use sim::{
     BuildingCondition, BuyOption, ConfigError, DrillView, ExperienceView, MAX_PLAYERS, MAX_QUEUED,
-    Phase, PlaceError, RouteView, Sim, SimConfig, Snapshot, SoldierSnapshot, Spawn, StockView,
-    StructureView, SupplySource, SupplyView, UnitSnapshot, WORLD_LIMIT_M, formation_slots,
-    formation_spacing,
+    ObjectiveView, Phase, PlaceError, RouteView, Sim, SimConfig, Snapshot, SoldierSnapshot, Spawn,
+    StockView, StructureView, SupplySource, SupplyView, UnitSnapshot, WORLD_LIMIT_M,
+    formation_slots, formation_spacing,
 };
 pub use teams::Teams;
 pub use terrain::{TerrainError, TerrainRules};

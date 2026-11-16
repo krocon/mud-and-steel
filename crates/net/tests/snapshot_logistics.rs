@@ -58,6 +58,7 @@ fn supply(map: Arc<Map>) -> Sim {
         infantry: sim::InfantryRules::builtin().unwrap(),
         teams: sim::Teams::default(),
         weather: sim::WeatherSetup::default(),
+        mission: None,
     };
     Sim::new(&config, map, 9).unwrap()
 }

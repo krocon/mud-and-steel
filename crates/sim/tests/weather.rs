@@ -74,6 +74,7 @@ fn sim_with(
         infantry: sim::InfantryRules::builtin().unwrap(),
         teams: sim::Teams::default(),
         weather,
+        mission: None,
     };
     Sim::new(&config, map, 7).unwrap()
 }
@@ -196,6 +197,7 @@ fn fog_and_night_shorten_sight() {
         infantry: sim::InfantryRules::builtin().unwrap(),
         teams: sim::Teams::default(),
         weather: setup(Weather::Fog, Daytime::Day),
+        mission: None,
     };
     let fog = config_vision.effective_vision().range_m(None);
     config_vision.weather = WeatherSetup::default();

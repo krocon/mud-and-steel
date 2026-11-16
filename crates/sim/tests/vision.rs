@@ -78,6 +78,7 @@ fn config(
         infantry: sim::InfantryRules::builtin().unwrap(),
         teams: sim::Teams::default(),
         weather: sim::WeatherSetup::default(),
+        mission: None,
     }
 }
 
