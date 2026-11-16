@@ -38,7 +38,16 @@ use no historical unit names or insignia.
 ```
 data/maps/<map>/missions/<id>.toml   mission script (written by hand)
 data/maps/<map>/mission_points.toml  trigger areas and spawn points (map editor)
+data/maps/<map>/missions/<id>.de.po  German texts (prompt 043, `just mission-po`)
 ```
+
+**Translations.** Mission files are written in English. `<id>.<lang>.po`
+next to the file holds the translation of every text the player reads
+(title, briefing, objectives, `text` actions); `msgid` is the English text.
+After adding or changing a text, run `just mission-po`: it adds the new
+texts with an empty `msgstr` and keeps the others; fill them in (by hand or
+with a PO editor). `just l10n-check` fails while a text has no translation.
+A changed English text needs its translation again, as its `msgid` changed.
 
 The id is the file name without `.toml`; progress is stored under it. A map
 can host several missions. Areas and spawn points of the mission file win

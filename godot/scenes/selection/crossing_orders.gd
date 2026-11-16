@@ -10,6 +10,7 @@ extends RefCounted
 ##   or take them off when all of them already have them.
 
 const GroundPick := preload("res://scenes/camera/ground_pick.gd")
+const Language := preload("res://scenes/menu/language.gd")
 const MODE := "bridge_lay"
 
 
@@ -73,4 +74,4 @@ static func toggle_camouflage(selection: Control) -> void:
 static func hint(selection: Control) -> String:
 	if selection.command_mode != MODE:
 		return ""
-	return "Lay bridge: left click a narrow river or ditch"
+	return Language.t("HUD_HINT_LAY_BRIDGE")

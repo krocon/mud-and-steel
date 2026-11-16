@@ -322,6 +322,31 @@ source = [
 uncertain = ["squad_size"]
 note = "Game abstraction of the Zugtrupp: Zugführer (MP 40) and Funker (Kar98k) with a portable radio (Feldfunksprecher b / Tornister-Funkgerät; not a weapon). The real Zugtrupp also had 2-3 messengers and an aid man."
 
+[[unit]]
+id = "de_inf_tank_crew"
+faction = "de"
+category = "inf_crew"
+name_de = "Panzerbesatzung (ausgestiegen)"
+name_en = "Tank crew (bailed out)"
+designation = "Panzerbesatzung, abgesessen"
+year_from = 1939
+year_to = 1945
+tier = 2
+model = "assets/models/de/de_inf_tank_crew.tscn"
+squad_size = 5
+speed_road_kmh_x10 = 50
+speed_offroad_kmh_x10 = 40
+weapon = [
+    { name = "MP 40", count = 1, caliber_mm_x10 = 90, ammo = "9 mm Parabellum", rate_rpm = 500, muzzle_velocity_mps = 400, range_effective_m = 100 },
+    { name = "P 38", count = 4, caliber_mm_x10 = 90, ammo = "9 mm Parabellum", muzzle_velocity_mps = 365, range_effective_m = 50 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Panzer_IV", covers = "crew of five (commander, gunner, loader, driver, radio operator / hull gunner); from memory, not fetched for this entry" },
+    { ref = "Gander/Chamberlain, Small Arms, Artillery and Special Weapons of the Third Reich (1978), MP 40 and P 38 entries", covers = "MP 40 and P 38 data" },
+]
+uncertain = ["weapon"]
+note = "Not built or bought: the survivors of a destroyed vehicle (prompt 049) bail out as this squad, 1-5 men by chance. squad_size is the largest crew of the faction's tanks (Panzer IV, Tiger: 5). Personal weapons: pistols for the crew and one MP 40 carried in the vehicle (stowage varied), an assumption. The model shows the field uniform with the field cap; the black Panzer wrap is not modeled."
+
 # ---------------------------------------------------------------------------
 # Vehicles
 # ---------------------------------------------------------------------------

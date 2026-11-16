@@ -1,9 +1,12 @@
 extends PanelContainer
 ## Settings screen (prompt 027), used by the main menu and the pause menu.
 ##
-## Tabs: Graphics (quality level), Controls (keyboard bindings of the camera),
-## Audio (volume per bus, mute without focus), Camera (pan and zoom
-## sensitivity, edge scrolling), Interface (health bars, prompt 031).
+## Tabs: Graphics (quality level, depth of field; window, resolution, VSync,
+## frame limit, render scale, prompt 043), Controls (keyboard bindings of
+## camera and orders), Audio (volume per bus, mute without focus), Camera
+## (pan and zoom sensitivity, edge scrolling), Interface (language, UI scale,
+## font size, color palette, subtitles, screen shake (prompt 043), health
+## bars (prompt 031)). All texts are translation keys (`locale/settings.csv`).
 ## Changes apply at once; "Save" writes them to the settings
 ## file, "Cancel" reloads the file. Emits `changed` after every change (the
 ## match re-applies quality and camera) and `closed` when the screen closes.
@@ -14,9 +17,19 @@ signal closed
 const Settings := preload("res://scenes/menu/settings.gd")
 const GraphicsQuality := preload("res://scenes/world/graphics_quality.gd")
 const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
+const Language := preload("res://scenes/menu/language.gd")
 ## Bus volume sliders below the master volume: settings key -> label.
 const BUS_SLIDERS: Dictionary[String, String] = {
-	"effects_volume": "Effects", "ui_volume": "Interface", "music_volume": "Music", "ambience_volume": "Ambience",
+	"effects_volume": "SET_VOLUME_EFFECTS", "ui_volume": "SET_VOLUME_UI", "music_volume": "SET_VOLUME_MUSIC",
+	"ambience_volume": "SET_VOLUME_AMBIENCE",
+}
+## Option lists: settings key -> [values, label keys].
+const OPTIONS := {
+	"window_mode": [["windowed", "fullscreen", "exclusive"], ["SET_WINDOWED", "SET_FULLSCREEN", "SET_EXCLUSIVE"]],
+	"upscaler": [["bilinear", "fsr1", "fsr2"], ["SET_UPSCALER_BILINEAR", "SET_UPSCALER_FSR1", "SET_UPSCALER_FSR2"]],
+	"color_palette": [["standard", "red_green", "blue_yellow"],
+		["SET_PALETTE_STANDARD", "SET_PALETTE_RED_GREEN", "SET_PALETTE_BLUE_YELLOW"]],
+	"font_size": [[0.85, 1.0, 1.15, 1.3], ["SET_FONT_SMALL", "SET_FONT_NORMAL", "SET_FONT_LARGE", "SET_FONT_HUGE"]],
 }
 
 var quality_option: OptionButton
@@ -29,6 +42,16 @@ var zoom_slider: HSlider
 var edge_scroll_box: CheckBox
 var dof_option: OptionButton
 var health_bar_option: OptionButton
+## Option buttons of OPTIONS, by settings key (prompt 043).
+var options: Dictionary[String, OptionButton] = {}
+var language_option: OptionButton
+var resolution_option: OptionButton
+var fps_option: OptionButton
+var vsync_box: CheckBox
+var render_scale_slider: HSlider
+var ui_scale_slider: HSlider
+var subtitles_box: CheckBox
+var shake_box: CheckBox
 var save_button: Button
 var cancel_button: Button
 ## Action whose key is being captured, or "".
@@ -40,12 +63,12 @@ var _key_buttons: Dictionary[String, Button] = {}
 func _ready() -> void:
 	Settings.ensure_loaded()
 	theme = MenuTheme.get_theme()
-	custom_minimum_size = Vector2(620, 0)
+	custom_minimum_size = Vector2(700, 0)
 	var box := VBoxContainer.new()
 	add_child(box)
-	box.add_child(MenuTheme.title("Settings", MenuTheme.HEADING_SIZE))
+	box.add_child(MenuTheme.title("COMMON_SETTINGS", MenuTheme.HEADING_SIZE))
 	var tabs := TabContainer.new()
-	tabs.custom_minimum_size = Vector2(0, 330)
+	tabs.custom_minimum_size = Vector2(0, 420)
 	box.add_child(tabs)
 	tabs.add_child(_graphics_tab())
 	tabs.add_child(_controls_tab())
@@ -57,18 +80,18 @@ func _ready() -> void:
 	buttons.alignment = BoxContainer.ALIGNMENT_END
 	box.add_child(buttons)
 	var defaults := Button.new()
-	defaults.text = "Defaults"
+	defaults.text = "COMMON_DEFAULTS"
 	defaults.pressed.connect(func() -> void:
 		Settings.reset()
 		_refresh()
 		changed.emit())
 	buttons.add_child(defaults)
 	cancel_button = Button.new()
-	cancel_button.text = "Cancel"
+	cancel_button.text = "COMMON_CANCEL"
 	cancel_button.pressed.connect(cancel)
 	buttons.add_child(cancel_button)
 	save_button = Button.new()
-	save_button.text = "Save"
+	save_button.text = "COMMON_SAVE"
 	save_button.pressed.connect(save)
 	buttons.add_child(save_button)
 	_refresh()
@@ -89,7 +112,7 @@ func cancel() -> void:
 ## Starts capturing the next key for `action` (also used by the self-test).
 func capture(action: String) -> void:
 	capturing = action
-	_key_buttons[action].text = "Press a key …"
+	_key_buttons[action].text = tr("SET_PRESS_KEY")
 
 
 func _input(event: InputEvent) -> void:
@@ -99,87 +122,134 @@ func _input(event: InputEvent) -> void:
 	if key == null or not key.pressed or key.echo:
 		return
 	get_viewport().set_input_as_handled()
+	# A modifier alone waits for the key it goes with (Shift+1).
+	if key.physical_keycode in [KEY_SHIFT, KEY_CTRL, KEY_ALT, KEY_META]:
+		return
 	if key.physical_keycode != KEY_ESCAPE:
-		Settings.bind(capturing, key.physical_keycode)
+		Settings.bind(capturing, key.get_physical_keycode_with_modifiers())
 		changed.emit()
 	capturing = ""
 	_refresh()
 
 
 func _graphics_tab() -> Control:
-	var tab := _tab("Graphics")
+	var tab := _tab("SET_TAB_GRAPHICS")
 	quality_option = OptionButton.new()
 	for level in GraphicsQuality.LEVELS:
-		quality_option.add_item(level.capitalize())
+		quality_option.add_item("SET_QUALITY_" + level.to_upper())
 	quality_option.item_selected.connect(func(index: int) -> void:
 		_change("quality", GraphicsQuality.LEVELS[index]))
-	tab.add_child(_row("Quality", quality_option))
-	tab.add_child(MenuTheme.hint("Low: hard shadows, no ambient occlusion, no snowfall. Medium: soft shadows. High: finest shadows and anti-aliasing. `--quality=<level>` on the command line overrides this."))
+	tab.add_child(_row("SET_QUALITY", quality_option))
+	tab.add_child(MenuTheme.hint("SET_QUALITY_HINT"))
 	dof_option = OptionButton.new()
-	for label in ["Off", "Subtle (close zoom only)", "Miniature (tilt-shift)"]:
+	for label in ["COMMON_OFF", "SET_DOF_SUBTLE", "SET_DOF_MINIATURE"]:
 		dof_option.add_item(label)
 	dof_option.item_selected.connect(func(index: int) -> void:
 		_change("depth_of_field", Settings.DOF_MODES[index]))
-	tab.add_child(_row("Depth of field", dof_option))
-	tab.add_child(MenuTheme.hint("Miniature: the upper and lower screen edges blur and the colours are stronger, like a photo of a model. Units near the screen edges are harder to make out. Not on quality low."))
-	return tab
+	tab.add_child(_row("SET_DOF", dof_option))
+	tab.add_child(MenuTheme.hint("SET_DOF_HINT"))
+	tab.add_child(_row("SET_WINDOW_MODE", _option("window_mode")))
+	resolution_option = OptionButton.new()
+	resolution_option.add_item("SET_RESOLUTION_KEEP")
+	for r in Settings.RESOLUTIONS:
+		resolution_option.add_item(r.replace("x", " × "))
+	resolution_option.item_selected.connect(func(index: int) -> void:
+		_change("resolution", "" if index == 0 else Settings.RESOLUTIONS[index - 1]))
+	tab.add_child(_row("SET_RESOLUTION", resolution_option))
+	vsync_box = CheckBox.new()
+	vsync_box.text = "SET_VSYNC"
+	vsync_box.toggled.connect(func(on: bool) -> void: _change("vsync", on))
+	tab.add_child(vsync_box)
+	fps_option = OptionButton.new()
+	for limit in Settings.FPS_LIMITS:
+		fps_option.add_item("SET_FPS_NONE" if limit == 0 else str(limit))
+	fps_option.item_selected.connect(func(index: int) -> void:
+		_change("fps_limit", Settings.FPS_LIMITS[index]))
+	tab.add_child(_row("SET_FPS_LIMIT", fps_option))
+	render_scale_slider = _slider(0.5, 1.0, 0.05, "render_scale")
+	tab.add_child(_row("SET_RENDER_SCALE", render_scale_slider))
+	tab.add_child(_row("SET_UPSCALER", _option("upscaler")))
+	tab.add_child(MenuTheme.hint("SET_RENDER_SCALE_HINT"))
+	return _scrolled(tab)
 
 
 func _controls_tab() -> Control:
 	# Camera and order keys (prompt 031) do not fit without scrolling.
-	var scroll := ScrollContainer.new()
-	scroll.name = "Controls"
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	var tab := _tab("Controls")
-	tab.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll.add_child(tab)
+	var tab := _tab("SET_TAB_CONTROLS")
 	for action in Settings.BINDABLE:
 		var button := Button.new()
 		button.custom_minimum_size = Vector2(160, 0)
 		button.pressed.connect(capture.bind(action))
 		_key_buttons[action] = button
 		tab.add_child(_row(Settings.BINDABLE[action], button))
-	tab.add_child(MenuTheme.hint("Click a binding and press the new key (Esc cancels). Arrow keys also pan; the mouse wheel zooms and the middle button drags the map. Groups: Ctrl+1…9 stores, 1…9 recalls."))
-	return scroll
+	tab.add_child(MenuTheme.hint("SET_CONTROLS_HINT"))
+	return _scrolled(tab)
 
 
 func _audio_tab() -> Control:
-	var tab := _tab("Audio")
+	var tab := _tab("SET_TAB_AUDIO")
 	volume_slider = _slider(0.0, 1.0, 0.05, "master_volume")
-	tab.add_child(_row("Master volume", volume_slider))
+	tab.add_child(_row("SET_VOLUME_MASTER", volume_slider))
 	for key: String in BUS_SLIDERS:
 		bus_sliders[key] = _slider(0.0, 1.0, 0.05, key)
 		tab.add_child(_row(BUS_SLIDERS[key], bus_sliders[key]))
 	mute_unfocused_box = CheckBox.new()
-	mute_unfocused_box.text = "Mute when the window is in the background"
+	mute_unfocused_box.text = "SET_MUTE_UNFOCUSED"
 	mute_unfocused_box.toggled.connect(func(on: bool) -> void: _change("mute_unfocused", on))
 	tab.add_child(mute_unfocused_box)
-	tab.add_child(MenuTheme.hint("Effects: weapons, impacts, engines. Interface: clicks and notices. Music and ambience come with a later update."))
+	tab.add_child(MenuTheme.hint("SET_AUDIO_HINT"))
 	return tab
 
 
 func _camera_tab() -> Control:
-	var tab := _tab("Camera")
+	var tab := _tab("SET_TAB_CAMERA")
 	pan_slider = _slider(0.25, 3.0, 0.05, "pan_sensitivity")
-	tab.add_child(_row("Pan speed", pan_slider))
+	tab.add_child(_row("SET_PAN_SPEED", pan_slider))
 	zoom_slider = _slider(0.25, 3.0, 0.05, "zoom_sensitivity")
-	tab.add_child(_row("Zoom speed", zoom_slider))
+	tab.add_child(_row("SET_ZOOM_SPEED", zoom_slider))
 	edge_scroll_box = CheckBox.new()
-	edge_scroll_box.text = "Pan at the screen edge"
+	edge_scroll_box.text = "SET_EDGE_SCROLL"
 	edge_scroll_box.toggled.connect(func(on: bool) -> void: _change("edge_scroll", on))
 	tab.add_child(edge_scroll_box)
 	return tab
 
 
 func _interface_tab() -> Control:
-	var tab := _tab("Interface")
+	var tab := _tab("SET_TAB_INTERFACE")
+	language_option = OptionButton.new()
+	language_option.add_item("SET_LANGUAGE_AUTO")
+	for code in Language.LANGUAGES:
+		language_option.add_item(Language.LANGUAGES[code])
+	language_option.item_selected.connect(func(index: int) -> void:
+		_change("language", "auto" if index == 0 else Language.LANGUAGES.keys()[index - 1]))
+	tab.add_child(_row("SET_LANGUAGE", language_option))
+	# Applied when the drag ends: scaling while dragging moves the slider
+	# away from the mouse.
+	ui_scale_slider = HSlider.new()
+	ui_scale_slider.min_value = 0.75
+	ui_scale_slider.max_value = 1.5
+	ui_scale_slider.step = 0.05
+	ui_scale_slider.custom_minimum_size = Vector2(240, 24)
+	ui_scale_slider.drag_ended.connect(func(_moved: bool) -> void: _change("ui_scale", ui_scale_slider.value))
+	tab.add_child(_row("SET_UI_SCALE", ui_scale_slider))
+	tab.add_child(_row("SET_FONT_SIZE", _option("font_size")))
+	tab.add_child(_row("SET_PALETTE", _option("color_palette")))
+	tab.add_child(MenuTheme.hint("SET_PALETTE_HINT"))
+	subtitles_box = CheckBox.new()
+	subtitles_box.text = "SET_SUBTITLES"
+	subtitles_box.toggled.connect(func(on: bool) -> void: _change("subtitles", on))
+	tab.add_child(subtitles_box)
+	shake_box = CheckBox.new()
+	shake_box.text = "SET_SCREEN_SHAKE"
+	shake_box.toggled.connect(func(on: bool) -> void: _change("screen_shake", on))
+	tab.add_child(shake_box)
 	health_bar_option = OptionButton.new()
-	for label in ["Damaged and selected units", "Selected units only", "Never"]:
+	for label in ["SET_HEALTH_DAMAGED", "SET_HEALTH_SELECTED", "SET_HEALTH_NEVER"]:
 		health_bar_option.add_item(label)
 	health_bar_option.item_selected.connect(func(index: int) -> void:
 		_change("health_bars", Settings.HEALTH_BAR_MODES[index]))
-	tab.add_child(_row("Health bars", health_bar_option))
-	return tab
+	tab.add_child(_row("SET_HEALTH_BARS", health_bar_option))
+	return _scrolled(tab)
 
 
 func _refresh() -> void:
@@ -193,6 +263,18 @@ func _refresh() -> void:
 	zoom_slider.set_value_no_signal(Settings.get_value("zoom_sensitivity"))
 	edge_scroll_box.set_pressed_no_signal(Settings.get_value("edge_scroll"))
 	dof_option.select(maxi(Settings.DOF_MODES.find(Settings.get_value("depth_of_field")), 0))
+	var language: String = Settings.get_value("language")
+	language_option.select(0 if language == "auto" else 1 + Language.LANGUAGES.keys().find(language))
+	ui_scale_slider.set_value_no_signal(Settings.get_value("ui_scale"))
+	render_scale_slider.set_value_no_signal(Settings.get_value("render_scale"))
+	vsync_box.set_pressed_no_signal(Settings.get_value("vsync"))
+	subtitles_box.set_pressed_no_signal(Settings.get_value("subtitles"))
+	shake_box.set_pressed_no_signal(Settings.get_value("screen_shake"))
+	fps_option.select(maxi(Settings.FPS_LIMITS.find(Settings.get_value("fps_limit")), 0))
+	var resolution: String = Settings.get_value("resolution")
+	resolution_option.select(0 if resolution.is_empty() else 1 + Settings.RESOLUTIONS.find(resolution))
+	for key in options:
+		options[key].select(maxi(OPTIONS[key][0].find(Settings.get_value(key)), 0))
 	for action in _key_buttons:
 		_key_buttons[action].text = Settings.key_name(Settings.bindings.get(action, 0))
 
@@ -200,6 +282,27 @@ func _refresh() -> void:
 func _change(key: String, value: Variant) -> void:
 	Settings.set_value(key, value)
 	changed.emit()
+
+
+## An option button over OPTIONS[key].
+func _option(key: String) -> OptionButton:
+	var option := OptionButton.new()
+	for label: String in OPTIONS[key][1]:
+		option.add_item(label)
+	option.item_selected.connect(func(index: int) -> void: _change(key, OPTIONS[key][0][index]))
+	options[key] = option
+	return option
+
+
+## `tab` in a vertical scroll container that carries the tab's name (the
+## translation key of its title).
+func _scrolled(tab: VBoxContainer) -> Control:
+	var scroll := ScrollContainer.new()
+	scroll.name = tab.name
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	tab.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(tab)
+	return scroll
 
 
 func _tab(title: String) -> VBoxContainer:
@@ -212,7 +315,8 @@ func _row(text: String, control: Control) -> Control:
 	var row := HBoxContainer.new()
 	var label := Label.new()
 	label.text = text
-	label.custom_minimum_size = Vector2(200, 0)
+	label.custom_minimum_size = Vector2(230, 0)
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	row.add_child(label)
 	control.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(control)

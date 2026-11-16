@@ -805,12 +805,18 @@ impl Sim {
         let u = &self.units[t];
         let h = self.types[u.unit_type as usize].height;
         if let Some(squad) = &u.squad
-            && let Some(s) = squad.living(self.next_projectile)
+            && let Some(s) = squad.aim_soldier(self.next_projectile)
         {
             let z = if squad.garrison.is_some() {
                 s.height + self.window_height(squad.garrison)
             } else {
-                s.height + self.infantry.stance_height(squad.stance) / 2
+                // Men lying knocked down or wounded (prompts 048, 049).
+                let stance = if s.knocked > 0 || s.wound.lying() {
+                    crate::infantry::Stance::Prone
+                } else {
+                    squad.stance
+                };
+                s.height + self.infantry.stance_height(stance) / 2
             };
             return Vec3::new(s.position.x, s.position.y, z);
         }
@@ -884,8 +890,12 @@ impl Sim {
             };
             let soldier = &squad.soldiers[index];
             // Knocked down by a blast (prompt 048), rushing with his fire
-            // team or clearing a jam (prompt 047): no shot.
-            if soldier.knocked > 0 || !super::tactics::may_fire(squad, index) {
+            // team or clearing a jam (prompt 047), wounded or helping a
+            // comrade (prompt 049): no shot.
+            if soldier.knocked > 0
+                || !super::tactics::may_fire(squad, index)
+                || !soldier.wound.can_fire()
+            {
                 continue;
             }
             let muzzle = Vec3::new(
@@ -1496,7 +1506,11 @@ fn unit_hit(
         let rel = a.ground() - s.position;
         let p = [dot(rel, f), dot(rel, r), a.z - s.height];
         // Knocked-down soldiers lie (prompt 048).
-        let height = if s.knocked > 0 { lying } else { height };
+        let height = if s.knocked > 0 || s.wound.lying() {
+            lying
+        } else {
+            height
+        };
         let Some((t, entry)) = slab(&p, &v, &[-half, -half, Fixed::ZERO], &[half, half, height])
         else {
             continue;

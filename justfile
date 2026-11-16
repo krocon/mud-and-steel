@@ -116,10 +116,26 @@ run *args: build
 editor: build
     {{ GODOT }} --path godot -e
 
-# Build the bridge and run the headless self-test: menu, settings, three matches (one against the computer), result (exit code 0 = passed)
+# Build the bridge and run the headless self-test: translations, menu, settings, three matches (one against the computer), result (exit code 0 = passed)
 [group('godot')]
-selftest: build
+selftest: l10n-check build
     {{ GODOT }} --path godot --headless --fixed-fps 60 -- --self-test
+
+# Check the translations (prompt 043): tables complete, no hard-coded interface text in the game scripts, every mission text translated
+[group('godot')]
+l10n-check:
+    python3 tools/l10n_check.py
+    cargo run -q -p cli -- mission-po --check
+
+# Screenshots of every menu screen, settings tab and the match HUD in a language (prompt 043; needs a window), e.g. `just l10n-shots de build/l10n`
+[group('godot')]
+l10n-shots language="de" dir="build/l10n" *args: build
+    {{ GODOT }} --path godot --always-on-top --resolution 1600x900 -- --l10n-shots={{ justfile_directory() }}/{{ dir }} --language={{ language }} --settings=user://settings-l10n-shots.cfg {{ args }}
+
+# Write the translation files of the mission texts (data/maps/*/missions/<id>.<lang>.po): new texts get an empty entry to translate
+[group('godot')]
+mission-po:
+    cargo run -q -p cli -- mission-po
 
 # Export a .blend file to godot/assets/models/<name>.glb
 [group('assets')]
@@ -174,6 +190,11 @@ kit-test:
 [group('assets')]
 units-web *args:
     python3 tools/units_web.py {{ args }}
+
+# Download vehicle reference data and drawings from onwar.com into docs/.vorlagen/fahrzeuge (not in git); --nation GER|US|RU, --limit N, --force
+[group('assets')]
+vehicle-refs *args:
+    node tools/onwar_download.mjs {{ args }}
 
 # Build the bridge and open the model gallery (all models, camouflage switch)
 [group('godot')]

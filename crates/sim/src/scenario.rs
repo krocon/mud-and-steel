@@ -299,6 +299,10 @@ fn parse_scenario_inner(
             .map_err(|e| ScenarioError(e.0))?;
         unit_types.extend(more);
     }
+    // Crews of destroyed vehicles bail out as squads (prompt 049).
+    let crews =
+        crate::care::crew_types(catalog, scale, &unit_types).map_err(|e| ScenarioError(e.0))?;
+    unit_types.extend(crews);
     if let Some(g) = file
         .group
         .iter()

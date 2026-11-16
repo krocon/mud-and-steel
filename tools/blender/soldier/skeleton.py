@@ -32,16 +32,16 @@ HAND = 0.17
 
 def _side_bones(side, sx):
     p = "Left" if side == "L" else "Right"
-    shoulder = Vector((sx * 0.185, 0.0, 1.43))
+    shoulder = Vector((sx * 0.195, 0.0, 1.43))
     direction = Vector((sx * _S, 0.0, -_S))
     elbow = shoulder + direction * UPPER_ARM + Vector((0, -0.02, 0))
     wrist = elbow + direction * LOWER_ARM + Vector((0, 0.02, 0))
     hand_tip = wrist + direction * HAND
-    hip = Vector((sx * 0.095, 0.0, 0.93))
-    knee = Vector((sx * 0.095, 0.015, 0.50))
-    ankle = Vector((sx * 0.095, -0.01, 0.09))
-    ball = Vector((sx * 0.095, 0.12, 0.03))
-    toe = Vector((sx * 0.095, 0.21, 0.03))
+    hip = Vector((sx * 0.100, 0.0, 0.93))
+    knee = Vector((sx * 0.100, 0.015, 0.50))
+    ankle = Vector((sx * 0.100, -0.01, 0.09))
+    ball = Vector((sx * 0.100, 0.12, 0.03))
+    toe = Vector((sx * 0.100, 0.21, 0.03))
     return {
         f"{p}Shoulder": ("UpperChest", (sx * 0.03, 0, 1.43), tuple(shoulder), (0, 1, 0)),
         f"{p}UpperArm": (f"{p}Shoulder", tuple(shoulder), tuple(elbow), (0, 1, 0)),

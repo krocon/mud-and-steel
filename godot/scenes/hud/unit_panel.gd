@@ -12,6 +12,7 @@ extends PanelContainer
 ##   click selects that unit alone, Shift + click removes it.
 ## - Hidden without a selection.
 
+const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
 const UnitPortrait := preload("res://scenes/hud/unit_portrait.gd")
 const RankBadge := preload("res://scenes/hud/rank_badge.gd")
 const UNIT_SCENE: PackedScene = preload("res://scenes/unit.tscn")
@@ -19,7 +20,7 @@ const REFRESH := 0.2
 ## Tiles shown at most; the rest is counted.
 const MAX_TILES := 40
 const TILE_SIZE := Vector2(74, 40)
-const STANCES := {-1: "", 0: "standing", 1: "kneeling", 2: "prone"}
+const STANCES := {-1: "", 0: "HUD_STANCE_STANDING", 1: "HUD_STANCE_KNEELING", 2: "HUD_STANCE_PRONE"}
 
 var main: Node3D
 var sim_host: SimHost
@@ -96,16 +97,16 @@ func setup(main_node: Node3D) -> void:
 	_health.show_percentage = false
 	_health.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	bars.add_child(_health)
-	_ammo_bar = _stock_bar(Color(0.95, 0.75, 0.25), "Ammunition")
+	_ammo_bar = _stock_bar(Color(0.95, 0.75, 0.25), "COMMON_RESOURCE_AMMO")
 	bars.add_child(_ammo_bar)
-	_fuel_bar = _stock_bar(Color(0.45, 0.7, 1.0), "Fuel")
+	_fuel_bar = _stock_bar(Color(0.45, 0.7, 1.0), "COMMON_RESOURCE_FUEL")
 	bars.add_child(_fuel_bar)
-	_xp_bar = _stock_bar(Color(0.75, 0.68, 0.5), "Experience")
+	_xp_bar = _stock_bar(Color(0.75, 0.68, 0.5), "HUD_EXPERIENCE")
 	_xp_bar.custom_minimum_size = Vector2(56, 14)
 	bars.add_child(_xp_bar)
 	_details = Label.new()
 	_details.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_details.add_theme_font_size_override(&"font_size", 13)
+	_details.add_theme_font_size_override(&"font_size", MenuTheme.font(13))
 	text.add_child(_details)
 
 	_grid = GridContainer.new()
@@ -163,9 +164,13 @@ func _show_single(id: int) -> void:
 	_health.max_value = maxi(int(info.max_hp), 1)
 	_health.value = int(info.hp)
 	var lines: Array[String] = []
-	var hp_line := "Hit points %d / %d" % [info.hp, info.max_hp]
+	var hp_line := tr("HUD_HIT_POINTS") % [info.hp, info.max_hp]
 	if info.has("soldiers"):
-		hp_line += "   ·   soldiers %d / %d" % [info.soldiers, info.squad_size]
+		hp_line += "   ·   " + tr("HUD_SOLDIERS") % [info.soldiers, info.squad_size]
+		# Prompt 049: lightly / heavily wounded (untreated) men.
+		var wounded: Vector2i = sim_host.unit_wounded_counts().get(id, Vector2i.ZERO)
+		if wounded != Vector2i.ZERO:
+			hp_line += "   ·   " + tr("HUD_WOUNDED") % [wounded.x, wounded.y]
 	# Only warnings, on the same line, so the panel keeps its height; the
 	# bars carry the percentages in their tooltips.
 	var warning := _supply_warning(id)
@@ -175,37 +180,37 @@ func _show_single(id: int) -> void:
 	var hull: PackedInt64Array = info.armor_hull
 	var turret: PackedInt64Array = info.armor_turret
 	if hull.size() == 3 and hull[0] > 0:
-		var armor := "Armor hull %d / %d / %d mm" % [hull[0], hull[1], hull[2]]
+		var armor := tr("HUD_ARMOR_HULL") % [hull[0], hull[1], hull[2]]
 		if turret.size() == 3:
-			armor += ", turret %d / %d / %d mm" % [turret[0], turret[1], turret[2]]
-		lines.append(armor + " (front / side / rear)")
+			armor += ", " + tr("HUD_ARMOR_TURRET") % [turret[0], turret[1], turret[2]]
+		lines.append(armor + " " + tr("HUD_ARMOR_SIDES"))
 	var weapons: Array[String] = []
 	for w: Dictionary in info.weapons:
 		var count := "%d× " % w.count if int(w.count) > 1 else ""
 		var caliber: float = w.caliber_mm
 		var mm := "%d" % roundi(caliber) if is_equal_approx(caliber, roundf(caliber)) else "%.1f" % caliber
 		weapons.append("%s%s (%s mm, %d m)" % [count, w.name, mm, int(w.range_m)])
-	lines.append("Weapons: " + (", ".join(weapons) if not weapons.is_empty() else "none"))
+	lines.append(tr("HUD_WEAPONS") % (", ".join(weapons) if not weapons.is_empty() else tr("HUD_WEAPONS_NONE")))
 	var index := sim_host.unit_ids().find(id)
 	if index >= 0:
 		var state: Array[String] = []
 		var stance: int = sim_host.unit_stances()[index]
 		if stance >= 0:
-			state.append("Stance %s" % STANCES.get(stance, "?"))
+			state.append(tr("HUD_STANCE") % tr(STANCES.get(stance, "?")))
 			# Prompt 047: suppression and fire teams.
 			var tactics := sim_host.squad_tactics(id)
 			if tactics.get("pinned", false):
-				state.append("pinned down")
+				state.append(tr("HUD_STATE_PINNED"))
 			elif int(tactics.get("suppression", 0)) > 0:
-				state.append("suppressed %d %%" % int(tactics.get("suppression", 0)))
+				state.append(tr("HUD_STATE_SUPPRESSED") % int(tactics.get("suppression", 0)))
 			if int(tactics.get("bounding", -1)) >= 0:
-				state.append("bounding")
-		state.append("holding fire" if sim_host.unit_hold_fire()[index] != 0 else "fire at will")
+				state.append(tr("HUD_STATE_BOUNDING"))
+		state.append(tr("HUD_STATE_HOLDING_FIRE") if sim_host.unit_hold_fire()[index] != 0 else tr("HUD_STATE_FIRE_AT_WILL"))
 		var queued := sim_host.unit_queue_length(id)
 		if sim_host.unit_patrols(id):
-			state.append("patrolling")
+			state.append(tr("HUD_STATE_PATROLLING"))
 		elif queued > 0:
-			state.append("%d waypoint%s queued" % [queued, "" if queued == 1 else "s"])
+			state.append(tr("HUD_WAYPOINTS_ONE" if queued == 1 else "HUD_WAYPOINTS_N") % queued)
 		# Same line, so the panel keeps its height (prompt 034).
 		var transport := _transport_line(id, index)
 		if not transport.is_empty():
@@ -229,21 +234,21 @@ func _show_rank(id: int, type_id: String) -> void:
 	rank_line = str(xp.rank_name)
 	var kills: int = xp.kills
 	if kills > 0:
-		rank_line += ", %d kill%s" % [kills, "" if kills == 1 else "s"]
+		rank_line += ", " + tr("HUD_KILLS_ONE" if kills == 1 else "HUD_KILLS_N") % kills
 	_title.text += "   ·   " + rank_line
 	var next: int = xp.next_xp
 	var start: int = xp.rank_xp
 	if next < 0:
 		_xp_bar.value = 100
-		_xp_bar.tooltip_text = "%s: %d experience, highest rank" % [xp.rank_name, xp.xp]
+		_xp_bar.tooltip_text = tr("HUD_XP_MAX").format({"rank": xp.rank_name, "xp": xp.xp})
 	else:
 		_xp_bar.value = clampi(100 * (int(xp.xp) - start) / maxi(next - start, 1), 0, 100)
-		_xp_bar.tooltip_text = "%s: %d / %d experience to the next rank" % [xp.rank_name, xp.xp, next]
+		_xp_bar.tooltip_text = tr("HUD_XP_NEXT").format({"rank": xp.rank_name, "xp": xp.xp, "next": next})
 	if rank > 0:
-		_badge.tooltip_text = "%s: dispersion %d %%, reload %d %%, pinned down %d %% of a recruit's" \
-				% [xp.rank_name, xp.dispersion_pct, xp.reload_pct, xp.suppression_pct]
+		_badge.tooltip_text = tr("HUD_XP_BONUS").format({"rank": xp.rank_name, "dispersion": xp.dispersion_pct,
+				"reload": xp.reload_pct, "pinned": xp.suppression_pct})
 	else:
-		_badge.tooltip_text = "%s: no bonus yet" % xp.rank_name
+		_badge.tooltip_text = tr("HUD_XP_NO_BONUS") % xp.rank_name
 
 
 ## Passengers, towing and loading state of unit `id` (prompt 034).
@@ -251,15 +256,15 @@ func _transport_line(id: int, index: int) -> String:
 	var parts: Array[String] = []
 	var seats := sim_host.unit_seats(id)
 	if seats > 0 and sim_host.unit_passengers()[index] > 0:
-		parts.append("Passengers %d / %d" % [sim_host.unit_passengers()[index], seats])
+		parts.append(tr("HUD_PASSENGERS") % [sim_host.unit_passengers()[index], seats])
 	var towing: int = sim_host.unit_towing()[index]
 	if towing >= 0:
-		parts.append("towing " + str(sim_host.unit_info(towing).get("name", "a gun")))
+		parts.append(tr("HUD_TOWING") % str(sim_host.unit_info(towing).get("name", tr("HUD_A_GUN"))))
 	var carrier: int = sim_host.unit_carriers()[index]
 	if carrier >= 0:
-		parts.append("towed by " + str(sim_host.unit_info(carrier).get("name", "a vehicle")))
+		parts.append(tr("HUD_TOWED_BY") % str(sim_host.unit_info(carrier).get("name", tr("HUD_A_VEHICLE"))))
 	if sim_host.unit_loading()[index] != 0:
-		parts.append("loading")
+		parts.append(tr("HUD_STATE_LOADING"))
 	return ", ".join(parts)
 
 
@@ -289,22 +294,22 @@ func _supply_warning(id: int) -> String:
 		immobile = sim_host.unit_immobile()[index] != 0
 	_ammo_bar.visible = ammo >= 0
 	_ammo_bar.value = maxi(ammo, 0)
-	_ammo_bar.tooltip_text = "Ammunition %d %%" % ammo
+	_ammo_bar.tooltip_text = tr("HUD_AMMO_PCT") % ammo
 	_fuel_bar.visible = fuel >= 0
 	_fuel_bar.value = maxi(fuel, 0)
-	_fuel_bar.tooltip_text = "Fuel %d %%" % fuel
+	_fuel_bar.tooltip_text = tr("HUD_FUEL_PCT") % fuel
 	var low := sim_host.supply_low_pct()
 	var warnings: Array[String] = []
 	if ammo == 0:
-		warnings.append("OUT OF AMMUNITION")
+		warnings.append(tr("HUD_WARN_NO_AMMO"))
 	elif ammo > 0 and low.size() == 2 and ammo <= low[0]:
-		warnings.append("low ammunition")
+		warnings.append(tr("HUD_WARN_LOW_AMMO"))
 	if fuel == 0:
-		warnings.append("OUT OF FUEL")
+		warnings.append(tr("HUD_WARN_NO_FUEL"))
 	elif fuel > 0 and low.size() == 2 and fuel <= low[1]:
-		warnings.append("low fuel")
+		warnings.append(tr("HUD_WARN_LOW_FUEL"))
 	if immobile:
-		warnings.append("IMMOBILIZED")
+		warnings.append(tr("HUD_WARN_IMMOBILIZED"))
 	supply_warning = ", ".join(warnings)
 	return supply_warning
 
@@ -327,7 +332,7 @@ func _build_tiles(selected: Array[int]) -> void:
 		_grid.add_child(tile)
 		tile_ids.append(id)
 	_more.visible = selected.size() > MAX_TILES
-	_more.text = "+%d more" % (selected.size() - MAX_TILES)
+	_more.text = tr("HUD_MORE") % (selected.size() - MAX_TILES)
 
 
 func _update_tiles() -> void:
@@ -387,7 +392,7 @@ class Tile:
 
 	func _ready() -> void:
 		mouse_filter = Control.MOUSE_FILTER_STOP
-		tooltip_text = "Click: select only this unit. Shift + click: remove it."
+		tooltip_text = "HUD_TIP_TILE"
 
 	func _gui_input(event: InputEvent) -> void:
 		var button := event as InputEventMouseButton

@@ -24,6 +24,7 @@ extends Node
 ## `us`).
 
 const SoundLibrary := preload("res://scenes/audio/sound_library.gd")
+const Subtitles := preload("res://scenes/hud/subtitles.gd")
 
 const CALLOUTS: Array[String] = ["contact", "take_cover", "reloading", "wounded"]
 const FACTIONS: Array[String] = ["de", "su", "us"]
@@ -89,6 +90,8 @@ func _call(unit: int, callout: String, at: Vector3) -> void:
 	if not battle_sound.visible_at.call(at):
 		return
 	say(faction_of(str(info.get("id", ""))), callout, at)
+	# The line shows even while no voice files ship (prompt 043).
+	Subtitles.say(tr("SUB_CALLOUT_" + callout.to_upper()))
 	_last_any = _time
 	_last_squad[unit] = _time
 

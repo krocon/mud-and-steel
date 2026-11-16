@@ -20,23 +20,24 @@ extends RefCounted
 ##   (`line_preview`).
 
 const GroundPick := preload("res://scenes/camera/ground_pick.gd")
-## Kinds of the command bar: id -> [label, needs a line].
+const Language := preload("res://scenes/menu/language.gd")
+## Kinds of the command bar: id -> [label (translation key), needs a line].
 const KINDS := {
-	"mines_at": ["AT mines", false],
-	"mines_ap": ["AP mines", false],
-	"wire": ["Wire", true],
-	"hedgehogs": ["Obstacles", true],
-	"foxhole": ["Foxhole", false],
-	"trench": ["Trench", true],
-	"clear": ["Clear", false],
-	"bridge": ["Bridge", false],
-	"comm_trench": ["Comm. trench", true],
-	"teeth": ["Teeth", true],
-	"vehicle_pit": ["Vehicle pit", false],
-	"mg_nest": ["MG nest", false],
-	"dugout": ["Dugout", false],
-	"camo_net": ["Camo net", false],
-	"bunker": ["Bunker", true],
+	"mines_at": ["HUD_WORK_MINES_AT", false],
+	"mines_ap": ["HUD_WORK_MINES_AP", false],
+	"wire": ["HUD_WORK_WIRE", true],
+	"hedgehogs": ["HUD_WORK_HEDGEHOGS", true],
+	"foxhole": ["HUD_WORK_FOXHOLE", false],
+	"trench": ["HUD_WORK_TRENCH", true],
+	"clear": ["HUD_WORK_CLEAR", false],
+	"bridge": ["HUD_WORK_BRIDGE", false],
+	"comm_trench": ["HUD_WORK_COMM_TRENCH", true],
+	"teeth": ["HUD_WORK_TEETH", true],
+	"vehicle_pit": ["HUD_WORK_VEHICLE_PIT", false],
+	"mg_nest": ["HUD_WORK_MG_NEST", false],
+	"dugout": ["HUD_WORK_DUGOUT", false],
+	"camo_net": ["HUD_WORK_CAMO_NET", false],
+	"bunker": ["HUD_WORK_BUNKER", true],
 }
 ## Kinds whose pieces are points along the line (one more than segments).
 const POINT_LINES := ["hedgehogs", "teeth"]
@@ -112,8 +113,8 @@ static func line_preview(selection: Control, cursor: Vector3) -> Dictionary:
 		var total := [cost[0] * pieces, cost[1] * pieces, cost[2] * pieces]
 		var per_m := ""
 		if length >= 1.0 and kind != "bunker":
-			per_m = "  (%.1f per m)" % (float(total[0] + total[1] + total[2]) / length)
-		text += "  ·  %d pieces  ·  fuel %d ammo %d manpower %d%s" % [pieces, total[0], total[1], total[2], per_m]
+			per_m = "  " + Language.t("HUD_LINE_PER_M") % (float(total[0] + total[1] + total[2]) / length)
+		text += "  ·  " + Language.t("HUD_LINE_COST") % [pieces, total[0], total[1], total[2]] + per_m
 	return {"from": from, "to": to, "length": length, "pieces": pieces, "cost": cost, "text": text}
 
 
@@ -137,18 +138,18 @@ static func hint(selection: Control) -> String:
 	var kind := kind_of(selection.command_mode)
 	if kind.is_empty() or not KINDS.has(kind):
 		return ""
-	var label: String = KINDS[kind][0]
+	var label := Language.t(KINDS[kind][0])
 	match kind:
 		"clear":
-			return "Clear: left click the area"
+			return Language.t("HUD_HINT_WORK_CLEAR")
 		"bridge":
-			return "Bridge: left click a bridge (demolish / repair)"
+			return Language.t("HUD_HINT_WORK_BRIDGE")
 	if not KINDS[kind][1]:
-		return "%s: left click a point" % label
+		return Language.t("HUD_HINT_WORK_POINT") % label
 	if kind == "bunker":
 		if selection.has_meta(START_META):
-			return "Bunker: left click the direction it faces"
-		return "Bunker: left click a point at a trench edge"
+			return Language.t("HUD_HINT_BUNKER_FACING")
+		return Language.t("HUD_HINT_BUNKER_START")
 	if selection.has_meta(START_META):
-		return "%s: left click the end of the line" % label
-	return "%s: left click the start of the line" % label
+		return Language.t("HUD_HINT_LINE_END") % label
+	return Language.t("HUD_HINT_LINE_START") % label

@@ -87,6 +87,10 @@ def casemate(model, p, ctx):
       plates (default 15 / 30 / 10).
     - `z`: base height (default hull top), `height`: m or "fit" (catalog
       height; the assembly passes it), `bevel`.
+    - `rear_deck` = { y, z } (closed only): the rear plate rises from the
+      rear edge of `plan` only to (y, z); from there a flat engine deck
+      slopes up to the rear edge of the roof (Jagdpanzer 38(t)). The other
+      plates stay flat.
     - `open`: true = open-topped fighting compartment (walls of `wall`
       thickness, default 0.025 m, with a floor), false = closed roof.
     Builds into `Hull`. Returns `casemate_top_z`, `casemate_plan`,
@@ -108,11 +112,31 @@ def casemate(model, p, ctx):
                         p.get("rear_slope_deg", 10.0))
     mb = model.mb("Hull")
     rings = [[(x, y, z0) for x, y in plan], [(x, y, z0 + h) for x, y in top]]
+    deck = p.get("rear_deck")
     if p.get("open", False):
+        if deck:
+            raise ValueError("casemate: rear_deck needs a closed casemate")
         wall_shell(mb, rings, p.get("wall", 0.025), floor=True)
     else:
         p.get("wall")
-        mb.loft(rings, "Paint", bevel=p.get("bevel", 0.015))
+        bevel = p.get("bevel", 0.015)
+        if not deck:
+            mb.loft(rings, "Paint", bevel=bevel)
+        else:
+            # ring at the deck height: every edge point at that height, the rear ones moved to the deck end
+            t = (deck["z"] - z0) / h
+            if not 0.0 < t < 1.0:
+                raise ValueError("casemate: rear_deck z must lie between the base and the roof")
+            ys = [y for _, y in plan]
+            mid_y = (max(ys) + min(ys)) / 2
+            ring = [(a[0] + (b[0] - a[0]) * t, deck["y"] if a[1] < mid_y else a[1] + (b[1] - a[1]) * t, deck["z"])
+                    for a, b in zip(plan, top)]
+            faces = mb.loft([rings[0], ring, rings[1]], "Paint")
+            # the ring splits the flat front and side plates: join them again before the bevel
+            res = bmesh.ops.dissolve_limit(mb.bm, angle_limit=math.radians(0.5),
+                                           verts=list({v for f in faces for v in f.verts}),
+                                           edges=list({e for f in faces for e in f.edges}))
+            mb._shell(res["region"], bevel)
     return {"casemate_top_z": z0 + h, "casemate_plan": plan, "casemate_top_plan": top, "casemate_z": z0}
 
 

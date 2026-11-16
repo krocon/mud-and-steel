@@ -27,7 +27,7 @@ extends Control
 const GroundPick := preload("res://scenes/camera/ground_pick.gd")
 const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
 const Picker := preload("res://scenes/hud/picker.gd")
-const RESOURCE_NAMES := ["Fuel", "Ammunition", "Manpower"]
+const RESOURCE_NAMES := ["COMMON_RESOURCE_FUEL", "COMMON_RESOURCE_AMMO", "COMMON_RESOURCE_MANPOWER"]
 const OK_COLOR := Color(0.3, 0.9, 0.35, 0.45)
 const BAD_COLOR := Color(0.95, 0.25, 0.2, 0.45)
 const GHOST_HEIGHT := 4.0
@@ -113,12 +113,12 @@ func setup(main_node: Node3D, view: Node) -> void:
 			sim_host.produce(production_building, o.type))
 	_production_box.add_child(production_picker)
 	_queue_label = Label.new()
-	_queue_label.add_theme_font_size_override(&"font_size", 13)
+	_queue_label.add_theme_font_size_override(&"font_size", MenuTheme.font(13))
 	_queue_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_production_box.add_child(_queue_label)
 	_cancel = Button.new()
-	_cancel.text = "Cancel last"
-	_cancel.add_theme_font_size_override(&"font_size", 13)
+	_cancel.text = "HUD_CANCEL_LAST"
+	_cancel.add_theme_font_size_override(&"font_size", MenuTheme.font(13))
 	_cancel.pressed.connect(func() -> void:
 		if production_building >= 0:
 			sim_host.cancel_production(production_building))
@@ -126,14 +126,14 @@ func setup(main_node: Node3D, view: Node) -> void:
 	var service := HBoxContainer.new()
 	_production_box.add_child(service)
 	_repair = Button.new()
-	_repair.text = "Repair"
-	_repair.tooltip_text = "Repair the building over time (half its price for a full repair); again to stop"
+	_repair.text = "HUD_REPAIR"
+	_repair.tooltip_text = "HUD_TIP_REPAIR"
 	_repair.pressed.connect(func() -> void:
 		if service_building >= 0:
 			sim_host.repair_building(service_building))
 	service.add_child(_repair)
 	_sell = Button.new()
-	_sell.text = "Sell"
+	_sell.text = "HUD_SELL"
 	_sell.pressed.connect(func() -> void:
 		if service_building >= 0:
 			sim_host.sell_building(service_building)
@@ -211,7 +211,7 @@ func place_at(point: Vector3) -> bool:
 		return false
 	var reason := sim_host.placement_check(placing, point.x, point.z)
 	if not reason.is_empty():
-		_hint.text = "Cannot build here: %s" % reason
+		_hint.text = tr("HUD_CANNOT_BUILD") % Picker.blocked_text(reason)
 		return false
 	sim_host.place_building(placing, point.x, point.z)
 	return true
@@ -227,7 +227,7 @@ func _update_ghost(screen: Vector2) -> void:
 	_ghost.position = point + Vector3.UP * GHOST_HEIGHT * 0.5
 	placement_reason = sim_host.placement_check(placing, point.x, point.z)
 	_ghost_material.albedo_color = OK_COLOR if placement_reason.is_empty() else BAD_COLOR
-	_hint.text = "Place: left click · cancel: right click" if placement_reason.is_empty() else placement_reason
+	_hint.text = tr("HUD_PLACE_HINT") if placement_reason.is_empty() else Picker.blocked_text(placement_reason)
 
 
 func _input(event: InputEvent) -> void:
@@ -291,7 +291,7 @@ func _refresh() -> void:
 	var parts: Array[String] = []
 	for i in 3:
 		var key: String = ["fuel", "ammo", "manpower"][i]
-		parts.append("%s %d (+%d/min)" % [RESOURCE_NAMES[i], state[key], income[i]])
+		parts.append(tr("HUD_RESOURCE_AMOUNT") % [tr(RESOURCE_NAMES[i]), state[key], income[i]])
 	_resources.text = "    ".join(parts)
 	# Own construction sites per type, and the progress of the furthest.
 	var sites := {}
@@ -302,7 +302,7 @@ func _refresh() -> void:
 			var t := int(s.type)
 			sites[t] = int(sites.get(t, 0)) + 1
 			site_progress[t] = maxf(float(site_progress.get(t, 0.0)), float(s.built))
-	build_picker.set_options("Build", sim_host.build_options(), sites, site_progress)
+	build_picker.set_options(tr("HUD_CMD_BUILD"), sim_host.build_options(), sites, site_progress)
 	_refresh_production()
 
 
@@ -336,8 +336,8 @@ func _refresh_production() -> void:
 			text += " %d %%" % int(float(s.progress) * 100.0)
 		names.append(text)
 	if float(s.built) < 1.0:
-		names = ["under construction %d %%" % int(float(s.built) * 100.0)]
-	_queue_label.text = "Queue: " + (", ".join(names) if not names.is_empty() else "empty")
+		names = [tr("HUD_UNDER_CONSTRUCTION") % int(float(s.built) * 100.0)]
+	_queue_label.text = tr("HUD_QUEUE") % (", ".join(names) if not names.is_empty() else tr("HUD_QUEUE_EMPTY"))
 	_cancel.disabled = queue.is_empty()
 
 
@@ -348,8 +348,8 @@ func _refresh_service() -> void:
 		return
 	var s: Dictionary = base_view.structures.get(service_building, {})
 	var site := float(s.get("built", 1.0)) < 1.0
-	_sell.text = "Cancel site" if site else "Sell"
-	_sell.tooltip_text = "Cancel the construction site (75 % back)" if site else "Sell the building (half its price back)"
+	_sell.text = tr("HUD_CANCEL_SITE") if site else tr("HUD_SELL")
+	_sell.tooltip_text = tr("HUD_TIP_CANCEL_SITE") if site else tr("HUD_TIP_SELL")
 	var hp := 0
 	var max_hp := 1
 	var index := sim_host.unit_ids().find(service_building)
@@ -358,5 +358,5 @@ func _refresh_service() -> void:
 		hp = int(info.get("hp", 0))
 		max_hp = maxi(int(info.get("max_hp", 1)), 1)
 	var repairing := sim_host.building_repairing(service_building)
-	_repair.text = "Stop repair" if repairing else "Repair"
+	_repair.text = tr("HUD_STOP_REPAIR") if repairing else tr("HUD_REPAIR")
 	_repair.disabled = site or (hp >= max_hp and not repairing)

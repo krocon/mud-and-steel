@@ -40,7 +40,9 @@ impl SimHost {
             .experience_rules()
             .ranks
             .iter()
-            .map(|r| GString::from(r.name.as_str()))
+            .map(|r| {
+                GString::from(crate::language_funcs::translated("RANK_", &r.name, &r.name).as_str())
+            })
             .collect()
     }
 
@@ -63,7 +65,10 @@ impl SimHost {
         let e = unit.experience;
         let rank = rules.rank(e.rank);
         d.set("rank", i64::from(e.rank));
-        d.set("rank_name", rank.name.as_str());
+        d.set(
+            "rank_name",
+            crate::language_funcs::translated("RANK_", &rank.name, &rank.name).as_str(),
+        );
         d.set("xp", i64::from(e.xp));
         d.set("rank_xp", i64::from(rank.xp));
         d.set("next_xp", rules.next_xp(e.rank).map_or(-1, i64::from));

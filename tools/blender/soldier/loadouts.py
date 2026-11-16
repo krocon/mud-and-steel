@@ -2,20 +2,23 @@
 gets. `build_soldier.py <faction> <role> <biome>` reads this table.
 
 Uniform styles (period 1943-45):
-- de: M43 field blouse to the upper thigh, trousers, ankle boots with canvas gaiters.
-- su: gymnastyorka pullover tunic, breeches (flared thighs), tall kirza boots.
-- us: M41/M43 field jacket, trousers, canvas leggings M1938, service shoes.
+- de: M43 field blouse to the upper thigh (four pockets, shoulder straps), trousers
+  bloused over ankle boots with canvas gaiters.
+- su: gymnastyorka pullover tunic (breast pockets, shoulder boards), breeches (flared
+  thighs), tall kirza boots.
+- us: M43 field jacket (four pockets), trousers bloused over canvas leggings M1938,
+  service shoes.
 Winter uses white over-garments through the material system (white `Cloth`), desert
 lighter drill colors; see godot/assets/models/infantry/uniform_palettes.json.
 """
 
 UNIFORMS = {
     "de": dict(tunic_hem=0.79, tunic_flare=0.012, boot_top=0.15, gaiter_top=0.25,
-               gaiter_slot="Canvas", trouser_tint=(0.96, 0.96, 0.96)),
+               gaiter_slot="Canvas", trouser_tint=(0.96, 0.96, 0.96), skirt_pockets=True),
     "su": dict(tunic_hem=0.80, tunic_flare=0.010, boot_top=0.42, breeches=0.022,
-               trouser_tint=(0.94, 0.94, 0.94)),
-    "us": dict(tunic_hem=0.83, tunic_flare=0.004, boot_top=0.14, gaiter_top=0.28,
-               gaiter_slot="Canvas", trouser_tint=(0.80, 0.78, 0.74)),
+               blouse=0.008, trouser_tint=(0.94, 0.94, 0.94)),
+    "us": dict(tunic_hem=0.83, tunic_flare=0.004, boot_top=0.14, gaiter_top=0.30,
+               gaiter_slot="Canvas", trouser_tint=(0.80, 0.78, 0.74), skirt_pockets=True),
 }
 
 # Basic equipment every soldier of a faction carries.
@@ -24,7 +27,7 @@ BASE_GEAR = {
            "gasmask_can", "bayonet"],
     "su": ["belt_leather", "ammo_pouch_su", "gasmask_bag", "canteen", "shovel_side",
            "veshmeshok", "skatka"],
-    "us": ["us_cartridge_belt", "first_aid_us", "canteen", "us_haversack"],
+    "us": ["us_cartridge_belt", "y_straps_canvas", "first_aid_us", "canteen", "us_haversack"],
 }
 
 HELMET = {"de": "m35", "su": "ssh40", "us": "m1"}
@@ -195,3 +198,23 @@ TIER2_ROLES = tuple(_TIER2)
 # plain white armband and a medical bag (no Red Cross, docs/SOURCES.md).
 ROLES.setdefault("stretcher_bearer", {})["de"] = dict(
     weapon="p38", extra=["holster", "medic_bags", "armband"], drop=["pouches_de", "bayonet"])
+
+# --- prompt 049: crews that bailed out of a destroyed vehicle --------------------------
+# Catalog *_inf_tank_crew: one submachine gun carried in the vehicle (commander) and
+# pistols for the others; no packs, field cap (us: the M1 helmet is the faction "cap").
+# Panzer wrap, padded tank helmet and tanker jacket are not modeled [provisional].
+_CREW_DROP = {
+    "de": ["y_straps", "pouches_de", "bread_bag", "shovel_side", "gasmask_can", "bayonet"],
+    "su": ["ammo_pouch_su", "gasmask_bag", "shovel_side", "veshmeshok", "skatka"],
+    "us": ["us_haversack"],
+}
+_CREW = {
+    "crew_commander": {"de": "mp40", "su": "ppsh41", "us": "thompson"},
+    "crewman": {"de": "p38", "su": "tt33", "us": "m1911a1"},
+}
+for _role, _per in _CREW.items():
+    for _faction, _weapon in _per.items():
+        ROLES.setdefault(_role, {})[_faction] = dict(
+            weapon=_weapon, extra=["holster"], drop=_CREW_DROP[_faction], headgear="cap")
+
+CREW_ROLES = tuple(_CREW)

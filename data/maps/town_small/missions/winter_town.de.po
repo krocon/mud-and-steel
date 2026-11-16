@@ -1,0 +1,27 @@
+# Translation of the mission winter_town (prompt 043). msgid: the English text of the
+# mission file; `just mission-po` adds new texts, see docs/MISSIONS.md.
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: de\n"
+
+msgid "Town in the snow"
+msgstr "Stadt im Schnee"
+
+msgid "A Soviet outpost holds the square of a small town. Take it with your Panzer IV company and the riflemen, then stop the Soviet relief from the north."
+msgstr "Ein sowjetischer Vorposten hält den Platz einer Kleinstadt. Nimm ihn mit deiner Panzer-IV-Kompanie und den Schützen und halte dann den sowjetischen Entsatz aus dem Norden auf."
+
+msgid "Destroy the Soviet outpost on the town square."
+msgstr "Vernichte den sowjetischen Vorposten auf dem Marktplatz."
+
+msgid "Stop the Soviet relief."
+msgstr "Halte den sowjetischen Entsatz auf."
+
+msgid "The town square lies straight ahead. Advance carefully: the houses give the enemy cover."
+msgstr "Der Marktplatz liegt direkt vor dir. Rücke vorsichtig vor: Die Häuser geben dem Feind Deckung."
+
+msgid "The square is ours. Soviet tanks approach from the north!"
+msgstr "Der Platz gehört uns. Sowjetische Panzer nähern sich von Norden!"
+
+msgid "The relief is destroyed. The town is held."
+msgstr "Der Entsatz ist vernichtet. Die Stadt ist gehalten."

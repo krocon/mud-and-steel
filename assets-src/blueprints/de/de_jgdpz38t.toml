@@ -1,159 +1,184 @@
 # Jagdpanzer 38(t) "Hetzer" (Sd.Kfz. 138/2), 1944-45.
 # Main dimensions from data/catalog/de.toml: length 6.27 m with gun, hull
-# 4.77 m, width 2.63 m, height 2.17 m (casemate roof).
-# Pz.Kpfw. 38(t) chassis, widened (Wikipedia "Jagdpanzer 38(t)"; Chamberlain/
-# Doyle): four large twin road wheels per side (about 0.775 m) on two
-# leaf-spring bogies, front sprocket, rear idler, one return roller; the
-# whole upper hull is one low casemate of sloped plates (front 60 deg, sides
-# about 40 deg upper / lower). The 7.5 cm PaK 39 sits right of the center line
-# in a cast 'Saukopf' mantlet, no muzzle brake. Remote-controlled MG 42
-# ('Rundumfeuer') with shield on the roof above the loader (left), the
-# commander's split hatch rear right.
-# Modeling estimates from photographs: wheel stations, sprocket/idler, the plan
-# and roof plan of the casemate (roof about 1.65 m wide), gun trunnion, hatch
-# and MG positions. The plates are steeper in the model's plan view only as far
-# as the two-ring casemate loft allows (one slope per face).
+# 4.77 m, width 2.63 m (over the Schürzen), height 2.17 m.
+# The catalog height is the overall height with the remote-controlled MG and
+# its shield: the roof itself is far lower. Firing height 1.40 m
+# (panzerworld.com/jagdpanzer-38); measured in the side view in
+# docs/.vorlagen/hetzer the roof lies about 0.48 m above the gun axis, so the
+# roof is modeled at 1.88 m and the MG shield top at the catalog height.
+# Pz.Kpfw. 38(t) chassis, widened: four large road wheels per side (82 cm,
+# tanks-encyclopedia.com Jagdpanzer 38) in two leaf-spring pairs, front
+# sprocket, rear idler, one return roller, 35 cm track. Plates (Wikipedia
+# "Hetzer"; tanks-encyclopedia.com): upper front 60 deg from vertical, lower
+# front about 40 deg, upper sides about 40 deg, engine deck about 70 deg.
+# The 7.5 cm PaK 39 sits right of the center line in a cast housing with a
+# 'Saukopf' mantlet, no muzzle brake. Remote-controlled MG with shield on the
+# roof left of the center, commander's hatch rear right, 5 mm Schürzen over
+# the upper track run.
+# Modeling estimates from the photographs in docs/.vorlagen/hetzer: wheel
+# stations, sprocket/idler, roof plan (about 1.4 m wide, 1.5 m long), start of
+# the engine deck, height of the rear plate, gun housing, hatch, MG and skirt
+# positions.
 unit = "de_jgdpz38t"
 assembly = "casemate"
 
 [layout]
-fender_overhang = 0.02
+fender_overhang = 0.045                 # tracks inside the skirts, which reach the catalog width
 
 [running_gear]
 part = "leaf_spring_bogie"
 track_width = 0.35
 link_pitch = 0.10
-road_wheel_diameter = 0.775
-road_wheels = [1.43, 0.61, -0.45, -1.27]
-sprocket = { y = 2.05, z = 0.74, diameter = 0.62, teeth = 19 }
-idler = { y = -2.05, z = 0.62, diameter = 0.56 }
-return_rollers = { y = [0.08], z = 0.90, diameter = 0.22 }
+road_wheel_diameter = 0.82
+road_wheels = [1.32, 0.47, -0.47, -1.32]
+sprocket = { y = 2.05, z = 0.76, diameter = 0.60, teeth = 19 }
+idler = { y = -2.03, z = 0.70, diameter = 0.54 }
+return_rollers = { y = [0.0], z = 0.92, diameter = 0.22 }
 
 [hull]
 part = "plate_hull"
-# lower hull: 40 deg lower nose plate, belly, sloped rear
-lower = [[-2.20, 0.44], [1.92, 0.44], [2.38, 0.96], [-2.38, 0.96], [-2.38, 0.62]]
-# thin deck at track-top level; everything above is the casemate
-upper = [[-2.38, 0.95], [2.38, 0.95], [2.38, 1.00], [-2.38, 1.00]]
-fender_front = 2.38
-fender_slope_front = 0.0
+# lower hull between the tracks: 40 deg lower nose plate, belly, undercut rear plate
+lower = [[-1.80, 0.40], [1.83, 0.40], [2.385, 1.10], [-2.15, 1.10], [-1.95, 0.55]]
+# thin deck at track-top level (front and rear mudguards); everything above is the casemate
+upper = [[-2.385, 1.10], [2.385, 1.10], [2.385, 1.14], [-2.385, 1.14]]
 
 [casemate]
 part = "casemate"
-# base out to the full width over the tracks, roof plan about 1.65 m wide
-plan = [[-1.29, 2.38], [1.29, 2.38], [1.29, -2.38], [-1.29, -2.38]]
-top_plan = [[-0.82, 0.55], [0.82, 0.55], [0.82, -1.20], [-0.82, -1.20]]
+# glacis from the nose (full width) to the roof, 40 deg sides, narrow roof;
+# behind the roof the engine deck drops to the low rear plate
+plan = [[-1.30, 2.385], [1.30, 2.385], [1.30, -2.00], [-1.30, -2.00]]
+top_plan = [[-0.70, 1.03], [0.70, 1.03], [0.70, -0.47], [-0.70, -0.47]]
+height = 0.74                           # roof at 1.88 m (see the header)
+rear_deck = { y = -1.95, z = 1.34 }
 
 [[part]]
-part = "hull_hatch"                     # commander's split hatch, rear right
-center = [0.42, -0.85]
+part = "de.gun_housing"                 # cast housing in the glacis, its top a little below the roof
+position = [0.38, 1.95, 1.46]
+length = 0.85
+radius = 0.33
+
+[[part]]
+part = "hull_hatch"                     # commander's hatch, rear right
+center = [0.36, -0.20]
 z = "casemate"
-size = [0.55, 0.50]
-hinge = "right"
+size = [0.50, 0.45]
+hinge = "rear"
 socket = true
 
 [[part]]
-part = "hull_hatch"                     # loader's hatch, left, under the MG
-center = [-0.42, -0.75]
+part = "hull_hatch"                     # loader's hatch, left, behind the MG
+center = [-0.32, -0.17]
 z = "casemate"
-size = [0.50, 0.50]
+size = [0.55, 0.50]
 hinge = "left"
 
 [[part]]
-part = "box_prop"                       # driver's periscope hood in the front plate
-center = [-0.55, 0.85, 2.02]
-size = [0.22, 0.14, 0.10]
+part = "box_prop"                       # driver's twin periscope hood in the glacis
+center = [-0.50, 1.50, 1.63]
+size = [0.30, 0.16, 0.10]
 
 [[part]]
-part = "box_prop"                       # gunner's sight cover beside the mantlet
-center = [0.02, 0.70, 2.06]
-size = [0.18, 0.18, 0.10]
+part = "box_prop"                       # gunner's sight cover in the roof, left of the gun
+center = [-0.20, 0.80, 1.93]
+size = [0.16, 0.22, 0.10]
 
 [[part]]
-part = "exhaust"
+part = "plate"                          # engine deck hatches
+corners = [[0.08, -1.65, 1.4495], [0.62, -1.65, 1.4495], [0.62, -0.80, 1.7596], [0.08, -0.80, 1.7596]]
+thickness = 0.015
+mirror = true
+
+# Schürzen: three 5 mm plates per side hung from the superstructure edge
+[[part]]
+part = "plate"
+corners = [[1.303, 0.58, 0.80], [1.303, 1.58, 0.80], [1.303, 1.72, 1.10], [1.303, 0.58, 1.10]]
+mirror = true
+
+[[part]]
+part = "plate"
+corners = [[1.303, -0.54, 0.80], [1.303, 0.56, 0.80], [1.303, 0.56, 1.10], [1.303, -0.54, 1.10]]
+mirror = true
+
+[[part]]
+part = "plate"
+corners = [[1.303, -1.56, 0.80], [1.303, -0.56, 0.80], [1.303, -0.56, 1.10], [1.303, -1.70, 1.10]]
+mirror = true
+
+[[part]]
+part = "exhaust"                        # muffler across the top of the rear plate
 kind = "muffler"
-position = [0.0, -2.50, 1.05]
-length = 0.80
+position = [0.25, -2.20, 1.26]
+length = 0.90
 diameter = 0.22
 
 [[part]]
 part = "tow_hook"
-position = [0.0, -2.40, 0.60]
+position = [0.0, -2.02, 0.70]
 pair = true
 
 [[part]]
 part = "tow_hook"
-position = [0.0, 2.40, 0.80]
+position = [0.0, 2.14, 0.80]
 pair = true
 socket = false
 
 [[part]]
-part = "spare_tracks"                   # spare links on the rear deck
-origin = [-0.60, -1.95, 1.50]
-direction = [0.30, 0.0, 0.0]
+part = "spare_tracks"                   # spare links on the rear plate
+origin = [-0.85, -2.01, 1.235]
+direction = [0.11, 0.0, 0.0]
 count = 5
-link_size = [0.26, 0.10, 0.04]
-
-[[part]]
-part = "tool"
-kind = "shovel"
-position = [-1.18, 0.4, 1.12]
-
-[[part]]
-part = "tool"
-kind = "crowbar"
-position = [1.18, -0.2, 1.12]
+link_size = [0.10, 0.04, 0.16]
 
 [[part]]
 part = "antenna"
-position = [-0.95, -1.55, 1.36]
+position = [-0.80, -1.00, 1.68]
 length = 1.8
 
 [[part]]
 part = "de.notek"
-position = [-1.05, 2.30, 1.02]
+position = [-1.00, 2.28, 1.20]
 
 [[part]]
 part = "socket"
 name = "Socket_Fire_"
-position = [0.0, -1.6, 1.5]
+position = [0.0, -1.2, 1.62]
 
 [[part]]
 part = "marking"
 name = "Hull_L"
-position = [-1.06, -0.4, 1.55]
-normal = [-0.77, 0.0, 0.64]
+position = [-1.00, -0.3, 1.52]
+normal = [-0.777, 0.0, 0.629]
 size = 0.45
 
 [[part]]
 part = "marking"
 name = "Hull_R"
-position = [1.06, -0.4, 1.55]
-normal = [0.77, 0.0, 0.64]
+position = [1.00, -0.3, 1.52]
+normal = [0.777, 0.0, 0.629]
 size = 0.45
 
 [[part]]
 part = "marking"
 name = "Hull_Rear"
 kind = "number"
-position = [0.0, -2.08, 1.55]
-normal = [0.0, -0.74, 0.67]
-size = 0.30
+position = [0.0, -1.80, 1.40]
+normal = [0.0, -0.343, 0.939]
+size = 0.24
 
 [gun]
 part = "tank_gun"
-trunnion = [1.35, 1.55]                 # model space: y, z
+trunnion = [1.78, 1.40]                 # model space: y, z (firing height 1.40 m)
 x = 0.38                                # mounted right of the center line
-mantlet = { kind = "saukopf", size = [0.55, 0.48, 0.52] }
+mantlet = { kind = "saukopf", size = [0.58, 0.72, 0.58] }
 segments = [["fit", 0.058, 0.050]]
 muzzle_brake = "thread_protector"       # PaK 39 on the Hetzer: no muzzle brake
 
-[[mg]]  # remote-controlled MG 42 with shield on the roof above the loader
+[[mg]]  # remote-controlled MG with shield on the roof; its shield top is the catalog height
 part = "pintle_mg"
-position = [-0.42, -0.30, 2.33]
+position = [-0.28, 0.25, 2.016]
 length = 1.22
-post = 0.16
-shield = { width = 0.40, height = 0.30, y = 0.18, slope_deg = 20 }
+post = 0.14
+shield = { width = 0.42, height = 0.28, y = 0.18, slope_deg = 20 }
 
 [validate]
-exclude_height = ["MG_*", "Antenna_*", "Hatch_*"]   # catalog height is the casemate roof
+exclude_height = ["Antenna_*"]          # catalog height includes the MG mount

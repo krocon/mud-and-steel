@@ -117,7 +117,7 @@ groups remember their formation; there are no named squads [provisional].
 | Input | Effect |
 |---|---|
 | Air bar (above the command bar): Recon / Fighters / Attack / Bombers / Paratroopers | Wait for a left click on the map, then call the mission there; right click or Esc cancels |
-| Shift + 1 / 2 / 3 / 4 / 5 | The same as the five buttons [provisional] |
+| Shift + 1 / 2 / 3 / 4 / 5 *(rebindable)* | The same as the five buttons [provisional] |
 | Air bar: Paratroopers (prompt 055) | Transport aircraft drop three squads of paratroopers around the clicked point |
 | Drag instead of click (prompt 055) | The aircraft fly along the dragged line; bombers lay a carpet over it (at most 300 m), transports drop along it |
 
@@ -132,7 +132,7 @@ the time until the aircraft arrive. Enemy aircraft coming into sight post
 | Input | Effect |
 |---|---|
 | Strike bar (above the command bar, base matches): Rockets | Wait for a left click on the map, then call the rocket strike there; right click or Esc cancels |
-| Shift + 6 | The same as the button (Shift + 5 is the paratroopers of prompt 055) [provisional] |
+| Shift + 6 *(rebindable)* | The same as the button (Shift + 5 is the paratroopers of prompt 055) [provisional] |
 
 The button shows the price, the time until the strike unlocks, the
 cooldown, or "no battery" while there is no completed rocket battery

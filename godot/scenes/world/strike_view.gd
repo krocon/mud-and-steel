@@ -19,13 +19,17 @@ extends Node3D
 ## shells (`artillery_view.gd`) and explode with the ordinary effects plus
 ## the big blasts of `blast_effects.gd`. [provisional] colours, keys, siren.
 
+const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
 const EffectLibrary := preload("res://scenes/world/effect_library.gd")
 const EffectTextures := preload("res://scenes/world/effect_textures.gd")
 const GroundPick := preload("res://scenes/camera/ground_pick.gd")
+const Picker := preload("res://scenes/hud/picker.gd")
+const Settings := preload("res://scenes/menu/settings.gd")
 
 const READ_INTERVAL := 0.2
 ## Red marker smoke (WW2 coloured smoke grenades and candles). [provisional]
 const SMOKE_COLOR := Color(0.72, 0.07, 0.05)
+const RelationColors := preload("res://scenes/hud/relation_colors.gd")
 const OWN_COLOR := Color(1.0, 0.75, 0.25, 0.75)
 const ENEMY_COLOR := Color(1.0, 0.2, 0.15, 0.8)
 ## Seconds the smoke keeps rising after the last rocket.
@@ -93,7 +97,7 @@ func setup_hud(hud: Control) -> void:
 	_countdown.offset_left = -300
 	_countdown.offset_right = 300
 	_countdown.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_countdown.add_theme_font_size_override(&"font_size", 22)
+	_countdown.add_theme_font_size_override(&"font_size", MenuTheme.font(22))
 	_countdown.add_theme_color_override(&"font_outline_color", Color.BLACK)
 	_countdown.add_theme_constant_override(&"outline_size", 6)
 	_countdown.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -122,15 +126,15 @@ func _on_event(event: Dictionary) -> void:
 	var allied := own or sim_host.relation(int(event.get("owner", -1))) == 1
 	match kind:
 		"called":
-			var text := "Rocket strike called: %d s" % ceili(float(event["warning"])) if allied \
-				else "Enemy rocket strike! Destroy the battery position"
+			var text := tr("HUD_FEED_STRIKE_CALLED") % ceili(float(event["warning"])) if allied \
+				else tr("HUD_FEED_ENEMY_STRIKE")
 			_post("strike", text, event["target"])
 			if not allied and _hud != null and _hud.get("minimap") != null:
 				_hud.minimap.add_ping(event["from"])
 		"cancelled":
-			_post("strike", "Rocket strike called off" if allied else "Enemy rocket strike called off", event["target"])
+			_post("strike", tr("HUD_FEED_STRIKE_OFF") if allied else tr("HUD_FEED_ENEMY_STRIKE_OFF"), event["target"])
 		"launched":
-			_post("strike", "Rockets away!" if allied else "Rockets incoming!", event["target"])
+			_post("strike", tr("HUD_FEED_ROCKETS_AWAY") if allied else tr("HUD_FEED_ROCKETS_INCOMING"), event["target"])
 		"ammo_explosion":
 			blast_effects.ammo_explosion(int(event["unit"]), event["position"])
 
@@ -174,8 +178,8 @@ func _update_strikes() -> void:
 	if _countdown != null:
 		_countdown.visible = warning >= 0.0
 		if warning >= 0.0:
-			_countdown.text = ("ENEMY ROCKET STRIKE in %d s - destroy the marked battery position" if enemy_warning
-				else "Rocket strike in %d s") % ceili(warning)
+			_countdown.text = tr("HUD_STRIKE_ENEMY_COUNTDOWN" if enemy_warning
+				else "HUD_STRIKE_COUNTDOWN") % ceili(warning)
 			_countdown.add_theme_color_override(&"font_color", Color(1, 0.35, 0.3) if enemy_warning else Color(1, 0.85, 0.4))
 
 
@@ -193,16 +197,16 @@ func _make_marker(s: Dictionary, allied: bool) -> Dictionary:
 	var r: float = s["radius"]
 	area.scale = Vector3(r, 2.0, r)
 	area.position = target + Vector3.UP * 0.5
-	area.material_override = _flat(OWN_COLOR if allied else ENEMY_COLOR)
+	area.material_override = _flat(RelationColors.own_or(OWN_COLOR) if allied else RelationColors.enemy_or(ENEMY_COLOR))
 	root.add_child(area)
 	var beam := MeshInstance3D.new()
 	beam.mesh = _beam_mesh
-	beam.material_override = _flat(Color(ENEMY_COLOR, 0.35))
+	beam.material_override = _flat(Color(RelationColors.enemy_or(ENEMY_COLOR), 0.35))
 	root.add_child(beam)
 	var base_ring := MeshInstance3D.new()
 	base_ring.mesh = _area_mesh
 	base_ring.scale = Vector3(9.0, 2.0, 9.0)
-	base_ring.material_override = _flat(ENEMY_COLOR)
+	base_ring.material_override = _flat(RelationColors.enemy_or(ENEMY_COLOR))
 	root.add_child(base_ring)
 	return {"root": root, "smoke": smoke, "area": area, "beam": beam, "base_ring": base_ring, "warning": 0.0, "radius": r}
 
@@ -356,7 +360,7 @@ class StrikeBar:
 	extends PanelContainer
 
 	const REFRESH := 0.25
-	const HINT := "Rocket strike: left click the target  ·  right click cancels"
+	const HINT := "HUD_HINT_STRIKE"
 
 	var main: Node3D
 	var sim_host: SimHost
@@ -380,13 +384,13 @@ class StrikeBar:
 		button.custom_minimum_size = Vector2(120, 40)
 		button.focus_mode = Control.FOCUS_NONE
 		button.toggle_mode = true
-		button.add_theme_font_size_override(&"font_size", 12)
+		button.add_theme_font_size_override(&"font_size", MenuTheme.font(12))
 		button.pressed.connect(func() -> void: set_pending(not pending))
 		box.add_child(button)
 		_hint = Label.new()
 		_hint.text = HINT
 		_hint.visible = false
-		_hint.add_theme_font_size_override(&"font_size", 12)
+		_hint.add_theme_font_size_override(&"font_size", MenuTheme.font(12))
 		_hint.add_theme_color_override(&"font_color", Color(1, 0.95, 0.6))
 		box.add_child(_hint)
 		_refresh()
@@ -409,16 +413,18 @@ class StrikeBar:
 		var blocked: String = o["blocked"]
 		var line := "%d/%d/%d" % [cost[0], cost[1], cost[2]]
 		if float(o["unlock"]) > 0.0:
-			line = "in %d:%02d" % [int(o["unlock"]) / 60, int(o["unlock"]) % 60]
+			line = tr("HUD_STRIKE_UNLOCK") % [int(o["unlock"]) / 60, int(o["unlock"]) % 60]
 		elif float(o["cooldown"]) > 0.0:
-			line = "%d s" % ceili(float(o["cooldown"]))
+			line = tr("COMMON_SECONDS") % ceili(float(o["cooldown"]))
 		elif blocked == "no rocket battery":
-			line = "no battery"
-		button.text = "Rockets\n%s" % line
+			line = tr("HUD_STRIKE_NO_BATTERY")
+		button.text = tr("HUD_STRIKE_BUTTON") % line
 		button.disabled = not blocked.is_empty()
-		button.tooltip_text = "Heavy rocket strike (Shift+6): %d rockets within %d m, %d s warning.\nNeeds a rocket battery position; the enemy can destroy it before the salvo.\nFuel %d, ammo %d, manpower %d%s" % [
-			int(o["rockets"]), int(o["radius"]), int(o["warning"]), cost[0], cost[1], cost[2],
-			"" if blocked.is_empty() else "\n" + blocked.capitalize()]
+		var reason := Picker.blocked_text(blocked)
+		button.tooltip_text = tr("HUD_TIP_STRIKE").format({
+			"key": Settings.action_key_name("strike_rockets"), "rockets": int(o["rockets"]), "radius": int(o["radius"]), "warning": int(o["warning"]),
+			"fuel": cost[0], "ammo": cost[1], "manpower": cost[2]}) \
+			+ ("" if reason.is_empty() else "\n" + reason[0].to_upper() + reason.substr(1))
 		button.set_pressed_no_signal(pending)
 		if pending and button.disabled:
 			set_pending(false)
@@ -445,8 +451,8 @@ class StrikeBar:
 
 	func _input(event: InputEvent) -> void:
 		var key := event as InputEventKey
-		if key != null and key.pressed and not key.echo and key.shift_pressed and key.keycode == KEY_6 \
-				and not key.ctrl_pressed and not key.meta_pressed and not key.alt_pressed:
+		if key != null and key.pressed and not key.echo and InputMap.has_action("strike_rockets") \
+				and key.is_action_pressed("strike_rockets", false, true):
 			if visible and not button.disabled:
 				set_pending(not pending)
 			get_viewport().set_input_as_handled()

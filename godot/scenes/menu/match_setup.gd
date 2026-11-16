@@ -4,59 +4,64 @@ extends RefCounted
 ## Static, so it survives the scene change, like `lan/lan_match.gd`.
 ## `main.gd` takes `pending` and clears it.
 
+const Language := preload("res://scenes/menu/language.gd")
 const MENU_SCENE := "res://scenes/menu/main_menu.tscn"
 const MAIN_SCENE := "res://scenes/main.tscn"
 ## Name of the map compiled into the simulation.
 const BUILTIN_MAP := "test_small"
 
-## Faction ids of the catalog with their display names. Names only: no
-## insignia anywhere in the menus.
+## Faction ids of the catalog with the translation keys of their display
+## names. Names only: no insignia anywhere in the menus.
 const FACTIONS: Dictionary[String, String] = {
-	"de": "Germany",
-	"su": "Soviet Union",
-	"us": "United States",
+	"de": "COMMON_FACTION_DE",
+	"su": "COMMON_FACTION_SU",
+	"us": "COMMON_FACTION_US",
 }
 
 ## Computer opponents (prompt 024): difficulty id (`SimHost.ai_opponent`)
-## with its display name. "passive" gives no orders: its tanks only fire.
+## with the key of its display name. "passive" gives no orders: its tanks
+## only fire.
 const OPPONENTS: Dictionary[String, String] = {
-	"passive": "Passive (holds its ground)",
-	"easy": "Easy",
-	"normal": "Normal",
-	"hard": "Hard",
+	"passive": "MATCH_OPPONENT_PASSIVE",
+	"easy": "COMMON_DIFFICULTY_EASY",
+	"normal": "COMMON_DIFFICULTY_NORMAL",
+	"hard": "COMMON_DIFFICULTY_HARD",
 }
 const DEFAULT_OPPONENT := "normal"
 ## Short names of the difficulties for the slot lists (prompt 037).
 const LEVEL_NAMES: Dictionary[String, String] = {
-	"passive": "Passive", "easy": "Easy", "normal": "Normal", "hard": "Hard",
+	"passive": "MATCH_LEVEL_PASSIVE", "easy": "COMMON_DIFFICULTY_EASY",
+	"normal": "COMMON_DIFFICULTY_NORMAL", "hard": "COMMON_DIFFICULTY_HARD",
 }
 ## Most players of a match (the largest maps have six starts).
 const MAX_PLAYERS := 6
 
 ## Game modes (prompt 023, `SimHost.mode`): base building with resources
-## and production, or the fixed armies of the demo scenario.
+## and production, or the fixed armies of the demo scenario (keys of the
+## display names).
 const MODES: Dictionary[String, String] = {
-	"base": "Base building",
-	"battle": "Battle (fixed armies)",
+	"base": "MATCH_MODE_BASE",
+	"battle": "MATCH_MODE_BATTLE",
 }
 const DEFAULT_MODE := "base"
 
 ## Weather and time of day (prompt 040, `SimHost.weather` / `daytime`):
-## "" keeps the map's default (`weather` / `daytime` in map.toml).
+## "" keeps the map's default (`weather` / `daytime` in map.toml). Values
+## are translation keys.
 const WEATHERS: Dictionary[String, String] = {
-	"": "Map default",
-	"clear": "Clear",
-	"overcast": "Overcast",
-	"rain": "Rain (mud)",
-	"snow": "Snow",
-	"fog": "Fog",
+	"": "MATCH_MAP_DEFAULT",
+	"clear": "MATCH_WEATHER_CLEAR",
+	"overcast": "MATCH_WEATHER_OVERCAST",
+	"rain": "MATCH_WEATHER_RAIN",
+	"snow": "MATCH_WEATHER_SNOW",
+	"fog": "MATCH_WEATHER_FOG",
 }
 const DAYTIMES: Dictionary[String, String] = {
-	"": "Map default",
-	"morning": "Morning",
-	"day": "Day",
-	"evening": "Evening",
-	"night": "Night",
+	"": "MATCH_MAP_DEFAULT",
+	"morning": "MATCH_DAYTIME_MORNING",
+	"day": "MATCH_DAYTIME_DAY",
+	"evening": "MATCH_DAYTIME_EVENING",
+	"night": "MATCH_DAYTIME_NIGHT",
 }
 
 ## The match to start: `map` (folder name in `data/maps/`, or BUILTIN_MAP for
@@ -124,9 +129,10 @@ static func describe_map(map_name: String) -> String:
 			"cell_size_mm":
 				cell_mm = int(value)
 			"biome":
-				biome = value
+				biome = Language.code_text("MATCH_BIOME_", value)
 			"weather", "daytime":
-				weather += (", " if not weather.is_empty() else "") + value
+				var shown := Language.code_text("MATCH_%s_" % key.to_upper(), value)  # l10n-ignore
+				weather += (", " if not weather.is_empty() else "") + shown
 	var size := ""
 	if samples > 1 and cell_mm > 0:
 		var meters := (samples - 1) * cell_mm / 1000

@@ -43,6 +43,14 @@ func show_slots(slots: Array) -> void:
 	_updating = false
 
 
+## The kind items are built with `tr`: rebuild the rows when the language
+## changes (prompt 043).
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_TRANSLATION_CHANGED and not _rows.is_empty():
+		_rows.clear()
+		(func() -> void: show_slots(_slots)).call_deferred()
+
+
 ## The slots as last shown, with the user's changes (single player).
 func slots() -> Array:
 	return _slots
@@ -51,10 +59,10 @@ func slots() -> Array:
 func _kind_items() -> Array[Array]:
 	var items: Array[Array] = []
 	if allow_open:
-		items.append(["open", "", "Open"])
-	items.append(["closed", "", "Closed"])
+		items.append(["open", "", tr("MATCH_SLOT_OPEN")])
+	items.append(["closed", "", tr("MATCH_SLOT_CLOSED")])
 	for level: String in MatchSetup.OPPONENTS:
-		items.append(["computer", level, "Computer: %s" % MatchSetup.LEVEL_NAMES.get(level, level)])
+		items.append(["computer", level, tr("MATCH_SLOT_COMPUTER") % tr(MatchSetup.LEVEL_NAMES.get(level, level))])
 	return items
 
 
@@ -76,11 +84,11 @@ func _make_row(index: int) -> Dictionary:
 	row.add_child(kind)
 	var team := OptionButton.new()
 	for t in MatchSetup.MAX_PLAYERS:
-		team.add_item("Team %d" % (t + 1))
+		team.add_item(tr("COMMON_TEAM_N") % (t + 1))
 	team.item_selected.connect(func(_selected: int) -> void: _emit_side(index))
 	row.add_child(team)
 	var faction := OptionButton.new()
-	faction.add_item("Scenario")
+	faction.add_item("MATCH_FACTION_SCENARIO")
 	for id in MatchSetup.FACTIONS:
 		faction.add_item(MatchSetup.FACTIONS[id])
 	faction.item_selected.connect(func(_selected: int) -> void: _emit_side(index))
@@ -108,12 +116,12 @@ func _update_row(row: Dictionary, slot: Dictionary) -> void:
 	if human:
 		var name_text: String = slot.get("name", "")
 		label.text = "%s%s%s" % [
-			name_text if not name_text.is_empty() else "Player %d" % (int(slot.get("index", 0)) + 1),
-			" (you)" if local else "",
+			name_text if not name_text.is_empty() else tr("COMMON_PLAYER_N") % (int(slot.get("index", 0)) + 1),
+			(" " + tr("MATCH_SUFFIX_YOU")) if local else "",
 			" ✓" if slot.get("ready", false) else "",
 		]
 	else:
-		label.text = "Slot %d" % (int(slot.get("index", 0)) + 1)
+		label.text = tr("MATCH_SLOT_N") % (int(slot.get("index", 0)) + 1)
 	kind.visible = not human
 	kind.disabled = not host
 	if not human:

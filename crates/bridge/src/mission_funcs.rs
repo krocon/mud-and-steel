@@ -79,6 +79,18 @@ impl SimHost {
         self.start_config(seed, map, config)
     }
 
+    /// Every text of a mission file the player reads (title, briefing,
+    /// objectives, messages), the keys of its translations (prompt 043);
+    /// empty if the file cannot be read.
+    #[func]
+    fn mission_texts(mission_path: GString) -> PackedStringArray {
+        std::fs::read_to_string(mission_path.to_string())
+            .ok()
+            .and_then(|text| sim::mission::mission_texts(&text).ok())
+            .map(|texts| texts.iter().map(|t| GString::from(t.as_str())).collect())
+            .unwrap_or_default()
+    }
+
     /// Header of a mission file for the menu: `ok`, `error`, `id`, `map`,
     /// `title`, `kind` (`mission`, `tutorial`), `order`, `faction`,
     /// `briefing`, `biome`.

@@ -38,10 +38,10 @@ func _ready() -> void:
 	row.add_theme_constant_override("separation", 10)
 	root.add_child(row)
 	var label := Label.new()
-	label.text = "REPLAY"
+	label.text = "REPLAY_LABEL"
 	label.add_theme_color_override("font_color", MenuTheme.ACCENT)
 	row.add_child(label)
-	play_button = _button(row, "Pause", toggle_pause)
+	play_button = _button(row, "REPLAY_PAUSE", toggle_pause)
 	for speed in GameFiles.SPEEDS:
 		var button := _button(row, "%d×" % int(speed), func() -> void: set_speed(speed))
 		button.toggle_mode = true
@@ -64,15 +64,15 @@ func _ready() -> void:
 	time_label.custom_minimum_size = Vector2(110, 0)
 	row.add_child(time_label)
 	view_option = OptionButton.new()
-	view_option.add_item("Everything")
+	view_option.add_item("REPLAY_VIEW_ALL")
 	view_ids.append(-1)
 	for player: Dictionary in GameFiles.replay_player.info()["players"]:
-		view_option.add_item(MatchSetup.FACTIONS.get(player["faction"], "Player %d" % player["id"]))
+		view_option.add_item(GameFiles.faction_name(player["faction"], player["id"]))
 		view_ids.append(player["id"])
 	view_option.select(maxi(view_ids.find(status["view"]), 0))
 	view_option.item_selected.connect(func(index: int) -> void: set_view(view_ids[index]))
 	row.add_child(view_option)
-	exit_button = _button(row, "Exit", leave)
+	exit_button = _button(row, "REPLAY_EXIT", leave)
 	_show_speed()
 
 
@@ -86,7 +86,7 @@ func _process(_delta: float) -> void:
 	var rate := maxi(main.sim_host.tick_rate(), 1)
 	time_label.text = "%s / %s" % [_clock(tick / rate), _clock(_ticks / rate)]
 	if status["ended"]:
-		play_button.text = "Ended"
+		play_button.text = "REPLAY_ENDED"
 
 
 func toggle_pause() -> void:
@@ -126,7 +126,7 @@ func _rebuild(tick: int, view: int) -> void:
 
 func _show_speed() -> void:
 	main.sim_host.speed = 0.0 if GameFiles.replay_paused else GameFiles.replay_speed
-	play_button.text = "Play" if GameFiles.replay_paused else "Pause"
+	play_button.text = "REPLAY_PLAY" if GameFiles.replay_paused else "REPLAY_PAUSE"
 	for i in speed_buttons.size():
 		speed_buttons[i].set_pressed_no_signal(not GameFiles.replay_paused and is_equal_approx(GameFiles.SPEEDS[i], GameFiles.replay_speed))
 

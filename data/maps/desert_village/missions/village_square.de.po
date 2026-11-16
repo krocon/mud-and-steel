@@ -1,0 +1,30 @@
+# Translation of the mission village_square (prompt 043). msgid: the English text of the
+# mission file; `just mission-po` adds new texts, see docs/MISSIONS.md.
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: de\n"
+
+msgid "The village square"
+msgstr "Der Dorfplatz"
+
+msgid "German infantry with a tank holds the square of a desert village. Clear it with your Shermans and riflemen and take the supply point on the square."
+msgstr "Deutsche Infanterie mit einem Panzer hält den Platz eines Wüstendorfs. Säubere ihn mit deinen Shermans und Schützen und nimm den Versorgungspunkt auf dem Platz."
+
+msgid "Clear the village square of German troops."
+msgstr "Säubere den Dorfplatz von deutschen Truppen."
+
+msgid "Take the supply point on the square."
+msgstr "Nimm den Versorgungspunkt auf dem Platz."
+
+msgid "Move up the road into the village. Infantry in the houses is dangerous: let the riflemen and the tanks work together."
+msgstr "Rücke die Straße hinauf ins Dorf vor. Infanterie in den Häusern ist gefährlich: Lass Schützen und Panzer zusammenarbeiten."
+
+msgid "The German tank is burning. Clear the rest of the square."
+msgstr "Der deutsche Panzer brennt. Säubere den Rest des Platzes."
+
+msgid "The infantry is gone. Take the supply point on the square."
+msgstr "Die Infanterie ist vertrieben. Nimm den Versorgungspunkt auf dem Platz."
+
+msgid "The village is in American hands."
+msgstr "Das Dorf ist in amerikanischer Hand."

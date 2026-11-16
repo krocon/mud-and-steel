@@ -447,6 +447,28 @@ pub fn mission_header(text: &str) -> Result<MissionHeader, MissionError> {
     Ok(file.mission)
 }
 
+/// Every text of a mission file the player reads, in file order without
+/// repeats: title, briefing, objective texts and `text` actions. The keys
+/// of its translations (`<id>.<lang>.po`, prompt 043).
+pub fn mission_texts(text: &str) -> Result<Vec<String>, MissionError> {
+    let file: MissionFile = toml::from_str(text).map_err(|e| MissionError(e.to_string()))?;
+    let mut texts: Vec<String> = vec![file.mission.title, file.mission.briefing];
+    texts.extend(file.objective.into_iter().map(|o| o.text));
+    texts.extend(
+        file.trigger
+            .into_iter()
+            .flat_map(|t| t.actions)
+            .filter_map(|a| a.text),
+    );
+    let mut out: Vec<String> = Vec::new();
+    for t in texts {
+        if !t.is_empty() && !out.contains(&t) {
+            out.push(t);
+        }
+    }
+    Ok(out)
+}
+
 // --- Parsing -----------------------------------------------------------------
 
 /// Builds the match of a mission: `text` is the mission file, `points` the

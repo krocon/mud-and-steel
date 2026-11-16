@@ -196,6 +196,10 @@ pub struct TransportType {
     pub passengers: u16,
     /// Engine power in metric hp (towing), 0 if unknown.
     pub power_hp: u32,
+    /// Crew (catalog `crew`), 0 if none: the men who may bail out of the
+    /// destroyed vehicle (prompt 049).
+    #[serde(default)]
+    pub crew: u16,
 }
 
 impl TransportType {
@@ -203,6 +207,7 @@ impl TransportType {
         Self {
             passengers: entry.passengers.unwrap_or(0),
             power_hp: entry.power_hp.unwrap_or(0),
+            crew: entry.crew.unwrap_or(0),
         }
     }
 }

@@ -26,6 +26,7 @@ const MODELS_DIR := "res://assets/models/neutral/"
 const StrikeView := preload("res://scenes/world/strike_view.gd")
 ## A site this far built shows at least this much of its model's height.
 const MIN_SITE_SCALE := 0.12
+const RelationColors := preload("res://scenes/hud/relation_colors.gd")
 const OWN_COLOR := Color(0.35, 0.6, 0.95)
 const ENEMY_COLOR := Color(0.85, 0.25, 0.2)
 ## Supply points of allies (prompt 037) [provisional].
@@ -105,7 +106,7 @@ func setup(main_node: Node3D) -> void:
 	pole.bottom_radius = 0.15
 	pole.height = 4.0
 	_rally_marker.mesh = pole
-	_rally_marker.material_override = _flat(OWN_COLOR)
+	_rally_marker.material_override = _flat(RelationColors.own_or(OWN_COLOR))
 	_rally_marker.visible = false
 	add_child(_rally_marker)
 	for point: Dictionary in sim_host.supply_points():
@@ -183,8 +184,8 @@ func _update_rally() -> void:
 
 func _side_color(player: int, me: int) -> Color:
 	if player == me:
-		return OWN_COLOR
-	return ALLY_COLOR if sim_host.relation(player) == 1 else ENEMY_COLOR
+		return RelationColors.own_or(OWN_COLOR)
+	return RelationColors.ally_or(ALLY_COLOR) if sim_host.relation(player) == 1 else RelationColors.enemy_or(ENEMY_COLOR)
 
 
 func _update_supply() -> void:

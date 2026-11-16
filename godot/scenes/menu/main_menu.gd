@@ -39,8 +39,10 @@ const DIRECT_FLAGS: Array[String] = [
 	"--terrain-bench", "--terrain-shots", "--objects-bench", "--objects-shots",
 ]
 const DIRECT_PREFIXES: Array[String] = ["--map=", "--biome=", "--effects-"]
+## Biome ids with the translation keys of their names.
 const BIOMES: Dictionary[String, String] = {
-	"": "As the map says", "forest": "Forest (summer)", "desert": "Desert", "winter": "Winter",
+	"": "MENU_BIOME_MAP", "forest": "MENU_BIOME_FOREST", "desert": "COMMON_BIOME_DESERT",
+	"winter": "COMMON_BIOME_WINTER",
 }
 
 ## Screens, by name: "main", "skirmish", "settings", "credits", "load",
@@ -124,11 +126,24 @@ func _ready() -> void:
 		MatchSetup.flow_test = test
 		# On the root, so it survives the scene changes it drives.
 		get_tree().root.add_child.call_deferred(test)
+	# Screenshots of menus and HUD (prompt 043, `just l10n-shots`).
+	if Array(OS.get_cmdline_user_args()).any(func(a: String) -> bool: return a.begins_with("--l10n-shots=")) \
+			and not get_tree().root.has_node("L10nShots"):
+		var shots: Node = load("res://scenes/tools/l10n_shots.gd").new()
+		shots.name = "L10nShots"
+		get_tree().root.add_child.call_deferred(shots)
 	# Map editor self-test (prompt 028, `just editor-selftest`).
 	if "--editor-self-test" in OS.get_cmdline_user_args() and not get_tree().root.has_node("EditorSelfTest"):
 		var editor_test := EditorSelfTest.new()
 		editor_test.name = "EditorSelfTest"
 		get_tree().root.add_child.call_deferred(editor_test)
+
+
+## Texts built at run time follow a language change (prompt 043).
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_TRANSLATION_CHANGED and _map_info != null and slot_list != null:
+		_update_map_info()
+		_update_team_sizes()
 
 
 func show_screen(screen_name: String) -> void:
@@ -191,26 +206,26 @@ func _is_direct_start() -> bool:
 
 func _main_screen() -> Control:
 	var box := _centered_column(360)
-	box.add_child(MenuTheme.title("MUD AND STEEL"))
-	var subtitle := MenuTheme.hint("Real-time tactics, 1939–1945")
+	box.add_child(MenuTheme.title("MUD AND STEEL"))  # l10n-ignore (game name)
+	var subtitle := MenuTheme.hint("MENU_SUBTITLE")
 	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(subtitle)
 	box.add_child(_spacer(24))
-	tutorial_button = _button(box, "Tutorial", start_tutorial)
-	missions_button = _button(box, "Missions", func() -> void: show_screen("missions"))
-	single_player_button = _button(box, "Single player", func() -> void: show_screen("skirmish"))
-	load_button = _button(box, "Load game", func() -> void: show_screen("load"))
-	replays_button = _button(box, "Replays", func() -> void: show_screen("replays"))
-	lan_button = _button(box, "LAN game", open_lan)
-	online_button = _button(box, "Online (Steam)", open_online)
-	editor_button = _button(box, "Map editor", open_editor)
-	settings_button = _button(box, "Settings", func() -> void: show_screen("settings"))
-	credits_button = _button(box, "Credits", func() -> void: show_screen("credits"))
-	quit_button = _button(box, "Quit", func() -> void: get_tree().quit())
+	tutorial_button = _button(box, "MENU_TUTORIAL", start_tutorial)
+	missions_button = _button(box, "MENU_MISSIONS", func() -> void: show_screen("missions"))
+	single_player_button = _button(box, "MENU_SINGLE_PLAYER", func() -> void: show_screen("skirmish"))
+	load_button = _button(box, "MENU_LOAD_GAME", func() -> void: show_screen("load"))
+	replays_button = _button(box, "MENU_REPLAYS", func() -> void: show_screen("replays"))
+	lan_button = _button(box, "MENU_LAN_GAME", open_lan)
+	online_button = _button(box, "MENU_ONLINE", open_online)
+	editor_button = _button(box, "MENU_MAP_EDITOR", open_editor)
+	settings_button = _button(box, "COMMON_SETTINGS", func() -> void: show_screen("settings"))
+	credits_button = _button(box, "MENU_CREDITS", func() -> void: show_screen("credits"))
+	quit_button = _button(box, "COMMON_QUIT", func() -> void: get_tree().quit())
 	single_player_button.grab_focus.call_deferred()
 	# Prompt 044: a crash report of the last session, kept locally.
 	if not CrashGuard.last_report.is_empty():
-		var crash := MenuTheme.hint("The game ended unexpectedly last time. A report was saved (not sent anywhere):\n%s" % CrashGuard.last_report)
+		var crash := MenuTheme.hint(tr("CRASH_LAST_SESSION") % CrashGuard.last_report)
 		crash.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		box.add_child(crash)
 	return box.get_meta(&"screen")
@@ -218,7 +233,7 @@ func _main_screen() -> Control:
 
 func _skirmish_screen() -> Control:
 	var box := _centered_column(560, true)
-	box.add_child(MenuTheme.title("Single player", MenuTheme.HEADING_SIZE))
+	box.add_child(MenuTheme.title("MENU_SINGLE_PLAYER", MenuTheme.HEADING_SIZE))
 
 	map_option = OptionButton.new()
 	_maps = MatchSetup.available_maps()
@@ -228,22 +243,22 @@ func _skirmish_screen() -> Control:
 	map_option.item_selected.connect(func(_index: int) -> void:
 		_update_map_info()
 		_update_team_sizes())
-	box.add_child(_row("Map", map_option))
+	box.add_child(_row("MATCH_MAP", map_option))
 	_map_info = MenuTheme.hint("")
 	box.add_child(_map_info)
 
 	biome_option = OptionButton.new()
 	for id in BIOMES:
 		biome_option.add_item(BIOMES[id])
-	box.add_child(_row("Season", biome_option))
+	box.add_child(_row("MATCH_SEASON", biome_option))
 	weather_option = OptionButton.new()
 	for id in MatchSetup.WEATHERS:
 		weather_option.add_item(MatchSetup.WEATHERS[id])
-	box.add_child(_row("Weather", weather_option))
+	box.add_child(_row("MATCH_WEATHER", weather_option))
 	daytime_option = OptionButton.new()
 	for id in MatchSetup.DAYTIMES:
 		daytime_option.add_item(MatchSetup.DAYTIMES[id])
-	box.add_child(_row("Time of day", daytime_option))
+	box.add_child(_row("MATCH_DAYTIME", daytime_option))
 
 	faction_option = OptionButton.new()
 	enemy_option = OptionButton.new()
@@ -252,17 +267,17 @@ func _skirmish_screen() -> Control:
 		enemy_option.add_item(MatchSetup.FACTIONS[id])
 	faction_option.select(0)
 	enemy_option.select(1)
-	box.add_child(_row("Your side", faction_option))
-	box.add_child(_row("Enemy", enemy_option))
+	box.add_child(_row("MATCH_YOUR_SIDE", faction_option))
+	box.add_child(_row("MATCH_ENEMY", enemy_option))
 	opponent_option = OptionButton.new()
 	for id in MatchSetup.OPPONENTS:
 		opponent_option.add_item(MatchSetup.OPPONENTS[id])
 	opponent_option.select(MatchSetup.OPPONENTS.keys().find(MatchSetup.DEFAULT_OPPONENT))
-	box.add_child(_row("Opponent", opponent_option))
+	box.add_child(_row("MATCH_OPPONENT", opponent_option))
 	players_option = OptionButton.new()
-	box.add_child(_row("Players", players_option))
+	box.add_child(_row("MATCH_PLAYERS", players_option))
 	shared_vision_box = CheckBox.new()
-	shared_vision_box.text = "Allies share what they see"
+	shared_vision_box.text = "MATCH_SHARED_VISION"
 	shared_vision_box.button_pressed = true
 	box.add_child(shared_vision_box)
 	slot_list = SlotList.new()
@@ -275,14 +290,14 @@ func _skirmish_screen() -> Control:
 	for id in MatchSetup.MODES:
 		mode_option.add_item(MatchSetup.MODES[id])
 	mode_option.select(MatchSetup.MODES.keys().find(MatchSetup.DEFAULT_MODE))
-	box.add_child(_row("Mode", mode_option))
-	box.add_child(MenuTheme.hint("Base building: build a base, hold supply points, produce an army. Battle: eight tanks per side. Win when the enemy surrenders or has no units left. The computer opponent sees only what its units see."))
+	box.add_child(_row("MATCH_MODE", mode_option))
+	box.add_child(MenuTheme.hint("MATCH_MODE_HINT"))
 
 	var buttons := HBoxContainer.new()
 	buttons.alignment = BoxContainer.ALIGNMENT_END
 	box.add_child(buttons)
-	_button(buttons, "Back", func() -> void: show_screen("main"))
-	start_button = _button(buttons, "Start", start_skirmish)
+	_button(buttons, "COMMON_BACK", func() -> void: show_screen("main"))
+	start_button = _button(buttons, "COMMON_START", start_skirmish)
 	_update_map_info()
 	_update_team_sizes()
 	return box.get_meta(&"screen")
@@ -299,7 +314,7 @@ func _update_team_sizes() -> void:
 	var keep := players_option.selected
 	players_option.clear()
 	for n in range(1, maxi(starts / 2, 1) + 1):
-		players_option.add_item("%d vs %d" % [n, n])
+		players_option.add_item(tr("MATCH_TEAM_SIZE") % [n, n])
 	players_option.select(clampi(keep, 0, players_option.item_count - 1))
 	_build_slots()
 
@@ -325,7 +340,7 @@ func _build_slots() -> void:
 		slots.append({
 			"index": i, "kind": "human" if i == 0 else "computer", "level": level,
 			"team": team, "faction": own if team == own_team else enemy,
-			"name": "You" if i == 0 else "", "local": i == 0, "ready": false,
+			"name": tr("MATCH_YOU") if i == 0 else "", "local": i == 0, "ready": false,
 		})
 	slot_list.show_slots(slots)
 
@@ -369,9 +384,9 @@ func _update_map_info() -> void:
 	var map_name := _maps[map_option.selected]
 	var info := MatchSetup.describe_map(map_name)
 	if map_name == MatchSetup.BUILTIN_MAP:
-		info = "Built-in test map. " + info
+		info = tr("MATCH_BUILTIN_MAP") + " " + info
 	if MatchSetup.is_large(map_name):
-		info += ". Large map: loading takes a few seconds."
+		info += ". " + tr("MATCH_LARGE_MAP")
 	_map_info.text = info
 
 
@@ -405,7 +420,7 @@ func _row(text: String, control: Control) -> Control:
 	var row := HBoxContainer.new()
 	var label := Label.new()
 	label.text = text
-	label.custom_minimum_size = Vector2(150, 0)
+	label.custom_minimum_size = Vector2(170, 0)
 	row.add_child(label)
 	control.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(control)

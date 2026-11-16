@@ -31,14 +31,14 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	var host: SimHost = main.sim_host
 	var status := host.net_status()
-	var line := LanMatch.kind + " · player %d of %d · input delay %d ticks · RTT %s · confirmed tick %d" % [
-		host.local_player(), status["players"], status["input_delay"],
-		"%d ms" % status["rtt_ms"] if status["rtt_ms"] >= 0 else "?",
-		status["verified_tick"],
-	]
+	var line := LanMatch.kind + " · " + tr("NET_STATUS").format({
+		"player": host.local_player(), "players": status["players"], "delay": status["input_delay"],
+		"rtt": "%d ms" % status["rtt_ms"] if status["rtt_ms"] >= 0 else "?",
+		"tick": status["verified_tick"],
+	})
 	match status["state"]:
 		"waiting":
-			text = line + "\nWaiting for the other players …"
+			text = line + "\n" + tr("NET_WAITING")
 			modulate = Color(1, 0.9, 0.5)
 		"halted":
 			if not _halt_handled:
@@ -68,12 +68,14 @@ func _on_halt(status: Dictionary) -> void:
 	var message: String = status["message"]
 	if main.sim_host.match_result()["decided"] and not status["desync"]:
 		# The match is over (prompt 027); the others leaving is expected.
-		text = "Match over. %s" % message
+		text = tr("NET_MATCH_OVER") % message
 		modulate = Color(0.8, 0.8, 0.8)
 		return
 	var replay := ""
 	if status["desync"]:
 		replay = main.save_replay("desync-p%d-" % main.sim_host.local_player())
-	text = "Match stopped: %s%s" % [message, "\nReplay: %s" % replay if replay != "" else ""]
+	text = tr("NET_MATCH_STOPPED") % message
+	if replay != "":
+		text += "\n" + tr("NET_REPLAY_SAVED") % replay
 	modulate = Color(1, 0.45, 0.4)
 	push_warning("%s match stopped: %s" % [LanMatch.kind, message])

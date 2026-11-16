@@ -103,7 +103,7 @@ Umsetzen von ihrer Session konkretisiert.
 | 040 | [Wetter, Schlamm, Tageszeit](done/040-wetter-schlamm-tageszeit.md) | Regen weicht Boden auf, Nebel, Nacht | erledigt (Werte vorläufig, Rest offen, siehe Ergebnis) |
 | 041 | [Umwelt Stufe 2 und Feuer](done/041-umwelt-stufe2-feuer.md) | Stadt, Industrie, Bahn, Bunker; Brände und Lager-Explosionen | erledigt (Rest offen, siehe Ergebnis) |
 | 042 | [Infanterie-Texturen](done/042-infanterie-texturen.md) | Prozedurale Uniform-Texturen, Tarnmuster, Pistolen, zehn neue Clips | erledigt |
-| 043 | [Sprache und Barrierefreiheit](043-sprache-barrierefreiheit.md) | Deutsch/Englisch, Farbpaletten, UI-Skalierung, Grafikoptionen | Entwurf |
+| 043 | [Sprache und Barrierefreiheit](done/043-sprache-barrierefreiheit.md) | Deutsch/Englisch, Farbpaletten, UI-Skalierung, Grafikoptionen | erledigt (vorläufige Entscheidungen im Prompt zu bestätigen) |
 | 044 | [Release-Builds und Steam](done/044-release-builds-steam.md) | Export für drei Systeme, Release-CI, SteamPipe, Credits | erledigt (erster Export mit Godot-Export-Templates steht aus, `docs/RELEASE.md`) |
 | 045 | [Balancing und Playtest](045-balancing-playtest.md) | Statistik, Turniere, Gefechtssimulator, bestätigtes Design | Entwurf |
 
@@ -128,7 +128,7 @@ oder weggelassen; es werden keine Inhalte anderer Spiele übernommen.
 | 046 | [Befehle und Formationen](done/046-befehle-formationen.md) | Angriffsbewegung, Gebiet sichern, Auto-Formation, Ausrichtung per Ziehen | erledigt (Schwellen und Tasten vorläufig, siehe Abschnitt 4) |
 | 047 | [Infanterie-Taktik](done/047-infanterie-taktik.md) | Feuertrupps, Deckung zu Deckung, Niederhalten, Blindfeuer | erledigt (Sprungweiten, Niederhalt-Werte, Ladehemmung vorläufig, siehe Ergebnis) |
 | 048 | [Animationen und Ragdolls](done/048-animationen-ragdolls.md) | Deckungs-, Kriech- und Rollanimationen, Ragdolls nur als Darstellung | erledigt (Umwerf-Werte, Ragdoll-Budget und Trefferdarstellung vorläufig, siehe Ergebnis) |
-| 049 | [Verwundung und Kameradenhilfe](049-verwundung-kameradenhilfe.md) | Verwundete, Bergen, Sanitäter mit Trage, ausgestiegene Besatzungen | Entwurf |
+| 049 | [Verwundung und Kameradenhilfe](done/049-verwundung-kameradenhilfe.md) | Verwundete, Bergen, Sanitäter mit Trage, ausgestiegene Besatzungen | erledigt (Werte vorläufig; Gefangene und Wiederbesetzen offen, siehe Ergebnis) |
 | 050 | [Erfahrung und Ränge](done/050-erfahrung-raenge.md) | Veteranenstufen mit moderaten Boni und Abzeichen | erledigt (Werte vorläufig, siehe Ergebnis) |
 | 051 | [KI-Kommandeur Stufe 2](051-ki-kommandeur.md) | Aufklären, Lagebild, Konter, Versorgungskrieg, Aufgeben | Entwurf |
 | 052 | [Stellungen Stufe 2](done/052-stellungen-stufe2.md) | Gräben, Sperrlinien, eingegrabene Panzer, Tarnnetze, Bunker | erledigt (Werte vorläufig, siehe Ergebnis) |

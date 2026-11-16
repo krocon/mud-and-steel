@@ -1,0 +1,67 @@
+# Wounds, buddy aid, medics and bailed-out crews (prompt 049). Integers
+# only. Compiled into the simulation (`sim::care::CareRules::builtin`) and
+# part of the state hash; see docs/INFANTRY.md "Wounds and buddy aid".
+#
+# Game rules, not catalog values. Durations are real milliseconds (the
+# infantry time factor 2 applies), distances real millimeters, speeds
+# percent. All values [provisional].
+
+[wound]
+# A hit that a soldier survives wounds him: heavily with `heavy_pct`
+# percent, lightly otherwise. A man who is already wounded (also while he
+# still limps after treatment) is always wounded heavily. A rifle hit
+# costs 63 of 100 hit points (data/combat.toml), so every man survives his
+# first rifle hit and dies of the second; the roll decides whether that
+# first hit puts him out of the fight.
+heavy_pct = 40
+# Lightly wounded: he fights on, dresses the wound himself within
+# `bandage_ms` (the presentation shows it in lulls) and limps until
+# `limp_ms` after that. (Not firing while dressing it took too much of the
+# fire out of suppressed squads, see prompts/done/049.)
+bandage_ms = 20000
+# Heavily wounded: down, neither moves by himself nor fires, and dies
+# after `bleed_ms` unless a medic reaches him first.
+bleed_ms = 120000
+# Treated men (bandaged, or patched up by a medic) limp this long.
+limp_ms = 60000
+# Squad speed while one of its men limps, or while it carries a heavily
+# wounded man along.
+limp_speed_pct = 70
+carry_speed_pct = 50
+
+[buddy]
+# A comrade (not wounded, not busy) drags a heavily wounded man of his
+# squad to the man's cover spot when the squad stands still, at
+# `drag_speed_pct` of walking; nobody drags farther than `drag_mm`.
+drag_mm = 15000
+drag_speed_pct = 40
+# A comrade within `help_mm` of a man knocked down by a blast (prompt 048)
+# goes over and pulls him up (he does not fire meanwhile). The knock-down
+# time itself (dazed, prompt 048) stays as it is.
+help_mm = 6000
+
+[medic]
+# An idle medic team (catalog category inf_medic: standing, no orders)
+# goes to the nearest untreated heavily wounded man of its side within
+# `search_mm`. On arrival it stops the bleeding at once.
+search_mm = 60000
+# Distance from the casualty at which the team works.
+reach_mm = 3000
+# Teams of at least `stretcher_men` able men carry the casualty on a
+# stretcher back to their post (where they stood when they set out) at
+# `stretcher_speed_pct` of walking and treat him there; smaller teams (the
+# US company aid man) treat him where he lies.
+stretcher_men = 2
+stretcher_speed_pct = 50
+# Treatment; afterwards the man gets up, limps (`limp_ms`) and rejoins his
+# squad.
+treat_ms = 30000
+
+[crew]
+# Every crew member (catalog `crew`) of a destroyed vehicle gets out alive
+# with this chance. The survivors bail out beside the wreck as a squad of
+# their faction's tank crew type (`<faction>_inf_tank_crew`).
+survive_pct = 50
+# The crew then withdraws this far, away from whoever destroyed the vehicle
+# (out of the fight, towards the rear); the player may order it elsewhere.
+withdraw_mm = 150000
