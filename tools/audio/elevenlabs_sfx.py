@@ -16,8 +16,9 @@ and the estimated credits, so the maintainer can approve the cost first. A
 run makes at most 12 calls (`--max N` raises it). Files that already exist
 are skipped, so a repeated run costs nothing.
 
-The API key comes only from the environment variable `ELEVENLABS_API_KEY`.
-It is never written to a file or printed.
+The API key comes from the environment variable `ELEVENLABS_API_KEY`, or
+from the line of that name in the file `.env` in the repository root
+(gitignored; `.env.example` shows the form). It is never written or printed.
 
 API (read 2026-11-16, https://elevenlabs.io/docs/api-reference/text-to-sound-effects/convert):
 POST /v1/sound-generation, header `xi-api-key`, query `output_format`, body
@@ -136,6 +137,17 @@ def generate(call: dict, key: str) -> bytes:
         return response.read()
 
 
+def api_key() -> str:
+    key = os.environ.get(KEY_VARIABLE, "").strip()
+    env_file = ROOT / ".env"
+    if not key and env_file.exists():
+        for line in env_file.read_text(encoding="utf-8").splitlines():
+            name, sep, value = line.partition("=")
+            if sep and name.strip() == KEY_VARIABLE:
+                key = value.strip().strip('"\'')
+    return key
+
+
 def sidecar(call: dict) -> dict:
     return {
         "tool": "ElevenLabs Sound Effects API (POST /v1/sound-generation)",
@@ -189,9 +201,9 @@ def main(argv: list[str]) -> int:
         return 0
     if len(pending) > limit:
         raise SystemExit(f"{len(pending)} calls exceed the limit of {limit} per run; select fewer or pass --max N")
-    key = os.environ.get(KEY_VARIABLE, "").strip()
+    key = api_key()
     if not key:
-        raise SystemExit(f"set the environment variable {KEY_VARIABLE} first")
+        raise SystemExit(f"set the environment variable {KEY_VARIABLE} or put it into .env first")
 
     for call in pending:
         try:
