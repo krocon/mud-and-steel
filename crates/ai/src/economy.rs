@@ -116,7 +116,11 @@ impl Ai {
                 continue;
             }
             let order = mix(self.difficulty, kind == 1);
-            let index = order[self.eco.next[kind] % order.len()].min(options.len() - 1);
+            let mut index = order[self.eco.next[kind] % order.len()];
+            if self.commander {
+                index = self.counter_pick(kind == 1, index, self.eco.next[kind]);
+            }
+            let index = index.min(options.len() - 1);
             let unit_type = options[index];
             let Some(cost) = self.costs.get(unit_type as usize).copied().flatten() else {
                 continue;
@@ -135,6 +139,37 @@ impl Ai {
                     unit_type,
                 });
             }
+        }
+    }
+
+    /// Counter-production (prompt 051): the mix entry `index` replaced by
+    /// what answers the enemy army the player has seen (`intel.known`).
+    /// Mostly armor seen: rifle squads become AT squads, every other medium
+    /// tank a tank destroyer; mostly infantry: AT squads become MG teams,
+    /// tank destroyers medium tanks, every third rifle squad a mortar team.
+    /// Indices into the faction lists of `data/economy.toml`.
+    fn counter_pick(&self, vehicles: bool, index: usize, n: usize) -> usize {
+        let (mut armor, mut soft) = (0u64, 0u64);
+        for (_, s) in &self.intel.known {
+            let value = u64::from(self.value_of(s.unit_type));
+            match self.type_info(s.unit_type).role {
+                crate::Role::Armor => armor += value,
+                crate::Role::Infantry | crate::Role::Engineer | crate::Role::Gun => soft += value,
+                _ => {}
+            }
+        }
+        let total = armor + soft;
+        if total == 0 {
+            return index;
+        }
+        let armor_pct = armor * 100 / total;
+        match (vehicles, index) {
+            (false, 0) if armor_pct >= 50 => 3,
+            (false, 0) if armor_pct <= 30 && n % 3 == 2 => 4,
+            (false, 3) if armor_pct <= 30 => 1,
+            (true, 2) if armor_pct >= 50 && n % 2 == 1 => 3,
+            (true, 3) if armor_pct <= 30 => 2,
+            _ => index,
         }
     }
 
@@ -221,6 +256,22 @@ impl Ai {
         self.names
             .get(unit_type as usize)
             .map_or("", String::as_str)
+    }
+
+    /// Whether a group of `role` with `units` still waits for its wave
+    /// (base matches; the state `hold_point` keeps).
+    pub(crate) fn wave_waiting(&self, role: crate::Role, units: usize, view: &PlayerView) -> bool {
+        let mobile = view
+            .own
+            .iter()
+            .filter(|u| u.alive() && !view.structures.iter().any(|s| s.unit == u.id))
+            .count();
+        if mobile >= self.all_in_units {
+            return false;
+        }
+        let wave = wave_size(self.difficulty);
+        let launched = self.eco.launched.contains(&role);
+        !(launched && units * 2 >= wave) && units < wave
     }
 
     /// Where a group without enemies in sight goes while its wave is not

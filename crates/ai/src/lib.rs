@@ -14,11 +14,14 @@
 mod air;
 mod artillery;
 mod bridgelayer;
+mod commander;
 mod economy;
 mod engineers;
 pub mod game;
+mod intel;
 mod strike;
 mod supply;
+mod surrender;
 mod transport;
 mod view;
 
@@ -42,9 +45,14 @@ pub enum Difficulty {
     #[default]
     Normal,
     Hard,
+    /// `Hard` without the commander of prompt 051 (the behavior of prompts
+    /// 024–055), kept for tournaments that measure the commander against
+    /// it. Not offered in the game's menus.
+    HardOld,
 }
 
 impl Difficulty {
+    /// The levels of the game's menus and of the tournament matrix.
     pub const ALL: [Self; 4] = [Self::Passive, Self::Easy, Self::Normal, Self::Hard];
 
     pub const fn name(self) -> &'static str {
@@ -53,11 +61,26 @@ impl Difficulty {
             Self::Easy => "easy",
             Self::Normal => "normal",
             Self::Hard => "hard",
+            Self::HardOld => "hard-old",
         }
     }
 
-    const fn params(self) -> Params {
+    /// The level whose rules apply (`HardOld` plays by `Hard`'s).
+    pub const fn base(self) -> Self {
         match self {
+            Self::HardOld => Self::Hard,
+            other => other,
+        }
+    }
+
+    /// Whether the commander of prompt 051 leads the army (situation
+    /// picture, staged attacks, withdrawal, counter-production, surrender).
+    pub const fn commander(self) -> bool {
+        matches!(self, Self::Normal | Self::Hard)
+    }
+
+    const fn params(self) -> Params {
+        match self.base() {
             Self::Passive => Params {
                 think_ticks: 0,
                 focus: Focus::None,
@@ -85,7 +108,7 @@ impl Difficulty {
                 patience_ticks: 800,
                 attack_move: true,
             },
-            Self::Hard => Params {
+            Self::Hard | Self::HardOld => Params {
                 think_ticks: 10,
                 focus: Focus::Weakest,
                 regroup: true,
@@ -110,8 +133,11 @@ impl FromStr for Difficulty {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Self::ALL
             .into_iter()
+            .chain([Self::HardOld])
             .find(|d| d.name().eq_ignore_ascii_case(s.trim()))
-            .ok_or_else(|| format!("unknown AI difficulty '{s}' (passive, easy, normal, hard)"))
+            .ok_or_else(|| {
+                format!("unknown AI difficulty '{s}' (passive, easy, normal, hard, hard-old)")
+            })
     }
 }
 
@@ -199,11 +225,17 @@ struct TypeInfo {
     mass_kg: u32,
 }
 
-/// Where an enemy unit was last seen.
+/// Where an enemy unit was last seen, and what it looked like then.
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 struct Sighting {
     position: Vec2,
     tick: u64,
+    owner: PlayerId,
+    unit_type: u32,
+    hp: u32,
+    max_hp: u32,
+    /// Hull direction.
+    facing: Vec2,
 }
 
 /// Base or start of one enemy player (prompt 037).
@@ -219,8 +251,9 @@ struct EnemyHome {
 const ALL_IN_PCT: usize = 85;
 
 /// The last order a group got.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 enum Order {
+    #[default]
     None,
     Move {
         target: Vec2,
@@ -246,7 +279,7 @@ enum Objective {
     Explore(Vec2),
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 struct GroupState {
     order: Order,
     /// Tick of the last command for `order`.
@@ -292,7 +325,12 @@ const ENGAGE_SIGHT_PCT: i64 = 100;
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Ai {
     player: PlayerId,
+    /// The level whose rules apply ([`Difficulty::base`]).
     difficulty: Difficulty,
+    /// The commander of prompt 051 leads (Normal, Hard; not `HardOld`).
+    commander: bool,
+    /// Played as [`Difficulty::HardOld`].
+    legacy: bool,
     params: Params,
     types: Vec<TypeInfo>,
     /// Center of the own start (m).
@@ -350,6 +388,18 @@ pub struct Ai {
     /// Heavy strikes: own calls and evading enemy ones (prompt 054).
     #[serde(default)]
     strike: strike::StrikeState,
+    /// Situation picture: losses, known enemies (prompt 051).
+    #[serde(default)]
+    intel: intel::Intel,
+    /// The army's plan against the current front (prompt 051).
+    #[serde(default)]
+    army: commander::ArmyPlan,
+    /// Passable ground, coarse (prompt 051).
+    #[serde(default)]
+    ground: intel::Ground,
+    /// Giving up when hopeless (prompt 051).
+    #[serde(default)]
+    surrender: surrender::SurrenderState,
 }
 
 impl Ai {
@@ -421,7 +471,7 @@ impl Ai {
                     Role::Gun
                 } else if truck {
                     Role::Transport
-                } else if indirect.is_some() && difficulty == Difficulty::Hard {
+                } else if indirect.is_some() && difficulty.base() == Difficulty::Hard {
                     Role::Artillery
                 } else if t.combat.weapons.is_empty() && indirect.is_none() {
                     Role::Unarmed
@@ -509,7 +559,9 @@ impl Ai {
         let size = map.size();
         Self {
             player,
-            difficulty,
+            difficulty: difficulty.base(),
+            commander: difficulty.commander(),
+            legacy: difficulty == Difficulty::HardOld,
             params: difficulty.params(),
             types,
             home,
@@ -553,6 +605,14 @@ impl Ai {
                 )
             }),
             strike: strike::StrikeState::default(),
+            intel: intel::Intel::default(),
+            army: commander::ArmyPlan::default(),
+            surrender: surrender::SurrenderState::default(),
+            ground: if difficulty.commander() {
+                intel::Ground::new(map)
+            } else {
+                intel::Ground::default()
+            },
         }
     }
 
@@ -561,7 +621,30 @@ impl Ai {
     }
 
     pub const fn difficulty(&self) -> Difficulty {
-        self.difficulty
+        if self.legacy {
+            Difficulty::HardOld
+        } else {
+            self.difficulty
+        }
+    }
+
+    /// One line about the commander's plan, for tuning (`cli
+    /// ai-tournament --trace`).
+    pub fn status(&self) -> String {
+        format!(
+            "p{} {}: {:?} {:?} groups {:?} memory {} known {} losses {}",
+            self.player.0,
+            self.difficulty(),
+            self.surrender.reason,
+            self.army,
+            self.groups
+                .iter()
+                .map(|(r, g)| format!("{r:?} {:?} {}", g.order, g.issued))
+                .collect::<Vec<_>>(),
+            self.memory.len(),
+            self.intel.known.len(),
+            self.intel.losses.len(),
+        )
     }
 
     /// Number of ticks in which the AI made decisions.
@@ -588,6 +671,13 @@ impl Ai {
         self.thinks += 1;
         let mut out = Vec::new();
         self.remember(view);
+        if !self.legacy {
+            self.update_intel(view);
+            self.think_surrender(view, &mut out);
+            if self.surrender.done {
+                return out;
+            }
+        }
         self.choose_enemy_home(view);
 
         if !self.started {
@@ -643,6 +733,22 @@ impl Ai {
             }
         }
         out
+    }
+
+    /// The enemy home at `reached` was searched: head for the next.
+    fn enemy_home_searched_at(&mut self, reached: Vec2, view: &PlayerView) {
+        for h in self
+            .enemy_homes
+            .iter_mut()
+            .filter(|h| h.position == reached)
+        {
+            h.searched = true;
+        }
+        if self.enemy_homes.is_empty() {
+            self.enemy_home_searched = true;
+        } else {
+            self.choose_enemy_home(view);
+        }
     }
 
     /// Heads for the nearest home of an undefeated enemy that was not
@@ -713,6 +819,11 @@ impl Ai {
                     Sighting {
                         position: e.position,
                         tick: view.tick,
+                        owner: e.owner,
+                        unit_type: e.unit_type,
+                        hp: e.hp,
+                        max_hp: e.max_hp,
+                        facing: e.facing,
                     },
                 );
             } else {
@@ -729,6 +840,18 @@ impl Ai {
         self.memory.retain(|id, s| {
             visible.contains(id) || !own.iter().any(|&(p, r)| dist(p, s.position) <= r)
         });
+        // The commander forgets where mobile units stood long ago (prompt
+        // 051): they have moved; scouting finds them again.
+        if self.commander {
+            let tick = view.tick;
+            let types = &self.types;
+            self.memory.retain(|_, s| {
+                let structure = types
+                    .get(s.unit_type as usize)
+                    .is_some_and(|t| t.role == Role::Structure);
+                intel::freshness(tick.saturating_sub(s.tick), structure) > 0
+            });
+        }
     }
 
     fn command_group(
@@ -839,6 +962,12 @@ impl Ai {
                 .collect(),
             _ => near,
         };
+        if self.commander
+            && self.command_army(role, &fighting, center, range, &near, view, &mut state, out)
+        {
+            self.groups.insert(role, state);
+            return;
+        }
         if role == Role::Infantry && near.is_empty() && armor_near {
             if fighting.iter().any(|u| u.target.is_some()) {
                 out.push(Command::Stop { units: ids });
@@ -971,18 +1100,7 @@ impl Ai {
                 }
                 Objective::EnemyHome => {
                     let reached = self.enemy_home;
-                    for h in self
-                        .enemy_homes
-                        .iter_mut()
-                        .filter(|h| h.position == reached)
-                    {
-                        h.searched = true;
-                    }
-                    if self.enemy_homes.is_empty() {
-                        self.enemy_home_searched = true;
-                    } else {
-                        self.choose_enemy_home(view);
-                    }
+                    self.enemy_home_searched_at(reached, view);
                 }
                 // Units at the point take it over: wait there.
                 Objective::Supply(_) => {}

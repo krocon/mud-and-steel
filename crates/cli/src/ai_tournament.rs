@@ -17,6 +17,9 @@ pub struct Options {
     pub jobs: usize,
     /// Print every game.
     pub verbose: bool,
+    /// Print the living units every this many ticks (0: never; for tuning
+    /// with `--games 1`).
+    pub trace: u64,
 }
 
 /// One game with the time the AIs spent thinking.
@@ -27,6 +30,8 @@ struct Played {
     /// Time in `Game::think` (both AIs), and its maximum per tick.
     think: Duration,
     think_max: Duration,
+    /// Living units at the end of a timeout (`--verbose`).
+    survivors: Vec<String>,
 }
 
 /// Summary of a series of `a` against `b`.
@@ -54,6 +59,7 @@ fn play(
     a: Difficulty,
     b: Difficulty,
     max_ticks: u64,
+    trace: u64,
 ) -> Played {
     // A plays player 0 (and its allies, prompt 037) in even games, player
     // 1 (and its allies) in odd ones.
@@ -83,13 +89,61 @@ fn play(
         think += spent;
         think_max = think_max.max(spent);
         game.step(decisions);
+        if trace > 0 && game.sim().tick().is_multiple_of(trace) {
+            println!("tick {}:", game.sim().tick());
+            for ai in game.ais() {
+                if ai.difficulty() != Difficulty::Passive {
+                    println!("  {}", ai.status());
+                }
+            }
+            for line in survivors(game.sim(), config) {
+                println!("  {line}");
+            }
+        }
     }
+    let result = game.result();
+    let survivors = if result.decided_tick.is_none() {
+        survivors(game.sim(), config)
+    } else {
+        Vec::new()
+    };
     Played {
-        result: game.result(),
+        result,
         a_player,
         think,
         think_max,
+        survivors,
     }
+}
+
+/// Living mobile units with type, position, hit points and stocks: why a
+/// game did not end.
+fn survivors(sim: &sim::Sim, config: &SimConfig) -> Vec<String> {
+    sim.snapshot()
+        .units
+        .iter()
+        .filter(|u| u.hp > 0)
+        .filter(|u| {
+            config
+                .unit_types
+                .get(u.unit_type as usize)
+                .is_some_and(sim::UnitType::mobile)
+        })
+        .map(|u| {
+            format!(
+                "p{} {} at ({}, {}) hp {}/{} ammo {:?} fuel {:?}{}",
+                u.owner.0,
+                config.unit_types[u.unit_type as usize].name,
+                u.position.x.to_num::<i32>(),
+                u.position.y.to_num::<i32>(),
+                u.hp,
+                u.max_hp,
+                u.stock.ammo_pct,
+                u.stock.fuel_pct,
+                if u.stock.immobile { " immobile" } else { "" },
+            )
+        })
+        .collect()
 }
 
 /// Plays a series and prints it.
@@ -107,7 +161,11 @@ pub fn series(
         let results: Vec<Played> = std::thread::scope(|scope| {
             let handles: Vec<_> = chunk
                 .iter()
-                .map(|&seed| scope.spawn(move || play(config, map, seed, a, b, options.max_ticks)))
+                .map(|&seed| {
+                    scope.spawn(move || {
+                        play(config, map, seed, a, b, options.max_ticks, options.trace)
+                    })
+                })
                 .collect();
             handles
                 .into_iter()
@@ -183,6 +241,9 @@ pub fn series(
                 r.alive.iter().map(|&(_, n)| n).collect::<Vec<_>>(),
                 r.commands.iter().map(|&(_, n)| n).collect::<Vec<_>>(),
             );
+            for line in &p.survivors {
+                println!("      {line}");
+            }
         }
     }
     let wins = summary.a_wins + summary.b_wins;
