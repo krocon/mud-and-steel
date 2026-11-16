@@ -21,6 +21,12 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
+/// Last changed by prompt 060 (mountains): the downhill sight rules
+/// (`[height]` in `data/vision.toml`) are in the hash. Nothing else
+/// changes: `test_small` has no ground 20 m below any eye, so every
+/// viewshed keeps its sight range (checked: without hashing the new rules
+/// the hash stays `0x1971_0235_5cc0_0b3e`, the value before).
+///
 /// Last changed by prompt 036 (supply and repair): the rules of
 /// `data/logistics.toml`, every unit's ammunition and fuel stock, building
 /// repair orders and sold buildings are in the hash; units use up
@@ -131,7 +137,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x1971_0235_5cc0_0b3e;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x1fa2_761f_1d8f_77f6;
 
 #[test]
 fn golden_hash() {
