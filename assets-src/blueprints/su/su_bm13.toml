@@ -1,0 +1,205 @@
+# BM-13-16 "Katyusha" on the ZiS-6 6x4 truck (1941), prompt 062. Main
+# dimensions from data/catalog/su.toml (estimates, see its note): length
+# 6.2 m (rail ends behind the frame), width 2.30 m, height
+# 2.60 m in travel order. ZiS-6 facts (en Wikipedia "ZIS-6"): wheelbase
+# 3,360 + 1,080 mm, cab height 2,160 mm; cab, hood and front end shared with
+# the ZiS-5 (assets-src/blueprints/su/su_zis5.toml, same part sizes).
+# Launcher: eight rails side by side, each carrying one rocket above and one
+# below (16 M-13 rockets of 132 mm), drawn as two rows; rails about 5 m long,
+# lowered in travel order with the front over the cab roof, on two A-frames
+# and a turntable on the subframe behind the cab. Modeling estimates from
+# photographs of museum vehicles: rail spacing, frame heights, crew
+# platform, spare wheel. Unarmored. Coordinates: front axle at y = 2.40,
+# the assembly centers the origin between the first and the last axle.
+unit = "su_bm13"
+assembly = "wheeled"
+
+[layout]
+front_y = 3.145           # radiator face
+
+[[axle]]                  # front axle, steered
+part = "wheel_axle"
+y = 2.40
+diameter = 0.86
+width = 0.18
+track = 1.53
+
+[[axle]]                  # first rear axle of the bogie, dual tires
+part = "wheel_axle"
+y = -0.96
+diameter = 0.86
+width = 0.18
+track = 1.86
+twin = true
+
+[[axle]]                  # second rear axle
+part = "wheel_axle"
+y = -2.04
+diameter = 0.86
+width = 0.18
+track = 1.86
+twin = true
+
+[frame]
+part = "ladder_frame"
+y = [-3.05, 3.05]
+z = 0.86
+spacing = 0.86
+rail = [0.07, 0.20]
+cross_members = 7
+
+[hood]
+part = "engine_hood"
+y = [1.945, 3.145]
+width = 0.80
+bottom_z = 0.80
+top_z = 1.48
+crown = 0.10
+radiator = [0.80, 0.78]
+louvers = 6
+
+[cab]
+part = "truck_cab"
+y = [0.795, 1.945]
+width = 1.70
+floor_z = 0.95
+roof_z = 2.12
+belt_z = 1.45
+windscreen_lean = 0.03
+door = 0.80
+
+[fenders]
+part = "truck_fenders"
+front_wheel = [2.40, 0.43]
+x = [0.50, 0.98]
+running_board = [0.755, 0.62]
+rear_wheel = [-1.50, 0.43]
+rear_x = [0.42, 1.15]
+rear_z = 1.00
+
+[[part]]
+part = "box_prop"         # crew platform over the rear bogie (catalog width)
+center = [0.0, -1.95, 1.04]
+size = [2.30, 1.70, 0.08]
+
+[[part]]
+part = "box_prop"         # stowage boxes under the platform edges
+center = [-0.92, -1.10, 0.86]
+size = [0.40, 1.10, 0.30]
+
+[[part]]
+part = "box_prop"
+center = [0.92, -1.10, 0.86]
+size = [0.40, 1.10, 0.30]
+
+[[part]]
+part = "cylinder_prop"    # turntable of the launcher on the subframe
+from = [0.0, -2.30, 1.08]
+to = [0.0, -2.30, 1.30]
+radius = 0.55
+material = "Metal"
+segments = 12
+
+[[part]]
+part = "cylinder_prop"    # rear A-frame of the rails, left leg
+from = [-0.55, -2.30, 1.30]
+to = [-0.62, -2.30, 1.98]
+radius = 0.05
+material = "Paint"
+segments = 6
+
+[[part]]
+part = "cylinder_prop"    # rear A-frame, right leg
+from = [0.55, -2.30, 1.30]
+to = [0.62, -2.30, 1.98]
+radius = 0.05
+material = "Paint"
+segments = 6
+
+[[part]]
+part = "cylinder_prop"    # elevating strut from the turntable to the rails
+from = [0.0, -2.0, 1.30]
+to = [0.0, -0.40, 2.10]
+radius = 0.06
+material = "Metal"
+segments = 6
+
+[[part]]
+part = "rocket_rack"      # eight rails, two rockets each (16 M-13)
+kind = "rail"
+rockets = true
+pivot = [0.0, -3.05, 2.00]
+rows = 2
+cols = 8
+pitch = [0.19, 0.17]
+length = 5.00
+diameter = 0.132
+elevation_deg = 3
+material = "Paint"
+
+[[part]]
+part = "box_prop"         # armored shields in front of the cab windows
+center = [0.0, 1.97, 1.78]
+size = [1.60, 0.03, 0.62]
+
+[[part]]
+part = "box_prop"         # fuel tank under the cab (right side)
+center = [0.62, 1.30, 0.80]
+size = [0.30, 0.55, 0.26]
+
+[[part]]
+part = "cylinder_prop"    # spare wheel behind the cab
+from = [0.0, 0.60, 1.10]
+to = [0.0, 0.42, 1.10]
+radius = 0.40
+material = "Rubber"
+segments = 12
+
+[[part]]
+part = "headlight"
+position = [-0.66, 2.875, 1.12]
+diameter = 0.20
+
+[[part]]
+part = "headlight"
+position = [0.66, 2.875, 1.12]
+diameter = 0.20
+
+[[part]]
+part = "exhaust"
+kind = "pipe"
+position = [0.50, 0.20, 0.55]
+length = 0.35
+diameter = 0.07
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 3.05, 0.62]
+pair = true
+socket = false
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 2.5, 1.40]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -1.8, 1.30]
+
+[[part]]
+part = "marking"
+name = "Door_L"
+kind = "number"
+position = [-0.86, 1.55, 1.20]
+normal = [-1.0, 0.0, 0.0]
+size = 0.25
+
+[[part]]
+part = "marking"
+name = "Door_R"
+kind = "number"
+position = [0.86, 1.55, 1.20]
+normal = [1.0, 0.0, 0.0]
+size = 0.25

@@ -628,10 +628,10 @@ designation = "BM-13-16 (ZiS-6)"
 year_from = 1941
 year_to = 1945
 tier = 2
-model = ""
-length_mm = 6550
+model = "assets/models/su/su_bm13.glb"
+length_mm = 6200
 width_mm = 2300
-height_mm = 2800
+height_mm = 2600
 mass_kg = 7200
 crew = 6
 speed_road_kmh_x10 = 500
@@ -647,7 +647,7 @@ source = [
     { ref = "https://en.wikipedia.org/wiki/ZIS-5_(truck)", covers = "ZiS-5 sister truck: width 2,235 mm, 60 km/h; the ZiS-6 shares cab, engine and front end" },
 ]
 uncertain = ["length_mm", "width_mm", "height_mm", "mass_kg", "speed_road_kmh_x10", "speed_offroad_kmh_x10", "range_road_km", "weapon"]
-note = "Prompt 062. The 16-rail BM-13 of 1941 on the ZiS-6 three-axle truck (Wikipedia's variant table lists the ZiS-6 with the BM-13 in general; the 16-rail launcher on the ZiS-6 is the common 1941 form). No fetched source gives the dimensions, mass or speed of the combat vehicle: length 6.55 m (ZiS-6 with the rails reaching forward over the cab), width 2.3 m, height 2.8 m in travel order and 7.2 t loaded (4.23 t truck, launcher and 16 rockets of 42 kg) are estimates; road speed 50 km/h, off-road 20 km/h and range 180 km estimated from the ZiS-5. Unarmored. Weapon: count = rails of one salvo; rate_rpm is the sustained rate (salvo in about 8 s plus 3-4 minutes reloading: 16 rockets in about 4 minutes). muzzle_velocity_mps = burn-out velocity of the M-13, about 355 m/s (from memory). ammo_carried = one salvo; reloads came on separate trucks."
+note = "Prompt 062. The 16-rail BM-13 of 1941 on the ZiS-6 three-axle truck (Wikipedia's variant table lists the ZiS-6 with the BM-13 in general; the 16-rail launcher on the ZiS-6 is the common 1941 form). No fetched source gives the dimensions, mass or speed of the combat vehicle: length 6.2 m (ZiS-6 about 6.1 m with the rail ends behind the frame), width 2.3 m, height 2.6 m in travel order (the top of the lowered rails, from the model) and 7.2 t loaded (4.23 t truck, launcher and 16 rockets of 42 kg) are estimates; road speed 50 km/h, off-road 20 km/h and range 180 km estimated from the ZiS-5. Unarmored. Weapon: count = rails of one salvo; rate_rpm is the sustained rate (salvo in about 8 s plus 3-4 minutes reloading: 16 rockets in about 4 minutes). muzzle_velocity_mps = burn-out velocity of the M-13, about 355 m/s (from memory). ammo_carried = one salvo; reloads came on separate trucks."
 
 [[unit]]
 id = "su_ba64b"

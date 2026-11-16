@@ -21,6 +21,8 @@ BUDGETS = {
     "aircraft_bomber": 10000,
     # prompt 055
     "bridgelayer": 8000, "aircraft_transport": 10000,
+    # prompt 062
+    "rocket_launcher": 8000,
 }
 
 
