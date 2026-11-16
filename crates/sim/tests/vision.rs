@@ -127,6 +127,33 @@ fn flat_ground_hides_nothing_within_range_but_everything_beyond() {
     assert!(!p0_sees(map_with(flat, ""), 0, -360));
 }
 
+/// A slope falling at 100 % from `top` meters at y = 200 to the plain
+/// at 0 (prompt 060).
+fn slope_from(top: i32) -> impl Fn(i32, i32) -> i32 {
+    move |_, y| (y - 200 + top).clamp(0, top) * 1000
+}
+
+/// Seeing downhill (prompt 060): a tank on a 100 m height at `(0, 200)`
+/// sees a tank on the plain beyond its 500 m sight range (up to 25 % more),
+/// but not the other way round, and a height of 15 m gives no bonus.
+#[test]
+fn a_height_sees_farther_downhill() {
+    let seen = |top: i32, x: i32, y: i32| {
+        let sim = sim_with(
+            map_with(slope_from(top), ""),
+            &[(P0, TANK, 0, 200, HOLD), (P1, ENEMY, x, y, HOLD)],
+        );
+        (sim.visible_to(P0, UnitId(1)), sim.visible_to(P1, UnitId(0)))
+    };
+    // 560 m and 609 m away, 100 m below: seen from above only.
+    assert_eq!(seen(100, 0, -360), (true, false));
+    assert_eq!(seen(100, 300, -330), (true, false));
+    // 15 m below: no bonus, out of range both ways.
+    assert_eq!(seen(15, 0, -360), (false, false));
+    // Within the sight range nothing changes.
+    assert_eq!(seen(100, 0, -200), (true, true));
+}
+
 /// A forest band between y = -20 and y = 20 m: trees every 4 m.
 fn forest() -> String {
     let mut rows = Vec::new();

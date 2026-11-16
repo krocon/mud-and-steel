@@ -26,7 +26,18 @@ fn different_seed_gives_different_hash() {
 /// in the hash, and units that gain a rank shoot more accurately and
 /// reload faster. The demo's tanks gain ranks from their first kill: the
 /// battle runs differently and is decided at tick 412 instead of 467, same
-/// winner (player 0). Before: `0x934d_db12_191d_9a20`, set by prompt 048 (knockdown): the `[knockdown]` rules of
+/// winner (player 0). Before: `0x9b87_57bd_bec7_96f8`, set by
+/// the merge of prompt 060, see below.
+///
+/// The merge of prompt 060 (mountains): the downhill
+/// sight rules (`[height]` in `data/vision.toml`) are in the hash. Nothing
+/// else changes: `test_small` has no ground 20 m below any eye, so every
+/// viewshed keeps its sight range (checked: without hashing the new
+/// rules the hash stays the one before). Before:
+/// `0x934d_db12_191d_9a20` (prompt 048, below); prompt 060 alone
+/// `0x1fa2_761f_1d8f_77f6`.
+///
+/// Prompt 048 (knockdown): the `[knockdown]` rules of
 /// `data/infantry.toml` and every soldier's knock-down state (ticks left,
 /// blast point) are in the hash; blasts and tank ammunition explosions
 /// knock soldiers down. The ammunition roll does not advance the shared
@@ -150,7 +161,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x81e5_3460_d69f_9903;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x755b_b848_ef42_04fb;
 
 #[test]
 fn golden_hash() {
