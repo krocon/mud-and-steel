@@ -165,7 +165,7 @@ flamethrower wand lengths and the 50-PM 40 barrel). Each has `grip_r`, `grip_l`,
 
 ## Animations
 
-35 clips, identical names in every model. Loop flags, lengths and authored speeds are
+35 clips (55 since prompt 048, below), identical names in every model. Loop flags, lengths and authored speeds are
 in `godot/assets/models/infantry/animations.json` (written by the build);
 `SoldierLook.configure_animations()` applies the loop modes.
 
@@ -193,6 +193,20 @@ in `godot/assets/models/infantry/animations.json` (written by the build);
 | `mg_feed` | yes | MG assistant prone to the left of the gun, guiding the belt (weapon slung, pistols holstered) |
 | `mount` | no | climbs onto a deck 1.0 m high: ends with the hips 1.0 m up and 0.45 m forward (`rise`, `advance` in `animations.json`) |
 | `dismount` | no | jumps down from a deck 1.0 m high, lands in a crouch 0.45 m forward, stands up |
+
+Prompt 048 added 20 clips (55 in all):
+
+| Clip | Loop | Notes |
+|---|---|---|
+| `crouch`, `crouch_walk` (1.0 m/s) | yes | crouched standing and crouched walking (kneeling squads on the move) |
+| `dive` | no | throws himself down: lunge, knees and left hand, flat, aiming (0.9 s) |
+| `roll_left`, `roll_right` (0.68 m/s) | yes | lying, rolling sideways about the body axis, weapon on the back, played in place |
+| `knockdown` | no | thrown backwards onto the back, weapon lost (when no ragdoll is shown) |
+| `get_up_back`, `get_up_front` | no | from the back or the face: sits up / pushes up, kneels, picks the weapon up from the ground at the right, stands ready (2.6 s) |
+| `cover_low`, `cover_low_aim`, `cover_low_fire` | yes | low cover in front: kneeling, leaning on it with the left hand; half risen, aiming over it |
+| `cover_tall`, `cover_peek_r_aim`/`_fire`, `cover_peek_l_aim`/`_fire` | yes | tall cover (corner, tree, high wall): standing close behind it, left hand on it; a step aside, leaning out right or left |
+| `trench_idle`, `trench_aim`, `trench_fire` | yes | standing in a trench, leaning on a parapet 1.35 m high, 0.35 m ahead |
+| `turn_in_place` | yes | small steps on the spot while the body turns |
 
 `mount` and `dismount` move the hips, not the root; `animations.json` gives the hip
 travel (`rise` = +1.0 / −1.0 m, `advance` = 0.45 m). Prompt 034 does not play them
@@ -291,6 +305,9 @@ Planned for prompts 016/022:
   system spawns it); the flamethrower hose is a stub.
 - Transitions are blends between key poses; clips are readable at RTS distance, not
   motion-capture quality.
+- Ragdolls (prompt 048) collide only with a flat floor at the soldier's height (no
+  slopes, walls or other bodies); a body may come to rest up to about a meter from
+  where the simulation lies him and slides there while getting up.
 
 ## Squads (prompt 006)
 
@@ -452,6 +469,43 @@ but enemy armor stop instead of walking into it. Tested in
 `crates/ai/tests/ai.rs`. The AI does not use stances, cover or buildings
 yet.
 
+### Foxholes and trenches (prompt 035)
+
+Engineer squads dig foxholes and trenches into the height field (crater
+machinery of prompt 021). Their samples are cover spots like crater samples;
+a standing squad's soldier on a dug sample is caught by its rim with the
+values of `data/works.toml` `[dig]` (60 % standing, 75 % kneeling, 85 %
+prone) instead of the crater values. Engineers (`inf_engineer`) also lay
+and clear mines, wire and obstacles and work on bridges (ARCHITECTURE.md
+"Field works"); anti-personnel mines kill the soldier who steps on one.
+
+### Knocked down by blasts (prompt 048)
+
+`[knockdown]` in `data/infantry.toml`, `crates/sim/src/sim/knockdown.rs`,
+tests in `crates/sim/tests/knockdown.rs`. [provisional]
+
+- Every high-explosive charge (`Sim::explode`: shells, bombs, crashing
+  aircraft, exploding dumps) knocks down the living soldiers within
+  60 mm per mm of caliber (8 cm: 4.8 m, 10.5 cm: 6.3 m), kneeling ones
+  within 75 %, prone ones within 40 % of that, soldiers at a cover spot
+  (object or crater) within half of it. No random roll.
+- The soldier is thrown away from the blast, up to 2.5 m at the point of
+  impact and less towards the edge (only onto passable points), and lies
+  there for 6 s real (3 s game: dazed, getting up, picking up his weapon).
+  Meanwhile he neither moves nor fires and his hit box is the prone one.
+  Soldiers killed by the same blast are thrown as well: the simulation
+  decides where the bodies lie.
+- A destroyed vehicle with a gun of 20 mm or more blows up its ammunition
+  with 40 % and knocks down the soldiers within 12 m of the wreck (same
+  stance and cover factors, no damage). The roll uses its own `Rng`, seeded
+  from the shared generator's state and the unit id, without advancing the
+  shared one.
+- Soldiers in buildings and aboard vehicles are not knocked down.
+- The snapshot carries per soldier `knocked` (ticks left), `knock_from` and
+  `cover` (the object of his cover spot); `SimHost.soldier_knocked`,
+  `soldier_knock_from`, `soldier_cover_objects`, `cover_object_info`
+  (`crates/bridge/src/knockdown_funcs.rs`).
+
 ### Transport (prompt 034)
 
 - A squad mounts a truck, halftrack (catalog `passengers`) or tank (10 or 6
@@ -489,6 +543,49 @@ member gets its interpolated position (`SimHost.soldier_positions`,
 The shooter of a `shot` event is the member nearest to the muzzle. Members
 turn towards their walking direction, standing ones to the squad's aim.
 Soldiers in a building are hidden.
+
+**Prompt 048** (`world/soldier_motion.gd`; presentation only, random
+choices from a presentation `RandomNumberGenerator`):
+
+| Situation | Clip |
+|---|---|
+| kneeling squad moving | `crouch_walk` (from 2.6 m/s: `run`) |
+| prone and moving within 30° of sideways | `roll_left` / `roll_right`, facing the aim |
+| squad goes prone while standing still | `dive`, then `prone` |
+| at a cover spot (not prone): trench | `trench_idle` / `_aim` / `_fire` |
+| object up to 1.5 m high | `cover_low` / `cover_low_aim` / `cover_low_fire` |
+| higher object, standing | `cover_tall` / `cover_peek_<side>_aim` / `_fire` (side of the object's center he stands on) |
+| higher object, kneeling | `crouch` / `aim_kneel` / `fire_kneel` |
+| standing idle, body turning | `turn_in_place` |
+| knocked down | ragdoll thrown away from the blast (or `knockdown`), then `get_up_back` / `get_up_front` so that he stands when the simulation lets him up |
+| dead | ragdoll (or `death_*` as before) |
+
+- **Ragdolls** (`world/ragdolls.gd`): built on demand, 11 `PhysicalBone3D`
+  capsules with cone joints under a `PhysicalBoneSimulator3D`, on their own
+  collision layer (20) with an 8 × 8 m floor at the soldier's simulation
+  height. **Budget: at most 8 at once, only within 60 m of the camera**
+  [provisional]; the others fall with clips. The velocity is chosen so the
+  body lands about where the simulation put the soldier; the death clip
+  plays underneath and drops the weapon. The dead are frozen after 1.8 s
+  (pose written into the skeleton, physics freed, the animation stops); the
+  knocked down are blended into the get-up clip (0.5 s), turned so that the
+  clip starts from the way the body lies (back or face). Physics never
+  feeds back.
+- **Head first** (`world/turn_lead.gd`, a `SkeletonModifier3D`): within
+  70 m, turns of more than 0.15 rad let the head (and neck and chest, the
+  weapon with the chest) turn towards the new direction at once, up to 75°;
+  the standing body follows at 40 % of the old turn rate.
+- **Helmets** (`world/helmets.gd`): a blast that kills or knocks down a
+  soldier takes his helmet (or cap) off with 50 %, a hit within 0.3 m of the
+  head with 60 % (within 60 m). The shader hides Paint and Cloth above
+  1.62 m rest height on the Gear mesh (instance uniform `helmet_off`), a
+  helmet shell flies off and stays (at most 12). [provisional]
+- **Hits** on soldiers: a small dust/cloth puff and a short dark puff
+  instead of the sparks of vehicle hits; no blood. [provisional: the user
+  decides about more severity (age rating)]
+- Trenches: soldiers of prompt 022 stand 0.7 m behind a trench section;
+  whether they stand in it is up to prompt 035, so the trench clips are
+  chosen but the figure is not lowered. [provisional]
 
 **Animation LOD:** every `AnimationPlayer` runs in manual mode. Within 70 m
 of the camera members advance every frame and cast shadows; up to 260 m
@@ -570,6 +667,26 @@ are unchanged (same number of materials per soldier). The ten new clips cost
 nothing at run time (only the played clip is evaluated). **VAT stays unnecessary**
 (decision of prompt 022 confirmed): the soldiers are not shading-bound, and the
 far MultiMesh path already removes the skeletons of distant soldiers.
+
+**Prompt 048** (A/B right after each other, same build and models, only
+the three changed presentation files switched; Apple M1 Max, 2026-11-16):
+
+| View | before (FPS) | prompt 048 (FPS) | infantry script before / after |
+|---|---|---|---|
+| standing, camera 60 m | 93.4 | 90.7 | 1.7 / 2.0 ms |
+| standing, camera 150 m | 70.7 | 69.7 | 2.5 / 3.2 ms |
+| standing, camera 400 m | 77.7 | 79.0 | 1.6 / 1.8 ms |
+| marching, camera 150 m | 68.0 | 69.4 | 2.7 / 3.4 ms |
+| fighting, camera 150 m | 56.9 | 58.2 | 3.2 / 3.9 ms |
+| fighting, camera 60 m | 73.5 | 72.6 | 3.3 / 3.7 ms |
+
+At most 3 % slower (run-to-run spread is about as large). The first
+version cost 10–15 % in the fight (per-soldier script calls and head leads
+for every small aim correction); the view now calls the new code only for
+soldiers that need it (moving prone, knocked down, dead, in cover, near the
+camera) and leads only real turns. Simulation (`just infantry-bench`): the
+same as before (standing 0.023 ms, marching 0.19 ms, first 10 s of fire
+0.22 ms mean).
 
 ### Open
 

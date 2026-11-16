@@ -13,9 +13,15 @@ extends VBoxContainer
 ## production bar of `base_hud.gd` are docked above the grid. "Build" opens
 ## and closes the build menu; a selected producing building shows its
 ## production bar as before.
+##
+## Formations (prompt 046): the first cells of the grid set the formation
+## of the next moves (`selection.formation`, key `,` cycles); attack-move
+## ("Advance") and secure are targeted orders like move.
 
 const Settings := preload("res://scenes/menu/settings.gd")
 const TransportOrders := preload("res://scenes/selection/transport_orders.gd")
+const EngineerOrders := preload("res://scenes/selection/engineer_orders.gd")
+const FormationOrders := preload("res://scenes/selection/formation_orders.gd")
 const REFRESH := 0.2
 ## id, label, action (key shown), kind: "mode" (targeted), "now", "stance".
 const BUTTONS: Array[Array] = [
@@ -23,6 +29,8 @@ const BUTTONS: Array[Array] = [
 	["attack", "Attack", "order_attack", "mode"],
 	["attack_ground", "Ground", "order_attack_ground", "mode"],
 	["patrol", "Patrol", "order_patrol", "mode"],
+	["attack_move", "Advance", "order_attack_move", "mode"],
+	["secure", "Secure", "order_secure", "mode"],
 	["stop", "Stop", "order_stop", "now"],
 	["fire", "Hold fire", "order_fire_mode", "now"],
 	["garrison", "Occupy", "order_garrison", "mode"],
@@ -35,6 +43,15 @@ const BUTTONS: Array[Array] = [
 	["stance_prone", "Prone", "stance_prone", "stance"],
 	["stance_auto", "Auto", "stance_auto", "stance"],
 	["build", "Build", "", "build"],
+	# Engineer orders (prompt 035): shown while engineers are selected.
+	["work_mines_at", "AT mines", "", "work"],
+	["work_mines_ap", "AP mines", "", "work"],
+	["work_wire", "Wire", "", "work"],
+	["work_hedgehogs", "Obstacles", "", "work"],
+	["work_foxhole", "Foxhole", "", "work"],
+	["work_trench", "Trench", "", "work"],
+	["work_clear", "Clear", "", "work"],
+	["work_bridge", "Bridge", "", "work"],
 ]
 
 var main: Node3D
@@ -45,6 +62,8 @@ var usec := 0
 var buttons: Dictionary[String, Button] = {}
 ## Whether the build menu is open.
 var build_open := false
+## Formation choice (prompt 046; self-test).
+var formation_choice: OptionButton
 
 var _dock: VBoxContainer
 var _panel: PanelContainer
@@ -72,14 +91,15 @@ func setup(main_node: Node3D) -> void:
 	_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(_panel)
 	var grid := GridContainer.new()
-	grid.columns = 4
+	grid.columns = 5
 	_panel.add_child(grid)
+	_add_formation_choice(grid)
 	for spec in BUTTONS:
 		var b := Button.new()
 		b.name = "Order_" + spec[0]
 		b.custom_minimum_size = Vector2(92, 34)
 		b.focus_mode = Control.FOCUS_NONE
-		b.toggle_mode = spec[3] == "mode" or spec[3] == "build"
+		b.toggle_mode = spec[3] == "mode" or spec[3] == "build" or spec[3] == "work"
 		b.add_theme_font_size_override(&"font_size", 13)
 		b.pressed.connect(press.bind(spec[0]))
 		grid.add_child(b)
@@ -101,6 +121,32 @@ func _process(delta: float) -> void:
 	usec += Time.get_ticks_usec() - began
 
 
+## The formation choice of prompt 046 (label and list), the first two
+## cells of the grid.
+func _add_formation_choice(grid: GridContainer) -> void:
+	var label := Label.new()
+	label.text = "Formation"
+	label.custom_minimum_size = Vector2(92, 34)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.add_theme_font_size_override(&"font_size", 13)
+	grid.add_child(label)
+	formation_choice = OptionButton.new()
+	formation_choice.name = "Formation"
+	formation_choice.custom_minimum_size = Vector2(92, 34)
+	formation_choice.focus_mode = Control.FOCUS_NONE
+	formation_choice.fit_to_longest_item = false
+	formation_choice.clip_text = true
+	formation_choice.add_theme_font_size_override(&"font_size", 13)
+	for code in FormationOrders.LABELS.size():
+		formation_choice.add_item(FormationOrders.label(code), code)
+	formation_choice.tooltip_text = "Formation of the next moves (key " + Settings.action_key_name("order_formation") + " switches). Auto picks by the ground at the target: column on roads and in narrows, dispersed in woods, wedge (vehicles) or line (infantry) in the open. Control groups remember theirs."
+	formation_choice.item_selected.connect(func(index: int) -> void: main.selection.set_formation(index))
+	main.selection.formation_changed.connect(func(code: int) -> void: formation_choice.select(code))
+	formation_choice.select(main.selection.formation)
+	grid.add_child(formation_choice)
+
+
 ## Presses the button `id` (also used by the self-test).
 func press(id: String) -> void:
 	var selection: Control = main.selection
@@ -108,7 +154,7 @@ func press(id: String) -> void:
 		if spec[0] != id:
 			continue
 		match spec[3]:
-			"mode":
+			"mode", "work":
 				selection.set_command_mode("" if selection.command_mode == id else id)
 			"stance":
 				selection.set_stance({"stance_stand": 0, "stance_kneel": 1, "stance_prone": 2, "stance_auto": -1}[id])
@@ -163,6 +209,7 @@ func _update() -> void:
 	var economy: bool = sim_host.economy_state().get("enabled", false)
 	# Vehicles with passengers, towing links (prompt 034).
 	var transport := TransportOrders.counts(selection)
+	var engineers := EngineerOrders.engineers(selection).size()
 	for spec in BUTTONS:
 		var b: Button = buttons[spec[0]]
 		var key := Settings.action_key_name(spec[2]) if not (spec[2] as String).is_empty() else ""
@@ -183,12 +230,17 @@ func _update() -> void:
 			"build":
 				b.visible = economy
 				b.set_pressed_no_signal(build_open)
+			"work":
+				b.visible = engineers > 0
+				b.set_pressed_no_signal(selection.command_mode == spec[0])
 
 
 func _set_tooltips() -> void:
 	buttons["move"].tooltip_text = "Then left click the target. Right click moves at once; Shift + right click adds a waypoint."
 	buttons["attack"].tooltip_text = "Then left click an enemy. Right click on an enemy attacks at once."
 	buttons["attack_ground"].tooltip_text = "Then left click a ground point. Ctrl + right click fires there at once."
+	buttons["attack_move"].tooltip_text = "Attack-move: then left click a point; every unit halts to fight enemies in range on the way, then drives on. Right click does this for infantry only; M moves without halting."
+	buttons["secure"].tooltip_text = "Then left click the center: the units hold %d m around it, attack enemies inside and return to their places." % FormationOrders.SECURE_RADIUS
 	buttons["patrol"].tooltip_text = "Then left click a point: the units drive back and forth."
 	buttons["garrison"].tooltip_text = "Then left click a building: squads occupy it."
 	buttons["barrage"].tooltip_text = "Mortars and guns: then left click a point. The key fires at the cursor at once."
@@ -196,3 +248,22 @@ func _set_tooltips() -> void:
 	buttons["disembark"].tooltip_text = "Passengers of the selected vehicles get off once they stand. Right click a vehicle with squads selected to mount."
 	buttons["unlimber"].tooltip_text = "Selected vehicles drop their towed guns. Right click an own gun with vehicles selected to hitch it."
 	buttons["build"].tooltip_text = "Opens the build menu."
+	for spec in BUTTONS:
+		if spec[3] == "work":
+			var kind := EngineerOrders.kind_of(spec[0])
+			buttons[spec[0]].tooltip_text = _work_tooltip(kind)
+
+
+## Tooltip of an engineer button: what it does and what one piece costs.
+func _work_tooltip(kind: String) -> String:
+	match kind:
+		"clear":
+			return "Engineers: then left click an area. They clear known mines, wire and obstacles there."
+		"bridge":
+			return "Engineers: then left click a bridge. An intact one is blown up, a destroyed one repaired."
+	var cost := sim_host.work_cost(kind)
+	var price := ""
+	if cost.size() == 4:
+		price = " Each piece: fuel %d, ammo %d, manpower %d, %d s." % [cost[0], cost[1], cost[2], cost[3]]
+	var how := "two left clicks (start and end of the line)" if EngineerOrders.KINDS[kind][1] else "a left click"
+	return "Engineers: then %s.%s" % [how, price]

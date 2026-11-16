@@ -38,6 +38,11 @@ pub(super) struct Soldier {
     spot: Option<Vec2>,
     /// Object whose soft cover the spot uses.
     pub(super) cover: Option<u32>,
+    /// Ticks left knocked down by a blast (prompt 048): lying, getting up,
+    /// picking up the weapon; no moving, no firing.
+    pub(super) knocked: u32,
+    /// Where the blast that knocked him down (last) went off.
+    pub(super) knock_from: Vec2,
 }
 
 impl Soldier {
@@ -107,6 +112,9 @@ impl Squad {
                 }
             }
             h.write_u32(s.cover.unwrap_or(u32::MAX));
+            h.write_u32(s.knocked);
+            h.write_i64(s.knock_from.x.to_bits());
+            h.write_i64(s.knock_from.y.to_bits());
         }
         h.write_u8(self.stance.index() as u8);
         h.write_u8(match self.order {
@@ -140,6 +148,8 @@ pub(super) struct TypeInfantry {
     pub(super) spread: Fixed,
     change_ticks: u32,
     pub(super) suppressed_ticks: u32,
+    /// Ticks a soldier stays down after a blast (prompt 048).
+    pub(super) knock_ticks: u32,
 }
 
 /// Infantry rules with per-type and per-object values, built once.
@@ -222,6 +232,7 @@ impl InfantryRt {
                         spread: (width + spacing).max(t.footprint_m),
                         change_ticks: ticks(rules.stance.change_ms, tick_hz, c.time_ratio),
                         suppressed_ticks: ticks(rules.stance.suppressed_ms, tick_hz, c.time_ratio),
+                        knock_ticks: ticks(rules.knockdown.down_ms, tick_hz, c.time_ratio),
                     }
                 })
             })
@@ -445,6 +456,8 @@ impl Sim {
                     hp: soldier_hp,
                     spot: None,
                     cover: None,
+                    knocked: 0,
+                    knock_from: Vec2::ZERO,
                 }
             })
             .collect();
@@ -659,6 +672,9 @@ impl Sim {
                 .expect("squads have infantry types");
             s.suppressed = s.suppressed.saturating_sub(1);
             s.changing = s.changing.saturating_sub(1);
+            for soldier in &mut s.soldiers {
+                soldier.knocked = soldier.knocked.saturating_sub(1);
+            }
             let wanted = if s.garrison.is_some() {
                 Stance::Stand
             } else {
@@ -913,7 +929,8 @@ impl Sim {
             return;
         }
         for (soldier, &(f, r)) in squad.soldiers.iter_mut().zip(&ty.places) {
-            if !soldier.alive() {
+            // Knocked-down soldiers lie where the blast threw them.
+            if !soldier.alive() || soldier.knocked > 0 {
                 continue;
             }
             let place = center + facing.scale(f) + right.scale(r);

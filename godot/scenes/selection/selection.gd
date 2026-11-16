@@ -29,6 +29,10 @@ extends Control
 ##   on an own vehicle with seats mounts them, with vehicles on an own towed
 ##   gun hitches it; J dismounts, O unlimbers. Passengers cannot be
 ##   selected.
+## - Formations (prompt 046, `formation_orders.gd`): right click moves in
+##   the formation of the command bar (infantry halts to fight on the way),
+##   right-drag sets the facing; M moves without halting, Y attack-moves,
+##   I secures an area, `,` cycles the formation. Groups keep theirs.
 ##
 ## Sits full-screen in a CanvasLayer and draws the selection box itself. It
 ## ignores the mouse for GUI purposes and works from `_unhandled_input`.
@@ -41,9 +45,13 @@ signal command_mode_changed(mode: String)
 signal barrage_ordered(point: Vector3, smoke: bool)
 ## A mount or tow order on the own unit `target` (prompt 034).
 signal embark_ordered(target: int)
+## The formation for the next moves changed (code, prompt 046).
+signal formation_changed(code: int)
 
 const GroundPick := preload("res://scenes/camera/ground_pick.gd")
 const TransportOrders := preload("res://scenes/selection/transport_orders.gd")
+const EngineerOrders := preload("res://scenes/selection/engineer_orders.gd")
+const FormationOrders := preload("res://scenes/selection/formation_orders.gd")
 ## Pointer travel in pixels before a left press becomes a box drag.
 const DRAG_THRESHOLD := 6.0
 ## Minimum click radius around a unit in pixels (for far zoom levels).
@@ -59,6 +67,7 @@ const STANCE_ACTIONS := {"stance_stand": 0, "stance_kneel": 1, "stance_prone": 2
 const MODE_ACTIONS := {
 	"order_move": "move", "order_attack": "attack", "order_attack_ground": "attack_ground",
 	"order_patrol": "patrol", "order_garrison": "garrison",
+	"order_attack_move": "attack_move", "order_secure": "secure",
 }
 ## Hint shown while a targeted order waits for its click.
 const MODE_HINTS := {
@@ -69,12 +78,15 @@ const MODE_HINTS := {
 	"garrison": "Occupy: left click a building",
 	"barrage": "Barrage: left click a point",
 	"smoke": "Smoke: left click a point",
+	"attack_move": "Attack-move: left click a point (Shift: waypoint)",
+	"secure": "Secure: left click the center of the area",
 }
 ## Barrage actions (prompt 032, actions since 031): smoke?, salvos, radius
 ## in meters. They fire at the ground point under the cursor at once.
 const BARRAGE_ACTIONS := {"order_barrage": [false, 3, 25], "order_smoke": [true, 2, 15]}
 const BOX_FILL := Color(0.45, 0.85, 0.45, 0.12)
 const BOX_LINE := Color(0.55, 0.95, 0.55, 0.9)
+const FACING_LINE := Color(1.0, 0.9, 0.4, 0.9)
 
 var sim_host: SimHost
 var camera: Camera3D
@@ -83,6 +95,9 @@ var camera_rig: Node3D
 var selected: Array[int] = []
 ## Control groups 1..9: number -> unit ids.
 var groups: Dictionary[int, Array] = {}
+## Formation of the next moves (code, prompt 046) and per control group.
+var formation := 0
+var group_formations: Dictionary[int, int] = {}
 ## Whether a unit id is a building (prompt 023): box selections that also
 ## catch units leave buildings out. Set by `main.gd`.
 var is_structure := func(_id: int) -> bool: return false
@@ -103,6 +118,11 @@ var _press_position := Vector2.ZERO
 var _drag_position := Vector2.ZERO
 var _last_group_key := -1
 var _last_group_time := -DOUBLE_PRESS_MS
+## Right press on the ground, waiting for the release (facing by drag).
+var _right_pressing := false
+var _right_shift := false
+var _right_press := Vector2.ZERO
+var _right_drag := Vector2.ZERO
 
 
 func _ready() -> void:
@@ -118,6 +138,8 @@ func is_selected(id: int) -> bool:
 ## also over a HUD panel (prompt 031): the release and the motion are taken
 ## before the GUI sees them.
 func _input(event: InputEvent) -> void:
+	if _right_pressing and _on_right_drag(event):
+		return
 	if not _pressing:
 		return
 	var motion := event as InputEventMouseMotion
@@ -150,8 +172,12 @@ func _unhandled_input(event: InputEvent) -> void:
 				_order_attack_ground(button.position)
 			elif TransportOrders.right_click(self, button.position):
 				pass
-			elif not _order_attack(button.position):
-				_order_move(button.position, button.shift_pressed)
+			elif not _order_attack(button.position) and not selected.is_empty():
+				# The move goes out on release: a drag sets the facing.
+				_right_pressing = true
+				_right_shift = button.shift_pressed
+				_right_press = button.position
+				_right_drag = button.position
 			get_viewport().set_input_as_handled()
 		return
 	# Drag motion: see `_input`.
@@ -174,6 +200,8 @@ func _on_action(event: InputEvent) -> bool:
 		TransportOrders.disembark(self)
 	elif event.is_action_pressed("order_unlimber", false, true):
 		TransportOrders.unlimber(self)
+	elif event.is_action_pressed("order_formation", false, true):
+		set_formation((formation + 1) % FormationOrders.LABELS.size())
 	else:
 		for action: String in BARRAGE_ACTIONS:
 			if event.is_action_pressed(action, false, true):
@@ -197,6 +225,7 @@ func set_command_mode(mode: String) -> void:
 	if next == command_mode:
 		return
 	command_mode = next
+	EngineerOrders.reset(self)
 	Input.set_default_cursor_shape(Input.CURSOR_CROSS if not next.is_empty() else Input.CURSOR_ARROW)
 	command_mode_changed.emit(command_mode)
 	queue_redraw()
@@ -209,7 +238,14 @@ func click_command(screen_position: Vector2, shift := false) -> void:
 	var done := false
 	match command_mode:
 		"move":
-			done = _order_move(screen_position, shift)
+			done = _order_move(screen_position, shift, FormationOrders.ENGAGE_NEVER)
+		"attack_move":
+			done = _order_move(screen_position, shift, FormationOrders.ENGAGE_ALL)
+		"secure":
+			var center: Variant = GroundPick.from_screen(camera, screen_position)
+			if center != null:
+				FormationOrders.secure(self, center as Vector3)
+				done = true
 		"attack":
 			done = _order_attack(screen_position)
 		"attack_ground":
@@ -226,6 +262,9 @@ func click_command(screen_position: Vector2, shift := false) -> void:
 		"barrage", "smoke":
 			var b: Array = BARRAGE_ACTIONS["order_" + command_mode]
 			done = order_barrage(screen_position, b[0], b[1], b[2])
+		_:
+			# Engineer orders (prompt 035), `work_<kind>`.
+			done = EngineerOrders.click(self, screen_position)
 	if done and not shift:
 		set_command_mode("")
 
@@ -264,6 +303,7 @@ func _on_key(key: InputEventKey) -> bool:
 	var number := int(key.keycode - KEY_0)
 	if key.ctrl_pressed or key.meta_pressed:
 		groups[number] = selected.duplicate()
+		group_formations[number] = formation
 		_last_group_key = -1
 	else:
 		recall_group(number)
@@ -279,6 +319,8 @@ func recall_group(number: int) -> void:
 	_last_group_time = now
 	var members: Array = groups.get(number, [])
 	_set_selection(members.filter(func(id: int) -> bool: return _own_index(id) >= 0))
+	if group_formations.has(number):
+		set_formation(group_formations[number])
 	if again and not selected.is_empty():
 		_center_camera_on_selection()
 
@@ -376,19 +418,56 @@ func _order_garrison(screen_position: Vector2) -> bool:
 	return true
 
 
-func _order_move(screen_position: Vector2, queue := false) -> bool:
+func _order_move(screen_position: Vector2, queue := false,
+		engage := FormationOrders.ENGAGE_INFANTRY, facing := Vector3.ZERO) -> bool:
 	if selected.is_empty():
 		return false
 	var hit: Variant = GroundPick.from_screen(camera, screen_position)
 	if hit == null:
 		return false
-	order_move_to(hit as Vector3, queue)
+	order_move_to(hit as Vector3, queue, facing, engage)
+	return true
+
+
+## The formation for the next moves (code, prompt 046).
+func set_formation(code: int) -> void:
+	if code == formation:
+		return
+	formation = code
+	formation_changed.emit(code)
+
+
+## Right-drag (prompt 046): motion while the right button is held, and the
+## release, which sends the move (with a facing if the pointer travelled).
+func _on_right_drag(event: InputEvent) -> bool:
+	var motion := event as InputEventMouseMotion
+	if motion != null:
+		_right_drag = motion.position
+		queue_redraw()
+		return false
+	var button := event as InputEventMouseButton
+	if button == null or button.button_index != MOUSE_BUTTON_RIGHT or button.pressed:
+		return false
+	_right_pressing = false
+	queue_redraw()
+	var facing := Vector3.ZERO
+	if button.position.distance_to(_right_press) > DRAG_THRESHOLD:
+		var a: Variant = GroundPick.from_screen(camera, _right_press)
+		var b: Variant = GroundPick.from_screen(camera, button.position)
+		if a != null and b != null:
+			facing = (b as Vector3) - (a as Vector3)
+			facing.y = 0.0
+	_order_move(_right_press, _right_shift, FormationOrders.ENGAGE_INFANTRY, facing)
+	get_viewport().set_input_as_handled()
 	return true
 
 
 ## Moves the selection to the ground point (minimap, command bar); with
-## `queue` the point becomes a waypoint after the current orders.
-func order_move_to(point: Vector3, queue := false) -> void:
+## `queue` the point becomes a waypoint after the current orders. Other
+## moves go out in the selected formation, facing `facing` (zero: the
+## direction of travel); `engage` says who halts to fight on the way.
+func order_move_to(point: Vector3, queue := false, facing := Vector3.ZERO,
+		engage := FormationOrders.ENGAGE_INFANTRY) -> void:
 	if selected.is_empty():
 		return
 	if queue:
@@ -402,11 +481,10 @@ func order_move_to(point: Vector3, queue := false) -> void:
 		sim_host.garrison_units(PackedInt64Array(squads), building)
 		garrison_ordered.emit(building)
 		var others := selected.filter(func(id: int) -> bool: return not squads.has(id))
-		if not others.is_empty():
-			sim_host.move_units(PackedInt64Array(others), point.x, point.z)
+		FormationOrders.move(self, others, point, facing, engage)
 		move_ordered.emit(point)
 		return
-	sim_host.move_units(PackedInt64Array(selected), point.x, point.z)
+	FormationOrders.move(self, selected, point, facing, engage)
 	move_ordered.emit(point)
 
 
@@ -588,8 +666,14 @@ func _draw() -> void:
 	if not command_mode.is_empty():
 		var size := get_viewport_rect().size
 		draw_string(ThemeDB.fallback_font, Vector2(size.x * 0.5 - 180, 70),
-			MODE_HINTS.get(command_mode, "") + "  ·  right click cancels",
+			MODE_HINTS.get(command_mode, EngineerOrders.hint(self)) + "  ·  right click cancels",
 			HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color(1, 0.95, 0.6, 0.95))
+	if _right_pressing and _right_drag.distance_to(_right_press) > DRAG_THRESHOLD:
+		# Facing arrow of a right-drag (prompt 046).
+		draw_line(_right_press, _right_drag, FACING_LINE, 2.0, true)
+		var back := (_right_press - _right_drag).normalized() * 12.0
+		draw_line(_right_drag, _right_drag + back.rotated(0.5), FACING_LINE, 2.0, true)
+		draw_line(_right_drag, _right_drag + back.rotated(-0.5), FACING_LINE, 2.0, true)
 	if follow:
 		var font := ThemeDB.fallback_font
 		draw_string(font, Vector2(16, 28), "Kamera folgt der Auswahl (C)",

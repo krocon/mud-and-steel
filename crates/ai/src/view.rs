@@ -88,6 +88,11 @@ pub struct PlayerView {
     pub enemy_aircraft: usize,
     /// Own and allied suppliers and repairers (prompt 036).
     pub sources: Vec<SupplySource>,
+    /// Mines the player's team knows (prompt 035): its own and its
+    /// allies', and the hostile ones it found. Never the others.
+    pub mines: Vec<sim::MineView>,
+    /// Field works: finished ones of everybody, sites of the own team.
+    pub works: Vec<sim::WorkView>,
 }
 
 impl PlayerView {
@@ -173,6 +178,8 @@ impl PlayerView {
                 .filter(|a| !sim.allied(player, a.owner) && !a.crashing)
                 .count(),
             sources: sim.supply_sources(player),
+            mines: sim.mines_for(player),
+            works: sim.works_for(player),
         }
     }
 }

@@ -330,7 +330,7 @@ CARRY_SPEED = 1.2
 
 
 def gait(t, period, speed, stance, lift, bounce, lean, hold_name, poses, arm_swing,
-         carry=None):
+         carry=None, drop=0.0):
     """Walk/run cycle with planted feet: each foot moves backwards at `speed` while on
     the ground, so the feet do not slide when the unit moves at that speed."""
     phase = (t / period) % 1.0
@@ -355,7 +355,8 @@ def gait(t, period, speed, stance, lift, bounce, lean, hold_name, poses, arm_swi
         p[f"foot_{side.lower()}"] = (foot(side, y=y + 0.03, z=z, pitch=pitch), 1.0)
     # Hips: two bobs per cycle, sway and turn with the stride.
     bob = math.cos(4.0 * math.pi * phase)
-    p["hips"] = Vector((0.012 * math.sin(2 * math.pi * phase), 0.0, -0.035 - bounce * 0.5 + bounce * 0.5 * bob))
+    p["hips"] = Vector((0.012 * math.sin(2 * math.pi * phase), 0.0,
+                        -0.035 - drop - bounce * 0.5 + bounce * 0.5 * bob))
     p["rot"]["Hips"] = (0, 2.5 * math.sin(2 * math.pi * phase), 6 * math.cos(2 * math.pi * phase))
     p["rot"]["Chest"] = (0, 0, -5 * math.cos(2 * math.pi * phase))
     swing = arm_swing * math.cos(2 * math.pi * phase)
@@ -563,6 +564,7 @@ def clip_library(kind):
     add("medic_treat", 2.0, keyed([(0.0, a), (0.5, b), (1.0, a), (1.5, b), (2.0, a)]), loop=True)
 
     _more_clips(P, kind, add, pouch)
+    _clips_048(P, kind, add)
     return lib
 
 
@@ -749,6 +751,226 @@ def _more_clips(P, kind, add, pouch):
         pose["foot_r"] = (foot("R", y=fwd + 0.02, x=0.02), 1.0)
     add("dismount", 1.6, keyed([(0.0, d0), (0.3, edge), (0.6, air), (0.8, land), (1.6, stood)]),
         rise=-up, advance=fwd)
+
+
+# ---------------------------------------------------------------------------------------
+# Prompt 048: crouching, diving, rolling, knocked down and getting up, cover at low and
+# tall objects and in trenches, stepping while turning on the spot
+# ---------------------------------------------------------------------------------------
+
+CROUCH_SPEED = 1.0  # m/s real, crouched walking ("geduckt gehen")
+ROLL_SPEED = 0.68   # m/s real sideways: one full roll (about 0.95 m) in 1.4 s
+TRENCH_PARAPET = 1.35  # m, height of the trench parapet the trench clips lean on
+
+
+def _crouched(P, hold_name="ready"):
+    p = P.stand(hold_name)
+    p["rot"] = {"Spine": (-18, 0, 0), "Chest": (-6, 0, 0), "Neck": (14, 0, 0), "Head": (6, 0, 0)}
+    p["hips"] = Vector((0, -0.06, -0.30))
+    p["foot_l"] = (foot("L", y=0.14, x=-0.05), 1.0)
+    p["foot_r"] = (foot("R", y=-0.14, x=0.05), 1.0)
+    return p
+
+
+def _dropped(P, pose):
+    """Weapon on the ground beside him, hands free (knocked down)."""
+    if P.kind != "none":
+        pose["weapon"] = hold(P.kind, "dropped")
+    pose["hand_l"] = (None, 0.0)
+    pose["hand_r"] = (None, 0.0)
+    return pose
+
+
+def _face_down(P):
+    p = P.prone("slung")
+    p["rot"] = {**p["rot"], "Neck": (10, 0, 0), "Head": (0, 0, -30),
+                "RightUpperArm": (40, 55, 0), "LeftUpperArm": (95, -35, 0),
+                **both("LowerArm", (35, 0, 0))}
+    p["hips"] = Vector((0, -0.62, -0.82))
+    return _dropped(P, p)
+
+
+def _on_back(P):
+    p = P.lying_back()
+    p["rot"] = {**p["rot"], "RightUpperArm": (10, -60, 0), "LeftUpperArm": (10, 60, 0)}
+    return _dropped(P, p)
+
+
+def _pick_up(P):
+    """Kneeling, bent over to the weapon on the ground at the right, right hand on it."""
+    p = _dropped(P, P.kneel("ready"))
+    p["rot"] = {"Hips": (0, 0, -15), "Spine": (-42, 0, -12), "Chest": (-14, 0, -6),
+                "Neck": (22, 0, 0), "Head": (8, 0, 0)}
+    p["hips"] = Vector((0, -0.04, -0.46))
+    if P.kind != "none":
+        p["hand_r"] = (("weapon", "grip_r"), 1.0)
+    else:
+        p["hand_r"] = (("anchor", "Root", (0.30, 0.45, 0.06)), 1.0)
+    return p
+
+
+def _clips_048(P, kind, add):
+    root = lambda x, y, z: ("anchor", "Root", (x, y, z))  # noqa: E731
+    st = P.stand("ready")
+
+    # Crouch (idle) and crouched walk.
+    def crouch(t):
+        p = _crouched(P)
+        b = math.sin(2 * math.pi * t / 2.4)
+        p["rot"] = {**p["rot"], "Chest": (-6 - 1.5 * b, 0, 0),
+                    "Head": (6, 0, 4 * math.sin(2 * math.pi * t / 4.8))}
+        return single(p)
+    add("crouch", 2.4, crouch, loop=True)
+    add("crouch_walk", 1.0, lambda t: single(gait(t, 1.0, CROUCH_SPEED, 0.64, 0.07, 0.02, 20,
+                                                  "ready", P, 6, drop=0.27)),
+        loop=True, speed=CROUCH_SPEED)
+
+    # Dive: lunge, down onto the knees and the left hand, flat on the ground, aiming.
+    lunge = P.stand("ready")
+    lunge["rot"] = {"Spine": (-30, 0, 0), "Chest": (-10, 0, 0), "Neck": (22, 0, 0)}
+    lunge["hips"] = Vector((0, 0.10, -0.25))
+    lunge["foot_l"] = (foot("L", y=0.45, x=-0.04), 1.0)
+    lunge["foot_r"] = (foot("R", y=-0.22, z=0.05, pitch=-35), 1.0)
+    knees = P.stand("ready")
+    knees["rot"] = {"Hips": (-35, 0, 0), "Spine": (-25, 0, 0), "Chest": (-10, 0, 0),
+                    "Neck": (45, 0, 0), "Head": (10, 0, 0)}
+    knees["hips"] = Vector((0, -0.22, -0.55))
+    knees["foot_l"] = (foot("L", y=-0.50, z=0.07, pitch=-62), 1.0)
+    knees["foot_r"] = (foot("R", y=-0.50, z=0.07, pitch=-62), 1.0)
+    knees["hand_l"] = (root(-0.22, 0.32, 0.06), 1.0)
+    add("dive", 0.9, keyed([(0.0, st), (0.2, lunge), (0.45, knees), (0.9, P.prone("aim"))]))
+
+    # Roll sideways (lying): a full turn about the body axis per cycle, weapon on the
+    # back, arms tucked to the chest. Played in place; the game moves the soldier.
+    def roll(sign):
+        def pose(t):
+            phase = (t / 1.4) % 1.0
+            a = 360.0 * phase * sign
+            p = _slung(P, P.prone("slung"))
+            p["rot"] = {**p["rot"], "Hips": (-88, a, 0), "Spine": (6, 0, 0), "Chest": (4, 0, 0),
+                        "Neck": (20, 0, 0), "Head": (10, 0, 0),
+                        **both("UpperArm", (12, 44, 0)), **both("LowerArm", (25, 0, 0)),
+                        **both("UpperLeg", (0, -2, 0)), **both("LowerLeg", (-4, 0, 0)),
+                        **both("Foot", (40, 0, 0))}
+            side = abs(math.sin(math.radians(a)))
+            p["hips"] = Vector((0, -0.62, -0.80 + 0.09 * side))
+            return single(p)
+        return pose
+    add("roll_right", 1.4, roll(1), loop=True, speed=ROLL_SPEED)
+    add("roll_left", 1.4, roll(-1), loop=True, speed=ROLL_SPEED)
+
+    # Knocked down (when no ragdoll is shown): thrown backwards onto the back.
+    flung = P.stand("ready")
+    flung["rot"] = {"Hips": (20, 0, 0), "Spine": (25, 0, 0), "Neck": (25, 0, 0), "Head": (10, 0, 0),
+                    **both("UpperArm", (70, 60, 0)), **both("LowerArm", (30, 0, 0)),
+                    **both("UpperLeg", (35, 0, 0)), **both("LowerLeg", (-45, 0, 0))}
+    flung["hips"] = Vector((0, -0.25, -0.05))
+    for k in ("foot_l", "foot_r"):
+        flung.pop(k)
+    flung = _dropped(P, flung)
+    if kind != "none":
+        flung["weapon"] = hold(kind, "ready")
+    add("knockdown", 1.2, keyed([(0.0, st), (0.18, flung), (0.6, _on_back(P)),
+                                 (1.2, _on_back(P))]))
+
+    # Getting up after a knockdown: from the back or from the face, onto the knee, the
+    # weapon picked up from the ground at the right, standing ready.
+    pick = _pick_up(P)
+    ready_k = P.kneel("ready")
+    sit = _on_back(P)
+    sit["rot"] = {"Hips": (10, 0, 0), "Spine": (-25, 0, 0), "Chest": (-8, 0, 0), "Neck": (10, 0, 0),
+                  **both("UpperLeg", (85, -6, 0)), **both("LowerLeg", (-55, 0, 0)),
+                  **both("Foot", (-10, 0, 0)), **both("UpperArm", (-20, 30, 0))}
+    sit["hips"] = Vector((0, 0.05, -0.80))
+    sit["hand_r"] = (root(0.28, -0.25, 0.04), 1.0)
+    sit["hand_l"] = (root(-0.28, -0.25, 0.04), 1.0)
+    add("get_up_back", 2.6, keyed([(0.0, _on_back(P)), (0.6, sit), (1.25, pick), (1.65, ready_k),
+                                   (2.6, st)]))
+    fours = _face_down(P)
+    fours["rot"] = {"Hips": (-80, 0, 0), "Spine": (0, 0, 0), "Chest": (0, 0, 0), "Neck": (35, 0, 0),
+                    "Head": (10, 0, 0), **both("UpperLeg", (85, -4, 0)),
+                    **both("LowerLeg", (-90, 0, 0)), **both("Foot", (40, 0, 0))}
+    fours["hips"] = Vector((0, -0.38, -0.42))
+    fours["hand_l"] = (root(-0.20, 0.22, 0.05), 1.0)
+    fours["hand_r"] = (root(0.20, 0.22, 0.05), 1.0)
+    add("get_up_front", 2.6, keyed([(0.0, _face_down(P)), (0.6, fours), (1.25, pick),
+                                    (1.65, ready_k), (2.6, st)]))
+
+    # Low cover (wall, sandbags, rocks up to about 1.5 m) in front: kneeling, leaning on
+    # it with the left hand; firing: half risen, aiming over it.
+    def cover_low(t):
+        p = P.kneel("ready")
+        b = math.sin(2 * math.pi * t / 2.4)
+        p["rot"] = {"Spine": (-16, 0, 6), "Chest": (-6 - 1.5 * b, 0, 0), "Neck": (6, 0, 0),
+                    "Head": (-6, 0, 8 * math.sin(2 * math.pi * t / 4.8))}
+        p["hips"] = Vector((0, 0.0, -0.44))
+        p["hand_l"] = (root(-0.20, 0.55, 0.72), 1.0)
+        return single(p)
+    add("cover_low", 2.4, cover_low, loop=True)
+    over = P.aim_stand()
+    over["rot"] = {**over["rot"], "Spine": (-12, 0, 12)}
+    over["hips"] = Vector((0, 0.06, -0.24))
+    add("cover_low_aim", 1.0, keyed([(0.0, over), (1.0, over)]), loop=True)
+    add("cover_low_fire", 0.30, keyed([(0.0, over), (0.04, dict(over, kick=1.0)), (0.30, over)]),
+        loop=True)
+
+    # Tall cover (house corner, tree, high wall): standing close behind it, left hand on
+    # it; firing: a step to the side and leaning out to the right or the left.
+    def cover_tall(t):
+        p = P.stand("ready")
+        b = math.sin(2 * math.pi * t / 2.4)
+        p["rot"] = {"Spine": (-5, 0, 0), "Chest": (-1.5 * b, 0, 0), "Neck": (-2, 0, 0),
+                    "Head": (0, 0, 12 * math.sin(2 * math.pi * t / 4.8))}
+        p["hand_l"] = (root(-0.22, 0.42, 1.30), 1.0)
+        return single(p)
+    add("cover_tall", 2.4, cover_tall, loop=True)
+    for side, sx in (("r", 1), ("l", -1)):
+        lean = P.aim_stand()
+        lean["rot"] = {**lean["rot"], "Spine": (-4, 14 * sx, 12), "Chest": (-3, 9 * sx, 10),
+                       "Neck": (-6, -6 * sx, 0), "Head": (-14, -10 * sx, 0)}
+        lean["hips"] = Vector((0.22 * sx, 0.03, -0.05))
+        if sx > 0:
+            lean["foot_r"] = (foot("R", y=-0.05, x=0.32), 1.0)
+            lean["foot_l"] = (foot("L", y=0.18, x=0.02), 1.0)
+        else:
+            lean["foot_l"] = (foot("L", y=0.20, x=-0.32), 1.0)
+            lean["foot_r"] = (foot("R", y=-0.12, x=-0.06), 1.0)
+        add(f"cover_peek_{side}_aim", 1.0, keyed([(0.0, lean), (1.0, lean)]), loop=True)
+        add(f"cover_peek_{side}_fire", 0.30,
+            keyed([(0.0, lean), (0.04, dict(lean, kick=1.0)), (0.30, lean)]), loop=True)
+
+    # Trench: standing in the trench, leaning on the front wall, parapet TRENCH_PARAPET
+    # high, 0.35 m ahead; firing over the parapet.
+    def trench_idle(t):
+        p = P.stand("ready")
+        b = math.sin(2 * math.pi * t / 2.4)
+        p["rot"] = {"Spine": (-10, 0, 0), "Chest": (-3 - 1.5 * b, 0, 0), "Neck": (8, 0, 0),
+                    "Head": (0, 0, 15 * math.sin(2 * math.pi * t / 6.0))}
+        p["hips"] = Vector((0, -0.04, -0.02))
+        p["foot_l"] = (foot("L", y=0.12, x=-0.03), 1.0)
+        p["hand_l"] = (root(-0.22, 0.38, TRENCH_PARAPET + 0.02), 1.0)
+        return single(p)
+    add("trench_idle", 2.4, trench_idle, loop=True)
+    rest = P.aim_stand()
+    rest["rot"] = {**rest["rot"], "Spine": (-9, 0, 12)}
+    rest["foot_l"] = (foot("L", y=0.14, x=-0.06), 1.0)
+    add("trench_aim", 1.0, keyed([(0.0, rest), (1.0, rest)]), loop=True)
+    add("trench_fire", 0.30, keyed([(0.0, rest), (0.04, dict(rest, kick=0.8)), (0.30, rest)]),
+        loop=True)
+
+    # Turning on the spot: small steps in place (the game turns the soldier; head and
+    # chest lead the turn, see godot/scenes/world/turn_lead.gd).
+    def turn(t):
+        phase = (t / 1.0) % 1.0
+        p = P.stand("ready")
+        for side, offset in (("L", 0.0), ("R", 0.5)):
+            u = (phase - offset) % 1.0
+            z = 0.06 * math.sin(math.pi * u / 0.45) if u < 0.45 else 0.0
+            p[f"foot_{side.lower()}"] = (foot(side, x=0.02 * (1 if side == "R" else -1), z=z,
+                                              pitch=-10.0 * (z / 0.06)), 1.0)
+        p["hips"] = Vector((0.015 * math.sin(2 * math.pi * phase), 0, -0.02))
+        return single(p)
+    add("turn_in_place", 1.0, turn, loop=True)
 
 
 CLIP_NAMES = list(clip_library("rifle").keys())

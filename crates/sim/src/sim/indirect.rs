@@ -769,6 +769,17 @@ impl Sim {
         }
     }
 
+    /// Hull of unit type `t` (prompt 035, mines): half length and half
+    /// width (m), thinnest armor (mm), and whether it is infantry.
+    pub(super) fn hull(&self, t: usize) -> (Fixed, Fixed, u32, bool) {
+        self.artillery
+            .bodies
+            .get(t)
+            .map_or((Fixed::ZERO, Fixed::ZERO, 0, true), |b| {
+                (b.half_length, b.half_width, b.thinnest_mm, b.infantry)
+            })
+    }
+
     /// Fragmentation rules (prompt 033: strafing and bombs use them too).
     pub(super) const fn indirect_blast(&self) -> &crate::indirect::BlastRules {
         &self.artillery.rules.blast
@@ -961,8 +972,11 @@ impl Sim {
                 self.ground_hit(p, caliber);
             }
         }
+        // Who the blast knocks down (prompt 048), before fragments strike.
+        let thrown = self.blast_reach(p, self.infantry.rules.knockdown.radius_mm(caliber));
         // Fragments. Rolls in unit and soldier order (deterministic).
         let stand = self.infantry.rules.stance.stand.height_mm.max(1);
+        let lying = self.infantry.rules.stance.prone.height_mm;
         for &j in &near {
             let j = j as usize;
             if Some(j) == direct || !self.units[j].alive() {
@@ -977,7 +991,7 @@ impl Sim {
                 let height = self.infantry.rules.stance.values(squad.stance).height_mm;
                 let mut close = false;
                 let mut hits: Vec<usize> = Vec::new();
-                let soldiers: Vec<(usize, Fixed, bool)> = squad
+                let soldiers: Vec<(usize, Fixed, bool, u32)> = squad
                     .soldiers
                     .iter()
                     .enumerate()
@@ -987,10 +1001,11 @@ impl Sim {
                             k,
                             (s.position - p).length(),
                             s.at_spot() && s.cover.is_some(),
+                            if s.knocked > 0 { lying } else { height },
                         )
                     })
                     .collect();
-                for (k, d, covered) in soldiers {
+                for (k, d, covered, height) in soldiers {
                     if d >= radius {
                         continue;
                     }
@@ -1041,6 +1056,7 @@ impl Sim {
             damage: total,
             caliber_mm_x10: caliber,
         });
+        self.knock_down(&thrown, p);
     }
 
     /// Drifts the smoke clouds, dissolves old ones and puts the smoke into

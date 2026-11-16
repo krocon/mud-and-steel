@@ -54,6 +54,7 @@ Apple M1 Max, the scenario above, release simulation, debug bridge (as
 | Frame rate, quality medium, every view | ≥ 60 FPS | |
 | Frame rate, quality high, standing 150 m | ≥ 60 FPS | |
 | Frame rate, quality high, battle | ≥ 45 FPS, aim 60 | High has MSAA and full SSAO; 2250 animated soldiers. |
+| Ragdolls at once (prompt 048) | ≤ 8, only within 60 m of the camera | 11 physics bodies each; the rest fall with clips. Helmets lying around ≤ 12. [provisional] |
 
 ## Simulation
 

@@ -19,6 +19,7 @@ mod data;
 pub mod destruction;
 pub mod economy;
 pub mod fire;
+pub mod formation;
 mod hash;
 pub mod indirect;
 pub mod infantry;
@@ -38,6 +39,7 @@ pub mod terrain;
 pub mod transport;
 pub mod vision;
 pub mod weather;
+pub mod works;
 
 pub use air::{
     AirBlock, AirEvent, AirMission, AirOption, AirRules, AirType, AircraftSnapshot, BombSnapshot,
@@ -56,6 +58,7 @@ pub use destruction::{
 };
 pub use economy::{Cost, EconomyRules, RESOURCE_NAMES, Resources};
 pub use fire::{FireEvent, FireEventKind, FireRules, FireSource, FireView};
+pub use formation::{Engage, Formation};
 pub use hash::StableHasher;
 pub use indirect::{IndirectRules, ShellSnapshot, SmokeSnapshot};
 pub use infantry::{InfantryRules, Stance, StanceOrder};
@@ -67,12 +70,14 @@ pub use outcome::{DefeatReason, Outcome, PlayerStanding};
 pub use rng::Rng;
 pub use scale::Scale;
 pub use sim::{
-    BuildingCondition, BuyOption, ConfigError, MAX_PLAYERS, MAX_QUEUED, Phase, PlaceError,
-    RouteView, Sim, SimConfig, Snapshot, SoldierSnapshot, Spawn, StockView, StructureView,
-    SupplySource, SupplyView, UnitSnapshot, WORLD_LIMIT_M, formation_slots, formation_spacing,
+    BuildingCondition, BuyOption, ConfigError, DrillView, MAX_PLAYERS, MAX_QUEUED, Phase,
+    PlaceError, RouteView, Sim, SimConfig, Snapshot, SoldierSnapshot, Spawn, StockView,
+    StructureView, SupplySource, SupplyView, UnitSnapshot, WORLD_LIMIT_M, formation_slots,
+    formation_spacing,
 };
 pub use teams::Teams;
 pub use terrain::{TerrainError, TerrainRules};
 pub use transport::{TransportRules, TransportType};
 pub use vision::{CellState, VisionGrid, VisionRules};
 pub use weather::{Daytime, Ground, Weather, WeatherRules, WeatherSetup};
+pub use works::{DigKind, LayKind, MineKind, MineView, WorkKind, WorkView, WorksRules};

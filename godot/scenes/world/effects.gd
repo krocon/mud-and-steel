@@ -58,6 +58,9 @@ const SHAKE_DECAY := 8.0
 ## Decals fade out beyond this camera distance (meters).
 const DECAL_FADE_M := 450.0
 const FIRE_LIGHT_COLOR := Color(1.0, 0.55, 0.2)
+## Soldier hits (prompt 048): dust and cloth, then a short dark puff.
+const SOLDIER_HIT_DUST := Color(0.5, 0.46, 0.38)
+const SOLDIER_HIT_DARK := Color(0.12, 0.1, 0.09)
 const FLASH_LIGHT_COLOR := Color(1.0, 0.72, 0.4)
 
 ## Time of the last `_process` in microseconds (benchmark, prompt 016).
@@ -148,7 +151,10 @@ func on_combat_event(event: Dictionary) -> void:
 				"ground":
 					ground_hit(event["position"], event["caliber_mm"])
 				"unit":
-					unit_hit(event["position"], event["caliber_mm"], event["penetrated"])
+					if _is_infantry(int(event["target"])):
+						soldier_hit(event["position"], event["caliber_mm"])
+					else:
+						unit_hit(event["position"], event["caliber_mm"], event["penetrated"])
 				_:
 					object_hit(event["position"], event["caliber_mm"])
 		"destroyed":
@@ -218,6 +224,30 @@ func unit_hit(at: Vector3, caliber: float, penetrated: bool) -> void:
 	if penetrated:
 		_burst("fireball", at, Basis.IDENTITY, 0.5 * s)
 		_burst("impact_dust", at, Basis.IDENTITY, 0.5 * s, Color(0.25, 0.24, 0.23))
+
+
+## A hit on a soldier (prompt 048): restrained on purpose, no blood: a puff
+## of dust and cloth and a short dark puff. [provisional: the user decides
+## on more severity, age rating]
+func soldier_hit(at: Vector3, caliber: float) -> void:
+	if not visible_at.call(at):
+		return
+	var s := 0.35 if caliber < SMALL_CALIBER else clampf(caliber / 75.0, 0.5, 1.2)
+	_burst("puff", at, Basis.IDENTITY, s, SOLDIER_HIT_DUST)
+	_burst("puff", at, Basis.IDENTITY, s * 0.6, SOLDIER_HIT_DARK)
+	counts["soldier_hit"] = counts.get("soldier_hit", 0) + 1
+
+
+## Whether a unit is an infantry squad (unit types never change: cached).
+func _is_infantry(unit: int) -> bool:
+	if not _infantry_ids.has(unit):
+		if _index_of(unit) < 0:
+			return false
+		var types := sim_host.unit_type_ids()
+		var ids := sim_host.unit_ids()
+		for i in ids.size():
+			_infantry_ids[ids[i]] = (types[i] as String).contains("_inf_")
+	return _infantry_ids.get(unit, false)
 
 
 ## Impact on a map object (tree, wall, building): splinters and dust.

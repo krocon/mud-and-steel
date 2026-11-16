@@ -333,7 +333,7 @@ impl Economy {
         true
     }
 
-    fn refund(&mut self, player: PlayerId, amount: Resources) {
+    pub(super) fn refund(&mut self, player: PlayerId, amount: Resources) {
         if let Some(a) = self.account_mut(player) {
             for (have, c) in a.parts.iter_mut().zip(amount) {
                 *have = have.saturating_add(u64::from(c) * PARTS);

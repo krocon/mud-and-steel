@@ -108,6 +108,18 @@ vec3 frogskin(vec3 p) {
 	return col;
 }
 
+// Prompt 048: the helmet (or cap) flew off (presentation effect, set per soldier
+// on his Gear mesh by infantry_view.gd). Paint and Cloth above HELMET_Z rest height
+// are only headgear; those vertices collapse to a point, so the headgear vanishes.
+instance uniform float helmet_off = 0.0;
+const float HELMET_Z = 1.62;
+
+void vertex() {
+	if (helmet_off > 0.5 && (slot == 3 || slot == 0) && 1.0 - UV.y > HELMET_Z) {
+		VERTEX = vec3(0.0);
+	}
+}
+
 void fragment() {
 	// glTF stores V flipped (v = 1 - v_blender)
 	vec3 p = vec3(UV.x, UV2.x, 1.0 - UV.y);
