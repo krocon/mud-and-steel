@@ -76,6 +76,10 @@ pub enum Command {
     /// `units` drive to `target`, then back and forth between their start
     /// and the target (prompt 031).
     Patrol { units: Vec<UnitId>, target: Vec2 },
+    /// Marks `target` on the map of the issuer's allies (prompt 037). Has
+    /// no effect on the simulation; it travels through the lockstep session
+    /// (and into the replay) so that every ally's game can show it.
+    Ping { target: Vec2 },
 }
 
 impl Command {
@@ -96,7 +100,8 @@ impl Command {
             | Self::Build { .. }
             | Self::Produce { .. }
             | Self::CancelProduction { .. }
-            | Self::SetRallyPoint { .. } => &[],
+            | Self::SetRallyPoint { .. }
+            | Self::Ping { .. } => &[],
         }
     }
 }

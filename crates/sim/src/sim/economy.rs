@@ -800,9 +800,11 @@ impl Sim {
                 {
                     continue;
                 }
+                // Allies (prompt 037) do not contest each other; the first
+                // of them present takes the point.
                 match present {
                     None => present = Some(u.owner),
-                    Some(p) if p != u.owner => contested = true,
+                    Some(p) if self.teams.hostile(p, u.owner) => contested = true,
                     Some(_) => {}
                 }
             }
@@ -813,7 +815,7 @@ impl Sim {
                     p.progress = 0;
                 }
                 Some(_) if contested => {}
-                Some(player) if p.owner == Some(player) => {
+                Some(player) if p.owner.is_some_and(|o| self.teams.allied(o, player)) => {
                     p.taker = None;
                     p.progress = 0;
                 }

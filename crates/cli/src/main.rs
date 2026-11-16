@@ -88,6 +88,9 @@ enum CliCommand {
         /// Output folder (default: data/maps/<name>).
         #[arg(long)]
         out: Option<PathBuf>,
+        /// Start positions for 2, 4 or 6 players in two teams (prompt 037).
+        #[arg(long, default_value_t = 2, value_parser = clap::value_parser!(u8).range(2..=6))]
+        players: u8,
     },
     /// Loads a map folder and reports load time, memory and height range.
     MapInfo {
@@ -447,12 +450,14 @@ fn main() {
             seed,
             biome,
             out,
+            players,
         } => {
             let out = out.unwrap_or_else(|| Path::new(MAPS_DIR).join(&name));
             let options = gen_map::Options {
                 name: &name,
                 size_m,
                 seed,
+                players,
                 biome: &biome,
                 out: &out,
             };

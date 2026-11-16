@@ -30,6 +30,7 @@ pub mod scale;
 pub mod scenario;
 mod sim;
 pub mod snapshot;
+pub mod teams;
 pub mod terrain;
 pub mod vision;
 
@@ -59,5 +60,6 @@ pub use sim::{
     RouteView, Sim, SimConfig, Snapshot, SoldierSnapshot, Spawn, StructureView, SupplyView,
     UnitSnapshot, WORLD_LIMIT_M, formation_slots, formation_spacing,
 };
+pub use teams::Teams;
 pub use terrain::{TerrainError, TerrainRules};
 pub use vision::{CellState, VisionGrid, VisionRules};

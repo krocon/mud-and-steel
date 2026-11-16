@@ -583,7 +583,7 @@ impl Sim {
         for &j in &near {
             let j = j as usize;
             let other = &self.units[j];
-            if other.owner == me.owner || !other.alive() {
+            if self.teams.allied(other.owner, me.owner) || !other.alive() {
                 continue;
             }
             let d = other.position - me.position;
@@ -952,7 +952,8 @@ impl Sim {
         Some(inside[pick as usize])
     }
 
-    /// Whether a living unit of the same player stands in the straight line
+    /// Whether a living unit of the same player or an ally (prompt 037)
+    /// stands in the straight line
     /// from `muzzle` to `aim_point` (units do not fire through friends).
     fn friend_in_line(&self, i: usize, muzzle: Vec3, aim_point: Vec3) -> bool {
         let me = &self.units[i];
@@ -966,7 +967,7 @@ impl Sim {
         self.unit_grid.query(low - reach, high + reach, &mut near);
         near.iter().any(|&j| {
             let u = &self.units[j as usize];
-            if u.id == me.id || u.owner != me.owner || !u.alive() {
+            if u.id == me.id || self.teams.hostile(u.owner, me.owner) || !u.alive() {
                 return false;
             }
             let ty = &self.types[u.unit_type as usize];

@@ -67,6 +67,10 @@ pub struct SimConfig {
     pub vision: VisionRules,
     /// Infantry rules (`data/infantry.toml`, prompt 022).
     pub infantry: crate::infantry::InfantryRules,
+    /// Teams and shared vision (prompt 037); default: every player for
+    /// themselves.
+    #[serde(default)]
+    pub teams: crate::teams::Teams,
 }
 
 impl SimConfig {
@@ -372,6 +376,8 @@ pub struct Sim {
     economy: economy::Economy,
     /// Indirect fire, shells and smoke (prompt 032).
     artillery: indirect::Artillery,
+    /// Teams of the match (prompt 037, `SimConfig::teams`).
+    teams: crate::teams::Teams,
 }
 
 impl Sim {
@@ -448,6 +454,7 @@ impl Sim {
             &config.vision,
             &map,
             players.clone(),
+            &config.teams,
             &vision_types,
             units.len(),
         );
@@ -502,6 +509,7 @@ impl Sim {
             unit_types: config.unit_types.clone(),
             economy,
             artillery,
+            teams: config.teams.clone(),
         };
         sim.init_economy();
         sim.apply_destruction();
@@ -598,8 +606,12 @@ impl Sim {
         done(Phase::Vision);
         self.tick += 1;
         let units = &self.units;
-        self.standings
-            .update(self.tick, |player| alive_units(units, player));
+        let teams = &self.teams;
+        self.standings.update(
+            self.tick,
+            |player| alive_units(units, player),
+            |a, b| teams.allied(a, b),
+        );
         done(Phase::Standings);
     }
 
@@ -609,8 +621,33 @@ impl Sim {
     }
 
     /// The result, once the match is decided. It never changes afterwards.
+    /// With teams, `winner` is the lowest undefeated player of the winning
+    /// team; [`Self::winners`] lists the whole team.
     pub const fn outcome(&self) -> Option<Outcome> {
         self.standings.outcome()
+    }
+
+    /// Teams of the match (prompt 037).
+    pub const fn teams(&self) -> &crate::teams::Teams {
+        &self.teams
+    }
+
+    /// Whether `a` and `b` are on the same team (a player is its own ally).
+    pub fn allied(&self, a: PlayerId, b: PlayerId) -> bool {
+        self.teams.allied(a, b)
+    }
+
+    /// Every player of the winning team (empty before the match is decided
+    /// and for a draw), ascending; also its defeated members.
+    pub fn winners(&self) -> Vec<PlayerId> {
+        let Some(winner) = self.outcome().and_then(|o| o.winner) else {
+            return Vec::new();
+        };
+        self.standings()
+            .iter()
+            .map(|s| s.player)
+            .filter(|&p| self.teams.allied(p, winner))
+            .collect()
     }
 
     /// Number of units of `player` that are not destroyed (for victory
@@ -872,7 +909,8 @@ impl Sim {
                 let Ok(t) = self.units.binary_search_by_key(target, |u| u.id) else {
                     return;
                 };
-                if self.units[t].owner == command.player || !self.units[t].alive() {
+                if self.teams.allied(self.units[t].owner, command.player) || !self.units[t].alive()
+                {
                     return;
                 }
                 let guns =
@@ -936,6 +974,8 @@ impl Sim {
                 self.order_queue_move(command.player, units, *target);
             }
             Command::Patrol { units, target } => self.order_patrol(command.player, units, *target),
+            // Presentation only (prompt 037): the games of the allies show it.
+            Command::Ping { .. } => {}
         }
     }
 
@@ -1087,6 +1127,7 @@ impl Sim {
         self.economy.hash_into(&mut h);
         self.artillery.hash_into(&mut h);
         self.hash_queues(&mut h);
+        self.teams.hash_into(&mut h);
         h.finish()
     }
 
@@ -1662,6 +1703,7 @@ mod tests {
             combat: crate::combat::CombatRules::builtin().unwrap(),
             vision: crate::vision::VisionRules::builtin().unwrap(),
             infantry: crate::infantry::InfantryRules::builtin().unwrap(),
+            teams: crate::teams::Teams::default(),
         }
     }
 
@@ -2163,6 +2205,7 @@ mod object_tests {
             combat: crate::combat::CombatRules::builtin().unwrap(),
             vision: crate::vision::VisionRules::builtin().unwrap(),
             infantry: crate::infantry::InfantryRules::builtin().unwrap(),
+            teams: crate::teams::Teams::default(),
         };
         (Sim::new(&config, map.clone(), 1).unwrap(), map)
     }
