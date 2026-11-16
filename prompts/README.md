@@ -159,7 +159,7 @@ Zeichnungen bleiben Referenz auf dem Rechner.
 | 063 | [Fahrzeug-Vorlagen: Modelle](063-fahrzeug-vorlagen-modelle.md) | Bestandsliste aller 141 Vorlagen, fehlende Fahrzeuge in Katalog und als Modell, vorhandene Modelle gegen Maße und Zeichnungen prüfen; Vorab-Session, dann 9 Sessions parallel | offen (Bestandsliste `docs/VEHICLE_REFS.md` liegt vor und wartet auf Freigabe; Katalog-Einträge, Baukasten, Vergleichswerkzeug und Modelle fehlen noch) |
 | 064 | [Fahrzeug-Datenbank](done/064-fahrzeug-datenbank.md) | `data/vehicles/*.json` mit Schema, Quelle und Prüfung gegen den Katalog; Zugriff für Spiel und Webseite | erledigt (130 Einträge; dabei aus 063 vorgezogen: `tools/vehicle_refs.py`, `data/vehicles/index.json`, `docs/VEHICLE_REFS.md`) |
 | 065 | [Webseite: Fahrzeugdaten und Spielwerte](done/065-webseite-fahrzeugdaten-spielwerte.md) | Technische Daten in der Detailansicht, Spielwerte aus der Sim (`cli unit-stats`), fünf Kennzahlen | erledigt (offen: Hosting-Anbieter in der Datenschutzerklärung eintragen) |
-| 066 | [Einheitenwerte im Spiel](066-einheitenwerte-im-spiel.md) | Kennzahlen im Picker, Tooltip, Einheitenkarte, Nachschlagewerk im Hauptmenü | offen |
+| 066 | [Einheitenwerte im Spiel](done/066-einheitenwerte-im-spiel.md) | Kennzahlen im Picker, Tooltip, Einheitenkarte, Nachschlagewerk im Hauptmenü | erledigt (Taste Umschalt + I statt I, weil I „Sichern“ ist; offen: Vorhersage beim Zielen, auf kleinen Fenstern verdeckt die Karte die Einheitenanzeige) |
 | 067 | [Typische Kampfentfernungen](067-typische-kampfentfernungen.md) | Typische statt maximale Reichweiten im Katalog, mit Quellen; Balance neu messen | offen |
 
 ```

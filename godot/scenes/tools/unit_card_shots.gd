@@ -84,8 +84,13 @@ func _run() -> void:
 	await _frames(30)
 	var picker: Picker = base_hud.production_picker
 	await _shot("picker_vehicles")
-	var first: int = picker.tiles.keys()[0]
-	var tile: Button = picker.tiles[first]
+	# A vehicle with an entry in the vehicle database, for the second tab.
+	var shown: int = picker.tiles.keys()[0]
+	for o: Dictionary in host.production_options(works):
+		if picker.tiles.has(int(o["type"])) and not SimHost.vehicle_record(str(o["id"])).is_empty():
+			shown = int(o["type"])
+			break
+	var tile: Button = picker.tiles[shown]
 	await _tooltip_shot(tile, "tooltip_vehicle")
 	# Right click on the tile: the unit card next to the production bar.
 	_right_click(tile.get_global_rect().get_center())
