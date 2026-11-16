@@ -6,6 +6,13 @@ extends RefCounted
 ## synthesized by `tools/audio/synth.py` or prepared from
 ## `assets-src/audio/`, see docs/ASSETS.md). Classes with `"loop": true`
 ## loop their files. Static, like `menu/settings.gd`: no autoload.
+##
+## Keyed names (prompt 053) `<class>@<key>` play the files of
+## `assets/audio/<keyed_dir>/<key>/` with the settings of `<class>`:
+## `shot_mg@mg_42` (real recordings of one weapon type, `keyed_dir`
+## "weapon" by default) or `voice@de/contact` (battle voices; the manifest's
+## top-level `voice` spec, `keyed_dir` "voice"). A keyed name without files
+## has no stream (`has_files`), so the caller falls back.
 
 const DIR := "res://assets/audio/"
 const MANIFEST := DIR + "sounds.json"
@@ -38,9 +45,21 @@ static func groups() -> Dictionary:
 	return manifest()["groups"]
 
 
-## Settings of a sound class (empty for an unknown class).
+## Settings of a sound class (empty for an unknown class); keyed names
+## take the settings of their class.
 static func spec(sound_class: String) -> Dictionary:
-	return classes().get(sound_class, {})
+	var at := sound_class.find("@")
+	if at < 0:
+		return classes().get(sound_class, {})
+	var base := sound_class.substr(0, at)
+	if base == "voice":
+		return manifest().get("voice", {})
+	return classes().get(base, {})
+
+
+## Whether a class or keyed name has at least one file.
+static func has_files(sound_class: String) -> bool:
+	return not streams(sound_class).is_empty()
 
 
 ## The files of a class, loaded (empty if it has none).
@@ -92,6 +111,9 @@ static func clear_cache() -> void:
 
 static func _files(sound_class: String) -> PackedStringArray:
 	var dir := DIR + sound_class + "/"
+	var at := sound_class.find("@")
+	if at >= 0:
+		dir = DIR + str(spec(sound_class).get("keyed_dir", "weapon")) + "/" + sound_class.substr(at + 1) + "/"
 	var out := PackedStringArray()
 	# `list_directory` also works in exported games, where only the
 	# imported versions of the files exist.

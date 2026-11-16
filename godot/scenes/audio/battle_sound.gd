@@ -25,6 +25,14 @@ extends Node3D
 ## sounds at points the player does not see play on the `Muffled` bus
 ## (low-pass, quieter) and a little off their true position: battle noise
 ## tells that something happens, not exactly where.
+##
+## Stage 2 (prompt 053): `acoustics.gd` delays far sounds by the speed of
+## sound (`play_far`), cracks passing supersonic projectiles, blends a
+## reverb by the surroundings and filters by zoom, and plays aircraft;
+## `battle_voices.gd` lets squads near the camera call out. Blasts sound
+## lower and roll longer with caliber, burning map objects (prompt 041)
+## share the fire loops, and a weapon with real recordings in
+## `assets/audio/weapon/<slug>/` plays them instead of its class.
 
 const SoundLibrary := preload("res://scenes/audio/sound_library.gd")
 const SoundClasses := preload("res://scenes/audio/sound_classes.gd")
@@ -33,6 +41,8 @@ const UiSound := preload("res://scenes/audio/ui_sound.gd")
 const BaseView := preload("res://scenes/world/base_view.gd")
 const Ambience := preload("res://scenes/audio/ambience.gd")
 const MatchMusic := preload("res://scenes/audio/match_music.gd")
+const Acoustics := preload("res://scenes/audio/acoustics.gd")
+const BattleVoices := preload("res://scenes/audio/battle_voices.gd")
 
 ## Camera distance up to which the hearing range is the manifest's.
 const HEARING_REF_DISTANCE := 150.0
@@ -42,7 +52,9 @@ const LISTENER_HEIGHT_SHARE := 0.12
 const MIN_LISTENER_HEIGHT := 6.0
 ## Vehicles with their own engine loop (nearest to the listener).
 const ENGINE_VOICES := 6
-const FIRE_VOICES := 4
+const FIRE_VOICES := 6
+## Burning map objects from this size (m) roar as `fire_large`.
+const LARGE_FIRE_M := 8.0
 ## How often the loops are reassigned (s).
 const LOOP_INTERVAL := 0.2
 ## Burning wrecks crackle this long, then quieter while they smolder (the
@@ -98,6 +110,9 @@ var hearing_scale := 1.0
 ## (prompt 030).
 var ambience: Ambience
 var match_music: MatchMusic
+## Speed of sound, crack, reverb, zoom, aircraft; battle voices (prompt 053).
+var acoustics: Acoustics
+var voices: BattleVoices
 var _time := 0.0
 ## Group -> Array of voices `{player, priority, score, started, ends}`.
 var _pools: Dictionary[String, Array] = {}
@@ -118,6 +133,8 @@ var _loop_timer := 0.0
 var _last_seen: Dictionary[int, Vector3] = {}
 ## Burning wrecks: `{position, age}`.
 var _wrecks: Array[Dictionary] = []
+## Burning map objects (prompt 041) by fire key: `{position, gain, sound}`.
+var _object_fires: Dictionary[int, Dictionary] = {}
 ## Notices.
 var _notice_at: Dictionary[String, float] = {}
 var _known_units: Dictionary[int, bool] = {}
@@ -158,6 +175,14 @@ func setup(main_node: Node3D) -> void:
 	selection.attack_ordered.connect(func(_target: int) -> void: notice("ui_order"))
 	selection.garrison_ordered.connect(func(_building: int) -> void: notice("ui_order"))
 	_update_listener()
+	acoustics = Acoustics.new()
+	acoustics.name = "Acoustics"
+	add_child(acoustics)
+	acoustics.setup(self)
+	voices = BattleVoices.new()
+	voices.name = "Voices"
+	add_child(voices)
+	voices.setup(self)
 	ambience = Ambience.new()
 	ambience.name = "Ambience"
 	add_child(ambience)
@@ -189,6 +214,7 @@ func _process(delta: float) -> void:
 		_assign_fires()
 		_watch_notices()
 	_update_loops(delta)
+	acoustics.update(delta)
 	process_usec = Time.get_ticks_usec() - began
 
 
@@ -206,7 +232,7 @@ func on_combat_event(event: Dictionary) -> void:
 		"shot":
 			var unit: int = event["unit"]
 			var sound_class := _shot_class(unit, int(event.get("weapon", 0)), float(event["caliber_mm"]))
-			play_at(sound_class, event["position"])
+			play_far(sound_class, event["position"])
 		"hit":
 			var at: Vector3 = event["position"]
 			var target: int = event.get("target", -1)
@@ -221,11 +247,16 @@ func on_combat_event(event: Dictionary) -> void:
 				water = sim_host.terrain_at(at.x, at.z) >= 6
 			var picked: Array = SoundClasses.hit_class(event, infantry, water)
 			if not (picked[0] as String).is_empty():
-				play_at(picked[0], at, picked[1])
+				var caliber := float(event["caliber_mm"])
+				play_far(picked[0], at, picked[1], SoundClasses.blast_pitch(caliber))
+				var tail := SoundClasses.blast_tail_db(caliber)
+				if not is_nan(tail) and str(picked[0]).begins_with("hit_shell"):
+					play_far("explosion_tail", at, tail)
 		"destroyed":
 			_destroyed(event["unit"], event["position"])
 		"smoke":
-			play_at("hit_shell_small", event.get("position", Vector3.ZERO), SMOKE_BURST_DB)
+			play_far("hit_shell_small", event.get("position", Vector3.ZERO), SMOKE_BURST_DB)
+	voices.on_combat_event(event)
 
 
 ## A shell lands in about 1.5 s (`artillery_view.shell_incoming`).
@@ -240,7 +271,7 @@ func object_event(event: Dictionary) -> void:
 		return
 	var at: Vector3 = sim_host.object_position(event.object)
 	at.y = sim_host.height_at(at.x, at.z)
-	play_at(sound_class, at)
+	play_far(sound_class, at)
 
 
 ## A crater appeared (`crater_view.gd`): earth rains down.
@@ -249,7 +280,7 @@ func crater_event(event: Dictionary) -> void:
 	if float(event.get("caliber", 75.0)) <= 0.0:
 		return
 	var at: Vector3 = event.get("position", Vector3.ZERO)
-	play_at("crater", at, SoundClasses.caliber_gain_db(float(event.get("caliber", 75.0))))
+	play_far("crater", at, SoundClasses.caliber_gain_db(float(event.get("caliber", 75.0))))
 
 
 func _destroyed(unit: int, at: Vector3) -> void:
@@ -260,23 +291,46 @@ func _destroyed(unit: int, at: Vector3) -> void:
 	if type_id.contains("_inf_"):
 		return
 	if BaseView.is_building(type_id):
-		play_at("building_collapse", at)
+		play_far("building_collapse", at)
 		return
 	var size := clampf((sim_host.unit_footprints()[index] if index >= 0 else 6.0) / 7.0, 0.6, 1.4)
-	play_at("explosion_vehicle", at, 20.0 * log(size) / log(10.0))
+	var size_db := 20.0 * log(size) / log(10.0)
+	# Bigger vehicles carry more ammunition and fuel: lower, and from the
+	# size of a medium tank a long roll.
+	play_far("explosion_vehicle", at, size_db, clampf(1.0 / sqrt(size), 0.85, 1.15))
+	if size >= 1.0:
+		play_far("explosion_tail", at, size_db * 2.0)
 	_wrecks.append({"position": at + Vector3.UP, "age": 0.0})
 
 
 # --- One-shot voices ----------------------------------------------------------
 
 
-## Plays `sound_class` at `at` with `gain_db` on top of its manifest level.
-## Returns whether a voice started (else: out of range, budget or pool).
-func play_at(sound_class: String, at: Vector3, gain_db := 0.0) -> bool:
-	var spec := SoundLibrary.spec(sound_class)
-	if spec.is_empty():
+## Plays `sound_class` at `at` with `gain_db` on top of its manifest level
+## and `pitch` times its pitch, now. Returns whether a voice started (else:
+## out of range, budget or pool).
+func play_at(sound_class: String, at: Vector3, gain_db := 0.0, pitch := 1.0) -> bool:
+	if SoundLibrary.spec(sound_class).is_empty():
 		return false
 	requested[sound_class] = requested.get(sound_class, 0) + 1
+	return _play(sound_class, at, gain_db, pitch)
+
+
+## Like `play_at`, but the sound needs its travel time at the speed of
+## sound to the camera focus (prompt 053, `acoustics.gd`).
+func play_far(sound_class: String, at: Vector3, gain_db := 0.0, pitch := 1.0) -> void:
+	var spec := SoundLibrary.spec(sound_class)
+	if spec.is_empty():
+		return
+	requested[sound_class] = requested.get(sound_class, 0) + 1
+	if acoustics == null or not acoustics.queue(sound_class, at, gain_db, pitch, int(spec.get("priority", 1))):
+		_play(sound_class, at, gain_db, pitch)
+
+
+func _play(sound_class: String, at: Vector3, gain_db: float, pitch: float) -> bool:
+	var spec := SoundLibrary.spec(sound_class)
+	if acoustics != null:
+		gain_db += acoustics.detail_db(spec)
 	var group: String = spec.group
 	var pool: Array = _pools.get(group, [])
 	if pool.is_empty():
@@ -309,7 +363,7 @@ func play_at(sound_class: String, at: Vector3, gain_db := 0.0) -> bool:
 	player.stream = stream
 	player.bus = "Muffled" if hidden else str(spec.get("bus", "Effects"))
 	player.volume_db = volume - (SoundBuses.MUFFLED_DB if hidden else 0.0)
-	player.pitch_scale = 1.0 + randf_range(-spread, spread)
+	player.pitch_scale = pitch * (1.0 + randf_range(-spread, spread))
 	player.unit_size = ref
 	player.max_distance = reach
 	var position := at
@@ -465,7 +519,7 @@ func _start_loop(player: AudioStreamPlayer3D, sound_class: String, offset: float
 	played[sound_class] = played.get(sound_class, 0) + 1
 
 
-## Gives the nearest burning wrecks a fire loop.
+## Gives the nearest burning wrecks and map objects a fire loop.
 func _assign_fires() -> void:
 	var hear := listener.global_position
 	var reach: float = float(SoundLibrary.spec("fire").get("range_m", 250.0)) * hearing_scale
@@ -474,6 +528,12 @@ func _assign_fires() -> void:
 		var d := hear.distance_to(wreck.position)
 		if d < reach:
 			near.append([d, wreck])
+	_sync_object_fires()
+	var large_reach: float = float(SoundLibrary.spec("fire_large").get("range_m", 400.0)) * hearing_scale
+	for fire: Dictionary in _object_fires.values():
+		var d := hear.distance_to(fire.position)
+		if d < (large_reach if fire.sound == "fire_large" else reach):
+			near.append([d, fire])
 	near.sort_custom(func(a: Array, b: Array) -> bool: return a[0] < b[0])
 	var wanted: Array = near.slice(0, FIRE_VOICES).map(func(entry: Array) -> Dictionary: return entry[1])
 	var free: Array[Dictionary] = []
@@ -490,7 +550,31 @@ func _assign_fires() -> void:
 			continue
 		slot.wreck = wanted.pop_front()
 		player.global_position = slot.wreck.position
-		_start_loop(player, "fire", randf() * 5.0)
+		_start_loop(player, str(slot.wreck.get("sound", "fire")), randf() * 5.0)
+
+
+## Burning map objects from the simulation (prompt 041; wrecks, keys < 0,
+## are `_wrecks`): louder by size, quieter as they burn down.
+func _sync_object_fires() -> void:
+	var fires := sim_host.fires()
+	var keys := sim_host.fire_keys()
+	var life := sim_host.fire_life()
+	var live: Dictionary[int, bool] = {}
+	for i in keys.size():
+		var key := keys[i]
+		if key < 0:
+			continue
+		live[key] = true
+		var f := fires[i]
+		var size := f.w * 2.0
+		if not _object_fires.has(key):
+			_object_fires[key] = {"position": Vector3(f.x, f.y + 1.0, f.z),
+				"sound": "fire_large" if size >= LARGE_FIRE_M else "fire", "gain": 0.0}
+		var fire: Dictionary = _object_fires[key]
+		fire.gain = clampf(20.0 * log(maxf(size, 1.0) / 4.0) / log(10.0), -6.0, 6.0) + lerpf(SMOLDER_DB, 0.0, clampf(life[i] * 5.0, 0.0, 1.0))
+	for key: int in _object_fires.keys():
+		if not live.has(key):
+			_object_fires.erase(key)
 
 
 func _age_wrecks(delta: float) -> void:
@@ -536,8 +620,8 @@ func _update_loops(delta: float) -> void:
 			continue
 		var player: AudioStreamPlayer3D = slot.player
 		var wreck: Dictionary = slot.wreck
-		var level := float(SoundLibrary.spec("fire").get("volume_db", 0.0))
-		if wreck.age > BURN_SECONDS:
+		var level := float(SoundLibrary.spec(str(wreck.get("sound", "fire"))).get("volume_db", 0.0)) + float(wreck.get("gain", 0.0))
+		if float(wreck.get("age", 0.0)) > BURN_SECONDS:
 			level += SMOLDER_DB
 		var hidden: bool = not visible_at.call(wreck.position)
 		player.bus = "Muffled" if hidden else "Effects"
@@ -607,6 +691,12 @@ func _watch_notices() -> void:
 # --- Helpers ------------------------------------------------------------------
 
 
+## Catalog sound facts of a unit (`unit_type_sound`), empty if unknown.
+func unit_info(unit: int) -> Dictionary:
+	var index := _index_of(unit)
+	return _info(_types[index]) if index >= 0 else {}
+
+
 func _info(unit_type: int) -> Dictionary:
 	if not _type_info.has(unit_type):
 		_type_info[unit_type] = sim_host.unit_type_sound(unit_type)
@@ -627,6 +717,10 @@ func _shot_class(unit: int, weapon: int, caliber: float) -> String:
 			sound_class = SoundClasses.indirect_shot_class(str(info.get("category", "")))
 		elif weapon >= 0 and weapon < weapons.size():
 			sound_class = SoundClasses.shot_class(str(info.get("category", "")), weapons[weapon])
+			# Real recordings of this weapon type, if any (prompt 053).
+			var keyed := sound_class + "@" + SoundClasses.weapon_slug(str(weapons[weapon].get("name", "")))
+			if SoundLibrary.has_files(keyed):
+				sound_class = keyed
 		_shot_classes[key] = sound_class
 	return _shot_classes[key]
 
