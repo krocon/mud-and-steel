@@ -1,0 +1,8 @@
+# Draw well with a plastered curb and a wooden pulley frame (prompt 059).
+unit = "env_well_desert"
+assembly = "env"
+
+[[variant]]
+name = "Frame"
+part = "well_desert"
+seed = 1

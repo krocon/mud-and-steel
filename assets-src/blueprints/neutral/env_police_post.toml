@@ -1,0 +1,28 @@
+# Colonial-era police post: two-storey block around a courtyard, crenellated
+# parapet, gateway on +X, watchtower at -X/-Y (prompt 059).
+unit = "env_police_post"
+assembly = "env"
+
+[[variant]]
+name = "Intact"
+part = "police_post"
+role = "intact"
+seed = 1
+
+[[variant]]
+name = "Damaged"
+part = "police_post"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 1
+
+[[variant]]
+name = "Ruin"
+part = "police_post"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 1
