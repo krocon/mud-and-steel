@@ -206,6 +206,26 @@ their attack orders into indirect fire.
   with it in the vehicle mix, saving up for it starved the tank production
   and Hard lost 4 of 8 base matches against Normal (before: 8 timeouts).
 
+## Air support (prompt 033)
+
+Normal and Hard call aircraft with `Command::CallAir`
+(`crates/ai/src/air.rs`); the view carries the player's air options
+(`Sim::air_options`: price, cooldown, why blocked) and the number of enemy
+aircraft in sight.
+
+- At most one call every 400 ticks. Target: the largest visible enemy group
+  (as for the artillery), with no own unit within 150 m (the aircraft need
+  10–30 s to arrive, and bombs and strafing hurt friends too). Five or more
+  units: bombers, else ground attack, else fighters, whichever is ready.
+  Fewer than three units: no attack.
+- After 1200 ticks (60 s) without any enemy in sight: a reconnaissance
+  flight on the newest remembered enemy position (else the enemy's start).
+- In base matches a call needs twice its price in the account, so the
+  economy keeps its resources.
+- Once enemy aircraft appeared, the AI builds the faction's light flak in its
+  base (one, needs barracks).
+- Easy and Passive never call aircraft.
+
 ## Game and menu
 
 - Single-player setup: **Opponent** Passive / Easy / Normal (default) / Hard
@@ -283,6 +303,9 @@ starts far apart (meeting engagements) should separate the levels more.
 - `just selftest` (flow test, match 3): the hard computer opponent beats tanks
   that hold fire; matches 1 and 2 play against the passive opponent; match 4
   (prompt 023) checks that the normal opponent builds in a base match.
+- `crates/ai/tests/air.rs` (prompt 033): Normal calls bombers on a large
+  group far from its own units, Easy does not; Hard builds light flak once
+  it saw enemy aircraft.
 - `crates/ai/tests/economy.rs` (prompt 023): every level builds barracks
   and depot and produces units against the passive enemy; base matches
   between two AIs are reproducible and both sides build.
@@ -296,5 +319,7 @@ starts far apart (meeting engagements) should separate the levels more.
   using terrain (hull-down positions, woods, crests). Artillery (prompt
   032) is Hard only and simple: no observers sent forward, no
   counter-battery, smoke only when the enemy first appears.
+- Air support (prompt 033) is simple: no recon before attacks, no flak
+  placed by threat direction, no heavy flak, no call on structures.
 - Meeting engagements on large maps for a better spread of the levels.
 - Formation facing and speed matching (pathfinding, see ARCHITECTURE.md).

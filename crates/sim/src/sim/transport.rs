@@ -191,7 +191,9 @@ impl Transport {
                         rt.tow = Some((t.transport.power_hp, t.mass_kg));
                     }
                 }
-                if let Some(g) = rules.gun(category) {
+                // Static gun positions (fortifications, e.g. flak of prompt
+                // 033) are no towed guns.
+                if let Some(g) = rules.gun(category).filter(|_| t.mobile()) {
                     rt.gun = Some((
                         ticks(g.limber_ms, time, tick_hz),
                         ticks(g.unlimber_ms, time, tick_hz),

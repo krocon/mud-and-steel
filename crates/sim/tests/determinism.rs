@@ -21,7 +21,13 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by prompt 034 (transport and towing): the rules of
+/// Last changed by the merge of prompt 034 (transport and towing) with 033
+/// (air support): the state of both is in the hash. The demo battle is
+/// unchanged (decided at tick 480, player 0 wins). Prompt 033 alone:
+/// `0x0dce_a06c_b8c7_2039` (the rules of `data/air.toml`, every faction's
+/// aircraft types, cooldowns, sorties, bombs and flak reload times, light
+/// and heavy flak as fortifications in the hashed economy rules).
+/// Before: prompt 034 alone (`0xe602_e2eb_a51e_1c8e`): the rules of
 /// `data/transport.toml`, transport tasks, links of passengers and towed
 /// guns and the hit points of loaded carriers are in the hash, and the
 /// economy rules (also hashed) produce trucks, AT guns and howitzers in
@@ -108,7 +114,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xe602_e2eb_a51e_1c8e;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x4840_87ee_7761_1662;
 
 #[test]
 fn golden_hash() {

@@ -423,7 +423,7 @@ armor_turret_side_mm = 90
 weapon = [
     { name = "122 mm D-25T L/43", caliber_mm_x10 = 1220, ammo = "BR-471 APHE, BR-471B APHEBC, OF-471 HE", rate_rpm = 2, muzzle_velocity_mps = 781, range_effective_m = 1500, ammo_carried = 28 },
     { name = "DT", count = 3, caliber_mm_x10 = 76, rate_rpm = 600 },
-    { name = "DShK", caliber_mm_x10 = 127, rate_rpm = 600 },
+    { name = "DShK", caliber_mm_x10 = 127, rate_rpm = 600, aa = true },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/IS-2 (infobox; Protection/Production)", covers = "46 t, length 9.90 m, width 3.09 m, height 2.73 m, crew 4, armor (hull front 100-120 mm/60 deg, lower 100 mm/30 deg, turret 100 mm, mantlet 120 mm, hull sides 90-130 mm, turret sides 90 mm), D-25T 28 rounds, DShK + 3 DT with 2,079 rounds, V-2IS 520 hp, 37 km/h, range 240 km road / 180 km cross-country, OF-471 800 m/s" },
@@ -632,7 +632,7 @@ armor_turret_front_mm = 90
 armor_turret_side_mm = 75
 weapon = [
     { name = "152 mm ML-20S L/29", caliber_mm_x10 = 1520, ammo = "OF-540 HE-frag, BR-540 APHE, G-530 concrete-piercing", rate_rpm = 1, muzzle_velocity_mps = 600, range_effective_m = 6200, ammo_carried = 18 },
-    { name = "DShK", caliber_mm_x10 = 127, rate_rpm = 600, ammo_carried = 200 },
+    { name = "DShK", caliber_mm_x10 = 127, rate_rpm = 600, ammo_carried = 200, aa = true },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/ISU-152 (infobox and text)", covers = "47.3 t max, length 9.18 m, width 3.07 m, height 2.48 m, crew 4-5, armor (upper hull front 60, lower hull front/lower sides/superstructure front 90, upper sides 75, mantlet up to 120 mm), ML-20S with 18 rounds, BR-540 600 m/s, max range 6,200 m, panoramic direct fire to 3,500 m, DShK 200 rounds, V-2IS 520 hp, 30 km/h road / 15-20 cross-country, range 200 km road" },
@@ -690,7 +690,7 @@ height_mm = 2110
 mass_kg = 2100
 crew = 8
 weapon = [
-    { name = "37 mm 61-K L/67", caliber_mm_x10 = 370, ammo = "OR-167 HE-T, UBR-167 AP-T, 5-round clips", rate_rpm = 170, muzzle_velocity_mps = 880, range_effective_m = 4000 },
+    { name = "37 mm 61-K L/67", caliber_mm_x10 = 370, ammo = "OR-167 HE-T, UBR-167 AP-T, 5-round clips", rate_rpm = 170, muzzle_velocity_mps = 880, range_effective_m = 4000, range_aa_m = 3000 },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/37_mm_automatic_air_defense_gun_M1939_(61-K) (infobox; specifications table)", covers = "2,100 kg, length 5.5 m, width 1.79 m, height 2.11 m, crew 8, 160-170 rpm cyclic, 80 rpm practical, 880 m/s, effective range 4 km, max ceiling 5 km, 3,000 m against air targets" },
@@ -716,7 +716,7 @@ height_mm = 2250
 mass_kg = 4500
 crew = 7
 weapon = [
-    { name = "85 mm 52-K L/55", caliber_mm_x10 = 850, ammo = "O-365K HE-frag (time fuze), BR-365 APHE", rate_rpm = 12, muzzle_velocity_mps = 792, range_effective_m = 15650 },
+    { name = "85 mm 52-K L/55", caliber_mm_x10 = 850, ammo = "O-365K HE-frag (time fuze), BR-365 APHE", rate_rpm = 12, muzzle_velocity_mps = 792, range_effective_m = 15650, range_aa_m = 10500 },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/85_mm_air_defense_gun_M1939_(52-K) (infobox)", covers = "4,500 kg combat and travel, length 7.05 m, width 2.15 m, height 2.25 m, crew 7, 10-12 rpm, 792 m/s, vertical range 10,500 m, maximum firing range 15.65 km" },
@@ -909,7 +909,7 @@ weapon = [
     { name = "VYa-23", count = 2, caliber_mm_x10 = 230, ammo = "23x152B HE-I, AP-I", rate_rpm = 600, muzzle_velocity_mps = 905, ammo_carried = 300 },
     { name = "ShKAS", count = 2, caliber_mm_x10 = 76, rate_rpm = 1800, muzzle_velocity_mps = 825, ammo_carried = 1500 },
     { name = "UBT (rear gunner)", caliber_mm_x10 = 127, rate_rpm = 1000, muzzle_velocity_mps = 860, ammo_carried = 300 },
-    { name = "Bombs and rockets", ammo = "6x 100 kg bombs or 192 PTAB-2.5 HEAT bomblets; 8x RS-82 or 4x RS-132 rockets" },
+    { name = "Bombs and rockets", count = 6, bomb_kg = 100, ammo = "6x 100 kg bombs or 192 PTAB-2.5 HEAT bomblets; 8x RS-82 or 4x RS-132 rockets" },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/Ilyushin_Il-2 (Specifications, Il-2M3)", covers = "crew 2, length 11.65 m, wingspan 14.60 m, height 4.17 m (tail up), 6,360 kg max takeoff, AM-38F 1,720 hp, 410 km/h at 1,500 m, range quoted at 275 km/h, service ceiling 4,525 m, 2x VYa-23 150 rpg, 2x ShKAS 750 rpg, UBT 300 rounds, bombs and rockets" },
@@ -943,14 +943,14 @@ weapon = [
     { name = "UBK (fixed forward, 1943+)", caliber_mm_x10 = 127, rate_rpm = 1000, muzzle_velocity_mps = 860 },
     { name = "UBT (dorsal, 1943+)", caliber_mm_x10 = 127, rate_rpm = 1000, muzzle_velocity_mps = 860 },
     { name = "ShKAS (ventral)", caliber_mm_x10 = 76, rate_rpm = 1800, muzzle_velocity_mps = 825 },
-    { name = "Bombs", ammo = "600 kg normal, 1,000 kg max" },
+    { name = "Bombs", count = 6, bomb_kg = 100, ammo = "600 kg normal, 1,000 kg max" },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/Petlyakov_Pe-2 (Specifications, early production)", covers = "crew 3, length 12.66 m, wingspan 17.16 m, height 3.42 m, 7,536 kg gross, 2x M-105RA 1,100 hp, 540 km/h at 5,000 m, cruise 428 km/h, ceiling 8,800 m, 2x ShKAS forward + 2x ShKAS rear, 1,000 kg bombs" },
     { ref = "Gordon/Khazanov, Soviet Combat Aircraft of the Second World War, Vol. 2 (Midland 1999)", covers = "1943 series changes (M-105PF, UBK forward gun, UBT dorsal turret) (not checked online)" },
 ]
 uncertain = ["mass_kg", "speed_max_kmh_x10", "power_hp", "weapon"]
-note = "Performance values are Wikipedia's early-production Pe-2 (2x M-105RA, 1,100 hp each; power_hp is total). 1943+ series had M-105PF (2x 1,210 hp) and heavier armament; their speed is usually given slightly lower (~530 km/h) because of added weight. Weapon list shows the 1943+ fit (UBK forward, UBT dorsal), not confirmed online. Gun rates cyclic."
+note = "Performance values are Wikipedia's early-production Pe-2 (2x M-105RA, 1,100 hp each; power_hp is total). 1943+ series had M-105PF (2x 1,210 hp) and heavier armament; their speed is usually given slightly lower (~530 km/h) because of added weight. Weapon list shows the 1943+ fit (UBK forward, UBT dorsal), not confirmed online. Gun rates cyclic. The normal 600 kg bomb load is entered as 6 x FAB-100 (bomb_kg, prompt 033); the split is an assumption."
 
 [[unit]]
 id = "su_po2"
@@ -974,7 +974,7 @@ ceiling_m = 3000
 power_hp = 125
 weapon = [
     { name = "ShKAS (rear cockpit, U-2VS/LNB)", caliber_mm_x10 = 76, rate_rpm = 1800, muzzle_velocity_mps = 825 },
-    { name = "Bombs", ammo = "6x FAB-50 (U-2VS/LNB)" },
+    { name = "Bombs", count = 6, bomb_kg = 50, ammo = "6x FAB-50 (U-2VS/LNB)" },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/Polikarpov_Po-2 (Specifications, U-2)", covers = "crew 2, length 8.17 m, wingspan 11.4 m, height 3.1 m, 1,030 kg gross, M-11D 125 hp, 152 km/h, cruise 110 km/h, ceiling 3,000 m, ShKAS and 6x FAB-50 (U-2VS/LNB)" },

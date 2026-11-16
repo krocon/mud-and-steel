@@ -708,7 +708,7 @@ height_mm = 1600
 mass_kg = 405
 crew = 5
 weapon = [
-    { name = "2 cm Flak 38 L/65", caliber_mm_x10 = 200, ammo = "Sprgr HE-T, PzGr AP-T, PzGr 40 APCR (20-round magazine)", rate_rpm = 450, muzzle_velocity_mps = 900, range_effective_m = 5783 },
+    { name = "2 cm Flak 38 L/65", caliber_mm_x10 = 200, ammo = "Sprgr HE-T, PzGr AP-T, PzGr 40 APCR (20-round magazine)", rate_rpm = 450, muzzle_velocity_mps = 900, range_effective_m = 5783, range_aa_m = 2200 },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/2_cm_Flak_30/38/Flakvierling", covers = "405 kg (420 kg in text), 4.08 m, 1.81 m, 1.6 m, crew 5, 450 rpm cyclic / 180 practical, 900 m/s, AA effective 2200 m, ground max 5783 m, 20-round box" },
@@ -733,7 +733,7 @@ height_mm = 2100
 mass_kg = 7407
 crew = 10
 weapon = [
-    { name = "8.8 cm Flak 36 L/56", caliber_mm_x10 = 880, ammo = "Sprgr HE (time/percussion fuze), PzGr 39 APCBC", rate_rpm = 15, muzzle_velocity_mps = 820, range_effective_m = 14860 },
+    { name = "8.8 cm Flak 36 L/56", caliber_mm_x10 = 880, ammo = "Sprgr HE (time/percussion fuze), PzGr 39 APCBC", rate_rpm = 15, muzzle_velocity_mps = 820, range_effective_m = 14860, range_aa_m = 8000 },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/8.8_cm_Flak_18/36/37/41", covers = "7407 kg firing, 5.791 m, 2.3 m, height 2.10 m firing, crew 10, 15-20 rpm, 820 m/s, effective ceiling 8000 m, ground range 14,860 m" },
@@ -900,7 +900,7 @@ weapon = [
     { name = "MG 131", count = 2, caliber_mm_x10 = 130, rate_rpm = 900, muzzle_velocity_mps = 750, ammo_carried = 950 },
     { name = "MG 151/20 E (wing root)", count = 2, caliber_mm_x10 = 200, ammo = "M-Gesch HE, Panzerbrandgranate", rate_rpm = 700, muzzle_velocity_mps = 805, ammo_carried = 500 },
     { name = "MG 151/20 E (outer wing)", count = 2, caliber_mm_x10 = 200, ammo = "M-Gesch HE, Panzerbrandgranate", rate_rpm = 700, muzzle_velocity_mps = 805, ammo_carried = 280 },
-    { name = "SC 500 bomb (optional, ETC 501)", count = 1 },
+    { name = "SC 500 bomb (optional, ETC 501)", count = 1, bomb_kg = 500 },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/Focke-Wulf_Fw_190", covers = "A-8: 8.95 m, 10.506 m, 3.15 m, empty 3200 kg, gross 4417 kg, max 4900 kg, 652 km/h at 5920 m, ceiling 10,350 m, BMW 801 D-2 1700 PS, 2 MG 131 + 4 MG 151/20, crew 1" },
@@ -932,7 +932,7 @@ power_hp = 1420
 weapon = [
     { name = "MG 151/20", count = 2, caliber_mm_x10 = 200, rate_rpm = 700, muzzle_velocity_mps = 805, ammo_carried = 360 },
     { name = "MG 81Z (twin, rear)", count = 1, caliber_mm_x10 = 79, rate_rpm = 2800, muzzle_velocity_mps = 790, ammo_carried = 2000 },
-    { name = "SC 500 / SC 250 / AB 500 bombs", count = 1, ammo = "typical load 500-1200 kg, max 1800 kg" },
+    { name = "SC 500 / SC 250 / AB 500 bombs", count = 1, bomb_kg = 500, ammo = "typical load 500-1200 kg, max 1800 kg" },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/Junkers_Ju_87", covers = "D series: Jumo 211J 1420 PS, MG 81Z rear, bombs 500-1200 kg typical / 1800 kg max; D-5: wingspan ~0.6 m larger, 2 x MG 151/20 replacing MG 17, range; general spec block (labelled B-2/D-1): 11.5 m, 13.8 m span, 3.9 m, 6600 kg max, 410 km/h at 4100 m, cruise 319 km/h, ceiling 7300 m, crew 2" },
@@ -964,7 +964,7 @@ power_hp = 2700
 weapon = [
     { name = "MG 131 (nose and dorsal)", count = 2, caliber_mm_x10 = 130, rate_rpm = 900, muzzle_velocity_mps = 750 },
     { name = "MG 81Z (beam x2, ventral)", count = 3, caliber_mm_x10 = 79, rate_rpm = 2800, muzzle_velocity_mps = 790 },
-    { name = "SC 250 bomb (internal ESAC cells)", count = 8, ammo = "2000 kg internal; external ETC racks for larger bombs" },
+    { name = "SC 250 bomb (internal ESAC cells)", count = 8, bomb_kg = 250, ammo = "2000 kg internal; external ETC racks for larger bombs" },
 ]
 source = [
     { ref = "https://en.wikipedia.org/wiki/Heinkel_He_111", covers = "H-16: empty 6900 kg, loaded 14,000 kg, 434 km/h at 6000 m, cruise 390 km/h, ceiling 8500 m, 2 x Jumo 211F-2, MG 131 nose and dorsal, MG 81Z beams and ventral, 8 ESAC cells; spec block (H-1 data): 16.4 m, 22.6 m, 4.0 m, crew 5, 2000 kg internal bombs" },

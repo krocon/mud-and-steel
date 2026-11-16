@@ -65,6 +65,7 @@ but never its issuer:
 | `SetRallyPoint { building, point }` | Units of the building drive there when they are done. |
 | `QueueMove { units, target }` | Appends a waypoint: a formation slot around `target` per unit, driven to after the current order ([Waypoint chains](#waypoint-chains-and-patrols), prompt 031). |
 | `Patrol { units, target }` | Like `MoveTo`, then back and forth between the start and the target. |
+| `CallAir { mission, target }` | Calls air support of the player's faction on the ground point ([Air support](#air-support-and-anti-aircraft-fire), prompt 033). |
 
 Movement commands (`MoveTo`, `Attack`, `AttackGround`, `Garrison`,
 `QueueMove`, `Patrol`) ignore units that cannot move (buildings).
@@ -471,8 +472,11 @@ aim. Hulls follow the simulation's `facing`.
 
 ### Open
 
-- Guns (`gun_*`) cannot be placed yet (no ground speed; limbering and
-  positions), aircraft neither; damaged modules, ammunition limits.
+- Guns (`gun_*`) are pushed by their crew or towed since prompt 034
+  ([Transport and towing](#transport-and-towing)); flak is placed as
+  fortifications (prompt 033).
+  Aircraft: [Air support](#air-support-and-anti-aircraft-fire). Damaged
+  modules, ammunition limits.
   Indirect fire, HE fragments and smoke: see
   [Indirect fire and smoke](#indirect-fire-and-smoke) (prompt 032). Line of sight for targets: see
   [Vision and fog of war](#vision-and-fog-of-war).
@@ -1105,6 +1109,155 @@ whistle (prompt 029). Muzzle flashes and explosions come from the usual
 - Shells do not hit aircraft or anything in flight; HE does not damage
   objects around the impact point (only the one hit); no counter-battery,
   sound ranging or ammunition limits.
+
+## Air support and anti-aircraft fire
+
+Prompt 033. Players call aircraft on a ground point; nobody steers them.
+Rules: `data/air.toml` (`sim::AirRules`, loaded by `Sim::new` like the
+indirect-fire rules, in the state hash, not part of `SimConfig`). Code:
+`crates/sim/src/air.rs` (rules, aircraft and AA weapons from the catalog,
+snapshot and event types) and `crates/sim/src/sim/air.rs` (calls, flight,
+flak, strafing, bombs, crashes, reconnaissance).
+
+### Aircraft are no units
+
+`Command::CallAir { mission, target }` (appended at the end of `Command`)
+starts a **sortie**: `recon`, `strafe`, `attack` or `bomb`. The aircraft
+come from the player's faction (`Sim::faction`, from the first catalog
+unit): per faction and mission the first catalog entry of the mission's
+category (`aircraft_recon`, `_fighter`, `_attack`, `_bomber`). They live
+in their own state (`Air`), not in the unit list, so victory conditions,
+pathfinding, separation, production limits, selection and the computer
+player's unit groups never see them. The call is ignored unless the
+player's faction has the aircraft, the mission's cooldown is over and the
+account pays the price (`Economy::pay`; accounts exist in every match).
+
+**Track.** A straight line through the target, in the direction from the
+caller's start (center of their spawns) to the target; the aircraft appear
+`edge_margin_m` (300 m) beyond the map edge behind the target and leave as
+far beyond the opposite edge. Several aircraft fly side by side
+(`lateral_m`) or one behind the other (`trail_m`). Speed: the catalog's
+cruise speed (else maximum) × `aircraft.speed` (1/2, `data/scale.toml`).
+Altitude in game meters above the target's ground: `altitude_m` while
+cruising, `attack_m` in the attack zone (guns firing, bombs released),
+linear over `dive_m` in between, never less than 20 m above the ground
+below. Positions outside the map are fine (no ground queries there).
+
+**Who sees an aircraft.** Its owner, and every player with a living unit
+whose sight range (`data/vision.toml`, horizontal) reaches it.
+`Sim::snapshot_for` leaves out the others and every enemy sortie.
+
+### Per tick
+
+`Sim::update_air` runs after the shells (the unit grid holds this tick's
+positions), before the vision update:
+
+1. Cooldowns and flak reloads count down.
+2. **Flight** along the track; aircraft beyond the end leave.
+3. **Spotting** (above).
+4. **Flak.** Every unit with AA weapons that fires at will (construction
+   sites hold fire) fires each reloaded AA weapon at the nearest enemy
+   aircraft its player sees within range (3D distance) and above the
+   class's `min_altitude_m`: AA guns (`gun_aa_light`, `gun_aa_heavy`) with
+   their catalog `range_aa_m`, MGs with `aa = true` with `range_real_m` of
+   the rules; × `range.direct_fire` (1/4), capped at `max_range_m`. One
+   round per barrel at the rate of `data/combat.toml` (automatic weapons
+   25 % of the cyclic rate, ÷ time factor). Chance: `hit_pct` × (1 − d/2R) ×
+   wingspan / 12 m; slow aircraft are in range longer and so are hit more
+   often. A hit costs `damage_per_mm` × caliber. The gun turns towards the
+   aircraft (`aim`). Events: a `Shot` with weapon `AA_WEAPON` (254) for
+   muzzle flash and sound, an `AirEvent::Flak` with the burst point.
+5. **Shot down** (0 hit points): the aircraft flies on burning and sinks to
+   the ground over `fall_ms`, drops no more bombs, then explodes like a
+   shell of `crash.caliber_mm_x10` (crater, fragments) and leaves an
+   `AirEvent::Crashed` for the wreck; outside the map it just vanishes.
+6. **Strafing** (fighters, attack aircraft): from `before_m` before the
+   target to `after_m` behind it, a burst every `burst_ticks`. The rounds
+   land in a strip `width_m` wide, `lead_m` ahead of the aircraft, as long
+   as the distance flown during the burst. Soldiers in the strip (not in
+   buildings) roll `soldier_pct` × stance height share (× `cover_pct` at a
+   cover spot, craters catch like fragments) and lose the caliber's infantry
+   damage; their squads are suppressed. Vehicles roll `vehicle_pct` per
+   round: open vehicles (thinnest plate ≤ `open_armor_mm` of
+   `data/indirect.toml`) take `open_damage_per_mm` × caliber, armored ones
+   the caliber's vehicle damage if the muzzle penetration (combat formula,
+   no distance loss) beats the roof (`roof_pct` of the thinnest plate).
+   Rear guns of two-seaters do not strafe. Three ground `Hit` events per
+   burst for dust, one per damaged unit.
+7. **Bombs** (attack aircraft, bombers): `count` bombs of `bomb_kg` per
+   aircraft, impact points along the own track around the target,
+   `stick_m` apart, released one fall time `sqrt(2h/g)` early; triangular
+   error `error_attack_m` / `error_bomb_m` per axis. A bomb explodes through
+   the shell code of prompt 032 (`Sim::detonate`: direct hit, object,
+   crater, fragments, one `Hit` event) with the caliber
+   `caliber_mm_per_cbrt_kg` × ∛kg (SC 250: 155 mm, 31 m fragments), then
+   armored vehicles within `near_miss_dm_per_cbrt_kg` / 10 × ∛kg take up to
+   `near_miss_damage`, falling linearly. Hits and kills name the shooter
+   `AIR_SHOOTER` (`UnitId(u32::MAX)`).
+8. **Reconnaissance**: a recon aircraft over the map holds a viewshed from
+   its altitude (radius `recon.sight_real_m` × `range.sight`, a ray table
+   added by `Vision::ensure_radius`), recomputed when it enters another
+   vision cell and added to its player's vision like a unit's
+   (`Vision::add_air_shed`); it is removed when the aircraft leaves, falls
+   or is shot down. The unit masks of the vision update that follows see
+   it.
+
+Cooldowns, sorties, aircraft (position, hit points, crash, remaining
+releases, burst timer, who sees it, viewshed summary), bombs and flak
+reloads are in the state hash; the whole `Air` state derives
+`Serialize`/`Deserialize` and is part of the snapshot of prompt 038
+(`crates/net/tests/air_snapshot.rs` saves during an air attack).
+
+### Snapshot, bridge and Godot
+
+`Snapshot::aircraft` (position, velocity, hit points, crashing, firing),
+`Snapshot::bombs`, `Snapshot::sorties` (own only when filtered: entry,
+exit, target, ticks to target) and `Sim::air_events` (called, flak, strafe,
+released, shot down, crashed; not state). Queries: `Sim::air_options`
+(price, cooldown, why blocked), `air_types`, `aa_range`.
+`crates/bridge/src/air_funcs.rs`: `call_air`, `air_options`, `aircraft_*`,
+`bomb_*`, `air_sorties`, `unit_aa_range`, `take_air_events`.
+
+`scenes/world/air_view.gd` draws the aircraft with their catalog models
+(gear retracted if the model's extras say so, `ShadowProxy` shadow-only,
+enemy tint, propellers turning), a soft shadow patch on the ground along
+the sun direction (directional shadows do not reach 30–500 m up), smoke
+trails below half hit points and while falling, flak bursts (heavy: black
+puffs, light: flash, puff and tracer, MGs: tracers), strafing tracers,
+falling bombs (external `Bomb_*` nodes disappear on release), burning
+wrecks of crashed aircraft, and the own sorties (dashed route from the
+entry, ring and time on the target). New enemy aircraft post "Enemy
+aircraft!" (at most every 15 s) and play the alarm notice. Explosions,
+dust and craters come from the ordinary `hit` and crater events.
+`scenes/hud/air_bar.gd`: the call bar above the command bar (price or
+cooldown per mission, the aircraft in the tooltip, Shift + 1…4, left click
+on the map calls, right click or Esc cancels).
+
+### Decisions
+
+The full table is in `prompts/done/033-luftwaffe-flak.md`. In short:
+
+| Question | Decision | Why |
+|---|---|---|
+| Called support or squadrons | Called support with cooldown and price | Aircraft cross a map in 20–60 s; no airfields, fuel or air combat to model; one command, no units. |
+| Hit model of flak | Chance per round from range and wingspan, damage per caliber | Rounds through the sky with fuzes and lead would cost much and decide little; uses only catalog values. |
+| Strafing | A strip ahead of the aircraft, rolls per soldier and per round | The projectile system needs a shooter in the unit list; the strip gives the known effect (infantry and soft vehicles suffer, tanks hardly). |
+| Bombs | Shells of an equivalent caliber plus near misses | One explosion rule for shells, bombs and crashes; the catalog keeps the real bomb mass. |
+| Rules location | `data/air.toml`, outside `SimConfig` | Like 032: no replay/config format change. |
+
+### Open
+
+- Provisional values (marked in `data/air.toml`): prices, cooldowns,
+  altitudes, formation, strafing and bomb figures, flak chances, ranges and
+  caps, aircraft hit points.
+- No air combat (fighters do not intercept), no airfields, no rockets
+  (HVAR, RS-82), no smoke or supply drops; one call per mission at a time.
+- Flak shoots only at aircraft, never at bombs; shells (032) and direct
+  fire do not hit aircraft; aircraft guns do not hit map objects.
+- Wrecks of crashed aircraft are drawn only, they block nothing; no engine
+  sound yet (prompt 029 has no aircraft sounds).
+- The approach direction follows the caller's start; players cannot pick
+  it.
 
 ## Transport and towing
 
