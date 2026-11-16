@@ -312,7 +312,7 @@ fn towed_gun_does_not_fire_until_unlimbered() {
         &[
             (P0, TRUCK, 0, 0),
             (P0, PAK, 0, -12),
-            (P1, "su_t34_76_1943", 0, 250),
+            (P1, "su_t34_76_1943", 0, 150),
         ],
         8,
     );

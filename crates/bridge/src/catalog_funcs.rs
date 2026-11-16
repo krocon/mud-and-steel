@@ -37,7 +37,9 @@ fn entry_card(e: &Entry) -> VarDictionary {
             "name" => w.name.as_str(),
             "count" => i64::from(w.count),
             "caliber_mm" => w.caliber_mm_x10.map_or(0.0, |c| f64::from(c) / 10.0),
-            "range_m" => i64::from(w.range_effective_m.unwrap_or(0)),
+            // The typical combat distance (prompt 067); indirect weapons
+            // have only their maximum range.
+            "range_m" => i64::from(w.range_typical_m.or(w.range_effective_m).unwrap_or(0)),
         });
     }
     vdict! {

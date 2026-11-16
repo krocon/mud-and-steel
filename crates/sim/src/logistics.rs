@@ -226,7 +226,7 @@ impl LogisticsType {
                 w.caliber_mm_x10.is_some_and(|c| c > 0)
                     && w.rate_rpm.is_some_and(|r| r > 0)
                     && w.muzzle_velocity_mps.is_some_and(|v| v > 0)
-                    && w.range_effective_m.is_some_and(|r| r > 0)
+                    && w.range_typical_m.is_some_and(|r| r > 0)
             })
         };
         let salvos = match (main, group) {

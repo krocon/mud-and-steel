@@ -176,7 +176,7 @@ fn trucks_resupply_own_and_allied_units_for_a_price() {
             player,
             Command::AttackGround {
                 units: vec![UnitId(id)],
-                target: Vec2::from_meters(-300 + 300 * i32::from(player.0 == P1.0), 300),
+                target: Vec2::from_meters(-100 + 200 * i32::from(player.0 == P1.0), 120),
             },
         )]);
     }

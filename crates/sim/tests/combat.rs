@@ -226,8 +226,8 @@ fn a_ridge_stops_the_rounds() {
         map,
         exact_rules(),
         &[
-            (P0, "de_pz4_h", 0, 150, FIRE),
-            (P1, "su_t34_76_1943", 0, -150, HOLD),
+            (P0, "de_pz4_h", 0, 80, FIRE),
+            (P1, "su_t34_76_1943", 0, -80, HOLD),
         ],
     );
     // Since prompt 018 a unit does not fire at targets it cannot see, so
@@ -239,7 +239,7 @@ fn a_ridge_stops_the_rounds() {
         P0,
         Command::AttackGround {
             units: vec![UnitId(0)],
-            target: Vec2::from_meters(0, -150),
+            target: Vec2::from_meters(0, -80),
         },
     )]);
     let events = run_until_destroyed(&mut sim, UnitId(1), 300);
@@ -271,8 +271,8 @@ fn hold_fire_keeps_everyone_quiet_until_attack() {
         map_with(|_, _| 0),
         CombatRules::builtin().unwrap(),
         &[
-            (P0, "de_pz4_h", 0, 100, HOLD),
-            (P1, "su_t34_76_1943", 0, -100, HOLD),
+            (P0, "de_pz4_h", 0, 90, HOLD),
+            (P1, "su_t34_76_1943", 0, -90, HOLD),
         ],
     );
     for _ in 0..100 {
@@ -326,14 +326,14 @@ fn hold_fire_keeps_everyone_quiet_until_attack() {
 
 #[test]
 fn attack_drives_into_range_and_fires() {
-    // 380 m apart, the KwK 40 reaches 375 m: the Panzer IV must close in to
+    // 180 m apart, the KwK 40 reaches 175 m: the Panzer IV must close in to
     // 90 % of its range, then stop and fire.
     let mut sim = sim_with(
         map_with(|_, _| 0),
         CombatRules::builtin().unwrap(),
         &[
-            (P0, "de_pz4_h", 0, 190, HOLD),
-            (P1, "su_t34_76_1943", 0, -190, HOLD),
+            (P0, "de_pz4_h", 0, 90, HOLD),
+            (P1, "su_t34_76_1943", 0, -90, HOLD),
         ],
     );
     sim.step(&[PlayerCommand::new(
@@ -364,11 +364,11 @@ fn attack_drives_into_range_and_fires() {
     assert_eq!(sim.unit_hp(UnitId(1)), Some(0), "target survived");
     let first_shot = first_shot.unwrap().to_num::<i32>();
     assert!(
-        (330..=375).contains(&first_shot),
+        (154..=175).contains(&first_shot),
         "first shot at {first_shot} m"
     );
     let stopped = stopped_at.unwrap().to_num::<i32>();
-    assert!((320..=338).contains(&stopped), "stopped at {stopped} m");
+    assert!((150..=158).contains(&stopped), "stopped at {stopped} m");
 }
 
 #[test]
@@ -404,12 +404,12 @@ fn same_seed_same_battle() {
             map_with(|x, y| (x * 7 + y * 3).rem_euclid(900)),
             CombatRules::builtin().unwrap(),
             &[
-                (P0, "de_pz4_h", -20, 120, FIRE),
-                (P0, "de_pz4_h", 20, 120, FIRE),
-                (P0, "de_inf_rifle_squad", 0, 140, FIRE),
-                (P1, "su_t34_76_1943", -20, -120, FIRE),
-                (P1, "su_t34_76_1943", 20, -120, FIRE),
-                (P1, "su_inf_rifle_squad", 0, -140, FIRE),
+                (P0, "de_pz4_h", -20, 80, FIRE),
+                (P0, "de_pz4_h", 20, 80, FIRE),
+                (P0, "de_inf_rifle_squad", 0, 100, FIRE),
+                (P1, "su_t34_76_1943", -20, -80, FIRE),
+                (P1, "su_t34_76_1943", 20, -80, FIRE),
+                (P1, "su_inf_rifle_squad", 0, -100, FIRE),
             ],
         );
         let mut events = Vec::new();

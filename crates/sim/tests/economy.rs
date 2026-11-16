@@ -426,7 +426,10 @@ fn scripted_production_chain_is_deterministic() {
 
 /// Golden hash of the scripted skirmish (prompt 023): construction,
 /// production, rally points, supply points and the fight of the starting
-/// units. Recorded on macOS ARM64. Last changed by the decisions of prompt 045
+/// units. Recorded on macOS ARM64. Last changed by prompt 067 (typical
+/// combat distances: weapon ranges from `range_typical_m`, the range
+/// reference and the velocity factor of unit prices). Before
+/// (`0xe007_c7b9_cb19_a7b3`), the decisions of prompt 045
 /// (2026-11-16): the
 /// rate-of-fire factor changes the prices of the produced units, and the
 /// `[defeat]` rules and the players who have had a base are hashed. Before
@@ -472,7 +475,7 @@ fn economy_golden_hash() {
     let sim = run_economy(42, 5000);
     assert_eq!(
         sim.state_hash(),
-        0xe007_c7b9_cb19_a7b3,
+        0x57e7_5da9_31e6_20dd,
         "economy golden hash mismatch: got {:#018x}",
         sim.state_hash()
     );

@@ -11,6 +11,17 @@ const MAX_TICKS: u64 = 6000;
 /// Plays `games` matches of `a` against `b` on the demo scenario, sides
 /// alternating; returns the results and how often `a` won.
 fn series(a: Difficulty, b: Difficulty, games: u64, first_seed: u64) -> (Vec<GameResult>, u64) {
+    series_within(a, b, games, first_seed, MAX_TICKS)
+}
+
+/// Like [`series`] with another limit of ticks per match.
+fn series_within(
+    a: Difficulty,
+    b: Difficulty,
+    games: u64,
+    first_seed: u64,
+    max_ticks: u64,
+) -> (Vec<GameResult>, u64) {
     let config = demo_config();
     let mut results = Vec::new();
     let mut wins = 0;
@@ -24,7 +35,7 @@ fn series(a: Difficulty, b: Difficulty, games: u64, first_seed: u64) -> (Vec<Gam
             &[(a_player, a), (b_player, b)],
         )
         .unwrap();
-        let result = game.run(MAX_TICKS);
+        let result = game.run(max_ticks);
         if result.winner == Some(a_player) {
             wins += 1;
         }
@@ -48,7 +59,11 @@ fn normal_and_hard_beat_passive_from_both_sides() {
 
 #[test]
 fn easy_beats_passive() {
-    let (results, wins) = series(Difficulty::Easy, Difficulty::Passive, 4, 200);
+    // Easy wins every match, but as the Soviet side it needs up to 6740
+    // ticks since prompt 067 (before: under 6000): its rifle squads have to
+    // close in to 75 m instead of 125 m, across the open ground in front of
+    // the passive tanks, and its tanks finish the enemy squads alone.
+    let (results, wins) = series_within(Difficulty::Easy, Difficulty::Passive, 4, 200, 8000);
     assert_eq!(wins, 4, "{results:#?}");
 }
 

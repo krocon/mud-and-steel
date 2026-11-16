@@ -178,10 +178,7 @@ fn hits_wound_soldiers_light_and_heavy() {
         let mut sim = sim_with(
             map_with(&[]),
             seed,
-            &[
-                (P0, "su_inf_mg_team", 0, 120, FIRE),
-                (P1, SQUAD, 0, 0, HOLD),
-            ],
+            &[(P0, "su_inf_mg_team", 0, 80, FIRE), (P1, SQUAD, 0, 0, HOLD)],
         );
         sim.step(&[order(
             P1,
@@ -410,8 +407,8 @@ fn crews_bail_out_of_destroyed_tanks() {
             map_with(&[]),
             seed,
             &[
-                (P0, "de_pz4_h", 0, 300, FIRE),
-                (P0, "de_pz4_h", 20, 300, FIRE),
+                (P0, "de_pz4_h", 0, 150, FIRE),
+                (P0, "de_pz4_h", 20, 150, FIRE),
                 (P1, "us_m4a3_75", 0, 0, FIRE),
             ],
         );
@@ -477,7 +474,7 @@ fn care_runs_are_deterministic() {
             map_with(&sandbags()),
             7,
             &[
-                (P0, "su_inf_mg_team", 0, 120, FIRE),
+                (P0, "su_inf_mg_team", 0, 80, FIRE),
                 (P1, SQUAD, 0, 0, FIRE),
                 (P1, "de_inf_medic", 0, -40, HOLD),
             ],

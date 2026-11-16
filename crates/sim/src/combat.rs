@@ -423,7 +423,9 @@ impl CombatType {
                         w.caliber_mm_x10?,
                         w.rate_rpm?,
                         w.muzzle_velocity_mps?,
-                        w.range_effective_m?,
+                        // The typical combat distance (prompt 067), not
+                        // the maximum or sight value `range_effective_m`.
+                        w.range_typical_m?,
                     );
                     (caliber > 0 && rate > 0 && velocity > 0 && range > 0).then(|| WeaponType {
                         name: w.name.clone(),
@@ -656,9 +658,10 @@ mod tests {
     fn catalog_values_are_scaled() {
         let rules = CombatRules::builtin().unwrap();
         let (pz4, kwk) = weapon("de_pz4_h");
-        // 1500 m real → 375 m; 10 rpm real → 6 s → 3 s game = 60 ticks;
+        // 700 m real (typical distance) → 175 m; 10 rpm real → 6 s → 3 s
+        // game = 60 ticks;
         // 750 m/s × 2.
-        assert_eq!(kwk.range_m, Fixed::from_num(375));
+        assert_eq!(kwk.range_m, Fixed::from_num(175));
         assert_eq!(rules.reload_ticks(&kwk, 20), 60);
         assert_eq!(kwk.speed_m_per_s, Fixed::from_num(1500));
         // MG 34 without range is not used.

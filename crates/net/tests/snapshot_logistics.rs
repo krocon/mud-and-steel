@@ -74,7 +74,7 @@ fn snapshot_while_resupplying_and_driving() {
     original.step(&[
         order(Command::AttackGround {
             units: vec![UnitId(1)],
-            target: Vec2::from_meters(-150, 150),
+            target: Vec2::from_meters(-100, 100),
         }),
         order(Command::Patrol {
             units: vec![UnitId(2)],
