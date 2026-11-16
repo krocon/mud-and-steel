@@ -133,6 +133,15 @@ l10n-check:
 l10n-shots language="de" dir="build/l10n" *args: build
     {{ GODOT }} --path godot --always-on-top --resolution 1600x900 -- --l10n-shots={{ justfile_directory() }}/{{ dir }} --language={{ language }} --settings=user://settings-l10n-shots.cfg {{ args }}
 
+# Screenshots of the unit values in the interface (prompt 066; needs a window): ratings on the picker tiles, tooltip, unit card per tab, unit reference; German and English at interface scale 1 and 1.25, and German at 1280x720, into build/unit-cards/
+[group('godot')]
+unit-card-shots dir="build/unit-cards" *args: build
+    {{ GODOT }} --path godot --always-on-top --resolution 1600x900 -- --unit-card-shots={{ justfile_directory() }}/{{ dir }}/de-1.0 --language=de --ui-scale=1.0 --settings=user://settings-unit-card-shots.cfg {{ args }}
+    {{ GODOT }} --path godot --always-on-top --resolution 1600x900 -- --unit-card-shots={{ justfile_directory() }}/{{ dir }}/de-1.25 --language=de --ui-scale=1.25 --settings=user://settings-unit-card-shots.cfg {{ args }}
+    {{ GODOT }} --path godot --always-on-top --resolution 1600x900 -- --unit-card-shots={{ justfile_directory() }}/{{ dir }}/en-1.0 --language=en --ui-scale=1.0 --settings=user://settings-unit-card-shots.cfg {{ args }}
+    {{ GODOT }} --path godot --always-on-top --resolution 1600x900 -- --unit-card-shots={{ justfile_directory() }}/{{ dir }}/en-1.25 --language=en --ui-scale=1.25 --settings=user://settings-unit-card-shots.cfg {{ args }}
+    {{ GODOT }} --path godot --always-on-top --resolution 1280x720 -- --unit-card-shots={{ justfile_directory() }}/{{ dir }}/de-720p --language=de --ui-scale=1.0 --settings=user://settings-unit-card-shots.cfg {{ args }}
+
 # Write the translation files of the mission texts (data/maps/*/missions/<id>.<lang>.po): new texts get an empty entry to translate
 [group('godot')]
 mission-po:

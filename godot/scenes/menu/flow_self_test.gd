@@ -13,6 +13,8 @@ extends Node
 ##    menu screen and settings tab in German without a missing translation,
 ##    the new settings saved and read back; in match 1 the HUD and the pause
 ##    menu in German, subtitles.
+##    Unit reference (prompt 066, `tools/units_self_test.gd`): every entry
+##    opens its unit card.
 ## 3. LAN: the lobby opens from the menu and its Back button returns; the
 ##    same for the online lobby (prompt 026), without initializing Steam.
 ## 4. Match 1 (test_small, Germany vs. Soviet Union, from the setup screen):
@@ -65,6 +67,8 @@ const GameFiles := preload("res://scenes/menu/game_files.gd")
 const MusicSelfTest := preload("res://scenes/tools/music_self_test.gd")
 const MissionSelfTest := preload("res://scenes/menu/mission_self_test.gd")
 const L10nSelfTest := preload("res://scenes/menu/l10n_self_test.gd")
+## Unit reference (prompt 066).
+const UnitsSelfTest := preload("res://scenes/tools/units_self_test.gd")
 ## Wall-clock limit for the whole flow (`--fixed-fps` decouples frame time);
 ## raised from 10 to 20 minutes for the tutorial and missions (prompt 039).
 const TIMEOUT_MS := 1200000
@@ -105,6 +109,7 @@ func _run() -> void:
 	await _settings_test(menu)
 	await L10nSelfTest.new(self).menu_test(menu)
 	await _credits_test(menu)
+	await UnitsSelfTest.new().run(self, menu)
 	menu = await _lan_test(menu)
 	if menu != null:
 		menu = await _online_test(menu)

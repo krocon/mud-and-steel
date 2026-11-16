@@ -80,6 +80,21 @@ func run(test: Node) -> void:
 	var feed: Node = hud.event_feed
 	test._check(not feed.history.is_empty() and str(feed.history[-1].text).begins_with("Promoted"),
 		"experience: the event feed shows no promotion")
+	# Prompt 066: the bonuses of the rank as their own line in the unit
+	# panel and on the unit card; the type's ratings stay what they are.
+	main.selection.set_selection(squad_only)
+	await test._frames(15)
+	var squad_type := str(sim_host.unit_info(squad).type_id)
+	hud.show_unit_card(squad_type, squad)
+	await test._frames(2)
+	var rank_label := hud.unit_card.find_child("Rank", true, false) as Label
+	var bonus: String = hud.unit_panel.bonus_line
+	test._check(not bonus.is_empty() and rank_label != null and rank_label.visible and rank_label.text == bonus,
+		"experience: rank bonus line of the panel '%s', of the card '%s'" % [bonus, rank_label.text if rank_label != null else ""])
+	test._check(hud.unit_card.rating_bars.ratings == SimHost.unit_stats(squad_type).get("ratings", {}),
+		"experience: the rank changed the ratings on the card")
+	hud.unit_card.close()
+	main.selection.set_selection([])
 	var infantry: Node = main.infantry_view
 	var dressed := 0
 	var worn := 0
