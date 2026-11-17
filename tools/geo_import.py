@@ -44,7 +44,6 @@ import time
 import zlib
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-DEBUG = False
 
 # Terrain ids of data/terrain.toml.
 GRASS, DIRT, ROAD, SAND, MUD, SNOW, SHALLOW, DEEP, TALL_GRASS = range(9)
@@ -1379,7 +1378,7 @@ def place_buildings(g, f, site, h, water, road, masks, placer, stats, min_area):
     per_district = {}
     placed_list = []
     totals = {"blocks": 0, "small_blocks_dropped": 0, "placed": 0, "shifted": 0, "smaller": 0,
-              "slots_dropped": 0, "blocks_without_building": 0}
+              "row_steps_without_room": 0, "blocks_without_building": 0}
     for cid, (cells, members) in enumerate(blocks, start=1):
         if len(cells) < min_cells:
             totals["small_blocks_dropped"] += 1
@@ -1414,7 +1413,7 @@ def place_buildings(g, f, site, h, water, road, masks, placer, stats, min_area):
         heading = rint(atan2_deg(ca_, -sa_)) % 360
         district = district_of(site, cxm, cym)
         dname = district["name"]
-        stat = per_district.setdefault(dname, {"blocks": 0, "placed": 0, "shifted": 0, "smaller": 0, "dropped": 0})
+        stat = per_district.setdefault(dname, {"blocks": 0, "placed": 0, "shifted": 0, "smaller": 0, "row_steps_without_room": 0})
         stat["blocks"] += 1
         # Height: tallest tagged footprint, else the district's estimate.
         tagged = [building_height(t, None) for t in tags]
@@ -1506,11 +1505,12 @@ def place_buildings(g, f, site, h, water, road, masks, placer, stats, min_area):
                     if done:
                         break
                 if not done:
-                    totals["slots_dropped"] += 1
-                    stat["dropped"] += 1
+                    totals["row_steps_without_room"] += 1
+                    stat["row_steps_without_room"] += 1
                     u += cfg["step_m"]
         if not placed_here:
             totals["blocks_without_building"] += 1
+            stat["blocks_without_building"] = stat.get("blocks_without_building", 0) + 1
     totals["osm_footprints"] = count_osm
     totals["min_block_m2"] = min_area
     stats["buildings"] = {"totals": totals, "districts": per_district}
@@ -1708,7 +1708,7 @@ def cell_components(cw, ch, open_):
     return label, sizes
 
 
-def keep_ways_open(g, h, h_before, terrain, placed, cfg, stats, encoding):
+def keep_ways_open(g, site, h, h_before, terrain, placed, cfg, stats, encoding):
     """Pads and buildings must not wall off ground that was connected
     before them: where a piece of ground (at least `min_part_cells` path
     cells) is cut off from the larger part it belonged to, the buildings at
@@ -1750,8 +1750,6 @@ def keep_ways_open(g, h, h_before, terrain, placed, cfg, stats, encoding):
                 cut_off.update(p for p in parts if p != largest)
         if not cut_off:
             break
-        if DEBUG:
-            print("  keep ways open: cut off parts %s" % sorted((sizes1[k], k) for k in cut_off), file=sys.stderr)
         for n in range(len(placed)):
             if n in removed or not any(label1[c] in cut_off for c in near[n]):
                 continue
@@ -1764,6 +1762,10 @@ def keep_ways_open(g, h, h_before, terrain, placed, cfg, stats, encoding):
     totals = stats["buildings"]["totals"]
     totals["pads_undone_to_keep_ways_open"] = len(unpadded - removed)
     totals["removed_to_keep_ways_open"] = len(removed)
+    for n in sorted(removed):
+        d = stats["buildings"]["districts"][district_of(site, placed[n][0], placed[n][1])["name"]]
+        d["placed"] -= 1
+        d["removed"] = d.get("removed", 0) + 1
     return removed
 
 
@@ -1922,8 +1924,6 @@ def paint_areas(g, f, cfg, terrain, water, road):
 
 # --------------------------------------------------------------------------
 # Output
-
-TERRAIN_COLORS = None
 
 
 def terrain_palette():
@@ -2149,7 +2149,7 @@ def generate(site_path, out_dir, report_dir, quiet=False):
     stats["buildings"]["pads_levelled"], stats["buildings"]["pads_left_out"] = build_pads(
         g, placed, h, road, water, site["buildings"], encoding)
     lap("pads")
-    removed = keep_ways_open(g, h, h_before, terrain, placed, site["buildings"], stats, encoding)
+    removed = keep_ways_open(g, site, h, h_before, terrain, placed, site["buildings"], stats, encoding)
     if height_encoding(h) != encoding:
         raise SystemExit("height range changed by the pads")
     if removed:

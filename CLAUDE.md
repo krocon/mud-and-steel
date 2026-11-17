@@ -59,6 +59,8 @@ just lan / just lan-selftest  # LAN lobby / two headless instances over localhos
 just online                # online lobby over Steam (optional; docs/ONLINE.md)
 just map-editor / just editor-selftest  # map editor / its headless test
 just map-check <name>      # validate data/maps/<name>/ like the editor
+just map-reach <name>      # land open to vehicles / infantry, connected parts, start-to-supply paths
+just gen-geo harbor_city   # map from OpenStreetMap + elevation model (tools/geo_import.py, docs/MAPS.md)
 just gen-city              # regenerate the large city map data/maps/city_large (docs/MAPS.md)
 just ai-tournament         # AI against AI over many seeds, statistics (docs/AI.md)
 just bench / just bench-view  # overall benchmark: simulation / frame rate (docs/PERFORMANCE.md)

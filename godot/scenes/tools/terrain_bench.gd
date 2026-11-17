@@ -358,6 +358,29 @@ func _land_shots() -> Array[Dictionary]:
 			{"name": "side_street_35", "marker": "side_street_south", "distance": 35.0, "yaw": 1.57, "pitch": 28.0},
 			{"name": "suburb_street_35", "marker": "crossing_south", "distance": 35.0, "yaw": 0.3, "pitch": 28.0},
 		])
+	# Prompt 081 (`harbor_city`): the whole map from the sea like the
+	# reference pictures, the harbor, the rock, the quarters, houses on the
+	# slope and a street at 35 m.
+	if main.sim_host.map_marker("rock") != null and main.sim_host.map_marker("square_east") != null:
+		shots[0]["distance"] = 2400.0
+		shots[0]["pitch"] = 62.0
+		shots.append_array([
+			{"name": "harbor_compare", "focus": Vector3(-350, 0, 250), "distance": 1700.0, "yaw": 0.0, "pitch": 30.0},
+			{"name": "harbor_compare_east", "focus": Vector3(-150, 0, 450), "distance": 900.0, "yaw": 0.35, "pitch": 34.0},
+			{"name": "zone_harbor", "marker": "harbor", "distance": 420.0, "yaw": 0.3, "pitch": 40.0},
+			{"name": "zone_rock", "marker": "rock", "distance": 320.0, "yaw": -0.4, "pitch": 38.0},
+			{"name": "zone_west_flats", "marker": "west_flats", "distance": 420.0, "yaw": 0.0, "pitch": 40.0},
+			{"name": "zone_square_east", "marker": "square_east", "distance": 350.0, "yaw": 0.2, "pitch": 40.0},
+			{"name": "zone_beach_east", "marker": "beach_east", "distance": 420.0, "yaw": 0.0, "pitch": 38.0},
+			{"name": "zone_upper_west", "marker": "upper_west", "distance": 320.0, "yaw": 0.4, "pitch": 38.0},
+			{"name": "zone_upper_east", "marker": "upper_east", "distance": 320.0, "yaw": -0.3, "pitch": 38.0},
+			{"name": "zone_hinterland", "marker": "hinterland", "distance": 600.0, "yaw": 0.0, "pitch": 40.0},
+			{"name": "slope_houses_60", "marker": "upper_east", "distance": 60.0, "yaw": 0.0, "pitch": 30.0},
+			{"name": "rock_houses_60", "marker": "rock", "distance": 60.0, "yaw": 0.8, "pitch": 30.0},
+			{"name": "harbor_street_35", "marker": "supply_harbor_west", "distance": 35.0, "yaw": 0.4, "pitch": 28.0},
+			{"name": "start_west", "marker": "start_west", "distance": 260.0, "yaw": 0.3, "pitch": 40.0},
+			{"name": "start_east", "marker": "start_east", "distance": 260.0, "yaw": -0.3, "pitch": 40.0},
+		])
 	return shots
 
 

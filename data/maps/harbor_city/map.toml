@@ -51,7 +51,7 @@ position_m = [-1350, 0]
 
 [[marker]]
 name = "supply_upper_east"
-position_m = [521, 89]
+position_m = [400, 0]
 
 [[marker]]
 name = "supply_hinterland"
@@ -83,7 +83,7 @@ position_m = [-805, 29]
 
 [[marker]]
 name = "upper_east"
-position_m = [521, 89]
+position_m = [400, 0]
 
 [[marker]]
 name = "west_hill"
@@ -100,3 +100,7 @@ position_m = [-1470, 540]
 [[marker]]
 name = "start_east"
 position_m = [1560, 720]
+
+[[marker]]
+name = "blocks"
+position_m = [250, 450]

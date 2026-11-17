@@ -673,6 +673,197 @@ fighting as a rule (barricades, sewers, fighting inside a house, storeys),
 a shot of this map in the demo video, a picture preview of maps in the
 setup screen (no map has one).
 
+### Maps from real geodata (prompt 081)
+
+`tools/geo_import.py` (Python 3, standard library only) builds a map in
+the format above from an OpenStreetMap extract and a free elevation model.
+`just gen-geo harbor_city` writes `data/maps/harbor_city/`;
+`just gen-geo harbor_city --report DIR` also writes pictures of the stages
+(`geodata.png` the OSM data before simplification, `stage1.png` heights
+and terrain, `stage1_grid.png` with 100 m lines, starts and markers,
+`stage2.png` with buildings and trees). `just gen-geo-check` (part of
+`just check` and CI) generates the map twice in two processes, compares
+the files byte for byte and their content with the committed map. One run
+takes about a minute.
+
+**A site** is a folder `assets-src/geo/<site>/` with three files:
+
+| File | Content |
+|---|---|
+| `site.json` | the description: sources (bounding box, Overpass query, URLs, retrieval dates), frame (center, bearing of the map's x axis, size), elevation filters, coast, road classes and widths, areas, buildings (catalog classes, districts with estimated storeys, limits), green, starts with their pads, markers |
+| `osm.json.gz` | the OSM extract reduced by `geo_import.py extract`: geometry in 1e-7 degrees and only the tags the importer reads (`building`, `building:levels`, `height`, `highway`, `tunnel`, `bridge`, `layer`, `covered`, `oneway`, `area`, `natural`, `landuse`, `leisure`, `man_made`, `floating`, `water`, `intermittent`, `junction`, and `amenity` for places of worship and town halls). Names, addresses, house numbers, ids and every other attribute are dropped when reading. |
+| `dem.json.gz` | a crop of the elevation model in centimeters with its georeference |
+
+Both data files are small (1.4 MB and 80 KB) and live in Git LFS, so the
+map can be regenerated without a network. To fetch them again (or for a
+new site): run the Overpass query of `site.json` once against
+`osm_endpoint` (any HTTP client, no personal data in the request), download
+the Copernicus DEM tile of `dem_url`, then
+`python3 -I tools/geo_import.py extract assets-src/geo/<site>/site.json --osm RAW.json --dem RAW.tif`.
+Keep the raw downloads outside the repository (`build/`).
+
+**Determinism:** floats only with `+ - * /` and `sqrt` (exactly rounded),
+own series for sine, cosine and arctangent, a fixed random stream
+(`xorshift64*`), fixed iteration orders, integer output. PNGs are
+compressed with zlib; the check compares their decompressed content, so a
+different zlib build cannot fail it.
+
+**Pipeline** (stage numbers of prompt 081):
+
+1. *Frame:* an equirectangular projection around the center with the
+   WGS 84 meters per degree, turned so the map's +x axis points to
+   `x_axis_bearing_deg` (`harbor_city`: 37°, along the coast, sea in the
+   south); 2 m samples.
+2. *Elevation:* the Copernicus DEM is a surface model (roofs, tree tops).
+   Per DEM pixel the mean height of the OSM buildings over its ground is
+   subtracted (`height`, else `building:levels` × 3.2 m + 1 m, else
+   15 m), then a 3 × 3 median and a grey opening (5 × 5 pixels, keeping
+   the surface within 3 m of the opened ground) remove what is left of
+   buildings and trees; bilinear to 2 m and two box blurs of 18 m.
+3. *Coast:* coastline ways as walls, flood fill from `sea_seeds_m`; solid
+   piers, breakwaters and quays (areas, not floating) added as land; water
+   and land narrower than 8 m removed (morphological opening: moles,
+   jetties, slots), basins cut off by that closed, a majority pass smooths
+   the edge. Sea bed by rings from the shore: -0.8 m next to land, 0.35 m
+   deeper per ring, at most -6 m; terrain `deep_water`, a seam of
+   `shallow_water` (3 rings) and `sand` only at beaches; land next to the
+   water at least 1.2 m (quays: an edge), all land at least 1 m.
+4. *Roads:* the carrying network: motorway to residential and living
+   streets (8–14 m by class, `road`) and tracks (6 m, `dirt_track`);
+   tunnels, covered ways and ways below ground, steps, foot, cycle and
+   pedestrian ways, service roads (drives, parking aisles) and the race
+   circuit lines are dropped; a bridge that crosses another road is dropped
+   (the lower road stays); dead ends under 25 m and fragments under 80 m
+   go; lines simplified (Douglas-Peucker, 4 m). On the ground: every
+   sample takes the height of the nearest center line (which follows the
+   blurred ground along the road), so the bed is level across; parallel
+   carriageways and junctions are closed into one surface (gaps up to
+   12 m); the bed is smoothed over road samples only; banks of 40 % beside
+   it reach 14 m, and where the slope is steeper the last 4 m blend back
+   into it. Pedestrian squares are painted `road` without levelling.
+5. *Pads* (starts): flat at their mean height within 34 m, blended over
+   30 m.
+6. *Areas:* only areas of at least 1 500 m²: beaches `sand`, scrub and
+   heath `tall_grass`.
+7. *Buildings:* footprints (without `roof`, `construction` and
+   underground) are rasterized; touching ones are merged into blocks
+   (8-connected), sports pitches and stadium fields stay free. Blocks
+   smaller than the first step of `min_area_steps_m2` are dropped; the
+   step rises until at most `max_buildings` stand. Per block: the main
+   direction from the length-weighted edge directions (modulo 90°), the
+   height from the tallest tagged footprint or the district's estimate
+   (`levels` for small and large blocks), a class by height (tower ≥ 24 m,
+   block ≥ 14 m, town ≥ 9 m, villa) or by type (church, public building,
+   industrial or port ground), then rows across the block (8 m apart) filled
+   along its length with the class's catalog buildings (largest first). A
+   box must cover the block to 45 %, keep 4 m (one path cell) off roads,
+   so no building narrows a road for tanks, stay off water, other
+   buildings and reserved places (80 m around starts, 12 m around supply
+   points) and stand on at most 10 m of fall; otherwise it is shifted
+   across (±2, ±4 m), taken smaller or the row moves on. 2 % of the
+   buildings are ruins, 6 % damaged.
+8. *Building pads:* where the corners of a house differ by more than
+   0.6 m its ground (box + 0.5 m) is levelled at the center height,
+   without cut or fill around it; a pad that would cut a way (the open path
+   cells within 12 m must stay connected as before, on the heights as
+   stored) is left out. Then every building that cuts off a part of the
+   ground that was connected before (at least 500 path cells) is removed.
+   The check emulates the simulation's path grid (`sim::path`: 4 m cells,
+   |dx| + |dy| over the height patches, 60 %), so it agrees with
+   `map-check`.
+9. *Paving:* town ground within 6 m of the buildings becomes `road`
+   (districts marked `garden` keep their grass).
+10. *Green:* woods 8 m apart (pines, oaks), parks 14 m (palms,
+    broadleaf, pines, bushes), scrub bushes and pines 18 m, tree rows a
+    tree every 9 m (palms in the lower town), hedges along gardens and
+    parks in runs of 30 m with 9 m gaps; trunks keep 1.5 m off roads,
+    buildings and water.
+
+Not in the game and therefore dropped: tunnels, bridges and roads above
+roads, steps and lanes under 8 m (vehicles; infantry walks the open
+ground), floating pontoons, ships, cranes; real building shapes (catalog
+models with fixed sizes stand in), landmarks and modern buildings (towers,
+stadium stand, halls). See prompt 081, section 11, for what would be
+needed.
+
+**Reachability** of any map: `just map-reach <name> [picture.png]` (`cli
+map-reach`) uses the simulation's path grid and prints the land open to
+vehicles, to infantry only and to nobody (too steep or edges, buildings),
+the connected parts, the part every start and marker lies in, and the
+path lengths of a tank and a rifle squad from every start to every supply
+point; the picture has one pixel per 4 m cell.
+
+**A second site:** copy `site.json`, set the bounding box, query and
+frame, fetch and extract the sources, set seeds and districts, then adjust
+starts, pads and markers with the `--report` pictures (`stage1_grid.png`)
+and `just map-reach` until `just map-check` passes. Values in `site.json`
+are guide values of the site, not rules.
+
+#### `harbor_city` ("Hafenstadt")
+
+3.6 km × 2.4 km (1 801 × 1 201 samples), biome `forest` (there is no
+Mediterranean biome), heights -6 … 673 m (11 mm steps). The terrain,
+coast, harbors and the road network follow today's place named in
+[SOURCES.md](SOURCES.md#maps-from-real-geodata-prompt-081) (the name is
+not used in the game): the rock with the old town between two harbors,
+the flat reclaimed land in the west, the town rising up the slope to the
+hinterland. Four starts in two teams at the ends of the coastal strip
+(team 0 west at (-1470, 540) and (-1290, 800), team 1 east at
+(1560, 720) and (1320, 470)), each levelled 34 m around with 80 m kept
+free of buildings and trees.
+
+What the simplification kept (`just gen-geo harbor_city`, stage pictures
+with `--report`):
+
+| Data | OSM in the map | In the game |
+|---|---|---|
+| Roads | 235.5 km of ways | 82.3 km of 878 roads and tracks (2 835 instead of 8 233 points); dropped: 85.5 km foot, cycle and pedestrian ways, 34.6 km service roads, 19.8 km in tunnels or covered, 10.2 km of steps, 1.0 km race circuit lines, 0.4 km bridges over roads, 0.7 km short dead ends, 0.2 km fragments; parallel carriageways and junctions closed (7.3 ha) |
+| Coast | 643 coastline points | 7 271 coast samples (2 m); narrow water and land removed, net 0.2 ha more land |
+| Buildings | 5 862 footprints | 2 842 blocks after merging; 397 of at least 700 m² got 1 455 buildings (659 shifted, 564 taken smaller, 48 removed to keep ways open, 21 blocks without room); 1 224 levelled pads, 61 left on the slope |
+| Areas | 291 land use, leisure and natural areas of the kinds read | 146 of at least 1 500 m² (51 parks and gardens, 47 woods, 17 sports grounds, 12 scrub, 12 port or industrial, 7 beaches) and 13 squares; 76.6 ha of town ground paved |
+| Green | – | 9 633 trees, 500 palms, 3 741 bushes, 1 354 hedge pieces |
+
+Buildings per district (`site.json`, `districts`; blocks / buildings /
+removed): rock 18 / 183 / 0, west flats 50 / 163 / 0, harbor 18 / 66 / 0,
+east shore 77 / 348 / 0, slope town 189 / 474 / 5, hinterland 45 / 221 /
+43. Kinds: 534 town houses, 331 tenement blocks, 120 + 56 flat-roofed
+blocks, 271 + 62 flat houses, 36 stone and 27 brick houses, 10 churches,
+6 town halls, 2 warehouses.
+
+Reachability (`just map-reach harbor_city`): of 7.0 km² of land 56 % is
+open to vehicles and infantry, 2.7 % to infantry only (woods, hedges),
+33.7 % to nobody (steeper than 60 %, quay edges) and 7.6 % is covered by
+buildings; 82 % of the open ground hangs together, the rest are terraces
+and walled-in plots. Every start and supply point lies in that main part
+for both classes.
+
+Supply points in pairs, balanced by path length (vehicles / infantry, m,
+from the nearer start of each side):
+
+| Point | Place | West | East |
+|---|---|---|---|
+| `supply_harbor_west` / `supply_harbor_east` | quay on each side of the main harbor | 1 282 / 1 164 | 1 265 / 1 223 |
+| `supply_rock` / `supply_upper_east` | square on the rock / upper town east | 1 610 / 1 328 | 1 439 / 1 401 |
+| `supply_west_hill` / `supply_square_east` | hill above the west flats / square in the east town | 1 075 / 901 | 1 127 / 1 116 |
+| `supply_hinterland` | hinterland above the town (contested) | 2 996 / 2 675 | 2 498 / 2 370 |
+
+Every point lies where vehicles get to. The hinterland is reached over
+the east side (about 500 m shorter for vehicles, 300 m for infantry);
+over all seven points the east is about 630 m shorter by vehicle and the
+west about 40 m shorter on foot [provisional]. There is a vehicle route
+between the sides along the coast and through the town. Markers for tools
+and shots: `harbor`, `rock`, `west_flats`, `square_east`, `beach_east`,
+`upper_west`, `upper_east`, `west_hill`, `hinterland`, `start_west`,
+`start_east`, `blocks` (for `just objects-bench harbor_city
+--blocks-bench`). Pictures: `SHOT_SET=land just terrain-shots <dir>
+harbor_city` adds comparison views from the sea, the quarters, houses on
+the slope and a harbor street to the supply point views. Measurements:
+[PERFORMANCE.md](PERFORMANCE.md#harbor-city-prompt-081).
+
+Open: a Mediterranean biome (pines, cypresses, light houses, retaining
+walls, terraces), buildings shaped from footprints, landmark models,
+tunnels and stairs, ships, other sites.
+
 ### Landscape maps (prompt 056)
 
 `cli gen-land` (`crates/cli/src/gen_land.rs`, `just gen-land [map]`,

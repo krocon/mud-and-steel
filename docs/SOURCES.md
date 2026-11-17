@@ -126,6 +126,38 @@ photos, no file names of them, no text except the short notes of the data tables
 - **Rules** (hit points, capacities, exposure, ruin heights) are game
   rules, marked provisional.
 
+## Maps from real geodata (prompt 081)
+
+The map `harbor_city` (in the game "Hafenstadt" / "Harbor city") is built
+by `tools/geo_import.py` from open geodata of **Monaco** and the
+neighbouring French communes (Cap-d'Ail, Beausoleil, La Turbie,
+Roquebrune-Cap-Martin). The place is named only here, in
+[MAPS.md](MAPS.md#maps-from-real-geodata-prompt-081) and in
+`assets-src/geo/harbor_city/`; the map files, markers, menus and
+translations carry no real name (map names stay generic, see
+"Maps" above). The battle on it is invented; no coats of arms, flags or
+names of streets, shops or people.
+
+| Data | Source | License and attribution |
+|---|---|---|
+| Coastline, roads, building footprints and storeys, land use, parks, woods | [OpenStreetMap](https://www.openstreetmap.org), Overpass API (`https://overpass-api.de/api/interpreter`), one query (in `assets-src/geo/harbor_city/site.json`, `sources.osm_query`) over the box 43.712–43.768 N, 7.392–7.462 E, retrieved 2026-11-17 18:25 UTC (OSM base of that minute); raw answer 20.1 MB JSON, reduced to `osm.json.gz` (1.4 MB) | [ODbL 1.0](https://opendatacommons.org/licenses/odbl/1-0/), "© OpenStreetMap contributors" ([copyright](https://www.openstreetmap.org/copyright)) |
+| Heights | Copernicus DEM GLO-30 (30 m), tile `Copernicus_DSM_COG_10_N43_00_E007_00_DEM.tif` from the AWS open data bucket `copernicus-dem-30m` (12.6 MB GeoTIFF), retrieved 2026-11-17; a 257 × 206 pixel crop in `dem.json.gz` | free use with attribution: "produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved" |
+
+- `assets-src/geo/harbor_city/osm.json.gz` and the map files of
+  `data/maps/harbor_city/` (heights, terrain, object positions) are derived
+  from ODbL data, a derivative database in the sense of the license, and
+  are available under ODbL 1.0 as well; the game itself is a produced work
+  that names the source in its credits (`CREDITS.md`, main menu →
+  Credits). [provisional: the exact terms of both licenses should be read
+  once more before a release]
+- Not used: Google Maps or any map service whose terms forbid extraction,
+  the commercial 3D city model whose pictures (`.temp/`, not in the
+  repository) served only to compare the result by eye; nothing was
+  measured, traced or taken from them.
+- The buildings are the game's catalog models standing where real blocks
+  stand, chosen by footprint and storeys (stand-ins, not reproductions); no
+  real building is modelled.
+
 ## Rocket salvo effects (prompt 076)
 
 - **M-13 (132 mm, BM-13 "Katyusha")**: reactive powder charge burning time

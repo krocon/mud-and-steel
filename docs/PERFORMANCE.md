@@ -246,6 +246,32 @@ Reading the numbers:
 - **Fire:** streets of 12 and 16 m are firebreaks (road terrain), so a
   burning cell stays a burning cell.
 
+## Harbor city (prompt 081)
+
+`harbor_city` (3.6 km × 2.4 km from real geodata, 16 683 objects: 1 455
+buildings, 10 133 trees and palms, 3 741 bushes, 1 354 hedge pieces)
+measured on 17.11.2026, Apple M1 Max, release simulation, debug bridge,
+machine otherwise idle.
+
+| What | Command | harbor_city | test_large (same session) | Budget |
+|---|---|---|---|---|
+| Sim tick, battle | `just bench --scenario data/scenarios/bench_harbor.toml --runs 2` (254 units, half the armies of `bench_large` on the levelled ground at the four starts, 3 km apart; the town leaves no room for the full armies; 18 spawn points lie on blocked cells) | mean 4.62, p99 7.98, max 10.7 ms (paths 1.70, vision 2.49, projectiles 0.06 ms) | `just bench --runs 2` (504 units): mean 5.63, p99 9.1, max 10.7 ms (paths 1.83, vision 2.92) | 5 / 10 / 20 ms |
+| AI think per tick | same | 0.10 ms mean, 1.3 ms max | 0.30 ms | 0.5 ms |
+| Pathfinding | `just path-bench harbor_city` (200 single orders around the map center, ±1800 m / `--range-m 600`) | planning ticks 5.61 / 5.26 ms mean, p99 7.8 / 7.5 ms; 64 900 / 22 300 expansions per request; 14 / 16 of 271 / 274 requests fail (units spawned on the steep hillside at the center) | – | – |
+| Vision | `just vision-bench harbor_city` (500 units) | 6.25 ms mean (4.17 with one-cell sight), 236 000 ray steps per tick | 6.38 ms (4.52), 208 000 | ray steps ≤ 400 000 |
+| Frame rate over the town | `just objects-bench harbor_city --blocks-bench --quality=…` at 35 / 110 / 350 m | high 96 / 112 / 106 FPS, medium 135 / 161 / 151, low 192 / 226 / 203; 241 / 435 / 2 060 draw calls, 1.4–2.6 M triangles | – | ≥ 60 FPS |
+| Frame rate with the battle | `godot … -- --scenario=bench_harbor.toml --ai=hard --perf-bench --quality=…` (standing 40 / 150 / 600 m, battle 40 / 150 / 600 m) | medium 72 / 67 / 124, battle 114 / 102 / 69 FPS; high 71 / 65 / 86, battle 89 / 93 / 71 FPS | – | ≥ 60 FPS |
+| Loading and files | `just map-info harbor_city` | 2.16 MB files (height.png 1.42 MB, terrain.png 0.07 MB, objects.csv 0.68 MB), 10.8 MB in memory, decode 26 ms, objects 23 ms | 6.8 MB, 20 MB (table in MAPS.md) | – |
+| Generating | `just gen-geo harbor_city` / `just gen-geo-check` | about 55 s (Python, one core) / about 55 s (two runs in parallel) | – | – |
+
+Reading the numbers: every view stays above 60 FPS in every quality
+measured; the standing armies at 150 m are the slowest view (65 FPS, the
+infantry stands in front of a wood and the town). The simulation stays
+within its budget with half the armies; the path search expands about
+half as many nodes per long request as on `test_large` (the map is
+narrower), and a third of the land is closed by grade, which the search
+never enters.
+
 ## Decisions
 
 | Question | Decision | Why |

@@ -261,7 +261,7 @@ func _skirmish_screen() -> Control:
 	map_option = OptionButton.new()
 	_maps = MatchSetup.available_maps()
 	for map_name in _maps:
-		map_option.add_item(map_name)
+		map_option.add_item(MatchSetup.map_title(map_name))
 	map_option.select(MatchSetup.default_map_index(_maps))
 	map_option.item_selected.connect(func(_index: int) -> void:
 		_update_map_info()

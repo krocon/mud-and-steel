@@ -690,6 +690,36 @@ against rifle squads that cannot hurt them (both armies drive more than
 (prompt 079, decision 4). Against the passive enemy the attacker loses
 the slugfest at the enemy start, as on `town_small` and `river_land`.
 
+### The harbor city (prompt 081)
+
+`harbor_city` (3.6 km × 2.4 km from real geodata, a third of the land
+too steep for anyone, starts about 3 km apart at the ends of the coastal
+strip) needed no AI change. Battle mode, `--max-ticks 18000` (15 min),
+win rate A / B / timeouts (scenario factions, de west / su east): hard vs
+normal 20 / 20 / 6 of 10, hard vs passive 40 / 0 / 6 of 10, normal vs
+easy 50 / 10 / 4 of 10; 2v2 hard vs normal 50 / 0 / 3 of 6. Mirror
+matches over 20 games (who wins by side): Germans on both sides west 5,
+east 8, 7 timeouts; Soviets on both sides west 14, east 1, 5 timeouts.
+Base mode (30 000 ticks): hard vs passive 4 of 4 (about 13 minutes each), hard vs normal 0 / 0 / 4 (as on `skirmish` and `city_large`). The armies
+take the coast road and the streets of the town and meet around the
+harbor and in the east town; the traces show no column waiting in front
+of a slope.
+
+How unreachable goals are handled today: a move order's goal in another
+part of the path grid (on a slope too steep, on a plateau no road leads
+to) is moved by the simulation to the nearest cell of the start's part
+(`PathGrid`, components), so the units drive there and stop; the
+commander's staging points only avoid water (`intel::Ground`). A ground
+model from the path grid (grade and objects, largest connected part) was
+tried: it did not change the stalemates on this map and moved results
+on `skirmish`, so it was dropped [provisional]. What did hang on an
+early version of the map was a tank at a house corner next to a street
+(the house box closed the street's edge cell); buildings now keep a path
+cell (4 m) off every road. Every timeout ends with tanks out of
+ammunition or out of sight of each other (buildings, terrain) and rifle
+squads that cannot hurt tanks; the infantry needs more than the 15
+minutes to walk the 3 km between the starts.
+
 ### Balance (prompt 045)
 
 Prompt 045 changed rule values the AI plays with (income, start account,

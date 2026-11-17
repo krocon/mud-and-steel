@@ -253,8 +253,8 @@
     [
       "supply_upper_east",
       [
-        521,
-        89
+        400,
+        0
       ]
     ],
     [
@@ -309,8 +309,8 @@
     [
       "upper_east",
       [
-        521,
-        89
+        400,
+        0
       ]
     ],
     [
@@ -340,6 +340,13 @@
         1560,
         720
       ]
+    ],
+    [
+      "blocks",
+      [
+        250,
+        450
+      ]
     ]
   ],
   "buildings": {
@@ -347,7 +354,7 @@
     "large_block_m2": 600,
     "public_min_m2": 400,
     "coverage": 0.45,
-    "road_margin_m": 2.0,
+    "road_margin_m": 4.0,
     "overhang_m": 2.0,
     "gap_m": 3.0,
     "step_m": 4.0,
@@ -355,7 +362,7 @@
     "ruin_share": 0.02,
     "damaged_share": 0.06,
     "supply_free_m": 12,
-    "max_buildings": 2000,
+    "max_buildings": 1600,
     "classes": {
       "tower": [
         "env_block_town",

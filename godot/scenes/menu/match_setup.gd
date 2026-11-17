@@ -98,6 +98,12 @@ static func available_maps() -> PackedStringArray:
 	return maps
 
 
+## Shown name of a map (prompt 081): its translation `MAP_<NAME>` in
+## `locale/menu.csv` when there is one, else the folder name.
+static func map_title(map_name: String) -> String:
+	return Language.code_text("MAP_", map_name)
+
+
 ## Absolute folder of `map`, or "" for the built-in map.
 static func map_dir(map_name: String) -> String:
 	if map_name == BUILTIN_MAP or map_name.is_empty():
@@ -111,7 +117,7 @@ static func describe_map(map_name: String) -> String:
 	var text := FileAccess.get_file_as_string(path)
 	if text.is_empty():
 		return ""
-	var samples := 0
+	var samples := Vector2i.ZERO
 	var cell_mm := 0
 	var biome := ""
 	var weather := ""
@@ -125,7 +131,8 @@ static func describe_map(map_name: String) -> String:
 		var value := parts[1].strip_edges().trim_prefix("\"").trim_suffix("\"")
 		match key:
 			"samples":
-				samples = int(value.trim_prefix("[").split(",")[0])
+				var counts := value.trim_prefix("[").trim_suffix("]").split(",")
+				samples = Vector2i(int(counts[0]), int(counts[1] if counts.size() > 1 else counts[0]))
 			"cell_size_mm":
 				cell_mm = int(value)
 			"biome":
@@ -134,9 +141,10 @@ static func describe_map(map_name: String) -> String:
 				var shown := Language.code_text("MATCH_%s_" % key.to_upper(), value)  # l10n-ignore
 				weather += (", " if not weather.is_empty() else "") + shown
 	var size := ""
-	if samples > 1 and cell_mm > 0:
-		var meters := (samples - 1) * cell_mm / 1000
-		size = "%d m × %d m" % [meters, meters] if meters < 1000 else "%.1f km × %.1f km" % [meters / 1000.0, meters / 1000.0]
+	if samples.x > 1 and samples.y > 1 and cell_mm > 0:
+		var meters := (samples - Vector2i.ONE) * cell_mm / 1000
+		size = "%d m × %d m" % [meters.x, meters.y] if maxi(meters.x, meters.y) < 1000 \
+			else "%.1f km × %.1f km" % [meters.x / 1000.0, meters.y / 1000.0]
 	return "%s%s%s" % [size, (", " + biome) if not biome.is_empty() else "", (", " + weather) if not weather.is_empty() else ""]
 
 

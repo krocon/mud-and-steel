@@ -323,3 +323,100 @@ pub fn run(dir: &Path, map: &Map, png: Option<&Path>) -> Result<String, String> 
     }
     Ok(out)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::TYPES;
+    use sim::path::PathGrid;
+    use sim::{Catalog, Map, Scale, TerrainRules};
+    use std::path::PathBuf;
+
+    fn harbor_dir() -> PathBuf {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../data/maps/harbor_city")
+    }
+
+    /// The map from real geodata (prompt 081): loads, survives the map
+    /// editor, both sides reach each other and every supply point
+    /// (infantry everywhere, vehicles at least half of them; here all), and
+    /// no real place name got into its files. That it regenerates
+    /// identically is checked by `tools/geo_import.py check` (`just check`).
+    #[test]
+    fn harbor_city_plays_and_carries_no_real_names() {
+        let dir = harbor_dir();
+        let read = |f: &str| std::fs::read(dir.join(f)).unwrap();
+        let toml = String::from_utf8(read("map.toml")).unwrap();
+        let csv = String::from_utf8(read("objects.csv")).unwrap();
+        for text in [&toml, &csv] {
+            let lower = text.to_lowercase();
+            for name in [
+                "monaco",
+                "monte",
+                "carlo",
+                "fontvieille",
+                "condamine",
+                "larvotto",
+                "beausoleil",
+                "turbie",
+                "roquebrune",
+                "hercule",
+                "grimaldi",
+            ] {
+                assert!(!lower.contains(name), "real name '{name}' in the map files");
+            }
+        }
+        let mut map = Map::load(&toml, &read("height.png"), &read("terrain.png")).unwrap();
+        map.add_objects(&csv).unwrap();
+
+        // Opened and saved by the map editor, the map stays the same map.
+        let saved = std::env::temp_dir().join(format!("mas-harbor-{}", std::process::id()));
+        let mut edit = editor::EditMap::load_dir(&dir).unwrap();
+        edit.save_dir(&saved).unwrap();
+        let reread = |f: &str| std::fs::read(saved.join(f)).unwrap();
+        let mut again = Map::load(
+            &String::from_utf8(reread("map.toml")).unwrap(),
+            &reread("height.png"),
+            &reread("terrain.png"),
+        )
+        .unwrap();
+        again
+            .add_objects(&String::from_utf8(reread("objects.csv")).unwrap())
+            .unwrap();
+        assert_eq!(
+            again.reference().hash,
+            map.reference().hash,
+            "editor round trip"
+        );
+        let _ = std::fs::remove_dir_all(&saved);
+
+        let catalog = Catalog::builtin().unwrap();
+        let scale = Scale::builtin().unwrap();
+        let rules = TerrainRules::builtin().unwrap();
+        let types = sim::unit_types_from_catalog(&catalog, &scale, &TYPES).unwrap();
+        let grid = PathGrid::new(&map, &rules, &types);
+        let reaches = |from: sim::Vec2, to: sim::Vec2, profile: usize| {
+            grid.find_path(from, to, profile)
+                .is_some_and(|p| (p.goal - to).length() <= sim::Fixed::from_num(20))
+        };
+        assert_eq!(map.starts().len(), 4);
+        let west = map.starts()[0].position;
+        let east = map.starts()[1].position;
+        assert!(reaches(west, east, 1), "infantry from start to start");
+        assert!(reaches(west, east, 0), "tanks from start to start");
+        let supplies: Vec<_> = map
+            .markers()
+            .iter()
+            .filter(|m| m.name.starts_with("supply"))
+            .collect();
+        assert!(supplies.len() >= 4);
+        let mut by_vehicle = 0;
+        for m in &supplies {
+            assert!(reaches(west, m.position, 1), "infantry to {}", m.name);
+            assert!(reaches(east, m.position, 1), "infantry to {}", m.name);
+            by_vehicle += usize::from(reaches(west, m.position, 0) && reaches(east, m.position, 0));
+        }
+        assert!(
+            2 * by_vehicle >= supplies.len(),
+            "vehicles reach {by_vehicle} supply points"
+        );
+    }
+}
