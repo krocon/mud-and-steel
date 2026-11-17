@@ -1,0 +1,204 @@
+# KV-2 Model 1940 heavy assault tank: KV-1 hull and running gear with the
+# tall box turret (MT-1) carrying the 152 mm M-10T howitzer (L/24.3). Main
+# dimensions from data/catalog/su.toml: length 7.00 m with gun, hull 6.80 m,
+# width 3.25 m, height 3.30 m. No drawing in the reference folder (prompt
+# 063): hull and running gear as su_kv1_1941 (onwar.com drawing
+# su012kv1m41.jpg); turret plan and gun position estimated from photographs
+# (Wikipedia "KV-2"): nearly vertical sides, slightly sloped front, flat
+# roof, large box mantlet with the short thick barrel, door in the turret
+# rear with the rear DT. Turret height fitted to the catalog height.
+unit = "su_kv2"
+assembly = "tank"
+
+[layout]
+turret_y = 0.15
+turret_ring_diameter = 1.54
+fender_overhang = 0.0
+
+[running_gear]
+part = "torsion_bar"
+twin = false
+track_width = 0.65
+track_thickness = 0.05
+link_pitch = 0.16
+road_wheel_diameter = 0.60
+road_wheels = [2.37, 1.46, 0.55, -0.36, -1.23, -2.06]
+sprocket = { y = -2.91, z = 0.64, diameter = 0.72, teeth = 16 }
+idler = { y = 3.07, z = 0.70, diameter = 0.62, spoked = true }
+return_rollers = { y = [1.74, -0.11, -1.83], z = 1.00, diameter = 0.34 }
+arm = 0.30
+dish = 0.04
+
+[hull]
+part = "plate_hull"
+lower = [[-3.10, 0.45], [2.95, 0.45], [3.40, 1.30], [-3.40, 1.30], [-3.40, 0.75]]
+# glacis 25 deg from horizontal, driver's front plate, roof, rounded rear
+upper = [[-3.40, 1.30], [3.40, 1.30], [2.40, 1.50], [2.15, 1.69], [-2.95, 1.69], [-3.30, 1.52], [-3.40, 1.38]]
+upper_half_width = 0.97
+bevel = 0.02
+
+[turret]
+part = "plate_turret"
+height = "fit"
+# tall box turret overhanging the ring at the front and rear
+plan = [[-0.85, 1.20], [0.85, 1.20], [1.00, 1.00], [1.00, -1.25], [0.85, -1.40], [-0.85, -1.40], [-1.00, -1.25], [-1.00, 1.00]]
+side_slope_deg = 3
+front_slope_deg = 8
+bevel = 0.02
+
+[gun]
+part = "tank_gun"
+trunnion = [1.05, 0.72]
+mantlet = { kind = "box", size = [0.80, 0.45, 0.75] }
+sleeve = [0.25, 0.15]
+segments = [["fit", 0.105, 0.095]]
+muzzle_brake = "none"
+
+[[mg]]  # coaxial DT, right of the howitzer
+part = "mg"
+mount = "coax"
+position = [0.30, 0.25, -0.05]
+
+[[mg]]  # bow DT in a ball mount, left of the driver
+part = "mg"
+mount = "ball"
+position = [-0.50, 2.30, 1.58]
+
+[[mg]]  # DT in a ball mount in the rear door of the turret
+part = "su.turret_rear_mg"
+position = [0.0, -1.27, 2.45]
+
+[[part]]
+part = "turret_hatch"         # large hatch on the turret roof
+x = 0.0
+y = -0.50
+size = [0.70, 0.70]
+socket = true
+
+[[part]]
+part = "box_prop"             # rear door of the turret
+parent = "Turret"
+center = [0.0, -1.27, 2.40]
+size = [0.75, 0.04, 0.90]
+
+[[part]]
+part = "cylinder_prop"        # periscope, roof front left
+parent = "Turret"
+from = [-0.45, 0.85, 3.20]
+to = [-0.45, 0.85, 3.30]
+radius = 0.07
+
+[[part]]
+part = "box_prop"             # driver's visor in the front plate
+center = [0.0, 2.30, 1.62]
+size = [0.30, 0.10, 0.12]
+
+[[part]]
+part = "box_prop"             # stowage boxes on the rear fenders
+center = [-1.32, -0.82, 1.45]
+size = [0.55, 1.15, 0.25]
+
+[[part]]
+part = "box_prop"
+center = [-1.32, -2.10, 1.45]
+size = [0.55, 1.15, 0.25]
+
+[[part]]
+part = "box_prop"
+center = [1.32, -0.82, 1.45]
+size = [0.55, 1.15, 0.25]
+
+[[part]]
+part = "box_prop"
+center = [1.32, -2.10, 1.45]
+size = [0.55, 1.15, 0.25]
+
+[[part]]
+part = "deck_box"             # engine deck louvres behind the turret
+center = [0.0, -1.55]
+size = [1.5, 0.6, 0.04]
+
+[[part]]
+part = "deck_box"             # rear deck plate with the two round access hatches
+center = [0.0, -2.45]
+size = [1.7, 0.85, 0.03]
+
+[[part]]
+part = "exhaust"
+kind = "pipe"
+position = [-0.45, -3.32, 1.20]
+length = 0.08
+diameter = 0.14
+
+[[part]]
+part = "exhaust"
+kind = "pipe"
+position = [0.45, -3.32, 1.20]
+length = 0.08
+diameter = 0.14
+
+[[part]]
+part = "headlight"
+position = [-0.85, 2.85, 1.48]
+diameter = 0.18
+
+[[part]]
+part = "antenna"              # 71-TK-3 radio whip, left front of the hull
+position = [-0.92, 2.55, 1.32]
+length = 2.2
+
+[[part]]
+part = "tool"
+kind = "shovel"
+position = [1.40, 1.0, 1.32]
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 3.30, 0.95]
+pair = true
+socket = false
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -3.30, 0.95]
+pair = true
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -2.0, 1.72]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 0.15, 3.20]
+parent = "Turret"
+
+[[part]]
+part = "marking"
+name = "Turret_L"
+parent = "Turret"
+position = [-1.04, 0.0, 2.60]
+normal = [-1.0, 0.0, 0.05]
+size = 0.6
+
+[[part]]
+part = "marking"
+name = "Turret_R"
+parent = "Turret"
+position = [1.04, 0.0, 2.60]
+normal = [1.0, 0.0, 0.05]
+size = 0.6
+
+[[part]]
+part = "marking"
+name = "Turret_Rear"
+kind = "number"
+parent = "Turret"
+position = [-0.65, -1.26, 2.80]
+normal = [0.0, -1.0, 0.0]
+size = 0.35
+
+[validate]
+# catalog height is the turret top (hatch); the antenna stands above
+exclude_height = ["Antenna_*"]

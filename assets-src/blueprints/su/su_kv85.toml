@@ -1,0 +1,192 @@
+# KV-85 heavy tank (autumn 1943): KV-1S hull and running gear with the large
+# cast IS-85 turret on a raised ring collar and the 85 mm D-5T. Main
+# dimensions from data/catalog/su.toml: length 8.49 m with gun, hull 6.80 m,
+# width 3.25 m, height 2.80 m (cupola top). Proportions measured on the
+# onwar.com drawing su015kv85.jpg (prompt 063, about 151 px/m along like the
+# KV-1S drawing, 155 px/m in height): ring collar from 1.37 m ahead of the
+# hull center to 0.19 m behind it, turret from 2.20 m ahead of the center to
+# 1.05 m behind it and 2.25 m wide (over the fenders), cupola on the left
+# rear, two cylindrical fuel tanks on each rear fender; coaxial DT, fixed bow
+# DT fired by the driver (no hull gunner, crew 4), DT in the turret rear.
+unit = "su_kv85"
+assembly = "tank"
+
+[layout]
+turret_y = 0.60
+turret_z = 1.70
+turret_ring_diameter = 1.80
+fender_overhang = 0.0
+
+[running_gear]
+part = "torsion_bar"
+twin = false
+track_width = 0.67
+track_thickness = 0.05
+link_pitch = 0.16
+road_wheel_diameter = 0.60
+road_wheels = [2.37, 1.46, 0.55, -0.36, -1.23, -2.06]
+sprocket = { y = -2.91, z = 0.64, diameter = 0.72, teeth = 16 }
+idler = { y = 3.07, z = 0.70, diameter = 0.62, spoked = true }
+return_rollers = { y = [1.74, -0.11, -1.83], z = 1.00, diameter = 0.34 }
+arm = 0.30
+dish = 0.04
+spokes = 8
+
+[hull]
+part = "plate_hull"
+lower = [[-3.10, 0.45], [2.95, 0.45], [3.40, 1.22], [-3.40, 1.22], [-3.40, 0.75]]
+# flat glacis, driver's front plate, roof, rounded rear
+upper = [[-3.40, 1.22], [3.40, 1.22], [2.50, 1.38], [2.30, 1.55], [-2.95, 1.55], [-3.30, 1.42], [-3.40, 1.30]]
+upper_half_width = 0.97
+bevel = 0.02
+
+[turret]
+part = "cast_turret"
+height = "fit"
+length = 3.10
+width = 2.25
+exponent = 2.4
+front_scale = 0.82
+y_shift = 0.0
+profile = [[0.0, 1.0], [0.45, 0.98], [0.8, 0.88], [1.0, 0.72]]
+
+[cupola]
+x = -0.40
+y = -0.57
+diameter = 0.80
+height = 0.20
+vision_blocks = 6
+hatch = "single"
+
+[gun]
+part = "tank_gun"
+trunnion = [1.64, 0.46]
+mantlet = { kind = "cast_box", size = [0.60, 0.40, 0.45] }
+sleeve = [0.30, 0.11]
+segments = [["fit", 0.065, 0.055]]
+muzzle_brake = "none"
+
+[[mg]]  # coaxial DT, right of the gun
+part = "mg"
+mount = "coax"
+position = [0.25, 0.10, 0.0]
+
+[[mg]]  # fixed bow DT fired by the driver, right of the visor
+part = "su.bow_mg"
+position = [0.35, 2.40, 1.46]
+
+[[mg]]  # DT in a ball mount in the turret rear
+part = "su.turret_rear_mg"
+position = [0.0, -1.06, 2.10]
+
+[[part]]
+part = "box_prop"             # raised turret ring collar on the hull roof
+center = [0.0, 0.59, 1.62]
+size = [1.94, 1.56, 0.16]
+
+[[part]]
+part = "turret_hatch"         # loader's hatch, right
+x = 0.45
+y = -0.55
+diameter = 0.50
+
+[[part]]
+part = "box_prop"             # driver's visor in the front plate
+center = [0.0, 2.40, 1.48]
+size = [0.30, 0.10, 0.12]
+
+[[part]]
+part = "su.fuel_drums"        # cylindrical fuel tanks on the rear fenders
+positions = [[-1.30, -0.73, 1.52], [-1.30, -1.85, 1.52], [1.30, -0.73, 1.52], [1.30, -1.85, 1.52]]
+length = 1.02
+diameter = 0.40
+
+[[part]]
+part = "deck_box"             # engine deck louvres behind the turret
+center = [0.0, -1.55]
+size = [1.5, 0.6, 0.04]
+
+[[part]]
+part = "deck_box"             # rear deck plate with the two round access hatches
+center = [0.0, -2.45]
+size = [1.7, 0.85, 0.03]
+
+[[part]]
+part = "exhaust"
+kind = "pipe"
+position = [-0.45, -3.32, 1.12]
+length = 0.08
+diameter = 0.14
+
+[[part]]
+part = "exhaust"
+kind = "pipe"
+position = [0.45, -3.32, 1.12]
+length = 0.08
+diameter = 0.14
+
+[[part]]
+part = "headlight"
+position = [-0.85, 2.85, 1.38]
+diameter = 0.18
+
+[[part]]
+part = "antenna"              # 71-TK-3 radio whip, left front of the hull
+position = [-0.92, 2.55, 1.30]
+length = 2.2
+
+[[part]]
+part = "tool"
+kind = "shovel"
+position = [1.40, 1.0, 1.30]
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 3.30, 0.95]
+pair = true
+socket = false
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -3.30, 0.95]
+pair = true
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -2.0, 1.57]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 0.60, 2.60]
+parent = "Turret"
+
+[[part]]
+part = "marking"
+name = "Turret_L"
+parent = "Turret"
+position = [-1.08, 0.55, 2.10]
+normal = [-0.97, 0.0, 0.25]
+size = 0.45
+
+[[part]]
+part = "marking"
+name = "Turret_R"
+parent = "Turret"
+position = [1.08, 0.55, 2.10]
+normal = [0.97, 0.0, 0.25]
+size = 0.45
+
+[[part]]
+part = "marking"
+name = "Turret_Rear"
+kind = "number"
+parent = "Turret"
+position = [-0.40, -0.98, 2.15]
+normal = [0.0, -0.95, 0.30]
+size = 0.35
+
+[validate]
+# catalog height is the cupola top; the antenna stands above
+exclude_height = ["Antenna_*"]
