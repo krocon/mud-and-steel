@@ -12,7 +12,7 @@ assembly = "tank"
 [layout]
 turret_y = 0.10
 turret_ring_diameter = 1.70
-fender_overhang = 0.0
+fender_overhang = 0.03
 
 [running_gear]
 part = "torsion_bar"
