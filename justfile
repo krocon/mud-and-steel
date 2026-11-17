@@ -521,6 +521,11 @@ blast-shots dir="build/explosions": build
 explosion-series dir="build/explosion-ref/now": build
     bash tools/explosion-series.sh {{ dir }}
 
+# A rocket salvo as a picture series after the reference (winter, dusk), then side view, target, day, night, biomes and factions (prompt 076, needs a window); `--only=<run>,<run>` records some
+[group('godot')]
+salvo-shots dir="build/salvo" *args: build
+    {{ GODOT }} --path godot --always-on-top --fixed-fps 30 res://scenes/main.tscn -- --salvo-series "--blast-shots={{ justfile_directory() }}/{{ dir }}" {{ args }}
+
 # Play a real heavy rocket strike on the base skirmish and record it as PNG files; fails if it does not show (prompt 054, needs a window)
 [group('godot')]
 strike-shots dir="build/explosions": build
@@ -531,10 +536,10 @@ strike-shots dir="build/explosions": build
 trailer-shots *args: build
     bash tools/trailer-shots.sh {{ args }}
 
-# Measure the frame rate with 50 explosions at once in every graphics quality (opens a window)
+# Measure the frame rate with 50 explosions at once and two rocket salvos in every graphics quality (opens a window); `--salvos` only the salvos
 [group('godot')]
-effects-bench: build
-    {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- --effects-bench
+effects-bench *args: build
+    {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- --effects-bench {{ args }}
 
 # Measure the frame rate while 100 simulation craters fall within 2 s (prompt 021; 1920 x 1080, V-Sync off)
 [group('effects')]

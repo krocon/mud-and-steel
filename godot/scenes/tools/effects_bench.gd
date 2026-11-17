@@ -19,7 +19,13 @@ extends Node
 ## `--effects-bench` sets the window to 1920 x 1080, turns V-Sync off and, in
 ## every graphics quality, measures the frame rate with 50 explosions at once
 ## (a new barrage every 2 s) from 150 m and from 60 m, then with 24 burning
-## wrecks on top. `just effects-bench`.
+## wrecks on top, then two rocket salvos at once (prompt 076: two own units
+## get the battery position's model and fire 24 rockets each through
+## `SimHost.debug_rocket`) from 150 m and 60 m, with the rocket effects and,
+## for comparison, without them (balls, as before). `just effects-bench`;
+## `-- --salvos` measures only the idle view and the salvos. A view with
+## frames drawn by force (window not drawable, e.g. a locked screen) is
+## marked invalid.
 
 const SHOT_SIZE := Vector2i(1600, 900)
 const BENCH_SIZE := Vector2i(1920, 1080)
@@ -28,9 +34,15 @@ const BARRAGE_RADIUS := 70.0
 const BARRAGE_SECONDS := 2.0
 const BENCH_SECONDS := 6.0
 const WARMUP_FRAMES := 60
+## Two salvos (prompt 076): rockets each, ms apart, caliber, range.
+const SALVO := 24
+const SALVO_RIPPLE_S := 0.25
+const SALVO_CALIBER := 132.0
+const BaseView := preload("res://scenes/world/base_view.gd")
 
 var main: Node3D
 var forced_draws := 0
+var _salvo_target := Vector3.ZERO
 var _dir := ""
 var _shot_count := 0
 
@@ -157,6 +169,22 @@ func _dust_view(biome: String) -> void:
 	main.sim_host.stop_units(PackedInt64Array(own))
 
 
+## One rocket from each of the two batteries at the enemy.
+func _salvo_round(own: Array[int], enemies: Array[int]) -> void:
+	var target := _salvo_target
+	for id in own.slice(0, 2):
+		var a := randf() * TAU
+		var r := 60.0 * sqrt(randf())
+		main.sim_host.debug_rocket(id, target.x + cos(a) * r, target.z + sin(a) * r, SALVO_CALIBER)
+
+
+## Between the batteries and a third of the way to the enemy.
+func _salvo_focus(own: Array[int]) -> Vector3:
+	var at := (_position_of(own[0]) + _position_of(own[1])) * 0.5
+	var to := _salvo_target - at
+	return at + to * 0.2
+
+
 func _barrage(center: Vector3) -> void:
 	for k in BARRAGE:
 		var angle := k * 2.399963
@@ -198,6 +226,13 @@ func _bench() -> void:
 	var center := (_centroid(own) + _centroid(enemies)) * 0.5
 	print("effects-bench: render size %s, %s, biome '%s'" % [
 		get_viewport().get_visible_rect().size, RenderingServer.get_video_adapter_name(), main.atmosphere.preset.id])
+	# Two own units become rocket batteries (prompt 076).
+	# Open ground between the sides (where the barrages land), so the
+	# impacts destroy nothing and leave no burning wrecks.
+	_salvo_target = center
+	for id in own.slice(0, 2):
+		BaseView.attach_model(main._unit_nodes[id], "base_rocket_battery", main.atmosphere.preset.id)
+		main.effects._sockets.erase(id)
 	for level: String in main.GraphicsQuality.LEVELS:
 		main.atmosphere.set_quality(level)
 		await _frames(5)
@@ -210,11 +245,26 @@ func _bench() -> void:
 				particles += p.amount
 		print("effects-bench: %s: %d pooled emitters, %d particles at most, %d lights, %d decals" % [
 			level, emitters, particles, fx._settings.fx_lights, fx._settings.fx_decals])
-		for view in [{"name": "idle 150 m", "distance": 150.0, "barrage": false},
+		var views: Array[Dictionary] = [{"name": "idle 150 m", "distance": 150.0, "barrage": false},
 				{"name": "50 explosions 150 m", "distance": 150.0, "barrage": true},
 				{"name": "50 explosions 60 m", "distance": 60.0, "barrage": true},
-				{"name": "+24 burning wrecks", "distance": 150.0, "barrage": true, "wrecks": true}]:
-			main.camera_rig.snap_to(center, view["distance"], 0.5)
+				{"name": "+24 burning wrecks", "distance": 150.0, "barrage": true, "wrecks": true},
+				{"name": "2 salvos, balls 150 m", "distance": 150.0, "barrage": false, "salvo": true, "plain": true},
+				{"name": "2 salvos 150 m", "distance": 150.0, "barrage": false, "salvo": true},
+				{"name": "2 salvos, balls 60 m", "distance": 60.0, "barrage": false, "salvo": true, "plain": true},
+				{"name": "2 salvos 60 m", "distance": 60.0, "barrage": false, "salvo": true}]
+		# `--salvos`: only the idle view and the salvos (a shorter run).
+		if "--salvos" in OS.get_cmdline_user_args():
+			views = views.filter(func(v: Dictionary) -> bool: return v.get("salvo", false) or not v["barrage"])
+		for view in views:
+			var salvo: bool = view.get("salvo", false)
+			if salvo:
+				# Without the wrecks of the view before.
+				for wreck in fx._wrecks:
+					(wreck.root as Node).queue_free()
+				fx._wrecks.clear()
+			fx.rockets.enabled = not view.get("plain", false)
+			main.camera_rig.snap_to(_salvo_focus(own) if salvo else center, view["distance"], 0.5)
 			if view.get("wrecks", false):
 				for k in 24:
 					var angle := k * TAU / 24.0
@@ -223,6 +273,7 @@ func _bench() -> void:
 			if view["barrage"]:
 				_barrage(center)
 			await _frames(WARMUP_FRAMES)
+			var forced_before := forced_draws
 			var began := Time.get_ticks_usec()
 			var last := began
 			var next_barrage := 0.0
@@ -230,11 +281,17 @@ func _bench() -> void:
 			var worst := 0.0
 			var cpu := 0.0
 			var draw_calls := 0
+			var fired := 0
+			var max_trails := 0
 			while (Time.get_ticks_usec() - began) / 1e6 < BENCH_SECONDS:
 				var t := (Time.get_ticks_usec() - began) / 1e6
 				if view["barrage"] and t >= next_barrage:
 					_barrage(center)
 					next_barrage += BARRAGE_SECONDS
+				if salvo and fired < SALVO and t >= fired * SALVO_RIPPLE_S:
+					_salvo_round(own, enemies)
+					fired += 1
+				max_trails = maxi(max_trails, fx.rockets.trails_live())
 				await _frame()
 				var now := Time.get_ticks_usec()
 				worst = maxf(worst, (now - last) / 1000.0)
@@ -243,8 +300,16 @@ func _bench() -> void:
 				cpu += RenderingServer.viewport_get_measured_render_time_cpu(viewport_rid) + RenderingServer.get_frame_setup_time_cpu()
 				draw_calls += RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_DRAW_CALLS_IN_FRAME)
 			var seconds := (Time.get_ticks_usec() - began) / 1e6
-			print("effects-bench: %-6s %-20s %6.1f FPS  frame %5.2f ms (worst %5.2f)  render cpu %5.2f ms  %4d draw calls" % [
-				level, view["name"], frames / seconds, seconds * 1000.0 / frames, worst, cpu / frames, draw_calls / frames])
+			print("effects-bench: %-6s %-22s %6.1f FPS  frame %5.2f ms (worst %5.2f)  render cpu %5.2f ms  %4d draw calls%s" % [
+				level, view["name"], frames / seconds, seconds * 1000.0 / frames, worst, cpu / frames, draw_calls / frames,
+				("  %d trails" % max_trails if salvo else "")
+				+ ("  [%d frames forced: window not drawable, invalid]" % (forced_draws - forced_before)
+					if forced_draws > forced_before else "")])
+			if salvo:
+				# Let the smoke of this salvo go before the next one.
+				var waited := Time.get_ticks_usec()
+				while (Time.get_ticks_usec() - waited) / 1e6 < float(fx._settings.fx_trail_life) + 1.0:
+					await _frame()
 		# Let the wrecks of this level burn out of the next one's budget.
 		for wreck in fx._wrecks:
 			(wreck.root as Node).queue_free()

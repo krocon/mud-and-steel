@@ -17,7 +17,12 @@ extends Node
 ## rocket battery position, waits for the unlock, calls the strike on the
 ## enemy headquarters through `SimHost.call_strike` and records the marked
 ## target with the countdown and the salvo; it fails (exit code 1) if the
-## strike, the siren or the launch do not show. `just strike-shots`.
+## strike, the siren or the launch do not show, or if fewer than 20 rockets
+## got the launch effects of prompt 076. `just strike-shots`.
+##
+## With `--salvo-series` (prompt 076) it records a rocket salvo after the
+## reference pictures and in other lights, biomes and calibers (see
+## `_salvo_series`). `just salvo-shots`.
 ##
 ## With `--explosion-series` (prompt 072) it triggers every explosion kind
 ## once on open, flat ground (small, medium and big ground hits, a destroyed
@@ -28,7 +33,18 @@ extends Node
 ## names the crop (pixels) that shows SERIES_KINDS[kind].crop_m meters
 ## around the explosion. `just explosion-series`.
 
+const BaseView := preload("res://scenes/world/base_view.gd")
+
 const SHOT_SIZE := Vector2i(1600, 900)
+## Salvo series (prompt 076): camera after the reference pictures (oblique
+## from above and behind, firing up and to the right), the distance to the
+## target, the length of the series and its step (frames at 30 fps).
+const SALVO_PITCH_DEG := 50.0
+const SALVO_DISTANCE := 95.0
+const SALVO_VIEW_TURN := 0.35
+const SALVO_RANGE := 520.0
+const SALVO_SECONDS := 14.0
+const SALVO_STEP_FRAMES := 6
 const CALIBER := 150.0
 const SALVO := 24
 const SALVO_RADIUS := 60.0
@@ -59,6 +75,10 @@ func _ready() -> void:
 			_dir = arg.trim_prefix("--blast-shots=")
 	if "--explosion-series" in OS.get_cmdline_user_args():
 		await _series()
+		get_tree().quit()
+		return
+	if "--salvo-series" in OS.get_cmdline_user_args():
+		await _salvo_series()
 		get_tree().quit()
 		return
 	if "--strike-live" in OS.get_cmdline_user_args():
@@ -222,6 +242,131 @@ func _capture_series(name: String, offsets: Array, ms: Array[int]) -> void:
 		_shot_count += 1
 
 
+# --- Rocket salvo (prompt 076) -----------------------------------------------------
+
+
+## The salvo after the reference pictures: an own unit gets the battery
+## position's model (ammunition dump and three launch frames) and fires 24
+## rockets 250 ms apart through `SimHost.debug_rocket` (the rules of a strike
+## rocket), seen obliquely from above and behind like the reference, in
+## winter at dusk, every SALVO_STEP_FRAMES until the last smoke is gone;
+## then the side view over the whole flight, the approach at the target,
+## day and night, the other biomes and the three factions' calibers.
+func _salvo_series() -> void:
+	if _dir.is_empty():
+		_dir = "user://salvo-series"
+	DirAccess.make_dir_recursive_absolute(_dir)
+	get_window().size = SHOT_SIZE
+	main.effects.shake_enabled = false
+	main.fog_of_war.set_fog_enabled(false)
+	main.effects.visible_at = func(_point: Vector3) -> bool: return true
+	(main.get_node("Hud") as CanvasLayer).visible = false
+	main.camera_rig.pitch_near_deg = SALVO_PITCH_DEG
+	main.camera_rig.pitch_far_deg = SALVO_PITCH_DEG
+	await _frames(10)
+	var own := _ids_of(true)
+	var battery := own[0]
+	var at := _position_of(battery)
+	var enemies := _ids_of(false)
+	var toward := _position_of(enemies[0]) - at
+	toward.y = 0.0
+	var target := _ground(at + toward.normalized() * minf(SALVO_RANGE, toward.length()))
+	_make_battery(battery, "winter")
+	var only := ""
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--only="):
+			only = arg.trim_prefix("--only=")
+	var runs: Array[Dictionary] = [
+		{"name": "winter_evening", "biome": "winter", "daytime": "evening", "series": true},
+		{"name": "winter_side", "biome": "winter", "daytime": "evening", "view": "side", "at": [20, 40, 70, 110]},
+		{"name": "winter_target", "biome": "winter", "daytime": "evening", "view": "target", "at": [80, 86, 100]},
+		{"name": "winter_day", "biome": "winter", "daytime": "day"},
+		{"name": "winter_night", "biome": "winter", "daytime": "night"},
+		{"name": "forest_day", "biome": "forest", "daytime": "day"},
+		{"name": "forest_night", "biome": "forest", "daytime": "night"},
+		{"name": "desert_day", "biome": "desert", "daytime": "day"},
+		{"name": "desert_evening", "biome": "desert", "daytime": "evening"},
+		{"name": "faction_de", "biome": "forest", "daytime": "evening", "caliber": 150.0},
+		{"name": "faction_us", "biome": "forest", "daytime": "evening", "caliber": 114.0},
+	]
+	for run in runs:
+		if not only.is_empty() and not (str(run.name) in only.split(",")):
+			continue
+		if main.atmosphere.preset.id != run.biome:
+			main.set_biome(run.biome)
+			_make_battery(battery, run.biome)
+		main.atmosphere.set_weather("clear", run.daytime)
+		var view := str(run.get("view", "reference"))
+		var direction := (target - at).normalized()
+		match view:
+			"side":
+				main.camera_rig.pitch_near_deg = 18.0
+				main.camera_rig.pitch_far_deg = 18.0
+				await _view(at.lerp(target, 0.4), 260.0, _yaw_looking(direction.cross(Vector3.UP)))
+			"target":
+				main.camera_rig.pitch_near_deg = 35.0
+				main.camera_rig.pitch_far_deg = 35.0
+				await _view(target, 120.0, _yaw_looking(-direction.rotated(Vector3.UP, 0.5)))
+			_:
+				main.camera_rig.pitch_near_deg = SALVO_PITCH_DEG
+				main.camera_rig.pitch_far_deg = SALVO_PITCH_DEG
+				# Firing up and to the right as in the reference.
+				await _view(at + direction * 12.0, SALVO_DISTANCE, _yaw_looking(direction.rotated(Vector3.UP, SALVO_VIEW_TURN)))
+		main.strike_view.aim_launchers(battery, target)
+		await _frames(90)
+		var caliber := float(run.get("caliber", 132.0))
+		var frames: Array = []
+		if run.get("series", false):
+			for k in int(SALVO_SECONDS * 30.0 / SALVO_STEP_FRAMES) + 1:
+				frames.append(k * SALVO_STEP_FRAMES)
+		else:
+			frames = run.get("at", [6, 30, 60, 90, 200])
+		await _fire_salvo(battery, target, caliber, run.name, frames)
+		# Let the smoke drift off before the next run.
+		await _frames(int(main.effects._settings.fx_trail_life * 30.0))
+	print("salvo-series: %d pictures in %s; rockets %d, counts %s" % [
+		_shot_count, ProjectSettings.globalize_path(_dir), main.effects.rockets.launched, main.effects.counts])
+
+
+## Fires SALVO rockets 250 ms apart (7 or 8 frames at 30 fps) and saves
+## `<name>_<ms>.png` at `frames` after the first launch.
+func _fire_salvo(battery: int, target: Vector3, caliber: float, name: String, frames: Array) -> void:
+	var host: SimHost = main.sim_host
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 76
+	var frame := 0
+	var fired := 0
+	var shot := 0
+	var last: int = frames.back()
+	while frame <= last:
+		if fired < SALVO and frame >= int(fired * 7.5):
+			var a := rng.randf() * TAU
+			var r := SALVO_RADIUS * sqrt(rng.randf())
+			host.debug_rocket(battery, target.x + cos(a) * r, target.z + sin(a) * r, caliber)
+			fired += 1
+		await _frame()
+		while shot < frames.size() and int(frames[shot]) == frame:
+			var image := get_viewport().get_texture().get_image()
+			image.save_png("%s/salvo_%s_%05d.png" % [_dir, name, int(round(frame * 1000.0 / 30.0))])
+			_shot_count += 1
+			shot += 1
+		frame += 1
+	print("salvo-series: %s done, %d pictures" % [name, shot])
+
+
+## Unit `id` looks like the battery position (the borrowed model with
+## launch frames) and its rails are found anew.
+func _make_battery(id: int, biome: String) -> void:
+	var node: Node3D = main._unit_nodes[id]
+	BaseView.attach_model(node, "base_rocket_battery", biome)
+	main.effects._sockets.erase(id)
+
+
+## Camera yaw (rts_camera.gd) that looks along the horizontal `direction`.
+func _yaw_looking(direction: Vector3) -> float:
+	return atan2(-direction.x, -direction.z)
+
+
 # --- A real strike -------------------------------------------------------------
 
 
@@ -267,6 +412,12 @@ func _live() -> bool:
 		await _frames(1)
 		waited += 1
 	host.speed = 1.0
+	# Prompt 076: the launch at the position (flare, flame, trail).
+	var battery_at: Vector3 = _structure("base_rocket_battery", true).get("position", target)
+	await _view(battery_at + (target - battery_at).normalized() * 12.0, 70.0,
+		_yaw_looking((target - battery_at).normalized().rotated(Vector3.UP, SALVO_VIEW_TURN)))
+	await _capture("strike_live_launch", [6, 20, 45])
+	await _view(target, 170.0, 0.5)
 	# The first rockets land after their flight (at least 3 s).
 	waited = 0
 	while main.blast_effects.counts.get("big_blast", 0) < 3 and waited < 900:
@@ -275,10 +426,11 @@ func _live() -> bool:
 	await _capture("strike_live_salvo", [10, 60, 140])
 	await _view(_structure("base_rocket_battery", true).get("position", target), 45.0, 0.8)
 	await _capture("strike_live_battery", [2])
+	var rockets: int = main.effects.rockets.launched
 	var ok: bool = int(view.counts.get("called", 0)) == 1 and int(view.counts.get("launched", 0)) == 1 \
-		and siren and counting and main.blast_effects.counts.get("big_blast", 0) >= 10
-	print("strike-live: %s; strike %s, blasts %s, siren %s, countdown %s, player %d" % [
-		"PASSED" if ok else "FAILED", view.counts, main.blast_effects.counts, siren, counting, me])
+		and siren and counting and main.blast_effects.counts.get("big_blast", 0) >= 10 and rockets >= 20
+	print("strike-live: %s; strike %s, blasts %s, siren %s, countdown %s, rockets launched %d, player %d" % [
+		"PASSED" if ok else "FAILED", view.counts, main.blast_effects.counts, siren, counting, rockets, me])
 	return ok
 
 
