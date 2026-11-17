@@ -53,6 +53,7 @@ ENV_SLOTS = {
     "Plaster": (0.72, 0.68, 0.60),
     "Ground": (0.30, 0.24, 0.17),
     "Roof": (0.45, 0.20, 0.14),
+    "Rock": (0.50, 0.48, 0.44),
 }
 for _name, _rgb in ENV_SLOTS.items():
     core.SLOTS.setdefault(_name, _rgb)
@@ -71,6 +72,7 @@ SLOT_KINDS = {
     "Metal": ("steel", "rust", "galvanized", "dark"),
     "Ground": ("earth", "spoil", "mud", "sand"),
     "Foliage": ("leaf", "needle", "dry", "dark"),
+    "Rock": ("bedrock", "scree"),
 }
 
 # Foliage card patterns (integer part of U, env_foliage.gdshader).
@@ -97,8 +99,15 @@ BUDGETS = {
     "fort_wire": 2000, "fort_minefield_at": 800, "fort_minefield_ap": 800,
 }
 BUDGET_OVERRIDES = {"env_church": 5000, "env_dump_ammo": 1500, "env_dump_fuel": 1500,
-                    "env_mosque": 5000, "env_police_post": 5000}
+                    "env_mosque": 5000, "env_police_post": 5000,
+                    "env_rock_outcrop": 1500, "env_rock_massif": 3000}
 FAR_BUDGET = 200
+# Far meshes of rock ridge pieces (prompt 074).
+FAR_BUDGET_OVERRIDES = {"env_rock_massif": 300}
+
+
+def far_budget(u):
+    return FAR_BUDGET_OVERRIDES.get(u["id"], FAR_BUDGET)
 
 ENV_PARTS = {}
 
@@ -377,7 +386,7 @@ def extent(model, names, sunken=False):
     return lo, hi
 
 
-def fit(model, names, box, sunken=False, center="bounds"):
+def fit(model, names, box, sunken=False, center="bounds", embed=0.0):
     """Scales the parts exactly into `box` (scale 1 objects, vertex transform).
 
     Non-sunken: geometry below the ground is clamped to z = 0, then z is
@@ -386,9 +395,16 @@ def fit(model, names, box, sunken=False, center="bounds"):
     Horizontally the parts are scaled to the box size and moved so that the
     bounds center (`center = "bounds"`) or the center of the ground contact
     (`"ground"`, trees: the trunk base) sits on the origin.
+
+    Embedded objects (`embed` > 0, rocks of prompt 074): z = 0 is the
+    ground, the foot reaches down to -embed and keeps its depth; only the
+    part above the ground is scaled to the box height.
     """
     vs = _verts_of(model, names)
-    if not sunken:
+    if embed > 0.0:
+        for v in vs:
+            v.co.z = max(v.co.z, -embed)
+    elif not sunken:
         for v in vs:
             if v.co.z < 0.0:
                 v.co.z = 0.0
@@ -412,7 +428,10 @@ def fit(model, names, box, sunken=False, center="bounds"):
     for v in vs:
         v.co.x = (v.co.x - cx) * sx
         v.co.y = (v.co.y - cy) * sy
-        if not sunken or v.co.z < 0:
+        if embed > 0.0:
+            if v.co.z > 0:
+                v.co.z = v.co.z * sz
+        elif not sunken or v.co.z < 0:
             v.co.z = v.co.z * sz
     return Vector((sx, sy, sz))
 

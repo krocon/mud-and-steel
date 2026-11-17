@@ -20,7 +20,7 @@ import bpy
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from kit import base_buildings, buildings, catalog, desert, desert_props, env, forts, load_parts, parts_dumps, parts_neutral, vegetation  # noqa: E402,F401
+from kit import base_buildings, buildings, catalog, desert, desert_props, env, forts, load_parts, parts_dumps, parts_neutral, rocks, vegetation  # noqa: E402,F401
 
 load_parts()  # faction modules (parts_<faction>_guns.py) may register env generators
 from kit.build import clear_scene, export_glb  # noqa: E402
@@ -75,13 +75,14 @@ def build_env_model(uid):
         if not names:
             raise RuntimeError(f"{where}: generator built nothing")
         center = vt.get("center", "ground" if u["category"] in ("env_tree", "env_bush") else "bounds")
+        embed = model.part_props.get(name, {}).get("env_embed_m", 0.0)
         if vt.get("fit", True):
-            env.fit(model, names, box, sunken, center)
+            env.fit(model, names, box, sunken, center, embed)
         else:
-            env.ground(model, names) if not sunken else None
+            env.ground(model, names) if not sunken and not embed else None
         far = f"{name}_Far"
         if far in model.parts:
-            env.fit(model, [far], box, sunken, center)
+            env.fit(model, [far], box, sunken, center, embed)
             model.part_props.setdefault(far, {}).update({"env_far_of": name})
         props = model.part_props.setdefault(name, {})
         props.update({"env_variant": name, "env_role": vt.get("role", "variant")})

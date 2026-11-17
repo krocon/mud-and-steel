@@ -1,0 +1,42 @@
+# Rock ridge pieces (prompt 074): rows of large blocks, high in the middle,
+# low at the ends, so overlapping pieces form a ridge. 12-25 m long, 4-9 m
+# high. Catalog box 18 x 9 x 7 m; variants scale it. Far meshes <= 300.
+unit = "env_rock_massif"
+assembly = "env"
+
+[[variant]]
+name = "Ridge"
+part = "rock_massif"
+cols = 5
+rows = 2
+seed = 1
+
+[[variant]]
+name = "Long"
+part = "rock_massif"
+size = [1.39, 0.85, 0.85]
+cols = 5
+seed = 2
+
+[[variant]]
+name = "Short"
+part = "rock_massif"
+size = [0.67, 0.75, 0.72]
+cols = 3
+seed = 3
+
+[[variant]]
+name = "High"
+part = "rock_massif"
+size = [0.9, 1.0, 1.28]
+cols = 3
+low = 0.6
+seed = 4
+
+[[variant]]
+name = "Double"
+part = "rock_massif"
+size = [1.1, 1.15, 0.85]
+cols = 5
+rows = 2
+seed = 5

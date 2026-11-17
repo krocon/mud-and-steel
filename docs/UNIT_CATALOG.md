@@ -1576,6 +1576,9 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 | env_bush | Busch (Haselstrauch) / Bush (hazel-like shrub) | 1 | 3.50? × 3.50? × 4.00? | Hazel-like shrub/hedgerow bush, height 4 m (source: usually 3-8 m) |
 | env_grass_clump | Grasbüschel / Grass clump | 1 | 0.50? × 0.50? × 0.60? | Judgement value for a tall tussock/meadow grass clump, no single authoritative f… |
 | env_rock | Fels (Findling) / Rock (boulder) | 1 | 1.50? × 1.20? × 1.00? | Boulder with 1.5 m longest axis as specified by the project brief; width and hei… |
+| env_rock_slab | Felsplatte / Rock slab (flat outcrop) | 1 | 6.00? × 4.00? × 0.30? | Flat jointed bedrock sheet, a few meters across, at most 0.3 m above the soil |
+| env_rock_outcrop | Felsgruppe / Rock outcrop (block group) | 1 | 6.00? × 5.00? × 4.00? | Group of one to four angular blocks, 3-8 m across and 2-5 m high (variants scale… |
+| env_rock_massif | Felsrücken (Stück) / Rock ridge (piece) | 1 | 18.00? × 9.00? × 7.00? | One piece of a rock ridge, 12-25 m long and 4-9 m high (variants scale this box)… |
 | env_house_farm | Bauernhaus / Farmhouse (European) | 1 | 14.00? × 9.00? × 8.00? | Typical north-west European two-storey farmhouse with gabled roof; height is rid… |
 | env_barn | Scheune / Barn | 1 | 20.00? × 10.00? × 9.00? | Typical timber/brick threshing barn, ridge height 9 m. |
 | env_house_stone | Steinhaus (zweigeschossig) / Stone house (two-storey) | 1 | 10.00? × 8.00? × 9.00? | Two-storey village house in masonry with pitched roof, height at ridge. |
@@ -1634,6 +1637,9 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `env_bush`: length_mm, width_mm, height_mm
 - `env_grass_clump`: length_mm, width_mm, height_mm
 - `env_rock`: length_mm, width_mm, height_mm
+- `env_rock_slab`: length_mm, width_mm, height_mm
+- `env_rock_outcrop`: length_mm, width_mm, height_mm
+- `env_rock_massif`: length_mm, width_mm, height_mm
 - `env_house_farm`: length_mm, width_mm, height_mm
 - `env_barn`: length_mm, width_mm, height_mm
 - `env_house_stone`: length_mm, width_mm, height_mm
@@ -1707,6 +1713,12 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
   - General botany reference for tussock grasses (e.g. Wikipedia: Bunchgrass) (clump spread and height)
 - `env_rock`
   - Geology general knowledge; glacial erratics (Wikipedia: Glacial erratic) (typical boulder size)
+- `env_rock_slab`
+  - Geology general knowledge; bedrock pavements and flat outcrops in dry grassland (Wikipedia: Outcrop, Limestone pavement) (flat bedrock exposed flush with the ground, broken by joints into slabs of a few meters)
+- `env_rock_outcrop`
+  - Geology general knowledge; jointed outcrops, tors and block fields (Wikipedia: Outcrop, Tor (rock formation), Joint (geology)) (angular blocks split along joints, a few meters across and high, leaning against each other)
+- `env_rock_massif`
+  - Geology general knowledge; rocky ridges and crags of jointed bedrock (Wikipedia: Ridge, Crag, Joint (geology)) (elongated ridge of large jointed blocks with clefts, tens of meters long and several meters high)
 - `env_house_farm`
   - Rural architecture references (e.g. Wikipedia: Farmhouse, Hallenhaus; Fachwerkhaus) (typical footprint and ridge height)
 - `env_barn`

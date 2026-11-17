@@ -200,6 +200,29 @@ fn a_house_hides_what_stands_behind_it() {
 }
 
 #[test]
+fn a_rock_outcrop_hides_what_stands_behind_it() {
+    // Prompt 074: a block group (7.8 m × 6 m, 4.8 m high) 100 m in front of
+    // the observer is solid for sight up to its height, like a house.
+    let map = map_with(flat, "env_rock_outcrop,Group,0,100000,90");
+    assert!(!p0_sees(Arc::clone(&map), 0, 60));
+    assert!(p0_sees(map, 60, 60));
+    // A ridge piece (18 m × 9 m × 7 m) as well.
+    let map = map_with(flat, "env_rock_massif,Ridge,0,100000,90");
+    assert!(!p0_sees(Arc::clone(&map), 0, 60));
+    assert!(p0_sees(map, 60, 60));
+}
+
+#[test]
+fn rock_slabs_hide_nothing() {
+    // Flat slabs (0.3 m) are only a picture: no sight obstacle.
+    let map = map_with(
+        flat,
+        "env_rock_slab,Wide,0,100000,90\nenv_rock_slab,Field,0,90000,0",
+    );
+    assert!(p0_sees(map, 0, 60));
+}
+
+#[test]
 fn cells_go_from_unexplored_to_visible_to_explored() {
     let map = map_with(flat, "");
     let mut sim = sim_with(

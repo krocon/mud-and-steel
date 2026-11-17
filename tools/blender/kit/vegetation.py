@@ -1,4 +1,4 @@
-"""Vegetation generators (prompt 007, part A): trees, bushes, grass, rocks, wood.
+"""Vegetation generators (prompt 007, part A): trees, bushes, grass, wood (rocks: rocks.py).
 
 Each generator builds one variant into the target box (see `env.py`). Crowns
 are clusters of crossed alpha cards (env_foliage.gdshader draws the leaves
@@ -352,20 +352,6 @@ def grass(model, name, p, box):
         a = i * math.pi / max(p.get("flowers", 1), 1) + 0.6
         mb.style(phase=20 + i, wind=True)
         mb.card((0, 0, 0), _horiz(a), (0, 0, 1), w * 0.8, box.height, CARD_FLOWERS, anchor="bottom")
-
-
-@env_part("rock")
-def rock(model, name, p, box):
-    """Boulder: noisy ellipsoid, flattened where it sits in the ground.
-
-    Parameters: `seed`; `rough` (noise amount, default 0.18); `kind`
-    (Stone kind, default 0 fieldstone); `seg` (default 10); `rings` (default 7).
-    """
-    r = rng(p.get("seed", 1))
-    mb = model.mb(name)
-    mb.style(kind=p.get("kind", 0))
-    mb.blob((0, 0, box.height * 0.35), (box.hw, box.hl, box.height * 0.65), "Stone", seg=p.get("seg", 10),
-            rings=p.get("rings", 7), rng=r, rough=p.get("rough", 0.18), flat_bottom=0.0, smooth=False)
 
 
 @env_part("stump")

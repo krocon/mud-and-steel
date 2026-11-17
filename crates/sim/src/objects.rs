@@ -209,6 +209,10 @@ struct Override {
     radius_mm: Option<u32>,
     length_mm: Option<u32>,
     width_mm: Option<u32>,
+    /// Height of this variant instead of the catalog height (prompt 074:
+    /// rock groups of different sizes block sight and projectiles up to
+    /// their own height).
+    height_mm: Option<u32>,
 }
 
 #[derive(Clone, Copy, Deserialize)]
@@ -310,8 +314,11 @@ impl ObjectRules {
                     variant: name.clone(),
                     blocks: o.and_then(|o| o.blocks).unwrap_or(entry.blocks),
                     shape,
-                    height: Fixed::from_num(catalog_entry.height_mm.unwrap_or(0))
-                        / Fixed::from_num(1000),
+                    height: Fixed::from_num(
+                        o.and_then(|o| o.height_mm)
+                            .or(catalog_entry.height_mm)
+                            .unwrap_or(0),
+                    ) / Fixed::from_num(1000),
                     deck,
                 });
             }
@@ -466,6 +473,33 @@ mod tests {
 
     fn half() -> Vec2 {
         Vec2::from_meters(100, 100)
+    }
+
+    #[test]
+    fn rocks_block_by_kind_with_their_own_box_and_height() {
+        // Prompt 074: outcrops and ridge pieces stop everybody, slabs nobody;
+        // each variant has the box and height of its model.
+        let rules = rules();
+        let group = rules.find("env_rock_outcrop", "Group").unwrap();
+        assert_eq!(group.blocks, Blocks::All);
+        assert_eq!(
+            group.shape,
+            Shape::Box {
+                half_length: Fixed::from_num(43) / 10,
+                half_width: Fixed::from_num(34) / 10,
+            }
+        );
+        assert_eq!(group.height, Fixed::from_num(48) / 10);
+        let ridge = rules.find("env_rock_massif", "Ridge").unwrap();
+        assert_eq!(ridge.blocks, Blocks::All);
+        assert_eq!(ridge.height, Fixed::from_num(7));
+        assert_eq!(
+            rules.find("env_rock_massif", "High").unwrap().height,
+            Fixed::from_num(896) / 100
+        );
+        for v in ["Field", "Long", "Broken", "Small", "Wide", "Strip"] {
+            assert_eq!(rules.find("env_rock_slab", v).unwrap().blocks, Blocks::None);
+        }
     }
 
     #[test]

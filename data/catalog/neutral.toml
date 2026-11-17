@@ -121,6 +121,60 @@ source = [
 uncertain = ["length_mm", "width_mm", "height_mm"]
 note = "Boulder with 1.5 m longest axis as specified by the project brief; width and height are plausible proportions."
 
+# Prompt 074: grown rock. Generic natural outcrops; every dimension is a
+# judgement value from general geology references and the reference
+# pictures' scale (houses, poles, soldiers), so all are marked uncertain.
+[[unit]]
+id = "env_rock_slab"
+faction = "neutral"
+category = "env_rock"
+name_de = "Felsplatte"
+name_en = "Rock slab (flat outcrop)"
+tier = 1
+model = "assets/models/neutral/env_rock_slab.glb"
+length_mm = 6000
+width_mm = 4000
+height_mm = 300
+source = [
+    { ref = "Geology general knowledge; bedrock pavements and flat outcrops in dry grassland (Wikipedia: Outcrop, Limestone pavement)", covers = "flat bedrock exposed flush with the ground, broken by joints into slabs of a few meters" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Flat jointed bedrock sheet, a few meters across, at most 0.3 m above the soil. Judgement values; the sources describe the form but give no typical numbers."
+
+[[unit]]
+id = "env_rock_outcrop"
+faction = "neutral"
+category = "env_rock"
+name_de = "Felsgruppe"
+name_en = "Rock outcrop (block group)"
+tier = 1
+model = "assets/models/neutral/env_rock_outcrop.glb"
+length_mm = 6000
+width_mm = 5000
+height_mm = 4000
+source = [
+    { ref = "Geology general knowledge; jointed outcrops, tors and block fields (Wikipedia: Outcrop, Tor (rock formation), Joint (geology))", covers = "angular blocks split along joints, a few meters across and high, leaning against each other" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Group of one to four angular blocks, 3-8 m across and 2-5 m high (variants scale this box). Judgement values; sizes checked against houses and telegraph poles in reference pictures."
+
+[[unit]]
+id = "env_rock_massif"
+faction = "neutral"
+category = "env_rock"
+name_de = "Felsrücken (Stück)"
+name_en = "Rock ridge (piece)"
+tier = 1
+model = "assets/models/neutral/env_rock_massif.glb"
+length_mm = 18000
+width_mm = 9000
+height_mm = 7000
+source = [
+    { ref = "Geology general knowledge; rocky ridges and crags of jointed bedrock (Wikipedia: Ridge, Crag, Joint (geology))", covers = "elongated ridge of large jointed blocks with clefts, tens of meters long and several meters high" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "One piece of a rock ridge, 12-25 m long and 4-9 m high (variants scale this box); pieces overlap into ridges over 100 m long. Judgement values from the scale of houses and trucks in reference pictures."
+
 [[unit]]
 id = "env_house_farm"
 faction = "neutral"

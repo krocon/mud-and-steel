@@ -21,7 +21,8 @@
 #                terrain      terrain id of data/terrain.toml whose speed
 #                             applies on the deck (2 = road)
 #   [object.variant.<Name>]  per-variant overrides of blocks / radius_mm /
-#              length_mm / width_mm
+#              length_mm / width_mm / height_mm (height instead of the
+#              catalog height: sight and projectiles, prompt 074)
 #
 # A path cell (4 m) is blocked for a class when a blocking shape overlaps it.
 # Rationale: woods, hedges and walls stop tanks but not infantry; buildings
@@ -83,6 +84,101 @@ radius_mm = 700
 [object.variant.Large]
 blocks = "large"
 radius_mm = 1500
+
+# --- Grown rock (prompt 074) -----------------------------------------------------
+# Boxes per variant from the model's size (assets-src/blueprints/neutral/
+# env_rock_*.toml: catalog box x size). Slabs are only a picture (box = the
+# model). Outcrops and ridge pieces stop everybody, their boxes are 0.4 m
+# larger on every side than the model's foot (tank hulls touch the rock
+# instead of cutting into it), and they are solid for sight
+# (data/vision.toml) up to their variant height.
+
+[[object]]
+id = "env_rock_slab"
+variants = ["Field", "Long", "Broken", "Small", "Wide", "Strip"]
+blocks = "none"
+
+[object.variant.Long]
+length_mm = 8100
+width_mm = 2400
+
+[object.variant.Broken]
+length_mm = 5400
+width_mm = 4800
+
+[object.variant.Small]
+length_mm = 2400
+width_mm = 2000
+
+[object.variant.Wide]
+length_mm = 7800
+width_mm = 6800
+
+[object.variant.Strip]
+length_mm = 4500
+width_mm = 1800
+
+[[object]]
+id = "env_rock_outcrop"
+variants = ["Group", "Block", "Split", "Pair", "Leaning", "Layered"]
+blocks = "all"
+
+[object.variant.Group]
+length_mm = 8600
+width_mm = 6800
+height_mm = 4800
+
+[object.variant.Block]
+length_mm = 4400
+width_mm = 3800
+height_mm = 2480
+
+[object.variant.Split]
+length_mm = 5600
+width_mm = 4800
+height_mm = 3400
+
+[object.variant.Pair]
+length_mm = 6800
+width_mm = 4050
+height_mm = 2800
+
+[object.variant.Leaning]
+length_mm = 6800
+width_mm = 5050
+height_mm = 4400
+
+[object.variant.Layered]
+length_mm = 6200
+width_mm = 4800
+height_mm = 3200
+
+[[object]]
+id = "env_rock_massif"
+variants = ["Ridge", "Long", "Short", "High", "Double"]
+blocks = "all"
+length_mm = 18800
+width_mm = 9800
+
+[object.variant.Long]
+length_mm = 25820
+width_mm = 8450
+height_mm = 5950
+
+[object.variant.Short]
+length_mm = 12860
+width_mm = 7550
+height_mm = 5040
+
+[object.variant.High]
+length_mm = 17000
+width_mm = 9800
+height_mm = 8960
+
+[object.variant.Double]
+length_mm = 20600
+width_mm = 11150
+height_mm = 5950
 
 # --- Buildings: block everybody ------------------------------------------------
 

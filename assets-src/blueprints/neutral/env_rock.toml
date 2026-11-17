@@ -1,4 +1,6 @@
-# Rocks in three sizes (prompt 007). Medium = catalog boulder.
+# Loose stones in three sizes (prompt 007; rebuilt angular in the style of
+# the outcrops, prompt 074). Medium = catalog boulder. The foot sits in the
+# ground (embedded), Small is the decoration stone (no bevel, few faces).
 unit = "env_rock"
 assembly = "env"
 
@@ -12,12 +14,13 @@ name = "Small"
 part = "rock"
 size = [0.35, 0.4, 0.35]
 seed = 2
-seg = 8
-rings = 5
+bevel = 0.0
+cuts = 2
+points = 5
 
 [[variant]]
 name = "Large"
 part = "rock"
 size = [2.2, 2.4, 1.8]
 seed = 3
-rough = 0.22
+cuts = 4

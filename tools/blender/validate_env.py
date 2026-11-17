@@ -14,7 +14,9 @@ Part of `just validate-assets`. Checks per object:
 - size of every variant within +-2 % of its box (catalog x `size`, or
   `dims_m`); damaged variants (`damage_of`) not larger than their intact one;
   sunken objects (trenches) are measured below z = 0
-- lowest point at z = 0 (sunken: at -height), ground contact centered
+- lowest point at z = 0 (sunken: at -height; embedded rocks, extras
+  `env_embed_m`: at -embed, height measured above z = 0), ground contact
+  centered
 - the .glb has the same objects, bounds, vertex colors and materials
 """
 
@@ -53,7 +55,10 @@ def box_of(u, vt):
     return (catalog.mm(u, "length_mm") * s[0], catalog.mm(u, "width_mm") * s[1], catalog.env_height(u, vt) * s[2])
 
 
-def measure(meshes, sunken):
+def measure(meshes, sunken, embed=0.0):
+    if embed > 0.0:
+        lo, hi = world_bbox(meshes)
+        return lo, hi, (hi.y - lo.y, hi.x - lo.x, hi.z)
     if not sunken:
         lo, hi = world_bbox(meshes)
         return lo, hi, (hi.y - lo.y, hi.x - lo.x, hi.z - lo.z)
@@ -138,9 +143,14 @@ def check_blend(uid, u, bp, errors, stats):
         far = bpy.data.objects.get(f"{n}_Far")
         if is_tree and far is None:
             errors.append(f"tree variant {n}: {n}_Far missing")
-        if far is not None and tri_count(far) > env.FAR_BUDGET:
-            errors.append(f"{far.name}: {tri_count(far)} triangles, far budget {env.FAR_BUDGET}")
-        lo, hi, size = measure(meshes, sunken)
+        if far is not None and tri_count(far) > env.far_budget(u):
+            errors.append(f"{far.name}: {tri_count(far)} triangles, far budget {env.far_budget(u)}")
+        embed = float(node.get("env_embed_m", 0.0))
+        lo, hi, size = measure(meshes, sunken, embed)
+        if far is not None and embed > 0.0:
+            flo, fhi, fsize = measure([far], sunken, embed)
+            if any(abs(a - b) > TOL * b for a, b in zip(fsize, size)):
+                errors.append(f"{far.name}: size differs from {n}")
         sizes[n] = size
         if "damage_of" in vt:
             ref = sizes.get(vt["damage_of"])
@@ -156,7 +166,13 @@ def check_blend(uid, u, bp, errors, stats):
             for ax, a, b in zip("LWH", size, target):
                 if abs(a - b) > TOL * b:
                     errors.append(f"variant {n}: {ax} {a:.3f} m, expected {b:.3f} m (more than 2 % off)")
-        if not sunken:
+        if embed > 0.0:
+            # the foot sits in the ground; the box (blocking shape) is centered
+            if abs(lo.z + embed) > 0.005:
+                errors.append(f"variant {n}: lowest point at z = {lo.z:.3f}, expected -{embed:.3f} (embedded)")
+            if abs(lo.x + hi.x) > 0.02 or abs(lo.y + hi.y) > 0.02:
+                errors.append(f"variant {n}: bounds not centered on the origin")
+        elif not sunken:
             if abs(lo.z) > 0.005:
                 errors.append(f"variant {n}: lowest point at z = {lo.z:.3f}, must be 0")
             ground = []

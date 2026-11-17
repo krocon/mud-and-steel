@@ -70,6 +70,9 @@ solid = [
     "env_wall_mud",
     "env_hedge",
     "env_wall_stone",
+    # Prompt 074: rock groups and ridge pieces (slabs are flat).
+    "env_rock_outcrop",
+    "env_rock_massif",
 ]
 # Map objects that form forest (see foliage_min_objects / foliage_depth_cells).
 foliage = [
