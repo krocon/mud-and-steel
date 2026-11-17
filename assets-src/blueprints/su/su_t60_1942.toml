@@ -67,7 +67,7 @@ position = [0.12, 0.10, 0.0]
 [[part]]
 part = "turret_hatch"
 x = -0.30
-y = -0.40
+y = -0.18
 diameter = 0.45
 socket = true
 

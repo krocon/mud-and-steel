@@ -69,6 +69,7 @@ def demo_tank(model):
     run(model, "turret_hatch", {"x": 0.3, "y": 0.0, "diameter": 0.5, "socket": True}, ctx)
     run(model, "hull_hatch", {"center": [0.5, 1.6], "size": [0.5, 0.5], "socket": True}, ctx)
     run(model, "deck_box", {"center": [0, -1.5], "size": [1, 1, 0.05]}, ctx)
+    run(model, "deck_box", {"center": [0, 0.5, 1.0], "size": [1.6, 1.2, 0.3], "top_inset": [0.2, 0.1]}, ctx)
     ctx["overall_front_y"] = 3.6
     run(model, "tank_gun", {"trunnion": [0.8, 0.35], "mantlet": {"kind": "round", "size": [0.6, 0.3, 0.4]},
                             "segments": [[0.5, 0.06, 0.06], ["fit", 0.055, 0.05]], "muzzle_brake": "slotted"}, ctx)

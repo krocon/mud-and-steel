@@ -119,13 +119,23 @@ def deck_box(model, p, ctx):
 
     Parameters: `center` [x, y] or [x, y, z] (z of the bottom face, default
     hull top), `size` [x, y, z], `material` (default Paint), `bevel`,
-    `parent` (default Hull).
+    `parent` (default Hull), `top_inset` [x, y] (optional: the top face is
+    this much smaller on each side, giving sloped walls, e.g. the turret
+    platform of the T-26S Model 1939; `bevel` is then ignored).
     """
     c = p.req("center")
     cx, cy = c[0], c[1]
     cz = c[2] if len(c) > 2 else ctx["hull_top_z"]
     sx, sy, sz = p.req("size")
     mb = model.mb(p.get("parent", "Hull"))
+    inset = p.get("top_inset")
+    if inset:
+        def ring(hx, hy, z):
+            return [(cx - hx, cy + hy, z), (cx + hx, cy + hy, z), (cx + hx, cy - hy, z), (cx - hx, cy - hy, z)]
+        mb.loft([ring(sx / 2, sy / 2, cz), ring(sx / 2 - inset[0], sy / 2 - inset[1], cz + sz)],
+                p.get("material", "Paint"))
+        p.get("bevel")
+        return
     mb.box((cx, cy, cz + sz / 2), (sx, sy, sz), p.get("material", "Paint"), bevel=p.get("bevel", 0.0))
 
 

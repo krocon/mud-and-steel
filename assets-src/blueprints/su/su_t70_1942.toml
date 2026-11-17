@@ -66,7 +66,7 @@ position = [0.14, 0.10, 0.0]
 [[part]]
 part = "turret_hatch"   # commander's hatch with periscope
 x = -0.20
-y = -0.43
+y = -0.25
 diameter = 0.50
 socket = true
 
