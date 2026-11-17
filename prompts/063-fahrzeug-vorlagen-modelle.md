@@ -179,6 +179,26 @@ Katalog-Dateien und in `docs/VEHICLE_REFS.md`, lässt alle Prüfungen laufen und
 | Fahrzeuge ohne Zeichnung (31 Ordner)? | Nach den Maßen, der Zeichnung der nächsten Verwandten in der Familie und frei zugänglichen Fotos bauen, in der Liste als „no drawing“ markieren. Gibt es auch keine Verwandte mit Zeichnung, als `skipped` vorschlagen. |
 | Fehlende Vorlagen neu laden? | Nur nach Rückfrage (`just vehicle-refs` lädt von onwar.com). |
 
+## Entscheidungen (autonom, Nachtlauf 17.11.2026)
+
+Vorläufig: die Vorab-Session lief ohne Rückfrage; die Vorschläge aus Abschnitt 7
+gelten als Entscheidung. Bitte prüfen und bei Bedarf in `data/vehicles/index.json`
+ändern (`just vehicle-db` schreibt die Liste neu).
+
+| Frage | Entscheidung |
+|---|---|
+| Alle 141 aufnehmen? | Serienfahrzeuge ja. `skipped`: Maus, Neubaufahrzeug, Panther F, SMK, TG, T-24, T-43, T-35 Modell 1938 (6), Pz 38(t) n.A. (15), 10.5 cm leFH auf FCM(f) (12), Sturmtiger (18). |
+| Ausführungen zusammenfassen? | Nur StuG III Ausf. D in Ausf. B (außen gleich, nur Bordsprechanlage); alle anderen bleiben je ein Eintrag. Die Gruppen-Sessions dürfen weitere vorschlagen. |
+| `tier` der neuen Einträge? | `tier = 3` in `SCHEMA.md` und `catalog.rs`; die Einheitenübersicht im Spiel zeigt `tier = 3` erst mit Modell (sonst kippt der Selbsttest „3/4 mit Modell“). |
+| Baubar? | Nein (Punkt für Prompt 045). |
+| Ohne Zeichnung und ohne Verwandte mit Zeichnung? | `skipped`: nur T-28 (Mehrturm-Baukasten kommt trotzdem, für T-35 und M3 Lee). |
+| Fehlende Vorlagen neu laden? | Nein. |
+| Zuordnung | Ordner „Brummbar“ = vorhandener `de_sturmpanzer4` (`existing`, Abweichungen zu onwar in `note`); Ordner „OT-133“ enthält Daten des OT-130 → Id `su_ot130`. |
+| Zweitquelle | Spielrelevante Werte der neuen Einträge nur aus onwar.com (Rang 4); Zweitquellen-Prüfung erst, wenn die Fahrzeuge baubar werden. Waffenwerte aus gleichen Katalog-Waffen oder den Geschütz-Artikeln, `weapon` immer `uncertain`. |
+| Jahre | `year_from`/`year_to` = Produktionszeitraum der Quelle. |
+| Prüfgrenzen | Höhe ab 1,4 m (T-27A 1,45 m), Besatzung bis 12 (T-35: 11). |
+| Modell-Sessions | Nacheinander auf `main` statt parallel in Worktrees (Vorgabe des Nachtlaufs). |
+
 ## Arbeitsweise
 
 Wie in den vorigen Prompts: Deutsch mit mir, Englisch im Repo, kein Push ohne Freigabe,
