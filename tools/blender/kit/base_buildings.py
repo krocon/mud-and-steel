@@ -157,8 +157,9 @@ def barracks(model, name, p, box):
 
 @env_part("depot")
 def depot(model, name, p, box):
-    """Supply depot: store shed with a steel roof and wide doors on both
-    long sides, crate stacks at the -Y end, 200 l drums at the +Y end.
+    """Supply depot: store shed with a corrugated galvanized roof (rusty when
+    damaged) and wide doors on both long sides, crate stacks at the -Y end,
+    200 l drums at the +Y end.
     Parameters: `seed`, `damage`."""
     damage = p.get("damage", 0)
     r = rng(p.get("seed", 1) + 57)
@@ -171,7 +172,7 @@ def depot(model, name, p, box):
     })
     house(model, name, hp, Box(shed_l, box.width * 0.8, box.height))
     walls, roof = _parts(model, name)
-    _roof_to_metal(roof, METAL_RUST if damage else METAL_STEEL)
+    _roof_to_metal(roof, METAL_RUST if damage else METAL_GALVANIZED)
     stores = model.mb(f"{name}_Debris", parent=name) if damage else walls
     end = shed_l / 2 + 0.4
     span = box.hl - end - 0.2
