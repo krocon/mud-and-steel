@@ -13,7 +13,9 @@ Module overview:
   `artillery`, `aircraft`, `vehicles`, `trucks`   generic parts
 - `casemate`, `armored_car`, `antiair`, `mortars`   prompt 008: casemate
   vehicles, armored cars, anti-aircraft guns, heavy mortars (parts and
-  assemblies); `rockets` (prompt 062: rocket launcher racks); `forts` (faction fortifications) is an env module loaded by
+  assemblies); `rockets` (prompt 062: rocket launcher racks); `early_tanks`
+  (prompt 063: sub-turrets, sponson guns, small-wheel and HVSS bogies,
+  amphibious floats and propellers); `forts` (faction fortifications) is an env module loaded by
   build_env.py
 - `parts_de`, `parts_su`, `parts_us`   faction-specific parts; prompt 008 adds
   `parts_<faction>_{vehicles,guns,air}` (one per parallel session)
@@ -41,6 +43,8 @@ _MODULES = (
     "mortars",
     # prompt 062: rocket launcher racks
     "rockets",
+    # prompt 063: multi-turret, sponson gun, small-wheel and HVSS running gear, amphibious parts
+    "early_tanks",
     "parts_de",
     "parts_su",
     "parts_us",

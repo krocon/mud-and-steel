@@ -56,7 +56,7 @@ NAMES = {
     r"Track_[LR]": [r"Hull"],
     r"Skirt_[LR]": [r"Hull"],
     r"MG_\d\d": [r"Turret", r"Hull", r"Gun", r"GunTurret_\d\d"],
-    r"GunTurret_\d\d": [r"Hull"],
+    r"GunTurret_\d\d": [r"Hull", r"Turret"],  # aircraft turrets; tank sub-turrets (prompt 063)
     r"(Bomb|Rocket)_\d\d": [r"Hull"],
     r"BayDoor_[LR]": [r"Hull"],
     r"ShadowProxy": [r"<root>"],

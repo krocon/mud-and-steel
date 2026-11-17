@@ -55,6 +55,7 @@ model with names, hierarchy, sockets, material slots and baked vertex colors.
 | `armored_car` | prompt 008: assembly `armored_car` (wheels, `section_hull`, optional turret, gun, MGs) |
 | `antiair` | prompt 008: `cruciform_platform`, `aa_mount` (traversing `Mount` with seats, optional shield), `crew_sockets` (any gun); assembly `aa_gun` |
 | `mortars` | prompt 008: `baseplate`, `mortar_tube` (elevation fitted to the catalog height), `mortar_bipod` (fitted to length and width); assembly `mortar` |
+| `early_tanks` | prompt 063, for the vehicles of the reference folder (docs/VEHICLE_REFS.md): `small_wheel_bogie` (small or large single wheels in bogies of 2-4 with leaf or coil springs, optional outer girder: T-26, Pz.Kpfw. I, 35(t), 38(t), T-27, T-37A, R35, H39, Lorraine, Elefant), `hvss_bogie` (M4A3E8), `sub_turret` (secondary `GunTurret_NN` with a fixed gun and/or MGs on the hull or on the turret: T-35, M3 Lee cupola), `sponson_gun` (fixed hull gun fitted to the catalog length, `Socket_Gun_NN`: M3 Lee), `amphibious_floats`, `screw_propeller` (T-37A, T-38, T-40); open superstructures of the captured SPGs use `casemate` with `open = true` |
 | `forts` | prompt 008, env generators for faction fortifications: `tobruk`, `log_bunker` (DZOT, US field bunker), `minefield` (built by `build_env.py`) |
 | `parts_de`, `parts_su`, `parts_us` | faction-specific parts, prefixed `de.`, `su.`, `us.` |
 | `assemblies` | whole units: `tank`, `towed_gun`, `aircraft` (`halftrack` lives in `vehicles`, `wheeled` in `trucks`, the prompt 008 assemblies in their modules) |
@@ -253,7 +254,7 @@ side `L`/`R`, two-digit index). The root object is named after the catalog id.
 | Control surfaces | `Aileron_L`, `Elevator`, `Rudder` | root | hinge |
 | Landing gear | `Gear_L`, `Gear_R`, `Gear_Tail` (`Gear_Nose`) | root | – |
 | AA gun upper carriage | `Mount` | `Carriage` | traverse axis, rotates around Z |
-| Aircraft gun turret | `GunTurret_01`, … (with `MG_NN` children) | `Hull` | ring center, rotates around Z |
+| Aircraft gun turret; sub-turret of a multi-turret tank (prompt 063) | `GunTurret_01`, … (with `MG_NN` children) | `Hull` (`Turret` for a cupola turret on the main turret) | ring center, rotates around Z |
 | External bomb / rocket | `Bomb_01`, `Rocket_01`, … | `Hull` | store center (hidden on release) |
 | Bomb bay door | `BayDoor_L`, `BayDoor_R` | `Hull` | outer hinge, opens around Y |
 | Shadow proxy | `ShadowProxy` | root | flat planform, shadow-only in Godot |
@@ -272,7 +273,7 @@ follow:
 | `Socket_Fire_01` … | burning / damage effects |
 | `Socket_Marking_Turret_L` … | decal positions for national and tactical markings; local +Z (Godot +Y) is the surface normal, +Y (Godot −Z) is up; glTF extras `marking` = `national` or `number`, `marking_size` in m |
 | `Socket_Muzzle_02` … | muzzles of machine guns: `MG_01` has `Socket_Muzzle_02`, `MG_02` has `Socket_Muzzle_03` |
-| `Socket_Gun_01` … | muzzles of fixed aircraft guns (`Socket_Muzzle` sits at their mean position) |
+| `Socket_Gun_01` … | muzzles of fixed aircraft guns (`Socket_Muzzle` sits at their mean position); muzzle of a hull sponson gun (M3 Lee, prompt 063) |
 | `Socket_Bomb_01` … | bomb release points (external stores and bomb bay stations) |
 | `Socket_Rocket_01` … | rocket launch points (rocket tails) |
 

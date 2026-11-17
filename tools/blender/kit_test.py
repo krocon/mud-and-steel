@@ -365,6 +365,124 @@ def demo_biplane(model):
     run_assembly(model, "aircraft", bp, u)
 
 
+# --- prompt 063: parts for the vehicles of the reference folder ---------------------
+
+def demo_multi_turret(model):
+    """Multi-turret heavy tank (T-35 type): small wheels in skirted bogies,
+    main turret plus gun and MG sub-turrets."""
+    u = fake_unit("kit_test_multi", "tank_heavy", length_mm=9700, width_mm=3200, height_mm=3430,
+                  weapon=[{"name": "MG", "caliber_mm_x10": 76, "count": 3}])
+    bp = {
+        "assembly": "tank",
+        "layout": {"turret_y": 0.3, "turret_ring_diameter": 1.6, "fender_overhang": 0.1, "hull_length": 9.5},
+        "running_gear": {"part": "small_wheel_bogie", "per_bogie": 2, "spring": "coil", "track_width": 0.52,
+                         "road_wheel_diameter": 0.45,
+                         "road_wheels": [3.0, 2.45, 1.75, 1.2, 0.5, -0.05, -0.75, -1.3, -2.0, -2.55],
+                         "sprocket": {"y": -4.3, "z": 0.75, "diameter": 0.7},
+                         "idler": {"y": 4.35, "z": 0.75, "diameter": 0.7},
+                         "return_rollers": {"y": [2.6, 1.0, -0.6, -2.2], "z": 1.0, "diameter": 0.22}},
+        "hull": {"part": "plate_hull", "lower": [[-4.6, 0.45], [4.1, 0.45], [4.75, 1.0], [4.75, 1.25], [-4.75, 1.25]],
+                 "upper": [[-4.75, 1.24], [4.75, 1.24], [4.4, 1.9], [-4.75, 1.9]], "upper_half_width": 1.2},
+        "turret": {"part": "plate_turret", "plan": [[-0.85, 0.9], [0.85, 0.9], [1.0, 0.0], [0.85, -1.0], [-0.85, -1.0],
+                                                   [-1.0, 0.0]], "side_slope_deg": 4},
+        "part": [MARK, {"part": "exhaust", "position": [0.4, -4.7, 1.6], "kind": "pipe"},
+                 {"part": "skirts", "y": [-4.0, 3.8], "bottom_z": 0.55, "top_z": 1.25, "plates": 1, "gap": 0.0},
+                 {"part": "sub_turret", "position": [0.75, 2.1], "diameter": 1.1, "height": 0.55,
+                  "gun": {"length": 1.0, "radius": 0.03, "mantlet": [0.25, 0.15, 0.2]}, "mgs": 1},
+                 {"part": "sub_turret", "position": [-0.75, -1.6], "diameter": 1.1, "height": 0.55,
+                  "gun": {"length": 1.0, "radius": 0.03, "direction_deg": 180}},
+                 {"part": "sub_turret", "position": [-0.75, 2.1], "plan": [[-0.35, 0.4], [0.35, 0.4], [0.4, -0.35],
+                                                                          [-0.4, -0.35]],
+                  "height": 0.5, "mgs": 1, "hatch": False},
+                 {"part": "turret_hatch", "x": 0.3, "y": -0.3, "diameter": 0.5, "socket": True},
+                 {"part": "socket", "name": "Socket_Fire_", "position": [0, -3, 2.0]}],
+        "gun": {"part": "tank_gun", "trunnion": [0.85, 0.4], "mantlet": {"kind": "box", "size": [0.5, 0.15, 0.4]},
+                "segments": [[1.2, 0.05, 0.045]]},
+        "mg": [{"part": "mg", "mount": "coax", "position": [0.2, 0.1, 0.0]}],
+    }
+    run_assembly(model, "tank", bp, u)
+
+
+def demo_sponson_gun(model):
+    """Medium tank with a 75 mm sponson gun, a 37 mm turret gun and an MG
+    sub-turret on the turret roof (M3 Lee type)."""
+    u = fake_unit("kit_test_sponson", "tank_medium", length_mm=6120, length_hull_mm=5640, width_mm=2720,
+                  height_mm=3120, weapon=[{"name": "MG", "caliber_mm_x10": 76, "count": 1}])
+    bp = {
+        "assembly": "tank",
+        "layout": {"turret_y": 0.45, "turret_ring_diameter": 1.4, "fender_overhang": 0.03},
+        "running_gear": {"part": "vvss_bogie", "track_width": 0.42, "road_wheel_diameter": 0.51,
+                         "road_wheels": [1.85, 1.35, 0.25, -0.25, -1.35, -1.85],
+                         "sprocket": {"y": 2.55, "z": 0.72, "diameter": 0.64},
+                         "idler": {"y": -2.6, "z": 0.45, "diameter": 0.55}},
+        "hull": {"part": "plate_hull", "lower": [[-2.8, 0.45], [2.3, 0.45], [2.82, 1.0], [2.82, 1.1], [-2.82, 1.1]],
+                 "upper": [[-2.82, 1.09], [2.82, 1.09], [2.5, 1.9], [-2.82, 1.95]]},
+        "turret": {"part": "cast_turret", "length": 1.7, "width": 1.6, "height": 0.6},
+        "part": [MARK,
+                 {"part": "sponson_gun", "x": 0.75, "y": 2.6, "z": 1.55, "sponson": [0.75, 0.9, 0.7], "cast": True,
+                  "mantlet": {"kind": "round", "size": [0.45, 0.2, 0.4]},
+                  "segments": [["fit", 0.055, 0.05]], "muzzle_brake": "thread_protector"},
+                 {"part": "exhaust", "position": [0.4, -2.85, 1.4], "kind": "pipe"},
+                 {"part": "sub_turret", "parent": "Turret", "position": [0.0, 0.2], "z": 2.55, "diameter": 0.6,
+                  "height": 0.3, "mgs": 1},
+                 {"part": "turret_hatch", "x": -0.4, "y": -0.3, "diameter": 0.45, "socket": True},
+                 {"part": "socket", "name": "Socket_Fire_", "position": [0, -2, 2.0]}],
+        "gun": {"part": "tank_gun", "trunnion": [0.7, 0.3], "mantlet": {"kind": "round", "size": [0.35, 0.15, 0.3]},
+                "segments": [[1.4, 0.025, 0.022]], "muzzle_brake": "thread_protector"},
+    }
+    run_assembly(model, "tank", bp, u)
+
+
+def demo_amphibious(model):
+    """Amphibious tankette (T-37A type): small wheels with an outer girder,
+    float boxes over the tracks, offset MG turret, rear propeller."""
+    u = fake_unit("kit_test_amphibious", "tank_light", length_mm=3750, width_mm=2000, height_mm=1820,
+                  weapon=[{"name": "DT", "caliber_mm_x10": 76}])
+    bp = {
+        "assembly": "tank",
+        "layout": {"turret_y": 0.3, "turret_ring_diameter": 0.9, "hull_length": 3.75},
+        "running_gear": {"part": "small_wheel_bogie", "bogies": [[0, 1], [2, 3]], "girder": True,
+                         "track_width": 0.2, "road_wheel_diameter": 0.36, "road_wheels": [0.9, 0.5, -0.3, -0.7],
+                         "sprocket": {"y": 1.45, "z": 0.45, "diameter": 0.45},
+                         "idler": {"y": -1.45, "z": 0.4, "diameter": 0.4},
+                         "return_rollers": {"y": [0.6, -0.6], "z": 0.62, "diameter": 0.15}},
+        "hull": {"part": "plate_hull", "lower": [[-1.85, 0.35], [1.5, 0.3], [1.87, 0.75], [1.87, 0.9], [-1.87, 0.9]],
+                 "upper": [[-1.87, 0.89], [1.87, 0.89], [1.6, 1.25], [-1.87, 1.25]], "upper_half_width": 0.7},
+        "turret": {"part": "plate_turret", "plan": [[-0.4, 0.4], [0.4, 0.4], [0.4, -0.4], [-0.4, -0.4]],
+                   "side_slope_deg": 3},
+        "part": [{"part": "amphibious_floats", "y": [1.6, -1.7], "z": [0.62, 0.95], "width": 0.2},
+                 dict(MARK, position=[-1.0, 0.0, 0.8]), {"part": "exhaust", "position": [0.3, -1.85, 1.0], "kind": "pipe"},
+                 {"part": "screw_propeller", "position": [0.0, -1.95, 0.45], "diameter": 0.4, "tunnel": True},
+                 {"part": "turret_hatch", "x": 0.0, "y": -0.1, "diameter": 0.4, "socket": True},
+                 {"part": "socket", "name": "Socket_Fire_", "position": [0, -1, 1.3]}],
+        "gun": {"part": "tank_gun", "trunnion": [0.4, 0.25], "mantlet": {"kind": "ball", "size": [0.18, 0.1, 0.18]},
+                "segments": [["fit", 0.012, 0.012]]},
+    }
+    run_assembly(model, "tank", bp, u)
+
+
+def demo_hvss(model):
+    """Medium tank on horizontal volute spring bogies (M4A3E8 type)."""
+    u = fake_unit("kit_test_hvss", "tank_medium", length_mm=7540, length_hull_mm=6270, width_mm=3000, height_mm=2970)
+    bp = {
+        "assembly": "tank",
+        "layout": {"turret_y": 0.2, "turret_ring_diameter": 1.75, "fender_overhang": 0.02},
+        "running_gear": {"part": "hvss_bogie", "track_width": 0.58, "road_wheel_diameter": 0.52,
+                         "road_wheels": [2.05, 1.6, 0.3, -0.15, -1.45, -1.9],
+                         "sprocket": {"y": 2.75, "z": 0.8, "diameter": 0.66},
+                         "idler": {"y": -2.75, "z": 0.48, "diameter": 0.6}},
+        "hull": {"part": "plate_hull", "lower": [[-3.1, 0.45], [2.6, 0.45], [3.13, 1.0], [3.13, 1.1], [-3.13, 1.1]],
+                 "upper": [[-3.13, 1.09], [3.13, 1.09], [2.2, 1.95], [-3.13, 1.95]], "cast": True},
+        "turret": {"part": "cast_turret", "length": 2.3, "width": 1.9},
+        "part": [MARK, {"part": "exhaust", "position": [0.4, -3.1, 1.3], "kind": "pipe"},
+                 {"part": "turret_hatch", "x": -0.4, "y": -0.3, "diameter": 0.5, "socket": True},
+                 {"part": "socket", "name": "Socket_Fire_", "position": [0, -2, 2.0]}],
+        "gun": {"part": "tank_gun", "trunnion": [0.9, 0.35], "mantlet": {"kind": "rotor", "size": [0.9, 0.2, 0.5]},
+                "segments": [["fit", 0.055, 0.05]], "muzzle_brake": "single_baffle"},
+    }
+    run_assembly(model, "tank", bp, u)
+
+
 ENV_DEMOS = [
     ("tobruk", {}, (5.0, 4.0, 0.6)),
     ("log_bunker", {"walls": "logs"}, (6.0, 5.0, 1.0)),
@@ -427,7 +545,8 @@ def main():
     failures = []
     out = render_dir()
     demos = (demo_halftrack, demo_truck, demo_tank, demo_aircraft, demo_casemate, demo_open_spg, demo_heavy_tank,
-             demo_armored_car, demo_aa_gun, demo_mortar, demo_bomber, demo_dive_bomber, demo_biplane)
+             demo_armored_car, demo_aa_gun, demo_mortar, demo_bomber, demo_dive_bomber, demo_biplane,
+             demo_multi_turret, demo_sponson_gun, demo_amphibious, demo_hvss)
     for i, demo in enumerate(demos):
         clear_scene()
         model = Model(f"kit_test_{demo.__name__}")
