@@ -100,9 +100,13 @@ def cast_turret(model, p, ctx):
     Parameters: `length`, `width`, `exponent` (2 = ellipse, 4 = boxy),
     `front_scale` (front half narrower), `y_shift` (plan offset from ring
     center, + = forward), `height` (m or "fit"), `profile` [[z_frac, scale], ...]
-    (ring shrink per height fraction, default rounded top), `segments`.
+    (ring shrink per height fraction, default rounded top), `segments`, `x`
+    (prompt 063: ring center offset sideways, + = right, default 0; the
+    `Turret` pivot moves with it; gun, hatches and MGs take model-space x:
+    M3 Lee 37 mm turret).
     Returns `turret_top_z`, `turret_plan`.
     """
+    xo = p.get("x", 0.0)
     L = p.req("length")
     Wd = p.req("width")
     e = p.get("exponent", 2.6)
@@ -114,15 +118,16 @@ def cast_turret(model, p, ctx):
     h = ctx["turret_height"]
     z0 = ctx["turret_z"]
     ty = ctx["turret_y"]
-    mb = model.mb("Turret", parent="Hull", pivot=(0.0, ty, z0))
+    mb = model.mb("Turret", parent="Hull", pivot=(xo, ty, z0))
     base = superellipse(L, Wd, e, n, ys, fs)
     rings = []
     for zf, sc in prof:
-        rings.append([(x * sc, ty + ys + (y - ys) * sc, z0 + h * zf) for x, y in base])
+        rings.append([(xo + x * sc, ty + ys + (y - ys) * sc, z0 + h * zf) for x, y in base])
     mb.loft(rings, "Paint", smooth=True)
     ring_r = ctx.get("turret_ring_r", 0.8)
-    mb.cylinder((0, ty, z0 - 0.06), (0, ty, z0 + 0.01), ring_r, seg=16, mat="Paint", cap0=True, cap1=False)
-    return {"turret_top_z": z0 + h, "turret_plan": base, "turret_top_plan": [(x * prof[-1][1], y) for x, y in base]}
+    mb.cylinder((xo, ty, z0 - 0.06), (xo, ty, z0 + 0.01), ring_r, seg=16, mat="Paint", cap0=True, cap1=False)
+    return {"turret_top_z": z0 + h, "turret_plan": [(x + xo, y) for x, y in base],
+            "turret_top_plan": [(xo + x * prof[-1][1], y) for x, y in base]}
 
 
 @part("cupola")

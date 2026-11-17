@@ -195,10 +195,14 @@ def measure(root, bp):
     guns = [o for o in meshes if under(o, ["Gun"])]
     all_lo, all_hi = bounds(meshes)
     geo.update(rear=all_lo.y, front=all_hi.y, top=all_hi.z, half_width=max(-all_lo.x, all_hi.x))
+    # hull sponson guns (M3 Lee) are part of the Hull mesh: their muzzle is Socket_Gun_NN
+    tips = [o.matrix_world.translation.y for o in bpy.data.objects
+            if o.type == "EMPTY" and o.name.startswith("Socket_Gun_")]
     if guns:
-        _, ghi = bounds(guns)
-        geo["gun_tip"] = ghi.y
-        m["barrel_overhang_mm"] = max(0, round((ghi.y - hi.y) * 1000))
+        tips.append(bounds(guns)[1].y)
+    if tips:
+        geo["gun_tip"] = max(tips)
+        m["barrel_overhang_mm"] = max(0, round((max(tips) - hi.y) * 1000))
     if track:
         tlo, thi = bounds([track])
         m["track_width_mm"] = round((thi.x - tlo.x) * 1000)

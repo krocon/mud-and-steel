@@ -23,7 +23,7 @@ track_width = 0.61
 link_pitch = 0.15
 road_wheel_diameter = 0.66
 road_wheels = [2.05, 1.25, 0.45, -0.35, -1.15, -1.95]
-sprocket = { y = -2.88, z = 0.80, diameter = 0.68, teeth = 13 }
+sprocket = { y = -2.81, z = 0.80, diameter = 0.68, teeth = 13 }
 idler = { y = 2.90, z = 0.66, diameter = 0.64 }
 return_rollers = { y = [1.65, 0.85, 0.05, -0.75, -1.55], z = 1.02, diameter = 0.24 }
 arm = 0.34
@@ -112,22 +112,22 @@ size = [1.90, 1.60, 0.04]
 [[part]]
 part = "exhaust"
 kind = "pipe"
-position = [-0.70, -3.20, 1.20]
+position = [-0.70, -3.06, 1.20]
 length = 0.10
 diameter = 0.22
-outlet = [-0.70, -3.25, 1.15]
+outlet = [-0.70, -3.10, 1.15]
 
 [[part]]
 part = "exhaust"
 kind = "pipe"
-position = [0.70, -3.20, 1.20]
+position = [0.70, -3.06, 1.20]
 length = 0.10
 diameter = 0.22
-outlet = [0.70, -3.25, 1.15]
+outlet = [0.70, -3.10, 1.15]
 
 [[part]]
 part = "box_prop"             # rear stowage box
-center = [0.0, -3.22, 1.40]
+center = [0.0, -3.08, 1.40]
 size = [1.00, 0.14, 0.30]
 
 [[part]]
@@ -172,7 +172,7 @@ socket = false
 
 [[part]]
 part = "tow_hook"
-position = [0.0, -3.16, 0.65]
+position = [0.0, -3.06, 0.65]
 pair = true
 
 [[part]]
