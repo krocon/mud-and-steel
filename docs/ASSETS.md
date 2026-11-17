@@ -481,7 +481,7 @@ biome variants cost nothing.
   ochre; Roof clay tile / slate / thatch (also hay) / planks; Wood weathered /
   fresh / creosote / charred; Paint field grey (`env_paint`) / warning red /
   white / rust; Metal steel / rust / galvanized / dark; Ground earth / spoil /
-  mud / sand.
+  mud / sand; Rock bedrock / scree (prompt 074).
 - **Foliage cards** use a virtual atlas: the integer part of U selects the
   pattern (0 broadleaf, 1 needles, 2 palm frond, 3 grass, 4 flowers, 5 shrub,
   6 twigs, 7 solid hedge core, 8 far crown, 9 far conifer), the fraction is the
@@ -531,6 +531,45 @@ biome variants cost nothing.
   standing at the origin shaded each other (inner variants came out
   darker). Models built before keep their old bake until rebuilt.
 
+### Grown rock (prompt 074)
+
+`kit/rocks.py`, slot `Rock` (env.gdshader slot 16). The building block is
+`rock_block`: the convex hull of jittered points in a box (the four foot
+corners exactly on the cell corners, three rings tapering upwards, a few top
+points), its upper corners and flanks chopped by random fracture planes
+that never reach the foot, near-coplanar hull triangles merged, sharp edges
+bevelled (edge wear in G), no bottom cap. Blocks stand on rectangular
+cells, so a group covers its blocking box at the ground and leaves dark
+joints (AO bake) between the blocks. All from the variant seed.
+
+| Generator | Catalog id | Variants | Build |
+|---|---|---|---|
+| `rock` | `env_rock` | Medium, Small (deco stone, no bevel), Large | one block |
+| `rock_slab` | `env_rock_slab` | Field, Long, Broken, Small, Wide, Strip | roundish outline cut into Voronoi slabs with joints, rim pieces sometimes left out, each slab tilted, chamfered, some lower; at most 0.3 m above ground |
+| `rock_outcrop` | `env_rock_outcrop` | Group, Block, Split, Pair, Leaning, Layered | blocks on the cells of a layout (single, split, pair, leaning, group of four), `layers` stacks bedding layers; chips at the foot |
+| `rock_massif` | `env_rock_massif` | Ridge, Long, Short, High, Double | `cols` blocks along the length in one or two rows, high in the middle, low at the ends (pieces overlap into ridges), a lower flank block beside, stacked blocks on top; `<Variant>_Far` (same cells, no bevel, fewer points) |
+
+**Embedded foot:** the generators record `env_embed_m` (extras); `fit`
+then scales only the part above z = 0 to the box height and keeps the foot
+at -embed, and `validate_env.py` measures the height above z = 0 and
+expects the lowest point at -embed. In the game the foot sinks into slopes
+(placement: [ARCHITECTURE.md](ARCHITECTURE.md#grown-rock-prompt-074)).
+
+**Shading:** `rock_albedo()` in `env.gdshader`, in world space (neighbouring
+blocks and overlapping pieces continue the pattern): base color of the
+terrain's rock layer (`gen_textures.rs` `rock`) times the biome's rock tint
+(`layer_tint[8]`), recognized from the look uniforms; tops brighter and
+warmer than the flanks by the normal, bedding bands, two crack noises,
+dark water streaks down the flanks, lichen and moss on top (not in the
+desert), pale lichen spots, a darker foot (height in B); half the usual
+desert dust; snow from the shared snow cover. [provisional] colors.
+
+Sizes from the reference pictures' scale (houses about 8 × 5 m, telegraph
+poles about 7 m, trucks, soldiers), uncertain by about ±30 %: slabs 2–8 m
+wide, outcrops 3.6–7.8 m and 2.5–4.8 m high, ridge pieces 12–25 m and
+5–9 m high. `just env-lineup build/renders/env env_rock_slab
+env_rock_outcrop env_rock_massif` shows them with the figure and the tank.
+
 ### Distance: far meshes instead of impostors
 
 Trees have a `<Variant>_Far` mesh: low trunk plus three crossed and one or two
@@ -556,6 +595,7 @@ the frame ([ARCHITECTURE.md](ARCHITECTURE.md#map-objects-and-decoration-presenta
 |---|---|---|
 | Tree | ≤ 2 000 (far ≤ 200) | per variant, not per file |
 | Bush / grass clump / rock | ≤ 500 / 50 / 300 | |
+| Rock slab / outcrop / ridge piece (prompt 074) | ≤ 300 / 1 500 / 3 000 (ridge far ≤ 300) | `BUDGET_OVERRIDES`, `FAR_BUDGET_OVERRIDES` in `kit/env.py` |
 | House / church, mosque, police post | ≤ 3 000 / 5 000 | per damage variant, all parts together |
 | Bridge | ≤ 3 000 | no budget in the table above; same as a house |
 | Fence, wall, hedge segment; fortification | ≤ 2 000 | |

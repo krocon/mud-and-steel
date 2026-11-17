@@ -195,7 +195,8 @@ env_hedge,Segment,180412,-3311,4
 the variants a map may use, the size classes it blocks (`none`, `small` for
 infantry, `large` for tanks and trucks, `all`) and its ground shape: a circle
 (`radius_mm`, e.g. a trunk) or a box (`length_mm` along the heading × `width_mm`,
-by default the catalog size). Variants may override both. These are game rules:
+by default the catalog size). Variants may override both, and their height (`height_mm`, for sight and
+projectiles; rocks, prompt 074). These are game rules:
 
 | Objects | Blocks | Shape |
 |---|---|---|
@@ -205,6 +206,8 @@ by default the catalog size). Variants may override both. These are game rules:
 | Ruins of houses, barns and the church (variant `Ruin`, prompt 020) | large | catalog box |
 | Barbed wire | small | catalog box |
 | Fences, bushes, hay, props, stumps, logs, poles, medium/small rocks, trenches | none | – |
+| Rock outcrops, rock ridge pieces (prompt 074) | all | box per variant, 0.4 m larger than the model's foot; own `height_mm` per variant |
+| Rock slabs (prompt 074) | none | box per variant (the model) |
 
 Woods, hedgerows and walls are closed to tanks and open to infantry; tanks use
 gaps and tracks. Loading resolves every line against the rules; unknown kinds or
@@ -481,6 +484,20 @@ Open: fog in valleys, contour lines on the minimap, a serpentine on other
 than the west side or more than one, rivers that follow valley floors
 downhill (the river still runs north–south through the range).
 
+### Grown rock (prompt 074)
+
+`gen-map --rocks` places grown rock in a random stream of its own (the other
+objects stay as they are), last, on open ground only (`Placer::open`: away
+from ways, water, starts, villages; the whole box): ridges of overlapping
+ridge pieces along the contour where the grade (|dx| + |dy|) exceeds 0.48,
+sometimes a second piece beside, with conifers and bushes between them;
+outcrops on slopes of grade 0.2–0.48 with bushes and stones at the foot;
+slab fields (6–13 slabs) on gentle ground where a 120 m noise is high.
+`just gen-rock-hills` writes **`rock_hills`** (1200 m, seed 74, desert,
+mountains, about 260 ridge pieces, 85 outcrops, 230 slabs). No test,
+tournament, balance or benchmark series uses it; the maps of those series
+got no rocks.
+
 ### Small town (prompt 041)
 
 `cli gen-town` (`crates/cli/src/gen_town.rs`, `just gen-town`) writes
@@ -591,7 +608,7 @@ loads maps for the simulation (reasons and data flow:
 | Flatten | towards the height where the stroke began |
 | Paint terrain | any id of `terrain.toml` inside the circle (roads, tracks, mud, fords …) |
 | River | bed down to 0.6–3 m (strength) below the height where the stroke began, parabolic profile: deep water in the channel, shallow water beside it, a sand bank at the rim; only digs, never fills; existing water is never made shallower |
-| Vegetation / objects | scatters a preset (deciduous, conifer, birch, palms, bushes, rocks, hay) at a density per hectare, random headings, keeps a minimum spacing, never on tracks, roads or water |
+| Vegetation / objects | scatters a preset (deciduous, conifer, birch, palms, bushes, rocks, hay, rock slabs, rock outcrops, rock ridge) at a density per hectare, random headings, keeps a minimum spacing, never on tracks, roads or water; box-shaped objects keep their whole box off them, and nothing lands inside a blocking box. Rock presets (prompt 074): slabs in loose fields, outcrops with bushes and stones, ridge pieces close together (they overlap) with conifers and bushes between them (a second scatter in the same dab) |
 | Place object | any kind and variant of `objects.toml` with a heading; bridges snap to a multiple of 90° and onto a center line of the 4 m path grid |
 | Erase objects | removes the objects in the circle |
 | Start player 1 / 2 | sets the start positions (whole meters) |

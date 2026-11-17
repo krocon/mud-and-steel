@@ -17,6 +17,20 @@ Repo, `.temp/` ist ignoriert). Drei Bildschirmfotos aus einem anderen Strategies
 470 bis 980 Pixel breit. Liegen die Dateien nicht vor, reicht die Beschreibung in
 Abschnitt 2.
 
+## Entscheidungen (autonom, Nachtlauf 17.11.2026)
+
+Vorläufig; der Prompt hatte keine offenen Fragen, diese Punkte wurden in der Session entschieden.
+
+| Frage | Entscheidung |
+|---|---|
+| Welche Spielkarten bekommen Felsen? | Neue Karte `rock_hills` (1200 m, Wüste, Gebirge, `just gen-rock-hills`). Alle zehn bestehenden Karten gehören zu Balance-/KI-Messreihen und bleiben nach Abschnitt 3 ohne neue Felsen (auch `mountain_pass`). |
+| Golden-Hash | Geändert (Determinismus und Wirtschaft): die gehashte Sichtregel-Liste `solid` nennt die neuen Felsen. Mit der alten `vision.toml` kommen die alten Werte heraus; die Testkarten haben keine Felsen. |
+| Blockierform | Kasten je Variante; bei Gruppen und Rücken 0,4 m je Seite größer als der Fuß des Modells (Panzer berühren den Fels statt hineinzufahren), Platten genau das Modell. Eigene Höhe je Variante (`height_mm`). |
+| Deckung | Keine neue Regel: Gruppen und Rücken halten Panzer auf und haben eine Höhe, sind damit Deckungsplätze und Geschossfang wie die Trockenmauer. |
+| Steiniger Boden im Terrain-Shader | Offen; stattdessen ein Saum aus Geröll, hohen Büscheln und Büschen in der Dekoration (3 m um jeden Fels). |
+| Gebirgsgenerator | `gen-map --rocks` (eigener Zufallsstrom): Rücken an Hängen über Gefälle 0,48, Gruppen an Hängen darunter, Plattenfelder im flachen Gelände. |
+| Bildreihe Bewegung | Als Simulationstest (`crates/sim/tests/rocks.rs`: Panzer und Trupp um Gruppe und Rücken, nächster Abstand 1,6–2,4 m zum Kasten, Ziel erreicht; Platten ändern die Fahrt nicht) statt einer Bildreihe im Spiel. |
+
 ## 1. Ziel
 
 Das Spiel bekommt Felsen, wie die Vorlagen sie zeigen: flache Felsplatten, die aus dem

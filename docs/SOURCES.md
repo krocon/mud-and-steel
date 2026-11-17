@@ -96,6 +96,18 @@ photos, no file names of them, no text except the short notes of the data tables
 - **Rules** (hit points, garrison capacities, cover) are game rules, marked
   provisional. The map carries no real place names.
 
+## Grown rock (prompt 074)
+
+- **Slabs, outcrops, ridge pieces** are generic natural forms with
+  judgement dimensions; the catalog cites general geology references
+  (Wikipedia: Outcrop, Limestone pavement, Tor (rock formation), Joint
+  (geology), Ridge, Crag) like `env_rock`, and lists every dimension as
+  `uncertain`. Sizes were estimated from the scale of houses, poles and
+  vehicles in reference screenshots of another game; those pictures served
+  for form and effect only: no cut-outs, textures or values from them, all
+  models from the kit, all patterns from the shader.
+- **Rules** (blocking, sight heights, box margins) are game rules.
+
 ## Infantry camouflage (prompt 042)
 
 The camouflage prints of the soldiers are procedural imitations by period

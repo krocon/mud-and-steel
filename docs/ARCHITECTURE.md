@@ -2987,6 +2987,61 @@ of about 300 visible chunks × tree variants × shadow cascades; merging far tre
 into larger chunks would cut them if weaker GPUs need it (prompt 016).
 `just objects-shots <dir>` records woods, village, meadow and a hedgerow.
 
+### Grown rock (prompt 074)
+
+Three rock kinds (models: [ASSETS.md](ASSETS.md#grown-rock-prompt-074),
+rules: [MAPS.md](MAPS.md#objects)): flat **slabs** (`env_rock_slab`, only a
+picture), **outcrops** of one to four blocks (`env_rock_outcrop`) and **ridge
+pieces** (`env_rock_massif`, 12–25 m), which overlap into ridges. Outcrops and
+ridge pieces block every unit and are solid for sight up to their variant
+height; as tank-blocking objects with a height they stop projectiles and are
+cover spots like walls, with no new cover rule.
+
+- **Sitting in the ground.** The models reach `env_embed_m` (0.25–1.5 m)
+  below z = 0. Outcrops and ridge pieces stand at the lowest ground under
+  their box like houses, so the uphill side sinks into the slope. Slabs
+  are sheared onto the plane through the ground at their corners
+  (`push_sheared` in `crates/bridge/src/objects.rs`), so they neither float
+  nor sink on slopes. New rock kinds get no size jitter (the box must
+  match), slabs ±8 %.
+- **Seam.** `DecoRasters` keeps decoration off the rock's foot only (solid
+  rocks' boxes are 0.4 m larger than the foot, the raster shrinks them by
+  that) and marks a 3 m seam around every rock; layers with `rock` add
+  density there on grass, sand, mud, snow and tall grass: `rock_scree`
+  (small `env_rock` stones, 1.3 m lattice), `rock_tufts` (tall grass
+  clumps) and more bushes. So the foot has scree, tufts and bushes, as in
+  the reference pictures; the ground under the rock stays bare.
+- **Trees in ridges** come from placement (editor preset, `gen-map
+  --rocks`), not from the model.
+- **View ranges and shadows:** ridge pieces unlimited, outcrops 1 600 m,
+  slabs 600 m without shadow; ridge pieces switch to their far mesh at
+  220 m like trees (its shadow stands in for the near one).
+- **Shader:** slot `Rock` of `env.gdshader` in world space, so neighbouring
+  blocks and overlapping pieces continue each other's pattern; base color of
+  the terrain's rock layer per biome.
+
+Measurements (Apple M1 Max, 1920 × 1080, debug bridge, Blender and the
+Godot editor open on the machine, so ±15 %): `just objects-bench` on
+`test_large` (no rocks there; the new decoration layers find nothing),
+before / after: near 22.7 / 22.7 FPS, middle 30.7 / 30.9, overview 66.1 /
+66.9, village 51.7 / 52.0, draw calls unchanged (262 / 649 / 1 919 / 797).
+`just objects-bench rock_hills --rocks-bench` over the densest ridge field
+(22 pieces in a 128 m chunk): 35 m 94 FPS (237 draw calls, 0.50 M
+triangles, 63 000 decoration), 110 m 80 FPS (369, 0.49 M), 350 m 119 FPS
+(795, 0.20 M). Triangles per variant: slabs ≤ 219, outcrops ≤ 536,
+ridge pieces ≤ 1 444 near and ≤ 300 far. `just rock-shots [dir]` saves
+slabs, outcrops and ridge pieces at 15, 35, 110 and 350 m, the ridge piece
+on the steepest slope and three views like the reference pictures, in all
+three biomes (`--daytime=evening` for low sun, `--biomes=`).
+
+Open points: the terrain shader does not draw stonier ground around rocks
+(the seam decoration stands in for it; a raster from the objects would be
+the next step); ridge fields are sparser than in the reference pictures
+(denser placement or wider pieces); the "steepest slope" shot of
+`rock-shots` can land in a wood; thumbnails show the embedded foot.
+Not part of prompt 074: cliffs as terrain, climbable rocks, ricochets and
+splinters, rolling or blasted boulders.
+
 ## Water (presentation only)
 
 Prompt 014. The simulation knows water only as terrain types on a river bed;
