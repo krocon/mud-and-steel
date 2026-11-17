@@ -32,7 +32,37 @@ const POOL_SIZES: Dictionary[String, int] = {
 	"flash": 32, "powder": 40, "blast_dust": 56, "fountain": 48, "spray": 16,
 	"impact_dust": 48, "puff": 48, "sparks": 56, "fireball": 56,
 	"explosion_smoke": 56, "debris": 56,
+	"core": 48, "rays": 32, "streaks": 48, "earth_cloud": 48, "embers": 56, "dust_cloud": 24,
 }
+## Layers of an explosion (prompt 072, after the reference video; profiles
+## in docs/ARCHITECTURE.md): burst kind, delay in s, size × the explosion's
+## scale, height above the ground in m × scale, and tint: "" none, "ground"
+## the ground colour, "earth" ground mixed with grey (thrown-up soil and
+## dust), "dark" the ground darkened. The flash, the earth fan and the
+## fireball start together; the black smoke grows out of the fireball from
+## 0.9 s, glowing embers show in it from 1.2 s.
+const EXPLOSION_LAYERS: Dictionary[String, Array] = {
+	# Shell on the ground from 37 mm (scale caliber / 75 mm).
+	"ground_hit": [
+		["core", 0.0, 0.7, 0.5, ""],
+		["streaks", 0.0, 1.0, 0.0, "dark"],
+		["fountain", 0.0, 1.0, 0.0, "dark"],
+		["earth_cloud", 0.03, 1.0, 0.6, "earth"],
+		["sparks", 0.0, 0.5, 0.3, ""],
+	],
+	# Destroyed vehicle (scale = vehicle length / 7 m).
+	"vehicle": [
+		["rays", 0.0, 1.0, 1.5, ""],
+		["fireball", 0.0, 1.0, 1.6, ""],
+		["sparks", 0.0, 1.3, 1.2, ""],
+		["debris", 0.0, 1.0, 1.2, ""],
+		["blast_dust", 0.0, 0.9, 0.2, "dark"],
+		["explosion_smoke", 0.9, 1.0, 3.0, ""],
+		["embers", 1.2, 1.0, 3.0, ""],
+	],
+}
+## Mix of the ground colour with grey for thrown-up earth.
+const EARTH_GREY := Color(0.55, 0.52, 0.48)
 ## Ground look per terrain id (data/terrain.toml) and biome: dust color kind
 ## and dust trail strength (0..1). Desert draws grass and snow as sand, winter
 ## grass and sand as snow (like the terrain shader, prompt 015).
@@ -106,6 +136,8 @@ var _shake := 0.0
 var _time := 0.0
 var _visibility_timer := 0.0
 var _bursts_root: Node3D
+## Layers waiting for their delay: {t, kind, at, s, tint} (prompt 072).
+var _pending: Array[Dictionary] = []
 
 
 func setup(main_node: Node3D) -> void:
@@ -135,6 +167,7 @@ func _process(delta: float) -> void:
 func _process_effects(delta: float) -> void:
 	_time += delta
 	_configure()
+	_start_pending()
 	_update_lights(delta)
 	_update_wrecks(delta)
 	_update_vehicles(delta)
@@ -259,12 +292,15 @@ func ground_hit(at: Vector3, caliber: float) -> void:
 		_burst("spray", at, Basis.IDENTITY, s, color)
 		_burst("puff", at, Basis.IDENTITY, s * 2.0, color)
 		return
-	_burst("fountain", at, Basis.IDENTITY, s, color.darkened(0.15))
-	_burst("impact_dust", at, Basis.IDENTITY, s, color)
-	if caliber >= 37.0:
-		_burst("sparks", at, Basis.IDENTITY, s * 0.5)
+	if caliber < 37.0:
+		_burst("fountain", at, Basis.IDENTITY, s, color.darkened(0.15))
+		_burst("impact_dust", at, Basis.IDENTITY, s, color)
+	else:
+		# Prompt 072: flash, earth fan, clods and a cloud of earth lumps.
+		layers("ground_hit", at, s, color)
 		_decal(at, 1.4 + 1.6 * s)
-		_light(at + Vector3.UP, 2.0 * s, 8.0 * s, 0.1)
+		# The flash lights up the surroundings for one or two frames.
+		_light(at + Vector3.UP * 1.5, 4.0 * s, 14.0 * s, 0.12)
 	_add_shake(at, 0.25 * s)
 
 
@@ -356,7 +392,7 @@ func object_event(event: Dictionary) -> void:
 		"ruin":
 			var s := 2.2
 			_burst("debris", at + Vector3.UP * 4.0, Basis.IDENTITY, s)
-			_burst("explosion_smoke", at + Vector3.UP * 3.0, Basis.IDENTITY, s, dust.lightened(0.15))
+			_burst("dust_cloud", at + Vector3.UP * 3.0, Basis.IDENTITY, s * 0.8, dust.lightened(0.15))
 			_burst("blast_dust", at + Vector3.UP * 0.3, Basis.IDENTITY, s * 1.4, _ground_color(at))
 			_burst("impact_dust", at + Vector3.UP * 5.0, Basis.IDENTITY, s * 1.5, dust)
 			_decal(at, 9.0)
@@ -381,19 +417,49 @@ func explosion(at: Vector3, s := 1.0) -> void:
 	if not visible_at.call(at):
 		return
 	var center := at + Vector3.UP * 1.2 * s
-	_burst("fireball", center, Basis.IDENTITY, s)
-	_burst("explosion_smoke", center, Basis.IDENTITY, s)
-	_burst("sparks", center, Basis.IDENTITY, s * 1.3)
-	_burst("debris", center, Basis.IDENTITY, s)
 	var ground := at
-	ground.y = sim_host.height_at(at.x, at.z) + 0.2
-	_burst("blast_dust", ground, Basis.IDENTITY, s * 0.9, _ground_color(ground).darkened(0.2))
+	ground.y = sim_host.height_at(at.x, at.z)
+	# Prompt 072: flash and rays, a fireball that turns into black smoke,
+	# embers, sparks, debris and dust.
+	layers("vehicle", ground, s, _ground_color(ground))
+	# The flash; a longer glow (1.4 s) cost 4 FPS at "high" with 50
+	# explosions (prompt 072), the video lights the ground only in the flash.
 	_light(center + Vector3.UP, 10.0 * s, 28.0 * s, 0.4)
 	_decal(ground, 7.0 * s)
 	_add_shake(at, 1.0 * s)
 
 
 # --- Bursts -----------------------------------------------------------------
+
+
+## Starts the layers of EXPLOSION_LAYERS[profile] on the ground point `at`
+## with scale `s`; `ground` is the colour of the ground there. Layers with a
+## delay wait in `_pending` (the caller checked the visibility).
+func layers(profile: String, at: Vector3, s: float, ground: Color) -> void:
+	for layer: Array in EXPLOSION_LAYERS[profile]:
+		var tint := Color.WHITE
+		match str(layer[4]):
+			"ground":
+				tint = ground
+			"earth":
+				tint = ground.lerp(EARTH_GREY, 0.5)
+			"dark":
+				tint = ground.darkened(0.3)
+		var point := at + Vector3.UP * (float(layer[3]) * s)
+		var size := float(layer[2]) * s
+		if float(layer[1]) <= 0.0:
+			_burst(str(layer[0]), point, Basis.IDENTITY, size, tint)
+		else:
+			_pending.append({"t": _time + float(layer[1]), "kind": layer[0], "at": point, "s": size, "tint": tint})
+
+
+func _start_pending() -> void:
+	for i in range(_pending.size() - 1, -1, -1):
+		var entry: Dictionary = _pending[i]
+		if entry.t <= _time:
+			_pending.remove_at(i)
+			_burst(entry.kind, entry.at, Basis.IDENTITY, entry.s, entry.tint)
+
 
 
 ## Fires the next emitter of a pool at `at`, scaled by `s`, tinted.

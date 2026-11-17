@@ -17,6 +17,7 @@ const EffectTextures := preload("res://scenes/world/effect_textures.gd")
 const BURSTS: Array[String] = [
 	"flash", "powder", "blast_dust", "fountain", "spray", "impact_dust", "puff",
 	"sparks", "fireball", "explosion_smoke", "debris",
+	"core", "rays", "streaks", "earth_cloud", "embers", "dust_cloud",
 ]
 ## Kinds that run continuously (wreck fires, vehicles).
 const CONTINUOUS: Array[String] = ["fire", "smoke_column", "dust_trail", "exhaust"]
@@ -24,12 +25,14 @@ const CONTINUOUS: Array[String] = ["fire", "smoke_column", "dust_trail", "exhaus
 const SHADER_TEMPLATE := """
 shader_type spatial;
 render_mode %s, depth_draw_never, cull_disabled, shadows_disabled%s;
-
+%s
 uniform sampler2D tex : source_color, filter_linear_mipmap, repeat_disable;
 uniform float emission = 0.0;
 uniform float soft_distance = 0.0;
 uniform sampler2D depth_tex : hint_depth_texture, filter_nearest;
 instance uniform vec4 tint : source_color = vec4(1.0);
+varying float v_angle;
+varying float v_age;
 
 void vertex() {
 	// Face the camera like BILLBOARD_PARTICLES: keep the particle's position
@@ -37,6 +40,20 @@ void vertex() {
 	mat4 world = mat4(normalize(INV_VIEW_MATRIX[0]), normalize(INV_VIEW_MATRIX[1]),
 		normalize(INV_VIEW_MATRIX[2]), MODEL_MATRIX[3]);
 	float a = INSTANCE_CUSTOM.x;
+#ifdef STREAK
+	// Earth streaks (prompt 072): the quad's up axis follows the particle's
+	// Y axis, which ParticleProcessMaterial aligns to the velocity.
+	vec3 axis = (VIEW_MATRIX * vec4(MODEL_MATRIX[1].xyz, 0.0)).xyz;
+	a = atan(axis.x, axis.y);
+#endif
+	v_angle = a;
+	v_age = INSTANCE_CUSTOM.y;
+#ifdef ATLAS
+	// One of the four cells of a 2 x 2 atlas, chosen by the particle's
+	// random animation offset (CUSTOM.z).
+	float cell = min(floor(INSTANCE_CUSTOM.z * 4.0), 3.0);
+	UV = UV * 0.5 + vec2(mod(cell, 2.0), floor(cell / 2.0)) * 0.5;
+#endif
 	world = world * mat4(vec4(cos(a), -sin(a), 0.0, 0.0), vec4(sin(a), cos(a), 0.0, 0.0),
 		vec4(0.0, 0.0, 1.0, 0.0), vec4(0.0, 0.0, 0.0, 1.0));
 	MODELVIEW_MATRIX = VIEW_MATRIX * world * mat4(
@@ -65,6 +82,24 @@ const LIT_BODY := """vec2 p = UV * 2.0 - 1.0;
 	ALBEDO = t.rgb * c.rgb;
 	EMISSION = ALBEDO * emission;"""
 const UNSHADED_BODY := "ALBEDO = t.rgb * c.rgb * (1.0 + emission);"
+## Billows (prompt 072): the atlas holds each lump's normal (R, G) and a
+## shade (B); the normal is turned with the quad, so the real sun lights the
+## top of every lump and leaves its underside and the creases dark.
+const BILLOW_BODY := """vec2 n = t.rg * 2.0 - 1.0;
+	vec2 r = vec2(n.x * cos(v_angle) + n.y * sin(v_angle), -n.x * sin(v_angle) + n.y * cos(v_angle));
+	// Half the lump normal, half a dome over the whole quad: soft volumes,
+	// not hard balls.
+	vec2 p = fract(UV * 2.0) * 2.0 - 1.0;
+	NORMAL = normalize(vec3(r * 0.55 + vec2(p.x, -p.y) * 0.25, 0.85));
+	ALBEDO = c.rgb * mix(0.6, 1.0, t.b);
+	EMISSION = ALBEDO * emission;"""
+## Fireballs (prompt 072): unshaded billows whose creases darken as the
+## fireball ages, so the hot cream ball turns mottled orange with dark
+## patches before the colour ramp takes it to black smoke.
+const FIREBALL_BODY := """float age = smoothstep(0.15, 0.65, v_age);
+	// Creases glow orange-red in the young ball, turn dark later.
+	vec3 crease = mix(c.rgb * vec3(1.0, 0.5, 0.2) * 0.75, c.rgb * 0.25, age);
+	ALBEDO = mix(crease, c.rgb * 1.05, smoothstep(0.35, 0.9, t.b)) * (1.0 + emission);"""
 
 static var _shaders: Dictionary[String, Shader] = {}
 
@@ -88,6 +123,8 @@ static func build(kind: String, factor: float, soft: bool, wind: Vector2) -> GPU
 	var drift := Vector3(wind.x, 0.0, wind.y)
 	var amount := 8
 	var size := 1.0
+	# Non-square quads (streaks); else size x size.
+	var quad_size := Vector2.ZERO
 	var material: ShaderMaterial
 	match kind:
 		"flash":
@@ -198,43 +235,176 @@ static func build(kind: String, factor: float, soft: bool, wind: Vector2) -> GPU
 			pm.scale_max = 1.2
 			pm.color_ramp = _ramp([Color(1, 0.95, 0.8, 1), Color(1, 0.6, 0.15, 1), Color(0.8, 0.2, 0.05, 0)], [0.0, 0.4, 1.0])
 			material = _material("add", EffectTextures.spark(), 6.0, false)
-		"fireball":
-			amount = 20
+		# Sizes and times below (prompt 072) are measured in the reference
+		# video (docs/ARCHITECTURE.md, "Explosions after a video reference"),
+		# for scale 1: a 7.5 cm shell, or a vehicle of 7 m.
+		"core":
+			# The first frame: a white-yellow core, ~3.5 m, gone after 1-2 frames.
+			amount = 3
+			p.lifetime = 0.15
+			p.explosiveness = 1.0
+			size = 3.5
+			_cone(pm, Vector3.UP, 30.0, 0.0, 1.0)
+			pm.scale_curve = _curve([Vector2(0, 0.6), Vector2(0.3, 1.0), Vector2(1, 0.7)])
+			pm.color_ramp = _ramp([Color(1, 0.97, 0.85, 1), Color(1, 0.75, 0.35, 0.7), Color(1, 0.5, 0.15, 0)], [0.0, 0.35, 1.0])
+			material = _material("add", EffectTextures.spark(), 5.0, false)
+		"rays":
+			# Vehicle explosion, 0-0.3 s: a pale ray burst ~11 m across that
+			# fades as the fireball grows behind it.
+			amount = 3
+			p.lifetime = 0.4
+			p.explosiveness = 1.0
+			size = 12.0
+			_cone(pm, Vector3.UP, 20.0, 0.0, 0.5)
+			pm.scale_min = 0.8
+			pm.scale_max = 1.1
+			pm.scale_curve = _curve([Vector2(0, 0.35), Vector2(0.35, 1.0), Vector2(1, 1.1)])
+			pm.color_ramp = _ramp([Color(1, 0.95, 0.8, 0.95), Color(1, 0.88, 0.65, 0.6), Color(1, 0.8, 0.55, 0)], [0.0, 0.45, 1.0])
+			material = _material("unshaded", EffectTextures.rays(), 1.5, false)
+		"streaks":
+			# Ground hits: dark radial streaks of earth, a fan ~5.5 m wide and
+			# ~7 m high at 0.3-0.4 s (11 m and 12-16 m for the 15 cm class of
+			# the video), lumpy columns by 0.6 s, down by 1.6 s.
+			amount = 30
 			p.lifetime = 1.3
-			size = 2.4
-			_cone(pm, Vector3.UP, 180.0, 2.0, 7.0)
+			p.explosiveness = 1.0
+			size = 1.0
+			_cone(pm, Vector3.UP, 40.0, 7.0, 14.0)
 			pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
-			pm.emission_sphere_radius = 0.9
-			pm.damping_min = 3.0
-			pm.damping_max = 5.0
-			pm.gravity = Vector3(0, 2.5, 0)
+			pm.emission_sphere_radius = 0.3
+			pm.particle_flag_align_y = true
+			pm.gravity = Vector3(0, -6.0, 0)
+			pm.damping_min = 2.0
+			pm.damping_max = 4.0
 			pm.scale_min = 0.7
 			pm.scale_max = 1.3
-			pm.scale_curve = _curve([Vector2(0, 0.45), Vector2(0.25, 1.4), Vector2(1, 1.2)])
-			pm.angular_velocity_min = -60.0
-			pm.angular_velocity_max = 60.0
-			pm.color_ramp = _ramp([
-				Color(1, 0.78, 0.4, 1), Color(1, 0.42, 0.08, 1), Color(0.5, 0.12, 0.03, 0.9),
-				Color(0.08, 0.06, 0.05, 0.7), Color(0.06, 0.05, 0.05, 0)], [0.0, 0.2, 0.45, 0.7, 1.0])
-			material = _material("unshaded", EffectTextures.fire(), 1.0, soft)
-		"explosion_smoke":
-			amount = 30
-			p.lifetime = 9.0
-			p.explosiveness = 0.75
+			pm.scale_curve = _curve([Vector2(0, 0.6), Vector2(0.2, 1.2), Vector2(1, 1.6)])
+			pm.color_ramp = _ramp([Color(0.5, 0.45, 0.4, 1), Color(0.55, 0.5, 0.45, 0.9), Color(0.6, 0.56, 0.52, 0)], [0.0, 0.45, 1.0])
+			quad_size = Vector2(1.5, 3.2)
+			material = _material("streak", EffectTextures.streak(), 0.0, false)
+		"earth_cloud":
+			# Ground hits: the earth fan turns into a cloud of brown lumps
+			# (~6 m at 1 s), rises, turns grey-brown by 3 s and thins out;
+			# dense to ~3 s, gone by ~8 s.
+			amount = 26
+			p.lifetime = 8.0
+			p.explosiveness = 0.95
 			size = 3.2
-			_cone(pm, Vector3.UP, 40.0, 2.0, 6.5)
+			_cone(pm, Vector3.UP, 35.0, 3.0, 10.0)
 			pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
-			pm.emission_sphere_radius = 1.2
+			pm.emission_sphere_radius = 0.9
+			pm.damping_min = 2.0
+			pm.damping_max = 3.5
+			pm.gravity = Vector3(0, 0.35, 0) + drift * 0.5
+			pm.scale_min = 0.6
+			pm.scale_max = 1.3
+			pm.scale_curve = _curve([Vector2(0, 0.45), Vector2(0.12, 1.3), Vector2(1, 2.6)])
+			pm.angular_velocity_min = -10.0
+			pm.angular_velocity_max = 10.0
+			pm.lifetime_randomness = 0.35
+			_atlas(pm)
+			_turbulence(pm, 0.6)
+			pm.color_ramp = _ramp([
+				Color(0.7, 0.66, 0.62, 0), Color(0.75, 0.7, 0.66, 0.95), Color(1.4, 1.38, 1.36, 0.8),
+				Color(1.75, 1.75, 1.75, 0.35), Color(1.8, 1.8, 1.8, 0)], [0.0, 0.03, 0.35, 0.65, 1.0], true)
+			material = _material("billow", EffectTextures.billow(), 0.0, soft)
+		"fireball":
+			# Vehicle explosion: a cream-white ball of lumps that grows to
+			# ~10 m (1.4 vehicle lengths) and ~12 m high by 1.0 s, turns
+			# mottled orange at 1.5 s, dark red-brown with glowing spots at
+			# 1.8 s and black at 2.2 s, where the smoke takes over.
+			amount = 14
+			p.lifetime = 2.4
+			p.explosiveness = 0.92
+			size = 4.6
+			_cone(pm, Vector3.UP, 75.0, 3.0, 9.0)
+			pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
+			pm.emission_sphere_radius = 1.0
+			pm.damping_min = 3.5
+			pm.damping_max = 5.5
+			pm.gravity = Vector3(0, 1.6, 0)
+			pm.scale_min = 0.7
+			pm.scale_max = 1.3
+			pm.scale_curve = _curve([Vector2(0, 0.3), Vector2(0.18, 1.1), Vector2(0.45, 1.35), Vector2(1, 1.55)])
+			pm.angular_velocity_min = -25.0
+			pm.angular_velocity_max = 25.0
+			_atlas(pm)
+			pm.color_ramp = _ramp([
+				Color(1.0, 0.9, 0.7, 1), Color(1.0, 0.72, 0.4, 1), Color(0.95, 0.45, 0.13, 1),
+				Color(0.45, 0.14, 0.05, 0.97), Color(0.06, 0.04, 0.03, 0.9), Color(0.04, 0.035, 0.03, 0)],
+				[0.0, 0.4, 0.6, 0.75, 0.9, 1.0])
+			material = _material("fireball", EffectTextures.billow(), 0.6, soft)
+		"embers":
+			# Glowing spots in the darkening fireball and young smoke
+			# (1.3-3 s), carried up with it.
+			amount = 16
+			p.lifetime = 1.8
+			p.explosiveness = 0.6
+			pm.lifetime_randomness = 0.4
+			size = 0.45
+			_cone(pm, Vector3.UP, 60.0, 0.8, 3.0)
+			pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
+			pm.emission_sphere_radius = 2.6
 			pm.damping_min = 0.8
 			pm.damping_max = 1.6
-			pm.gravity = Vector3(0, 0.8, 0) + drift * 0.6
-			pm.scale_curve = _curve([Vector2(0, 0.5), Vector2(0.3, 2.0), Vector2(1, 4.0)])
-			pm.angular_velocity_min = -12.0
-			pm.angular_velocity_max = 12.0
+			pm.gravity = Vector3(0, 1.2, 0)
+			pm.scale_min = 0.5
+			pm.scale_max = 1.5
+			pm.color_ramp = _ramp([Color(1, 0.75, 0.35, 0), Color(1, 0.6, 0.2, 1), Color(0.85, 0.25, 0.05, 0.8), Color(0.5, 0.1, 0.02, 0)], [0.0, 0.1, 0.6, 1.0])
+			material = _material("add", EffectTextures.spark(), 3.0, false)
+		"explosion_smoke":
+			# Vehicle explosion: the black column that grows out of the
+			# fireball from ~1 s, rises ~3 m/s at first and slows down,
+			# opaque to ~4 s, then thins and greys; gone by ~11 s, while the
+			# wreck's own smoke column goes on.
+			amount = 18
+			p.lifetime = 11.0
+			p.explosiveness = 0.8
+			pm.lifetime_randomness = 0.3
+			size = 3.8
+			_cone(pm, Vector3.UP, 22.0, 2.5, 5.5)
+			pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
+			pm.emission_sphere_radius = 1.6
+			pm.damping_min = 0.5
+			pm.damping_max = 0.9
+			pm.gravity = Vector3(0, 0.5, 0) + drift * 0.6
+			pm.scale_min = 0.7
+			pm.scale_max = 1.3
+			pm.scale_curve = _curve([Vector2(0, 0.6), Vector2(0.12, 1.2), Vector2(1, 3.0)])
+			pm.angular_velocity_min = -8.0
+			pm.angular_velocity_max = 8.0
+			_atlas(pm)
+			_turbulence(pm, 0.8)
 			pm.color_ramp = _ramp([
-				Color(0.04, 0.035, 0.03, 0), Color(0.05, 0.045, 0.04, 0.97), Color(0.13, 0.12, 0.115, 0.75),
-				Color(0.26, 0.25, 0.24, 0)], [0.0, 0.05, 0.45, 1.0])
-			material = _material("lit", EffectTextures.smoke(), 0.0, soft)
+				Color(0.03, 0.025, 0.02, 0), Color(0.035, 0.03, 0.025, 0.97), Color(0.06, 0.055, 0.05, 0.92),
+				Color(0.14, 0.13, 0.12, 0.45), Color(0.24, 0.23, 0.22, 0)], [0.0, 0.04, 0.35, 0.7, 1.0])
+			material = _material("billow", EffectTextures.billow(), 0.0, soft)
+		"dust_cloud":
+			# Big blasts: a grey-beige dome of dust that is ~16 m across
+			# within 0.5 s (15 cm) and keeps rolling; the tint is the ground
+			# colour mixed with grey. Also collapsing buildings.
+			amount = 24
+			p.lifetime = 8.0
+			p.explosiveness = 0.95
+			pm.lifetime_randomness = 0.3
+			size = 5.0
+			_cone(pm, Vector3.UP, 80.0, 10.0, 20.0)
+			pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
+			pm.emission_sphere_radius = 1.5
+			pm.damping_min = 14.0
+			pm.damping_max = 20.0
+			pm.gravity = Vector3(0, 0.4, 0) + drift * 0.5
+			pm.scale_min = 0.7
+			pm.scale_max = 1.3
+			pm.scale_curve = _curve([Vector2(0, 0.5), Vector2(0.08, 1.3), Vector2(1, 2.4)])
+			pm.angular_velocity_min = -10.0
+			pm.angular_velocity_max = 10.0
+			_atlas(pm)
+			_turbulence(pm, 0.6)
+			pm.color_ramp = _ramp([
+				Color(1.2, 1.2, 1.2, 0), Color(1.2, 1.2, 1.2, 0.95), Color(1.15, 1.15, 1.15, 0.65),
+				Color(1.15, 1.15, 1.15, 0.25), Color(1.15, 1.15, 1.15, 0)], [0.0, 0.02, 0.3, 0.7, 1.0], true)
+			material = _material("billow", EffectTextures.billow(), 0.0, soft)
 		"debris":
 			# Dark tumbling fragments (sprites: a mesh with a StandardMaterial3D
 			# leaked its shader at exit).
@@ -276,13 +446,15 @@ static func build(kind: String, factor: float, soft: bool, wind: Vector2) -> GPU
 			pm.damping_min = 0.2
 			pm.damping_max = 0.35
 			pm.gravity = Vector3(0, 0.2, 0) + drift * 0.3
-			pm.scale_curve = _curve([Vector2(0, 0.5), Vector2(0.3, 2.0), Vector2(1, 6.0)])
+			pm.scale_curve = _curve([Vector2(0, 0.5), Vector2(0.3, 2.0), Vector2(1, 5.0)])
 			pm.angular_velocity_min = -8.0
 			pm.angular_velocity_max = 8.0
+			# Billows like the explosion smoke (prompt 072).
+			_atlas(pm)
 			pm.color_ramp = _ramp([
 				Color(0.03, 0.028, 0.025, 0), Color(0.035, 0.032, 0.03, 0.97), Color(0.09, 0.085, 0.08, 0.85),
 				Color(0.2, 0.19, 0.185, 0)], [0.0, 0.03, 0.4, 1.0])
-			material = _material("lit", EffectTextures.smoke(), 0.0, soft)
+			material = _material("billow", EffectTextures.billow(), 0.0, soft)
 		"dust_trail":
 			amount = 48
 			p.lifetime = 3.2
@@ -313,7 +485,7 @@ static func build(kind: String, factor: float, soft: bool, wind: Vector2) -> GPU
 	p.process_material = pm
 	if material != null:
 		var quad := QuadMesh.new()
-		quad.size = Vector2(size, size)
+		quad.size = quad_size if quad_size != Vector2.ZERO else Vector2(size, size)
 		quad.material = material
 		p.draw_pass_1 = quad
 	return p
@@ -325,6 +497,25 @@ static func _cone(pm: ParticleProcessMaterial, direction: Vector3, spread: float
 	pm.spread = spread
 	pm.initial_velocity_min = v_min
 	pm.initial_velocity_max = v_max
+
+
+## Picks one of the four atlas cells per particle (CUSTOM.z, see the
+## "billow" shaders).
+static func _atlas(pm: ParticleProcessMaterial) -> void:
+	pm.anim_speed_min = 0.0
+	pm.anim_speed_max = 0.0
+	pm.anim_offset_min = 0.0
+	pm.anim_offset_max = 1.0
+
+
+## Slow rolling of smoke and dust (prompt 072).
+static func _turbulence(pm: ParticleProcessMaterial, strength: float) -> void:
+	pm.turbulence_enabled = true
+	pm.turbulence_noise_strength = strength
+	pm.turbulence_noise_scale = 6.0
+	pm.turbulence_noise_speed_random = 0.3
+	pm.turbulence_influence_min = 0.03
+	pm.turbulence_influence_max = 0.08
 
 
 static func _curve(points: Array[Vector2]) -> CurveTexture:
@@ -340,23 +531,38 @@ static func _curve(points: Array[Vector2]) -> CurveTexture:
 	return texture
 
 
-static func _ramp(colors: Array[Color], offsets: Array[float]) -> GradientTexture1D:
+## A colour ramp; `hdr` keeps values above 1 (lighter than the tint).
+static func _ramp(colors: Array[Color], offsets: Array[float], hdr := false) -> GradientTexture1D:
 	var gradient := Gradient.new()
 	gradient.offsets = PackedFloat32Array(offsets)
 	gradient.colors = PackedColorArray(colors)
 	var texture := GradientTexture1D.new()
+	texture.use_hdr = hdr
 	texture.gradient = gradient
 	return texture
 
 
-## mode: "lit" (alpha blend, sun light), "unshaded" (alpha blend, glowing)
-## or "add" (additive, glowing).
+## mode: "lit" (alpha blend, sun light), "unshaded" (alpha blend, glowing),
+## "add" (additive, glowing), "billow" (lit atlas billows, prompt 072),
+## "fireball" (unshaded atlas billows that darken with age) or "streak" (lit,
+## the quad follows the velocity; needs `particle_flag_align_y`).
 static func _material(mode: String, texture: Texture2D, emission: float, soft: bool) -> ShaderMaterial:
 	if not _shaders.has(mode):
 		var shader := Shader.new()
 		var blend := "blend_add" if mode == "add" else "blend_mix"
-		var extra := "" if mode == "lit" else ", unshaded"
-		shader.code = SHADER_TEMPLATE % [blend, extra, LIT_BODY if mode == "lit" else UNSHADED_BODY]
+		var lit := mode in ["lit", "billow", "streak"]
+		var extra := "" if lit else ", unshaded"
+		var defines := ""
+		if mode in ["billow", "fireball"]:
+			defines = "#define ATLAS"
+		elif mode == "streak":
+			defines = "#define STREAK"
+		var body := LIT_BODY if mode in ["lit", "streak"] else UNSHADED_BODY
+		if mode == "billow":
+			body = BILLOW_BODY
+		elif mode == "fireball":
+			body = FIREBALL_BODY
+		shader.code = SHADER_TEMPLATE % [blend, extra, defines, body]
 		_shaders[mode] = shader
 	var material := ShaderMaterial.new()
 	material.shader = _shaders[mode]
