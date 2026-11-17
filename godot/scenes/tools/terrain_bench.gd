@@ -335,6 +335,29 @@ func _land_shots() -> Array[Dictionary]:
 	for p: Dictionary in main.sim_host.supply_points():
 		shots.append({"name": p["name"], "focus": p["position"], "distance": 130.0, "yaw": 0.6, "pitch": 38.0})
 		shots.append({"name": p["name"] + "_near", "focus": p["position"], "distance": 50.0, "yaw": -0.8, "pitch": 32.0})
+	# Prompt 079 (`city_large`): the whole 3 km map, every zone, a start and
+	# street views at 15 and 35 m; "city_compare" is the view next to the
+	# reference picture (block quarter with the suburb behind it).
+	if main.sim_host.map_marker("block_edge_south") != null:
+		shots[0]["distance"] = 2600.0
+		shots[0]["pitch"] = 60.0
+		shots.append_array([
+			{"name": "city_compare", "marker": "block_edge_south", "offset": Vector3(0, 0, -40), "distance": 260.0, "yaw": 0.8, "pitch": 38.0},
+			{"name": "city_compare_far", "marker": "block_edge_south", "offset": Vector3(0, 0, -60), "distance": 420.0, "yaw": 0.8, "pitch": 40.0},
+			{"name": "zone_center", "marker": "town_square", "distance": 280.0, "yaw": 0.6, "pitch": 45.0},
+			{"name": "zone_blocks", "marker": "main_street_south", "distance": 420.0, "yaw": 0.6, "pitch": 45.0},
+			{"name": "zone_park", "marker": "park_south", "distance": 200.0, "yaw": 0.6, "pitch": 40.0},
+			{"name": "zone_warehouses", "marker": "warehouses_south", "distance": 200.0, "yaw": 0.6, "pitch": 40.0},
+			{"name": "zone_suburb", "marker": "suburb_south", "distance": 300.0, "yaw": 0.6, "pitch": 40.0},
+			{"name": "zone_land", "marker": "strongpoint_south", "distance": 500.0, "yaw": 0.6, "pitch": 35.0},
+			{"name": "zone_bypass", "marker": "bypass_west", "distance": 320.0, "yaw": 0.6, "pitch": 38.0},
+			{"name": "start", "marker": "start_south", "distance": 220.0, "yaw": 0.6, "pitch": 40.0},
+			{"name": "street_15", "marker": "main_street_south", "distance": 15.0, "yaw": 0.0, "pitch": 22.0},
+			{"name": "street_35", "marker": "main_street_south", "distance": 35.0, "yaw": 0.0, "pitch": 28.0},
+			{"name": "side_street_15", "marker": "side_street_south", "distance": 15.0, "yaw": 1.57, "pitch": 22.0},
+			{"name": "side_street_35", "marker": "side_street_south", "distance": 35.0, "yaw": 1.57, "pitch": 28.0},
+			{"name": "suburb_street_35", "marker": "crossing_south", "distance": 35.0, "yaw": 0.3, "pitch": 28.0},
+		])
 	return shots
 
 

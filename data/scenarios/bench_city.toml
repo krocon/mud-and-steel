@@ -1,0 +1,63 @@
+# City benchmark (prompt 079): the armies of `bench_large.toml` (125 tanks
+# and 125 rifle squads per side, 2250 soldiers in all) on `city_large`, in
+# the open land between the suburb and the bypass south and north of the
+# city, 1.5 km apart; the Hard AIs fight through the block quarter.
+# Used by `just bench --scenario data/scenarios/bench_city.toml`
+# (docs/PERFORMANCE.md). Integers only.
+#
+# The first group of every player moves to the map's start position (the
+# trucks); the armies keep the positions below.
+
+map = "city_large"
+
+# Player 0: south of the city (+y).
+[[group]]
+owner = 0
+unit = "de_opel_blitz"
+count = 2
+columns = 2
+spacing_m = 15
+center_m = [-249, 1101]
+
+[[group]]
+owner = 0
+unit = "de_pz4_h"
+count = 125
+columns = 25
+spacing_m = 14
+center_m = [-99, 761]
+
+[[group]]
+owner = 0
+unit = "de_inf_rifle_squad"
+role = "infantry"
+count = 125
+columns = 25
+spacing_m = 16
+center_m = [-99, 871]
+
+# Player 1: north of the city (-y).
+[[group]]
+owner = 1
+unit = "su_zis5"
+count = 2
+columns = 2
+spacing_m = 15
+center_m = [251, -1099]
+
+[[group]]
+owner = 1
+unit = "su_t34_76_1943"
+count = 125
+columns = 25
+spacing_m = 14
+center_m = [101, -759]
+
+[[group]]
+owner = 1
+unit = "su_inf_rifle_squad"
+role = "infantry"
+count = 125
+columns = 25
+spacing_m = 16
+center_m = [101, -869]

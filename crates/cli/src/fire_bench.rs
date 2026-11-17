@@ -1,6 +1,11 @@
 //! Fire benchmark (prompt 041): the town map with units of two players,
 //! once without fire and once with the west wood, a row of town houses and
 //! both supply dumps set on fire, timed per tick.
+//!
+//! Maps with a marker `fire_start` (prompt 079, `city_large`) burn the
+//! buildings and trees within `CELL_FIRE_M` of it instead (a block cell),
+//! the units start at the map's first two starts, and the report counts
+//! the objects that burnt beyond the cell (the streets are firebreaks).
 
 use sim::{
     Catalog, Command, FireMode, Map, PlayerCommand, PlayerId, Scale, Sim, SimConfig, Spawn,
@@ -19,6 +24,35 @@ pub struct Options {
 
 const TYPES: [&str; 2] = ["de_pz4_h", "de_inf_rifle_squad"];
 const SPACING_M: i32 = 12;
+/// Radius of the fire started at a `fire_start` marker (m).
+const CELL_FIRE_M: i32 = 50;
+
+/// The `fire_start` marker of the map, if any.
+fn fire_origin(map: &Map) -> Option<Vec2> {
+    map.markers()
+        .iter()
+        .find(|m| m.name == "fire_start")
+        .map(|m| m.position)
+}
+
+/// Where the units of `player` (0 or 1) stand and which way their rows run.
+fn spawn_base(map: &Map, player: usize) -> (Vec2, i32) {
+    let y = if player == 0 { 240 } else { -240 };
+    if fire_origin(map).is_some()
+        && let Some(start) = map
+            .starts()
+            .iter()
+            .find(|s| usize::from(s.player) == player)
+    {
+        let sign = if start.position.y.to_num::<i32>() > 0 {
+            1
+        } else {
+            -1
+        };
+        return (start.position, sign);
+    }
+    (Vec2::from_meters(0, y), y.signum())
+}
 
 fn new_sim(map: &Arc<Map>, options: &Options) -> Result<Sim, String> {
     let catalog = Catalog::builtin().map_err(|e| e.to_string())?;
@@ -26,16 +60,15 @@ fn new_sim(map: &Arc<Map>, options: &Options) -> Result<Sim, String> {
     let unit_types =
         sim::unit_types_from_catalog(&catalog, &scale, &TYPES).map_err(|e| e.to_string())?;
     let mut spawns = Vec::new();
-    for (player, y) in [(PlayerId(0), 240_i32), (PlayerId(1), -240)] {
+    for (k, player) in [PlayerId(0), PlayerId(1)].into_iter().enumerate() {
+        let (base, sign) = spawn_base(map, k);
         for i in 0..options.units {
             let i = i32::try_from(i).unwrap_or(0);
             spawns.push(Spawn {
                 owner: player,
                 unit_type: TYPES[(i % 2) as usize].into(),
-                position: Vec2::from_meters(
-                    (i % 10 - 5) * SPACING_M,
-                    y - (i / 10) * SPACING_M * y.signum(),
-                ),
+                position: base
+                    + Vec2::from_meters((i % 10 - 5) * SPACING_M, -(i / 10) * SPACING_M * sign),
                 fire_mode: FireMode::HoldFire,
             });
         }
@@ -60,6 +93,22 @@ fn new_sim(map: &Arc<Map>, options: &Options) -> Result<Sim, String> {
 /// houses of the main street's north-west terrace row, all dumps.
 fn fire_starts(map: &Map) -> Vec<u32> {
     let kinds = map.object_kinds();
+    if let Some(origin) = fire_origin(map) {
+        let reach = sim::Fixed::from_num(CELL_FIRE_M);
+        return (0u32..)
+            .zip(map.objects())
+            .filter(|(_, o)| {
+                let id = kinds[usize::from(o.kind)].id.as_str();
+                let d = o.position - origin;
+                (id.starts_with("env_block")
+                    || id.starts_with("env_tree")
+                    || id.starts_with("env_house"))
+                    && d.x.abs() <= reach
+                    && d.y.abs() <= reach
+            })
+            .map(|(i, _)| i)
+            .collect();
+    }
     let mut conifers = 0;
     let mut out = Vec::new();
     for (i, o) in (0u32..).zip(map.objects()) {
@@ -115,6 +164,9 @@ pub fn run(map: Arc<Map>, options: &Options) -> Result<String, String> {
         let mut total = Duration::ZERO;
         let mut worst = Duration::ZERO;
         let mut peak_fires = 0;
+        // Farthest fire from a `fire_start` marker (m): how far it spread.
+        let origin = fire_origin(&map);
+        let mut farthest = 0_i32;
         for tick in 0..options.ticks {
             let commands = if tick == 0 { orders.as_slice() } else { &[] };
             let began = Instant::now();
@@ -123,7 +175,15 @@ pub fn run(map: Arc<Map>, options: &Options) -> Result<String, String> {
             total += took;
             worst = worst.max(took);
             if tick % 20 == 0 {
-                peak_fires = peak_fires.max(sim.fires().len());
+                let fires = sim.fires();
+                peak_fires = peak_fires.max(fires.len());
+                if let Some(o) = origin {
+                    for f in &fires {
+                        let d = f.at - o;
+                        let m = d.x.abs().max(d.y.abs()).to_num::<i32>();
+                        farthest = farthest.max(m);
+                    }
+                }
             }
         }
         let mean = total.as_secs_f64() * 1000.0 / options.ticks.max(1) as f64;
@@ -137,6 +197,12 @@ pub fn run(map: Arc<Map>, options: &Options) -> Result<String, String> {
             worst.as_secs_f64() * 1000.0,
             sim.state_hash()
         );
+        if origin.is_some() && burn {
+            let _ = writeln!(
+                report,
+                "    farthest fire {farthest} m from the fire start (the cell reaches {CELL_FIRE_M} m)"
+            );
+        }
     }
     Ok(report)
 }

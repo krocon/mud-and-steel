@@ -339,10 +339,10 @@ gen-village:
 gen-land map="all":
     cargo run -q --release -p cli -- gen-land --map {{ map }}
 
-# Fire benchmark on the town map (prompt 041): ticks without and with a burning wood, terrace and dumps
+# Fire benchmark (prompt 041): ticks without and with a burning wood, terrace and dumps on the town map; on city_large (prompt 079) a burning block cell
 [group('maps')]
-fire-bench units="40" ticks="6000":
-    cargo run -q --release -p cli -- fire-bench --units {{ units }} --ticks {{ ticks }}
+fire-bench units="40" ticks="6000" map="town_small":
+    cargo run -q --release -p cli -- fire-bench --units {{ units }} --ticks {{ ticks }} --map data/maps/{{ map }}
 
 # Load a map and report load time, memory, height range and terrain shares
 [group('maps')]
