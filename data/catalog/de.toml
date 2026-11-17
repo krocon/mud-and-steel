@@ -1406,9 +1406,9 @@ designation = "Sd.Kfz. 173"
 year_from = 1944
 year_to = 1945
 tier = 3
-model = ""
+model = "assets/models/de/de_jagdpanther.glb"
 length_mm = 9870
-length_hull_mm = 6600
+length_hull_mm = 6870
 width_mm = 3420
 height_mm = 2720
 mass_kg = 45500
@@ -1434,8 +1434,8 @@ source = [
     { ref = "https://en.wikipedia.org/wiki/8.8_cm_KwK_43", covers = "KwK 43 / PaK 43 L/71: PzGr 39/43 1000 m/s (article not re-read for prompt 063)" },
     { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
 ]
-uncertain = ["weapon"]
-note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. range_typical_m (prompt 067): class values of SCHEMA.md (8.8 cm PaK 43 L/71 1000 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+uncertain = ["length_hull_mm", "weapon"]
+note = "Hull length 6.87 m instead of the source's 6.60 m (prompt 063 model session ger-heavy): the same source gives 9.87 m overall with 3.00 m barrel overhang, which leaves 6.87 m, as on its Panther Ausf. D page and its drawing; length_hull_mm in uncertain. Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. range_typical_m (prompt 067): class values of SCHEMA.md (8.8 cm PaK 43 L/71 1000 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
 
 [[unit]]
 id = "de_jagdtiger"
@@ -1849,9 +1849,9 @@ designation = "Sd.Kfz. 171"
 year_from = 1943
 year_to = 1944
 tier = 3
-model = ""
+model = "assets/models/de/de_panther_a.glb"
 length_mm = 8660
-length_hull_mm = 6600
+length_hull_mm = 6870
 width_mm = 3420
 height_mm = 3000
 mass_kg = 44800
@@ -1876,8 +1876,8 @@ source = [
     { ref = "https://en.wikipedia.org/wiki/7.5_cm_KwK_42", covers = "KwK 42 / PaK 42 L/70: PzGr 39/42 925 m/s (article not re-read for prompt 063)" },
     { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
 ]
-uncertain = ["speed_road_kmh_x10", "speed_offroad_kmh_x10", "weapon"]
-note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Speed \"46-55/30 km/h\" in the source: 46 km/h (governed engine) and 30 km/h taken. range_typical_m (prompt 067): class values of SCHEMA.md (7.5 cm KwK 42 L/70 700 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+uncertain = ["length_hull_mm", "speed_road_kmh_x10", "speed_offroad_kmh_x10", "weapon"]
+note = "Hull length 6.87 m instead of the source's 6.60 m (prompt 063 model session ger-heavy): the same source gives 8.66 m overall with 1.79 m barrel overhang, which leaves 6.87 m, as on its Panther Ausf. D page and its drawing; length_hull_mm in uncertain. Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Speed \"46-55/30 km/h\" in the source: 46 km/h (governed engine) and 30 km/h taken. range_typical_m (prompt 067): class values of SCHEMA.md (7.5 cm KwK 42 L/70 700 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
 
 [[unit]]
 id = "de_panther_d"
@@ -1889,7 +1889,7 @@ designation = "Sd.Kfz. 171"
 year_from = 1943
 year_to = 1943
 tier = 3
-model = ""
+model = "assets/models/de/de_panther_d.glb"
 length_mm = 8660
 length_hull_mm = 6870
 width_mm = 3420
@@ -1929,9 +1929,9 @@ designation = "Sd.Kfz. 171"
 year_from = 1944
 year_to = 1945
 tier = 3
-model = ""
+model = "assets/models/de/de_panther_g.glb"
 length_mm = 8660
-length_hull_mm = 6600
+length_hull_mm = 6870
 width_mm = 3420
 height_mm = 2850
 mass_kg = 45500
@@ -1956,8 +1956,8 @@ source = [
     { ref = "https://en.wikipedia.org/wiki/7.5_cm_KwK_42", covers = "KwK 42 / PaK 42 L/70: PzGr 39/42 925 m/s (article not re-read for prompt 063)" },
     { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
 ]
-uncertain = ["speed_road_kmh_x10", "speed_offroad_kmh_x10", "weapon"]
-note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Speed \"46-55/30 km/h\" in the source: 46 km/h (governed engine) and 30 km/h taken. range_typical_m (prompt 067): class values of SCHEMA.md (7.5 cm KwK 42 L/70 700 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+uncertain = ["length_hull_mm", "speed_road_kmh_x10", "speed_offroad_kmh_x10", "weapon"]
+note = "Hull length 6.87 m instead of the source's 6.60 m (prompt 063 model session ger-heavy): the same source gives 8.66 m overall with 1.79 m barrel overhang, which leaves 6.87 m, as on its Panther Ausf. D page and its drawing; length_hull_mm in uncertain. Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Speed \"46-55/30 km/h\" in the source: 46 km/h (governed engine) and 30 km/h taken. range_typical_m (prompt 067): class values of SCHEMA.md (7.5 cm KwK 42 L/70 700 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
 
 [[unit]]
 id = "de_pz1_a"

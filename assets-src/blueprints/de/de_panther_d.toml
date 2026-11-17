@@ -1,0 +1,285 @@
+# Panzerkampfwagen V "Panther" Ausf. D (Sd.Kfz. 171), 1943, the first
+# production model (prompt 063, group ger-heavy). Built from
+# de_panther_g.toml (same hull, running gear and turret; the onwar.com
+# drawings of the D and G are by the same artist and match within the
+# drawing accuracy).
+# Main dimensions from data/catalog/de.toml: length 8.66 m, hull 6.87 m, width
+# 3.42 m over the skirts, height 2.85 m.
+# Ausf. D features against the A and G: drum cupola, bow MG fired through a
+# letterbox flap (no ball mount), driver's visor in the glacis, smoke
+# dischargers on the turret sides, superstructure sides sloped 40 deg. The
+# drawing shows the D without skirts; the catalog width (3.42 m with skirts,
+# 3.27 m without) keeps them, as fitted from mid 1943.
+unit = "de_panther_d"
+assembly = "tank"
+
+[layout]
+turret_y = -0.20
+turret_ring_diameter = 1.65
+fender_overhang = 0.075   # catalog width 3.42 m is over the skirts, tracks 3.27 m
+
+[running_gear]
+part = "interleaved"
+rows = 2
+track_width = 0.66
+link_pitch = 0.153
+road_wheel_diameter = 0.86
+road_wheels = [2.18, 1.60, 1.01, 0.43, -0.15, -0.74, -1.32, -1.91]
+sprocket = { y = 2.95, z = 0.72, diameter = 0.80, teeth = 17 }
+idler = { y = -2.64, z = 0.73, diameter = 0.64 }
+arm = 0.40
+
+[hull]
+part = "plate_hull"
+# lower hull: lower nose plate 55 deg from vertical up to the nose edge,
+# rear plate leaning back
+lower = [[-2.85, 0.56], [2.72, 0.56], [3.43, 1.21], [3.40, 1.24], [-3.14, 1.24], [-3.06, 1.09]]
+# superstructure over the tracks: upper glacis 55 deg up to the roof, flat
+# roof and engine deck, rear plate leaning back at the top
+upper = [[-3.14, 1.23], [3.40, 1.23], [2.15, 1.78], [-3.44, 1.78]]
+upper_side_slope_deg = 40
+fender_front = 3.20
+fender_rear = -3.10
+
+[turret]
+part = "plate_turret"
+height = "fit"
+# narrow front plate with the mantlet, sides widening backwards, rounded rear
+plan = [[-0.80, 1.12], [0.80, 1.12], [1.22, -0.55], [1.12, -1.05], [0.65, -1.34], [-0.65, -1.34],
+        [-1.12, -1.05], [-1.22, -0.55]]
+side_slope_deg = 25
+front_slope_deg = 0
+
+[cupola]                                 # drum cupola with vision slits
+x = -0.47
+y = -0.44
+diameter = 0.68
+height = 0.30
+vision_blocks = 6
+hatch = "single"
+
+[gun]
+part = "tank_gun"
+trunnion = [1.02, 0.40]
+mantlet = { kind = "cast_box", size = [1.10, 0.32, 0.72] }
+sleeve = [0.45, 0.12]
+segments = [["fit", 0.075, 0.062]]
+muzzle_brake = "double_baffle_flat"
+
+[[mg]]  # coaxial MG 34, right of the gun in the mantlet
+part = "mg"
+mount = "coax"
+position = [0.24, 0.30, 0.04]
+
+[[mg]]  # bow MG 34 behind the letterbox flap in the glacis (no ball mount yet)
+part = "mg"
+mount = "ball"
+position = [0.75, 2.62, 1.58]
+length = 0.6
+ball_diameter = 0.14
+
+[[part]]
+part = "turret_hatch"                   # loader's escape hatch in the turret rear
+x = 0.0
+y = -1.10
+diameter = 0.50
+socket = true
+
+[[part]]
+part = "de.driver_visor"                # driver's visor in the glacis (Ausf. D/A)
+position = [-0.75, 2.58, 1.60]
+size = [0.36, 0.16]
+
+[[part]]
+part = "de.smoke_dischargers"           # three Nebelwurfgeräte per turret side (to mid 1943)
+x = 0.76
+y = 0.65
+z = 0.50
+count = 3
+step = 0.12
+
+[[part]]
+part = "skirts"                         # Schürzen over the upper track run
+y = [-3.00, 2.55]
+bottom_z = 0.86
+top_z = 1.22
+plates = 6
+gap = 0.0
+
+[[part]]
+part = "hull_hatch"                     # driver (left), opens sideways on the real tank
+center = [-0.80, 1.39]
+size = [0.55, 0.62]
+hinge = "rear"
+socket = true
+
+[[part]]
+part = "hull_hatch"                     # radio operator (right)
+center = [0.80, 1.39]
+size = [0.55, 0.62]
+hinge = "rear"
+
+[[part]]
+part = "deck_box"                       # engine hatch
+center = [0.0, -2.20]
+size = [1.10, 1.10, 0.05]
+
+[[part]]
+part = "deck_box"                       # radiator grilles left and right
+center = [-1.00, -2.35]
+size = [0.85, 1.80, 0.04]
+
+[[part]]
+part = "deck_box"
+center = [1.00, -2.35]
+size = [0.85, 1.80, 0.04]
+
+[[part]]
+part = "cylinder_prop"                  # fan housings over the radiators
+from = [-1.00, -2.35, 1.80]
+to = [-1.00, -2.35, 1.88]
+radius = 0.33
+segments = 12
+
+[[part]]
+part = "cylinder_prop"
+from = [1.00, -2.35, 1.80]
+to = [1.00, -2.35, 1.88]
+radius = 0.33
+segments = 12
+
+[[part]]
+part = "cylinder_prop"                  # exhaust pipe on the rear plate
+from = [-0.45, -3.38, 1.00]
+to = [-0.45, -3.38, 2.02]
+radius = 0.065
+material = "Metal"
+segments = 8
+
+[[part]]
+part = "socket"
+name = "Socket_Exhaust_"
+position = [-0.45, -3.38, 2.04]
+
+[[part]]
+part = "cylinder_prop"
+from = [0.45, -3.38, 1.00]
+to = [0.45, -3.38, 2.02]
+radius = 0.065
+material = "Metal"
+segments = 8
+
+[[part]]
+part = "socket"
+name = "Socket_Exhaust_"
+position = [0.45, -3.38, 2.04]
+
+[[part]]
+part = "box_prop"                       # stowage boxes on the rear plate
+center = [-1.05, -3.30, 1.45]
+size = [0.55, 0.22, 0.35]
+
+[[part]]
+part = "box_prop"
+center = [1.05, -3.30, 1.45]
+size = [0.55, 0.22, 0.35]
+
+[[part]]
+part = "tool"
+kind = "shovel"
+position = [-1.45, 0.40, 1.80]
+
+[[part]]
+part = "tool"
+kind = "crowbar"
+position = [1.45, -0.60, 1.80]
+
+[[part]]
+part = "spare_tracks"                   # spare links on the turret sides (late production)
+parent = "Turret"
+origin = [-1.20, -0.20, 2.20]
+direction = [0.0, -0.18, 0.0]
+count = 3
+link_size = [0.04, 0.15, 0.36]
+
+[[part]]
+part = "spare_tracks"
+parent = "Turret"
+origin = [1.20, -0.20, 2.20]
+direction = [0.0, -0.18, 0.0]
+count = 3
+link_size = [0.04, 0.15, 0.36]
+
+[[part]]
+part = "headlight"
+position = [-1.15, 2.30, 1.85]
+diameter = 0.18
+
+[[part]]
+part = "antenna"
+position = [0.95, -1.55, 1.80]
+length = 2.0
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -3.05, 0.95]
+pair = true
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 3.20, 0.95]
+pair = true
+socket = false
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -2.2, 1.90]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -0.10, 2.70]
+parent = "Turret"
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-1.55, -1.40, 1.45]
+normal = [-0.87, 0, 0.48]
+size = 0.50
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [1.55, -1.40, 1.45]
+normal = [0.87, 0, 0.48]
+size = 0.50
+
+[[part]]
+part = "marking"
+name = "Hull_Rear"
+position = [0.0, -3.30, 1.55]
+normal = [0, -0.87, 0.48]
+size = 0.40
+
+[[part]]
+part = "marking"
+name = "Turret_L"
+kind = "number"
+parent = "Turret"
+position = [-1.10, -0.55, 2.20]
+normal = [-0.9, 0, 0.42]
+size = 0.50
+
+[[part]]
+part = "marking"
+name = "Turret_R"
+kind = "number"
+parent = "Turret"
+position = [1.10, -0.55, 2.20]
+normal = [0.9, 0, 0.42]
+size = 0.50
+
+[validate]
+exclude_height = ["Antenna_*"]          # catalog height is over the cupola

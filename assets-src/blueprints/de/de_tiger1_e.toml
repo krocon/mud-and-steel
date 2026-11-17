@@ -134,52 +134,53 @@ size = [0.85, 1.40, 0.04]
 
 [[part]]
 part = "cylinder_prop"                  # vertical exhaust stack on the rear plate
-from = [-0.50, -3.25, 1.35]
-to = [-0.50, -3.25, 2.00]
+from = [-0.50, -3.22, 1.35]
+to = [-0.50, -3.22, 2.00]
 radius = 0.07
 material = "Metal"
 segments = 8
 
 [[part]]
 part = "box_prop"                       # sheet-metal guard around the stack base
-center = [-0.50, -3.25, 1.45]
-size = [0.26, 0.20, 0.22]
+center = [-0.50, -3.22, 1.45]
+size = [0.26, 0.16, 0.22]
 
 [[part]]
 part = "socket"
 name = "Socket_Exhaust_"
-position = [-0.50, -3.25, 2.02]
+position = [-0.50, -3.22, 2.02]
 
 [[part]]
 part = "cylinder_prop"                  # vertical exhaust stack on the rear plate
-from = [0.50, -3.25, 1.35]
-to = [0.50, -3.25, 2.00]
+from = [0.50, -3.22, 1.35]
+to = [0.50, -3.22, 2.00]
 radius = 0.07
 material = "Metal"
 segments = 8
 
 [[part]]
 part = "box_prop"                       # sheet-metal guard around the stack base
-center = [0.50, -3.25, 1.45]
-size = [0.26, 0.20, 0.22]
+center = [0.50, -3.22, 1.45]
+size = [0.26, 0.16, 0.22]
 
 [[part]]
 part = "socket"
 name = "Socket_Exhaust_"
-position = [0.50, -3.25, 2.02]
+position = [0.50, -3.22, 2.02]
 
 [[part]]
-part = "cylinder_prop"                  # Feifel air cleaners on the rear plate
-from = [-1.05, -3.18, 1.20]
-to = [-1.05, -3.18, 1.62]
-radius = 0.17
+part = "cylinder_prop"                  # Feifel air cleaners on the rear plate (moved in 0.08 m:
+# onwar.com hull 6.41 m + overhang 2.04 m = 8.45 m leaves about 0.1 m of rear fittings)
+from = [-1.05, -3.10, 1.20]
+to = [-1.05, -3.10, 1.62]
+radius = 0.16
 segments = 10
 
 [[part]]
 part = "cylinder_prop"
-from = [1.05, -3.18, 1.20]
-to = [1.05, -3.18, 1.62]
-radius = 0.17
+from = [1.05, -3.10, 1.20]
+to = [1.05, -3.10, 1.62]
+radius = 0.16
 segments = 10
 
 [[part]]

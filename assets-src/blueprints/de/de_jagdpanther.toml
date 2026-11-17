@@ -1,0 +1,206 @@
+# Jagdpanther (Panzerjäger V, Sd.Kfz. 173), 1944-45 (prompt 063, group
+# ger-heavy): Panther Ausf. G chassis of de_panther_g.toml (running gear,
+# lower hull, engine deck, rear plate, skirts) with the casemate that
+# continues the 55 deg glacis and the sloped sponson sides.
+# Main dimensions from data/catalog/de.toml: length 9.87 m, hull 6.87 m,
+# width 3.42 m over the skirts, height 2.72 m (casemate roof).
+# Checked against the onwar.com drawings (second sheet, about 150 px/m along
+# the hull): roof front at +1.26 m, which is where a 55 deg glacis from the
+# nose reaches the catalog height; roof rear at -1.00 m, rear casemate plate
+# down to the engine deck at -1.43 m; roof about 2.0 m wide (front view).
+# 8.8 cm PaK 43/3 L/71 on the center line in the Saukopf mantlet of the late
+# production, ball-mounted MG 34 right of the gun.
+unit = "de_jagdpanther"
+assembly = "casemate"
+
+[layout]
+fender_overhang = 0.075   # catalog width 3.42 m is over the skirts, tracks 3.27 m
+
+[running_gear]
+part = "interleaved"
+rows = 2
+track_width = 0.66
+link_pitch = 0.153
+road_wheel_diameter = 0.86
+road_wheels = [2.18, 1.60, 1.01, 0.43, -0.15, -0.74, -1.32, -1.91]
+sprocket = { y = 2.95, z = 0.72, diameter = 0.80, teeth = 17 }
+idler = { y = -2.64, z = 0.73, diameter = 0.64 }
+arm = 0.40
+
+[hull]
+part = "plate_hull"
+lower = [[-2.85, 0.56], [2.72, 0.56], [3.43, 1.21], [3.40, 1.24], [-3.14, 1.24], [-3.06, 1.09]]
+# only the engine deck stands outside the casemate
+upper = [[-3.14, 1.23], [3.40, 1.23], [3.40, 1.25], [-1.40, 1.25], [-1.40, 1.78], [-3.44, 1.78]]
+upper_side_slope_deg = 29
+fender_front = 3.20
+fender_rear = -3.10
+
+[casemate]
+part = "casemate"
+z = 1.23
+plan = [[-1.71, 3.41], [1.71, 3.41], [1.71, -1.43], [-1.71, -1.43]]
+top_plan = [[-1.00, 1.27], [1.00, 1.27], [1.00, -1.00], [-1.00, -1.00]]
+
+[gun]
+part = "tank_gun"
+trunnion = [2.15, 1.86]      # model space: y, z
+mantlet = { kind = "saukopf", size = [0.78, 0.62, 0.70] }
+segments = [["fit", 0.085, 0.072]]
+muzzle_brake = "double_baffle_flat"
+
+[[mg]]  # MG 34 in the ball mount right of the gun
+part = "mg"
+mount = "ball"
+position = [0.72, 2.85, 1.61]
+length = 0.9
+
+[[part]]
+part = "hull_hatch"           # commander's hatch with the scissor periscope, right rear
+center = [0.55, -0.55]
+z = "casemate"
+size = [0.55, 0.55]
+hinge = "rear"
+socket = true
+
+[[part]]
+part = "hull_hatch"           # loader's hatch, left rear
+center = [-0.55, -0.55]
+z = "casemate"
+size = [0.50, 0.50]
+hinge = "rear"
+
+[[part]]
+part = "cylinder_prop"        # gunner's periscope housing on the roof, left front
+from = [-0.45, 0.90, 2.71]
+to = [-0.45, 0.90, 2.76]
+radius = 0.10
+segments = 8
+
+[[part]]
+part = "skirts"                         # Schürzen over the upper track run
+y = [-3.00, 2.55]
+bottom_z = 0.86
+top_z = 1.22
+plates = 6
+gap = 0.0
+
+[[part]]
+part = "deck_box"                       # engine hatch
+center = [0.0, -2.20]
+size = [1.10, 1.10, 0.05]
+
+[[part]]
+part = "deck_box"                       # radiator grilles left and right
+center = [-1.00, -2.35]
+size = [0.85, 1.80, 0.04]
+
+[[part]]
+part = "deck_box"
+center = [1.00, -2.35]
+size = [0.85, 1.80, 0.04]
+
+[[part]]
+part = "cylinder_prop"                  # fan housings over the radiators
+from = [-1.00, -2.35, 1.80]
+to = [-1.00, -2.35, 1.88]
+radius = 0.33
+segments = 12
+
+[[part]]
+part = "cylinder_prop"
+from = [1.00, -2.35, 1.80]
+to = [1.00, -2.35, 1.88]
+radius = 0.33
+segments = 12
+
+[[part]]
+part = "cylinder_prop"                  # exhaust pipe on the rear plate
+from = [-0.45, -3.38, 1.00]
+to = [-0.45, -3.38, 2.02]
+radius = 0.065
+material = "Metal"
+segments = 8
+
+[[part]]
+part = "socket"
+name = "Socket_Exhaust_"
+position = [-0.45, -3.38, 2.04]
+
+[[part]]
+part = "cylinder_prop"
+from = [0.45, -3.38, 1.00]
+to = [0.45, -3.38, 2.02]
+radius = 0.065
+material = "Metal"
+segments = 8
+
+[[part]]
+part = "socket"
+name = "Socket_Exhaust_"
+position = [0.45, -3.38, 2.04]
+
+[[part]]
+part = "box_prop"                       # stowage boxes on the rear plate
+center = [-1.05, -3.30, 1.45]
+size = [0.55, 0.22, 0.35]
+
+[[part]]
+part = "box_prop"
+center = [1.05, -3.30, 1.45]
+size = [0.55, 0.22, 0.35]
+
+[[part]]
+part = "tool"
+kind = "shovel"
+position = [-1.45, 0.40, 1.80]
+
+[[part]]
+part = "tool"
+kind = "crowbar"
+position = [1.45, -0.60, 1.80]
+
+[[part]]
+part = "antenna"
+position = [0.95, -1.55, 1.80]
+length = 2.0
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -3.05, 0.95]
+pair = true
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 3.20, 0.95]
+pair = true
+socket = false
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -2.2, 1.90]
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-1.55, -1.40, 1.45]
+normal = [-0.87, 0, 0.48]
+size = 0.50
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [1.55, -1.40, 1.45]
+normal = [0.87, 0, 0.48]
+size = 0.50
+
+[[part]]
+part = "marking"
+name = "Hull_Rear"
+position = [0.0, -3.30, 1.55]
+normal = [0, -0.87, 0.48]
+size = 0.40
+
+[validate]
+exclude_height = ["Antenna_*"]          # catalog height is the casemate roof
