@@ -16,18 +16,21 @@ link_pitch = 0.12
 road_wheel_diameter = 0.47
 road_wheels = [1.66, 1.16, 0.71, 0.21, -0.21, -0.71, -1.16, -1.66]
 sprocket = { y = 2.42, z = 0.74, diameter = 0.68, teeth = 20 }
-idler = { y = -2.52, z = 0.56, diameter = 0.60 }
+idler = { y = -2.40, z = 0.56, diameter = 0.60 }
 return_rollers = { y = [1.45, 0.48, -0.48, -1.45], z = 0.86, diameter = 0.25 }
 
 [hull]
 part = "plate_hull"
 # lower hull between the tracks: nose plate (14 deg), lower glacis, belly
-lower = [[-2.82, 0.42], [2.30, 0.42], [2.90, 0.78], [2.96, 1.03], [-2.96, 1.03], [-2.96, 0.62]]
+# rear plate at -2.62 m: the fenders and the muffler under them reach the hull
+# length (onwar.com drawing)
+lower = [[-2.50, 0.42], [2.30, 0.42], [2.90, 0.78], [2.96, 1.03], [-2.62, 1.03], [-2.62, 0.62]]
 # superstructure: short upper glacis, driver plate (10 deg), roof, engine deck
-upper = [[-2.96, 1.02], [2.96, 1.02], [2.96, 1.08], [2.38, 1.27], [2.31, 1.70], [-1.95, 1.70],
-         [-2.96, 1.56]]
+upper = [[-2.62, 1.02], [2.96, 1.02], [2.96, 1.08], [2.38, 1.27], [2.31, 1.70], [-1.95, 1.70],
+         [-2.62, 1.58]]
 upper_half_width = 1.25
 fender_front = 2.96
+fender_rear = -2.96
 fender_slope_front = 0.18
 
 [turret]
@@ -117,13 +120,13 @@ size = [1.5, 1.2, 0.04]
 
 [[part]]
 part = "deck_box"
-center = [0.0, -2.25]
+center = [0.0, -2.05]
 size = [1.7, 0.6, 0.05]
 
 [[part]]
 part = "exhaust"
 kind = "muffler"
-position = [0.0, -3.08, 0.86]
+position = [0.0, -2.79, 0.86]
 length = 1.0
 diameter = 0.3
 
@@ -156,7 +159,7 @@ position = [1.30, 0.2, 1.06]
 [[part]]
 part = "tool"
 kind = "jack"
-position = [0.9, -2.75, 1.25]
+position = [0.9, -2.45, 1.25]
 axis = "x"
 
 [[part]]
@@ -166,7 +169,7 @@ length = 2.0
 
 [[part]]
 part = "tow_hook"
-position = [0.0, -2.98, 0.60]
+position = [0.0, -2.64, 0.60]
 pair = true
 
 [[part]]
@@ -205,7 +208,7 @@ size = 0.55
 [[part]]
 part = "marking"
 name = "Hull_Rear"
-position = [-0.75, -2.97, 1.30]
+position = [-0.75, -2.63, 1.30]
 normal = [0, -1, 0]
 size = 0.4
 

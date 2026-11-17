@@ -1,0 +1,256 @@
+# Panzer IV Ausf. J (1944/45), prompt 063: chassis, hull and turret of
+# de_pz4_h.toml, checked against the onwar.com Ausf. J drawing. Differences
+# to the Ausf. H: three return rollers, no muffler (two vertical flame-damper
+# exhaust pipes on the rear plate), mesh skirts (Thoma) over the whole hull
+# side, modeled as plates reaching up to the superstructure roof. The
+# catalog width 3.30 m is over the skirts.
+unit = "de_pz4_j"
+assembly = "tank"
+
+[layout]
+# catalog width 3.30 m over the skirts: tracks 0.20 m inside, skirts on the fender edge
+fender_overhang = 0.20
+turret_y = 0.28
+turret_ring_diameter = 1.68
+
+[running_gear]
+part = "leaf_spring_bogie"
+track_width = 0.40
+link_pitch = 0.12
+road_wheel_diameter = 0.47
+road_wheels = [1.66, 1.16, 0.71, 0.21, -0.21, -0.71, -1.16, -1.66]
+sprocket = { y = 2.42, z = 0.74, diameter = 0.68, teeth = 20 }
+idler = { y = -2.40, z = 0.56, diameter = 0.60 }
+return_rollers = { y = [1.38, -0.14, -1.64], z = 0.86, diameter = 0.25 }
+
+[hull]
+part = "plate_hull"
+# lower hull between the tracks: nose plate (14 deg), lower glacis, belly
+# rear plate at -2.62 m: the fenders and the muffler under them reach the hull
+# length (onwar.com drawing)
+lower = [[-2.50, 0.42], [2.30, 0.42], [2.90, 0.78], [2.96, 1.03], [-2.62, 1.03], [-2.62, 0.62]]
+# superstructure: short upper glacis, driver plate (10 deg), roof, engine deck
+upper = [[-2.62, 1.02], [2.96, 1.02], [2.96, 1.08], [2.38, 1.27], [2.31, 1.70], [-1.95, 1.70],
+         [-2.62, 1.58]]
+upper_half_width = 1.25
+fender_front = 2.96
+fender_rear = -2.96
+fender_slope_front = 0.18
+
+[turret]
+part = "plate_turret"
+height = "fit"
+# plan relative to the ring center: narrow front, faceted sides, chamfered rear
+plan = [[-0.62, 0.95], [0.62, 0.95], [0.86, 0.42], [0.86, -0.82], [0.66, -1.02], [-0.66, -1.02],
+        [-0.86, -0.82], [-0.86, 0.42]]
+side_slope_deg = 25
+front_slope_deg = 10
+
+[cupola]
+x = 0.0
+y = -0.62
+diameter = 0.72
+height = 0.28
+vision_blocks = 5
+hatch = "split"
+
+[gun]
+part = "tank_gun"
+trunnion = [0.80, 0.36]
+mantlet = { kind = "box", size = [0.78, 0.14, 0.46] }
+sleeve = [0.42, 0.105]
+segments = [["fit", 0.058, 0.05]]
+muzzle_brake = "double_baffle"
+
+[[mg]]  # coaxial MG 34, left of the main gun
+part = "mg"
+mount = "coax"
+position = [-0.22, 0.2, 0.0]
+
+[[mg]]  # hull MG 34 in the radio operator's ball mount
+part = "mg"
+mount = "ball"
+position = [0.62, 2.36, 1.48]
+length = 1.0
+
+[[part]]
+part = "turret_bustle_box"
+y = -1.02
+size = [1.05, 0.42, 0.42]
+z = 0.25
+
+[[part]]
+part = "turret_skirt"
+offset = 0.16
+bottom_z = 0.02
+top_z = 0.60
+front_y = 0.45
+
+[[part]]
+part = "de.turret_vision_ports"
+x = 0.55
+y = 0.93
+z = 0.36
+
+[[part]]
+part = "skirts"
+y = [-2.45, 2.15]
+bottom_z = 0.45
+top_z = 1.72
+plates = 5
+gap = 0.0
+
+[[part]]
+part = "de.driver_visor"
+position = [-0.55, 2.33, 1.47]
+
+[[part]]
+part = "hull_hatch"
+center = [-0.62, 1.75]
+size = [0.55, 0.5]
+hinge = "rear"
+socket = true
+
+[[part]]
+part = "hull_hatch"
+center = [0.62, 1.75]
+size = [0.55, 0.5]
+hinge = "rear"
+
+[[part]]
+part = "deck_box"   # engine deck hatches
+center = [0.0, -1.0]
+size = [1.5, 1.2, 0.04]
+
+[[part]]
+part = "deck_box"
+center = [0.0, -2.05]
+size = [1.7, 0.6, 0.05]
+
+[[part]]
+part = "cylinder_prop"         # flame-damper pipes (Flammvernichter)
+from = [-0.35, -2.70, 0.95]
+to = [-0.35, -2.70, 1.58]
+radius = 0.07
+material = "Metal"
+
+[[part]]
+part = "cylinder_prop"
+from = [0.35, -2.70, 0.95]
+to = [0.35, -2.70, 1.58]
+radius = 0.07
+material = "Metal"
+
+[[part]]
+part = "socket"
+name = "Socket_Exhaust_"
+position = [-0.35, -2.70, 1.60]
+
+[[part]]
+part = "socket"
+name = "Socket_Exhaust_"
+position = [0.35, -2.70, 1.60]
+
+[[part]]
+part = "spare_tracks"
+origin = [-0.84, 2.99, 0.90]
+direction = [0.42, 0.0, 0.0]
+count = 5
+link_size = [0.40, 0.04, 0.12]
+
+[[part]]
+part = "de.notek"
+position = [-1.15, 2.75, 1.04]
+
+[[part]]
+part = "headlight"
+position = [-1.05, 2.62, 1.18]
+diameter = 0.17
+
+[[part]]
+part = "tool"
+kind = "shovel"
+position = [-1.30, 0.6, 1.06]
+
+[[part]]
+part = "tool"
+kind = "crowbar"
+position = [1.30, 0.2, 1.06]
+
+[[part]]
+part = "tool"
+kind = "jack"
+position = [0.9, -2.45, 1.25]
+axis = "x"
+
+[[part]]
+part = "antenna"
+position = [1.10, -1.55, 1.70]
+length = 2.0
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -2.64, 0.60]
+pair = true
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 2.88, 0.86]
+pair = true
+socket = false
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -1.6, 1.75]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 0.28, 2.0]
+parent = "Turret"
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+parent = "Skirt_L"   # crosses were painted on the skirts
+position = [-1.565, -0.45, 1.05]
+normal = [-1, 0, 0]
+size = 0.55
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+parent = "Skirt_R"
+position = [1.565, -0.45, 1.05]
+normal = [1, 0, 0]
+size = 0.55
+
+[[part]]
+part = "marking"
+name = "Hull_Rear"
+position = [-0.75, -2.63, 1.30]
+normal = [0, -1, 0]
+size = 0.4
+
+[[part]]
+part = "marking"
+name = "Turret_L"
+kind = "number"
+parent = "TurretSkirt"   # turret numbers on the turret skirt
+position = [-1.03, -0.05, 2.03]
+normal = [-1, 0, 0]
+size = 0.5
+
+[[part]]
+part = "marking"
+name = "Turret_R"
+kind = "number"
+parent = "TurretSkirt"
+position = [1.03, -0.05, 2.03]
+normal = [1, 0, 0]
+size = 0.5
+
+[validate]
+# Height 2.68 m is over the cupola; the whip antenna is not counted.
+exclude_height = ["Antenna_*"]

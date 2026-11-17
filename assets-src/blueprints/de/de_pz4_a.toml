@@ -1,0 +1,227 @@
+# Panzer IV Ausf. A (1937/38), prompt 063: no drawing in the reference
+# folder; built from de_pz4_d.toml (Ausf. C/D drawings) with the shorter
+# hull of the catalog (5.60 m against 5.92 m): the running gear is kept, the
+# nose, fenders and the rear plate are moved in by 0.12-0.16 m. Stepped
+# superstructure front with hull MG as on the Ausf. D, tall drum cupola,
+# 38 cm track. The catalog has no hull length: [layout].
+unit = "de_pz4_a"
+assembly = "tank"
+
+[layout]
+hull_length = 5.60
+turret_y = 0.12
+turret_ring_diameter = 1.68
+
+[running_gear]
+part = "leaf_spring_bogie"
+track_width = 0.38
+link_pitch = 0.12
+road_wheel_diameter = 0.47
+road_wheels = [1.66, 1.16, 0.71, 0.21, -0.21, -0.71, -1.16, -1.66]
+sprocket = { y = 2.42, z = 0.74, diameter = 0.68, teeth = 20 }
+idler = { y = -2.40, z = 0.56, diameter = 0.60 }
+return_rollers = { y = [1.45, 0.48, -0.48, -1.45], z = 0.86, diameter = 0.25 }
+
+[hull]
+part = "plate_hull"
+# lower hull between the tracks: nose plate (14 deg), lower glacis, belly
+# rear plate at -2.50 m: the fenders and the muffler under them reach the hull
+# length (onwar.com drawing)
+lower = [[-2.40, 0.42], [2.14, 0.42], [2.74, 0.78], [2.80, 1.03], [-2.50, 1.03], [-2.50, 0.62]]
+# superstructure: short upper glacis, driver plate (10 deg), roof, engine deck
+upper = [[-2.50, 1.02], [2.80, 1.02], [2.80, 1.08], [2.30, 1.27], [2.25, 1.70], [-1.90, 1.70],
+         [-2.50, 1.58]]
+upper_half_width = 1.25
+fender_front = 2.80
+fender_rear = -2.80
+fender_slope_front = 0.18
+
+[turret]
+part = "plate_turret"
+height = "fit"
+# plan relative to the ring center: narrow front, faceted sides, chamfered rear
+plan = [[-0.62, 0.95], [0.62, 0.95], [0.86, 0.42], [0.86, -0.82], [0.66, -1.02], [-0.66, -1.02],
+        [-0.86, -0.82], [-0.86, 0.42]]
+side_slope_deg = 25
+front_slope_deg = 10
+
+[cupola]
+x = 0.0
+y = -0.62
+diameter = 0.72
+height = 0.40
+vision_blocks = 5
+hatch = "split"
+
+[gun]
+part = "tank_gun"
+trunnion = [0.80, 0.36]
+# internal mantlet: rounded housing in the turret front, heavy recoil sleeve
+mantlet = { kind = "round", size = [0.50, 0.24, 0.46] }
+sleeve = [0.38, 0.11]
+segments = [[0.55, 0.065, 0.06]]
+muzzle_brake = "none"
+
+[[mg]]  # coaxial MG 34, left of the main gun
+part = "mg"
+mount = "coax"
+position = [-0.22, 0.2, 0.0]
+
+[[mg]]  # hull MG 34 in the radio operator's ball mount
+part = "mg"
+mount = "ball"
+position = [0.62, 2.29, 1.48]
+length = 1.0
+
+[[part]]
+part = "turret_bustle_box"
+y = -1.02
+size = [1.05, 0.42, 0.42]
+z = 0.25
+
+[[part]]
+part = "de.turret_vision_ports"
+x = 0.55
+y = 0.93
+z = 0.36
+
+[[part]]
+part = "box_prop"             # driver's half of the stepped superstructure front
+center = [-0.62, 2.36, 1.48]
+size = [1.24, 0.18, 0.42]
+
+[[part]]
+part = "de.driver_visor"
+position = [-0.55, 2.45, 1.50]
+
+[[part]]
+part = "hull_hatch"
+center = [-0.62, 1.75]
+size = [0.55, 0.5]
+hinge = "rear"
+socket = true
+
+[[part]]
+part = "hull_hatch"
+center = [0.62, 1.75]
+size = [0.55, 0.5]
+hinge = "rear"
+
+[[part]]
+part = "deck_box"   # engine deck hatches
+center = [0.0, -1.0]
+size = [1.5, 1.2, 0.04]
+
+[[part]]
+part = "deck_box"
+center = [0.0, -1.95]
+size = [1.7, 0.6, 0.05]
+
+[[part]]
+part = "exhaust"
+kind = "muffler"
+position = [0.0, -2.66, 0.86]
+length = 1.0
+diameter = 0.3
+
+[[part]]
+part = "spare_tracks"
+origin = [-0.84, 2.83, 0.90]
+direction = [0.42, 0.0, 0.0]
+count = 5
+link_size = [0.40, 0.04, 0.12]
+
+[[part]]
+part = "de.notek"
+position = [-1.15, 2.60, 1.04]
+
+[[part]]
+part = "headlight"
+position = [-1.05, 2.48, 1.18]
+diameter = 0.17
+
+[[part]]
+part = "tool"
+kind = "shovel"
+position = [-1.30, 0.6, 1.06]
+
+[[part]]
+part = "tool"
+kind = "crowbar"
+position = [1.30, 0.2, 1.06]
+
+[[part]]
+part = "tool"
+kind = "jack"
+position = [0.9, -2.35, 1.25]
+axis = "x"
+
+[[part]]
+part = "antenna"
+position = [1.10, -1.55, 1.70]
+length = 2.0
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -2.52, 0.60]
+pair = true
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 2.72, 0.86]
+pair = true
+socket = false
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -1.6, 1.75]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 0.28, 2.0]
+parent = "Turret"
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-1.255, -1.15, 1.40]
+normal = [-1, 0, 0]
+size = 0.55
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [1.255, -1.15, 1.40]
+normal = [1, 0, 0]
+size = 0.55
+
+[[part]]
+part = "marking"
+name = "Hull_Rear"
+position = [-0.75, -2.51, 1.30]
+normal = [0, -1, 0]
+size = 0.4
+
+[[part]]
+part = "marking"
+name = "Turret_L"
+kind = "number"
+parent = "Turret"
+position = [-0.73, -0.15, 2.03]
+normal = [-1, 0, 0]
+size = 0.5
+
+[[part]]
+part = "marking"
+name = "Turret_R"
+kind = "number"
+parent = "Turret"
+position = [0.73, -0.15, 2.03]
+normal = [1, 0, 0]
+size = 0.5
+
+[validate]
+# Height 2.68 m is over the cupola; the whip antenna is not counted.
+exclude_height = ["Antenna_*"]
