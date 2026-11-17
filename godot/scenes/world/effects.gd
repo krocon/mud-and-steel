@@ -555,6 +555,9 @@ func _decal(at: Vector3, size_m: float) -> void:
 		_decal_next = (_decal_next + 1) % _decals.size()
 	decal.size = Vector3(size_m, 2.5, size_m)
 	decal.global_transform = Transform3D(Basis(Vector3.UP, randf() * TAU), at)
+	# Tall grass burns down to stubble under the scorch mark (prompt 073).
+	if main.get("grass_trails") != null:
+		main.grass_trails.burn(at, size_m * 0.35)
 	counts["decal"] = counts.get("decal", 0) + 1
 
 

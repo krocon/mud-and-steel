@@ -66,6 +66,7 @@ const BUS_DB: Dictionary[String, float] = {
 ## "taa" turn that antialiasing on instead.
 const OFF_PARTS: Array[String] = ["tufts", "ground", "shadows", "wind", "dof", "ssao", "msaa", "fxaa", "taa"]
 const MeadowTufts := preload("res://scenes/world/meadow_tufts.gd")
+const TallGrass := preload("res://scenes/world/tall_grass.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
 
 const SHOTS: Dictionary[String, Dictionary] = {
@@ -268,6 +269,40 @@ const SHOTS: Dictionary[String, Dictionary] = {
 			{"t": 3.0, "at": Vector2(-20, 85), "dist": 55.0, "yaw": 23.0, "pitch": 50.6, "haze": 55.0},
 		],
 	},
+	# Prompt 073: the same pans over tall grass (`tall_grass_test`), plus one
+	# at 110 m where the terrain draws the stand. `just ground-motion --tall`.
+	"tall_near_15": {
+		"map": "tall_grass_test", "scene": "survey", "seed": 1, "start_s": 0.5, "seconds": 3.0, "game_camera": true,
+		"stills": [1.5],
+		"camera": [
+			{"t": 0.0, "at": Vector2(104, -60), "dist": 15.0, "yaw": 23.0, "pitch": 45.0, "haze": 15.0},
+			{"t": 3.0, "at": Vector2(111.5, -60), "dist": 15.0, "yaw": 23.0, "pitch": 45.0, "haze": 15.0},
+		],
+	},
+	"tall_near_35": {
+		"map": "tall_grass_test", "scene": "survey", "seed": 1, "start_s": 0.5, "seconds": 3.0, "game_camera": true,
+		"stills": [1.5],
+		"camera": [
+			{"t": 0.0, "at": Vector2(96, -60), "dist": 35.0, "yaw": 23.0, "pitch": 47.8, "haze": 35.0},
+			{"t": 3.0, "at": Vector2(114, -60), "dist": 35.0, "yaw": 23.0, "pitch": 47.8, "haze": 35.0},
+		],
+	},
+	"tall_near_55": {
+		"map": "tall_grass_test", "scene": "survey", "seed": 1, "start_s": 0.5, "seconds": 3.0, "game_camera": true,
+		"stills": [1.5],
+		"camera": [
+			{"t": 0.0, "at": Vector2(90, -60), "dist": 55.0, "yaw": 23.0, "pitch": 50.6, "haze": 55.0},
+			{"t": 3.0, "at": Vector2(120, -60), "dist": 55.0, "yaw": 23.0, "pitch": 50.6, "haze": 55.0},
+		],
+	},
+	"tall_near_110": {
+		"map": "tall_grass_test", "scene": "survey", "seed": 1, "start_s": 0.5, "seconds": 3.0, "game_camera": true,
+		"stills": [1.5],
+		"camera": [
+			{"t": 0.0, "at": Vector2(80, -60), "dist": 110.0, "yaw": 23.0, "pitch": 56.0, "haze": 110.0},
+			{"t": 3.0, "at": Vector2(140, -60), "dist": 110.0, "yaw": 23.0, "pitch": 56.0, "haze": 110.0},
+		],
+	},
 	"survey_twin_meadow": {
 		"map": "twin_meadow", "scene": "survey", "seed": 1, "start_s": 0.5, "seconds": 1.0, "stills": [0.5],
 		"camera": [{"t": 0.0, "at": Vector2(0, 0), "dist": 1902.0, "yaw": 0.0, "pitch": 89.0, "haze": 4000.0}],
@@ -432,6 +467,15 @@ func _apply_off() -> void:
 		main.sun.shadow_enabled = false
 	if "wind" in _off:
 		MeadowTufts.MATERIAL.set_shader_parameter("wind_strength", 0.0)
+		TallGrass.MATERIAL.set_shader_parameter("wind_strength", 0.0)
+		main.terrain._material.set_shader_parameter("wind_strength", 0.0)
+	# Prompt 073: tall grass plants, or its look on the ground.
+	if "tall" in _off:
+		for node: Node in main.map_objects._deco_root.get_children():
+			if node.name.begins_with("tall_"):
+				(node as Node3D).visible = false
+	if "tall_ground" in _off:
+		main.terrain.set_tall_strength(0.0)
 	if "dof" in _off and Settings.get_value("depth_of_field") != "off":
 		Settings.set_value("depth_of_field", "off")
 	if "ssao" in _off:

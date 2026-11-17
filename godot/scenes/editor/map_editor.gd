@@ -309,6 +309,8 @@ func _rebuild_world() -> void:
 	map_objects.name = "MapObjects"
 	add_child(map_objects)
 	map_objects.biome = atmosphere.preset.env_biome
+	map_objects.atmosphere = atmosphere
+	map_objects.terrain = terrain
 	map_objects.show_minefields = true
 	map_objects.build(editor, camera)
 	water = Water.new()

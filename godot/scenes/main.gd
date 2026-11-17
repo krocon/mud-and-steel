@@ -71,6 +71,7 @@ const Atmosphere := preload("res://scenes/world/atmosphere.gd")
 const WeatherLook := preload("res://scenes/world/weather_look.gd")
 const GraphicsQuality := preload("res://scenes/world/graphics_quality.gd")
 const MapObjects := preload("res://scenes/world/map_objects.gd")
+const GrassTrails := preload("res://scenes/world/grass_trails.gd")
 const Water := preload("res://scenes/world/water.gd")
 const ObjectsBench := preload("res://scenes/tools/objects_bench.gd")
 const LanMatch := preload("res://scenes/lan/lan_match.gd")
@@ -173,6 +174,8 @@ var air_view: AirView
 var fog_of_war: FogOfWar
 ## Smoke, fire, impacts, dust (prompt 019).
 var effects: Effects
+## Tracks in tall grass (prompt 073).
+var grass_trails: GrassTrails
 var blast_effects: BlastEffects
 var strike_view: StrikeView
 ## Soldiers of infantry squads (prompt 022).
@@ -255,6 +258,8 @@ func _ready() -> void:
 	map_objects.name = "MapObjects"
 	add_child(map_objects)
 	map_objects.biome = atmosphere.preset.env_biome
+	map_objects.atmosphere = atmosphere
+	map_objects.terrain = terrain
 	map_objects.build(sim_host, camera)
 	water = Water.new()
 	water.name = "Water"
@@ -307,6 +312,10 @@ func _ready() -> void:
 	effects.visible_at = func(point: Vector3) -> bool:
 		var state := fog_of_war.state_at(point)
 		return state < 0 or state == 255
+	grass_trails = GrassTrails.new()
+	grass_trails.name = "GrassTrails"
+	add_child(grass_trails)
+	grass_trails.setup(self)
 	blast_effects = BlastEffects.new()
 	blast_effects.name = "BlastEffects"
 	add_child(blast_effects)

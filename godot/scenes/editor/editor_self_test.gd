@@ -114,6 +114,18 @@ func _tools_test(scene: Node3D, editor: MapEditor) -> void:
 	scene.radius = 4.0
 	scene.stroke(_line(Vector2(60, 80), Vector2(10, 70), 2.0, editor))
 	_check(editor.terrain_at(35, 75) == 2, "no road painted")
+	# Tall grass (prompt 073): painted like any terrain, in the palette with
+	# its own color, and the decoration plants it.
+	scene.terrain_id = 8
+	scene.radius = 8.0
+	scene.stroke(_line(Vector2(-40, 20), Vector2(-20, 20), 2.0, editor))
+	_check(editor.terrain_at(-30, 20) == 8, "no tall grass painted: terrain %d" % editor.terrain_at(-30, 20))
+	_check(editor.terrain_names().size() > 8 and editor.terrain_names()[8] == "tall_grass", "tall grass missing in the palette")
+	_check(editor.terrain_colors().size() == editor.terrain_names().size(), "palette without colors")
+	var tall: Array = editor.scatter_deco(-48.0, 8.0, 32.0, 0.44, 71, PackedFloat32Array([0, 0, 0, 0, 0, 0, 0, 0, 1]),
+		1.0, 0.0, PackedFloat32Array([1.0]), Vector2.ONE, 0.0, Vector2.ZERO, 1.1)
+	_check(not tall.is_empty() and (tall[0] as PackedFloat32Array).size() > 12 * 100, "no tall grass plants scattered")
+	scene.terrain_id = 2
 	scene.tool = "river"
 	scene.radius = 10.0
 	scene.strength = 0.5

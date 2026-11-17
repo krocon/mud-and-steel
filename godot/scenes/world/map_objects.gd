@@ -49,13 +49,18 @@ const OBJECT_CLASSES: Array[Dictionary] = [
 ]
 
 const MeadowTufts := preload("res://scenes/world/meadow_tufts.gd")
+const TallGrass := preload("res://scenes/world/tall_grass.gd")
+const GraphicsQuality := preload("res://scenes/world/graphics_quality.gd")
 ## Square size of decoration chunks in meters.
 const DECO_CHUNK_M := 64.0
 ## Decoration squares built per frame at most (keeps the frame time flat).
 const DECO_BUILDS_PER_FRAME := 6
 ## Decoration layers. `density` per terrain id (grass, field track, road,
-## sand, mud, snow, shallow water, deep water) is the chance per lattice
-## point of `spacing` meters; `wood` scales it in dense wood.
+## sand, mud, snow, shallow water, deep water, tall grass) is the chance per
+## lattice point of `spacing` meters; `wood` scales it in dense wood.
+## Layers with `tall` (prompt 073) draw the plants of `tall_grass.gd` in
+## squares of `square` meters (finer culling), with frayed edges (`fray`,
+## meters) and the range of the quality level.
 const DECO_LAYERS: Array[Dictionary] = [
 	{"name": "grass", "model": "env_grass_clump", "variants": ["Grass", "GrassTall", "Flowers"],
 		"weights": [0.62, 0.3, 0.08], "spacing": 0.7, "seed": 11,
@@ -84,7 +89,18 @@ const DECO_LAYERS: Array[Dictionary] = [
 		"weights": [0.6, 0.4], "spacing": 14.0, "seed": 41,
 		"density": [0.006, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "wood": 20.0, "patchiness": 0.5,
 		"scale": Vector2(0.8, 1.2), "sink": 0.05, "range": 260.0, "shadow": true},
+	{"name": "tall_grass", "tall": true, "weights": [0.5, 0.3, 0.14, 0.06], "spacing": 0.44, "seed": 71,
+		"density": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.97], "wood": 0.55, "patchiness": 0.15,
+		"scale": Vector2(0.8, 1.15), "sink": 0.03, "range": 65.0, "shadow": false, "square": 16.0, "fray": 1.1},
+	{"name": "tall_shrubs", "tall": true, "weights": [0.55, 0.45], "spacing": 2.2, "seed": 73,
+		"density": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.3], "wood": 0.5, "patchiness": 1.0,
+		"scale": Vector2(0.8, 1.2), "sink": 0.05, "range": 65.0, "shadow": false, "square": 16.0, "fray": 0.0},
 ]
+
+## Tall grass layers draw this much beyond their range (m): the plants
+## shrink to nothing at the range in the shader, a square is drawn while
+## any part of it is within the range.
+const TALL_SQUARE_MARGIN := 12.0
 
 ## Winter (prompt 056): decoration layers thinned by snow, factor of
 ## their density.
@@ -109,6 +125,15 @@ var object_nodes := 0
 ## Blade tufts instead of grass clumps in the meadow (prompt 057; the
 ## terrain benchmark turns them off for comparisons, then calls set_biome).
 var meadow_tufts := true
+## Tall grass plants (prompt 073; the terrain benchmark turns them off for
+## its A/B comparison, then calls set_biome).
+var tall_grass := true
+## Atmosphere (graphics quality) and terrain (tall grass look) of the
+## scene, set by main.gd and the map editor; optional.
+var atmosphere: Node
+var terrain: Node
+## Graphics quality the tall grass layers were built for.
+var _tall_quality := ""
 ## Loose straw clumps around haystacks (prompt 056).
 var straw_instances := 0
 ## Decoration instances currently built, and their squares.
@@ -209,6 +234,10 @@ func build(host: Object, view: Camera3D) -> void:
 	_build_straw(kinds)
 	for layer: Dictionary in DECO_LAYERS:
 		var meshes: Array = []
+		if layer.get("tall", false):
+			_deco_meshes.append(meshes)
+			_deco.append({})
+			continue
 		var model := _model(layer.model)
 		for variant: String in layer.variants:
 			var mesh_node := EnvLook.variant_node(model, variant) as MeshInstance3D if model else null
@@ -225,6 +254,7 @@ func _process(_delta: float) -> void:
 	process_usec = 0
 	if camera == null or not _deco_enabled:
 		return
+	_check_tall_quality()
 	_rebuild_crater_squares()
 	var origin := camera.global_position
 	if origin.distance_to(_last_deco_origin) < 2.0:
@@ -249,6 +279,52 @@ func set_biome(id: String) -> void:
 		for square: Vector2i in _deco[layer].keys():
 			_free_deco(layer, square)
 	_last_deco_origin = Vector3.INF
+	_apply_tall_look()
+
+
+## Graphics quality of the scene (tall grass range and density).
+func _quality() -> String:
+	if atmosphere != null and "quality" in atmosphere:
+		return atmosphere.quality
+	return GraphicsQuality.DEFAULT
+
+
+## Rebuilds the tall grass layers when the graphics quality changed.
+func _check_tall_quality() -> void:
+	var level := _quality()
+	if level == _tall_quality:
+		return
+	_tall_quality = level
+	for layer in _deco.size():
+		if DECO_LAYERS[layer].get("tall", false):
+			for square: Vector2i in _deco[layer].keys():
+				_free_deco(layer, square)
+	_last_deco_origin = Vector3.INF
+	_apply_tall_look()
+
+
+## Tall grass (prompt 073): palette and distances on the plants' material
+## and the terrain, so both hand over at the same distance. Without plants
+## the terrain draws tall grass at every distance.
+func _apply_tall_look() -> void:
+	var level := _quality()
+	var range_m: float = TallGrass.quality(level).range if tall_grass else 0.0
+	TallGrass.apply_look(TallGrass.MATERIAL, biome)
+	TallGrass.apply_quality(TallGrass.MATERIAL, level, range_m)
+	if terrain != null and terrain.has_method("set_tall_grass"):
+		terrain.set_tall_grass(biome, level, range_m)
+
+
+## Square size (m) of a decoration layer.
+func _square_m(layer: int) -> float:
+	return DECO_LAYERS[layer].get("square", DECO_CHUNK_M)
+
+
+## View distance (m) of a decoration layer.
+func _range_m(layer: int) -> float:
+	if DECO_LAYERS[layer].get("tall", false):
+		return TallGrass.quality(_quality()).range + TALL_SQUARE_MARGIN
+	return DECO_LAYERS[layer].range
 
 
 # --- Craters (prompt 021) ----------------------------------------------------
@@ -266,16 +342,16 @@ func craters_changed(rect: Rect2i) -> void:
 	if _deco.is_empty():
 		return
 	var cell: float = sim_host.cell_size()
-	var low := Vector2(rect.position) * cell / DECO_CHUNK_M
-	var high := Vector2(rect.end) * cell / DECO_CHUNK_M
 	if _crater_squares.size() != _deco.size():
 		_crater_squares.resize(_deco.size())
 		for layer in _deco.size():
 			_crater_squares[layer] = {}
-	for j in range(floori(low.y), floori(high.y) + 1):
-		for i in range(floori(low.x), floori(high.x) + 1):
-			var square := Vector2i(i, j)
-			for layer in _deco.size():
+	for layer in _deco.size():
+		var low := Vector2(rect.position) * cell / _square_m(layer)
+		var high := Vector2(rect.end) * cell / _square_m(layer)
+		for j in range(floori(low.y), floori(high.y) + 1):
+			for i in range(floori(low.x), floori(high.x) + 1):
+				var square := Vector2i(i, j)
 				if _deco[layer].has(square):
 					_crater_squares[layer][square] = true
 
@@ -482,47 +558,62 @@ func set_decoration_visible(on: bool) -> void:
 ## far ones. Returns true when nothing is left to build.
 func _update_deco(origin: Vector3) -> bool:
 	var size: Vector2 = sim_host.map_size()
-	var squares := Vector2i(ceili(size.x / DECO_CHUNK_M), ceili(size.y / DECO_CHUNK_M))
-	var half_diag := DECO_CHUNK_M * 0.7072
 	var wanted: Array = []
 	for layer in DECO_LAYERS.size():
-		var range_m: float = DECO_LAYERS[layer].range
+		var square_m := _square_m(layer)
+		var squares := Vector2i(ceili(size.x / square_m), ceili(size.y / square_m))
+		var half_diag := square_m * 0.7072
+		var range_m := _range_m(layer)
+		if DECO_LAYERS[layer].get("tall", false) and not tall_grass:
+			range_m = -1.0e6
 		# Free squares well beyond the range.
 		for square: Vector2i in _deco[layer].keys():
-			if _square_distance(square, origin) > range_m + half_diag + DECO_CHUNK_M:
+			if _square_distance(layer, square, origin) > range_m + half_diag + square_m:
 				_free_deco(layer, square)
 		# The camera can be high above the ground: only squares whose
 		# center lies within range (plus half a diagonal) are needed.
 		var height_above := maxf(origin.y - sim_host.height_at(origin.x, origin.z), 0.0)
 		if height_above > range_m + half_diag:
 			continue
-		var reach := ceili((range_m + half_diag) / DECO_CHUNK_M)
+		var reach := ceili((range_m + half_diag) / square_m)
 		var center := Vector2i(
-			floori((origin.x + size.x * 0.5) / DECO_CHUNK_M), floori((origin.z + size.y * 0.5) / DECO_CHUNK_M)
+			floori((origin.x + size.x * 0.5) / square_m), floori((origin.z + size.y * 0.5) / square_m)
 		)
 		for j in range(maxi(center.y - reach, 0), mini(center.y + reach + 1, squares.y)):
 			for i in range(maxi(center.x - reach, 0), mini(center.x + reach + 1, squares.x)):
 				var square := Vector2i(i, j)
 				if _deco[layer].has(square):
 					continue
-				var d := _square_distance(square, origin)
+				var d := _square_distance(layer, square, origin)
 				if d <= range_m + half_diag:
 					wanted.append([d, layer, square])
 	wanted.sort_custom(func(a: Array, b: Array) -> bool: return a[0] < b[0])
-	for k in mini(wanted.size(), DECO_BUILDS_PER_FRAME):
-		_build_deco(wanted[k][1], wanted[k][2])
-	return wanted.size() <= DECO_BUILDS_PER_FRAME
+	# Budget in squares of DECO_CHUNK_M: smaller squares cost less.
+	var budget := float(DECO_BUILDS_PER_FRAME)
+	var built := 0
+	for entry: Array in wanted:
+		if budget <= 0.0:
+			break
+		_build_deco(entry[1], entry[2])
+		var small: bool = DECO_LAYERS[entry[1]].get("tall", false)
+		budget -= pow(_square_m(entry[1]) / DECO_CHUNK_M, 2.0) * 2.0 if small else 1.0
+		built += 1
+	return built == wanted.size()
 
 
-func _square_distance(square: Vector2i, origin: Vector3) -> float:
+func _square_distance(layer: int, square: Vector2i, origin: Vector3) -> float:
 	var size: Vector2 = sim_host.map_size()
-	var cx := -size.x * 0.5 + (square.x + 0.5) * DECO_CHUNK_M
-	var cz := -size.y * 0.5 + (square.y + 0.5) * DECO_CHUNK_M
+	var square_m := _square_m(layer)
+	var cx := -size.x * 0.5 + (square.x + 0.5) * square_m
+	var cz := -size.y * 0.5 + (square.y + 0.5) * square_m
 	return origin.distance_to(Vector3(cx, sim_host.height_at(cx, cz), cz))
 
 
 func _build_deco(layer_index: int, square: Vector2i) -> void:
 	var layer: Dictionary = DECO_LAYERS[layer_index]
+	if layer.get("tall", false):
+		_build_tall(layer_index, square)
+		return
 	var size: Vector2 = sim_host.map_size()
 	var x0 := -size.x * 0.5 + square.x * DECO_CHUNK_M
 	var z0 := -size.y * 0.5 + square.y * DECO_CHUNK_M
@@ -563,6 +654,58 @@ func _build_deco(layer_index: int, square: Vector2i) -> void:
 		_deco_root.add_child(node)
 		nodes.append(node)
 		deco_instances += buffer.size() / 12
+	_deco[layer_index][square] = nodes
+	deco_chunks += 1
+
+
+## Tall grass (prompt 073): one MultiMesh per plant variant in the square;
+## density from the quality level and the biome, view distance from the
+## quality level (the shader shrinks the plants to nothing at it).
+func _build_tall(layer_index: int, square: Vector2i) -> void:
+	var layer: Dictionary = DECO_LAYERS[layer_index]
+	var size: Vector2 = sim_host.map_size()
+	var square_m := _square_m(layer_index)
+	var x0 := -size.x * 0.5 + square.x * square_m
+	var z0 := -size.y * 0.5 + square.y * square_m
+	var q := TallGrass.quality(_quality())
+	var look := TallGrass.look(biome)
+	var factor: float = look.density * (q.density if layer.name == "tall_grass" else 1.0)
+	var density := PackedFloat32Array(layer.density)
+	for k in density.size():
+		density[k] *= factor
+	var buffers: Array = sim_host.scatter_deco(
+		x0, z0, square_m, layer.spacing, layer.seed, density,
+		layer.wood, layer.patchiness, PackedFloat32Array(layer.weights), layer.scale, layer.sink,
+		Vector2.ZERO, layer.fray
+	)
+	var nodes: Array = []
+	for v in buffers.size():
+		var buffer: PackedFloat32Array = buffers[v]
+		if buffer.is_empty():
+			continue
+		# Near mesh up to the switch distance, far mesh beyond. A square
+		# counts by its center: half a diagonal either way, so every plant
+		# nearer than `switch` has the near mesh and every far mesh stands
+		# beyond it (the shader shows the same blades on both there).
+		var half_diag := _square_m(layer_index) * 0.7072
+		for far in [false, true]:
+			var node := _multimesh(TallGrass.mesh(layer.name, v, far), buffer, Transform3D.IDENTITY)
+			node.name = "%s_%d_%s_%d_%d" % [layer.name, v, "far" if far else "near", square.x, square.y]
+			# Only shrubs cast shadows (the shadow distance follows the
+			# zoom): tufts in each other's shadow turned the stand black
+			# and cost a shadow pass of every blade.
+			var shadow: bool = q.shadows and layer.name == "tall_shrubs"
+			node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if shadow \
+				else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			if far:
+				node.visibility_range_begin = q.switch + half_diag
+				node.visibility_range_end = q.range + TALL_SQUARE_MARGIN
+			else:
+				node.visibility_range_end = q.switch + half_diag
+			node.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_DISABLED
+			_deco_root.add_child(node)
+			nodes.append(node)
+			deco_instances += buffer.size() / 12
 	_deco[layer_index][square] = nodes
 	deco_chunks += 1
 

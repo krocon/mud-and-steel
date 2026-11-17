@@ -27,6 +27,11 @@
 // darkens the ground, makes it glossy and fills puddles on flat soft
 // ground (tracks, mud, bare earth first).
 //
+// Tall grass (prompt 073): its mask is the A channel of `track_tex` (it
+// counts as grass in the splat weights). Near the camera the plants of
+// world/tall_grass.gd stand on a dark ground; beyond their range the
+// shader draws the stand itself (terrain_tall_grass.gdshaderinc).
+//
 // Mountains (prompt 060): on maps with a lot of relief (`mountain`, set by
 // terrain.gd from the height range) scree covers slopes between bare earth
 // and rock, and snow lies above `snow_line` on all but the steepest rock.
@@ -102,6 +107,8 @@ varying float lod_stride;
 
 // Meadow look of the grass layer (prompt 057).
 #include "res://assets/materials/terrain_meadow.gdshaderinc"
+// Tall grass (prompt 073): dark ground under the plants, canopy far away.
+#include "res://assets/materials/terrain_tall_grass.gdshaderinc"
 
 float height_at(ivec2 s) {
 	return texelFetch(height_tex, clamp(s, ivec2(0), samples - 1), 0).r;
@@ -317,6 +324,16 @@ void fragment() {
 			macro_far, macro_near, px, albedo, detail, rough);
 	}
 
+	// Tall grass (prompt 073).
+	float tall_raw = texture(track_tex, data_uv).a;
+	float tall = 0.0;
+	if (tall_raw > 0.01) {
+		float px = max(length(dpdx), length(dpdy));
+		tall = tall_mask(p, tall_raw, macro_near);
+		tall_apply(p, tall, tall_seam(tall_raw), length(world_pos - CAMERA_POSITION_WORLD), px, TIME,
+			albedo, detail, rough);
+	}
+
 	// Rock walls (mountains): strata, bands of lighter and darker rock.
 	if (mountain > 0.0 && w[ROCK] > 0.02) {
 		float band = sin(world_pos.y * 0.9 + macro_near.r * 4.0 + macro_far.g * 9.0);
@@ -378,7 +395,8 @@ void fragment() {
 		float worn = clamp(w[TRACK] + w[ROAD], 0.0, 1.0);
 		float water = clamp(w[SHALLOW] + w[DEEP], 0.0, 1.0);
 		float cover = max(snow_cover * flat_ground, alpine * smoothstep(1.1, 0.6, grade));
-		float s = cover * (1.0 - 0.55 * worn) * (1.0 - water);
+		// Stalks of tall grass poke through the snow.
+		float s = cover * (1.0 - 0.55 * worn) * (1.0 - water) * (1.0 - 0.45 * tall);
 		s = smoothstep(0.25, 0.65, s + (macro_near.r - 0.5) * 0.45 + (macro_far.b - 0.5) * 0.25);
 		float tile = layer_tile[SNOW];
 		vec4 snow_col = textureGrad(albedo_array, vec3(p / tile, float(SNOW)), dpdx / tile, dpdy / tile);

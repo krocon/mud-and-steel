@@ -13,6 +13,9 @@
 # which MJPEG noise dominates); slower and about 6 MB per frame.
 # --near (prompt 068) records the pans `meadow_near_15/35/55` over open
 # meadow with tufts at the game's near zoom levels instead.
+# --tall (prompt 073) records the same pans over tall grass
+# (`tall_near_15/35/55` on tall_grass_test) and one at 110 m, where the
+# terrain draws the stand.
 # --off=<parts> turns parts of the picture off for the analysis
 # (`--trailer-off=` of trailer_shots.gd: tufts, ground, shadows, wind, dof,
 # ssao, msaa; fxaa, taa turn those on).
@@ -24,11 +27,13 @@ godot="${GODOT:-godot}"
 out="build/ground-motion"
 png=0
 near=0
+tall=0
 off=()
 for arg in "$@"; do
     case "$arg" in
         --png) png=1 ;;
         --near) near=1 ;;
+        --tall) tall=1 ;;
         --off=*) off=("--trailer-off=${arg#--off=}") ;;
         -*) echo "unknown argument: $arg" >&2; exit 2 ;;
         *) out="$arg" ;;
@@ -48,6 +53,15 @@ if [ "$near" = 1 ]; then
         "meadow_near_15|60|60|grass=480x320+720+620"
         "meadow_near_35|60|60|grass=480x320+720+560"
         "meadow_near_55|60|60|grass=480x320+720+380 far=400x160+150+220"
+    )
+fi
+
+if [ "$tall" = 1 ]; then
+    measure=(
+        "tall_near_15|60|60|grass=480x320+720+620"
+        "tall_near_35|60|60|grass=480x320+720+560"
+        "tall_near_55|60|60|grass=480x320+720+380 far=400x160+150+220"
+        "tall_near_110|60|60|grass=480x320+720+500"
     )
 fi
 

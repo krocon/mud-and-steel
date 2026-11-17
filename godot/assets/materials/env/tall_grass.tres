@@ -1,0 +1,9 @@
+[gd_resource type="ShaderMaterial" load_steps=3 format=3]
+
+[ext_resource type="Shader" path="res://assets/shaders/tall_grass.gdshader" id="1_tall"]
+[ext_resource type="Texture2D" path="res://assets/textures/terrain/terrain_macro.png" id="2_macro"]
+
+[resource]
+resource_name = "TallGrass"
+shader = ExtResource("1_tall")
+shader_parameter/macro_tex = ExtResource("2_macro")

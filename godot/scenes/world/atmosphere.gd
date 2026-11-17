@@ -69,6 +69,7 @@ const WIND_MATERIALS: Array[String] = [
 	"res://assets/materials/env/bark.tres",
 	"res://assets/materials/env/foliage.tres",
 	"res://assets/materials/env/meadow_tuft.tres",
+	"res://assets/materials/env/tall_grass.tres",
 ]
 const VIGNETTE_SHADER := """
 shader_type canvas_item;

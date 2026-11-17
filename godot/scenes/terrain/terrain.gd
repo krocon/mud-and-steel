@@ -23,6 +23,7 @@ const EDGE_SHADER := preload("res://assets/materials/terrain_edge.gdshader")
 const ALBEDO_ARRAY := preload("res://assets/textures/terrain/terrain_albedo.png")
 const NORMAL_ARRAY := preload("res://assets/textures/terrain/terrain_normal.png")
 const MACRO := preload("res://assets/textures/terrain/terrain_macro.png")
+const TallGrass := preload("res://scenes/world/tall_grass.gd")
 
 ## Material layers, in texture-array order (crates/cli/src/gen_textures.rs).
 const LAYERS: Array[String] = [
@@ -355,9 +356,40 @@ func apply_biome(preset: Resource) -> void:
 	_material.set_shader_parameter("grass_variation", preset.grass_variation)
 	_material.set_shader_parameter("meadow_strength", preset.meadow_strength)
 	_material.set_shader_parameter("flower_density", preset.flower_density)
+	# Gusts over tall grass (prompt 073) follow the biome's wind.
+	_material.set_shader_parameter("wind_strength", preset.wind_strength)
+	_material.set_shader_parameter("wind_direction", preset.wind_direction)
+	_material.set_shader_parameter("wind_speed", preset.wind_speed)
+	TallGrass.apply_look(_material, preset.env_biome)
 	_edge_material.set_shader_parameter("top_color", preset.edge_top)
 	_edge_material.set_shader_parameter("soil_tint", preset.edge_tint)
 	_apply_relief()
+
+
+## Tall grass (prompt 073, called by map_objects.gd): palette of the
+## EnvLook biome and the distances of the quality level, the same as on the
+## plants; `range_m` 0 draws tall grass on the ground at every distance.
+func set_tall_grass(env_biome: String, level: String, range_m: float) -> void:
+	if _material == null:
+		return
+	TallGrass.apply_look(_material, env_biome)
+	TallGrass.apply_quality(_material, level, range_m)
+
+
+## Track raster of tall grass (prompt 073, world/grass_trails.gd): pressed
+## flat (R) and burnt (G), over the world rectangle `origin`, `size`.
+func set_trails(texture: Texture2D, origin: Vector2, size: Vector2) -> void:
+	if _material == null:
+		return
+	_material.set_shader_parameter("trail_tex", texture)
+	_material.set_shader_parameter("trail_origin", origin)
+	_material.set_shader_parameter("trail_size", size)
+
+
+## Shows tall grass as tall grass (1) or as plain meadow (0, benchmark A/B).
+func set_tall_strength(value: float) -> void:
+	if _material != null:
+		_material.set_shader_parameter("tall_strength", value)
 
 
 ## Mountain look (prompt 060): scree and a snow line on maps whose height

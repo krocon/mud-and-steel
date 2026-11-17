@@ -65,6 +65,36 @@ const MOUNTAIN_SHOTS: Array[Dictionary] = [
 	{"name": "cliffs", "focus": Vector3(450, 0, -650), "distance": 400.0, "yaw": -0.5, "pitch": 35.0},
 	{"name": "overview", "focus": Vector3(0, 0, 0), "distance": 2200.0, "yaw": 0.4, "pitch": 45.0},
 ]
+## Prompt 073: tall grass on `tall_grass_test` (`SHOT_SET=tall just
+## terrain-shots <dir> tall_grass_test`): the stand at 15, 35, 110 and 350 m,
+## its edges to meadow, field track, road, water and wood, a vehicle track
+## pressed into it, and the view of the picture reference (steeper camera).
+## `--biome=` and `--daytime=` pass through for the other biomes and times.
+const TALL_FOCUS := Vector3(110, 0, -60)
+const TALL_SHOTS: Array[Dictionary] = [
+	{"name": "tall_15", "focus": TALL_FOCUS, "distance": 15.0, "yaw": 0.4},
+	{"name": "tall_35", "focus": TALL_FOCUS, "distance": 35.0, "yaw": 0.4},
+	{"name": "tall_80", "focus": TALL_FOCUS, "distance": 80.0, "yaw": 0.4},
+	{"name": "tall_110", "focus": TALL_FOCUS, "distance": 110.0, "yaw": 0.4},
+	{"name": "tall_350", "focus": TALL_FOCUS, "distance": 350.0, "yaw": 0.4},
+	{"name": "reference", "focus": TALL_FOCUS + Vector3(-10, 0, 8), "distance": 60.0, "yaw": 0.4, "pitch": 50.0},
+	{"name": "edge_meadow", "focus": Vector3(-14, 0, -160), "distance": 35.0, "yaw": 0.4},
+	{"name": "edge_track", "focus": Vector3(262, 0, -170), "distance": 40.0, "yaw": 0.4},
+	{"name": "edge_road", "focus": Vector3(-202, 0, 244), "distance": 40.0, "yaw": 0.4},
+	{"name": "edge_water", "focus": Vector3(264, 0, -264), "distance": 40.0, "yaw": 0.4},
+	{"name": "edge_wood", "focus": Vector3(-202, 0, 294), "distance": 50.0, "yaw": 0.4},
+	{"name": "track", "focus": TALL_FOCUS + Vector3(20, 0, 30), "distance": 35.0, "yaw": 0.4, "track": true},
+	{"name": "track_110", "focus": TALL_FOCUS + Vector3(20, 0, 30), "distance": 110.0, "yaw": 0.4, "track": true},
+]
+## Views of the tall grass benchmark (`TALL_AB=1 just terrain-bench
+## tall_grass_test`): every view with tall grass and as plain meadow.
+const TALL_VIEWS: Array[Dictionary] = [
+	{"name": "tall_15", "distance": 15.0, "focus": TALL_FOCUS},
+	{"name": "tall_35", "distance": 35.0, "focus": TALL_FOCUS},
+	{"name": "tall_80", "distance": 80.0, "focus": TALL_FOCUS},
+	{"name": "tall_110", "distance": 110.0, "focus": TALL_FOCUS},
+	{"name": "tall_350", "distance": 350.0, "focus": TALL_FOCUS},
+]
 const Settings := preload("res://scenes/menu/settings.gd")
 const SHOT_FRAMES := 20
 const WARMUP_FRAMES := 60
@@ -104,21 +134,33 @@ func _run() -> void:
 	# one part of the meadow look turned off at a time (in one run, so a
 	# busy machine affects all variants alike).
 	var variants: Array[String] = [""]
+	var views := VIEWS
 	if OS.get_environment("MEADOW_AB") == "1":
 		variants = ["all", "no_ground", "no_tufts", "no_dof", "old_sun", "old_blur", "none"]
+	# Prompt 073: TALL_AB=1 measures the tall grass views with tall grass
+	# ("tall"), with only its look on the ground ("tall_ground", no plants)
+	# and the same ground drawn as plain meadow ("meadow").
+	if OS.get_environment("TALL_AB") == "1":
+		variants = ["tall", "tall_ground", "meadow"]
+		views = TALL_VIEWS
 	var runs: Array = []
-	for v in VIEWS.size():
+	for v in views.size():
 		for k in variants.size():
 			# Rotate the order per view against drift.
-			runs.append([VIEWS[v], variants[(k + v) % variants.size()]])
+			runs.append([views[v], variants[(k + v) % variants.size()]])
 	for run: Array in runs:
 		var view: Dictionary = run[0]
-		await _set_meadow_variant(run[1])
+		if run[1] in ["tall", "tall_ground", "meadow"]:
+			await _set_tall_variant(run[1] != "meadow", run[1] == "tall")
+		else:
+			await _set_meadow_variant(run[1])
 		var distance: float = view["distance"]
 		main.units_root.visible = not view.get("hide_units", false)
 		main.water.visible = not view.get("hide_water", false)
 		var start := Vector3(-300.0, 0.0, 200.0)
-		if view.has("marker") and main.sim_host.map_marker(view["marker"]) != null:
+		if view.has("focus"):
+			start = view["focus"] - Vector3(0.15, 0.0, -0.12) * distance
+		elif view.has("marker") and main.sim_host.map_marker(view["marker"]) != null:
 			# Pan across the marker (the pan below covers 0.4 distances).
 			start = main.sim_host.map_marker(view["marker"]) - Vector3(0.15, 0.0, -0.12) * distance
 		rig.snap_to(start, distance, 0.0)
@@ -145,14 +187,15 @@ func _run() -> void:
 			draw_calls += RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_DRAW_CALLS_IN_FRAME)
 			triangles += RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_PRIMITIVES_IN_FRAME)
 		var seconds := (Time.get_ticks_usec() - began) / 1e6
-		print("terrain-bench: %-18s %4.0f m  %6.1f FPS  frame %5.2f ms (worst %5.2f)  render cpu %5.2f ms  gpu %s  %4d draw calls  %5.2f M triangles  chunk update %.2f ms  chunks per LOD %s" % [
+		var deco: int = main.map_objects.deco_instances
+		print("terrain-bench: %-18s %4.0f m  %6.1f FPS  frame %5.2f ms (worst %5.2f)  render cpu %5.2f ms  gpu %s  %4d draw calls  %5.2f M triangles  chunk update %.2f ms  chunks per LOD %s  decoration %d" % [
 			view["name"] + ("" if run[1].is_empty() else "/" + run[1]), distance, MEASURE_FRAMES / seconds, seconds * 1000.0 / MEASURE_FRAMES, worst,
 			cpu / MEASURE_FRAMES,
 			# Metal reports no GPU timestamps (0); show n/a then.
 			"%5.2f ms" % (gpu / MEASURE_FRAMES) if gpu > 0.0 else "n/a",
 			draw_calls / MEASURE_FRAMES,
 			triangles / float(MEASURE_FRAMES) / 1e6, chunk_usec / 1000.0 / MEASURE_FRAMES,
-			main.terrain.visible_per_lod,
+			main.terrain.visible_per_lod, deco,
 		])
 	print("terrain-bench: frames rendered by force_draw (window not drawable): %d" % forced_draws)
 	get_tree().quit()
@@ -184,6 +227,27 @@ func _set_meadow_variant(variant: String) -> void:
 	await _frames(2)
 
 
+## Tall grass look of the ground on or off (plain meadow), plants on or
+## off (prompt 073).
+func _set_tall_variant(ground: bool, plants: bool) -> void:
+	main.terrain.set_tall_strength(1.0 if ground else 0.0)
+	if main.map_objects.tall_grass != plants:
+		main.map_objects.tall_grass = plants
+		main.map_objects.set_biome(main.map_objects.biome)
+	await _frames(30)
+
+
+## A curved vehicle track through `focus` pressed into the tall grass
+## (presentation only): a column of three vehicles' widths.
+func _press_track(focus: Vector3) -> void:
+	var trails: Node = main.grass_trails
+	for k in 120:
+		var t := (k - 60) * 0.5
+		var at := focus + Vector3(t, 0.0, 6.0 * sin(t / 14.0))
+		var heading := Vector2(1.0, 6.0 / 14.0 * cos(t / 14.0))
+		trails.press(at, heading, 6.5, 3.1)
+
+
 func _shots() -> void:
 	get_window().size = Vector2i(1920, 1080)
 	var rig: Node3D = main.camera_rig
@@ -191,15 +255,20 @@ func _shots() -> void:
 	var half: Vector2 = main.sim_host.map_size() * 0.5
 	var meadow := OS.get_environment("SHOT_SET") == "meadow"
 	var mountains := OS.get_environment("SHOT_SET") == "mountains"
+	var tall := OS.get_environment("SHOT_SET") == "tall"
 	var shots := MEADOW_SHOTS if meadow else (MOUNTAIN_SHOTS if mountains else SHOTS)
+	if tall:
+		shots = TALL_SHOTS
 	# Prompt 056 (`SHOT_SET=land`): the whole map and every supply point.
 	var land := OS.get_environment("SHOT_SET") == "land"
 	if land:
 		shots = _land_shots()
-	if meadow or mountains or land:
+	if meadow or mountains or land or tall:
 		# Clean ground views: no fog of war over the village, no HUD.
 		main.fog_of_war.set_fog_enabled(false)
 		main.get_node("Hud").visible = false
+	var pitch_near: float = rig.pitch_near_deg
+	var pitch_far: float = rig.pitch_far_deg
 	for i in shots.size():
 		var shot := shots[i]
 		if OS.has_environment("SHOT_ONLY") and shot.name != OS.get_environment("SHOT_ONLY"):
@@ -221,11 +290,16 @@ func _shots() -> void:
 			focus = Vector3(half.x - 50.0, 0.0, half.y - 50.0)
 		if shot.get("fell", false):
 			focus = _fell_trees(focus)
+		if shot.get("track", false):
+			_press_track(focus)
 		main.terrain.set_show_lod(shot.get("lod", false))
 		if shot.get("crater", false):
 			for k in 3:
 				main.terrain.debug_crater(focus + Vector3(-8.0 + 8.0 * k, 0.0, 4.0 * k), 3.0 + k, 1.0)
 		# Mountain views (prompt 060): a lower camera and longer distances.
+		if not shot.has("pitch") and tall:
+			rig.pitch_near_deg = pitch_near
+			rig.pitch_far_deg = pitch_far
 		if shot.has("pitch"):
 			rig.pitch_near_deg = shot["pitch"]
 			rig.pitch_far_deg = shot["pitch"]
