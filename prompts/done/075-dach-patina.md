@@ -198,3 +198,14 @@ Als offene Punkte notieren, nicht umsetzen:
   Gauben, neue Schornsteine.
 - **Rauch aus Schornsteinen.**
 - **Eigene Dächer je Landschaft** (Holzschindeln im Osten, Reet im Norden).
+
+## Entscheidungen (autonom, Nachtlauf 17.11.2026)
+
+| Frage | Entscheidung (vorläufig) |
+|---|---|
+| Stufe 1 oder 2? | Stufe 1 reicht im Vergleich: Abstand zum First aus der Lage über dem Modell-Ursprung (Häuser haben den First darüber), Schornstein-Fahnen bleiben offen. Keine neuen Kanäle in den Modellen. |
+| Stroh fehlt auf Gebäuden | `env_barn` bekommt Strohdach (`roof_kind = 2`), neu gebaut. |
+| Wellblech am Depot | Das heile Depot hatte glattes Stahlblech; jetzt verzinktes Wellblech (`kit/base_buildings.py`), neu gebaut. |
+| Farben | Dachfarben in sRGB gesetzt und am Ende linearisiert; die alten linearen Werte wirkten blass lachsfarben. Urteilswerte. |
+| Ziegelreihen | Die alten Reihen liefen die Neigung hinab statt längs zum First; neu längs, gefiltert statt ausgeblendet. |
+| Brennendes Haus in der Bildreihe | Ohne Flammen (die kommen aus der Simulation): beschädigtes Haus mit Ruß 0,6 und 1,0. |

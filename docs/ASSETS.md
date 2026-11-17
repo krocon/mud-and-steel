@@ -478,7 +478,8 @@ biome variants cost nothing.
   height / 4 m elsewhere; A = material kind, `A = 1 - kind / 4`.
 - Kinds per slot (kind 0 first): Bark oak / birch / palm / pine; Stone
   fieldstone / ashlar / concrete / brick; Plaster lime / adobe / whitewash /
-  ochre; Roof clay tile / slate / thatch (also hay) / planks; Wood weathered /
+  ochre; Roof clay tile / slate / thatch (also hay) / planks (prompt 075:
+  Roof patina below); Wood weathered /
   fresh / creosote / charred; Paint field grey (`env_paint`) / warning red /
   white / rust; Metal steel / rust / galvanized / dark; Ground earth / spoil /
   mud / sand; Rock bedrock / scree (prompt 074).
@@ -530,6 +531,57 @@ biome variants cost nothing.
   child of the root with its parts) on its own; before, all variants
   standing at the origin shaded each other (inner variants came out
   darker). Models built before keep their old bake until rebuilt.
+
+### Roof patina (prompt 075)
+
+`godot/assets/shaders/env_roof.gdshaderinc`, included by `env.gdshader`.
+Roofs look used: weathered, stained, patched, overgrown. Everything depends
+only on the position on the model and the per-house seed `v_seed`, so the
+same house always looks the same and nothing wanders with the camera.
+
+- **Roof frame:** `roof_frame()` derives from the model position and normal
+  the plane coordinates (`uv.x` along the ridge, `uv.y` down the slope, in
+  meters), the distance from the ridge (houses are built with the ridge
+  above the model origin, `kit/buildings.py gable_roof`), north / west
+  facing, and the pixel footprint `fw`. Stage 1 of the prompt: the models
+  carry no ridge, eave or chimney data. Prompt 080 (snow) can reuse it.
+- **Age per house** (`roof_age`): about 12 % new, two thirds weathered, a
+  fifth very old; scales every other layer.
+- **Shared layers** (`roof_weather`, `roof_growth`, `roof_desert`): large
+  stains (darkened, bleached, damp-green), dark streaks down the slope
+  (denser under the ridge), a darker, dirtier eave and a washed-out ridge,
+  moss in the joints and at the eave (more on the north side and on old
+  roofs), pale lichen dots; in the desert no growth, bleached, sand in the
+  joints.
+- **Per covering:** clay tile (courses of 17 cm, tiles 21 cm in a half
+  bond, wavy rows, slipped tiles, strong tone per tile, groups of repaired
+  tiles in fresher or foreign tone, five base colors from bright brick red
+  to dark brown and weathered grey brown); slate and the dark cement tiles
+  (grey plates, lime and lichen patches, replaced bluish plates); thatch
+  (barns since prompt 075, haystacks, hay bales: courses of 35 cm with
+  frayed edges, fibres, frayed dark patches, moss cushions, fresh straw to
+  silver grey with age); planks (boards down the slope, seams, butt
+  joints, newer boards, green on the weather side); corrugated `Metal`
+  kinds rust and galvanized (`sheet_patina`: sheets 0.9 x 2.4 m, matte and
+  bright sheets, rust at the seams and in runs below the fastener rows; the
+  depot roof is galvanized since prompt 075); upward faces of `Plaster`
+  (`flat_roof_patina`, flat desert roofs: grime rims and dust from the
+  baked occlusion, water stains, fine cracks; wall colors unchanged).
+- **Colors** are composed in sRGB and converted to linear albedo at the end
+  (`roof_linear`); the old linear values read pale salmon. Judgement values
+  for rural Central and Eastern Europe around 1940, [provisional].
+- **No flicker:** tile rows and joints are box-filtered (`roof_joint`,
+  exact for any pixel footprint) and fade to their mean below about 2.5
+  pixels per row; per-tile tones, lichen dots, fibres and cracks fade by
+  `roof_fine(fw, size)` before they reach 2 pixels. Stains, streaks, age
+  and the eave gradient carry the far view.
+- **Order:** patina, then edge wear, dust, snow and soot as before; damaged
+  roofs and roof debris get the patina of their house (same seed).
+- **Checks:** `just roof-shots [dir] [map]` (village at 15-350 m and like
+  the reference, all coverings side by side, twenty equal houses, damaged
+  and charred houses; forest by day, low sun and night, desert, winter),
+  `just ground-motion --roofs --png` (flicker on roof windows of
+  `town_small`), `just objects-bench` (line "village").
 
 ### Grown rock (prompt 074)
 

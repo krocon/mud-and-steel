@@ -2938,6 +2938,23 @@ from `crates/bridge/src/objects.rs`.
   brick tone and the boards' weathering. Deterministic and presentation
   only: the same house always looks the same, nothing new is stored.
   Corrugated steel (Metal kinds rust and galvanized) gets ribs.
+- **Roof patina (prompt 075):** roofs are weathered per house
+  (`env_roof.gdshaderinc`, [ASSETS.md](ASSETS.md#roof-patina-prompt-075)):
+  an age from `v_seed`, per covering its own patina (clay tile, slate,
+  thatch, planks, corrugated sheet, flat plaster roofs), all from the
+  position on the model, so nothing wanders and the same house always
+  looks the same. Barns are thatched and the depot roof is galvanized
+  sheet since then. Measured on an Apple M1 Max at 1920 x 1080:
+  `just objects-bench` line "village" (150 m) 51.5 → 50.5 FPS back to back
+  (19.43 → 19.80 ms, about 2 %). Flicker (`just ground-motion --roofs
+  --png`, windows on town house roofs, frame-to-frame match in the
+  2-4 px band, 1 = stable): 15 m 0.61 → 0.78, 35 m 0.48 → 0.81, 110 m
+  0.16 → 0.64; the old rows (which ran down the slope) slid against the
+  roof at 20-57 px/frame, the new ones stick (0.3-0.6). Open: chimney
+  streaks (the shader does not know where a chimney is; stage 2 would
+  bake ridge, eave and chimney into the models), the ridge distance is
+  only right for roofs with the ridge above the model origin, and moss on
+  haystacks (same Roof kind as thatch).
 - **Snow on fallen objects (prompt 056):** snow cover is computed from the
   model normal (objects only turn about the vertical), so a falling tree
   keeps its snow on what was its top; needle branches carry snow on all
