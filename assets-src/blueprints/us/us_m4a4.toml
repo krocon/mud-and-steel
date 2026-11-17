@@ -1,0 +1,234 @@
+# M4A4 Sherman: welded small-hatch hull lengthened 0.15 m for the Chrysler A57
+# multibank engine, VVSS bogies spread apart, M34A1 mount, split commander's
+# hatch. Prompt 063, derived from us_m4a3.toml. Main dimensions from
+# data/catalog/us.toml (onwar.com): length 6.06 m = hull, the 75 mm muzzle
+# ends at the nose (drawing us016m4a4.jpg, data.json overhang 0), width 2.62 m,
+# height 2.74 m, track ground contact 4.06 m (data.json).
+unit = "us_m4a4"
+assembly = "tank"
+
+[layout]
+hull_length = 6.06
+turret_y = 0.30
+turret_ring_diameter = 1.75
+# Tracks: tread 83 in (2.11 m) + 16.56 in track = 2.53 m over the tracks
+# (afvdatabase); the catalog width 2.62 m is over the sandshields.
+fender_overhang = 0.045
+
+[running_gear]
+part = "vvss_bogie"
+track_width = 0.42
+link_pitch = 0.152
+road_wheel_diameter = 0.508
+# bogie pitch 1.63 m instead of 1.46 m (drawing us016m4a4.jpg, 155 px/m)
+road_wheels = [1.80, 1.28, 0.17, -0.35, -1.47, -1.99]
+sprocket = { y = 2.60, z = 0.72, diameter = 0.66, teeth = 13 }
+idler = { y = -2.63, z = 0.47, diameter = 0.56 }
+roller_offset = -0.20
+return_roller_diameter = 0.24
+
+[hull]
+part = "plate_hull"
+# Lower hull between the tracks. The front is the one-piece cast differential and
+# final drive housing ("sharp nose" of the M4A3(75)W): rounded from the floor
+# (17 in / 0.43 m ground clearance) up to the glacis seam at about 1.08 m.
+# 0.15 m longer engine compartment: profile coordinates as us_m4a3 with the
+# rear moved back; the kit centers the profile (model y = profile y + 0.075).
+lower = [[-2.97, 0.44], [2.40, 0.44], [2.62, 0.48], [2.78, 0.57], [2.89, 0.70], [2.94, 0.84],
+         [2.93, 0.97], [2.86, 1.08], [-3.09, 1.08], [-3.09, 0.72]]
+# Superstructure over the tracks: 56 deg glacis (from vertical, catalog) from
+# the nose seam to the roof, flat roof and engine deck, rear plate leaning 10 deg
+# (afvdatabase: rear 10-22 deg) with a small chamfer at the deck edge.
+upper = [[-3.09, 1.00], [2.20, 1.00], [2.80, 1.06], [1.58, 1.90], [-2.85, 1.90], [-2.94, 1.85],
+         [-3.09, 1.04]]
+# Sponsons flush with the outer track edge (2.54 m); only the sandshields reach
+# the catalog width.
+upper_half_width = 1.27
+bevel = 0.02
+
+[turret]
+part = "cast_turret"
+height = "fit"
+length = 2.10
+width = 1.86
+exponent = 2.4
+front_scale = 0.86
+y_shift = -0.12
+segments = 22
+# near-vertical cast sides with a strongly rounded roof edge
+profile = [[0.0, 1.0], [0.68, 1.0], [0.9, 0.94], [1.0, 0.84]]
+
+[cupola]
+x = 0.36
+y = -0.30
+diameter = 0.68
+height = 0.10   # split commander's hatch ring, no vision cupola: turret roof 2.64 m (drawing)
+vision_blocks = 0
+hatch = "split"
+
+[gun]
+part = "tank_gun"
+trunnion = [0.80, 0.38]
+# M34A1 mount: wide rotor shield (most of the turret face) and the narrower
+# gun shield in front of it (modeled as the sleeve)
+mantlet = { kind = "rotor", size = [1.06, 0.20, 0.56] }
+sleeve = [0.26, 0.13]
+# fixed barrel: the muzzle ends at the nose (drawing, data.json overhang 0)
+segments = [[1.52, 0.055, 0.048]]
+muzzle_brake = "none"
+
+[[mg]]  # coaxial M1919A4
+part = "mg"
+mount = "coax"
+position = [0.24, 0.30, 0.0]
+
+[[mg]]  # bow M1919A4 in a ball mount on the glacis
+part = "mg"
+mount = "ball"
+position = [0.48, 2.475, 1.30]
+length = 0.6   # only the barrel end protrudes from the ball
+
+[[part]]
+part = "us.transmission_cover"   # here only the rounded lip at the nose/glacis seam
+y = 2.915
+z = 1.05
+radius = 0.05
+segments = 8
+
+[[part]]
+part = "us.hatch_hoods"   # small driver's hatches behind the glacis
+x = 0.48
+y = 1.295
+size = [0.50, 0.55]
+
+[[part]]
+part = "box_prop"         # driver's hood protruding from the 56 deg glacis
+center = [-0.48, 1.695, 1.86]
+size = [0.50, 0.34, 0.20]
+
+[[part]]
+part = "box_prop"         # assistant driver's hood
+center = [0.48, 1.695, 1.86]
+size = [0.50, 0.34, 0.20]
+
+[[part]]
+part = "skirts"          # sandshields along the sponsons
+y = [-2.68, 2.38]
+bottom_z = 0.82
+top_z = 1.02
+plates = 4
+gap = -0.012
+thickness = 0.008
+
+[[part]]
+part = "deck_box"        # engine deck doors
+center = [0.0, -1.40]
+size = [1.5, 1.8, 0.04]
+
+[[part]]
+part = "box_prop"        # rear stowage/air cleaners
+center = [-0.75, -2.965, 1.25]
+size = [0.38, 0.12, 0.4]
+
+[[part]]
+part = "box_prop"
+center = [0.75, -2.965, 1.25]
+size = [0.38, 0.12, 0.4]
+
+[[part]]
+part = "exhaust"
+kind = "pipe"
+position = [0.0, -2.955, 0.80]
+length = 0.08
+diameter = 0.22
+outlet = [0.0, -3.025, 0.75]
+
+[[part]]
+part = "headlight"
+position = [-1.02, 2.815, 1.18]
+diameter = 0.2
+
+[[part]]
+part = "headlight"
+position = [1.02, 2.815, 1.18]
+diameter = 0.2
+
+[[part]]
+part = "tool"
+kind = "shovel"
+position = [0.6, -2.425, 1.78]
+axis = "x"
+
+[[part]]
+part = "tool"
+kind = "sledgehammer"
+position = [-0.6, -2.525, 1.75]
+axis = "x"
+
+[[part]]
+part = "antenna"
+position = [-0.55, -0.75, 1.90]
+length = 2.2
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 2.915, 0.62]
+pair = true
+socket = false
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -2.935, 0.62]
+pair = true
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -1.45, 1.95]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 0.2, 2.4]
+parent = "Turret"
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-1.272, -0.2, 1.45]
+normal = [-1, 0, 0]
+size = 0.7
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [1.272, -0.2, 1.45]
+normal = [1, 0, 0]
+size = 0.7
+
+[[part]]
+part = "marking"
+name = "Glacis"
+position = [0.0, 2.325, 1.40]
+normal = [0, 0.83, 0.56]
+size = 0.6
+
+[[part]]
+part = "marking"
+name = "Turret_L"
+parent = "Turret"
+position = [-0.9, 0.05, 2.25]
+normal = [-1, 0, 0]
+size = 0.5
+
+[[part]]
+part = "marking"
+name = "Turret_R"
+parent = "Turret"
+position = [0.9, 0.05, 2.25]
+normal = [1, 0, 0]
+size = 0.5
+
+[validate]
+# Height 2.74 m is over the commander's hatch: the antenna is not counted.
+exclude_height = ["Antenna_*"]

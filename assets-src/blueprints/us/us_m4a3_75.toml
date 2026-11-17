@@ -1,5 +1,6 @@
 # M4A3 (75)W Sherman, large-hatch 47 deg hull, VVSS. Main dimensions from
-# data/catalog/us.toml: length 6.27 m (the 75 mm barrel hardly overhangs),
+# data/catalog/us.toml: length 6.27 m over the sandshield extensions (prompt
+# 063: the 75 mm muzzle ends at the nose, drawing us019m4a375w.jpg),
 # width 2.67 m, height 2.94 m over the cupola. The catalog has no hull length;
 # [layout] hull_length 5.89 m is the commonly quoted M4A3 length without gun.
 # Part dimensions are modeling estimates: road wheels 20 in (508 mm), track
@@ -42,6 +43,12 @@ upper = [[-2.94, 1.00], [2.20, 1.00], [2.80, 1.06], [1.94, 1.90], [-2.70, 1.90],
 # the catalog width.
 upper_half_width = 1.27
 bevel = 0.02
+# Front and rear sandshield extensions over the tracks: they set the overall
+# length (drawing us019m4a375w.jpg: the 75 mm muzzle ends at the nose, the
+# fenders reach about 0.2 m past the nose and the rear plate).
+fender_front = 3.12
+fender_slope_front = 0.10
+fender_rear = -3.14
 
 [turret]
 part = "cast_turret"
@@ -70,7 +77,8 @@ trunnion = [0.80, 0.38]
 # gun shield in front of it (modeled as the sleeve)
 mantlet = { kind = "rotor", size = [1.06, 0.20, 0.56] }
 sleeve = [0.26, 0.13]
-segments = [["fit", 0.055, 0.048]]
+# fixed barrel: the muzzle ends at the nose (drawing, data.json overhang 0)
+segments = [[1.52, 0.055, 0.048]]
 muzzle_brake = "none"
 
 [[mg]]  # coaxial M1919A4
