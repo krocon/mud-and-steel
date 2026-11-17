@@ -38,15 +38,15 @@ bevel = 0.02
 
 [casemate]
 part = "casemate"
-plan = [[-1.38, 3.05], [1.38, 3.05], [1.38, -0.75], [-1.38, -0.75]]
+plan = [[-1.38, 3.00], [1.38, 3.00], [1.38, -0.40], [-1.38, -0.40]]
 side_slope_deg = 15
-front_slope_deg = 30
+front_slope_deg = 34
 rear_slope_deg = 5
 bevel = 0.025
 
 [gun]
 part = "tank_gun"
-trunnion = [2.30, 1.98]      # model space: y, z
+trunnion = [2.30, 1.90]      # model space: y, z
 x = 0.30                     # gun right of the center line
 mantlet = { kind = "cast_box", size = [0.92, 0.45, 0.80] }
 sleeve = [0.60, 0.17]
@@ -55,7 +55,7 @@ muzzle_brake = "slotted"
 
 [[mg]]  # DShK on the loader's hatch ring
 part = "pintle_mg"
-position = [0.62, 0.05, 2.64]
+position = [0.62, -0.05, 2.64]
 length = 1.63
 post = 0.16
 jacket = false
@@ -70,14 +70,14 @@ socket = true
 
 [[part]]
 part = "hull_hatch"           # loader's hatch, right rear
-center = [0.62, 0.05]
+center = [0.62, -0.05]
 z = "casemate"
 size = [0.55, 0.55]
 hinge = "rear"
 
 [[part]]
 part = "hull_hatch"           # gunner's hatch
-center = [-0.20, 0.05]
+center = [-0.20, -0.05]
 z = "casemate"
 size = [0.45, 0.45]
 hinge = "rear"
@@ -99,8 +99,8 @@ size = [1.9, 1.4, 0.05]
 
 [[part]]
 part = "su.fuel_drums"        # external fuel tanks on the rear hull sides
-positions = [[-1.34, -2.30, 1.22], [1.34, -2.30, 1.22]]
-length = 0.80
+positions = [[-1.34, -0.95, 1.20], [-1.34, -2.05, 1.20], [1.34, -0.95, 1.20], [1.34, -2.05, 1.20]]
+length = 1.02
 diameter = 0.34
 
 [[part]]
@@ -124,7 +124,7 @@ diameter = 0.20
 
 [[part]]
 part = "antenna"              # 10-RK radio whip, left rear of the roof
-position = [-1.05, -0.45, 2.48]
+position = [-1.05, -0.20, 2.48]
 length = 2.0
 
 [[part]]
@@ -134,13 +134,13 @@ position = [1.45, -1.2, 1.02]
 
 [[part]]
 part = "tow_hook"
-position = [0.0, 3.40, 0.80]
+position = [0.0, 3.28, 0.80]
 pair = true
 socket = false
 
 [[part]]
 part = "tow_hook"
-position = [0.0, -3.40, 0.80]
+position = [0.0, -3.30, 0.80]
 pair = true
 
 [[part]]
@@ -171,7 +171,7 @@ size = 0.5
 part = "marking"
 name = "Hull_Rear"
 kind = "number"
-position = [-0.40, -0.75, 2.00]
+position = [-0.40, -0.40, 2.00]
 normal = [0.0, -0.99, 0.09]
 size = 0.4
 
