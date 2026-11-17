@@ -526,6 +526,11 @@ explosion-series dir="build/explosion-ref/now": build
 salvo-shots dir="build/salvo" *args: build
     {{ GODOT }} --path godot --always-on-top --fixed-fps 30 res://scenes/main.tscn -- --salvo-series "--blast-shots={{ justfile_directory() }}/{{ dir }}" {{ args }}
 
+# Every gun class firing as a picture series around the muzzle (calibers, howitzer, distances, daytimes, biomes), beside the reference picture if .temp/blitz-aus-rohr.png is there (prompt 077, needs a window, ffmpeg and numpy); `--only=<run>,<run>` records some
+[group('godot')]
+muzzle-shots dir="build/muzzle/now" *args: build
+    bash tools/muzzle-series.sh {{ dir }} {{ args }}
+
 # Play a real heavy rocket strike on the base skirmish and record it as PNG files; fails if it does not show (prompt 054, needs a window)
 [group('godot')]
 strike-shots dir="build/explosions": build
@@ -536,7 +541,7 @@ strike-shots dir="build/explosions": build
 trailer-shots *args: build
     bash tools/trailer-shots.sh {{ args }}
 
-# Measure the frame rate with 50 explosions at once and two rocket salvos in every graphics quality (opens a window); `--salvos` only the salvos
+# Measure the frame rate with 50 explosions at once, two rocket salvos and 40 cannon shots a second in every graphics quality (opens a window); `--salvos` only the salvos, `--muzzles` only the cannon shots
 [group('godot')]
 effects-bench *args: build
     {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- --effects-bench {{ args }}

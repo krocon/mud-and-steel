@@ -43,7 +43,7 @@ extends Node3D
 ## player does not see; enemy units out of sight are not in the snapshot and
 ## their nodes are hidden here.
 ## Effects (prompt 019): `world/effects.gd` (smoke, fire, impacts, dust);
-## `-- --effects-shots` / `--effects-bench` run `tools/effects_bench.gd`.
+## `-- --effects-shots` / `--effects-bench` / `--muzzle-series` run `tools/effects_bench.gd`.
 ## `-- --perf-bench` measures the frame rate with many units
 ## (`tools/perf_bench.gd`, prompt 016).
 ## `-- --effects-craters` runs `tools/crater_bench.gd` (prompt 021).
@@ -501,10 +501,11 @@ func _wants_match_test() -> bool:
 	return wanted
 
 
-## Whether `--effects-bench` or `--effects-shots[=<dir>]` was given.
+## Whether `--effects-bench`, `--effects-shots[=<dir>]` or
+## `--muzzle-series=<dir>` (prompt 077) was given.
 func _effects_tool() -> bool:
 	for arg in OS.get_cmdline_user_args():
-		if arg == "--effects-bench" or arg.begins_with("--effects-shots"):
+		if arg == "--effects-bench" or arg.begins_with("--effects-shots") or arg.begins_with("--muzzle-series"):
 			return true
 	return false
 

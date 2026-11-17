@@ -6,9 +6,11 @@ usage:
       full frame): every frame of the first second, then four per second until
       <until_s> seconds after the start. With --every: four tiles per second of
       the whole video from <start_s> to <until_s> (overview, no crop: give 0,0,0,0).
-  explosion_series.py game <dir> <kind> <x,y,w,h> <until_s> <out.png>
+  explosion_series.py game <dir> <kind> <x,y,w,h> <until_s> <out.png> [<first_s>]
       The same tiles from the game's frames <dir>/<kind>_<ms>.png, written by
-      `just explosion-series` (blast_shots.gd, `--explosion-series`).
+      `just explosion-series` (blast_shots.gd, `--explosion-series`). With
+      <first_s> every frame only of the first <first_s> seconds (prompt 077:
+      0.5 for `just muzzle-shots`).
   explosion_series.py stack <out.png> <a.png> <b.png> ...
       Puts the tile sheets under each other (video above, game below).
   explosion_series.py color <video> <t_s> <x,y,w,h>
@@ -38,10 +40,10 @@ DIGITS = {
 }
 
 
-def series_times(until: float) -> list[float]:
-    """Every frame of the first second, then four per second."""
-    times = [i / FPS for i in range(FPS)]
-    t = 1.0
+def series_times(until: float, first: float = 1.0) -> list[float]:
+    """Every frame of the first `first` seconds, then four per second."""
+    times = [i / FPS for i in range(int(round(first * FPS)))]
+    t = first
     while t <= until + 1e-6:
         times.append(t)
         t += 0.25
@@ -125,8 +127,9 @@ def main() -> None:
         sheet(tiles, out)
     elif mode == "game":
         folder, kind, crop, until, out = sys.argv[2], sys.argv[3], crop_arg(sys.argv[4]), float(sys.argv[5]), sys.argv[6]
+        first = float(sys.argv[7]) if len(sys.argv) > 7 else 1.0
         tiles = []
-        for t in series_times(until):
+        for t in series_times(until, first):
             ms = int(round(t * 1000))
             tiles.append((read_png(f"{folder}/{kind}_{ms:05d}.png", crop), f"{ms}"))
         sheet(tiles, out)

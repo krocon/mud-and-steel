@@ -25,7 +25,21 @@ extends Node
 ## for comparison, without them (balls, as before). `just effects-bench`;
 ## `-- --salvos` measures only the idle view and the salvos. A view with
 ## frames drawn by force (window not drawable, e.g. a locked screen) is
-## marked invalid.
+## marked invalid. `-- --muzzles` (prompt 077) measures only the idle view
+## and 40 cannon shots a second (fired round robin by every vehicle of the
+## map, calibers 50 to 122 mm, plus two 20 mm autocannons firing bursts) from
+## 150 m and from 60 m.
+##
+## `--muzzle-series=<dir>` (prompt 077, `just muzzle-shots`, needs
+## `--fixed-fps 30`) gives one own unit the model of each gun class in turn
+## and fires it: every frame of the first half second and then four
+## pictures a second until the powder smoke is gone, `<run>_<ms>.png`; per
+## run a crop around the muzzle in `series.txt` for the tile sheets of
+## `tools/muzzle-series.sh`. Runs: the reference view (88 mm, oblique from
+## above, as the reference picture), 20 / 37 / 75 / 88 / 122 mm from the
+## side, a 76 mm gun without muzzle brake, a howitzer firing indirectly with
+## a raised barrel, 75 mm at 15 / 110 / 350 m, 88 mm at evening and night,
+## 75 mm in desert and winter. `--only=<run>,<run>` records some.
 
 const SHOT_SIZE := Vector2i(1600, 900)
 const BENCH_SIZE := Vector2i(1920, 1080)
@@ -39,12 +53,39 @@ const SALVO := 24
 const SALVO_RIPPLE_S := 0.25
 const SALVO_CALIBER := 132.0
 const BaseView := preload("res://scenes/world/base_view.gd")
+## Muzzle views (prompt 077): cannon shots a second, their calibers in turn,
+## and 20 mm rounds a second (two autocannons in bursts).
+const MUZZLE_RATE := 40.0
+const MUZZLE_CALIBERS: Array[float] = [75.0, 88.0, 50.0, 122.0, 76.2, 37.0, 85.0, 75.0]
+const AUTOCANNON_RATE := 10.0
+## Muzzle series (prompt 077): seconds after the shot, and the runs: model,
+## caliber, camera distance (m), crop (m across), view, daytime, biome.
+const MUZZLE_SERIES_SECONDS := 4.0
+const MUZZLE_RUNS: Array[Dictionary] = [
+	{"name": "reference", "model": "de_tiger1_e", "caliber": 88.0, "distance": 55.0, "crop_m": 30.0, "view": "reference"},
+	{"name": "c20", "model": "de_pz2_f", "caliber": 20.0, "crop_m": 8.0, "burst": 5},
+	{"name": "c37", "model": "de_pz38t_e", "caliber": 37.0, "crop_m": 10.0},
+	{"name": "c75", "model": "de_pz4_h", "caliber": 75.0, "crop_m": 16.0},
+	{"name": "c76_no_brake", "model": "su_t34_76_1943", "caliber": 76.2, "crop_m": 16.0},
+	{"name": "c88", "model": "de_tiger1_e", "caliber": 88.0, "crop_m": 20.0},
+	{"name": "c122", "model": "su_is2", "caliber": 122.0, "crop_m": 24.0},
+	{"name": "howitzer", "model": "su_m30", "caliber": 122.0, "crop_m": 24.0, "indirect": true},
+	{"name": "c75_15m", "model": "de_pz4_h", "caliber": 75.0, "distance": 15.0, "crop_m": 12.0},
+	{"name": "c75_110m", "model": "de_pz4_h", "caliber": 75.0, "distance": 110.0, "crop_m": 20.0},
+	{"name": "c75_350m", "model": "de_pz4_h", "caliber": 75.0, "distance": 350.0, "crop_m": 40.0},
+	{"name": "c88_evening", "model": "de_tiger1_e", "caliber": 88.0, "crop_m": 20.0, "daytime": "evening"},
+	{"name": "c88_night", "model": "de_tiger1_e", "caliber": 88.0, "crop_m": 20.0, "daytime": "night"},
+	{"name": "c75_desert", "model": "de_pz4_h", "caliber": 75.0, "crop_m": 16.0, "biome": "desert"},
+	{"name": "c75_winter", "model": "de_pz4_h", "caliber": 75.0, "crop_m": 16.0, "biome": "winter"},
+]
 
 var main: Node3D
 var forced_draws := 0
 var _salvo_target := Vector3.ZERO
 var _dir := ""
 var _shot_count := 0
+## Muzzle views (prompt 077): shots fired so far in this view.
+var _muzzle_shots := 0
 
 
 func _ready() -> void:
@@ -57,7 +98,11 @@ func _run() -> void:
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--effects-shots"):
 			_dir = arg.trim_prefix("--effects-shots").trim_prefix("=")
-	if "--effects-bench" in OS.get_cmdline_user_args():
+		if arg.begins_with("--muzzle-series="):
+			_dir = arg.trim_prefix("--muzzle-series=")
+	if Array(OS.get_cmdline_user_args()).any(func(a: String) -> bool: return a.begins_with("--muzzle-series")):
+		await _muzzle_series()
+	elif "--effects-bench" in OS.get_cmdline_user_args():
 		await _bench()
 	else:
 		await _shots()
@@ -252,12 +297,19 @@ func _bench() -> void:
 				{"name": "2 salvos, balls 150 m", "distance": 150.0, "barrage": false, "salvo": true, "plain": true},
 				{"name": "2 salvos 150 m", "distance": 150.0, "barrage": false, "salvo": true},
 				{"name": "2 salvos, balls 60 m", "distance": 60.0, "barrage": false, "salvo": true, "plain": true},
-				{"name": "2 salvos 60 m", "distance": 60.0, "barrage": false, "salvo": true}]
+				{"name": "2 salvos 60 m", "distance": 60.0, "barrage": false, "salvo": true},
+				{"name": "40 shots/s 150 m", "distance": 150.0, "barrage": false, "muzzles": true},
+				{"name": "40 shots/s 60 m", "distance": 60.0, "barrage": false, "muzzles": true}]
 		# `--salvos`: only the idle view and the salvos (a shorter run).
 		if "--salvos" in OS.get_cmdline_user_args():
-			views = views.filter(func(v: Dictionary) -> bool: return v.get("salvo", false) or not v["barrage"])
+			views = views.filter(func(v: Dictionary) -> bool: return v.get("salvo", false) or not v["barrage"] and not v.get("muzzles", false))
+		# `--muzzles`: only the idle view and the cannon shots (prompt 077).
+		if "--muzzles" in OS.get_cmdline_user_args():
+			views = views.filter(func(v: Dictionary) -> bool: return v.get("muzzles", false) or not v["barrage"] and not v.get("salvo", false))
 		for view in views:
 			var salvo: bool = view.get("salvo", false)
+			var muzzles: bool = view.get("muzzles", false)
+			_muzzle_shots = 0
 			if salvo:
 				# Without the wrecks of the view before.
 				for wreck in fx._wrecks:
@@ -291,6 +343,8 @@ func _bench() -> void:
 				if salvo and fired < SALVO and t >= fired * SALVO_RIPPLE_S:
 					_salvo_round(own, enemies)
 					fired += 1
+				if muzzles:
+					_muzzle_round(t, own + enemies)
 				max_trails = maxi(max_trails, fx.rockets.trails_live())
 				await _frame()
 				var now := Time.get_ticks_usec()
@@ -315,6 +369,147 @@ func _bench() -> void:
 			(wreck.root as Node).queue_free()
 		fx._wrecks.clear()
 	print("effects-bench: frames rendered by force_draw (window not drawable): %d" % forced_draws)
+
+
+## Fires the cannon shots due at `t` s of a muzzle view: MUZZLE_RATE a
+## second round robin over `shooters` (the two rocket batteries excluded),
+## and AUTOCANNON_RATE 20 mm rounds a second from two of them.
+func _muzzle_round(t: float, shooters: Array[int]) -> void:
+	var guns := shooters.slice(2).filter(func(id: int) -> bool: return not main.effects._is_infantry(id))
+	var due := int(t * MUZZLE_RATE)
+	while _muzzle_shots < due:
+		var id: int = guns[_muzzle_shots % guns.size()]
+		var caliber: float = MUZZLE_CALIBERS[_muzzle_shots % MUZZLE_CALIBERS.size()]
+		main.effects.on_combat_event({"type": "shot", "unit": id, "position": _muzzle(id), "caliber_mm": caliber,
+				"weapon": 0, "projectile": -1})
+		if _muzzle_shots % int(MUZZLE_RATE / AUTOCANNON_RATE) == 0:
+			for k in 2:
+				var gun: int = guns[(k * 7 + 3) % guns.size()]
+				main.effects.on_combat_event({"type": "shot", "unit": gun, "position": _muzzle(gun), "caliber_mm": 20.0,
+						"weapon": 0, "projectile": -1})
+		_muzzle_shots += 1
+
+
+# --- Muzzle series (prompt 077) ---------------------------------------------------
+
+
+func _muzzle_series() -> void:
+	if _dir.is_empty():
+		_dir = "user://muzzle-series"
+	DirAccess.make_dir_recursive_absolute(_dir)
+	get_window().size = SHOT_SIZE
+	main.effects.shake_enabled = false
+	main.fog_of_war.set_fog_enabled(false)
+	main.effects.visible_at = func(_point: Vector3) -> bool: return true
+	(main.get_node("Hud") as CanvasLayer).visible = false
+	await _frames(10)
+	var only := ""
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--only="):
+			only = arg.trim_prefix("--only=")
+	var shooter := _ids_of(true)[0]
+	var crops := PackedStringArray()
+	for run: Dictionary in MUZZLE_RUNS:
+		if not only.is_empty() and not (str(run.name) in only.split(",")):
+			continue
+		var biome := str(run.get("biome", "forest"))
+		if main.atmosphere.preset.id != biome:
+			main.set_biome(biome)
+		main.atmosphere.set_weather("clear", str(run.get("daytime", "day")))
+		_give_model(shooter, str(run.model))
+		await _frames(5)
+		var at := _position_of(shooter)
+		var forward := _forward(shooter)
+		var distance := float(run.get("distance", 35.0))
+		var caliber := float(run.caliber)
+		var indirect: bool = run.get("indirect", false)
+		var target := _ground(at + forward * 400.0)
+		if indirect:
+			# A first round lays the gun (its barrel rises with the shell's
+			# elevation); the series shows the second one.
+			main.sim_host.debug_rocket(shooter, target.x, target.z, caliber)
+			await _frames(120)
+		var muzzle := _muzzle(shooter)
+		if str(run.get("view", "side")) == "reference":
+			# As the reference picture: oblique from above and behind the
+			# left, the gun firing up and to the right.
+			main.camera_rig.pitch_near_deg = 32.0
+			main.camera_rig.pitch_far_deg = 32.0
+			await _view(at + forward * 10.0, distance, _yaw_of(forward.rotated(Vector3.UP, 0.9)))
+		else:
+			main.camera_rig.pitch_near_deg = 14.0
+			main.camera_rig.pitch_far_deg = 14.0
+			# From the side away from the other own units, so none stands
+			# between the camera and the gun.
+			var side := forward.cross(Vector3.UP).normalized()
+			var away := at - _centroid(_ids_of(true))
+			var look := -side if side.dot(away) > 0.0 else side
+			await _view(at + forward * 4.0 + Vector3.UP * 1.5, distance, _yaw_of(look))
+		await _frames(30)
+		crops.append("%s %s" % [run.name, _muzzle_crop(muzzle + forward * float(run.crop_m) * 0.3, float(run.crop_m))])
+		# Series times as `series_times(4.0, 0.5)` in tools/explosion_series.py.
+		var frames: Array[int] = []
+		var times_ms: Array[int] = []
+		for f in 15:
+			frames.append(f)
+			times_ms.append(int(round(f * 1000.0 / 30.0)))
+		var t := 0.5
+		while t <= MUZZLE_SERIES_SECONDS + 0.001:
+			frames.append(int(round(t * 30.0)))
+			times_ms.append(int(round(t * 1000.0)))
+			t += 0.25
+		var frame := 0
+		var burst := int(run.get("burst", 1))
+		var fired := 0
+		for n in frames.size():
+			var wanted := frames[n]
+			while frame <= wanted:
+				if fired < burst and frame == fired * 3:
+					if indirect:
+						main.sim_host.debug_rocket(shooter, target.x, target.z, caliber)
+					else:
+						main.effects.on_combat_event({"type": "shot", "unit": shooter, "position": _muzzle(shooter),
+								"caliber_mm": caliber, "weapon": 0, "projectile": -1})
+					fired += 1
+				await _frame()
+				frame += 1
+			var image := get_viewport().get_texture().get_image()
+			image.save_png("%s/%s_%05d.png" % [_dir, run.name, times_ms[n]])
+			_shot_count += 1
+		# Let the smoke go before the next run.
+		await _frames(60)
+	var file := FileAccess.open(_dir + "/series.txt", FileAccess.WRITE)
+	file.store_string("\n".join(crops) + "\n")
+	print("muzzle-series: %d pictures in %s; counts %s" % [_shot_count, ProjectSettings.globalize_path(_dir), main.effects.counts])
+
+
+## Unit `id` gets the catalog model `type_id`; caches of the views that hold
+## parts of the old model are dropped.
+func _give_model(id: int, type_id: String) -> void:
+	var node: Node3D = main._unit_nodes[id]
+	main._use_catalog_model(node, type_id, id)
+	main.effects._sockets.erase(id)
+	main.combat_view._turrets.erase(id)
+	if main.effects.has_method("forget_unit"):
+		main.effects.forget_unit(id)
+
+
+## "x,y,w,h" of a square crop that shows `meters` across around `at`.
+func _muzzle_crop(at: Vector3, meters: float) -> String:
+	var camera: Camera3D = main.camera
+	var center := camera.unproject_position(at)
+	var right := camera.global_basis.x
+	var a := camera.unproject_position(at - right * meters * 0.5)
+	var b := camera.unproject_position(at + right * meters * 0.5)
+	var size := clampi(int(a.distance_to(b)), 32, SHOT_SIZE.y)
+	var x := clampi(int(center.x) - size / 2, 0, SHOT_SIZE.x - size)
+	var y := clampi(int(center.y) - size / 2, 0, SHOT_SIZE.y - size)
+	return "%d,%d,%d,%d" % [x, y, size, size]
+
+
+## Camera yaw (rts_camera.gd) that looks along the horizontal `direction`.
+func _yaw_of(direction: Vector3) -> float:
+	return atan2(-direction.x, -direction.z)
 
 
 # --- Helpers --------------------------------------------------------------------

@@ -167,6 +167,17 @@ impl SimHost {
             .collect()
     }
 
+    /// Ids of `projectile_positions` (the `projectile` of their `shot`
+    /// events; prompt 077: tracers start at the model's muzzle).
+    #[func]
+    fn projectile_ids(&self) -> PackedInt64Array {
+        self.current
+            .projectiles
+            .iter()
+            .map(|p| i64::from(p.id))
+            .collect()
+    }
+
     /// Calibers of `projectile_positions` in millimeters.
     #[func]
     fn projectile_calibers(&self) -> PackedFloat32Array {
