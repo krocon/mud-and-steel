@@ -43,6 +43,7 @@ const MUD: u8 = 4;
 const SNOW: u8 = 5;
 const SHALLOW_WATER: u8 = 6;
 const DEEP_WATER: u8 = 7;
+const TALL_GRASS: u8 = 8;
 
 /// Every map is this wide and deep (m).
 pub const SIZE_M: u32 = 1000;
@@ -1577,6 +1578,73 @@ fn river_land(seed: u64) -> Result<Built, String> {
 }
 
 /// Writes the map into `options.out`.
+/// Tall grass (prompt 073), sparingly where it belongs: along the river
+/// banks of river_land (a frayed band a few to about 20 m wide) and on a few
+/// fallow patches of farms. Only on grass outside woods, never near starts
+/// or supply points, never on field tracks and roads; hash noise only, so
+/// nothing else of the map changes. The rules of tall grass are those of
+/// grass.
+fn paint_tall_grass(map: LandMap, seed: u64, meta: &Meta, wood: &[bool], terrain: &mut [u8]) {
+    let band = noise(seed, 0x7461_6c6c, 23.0);
+    let fine = noise(seed, 0x6772_6173, 7.0);
+    let keep_free = |x: f64, y: f64| {
+        meta.starts.iter().any(|&(_, _, sx, sy)| {
+            dist((x, y), (f64::from(sx), f64::from(sy))) < START_CLEAR_M + 20.0
+        }) || meta
+            .markers
+            .iter()
+            .any(|(name, c)| name.starts_with("supply") && dist((x, y), *c) < 40.0)
+    };
+    let source = terrain.to_vec();
+    let near = |i: usize, j: usize, r: usize, ids: &[u8]| {
+        let (i0, i1) = (i.saturating_sub(r), (i + r).min(SAMPLES - 1));
+        let (j0, j1) = (j.saturating_sub(r), (j + r).min(SAMPLES - 1));
+        let mut best = f64::MAX;
+        for jj in j0..=j1 {
+            for ii in i0..=i1 {
+                if ids.contains(&source[jj * SAMPLES + ii]) {
+                    let d = (((ii as f64 - i as f64).powi(2) + (jj as f64 - j as f64).powi(2))
+                        .sqrt())
+                        * CELL_M;
+                    best = best.min(d);
+                }
+            }
+        }
+        best
+    };
+    for j in 0..SAMPLES {
+        for i in 0..SAMPLES {
+            let k = j * SAMPLES + i;
+            if source[k] != GRASS || wood[k] {
+                continue;
+            }
+            let (x, y) = (coord(i), coord(j));
+            if keep_free(x, y) {
+                continue;
+            }
+            let ways = near(i, j, 2, &[DIRT_TRACK, ROAD]);
+            if ways < 3.0 {
+                continue;
+            }
+            let wanted = match map {
+                LandMap::RiverLand => {
+                    // Banks: up to 10..32 m from the water or the sand of the bank.
+                    let water = near(i, j, 17, &[SHALLOW_WATER, DEEP_WATER, SAND]);
+                    water < 10.0 + 22.0 * band.at(x, y) + 4.0 * (fine.at(x, y) - 0.5)
+                }
+                LandMap::Farms => {
+                    // Fallow: a few patches where two noises are high.
+                    band.at(x * 0.4, y * 0.4) * 0.88 + fine.at(x, y) * 0.12 > 0.8
+                }
+                LandMap::WinterVillage => false,
+            };
+            if wanted {
+                terrain[k] = TALL_GRASS;
+            }
+        }
+    }
+}
+
 pub fn generate(options: &Options) -> Result<String, String> {
     let terrain_rules = TerrainRules::builtin().map_err(|e| e.to_string())?;
     let object_rules = ObjectRules::builtin().map_err(|e| e.0)?;
@@ -1652,6 +1720,29 @@ pub fn generate(options: &Options) -> Result<String, String> {
     ];
     rows.extend(bridge_rows);
     rows.append(&mut objects.rows);
+    drop(objects);
+    // Tall grass (prompt 073) after the objects, which keep their places;
+    // not in woods (within 8 m of a tree).
+    let mut wood = vec![false; SAMPLES * SAMPLES];
+    for row in &rows {
+        let cols: Vec<&str> = row.split(',').collect();
+        if cols.len() < 4 || !cols[0].starts_with("env_tree_") {
+            continue;
+        }
+        let (Ok(x), Ok(y)) = (cols[2].parse::<f64>(), cols[3].parse::<f64>()) else {
+            continue;
+        };
+        let (x, y) = (x / 1000.0, y / 1000.0);
+        for dy in -4..=4 {
+            for dx in -4..=4 {
+                let (px, py) = (x + f64::from(dx) * CELL_M, y + f64::from(dy) * CELL_M);
+                if dist((x, y), (px, py)) <= 8.0 && px.abs() <= HALF && py.abs() <= HALF {
+                    wood[index(px, py)] = true;
+                }
+            }
+        }
+    }
+    paint_tall_grass(options.map, seed, &meta, &wood, &mut terrain);
 
     let low = heights.iter().copied().fold(f64::MAX, f64::min);
     let high = heights.iter().copied().fold(f64::MIN, f64::max);

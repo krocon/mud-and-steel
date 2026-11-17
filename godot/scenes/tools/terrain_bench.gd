@@ -86,6 +86,12 @@ const TALL_SHOTS: Array[Dictionary] = [
 	{"name": "track", "focus": TALL_FOCUS + Vector3(20, 0, 30), "distance": 35.0, "yaw": 0.4, "track": true},
 	{"name": "track_110", "focus": TALL_FOCUS + Vector3(20, 0, 30), "distance": 110.0, "yaw": 0.4, "track": true},
 ]
+## Tall grass on the game maps (`SHOT_SET=tall_land just terrain-shots
+## <dir> river_land`): a stand on the river bank, a fallow patch on farms.
+const TALL_LAND_SPOTS: Dictionary[String, Vector3] = {
+	"river_land": Vector3(-16, 0, -180),
+	"farms": Vector3(-42, 0, 250),
+}
 ## Views of the tall grass benchmark (`TALL_AB=1 just terrain-bench
 ## tall_grass_test`): every view with tall grass and as plain meadow.
 const TALL_VIEWS: Array[Dictionary] = [
@@ -255,10 +261,16 @@ func _shots() -> void:
 	var half: Vector2 = main.sim_host.map_size() * 0.5
 	var meadow := OS.get_environment("SHOT_SET") == "meadow"
 	var mountains := OS.get_environment("SHOT_SET") == "mountains"
-	var tall := OS.get_environment("SHOT_SET") == "tall"
+	var tall := OS.get_environment("SHOT_SET") in ["tall", "tall_land"]
 	var shots := MEADOW_SHOTS if meadow else (MOUNTAIN_SHOTS if mountains else SHOTS)
-	if tall:
+	if OS.get_environment("SHOT_SET") == "tall":
 		shots = TALL_SHOTS
+	elif OS.get_environment("SHOT_SET") == "tall_land":
+		var spot: Vector3 = TALL_LAND_SPOTS.get(main.sim_host.map_name(), Vector3.ZERO)
+		shots = [
+			{"name": "land_45", "focus": spot, "distance": 45.0, "yaw": 0.4},
+			{"name": "land_130", "focus": spot, "distance": 130.0, "yaw": 0.4},
+		]
 	# Prompt 056 (`SHOT_SET=land`): the whole map and every supply point.
 	var land := OS.get_environment("SHOT_SET") == "land"
 	if land:
