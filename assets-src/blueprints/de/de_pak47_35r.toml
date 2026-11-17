@@ -1,0 +1,157 @@
+# 4.7 cm PaK(t) (Sf.) auf Panzerkampfwagen 35 R 731 (f), 1941 (prompt 063,
+# group ger-heavy): captured Renault R35 with the turret removed and a
+# closed casemate.
+# Main dimensions from data/catalog/de.toml (onwar.com): length 4.30 m with
+# gun, width 1.87 m, height 2.11 m. The catalog has no hull length:
+# [layout] hull_length 3.96 m from the drawing (R35 4.02 m).
+# Measured on the onwar.com drawing (docs/.vorlagen, not in the repo; about
+# 154 px/m along and 155 px/m in height): five small 0.30 m road wheels per
+# side (a single front wheel and two scissor bogies with horizontal springs),
+# three return rollers, FRONT sprocket, rear idler; track width and ground
+# clearance not in data.json (R35: 0.26 m and 0.32 m); cast hull with the
+# deck at 1.26 m; casemate with the front plate sloped about 20 deg from
+# +0.92 m (base) to +0.60 m, flat roof to the rear end, about 1.6 m wide
+# (front view). 4.7 cm PaK(t) with the recuperator over the barrel and
+# slotted muzzle brake, no MG.
+unit = "de_pak47_35r"
+assembly = "casemate"
+
+[layout]
+hull_length = 3.96
+
+[running_gear]
+part = "small_wheel_bogie"              # R35: single front wheel and two scissor bogies
+bogies = [[0], [1, 2], [3, 4]]
+spring = "coil"
+track_width = 0.26
+link_pitch = 0.08
+road_wheel_diameter = 0.30
+road_wheels = [0.99, 0.53, -0.05, -0.51, -1.09]
+sprocket = { y = 1.67, z = 0.52, diameter = 0.48, teeth = 13 }
+idler = { y = -1.68, z = 0.36, diameter = 0.45 }
+return_rollers = { y = [0.63, -0.28, -1.06], z = 0.74, diameter = 0.13 }
+
+[hull]
+part = "plate_hull"
+lower = [[-1.80, 0.32], [1.75, 0.32], [1.98, 0.70], [1.98, 0.90], [-1.98, 0.90], [-1.98, 0.55]]
+# cast hull: sloped nose up to the deck at 1.26 m, short sloped rear
+upper = [[-1.98, 0.89], [1.98, 0.89], [1.25, 1.26], [-1.85, 1.26], [-1.98, 1.10]]
+upper_half_width = 0.82
+upper_side_slope_deg = 10
+cast = true
+fender_front = 1.98
+fender_rear = -1.95
+
+[casemate]
+part = "casemate"
+height = "fit"
+z = 1.25
+plan = [[-0.80, 0.92], [0.80, 0.92], [0.80, -1.68], [-0.80, -1.68]]
+top_plan = [[-0.78, 0.60], [0.78, 0.60], [0.78, -1.66], [-0.78, -1.66]]
+
+[gun]
+part = "tank_gun"
+trunnion = [0.55, 1.77]                 # model space
+mantlet = { kind = "box", size = [0.34, 0.14, 0.30] }
+sleeve = [0.45, 0.05]
+segments = [["fit", 0.038, 0.033]]
+muzzle_brake = "slotted"
+
+[[part]]
+part = "cylinder_prop"                  # recuperator over the barrel
+from = [0.0, 0.85, 1.85]
+to = [0.0, 1.75, 1.85]
+radius = 0.035
+material = "Metal"
+segments = 8
+
+[[part]]
+part = "box_prop"                       # sighting aperture flap on the front plate, left
+center = [-0.45, 0.70, 2.05]
+size = [0.25, 0.04, 0.12]
+
+[[part]]
+part = "hull_hatch"                     # roof hatch
+center = [0.0, -0.70]
+z = "casemate"
+size = [0.55, 0.50]
+hinge = "rear"
+socket = true
+
+[[part]]
+part = "box_prop"                       # side door, right
+center = [0.79, -0.40, 1.65]
+size = [0.03, 0.60, 0.70]
+
+[[part]]
+part = "cylinder_prop"                  # exhaust muffler along the left deck edge
+from = [-0.70, -0.25, 1.36]
+to = [-0.70, -1.20, 1.36]
+radius = 0.09
+material = "Metal"
+segments = 8
+
+[[part]]
+part = "socket"
+name = "Socket_Exhaust_"
+position = [-0.70, -1.25, 1.36]
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -1.92, 0.55]
+pair = true
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 1.92, 0.60]
+pair = true
+socket = false
+
+[[part]]
+part = "headlight"
+position = [-0.55, 1.55, 1.10]
+diameter = 0.14
+
+[[part]]
+part = "de.notek"
+position = [0.55, 1.55, 1.06]
+
+[[part]]
+part = "antenna"
+position = [0.55, -1.30, 2.10]
+length = 1.6
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -1.20, 1.30]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -0.20, 2.10]
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-0.80, -0.70, 1.70]
+normal = [-1, 0, 0]
+size = 0.40
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [0.80, -1.20, 1.70]
+normal = [1, 0, 0]
+size = 0.35
+
+[[part]]
+part = "marking"
+name = "Hull_Rear"
+kind = "number"
+position = [0.0, -1.68, 1.70]
+normal = [0, -1, 0]
+size = 0.35
+
+[validate]
+exclude_height = ["Antenna_*"]          # catalog height is the casemate roof

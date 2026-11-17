@@ -1,0 +1,156 @@
+# 7.5 cm PaK 40 (Sf.) auf Geschützwagen 39H(f), 1942 (prompt 063, group
+# ger-heavy): the H39 chassis and open compartment of de_lefh18_39h.toml
+# with the 7.5 cm PaK 40 (box shield, flat double-baffle muzzle brake).
+# No drawing in the reference folder: built from the leFH 18 conversion's
+# drawing (same chassis and compartment builder). Main dimensions from
+# data/catalog/de.toml: hull 4.22 m, width 1.95 m (H39), length 5.30 m with
+# the gun and height 2.20 m (estimates; the barrel is fitted to the length,
+# overhang 1.08 m).
+unit = "de_pak40_39h"
+assembly = "casemate"
+
+[layout]
+fender_overhang = 0.10   # compartment as wide as the catalog width, tracks 1.75 m
+
+[running_gear]
+part = "small_wheel_bogie"              # H39: three scissor bogies of two wheels
+per_bogie = 2
+spring = "coil"
+track_width = 0.27
+link_pitch = 0.08
+road_wheel_diameter = 0.36
+road_wheels = [1.33, 0.83, 0.34, -0.16, -0.69, -1.19]
+sprocket = { y = 1.86, z = 0.55, diameter = 0.48, teeth = 13 }
+idler = { y = -1.78, z = 0.55, diameter = 0.48 }
+return_rollers = { y = [0.64, -0.56], z = 0.78, diameter = 0.18 }
+
+[hull]
+part = "plate_hull"
+lower = [[-1.95, 0.37], [1.85, 0.37], [2.11, 0.70], [2.11, 0.92], [-2.11, 0.92], [-2.11, 0.60]]
+# cast hull: sloped nose up to the deck at 1.26 m
+upper = [[-2.11, 0.91], [2.11, 0.91], [1.20, 1.26], [-2.11, 1.26]]
+upper_half_width = 0.80
+upper_side_slope_deg = 12
+cast = true
+fender_front = 2.11
+fender_rear = -2.05
+
+[casemate]
+part = "casemate"
+open = true
+wall = 0.02
+height = "fit"
+z = 1.25
+plan = [[-0.90, 0.80], [0.90, 0.80], [0.90, -1.78], [-0.90, -1.78]]
+top_plan = [[-0.975, 0.34], [0.975, 0.34], [0.975, -1.52], [-0.975, -1.52]]
+
+[gun]
+part = "tank_gun"
+trunnion = [0.35, 1.80]                 # model space
+mantlet = { kind = "box", size = [0.85, 0.10, 0.45] }   # PaK 40 box shield
+sleeve = [0.65, 0.075]
+segments = [["fit", 0.050, 0.044]]
+muzzle_brake = "double_baffle_flat"
+
+[[mg]]  # MG 34 (loose) on the right compartment wall
+part = "pintle_mg"
+position = [0.65, -1.10, 1.85]
+length = 1.22
+post = 0.05
+
+[[part]]
+part = "box_prop"                       # driver's hood in front of the compartment
+center = [-0.35, 1.25, 1.32]
+size = [0.55, 0.35, 0.14]
+
+[[part]]
+part = "box_prop"                       # stowage rack on the rear
+center = [0.0, -2.00, 1.15]
+size = [1.20, 0.12, 0.20]
+
+[[part]]
+part = "exhaust"
+kind = "pipe"
+position = [0.55, -1.85, 0.85]
+length = 0.30
+diameter = 0.10
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -2.00, 0.55]
+pair = true
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 2.02, 0.60]
+pair = true
+socket = false
+
+[[part]]
+part = "headlight"
+position = [-0.50, 1.70, 1.15]
+diameter = 0.14
+
+[[part]]
+part = "de.notek"
+position = [0.50, 1.70, 1.10]
+
+[[part]]
+part = "antenna"
+position = [-0.85, -1.40, 2.00]
+length = 1.6
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [-0.45, -0.40, 1.26]
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [0.45, -0.40, 1.26]
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [-0.40, -1.20, 1.26]
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [0.40, -1.20, 1.26]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 1.00, 1.32]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -0.80, 1.40]
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-0.95, -0.70, 1.70]
+normal = [-1, 0, 0]
+size = 0.40
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [0.95, -0.70, 1.70]
+normal = [1, 0, 0]
+size = 0.40
+
+[[part]]
+part = "marking"
+name = "Hull_Rear"
+kind = "number"
+position = [0.0, -1.70, 1.60]
+normal = [0, -0.97, 0.26]
+size = 0.35
+
+[validate]
+exclude_height = ["Antenna_*"]          # catalog height is the compartment wall top

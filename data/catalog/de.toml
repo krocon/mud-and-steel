@@ -1528,10 +1528,11 @@ designation = "10.5 cm leFH 18 (Sf) auf Geschützwagen 39H(f)"
 year_from = 1942
 year_to = 1942
 tier = 3
-model = ""
-length_mm = 4220
+model = "assets/models/de/de_lefh18_39h.glb"
+length_mm = 5490
+length_hull_mm = 4220
 width_mm = 1950
-height_mm = 2400
+height_mm = 2200
 mass_kg = 12500
 crew = 4
 speed_road_kmh_x10 = 360
@@ -1556,7 +1557,7 @@ source = [
     { ref = "https://en.wikipedia.org/wiki/Hotchkiss_H35", covers = "H39 hull length 4.22 m and width 1.95 m (from memory, not re-read for prompt 063)" },
 ]
 uncertain = ["length_mm", "width_mm", "height_mm", "speed_offroad_kmh_x10", "weapon"]
-note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. The source has no dimensions: length and width are those of the Hotchkiss H39 hull (Wikipedia, Hotchkiss H35: 4.22 m, 1.95 m), height estimated for the open superstructure; the model session takes them from the drawing. Off-road speed not in the source: half the road speed (estimate). Weapon values from the gun articles or from catalog entries with the same weapon; hence weapon in uncertain."
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. The source has no dimensions: length and width are those of the Hotchkiss H39 hull (Wikipedia, Hotchkiss H35: 4.22 m, 1.95 m), height estimated for the open superstructure. Prompt 063 model session (ger-heavy) from the onwar.com drawing (about 151 px/m, scaled to the 4.22 m hull): overall length with the gun 5.49 m (barrel overhang 1.27 m), height 2.20 m to the front wall top (was 2.40 m estimated); the front view shows the compartment wider than the tracks, but at another scale: width 1.95 m kept. Off-road speed not in the source: half the road speed (estimate). Weapon values from the gun articles or from catalog entries with the same weapon; hence weapon in uncertain."
 
 [[unit]]
 id = "de_marder1"
@@ -1568,7 +1569,7 @@ designation = "Sd.Kfz. 135"
 year_from = 1942
 year_to = 1942
 tier = 3
-model = ""
+model = "assets/models/de/de_marder1.glb"
 length_mm = 5180
 width_mm = 1880
 height_mm = 2130
@@ -1770,8 +1771,9 @@ designation = "7.5 cm PaK 40 (Sf) auf Geschützwagen 39H(f)"
 year_from = 1942
 year_to = 1942
 tier = 3
-model = ""
+model = "assets/models/de/de_pak40_39h.glb"
 length_mm = 5300
+length_hull_mm = 4220
 width_mm = 1950
 height_mm = 2200
 mass_kg = 12500
@@ -1799,7 +1801,7 @@ source = [
     { ref = "https://en.wikipedia.org/wiki/Hotchkiss_H35", covers = "H39 hull length 4.22 m and width 1.95 m (from memory, not re-read for prompt 063)" },
 ]
 uncertain = ["length_mm", "width_mm", "height_mm", "speed_offroad_kmh_x10", "weapon"]
-note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. The source has no dimensions and no drawing: width of the Hotchkiss H39 hull (Wikipedia, Hotchkiss H35: 1.95 m), length with the PaK 40 overhang and height estimated; the model session builds it from the drawing of de_lefh18_39h (same chassis). Off-road speed not in the source: half the road speed (estimate). range_typical_m (prompt 067): class values of SCHEMA.md (7.5 cm PaK 40 L/46 700 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. The source has no dimensions and no drawing: width of the Hotchkiss H39 hull (Wikipedia, Hotchkiss H35: 1.95 m), length with the PaK 40 overhang and height estimated; the model session builds it from the drawing of de_lefh18_39h (same chassis); hull length 4.22 m added by the prompt 063 model session (H39 hull as for de_lefh18_39h), overall length and height kept (no drawing to check them). Off-road speed not in the source: half the road speed (estimate). range_typical_m (prompt 067): class values of SCHEMA.md (7.5 cm PaK 40 L/46 700 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
 
 [[unit]]
 id = "de_pak47_35r"
@@ -1811,7 +1813,7 @@ designation = "4.7 cm PaK(t) (Sf) auf Panzerkampfwagen 35R(f)"
 year_from = 1941
 year_to = 1941
 tier = 3
-model = ""
+model = "assets/models/de/de_pak47_35r.glb"
 length_mm = 4300
 width_mm = 1870
 height_mm = 2110
@@ -3006,7 +3008,7 @@ designation = "Sd.Kfz. 135/1"
 year_from = 1942
 year_to = 1942
 tier = 3
-model = ""
+model = "assets/models/de/de_sfh13_lorraine.glb"
 length_mm = 5310
 length_hull_mm = 4790
 width_mm = 1830
