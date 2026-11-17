@@ -250,3 +250,61 @@ Als offene Punkte notieren, nicht umsetzen:
   **Mittelmeer-Biom** (Pinien, Zypressen, helle Häuser, Stützmauern, Terrassen).
 - **Tunnel, Hochstraßen, Treppen, Schiffe, Hafenkräne.**
 - **Weitere Orte** mit demselben Werkzeug.
+
+## Entscheidungen (autonom, Nachtlauf 17.11.2026)
+
+Der Prompt hatte keine offenen Fragen; diese Punkte hat die Session beim
+Umsetzen selbst entschieden (vorläufig):
+
+| # | Entscheidung | Begründung |
+|---|---|---|
+| 1 | Ausschnitt 3,6 km × 2,4 km statt etwa 3 × 2,5 km, um 37° gedreht: die x-Achse läuft entlang der Küste, das Meer liegt im Süden. | Der Ort ist entlang der Küste etwa 3,5 km lang; gedreht passt er mit schmalem Meeresrand und einem Streifen Hinterland, und der Blick von Süden entspricht dem der Vorlagen (vom Meer aus). |
+| 2 | Höhen aus dem Copernicus DEM GLO-30 (AWS, ohne Anmeldung) statt SRTM. | Eine Quelle mit klarer Lizenz und Nennung. Es ist ein Oberflächenmodell: die Höhe der OSM-Gebäude wird je Pixel abgezogen (sonst stünde das flache Neuland 20 m hoch), dann Median und graue Öffnung. |
+| 3 | Rohdaten reduziert im Repo (`assets-src/geo/harbor_city/osm.json.gz` 1,4 MB, `dem.json.gz` 80 KB, Git LFS), die Downloads selbst nur unter `build/`. | Die Karte lässt sich ohne Netz neu erzeugen; die reduzierten Daten tragen keine Namen. |
+| 4 | Beschreibungsdatei `site.json` (JSON) statt TOML. | Python 3.10 hat kein `tomllib`; keine Installation. |
+| 5 | Obergrenze 1 600 Gebäude über die Mindestgröße der verschmolzenen Blöcke (700 m²): 1 455 Gebäude. | „Etwa 1 500“; große Blöcke werden in Reihen mit mehreren Gebäuden gefüllt, daher ist die Mindestgröße höher als 60 m². |
+| 6 | Gebäude halten 4 m (eine Wegzelle) Abstand von Straßen. | Mit 2 m blieb im KI-Turnier ein Panzer an einer Hauskante neben der Straße hängen: der Hauskasten sperrte die Randzelle. |
+| 7 | Bauplätze werden nur eingeebnet, wo das keinen Weg abschneidet (Prüfung der Wegzellen ringsum mit einem Nachbau des Weggitters auf den gespeicherten Höhen); Gebäude, die zusammenhängendes Gelände trennen, entfallen (48). | Am Steilhang machen Sockel sonst Wände; ohne die Prüfung war das Hinterland vom Rest abgeschnitten. |
+| 8 | Straßenböschungen mit 40 %, wo der Hang steiler ist, mit einer Kante am Rand (Stützmauer). | 40 % bleibt in jeder Richtung des 4-m-Gitters passierbar (\|dx\| + \|dy\| ≤ 60 %); mit 100 % zerfiel der Hang in Inseln. |
+| 9 | Starts je Team an den Küstenenden: West (-1470, 540) und (-1290, 800), Ost (1560, 720) und (1320, 470); 34 m eben, 80 m frei von Gebäuden und Bäumen. | Ebene Neulandflächen gibt es nur dort; Platz für den Basis-Modus. |
+| 10 | Sieben Versorgungspunkte: Hafen West/Ost, Felsen/Oberstadt Ost, Hügel West/Platz Ost, Hinterland. | In Paaren nach Weglänge ausgeglichen; das Hinterland ist nur über die Ostseite erreichbar (für Fahrzeuge ~500 m kürzer), insgesamt Ost mit Fahrzeugen ~630 m kürzer, zu Fuß West ~40 m. |
+| 11 | Stadtboden bis 6 m um die Häuser als Straßenbelag (`road`), Villengärten bleiben Gras. | Sonst stand die Stadt auf Rasen; die Vorlage ist eine gepflasterte Stadt. |
+| 12 | Menüname aus einer Übersetzung `MAP_<NAME>` (nur `harbor_city`: „Hafenstadt“ / „Harbor city“), sonst wie bisher der Ordnername; die Größe im Menü nimmt beide Seiten. | Andere Karten haben keine Anzeigenamen; die Größenangabe nahm nur `samples[0]`. |
+| 13 | KI unverändert. | Ein Bodenmodell der KI aus dem Weggitter (Hang, Gebäude) änderte auf dieser Karte die Patts nicht und verschob Ergebnisse auf anderen Karten; verworfen. Was hing, war die Hauskante (Punkt 6). |
+| 14 | Biom `forest`, kein Mittelmeer-Biom. | Wie festgelegt (offener Punkt). |
+
+## Ergebnis
+
+- **Werkzeug** `tools/geo_import.py` (Python 3, nur Standardbibliothek),
+  `just gen-geo harbor_city` (mit `--report DIR` Bilder der Stufen),
+  `just gen-geo-check` (in `just check` und CI: zweimal erzeugt, Bit für
+  Bit gleich, gleich der eingecheckten Karte). Beschreibung und reduzierte
+  Rohdaten in `assets-src/geo/harbor_city/`. Neu: `just map-reach <karte>`
+  (Anteile Fahrzeug/Infanterie/niemand, Zusammenhang, Weglängen Start →
+  Versorgungspunkt, Bild). Aufbau: `docs/MAPS.md` „Maps from real geodata“.
+- **Karte** `data/maps/harbor_city` („Hafenstadt“): 3,6 × 2,4 km, Höhen
+  −6 … 673 m, 82 km Straßen (von 236 km OSM-Wegen), 1 455 Gebäude aus 5 862
+  Grundrissen (397 Blöcke ab 700 m²), 10 133 Bäume und Palmen, 3 741
+  Büsche, 1 354 Heckenstücke; vier Starts, sieben Versorgungspunkte, alle
+  für Fahrzeuge erreichbar; `just map-check harbor_city` ok. Land: 56 %
+  Fahrzeuge, 2,7 % nur Infanterie, 33,7 % niemand (zu steil, Kaikanten),
+  7,6 % Gebäude.
+- **Test** `map_reach::tests::harbor_city_plays_and_carries_no_real_names`:
+  lädt, Editor-Rundweg mit gleichem Hash, Infanterie und Panzer von Start
+  zu Start, Infanterie zu jedem Versorgungspunkt, Fahrzeuge zu mindestens
+  der Hälfte, kein echter Name in den Kartendateien.
+- **Messungen:** `docs/PERFORMANCE.md` „Harbor city“ (jede Ansicht über
+  60 FPS in hoch/mittel, Tick 4,6 ms mit 254 Einheiten), KI:
+  `docs/AI.md` „The harbor city“ (Spiele enden oder laufen in die
+  bekannten Munitions-/Sichtpatts; keine Kolonne vor einem Hang).
+- **Menü:** „Hafenstadt“ / „Harbor city“ (Übersetzung `MAP_HARBOR_CITY`),
+  Größe „3.6 km × 2.4 km“; keine Vorschau (hat keine Karte).
+- **Quellen/Lizenz:** `docs/SOURCES.md`, `CREDITS.md` (im Spiel unter
+  Mitwirkende), `assets-src/geo/harbor_city/README.md`.
+- **Goldener Hash unverändert** (keine Regel, keine Testkarte geändert).
+- **Offen:** Mittelmeer-Biom, Gebäude aus Grundrissen, Wahrzeichen,
+  Tunnel/Treppen/Schiffe, weitere Orte; Hinterland nur über die Ostseite
+  erreichbar (Ost mit Fahrzeugen ~630 m kürzer über alle Punkte); Lizenztexte
+  ODbL/Copernicus vor einer Veröffentlichung noch einmal prüfen; die
+  Kamera der Bildreihe kommt nicht über ~600 m (Übersicht als Draufsicht
+  aus `--report`).
