@@ -684,7 +684,12 @@ func _combat_test() -> void:
 	# Effects (prompt 019) follow the events: flashes, impacts, the explosion
 	# and the burning wreck.
 	var counts: Dictionary = main.effects.counts
-	_check(counts.get("flash", 0) > 0 and counts.get("powder", 0) > 0, "no muzzle effects: %s" % counts)
+	_check(counts.get("muzzle_core", 0) > 0 and counts.get("muzzle_tongue", 0) > 0 and counts.get("powder", 0) > 0,
+			"no muzzle effects: %s" % counts)
+	# Prompt 077: the guns ran back and the tracers started at the models'
+	# muzzles.
+	_check(main.effects.recoils > 0, "no gun recoil")
+	_check(view.tracers_from_muzzle > 0, "no tracer started at a muzzle socket")
 	_check(counts.get("sparks", 0) + counts.get("fountain", 0) > 0, "no impact effects: %s" % counts)
 	_check(counts.get("fireball", 0) > 0 and counts.get("wreck", 0) >= 1, "no explosion or wreck fire: %s" % counts)
 	_check(main.effects.burning_wrecks() >= 1, "no burning wreck")

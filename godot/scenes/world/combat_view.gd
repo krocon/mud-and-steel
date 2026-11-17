@@ -23,6 +23,10 @@ const TRACER_COLOR := Color(1.0, 0.75, 0.3)
 ## Darkening over wrecks.
 const WRECK_TINT := Color(0.05, 0.04, 0.03, 0.72)
 const RECENT_EVENTS := 64
+## Tracers start at the model's muzzle (prompt 077): the drawn shell is
+## shifted from the simulation's muzzle to the socket by an offset that
+## fades over this flight distance (m); the simulated path is untouched.
+const MUZZLE_BLEND_M := 40.0
 
 ## Time of the last `_process` in microseconds, effects of the events
 ## included (benchmark, prompt 016).
@@ -41,7 +45,13 @@ var recent_events: Array[Dictionary] = []
 var wrecks: Dictionary[int, bool] = {}
 var health_bars: Control
 
+## Tracers drawn from a model's muzzle since the start (self-test).
+var tracers_from_muzzle := 0
+
 var _tracers: Array[MeshInstance3D] = []
+## Projectile id -> {from (socket), offset (socket - simulation muzzle),
+## sim (simulation muzzle), frame (last seen), seen} (prompt 077).
+var _muzzles: Dictionary[int, Dictionary] = {}
 var _tracer_mesh: BoxMesh
 var _wreck_material: StandardMaterial3D
 
@@ -95,12 +105,22 @@ func _read_events() -> void:
 		combat_event.emit(event)
 
 
+## The shell `projectile` leaves the model's muzzle at `from`, the
+## simulation fired it at `sim_from` (effects.gd, prompt 077).
+func note_muzzle(projectile: int, from: Vector3, sim_from: Vector3) -> void:
+	_muzzles[projectile] = {"from": from, "offset": from - sim_from, "sim": sim_from,
+		"frame": Engine.get_process_frames(), "seen": false}
+
+
 ## One stretched box per projectile, from its position along its flight,
-## advanced by the time since the last tick.
+## advanced by the time since the last tick; it starts at the model's
+## muzzle and never reaches back behind it.
 func _draw_tracers() -> void:
 	var positions := sim_host.projectile_positions()
 	var velocities := sim_host.projectile_velocities()
 	var calibers := sim_host.projectile_calibers()
+	var ids := sim_host.projectile_ids() if not _muzzles.is_empty() else PackedInt64Array()
+	var frame := Engine.get_process_frames()
 	var ahead := sim_host.interpolation_alpha() / float(sim_host.tick_rate())
 	while _tracers.size() < positions.size():
 		var tracer := MeshInstance3D.new()
@@ -122,9 +142,23 @@ func _draw_tracers() -> void:
 		var length := maxf(TRACER_MIN_LENGTH, speed * TRACER_SECONDS)
 		var width := maxf(0.03, calibers[i] * TRACER_WIDTH_PER_MM)
 		var direction := velocity / speed
+		if i < ids.size() and _muzzles.has(ids[i]):
+			var muzzle: Dictionary = _muzzles[ids[i]]
+			if not muzzle.seen:
+				muzzle.seen = true
+				tracers_from_muzzle += 1
+			muzzle.frame = frame
+			var flown: float = (head - muzzle.sim).length()
+			head += (muzzle.offset as Vector3) * clampf(1.0 - flown / MUZZLE_BLEND_M, 0.0, 1.0)
+			length = minf(length, maxf(0.05, (head - (muzzle.from as Vector3)).dot(direction)))
 		var up := Vector3.UP if absf(direction.y) < 0.99 else Vector3.RIGHT
 		var basis := Basis.looking_at(direction, up)
 		tracer.transform = Transform3D(basis.scaled_local(Vector3(width, width, length)), head - direction * length * 0.5)
+	# Shells that are gone (hit or out of range) drop their muzzle.
+	if frame % 30 == 0:
+		for id: int in _muzzles.keys():
+			if frame - int(_muzzles[id].frame) > 30:
+				_muzzles.erase(id)
 
 
 ## Turrets follow the aim, wrecks are darkened, dead infantry disappears.

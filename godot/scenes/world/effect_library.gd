@@ -18,6 +18,7 @@ const BURSTS: Array[String] = [
 	"flash", "powder", "blast_dust", "fountain", "spray", "impact_dust", "puff",
 	"sparks", "fireball", "explosion_smoke", "debris",
 	"core", "rays", "streaks", "earth_cloud", "embers", "dust_cloud", "rocket_blast",
+	"muzzle_core", "muzzle_tongue", "muzzle_gas", "muzzle_dust",
 ]
 ## Kinds that run continuously (wreck fires, vehicles, a firing rocket
 ## position).
@@ -102,6 +103,10 @@ const FIREBALL_BODY := """float age = smoothstep(0.15, 0.65, v_age);
 	vec3 crease = mix(c.rgb * vec3(1.0, 0.5, 0.2) * 0.75, c.rgb * 0.25, age);
 	ALBEDO = mix(crease, c.rgb * 1.05, smoothstep(0.35, 0.9, t.b)) * (1.0 + emission);"""
 
+## Glowing gas (prompt 077): unshaded billows, the creases only a little
+## darker, so the ball reads white-hot and then pale.
+const GLOW_BILLOW_BODY := "ALBEDO = c.rgb * mix(0.72, 1.0, t.b) * (1.0 + emission);"
+
 static var _shaders: Dictionary[String, Shader] = {}
 
 
@@ -140,20 +145,30 @@ static func build(kind: String, factor: float, soft: bool, wind: Vector2) -> GPU
 			pm.color_ramp = _ramp([Color(1, 0.95, 0.75, 1), Color(1, 0.6, 0.2, 0.9), Color(1, 0.4, 0.1, 0)], [0.0, 0.5, 1.0])
 			material = _material("add", EffectTextures.flash(), 3.0, false)
 		"powder":
-			amount = 14
-			p.lifetime = 3.5
-			size = 1.6
-			_cone(pm, Vector3(0, 0, -1), 22.0, 3.0, 10.0)
-			pm.damping_min = 3.0
-			pm.damping_max = 5.0
-			pm.gravity = Vector3(0, 0.25, 0) + drift * 0.4
+			# Powder smoke of a gun (prompt 077): pale grey, thrown out
+			# along the barrel (a long cloud of 1-7 m at scale 1), then
+			# hanging and drifting with the wind; thin enough to see units
+			# through (opacity at most 0.38). Gone by ~3 s.
+			amount = 10
+			p.lifetime = 3.0
+			p.explosiveness = 0.95
+			pm.lifetime_randomness = 0.3
+			size = 2.2
+			_cone(pm, Vector3(0, 0, -1), 10.0, 5.0, 24.0)
+			pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
+			pm.emission_sphere_radius = 0.3
+			pm.damping_min = 30.0
+			pm.damping_max = 45.0
+			pm.gravity = Vector3(0, 0.3, 0) + drift * 0.6
 			pm.scale_min = 0.7
-			pm.scale_max = 1.2
-			pm.scale_curve = _curve([Vector2(0, 0.35), Vector2(0.25, 1.4), Vector2(1, 2.4)])
-			pm.angular_velocity_min = -25.0
-			pm.angular_velocity_max = 25.0
-			pm.color_ramp = _ramp([Color(0.96, 0.95, 0.92, 0), Color(0.96, 0.95, 0.92, 0.8), Color(0.9, 0.89, 0.86, 0.45), Color(0.88, 0.87, 0.85, 0)], [0.0, 0.06, 0.4, 1.0])
-			material = _material("lit", EffectTextures.smoke(), 0.0, soft)
+			pm.scale_max = 1.3
+			pm.scale_curve = _curve([Vector2(0, 0.35), Vector2(0.15, 1.1), Vector2(1, 2.4)])
+			pm.angular_velocity_min = -20.0
+			pm.angular_velocity_max = 20.0
+			pm.color_ramp = _ramp([Color(0.95, 0.94, 0.92, 0), Color(0.95, 0.94, 0.92, 0.38), Color(0.9, 0.89, 0.87, 0.22),
+				Color(0.88, 0.87, 0.86, 0)], [0.0, 0.08, 0.45, 1.0])
+			# A little emission: pale against the light too (judged).
+			material = _material("lit", EffectTextures.smoke(), 0.25, soft)
 		"blast_dust":
 			amount = 16
 			p.lifetime = 2.6
@@ -472,6 +487,91 @@ static func build(kind: String, factor: float, soft: bool, wind: Vector2) -> GPU
 			pm.angular_velocity_max = 15.0
 			pm.color_ramp = _ramp([Color(1, 1, 1, 0), Color(1, 1, 1, 0.55), Color(1, 1, 1, 0)], [0.0, 0.12, 1.0])
 			material = _material("lit", EffectTextures.smoke(), 0.15, soft)
+		# Muzzle blast of a gun (prompt 077; effects.gd `muzzle_flash`,
+		# sizes for scale 1 = 7.5 cm, docs/ARCHITECTURE.md "Muzzle blast").
+		"muzzle_core":
+			# The gleaming ball at the muzzle: overexposed white-yellow,
+			# gone within 2-4 frames at 60 fps.
+			amount = 2
+			p.lifetime = 0.07
+			p.explosiveness = 1.0
+			size = 2.4
+			_cone(pm, Vector3(0, 0, -1), 10.0, 0.0, 6.0)
+			pm.scale_curve = _curve([Vector2(0, 1.0), Vector2(0.5, 0.85), Vector2(1, 0.3)])
+			pm.color_ramp = _ramp([Color(1, 0.97, 0.86, 1), Color(1, 0.8, 0.45, 0.85), Color(1, 0.55, 0.2, 0)], [0.0, 0.5, 1.0])
+			material = _material("add", EffectTextures.spark(), 7.0, false)
+			p.sorting_offset = 20.0
+		"muzzle_tongue":
+			# The fire tongue: flame quads that fly out along the barrel and
+			# stretch along their flight (`streak_add`), white-yellow at the
+			# root to orange at the tip; ~3 m long at scale 1 (40 calibers,
+			# beyond the intermediate flash at 20-25 calibers, docs/SOURCES.md).
+			# effects.gd sets the speeds per shot (`TONGUE_SPEED`).
+			amount = 5
+			p.lifetime = 0.1
+			p.explosiveness = 1.0
+			size = 1.0
+			_cone(pm, Vector3(0, 0, -1), 2.5, 10.0, 38.0)
+			pm.particle_flag_align_y = true
+			pm.scale_min = 0.8
+			pm.scale_max = 1.2
+			pm.scale_curve = _curve([Vector2(0, 0.7), Vector2(0.4, 1.0), Vector2(1, 0.5)])
+			pm.color_ramp = _ramp([Color(1, 0.82, 0.45, 1), Color(1, 0.52, 0.14, 0.95), Color(1, 0.35, 0.08, 0)], [0.0, 0.5, 1.0])
+			quad_size = Vector2(0.9, 2.2)
+			# Drawn over the gas cloud (sorted as if closer).
+			p.sorting_offset = 20.0
+			material = _material("streak_add", EffectTextures.tongue(), 5.0, false)
+		"muzzle_gas":
+			# The glowing gas thrown forward: billows that are white-hot from
+			# inside at first, swell, and turn into pale smoke within ~0.55 s,
+			# when the powder smoke takes over. A cloud ~9 m long and ~3 m
+			# thick at scale 1 (the reference: 1.5-2 vehicle lengths long,
+			# one vehicle width thick at the end, for a heavy gun).
+			amount = 9
+			p.lifetime = 0.55
+			p.explosiveness = 1.0
+			pm.lifetime_randomness = 0.2
+			size = 2.7
+			_cone(pm, Vector3(0, 0, -1), 8.0, 16.0, 44.0)
+			pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
+			pm.emission_sphere_radius = 0.2
+			pm.damping_min = 90.0
+			pm.damping_max = 110.0
+			pm.scale_min = 0.7
+			pm.scale_max = 1.3
+			pm.scale_curve = _curve([Vector2(0, 0.25), Vector2(0.3, 1.1), Vector2(1, 1.7)])
+			pm.angular_velocity_min = -40.0
+			pm.angular_velocity_max = 40.0
+			_atlas(pm)
+			pm.color_ramp = _ramp([
+				Color(2.4, 2.25, 1.9, 0.9), Color(1.6, 1.58, 1.52, 0.8), Color(0.95, 0.94, 0.92, 0.4),
+				Color(0.95, 0.94, 0.92, 0)], [0.0, 0.2, 0.55, 1.0], true)
+			material = _material("glow_billow", EffectTextures.billow(), 0.2, soft)
+		"muzzle_dust":
+			# Dust blown off the ground under and around the muzzle, fanned
+			# in the firing direction, tinted with the ground colour; flat
+			# and brown on grass, much on sand and tracks, powder on snow,
+			# mist on water. Settles within ~2.6 s.
+			amount = 12
+			p.lifetime = 2.6
+			p.explosiveness = 0.95
+			pm.lifetime_randomness = 0.3
+			size = 2.6
+			_cone(pm, Vector3(0, 0.12, -1), 70.0, 3.0, 11.0)
+			pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
+			pm.emission_box_extents = Vector3(1.2, 0.1, 1.2)
+			pm.damping_min = 5.0
+			pm.damping_max = 8.0
+			pm.gravity = Vector3(0, 0.25, 0) + drift * 0.5
+			pm.scale_min = 0.7
+			pm.scale_max = 1.3
+			pm.scale_curve = _curve([Vector2(0, 0.45), Vector2(0.15, 1.0), Vector2(1, 2.0)])
+			pm.angular_velocity_min = -12.0
+			pm.angular_velocity_max = 12.0
+			pm.color_ramp = _ramp([
+				Color(1.15, 1.15, 1.15, 0), Color(1.15, 1.15, 1.15, 0.65), Color(1.2, 1.2, 1.2, 0.3),
+				Color(1.2, 1.2, 1.2, 0)], [0.0, 0.05, 0.4, 1.0], true)
+			material = _material("lit", EffectTextures.smoke(), 0.15, soft)
 		# Rocket salvo (prompt 076, rocket_effects.gd): the motor's back
 		# blast out of the rail's rear end, light smoke thrown back and down
 		# hard and then hanging (judged from the reference pictures: about
@@ -585,24 +685,29 @@ static func _ramp(colors: Array[Color], offsets: Array[float], hdr := false) -> 
 
 ## mode: "lit" (alpha blend, sun light), "unshaded" (alpha blend, glowing),
 ## "add" (additive, glowing), "billow" (lit atlas billows, prompt 072),
-## "fireball" (unshaded atlas billows that darken with age) or "streak" (lit,
-## the quad follows the velocity; needs `particle_flag_align_y`).
+## "fireball" (unshaded atlas billows that darken with age), "glow_billow"
+## (unshaded atlas billows, glowing gas: prompt 077), "streak" (lit,
+## the quad follows the velocity; needs `particle_flag_align_y`) or
+## "streak_add" (additive and glowing like "add", following the velocity:
+## the fire tongue, prompt 077).
 static func _material(mode: String, texture: Texture2D, emission: float, soft: bool) -> ShaderMaterial:
 	if not _shaders.has(mode):
 		var shader := Shader.new()
-		var blend := "blend_add" if mode == "add" else "blend_mix"
+		var blend := "blend_add" if mode in ["add", "streak_add"] else "blend_mix"
 		var lit := mode in ["lit", "billow", "streak"]
 		var extra := "" if lit else ", unshaded"
 		var defines := ""
-		if mode in ["billow", "fireball"]:
+		if mode in ["billow", "fireball", "glow_billow"]:
 			defines = "#define ATLAS"
-		elif mode == "streak":
+		elif mode in ["streak", "streak_add"]:
 			defines = "#define STREAK"
 		var body := LIT_BODY if mode in ["lit", "streak"] else UNSHADED_BODY
 		if mode == "billow":
 			body = BILLOW_BODY
 		elif mode == "fireball":
 			body = FIREBALL_BODY
+		elif mode == "glow_billow":
+			body = GLOW_BILLOW_BODY
 		shader.code = SHADER_TEMPLATE % [blend, extra, defines, body]
 		_shaders[mode] = shader
 	var material := ShaderMaterial.new()

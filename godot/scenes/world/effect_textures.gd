@@ -47,6 +47,28 @@ static func flash() -> Texture2D:
 		return image)
 
 
+## Fire tongue of a gun (prompt 077): a long, ragged flame along the
+## texture's height, narrow at both ends, a hot white middle (RGB) and a
+## soft edge. Drawn on quads that follow the particle's flight.
+static func tongue() -> Texture2D:
+	return _cached("tongue", func() -> Image:
+		var noise := _noise(29, 0.12)
+		var image := Image.create(32, 96, false, Image.FORMAT_RGBA8)
+		for y in 96:
+			var v := (y + 0.5) / 96.0
+			# Width along the length: a spindle, frayed by noise.
+			var width := 0.18 + 0.32 * sin(v * PI)
+			for x in 32:
+				var u := absf((x + 0.5) / 32.0 * 2.0 - 1.0)
+				var n := noise.get_noise_2d(x * 1.5, y) * 0.5 + 0.5
+				var edge := width * (0.75 + 0.5 * n)
+				var a := clampf(1.0 - u / maxf(edge, 0.01), 0.0, 1.0) * clampf(sin(v * PI) * 1.6, 0.0, 1.0)
+				var hot := clampf(1.0 - u / maxf(edge * 0.45, 0.01), 0.0, 1.0)
+				var c := 0.65 + 0.35 * hot
+				image.set_pixel(x, y, Color(c, c, c, a * a * (0.6 + 0.4 * n)))
+		return image)
+
+
 ## Irregular opaque clump (earth clods, debris sprites).
 static func clod() -> Texture2D:
 	return _cached("clod", func() -> Image:

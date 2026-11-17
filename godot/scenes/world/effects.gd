@@ -26,6 +26,7 @@ const EffectTextures := preload("res://scenes/world/effect_textures.gd")
 const GraphicsQuality := preload("res://scenes/world/graphics_quality.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
 const RocketEffects := preload("res://scenes/world/rocket_effects.gd")
+const BlastEffects := preload("res://scenes/world/blast_effects.gd")
 
 ## Emitters per burst kind at quality "high" (scaled by fx_pools). Sized so
 ## 50 explosions at once fit at high.
@@ -36,6 +37,10 @@ const POOL_SIZES: Dictionary[String, int] = {
 	"core": 48, "rays": 32, "streaks": 48, "earth_cloud": 48, "embers": 56, "dust_cloud": 24,
 	# Two salvos at once: four launches a second each, 3.2 s of smoke.
 	"rocket_blast": 26,
+	# Muzzle blast (prompt 077): 40 cannon shots a second plus autocannon
+	# bursts; the core and tongue live < 0.1 s, the gas 0.45 s; the powder
+	# smoke (3 s) and the dust (2.6 s) of the oldest shots are cut short.
+	"muzzle_core": 24, "muzzle_tongue": 40, "muzzle_gas": 32, "muzzle_dust": 40,
 }
 ## Layers of an explosion (prompt 072, after the reference video; profiles
 ## in docs/ARCHITECTURE.md): burst kind, delay in s, size × the explosion's
@@ -106,6 +111,88 @@ const SOLDIER_HIT_DUST := Color(0.5, 0.46, 0.38)
 const SOLDIER_HIT_DARK := Color(0.12, 0.1, 0.09)
 const FLASH_LIGHT_COLOR := Color(1.0, 0.72, 0.4)
 
+# --- Muzzle blast (prompt 077) -----------------------------------------------
+## Layers of a gun's shot per class: factors on the scale (caliber / 75 mm)
+## of the core, the fire tongue's length, the glowing gas, the powder smoke,
+## the ground dust, the light, the camera shake, the recoil and the hull's
+## rocking. Judged against the reference picture (docs/ARCHITECTURE.md
+## "Muzzle blast (prompt 077)"): machine cannons small quick flashes on
+## every round of a burst, no dust; heavy guns a longer tongue and more gas
+## and dust; howitzers more smoke and dust, a shorter tongue; mortars (an
+## indirect weapon without a `Gun` node) a flash and smoke only.
+const MUZZLE_CLASSES: Dictionary[String, Dictionary] = {
+	"autocannon": {"core": 1.4, "tongue": 1.0, "gas": 0.6, "powder": 0.35, "dust": 0.0, "light": 0.6, "shake": 0.0,
+		"recoil": 0.8, "rock": 0.0},
+	"gun": {"core": 1.0, "tongue": 1.0, "gas": 1.0, "powder": 1.0, "dust": 1.0, "light": 1.0, "shake": 1.0,
+		"recoil": 1.0, "rock": 1.0},
+	"heavy": {"core": 1.0, "tongue": 1.1, "gas": 1.15, "powder": 1.2, "dust": 1.3, "light": 1.3, "shake": 1.3,
+		"recoil": 1.0, "rock": 1.2},
+	"howitzer": {"core": 1.0, "tongue": 0.55, "gas": 1.25, "powder": 1.6, "dust": 1.6, "light": 1.1, "shake": 1.2,
+		"recoil": 1.0, "rock": 0.8},
+	"mortar": {"core": 0.6, "tongue": 0.0, "gas": 0.5, "powder": 1.0, "dust": 0.6, "light": 0.4, "shake": 0.2,
+		"recoil": 0.0, "rock": 0.0},
+}
+## Calibers (mm) where the classes of direct fire begin: below 40 machine
+## cannons (20-37 mm), from 85 heavy guns.
+const GUN_CALIBER := 40.0
+const HEAVY_CALIBER := 85.0
+## Scale of a blast: caliber / 75 mm within these bounds (20 mm 0.27,
+## 152 mm 2.0; before prompt 077 0.4 to 1.6).
+const MUZZLE_SCALE_MIN := 0.25
+const MUZZLE_SCALE_MAX := 2.2
+## Length of the fire tongue at scale 1 (m): 40 calibers of a 7.5 cm gun.
+## The intermediate flash stands 20-25 calibers before the muzzle of large
+## guns, the secondary flash beyond it (docs/SOURCES.md); 40 calibers is a
+## judged middle of the secondary flash.
+const TONGUE_M := 3.0
+## The tongue's length follows the real muzzle velocity: × v / 750 m/s
+## within these bounds (a 7.5 cm L/24 short, a 8.8 cm L/71 long). The
+## simulation's shells fly at the real velocity × the time factor 2
+## (data/scale.toml).
+const TONGUE_VELOCITY_REF := 750.0
+const TONGUE_VELOCITY_MIN := 0.65
+const TONGUE_VELOCITY_MAX := 1.35
+const TIME_FACTOR := 2.0
+## Side blasts of a muzzle brake: share of the tongue's length and of the
+## gas cloud (judged).
+const BRAKE_TONGUE := 0.35
+const BRAKE_GAS := 0.45
+## Light flash (m, energy, s) at scale 1; × the daytime factors of
+## blast_effects.gd (night × 3). Judged: lights the ground and the own
+## vehicle as in the reference, as long as the core.
+const MUZZLE_LIGHT_ENERGY := 4.0
+const MUZZLE_LIGHT_RANGE_M := 9.0
+const MUZZLE_LIGHT_SECONDS := 0.08
+## Brightness of the (unshaded) glowing gas by time of day (judged).
+const GAS_DAYTIME := {"day": 1.0, "morning": 0.75, "evening": 0.75, "night": 0.45}
+## The core stays a bright point at least this big on screen however far
+## away (it shows who fires): no LOD for it.
+const CORE_MIN_PIXELS := 5.0
+## Blown-up dust: the ground colour mixed with this light beige (judged
+## from the reference's light brown dust over a meadow).
+const DUST_LIGHT := Color(0.78, 0.68, 0.52)
+## Barrels raised more than this (sine of the elevation) blow the dust all
+## round the gun instead of fanning it ahead.
+const RAISED_BARREL := 0.35
+## Recoil: the `Gun` node runs back along its axis (m per mm of caliber,
+## at most RECOIL_MAX_M), in RECOIL_BACK_S, and forward again in
+## RECOIL_RETURN_S. Real recoil lengths are 0.3-0.6 m for 7.5-12.2 cm guns
+## (judged from the order of magnitude; the counter-recoil is slowed down to
+## be seen).
+const RECOIL_M_PER_MM := 0.005
+const RECOIL_MAX_M := 0.6
+const RECOIL_BACK_S := 0.05
+const RECOIL_RETURN_S := 0.7
+## The hull rocks: degrees at scale 1, frequency (Hz), decay time (s);
+## judged.
+const ROCK_DEG := 0.8
+const ROCK_HZ := 1.6
+const ROCK_DECAY_S := 0.35
+## A howitzer's barrel stays raised this long after its last round (s),
+## or until the gun moves, then sinks at ELEVATE_DEG_PER_S.
+const ELEVATION_HOLD_S := 25.0
+const ELEVATE_DEG_PER_S := 12.0
+
 ## Time of the last `_process` in microseconds (benchmark, prompt 016).
 var process_usec := 0
 ## Whether a unit id is infantry (no dust trail, no exhaust).
@@ -147,6 +234,17 @@ var _visibility_timer := 0.0
 var _bursts_root: Node3D
 ## Layers waiting for their delay: {t, kind, at, s, tint} (prompt 072).
 var _pending: Array[Dictionary] = []
+## Unit id -> its gun's kick (prompt 077, `_gun_of`): {gun, rest, model,
+## model_rest, recoil, t, rock, axis, elevation, target, last, active}.
+var _guns: Dictionary[int, Dictionary] = {}
+## Indirect shells whose barrel elevation is not known yet: projectile id ->
+## {unit, t} (the shell shows up in a later snapshot).
+var _pending_elevations: Dictionary[int, Dictionary] = {}
+## Projectile and shell velocities of this frame (id -> m/s), read once.
+var _velocities: Dictionary[int, Vector3] = {}
+var _velocities_frame := -1
+## Recoils started since the start (self-test, tools).
+var recoils := 0
 
 
 func setup(main_node: Node3D) -> void:
@@ -184,6 +282,7 @@ func _process_effects(delta: float) -> void:
 	_update_wrecks(delta)
 	_update_vehicles(delta)
 	_update_shake(delta)
+	_update_guns(delta)
 	_visibility_timer -= delta
 	if _visibility_timer <= 0.0:
 		_visibility_timer = 0.5
@@ -223,35 +322,172 @@ func _shot(unit: int, sim_muzzle: Vector3, caliber: float, weapon := -1, project
 	# rails (`Socket_Rocket_*`: vehicle launchers, the strike's battery
 	# position) leave the next rail, one after the other.
 	var racks: Array = _sockets_of(unit).rockets
-	if weapon == INDIRECT_WEAPON and not racks.is_empty() and rockets.enabled:
-		var next: int = _rail_next.get(unit, 0)
-		_rail_next[unit] = (next + 1) % racks.size()
-		var rail: Node3D = racks[next]
-		if projectile >= 0:
-			rockets.note(projectile, rail.global_position, unit, caliber)
+	if weapon == INDIRECT_WEAPON and not racks.is_empty():
+		if rockets.enabled:
+			var next: int = _rail_next.get(unit, 0)
+			_rail_next[unit] = (next + 1) % racks.size()
+			var rail: Node3D = racks[next]
+			if projectile >= 0:
+				rockets.note(projectile, rail.global_position, unit, caliber)
+			else:
+				rockets.launch(rail.global_position, direction, caliber, unit)
 		else:
-			rockets.launch(rail.global_position, direction, caliber, unit)
+			# Rockets drawn as plain shells (bench comparison): the small
+			# flash of before prompt 076, never a gun's fire tongue.
+			var muzzle := _muzzle_of(unit, sim_muzzle, caliber)
+			_simple_flash(muzzle.global_position if muzzle != null else sim_muzzle, direction, caliber)
 		return
-	muzzle_flash(_muzzle_of(unit, sim_muzzle), direction, caliber)
+	if caliber < SMALL_CALIBER:
+		var socket := _muzzle_of(unit, sim_muzzle)
+		var from := socket.global_position if socket != null else sim_muzzle
+		_simple_flash(from, direction, caliber)
+		_note_tracer(projectile, weapon, from, sim_muzzle)
+		return
+	var velocity := _velocity_of(projectile) if projectile >= 0 else Vector3.ZERO
+	var indirect := weapon == INDIRECT_WEAPON
+	var gun := _gun_of(unit)
+	# Mortars: an indirect weapon without a gun, of a squad, or whose barrel
+	# is modeled standing steeply.
+	var mortar := gun.is_empty() or _is_infantry(unit) or bool(gun.steep)
+	var kind := _muzzle_class(caliber, indirect, mortar)
+	if indirect and not mortar:
+		# The barrel rises to the shell's elevation (prompt 077); the shell
+		# may only show up in a later snapshot.
+		if velocity != Vector3.ZERO:
+			_raise(gun, velocity, true)
+		elif projectile >= 0:
+			_pending_elevations[projectile] = {"unit": unit, "t": _time}
+		gun.last = _time
+	var socket := _muzzle_of(unit, sim_muzzle, caliber)
+	var at := sim_muzzle
+	if socket != null:
+		at = socket.global_position
+		# Forward is the barrel from the gun's trunnion to its muzzle (the
+		# real, possibly raised barrel), else the socket's -Z (+Y in
+		# Blender).
+		direction = -socket.global_basis.z.normalized()
+		if not gun.is_empty() and socket.get_parent() == gun.gun:
+			var axis: Vector3 = socket.global_position - (gun.gun as Node3D).global_position
+			if axis.length() > 0.5:
+				direction = axis.normalized()
+	elif velocity != Vector3.ZERO:
+		direction = velocity.normalized()
+	var speed := velocity.length() / TIME_FACTOR if not indirect else 0.0
+	var brake: bool = socket != null and not mortar and socket.get_parent() == gun.get("gun") and gun.get("brake", false)
+	muzzle_flash(at, direction, caliber, kind, speed, brake, socket.global_basis.x if socket != null else Vector3.ZERO)
+	_note_tracer(projectile, weapon, at, sim_muzzle)
+	if not gun.is_empty() and socket != null and socket.get_parent() == gun.gun:
+		_kick(gun, caliber, kind, direction)
 
 
-## Muzzle flash, powder smoke and (large guns) dust blown off the ground.
-func muzzle_flash(at: Vector3, direction: Vector3, caliber: float) -> void:
+## Small arms (and rockets drawn as balls): a small flash; from 20 mm the
+## flash, powder smoke and light of before prompt 077.
+func _simple_flash(at: Vector3, direction: Vector3, caliber: float) -> void:
 	if not visible_at.call(at):
 		return
-	var facing := Basis.looking_at(direction.normalized() if direction.length() > 0.01 else Vector3.FORWARD)
+	var facing := _facing(direction)
 	if caliber < SMALL_CALIBER:
 		_burst("flash", at, facing, 0.25)
 		return
 	var s := clampf(caliber / 75.0, 0.4, 1.6)
 	_burst("flash", at, facing, s)
-	_burst("powder", at, facing, s)
 	_light(at, 3.0 * s, 6.0 + 8.0 * s, 0.08)
-	if caliber >= 37.0:
-		var ground := at + direction * 2.5 * s
-		ground.y = sim_host.height_at(ground.x, ground.z) + 0.2
-		_burst("blast_dust", ground, Basis.IDENTITY, s * 0.8, _ground_color(ground))
-	_add_shake(at, 0.08 * s)
+
+
+## The tracer of a direct shell starts at the model's muzzle (prompt 077).
+func _note_tracer(projectile: int, weapon: int, from: Vector3, sim_muzzle: Vector3) -> void:
+	if projectile < 0 or weapon == INDIRECT_WEAPON or main.get("combat_view") == null:
+		return
+	main.combat_view.note_muzzle(projectile, from, sim_muzzle)
+
+
+## Class of a shot (MUZZLE_CLASSES).
+func _muzzle_class(caliber: float, indirect: bool, no_gun: bool) -> String:
+	if indirect:
+		return "mortar" if no_gun else "howitzer"
+	if caliber < GUN_CALIBER:
+		return "autocannon"
+	return "heavy" if caliber >= HEAVY_CALIBER else "gun"
+
+
+## The muzzle blast of a gun (prompt 077) at `at` along the barrel
+## `direction`: core, fire tongue, glowing gas, powder smoke, side blasts of
+## a muzzle brake (`side`: the barrel's horizontal side axis), ground dust,
+## light and camera shake, sized by `caliber` and the class `kind`;
+## `speed` is the real muzzle velocity (m/s, 0 = unknown).
+func muzzle_flash(at: Vector3, direction: Vector3, caliber: float, kind := "", speed := 0.0, brake := false,
+		side := Vector3.ZERO) -> void:
+	if not visible_at.call(at):
+		return
+	if caliber < SMALL_CALIBER:
+		_simple_flash(at, direction, caliber)
+		return
+	if kind.is_empty():
+		kind = _muzzle_class(caliber, false, false)
+	var c: Dictionary = MUZZLE_CLASSES[kind]
+	direction = direction.normalized() if direction.length() > 0.01 else Vector3.FORWARD
+	var facing := _facing(direction)
+	var s := clampf(caliber / 75.0, MUZZLE_SCALE_MIN, MUZZLE_SCALE_MAX)
+	var velocity_factor := 1.0
+	if speed > 0.0:
+		velocity_factor = clampf(speed / TONGUE_VELOCITY_REF, TONGUE_VELOCITY_MIN, TONGUE_VELOCITY_MAX)
+	_burst("muzzle_core", at + direction * 0.3 * s, facing, s * float(c.core))
+	var tongue := TONGUE_M * s * float(c.tongue) * velocity_factor
+	if tongue > 0.0:
+		_burst("muzzle_tongue", at, facing, s, Color.WHITE, tongue)
+	var detail: bool = _settings.get("fx_muzzle_detail", true)
+	var daytime := str(main.atmosphere.daytime) if main.atmosphere != null else "day"
+	# The glowing gas is unshaded: dimmer in the dark, so it glows only
+	# while hot and does not shine as pale smoke at night.
+	var dim := float(GAS_DAYTIME.get(daytime, 1.0))
+	var gas_tint := Color(dim, dim, dim)
+	if detail:
+		_burst("muzzle_gas", at, facing, s * float(c.gas), gas_tint)
+	_burst("powder", at, facing, s * float(c.powder))
+	if brake and detail and side != Vector3.ZERO:
+		side = side.normalized()
+		for k: float in [-1.0, 1.0]:
+			var out := _facing((side * k + direction * 0.25).normalized())
+			_burst("muzzle_tongue", at, out, s * 0.7, Color.WHITE, tongue * BRAKE_TONGUE)
+			_burst("muzzle_gas", at, out, s * BRAKE_GAS, gas_tint)
+	if float(c.dust) > 0.0:
+		_muzzle_dust(at, direction, s * float(c.dust))
+	_light(at + direction * 1.5 * s, MUZZLE_LIGHT_ENERGY * s * float(c.light) * float(BlastEffects.DAYTIME_LIGHT.get(daytime, 1.0)),
+			(MUZZLE_LIGHT_RANGE_M * (0.5 + 0.5 * s)) * float(BlastEffects.DAYTIME_RANGE.get(daytime, 1.0)), MUZZLE_LIGHT_SECONDS)
+	if float(c.shake) > 0.0:
+		_add_shake(at, 0.08 * s * float(c.shake))
+
+
+## Dust blown off the ground by the blast: fanned ahead of a level barrel,
+## all round a raised one; colour and amount by the ground under it.
+func _muzzle_dust(at: Vector3, direction: Vector3, s: float) -> void:
+	var flat := Vector3(direction.x, 0.0, direction.z)
+	var raised := direction.y > RAISED_BARREL or flat.length() < 0.1
+	var ground := at
+	if not raised:
+		ground += flat.normalized() * 1.5 * s
+	ground.y = sim_host.height_at(ground.x, ground.z)
+	var terrain := sim_host.terrain_at(ground.x, ground.z)
+	var kind := _ground_kind(terrain)
+	# Dust trails' strength (sand and tracks much, grass little, roads
+	# hardly); water throws mist.
+	var strength := 0.8 if kind == "water" else _trail_strength(terrain)
+	if strength <= 0.05:
+		return
+	# Higher muzzles stir less (a tank's muzzle stands ~2 m high).
+	var height := clampf(1.0 - (at.y - ground.y - 2.0) / 6.0, 0.4, 1.0)
+	var amount := clampf(strength * 1.6 * height, 0.25, 1.0)
+	# Blown dust is lighter than the ground it rises from.
+	var tint: Color = GROUND_COLORS[kind].lerp(DUST_LIGHT, 0.4)
+	if raised:
+		_burst("blast_dust", ground + Vector3.UP * 0.2, Basis.IDENTITY, s * 1.2, tint, 0.0, amount)
+	else:
+		_burst("muzzle_dust", ground + Vector3.UP * 0.3, _facing(flat), s * (0.7 + 0.4 * strength), tint, 0.0, amount)
+
+
+func _facing(direction: Vector3) -> Basis:
+	var up := Vector3.UP if absf(direction.normalized().y) < 0.98 else Vector3.BACK
+	return Basis.looking_at(direction, up)
 
 
 ## Impact on the ground: earth fountain and dust (water: spray), a scorch
@@ -440,8 +676,18 @@ func _start_pending() -> void:
 
 
 ## Fires the next emitter of a pool at `at`, scaled by `s`, tinted.
-func _burst(kind: String, at: Vector3, basis: Basis, s: float, tint := Color.WHITE) -> void:
+## `reach` (m, prompt 077): how far the particles fly in their life (the fire
+## tongue's length); `amount` scales the particle count (ground dust).
+func _burst(kind: String, at: Vector3, basis: Basis, s: float, tint := Color.WHITE, reach := 0.0,
+		amount := 1.0) -> void:
 	var ratio := _lod(at, 3.0 * s)
+	if kind == "muzzle_core":
+		# The core shows who fires, from any distance (prompt 077): a
+		# bright point of at least CORE_MIN_PIXELS.
+		var pixels := _pixels(at, 3.0 * s)
+		if pixels < CORE_MIN_PIXELS * 3.0:
+			s *= CORE_MIN_PIXELS * 3.0 / maxf(pixels, 0.01)
+		ratio = 1.0
 	if ratio <= 0.0 or (kind in DETAIL_KINDS and ratio * FULL_PIXELS < DETAIL_PIXELS):
 		return
 	var pool: Array = _pools[kind]
@@ -450,7 +696,12 @@ func _burst(kind: String, at: Vector3, basis: Basis, s: float, tint := Color.WHI
 	_pool_next[kind] = (next + 1) % pool.size()
 	p.visible = true
 	p.global_transform = Transform3D(basis.scaled(Vector3.ONE * s), at)
-	p.amount_ratio = ratio
+	if reach > 0.0:
+		# Speeds are in the emitter's scaled space.
+		var pm := p.process_material as ParticleProcessMaterial
+		pm.initial_velocity_max = reach / (s * p.lifetime)
+		pm.initial_velocity_min = pm.initial_velocity_max * 0.15
+	p.amount_ratio = ratio * amount
 	p.set_instance_shader_parameter(&"tint", tint)
 	p.restart()
 	counts[kind] = counts.get(kind, 0) + 1
@@ -459,16 +710,21 @@ func _burst(kind: String, at: Vector3, basis: Basis, s: float, tint := Color.WHI
 ## Share of particles for an effect of `size_m` at `at`: 0 = skip (too small
 ## on screen), up to 1.
 func _lod(at: Vector3, size_m: float) -> float:
+	var pixels := _pixels(at, size_m)
+	if pixels < MIN_PIXELS:
+		return 0.0
+	return clampf(pixels / FULL_PIXELS, 0.35, 1.0)
+
+
+## Size in pixels on screen of something `size_m` across at `at`.
+func _pixels(at: Vector3, size_m: float) -> float:
 	var camera: Camera3D = main.camera
 	var distance := camera.global_position.distance_to(at)
 	# Headless runs have a tiny dummy window: assume full HD.
 	var height := get_viewport().get_visible_rect().size.y
 	if DisplayServer.get_name() == "headless":
 		height = 1080.0
-	var pixels := size_m * height / (2.0 * distance * tan(deg_to_rad(camera.fov) * 0.5) + 0.001)
-	if pixels < MIN_PIXELS:
-		return 0.0
-	return clampf(pixels / FULL_PIXELS, 0.35, 1.0)
+	return size_m * height / (2.0 * distance * tan(deg_to_rad(camera.fov) * 0.5) + 0.001)
 
 
 func _light(at: Vector3, energy: float, light_range: float, seconds: float) -> void:
@@ -849,14 +1105,166 @@ func _sockets_of(unit: int) -> Dictionary:
 	return entry
 
 
-## The model's muzzle socket nearest to the simulation's muzzle, or the
-## simulation's point if the model has none near it.
-func _muzzle_of(unit: int, sim_muzzle: Vector3) -> Vector3:
-	var best := sim_muzzle
+## The model's muzzle socket nearest to the simulation's muzzle (within
+## 6 m), or null. Cannon rounds (from 20 mm) come from the main gun's
+## `Socket_Muzzle` if it is near, small arms from the machine guns'
+## `Socket_Muzzle_NN` (prompt 077: the simulation's muzzle often lies
+## nearer to the bow MG than to the gun's muzzle).
+func _muzzle_of(unit: int, sim_muzzle: Vector3, caliber := 0.0) -> Node3D:
+	var main_gun := caliber >= SMALL_CALIBER
+	var best: Node3D = null
 	var best_distance := 6.0
+	var any: Node3D = null
+	var any_distance := 6.0
 	for socket: Node3D in _sockets_of(unit).muzzles:
 		var d := socket.global_position.distance_to(sim_muzzle)
-		if d < best_distance:
+		if d < any_distance:
+			any_distance = d
+			any = socket
+		if (socket.name == &"Socket_Muzzle") == main_gun and d < best_distance:
 			best_distance = d
-			best = socket.global_position
-	return best
+			best = socket
+	return best if best != null else any
+
+
+# --- Guns: recoil, rocking hull, raised barrels (prompt 077) ---------------------
+
+
+## The kick state of a unit's `Gun` node, found once per model ({} when the
+## model has none). Presentation only: the simulation and the mouse
+## selection know the unit node, which never moves here.
+func _gun_of(unit: int) -> Dictionary:
+	var node: Node3D = main._unit_nodes.get(unit)
+	var model := node.get_node_or_null("Model") as Node3D if node != null else null
+	if _guns.has(unit):
+		var entry: Dictionary = _guns[unit]
+		if entry.model == model and is_instance_valid(entry.gun):
+			return entry
+		forget_unit(unit)
+	if model == null:
+		return {}
+	var gun := model.find_child("Gun", true, false) as Node3D
+	if gun == null:
+		return {}
+	# A barrel modeled standing steeply (mortars): its muzzle well above
+	# the trunnion.
+	var tip := Vector3.ZERO
+	var socket := gun.get_node_or_null("Socket_Muzzle") as Node3D
+	if socket != null:
+		tip = socket.position
+	var steep := tip.length() > 0.1 and tip.y / tip.length() > 0.5
+	var entry := {"gun": gun, "rest": gun.transform, "model": model, "model_rest": model.transform, "steep": steep,
+		"brake": bool(model.get_meta(&"muzzle_brake", false)), "recoil": 0.0, "t": 100.0, "rock": 0.0,
+		"axis": Vector3.RIGHT, "elevation": 0.0, "target": 0.0, "last": -100.0, "active": false}
+	_guns[unit] = entry
+	return entry
+
+
+## Puts a unit's gun and hull back at rest and drops its state (the model
+## was replaced, tools).
+func forget_unit(unit: int) -> void:
+	if not _guns.has(unit):
+		return
+	var entry: Dictionary = _guns[unit]
+	if is_instance_valid(entry.gun):
+		(entry.gun as Node3D).transform = entry.rest
+	if is_instance_valid(entry.model):
+		(entry.model as Node3D).transform = entry.model_rest
+	_guns.erase(unit)
+
+
+## Starts the recoil of the gun and the rocking of the hull.
+func _kick(entry: Dictionary, caliber: float, kind: String, direction: Vector3) -> void:
+	var c: Dictionary = MUZZLE_CLASSES[kind]
+	var s := clampf(caliber / 75.0, MUZZLE_SCALE_MIN, MUZZLE_SCALE_MAX)
+	entry.recoil = minf(caliber * RECOIL_M_PER_MM * float(c.recoil), RECOIL_MAX_M)
+	entry.rock = ROCK_DEG * s * float(c.rock)
+	# Rocks about the horizontal axis across the fire: the muzzle side
+	# rises first.
+	var model: Node3D = entry.model
+	var local := model.global_basis.inverse() * direction
+	local.y = 0.0
+	entry.axis = local.normalized().cross(Vector3.UP) if local.length() > 0.01 else Vector3.RIGHT
+	entry.t = 0.0
+	entry.active = true
+	recoils += 1
+
+
+## The barrel's elevation from a shell's launch velocity; `snap`: at once
+## (the gun was laid before it fired).
+func _raise(entry: Dictionary, velocity: Vector3, snap: bool) -> void:
+	var flat := Vector2(velocity.x, velocity.z).length()
+	entry.target = clampf(atan2(velocity.y, flat), 0.0, deg_to_rad(80.0))
+	if snap:
+		entry.elevation = entry.target
+	entry.active = true
+	_pose(entry)
+
+
+func _update_guns(delta: float) -> void:
+	if not _pending_elevations.is_empty():
+		for projectile: int in _pending_elevations.keys():
+			var wait: Dictionary = _pending_elevations[projectile]
+			var velocity := _velocity_of(projectile)
+			if velocity != Vector3.ZERO:
+				var entry := _gun_of(int(wait.unit))
+				if not entry.is_empty():
+					_raise(entry, velocity, false)
+				_pending_elevations.erase(projectile)
+			elif _time - float(wait.t) > 2.0:
+				_pending_elevations.erase(projectile)
+	for unit: int in _guns.keys():
+		var entry: Dictionary = _guns[unit]
+		if not entry.active:
+			continue
+		if not is_instance_valid(entry.gun) or not is_instance_valid(entry.model):
+			_guns.erase(unit)
+			continue
+		entry.t += delta
+		if entry.target > 0.0:
+			var index := _index_of(unit)
+			var moving := index >= 0 and sim_host.unit_moving()[index] != 0
+			if moving or _time - float(entry.last) > ELEVATION_HOLD_S:
+				entry.target = 0.0
+		entry.elevation = move_toward(entry.elevation, entry.target, deg_to_rad(ELEVATE_DEG_PER_S) * delta)
+		_pose(entry)
+		if entry.t > RECOIL_BACK_S + RECOIL_RETURN_S and entry.t > ROCK_DECAY_S * 5.0 \
+				and entry.elevation == 0.0 and entry.target == 0.0:
+			entry.active = false
+			(entry.gun as Node3D).transform = entry.rest
+			(entry.model as Node3D).transform = entry.model_rest
+
+
+## Sets the gun (elevation, recoil) and the hull (rocking) for the state.
+func _pose(entry: Dictionary) -> void:
+	var t: float = entry.t
+	var back := 0.0
+	if t < RECOIL_BACK_S:
+		back = t / RECOIL_BACK_S
+	elif t < RECOIL_BACK_S + RECOIL_RETURN_S:
+		back = 1.0 - smoothstep(0.0, 1.0, (t - RECOIL_BACK_S) / RECOIL_RETURN_S)
+	var rest: Transform3D = entry.rest
+	var basis := rest.basis * Basis(Vector3.RIGHT, entry.elevation)
+	# Back along the barrel (+Z of the gun: forward is -Z).
+	(entry.gun as Node3D).transform = Transform3D(basis, rest.origin + basis * Vector3(0.0, 0.0, back * float(entry.recoil)))
+	var angle := deg_to_rad(float(entry.rock)) * exp(-t / ROCK_DECAY_S) * sin(TAU * ROCK_HZ * t)
+	var model_rest: Transform3D = entry.model_rest
+	(entry.model as Node3D).transform = Transform3D(model_rest.basis * Basis(entry.axis, angle), model_rest.origin)
+
+
+## Velocity (m/s) of a direct projectile or an indirect shell of this
+## frame's snapshot, or ZERO.
+func _velocity_of(projectile: int) -> Vector3:
+	var frame := Engine.get_process_frames()
+	if frame != _velocities_frame:
+		_velocities_frame = frame
+		_velocities.clear()
+		var ids := sim_host.projectile_ids()
+		var velocities := sim_host.projectile_velocities()
+		for i in mini(ids.size(), velocities.size()):
+			_velocities[ids[i]] = velocities[i]
+		ids = sim_host.shell_ids()
+		velocities = sim_host.shell_velocities()
+		for i in mini(ids.size(), velocities.size()):
+			_velocities[ids[i]] = velocities[i]
+	return _velocities.get(projectile, Vector3.ZERO)
