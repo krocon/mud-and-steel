@@ -1,4 +1,5 @@
-# Timber barn on a stone plinth with large doors on both long walls.
+# Timber barn on a stone plinth with large doors on both long walls,
+# thatched (prompt 075).
 unit = "env_barn"
 assembly = "env"
 
@@ -17,6 +18,7 @@ windows_short = 0
 attic_windows = 1
 barn_doors = [4.0, 4.2]
 door = ["+y", 1.0]
+roof_kind = 2  # thatch (prompt 075: grey straw roofs on barns)
 
 [[variant]]
 name = "Damaged"
@@ -36,6 +38,7 @@ windows_short = 0
 attic_windows = 1
 barn_doors = [4.0, 4.2]
 door = ["+y", 1.0]
+roof_kind = 2  # thatch (prompt 075: grey straw roofs on barns)
 
 [[variant]]
 name = "Ruin"
@@ -54,3 +57,4 @@ eave = 0.5
 windows_short = 0
 barn_doors = [4.0, 4.2]
 door = ["+y", 1.0]
+roof_kind = 2  # thatch (prompt 075: grey straw roofs on barns)

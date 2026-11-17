@@ -194,7 +194,7 @@ func _roof_shots() -> void:
 	for i in ROOF_DAMAGE.size():
 		var entry: Array = ROOF_DAMAGE[i]
 		_lineup_house(lineup, entry[0], entry[1], entry[2], Vector3(center.x - 45.0 + i * 16.0, 0.0, center.z - 45.0))
-	views.append({"name": "damage-45", "at": Vector3(center.x - 5.0, center.y, center.z - 45.0), "distance": 45.0, "yaw": 0.6})
+	views.append({"name": "damage-70", "at": Vector3(center.x - 5.0, center.y, center.z - 45.0), "distance": 70.0, "yaw": 0.6})
 	var i := 0
 	for condition: Array in ROOF_CONDITIONS:
 		if not biomes.is_empty() and not condition[0] in biomes:
