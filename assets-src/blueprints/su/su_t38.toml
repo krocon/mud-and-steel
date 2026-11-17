@@ -1,0 +1,155 @@
+# T-38 amphibious light tank (1937-1938; prompt 063, tier 3).
+# Main dimensions from data/catalog/su.toml (onwar.com): length 3.78 m, width
+# 2.33 m (over the float fenders), height 1.63 m. The catalog has no
+# length_hull_mm: hull_length is the boat hull from bow to stern in the drawing.
+# Shapes measured in the onwar.com drawing su033t38.jpg (front to the left,
+# about 150 px/m; never committed): successor of the T-37A with a wider, lower
+# boat hull; four road wheels of about 0.42 m in two coil-spring bogies, two
+# small return rollers, FRONT drive sprocket, rear idler (unlike the T-37A),
+# 0.22 m track (data.json) outside the hull under narrow float fenders,
+# ground clearance 0.30 m (data.json); flat bow deck, raised superstructure
+# from the turret to the stern, screw propeller with rudder; small round
+# turret offset about 0.5 m to the LEFT (top view), one DT in a ball mount
+# (no cannon: the ball mount is the `Gun`).
+unit = "su_t38"
+assembly = "tank"
+
+[layout]
+turret_y = 0.0
+turret_ring_diameter = 0.72
+hull_length = 3.70
+fender_overhang = 0.01
+
+[running_gear]
+part = "small_wheel_bogie"
+bogies = [[0, 1], [2, 3]]
+spring = "coil"
+track_width = 0.22
+track_thickness = 0.025
+link_pitch = 0.07
+road_wheel_diameter = 0.42
+road_wheels = [0.85, 0.32, -0.47, -1.01]
+sprocket = { y = 1.56, z = 0.53, diameter = 0.48, teeth = 13 }    # front drive
+idler = { y = -1.56, z = 0.49, diameter = 0.42 }
+return_rollers = { y = [0.58, -0.74], z = 0.70, diameter = 0.14 }
+
+[hull]
+part = "plate_hull"
+upper_half_width = 0.94
+lower = [[-1.75, 0.30], [1.55, 0.30], [1.85, 0.72], [1.85, 0.85], [-1.85, 0.85], [-1.85, 0.55]]
+# flat bow deck, raised superstructure from the turret to the stern
+upper = [[-1.85, 0.85], [1.85, 0.85], [1.85, 0.98], [0.62, 0.99], [0.58, 1.16], [-1.60, 1.16], [-1.75, 1.05],
+         [-1.85, 0.98]]
+bevel = 0.012
+
+[turret]
+part = "su.offset_turret"
+x = -0.50
+height = "fit"
+# small round riveted turret
+plan = [[0.0, 0.38], [0.19, 0.33], [0.33, 0.19], [0.38, 0.0], [0.33, -0.19], [0.19, -0.33], [0.0, -0.38], [-0.19, -0.33], [-0.33, -0.19], [-0.38, -0.0], [-0.33, 0.19], [-0.19, 0.33]]
+side_slope_deg = 4
+bevel = 0.012
+
+[gun]
+part = "tank_gun"
+trunnion = [0.34, 0.22]
+x = -0.50
+mantlet = { kind = "ball", size = [0.20, 0.10, 0.20] }
+segments = [[0.03, 0.03, 0.03]]       # no cannon: the DT ball mount is the Gun
+
+[[mg]]  # DT in the turret ball mount
+part = "mg"
+mount = "coax"
+position = [0.0, 0.0, 0.0]
+length = 0.85
+
+[[part]]
+part = "amphibious_floats"    # float-filled fenders over the tracks
+y = [1.82, -1.82]
+z = [0.85, 0.98]
+width = 0.22
+inner_x = 0.94
+
+[[part]]
+part = "screw_propeller"
+position = [0.0, -1.60, 0.50]   # under the stern, rudder behind it
+diameter = 0.38
+tunnel = true
+
+[[part]]
+part = "turret_hatch"
+x = -0.50
+y = -0.08
+diameter = 0.36
+socket = true
+
+[[part]]
+part = "su.glacis_hatch"      # driver's hatch, front left of the superstructure
+x = 0.30
+y = 0.75
+size = [0.45, 0.35]
+
+[[part]]
+part = "deck_box"             # radiator grille on the engine deck
+center = [0.35, -1.10]
+size = [0.55, 0.70, 0.04]
+
+[[part]]
+part = "exhaust"
+kind = "pipe"
+position = [0.40, -1.85, 0.92]
+length = 0.05
+diameter = 0.09
+
+[[part]]
+part = "headlight"
+position = [0.40, 1.65, 1.04]
+diameter = 0.12
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 1.76, 0.65]
+pair = true
+socket = false
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.35, -1.10, 1.22]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [-0.50, 0.0, 1.55]
+parent = "Turret"
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-1.165, -0.60, 0.92]
+normal = [-1, 0, 0]
+size = 0.18
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [1.165, -0.60, 0.92]
+normal = [1, 0, 0]
+size = 0.18
+
+[[part]]
+part = "marking"
+name = "Turret_L"
+parent = "Turret"
+position = [-0.88, 0.0, 1.40]
+normal = [-1, 0, 0]
+size = 0.22
+
+[[part]]
+part = "marking"
+name = "Turret_R"
+parent = "Turret"
+position = [-0.12, 0.0, 1.40]
+normal = [1, 0, 0]
+size = 0.22

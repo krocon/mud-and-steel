@@ -1,0 +1,156 @@
+# T-37A amphibious light tank (1933-1936; prompt 063, tier 3).
+# Main dimensions from data/catalog/su.toml (onwar.com): length 3.75 m, width
+# 2.00 m (over the float fenders), height 1.82 m. The catalog has no
+# length_hull_mm: hull_length is the boat hull from bow to stern in the drawing.
+# Shapes measured in the onwar.com drawing su032t37a.jpg (front to the left,
+# about 151 px/m; never committed): four road wheels of about 0.35 m in two
+# bogies of two on coil springs ("scissors" look), two small return rollers,
+# front idler, REAR drive sprocket, 0.20 m track (data.json), ground clearance
+# 0.30 m (data.json); boat-shaped riveted hull with float-filled fenders over
+# the tracks along the full length, raised superstructure under the turret,
+# engine deck to the rear, screw propeller with rudder at the stern; small
+# round riveted turret offset about 0.35 m to the RIGHT (top view), one DT in
+# a ball mount (no cannon: the ball mount is the `Gun`).
+unit = "su_t37a"
+assembly = "tank"
+
+[layout]
+turret_y = 0.0
+turret_ring_diameter = 0.80
+hull_length = 3.72
+fender_overhang = 0.06
+
+[running_gear]
+part = "small_wheel_bogie"
+bogies = [[0, 1], [2, 3]]
+spring = "coil"
+track_width = 0.20
+track_thickness = 0.025
+link_pitch = 0.07
+road_wheel_diameter = 0.35
+road_wheels = [0.69, 0.14, -0.33, -0.88]
+sprocket = { y = -1.39, z = 0.40, diameter = 0.46, teeth = 13 }   # rear drive
+idler = { y = 1.36, z = 0.50, diameter = 0.44 }
+return_rollers = { y = [0.42, -0.69], z = 0.68, diameter = 0.14 }
+
+[hull]
+part = "plate_hull"
+upper_half_width = 0.60
+lower = [[-1.70, 0.30], [1.45, 0.30], [1.825, 0.75], [1.825, 0.82], [-1.825, 0.82], [-1.825, 0.55]]
+# boat bow deck, raised superstructure under the turret, engine deck
+upper = [[-1.825, 0.82], [1.825, 0.82], [1.825, 1.00], [0.95, 1.04], [0.88, 1.20], [-0.55, 1.20], [-0.65, 1.07],
+         [-1.825, 1.00]]
+bevel = 0.012
+
+[turret]
+part = "su.offset_turret"
+x = 0.35
+height = "fit"
+# small round riveted turret
+plan = [[0.0, 0.42], [0.21, 0.36], [0.36, 0.21], [0.42, 0.0], [0.36, -0.21], [0.21, -0.36], [0.0, -0.42],
+        [-0.21, -0.36], [-0.36, -0.21], [-0.42, 0.0], [-0.36, 0.21], [-0.21, 0.36]]
+side_slope_deg = 4
+bevel = 0.012
+
+[gun]
+part = "tank_gun"
+trunnion = [0.38, 0.24]
+x = 0.35
+mantlet = { kind = "ball", size = [0.20, 0.10, 0.20] }
+segments = [[0.03, 0.03, 0.03]]       # no cannon: the DT ball mount is the Gun
+
+[[mg]]  # DT in the turret ball mount
+part = "mg"
+mount = "coax"
+position = [0.0, 0.0, 0.0]
+length = 0.85
+
+[[part]]
+part = "amphibious_floats"    # float-filled fenders over the tracks
+y = [1.80, -1.80]
+z = [0.80, 1.00]
+width = 0.36
+inner_x = 0.60
+
+[[part]]
+part = "screw_propeller"
+position = [0.0, -1.60, 0.50]   # under the stern, rudder behind it
+diameter = 0.38
+tunnel = true
+
+[[part]]
+part = "turret_hatch"
+x = 0.35
+y = -0.10
+diameter = 0.40
+socket = true
+
+[[part]]
+part = "su.glacis_hatch"      # driver's hatch, front left of the superstructure
+x = -0.30
+y = 0.70
+size = [0.45, 0.35]
+
+[[part]]
+part = "deck_box"             # radiator grille on the engine deck
+center = [-0.20, -1.30]
+size = [0.55, 0.60, 0.04]
+
+[[part]]
+part = "exhaust"
+kind = "pipe"
+position = [0.40, -1.83, 0.95]
+length = 0.05
+diameter = 0.09
+
+[[part]]
+part = "headlight"
+position = [-0.40, 1.65, 1.06]
+diameter = 0.12
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 1.76, 0.65]
+pair = true
+socket = false
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [-0.20, -1.30, 1.08]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.35, 0.0, 1.70]
+parent = "Turret"
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-0.96, -0.40, 0.92]
+normal = [-1, 0, 0]
+size = 0.18
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [0.96, -0.40, 0.92]
+normal = [1, 0, 0]
+size = 0.18
+
+[[part]]
+part = "marking"
+name = "Turret_L"
+parent = "Turret"
+position = [-0.07, 0.0, 1.55]
+normal = [-1, 0, 0]
+size = 0.22
+
+[[part]]
+part = "marking"
+name = "Turret_R"
+parent = "Turret"
+position = [0.77, 0.0, 1.55]
+normal = [1, 0, 0]
+size = 0.22

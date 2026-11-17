@@ -1,0 +1,122 @@
+# T-27A tankette (1932; prompt 063, tier 3). No turret: built with the casemate
+# assembly (the raised crew hood is the casemate, the DT ball mount the `Gun`).
+# Main dimensions from data/catalog/su.toml (onwar.com): length 2.60 m, width
+# 1.83 m, height 1.45 m. The catalog has no length_hull_mm: hull_length is the
+# riveted body from the front plate to the rear plate in the drawing.
+# Shapes measured in the onwar.com drawing su028t27a.jpg (front to the left,
+# about 155 px/m; never committed): Carden-Loyd running gear with a large
+# FRONT drive sprocket standing ahead of the body, six small road wheels of
+# about 0.24 m in two bogies of three (the outer girder is left out to keep
+# the catalog width), small raised rear idler, no return rollers (the upper run slopes down from the sprocket to
+# the idler), 0.14 m track, ground clearance 0.24 m (data.json); low box body
+# (roof 1.11 m) with a short sloped front, the DT in a ball mount in the front
+# plate at the left, raised crew hood with sloped walls on the roof. The
+# drawing gives the hood top at 1.39 m; the catalog height 1.45 m is the hood.
+unit = "su_t27a"
+assembly = "casemate"
+
+[layout]
+hull_length = 1.80
+fender_overhang = 0.04
+
+[running_gear]
+part = "small_wheel_bogie"
+bogies = [[0, 1, 2], [3, 4, 5]]
+spring = "leaf"
+track_width = 0.14
+track_thickness = 0.025
+link_pitch = 0.05
+road_wheel_diameter = 0.24
+road_wheels = [0.75, 0.48, 0.20, -0.07, -0.35, -0.62]
+sprocket = { y = 1.31, z = 0.38, diameter = 0.58, teeth = 15 }   # large front drive sprocket
+idler = { y = -0.80, z = 0.22, diameter = 0.32 }
+
+[hull]
+part = "plate_hull"
+lower = [[-0.85, 0.24], [0.80, 0.24], [0.90, 0.40], [0.90, 0.55], [-0.90, 0.55], [-0.90, 0.35]]
+# vertical front plate with the MG, short sloped plate up to the flat roof
+upper = [[-0.90, 0.55], [0.90, 0.55], [0.90, 0.95], [0.58, 1.11], [-0.90, 1.11]]
+upper_half_width = 0.74
+bevel = 0.01
+
+[casemate]
+part = "casemate"
+# raised crew hood with sloped walls
+plan = [[-0.62, 0.45], [0.62, 0.45], [0.62, -0.45], [-0.62, -0.45]]
+side_slope_deg = 35
+front_slope_deg = 30
+rear_slope_deg = 20
+
+[gun]
+part = "tank_gun"
+trunnion = [0.86, 1.00]      # model space: y, z (DT ball mount, front plate left)
+x = -0.30
+mantlet = { kind = "ball", size = [0.22, 0.10, 0.22] }
+segments = [[0.03, 0.03, 0.03]]       # no cannon: the ball mount is the Gun
+
+[[mg]]  # DT in the ball mount
+part = "mg"
+mount = "ball"
+position = [-0.30, 0.93, 1.00]
+length = 0.80
+
+[[part]]
+part = "hull_hatch"           # crew hatch in the hood roof
+center = [0.0, 0.0]
+size = [0.40, 0.35]
+z = "casemate"
+socket = true
+
+[[part]]
+part = "box_prop"             # driver's vision flap, front plate right
+center = [0.30, 0.91, 0.98]
+size = [0.30, 0.03, 0.10]
+
+[[part]]
+part = "deck_box"             # engine cover on the rear roof
+center = [0.0, -0.70]
+size = [0.80, 0.30, 0.03]
+
+[[part]]
+part = "exhaust"
+kind = "pipe"
+position = [0.55, -0.91, 0.90]
+length = 0.06
+diameter = 0.08
+
+[[part]]
+part = "headlight"
+position = [0.55, 0.92, 0.85]
+diameter = 0.12
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -0.92, 0.45]
+pair = true
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -0.55, 1.15]
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-0.745, -0.40, 0.85]
+normal = [-1, 0, 0]
+size = 0.25
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [0.745, -0.40, 0.85]
+normal = [1, 0, 0]
+size = 0.25
+
+[[part]]
+part = "marking"
+name = "Hull_Rear"
+kind = "number"
+position = [0.0, -0.91, 0.80]
+normal = [0, -1, 0]
+size = 0.20

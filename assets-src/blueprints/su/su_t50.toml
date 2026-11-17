@@ -1,0 +1,166 @@
+# T-50 light infantry tank (1941, 65 built; prompt 063, tier 3).
+# Main dimensions from data/catalog/su.toml (onwar.com): length 5.20 m, width
+# 2.47 m, height 2.16 m (cupola top). The catalog has no length_hull_mm.
+# Shapes measured in the onwar.com drawing su037t50.jpg (front to the left,
+# about 155 px/m; never committed). The drawing shows the 45 mm muzzle about
+# 0.15 m ahead of the nose, while data.json gives a barrel overhang of 0: with
+# 5.20 m including the barrel, the drawing's height (2.16 m) matches the
+# catalog exactly, so the model takes 5.20 m as the overall length with the
+# barrel (hull_length 5.04 m from the drawing; reported in docs/VEHICLE_REFS.md).
+# Running gear: six small rubber-tyred road wheels of about 0.45 m on torsion
+# bars, three return rollers, front idler, REAR drive sprocket, 0.43 m track
+# (data.json; the drawing looks narrower), ground clearance 0.35 m (data.json);
+# T-34-like welded hull with a long sloped glacis, sloped sides and a sloped
+# rear plate; welded turret with sloped faces on the center line, commander's
+# cupola at the rear left, 45 mm 20-K M1938 with the coaxial DT.
+unit = "su_t50"
+assembly = "tank"
+
+[layout]
+turret_y = 0.55
+turret_ring_diameter = 1.20
+hull_length = 5.04
+fender_overhang = 0.02
+
+[running_gear]
+part = "torsion_bar"
+twin = false
+track_width = 0.43
+track_thickness = 0.035
+link_pitch = 0.11
+road_wheel_diameter = 0.45
+road_wheels = [1.73, 1.22, 0.50, -0.23, -0.94, -1.50]
+sprocket = { y = -2.13, z = 0.61, diameter = 0.56, teeth = 13 }   # rear drive
+idler = { y = 2.10, z = 0.69, diameter = 0.52, spoked = false }
+return_rollers = { y = [1.02, -0.13, -1.31], z = 0.78, diameter = 0.20 }
+arm = 0.22
+
+[hull]
+part = "plate_hull"
+lower = [[-2.30, 0.35], [2.05, 0.35], [2.52, 0.92], [2.52, 0.98], [-2.52, 0.98], [-2.52, 0.60]]
+# long sloped glacis, roof, sloped rear plate
+upper = [[-2.52, 0.98], [2.52, 0.98], [1.40, 1.47], [-1.88, 1.47], [-2.52, 1.02]]
+upper_side_slope_deg = 35
+bevel = 0.02
+
+[turret]
+part = "su.offset_turret"
+x = 0.0
+height = "fit"
+# welded turret with sloped faces, narrow front with the mantlet
+plan = [[-0.35, 0.92], [0.35, 0.92], [0.67, 0.30], [0.62, -0.75], [0.40, -0.95], [-0.40, -0.95], [-0.62, -0.75],
+        [-0.67, 0.30]]
+side_slope_deg = 25
+front_slope_deg = 15
+rear_slope_deg = 10
+bevel = 0.02
+
+[cupola]
+x = -0.20
+y = -0.50
+diameter = 0.58
+height = 0.22
+vision_blocks = 6
+hatch = "single"
+
+[gun]
+part = "tank_gun"
+trunnion = [0.85, 0.21]
+mantlet = { kind = "cast_box", size = [0.48, 0.18, 0.34] }
+sleeve = [0.25, 0.06]
+segments = [["fit", 0.032, 0.028]]
+muzzle_brake = "none"
+
+[[mg]]  # coaxial DT, right of the gun
+part = "mg"
+mount = "coax"
+position = [0.16, 0.05, 0.0]
+
+[[part]]
+part = "turret_hatch"
+x = 0.25
+y = 0.20
+diameter = 0.45
+socket = true
+
+[[part]]
+part = "su.glacis_hatch"
+x = -0.35
+y = 1.95
+size = [0.50, 0.50]
+
+[[part]]
+part = "deck_box"   # engine grilles
+center = [0.0, -1.10]
+size = [1.00, 0.80, 0.04]
+
+[[part]]
+part = "exhaust"
+kind = "pipe"
+position = [-0.50, -2.45, 1.05]
+length = 0.10
+diameter = 0.12
+
+[[part]]
+part = "exhaust"
+kind = "pipe"
+position = [0.50, -2.45, 1.05]
+length = 0.10
+diameter = 0.12
+
+[[part]]
+part = "headlight"
+position = [-0.80, 2.15, 1.20]
+diameter = 0.16
+
+[[part]]
+part = "tool"
+kind = "shovel"
+position = [1.05, 0.2, 1.02]
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 2.38, 0.80]
+pair = true
+socket = false
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -2.40, 0.75]
+pair = true
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -1.10, 1.52]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 0.55, 1.90]
+parent = "Turret"
+
+[[part]]
+part = "marking"
+name = "Turret_L"
+parent = "Turret"
+position = [-0.60, 0.40, 1.70]
+normal = [-0.90, 0.0, 0.42]
+size = 0.32
+
+[[part]]
+part = "marking"
+name = "Turret_R"
+parent = "Turret"
+position = [0.60, 0.40, 1.70]
+normal = [0.90, 0.0, 0.42]
+size = 0.32
+
+[[part]]
+part = "marking"
+name = "Turret_Rear"
+kind = "number"
+parent = "Turret"
+position = [0.0, -0.36, 1.70]
+normal = [0.0, -0.98, 0.17]
+size = 0.28
