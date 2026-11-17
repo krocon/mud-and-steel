@@ -1,0 +1,192 @@
+# Panzer IV/70 (A) (Sd.Kfz. 162/1), Alkett, 1944/45, prompt 063: the
+# unchanged Panzer IV Ausf. J hull and running gear of de_pz4_j.toml with a
+# casemate on the superstructure roof, checked against the onwar.com
+# drawing: casemate front plate from +1.95 m (roof 1.70 m) to the roof front
+# at about +1.15 m, vertical rear wall at -0.95 m, sides sloped inward from
+# the fender edges. 7.5 cm PaK 42 L/70 in a Saukopf mantlet, no muzzle brake,
+# mesh skirts up to the casemate base, two flame-damper pipes, two spare road
+# wheels on the casemate rear. Catalog width 2.88 m without the skirts; the
+# catalog has no hull length: [layout] (Pz IV hull 5.92 m).
+unit = "de_pz4_70a"
+assembly = "casemate"
+
+[layout]
+hull_length = 5.92
+
+[running_gear]
+part = "leaf_spring_bogie"
+track_width = 0.40
+link_pitch = 0.12
+road_wheel_diameter = 0.47
+road_wheels = [1.66, 1.16, 0.71, 0.21, -0.21, -0.71, -1.16, -1.66]
+sprocket = { y = 2.42, z = 0.74, diameter = 0.68, teeth = 20 }
+idler = { y = -2.40, z = 0.56, diameter = 0.60 }
+return_rollers = { y = [1.38, -0.14, -1.64], z = 0.86, diameter = 0.25 }
+
+[hull]
+part = "plate_hull"
+# lower hull between the tracks: nose plate (14 deg), lower glacis, belly
+# rear plate at -2.62 m: the fenders and the muffler under them reach the hull
+# length (onwar.com drawing)
+lower = [[-2.50, 0.42], [2.30, 0.42], [2.90, 0.78], [2.96, 1.03], [-2.62, 1.03], [-2.62, 0.62]]
+# superstructure: short upper glacis, driver plate (10 deg), roof, engine deck
+upper = [[-2.62, 1.02], [2.96, 1.02], [2.96, 1.08], [2.38, 1.27], [2.31, 1.70], [-1.95, 1.70],
+         [-2.62, 1.58]]
+upper_half_width = 1.25
+fender_front = 2.96
+fender_rear = -2.96
+fender_slope_front = 0.18
+
+[casemate]
+part = "casemate"
+z = 1.70
+plan = [[-1.30, 1.95], [1.30, 1.95], [1.42, 1.75], [1.42, -0.95], [-1.42, -0.95], [-1.42, 1.75]]
+top_plan = [[-1.05, 1.15], [1.05, 1.15], [1.24, 0.98], [1.24, -0.95], [-1.24, -0.95], [-1.24, 0.98]]
+
+[gun]
+part = "tank_gun"
+trunnion = [1.75, 1.92]      # model space: y, z
+mantlet = { kind = "saukopf", size = [0.62, 0.75, 0.56] }
+segments = [["fit", 0.062, 0.052]]
+muzzle_brake = "none"
+
+[[mg]]  # MG 42 in the left port of the casemate front plate
+part = "mg"
+mount = "ball"
+position = [-0.70, 1.58, 2.00]
+length = 0.9
+
+[[part]]
+part = "hull_hatch"           # commander's hatch, right
+center = [0.55, -0.20]
+z = "casemate"
+size = [0.55, 0.55]
+hinge = "rear"
+socket = true
+
+[[part]]
+part = "hull_hatch"
+center = [-0.50, -0.25]
+z = "casemate"
+size = [0.50, 0.45]
+hinge = "rear"
+
+[[part]]
+part = "skirts"
+y = [-2.45, 2.15]
+bottom_z = 0.45
+top_z = 1.72
+plates = 5
+gap = 0.10
+
+[[part]]
+part = "de.driver_visor"
+position = [-0.55, 2.33, 1.47]
+
+[[part]]
+part = "deck_box"   # engine deck hatches
+center = [0.0, -1.70]
+size = [1.5, 1.1, 0.04]
+
+[[part]]
+part = "cylinder_prop"         # flame-damper pipes (Flammvernichter)
+from = [-0.35, -2.70, 0.95]
+to = [-0.35, -2.70, 1.58]
+radius = 0.07
+material = "Metal"
+
+[[part]]
+part = "cylinder_prop"
+from = [0.35, -2.70, 0.95]
+to = [0.35, -2.70, 1.58]
+radius = 0.07
+material = "Metal"
+
+[[part]]
+part = "socket"
+name = "Socket_Exhaust_"
+position = [-0.35, -2.70, 1.60]
+
+[[part]]
+part = "socket"
+name = "Socket_Exhaust_"
+position = [0.35, -2.70, 1.60]
+
+[[part]]
+part = "de.spare_wheel"       # spare road wheels on the casemate rear
+position = [-0.70, -0.97, 2.05]
+diameter = 0.47
+width = 0.10
+axis = [0.0, -1.0, 0.0]
+cover = false
+
+[[part]]
+part = "de.spare_wheel"
+position = [-0.15, -0.97, 2.05]
+diameter = 0.47
+width = 0.10
+axis = [0.0, -1.0, 0.0]
+cover = false
+
+[[part]]
+part = "de.notek"
+position = [-1.15, 2.75, 1.04]
+
+[[part]]
+part = "headlight"
+position = [-1.05, 2.62, 1.18]
+diameter = 0.17
+
+[[part]]
+part = "antenna"
+position = [1.00, -0.85, 2.35]
+length = 2.0
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -2.64, 0.60]
+pair = true
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 2.88, 0.86]
+pair = true
+socket = false
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -1.6, 1.75]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 0.4, 2.40]
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+parent = "Skirt_L"
+position = [-1.565, -0.45, 1.10]
+normal = [-1, 0, 0]
+size = 0.55
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+parent = "Skirt_R"
+position = [1.565, -0.45, 1.10]
+normal = [1, 0, 0]
+size = 0.55
+
+[[part]]
+part = "marking"
+name = "Hull_Rear"
+kind = "number"
+position = [0.45, -0.96, 2.10]
+normal = [0, -1, 0]
+size = 0.30
+
+[validate]
+exclude_height = ["Hatch_*", "Antenna_*"]   # catalog height is the casemate roof
+exclude_width = ["Skirt_*"]                 # catalog width is without the skirts

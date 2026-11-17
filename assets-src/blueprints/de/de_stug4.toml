@@ -1,0 +1,193 @@
+# Sturmgeschütz IV (Sd.Kfz. 167), 1943-45, prompt 063: StuG III Ausf. G
+# casemate (de_stug3_g.toml) on the Panzer IV chassis of de_pz4_h.toml,
+# checked against the onwar.com drawing: casemate front from +1.96 m on the
+# hull at 1.27 m, roof front at about +1.05 m, rear wall at -1.15 m, the
+# armored driver's box in front of the casemate on the left, two spare road
+# wheels on the casemate sides, Schürzen. Catalog height 2.20 m is the roof;
+# the catalog has no hull length: [layout] (Pz IV hull 5.92 m).
+unit = "de_stug4"
+assembly = "casemate"
+
+[layout]
+hull_length = 5.92
+
+[running_gear]
+part = "leaf_spring_bogie"
+track_width = 0.40
+link_pitch = 0.12
+road_wheel_diameter = 0.47
+road_wheels = [1.66, 1.16, 0.71, 0.21, -0.21, -0.71, -1.16, -1.66]
+sprocket = { y = 2.42, z = 0.74, diameter = 0.68, teeth = 20 }
+idler = { y = -2.40, z = 0.56, diameter = 0.60 }
+return_rollers = { y = [1.45, 0.48, -0.48, -1.45], z = 0.86, diameter = 0.25 }
+
+[hull]
+part = "plate_hull"
+# Pz IV lower hull; the upper hull is the low deck in front of and the
+# engine deck behind the casemate (rear plate at -2.62 m as on de_pz4_h)
+lower = [[-2.50, 0.42], [2.30, 0.42], [2.90, 0.78], [2.96, 1.03], [-2.62, 1.03], [-2.62, 0.62]]
+upper = [[-2.62, 1.02], [2.96, 1.02], [2.96, 1.08], [2.40, 1.27], [-1.10, 1.29], [-1.35, 1.41],
+         [-2.62, 1.39]]
+upper_half_width = 1.25
+fender_front = 2.96
+fender_rear = -2.96
+fender_slope_front = 0.18
+
+[casemate]
+part = "casemate"
+z = 1.27
+plan = [[-1.22, 1.96], [1.22, 1.96], [1.32, 1.45], [1.32, -1.15], [-1.32, -1.15], [-1.32, 1.45]]
+side_slope_deg = 11
+front_slope_deg = 42
+rear_slope_deg = 5
+
+[cupola]
+x = -0.48
+y = -0.60
+diameter = 0.56
+height = 0.22
+vision_blocks = 7
+hatch = "split"
+
+[gun]
+part = "tank_gun"
+trunnion = [1.55, 1.66]      # model space: y, z
+x = 0.06                     # gun mounted slightly right of the center line
+mantlet = { kind = "saukopf", size = [0.52, 0.42, 0.46] }
+segments = [["fit", 0.058, 0.05]]
+muzzle_brake = "double_baffle"
+
+[[mg]]  # MG 34 behind a folding shield at the loader's hatch
+part = "pintle_mg"
+position = [0.45, -0.25, 2.33]
+length = 1.22
+post = 0.15
+shield = { width = 0.55, height = 0.38, y = 0.18, slope_deg = 10 }
+
+[[part]]
+part = "hull_hatch"           # loader's hatch on the casemate roof
+center = [0.45, -0.30]
+z = "casemate"
+size = [0.55, 0.50]
+hinge = "rear"
+socket = true
+
+[[part]]
+part = "exhaust"
+kind = "muffler"
+position = [0.0, -2.79, 0.86]
+length = 1.0
+diameter = 0.3
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -2.64, 0.60]
+pair = true
+
+[[part]]
+part = "deck_box"             # engine deck hatches
+center = [0.0, -1.95]
+size = [1.5, 1.0, 0.04]
+
+[[part]]
+part = "spare_tracks"         # spare links on the glacis
+origin = [-0.9, 2.62, 1.20]
+direction = [0.3, 0.0, 0.0]
+count = 7
+link_size = [0.28, 0.14, 0.04]
+
+[[part]]
+part = "de.spare_wheel"       # spare road wheels on the casemate sides
+position = [-1.34, -0.05, 1.71]
+diameter = 0.47
+width = 0.10
+axis = [-1.0, 0.0, 0.0]
+cover = false
+
+[[part]]
+part = "de.spare_wheel"
+position = [-1.34, -0.55, 1.71]
+diameter = 0.47
+width = 0.10
+axis = [-1.0, 0.0, 0.0]
+cover = false
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -1.6, 1.5]
+
+[[part]]
+part = "skirts"                 # Schürzen: five plates per side on a rail
+y = [-2.35, 2.05]
+bottom_z = 0.48
+top_z = 1.50
+plates = 5
+gap = 0.10
+
+[[part]]
+part = "antenna"                # Fu 15/16 whip at the left rear of the casemate
+position = [-1.20, -1.05, 1.62]
+length = 2.0
+
+[[part]]
+part = "box_prop"             # armored driver's box in front of the casemate
+center = [-0.62, 2.17, 1.52]
+size = [0.80, 0.44, 0.50]
+
+[[part]]
+part = "de.driver_visor"
+position = [-0.62, 2.39, 1.58]
+
+[[part]]
+part = "de.notek"
+position = [-1.15, 2.75, 1.04]
+
+[[part]]
+part = "headlight"
+position = [1.05, 2.62, 1.18]
+diameter = 0.17
+
+[[part]]
+part = "tool"
+kind = "shovel"
+position = [-1.40, -1.55, 1.15]
+
+[[part]]
+part = "tool"
+kind = "crowbar"
+position = [1.40, -1.40, 1.15]
+
+[[part]]
+part = "tool"
+kind = "jack"
+position = [0.55, -2.40, 1.45]
+axis = "x"
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+parent = "Skirt_L"              # crosses painted on the skirts
+position = [-1.585, -0.15, 1.05]
+normal = [-1, 0, 0]
+size = 0.50
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+parent = "Skirt_R"
+position = [1.585, -0.15, 1.05]
+normal = [1, 0, 0]
+size = 0.50
+
+[[part]]
+part = "marking"
+name = "Hull_Rear"
+kind = "number"
+position = [0.0, -1.13, 1.80]
+normal = [0.0, -1.0, 0.1]
+size = 0.35
+
+[validate]
+exclude_height = ["Cupola", "MG_*", "Hatch_*", "Antenna_*"]   # catalog height is the casemate roof
+exclude_width = ["Skirt_*"]                   # catalog width is without Schürzen
