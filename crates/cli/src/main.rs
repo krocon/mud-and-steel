@@ -106,6 +106,9 @@ enum CliCommand {
         /// mountains.
         #[arg(long, default_value = "gentle", value_parser = gen_map::Relief::NAMES)]
         relief: String,
+        /// Paint tall grass over large parts of the meadows (prompt 073).
+        #[arg(long)]
+        tall_grass: bool,
     },
     /// Generates a landscape map of prompt 056: winter_village, farms or
     /// river_land (two or four players, supply points at real places).
@@ -610,6 +613,7 @@ fn main() {
             out,
             players,
             relief,
+            tall_grass,
         } => {
             let out = out.unwrap_or_else(|| Path::new(MAPS_DIR).join(&name));
             let relief = gen_map::Relief::parse(&relief).unwrap_or_else(|e| fail(&e));
@@ -622,6 +626,7 @@ fn main() {
                 start_distance_m,
                 out: &out,
                 relief,
+                tall_grass,
             };
             match gen_map::generate(&options) {
                 Ok(report) => println!("{report}"),

@@ -889,6 +889,7 @@ mod tests {
             start_distance_m: crate::gen_map::DEFAULT_START_DISTANCE_M,
             out: dir,
             relief: crate::gen_map::Relief::Gentle,
+            tall_grass: false,
         };
         generate_map(&options).unwrap();
         let read = |f: &str| std::fs::read(dir.join(f)).unwrap();

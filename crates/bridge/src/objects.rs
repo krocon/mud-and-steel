@@ -297,6 +297,23 @@ impl DecoRasters {
             .then(|| j as usize * sx as usize + i as usize)
     }
 
+    /// `value` of the map samples bilinearly interpolated at a point
+    /// (clamped to the map).
+    pub fn interpolate(&self, x: f32, z: f32, value: impl Fn(usize) -> f32) -> f32 {
+        let (sx, sy) = (self.samples.0 as usize, self.samples.1 as usize);
+        let gx = ((x + self.half.0) / self.cell_m).clamp(0.0, (sx - 1) as f32);
+        let gz = ((z + self.half.1) / self.cell_m).clamp(0.0, (sy - 1) as f32);
+        let (i, j) = (
+            (gx as usize).min(sx.saturating_sub(2)),
+            (gz as usize).min(sy.saturating_sub(2)),
+        );
+        let (fx, fz) = (gx - i as f32, gz - j as f32);
+        let v = |a: usize, b: usize| value(b.min(sy - 1) * sx + a.min(sx - 1));
+        let top = v(i, j) + (v(i + 1, j) - v(i, j)) * fx;
+        let bottom = v(i, j + 1) + (v(i + 1, j + 1) - v(i, j + 1)) * fx;
+        top + (bottom - top) * fz
+    }
+
     /// Wood density 0..1 at a point, bilinear over the wood cells.
     pub fn wood_at(&self, x: f32, z: f32) -> f32 {
         let (w, h) = self.wood_size;
@@ -333,6 +350,20 @@ pub struct DecoLayer<'a> {
     /// Signed shore band `(from, to)` in meters (negative: in the water)
     /// the layer is limited to; `(0, 0)`: everywhere.
     pub shore: (f32, f32),
+    /// Frayed edges (prompt 073), meters; 0: the density of the nearest
+    /// sample. Above 0 the density is interpolated between the four
+    /// samples around a point that is moved by noise of this amplitude, so
+    /// the edge of a stand does not follow the 2 m grid, and instances get
+    /// shorter towards the edge ([`edge_scale`]).
+    pub fray: f32,
+}
+
+/// Scale factor of an instance at the edge of a frayed layer: `coverage`
+/// is the interpolated density over the largest density of the layer
+/// (0..1). Short at the very edge, full height inside.
+pub fn edge_scale(coverage: f32) -> f32 {
+    let t = ((coverage - 0.3) / 0.65).clamp(0.0, 1.0);
+    0.4 + 0.6 * t * t * (3.0 - 2.0 * t)
 }
 
 /// Value noise in 0..1 on a lattice of `cell` meters, from hashes.
@@ -369,6 +400,14 @@ pub fn scatter(
 ) -> Vec<Vec<f32>> {
     let mut out = vec![Vec::new(); layer.weights.len().max(1)];
     let total: f32 = layer.weights.iter().sum();
+    let densest = layer.density.iter().copied().fold(0.0f32, f32::max);
+    let density_of = |k: usize| {
+        layer
+            .density
+            .get(usize::from(map.terrain_ids()[k]))
+            .copied()
+            .unwrap_or(0.0)
+    };
     let s = layer.spacing.max(0.1);
     let (gx0, gx1) = ((x0 / s).ceil() as i64, ((x0 + size) / s).ceil() as i64);
     let (gz0, gz1) = ((z0 / s).ceil() as i64, ((z0 + size) / s).ceil() as i64);
@@ -388,8 +427,16 @@ pub fn scatter(
             if rasters.blocked[k] || deformed(k) {
                 continue;
             }
-            let id = usize::from(map.terrain_ids()[k]);
-            let mut density = layer.density.get(id).copied().unwrap_or(0.0);
+            let mut density = density_of(k);
+            let mut edge = 1.0;
+            if layer.fray > 0.0 {
+                // Frayed edge: interpolated density at a point moved by
+                // noise (3.1 m cells, two noises for x and z).
+                let wx = x + (noise(layer.seed ^ 0xf7a1, x, z, 3.1) * 2.0 - 1.0) * layer.fray;
+                let wz = z + (noise(layer.seed ^ 0xf7a2, x, z, 3.1) * 2.0 - 1.0) * layer.fray;
+                density = rasters.interpolate(wx, wz, density_of);
+                edge = edge_scale(density / densest.max(1e-6));
+            }
             if density <= 0.0 {
                 continue;
             }
@@ -420,10 +467,94 @@ pub fn scatter(
                 pick -= w;
             }
             let yaw = unit(mix(h ^ 4)) * std::f32::consts::TAU;
-            let scale = layer.scale.0 + (layer.scale.1 - layer.scale.0) * unit(mix(h ^ 5));
+            let scale = (layer.scale.0 + (layer.scale.1 - layer.scale.0) * unit(mix(h ^ 5))) * edge;
             let y = ground(map, x, z) - layer.sink;
             push_transform(&mut out[variant], yaw, scale, [x, y, z]);
         }
     }
     out
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use sim::map::MapLayout;
+
+    /// 80 m x 40 m: tall grass (id 8) west of x = 0, grass east of it.
+    fn half_tall() -> Map {
+        let (sx, sy) = (41u32, 21u32);
+        let mut terrain = Vec::new();
+        for _j in 0..sy {
+            for i in 0..sx {
+                terrain.push(if i < 20 { 8 } else { 0 });
+            }
+        }
+        let layout = MapLayout {
+            name: "t".into(),
+            samples_x: sx,
+            samples_y: sy,
+            cell_size_mm: 2000,
+            starts: Vec::new(),
+            markers: Vec::new(),
+        };
+        Map::from_rasters(layout, vec![0; (sx * sy) as usize], terrain).unwrap()
+    }
+
+    fn layer(density: &[f32], fray: f32) -> DecoLayer<'_> {
+        DecoLayer {
+            spacing: 0.5,
+            seed: 7,
+            density,
+            wood_factor: 1.0,
+            patchiness: 0.0,
+            weights: &[1.0],
+            scale: (1.0, 1.0),
+            sink: 0.0,
+            shore: (0.0, 0.0),
+            fray,
+        }
+    }
+
+    /// Instances as (x, scale).
+    fn scatter_x(map: &Map, layer: &DecoLayer) -> Vec<(f32, f32)> {
+        let rasters = DecoRasters::new(map);
+        let out = scatter(map, &rasters, None, layer, -40.0, -20.0, 80.0, |_| false);
+        out[0]
+            .chunks(12)
+            .map(|t| (t[3], (t[0] * t[0] + t[8] * t[8]).sqrt()))
+            .collect()
+    }
+
+    #[test]
+    fn frayed_edges_leave_the_grid_and_get_shorter() {
+        let map = half_tall();
+        let density = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0];
+        // Nearest sample: a straight edge at the sample border (x = -1 m).
+        let sharp = scatter_x(&map, &layer(&density, 0.0));
+        assert!(
+            sharp
+                .iter()
+                .all(|&(x, s)| x < -0.9 && (s - 1.0).abs() < 1e-5)
+        );
+        // Frayed: some plants beyond the edge, some missing before it, and
+        // the plants at the edge are shorter than inside.
+        let frayed = scatter_x(&map, &layer(&density, 1.1));
+        assert!(frayed.iter().any(|&(x, _)| x > -0.5));
+        let inside = frayed.iter().filter(|&&(x, _)| x < -8.0);
+        assert!(inside.clone().all(|&(_, s)| (s - 1.0).abs() < 1e-4));
+        let edge: Vec<f32> = frayed
+            .iter()
+            .filter(|&&(x, _)| x > -0.5)
+            .map(|&(_, s)| s)
+            .collect();
+        assert!(!edge.is_empty() && edge.iter().all(|&s| s < 1.0));
+        assert!(edge.iter().all(|&s| s >= 0.4 - 1e-5));
+    }
+
+    #[test]
+    fn edge_scale_is_short_at_the_edge_and_full_inside() {
+        assert!((edge_scale(0.0) - 0.4).abs() < 1e-6);
+        assert!((edge_scale(1.0) - 1.0).abs() < 1e-6);
+        assert!(edge_scale(0.5) > 0.4 && edge_scale(0.5) < 1.0);
+    }
 }

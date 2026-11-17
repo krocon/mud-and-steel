@@ -717,6 +717,19 @@ impl SimHost {
         })
     }
 
+    /// Number of map samples of terrain id `id` (presentation, prompt 073:
+    /// whether a map has tall grass at all).
+    #[func]
+    fn terrain_count(&self, id: i64) -> i64 {
+        self.game.as_ref().map_or(0, |g| {
+            g.map()
+                .terrain_ids()
+                .iter()
+                .filter(|&&t| i64::from(t) == id)
+                .count() as i64
+        })
+    }
+
     /// Terrain id at `(x, z)` (nearest sample, like the simulation).
     #[func]
     fn terrain_at(&self, x: f32, z: f32) -> i64 {
