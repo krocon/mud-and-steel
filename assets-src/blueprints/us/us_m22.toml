@@ -1,0 +1,193 @@
+# M22 Locust (Light Tank (Airborne) M22, production Apr 1943 - Feb 1944): small
+# welded air-landing tank. Main dimensions from data/catalog/us.toml
+# (onwar.com): length 3.96 m, hull 3.93 m, width 2.25 m over the fenders,
+# height 1.84 m.
+# Part dimensions from the onwar.com drawing us005ltm22.jpg (side view about
+# 157 px/m, ground line y = 360): two VVSS-type bogies per side with small
+# road wheels, return rollers behind the bogies, front sprocket, large spoked
+# trailing idler, 0.286 m track, narrow upper hull between the tracks with
+# stowage boxes on the fenders, welded turret with a sloped front, 37 mm M6
+# in a combination mount with the coaxial MG.
+unit = "us_m22"
+assembly = "tank"
+
+[layout]
+turret_y = 0.07
+turret_ring_diameter = 1.10
+fender_overhang = 0.05
+
+[running_gear]
+part = "vvss_bogie"
+track_width = 0.286
+link_pitch = 0.12
+road_wheel_diameter = 0.40
+road_wheels = [1.20, 0.56, 0.05, -0.57]
+sprocket = { y = 1.63, z = 0.57, diameter = 0.50, teeth = 12 }
+idler = { y = -1.39, z = 0.36, diameter = 0.62 }   # large spoked trailing idler
+roller_offset = -0.24
+return_roller_diameter = 0.17
+
+[hull]
+part = "plate_hull"
+# Lower hull between the tracks: belly at about 0.32 m, sloped lower nose.
+lower = [[-1.85, 0.32], [1.50, 0.32], [1.85, 0.55], [1.965, 0.80], [1.965, 0.90], [-1.965, 0.90], [-1.965, 0.60]]
+# Upper hull: glacis up to the flat deck at 1.17 m, short sloped rear.
+upper = [[-1.965, 0.88], [1.965, 0.88], [1.965, 0.94], [1.12, 1.17], [-1.80, 1.17], [-1.965, 1.05]]
+upper_half_width = 0.80
+upper_side_slope_deg = 10
+bevel = 0.012
+
+[turret]
+part = "plate_turret"
+height = "fit"
+# welded turret: tapered sloped front, wide straight rear part
+plan = [[-0.30, 0.55], [0.30, 0.55], [0.58, 0.10], [0.58, -0.60], [0.40, -0.80], [-0.40, -0.80], [-0.58, -0.60],
+        [-0.58, 0.10]]
+side_slope_deg = 12
+front_slope_deg = 25
+
+[[part]]
+part = "turret_hatch"         # commander's and loader's roof hatches
+x = -0.25
+y = -0.35
+size = [0.40, 0.42]
+socket = true
+
+[[part]]
+part = "turret_hatch"
+x = 0.25
+y = -0.35
+size = [0.40, 0.42]
+socket = true
+
+[[part]]
+part = "hull_hatch"           # driver
+center = [-0.40, 1.30]
+size = [0.40, 0.40]
+hinge = "right"
+
+[[part]]
+part = "box_prop"             # stowage boxes on the fenders
+center = [-0.97, 0.20, 0.86]
+size = [0.30, 1.60, 0.26]
+
+[[part]]
+part = "box_prop"
+center = [0.97, 0.20, 0.86]
+size = [0.30, 1.60, 0.26]
+
+[[part]]
+part = "deck_box"             # engine deck grille
+center = [0.0, -1.25]
+size = [1.20, 1.00, 0.04]
+
+[[part]]
+part = "exhaust"
+kind = "muffler"
+position = [-0.45, -1.88, 0.95]
+length = 0.40
+diameter = 0.14
+
+[[part]]
+part = "exhaust"
+kind = "muffler"
+position = [0.45, -1.88, 0.95]
+length = 0.40
+diameter = 0.14
+
+[[part]]
+part = "headlight"
+position = [-0.55, 1.80, 1.02]
+diameter = 0.16
+
+[[part]]
+part = "headlight"
+position = [0.55, 1.80, 1.02]
+diameter = 0.16
+
+[[part]]
+part = "tool"
+kind = "shovel"
+position = [0.70, -1.40, 1.18]
+axis = "y"
+
+[[part]]
+part = "antenna"
+parent = "Turret"
+position = [0.45, -0.60, 1.68]
+length = 1.6
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 1.85, 0.55]
+pair = true
+socket = false
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -1.85, 0.62]
+pair = true
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -1.2, 1.20]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 0.0, 1.6]
+parent = "Turret"
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-1.125, 0.20, 0.86]
+normal = [-1, 0, 0]
+size = 0.24
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [1.125, 0.20, 0.86]
+normal = [1, 0, 0]
+size = 0.24
+
+[[part]]
+part = "marking"
+name = "Glacis"
+position = [0.0, 1.60, 1.04]
+normal = [0, 0.27, 0.96]
+size = 0.35
+
+[[part]]
+part = "marking"
+name = "Turret_L"
+parent = "Turret"
+position = [-0.57, -0.30, 1.45]
+normal = [-0.98, 0, 0.2]
+size = 0.30
+
+[[part]]
+part = "marking"
+name = "Turret_R"
+parent = "Turret"
+position = [0.57, -0.30, 1.45]
+normal = [0.98, 0, 0.2]
+size = 0.30
+
+[gun]
+part = "tank_gun"
+trunnion = [0.60, 0.27]
+mantlet = { kind = "box", size = [0.50, 0.12, 0.30] }
+sleeve = [0.26, 0.055]
+segments = [["fit", 0.030, 0.026]]
+muzzle_brake = "thread_protector"
+
+[[mg]]  # coaxial M1919A4, right of the gun
+part = "mg"
+mount = "coax"
+position = [0.16, 0.08, 0.0]
+
+[validate]
+exclude_height = ["Antenna_*"]

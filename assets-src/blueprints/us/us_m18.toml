@@ -1,0 +1,194 @@
+# M18 Hellcat (76 mm Gun Motor Carriage M18, production Jul 1943 - Oct 1944).
+# Main dimensions from data/catalog/us.toml (onwar.com): length 6.65 m with the
+# gun, hull 5.28 m, width 2.87 m, height 2.57 m over the .50 AA MG.
+# Part dimensions from the onwar.com drawing us024tdm18.jpg (side view about
+# 157 px/m, ground line y = 597; the drawing's barrel is about 0.1 m short).
+# Five 26 in (0.66 m) road wheels per side on torsion bars, three return
+# rollers, front sprocket and rear idler both raised, 12 in (0.305 m) track,
+# boxy fenders over the tracks, long glacis up to the flat deck at 1.48 m,
+# open-topped turret with a strongly sloped front and a long bustle, 76 mm
+# M1A1 in the large mantlet, .50 M2HB on the ring mount at the left rear.
+unit = "us_m18"
+assembly = "tank"
+
+[layout]
+turret_y = 0.19
+turret_ring_diameter = 1.70
+fender_overhang = 0.05
+
+[running_gear]
+part = "torsion_bar"
+track_width = 0.305
+link_pitch = 0.13
+road_wheel_diameter = 0.66
+road_wheels = [1.50, 0.76, 0.03, -0.70, -1.43]
+sprocket = { y = 2.20, z = 0.52, diameter = 0.56, teeth = 13 }
+idler = { y = -2.17, z = 0.52, diameter = 0.56 }
+return_rollers = { y = [0.38, -0.35, -1.08], z = 0.84, diameter = 0.22 }
+arm = 0.32
+
+[hull]
+part = "plate_hull"
+# Lower hull between the tracks: belly at 0.36 m, sloped lower nose.
+lower = [[-2.30, 0.36], [2.20, 0.36], [2.64, 0.82], [2.64, 0.90], [-2.64, 0.90], [-2.64, 0.60]]
+# Upper hull: long glacis from the nose to the flat deck at 1.48 m, short
+# sloped rear plate.
+upper = [[-2.64, 0.88], [2.64, 0.88], [2.64, 0.92], [2.10, 1.48], [-2.40, 1.48], [-2.64, 1.28]]
+upper_side_slope_deg = 20
+fender_z = 1.19
+bevel = 0.015
+
+[turret]
+part = "plate_turret"
+open_top = true
+height = 0.67                 # wall tops at 2.15 m (drawing); the .50 MG reaches the catalog height
+wall = 0.025
+# plan relative to the ring center: sloped front with the mantlet, angled
+# cheeks, straight sides, long bustle
+plan = [[-0.45, 0.92], [0.45, 0.92], [0.84, 0.40], [0.84, -0.95], [0.68, -1.91], [-0.68, -1.91], [-0.84, -0.95],
+        [-0.84, 0.40]]
+side_slope_deg = 16
+front_slope_deg = 26
+
+[gun]
+part = "tank_gun"
+trunnion = [1.02, 0.35]
+# large cast mantlet (canvas cover in the drawing)
+mantlet = { kind = "round", size = [0.55, 0.24, 0.45] }
+sleeve = [0.40, 0.08]
+segments = [["fit", 0.055, 0.048]]
+muzzle_brake = "thread_protector"
+
+[[mg]]  # .50 M2HB on the ring mount at the left rear of the turret
+part = "mg"
+mount = "pintle"
+position = [-0.50, -1.08, 0.36]
+length = 1.65
+
+[[part]]
+part = "hull_hatch"           # driver (left) and assistant driver (right)
+center = [-0.70, 1.46]
+size = [0.50, 0.50]
+hinge = "right"
+socket = true
+
+[[part]]
+part = "hull_hatch"
+center = [0.70, 1.46]
+size = [0.50, 0.50]
+hinge = "left"
+socket = true
+
+[[part]]
+part = "socket"               # gunner, loader, commander in the open turret
+name = "Socket_Crew_"
+parent = "Turret"
+position = [-0.45, 0.0, 1.60]
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+parent = "Turret"
+position = [0.45, 0.0, 1.60]
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+parent = "Turret"
+position = [0.0, -0.90, 1.60]
+
+[[part]]
+part = "deck_box"             # engine deck grilles
+center = [0.0, -2.05]
+size = [1.80, 0.80, 0.04]
+
+[[part]]
+part = "exhaust"
+kind = "muffler"
+position = [-0.60, -2.50, 0.75]
+length = 0.45
+diameter = 0.16
+
+[[part]]
+part = "exhaust"
+kind = "muffler"
+position = [0.60, -2.50, 0.75]
+length = 0.45
+diameter = 0.16
+
+[[part]]
+part = "headlight"
+position = [-1.05, 2.40, 1.05]
+diameter = 0.18
+
+[[part]]
+part = "headlight"
+position = [1.05, 2.40, 1.05]
+diameter = 0.18
+
+[[part]]
+part = "antenna"
+position = [0.95, -1.75, 1.43]
+length = 2.2
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 2.52, 0.62]
+pair = true
+socket = false
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -2.52, 0.70]
+pair = true
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -2.0, 1.46]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -0.5, 1.6]
+parent = "Turret"
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-1.42, -1.6, 1.00]
+normal = [-1, 0, 0]
+size = 0.24
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [1.42, -1.6, 1.00]
+normal = [1, 0, 0]
+size = 0.24
+
+[[part]]
+part = "marking"
+name = "Glacis"
+position = [0.0, 2.35, 1.20]
+normal = [0, 0.72, 0.69]
+size = 0.45
+
+[[part]]
+part = "marking"
+name = "Turret_L"
+parent = "Turret"
+position = [-0.80, -0.50, 1.75]
+normal = [-0.96, 0, 0.28]
+size = 0.35
+
+[[part]]
+part = "marking"
+name = "Turret_R"
+parent = "Turret"
+position = [0.80, -0.50, 1.75]
+normal = [0.96, 0, 0.28]
+size = 0.35
+
+[validate]
+exclude_height = ["Antenna_*"]

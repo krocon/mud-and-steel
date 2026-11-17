@@ -1,0 +1,187 @@
+# M24 Chaffee (Light Tank M24, production Apr 1944 - Aug 1945). Main dimensions
+# from data/catalog/us.toml (onwar.com): length 5.56 m with the gun, hull
+# 5.03 m, width 3.00 m, height 2.77 m (taken as the top of the AA MG mount;
+# the turret roof is at 2.17 m, the cupola at 2.36 m and the empty AA mount at
+# 2.47 m in the drawing).
+# Part dimensions from the onwar.com drawing us006ltm24.jpg (side view about
+# 157 px/m, ground line y = 470): five 25.5 in (0.64 m) road wheels per side on
+# torsion bars, three return rollers, raised front idler and rear sprocket,
+# 16 in (0.406 m) track, short glacis up to the deck at 1.37 m, upper hull
+# sides sloped in over the tracks, welded turret with a long tapered bustle,
+# 75 mm M6 in the narrow rotor shield, commander's cupola on the left, .50 AA
+# MG on the post at the turret rear (the catalog lists only this MG).
+unit = "us_m24"
+assembly = "tank"
+
+[layout]
+turret_y = 0.27
+turret_ring_diameter = 1.52
+fender_overhang = 0.035
+
+[running_gear]
+part = "torsion_bar"
+track_width = 0.406
+link_pitch = 0.14
+road_wheel_diameter = 0.64
+road_wheels = [1.50, 0.80, 0.10, -0.61, -1.31]
+idler = { y = 2.20, z = 0.54, diameter = 0.55 }
+sprocket = { y = -2.01, z = 0.54, diameter = 0.60, teeth = 13 }
+return_rollers = { y = [1.11, 0.38, -0.32], z = 0.76, diameter = 0.22 }
+arm = 0.30
+
+[hull]
+part = "plate_hull"
+# Lower hull between the tracks: belly at 0.46 m, lower glacis.
+lower = [[-2.40, 0.46], [1.90, 0.46], [2.20, 0.62], [2.515, 0.90], [2.515, 0.98], [-2.515, 0.98], [-2.515, 0.70]]
+# Upper hull: short glacis up to the flat deck at 1.37 m, sloped rear plate.
+upper = [[-2.515, 0.96], [2.515, 0.96], [2.515, 1.04], [1.56, 1.37], [-1.95, 1.37], [-2.515, 1.12]]
+upper_side_slope_deg = 22
+bevel = 0.015
+
+[turret]
+part = "plate_turret"
+height = 0.80                 # roof at 2.17 m (drawing); the AA mount reaches the catalog height
+# welded turret: angled cheeks, sloped sides, long bustle tapering to the rear
+plan = [[-0.45, 0.68], [0.45, 0.68], [0.84, 0.30], [0.84, -0.70], [0.62, -1.55], [-0.62, -1.55], [-0.84, -0.70],
+        [-0.84, 0.30]]
+side_slope_deg = 18
+front_slope_deg = 25
+
+[cupola]
+part = "cupola"
+x = -0.32
+y = -0.35
+diameter = 0.62
+height = 0.22
+vision_blocks = 6
+
+[[part]]
+part = "turret_hatch"         # loader's hatch
+x = 0.35
+y = -0.30
+diameter = 0.50
+socket = true
+
+[[part]]
+part = "hull_hatch"           # driver (left) and assistant driver (right)
+center = [-0.60, 1.30]
+size = [0.48, 0.50]
+hinge = "right"
+socket = true
+
+[[part]]
+part = "hull_hatch"
+center = [0.60, 1.30]
+size = [0.48, 0.50]
+hinge = "left"
+
+[[part]]
+part = "deck_box"             # engine deck grilles
+center = [0.0, -1.55]
+size = [1.70, 1.20, 0.04]
+
+[[part]]
+part = "exhaust"
+kind = "muffler"
+position = [-0.70, -2.40, 0.80]
+length = 0.45
+diameter = 0.18
+
+[[part]]
+part = "exhaust"
+kind = "muffler"
+position = [0.70, -2.40, 0.80]
+length = 0.45
+diameter = 0.18
+
+[[part]]
+part = "headlight"
+position = [-1.20, 2.35, 1.10]
+diameter = 0.18
+
+[[part]]
+part = "headlight"
+position = [1.20, 2.35, 1.10]
+diameter = 0.18
+
+[[part]]
+part = "antenna"
+parent = "Turret"
+position = [0.60, -1.30, 2.17]
+length = 2.0
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 2.40, 0.65]
+pair = true
+socket = false
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -2.40, 0.70]
+pair = true
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -1.5, 1.40]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -0.3, 2.2]
+parent = "Turret"
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-1.40, -0.6, 1.16]
+normal = [-0.93, 0, 0.37]
+size = 0.40
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [1.40, -0.6, 1.16]
+normal = [0.93, 0, 0.37]
+size = 0.40
+
+[[part]]
+part = "marking"
+name = "Glacis"
+position = [0.0, 2.05, 1.18]
+normal = [0, 0.43, 0.90]
+size = 0.40
+
+[[part]]
+part = "marking"
+name = "Turret_L"
+parent = "Turret"
+position = [-0.80, -0.20, 1.78]
+normal = [-0.95, 0, 0.31]
+size = 0.35
+
+[[part]]
+part = "marking"
+name = "Turret_R"
+parent = "Turret"
+position = [0.80, -0.20, 1.78]
+normal = [0.95, 0, 0.31]
+size = 0.35
+
+[gun]
+part = "tank_gun"
+trunnion = [0.75, 0.41]
+# narrow rotor shield
+mantlet = { kind = "round", size = [0.55, 0.18, 0.42] }
+sleeve = [0.35, 0.075]
+segments = [["fit", 0.052, 0.048]]
+
+[[mg]]  # .50 M2HB on the post at the turret rear (AA)
+part = "mg"
+mount = "pintle"
+position = [0.35, -1.00, 0.55]
+length = 1.6
+
+[validate]
+exclude_height = ["Antenna_*"]

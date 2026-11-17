@@ -1,0 +1,208 @@
+# M3A3 Stuart (Light Tank M3A3, production Sept 1942 - Sept 1943): welded hull
+# with a sloped one-piece glacis and sponson sides sloped out over the tracks
+# (the M5 superstructure on the M3 chassis), the M5A1-type turret with the
+# radio bustle, rear stowage box. Main dimensions from data/catalog/us.toml
+# (onwar.com): length 5.03 m incl. the rear stowage box (muzzle slightly in
+# front of the nose), width 2.52 m over the sponsons, height 2.57 m over the
+# AA MG.
+# Part dimensions from the onwar.com drawing us003ltm3a3.jpg (D. P. Dyer, side
+# view about 157 px/m, ground line y = 492): running gear as the M3 (two VVSS
+# bogies, front sprocket, trailing idler), deck at 1.66 m, rear plate sloping
+# down behind the engine. The catalog has no hull length: [layout] hull_length
+# = the drawing's hull from nose to rear plate (4.43 m); the box adds 0.53 m.
+unit = "us_m3a3_stuart"
+assembly = "tank"
+
+[layout]
+hull_length = 4.43
+turret_y = 0.17
+turret_ring_diameter = 1.17
+fender_overhang = 0.105
+
+[running_gear]
+part = "vvss_bogie"
+track_width = 0.295
+link_pitch = 0.14
+road_wheel_diameter = 0.52
+road_wheels = [1.43, 0.73, 0.09, -0.61]
+sprocket = { y = 1.88, z = 0.66, diameter = 0.62, teeth = 13 }
+idler = { y = -1.50, z = 0.42, diameter = 0.68 }   # trailing idler, just clear of the ground
+roller_offset = 0.0
+return_roller_diameter = 0.20
+
+[hull]
+part = "plate_hull"
+# Lower hull between the tracks: belly at 0.42 m clearance (data.json), short
+# lower nose plate, rear plate sloping down behind the engine.
+lower = [[-1.90, 0.42], [1.85, 0.42], [2.15, 0.70], [2.215, 0.95], [2.215, 1.02], [-2.215, 1.02], [-2.215, 0.80]]
+# Superstructure: long sloped glacis from the nose to the driver's hatches,
+# flat roof and engine deck at 1.66 m, rear plate sloping down.
+upper = [[-2.215, 1.00], [2.215, 1.00], [2.15, 1.21], [0.95, 1.66], [-1.85, 1.66], [-2.215, 1.42]]
+upper_half_width = 1.20
+upper_side_slope_deg = 25
+bevel = 0.015
+
+[turret]
+part = "plate_turret"
+height = "fit"
+# plan relative to the ring center: angled front cheeks, straight sides,
+# rear radio bustle
+plan = [[-0.48, 0.66], [0.48, 0.66], [0.68, 0.36], [0.68, -0.62], [0.52, -0.98], [-0.52, -0.98],
+        [-0.68, -0.62], [-0.68, 0.36]]
+side_slope_deg = 12
+front_slope_deg = 8
+
+[gun]
+part = "tank_gun"
+trunnion = [0.66, 0.26]
+# M44 combination mount: broad flat shield with the coax and the 37 mm sleeve
+mantlet = { kind = "box", size = [0.78, 0.12, 0.34] }
+sleeve = [0.30, 0.06]
+segments = [[1.01, 0.032, 0.028]]   # muzzle at about y = 2.29 (drawing)
+muzzle_brake = "thread_protector"
+
+[[mg]]  # coaxial M1919A4, left of the gun
+part = "mg"
+mount = "coax"
+position = [-0.22, 0.1, 0.0]
+
+[[mg]]  # bow M1919A4 in the glacis ball mount (assistant driver, right)
+part = "mg"
+mount = "ball"
+position = [0.40, 1.70, 1.38]
+length = 0.6
+
+[[mg]]  # AA M1919A4 on the bracket at the right turret side
+part = "mg"
+mount = "pintle"
+position = [0.62, -0.20, 0.22]
+length = 1.1
+
+[[part]]
+part = "hull_hatch"           # driver (left) and assistant driver (right)
+center = [-0.42, 1.20]
+size = [0.48, 0.52]
+hinge = "right"
+socket = true
+
+[[part]]
+part = "hull_hatch"
+center = [0.42, 1.20]
+size = [0.48, 0.52]
+hinge = "left"
+socket = true
+
+[[part]]
+part = "turret_hatch"         # commander's split hatch (as one lid)
+x = 0.0
+y = -0.30
+size = [0.70, 0.50]
+socket = true
+
+[[part]]
+part = "deck_box"             # engine deck grilles
+center = [0.0, -1.20]
+size = [1.30, 1.00, 0.04]
+
+[[part]]
+part = "box_prop"             # rear stowage box (mesh-sided) over the rear plate
+center = [0.0, -2.47, 1.60]
+size = [1.50, 0.52, 0.44]
+
+[[part]]
+part = "exhaust"
+kind = "muffler"
+position = [-0.50, -2.08, 0.78]
+length = 0.50
+diameter = 0.18
+
+[[part]]
+part = "exhaust"
+kind = "muffler"
+position = [0.50, -2.08, 0.78]
+length = 0.50
+diameter = 0.18
+
+[[part]]
+part = "headlight"
+position = [-0.80, 2.05, 1.15]
+diameter = 0.18
+
+[[part]]
+part = "headlight"
+position = [0.80, 2.05, 1.15]
+diameter = 0.18
+
+[[part]]
+part = "tool"
+kind = "shovel"
+position = [0.55, -1.40, 1.68]
+axis = "x"
+
+[[part]]
+part = "antenna"
+position = [0.85, -0.75, 1.66]
+length = 2.0
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 2.10, 0.62]
+pair = true
+socket = false
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -2.05, 0.70]
+pair = true
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -1.2, 1.70]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 0.0, 2.2]
+parent = "Turret"
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-1.13, -0.6, 1.36]
+normal = [-0.9, 0, 0.42]
+size = 0.5
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [1.13, -0.6, 1.36]
+normal = [0.9, 0, 0.42]
+size = 0.5
+
+[[part]]
+part = "marking"
+name = "Glacis"
+position = [0.0, 1.60, 1.42]
+normal = [0, 0.35, 0.94]
+size = 0.45
+
+[[part]]
+part = "marking"
+name = "Turret_L"
+parent = "Turret"
+position = [-0.66, -0.20, 2.05]
+normal = [-0.98, 0, 0.2]
+size = 0.35
+
+[[part]]
+part = "marking"
+name = "Turret_R"
+parent = "Turret"
+position = [0.66, -0.20, 2.05]
+normal = [0.98, 0, 0.2]
+size = 0.35
+
+[validate]
+# Height 2.57 m is over the AA MG (catalog): only the antenna is left out.
+exclude_height = ["Antenna_*"]

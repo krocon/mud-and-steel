@@ -1,0 +1,207 @@
+# M3 Lee (Medium Tank M3, production Jun 1941 - Aug 1942): riveted hull, 75 mm
+# gun in the cast sponson on the right, cast 37 mm turret offset to the left
+# with the MG cupola on top. Main dimensions from data/catalog/us.toml
+# (onwar.com): length 6.12 m, hull 5.64 m, width 2.72 m over the sponsons,
+# height 3.12 m over the cupola. The catalog names the short 75 mm M2 but
+# keeps the 6.12 m length of the long M3 gun (see its note): the sponson barrel
+# is fitted to the catalog length and ends with the M2's counterweight.
+# Part dimensions from the onwar.com drawing us010m3med.jpg (side view about
+# 164.5 px/m, ground line y = 585): three VVSS bogies per side with 20 in
+# (0.51 m) wheels, 16.56 in (0.42 m) track, front sprocket, rear idler, rounded
+# transmission cover, front plate sloping up to the flat roof at 2.17 m, lower
+# engine deck behind the turret, vertical sponson sides 0.065 m outside the
+# tracks. The turret offset to the left is 0.34 m in the front view and 0.17 m
+# in the top view of the drawing: 0.25 m taken.
+unit = "us_m3_lee"
+assembly = "tank"
+
+[layout]
+turret_y = -0.18
+turret_ring_diameter = 1.40
+fender_overhang = 0.065
+
+[running_gear]
+part = "vvss_bogie"
+track_width = 0.42
+link_pitch = 0.15
+road_wheel_diameter = 0.52
+road_wheels = [1.95, 1.12, 0.47, -0.33, -0.97, -1.78]
+sprocket = { y = 2.46, z = 0.79, diameter = 0.62, teeth = 13 }
+idler = { y = -2.46, z = 0.70, diameter = 0.60 }
+roller_offset = 0.0
+return_roller_diameter = 0.22
+
+[hull]
+part = "plate_hull"
+# Lower hull between the tracks: belly at 0.43 m clearance (data.json),
+# rounded transmission cover at the nose.
+lower = [[-2.70, 0.43], [2.30, 0.43], [2.62, 0.65], [2.80, 0.90], [2.82, 1.14], [-2.82, 1.14], [-2.82, 0.70]]
+# Superstructure over the tracks: transmission cover, front plate sloping up to
+# the flat roof at 2.17 m, step down to the engine deck behind the turret.
+upper = [[-2.82, 1.12], [2.82, 1.12], [2.82, 1.20], [2.25, 1.25], [1.31, 2.17], [-1.09, 2.17], [-1.20, 1.84],
+         [-2.72, 1.80], [-2.82, 1.62]]
+upper_half_width = 1.34
+upper_side_slope_deg = 2
+bevel = 0.015
+
+[turret]
+part = "cast_turret"
+x = -0.25
+length = 1.60
+width = 1.52
+exponent = 2.3
+height = 0.71                 # roof at 2.88 m (drawing); the cupola brings it to the catalog 3.12 m
+# strongly tapered cast turret (side view: top 1.3 m long against 1.6 m at the base)
+profile = [[0.0, 1.0], [0.3, 0.95], [0.8, 0.76], [1.0, 0.68]]
+
+[[part]]
+part = "sponson_gun"          # 75 mm in the cast sponson, right front; listed before the exhaust
+x = 0.80
+y = 1.78
+z = 1.79
+sponson = [0.72, 0.85, 0.72]
+cast = true
+mantlet = { kind = "round", size = [0.42, 0.20, 0.42] }
+segments = [["fit", 0.055, 0.048], [0.22, 0.065, 0.065]]   # M2 counterweight at the muzzle
+
+[[part]]
+part = "sub_turret"           # MG cupola on the 37 mm turret, rear left
+parent = "Turret"
+position = [-0.35, -0.60]
+z = 2.83
+diameter = 0.62
+height = 0.26
+mgs = 1
+
+[[part]]
+part = "hull_hatch"           # roof hatch over the 75 mm gunner
+center = [0.80, -0.08]
+size = [0.45, 0.40]
+socket = true
+
+[[part]]
+part = "box_prop"             # side doors
+center = [-1.345, -0.09, 1.65]
+size = [0.03, 0.48, 0.60]
+
+[[part]]
+part = "box_prop"
+center = [1.345, -0.09, 1.65]
+size = [0.03, 0.48, 0.60]
+
+[[part]]
+part = "deck_box"             # engine deck plates
+center = [0.0, -1.95]
+size = [1.60, 1.30, 0.04]
+
+[[part]]
+part = "exhaust"
+kind = "muffler"
+position = [-0.50, -2.68, 0.98]
+length = 0.55
+diameter = 0.18
+
+[[part]]
+part = "exhaust"
+kind = "muffler"
+position = [0.50, -2.68, 0.98]
+length = 0.55
+diameter = 0.18
+
+[[part]]
+part = "headlight"
+position = [-1.10, 2.62, 1.28]
+diameter = 0.18
+
+[[part]]
+part = "headlight"
+position = [1.10, 2.62, 1.28]
+diameter = 0.18
+
+[[part]]
+part = "antenna"
+position = [-0.95, -0.95, 2.17]
+length = 2.2
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 2.72, 0.62]
+pair = true
+socket = false
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -2.72, 0.70]
+pair = true
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -1.9, 1.84]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [-0.25, -0.18, 2.6]
+parent = "Turret"
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-1.38, 0.70, 1.65]
+normal = [-1, 0, 0]
+size = 0.55
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [1.38, -0.80, 1.65]
+normal = [1, 0, 0]
+size = 0.55
+
+[[part]]
+part = "marking"
+name = "Glacis"
+position = [-0.30, 1.90, 1.65]
+normal = [0, 0.7, 0.71]
+size = 0.40
+
+[[part]]
+part = "marking"
+name = "Turret_L"
+parent = "Turret"
+position = [-0.95, -0.18, 2.45]
+normal = [-0.95, 0, 0.3]
+size = 0.35
+
+[[part]]
+part = "marking"
+name = "Turret_R"
+parent = "Turret"
+position = [0.45, -0.18, 2.45]
+normal = [0.95, 0, 0.3]
+size = 0.35
+
+[gun]
+part = "tank_gun"
+x = -0.25
+trunnion = [0.62, 0.40]
+mantlet = { kind = "round", size = [0.34, 0.15, 0.30] }
+sleeve = [0.32, 0.06]
+segments = [[0.78, 0.030, 0.026]]   # 37 mm M5, muzzle at about y = 1.59 (drawing)
+muzzle_brake = "thread_protector"
+
+[[mg]]  # coaxial M1919A4, left of the 37 mm
+part = "mg"
+mount = "coax"
+position = [-0.16, 0.1, 0.0]
+
+[[mg]]  # bow M1919A4 in the driver's front plate (left)
+part = "mg"
+mount = "ball"
+position = [-0.55, 1.60, 1.90]
+length = 0.5
+
+[validate]
+# Height 3.12 m is over the MG cupola; the antenna is left out.
+exclude_height = ["Antenna_*"]

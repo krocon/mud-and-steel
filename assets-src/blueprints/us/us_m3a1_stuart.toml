@@ -1,0 +1,225 @@
+# M3A1 Stuart (Light Tank M3A1, production May 1942 - Jan 1943): the riveted
+# M3 hull with the welded, horseshoe-shaped M3A1 turret (turret basket, power
+# traverse, no cupola: two roof hatches) and without the two sponson MGs.
+# Main dimensions from data/catalog/us.toml (onwar.com): length 4.53 m, width
+# 2.24 m, height 2.39 m (0.25 m lower than the M3 without the cupola: taken
+# as the turret roof, the AA MG is left out, see [validate]).
+# Hull, running gear and fittings as us_m3_stuart (built on the drawing
+# us001ltm3.jpg); turret from the onwar.com drawing us002ltm3a1.jpg (D. P. Dyer).
+unit = "us_m3a1_stuart"
+assembly = "tank"
+
+[layout]
+hull_length = 4.53
+turret_y = 0.25
+turret_ring_diameter = 1.17
+fender_overhang = 0.0
+
+[running_gear]
+part = "vvss_bogie"
+track_width = 0.295
+link_pitch = 0.14
+road_wheel_diameter = 0.52
+road_wheels = [1.35, 0.66, 0.08, -0.63]   # 0.04 m behind the drawing: ground contact centered on the origin
+sprocket = { y = 1.84, z = 0.69, diameter = 0.62, teeth = 13 }
+idler = { y = -1.52, z = 0.42, diameter = 0.70 }   # trailing idler, just clear of the ground
+roller_offset = 0.0
+return_roller_diameter = 0.20
+
+[hull]
+part = "plate_hull"
+# Lower hull between the tracks: belly at 0.42 m clearance (data.json), rounded
+# transmission cover at the nose.
+lower = [[-2.00, 0.42], [1.85, 0.42], [2.12, 0.55], [2.235, 0.75], [2.20, 0.95], [2.10, 1.02], [-2.235, 1.02],
+         [-2.235, 0.62]]
+# Superstructure over the tracks: transmission cover up to the near-vertical
+# driver's front plate (visors, bow MG), flat roof at 1.70 m, engine deck
+# sloping down to the rear plate.
+upper = [[-2.235, 1.00], [2.10, 1.00], [1.78, 1.22], [1.72, 1.70], [-1.85, 1.70], [-2.18, 1.52], [-2.235, 1.20]]
+upper_half_width = 1.10
+upper_side_slope_deg = 0
+bevel = 0.015
+
+[turret]
+part = "plate_turret"
+height = "fit"
+# welded horseshoe turret: rounded front, straight sides, flat rear facets
+plan = [[-0.62, 0.05], [-0.57, 0.28], [-0.44, 0.47], [-0.24, 0.59], [0.0, 0.64], [0.24, 0.59], [0.44, 0.47],
+        [0.57, 0.28], [0.62, 0.05], [0.60, -0.62], [0.40, -0.74], [-0.40, -0.74], [-0.60, -0.62]]
+side_slope_deg = 6
+front_slope_deg = 14
+
+[[part]]
+part = "turret_hatch"         # commander's and loader's roof hatches
+x = -0.28
+y = -0.30
+size = [0.42, 0.46]
+socket = true
+
+[[part]]
+part = "turret_hatch"
+x = 0.28
+y = -0.30
+size = [0.42, 0.46]
+socket = true
+
+[[part]]
+part = "hull_hatch"           # driver (left) and assistant driver (right)
+center = [-0.42, 1.30]
+size = [0.46, 0.46]
+hinge = "right"
+socket = true
+
+[[part]]
+part = "hull_hatch"
+center = [0.42, 1.30]
+size = [0.46, 0.46]
+hinge = "left"
+socket = true
+
+[[part]]
+part = "box_prop"             # visor plate of the driver's compartment
+center = [0.0, 1.76, 1.46]
+size = [1.30, 0.06, 0.40]
+
+[[part]]
+part = "deck_box"             # engine deck plates
+center = [0.0, -1.20]
+size = [1.30, 1.00, 0.04]
+
+[[part]]
+part = "cylinder_prop"        # oil bath air cleaners on the rear deck
+from = [-0.90, -1.68, 1.68]
+to = [-0.90, -1.68, 1.98]
+radius = 0.12
+
+[[part]]
+part = "cylinder_prop"
+from = [0.90, -1.68, 1.68]
+to = [0.90, -1.68, 1.98]
+radius = 0.12
+
+[[part]]
+part = "exhaust"
+kind = "muffler"
+position = [-0.50, -2.12, 0.78]
+length = 0.50
+diameter = 0.18
+
+[[part]]
+part = "exhaust"
+kind = "muffler"
+position = [0.50, -2.12, 0.78]
+length = 0.50
+diameter = 0.18
+
+[[part]]
+part = "headlight"
+position = [-0.80, 1.98, 1.10]
+diameter = 0.18
+
+[[part]]
+part = "headlight"
+position = [0.80, 1.98, 1.10]
+diameter = 0.18
+
+[[part]]
+part = "tool"
+kind = "shovel"
+position = [0.45, -2.00, 1.45]
+axis = "x"
+
+[[part]]
+part = "antenna"
+position = [0.85, -1.30, 1.70]
+length = 2.0
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 2.12, 0.56]
+pair = true
+socket = false
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -2.12, 0.58]
+pair = true
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -1.2, 1.74]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 0.0, 2.2]
+parent = "Turret"
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-1.11, -0.6, 1.40]
+normal = [-1, 0, 0]
+size = 0.45
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [1.11, -0.6, 1.40]
+normal = [1, 0, 0]
+size = 0.45
+
+[[part]]
+part = "marking"
+name = "Glacis"
+position = [0.0, 1.95, 1.08]
+normal = [0, 0.6, 0.8]
+size = 0.35
+
+[[part]]
+part = "marking"
+name = "Turret_L"
+parent = "Turret"
+position = [-0.62, -0.10, 2.05]
+normal = [-0.99, 0, 0.1]
+size = 0.32
+
+[[part]]
+part = "marking"
+name = "Turret_R"
+parent = "Turret"
+position = [0.62, -0.10, 2.05]
+normal = [0.99, 0, 0.1]
+size = 0.32
+
+[gun]
+part = "tank_gun"
+trunnion = [0.60, 0.34]
+# M22 combination mount: rounded mantlet with the 37 mm sleeve, coax left
+mantlet = { kind = "round", size = [0.40, 0.16, 0.36] }
+sleeve = [0.28, 0.06]
+segments = [[0.90, 0.032, 0.028]]   # muzzle at about y = 2.18 (drawing), behind the nose
+muzzle_brake = "thread_protector"
+
+[[mg]]  # coaxial M1919A4, left of the gun
+part = "mg"
+mount = "coax"
+position = [-0.18, 0.1, 0.0]
+
+[[mg]]  # bow M1919A4 in the driver's front plate (assistant driver, right)
+part = "mg"
+mount = "ball"
+position = [0.40, 1.80, 1.42]
+length = 0.6
+
+[[mg]]  # AA M1919A4 on the bracket at the right rear of the turret
+part = "mg"
+mount = "pintle"
+position = [0.66, -0.45, 0.0]
+length = 1.1
+
+[validate]
+# Height 2.39 m is taken as the turret roof (see the header): the AA MG on its
+# bracket and the antenna are left out.
+exclude_height = ["Antenna_*", "MG_03"]
