@@ -1,0 +1,186 @@
+# T-34/76 Model 1940: early welded turret with long rear overhang and one
+# large rear roof hatch, short 76.2 mm L-11 (muzzle behind the nose), no
+# external fuel tanks. Chassis as su_t34_76_1943 (prompt 063 check against the
+# onwar.com drawings su042t3476m40*.jpg). Catalog length 5.92 m is the hull
+# (no gun overhang); hull 5.84 m plus the exhaust pipes.
+# Turret plan, height (roof 2.27 m) and gun position from the drawings; the
+# PT-K periscope on the roof front sets the catalog height 2.41 m.
+unit = "su_t34_76_1940"
+assembly = "tank"
+
+[layout]
+hull_length = 5.84
+turret_y = 0.55
+turret_ring_diameter = 1.42
+fender_overhang = 0.03
+
+[running_gear]
+part = "christie"
+track_width = 0.50
+track_thickness = 0.04
+link_pitch = 0.172
+road_wheel_diameter = 0.83
+road_wheels = [1.62, 0.80, -0.02, -0.84, -1.66]
+sprocket = { y = -2.58, z = 0.62, diameter = 0.64, teeth = 6 }
+idler = { y = 2.56, z = 0.56, diameter = 0.60, spoked = false }
+dish = 0.04
+
+[hull]
+part = "plate_hull"
+lower = [[-2.70, 0.40], [2.35, 0.40], [2.96, 0.90], [-2.96, 0.90], [-2.96, 0.55]]
+# superstructure: 60 deg glacis, roof, 47 deg rear plate
+upper = [[-2.96, 0.90], [2.96, 0.90], [1.70, 1.65], [-2.20, 1.65], [-2.96, 0.98]]
+upper_side_slope_deg = 40
+bevel = 0.02
+
+[turret]
+part = "plate_turret"
+height = 0.62
+# early welded turret: narrow rounded front, widest ahead of the ring center,
+# long overhang over the engine deck
+plan = [[-0.48, 0.99], [0.48, 0.99], [0.80, 0.55], [0.87, 0.20], [0.80, -0.45], [0.59, -1.10], [-0.59, -1.10], [-0.80, -0.45], [-0.87, 0.20], [-0.80, 0.55]]
+side_slope_deg = 25
+front_slope_deg = 10
+bevel = 0.025
+
+[gun]
+part = "tank_gun"
+trunnion = [0.80, 0.20]
+mantlet = { kind = "cast_box", size = [0.56, 0.30, 0.40] }
+sleeve = [0.45, 0.13]       # L-11 recoil housing
+segments = [[0.78, 0.055, 0.05]]
+muzzle_brake = "none"
+
+[[mg]]  # coaxial DT
+part = "mg"
+mount = "coax"
+position = [0.20, 0.25, 0.0]
+
+[[part]]
+part = "su.glacis_ball_mg"   # bow DT in a ball mount, radio operator side
+x = 0.55
+y = 2.30
+
+[[part]]
+part = "su.glacis_hatch"     # large early driver's hatch
+x = -0.42
+y = 2.20
+size = [0.62, 0.66]
+
+[[part]]
+part = "turret_hatch"        # large one-piece hatch over the rear of the roof
+x = 0.0
+y = -0.45
+size = [0.80, 0.55]
+socket = true
+
+[[part]]
+part = "cylinder_prop"       # PT-K panoramic periscope hood, roof front left
+parent = "Turret"
+from = [-0.35, 1.05, 2.24]
+to = [-0.35, 1.05, 2.41]
+radius = 0.08
+
+[[part]]
+part = "box_prop"            # long stowage boxes on the sloped hull sides
+center = [-1.22, 0.10, 1.38]
+size = [0.16, 2.30, 0.24]
+
+[[part]]
+part = "box_prop"
+center = [1.22, 0.10, 1.38]
+size = [0.16, 2.30, 0.24]
+
+[[part]]
+part = "deck_box"   # engine grille
+center = [0.0, -1.40]
+size = [1.1, 1.0, 0.05]
+
+[[part]]
+part = "exhaust"
+kind = "pipe"
+position = [-0.55, -2.92, 1.05]
+length = 0.08
+diameter = 0.16
+
+[[part]]
+part = "exhaust"
+kind = "pipe"
+position = [0.55, -2.92, 1.05]
+length = 0.08
+diameter = 0.16
+
+[[part]]
+part = "box_prop"   # rear transmission access hatch
+center = [0.0, -2.66, 1.20]
+size = [0.9, 0.06, 0.6]
+
+[[part]]
+part = "headlight"
+position = [-0.95, 2.40, 1.18]
+diameter = 0.2
+
+[[part]]
+part = "headlight"
+position = [0.95, 2.40, 1.18]
+diameter = 0.2
+
+[[part]]
+part = "antenna"   # radio whip, right front hull side (command tanks only; kept for all)
+position = [1.22, 1.50, 1.12]
+length = 2.2
+
+[[part]]
+part = "tool"
+kind = "shovel"
+position = [1.40, -1.6, 0.94]
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 2.74, 0.80]
+pair = true
+socket = false
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -2.90, 0.70]
+pair = true
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -1.4, 1.65]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 0.45, 2.0]
+parent = "Turret"
+
+[[part]]
+part = "marking"
+name = "Turret_L"
+parent = "Turret"
+position = [-0.80, 0.30, 1.95]
+normal = [-0.91, 0.0, 0.42]
+size = 0.40
+
+[[part]]
+part = "marking"
+name = "Turret_R"
+parent = "Turret"
+position = [0.80, 0.30, 1.95]
+normal = [0.91, 0.0, 0.42]
+size = 0.40
+
+[[part]]
+part = "marking"
+name = "Turret_Rear"
+kind = "number"
+parent = "Turret"
+position = [0.0, -0.55, 1.95]
+normal = [0.0, -0.94, 0.34]
+size = 0.35
+
+[validate]
+exclude_height = ["Antenna_*"]

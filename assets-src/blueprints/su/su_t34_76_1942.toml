@@ -1,0 +1,184 @@
+# T-34/76 Model 1942: hexagonal turret of su_t34_76_1943 without the
+# commander's cupola, two round roof hatches, box fuel/stowage boxes on the
+# rear fenders instead of the cylindrical side tanks (prompt 063 check against
+# the onwar.com drawings su044t3476m42*.jpg). Height 2.45 m = turret roof.
+# Part dimensions are modeling estimates: road wheels 830 mm, track 500 mm,
+# 60 deg upper glacis, 40 deg upper hull sides, rear drive.
+unit = "su_t34_76_1942"
+assembly = "tank"
+
+[layout]
+turret_y = 0.50
+turret_ring_diameter = 1.42
+fender_overhang = 0.03
+
+[running_gear]
+part = "christie"
+track_width = 0.50
+track_thickness = 0.04
+link_pitch = 0.172
+road_wheel_diameter = 0.83
+road_wheels = [1.62, 0.80, -0.02, -0.84, -1.66]
+sprocket = { y = -2.58, z = 0.62, diameter = 0.64, teeth = 6 }
+idler = { y = 2.56, z = 0.56, diameter = 0.60, spoked = false }
+dish = 0.04
+
+[hull]
+part = "plate_hull"
+lower = [[-2.70, 0.40], [2.35, 0.40], [2.96, 0.90], [-2.96, 0.90], [-2.96, 0.55]]
+# superstructure: 60 deg glacis, roof, 47 deg rear plate
+upper = [[-2.96, 0.90], [2.96, 0.90], [1.70, 1.65], [-2.20, 1.65], [-2.96, 0.98]]
+upper_side_slope_deg = 40
+bevel = 0.02
+
+[turret]
+part = "plate_turret"
+height = "fit"
+# hexagonal turret ("Gaika"): narrow front, wide middle, rear overhang
+plan = [[-0.62, 1.00], [0.62, 1.00], [0.98, 0.30], [0.82, -1.05], [-0.82, -1.05], [-0.98, 0.30]]
+side_slope_deg = 22
+front_slope_deg = 12
+bevel = 0.025
+
+[gun]
+part = "tank_gun"
+trunnion = [0.88, 0.33]
+mantlet = { kind = "cast_box", size = [0.62, 0.30, 0.42] }
+sleeve = [0.30, 0.10]
+segments = [["fit", 0.058, 0.05]]
+muzzle_brake = "none"
+
+[[mg]]  # coaxial DT
+part = "mg"
+mount = "coax"
+position = [0.20, 0.25, 0.0]
+
+[[part]]
+part = "su.glacis_ball_mg"   # bow DT in a ball mount, radio operator side
+x = 0.55
+y = 2.35
+
+[[part]]
+part = "su.glacis_hatch"
+x = -0.42
+y = 2.25
+size = [0.55, 0.62]
+
+[[part]]
+part = "turret_hatch"        # commander, left ("Mickey Mouse" hatches)
+x = -0.36
+y = -0.40
+diameter = 0.52
+socket = true
+
+[[part]]
+part = "turret_hatch"        # loader, right
+x = 0.36
+y = -0.40
+diameter = 0.52
+
+[[part]]
+part = "box_prop"            # box fuel/stowage boxes on the rear fenders
+center = [-1.30, -2.58, 1.38]
+size = [0.36, 0.74, 0.55]
+
+[[part]]
+part = "box_prop"
+center = [1.30, -2.58, 1.38]
+size = [0.36, 0.74, 0.55]
+
+[[part]]
+part = "deck_box"   # engine grille
+center = [0.0, -1.40]
+size = [1.1, 1.0, 0.05]
+
+[[part]]
+part = "exhaust"
+kind = "pipe"
+position = [-0.55, -2.96, 1.05]
+length = 0.18
+diameter = 0.16
+
+[[part]]
+part = "exhaust"
+kind = "pipe"
+position = [0.55, -2.96, 1.05]
+length = 0.18
+diameter = 0.16
+
+[[part]]
+part = "box_prop"   # rear transmission access hatch
+center = [0.0, -2.70, 1.20]
+size = [0.9, 0.06, 0.6]
+
+[[part]]
+part = "headlight"
+position = [-0.95, 2.45, 1.18]
+diameter = 0.2
+
+[[part]]
+part = "antenna"   # 9-R / 10-R radio whip, right front hull side (radio operator)
+position = [1.22, 1.55, 1.12]
+length = 2.2
+
+[[part]]
+part = "tool"
+kind = "shovel"
+position = [1.40, 0.6, 0.94]
+
+[[part]]
+part = "spare_tracks"
+origin = [1.05, 2.70, 1.06]
+direction = [0.0, -0.2, 0.12]
+count = 3
+link_size = [0.5, 0.17, 0.04]
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 2.80, 0.80]
+pair = true
+socket = false
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -2.98, 0.70]
+pair = true
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -1.4, 1.65]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 0.50, 2.0]
+parent = "Turret"
+
+[[part]]
+part = "marking"
+name = "Turret_L"
+parent = "Turret"
+position = [-0.93, 0.0, 1.95]
+normal = [-0.94, 0.0, 0.34]
+size = 0.45
+
+[[part]]
+part = "marking"
+name = "Turret_R"
+parent = "Turret"
+position = [0.93, 0.0, 1.95]
+normal = [0.94, 0.0, 0.34]
+size = 0.45
+
+[[part]]
+part = "marking"
+name = "Turret_Rear"
+kind = "number"
+parent = "Turret"
+position = [0.0, -0.53, 1.95]
+normal = [0.0, -0.94, 0.34]
+size = 0.4
+
+[validate]
+exclude_height = ["Hatch_*", "Antenna_*"]
