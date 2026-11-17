@@ -204,3 +204,17 @@ Als offene Punkte notieren, nicht umsetzen:
 - **Eiszapfen, Rauch aus Schornsteinen, getaute Ringe um warme Schornsteine.**
 - **Schnee auf Fahrzeugen und Soldaten**, Spuren im Schnee, geräumte Wege.
 - **Schneeverwehungen im Gelände** an Zäunen, Hecken und Mauern.
+
+## Entscheidungen (autonom, Nachtlauf 17.11.2026)
+
+Der Prompt hat keine offenen Fragen; diese Punkte wurden ohne Rückfrage entschieden (vorläufig):
+
+| Punkt | Entscheidung |
+|---|---|
+| Stufe 2 (`<Variant>_Snow` im Modell) | Nicht gebaut: Stufe 1 trägt (Stirnflächen der Dachplatten an Traufe, Ortgang und First werden unter Schnee weiß und lesen sich als Wulst); keine Modelle geändert, keine neuen Vorschaubilder. |
+| Abstand zur Traufe | Aus der Hülle des Meshes (Instanz-Uniform `env_roof_box`, gesetzt in `_apply_look` / `EnvLook.apply`), statt Daten ins Modell zu schreiben. |
+| Wind | Mehr Schnee auf der Leeseite (der Seite, auf die der Wind weht), wie Schneeverwehungen in echt; Windrichtung jetzt auch auf den Materialien Dach, Metall, Putz. |
+| Sonnenseite | Fest Südost (Winterbiom, Azimut 140°). |
+| Kleine Dinge mit Dach-Slot (Heuhaufen, Ballen) | Schneehaube auf der flachen Oberseite statt Bändern, keine weißen Seiten. |
+| Schnee am Hausfuß | Offen: bräuchte ein Schneehaufen-Modell für die Dekoration. |
+| Messwerkzeuge | `just snow-shots`, `just objects-bench <map> --roofs-bench`, `just ground-motion --snow-roofs` (Schneefall ausgeblendet über `--trailer-off=snowfall`). |
