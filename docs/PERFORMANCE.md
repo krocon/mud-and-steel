@@ -180,6 +180,16 @@ Script time per system is printed by the bench; after the changes, in the
 battle: units 0.7 ms, infantry 1.6 ms, combat view 0.6 ms, effects
 0.8–1.0 ms, terrain chunks 0.9–1.3 ms.
 
+**Instance uniforms** (measured 17.11.2026, prompt 068 side check): with
+the 12 821 map object nodes of `test_large` (each with biome-look instance
+uniforms) plus units and effects, `just bench-view` printed about 3 200
+"Too many instances using shader instance variables" errors with
+`buffer_size` 262 144, at commit 59e7826 as well as after prompts 062/063
+(not a regression of those). `project.godot` now sets 1 048 576 (16 MB of
+GPU memory): no errors, frame rates unchanged. The battle at 600 m measured
+38–40 FPS in all three runs (old commit, HEAD, larger buffer), under the
+budget of 45 already before prompts 062/063; not investigated further.
+
 **HUD** (prompt 031: minimap, unit panel, command bar, events, waypoint
 lines; budget 1 ms per frame): the bench prints it as "hud"; the battle views
 have a dozen units selected. Measured with five other sessions building and

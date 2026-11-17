@@ -652,8 +652,9 @@ func _build_straw(kinds: PackedStringArray) -> void:
 ## meshes); `tint` scales the foliage color (grass clumps match the lighter
 ## ground texture). Every node with instance uniforms takes a few slots of
 ## the global shader uniform buffer: project.godot raises
-## `rendering/limits/global_shader_variables/buffer_size` for the ~10 000
-## nodes of a 4 km map.
+## `rendering/limits/global_shader_variables/buffer_size` for the ~13 000
+## nodes of a 4 km map plus units and effects (1 048 576 since prompt 068:
+## 262 144 overflowed in `just bench-view`).
 func _apply_look(node: GeometryInstance3D, tint := Color.WHITE) -> void:
 	var look: Dictionary = EnvLook.LOOK.get(biome, EnvLook.LOOK["forest"])
 	node.set_instance_shader_parameter(&"env_foliage", look.foliage * tint)

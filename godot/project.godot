@@ -34,7 +34,7 @@ movie_writer/mjpeg_quality=0.93
 [rendering]
 
 renderer/rendering_method="forward_plus"
-limits/global_shader_variables/buffer_size=262144
+limits/global_shader_variables/buffer_size=1048576
 textures/vram_compression/import_etc2_astc=true
 
 [input]
