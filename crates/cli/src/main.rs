@@ -7,6 +7,7 @@ mod catalog_doc;
 mod crater_bench;
 mod duel;
 mod fire_bench;
+mod gen_blocks;
 mod gen_land;
 mod gen_map;
 mod gen_textures;
@@ -133,6 +134,18 @@ enum CliCommand {
         #[arg(long, default_value = "desert_village")]
         name: String,
         #[arg(long, default_value_t = 59)]
+        seed: u64,
+        /// Output folder (default: data/maps/<name>).
+        #[arg(long)]
+        out: Option<PathBuf>,
+    },
+    /// Generates the apartment block quarter (prompt 078): eleven blocks at
+    /// three streets with courtyards, a small desert map to look at.
+    GenBlocks {
+        /// Map name, written into map.toml.
+        #[arg(long, default_value = "city_blocks")]
+        name: String,
+        #[arg(long, default_value_t = 78)]
         seed: u64,
         /// Output folder (default: data/maps/<name>).
         #[arg(long)]
@@ -667,6 +680,18 @@ fn main() {
                 out: &out,
             };
             match gen_village::generate(&options) {
+                Ok(report) => println!("{report}"),
+                Err(e) => fail(&e),
+            }
+        }
+        CliCommand::GenBlocks { name, seed, out } => {
+            let out = out.unwrap_or_else(|| Path::new(MAPS_DIR).join(&name));
+            let options = gen_blocks::Options {
+                name: &name,
+                seed,
+                out: &out,
+            };
+            match gen_blocks::generate(&options) {
                 Ok(report) => println!("{report}"),
                 Err(e) => fail(&e),
             }

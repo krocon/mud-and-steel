@@ -319,6 +319,11 @@ gen-rock-hills:
 gen-town:
     cargo run -q --release -p cli -- gen-town
 
+# Generate the apartment block quarter (prompt 078) into data/maps/city_blocks/: eleven blocks at three streets, courtyards
+[group('maps')]
+gen-blocks:
+    cargo run -q --release -p cli -- gen-blocks
+
 # Generate the desert village map (prompt 059) into data/maps/desert_village/
 [group('maps')]
 gen-village:
@@ -493,6 +498,16 @@ rock-shots dir="build/rock-shots" map="rock_hills" *args: build
 [group('terrain')]
 roof-shots dir="build/roof-shots" map="test_large" *args: build
     {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- --objects-bench --roofs --out="$(cd "{{ invocation_directory() }}" && mkdir -p "{{ dir }}" && cd "{{ dir }}" && pwd)" --map={{ map }} {{ args }}
+
+# Save the apartment block views of prompt 078 as PNGs into a folder: the quarter at 15-350 m and like the reference pictures, every block in all damage levels, a burnt block; desert by day, low sun and night, forest, winter (opens a window); e.g. --biomes=desert --only=compare-near
+[group('terrain')]
+block-shots dir="build/block-shots" map="city_blocks" *args: build
+    {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- --objects-bench --blocks --out="$(cd "{{ invocation_directory() }}" && mkdir -p "{{ dir }}" && cd "{{ dir }}" && pwd)" --map={{ map }} {{ args }}
+
+# Play the apartment block fight of prompt 078 on city_blocks and save pictures into a folder: a squad occupies a block, two tanks shell it to a ruin, the other units cross the quarter (opens a window)
+[group('terrain')]
+block-fight dir="build/block-fight" map="city_blocks" *args: build
+    {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- --objects-bench --blocks-fight --out="$(cd "{{ invocation_directory() }}" && mkdir -p "{{ dir }}" && cd "{{ dir }}" && pwd)" --map={{ map }} {{ args }}
 
 # --- Effects (prompt 019) ------------------------------------------------------------
 
