@@ -19,6 +19,15 @@ extends Node
 ## steepest slope, and three views like the reference pictures, in all
 ## three biomes (`--daytime=evening` for low sun). `--rocks-bench` measures
 ## frame rate over the densest ridge field instead of the wood views.
+##
+## `--roofs` (prompt 075, `just roof-shots`) shoots the roof views: the
+## map's village (marker `village`, else `town_square`) at 15, 35, 110 and
+## 350 m and from about 90 m like the reference picture, and with the map
+## objects hidden three line-ups placed at the village: every roof covering
+## side by side (also from 15 m each), twenty equal farm houses, and damaged,
+## burning (charred 0.6) and burnt-out houses; in the forest by day, at low
+## sun and at night, in the desert and in winter (`--biomes=`,
+## `--daytimes=` narrow it, `--only=<view,...>` picks views).
 
 const WARMUP_FRAMES := 90
 const MEASURE_FRAMES := 240
@@ -62,6 +71,10 @@ func _run() -> void:
 	get_window().size = Vector2i(1920, 1080)
 	main.camera_rig.edge_scroll_enabled = false
 	var args := OS.get_cmdline_user_args()
+	if "--roofs" in args:
+		await _roof_shots()
+		get_tree().quit()
+		return
 	if "--rocks" in args or "--rocks-bench" in args:
 		_find_rock_points()
 		if "--rocks-bench" in args:
@@ -76,6 +89,160 @@ func _run() -> void:
 	else:
 		await _bench()
 	get_tree().quit()
+
+
+const ROOF_DISTANCES: Array[float] = [15.0, 35.0, 110.0, 350.0]
+## Every roof covering (prompt 075): clay tile, slate, thatch, planks,
+## corrugated steel, flat plaster, and the church (slate, tower).
+const ROOF_COVERINGS: Array[String] = [
+	"env_house_farm", "env_house_stone", "env_barn", "env_house_log", "env_steel_hall",
+	"env_house_desert_two", "env_church",
+]
+## Damage line-up: [id, variant, charred].
+const ROOF_DAMAGE: Array = [
+	["env_house_farm", "Intact", 0.0], ["env_house_farm", "Damaged", 0.0], ["env_house_farm", "Ruin", 0.0],
+	["env_house_stone", "Damaged", 0.0], ["env_house_farm", "Damaged", 0.6], ["env_house_farm", "Damaged", 1.0],
+]
+const ROOF_CONDITIONS: Array = [
+	["forest", "day"], ["forest", "evening"], ["forest", "night"], ["desert", "day"], ["winter", "day"],
+]
+
+
+## Roof views (prompt 075), saved as `<out>/<biome>-<daytime>-<view>.png`.
+func _roof_shots() -> void:
+	var host: SimHost = main.sim_host
+	var rig: Node3D = main.camera_rig
+	var objects: Node3D = main.map_objects
+	var out := "build/roof-shots"
+	var biomes: Array[String] = []
+	var daytimes: Array[String] = []
+	var only: Array[String] = []
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--out="):
+			out = arg.trim_prefix("--out=")
+		elif arg.begins_with("--biomes="):
+			biomes.assign(arg.trim_prefix("--biomes=").split(","))
+		elif arg.begins_with("--daytimes="):
+			daytimes.assign(arg.trim_prefix("--daytimes=").split(","))
+		elif arg.begins_with("--only="):
+			only.assign(arg.trim_prefix("--only=").split(","))
+	DirAccess.make_dir_recursive_absolute(out)
+	main.fog_of_war.set_fog_enabled(false)
+	main.hud.visible = false
+	var marker: Variant = host.map_marker("village")
+	if marker == null:
+		marker = host.map_marker("town_square")
+	var center: Vector3 = marker if marker != null else Vector3.ZERO
+	# Village views: the 128 m chunk with the most houses, centered on the
+	# mean of its houses, the 15 / 35 m views on the house nearest to that.
+	var kinds := host.object_kinds()
+	var houses: Dictionary[Vector2i, Array] = {}
+	var best := Vector2i.ZERO
+	for group: Dictionary in host.object_groups(128.0):
+		var id: String = kinds[group.kind].get_slice(":", 0)
+		if not (id.begins_with("env_house") or id == "env_barn" or id == "env_church"):
+			continue
+		var buffer: PackedFloat32Array = group.buffer
+		var c: Vector2i = group.chunk
+		if not houses.has(c):
+			houses[c] = []
+		for k in buffer.size() / 12:
+			houses[c].append(Vector3(buffer[k * 12 + 3], buffer[k * 12 + 7], buffer[k * 12 + 11]))
+		if houses[c].size() > houses.get(best, []).size():
+			best = c
+	var village := center
+	var house := center
+	if houses.has(best):
+		village = Vector3.ZERO
+		for p: Vector3 in houses[best]:
+			village += p
+		village /= houses[best].size()
+		var nearest := INF
+		for p: Vector3 in houses[best]:
+			if p.distance_to(village) < nearest:
+				nearest = p.distance_to(village)
+				house = p
+	village.y = host.height_at(village.x, village.z)
+	print("objects-shots: roofs, village chunk %s with %d buildings around %s, line-ups at %s" % [
+		best, houses.get(best, []).size(), village, center])
+	center.y = host.height_at(center.x, center.z)
+	# Line-ups, built once at the village, shown with the map objects hidden.
+	var lineup := Node3D.new()
+	lineup.name = "RoofLineup"
+	main.add_child(lineup)
+	var views: Array[Dictionary] = []
+	for d in ROOF_DISTANCES:
+		views.append({"name": "village-%d" % int(d), "at": house if d < 100.0 else village, "distance": d, "yaw": 0.9})
+	views.append({"name": "village-compare", "at": village, "distance": 90.0, "yaw": 0.5})
+	var x := center.x - 60.0
+	var row_at := Vector3.ZERO
+	for id in ROOF_COVERINGS:
+		var node := _lineup_house(lineup, id, "Intact", 0.0, Vector3(x, 0.0, center.z))
+		var size := _extent(node)
+		node.position.x += size.x * 0.5
+		views.append({"name": "covering-%s-15" % id.trim_prefix("env_"), "at": node.position, "distance": 15.0, "yaw": 0.6})
+		x += size.x + 5.0
+	row_at = Vector3((center.x - 60.0 + x) * 0.5, center.y, center.z)
+	views.append({"name": "coverings-35", "at": row_at + Vector3(-25.0, 0.0, 0.0), "distance": 35.0, "yaw": 0.6})
+	views.append({"name": "coverings-110", "at": row_at, "distance": 110.0, "yaw": 0.6})
+	for i in 20:
+		_lineup_house(lineup, "env_house_farm", "Intact", 0.0,
+			Vector3(center.x - 40.0 + (i % 5) * 18.0, 0.0, center.z + 45.0 + (i / 5) * 16.0))
+	var twenty := Vector3(center.x - 4.0, center.y, center.z + 69.0)
+	views.append({"name": "twenty-60", "at": twenty, "distance": 60.0, "yaw": 0.5})
+	views.append({"name": "twenty-110", "at": twenty, "distance": 110.0, "yaw": 0.5})
+	for i in ROOF_DAMAGE.size():
+		var entry: Array = ROOF_DAMAGE[i]
+		_lineup_house(lineup, entry[0], entry[1], entry[2], Vector3(center.x - 45.0 + i * 16.0, 0.0, center.z - 45.0))
+	views.append({"name": "damage-45", "at": Vector3(center.x - 5.0, center.y, center.z - 45.0), "distance": 45.0, "yaw": 0.6})
+	var i := 0
+	for condition: Array in ROOF_CONDITIONS:
+		if not biomes.is_empty() and not condition[0] in biomes:
+			continue
+		if not daytimes.is_empty() and not condition[1] in daytimes:
+			continue
+		main.atmosphere.set_weather("clear", condition[1])
+		main.set_biome(condition[0])
+		for mesh in lineup.find_children("*", "GeometryInstance3D", true, false):
+			var char_amount: float = mesh.get_instance_shader_parameter(&"env_char")
+			objects._apply_look(mesh as GeometryInstance3D)
+			mesh.set_instance_shader_parameter(&"env_char", char_amount)
+		for view in views:
+			if not only.is_empty() and not view.name in only:
+				continue
+			var at_village: bool = view.name.begins_with("village")
+			objects.set_objects_visible(at_village)
+			lineup.visible = not at_village
+			rig.snap_to(view.at, view.distance, view.yaw)
+			var name := "%s-%s-%s" % [condition[0], condition[1], view.name]
+			print("objects-shots: roof view %d '%s'" % [i, name])
+			await _frames(SHOT_FRAMES * 2)
+			get_viewport().get_texture().get_image().save_png(out.path_join(name + ".png"))
+			i += 1
+	objects.set_objects_visible(true)
+
+
+## One building of a roof line-up standing on the ground at `at`.
+func _lineup_house(parent: Node3D, id: String, variant: String, charred: float, at: Vector3) -> Node3D:
+	var host: SimHost = main.sim_host
+	at.y = host.height_at(at.x, at.z)
+	var node: Node3D = main.map_objects._variant_node(id, variant, Transform3D(Basis.IDENTITY, at))
+	node.name = "%s_%s" % [id, variant]
+	parent.add_child(node)
+	for mesh in node.find_children("*", "GeometryInstance3D", true, false):
+		mesh.set_instance_shader_parameter(&"env_char", charred)
+	return node
+
+
+## Size of a line-up building (merged mesh bounds, meters).
+func _extent(node: Node3D) -> Vector3:
+	var box := AABB()
+	var first := true
+	for mesh: MeshInstance3D in node.find_children("*", "MeshInstance3D", true, false):
+		var b := mesh.transform * mesh.get_aabb()
+		box = b if first else box.merge(b)
+		first = false
+	return box.size
 
 
 ## Rock points (prompt 074): per kind the instance nearest to the map

@@ -303,6 +303,32 @@ const SHOTS: Dictionary[String, Dictionary] = {
 			{"t": 3.0, "at": Vector2(140, -60), "dist": 110.0, "yaw": 23.0, "pitch": 56.0, "haze": 110.0},
 		],
 	},
+	# Prompt 075: pans over the town houses of town_small at the game's zoom
+	# levels, to measure whether the roofs flicker (`just ground-motion --roofs`).
+	"roof_near_15": {
+		"map": "town_small", "scene": "survey", "seed": 1, "start_s": 0.5, "seconds": 3.0, "game_camera": true,
+		"stills": [1.5],
+		"camera": [
+			{"t": 0.0, "at": Vector2(40, -12), "lift": 12.0, "dist": 15.0, "yaw": 23.0, "pitch": 45.0, "haze": 15.0},
+			{"t": 3.0, "at": Vector2(47.5, -12), "lift": 12.0, "dist": 15.0, "yaw": 23.0, "pitch": 45.0, "haze": 15.0},
+		],
+	},
+	"roof_near_35": {
+		"map": "town_small", "scene": "survey", "seed": 1, "start_s": 0.5, "seconds": 3.0, "game_camera": true,
+		"stills": [1.5],
+		"camera": [
+			{"t": 0.0, "at": Vector2(30, -12), "lift": 12.0, "dist": 35.0, "yaw": 23.0, "pitch": 47.8, "haze": 35.0},
+			{"t": 3.0, "at": Vector2(48, -12), "lift": 12.0, "dist": 35.0, "yaw": 23.0, "pitch": 47.8, "haze": 35.0},
+		],
+	},
+	"roof_near_110": {
+		"map": "town_small", "scene": "survey", "seed": 1, "start_s": 0.5, "seconds": 3.0, "game_camera": true,
+		"stills": [1.5],
+		"camera": [
+			{"t": 0.0, "at": Vector2(10, 0), "dist": 110.0, "yaw": 23.0, "pitch": 56.0, "haze": 110.0},
+			{"t": 3.0, "at": Vector2(70, 0), "dist": 110.0, "yaw": 23.0, "pitch": 56.0, "haze": 110.0},
+		],
+	},
 	"survey_twin_meadow": {
 		"map": "twin_meadow", "scene": "survey", "seed": 1, "start_s": 0.5, "seconds": 1.0, "stills": [0.5],
 		"camera": [{"t": 0.0, "at": Vector2(0, 0), "dist": 1902.0, "yaw": 0.0, "pitch": 89.0, "haze": 4000.0}],

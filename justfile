@@ -489,6 +489,11 @@ objects-shots dir map="test_large" *args: build
 rock-shots dir="build/rock-shots" map="rock_hills" *args: build
     {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- --objects-bench --rocks --out="$(cd "{{ invocation_directory() }}" && mkdir -p "{{ dir }}" && cd "{{ dir }}" && pwd)" --map={{ map }} {{ args }}
 
+# Save the roof views of prompt 075 as PNGs into a folder: the village at 15-350 m and like the reference picture, all roof coverings side by side, twenty equal houses, damaged and charred houses; forest by day, low sun and night, desert, winter (opens a window); e.g. --biomes=forest --daytimes=day --only=village-35
+[group('terrain')]
+roof-shots dir="build/roof-shots" map="test_large" *args: build
+    {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- --objects-bench --roofs --out="$(cd "{{ invocation_directory() }}" && mkdir -p "{{ dir }}" && cd "{{ dir }}" && pwd)" --map={{ map }} {{ args }}
+
 # --- Effects (prompt 019) ------------------------------------------------------------
 
 # Show every effect in fixed views and save PNG screenshots into a folder (also desert, winter)

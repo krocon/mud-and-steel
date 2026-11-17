@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Does the ground texture stick to the ground while the camera moves? (prompt 071)
 #
-#   tools/ground-motion.sh [<dir>] [--png] [--near] [--off=<part,...>]
+#   tools/ground-motion.sh [<dir>] [--png] [--near] [--tall] [--roofs] [--off=<part,...>]
 #
 # Records the trailer shots `column_high` (farms, near the map centre) and
 # `survey_ground` (test_large, near a corner, where a texture that depends on
@@ -16,6 +16,8 @@
 # --tall (prompt 073) records the same pans over tall grass
 # (`tall_near_15/35/55` on tall_grass_test) and one at 110 m, where the
 # terrain draws the stand.
+# --roofs (prompt 075) records the pans `roof_near_15/35/110` over the town
+# houses of town_small and measures windows on the roofs instead.
 # --off=<parts> turns parts of the picture off for the analysis
 # (`--trailer-off=` of trailer_shots.gd: tufts, ground, shadows, wind, dof,
 # ssao, msaa; fxaa, taa turn those on).
@@ -28,12 +30,14 @@ out="build/ground-motion"
 png=0
 near=0
 tall=0
+roofs=0
 off=()
 for arg in "$@"; do
     case "$arg" in
         --png) png=1 ;;
         --near) near=1 ;;
         --tall) tall=1 ;;
+        --roofs) roofs=1 ;;
         --off=*) off=("--trailer-off=${arg#--off=}") ;;
         -*) echo "unknown argument: $arg" >&2; exit 2 ;;
         *) out="$arg" ;;
@@ -62,6 +66,14 @@ if [ "$tall" = 1 ]; then
         "tall_near_35|60|60|grass=480x320+720+560"
         "tall_near_55|60|60|grass=480x320+720+380 far=400x160+150+220"
         "tall_near_110|60|60|grass=480x320+720+500"
+    )
+fi
+
+if [ "$roofs" = 1 ]; then
+    measure=(
+        "roof_near_15|60|60|roof=480x320+720+620"
+        "roof_near_35|60|60|roof=400x160+900+600"
+        "roof_near_110|60|60|roof=240x64+980+685"
     )
 fi
 
