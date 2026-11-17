@@ -1537,7 +1537,7 @@
     }
   },
   {
-    "id": "su_ot133",
+    "id": "su_ot130",
     "name": "OT-130",
     "type": "Flamethrower Tank",
     "family": "T-26",
@@ -2591,110 +2591,6 @@
     },
     "notes": [
       "A total of 2540 T-27 series tankettes were produced. The estimate for T-27A production is based on total production for 1932."
-    ]
-  },
-  {
-    "id": "su_t28",
-    "name": "T-28 Model 1934",
-    "type": "Medium Tank",
-    "family": "T-28",
-    "source": {
-      "name": "onwar.com (Ralph Zuljan)",
-      "url": "https://www.onwar.com/wwii/tanks/ussr/su029t28m34.html",
-      "fetched": "2026-11-16",
-      "references": [
-        "WWW2",
-        "ST",
-        "RT",
-        "RTAV",
-        "OOBT"
-      ]
-    },
-    "general": {
-      "designation": "T-28 Model 1934",
-      "manufacturer": "Red Putilov Factory later renamed Factory No.100 Kirovskiy Works",
-      "production_quantity": 318,
-      "production_period": "1934-1938",
-      "crew": 6,
-      "length_mm": 7400,
-      "width_mm": 2900,
-      "height_mm": 2800,
-      "barrel_overhang_mm": 0,
-      "mass_kg": 28000,
-      "radio": "71-TK-1",
-      "text": {
-        "production_quantity": "about 318 [1]"
-      }
-    },
-    "firepower": {
-      "main_gun": "76.2mm Gun KT-28",
-      "main_gun_caliber_mm_x10": 762,
-      "main_ammo": 70,
-      "traverse_deg": 360,
-      "traverse_drive": "manual",
-      "elevation_min_deg_x10": -100,
-      "elevation_max_deg_x10": 400,
-      "sight": "TOP, POP",
-      "secondary": "3-4 x 7.62mm DT MG (coaxial, 1 x 2 MG turrets, turret rear)",
-      "secondary_ammo": 7938
-    },
-    "mobility": {
-      "engine": "M-17",
-      "engine_type": "V12",
-      "power_hp": 450,
-      "power_rpm": 1750,
-      "power_to_weight_hp_per_t_x10": 161,
-      "gearbox": "5 forward, 1 reverse",
-      "gears_forward": 5,
-      "gears_reverse": 1,
-      "fuel": "Gasoline (Petrol)",
-      "fuel_capacity_l": 650,
-      "consumption_road_l_per_100km": 295,
-      "range_road_km": 220,
-      "range_offroad_km": 160,
-      "speed_road_kmh_x10": 370,
-      "track_width_mm": 390,
-      "track_ground_contact_mm": 5350,
-      "track_links": 76,
-      "ground_pressure_psi_x10": 95,
-      "ground_pressure_kpa_x10": 655,
-      "ground_clearance_mm": 560,
-      "gradient_deg": 45,
-      "vertical_obstacle_mm": 1000,
-      "fording_mm": 800,
-      "trench_crossing_mm": 2900
-    },
-    "armor": {
-      "hull": {
-        "front": { "mm": 30, "deg": 65 },
-        "side": { "mm": 20, "deg": 90 },
-        "rear": { "mm": 20, "deg": 20 },
-        "top_bottom": { "mm": 15, "deg": 0 }
-      },
-      "superstructure": {
-        "front": { "mm": 15, "text": "15mm @25°(glacis)" },
-        "side": { "mm": 20, "deg": 80 },
-        "rear": { "mm": 10, "deg": 85 },
-        "top_bottom": { "mm_min": 10, "mm_max": 15, "deg": 0, "text": "10-15mm @0°" }
-      },
-      "turret": {
-        "front": { "mm": 20, "deg": 90 },
-        "side": { "mm": 20, "text": "20mm @90" },
-        "rear": { "mm": 20, "text": "20mm @90" },
-        "top_bottom": { "mm": 15, "deg": 0 }
-      },
-      "mg_turrets": {
-        "front": { "mm": 22, "deg": 90 },
-        "side": { "mm": 20, "deg": 90 },
-        "rear": { "mm": 20, "deg": 90 },
-        "top_bottom": { "mm": 10, "text": "10mm @0-5°" }
-      },
-      "mantlet": {
-        "front": { "mm": 20, "deg": 90 }
-      }
-    },
-    "notes": [
-      "Estimate based on Kirov production statistics of the T-28 for the years 1934-1938 found in RTAV."
     ]
   },
   {

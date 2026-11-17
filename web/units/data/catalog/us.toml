@@ -1108,3 +1108,788 @@ source = [
 ]
 uncertain = ["passengers"]
 note = "Standard US transport and paratroop aircraft. Unarmed, so no weapon is listed. passengers = troop seats (28); a paratroop stick was 15-18 men."
+
+[[unit]]
+id = "us_m18"
+faction = "us"
+category = "tank_destroyer"
+name_de = "Jagdpanzer M18 \"Hellcat\""
+name_en = "M18 Hellcat"
+designation = "76 mm Gun Motor Carriage M18"
+year_from = 1943
+year_to = 1944
+tier = 3
+model = ""
+length_mm = 6650
+length_hull_mm = 5280
+width_mm = 2870
+height_mm = 2570
+mass_kg = 17700
+crew = 5
+speed_road_kmh_x10 = 800
+speed_offroad_kmh_x10 = 400
+range_road_km = 161
+power_hp = 460
+armor_hull_front_mm = 13
+armor_hull_side_mm = 13
+armor_hull_rear_mm = 13
+armor_turret_front_mm = 25
+armor_turret_side_mm = 13
+armor_turret_rear_mm = 13
+weapon = [
+    { name = "76 mm Gun M1A1", caliber_mm_x10 = 762, ammo = "M62 APC, M93 HVAP, M42A1 HE", rate_rpm = 10, muzzle_velocity_mps = 792, range_effective_m = 1500, range_typical_m = 700, ammo_carried = 45 },
+    { name = "Browning M2HB (AA)", caliber_mm_x10 = 127, rate_rpm = 500, muzzle_velocity_mps = 887, ammo_carried = 800, aa = true },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/usa/us024tdm18.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Jul. 1943-Oct. 1944); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/76_mm_gun_M1", covers = "76 mm M1A1/M1A2: M62 792 m/s (article not re-read for prompt 063)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+]
+uncertain = ["speed_offroad_kmh_x10", "weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Off-road speed not in the source: half the road speed (estimate). range_typical_m (prompt 067): class values of SCHEMA.md (76 mm Gun M1A1 700 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "us_m22"
+faction = "us"
+category = "tank_light"
+name_de = "Luftlandepanzer M22 \"Locust\""
+name_en = "M22 Locust"
+designation = "Light Tank (Airborne) M22"
+year_from = 1943
+year_to = 1944
+tier = 3
+model = ""
+length_mm = 3960
+length_hull_mm = 3930
+width_mm = 2250
+height_mm = 1840
+mass_kg = 7400
+crew = 4
+speed_road_kmh_x10 = 580
+speed_offroad_kmh_x10 = 290
+range_road_km = 177
+power_hp = 192
+armor_hull_front_mm = 25
+armor_hull_side_mm = 13
+armor_hull_rear_mm = 13
+armor_turret_front_mm = 25
+armor_turret_side_mm = 25
+armor_turret_rear_mm = 25
+armor_hull_front_deg = 65
+weapon = [
+    { name = "37 mm Gun M6", caliber_mm_x10 = 370, ammo = "M51 APC, M63 HE, M2 canister", rate_rpm = 20, muzzle_velocity_mps = 884, range_effective_m = 800, range_typical_m = 500, ammo_carried = 50 },
+    { name = "Browning M1919A4", caliber_mm_x10 = 76, rate_rpm = 500, muzzle_velocity_mps = 853, ammo_carried = 2500 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/usa/us005ltm22.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Apr. 1943-Feb. 1944); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/M3_Stuart", covers = "37 mm M6 values as in us_m5a1 (same gun)" },
+]
+uncertain = ["speed_offroad_kmh_x10", "weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Off-road speed not in the source: half the road speed (estimate). range_typical_m (prompt 067): class values of SCHEMA.md (37 mm Gun M6 500 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "us_m24"
+faction = "us"
+category = "tank_light"
+name_de = "Leichter Panzer M24 \"Chaffee\""
+name_en = "M24 Chaffee"
+designation = "Light Tank M24"
+year_from = 1944
+year_to = 1945
+tier = 3
+model = ""
+length_mm = 5560
+length_hull_mm = 5030
+width_mm = 3000
+height_mm = 2770
+mass_kg = 18400
+crew = 4
+speed_road_kmh_x10 = 560
+speed_offroad_kmh_x10 = 280
+range_road_km = 161
+power_hp = 296
+armor_hull_front_mm = 25
+armor_hull_side_mm = 25
+armor_hull_rear_mm = 19
+armor_turret_front_mm = 38
+armor_turret_side_mm = 25
+armor_turret_rear_mm = 25
+armor_hull_front_deg = 60
+weapon = [
+    { name = "75 mm Gun M6", caliber_mm_x10 = 750, ammo = "M61 APC, M72 AP, M48 HE", rate_rpm = 10, muzzle_velocity_mps = 619, range_effective_m = 1000, range_typical_m = 700, ammo_carried = 48 },
+    { name = "Browning M2HB (AA)", caliber_mm_x10 = 127, rate_rpm = 500, muzzle_velocity_mps = 887, ammo_carried = 440, aa = true },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/usa/us006ltm24.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Apr. 1944-Aug. 1945); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/75_mm_gun_M2/M3/M6", covers = "M6: lightweight M3 with the same ballistics, 619 m/s (article not re-read for prompt 063)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+]
+uncertain = ["length_mm", "length_hull_mm", "speed_offroad_kmh_x10", "weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Length \"5.56/5.03\" in the source: 5.56 m overall and 5.03 m hull taken. The source lists only the AA MG (two M1919A4 omitted). Off-road speed not in the source: half the road speed (estimate). range_typical_m (prompt 067): class values of SCHEMA.md (75 mm Gun M6 700 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "us_m36"
+faction = "us"
+category = "tank_destroyer"
+name_de = "Jagdpanzer M36"
+name_en = "M36 tank destroyer"
+designation = "90 mm Gun Motor Carriage M36"
+year_from = 1944
+year_to = 1945
+tier = 3
+model = ""
+length_mm = 7460
+length_hull_mm = 5970
+width_mm = 3050
+height_mm = 3280
+mass_kg = 28600
+crew = 5
+speed_road_kmh_x10 = 420
+speed_offroad_kmh_x10 = 300
+range_road_km = 249
+power_hp = 500
+armor_hull_front_mm = 108
+armor_hull_side_mm = 25
+armor_hull_rear_mm = 19
+armor_turret_front_mm = 76
+armor_turret_side_mm = 32
+armor_turret_rear_mm = 127
+armor_hull_front_deg = 55
+weapon = [
+    { name = "90 mm Gun M3", caliber_mm_x10 = 900, ammo = "M82 APC, T30E16 HVAP, M71 HE", rate_rpm = 8, muzzle_velocity_mps = 853, range_effective_m = 1500, range_typical_m = 1000, ammo_carried = 47 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/usa/us023m36.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Apr. 1944-July 1945); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/M26_Pershing", covers = "90 mm M3 values as in us_m26 (same gun)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+]
+uncertain = ["speed_road_kmh_x10", "speed_offroad_kmh_x10", "weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Speed \"42/8-32 km/h\" in the source: 42 km/h road and 30 km/h off-road (inside the range) taken. No drawing: built from the drawing of us_m10 (same hull). range_typical_m (prompt 067): class values of SCHEMA.md (90 mm Gun M3 1000 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "us_m3_lee"
+faction = "us"
+category = "tank_medium"
+name_de = "Mittlerer Panzer M3 \"Lee\""
+name_en = "M3 Lee"
+designation = "Medium Tank M3"
+year_from = 1941
+year_to = 1942
+tier = 3
+model = ""
+length_mm = 6120
+length_hull_mm = 5640
+width_mm = 2720
+height_mm = 3120
+mass_kg = 27900
+crew = 6
+speed_road_kmh_x10 = 340
+speed_offroad_kmh_x10 = 170
+range_road_km = 193
+power_hp = 400
+armor_hull_front_mm = 51
+armor_hull_side_mm = 38
+armor_hull_rear_mm = 38
+armor_turret_front_mm = 89
+armor_turret_side_mm = 51
+armor_turret_rear_mm = 51
+weapon = [
+    { name = "75 mm Gun M2 (hull)", caliber_mm_x10 = 750, ammo = "M61 APC, M72 AP, M48 HE", rate_rpm = 10, muzzle_velocity_mps = 588, range_effective_m = 1000, range_typical_m = 700, ammo_carried = 50 },
+    { name = "37 mm Gun M5 (turret)", caliber_mm_x10 = 370, ammo = "M51 APC, M63 HE, M2 canister", rate_rpm = 20, muzzle_velocity_mps = 884, range_effective_m = 800, range_typical_m = 500 },
+    { name = "Browning M1919A4", count = 3, caliber_mm_x10 = 76, rate_rpm = 500, muzzle_velocity_mps = 853, ammo_carried = 9200 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/usa/us010m3med.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Jun. 1941-Aug. 1942); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/75_mm_gun_M2/M3/M6", covers = "M2 L/31: M61 about 588 m/s (article not re-read for prompt 063)" },
+    { ref = "https://en.wikipedia.org/wiki/M3_Stuart", covers = "37 mm M5 / M6: same ballistics, values as in us_m5a1 (M6)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+]
+uncertain = ["length_mm", "length_hull_mm", "crew", "speed_offroad_kmh_x10", "weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. The source gives length \"6.12 or 5.64*/5.64\" (with the long M3 or the short M2 gun) and crew \"6 or 7\": 6.12 m, hull 5.64 m and crew 6 (without the radio operator) taken, and the short M2 gun of the early tanks. 75 mm ammunition 50 rounds (the source's \"75mm: 50\"; the vehicle database reads 75). Off-road speed not in the source: half the road speed (estimate). range_typical_m (prompt 067): class values of SCHEMA.md (75 mm Gun M2 700 m, 37 mm Gun M5 500 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "us_m3_stuart"
+faction = "us"
+category = "tank_light"
+name_de = "Leichter Panzer M3 \"Stuart\""
+name_en = "M3 Stuart"
+designation = "Light Tank M3"
+year_from = 1941
+year_to = 1942
+tier = 3
+model = ""
+length_mm = 4530
+width_mm = 2240
+height_mm = 2640
+mass_kg = 12700
+crew = 4
+speed_road_kmh_x10 = 580
+speed_offroad_kmh_x10 = 290
+range_road_km = 113
+power_hp = 262
+armor_hull_front_mm = 44
+armor_hull_side_mm = 25
+armor_hull_rear_mm = 25
+armor_turret_front_mm = 38
+armor_turret_side_mm = 25
+armor_turret_rear_mm = 25
+weapon = [
+    { name = "37 mm Gun M5", caliber_mm_x10 = 370, ammo = "M51 APC, M63 HE, M2 canister", rate_rpm = 20, muzzle_velocity_mps = 884, range_effective_m = 800, range_typical_m = 500, ammo_carried = 103 },
+    { name = "Browning M1919A4", count = 5, caliber_mm_x10 = 76, rate_rpm = 500, muzzle_velocity_mps = 853, ammo_carried = 8270 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/usa/us001ltm3.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Mar. 1941-Oct. 1942); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/M3_Stuart", covers = "37 mm M5 / M6: same ballistics, values as in us_m5a1 (M6)" },
+]
+uncertain = ["speed_offroad_kmh_x10", "weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Five M1919A4: coaxial, bow, AA and two fixed in the sponsons. Off-road speed not in the source: half the road speed (estimate). range_typical_m (prompt 067): class values of SCHEMA.md (37 mm Gun M5 500 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "us_m3a1_lee"
+faction = "us"
+category = "tank_medium"
+name_de = "Mittlerer Panzer M3A1 \"Lee\""
+name_en = "M3A1 Lee"
+designation = "Medium Tank M3A1"
+year_from = 1942
+year_to = 1942
+tier = 3
+model = ""
+length_mm = 6120
+length_hull_mm = 5640
+width_mm = 2720
+height_mm = 3120
+mass_kg = 28600
+crew = 6
+speed_road_kmh_x10 = 340
+speed_offroad_kmh_x10 = 170
+range_road_km = 193
+power_hp = 400
+armor_hull_front_mm = 51
+armor_hull_side_mm = 38
+armor_hull_rear_mm = 38
+armor_turret_front_mm = 89
+armor_turret_side_mm = 51
+armor_turret_rear_mm = 51
+weapon = [
+    { name = "75 mm Gun M3 (hull)", caliber_mm_x10 = 750, ammo = "M61 APC, M72 AP, M48 HE, M89 smoke", rate_rpm = 10, muzzle_velocity_mps = 619, range_effective_m = 1000, range_typical_m = 700, ammo_carried = 50 },
+    { name = "37 mm Gun M6 (turret)", caliber_mm_x10 = 370, ammo = "M51 APC, M63 HE, M2 canister", rate_rpm = 20, muzzle_velocity_mps = 884, range_effective_m = 800, range_typical_m = 500 },
+    { name = "Browning M1919A4", count = 3, caliber_mm_x10 = 76, rate_rpm = 500, muzzle_velocity_mps = 853, ammo_carried = 9200 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/usa/us007m3a1med.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Jan. 1942-Jul. 1942); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/75_mm_gun_M2/M3/M6", covers = "M3 values as in us_m4a3_75 (same gun)" },
+    { ref = "https://en.wikipedia.org/wiki/M3_Stuart", covers = "37 mm M6 values as in us_m5a1 (same gun)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+]
+uncertain = ["length_mm", "length_hull_mm", "crew", "speed_offroad_kmh_x10", "weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Cast upper hull. The source gives length \"6.12-5.64*/5.64\" and crew \"6 or 7\": 6.12 m (long M3 gun), hull 5.64 m, crew 6 taken. 75 mm ammunition 50 rounds (the vehicle database reads 75). Off-road speed not in the source: half the road speed (estimate). range_typical_m (prompt 067): class values of SCHEMA.md (75 mm Gun M3 700 m, 37 mm Gun M6 500 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "us_m3a1_stuart"
+faction = "us"
+category = "tank_light"
+name_de = "Leichter Panzer M3A1 \"Stuart\""
+name_en = "M3A1 Stuart"
+designation = "Light Tank M3A1"
+year_from = 1942
+year_to = 1943
+tier = 3
+model = ""
+length_mm = 4530
+width_mm = 2240
+height_mm = 2390
+mass_kg = 12900
+crew = 4
+speed_road_kmh_x10 = 580
+speed_offroad_kmh_x10 = 290
+range_road_km = 113
+power_hp = 262
+armor_hull_front_mm = 44
+armor_hull_side_mm = 25
+armor_hull_rear_mm = 25
+armor_turret_front_mm = 38
+armor_turret_side_mm = 25
+armor_turret_rear_mm = 25
+weapon = [
+    { name = "37 mm Gun M6", caliber_mm_x10 = 370, ammo = "M51 APC, M63 HE, M2 canister", rate_rpm = 20, muzzle_velocity_mps = 884, range_effective_m = 800, range_typical_m = 500, ammo_carried = 106 },
+    { name = "Browning M1919A4", count = 3, caliber_mm_x10 = 76, rate_rpm = 500, muzzle_velocity_mps = 853, ammo_carried = 7220 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/usa/us002ltm3a1.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (May 1942-Jan. 1943); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/M3_Stuart", covers = "37 mm M6 values as in us_m5a1 (same gun)" },
+]
+uncertain = ["speed_offroad_kmh_x10", "weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Off-road speed not in the source: half the road speed (estimate). range_typical_m (prompt 067): class values of SCHEMA.md (37 mm Gun M6 500 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "us_m3a3_lee"
+faction = "us"
+category = "tank_medium"
+name_de = "Mittlerer Panzer M3A3 \"Lee\""
+name_en = "M3A3 Lee"
+designation = "Medium Tank M3A3"
+year_from = 1942
+year_to = 1942
+tier = 3
+model = ""
+length_mm = 6120
+length_hull_mm = 5640
+width_mm = 2720
+height_mm = 3120
+mass_kg = 27900
+crew = 6
+speed_road_kmh_x10 = 400
+speed_offroad_kmh_x10 = 200
+range_road_km = 241
+power_hp = 410
+armor_hull_front_mm = 51
+armor_hull_side_mm = 38
+armor_hull_rear_mm = 38
+armor_turret_front_mm = 89
+armor_turret_side_mm = 51
+armor_turret_rear_mm = 51
+weapon = [
+    { name = "75 mm Gun M3 (hull)", caliber_mm_x10 = 750, ammo = "M61 APC, M72 AP, M48 HE, M89 smoke", rate_rpm = 10, muzzle_velocity_mps = 619, range_effective_m = 1000, range_typical_m = 700, ammo_carried = 50 },
+    { name = "37 mm Gun M6 (turret)", caliber_mm_x10 = 370, ammo = "M51 APC, M63 HE, M2 canister", rate_rpm = 20, muzzle_velocity_mps = 884, range_effective_m = 800, range_typical_m = 500 },
+    { name = "Browning M1919A4", count = 3, caliber_mm_x10 = 76, rate_rpm = 500, muzzle_velocity_mps = 853, ammo_carried = 9200 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/usa/us008m3a3med.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Mar. 1942-Dec. 1942); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/75_mm_gun_M2/M3/M6", covers = "M3 values as in us_m4a3_75 (same gun)" },
+    { ref = "https://en.wikipedia.org/wiki/M3_Stuart", covers = "37 mm M6 values as in us_m5a1 (same gun)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+]
+uncertain = ["length_mm", "length_hull_mm", "crew", "speed_offroad_kmh_x10", "weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Welded hull, twin GM diesel. The source gives length \"6.12 or 5.64*/5.64\" and crew \"6 or 7\": 6.12 m (long M3 gun), hull 5.64 m, crew 6 taken. 75 mm ammunition 50 rounds (the vehicle database reads 75). Off-road speed not in the source: half the road speed (estimate). range_typical_m (prompt 067): class values of SCHEMA.md (75 mm Gun M3 700 m, 37 mm Gun M6 500 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "us_m3a3_stuart"
+faction = "us"
+category = "tank_light"
+name_de = "Leichter Panzer M3A3 \"Stuart\""
+name_en = "M3A3 Stuart"
+designation = "Light Tank M3A3"
+year_from = 1942
+year_to = 1943
+tier = 3
+model = ""
+length_mm = 5030
+width_mm = 2520
+height_mm = 2570
+mass_kg = 14700
+crew = 4
+speed_road_kmh_x10 = 500
+speed_offroad_kmh_x10 = 250
+range_road_km = 217
+power_hp = 262
+armor_hull_front_mm = 44
+armor_hull_side_mm = 25
+armor_hull_rear_mm = 25
+armor_turret_front_mm = 51
+armor_turret_side_mm = 32
+armor_turret_rear_mm = 32
+armor_hull_front_deg = 48
+weapon = [
+    { name = "37 mm Gun M6", caliber_mm_x10 = 370, ammo = "M51 APC, M63 HE, M2 canister", rate_rpm = 20, muzzle_velocity_mps = 884, range_effective_m = 800, range_typical_m = 500, ammo_carried = 174 },
+    { name = "Browning M1919A4", count = 3, caliber_mm_x10 = 76, rate_rpm = 500, muzzle_velocity_mps = 853, ammo_carried = 7500 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/usa/us003ltm3a3.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Sept. 1942-Sept. 1943); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/M3_Stuart", covers = "37 mm M6 values as in us_m5a1 (same gun)" },
+]
+uncertain = ["speed_offroad_kmh_x10", "weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Off-road speed not in the source: half the road speed (estimate). range_typical_m (prompt 067): class values of SCHEMA.md (37 mm Gun M6 500 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "us_m3a4_lee"
+faction = "us"
+category = "tank_medium"
+name_de = "Mittlerer Panzer M3A4 \"Lee\""
+name_en = "M3A4 Lee"
+designation = "Medium Tank M3A4"
+year_from = 1942
+year_to = 1942
+tier = 3
+model = ""
+length_mm = 6630
+length_hull_mm = 6150
+width_mm = 2640
+height_mm = 3120
+mass_kg = 29000
+crew = 6
+speed_road_kmh_x10 = 320
+speed_offroad_kmh_x10 = 160
+range_road_km = 161
+power_hp = 425
+armor_hull_front_mm = 51
+armor_hull_side_mm = 38
+armor_hull_rear_mm = 38
+armor_turret_front_mm = 89
+armor_turret_side_mm = 51
+armor_turret_rear_mm = 51
+weapon = [
+    { name = "75 mm Gun M3 (hull)", caliber_mm_x10 = 750, ammo = "M61 APC, M72 AP, M48 HE, M89 smoke", rate_rpm = 10, muzzle_velocity_mps = 619, range_effective_m = 1000, range_typical_m = 700, ammo_carried = 50 },
+    { name = "37 mm Gun M6 (turret)", caliber_mm_x10 = 370, ammo = "M51 APC, M63 HE, M2 canister", rate_rpm = 20, muzzle_velocity_mps = 884, range_effective_m = 800, range_typical_m = 500 },
+    { name = "Browning M1919A4", count = 3, caliber_mm_x10 = 76, rate_rpm = 500, muzzle_velocity_mps = 853, ammo_carried = 9200 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/usa/us009m3a4med.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Jun. 1942-Aug. 1942); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/75_mm_gun_M2/M3/M6", covers = "M3 values as in us_m4a3_75 (same gun)" },
+    { ref = "https://en.wikipedia.org/wiki/M3_Stuart", covers = "37 mm M6 values as in us_m5a1 (same gun)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+]
+uncertain = ["length_mm", "length_hull_mm", "crew", "speed_offroad_kmh_x10", "weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Lengthened hull for the Chrysler multibank engine. The source gives length \"6.63 or 6.15*/6.15\" and crew \"6 or 7\": 6.63 m (long M3 gun), hull 6.15 m, crew 6 taken. 75 mm ammunition 50 rounds (the vehicle database reads 75). Off-road speed not in the source: half the road speed (estimate). range_typical_m (prompt 067): class values of SCHEMA.md (75 mm Gun M3 700 m, 37 mm Gun M6 500 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "us_m4"
+faction = "us"
+category = "tank_medium"
+name_de = "Mittlerer Panzer M4 \"Sherman\""
+name_en = "M4 Sherman"
+designation = "Medium Tank M4"
+year_from = 1942
+year_to = 1944
+tier = 3
+model = ""
+length_mm = 5890
+width_mm = 2620
+height_mm = 2740
+mass_kg = 30300
+crew = 5
+speed_road_kmh_x10 = 340
+speed_offroad_kmh_x10 = 170
+range_road_km = 193
+power_hp = 400
+armor_hull_front_mm = 51
+armor_hull_side_mm = 38
+armor_hull_rear_mm = 38
+armor_turret_front_mm = 89
+armor_turret_side_mm = 51
+armor_turret_rear_mm = 51
+armor_hull_front_deg = 56
+weapon = [
+    { name = "75 mm Gun M3", caliber_mm_x10 = 750, ammo = "M61 APC, M72 AP, M48 HE, M89 smoke", rate_rpm = 10, muzzle_velocity_mps = 619, range_effective_m = 1000, range_typical_m = 700, ammo_carried = 97 },
+    { name = "Browning M1919A4", count = 2, caliber_mm_x10 = 76, rate_rpm = 500, muzzle_velocity_mps = 853, ammo_carried = 4750 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/usa/us011m4.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (July 1942-Jan. 1944); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/75_mm_gun_M2/M3/M6", covers = "M3 values as in us_m4a3_75 (same gun)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+]
+uncertain = ["speed_offroad_kmh_x10", "weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Mid production (welded hull). The source lists no .50 AA MG. Off-road speed not in the source: half the road speed (estimate). range_typical_m (prompt 067): class values of SCHEMA.md (75 mm Gun M3 700 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "us_m4a1"
+faction = "us"
+category = "tank_medium"
+name_de = "Mittlerer Panzer M4A1 \"Sherman\""
+name_en = "M4A1 Sherman"
+designation = "Medium Tank M4A1"
+year_from = 1942
+year_to = 1943
+tier = 3
+model = ""
+length_mm = 5840
+width_mm = 2620
+height_mm = 2740
+mass_kg = 30300
+crew = 5
+speed_road_kmh_x10 = 340
+speed_offroad_kmh_x10 = 170
+range_road_km = 193
+power_hp = 400
+armor_hull_front_mm = 51
+armor_hull_side_mm = 38
+armor_hull_rear_mm = 38
+armor_turret_front_mm = 76
+armor_turret_side_mm = 51
+armor_turret_rear_mm = 51
+weapon = [
+    { name = "75 mm Gun M3", caliber_mm_x10 = 750, ammo = "M61 APC, M72 AP, M48 HE, M89 smoke", rate_rpm = 10, muzzle_velocity_mps = 619, range_effective_m = 1000, range_typical_m = 700, ammo_carried = 90 },
+    { name = "Browning M1919A4", count = 2, caliber_mm_x10 = 76, rate_rpm = 500, muzzle_velocity_mps = 853, ammo_carried = 4750 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/usa/us012m4a1.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Feb. 1942-Dec. 1943); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/75_mm_gun_M2/M3/M6", covers = "M3 values as in us_m4a3_75 (same gun)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+]
+uncertain = ["speed_offroad_kmh_x10", "weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Cast hull, early production. Off-road speed not in the source: half the road speed (estimate). range_typical_m (prompt 067): class values of SCHEMA.md (75 mm Gun M3 700 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "us_m4a1_76w"
+faction = "us"
+category = "tank_medium"
+name_de = "Mittlerer Panzer M4A1(76)W \"Sherman\""
+name_en = "M4A1(76)W Sherman"
+designation = "Medium Tank M4A1(76)W"
+year_from = 1944
+year_to = 1945
+tier = 3
+model = ""
+length_mm = 7470
+length_hull_mm = 5840
+width_mm = 2670
+height_mm = 2970
+mass_kg = 32000
+crew = 5
+speed_road_kmh_x10 = 340
+speed_offroad_kmh_x10 = 170
+range_road_km = 161
+power_hp = 460
+armor_hull_front_mm = 108
+armor_hull_side_mm = 38
+armor_hull_rear_mm = 38
+armor_turret_front_mm = 89
+armor_turret_side_mm = 64
+armor_turret_rear_mm = 64
+weapon = [
+    { name = "76 mm Gun M1A1", caliber_mm_x10 = 762, ammo = "M62 APC, M93 HVAP, M42A1 HE", rate_rpm = 10, muzzle_velocity_mps = 792, range_effective_m = 1500, range_typical_m = 700, ammo_carried = 71 },
+    { name = "Browning M1919A4", count = 2, caliber_mm_x10 = 76, rate_rpm = 500, muzzle_velocity_mps = 853, ammo_carried = 6250 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/usa/us017m4a176w.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Jan. 1944-Jul. 1945); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/76_mm_gun_M1", covers = "76 mm M1A1/M1A2: M62 792 m/s (article not re-read for prompt 063)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+]
+uncertain = ["speed_offroad_kmh_x10", "weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Off-road speed not in the source: half the road speed (estimate). range_typical_m (prompt 067): class values of SCHEMA.md (76 mm Gun M1A1 700 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "us_m4a2"
+faction = "us"
+category = "tank_medium"
+name_de = "Mittlerer Panzer M4A2 \"Sherman\""
+name_en = "M4A2 Sherman"
+designation = "Medium Tank M4A2"
+year_from = 1942
+year_to = 1944
+tier = 3
+model = ""
+length_mm = 5920
+width_mm = 2620
+height_mm = 2740
+mass_kg = 31800
+crew = 5
+speed_road_kmh_x10 = 340
+speed_offroad_kmh_x10 = 170
+range_road_km = 241
+power_hp = 410
+armor_hull_front_mm = 108
+armor_hull_side_mm = 38
+armor_hull_rear_mm = 38
+armor_turret_front_mm = 89
+armor_turret_side_mm = 51
+armor_turret_rear_mm = 51
+armor_hull_front_deg = 47
+weapon = [
+    { name = "75 mm Gun M3", caliber_mm_x10 = 750, ammo = "M61 APC, M72 AP, M48 HE, M89 smoke", rate_rpm = 10, muzzle_velocity_mps = 619, range_effective_m = 1000, range_typical_m = 700, ammo_carried = 97 },
+    { name = "Browning M1919A4", count = 2, caliber_mm_x10 = 76, rate_rpm = 500, muzzle_velocity_mps = 853, ammo_carried = 4750 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/usa/us013m4a2.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Apr. 1942-May 1944); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/75_mm_gun_M2/M3/M6", covers = "M3 values as in us_m4a3_75 (same gun)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+]
+uncertain = ["speed_offroad_kmh_x10", "weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Twin GM diesel; mostly Lend-Lease to the Soviet Union and the British. Off-road speed not in the source: half the road speed (estimate). range_typical_m (prompt 067): class values of SCHEMA.md (75 mm Gun M3 700 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "us_m4a2_76w"
+faction = "us"
+category = "tank_medium"
+name_de = "Mittlerer Panzer M4A2(76)W \"Sherman\""
+name_en = "M4A2(76)W Sherman"
+designation = "Medium Tank M4A2(76)W"
+year_from = 1944
+year_to = 1945
+tier = 3
+model = ""
+length_mm = 7570
+length_hull_mm = 5920
+width_mm = 2670
+height_mm = 2970
+mass_kg = 33300
+crew = 5
+speed_road_kmh_x10 = 340
+speed_offroad_kmh_x10 = 170
+range_road_km = 161
+power_hp = 410
+armor_hull_front_mm = 108
+armor_hull_side_mm = 38
+armor_hull_rear_mm = 38
+armor_turret_front_mm = 89
+armor_turret_side_mm = 64
+armor_turret_rear_mm = 64
+armor_hull_front_deg = 47
+weapon = [
+    { name = "76 mm Gun M1A1", caliber_mm_x10 = 762, ammo = "M62 APC, M93 HVAP, M42A1 HE", rate_rpm = 10, muzzle_velocity_mps = 792, range_effective_m = 1500, range_typical_m = 700, ammo_carried = 71 },
+    { name = "Browning M1919A4", count = 2, caliber_mm_x10 = 76, rate_rpm = 500, muzzle_velocity_mps = 853, ammo_carried = 6250 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/usa/us018m4a276w.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (May 1944-May 1945); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/76_mm_gun_M1", covers = "76 mm M1A1/M1A2: M62 792 m/s (article not re-read for prompt 063)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+]
+uncertain = ["speed_offroad_kmh_x10", "weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Off-road speed not in the source: half the road speed (estimate). range_typical_m (prompt 067): class values of SCHEMA.md (76 mm Gun M1A1 700 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "us_m4a3"
+faction = "us"
+category = "tank_medium"
+name_de = "Mittlerer Panzer M4A3 \"Sherman\""
+name_en = "M4A3 Sherman"
+designation = "Medium Tank M4A3"
+year_from = 1942
+year_to = 1943
+tier = 3
+model = ""
+length_mm = 5910
+width_mm = 2610
+height_mm = 2740
+mass_kg = 30300
+crew = 5
+speed_road_kmh_x10 = 420
+speed_offroad_kmh_x10 = 210
+range_road_km = 209
+power_hp = 500
+armor_hull_front_mm = 51
+armor_hull_side_mm = 38
+armor_hull_rear_mm = 38
+armor_turret_front_mm = 89
+armor_turret_side_mm = 51
+armor_turret_rear_mm = 51
+armor_hull_front_deg = 56
+weapon = [
+    { name = "75 mm Gun M3", caliber_mm_x10 = 750, ammo = "M61 APC, M72 AP, M48 HE, M89 smoke", rate_rpm = 10, muzzle_velocity_mps = 619, range_effective_m = 1000, range_typical_m = 700, ammo_carried = 97 },
+    { name = "Browning M1919A4", count = 2, caliber_mm_x10 = 76, rate_rpm = 500, muzzle_velocity_mps = 853, ammo_carried = 4750 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/usa/us014m4a3.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (June 1942-Sept. 1943); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/75_mm_gun_M2/M3/M6", covers = "M3 values as in us_m4a3_75 (same gun)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+]
+uncertain = ["speed_offroad_kmh_x10", "weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Ford GAA engine, dry stowage (mid production). Off-road speed not in the source: half the road speed (estimate). range_typical_m (prompt 067): class values of SCHEMA.md (75 mm Gun M3 700 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "us_m4a3_76w_hvss"
+faction = "us"
+category = "tank_medium"
+name_de = "Mittlerer Panzer M4A3(76)W HVSS \"Sherman\""
+name_en = "M4A3(76)W HVSS Sherman (Easy Eight)"
+designation = "Medium Tank M4A3E8"
+year_from = 1944
+year_to = 1945
+tier = 3
+model = ""
+length_mm = 7540
+length_hull_mm = 6270
+width_mm = 3000
+height_mm = 2970
+mass_kg = 33650
+crew = 5
+speed_road_kmh_x10 = 420
+speed_offroad_kmh_x10 = 210
+range_road_km = 161
+power_hp = 500
+armor_hull_front_mm = 108
+armor_hull_side_mm = 76
+armor_hull_rear_mm = 38
+armor_turret_front_mm = 89
+armor_turret_side_mm = 63
+armor_turret_rear_mm = 63
+armor_hull_front_deg = 47
+weapon = [
+    { name = "76 mm Gun M1A1", caliber_mm_x10 = 762, ammo = "M62 APC, M93 HVAP, M42A1 HE", rate_rpm = 10, muzzle_velocity_mps = 792, range_effective_m = 1500, range_typical_m = 700, ammo_carried = 71 },
+    { name = "Browning M1919A4", count = 2, caliber_mm_x10 = 76, rate_rpm = 500, muzzle_velocity_mps = 853, ammo_carried = 6250 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/usa/us020m4a376w.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Mar. 1944-Apr. 1945*); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/76_mm_gun_M1", covers = "76 mm M1A1/M1A2: M62 792 m/s (article not re-read for prompt 063)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+]
+uncertain = ["speed_offroad_kmh_x10", "weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Off-road speed not in the source: half the road speed (estimate). range_typical_m (prompt 067): class values of SCHEMA.md (76 mm Gun M1A1 700 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "us_m4a3e2"
+faction = "us"
+category = "tank_medium"
+name_de = "Sturmpanzer M4A3E2 \"Jumbo\""
+name_en = "M4A3E2 Jumbo"
+designation = "Medium Tank M4A3E2 (Assault)"
+year_from = 1944
+year_to = 1944
+tier = 3
+model = ""
+length_mm = 6270
+width_mm = 2940
+height_mm = 2950
+mass_kg = 38100
+crew = 5
+speed_road_kmh_x10 = 350
+speed_offroad_kmh_x10 = 180
+range_road_km = 161
+power_hp = 500
+armor_hull_front_mm = 140
+armor_hull_side_mm = 76
+armor_hull_rear_mm = 38
+armor_turret_front_mm = 178
+armor_turret_side_mm = 152
+armor_turret_rear_mm = 152
+armor_hull_front_deg = 47
+weapon = [
+    { name = "75 mm Gun M3", caliber_mm_x10 = 750, ammo = "M61 APC, M72 AP, M48 HE, M89 smoke", rate_rpm = 10, muzzle_velocity_mps = 619, range_effective_m = 1000, range_typical_m = 700, ammo_carried = 104 },
+    { name = "Browning M1919A4", count = 2, caliber_mm_x10 = 76, rate_rpm = 500, muzzle_velocity_mps = 853, ammo_carried = 6250 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/usa/us015m4a3e2.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (June 1944-July 1944); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/75_mm_gun_M2/M3/M6", covers = "M3 values as in us_m4a3_75 (same gun)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+]
+uncertain = ["speed_offroad_kmh_x10", "weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Assault tank with heavy additional armor. Off-road speed not in the source: half the road speed (estimate). range_typical_m (prompt 067): class values of SCHEMA.md (75 mm Gun M3 700 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "us_m4a4"
+faction = "us"
+category = "tank_medium"
+name_de = "Mittlerer Panzer M4A4 \"Sherman\""
+name_en = "M4A4 Sherman"
+designation = "Medium Tank M4A4"
+year_from = 1942
+year_to = 1943
+tier = 3
+model = ""
+length_mm = 6060
+width_mm = 2620
+height_mm = 2740
+mass_kg = 31600
+crew = 5
+speed_road_kmh_x10 = 320
+speed_offroad_kmh_x10 = 160
+range_road_km = 161
+power_hp = 425
+armor_hull_front_mm = 51
+armor_hull_side_mm = 38
+armor_hull_rear_mm = 38
+armor_turret_front_mm = 76
+armor_turret_side_mm = 51
+armor_turret_rear_mm = 51
+armor_hull_front_deg = 56
+weapon = [
+    { name = "75 mm Gun M3", caliber_mm_x10 = 750, ammo = "M61 APC, M72 AP, M48 HE, M89 smoke", rate_rpm = 10, muzzle_velocity_mps = 619, range_effective_m = 1000, range_typical_m = 700, ammo_carried = 97 },
+    { name = "Browning M1919A4", count = 2, caliber_mm_x10 = 76, rate_rpm = 500, muzzle_velocity_mps = 853, ammo_carried = 4750 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/usa/us016m4a4.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (July 1942-Sept. 1943); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/75_mm_gun_M2/M3/M6", covers = "M3 values as in us_m4a3_75 (same gun)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+]
+uncertain = ["speed_offroad_kmh_x10", "weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Lengthened hull for the Chrysler multibank engine. Off-road speed not in the source: half the road speed (estimate). range_typical_m (prompt 067): class values of SCHEMA.md (75 mm Gun M3 700 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."

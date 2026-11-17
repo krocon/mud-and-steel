@@ -1,7 +1,8 @@
 {
   "GER/10.5cm leFH auf 39H(f)/10.5cm leFH auf 39H(f)": {
     "id": "de_lefh18_39h",
-    "status": "new"
+    "status": "new",
+    "chassis": "de_pak40_39h"
   },
   "GER/10.5cm leFH auf FCM(f)/10.5cm leFH auf FCM(f)": {
     "id": "de_lefh16_fcm",
@@ -10,7 +11,8 @@
   },
   "GER/15cm auf GWL(f)/15cm auf GWL(f)": {
     "id": "de_sfh13_lorraine",
-    "status": "new"
+    "status": "new",
+    "chassis": "de_marder1"
   },
   "GER/4.7cm (t) auf 35R(f)/4.7cm (t) auf 35R(f)": {
     "id": "de_pak47_35r",
@@ -18,11 +20,13 @@
   },
   "GER/7.5cm PaK40 auf 39H(f)/7.5cm PaK40 auf 39H(f)": {
     "id": "de_pak40_39h",
-    "status": "new"
+    "status": "new",
+    "chassis": "de_lefh18_39h"
   },
   "GER/7.5cm PaK40 auf GWL(f)/7.5cm PaK40 auf GWL(f)": {
     "id": "de_marder1",
-    "status": "new"
+    "status": "new",
+    "chassis": "de_sfh13_lorraine"
   },
   "GER/Maus/Maus": {
     "id": "de_maus",
@@ -36,20 +40,24 @@
   },
   "GER/Panther/Jagdpanther": {
     "id": "de_jagdpanther",
-    "status": "new"
+    "status": "new",
+    "chassis": "de_panther_g"
   },
   "GER/Panther/Panther A": {
     "id": "de_panther_a",
-    "status": "new"
+    "status": "new",
+    "chassis": "de_panther_g"
   },
   "GER/Panther/Panther D": {
     "id": "de_panther_d",
-    "status": "new"
+    "status": "new",
+    "chassis": "de_panther_g"
   },
   "GER/Panther/Panther F": {
     "id": "de_panther_f",
     "status": "skipped",
-    "reason": "prototype or small series (built: prototypes only)"
+    "reason": "prototype or small series (built: prototypes only)",
+    "chassis": "de_panther_g"
   },
   "GER/Panther/Panther G": {
     "id": "de_panther_g",
@@ -57,31 +65,38 @@
   },
   "GER/PzKpfw 35(t) and 38(t)/15cm sIG33-2 auf Hetzer": {
     "id": "de_sig33_jgdpz38t",
-    "status": "new"
+    "status": "new",
+    "chassis": "de_jgdpz38t"
   },
   "GER/PzKpfw 35(t) and 38(t)/Aufklärer auf Fgst 38(t)": {
     "id": "de_aufkl38t",
-    "status": "new"
+    "status": "new",
+    "chassis": "de_pz38t_e"
   },
   "GER/PzKpfw 35(t) and 38(t)/Flakpanzer 38(t)": {
     "id": "de_flakpz38t",
-    "status": "new"
+    "status": "new",
+    "chassis": "de_marder3_m"
   },
   "GER/PzKpfw 35(t) and 38(t)/Grille (Ausf. H)": {
     "id": "de_grille_h",
-    "status": "new"
+    "status": "new",
+    "chassis": "de_pz38t_e"
   },
   "GER/PzKpfw 35(t) and 38(t)/Hetzer": {
     "id": "de_jgdpz38t",
-    "status": "existing"
+    "status": "existing",
+    "chassis": "de_sig33_jgdpz38t"
   },
   "GER/PzKpfw 35(t) and 38(t)/Marder III (Ausf. M)": {
     "id": "de_marder3_m",
-    "status": "new"
+    "status": "new",
+    "chassis": "de_flakpz38t"
   },
   "GER/PzKpfw 35(t) and 38(t)/Panzerjäger 38(t)": {
     "id": "de_marder3_139",
-    "status": "new"
+    "status": "new",
+    "chassis": "de_pz38t_e"
   },
   "GER/PzKpfw 35(t) and 38(t)/PzKpfw 35(t)": {
     "id": "de_pz35t",
@@ -89,7 +104,8 @@
   },
   "GER/PzKpfw 35(t) and 38(t)/PzKpfw 38(t) Ausf. A": {
     "id": "de_pz38t_a",
-    "status": "new"
+    "status": "new",
+    "chassis": "de_pz38t_e"
   },
   "GER/PzKpfw 35(t) and 38(t)/PzKpfw 38(t) Ausf. E": {
     "id": "de_pz38t_e",
@@ -98,19 +114,23 @@
   "GER/PzKpfw 35(t) and 38(t)/PzKpfw 38(t) neuer Art": {
     "id": "de_pz38t_na",
     "status": "skipped",
-    "reason": "prototype or small series (built: 15)"
+    "reason": "prototype or small series (built: 15)",
+    "chassis": "de_pz38t_e"
   },
   "GER/PzKpfw I/Kleiner PzBefwg IB": {
     "id": "de_pzbef1_b",
-    "status": "new"
+    "status": "new",
+    "chassis": "de_pz1_b"
   },
   "GER/PzKpfw I/Panzerjäger I": {
     "id": "de_pzjg1",
-    "status": "new"
+    "status": "new",
+    "chassis": "de_pz1_b"
   },
   "GER/PzKpfw I/PzKpfw I Ausf. A": {
     "id": "de_pz1_a",
-    "status": "new"
+    "status": "new",
+    "chassis": "de_pz1_b"
   },
   "GER/PzKpfw I/PzKpfw I Ausf. B": {
     "id": "de_pz1_b",
@@ -126,7 +146,8 @@
   },
   "GER/PzKpfw II/Marder II": {
     "id": "de_marder2",
-    "status": "new"
+    "status": "new",
+    "chassis": "de_pz2_f"
   },
   "GER/PzKpfw II/PzKpfw II Ausf. F": {
     "id": "de_pz2_f",
@@ -138,127 +159,159 @@
   },
   "GER/PzKpfw II/PzKpfw II Ausf. c": {
     "id": "de_pz2_c",
-    "status": "new"
+    "status": "new",
+    "chassis": "de_pz2_f"
   },
   "GER/PzKpfw II/Wespe": {
     "id": "de_wespe",
-    "status": "existing"
+    "status": "existing",
+    "chassis": "de_pz2_f"
   },
   "GER/PzKpfw III/PzKpfw III Ausf. F": {
     "id": "de_pz3_f",
-    "status": "new"
+    "status": "new",
+    "chassis": "de_pz3_j"
   },
   "GER/PzKpfw III/PzKpfw III Ausf. G": {
     "id": "de_pz3_g",
-    "status": "new"
+    "status": "new",
+    "chassis": "de_pz3_j"
   },
   "GER/PzKpfw III/PzKpfw III Ausf. H": {
     "id": "de_pz3_h",
-    "status": "new"
+    "status": "new",
+    "chassis": "de_pz3_j"
   },
   "GER/PzKpfw III/PzKpfw III Ausf. J": {
     "id": "de_pz3_j",
-    "status": "new"
+    "status": "new",
+    "chassis": "de_pz3_l"
   },
   "GER/PzKpfw III/PzKpfw III Ausf. L": {
     "id": "de_pz3_l",
-    "status": "new"
+    "status": "new",
+    "chassis": "de_pz3_j"
   },
   "GER/PzKpfw III/PzKpfw III Ausf. M": {
     "id": "de_pz3_m",
-    "status": "new"
+    "status": "new",
+    "chassis": "de_pz3_j"
   },
   "GER/PzKpfw III/PzKpfw III Ausf. N": {
     "id": "de_pz3_n",
-    "status": "new"
+    "status": "new",
+    "chassis": "de_pz3_j"
   },
   "GER/PzKpfw III/StuG III Ausf. A": {
     "id": "de_stug3_a",
-    "status": "new"
+    "status": "new",
+    "chassis": "de_stug3_g"
   },
   "GER/PzKpfw III/StuG III Ausf. B": {
     "id": "de_stug3_b",
-    "status": "new"
+    "status": "new",
+    "chassis": "de_stug3_g"
   },
   "GER/PzKpfw III/StuG III Ausf. D": {
     "id": "de_stug3_d",
-    "status": "new"
+    "status": "skipped",
+    "reason": "merged into de_stug3_b: Ausf. D differs from Ausf. B only inside (intercom), same values within the source; one model",
+    "chassis": "de_stug3_b"
   },
   "GER/PzKpfw III/StuG III Ausf. E": {
     "id": "de_stug3_e",
-    "status": "new"
+    "status": "new",
+    "chassis": "de_stug3_g"
   },
   "GER/PzKpfw III/StuG III Ausf. F": {
     "id": "de_stug3_f",
-    "status": "new"
+    "status": "new",
+    "chassis": "de_stug3_g"
   },
   "GER/PzKpfw III/StuG III Ausf. G": {
     "id": "de_stug3_g",
-    "status": "existing"
+    "status": "existing",
+    "chassis": "de_pz3_j"
   },
   "GER/PzKpfw III/sIG 33B": {
     "id": "de_stuig33b",
-    "status": "new"
+    "status": "new",
+    "chassis": "de_stug3_e"
   },
   "GER/PzKpfw IV/Brummbar": {
-    "id": "de_stupz4",
-    "status": "new"
+    "id": "de_sturmpanzer4",
+    "status": "existing",
+    "chassis": "de_pz4_h"
   },
   "GER/PzKpfw IV/Hummel": {
     "id": "de_hummel",
-    "status": "new"
+    "status": "new",
+    "chassis": "de_nashorn"
   },
   "GER/PzKpfw IV/Jagdpanzer IV": {
     "id": "de_jgdpz4",
-    "status": "new"
+    "status": "new",
+    "chassis": "de_pz4_h"
   },
   "GER/PzKpfw IV/Nashorn": {
     "id": "de_nashorn",
-    "status": "new"
+    "status": "new",
+    "chassis": "de_hummel"
   },
   "GER/PzKpfw IV/Panzer IV-70 (A)": {
     "id": "de_pz4_70a",
-    "status": "new"
+    "status": "new",
+    "chassis": "de_pz4_h"
   },
   "GER/PzKpfw IV/Panzer IV-70 (V)": {
     "id": "de_pz4_70v",
-    "status": "new"
+    "status": "new",
+    "chassis": "de_jgdpz4"
   },
   "GER/PzKpfw IV/PzKpfw IV Ausf. A": {
     "id": "de_pz4_a",
-    "status": "new"
+    "status": "new",
+    "chassis": "de_pz4_h"
   },
   "GER/PzKpfw IV/PzKpfw IV Ausf. C": {
     "id": "de_pz4_c",
-    "status": "new"
+    "status": "new",
+    "chassis": "de_pz4_h"
   },
   "GER/PzKpfw IV/PzKpfw IV Ausf. D": {
     "id": "de_pz4_d",
-    "status": "new"
+    "status": "new",
+    "chassis": "de_pz4_h"
   },
   "GER/PzKpfw IV/PzKpfw IV Ausf. F": {
     "id": "de_pz4_f",
-    "status": "new"
+    "status": "new",
+    "chassis": "de_pz4_h"
   },
   "GER/PzKpfw IV/PzKpfw IV Ausf. F2": {
     "id": "de_pz4_f2",
-    "status": "new"
+    "status": "new",
+    "chassis": "de_pz4_h"
   },
   "GER/PzKpfw IV/PzKpfw IV Ausf. G": {
     "id": "de_pz4_g",
-    "status": "new"
+    "status": "new",
+    "chassis": "de_pz4_h"
   },
   "GER/PzKpfw IV/PzKpfw IV Ausf. H": {
     "id": "de_pz4_h",
-    "status": "existing"
+    "status": "existing",
+    "chassis": "de_pz4_g"
   },
   "GER/PzKpfw IV/PzKpfw IV Ausf. J": {
     "id": "de_pz4_j",
-    "status": "new"
+    "status": "new",
+    "chassis": "de_pz4_h"
   },
   "GER/PzKpfw IV/Sturmgeschutz IV": {
     "id": "de_stug4",
-    "status": "new"
+    "status": "new",
+    "chassis": "de_pz4_h"
   },
   "GER/Tiger/Elefant": {
     "id": "de_elefant",
@@ -266,12 +319,14 @@
   },
   "GER/Tiger/Jagdtiger": {
     "id": "de_jagdtiger",
-    "status": "new"
+    "status": "new",
+    "chassis": "de_tiger2"
   },
   "GER/Tiger/Sturmtiger": {
     "id": "de_sturmtiger",
     "status": "skipped",
-    "reason": "small series (built: 18 converted from Tiger I); alternative for prompt 062"
+    "reason": "small series (built: 18 converted from Tiger I); alternative for prompt 062",
+    "chassis": "de_tiger1_e"
   },
   "GER/Tiger/Tiger I": {
     "id": "de_tiger1_e",
@@ -279,71 +334,88 @@
   },
   "GER/Tiger/Tiger II": {
     "id": "de_tiger2",
-    "status": "new"
+    "status": "new",
+    "chassis": "de_jagdtiger"
   },
   "RU/BT/BT-2 Model 1932": {
     "id": "su_bt2",
-    "status": "new"
+    "status": "new",
+    "chassis": "su_bt5"
   },
   "RU/BT/BT-5 Model 1934": {
     "id": "su_bt5",
-    "status": "new"
+    "status": "new",
+    "chassis": "su_bt7"
   },
   "RU/BT/BT-7 Model 1937": {
     "id": "su_bt7",
-    "status": "new"
+    "status": "new",
+    "chassis": "su_bt5"
   },
   "RU/IS/IS-1": {
     "id": "su_is1",
-    "status": "new"
+    "status": "new",
+    "chassis": "su_is2"
   },
   "RU/IS/IS-2 Model 1944": {
     "id": "su_is2",
-    "status": "existing"
+    "status": "existing",
+    "chassis": "su_is1"
   },
   "RU/IS/IS-3 Model 1945": {
     "id": "su_is3",
-    "status": "new"
+    "status": "new",
+    "chassis": "su_is2"
   },
   "RU/IS/ISU-122": {
     "id": "su_isu122",
-    "status": "new"
+    "status": "new",
+    "chassis": "su_isu152"
   },
   "RU/IS/ISU-122S": {
     "id": "su_isu122s",
-    "status": "new"
+    "status": "new",
+    "chassis": "su_isu152"
   },
   "RU/IS/ISU-152": {
     "id": "su_isu152",
-    "status": "existing"
+    "status": "existing",
+    "chassis": "su_is2"
   },
   "RU/KV/KV-1 Model 1939": {
     "id": "su_kv1_1939",
-    "status": "new"
+    "status": "new",
+    "chassis": "su_kv1_1941"
   },
   "RU/KV/KV-1 Model 1941": {
     "id": "su_kv1_1941",
-    "status": "new"
+    "status": "new",
+    "chassis": "su_kv1_1939"
   },
   "RU/KV/KV-1E Model 1940": {
     "id": "su_kv1e",
-    "status": "new"
+    "status": "new",
+    "chassis": "su_kv1_1941"
   },
   "RU/KV/KV-1s": {
     "id": "su_kv1s",
-    "status": "new"
+    "status": "new",
+    "chassis": "su_kv1_1941"
   },
   "RU/KV/KV-2 Model 1940": {
     "id": "su_kv2",
-    "status": "new"
+    "status": "new",
+    "chassis": "su_kv1_1941"
   },
   "RU/KV/KV-85": {
     "id": "su_kv85",
-    "status": "new"
+    "status": "new",
+    "chassis": "su_kv1s"
   },
   "RU/KV/SU-152": {
     "id": "su_su152",
-    "status": "new"
+    "status": "new",
+    "chassis": "su_kv1s"
   },
   "RU/SMK/SMK": {
     "id": "su_smk",
@@ -352,11 +424,13 @@
   },
   "RU/SU-76/SU-76": {
     "id": "su_su76",
-    "status": "new"
+    "status": "new",
+    "chassis": "su_su76m"
   },
   "RU/SU-76/SU-76M": {
     "id": "su_su76m",
-    "status": "existing"
+    "status": "existing",
+    "chassis": "su_t70m"
   },
   "RU/T-24/T-24": {
     "id": "su_t24",
@@ -364,20 +438,24 @@
     "reason": "small series, never in service (built: prototype + 24)"
   },
   "RU/T-26/OT-133": {
-    "id": "su_ot133",
-    "status": "new"
+    "id": "su_ot130",
+    "status": "new",
+    "chassis": "su_t26_1933"
   },
   "RU/T-26/T-26 Model 1933": {
     "id": "su_t26_1933",
-    "status": "new"
+    "status": "new",
+    "chassis": "su_t26s_1937"
   },
   "RU/T-26/T-26S Model 1937": {
     "id": "su_t26s_1937",
-    "status": "new"
+    "status": "new",
+    "chassis": "su_t26_1933"
   },
   "RU/T-26/T-26S Model 1939": {
     "id": "su_t26s_1939",
-    "status": "new"
+    "status": "new",
+    "chassis": "su_t26s_1937"
   },
   "RU/T-27/T-27A": {
     "id": "su_t27a",
@@ -385,48 +463,59 @@
   },
   "RU/T-28/T-28 Model 1934": {
     "id": "su_t28",
-    "status": "new"
+    "status": "skipped",
+    "reason": "no drawing and no relative with a drawing in the reference folder (rule of prompt 063)"
   },
   "RU/T-34/SU-100": {
     "id": "su_su100",
-    "status": "new"
+    "status": "new",
+    "chassis": "su_su85"
   },
   "RU/T-34/SU-122 Model 1943": {
     "id": "su_su122",
-    "status": "new"
+    "status": "new",
+    "chassis": "su_t34_76_1943"
   },
   "RU/T-34/SU-85": {
     "id": "su_su85",
-    "status": "existing"
+    "status": "existing",
+    "chassis": "su_t34_85_1944"
   },
   "RU/T-34/T-34-76 Model 1940": {
     "id": "su_t34_76_1940",
-    "status": "new"
+    "status": "new",
+    "chassis": "su_t34_76_1943"
   },
   "RU/T-34/T-34-76 Model 1941": {
     "id": "su_t34_76_1941",
-    "status": "new"
+    "status": "new",
+    "chassis": "su_t34_76_1943"
   },
   "RU/T-34/T-34-76 Model 1942": {
     "id": "su_t34_76_1942",
-    "status": "new"
+    "status": "new",
+    "chassis": "su_t34_76_1943"
   },
   "RU/T-34/T-34-76 Model 1943": {
     "id": "su_t34_76_1943",
-    "status": "existing"
+    "status": "existing",
+    "chassis": "su_t34_76_1942"
   },
   "RU/T-34/T-34-85 Model 1943": {
     "id": "su_t34_85_1943",
-    "status": "new"
+    "status": "new",
+    "chassis": "su_t34_85_1944"
   },
   "RU/T-34/T-34-85 Model 1944": {
     "id": "su_t34_85_1944",
-    "status": "new"
+    "status": "new",
+    "chassis": "su_t34_76_1943"
   },
   "RU/T-34/T-43": {
     "id": "su_t43",
     "status": "skipped",
-    "reason": "prototype or small series (built: prototype)"
+    "reason": "prototype or small series (built: prototype)",
+    "chassis": "su_t34_76_1943"
   },
   "RU/T-34/T-44": {
     "id": "su_t44",
@@ -434,20 +523,24 @@
   },
   "RU/T-35/T-35 Model 1935": {
     "id": "su_t35_1935",
-    "status": "new"
+    "status": "new",
+    "chassis": "su_t35_1938"
   },
   "RU/T-35/T-35 Model 1938": {
     "id": "su_t35_1938",
     "status": "skipped",
-    "reason": "prototype or small series (built: 6)"
+    "reason": "prototype or small series (built: 6)",
+    "chassis": "su_t35_1935"
   },
   "RU/T-37/T-37A": {
     "id": "su_t37a",
-    "status": "new"
+    "status": "new",
+    "chassis": "su_t38"
   },
   "RU/T-38/T-38": {
     "id": "su_t38",
-    "status": "new"
+    "status": "new",
+    "chassis": "su_t37a"
   },
   "RU/T-40/T-40": {
     "id": "su_t40",
@@ -459,19 +552,23 @@
   },
   "RU/T-60/T-60 Model 1941": {
     "id": "su_t60_1941",
-    "status": "new"
+    "status": "new",
+    "chassis": "su_t60_1942"
   },
   "RU/T-60/T-60 Model 1942": {
     "id": "su_t60_1942",
-    "status": "new"
+    "status": "new",
+    "chassis": "su_t60_1941"
   },
   "RU/T-70/T-70 Model 1942": {
     "id": "su_t70_1942",
-    "status": "new"
+    "status": "new",
+    "chassis": "su_t70m"
   },
   "RU/T-70/T-70 Model 1943": {
     "id": "su_t70m",
-    "status": "existing"
+    "status": "existing",
+    "chassis": "su_t70_1942"
   },
   "RU/TG/TG": {
     "id": "su_tg",
@@ -480,11 +577,13 @@
   },
   "US/3 inch GMC M10/3 inch GMC M10": {
     "id": "us_m10",
-    "status": "existing"
+    "status": "existing",
+    "chassis": "us_m4a2"
   },
   "US/90mm GMC M36/90mm GMC M36": {
     "id": "us_m36",
-    "status": "new"
+    "status": "new",
+    "chassis": "us_m10"
   },
   "US/M18 Hellcat/M18 Hellcat": {
     "id": "us_m18",
@@ -504,74 +603,92 @@
   },
   "US/M3 Lee/M3 Lee": {
     "id": "us_m3_lee",
-    "status": "new"
+    "status": "new",
+    "chassis": "us_m3a1_lee"
   },
   "US/M3 Lee/M3A1 Lee": {
     "id": "us_m3a1_lee",
-    "status": "new"
+    "status": "new",
+    "chassis": "us_m3_lee"
   },
   "US/M3 Lee/M3A3 Lee": {
     "id": "us_m3a3_lee",
-    "status": "new"
+    "status": "new",
+    "chassis": "us_m3_lee"
   },
   "US/M3 Lee/M3A4 Lee": {
     "id": "us_m3a4_lee",
-    "status": "new"
+    "status": "new",
+    "chassis": "us_m3_lee"
   },
   "US/M3 Stuart/M3 Stuart": {
     "id": "us_m3_stuart",
-    "status": "new"
+    "status": "new",
+    "chassis": "us_m3a1_stuart"
   },
   "US/M3 Stuart/M3A1 Stuart": {
     "id": "us_m3a1_stuart",
-    "status": "new"
+    "status": "new",
+    "chassis": "us_m3_stuart"
   },
   "US/M3 Stuart/M3A3 Stuart": {
     "id": "us_m3a3_stuart",
-    "status": "new"
+    "status": "new",
+    "chassis": "us_m3a1_stuart"
   },
   "US/M3 Stuart/M5A1 Stuart": {
     "id": "us_m5a1",
-    "status": "existing"
+    "status": "existing",
+    "chassis": "us_m3a3_stuart"
   },
   "US/M4 Sherman/M4 Sherman": {
     "id": "us_m4",
-    "status": "new"
+    "status": "new",
+    "chassis": "us_m4a1"
   },
   "US/M4 Sherman/M4A1 Sherman": {
     "id": "us_m4a1",
-    "status": "new"
+    "status": "new",
+    "chassis": "us_m4"
   },
   "US/M4 Sherman/M4A1(76)W Sherman": {
     "id": "us_m4a1_76w",
-    "status": "new"
+    "status": "new",
+    "chassis": "us_m4a1"
   },
   "US/M4 Sherman/M4A2 Sherman": {
     "id": "us_m4a2",
-    "status": "new"
+    "status": "new",
+    "chassis": "us_m4"
   },
   "US/M4 Sherman/M4A2(76)W Sherman": {
     "id": "us_m4a2_76w",
-    "status": "new"
+    "status": "new",
+    "chassis": "us_m4a2"
   },
   "US/M4 Sherman/M4A3 Sherman": {
     "id": "us_m4a3",
-    "status": "new"
+    "status": "new",
+    "chassis": "us_m4"
   },
   "US/M4 Sherman/M4A3(75)W Sherman": {
     "id": "us_m4a3_75",
-    "status": "existing"
+    "status": "existing",
+    "chassis": "us_m4a3"
   },
   "US/M4 Sherman/M4A3(76)W HVSS Sherman": {
     "id": "us_m4a3_76w_hvss",
-    "status": "new"
+    "status": "new",
+    "chassis": "us_m4a3_75"
   },
   "US/M4 Sherman/M4A3E2 Sherman": {
     "id": "us_m4a3e2",
-    "status": "new"
+    "status": "new",
+    "chassis": "us_m4a3_75"
   },
   "US/M4 Sherman/M4A4 Sherman": {
     "id": "us_m4a4",
-    "status": "new"
+    "status": "new",
+    "chassis": "us_m4"
   }
 }

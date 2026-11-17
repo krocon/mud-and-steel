@@ -847,7 +847,7 @@ function renderSheet() {
       e.name_en !== e.name_de ? h('p', { class: 'en' }, e.name_en) : null,
       h('div', { class: 'tags' },
         e.designation ? h('span', null, e.designation) : null,
-        e.tier && e.faction !== 'neutral' ? h('span', null, e.tier === 1 ? 'Kerneinheit' : 'Stufe 2') : null,
+        e.tier && e.faction !== 'neutral' ? h('span', null, e.tier === 1 ? 'Kerneinheit' : e.tier === 3 ? 'Aus den Vorlagen (nicht baubar)' : 'Stufe 2') : null,
         h('span', { class: 'id' }, e.id)),
       e.year_from != null && e.year_to != null ? timeline(e) : null),
     card?.ratings ? section('Kennzahlen im Spiel', ratingBars(sheetCtx, card)) : null,

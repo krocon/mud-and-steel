@@ -414,9 +414,11 @@ fn validate(e: &Entry) -> Vec<String> {
         Group::Vehicle => {
             need("length_mm", e.length_mm, 2_500, 12_000);
             need("width_mm", e.width_mm, 1_500, 4_000);
-            need("height_mm", e.height_mm, 1_500, 4_000);
+            // 1.4 m: the T-27A tankette is 1.45 m high; crew 12: the
+            // multi-turret T-35 had 11 (prompt 063).
+            need("height_mm", e.height_mm, 1_400, 4_000);
             need("mass_kg", e.mass_kg, 1_000, 80_000);
-            need("crew", wide(e.crew), 1, 10);
+            need("crew", wide(e.crew), 1, 12);
             need("speed_road_kmh_x10", e.speed_road_kmh_x10, 150, 1_200);
             need("speed_offroad_kmh_x10", e.speed_offroad_kmh_x10, 50, 1_000);
             need("range_road_km", e.range_road_km, 50, 1_000);
@@ -529,8 +531,10 @@ fn validate(e: &Entry) -> Vec<String> {
     if e.name_de.trim().is_empty() || e.name_en.trim().is_empty() {
         errors.push("missing name_de or name_en".into());
     }
-    if !matches!(e.tier, 1 | 2) {
-        errors.push(format!("tier {} must be 1 or 2", e.tier));
+    // Tier 3 (prompt 063): taken over from the vehicle references, not
+    // buildable yet.
+    if !matches!(e.tier, 1..=3) {
+        errors.push(format!("tier {} must be 1, 2 or 3", e.tier));
     }
     if e.faction != Faction::Neutral {
         if e.designation.trim().is_empty() {
@@ -700,5 +704,14 @@ source = [{ ref = "book", covers = "all" }]
         let bad = TANK.replace("tier = 2", "tier = 2\nuncertain = [\"colour\"]");
         let err = Catalog::parse(&[("de.toml", &bad)]).unwrap_err();
         assert!(err.0.contains("unknown field 'colour'"), "{err}");
+    }
+
+    #[test]
+    fn tier_3_is_the_last_tier() {
+        let three = TANK.replace("tier = 2", "tier = 3");
+        assert!(Catalog::parse(&[("de.toml", &three)]).is_ok());
+        let four = TANK.replace("tier = 2", "tier = 4");
+        let err = Catalog::parse(&[("de.toml", &four)]).unwrap_err();
+        assert!(err.0.contains("tier 4 must be 1, 2 or 3"), "{err}");
     }
 }

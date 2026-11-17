@@ -4783,92 +4783,6 @@
     }
   },
   {
-    "id": "de_stug3_d",
-    "name": "StuG III Ausf. D",
-    "type": "Assault Gun",
-    "family": "PzKpfw III",
-    "source": {
-      "name": "onwar.com (Ralph Zuljan)",
-      "url": "https://www.onwar.com/wwii/tanks/germany/ge061stug3d.html",
-      "fetched": "2026-11-16",
-      "references": [
-        "EGT",
-        "SV",
-        "S3IA",
-        "P3V"
-      ]
-    },
-    "general": {
-      "designation": "Gepanzerter Selbstfahrlafette fur Sturmgeschutz 7.5cm Kanone Ausf. D (SdKfz 142/1)",
-      "manufacturer": "Alkett",
-      "production_quantity": 150,
-      "production_period": "May 1941 - Sept. 1941",
-      "crew": 4,
-      "length_mm": 5400,
-      "width_mm": 2930,
-      "height_mm": 1980,
-      "barrel_overhang_mm": 0,
-      "mass_kg": 20200,
-      "radio": "FuG15 or FuG16"
-    },
-    "firepower": {
-      "main_gun": "75mm StuK. 37 L/24",
-      "main_gun_caliber_mm_x10": 750,
-      "main_gun_length_cal_x10": 240,
-      "main_ammo": 44,
-      "traverse_deg": 24,
-      "traverse_drive": "manual",
-      "elevation_min_deg_x10": -100,
-      "elevation_max_deg_x10": 200,
-      "sight": "Rblf32"
-    },
-    "mobility": {
-      "engine": "Maybach HL120TRM",
-      "engine_type": "V12, 11.8 liters",
-      "displacement_cc": 11800,
-      "power_hp": 300,
-      "power_rpm": 3000,
-      "power_to_weight_hp_per_t_x10": 136,
-      "gearbox": "6 forward, 1 reverse",
-      "gears_forward": 6,
-      "gears_reverse": 1,
-      "fuel": "Gasoline (Petrol)",
-      "fuel_capacity_l": 310,
-      "consumption_road_l_per_100km": 195,
-      "range_road_km": 165,
-      "range_offroad_km": 94,
-      "speed_road_kmh_x10": 400,
-      "track_width_mm": 400,
-      "track_ground_contact_mm": 2860,
-      "track_links": 93,
-      "ground_pressure_psi_x10": 132,
-      "ground_pressure_kpa_x10": 910,
-      "ground_clearance_mm": 380,
-      "turning_radius_mm": 5850,
-      "gradient_deg": 30,
-      "vertical_obstacle_mm": 600,
-      "fording_mm": 800,
-      "trench_crossing_mm": 2590
-    },
-    "armor": {
-      "hull": {
-        "front": { "mm": 50, "deg": 69 },
-        "side": { "mm": 30, "deg": 90 },
-        "rear": { "mm": 30, "text": "30mm @60°&80°" },
-        "top_bottom": { "mm": 16, "deg": 0 }
-      },
-      "superstructure": {
-        "front": { "mm": 50, "deg": 80 },
-        "side": { "mm": 30, "deg": 90 },
-        "rear": { "mm": 30, "deg": 60 },
-        "top_bottom": { "mm": 11, "text": "11mm @0-1°" }
-      },
-      "mantlet": {
-        "front": { "mm": 50, "deg": 75 }
-      }
-    }
-  },
-  {
     "id": "de_stug3_e",
     "name": "StuG III Ausf. E",
     "type": "Assault Gun",
@@ -5319,7 +5233,7 @@
     }
   },
   {
-    "id": "de_stupz4",
+    "id": "de_sturmpanzer4",
     "name": "Brummbar",
     "type": "Heavy Assault Gun",
     "family": "PzKpfw IV",

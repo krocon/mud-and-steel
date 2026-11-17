@@ -4,7 +4,8 @@
 
 Real (unscaled) values from `data/catalog/`; field reference in
 [`data/catalog/SCHEMA.md`](../data/catalog/SCHEMA.md), conversion to game values in
-[SCALE.md](SCALE.md). Tier 1 = core units (prompt 006). Values marked `?` are
+[SCALE.md](SCALE.md). Tier 1 = core units (prompt 006), tier 3 = taken over from the
+vehicle references, not buildable (prompt 063). Values marked `?` are
 uncertain; see the list at the end of each faction.
 
 ## Germany (`de`)
@@ -41,8 +42,63 @@ uncertain; see the list at the end of each faction.
 | de_sdkfz222 | Leichter Panzerspähwagen (2 cm) Sd.Kfz. 222 / Sd.Kfz. 222 light armoured car | Sd.Kfz. 222 | 1936–1945 | 2 | 4.80 × 1.95 × 2.00? | 4.8 | 3 | 80.0 / 40.0? | 30 / 8 | 2 cm KwK 38 L/55? |
 | de_wespe | Leichte Feldhaubitze 18/2 auf Fahrgestell Panzerkampfwagen II (Sf) "Wespe" / Wespe self-propelled howitzer | Sd.Kfz. 124 | 1943–1945 | 2 | 4.81 × 2.28 × 2.30 | 11.0 | 5? | 40.0 / 20.0? | 30? / 10? | 10.5 cm leFH 18/2 L/28? |
 | de_pzwerfer42 | 15 cm Panzerwerfer 42 auf Selbstfahrlafette Sd.Kfz. 4/1 "Maultier" / 15 cm Panzerwerfer 42 (Sd.Kfz. 4/1) | Sd.Kfz. 4/1 | 1943–1945 | 2 | 6.00 × 2.20 × 2.50 | 7.1 | 3 | 40.0 / 20.0? | 15? /  | 10× 15 cm Panzerwerfer 42 (10 tubes)? |
-| de_sturmpanzer4 | Sturmpanzer IV / Sturmpanzer IV | Sd.Kfz. 166 | 1943–1945 | 2 | 5.93 × 2.88 × 2.52 | 28.2 | 5 | 40.0 / 24.0 | 80? / 100 | 15 cm StuH 43 L/12? |
+| de_sturmpanzer4 | Sturmpanzer IV / Sturmpanzer IV | Sd.Kfz. 166 | 1943–1945 | 2 | 5.93 × 2.88 × 2.52 | 28.2 | 5 | 40.0 / 24.0? | 80? / 100 | 15 cm StuH 43 L/12? |
 | de_brueckenleger4 | Brückenleger IV b / Brückenleger IV b bridge-laying tank | Brückenleger IV b | 1940–1941 | 2 | 11.00 × 3.00 × 3.54? | 28.0? | 2 | 40.0 / 20.0? | 30 /  |  |
+| de_aufkl38t | Aufklärer auf Fahrgestell Panzerkampfwagen 38(t) / Reconnaissance vehicle on Panzer 38(t) chassis | Aufklärer 38(t) | 1944–1944 | 3 | 4.51 × 2.14 × 2.17 | 9.8 | 4 | 42.0 / 21.0? | 50 / 30 | 2 cm KwK 38 L/55? |
+| de_elefant | Panzerjäger Tiger (P) "Elefant" / Elefant | Sd.Kfz. 184 | 1943–1943 | 3 | 8.14 × 3.38 × 2.97 | 65.0 | 6 | 30.0 / 15.0? | 200 / 200 | 8.8 cm PaK 43/2 L/71? |
+| de_flakpz38t | Flakpanzer 38(t) / Flakpanzer 38(t) | Sd.Kfz. 140 | 1943–1944 | 3 | 4.61 × 2.15 × 2.25 | 9.8 | 4 | 42.0 / 21.0? | 15 / 10 | 2 cm Flak 38 L/65? |
+| de_grille_h | 15 cm sIG 33 (Sf) auf Panzerkampfwagen 38(t) Ausf. H "Grille" / Grille Ausf. H | Sd.Kfz. 138/1 | 1943–1943 | 3 | 4.61 × 2.16 × 2.40 | 11.5 | 5 | 35.0 / 18.0? | 50 / 25 | 15 cm sIG 33/1 L/11? |
+| de_hummel | Schwere Panzerhaubitze "Hummel" / Hummel | Sd.Kfz. 165 | 1943–1945 | 3 | 7.17 × 2.97 × 2.81 | 24.0 | 6 | 42.0 / 24.0 | 30 / 10 | 15 cm sFH 18/1 L/30? |
+| de_jagdpanther | Jagdpanther / Jagdpanther | Sd.Kfz. 173 | 1944–1945 | 3 | 9.87 × 3.42 × 2.72 | 45.5 | 5 | 55.0 / 30.0 | 80 / 100 | 8.8 cm PaK 43/3 L/71? |
+| de_jagdtiger | Jagdpanzer VI "Jagdtiger" / Jagdtiger | Sd.Kfz. 186 | 1944–1945 | 3 | 10.65 × 3.63 × 2.82 | 71.7 | 6 | 38.0 / 17.0 | 250 / 250 | 12.8 cm PaK 44 L/55? |
+| de_jgdpz4 | Jagdpanzer IV / Jagdpanzer IV | Sd.Kfz. 162 | 1944–1944 | 3 | 6.85 × 3.17? × 1.85 | 24.0 | 4 | 40.0 / 20.0? | 60 / 80 | 7.5 cm PaK 39 L/48? |
+| de_lefh18_39h | 10.5 cm leFH 18 (Sf) auf Geschützwagen 39H(f) / 10.5 cm leFH 18 on Hotchkiss H39 | 10.5 cm leFH 18 (Sf) auf Geschützwagen 39H(f) | 1942–1942 | 3 | 4.22? × 1.95? × 2.40? | 12.5 | 4 | 36.0 / 18.0? | 34 / 20 | 10.5 cm leFH 18 L/28? |
+| de_marder1 | 7.5 cm PaK 40/1 (Sf) auf Geschützwagen Lorraine Schlepper (f) "Marder I" / Marder I | Sd.Kfz. 135 | 1942–1942 | 3 | 5.18 × 1.88 × 2.13 | 8.0 | 5 | 34.0 / 13.0 | 12 / 10 | 7.5 cm PaK 40/1 L/46? |
+| de_marder2 | Marder II / Marder II | Sd.Kfz. 131 | 1943–1944 | 3 | 6.36 × 2.28 × 2.20 | 10.8 | 3 | 40.0 / 19.0 | 35 / 30 | 7.5 cm PaK 40/2 L/46? |
+| de_marder3_139 | Panzerjäger 38(t) für 7.62 cm PaK 36(r) "Marder III" / Marder III (Sd.Kfz. 139) | Sd.Kfz. 139 | 1942–1942 | 3 | 5.85 × 2.16 × 2.50 | 10.7 | 4 | 42.0 / 15.0 | 50 / 50 | 7.62 cm PaK 36(r) L/54.8? |
+| de_marder3_m | Panzerjäger 38(t) mit 7.5 cm PaK 40/3 Ausf. M "Marder III" / Marder III Ausf. M | Sd.Kfz. 138 | 1943–1944 | 3 | 4.95 × 2.15 × 2.48 | 10.5 | 4 | 42.0 / 21.0? | 15 / 10 | 7.5 cm PaK 40/3 L/46? |
+| de_nashorn | Nashorn / Nashorn | Sd.Kfz. 164 | 1943–1945 | 3 | 8.44 × 2.86 × 2.65 | 24.0 | 4 | 40.0 / 24.0 | 30 / 10 | 8.8 cm PaK 43/1 L/71? |
+| de_pak40_39h | 7.5 cm PaK 40 (Sf) auf Geschützwagen 39H(f) / 7.5 cm PaK 40 on Hotchkiss H39 | 7.5 cm PaK 40 (Sf) auf Geschützwagen 39H(f) | 1942–1942 | 3 | 5.30? × 1.95? × 2.20? | 12.5 | 4 | 36.0 / 18.0? | 34 / 20 | 7.5 cm PaK 40 L/46? |
+| de_pak47_35r | 4.7 cm PaK(t) auf Panzerkampfwagen 35R(f) ohne Turm / 4.7 cm PaK(t) on Renault R35 | 4.7 cm PaK(t) (Sf) auf Panzerkampfwagen 35R(f) | 1941–1941 | 3 | 4.30 × 1.87 × 2.11 | 10.5 | 3 | 19.0 / 10.0? | 32 / 32 | 4.7 cm PaK(t) L/43.4? |
+| de_panther_a | Panzerkampfwagen V "Panther" Ausf. A / Panther Ausf. A | Sd.Kfz. 171 | 1943–1944 | 3 | 8.66 × 3.42 × 3.00 | 44.8 | 5 | 46.0? / 30.0? | 80 / 110 | 7.5 cm KwK 42 L/70? |
+| de_panther_d | Panzerkampfwagen V "Panther" Ausf. D / Panther Ausf. D | Sd.Kfz. 171 | 1943–1943 | 3 | 8.66 × 3.42 × 2.85 | 44.8 | 5 | 55.0? / 30.0? | 80 / 100 | 7.5 cm KwK 42 L/70? |
+| de_panther_g | Panzerkampfwagen V "Panther" Ausf. G / Panther Ausf. G | Sd.Kfz. 171 | 1944–1945 | 3 | 8.66 × 3.42 × 2.85 | 45.5 | 5 | 46.0? / 30.0? | 80 / 110 | 7.5 cm KwK 42 L/70? |
+| de_pz1_a | Panzerkampfwagen I Ausf. A / Panzer I Ausf. A | Sd.Kfz. 101 | 1934–1936 | 3 | 4.02 × 2.06 × 1.72 | 5.4 | 2 | 37.0 / 18.0? | 13 / 13 | 2× MG 34? |
+| de_pz1_b | Panzerkampfwagen I Ausf. B / Panzer I Ausf. B | Sd.Kfz. 101 | 1935–1937 | 3 | 4.42 × 2.06 × 1.72 | 5.8 | 2 | 40.0 / 20.0? | 13 / 13 | 2× MG 13? |
+| de_pz1_c | Panzerkampfwagen I Ausf. C / Panzer I Ausf. C | VK 601 | 1942–1942 | 3 | 4.19 × 1.92 × 1.94 | 8.0 | 2 | 79.0 / 40.0? | 30 / 30 | 7.92 mm EW 141? |
+| de_pz1_f | Panzerkampfwagen I Ausf. F / Panzer I Ausf. F | VK 1801 | 1942–1942 | 3 | 4.38 × 2.64 × 2.05 | 21.0 | 2 | 25.0 / 12.0? | 80 / 80 | 2× MG 34? |
+| de_pz2_c | Panzerkampfwagen II Ausf. c / Panzer II Ausf. c | Sd.Kfz. 121 | 1937–1940 | 3 | 4.81 × 2.22 × 1.99 | 8.9 | 3 | 40.0 / 20.0? | 15 / 30 | 2 cm KwK 30 L/55? |
+| de_pz2_f | Panzerkampfwagen II Ausf. F / Panzer II Ausf. F | Sd.Kfz. 121 | 1941–1942 | 3 | 4.81 × 2.28 × 2.15 | 9.5 | 3 | 40.0 / 20.0? | 35 / 30 | 2 cm KwK 30 L/55? |
+| de_pz35t | Panzerkampfwagen 35(t) / Panzer 35(t) | LT vz. 35 | 1935–1938 | 3 | 4.90 × 2.10 × 2.35 | 10.5 | 4 | 35.0 / 18.0? | 25 / 25 | 3.7 cm KwK 34(t) L/40? |
+| de_pz38t_a | Panzerkampfwagen 38(t) Ausf. A / Panzer 38(t) Ausf. A | LT vz. 38 | 1939–1939 | 3 | 4.60 × 2.12 × 2.37 | 9.4 | 4 | 42.0 / 15.0 | 30 / 25 | 3.7 cm KwK 38(t) L/47.8? |
+| de_pz38t_e | Panzerkampfwagen 38(t) Ausf. E / Panzer 38(t) Ausf. E | LT vz. 38 | 1940–1941 | 3 | 4.61 × 2.14 × 2.40 | 9.9 | 4 | 42.0 / 15.0 | 50 / 50 | 3.7 cm KwK 38(t) L/47.8? |
+| de_pz3_f | Panzerkampfwagen III Ausf. F / Panzer III Ausf. F | Sd.Kfz. 141 | 1939–1940 | 3 | 5.38 × 2.91 × 2.44 | 19.5 | 5 | 40.0 / 18.0 | 30 / 30 | 3.7 cm KwK 36 L/46.5? |
+| de_pz3_g | Panzerkampfwagen III Ausf. G / Panzer III Ausf. G | Sd.Kfz. 141 | 1940–1941 | 3 | 5.38 × 2.91 × 2.44 | 19.5 | 5 | 40.0 / 18.0 | 30 / 37 | 5 cm KwK 38 L/42? |
+| de_pz3_h | Panzerkampfwagen III Ausf. H / Panzer III Ausf. H | Sd.Kfz. 141 | 1940–1941 | 3 | 5.52 × 2.95 × 2.50 | 21.6 | 5 | 40.0 / 18.0 | 60 / 37 | 5 cm KwK 38 L/42? |
+| de_pz3_j | Panzerkampfwagen III Ausf. J / Panzer III Ausf. J | Sd.Kfz. 141 | 1941–1942 | 3 | 5.56 × 2.95 × 2.50 | 21.5 | 5 | 40.0 / 19.0 | 50 / 50 | 5 cm KwK 38 L/42? |
+| de_pz3_l | Panzerkampfwagen III Ausf. L / Panzer III Ausf. L | Sd.Kfz. 141/1 | 1942–1942 | 3 | 5.56 × 2.95 × 2.50 | 21.3 | 5 | 40.0 / 19.0 | 70 / 70 | 5 cm KwK 39 L/60? |
+| de_pz3_m | Panzerkampfwagen III Ausf. M / Panzer III Ausf. M | Sd.Kfz. 141/1 | 1942–1943 | 3 | 6.41 × 2.95 × 2.50 | 22.7 | 5 | 40.0 / 19.0 | 70 / 70 | 5 cm KwK 39 L/60? |
+| de_pz3_n | Panzerkampfwagen III Ausf. N / Panzer III Ausf. N | Sd.Kfz. 141/2 | 1942–1943 | 3 | 5.65 × 2.95 × 2.50 | 23.0 | 5 | 40.0 / 19.0 | 70 / 57 | 7.5 cm KwK 37 L/24? |
+| de_pz4_70a | Panzer IV/70 (A) / Panzer IV/70 (A) | Panzer IV/70 (A) | 1944–1945 | 3 | 8.44 × 2.88 × 2.35 | 28.0 | 4 | 38.0 / 19.0? | 30 / 80 | 7.5 cm PaK 42 L/70? |
+| de_pz4_70v | Panzer IV/70 (V) / Panzer IV/70 (V) | Sd.Kfz. 162/1 | 1944–1945 | 3 | 8.50 × 3.17 × 1.85 | 25.8 | 4 | 35.0 / 16.0 | 80 / 80 | 7.5 cm PaK 42 L/70? |
+| de_pz4_a | Panzerkampfwagen IV Ausf. A / Panzer IV Ausf. A | Sd.Kfz. 161 | 1937–1938 | 3 | 5.60 × 2.90 × 2.65 | 18.4 | 5 | 31.0 / 17.0 | 15 / 15 | 7.5 cm KwK 37 L/24? |
+| de_pz4_c | Panzerkampfwagen IV Ausf. C / Panzer IV Ausf. C | Sd.Kfz. 161 | 1938–1939 | 3 | 5.92 × 2.83 × 2.68 | 19.0 | 5 | 40.0 / 20.0 | 30 / 30 | 7.5 cm KwK 37 L/24? |
+| de_pz4_d | Panzerkampfwagen IV Ausf. D / Panzer IV Ausf. D | Sd.Kfz. 161 | 1939–1941 | 3 | 5.92 × 2.84 × 2.68 | 20.0 | 5 | 42.0 / 20.0 | 30 / 35 | 7.5 cm KwK 37 L/24? |
+| de_pz4_f | Panzerkampfwagen IV Ausf. F / Panzer IV Ausf. F | Sd.Kfz. 161 | 1941–1942 | 3 | 5.92 × 2.88 × 2.68 | 22.3 | 5 | 42.0 / 20.0 | 50 / 50 | 7.5 cm KwK 37 L/24? |
+| de_pz4_f2 | Panzerkampfwagen IV Ausf. F2 / Panzer IV Ausf. F2 | Sd.Kfz. 161/1 | 1942–1942 | 3 | 6.63 × 2.88 × 2.68 | 23.0 | 5 | 40.0 / 16.0 | 50 / 50 | 7.5 cm KwK 40 L/43? |
+| de_pz4_g | Panzerkampfwagen IV Ausf. G / Panzer IV Ausf. G | Sd.Kfz. 161/1 | 1942–1943 | 3 | 6.62 × 2.88 × 2.68 | 23.5 | 5 | 40.0 / 16.0 | 80? / 50 | 7.5 cm KwK 40 L/43? |
+| de_pz4_j | Panzerkampfwagen IV Ausf. J / Panzer IV Ausf. J | Sd.Kfz. 161/2 | 1944–1945 | 3 | 7.02 × 3.30 × 2.68 | 25.0 | 5 | 38.0 / 16.0 | 80 / 50 | 7.5 cm KwK 40 L/48? |
+| de_pzbef1_b | Kleiner Panzerbefehlswagen I / Panzer I command tank | Sd.Kfz. 265 | 1935–1937 | 3 | 4.42 × 2.06 × 1.99 | 5.9 | 3 | 40.0 / 20.0? | 13 / 13 | MG 34? |
+| de_pzjg1 | Panzerjäger I / Panzerjäger I | 4.7 cm PaK(t) (Sf) auf Panzerkampfwagen I Ausf. B | 1940–1941 | 3 | 6.40 × 2.06 × 2.25 | 6.4 | 3 | 40.0 / 19.0 | 13 / 15 | 4.7 cm PaK(t) L/43.4? |
+| de_sfh13_lorraine | 15 cm sFH 13/1 (Sf) auf Geschützwagen Lorraine Schlepper (f) / 15 cm sFH 13/1 on Lorraine Schlepper | Sd.Kfz. 135/1 | 1942–1942 | 3 | 5.31 × 1.83 × 2.23 | 8.5 | 4 | 34.0 / 13.0 | 12 / 10 | 15 cm sFH 13/1 L/17? |
+| de_sig33_jgdpz38t | 15 cm sIG 33/2 (Sf) auf Jagdpanzer 38(t) / 15 cm sIG 33/2 on Jagdpanzer 38(t) | 15 cm sIG 33/2 (Sf) auf Jagdpanzer 38(t) | 1944–1945 | 3 | 4.87 × 2.63 × 2.20 | 16.5 | 4 | 32.0 / 16.0? | 60 / 60 | 15 cm sIG 33/2 L/11? |
+| de_stug3_a | Sturmgeschütz III Ausf. A / StuG III Ausf. A | Sd.Kfz. 142 | 1940–1940 | 3 | 5.38 × 2.92 × 1.95 | 19.6 | 4 | 30.0 / 15.0? | 50 / 50 | 7.5 cm StuK 37 L/24? |
+| de_stug3_b | Sturmgeschütz III Ausf. B / StuG III Ausf. B | Sd.Kfz. 142 | 1940–1941 | 3 | 5.40 × 2.95 × 1.96 | 22.0 | 4 | 40.0 / 24.0 | 50 / 50 | 7.5 cm StuK 37 L/24? |
+| de_stug3_e | Sturmgeschütz III Ausf. E / StuG III Ausf. E | Sd.Kfz. 142 | 1941–1942 | 3 | 5.40 × 2.93 × 1.98 | 20.8 | 4 | 40.0 / 20.0? | 50 / 50 | 7.5 cm StuK 37 L/24? |
+| de_stug3_f | Sturmgeschütz III Ausf. F / StuG III Ausf. F | Sd.Kfz. 142/1 | 1942–1942 | 3 | 6.31 × 2.92 × 2.15 | 21.6 | 4 | 40.0 / 20.0? | 80? / 50 | 7.5 cm StuK 40 L/43? |
+| de_stug4 | Sturmgeschütz IV / StuG IV | Sd.Kfz. 167 | 1943–1945 | 3 | 6.70 × 2.95 × 2.20 | 23.0 | 4 | 38.0 / 19.0? | 80 / 80 | 7.5 cm StuK 40 L/48? |
+| de_stuig33b | Sturminfanteriegeschütz 33B / StuIG 33B | Sturminfanteriegeschütz 33B | 1941–1942 | 3 | 5.40 × 2.90 × 2.30 | 21.0 | 5 | 20.0 / 10.0? | 80 / 80 | 15 cm sIG 33 L/11? |
+| de_tiger2 | Panzerkampfwagen VI Ausf. B "Tiger II" / Tiger II | Sd.Kfz. 182 | 1944–1945 | 3 | 10.30 × 3.76 × 3.08 | 70.0 | 5 | 38.0? / 17.0? | 150 / 180 | 8.8 cm KwK 43 L/71? |
 
 ### Guns
 
@@ -89,21 +145,49 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 | 8.8 cm RPzB 54 Panzerschreck | 100 | 150 | `de_inf_at` |
 | Panzerfaust 60 | 60 | 60 | `de_inf_at` |
 | Flammenwerfer 41 | 32 | 32 | `de_inf_flamethrower` |
-| 2 cm KwK 38 L/55 | 400 | 600 | `de_pz2_l`, `de_sdkfz222` |
-| 7.5 cm KwK 40 L/48 | 700 | 1500 | `de_pz4_h` |
+| 2 cm KwK 38 L/55 | 400 | 600 | `de_pz2_l`, `de_sdkfz222`, `de_aufkl38t` |
+| 7.5 cm KwK 40 L/48 | 700 | 1500 | `de_pz4_h`, `de_pz4_j` |
 | 8.8 cm KwK 36 L/56 | 1000 | 2000 | `de_tiger1_e` |
-| 7.5 cm PaK 39 L/48 | 700 | 1500 | `de_jgdpz38t` |
-| 7.5 cm StuK 40 L/48 | 700 | 1500 | `de_stug3_g` |
+| 7.5 cm PaK 39 L/48 | 700 | 1500 | `de_jgdpz38t`, `de_jgdpz4` |
+| 7.5 cm StuK 40 L/48 | 700 | 1500 | `de_stug3_g`, `de_stug4` |
 | 10.5 cm leFH 18/2 L/28 |  | 10675 | `de_wespe` |
 | 15 cm Panzerwerfer 42 (10 tubes) |  | 6900 | `de_pzwerfer42` |
 | 15 cm StuH 43 L/12 | 500 | 4300 | `de_sturmpanzer4` |
 | MG 34 (ball mount) | 400 | 800 | `de_sturmpanzer4` |
-| 7.5 cm PaK 40 L/46 | 700 | 1800 | `de_pak40` |
-| 2 cm Flak 38 L/65 | 400 | 5783 | `de_flak38` |
+| 7.5 cm PaK 40 L/46 | 700 | 1800 | `de_pak40`, `de_pak40_39h` |
+| 2 cm Flak 38 L/65 | 400 | 5783 | `de_flak38`, `de_flakpz38t` |
 | 8.8 cm Flak 36 L/56 | 1000 | 14860 | `de_flak36` |
 | 10.5 cm leFH 18M L/28 |  | 12325 | `de_lefh18` |
 | 12 cm GrW 42 |  | 6050 | `de_grw42` |
 | MG 34 / MG 42 | 400 | 1000 | `de_bunker_tobruk` |
+| 8.8 cm PaK 43/2 L/71 | 1000 | 2500 | `de_elefant` |
+| 15 cm sIG 33/1 L/11 |  | 4700 | `de_grille_h` |
+| 15 cm sFH 18/1 L/30 |  | 13325 | `de_hummel` |
+| 8.8 cm PaK 43/3 L/71 | 1000 | 2500 | `de_jagdpanther` |
+| 12.8 cm PaK 44 L/55 | 1000 | 3000 | `de_jagdtiger` |
+| 10.5 cm leFH 18 L/28 |  | 10675 | `de_lefh18_39h` |
+| 7.5 cm PaK 40/1 L/46 | 700 | 1800 | `de_marder1` |
+| 7.5 cm PaK 40/2 L/46 | 700 | 1800 | `de_marder2` |
+| 7.62 cm PaK 36(r) L/54.8 | 700 | 1500 | `de_marder3_139` |
+| 7.5 cm PaK 40/3 L/46 | 700 | 1800 | `de_marder3_m` |
+| 8.8 cm PaK 43/1 L/71 | 1000 | 2500 | `de_nashorn` |
+| 4.7 cm PaK(t) L/43.4 | 500 | 1000 | `de_pak47_35r`, `de_pzjg1` |
+| 7.5 cm KwK 42 L/70 | 700 | 2000 | `de_panther_a`, `de_panther_d`, `de_panther_g` |
+| 2 cm KwK 30 L/55 | 400 | 600 | `de_pz2_c`, `de_pz2_f` |
+| 3.7 cm KwK 34(t) L/40 | 500 | 1000 | `de_pz35t` |
+| 3.7 cm KwK 38(t) L/47.8 | 500 | 1000 | `de_pz38t_a`, `de_pz38t_e` |
+| 3.7 cm KwK 36 L/46.5 | 500 | 1000 | `de_pz3_f` |
+| 5 cm KwK 38 L/42 | 700 | 1500 | `de_pz3_g`, `de_pz3_h`, `de_pz3_j` |
+| 5 cm KwK 39 L/60 | 700 | 1500 | `de_pz3_l`, `de_pz3_m` |
+| 7.5 cm KwK 37 L/24 | 700 | 1000 | `de_pz3_n`, `de_pz4_a`, `de_pz4_c`, `de_pz4_d`, `de_pz4_f` |
+| 7.5 cm PaK 42 L/70 | 700 | 2000 | `de_pz4_70a`, `de_pz4_70v` |
+| 7.5 cm KwK 40 L/43 | 700 | 1500 | `de_pz4_f2`, `de_pz4_g` |
+| 15 cm sFH 13/1 L/17 |  | 8600 | `de_sfh13_lorraine` |
+| 15 cm sIG 33/2 L/11 |  | 4700 | `de_sig33_jgdpz38t` |
+| 7.5 cm StuK 37 L/24 | 700 | 1000 | `de_stug3_a`, `de_stug3_b`, `de_stug3_e` |
+| 7.5 cm StuK 40 L/43 | 700 | 1500 | `de_stug3_f` |
+| 15 cm sIG 33 L/11 | 4700 | 4700 | `de_stuig33b` |
+| 8.8 cm KwK 43 L/71 | 1000 | 2500 | `de_tiger2` |
 
 ### Uncertain values
 
@@ -130,7 +214,7 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `de_sdkfz222`: height_mm, speed_offroad_kmh_x10, weapon
 - `de_wespe`: speed_offroad_kmh_x10, armor_hull_front_mm, armor_turret_front_mm, weapon, crew, range_road_km
 - `de_pzwerfer42`: speed_offroad_kmh_x10, armor_hull_front_mm, armor_hull_side_mm, armor_hull_rear_mm, weapon
-- `de_sturmpanzer4`: length_hull_mm, armor_hull_front_mm, armor_hull_rear_mm, armor_turret_side_mm, armor_turret_rear_mm, gun_traverse_deg, weapon
+- `de_sturmpanzer4`: length_hull_mm, speed_offroad_kmh_x10, armor_hull_front_mm, armor_hull_side_mm, armor_hull_rear_mm, armor_turret_side_mm, armor_turret_rear_mm, gun_traverse_deg, weapon
 - `de_pak40`: width_mm, height_mm, crew
 - `de_flak38`: mass_kg, length_mm, width_mm, height_mm, weapon
 - `de_flak36`: length_mm, width_mm
@@ -144,6 +228,61 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `de_fi156`: weapon
 - `de_brueckenleger4`: mass_kg, height_mm, speed_offroad_kmh_x10, range_road_km, bridge_length_mm, bridge_load_kg
 - `de_ju52_3m`: speed_cruise_kmh_x10, weapon, passengers
+- `de_aufkl38t`: speed_offroad_kmh_x10, weapon
+- `de_elefant`: speed_offroad_kmh_x10, weapon
+- `de_flakpz38t`: speed_offroad_kmh_x10, weapon
+- `de_grille_h`: speed_offroad_kmh_x10, weapon
+- `de_hummel`: weapon
+- `de_jagdpanther`: weapon
+- `de_jagdtiger`: weapon
+- `de_jgdpz4`: width_mm, speed_offroad_kmh_x10, weapon
+- `de_lefh18_39h`: length_mm, width_mm, height_mm, speed_offroad_kmh_x10, weapon
+- `de_marder1`: weapon
+- `de_marder2`: weapon
+- `de_marder3_139`: power_hp, weapon
+- `de_marder3_m`: speed_offroad_kmh_x10, weapon
+- `de_nashorn`: weapon
+- `de_pak40_39h`: length_mm, width_mm, height_mm, speed_offroad_kmh_x10, weapon
+- `de_pak47_35r`: speed_offroad_kmh_x10, weapon
+- `de_panther_a`: speed_road_kmh_x10, speed_offroad_kmh_x10, weapon
+- `de_panther_d`: speed_road_kmh_x10, speed_offroad_kmh_x10, weapon
+- `de_panther_g`: speed_road_kmh_x10, speed_offroad_kmh_x10, weapon
+- `de_pz1_a`: speed_offroad_kmh_x10, weapon
+- `de_pz1_b`: speed_offroad_kmh_x10, weapon
+- `de_pz1_c`: speed_offroad_kmh_x10, weapon
+- `de_pz1_f`: speed_offroad_kmh_x10, weapon
+- `de_pz2_c`: speed_offroad_kmh_x10, weapon
+- `de_pz2_f`: speed_offroad_kmh_x10, weapon
+- `de_pz35t`: speed_offroad_kmh_x10, weapon
+- `de_pz38t_a`: weapon
+- `de_pz38t_e`: weapon
+- `de_pz3_f`: weapon
+- `de_pz3_g`: weapon
+- `de_pz3_h`: weapon
+- `de_pz3_j`: weapon
+- `de_pz3_l`: weapon
+- `de_pz3_m`: weapon
+- `de_pz3_n`: weapon
+- `de_pz4_70a`: speed_offroad_kmh_x10, power_hp, weapon
+- `de_pz4_70v`: weapon
+- `de_pz4_a`: weapon
+- `de_pz4_c`: weapon
+- `de_pz4_d`: weapon
+- `de_pz4_f`: weapon
+- `de_pz4_f2`: weapon
+- `de_pz4_g`: length_hull_mm, armor_hull_front_mm, weapon
+- `de_pz4_j`: weapon
+- `de_pzbef1_b`: speed_offroad_kmh_x10, weapon
+- `de_pzjg1`: weapon
+- `de_sfh13_lorraine`: weapon
+- `de_sig33_jgdpz38t`: speed_offroad_kmh_x10, weapon
+- `de_stug3_a`: speed_offroad_kmh_x10, weapon
+- `de_stug3_b`: weapon
+- `de_stug3_e`: speed_offroad_kmh_x10, weapon
+- `de_stug3_f`: speed_offroad_kmh_x10, armor_hull_front_mm, weapon
+- `de_stug4`: speed_offroad_kmh_x10, weapon
+- `de_stuig33b`: speed_offroad_kmh_x10, weapon
+- `de_tiger2`: speed_road_kmh_x10, speed_offroad_kmh_x10, weapon
 
 ### Sources
 
@@ -307,6 +446,202 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `de_ju52_3m`
   - https://en.wikipedia.org/wiki/Junkers_Ju_52 (Ju 52/3m g4e: crew 2-3, 17 passengers, 18.9 m, 29.25 m, 4.5 m, max takeoff 10,500 kg, 3 x BMW 132T 725 PS, 265 km/h, cruise 211 km/h, ceiling 5,500 m, 1 x MG 15 dorsal (from memory, not fetched for this entry))
   - https://en.wikipedia.org/wiki/Fallschirmj%C3%A4ger (Ju 52 as the standard aircraft of the German paratroopers (Crete 1941, Netherlands 1940), sticks of 12-13 jumpers)
+- `de_aufkl38t`
+  - https://www.onwar.com/wwii/tanks/germany/ge003aufk38t.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Feb.-Mar. 1944); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/Panzer_II (2 cm KwK 38 values as in de_pz2_l (same gun))
+- `de_elefant`
+  - https://www.onwar.com/wwii/tanks/germany/ge005elefant.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Apr. 1943 - May 1943); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/8.8_cm_KwK_43 (KwK 43 / PaK 43 L/71: PzGr 39/43 1000 m/s (article not re-read for prompt 063))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `de_flakpz38t`
+  - https://www.onwar.com/wwii/tanks/germany/ge006flkpz38t.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Nov. 1943-Feb. 1944); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/2_cm_Flak_30/38/Flakvierling (Flak 38 values as in de_flak38: 450 rpm cyclic, 900 m/s, AA effective 2200 m, ground max 5783 m)
+- `de_grille_h`
+  - https://www.onwar.com/wwii/tanks/germany/ge007grilleh.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Feb.-Apr. 1943); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/15_cm_sIG_33 (sIG 33: 240 m/s, max range 4700 m, 2-3 rpm (article not re-read for prompt 063))
+- `de_hummel`
+  - https://www.onwar.com/wwii/tanks/germany/ge009hummel.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (1943-1945); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/15_cm_sFH_18 (sFH 18: 520 m/s, max range 13,325 m, 4 rpm (article not re-read for prompt 063))
+- `de_jagdpanther`
+  - https://www.onwar.com/wwii/tanks/germany/ge011jagdpanther.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Jan. 1944 - Mar. 1945); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/8.8_cm_KwK_43 (KwK 43 / PaK 43 L/71: PzGr 39/43 1000 m/s (article not re-read for prompt 063))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `de_jagdtiger`
+  - https://www.onwar.com/wwii/tanks/germany/ge012jagdtiger.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Jul. 1944 - Mar. 1945); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/12.8_cm_PaK_44 (12.8 cm PaK 44 L/55: PzGr 43 about 920 m/s (article not re-read for prompt 063))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `de_jgdpz4`
+  - https://www.onwar.com/wwii/tanks/germany/ge010jagdpanzer4.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Jan. 1944 - Nov. 1944); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/Jagdpanzer_38(t) (PaK 39 values as in de_jgdpz38t (same gun))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `de_lefh18_39h`
+  - https://www.onwar.com/wwii/tanks/germany/ge014fh1839h.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (1942); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/10.5_cm_leFH_18 (leFH 18 values as in de_lefh18 / de_wespe)
+  - https://en.wikipedia.org/wiki/Hotchkiss_H35 (H39 hull length 4.22 m and width 1.95 m (from memory, not re-read for prompt 063))
+- `de_marder1`
+  - https://www.onwar.com/wwii/tanks/germany/ge021pak40lorraine.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Jul.-Aug.1942); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/7.5_cm_Pak_40 (PaK 40 values as in de_pak40 (same gun on a vehicle mount))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `de_marder2`
+  - https://www.onwar.com/wwii/tanks/germany/ge015marder2.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (July 1943-Mar. 1944); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/7.5_cm_Pak_40 (PaK 40 values as in de_pak40 (same gun on a vehicle mount))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `de_marder3_139`
+  - https://www.onwar.com/wwii/tanks/germany/ge016marder3.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Apr.-Oct. 1942); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/7.62_cm_PaK_36(r) (PzGr 39 740 m/s (article not re-read for prompt 063))
+  - https://en.wikipedia.org/wiki/ZB-53 (ZB vz. 37 (MG 37(t)) 500-700 rpm in two settings (article not re-read for prompt 063))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `de_marder3_m`
+  - https://www.onwar.com/wwii/tanks/germany/ge017marder3m.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Apr. 1943 - May 1944); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/7.5_cm_Pak_40 (PaK 40 values as in de_pak40 (same gun on a vehicle mount))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `de_nashorn`
+  - https://www.onwar.com/wwii/tanks/germany/ge019nashorn.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Feb. 1943 - Mar. 1945); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/8.8_cm_KwK_43 (KwK 43 / PaK 43 L/71: PzGr 39/43 1000 m/s (article not re-read for prompt 063))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `de_pak40_39h`
+  - https://www.onwar.com/wwii/tanks/germany/ge022pak4039h.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (1942); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/7.5_cm_Pak_40 (PaK 40 values as in de_pak40 (same gun on a vehicle mount))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+  - https://en.wikipedia.org/wiki/Hotchkiss_H35 (H39 hull length 4.22 m and width 1.95 m (from memory, not re-read for prompt 063))
+- `de_pak47_35r`
+  - https://www.onwar.com/wwii/tanks/germany/ge001pak47t35r.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (May-Oct.1941); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/4.7_cm_KP%C3%9AV_vz._38 (4.7 cm PaK(t) L/43.4: APHE 775 m/s (article not re-read for prompt 063))
+- `de_panther_a`
+  - https://www.onwar.com/wwii/tanks/germany/ge023panthera.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Aug. 1943 - May 1944); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/7.5_cm_KwK_42 (KwK 42 / PaK 42 L/70: PzGr 39/42 925 m/s (article not re-read for prompt 063))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `de_panther_d`
+  - https://www.onwar.com/wwii/tanks/germany/ge024pantherd.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Jan. 1943 - Sept. 1943); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/7.5_cm_KwK_42 (KwK 42 / PaK 42 L/70: PzGr 39/42 925 m/s (article not re-read for prompt 063))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `de_panther_g`
+  - https://www.onwar.com/wwii/tanks/germany/ge026pantherg.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Mar. 1944 - Apr. 1945); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/7.5_cm_KwK_42 (KwK 42 / PaK 42 L/70: PzGr 39/42 925 m/s (article not re-read for prompt 063))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `de_pz1_a`
+  - https://www.onwar.com/wwii/tanks/germany/ge027pz1a.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Jul. 1934-Jun. 1936); fetched 2026-11-16 into data/vehicles)
+- `de_pz1_b`
+  - https://www.onwar.com/wwii/tanks/germany/ge028pz1b.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Aug. 1935-Jun. 1937); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/MG_13 (MG 13 600-750 rpm (article not re-read for prompt 063))
+- `de_pz1_c`
+  - https://www.onwar.com/wwii/tanks/germany/ge029pz1c.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Jul.-Dec. 1942); fetched 2026-11-16 into data/vehicles)
+- `de_pz1_f`
+  - https://www.onwar.com/wwii/tanks/germany/ge030pz1f.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Apr.-Dec. 1942); fetched 2026-11-16 into data/vehicles)
+- `de_pz2_c`
+  - https://www.onwar.com/wwii/tanks/germany/ge031pz2c.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Mar. 1937-Apr. 1940*); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/2_cm_KwK_30 (2 cm KwK 30: 280 rpm cyclic, PzGr about 780 m/s (article not re-read for prompt 063))
+- `de_pz2_f`
+  - https://www.onwar.com/wwii/tanks/germany/ge032pz2f.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Mar. 1941-Dec. 1942); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/2_cm_KwK_30 (2 cm KwK 30: 280 rpm cyclic, PzGr about 780 m/s (article not re-read for prompt 063))
+- `de_pz35t`
+  - https://www.onwar.com/wwii/tanks/germany/ge049pz35.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (1935-1938); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/Panzer_35(t) (Skoda A3 / KwK 34(t) 37 mm L/40, about 675 m/s (article not re-read for prompt 063))
+  - https://en.wikipedia.org/wiki/ZB-53 (ZB vz. 37 (MG 37(t)) 500-700 rpm in two settings (article not re-read for prompt 063))
+- `de_pz38t_a`
+  - https://www.onwar.com/wwii/tanks/germany/ge051pz38ta.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (May-November 1939); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/Panzer_38(t) (3.7 cm KwK 38(t) L/47.8, PzGr 741 m/s (article not re-read for prompt 063))
+  - https://en.wikipedia.org/wiki/ZB-53 (ZB vz. 37 (MG 37(t)) 500-700 rpm in two settings (article not re-read for prompt 063))
+- `de_pz38t_e`
+  - https://www.onwar.com/wwii/tanks/germany/ge052pz38te.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Nov. 1940 - 1941); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/Panzer_38(t) (3.7 cm KwK 38(t) L/47.8, PzGr 741 m/s (article not re-read for prompt 063))
+  - https://en.wikipedia.org/wiki/ZB-53 (ZB vz. 37 (MG 37(t)) 500-700 rpm in two settings (article not re-read for prompt 063))
+- `de_pz3_f`
+  - https://www.onwar.com/wwii/tanks/germany/ge034pz3f.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Sept. 1939-July 1940); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/3.7_cm_KwK_36 (3.7 cm KwK 36: PzGr 745 m/s (article not re-read for prompt 063))
+- `de_pz3_g`
+  - https://www.onwar.com/wwii/tanks/germany/ge035pz3g.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Apr. 1940-Feb. 1941); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/5_cm_KwK_38 (5 cm KwK 38 L/42: PzGr 39 685 m/s (article not re-read for prompt 063))
+- `de_pz3_h`
+  - https://www.onwar.com/wwii/tanks/germany/ge036pz3h.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Oct. 1940-Apr. 1941); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/5_cm_KwK_38 (5 cm KwK 38 L/42: PzGr 39 685 m/s (article not re-read for prompt 063))
+- `de_pz3_j`
+  - https://www.onwar.com/wwii/tanks/germany/ge037pz3j.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Mar. 1941-July 1942); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/5_cm_KwK_38 (5 cm KwK 38 L/42: PzGr 39 685 m/s (article not re-read for prompt 063))
+- `de_pz3_l`
+  - https://www.onwar.com/wwii/tanks/germany/ge038pz3l.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (June-December 1942); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/5_cm_KwK_39 (5 cm KwK 39 L/60: PzGr 39 835 m/s (article not re-read for prompt 063))
+- `de_pz3_m`
+  - https://www.onwar.com/wwii/tanks/germany/ge039pz3m.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Oct. 1942-Feb. 1943); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/5_cm_KwK_39 (5 cm KwK 39 L/60: PzGr 39 835 m/s (article not re-read for prompt 063))
+- `de_pz3_n`
+  - https://www.onwar.com/wwii/tanks/germany/ge040pz3n.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (June 1942 - Aug. 1943); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/7.5_cm_KwK_37 (7.5 cm KwK 37 / StuK 37 L/24: K.Gr.rot Pz. 385 m/s (article not re-read for prompt 063))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `de_pz4_70a`
+  - https://www.onwar.com/wwii/tanks/germany/ge053pz470a.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Aug.1944-Mar.1945); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/7.5_cm_KwK_42 (KwK 42 / PaK 42 L/70: PzGr 39/42 925 m/s (article not re-read for prompt 063))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `de_pz4_70v`
+  - https://www.onwar.com/wwii/tanks/germany/ge054pz470v.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Aug.1944-Mar.1945); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/7.5_cm_KwK_42 (KwK 42 / PaK 42 L/70: PzGr 39/42 925 m/s (article not re-read for prompt 063))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `de_pz4_a`
+  - https://www.onwar.com/wwii/tanks/germany/ge041pz4a.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Oct. 1937- Mar. 1938); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/7.5_cm_KwK_37 (7.5 cm KwK 37 / StuK 37 L/24: K.Gr.rot Pz. 385 m/s (article not re-read for prompt 063))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `de_pz4_c`
+  - https://www.onwar.com/wwii/tanks/germany/ge042pz4c.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Sep.1938-Aug.1939); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/7.5_cm_KwK_37 (7.5 cm KwK 37 / StuK 37 L/24: K.Gr.rot Pz. 385 m/s (article not re-read for prompt 063))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `de_pz4_d`
+  - https://www.onwar.com/wwii/tanks/germany/ge043pz4d.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Oct. 1939-May 1941); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/7.5_cm_KwK_37 (7.5 cm KwK 37 / StuK 37 L/24: K.Gr.rot Pz. 385 m/s (article not re-read for prompt 063))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `de_pz4_f`
+  - https://www.onwar.com/wwii/tanks/germany/ge044pz4f.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Apr. 1941-Mar. 1942); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/7.5_cm_KwK_37 (7.5 cm KwK 37 / StuK 37 L/24: K.Gr.rot Pz. 385 m/s (article not re-read for prompt 063))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `de_pz4_f2`
+  - https://www.onwar.com/wwii/tanks/germany/ge045pz4f2.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (March-July 1942); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/7.5_cm_KwK_40 (L/43: PzGr 39 740 m/s, 10-15 rpm (article not re-read for prompt 063))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `de_pz4_g`
+  - https://www.onwar.com/wwii/tanks/germany/ge046pz4g.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (May 1942 - June 1943); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/7.5_cm_KwK_40 (L/43: PzGr 39 740 m/s, 10-15 rpm (article not re-read for prompt 063))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `de_pz4_j`
+  - https://www.onwar.com/wwii/tanks/germany/ge048pz4j.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (June 1944 - Mar. 1945); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/7.5_cm_KwK_40 (values as in de_pz4_h (same gun))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `de_pzbef1_b`
+  - https://www.onwar.com/wwii/tanks/germany/ge013kleinerpanzer.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (1935-1937); fetched 2026-11-16 into data/vehicles)
+- `de_pzjg1`
+  - https://www.onwar.com/wwii/tanks/germany/ge055pzjager1.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Mar. 1940-Feb. 1941); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/4.7_cm_KP%C3%9AV_vz._38 (4.7 cm PaK(t) L/43.4: APHE 775 m/s (article not re-read for prompt 063))
+- `de_sfh13_lorraine`
+  - https://www.onwar.com/wwii/tanks/germany/ge056sfh131lor.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (July 1942); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/15_cm_sFH_13 (sFH 13: 377 m/s, max range 8600 m (article not re-read for prompt 063))
+- `de_sig33_jgdpz38t`
+  - https://www.onwar.com/wwii/tanks/germany/ge058sig33hetzer.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Dec. 1944-?); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/15_cm_sIG_33 (sIG 33: 240 m/s, max range 4700 m, 2-3 rpm (article not re-read for prompt 063))
+- `de_stug3_a`
+  - https://www.onwar.com/wwii/tanks/germany/ge059stug3a.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Jan. 1940 -May 1940); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/7.5_cm_KwK_37 (7.5 cm KwK 37 / StuK 37 L/24: K.Gr.rot Pz. 385 m/s (article not re-read for prompt 063))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `de_stug3_b`
+  - https://www.onwar.com/wwii/tanks/germany/ge060stug3b.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (June 1940 - May 1941); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/7.5_cm_KwK_37 (7.5 cm KwK 37 / StuK 37 L/24: K.Gr.rot Pz. 385 m/s (article not re-read for prompt 063))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `de_stug3_e`
+  - https://www.onwar.com/wwii/tanks/germany/ge062stug3e.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Sep. 1941-Mar.1942); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/7.5_cm_KwK_37 (7.5 cm KwK 37 / StuK 37 L/24: K.Gr.rot Pz. 385 m/s (article not re-read for prompt 063))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `de_stug3_f`
+  - https://www.onwar.com/wwii/tanks/germany/ge063stug3f.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Mar. 1942 - Sept. 1942); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/7.5_cm_KwK_40 (L/43 (StuK 40): PzGr 39 740 m/s (article not re-read for prompt 063))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `de_stug4`
+  - https://www.onwar.com/wwii/tanks/germany/ge065stug4.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Dec. 1943 - Mar. 1945); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/7.5_cm_KwK_40 (values as in de_stug3_g (same gun))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `de_stuig33b`
+  - https://www.onwar.com/wwii/tanks/germany/ge057sig33b.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Dec. 1941-Oct. 1942); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/15_cm_sIG_33 (sIG 33: 240 m/s, max range 4700 m, 2-3 rpm (article not re-read for prompt 063))
+- `de_tiger2`
+  - https://www.onwar.com/wwii/tanks/germany/ge068tiger2.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Jan. 1944 - Mar. 1945); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/8.8_cm_KwK_43 (KwK 43 / PaK 43 L/71: PzGr 39/43 1000 m/s (article not re-read for prompt 063))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
 
 ## Soviet Union (`su`)
 
@@ -343,6 +678,42 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 | su_ba64b | BA-64B / BA-64B | BA-64B light armored car | 1943–1945 | 2 | 3.66 × 1.74? × 1.90 | 2.4 | 2 | 80.0 / 30.0? | 15 /  | DT? |
 | su_isu152 | ISU-152 / ISU-152 | ISU-152 heavy self-propelled gun | 1943–1945 | 2 | 9.18 × 3.07 × 2.48 | 46.0? | 5? | 30.0? / 15.0? | 90 / 90 | 152 mm ML-20S L/29? |
 | su_valentine_bridgelayer | Valentine-Brückenleger (Lend-Lease) / Valentine Bridgelayer (Lend-Lease) | Valentine Bridgelayer | 1943–1945 | 2 | 5.90? × 2.90? × 3.40? | 20.0? | 2 | 24.0 / 13.0? | 60 /  |  |
+| su_bt2 | BT-2 Modell 1932 / BT-2 Model 1932 | BT-2 | 1931–1932 | 3 | 5.50 × 2.23 × 2.20 | 11.0 | 3 | 52.0? / 26.0? | 13 / 13 | 37 mm B-3 (5-K) M1930? |
+| su_bt5 | BT-5 Modell 1934 / BT-5 Model 1934 | BT-5 | 1933–1935 | 3 | 5.50 × 2.23 × 2.20 | 11.5 | 3 | 52.0? / 26.0? | 13 / 13 | 45 mm 20-K M1932? |
+| su_bt7 | BT-7 Modell 1937 / BT-7 Model 1937 | BT-7 | 1937–1939 | 3 | 5.66 × 2.29 × 2.42 | 13.8 | 3 | 52.0? / 26.0? | 22 / 15 | 45 mm 20-K M1934? |
+| su_is1 | IS-1 / IS-1 | IS-85 | 1943–1944 | 3 | 8.30 × 3.10 × 2.70 | 44.0 | 4 | 37.0 / 19.0 | 120 / 100 | 85 mm D-5T L/52? |
+| su_is3 | IS-3 / IS-3 | IS-3 | 1945–1945 | 3 | 10.00 × 3.20 × 2.45 | 46.5 | 4 | 37.0 / 19.0 | 120 / 200 | 122 mm D-25T L/43? |
+| su_isu122 | ISU-122 / ISU-122 | ISU-122 | 1943–1944 | 3 | 9.80 × 3.10 × 2.50 | 46.0 | 5 | 37.0 / 16.0 | 90 / 65 | 122 mm A-19S L/46.3? |
+| su_isu122s | ISU-122S / ISU-122S | ISU-122S | 1944–1945 | 3 | 9.80 × 3.10 × 2.50 | 46.0 | 5 | 37.0 / 16.0 | 90 / 100 | 122 mm D-25S L/43? |
+| su_kv1_1939 | KW-1 Modell 1939 / KV-1 Model 1939 | KV-1 | 1940–1940 | 3 | 6.80 × 3.30 × 2.70 | 43.5 | 5 | 35.0 / 18.0? | 75 / 90 | 76.2 mm L-11 L/30.5? |
+| su_kv1_1941 | KW-1 Modell 1941 / KV-1 Model 1941 | KV-1 | 1941–1942 | 3 | 7.10 × 3.30 × 2.70 | 45.0 | 5 | 35.0 / 18.0? | 75 / 90 | 76.2 mm ZiS-5 L/41.6? |
+| su_kv1e | KW-1E Modell 1940 / KV-1E Model 1940 | KV-1E | 1941–1941 | 3 | 6.80 × 3.30 × 2.70 | 47.5 | 5 | 30.0 / 15.0? | 110 / 90 | 76.2 mm F-32 L/31.5? |
+| su_kv1s | KW-1S / KV-1S | KV-1S | 1942–1943 | 3 | 7.00 × 3.30 × 2.80 | 42.5 | 5 | 43.0 / 19.0 | 60 / 82 | 76.2 mm ZiS-5 L/41.6? |
+| su_kv2 | KW-2 Modell 1940 / KV-2 Model 1940 | KV-2 | 1940–1941 | 3 | 7.00 × 3.25 × 3.30 | 52.0 | 6 | 26.0 / 13.0? | 75 / 110 | 152 mm M-10T L/24.3? |
+| su_kv85 | KW-85 / KV-85 | KV-85 | 1943–1943 | 3 | 8.49 × 3.25 × 2.80 | 46.0 | 4 | 35.0 / 12.0 | 75 / 100 | 85 mm D-5T L/52? |
+| su_ot130 | Flammenwerferpanzer OT-130 / OT-130 flamethrower tank | OT-130 | 1938–1938 | 3 | 4.80 × 2.40 × 2.40 | 11.5 | 3 | 30.0 / 15.0? | 15 / 15 | Flamethrower KS-24? |
+| su_su100 | SU-100 / SU-100 | SU-100 | 1944–1945 | 3 | 9.45 × 3.00 × 2.25 | 31.6 | 4 | 50.0 / 25.0? | 75 / 75 | 100 mm D-10S L/56? |
+| su_su122 | SU-122 / SU-122 | SU-122 | 1942–1944 | 3 | 6.95 × 3.00 × 2.32 | 30.9 | 5 | 55.0 / 28.0? | 45 / 65 | 122 mm M-30S L/22.7? |
+| su_su152 | SU-152 / SU-152 | SU-152 | 1943–1943 | 3 | 8.95 × 3.25 × 2.45 | 45.5 | 5 | 43.0 / 19.0 | 60 / 65 | 152 mm ML-20S L/29? |
+| su_su76 | SU-76 / SU-76 | SU-76 | 1942–1943 | 3 | 4.90 × 2.70 × 2.20 | 10.8 | 4 | 45.0 / 22.0? | 30 / 25 | 76.2 mm ZiS-3Sh? |
+| su_t26_1933 | T-26 Modell 1933 / T-26 Model 1933 | T-26 | 1933–1936 | 3 | 4.80 × 2.40 × 2.40 | 9.4 | 3 | 30.0 / 15.0? | 15 / 15 | 45 mm 20-K M1932? |
+| su_t26s_1937 | T-26S Modell 1937 / T-26S Model 1937 | T-26S | 1938–1939 | 3 | 4.80 × 2.40 × 2.30 | 10.5 | 3 | 30.0 / 15.0? | 15 / 15 | 45 mm 20-K M1938? |
+| su_t26s_1939 | T-26S Modell 1939 / T-26S Model 1939 | T-26S | 1939–1940 | 3 | 4.80 × 2.40 × 2.30 | 10.5 | 3 | 30.0 / 15.0? | 15 / 15 | 45 mm 20-K M1938? |
+| su_t27a | Tankette T-27A / T-27A tankette | T-27A | 1932–1932 | 3 | 2.60 × 1.83 × 1.45 | 2.7 | 2 | 40.0 / 32.0 | 10 / 10 | DT? |
+| su_t34_76_1940 | T-34/76 Modell 1940 / T-34/76 Model 1940 | T-34 | 1940–1941 | 3 | 5.92 × 3.00 × 2.41 | 26.0 | 4 | 55.0 / 40.0 | 45 / 45 | 76.2 mm L-11 L/30.5? |
+| su_t34_76_1941 | T-34/76 Modell 1941 / T-34/76 Model 1941 | T-34 | 1941–1942 | 3 | 6.68 × 3.00 × 2.45 | 28.0 | 4 | 55.0 / 40.0 | 45 / 45 | 76.2 mm F-34 L/41.5? |
+| su_t34_76_1942 | T-34/76 Modell 1942 / T-34/76 Model 1942 | T-34 | 1942–1943 | 3 | 6.75 × 3.00 × 2.45 | 30.0 | 4 | 55.0 / 40.0 | 45 / 70 | 76.2 mm F-34 L/41.5? |
+| su_t34_85_1943 | T-34/85 Modell 1943 / T-34-85 Model 1943 | T-34-85 | 1944–1944 | 3 | 8.15 × 3.00 × 2.72 | 32.0 | 5 | 55.0 / 40.0 | 45 / 90 | 85 mm D-5T L/52? |
+| su_t34_85_1944 | T-34/85 Modell 1944 / T-34-85 Model 1944 | T-34-85 | 1944–1945 | 3 | 8.15 × 3.00 × 2.72 | 32.0 | 5 | 55.0 / 30.0 | 45 / 90 | 85 mm ZiS-S-53 L/54.6? |
+| su_t35_1935 | T-35 Modell 1935 / T-35 Model 1935 | T-35 | 1935–1937 | 3 | 9.72 × 3.20 × 3.43 | 45.0 | 11? | 30.0 / 19.0 | 30 / 20 | 76.2 mm PS-3 L/16.5? |
+| su_t37a | Schwimmpanzer T-37A / T-37A amphibious tank | T-37A | 1933–1936 | 3 | 3.75 × 2.00 × 1.82 | 3.2 | 2 | 35.0 / 18.0? | 9 / 9 | DT? |
+| su_t38 | Schwimmpanzer T-38 / T-38 amphibious tank | T-38 | 1937–1938 | 3 | 3.78 × 2.33 × 1.63 | 3.3 | 2 | 40.0? / 20.0? | 9 / 9 | DT? |
+| su_t40 | Schwimmpanzer T-40 / T-40 amphibious tank | T-40 | 1941–1942 | 3 | 4.11 × 2.33 × 1.95 | 5.5 | 2 | 45.0 / 22.0? | 9 / 15 | 12.7 mm DShK? |
+| su_t44 | T-44 / T-44 | T-44 | 1945–1945 | 3 | 7.65 × 3.10 × 2.40 | 31.5 | 4 | 50.0 / 26.0 | 90 / 120 | 85 mm ZiS-S-53 L/54.6? |
+| su_t50 | T-50 / T-50 | T-50 | 1941–1941 | 3 | 5.20 × 2.47 × 2.16 | 14.0 | 4 | 50.0 / 40.0 | 37 / 37 | 45 mm 20-K M1938? |
+| su_t60_1941 | T-60 Modell 1941 / T-60 Model 1941 | T-60 | 1941–1942 | 3 | 4.10 × 2.30 × 1.80 | 5.8 | 2 | 45.0 / 22.0? | 20 / 20 | 20 mm TNSh L/82.4? |
+| su_t60_1942 | T-60 Modell 1942 / T-60 Model 1942 | T-60 | 1942–1942 | 3 | 4.10 × 2.30 × 1.80 | 6.4 | 2 | 45.0 / 22.0? | 35 / 25 | 20 mm TNSh L/82.4? |
+| su_t70_1942 | T-70 Modell 1942 / T-70 Model 1942 | T-70 | 1942–1943 | 3 | 4.30 × 2.40 × 2.00 | 9.2 | 2 | 45.0 / 35.0 | 35 / 60 | 45 mm 20-K M1938? |
 
 ### Guns
 
@@ -388,21 +759,37 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 | TT-33 | 25 | 50 | `su_inf_medic`, `su_inf_command`, `su_inf_tank_crew` |
 | PTRD-41 | 150 | 300 | `su_inf_at` |
 | ROKS-3 | 25 | 25 | `su_inf_flamethrower` |
-| 45 mm 20-K M1938 | 500 | 1000 | `su_t70m` |
-| 76.2 mm F-34 L/41.5 | 700 | 1000 | `su_t34_76_1943` |
-| 122 mm D-25T L/43 | 1000 | 1500 | `su_is2` |
+| 45 mm 20-K M1938 | 500 | 1000 | `su_t70m`, `su_t26s_1937`, `su_t26s_1939`, `su_t50`, `su_t70_1942` |
+| 76.2 mm F-34 L/41.5 | 700 | 1000 | `su_t34_76_1943`, `su_t34_76_1941`, `su_t34_76_1942` |
+| 122 mm D-25T L/43 | 1000 | 1500 | `su_is2`, `su_is3` |
 | 85 mm D-5S L/52 | 1000 | 1500 | `su_su85` |
-| 76.2 mm ZiS-3Sh | 700 | 1000 | `su_su76m` |
+| 76.2 mm ZiS-3Sh | 700 | 1000 | `su_su76m`, `su_su76` |
 | Browning M2HB | 800 | 1800 | `su_m3a1_scout` |
 | Browning M1919A4 | 400 | 1000 | `su_m3a1_scout` |
 | BM-13-16 launcher (16 rails) |  | 8740 | `su_bm13` |
 | DT | 400 | 800 | `su_ba64b` |
-| 152 mm ML-20S L/29 |  | 6200 | `su_isu152` |
+| 152 mm ML-20S L/29 |  | 6200 | `su_isu152`, `su_su152` |
 | 76.2 mm ZiS-3 L/42.6 | 700 | 1000 | `su_zis3` |
 | 37 mm 61-K L/67 | 500 | 4000 | `su_61k` |
 | 85 mm 52-K L/55 | 1000 | 15650 | `su_52k` |
 | 122 mm M-30 L/22.7 |  | 11800 | `su_m30` |
 | 120-PM-38 |  | 5800 | `su_pm38` |
+| 37 mm B-3 (5-K) M1930 | 500 | 1000 | `su_bt2` |
+| 45 mm 20-K M1932 | 500 | 1000 | `su_bt5`, `su_t26_1933`, `su_t35_1935` |
+| 45 mm 20-K M1934 | 500 | 1000 | `su_bt7` |
+| 85 mm D-5T L/52 | 1000 | 1500 | `su_is1`, `su_kv85`, `su_t34_85_1943` |
+| 122 mm A-19S L/46.3 | 1000 | 1500 | `su_isu122` |
+| 122 mm D-25S L/43 | 1000 | 1500 | `su_isu122s` |
+| 76.2 mm L-11 L/30.5 | 700 | 1000 | `su_kv1_1939`, `su_t34_76_1940` |
+| 76.2 mm ZiS-5 L/41.6 | 700 | 1000 | `su_kv1_1941`, `su_kv1s` |
+| 76.2 mm F-32 L/31.5 | 700 | 1000 | `su_kv1e` |
+| 152 mm M-10T L/24.3 | 500 | 1000 | `su_kv2` |
+| Flamethrower KS-24 | 40 | 40 | `su_ot130` |
+| 100 mm D-10S L/56 | 1000 | 1500 | `su_su100` |
+| 122 mm M-30S L/22.7 | 500 | 11800 | `su_su122` |
+| 85 mm ZiS-S-53 L/54.6 | 1000 | 1500 | `su_t34_85_1944`, `su_t44` |
+| 12.7 mm DShK | 800 | 1500 | `su_t40` |
+| 20 mm TNSh L/82.4 | 400 | 1000 | `su_t60_1941`, `su_t60_1942` |
 
 ### Uncertain values
 
@@ -443,6 +830,42 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `su_po2`: mass_kg
 - `su_valentine_bridgelayer`: length_mm, width_mm, height_mm, mass_kg, speed_offroad_kmh_x10, range_road_km
 - `su_li2`: speed_cruise_kmh_x10, weapon, passengers
+- `su_bt2`: speed_road_kmh_x10, speed_offroad_kmh_x10, weapon
+- `su_bt5`: speed_road_kmh_x10, speed_offroad_kmh_x10, weapon
+- `su_bt7`: speed_road_kmh_x10, speed_offroad_kmh_x10, weapon
+- `su_is1`: weapon
+- `su_is3`: weapon
+- `su_isu122`: weapon
+- `su_isu122s`: weapon
+- `su_kv1_1939`: speed_offroad_kmh_x10, weapon
+- `su_kv1_1941`: speed_offroad_kmh_x10, weapon
+- `su_kv1e`: speed_offroad_kmh_x10, weapon
+- `su_kv1s`: weapon
+- `su_kv2`: length_hull_mm, speed_offroad_kmh_x10, weapon
+- `su_kv85`: weapon
+- `su_ot130`: speed_offroad_kmh_x10, weapon
+- `su_su100`: speed_offroad_kmh_x10, weapon
+- `su_su122`: speed_offroad_kmh_x10, weapon
+- `su_su152`: weapon
+- `su_su76`: speed_offroad_kmh_x10, weapon
+- `su_t26_1933`: speed_offroad_kmh_x10, weapon
+- `su_t26s_1937`: speed_offroad_kmh_x10, weapon
+- `su_t26s_1939`: speed_offroad_kmh_x10, weapon
+- `su_t27a`: weapon
+- `su_t34_76_1940`: weapon
+- `su_t34_76_1941`: weapon
+- `su_t34_76_1942`: weapon
+- `su_t34_85_1943`: weapon
+- `su_t34_85_1944`: weapon
+- `su_t35_1935`: crew, weapon
+- `su_t37a`: speed_offroad_kmh_x10, weapon
+- `su_t38`: speed_road_kmh_x10, speed_offroad_kmh_x10, speed_water_kmh_x10, weapon
+- `su_t40`: speed_offroad_kmh_x10, weapon
+- `su_t44`: weapon
+- `su_t50`: weapon
+- `su_t60_1941`: speed_offroad_kmh_x10, weapon
+- `su_t60_1942`: speed_offroad_kmh_x10, weapon
+- `su_t70_1942`: weapon
 
 ### Sources
 
@@ -595,6 +1018,129 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `su_li2`
   - https://en.wikipedia.org/wiki/Lisunov_Li-2 (licence-built DC-3: crew 4, 19.65 m, 28.81 m, 5.15 m, max takeoff 11,280 kg, 2 x Shvetsov ASh-62IR 1000 hp, 320 km/h, ceiling 5,600 m, up to 25 troops; military versions with a dorsal turret (from memory, not fetched for this entry))
   - https://en.wikipedia.org/wiki/Dnieper_Airborne_Operation (Li-2 used to drop Soviet paratroopers (Dnieper 1943))
+- `su_bt2`
+  - https://www.onwar.com/wwii/tanks/ussr/su001bt2m32.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Sept. 1931 - 1932); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/BT-2 (37 mm B-3 tank gun of the BT-2, about 820 m/s (article not re-read for prompt 063))
+- `su_bt5`
+  - https://www.onwar.com/wwii/tanks/ussr/su002bt5m34.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (1933-1935); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/45_mm_tank_gun_M1932_(20-K) (20-K values as in su_t70m (same gun family))
+- `su_bt7`
+  - https://www.onwar.com/wwii/tanks/ussr/su003bt7m37.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (1937-1939); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/45_mm_tank_gun_M1932_(20-K) (20-K values as in su_t70m (same gun family))
+- `su_is1`
+  - https://www.onwar.com/wwii/tanks/ussr/su004is1.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Late 1943 - Early 1944); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/85_mm_air_defense_gun_M1939_(52-K) (infobox) (85 mm ballistics, 792 m/s, as in su_su85 (D-5S; D-5T is the tank version))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `su_is3`
+  - https://www.onwar.com/wwii/tanks/ussr/su006is3.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (1945*); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/IS-2 (D-25T values as in su_is2 (same gun))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `su_isu122`
+  - https://www.onwar.com/wwii/tanks/ussr/su007isu122a.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Late 1943 - 1944); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/122_mm_gun_M1931/37_(A-19) (A-19: BR-471 about 800 m/s (article not re-read for prompt 063))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `su_isu122s`
+  - https://www.onwar.com/wwii/tanks/ussr/su008isu122b.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (1944-1945); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/IS-2 (D-25 values as in su_is2 (D-25S is the casemate version))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `su_kv1_1939`
+  - https://www.onwar.com/wwii/tanks/ussr/su011kv1m39.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (1940); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/76_mm_tank_gun_M1938/39 (L-11 L/30.5: BR-350A about 612 m/s (article not re-read for prompt 063))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `su_kv1_1941`
+  - https://www.onwar.com/wwii/tanks/ussr/su012kv1m41.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (1941-1942); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/76_mm_tank_gun_M1940_F-34 (ZiS-5: F-34 ballistics, BR-350A 662 m/s (article not re-read for prompt 063))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `su_kv1e`
+  - https://www.onwar.com/wwii/tanks/ussr/su010kv1em40.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Spring-Summer 1941); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/76_mm_tank_gun_M1939_(F-32) (F-32 L/31.5: BR-350A about 612 m/s (article not re-read for prompt 063))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `su_kv1s`
+  - https://www.onwar.com/wwii/tanks/ussr/su013kv1s.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Aug. 1942-Apr. 1943); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/76_mm_tank_gun_M1940_F-34 (ZiS-5: F-34 ballistics, BR-350A 662 m/s (article not re-read for prompt 063))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `su_kv2`
+  - https://www.onwar.com/wwii/tanks/ussr/su014kv2m40.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (1940-1941); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/KV-2 (M-10T 152 mm howitzer, about 436 m/s (article not re-read for prompt 063))
+- `su_kv85`
+  - https://www.onwar.com/wwii/tanks/ussr/su015kv85.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Sept.-Nov. 1943); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/85_mm_air_defense_gun_M1939_(52-K) (infobox) (85 mm ballistics, 792 m/s, as in su_su85 (D-5S; D-5T is the tank version))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `su_ot130`
+  - https://www.onwar.com/wwii/tanks/ussr/su016ot130.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (1938); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/OT-130 (OT-130 flamethrower, jet range 40-50 m (article not re-read for prompt 063))
+- `su_su100`
+  - https://www.onwar.com/wwii/tanks/ussr/su021su100.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Nov. 1944 - Jun.1945); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/SU-100 (D-10S: BR-412 895 m/s (article not re-read for prompt 063))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `su_su122`
+  - https://www.onwar.com/wwii/tanks/ussr/su022su122.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Dec. 1942 - early 1944); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/122_mm_howitzer_M1938_(M-30) (M-30 values as in su_m30 (same howitzer))
+- `su_su152`
+  - https://www.onwar.com/wwii/tanks/ussr/su023su152.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (1943); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/ISU-152 (ML-20S values as in su_isu152 (same gun))
+- `su_su76`
+  - https://www.onwar.com/wwii/tanks/ussr/su018su76.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Dec. 1942 - May 1943); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/SU-76 (ZiS-3Sh values as in su_su76m (same gun))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `su_t26_1933`
+  - https://www.onwar.com/wwii/tanks/ussr/su025t26m33.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (1933-1936); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/45_mm_tank_gun_M1932_(20-K) (20-K values as in su_t70m (same gun family))
+- `su_t26s_1937`
+  - https://www.onwar.com/wwii/tanks/ussr/su026t26sm37.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (1938-1939); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/45_mm_tank_gun_M1932_(20-K) (20-K values as in su_t70m (same gun))
+- `su_t26s_1939`
+  - https://www.onwar.com/wwii/tanks/ussr/su027t26sm39.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (1939-1940); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/45_mm_tank_gun_M1932_(20-K) (20-K values as in su_t70m (same gun))
+- `su_t27a`
+  - https://www.onwar.com/wwii/tanks/ussr/su028t27a.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (1932); fetched 2026-11-16 into data/vehicles)
+- `su_t34_76_1940`
+  - https://www.onwar.com/wwii/tanks/ussr/su042t3476m40.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (mid 1940 - mid 1941); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/76_mm_tank_gun_M1938/39 (L-11 L/30.5: BR-350A about 612 m/s (article not re-read for prompt 063))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `su_t34_76_1941`
+  - https://www.onwar.com/wwii/tanks/ussr/su043t3476m41.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (early 1941 - 1942); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/T-34 (F-34 values as in su_t34_76_1943 (same gun))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `su_t34_76_1942`
+  - https://www.onwar.com/wwii/tanks/ussr/su044t3476m42.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (mid 1942 - mid 1943); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/T-34 (F-34 values as in su_t34_76_1943 (same gun))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `su_t34_85_1943`
+  - https://www.onwar.com/wwii/tanks/ussr/su046t3485m43.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Jan. 1944 - Mar. 1944); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/85_mm_air_defense_gun_M1939_(52-K) (infobox) (85 mm ballistics, 792 m/s, as in su_su85 (D-5S; D-5T is the tank version))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `su_t34_85_1944`
+  - https://www.onwar.com/wwii/tanks/ussr/su047t3485m44.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Mar. 1944 - May 1945); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/T-34-85 (ZiS-S-53: 85 mm, BR-365 792 m/s (article not re-read for prompt 063))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `su_t35_1935`
+  - https://www.onwar.com/wwii/tanks/ussr/su030t35m35.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (1935-1937); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/45_mm_tank_gun_M1932_(20-K) (20-K values as in su_t70m (same gun family))
+  - https://en.wikipedia.org/wiki/T-35 (two 45 mm 20-K guns in the front sub-turrets, crew 11 (from memory, not re-read for prompt 063))
+- `su_t37a`
+  - https://www.onwar.com/wwii/tanks/ussr/su032t37a.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (1933-1936); fetched 2026-11-16 into data/vehicles)
+- `su_t38`
+  - https://www.onwar.com/wwii/tanks/ussr/su033t38.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (1937-1938); fetched 2026-11-16 into data/vehicles)
+- `su_t40`
+  - https://www.onwar.com/wwii/tanks/ussr/su034t40.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (1941-1942); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/DShK (DShK 600 rpm, about 850 m/s (article not re-read for prompt 063))
+- `su_t44`
+  - https://www.onwar.com/wwii/tanks/ussr/su036t44.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (1945); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/T-34-85 (ZiS-S-53: 85 mm, BR-365 792 m/s (article not re-read for prompt 063))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `su_t50`
+  - https://www.onwar.com/wwii/tanks/ussr/su037t50.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (1941); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/45_mm_tank_gun_M1932_(20-K) (20-K values as in su_t70m (same gun))
+- `su_t60_1941`
+  - https://www.onwar.com/wwii/tanks/ussr/su038t60m41.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (July 1941-1942); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/T-60_tank (20 mm TNSh (tank ShVAK): 750 rpm, about 815 m/s (article not re-read for prompt 063))
+- `su_t60_1942`
+  - https://www.onwar.com/wwii/tanks/ussr/su039t60m42.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Summer-Sept. 1942); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/T-60_tank (20 mm TNSh (tank ShVAK): 750 rpm, about 815 m/s (article not re-read for prompt 063))
+- `su_t70_1942`
+  - https://www.onwar.com/wwii/tanks/ussr/su040t70m42.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Mar. 1942 - Aug. 1943); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/45_mm_tank_gun_M1932_(20-K) (20-K values as in su_t70m (same gun))
 
 ## United States (`us`)
 
@@ -630,6 +1176,26 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 | us_gmc_cckw | Lkw GMC CCKW 353 (2½ t, 6x6) / GMC CCKW 353 2½-ton Truck | Truck, 2½-ton, 6x6, GMC CCKW-353 | 1941–1945 | 2 | 6.86 × 2.24 × 2.77 | 7.4 | 2? + 16? | 72.0 / 35.0? |  /  |  |
 | us_m8_greyhound | Panzerspähwagen M8 Greyhound / M8 Greyhound | Light Armored Car M8 | 1943–1945 | 2 | 4.70 × 2.31 × 1.91? | 7.4 | 4 | 89.0 / 51.0 | 19? / 25 | 37 mm Gun M6? |
 | us_m7_priest | Selbstfahrlafette M7 Priest / M7 Priest | 105 mm Howitzer Motor Carriage M7 | 1942–1945 | 2 | 6.02 × 2.87 × 2.54 | 23.0 | 8 | 39.0 / 24.0 | 62? /  | 105 mm Howitzer M2A1 (mount M4) |
+| us_m18 | Jagdpanzer M18 "Hellcat" / M18 Hellcat | 76 mm Gun Motor Carriage M18 | 1943–1944 | 3 | 6.65 × 2.87 × 2.57 | 17.7 | 5 | 80.0 / 40.0? | 13 / 25 | 76 mm Gun M1A1? |
+| us_m22 | Luftlandepanzer M22 "Locust" / M22 Locust | Light Tank (Airborne) M22 | 1943–1944 | 3 | 3.96 × 2.25 × 1.84 | 7.4 | 4 | 58.0 / 29.0? | 25 / 25 | 37 mm Gun M6? |
+| us_m24 | Leichter Panzer M24 "Chaffee" / M24 Chaffee | Light Tank M24 | 1944–1945 | 3 | 5.56? × 3.00 × 2.77 | 18.4 | 4 | 56.0 / 28.0? | 25 / 38 | 75 mm Gun M6? |
+| us_m36 | Jagdpanzer M36 / M36 tank destroyer | 90 mm Gun Motor Carriage M36 | 1944–1945 | 3 | 7.46 × 3.05 × 3.28 | 28.6 | 5 | 42.0? / 30.0? | 108 / 76 | 90 mm Gun M3? |
+| us_m3_lee | Mittlerer Panzer M3 "Lee" / M3 Lee | Medium Tank M3 | 1941–1942 | 3 | 6.12? × 2.72 × 3.12 | 27.9 | 6? | 34.0 / 17.0? | 51 / 89 | 75 mm Gun M2 (hull)? |
+| us_m3_stuart | Leichter Panzer M3 "Stuart" / M3 Stuart | Light Tank M3 | 1941–1942 | 3 | 4.53 × 2.24 × 2.64 | 12.7 | 4 | 58.0 / 29.0? | 44 / 38 | 37 mm Gun M5? |
+| us_m3a1_lee | Mittlerer Panzer M3A1 "Lee" / M3A1 Lee | Medium Tank M3A1 | 1942–1942 | 3 | 6.12? × 2.72 × 3.12 | 28.6 | 6? | 34.0 / 17.0? | 51 / 89 | 75 mm Gun M3 (hull)? |
+| us_m3a1_stuart | Leichter Panzer M3A1 "Stuart" / M3A1 Stuart | Light Tank M3A1 | 1942–1943 | 3 | 4.53 × 2.24 × 2.39 | 12.9 | 4 | 58.0 / 29.0? | 44 / 38 | 37 mm Gun M6? |
+| us_m3a3_lee | Mittlerer Panzer M3A3 "Lee" / M3A3 Lee | Medium Tank M3A3 | 1942–1942 | 3 | 6.12? × 2.72 × 3.12 | 27.9 | 6? | 40.0 / 20.0? | 51 / 89 | 75 mm Gun M3 (hull)? |
+| us_m3a3_stuart | Leichter Panzer M3A3 "Stuart" / M3A3 Stuart | Light Tank M3A3 | 1942–1943 | 3 | 5.03 × 2.52 × 2.57 | 14.7 | 4 | 50.0 / 25.0? | 44 / 51 | 37 mm Gun M6? |
+| us_m3a4_lee | Mittlerer Panzer M3A4 "Lee" / M3A4 Lee | Medium Tank M3A4 | 1942–1942 | 3 | 6.63? × 2.64 × 3.12 | 29.0 | 6? | 32.0 / 16.0? | 51 / 89 | 75 mm Gun M3 (hull)? |
+| us_m4 | Mittlerer Panzer M4 "Sherman" / M4 Sherman | Medium Tank M4 | 1942–1944 | 3 | 5.89 × 2.62 × 2.74 | 30.3 | 5 | 34.0 / 17.0? | 51 / 89 | 75 mm Gun M3? |
+| us_m4a1 | Mittlerer Panzer M4A1 "Sherman" / M4A1 Sherman | Medium Tank M4A1 | 1942–1943 | 3 | 5.84 × 2.62 × 2.74 | 30.3 | 5 | 34.0 / 17.0? | 51 / 76 | 75 mm Gun M3? |
+| us_m4a1_76w | Mittlerer Panzer M4A1(76)W "Sherman" / M4A1(76)W Sherman | Medium Tank M4A1(76)W | 1944–1945 | 3 | 7.47 × 2.67 × 2.97 | 32.0 | 5 | 34.0 / 17.0? | 108 / 89 | 76 mm Gun M1A1? |
+| us_m4a2 | Mittlerer Panzer M4A2 "Sherman" / M4A2 Sherman | Medium Tank M4A2 | 1942–1944 | 3 | 5.92 × 2.62 × 2.74 | 31.8 | 5 | 34.0 / 17.0? | 108 / 89 | 75 mm Gun M3? |
+| us_m4a2_76w | Mittlerer Panzer M4A2(76)W "Sherman" / M4A2(76)W Sherman | Medium Tank M4A2(76)W | 1944–1945 | 3 | 7.57 × 2.67 × 2.97 | 33.3 | 5 | 34.0 / 17.0? | 108 / 89 | 76 mm Gun M1A1? |
+| us_m4a3 | Mittlerer Panzer M4A3 "Sherman" / M4A3 Sherman | Medium Tank M4A3 | 1942–1943 | 3 | 5.91 × 2.61 × 2.74 | 30.3 | 5 | 42.0 / 21.0? | 51 / 89 | 75 mm Gun M3? |
+| us_m4a3_76w_hvss | Mittlerer Panzer M4A3(76)W HVSS "Sherman" / M4A3(76)W HVSS Sherman (Easy Eight) | Medium Tank M4A3E8 | 1944–1945 | 3 | 7.54 × 3.00 × 2.97 | 33.7 | 5 | 42.0 / 21.0? | 108 / 89 | 76 mm Gun M1A1? |
+| us_m4a3e2 | Sturmpanzer M4A3E2 "Jumbo" / M4A3E2 Jumbo | Medium Tank M4A3E2 (Assault) | 1944–1944 | 3 | 6.27 × 2.94 × 2.95 | 38.1 | 5 | 35.0 / 18.0? | 140 / 178 | 75 mm Gun M3? |
+| us_m4a4 | Mittlerer Panzer M4A4 "Sherman" / M4A4 Sherman | Medium Tank M4A4 | 1942–1943 | 3 | 6.06 × 2.62 × 2.74 | 31.6 | 5 | 32.0 / 16.0? | 51 / 76 | 75 mm Gun M3? |
 
 ### Guns
 
@@ -679,9 +1245,9 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 | 2.36 in Rocket Launcher M9 (Bazooka) | 100 | 110 | `us_inf_at` |
 | Portable Flame Thrower M2-2 | 20 | 20 | `us_inf_flamethrower` |
 | Submachine gun M3 | 50 | 50 | `us_inf_tank_crew` |
-| 37 mm Gun M6 | 500 | 800 | `us_m5a1`, `us_m8_greyhound` |
+| 37 mm Gun M6 | 500 | 800 | `us_m5a1`, `us_m8_greyhound`, `us_m22`, `us_m3a1_stuart`, `us_m3a3_stuart` |
 | 75 mm Gun M3 (mount M34A1) | 700 | 1000 | `us_m4a3_75` |
-| 90 mm Gun M3 | 1000 | 1500 | `us_m26` |
+| 90 mm Gun M3 | 1000 | 1500 | `us_m26`, `us_m36` |
 | 3 in Gun M7 (mount M5) | 700 | 1500 | `us_m10` |
 | 105 mm Howitzer M4 (mount M52) | 500 | 11160 | `us_m4a3_105` |
 | Rocket Launcher T34 (60 tubes) |  | 4200 | `us_t34_calliope` |
@@ -692,6 +1258,14 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 | 90 mm Gun M2 (L/50) | 1000 | 19042 | `us_90mm_m2` |
 | 105 mm Howitzer M2A1 |  | 11270 | `us_m2a1_105` |
 | 4.2 in Mortar M2 (rifled) |  | 4000 | `us_m2_42in` |
+| 76 mm Gun M1A1 | 700 | 1500 | `us_m18`, `us_m4a1_76w`, `us_m4a2_76w`, `us_m4a3_76w_hvss` |
+| 75 mm Gun M6 | 700 | 1000 | `us_m24` |
+| 75 mm Gun M2 (hull) | 700 | 1000 | `us_m3_lee` |
+| 37 mm Gun M5 (turret) | 500 | 800 | `us_m3_lee` |
+| 37 mm Gun M5 | 500 | 800 | `us_m3_stuart` |
+| 75 mm Gun M3 (hull) | 700 | 1000 | `us_m3a1_lee`, `us_m3a3_lee`, `us_m3a4_lee` |
+| 37 mm Gun M6 (turret) | 500 | 800 | `us_m3a1_lee`, `us_m3a3_lee`, `us_m3a4_lee` |
+| 75 mm Gun M3 | 700 | 1000 | `us_m4`, `us_m4a1`, `us_m4a2`, `us_m4a3`, `us_m4a3e2`, `us_m4a4` |
 
 ### Uncertain values
 
@@ -730,6 +1304,26 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `us_p47d`: weapon
 - `us_b25j`: weapon, power_hp
 - `us_c47`: passengers
+- `us_m18`: speed_offroad_kmh_x10, weapon
+- `us_m22`: speed_offroad_kmh_x10, weapon
+- `us_m24`: length_mm, length_hull_mm, speed_offroad_kmh_x10, weapon
+- `us_m36`: speed_road_kmh_x10, speed_offroad_kmh_x10, weapon
+- `us_m3_lee`: length_mm, length_hull_mm, crew, speed_offroad_kmh_x10, weapon
+- `us_m3_stuart`: speed_offroad_kmh_x10, weapon
+- `us_m3a1_lee`: length_mm, length_hull_mm, crew, speed_offroad_kmh_x10, weapon
+- `us_m3a1_stuart`: speed_offroad_kmh_x10, weapon
+- `us_m3a3_lee`: length_mm, length_hull_mm, crew, speed_offroad_kmh_x10, weapon
+- `us_m3a3_stuart`: speed_offroad_kmh_x10, weapon
+- `us_m3a4_lee`: length_mm, length_hull_mm, crew, speed_offroad_kmh_x10, weapon
+- `us_m4`: speed_offroad_kmh_x10, weapon
+- `us_m4a1`: speed_offroad_kmh_x10, weapon
+- `us_m4a1_76w`: speed_offroad_kmh_x10, weapon
+- `us_m4a2`: speed_offroad_kmh_x10, weapon
+- `us_m4a2_76w`: speed_offroad_kmh_x10, weapon
+- `us_m4a3`: speed_offroad_kmh_x10, weapon
+- `us_m4a3_76w_hvss`: speed_offroad_kmh_x10, weapon
+- `us_m4a3e2`: speed_offroad_kmh_x10, weapon
+- `us_m4a4`: speed_offroad_kmh_x10, weapon
 
 ### Sources
 
@@ -875,6 +1469,86 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `us_c47`
   - https://en.wikipedia.org/wiki/Douglas_C-47_Skytrain (C-47: crew 4, 28 troops, 63 ft 9 in (19.43 m), 95 ft 6 in (29.11 m), 16 ft 11 in (5.18 m), max takeoff 31,000 lb (14,060 kg), 2 x P&W R-1830 1200 hp, 224 mph (360 km/h), cruise 160 mph (257 km/h), ceiling 26,400 ft (8,045 m), unarmed (from memory, not fetched for this entry))
   - https://en.wikipedia.org/wiki/Operation_Overlord (C-47 dropping the 82nd and 101st Airborne Divisions (sticks of 15-18 paratroopers))
+- `us_m18`
+  - https://www.onwar.com/wwii/tanks/usa/us024tdm18.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Jul. 1943-Oct. 1944); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/76_mm_gun_M1 (76 mm M1A1/M1A2: M62 792 m/s (article not re-read for prompt 063))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `us_m22`
+  - https://www.onwar.com/wwii/tanks/usa/us005ltm22.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Apr. 1943-Feb. 1944); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/M3_Stuart (37 mm M6 values as in us_m5a1 (same gun))
+- `us_m24`
+  - https://www.onwar.com/wwii/tanks/usa/us006ltm24.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Apr. 1944-Aug. 1945); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/75_mm_gun_M2/M3/M6 (M6: lightweight M3 with the same ballistics, 619 m/s (article not re-read for prompt 063))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `us_m36`
+  - https://www.onwar.com/wwii/tanks/usa/us023m36.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Apr. 1944-July 1945); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/M26_Pershing (90 mm M3 values as in us_m26 (same gun))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `us_m3_lee`
+  - https://www.onwar.com/wwii/tanks/usa/us010m3med.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Jun. 1941-Aug. 1942); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/75_mm_gun_M2/M3/M6 (M2 L/31: M61 about 588 m/s (article not re-read for prompt 063))
+  - https://en.wikipedia.org/wiki/M3_Stuart (37 mm M5 / M6: same ballistics, values as in us_m5a1 (M6))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `us_m3_stuart`
+  - https://www.onwar.com/wwii/tanks/usa/us001ltm3.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Mar. 1941-Oct. 1942); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/M3_Stuart (37 mm M5 / M6: same ballistics, values as in us_m5a1 (M6))
+- `us_m3a1_lee`
+  - https://www.onwar.com/wwii/tanks/usa/us007m3a1med.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Jan. 1942-Jul. 1942); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/75_mm_gun_M2/M3/M6 (M3 values as in us_m4a3_75 (same gun))
+  - https://en.wikipedia.org/wiki/M3_Stuart (37 mm M6 values as in us_m5a1 (same gun))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `us_m3a1_stuart`
+  - https://www.onwar.com/wwii/tanks/usa/us002ltm3a1.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (May 1942-Jan. 1943); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/M3_Stuart (37 mm M6 values as in us_m5a1 (same gun))
+- `us_m3a3_lee`
+  - https://www.onwar.com/wwii/tanks/usa/us008m3a3med.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Mar. 1942-Dec. 1942); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/75_mm_gun_M2/M3/M6 (M3 values as in us_m4a3_75 (same gun))
+  - https://en.wikipedia.org/wiki/M3_Stuart (37 mm M6 values as in us_m5a1 (same gun))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `us_m3a3_stuart`
+  - https://www.onwar.com/wwii/tanks/usa/us003ltm3a3.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Sept. 1942-Sept. 1943); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/M3_Stuart (37 mm M6 values as in us_m5a1 (same gun))
+- `us_m3a4_lee`
+  - https://www.onwar.com/wwii/tanks/usa/us009m3a4med.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Jun. 1942-Aug. 1942); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/75_mm_gun_M2/M3/M6 (M3 values as in us_m4a3_75 (same gun))
+  - https://en.wikipedia.org/wiki/M3_Stuart (37 mm M6 values as in us_m5a1 (same gun))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `us_m4`
+  - https://www.onwar.com/wwii/tanks/usa/us011m4.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (July 1942-Jan. 1944); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/75_mm_gun_M2/M3/M6 (M3 values as in us_m4a3_75 (same gun))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `us_m4a1`
+  - https://www.onwar.com/wwii/tanks/usa/us012m4a1.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Feb. 1942-Dec. 1943); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/75_mm_gun_M2/M3/M6 (M3 values as in us_m4a3_75 (same gun))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `us_m4a1_76w`
+  - https://www.onwar.com/wwii/tanks/usa/us017m4a176w.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Jan. 1944-Jul. 1945); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/76_mm_gun_M1 (76 mm M1A1/M1A2: M62 792 m/s (article not re-read for prompt 063))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `us_m4a2`
+  - https://www.onwar.com/wwii/tanks/usa/us013m4a2.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Apr. 1942-May 1944); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/75_mm_gun_M2/M3/M6 (M3 values as in us_m4a3_75 (same gun))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `us_m4a2_76w`
+  - https://www.onwar.com/wwii/tanks/usa/us018m4a276w.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (May 1944-May 1945); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/76_mm_gun_M1 (76 mm M1A1/M1A2: M62 792 m/s (article not re-read for prompt 063))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `us_m4a3`
+  - https://www.onwar.com/wwii/tanks/usa/us014m4a3.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (June 1942-Sept. 1943); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/75_mm_gun_M2/M3/M6 (M3 values as in us_m4a3_75 (same gun))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `us_m4a3_76w_hvss`
+  - https://www.onwar.com/wwii/tanks/usa/us020m4a376w.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Mar. 1944-Apr. 1945*); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/76_mm_gun_M1 (76 mm M1A1/M1A2: M62 792 m/s (article not re-read for prompt 063))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `us_m4a3e2`
+  - https://www.onwar.com/wwii/tanks/usa/us015m4a3e2.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (June 1944-July 1944); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/75_mm_gun_M2/M3/M6 (M3 values as in us_m4a3_75 (same gun))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
+- `us_m4a4`
+  - https://www.onwar.com/wwii/tanks/usa/us016m4a4.html (onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (July 1942-Sept. 1943); fetched 2026-11-16 into data/vehicles)
+  - https://en.wikipedia.org/wiki/75_mm_gun_M2/M3/M6 (M3 values as in us_m4a3_75 (same gun))
+  - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
 
 ## Neutral (`neutral`)
 

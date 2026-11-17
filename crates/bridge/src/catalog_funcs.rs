@@ -94,7 +94,9 @@ impl SimHost {
 
     /// Every id the unit reference of the main menu lists (prompt 066):
     /// the base buildings of the economy rules, then every catalog entry
-    /// that is not an environment object, in catalog order.
+    /// that is not an environment object, in catalog order. Tier-3 entries
+    /// (prompt 063: from the vehicle references, not buildable) are left out
+    /// until they have a model.
     #[func]
     fn catalog_ids() -> PackedStringArray {
         let buildings = sim::EconomyRules::builtin()
@@ -104,6 +106,7 @@ impl SimHost {
             c.entries
                 .iter()
                 .filter(|e| e.category.group() != Group::Environment)
+                .filter(|e| e.tier != 3 || !e.model.is_empty())
                 .map(|e| e.id.clone())
                 .collect()
         });

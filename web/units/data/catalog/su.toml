@@ -1134,3 +1134,1374 @@ source = [
 ]
 uncertain = ["speed_cruise_kmh_x10", "weapon", "passengers"]
 note = "Soviet licence-built Douglas DC-3, the main transport and paratroop aircraft of the VVS. Cruise speed estimated. The dorsal ShKAS (later UBT 12.7 mm) turret of the military versions is listed as its only gun."
+
+[[unit]]
+id = "su_bt2"
+faction = "su"
+category = "tank_light"
+name_de = "BT-2 Modell 1932"
+name_en = "BT-2 Model 1932"
+designation = "BT-2"
+year_from = 1931
+year_to = 1932
+tier = 3
+model = ""
+length_mm = 5500
+width_mm = 2230
+height_mm = 2200
+mass_kg = 11000
+crew = 3
+speed_road_kmh_x10 = 520
+speed_offroad_kmh_x10 = 260
+range_road_km = 150
+power_hp = 400
+armor_hull_front_mm = 13
+armor_hull_side_mm = 13
+armor_hull_rear_mm = 13
+armor_turret_front_mm = 13
+armor_turret_side_mm = 13
+armor_turret_rear_mm = 13
+weapon = [
+    { name = "37 mm B-3 (5-K) M1930", caliber_mm_x10 = 370, ammo = "BR AP, O HE", rate_rpm = 15, muzzle_velocity_mps = 820, range_effective_m = 1000, range_typical_m = 500, ammo_carried = 96 },
+    { name = "DT", caliber_mm_x10 = 76, rate_rpm = 600, muzzle_velocity_mps = 840, ammo_carried = 2709 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/ussr/su001bt2m32.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Sept. 1931 - 1932); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/BT-2", covers = "37 mm B-3 tank gun of the BT-2, about 820 m/s (article not re-read for prompt 063)" },
+]
+uncertain = ["speed_road_kmh_x10", "speed_offroad_kmh_x10", "weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Wheel-cum-track tank: 52 km/h on tracks (catalog), 72 km/h on wheels; road range 150 km on tracks. Off-road speed not in the source: half the road speed (estimate). range_typical_m (prompt 067): class values of SCHEMA.md (37 mm B-3 (5-K) M1930 500 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "su_bt5"
+faction = "su"
+category = "tank_light"
+name_de = "BT-5 Modell 1934"
+name_en = "BT-5 Model 1934"
+designation = "BT-5"
+year_from = 1933
+year_to = 1935
+tier = 3
+model = ""
+length_mm = 5500
+width_mm = 2230
+height_mm = 2200
+mass_kg = 11500
+crew = 3
+speed_road_kmh_x10 = 520
+speed_offroad_kmh_x10 = 260
+range_road_km = 150
+power_hp = 400
+armor_hull_front_mm = 13
+armor_hull_side_mm = 13
+armor_hull_rear_mm = 13
+armor_turret_front_mm = 13
+armor_turret_side_mm = 13
+armor_turret_rear_mm = 13
+weapon = [
+    { name = "45 mm 20-K M1932", caliber_mm_x10 = 450, ammo = "BR-240 APHE, O-240 HE", rate_rpm = 7, muzzle_velocity_mps = 760, range_effective_m = 1000, range_typical_m = 500 },
+    { name = "DT", caliber_mm_x10 = 76, rate_rpm = 600, muzzle_velocity_mps = 840, ammo_carried = 2709 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/ussr/su002bt5m34.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (1933-1935); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/45_mm_tank_gun_M1932_(20-K)", covers = "20-K values as in su_t70m (same gun family)" },
+]
+uncertain = ["speed_road_kmh_x10", "speed_offroad_kmh_x10", "weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Wheel-cum-track tank: 52 km/h on tracks (catalog), 72 km/h on wheels. Secondary \"1 or 2\" DT in the source: 1 taken. Off-road speed not in the source: half the road speed (estimate). range_typical_m (prompt 067): class values of SCHEMA.md (45 mm 20-K M1932 500 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "su_bt7"
+faction = "su"
+category = "tank_light"
+name_de = "BT-7 Modell 1937"
+name_en = "BT-7 Model 1937"
+designation = "BT-7"
+year_from = 1937
+year_to = 1939
+tier = 3
+model = ""
+length_mm = 5660
+width_mm = 2290
+height_mm = 2420
+mass_kg = 13800
+crew = 3
+speed_road_kmh_x10 = 520
+speed_offroad_kmh_x10 = 260
+range_road_km = 350
+power_hp = 450
+armor_hull_front_mm = 22
+armor_hull_side_mm = 13
+armor_hull_rear_mm = 13
+armor_turret_front_mm = 15
+armor_turret_side_mm = 15
+armor_turret_rear_mm = 15
+weapon = [
+    { name = "45 mm 20-K M1934", caliber_mm_x10 = 450, ammo = "BR-240 APHE, O-240 HE", rate_rpm = 7, muzzle_velocity_mps = 760, range_effective_m = 1000, range_typical_m = 500 },
+    { name = "DT", count = 2, caliber_mm_x10 = 76, rate_rpm = 600, muzzle_velocity_mps = 840, ammo_carried = 2394 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/ussr/su003bt7m37.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (1937-1939); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/45_mm_tank_gun_M1932_(20-K)", covers = "20-K values as in su_t70m (same gun family)" },
+]
+uncertain = ["speed_road_kmh_x10", "speed_offroad_kmh_x10", "weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Wheel-cum-track tank: 52 km/h on tracks (catalog), 72 km/h on wheels. Off-road speed not in the source: half the road speed (estimate). range_typical_m (prompt 067): class values of SCHEMA.md (45 mm 20-K M1932 500 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "su_is1"
+faction = "su"
+category = "tank_heavy"
+name_de = "IS-1"
+name_en = "IS-1"
+designation = "IS-85"
+year_from = 1943
+year_to = 1944
+tier = 3
+model = ""
+length_mm = 8300
+length_hull_mm = 6700
+width_mm = 3100
+height_mm = 2700
+mass_kg = 44000
+crew = 4
+speed_road_kmh_x10 = 370
+speed_offroad_kmh_x10 = 190
+range_road_km = 150
+power_hp = 600
+armor_hull_front_mm = 120
+armor_hull_side_mm = 90
+armor_hull_rear_mm = 60
+armor_turret_front_mm = 100
+armor_turret_side_mm = 100
+armor_turret_rear_mm = 100
+weapon = [
+    { name = "85 mm D-5T L/52", caliber_mm_x10 = 850, ammo = "BR-365 APHE, O-365 HE", rate_rpm = 6, muzzle_velocity_mps = 792, range_effective_m = 1500, range_typical_m = 1000, ammo_carried = 59 },
+    { name = "DT", count = 3, caliber_mm_x10 = 76, rate_rpm = 600, muzzle_velocity_mps = 840, ammo_carried = 2520 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/ussr/su004is1.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Late 1943 - Early 1944); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/85_mm_air_defense_gun_M1939_(52-K) (infobox)", covers = "85 mm ballistics, 792 m/s, as in su_su85 (D-5S; D-5T is the tank version)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+]
+uncertain = ["weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. range_typical_m (prompt 067): class values of SCHEMA.md (85 mm D-5T L/52 1000 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "su_is3"
+faction = "su"
+category = "tank_heavy"
+name_de = "IS-3"
+name_en = "IS-3"
+designation = "IS-3"
+year_from = 1945
+year_to = 1945
+tier = 3
+model = ""
+length_mm = 10000
+length_hull_mm = 6700
+width_mm = 3200
+height_mm = 2450
+mass_kg = 46500
+crew = 4
+speed_road_kmh_x10 = 370
+speed_offroad_kmh_x10 = 190
+range_road_km = 150
+power_hp = 600
+armor_hull_front_mm = 120
+armor_hull_side_mm = 90
+armor_hull_rear_mm = 60
+armor_turret_front_mm = 200
+armor_turret_side_mm = 220
+armor_turret_rear_mm = 220
+weapon = [
+    { name = "122 mm D-25T L/43", caliber_mm_x10 = 1220, ammo = "BR-471 APHE, BR-471B APHEBC, OF-471 HE", rate_rpm = 2, muzzle_velocity_mps = 781, range_effective_m = 1500, range_typical_m = 1000, ammo_carried = 28 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/ussr/su006is3.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (1945*); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/IS-2", covers = "D-25T values as in su_is2 (same gun)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+]
+uncertain = ["weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Production period \"1945*\" in the source. Only the gun is listed there (DShK and DT omitted). range_typical_m (prompt 067): class values of SCHEMA.md (122 mm D-25T L/43 1000 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "su_isu122"
+faction = "su"
+category = "tank_destroyer"
+name_de = "ISU-122"
+name_en = "ISU-122"
+designation = "ISU-122"
+year_from = 1943
+year_to = 1944
+tier = 3
+model = ""
+length_mm = 9800
+length_hull_mm = 6800
+width_mm = 3100
+height_mm = 2500
+mass_kg = 46000
+crew = 5
+speed_road_kmh_x10 = 370
+speed_offroad_kmh_x10 = 160
+range_road_km = 150
+power_hp = 600
+armor_hull_front_mm = 90
+armor_hull_side_mm = 90
+armor_hull_rear_mm = 60
+armor_turret_front_mm = 65
+armor_turret_side_mm = 75
+armor_turret_rear_mm = 60
+weapon = [
+    { name = "122 mm A-19S L/46.3", caliber_mm_x10 = 1220, ammo = "BR-471 APHE, OF-471 HE", rate_rpm = 2, muzzle_velocity_mps = 800, range_effective_m = 1500, range_typical_m = 1000 },
+    { name = "DShK", caliber_mm_x10 = 127, rate_rpm = 600, ammo_carried = 500, aa = true },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/ussr/su007isu122a.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Late 1943 - 1944); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/122_mm_gun_M1931/37_(A-19)", covers = "A-19: BR-471 about 800 m/s (article not re-read for prompt 063)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+]
+uncertain = ["weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. range_typical_m (prompt 067): class values of SCHEMA.md (122 mm A-19S L/46.3 1000 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "su_isu122s"
+faction = "su"
+category = "tank_destroyer"
+name_de = "ISU-122S"
+name_en = "ISU-122S"
+designation = "ISU-122S"
+year_from = 1944
+year_to = 1945
+tier = 3
+model = ""
+length_mm = 9800
+length_hull_mm = 6800
+width_mm = 3100
+height_mm = 2500
+mass_kg = 46000
+crew = 5
+speed_road_kmh_x10 = 370
+speed_offroad_kmh_x10 = 160
+range_road_km = 150
+power_hp = 600
+armor_hull_front_mm = 90
+armor_hull_side_mm = 90
+armor_hull_rear_mm = 60
+armor_turret_front_mm = 100
+armor_turret_side_mm = 75
+armor_turret_rear_mm = 60
+weapon = [
+    { name = "122 mm D-25S L/43", caliber_mm_x10 = 1220, ammo = "BR-471 APHE, BR-471B APHEBC, OF-471 HE", rate_rpm = 2, muzzle_velocity_mps = 781, range_effective_m = 1500, range_typical_m = 1000 },
+    { name = "DShK", caliber_mm_x10 = 127, rate_rpm = 600, ammo_carried = 500, aa = true },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/ussr/su008isu122b.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (1944-1945); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/IS-2", covers = "D-25 values as in su_is2 (D-25S is the casemate version)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+]
+uncertain = ["weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. range_typical_m (prompt 067): class values of SCHEMA.md (122 mm D-25S L/43 1000 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "su_kv1_1939"
+faction = "su"
+category = "tank_heavy"
+name_de = "KW-1 Modell 1939"
+name_en = "KV-1 Model 1939"
+designation = "KV-1"
+year_from = 1940
+year_to = 1940
+tier = 3
+model = ""
+length_mm = 6800
+width_mm = 3300
+height_mm = 2700
+mass_kg = 43500
+crew = 5
+speed_road_kmh_x10 = 350
+speed_offroad_kmh_x10 = 180
+range_road_km = 250
+power_hp = 600
+armor_hull_front_mm = 75
+armor_hull_side_mm = 75
+armor_hull_rear_mm = 70
+armor_turret_front_mm = 90
+armor_turret_side_mm = 75
+armor_turret_rear_mm = 75
+weapon = [
+    { name = "76.2 mm L-11 L/30.5", caliber_mm_x10 = 762, ammo = "BR-350A APHE, OF-350 HE", rate_rpm = 5, muzzle_velocity_mps = 612, range_effective_m = 1000, range_typical_m = 700, ammo_carried = 111 },
+    { name = "DT", count = 3, caliber_mm_x10 = 76, rate_rpm = 600, muzzle_velocity_mps = 840, ammo_carried = 3024 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/ussr/su011kv1m39.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (1940); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/76_mm_tank_gun_M1938/39", covers = "L-11 L/30.5: BR-350A about 612 m/s (article not re-read for prompt 063)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+]
+uncertain = ["speed_offroad_kmh_x10", "weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Off-road speed not in the source: half the road speed (estimate). range_typical_m (prompt 067): class values of SCHEMA.md (76.2 mm L-11 L/30.5 700 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "su_kv1_1941"
+faction = "su"
+category = "tank_heavy"
+name_de = "KW-1 Modell 1941"
+name_en = "KV-1 Model 1941"
+designation = "KV-1"
+year_from = 1941
+year_to = 1942
+tier = 3
+model = ""
+length_mm = 7100
+length_hull_mm = 6800
+width_mm = 3300
+height_mm = 2700
+mass_kg = 45000
+crew = 5
+speed_road_kmh_x10 = 350
+speed_offroad_kmh_x10 = 180
+range_road_km = 250
+power_hp = 600
+armor_hull_front_mm = 75
+armor_hull_side_mm = 75
+armor_hull_rear_mm = 70
+armor_turret_front_mm = 90
+armor_turret_side_mm = 75
+armor_turret_rear_mm = 75
+weapon = [
+    { name = "76.2 mm ZiS-5 L/41.6", caliber_mm_x10 = 762, ammo = "BR-350A APHE, BR-350P APCR, OF-350 HE", rate_rpm = 5, muzzle_velocity_mps = 662, range_effective_m = 1000, range_typical_m = 700, ammo_carried = 114 },
+    { name = "DT", count = 3, caliber_mm_x10 = 76, rate_rpm = 600, muzzle_velocity_mps = 840, ammo_carried = 3024 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/ussr/su012kv1m41.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (1941-1942); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/76_mm_tank_gun_M1940_F-34", covers = "ZiS-5: F-34 ballistics, BR-350A 662 m/s (article not re-read for prompt 063)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+]
+uncertain = ["speed_offroad_kmh_x10", "weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. The source gives \"ZiS-5 or F-34\"; the ZiS-5 (the KV version) taken. Off-road speed not in the source: half the road speed (estimate). range_typical_m (prompt 067): class values of SCHEMA.md (76.2 mm ZiS-5 L/41.6 700 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "su_kv1e"
+faction = "su"
+category = "tank_heavy"
+name_de = "KW-1E Modell 1940"
+name_en = "KV-1E Model 1940"
+designation = "KV-1E"
+year_from = 1941
+year_to = 1941
+tier = 3
+model = ""
+length_mm = 6800
+width_mm = 3300
+height_mm = 2700
+mass_kg = 47500
+crew = 5
+speed_road_kmh_x10 = 300
+speed_offroad_kmh_x10 = 150
+range_road_km = 250
+power_hp = 600
+armor_hull_front_mm = 110
+armor_hull_side_mm = 75
+armor_hull_rear_mm = 70
+armor_turret_front_mm = 90
+armor_turret_side_mm = 110
+armor_turret_rear_mm = 75
+weapon = [
+    { name = "76.2 mm F-32 L/31.5", caliber_mm_x10 = 762, ammo = "BR-350A APHE, OF-350 HE", rate_rpm = 5, muzzle_velocity_mps = 612, range_effective_m = 1000, range_typical_m = 700, ammo_carried = 111 },
+    { name = "DT", count = 3, caliber_mm_x10 = 76, rate_rpm = 600, muzzle_velocity_mps = 840, ammo_carried = 3024 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/ussr/su010kv1em40.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Spring-Summer 1941); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/76_mm_tank_gun_M1939_(F-32)", covers = "F-32 L/31.5: BR-350A about 612 m/s (article not re-read for prompt 063)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+]
+uncertain = ["speed_offroad_kmh_x10", "weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. E = with bolted additional armor (\"s ekranami\"). Off-road speed not in the source: half the road speed (estimate). range_typical_m (prompt 067): class values of SCHEMA.md (76.2 mm F-32 L/31.5 700 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "su_kv1s"
+faction = "su"
+category = "tank_heavy"
+name_de = "KW-1S"
+name_en = "KV-1S"
+designation = "KV-1S"
+year_from = 1942
+year_to = 1943
+tier = 3
+model = ""
+length_mm = 7000
+length_hull_mm = 6800
+width_mm = 3300
+height_mm = 2800
+mass_kg = 42500
+crew = 5
+speed_road_kmh_x10 = 430
+speed_offroad_kmh_x10 = 190
+range_road_km = 250
+power_hp = 600
+armor_hull_front_mm = 60
+armor_hull_side_mm = 60
+armor_hull_rear_mm = 60
+armor_turret_front_mm = 82
+armor_turret_side_mm = 75
+armor_turret_rear_mm = 75
+weapon = [
+    { name = "76.2 mm ZiS-5 L/41.6", caliber_mm_x10 = 762, ammo = "BR-350A APHE, BR-350P APCR, OF-350 HE", rate_rpm = 5, muzzle_velocity_mps = 662, range_effective_m = 1000, range_typical_m = 700, ammo_carried = 102 },
+    { name = "DT", count = 3, caliber_mm_x10 = 76, rate_rpm = 600, muzzle_velocity_mps = 840, ammo_carried = 3042 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/ussr/su013kv1s.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Aug. 1942-Apr. 1943); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/76_mm_tank_gun_M1940_F-34", covers = "ZiS-5: F-34 ballistics, BR-350A 662 m/s (article not re-read for prompt 063)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+]
+uncertain = ["weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. range_typical_m (prompt 067): class values of SCHEMA.md (76.2 mm ZiS-5 L/41.6 700 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "su_kv2"
+faction = "su"
+category = "tank_heavy"
+name_de = "KW-2 Modell 1940"
+name_en = "KV-2 Model 1940"
+designation = "KV-2"
+year_from = 1940
+year_to = 1941
+tier = 3
+model = ""
+length_mm = 7000
+length_hull_mm = 6800
+width_mm = 3250
+height_mm = 3300
+mass_kg = 52000
+crew = 6
+speed_road_kmh_x10 = 260
+speed_offroad_kmh_x10 = 130
+range_road_km = 250
+power_hp = 600
+armor_hull_front_mm = 75
+armor_hull_side_mm = 75
+armor_hull_rear_mm = 70
+armor_turret_front_mm = 110
+armor_turret_side_mm = 75
+armor_turret_rear_mm = 75
+weapon = [
+    { name = "152 mm M-10T L/24.3", caliber_mm_x10 = 1520, ammo = "OF-530 HE-frag, BR-540 APHE", rate_rpm = 2, muzzle_velocity_mps = 436, range_effective_m = 1000, range_typical_m = 500, ammo_carried = 36 },
+    { name = "DT", count = 3, caliber_mm_x10 = 76, rate_rpm = 600, muzzle_velocity_mps = 840 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/ussr/su014kv2m40.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (1940-1941); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/KV-2", covers = "M-10T 152 mm howitzer, about 436 m/s (article not re-read for prompt 063)" },
+]
+uncertain = ["length_hull_mm", "speed_offroad_kmh_x10", "weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Howitzer tank: range_typical_m 500 m (class: howitzer in direct fire). Off-road speed not in the source: half the road speed (estimate). range_typical_m (prompt 067): class values of SCHEMA.md (152 mm M-10T L/24.3 500 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "su_kv85"
+faction = "su"
+category = "tank_heavy"
+name_de = "KW-85"
+name_en = "KV-85"
+designation = "KV-85"
+year_from = 1943
+year_to = 1943
+tier = 3
+model = ""
+length_mm = 8490
+length_hull_mm = 6800
+width_mm = 3250
+height_mm = 2800
+mass_kg = 46000
+crew = 4
+speed_road_kmh_x10 = 350
+speed_offroad_kmh_x10 = 120
+range_road_km = 251
+power_hp = 600
+armor_hull_front_mm = 75
+armor_hull_side_mm = 60
+armor_hull_rear_mm = 75
+armor_turret_front_mm = 100
+armor_turret_side_mm = 100
+armor_turret_rear_mm = 100
+weapon = [
+    { name = "85 mm D-5T L/52", caliber_mm_x10 = 850, ammo = "BR-365 APHE, O-365 HE", rate_rpm = 6, muzzle_velocity_mps = 792, range_effective_m = 1500, range_typical_m = 1000, ammo_carried = 71 },
+    { name = "DT", count = 3, caliber_mm_x10 = 76, rate_rpm = 600, muzzle_velocity_mps = 840, ammo_carried = 3276 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/ussr/su015kv85.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Sept.-Nov. 1943); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/85_mm_air_defense_gun_M1939_(52-K) (infobox)", covers = "85 mm ballistics, 792 m/s, as in su_su85 (D-5S; D-5T is the tank version)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+]
+uncertain = ["weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. range_typical_m (prompt 067): class values of SCHEMA.md (85 mm D-5T L/52 1000 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "su_ot130"
+faction = "su"
+category = "tank_light"
+name_de = "Flammenwerferpanzer OT-130"
+name_en = "OT-130 flamethrower tank"
+designation = "OT-130"
+year_from = 1938
+year_to = 1938
+tier = 3
+model = ""
+length_mm = 4800
+width_mm = 2400
+height_mm = 2400
+mass_kg = 11500
+crew = 3
+speed_road_kmh_x10 = 300
+speed_offroad_kmh_x10 = 150
+range_road_km = 180
+power_hp = 90
+armor_hull_front_mm = 15
+armor_hull_side_mm = 15
+armor_hull_rear_mm = 15
+armor_turret_front_mm = 15
+armor_turret_side_mm = 15
+armor_turret_rear_mm = 15
+weapon = [
+    { name = "Flamethrower KS-24", ammo = "fire mixture, 360 l (about 40 bursts)", range_effective_m = 40, range_typical_m = 40, ammo_carried = 40 },
+    { name = "DT", caliber_mm_x10 = 76, rate_rpm = 600, muzzle_velocity_mps = 840, ammo_carried = 2000 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/ussr/su016ot130.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (1938); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/OT-130", covers = "OT-130 flamethrower, jet range 40-50 m (article not re-read for prompt 063)" },
+]
+uncertain = ["speed_offroad_kmh_x10", "weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Reference folder \"OT-133\", but its data names the OT-130 (on the T-26 Model 1933); the data is taken and the id follows it. Weapon name after Wikipedia (the source: \"Flamethrower Model 38\"); ammo_carried = bursts. Off-road speed not in the source: half the road speed (estimate). range_typical_m (prompt 067): class values of SCHEMA.md (Flamethrower KS-24 40 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "su_su100"
+faction = "su"
+category = "tank_destroyer"
+name_de = "SU-100"
+name_en = "SU-100"
+designation = "SU-100"
+year_from = 1944
+year_to = 1945
+tier = 3
+model = ""
+length_mm = 9450
+length_hull_mm = 6100
+width_mm = 3000
+height_mm = 2250
+mass_kg = 31600
+crew = 4
+speed_road_kmh_x10 = 500
+speed_offroad_kmh_x10 = 250
+range_road_km = 280
+power_hp = 520
+armor_hull_front_mm = 75
+armor_hull_side_mm = 45
+armor_hull_rear_mm = 45
+armor_turret_front_mm = 75
+armor_turret_side_mm = 45
+armor_turret_rear_mm = 45
+armor_hull_front_deg = 50
+gun_traverse_deg = 20
+weapon = [
+    { name = "100 mm D-10S L/56", caliber_mm_x10 = 1000, ammo = "BR-412 APHE, OF-412 HE", rate_rpm = 5, muzzle_velocity_mps = 895, range_effective_m = 1500, range_typical_m = 1000, ammo_carried = 34 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/ussr/su021su100.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Nov. 1944 - Jun.1945); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/SU-100", covers = "D-10S: BR-412 895 m/s (article not re-read for prompt 063)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+]
+uncertain = ["speed_offroad_kmh_x10", "weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Off-road speed not in the source: half the road speed (estimate). range_typical_m (prompt 067): class values of SCHEMA.md (100 mm D-10S L/56 1000 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "su_su122"
+faction = "su"
+category = "assault_gun"
+name_de = "SU-122"
+name_en = "SU-122"
+designation = "SU-122"
+year_from = 1942
+year_to = 1944
+tier = 3
+model = ""
+length_mm = 6950
+length_hull_mm = 5920
+width_mm = 3000
+height_mm = 2320
+mass_kg = 30900
+crew = 5
+speed_road_kmh_x10 = 550
+speed_offroad_kmh_x10 = 280
+range_road_km = 270
+power_hp = 500
+armor_hull_front_mm = 45
+armor_hull_side_mm = 45
+armor_hull_rear_mm = 45
+armor_turret_front_mm = 65
+armor_turret_side_mm = 45
+armor_turret_rear_mm = 45
+armor_hull_front_deg = 50
+gun_traverse_deg = 20
+weapon = [
+    { name = "122 mm M-30S L/22.7", caliber_mm_x10 = 1220, ammo = "OF-462 HE-frag, BP-460A HEAT (from 1943)", rate_rpm = 5, muzzle_velocity_mps = 515, range_effective_m = 11800, range_typical_m = 500, ammo_carried = 40 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/ussr/su022su122.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Dec. 1942 - early 1944); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/122_mm_howitzer_M1938_(M-30)", covers = "M-30 values as in su_m30 (same howitzer)" },
+]
+uncertain = ["speed_offroad_kmh_x10", "weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Assault howitzer: range_typical_m 500 m (class: howitzer in direct fire). Off-road speed not in the source: half the road speed (estimate). range_typical_m (prompt 067): class values of SCHEMA.md (122 mm M-30S L/22.7 500 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "su_su152"
+faction = "su"
+category = "self_propelled"
+name_de = "SU-152"
+name_en = "SU-152"
+designation = "SU-152"
+year_from = 1943
+year_to = 1943
+tier = 3
+model = ""
+length_mm = 8950
+length_hull_mm = 6700
+width_mm = 3250
+height_mm = 2450
+mass_kg = 45500
+crew = 5
+speed_road_kmh_x10 = 430
+speed_offroad_kmh_x10 = 190
+range_road_km = 330
+power_hp = 600
+armor_hull_front_mm = 60
+armor_hull_side_mm = 60
+armor_hull_rear_mm = 60
+armor_turret_front_mm = 65
+armor_turret_side_mm = 60
+armor_turret_rear_mm = 60
+weapon = [
+    { name = "152 mm ML-20S L/29", caliber_mm_x10 = 1520, ammo = "OF-540 HE-frag, BR-540 APHE, G-530 concrete-piercing", rate_rpm = 1, muzzle_velocity_mps = 600, range_effective_m = 6200, ammo_carried = 20 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/ussr/su023su152.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (1943); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/ISU-152", covers = "ML-20S values as in su_isu152 (same gun)" },
+]
+uncertain = ["weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Category self_propelled as su_isu152 (same gun). Weapon values from the gun articles or from catalog entries with the same weapon; hence weapon in uncertain."
+
+[[unit]]
+id = "su_su76"
+faction = "su"
+category = "assault_gun"
+name_de = "SU-76"
+name_en = "SU-76"
+designation = "SU-76"
+year_from = 1942
+year_to = 1943
+tier = 3
+model = ""
+length_mm = 4900
+width_mm = 2700
+height_mm = 2200
+mass_kg = 10800
+crew = 4
+speed_road_kmh_x10 = 450
+speed_offroad_kmh_x10 = 220
+range_road_km = 320
+power_hp = 140
+armor_hull_front_mm = 30
+armor_hull_side_mm = 15
+armor_hull_rear_mm = 15
+armor_turret_front_mm = 25
+armor_turret_side_mm = 10
+armor_turret_rear_mm = 15
+armor_hull_front_deg = 60
+gun_traverse_deg = 32
+weapon = [
+    { name = "76.2 mm ZiS-3Sh", caliber_mm_x10 = 762, ammo = "BR-350A APHE, OF-350 HE", rate_rpm = 10, muzzle_velocity_mps = 662, range_effective_m = 1000, range_typical_m = 700, ammo_carried = 60 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/ussr/su018su76.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Dec. 1942 - May 1943); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/SU-76", covers = "ZiS-3Sh values as in su_su76m (same gun)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+]
+uncertain = ["speed_offroad_kmh_x10", "weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Closed-roof first series of the SU-76 (category as su_su76m). Off-road speed not in the source: half the road speed (estimate). range_typical_m (prompt 067): class values of SCHEMA.md (76.2 mm ZiS-3Sh 700 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "su_t26_1933"
+faction = "su"
+category = "tank_light"
+name_de = "T-26 Modell 1933"
+name_en = "T-26 Model 1933"
+designation = "T-26"
+year_from = 1933
+year_to = 1936
+tier = 3
+model = ""
+length_mm = 4800
+width_mm = 2400
+height_mm = 2400
+mass_kg = 9400
+crew = 3
+speed_road_kmh_x10 = 300
+speed_offroad_kmh_x10 = 150
+range_road_km = 180
+power_hp = 90
+armor_hull_front_mm = 15
+armor_hull_side_mm = 15
+armor_hull_rear_mm = 15
+armor_turret_front_mm = 15
+armor_turret_side_mm = 15
+armor_turret_rear_mm = 15
+weapon = [
+    { name = "45 mm 20-K M1932", caliber_mm_x10 = 450, ammo = "BR-240 APHE, O-240 HE", rate_rpm = 7, muzzle_velocity_mps = 760, range_effective_m = 1000, range_typical_m = 500, ammo_carried = 100 },
+    { name = "DT", count = 2, caliber_mm_x10 = 76, rate_rpm = 600, muzzle_velocity_mps = 840, ammo_carried = 2848 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/ussr/su025t26m33.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (1933-1936); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/45_mm_tank_gun_M1932_(20-K)", covers = "20-K values as in su_t70m (same gun family)" },
+]
+uncertain = ["speed_offroad_kmh_x10", "weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Off-road speed not in the source: half the road speed (estimate). range_typical_m (prompt 067): class values of SCHEMA.md (45 mm 20-K M1932 500 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "su_t26s_1937"
+faction = "su"
+category = "tank_light"
+name_de = "T-26S Modell 1937"
+name_en = "T-26S Model 1937"
+designation = "T-26S"
+year_from = 1938
+year_to = 1939
+tier = 3
+model = ""
+length_mm = 4800
+width_mm = 2400
+height_mm = 2300
+mass_kg = 10500
+crew = 3
+speed_road_kmh_x10 = 300
+speed_offroad_kmh_x10 = 150
+range_road_km = 180
+power_hp = 90
+armor_hull_front_mm = 15
+armor_hull_side_mm = 15
+armor_hull_rear_mm = 15
+armor_turret_front_mm = 15
+armor_turret_side_mm = 15
+armor_turret_rear_mm = 15
+weapon = [
+    { name = "45 mm 20-K M1938", caliber_mm_x10 = 450, ammo = "BR-240 APHE, O-240 HE", rate_rpm = 7, muzzle_velocity_mps = 760, range_effective_m = 1000, range_typical_m = 500, ammo_carried = 165 },
+    { name = "DT", count = 2, caliber_mm_x10 = 76, rate_rpm = 600, muzzle_velocity_mps = 840, ammo_carried = 3654 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/ussr/su026t26sm37.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (1938-1939); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/45_mm_tank_gun_M1932_(20-K)", covers = "20-K values as in su_t70m (same gun)" },
+]
+uncertain = ["speed_offroad_kmh_x10", "weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Off-road speed not in the source: half the road speed (estimate). range_typical_m (prompt 067): class values of SCHEMA.md (45 mm 20-K M1938 500 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "su_t26s_1939"
+faction = "su"
+category = "tank_light"
+name_de = "T-26S Modell 1939"
+name_en = "T-26S Model 1939"
+designation = "T-26S"
+year_from = 1939
+year_to = 1940
+tier = 3
+model = ""
+length_mm = 4800
+width_mm = 2400
+height_mm = 2300
+mass_kg = 10500
+crew = 3
+speed_road_kmh_x10 = 300
+speed_offroad_kmh_x10 = 150
+range_road_km = 180
+power_hp = 90
+armor_hull_front_mm = 15
+armor_hull_side_mm = 15
+armor_hull_rear_mm = 15
+armor_turret_front_mm = 15
+armor_turret_side_mm = 15
+armor_turret_rear_mm = 15
+weapon = [
+    { name = "45 mm 20-K M1938", caliber_mm_x10 = 450, ammo = "BR-240 APHE, O-240 HE", rate_rpm = 7, muzzle_velocity_mps = 760, range_effective_m = 1000, range_typical_m = 500, ammo_carried = 165 },
+    { name = "DT", count = 2, caliber_mm_x10 = 76, rate_rpm = 600, muzzle_velocity_mps = 840, ammo_carried = 3654 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/ussr/su027t26sm39.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (1939-1940); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/45_mm_tank_gun_M1932_(20-K)", covers = "20-K values as in su_t70m (same gun)" },
+]
+uncertain = ["speed_offroad_kmh_x10", "weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Off-road speed not in the source: half the road speed (estimate). range_typical_m (prompt 067): class values of SCHEMA.md (45 mm 20-K M1938 500 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "su_t27a"
+faction = "su"
+category = "tank_light"
+name_de = "Tankette T-27A"
+name_en = "T-27A tankette"
+designation = "T-27A"
+year_from = 1932
+year_to = 1932
+tier = 3
+model = ""
+length_mm = 2600
+width_mm = 1830
+height_mm = 1450
+mass_kg = 2700
+crew = 2
+speed_road_kmh_x10 = 400
+speed_offroad_kmh_x10 = 320
+range_road_km = 85
+power_hp = 40
+armor_hull_front_mm = 10
+armor_hull_side_mm = 10
+armor_hull_rear_mm = 10
+armor_turret_front_mm = 10
+armor_turret_side_mm = 10
+weapon = [
+    { name = "DT", caliber_mm_x10 = 76, rate_rpm = 600, muzzle_velocity_mps = 840, ammo_carried = 2520 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/ussr/su028t27a.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (1932); fetched 2026-11-16 into data/vehicles" },
+]
+uncertain = ["weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. The source gives a 7.92 mm DT; the DT is 7.62 mm. Height 1.45 m is below the old catalog limit of 1.5 m (limit lowered to 1.4 m for tankettes). Weapon values from the gun articles or from catalog entries with the same weapon; hence weapon in uncertain."
+
+[[unit]]
+id = "su_t34_76_1940"
+faction = "su"
+category = "tank_medium"
+name_de = "T-34/76 Modell 1940"
+name_en = "T-34/76 Model 1940"
+designation = "T-34"
+year_from = 1940
+year_to = 1941
+tier = 3
+model = ""
+length_mm = 5920
+width_mm = 3000
+height_mm = 2410
+mass_kg = 26000
+crew = 4
+speed_road_kmh_x10 = 550
+speed_offroad_kmh_x10 = 400
+range_road_km = 300
+power_hp = 500
+armor_hull_front_mm = 45
+armor_hull_side_mm = 45
+armor_hull_rear_mm = 45
+armor_turret_front_mm = 45
+armor_turret_side_mm = 45
+armor_turret_rear_mm = 45
+armor_hull_front_deg = 60
+weapon = [
+    { name = "76.2 mm L-11 L/30.5", caliber_mm_x10 = 762, ammo = "BR-350A APHE, OF-350 HE", rate_rpm = 5, muzzle_velocity_mps = 612, range_effective_m = 1000, range_typical_m = 700, ammo_carried = 77 },
+    { name = "DT", count = 2, caliber_mm_x10 = 76, rate_rpm = 600, muzzle_velocity_mps = 840 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/ussr/su042t3476m40.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (mid 1940 - mid 1941); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/76_mm_tank_gun_M1938/39", covers = "L-11 L/30.5: BR-350A about 612 m/s (article not re-read for prompt 063)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+]
+uncertain = ["weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. range_typical_m (prompt 067): class values of SCHEMA.md (76.2 mm L-11 L/30.5 700 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "su_t34_76_1941"
+faction = "su"
+category = "tank_medium"
+name_de = "T-34/76 Modell 1941"
+name_en = "T-34/76 Model 1941"
+designation = "T-34"
+year_from = 1941
+year_to = 1942
+tier = 3
+model = ""
+length_mm = 6680
+length_hull_mm = 5920
+width_mm = 3000
+height_mm = 2450
+mass_kg = 28000
+crew = 4
+speed_road_kmh_x10 = 550
+speed_offroad_kmh_x10 = 400
+range_road_km = 300
+power_hp = 500
+armor_hull_front_mm = 45
+armor_hull_side_mm = 45
+armor_hull_rear_mm = 45
+armor_turret_front_mm = 45
+armor_turret_side_mm = 45
+armor_turret_rear_mm = 45
+armor_hull_front_deg = 60
+weapon = [
+    { name = "76.2 mm F-34 L/41.5", caliber_mm_x10 = 762, ammo = "BR-350A APHE, BR-350P APCR, OF-350 HE", rate_rpm = 5, muzzle_velocity_mps = 662, range_effective_m = 1000, range_typical_m = 700, ammo_carried = 77 },
+    { name = "DT", count = 2, caliber_mm_x10 = 76, rate_rpm = 600, muzzle_velocity_mps = 840 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/ussr/su043t3476m41.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (early 1941 - 1942); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/T-34", covers = "F-34 values as in su_t34_76_1943 (same gun)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+]
+uncertain = ["weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. range_typical_m (prompt 067): class values of SCHEMA.md (76.2 mm F-34 L/41.5 700 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "su_t34_76_1942"
+faction = "su"
+category = "tank_medium"
+name_de = "T-34/76 Modell 1942"
+name_en = "T-34/76 Model 1942"
+designation = "T-34"
+year_from = 1942
+year_to = 1943
+tier = 3
+model = ""
+length_mm = 6750
+length_hull_mm = 5920
+width_mm = 3000
+height_mm = 2450
+mass_kg = 30000
+crew = 4
+speed_road_kmh_x10 = 550
+speed_offroad_kmh_x10 = 400
+range_road_km = 280
+power_hp = 500
+armor_hull_front_mm = 45
+armor_hull_side_mm = 45
+armor_hull_rear_mm = 45
+armor_turret_front_mm = 70
+armor_turret_side_mm = 52
+armor_turret_rear_mm = 52
+armor_hull_front_deg = 60
+weapon = [
+    { name = "76.2 mm F-34 L/41.5", caliber_mm_x10 = 762, ammo = "BR-350A APHE, BR-350P APCR, OF-350 HE", rate_rpm = 5, muzzle_velocity_mps = 662, range_effective_m = 1000, range_typical_m = 700, ammo_carried = 100 },
+    { name = "DT", count = 2, caliber_mm_x10 = 76, rate_rpm = 600, muzzle_velocity_mps = 840 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/ussr/su044t3476m42.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (mid 1942 - mid 1943); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/T-34", covers = "F-34 values as in su_t34_76_1943 (same gun)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+]
+uncertain = ["weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. range_typical_m (prompt 067): class values of SCHEMA.md (76.2 mm F-34 L/41.5 700 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "su_t34_85_1943"
+faction = "su"
+category = "tank_medium"
+name_de = "T-34/85 Modell 1943"
+name_en = "T-34-85 Model 1943"
+designation = "T-34-85"
+year_from = 1944
+year_to = 1944
+tier = 3
+model = ""
+length_mm = 8150
+length_hull_mm = 6100
+width_mm = 3000
+height_mm = 2720
+mass_kg = 32000
+crew = 5
+speed_road_kmh_x10 = 550
+speed_offroad_kmh_x10 = 400
+range_road_km = 340
+power_hp = 500
+armor_hull_front_mm = 45
+armor_hull_side_mm = 45
+armor_hull_rear_mm = 45
+armor_turret_front_mm = 90
+armor_turret_side_mm = 75
+armor_turret_rear_mm = 52
+armor_hull_front_deg = 60
+weapon = [
+    { name = "85 mm D-5T L/52", caliber_mm_x10 = 850, ammo = "BR-365 APHE, O-365 HE", rate_rpm = 6, muzzle_velocity_mps = 792, range_effective_m = 1500, range_typical_m = 1000, ammo_carried = 56 },
+    { name = "DT", count = 2, caliber_mm_x10 = 76, rate_rpm = 600, muzzle_velocity_mps = 840, ammo_carried = 1890 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/ussr/su046t3485m43.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Jan. 1944 - Mar. 1944); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/85_mm_air_defense_gun_M1939_(52-K) (infobox)", covers = "85 mm ballistics, 792 m/s, as in su_su85 (D-5S; D-5T is the tank version)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+]
+uncertain = ["weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. range_typical_m (prompt 067): class values of SCHEMA.md (85 mm D-5T L/52 1000 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "su_t34_85_1944"
+faction = "su"
+category = "tank_medium"
+name_de = "T-34/85 Modell 1944"
+name_en = "T-34-85 Model 1944"
+designation = "T-34-85"
+year_from = 1944
+year_to = 1945
+tier = 3
+model = ""
+length_mm = 8150
+length_hull_mm = 6100
+width_mm = 3000
+height_mm = 2720
+mass_kg = 32000
+crew = 5
+speed_road_kmh_x10 = 550
+speed_offroad_kmh_x10 = 300
+range_road_km = 300
+power_hp = 520
+armor_hull_front_mm = 45
+armor_hull_side_mm = 45
+armor_hull_rear_mm = 45
+armor_turret_front_mm = 90
+armor_turret_side_mm = 75
+armor_turret_rear_mm = 52
+armor_hull_front_deg = 60
+weapon = [
+    { name = "85 mm ZiS-S-53 L/54.6", caliber_mm_x10 = 850, ammo = "BR-365 APHE, BR-365P APCR, O-365 HE", rate_rpm = 7, muzzle_velocity_mps = 792, range_effective_m = 1500, range_typical_m = 1000 },
+    { name = "DT", count = 2, caliber_mm_x10 = 76, rate_rpm = 600, muzzle_velocity_mps = 840, ammo_carried = 1890 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/ussr/su047t3485m44.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Mar. 1944 - May 1945); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/T-34-85", covers = "ZiS-S-53: 85 mm, BR-365 792 m/s (article not re-read for prompt 063)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+]
+uncertain = ["weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. range_typical_m (prompt 067): class values of SCHEMA.md (85 mm ZiS-S-53 L/54.6 1000 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "su_t35_1935"
+faction = "su"
+category = "tank_heavy"
+name_de = "T-35 Modell 1935"
+name_en = "T-35 Model 1935"
+designation = "T-35"
+year_from = 1935
+year_to = 1937
+tier = 3
+model = ""
+length_mm = 9720
+width_mm = 3200
+height_mm = 3430
+mass_kg = 45000
+crew = 11
+speed_road_kmh_x10 = 300
+speed_offroad_kmh_x10 = 190
+range_road_km = 150
+power_hp = 500
+armor_hull_front_mm = 30
+armor_hull_side_mm = 20
+armor_hull_rear_mm = 20
+armor_turret_front_mm = 20
+armor_turret_side_mm = 20
+armor_turret_rear_mm = 20
+weapon = [
+    { name = "76.2 mm PS-3 L/16.5", caliber_mm_x10 = 762, ammo_carried = 96 },
+    { name = "45 mm 20-K M1932", count = 2, caliber_mm_x10 = 450, ammo = "BR-240 APHE, O-240 HE", rate_rpm = 7, muzzle_velocity_mps = 760, range_effective_m = 1000, range_typical_m = 500 },
+    { name = "DT", count = 6, caliber_mm_x10 = 76, rate_rpm = 600, muzzle_velocity_mps = 840, ammo_carried = 10080 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/ussr/su030t35m35.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (1935-1937); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/45_mm_tank_gun_M1932_(20-K)", covers = "20-K values as in su_t70m (same gun family)" },
+    { ref = "https://en.wikipedia.org/wiki/T-35", covers = "two 45 mm 20-K guns in the front sub-turrets, crew 11 (from memory, not re-read for prompt 063)" },
+]
+uncertain = ["crew", "weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Five turrets: main turret with the 76.2 mm gun, two sub-turrets with 45 mm guns (Wikipedia, T-35; the source lists only the main gun and the MGs) and two MG turrets. Crew 11 is above the old catalog limit of 10 (limit raised to 12 for multi-turret tanks). No drawing: built from the drawing of the T-35 Model 1938. range_typical_m (prompt 067): class values of SCHEMA.md (45 mm 20-K M1932 500 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "su_t37a"
+faction = "su"
+category = "tank_light"
+name_de = "Schwimmpanzer T-37A"
+name_en = "T-37A amphibious tank"
+designation = "T-37A"
+year_from = 1933
+year_to = 1936
+tier = 3
+model = ""
+length_mm = 3750
+width_mm = 2000
+height_mm = 1820
+mass_kg = 3200
+crew = 2
+speed_road_kmh_x10 = 350
+speed_offroad_kmh_x10 = 180
+speed_water_kmh_x10 = 60
+range_road_km = 200
+power_hp = 40
+armor_hull_front_mm = 9
+armor_hull_side_mm = 9
+armor_hull_rear_mm = 9
+armor_turret_front_mm = 9
+armor_turret_side_mm = 9
+armor_turret_rear_mm = 9
+weapon = [
+    { name = "DT", caliber_mm_x10 = 76, rate_rpm = 600, muzzle_velocity_mps = 840, ammo_carried = 585 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/ussr/su032t37a.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (1933-1936); fetched 2026-11-16 into data/vehicles" },
+]
+uncertain = ["speed_offroad_kmh_x10", "weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Amphibious: 6 km/h in water. Off-road speed not in the source: half the road speed (estimate). Weapon values from the gun articles or from catalog entries with the same weapon; hence weapon in uncertain."
+
+[[unit]]
+id = "su_t38"
+faction = "su"
+category = "tank_light"
+name_de = "Schwimmpanzer T-38"
+name_en = "T-38 amphibious tank"
+designation = "T-38"
+year_from = 1937
+year_to = 1938
+tier = 3
+model = ""
+length_mm = 3780
+width_mm = 2330
+height_mm = 1630
+mass_kg = 3300
+crew = 2
+speed_road_kmh_x10 = 400
+speed_offroad_kmh_x10 = 200
+speed_water_kmh_x10 = 60
+range_road_km = 230
+power_hp = 40
+armor_hull_front_mm = 9
+armor_hull_side_mm = 9
+armor_hull_rear_mm = 9
+armor_turret_front_mm = 9
+armor_turret_side_mm = 9
+armor_turret_rear_mm = 9
+weapon = [
+    { name = "DT", caliber_mm_x10 = 76, rate_rpm = 600, muzzle_velocity_mps = 840, ammo_carried = 1512 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/ussr/su033t38.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (1937-1938); fetched 2026-11-16 into data/vehicles" },
+]
+uncertain = ["speed_road_kmh_x10", "speed_offroad_kmh_x10", "speed_water_kmh_x10", "weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Speed \"40-45/6 km/h\" in the source: 40 km/h road and 6 km/h in water taken. Off-road speed not in the source: half the road speed (estimate). Weapon values from the gun articles or from catalog entries with the same weapon; hence weapon in uncertain."
+
+[[unit]]
+id = "su_t40"
+faction = "su"
+category = "tank_light"
+name_de = "Schwimmpanzer T-40"
+name_en = "T-40 amphibious tank"
+designation = "T-40"
+year_from = 1941
+year_to = 1942
+tier = 3
+model = ""
+length_mm = 4110
+width_mm = 2330
+height_mm = 1950
+mass_kg = 5500
+crew = 2
+speed_road_kmh_x10 = 450
+speed_offroad_kmh_x10 = 220
+speed_water_kmh_x10 = 50
+range_road_km = 360
+power_hp = 85
+armor_hull_front_mm = 9
+armor_hull_side_mm = 9
+armor_hull_rear_mm = 9
+armor_turret_front_mm = 15
+armor_turret_side_mm = 10
+armor_turret_rear_mm = 10
+armor_hull_front_deg = 75
+weapon = [
+    { name = "12.7 mm DShK", caliber_mm_x10 = 127, rate_rpm = 600, muzzle_velocity_mps = 850, range_effective_m = 1500, range_typical_m = 800, ammo_carried = 550 },
+    { name = "DT", caliber_mm_x10 = 76, rate_rpm = 600, muzzle_velocity_mps = 840, ammo_carried = 2016 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/ussr/su034t40.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (1941-1942); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/DShK", covers = "DShK 600 rpm, about 850 m/s (article not re-read for prompt 063)" },
+]
+uncertain = ["speed_offroad_kmh_x10", "weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Amphibious: 5 km/h in water. Off-road speed not in the source: half the road speed (estimate). range_typical_m (prompt 067): class values of SCHEMA.md (12.7 mm DShK 800 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "su_t44"
+faction = "su"
+category = "tank_medium"
+name_de = "T-44"
+name_en = "T-44"
+designation = "T-44"
+year_from = 1945
+year_to = 1945
+tier = 3
+model = ""
+length_mm = 7650
+length_hull_mm = 6050
+width_mm = 3100
+height_mm = 2400
+mass_kg = 31500
+crew = 4
+speed_road_kmh_x10 = 500
+speed_offroad_kmh_x10 = 260
+range_road_km = 200
+power_hp = 520
+armor_hull_front_mm = 90
+armor_hull_side_mm = 75
+armor_hull_rear_mm = 45
+armor_turret_front_mm = 120
+armor_turret_side_mm = 90
+armor_turret_rear_mm = 75
+armor_hull_front_deg = 60
+weapon = [
+    { name = "85 mm ZiS-S-53 L/54.6", caliber_mm_x10 = 850, ammo = "BR-365 APHE, BR-365P APCR, O-365 HE", rate_rpm = 7, muzzle_velocity_mps = 792, range_effective_m = 1500, range_typical_m = 1000, ammo_carried = 58 },
+    { name = "DT", count = 2, caliber_mm_x10 = 76, rate_rpm = 600, muzzle_velocity_mps = 840, ammo_carried = 1890 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/ussr/su036t44.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (1945); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/T-34-85", covers = "ZiS-S-53: 85 mm, BR-365 792 m/s (article not re-read for prompt 063)" },
+    { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
+]
+uncertain = ["weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Production 1944-45; 200 built by the end of the war. range_typical_m (prompt 067): class values of SCHEMA.md (85 mm ZiS-S-53 L/54.6 1000 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "su_t50"
+faction = "su"
+category = "tank_light"
+name_de = "T-50"
+name_en = "T-50"
+designation = "T-50"
+year_from = 1941
+year_to = 1941
+tier = 3
+model = ""
+length_mm = 5200
+width_mm = 2470
+height_mm = 2160
+mass_kg = 14000
+crew = 4
+speed_road_kmh_x10 = 500
+speed_offroad_kmh_x10 = 400
+range_road_km = 350
+power_hp = 300
+armor_hull_front_mm = 37
+armor_hull_side_mm = 37
+armor_hull_rear_mm = 37
+armor_turret_front_mm = 37
+armor_turret_side_mm = 15
+armor_turret_rear_mm = 15
+weapon = [
+    { name = "45 mm 20-K M1938", caliber_mm_x10 = 450, ammo = "BR-240 APHE, O-240 HE", rate_rpm = 7, muzzle_velocity_mps = 760, range_effective_m = 1000, range_typical_m = 500, ammo_carried = 150 },
+    { name = "DT", caliber_mm_x10 = 76, rate_rpm = 600, muzzle_velocity_mps = 840, ammo_carried = 4000 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/ussr/su037t50.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (1941); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/45_mm_tank_gun_M1932_(20-K)", covers = "20-K values as in su_t70m (same gun)" },
+]
+uncertain = ["weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. The source writes \"7.92mm DT\"; the DT is 7.62 mm. Only 65 built. range_typical_m (prompt 067): class values of SCHEMA.md (45 mm 20-K M1938 500 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "su_t60_1941"
+faction = "su"
+category = "tank_light"
+name_de = "T-60 Modell 1941"
+name_en = "T-60 Model 1941"
+designation = "T-60"
+year_from = 1941
+year_to = 1942
+tier = 3
+model = ""
+length_mm = 4100
+width_mm = 2300
+height_mm = 1800
+mass_kg = 5800
+crew = 2
+speed_road_kmh_x10 = 450
+speed_offroad_kmh_x10 = 220
+range_road_km = 600
+power_hp = 70
+armor_hull_front_mm = 20
+armor_hull_side_mm = 15
+armor_hull_rear_mm = 15
+armor_turret_front_mm = 20
+armor_turret_side_mm = 15
+armor_turret_rear_mm = 15
+weapon = [
+    { name = "20 mm TNSh L/82.4", caliber_mm_x10 = 200, ammo = "OZ HE-I, BZ AP-I", rate_rpm = 750, muzzle_velocity_mps = 815, range_effective_m = 1000, range_typical_m = 400, ammo_carried = 780 },
+    { name = "DT", caliber_mm_x10 = 76, rate_rpm = 600, muzzle_velocity_mps = 840, ammo_carried = 945 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/ussr/su038t60m41.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (July 1941-1942); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/T-60_tank", covers = "20 mm TNSh (tank ShVAK): 750 rpm, about 815 m/s (article not re-read for prompt 063)" },
+]
+uncertain = ["speed_offroad_kmh_x10", "weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Off-road speed not in the source: half the road speed (estimate). range_typical_m (prompt 067): class values of SCHEMA.md (20 mm TNSh L/82.4 400 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "su_t60_1942"
+faction = "su"
+category = "tank_light"
+name_de = "T-60 Modell 1942"
+name_en = "T-60 Model 1942"
+designation = "T-60"
+year_from = 1942
+year_to = 1942
+tier = 3
+model = ""
+length_mm = 4100
+width_mm = 2300
+height_mm = 1800
+mass_kg = 6400
+crew = 2
+speed_road_kmh_x10 = 450
+speed_offroad_kmh_x10 = 220
+range_road_km = 600
+power_hp = 85
+armor_hull_front_mm = 35
+armor_hull_side_mm = 15
+armor_hull_rear_mm = 25
+armor_turret_front_mm = 25
+armor_turret_side_mm = 25
+armor_turret_rear_mm = 25
+weapon = [
+    { name = "20 mm TNSh L/82.4", caliber_mm_x10 = 200, ammo = "OZ HE-I, BZ AP-I", rate_rpm = 750, muzzle_velocity_mps = 815, range_effective_m = 1000, range_typical_m = 400, ammo_carried = 780 },
+    { name = "DT", caliber_mm_x10 = 76, rate_rpm = 600, muzzle_velocity_mps = 840, ammo_carried = 945 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/ussr/su039t60m42.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Summer-Sept. 1942); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/T-60_tank", covers = "20 mm TNSh (tank ShVAK): 750 rpm, about 815 m/s (article not re-read for prompt 063)" },
+]
+uncertain = ["speed_offroad_kmh_x10", "weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Off-road speed not in the source: half the road speed (estimate). range_typical_m (prompt 067): class values of SCHEMA.md (20 mm TNSh L/82.4 400 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+
+[[unit]]
+id = "su_t70_1942"
+faction = "su"
+category = "tank_light"
+name_de = "T-70 Modell 1942"
+name_en = "T-70 Model 1942"
+designation = "T-70"
+year_from = 1942
+year_to = 1943
+tier = 3
+model = ""
+length_mm = 4300
+width_mm = 2400
+height_mm = 2000
+mass_kg = 9200
+crew = 2
+speed_road_kmh_x10 = 450
+speed_offroad_kmh_x10 = 350
+range_road_km = 360
+power_hp = 140
+armor_hull_front_mm = 35
+armor_hull_side_mm = 15
+armor_hull_rear_mm = 15
+armor_turret_front_mm = 60
+armor_turret_side_mm = 35
+armor_turret_rear_mm = 35
+weapon = [
+    { name = "45 mm 20-K M1938", caliber_mm_x10 = 450, ammo = "BR-240 APHE, O-240 HE", rate_rpm = 7, muzzle_velocity_mps = 760, range_effective_m = 1000, range_typical_m = 500, ammo_carried = 94 },
+    { name = "DT", caliber_mm_x10 = 76, rate_rpm = 600, muzzle_velocity_mps = 840, ammo_carried = 945 },
+]
+source = [
+    { ref = "https://www.onwar.com/wwii/tanks/ussr/su040t70m42.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Mar. 1942 - Aug. 1943); fetched 2026-11-16 into data/vehicles" },
+    { ref = "https://en.wikipedia.org/wiki/45_mm_tank_gun_M1932_(20-K)", covers = "20-K values as in su_t70m (same gun)" },
+]
+uncertain = ["weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. range_typical_m (prompt 067): class values of SCHEMA.md (45 mm 20-K M1938 500 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."

@@ -28,7 +28,7 @@ Rules:
 | `name_de`, `name_en` | string | Display names. |
 | `designation` | string | Historical designation (`Sd.Kfz. 161/2`). Required for faction entries. |
 | `year_from`, `year_to` | int | Years in service (production/first use until end of use in WW2 or later). Required for faction entries. |
-| `tier` | int | `1` = core unit (prompt 006), `2` = the rest. |
+| `tier` | int | `1` = core unit (prompt 006), `2` = the rest, `3` = taken over from the vehicle references (prompt 063): in the catalog, the gallery and on the unit page, not buildable; the unit reference in the game lists it once it has a model. |
 | `model` | string | Path of the exported model, e.g. `assets/models/de/de_pz4_h.glb`. Empty until it exists. |
 | `length_mm` | int | Overall length, including the gun pointing forward. |
 | `length_hull_mm` | int | Length without the gun (vehicles with a gun). |
