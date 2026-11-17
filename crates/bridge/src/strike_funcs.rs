@@ -6,7 +6,7 @@
 
 use crate::{SimHost, fixed_to_f32, ground_to_godot, meters_to_millimeters};
 use godot::prelude::*;
-use sim::{Command, Sim, StrikeEvent, Vec2, Vec3};
+use sim::{Command, Sim, StrikeEvent, UnitId, Vec2, Vec3};
 
 /// Events kept for Godot at most (if it stops taking them).
 const MAX_PENDING_EVENTS: usize = 1024;
@@ -37,6 +37,42 @@ impl SimHost {
         self.pending.push(Command::HeavyStrike {
             target: Vec2::from_millimeters(x_mm, z_mm),
         });
+    }
+
+    /// Debug and tools only (prompt 076): one strike rocket of `caliber_mm`
+    /// from unit `shooter` to the ground point `(x, z)` right now, like a
+    /// rocket of the heavy strike. Not in network matches. False if the
+    /// unit is gone or the point is off the map.
+    #[func]
+    fn debug_rocket(&mut self, shooter: i64, x: f32, z: f32, caliber_mm: f32) -> bool {
+        let Some(game) = self.game.as_mut() else {
+            return false;
+        };
+        let (Some(x_mm), Some(z_mm), Ok(id)) = (
+            meters_to_millimeters(x),
+            meters_to_millimeters(z),
+            u32::try_from(shooter),
+        ) else {
+            return false;
+        };
+        if game.networked {
+            godot_warn!("debug rockets are not possible in network matches");
+            return false;
+        }
+        let caliber = (caliber_mm * 10.0).round().clamp(0.0, 100_000.0) as u32;
+        if !game
+            .sim
+            .debug_rocket(UnitId(id), Vec2::from_millimeters(x_mm, z_mm), caliber)
+        {
+            return false;
+        }
+        // The shot event was added after the tick's events were read and
+        // would be cleared by the next tick: hand it to Godot directly.
+        if let Some(&event) = game.sim.events().last() {
+            let tick = game.sim.tick().saturating_sub(1);
+            self.combat_events.push((tick, event));
+        }
+        true
     }
 
     /// Whether the local player can call a strike: `cost` (fuel, ammo,

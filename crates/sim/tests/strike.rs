@@ -251,3 +251,28 @@ fn ammunition_explosions_are_reported() {
     assert!(exploded.len() < destroyed.len());
     assert!(exploded.iter().all(|u| destroyed.contains(u)));
 }
+
+/// Tools only (prompt 076): a debug rocket leaves the given unit as a shell
+/// with a shot event, like a strike rocket, and lands within the minimum
+/// flight time plus a little.
+#[test]
+fn debug_rocket_flies_like_a_strike_rocket() {
+    let mut sim = start(true);
+    let battery = sim.strike_option(P0).battery.unwrap();
+    let (_, target) = enemy_hq(&sim);
+    assert!(!sim.debug_rocket(UnitId(u32::MAX), target, 1320));
+    assert!(sim.debug_rocket(battery, target, 1320));
+    // The shot event is queued with the launch and reported by the next step.
+    let shot = sim.events().iter().any(|e| {
+        matches!(e, sim::CombatEvent::Shot { unit, caliber_mm_x10: 1320, .. } if *unit == battery)
+    });
+    sim.step(&[]);
+    let shot = shot
+        || sim.events().iter().any(|e| {
+            matches!(e, sim::CombatEvent::Shot { unit, caliber_mm_x10: 1320, .. } if *unit == battery)
+        });
+    assert!(shot);
+    assert_eq!(sim.snapshot().shells.len(), 1);
+    run(&mut sim, 20 * 20);
+    assert!(sim.snapshot().shells.is_empty());
+}

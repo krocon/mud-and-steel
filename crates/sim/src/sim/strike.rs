@@ -286,6 +286,30 @@ impl Sim {
         if !self.map.contains(aim) {
             aim = s.target;
         }
+        self.fire_rocket(i, s.owner, aim, s.caliber_mm_x10);
+    }
+
+    /// Debug and tools only (prompt 076: salvo pictures and the effects
+    /// bench): one rocket of `caliber_mm_x10` from unit `shooter` to `aim`
+    /// now, flying like a strike rocket. Never called by commands or the
+    /// AI; changes the state like a shell would. False if the unit is gone
+    /// or the point is off the map.
+    pub fn debug_rocket(&mut self, shooter: UnitId, aim: Vec2, caliber_mm_x10: u32) -> bool {
+        let Ok(i) = self.units.binary_search_by_key(&shooter, |u| u.id) else {
+            return false;
+        };
+        if !self.units[i].alive() || !self.map.contains(aim) {
+            return false;
+        }
+        let owner = self.units[i].owner;
+        self.fire_rocket(i, owner, aim, caliber_mm_x10);
+        true
+    }
+
+    /// Puts one rocket from unit `i` to `aim` in the air (speed, arc and
+    /// minimum flight from the strike rules).
+    fn fire_rocket(&mut self, i: usize, owner: PlayerId, aim: Vec2, caliber: u32) {
+        let rules = &self.strikes.rules;
         let unit = &self.units[i];
         let origin = Vec3::new(
             unit.position.x,
@@ -300,7 +324,7 @@ impl Sim {
             .round()
             .to_num::<u32>();
         let apex = distance * Fixed::from_num(rules.apex_pct) / 100;
-        let (shooter, owner, caliber) = (unit.id, s.owner, s.caliber_mm_x10);
+        let shooter = unit.id;
         self.launch_shell(shooter, owner, origin, target, apex, total, caliber);
     }
 
