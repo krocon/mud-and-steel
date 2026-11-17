@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mud and Steel – Klänge</title>
+<meta name="color-scheme" content="dark light">
+<!-- Fonts of the unit page (licenses in web/units/vendor/fonts/). Local tool: never uploaded. -->
+<link rel="stylesheet" href="../units/vendor/fonts/fonts.css">
+<link rel="stylesheet" href="style.css">
+<script type="module" src="app.js"></script>
+</head>
+<body>
+<header class="bar">
+  <div class="bar-row">
+    <h1>Mud <i>and</i> Steel · Klänge</h1>
+    <p class="count" id="count"></p>
+  </div>
+  <div class="bar-row controls">
+    <input type="search" id="search" placeholder="Name oder Anlass suchen" aria-label="Suchen" autocomplete="off">
+    <label class="volume">Lautstärke <input type="range" id="volume" min="0" max="1" step="0.01" value="0.7"></label>
+    <label class="switch"><input type="checkbox" id="game"> wie im Spiel</label>
+    <button type="button" id="stop" class="stop">Alles stoppen</button>
+  </div>
+  <nav class="sections" id="nav" aria-label="Abschnitte"></nav>
+</header>
+
+<main>
+  <p class="intro">
+    Jede Audiodatei aus <code>godot/assets/audio/</code>, je Klang der Anlass, zu dem das Spiel ihn spielt.
+    „Wie im Spiel“ wendet Pegel und zufällige Tonhöhe der Klasse an. Entfernung, Tiefpass, Stimmenbudget und
+    Nebel des Krieges fehlen hier: dafür <code>just sound-gallery</code> oder das Spiel.
+  </p>
+  <p class="legend">
+    <span class="origin synth">synthetisiert</span>
+    <span class="origin recording">Aufnahme</span>
+    <span class="origin private">privat</span>
+    <span class="tag displaced">im Spiel verdrängt</span> spielt das Spiel nicht, weil der Ordner private Klänge hat.
+  </p>
+  <div id="list"><p class="empty">Lade <code>index.json</code> …</p></div>
+  <p class="empty" id="nothing" hidden>Keine Treffer.</p>
+</main>
+</body>
+</html>

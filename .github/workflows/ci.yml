@@ -69,6 +69,13 @@ jobs:
         if: runner.os == 'Linux'
         run: python3 -I tools/geo_import.py check assets-src/geo/harbor_city/site.json
 
+      # Sound page (prompt 083): every sound folder has a remark in
+      # web/sounds/usage.toml and vice versa. Folder and file names only, so
+      # it needs neither Git LFS nor the private sounds.
+      - name: Sound remarks
+        if: runner.os == 'Linux'
+        run: python3 -I tools/sounds_web.py --check
+
   # Performance (prompt 016, docs/PERFORMANCE.md): the overall benchmark on
   # one runner. Informational only: shared CI machines are too noisy for a
   # hard limit, so this job never blocks a merge. The table lands in the

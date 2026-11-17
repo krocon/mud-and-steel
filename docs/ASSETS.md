@@ -823,8 +823,11 @@ godot/assets/audio/sounds.json        manifest: class -> group, bus, level, rang
 - **New class:** add it to `sounds.json` (group, bus, levels, `variants`),
   write a recipe in `synth.py` or put files into `assets-src/audio/<class>/`,
   run `just audio <class>` and `just import`, and map it in
-  `sound_classes.gd` or `battle_sound.gd`. `just sound-gallery` plays it;
-  the self-test checks that every class has a loadable file.
+  `sound_classes.gd` or `battle_sound.gd`. Add a line to
+  `web/sounds/usage.toml` saying when the game plays it (`just sounds-web --check`
+  fails without; the same for a new weapon folder, ambience layer or music mood).
+  `just sound-gallery` plays it; the self-test checks that every class has a
+  loadable file.
 
 ### Weapon recordings and battle voices (prompt 053)
 

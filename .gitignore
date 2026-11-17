@@ -34,3 +34,5 @@ data/maps/editor_selftest/
 /godot/assets/audio/**/priv_*
 /.env
 /.temp/
+# Sound page index, written by tools/sounds_web.py (prompt 083)
+/web/sounds/index.json

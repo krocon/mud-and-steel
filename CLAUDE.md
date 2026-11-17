@@ -67,6 +67,7 @@ just bench / just bench-view  # overall benchmark: simulation / frame rate (docs
 just catalog-doc           # regenerate docs/UNIT_CATALOG.md after catalog changes
 just vehicle-db / just vehicle-db-check  # write data/vehicles/*.json from the reference folder / check it against the catalog
 just units-web             # unit browser in the web browser: pictures, 3D models, values (web/units/)
+just sounds-web            # every sound playable in the browser, with when the game plays it (web/sounds/, local only)
 just trailer-shots         # record the demo video's shots to build/trailer/ (--only=<shot>, --stills; docs/ARCHITECTURE.md)
 just export / just export-selftest  # exported .pck and its self-test; release builds: docs/RELEASE.md
 just export-model assets-src/blender/X.blend
@@ -85,6 +86,7 @@ crates/ai/       computer players: fog-of-war PlayerView, difficulties, headless
 crates/editor/   map editor core: brushes, undo, saving, validation (no Godot)
 godot/           Godot project: scenes/, ui/, assets/, mud_and_steel.gdextension
 web/units/       unit browser (static page; reads data/catalog and godot/assets directly)
+web/sounds/      sound page (local only; remarks in usage.toml, checked by just check)
 assets-src/blender/  .blend sources (Git LFS)
 tools/           Blender scripts, Godot import helper
 data/            unit catalog (catalog/*.toml, real values) and scale.toml

@@ -1,0 +1,113 @@
+# When the game plays each sound (prompt 083). Shown on the sound page
+# (`just sounds-web`), checked by `just sounds-web --check`.
+#
+# One German sentence per entry (about 120 characters at most) naming the occasion,
+# not the sound. Taken from the code: godot/scenes/audio/*.gd, world/air_view.gd,
+# world/artillery_view.gd, world/destruction_view.gd, world/crater_view.gd.
+# A class the code never plays reads "Derzeit ungenutzt."
+#
+# Tables: [class] = folders of the manifest classes (sounds.json), [weapon] =
+# weapon/<slug>/, [ambience] = ambience/<layer>/, [music] = moods of music/<mood>_NN,
+# [voice] = callouts of voice/<faction>/<callout>/ (may stand before any file ships).
+# Only plain `key = "text"` lines: the tool reads this file without a TOML library.
+
+[class]
+# Shots (sound_classes.gd shot_class, indirect_shot_class; acoustics.gd air events)
+shot_rifle = "Schuss einer Waffe unter 20 mm mit Kadenz unter 300 Schuss/min: Gewehre, Karabiner, Pistolen."
+shot_mg = "Schuss unter 20 mm ab 300 Schuss/min (MG, MPi); auch MG-Flak (−3 dB) und Tiefflieger-Beschuss aus der Luft."
+shot_cannon_small = "Kanonenschuss von 20 bis 36 mm (Maschinenkanonen, leichte Pak); auch leichte Flak gegen Flugzeuge (−3 dB)."
+shot_cannon_medium = "Kanonenschuss von 37 bis 74 mm, außer Mörsern, Haubitzen und Panzerabwehrtrupps."
+shot_cannon_large = "Kanonenschuss ab 75 mm, außer Mörsern, Haubitzen und Panzerabwehrtrupps."
+shot_mortar = "Abschuss eines Mörsers (Mörsertrupps, schwere Mörser, „GrW“ im Waffennamen), direkt wie indirekt."
+shot_rocket = "Schuss eines Panzerabwehrtrupps ab 20 mm (Panzerschreck, Panzerfaust, Bazooka) und Salve eines Raketenwerfers."
+shot_howitzer = "Abschuss einer Feldhaubitze, einer Selbstfahrlafette ab 100 mm und jedes indirekte Feuer außer Mörsern und Raketen."
+
+# Supersonic crack and reverberation (acoustics.gd scan_cracks; sound_classes.gd blast_tail_db; battle_sound.gd _destroyed)
+crack_bullet = "Überschallgeschoss unter 20 mm fliegt bis 12 m am Hörpunkt vorbei; nur bis 200 m Kameraabstand."
+crack_shell = "Überschallgranate ab 20 mm fliegt bis 25 m am Hörpunkt vorbei; nur bis 200 m Kameraabstand."
+explosion_tail = "Nachrollen nach Granateinschlägen ab 100 mm, Fahrzeugexplosionen ab Größe eines mittleren Panzers und Abstürzen."
+
+# Impacts and hits (sound_classes.gd hit_class; battle_sound.gd shell_incoming, smoke)
+hit_bullet_ground = "Geschoss unter 20 mm schlägt in den Boden oder in ein Kartenobjekt (dort −3 dB)."
+hit_bullet_armor = "Geschoss unter 20 mm trifft ein Fahrzeug."
+hit_shell_small = "Granate von 20 bis 36 mm schlägt auf Boden oder Infanterie ein; leise (−8 dB) bei jeder Nebelgranate."
+hit_shell = "Granate ab 37 mm schlägt auf Boden oder Infanterie ein, lauter und tiefer mit dem Kaliber."
+hit_shell_water = "Granate ab 20 mm schlägt in flaches oder tiefes Wasser ein."
+hit_ricochet = "Granate ab 20 mm trifft ein Fahrzeug und durchschlägt die Panzerung nicht."
+hit_penetration = "Granate ab 20 mm trifft ein Fahrzeug und durchschlägt die Panzerung."
+hit_object = "Granate ab 20 mm trifft ein Kartenobjekt (Gebäude, Mauer, Baum)."
+shell_incoming = "Indirekt verschossene Granate schlägt in etwa 1,5 s ein (Pfeifen am Zielpunkt); Nebelgranaten 8 dB leiser."
+
+# Explosions and fire (battle_sound.gd _destroyed, _assign_fires; acoustics.gd air events)
+explosion_vehicle = "Fahrzeug wird zerstört (tiefer mit seiner Größe) oder ein Flugzeug stürzt ab."
+flak_burst = "Granate schwerer Flak zerplatzt am Himmel."
+fire = "Brennendes Wrack: 60 s Feuer, dann 90 s leiser schwelend; brennende Kartenobjekte unter 8 m Größe."
+fire_large = "Brennendes Kartenobjekt ab 8 m Größe, lauter mit der Größe, leiser, während es herunterbrennt."
+
+# Vehicles and aircraft (sound_classes.gd engine_class, has_tracks; acoustics.gd _aircraft_class)
+engine_wheel = "Motor eines Lastwagens oder Spähwagens in Hörweite; Tonhöhe und Lautstärke folgen der Geschwindigkeit."
+engine_halftrack = "Motor eines Halbkettenfahrzeugs in Hörweite; Tonhöhe und Lautstärke folgen der Geschwindigkeit."
+engine_track_light = "Motor eines Kettenfahrzeugs unter 20 t Gefechtsmasse in Hörweite (Panzer, Jagdpanzer, Sturmgeschütze)."
+engine_track_heavy = "Motor eines Kettenfahrzeugs ab 20 t Gefechtsmasse in Hörweite (Panzer IV, T-34, Sherman und schwerer)."
+tracks = "Kettengerassel jedes Kettenfahrzeugs neben seinem Motor; im Stand stumm, lauter mit der Geschwindigkeit."
+engine_aircraft = "Eines der drei nächsten Flugzeuge mit unter 18 m Spannweite; Tonhöhe nach Doppler, höher im Absturz."
+engine_bomber = "Eines der drei nächsten Flugzeuge ab 18 m Spannweite; Tonhöhe nach Doppler, höher im Absturz."
+
+# Buildings and objects (sound_classes.gd object_class; battle_sound.gd _destroyed, crater_event)
+building_damage = "Ein Gebäude wird von Granaten ab 20 mm beschädigt (Stufe „beschädigt“ in data/destruction.toml)."
+building_collapse = "Gebäude oder Munitions-/Treibstofflager wird zur Ruine, oder ein Basisgebäude wird zerstört."
+tree_fall = "Ein Baum wird von einer Granate ab 20 mm gefällt."
+wall_break = "Mauer, Hecke, Heuballen oder Holzstapel wird zerstört und verschwindet."
+fence_crush = "Fahrzeug walzt einen Holzzaun (ab 2,5 t) oder Stacheldraht (ab 8 t) platt."
+crater = "Ein Krater entsteht: Erde regnet herab, lauter mit dem Kaliber; Graben von Pionieren bleibt stumm."
+
+# Notices and interface (battle_sound.gd notice, _watch_notices; ui_sound.gd; air_view.gd _warn)
+ui_click = "Klick auf jeden Knopf in jedem Bildschirm: Menü, Lobby, Editor, Spiel."
+ui_select = "Die Auswahl eigener Einheiten ändert sich und ist nicht leer; höchstens alle 0,12 s."
+ui_order = "Befehl zum Bewegen, Angreifen oder Besetzen eines Gebäudes ist erteilt; höchstens alle 0,12 s."
+ui_unit_ready = "Neue eigene Einheit (kein Gebäude) erscheint, nicht in den ersten 2 s; höchstens jede Sekunde."
+ui_build_complete = "Eigenes Basisgebäude ist fertig gebaut; höchstens jede Sekunde."
+ui_under_attack = "Eigene Einheit wird getroffen oder Feindflugzeuge kommen in Sicht; höchstens alle 20 Sekunden."
+ui_unit_lost = "Eigene Einheit wird zerstört; höchstens alle 6 Sekunden."
+ui_victory = "Das Gefecht ist entschieden und der eigene Spieler hat gewonnen."
+ui_defeat = "Das Gefecht ist entschieden und der eigene Spieler hat nicht gewonnen (auch bei Unentschieden)."
+
+[weapon]
+# battle_sound.gd _shot_class: `<class>@<slug>` replaces the class for this catalog weapon
+kar98k = "Schüsse des Kar98k (deutsche Trupps, Scharfschützen als Zweitwaffe); statt shot_rifle."
+kar98k_mit_zf_39 = "Schüsse des Kar98k mit ZF 39 (Zielfernrohr) des deutschen Scharfschützen; statt shot_rifle."
+mg_42 = "Schüsse des MG 42 deutscher Trupps, Schützenpanzer, Jagdpanzer und des Panzerwerfers; statt shot_mg."
+mg_42_on_lafette_42 = "Schüsse des MG 42 auf Lafette 42 des deutschen schweren MG-Trupps; statt shot_mg."
+mg_34_mg_42 = "Schüsse des MG 34 / MG 42 im deutschen Tobruk-Bunker; statt shot_mg."
+mp_40 = "Schüsse der MP 40 deutscher Trupps, Panzerbesatzungen und des Sd.Kfz. 222; statt shot_mg."
+ppsh_41 = "Schüsse der PPSh-41 sowjetischer Trupps und Panzerbesatzungen; statt shot_mg."
+
+[ambience]
+# ambience.gd: biome = atmosphere preset (forest, desert, winter)
+wind_forest = "Windbett im Wald- und Wiesenbiom; nah 8 dB leiser, in der Übersicht voll."
+wind_desert = "Windbett im Wüstenbiom; nah 8 dB leiser, in der Übersicht voll."
+wind_winter = "Windbett im Winterbiom; nah 8 dB leiser, in der Übersicht voll."
+insects_meadow = "Grillen im Wald- und Wiesenbiom, nah voll, in der Übersicht 24 dB leiser; Regen dämpft sie."
+insects_desert = "Zikaden im Wüstenbiom, nah voll, in der Übersicht 24 dB leiser; im Winter keine Insekten."
+leaves = "Blätterrauschen aus der Richtung des Waldes um den Hörpunkt, so laut wie sein Anteil am Raster (ab 2 %)."
+water = "Wasser aus der Richtung von Fluss oder See um den Hörpunkt, so laut wie sein Anteil am Raster (ab 2 %)."
+rain = "Regenbett für das Wetter eines späteren Prompts; derzeit stumm, da noch nichts `rain` setzt."
+birds_forest = "Vogelruf an einer Waldstelle alle 2–7 s im Wald- und Wiesenbiom; nach Kampf in der Nähe 60 s still."
+birds_desert = "Vogelruf alle 8–20 s im Wüstenbiom; nach Kampf in der Nähe 60 s still."
+birds_winter = "Vogelruf alle 9–24 s im Winterbiom; nach Kampf in der Nähe 60 s still."
+rumble = "Fernes Grollen alle 40–120 s aus zufälliger Richtung, 400 m entfernt."
+
+[music]
+# music.gd, match_music.gd
+menu = "Hauptmenü; läuft hinter Lobby, Editor und Ladebildschirm weiter, ein Stück folgt dem nächsten."
+calm = "Gefecht ohne sichtbaren Kampf (Kampfwert unter 4); zwischen zwei Stücken 20–60 s Stille."
+combat = "Sichtbarer Kampf ab Kampfwert 12, mindestens 25 s lang; ein Stück folgt dem nächsten."
+victory = "Gefecht gewonnen; einmal, danach Stille."
+defeat = "Gefecht verloren; einmal, danach Stille (bei Unentschieden blendet die Musik aus)."
+
+[voice]
+# battle_voices.gd: only up to 80 m camera distance, visible squads within 50 m of the focus
+contact = "Trupp feuert nach 20 s ohne Schuss (Feind gesichtet); höchstens alle 4 s, je Trupp alle 12 s."
+reloading = "Etwa jeder zwölfte Schuss eines Trupps; höchstens alle 4 s, je Trupp alle 12 s."
+take_cover = "Granate ab 20 mm trifft einen Trupp; höchstens alle 4 s, je Trupp alle 12 s."
+wounded = "Geschoss unter 20 mm trifft einen Trupp; höchstens alle 4 s, je Trupp alle 12 s."

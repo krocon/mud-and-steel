@@ -27,6 +27,7 @@ check:
     cargo nextest run --workspace
     python3 tools/vehicle_refs.py --check
     python3 -I tools/geo_import.py check assets-src/geo/harbor_city/site.json
+    python3 -I tools/sounds_web.py --check
 
 # Format all Rust code
 [group('rust')]
@@ -613,6 +614,11 @@ sfx-generate *args:
 [group('sound')]
 sound-gallery *args: build
     {{ GODOT }} --path godot -- --sound-gallery {{ args }}
+
+# Serve the sound page (web/sounds/): every audio file playable, with when the game plays it; opens http://localhost:8138/web/sounds/ (`--port N`, `--no-open`; `--check`: every sound folder has a remark in web/sounds/usage.toml)
+[group('sound')]
+sounds-web *args:
+    python3 -I tools/sounds_web.py {{ args }}
 
 # --- LAN multiplayer (prompt 025) ----------------------------------------------------
 

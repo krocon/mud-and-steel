@@ -6,6 +6,12 @@
       "runtimeExecutable": "python3",
       "runtimeArgs": ["tools/units_web.py", "--no-open"],
       "port": 8137
+    },
+    {
+      "name": "sounds-web",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-I", "tools/sounds_web.py", "--no-open"],
+      "port": 8138
     }
   ]
 }

@@ -3851,16 +3851,16 @@ per unit type and weapon.
 
 | Trigger | Class |
 |---|---|
-| `shot` | `shot_rifle` / `shot_mg` (below 20 mm, rate below / from 300 rpm), `shot_rocket` (anti-tank squads), `shot_mortar`, `shot_howitzer` (prepared for prompt 032), `shot_cannon_small` / `_medium` / `_large` (20 / 37 / 75 mm) |
+| `shot` | `shot_rifle` / `shot_mg` (below 20 mm, rate below / from 300 rpm), `shot_rocket` (anti-tank squads from 20 mm), `shot_mortar` (mortar squads, heavy mortars, "mortar" / "GrW" in the weapon name), `shot_howitzer` (field howitzers, self-propelled guns from 100 mm), `shot_cannon_small` / `_medium` / `_large` (20 / 37 / 75 mm); a weapon with files in `weapon/<slug>/` plays them instead (prompt 053) |
 | `hit`, ground | `hit_bullet_ground`, `hit_shell_small` (below 37 mm), `hit_shell` (louder with caliber, ±6 dB), `hit_shell_water` in water |
 | `hit`, vehicle | `hit_bullet_armor`, `hit_ricochet` (not penetrated), `hit_penetration` |
 | `hit`, infantry / object | shells: as on the ground / `hit_object`; bullets: nothing / `hit_bullet_ground` |
-| `destroyed` | vehicles `explosion_vehicle` (by size) and a `fire` loop for 60 s, 90 s quieter while smoldering; base buildings `building_collapse`; infantry nothing |
-| object event | `building_damage`, `building_collapse` (ruin), `tree_fall`, `wall_break` (walls, hedges), `fence_crush` (flattened) |
-| crater event | `crater` (earth raining down; the impact itself is the hit) |
-| indirect fire (prompt 032) | shot events with `weapon` 255: `shot_mortar` / `shot_howitzer` by category; `artillery_view.shell_incoming` (if present): `shell_incoming`, a 1.5 s whistle at the impact point; `smoke` events: a quiet `hit_shell_small` |
+| `destroyed` | vehicles `explosion_vehicle` (by size, from medium-tank size with `explosion_tail`) and a `fire` loop for 60 s, 90 s quieter while smoldering; base buildings `building_collapse`; infantry nothing |
+| object event | `building_damage`, `building_collapse` (ruin: buildings, ammunition and fuel dumps), `tree_fall`, `wall_break` (gone: walls, hedges, hay bales, woodpiles), `fence_crush` (flattened by vehicles: wooden fences from 2.5 t, barbed wire from 8 t; `data/destruction.toml`) |
+| crater event | `crater` (earth raining down, louder with caliber; the impact itself is the hit; engineers digging are silent) |
+| indirect fire (prompt 032) | shot events with `weapon` 255: `shot_mortar` / `shot_howitzer` by category, `shot_rocket` for rocket launchers (prompt 062); `artillery_view.shell_incoming`: `shell_incoming`, a 1.5 s whistle at the impact point (smoke shells 8 dB quieter); `smoke` events: a quiet `hit_shell_small` |
 | moving vehicles | `engine_wheel` / `engine_halftrack` / `engine_track_light` / `engine_track_heavy` (from 20 t) plus `tracks` for tracked vehicles; pitch 0.8–1.2 and volume by speed / road speed |
-| notices (UI bus) | `ui_order` (move, attack, garrison), `ui_select`, `ui_unit_ready` (a new own unit after the first 2 s), `ui_build_complete`, `ui_under_attack` (own unit hit, every 20 s at most), `ui_unit_lost` (6 s), `ui_victory` / `ui_defeat`; `ui_click` on every button of every screen |
+| notices (UI bus) | `ui_order` (move, attack, garrison), `ui_select` (the selection changes and is not empty), `ui_unit_ready` (a new own unit, not a building, after the first 2 s), `ui_build_complete`, `ui_under_attack` (own unit hit or enemy aircraft in sight, every 20 s at most), `ui_unit_lost` (6 s), `ui_victory` / `ui_defeat` (also on a draw); `ui_click` on every button of every screen |
 
 ### Hearing
 
@@ -3921,6 +3921,12 @@ after the round, exit code 1 on a missing file). The self-test part
 loops loop, the earlier combat, destruction and crater tests asked for
 their sounds, bus volumes follow the settings, hidden sounds play muffled,
 own tanks get engine loops, the voice limit holds under load.
+
+`just sounds-web` serves a local page (`web/sounds/`, `tools/sounds_web.py`, prompt 083)
+that plays every audio file of `godot/assets/audio/` with a remark on when the game
+plays it (`web/sounds/usage.toml`, taken from the code), its origin and its manifest
+values; `just sounds-web --check` (in `just check` and CI) fails when a sound folder has
+no remark or a remark no folder. It stays local: no audio file is copied under `web/`.
 
 ### Measurements
 
