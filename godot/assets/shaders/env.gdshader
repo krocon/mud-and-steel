@@ -11,10 +11,12 @@ render_mode blend_mix, depth_draw_opaque, cull_back, diffuse_burley, specular_sc
 #include "res://assets/shaders/env_common.gdshaderinc"
 
 // 0 Paint, 1 Metal, 2 Rubber, 3 Wood, 4 Canvas, 5 Glass,
-// 10 Bark, 12 Stone, 13 Plaster, 14 Ground, 15 Roof
+// 10 Bark, 12 Stone, 13 Plaster, 14 Ground, 15 Roof, 16 Rock
 uniform int slot = 12;
 
 varying vec3 v_local;
+// World position (Rock: the pattern runs on across neighbouring blocks).
+varying vec3 v_world;
 varying vec3 v_world_normal;
 // Normal of the standing model: snow stays on fallen trees (prompt 056).
 varying vec3 v_rest_normal;
@@ -30,6 +32,7 @@ void vertex() {
 		VERTEX += wind_offset(VERTEX, COLOR.g, COLOR.b, inst, TIME) * 0.5 * (1.0 - env_fallen);
 	}
 	v_world_normal = normalize((MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz);
+	v_world = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 	v_rest_normal = normalize(NORMAL);
 	v_seed = hash2(floor(inst.xz * 0.5) + vec2(0.5, 0.5));
 }
@@ -41,6 +44,54 @@ vec3 plaster_paint(float seed) {
 	vec3 c[7] = {vec3(0.88, 0.87, 0.83), vec3(0.84, 0.79, 0.66), vec3(0.86, 0.78, 0.52),
 		vec3(0.78, 0.62, 0.40), vec3(0.84, 0.70, 0.64), vec3(0.70, 0.74, 0.66), vec3(0.66, 0.66, 0.63)};
 	return c[int(floor(seed * 7.0)) % 7];
+}
+
+// Grown rock (prompt 074): the base color of the terrain's rock layer
+// (gen_textures.rs `rock`, about sRGB 107/102/92) times the biome's
+// rock tint (godot/assets/biomes/*.tres layer_tint[8]), so rock objects on
+// a rock slope read as one piece. The biome is recognized by the look
+// uniforms: dust = desert, snow = winter.
+vec3 rock_base() {
+	vec3 base = vec3(0.147, 0.133, 0.107);
+	vec3 tint = mix(vec3(1.0), vec3(1.12, 0.98, 0.82), clamp(env_dust / 0.45, 0.0, 1.0));
+	tint = mix(tint, vec3(0.85, 0.88, 0.92), clamp(env_snow / 0.85, 0.0, 1.0));
+	return base * tint;
+}
+
+// Rock pattern in world space: bright warm tops, cooler darker flanks
+// (by the normal), large tone patches, bedding bands on the flanks,
+// cracks, dark water streaks running down, lichen on top (not in the
+// desert), a darker foot. `up` = world normal y, `h` = height above the
+// model's ground (m).
+vec3 rock_albedo(vec3 w, float up, float h, int kind) {
+	vec3 base = rock_base();
+	float top = smoothstep(0.3, 0.85, up);
+	vec3 col = base * mix(vec3(0.95, 0.98, 1.04), vec3(1.95, 1.85, 1.66), top);
+	float tone = fbm3(w * 0.33);
+	col *= 0.78 + 0.44 * tone;
+	col *= 0.9 + 0.2 * vnoise(w * 4.3);
+	// bedding: horizontal bands on the flanks
+	float band = sin(w.y * 2.1 + tone * 4.0) * 0.5 + 0.5;
+	col *= mix(1.0, 0.86 + 0.2 * band, 1.0 - top);
+	// cracks: thin dark lines where a noise crosses its middle
+	float cr = abs(vnoise(w * vec3(0.8, 1.3, 0.8) + vec3(3.1, 0.0, 7.7)) * 2.0 - 1.0);
+	float cr2 = abs(vnoise(w * 2.2 + vec3(11.0, 5.0, 2.0)) * 2.0 - 1.0);
+	float crack = (1.0 - smoothstep(0.0, 0.045, cr)) + (1.0 - smoothstep(0.0, 0.03, cr2)) * 0.5;
+	col *= 1.0 - 0.5 * clamp(crack, 0.0, 1.0);
+	// water streaks down the flanks
+	float streak = smoothstep(0.55, 0.85, vnoise(vec3(w.x * 2.2, w.y * 0.22, w.z * 2.2)));
+	col *= 1.0 - 0.38 * streak * (1.0 - top);
+	// lichen and moss on the tops (forest), pale lichen spots everywhere
+	float lichen = smoothstep(0.52, 0.72, fbm3(w * 1.4 + vec3(5.0))) * top * (1.0 - env_dry);
+	col = mix(col, vec3(0.16, 0.19, 0.08), lichen * 0.55);
+	float spots = smoothstep(0.8, 0.88, vnoise(w * 3.7 + vec3(1.3)));
+	col = mix(col, base * vec3(2.6, 2.6, 2.3), spots * 0.3);
+	// darker foot where soil and damp touch the rock
+	col *= mix(0.6, 1.0, smoothstep(0.0, 0.9, h));
+	if (kind == 1) {
+		col *= 0.85;  // scree: loose, darker stones
+	}
+	return col;
 }
 
 // mortar lines of a running bond (brick / ashlar), size in meters
@@ -152,6 +203,9 @@ void fragment() {
 		albedo = c[kind] * (0.8 + 0.4 * big) * (0.9 + 0.2 * grain);
 		albedo = mix(albedo, vec3(0.56, 0.48, 0.34), env_dry * 0.5);
 		rough = 1.0;
+	} else if (slot == 16) {  // Rock: bedrock, scree (prompt 074)
+		albedo = rock_albedo(v_world, wn.y, vc.b * 4.0, kind);
+		rough = 0.92;
 	} else {  // 15 Roof: clay tile, slate, thatch, planks
 		float rows = smoothstep(0.0, 0.08, fract(p.z * 6.0)) * 0.25 + 0.75;
 		float cols = 0.9 + 0.2 * hash2(floor(vec2(p.x * 4.0 + p.y * 4.0, p.z * 6.0)));
@@ -186,6 +240,8 @@ void fragment() {
 	}
 	if (slot != 5 && slot != 14) {
 		float dust = env_dust * (0.35 + 0.65 * max(wn.y, 0.0)) * (0.6 + 0.4 * grain);
+		// grown rock takes its desert color from the tint, less dust
+		dust *= slot == 16 ? 0.45 : 1.0;
 		albedo = mix(albedo, vec3(0.70, 0.62, 0.46), clamp(dust, 0.0, 0.7));
 		albedo = snow_cover(albedo, rough, normalize(v_rest_normal), p, env_snow);
 	}
