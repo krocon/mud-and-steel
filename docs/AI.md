@@ -672,6 +672,24 @@ AI time per tick (both AIs, `--jobs 1`): battle (skirmish, hard vs passive, 4 ga
   decides some games on `test_small`, but the economy balance (prompt 045)
   decides the rest.
 
+### The large city (prompt 079)
+
+`city_large` (3 km, starts 2.26 km apart, a block quarter between them)
+needed no AI change. Battle mode, 20 games each, `--max-ticks 18000`
+(15 min), win rate A / B / timeouts: hard vs normal 60 / 20 / 4, hard vs
+easy 50 / 50 / 0, hard vs passive 5 / 50 / 9, normal vs passive
+5 / 35 / 12. Base mode (6 games, 30 000 ticks = 25 min): hard vs passive
+100 / 0 / 0 (about 11 minutes each), hard vs normal 0 / 0 / 6 (as on
+`skirmish`). The armies take the main streets through the city (the three
+routes and the square) and meet in the block quarter and the suburb; the
+traces show tanks fighting on the square, on the avenues and at the
+suburb rings. Every timeout ends with tanks out of fuel or immobile
+against rifle squads that cannot hurt them (both armies drive more than
+2 km); no unit stood stuck. Before the suburb streets were widened from
+8 to 12 m, three tanks stayed 12 minutes between wrecks in one of them
+(prompt 079, decision 4). Against the passive enemy the attacker loses
+the slugfest at the enemy start, as on `town_small` and `river_land`.
+
 ### Balance (prompt 045)
 
 Prompt 045 changed rule values the AI plays with (income, start account,

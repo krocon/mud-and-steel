@@ -208,6 +208,44 @@ minimap dots are one MultiMesh buffer filled by the bridge; the ground image
 is built once (`test_large`: 500 × 500 cells).
 
 
+## Large city (prompt 079)
+
+`city_large` (3 km, 59 699 objects: 132 apartment blocks, 16 other city
+buildings, 1 292 houses, 48 333 trees) measured on 17.11.2026, Apple M1
+Max, release simulation, debug bridge. The machine was busy (load 6–9),
+so `test_large` was measured again in the same session for comparison;
+both are slower than the tables above.
+
+| What | Command | city_large | test_large (same session) | Budget |
+|---|---|---|---|---|
+| Sim tick, big battle | `just bench --scenario data/scenarios/bench_city.toml --runs 2` (504 units, the armies of `bench_large` 1.5 km apart in front of the city, 6000 ticks) | mean 6.54, p99 11.5, max 15.5 ms (paths 2.10, vision 2.60, projectiles 1.04 ms) | `just bench --runs 2`: mean 5.62, p99 9.1, max 11.0 ms (paths 1.83, vision 2.91, projectiles 0.04 ms) | 5 / 10 / 20 ms |
+| AI think per tick | same | 0.30 ms mean | 0.30 ms | 0.5 ms |
+| Pathfinding | `just path-bench city_large` with `--range-m 1400` (200 single orders across the map) / `600` (inside the city) | planning ticks 7.16 / 7.22 ms mean, p99 9.9 / 9.2 ms; 35 100 / 3 760 expansions per request | planning ticks 5.27–5.29 ms mean, p99 7.5 ms; 113 000 expansions per request | – |
+| Vision | `just vision-bench city_large` (500 units) | 9.16 ms mean (6.82 with one-cell sight), 293 000 ray steps per tick | 6.27 ms (4.45), 208 000 | ray steps ≤ 400 000 |
+| Fire | `just fire-bench 40 6000 city_large` (a burning ring cell: 5 blocks and the courtyard) | 19 fires started, 25 burnt out, farthest fire 51 m from the cell center (the cell reaches 50 m: the streets stop it); tick mean 2.11 ms, max 13.4 ms | `town_small`: 2.02 ms, max 5.4 ms | 50 ms |
+| Frame rate over the block quarter | `just objects-bench city_large --blocks-bench --quality=…` at 35 / 110 / 350 m | high 98 / 85 / 78 FPS, medium 161 / 150 / 134, low 256 / 235 / 183; 260 / 704 / 3 676 draw calls, 0.6–1.4 M triangles | – | ≥ 60 FPS |
+| Frame rate with the battle | `godot … -- --scenario=bench_city.toml --ai=hard --perf-bench` (standing 40 / 150 / 600 m, battle 40 / 150 / 600 m) | medium 52 / 38 / 67, battle 49 / 47 / 30 FPS; high 51 / 37 / 59, battle 43 / 42 / 26 FPS | `bench_large` medium: 48 / 48 / 51, battle 40 / 37 / 30 FPS (window not drawable for part of the run) | ≥ 60 FPS medium |
+| Loading and files | `just map-info city_large` | 3.68 MB files (height.png 1.1 MB, objects.csv 2.4 MB), 11.3 MB in memory, decode 37 ms, objects 34 ms | 6.8 MB files (objects.csv 3.9 MB), 20 MB, 69 + 52 ms (table in MAPS.md) | – |
+
+Reading the numbers:
+
+- **Simulation:** the city costs about 16 % more per tick than
+  `test_large` in the same session: the path search expands nodes more
+  slowly in the dense grid (the budget per tick is the same) and the
+  projectile phase (which also runs fire, works and crossings) costs
+  1 ms instead of 0.04 ms. Both maps miss the mean budget of 5 ms on the
+  busy machine today; the city is not the cause. The phase difference of
+  the projectile step was not investigated further (open).
+- **Vision:** the many sight-blocking objects (blocks, houses, woods)
+  make each ray step dearer; the ray budget per tick holds.
+- **Frame rate:** over the block quarter every quality is well above
+  60 FPS. With 504 units in view no view reaches 60 FPS today on either
+  map; the battle runs at the rates of `test_large`, the standing army at
+  150 m is 20 % slower (it stands in front of a wood: 3 000 draw calls,
+  infantry script 5 ms). Measuring on a quiet machine is open.
+- **Fire:** streets of 12 and 16 m are firebreaks (road terrain), so a
+  burning cell stays a burning cell.
+
 ## Decisions
 
 | Question | Decision | Why |

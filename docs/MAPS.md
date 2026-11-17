@@ -597,6 +597,82 @@ block-fight`.
   city of 100 blocks adds about 0.4 M triangles in view (see
   ARCHITECTURE.md, measurements).
 
+### Large city (prompt 079)
+
+`cli gen-city` (`crates/cli/src/gen_city.rs`, `just gen-city`, options
+`--seed`, `--biome`, `--name`, `--out`) writes `data/maps/city_large`:
+3 km × 3 km, biome `winter` with default weather `snow` (`--biome forest`
+or `desert` gives the same layout without snow drifts, with a few mud
+patches instead), four starts in two teams (team 0 south at
+(∓250, 1100) local, team 1 north; a two-player match uses players 0 and
+1, diagonally opposite, 2.26 km apart). No real place names.
+
+**Symmetry.** Street network, squares, supply points, strongpoints,
+dumps and starts are point-symmetric about `CENTER` = (1, 1) m, the
+center of the path cell next to the map center (path cell center lines
+lie at `-1499 + 4 k` m on this map), so every street axis lies on a path
+cell center line in both halves. All coordinates below are local, around
+that point. Building slots are mirrored too (the same footprint turned
+by 180°); building kinds of the two square landmarks (church south, town
+hall north), damage stages (drawn separately per half, the same count),
+courtyard contents, houses, gardens and woods differ.
+
+| Zone | Extent | Content |
+|---|---|---|
+| Center | the four cells around the square | paved square 80 × 60 m where the two main streets cross; church (south-west) and town hall (north-east) facing it; the largest blocks (40 m long) along the main streets |
+| Block quarter | to 360 m (Chebyshev) | street grid of 120 m: main streets on the lines 0 and ±240 (16 m wide), side streets on ±120 and ±360 (12 m); each 106 m cell is a ring (one block per side, open corners, a small block in the courtyard), rows (three rows of blocks about 25-30 m apart), an angle (an L of two blocks, two single ones, one in the middle) or a terrace (three tenements gable to gable, two opposite, one between), with trees, a shed, firewood, crates and now and then a stone wall in the courtyard; town houses with gardens in the corner cells; per half a park (trees on a 13 m grid, a cross of paths) and a warehouse quarter (four warehouses, an ammunition and a fuel dump, crates and barrels); trees every 16 m along the main streets |
+| Suburb | to 660 m, houses within 780 m of the center | 12 m streets: the grid lines continued, a square ring at 520 m and a chamfered ring at 660 m; farm, brick, stone and log houses on plots with gardens (firewood or hay, bare fruit trees, a wooden fence), houses facing the block quarter's edge streets, orchards between the streets |
+| Land | to the edge | gentle hills and value noise (relief about 14 m; flat within 780 m of the center, blending in over 240 m), snow drifts (terrain `snow`) in the open, the two main streets as 10 m country roads to all four edges, the avenues ±240 as 8 m roads to the bypass, an 8 m bypass ring at 950 m (corners cut at 700 m), field tracks with hedgerows, three farmsteads per half, haystacks, woods mostly beyond 1 km, single trees |
+
+**Routes.** Three independent north-south routes through the city (the
+main streets −240, 0, +240, each 16 m and straight from the suburb ring to
+the suburb ring) plus the bypass west and east; the same east-west. A
+test checks that tanks reach the north start from the south start along
+each of the five corridors alone (everything else in the middle band
+closed), that every grid crossing is reachable for tanks and every cell
+of the block quarter for infantry. Blocks stand 4 m behind the street
+edge, so opposite fronts are 20 m (side streets) or 24 m (main streets)
+apart; within a cell blocks keep 20-30 m and corner openings of at least
+12 m.
+
+**Supply points** (8): `supply_square_south` and `supply_square_north`
+both on the square (holding the square pays twice: the most valuable
+place without a new rule), and per half `supply_warehouses_*` (the
+warehouse yard), `supply_crossing_*` (avenue × inner suburb ring) and
+`supply_farm_*` (a farmstead between suburb and bypass). Markers for
+tools and shots: `town_square`, `park_*`, `warehouses_*`, `crossing_*`,
+`farm_*`, `strongpoint_*`, `block_edge_*`, `suburb_*`, `main_street_*`,
+`side_street_*`, `start_*`, `bypass_west`, `bypass_east`, `fire_start`
+(a ring cell for `just fire-bench 40 6000 city_large`).
+
+**Starts:** 60 m flat and free around each start, a field track to the
+bypass and one joining the two starts of a team; a supply dump (two
+ammunition stacks, two fuel dumps, 14 m apart) 85 m in front of each,
+as on `town_small`.
+
+**War damage:** about every eighth city building (blocks, church, town
+hall, warehouses) starts `Damaged` and every twentieth as a `Ruin`, the
+same number in both halves; houses 10-15 % damaged or ruined. A trench
+strongpoint (`strongpoint_south` / `_north`, prompt 052) on open ground
+between suburb and bypass is the ring-shaped earthwork. Craters cannot
+be a starting state of a map (they are made by shells in a match).
+
+A test generates the map twice (bit-identical files) and checks the
+counts (at least 100 blocks and 300 houses, one church, one town hall,
+eight warehouses, eight supply points), the symmetry of the street
+network, starts and supply points, equal damage per half and the routes.
+`just map-check city_large` passes. Pictures: `SHOT_SET=land just
+terrain-shots <dir> city_large` adds zone, start and street views to the
+supply point views (`city_compare` is the view of the block quarter with
+the suburb behind it). Measurements: [PERFORMANCE.md](PERFORMANCE.md#large-city-prompt-079).
+
+Open: a summer version (`--biome forest`, a second run), a desert city of
+the flat-roofed blocks, a river with bridges, a station and tracks, a
+factory site, new buildings (school, cinema, water tower), street
+fighting as a rule (barricades, sewers, fighting inside a house, storeys),
+a shot of this map in the demo video, a picture preview of maps in the
+setup screen (no map has one).
+
 ### Landscape maps (prompt 056)
 
 `cli gen-land` (`crates/cli/src/gen_land.rs`, `just gen-land [map]`,

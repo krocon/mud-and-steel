@@ -192,3 +192,40 @@ Als offene Punkte notieren, nicht umsetzen:
 - **Straßenkampf als Regel:** Barrikaden, Kanalisation, Kampf im Haus,
   Stockwerke.
 - **Einstellung im Demo-Video** auf dieser Karte.
+
+## Entscheidungen (autonom, Nachtlauf 17.11.2026)
+
+Der Prompt hatte keine offenen Fragen; diese Punkte hat die Session beim
+Umsetzen selbst entschieden (vorläufig):
+
+| # | Entscheidung | Begründung |
+|---|---|---|
+| 1 | Symmetriezentrum ist (1, 1) m, die Mitte der Wegzelle neben der Kartenmitte, nicht (0, 0). | Nur so liegen alle Straßenachsen in beiden Hälften auf Mittellinien der 4-m-Wegzellen (bei 3 km liegen die Zellmitten bei −1499 + 4 k). |
+| 2 | Der Platz trägt zwei Versorgungspunkte (`supply_square_south/_north`). | „Wertvollster Punkt“ ohne neue Regel: wer den Platz hält, bekommt doppeltes Einkommen. |
+| 3 | Je Hälfte drei weitere Punkte: Lagerviertel, Vorstadtkreuzung, Gehöft; der Park ist kein Versorgungspunkt. | Zwei Punkte in bzw. an der Stadt ziehen den Kampf hinein, einer davor. |
+| 4 | Vorstadtstraßen 12 m statt 8 m. | Im ersten KI-Turnier blieben drei Panzer 12 Minuten zwischen Wracks in einer 8-m-Vorstadtstraße mit Gärten stecken. |
+| 5 | Alle drei Blocktypen aus 078 auch im Winter, Blockgröße 120-m-Raster mit 4–5 Blöcken je Zelle. | Andere Blöcke gibt es nicht; die Flachdachblöcke passen zur Vorlage. |
+| 6 | Die ringförmige Erdstellung ist je Hälfte eine Grabenstellung (`strongpoint_*`, Prompt 052); keine Krater. | Krater entstehen nur im Gefecht, eine Karte kann sie nicht als Startzustand tragen. |
+| 7 | Neues Szenario `data/scenarios/bench_city.toml` (Armeen von `bench_large` vor der Stadt), `fire-bench` mit Marker `fire_start` und Kartenparameter. | Messungen nach Abschnitt 6 auf dieser Karte, ohne die bestehenden Messreihen zu ändern. |
+| 8 | Der Objekt-Platzierer von `gen_land` nimmt die Kartengröße (`Objects::sized`) und wird geteilt. | Wiederverwendung statt viertem Platzierer; die Landkarten bleiben Bit für Bit gleich (geprüft). |
+| 9 | Keine Kartenvorschau im Menü. | Keine Karte hat eine; das Menü zeigt Name, Größe, Biom und Wetter aus `map.toml` automatisch (offener Punkt). |
+
+## Ergebnis
+
+- **Generator** `crates/cli/src/gen_city.rs`, `just gen-city`: Karte
+  `data/maps/city_large` (3 km, Winter/Schnee, 59 699 Objekte: 132 Blöcke,
+  Kirche, Rathaus, 8 Lagerhäuser, 1 292 Häuser, 48 333 Bäume). Aufbau und
+  Maße: `docs/MAPS.md` „Large city (prompt 079)“. `just map-check
+  city_large` ok. Test: zweimal Bit für Bit gleich, Zählungen,
+  Symmetrie von Straßen/Starts/Versorgungspunkten, gleiche Schäden je
+  Hälfte, fünf unabhängige Panzerrouten, jede Zelle für Infanterie,
+  Öffnen und Speichern mit dem Karteneditor (gleicher Hash).
+- **Bilder** (nicht im Repo): `build/city-compare-1.png` (Vorlage neben
+  der Ansicht `city_compare`), `build/city-shots-1/` (`SHOT_SET=land`,
+  Ansicht n in Bild `n·20+10`), Übersichten `build/city-sheet-a/b/c.png`.
+  Die Stadt ist lockerer als die Vorlage (Höfe von 60–70 m statt 30–40 m).
+- **Messungen:** Tabelle in `docs/PERFORMANCE.md` „Large city“; KI:
+  `docs/AI.md` „The large city“.
+- **Menü:** die Karte erscheint ohne Änderung (Ordnername, „3.0 km ×
+  3.0 km, Winter, Schnee“); eine Vorschau hat keine Karte.
+- **Goldener Hash unverändert** (keine Regel, keine Testkarte geändert).
