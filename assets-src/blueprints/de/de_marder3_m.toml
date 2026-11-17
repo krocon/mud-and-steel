@@ -1,0 +1,171 @@
+# Marder III Ausf. M (Sd.Kfz. 138, 7.5 cm PaK 40/3 auf Geschützwagen 38(t)
+# Ausf. M), 1943-44 (prompt 063, tier 3). Main dimensions from
+# data/catalog/de.toml (onwar.com): length 4.95 m (muffler to the front of the
+# tracks; the muzzle stays behind the track front), width 2.15 m, height
+# 2.48 m (top of the compartment walls).
+# Shapes measured in the onwar.com drawing ge017marder3m.jpg (front to the
+# right; never committed). The drawing is not to one scale: length and width
+# give about 165 px/m, the height about 142 px/m; the catalog values are kept
+# and both scales used (conflict noted in docs/VEHICLE_REFS.md). The road
+# wheels come out at about 0.70 m and closer together than on the Pz.Kpfw.
+# 38(t) (de_pz38t_e: 0.76 m); built as drawn at 165 px/m.
+# Geschützwagen 38(t) Ausf. M: engine moved to the middle, four large road
+# wheels in two leaf-sprung pairs, one return roller, front sprocket, rear
+# idler; low nose and front deck, glacis rising to the engine deck; the open
+# fighting compartment at the rear (overhanging the hull end), its front wall
+# carrying the PaK 40/3 with the double-baffle muzzle brake over the engine
+# deck; muffler across the rear.
+unit = "de_marder3_m"
+assembly = "casemate"
+
+[layout]
+hull_length = 4.43
+fender_overhang = 0.02
+
+[running_gear]
+part = "small_wheel_bogie"              # large single wheels in two leaf-sprung pairs
+per_bogie = 2
+spring = "leaf"
+track_width = 0.29
+link_pitch = 0.10
+road_wheel_diameter = 0.70
+road_wheels = [1.24, 0.45, -0.48, -1.24]
+sprocket = { y = 1.88, z = 0.72, diameter = 0.58, teeth = 19 }
+idler = { y = -1.83, z = 0.58, diameter = 0.52 }
+return_rollers = { y = [0.0], z = 0.92, diameter = 0.20 }
+
+[hull]
+part = "plate_hull"
+upper_half_width = 0.85
+lower = [[-1.95, 0.40], [1.80, 0.40], [2.18, 0.95], [2.18, 1.07], [-2.25, 1.07], [-2.25, 0.62]]
+# low nose and front deck, glacis rising to the engine deck, low deck under
+# the rear compartment (which overhangs the hull end)
+upper = [[-2.25, 1.06], [2.18, 1.06], [2.18, 1.20], [1.42, 1.32], [0.70, 1.62], [-0.76, 1.62], [-0.80, 1.10],
+         [-2.25, 1.10]]
+fender_front = 2.20
+fender_slope_front = 0.12
+
+[casemate]
+part = "casemate"
+open = true
+wall = 0.02
+height = "fit"
+z = 1.10                                # on the low rear deck, not on the engine deck
+# pointed front (top view) around the gun, walls overhanging the hull end
+plan = [[-1.0, -1.00], [-0.35, -0.58], [0.35, -0.58], [1.0, -1.00], [1.0, -2.42], [-1.0, -2.42]]
+side_slope_deg = 12
+front_slope_deg = 10
+rear_slope_deg = 14
+
+[gun]
+part = "tank_gun"
+trunnion = [-0.80, 2.24]                # model space: gun in the compartment front wall
+mantlet = { kind = "box", size = [0.55, 0.25, 0.42] }
+sleeve = [0.85, 0.08]                   # cradle with the recuperator
+segments = [["fit", 0.050, 0.044]]
+muzzle_brake = "double_baffle"
+
+[[mg]]  # MG 34 for local defense, on the rear wall of the compartment
+part = "pintle_mg"
+position = [0.60, -2.10, 2.25]
+length = 1.22
+post = 0.10
+
+[[part]]
+part = "de.driver_visor"                # driver's visor in the glacis, left
+position = [-0.45, 1.08, 1.48]
+
+[[part]]
+part = "hull_hatch"                     # driver's hatch
+center = [-0.45, 0.45]
+z = 1.62
+size = [0.50, 0.45]
+hinge = "rear"
+socket = true
+
+[[part]]
+part = "deck_box"                       # engine deck grilles
+center = [0.25, -0.15, 1.62]
+size = [1.00, 0.70, 0.04]
+
+[[part]]
+part = "exhaust"                        # muffler across the rear
+kind = "muffler"
+position = [0.0, -2.46, 0.92]
+length = 0.90
+diameter = 0.28
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -2.26, 0.65]
+pair = true
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 2.15, 0.90]
+pair = true
+socket = false
+
+[[part]]
+part = "headlight"
+position = [-0.70, 2.00, 1.26]
+diameter = 0.15
+
+[[part]]
+part = "de.notek"
+position = [0.70, 2.05, 1.24]
+
+[[part]]
+part = "antenna"
+position = [-0.85, -2.20, 2.20]
+length = 1.6
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [-0.45, -1.40, 1.10]
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [0.45, -1.40, 1.10]
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [0.0, -2.00, 1.10]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 0.0, 1.70]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -1.6, 1.30]
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-0.95, -1.60, 1.80]
+normal = [-0.98, 0, 0.21]
+size = 0.40
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [0.95, -1.60, 1.80]
+normal = [0.98, 0, 0.21]
+size = 0.40
+
+[[part]]
+part = "marking"
+name = "Hull_Rear"
+kind = "number"
+position = [0.40, -2.30, 2.05]
+normal = [0, -0.97, 0.24]
+size = 0.28
+
+[validate]
+exclude_height = ["Antenna_*", "MG_*"]  # catalog height is the compartment wall top

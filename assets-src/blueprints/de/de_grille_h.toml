@@ -1,0 +1,157 @@
+# Grille Ausf. H (Sd.Kfz. 138/1, 15 cm sIG 33/1 auf Sf. 38(t) Ausf. H), 1943
+# (prompt 063, tier 3). Main dimensions from data/catalog/de.toml (onwar.com):
+# length 4.61 m (muzzle to the rear tow hooks), width 2.16 m, height 2.40 m
+# (front top of the compartment).
+# Shapes measured in the onwar.com drawing ge007grilleh.jpg (front to the left;
+# never committed). Like the Marder III Ausf. M drawing it is not to one scale
+# (about 165 px/m along the hull, 154 px/m in height); the catalog values are
+# kept. Running gear as measured for de_marder3_m (the same four 0.70 m road
+# wheels in two leaf-sprung pairs, front sprocket, rear idler) with two
+# return rollers; engine at the rear under a raised cover. The tall open
+# compartment covers the hull from the front deck to the engine; its top
+# falls from 2.40 m at the front to about 2.04 m at the rear in the drawing,
+# which the casemate part cannot show (built with a flat top at the catalog
+# height). The short 15 cm sIG 33/1 sits in the front wall with the
+# recuperator below the barrel; MG 34 on a post inside.
+unit = "de_grille_h"
+assembly = "casemate"
+
+[layout]
+hull_length = 4.36
+fender_overhang = 0.02
+
+[running_gear]
+part = "small_wheel_bogie"              # large single wheels in two leaf-sprung pairs
+per_bogie = 2
+spring = "leaf"
+track_width = 0.29
+link_pitch = 0.10
+road_wheel_diameter = 0.70
+road_wheels = [1.24, 0.45, -0.48, -1.24]
+sprocket = { y = 1.88, z = 0.72, diameter = 0.58, teeth = 19 }
+idler = { y = -1.83, z = 0.58, diameter = 0.52 }
+return_rollers = { y = [0.80, -0.02], z = 0.91, diameter = 0.20 }
+
+[hull]
+part = "plate_hull"
+upper_half_width = "full"
+lower = [[-1.95, 0.40], [1.80, 0.40], [2.20, 0.90], [2.22, 1.08], [-2.14, 1.08], [-2.14, 0.62]]
+upper = [[-2.14, 1.07], [2.22, 1.07], [2.18, 1.24], [-1.50, 1.24], [-1.80, 1.12], [-2.14, 1.10]]
+fender_front = 2.24
+fender_slope_front = 0.12
+
+[casemate]
+part = "casemate"
+open = true
+wall = 0.02
+height = "fit"
+plan = [[-1.04, 1.25], [1.04, 1.25], [1.04, -1.45], [-1.04, -1.45]]
+side_slope_deg = 3
+front_slope_deg = 7
+rear_slope_deg = 6
+
+[gun]
+part = "tank_gun"
+trunnion = [0.85, 2.00]                 # model space: in the compartment front wall
+mantlet = { kind = "box", size = [0.50, 0.16, 0.50] }
+sleeve = [0.55, 0.10]                   # cradle with the recuperator below the barrel
+segments = [["fit", 0.130, 0.115]]      # short 15 cm sIG 33/1 barrel
+muzzle_brake = "none"
+
+[[mg]]  # MG 34 on a post in the compartment
+part = "pintle_mg"
+position = [0.70, -1.00, 2.20]
+length = 1.22
+post = 0.10
+
+[[part]]
+part = "box_prop"                       # raised engine cover at the rear
+center = [0.0, -1.80, 1.30]
+size = [1.60, 0.60, 0.20]
+
+[[part]]
+part = "exhaust"                        # muffler across the rear plate
+kind = "muffler"
+position = [0.0, -2.20, 1.00]
+length = 0.80
+diameter = 0.22
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -2.12, 0.65]
+pair = true
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 2.18, 0.90]
+pair = true
+socket = false
+
+[[part]]
+part = "headlight"
+position = [-0.70, 2.00, 1.30]
+diameter = 0.15
+
+[[part]]
+part = "de.notek"
+position = [0.70, 2.05, 1.28]
+
+[[part]]
+part = "antenna"
+position = [-0.90, -1.30, 2.30]
+length = 1.5
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [-0.45, -0.30, 1.24]
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [0.45, -0.30, 1.24]
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [-0.45, -1.00, 1.24]
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [0.45, -1.00, 1.24]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -1.80, 1.42]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 0.0, 1.40]
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-1.03, -0.60, 1.90]
+normal = [-1, 0, 0.05]
+size = 0.45
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [1.03, -0.60, 1.90]
+normal = [1, 0, 0.05]
+size = 0.45
+
+[[part]]
+part = "marking"
+name = "Hull_Rear"
+kind = "number"
+position = [0.40, -1.45, 2.00]
+normal = [0, -1, 0.1]
+size = 0.30
+
+[validate]
+exclude_height = ["Antenna_*", "MG_*"]  # catalog height is the compartment wall top

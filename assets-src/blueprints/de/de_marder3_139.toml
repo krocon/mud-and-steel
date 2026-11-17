@@ -1,0 +1,189 @@
+# Panzerjäger 38(t) für 7.62 cm PaK 36(r) (Sd.Kfz. 139, "Marder III"), 1942
+# (prompt 063, tier 3). Main dimensions from data/catalog/de.toml (onwar.com):
+# length 5.85 m with the gun, width 2.16 m, height 2.50 m (top of the gun
+# shield). The catalog has no length_hull_mm: hull and running gear are those
+# of the Pz.Kpfw. 38(t) Ausf. E/F (de_pz38t_e, same values).
+# Shapes measured in the onwar.com drawing ge016marder3.jpg (about 152 px/m;
+# never committed): the turret is replaced by a raised open fighting
+# compartment on the hull roof (walls up to about 1.84 m, rounded front,
+# sloping rear), the captured Soviet 7.62 cm gun on a pedestal on top of it
+# behind a tall three-sided shield (front at +0.35 m, top at the catalog
+# height), its large recuperator above the barrel and the double-baffle
+# muzzle brake; the hull MG 37(t) stays in the ball mount.
+unit = "de_marder3_139"
+assembly = "casemate"
+
+[layout]
+hull_length = 4.33
+fender_overhang = 0.02
+
+[running_gear]
+part = "small_wheel_bogie"              # large single wheels in two leaf-sprung pairs
+per_bogie = 2
+spring = "leaf"
+track_width = 0.29
+link_pitch = 0.10
+road_wheel_diameter = 0.76
+road_wheels = [1.35, 0.48, -0.46, -1.34]
+sprocket = { y = 1.99, z = 0.68, diameter = 0.62, teeth = 19 }
+idler = { y = -1.97, z = 0.45, diameter = 0.60 }
+return_rollers = { y = [0.91, 0.0], z = 0.85, diameter = 0.20 }
+
+[hull]
+part = "plate_hull"
+upper_half_width = 0.82
+lower = [[-1.95, 0.40], [1.70, 0.40], [2.15, 0.92], [2.25, 1.03], [-2.08, 1.03], [-2.08, 0.62]]
+# low front deck, vertical superstructure front plate, flat roof, engine deck
+# sloping down behind the turret
+upper = [[-2.08, 1.02], [2.25, 1.02], [2.20, 1.19], [1.42, 1.20], [1.40, 1.46], [-1.30, 1.46], [-1.91, 1.25],
+         [-2.08, 1.20]]
+fender_front = 2.26
+fender_slope_front = 0.15
+
+[casemate]
+part = "casemate"                       # raised open compartment on the hull roof
+open = true
+wall = 0.02
+height = 0.38
+plan = [[-0.82, 1.34], [0.82, 1.34], [0.82, -1.45], [-0.82, -1.45]]
+side_slope_deg = 10
+front_slope_deg = 40
+rear_slope_deg = 30
+
+[gun]
+part = "tank_gun"
+trunnion = [0.20, 2.05]                 # model space
+mantlet = { kind = "box", size = [0.32, 0.22, 0.32] }
+sleeve = [0.90, 0.08]                   # cradle with the recuperator above the barrel
+segments = [["fit", 0.045, 0.040]]
+muzzle_brake = "double_baffle"
+
+[[mg]]  # hull MG 37(t) in the ball mount, left of the driver
+part = "mg"
+mount = "ball"
+position = [-0.35, 1.42, 1.32]
+length = 1.1
+
+# gun shield: front and two side plates, open top and rear
+[[part]]
+part = "plate"
+corners = [[0.70, 0.35, 1.84], [-0.70, 0.35, 1.84], [-0.56, 0.30, 2.49], [0.56, 0.30, 2.49]]
+thickness = 0.012
+
+[[part]]
+part = "plate"
+corners = [[0.70, -0.63, 1.84], [0.70, 0.35, 1.84], [0.56, 0.30, 2.49], [0.56, -0.63, 2.49]]
+thickness = 0.012
+mirror = true
+
+[[part]]
+part = "cylinder_prop"                  # gun pedestal
+from = [0.0, 0.0, 1.50]
+to = [0.0, 0.0, 1.95]
+radius = 0.18
+
+[[part]]
+part = "de.driver_visor"
+position = [0.35, 1.42, 1.34]
+
+[[part]]
+part = "box_prop"                       # vision ports in the superstructure sides
+center = [-0.83, 1.00, 1.33]
+size = [0.03, 0.25, 0.08]
+
+[[part]]
+part = "box_prop"
+center = [0.83, 1.00, 1.33]
+size = [0.03, 0.25, 0.08]
+
+[[part]]
+part = "deck_box"
+center = [0.35, -1.62, 1.31]
+size = [0.45, 0.40, 0.04]
+
+[[part]]
+part = "exhaust"                        # muffler across the rear plate
+kind = "muffler"
+position = [-0.10, -2.15, 1.00]
+length = 0.80
+diameter = 0.20
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -2.12, 0.65]
+pair = true
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 2.22, 0.85]
+pair = true
+socket = false
+
+[[part]]
+part = "headlight"
+position = [-0.70, 2.00, 1.25]
+diameter = 0.15
+
+[[part]]
+part = "de.notek"
+position = [0.70, 2.05, 1.22]
+
+[[part]]
+part = "tool"
+kind = "shovel"
+position = [-0.92, -0.6, 1.10]
+
+[[part]]
+part = "antenna"
+position = [0.75, -1.30, 1.84]
+length = 1.6
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [-0.40, -0.30, 1.50]
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [0.40, -0.30, 1.50]
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [0.0, -1.00, 1.50]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -1.6, 1.40]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 0.5, 1.50]
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-0.84, -0.6, 1.62]
+normal = [-0.98, 0, 0.17]
+size = 0.30
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [0.84, -0.6, 1.62]
+normal = [0.98, 0, 0.17]
+size = 0.30
+
+[[part]]
+part = "marking"
+name = "Hull_Rear"
+kind = "number"
+position = [0.45, -2.08, 1.15]
+normal = [0, -1, 0]
+size = 0.25
+
+[validate]
+exclude_height = ["Antenna_*"]          # catalog height is the shield top

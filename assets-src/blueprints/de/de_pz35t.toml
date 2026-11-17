@@ -1,0 +1,204 @@
+# Panzerkampfwagen 35(t) (LT vz. 35), 1935-38 (prompt 063, tier 3).
+# Main dimensions from data/catalog/de.toml (onwar.com): length 4.90 m (front
+# idler to rear sprocket; the 3.7 cm barrel stays inside), width 2.10 m,
+# height 2.35 m (top of the cupola). The catalog has no length_hull_mm:
+# hull_length is the riveted hull from nose to rear plate in the drawing.
+# Shapes measured in the onwar.com drawing ge049pz35.jpg (front to the left;
+# about 154 px/m along the hull, 146 px/m in height; never committed): eight
+# small road wheels of about 0.30 m in two bogies of four on large leaf
+# springs, four return rollers, large raised idler at the FRONT and the
+# sprocket at the REAR (rear drive, unlike the 38(t)), 0.32 m track
+# (data.json), ground clearance 0.35 m (data.json); the small raised
+# auxiliary wheel behind the idler is left out. Riveted hull with a low
+# front deck, superstructure roof at 1.45 m, long engine deck sloping down to
+# the rear; turret with a rounded front, the 3.7 cm KwK 34(t) and the turret
+# MG 37(t) in separate mounts side by side, cupola left of center; the hull
+# MG 37(t) in a ball mount left in the front plate.
+unit = "de_pz35t"
+assembly = "tank"
+
+[layout]
+hull_length = 4.52
+turret_y = 0.20
+turret_ring_diameter = 1.20
+fender_overhang = 0.02
+
+[running_gear]
+part = "small_wheel_bogie"
+bogies = [[0, 1, 2, 3], [4, 5, 6, 7]]
+spring = "leaf"
+track_width = 0.32
+link_pitch = 0.09
+road_wheel_diameter = 0.30
+road_wheels = [1.56, 1.14, 0.68, 0.26, -0.32, -0.71, -1.14, -1.56]
+sprocket = { y = -2.08, z = 0.60, diameter = 0.58, teeth = 17 }   # rear drive
+idler = { y = 2.21, z = 0.84, diameter = 0.55 }                   # large raised front idler
+return_rollers = { y = [1.27, 0.36, -0.68, -1.46], z = 0.94, diameter = 0.18 }
+
+[hull]
+part = "plate_hull"
+upper_half_width = 0.80
+lower = [[-2.05, 0.35], [1.90, 0.35], [2.30, 0.95], [2.32, 1.10], [-2.20, 1.10], [-2.20, 0.70]]
+# low front deck, superstructure front plate, flat roof, engine deck sloping
+# down to the rear
+upper = [[-2.20, 1.09], [2.32, 1.09], [2.28, 1.22], [1.72, 1.25], [1.69, 1.45], [-0.36, 1.47], [-1.79, 1.12],
+         [-2.20, 1.08]]
+fender_front = 2.34
+fender_slope_front = 0.18
+
+[turret]
+part = "plate_turret"
+height = "fit"
+plan = [[-0.45, 0.72], [0.45, 0.72], [0.70, 0.40], [0.70, -0.62], [-0.70, -0.62], [-0.70, 0.40]]
+side_slope_deg = 5
+front_slope_deg = 12
+
+[cupola]
+x = -0.19
+y = 0.12
+diameter = 0.60
+height = 0.28
+vision_blocks = 4
+hatch = "single"
+
+[gun]
+part = "tank_gun"
+trunnion = [0.72, 0.22]
+x = 0.10
+mantlet = { kind = "round", size = [0.40, 0.22, 0.38] }
+sleeve = [0.20, 0.06]
+segments = [[0.75, 0.030, 0.026]]       # 3.7 cm KwK 34(t): muzzle inside the overall length
+muzzle_brake = "none"
+
+[[mg]]  # turret MG 37(t) in its own mount left of the gun
+part = "mg"
+mount = "coax"
+position = [-0.30, 0.0, -0.02]
+length = 1.1
+
+[[mg]]  # hull MG 37(t) in the ball mount, left in the front plate
+part = "mg"
+mount = "ball"
+position = [-0.35, 1.71, 1.36]
+length = 1.1
+
+[[part]]
+part = "turret_hatch"
+x = 0.25
+y = -0.35
+size = [0.45, 0.40]
+socket = true
+
+[[part]]
+part = "de.driver_visor"
+position = [0.35, 1.70, 1.36]
+
+[[part]]
+part = "box_prop"                       # vision ports in the superstructure sides
+center = [-0.81, 1.10, 1.32]
+size = [0.03, 0.25, 0.08]
+
+[[part]]
+part = "box_prop"
+center = [0.81, 1.10, 1.32]
+size = [0.03, 0.25, 0.08]
+
+[[part]]
+part = "deck_box"                       # engine deck hatch
+center = [0.0, -0.80, 1.38]
+size = [1.10, 0.60, 0.03]
+
+[[part]]
+part = "deck_box"
+center = [0.35, -1.50, 1.20]
+size = [0.45, 0.40, 0.04]
+
+[[part]]
+part = "exhaust"                        # muffler across the rear plate
+kind = "muffler"
+position = [-0.10, -2.26, 1.00]
+length = 0.80
+diameter = 0.20
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -2.22, 0.70]
+pair = true
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 2.30, 0.90]
+pair = true
+socket = false
+
+[[part]]
+part = "headlight"
+position = [-0.65, 2.15, 1.30]
+diameter = 0.15
+
+[[part]]
+part = "de.notek"
+position = [0.65, 2.15, 1.28]
+
+[[part]]
+part = "tool"
+kind = "shovel"
+position = [-0.92, -0.6, 1.10]
+
+[[part]]
+part = "antenna"                        # long rod antenna at the left front
+position = [-0.85, 1.80, 1.20]
+length = 2.0
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -1.2, 1.35]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 0.20, 2.05]
+parent = "Turret"
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-0.80, 0.0, 1.30]
+normal = [-1, 0, 0]
+size = 0.35
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [0.80, 0.0, 1.30]
+normal = [1, 0, 0]
+size = 0.35
+
+[[part]]
+part = "marking"
+name = "Hull_Rear"
+position = [0.45, -2.20, 1.05]
+normal = [0, -1, 0]
+size = 0.25
+
+[[part]]
+part = "marking"
+name = "Turret_L"
+kind = "number"
+parent = "Turret"
+position = [-0.68, -0.10, 1.80]
+normal = [-1, 0, 0.1]
+size = 0.30
+
+[[part]]
+part = "marking"
+name = "Turret_R"
+kind = "number"
+parent = "Turret"
+position = [0.68, -0.10, 1.80]
+normal = [1, 0, 0.1]
+size = 0.30
+
+[validate]
+exclude_height = ["Antenna_*"]          # catalog height is the cupola top

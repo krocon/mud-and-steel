@@ -1,0 +1,174 @@
+# Flakpanzer 38(t) (Sd.Kfz. 140, 2 cm Flak 38 auf Sf. 38(t) Ausf. M), 1943-44
+# (prompt 063, tier 3). Main dimensions from data/catalog/de.toml (onwar.com):
+# length 4.61 m (front of the tracks to the rear of the compartment), width
+# 2.15 m, height 2.25 m (top of the compartment walls; the gun stands above
+# them). Same Geschützwagen 38(t) Ausf. M as de_marder3_m: running gear and
+# hull use its values.
+# Shapes measured in the onwar.com drawing ge006flkpz38t.jpg (front to the
+# right; never committed): the open fighting compartment at the rear,
+# octagonal in the top view and as wide as the vehicle, its upper plates
+# sloping inward, front wall about 0.4 m behind the center, rear wall
+# overhanging the hull end; the 2 cm Flak 38 on its pedestal in the middle of
+# the compartment. The drawing gives the compartment about 43 % of the overall
+# length; the catalog length (4.61 m, the same as the Pz.Kpfw. 38(t) tank)
+# leaves it 2.0 m long (conflict noted in docs/VEHICLE_REFS.md).
+unit = "de_flakpz38t"
+assembly = "casemate"
+
+[layout]
+hull_length = 4.43
+fender_overhang = 0.02
+
+[running_gear]
+part = "small_wheel_bogie"              # large single wheels in two leaf-sprung pairs
+per_bogie = 2
+spring = "leaf"
+track_width = 0.29
+link_pitch = 0.10
+road_wheel_diameter = 0.70
+road_wheels = [1.24, 0.45, -0.48, -1.24]
+sprocket = { y = 1.88, z = 0.72, diameter = 0.58, teeth = 19 }
+idler = { y = -1.83, z = 0.58, diameter = 0.52 }
+return_rollers = { y = [0.0], z = 0.92, diameter = 0.20 }
+
+[hull]
+part = "plate_hull"
+upper_half_width = 0.85
+lower = [[-1.95, 0.40], [1.80, 0.40], [2.18, 0.95], [2.18, 1.07], [-2.25, 1.07], [-2.25, 0.62]]
+# low nose and front deck, glacis rising to the engine deck, low deck under
+# the rear compartment (which overhangs the hull end)
+upper = [[-2.25, 1.06], [2.18, 1.06], [2.18, 1.20], [1.42, 1.32], [0.70, 1.62], [-0.76, 1.62], [-0.80, 1.10],
+         [-2.25, 1.10]]
+fender_front = 2.20
+fender_slope_front = 0.12
+
+[casemate]
+part = "casemate"
+open = true
+wall = 0.02
+height = "fit"
+z = 1.10                                # on the low rear deck
+# octagonal compartment, full vehicle width
+plan = [[-0.75, -0.40], [0.75, -0.40], [1.05, -0.70], [1.05, -2.10], [0.75, -2.40], [-0.75, -2.40], [-1.05, -2.10],
+        [-1.05, -0.70]]
+side_slope_deg = 16
+front_slope_deg = 20
+rear_slope_deg = 20
+
+[gun]
+part = "tank_gun"
+trunnion = [-1.35, 2.30]                # model space: Flak 38 on its pedestal
+mantlet = { kind = "box", size = [0.40, 0.55, 0.30] }   # cradle with the magazine and sights
+sleeve = [0.30, 0.045]
+segments = [[0.95, 0.024, 0.020]]       # 2 cm Flak 38 barrel, fixed length (the fitted barrel would reach the hull front)
+muzzle_brake = "slotted"                # flash hider
+
+[[part]]
+part = "cylinder_prop"                  # gun pedestal
+from = [0.0, -1.40, 1.10]
+to = [0.0, -1.40, 2.15]
+radius = 0.16
+
+[[part]]
+part = "box_prop"                       # traversing platform with the seat
+center = [0.0, -1.55, 2.05]
+size = [0.70, 0.70, 0.12]
+
+[[part]]
+part = "de.driver_visor"                # driver's visor in the glacis, left
+position = [-0.45, 1.08, 1.48]
+
+[[part]]
+part = "hull_hatch"                     # driver's hatch
+center = [-0.45, 0.45]
+z = 1.62
+size = [0.50, 0.45]
+hinge = "rear"
+socket = true
+
+[[part]]
+part = "deck_box"                       # engine deck grilles
+center = [0.25, 0.10, 1.62]
+size = [1.00, 0.60, 0.04]
+
+[[part]]
+part = "exhaust"                        # muffler across the rear, under the compartment
+kind = "muffler"
+position = [0.0, -2.20, 0.92]
+length = 0.90
+diameter = 0.24
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -2.20, 0.62]
+pair = true
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 2.15, 0.90]
+pair = true
+socket = false
+
+[[part]]
+part = "headlight"
+position = [-0.70, 2.00, 1.26]
+diameter = 0.15
+
+[[part]]
+part = "de.notek"
+position = [0.70, 2.05, 1.24]
+
+[[part]]
+part = "antenna"
+position = [0.85, -0.55, 2.10]
+length = 1.6
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [-0.55, -1.00, 1.10]
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [0.55, -1.00, 1.10]
+
+[[part]]
+part = "socket"
+name = "Socket_Crew_"
+position = [0.0, -2.00, 1.10]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 0.0, 1.70]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -1.0, 1.30]
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-0.98, -1.40, 1.85]
+normal = [-0.96, 0, 0.28]
+size = 0.40
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [0.98, -1.40, 1.85]
+normal = [0.96, 0, 0.28]
+size = 0.40
+
+[[part]]
+part = "marking"
+name = "Hull_Rear"
+kind = "number"
+position = [0.0, -2.30, 1.75]
+normal = [0, -0.94, 0.34]
+size = 0.28
+
+[validate]
+exclude_height = ["Antenna_*", "Gun"]   # catalog height is the compartment wall top; the Flak stands above it

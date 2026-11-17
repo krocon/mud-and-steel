@@ -1,0 +1,197 @@
+# Panzerkampfwagen 38(t) Ausf. A (Sd.Kfz. 140), 1939 (prompt 063, tier 3).
+# Main dimensions from data/catalog/de.toml (onwar.com): length 4.60 m, width
+# 2.12 m, height 2.37 m.
+# No drawing in the reference folder: built from the drawing of the Ausf. E
+# (de_pz38t_e, ge052pz38te.jpg; same chassis, hull and turret). The Ausf. A
+# differs from the Ausf. E mainly in armor thickness (25 mm front instead of
+# 50 mm), which the model cannot show; in the model budget it differs only in
+# the main dimensions. The session proposes
+# to merge it into one entry with the Ausf. E (docs/VEHICLE_REFS.md); until
+# that is decided it keeps its own model.
+unit = "de_pz38t_a"
+assembly = "tank"
+
+[layout]
+hull_length = 4.33
+turret_y = 0.07
+turret_ring_diameter = 1.26
+fender_overhang = 0.02
+
+[running_gear]
+part = "small_wheel_bogie"              # large single wheels in two leaf-sprung pairs
+per_bogie = 2
+spring = "leaf"
+track_width = 0.29
+link_pitch = 0.10
+road_wheel_diameter = 0.76
+road_wheels = [1.35, 0.48, -0.46, -1.34]
+sprocket = { y = 1.99, z = 0.68, diameter = 0.62, teeth = 19 }
+idler = { y = -1.97, z = 0.45, diameter = 0.60 }
+return_rollers = { y = [0.91, 0.0], z = 0.85, diameter = 0.20 }
+
+[hull]
+part = "plate_hull"
+upper_half_width = 0.82
+lower = [[-1.95, 0.40], [1.70, 0.40], [2.15, 0.92], [2.25, 1.03], [-2.08, 1.03], [-2.08, 0.62]]
+# low front deck, vertical superstructure front plate, flat roof, engine deck
+# sloping down behind the turret
+upper = [[-2.08, 1.02], [2.25, 1.02], [2.20, 1.19], [1.42, 1.20], [1.40, 1.46], [-1.30, 1.46], [-1.91, 1.25],
+         [-2.08, 1.20]]
+fender_front = 2.26
+fender_slope_front = 0.15
+
+[turret]
+part = "plate_turret"
+height = "fit"
+plan = [[-0.50, 0.85], [0.50, 0.85], [0.66, 0.55], [0.66, -0.80], [-0.66, -0.80], [-0.66, 0.55]]
+side_slope_deg = 6
+front_slope_deg = 14
+
+[cupola]
+x = -0.25
+y = 0.0
+diameter = 0.55
+height = 0.30
+vision_blocks = 4
+hatch = "single"
+
+[gun]
+part = "tank_gun"
+trunnion = [0.88, 0.25]
+mantlet = { kind = "round", size = [0.42, 0.20, 0.36] }
+sleeve = [0.25, 0.065]
+segments = [[0.72, 0.030, 0.026]]       # 3.7 cm KwK 38(t): muzzle behind the track front
+muzzle_brake = "none"
+
+[[mg]]  # coaxial MG 37(t), right of the gun
+part = "mg"
+mount = "coax"
+position = [0.20, 0.0, 0.0]
+length = 1.1
+
+[[mg]]  # hull MG 37(t) in the ball mount, left of the driver
+part = "mg"
+mount = "ball"
+position = [-0.35, 1.42, 1.32]
+length = 1.1
+
+[[part]]
+part = "turret_hatch"
+x = 0.25
+y = -0.35
+size = [0.45, 0.40]
+socket = true
+
+[[part]]
+part = "de.driver_visor"
+position = [0.35, 1.42, 1.34]
+
+[[part]]
+part = "box_prop"                       # vision ports in the superstructure sides
+center = [-0.83, 1.00, 1.33]
+size = [0.03, 0.25, 0.08]
+
+[[part]]
+part = "box_prop"
+center = [0.83, 1.00, 1.33]
+size = [0.03, 0.25, 0.08]
+
+[[part]]
+part = "deck_box"                       # engine deck hatch and grille
+center = [0.0, -1.10, 1.46]
+size = [1.20, 0.35, 0.03]
+
+[[part]]
+part = "deck_box"
+center = [0.35, -1.62, 1.31]
+size = [0.45, 0.40, 0.04]
+
+[[part]]
+part = "exhaust"                        # muffler across the rear plate
+kind = "muffler"
+position = [-0.10, -2.15, 1.00]
+length = 0.80
+diameter = 0.20
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -2.12, 0.65]
+pair = true
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 2.22, 0.85]
+pair = true
+socket = false
+
+[[part]]
+part = "headlight"
+position = [-0.70, 2.00, 1.25]
+diameter = 0.15
+
+[[part]]
+part = "de.notek"
+position = [0.70, 2.05, 1.22]
+
+[[part]]
+part = "tool"
+kind = "shovel"
+position = [-0.92, -0.6, 1.10]
+
+[[part]]
+part = "antenna"                        # long rod antenna at the right front
+position = [0.85, 1.20, 1.15]
+length = 2.0
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -1.3, 1.40]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 0.07, 2.05]
+parent = "Turret"
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-0.82, -0.3, 1.30]
+normal = [-1, 0, 0]
+size = 0.35
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [0.82, -0.3, 1.30]
+normal = [1, 0, 0]
+size = 0.35
+
+[[part]]
+part = "marking"
+name = "Hull_Rear"
+position = [0.45, -2.08, 1.15]
+normal = [0, -1, 0]
+size = 0.25
+
+[[part]]
+part = "marking"
+name = "Turret_L"
+kind = "number"
+parent = "Turret"
+position = [-0.66, -0.20, 1.80]
+normal = [-1, 0, 0.1]
+size = 0.30
+
+[[part]]
+part = "marking"
+name = "Turret_R"
+kind = "number"
+parent = "Turret"
+position = [0.66, -0.20, 1.80]
+normal = [1, 0, 0.1]
+size = 0.30
+
+[validate]
+exclude_height = ["Antenna_*"]          # catalog height is the cupola top
