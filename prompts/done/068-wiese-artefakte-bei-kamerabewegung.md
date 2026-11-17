@@ -117,6 +117,14 @@ Rasen gesehen.
 | Kantenglättung als Standard ändern (MSAA, TAA, FXAA)? | Nur vorschlagen, mit Messung der Bildrate; die Entscheidung liegt bei dir. |
 | Büschel verwürfeln, auch wenn das die Optik leicht ändert? | Ja, wenn die Messung es stützt und die Standbilder gleichwertig bleiben. |
 
+### Entscheidungen (autonom, Nachtlauf 17.11.2026)
+
+| Frage | Entscheidung (vorläufig) |
+|---|---|
+| Zoomstufe und Biom | Wald-Biom auf `test_large` (offene Wiese bei (-30…-20, 70…85)), Kameraabstand 15, 35 und 55 m mit der Neigung des Spiels; die Hauptursache (Gleiten der zweiten Texturabtastung, 40–250 m) ist in Prompt 071 behoben. Keine Rückfrage nach Bildschirmfoto. |
+| Kantenglättung als Standard ändern? | Nein, nur gemessen und vorgeschlagen (siehe Abschlussbericht/ARCHITECTURE.md). |
+| Büschel verwürfeln? | Nicht nötig: das Raster ist schon um eine ganze Zelle verwürfelt und an Weltkoordinaten gebunden (`objects.rs::scatter`). |
+
 ## Arbeitsweise
 
 Wie in den vorigen Prompts: Deutsch mit mir, Englisch im Repo, kein Push ohne Freigabe,
