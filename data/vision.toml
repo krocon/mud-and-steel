@@ -67,6 +67,10 @@ solid = [
     "env_house_desert_shop",
     "env_mosque",
     "env_police_post",
+    # Prompt 078: apartment blocks, solid up to their catalog height.
+    "env_block_desert",
+    "env_block_desert_long",
+    "env_block_town",
     "env_wall_mud",
     "env_hedge",
     "env_wall_stone",

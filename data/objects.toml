@@ -295,6 +295,23 @@ id = "env_police_post"
 variants = ["Intact", "Damaged", "Ruin"]
 blocks = "all"
 
+# Prompt 078: apartment blocks (box from the catalog; a Ruin blocks vehicles
+# only, through data/destruction.toml). [provisional]
+[[object]]
+id = "env_block_desert"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_block_desert_long"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
+[[object]]
+id = "env_block_town"
+variants = ["Intact", "Damaged", "Ruin"]
+blocks = "all"
+
 # --- Boundaries ------------------------------------------------------------------
 
 [[object]]

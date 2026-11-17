@@ -213,6 +213,21 @@ fn a_rock_outcrop_hides_what_stands_behind_it() {
 }
 
 #[test]
+fn an_apartment_block_hides_what_stands_behind_it() {
+    // Prompt 078: the long block (40 m × 13 m, 17.1 m high) 100 m in front
+    // of the observer, its length across the line of sight. It hides a
+    // tank right behind it and one 100 m further back.
+    let map = map_with(flat, "env_block_desert_long,Intact,0,100000,90");
+    assert!(!p0_sees(Arc::clone(&map), 0, 60));
+    assert!(!p0_sees(Arc::clone(&map), 0, 0));
+    assert!(!p0_sees(Arc::clone(&map), 10, 0));
+    assert!(p0_sees(Arc::clone(&map), 70, 60));
+    // The ruin does not block sight (rubble with gaps, data/destruction.toml).
+    let ruin = map_with(flat, "env_block_desert_long,Ruin,0,100000,90");
+    assert!(p0_sees(ruin, 0, 60));
+}
+
+#[test]
 fn rock_slabs_hide_nothing() {
     // Flat slabs (0.3 m) are only a picture: no sight obstacle.
     let map = map_with(

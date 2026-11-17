@@ -155,7 +155,9 @@ smoke_radius_mm = 12000
 
 # Masonry: roof and floors burn out, the walls stay (damaged stage).
 [[class]]
-ids = ["env_house_farm_brick", "env_house_stone", "env_town_hall"]
+ids = ["env_house_farm_brick", "env_house_stone", "env_town_hall",
+       # Prompt 078: apartment blocks; floors and roof burn out, the walls stay.
+       "env_block_desert", "env_block_desert_long", "env_block_town"]
 hit_pct = 8
 catch_pct = 10
 reach_mm = 6000

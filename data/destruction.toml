@@ -332,3 +332,41 @@ ids = ["env_wall_mud"]
 hp = 800
 damaged_pct = 0
 remains = "gone"
+
+# --- Prompt 078: apartment blocks ------------------------------------------------
+# Hit points from the town house (3 500 for about 1 700 m3 of built volume)
+# scaled by volume (block 3 000 m3 -> 6 000; long block and tenement about
+# 6 300 m3 -> 12 700) and capped at 9 000, about 2.5 town houses or sixteen
+# 7.5 cm hits, so that a block is no indestructible bunker. The ruins keep
+# one to two storeys of jagged walls (4.3-5.8 m): ruin_height_pct of the
+# catalog height. [provisional]
+
+[[class]]
+ids = ["env_block_desert"]
+hp = 6000
+damaged_pct = 50
+remains = "ruin"
+ruin_blocks = "large"
+ruin_height_pct = 33
+damaged_variant = "Damaged"
+ruin_variant = "Ruin"
+
+[[class]]
+ids = ["env_block_desert_long"]
+hp = 9000
+damaged_pct = 50
+remains = "ruin"
+ruin_blocks = "large"
+ruin_height_pct = 27
+damaged_variant = "Damaged"
+ruin_variant = "Ruin"
+
+[[class]]
+ids = ["env_block_town"]
+hp = 9000
+damaged_pct = 50
+remains = "ruin"
+ruin_blocks = "large"
+ruin_height_pct = 30
+damaged_variant = "Damaged"
+ruin_variant = "Ruin"

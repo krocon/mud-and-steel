@@ -310,3 +310,28 @@ id = "fort_bunker_mg"
 capacity = 4
 exposure_pct = 5
 heavy_exposure_pct = 15
+
+# Prompt 078: apartment blocks. One soldier per 10-15 m2 of floor would put
+# 80 (block) to 150 (long block, tenement) men into a block; the capacity is
+# capped at about three town houses (36): more cannot fight from the
+# windows of one block at a time, and a block held by a battalion would be
+# a fortress. Pavlov's House in Stalingrad (four storeys) was held by about
+# 25-30 men. Concrete frames and thick masonry stop more rounds than the
+# town house. [provisional]
+[[building.kind]]
+id = "env_block_desert"
+capacity = 24
+exposure_pct = 8
+heavy_exposure_pct = 25
+
+[[building.kind]]
+id = "env_block_desert_long"
+capacity = 36
+exposure_pct = 8
+heavy_exposure_pct = 25
+
+[[building.kind]]
+id = "env_block_town"
+capacity = 36
+exposure_pct = 8
+heavy_exposure_pct = 25

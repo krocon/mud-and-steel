@@ -555,3 +555,78 @@ fn a_building_collapsing_on_its_occupants_kills_some_and_leaves_the_rest_in_the_
     println!("soldiers alive before the collapse {before}, after {after}");
     assert!(after < before, "nobody died in the collapses");
 }
+
+/// Prompt 078: the long apartment block holds 36 soldiers, four rifle
+/// squads of nine; a fifth squad stays outside.
+#[test]
+fn squads_occupy_an_apartment_block_up_to_its_capacity() {
+    let block = vec!["env_block_desert_long,Intact,0,0,0".to_string()];
+    let spawns: Vec<_> = (0..5)
+        .map(|k| (P0, SQUAD, -40, -40 + k * 20, HOLD))
+        .collect();
+    let mut sim = sim_with(map_with(&block), 1, &spawns);
+    assert_eq!(sim.building_capacity(0), Some(36));
+    sim.step(&[garrison(P0, &[0, 1, 2, 3])]);
+    run(&mut sim, 900);
+    assert_eq!(sim.building_occupants(0), (Some(P0), 36));
+    sim.step(&[garrison(P0, &[4])]);
+    run(&mut sim, 600);
+    let garrisons: Vec<Option<u32>> = sim.snapshot().units.iter().map(|u| u.garrison).collect();
+    assert_eq!(garrisons, vec![Some(0), Some(0), Some(0), Some(0), None]);
+    assert_eq!(sim.building_occupants(0), (Some(P0), 36));
+}
+
+/// Prompt 078: a shelled apartment block goes through `Damaged` into
+/// `Ruin`; the collapse costs its occupants (36, its capacity) men, the
+/// survivors leave the building for its rubble.
+#[test]
+fn a_shelled_apartment_block_collapses_on_its_occupants() {
+    let (mut before, mut after) = (0, 0);
+    for seed in 1..=3 {
+        let mut sim = sim_with(
+            map_with(&["env_block_desert_long,Intact,0,0,0".to_string()]),
+            seed,
+            &[
+                (P0, SQUAD, -30, -40, HOLD),
+                (P0, SQUAD, -30, -20, HOLD),
+                (P0, SQUAD, -30, 0, HOLD),
+                (P0, SQUAD, -30, 20, HOLD),
+                (P1, "de_pz4_h", 0, -150, HOLD),
+            ],
+        );
+        sim.step(&[garrison(P0, &[0, 1, 2, 3])]);
+        run(&mut sim, 1200);
+        assert_eq!(sim.building_occupants(0), (Some(P0), 36), "seed {seed}");
+        sim.step(&[order(
+            P1,
+            Command::AttackGround {
+                units: vec![UnitId(4)],
+                target: Vec2::ZERO,
+            },
+        )]);
+        let mut seen_damaged = false;
+        let mut ticks = 0;
+        while sim.building_condition(0) != sim::BuildingCondition::Ruin && ticks < 12000 {
+            sim.step(&[]);
+            seen_damaged |= sim.building_condition(0) == sim::BuildingCondition::Damaged;
+            ticks += 1;
+        }
+        println!(
+            "seed {seed}: ruin after {ticks} ticks, occupants {:?}, alive {}",
+            sim.building_occupants(0),
+            sim.snapshot().soldiers.iter().filter(|s| s.hp > 0).count()
+        );
+        assert!(seen_damaged, "seed {seed}: never damaged");
+        assert_eq!(sim.building_condition(0), sim::BuildingCondition::Ruin);
+        let alive = |sim: &Sim| sim.snapshot().soldiers.iter().filter(|s| s.hp > 0).count();
+        before += alive(&sim);
+        sim.step(&[]);
+        after += alive(&sim);
+        let snapshot = sim.snapshot();
+        for unit in &snapshot.units[..4] {
+            assert!(unit.hp == 0 || unit.garrison.is_none());
+        }
+    }
+    println!("soldiers alive before the collapse {before}, after {after}");
+    assert!(after < before, "nobody died in the collapses");
+}

@@ -21,7 +21,12 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by prompt 074 (rocks): the hashed vision rules list the new
+/// Last changed by prompt 078 (apartment blocks): the hashed object,
+/// vision, destruction, infantry and fire rules gained the three
+/// `env_block_*` entries. Checked: with the old five data files the old
+/// value comes out, so the demo plays exactly as before (`test_small` has
+/// no blocks).
+/// Before (`0xa09f_7812_095c_68e3`), prompt 074 (rocks): the hashed vision rules list the new
 /// solid objects `env_rock_outcrop` and `env_rock_massif`. Checked: with
 /// the old `data/vision.toml` the old value comes out, so the demo plays
 /// exactly as before (`test_small` has no new rocks).
@@ -240,7 +245,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xa09f_7812_095c_68e3;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xa074_f11f_4471_6147;
 
 #[test]
 fn golden_hash() {

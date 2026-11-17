@@ -426,7 +426,11 @@ fn scripted_production_chain_is_deterministic() {
 
 /// Golden hash of the scripted skirmish (prompt 023): construction,
 /// production, rally points, supply points and the fight of the starting
-/// units. Recorded on macOS ARM64. Last changed by prompt 074 (rocks: the
+/// units. Recorded on macOS ARM64. Last changed by prompt 078 (apartment
+/// blocks: the hashed object, vision, destruction, infantry and fire rules
+/// gained the `env_block_*` entries; with the old data files the old value
+/// comes out, the skirmish plays as before). Before (`0xfd0e_b7ad_02e8_3f84`),
+/// prompt 074 (rocks: the
 /// hashed vision rules list `env_rock_outcrop` and `env_rock_massif` as
 /// solid; with the old `data/vision.toml` the old value comes out, the
 /// skirmish plays as before). Before (`0x5b04_4ce3_de45_ae63`), prompt 073 (tall grass:
@@ -486,7 +490,7 @@ fn economy_golden_hash() {
     let sim = run_economy(42, 5000);
     assert_eq!(
         sim.state_hash(),
-        0xfd0e_b7ad_02e8_3f84,
+        0x7cd2_7c4e_1028_5c40,
         "economy golden hash mismatch: got {:#018x}",
         sim.state_hash()
     );
