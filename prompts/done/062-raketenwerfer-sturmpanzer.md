@@ -150,3 +150,9 @@ der Rest ist von der ausführenden Session konkretisiert.
   Mischungseinträge auf demselben Stand 13/3/4) – im Rauschen, Balance offen.
 - Golden-Hash geändert (neue Regeln: Kategorie, Salven- und Streuwerte, Salvenzustand,
   Produktionslisten); die Demo-Schlacht ist unverändert.
+
+Nachtrag (Prompt 076): Abschuss und Flug der Raketen gibt es jetzt in
+`godot/scenes/world/rocket_effects.gd`; ein Werfer braucht nur `Socket_Rocket_NN` am Modell
+(`effects.gd` ruft dann je indirektem Schuss `effects.rockets.note(projektil, punkt, einheit,
+kaliber)` und zeichnet die Granate als Rakete mit Flamme und Rauchspur), für Effekte ohne
+Granate genügt `effects.rockets.launch(punkt, richtung, kaliber, einheit)`.

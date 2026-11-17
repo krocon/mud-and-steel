@@ -1258,9 +1258,9 @@ knockdown: no new damage rule). A `Barrage` counts whole salvos, each rocket
 at its own random point in the circle. The stock of prompt 036 already
 counts a salvo as `count` rounds; a salvo pays one salvo of the stock with
 its first rocket. The presentation shows each launch at the model's
-`Socket_Rocket_NN` (flash, back blast, a short smoke trail in
-`artillery_view.gd`, sound `shot_rocket`); prompt 076 replaces these simple
-effects.
+`Socket_Rocket_NN`, one rail after the other, with the rocket salvo
+effects of prompt 076 (flare, back blast, flame, standing smoke trail; see
+"Rocket salvo (prompt 076)" under Effects) and the sound `shot_rocket`.
 
 The Sturmpanzer IV (prompt 062) needs no new rule: its 15 cm StuH 43
 (240 m/s, below `heat_below_velocity_mps`) counts as a shaped charge
@@ -1573,8 +1573,16 @@ Design and numbers: GAME_DESIGN.md "Heavy strike".
   `take_strike_events` (`crates/bridge/src/strike_funcs.rs`).
 - **Presentation:** `world/strike_view.gd` (marker smoke, area ring, siren,
   countdown, enemy battery marker, call bar, launch frames for the
-  borrowed ammunition dump model of the position) and
-  `world/blast_effects.gd` (see "Effects", big blasts).
+  borrowed ammunition dump model of the position: three racks side by
+  side with a `Socket_Rocket_NN` per rail, turned towards the target while
+  a strike is under way), `world/rocket_effects.gd` (launch, flame and
+  smoke trail of every rocket, prompt 076) and `world/blast_effects.gd`
+  (see "Effects", big blasts).
+- **Debug:** `Sim::debug_rocket` / `SimHost.debug_rocket(shooter, x, z,
+  caliber_mm)` launch one rocket like a strike rocket from any unit now
+  (tools only: salvo pictures and the effects bench; refused in network
+  matches; never called by commands or the AI, so hashes of real matches
+  are unchanged).
 
 ## Transport and towing
 
@@ -3238,6 +3246,7 @@ effect is read back. No Rust code was needed: everything comes from
 |---|---|
 | `shot`, caliber ≥ 20 mm | Muzzle flash at the model's nearest `Socket_Muzzle*` (fallback: the simulation's muzzle), white powder smoke along the aim, a light flash; from 37 mm dust blown off the ground in front of the muzzle |
 | `shot`, small arms | A small flash only |
+| `shot` of indirect fire from a unit whose model has `Socket_Rocket_NN` (vehicle launchers, the strike's battery position) | The rocket salvo of prompt 076 (`rocket_effects.gd`, below): the next rail's socket in turn, a flare, back blast and ground dust, the position's light and haze; the shell is drawn as a rocket with flame and smoke trail |
 | `hit` on the ground | From 37 mm (prompt 072): a core flash, a fan of dark earth streaks, clods, a cloud of earth lumps that rises and greys (tinted by terrain and biome), sparks, a light flash and a scorch decal; below 37 mm clods and a dust column; water: spray; small arms: a dust puff |
 | `hit` on a unit | Sparks and a light flash; a penetration adds a small burst of fire and smoke |
 | `hit` on an object | Splinters and dust |
@@ -3454,6 +3463,121 @@ debris; the lumps' inner motion (a flipbook) instead of only rotation and
 turbulence; the demo video (`prompts/periodic/070-youtube-demo-video.md`)
 still shows the old explosions and needs new recordings. [provisional]
 all values.
+
+### Rocket salvo (prompt 076)
+
+Three stills from a promotional video of another game (a salvo of three
+truck launchers at dusk in snow; outside the repository) served as a
+reference for effect and sequence only, as in prompt 072. Code:
+`world/rocket_effects.gd`, owned by `effects.gd` (`effects.rockets`).
+
+**Which shells are rockets.** No simulation change: a `shot` event of
+indirect fire (`weapon` 255) from a unit whose model has
+`Socket_Rocket_NN` sockets is a rocket. `effects.gd` takes the unit's next
+socket (round robin over the sockets in tree order) and calls
+`rockets.note(projectile, socket, unit, caliber)`. `artillery_view.gd`
+hands every noted shell to `rockets.flight(id, at, velocity)` instead of
+drawing a ball; the first call starts the launch effects in the shell's
+direction. That covers the vehicle launchers of prompt 062 (sockets from the
+Blender kit) and the heavy strike's battery position, whose launch frames
+(`strike_view.launchers()`) now carry 18 sockets numbered rail by rail
+across the three racks, so the rockets leave one rail after the other over
+all racks; `strike_view.aim_launchers` turns the racks towards the target
+while a strike is under way. Another launcher needs only the sockets;
+`rockets.launch(at, direction, caliber, station)` gives the launch effects
+without a shell. The drawn rocket starts at its socket and blends onto the
+simulated path within 0.35 s (a fading offset; the simulated path, its end
+and the impact are untouched).
+
+**Layers.**
+
+| Layer | How | Values (source) |
+|---|---|---|
+| Body | `MultiMesh` of thin cylinders along the velocity | 1.41 m × 132 mm, real size (M-13; the reference shows the flame, not the rocket) |
+| Flame | additive axial billboard (turns around the flight axis to the camera), a drop with a white-yellow core and an orange rim, HDR into the glow; flickers; shrinks in the last tenth of the burn | 5 m × 1.5 m (judged from the reference), scaled by caliber / 132 mm |
+| Halo | additive round billboard at the flame's root | 3.5 m (judged) |
+| Burn time | flame and new trail only while the motor burns; the rest of the flight (and the approach with the `shell_incoming` whistle) without flame | 1.0 s game time. The M-13 burns 0.85 s (docs/SOURCES.md), 0.43 s at time factor 2; with that only two flames per salvo were in the air and the trails stayed short, unlike the reference (judged deviation) |
+| Smoke trail | one ribbon per rocket: points left in the world every ≥ 5 m while the motor burns (the head follows the rocket), drawn as a camera-facing strip; the shader widens (0.6 m + 1.0 m/s of age), fades (from 35 % of its life) and drifts (wind × 0.7, rise 0.25 m/s) every point by its own age, so the trail stands, is wider and paler behind and never tears into puffs; noise frays the edges; it stays after the impact | colour (0.93, 0.92, 0.9), opacity 0.6; life 4.5 / 7 / 9 s (low / medium / high) |
+| Trail light | lit by sun and ambient light with a rounded fake normal tilted to the sky (dark at night where nothing burns); warm emission within ~12 m behind a burning flame, fading 0.3 s after burnout; the position's light lights the trails near the launcher | judged |
+| Flare | an additive ball (white-yellow core, orange rim, HDR) at the rail's rear end per launch, 10 m, collapsing with a time constant of 85 ms (a few percent left before the next launch 250 ms later: readability); plus the `core` and `flash` bursts | reference: "as big as the vehicle, strongly overexposed" |
+| Back blast | `rocket_blast` burst (new): light smoke thrown back and down out of the rail, hanging 3 s | judged |
+| Ground | `blast_dust` 4 m behind the launcher in the ground colour (snow, sand, earth) | tint as for every effect |
+| Light | one omni light per firing position (not per rocket), flaring with every launch and collapsing with the flare; 6 energy, 14 m range, × the daytime factors of `blast_effects.gd` (night × 3 and × 1.45 range) | reference: ground lit 10–15 m around |
+| Haze | `salvo_smoke` (new, continuous): light haze over the position from the first launch, stops 3 s after the last one and drifts off with the wind (11 s particles); off on "low" | reference: the position stands in haze |
+| Shake | a little camera shake per launch | judged |
+
+**Factions.** The same effects for all; only the caliber scales flame,
+halo and flare (Wurfgranate 41 150 mm, M-13 132 mm, M8 114 mm,
+`data/strike.toml`). No per-faction burn times or trail densities: no
+sources were looked up for them.
+
+**Budget per quality** (`graphics_quality.gd`):
+
+| Level | Trails at once (oldest reused) | Trail life | Trail width | Haze | Position lights |
+|---|---|---|---|---|---|
+| low | 24 | 4.5 s | × 0.7 | off | 1 |
+| medium | 48 | 7 s | × 1 | on | 2 |
+| high | 64 | 9 s | × 1 | on | 2 |
+
+The worst case, two salvos at once (48 rockets, 48 trails, two positions),
+fits medium and high; low keeps the newest 24 trails. Bodies, flames and
+halos are three `MultiMesh` draw calls for every rocket; each trail is a
+small `ArrayMesh` rebuilt only while its motor burns (≤ 96 points), then
+only its instance uniforms change. New pools: `rocket_blast` 26 emitters
+at high. Bursts use the usual LOD; flames and trails are not culled (thin
+and cheap). Fog of war: launch flare, light, blast, dust and haze start
+only at visible points (`effects.visible_at`); bodies, flames and trails
+are shells and unfiltered, like the balls before.
+
+**Measurements** (`just effects-bench --salvos`, 17.11.2026, 1920 × 1080,
+Apple M1 Max, V-Sync off, debug bridge, forest, test_small; the user's
+Godot editor and Blender were open). Two own units get the battery
+position's model and fire 24 rockets each at the same time, 250 ms apart,
+on open ground (the impacts with their big blasts are part of the load);
+"balls" is the same salvo with the rocket effects off (`rockets.enabled`,
+the look before prompt 076), measured back to back:
+
+| Level | Idle, 150 m | 2 salvos 150 m: balls → rockets | 2 salvos 60 m: balls → rockets | Trails at once |
+|---|---|---|---|---|
+| low | 120 FPS (cap) | 119 → 113 FPS | 119 → 119 FPS | 24 |
+| medium | 117 FPS | 105 → 100 FPS | 89 → 82 FPS | 48 |
+| high | 64 FPS | 57 → 55 FPS | 52 → 51 FPS | 48 |
+
+(an uncapped run of low: 162 → 146 FPS at 150 m, 138 → 130 at 60 m). The
+rocket effects cost 0.3–0.5 ms at high and 0.5–1 ms at medium. "High"
+stays below 60 FPS with two salvos, with and without the new effects: the
+idle frame is already 64 FPS on this machine (see the explosion
+measurements above) and the impacts' big blasts cost more than the
+rockets. [open] The 50-explosion views of `just effects-bench` are
+unchanged by this prompt (high 55 FPS at 150 m, 63 FPS at 60 m, 55 FPS with
+24 wrecks; low and medium above 98 FPS). In two full runs the window
+stopped being drawable after about five minutes (locked screen at night):
+the bench now marks such views as invalid; `--salvos` is short enough.
+
+**Tools.** `just salvo-shots [dir] [--only=<run>,…]` (`blast_shots.gd
+--salvo-series`, 30 fps fixed): an own unit of the demo map gets the
+battery position's model and fires 24 rockets 250 ms apart through
+`SimHost.debug_rocket`; the run `winter_evening` is the reference view
+(obliquely from above and behind, firing up and to the right, winter,
+dusk), a picture every 0.2 s for 14 s; then the side view over the flight,
+the approach at the target, day and night, forest and desert, and the
+calibers of the other factions (`build/salvo/salvo_<run>_<ms>.png`).
+`just strike-shots` also records the launch at the position of a real
+strike and fails if fewer than 20 rockets got the launch effects.
+
+**Open:** a launch sound of its own (hiss or howl): the battery position
+plays `shot_howitzer` per rocket (its type has no catalog category), the
+vehicle launchers `shot_rocket`; the battery position as real launcher
+vehicles (prompt 062 brought them as units, the position still borrows the
+ammunition dump); smoke trails for other weapons (Panzerfaust, Bazooka,
+aircraft rockets) could use the same ribbon; the reference's density (about
+ten rockets in the air, three launchers flaring at once) is not reached:
+one position fires 4 rockets a second at 300 m/s, one rack flares at a
+time, and the haze over the position is thinner (comparison picture:
+`build/salvo/compare_reference.png`, not in the repository); the salvo was
+checked in picture series, not in a recording with sound;
+the demo video (`prompts/periodic/070-youtube-demo-video.md`) needs a new
+recording for a shot with a strike. [provisional] all values.
 
 ## Audio (presentation only)
 

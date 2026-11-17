@@ -212,3 +212,20 @@ Als offene Punkte notieren, nicht umsetzen:
   `battle_sound.gd` heute beim Start spielt, und notiere, was fehlt.
 - **Leuchtspuren und Rauchspuren anderer Waffen** (Panzerfaust, Bazooka,
   Flugzeugraketen), die dieselbe Technik nutzen könnten.
+
+## Ergebnis (Nachtlauf 17.11.2026)
+
+Entscheidungen (autonom, Nachtlauf 17.11.2026, vorläufig):
+
+| Frage | Entscheidung |
+|---|---|
+| Erkennung der Raketen | Weg 1 in der Darstellung: indirekter Schuss einer Einheit mit `Socket_Rocket_NN` am Modell ist eine Rakete; die Batteriestellung bekommt 18 Sockets an den Schienen. Keine Änderung am Zustand. |
+| Werkzeug | `Sim::debug_rocket` / `SimHost.debug_rocket` nur für Werkzeuge (Bildreihe, Bench); im Netzspiel gesperrt, goldener Hash unverändert. |
+| Brenndauer | 1,0 s Spielzeit statt 0,43 s (M-13 0,85 s real, missilery.info, Zeitfaktor 2), damit mehrere Flammen zugleich in der Luft sind. |
+| Fraktionen | Gleiche Effekte, nur das Kaliber skaliert Flamme, Hof und Feuerschein. |
+| Gestelle | Drei Gestelle nebeneinander statt hintereinander, zum Ziel gedreht, solange ein Feuerschlag läuft. |
+
+Nicht erreicht: „high“ bleibt mit zwei Salven unter 60 FPS (55/51 FPS, ohne die neuen Effekte
+57/52 FPS; Leerlauf auf dieser Maschine 64 FPS); Dichte der Vorlage (zehn Raketen, drei
+Feuerbälle zugleich); Bewegtbild mit Ton nicht angesehen, nur Bildreihen. Details:
+docs/ARCHITECTURE.md „Rocket salvo (prompt 076)“.

@@ -108,6 +108,23 @@ photos, no file names of them, no text except the short notes of the data tables
   models from the kit, all patterns from the shader.
 - **Rules** (blocking, sight heights, box margins) are game rules.
 
+## Rocket salvo effects (prompt 076)
+
+- **M-13 (132 mm, BM-13 "Katyusha")**: reactive powder charge burning time
+  0.85 s, length without fuse 1,415 mm, caliber 132 mm, highest speed
+  355 m/s, speed leaving the rail 70 m/s
+  (https://en.missilery.info/node/13291, a single secondary source, not
+  cross-checked). The game's flame burns 1.0 s of game time (0.43 s would
+  be the real burn at time factor 2): a judged deviation, see
+  docs/ARCHITECTURE.md "Rocket salvo (prompt 076)". The body is drawn at
+  1.41 m. The other factions' rockets differ only by their caliber
+  (data/strike.toml); no per-faction burn times were looked up.
+- **Look** (flare, flame, trail, haze): three stills from a promotional
+  video of another strategy game served as a reference for effect and
+  sequence only: no cut-outs, textures or values were taken from them;
+  sizes and times are judgement or from the source above, textures and
+  shapes are generated in shaders.
+
 ## Infantry camouflage (prompt 042)
 
 The camouflage prints of the soldiers are procedural imitations by period
