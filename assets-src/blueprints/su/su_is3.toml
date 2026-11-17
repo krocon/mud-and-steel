@@ -1,0 +1,213 @@
+# IS-3 (1945) heavy tank: IS running gear, pike nose, upper hull sides
+# sloping out over the tracks, low bowl-shaped cast turret with the 122 mm
+# D-25T. Main dimensions from data/catalog/su.toml: length 10.00 m with gun,
+# hull 6.70 m, width 3.20 m, height 2.45 m.
+# Proportions measured on the onwar.com drawing su006is3.jpg (prompt 063,
+# about 162 px/m): six 0.55 m road wheels per side shifted about 0.2 m
+# back against the IS-2, raised front idler, three return rollers, rear
+# sprocket, 0.65 m track; long shallow glacis from the nose (0.96 m) to the
+# deck (1.56 m) 1.65 m ahead of the hull center, rear plate from 2.43 m
+# behind the center; turret about 2.55 m long and 2.80 m wide (front view;
+# the top view suggests up to 3.0 m), ring 0.35 m ahead of the center;
+# stowage boxes on the sloped side plates, fuel tanks on the rear wings.
+# The pike nose is shown only in the side profile (plate_hull has no plan
+# shape). The drawing shows a DShK on the loader's hatch; the catalog lists
+# only the gun (source), so no machine gun is modeled.
+unit = "su_is3"
+assembly = "tank"
+
+[layout]
+turret_y = 0.35
+turret_ring_diameter = 1.80
+fender_overhang = 0.0
+
+[running_gear]
+part = "torsion_bar"
+twin = false
+track_width = 0.65
+track_thickness = 0.05
+link_pitch = 0.16
+road_wheel_diameter = 0.55
+road_wheels = [2.11, 1.25, 0.38, -0.51, -1.41, -2.19]
+sprocket = { y = -2.89, z = 0.68, diameter = 0.68, teeth = 14 }
+idler = { y = 2.88, z = 0.76, diameter = 0.60, spoked = false }
+return_rollers = { y = [1.59, -0.20, -1.90], z = 0.86, diameter = 0.28 }
+arm = 0.32
+spokes = 6
+
+[hull]
+part = "plate_hull"
+lower = [[-3.10, 0.45], [2.90, 0.45], [3.35, 0.96], [3.35, 1.10], [-3.35, 1.10], [-3.35, 0.70]]
+# long shallow glacis (pike nose), flat deck, sloped rear plate
+upper = [[-3.35, 1.10], [3.35, 1.10], [1.65, 1.56], [-2.43, 1.56]]
+upper_side_slope_deg = 35
+bevel = 0.02
+
+[turret]
+part = "cast_turret"
+height = "fit"
+length = 2.55
+width = 2.80
+exponent = 2.0
+front_scale = 0.88
+y_shift = 0.0
+profile = [[0.0, 1.0], [0.3, 0.97], [0.6, 0.86], [0.85, 0.68], [1.0, 0.48]]
+
+[gun]
+part = "tank_gun"
+trunnion = [1.65, 0.45]
+mantlet = { kind = "cast_box", size = [0.55, 0.50, 0.40] }
+sleeve = [0.40, 0.12]
+segments = [["fit", 0.085, 0.075]]
+muzzle_brake = "double_baffle"
+
+[[part]]
+part = "turret_hatch"         # commander's hatch, left
+x = -0.54
+y = -0.06
+diameter = 0.55
+socket = true
+
+[[part]]
+part = "turret_hatch"         # loader's hatch, right
+x = 0.42
+y = -0.84
+diameter = 0.55
+
+[[part]]
+part = "cylinder_prop"        # commander's periscope
+parent = "Turret"
+from = [-0.54, 0.30, 2.25]
+to = [-0.54, 0.30, 2.40]
+radius = 0.06
+
+[[part]]
+part = "box_prop"             # stowage boxes on the sloped side plates
+center = [-1.45, 0.91, 1.33]
+size = [0.25, 0.62, 0.20]
+
+[[part]]
+part = "box_prop"
+center = [-1.45, -0.19, 1.33]
+size = [0.25, 0.65, 0.20]
+
+[[part]]
+part = "box_prop"
+center = [1.45, 0.91, 1.33]
+size = [0.25, 0.62, 0.20]
+
+[[part]]
+part = "box_prop"
+center = [1.45, -0.19, 1.33]
+size = [0.25, 0.65, 0.20]
+
+[[part]]
+part = "box_prop"             # fuel tanks on the rear wings
+center = [-1.38, -0.89, 1.62]
+size = [0.36, 0.95, 0.32]
+
+[[part]]
+part = "box_prop"
+center = [-1.38, -1.90, 1.62]
+size = [0.36, 0.95, 0.32]
+
+[[part]]
+part = "box_prop"
+center = [1.38, -0.89, 1.62]
+size = [0.36, 0.95, 0.32]
+
+[[part]]
+part = "box_prop"
+center = [1.38, -1.90, 1.62]
+size = [0.36, 0.95, 0.32]
+
+[[part]]
+part = "deck_box"             # engine deck louvres
+center = [0.0, -1.67]
+size = [1.9, 1.55, 0.04]
+
+[[part]]
+part = "box_prop"             # driver's periscope housing at the glacis top
+center = [0.0, 1.85, 1.55]
+size = [0.30, 0.20, 0.08]
+
+[[part]]
+part = "exhaust"
+kind = "pipe"
+position = [-0.60, -3.05, 1.28]
+length = 0.10
+diameter = 0.16
+
+[[part]]
+part = "exhaust"
+kind = "pipe"
+position = [0.60, -3.05, 1.28]
+length = 0.10
+diameter = 0.16
+
+[[part]]
+part = "headlight"
+position = [-1.05, 2.40, 1.35]
+diameter = 0.20
+
+[[part]]
+part = "antenna"              # radio whip on the turret right
+position = [0.95, -0.40, 2.15]
+parent = "Turret"
+length = 2.2
+
+[[part]]
+part = "tool"
+kind = "shovel"
+position = [1.45, 1.9, 1.20]
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 3.10, 0.80]
+pair = true
+socket = false
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -3.24, 0.85]
+pair = true
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -1.7, 1.62]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 0.35, 2.40]
+parent = "Turret"
+
+[[part]]
+part = "marking"
+name = "Turret_L"
+parent = "Turret"
+position = [-1.30, 0.20, 1.85]
+normal = [-0.90, 0.0, 0.44]
+size = 0.45
+
+[[part]]
+part = "marking"
+name = "Turret_R"
+parent = "Turret"
+position = [1.30, 0.20, 1.85]
+normal = [0.90, 0.0, 0.44]
+size = 0.45
+
+[[part]]
+part = "marking"
+name = "Turret_Rear"
+kind = "number"
+parent = "Turret"
+position = [-0.35, -0.85, 1.90]
+normal = [0.0, -0.85, 0.53]
+size = 0.35
+
+[validate]
+# catalog height is the turret with its hatches; the antenna stands above
+exclude_height = ["Antenna_*"]
