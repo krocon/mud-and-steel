@@ -254,7 +254,7 @@ static func build(kind: String, factor: float, soft: bool, wind: Vector2) -> GPU
 			amount = 3
 			p.lifetime = 0.4
 			p.explosiveness = 1.0
-			size = 12.0
+			size = 10.0
 			_cone(pm, Vector3.UP, 20.0, 0.0, 0.5)
 			pm.scale_min = 0.8
 			pm.scale_max = 1.1
@@ -313,10 +313,10 @@ static func build(kind: String, factor: float, soft: bool, wind: Vector2) -> GPU
 			# ~10 m (1.4 vehicle lengths) and ~12 m high by 1.0 s, turns
 			# mottled orange at 1.5 s, dark red-brown with glowing spots at
 			# 1.8 s and black at 2.2 s, where the smoke takes over.
-			amount = 14
+			amount = 10
 			p.lifetime = 2.4
 			p.explosiveness = 0.92
-			size = 4.6
+			size = 5.0
 			_cone(pm, Vector3.UP, 75.0, 3.0, 9.0)
 			pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
 			pm.emission_sphere_radius = 1.0
@@ -354,20 +354,21 @@ static func build(kind: String, factor: float, soft: bool, wind: Vector2) -> GPU
 			material = _material("add", EffectTextures.spark(), 3.0, false)
 		"explosion_smoke":
 			# Vehicle explosion: the black column that grows out of the
-			# fireball from ~1 s, rises ~3 m/s at first and slows down,
-			# opaque to ~4 s, then thins and greys; gone by ~11 s, while the
-			# wreck's own smoke column goes on.
-			amount = 18
-			p.lifetime = 11.0
+			# fireball from ~1 s, rises ~3 m/s at first and slows down (a
+			# column of ~12-15 m; a faster rise brings it close to the camera
+			# and costs fill rate), opaque to ~4 s, then thins and greys;
+			# gone by ~9.5 s, while the wreck's own smoke column goes on.
+			amount = 13
+			p.lifetime = 9.5
 			p.explosiveness = 0.8
 			pm.lifetime_randomness = 0.3
-			size = 3.8
-			_cone(pm, Vector3.UP, 22.0, 2.5, 5.5)
+			size = 4.2
+			_cone(pm, Vector3.UP, 22.0, 2.0, 4.5)
 			pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
 			pm.emission_sphere_radius = 1.6
-			pm.damping_min = 0.5
-			pm.damping_max = 0.9
-			pm.gravity = Vector3(0, 0.5, 0) + drift * 0.6
+			pm.damping_min = 1.0
+			pm.damping_max = 1.5
+			pm.gravity = Vector3(0, 0.25, 0) + drift * 0.6
 			pm.scale_min = 0.7
 			pm.scale_max = 1.3
 			pm.scale_curve = _curve([Vector2(0, 0.6), Vector2(0.12, 1.2), Vector2(1, 3.0)])

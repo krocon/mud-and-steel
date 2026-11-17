@@ -83,6 +83,11 @@ const ROCKET_FORGET_S := 120.0
 const MIN_PIXELS := 3.0
 ## A burst of this many pixels gets all its particles; smaller ones fewer.
 const FULL_PIXELS := 60.0
+## Small details (glowing embers, sparks, the core flash) only start when
+## their explosion is at least this big on screen (prompt 072): from afar
+## they are a few pixels, but each is one more emitter to process.
+const DETAIL_PIXELS := 50.0
+const DETAIL_KINDS: Array[String] = ["embers", "sparks", "core"]
 ## Burning wrecks: fire and dense smoke, then smoke only, then nothing.
 const BURN_SECONDS := 60.0
 const SMOLDER_SECONDS := 90.0
@@ -465,7 +470,7 @@ func _start_pending() -> void:
 ## Fires the next emitter of a pool at `at`, scaled by `s`, tinted.
 func _burst(kind: String, at: Vector3, basis: Basis, s: float, tint := Color.WHITE) -> void:
 	var ratio := _lod(at, 3.0 * s)
-	if ratio <= 0.0:
+	if ratio <= 0.0 or (kind in DETAIL_KINDS and ratio * FULL_PIXELS < DETAIL_PIXELS):
 		return
 	var pool: Array = _pools[kind]
 	var next: int = _pool_next[kind]
