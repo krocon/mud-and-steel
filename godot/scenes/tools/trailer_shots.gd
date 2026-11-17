@@ -17,6 +17,8 @@ extends Node
 ##     --trailer-scout[=<s>]     no camera: run the scene for <s> game seconds
 ##                               (default: to the shot's end) at high speed and
 ##                               print who is destroyed when and where
+##     --trailer-off=<a,b,..>    analysis only (prompt 068): turn parts of the
+##                               picture off, see `OFF_PARTS`
 ##
 ## The camera does more than in the game (lower, closer, flat angles, chase
 ## rides); the camera rig stands still meanwhile and only receives focus and
@@ -58,6 +60,14 @@ const BUS_DB: Dictionary[String, float] = {
 ##     fov    field of view in degrees (default: the game's 30)
 ##     haze   distance the haze and the sound are set for (default: `dist`
 ##            for steep views, farther for flat ones)
+## Parts `--trailer-off=` can turn off (prompt 068, analysis of flicker, never
+## a game setting): meadow tufts, procedural meadow of the ground shader,
+## sun shadows, wind of the tufts, depth of field, SSAO, MSAA; "fxaa" and
+## "taa" turn that antialiasing on instead.
+const OFF_PARTS: Array[String] = ["tufts", "ground", "shadows", "wind", "dof", "ssao", "msaa", "fxaa", "taa"]
+const MeadowTufts := preload("res://scenes/world/meadow_tufts.gd")
+const Settings := preload("res://scenes/menu/settings.gd")
+
 const SHOTS: Dictionary[String, Dictionary] = {
 	# --- Scene "column" on farms: march and first contact ---------------------
 	"column_pass": {
@@ -230,6 +240,34 @@ const SHOTS: Dictionary[String, Dictionary] = {
 			{"t": 6.0, "at": Vector2(-1680, 1220), "dist": 80.0, "yaw": 40.0, "pitch": 46.0},
 		],
 	},
+	# Prompt 068: open meadow with tufts at the game's near zoom levels, panned
+	# at about 6 px/frame like a player's pan; camera as in the game (pitch of
+	# the rig, `haze` = distance, so depth of field and shadow range match).
+	# `just ground-motion --near` measures them, `--trailer-off=` turns parts off.
+	"meadow_near_15": {
+		"map": "test_large", "scene": "survey", "seed": 1, "start_s": 0.5, "seconds": 3.0, "game_camera": true,
+		"stills": [1.5],
+		"camera": [
+			{"t": 0.0, "at": Vector2(-30, 70), "dist": 15.0, "yaw": 23.0, "pitch": 45.0, "haze": 15.0},
+			{"t": 3.0, "at": Vector2(-22.5, 70), "dist": 15.0, "yaw": 23.0, "pitch": 45.0, "haze": 15.0},
+		],
+	},
+	"meadow_near_35": {
+		"map": "test_large", "scene": "survey", "seed": 1, "start_s": 0.5, "seconds": 3.0, "game_camera": true,
+		"stills": [1.5],
+		"camera": [
+			{"t": 0.0, "at": Vector2(-40, 75), "dist": 35.0, "yaw": 23.0, "pitch": 47.8, "haze": 35.0},
+			{"t": 3.0, "at": Vector2(-22, 75), "dist": 35.0, "yaw": 23.0, "pitch": 47.8, "haze": 35.0},
+		],
+	},
+	"meadow_near_55": {
+		"map": "test_large", "scene": "survey", "seed": 1, "start_s": 0.5, "seconds": 3.0, "game_camera": true,
+		"stills": [1.5],
+		"camera": [
+			{"t": 0.0, "at": Vector2(-50, 85), "dist": 55.0, "yaw": 23.0, "pitch": 50.6, "haze": 55.0},
+			{"t": 3.0, "at": Vector2(-20, 85), "dist": 55.0, "yaw": 23.0, "pitch": 50.6, "haze": 55.0},
+		],
+	},
 	"survey_twin_meadow": {
 		"map": "twin_meadow", "scene": "survey", "seed": 1, "start_s": 0.5, "seconds": 1.0, "stills": [0.5],
 		"camera": [{"t": 0.0, "at": Vector2(0, 0), "dist": 1902.0, "yaw": 0.0, "pitch": 89.0, "haze": 4000.0}],
@@ -247,6 +285,8 @@ var _frame := -1
 ## Master bus muted (the fast part of the run-up).
 var _silent := true
 var _stills_left: Array = []
+## Parts turned off with `--trailer-off=` (prompt 068).
+var _off: PackedStringArray = []
 ## Smoothed heading per camera key (chase rides must not jitter).
 var _headings: Dictionary[int, float] = {}
 ## Combat events by type since the last scout report.
@@ -289,6 +329,11 @@ func _ready() -> void:
 		elif arg.begins_with("--trailer-scout="):
 			_scout = true
 			_scout_seconds = float(arg.trim_prefix("--trailer-scout="))
+		elif arg.begins_with("--trailer-off="):
+			_off = arg.trim_prefix("--trailer-off=").split(",", false)
+			for part in _off:
+				if part not in OFF_PARTS:
+					push_error("unknown --trailer-off part '%s'; known: %s" % [part, ", ".join(OFF_PARTS)])
 	_stills_left = (_shot.get("stills", [float(_shot["seconds"]) * 0.5]) as Array).duplicate()
 	if not _stills_dir.is_empty():
 		DirAccess.make_dir_recursive_absolute(_stills_dir)
@@ -334,6 +379,7 @@ func _process(_delta: float) -> void:
 	var host: SimHost = main.sim_host
 	var tick := host.current_tick()
 	_set_volumes()
+	_apply_off()
 	if _scout:
 		_scout_step(tick)
 		return
@@ -368,6 +414,35 @@ func _process(_delta: float) -> void:
 
 func _frame_count() -> int:
 	return roundi(float(_shot["seconds"]) * FPS)
+
+
+## Turns the parts of `--trailer-off=` off, every frame: decoration is built
+## while the camera moves, and the game re-applies quality and settings.
+func _apply_off() -> void:
+	if _off.is_empty():
+		return
+	if "tufts" in _off:
+		for node: Node in main.map_objects._deco_root.get_children():
+			if node.name.begins_with("grass_"):
+				(node as Node3D).visible = false
+	if "ground" in _off:
+		main.terrain._material.set_shader_parameter("meadow_strength", 0.0)
+		main.terrain._material.set_shader_parameter("flower_density", 0.0)
+	if "shadows" in _off:
+		main.sun.shadow_enabled = false
+	if "wind" in _off:
+		MeadowTufts.MATERIAL.set_shader_parameter("wind_strength", 0.0)
+	if "dof" in _off and Settings.get_value("depth_of_field") != "off":
+		Settings.set_value("depth_of_field", "off")
+	if "ssao" in _off:
+		main.atmosphere._env.ssao_enabled = false
+	var vp := get_viewport()
+	if "msaa" in _off:
+		vp.msaa_3d = Viewport.MSAA_DISABLED
+	if "fxaa" in _off:
+		vp.screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA
+	if "taa" in _off:
+		vp.use_taa = true
 
 
 ## The same volumes whatever the player's settings say, set every frame:
@@ -453,7 +528,10 @@ func _place_camera(t: float) -> void:
 	camera.fov = fov
 	camera.near = clampf(distance * 0.02, 0.05, 2.0)
 	camera.far = maxf(distance * 4.0, 2500.0)
-	main.sun.directional_shadow_max_distance = clampf(haze * 2.5, 60.0, 500.0)
+	if _shot.get("game_camera", false):
+		main.sun.directional_shadow_max_distance = haze * main.camera_rig.shadow_distance_factor
+	else:
+		main.sun.directional_shadow_max_distance = clampf(haze * 2.5, 60.0, 500.0)
 
 
 ## The point a camera key looks at, right now.

@@ -2681,6 +2681,43 @@ prompt 040 brings tracks into the same shader), mowing stripes (pastures of
 the period were grazed, not mown), crater ejecta on grass, seasons (the biome
 is the only season so far).
 
+**Flicker while the camera moves (prompt 068).** The streaks users saw on the
+meadow while panning came from the ground texture sliding with the camera
+distance (fixed in prompt 071, see "Splatting shader"). The near range was
+measured afterwards: `just ground-motion --near --png` records the trailer
+shots `meadow_near_15/35/55` (open meadow with tufts on `test_large`, pans of
+about 7 px/frame at the game's pitch, `haze` = distance so depth of field and
+shadow range are as in the game) and measures a window of pure meadow with
+`tools/ground_flicker.py`. `--off=<parts>` (`--trailer-off=` of
+`trailer_shots.gd`, analysis only) turns parts off: `tufts`, `ground`
+(procedural meadow), `shadows`, `wind`, `dof`, `ssao`, `msaa`; `fxaa` and
+`taa` turn those on. Match of consecutive frames after undoing the ground
+motion (lossless, frames 60–119; slide 0.15–0.17 px/frame everywhere, i.e. the
+texture sticks to the ground):
+
+| Variant | 15 m 4–8 / 2–4 px | 35 m 4–8 / 2–4 px | 55 m 4–8 / 2–4 px |
+|---|---|---|---|
+| as in the game (high: MSAA 4×) | 0.973 / 0.815 | 0.955 / 0.716 | 0.961 / 0.775 |
+| no wind | 0.973 / 0.816 | 0.955 / 0.715 | 0.961 / 0.775 |
+| no tufts | 0.976 / 0.826 | 0.964 / 0.742 | 0.963 / 0.780 |
+| no procedural meadow | 0.979 / 0.834 | 0.936 / 0.678 | 0.936 / 0.728 |
+| no shadows | 0.974 / 0.816 | 0.956 / 0.718 | 0.962 / 0.779 |
+| no depth of field | 0.973 / 0.815 | 0.955 / 0.716 | 0.961 / 0.775 |
+| no MSAA | 0.964 / 0.784 | 0.922 / 0.633 | 0.959 / 0.770 |
+| plus FXAA | 0.960 / 0.741 | 0.942 / 0.663 | 0.945 / 0.723 |
+| plus TAA | 0.990 / 0.947 | 0.989 / 0.933 | 0.988 / 0.931 |
+| blade strokes faded out at 1.8 instead of 2.5 cm pixels (not kept) | 0.974 / 0.817 | 0.956 / 0.722 | 0.961 / 0.775 |
+
+No single part causes what is left: nothing slides, wind, shadows and depth
+of field change nothing, the tufts cost a little at 35 m, and the procedural
+meadow is calmer than the bare grass texture under it. The rest is detail at
+the pixel limit (grass texture, speckles, blade strokes, flowers) sampled at a
+new sub-pixel position every frame; only temporal antialiasing removes it.
+TAA as a default is a larger decision (softer stills, ghosting behind moving
+units, its own cost) and was not made; the tuft lattice is already jittered by
+a whole cell and anchored to the world (`objects.rs::scatter`), and the
+ground's texture arrays are mipmapped with anisotropic filtering.
+
 `SHOT_SET=meadow just terrain-shots <dir>` records the meadow at 15, 35, 110
 and 350 m near the village and two open views, without fog of war and HUD.
 `MEADOW_AB=1 just terrain-bench` measures every view once per variant with
