@@ -1969,7 +1969,7 @@ designation = "Sd.Kfz. 101"
 year_from = 1934
 year_to = 1936
 tier = 3
-model = ""
+model = "assets/models/de/de_pz1_a.glb"
 length_mm = 4020
 width_mm = 2060
 height_mm = 1720
@@ -2005,7 +2005,7 @@ designation = "Sd.Kfz. 101"
 year_from = 1935
 year_to = 1937
 tier = 3
-model = ""
+model = "assets/models/de/de_pz1_b.glb"
 length_mm = 4420
 width_mm = 2060
 height_mm = 1720
@@ -2042,7 +2042,7 @@ designation = "VK 601"
 year_from = 1942
 year_to = 1942
 tier = 3
-model = ""
+model = "assets/models/de/de_pz1_c.glb"
 length_mm = 4190
 width_mm = 1920
 height_mm = 1940
@@ -2079,7 +2079,7 @@ designation = "VK 1801"
 year_from = 1942
 year_to = 1942
 tier = 3
-model = ""
+model = "assets/models/de/de_pz1_f.glb"
 length_mm = 4380
 width_mm = 2640
 height_mm = 2050
@@ -2932,7 +2932,7 @@ designation = "Sd.Kfz. 265"
 year_from = 1935
 year_to = 1937
 tier = 3
-model = ""
+model = "assets/models/de/de_pzbef1_b.glb"
 length_mm = 4420
 width_mm = 2060
 height_mm = 1990
@@ -2968,8 +2968,8 @@ designation = "4.7 cm PaK(t) (Sf) auf Panzerkampfwagen I Ausf. B"
 year_from = 1940
 year_to = 1941
 tier = 3
-model = ""
-length_mm = 6400
+model = "assets/models/de/de_pzjg1.glb"
+length_mm = 4420
 width_mm = 2060
 height_mm = 2250
 mass_kg = 6400
@@ -2993,8 +2993,8 @@ source = [
     { ref = "https://www.onwar.com/wwii/tanks/germany/ge055pzjager1.html", covers = "onwar.com (Ralph Zuljan), Tanks of World War II: dimensions, mass, crew, speeds, road range, engine power, armor, armament and ammunition stowage, production period (Mar. 1940-Feb. 1941); fetched 2026-11-16 into data/vehicles" },
     { ref = "https://en.wikipedia.org/wiki/4.7_cm_KP%C3%9AV_vz._38", covers = "4.7 cm PaK(t) L/43.4: APHE 775 m/s (article not re-read for prompt 063)" },
 ]
-uncertain = ["weapon"]
-note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Open fighting compartment behind a gun shield on the Panzer I Ausf. B. range_typical_m (prompt 067): class values of SCHEMA.md (4.7 cm PaK(t) L/43.4 500 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
+uncertain = ["length_mm", "weapon"]
+note = "Prompt 063 (tier 3: taken over from the vehicle references, not buildable). Values from onwar.com (rank 4, data/vehicles); the second source for the game-relevant values is still open (prompt 063 decision: until the vehicle becomes buildable). Years = production period of the source. Open fighting compartment behind a gun shield on the Panzer I Ausf. B. Length: onwar.com gives 6.4 m, the same figure as the combat weight (6.4 t) and far beyond the Pz.Kpfw. I Ausf. B chassis; the onwar.com drawing (ge055pzjager1.jpg) shows the muzzle level with the front of the tracks, so the length is that of the chassis, 4.42 m (de_pz1_b; prompt 063 model session ger-light). range_typical_m (prompt 067): class values of SCHEMA.md (4.7 cm PaK(t) L/43.4 500 m). Weapon values from the gun articles or from catalog entries with the same gun; rates of fire and ranges of the new guns are class estimates, hence weapon in uncertain."
 
 [[unit]]
 id = "de_sfh13_lorraine"

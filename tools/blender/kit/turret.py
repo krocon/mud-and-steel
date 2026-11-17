@@ -58,10 +58,14 @@ def plate_turret(model, p, ctx):
     Parameters: `plan` [[x, y], ...], `height` (m or "fit"), `side_slope_deg`,
     `front_slope_deg` (extra inward slope of points with y > 0), `bevel`,
     `cast` (rounded edges), `open_top` (open-topped turret, M10 / M8 /
-    BA-64: walls of `wall` thickness, default 0.025 m, no roof).
+    BA-64: walls of `wall` thickness, default 0.025 m, no roof), `x`
+    (prompt 063: ring center offset sideways, + = right, default 0; the
+    `Turret` pivot moves with it; gun, hatches and MGs take model-space x:
+    Pz.Kpfw. I).
     Returns `turret_top_z`, `turret_plan`.
     """
-    plan = [tuple(v) for v in p.req("plan")]
+    xo = p.get("x", 0.0)
+    plan = [(x + xo, y) for x, y in p.req("plan")]
     h = ctx["turret_height"]
     z0 = ctx["turret_z"]
     ty = ctx["turret_y"]
@@ -70,7 +74,7 @@ def plate_turret(model, p, ctx):
     top = offset_polygon(plan, h * slope)
     top = [(x, y - (h * front if y > 0 else 0.0)) for x, y in top]
     p.get("height")
-    mb = model.mb("Turret", parent="Hull", pivot=(0.0, ty, z0))
+    mb = model.mb("Turret", parent="Hull", pivot=(xo, ty, z0))
     if p.get("cast", False):
         mb.bevel_segments = 3
     rings = [[(x, ty + y, z0) for x, y in plan], [(x, ty + y, z0 + h) for x, y in top]]
@@ -85,7 +89,7 @@ def plate_turret(model, p, ctx):
     mb.bevel_segments = 1
     # turret ring collar
     ring_r = ctx.get("turret_ring_r", 0.8)
-    mb.cylinder((0, ty, z0 - 0.06), (0, ty, z0 + 0.01), ring_r, seg=16, mat="Paint", cap0=True, cap1=False)
+    mb.cylinder((xo, ty, z0 - 0.06), (xo, ty, z0 + 0.01), ring_r, seg=16, mat="Paint", cap0=True, cap1=False)
     return {"turret_top_z": z0 + h, "turret_plan": plan, "turret_top_plan": top}
 
 

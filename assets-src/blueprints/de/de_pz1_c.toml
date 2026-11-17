@@ -1,0 +1,188 @@
+# Panzerkampfwagen I Ausf. C (VK 601), 1942 (prompt 063, tier 3).
+# Main dimensions from data/catalog/de.toml (onwar.com): length 4.19 m (hull;
+# no barrel overhang), width 1.92 m, height 1.94 m. Both weapons stay inside the
+# hull length: hull_length below is the catalog length minus the front fender
+# and the rear tow shackles.
+# Shapes measured in the onwar.com drawing ge029pz1c.jpg (about 147 px/m along
+# the hull, 158 px/m in height; the drawing is a little squashed, the catalog
+# values win; never committed): a new chassis with five large interleaved road
+# wheels of about 0.60 m on torsion bars (outer, inner, outer, inner, outer),
+# front sprocket, rear idler, no return rollers; long low superstructure with
+# a vertical front plate, engine deck sloping down to the rear; centered
+# turret with sloped front and sides and a round roof hatch.
+# Armament: 7.92 mm EW 141 semi-automatic anti-tank rifle and an MG 34 in a
+# common mantlet. The EW 141 barrel is the `Gun`; the catalog counts both as
+# small arms (7.92 mm), so the model carries two coaxial `MG_NN` (the MG 34
+# and the EW 141 breech) in the mantlet.
+unit = "de_pz1_c"
+assembly = "tank"
+
+[layout]
+hull_length = 4.06
+turret_y = 0.05
+turret_ring_diameter = 1.00
+fender_overhang = 0.065   # the outer wheel layer of `interleaved` (rows 2) stands outside the track
+
+[running_gear]
+part = "interleaved"
+rows = 2
+track_width = 0.25
+link_pitch = 0.09
+road_wheel_diameter = 0.60
+road_wheels = [1.03, 0.56, 0.10, -0.36, -0.84]
+sprocket = { y = 1.76, z = 0.55, diameter = 0.52, teeth = 17 }
+idler = { y = -1.55, z = 0.40, diameter = 0.54 }
+arm = 0.26
+
+[hull]
+part = "plate_hull"
+upper_half_width = 0.82
+lower = [[-1.90, 0.38], [1.60, 0.38], [2.02, 0.80], [2.05, 1.03], [-2.05, 1.03], [-2.05, 0.62]]
+# low front deck, vertical front plate of the superstructure, flat roof,
+# engine deck sloping down to the rear
+upper = [[-2.05, 1.02], [2.05, 1.02], [2.03, 1.05], [1.27, 1.05], [1.24, 1.40], [-0.67, 1.40], [-0.72, 1.31],
+         [-1.95, 1.22], [-2.05, 1.05]]
+fender_front = 2.06
+fender_slope_front = 0.12
+
+[turret]
+part = "plate_turret"
+height = "fit"
+plan = [[-0.46, 0.66], [0.46, 0.66], [0.64, 0.36], [0.64, -0.60], [-0.64, -0.60], [-0.64, 0.36]]
+side_slope_deg = 16
+front_slope_deg = 18
+
+[gun]
+part = "tank_gun"
+trunnion = [0.62, 0.18]
+mantlet = { kind = "box", size = [0.48, 0.12, 0.26] }
+segments = [[0.62, 0.020, 0.016]]       # EW 141 barrel (inside the hull length)
+
+[[mg]]  # MG 34, right of the EW 141
+part = "mg"
+mount = "coax"
+position = [0.14, 0.0, 0.0]
+length = 0.9
+
+[[mg]]  # EW 141 receiver in the mantlet (its barrel is the Gun)
+part = "mg"
+mount = "coax"
+position = [0.0, 0.0, -0.04]
+length = 0.5
+jacket = false
+
+[[part]]
+part = "turret_hatch"
+x = 0.0
+y = -0.15
+diameter = 0.50
+socket = true
+
+[[part]]
+part = "box_prop"                       # vision ports in the superstructure sides
+center = [-0.83, 0.70, 1.25]
+size = [0.03, 0.30, 0.08]
+
+[[part]]
+part = "box_prop"
+center = [0.83, 0.70, 1.25]
+size = [0.03, 0.30, 0.08]
+
+[[part]]
+part = "de.driver_visor"
+position = [-0.35, 1.28, 1.25]
+
+[[part]]
+part = "deck_box"                       # engine deck grilles
+center = [0.0, -1.20, 1.28]
+size = [1.10, 0.90, 0.04]
+
+[[part]]
+part = "exhaust"
+kind = "muffler"
+position = [0.0, -2.07, 0.85]
+length = 0.70
+diameter = 0.18
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -2.05, 0.60]
+pair = true
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 2.00, 0.80]
+pair = true
+socket = false
+
+[[part]]
+part = "headlight"
+position = [-0.70, 1.75, 1.10]
+diameter = 0.14
+
+[[part]]
+part = "de.notek"
+position = [0.70, 1.80, 1.05]
+
+[[part]]
+part = "tool"
+kind = "shovel"
+position = [0.80, -0.6, 1.04]
+
+[[part]]
+part = "antenna"
+position = [0.55, -0.55, 1.40]
+length = 1.6
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -1.2, 1.30]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 0.05, 1.85]
+parent = "Turret"
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-0.82, 0.3, 1.22]
+normal = [-1, 0, 0]
+size = 0.30
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [0.82, 0.3, 1.22]
+normal = [1, 0, 0]
+size = 0.30
+
+[[part]]
+part = "marking"
+name = "Hull_Rear"
+position = [-0.40, -2.04, 0.90]
+normal = [0, -1, 0]
+size = 0.25
+
+[[part]]
+part = "marking"
+name = "Turret_L"
+kind = "number"
+parent = "Turret"
+position = [-0.60, -0.20, 1.65]
+normal = [-0.96, 0, 0.28]
+size = 0.25
+
+[[part]]
+part = "marking"
+name = "Turret_R"
+kind = "number"
+parent = "Turret"
+position = [0.60, -0.20, 1.65]
+normal = [0.96, 0, 0.28]
+size = 0.25
+
+[validate]
+exclude_height = ["Antenna_*"]          # catalog height is the turret roof
