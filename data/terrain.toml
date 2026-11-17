@@ -85,3 +85,15 @@ speed = "offroad"
 speed_pct = 100
 passable = false
 debug_color = 0x23465e
+
+# Tall grass (prompt 073): dense, knee- to chest-high growth. Same rules as
+# grass for now (no cover, no concealment, same speed); the presentation
+# draws it as tall grass and counts it as grass when blending ground
+# textures (crates/bridge/src/terrain_layers.rs).
+[[terrain]]
+id = 8
+name = "tall_grass"
+speed = "offroad"
+speed_pct = 100
+passable = true
+debug_color = 0x3e5a24

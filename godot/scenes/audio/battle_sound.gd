@@ -245,7 +245,7 @@ func on_combat_event(event: Dictionary) -> void:
 					notice("ui_under_attack")
 			var water := false
 			if event["surface"] == "ground" and float(event["caliber_mm"]) >= SoundClasses.SMALL_ARMS_MM:
-				water = sim_host.terrain_at(at.x, at.z) >= 6
+				water = sim_host.terrain_at(at.x, at.z) in [6, 7]
 			var picked: Array = SoundClasses.hit_class(event, infantry, water)
 			if not (picked[0] as String).is_empty():
 				var caliber := float(event["caliber_mm"])

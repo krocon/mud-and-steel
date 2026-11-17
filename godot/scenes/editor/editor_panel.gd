@@ -79,8 +79,15 @@ func _ready() -> void:
 	density_slider = _slider(box, "density", "EDITOR_DENSITY", 10.0, 1500.0, main.density, func(v: float) -> void: main.density = v)
 
 	terrain_option = OptionButton.new()
+	var terrain_colors: PackedColorArray = main.editor.terrain_colors()
 	for name in main.editor.terrain_names():
+		var index := terrain_option.item_count
 		terrain_option.add_item(Language.code_text("EDITOR_TERRAIN_", name, name.replace("_", " ")))
+		if index < terrain_colors.size():
+			# A swatch in the terrain's own color (prompt 073).
+			var swatch := Image.create(14, 14, false, Image.FORMAT_RGB8)
+			swatch.fill(terrain_colors[index])
+			terrain_option.set_item_icon(index, ImageTexture.create_from_image(swatch))
 	terrain_option.select(main.terrain_id)
 	terrain_option.item_selected.connect(func(i: int) -> void: main.terrain_id = i)
 	_setting(box, "terrain", "EDITOR_TERRAIN", terrain_option)

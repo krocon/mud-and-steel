@@ -21,7 +21,12 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by prompt 062 (rocket launchers): the hashed indirect-fire
+/// Last changed by prompt 073 (tall grass): the hashed terrain rules gained
+/// the terrain type `tall_grass` (id 8, the same rules as grass) and the
+/// hashed weather rules its ground softness (the same as grass). Checked:
+/// with both new entries left out of the hash, the old value comes out, so
+/// the demo plays exactly as before (`test_small` has no tall grass).
+/// Before (`0xbd96_60f1_5924_2388`), prompt 062 (rocket launchers): the hashed indirect-fire
 /// rules gained the `rocket_launcher` category and the per-category
 /// `ripple_ms` and `mrad_x10`, every gun's salvo state is hashed, and the
 /// hashed economy rules produce the new units. Checked: the demo's
@@ -231,7 +236,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xbd96_60f1_5924_2388;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x5ffd_458e_4ba8_005a;
 
 #[test]
 fn golden_hash() {

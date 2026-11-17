@@ -87,7 +87,7 @@ func _ambience(test: Node, main: Node3D, ambience: Ambience) -> void:
 	while x < half.x and (water == Vector3.INF or wood == Vector3.INF):
 		var z := -half.y + 20.0
 		while z < half.y:
-			if water == Vector3.INF and host.terrain_at(x, z) >= Ambience.WATER_TERRAIN:
+			if water == Vector3.INF and Ambience.is_water(host.terrain_at(x, z)):
 				water = Vector3(x, 0.0, z)
 			if wood == Vector3.INF and host.wood_density_at(x, z) >= 0.5:
 				wood = Vector3(x, 0.0, z)

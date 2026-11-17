@@ -183,6 +183,11 @@ wet_pct = 70
 snow_pct = 100
 
 [[ground.terrain]]
+name = "tall_grass"
+wet_pct = 70
+snow_pct = 100
+
+[[ground.terrain]]
 name = "dirt_track"
 wet_pct = 100
 snow_pct = 80

@@ -59,8 +59,10 @@ const NEAR_WIND_DB := -8.0
 const GRID := 7
 const GRID_RADIUS := 40.0
 const SAMPLE_INTERVAL := 0.5
-## Terrain ids from this one are water (`data/terrain.toml`).
+## Terrain ids of water (`data/terrain.toml`: shallow, deep; tall grass,
+## id 8 since prompt 073, is not water).
 const WATER_TERRAIN := 6
+const WATER_TERRAIN_DEEP := 7
 ## Wood density from which a sample counts as wood for birds.
 const BIRD_WOOD := 0.2
 ## Birds: silence after combat within this radius (× hearing scale).
@@ -330,7 +332,7 @@ func sample() -> void:
 			var x := center.x + (float(i) / (GRID - 1) * 2.0 - 1.0) * radius
 			var z := center.z + (float(j) / (GRID - 1) * 2.0 - 1.0) * radius
 			var point := Vector3(x, 0.0, z)
-			if sim_host.terrain_at(x, z) >= WATER_TERRAIN:
+			if is_water(sim_host.terrain_at(x, z)):
 				water += 1
 				water_center += point
 				continue
@@ -393,3 +395,8 @@ func _center() -> Vector3:
 		return center_override
 	var at := _listener_position()
 	return Vector3(at.x, 0.0, at.z)
+
+
+## Whether terrain id `terrain` is water (shallow or deep).
+static func is_water(terrain: int) -> bool:
+	return terrain == WATER_TERRAIN or terrain == WATER_TERRAIN_DEEP

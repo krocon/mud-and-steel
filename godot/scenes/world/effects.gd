@@ -73,6 +73,8 @@ const GROUND_COLORS: Dictionary[String, Color] = {
 }
 const TERRAIN_WATER_SHALLOW := 6
 const TERRAIN_WATER_DEEP := 7
+## Tall grass (prompt 073): dust and trails like grass.
+const TERRAIN_TALL_GRASS := 8
 ## Below this caliber (mm) a round is small arms: tiny flashes and puffs.
 const SMALL_CALIBER := 20.0
 ## `weapon` of shot events of indirect fire (prompt 032).
@@ -745,7 +747,7 @@ func _remove_vehicle(id: int) -> void:
 func _ground_kind(terrain: int) -> String:
 	var biome := _biome()
 	match terrain:
-		0:
+		0, TERRAIN_TALL_GRASS:
 			return {"desert": "sand", "winter": "snow"}.get(biome, "earth")
 		1:
 			return {"desert": "sand", "winter": "mud"}.get(biome, "earth")
@@ -766,7 +768,7 @@ func _ground_kind(terrain: int) -> String:
 func _trail_strength(terrain: int) -> float:
 	var biome := _biome()
 	match terrain:
-		0:
+		0, TERRAIN_TALL_GRASS:
 			return {"desert": 1.0, "winter": 0.6}.get(biome, 0.45)
 		1:
 			return {"winter": 0.35}.get(biome, 1.0)

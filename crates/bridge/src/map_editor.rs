@@ -812,6 +812,22 @@ impl MapEditor {
         })
     }
 
+    /// Debug color of every terrain type, indexed by terrain id (the
+    /// palette of the terrain brush, prompt 073).
+    #[func]
+    fn terrain_colors(&self) -> PackedColorArray {
+        let rules = self.map.as_ref().map(EditMap::terrain_rules);
+        rules.map_or_else(PackedColorArray::new, |r| {
+            r.types
+                .iter()
+                .map(|t| {
+                    let [_, r, g, b] = t.debug_color.to_be_bytes();
+                    Color::from_rgba8(r, g, b, 255)
+                })
+                .collect()
+        })
+    }
+
     // --- Read functions shared with SimHost (renderers, picking) -------
 
     #[func]

@@ -15,9 +15,15 @@
 //!   degrees are the same and the field can be filtered), B = blurred track
 //!   mask, A = 255. The direction comes from the smoothed structure tensor of
 //!   the track mask, which is well defined on the center line too.
+//!   Tall grass (prompt 073) has no splat weight of its own (the shader has
+//!   eight): it counts as grass there, and A holds its mask (3 x 3 tent
+//!   filter like the weights), which the shader uses for the dark ground
+//!   under the tufts and the far look of tall grass.
 
 /// Terrain id of field tracks (`data/terrain.toml`).
 const DIRT_TRACK: u8 = 1;
+/// Terrain id of tall grass (`data/terrain.toml`, prompt 073).
+const TALL_GRASS: u8 = 8;
 /// Box blur radius (samples) of the structure tensor; applied twice.
 const TENSOR_RADIUS: i64 = 3;
 /// Extra samples around a rectangle so blurs are exact inside it.
@@ -105,7 +111,7 @@ impl Grid<'_> {
                 for (oj, wj) in [(-1, 1), (0, 2), (1, 1)] {
                     for (oi, wi) in [(-1, 1), (0, 2), (1, 1)] {
                         let id = self.id(i + oi, j + oj) as usize;
-                        // Unknown ids count as grass.
+                        // Unknown ids and tall grass count as grass.
                         weights[if id < 8 { id } else { 0 }] += wi * wj;
                     }
                 }
@@ -133,6 +139,7 @@ impl Grid<'_> {
         let b1 = (i64::from(rect.j0 + rect.h) + MARGIN).min(sy);
         let (w, h) = ((a1 - a0) as usize, (b1 - b0) as usize);
         let mask = |i: i64, j: i64| f32::from(u8::from(self.id(i, j) == DIRT_TRACK));
+        let tall = |i: i64, j: i64| u32::from(self.id(i, j) == TALL_GRASS);
         let mut jxx = vec![0.0f32; w * h];
         let mut jyy = vec![0.0f32; w * h];
         let mut jxy = vec![0.0f32; w * h];
@@ -174,7 +181,15 @@ impl Grid<'_> {
                 out.push(((c * 0.5 + 0.5) * 255.0 + 0.5) as u8);
                 out.push(((s * 0.5 + 0.5) * 255.0 + 0.5) as u8);
                 out.push((wear[k].clamp(0.0, 1.0) * 255.0 + 0.5) as u8);
-                out.push(255);
+                // Tall grass mask, 3 x 3 tent filter (weights sum to 16).
+                let (i, j) = (i64::from(i), i64::from(j));
+                let mut sum = 0;
+                for (oj, wj) in [(-1, 1), (0, 2), (1, 1)] {
+                    for (oi, wi) in [(-1, 1), (0, 2), (1, 1)] {
+                        sum += tall(i + oi, j + oj) * wi * wj;
+                    }
+                }
+                out.push(((sum * 255 + 8) / 16) as u8);
             }
         }
     }
@@ -327,6 +342,26 @@ mod tests {
         // Sand (id 3) is channel A of the first raster.
         assert!(layers.splat0.chunks(4).all(|c| c == [0, 0, 0, 255]));
         assert!(layers.splat1.iter().all(|&v| v == 0));
+    }
+
+    #[test]
+    fn tall_grass_counts_as_grass_and_has_a_mask() {
+        let n = 8;
+        let heights = vec![0; 64];
+        // Left half tall grass (8), right half grass.
+        let ids: Vec<u8> = (0..64).map(|k| if k % 8 < 4 { 8 } else { 0 }).collect();
+        let layers = grid(&heights, &ids, n).layers(Rect {
+            i0: 1,
+            j0: 3,
+            w: 6,
+            h: 1,
+        });
+        // Every sample is all grass in the splat weights.
+        assert!(layers.splat0.chunks(4).all(|c| c == [255, 0, 0, 0]));
+        assert!(layers.splat1.iter().all(|&v| v == 0));
+        // Mask in A: full inside, half on the border, none beyond.
+        let mask: Vec<u8> = layers.track.chunks(4).map(|c| c[3]).collect();
+        assert_eq!(mask, vec![255, 255, 191, 64, 0, 0]);
     }
 
     #[test]

@@ -183,9 +183,14 @@ mod tests {
     #[test]
     fn builtin_rules_parse() {
         let rules = TerrainRules::builtin().unwrap();
-        assert_eq!(rules.types.len(), 8);
+        assert_eq!(rules.types.len(), 9);
         assert_eq!(rules.types[0].name, "grass");
         assert!(!rules.types[7].passable);
+        // Tall grass (prompt 073) plays like grass.
+        assert_eq!(rules.types[8].name, "tall_grass");
+        assert_eq!(rules.types[8].speed, rules.types[0].speed);
+        assert_eq!(rules.types[8].speed_pct, rules.types[0].speed_pct);
+        assert!(rules.types[8].passable);
     }
 
     #[test]

@@ -96,6 +96,15 @@ covers the 2 m × 2 m square around its sample. The ids index the types in
 | 5 | snow | 60 % cross-country | yes |
 | 6 | shallow_water | 30 % cross-country | yes (fords) |
 | 7 | deep_water | – | no (bridges only) |
+| 8 | tall_grass | 100 % cross-country (like grass) | yes |
+
+`tall_grass` (prompt 073) is dense, knee- to chest-high grass. In the rules it
+is grass (same speed, softness in rain and snow, no cover or concealment yet);
+the presentation draws it as tall tufts, herbs and shrubs with a dark ground
+under them and a far look of its own (see
+[ARCHITECTURE.md](ARCHITECTURE.md#tall-grass-prompt-073)). Maps on which tests or
+measurement series rest keep it to a few strips (see the map list) or none.
+Paint it in the map editor with the terrain brush.
 
 Slope (also in `terrain.toml`): uphill the speed drops by 2 % per percent of grade
 (rise over the next meter), down to 20 %; grades above 60 % (31°) cannot be climbed,
