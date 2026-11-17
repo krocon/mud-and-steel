@@ -76,7 +76,7 @@ uncertain; see the list at the end of each faction.
 | de_pz3_g | Panzerkampfwagen III Ausf. G / Panzer III Ausf. G | Sd.Kfz. 141 | 1940–1941 | 3 | 5.38 × 2.91 × 2.44 | 19.5 | 5 | 40.0 / 18.0 | 30 / 37 | 5 cm KwK 38 L/42? |
 | de_pz3_h | Panzerkampfwagen III Ausf. H / Panzer III Ausf. H | Sd.Kfz. 141 | 1940–1941 | 3 | 5.52 × 2.95 × 2.50 | 21.6 | 5 | 40.0 / 18.0 | 60 / 37 | 5 cm KwK 38 L/42? |
 | de_pz3_j | Panzerkampfwagen III Ausf. J / Panzer III Ausf. J | Sd.Kfz. 141 | 1941–1942 | 3 | 5.56 × 2.95 × 2.50 | 21.5 | 5 | 40.0 / 19.0 | 50 / 50 | 5 cm KwK 38 L/42? |
-| de_pz3_l | Panzerkampfwagen III Ausf. L / Panzer III Ausf. L | Sd.Kfz. 141/1 | 1942–1942 | 3 | 5.56 × 2.95 × 2.50 | 21.3 | 5 | 40.0 / 19.0 | 70 / 70 | 5 cm KwK 39 L/60? |
+| de_pz3_l | Panzerkampfwagen III Ausf. L / Panzer III Ausf. L | Sd.Kfz. 141/1 | 1942–1942 | 3 | 6.45? × 2.95 × 2.50 | 21.3 | 5 | 40.0 / 19.0 | 70 / 70 | 5 cm KwK 39 L/60? |
 | de_pz3_m | Panzerkampfwagen III Ausf. M / Panzer III Ausf. M | Sd.Kfz. 141/1 | 1942–1943 | 3 | 6.41 × 2.95 × 2.50 | 22.7 | 5 | 40.0 / 19.0 | 70 / 70 | 5 cm KwK 39 L/60? |
 | de_pz3_n | Panzerkampfwagen III Ausf. N / Panzer III Ausf. N | Sd.Kfz. 141/2 | 1942–1943 | 3 | 5.65 × 2.95 × 2.50 | 23.0 | 5 | 40.0 / 19.0 | 70 / 57 | 7.5 cm KwK 37 L/24? |
 | de_pz4_70a | Panzer IV/70 (A) / Panzer IV/70 (A) | Panzer IV/70 (A) | 1944–1945 | 3 | 8.44 × 2.88 × 2.35 | 28.0 | 4 | 38.0 / 19.0? | 30 / 80 | 7.5 cm PaK 42 L/70? |
@@ -260,7 +260,7 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `de_pz3_g`: weapon
 - `de_pz3_h`: weapon
 - `de_pz3_j`: weapon
-- `de_pz3_l`: weapon
+- `de_pz3_l`: weapon, length_mm, length_hull_mm
 - `de_pz3_m`: weapon
 - `de_pz3_n`: weapon
 - `de_pz4_70a`: speed_offroad_kmh_x10, power_hp, weapon
