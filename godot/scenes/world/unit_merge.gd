@@ -4,10 +4,18 @@ extends RefCounted
 ##
 ## A kit model has 30–50 mesh parts (hull, wheels, rollers, tracks,
 ## hatches, ...), each its own draw call in every pass and its own set of
-## camouflage instance uniforms. Only the turret moves at run time
-## (`combat_view.gd`), so the parts outside the turret become one mesh on
-## the model root and the parts of the turret (gun, cupola, MGs) one mesh on
-## the `Turret` node, with one surface per material. Original
+## camouflage instance uniforms. Only the turret and the gun move at run
+## time (`combat_view.gd`; recoil and raised barrels since prompt 077,
+## `effects.gd`), so the parts outside the turret become one mesh on the
+## model root, the parts of the turret (cupola, MGs) one mesh on the
+## `Turret` node and the `Gun` (mantlet, barrel, muzzle brake) one on the
+## `Gun` node, with one surface per material.
+##
+## Prompt 077: whether the gun has a muzzle brake is read from the gun's
+## mesh once per unit type (`model.get_meta(&"muzzle_brake")`): the kit
+## (tools/blender/kit/weapons.py) builds a brake 1.35 to 1.9 barrel radii
+## wide at the muzzle, a plain barrel ends at most 1.15 radii wide (thread
+## protector), so no new data path is needed. Original
 ## MeshInstance3D nodes that carry sockets (muzzle, exhaust, fire,
 ## markings) or the turret stay as empty nodes; the others are freed. The merged meshes
 ## are built once per unit type with automatic LODs and shared by all
@@ -17,17 +25,33 @@ extends RefCounted
 ## model root ("." or the turret's path), "mesh": ArrayMesh, "shadow": cast
 ## shadow setting}.
 static var _cache: Dictionary[String, Array] = {}
+## Whether the gun of a catalog id has a muzzle brake (prompt 077).
+static var _brakes: Dictionary[String, bool] = {}
+## A muzzle at least this many barrel radii wide is a muzzle brake; the
+## slotted brake (1.35) and flash hiders stay below (judged: they throw no
+## visible side blasts).
+const BRAKE_RATIO := 1.45
+## Behind the muzzle face (m): the brake lies within BRAKE_ZONE_M; the
+## barrel's radius is the narrowest ring of vertices within BARREL_ZONE_M
+## (the kit's cylinders have rings only at their ends).
+const BRAKE_ZONE_M := 0.45
+const BARREL_ZONE_M := Vector2(0.1, 1.5)
+const SLICE_M := 0.05
 
 
 ## Replaces the parts of `model` (an instance of a kit .glb) by merged
 ## meshes. Returns the number of parts merged (0: nothing to do).
 static func merge(model: Node3D, type_id: String) -> int:
 	var turret := model.find_child("Turret", true, false) as Node3D
+	var gun := model.find_child("Gun", true, false) as Node3D
 	var parts := _parts(model)
+	if not _brakes.has(type_id):
+		_brakes[type_id] = has_muzzle_brake(gun)
+	model.set_meta(&"muzzle_brake", _brakes[type_id])
 	if parts.size() < 2:
 		return 0
 	if not _cache.has(type_id):
-		_cache[type_id] = _build(model, turret, parts)
+		_cache[type_id] = _build(model, turret, gun, parts)
 	for entry: Dictionary in _cache[type_id]:
 		var instance := MeshInstance3D.new()
 		instance.name = "Merged"
@@ -74,14 +98,18 @@ static func _parts(model: Node) -> Array[MeshInstance3D]:
 	return out
 
 
-## Builds the merged meshes: parts are grouped by their carrier (model root
-## or turret) and cast-shadow setting, surfaces by material.
-static func _build(model: Node3D, turret: Node3D, parts: Array[MeshInstance3D]) -> Array:
+## Builds the merged meshes: parts are grouped by their carrier (model root,
+## turret or gun) and cast-shadow setting, surfaces by material.
+static func _build(model: Node3D, turret: Node3D, gun: Node3D, parts: Array[MeshInstance3D]) -> Array:
 	# Key "carrier|shadow" -> {material -> SurfaceTool}, in first-seen order.
 	var groups := {}
 	for part in parts:
-		var carrier: Node3D = turret if turret != null and (part == turret or turret.is_ancestor_of(part)) else model
-		var key := "%s|%d" % ["turret" if carrier == turret else "root", part.cast_shadow]
+		var carrier: Node3D = model
+		if gun != null and (part == gun or gun.is_ancestor_of(part)):
+			carrier = gun
+		elif turret != null and (part == turret or turret.is_ancestor_of(part)):
+			carrier = turret
+		var key := "%s|%d" % [carrier.name, part.cast_shadow]
 		if not groups.has(key):
 			groups[key] = {"carrier": carrier, "shadow": part.cast_shadow, "tools": {}}
 		var tools: Dictionary = groups[key]["tools"]
@@ -109,6 +137,38 @@ static func _build(model: Node3D, turret: Node3D, parts: Array[MeshInstance3D]) 
 			"shadow": group["shadow"],
 		})
 	return out
+
+
+## Whether the mesh of `gun` widens at its muzzle (`Socket_Muzzle`, the
+## barrel along -Z) to a muzzle brake: the widest vertex near the muzzle
+## face against the widest a little further back.
+static func has_muzzle_brake(gun: Node3D) -> bool:
+	var mesh := gun as MeshInstance3D
+	if mesh == null or mesh.mesh == null:
+		return false
+	var socket := gun.get_node_or_null("Socket_Muzzle") as Node3D
+	if socket == null:
+		return false
+	var tip := socket.position
+	# Widest vertex per slice along the barrel.
+	var slices: Dictionary[int, float] = {}
+	for s in mesh.mesh.get_surface_count():
+		var vertices: PackedVector3Array = mesh.mesh.surface_get_arrays(s)[Mesh.ARRAY_VERTEX]
+		for v in vertices:
+			var back := v.z - tip.z
+			if back < -0.02 or back > BARREL_ZONE_M.y:
+				continue
+			var k := int(round(back / SLICE_M))
+			slices[k] = maxf(slices.get(k, 0.0), Vector2(v.x - tip.x, v.y - tip.y).length())
+	var muzzle := 0.0
+	var barrel := INF
+	for k: int in slices:
+		var back := k * SLICE_M
+		if back <= BRAKE_ZONE_M:
+			muzzle = maxf(muzzle, slices[k])
+		if back >= BARREL_ZONE_M.x:
+			barrel = minf(barrel, slices[k])
+	return barrel < INF and muzzle > barrel * BRAKE_RATIO
 
 
 ## Transform of `node` relative to its ancestor `root` (the model is not in
