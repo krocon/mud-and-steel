@@ -9,6 +9,9 @@ shader_type spatial;
 render_mode blend_mix, depth_draw_opaque, cull_back, diffuse_burley, specular_schlick_ggx;
 
 #include "res://assets/shaders/env_common.gdshaderinc"
+// Roof patina (prompt 075): RoofFrame, roof_clay/slate/thatch/planks,
+// sheet_patina (corrugated Metal), flat_roof_patina (flat Plaster roofs).
+#include "res://assets/shaders/env_roof.gdshaderinc"
 
 // 0 Paint, 1 Metal, 2 Rubber, 3 Wood, 4 Canvas, 5 Glass,
 // 10 Bark, 12 Stone, 13 Plaster, 14 Ground, 15 Roof, 16 Rock
@@ -131,6 +134,11 @@ void fragment() {
 		}
 		rough = kind == 1 ? 0.85 : 0.5;
 		metal = kind == 1 ? 0.2 : 0.6;
+		if ((kind == 1 || kind == 2) && v_rest_normal.y > -0.2) {
+			// Patina of the sheets (prompt 075): rust runs, matte and bright sheets.
+			RoofFrame rf = roof_frame(p, normalize(v_rest_normal), wn);
+			albedo = sheet_patina(albedo, rf, v_seed, roof_age(v_seed), env_dry, rough, metal);
+		}
 	} else if (slot == 2) {  // Rubber
 		albedo = vec3(0.05);
 		rough = 0.92;
@@ -197,6 +205,12 @@ void fragment() {
 		// grime rising from the ground
 		float h = vc.b * 4.0;
 		albedo *= mix(0.72, 1.0, smoothstep(0.0, 1.2 + 0.6 * big, h));
+		if (v_rest_normal.y > 0.9) {
+			// Flat roofs (prompt 075): grime rims, stains, cracks; the wall
+			// colors stay as they are.
+			RoofFrame rf = roof_frame(p, normalize(v_rest_normal), wn);
+			albedo = flat_roof_patina(albedo, rf, v_seed, roof_age(v_seed), ao, env_dust);
+		}
 		rough = 0.95;
 	} else if (slot == 14) {  // Ground: earth, spoil, mud, sand
 		vec3 c[4] = {vec3(0.33, 0.26, 0.18), vec3(0.42, 0.34, 0.24), vec3(0.22, 0.18, 0.13), vec3(0.66, 0.58, 0.42)};
@@ -207,30 +221,26 @@ void fragment() {
 		albedo = rock_albedo(v_world, wn.y, vc.b * 4.0, kind);
 		rough = 0.92;
 	} else {  // 15 Roof: clay tile, slate, thatch, planks
-		float rows = smoothstep(0.0, 0.08, fract(p.z * 6.0)) * 0.25 + 0.75;
-		float cols = 0.9 + 0.2 * hash2(floor(vec2(p.x * 4.0 + p.y * 4.0, p.z * 6.0)));
-		// Roof variants (prompt 056): clay tiles red, brown or weathered
-		// grey-brown, a few houses with dark cement tiles; slate blue-grey
-		// or nearly black.
-		float r_pick = fract(v_seed * 11.3);
-		if (kind == 0 && r_pick > 0.82) {
+		// Patina per covering (prompt 075, env_roof.gdshaderinc), all from
+		// the position on the model and the per-house seed.
+		RoofFrame rf = roof_frame(p, normalize(v_rest_normal), wn);
+		float age = roof_age(v_seed);
+		// Roof variants (prompt 056): about every fifth clay roof has dark
+		// cement tiles, drawn like slate.
+		if (kind == 0 && fract(v_seed * 11.3) > 0.82) {
 			kind = 1;
 		}
 		if (kind == 1) {
-			vec3 slate = mix(vec3(0.22, 0.24, 0.27), vec3(0.15, 0.15, 0.16), fract(v_seed * 4.7));
-			albedo = slate * rows * cols;
+			albedo = roof_slate(rf, v_seed, age, env_dry);
 			rough = 0.7;
 		} else if (kind == 2) {
-			float straw = vnoise(p * vec3(30.0, 30.0, 3.0));
-			albedo = mix(vec3(0.52, 0.44, 0.24), vec3(0.70, 0.62, 0.36), straw) * (0.85 + 0.25 * big);
+			albedo = roof_thatch(rf, v_seed, age, env_dry);
 			rough = 1.0;
 		} else if (kind == 3) {
-			albedo = vec3(0.30, 0.25, 0.20) * rows * cols;
+			albedo = roof_planks(rf, v_seed, age, env_dry);
+			rough = 0.9;
 		} else {
-			vec3 tile = r_pick < 0.4 ? vec3(0.56, 0.26, 0.17)
-				: (r_pick < 0.65 ? vec3(0.48, 0.28, 0.20) : vec3(0.45, 0.36, 0.30));
-			albedo = tile * rows * cols * (0.85 + 0.25 * big);
-			albedo = mix(albedo, vec3(0.25, 0.30, 0.16), smoothstep(0.7, 0.85, fbm3(p * 2.0)) * 0.5 * (1.0 - env_dry));
+			albedo = roof_clay(rf, v_seed, age, env_dry);
 			rough = 0.85;
 		}
 	}
