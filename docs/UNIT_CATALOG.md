@@ -89,7 +89,7 @@ uncertain; see the list at the end of each faction.
 | de_pz4_g | Panzerkampfwagen IV Ausf. G / Panzer IV Ausf. G | Sd.Kfz. 161/1 | 1942–1943 | 3 | 6.62 × 2.88 × 2.68 | 23.5 | 5 | 40.0 / 16.0 | 80? / 50 | 7.5 cm KwK 40 L/43? |
 | de_pz4_j | Panzerkampfwagen IV Ausf. J / Panzer IV Ausf. J | Sd.Kfz. 161/2 | 1944–1945 | 3 | 7.02 × 3.30 × 2.68 | 25.0 | 5 | 38.0 / 16.0 | 80 / 50 | 7.5 cm KwK 40 L/48? |
 | de_pzbef1_b | Kleiner Panzerbefehlswagen I / Panzer I command tank | Sd.Kfz. 265 | 1935–1937 | 3 | 4.42 × 2.06 × 1.99 | 5.9 | 3 | 40.0 / 20.0? | 13 / 13 | MG 34? |
-| de_pzjg1 | Panzerjäger I / Panzerjäger I | 4.7 cm PaK(t) (Sf) auf Panzerkampfwagen I Ausf. B | 1940–1941 | 3 | 6.40 × 2.06 × 2.25 | 6.4 | 3 | 40.0 / 19.0 | 13 / 15 | 4.7 cm PaK(t) L/43.4? |
+| de_pzjg1 | Panzerjäger I / Panzerjäger I | 4.7 cm PaK(t) (Sf) auf Panzerkampfwagen I Ausf. B | 1940–1941 | 3 | 4.42? × 2.06 × 2.25 | 6.4 | 3 | 40.0 / 19.0 | 13 / 15 | 4.7 cm PaK(t) L/43.4? |
 | de_sfh13_lorraine | 15 cm sFH 13/1 (Sf) auf Geschützwagen Lorraine Schlepper (f) / 15 cm sFH 13/1 on Lorraine Schlepper | Sd.Kfz. 135/1 | 1942–1942 | 3 | 5.31 × 1.83 × 2.23 | 8.5 | 4 | 34.0 / 13.0 | 12 / 10 | 15 cm sFH 13/1 L/17? |
 | de_sig33_jgdpz38t | 15 cm sIG 33/2 (Sf) auf Jagdpanzer 38(t) / 15 cm sIG 33/2 on Jagdpanzer 38(t) | 15 cm sIG 33/2 (Sf) auf Jagdpanzer 38(t) | 1944–1945 | 3 | 4.87 × 2.63 × 2.20 | 16.5 | 4 | 32.0 / 16.0? | 60 / 60 | 15 cm sIG 33/2 L/11? |
 | de_stug3_a | Sturmgeschütz III Ausf. A / StuG III Ausf. A | Sd.Kfz. 142 | 1940–1940 | 3 | 5.38 × 2.92 × 1.95 | 19.6 | 4 | 30.0 / 15.0? | 50 / 50 | 7.5 cm StuK 37 L/24? |
@@ -273,7 +273,7 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `de_pz4_g`: length_hull_mm, armor_hull_front_mm, weapon
 - `de_pz4_j`: weapon
 - `de_pzbef1_b`: speed_offroad_kmh_x10, weapon
-- `de_pzjg1`: weapon
+- `de_pzjg1`: length_mm, weapon
 - `de_sfh13_lorraine`: weapon
 - `de_sig33_jgdpz38t`: speed_offroad_kmh_x10, weapon
 - `de_stug3_a`: speed_offroad_kmh_x10, weapon
