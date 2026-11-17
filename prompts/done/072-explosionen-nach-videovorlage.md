@@ -262,3 +262,18 @@ steht im Abschlussbericht mit Grund, nicht als erledigt.
   `git push`.
 - Offen notieren: Das Demo-Video (`prompts/periodic/070-youtube-demo-video.md`) zeigt
   danach die alten Explosionen und müsste neu aufgenommen werden.
+
+## Entscheidungen (autonom, Nachtlauf 17.11.2026)
+
+Der Prompt hatte keine offenen Fragen; diese Entscheidungen hat der Nachtlauf selbst
+getroffen. Alle vorläufig.
+
+| Frage | Entscheidung | Warum |
+|---|---|---|
+| Welche Explosionen aus dem Video | A1 Einschlag 6,233 s, A2 Fahrzeug 6,933 s, C Einschlag am Panzer 14,417 s, D große Detonation an der Mauer 19,633 s, E kleiner Einschlag 29,45 s, F Brand 31,2 s, G stehender Rauchballen 1–6,2 s | Frei im Bild, alle Arten außer Munitionsexplosion abgedeckt |
+| Munitionsexplosion | Aus A2 (Fahrzeug) × 1,5 plus Staubdom aus D abgeleitet | Im Video nicht zu sehen |
+| Kaliber der Video-Einschläge | A1 ≈ 15-cm-Klasse (Maßstab 2,0), E ≈ 5 cm; Skala Kaliber / 75 mm bleibt | Fächer 11 m breit bei A1, halb so groß passt zu 7,5 cm; die lineare Skala trägt alle Arten |
+| Dauer bei Zeitfaktor 2 | Bildschirmzeit wie im Video; schwarzer Rauch weg nach ~9,5 s, Erdwolke nach ~8 s | Länger stehender Rauch läse sich als Nebelwand; die Wrack-Rauchsäule läuft ohnehin weiter |
+| Weißer Schockdom (054) | Bleibt, aber schwächer | Im Video ist nur der Staubdom zu sehen |
+| Glühen des Feuerballs als Licht | Blitzlicht bleibt 0,4 s statt 1,4 s | 1,4 s kosteten auf „high“ ~4 FPS mit 50 Explosionen |
+| Kleine Details aus der Ferne | Glut, Funken, Kernblitz erst ab 50 px Explosionsgröße | Je Explosion weniger Aussender; aus der Ferne unsichtbar |

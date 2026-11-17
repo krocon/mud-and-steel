@@ -3042,10 +3042,10 @@ effect is read back. No Rust code was needed: everything comes from
 |---|---|
 | `shot`, caliber ≥ 20 mm | Muzzle flash at the model's nearest `Socket_Muzzle*` (fallback: the simulation's muzzle), white powder smoke along the aim, a light flash; from 37 mm dust blown off the ground in front of the muzzle |
 | `shot`, small arms | A small flash only |
-| `hit` on the ground | Earth fountain (clods) and a rising dust column tinted by terrain and biome, sparks and a scorch decal from 37 mm; water: spray; small arms: a dust puff |
+| `hit` on the ground | From 37 mm (prompt 072): a core flash, a fan of dark earth streaks, clods, a cloud of earth lumps that rises and greys (tinted by terrain and biome), sparks, a light flash and a scorch decal; below 37 mm clods and a dust column; water: spray; small arms: a dust puff |
 | `hit` on a unit | Sparks and a light flash; a penetration adds a small burst of fire and smoke |
 | `hit` on an object | Splinters and dust |
-| `destroyed`, vehicle | Fireball, dark smoke, sparks, debris, ground dust ring, a big light flash, a large scorch decal, camera shake; then the wreck **burns** at its `Socket_Fire_NN` (fire, a dense black smoke column drifting with the biome's wind, flickering light) for 60 s, smolders for 90 s and goes out |
+| `destroyed`, vehicle | A ray burst, a cream fireball of lumps that turns orange, dark red and black (2.4 s), black smoke growing out of it from 0.9 s, glowing embers, sparks, debris, ground dust ring, a big light flash, a large scorch decal, camera shake (prompt 072); then the wreck **burns** at its `Socket_Fire_NN` (fire, a dense black smoke column drifting with the biome's wind, flickering light) for 60 s, smolders for 90 s and goes out |
 | `destroyed`, infantry | Dust only |
 | Vehicle moving | Dust trail behind the hull, color and strength by the terrain under it in the current biome (tracks and sand strong, grass weak, roads hardly, mud dark, snow powder, shallow water spray), exhaust smoke at `Socket_Exhaust_NN` (thin when standing) |
 
@@ -3056,13 +3056,28 @@ sand as snow), so dust matches the ground it rises from.
 ### Drawing
 
 Every particle is a camera-facing quad drawn by one small spatial shader
-(three render-mode variants: lit, unshaded, additive): texture × particle
-color × a per-instance `tint` (`set_instance_shader_parameter`, the ground
-color), so one pool serves every terrain. Lit puffs get a rounded fake normal
-and read as volumes in the sun; fire, flashes and sparks are unshaded and
-push HDR values into the glow. Soft particles (fade where a quad cuts into
-the ground) read the depth texture. An effect is scaled by its emitter's
-node scale (caliber / 75 mm, vehicle size); particles inherit it.
+(render-mode variants: lit, unshaded, additive; since prompt 072 also
+billow, fireball and streak): texture × particle color × a per-instance
+`tint` (`set_instance_shader_parameter`, the ground color), so one pool
+serves every terrain. Lit puffs get a rounded fake normal and read as
+volumes in the sun; fire, flashes and sparks are unshaded and push HDR
+values into the glow. Soft particles (fade where a quad cuts into the
+ground) read the depth texture. An effect is scaled by its emitter's node
+scale (caliber / 75 mm, vehicle size); particles inherit it.
+
+**Billows** (prompt 072): `EffectTextures.billow()` is a generated 2 × 2
+atlas of cauliflower clusters (6 to 9 lumps each); per pixel it stores the
+lump normal (R, G), a shade (B) and the density (A). The particle's random
+animation offset (`CUSTOM.z`) picks the cell. The "billow" shader turns the
+normal with the quad and lets the real sun and lights shade it (sunlit tops,
+dark undersides; at night only fire and flashes light it); the "fireball"
+shader is unshaded and darkens the creases as the particle ages. **Streaks**
+(`EffectTextures.streak()`, `particle_flag_align_y`) turn the quad so it
+points along the particle's velocity: the earth fan of a ground hit.
+**Layers:** an explosion is a list of bursts with delays in
+`effects.gd` `EXPLOSION_LAYERS` (`ground_hit`, `vehicle`), started by
+`effects.layers(profile, ground_point, scale, ground_color)`; delayed layers
+wait in `_pending`. Reuse it for new explosion kinds.
 
 ### Budget and LOD
 
@@ -3073,15 +3088,17 @@ oldest burst of that kind is cut short. Values per graphics quality, keys
 
 | Level | Particles | Pools | Pooled emitters / particles | Light flashes | Scorch decals | Burning wrecks (with light) | Soft particles | Dust and exhaust within |
 |---|---|---|---|---|---|---|---|---|
-| low | × 0.4 | × 0.35 | 182 / 1 459 | 2 | 32 | 4 (0) | off | 150 m |
-| medium | × 0.7 | × 0.65 | 330 / 4 579 | 6 | 96 | 10 (3) | off | 250 m |
-| high | × 1.0 | × 1.0 | 512 / 10 064 | 12 | 192 | 24 (8) | on | 400 m |
+| low | × 0.4 | × 0.35 | 272 / 1 841 | 2 | 32 | 4 (0) | off | 150 m |
+| medium | × 0.7 | × 0.65 | 496 / 5 876 | 6 | 96 | 10 (3) | off | 250 m |
+| high | × 1.0 | × 1.0 | 768 / 12 952 | 12 | 192 | 24 (8) | on | 400 m |
 
 More burning wrecks than the budget: the oldest ones only smolder. A quality
 or biome change rebuilds the pools (the biome sets the wind of the smoke).
 **LOD:** a burst that would be smaller than 3 px on screen (distance to the
 camera, zoom, 30° lens) is skipped, one smaller than 60 px gets fewer
-particles (`amount_ratio`, at least 35 %). Decals fade out beyond 450 m.
+particles (`amount_ratio`, at least 35 %). Small details (embers, sparks,
+the core flash: `DETAIL_KINDS`) start only for explosions of at least 50 px
+(prompt 072). Decals fade out beyond 450 m.
 
 **Camera shake** offsets the `Camera3D` (`h_offset`, `v_offset`), not the
 rig, so it never touches the focus or picking state; strength falls off with
@@ -3112,9 +3129,21 @@ off, debug bridge, forest, test_small with its map objects):
 | medium | 166 FPS | 136 FPS | 138 FPS | 129 FPS |
 | high | 87 FPS | 79 FPS | 80 FPS | 72 FPS |
 
-Every level stays above 60 FPS with 50 explosions. The barrage costs 0.7 ms
-(low) to 1.3 ms (medium) per frame, 1.2 ms on high; 24 burning wrecks add
-about 1 ms. The rest of "high" is MSAA, full-size SSAO and the map objects. The self-test
+Prompt 072 (17.11.2026, same machine, other load on it; low and medium were
+capped at 120 FPS in these runs), before → after the new explosions,
+measured back to back:
+
+| Level | Idle, 150 m | 50 explosions, 150 m | 50 explosions, 60 m | + 24 burning wrecks |
+|---|---|---|---|---|
+| low | 120 → 120 FPS (cap) | 120 → 120 | 120 → 120 | 120 → 120 |
+| medium | 120 → 120 FPS (cap) | 116 → 114 | 120 → 118 | 113 → 109 |
+| high | 64–69 → 66–68 FPS | 56–60 → 57–59 | 72–75 → 65 | 53–61 → 55–59 |
+
+The idle frame on "high" got slower since prompt 019 (meadow, map objects:
+68 FPS instead of 87), so "high" no longer stays above 60 FPS with 50
+explosions at 150 m, neither before nor after prompt 072. The new
+explosions cost about 0.4 ms more at 150 m and 2 ms more at 60 m (larger,
+longer fireball and smoke). [open] The self-test
 checks that the combat test produced muzzle, impact and explosion effects
 and a burning wreck.
 
@@ -3153,8 +3182,9 @@ and to a tank's ammunition explosion:
   ring** to twice that radius in 0.55 s; a **dust ring** thrown outwards
   along the ground in the ground's colour (12 pooled domes and rings, 4–8
   dust rings by quality);
-- a heavier fireball, a grey-brown cloud of earth and smoke and debris on
-  top of the ordinary impact of `effects.gd`;
+- a grey-beige dome of dust (`dust_cloud`, ~16 m within 0.5 s at 15 cm,
+  prompt 072), a small fireball and debris on top of the ordinary impact of
+  `effects.gd`; the shock dome and ring are fainter since prompt 072;
 - a **flash light**: an omni light of 30–66 m range for 0.32 s that lights
   up the ground and the buildings around; at most 1 / 2 / 4 at once (low /
   medium / high, the oldest is reused); at night 3× as strong and 1.45× as
@@ -3168,6 +3198,66 @@ wreck tint and no longer follows the aim. Pictures: `just blast-shots`
 (fixed views by day and by night into `build/explosions/`) and `just
 strike-shots` (a real strike on the base skirmish; fails if smoke, siren,
 countdown or launch are missing). [provisional] sizes, colours, threshold.
+
+### Explosions after a video reference (prompt 072)
+
+A short promotional video of another game served as a reference for
+**timing and look only**: measured times, sizes, colours and motion, no
+pictures, textures or sounds (it stays outside the repository; analysis
+pictures in `build/explosion-ref/`). Textures are still generated
+(`effect_textures.gd`: billow atlas, streak, rays).
+
+**Tool:** `just explosion-series [dir]` (`tools/explosion-series.sh`)
+triggers every explosion kind once on flat ground from 60 m at 45°
+(`blast_shots.gd --explosion-series`, 30 fps fixed), saves pictures at the
+series times (every frame of the first second, then four per second to
+10 s) and builds tile sheets with `tools/explosion_series.py` (numpy +
+ffmpeg; also video sheets, colour means). If the reference video is in
+`.temp/`, the video's sheet of the matching explosion goes above the
+game's: `<dir>/compare_<kind>.png`. Crops show the same meters as the
+video crop (`SERIES_KINDS`).
+
+**Scale in the video:** soldiers (1.8 m) give 0.010 to 0.022 m per pixel of
+the 2160 × 3840 frame, ±25 % (one desert shot without soldiers ±40 %). The
+camera moves and zooms in some shots, and cuts every 3 to 6 s, so smoke
+lifetimes are lower bounds.
+
+Profiles (times from the first frame of the explosion; video at 30 fps,
+partly doubled frames, so ±33–67 ms). Game values for scale 1 unless
+noted; the 15 cm reference ground hit is scale 2.
+
+| Phase | Video (target) | Game (reached) |
+|---|---|---|
+| Flash | 1 frame (≤ 67 ms); the whole frame 15–35 % brighter; white-yellow core 3–5 m | core 0.15 s, 3.5 m × 0.7; light flash 0.12 s (ground hit), 0.4 s (vehicle) |
+| Ground hit, earth fan (15 cm) | ~25 dark streaks, 11 m wide and 12–16 m high at 0.3–0.4 s, lumpy columns by 0.6 s | 30 streaks; fan ~10–11 m wide, ~11 m high at 0.4 s (scale 2), down by 1.3 s |
+| Ground hit, cloud (15 cm) | ≥ 12 m wide at 1.0 s; rises ~7 m/s first, then slows; brown (110,84,66) at 0.3 s, (79,60,47) at 1.5 s, grey (155,146,134) at 3.5 s; dense at 4 s (cut) | ~12 m wide at 1 s (scale 2); brown, grey-beige from ~3 s, thinning from 4 s, gone ~7–8 s |
+| Vehicle, ray burst | 0–0.3 s, pale, ~11 m across | 0–0.4 s, 10 m quads |
+| Vehicle, fireball | cream lumps, largest at ~1.0 s: ~10 m wide, ~12 m high (1.4 vehicle lengths); colours (179,147,110) 0.2 s, (231,184,130) 0.5 s, (235,208,184) 1.0 s, (143,89,48) 1.5 s, (108,46,23) 1.8 s, (34,15,5) 2.2 s | cream to 1.0 s, orange 1.5 s, dark red 1.8 s, black 2.2 s, gone 2.4 s; ~9–10 m wide at 1 s |
+| Vehicle, smoke | black column from ~2.2 s (25,18,8), opaque ≥ 3.4 s (cut); glowing spots 1.7–2.5 s | dark billows from 0.9 s (hidden in the fireball), a dark grey-black column 2.5–4 s, less opaque than the video, greying, gone ~9.5 s; embers 1.2–3 s; the wreck's column goes on |
+| Big blast (D) | grey-beige dust dome ≥ 16 m within 0.5 s, (181,158,136) → (134,116,102) at 1.7 s; orange flame tongues 0.1–0.6 s; ~20 dark chunks 0.3–0.5 m, > 1 s in the air; a burning patch on the ground | dust dome ~16 m at 0.5 s (15 cm), thinning from ~3 s, gone ~8 s; small fireball; debris sprites; no burning patch (open) |
+| Small hit (E) | dark streak fan within 0.1 s, hangs ≥ 1.3 s | streak fan 0.1–1.3 s, small earth cloud |
+| Shock wave | no condensation dome visible, only the dust dome | white dome and ring of prompt 054 kept, fainter |
+| Debris | no smoke trails seen | no trails |
+| Afterburn | black-brown column with glowing spots (31–33 s); a flame on the wreck | burning wreck of prompt 019, now with billows |
+| Standing smoke (1–6 s) | a dark brown ball of lumps 6 m wide, 9 m high, nearly unchanged for ≥ 2.2 s | — (column and cloud stand ~4 s before thinning) |
+| Shape | cauliflower of lumps 1.2–1.8 m, sunlit tops light, undersides very dark | billow atlas, lumps lit by the sun |
+| Camera | no shake visible | shake of prompt 019 kept |
+
+Differences above 20 %: the vehicle fireball's lumps are fewer and softer
+than in the video, and its black smoke is less opaque (budget: fewer,
+larger billows); the smoke column is shorter-lived than the
+video suggests (it would read as a smoke screen: explosion smoke does not
+block sight, screens do); the ammunition explosion has no video counterpart
+(vehicle × 1.5 plus the big blast's dust dome).
+
+**Time factor:** the video times are screen times and are used as they are;
+the game's time factor 2 does not stretch effects.
+
+**Open:** burning patch on the ground after big blasts; smoke trails on
+debris; the lumps' inner motion (a flipbook) instead of only rotation and
+turbulence; the demo video (`prompts/periodic/070-youtube-demo-video.md`)
+still shows the old explosions and needs new recordings. [provisional]
+all values.
 
 ## Audio (presentation only)
 
