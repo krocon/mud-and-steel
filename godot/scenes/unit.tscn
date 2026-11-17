@@ -2,7 +2,15 @@
 
 [ext_resource type="PackedScene" path="res://assets/models/placeholder_tank.glb" id="1_tank"]
 
+[sub_resource type="StandardMaterial3D" id="Mat_ring_xray"]
+transparency = 1
+no_depth_test = true
+shading_mode = 0
+albedo_color = Color(0.45, 1, 0.45, 0.45)
+render_priority = -1
+
 [sub_resource type="StandardMaterial3D" id="Mat_ring"]
+next_pass = SubResource("Mat_ring_xray")
 shading_mode = 0
 albedo_color = Color(0.45, 1, 0.45, 1)
 

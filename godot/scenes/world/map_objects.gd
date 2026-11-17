@@ -36,6 +36,11 @@ const OBJECT_CLASSES: Array[Dictionary] = [
 	{"prefix": "env_house", "range": 0.0, "shadow": true},
 	{"prefix": "env_barn", "range": 0.0, "shadow": true},
 	{"prefix": "env_church", "range": 0.0, "shadow": true},
+	# Prompt 078: apartment blocks; town hall and warehouse were missing here
+	# (they fell to the 300 m default without shadows).
+	{"prefix": "env_block", "range": 0.0, "shadow": true},
+	{"prefix": "env_town_hall", "range": 0.0, "shadow": true},
+	{"prefix": "env_warehouse", "range": 0.0, "shadow": true},
 	{"prefix": "env_hedge", "range": 1400.0, "shadow": true},
 	{"prefix": "env_wall", "range": 900.0, "shadow": true},
 	{"prefix": "env_fence", "range": 500.0, "shadow": false},

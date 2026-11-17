@@ -56,6 +56,8 @@ signal panned_by_hand
 @export var far_factor := 4.0
 ## The camera stays at least this many meters above the ground below it.
 @export var min_clearance := 3.0
+## ... and this many meters above the roof of a building it is over.
+@export var building_clearance := 1.5
 ## Light whose shadow distance follows the zoom. Optional.
 @export var sun: DirectionalLight3D
 
@@ -247,6 +249,11 @@ func _apply() -> void:
 	# Close to a hillside the camera would end up inside the ground: lift it.
 	var ground := GroundPick.height_at(camera.global_position.x, camera.global_position.z)
 	camera.global_position.y = maxf(camera.global_position.y, ground + min_clearance)
+	# Never inside a building (prompt 078): at the closest zoom the camera
+	# is about 11 m up, below the roofs of apartment blocks, church and
+	# town hall. Within 2 m of a building it rises over its roof.
+	var top := GroundPick.object_top_at(camera.global_position.x, camera.global_position.z, 2.0)
+	camera.global_position.y = maxf(camera.global_position.y, top + building_clearance)
 	camera.look_at(focus, Vector3.UP)
 
 	camera.near = maxf(0.05, distance * 0.02)

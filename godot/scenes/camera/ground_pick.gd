@@ -30,6 +30,15 @@ static func height_at(x: float, z: float) -> float:
 	return 0.0
 
 
+## Highest top (y) of the standing buildings and solid rocks whose ground
+## box, grown by `margin` meters, contains (x, z); a very low value if none
+## (prompt 078: the camera keeps above apartment blocks).
+static func object_top_at(x: float, z: float, margin: float) -> float:
+	if height_source != null and height_source.has_method(&"object_top_at"):
+		return height_source.object_top_at(x, z, margin)
+	return -1e9
+
+
 ## Returns the ground point under `screen_position` as seen by `camera`, or null.
 static func from_screen(camera: Camera3D, screen_position: Vector2) -> Variant:
 	return intersect_ray(

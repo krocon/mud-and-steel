@@ -2,7 +2,7 @@
 //! The work happens in `objects.rs`; this block converts to Godot types.
 
 use crate::objects::{self, DecoLayer};
-use crate::{SimHost, fixed_to_f32};
+use crate::{SimHost, fixed_to_f32, meters_to_millimeters};
 use godot::prelude::*;
 
 #[godot_api(secondary)]
@@ -49,6 +49,63 @@ impl SimHost {
                 d
             })
             .collect()
+    }
+
+    /// Highest top (Godot y: ground height at the object plus its catalog
+    /// height) of the standing objects that block everybody (buildings,
+    /// rock outcrops and ridges) whose ground box, grown by `margin` meters,
+    /// contains the point `(x, z)`; `-1e9` if there is none. The camera
+    /// keeps above it (prompt 078: apartment blocks are higher than the
+    /// closest camera). Presentation only.
+    #[func]
+    fn object_top_at(&self, x: f32, z: f32, margin: f32) -> f32 {
+        const NONE: f32 = -1e9;
+        let Some(game) = self.game.as_ref() else {
+            return NONE;
+        };
+        let (Some(x_mm), Some(z_mm), Some(m_mm)) = (
+            meters_to_millimeters(x),
+            meters_to_millimeters(z),
+            meters_to_millimeters(margin.max(0.0)),
+        ) else {
+            return NONE;
+        };
+        let p = sim::Vec2::from_millimeters(x_mm, z_mm);
+        let m = sim::Fixed::from_num(m_mm) / 1000;
+        let map = game.map();
+        let kinds = map.object_kinds();
+        let mut top = NONE;
+        for (i, o) in (0u32..).zip(map.objects()) {
+            let kind = &kinds[usize::from(o.kind)];
+            if kind.blocks != sim::Blocks::All {
+                continue;
+            }
+            let sim::objects::Shape::Box {
+                half_length,
+                half_width,
+            } = kind.shape
+            else {
+                continue;
+            };
+            let rel = p - o.position;
+            if rel.x.abs() > half_length + half_width + m
+                || rel.y.abs() > half_length + half_width + m
+            {
+                continue;
+            }
+            let (forward, right) = o.axes();
+            let along = rel.x * forward.x + rel.y * forward.y;
+            let across = rel.x * right.x + rel.y * right.y;
+            if along.abs() > half_length + m || across.abs() > half_width + m {
+                continue;
+            }
+            if game.sim.object_blocks(i) != Some(sim::Blocks::All) {
+                continue;
+            }
+            let h = fixed_to_f32(map.height_at(o.position) + kind.height);
+            top = top.max(h);
+        }
+        top
     }
 
     /// Position of object `index` in Godot coordinates (ground height as

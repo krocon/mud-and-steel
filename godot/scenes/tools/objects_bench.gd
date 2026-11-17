@@ -28,6 +28,19 @@ extends Node
 ## burning (charred 0.6) and burnt-out houses; in the forest by day, at low
 ## sun and at night, in the desert and in winter (`--biomes=`,
 ## `--daytimes=` narrow it, `--only=<view,...>` picks views).
+##
+## `--blocks` (prompt 078, `just block-shots`, map `city_blocks`) shoots the
+## apartment blocks: the quarter at 15, 35, 110 and 350 m, two views like
+## the reference pictures (overview from about 160 m, a block from about
+## 45 m), every block in all three damage levels side by side and a burning
+## (charred 0.6) damaged block, in the desert by day, at low sun and at
+## night, in the forest and in winter (`--biomes=`, `--daytimes=`,
+## `--only=`). `--blocks-bench` measures the frame rate over the quarter
+## at 35, 110 and 350 m. `--blocks-fight` (`just block-fight`) plays it:
+## an own rifle squad occupies the long block nearest to the quarter, two
+## own tanks shell it until it is damaged and a ruin, the other units
+## cross the quarter's streets; a picture every few seconds and at every
+## change of the block.
 
 const WARMUP_FRAMES := 90
 const MEASURE_FRAMES := 240
@@ -73,6 +86,22 @@ func _run() -> void:
 	var args := OS.get_cmdline_user_args()
 	if "--roofs" in args:
 		await _roof_shots()
+		get_tree().quit()
+		return
+	if "--blocks" in args:
+		await _block_shots()
+		get_tree().quit()
+		return
+	if "--blocks-fight" in args:
+		await _block_fight()
+		get_tree().quit()
+		return
+	if "--blocks-bench" in args:
+		_find_block_points()
+		var views: Array[Dictionary] = []
+		for d in [35.0, 110.0, 350.0]:
+			views.append({"name": "blocks-%d" % int(d), "at": "quarter", "distance": d})
+		await _measure(views)
 		get_tree().quit()
 		return
 	if "--rocks" in args or "--rocks-bench" in args:
@@ -472,3 +501,194 @@ func _frame() -> void:
 		RenderingServer.force_draw(false)
 		forced_draws += 1
 	await get_tree().process_frame
+
+
+const BLOCK_IDS: Array[String] = ["env_block_desert", "env_block_desert_long", "env_block_town"]
+const BLOCK_DISTANCES: Array[float] = [15.0, 35.0, 110.0, 350.0]
+const BLOCK_CONDITIONS: Array = [
+	["desert", "day"], ["desert", "evening"], ["desert", "night"], ["forest", "day"], ["winter", "day"],
+]
+
+
+## Quarter: the marker `blocks` (else the mean of the blocks); "block": the
+## long block nearest to it.
+func _find_block_points() -> void:
+	var host: SimHost = main.sim_host
+	var kinds := host.object_kinds()
+	var sum := Vector3.ZERO
+	var n := 0
+	var nearest := INF
+	var marker: Variant = host.map_marker("blocks")
+	var blocks: Array[Vector3] = []
+	for group: Dictionary in host.object_groups(128.0):
+		var id: String = kinds[group.kind].get_slice(":", 0)
+		if not id in BLOCK_IDS:
+			continue
+		var buffer: PackedFloat32Array = group.buffer
+		for k in buffer.size() / 12:
+			var p := Vector3(buffer[k * 12 + 3], buffer[k * 12 + 7], buffer[k * 12 + 11])
+			sum += p
+			n += 1
+			if id == "env_block_desert_long":
+				blocks.append(p)
+	var quarter: Vector3 = marker if marker != null else (sum / maxf(n, 1))
+	quarter.y = host.height_at(quarter.x, quarter.z)
+	_points["quarter"] = quarter
+	_points["block"] = quarter
+	for p in blocks:
+		if p.distance_to(quarter) < nearest:
+			nearest = p.distance_to(quarter)
+			_points["block"] = p
+	print("objects-shots: %d blocks, quarter %s, long block %s" % [n, quarter, _points["block"]])
+
+
+func _block_shots() -> void:
+	_find_block_points()
+	var rig: Node3D = main.camera_rig
+	var objects: Node3D = main.map_objects
+	var out := "build/block-shots"
+	var biomes: Array[String] = []
+	var daytimes: Array[String] = []
+	var only: Array[String] = []
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--out="):
+			out = arg.trim_prefix("--out=")
+		elif arg.begins_with("--biomes="):
+			biomes.assign(arg.trim_prefix("--biomes=").split(","))
+		elif arg.begins_with("--daytimes="):
+			daytimes.assign(arg.trim_prefix("--daytimes=").split(","))
+		elif arg.begins_with("--only="):
+			only.assign(arg.trim_prefix("--only=").split(","))
+	DirAccess.make_dir_recursive_absolute(out)
+	main.fog_of_war.set_fog_enabled(false)
+	main.hud.visible = false
+	var quarter: Vector3 = _points["quarter"]
+	var block: Vector3 = _points["block"]
+	var views: Array[Dictionary] = []
+	# The street in front of the long block (its entrance side).
+	var street := Vector3(block.x, 0.0, block.z + signf(block.z - quarter.z) * 10.0)
+	street.y = main.sim_host.height_at(street.x, street.z)
+	for d in BLOCK_DISTANCES:
+		views.append({"name": "quarter-%d" % int(d), "at": street if d < 100.0 else quarter, "distance": d,
+			"yaw": 0.5 if block.z > quarter.z else PI + 0.5})
+	views.append({"name": "compare-overview", "at": quarter, "distance": 160.0, "yaw": 0.6})
+	views.append({"name": "compare-near", "at": block, "distance": 45.0, "yaw": 2.4})
+	views.append({"name": "street-60", "at": street, "distance": 60.0, "yaw": 1.2})
+	# Line-ups south of the quarter, shown with the map objects hidden.
+	var lineup := Node3D.new()
+	lineup.name = "BlockLineup"
+	main.add_child(lineup)
+	var row := quarter + Vector3(-140.0, 0.0, 122.0)
+	var x := row.x
+	for id in BLOCK_IDS:
+		var x0 := x
+		for variant: String in ["Intact", "Damaged", "Ruin"]:
+			var node := _lineup_house(lineup, id, variant, 0.0, Vector3(x, 0.0, row.z))
+			x += _extent(node).x + 10.0
+		var at := Vector3((x0 + x - 10.0) * 0.5, row.y, row.z)
+		views.append({"name": "damage-%s" % id.trim_prefix("env_"), "at": at, "distance": 80.0, "yaw": 0.6})
+	var burning := _lineup_house(lineup, "env_block_desert_long", "Damaged", 0.6, Vector3(x + 5.0, 0.0, row.z))
+	for mesh in burning.find_children("*", "GeometryInstance3D", true, false):
+		mesh.set_meta(&"char", 0.6)
+	views.append({"name": "burnt", "at": burning.position, "distance": 60.0, "yaw": 0.6})
+	var i := 0
+	for condition: Array in BLOCK_CONDITIONS:
+		if not biomes.is_empty() and not condition[0] in biomes:
+			continue
+		if not daytimes.is_empty() and not condition[1] in daytimes:
+			continue
+		main.atmosphere.set_weather("clear", condition[1])
+		main.set_biome(condition[0])
+		for mesh in lineup.find_children("*", "GeometryInstance3D", true, false):
+			objects._apply_look(mesh as GeometryInstance3D)
+			mesh.set_instance_shader_parameter(&"env_char", mesh.get_meta(&"char", 0.0))
+		for view in views:
+			if not only.is_empty() and not view.name in only:
+				continue
+			var on_map: bool = not (view.name.begins_with("damage") or view.name == "burnt")
+			objects.set_objects_visible(on_map)
+			lineup.visible = not on_map
+			rig.snap_to(view.at, view.distance, view.yaw)
+			var name := "%s-%s-%s" % [condition[0], condition[1], view.name]
+			print("objects-shots: block view %d '%s'" % [i, name])
+			await _frames(SHOT_FRAMES * 2)
+			get_viewport().get_texture().get_image().save_png(out.path_join(name + ".png"))
+			i += 1
+	objects.set_objects_visible(true)
+
+
+func _block_fight() -> void:
+	var host: SimHost = main.sim_host
+	var rig: Node3D = main.camera_rig
+	var out := "build/block-fight"
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--out="):
+			out = arg.trim_prefix("--out=")
+	DirAccess.make_dir_recursive_absolute(out)
+	main.fog_of_war.set_fog_enabled(false)
+	_find_block_points()
+	var block: Vector3 = _points["block"]
+	var building := host.building_at(block.x, block.z)
+	var ids := host.unit_ids()
+	var owners := host.unit_owners()
+	var types := host.unit_type_ids()
+	host.set_hold_fire(PackedInt64Array(ids), true)
+	var squads: Array[int] = []
+	var tanks: Array[int] = []
+	var others: Array[int] = []
+	for i in ids.size():
+		if owners[i] != host.local_player():
+			continue
+		if types[i].contains("_inf_") and squads.is_empty():
+			squads.append(ids[i])
+		elif not types[i].contains("_inf_") and tanks.size() < 2:
+			tanks.append(ids[i])
+		else:
+			others.append(ids[i])
+	print("block-fight: building %d at %s, squad %s, tanks %s, others %d" % [building, block, squads, tanks, others.size()])
+	var away := signf(block.z - _points["quarter"].z)
+	var yaw := 0.4 if away > 0 else PI + 0.4
+	host.garrison_units(PackedInt64Array(squads), building)
+	host.move_units(PackedInt64Array(tanks), block.x + 30.0, block.z + away * 85.0)
+	# The others cross the quarter to the far side.
+	host.move_units(PackedInt64Array(others), 60.0, -away * 44.0)
+	Engine.time_scale = 3.0
+	var shot := 0
+	var condition := ""
+	var fired := false
+	for step in 1200:
+		await _frames(10)
+		var info: Dictionary = host.building_info(building)
+		var occupants: int = info.get("occupants", 0)
+		if not fired and occupants > 0 and step > 40:
+			host.set_hold_fire(PackedInt64Array(tanks), false)
+			host.attack_ground(PackedInt64Array(tanks), block.x, block.z)
+			fired = true
+		var now: String = info.get("condition", "")
+		var changed := now != condition
+		condition = now
+		if changed or step % 15 == 0:
+			var moving := step < 240 and step % 30 == 15
+			if moving and not others.is_empty():
+				var p := Vector3.ZERO
+				var n := 0
+				var positions := host.current_positions()
+				for i in ids.size():
+					if ids[i] in others and i < positions.size():
+						p += positions[i]
+						n += 1
+				rig.snap_to(p / maxf(n, 1), 70.0, 0.8)
+			else:
+				rig.snap_to(block, 75.0, yaw)
+			await _frames(4)
+			var name := "%03d-%s-occupants-%d" % [shot, "move" if moving else condition, occupants]
+			get_viewport().get_texture().get_image().save_png(out.path_join(name + ".png"))
+			print("block-fight: step %d %s, occupants %d" % [step, condition, occupants])
+			shot += 1
+		if condition == "ruin":
+			await _frames(60)
+			rig.snap_to(block, 45.0, yaw)
+			await _frames(20)
+			get_viewport().get_texture().get_image().save_png(out.path_join("%03d-ruin-near.png" % shot))
+			break
+	Engine.time_scale = 1.0
