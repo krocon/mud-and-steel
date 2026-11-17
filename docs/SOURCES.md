@@ -125,6 +125,25 @@ photos, no file names of them, no text except the short notes of the data tables
   sizes and times are judgement or from the source above, textures and
   shapes are generated in shaders.
 
+## Muzzle blast (prompt 077)
+
+- **Flash zones**: the intermediate flash appears about 20-25 calibers
+  before the muzzle of large guns, the secondary flash (re-ignited
+  propellant gas) beyond it as a large yellow-white fireball (Tony
+  DiGiulian, "Muzzle Flash", NavWeaps, History and Technology,
+  https://navweaps.com/index_tech/tech-090.php; Wikipedia "Muzzle flash"
+  for the phases, no sizes). The game's fire tongue is 40 calibers long (a
+  judged middle of the secondary flash, 3 m for 7.5 cm); no duration in
+  milliseconds was found in an accessible source, the times are judged so
+  the flash is seen for a few frames.
+- **Size of the cloud and dust**: a screenshot of another game served as a
+  reference for effect and size only (cloud 1.5-2 vehicle lengths, flat
+  brown dust); no cut-outs, textures or values from it.
+- **Recoil** 0.3-0.6 m for 7.5-12.2 cm guns and the hull's rocking are
+  judged orders of magnitude, not looked up per gun.
+- **Muzzle velocities** steer the tongue's length; they come from the
+  catalog (its own sources) through the simulation's shell speed.
+
 ## Infantry camouflage (prompt 042)
 
 The camouflage prints of the soldiers are procedural imitations by period

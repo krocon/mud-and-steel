@@ -164,8 +164,10 @@ What changed, by effect:
    MultiMesh instances, soldier nodes top-level (a moving squad does not
    drag its skeletons along). See [INFANTRY.md](INFANTRY.md#performance-prompt-022).
 3. **Vehicle models** (`unit_merge.gd`): static parts merged per unit type
-   into one hull and one turret mesh; emptied leaf parts freed. A Panzer IV
-   went from about 40 mesh nodes to 2 meshes; the shader instance-uniform
+   into one hull and one turret mesh (since prompt 077 a third for the
+   `Gun`, which recoils: +1-2 draw calls per gun vehicle, ~0.5 ms at "high"
+   on test_small); emptied leaf parts freed. A Panzer IV
+   went from about 40 mesh nodes to 2 meshes (3 with the gun); the shader instance-uniform
    buffer no longer overflows ("Too many instances using shader instance
    variables" with 250 tanks).
 4. **Per-frame scripts:** `combat_view` searched every unit's model for
@@ -214,7 +216,7 @@ is built once (`test_large`: 500 × 500 cells).
 | Path components after changes | Local flood fill around the changed cells, splits by interleaved flood fills, full labeling only for merges | Labels are compared for equality only and not hashed: the same partition is enough (randomized test against the full labeling). |
 | Unit grid | 64 m uniform grid, rebuilt before combat and before projectile flight, not state | Counting sort of 500 units costs microseconds; every query keeps the exact test of the old loop; candidates in index order where the order matters. |
 | Path and vision budgets | Unchanged (rule constants) | Changing them changes behavior and the golden hash; only the work per node may get faster. |
-| Vehicle models | Static parts merged per unit type (hull and turret, one surface per material), automatic LODs | 30–50 parts per tank were 30–50 draw calls per pass and overflowed the shader instance-uniform buffer with 250 tanks. Only the turret moves. |
+| Vehicle models | Static parts merged per unit type (hull, turret and gun, one surface per material), automatic LODs | 30–50 parts per tank were 30–50 draw calls per pass and overflowed the shader instance-uniform buffer with 250 tanks. Only the turret and the gun (recoil, raised barrels: prompt 077) move. |
 | Infantry far away | Squad culling and throttling in GDScript, no vertex animation textures yet | Removes most of the script and skeleton work without a baking pipeline. |
 | CI | Ubuntu job `bench`, `continue-on-error`, table in the job summary | Shared runners are too noisy for hard limits. |
 

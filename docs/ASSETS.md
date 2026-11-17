@@ -195,8 +195,10 @@ and vertex colors.
 used. The budgets above keep LOD0 small already, and at medium zoom a tank covers
 60–100 px, where the automatic LODs remove most triangles. No own LOD meshes for
 now. At run time the static parts of a vehicle are merged per unit type into
-one mesh for the hull and one for the turret (`godot/scenes/world/unit_merge.gd`,
-prompt 016): a tank was 30–50 draw calls per pass. Parts keep their names and
+one mesh for the hull, one for the turret and one for the `Gun` (it recoils
+and raises its barrel since prompt 077; `godot/scenes/world/unit_merge.gd`,
+prompt 016): a tank was 30–50 draw calls per pass. Whether a gun has a
+muzzle brake is read from the width of its muzzle in the mesh (prompt 077). Parts keep their names and
 transforms as empty nodes, so sockets and the turret still work; tools that
 inspect models (gallery, validation) see the unmerged scene.
 

@@ -3244,8 +3244,8 @@ effect is read back. No Rust code was needed: everything comes from
 
 | Trigger | Effect |
 |---|---|
-| `shot`, caliber ≥ 20 mm | Muzzle flash at the model's nearest `Socket_Muzzle*` (fallback: the simulation's muzzle), white powder smoke along the aim, a light flash; from 37 mm dust blown off the ground in front of the muzzle |
-| `shot`, small arms | A small flash only |
+| `shot`, caliber ≥ 20 mm | The muzzle blast of prompt 077 (below) at the main gun's `Socket_Muzzle` along the real barrel (fallback: the simulation's muzzle and aim): core, fire tongue, glowing gas, powder smoke, side blasts of muzzle brakes, ground dust by terrain, a warm light; the gun recoils and the hull rocks; the tracer starts at the socket |
+| `shot`, small arms | A small flash at the nearest machine-gun socket (`Socket_Muzzle_NN`) |
 | `shot` of indirect fire from a unit whose model has `Socket_Rocket_NN` (vehicle launchers, the strike's battery position) | The rocket salvo of prompt 076 (`rocket_effects.gd`, below): the next rail's socket in turn, a flare, back blast and ground dust, the position's light and haze; the shell is drawn as a rocket with flame and smoke trail |
 | `hit` on the ground | From 37 mm (prompt 072): a core flash, a fan of dark earth streaks, clods, a cloud of earth lumps that rises and greys (tinted by terrain and biome), sparks, a light flash and a scorch decal; below 37 mm clods and a dust column; water: spray; small arms: a dust puff |
 | `hit` on a unit | Sparks and a light flash; a penetration adds a small burst of fire and smoke |
@@ -3370,8 +3370,6 @@ and a burning wreck.
   still uses the ground-hit effect (earth fountain, dust, scorch decal),
   there is no extra crater decal.
 - Sound hooks into the same events since prompt 029 (see [Audio](#audio-presentation-only)).
-- Tracers could start at the muzzle socket; projectile ids are not in the
-  per-projectile arrays yet.
 - Smoke does not block line of sight; smoke shells and screens are game
   rules for later prompts.
 
@@ -3578,6 +3576,149 @@ time, and the haze over the position is thinner (comparison picture:
 checked in picture series, not in a recording with sound;
 the demo video (`prompts/periodic/070-youtube-demo-video.md`) needs a new
 recording for a shot with a strike. [provisional] all values.
+
+### Muzzle blast (prompt 077)
+
+A screenshot of another game (two tanks firing over a meadow, outside the
+repository) served as a reference for **effect and size only**, as in
+prompts 072 and 076: no cut-outs, textures or values; all textures are
+generated, sizes are real meters (sources: docs/SOURCES.md "Muzzle blast").
+Code: `effects.gd` (`_shot`, `muzzle_flash`, `_muzzle_dust`, guns),
+`effect_library.gd` (kinds `muzzle_core`, `muzzle_tongue`, `muzzle_gas`,
+`muzzle_dust`, `powder`), `effect_textures.gd` (`tongue()`),
+`unit_merge.gd` (gun mesh, muzzle brake), `combat_view.gd` (tracers).
+
+**Layers** (values for scale 1 = 7.5 cm; scale = caliber / 75 mm within
+0.25 to 2.2, before 0.4 to 1.6):
+
+| Layer | How | Values (source) |
+|---|---|---|
+| Core | additive ball at the muzzle, HDR into the glow, drawn over the gas | 2.4 m, 0.07 s (2-4 frames at 60 fps); never culled by LOD: at least 5 px on screen from any distance (it shows who fires) |
+| Fire tongue | 5 flame quads that fly out along the barrel and stretch along their flight (`streak_add`: additive, aligned to the velocity), white-yellow to orange | 3 m (40 calibers; the intermediate flash stands at 20-25 calibers, NavWeaps), 0.1 s; × v / 750 m/s of the shell (0.65-1.35: a 7.5 cm L/24 short, a 8.8 cm L/71 long; the shell speed of the simulation / time factor 2) |
+| Glowing gas | 9 billows thrown forward and stopped hard (`glow_billow`: unshaded atlas billows), white-hot, then pale; dimmed at dusk (× 0.75) and night (× 0.45) | ~9 m long, ~3 m thick (the reference: 1.5-2 vehicle lengths, one vehicle width), 0.55 s; off on "low" |
+| Powder smoke | 10 pale puffs along the barrel (1-7 m), lit, drifting with the wind | 3 s, opacity at most 0.38 (units stay visible through it) |
+| Side blasts | muzzle brakes: a tongue (0.35 of the length) and gas (0.45) to each side, slightly forward | off on "low" |
+| Ground dust | `muzzle_dust` fanned ahead of a level barrel 1.5 m in front of the muzzle; a raised barrel (> 20°) throws `blast_dust` all round the gun | the ground colour mixed 40 % with light beige; amount by the dust-trail strength of the terrain (sand and tracks much, grass little, roads hardly; snow powder; water 0.8: mist); less from higher muzzles; 2.6 s |
+| Light | the shared flash lights, warm, 1.5 m ahead of the muzzle | energy 4, range 9 m × (0.5 + 0.5 scale), 0.08 s; × the daytime factors of `blast_effects.gd` (night × 3, range × 1.45) |
+| Tracer | the drawn shell is shifted from the simulation's muzzle to the socket by an offset that fades over 40 m of flight (`SimHost.projectile_ids`, bridge only); its tail never reaches back behind the muzzle | — |
+| Shake | as before, × class | 0.08 × scale |
+
+**Classes** (`MUZZLE_CLASSES`, factors on core, tongue, gas, smoke, dust,
+light, shake, recoil, rocking):
+
+| Class | When | Look |
+|---|---|---|
+| autocannon | direct fire, 20 to < 40 mm | every round of a burst: core × 1.4, small tongue, little gas and smoke (0.35), no dust, no shake |
+| gun | 40 to < 85 mm | as above |
+| heavy | from 85 mm | tongue × 1.1, gas × 1.15, smoke × 1.2, dust × 1.3, light × 1.3 |
+| howitzer | indirect fire (`weapon` 255) from a model with a `Gun` | tongue × 0.55, gas × 1.25, smoke × 1.6, dust × 1.6 (all round) |
+| mortar | indirect fire from a squad, a model without `Gun` or a barrel modeled steeply (muzzle well above the trunnion: Granatwerfer 42, PM-38) | core × 0.6, no tongue, a puff of gas and smoke |
+
+Rockets (`Socket_Rocket_NN`, prompts 062 and 076) never get a gun's blast:
+with the rocket effects off (bench comparison) they keep the small flash of
+before. Small arms below 20 mm are unchanged.
+
+**Direction.** The blast points along the real barrel: from the `Gun`
+node's origin (the trunnion) to its `Socket_Muzzle` (the socket's -Z if the
+socket is not on the gun); without a socket the simulation's projectile
+velocity, else the aim yaw. Cannon rounds take the main gun's
+`Socket_Muzzle` (within 6 m of the simulation's muzzle), small arms the
+machine guns' sockets: before, the nearest socket was taken, and the
+simulation's muzzle is often nearer to the bow MG, so the flash of a
+Panzer IV's gun came out of its hull MG.
+
+**Raised barrels.** An indirect shot raises the `Gun` to the shell's launch
+elevation (its velocity in `shell_velocities`; if the shell shows up only in
+a later snapshot, the barrel follows at 12°/s). It stays raised 25 s after
+the last round or until the unit moves, then sinks at 12°/s. Models are
+built with level barrels; the first round of a laid gun snaps up with the
+flash.
+
+**Recoil and rocking.** `unit_merge.gd` now merges the parts of the `Gun`
+into one mesh on the `Gun` node (+1-2 draw calls per gun vehicle), so the
+gun can move: it runs back 0.005 m per mm of caliber (at most 0.6 m;
+judged from real recoil lengths of 0.3-0.6 m) in 0.05 s and forward again in
+0.7 s; the mantlet is part of the gun's mesh and moves with it (accepted:
+hardly visible from the game camera). The hull (`Model` node) rocks about
+the horizontal axis across the shot, muzzle side up first: 0.8° × scale,
+1.6 Hz, decaying in 0.35 s. Only the `Gun` and `Model` nodes move; the unit
+node, which the simulation, the selection and the turret aim use, stays.
+Kill rings (`veterancy_view.gd`) and sockets hang on the gun and move with
+it. `effects.recoils` counts recoils (self-test).
+
+**Muzzle brakes.** No new data path: the kit (tools/blender/kit/weapons.py)
+builds a brake 1.6-1.9 barrel radii wide (double baffle), 1.7 (single), a
+slotted one 1.35 and a thread protector 1.15. `UnitMerge.has_muzzle_brake`
+compares the widest vertex within 0.45 m of the muzzle face with the
+narrowest ring of vertices 0.1-1.5 m behind it; a ratio above 1.45 is a
+brake (once per type, `model.get_meta(&"muzzle_brake")`). Of the 31
+models whose blueprint has a double or single baffle brake it finds 29
+(Panzer IV F2-J, Tiger, Tiger II, Panther, Elefant, Nashorn, Marder, leFH
+18, IS-2, IS-3, M26, M36, ...); it misses StuG III G and Marder III
+(Sd.Kfz. 139), and it reports four models without a brake: the two mortars
+(mortar class: no side blasts), the Panzerbefehlswagen's dummy gun and the
+T-27's MG mount. Slotted brakes and flash hiders (ZiS-3, SU-152, Bofors)
+count as none (judged: no visible side blasts).
+
+**Budget.** New pools at "high": `muzzle_core` 24, `muzzle_tongue` 40,
+`muzzle_gas` 32, `muzzle_dust` 40 (× `fx_pools`); `powder` keeps 40, so at
+40 shots a second the oldest powder smoke is cut short after ~1 s.
+`fx_muzzle_detail` (`graphics_quality.gd`): "low" leaves out the glowing gas
+and the side blasts. LOD as for every burst, except the core. Fog of war:
+every layer starts only at visible points (`visible_at`).
+
+**Tools.** `just muzzle-shots [dir] [--only=<run>,…]`
+(`tools/muzzle-series.sh`, `effects_bench.gd --muzzle-series`, 30 fps
+fixed): one own unit gets the model of each class in turn and fires; every
+frame of the first half second, then four pictures a second to 4 s, tile
+sheets around the muzzle (`<dir>/sheet_<run>.png`): the reference view
+(8.8 cm, obliquely from above) beside the reference picture if it is in
+`.temp/` (`compare_<ms>.png`), 2 cm (a burst of five), 3.7, 7.5, 7.62 cm
+without brake, 8.8, 12.2 cm, the 12.2 cm M-30 firing indirectly with a
+raised barrel, 7.5 cm at 15, 110 and 350 m, 8.8 cm at dusk and night,
+7.5 cm in desert and winter; last a real fight of both sides recorded as
+`<dir>/battle.mp4` (every third frame; real shells: tracers, recoil).
+`just effects-bench -- --muzzles` measures 40 cannon shots a second (round
+robin over every vehicle of the map, 3.7 to 12.2 cm, plus two 2 cm
+autocannons at 10 rounds a second) from 150 m and 60 m.
+
+**Measurements** (`just effects-bench --muzzles`, 17.11.2026, 1920 × 1080,
+Apple M1 Max, V-Sync off, debug bridge, forest, test_small), before → after,
+back to back (two runs each):
+
+| Level | Idle, 150 m | 40 shots/s, 150 m | 40 shots/s, 60 m | Draw calls idle |
+|---|---|---|---|---|
+| low | 183-193 → 189-192 FPS | 180-184 → 184-187 FPS | 178-184 → 162-179 FPS | 465 → 483 |
+| medium | 122-123 → 123 FPS | 115-119 → 115-121 FPS | 132 → 133 FPS | 661 → 687 |
+| high | 68 → 65-66 FPS | 65 → 63-64 FPS | 84 → 84 FPS | 661 → 687 |
+
+"High" stays above 60 FPS with 40 shots a second; the idle frame costs
+~0.5 ms more since the guns are meshes of their own (+26 draw calls on
+test_small), the blasts themselves ~0.1-0.2 ms at 150 m. The full
+`just effects-bench` (all views one after the other; units destroyed by the
+barrages and salvos differ from run to run, so its later views are noisy)
+before → after, high: idle 64 → 67 FPS, 50 explosions at 150 m 57 → 55, at
+60 m 64 → 63, + 24 wrecks 55 → 54, 40 shots/s at 150 m 60 → 58 (with the
+wrecks of the views before), at 60 m 82 → 79; low and medium stay above 98
+FPS. A first full run after the change gave high 54 / 51 / 51 / 44 FPS (draw
+calls +100 from more burning wrecks); the repeat matched the run before, so
+it was counted as an outlier. "High" with 50 explosions stays below 60 FPS,
+as before prompt 077 [open].
+
+**Open:** the mantlet recoils with the barrel (one mesh in the kit; a
+`Barrel` node of its own would need new exports); muzzle brakes read from
+the geometry miss two models and add two dummy guns (above), slotted
+brakes get no side blasts (a `muzzle_brake` property on the socket in the
+kit would be exact, but needs every model exported again); the first round of a howitzer snaps its barrel up; models without a
+`Gun` (some casemates, aircraft) only get the blast, no recoil; the
+reference's dust behind the firing tank (track dust of a moving tank) is
+the dust trail of prompt 019, not part of the blast; machine guns and small
+arms, ejected cases, smoke from the breech or the open fighting
+compartment, grass pressed down by the blast (prompt 073), a sound of
+their own (prompt 069) are not part of this prompt; the demo video
+(`prompts/periodic/070-youtube-demo-video.md`) still shows the old muzzle
+flash and needs new recordings. [provisional] all sizes, times and
+classes.
 
 ## Audio (presentation only)
 

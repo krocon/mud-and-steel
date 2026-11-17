@@ -202,3 +202,17 @@ Als offene Punkte notieren, nicht umsetzen:
 - **Ton** des Abschusses (Prompt 069 ist erledigt).
 - **Ausgeworfene Hülsen, Rauch aus dem Verschluss, Qualm im offenen Kampfraum.**
 - **Gras, das unter dem Druck niedergedrückt wird** (hängt an Prompt 073).
+
+## Entscheidungen (autonom, Nachtlauf 17.11.2026)
+
+Der Prompt hat keine offenen Fragen; diese Urteile wurden ohne Rückfrage getroffen (vorläufig):
+
+| Frage | Entscheidung |
+|---|---|
+| Größe gegen Vorlage oder Wirklichkeit | Feuerzunge 1:1 nach Quelle (40 Kaliber, 3 m bei 7,5 cm), Gaswolke nach Vorlage (~9 m bei Maßstab 1, 1,5–2 Fahrzeuglängen bei schweren Kanonen) |
+| Mündungsgeschwindigkeit | steuert die Länge der Feuerzunge (× v/750 m/s, 0,65–1,35), aus der Geschossgeschwindigkeit der Simulation / Zeitfaktor 2 |
+| Mündungsbremse | aus der Breite der Mündung im Gun-Mesh (kein neuer Datenweg); geschlitzte Bremsen und Feuerdämpfer zählen nicht |
+| Rücklauf | `Gun` wird ein eigenes Mesh (+1–2 Draw Calls je Geschützfahrzeug); die Blende fährt mit zurück |
+| Rohrerhöhung | nur beim indirekten Feuer, aus der Abschusselevation der Granate; der erste Schuss stellt das Rohr sofort |
+| „low“ | ohne glühende Gaswolke und Seitenstöße (`fx_muzzle_detail`) |
+| Bildreihe | eigenes Rezept `just muzzle-shots` statt `effects-shots`; Auswahl der Kombinationen statt des vollen Kreuzprodukts |
