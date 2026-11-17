@@ -26,6 +26,7 @@ check:
     cargo clippy -p cli --features steam --all-targets -- -D warnings
     cargo nextest run --workspace
     python3 tools/vehicle_refs.py --check
+    python3 -I tools/geo_import.py check assets-src/geo/harbor_city/site.json
 
 # Format all Rust code
 [group('rust')]
@@ -339,6 +340,16 @@ gen-village:
 gen-land map="all":
     cargo run -q --release -p cli -- gen-land --map {{ map }}
 
+# Generate a map from real geodata (prompt 081) into data/maps/<site>/ from assets-src/geo/<site>/ (OpenStreetMap + elevation model; docs/MAPS.md); `--report DIR` also writes pictures of the stages
+[group('maps')]
+gen-geo site="harbor_city" *args:
+    python3 -I tools/geo_import.py generate assets-src/geo/{{ site }}/site.json {{ args }}
+
+# Check that a geodata map regenerates identically (twice, and as committed); part of `just check`
+[group('maps')]
+gen-geo-check site="harbor_city":
+    python3 -I tools/geo_import.py check assets-src/geo/{{ site }}/site.json
+
 # Fire benchmark (prompt 041): ticks without and with a burning wood, terrace and dumps on the town map; on city_large (prompt 079) a burning block cell
 [group('maps')]
 fire-bench units="40" ticks="6000" map="town_small":
@@ -353,6 +364,11 @@ map-info name="test_large":
 [group('maps')]
 map-check name="test_small":
     cargo run -q --release -p cli -- map-check data/maps/{{ name }}
+
+# Reachability of a map (prompt 081): land open to vehicles, to infantry only, to nobody; connected parts; where starts and markers lie; e.g. `just map-reach harbor_city build/reach.png`
+[group('maps')]
+map-reach name="test_small" png="":
+    cargo run -q --release -p cli -- map-reach data/maps/{{ name }} {{ if png != "" { "--png " + png } else { "" } }}
 
 # Build the bridge and open the map editor (prompt 028); args e.g. --edit=test_small
 [group('maps')]

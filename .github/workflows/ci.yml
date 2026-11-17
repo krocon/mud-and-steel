@@ -62,6 +62,13 @@ jobs:
         if: runner.os == 'Linux'
         run: python3 tools/vehicle_refs.py --check
 
+      # Map from real geodata (prompt 081): generated twice from the
+      # sources in assets-src/geo/, identical, and equal to the committed
+      # map. Plain Python 3.
+      - name: Geodata map
+        if: runner.os == 'Linux'
+        run: python3 -I tools/geo_import.py check assets-src/geo/harbor_city/site.json
+
   # Performance (prompt 016, docs/PERFORMANCE.md): the overall benchmark on
   # one runner. Informational only: shared CI machines are too noisy for a
   # hard limit, so this job never blocks a merge. The table lands in the

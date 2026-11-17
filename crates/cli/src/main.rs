@@ -16,6 +16,7 @@ mod gen_town;
 mod gen_village;
 mod infantry_bench;
 mod lan;
+mod map_reach;
 mod mission_po;
 mod path_bench;
 mod save_bench;
@@ -194,6 +195,17 @@ enum CliCommand {
     MapCheck {
         /// Map folder, e.g. data/maps/test_small.
         dir: PathBuf,
+    },
+    /// Reachability of a map (prompt 081): shares of the land open to
+    /// vehicles, to infantry only and to nobody, connected parts, and the
+    /// part every start and marker lies in; optionally a picture (one pixel
+    /// per 4 m path cell).
+    MapReach {
+        /// Map folder, e.g. data/maps/harbor_city.
+        dir: PathBuf,
+        /// Write the picture here (PNG).
+        #[arg(long)]
+        png: Option<PathBuf>,
     },
     /// Benchmarks pathfinding: many units with simultaneous path requests.
     PathBench {
@@ -750,6 +762,13 @@ fn main() {
             }
         }
         CliCommand::MapInfo { dir } => map_info(&dir),
+        CliCommand::MapReach { dir, png } => {
+            let map = load_map_dir(&dir).unwrap_or_else(|e| fail(&e));
+            match map_reach::run(&dir, &map, png.as_deref()) {
+                Ok(report) => print!("{report}"),
+                Err(e) => fail(&e),
+            }
+        }
         CliCommand::PathBench {
             map,
             units,

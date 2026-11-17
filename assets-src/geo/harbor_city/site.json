@@ -1,0 +1,317 @@
+{
+  "name": "harbor_city",
+  "sources": {
+    "bbox_deg": [
+      "43.712",
+      "7.392",
+      "43.768",
+      "7.462"
+    ],
+    "osm_query": "[out:json][timeout:180][bbox:43.712,7.392,43.768,7.462];\n(\n  way[building];\n  relation[building];\n  way[highway];\n  way[natural];\n  relation[natural];\n  way[landuse];\n  relation[landuse];\n  way[leisure];\n  relation[leisure];\n  way[man_made~\"^(pier|breakwater|quay|groyne)$\"];\n  way[amenity~\"^(place_of_worship|townhall)$\"];\n  way[waterway];\n);\nout geom;\n",
+    "osm_endpoint": "https://overpass-api.de/api/interpreter",
+    "osm_retrieved": "2026-11-17T18:25Z",
+    "dem_url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N43_00_E007_00_DEM/Copernicus_DSM_COG_10_N43_00_E007_00_DEM.tif",
+    "dem_retrieved": "2026-11-17T18:25Z"
+  },
+  "map": {
+    "biome": "forest",
+    "water_flow_deg": 180
+  },
+  "frame": {
+    "center_deg": [
+      "43.73994",
+      "7.41973"
+    ],
+    "x_axis_bearing_deg": 37,
+    "size_m": [
+      3600,
+      2400
+    ]
+  },
+  "elevation": {
+    "opening_px": 2,
+    "opening_keep_m": 3.0,
+    "blur_radius": 4,
+    "blur_passes": 2,
+    "roof_factor": 1.0,
+    "default_building_m": 15.0
+  },
+  "coast": {
+    "sea_seeds_m": [
+      [
+        0,
+        1190
+      ],
+      [
+        1700,
+        1190
+      ],
+      [
+        -1700,
+        1190
+      ]
+    ],
+    "min_width_m": 8,
+    "beach_reach_m": 20,
+    "shallow_rings": 3,
+    "bed_m": [
+      -0.8,
+      0.35,
+      -6.0
+    ],
+    "beach_m": [
+      0.2,
+      0.2
+    ],
+    "quay_m": 1.2,
+    "land_min_m": 1.0
+  },
+  "roads": {
+    "classes": {
+      "motorway": [
+        14,
+        "road"
+      ],
+      "trunk": [
+        14,
+        "road"
+      ],
+      "primary": [
+        14,
+        "road"
+      ],
+      "secondary": [
+        12,
+        "road"
+      ],
+      "tertiary": [
+        10,
+        "road"
+      ],
+      "unclassified": [
+        8,
+        "road"
+      ],
+      "residential": [
+        8,
+        "road"
+      ],
+      "living_street": [
+        8,
+        "road"
+      ],
+      "motorway_link": [
+        8,
+        "road"
+      ],
+      "trunk_link": [
+        8,
+        "road"
+      ],
+      "primary_link": [
+        8,
+        "road"
+      ],
+      "secondary_link": [
+        8,
+        "road"
+      ],
+      "tertiary_link": [
+        8,
+        "road"
+      ],
+      "track": [
+        6,
+        "dirt_track"
+      ]
+    },
+    "stub_m": 25,
+    "fragment_m": 80,
+    "simplify_m": 4,
+    "bank_reach_m": 14,
+    "bank_grade": 0.4,
+    "merge_gap_m": 12,
+    "bed_smooth_passes": 3,
+    "along_smooth_points": 0
+  },
+  "areas": {
+    "min_area_m2": 1500,
+    "square_min_m2": 300
+  },
+  "pads": [
+    {
+      "name": "start_0",
+      "center_m": [
+        -1470,
+        540
+      ],
+      "radius_m": 34,
+      "blend_m": 30,
+      "reserve_m": 80
+    },
+    {
+      "name": "start_1",
+      "center_m": [
+        1560,
+        720
+      ],
+      "radius_m": 34,
+      "blend_m": 30,
+      "reserve_m": 80
+    },
+    {
+      "name": "start_2",
+      "center_m": [
+        -1290,
+        800
+      ],
+      "radius_m": 34,
+      "blend_m": 30,
+      "reserve_m": 80
+    },
+    {
+      "name": "start_3",
+      "center_m": [
+        880,
+        640
+      ],
+      "radius_m": 34,
+      "blend_m": 30,
+      "reserve_m": 80
+    }
+  ],
+  "starts": [
+    {
+      "player": 0,
+      "team": 0,
+      "position_m": [
+        -1470,
+        540
+      ]
+    },
+    {
+      "player": 1,
+      "team": 1,
+      "position_m": [
+        1560,
+        720
+      ]
+    },
+    {
+      "player": 2,
+      "team": 0,
+      "position_m": [
+        -1290,
+        800
+      ]
+    },
+    {
+      "player": 3,
+      "team": 1,
+      "position_m": [
+        880,
+        640
+      ]
+    }
+  ],
+  "markers": [
+    [
+      "supply_harbor",
+      [
+        -330,
+        440
+      ]
+    ],
+    [
+      "supply_rock",
+      [
+        -520,
+        880
+      ]
+    ],
+    [
+      "supply_casino_square",
+      [
+        363,
+        560
+      ]
+    ],
+    [
+      "supply_upper_west",
+      [
+        -805,
+        29
+      ]
+    ],
+    [
+      "supply_upper_east",
+      [
+        521,
+        89
+      ]
+    ],
+    [
+      "supply_hinterland",
+      [
+        300,
+        -500
+      ]
+    ],
+    [
+      "west_flats",
+      [
+        -1150,
+        600
+      ]
+    ],
+    [
+      "rock",
+      [
+        -520,
+        880
+      ]
+    ],
+    [
+      "harbor",
+      [
+        -200,
+        600
+      ]
+    ],
+    [
+      "casino_square",
+      [
+        363,
+        560
+      ]
+    ],
+    [
+      "beach_east",
+      [
+        1250,
+        480
+      ]
+    ],
+    [
+      "upper_west",
+      [
+        -805,
+        29
+      ]
+    ],
+    [
+      "upper_east",
+      [
+        521,
+        89
+      ]
+    ],
+    [
+      "hinterland",
+      [
+        300,
+        -500
+      ]
+    ]
+  ]
+}
