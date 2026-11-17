@@ -1,0 +1,194 @@
+# SU-100 (1944-45) tank destroyer on the T-34-85 chassis (hull 6.10 m, running
+# gear of su_su85). Checked against the onwar.com drawing su021su100.jpg
+# (prompt 063; 156 px/m along, about 163 px/m up when the catalog height 2.25 m
+# is the cupola top): casemate from the nose back to 0.26 m behind the hull
+# center, roof 1.97 m, commander's cupola on the right front of the roof
+# (over the side bulge), 100 mm D-10S 0.19 m right of the center line, gun
+# axis 1.56 m, box fuel tanks on the rear fenders. No machine gun.
+unit = "su_su100"
+assembly = "casemate"
+
+[layout]
+fender_overhang = 0.03
+
+[running_gear]
+part = "christie"
+track_width = 0.50
+track_thickness = 0.04
+link_pitch = 0.172
+road_wheel_diameter = 0.83
+road_wheels = [1.67, 0.82, -0.02, -0.87, -1.71]
+sprocket = { y = -2.66, z = 0.62, diameter = 0.64, teeth = 6 }
+idler = { y = 2.64, z = 0.56, diameter = 0.60, spoked = false }
+dish = 0.04
+
+[hull]
+part = "plate_hull"
+lower = [[-2.78, 0.40], [2.42, 0.40], [3.05, 0.90], [-3.05, 0.90], [-3.05, 0.55]]
+# glacis up to the casemate base, flat engine deck, 47 deg rear plate
+upper = [[-3.05, 0.90], [3.05, 0.90], [2.31, 1.55], [-2.28, 1.55], [-3.05, 0.98]]
+upper_side_slope_deg = 35
+bevel = 0.02
+
+[casemate]
+part = "casemate"
+# fighting compartment over the front half; base outline at the deck height
+plan = [[-1.04, 2.31], [1.04, 2.31], [1.04, -0.26], [-1.04, -0.26]]
+side_slope_deg = 20
+front_slope_deg = 49
+rear_slope_deg = 0
+bevel = 0.02
+
+[cupola]                     # commander's cupola over the right-hand bulge
+x = 0.62
+y = 0.83
+diameter = 0.70
+height = 0.30
+vision_blocks = 5
+hatch = "single"
+parent = "Hull"
+
+[gun]
+part = "tank_gun"
+trunnion = [1.80, 1.56]      # model space: y, z
+x = 0.19                     # offset to the right as drawn
+mantlet = { kind = "ball", size = [0.72, 0.40, 0.68] }
+sleeve = [0.30, 0.13]
+segments = [["fit", 0.078, 0.066]]
+muzzle_brake = "none"
+
+[[part]]
+part = "hull_hatch"           # loader's hatch, left rear of the roof
+center = [-0.40, 0.10]
+z = "casemate"
+size = [0.55, 0.50]
+hinge = "rear"
+socket = true
+
+[[part]]
+part = "box_prop"             # gunner's periscope, left front of the roof
+center = [-0.38, 0.95, 1.99]
+size = [0.14, 0.18, 0.08]
+
+[[part]]
+part = "su.glacis_hatch"      # driver's hatch in the glacis, left
+x = -0.42
+y = 2.50
+size = [0.55, 0.55]
+
+[[part]]
+part = "box_prop"             # box fuel tanks on the rear fenders
+center = [-1.24, -0.80, 1.47]
+size = [0.45, 0.95, 0.50]
+
+[[part]]
+part = "box_prop"
+center = [-1.24, -1.83, 1.47]
+size = [0.45, 0.95, 0.50]
+
+[[part]]
+part = "box_prop"
+center = [1.24, -0.80, 1.47]
+size = [0.45, 0.95, 0.50]
+
+[[part]]
+part = "box_prop"
+center = [1.24, -1.83, 1.47]
+size = [0.45, 0.95, 0.50]
+
+[[part]]
+part = "deck_box"             # engine grille
+center = [0.0, -1.55]
+size = [1.1, 1.0, 0.05]
+
+[[part]]
+part = "exhaust"
+kind = "pipe"
+position = [-0.55, -2.97, 1.05]
+length = 0.16
+diameter = 0.16
+
+[[part]]
+part = "exhaust"
+kind = "pipe"
+position = [0.55, -2.97, 1.05]
+length = 0.16
+diameter = 0.16
+
+[[part]]
+part = "box_prop"             # rear transmission access hatch
+center = [0.0, -2.72, 1.20]
+size = [0.9, 0.06, 0.55]
+
+[[part]]
+part = "cylinder_prop"        # MDSh smoke canisters on the rear plate
+from = [-0.80, -2.92, 1.25]
+to = [-0.80, -3.10, 1.25]
+radius = 0.13
+
+[[part]]
+part = "cylinder_prop"
+from = [0.80, -2.92, 1.25]
+to = [0.80, -3.10, 1.25]
+radius = 0.13
+
+[[part]]
+part = "headlight"
+position = [-0.95, 2.55, 1.18]
+diameter = 0.2
+
+[[part]]
+part = "antenna"              # radio whip, left rear of the casemate
+position = [-0.90, -0.10, 1.80]
+length = 2.0
+
+[[part]]
+part = "tool"
+kind = "shovel"
+position = [1.35, 0.9, 0.95]
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 3.00, 0.80]
+pair = true
+socket = false
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -3.08, 0.70]
+pair = true
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -1.5, 1.60]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 0.6, 1.97]
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-0.95, 0.60, 1.75]
+normal = [-0.94, 0.0, 0.34]
+size = 0.40
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [0.95, 0.30, 1.75]
+normal = [0.94, 0.0, 0.34]
+size = 0.40
+
+[[part]]
+part = "marking"
+name = "Hull_Rear"
+kind = "number"
+position = [0.0, -0.27, 1.75]
+normal = [0.0, -1.0, 0.0]
+size = 0.35
+
+[validate]
+exclude_height = ["Hatch_*", "Antenna_*"]

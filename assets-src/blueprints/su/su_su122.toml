@@ -1,0 +1,172 @@
+# SU-122 (1943) assault howitzer on the T-34 chassis (hull 5.92 m as
+# su_t34_76_1943). Checked against the onwar.com drawing su022su122.jpg
+# (prompt 063): casemate from 1.75 m ahead of the hull center (deck height)
+# back to the hull center, front plate 49 deg from horizontal continuing the
+# 60 deg glacis, roof 2.10 m and the commander's periscope housing to the
+# catalog height 2.32 m (the drawing is about 158 px/m along, 169 px/m up).
+# 122 mm M-30S in a large rounded armored housing low in the front plate,
+# 0.17 m right of the center line; long cylindrical fuel tanks on the
+# sloped hull sides behind the casemate. No machine gun.
+unit = "su_su122"
+assembly = "casemate"
+
+[layout]
+fender_overhang = 0.03
+
+[running_gear]
+part = "christie"
+track_width = 0.50
+track_thickness = 0.04
+link_pitch = 0.172
+road_wheel_diameter = 0.83
+road_wheels = [1.62, 0.80, -0.02, -0.84, -1.66]
+sprocket = { y = -2.58, z = 0.62, diameter = 0.64, teeth = 6 }
+idler = { y = 2.56, z = 0.56, diameter = 0.60, spoked = false }
+dish = 0.04
+
+[hull]
+part = "plate_hull"
+lower = [[-2.70, 0.40], [2.35, 0.40], [2.96, 0.90], [-2.96, 0.90], [-2.96, 0.55]]
+# 60 deg glacis up to the casemate base, flat engine deck, 47 deg rear plate
+upper = [[-2.96, 0.90], [2.96, 0.90], [1.75, 1.55], [-2.20, 1.55], [-2.96, 0.98]]
+upper_side_slope_deg = 40
+bevel = 0.02
+
+[casemate]
+part = "casemate"
+plan = [[-1.04, 1.75], [1.04, 1.75], [1.04, -0.07], [-1.04, -0.07]]
+side_slope_deg = 20
+front_slope_deg = 41
+rear_slope_deg = 6
+bevel = 0.02
+
+[cupola]                      # commander's periscope housing (PTK), left
+x = -0.25
+y = 1.00
+diameter = 0.42
+height = 0.24
+vision_blocks = 3
+hatch = "single"
+parent = "Hull"
+
+[gun]
+part = "tank_gun"
+trunnion = [1.95, 1.59]       # model space: y, z
+x = 0.17
+mantlet = { kind = "saukopf", size = [0.70, 0.95, 0.64] }
+segments = [["fit", 0.085, 0.078]]
+muzzle_brake = "none"
+
+[[part]]
+part = "hull_hatch"           # round hatch, left of the roof
+center = [-0.25, 0.27]
+z = "casemate"
+size = [0.50, 0.50]
+hinge = "rear"
+socket = true
+
+[[part]]
+part = "hull_hatch"           # square hatch, right
+center = [0.30, 0.37]
+z = "casemate"
+size = [0.50, 0.55]
+hinge = "rear"
+
+[[part]]
+part = "su.glacis_hatch"      # driver's hatch in the glacis, left
+x = -0.42
+y = 2.40
+size = [0.55, 0.55]
+
+[[part]]
+part = "su.side_fuel_tanks"
+y = [-0.84, -1.86]
+x = 1.21
+z = 1.73
+diameter = 0.37
+length = 0.98
+
+[[part]]
+part = "deck_box"             # engine grille
+center = [0.0, -1.40]
+size = [1.1, 1.0, 0.05]
+
+[[part]]
+part = "exhaust"
+kind = "pipe"
+position = [-0.55, -2.96, 1.05]
+length = 0.18
+diameter = 0.16
+
+[[part]]
+part = "exhaust"
+kind = "pipe"
+position = [0.55, -2.96, 1.05]
+length = 0.18
+diameter = 0.16
+
+[[part]]
+part = "box_prop"             # rear transmission access hatch
+center = [0.0, -2.70, 1.20]
+size = [0.9, 0.06, 0.6]
+
+[[part]]
+part = "headlight"
+position = [-0.95, 2.45, 1.18]
+diameter = 0.2
+
+[[part]]
+part = "antenna"              # radio whip, right rear of the casemate
+position = [0.85, 0.10, 2.00]
+length = 2.0
+
+[[part]]
+part = "tool"
+kind = "shovel"
+position = [1.40, 0.9, 0.94]
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 2.80, 0.80]
+pair = true
+socket = false
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -2.98, 0.70]
+pair = true
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -1.4, 1.60]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 0.8, 2.05]
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-0.95, 0.80, 1.80]
+normal = [-0.94, 0.0, 0.34]
+size = 0.45
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [0.95, 0.80, 1.80]
+normal = [0.94, 0.0, 0.34]
+size = 0.45
+
+[[part]]
+part = "marking"
+name = "Hull_Rear"
+kind = "number"
+position = [0.0, -0.10, 1.80]
+normal = [0.0, -0.99, 0.10]
+size = 0.35
+
+[validate]
+exclude_height = ["Hatch_*", "Antenna_*"]
