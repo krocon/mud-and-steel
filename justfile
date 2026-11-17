@@ -216,6 +216,10 @@ vehicle-refs *args:
 vehicle-db:
     python3 tools/vehicle_refs.py --write --check
 
+# Compare a vehicle model with its references (prompt 063): orthographic side/front/top views at a fixed scale with dimension lines, a table model / data.json / catalog and the drawings of the reference folder, into build/renders/compare/<id>.png and .md (never committed)
+ref-compare id *args:
+    {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/ref_compare.py -- {{ id }} {{ args }}
+
 # Check the vehicle database against its schema, data/vehicles/index.json and the catalog (part of `just check`; needs no reference folder)
 [group('assets')]
 vehicle-db-check *args:

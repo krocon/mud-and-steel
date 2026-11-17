@@ -173,6 +173,7 @@ height 0 (minefields) give the marker height as `height_m` in the variant.
 | `just validate-assets` | checks every built model (below); exit code 1 on failure |
 | `just lineup` | renders all models in a row with the 1.80 m figure: `build/renders/lineup.png` |
 | `just kit-test` | smoke test of all parts |
+| `just ref-compare <id>` | prompt 063: side, front and top view of a vehicle model at a fixed scale (80 px/m) with dimension lines, a table model / data.json / catalog and the drawings of its reference folder: `build/renders/compare/<id>.png` and `.md` (never committed; without a model only table and drawings) |
 | `just import` | Godot import after new or rebuilt models (runs the import script) |
 | `just gallery` / `just gallery-check` | model gallery in Godot / its headless self-test |
 
