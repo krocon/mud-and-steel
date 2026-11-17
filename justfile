@@ -324,6 +324,11 @@ gen-town:
 gen-blocks:
     cargo run -q --release -p cli -- gen-blocks
 
+# Generate the large city map (prompt 079) into data/maps/city_large/: block quarter, suburb, land, 4 starts (winter)
+[group('maps')]
+gen-city *args:
+    cargo run -q --release -p cli -- gen-city {{ args }}
+
 # Generate the desert village map (prompt 059) into data/maps/desert_village/
 [group('maps')]
 gen-village:

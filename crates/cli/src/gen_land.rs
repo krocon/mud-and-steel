@@ -128,11 +128,11 @@ fn index(x: f64, y: f64) -> usize {
     c(y) * SAMPLES + c(x)
 }
 
-fn dist(a: (f64, f64), b: (f64, f64)) -> f64 {
+pub(crate) fn dist(a: (f64, f64), b: (f64, f64)) -> f64 {
     ((a.0 - b.0) * (a.0 - b.0) + (a.1 - b.1) * (a.1 - b.1)).sqrt()
 }
 
-fn smoothstep(edge0: f64, edge1: f64, x: f64) -> f64 {
+pub(crate) fn smoothstep(edge0: f64, edge1: f64, x: f64) -> f64 {
     let t = ((x - edge0) / (edge1 - edge0)).clamp(0.0, 1.0);
     t * t * (3.0 - 2.0 * t)
 }
@@ -141,7 +141,7 @@ fn smoothstep(edge0: f64, edge1: f64, x: f64) -> f64 {
 /// `(dx, dy)` in map coordinates (y south). Uses a polynomial arctangent
 /// (error below 0.3°) instead of `atan2`, whose last bit may differ between
 /// platforms.
-fn heading_of(dx: f64, dy: f64) -> u16 {
+pub(crate) fn heading_of(dx: f64, dy: f64) -> u16 {
     let (east, north) = (dx, -dy);
     let (ax, ay) = (east.abs(), north.abs());
     if ax == 0.0 && ay == 0.0 {
@@ -167,7 +167,7 @@ fn heading_of(dx: f64, dy: f64) -> u16 {
 }
 
 /// Smooth value noise in `0..1` with features of about `scale` meters.
-struct Noise {
+pub(crate) struct Noise {
     salt: u64,
     scale: f64,
 }
@@ -183,7 +183,7 @@ impl Noise {
         (z >> 11) as f64 / (1u64 << 53) as f64
     }
 
-    fn at(&self, x: f64, y: f64) -> f64 {
+    pub(crate) fn at(&self, x: f64, y: f64) -> f64 {
         let (fx, fy) = (x / self.scale + 1000.0, y / self.scale + 1000.0);
         let (x0, y0) = (fx.floor(), fy.floor());
         let (tx, ty) = (fx - x0, fy - y0);
@@ -200,14 +200,14 @@ impl Noise {
 }
 
 /// A road or track: a polyline with a half width and a terrain id.
-struct Way {
-    points: Vec<(f64, f64)>,
-    half: f64,
-    id: u8,
+pub(crate) struct Way {
+    pub(crate) points: Vec<(f64, f64)>,
+    pub(crate) half: f64,
+    pub(crate) id: u8,
 }
 
 impl Way {
-    fn new(points: &[(f64, f64)], half: f64, id: u8) -> Self {
+    pub(crate) fn new(points: &[(f64, f64)], half: f64, id: u8) -> Self {
         Self {
             points: points.to_vec(),
             half,
@@ -215,7 +215,7 @@ impl Way {
         }
     }
 
-    fn distance(&self, x: f64, y: f64) -> f64 {
+    pub(crate) fn distance(&self, x: f64, y: f64) -> f64 {
         self.points
             .windows(2)
             .map(|s| segment_distance((x, y), s[0], s[1]))
@@ -489,40 +489,59 @@ fn place_bridges(
 
 /// Axis-aligned box in meters.
 #[derive(Clone, Copy)]
-struct Rect {
-    x0: f64,
-    y0: f64,
-    x1: f64,
-    y1: f64,
+pub(crate) struct Rect {
+    pub(crate) x0: f64,
+    pub(crate) y0: f64,
+    pub(crate) x1: f64,
+    pub(crate) y1: f64,
 }
 
 const BUCKET_M: f64 = 16.0;
-const BUCKETS: usize = (SIZE_M as usize).div_ceil(16) + 1;
 
 /// Objects of a map: placed without overlaps, off roads, tracks and water.
-struct Objects<'a> {
+/// Shared with `gen_city` (prompt 079), which uses it on a larger map.
+pub(crate) struct Objects<'a> {
     rules: &'a ObjectRules,
     terrain: &'a [u8],
-    random: Random,
-    rows: Vec<String>,
+    pub(crate) random: Random,
+    pub(crate) rows: Vec<String>,
     rects: Vec<Rect>,
     buckets: Vec<Vec<usize>>,
+    /// Half the map size (m), samples per side and buckets per side.
+    half: f64,
+    samples: usize,
+    buckets_per_side: usize,
     /// Circles kept free of objects (starts, strongpoints).
-    reserved: Vec<((f64, f64), f64)>,
-    buildings: usize,
-    trees: usize,
-    other: usize,
+    pub(crate) reserved: Vec<((f64, f64), f64)>,
+    pub(crate) buildings: usize,
+    pub(crate) trees: usize,
+    pub(crate) other: usize,
 }
 
 impl<'a> Objects<'a> {
     fn new(rules: &'a ObjectRules, terrain: &'a [u8], seed: u64) -> Self {
+        Self::sized(rules, terrain, Random(Rng::new(seed ^ 0x6c61_6e64)), SIZE_M)
+    }
+
+    /// Objects of a map `size_m` wide with 2 m samples (`terrain` holds
+    /// `size_m / 2 + 1` samples per side).
+    pub(crate) fn sized(
+        rules: &'a ObjectRules,
+        terrain: &'a [u8],
+        random: Random,
+        size_m: u32,
+    ) -> Self {
+        let buckets_per_side = (size_m as usize).div_ceil(16) + 1;
         Self {
             rules,
             terrain,
-            random: Random(Rng::new(seed ^ 0x6c61_6e64)),
+            random,
             rows: Vec::new(),
             rects: Vec::new(),
-            buckets: vec![Vec::new(); BUCKETS * BUCKETS],
+            buckets: vec![Vec::new(); buckets_per_side * buckets_per_side],
+            half: f64::from(size_m) / 2.0,
+            samples: (size_m / 2 + 1) as usize,
+            buckets_per_side,
             reserved: Vec::new(),
             buildings: 0,
             trees: 0,
@@ -530,23 +549,25 @@ impl<'a> Objects<'a> {
         }
     }
 
-    fn terrain_at(&self, x: f64, y: f64) -> u8 {
-        self.terrain[index(x, y)]
+    pub(crate) fn terrain_at(&self, x: f64, y: f64) -> u8 {
+        let c = |v: f64| {
+            ((v + self.half) / CELL_M)
+                .round()
+                .clamp(0.0, (self.samples - 1) as f64) as usize
+        };
+        self.terrain[c(y) * self.samples + c(x)]
     }
 
-    fn bucket_range(r: &Rect) -> (usize, usize, usize, usize) {
-        let b = |v: f64| {
-            ((v + HALF) / BUCKET_M)
-                .floor()
-                .clamp(0.0, (BUCKETS - 1) as f64) as usize
-        };
+    fn bucket_range(&self, r: &Rect) -> (usize, usize, usize, usize) {
+        let last = (self.buckets_per_side - 1) as f64;
+        let b = |v: f64| ((v + self.half) / BUCKET_M).floor().clamp(0.0, last) as usize;
         (b(r.x0), b(r.y0), b(r.x1), b(r.y1))
     }
 
     /// Places an object unless it would overlap another one within
     /// `margin` m, leave the map, stand in a reserved circle or on a road,
     /// track or water. Returns whether it was placed.
-    fn place(
+    pub(crate) fn place(
         &mut self,
         kind: &str,
         variant: &str,
@@ -570,7 +591,7 @@ impl<'a> Objects<'a> {
             x1: x + hx,
             y1: y + hy,
         };
-        let limit = HALF - 3.0;
+        let limit = self.half - 3.0;
         if rect.x0 < -limit || rect.x1 > limit || rect.y0 < -limit || rect.y1 > limit {
             return false;
         }
@@ -602,10 +623,10 @@ impl<'a> Objects<'a> {
             x1: rect.x1 + margin,
             y1: rect.y1 + margin,
         };
-        let (i0, j0, i1, j1) = Self::bucket_range(&probe);
+        let (i0, j0, i1, j1) = self.bucket_range(&probe);
         for j in j0..=j1 {
             for i in i0..=i1 {
-                for &k in &self.buckets[j * BUCKETS + i] {
+                for &k in &self.buckets[j * self.buckets_per_side + i] {
                     let o = &self.rects[k];
                     if probe.x0 < o.x1 && o.x0 < probe.x1 && probe.y0 < o.y1 && o.y0 < probe.y1 {
                         return false;
@@ -615,10 +636,11 @@ impl<'a> Objects<'a> {
         }
         let id = self.rects.len();
         self.rects.push(rect);
-        let (i0, j0, i1, j1) = Self::bucket_range(&rect);
+        let (i0, j0, i1, j1) = self.bucket_range(&rect);
+        let per_side = self.buckets_per_side;
         for j in j0..=j1 {
             for i in i0..=i1 {
-                self.buckets[j * BUCKETS + i].push(id);
+                self.buckets[j * per_side + i].push(id);
             }
         }
         self.rows.push(format!(
@@ -637,19 +659,19 @@ impl<'a> Objects<'a> {
         true
     }
 
-    fn pick<'k>(&mut self, list: &[&'k str]) -> &'k str {
+    pub(crate) fn pick<'k>(&mut self, list: &[&'k str]) -> &'k str {
         let i = (self.random.unit() * list.len() as f64) as usize;
         list[i.min(list.len() - 1)]
     }
 
-    fn heading(&mut self) -> u16 {
+    pub(crate) fn heading(&mut self) -> u16 {
         (self.random.unit() * 360.0) as u16 % 360
     }
 
     /// Houses along an axis-aligned street from `a` to `b` on one side
     /// (`side` +1: east or south of it, -1: west or north), long side
     /// along the street, doors (model +X) towards it.
-    fn street(
+    pub(crate) fn street(
         &mut self,
         (a, b): ((f64, f64), (f64, f64)),
         side: f64,
@@ -703,7 +725,7 @@ impl<'a> Objects<'a> {
 
     /// A garden behind a house: woodpile or hay, a fence along the back,
     /// a few fruit trees.
-    fn garden(
+    pub(crate) fn garden(
         &mut self,
         (x, y): (f64, f64),
         (dx, dy): (f64, f64),
@@ -772,7 +794,13 @@ impl<'a> Objects<'a> {
     /// east (doors west), a shed or second house north, hay ricks, firewood,
     /// crates and barrels; a fence or wall around. Returns the number of
     /// buildings placed.
-    fn farmstead(&mut self, c: (f64, f64), g: &Garden, house: &str, damaged: bool) -> usize {
+    pub(crate) fn farmstead(
+        &mut self,
+        c: (f64, f64),
+        g: &Garden,
+        house: &str,
+        damaged: bool,
+    ) -> usize {
         let variant = if damaged { "Damaged" } else { "Intact" };
         let mut n = 0;
         n += usize::from(self.place(house, "Intact", (c.0 - 13.0, c.1 - 2.0), 0, 0.5));
@@ -844,7 +872,7 @@ impl<'a> Objects<'a> {
 
     /// Trees on a jittered grid of `spacing` m wherever `inside(x, y)`,
     /// keeping 6 m off roads and tracks.
-    fn wood(
+    pub(crate) fn wood(
         &mut self,
         stands: &[(&str, &[&str])],
         spacing: f64,
@@ -888,7 +916,7 @@ impl<'a> Objects<'a> {
 
     /// A hedgerow 5.5 m beside a way on both sides, segments 2.7 m apart,
     /// in runs of 30-120 m with gaps of 10-20 m (wide enough for tanks).
-    fn hedgerows(&mut self, way: &Way, offset: f64) {
+    pub(crate) fn hedgerows(&mut self, way: &Way, offset: f64) {
         for side in [-1.0, 1.0] {
             let mut gap_left = self.random.range(0.0, 20.0);
             let mut run_left = 0.0;
@@ -925,7 +953,7 @@ impl<'a> Objects<'a> {
     }
 
     /// Haystacks in groups in a field around `c`.
-    fn hay_field(&mut self, c: (f64, f64), count: usize) {
+    pub(crate) fn hay_field(&mut self, c: (f64, f64), count: usize) {
         for _ in 0..count {
             let p = (
                 c.0 + self.random.range(-35.0, 35.0),
@@ -945,7 +973,7 @@ impl<'a> Objects<'a> {
     }
 
     /// Telegraph poles every 45 m beside a way.
-    fn poles(&mut self, way: &Way, offset: f64) {
+    pub(crate) fn poles(&mut self, way: &Way, offset: f64) {
         for s in way.points.windows(2) {
             let (a, b) = (s[0], s[1]);
             let len = dist(a, b);
@@ -966,10 +994,10 @@ impl<'a> Objects<'a> {
 }
 
 /// What gardens and farmsteads of a map grow.
-struct Garden<'a> {
-    tree_kind: &'a str,
-    trees: &'a [&'a str],
-    fence: &'a str,
+pub(crate) struct Garden<'a> {
+    pub(crate) tree_kind: &'a str,
+    pub(crate) trees: &'a [&'a str],
+    pub(crate) fence: &'a str,
 }
 
 /// The start positions: player, team, x, y (m).
@@ -1001,7 +1029,7 @@ struct Meta {
     markers: Vec<(String, (f64, f64))>,
 }
 
-fn noise(seed: u64, salt: u64, scale: f64) -> Noise {
+pub(crate) fn noise(seed: u64, salt: u64, scale: f64) -> Noise {
     Noise {
         salt: seed.wrapping_mul(0x2545_f491_4f6c_dd1d) ^ salt,
         scale,

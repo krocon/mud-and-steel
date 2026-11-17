@@ -8,6 +8,7 @@ mod crater_bench;
 mod duel;
 mod fire_bench;
 mod gen_blocks;
+mod gen_city;
 mod gen_land;
 mod gen_map;
 mod gen_textures;
@@ -147,6 +148,22 @@ enum CliCommand {
         name: String,
         #[arg(long, default_value_t = 78)]
         seed: u64,
+        /// Output folder (default: data/maps/<name>).
+        #[arg(long)]
+        out: Option<PathBuf>,
+    },
+    /// Generates the large city map (prompt 079): apartment block quarter
+    /// around a square, suburb, open land; four starts in two teams.
+    GenCity {
+        /// Map name, written into map.toml.
+        #[arg(long, default_value = "city_large")]
+        name: String,
+        #[arg(long, default_value_t = 79)]
+        seed: u64,
+        /// Climate look (presentation only); winter also sets snow as the
+        /// default weather and paints snow drifts instead of mud.
+        #[arg(long, default_value = "winter", value_parser = ["forest", "desert", "winter"])]
+        biome: String,
         /// Output folder (default: data/maps/<name>).
         #[arg(long)]
         out: Option<PathBuf>,
@@ -692,6 +709,24 @@ fn main() {
                 out: &out,
             };
             match gen_blocks::generate(&options) {
+                Ok(report) => println!("{report}"),
+                Err(e) => fail(&e),
+            }
+        }
+        CliCommand::GenCity {
+            name,
+            seed,
+            biome,
+            out,
+        } => {
+            let out = out.unwrap_or_else(|| Path::new(MAPS_DIR).join(&name));
+            let options = gen_city::Options {
+                name: &name,
+                seed,
+                biome: &biome,
+                out: &out,
+            };
+            match gen_city::generate(&options) {
                 Ok(report) => println!("{report}"),
                 Err(e) => fail(&e),
             }
