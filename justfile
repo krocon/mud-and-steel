@@ -501,6 +501,11 @@ position-shots dir="build/positions": build
 blast-shots dir="build/explosions": build
     {{ GODOT }} --path godot --always-on-top --fixed-fps 30 res://scenes/main.tscn -- "--blast-shots={{ justfile_directory() }}/{{ dir }}"
 
+# Every explosion kind as a picture series, stacked under the reference video's series if .temp/rts-explosionen.mp4 is there (prompt 072, needs a window, ffmpeg and numpy)
+[group('godot')]
+explosion-series dir="build/explosion-ref/now": build
+    bash tools/explosion-series.sh {{ dir }}
+
 # Play a real heavy rocket strike on the base skirmish and record it as PNG files; fails if it does not show (prompt 054, needs a window)
 [group('godot')]
 strike-shots dir="build/explosions": build

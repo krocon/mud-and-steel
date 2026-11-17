@@ -18,12 +18,35 @@ extends Node
 ## enemy headquarters through `SimHost.call_strike` and records the marked
 ## target with the countdown and the salvo; it fails (exit code 1) if the
 ## strike, the siren or the launch do not show. `just strike-shots`.
+##
+## With `--explosion-series` (prompt 072) it triggers every explosion kind
+## once on open, flat ground (small, medium and big ground hits, a destroyed
+## vehicle, an ammunition explosion), seen from SERIES_DISTANCE like the
+## reference video, and saves `<kind>_<ms>.png` at the series times of
+## `tools/explosion_series.py` (every frame of the first second, then four
+## per second until SERIES_SECONDS; needs `--fixed-fps 30`). `series.txt`
+## names the crop (pixels) that shows SERIES_KINDS[kind].crop_m meters
+## around the explosion. `just explosion-series`.
 
 const SHOT_SIZE := Vector2i(1600, 900)
 const CALIBER := 150.0
 const SALVO := 24
 const SALVO_RADIUS := 60.0
 const SALVO_GAP_FRAMES := 7
+## Explosion series (prompt 072): camera distance, length of a series, and
+## per kind the crop in meters (the width the matching video crop shows,
+## see tools/explosion-series.sh) and the height of the crop center.
+const SERIES_DISTANCE := 60.0
+const SERIES_PITCH_DEG := 45.0
+const SERIES_SECONDS := 10.0
+const SERIES_FPS := 30
+const SERIES_KINDS := {
+	"small": {"crop_m": 12.0},
+	"medium": {"crop_m": 12.6},
+	"big": {"crop_m": 16.0},
+	"vehicle": {"crop_m": 21.0},
+	"ammo": {"crop_m": 28.0},
+}
 
 var main: Node3D
 var _dir := ""
@@ -34,6 +57,10 @@ func _ready() -> void:
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--blast-shots="):
 			_dir = arg.trim_prefix("--blast-shots=")
+	if "--explosion-series" in OS.get_cmdline_user_args():
+		await _series()
+		get_tree().quit()
+		return
 	if "--strike-live" in OS.get_cmdline_user_args():
 		var ok: bool = await _live()
 		get_tree().quit(0 if ok else 1)
@@ -98,6 +125,101 @@ func _shots() -> void:
 	await _strike(target + Vector3(30, 0, 50), "strike_night")
 	print("blast-shots: %d screenshots in %s; counts %s, strike %s" % [
 		_shot_count, ProjectSettings.globalize_path(_dir), blast.counts, main.strike_view.counts])
+
+
+# --- Explosion series (prompt 072) ------------------------------------------------
+
+
+func _series() -> void:
+	if _dir.is_empty():
+		_dir = "user://explosion-series"
+	DirAccess.make_dir_recursive_absolute(_dir)
+	get_window().size = SHOT_SIZE
+	main.effects.shake_enabled = false
+	main.fog_of_war.set_fog_enabled(false)
+	main.effects.visible_at = func(_point: Vector3) -> bool: return true
+	(main.get_node("Hud") as CanvasLayer).visible = false
+	# The reference video looks down at about 45 degrees.
+	main.camera_rig.pitch_near_deg = SERIES_PITCH_DEG
+	main.camera_rig.pitch_far_deg = SERIES_PITCH_DEG
+	await _frames(10)
+	var fx: Node3D = main.effects
+	var blast: Node3D = main.blast_effects
+	var own := _ids_of(true)
+	var enemies := _ids_of(false)
+	var tank_pos := _position_of(own[0])
+	var forward := _forward(own[0])
+	var side := forward.cross(Vector3.UP).normalized()
+	var crops := PackedStringArray()
+	var k := 0
+	for kind: String in SERIES_KINDS:
+		# A fresh spot per kind, away from the smoke of the previous one.
+		var at := _ground(tank_pos + forward * 45.0 + side * (k * 70.0 - 140.0))
+		var unit := -1
+		if kind == "vehicle" or kind == "ammo":
+			unit = enemies[1] if kind == "vehicle" else enemies[mini(2, enemies.size() - 1)]
+			at = _position_of(unit)
+		k += 1
+		await _view(at, SERIES_DISTANCE, 0.6)
+		await _frames(30)
+		crops.append("%s %s" % [kind, _series_crop(at, float(SERIES_KINDS[kind].crop_m))])
+		match kind:
+			"small":
+				fx.ground_hit(at, 50.0)
+			"medium":
+				fx.ground_hit(at, 90.0)
+			"big":
+				_big(at)
+			"vehicle":
+				fx.destroyed(unit, at)
+			"ammo":
+				fx.destroyed(unit, at)
+				blast.ammo_explosion(unit, at)
+		var offsets: Array = []
+		for ms in _series_ms():
+			offsets.append(int(round(ms * SERIES_FPS / 1000.0)))
+		await _capture_series(kind, offsets, _series_ms())
+	var file := FileAccess.open(_dir + "/series.txt", FileAccess.WRITE)
+	file.store_string("\n".join(crops) + "\n")
+	print("explosion-series: %d pictures in %s" % [_shot_count, ProjectSettings.globalize_path(_dir)])
+
+
+## The times of a series in ms (as `series_times` in tools/explosion_series.py).
+func _series_ms() -> Array[int]:
+	var result: Array[int] = []
+	for i in SERIES_FPS:
+		result.append(int(round(i * 1000.0 / SERIES_FPS)))
+	var t := 1000
+	while t <= int(SERIES_SECONDS * 1000.0):
+		result.append(t)
+		t += 250
+	return result
+
+
+## "x,y,w,h" of a square crop that shows `meters` across, centered a third
+## of its size above the ground point `at`.
+func _series_crop(at: Vector3, meters: float) -> String:
+	var camera: Camera3D = main.camera
+	var center := camera.unproject_position(at + Vector3.UP * meters * 0.3)
+	var right := camera.global_basis.x
+	var a := camera.unproject_position(at - right * meters * 0.5)
+	var b := camera.unproject_position(at + right * meters * 0.5)
+	var size := mini(int(a.distance_to(b)), SHOT_SIZE.y)
+	var x := clampi(int(center.x) - size / 2, 0, SHOT_SIZE.x - size)
+	var y := clampi(int(center.y) - size / 2, 0, SHOT_SIZE.y - size)
+	return "%d,%d,%d,%d" % [x, y, size, size]
+
+
+## Saves `<name>_<ms>.png` at the frames `offsets` after now.
+func _capture_series(name: String, offsets: Array, ms: Array[int]) -> void:
+	var frame := 0
+	for n in offsets.size():
+		while frame <= int(offsets[n]):
+			await _frame()
+			frame += 1
+		var image := get_viewport().get_texture().get_image()
+		image.save_png("%s/%s_%05d.png" % [_dir, name, ms[n]])
+		_shot_count += 1
 
 
 # --- A real strike -------------------------------------------------------------
