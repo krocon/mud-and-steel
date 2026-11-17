@@ -39,7 +39,8 @@ extends Node
 ## above, as the reference picture), 20 / 37 / 75 / 88 / 122 mm from the
 ## side, a 76 mm gun without muzzle brake, a howitzer firing indirectly with
 ## a raised barrel, 75 mm at 15 / 110 / 350 m, 88 mm at evening and night,
-## 75 mm in desert and winter. `--only=<run>,<run>` records some.
+## 75 mm in desert and winter, and last a real fight of both sides
+## (`battle_<n>.png`, every third frame). `--only=<run>,<run>` records some.
 
 const SHOT_SIZE := Vector2i(1600, 900)
 const BENCH_SIZE := Vector2i(1920, 1080)
@@ -62,7 +63,7 @@ const AUTOCANNON_RATE := 10.0
 ## caliber, camera distance (m), crop (m across), view, daytime, biome.
 const MUZZLE_SERIES_SECONDS := 4.0
 const MUZZLE_RUNS: Array[Dictionary] = [
-	{"name": "reference", "model": "de_tiger1_e", "caliber": 88.0, "distance": 55.0, "crop_m": 30.0, "view": "reference"},
+	{"name": "reference", "model": "de_tiger1_e", "caliber": 88.0, "distance": 40.0, "crop_m": 30.0, "view": "reference"},
 	{"name": "c20", "model": "de_pz2_f", "caliber": 20.0, "crop_m": 8.0, "burst": 5},
 	{"name": "c37", "model": "de_pz38t_e", "caliber": 37.0, "crop_m": 10.0},
 	{"name": "c75", "model": "de_pz4_h", "caliber": 75.0, "crop_m": 16.0},
@@ -77,7 +78,10 @@ const MUZZLE_RUNS: Array[Dictionary] = [
 	{"name": "c88_night", "model": "de_tiger1_e", "caliber": 88.0, "crop_m": 20.0, "daytime": "night"},
 	{"name": "c75_desert", "model": "de_pz4_h", "caliber": 75.0, "crop_m": 16.0, "biome": "desert"},
 	{"name": "c75_winter", "model": "de_pz4_h", "caliber": 75.0, "crop_m": 16.0, "biome": "winter"},
+	{"name": "battle"},
 ]
+## The fight of the run "battle": seconds recorded.
+const BATTLE_SECONDS := 10.0
 
 var main: Node3D
 var forced_draws := 0
@@ -412,6 +416,9 @@ func _muzzle_series() -> void:
 	for run: Dictionary in MUZZLE_RUNS:
 		if not only.is_empty() and not (str(run.name) in only.split(",")):
 			continue
+		if run.name == "battle":
+			await _muzzle_battle()
+			continue
 		var biome := str(run.get("biome", "forest"))
 		if main.atmosphere.preset.id != biome:
 			main.set_biome(biome)
@@ -423,7 +430,7 @@ func _muzzle_series() -> void:
 		var distance := float(run.get("distance", 35.0))
 		var caliber := float(run.caliber)
 		var indirect: bool = run.get("indirect", false)
-		var target := _ground(at + forward * 400.0)
+		var target := _ground(at + forward * 150.0)
 		if indirect:
 			# A first round lays the gun (its barrel rises with the shell's
 			# elevation); the series shows the second one.
@@ -446,7 +453,7 @@ func _muzzle_series() -> void:
 			var look := -side if side.dot(away) > 0.0 else side
 			await _view(at + forward * 4.0 + Vector3.UP * 1.5, distance, _yaw_of(look))
 		await _frames(30)
-		crops.append("%s %s" % [run.name, _muzzle_crop(muzzle + forward * float(run.crop_m) * 0.3, float(run.crop_m))])
+		crops.append("%s %s" % [run.name, _muzzle_crop(muzzle + forward * float(run.crop_m) * 0.2, float(run.crop_m))])
 		# Series times as `series_times(4.0, 0.5)` in tools/explosion_series.py.
 		var frames: Array[int] = []
 		var times_ms: Array[int] = []
@@ -481,6 +488,40 @@ func _muzzle_series() -> void:
 	var file := FileAccess.open(_dir + "/series.txt", FileAccess.WRITE)
 	file.store_string("\n".join(crops) + "\n")
 	print("muzzle-series: %d pictures in %s; counts %s" % [_shot_count, ProjectSettings.globalize_path(_dir), main.effects.counts])
+
+
+## A real fight (last run): both sides fire at will and close in; once the
+## first shot fell, every third frame for BATTLE_SECONDS is saved as
+## `battle_<n>.png` (tools/muzzle-series.sh makes a video of them). Real
+## shells: tracers from the muzzle, recoil, raised barrels.
+func _muzzle_battle() -> void:
+	main.set_biome("forest")
+	main.atmosphere.set_weather("clear", "day")
+	var host: SimHost = main.sim_host
+	var own := _ids_of(true)
+	var enemies := _ids_of(false)
+	host.set_hold_fire(PackedInt64Array(own + enemies), false)
+	host.attack_unit(PackedInt64Array(own), enemies[0])
+	host.attack_unit(PackedInt64Array(enemies), own[0])
+	var view: Node3D = main.combat_view
+	var shots_before: int = view.shots
+	var waited := 0
+	main.camera_rig.pitch_near_deg = 35.0
+	main.camera_rig.pitch_far_deg = 35.0
+	while view.shots == shots_before and waited < 30 * 60:
+		await _frame()
+		waited += 1
+	var a := _centroid(own)
+	var b := _centroid(enemies)
+	await _view(a.lerp(b, 0.12), 60.0, _yaw_of((b - a).normalized().rotated(Vector3.UP, 1.2)))
+	var n := 0
+	for f in int(BATTLE_SECONDS * 30.0):
+		await _frame()
+		if f % 3 == 0:
+			get_viewport().get_texture().get_image().save_png("%s/battle_%04d.png" % [_dir, n])
+			n += 1
+	print("muzzle-series: battle %d pictures, %d shots, %d recoils, %d tracers from the muzzle" % [
+		n, view.shots - shots_before, main.effects.recoils, view.tracers_from_muzzle])
 
 
 ## Unit `id` gets the catalog model `type_id`; caches of the views that hold
