@@ -28,6 +28,11 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
 
+      # Test runner of `just check`: runs all tests in parallel across the
+      # test binaries (docs/VERSIONS.md).
+      - name: Install cargo-nextest
+        uses: taiki-e/install-action@nextest
+
       - name: Format
         run: cargo fmt --check
 
@@ -44,8 +49,9 @@ jobs:
 
       # Includes the golden-hash test (crates/sim/tests/determinism.rs): it
       # passing on all three systems proves bit-identical simulation results.
+      # --no-fail-fast: one failing test must not hide the result of the others.
       - name: Test
-        run: cargo test --workspace
+        run: cargo nextest run --workspace --no-fail-fast
 
       - name: Headless run
         run: cargo run -p cli -- run --ticks 1000 --seed 42

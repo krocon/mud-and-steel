@@ -11,6 +11,7 @@ releases.
 | Blender       | 5.3.0                | –                                          | Used for `tools/*.py`; export via the bundled glTF exporter. |
 | steamworks-rs | `steamworks = "=0.13.1"` | `Cargo.toml` (workspace dependencies)  | Steamworks SDK 1.64; `steamworks-sys` 0.13.0 brings the redistributable `steam_api` libraries (crates.io, not in the repository). Chosen over GodotSteam (4.24, SDK 1.65), see [ONLINE.md](ONLINE.md). Steam app id: `steam::APP_ID`. |
 | Git LFS       | 3.8.1                | `.gitattributes`                           | |
+| cargo-nextest | 0.9.x (not pinned)   | –                                          | Test runner of `just check`, `just test` and CI: runs all tests in parallel across the test binaries (about 20 s instead of 60 s on an M1 Max). Only runs the tests; a plain `cargo test --workspace` gives the same results. |
 | Godot export templates | 4.7.2-stable | `.github/workflows/release.yml` (`GODOT_VERSION`) | Only for release exports ([RELEASE.md](RELEASE.md)); must match the Godot version exactly. |
 
 Other crates (`fixed`, `serde`, `postcard`, `toml`, `clap`, `rusty_enet`, `if-addrs`) are
@@ -22,7 +23,7 @@ toolchain needed); see [LAN.md](LAN.md) for why it was chosen over Godot's ENet.
 - **Godot and godot-rust are only updated together.** godot-rust's `api-4-x` feature
   must match the Godot minor version, and `compatibility_minimum` in the
   `.gdextension` file must be raised with it.
-- After a Rust update, run `cargo test --workspace` and check that the golden-hash test
+- After a Rust update, run `just test` and check that the golden-hash test
   still passes. A failure means something became non-deterministic.
 - Blender updates can change exported files; re-export and check the result in Godot.
 

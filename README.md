@@ -30,6 +30,8 @@ Architecture and determinism rules: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - Blender 5.x (only for regenerating assets)
 - [just](https://github.com/casey/just) as command runner
   (`brew install just`, `winget install Casey.Just`, or `cargo install just`)
+- [cargo-nextest](https://nexte.st) as test runner for `just check` and `just test`
+  (`brew install cargo-nextest`, or `cargo install cargo-nextest --locked`)
 
 ## Commands
 

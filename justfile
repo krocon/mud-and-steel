@@ -17,14 +17,14 @@ CALL := if os() == "windows" { "& " } else { "" }
 default:
     @just --list --unsorted
 
-# Format, lint and test exactly like CI
+# Format, lint and test exactly like CI (the tests need cargo-nextest)
 [group('rust')]
 check:
     cargo fmt --check
     cargo clippy --workspace --all-targets -- -D warnings
     cargo clippy -p bridge --no-default-features --all-targets -- -D warnings
     cargo clippy -p cli --features steam --all-targets -- -D warnings
-    cargo test --workspace
+    cargo nextest run --workspace
     python3 tools/vehicle_refs.py --check
 
 # Format all Rust code
@@ -32,10 +32,10 @@ check:
 fmt:
     cargo fmt
 
-# Run all tests
+# Run all tests with cargo-nextest: all tests in parallel across the test binaries, about three times as fast as `cargo test --workspace`
 [group('rust')]
-test:
-    cargo test --workspace
+test *args:
+    cargo nextest run --workspace {{ args }}
 
 # Run the headless simulation and print the state hash
 [group('rust')]
