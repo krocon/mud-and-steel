@@ -13,6 +13,10 @@
 # from spring 1943; catalog width is without them), whip antenna at the left
 # rear of the casemate, Notek and headlight, tools on the fenders, driver's
 # visor; national crosses moved onto the skirts as on most vehicles.
+# Prompt 063 (ger-pz3): running gear moved to the onwar.com drawing: road wheel
+# pitch 0.57 m (first to last 2.86 m = data.json ground contact), idler well
+# inside the overhanging rear hull, smaller muffler on the rear plate, belly at
+# 0.40 m (data.json ground clearance 0.39 m).
 unit = "de_stug3_g"
 assembly = "casemate"
 
@@ -24,15 +28,15 @@ part = "torsion_bar"
 track_width = 0.40
 link_pitch = 0.12
 road_wheel_diameter = 0.52
-road_wheels = [1.62, 1.00, 0.38, -0.30, -0.92, -1.54]
-sprocket = { y = 2.35, z = 0.74, diameter = 0.62, teeth = 21 }
-idler = { y = -2.50, z = 0.64, diameter = 0.56 }
-return_rollers = { y = [1.30, 0.20, -1.10], z = 0.90, diameter = 0.22 }
+road_wheels = [1.45, 0.88, 0.31, -0.26, -0.84, -1.41]
+sprocket = { y = 2.28, z = 0.74, diameter = 0.62, teeth = 21 }
+idler = { y = -2.10, z = 0.64, diameter = 0.56 }
+return_rollers = { y = [1.33, 0.05, -1.02], z = 0.90, diameter = 0.22 }
 arm = 0.28
 
 [hull]
 part = "plate_hull"
-lower = [[-2.62, 0.45], [2.05, 0.45], [2.70, 0.88], [2.70, 1.12], [-2.70, 1.12], [-2.70, 0.70]]
+lower = [[-2.62, 0.40], [2.05, 0.40], [2.70, 0.88], [2.70, 1.12], [-2.70, 1.12], [-2.70, 0.70]]
 upper = [[-2.70, 1.11], [2.70, 1.11], [2.70, 1.18], [2.15, 1.45], [-2.45, 1.45], [-2.70, 1.30]]
 upper_half_width = 1.38
 fender_front = 2.70
@@ -79,9 +83,9 @@ socket = true
 [[part]]
 part = "exhaust"
 kind = "muffler"
-position = [0.0, -2.82, 0.95]
+position = [0.0, -2.80, 0.95]
 length = 1.0
-diameter = 0.28
+diameter = 0.24
 
 [[part]]
 part = "tow_hook"
