@@ -40593,6 +40593,18 @@
       "id": "env_rock",
       "category": "env_rock"
     },
+    "env_rock_slab": {
+      "id": "env_rock_slab",
+      "category": "env_rock"
+    },
+    "env_rock_outcrop": {
+      "id": "env_rock_outcrop",
+      "category": "env_rock"
+    },
+    "env_rock_massif": {
+      "id": "env_rock_massif",
+      "category": "env_rock"
+    },
     "env_house_farm": {
       "id": "env_house_farm",
       "category": "env_building",
