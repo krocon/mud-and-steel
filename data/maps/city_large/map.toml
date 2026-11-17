@@ -98,6 +98,26 @@ name = "main_street_north"
 position_m = [1, -199]
 
 [[marker]]
+name = "side_street_south"
+position_m = [-59, 121]
+
+[[marker]]
+name = "side_street_north"
+position_m = [61, -119]
+
+[[marker]]
+name = "start_south"
+position_m = [-249, 1101]
+
+[[marker]]
+name = "start_north"
+position_m = [251, -1099]
+
+[[marker]]
+name = "fire_start"
+position_m = [-60, 180]
+
+[[marker]]
 name = "bypass_west"
 position_m = [-949, 1]
 

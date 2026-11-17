@@ -59,7 +59,8 @@ pub const ROUTES: [f64; 3] = [-240.0, 0.0, 240.0];
 /// roads beyond the suburb and the bypass (m).
 const MAIN_HALF: f64 = 8.0;
 const SIDE_HALF: f64 = 6.0;
-const SUBURB_HALF: f64 = 4.0;
+const SUBURB_HALF: f64 = 6.0;
+const BYPASS_HALF: f64 = 4.0;
 const COUNTRY_HALF: f64 = 5.0;
 /// Block quarter and suburb extents (Chebyshev distance from the center).
 pub const BLOCK_EDGE: f64 = 360.0;
@@ -140,8 +141,8 @@ fn grid_street(g: f64, along: f64) -> Option<f64> {
         })
     } else if g == 0.0 {
         Some(COUNTRY_HALF)
-    } else if ROUTES.contains(&g) && a <= BYPASS + SUBURB_HALF {
-        Some(SUBURB_HALF)
+    } else if ROUTES.contains(&g) && a <= BYPASS + BYPASS_HALF {
+        Some(BYPASS_HALF)
     } else {
         None
     }
@@ -220,7 +221,7 @@ type LaneSpec = (Vec<(f64, f64)>, f64, u8, bool);
 fn lanes() -> Vec<Lane> {
     let mut lanes = vec![
         Lane::new(&ring(SUBURB_EDGE, 400.0), SUBURB_HALF, ROAD, false),
-        Lane::new(&ring(BYPASS, BYPASS_CORNER), SUBURB_HALF, ROAD, false),
+        Lane::new(&ring(BYPASS, BYPASS_CORNER), BYPASS_HALF, ROAD, false),
     ];
     let edge = HALF - 4.0;
     let (s0, s2) = ((STARTS[0].2, STARTS[0].3), (STARTS[2].2, STARTS[2].3));
@@ -422,10 +423,14 @@ fn markers() -> Vec<(String, (f64, f64))> {
         ("block_edge", (-180.0, BLOCK_EDGE)),
         ("suburb", (0.0, 590.0)),
         ("main_street", (0.0, 200.0)),
+        ("side_street", (-60.0, 120.0)),
+        ("start", (STARTS[0].2, STARTS[0].3)),
     ] {
         list.push((format!("{name}_south"), p));
         list.push((format!("{name}_north"), mirror(p)));
     }
+    // A block cell (ring) for the fire benchmark (`just fire-bench`).
+    list.push(("fire_start".into(), (-61.0, 179.0)));
     list.push(("bypass_west".into(), (-BYPASS, 0.0)));
     list.push(("bypass_east".into(), (BYPASS, 0.0)));
     list.extend(supply_points());
@@ -1434,6 +1439,26 @@ mod tests {
         let mut map = Map::load(&toml, &first.1, &first.2).unwrap();
         map.add_objects(&String::from_utf8(first.0).unwrap())
             .unwrap();
+        // Opened and saved by the map editor, the map stays the same map.
+        let saved = dir.join("editor");
+        let mut edit = editor::EditMap::load_dir(&dir).unwrap();
+        edit.save_dir(&saved).unwrap();
+        let reread = |f: &str| std::fs::read(saved.join(f)).unwrap();
+        let mut again = Map::load(
+            &String::from_utf8(reread("map.toml")).unwrap(),
+            &reread("height.png"),
+            &reread("terrain.png"),
+        )
+        .unwrap();
+        again
+            .add_objects(&String::from_utf8(reread("objects.csv")).unwrap())
+            .unwrap();
+        assert_eq!(
+            again.reference().hash,
+            map.reference().hash,
+            "editor round trip"
+        );
+        assert_eq!(again.markers().len(), map.markers().len());
         let _ = std::fs::remove_dir_all(&dir);
 
         let count = |prefix: &str| {
