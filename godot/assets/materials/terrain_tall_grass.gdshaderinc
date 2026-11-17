@@ -58,7 +58,9 @@ vec3 tall_tufts(vec2 p, float px, float size) {
 		}
 	}
 	float body = 1.0 - smoothstep(0.1, 0.55, best / size * 0.62);
-	if (px > 0.16) {
+	// Without their blades the tufts would read as pebbles: softer.
+	if (px > 0.045) {
+		body = mix(0.6, body, 0.35);
 		return vec3(body, 0.45 * body, 0.5);
 	}
 	// Blades: 13 sectors around the center, each blade a stroke out to
@@ -72,7 +74,10 @@ vec3 tall_tufts(vec2 p, float px, float size) {
 	float w = 0.045 * (1.0 - 0.6 * clamp(along, 0.0, 1.0));
 	float we = max(w, px * 0.5);
 	float cov = clamp((we - across) / px + 0.5, 0.0, 1.0) * (w / we) * step(along, 1.0) * step(0.08, along);
-	float fine = 1.0 - smoothstep(0.08, 0.16, px);
+	// Strokes thinner than about two pixels would shimmer while the camera
+	// moves (`just ground-motion --tall`): their coverage instead.
+	float fine = 1.0 - smoothstep(0.022, 0.045, px);
+	body = mix(0.6, body, mix(0.35, 1.0, fine));
 	return vec3(body, mix(0.45 * body, cov, fine), clamp(along, 0.0, 1.0));
 }
 
@@ -89,14 +94,23 @@ void tall_apply(vec2 p, float tall, float seam, float dist, float px, float time
 	if (tall <= 0.002) {
 		return;
 	}
-	vec4 patch = tall_patch(p);
 	vec2 trail = tall_trail(p);
-	float gust = tall_gust(p, time);
 
 	// Ground under the plants: the meadow below in the deep shade of the
 	// stand (keeps its blades and texture), turned towards dark litter.
 	vec3 under = mix(albedo * 0.3, tall_root.rgb * 1.5, 0.45);
 
+	if (far_k <= 0.0) {
+		// Near only: no canopy to compute.
+		under = mix(under, tall_dry.rgb * 0.55, trail.x * 0.5);
+		under = mix(under, vec3(0.02, 0.018, 0.016), trail.y);
+		albedo = mix(albedo, under, tall);
+		rough = mix(rough, 0.95, tall);
+		detail *= 1.0 - 0.7 * tall;
+		return;
+	}
+
+	vec4 patch = tall_patch(p);
 	// Canopy: tufts with radiating blades over dark gaps, larger clumps
 	// of a few meters lighter or darker.
 	vec4 cl = texture(macro_tex, p / 2.9 + vec2(0.41, 0.13));
@@ -113,8 +127,8 @@ void tall_apply(vec2 p, float tall, float seam, float dist, float px, float time
 	vec3 blade = mix(patch.rgb * 0.8, tip_col, smoothstep(0.2, 1.0, t.z)) * mix(0.85, 1.1, clumps);
 	// Seen from afar the stand is darker and more saturated than the
 	// meadow: most of what shows is the shade between the blades.
-	vec3 canopy = mix(body, blade, t.y) * mix(1.0, 0.78, smoothstep(0.05, 0.3, px));
-	canopy *= 1.0 + gust * 0.18;
+	vec3 canopy = mix(body, blade, t.y) * mix(0.85, 0.7, smoothstep(0.05, 0.3, px));
+	canopy *= 1.0 + tall_gust(p, time) * 0.18;
 
 	// Pressed flat by vehicles: paler; burnt: black stubble.
 	canopy = mix(canopy, tall_dry.rgb * 0.8, trail.x * 0.6);

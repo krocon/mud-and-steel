@@ -4,8 +4,8 @@
 //
 // Color: strong gradient from almost black roots to sunlit yellow-green
 // tips, the base varying in patches (tall_grass_common.gdshaderinc), herbs
-// darker green, shrubs ocher, seed heads brown. Gusts run over the stand as
-// light bands and bend the blades downwind. Vehicles press the grass flat
+// darker green, shrubs olive with yellow-green leaves and seed heads. Gusts
+// run over the stand as light bands and bend the blades downwind. Vehicles press the grass flat
 // and fire leaves black stubble (track raster). Towards `tall_range` the
 // plants shrink into the ground, where the terrain's look takes over.
 // Blades are widened so none is drawn thinner than about half a pixel.

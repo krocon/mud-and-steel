@@ -72,6 +72,12 @@ func setup(main_node: Node3D) -> void:
 		main.terrain.set_trails(texture, _origin, size)
 
 
+func _exit_tree() -> void:
+	# The plants' material is shared: no tracks of this match in the next.
+	if _viewport != null:
+		TallGrass.MATERIAL.set_shader_parameter("trail_tex", null)
+
+
 ## Burns tall grass in a circle (scorch mark of a blast).
 func burn(at: Vector3, radius: float) -> void:
 	if _viewport == null:

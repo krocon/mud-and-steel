@@ -4,7 +4,7 @@ extends RefCounted
 ## Builds the plants of the terrain type `tall_grass` (`data/terrain.toml`,
 ## id 8), drawn as two decoration layers of `map_objects.gd`: "tall_grass"
 ## (grass tufts, herbs, rosettes on a dense lattice, frayed at the edges of
-## the stand) and "tall_shrubs" (shrubs with ocher leaves and seed heads in
+## the stand) and "tall_shrubs" (shrubs with olive leaves and seed heads in
 ## loose groups). Like the meadow tufts of prompt 057 every blade and leaf
 ## is a set of opaque triangles: no cards, no alpha test.
 ##
@@ -44,8 +44,8 @@ const TUFTS: Array[Dictionary] = [
 	# Rosette of long arching fronds.
 	{"kind": "rosette", "fronds": 11, "length": Vector2(0.7, 1.05), "width": 0.07, "seed": 43},
 ]
-## Shrubs (own layer, in groups): woody stems with ocher leaves and seed
-## heads above the grass.
+## Shrubs (own layer, in groups): woody stems with a crown of olive leaves
+## (some yellow-green), seed heads, above the grass.
 const SHRUBS: Array[Dictionary] = [
 	{"kind": "shrub", "stems": 9, "height": Vector2(1.6, 2.0), "leaves": 180, "seeds": 14, "seed": 53},
 	{"kind": "shrub", "stems": 7, "height": Vector2(1.4, 1.75), "leaves": 140, "seeds": 18, "seed": 59},
@@ -57,12 +57,12 @@ const SHRUBS: Array[Dictionary] = [
 const QUALITY: Dictionary[String, Dictionary] = {
 	"low": {"range": 55.0, "near_range": 20.0, "switch": 35.0, "density": 0.75, "shadows": false},
 	"medium": {"range": 65.0, "near_range": 28.0, "switch": 45.0, "density": 0.9, "shadows": true},
-	"high": {"range": 80.0, "near_range": 35.0, "switch": 58.0, "density": 1.0, "shadows": true},
+	"high": {"range": 72.0, "near_range": 26.0, "switch": 46.0, "density": 1.0, "shadows": true},
 }
 ## Share of the blades (by rank) in the far mesh.
 const FAR_SHARE := 0.35
 
-## Look per EnvLook biome: palette (linear), stand density and height
+## Look per EnvLook biome: palette (sRGB; `source_color` uniforms), stand density and height
 ## factors, snow on the tips, bent blades (winter: broken, brown).
 const LOOKS: Dictionary[String, Dictionary] = {
 	"forest": {"tip": Color(0.72, 0.8, 0.3), "mid": Color(0.3, 0.5, 0.14), "root": Color(0.03, 0.05, 0.018),
