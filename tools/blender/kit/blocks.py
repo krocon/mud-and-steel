@@ -259,25 +259,34 @@ class Block(House):
                 o.storey, o.bay, o.shut, o.streak = st, -1, False, False
                 self.ops[s].append(o)
         elif self.damage >= 2:
-            lo = self.level(0) + 0.45 * (self.level(1) - self.level(0))
-            hi = self.level(2) - 0.2
+            # Stumps one to two storeys high. The top steps at the bays
+            # (between the windows), so the stumps read as walls with
+            # window holes, broken by a few notches; corners stand higher.
+            lo = self.level(0) + 0.5 * (self.level(1) - self.level(0))
+            hi = self.level(2) - 0.4
             for side in SIDES:
                 u0, u1 = self.span(side)
-                segs, u = [], u0
+                us, step = self.bays[side] if self.bays[side][0] else ([], u1 - u0)
+                edges = [u0] + [(a + b) / 2 for a, b in zip(us, us[1:])] + [u1]
+                segs = []
                 z = r.uniform(lo, hi)
-                while u < u1 - 1e-6:
-                    w = r.uniform(0.8, 1.7)
-                    b = min(u1, u + w)
-                    if u1 - b < 0.5:
-                        b = u1
+                k = 0
+                while k < len(edges) - 1:
+                    n = r.choice((1, 1, 2))
+                    a, b = edges[k], edges[min(k + n, len(edges) - 1)]
+                    k += n
                     zz = z
-                    if min(u - u0, u1 - b) < 1.5:  # corners stand higher
-                        zz = max(zz, r.uniform(self.level(1) + 0.5, self.level(2) + 0.6))
-                    segs.append((u, b, zz))
-                    u = b
-                    z = max(lo, min(hi, z + r.uniform(-1.2, 1.2)))
-                    if r.random() < 0.08:
-                        z = r.uniform(self.level(2) - 0.5, self.level(2) + 1.0)
+                    if min(a - u0, u1 - b) < 0.5:
+                        zz = max(zz, r.uniform(self.level(1) + 0.4, self.level(2) + 0.5))
+                    # a broken notch inside the piece
+                    if b - a > 2.5 and r.random() < 0.6:
+                        m = r.uniform(a + 0.8, b - 0.8)
+                        w = r.uniform(0.6, 1.2)
+                        notch = max(self.plinth + 0.5, zz - r.uniform(0.8, 1.8))
+                        segs += [(a, m - w / 2, zz), (m - w / 2, m + w / 2, notch), (m + w / 2, b, zz)]
+                    else:
+                        segs.append((a, b, zz))
+                    z = max(lo, min(hi, z + r.uniform(-1.4, 1.4)))
                 self.tops[side] = Top(segs, self.z1)
 
     def near_breach(self, side, o):
@@ -850,13 +859,19 @@ class Block(House):
             fl.style(kind=sk)
             fl.box(((ix0 + ix1) / 2, (iy0 + iy1) / 2, self.plinth - 0.05), (ix1 - ix0, iy1 - iy0, 0.1), sm)
             z1 = self.level(1)
+            # first-floor slab remnants along the walls, one slab leaning
             for _k in range(3):
-                ya = r.uniform(iy0, iy1 - 4.0)
-                yb = min(iy1, ya + r.uniform(2.5, 5.0))
-                xa = ix0 if r.random() < 0.5 else r.uniform(ix0, (ix0 + ix1) / 2)
-                xb = ix1 if xa > ix0 else r.uniform((ix0 + ix1) / 2, ix1)
+                ya = r.uniform(iy0, iy1 - 3.0)
+                yb = min(iy1, ya + r.uniform(1.8, 3.2))
+                sx = r.choice((-1, 1))
+                xa, xb = (ix1 - r.uniform(1.2, 2.4), ix1) if sx > 0 else (ix0, ix0 + r.uniform(1.2, 2.4))
                 fl.style(kind=sk)
                 fl.box(((xa + xb) / 2, (ya + yb) / 2, z1 - 0.12), (xb - xa, yb - ya, 0.24), sm)
+            yc = r.uniform(iy0 + 3.0, iy1 - 3.0)
+            a = r.uniform(0.35, 0.6)
+            ln = min(4.0, (ix1 - ix0) * 0.6)
+            fl.oriented_box((ix0 + ln * math.cos(a) / 2 + 0.2, yc, z1 - ln * math.sin(a) / 2),
+                            (math.cos(a), 0, -math.sin(a)), (0, 1, 0), (ln, 2.5, 0.24), sm)
             n = max(2, int((iy1 - iy0) / 6.0))
             fl.style(kind=self.inner_kind)
             for i in range(n):
@@ -871,7 +886,7 @@ class Block(House):
         r = self.r
         hw, hl = self.box.hw, self.box.hl
         # broken masonry: dusty spoil, brick, the house's plaster
-        mats = [("Ground", 1), ("Ground", 1), ("Stone", 3), (self.wall_mat, self.wall_kind), ("Stone", 0)]
+        mats = [("Ground", 1), ("Stone", 0), ("Stone", 3), (self.wall_mat, self.wall_kind), ("Stone", 0)]
 
         def heap(cx, cy, rx, ry, hz):
             cx = max(-hw + 0.3, min(hw - 0.3, cx))

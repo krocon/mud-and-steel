@@ -227,3 +227,22 @@ Als offene Punkte notieren, nicht umsetzen:
 - **Wolkenkratzer, Fabriken, Bahnhöfe** und andere Großbauten.
 - **Blockviertel im Stadtgenerator** und eine eigene Stadtkarte für Gefechte.
 - **Patina an Wänden** über die Fahnen an den Fenstern hinaus.
+
+## Entscheidungen (autonom, Nachtlauf 17.11.2026)
+
+Der Prompt hat keine offenen Fragen; diese Urteile wurden ohne Rückfrage getroffen (vorläufig):
+
+| Frage | Entscheidung |
+|---|---|
+| Generator | neuer Generator `apartment_block` (`kit/blocks.py`) auf der gemeinsamen `House`-Basis: `house` baut Fenster aus vier Kästen (~80 Dreiecke), `desert_house` ist ein Raumblock-Plan ohne Inneres |
+| Fenster | ein Glas-Quad je Fenster mit Sprossenmuster im Shader (UV 102 + u), Laibung und Bank als Einzelflächen, ~15 Dreiecke |
+| Fahnen | Schmutz- und Rußfahnen als Plaster-Karten 1 cm vor der Wand (UV 100/101), Muster im Shader |
+| Maße | Wüstenblock 24 × 12 × 14,2 m (4 × 2,9 m), langer Block 40 × 13 × 17,1 m (5 × 2,9 m), Mietshaus 30 × 13 × 20 m (EG 3,6 m, 4 × 3,2 m, Traufe 17 m, Sattel ~20°); Höhe = höchster Punkt (Treppenhaus bzw. Schornstein) |
+| Budget | 6 000 Dreiecke je Schadensstufe (gebaut 2 600–4 800) |
+| Trefferpunkte | nach umbautem Raum vom Stadthaus hochgerechnet, gedeckelt bei 9 000 (Block 6 000) |
+| Besatzung | 24 / 36 / 36 (≈ dreimal Stadthaus; Pavlov-Haus ~25–30 Mann) |
+| Brand | Klasse Massivbau (Decken und Dach brennen aus, Wände bleiben) |
+| Kamera | bleibt 1,5 m über jedem stehenden Gebäude im Umkreis von 2 m (statt Kollision oder Ausblenden) |
+| Verdeckte Einheiten | Auswahlringe mit zweitem Durchscheinen-Pass; Umriss durch Gebäude als offener Punkt |
+| Viertel | neue Karte `city_blocks` (400 m, Wüste) aus `cli gen-blocks`, elf Blöcke; Stadtgenerator unverändert |
+| Stadthaus/Lagerhaus | `env_town_hall` und `env_warehouse` in `map_objects.gd` nachgetragen (vorher 300 m Sichtweite, kein Schatten) |
