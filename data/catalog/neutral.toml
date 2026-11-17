@@ -1158,3 +1158,63 @@ source = [
 ]
 uncertain = ["length_mm", "width_mm", "height_mm"]
 note = "Timber store shed with a steel roof and wide doors, crate stacks at one end and 200 l drums at the other. Size of base_depot in data/economy.toml; judgement values."
+
+# --- Prompt 078: apartment blocks (four to six storeys) ----------------------
+
+[[unit]]
+id = "env_block_desert"
+faction = "neutral"
+category = "env_building"
+name_de = "Wohnblock (viergeschossig, Flachdach)"
+name_en = "Apartment block (four-storey, flat roof)"
+tier = 1
+model = "assets/models/neutral/env_block_desert.glb"
+length_mm = 24000
+width_mm = 12000
+height_mm = 14200
+source = [
+    { ref = "https://en.wikipedia.org/wiki/White_City_(Tel_Aviv)", covers = "1930s apartment blocks of reinforced concrete with flat roofs used as shared terraces and long balconies, in a hot Mediterranean city" },
+    { ref = "https://en.wikipedia.org/wiki/Storey", covers = "storey (floor-to-floor) height about 3.0 m, 3.1 m for apartments" },
+    { ref = "https://en.wikipedia.org/wiki/Flat_roof", covers = "flat roofs with parapets as living space in dry climates" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Plastered concrete-frame block of an interwar North African or Levantine town: four storeys of 2.9 m on a 0.3 m plinth, flat roof at 11.9 m with a 0.9 m parapet, one stair head on the roof (top 14.2 m = height), one entrance with a concrete canopy on the street side (+X). Length and depth are judgement values for a two-flat-per-landing block (about 12 m deep, two bays of rooms)."
+
+[[unit]]
+id = "env_block_desert_long"
+faction = "neutral"
+category = "env_building"
+name_de = "Langer Wohnblock (fünfgeschossig, Balkone)"
+name_en = "Long apartment block (five-storey, balconies)"
+tier = 1
+model = "assets/models/neutral/env_block_desert_long.glb"
+length_mm = 40000
+width_mm = 13000
+height_mm = 17100
+source = [
+    { ref = "https://en.wikipedia.org/wiki/White_City_(Tel_Aviv)", covers = "1930s apartment blocks of reinforced concrete with flat roofs and long, narrow balconies, each shaded by the one above" },
+    { ref = "https://en.wikipedia.org/wiki/Storey", covers = "storey (floor-to-floor) height about 3.0 m, 3.1 m for apartments" },
+    { ref = "https://en.wikipedia.org/wiki/Flat_roof", covers = "flat roofs with parapets as living space in dry climates" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Long plastered block of five storeys of 2.9 m on a 0.3 m plinth, flat roof at 14.8 m with a 0.9 m parapet, two stair heads (top 17.1 m = height), two entrances with concrete canopies on the street side (+X), stacked concrete balconies on the courtyard side (-X, 1.2 m deep, inside the width). Length and depth are judgement values (two stairwells, two flats per landing)."
+
+[[unit]]
+id = "env_block_town"
+faction = "neutral"
+category = "env_building"
+name_de = "Mietshausblock (fünfgeschossig, Durchfahrt)"
+name_en = "Tenement block (five-storey, carriage passage)"
+tier = 1
+model = "assets/models/neutral/env_block_town.glb"
+length_mm = 30000
+width_mm = 13000
+height_mm = 20000
+source = [
+    { ref = "https://de.wikipedia.org/wiki/Berliner_Traufh%C3%B6he", covers = "eaves height of Berlin street fronts limited to 22 m (street width 22 m from 1875)" },
+    { ref = "https://de.wikipedia.org/wiki/Mietskaserne", covers = "multi-storey tenements whose courtyards are reached through carriage passages (Durchfahrten); courtyards at least 5.34 m x 5.34 m" },
+    { ref = "https://en.wikipedia.org/wiki/Pavlov%27s_House", covers = "a four-storey apartment building in Stalingrad, held as a strongpoint in 1942" },
+    { ref = "https://en.wikipedia.org/wiki/Storey", covers = "storey (floor-to-floor) height about 3.0 m" },
+]
+uncertain = ["length_mm", "width_mm", "height_mm"]
+note = "Plastered masonry tenement of a European city around 1900-1935: stone plinth 0.6 m, ground floor 3.6 m, four upper storeys of 3.2 m, eaves at 17.0 m (below the 22 m limit of the larger cities), low saddle roof (about 20 degrees, ridge 19.4 m) with plain fire-wall gables so blocks stand in a row, chimneys to 20.0 m (= height). Carriage passage to the courtyard in the middle of the ground floor. Length and depth are judgement values."

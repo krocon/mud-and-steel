@@ -97,6 +97,57 @@ vec3 rock_albedo(vec3 w, float up, float h, int kind) {
 	return col;
 }
 
+// Apartment blocks (prompt 078): faces whose UV.x is 100 + across carry a
+// pattern instead of box-projected meters (tools/blender/kit/blocks.py);
+// UV.y runs from 0 at the top to 1 at the bottom.
+// Plaster 100: dirt streak under a window sill, 101: soot over a burnt-out
+// window. The card lies 1 cm in front of the wall and repeats its plaster,
+// so only the stain shows.
+vec3 wall_stain(vec3 albedo, vec2 uv, vec3 p) {
+	float code = floor(uv.x);
+	float fx = fract(uv.x);
+	float fy = clamp(uv.y, 0.0, 1.0);
+	float n = vnoise(vec3(fx * 9.0 + p.x * 0.7 + p.z * 0.7, fy * 2.5, p.y * 0.3));
+	if (code < 100.5) {
+		float edge = smoothstep(0.0, 0.22, fx) * smoothstep(1.0, 0.78, fx);
+		float a = pow(1.0 - fy, 1.3) * edge * (0.45 + 0.9 * n);
+		albedo = mix(albedo, albedo * vec3(0.48, 0.45, 0.40), clamp(a, 0.0, 1.0));
+	} else {
+		float dist = abs(fx - 0.5);
+		float limit = 0.2 + 0.28 * (1.0 - fy) + (n - 0.5) * 0.14;
+		float a = smoothstep(limit, limit - 0.16, dist) * (0.35 + 0.65 * fy) * (0.75 + 0.5 * n);
+		albedo = mix(albedo, vec3(0.035, 0.033, 0.03), clamp(a, 0.0, 0.92));
+	}
+	return albedo;
+}
+
+// Glass 102: a sash window (white frame, mullion, transom, glazing bars),
+// one quad per window. Frame color and curtains vary per window.
+vec3 sash_window(vec2 uv, vec3 world, inout float rough, inout float metal) {
+	float fx = fract(uv.x);
+	float fy = clamp(uv.y, 0.0, 1.0);
+	vec2 fw = max(fwidth(vec2(fx, fy)), vec2(1e-4));
+	float id = hash2(floor(world.xz * 0.8) + vec2(floor(world.y / 2.8) * 7.1, 3.3));
+	// bars: distance to the nearest bar line in each direction, anti-aliased
+	float frame = max(1.0 - smoothstep(0.045, 0.045 + fw.x, min(fx, 1.0 - fx)),
+		1.0 - smoothstep(0.035, 0.035 + fw.y, min(fy, 1.0 - fy)));
+	float mull = 1.0 - smoothstep(0.022, 0.022 + fw.x, abs(fx - 0.5));
+	float trans = 1.0 - smoothstep(0.02, 0.02 + fw.y, abs(fy - 0.28));
+	float lower = step(0.28, fy);
+	float bars = lower * (1.0 - smoothstep(0.011, 0.011 + fw.y, min(abs(fy - 0.52), abs(fy - 0.76))));
+	bars = max(bars, (1.0 - lower) * (1.0 - smoothstep(0.011, 0.011 + fw.x, min(abs(fx - 0.25), abs(fx - 0.75)))));
+	float wood = clamp(max(max(frame, mull), max(trans, bars)), 0.0, 1.0);
+	vec3 paint = id < 0.7 ? vec3(0.80, 0.79, 0.74) : (id < 0.85 ? vec3(0.30, 0.38, 0.30) : vec3(0.40, 0.30, 0.22));
+	paint *= 0.85 + 0.15 * hash2(vec2(id * 13.0, 1.0));
+	// panes: dark glass with a faint sky sheen, curtains in some windows
+	vec3 glass = mix(vec3(0.03, 0.04, 0.05), vec3(0.16, 0.18, 0.20), (1.0 - fy) * 0.5 * hash2(vec2(id, 5.0)));
+	float curtain = step(0.6, hash2(vec2(id, 9.0))) * lower;
+	glass = mix(glass, vec3(0.42, 0.38, 0.30) * (0.8 + 0.2 * sin(fx * 40.0)), curtain * 0.85);
+	rough = mix(0.08, 0.7, max(wood, curtain));
+	metal = mix(0.3, 0.0, max(wood, curtain));
+	return mix(glass, paint, wood);
+}
+
 // mortar lines of a running bond (brick / ashlar), size in meters
 float bond(vec2 uv, vec2 size, float joint) {
 	vec2 q = uv / size;
@@ -160,6 +211,9 @@ void fragment() {
 		albedo = vec3(0.04, 0.06, 0.07);
 		rough = 0.06;
 		metal = 0.3;
+		if (UV.x > 101.5) {
+			albedo = sash_window(UV, v_world, rough, metal);
+		}
 	} else if (slot == 10) {  // Bark: oak, birch, palm, pine
 		if (kind == 1) {
 			float marks = step(0.72, vnoise(vec3(p.x * 6.0, p.y * 6.0, p.z * 1.2)) + vnoise(p * vec3(2.0, 2.0, 18.0)) * 0.3);
@@ -205,6 +259,9 @@ void fragment() {
 		// grime rising from the ground
 		float h = vc.b * 4.0;
 		albedo *= mix(0.72, 1.0, smoothstep(0.0, 1.2 + 0.6 * big, h));
+		if (UV.x > 99.5) {
+			albedo = wall_stain(albedo, UV, p);
+		}
 		if (v_rest_normal.y > 0.9) {
 			// Flat roofs (prompt 075): grime rims, stains, cracks; the wall
 			// colors stay as they are.

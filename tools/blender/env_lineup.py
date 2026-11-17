@@ -245,7 +245,8 @@ def main():
     lineup_ids = [i for i in ("env_house_farm", "env_barn", "env_church", "env_tree_deciduous", "env_tree_conifer",
                               "env_tree_birch", "env_bush", "env_fence_wood", "env_wall_stone", "env_hedge",
                               "fort_sandbag_position", "fort_hedgehog", "fort_barbed_wire", "env_pole_telegraph",
-                              "env_hay_bale") if i in ids]
+                              "env_hay_bale", "env_house_town", "env_block_desert", "env_block_desert_long",
+                              "env_block_town") if i in ids]
     if lineup_ids:
         print(f"env_lineup: {scale_lineup(lineup_ids, out / 'scale_lineup.png')}")
     report(ids)

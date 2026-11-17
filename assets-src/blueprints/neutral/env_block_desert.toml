@@ -1,0 +1,82 @@
+# Four-storey apartment block with a flat roof for desert towns (prompt 078).
+# Generator: apartment_block (tools/blender/kit/blocks.py); street side +X, courtyard side -X.
+unit = "env_block_desert"
+assembly = "env"
+
+[[variant]]
+name = "Intact"
+part = "apartment_block"
+role = "intact"
+seed = 31
+wall_kind = 3
+storeys = 4
+storey_h = 2.9
+plinth = 0.3
+bays_long = 7
+bays_short = 3
+window = [1.1, 1.4]
+entrances = [3]
+door = [1.4, 2.4]
+canopy = 1.2
+parapet = 0.9
+roof_kind = 3
+stair_head = [2.8, 3.6]
+tanks = 3
+chimneys = 3
+vents = 2
+plinth_band = [0.4, 2]
+burnt = 6
+
+[[variant]]
+name = "Damaged"
+part = "apartment_block"
+role = "damaged"
+damage_of = "Intact"
+fit = false
+damage = 1
+seed = 31
+wall_kind = 3
+storeys = 4
+storey_h = 2.9
+plinth = 0.3
+bays_long = 7
+bays_short = 3
+window = [1.1, 1.4]
+entrances = [3]
+door = [1.4, 2.4]
+canopy = 1.2
+parapet = 0.9
+roof_kind = 3
+stair_head = [2.8, 3.6]
+tanks = 3
+chimneys = 3
+vents = 2
+plinth_band = [0.4, 2]
+burnt = 6
+
+[[variant]]
+name = "Ruin"
+part = "apartment_block"
+role = "ruin"
+damage_of = "Intact"
+fit = false
+damage = 2
+seed = 31
+wall_kind = 3
+storeys = 4
+storey_h = 2.9
+plinth = 0.3
+bays_long = 7
+bays_short = 3
+window = [1.1, 1.4]
+entrances = [3]
+door = [1.4, 2.4]
+canopy = 1.2
+parapet = 0.9
+roof_kind = 3
+stair_head = [2.8, 3.6]
+tanks = 3
+chimneys = 3
+vents = 2
+plinth_band = [0.4, 2]
+burnt = 6

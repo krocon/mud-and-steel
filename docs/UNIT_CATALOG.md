@@ -1627,6 +1627,9 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 | env_steel_hall | Stahlhalle / Steel hall | 1 | 20.00? × 10.00? × 9.00? | Workshop hall of the vehicle works: steel-clad on a brick plinth, sliding door a… |
 | env_barracks | Baracke / Barracks hut | 1 | 12.00? × 8.00? × 7.50? | Timber barracks hut with a steep plank roof, porch and stove pipes |
 | env_depot | Versorgungslager / Supply depot | 1 | 14.00? × 9.00? × 8.00? | Timber store shed with a steel roof and wide doors, crate stacks at one end and … |
+| env_block_desert | Wohnblock (viergeschossig, Flachdach) / Apartment block (four-storey, flat roof) | 1 | 24.00? × 12.00? × 14.20? | Plastered concrete-frame block of an interwar North African or Levantine town: f… |
+| env_block_desert_long | Langer Wohnblock (fünfgeschossig, Balkone) / Long apartment block (five-storey, balconies) | 1 | 40.00? × 13.00? × 17.10? | Long plastered block of five storeys of 2.9 m on a 0.3 m plinth, flat roof at 14… |
+| env_block_town | Mietshausblock (fünfgeschossig, Durchfahrt) / Tenement block (five-storey, carriage passage) | 1 | 30.00? × 13.00? × 20.00? | Plastered masonry tenement of a European city around 1900-1935: stone plinth 0.6… |
 
 ### Uncertain values
 
@@ -1694,6 +1697,9 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `env_steel_hall`: length_mm, width_mm, height_mm
 - `env_barracks`: length_mm, width_mm, height_mm
 - `env_depot`: length_mm, width_mm, height_mm
+- `env_block_desert`: length_mm, width_mm, height_mm
+- `env_block_desert_long`: length_mm, width_mm, height_mm
+- `env_block_town`: length_mm, width_mm, height_mm
 
 ### Sources
 
@@ -1850,4 +1856,17 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `env_depot`
   - https://en.wikipedia.org/wiki/Military_supply-chain_management (supply dumps of crates and fuel drums)
   - https://en.wikipedia.org/wiki/Drum_(container) (200 l steel drums for fuel)
+- `env_block_desert`
+  - https://en.wikipedia.org/wiki/White_City_(Tel_Aviv) (1930s apartment blocks of reinforced concrete with flat roofs used as shared terraces and long balconies, in a hot Mediterranean city)
+  - https://en.wikipedia.org/wiki/Storey (storey (floor-to-floor) height about 3.0 m, 3.1 m for apartments)
+  - https://en.wikipedia.org/wiki/Flat_roof (flat roofs with parapets as living space in dry climates)
+- `env_block_desert_long`
+  - https://en.wikipedia.org/wiki/White_City_(Tel_Aviv) (1930s apartment blocks of reinforced concrete with flat roofs and long, narrow balconies, each shaded by the one above)
+  - https://en.wikipedia.org/wiki/Storey (storey (floor-to-floor) height about 3.0 m, 3.1 m for apartments)
+  - https://en.wikipedia.org/wiki/Flat_roof (flat roofs with parapets as living space in dry climates)
+- `env_block_town`
+  - https://de.wikipedia.org/wiki/Berliner_Traufh%C3%B6he (eaves height of Berlin street fronts limited to 22 m (street width 22 m from 1875))
+  - https://de.wikipedia.org/wiki/Mietskaserne (multi-storey tenements whose courtyards are reached through carriage passages (Durchfahrten); courtyards at least 5.34 m x 5.34 m)
+  - https://en.wikipedia.org/wiki/Pavlov%27s_House (a four-storey apartment building in Stalingrad, held as a strongpoint in 1942)
+  - https://en.wikipedia.org/wiki/Storey (storey (floor-to-floor) height about 3.0 m)
 

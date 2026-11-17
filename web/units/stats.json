@@ -41406,6 +41406,30 @@
     "env_depot": {
       "id": "env_depot",
       "category": "env_building"
+    },
+    "env_block_desert": {
+      "id": "env_block_desert",
+      "category": "env_building",
+      "object": {
+        "hp": 6000,
+        "min_caliber_mm": 20
+      }
+    },
+    "env_block_desert_long": {
+      "id": "env_block_desert_long",
+      "category": "env_building",
+      "object": {
+        "hp": 9000,
+        "min_caliber_mm": 20
+      }
+    },
+    "env_block_town": {
+      "id": "env_block_town",
+      "category": "env_building",
+      "object": {
+        "hp": 9000,
+        "min_caliber_mm": 20
+      }
     }
   }
 }
