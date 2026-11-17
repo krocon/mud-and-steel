@@ -27,23 +27,27 @@ position_m = [-1290, 800]
 [[start]]
 player = 3
 team = 1
-position_m = [880, 640]
+position_m = [1320, 470]
 
 [[marker]]
-name = "supply_harbor"
-position_m = [-330, 440]
+name = "supply_harbor_west"
+position_m = [-360, 480]
+
+[[marker]]
+name = "supply_harbor_east"
+position_m = [220, 740]
 
 [[marker]]
 name = "supply_rock"
 position_m = [-520, 880]
 
 [[marker]]
-name = "supply_casino_square"
-position_m = [363, 560]
+name = "supply_square_east"
+position_m = [300, 600]
 
 [[marker]]
-name = "supply_upper_west"
-position_m = [-805, 29]
+name = "supply_west_hill"
+position_m = [-1350, 0]
 
 [[marker]]
 name = "supply_upper_east"
@@ -51,27 +55,27 @@ position_m = [521, 89]
 
 [[marker]]
 name = "supply_hinterland"
-position_m = [300, -500]
+position_m = [-300, -450]
 
 [[marker]]
-name = "west_flats"
-position_m = [-1150, 600]
+name = "harbor"
+position_m = [-150, 650]
 
 [[marker]]
 name = "rock"
 position_m = [-520, 880]
 
 [[marker]]
-name = "harbor"
-position_m = [-200, 600]
+name = "west_flats"
+position_m = [-1150, 600]
 
 [[marker]]
-name = "casino_square"
-position_m = [363, 560]
+name = "square_east"
+position_m = [300, 600]
 
 [[marker]]
 name = "beach_east"
-position_m = [1250, 480]
+position_m = [1150, 520]
 
 [[marker]]
 name = "upper_west"
@@ -82,5 +86,17 @@ name = "upper_east"
 position_m = [521, 89]
 
 [[marker]]
+name = "west_hill"
+position_m = [-1350, 0]
+
+[[marker]]
 name = "hinterland"
-position_m = [300, -500]
+position_m = [-300, -450]
+
+[[marker]]
+name = "start_west"
+position_m = [-1470, 540]
+
+[[marker]]
+name = "start_east"
+position_m = [1560, 720]

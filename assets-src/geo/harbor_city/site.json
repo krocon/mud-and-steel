@@ -172,8 +172,8 @@
     {
       "name": "start_3",
       "center_m": [
-        880,
-        640
+        1320,
+        470
       ],
       "radius_m": 34,
       "blend_m": 30,
@@ -209,17 +209,24 @@
       "player": 3,
       "team": 1,
       "position_m": [
-        880,
-        640
+        1320,
+        470
       ]
     }
   ],
   "markers": [
     [
-      "supply_harbor",
+      "supply_harbor_west",
       [
-        -330,
-        440
+        -360,
+        480
+      ]
+    ],
+    [
+      "supply_harbor_east",
+      [
+        220,
+        740
       ]
     ],
     [
@@ -230,17 +237,17 @@
       ]
     ],
     [
-      "supply_casino_square",
+      "supply_square_east",
       [
-        363,
-        560
+        300,
+        600
       ]
     ],
     [
-      "supply_upper_west",
+      "supply_west_hill",
       [
-        -805,
-        29
+        -1350,
+        0
       ]
     ],
     [
@@ -253,15 +260,15 @@
     [
       "supply_hinterland",
       [
-        300,
-        -500
+        -300,
+        -450
       ]
     ],
     [
-      "west_flats",
+      "harbor",
       [
-        -1150,
-        600
+        -150,
+        650
       ]
     ],
     [
@@ -272,24 +279,24 @@
       ]
     ],
     [
-      "harbor",
+      "west_flats",
       [
-        -200,
+        -1150,
         600
       ]
     ],
     [
-      "casino_square",
+      "square_east",
       [
-        363,
-        560
+        300,
+        600
       ]
     ],
     [
       "beach_east",
       [
-        1250,
-        480
+        1150,
+        520
       ]
     ],
     [
@@ -307,11 +314,281 @@
       ]
     ],
     [
+      "west_hill",
+      [
+        -1350,
+        0
+      ]
+    ],
+    [
       "hinterland",
       [
-        300,
-        -500
+        -300,
+        -450
+      ]
+    ],
+    [
+      "start_west",
+      [
+        -1470,
+        540
+      ]
+    ],
+    [
+      "start_east",
+      [
+        1560,
+        720
       ]
     ]
-  ]
+  ],
+  "buildings": {
+    "seed": 81,
+    "large_block_m2": 600,
+    "public_min_m2": 400,
+    "coverage": 0.45,
+    "road_margin_m": 2.0,
+    "overhang_m": 2.0,
+    "gap_m": 3.0,
+    "step_m": 4.0,
+    "max_pad_drop_m": 10.0,
+    "ruin_share": 0.02,
+    "damaged_share": 0.06,
+    "supply_free_m": 12,
+    "max_buildings": 2000,
+    "classes": {
+      "tower": [
+        "env_block_town",
+        "env_block_desert_long",
+        "env_block_desert",
+        "env_house_town"
+      ],
+      "block": [
+        "env_block_desert_long",
+        "env_block_desert",
+        "env_house_town"
+      ],
+      "town": [
+        "env_house_town",
+        "env_house_stone",
+        "env_house_desert_tall"
+      ],
+      "old_town": [
+        "env_house_town",
+        "env_house_stone",
+        "env_house_desert_tall"
+      ],
+      "villa": [
+        "env_house_desert_large",
+        "env_house_farm_brick",
+        "env_house_stone",
+        "env_house_desert_tall"
+      ],
+      "industrial": [
+        "env_warehouse",
+        "env_block_desert",
+        "env_house_desert_large"
+      ],
+      "church": [
+        "env_church"
+      ],
+      "public": [
+        "env_town_hall"
+      ]
+    },
+    "min_area_steps_m2": [
+      600,
+      700,
+      800,
+      1000
+    ],
+    "row_gap_m": 8.0,
+    "pad_margin_m": 0.5,
+    "pad_tolerance_m": 0.6,
+    "pad_road_clear_m": 4.0,
+    "open_passes": 8,
+    "min_part_cells": 500,
+    "open_check_m": 8.0,
+    "pad_window_m": 12.0,
+    "pave_m": 6.0
+  },
+  "districts": [
+    {
+      "name": "rock",
+      "style": "old_town",
+      "levels": [
+        4,
+        4
+      ],
+      "polygon_m": [
+        [
+          -800,
+          540
+        ],
+        [
+          -560,
+          500
+        ],
+        [
+          -380,
+          680
+        ],
+        [
+          -130,
+          950
+        ],
+        [
+          -130,
+          1110
+        ],
+        [
+          -560,
+          1110
+        ],
+        [
+          -820,
+          800
+        ]
+      ]
+    },
+    {
+      "name": "west_flats",
+      "levels": [
+        6,
+        10
+      ],
+      "polygon_m": [
+        [
+          -1800,
+          250
+        ],
+        [
+          -880,
+          250
+        ],
+        [
+          -880,
+          1200
+        ],
+        [
+          -1800,
+          1200
+        ]
+      ]
+    },
+    {
+      "name": "harbor",
+      "levels": [
+        6,
+        8
+      ],
+      "polygon_m": [
+        [
+          -480,
+          280
+        ],
+        [
+          180,
+          280
+        ],
+        [
+          180,
+          1000
+        ],
+        [
+          -480,
+          1000
+        ]
+      ]
+    },
+    {
+      "name": "east_shore",
+      "levels": [
+        8,
+        12
+      ],
+      "polygon_m": [
+        [
+          180,
+          250
+        ],
+        [
+          1800,
+          250
+        ],
+        [
+          1800,
+          1200
+        ],
+        [
+          180,
+          1200
+        ]
+      ]
+    },
+    {
+      "name": "slope_town",
+      "levels": [
+        5,
+        8
+      ],
+      "polygon_m": [
+        [
+          -1800,
+          -250
+        ],
+        [
+          1800,
+          -250
+        ],
+        [
+          1800,
+          320
+        ],
+        [
+          -1800,
+          320
+        ]
+      ]
+    },
+    {
+      "name": "hinterland",
+      "style": "villa",
+      "levels": [
+        2,
+        3
+      ],
+      "polygon_m": [
+        [
+          -1800,
+          -1200
+        ],
+        [
+          1800,
+          -1200
+        ],
+        [
+          1800,
+          1200
+        ],
+        [
+          -1800,
+          1200
+        ]
+      ],
+      "garden": true
+    }
+  ],
+  "green": {
+    "seed": 82,
+    "trunk_clear_m": 1.5,
+    "wood_spacing_m": 8,
+    "park_spacing_m": 14,
+    "scrub_spacing_m": 18,
+    "park_palm_share": 0.4,
+    "row_spacing_m": 9,
+    "palm_below_y_m": -100,
+    "hedge_run_m": 30,
+    "hedge_gap_m": 9
+  }
 }
