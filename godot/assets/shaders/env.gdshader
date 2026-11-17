@@ -12,6 +12,8 @@ render_mode blend_mix, depth_draw_opaque, cull_back, diffuse_burley, specular_sc
 // Roof patina (prompt 075): RoofFrame, roof_clay/slate/thatch/planks,
 // sheet_patina (corrugated Metal), flat_roof_patina (flat Plaster roofs).
 #include "res://assets/shaders/env_roof.gdshaderinc"
+// Roof snow (prompt 080): roof_snow(), snow_albedo().
+#include "res://assets/shaders/env_snow.gdshaderinc"
 
 // 0 Paint, 1 Metal, 2 Rubber, 3 Wood, 4 Canvas, 5 Glass,
 // 10 Bark, 12 Stone, 13 Plaster, 14 Ground, 15 Roof, 16 Rock
@@ -168,6 +170,10 @@ void fragment() {
 	vec3 albedo = vec3(0.5);
 	float rough = 0.9;
 	float metal = 0.0;
+	// Roof snow (prompt 080): which covering this pixel is, -1 = no roof.
+	// 0 tiles, slate, boards; 1 thatch; 2 corrugated sheet; 3 flat roof.
+	int snow_roof = -1;
+	RoofFrame srf;
 	if (slot == 0) {  // Paint
 		vec3 c[4] = {env_paint.rgb, vec3(0.62, 0.07, 0.05), vec3(0.86, 0.86, 0.82), vec3(0.36, 0.20, 0.11)};
 		albedo = c[kind] * (0.9 + 0.2 * grain);
@@ -189,6 +195,10 @@ void fragment() {
 			// Patina of the sheets (prompt 075): rust runs, matte and bright sheets.
 			RoofFrame rf = roof_frame(p, normalize(v_rest_normal), wn);
 			albedo = sheet_patina(albedo, rf, v_seed, roof_age(v_seed), env_dry, rough, metal);
+			if (v_rest_normal.y > 0.15) {
+				snow_roof = 2;
+				srf = rf;
+			}
 		}
 	} else if (slot == 2) {  // Rubber
 		albedo = vec3(0.05);
@@ -267,6 +277,8 @@ void fragment() {
 			// colors stay as they are.
 			RoofFrame rf = roof_frame(p, normalize(v_rest_normal), wn);
 			albedo = flat_roof_patina(albedo, rf, v_seed, roof_age(v_seed), ao, env_dust);
+			snow_roof = 3;
+			srf = rf;
 		}
 		rough = 0.95;
 	} else if (slot == 14) {  // Ground: earth, spoil, mud, sand
@@ -282,6 +294,13 @@ void fragment() {
 		// the position on the model and the per-house seed.
 		RoofFrame rf = roof_frame(p, normalize(v_rest_normal), wn);
 		float age = roof_age(v_seed);
+		// Snow on the top faces and on the outward edge faces of the slabs
+		// (eave, verge, ridge cap), not on the undersides.
+		vec3 rn = normalize(v_rest_normal);
+		if (rf.top > 0.5 || dot(rn.xz, p.xz) > 0.0) {
+			snow_roof = kind == 2 ? 1 : 0;
+			srf = rf;
+		}
 		// Roof variants (prompt 056): about every fifth clay roof has dark
 		// cement tiles, drawn like slate.
 		if (kind == 0 && fract(v_seed * 11.3) > 0.82) {
@@ -310,7 +329,27 @@ void fragment() {
 		// grown rock takes its desert color from the tint, less dust
 		dust *= slot == 16 ? 0.45 : 1.0;
 		albedo = mix(albedo, vec3(0.70, 0.62, 0.46), clamp(dust, 0.0, 0.7));
-		albedo = snow_cover(albedo, rough, normalize(v_rest_normal), p, env_snow);
+		if (snow_roof < 0) {
+			albedo = snow_cover(albedo, rough, normalize(v_rest_normal), p, env_snow);
+		}
+	}
+	// Roof snow (prompt 080): after patina and dust, before soot; none where
+	// the roof burns or is charred.
+	float roof_amount = env_snow * (1.0 - smoothstep(0.05, 0.4, env_char));
+	if (snow_roof >= 0 && roof_amount > 0.0) {
+		// hold, ridge band, eave band, softness per covering
+		vec4 cfg = snow_roof == 1 ? vec4(1.35, 1.2, 1.2, 0.06)
+			: (snow_roof == 2 ? vec4(0.7, 0.45, 1.1, 0.0) : vec4(1.0, 1.0, 1.0, 0.0));
+		RoofSnow rs = roof_snow(p, normalize(v_rest_normal), wn, srf, v_seed, roof_amount,
+			cfg.x, cfg.y, cfg.z, cfg.w, snow_roof == 3 ? 1.0 : 0.0);
+		albedo *= 1.0 - 0.65 * rs.shade;
+		albedo = mix(albedo, snow_albedo(p, wn, srf), rs.cover);
+		rough = mix(rough, 0.8, rs.cover);
+		metal = mix(metal, 0.0, rs.cover);
+		if (abs(rs.bend) > 0.0) {
+			vec3 wdown = normalize(vec3(wn.x, 0.0, wn.z) + vec3(1e-4, 0.0, 0.0));
+			NORMAL = normalize(NORMAL + (VIEW_MATRIX * vec4(wdown * rs.bend * 0.7, 0.0)).xyz);
+		}
 	}
 	albedo = charred(albedo, env_char);
 	ALBEDO = albedo * mix(0.45, 1.0, ao);

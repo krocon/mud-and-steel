@@ -602,7 +602,7 @@ same house always looks the same and nothing wanders with the camera.
   meters), the distance from the ridge (houses are built with the ridge
   above the model origin, `kit/buildings.py gable_roof`), north / west
   facing, and the pixel footprint `fw`. Stage 1 of the prompt: the models
-  carry no ridge, eave or chimney data. Prompt 080 (snow) can reuse it.
+  carry no ridge, eave or chimney data. The roof snow of prompt 080 uses it.
 - **Age per house** (`roof_age`): about 12 % new, two thirds weathered, a
   fifth very old; scales every other layer.
 - **Shared layers** (`roof_weather`, `roof_growth`, `roof_desert`): large
@@ -633,13 +633,62 @@ same house always looks the same and nothing wanders with the camera.
   pixels per row; per-tile tones, lichen dots, fibres and cracks fade by
   `roof_fine(fw, size)` before they reach 2 pixels. Stains, streaks, age
   and the eave gradient carry the far view.
-- **Order:** patina, then edge wear, dust, snow and soot as before; damaged
-  roofs and roof debris get the patina of their house (same seed).
+- **Order:** patina, then edge wear, dust, roof snow (prompt 080, below)
+  and soot; damaged roofs and roof debris get the patina of their house
+  (same seed).
 - **Checks:** `just roof-shots [dir] [map]` (village at 15-350 m and like
   the reference, all coverings side by side, twenty equal houses, damaged
   and charred houses; forest by day, low sun and night, desert, winter),
   `just ground-motion --roofs --png` (flicker on roof windows of
   `town_small`), `just objects-bench` (line "village").
+
+### Roof snow (prompt 080)
+
+`godot/assets/shaders/env_snow.gdshaderinc`, included by `env.gdshader`.
+On winter maps the snow on roofs is a blanket with a clear edge instead of
+a color blend: it stays along the ridge and the eave and has slid off in
+between. It replaces `snow_cover()` on roof pixels only: the `Roof` slot
+(clay, slate and cement tiles, thatch, boards; also haystacks and bales),
+the sloped faces of the corrugated `Metal` kinds and the flat roofs
+(upward `Plaster` faces). Everything else (walls, sills, chimney tops,
+fences, rocks, trees) keeps `snow_cover()`, so a chimney gets its cap from
+its top face. Shader only: no snow geometry, the models are unchanged.
+
+- **Blanket or nothing:** `roof_snow()` builds a signed distance `d` (m,
+  > 0 in the snow) and thresholds it, smoothed over 1.2 pixel footprints
+  (`RoofFrame.fw`), so the edge is sharp near and never flickers far.
+- **Where it lies:** `u` runs from the ridge (0, the model origin) to the
+  eave (1); the eave distance comes from the mesh bounds, set per mesh as
+  the instance uniform `env_roof_box` (`EnvLook.set_roof_box()`, called by
+  `EnvLook.apply()` and `map_objects._apply_look()`). Layers: a ridge band
+  whose lower edge is jagged (a 2 m wave, tongues hanging down, 20-40 cm
+  bites), a broad eave band with a wavy upper edge, lanes where nothing
+  slid (ridge and eave joined), floes on the free roof, a filled middle
+  with a lot of snow, holes when the snow is thin.
+- **How much stays:** `c = hold x pitch x amount / 0.85 x sun x lee x
+  house`: covering (thatch 1.35 with soft edges, sheet 0.7 with a narrow
+  ridge band and a long free middle, others 1.0), pitch (`n.y` 0.2-0.72:
+  steep spires and towers stay almost bare), sunny side (towards the
+  winter sun, south-east) up to 22 % less, lee side (along the wind of the
+  biome) up to 15 % more, per house and roof side 0.78-1.22 from `v_seed`.
+  `env_snow` 0.3 gives a thin, holey blanket, 0.85 (winter) the reference
+  look, 1.0 a nearly closed roof.
+- **Thickness, faked:** the outward edge faces of the roof slabs (eave,
+  verge, ridge cap) turn white under snow and read as the blanket's front;
+  only on buildings (mesh bounds over 4.8 m), so bales keep bare sides. A
+  dark line (up to 65 %) runs under the blanket's edge on the free roof;
+  the normal bends over at the lower edge of the ridge band (downhill) and
+  the upper edge of the eave band (uphill).
+- **Color:** `snow_cover()`'s white a touch lower (0.86 / 0.88 / 0.92
+  linear) so noon sun does not burn out, a faint grain, warmer on the
+  sunny side, bluish on the shady side; roughness 0.8, no metal.
+- **Flat roofs:** a closed blanket with holes only when the snow is thin.
+- **Fire and damage:** no roof snow where `env_char` is above about 0.3;
+  holes of damaged roofs have no slab, so no snow; ruins keep only their
+  rafters (Wood, `snow_cover()`).
+- **Cost:** only on roof pixels and only with `env_snow > 0`; the shadow
+  pass is untouched. Checks: `just snow-shots`, `just objects-bench
+  winter_village --roofs-bench`, `just ground-motion --snow-roofs`.
 
 ### Grown rock (prompt 074)
 

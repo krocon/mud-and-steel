@@ -68,6 +68,10 @@ const SSAO_RADIUS_RANGE := Vector2(0.6, 10.0)
 const WIND_MATERIALS: Array[String] = [
 	"res://assets/materials/env/bark.tres",
 	"res://assets/materials/env/foliage.tres",
+	# the roof snow lies thicker on the lee side (prompt 080)
+	"res://assets/materials/env/roof.tres",
+	"res://assets/materials/env/metal.tres",
+	"res://assets/materials/env/plaster.tres",
 	"res://assets/materials/env/meadow_tuft.tres",
 	"res://assets/materials/env/tall_grass.tres",
 ]

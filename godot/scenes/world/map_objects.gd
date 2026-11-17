@@ -825,6 +825,7 @@ func _apply_look(node: GeometryInstance3D, tint := Color.WHITE) -> void:
 	node.set_instance_shader_parameter(&"env_snow", look.snow)
 	node.set_instance_shader_parameter(&"env_dust", look.dust)
 	node.set_instance_shader_parameter(&"env_paint", EnvLook.NEUTRAL_PAINT)
+	EnvLook.set_roof_box(node)
 	if node.has_meta(&"straw"):
 		# Straw: fully dry, a little lighter than standing grass.
 		node.set_instance_shader_parameter(&"env_dry", 1.0)

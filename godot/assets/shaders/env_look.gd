@@ -32,6 +32,23 @@ static func apply(model: Node, biome: String, paint := NEUTRAL_PAINT) -> void:
 		mesh.set_instance_shader_parameter(&"env_snow", look.snow)
 		mesh.set_instance_shader_parameter(&"env_dust", look.dust)
 		mesh.set_instance_shader_parameter(&"env_paint", paint)
+		set_roof_box(mesh)
+
+
+## The horizontal bounds of the mesh (min x, min z, max x, max z) as
+## `env_roof_box`: the roof snow of env.gdshader (prompt 080) needs how far
+## the eave lies from the ridge (the model origin).
+static func set_roof_box(node: GeometryInstance3D) -> void:
+	var mesh: Mesh = null
+	if node is MultiMeshInstance3D:
+		var mm := (node as MultiMeshInstance3D).multimesh
+		mesh = mm.mesh if mm else null
+	elif node is MeshInstance3D:
+		mesh = (node as MeshInstance3D).mesh
+	if mesh == null:
+		return
+	var box := mesh.get_aabb()
+	node.set_instance_shader_parameter(&"env_roof_box", Vector4(box.position.x, box.position.z, box.end.x, box.end.z))
 
 
 static func is_env_model(model: Node) -> bool:

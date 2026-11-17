@@ -2974,6 +2974,31 @@ from `crates/bridge/src/objects.rs`.
   MultiMesh, 180 m view distance, seeded by the stack's position).
 - **Winter:** grass clumps are thinned to 8 %, reeds and stones to 40 %
   (snow covers them).
+- **Roof snow (prompt 080):** on winter maps roofs carry a blanket with a
+  clear edge that stays along ridge and eave and has slid off in between
+  (`env_snow.gdshaderinc`, details in [ASSETS.md](ASSETS.md#roof-snow-prompt-080)).
+  Shader only, no snow geometry (stage 2 of the prompt, a `_Snow` part per
+  building, was not needed: the edge faces of the roof slabs already read
+  as the blanket's front). The eave distance comes from the mesh bounds
+  (`env_roof_box`, set in `_apply_look`). Measured on `winter_village`
+  (M1 Max, 1920 x 1080, `just objects-bench winter_village --roofs-bench`,
+  over the house nearest the village): 35 m 61.7 -> 61.3 FPS, 110 m
+  68.1 -> 67.5, 350 m 81.0 -> 80.3 (within 1 %). Flicker
+  (`just ground-motion --snow-roofs`, falling snow hidden, frame match per
+  band 16-32 / 8-16 / 4-8 / 2-4 px, 1 = stable): 15 m 0.91 / 0.40 / 0.05 /
+  0.27 -> 0.997 / 0.99 / 0.94 / 0.51, 35 m 0.98 / 0.88 / 0.39 / 0.08 ->
+  0.995 / 0.99 / 0.96 / 0.58, 110 m 0.97 / 0.94 / 0.75 / 0.35 -> 0.97 /
+  0.95 / 0.76 / 0.32 (MJPEG; the old pale blotchy roofs gave the bands
+  little to hold on to). Views: `just snow-shots` (village at 15-350 m,
+  two houses like the reference, every roof kind, twenty equal houses,
+  damage; day, low sun, night, falling snow; amounts 0.3-1.0). Forest and
+  desert unchanged (`env_snow` = 0 skips it). Open: slid-off snow heaps at
+  the foot of the walls (would need a snow-heap decoration model), snow on
+  roofs that grows, thaws or falls off in the game, icicles, chimney
+  smoke and thawed rings, snow drifts at fences and walls, snow on vehicles
+  and soldiers; the eave distance of a mesh with several roofs (church
+  nave and choir) is taken from the largest; the sun side assumes the
+  winter sun (south-east).
 
 ### Decoration
 
