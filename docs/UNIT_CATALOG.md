@@ -52,7 +52,7 @@ uncertain; see the list at the end of each faction.
 | de_jagdpanther | Jagdpanther / Jagdpanther | Sd.Kfz. 173 | 1944–1945 | 3 | 9.87 × 3.42 × 2.72 | 45.5 | 5 | 55.0 / 30.0 | 80 / 100 | 8.8 cm PaK 43/3 L/71? |
 | de_jagdtiger | Jagdpanzer VI "Jagdtiger" / Jagdtiger | Sd.Kfz. 186 | 1944–1945 | 3 | 10.65 × 3.63 × 2.82 | 71.7 | 6 | 38.0 / 17.0 | 250 / 250 | 12.8 cm PaK 44 L/55? |
 | de_jgdpz4 | Jagdpanzer IV / Jagdpanzer IV | Sd.Kfz. 162 | 1944–1944 | 3 | 6.85 × 3.17? × 1.85 | 24.0 | 4 | 40.0 / 20.0? | 60 / 80 | 7.5 cm PaK 39 L/48? |
-| de_lefh18_39h | 10.5 cm leFH 18 (Sf) auf Geschützwagen 39H(f) / 10.5 cm leFH 18 on Hotchkiss H39 | 10.5 cm leFH 18 (Sf) auf Geschützwagen 39H(f) | 1942–1942 | 3 | 4.22? × 1.95? × 2.40? | 12.5 | 4 | 36.0 / 18.0? | 34 / 20 | 10.5 cm leFH 18 L/28? |
+| de_lefh18_39h | 10.5 cm leFH 18 (Sf) auf Geschützwagen 39H(f) / 10.5 cm leFH 18 on Hotchkiss H39 | 10.5 cm leFH 18 (Sf) auf Geschützwagen 39H(f) | 1942–1942 | 3 | 5.49? × 1.95? × 2.20? | 12.5 | 4 | 36.0 / 18.0? | 34 / 20 | 10.5 cm leFH 18 L/28? |
 | de_marder1 | 7.5 cm PaK 40/1 (Sf) auf Geschützwagen Lorraine Schlepper (f) "Marder I" / Marder I | Sd.Kfz. 135 | 1942–1942 | 3 | 5.18 × 1.88 × 2.13 | 8.0 | 5 | 34.0 / 13.0 | 12 / 10 | 7.5 cm PaK 40/1 L/46? |
 | de_marder2 | Marder II / Marder II | Sd.Kfz. 131 | 1943–1944 | 3 | 6.36 × 2.28 × 2.20 | 10.8 | 3 | 40.0 / 19.0 | 35 / 30 | 7.5 cm PaK 40/2 L/46? |
 | de_marder3_139 | Panzerjäger 38(t) für 7.62 cm PaK 36(r) "Marder III" / Marder III (Sd.Kfz. 139) | Sd.Kfz. 139 | 1942–1942 | 3 | 5.85 × 2.16 × 2.50 | 10.7 | 4 | 42.0 / 15.0 | 50 / 50 | 7.62 cm PaK 36(r) L/54.8? |
@@ -233,7 +233,7 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `de_flakpz38t`: speed_offroad_kmh_x10, weapon
 - `de_grille_h`: speed_offroad_kmh_x10, weapon
 - `de_hummel`: weapon
-- `de_jagdpanther`: weapon
+- `de_jagdpanther`: length_hull_mm, weapon
 - `de_jagdtiger`: weapon
 - `de_jgdpz4`: width_mm, speed_offroad_kmh_x10, weapon
 - `de_lefh18_39h`: length_mm, width_mm, height_mm, speed_offroad_kmh_x10, weapon
@@ -244,9 +244,9 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `de_nashorn`: weapon
 - `de_pak40_39h`: length_mm, width_mm, height_mm, speed_offroad_kmh_x10, weapon
 - `de_pak47_35r`: speed_offroad_kmh_x10, weapon
-- `de_panther_a`: speed_road_kmh_x10, speed_offroad_kmh_x10, weapon
+- `de_panther_a`: length_hull_mm, speed_road_kmh_x10, speed_offroad_kmh_x10, weapon
 - `de_panther_d`: speed_road_kmh_x10, speed_offroad_kmh_x10, weapon
-- `de_panther_g`: speed_road_kmh_x10, speed_offroad_kmh_x10, weapon
+- `de_panther_g`: length_hull_mm, speed_road_kmh_x10, speed_offroad_kmh_x10, weapon
 - `de_pz1_a`: speed_offroad_kmh_x10, weapon
 - `de_pz1_b`: speed_offroad_kmh_x10, weapon
 - `de_pz1_c`: speed_offroad_kmh_x10, weapon
