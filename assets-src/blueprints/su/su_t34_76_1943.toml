@@ -6,7 +6,7 @@ unit = "su_t34_76_1943"
 assembly = "tank"
 
 [layout]
-turret_y = 0.62
+turret_y = 0.50
 turret_ring_diameter = 1.42
 fender_overhang = 0.03
 
@@ -79,11 +79,11 @@ socket = true
 
 [[part]]
 part = "su.side_fuel_tanks"
-y = [-1.25, -2.05]
-x = 1.30
-z = 1.10
-diameter = 0.34
-length = 0.66
+y = [-0.88, -1.84]
+x = 1.25
+z = 1.46
+diameter = 0.42
+length = 0.92
 
 [[part]]
 part = "deck_box"   # engine grille
@@ -150,7 +150,7 @@ position = [0.0, -1.4, 1.65]
 [[part]]
 part = "socket"
 name = "Socket_Fire_"
-position = [0.0, 0.62, 2.0]
+position = [0.0, 0.50, 2.0]
 parent = "Turret"
 
 [[part]]
