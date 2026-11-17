@@ -103,8 +103,12 @@ is grass (same speed, softness in rain and snow, no cover or concealment yet);
 the presentation draws it as tall tufts, herbs and shrubs with a dark ground
 under them and a far look of its own (see
 [ARCHITECTURE.md](ARCHITECTURE.md#tall-grass-prompt-073)). Maps on which tests or
-measurement series rest keep it to a few strips (see the map list) or none.
-Paint it in the map editor with the terrain brush.
+measurement series get it only where it changes nothing: `river_land` (banks)
+and `farms` (fallow patches) were painted by `cli gen-land`, and the AI
+tournament gives the same games there before and after; `tall_grass_test`
+(`cli gen-map --tall-grass`, 47 %) is the test map for pictures and
+measurements. Paint it in the map editor with the terrain brush (the
+palette shows a swatch of every terrain's color).
 
 Slope (also in `terrain.toml`): uphill the speed drops by 2 % per percent of grade
 (rise over the next meter), down to 20 %; grades above 60 % (31°) cannot be climbed,
@@ -557,8 +561,16 @@ every platform (a test generates every map twice). All three pass `just
 map-check`; markers `village`, `church`, `farm_*`, `ford_*`,
 `bridge_stone`, `trench_hill` serve tools and shots.
 
+Tall grass (prompt 073) is painted after the objects (they do not move):
+a frayed band 10–32 m wide along the banks of `river_land` (1.0 % of the
+map) and a few fallow patches on `farms` (2.9 %), only on grass outside
+woods (8 m from a tree), away from starts, supply points, roads and field
+tracks; `winter_village` has none. `cli gen-map --tall-grass` paints large
+stands over the meadows instead (map `tall_grass_test`).
+
 `SHOT_SET=land just terrain-shots <dir> <map>` records the whole map, a
-few felled trees and every supply point (prompt 056).
+few felled trees and every supply point (prompt 056); `SHOT_SET=tall_land`
+the tall grass of `river_land` and `farms` (prompt 073).
 
 Measurements: [prompt 056](../prompts/done/056-karten-basis-stufe2.md#ergebnis).
 

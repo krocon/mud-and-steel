@@ -1700,7 +1700,7 @@ matches without weather keep their hashes (the golden hash did not change).
 | What | How | Values ([provisional]) |
 |---|---|---|
 | Sight | every sight range × weather × time of day; applied once in `Sim::new` through the sight factor of the vision rules (`SimConfig::effective_vision`), so unit viewsheds, recon aircraft (033) and the AI (024) follow | rain 70, snow 60, fog 35, overcast 90; morning/evening 80, night 45 % |
-| Soft ground | one softness per match (0..100 %, kind wet or snow); speed = terrain speed × (100 % − loss(gear, kind) × softness(terrain, kind) × level), at least 8 % | losses wet/snow: wheeled 80/60, half-track 50/35, tracked 35/25, foot 30/40 %; terrain wet/snow: dirt track 100/80, grass 70/100, road 0/30, mud 100/60, sand 20/100, snow 40/0 % |
+| Soft ground | one softness per match (0..100 %, kind wet or snow); speed = terrain speed × (100 % − loss(gear, kind) × softness(terrain, kind) × level), at least 8 % | losses wet/snow: wheeled 80/60, half-track 50/35, tracked 35/25, foot 30/40 %; terrain wet/snow: dirt track 100/80, grass and tall grass 70/100, road 0/30, mud 100/60, sand 20/100, snow 40/0 % |
 | Rain | the ground starts half soaked and gets 10 % softer every 120 game seconds up to 100 % (after ten minutes) | snow: 100 % from the start; fog: 20 % wet; clear/overcast: dry |
 | Running gear | catalog category (`[[ground.gear]]`), single ids override (M3A1 Scout Car: wheeled); towed guns roll on wheels; aircraft and buildings are not slowed | |
 | Muzzle flash | at night a unit that fires a direct-fire weapon is seen for 2 game seconds by every player with a unit within 2000 m real (500 m game), without a line of sight | |
@@ -2725,6 +2725,124 @@ one part of the look turned off (`no_ground`, `no_tufts`, `no_dof`,
 `old_sun`, `old_blur`, `none` = the look before), in one run so a busy
 machine affects all variants alike.
 
+### Tall grass (prompt 073)
+
+Terrain type `tall_grass` (id 8, `data/terrain.toml`): dense, knee- to
+chest-high growth like in the tropics, after a screenshot of another game
+(not in the repository; nothing taken from it, everything is generated). In
+the rules it is grass (same speed, softness, no cover or concealment yet);
+the presentation draws it in three parts:
+
+| Part | Where | What |
+|---|---|---|
+| Plants (`scenes/world/tall_grass.gd`, `assets/shaders/tall_grass.gdshader`) | Decoration layers "tall_grass" (0.44 m lattice, density 0.97, frayed edges) and "tall_shrubs" (2.2 m lattice, 0.3, 25 m patch noise at full strength, so shrubs stand in loose groups) of `map_objects.gd`, 16 m squares, up to the range of the quality level | Single blades, leaves and fronds as opaque triangles like the meadow tufts (no cards, no alpha test). Color from almost black roots through a patch color (fresh, yellowish and dark patches of 6–23 m) to sunlit yellow-green tips; strong AO at the roots. Gust bands, sway and flutter in the biome's wind. |
+| Ground (`assets/materials/terrain_tall_grass.gdshaderinc`, one call in `terrain.gdshader` after the meadow) | Mask in the A channel of the track raster (`terrain_layers.rs`; tall grass counts as grass in the eight splat weights) | Near: the meadow below in deep shade, so no light soil shows between the plants. Beyond the plants' range: the stand itself, darker and more saturated than the meadow: tufts of 0.53/0.62 m in two turned layers with radiating blade strokes over dark gaps, clumps of a few meters, the gusts of the plants, a shadow seam just outside the stand. Every texture coordinate depends on the world position only. |
+| Tracks (`scenes/world/grass_trails.gd`) | Maps with tall grass | A presentation-only raster over the map (1 m per texel, 2 m above 2 km): a 2D SubViewport that is never cleared, into which vehicles stamp their footprint while they drive (R: pressed flat) and scorch marks of blasts their size (G: burnt). Plants lie flat and pale there and stay so; burnt ones are black stubble. Read by plants and ground, never read back, nothing reaches the simulation. |
+
+Plants:
+
+| Variant | Size | Triangles | What |
+|---|---|---|---|
+| Tall tuft (50 %) | 1.0–1.55 m × 0.8–1.15 | 110 | 22 blades of 5 cm in three segments, steep, bending over towards the tip, the outer ones more; the tuft leans a little to one side |
+| Low tuft (30 %) | 0.65–1.1 m | 100 | 20 blades of 4.2 cm |
+| Herb (14 %) | 0.6–1.0 m | 33 | a stem with ten broad leaves |
+| Rosette (6 %) | fronds 0.7–1.05 m | 77 | eleven arching fronds, widest in the middle |
+| Shrubs (layer "tall_shrubs", two variants) | 1.4–2.0 m | 480–610 | woody stems, a crown of 140–180 olive leaves, a third of them yellow-green on top, seed heads above |
+
+- **Edge:** the Rust scatter (`scatter_deco`, `fray` 1.1 m) interpolates
+  the density between the four samples around a point moved by noise, so
+  the edge follows no grid line, and plants get shorter towards it (40 %
+  at the very edge). The ground mask is warped by noise too.
+- **Distance:** all blades up to `near_range`, then fewer by rank (UV2.y)
+  down to 35 % at `switch`, the rest widened; from `switch` on the squares
+  draw a far mesh with just those blades (a third of the vertices; a square
+  counts by its center, so the swap shows nothing). No blade is drawn
+  thinner than about half a pixel. From 0.75 of the range the plants sink
+  into the ground while the ground's stand look fades in (0.7–0.97 of the
+  range).
+- **Quality** (`tall_grass.gd` `QUALITY`): range 72 / 65 / 55 m, full
+  blades up to 26 / 28 / 20 m, switch 46 / 45 / 35 m, density 1.0 / 0.9 /
+  0.75 (high / medium / low; high is held back by its MSAA 4× and SSAO); shrubs cast shadows on high and medium, the
+  tufts never (in each other's shadow the stand turned black, and every
+  blade would be drawn once per cascade).
+- **Biomes** (`tall_grass.gd` `LOOKS`): forest lush green; desert straw,
+  60 % of the plants, 0.8 of the height; winter brown, 30 %, 0.7 of the
+  height, broken blades hanging over, snow on the upper parts, and on the
+  ground the snow cover is 45 % thinner over tall grass so stalks show.
+- **Readability:** standing soldiers (1.8 m) and vehicles stand out of the
+  grass; prone soldiers nearly vanish, their selection rings and bars do
+  not. Plants do not give way around units **[provisional]**: vehicles
+  flatten their tracks, which was enough in the pictures.
+
+Height from the picture: the tanks there (about 2.7 m high, 6–7 m long)
+give about 15 px/m in the middle of the picture and about 18 px/m in the
+lower half (perspective); blades there are 20–35 px long, i.e. 1.5–2 m of
+grass, the shrubs' crowns 2–3 m across. The prompt estimated 0.8–1.2 m;
+uncertainty ±40 % (a small, compressed picture, perspective, bent blades,
+probably exaggerated plants). Chosen: 0.65–1.55 m grass, shrubs to 2 m.
+
+Tools: `SHOT_SET=tall just terrain-shots <dir> tall_grass_test` (15, 35, 80,
+110, 350 m, the reference view, edges to meadow, field track, road, water
+and wood, a pressed track at 35 and 110 m; `--biome=` and `--daytime=`
+pass through), `SHOT_SET=tall_land` (river_land, farms),
+`TALL_AB=1 just terrain-bench tall_grass_test` (every view as tall grass,
+as its ground look only and as plain meadow), `just ground-motion --tall`
+(pans `tall_near_15/35/55/110`; `--off=tall,tall_ground` turn the parts off).
+`cli gen-map --tall-grass` paints large stands (test map
+`tall_grass_test`); `cli gen-land` paints the banks of river_land and
+fallow patches on farms.
+
+Measurements (`tall_grass_test`, 1920 × 1080, Apple M1 Max, V-Sync off,
+debug bridge, other sessions on the machine: load 4–6).
+`TALL_AB=1 just terrain-bench tall_grass_test`, slow pan over the stand,
+each view as tall grass, as its ground look only, and the same ground as
+plain meadow, in one run (frames per second, triangles):
+
+| View | High: tall / ground only / meadow | Medium: tall / meadow | Low: tall / meadow |
+|---|---|---|---|
+| 15 m | 96.6 (1.13 M) / 93.7 / 109.1 (0.32 M) | 119.9 (1.09 M) / 120.0 | 120.0 (0.73 M) / 120.0 |
+| 35 m | 67.9 (2.10 M) / 77.2 / 89.5 (0.34 M) | 114.7 (1.97 M) / 119.8 | 119.9 (1.09 M) / 120.0 |
+| 80 m | 59.8 (1.08 M) / 61.6 / 67.1 (0.29 M) | 108.3 (0.81 M) / 120.0 | 120.1 (0.20 M) / 119.9 |
+| 110 m | 57.0 (0.30 M) / 57.1 / 60.4 (0.30 M) | 110.2 / 119.6 | 120.0 / 119.9 |
+| 350 m | 74.7 / 70.7 / 74.9 | 114.8 / 115.7 | 120.0 / 120.1 |
+
+Medium and low run at the frame cap of 120. On high the test map is
+already at 60–67 FPS as plain meadow at 80–110 m (3 700 trees on 800 m,
+MSAA 4×, SSAO); tall grass costs 1.3 ms at 15 m, 3.0 ms at 35 m, 1.8 ms at
+80 m and 1.0 ms at 110 m (there almost all of it the ground look), so high
+stays just under 60 FPS at 80 and 110 m **[open]**. At 350 m tall grass costs
+nothing measurable. Decoration instances: up to 290 000 at 35 m on high (meadow
+56 000), in 16 m squares (316 draw calls against 160). Before the far
+meshes (all blades everywhere, range 100 m) the same views drew 3–5 M
+triangles at 48–53 FPS.
+
+Flicker, `just ground-motion --tall --png` against `--near` (lossless,
+frames 60–119, match of consecutive frames after undoing the ground
+motion; meadow values as in prompt 068, measured again the same day):
+
+| Pan | Slide | Match 4–8 px tall / meadow | Match 2–4 px tall / meadow |
+|---|---|---|---|
+| 15 m | 0.21 px/frame | 0.941 / 0.973 | 0.653 / 0.815 |
+| 35 m | 0.11 | 0.919 / 0.955 | 0.630 / 0.716 |
+| 55 m | 0.13 | 0.934 / 0.961 | 0.644 / 0.775 |
+| 110 m (ground look; no wind) | 0.14 | 0.990 / – | 0.836 / – (0.502 with blade strokes down to one pixel, with wind) |
+
+Nothing slides. Without wind the near values rise only a little (0.685 /
+0.645 / 0.652 at 2–4 px), and a wider minimum blade width changes nothing
+(the near blades are 4–5 cm, several pixels): what is left is the plants'
+own parallax (1–1.5 m above the ground, which the measurement does not
+undo) and the edges of blades at the pixel limit. The ground look first
+drew its blade strokes down to one pixel and matched 0.50 at 110 m; its
+strokes now give way to their coverage below two pixels (0.84, calmer
+than the meadow).
+
+Open: concealment of infantry in tall grass (ambush rule, `data/vision.toml`
+`[ambush]`; balance and AI), slower infantry or wheels in it, a tropical
+biome (light, palms, bamboo, houses), reeds and grain fields with the same
+technique, plants giving way around soldiers, burning tall grass as ground
+fire (fire only burns objects so far; scorch marks of blasts burn it), the
+tracks raster is lost with a saved game (presentation only).
+
 ### Region updates (craters, prompt 021)
 
 `terrain.heights_changed(rect)` re-reads a rectangle of samples (grown by 8 samples
@@ -2841,7 +2959,13 @@ chance comes from a density per terrain type, a 25 m patch noise and the wood
 density (trunks within about 12 m), and samples covered by buildings, walls,
 hedges or props (grown by 1 m) get nothing. Only squares within the view distance
 of the camera exist; up to six are built per frame and far ones are freed. About
-70 000 grass instances around the camera at the closest zoom.
+70 000 grass instances around the camera at the closest zoom. Tall grass
+(prompt 073, see "Tall grass") has two layers of its own in 16 m squares
+(a 16 m square costs a quarter of the per-frame budget of a 64 m one, its
+denser lattice twice that), with frayed edges (`fray`: density
+interpolated at a noise-moved point, plants shorter at the edge) and the
+range of the quality level; the other layers have no density on tall
+grass.
 
 ### Measurements (`test_large`, 1920 × 1080, Apple M1 Max, V-Sync off)
 

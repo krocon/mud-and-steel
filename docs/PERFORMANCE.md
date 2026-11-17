@@ -190,6 +190,13 @@ GPU memory): no errors, frame rates unchanged. The battle at 600 m measured
 38–40 FPS in all three runs (old commit, HEAD, larger buffer), under the
 budget of 45 already before prompts 062/063; not investigated further.
 
+**Tall grass** (prompt 073): `TALL_AB=1 just terrain-bench tall_grass_test`
+measures the stand against the same ground as plain meadow; on high it
+costs 1–3 ms (most at 35 m, where the plants have all their blades), and
+the test map stays just under 60 FPS at 80 and 110 m on high, where it
+runs at 60–67 FPS as plain meadow; medium and low stay at the 120 FPS
+cap. Table and flicker measurements: [ARCHITECTURE.md](ARCHITECTURE.md#tall-grass-prompt-073).
+
 **HUD** (prompt 031: minimap, unit panel, command bar, events, waypoint
 lines; budget 1 ms per frame): the bench prints it as "hud"; the battle views
 have a dozen units selected. Measured with five other sessions building and

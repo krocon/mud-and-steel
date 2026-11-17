@@ -221,3 +221,16 @@ Als offene Punkte notieren, nicht umsetzen:
 - **Bewegung.** Langsamere Infanterie oder Radfahrzeuge im hohen Gras.
 - **Biom „Tropen“** mit eigenem Licht, Palmen, Bambus und Häusern.
 - **Schilf und Getreidefelder**, die dieselbe Technik nutzen könnten.
+
+## Entscheidungen (autonom, Nachtlauf 17.11.2026)
+
+Alle vorläufig, bis der Nutzer sie bestätigt.
+
+| Frage | Entscheidung | Grund |
+|---|---|---|
+| Spielkarten mit hohem Gras, obwohl alle zehn Karten in Balance-Messreihen stehen | `river_land` (Uferstreifen, 1,0 %) und `farms` (Brachen, 2,9 %), gemalt von `cli gen-land` | Hohes Gras hat exakt die Regeln von Gras; das KI-Turnier liefert vorher und nachher dieselben Spiele (8 Gefechte je Karte, 6 Basis-Spiele auf `farms`: gleiche Sieger, Ticks, Positionen, Trefferpunkte; nur Rechenzeit und Ergebnis-Hash, der den Kartenhash enthält, weichen ab). Die Messreihen bleiben damit gültig. Rückgängig: Malfunktion in `gen_land.rs` entfernen, `just gen-land`. |
+| Höhe | Gras 0,65–1,55 m, Sträucher bis 2 m | Nachgemessen an den Panzern der Vorlage: Halme 1,5–2 m, Strauchkronen 2–3 m (±40 %, kleines Bild, Perspektive, wohl überzeichnet); „brusthoch“ als Obergrenze. |
+| Ausweichen um Einheiten | nicht gebaut | Stehende Soldaten und Fahrzeuge ragen aus dem Gras, Fahrzeuge drücken ihre Spur flach; die Bilder brauchten es nicht. |
+| Schatten | nur Sträucher werfen Schatten, die Büschel nicht | Büschel im Schatten der Nachbarn machten den Bestand schwarz; jeder Halm je Kaskade wäre teuer. |
+| Spur-Raster | 2D-SubViewport über die Karte (1 m, ab 2 km 2 m), nie gelöscht; Fahrzeuge stempeln, Brandflecken von Explosionen brennen | GPU-seitig, kein Hochladen großer Bilder; nur Darstellung, geht mit einem Spielstand verloren. |
+| Sichtweite der Pflanzen | 72 / 65 / 55 m (hoch / mittel / niedrig), danach die Shader-Fassung | Kompromiss aus Bild und Kosten (siehe ARCHITECTURE „Tall grass“). |
