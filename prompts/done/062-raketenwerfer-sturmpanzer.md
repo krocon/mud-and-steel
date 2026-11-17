@@ -132,3 +132,21 @@ der Rest ist von der ausführenden Session konkretisiert.
 | Produktion | `de_pzwerfer42`, `de_sturmpanzer4`, `su_bm13`, `us_t34_calliope` und das schon vorhandene `us_m4a3_105` (Gegenstück zum Sturmpanzer) kommen ins Fahrzeugwerk. |
 | KI | Raketenwerfer haben auf Normal und Hard die Rolle Artillerie (bisher nur Hard für Granatwerfer und Selbstfahrlafetten). |
 | Darstellung | Abschussfeuer über das vorhandene Mündungsfeuer (Socket_Muzzle am Gestell), Klang `shot_rocket`, Rauchspur einfach über die vorhandenen Rauch-Bursts von 019; die eigentliche Raketendarstellung baut 076. |
+
+## Ergebnis (Nachtlauf 17.11.2026)
+
+- `just check` grün; neue Tests in `crates/sim/tests/indirect.rs` (Salve: genau die Rohrzahl,
+  5 Ticks Abstand, 1455 Ticks Nachladen, alle Einschläge im Streukreis; Sperrfeuer zählt ganze
+  Salven; gleicher Lauf, gleicher Hash).
+- `just catalog-check`, `just validate-assets` (63 Modelle), `just gallery-check`, `just selftest`
+  grün; Thumbnails und `just units-web-sync` gemacht.
+- `just bench --runs 3`: Sim-Tick 5,49 ms Mittel (Stand vor 062 auf derselben Maschine 5,44 ms;
+  das Bench-Szenario hat keine Werfer). Zehn Calliope und zehn BM-13 gleichzeitig (760 Raketen,
+  bis 504 in der Luft): 0,9 ms Mittel, 4,0 ms höchstens pro Tick.
+- `just ai-tournament` (Matrix) läuft durch. Basis-Modus auf `test_small`, Normal gegen Hard,
+  18 Spiele: gebaut 13 BM-13, 9 Panzerwerfer 42, 7 Calliope, 2 M4A3 (105) mit 31/24/18/1
+  Abschüssen; kein Sturmpanzer IV in dieser Stichprobe (er kommt erst als 10. Eintrag der
+  Hard-Mischung). Hard gegen Normal Basis, 20 Spiele: 10/4/6 Timeouts (ohne die neuen
+  Mischungseinträge auf demselben Stand 13/3/4) – im Rauschen, Balance offen.
+- Golden-Hash geändert (neue Regeln: Kategorie, Salven- und Streuwerte, Salvenzustand,
+  Produktionslisten); die Demo-Schlacht ist unverändert.
