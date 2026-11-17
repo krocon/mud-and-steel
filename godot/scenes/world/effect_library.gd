@@ -17,10 +17,11 @@ const EffectTextures := preload("res://scenes/world/effect_textures.gd")
 const BURSTS: Array[String] = [
 	"flash", "powder", "blast_dust", "fountain", "spray", "impact_dust", "puff",
 	"sparks", "fireball", "explosion_smoke", "debris",
-	"core", "rays", "streaks", "earth_cloud", "embers", "dust_cloud",
+	"core", "rays", "streaks", "earth_cloud", "embers", "dust_cloud", "rocket_blast",
 ]
-## Kinds that run continuously (wreck fires, vehicles).
-const CONTINUOUS: Array[String] = ["fire", "smoke_column", "dust_trail", "exhaust"]
+## Kinds that run continuously (wreck fires, vehicles, a firing rocket
+## position).
+const CONTINUOUS: Array[String] = ["fire", "smoke_column", "dust_trail", "exhaust", "salvo_smoke"]
 
 const SHADER_TEMPLATE := """
 shader_type spatial;
@@ -471,6 +472,45 @@ static func build(kind: String, factor: float, soft: bool, wind: Vector2) -> GPU
 			pm.angular_velocity_max = 15.0
 			pm.color_ramp = _ramp([Color(1, 1, 1, 0), Color(1, 1, 1, 0.55), Color(1, 1, 1, 0)], [0.0, 0.12, 1.0])
 			material = _material("lit", EffectTextures.smoke(), 0.15, soft)
+		# Rocket salvo (prompt 076, rocket_effects.gd): the motor's back
+		# blast out of the rail's rear end, light smoke thrown back and down
+		# hard and then hanging (judged from the reference pictures: about
+		# as big as the launcher after a second).
+		"rocket_blast":
+			amount = 16
+			p.lifetime = 3.2
+			size = 2.4
+			_cone(pm, Vector3(0, 0, -1), 28.0, 6.0, 18.0)
+			pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
+			pm.emission_sphere_radius = 0.5
+			pm.damping_min = 5.0
+			pm.damping_max = 8.0
+			pm.gravity = Vector3(0, 0.35, 0) + drift * 0.5
+			pm.scale_min = 0.7
+			pm.scale_max = 1.3
+			pm.scale_curve = _curve([Vector2(0, 0.4), Vector2(0.2, 1.4), Vector2(1, 2.8)])
+			pm.angular_velocity_min = -20.0
+			pm.angular_velocity_max = 20.0
+			pm.color_ramp = _ramp([Color(0.95, 0.93, 0.9, 0), Color(0.95, 0.93, 0.9, 0.75), Color(0.9, 0.89, 0.87, 0.4), Color(0.9, 0.89, 0.87, 0)], [0.0, 0.05, 0.45, 1.0])
+			material = _material("lit", EffectTextures.smoke(), 0.0, soft)
+		# The haze that stands over a firing rocket position and drifts off
+		# with the wind (prompt 076; the reference's last picture).
+		"salvo_smoke":
+			amount = 36
+			p.lifetime = 11.0
+			size = 4.5
+			p.visibility_aabb = AABB(Vector3(-60, -5, -60), Vector3(120, 50, 120))
+			pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
+			pm.emission_box_extents = Vector3(5.0, 0.8, 5.0)
+			_cone(pm, Vector3.UP, 40.0, 0.3, 1.2)
+			pm.damping_min = 0.2
+			pm.damping_max = 0.4
+			pm.gravity = Vector3(0, 0.12, 0) + drift * 0.6
+			pm.scale_curve = _curve([Vector2(0, 0.6), Vector2(1, 2.6)])
+			pm.angular_velocity_min = -6.0
+			pm.angular_velocity_max = 6.0
+			pm.color_ramp = _ramp([Color(0.9, 0.89, 0.87, 0), Color(0.9, 0.89, 0.87, 0.32), Color(0.88, 0.87, 0.86, 0)], [0.0, 0.15, 1.0])
+			material = _material("lit", EffectTextures.smoke(), 0.0, soft)
 		"exhaust":
 			amount = 16
 			p.lifetime = 2.2

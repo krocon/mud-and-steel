@@ -159,6 +159,7 @@ func _update_strikes() -> void:
 			m = _make_marker(s, allied)
 			markers[id] = m
 		m.warning = float(s["warning"])
+		aim_launchers(int(s["battery"]), s["target"])
 		(m.beam as Node3D).position = s["from"] + Vector3.UP * 30.0
 		(m.beam as Node3D).visible = not allied and m.warning > 0.0
 		(m.base_ring as Node3D).position = s["from"] + Vector3.UP * 0.4
@@ -294,11 +295,13 @@ static func launchers() -> Node3D:
 	var frame := BoxMesh.new()
 	frame.size = Vector3(1.4, 0.12, 1.3)
 	frame.material = material
+	var racks: Array[Node3D] = []
 	for k in 3:
 		var rack := Node3D.new()
-		rack.position = Vector3(0.0, 1.55, -2.0 + 2.0 * k)
+		rack.position = Vector3(-2.0 + 2.0 * k, 1.55, 0.0)
 		rack.rotation.x = deg_to_rad(-40.0)
 		root.add_child(rack)
+		racks.append(rack)
 		var base := MeshInstance3D.new()
 		base.mesh = frame
 		rack.add_child(base)
@@ -308,7 +311,29 @@ static func launchers() -> Node3D:
 			tube.position = Vector3(-0.55 + 0.22 * j, 0.15, 0.0)
 			tube.rotation.x = PI * 0.5
 			rack.add_child(tube)
+	# Prompt 076: a socket on every rail where its rocket leaves, numbered
+	# rail by rail across the three racks, so `effects.gd` fires them in
+	# turn (one rail after the other over all racks).
+	for j in 6:
+		for k in 3:
+			var socket := Node3D.new()
+			socket.name = "Socket_Rocket_%02d" % (j * 3 + k + 1)
+			socket.position = Vector3(-0.55 + 0.22 * j, 0.25, 0.4)
+			racks[k].add_child(socket)
 	return root
+
+
+## Turns the launch frames of battery `battery` towards `target` (prompt
+## 076): the rails point along +z and up.
+func aim_launchers(battery: int, target: Vector3) -> void:
+	var node: Node3D = main._unit_nodes.get(battery)
+	var frames := node.get_node_or_null("Model/Launchers") as Node3D if node != null else null
+	if frames == null:
+		return
+	var to := target - frames.global_position
+	if Vector2(to.x, to.z).length() < 1.0:
+		return
+	frames.global_rotation = Vector3(0.0, atan2(to.x, to.z), 0.0)
 
 
 static func _flat(color: Color) -> StandardMaterial3D:
