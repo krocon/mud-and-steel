@@ -1,0 +1,204 @@
+# T-35 Model 1935 heavy multi-turret tank. No drawing of its own: built on the
+# onwar.com drawing of the T-35 Model 1938 (su031t35m38.jpg; about 155 px/m
+# along, 150 px/m up when the catalog height 3.43 m is the main turret roof)
+# with the straight-sided turrets of the early vehicles.
+# Long box hull, thin superstructure over the tracks (roof 1.95 m), raised
+# platform under the main turret 1.3 m ahead of the hull center, main turret
+# with the short 76.2 mm PS-3, two 45 mm sub-turrets (front right, rear left;
+# the rear one points backwards as drawn) and two MG sub-turrets (front left,
+# rear right). Running gear under side skirts: eight small wheels in four
+# coil-sprung bogies, large rear sprocket, raised front idler.
+# The main turret's rear ball DT is shown as the roof P-40 AA mount of the
+# Model 1938 drawing (the kit has no rearward ball mount on a turret).
+# Catalog length 9.72 m is the track length; hull 9.40 m.
+unit = "su_t35_1935"
+assembly = "tank"
+
+[layout]
+hull_length = 9.40
+turret_y = 1.31
+turret_z = 2.60
+turret_ring_diameter = 1.60
+fender_overhang = 0.04
+
+[running_gear]
+part = "small_wheel_bogie"
+bogies = [[0, 1], [2, 3], [4, 5], [6, 7]]
+spring = "coil"
+track_width = 0.53
+track_thickness = 0.04
+link_pitch = 0.16
+road_wheel_diameter = 0.46
+road_wheels = [3.22, 2.62, 1.42, 0.82, -0.39, -0.99, -2.19, -2.79]
+sprocket = { y = -4.30, z = 1.25, diameter = 0.93, teeth = 18 }   # rear drive
+idler = { y = 4.55, z = 1.35, diameter = 0.62 }
+return_rollers = { y = [3.60, 2.00, 0.30, -1.40, -3.00], z = 1.52, diameter = 0.26 }
+
+[hull]
+part = "plate_hull"
+lower = [[-4.20, 0.53], [4.00, 0.53], [4.70, 1.20], [4.70, 1.78], [-4.70, 1.78], [-4.70, 0.80]]
+# thin superstructure over the tracks, flat roof
+upper = [[-4.70, 1.78], [4.70, 1.78], [4.62, 1.90], [4.35, 1.95], [-4.45, 1.95], [-4.70, 1.86]]
+bevel = 0.02
+
+[turret]
+part = "plate_turret"
+height = "fit"
+# T-28-type main turret with straight sides (Model 1935)
+plan = [[-0.55, 0.95], [0.55, 0.95], [0.85, 0.40], [0.85, -0.50], [0.55, -1.05], [-0.55, -1.05], [-0.85, -0.50], [-0.85, 0.40]]
+side_slope_deg = 5
+front_slope_deg = 4
+bevel = 0.02
+
+[gun]
+part = "tank_gun"
+trunnion = [0.95, 0.40]
+mantlet = { kind = "box", size = [0.50, 0.25, 0.40] }
+segments = [[0.62, 0.052, 0.048]]
+muzzle_brake = "none"
+
+[[mg]]  # DT in the mantlet
+part = "mg"
+mount = "coax"
+position = [0.22, 0.10, 0.0]
+
+[[mg]]  # P-40 anti-aircraft DT on the main turret roof (as drawn on the Model 1938)
+part = "mg"
+mount = "pintle"
+position = [0.30, -0.40, 0.20]
+length = 0.8
+
+[[part]]
+part = "deck_box"            # raised platform under the main turret
+center = [0.0, 1.31]
+size = [1.90, 1.70, 0.65]
+top_inset = [0.08, 0.05]
+
+[[part]]
+part = "sub_turret"          # front right: 45 mm 20-K and a DT
+position = [0.54, 2.99]
+diameter = 1.00
+height = 0.66
+gun = { length = 1.40, radius = 0.028, trunnion = [0.42, 0.30], mantlet = [0.30, 0.18, 0.26] }
+mgs = 1
+
+[[part]]
+part = "sub_turret"          # front left: DT
+position = [-0.61, 2.80]
+diameter = 0.90
+height = 0.60
+mgs = 1
+
+[[part]]
+part = "sub_turret"          # rear left: 45 mm 20-K and a DT, pointing backwards
+position = [-0.42, -0.43]
+diameter = 1.00
+height = 0.66
+gun = { length = 1.40, radius = 0.028, trunnion = [0.42, 0.40], mantlet = [0.30, 0.18, 0.26], direction_deg = 180 }
+mgs = 1
+
+[[part]]
+part = "sub_turret"          # rear right: DT
+position = [0.72, 0.02]
+diameter = 0.90
+height = 0.60
+mgs = 1
+
+[[part]]
+part = "skirts"              # side armor over the running gear
+y = [-3.80, 4.45]
+bottom_z = 0.62
+top_z = 1.76
+plates = 4
+gap = 0.0
+
+[[part]]
+part = "turret_hatch"
+x = 0.0
+y = -0.55
+size = [0.60, 0.50]
+socket = true
+
+[[part]]
+part = "deck_box"            # engine air intake and fan grille
+center = [0.0, -3.55]
+size = [1.50, 1.30, 0.08]
+
+[[part]]
+part = "deck_box"            # engine deck hatches
+center = [0.0, -1.95]
+size = [1.30, 1.40, 0.06]
+
+[[part]]
+part = "box_prop"            # driver's cab hatch, front center
+center = [0.0, 4.05, 1.97]
+size = [0.55, 0.45, 0.06]
+
+[[part]]
+part = "headlight"
+position = [-0.70, 4.60, 1.90]
+diameter = 0.2
+
+[[part]]
+part = "headlight"
+position = [0.70, 4.60, 1.90]
+diameter = 0.2
+
+[[part]]
+part = "exhaust"
+kind = "pipe"
+position = [-0.70, -4.70, 1.50]
+length = 0.06
+diameter = 0.16
+
+[[part]]
+part = "exhaust"
+kind = "pipe"
+position = [0.70, -4.70, 1.50]
+length = 0.06
+diameter = 0.16
+
+[[part]]
+part = "tool"
+kind = "shovel"
+position = [1.30, -2.6, 1.96]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -3.0, 1.95]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 1.0, 3.0]
+parent = "Turret"
+
+[[part]]
+part = "marking"
+name = "Turret_L"
+parent = "Turret"
+position = [-0.85, 1.20, 3.05]
+normal = [-1.0, 0.0, 0.0]
+size = 0.45
+
+[[part]]
+part = "marking"
+name = "Turret_R"
+parent = "Turret"
+position = [0.85, 1.20, 3.05]
+normal = [1.0, 0.0, 0.0]
+size = 0.45
+
+[[part]]
+part = "marking"
+name = "Turret_Rear"
+kind = "number"
+parent = "Turret"
+position = [0.0, 0.26, 3.05]
+normal = [0.0, -1.0, 0.0]
+size = 0.4
+
+[validate]
+# catalog height is the main turret roof; the AA DT stands above it
+exclude_height = ["Hatch_*", "MG_*"]

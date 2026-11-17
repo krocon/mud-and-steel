@@ -1,0 +1,192 @@
+# T-44 (1945): low hull with vertical sides reaching over the tracks,
+# transverse engine, turret ring on the hull center line and center, five
+# large road wheels on torsion bars without return rollers, front idler,
+# rear sprocket, 85 mm ZiS-S-53 in a T-34-85-type turret, no bow MG ball (the
+# fixed DT in the glacis is a small ball mount). Checked against the onwar.com drawing
+# su036t44.jpg (prompt 063; about 172 px/m along, 168 across, 165 up):
+# roof 1.46 m, turret roof 2.22 m, cupola top 2.40 m (catalog height), gun
+# axis 1.79 m, wheel stations and turret plan as drawn.
+unit = "su_t44"
+assembly = "tank"
+
+[layout]
+turret_y = 0.10
+turret_ring_diameter = 1.70
+fender_overhang = 0.0
+
+[running_gear]
+part = "torsion_bar"
+twin = true
+track_width = 0.50
+track_thickness = 0.04
+link_pitch = 0.172
+road_wheel_diameter = 0.83
+road_wheels = [1.86, 0.87, 0.0, -0.87, -1.68]
+sprocket = { y = -2.44, z = 0.68, diameter = 0.62, teeth = 6 }   # rear drive
+idler = { y = 2.62, z = 0.68, diameter = 0.58, spoked = false }
+arm = 0.30
+dish = 0.04
+
+[hull]
+part = "plate_hull"
+lower = [[-2.80, 0.45], [2.50, 0.45], [3.025, 0.98], [-3.025, 0.98], [-3.025, 0.62]]
+# long 60 deg glacis, low flat roof, slightly sloped rear plate
+upper = [[-3.025, 0.98], [3.025, 0.98], [2.20, 1.46], [-2.90, 1.46], [-3.025, 1.30]]
+upper_side_slope_deg = 0
+bevel = 0.02
+
+[turret]
+part = "plate_turret"
+height = "fit"
+cast = true
+# T-34-85-type cast turret, wide rear part (half widths from the top view)
+plan = [[-0.50, 1.24], [0.50, 1.24], [0.71, 1.06], [0.79, 0.83], [0.94, 0.37], [0.96, -0.40], [0.95, -0.91], [0.50, -1.20], [-0.50, -1.20], [-0.95, -0.91], [-0.96, -0.40], [-0.94, 0.37], [-0.79, 0.83], [-0.71, 1.06]]
+side_slope_deg = 14
+front_slope_deg = 16
+bevel = 0.05
+
+[cupola]
+x = -0.29
+y = -0.30
+diameter = 0.65
+height = 0.20
+vision_blocks = 6
+hatch = "single"
+
+[gun]
+part = "tank_gun"
+trunnion = [1.00, 0.33]
+mantlet = { kind = "cast_box", size = [0.74, 0.40, 0.50] }
+sleeve = [0.30, 0.12]
+segments = [["fit", 0.066, 0.058]]
+muzzle_brake = "none"
+
+[[mg]]  # coaxial DT
+part = "mg"
+mount = "coax"
+position = [0.22, 0.30, 0.0]
+
+[[mg]]  # fixed DT in the glacis, right (fired by the driver)
+part = "mg"
+mount = "ball"
+position = [0.55, 2.55, 1.26]
+
+[[part]]
+part = "turret_hatch"        # loader's hatch, right
+x = 0.54
+y = -0.04
+diameter = 0.55
+socket = true
+
+[[part]]
+part = "cylinder_prop"       # ventilator dome, right rear of the roof
+parent = "Turret"
+from = [0.30, -0.46, 2.20]
+to = [0.30, -0.46, 2.30]
+radius = 0.20
+
+[[part]]
+part = "box_prop"            # driver's hatch on the roof front, left
+center = [-0.75, 2.05, 1.48]
+size = [0.55, 0.60, 0.05]
+
+[[part]]
+part = "box_prop"            # stowage boxes on the fenders
+center = [-1.32, 1.30, 1.10]
+size = [0.40, 1.10, 0.30]
+
+[[part]]
+part = "box_prop"
+center = [1.32, 1.30, 1.10]
+size = [0.40, 1.10, 0.30]
+
+[[part]]
+part = "cylinder_prop"       # external fuel tanks on the right rear fender
+from = [1.30, -0.90, 1.18]
+to = [1.30, -1.70, 1.18]
+radius = 0.20
+
+[[part]]
+part = "deck_box"            # engine grilles (transverse engine)
+center = [-0.35, -2.10]
+size = [0.55, 1.20, 0.05]
+
+[[part]]
+part = "deck_box"
+center = [0.35, -2.10]
+size = [0.55, 1.20, 0.05]
+
+[[part]]
+part = "exhaust"
+kind = "pipe"
+position = [-0.80, -3.02, 1.12]
+length = 0.08
+diameter = 0.14
+
+[[part]]
+part = "exhaust"
+kind = "pipe"
+position = [0.80, -3.02, 1.12]
+length = 0.08
+diameter = 0.14
+
+[[part]]
+part = "headlight"
+position = [-1.00, 2.80, 1.15]
+diameter = 0.2
+
+[[part]]
+part = "antenna"
+position = [0.80, -0.30, 2.20]
+parent = "Turret"
+length = 2.0
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 2.95, 0.80]
+pair = true
+socket = false
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -3.00, 0.80]
+pair = true
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -2.1, 1.46]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 0.0, 2.0]
+parent = "Turret"
+
+[[part]]
+part = "marking"
+name = "Turret_L"
+parent = "Turret"
+position = [-0.92, -0.20, 1.80]
+normal = [-0.97, 0.0, 0.24]
+size = 0.5
+
+[[part]]
+part = "marking"
+name = "Turret_R"
+parent = "Turret"
+position = [0.92, -0.20, 1.80]
+normal = [0.97, 0.0, 0.24]
+size = 0.5
+
+[[part]]
+part = "marking"
+name = "Turret_Rear"
+kind = "number"
+parent = "Turret"
+position = [0.0, -1.10, 1.85]
+normal = [0.0, -0.97, 0.24]
+size = 0.4
+
+[validate]
+exclude_height = ["Antenna_*"]
