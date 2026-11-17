@@ -1,0 +1,12 @@
+# cargo-nextest configuration (`just check`, `just test`, CI).
+
+# nextest runs every test in its own process, so the `SERIAL` mutex in
+# crates/cli/tests/lan.rs no longer keeps its two tests apart. Both start real
+# processes on UDP ports that were free a moment ago; at the same time they
+# could get the same port. This group runs them one after another again.
+[test-groups]
+lan-processes = { max-threads = 1 }
+
+[[profile.default.overrides]]
+filter = 'package(cli) & binary(lan)'
+test-group = 'lan-processes'
