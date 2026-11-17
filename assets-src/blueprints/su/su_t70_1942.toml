@@ -1,0 +1,156 @@
+# T-70 light tank, Model 1942 (March 1942 - August 1943; prompt 063, tier 3).
+# Main dimensions from data/catalog/su.toml (onwar.com): length 4.30 m, width
+# 2.40 m, height 2.00 m. Shapes measured in the onwar.com drawing su040t70m42.jpg
+# (about 155 px/m; never committed); hull, running gear, turret and gun as in
+# su_t70m (same drawing): the 45 mm barrel ends behind the nose (data.json:
+# barrel overhang 0), five 550 mm road wheels, three return rollers, front
+# sprocket, rear idler. Difference to the T-70M: narrow 260 mm track (data.json
+# says 19 cm; the 260 mm of the T-70 track is taken from the literature value
+# and reported in docs/VEHICLE_REFS.md), slightly wider fenders (catalog width).
+unit = "su_t70_1942"
+assembly = "tank"
+
+[layout]
+turret_y = -0.08
+turret_ring_diameter = 1.00
+hull_length = 4.25
+fender_overhang = 0.05
+
+[running_gear]
+part = "torsion_bar"
+twin = false
+track_width = 0.26
+track_thickness = 0.035
+link_pitch = 0.11
+road_wheel_diameter = 0.55
+road_wheels = [1.11, 0.56, -0.02, -0.58, -1.19]
+sprocket = { y = 1.74, z = 0.64, diameter = 0.60, teeth = 13 }
+idler = { y = -1.75, z = 0.50, diameter = 0.52, spoked = false }
+return_rollers = { y = [0.92, 0.0, -0.84], z = 0.80, diameter = 0.20 }
+arm = 0.26
+
+[hull]
+part = "plate_hull"
+lower = [[-1.98, 0.32], [1.78, 0.32], [2.125, 0.74], [2.125, 0.80], [-2.125, 0.80], [-2.125, 0.50]]
+# upper glacis about 60 deg, flat roof, sloped rear plate
+upper = [[-2.125, 0.80], [2.125, 0.80], [1.20, 1.38], [-1.85, 1.38], [-2.125, 1.05]]
+upper_half_width = 0.86     # hull between the tracks, fenders outside
+upper_side_slope_deg = 4
+bevel = 0.015
+fender_front = 2.05
+
+[turret]
+part = "su.offset_turret"
+x = -0.17
+height = "fit"
+# faceted welded turret, narrow front with the mantlet, slightly longer rear
+plan = [[-0.36, 0.70], [0.36, 0.70], [0.58, 0.28], [0.58, -0.60], [0.40, -0.78], [-0.40, -0.78], [-0.58, -0.60], [-0.58, 0.28]]
+side_slope_deg = 18
+front_slope_deg = 16
+rear_slope_deg = 12
+bevel = 0.02
+
+[gun]
+part = "tank_gun"
+trunnion = [0.55, 0.30]
+x = -0.17
+mantlet = { kind = "cast_box", size = [0.46, 0.16, 0.34] }
+segments = [[1.05, 0.036, 0.032]]   # muzzle behind the nose (drawing, data.json overhang 0)
+muzzle_brake = "none"
+
+[[mg]]  # coaxial DT, right of the gun
+part = "mg"
+mount = "coax"
+position = [0.14, 0.10, 0.0]
+
+[[part]]
+part = "turret_hatch"   # commander's hatch with periscope
+x = -0.20
+y = -0.43
+diameter = 0.50
+socket = true
+
+[[part]]
+part = "su.glacis_hatch"   # driver's hatch, center-left of the glacis
+x = -0.20
+y = 1.55
+size = [0.50, 0.48]
+
+[[part]]
+part = "deck_box"   # engine access and radiator grille (engines on the right)
+center = [0.35, -1.05]
+size = [0.95, 1.20, 0.04]
+
+[[part]]
+part = "exhaust"
+kind = "pipe"
+position = [0.62, -2.06, 1.12]
+length = 0.06
+diameter = 0.12
+
+[[part]]
+part = "exhaust"
+kind = "pipe"
+position = [0.30, -2.06, 1.12]
+length = 0.06
+diameter = 0.12
+
+[[part]]
+part = "headlight"
+position = [-0.85, 1.75, 1.0]
+diameter = 0.16
+
+[[part]]
+part = "tool"
+kind = "shovel"
+position = [1.05, -0.3, 0.88]
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 2.00, 0.62]
+pair = true
+socket = false
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -2.05, 0.62]
+pair = true
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.35, -1.05, 1.40]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [-0.17, -0.08, 1.95]
+parent = "Turret"
+
+[[part]]
+part = "marking"
+name = "Turret_L"
+parent = "Turret"
+position = [-0.70, -0.23, 1.68]
+normal = [-0.93, 0.0, 0.37]
+size = 0.35
+
+[[part]]
+part = "marking"
+name = "Turret_R"
+parent = "Turret"
+position = [0.36, -0.23, 1.68]
+normal = [0.93, 0.0, 0.37]
+size = 0.35
+
+[[part]]
+part = "marking"
+name = "Turret_Rear"
+kind = "number"
+parent = "Turret"
+position = [-0.17, -0.81, 1.68]
+normal = [0.0, -0.97, 0.21]
+size = 0.3
+
+[validate]
+exclude_height = ["Hatch_*"]

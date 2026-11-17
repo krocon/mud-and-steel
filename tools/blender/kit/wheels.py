@@ -70,6 +70,18 @@ def spoked_idler(mb, center, r, width, side, spokes=6):
                                               0.06 + abs(math.cos(a)) * r * 0.5), "Paint")
 
 
+def spoke_ribs(mb, center, r, x_face, side, spokes=6):
+    """Raised spokes on the outer face of a disc wheel (spoked road wheels)."""
+    _, cy, cz = center
+    x = x_face + side * 0.02
+    for i in range(spokes):
+        a = 2 * math.pi * (i + 0.5) / spokes
+        c, s = math.cos(a), math.sin(a)
+        mb.cylinder((x, cy + c * r * 0.3, cz + s * r * 0.3), (x, cy + c * r, cz + s * r), 0.028, seg=4,
+                    mat="Paint")
+    mb.cylinder((x - side * 0.01, cy, cz), (x + side * 0.02, cy, cz), r * 0.32, seg=8, mat="Paint")
+
+
 def sprocket(mb, center, r, width, side, teeth=13, rings=2):
     """Drive sprocket: one or two toothed rims on a hub drum."""
     cx, cy, cz = center

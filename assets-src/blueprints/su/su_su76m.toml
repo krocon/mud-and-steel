@@ -25,10 +25,10 @@ track_width = 0.30
 track_thickness = 0.035
 link_pitch = 0.11
 road_wheel_diameter = 0.55
-road_wheels = [1.50, 0.90, 0.30, -0.30, -0.90, -1.50]
-sprocket = { y = 1.98, z = 0.62, diameter = 0.60, teeth = 13 }
-idler = { y = -2.02, z = 0.50, diameter = 0.52, spoked = false }
-return_rollers = { y = [1.20, 0.0, -1.20], z = 0.74, diameter = 0.20 }
+road_wheels = [1.31, 0.68, 0.06, -0.54, -1.11, -1.72]
+sprocket = { y = 1.92, z = 0.64, diameter = 0.60, teeth = 13 }
+idler = { y = -2.30, z = 0.58, diameter = 0.52, spoked = false }
+return_rollers = { y = [0.92, -0.22, -1.42], z = 0.77, diameter = 0.20 }
 arm = 0.26
 
 [hull]
@@ -52,7 +52,7 @@ wall = 0.02
 
 [gun]
 part = "tank_gun"
-trunnion = [0.38, 1.58]      # model space: y, z
+trunnion = [0.40, 1.74]      # model space: y, z
 mantlet = { kind = "box", size = [0.62, 0.22, 0.48] }
 sleeve = [0.35, 0.09]
 segments = [["fit", 0.056, 0.05]]
@@ -103,7 +103,7 @@ position = [1.15, -0.6, 0.86]
 
 [[part]]
 part = "tow_hook"
-position = [0.0, 2.38, 0.55]
+position = [0.0, 2.22, 0.55]   # under the nose plate
 pair = true
 socket = false
 

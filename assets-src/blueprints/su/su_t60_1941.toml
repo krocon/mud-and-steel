@@ -1,0 +1,155 @@
+# T-60 light tank, Model 1941 (July 1941 - 1942; prompt 063, tier 3).
+# Main dimensions from data/catalog/su.toml (onwar.com): length 4.10 m, width
+# 2.30 m, height 1.80 m. The catalog has no length_hull_mm: the 20 mm barrel ends
+# behind the nose (data.json: barrel overhang 0), so the catalog length is the
+# hull from nose to rear plate (hull_length) and the barrel has a fixed length.
+# Shapes measured in the onwar.com drawing su038t60m41.jpg (front to the left,
+# about 157 px/m; never committed): four spoked road wheels of about 0.53 m on
+# torsion bars, three return rollers, front drive sprocket, rear idler of road
+# wheel size; low front deck, sloped driver's cab plate up to the roof at
+# 1.34 m, engine deck dropping to the rear; small octagonal one-man turret
+# offset about 0.3 m to the left (top view), its ring about 0.2 m behind the
+# hull center; long TNSh 20 mm barrel in a tubular sleeve with the coaxial DT.
+# Track width: data.json says 18 cm; the model uses the 260 mm T-60 track of
+# the literature (reported in docs/VEHICLE_REFS.md).
+unit = "su_t60_1941"
+assembly = "tank"
+
+[layout]
+turret_y = -0.20
+turret_ring_diameter = 0.95
+hull_length = 4.06
+fender_overhang = 0.03
+
+[running_gear]
+part = "torsion_bar"
+twin = false
+spokes = 6
+track_width = 0.26
+track_thickness = 0.03
+link_pitch = 0.11
+road_wheel_diameter = 0.53
+road_wheels = [1.06, 0.30, -0.46, -1.23]
+sprocket = { y = 1.69, z = 0.59, diameter = 0.55, teeth = 13 }
+idler = { y = -1.71, z = 0.51, diameter = 0.52, spoked = false }
+return_rollers = { y = [0.87, 0.01, -0.85], z = 0.76, diameter = 0.18 }
+arm = 0.24
+
+[hull]
+part = "plate_hull"
+lower = [[-1.90, 0.30], [1.70, 0.30], [2.03, 0.78], [-2.03, 0.78], [-2.03, 0.50]]
+# low front deck, sloped driver's cab plate, flat roof, engine deck to the rear
+upper = [[-2.03, 0.78], [2.03, 0.78], [2.03, 0.98], [1.00, 1.06], [0.52, 1.34], [-1.20, 1.34], [-2.03, 1.00]]
+upper_half_width = 0.82
+upper_side_slope_deg = 4
+bevel = 0.015
+fender_front = 1.98
+
+[turret]
+part = "su.offset_turret"
+x = -0.30
+height = "fit"
+# small octagonal welded turret
+plan = [[-0.30, 0.60], [0.30, 0.60], [0.58, 0.28], [0.58, -0.30], [0.30, -0.60], [-0.30, -0.60], [-0.58, -0.30], [-0.58, 0.28]]
+side_slope_deg = 20
+front_slope_deg = 14
+rear_slope_deg = 10
+bevel = 0.02
+
+[gun]
+part = "tank_gun"
+trunnion = [0.56, 0.20]
+x = -0.30
+mantlet = { kind = "box", size = [0.30, 0.14, 0.24] }
+sleeve = [0.42, 0.045]
+segments = [[0.85, 0.020, 0.017]]   # TNSh 20 mm: muzzle behind the nose (drawing)
+muzzle_brake = "none"
+
+[[mg]]  # coaxial DT, right of the gun
+part = "mg"
+mount = "coax"
+position = [0.12, 0.10, 0.0]
+
+[[part]]
+part = "turret_hatch"
+x = -0.30
+y = -0.40
+diameter = 0.45
+socket = true
+
+[[part]]
+part = "su.glacis_hatch"   # driver's hatch in the cab front plate
+x = 0.0
+y = 0.80
+size = [0.45, 0.38]
+
+[[part]]
+part = "deck_box"   # engine access and radiator grille (engine on the right)
+center = [0.35, -0.80]
+size = [0.85, 1.10, 0.04]
+
+[[part]]
+part = "exhaust"
+kind = "pipe"
+position = [0.55, -2.04, 1.02]
+length = 0.06
+diameter = 0.11
+
+[[part]]
+part = "headlight"
+position = [-0.65, 1.80, 1.08]
+diameter = 0.15
+
+[[part]]
+part = "tool"
+kind = "shovel"
+position = [1.00, -0.3, 0.86]
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 1.92, 0.62]
+pair = true
+socket = false
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -1.98, 0.62]
+pair = true
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.35, -0.80, 1.38]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [-0.30, -0.20, 1.75]
+parent = "Turret"
+
+[[part]]
+part = "marking"
+name = "Turret_L"
+parent = "Turret"
+position = [-0.84, -0.20, 1.55]
+normal = [-0.94, 0.0, 0.34]
+size = 0.28
+
+[[part]]
+part = "marking"
+name = "Turret_R"
+parent = "Turret"
+position = [0.24, -0.20, 1.55]
+normal = [0.94, 0.0, 0.34]
+size = 0.28
+
+[[part]]
+part = "marking"
+name = "Hull_Rear"
+kind = "number"
+position = [0.0, -2.04, 0.90]
+normal = [0.0, -1.0, 0.0]
+size = 0.25
+
+[validate]
+exclude_height = ["Hatch_*"]

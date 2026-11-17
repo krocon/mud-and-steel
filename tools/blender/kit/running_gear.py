@@ -368,11 +368,14 @@ def torsion_bar(model, p, ctx):
     single wide wheel), `tire` (default "Rubber"), `dish`, `arm` (swing arm
     length, default 0.30), `arm_leading` (arms point forward from the pivot,
     default false = trailing arms), `bump_stops` (small stops above the
-    arms, default true).
+    arms, default true), `spokes` (number of raised spokes on the outer
+    face of single wheels, default 0 = plain disc: spoked wheels of the
+    early T-60).
     """
     twin = p.get("twin", True)
     tire = p.get("tire", "Rubber")
     dish = p.get("dish", 0.0)
+    spokes = p.get("spokes", 0)
     arm = p.get("arm", 0.30)
     lead = -1.0 if p.get("arm_leading", False) else 1.0
     stops = p.get("bump_stops", True)
@@ -384,6 +387,8 @@ def torsion_bar(model, p, ctx):
             _twin(g, mb, c, sd, tire=tire, dish=dish)
         else:
             W.disc_wheel(mb, c, g.rw_r, g.rw_width, sd, tire=tire, dish=dish)
+            if spokes:
+                W.spoke_ribs(mb, c, g.rw_r * 0.86, c[0] + sd * g.rw_width / 2, sd, spokes)
 
     path = None
     for side, s in SIDES:
