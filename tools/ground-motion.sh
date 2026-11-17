@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Does the ground texture stick to the ground while the camera moves? (prompt 071)
 #
-#   tools/ground-motion.sh [<dir>] [--png] [--near] [--tall] [--roofs] [--off=<part,...>]
+#   tools/ground-motion.sh [<dir>] [--png] [--near] [--tall] [--roofs] [--snow-roofs] [--off=<part,...>]
 #
 # Records the trailer shots `column_high` (farms, near the map centre) and
 # `survey_ground` (test_large, near a corner, where a texture that depends on
@@ -18,6 +18,9 @@
 # terrain draws the stand.
 # --roofs (prompt 075) records the pans `roof_near_15/35/110` over the town
 # houses of town_small and measures windows on the roofs instead.
+# --snow-roofs (prompt 080) records the pans `roof_snow_15/35/110` over the
+# houses of winter_village and measures windows on the snowy roofs, with
+# the falling snow hidden (`--off=snowfall` unless --off= is given).
 # --off=<parts> turns parts of the picture off for the analysis
 # (`--trailer-off=` of trailer_shots.gd: tufts, ground, shadows, wind, dof,
 # ssao, msaa; fxaa, taa turn those on).
@@ -31,6 +34,7 @@ png=0
 near=0
 tall=0
 roofs=0
+snow_roofs=0
 off=()
 for arg in "$@"; do
     case "$arg" in
@@ -38,6 +42,7 @@ for arg in "$@"; do
         --near) near=1 ;;
         --tall) tall=1 ;;
         --roofs) roofs=1 ;;
+        --snow-roofs) snow_roofs=1 ;;
         --off=*) off=("--trailer-off=${arg#--off=}") ;;
         -*) echo "unknown argument: $arg" >&2; exit 2 ;;
         *) out="$arg" ;;
@@ -74,6 +79,15 @@ if [ "$roofs" = 1 ]; then
         "roof_near_15|60|60|roof=480x320+720+620"
         "roof_near_35|60|60|roof=400x160+900+600"
         "roof_near_110|60|60|roof=240x64+980+685"
+    )
+fi
+
+if [ "$snow_roofs" = 1 ]; then
+    [ ${#off[@]} -gt 0 ] || off=("--trailer-off=snowfall")
+    measure=(
+        "roof_snow_15|60|60|roof=480x320+720+620"
+        "roof_snow_35|60|60|roof=400x160+900+600"
+        "roof_snow_110|60|60|roof=240x64+980+685"
     )
 fi
 

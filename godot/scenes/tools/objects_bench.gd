@@ -20,6 +20,9 @@ extends Node
 ## three biomes (`--daytime=evening` for low sun). `--rocks-bench` measures
 ## frame rate over the densest ridge field instead of the wood views.
 ##
+## `--roofs-bench` (prompt 080) measures the frame rate over the house
+## nearest to the village marker at 35, 110 and 350 m instead.
+##
 ## `--roofs` (prompt 075, `just roof-shots`) shoots the roof views: the
 ## map's village (marker `village`, else `town_square`) at 15, 35, 110 and
 ## 350 m and from about 90 m like the reference picture, and with the map
@@ -28,6 +31,12 @@ extends Node
 ## burning (charred 0.6) and burnt-out houses; in the forest by day, at low
 ## sun and at night, in the desert and in winter (`--biomes=`,
 ## `--daytimes=` narrow it, `--only=<view,...>` picks views).
+## With `--snow` (prompt 080, `just snow-shots`, map `winter_village`) the
+## same views in winter only: by day, at low sun, at night and in falling
+## snow, with more coverings in the line-up (log house, town house, depot,
+## the apartment blocks), a close view of two houses like the reference
+## picture, and the day views again with the snow amount set to each of
+## `--amounts=` (default 0.3, 0.6, 0.85, 1.0; files `winter-day-a<amount>-`).
 ##
 ## `--blocks` (prompt 078, `just block-shots`, map `city_blocks`) shoots the
 ## apartment blocks: the quarter at 15, 35, 110 and 350 m, two views like
@@ -104,6 +113,31 @@ func _run() -> void:
 		await _measure(views)
 		get_tree().quit()
 		return
+	if "--roofs-bench" in args:
+		# Prompt 080: frame rate over the houses nearest to the village
+		# marker (the roof snow costs only on roof pixels).
+		_find_points()
+		var host: SimHost = main.sim_host
+		var kinds := host.object_kinds()
+		var nearest := INF
+		var village: Vector3 = _points["village"]
+		_points["house"] = village
+		for group: Dictionary in host.object_groups(128.0):
+			var id: String = kinds[group.kind].get_slice(":", 0)
+			if not (id.begins_with("env_house") or id == "env_barn"):
+				continue
+			var buffer: PackedFloat32Array = group.buffer
+			for k in buffer.size() / 12:
+				var p := Vector3(buffer[k * 12 + 3], buffer[k * 12 + 7], buffer[k * 12 + 11])
+				if p.distance_to(village) < nearest:
+					nearest = p.distance_to(village)
+					_points["house"] = p
+		var views: Array[Dictionary] = []
+		for d in [35.0, 110.0, 350.0]:
+			views.append({"name": "roofs-%d" % int(d), "at": "house", "distance": d})
+		await _measure(views)
+		get_tree().quit()
+		return
 	if "--rocks" in args or "--rocks-bench" in args:
 		_find_rock_points()
 		if "--rocks-bench" in args:
@@ -135,6 +169,16 @@ const ROOF_DAMAGE: Array = [
 const ROOF_CONDITIONS: Array = [
 	["forest", "day"], ["forest", "evening"], ["forest", "night"], ["desert", "day"], ["winter", "day"],
 ]
+## Snow on roofs (prompt 080): every roof kind of the winter maps.
+const SNOW_COVERINGS: Array[String] = [
+	"env_house_farm", "env_house_farm_brick", "env_house_stone", "env_barn", "env_house_log", "env_house_town",
+	"env_house_mud", "env_steel_hall", "env_depot", "env_church", "env_block_town", "env_block_desert",
+]
+## [biome, daytime, weather, snow amount (-1: the biome's)].
+const SNOW_CONDITIONS: Array = [
+	["winter", "day", "clear", -1.0], ["winter", "evening", "clear", -1.0], ["winter", "night", "clear", -1.0],
+	["winter", "day", "snow", -1.0],
+]
 
 
 ## Roof views (prompt 075), saved as `<out>/<biome>-<daytime>-<view>.png`.
@@ -146,6 +190,8 @@ func _roof_shots() -> void:
 	var biomes: Array[String] = []
 	var daytimes: Array[String] = []
 	var only: Array[String] = []
+	var snow := "--snow" in OS.get_cmdline_user_args()
+	var amounts: Array[float] = [0.3, 0.6, 0.85, 1.0]
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--out="):
 			out = arg.trim_prefix("--out=")
@@ -155,6 +201,16 @@ func _roof_shots() -> void:
 			daytimes.assign(arg.trim_prefix("--daytimes=").split(","))
 		elif arg.begins_with("--only="):
 			only.assign(arg.trim_prefix("--only=").split(","))
+		elif arg.begins_with("--amounts="):
+			amounts.assign(Array(arg.trim_prefix("--amounts=").split(",")).map(func(a: String) -> float: return a.to_float()))
+	var conditions: Array = []
+	if snow:
+		conditions.append_array(SNOW_CONDITIONS)
+		for a in amounts:
+			conditions.append(["winter", "day", "clear", a])
+	else:
+		for c: Array in ROOF_CONDITIONS:
+			conditions.append([c[0], c[1], "clear", -1.0])
 	DirAccess.make_dir_recursive_absolute(out)
 	main.fog_of_war.set_fog_enabled(false)
 	main.hud.visible = false
@@ -203,9 +259,13 @@ func _roof_shots() -> void:
 	for d in ROOF_DISTANCES:
 		views.append({"name": "village-%d" % int(d), "at": house if d < 100.0 else village, "distance": d, "yaw": 0.9})
 	views.append({"name": "village-compare", "at": village, "distance": 90.0, "yaw": 0.5})
+	if snow:
+		# Like the reference picture: two houses from about 30 m, ridges
+		# running diagonally through the picture.
+		views.append({"name": "village-compare-near", "at": house, "distance": 30.0, "yaw": 0.4})
 	var x := center.x - 60.0
 	var row_at := Vector3.ZERO
-	for id in ROOF_COVERINGS:
+	for id in (SNOW_COVERINGS if snow else ROOF_COVERINGS):
 		var node := _lineup_house(lineup, id, "Intact", 0.0, Vector3(x, 0.0, center.z))
 		var size := _extent(node)
 		node.position.x += size.x * 0.5
@@ -225,17 +285,25 @@ func _roof_shots() -> void:
 		_lineup_house(lineup, entry[0], entry[1], entry[2], Vector3(center.x - 45.0 + i * 16.0, 0.0, center.z - 45.0))
 	views.append({"name": "damage-70", "at": Vector3(center.x - 5.0, center.y, center.z - 45.0), "distance": 70.0, "yaw": 0.6})
 	var i := 0
-	for condition: Array in ROOF_CONDITIONS:
+	for condition: Array in conditions:
 		if not biomes.is_empty() and not condition[0] in biomes:
 			continue
 		if not daytimes.is_empty() and not condition[1] in daytimes:
 			continue
-		main.atmosphere.set_weather("clear", condition[1])
+		main.atmosphere.set_weather(condition[2], condition[1])
 		main.set_biome(condition[0])
 		for mesh in lineup.find_children("*", "GeometryInstance3D", true, false):
 			var char_amount: float = mesh.get_instance_shader_parameter(&"env_char")
 			objects._apply_look(mesh as GeometryInstance3D)
 			mesh.set_instance_shader_parameter(&"env_char", char_amount)
+		var amount: float = condition[3]
+		if amount >= 0.0:
+			# Every object's snow scaled to the amount (straw keeps its share).
+			var base: float = EnvLook.LOOK[condition[0]].snow
+			for root: Node in [objects, lineup]:
+				for mesh in root.find_children("*", "GeometryInstance3D", true, false):
+					var own: float = mesh.get_instance_shader_parameter(&"env_snow")
+					mesh.set_instance_shader_parameter(&"env_snow", own / maxf(base, 1e-3) * amount)
 		for view in views:
 			if not only.is_empty() and not view.name in only:
 				continue
@@ -243,7 +311,10 @@ func _roof_shots() -> void:
 			objects.set_objects_visible(at_village)
 			lineup.visible = not at_village
 			rig.snap_to(view.at, view.distance, view.yaw)
-			var name := "%s-%s-%s" % [condition[0], condition[1], view.name]
+			var tag: String = "" if condition[2] == "clear" else "-" + str(condition[2])
+			if amount >= 0.0:
+				tag += "-a%03d" % roundi(amount * 100.0)
+			var name := "%s-%s%s-%s" % [condition[0], condition[1], tag, view.name]
 			print("objects-shots: roof view %d '%s'" % [i, name])
 			await _frames(SHOT_FRAMES * 2)
 			get_viewport().get_texture().get_image().save_png(out.path_join(name + ".png"))

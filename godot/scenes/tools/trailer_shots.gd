@@ -63,8 +63,9 @@ const BUS_DB: Dictionary[String, float] = {
 ## Parts `--trailer-off=` can turn off (prompt 068, analysis of flicker, never
 ## a game setting): meadow tufts, procedural meadow of the ground shader,
 ## sun shadows, wind of the tufts, depth of field, SSAO, MSAA; "fxaa" and
-## "taa" turn that antialiasing on instead.
-const OFF_PARTS: Array[String] = ["tufts", "ground", "shadows", "wind", "dof", "ssao", "msaa", "fxaa", "taa"]
+## "taa" turn that antialiasing on instead; "snowfall" (prompt 080) hides
+## the falling snow of a winter map.
+const OFF_PARTS: Array[String] = ["tufts", "ground", "shadows", "wind", "dof", "ssao", "msaa", "fxaa", "taa", "snowfall"]
 const MeadowTufts := preload("res://scenes/world/meadow_tufts.gd")
 const TallGrass := preload("res://scenes/world/tall_grass.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
@@ -329,6 +330,33 @@ const SHOTS: Dictionary[String, Dictionary] = {
 			{"t": 3.0, "at": Vector2(70, 0), "dist": 110.0, "yaw": 23.0, "pitch": 56.0, "haze": 110.0},
 		],
 	},
+	# Prompt 080: the same pans over the houses east of the winter village's
+	# center (log house, stone house, farm house in a row), for the roof snow
+	# (`just ground-motion --snow-roofs`).
+	"roof_snow_15": {
+		"map": "winter_village", "scene": "survey", "seed": 1, "start_s": 0.5, "seconds": 3.0, "game_camera": true,
+		"weather": "clear", "daytime": "day", "stills": [1.5],
+		"camera": [
+			{"t": 0.0, "at": Vector2(50, -11.5), "lift": 6.0, "dist": 15.0, "yaw": 23.0, "pitch": 45.0, "haze": 15.0},
+			{"t": 3.0, "at": Vector2(57.5, -11.5), "lift": 6.0, "dist": 15.0, "yaw": 23.0, "pitch": 45.0, "haze": 15.0},
+		],
+	},
+	"roof_snow_35": {
+		"map": "winter_village", "scene": "survey", "seed": 1, "start_s": 0.5, "seconds": 3.0, "game_camera": true,
+		"weather": "clear", "daytime": "day", "stills": [1.5],
+		"camera": [
+			{"t": 0.0, "at": Vector2(40, -11.5), "lift": 6.0, "dist": 35.0, "yaw": 23.0, "pitch": 47.8, "haze": 35.0},
+			{"t": 3.0, "at": Vector2(58, -11.5), "lift": 6.0, "dist": 35.0, "yaw": 23.0, "pitch": 47.8, "haze": 35.0},
+		],
+	},
+	"roof_snow_110": {
+		"map": "winter_village", "scene": "survey", "seed": 1, "start_s": 0.5, "seconds": 3.0, "game_camera": true,
+		"weather": "clear", "daytime": "day", "stills": [1.5],
+		"camera": [
+			{"t": 0.0, "at": Vector2(20, 0), "dist": 110.0, "yaw": 23.0, "pitch": 56.0, "haze": 110.0},
+			{"t": 3.0, "at": Vector2(80, 0), "dist": 110.0, "yaw": 23.0, "pitch": 56.0, "haze": 110.0},
+		],
+	},
 	"survey_twin_meadow": {
 		"map": "twin_meadow", "scene": "survey", "seed": 1, "start_s": 0.5, "seconds": 1.0, "stills": [0.5],
 		"camera": [{"t": 0.0, "at": Vector2(0, 0), "dist": 1902.0, "yaw": 0.0, "pitch": 89.0, "haze": 4000.0}],
@@ -506,6 +534,8 @@ func _apply_off() -> void:
 		Settings.set_value("depth_of_field", "off")
 	if "ssao" in _off:
 		main.atmosphere._env.ssao_enabled = false
+	if "snowfall" in _off and main.atmosphere._snow_root != null:
+		main.atmosphere._snow_root.visible = false
 	var vp := get_viewport()
 	if "msaa" in _off:
 		vp.msaa_3d = Viewport.MSAA_DISABLED

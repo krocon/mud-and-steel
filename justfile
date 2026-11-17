@@ -504,6 +504,11 @@ rock-shots dir="build/rock-shots" map="rock_hills" *args: build
 roof-shots dir="build/roof-shots" map="test_large" *args: build
     {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- --objects-bench --roofs --out="$(cd "{{ invocation_directory() }}" && mkdir -p "{{ dir }}" && cd "{{ dir }}" && pwd)" --map={{ map }} {{ args }}
 
+# Save the roof snow views of prompt 080 as PNGs into a folder: the winter village at 15-350 m, two houses like the reference picture, every roof kind side by side, twenty equal houses, damaged and charred houses; by day, low sun, night and in falling snow, and by day with snow amounts 0.3-1.0 (opens a window); e.g. --amounts=0.6 --only=village-compare-near
+[group('terrain')]
+snow-shots dir="build/snow-shots" map="winter_village" *args: build
+    {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- --objects-bench --roofs --snow --out="$(cd "{{ invocation_directory() }}" && mkdir -p "{{ dir }}" && cd "{{ dir }}" && pwd)" --map={{ map }} {{ args }}
+
 # Save the apartment block views of prompt 078 as PNGs into a folder: the quarter at 15-350 m and like the reference pictures, every block in all damage levels, a burnt block; desert by day, low sun and night, forest, winter (opens a window); e.g. --biomes=desert --only=compare-near
 [group('terrain')]
 block-shots dir="build/block-shots" map="city_blocks" *args: build
