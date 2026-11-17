@@ -1,0 +1,265 @@
+# Panzerkampfwagen Tiger Ausf. B "Tiger II" (Sd.Kfz. 182), production turret
+# (Henschel), 1944-45 (prompt 063, group ger-heavy); base of de_jagdtiger.
+# Main dimensions from data/catalog/de.toml (onwar.com): length 10.30 m with
+# gun, hull 7.30 m, width 3.76 m over the combat tracks, height 3.08 m.
+# Profiles, wheel stations and turret measured on the onwar.com drawing
+# (docs/.vorlagen, not in the repo; about 150 px/m along the hull, 154 px/m
+# in height): nine torsion-bar stations with 0.80 m steel-tired road wheels
+# overlapping in two layers (no return rollers), front sprocket, rear idler,
+# 0.80 m track (data.json), ground clearance 0.49 m (data.json). Upper and
+# lower glacis 50 deg, superstructure sides 25 deg, turret sides 21 deg
+# (data.json armor angles). The drawing shortens the gun: barrel fitted to
+# the catalog.
+unit = "de_tiger2"
+assembly = "tank"
+
+[layout]
+turret_y = -0.20
+turret_ring_diameter = 1.85
+fender_overhang = 0.03   # the outer wheel layer stands a little outside the track
+
+[running_gear]
+part = "interleaved"
+rows = 2
+tire = "Paint"
+track_width = 0.80
+link_pitch = 0.15
+road_wheel_diameter = 0.80
+road_wheels = [2.35, 1.815, 1.28, 0.745, 0.21, -0.325, -0.86, -1.395, -1.93]
+sprocket = { y = 3.05, z = 0.84, diameter = 0.86, teeth = 18 }
+idler = { y = -2.68, z = 0.55, diameter = 0.66 }
+arm = 0.40
+
+[hull]
+part = "plate_hull"
+# lower hull: lower glacis 50 deg up to the nose edge, rear plate
+lower = [[-3.30, 0.49], [3.25, 0.49], [3.65, 0.95], [3.62, 1.00], [-3.50, 1.00], [-3.40, 0.62]]
+# superstructure: upper glacis 50 deg, flat roof and engine deck, rear plate
+# leaning back slightly at the top
+upper = [[-3.48, 0.99], [3.65, 0.99], [2.55, 1.88], [-3.65, 1.88]]
+upper_side_slope_deg = 25
+fender_front = 3.55
+fender_rear = -3.45
+
+[turret]
+part = "plate_turret"
+height = "fit"
+# narrow sloped front plate, sides widening to the middle, rear plate
+plan = [[-0.68, 1.65], [0.68, 1.65], [1.25, 0.55], [1.25, -1.30], [1.05, -2.05], [-1.05, -2.05],
+        [-1.25, -1.30], [-1.25, 0.55]]
+side_slope_deg = 21
+front_slope_deg = 0
+
+[cupola]
+x = -0.60
+y = -0.70
+diameter = 0.72
+height = 0.30
+vision_blocks = 7
+hatch = "single"
+
+[gun]
+part = "tank_gun"
+trunnion = [1.50, 0.44]
+mantlet = { kind = "saukopf", size = [0.82, 0.60, 0.74] }
+sleeve = [0.55, 0.13]
+segments = [["fit", 0.09, 0.075]]
+muzzle_brake = "double_baffle"
+
+[[mg]]  # coaxial MG 34, right of the gun
+part = "mg"
+mount = "coax"
+position = [0.28, 0.30, 0.05]
+
+[[mg]]  # bow MG 34 in the radio operator's ball mount, right of the glacis
+part = "mg"
+mount = "ball"
+position = [0.75, 3.12, 1.42]
+length = 0.9
+
+[[part]]
+part = "turret_hatch"                   # loader's hatch
+x = 0.55
+y = -0.60
+diameter = 0.55
+socket = true
+
+[[part]]
+part = "turret_hatch"                   # escape hatch in the turret rear plate (seen from above as a bulge)
+x = 0.0
+y = -1.85
+diameter = 0.45
+
+[[part]]
+part = "hull_hatch"                     # driver
+center = [-0.80, 2.15]
+size = [0.55, 0.60]
+hinge = "rear"
+socket = true
+
+[[part]]
+part = "hull_hatch"                     # radio operator
+center = [0.80, 2.15]
+size = [0.55, 0.60]
+hinge = "rear"
+
+[[part]]
+part = "deck_box"                       # engine hatch
+center = [0.0, -2.40]
+size = [1.20, 1.20, 0.05]
+
+[[part]]
+part = "deck_box"                       # radiator grilles left and right
+center = [-1.05, -2.50]
+size = [0.80, 1.80, 0.04]
+
+[[part]]
+part = "deck_box"
+center = [1.05, -2.50]
+size = [0.80, 1.80, 0.04]
+
+[[part]]
+part = "cylinder_prop"                  # fan housings
+from = [-1.05, -2.15, 1.90]
+to = [-1.05, -2.15, 1.97]
+radius = 0.32
+segments = 12
+
+[[part]]
+part = "cylinder_prop"
+from = [1.05, -2.15, 1.90]
+to = [1.05, -2.15, 1.97]
+radius = 0.32
+segments = 12
+
+[[part]]
+part = "cylinder_prop"                  # exhaust pipe on the rear plate
+from = [-0.42, -3.60, 1.05]
+to = [-0.42, -3.60, 2.10]
+radius = 0.07
+material = "Metal"
+segments = 8
+
+[[part]]
+part = "socket"
+name = "Socket_Exhaust_"
+position = [-0.42, -3.60, 2.12]
+
+[[part]]
+part = "cylinder_prop"
+from = [0.42, -3.60, 1.05]
+to = [0.42, -3.60, 2.10]
+radius = 0.07
+material = "Metal"
+segments = 8
+
+[[part]]
+part = "socket"
+name = "Socket_Exhaust_"
+position = [0.42, -3.60, 2.12]
+
+[[part]]
+part = "spare_tracks"                   # spare links on the turret sides
+parent = "Turret"
+origin = [-1.12, 0.10, 2.25]
+direction = [0.0, -0.20, 0.0]
+count = 5
+link_size = [0.04, 0.15, 0.40]
+
+[[part]]
+part = "spare_tracks"
+parent = "Turret"
+origin = [1.12, 0.10, 2.25]
+direction = [0.0, -0.20, 0.0]
+count = 5
+link_size = [0.04, 0.15, 0.40]
+
+[[part]]
+part = "tool"
+kind = "shovel"
+position = [-1.50, 0.40, 1.88]
+
+[[part]]
+part = "tool"
+kind = "crowbar"
+position = [1.50, -0.60, 1.88]
+
+[[part]]
+part = "tool"
+kind = "jack"
+position = [0.0, -3.55, 1.20]
+axis = "x"
+
+[[part]]
+part = "headlight"
+position = [-1.20, 2.60, 1.86]
+diameter = 0.18
+
+[[part]]
+part = "antenna"
+position = [1.00, -1.60, 1.88]
+length = 2.0
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -3.40, 0.85]
+pair = true
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 3.50, 0.85]
+pair = true
+socket = false
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -2.4, 1.95]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -0.20, 2.80]
+parent = "Turret"
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-1.70, -1.40, 1.45]
+normal = [-0.9, 0, 0.42]
+size = 0.50
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [1.70, -1.40, 1.45]
+normal = [0.9, 0, 0.42]
+size = 0.50
+
+[[part]]
+part = "marking"
+name = "Hull_Rear"
+position = [0.0, -3.60, 1.45]
+normal = [0, -1, 0]
+size = 0.40
+
+[[part]]
+part = "marking"
+name = "Turret_L"
+kind = "number"
+parent = "Turret"
+position = [-1.10, -0.90, 2.30]
+normal = [-0.93, 0, 0.36]
+size = 0.55
+
+[[part]]
+part = "marking"
+name = "Turret_R"
+kind = "number"
+parent = "Turret"
+position = [1.10, -0.90, 2.30]
+normal = [0.93, 0, 0.36]
+size = 0.55
+
+[validate]
+exclude_height = ["Antenna_*"]          # catalog height is over the cupola
