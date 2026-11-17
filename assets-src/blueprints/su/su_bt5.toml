@@ -1,0 +1,177 @@
+# BT-5 fast tank, Model 1934 (1933-1935; prompt 063, tier 3).
+# Main dimensions from data/catalog/su.toml (onwar.com): length 5.50 m (front to
+# rear mudguard; data.json "Length overall/hull", the 45 mm muzzle stays inside,
+# barrel overhang 0), width 2.23 m, height 2.20 m. The catalog has no
+# length_hull_mm: hull_length is the hull from nose to rear plate in the drawing.
+# Shapes measured in the onwar.com drawing su002bt5m34.jpg (front to the left,
+# about 160 px/m; never committed): Christie running gear with four large
+# rubber-tyred road wheels of about 0.80 m per side (wider gap between the
+# second and third), no return rollers, small front idler, REAR drive sprocket,
+# 0.26 m track, ground clearance 0.35 m (data.json); long sloped nose (pointed
+# in plan; the kit hull keeps a straight front), superstructure roof at 1.45 m,
+# long mudguards front and rear; cylindrical turret with a long rear bustle on
+# the center line (the T-26 Model 1933 turret type), 45 mm 20-K with coaxial
+# DT. The drawing gives the turret roof at 2.07 m and the periscope at 2.28 m
+# (catalog 2.20 m: hatch top).
+unit = "su_bt5"
+assembly = "tank"
+
+[layout]
+turret_y = 0.66
+turret_ring_diameter = 1.20
+hull_length = 5.25
+fender_overhang = 0.03
+
+[running_gear]
+part = "christie"
+track_width = 0.26
+track_thickness = 0.03
+link_pitch = 0.25
+road_wheel_diameter = 0.80
+road_wheels = [1.51, 0.46, -0.78, -1.58]
+sprocket = { y = -2.37, z = 0.42, diameter = 0.55, teeth = 6 }    # rear drive
+idler = { y = 2.37, z = 0.60, diameter = 0.48, spoked = false }
+dish = 0.03
+
+[hull]
+part = "plate_hull"
+lower = [[-2.45, 0.35], [2.05, 0.35], [2.625, 0.88], [2.625, 0.95], [-2.625, 0.95], [-2.625, 0.55]]
+# long sloped nose, driver's front plate, flat roof, sloped rear plate
+upper = [[-2.625, 0.95], [2.625, 0.95], [2.625, 1.00], [1.55, 1.19], [1.25, 1.45], [-2.05, 1.45], [-2.625, 1.12]]
+upper_half_width = 0.82
+bevel = 0.015
+fender_front = 2.75
+fender_rear = -2.75
+fender_slope_front = 0.12
+
+[turret]
+part = "su.offset_turret"
+x = 0.0
+height = "fit"
+# cylindrical turret (front half round) with a long rear bustle
+plan = [[-0.65, 0.0], [-0.56, 0.33], [-0.33, 0.56], [0.0, 0.65], [0.33, 0.56], [0.56, 0.33], [0.65, 0.0],
+        [0.62, -0.35], [0.46, -1.06], [0.33, -1.16], [-0.37, -1.16], [-0.53, -1.03], [-0.64, -0.35]]
+side_slope_deg = 2
+bevel = 0.015
+
+[gun]
+part = "tank_gun"
+trunnion = [0.62, 0.36]
+x = 0.0
+mantlet = { kind = "round", size = [0.40, 0.18, 0.36] }
+sleeve = [0.25, 0.05]
+segments = [[1.10, 0.030, 0.027]]      # 20-K: muzzle behind the nose (drawing)
+muzzle_brake = "none"
+
+[[mg]]  # coaxial DT, right of the gun
+part = "mg"
+mount = "coax"
+position = [0.16, 0.05, 0.0]
+
+[[part]]
+part = "turret_hatch"
+x = -0.20
+y = -0.30
+diameter = 0.50
+height = 0.10
+socket = true
+
+[[part]]
+part = "su.glacis_hatch"                # driver's hatch in the front plate
+x = 0.0
+y = 1.45
+size = [0.50, 0.30]
+
+[[part]]
+part = "deck_box"                       # radiator grilles on the engine deck
+center = [0.0, -1.20]
+size = [1.00, 0.85, 0.04]
+
+[[part]]
+part = "cylinder_prop"                  # muffler across the rear above the sprockets
+from = [-0.70, -2.55, 1.18]
+to = [0.70, -2.55, 1.18]
+radius = 0.12
+
+[[part]]
+part = "exhaust"
+kind = "pipe"
+position = [0.45, -2.62, 1.10]
+length = 0.06
+diameter = 0.09
+
+[[part]]
+part = "headlight"
+position = [-0.45, 2.10, 1.15]
+diameter = 0.16
+
+[[part]]
+part = "headlight"
+position = [0.45, 2.10, 1.15]
+diameter = 0.16
+
+[[part]]
+part = "tool"
+kind = "shovel"
+position = [0.95, -0.4, 1.12]
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 2.55, 0.85]
+pair = true
+socket = false
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -2.58, 0.75]
+pair = true
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -1.20, 1.50]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 0.30, 2.00]
+parent = "Turret"
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-0.82, -0.3, 1.25]
+normal = [-1, 0, 0]
+size = 0.30
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [0.82, -0.3, 1.25]
+normal = [1, 0, 0]
+size = 0.30
+
+[[part]]
+part = "marking"
+name = "Turret_L"
+parent = "Turret"
+position = [-0.66, 0.30, 1.78]
+normal = [-1, 0, 0]
+size = 0.30
+
+[[part]]
+part = "marking"
+name = "Turret_R"
+parent = "Turret"
+position = [0.66, 0.30, 1.78]
+normal = [1, 0, 0]
+size = 0.30
+
+[[part]]
+part = "marking"
+name = "Turret_Rear"
+kind = "number"
+parent = "Turret"
+position = [0.0, -0.52, 1.78]
+normal = [0, -1, 0]
+size = 0.25

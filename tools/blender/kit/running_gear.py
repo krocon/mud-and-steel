@@ -270,14 +270,24 @@ def vvss_bogie(model, p, ctx):
 def christie(model, p, ctx):
     """Large Christie road wheels on swing arms, no return rollers (T-34).
 
-    Extra parameter: `dish` (outward bulge of the wheel disc, m).
+    Extra parameters: `dish` (outward bulge of the wheel disc, m), `spokes`
+    (number of raised spokes on the outer disc, default 0 = plain disc:
+    spoked wheels of the BT-2).
     """
     dish = p.get("dish", 0.05)
+    spokes = p.get("spokes", 0)
     g = Gear(p, ctx)
     hull = model.mb("Hull")
+
+    def wheel(mb, c, sd):
+        _twin(g, mb, c, sd, dish=dish)
+        if spokes:
+            w = g.rw_width / 2 - 0.01
+            W.spoke_ribs(mb, c, g.rw_r * 0.86, c[0] + sd * (w + 0.01), sd, spokes)
+
     path = None
     for side, s in SIDES:
-        path = g.build_common(model, side, s, lambda mb, c, sd: _twin(g, mb, c, sd, dish=dish))
+        path = g.build_common(model, side, s, wheel)
         x = g.x(side)
         xi = x - side * (g.tw / 2 + 0.05)
         for y in g.stations:
