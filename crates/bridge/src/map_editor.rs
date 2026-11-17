@@ -1071,6 +1071,7 @@ impl MapEditor {
         sink: f32,
         #[opt(default = Vector2::ZERO)] shore: Vector2,
         #[opt(default = 0.0)] fray: f32,
+        #[opt(default = 0.0)] rock: f32,
     ) -> Array<PackedFloat32Array> {
         let Some(d) = self.display() else {
             return Array::new();
@@ -1087,6 +1088,7 @@ impl MapEditor {
             sink,
             shore: (shore.x, shore.y),
             fray,
+            rock,
         };
         let water =
             (shore != Vector2::ZERO).then(|| d.water.get_or_init(|| WaterField::new(&d.map)));

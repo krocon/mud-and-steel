@@ -16,14 +16,32 @@ use sim::objects::Shape;
 use sim::{Fixed, Map, MapObject, Vec2};
 use std::collections::BTreeMap;
 
-/// Presentation-only size jitter per kind prefix (fraction, ±).
-const SCALE_JITTER: [(&str, f32); 5] = [
+/// Presentation-only size jitter per kind prefix (fraction, ±); the last
+/// matching prefix counts. Rock groups and ridge pieces keep the size of
+/// their blocking box (prompt 074).
+const SCALE_JITTER: [(&str, f32); 7] = [
     ("env_tree_", 0.12),
     ("env_bush", 0.15),
     ("env_rock", 0.25),
+    ("env_rock_", 0.0),
+    ("env_rock_slab", 0.08),
     ("env_hay_bale", 0.08),
     ("env_tree_stump", 0.15),
 ];
+/// Kinds that lie on the slope like a sheet (prompt 074): sheared onto the
+/// plane of the ground under their box instead of standing at its lowest
+/// corner.
+const SHEET_KINDS: [&str; 1] = ["env_rock_slab"];
+/// Kinds with a seam of scree, tufts and bushes around them (prompt 074).
+const ROCK_KINDS: [&str; 3] = ["env_rock_slab", "env_rock_outcrop", "env_rock_massif"];
+/// Width (m) of that seam.
+const ROCK_SEAM_M: i32 = 3;
+/// The boxes of solid rocks are this much (dm) larger than the model's
+/// foot (data/objects.toml); decoration grows up to the foot.
+const ROCK_BOX_MARGIN_DM: i32 = 4;
+/// Terrain ids the seam decoration grows on (grass, sand, mud, snow, tall
+/// grass; not on tracks, roads or water).
+const SEAM_TERRAIN: [u8; 5] = [0, 3, 4, 5, 8];
 /// Trees are sunk into the ground a little, so slopes show no floating roots.
 const TREE_SINK_M: f32 = 0.15;
 /// Samples within this distance (m) of a box-shaped object get no decoration.
@@ -52,21 +70,54 @@ fn unit(h: u64) -> f32 {
 
 /// Writes one transform (yaw about Y, uniform scale, origin) into `out`.
 fn push_transform(out: &mut Vec<f32>, yaw: f32, scale: f32, origin: [f32; 3]) {
+    push_sheared(out, yaw, scale, origin, (0.0, 0.0));
+}
+
+/// Like [`push_transform`], then sheared so that the model's ground plane
+/// follows the slope `y = gx * x + gz * z` (world gradient of the ground).
+fn push_sheared(out: &mut Vec<f32>, yaw: f32, scale: f32, origin: [f32; 3], (gx, gz): (f32, f32)) {
     let (s, c) = yaw.sin_cos();
-    out.extend_from_slice(&[
-        c * scale,
-        0.0,
-        s * scale,
-        origin[0],
-        0.0,
+    let row0 = [c * scale, 0.0, s * scale];
+    let row2 = [-s * scale, 0.0, c * scale];
+    let row1 = [
+        gx * row0[0] + gz * row2[0],
         scale,
-        0.0,
-        origin[1],
-        -s * scale,
-        0.0,
-        c * scale,
-        origin[2],
+        gx * row0[2] + gz * row2[2],
+    ];
+    out.extend_from_slice(&[
+        row0[0], row0[1], row0[2], origin[0], row1[0], row1[1], row1[2], origin[1], row2[0],
+        row2[1], row2[2], origin[2],
     ]);
+}
+
+/// Ground plane under a box: the center height and the world gradient
+/// `(dy/dx, dy/dz)` from the four corners (sheet kinds, prompt 074).
+fn ground_plane(map: &Map, object: &MapObject, shape: Shape) -> (f32, (f32, f32)) {
+    let (x, z) = (f(object.position.x), f(object.position.y));
+    let center = ground(map, x, z);
+    let Shape::Box {
+        half_length,
+        half_width,
+    } = shape
+    else {
+        return (center, (0.0, 0.0));
+    };
+    let (fw, rt) = object.axes();
+    let (hl, hw) = (f(half_length), f(half_width));
+    let at = |a: f32, b: f32| {
+        ground(
+            map,
+            x + f(fw.x) * hl * a + f(rt.x) * hw * b,
+            z + f(fw.y) * hl * a + f(rt.y) * hw * b,
+        )
+    };
+    let (pp, pm, mp, mm) = (at(1.0, 1.0), at(1.0, -1.0), at(-1.0, 1.0), at(-1.0, -1.0));
+    // slopes along the box axes, then into world x / z
+    let along = ((pp + pm) - (mp + mm)) / (4.0 * hl.max(0.01));
+    let across = ((pp + mp) - (pm + mm)) / (4.0 * hw.max(0.01));
+    let gx = along * f(fw.x) + across * f(rt.x);
+    let gz = along * f(fw.y) + across * f(rt.y);
+    (center, (gx, gz))
 }
 
 /// Bilinear ground height in meters (presentation; matches the simulation
@@ -150,11 +201,16 @@ pub fn groups(map: &Map, chunk_m: f32) -> Vec<Group> {
         let h = mix(object.position.x.to_bits().cast_unsigned()
             ^ mix(object.position.y.to_bits().cast_unsigned()));
         let scale = 1.0 + jitter[usize::from(object.kind)] * (unit(h) * 2.0 - 1.0);
+        let yaw = -f32::from(object.heading_deg).to_radians();
+        let buffer = groups.entry((object.kind, chunk.0, chunk.1)).or_default();
+        if SHEET_KINDS.contains(&kind.id.as_str()) {
+            let (y, slope) = ground_plane(map, object, kind.shape);
+            push_sheared(buffer, yaw, scale, [x, y, z], slope);
+            continue;
+        }
         let y = decks.get(&index).copied().unwrap_or_else(|| {
             object_height(map, object, kind.shape, kind.id.starts_with("env_tree_"))
         });
-        let yaw = -f32::from(object.heading_deg).to_radians();
-        let buffer = groups.entry((object.kind, chunk.0, chunk.1)).or_default();
         push_transform(buffer, yaw, scale, [x, y, z]);
     }
     groups
@@ -198,6 +254,8 @@ pub struct DecoRasters {
     half: (f32, f32),
     /// Map samples covered by non-tree objects (houses, walls, hedges, hay).
     blocked: Vec<bool>,
+    /// Map samples in the seam around rocks (prompt 074), 0 or 1.
+    rock: Vec<f32>,
     /// Wood density 0..1 per `WOOD_CELL_M` cell.
     wood: Vec<f32>,
     wood_size: (usize, usize),
@@ -210,6 +268,7 @@ impl DecoRasters {
         let cell_m = map.cell_size_mm() as f32 / 1000.0;
         let half = (f(size.x) / 2.0, f(size.y) / 2.0);
         let mut blocked = vec![false; (sx * sy) as usize];
+        let mut rock = vec![0.0f32; (sx * sy) as usize];
         let wood_size = (
             (f(size.x) / WOOD_CELL_M).ceil() as usize + 1,
             (f(size.y) / WOOD_CELL_M).ceil() as usize + 1,
@@ -228,20 +287,30 @@ impl DecoRasters {
                 continue;
             }
             // Grow the shape by the clearance and mark the samples it covers.
-            let margin = Fixed::from_num(DECO_CLEARANCE_M);
-            let shape = match kind.shape {
-                Shape::Circle { radius } => Shape::Circle {
-                    radius: radius + margin,
-                },
+            // Grass grows right up to rocks; around them lies a seam of
+            // scree and tufts (prompt 074).
+            let is_rock = ROCK_KINDS.contains(&kind.id.as_str());
+            let grow = |m: Fixed| match kind.shape {
+                Shape::Circle { radius } => Shape::Circle { radius: radius + m },
                 Shape::Box {
                     half_length,
                     half_width,
                 } => Shape::Box {
-                    half_length: half_length + margin,
-                    half_width: half_width + margin,
+                    half_length: half_length + m,
+                    half_width: half_width + m,
                 },
             };
-            let extent = object.half_extent(shape);
+            // Solid rocks' boxes are 0.4 m larger than their foot.
+            let margin = if !is_rock {
+                Fixed::from_num(DECO_CLEARANCE_M)
+            } else if kind.blocks == sim::objects::Blocks::None {
+                Fixed::ZERO
+            } else {
+                -Fixed::from_num(ROCK_BOX_MARGIN_DM) / 10
+            };
+            let shape = grow(margin);
+            let seam = grow(Fixed::from_num(ROCK_SEAM_M));
+            let extent = object.half_extent(if is_rock { seam } else { shape });
             let to_index = |v: Fixed, half: f32, n: u32| {
                 ((f(v) + half) / cell_m).round().clamp(0.0, (n - 1) as f32) as u32
             };
@@ -261,6 +330,8 @@ impl DecoRasters {
                     );
                     if object.overlaps_square(shape, center, half_sample) {
                         blocked[(j * sx + i) as usize] = true;
+                    } else if is_rock && object.overlaps_square(seam, center, half_sample) {
+                        rock[(j * sx + i) as usize] = 1.0;
                     }
                 }
             }
@@ -284,6 +355,7 @@ impl DecoRasters {
             cell_m,
             half,
             blocked,
+            rock,
             wood,
             wood_size,
         }
@@ -356,6 +428,9 @@ pub struct DecoLayer<'a> {
     /// the edge of a stand does not follow the 2 m grid, and instances get
     /// shorter towards the edge ([`edge_scale`]).
     pub fray: f32,
+    /// Extra density in the seam around rocks (prompt 074), added on soft
+    /// ground (grass, sand, mud, snow, tall grass).
+    pub rock: f32,
 }
 
 /// Scale factor of an instance at the edge of a frayed layer: `coverage`
@@ -437,6 +512,9 @@ pub fn scatter(
                 density = rasters.interpolate(wx, wz, density_of);
                 edge = edge_scale(density / densest.max(1e-6));
             }
+            if layer.rock > 0.0 && SEAM_TERRAIN.contains(&map.terrain_ids()[k]) {
+                density += layer.rock * rasters.interpolate(x, z, |i| rasters.rock[i]);
+            }
             if density <= 0.0 {
                 continue;
             }
@@ -512,6 +590,7 @@ mod tests {
             sink: 0.0,
             shore: (0.0, 0.0),
             fray,
+            rock: 0.0,
         }
     }
 

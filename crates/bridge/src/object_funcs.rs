@@ -81,7 +81,9 @@ impl SimHost {
     /// to a band along the water's edge (reeds); `Vector2(0, 0)` = no limit.
     /// `fray` (meters, prompt 073) frays the edges of a stand: the density
     /// is interpolated at a point moved by noise and instances get shorter
-    /// towards the edge; 0 = the nearest sample's density.
+    /// towards the edge; 0 = the nearest sample's density. `rock` (prompt
+    /// 074) adds density in a 3 m seam around rock slabs, outcrops and
+    /// ridge pieces (on grass, sand, mud, snow and tall grass).
     #[func]
     #[allow(clippy::too_many_arguments)]
     fn scatter_deco(
@@ -99,6 +101,7 @@ impl SimHost {
         sink: f32,
         #[opt(default = Vector2::ZERO)] shore: Vector2,
         #[opt(default = 0.0)] fray: f32,
+        #[opt(default = 0.0)] rock: f32,
     ) -> Array<PackedFloat32Array> {
         let Some(game) = self.game.as_ref() else {
             return Array::new();
@@ -117,6 +120,7 @@ impl SimHost {
             sink,
             shore: (shore.x, shore.y),
             fray,
+            rock,
         };
         let water = (shore != Vector2::ZERO).then(|| {
             game.water

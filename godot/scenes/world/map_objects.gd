@@ -40,6 +40,10 @@ const OBJECT_CLASSES: Array[Dictionary] = [
 	{"prefix": "env_wall", "range": 900.0, "shadow": true},
 	{"prefix": "env_fence", "range": 500.0, "shadow": false},
 	{"prefix": "env_hay", "range": 900.0, "shadow": true},
+	# Prompt 074: ridge pieces are landmarks, outcrops seen far; slabs are flat.
+	{"prefix": "env_rock_massif", "range": 0.0, "shadow": true},
+	{"prefix": "env_rock_outcrop", "range": 1600.0, "shadow": true},
+	{"prefix": "env_rock_slab", "range": 600.0, "shadow": false},
 	{"prefix": "env_rock", "range": 700.0, "shadow": true},
 	{"prefix": "env_pole", "range": 700.0, "shadow": true},
 	{"prefix": "env_log", "range": 450.0, "shadow": true},
@@ -57,7 +61,9 @@ const DECO_CHUNK_M := 64.0
 const DECO_BUILDS_PER_FRAME := 6
 ## Decoration layers. `density` per terrain id (grass, field track, road,
 ## sand, mud, snow, shallow water, deep water, tall grass) is the chance per
-## lattice point of `spacing` meters; `wood` scales it in dense wood.
+## lattice point of `spacing` meters; `wood` scales it in dense wood;
+## `rock` (prompt 074) adds to it in the 3 m seam around rocks (scree,
+## tufts and bushes at the foot of slabs, outcrops and ridges).
 ## Layers with `tall` (prompt 073) draw the plants of `tall_grass.gd` in
 ## squares of `square` meters (finer culling), with frayed edges (`fray`,
 ## meters) and the range of the quality level.
@@ -70,11 +76,20 @@ const DECO_LAYERS: Array[Dictionary] = [
 	{"name": "bushes", "model": "env_bush", "variants": ["Hazel", "Round", "Wide"],
 		"weights": [0.4, 0.35, 0.25], "spacing": 8.0, "seed": 23,
 		"density": [0.035, 0.0, 0.0, 0.03, 0.03, 0.0, 0.0, 0.0], "wood": 7.0, "patchiness": 0.9,
-		"scale": Vector2(0.7, 1.15), "sink": 0.1, "range": 500.0, "shadow": true},
+		"scale": Vector2(0.7, 1.15), "sink": 0.1, "range": 500.0, "shadow": true, "rock": 0.18},
 	{"name": "stones", "model": "env_rock", "variants": ["Small"], "weights": [1.0],
 		"spacing": 5.0, "seed": 37,
 		"density": [0.03, 0.06, 0.0, 0.12, 0.05, 0.0, 0.15, 0.0], "wood": 1.5, "patchiness": 0.8,
 		"scale": Vector2(0.5, 1.4), "sink": 0.05, "range": 160.0, "shadow": false},
+	{"name": "rock_scree", "model": "env_rock", "variants": ["Small"], "weights": [1.0],
+		"spacing": 1.3, "seed": 79,
+		"density": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "wood": 1.0, "patchiness": 1.0,
+		"scale": Vector2(0.35, 1.3), "sink": 0.04, "range": 160.0, "shadow": false, "rock": 0.3},
+	{"name": "rock_tufts", "model": "env_grass_clump", "variants": ["GrassTall", "Grass"],
+		"weights": [0.7, 0.3], "spacing": 0.9, "seed": 83,
+		"density": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "wood": 1.0, "patchiness": 0.7,
+		"scale": Vector2(0.7, 1.25), "sink": 0.03, "range": 100.0, "shadow": false, "rock": 0.38,
+		"tint": Color(1.45, 1.4, 1.15)},
 	{"name": "reeds", "model": "env_grass_clump", "variants": ["Reeds", "GrassTall"],
 		"weights": [0.85, 0.15], "spacing": 0.8, "seed": 53,
 		"density": [0.25, 0.0, 0.0, 0.45, 0.5, 0.0, 0.6, 0.0], "wood": 1.0, "patchiness": 1.0,
@@ -104,7 +119,7 @@ const TALL_SQUARE_MARGIN := 12.0
 
 ## Winter (prompt 056): decoration layers thinned by snow, factor of
 ## their density.
-const WINTER_SPARSE := {"grass": 0.08, "reeds": 0.4, "stones": 0.4}
+const WINTER_SPARSE := {"grass": 0.08, "reeds": 0.4, "stones": 0.4, "rock_scree": 0.5, "rock_tufts": 0.1}
 ## Loose straw around haystacks (prompt 056): clumps per stack, ring
 ## around it (m), view range (m).
 const STRAW_PER_STACK := 22
@@ -629,7 +644,7 @@ func _build_deco(layer_index: int, square: Vector2i) -> void:
 	var buffers: Array = sim_host.scatter_deco(
 		x0, z0, DECO_CHUNK_M, spacing, layer.seed, density,
 		layer.wood, layer.patchiness, PackedFloat32Array(layer.weights), layer.scale, layer.sink,
-		layer.get("shore", Vector2.ZERO)
+		layer.get("shore", Vector2.ZERO), 0.0, layer.get("rock", 0.0)
 	)
 	var nodes: Array = []
 	for v in buffers.size():
