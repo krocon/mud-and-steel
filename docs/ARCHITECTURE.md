@@ -781,6 +781,7 @@ cannot be destroyed.
 | Fences / barbed wire | – | – | flattened by vehicles from 2.5 t / 8 t |
 | Mud house, barn, farmhouse (brick, stone) | 1800, 2000, 2500 (3000, 3500) | 50 % | ruin: blocks tanks only, stops projectiles up to 40 % of the height |
 | Church | 6000 | 50 % | ruin up to 30 % (the tower falls) |
+| Apartment blocks (prompt 078): block / long block, tenement | 6000 / 9000 | 50 % | ruin up to 33 / 27 / 30 % (one to two storeys) |
 
 A 7.5 cm round (562 points, the vehicle damage formula of `combat.toml`)
 fells a tree, three bring down a wall segment, a farmhouse is damaged after
@@ -3066,6 +3067,86 @@ the next step); ridge fields are sparser than in the reference pictures
 `rock-shots` can land in a wood; thumbnails show the embedded foot.
 Not part of prompt 074: cliffs as terrain, climbable rocks, ricochets and
 splinters, rolling or blasted boulders.
+
+### Apartment blocks (prompt 078)
+
+Three blocks of four to six storeys (`env_block_desert`,
+`env_block_desert_long`, `env_block_town`, models: ASSETS.md "Apartment
+blocks"; map placement: MAPS.md "Apartment block quarter"). They are
+buildings like the town house:
+
+- **Rules** (all [provisional]): `objects.toml` blocks everybody with the
+  catalog box, the ruin vehicles only; `vision.toml` solid up to the
+  catalog height (14.2-20 m); `destruction.toml` hit points scaled from
+  the town house (3 500 for about 1 700 m³) by built volume and capped at
+  9 000 (block 6 000; sixteen 7.5 cm hits for the larger two), ruins one
+  to two storeys high (27-33 %); `infantry.toml` capacity 24 / 36 / 36
+  (about three town houses: one man per 10-15 m² would put 80-150 men in
+  a block; Pavlov's House in Stalingrad, four storeys, was held by about
+  25-30), exposure like the town hall; `fire.toml` masonry (floors and
+  roof burn out). The hashed rule tables changed, so did the golden
+  hashes; with the old data the old values come out. Tests: a block
+  hides units behind it (`vision.rs`), four squads fill the long block
+  and a fifth stays out, a shelled block goes Damaged → Ruin and the
+  collapse costs occupants (`infantry.rs`). Editor groups: town and
+  desert. The AI does not occupy buildings (no change).
+- **Camera:** at the closest zoom (15 m along the view ray, 45° pitch)
+  the camera is about 11 m up, below the roofs of blocks, the church and
+  the town hall (17 m); before, it could end up inside them. The camera
+  now stays `building_clearance` (1.5 m) above the top of any standing
+  building or solid rock within 2 m of it (`SimHost.object_top_at`,
+  `GroundPick.object_top_at`, a scan of the map's boxes that block
+  everybody; not measurable in `just objects-bench`). It rises over a
+  block rather than pushing in.
+- **Units behind blocks:** health bars and the occupation bar are drawn
+  on the HUD and stay visible; selection rings had depth testing and
+  vanished behind houses: they now have a second, translucent pass
+  without depth test (`unit.tscn`), so a selected unit behind a block
+  shows its ring through it. Open (proposal): a silhouette of selected
+  units through buildings (a stencil or depth-test-off pass of the unit
+  model in a flat color); rotating the camera is no substitute.
+- **Shadows:** a 17 m block at low sun casts a shadow over a whole street
+  (60-70 m); the directional shadow reaches 2.5 × the camera distance
+  (37 m at the closest zoom, 275 m at 110 m), which covers the visible
+  ground at every zoom; `just block-shots` at low sun (`evening`) shows
+  no torn shadow edges at 15-350 m at the default level and at `low`
+  (`--quality=low`); flicker was judged on still pictures only.
+- **Fog of war, fire, snow:** the blocks use the env shader like every
+  house: fog, charring and snow on roofs, parapets, sills and balconies
+  work unchanged; flat roofs get the flat-roof patina of prompt 075.
+- **Map objects:** `map_objects.gd` draws `env_block*` with unlimited
+  range and shadows. The town hall and the warehouse fell to the default
+  class (300 m, no shadow) before; they are now listed like the houses.
+- **Observed, not changed:** occupants of a shelled building die faster
+  than `heavy_exposure_pct` alone suggests, because the tanks' machine
+  guns firing at the same point add many light rounds with
+  `exposure_pct` each (`just block-fight`: a squad of nine was gone
+  before the block was a ruin). The charring of line-up houses in
+  `just roof-shots` / `just block-shots` (instance uniform `env_char` set
+  on hand-placed nodes) shows almost no effect; fires in a match char
+  through the same uniform, not checked here. Both open.
+
+**Measurements** (Apple M1 Max, 1920 × 1080, V-Sync off, frame rate
+capped at 120): `just objects-bench test_large` before and after the
+prompt back to back: identical (near 22.6 / 22.6 FPS, middle 30.6 / 30.7,
+overview 65.9 / 65.9, village 51.3 / 51.3; the object_top_at scan does not
+show). Over the quarter (`just objects-bench city_blocks --blocks-bench
+--quality=<level>`, 11 blocks, 128 objects):
+
+| Quality | 35 m | 110 m | 350 m |
+|---|---|---|---|
+| low | 120 FPS, 190 draw calls, 0.32 M tris | 120, 322, 0.29 M | 120, 610, 0.30 M |
+| medium | 120, 273, 0.48 M | 120, 456, 0.44 M | 120, 839, 0.41 M |
+| high | 113.5 (8.8 ms), 273, 0.48 M | 107.3 (9.3 ms), 456, 0.44 M | 120, 839, 0.41 M |
+
+Per block: 2 600-4 800 triangles per damage level, 4 mesh parts with 3-6
+surfaces each.
+
+**Open:** storeys as a rule (soldiers in single storeys and on the roof,
+storey choice, fighting inside, farther sight from upper floors), damage
+per storey instead of three stages for the whole house, skyscrapers,
+factories, stations, a block quarter in the town generator (prompt 079
+builds `city_large`), wall patina beyond the window stains.
 
 ## Water (presentation only)
 

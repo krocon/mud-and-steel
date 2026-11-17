@@ -529,10 +529,66 @@ biome variants cost nothing.
   insignia or flags). Mosque and police post have the church's budget
   (5 000). Nothing modern. Compounds of these objects:
   [MAPS.md](MAPS.md#desert-village-prompt-059).
+- **Apartment blocks** (prompt 078): generator `apartment_block`
+  (`kit/blocks.py`), see "Apartment blocks" below.
 - **AO bake per variant** (prompt 059): `bake_env` bakes each variant (a
   child of the root with its parts) on its own; before, all variants
   standing at the origin shaded each other (inner variants came out
   darker). Models built before keep their old bake until rebuilt.
+
+### Apartment blocks (prompt 078)
+
+`env_block_desert` (four storeys, flat roof, one entrance),
+`env_block_desert_long` (five storeys, two entrances, balconies; the
+block of the reference pictures) and `env_block_town` (tenement: stone
+plinth, five storeys, string course, cornice, saddle roof with blind
+fire-wall gables, carriage passage), from the generator `apartment_block`
+(`kit/blocks.py`, parameters in its docstring). Street side with the
+entrances +X, courtyard side with the balconies −X; the box height is the
+highest point (stair heads of flat roofs, chimney tops of saddle roofs).
+
+- **Why a new generator:** `house` builds each wall piece as a closed box
+  and each window from four boxes (about 80 triangles), and has no
+  interiors; `desert_house` is a room-block plan with palm beams and
+  shutters. `apartment_block` subclasses the shared `House` base (parts,
+  `finish`).
+- **Facade from single faces:** a strict grid of bays per side; the outer
+  wall face is cut into piers and spandrels (one quad each, equal
+  neighbours merged, split once at 1.5 m so the per-vertex AO keeps the
+  ground shade at the foot); a window is four reveal quads, one recessed
+  sash quad and a two-quad sill, about 15 triangles. An intact wall has
+  one inner quad. Only walls cut by damage are built from closed boxes.
+- **Sash windows** are one `Glass` quad whose UV is `102 + u, v` (v = 0 at
+  the top): `env.gdshader` (`sash_window`) draws the white (some green or
+  brown) frame, mullion, transom and glazing bars anti-aliased, dark panes
+  with a faint sheen and curtains in some windows. About 12 % of the
+  windows have closed shutters (`Wood`).
+- **Stains:** `Plaster` cards 1 cm in front of the wall with UV `100 + u`
+  (dirt streak under a sill, 60 % of the windows) or `101 + u` (soot
+  plume over a burnt-out window). The card repeats the wall's plaster
+  pattern (same slot, kind and position), so only the stain shows; 2
+  triangles each (`wall_stain`).
+- **Roofs:** flat roofs are `Plaster` slabs (top face in 2.5 m cells for
+  the AO bake) and get the flat-roof patina of prompt 075; parapet with a
+  concrete coping, stair heads over the entrances, black water tanks on
+  concrete sleepers, chimneys at the parapets, metal vents, all placed by
+  the design seed. The tenement's roof is clay tile (`Roof`) with
+  chimneys on the ridge.
+- **Damage levels:** `Damaged` tears one corner open over one or two
+  storeys: the two walls get a jagged top falling towards the corner, the
+  roof slab and the upper floor slabs are bitten off (a broken slab hangs
+  into the room), the corner rooms show their floor, the partitions that
+  close them and one between them, rubble on the floor and at the foot;
+  6-10 windows are burnt out (dark room, soot plume), three blasted into
+  larger holes, three shell holes in the piers. `Ruin`: one to two
+  storeys of wall stumps whose top steps at the bays (so the window holes
+  stay readable) with notches and higher corners, the ground floor, slab
+  remnants along the walls and a leaning slab, partition stumps, rubble
+  heaps of about 15 % of the height inside and along the walls (spoil,
+  fieldstone, brick, plaster). Nothing outside the intact box.
+- **Biomes:** `EnvLook` as for every house: the desert dusts the ochre
+  plaster, forest and winter fit the tenement; snow lies on roofs,
+  parapets, copings, sills and balconies.
 
 ### Roof patina (prompt 075)
 
@@ -651,6 +707,7 @@ the frame ([ARCHITECTURE.md](ARCHITECTURE.md#map-objects-and-decoration-presenta
 | Bush / grass clump / rock | ≤ 500 / 50 / 300 | |
 | Rock slab / outcrop / ridge piece (prompt 074) | ≤ 300 / 1 500 / 3 000 (ridge far ≤ 300) | `BUDGET_OVERRIDES`, `FAR_BUDGET_OVERRIDES` in `kit/env.py` |
 | House / church, mosque, police post | ≤ 3 000 / 5 000 | per damage variant, all parts together |
+| Apartment block (prompt 078) | ≤ 6 000 | per damage variant; 100-170 windows of about 15 triangles plus roof furniture and, when damaged, interiors; built: 2 600-4 800 |
 | Bridge | ≤ 3 000 | no budget in the table above; same as a house |
 | Fence, wall, hedge segment; fortification | ≤ 2 000 | |
 | Prop, pole, mine, sign | ≤ 800 | like small parts |

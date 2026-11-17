@@ -461,6 +461,18 @@ all their living soldiers and no other player is inside. Occupants:
 A move order takes the squad out where it entered; `Stop` and attack orders
 keep it inside.
 
+**Apartment blocks** (prompt 078, [provisional]): `env_block_desert` 24,
+`env_block_desert_long` and `env_block_town` 36 soldiers, exposure 8 %
+(heavy 25 %) like the town hall. One soldier per 10-15 m² of floor would
+put 80-150 men into a block of four or five storeys; the cap is about
+three town houses (36: four rifle squads), because the rule has no
+storeys (all occupants fight from the same window spots) and a block
+held by a battalion would be a fortress; Pavlov's House in Stalingrad
+(four storeys) was held by about 25-30 men. Occupants are shown like in
+any house (the occupation bar over the building). The muzzle height
+stays capped at 4 m and the eye height is the block height + 0.5 m, so
+occupants see far over the neighbouring houses.
+
 **Building condition** comes from the destruction of prompt 020
 (`Sim::building_condition`: intact, damaged, destroyed = ruin; a placed
 `Ruin` variant is a ruin from the start):
@@ -884,7 +896,9 @@ same as before (standing 0.023 ms, marching 0.19 ms, first 10 s of fire
   cover (only where a bound ends depends on cover). Squads of one player do
   not coordinate their bounds (each squad bounds on its own).
 - Garrisoned squads have no floors or window directions; the window spots
-  ignore the building's real openings.
+  ignore the building's real openings. Apartment blocks (prompt 078) make
+  this visible: soldiers in single storeys and on the roof, storey
+  choice, fighting inside and damage per storey are open.
 - Ground picking: a click on a roof picks the ground behind it, so a
   building is found only where the clicked ground lies in its footprint.
 - Mortars and other indirect-fire teams have no weapons yet (prompt 017).

@@ -208,6 +208,7 @@ projectiles; rocks, prompt 074). These are game rules:
 | Fences, bushes, hay, props, stumps, logs, poles, medium/small rocks, trenches | none | – |
 | Rock outcrops, rock ridge pieces (prompt 074) | all | box per variant, 0.4 m larger than the model's foot; own `height_mm` per variant |
 | Rock slabs (prompt 074) | none | box per variant (the model) |
+| Apartment blocks `env_block_desert`, `env_block_desert_long`, `env_block_town` (prompt 078) | all (ruin: large) | catalog box (24 × 12, 40 × 13, 30 × 13 m) |
 
 Woods, hedgerows and walls are closed to tanks and open to infantry; tanks use
 gaps and tracks. Loading resolves every line against the rules; unknown kinds or
@@ -551,6 +552,50 @@ the yards of a row (infantry; mud walls stop vehicles, not infantry) and
 mostly to the lanes), houses 10 % damaged and 5 % ruined, 8 % of the wall
 segments broken; never on tracks, roads or water or over existing objects;
 deterministic from the editor's seed.
+
+### Apartment block quarter (prompt 078)
+
+`cli gen-blocks` (`crates/cli/src/gen_blocks.rs`, `just gen-blocks`)
+writes `data/maps/city_blocks`: 400 m, biome `desert`, flat in the
+quarter. Two east-west streets (y = ±44 m) and a north-south cross street
+(x = 0), all 16 m wide (four 4 m path cells: two tanks pass each other),
+packed earth (`dirt_track`). Eleven blocks face the streets with their
+entrance side: in the middle band long blocks and blocks back to back
+with a walled courtyard between them (mud-brick walls with 6 m gates, two
+low houses, a well, palms), a terrace of two tenements (`env_block_town`,
+gable to gable) with two blocks behind them, and an outer row on each
+side; gaps of at least 12 m between blocks lead into the courtyards.
+Starts at (0, ±165), markers `blocks` (quarter center) and `town_square`.
+A test generates it and checks with the path grid that tanks reach both
+ends of both streets and every courtyard and infantry every courtyard;
+`just map-check city_blocks` passes. No tests, AI tournaments or
+benchmarks use this map. Pictures: `just block-shots`, `just
+block-fight`.
+
+**For map generators (prompts 079, 081):** catalog ids and sizes
+(length along the heading × width, the entrance side is the model's +X):
+
+| id | Box (m) | Height | Entrances | Notes |
+|---|---|---|---|---|
+| `env_block_desert` | 24 × 12 | 14.2 m | one, +X, canopy 1.2 m | flat roof; the canopy and a 0.3 m apron are inside the box |
+| `env_block_desert_long` | 40 × 13 | 17.1 m | two, +X, canopies | balconies on −X inside the box |
+| `env_block_town` | 30 × 13 | 20.0 m | two doors and a carriage passage (middle, 3 m) on +X, the passage runs through to −X | blind gables at ±Y: stand in rows gable to gable (centers one length apart) |
+
+- **Rotation:** heading `h` turns the entrance side (+X) to the map
+  direction `(cos h, sin h)` (`MapObject::axes`, right axis): 0 = east,
+  90 = south (+y), 180 = west, 270 = north. Put blocks parallel to the
+  streets, entrance to the street, the box 1-4 m from the street edge.
+- **Variants:** `Intact`, `Damaged`, `Ruin` (the destruction stages; a
+  placed `Damaged` starts damaged, `Ruin` destroyed). Same box for all.
+- **Paths:** the box blocks everybody, so leave gaps of at least 8 m (two
+  path cells) for infantry and 12 m for tanks between blocks to reach
+  courtyards; the carriage passage of `env_block_town` is a picture, not
+  a way through (the box is closed).
+- **Occupation:** capacity 24 / 36 / 36 soldiers (`data/infantry.toml`),
+  so a block holds two to four squads.
+- **Budget:** 3 000-4 800 triangles per block and about 20 draw calls; a
+  city of 100 blocks adds about 0.4 M triangles in view (see
+  ARCHITECTURE.md, measurements).
 
 ### Landscape maps (prompt 056)
 

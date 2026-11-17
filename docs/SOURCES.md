@@ -108,6 +108,24 @@ photos, no file names of them, no text except the short notes of the data tables
   models from the kit, all patterns from the shader.
 - **Rules** (blocking, sight heights, box margins) are game rules.
 
+## Apartment blocks (prompt 078)
+
+- **Blocks** are generic types with judgement dimensions: interwar
+  concrete-frame apartment blocks with flat roofs, roof terraces and
+  balconies of Mediterranean and North African cities (Wikipedia: White
+  City (Tel Aviv), Flat roof), and a European tenement with a carriage
+  passage to its courtyard (de.wikipedia: Mietskaserne, Berliner
+  Traufhöhe: eaves at most 22 m). Storey heights from Wikipedia: Storey
+  (about 3.0 m, 3.1 m for apartments). Pavlov's House (Wikipedia) backs
+  the garrison cap (a four-storey block held by about 25-30 men). Every
+  dimension is `uncertain`; no real building is reproduced.
+- **Look:** two screenshots of a present-day desert city from another
+  strategy game served as a reference for form, size and effect only: no
+  cut-outs, textures or values from them; nothing after 1940 (no air
+  conditioners, antennas, dishes). All patterns come from the shader.
+- **Rules** (hit points, capacities, exposure, ruin heights) are game
+  rules, marked provisional.
+
 ## Rocket salvo effects (prompt 076)
 
 - **M-13 (132 mm, BM-13 "Katyusha")**: reactive powder charge burning time
