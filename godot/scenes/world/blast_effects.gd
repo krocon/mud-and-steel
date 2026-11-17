@@ -53,7 +53,9 @@ void fragment() {
 	float facing = abs(dot(normalize(NORMAL), normalize(VIEW)));
 	float rim = pow(1.0 - facing, 2.2);
 	ALBEDO = color;
-	ALPHA = clamp((0.04 + 0.75 * rim) * fade, 0.0, 1.0);
+	// Fainter since prompt 072: the reference shows the dust dome, hardly
+	// a condensation shell.
+	ALPHA = clamp((0.03 + 0.45 * rim) * fade, 0.0, 1.0);
 }
 """
 const RING_SHADER := """
@@ -67,7 +69,7 @@ void fragment() {
 	float band = smoothstep(0.72, 0.93, r) * (1.0 - smoothstep(0.93, 1.0, r));
 	float haze = 0.06 * (1.0 - smoothstep(0.0, 0.93, r));
 	ALBEDO = color;
-	ALPHA = clamp((band * 0.5 + haze) * fade, 0.0, 1.0);
+	ALPHA = clamp((band * 0.3 + haze) * fade, 0.0, 1.0);
 }
 """
 
@@ -160,22 +162,22 @@ func big_blast(at: Vector3, caliber: float) -> void:
 	var dust: Color = main.effects._ground_color(ground)
 	_dust_ring(ground, radius, dust)
 	var s := clampf(caliber / 100.0, 1.0, 2.2)
-	# A heavier fireball and a brown-grey cloud of earth and smoke on top of
-	# the ordinary impact of `effects.gd`.
+	# On top of the ordinary impact of `effects.gd` (prompt 072, after the
+	# reference video): a grey-beige dome of dust ~16 m across within 0.5 s
+	# (15 cm), short flame tongues that turn into dark smoke, and debris.
 	var fx: Node3D = main.effects
-	fx._burst("fireball", ground + Vector3.UP * 1.2 * s, Basis.IDENTITY, 0.75 * s)
-	fx._burst("explosion_smoke", ground + Vector3.UP * 1.5 * s, Basis.IDENTITY, 0.8 * s, _cloud_tint(dust))
+	fx._burst("dust_cloud", ground + Vector3.UP * 1.0 * s, Basis.IDENTITY, s, _cloud_tint(dust))
+	fx._burst("fireball", ground + Vector3.UP * 1.2 * s, Basis.IDENTITY, 0.5 * s)
 	fx._burst("debris", ground + Vector3.UP, Basis.IDENTITY, s)
 	flash(ground + Vector3.UP * 4.0, s)
 	main.effects._add_shake(ground, 0.9 * s)
 	counts["big_blast"] = counts.get("big_blast", 0) + 1
 
 
-## Grey-brown: earth thrown up with the powder smoke (the smoke ramp is
-## dark, so the tint is above 1).
+## Grey-beige: earth thrown up with the powder smoke (the reference video's
+## cloud measured #b59e88 at 0.1 s, #867466 at 1.7 s, prompt 072).
 static func _cloud_tint(dust: Color) -> Color:
-	var c := dust.lerp(Color(0.5, 0.49, 0.47), 0.6)
-	return Color(c.r * 3.2, c.g * 3.2, c.b * 3.2)
+	return dust.lerp(Color(0.62, 0.58, 0.53), 0.7)
 
 
 ## A short bright light of relative strength `s`.
