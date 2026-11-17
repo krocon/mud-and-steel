@@ -119,6 +119,9 @@ pub struct Options<'a> {
     /// Paint tall grass (prompt 073) over large parts of the meadows,
     /// for pictures and measurements; the test maps have none.
     pub tall_grass: bool,
+    /// Grown rock (prompt 074): ridges on rock walls, outcrops on slopes,
+    /// slab fields on gentle ground; the test maps have none.
+    pub rocks: bool,
 }
 
 /// Start distance of the test maps: both starts in the central meadow.
@@ -1003,6 +1006,7 @@ pub fn generate(options: &Options) -> Result<String, String> {
         &terrain,
         (f64::from(hill_x), f64::from(hill_y)),
         &bridges,
+        options.rocks,
     );
     std::fs::write(options.out.join("objects.csv"), csv).map_err(|e| e.to_string())?;
     let village = &layout.squares[0];
@@ -1100,10 +1104,11 @@ pub fn generate(options: &Options) -> Result<String, String> {
     } else {
         format!(" --relief {}", options.relief.name())
     };
-    let tall_arg = if options.tall_grass {
-        " --tall-grass"
-    } else {
-        ""
+    let tall_arg = match (options.tall_grass, options.rocks) {
+        (true, true) => " --tall-grass --rocks",
+        (true, false) => " --tall-grass",
+        (false, true) => " --rocks",
+        (false, false) => "",
     };
     let mut toml = String::new();
     let _ = writeln!(
@@ -1192,6 +1197,7 @@ mod tests {
                 out: &dir,
                 relief: super::Relief::Gentle,
                 tall_grass: tall,
+                rocks: false,
             };
             generate(&options).unwrap();
             let read = |f: &str| std::fs::read(dir.join(f)).unwrap();
@@ -1228,6 +1234,7 @@ mod tests {
             out: &dir,
             relief: super::Relief::Gentle,
             tall_grass: false,
+            rocks: false,
         };
         generate(&options).unwrap();
         let read = |f: &str| std::fs::read(dir.join(f)).unwrap();
@@ -1252,6 +1259,7 @@ mod tests {
             out: &dir,
             relief: super::Relief::Mountains,
             tall_grass: false,
+            rocks: false,
         };
         generate(&options).unwrap();
         let read = |f: &str| std::fs::read(dir.join(f)).unwrap();

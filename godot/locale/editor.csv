@@ -34,6 +34,9 @@ EDITOR_PRESET_PALMS,Palms,Palmen
 EDITOR_PRESET_BUSHES,Bushes,Büsche
 EDITOR_PRESET_ROCKS,Rocks,Felsen
 EDITOR_PRESET_HAY,Hay,Heu
+EDITOR_PRESET_ROCK_SLABS,Rock slabs,Felsplatten
+EDITOR_PRESET_ROCK_OUTCROPS,Rock outcrops,Felsgruppen
+EDITOR_PRESET_ROCK_RIDGE,Rock ridge,Felsrücken
 EDITOR_GROUP_TREES,Trees and plants,Bäume und Pflanzen
 EDITOR_GROUP_VILLAGE,Village buildings,Dorfgebäude
 EDITOR_GROUP_TOWN,Town buildings,Stadtgebäude

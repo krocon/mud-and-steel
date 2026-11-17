@@ -7,7 +7,8 @@
 //! old state for undo first.
 
 use crate::{EditMap, HEIGHT_LIMIT_MM, PlacedObject, SampleRect};
-use sim::Rng;
+use sim::objects::{Blocks, MapObject, Shape};
+use sim::{Fixed, Rng, Vec2};
 
 /// Full weight of the falloff.
 pub const WEIGHT_ONE: i64 = 1024;
@@ -33,6 +34,9 @@ pub const ROAD_SIDE_PML: u32 = 500;
 const NO_SCATTER: [u8; 4] = [1, 2, SHALLOW_WATER, DEEP_WATER];
 /// Attempts per object to find a point inside the circle.
 const SCATTER_TRIES: u32 = 8;
+/// Blocking boxes whose center lies this much beyond the brush reach can
+/// still cover a point in it (half the longest rock ridge piece).
+const BOX_REACH_MM: i64 = 15_000;
 
 /// A circle on the map.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -317,10 +321,68 @@ impl EditMap {
             .ok_or_else(|| format!("unknown object '{kind}' variant '{variant}'"))
     }
 
+    /// The placed object as a simulation object with its box shape, if it
+    /// has a box and blocks anybody (houses, walls, rocks).
+    fn blocking_box(&self, o: &PlacedObject) -> Option<(MapObject, Shape)> {
+        let kind = self.rules.find(&o.kind, &o.variant)?;
+        if kind.blocks == Blocks::None || !matches!(kind.shape, Shape::Box { .. }) {
+            return None;
+        }
+        Some((
+            MapObject {
+                kind: 0,
+                position: Vec2::from_millimeters(o.x_mm, o.y_mm),
+                heading_deg: o.heading_deg % 360,
+            },
+            kind.shape,
+        ))
+    }
+
+    /// Whether the whole box of a box-shaped object lies on the map and off
+    /// tracks, roads and water (circles: only their center counts).
+    fn footprint_free(&self, o: &PlacedObject) -> bool {
+        let Some(kind) = self.rules.find(&o.kind, &o.variant) else {
+            return false;
+        };
+        let Shape::Box {
+            half_length,
+            half_width,
+        } = kind.shape
+        else {
+            return true;
+        };
+        let object = MapObject {
+            kind: 0,
+            position: Vec2::from_millimeters(o.x_mm, o.y_mm),
+            heading_deg: o.heading_deg % 360,
+        };
+        let (fw, rt) = object.axes();
+        // A grid of points over the box, about one per terrain sample.
+        let step = Fixed::from_num(self.cell_mm) / 1000;
+        let count = |half: Fixed| (half * 2 / step).ceil().to_num::<i32>().max(1);
+        let (nl, nw) = (count(half_length), count(half_width));
+        (0..=nl).all(|i| {
+            (0..=nw).all(|j| {
+                let l = half_length * Fixed::from_num(2 * i - nl) / Fixed::from_num(nl);
+                let w = half_width * Fixed::from_num(2 * j - nw) / Fixed::from_num(nw);
+                let px = object.position.x + fw.x * l + rt.x * w;
+                let py = object.position.y + fw.y * l + rt.y * w;
+                let (x, y) = (
+                    (px * 1000).round().to_num::<i32>(),
+                    (py * 1000).round().to_num::<i32>(),
+                );
+                self.contains(x, y) && !NO_SCATTER.contains(&self.terrain_near(x, y))
+            })
+        })
+    }
+
     /// Scatters objects into the circle: `per_hectare` on average, picked
     /// evenly from `kinds` (`(catalog id, variant)`), random headings, at
     /// least `min_spacing_mm` from every other object, never on tracks,
-    /// roads or water. Returns how many were placed.
+    /// roads or water. Box-shaped objects (rocks, prompt 074) keep their
+    /// whole footprint off tracks, roads and water, and nothing is placed
+    /// inside the box of a blocking object (trees between the blocks of a
+    /// ridge, not in them). Returns how many were placed.
     pub fn scatter(
         &mut self,
         brush: Brush,
@@ -358,6 +420,17 @@ impl EditMap {
             .map(|o| (o.x_mm, o.y_mm))
             .collect();
         let radius = i32::try_from(brush.radius_mm).unwrap_or(i32::MAX);
+        // Blocking boxes near the brush (prompt 074), plus those placed now.
+        let box_reach = reach + BOX_REACH_MM;
+        let mut boxes: Vec<(MapObject, Shape)> = self
+            .objects
+            .iter()
+            .filter(|o| {
+                (i64::from(o.x_mm) - i64::from(brush.x_mm)).abs() <= box_reach
+                    && (i64::from(o.y_mm) - i64::from(brush.y_mm)).abs() <= box_reach
+            })
+            .filter_map(|o| self.blocking_box(o))
+            .collect();
         let mut placed = Vec::new();
         for _ in 0..count {
             let point = (0..SCATTER_TRIES).find_map(|_| {
@@ -372,6 +445,20 @@ impl EditMap {
             if !self.contains(x, y) || NO_SCATTER.contains(&self.terrain_near(x, y)) {
                 continue;
             }
+            let candidate = PlacedObject {
+                kind: kinds[pick].0.clone(),
+                variant: kinds[pick].1.clone(),
+                x_mm: x,
+                y_mm: y,
+                heading_deg: heading,
+            };
+            let at = Vec2::from_millimeters(x, y);
+            let inside = boxes
+                .iter()
+                .any(|(o, shape)| o.overlaps_square(*shape, at, Fixed::from_num(1) / 1000));
+            if inside || !self.footprint_free(&candidate) {
+                continue;
+            }
             let free = near.iter().all(|&(ox, oy)| {
                 let dx = i64::from(ox) - i64::from(x);
                 let dy = i64::from(oy) - i64::from(y);
@@ -381,13 +468,10 @@ impl EditMap {
                 continue;
             }
             near.push((x, y));
-            placed.push(PlacedObject {
-                kind: kinds[pick].0.clone(),
-                variant: kinds[pick].1.clone(),
-                x_mm: x,
-                y_mm: y,
-                heading_deg: heading,
-            });
+            if let Some(b) = self.blocking_box(&candidate) {
+                boxes.push(b);
+            }
+            placed.push(candidate);
         }
         let n = placed.len();
         if n > 0 {

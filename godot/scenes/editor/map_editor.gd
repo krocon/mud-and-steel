@@ -230,7 +230,12 @@ func stroke_to(point: Vector3, delta: float) -> void:
 					rect = editor.river(point.x, point.z, radius, _stroke_level, depth)
 				"scatter":
 					var preset: Dictionary = EditorData.SCATTER_PRESETS[scatter_preset]
-					editor.scatter(point.x, point.z, radius, PackedStringArray(preset.kinds), density, preset.spacing)
+					editor.scatter(point.x, point.z, radius, PackedStringArray(preset.kinds),
+						density * preset.get("density", 1.0), preset.spacing)
+					if preset.has("then"):
+						var then: Dictionary = preset.then
+						editor.scatter(point.x, point.z, radius, PackedStringArray(then.kinds),
+							density * then.get("density", 1.0), then.spacing)
 				"erase":
 					editor.erase_objects(point.x, point.z, radius, "")
 	if rect.has_area():

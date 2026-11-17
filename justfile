@@ -309,6 +309,11 @@ test-maps:
 gen-mountains:
     just gen-map mountain_pass 2000 60 1200 --players 4 --relief mountains
 
+# Generate the rock map (prompt 074) into data/maps/rock_hills/: dry mountains with rock ridges, outcrops and slab fields
+[group('maps')]
+gen-rock-hills:
+    just gen-map rock_hills 1200 74 700 --biome desert --relief mountains --rocks
+
 # Generate the small-town map (prompt 041) into data/maps/town_small/
 [group('maps')]
 gen-town:
@@ -469,15 +474,20 @@ ground-motion *args: build
 
 # --- Map objects (prompt 013) ---------------------------------------------------------
 
-# Measure frame rate, draw calls and instances over the densest wood and a village (opens a window)
+# Measure frame rate, draw calls and instances over the densest wood and a village (opens a window); `just objects-bench rock_hills --rocks-bench`: over a rock ridge field (prompt 074)
 [group('terrain')]
-objects-bench map="test_large": build
-    {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- --objects-bench --map={{ map }}
+objects-bench map="test_large" *args: build
+    {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- --objects-bench --map={{ map }} {{ args }}
 
-# Record fixed views of woods, village, meadow and hedgerow as PNG frames into a folder
+# Record fixed views of woods, village, meadow and hedgerow as PNG frames into a folder; `just objects-shots <dir> rock_hills --rocks`: the rock selection in three biomes (prompt 074)
 [group('terrain')]
-objects-shots dir map="test_large": build
-    {{ GODOT }} --path godot --always-on-top --fixed-fps 30 --write-movie "{{ dir }}/f.png" res://scenes/main.tscn -- --objects-shots --map={{ map }}
+objects-shots dir map="test_large" *args: build
+    {{ GODOT }} --path godot --always-on-top --fixed-fps 30 --write-movie "{{ dir }}/f.png" res://scenes/main.tscn -- --objects-shots --map={{ map }} {{ args }}
+
+# Save the rock views of prompt 074 as PNGs into a folder: slabs, outcrops and ridge pieces at 15-350 m, a ridge on a steep slope, views like the reference pictures, in three biomes (opens a window); e.g. --daytime=evening, --biomes=desert
+[group('terrain')]
+rock-shots dir="build/rock-shots" map="rock_hills" *args: build
+    {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- --objects-bench --rocks --out="$(cd "{{ invocation_directory() }}" && mkdir -p "{{ dir }}" && cd "{{ dir }}" && pwd)" --map={{ map }} {{ args }}
 
 # --- Effects (prompt 019) ------------------------------------------------------------
 

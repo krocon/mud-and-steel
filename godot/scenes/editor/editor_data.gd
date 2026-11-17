@@ -39,6 +39,10 @@ const START_TOOLS: Array[String] = ["start0", "start1", "start2", "start3", "sta
 const START_TEAMS: Array[String] = ["EDITOR_START_NO_TEAM", "EDITOR_START_TEAM_1", "EDITOR_START_TEAM_2", "EDITOR_START_TEAM_3"]
 ## Object brush presets: kinds ("id:variant") and spacing in meters. The
 ## names are ids (`map_editor.gd` scatter_preset); SCATTER_LABELS shows them.
+## Optional (prompt 074): `density` scales the panel's density for the
+## kinds; `then` is a second scatter in the same dab (kinds, spacing,
+## density), e.g. trees between the pieces of a rock ridge (the brush
+## places nothing inside a rock).
 const SCATTER_PRESETS: Dictionary[String, Dictionary] = {
 	"Deciduous wood": {"kinds": ["env_tree_deciduous:Oak", "env_tree_deciduous:Beech", "env_tree_deciduous:OakYoung"], "spacing": 5.0},  # l10n-ignore
 	"Conifer wood": {"kinds": ["env_tree_conifer:Spruce", "env_tree_conifer:Pine", "env_tree_conifer:SpruceYoung"], "spacing": 4.5},  # l10n-ignore
@@ -47,6 +51,19 @@ const SCATTER_PRESETS: Dictionary[String, Dictionary] = {
 	"Bushes": {"kinds": ["env_bush:Hazel", "env_bush:Round", "env_bush:Wide"], "spacing": 3.0},  # l10n-ignore
 	"Rocks": {"kinds": ["env_rock:Medium", "env_rock:Large"], "spacing": 4.0},  # l10n-ignore
 	"Hay": {"kinds": ["env_hay_bale:Rick", "env_hay_bale:Round"], "spacing": 6.0},  # l10n-ignore
+	"Rock slabs": {"kinds": ["env_rock_slab:Field", "env_rock_slab:Long", "env_rock_slab:Broken",  # l10n-ignore
+		"env_rock_slab:Small", "env_rock_slab:Wide", "env_rock_slab:Strip", "env_rock_slab:Small"],  # l10n-ignore
+		"spacing": 7.0, "density": 0.6},
+	"Rock outcrops": {"kinds": ["env_rock_outcrop:Group", "env_rock_outcrop:Block", "env_rock_outcrop:Split",  # l10n-ignore
+		"env_rock_outcrop:Pair", "env_rock_outcrop:Leaning", "env_rock_outcrop:Layered"],  # l10n-ignore
+		"spacing": 14.0, "density": 0.25,
+		"then": {"kinds": ["env_bush:Hazel", "env_bush:Round", "env_rock:Medium", "env_rock:Large"],  # l10n-ignore
+			"spacing": 4.0, "density": 0.6}},
+	"Rock ridge": {"kinds": ["env_rock_massif:Ridge", "env_rock_massif:Long", "env_rock_massif:Short",  # l10n-ignore
+		"env_rock_massif:High", "env_rock_massif:Double"],  # l10n-ignore
+		"spacing": 9.0, "density": 0.6,
+		"then": {"kinds": ["env_tree_conifer:Pine", "env_tree_conifer:Spruce", "env_tree_conifer:SpruceYoung",  # l10n-ignore
+			"env_bush:Hazel", "env_bush:Wide"], "spacing": 4.5, "density": 1.0}},  # l10n-ignore
 }
 ## Labels (translation keys) of the object brush presets, by id.
 const SCATTER_LABELS: Dictionary[String, String] = {
@@ -57,6 +74,9 @@ const SCATTER_LABELS: Dictionary[String, String] = {
 	"Bushes": "EDITOR_PRESET_BUSHES",  # l10n-ignore
 	"Rocks": "EDITOR_PRESET_ROCKS",  # l10n-ignore
 	"Hay": "EDITOR_PRESET_HAY",  # l10n-ignore
+	"Rock slabs": "EDITOR_PRESET_ROCK_SLABS",  # l10n-ignore
+	"Rock outcrops": "EDITOR_PRESET_ROCK_OUTCROPS",  # l10n-ignore
+	"Rock ridge": "EDITOR_PRESET_ROCK_RIDGE",  # l10n-ignore
 }
 ## Groups of the "Place object" list (prompt 041): group name (translation
 ## key) -> catalog id prefixes or ids, in this order; kinds no group names
