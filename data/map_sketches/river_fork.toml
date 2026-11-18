@@ -1,0 +1,352 @@
+# Map sketch of `river_fork` (prompt 088): two rivers meet in the west (one
+# from the north, one from the east) and flow on to the south; in the angle
+# between them and south of them a shot-up village of loose houses, ruins and
+# broken walls on trampled sand with many branching tracks; a railway across
+# the south with a railway bridge; woods all around with winding tracks.
+# Supply points inside the battle area, starts outside it. Lines and areas in
+# meters (x east, y south, origin in the map center); generated with
+# `just gen-sketch river_fork` (crates/cli/src/gen_sketch.rs, docs/MAPS.md).
+name = "river_fork"
+size_m = [1600, 1600]
+biome = "forest"
+weather = "clear"
+seed = 8803
+water_flow_deg = 180
+
+[[start]]
+player = 2
+team = 0
+position_m = [-592, 560]
+
+[[start]]
+player = 1
+team = 1
+position_m = [-48, -688]
+
+[[start]]
+player = 0
+team = 0
+position_m = [608, 208]
+
+[[start]]
+player = 3
+team = 1
+position_m = [-720, -64]
+
+[[supply]]
+name = "supply_north_village"
+position_m = [96, -320]
+
+[[supply]]
+name = "supply_west_bridges"
+position_m = [-160, -464]
+
+[[supply]]
+name = "supply_east_bridge"
+position_m = [352, -208]
+
+[[supply]]
+name = "supply_south_village"
+position_m = [32, 240]
+
+[[supply]]
+name = "supply_railway"
+position_m = [-240, 416]
+
+[[supply]]
+name = "supply_east_track"
+position_m = [336, 96]
+
+# North river, down to the fork.
+[[river]]
+width_m = 74
+points_m = [[-291, -832], [-304, -720], [-312, -640], [-288, -560], [-277, -480], [-275, -400], [-278, -320], [-285, -240], [-291, -160], [-294, -80], [-307, -8], [-333, 35], [-358, 64]]
+
+# East river, from the east edge to the fork.
+[[river]]
+width_m = 66
+points_m = [[832, -256], [720, -240], [640, -224], [560, -205], [480, -171], [403, -114], [358, -114], [320, -77], [275, -35], [237, -35], [192, 0], [128, 32], [86, 56], [42, 56], [0, 69], [-80, 77], [-154, 80], [-198, 80], [-240, 80], [-304, 72], [-358, 64]]
+
+# The river after the fork, to the south edge.
+[[river]]
+width_m = 86
+points_m = [[-358, 64], [-392, 96], [-424, 144], [-445, 192], [-454, 256], [-451, 320], [-442, 400], [-440, 480], [-438, 560], [-422, 640], [-400, 720], [-390, 832]]
+
+[[crossing]]
+kind = "stone"
+position_m = [-285, -512]
+axis = "we"
+
+[[crossing]]
+kind = "wood"
+position_m = [-278, -334]
+axis = "we"
+
+[[crossing]]
+kind = "stone"
+position_m = [-282, -272]
+axis = "we"
+
+[[crossing]]
+kind = "wood"
+position_m = [-176, 80]
+axis = "ns"
+
+[[crossing]]
+kind = "stone"
+position_m = [64, 56]
+axis = "ns"
+
+[[crossing]]
+kind = "wood"
+position_m = [256, -35]
+axis = "ns"
+
+[[crossing]]
+kind = "stone"
+position_m = [381, -114]
+axis = "ns"
+
+[[crossing]]
+kind = "wood"
+position_m = [-451, 301]
+axis = "we"
+
+# Railway bridge.
+[[crossing]]
+kind = "stone"
+position_m = [-450, 205]
+axis = "we"
+
+[[rail]]
+points_m = [[-832, 139], [-640, 147], [-560, 168], [-509, 205], [-390, 205], [-320, 248], [-240, 275], [-160, 301], [0, 339], [160, 373], [320, 400], [480, 429], [640, 467], [832, 518]]
+
+# West of the north river: a track along the bank, tracks into the wood.
+[[road]]
+class = "track"
+width_m = 8
+points_m = [[-416, -816], [-421, -720], [-440, -640], [-458, -560], [-464, -480], [-464, -384], [-461, -240], [-458, -128], [-461, -32], [-472, 48], [-488, 96], [-560, 147], [-640, 173], [-720, 179], [-816, 168]]
+
+[[road]]
+class = "track"
+width_m = 8
+points_m = [[-816, -512], [-752, -480], [-704, -400], [-640, -344], [-560, -320], [-461, -320], [-384, -333], [-336, -334]]
+
+[[road]]
+class = "track"
+width_m = 8
+points_m = [[-816, -160], [-720, -144], [-640, -168], [-560, -200], [-461, -240], [-400, -264], [-336, -272]]
+
+[[road]]
+class = "track"
+width_m = 8
+points_m = [[-461, -504], [-336, -512]]
+
+[[road]]
+class = "track"
+width_m = 8
+points_m = [[-720, -64], [-720, -144]]
+
+# North of the village and the north-east wood.
+[[road]]
+class = "track"
+width_m = 8
+points_m = [[403, -816], [435, -704], [419, -616], [376, -560], [304, -515], [224, -496], [96, -504], [0, -509], [-128, -502], [-230, -509]]
+
+[[road]]
+class = "track"
+width_m = 8
+points_m = [[816, -632], [688, -600], [592, -560], [528, -504], [488, -432], [472, -336], [456, -248], [416, -192], [381, -160]]
+
+[[road]]
+class = "track"
+width_m = 8
+points_m = [[-48, -688], [-72, -592], [-80, -504]]
+
+# North village.
+[[road]]
+class = "track"
+width_m = 8
+points_m = [[-80, -504], [-80, -384], [-96, -272], [-128, -160], [-160, -64], [-176, 24]]
+
+[[road]]
+class = "track"
+width_m = 8
+points_m = [[-227, -272], [-160, -272], [-48, -288], [96, -320], [224, -352], [320, -392], [432, -416]]
+
+[[road]]
+class = "track"
+width_m = 8
+points_m = [[64, -504], [96, -384], [96, -240], [83, -128], [64, -8]]
+
+[[road]]
+class = "track"
+width_m = 8
+points_m = [[224, -352], [256, -240], [259, -128], [256, -88]]
+
+[[road]]
+class = "track"
+width_m = 8
+points_m = [[-230, -334], [-160, -344], [-80, -384]]
+
+# South village.
+[[road]]
+class = "track"
+width_m = 8
+points_m = [[64, 115], [88, 240], [112, 320], [160, 416], [192, 512], [179, 576], [160, 640], [112, 720], [64, 816]]
+
+[[road]]
+class = "track"
+width_m = 8
+points_m = [[-176, 138], [-160, 240], [-112, 352], [-48, 480], [-35, 560], [-61, 640], [-88, 720], [-109, 816]]
+
+[[road]]
+class = "track"
+width_m = 8
+points_m = [[-397, 301], [-272, 344], [-160, 384], [-48, 432]]
+
+[[road]]
+class = "track"
+width_m = 8
+points_m = [[-160, 240], [0, 224], [160, 192], [320, 160], [448, 96], [560, 48], [672, 0], [816, -51]]
+
+[[road]]
+class = "track"
+width_m = 8
+points_m = [[259, 19], [288, 96], [320, 160], [384, 304], [528, 304], [608, 288], [672, 240], [720, 160], [768, 80], [816, 32]]
+
+[[road]]
+class = "track"
+width_m = 8
+points_m = [[-336, 480], [-160, 509], [0, 520], [160, 528], [320, 509], [464, 480]]
+
+[[road]]
+class = "track"
+width_m = 8
+points_m = [[608, 208], [648, 264]]
+
+# South-west: from the start over the road bridge and along the bank.
+[[road]]
+class = "track"
+width_m = 8
+points_m = [[-592, 560], [-544, 416], [-506, 301]]
+
+[[paint]]
+terrain = "sand"
+noise_m = 28
+cover = 0.45
+polygon_m = [[-256, -552], [472, -552], [472, -192], [320, -96], [160, -8], [0, 32], [-248, 40]]
+
+[[paint]]
+terrain = "sand"
+noise_m = 28
+cover = 0.45
+polygon_m = [[-368, 120], [0, 112], [160, 40], [320, -32], [472, -96], [472, 552], [-368, 552]]
+
+[[paint]]
+terrain = "sand"
+noise_m = 22
+cover = 0.35
+polygon_m = [[-472, -552], [-336, -552], [-336, 32], [-472, 32]]
+
+[[village]]
+kinds = ["env_house_farm", "env_house_farm_brick", "env_house_stone", "env_barn", "env_house_log", "env_house_farm"]
+count = 46
+damaged = 0.75
+walls = 14
+polygon_m = [[-248, -544], [464, -544], [464, -200], [320, -112], [160, -24], [0, 19], [-240, 24]]
+
+[[village]]
+kinds = ["env_house_farm", "env_house_farm_brick", "env_house_stone", "env_barn", "env_house_log", "env_house_farm"]
+count = 36
+damaged = 0.75
+walls = 12
+polygon_m = [[-360, 128], [0, 125], [160, 56], [320, -13], [464, -72], [464, 536], [-360, 536]]
+
+[[village]]
+kinds = ["env_house_farm", "env_barn", "env_house_log"]
+count = 7
+damaged = 0.6
+walls = 3
+polygon_m = [[-456, -552], [-344, -552], [-344, 16], [-456, 16]]
+
+[[village]]
+kinds = ["env_house_farm", "env_barn"]
+count = 3
+damaged = 0.2
+polygon_m = [[-768, 160], [-608, 160], [-608, 288], [-768, 288]]
+
+# Woods: north-west, north-east, south; small stands in and by the village.
+[[wood]]
+kind = "mixed"
+polygon_m = [[-816, -816], [-472, -816], [-472, -48], [-560, -96], [-704, -109], [-816, -120]]
+
+[[wood]]
+kind = "mixed"
+polygon_m = [[176, -816], [816, -816], [816, -264], [640, -237], [499, -195], [480, -320], [467, -557], [320, -560], [192, -568], [160, -704]]
+
+[[wood]]
+kind = "mixed"
+polygon_m = [[432, -61], [528, -152], [816, -205], [816, -120], [640, -48], [528, -24]]
+
+[[wood]]
+kind = "mixed"
+polygon_m = [[-381, 544], [160, 554], [179, 480], [320, 464], [480, 458], [640, 480], [816, 528], [816, 816], [-371, 816]]
+
+[[wood]]
+kind = "mixed"
+polygon_m = [[-435, -301], [-333, -301], [-326, -160], [-397, -144], [-438, -192]]
+
+[[wood]]
+kind = "mixed"
+polygon_m = [[-384, 304], [-317, 304], [-320, 416], [-381, 408]]
+
+[[wood]]
+kind = "mixed"
+polygon_m = [[-256, 320], [-163, 320], [-160, 448], [-248, 445]]
+
+[[wood]]
+kind = "mixed"
+polygon_m = [[352, 144], [432, 144], [435, 256], [355, 256]]
+
+[[wood]]
+kind = "mixed"
+polygon_m = [[488, 144], [560, 144], [560, 208], [488, 208]]
+
+[[wood]]
+kind = "mixed"
+polygon_m = [[160, 320], [320, 328], [320, 387], [160, 384]]
+
+[[wood]]
+kind = "mixed"
+polygon_m = [[80, 384], [160, 387], [160, 464], [80, 464]]
+
+[[scatter]]
+kind = "mixed"
+spacing_m = 30
+polygon_m = [[-816, -96], [-456, -96], [-456, 816], [-816, 816]]
+
+[[scatter]]
+kind = "mixed"
+spacing_m = 26
+polygon_m = [[-272, -816], [176, -816], [176, -560], [-272, -560]]
+
+[[scatter]]
+kind = "mixed"
+spacing_m = 30
+polygon_m = [[480, -32], [816, -32], [816, 464], [480, 464]]
+
+[[hill]]
+center_m = [-640, -560]
+radius_m = 260
+height_m = 6
+
+[[hill]]
+center_m = [640, -512]
+radius_m = 240
+height_m = 5
+
+[[hill]]
+center_m = [240, 688]
+radius_m = 260
+height_m = 4

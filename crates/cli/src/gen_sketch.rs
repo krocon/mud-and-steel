@@ -44,7 +44,7 @@ pub(crate) const FIELD_PLOUGHED: u8 = 11;
 /// Folder of the sketches.
 pub const SKETCH_DIR: &str = "data/map_sketches";
 /// The maps made from sketches (`just gen-sketch` without a name).
-pub const ALL: [&str; 2] = ["river_fields", "river_fields_winter"];
+pub const ALL: [&str; 3] = ["river_fields", "river_fields_winter", "river_fork"];
 
 const START_CLEAR_M: f64 = 60.0;
 /// River: banks cut below the ground over a valley beside the water.
@@ -62,6 +62,9 @@ const RAMP_GRADE: f64 = 0.12;
 const EMBANKMENT_SIDE_GRADE: f64 = 0.5;
 /// Fields keep a strip of grass inside their outline (m).
 const FIELD_EDGE_M: f64 = 2.5;
+/// Railway: half width of the ballast bed and of the embankment (m).
+const RAIL_BED_M: f64 = 3.5;
+const RAIL_SHOULDER_M: f64 = 12.0;
 
 // --- The sketch -----------------------------------------------------------
 
@@ -121,6 +124,52 @@ struct Sketch {
     building: Vec<Building>,
     #[serde(default)]
     hill: Vec<Hill>,
+    #[serde(default)]
+    rail: Vec<Rail>,
+    #[serde(default)]
+    paint: Vec<Paint>,
+    #[serde(default)]
+    village: Vec<Village>,
+}
+
+/// A railway line (stage 2): a 7 m ballast bed (terrain like a field
+/// track, open to everybody) on a low embankment with telegraph poles
+/// beside it. Only presentation: no rails yet, no trains.
+#[derive(Deserialize, Clone)]
+#[serde(deny_unknown_fields)]
+struct Rail {
+    points_m: Vec<P>,
+    #[serde(default)]
+    embankment_m: Option<f64>,
+}
+
+/// Ground painted with a terrain type of `data/terrain.toml` (e.g. `sand`,
+/// `mud`, `dirt_track`) inside a polygon; with `noise_m` only in blotches
+/// covering about `cover` of it (trampled sand between ruins).
+#[derive(Deserialize, Clone)]
+#[serde(deny_unknown_fields)]
+struct Paint {
+    terrain: String,
+    polygon_m: Vec<P>,
+    #[serde(default)]
+    noise_m: Option<f64>,
+    #[serde(default)]
+    cover: Option<f64>,
+}
+
+/// Loose houses inside a polygon: `count` buildings of `kinds`, turned
+/// along the nearest way, a share `damaged` of them damaged or ruined, and
+/// `walls` short runs of broken walls between them.
+#[derive(Deserialize, Clone)]
+#[serde(deny_unknown_fields)]
+struct Village {
+    polygon_m: Vec<P>,
+    kinds: Vec<String>,
+    count: u32,
+    #[serde(default)]
+    damaged: f64,
+    #[serde(default)]
+    walls: u32,
 }
 
 #[derive(Deserialize, Clone)]
@@ -364,6 +413,8 @@ impl CrossingKind {
 struct Plan<'a> {
     sketch: &'a Sketch,
     ways: Vec<Way>,
+    /// Painted terrain: id, blotch noise and its threshold.
+    paints: Vec<(u8, Option<crate::gen_land::Noise>, f64)>,
     crossings: Vec<Crossing>,
     flats: Vec<((f64, f64), f64, f64)>,
     ground: crate::gen_land::Noise,
@@ -415,6 +466,28 @@ impl Plan<'_> {
                 };
             }
         }
+        for (paint, (id, blotch, threshold)) in s.paint.iter().zip(&self.paints) {
+            if !inside(p, &paint.polygon_m) {
+                continue;
+            }
+            let painted = blotch.as_ref().is_none_or(|n| {
+                // Blotches: two octaves, denser along ways, thinning out
+                // towards the outline (no straight edges).
+                let way = self
+                    .ways
+                    .iter()
+                    .map(|w| w.distance(x, y) - w.half)
+                    .fold(f64::INFINITY, f64::min);
+                let value = 0.7 * n.at(x, y)
+                    + 0.3 * n.at(x * 2.7 + 500.0, y * 2.7 - 300.0)
+                    + 0.22 * (1.0 - smoothstep(0.0, 18.0, way))
+                    - 0.3 * (1.0 - smoothstep(0.0, 45.0, edge_distance(p, &paint.polygon_m)));
+                value > *threshold
+            });
+            if painted {
+                terrain = *id;
+            }
+        }
         for way in &self.ways {
             if way.distance(x, y) < way.half {
                 terrain = way.id;
@@ -428,6 +501,16 @@ impl Plan<'_> {
         }
         if s.square.iter().any(|a| inside(p, &a.polygon_m)) {
             terrain = ROAD;
+        }
+        for rail in &s.rail {
+            let d = polyline_distance(p, &rail.points_m);
+            if d < RAIL_SHOULDER_M {
+                h += rail.embankment_m.unwrap_or(0.8)
+                    * (1.0 - smoothstep(RAIL_BED_M, RAIL_SHOULDER_M, d));
+                if d < RAIL_BED_M {
+                    terrain = DIRT_TRACK;
+                }
+            }
         }
         // Rivers.
         for river in &s.river {
@@ -733,9 +816,21 @@ pub fn generate(options: &Options) -> Result<String, String> {
                 .map(|h| (h.center_m[0], h.center_m[1], h.radius_m, h.height_m)),
         )
         .collect();
+    let mut paints = Vec::new();
+    for (n, paint) in sketch.paint.iter().enumerate() {
+        let id = terrain_rules
+            .types
+            .iter()
+            .position(|t| t.name == paint.terrain)
+            .ok_or_else(|| format!("unknown terrain {:?}", paint.terrain))?;
+        let blotch = paint.noise_m.map(|m| noise(seed, 80 + n as u64, m));
+        // Noise values lie in about 0..1: the threshold that leaves `cover`.
+        paints.push((id as u8, blotch, 1.0 - paint.cover.unwrap_or(0.5)));
+    }
     let mut plan = Plan {
         sketch: &sketch,
         ways,
+        paints,
         crossings: crossings.clone(),
         flats: Vec::new(),
         ground: noise(seed, 1, 160.0),
@@ -868,6 +963,13 @@ pub fn generate(options: &Options) -> Result<String, String> {
             let variant = variant_of(&mut objects, r.damaged);
             objects.place(kind, variant, p, heading, 0.4);
         }
+    }
+    for v in &sketch.village {
+        village(&mut objects, v, &plan.ways);
+    }
+    for r in &sketch.rail {
+        let points: Vec<(f64, f64)> = r.points_m.iter().map(|p| (p[0], p[1])).collect();
+        objects.poles(&Way::new(&points, RAIL_BED_M, DIRT_TRACK), 7.0);
     }
     let field_at = |x: f64, y: f64, terrain: &[u8]| {
         let i = ((x + half.0) / CELL_M).round().clamp(0.0, (sx - 1) as f64) as usize;
@@ -1017,6 +1119,81 @@ pub fn generate(options: &Options) -> Result<String, String> {
         "wrote {}: {sx} x {sy} samples, heights {low:.2} .. {high:.2} m, {summary}",
         options.out.display(),
     ))
+}
+
+/// Loose houses of a village (see `Village`).
+fn village(objects: &mut Objects, v: &Village, ways: &[Way]) {
+    let area = bounds(&v.polygon_m);
+    let kinds: Vec<&str> = v.kinds.iter().map(String::as_str).collect();
+    let mut tries = 0;
+    let mut placed = 0;
+    while placed < v.count && tries < v.count * 40 {
+        tries += 1;
+        let p = (
+            objects.random.range(area.x0, area.x1),
+            objects.random.range(area.y0, area.y1),
+        );
+        let kind = objects.pick(&kinds);
+        let variant = variant_of(objects, v.damaged);
+        let turn = if objects.random.unit() < 0.5 { 0 } else { 180 };
+        let heading = way_heading(ways, p, 40.0).map_or_else(
+            || (objects.random.unit() * 4.0) as u16 % 4 * 90,
+            |h| (h + turn) % 360,
+        );
+        if inside(p, &v.polygon_m) && objects.place(kind, variant, p, heading, 3.0) {
+            placed += 1;
+        }
+    }
+    // Broken walls: short runs of a few segments.
+    let mut tries = 0;
+    let mut runs = 0;
+    while runs < v.walls && tries < v.walls * 40 {
+        tries += 1;
+        let p = (
+            objects.random.range(area.x0, area.x1),
+            objects.random.range(area.y0, area.y1),
+        );
+        let along_x = objects.random.unit() < 0.5;
+        let segments = 2 + (objects.random.unit() * 4.0) as u32;
+        if !inside(p, &v.polygon_m) {
+            continue;
+        }
+        runs += 1;
+        for k in 0..segments {
+            let s = f64::from(k) * 2.4;
+            let q = if along_x {
+                (p.0 + s, p.1)
+            } else {
+                (p.0, p.1 + s)
+            };
+            let variant = if objects.random.unit() < 0.6 {
+                "Broken"
+            } else {
+                "Low"
+            };
+            objects.place(
+                "env_wall_mud",
+                variant,
+                q,
+                if along_x { 90 } else { 0 },
+                -0.05,
+            );
+        }
+    }
+}
+
+/// Heading of the way segment nearest to `p` within `reach` m.
+fn way_heading(ways: &[Way], p: (f64, f64), reach: f64) -> Option<u16> {
+    let mut best: Option<(f64, u16)> = None;
+    for way in ways {
+        for s in way.points.windows(2) {
+            let d = segment_distance(p, [s[0].0, s[0].1], [s[1].0, s[1].1]);
+            if d < reach && best.is_none_or(|(b, _)| d < b) {
+                best = Some((d, heading_of(s[1].0 - s[0].0, s[1].1 - s[0].1)));
+            }
+        }
+    }
+    best.map(|(_, h)| h)
 }
 
 fn variant_of(objects: &mut Objects, damaged: f64) -> &'static str {

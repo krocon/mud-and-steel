@@ -955,6 +955,9 @@ origin in the map center):
 | `[[field]]` | `grain`, `green` or `ploughed` polygons, with a 2.5 m strip of grass inside the outline |
 | `[[row]]`, `[[ring]]`, `[[farm]]`, `[[building]]` | rows of huts or barracks across a line, rings of huts on an ellipse, farmsteads (`gen_land`), single buildings (catalog kinds and variants) |
 | `[[hill]]` | bumps added to the ground noise |
+| `[[rail]]` | a railway line: a 7 m ballast bed (terrain `dirt_track`, open to everybody) on an embankment (`embankment_m`, default 0.8 m) with telegraph poles beside it; only presentation, no rails or trains yet. A railway bridge is a `stone` crossing on the line |
+| `[[paint]]` | any terrain of `terrain.toml` inside a polygon; with `noise_m` and `cover` only in blotches (two octaves of noise, denser along ways, thinning out towards the outline): trampled sand between ruins |
+| `[[village]]` | `count` loose buildings of `kinds` inside a polygon, turned along the nearest way within 40 m, a share `damaged` damaged or ruined, and `walls` short runs of broken mud-brick walls |
 
 The generator shares the object placer, woods and farmsteads with
 `gen_land` (its `Objects` now also takes maps that are not square;
@@ -966,6 +969,7 @@ sketch map twice and compares the files.
 |---|---|---|---|---|---|
 | `river_fields` | broad river west–east with an island, main road north–south over a stone bridge, timber bridges east and west, a ford in the west; barracks rows and a paved square in the north, hut camps in rings, a rondel square with houses and many fields in the south; woods in the north, east and south | 1.6 × 1.6 km | forest, clear | team 0 south (players 0, 2), team 1 north (1, 3) | stone bridge, timber bridge east, north farm, paved square, rondel, camp |
 | `river_fields_winter` | the same sketch (`base`) | 1.6 × 1.6 km | winter, snow | as above | as above |
+| `river_fork` | a river from the north and one from the east meet in the west and flow on south; a shot-up village of loose houses (three quarters damaged or ruined), broken walls and trampled sand in the angle and south of it, many branching tracks; nine bridges (three over the north river, four over the east river, a road and a railway bridge over the river after the fork); a railway across the south; woods north-west, north-east and south | 1.6 × 1.6 km | forest, clear | team 0 east (player 0) and south-west (2), team 1 north (1) and west (3); 1v1 meets over the east river in the village | north village, west bridges, east bridge, south village, railway, east track |
 
 ## Map editor (prompt 028)
 

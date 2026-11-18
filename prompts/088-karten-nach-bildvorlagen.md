@@ -285,6 +285,11 @@ Als offene Punkte notieren, nicht umsetzen:
 | Reihenrichtung | Berechnet die Bridge je zusammenhängendem Schlag (Hauptachse der Flächenmomente), nicht in der Karte gespeichert | Keine Formatänderung, im Editor gemalte Felder bekommen sie automatisch. |
 | Aussehen der Felder | Nur Shader (gefilterte Reihen, Fahrgassen, Furchen mit Normale), keine Halme | Halme nach der Technik des hohen Grases sind eine eigene Stufe (offen). |
 | Starts im Wald | Zufahrtswege in der Skizze ergänzt | Sonst war ein Start für Fahrzeuge abgeschnitten (`map-reach`). |
+| Nachzeichnen ab Stufe 2 | Vorlage auf 1000 „Spurpixel“ verkleinert, mit Gitter alle 25 px (ImageMagick, Skript im Scratchpad), Skizze in Pixeln geschrieben und mit einem Skript in Meter umgerechnet | Schneller und genauer als Schätzen am ganzen Bild; nichts davon im Repo. |
+| Bahnlinie | `[[rail]]`: Schotterbett als Feldweg-Gelände (7 m), flacher Damm, Telegrafenmasten daneben; Bahnbrücke = Steinbrücke auf der Linie; keine Schienen | Ein Gleismodell wäre ein neuer Baustein mit Quellen, Baukasten und Vorschaubild; das Schotterbett mit Masten liest sich von oben als Bahn. Schienen bleiben offen. |
+| Ruinendorf | `[[village]]` (lose Häuser entlang des nächsten Wegs, Anteil beschädigt/Ruine, Lehmmauerreste) und `[[paint]]` mit Rauschflecken für den zertretenen Sand | Die Vorlage zeigt kein Straßenraster, sondern verstreute Häuser auf Sandflecken. |
+| Schräge Übergänge | Fluss in der Skizze an jedem Übergang 30 m quer zur Brückenachse gelegt | Brücken des Spiels sind achsparallel; schräg gemessen war das verengte Wasser zu breit für die Holzbrücke. |
+| Ausgleich `river_fork` | Spieler 0 im Osten, Spieler 1 im Norden: das 1v1 trifft sich im Dorf über den Ostfluss | Mit dem Südweststart als Spieler 0 lief das 1v1 nur über die Westbrücken. Die Siegverteilung der KI folgt auf allen Karten (auch `test_small`) der Fraktion: mit `de,su` gewinnt Spieler 0, mit `su,de` Spieler 1; gemessen wird deshalb beides. |
 
 ## Stand je Karte
 
@@ -292,7 +297,7 @@ Als offene Punkte notieren, nicht umsetzen:
 |---|---|---|---|---|---|
 | `river_fields` | ja | ja | `map-check`, `map-reach` (Ausgleich Fahrzeuge 12 %, Infanterie 3 %), Editor-Selftest | objects-bench: Wald 30 FPS (wie `test_large`), Mitte 66, Übersicht 82; KI Schlacht 16 Spiele: Süd 7, Nord 5, 4 Zeit | Getreidehalme nah, Steg, Fluss an Brücken stark verengt |
 | `river_fields_winter` | ja (`base`) | ja | `map-check`, `map-reach` (12 % / 5 %) | KI Basis wie alle Karten Zeit | wie oben |
-| `river_fork` | – | – | – | – | Bahnlinie, Bahnbrücke, Ruinendorf, Flussmündung |
+| `river_fork` | ja | ja | `map-check`, `map-reach` (Ausgleich Fahrzeuge 10 %, Infanterie 7 %) | objects-bench: Wald 25 FPS, Mitte 31, Übersicht 59, Dorf 112; KI Schlacht je 16 Spiele: `de,su` 13:1 (2 Zeit), `su,de` 0:15 (1 Zeit), also fraktions-, nicht kartenbedingt | Schienen (nur Schotterbett), Fluss an Brücken stark verengt |
 | `island_chain` | – | – | – | – | Inseln, Meer, Furt |
 | `desert_lagoon` | – | – | – | – | Lagune, Dämme, Wüstenort, sechs Starts |
 | `winter_town` | – | – | – | – | Kleinstadt mit mehreren hundert Häusern: Straßenbebauung im Generator fehlt |
