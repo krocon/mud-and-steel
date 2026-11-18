@@ -44,13 +44,14 @@ pub(crate) const FIELD_PLOUGHED: u8 = 11;
 /// Folder of the sketches.
 pub const SKETCH_DIR: &str = "data/map_sketches";
 /// The maps made from sketches (`just gen-sketch` without a name).
-pub const ALL: [&str; 6] = [
+pub const ALL: [&str; 7] = [
     "river_fields",
     "river_fields_winter",
     "river_fork",
     "island_chain",
     "desert_lagoon",
     "winter_town",
+    "river_town",
 ];
 
 const START_CLEAR_M: f64 = 60.0;
@@ -636,7 +637,12 @@ impl Plan<'_> {
         }
         // Lakes.
         for lake in &s.lake {
-            if inside(p, &lake.polygon_m) {
+            // Islands of the sketch also stand in lakes (stage 3).
+            let island = s
+                .island
+                .iter()
+                .any(|i| dist(p, (i.center_m[0], i.center_m[1])) < i.radius_m);
+            if inside(p, &lake.polygon_m) && !island {
                 let e = edge_distance(p, &lake.polygon_m);
                 let deep = lake.kind != "shallow" && e > 8.0;
                 h = h.min(self.natural(x, y))
@@ -859,6 +865,16 @@ fn stands(kind: &str, biome: &str) -> Vec<(&'static str, &'static [&'static str]
     match (kind, biome) {
         // Palm and bush groves (stage 2): bushes show the groves from above.
         ("grove", _) => vec![PALM, PALM, BUSH, PALM, BUSH],
+        // Rock heights (stage 3): outcrops and boulders between conifers.
+        ("rock", _) => vec![
+            (
+                "env_rock_outcrop",
+                &["Group", "Block", "Split", "Pair", "Leaning", "Layered"],
+            ),
+            CONIFER,
+            ("env_rock", &["Medium", "Small", "Large"]),
+            CONIFER,
+        ],
         (_, "desert") => vec![PALM],
         ("conifer", _) => vec![CONIFER],
         ("birch", _) => vec![BIRCH],
@@ -1099,8 +1115,17 @@ pub fn generate(options: &Options) -> Result<String, String> {
             );
             let heading = heading_of(-s * r.radius_m[0], c * r.radius_m[1]);
             let kind = &r.kinds[k as usize % r.kinds.len()];
-            let variant = variant_of(&mut objects, r.damaged);
-            objects.place(kind, variant, p, heading, 0.4);
+            // Walls, fences and hedges (a walled height, stage 3) are
+            // segments that touch.
+            let segment = ["env_wall", "env_fence", "env_hedge"]
+                .iter()
+                .any(|w| kind.starts_with(w));
+            let (variant, margin) = if segment {
+                ("Segment", -0.05)
+            } else {
+                (variant_of(&mut objects, r.damaged), 0.4)
+            };
+            objects.place(kind, variant, p, heading, margin);
         }
     }
     for t in &sketch.town {

@@ -296,6 +296,9 @@ Als offene Punkte notieren, nicht umsetzen:
 | Wüstenhaine | Waldart `grove`: Palmen mit Büschen | Palmen allein lesen sich nicht als Hain. Von ganz oben (3 km) blendet die Darstellung Palmen und Büsche aus; im Vergleichsbild fehlen sie deshalb, aus Spielhöhe sind sie da. |
 | Straßenbebauung | `[[town]]`: Häuser beiderseits jeder Straße im Ortsvieleck, Längsseite zur Straße, dazu ein `[[village]]` über dasselbe Vieleck für die Hinterhöfe | Die Vorlage zeigt gewachsene Bebauung an Straßen, keine Blockraster wie `city_large`. |
 | Ausgleich `winter_town` | Spieler 0 im Nordwesten, ein Versorgungspunkt an der Ostkreuzung statt am Westufer | Mit dem Weststart als Spieler 0 gewann der Westen mit beiden Fraktionsreihenfolgen; `map-reach` lag bei 25 %. |
+| Maßstab `river_town` | 3 × 2 km, 1 Spurpixel = 3 m (Vorlage auf 1000 × 667 verkleinert) | Häuser der Vorlage 15–20 m; die Brücken der Vorlage sind ohnehin Sinnbilder. |
+| Burg | Kirche auf einer 14-m-Höhe mit Steinmauerring (`[[ring]]` aus `env_wall_stone`) | Abschnitt 5: Stellvertreter statt Schloss. |
+| Turnierlänge 3-km-Karten | `--max-ticks 12000` (10 min) | Bei 6000 Ticks erreichten die Armeen einander auf 3 km oft nicht. |
 | Ausgleich `river_fork` | Spieler 0 im Osten, Spieler 1 im Norden: das 1v1 trifft sich im Dorf über den Ostfluss | Mit dem Südweststart als Spieler 0 lief das 1v1 nur über die Westbrücken. Die Siegverteilung der KI folgt auf allen Karten (auch `test_small`) der Fraktion: mit `de,su` gewinnt Spieler 0, mit `su,de` Spieler 1; gemessen wird deshalb beides. |
 
 ## Stand je Karte
@@ -308,7 +311,7 @@ Als offene Punkte notieren, nicht umsetzen:
 | `island_chain` | ja | ja | `map-check`, `map-reach` (4 % / 5 %) | objects-bench: Wald 25 FPS, Mitte 31, Übersicht 68, Dorf 92; KI Schlacht je 16: `de,su` 4:4 (8 Zeit), `su,de` 9:3 (4 Zeit) | Patt an den Brücken (viele Zeitüberschreitungen), einzelne Panzer bleiben auf Brückendecks stehen (siehe offene Punkte) |
 | `desert_lagoon` | ja | ja | `map-check`, `map-reach` (Teamsummen < 1 % / < 1 %) | objects-bench: nah 108 FPS, Mitte 75, Übersicht 136, Dorf 89; KI Schlacht je 16: `de,su` 10:4 (2 Zeit), `su,de` 5:10 (1 Zeit), 3v3 8 Spiele 5:2 (1 Zeit); keine hängenden Einheiten | Haine von ganz oben unsichtbar (Sichtweite der Objekte) |
 | `winter_town` | ja | ja | `map-check`, `map-reach` (7 % / 13 %) | 770 Gebäude; objects-bench: Wald 24 FPS, Mitte 28, Übersicht 59, Ort 106; KI Schlacht je 16: `de,su` 4:4 (8 Zeit), `su,de` 1:6 (9 Zeit) | viele Zeitüberschreitungen im Ortskampf; Brückendeck-Hänger wie oben |
-| `river_town` | – | – | – | – | Maskenwerkzeug, Seen, Felshöhen, Burg-Stellvertreter |
+| `river_town` | ja | ja | `map-check`, `map-reach` (5,5 % / 5,8 %) | 879 Gebäude, 44 000 Bäume; objects-bench: Wald 23 FPS, Mitte 23, Übersicht 55, Ort 98; KI Schlacht je 16 (12 000 Ticks): `de,su` 5:8 (3 Zeit), `su,de` 10:3 (3 Zeit) | Wald und Mitte unter 60 FPS (Schatten, wie auf allen Waldkarten); kein Maskenwerkzeug nötig |
 | `valley_fields` | – | – | – | – | große Feldflur, Bahnhof, Stromschnellen |
 | `river_valley` | – | – | – | – | Kiesgrube, Bahn, Hafen, Türme |
 | `river_city` | – | – | – | – | Blockviertel aus `gen_city`, acht Brücken |

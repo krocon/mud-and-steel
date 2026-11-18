@@ -88,6 +88,7 @@ MAP_RIVER_FORK,River fork,Flussgabel
 MAP_ISLAND_CHAIN,Island chain,Inselkette
 MAP_DESERT_LAGOON,Desert lagoon,Wüstenlagune
 MAP_WINTER_TOWN,Winter town,Winterstadt
+MAP_RIVER_TOWN,River town,Flussstadt
 MATCH_SLOT_OPEN,Open,Offen
 MATCH_SLOT_CLOSED,Closed,Geschlossen
 MATCH_SLOT_COMPUTER,Computer: %s,Computer: %s
