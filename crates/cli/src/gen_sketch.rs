@@ -44,7 +44,7 @@ pub(crate) const FIELD_PLOUGHED: u8 = 11;
 /// Folder of the sketches.
 pub const SKETCH_DIR: &str = "data/map_sketches";
 /// The maps made from sketches (`just gen-sketch` without a name).
-pub const ALL: [&str; 9] = [
+pub const ALL: [&str; 10] = [
     "river_fields",
     "river_fields_winter",
     "river_fork",
@@ -54,6 +54,7 @@ pub const ALL: [&str; 9] = [
     "river_town",
     "valley_fields",
     "river_valley",
+    "river_city",
 ];
 
 const START_CLEAR_M: f64 = 60.0;

@@ -348,6 +348,10 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"map": "river_valley", "scene": "survey", "seed": 1, "start_s": 0.5, "seconds": 1.0, "stills": [0.5],
 		"camera": [{"t": 0.0, "at": Vector2(0, 0), "dist": 3800.0, "yaw": 0.0, "pitch": 89.0, "haze": 8000.0}],
 	},
+	"survey_river_city": {
+		"map": "river_city", "scene": "survey", "seed": 1, "start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, 0), "dist": 4400.0, "yaw": 0.0, "pitch": 89.0, "haze": 9000.0}],
+	},
 	"survey_fields_near": {
 		"map": "river_fields", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
 		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],

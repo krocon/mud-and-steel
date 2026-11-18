@@ -91,6 +91,7 @@ MAP_WINTER_TOWN,Winter town,Winterstadt
 MAP_RIVER_TOWN,River town,Flussstadt
 MAP_VALLEY_FIELDS,Valley fields,Talfelder
 MAP_RIVER_VALLEY,River valley,Flusstal
+MAP_RIVER_CITY,River city,Flussgroßstadt
 MATCH_SLOT_OPEN,Open,Offen
 MATCH_SLOT_CLOSED,Closed,Geschlossen
 MATCH_SLOT_COMPUTER,Computer: %s,Computer: %s
