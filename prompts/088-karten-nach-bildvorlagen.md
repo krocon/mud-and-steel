@@ -300,6 +300,7 @@ Als offene Punkte notieren, nicht umsetzen:
 | Burg | Kirche auf einer 14-m-Höhe mit Steinmauerring (`[[ring]]` aus `env_wall_stone`) | Abschnitt 5: Stellvertreter statt Schloss. |
 | Turnierlänge 3-km-Karten | `--max-ticks 12000` (10 min) | Bei 6000 Ticks erreichten die Armeen einander auf 3 km oft nicht. |
 | Feldflur `valley_fields` | `[[patchwork]]`: Schläge im gedrehten Raster mit 6-m-Rainen, Art zufällig, 15 % Wiese; dazu die einzeln gezeichneten Schläge | Die Vorlage ist ein dichter Flickenteppich; jeden Schlag einzeln abzutippen lohnt nicht. |
+| Ausschnitt `river_valley` | 720 × 400 Pixel der auf 1000 Pixel verkleinerten Vorlage (5 m je Pixel) um den Fluss; Türme als Steinhaus im Mauerring; Fluss 80 m statt bis 150 m | Größenvorgabe 3,6 × 2 km; ein Turmmodell lohnt erst, wenn die Höhen leer wirken. |
 | Ausgleich `river_fork` | Spieler 0 im Osten, Spieler 1 im Norden: das 1v1 trifft sich im Dorf über den Ostfluss | Mit dem Südweststart als Spieler 0 lief das 1v1 nur über die Westbrücken. Die Siegverteilung der KI folgt auf allen Karten (auch `test_small`) der Fraktion: mit `de,su` gewinnt Spieler 0, mit `su,de` Spieler 1; gemessen wird deshalb beides. |
 
 ## Stand je Karte
@@ -314,7 +315,7 @@ Als offene Punkte notieren, nicht umsetzen:
 | `winter_town` | ja | ja | `map-check`, `map-reach` (7 % / 13 %) | 770 Gebäude; objects-bench: Wald 24 FPS, Mitte 28, Übersicht 59, Ort 106; KI Schlacht je 16: `de,su` 4:4 (8 Zeit), `su,de` 1:6 (9 Zeit) | viele Zeitüberschreitungen im Ortskampf; Brückendeck-Hänger wie oben |
 | `river_town` | ja | ja | `map-check`, `map-reach` (5,5 % / 5,8 %) | 879 Gebäude, 44 000 Bäume; objects-bench: Wald 23 FPS, Mitte 23, Übersicht 55, Ort 98; KI Schlacht je 16 (12 000 Ticks): `de,su` 5:8 (3 Zeit), `su,de` 10:3 (3 Zeit) | Wald und Mitte unter 60 FPS (Schatten, wie auf allen Waldkarten); kein Maskenwerkzeug nötig |
 | `valley_fields` | ja | ja | `map-check`, `map-reach` (1,6 % / 12,6 %) | 931 Gebäude; objects-bench: Wald 28 FPS, Mitte 32, Übersicht 84, Ort 96; KI Schlacht je 16 (12 000 Ticks): `de,su` 13:2 (1 Zeit), `su,de` 2:8 (6 Zeit); keine hängenden Einheiten | Stromschnellen nur als Felsen am Ufer; Bahnhof nur als Schotterbett mit Hallen |
-| `river_valley` | – | – | – | – | Kiesgrube, Bahn, Hafen, Türme |
+| `river_valley` | ja | ja | `map-check`, `map-reach` (10 % / 7 %) | 699 Gebäude, 57 000 Bäume; objects-bench: Wald 28 FPS, Mitte 25, Übersicht 41, Ort 104; KI Schlacht je 16 (12 000 Ticks): `de,su` 2:3 (11 Zeit), `su,de` 5:10 (1 Zeit) | Übersicht unter 60 FPS; viele Zeitüberschreitungen (KI hält die Stadt); Türme nur als Stellvertreter |
 | `river_city` | – | – | – | – | Blockviertel aus `gen_city`, acht Brücken |
 
 ## Offene Punkte aus Stufe 2
