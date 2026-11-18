@@ -134,6 +134,19 @@ impl SimHost {
             .collect()
     }
 
+    /// Fragmentation radius in meters of a shell of `caliber_mm` (`[blast]`
+    /// in `data/indirect.toml`); 0 without a match.
+    #[func]
+    fn shell_blast_radius(&self, caliber_mm: f32) -> f32 {
+        let x10 = (caliber_mm.abs() * 10.0).round();
+        if !x10.is_finite() || x10 > u32::MAX as f32 {
+            return 0.0;
+        }
+        self.game
+            .as_ref()
+            .map_or(0.0, |g| fixed_to_f32(g.sim.shell_blast_radius(x10 as u32)))
+    }
+
     /// Smoke clouds: `Vector4(x, ground height, z, radius)` per cloud.
     #[func]
     fn smoke_clouds(&self) -> PackedVector4Array {

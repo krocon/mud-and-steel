@@ -124,6 +124,7 @@ func _run() -> void:
 	await WaterSelfTest.new().run(self)
 	await _fog_test()
 	await _combat_test()
+	await _marker_test()
 	await InfantrySelfTest.new().run(self)
 	await DestructionSelfTest.new().run(self)
 	await FireSelfTest.new().run(self)
@@ -143,7 +144,7 @@ func _run() -> void:
 	await ExperienceSelfTest.new().run(self)
 	await CareSelfTest.new().run(self)
 	var ok := _errors.is_empty()
-	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, fog, combat, infantry, destruction, fire, craters, sound, music, water, hud, air, transport, supply, formations, crossings, replay, works, positions, experience and care ok" if ok else " ".join(_errors)
+	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, fog, combat, impact markers, infantry, destruction, fire, craters, sound, music, water, hud, air, transport, supply, formations, crossings, replay, works, positions, experience and care ok" if ok else " ".join(_errors)
 	print("self-test %s: %s" % ["PASSED" if ok else "FAILED", message])
 	# Started from the menu flow test (prompt 027): it continues the flow.
 	var flow: Node = MatchSetup.flow_test
@@ -706,6 +707,41 @@ func _combat_test() -> void:
 
 
 # --- 6. Replay ------------------------------------------------------------
+
+
+## Impact markers of the own shells (prompt 084): hidden until the last
+## MARKER_LEAD_SECONDS, then fading in; one ring for a salvo on one point;
+## fading out after the impact instead of vanishing; none when disabled.
+func _marker_test() -> void:
+	var view: Node = main.artillery_view
+	var lead: float = view.MARKER_LEAD_SECONDS
+	_check(view.marker_alpha(lead + 0.5) == 0.0, "impact marker shown %.1f s before the impact" % (lead + 0.5))
+	_check(view.marker_alpha(lead + 0.01) == 0.0, "impact marker shown before its window")
+	var early: float = view.marker_alpha(lead - 0.1)
+	_check(early > 0.0 and early < 1.0, "impact marker does not fade in (%.2f)" % early)
+	_check(view.marker_alpha(0.0) == 1.0, "impact marker not fully shown at the impact")
+	var at := Vector3(100, 0, 100)
+	var salvo: Array[Array] = [[at, 8.0, false, 1.0], [at + Vector3(2, 0, 1), 8.0, false, 0.5],
+			[at + Vector3(30, 0, 0), 8.0, false, 1.0], [at, 8.0, true, 1.0]]
+	var merged: Array = view.merge_markers(salvo)
+	_check(merged.size() == 3, "salvo on one point drawn as %d markers instead of 3" % merged.size())
+	var shown: Dictionary[int, Array] = {1: [at, 8.0, false, 1.0]}
+	view._draw_markers([shown[1]] as Array[Array], shown, 0.0)
+	_check(view.markers_drawn == 1, "impact marker not drawn")
+	var none: Dictionary[int, Array] = {}
+	view._draw_markers([] as Array[Array], none, 0.1)
+	_check(view.markers_drawn == 1, "impact marker vanished at the impact instead of fading out")
+	for i in 20:
+		view._draw_markers([] as Array[Array], none, 0.1)
+	_check(view.markers_drawn == 0, "impact marker did not fade out")
+	view.markers_enabled = false
+	view._draw_markers([[at, 8.0, false, 1.0]] as Array[Array], shown, 0.0)
+	view._draw_markers([] as Array[Array], none, 0.0)
+	_check(view.markers_drawn == 0, "impact marker drawn while disabled")
+	view.markers_enabled = true
+	var radius: float = view._marker_radius(105.0)
+	_check(radius > 1.0 and radius <= 10.5, "impact marker radius %.1f m for 10.5 cm" % radius)
+	await get_tree().process_frame
 
 
 func _replay_test() -> void:

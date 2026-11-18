@@ -508,6 +508,13 @@ impl Sim {
         }
     }
 
+    /// Fragmentation radius in meters of a shell of `caliber_mm_x10`
+    /// (`[blast]` in `data/indirect.toml`); the impact markers (prompt 084)
+    /// size themselves by it.
+    pub fn shell_blast_radius(&self, caliber_mm_x10: u32) -> Fixed {
+        self.artillery.blast_radius(caliber_mm_x10)
+    }
+
     /// Minimum and maximum range (game m) and smoke ammunition of a unit's
     /// indirect weapon (`None`: it has none).
     pub fn indirect_weapon(&self, id: UnitId) -> Option<(Fixed, Fixed, bool)> {

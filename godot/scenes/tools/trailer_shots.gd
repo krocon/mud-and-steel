@@ -226,6 +226,30 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		],
 	},
 	# --- Maps from above, for planning shots ----------------------------------
+	# Impact markers of the own shells (prompt 084): the launchers' salvo
+	# into the wood's edge seen with the player's interface, by day and in
+	# the evening, at a middle and a far zoom level. Only when named, like
+	# every `survey_` shot: `just trailer-shots --stills --only=...`.
+	"survey_markers_day_mid": {
+		"map": "ambush_meadow", "scene": "ambush", "seed": 14, "daytime": "day", "game_camera": true, "hud": true,
+		"start_s": 68.0, "seconds": 3.0, "stills": [0.5, 1.6, 2.8],
+		"camera": [{"t": 0.0, "at": Vector2(0, -105), "dist": 110.0, "yaw": 0.0}],
+	},
+	"survey_markers_day_far": {
+		"map": "ambush_meadow", "scene": "ambush", "seed": 14, "daytime": "day", "game_camera": true, "hud": true,
+		"start_s": 68.0, "seconds": 3.0, "stills": [0.5, 1.6, 2.8],
+		"camera": [{"t": 0.0, "at": Vector2(0, -105), "dist": 260.0, "yaw": 0.0}],
+	},
+	"survey_markers_dusk_mid": {
+		"map": "ambush_meadow", "scene": "ambush", "seed": 14, "daytime": "evening", "game_camera": true, "hud": true,
+		"start_s": 68.0, "seconds": 3.0, "stills": [0.5, 1.6, 2.8],
+		"camera": [{"t": 0.0, "at": Vector2(0, -105), "dist": 110.0, "yaw": 0.0}],
+	},
+	"survey_markers_dusk_far": {
+		"map": "ambush_meadow", "scene": "ambush", "seed": 14, "daytime": "evening", "game_camera": true, "hud": true,
+		"start_s": 68.0, "seconds": 3.0, "stills": [0.5, 1.6, 2.8],
+		"camera": [{"t": 0.0, "at": Vector2(0, -105), "dist": 260.0, "yaw": 0.0}],
+	},
 	"survey_farms": {
 		"map": "farms", "scene": "survey", "seed": 1, "start_s": 0.5, "seconds": 1.0, "stills": [0.5],
 		"camera": [{"t": 0.0, "at": Vector2(0, 0), "dist": 1902.0, "yaw": 0.0, "pitch": 89.0, "haze": 4000.0}],
@@ -636,8 +660,7 @@ func _ready() -> void:
 		if main.battle_sound != null:
 			main.battle_sound.visible_at = main.effects.visible_at
 		# The rings where the own shells will land are interface too.
-		main.artillery_view._marker_material.albedo_color.a = 0.0
-		main.artillery_view._marker_smoke_material.albedo_color.a = 0.0
+		main.artillery_view.markers_enabled = false
 		# The relation tint is part of the interface, not of the world.
 		main._enemy_material.albedo_color.a = 0.0
 		main._ally_material.albedo_color.a = 0.0

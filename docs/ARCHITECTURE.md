@@ -1221,12 +1221,28 @@ state hash.
 
 `Snapshot::shells` (position, velocity, impact point, ticks left, owner,
 caliber, smoke) and `Snapshot::smoke` (center, radius, age, ticks left).
-`SimHost.barrage`, `unit_indirect`, `shell_*`, `smoke_*`; `take_combat_events`
-adds `type = "smoke"`. `world/artillery_view.gd` draws shells, an impact ring
-for the local player's shells and clouds of billboard puffs that drift with
-the simulation and fade out; its signal `shell_incoming` is meant for the
-whistle (prompt 029). Muzzle flashes and explosions come from the usual
-`shot` and `hit` events. Keys: G barrage, T smoke (`selection.gd`).
+`SimHost.barrage`, `unit_indirect`, `shell_*`, `shell_blast_radius`, `smoke_*`;
+`take_combat_events` adds `type = "smoke"`. `world/artillery_view.gd` draws
+shells, an impact ring for the local player's shells and clouds of billboard
+puffs that drift with the simulation and fade out; its signal `shell_incoming`
+is meant for the whistle (prompt 029). Muzzle flashes and explosions come from
+the usual `shot` and `hit` events. Keys: G barrage, T smoke (`selection.gd`).
+
+Impact rings (prompt 084) are a hint seen in passing, not a signal: a ring
+appears only in the last 1.5 s of the flight (with the whistle), fades in
+over 0.5 s and out over 0.4 s after the impact, without pulsing. It is a
+0.25 m line at 30–35 % opacity, lit and without emission (it dims at dusk
+and night), pale khaki in the standard palette and the own color of the
+palettes for color vision deficiencies (`relation_colors.gd`). Its radius is
+0.4 × the fragmentation radius of `[blast]` (`SimHost.shell_blast_radius`,
+the core where the hit chance is still 60 % of point blank; 8.4 m at
+10.5 cm), never more than the old caliber × 0.1. Rings of the same kind
+closer than 0.6 radius are drawn as one, so a salvo on one point is one
+ring and not a carpet. Enemy shells get none (sight and whistle suffice).
+`markers_enabled = false` hides them for pictures without interface
+(`trailer_shots.gd`); `survey_markers_*` shots show them
+(`build/marker_shots/`). The area ring of a strike (`strike_view.gd`) stays:
+one thin ring per strike that also warns the target side.
 
 ### Decisions
 
