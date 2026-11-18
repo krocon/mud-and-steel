@@ -84,6 +84,12 @@ const LAYER_COUNT := 10
 @export_range(0.0, 2.0) var wind_strength := 0.25
 @export var wind_direction := Vector2(1.0, 0.3)
 @export_range(0.0, 4.0) var wind_speed := 1.2
+## Trees in the wind (prompt 086), factors on top of `wind_strength` (which
+## the weather scales): bend of the whole tree (at 1 and wind 0.25 the tip
+## of a 20 m tree swings 0.2-0.7 m, in gusts up to 1.2 m) and flutter of
+## the leaves (0: bare winter trees only swing their branches).
+@export_range(0.0, 4.0) var tree_sway := 1.0
+@export_range(0.0, 2.0) var leaf_flutter := 1.0
 ## Falling snow, 0..1 (particles around the camera focus).
 @export_range(0.0, 1.0) var snowfall := 0.0
 

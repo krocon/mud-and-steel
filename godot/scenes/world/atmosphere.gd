@@ -186,6 +186,8 @@ func _apply() -> void:
 			mat.set_shader_parameter("wind_strength", preset.wind_strength)
 			mat.set_shader_parameter("wind_direction", preset.wind_direction)
 			mat.set_shader_parameter("wind_speed", preset.wind_speed)
+			mat.set_shader_parameter("tree_sway", preset.tree_sway)
+			mat.set_shader_parameter("leaf_flutter", preset.leaf_flutter)
 	if _terrain and _terrain.has_method("apply_biome"):
 		_terrain.apply_biome(preset)
 	_build_snow(int(q.snow_particles) if preset.snowfall > 0.0 else 0)

@@ -437,6 +437,13 @@ crater-bench map="test_large" craters="100" per_tick="5" range_m="200":
 salvo-bench map="test_large" *args:
     cargo run -q --release -p cli -- salvo-bench --map data/maps/{{ map }} {{ args }}
 
+# Trees in the wind (prompt 086; needs a window): two stills one second apart of a wood's edge, mid and near zoom, and their difference into build/wind_shots/<prefix>_*; extra args go to the shots (e.g. --off=wind is not supported there: compare prefixes instead)
+[group('godot')]
+wind-shots prefix="after": build
+    rm -rf build/trailer/stills
+    bash tools/trailer-shots.sh --stills --only=survey_wind_mid,survey_wind_near
+    python3 -I tools/wind_shots.py {{ prefix }}
+
 # Benchmark (prompt 018): moving units of two players with vision, time per tick
 [group('pathfinding')]
 vision-bench map="test_large" units="500" ticks="600":

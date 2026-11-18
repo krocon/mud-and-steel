@@ -496,9 +496,21 @@ biome variants cost nothing.
   needles. The leafless `Bare` oak is the winter variant of deciduous trees.
   Military objects use `Paint`; pass a faction palette base color as `paint`.
 - **Wind** is set as material parameters `wind_strength`,
-  `wind_direction`, `wind_speed` on the shared `bark` and `foliage`
-  materials from the biome preset (prompt 015); the sway uses the baked
-  weights, so trunks stay rooted and leaves flutter.
+  `wind_direction`, `wind_speed`, `tree_sway`, `leaf_flutter` on the shared
+  `bark` and `foliage` materials from the biome preset (prompt 015, 086).
+  `wind_offset` (`env_common.gdshaderinc`, prompt 086) has three parts:
+  the whole tree bends downwind with the height above its foot ((h / 20 m)²,
+  from `VERTEX.y`, so no model needs new data and the far and shadow meshes
+  move the same way), swinging slowly about a slight lean and pushed by the
+  gust wave shared with the grass (`wind_common.gdshaderinc`); branches
+  swing faster by the baked weight (G) and phase (B); leaves flutter
+  (foliage only). Bark and foliage call it with the same arguments, so the
+  crown stays on the trunk. The whole-tree bend is opt-in per kind
+  (`env_bend`, `EnvLook.BEND`: oak 1.0, conifer 0.6, birch 1.35, palm 1.15;
+  0 for everything else, so log houses, fences, bushes and hedges keep only
+  the branch sway). Phase and tempo differ per tree (position, scale).
+  Lying trees (`env_fallen`) are still. Thumbnails and the model gallery
+  call `EnvLook.still_trees()` (wind 0), so their pictures stay the same.
 - In the game the biome comes from the map (`map.toml`, prompt 015): unit
   palettes and `EnvLook` follow the preset's `camo_biome` and `env_biome`.
 - **Charred** (prompt 041): the instance uniform `env_char` (0..1) blackens

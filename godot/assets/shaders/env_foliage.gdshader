@@ -25,7 +25,7 @@ varying float v_tint;
 void vertex() {
 	v_local = VERTEX;
 	vec3 inst = (MODEL_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
-	VERTEX += wind_offset(VERTEX, COLOR.g, COLOR.b, inst, TIME) * (1.0 - env_fallen);
+	VERTEX += wind_offset(VERTEX, COLOR.g, COLOR.b, MODEL_MATRIX, TIME, 1.0) * (1.0 - env_fallen);
 	// A bare tree (prompt 085): every card collapses to one point, so its
 	// triangles have no area and draw nothing (cheaper than discarding).
 	if (env_bare > 0.5) {

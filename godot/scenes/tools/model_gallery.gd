@@ -100,6 +100,8 @@ var _frame := 0
 
 
 func _ready() -> void:
+	# Trees at rest (prompt 086): reproducible pictures.
+	EnvLook.still_trees()
 	_build_environment()
 	_build_ui()
 	for c in CATEGORIES:

@@ -18,6 +18,20 @@ const LOOK: Dictionary[String, Dictionary] = {
 	"winter": {"foliage": Color(0.17, 0.25, 0.13), "dry": 0.15, "snow": 0.85, "dust": 0.0},
 }
 const NEUTRAL_PAINT := Color(0.33, 0.35, 0.32)
+## Bend of the whole plant in the wind per catalog id (prompt 086,
+## `env_bend`): conifers are stiff (the tip swings, the trunk hardly),
+## birches soft, palms swing their fronds; everything else does not bend
+## (bushes and hedges sway only with their branches).
+const BEND: Dictionary[String, float] = {
+	"env_tree_deciduous": 1.0, "env_tree_conifer": 0.6, "env_tree_birch": 1.35,
+	"env_tree_palm": 1.15,
+}
+## Materials whose wind the trees use (prompt 086): `still_trees` stops them
+## for pictures that must be the same every time (thumbnails, gallery).
+const TREE_WIND_MATERIALS: Array[String] = [
+	"res://assets/materials/env/bark.tres",
+	"res://assets/materials/env/foliage.tres",
+]
 ## Distance (m) at which tree variants switch to their `_Far` mesh.
 const FAR_DISTANCE := 180.0
 
@@ -33,6 +47,26 @@ static func apply(model: Node, biome: String, paint := NEUTRAL_PAINT) -> void:
 		mesh.set_instance_shader_parameter(&"env_dust", look.dust)
 		mesh.set_instance_shader_parameter(&"env_paint", paint)
 		set_roof_box(mesh)
+
+
+## Sets the wind bend of a tree kind on `node` and its meshes (prompt 086).
+static func apply_bend(node: Node, id: String) -> void:
+	var bend: float = BEND.get(id, 0.0)
+	if bend == 0.0:
+		return
+	if node is GeometryInstance3D:
+		(node as GeometryInstance3D).set_instance_shader_parameter(&"env_bend", bend)
+	for child in node.get_children():
+		apply_bend(child, id)
+
+
+## No wind on the trees (prompt 086): thumbnails and the model gallery
+## render them at rest, so the pictures are the same every time.
+static func still_trees() -> void:
+	for path in TREE_WIND_MATERIALS:
+		var mat := load(path) as ShaderMaterial
+		if mat:
+			mat.set_shader_parameter("wind_strength", 0.0)
 
 
 ## The horizontal bounds of the mesh (min x, min z, max x, max z) as

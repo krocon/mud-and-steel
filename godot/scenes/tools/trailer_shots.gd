@@ -263,6 +263,18 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"start_s": 66.0, "seconds": 19.0, "stills": [0.5, 18.5],
 		"camera": [{"t": 0.0, "at": Vector2(0, -125), "dist": 170.0, "yaw": 0.0, "pitch": 80.0}],
 	},
+	# Trees in the wind (prompt 086, `just wind-shots`): the wood's edge
+	# with the meadow in front, two stills one second apart per view.
+	"survey_wind_mid": {
+		"map": "ambush_meadow", "scene": "survey", "seed": 1, "daytime": "day", "game_camera": true,
+		"start_s": 2.0, "seconds": 2.2, "stills": [0.5, 1.5],
+		"camera": [{"t": 0.0, "at": Vector2(-70, -110), "dist": 110.0, "yaw": 0.0}],
+	},
+	"survey_wind_near": {
+		"map": "ambush_meadow", "scene": "survey", "seed": 1, "daytime": "day", "game_camera": true,
+		"start_s": 2.0, "seconds": 2.2, "stills": [0.5, 1.5],
+		"camera": [{"t": 0.0, "at": Vector2(-70, -108), "dist": 45.0, "yaw": 0.0}],
+	},
 	"survey_farms": {
 		"map": "farms", "scene": "survey", "seed": 1, "start_s": 0.5, "seconds": 1.0, "stills": [0.5],
 		"camera": [{"t": 0.0, "at": Vector2(0, 0), "dist": 1902.0, "yaw": 0.0, "pitch": 89.0, "haze": 4000.0}],
@@ -754,6 +766,8 @@ func _apply_off() -> void:
 		MeadowTufts.MATERIAL.set_shader_parameter("wind_strength", 0.0)
 		TallGrass.MATERIAL.set_shader_parameter("wind_strength", 0.0)
 		main.terrain._material.set_shader_parameter("wind_strength", 0.0)
+		# The trees too (prompt 086).
+		EnvLook.still_trees()
 	# Prompt 073: tall grass plants, or its look on the ground.
 	if "tall" in _off:
 		for node: Node in main.map_objects._deco_root.get_children():

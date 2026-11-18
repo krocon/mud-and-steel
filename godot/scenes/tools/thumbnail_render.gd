@@ -40,6 +40,8 @@ var _camera: Camera3D
 
 
 func _ready() -> void:
+	# Trees at rest (prompt 086): the same picture every time.
+	EnvLook.still_trees()
 	_viewport = SubViewport.new()
 	_viewport.size = Thumbnail.SIZE * OVERSAMPLE
 	_viewport.own_world_3d = true

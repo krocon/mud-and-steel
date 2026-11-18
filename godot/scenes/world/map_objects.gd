@@ -246,6 +246,7 @@ func build(host: Object, view: Camera3D) -> void:
 				node.visibility_range_end_margin = range_end * 0.1
 			node.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
 			node.set_meta(&"local", part.transform)
+			EnvLook.apply_bend(node, id)
 			_objects_root.add_child(node)
 			object_nodes += 1
 			var key := "%d:%d:%d" % [kind, group.chunk.x, group.chunk.y]
@@ -551,6 +552,7 @@ func _variant_node(id: String, variant: String, transform: Transform3D) -> Node3
 			else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		_apply_look(mesh)
 		root.add_child(mesh)
+	EnvLook.apply_bend(root, id)
 	return root
 
 

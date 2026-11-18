@@ -100,6 +100,14 @@ bare ones vision cells only, overlapping areas joined per tick:
 Far below the 50 ms tick budget. In Godot at most six changed trees per frame
 get leaf, splinter and dust bursts (`effects.gd`), the rest change silently.
 
+Trees in the wind (prompt 086): `just objects-bench` (the densest wood of
+`test_large`, quality of the settings, Apple M1 Max) before and after the
+new wind function: near 15 m 43.5 / 43.3 ms, middle 120 m 31.9 / 31.8 ms,
+overview 600 m 15.1 / 15.1 ms, village 19.4 / 19.4 ms: no change (the
+bend, the gust and the flutter are a dozen sines per vertex, also in the
+shadow passes). The wood itself is slow in this bench with shadows (23 FPS
+near, 88 without them), before and after alike; not part of prompt 086.
+
 All simulation budgets are met. What changed:
 
 1. **Path components** (`PathGrid::relabel_components_in`): every wreck

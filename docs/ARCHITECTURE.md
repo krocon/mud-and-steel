@@ -3038,7 +3038,20 @@ from `crates/bridge/src/objects.rs`.
   `rendering/limits/global_shader_variables/buffer_size` to 262 144 (the default
   65 536 overflowed at ~10 000 nodes and turned foliage black).
 - **Wind** comes from the env shaders (per-instance phase from the instance
-  position, which `MODEL_MATRIX` includes for MultiMesh instances).
+  position, which `MODEL_MATRIX` includes for MultiMesh instances). Prompt
+  086: trees bend as a whole with the height, branches swing, leaves
+  flutter, and the gust wave of the tall grass (`wind_common.gdshaderinc`,
+  `wind_gust`) runs through the crowns too; the direction is turned into
+  model space (it was added in model space before, so rotated trees swayed
+  in their own directions). At the forest preset the tip of a 20 m tree
+  swings 0.2-0.7 m, up to about 1.2 m in gusts (before at most about
+  0.2 m, less than a pixel at mid zoom); rain doubles it, fog takes it to
+  0.3. Checked: the wind did reach the trees before (the imported models
+  share `assets/materials/env/bark.tres` and `foliage.tres`, which
+  `atmosphere.gd` sets, MultiMesh, far and shadow meshes included); it was
+  just too small and a pure sine. `just wind-shots <prefix>`: two stills one
+  second apart of the wood's edge on `ambush_meadow` and their difference
+  (`build/wind_shots/`); `trailer_shots.gd --off=wind` stills the trees too.
 - **Variety (prompt 056):** `env.gdshader` derives a seed from each
   object's position (`v_seed`, the instance origin on a 2 m grid) and picks
   per house the paint of lime-plastered and whitewashed walls (seven
@@ -3366,7 +3379,7 @@ SimHost.map_biome()  ──  `-- --biome=<id>` overrides it
 atmosphere.gd: load res://assets/biomes/<id>.tres (BiomePreset)
    ├─ sun, sky, ambient light, haze, tonemapping and grading, vignette
    ├─ terrain.gd apply_biome(): layer sources and tints, snow cover, map edge
-   ├─ env materials (bark, foliage): wind strength, direction, speed
+   ├─ env materials (bark, foliage): wind strength, direction, speed, tree sway, leaf flutter
    └─ snowfall particles (winter)
 main.gd: UnitCamo.palette(faction, preset.camo_biome) for every unit model;
          map_objects.gd: EnvLook look of preset.env_biome on map objects and decoration

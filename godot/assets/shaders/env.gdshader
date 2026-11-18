@@ -33,8 +33,11 @@ varying float v_seed;
 void vertex() {
 	v_local = VERTEX;
 	vec3 inst = (MODEL_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
-	if (slot == 10 && COLOR.g > 0.0) {
-		VERTEX += wind_offset(VERTEX, COLOR.g, COLOR.b, inst, TIME) * 0.5 * (1.0 - env_fallen);
+	// Bark (prompt 086): the same wind as the foliage, without the leaf
+	// flutter, so trunk and crown move together; the trunk itself (G = 0)
+	// bends with the height when the object is a tree (env_bend).
+	if (slot == 10 && (COLOR.g > 0.0 || env_bend > 0.0)) {
+		VERTEX += wind_offset(VERTEX, COLOR.g, COLOR.b, MODEL_MATRIX, TIME, 0.0) * (1.0 - env_fallen);
 	}
 	v_world_normal = normalize((MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz);
 	v_world = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;

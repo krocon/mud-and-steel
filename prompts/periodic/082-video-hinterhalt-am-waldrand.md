@@ -321,3 +321,9 @@ danach anders (andere Hashes). Die Aufnahmen ab `ambush_impacts` zeigen den
 alten Stand; bei einer Neuaufnahme die Szene ab der Salve neu abnehmen
 (`just trailer-scout`), die Zeitpunkte davor bleiben gleich.
 
+### Nachtrag Prompt 086 (Bäume im Wind)
+
+Seit Prompt 086 wiegen sich die Bäume sichtbar im Wind (Kronenspitze
+0,2–0,7 m, in Böen bis 1,2 m). Die Szene bleibt gleich, die Bilder der
+Aufnahmen sehen bei einer Neuaufnahme anders aus.
+
