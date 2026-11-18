@@ -86,6 +86,7 @@ MAP_RIVER_FIELDS,River fields,Flussfelder
 MAP_RIVER_FIELDS_WINTER,River fields in winter,Flussfelder im Winter
 MAP_RIVER_FORK,River fork,Flussgabel
 MAP_ISLAND_CHAIN,Island chain,Inselkette
+MAP_DESERT_LAGOON,Desert lagoon,Wüstenlagune
 MATCH_SLOT_OPEN,Open,Offen
 MATCH_SLOT_CLOSED,Closed,Geschlossen
 MATCH_SLOT_COMPUTER,Computer: %s,Computer: %s

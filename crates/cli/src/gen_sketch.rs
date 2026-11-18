@@ -44,11 +44,12 @@ pub(crate) const FIELD_PLOUGHED: u8 = 11;
 /// Folder of the sketches.
 pub const SKETCH_DIR: &str = "data/map_sketches";
 /// The maps made from sketches (`just gen-sketch` without a name).
-pub const ALL: [&str; 4] = [
+pub const ALL: [&str; 5] = [
     "river_fields",
     "river_fields_winter",
     "river_fork",
     "island_chain",
+    "desert_lagoon",
 ];
 
 const START_CLEAR_M: f64 = 60.0;
@@ -146,6 +147,10 @@ struct Sketch {
     causeway: Vec<Strip>,
     #[serde(default)]
     shoal: Vec<Strip>,
+    /// Sea maps: water inside the land that belongs to the sea (lagoons,
+    /// inlets), at the same level; polygons may overlap.
+    #[serde(default)]
+    bay: Vec<Area>,
 }
 
 /// A strip along a line: a causeway (land across the sea, open under the
@@ -445,6 +450,9 @@ struct Plan<'a> {
     ground: crate::gen_land::Noise,
     detail: crate::gen_land::Noise,
     bumps: Vec<(f64, f64, f64, f64)>,
+    /// Outline segments of the bays that are not inside another bay (the
+    /// coast of the bays).
+    bay_coast: Vec<(P, P)>,
 }
 
 impl Plan<'_> {
@@ -597,6 +605,7 @@ impl Plan<'_> {
                 .filter(|a| inside(p, &a.polygon_m))
                 .map(|a| edge_distance(p, &a.polygon_m))
                 .fold(f64::INFINITY, f64::min);
+            let e = e.min(self.bay_coast_distance(p));
             if e.is_finite() {
                 // Land falls towards one coast height (a flat sea level).
                 h = SEA_COAST_M + (h - SEA_COAST_M) * smoothstep(0.0, 60.0, e);
@@ -637,9 +646,17 @@ impl Plan<'_> {
     /// The sea at `p` (outside every land polygon): water whose depth grows
     /// with the distance to the coast, shallow on shoals; causeways stay
     /// land except under their bridges. `None` on land.
+    fn bay_coast_distance(&self, p: (f64, f64)) -> f64 {
+        self.bay_coast
+            .iter()
+            .map(|&(a, b)| segment_distance(p, a, b))
+            .fold(f64::INFINITY, f64::min)
+    }
+
     fn sea(&self, p: (f64, f64), h: f64, terrain: u8) -> Option<(f64, u8)> {
         let s = self.sketch;
-        if s.land.iter().any(|a| inside(p, &a.polygon_m)) {
+        let in_bay = s.bay.iter().any(|a| inside(p, &a.polygon_m));
+        if !in_bay && s.land.iter().any(|a| inside(p, &a.polygon_m)) {
             return None;
         }
         // Under a bridge the water cuts across the whole causeway.
@@ -669,7 +686,8 @@ impl Plan<'_> {
             .land
             .iter()
             .map(|a| edge_distance(p, &a.polygon_m))
-            .fold(causeway.max(0.0), f64::min);
+            .fold(causeway.max(0.0), f64::min)
+            .min(self.bay_coast_distance(p));
         let shoal = s
             .shoal
             .iter()
@@ -816,8 +834,11 @@ fn stands(kind: &str, biome: &str) -> Vec<(&'static str, &'static [&'static str]
     const CONIFER: (&str, &[&str]) = ("env_tree_conifer", &["Spruce", "Pine", "SpruceYoung"]);
     const BIRCH: (&str, &[&str]) = ("env_tree_birch", &["Birch", "BirchYoung"]);
     const PALM: (&str, &[&str]) = ("env_tree_palm", &["Palm", "PalmShort", "PalmLeaning"]);
+    const BUSH: (&str, &[&str]) = ("env_bush", &["Hazel", "Round", "Wide"]);
     let winter = biome == "winter";
     match (kind, biome) {
+        // Palm and bush groves (stage 2): bushes show the groves from above.
+        ("grove", _) => vec![PALM, PALM, BUSH, PALM, BUSH],
         (_, "desert") => vec![PALM],
         ("conifer", _) => vec![CONIFER],
         ("birch", _) => vec![BIRCH],
@@ -928,6 +949,7 @@ pub fn generate(options: &Options) -> Result<String, String> {
         sketch: &sketch,
         ways,
         paints,
+        bay_coast: bay_coast(&sketch.bay),
         crossings: crossings.clone(),
         flats: Vec::new(),
         ground: noise(seed, 1, 160.0),
@@ -1216,6 +1238,26 @@ pub fn generate(options: &Options) -> Result<String, String> {
         "wrote {}: {sx} x {sy} samples, heights {low:.2} .. {high:.2} m, {summary}",
         options.out.display(),
     ))
+}
+
+/// The outline segments of `bays` whose middle lies in no other bay.
+fn bay_coast(bays: &[Area]) -> Vec<(P, P)> {
+    let mut coast = Vec::new();
+    for (k, bay) in bays.iter().enumerate() {
+        let n = bay.polygon_m.len();
+        for i in 0..n {
+            let (a, b) = (bay.polygon_m[i], bay.polygon_m[(i + 1) % n]);
+            let mid = ((a[0] + b[0]) / 2.0, (a[1] + b[1]) / 2.0);
+            if !bays
+                .iter()
+                .enumerate()
+                .any(|(j, other)| j != k && inside(mid, &other.polygon_m))
+            {
+                coast.push((a, b));
+            }
+        }
+    }
+    coast
 }
 
 /// Loose houses of a village (see `Village`).

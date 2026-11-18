@@ -1,0 +1,312 @@
+# Map sketch of `desert_lagoon` (prompt 088): desert by the sea. The coast
+# runs through the north-east; a strait leads into a branching lagoon in the
+# middle (a channel to the west, a west branch, an east branch, an arm to
+# the south-west and on to the south edge) with dams and bridges; winding
+# tracks, scattered desert houses, a small town in the east, palm and bush
+# groves, dense growth in the north-west and the south. Six starts: three
+# in the east (team 0), three in the north (team 1). Lines and areas in
+# meters (x east, y south, origin in the map center); generated with
+# `just gen-sketch desert_lagoon` (crates/cli/src/gen_sketch.rs, docs/MAPS.md).
+name = "desert_lagoon"
+size_m = [1600, 1600]
+biome = "desert"
+weather = "clear"
+seed = 8806
+water_flow_deg = 45
+sea = true
+
+[[start]]
+player = 0
+team = 0
+position_m = [504, -112]
+
+[[start]]
+player = 1
+team = 1
+position_m = [-264, -504]
+
+[[start]]
+player = 2
+team = 0
+position_m = [504, 144]
+
+[[start]]
+player = 3
+team = 1
+position_m = [35, -504]
+
+[[start]]
+player = 4
+team = 0
+position_m = [504, 453]
+
+[[start]]
+player = 5
+team = 1
+position_m = [-509, -499]
+
+[[supply]]
+name = "supply_north_village"
+position_m = [-112, -371]
+
+[[supply]]
+name = "supply_town"
+position_m = [232, -32]
+
+[[supply]]
+name = "supply_inner_land"
+position_m = [-291, 8]
+
+[[supply]]
+name = "supply_south_houses"
+position_m = [-48, 240]
+
+[[supply]]
+name = "supply_west_houses"
+position_m = [-429, 304]
+
+[[supply]]
+name = "supply_neck"
+position_m = [-173, 429]
+
+# --- Land and water ---------------------------------------------------------
+
+# Everything but the sea in the north-east.
+[[land]]
+polygon_m = [[-816, -816], [48, -816], [77, -736], [104, -656], [144, -568], [205, -541], [179, -496], [179, -435], [160, -406], [96, -400], [45, -381], [0, -349], [-32, -320], [-48, -288], [-48, -256], [-22, -205], [19, -230], [90, -259], [160, -285], [211, -317], [269, -336], [298, -368], [320, -320], [365, -285], [413, -304], [445, -336], [456, -272], [512, -224], [592, -192], [672, -163], [736, -141], [816, -109], [816, 816], [-816, 816]]
+
+# The strait from the sea, the north channel, the centre and the east branch.
+[[bay]]
+polygon_m = [[-35, -326], [32, -371], [96, -390], [160, -403], [192, -368], [176, -320], [112, -291], [48, -266], [0, -240], [-29, -205], [-35, -160], [-13, -112], [10, -83], [48, -77], [104, -70], [141, -45], [147, 8], [136, 64], [96, 72], [56, 45], [8, 16], [-32, 3], [-61, 32], [-86, 74], [-168, 83], [-176, 0], [-179, -61], [-189, -77], [-248, -77], [-304, -80], [-326, -90], [-326, -128], [-304, -152], [-248, -160], [-192, -163], [-154, -176], [-120, -208], [-93, -248], [-64, -291]]
+
+# West branch.
+[[bay]]
+polygon_m = [[-381, -80], [-416, -80], [-448, -56], [-477, 0], [-483, 64], [-472, 112], [-448, 147], [-426, 131], [-438, 80], [-438, 19], [-416, -29], [-381, -54]]
+
+# Arm to the south-west.
+[[bay]]
+polygon_m = [[-179, 72], [-141, 83], [-157, 115], [-182, 147], [-198, 192], [-192, 240], [-173, 291], [-152, 349], [-160, 384], [-192, 392], [-224, 352], [-264, 304], [-304, 275], [-336, 232], [-371, 195], [-392, 170], [-376, 144], [-333, 141], [-285, 125], [-237, 106], [-195, 90]]
+
+# South arm to the edge.
+[[bay]]
+polygon_m = [[-205, 451], [-147, 458], [-138, 512], [-152, 592], [-176, 672], [-208, 739], [-243, 816], [-349, 816], [-320, 739], [-272, 672], [-248, 608], [-227, 528], [-221, 474]]
+
+# South-east lake.
+[[bay]]
+polygon_m = [[144, 120], [176, 112], [224, 160], [272, 208], [320, 272], [368, 336], [392, 400], [384, 440], [352, 440], [320, 384], [272, 320], [224, 256], [176, 192], [144, 152]]
+
+# --- Dams and bridges --------------------------------------------------------
+
+# Mouth of the north channel: stone bridge north-south.
+[[causeway]]
+width_m = 30
+points_m = [[-59, -272], [-59, -152]]
+
+[[crossing]]
+kind = "stone"
+position_m = [-59, -211]
+axis = "ns"
+
+# Junction dam in the middle: stone bridge west-east.
+[[causeway]]
+width_m = 30
+points_m = [[-248, 78], [-88, 78]]
+
+[[crossing]]
+kind = "stone"
+position_m = [-168, 78]
+axis = "we"
+
+# Dam over the west channel: timber bridge north-south.
+[[causeway]]
+width_m = 24
+points_m = [[-184, -192], [-184, -56]]
+
+[[crossing]]
+kind = "wood"
+position_m = [-184, -120]
+axis = "ns"
+
+# Dam over the east branch: timber bridge north-south.
+[[causeway]]
+width_m = 24
+points_m = [[-5, -120], [-5, 0]]
+
+[[crossing]]
+kind = "wood"
+position_m = [-5, -61]
+axis = "ns"
+
+# Dam at the west junction (no bridge).
+[[causeway]]
+width_m = 26
+points_m = [[-381, -128], [-339, -48]]
+
+# --- Tracks ----------------------------------------------------------------
+
+[[road]]
+class = "track"
+width_m = 10
+points_m = [[-168, -816], [-248, -704], [-291, -576], [-291, -480], [-256, -416], [-192, -368], [-128, -320], [-88, -272], [-59, -272]]
+
+[[road]]
+class = "track"
+width_m = 10
+points_m = [[72, -816], [48, -704], [35, -576], [19, -480], [-5, -400], [-35, -336], [-59, -272]]
+
+[[road]]
+class = "track"
+width_m = 10
+points_m = [[-816, -592], [-704, -573], [-592, -528], [-509, -499], [-435, -416], [-400, -320], [-392, -224], [-413, -171]]
+
+[[road]]
+class = "track"
+width_m = 10
+points_m = [[-816, -205], [-704, -184], [-592, -171], [-496, -168], [-413, -171], [-320, -176], [-256, -179], [-184, -186]]
+
+[[road]]
+class = "track"
+width_m = 10
+points_m = [[-413, -171], [-381, -128], [-339, -48], [-304, 16], [-272, 64], [-243, 78]]
+
+[[road]]
+class = "track"
+width_m = 8
+points_m = [[-339, -48], [-392, 0], [-397, 64], [-360, 96], [-272, 96]]
+
+[[road]]
+class = "track"
+width_m = 8
+points_m = [[-184, -56], [-208, 0], [-248, 56]]
+
+[[road]]
+class = "track"
+width_m = 10
+points_m = [[-496, -168], [-504, -32], [-496, 96], [-472, 168], [-416, 224], [-371, 304], [-333, 408], [-272, 445], [-173, 429], [-96, 416], [-48, 352]]
+
+[[road]]
+class = "track"
+width_m = 8
+points_m = [[-816, 560], [-704, 528], [-592, 480], [-512, 416], [-456, 360], [-416, 320]]
+
+[[road]]
+class = "track"
+width_m = 10
+points_m = [[-93, 78], [-16, 120], [72, 141], [160, 104], [224, 88]]
+
+[[road]]
+class = "track"
+width_m = 8
+points_m = [[-64, 120], [-61, 224], [-48, 352], [16, 464], [56, 560], [83, 704], [77, 816]]
+
+[[road]]
+class = "track"
+width_m = 10
+points_m = [[-59, -150], [-29, -128], [-5, -120]]
+
+[[road]]
+class = "track"
+width_m = 10
+points_m = [[-5, 0], [48, 32], [128, 72], [224, 88]]
+
+[[road]]
+class = "track"
+width_m = 10
+points_m = [[-40, -168], [32, -211], [160, -248], [320, -248], [448, -200], [504, -112], [608, -45], [720, 32], [816, 96]]
+
+[[road]]
+class = "track"
+width_m = 10
+points_m = [[224, 88], [320, 96], [416, 125], [504, 144], [608, 147], [704, 141], [816, 147]]
+
+[[road]]
+class = "track"
+width_m = 10
+points_m = [[224, 88], [264, 176], [320, 288], [392, 376], [464, 432], [504, 453], [608, 445], [720, 416], [816, 384]]
+
+[[road]]
+class = "track"
+width_m = 8
+points_m = [[320, -248], [317, -128], [320, -32], [304, 48], [224, 88]]
+
+[[road]]
+class = "track"
+width_m = 8
+points_m = [[160, -248], [192, -128], [232, -32], [224, 88]]
+
+[[road]]
+class = "track"
+width_m = 8
+points_m = [[608, 147], [672, 240], [704, 352], [720, 416]]
+
+[[road]]
+class = "track"
+width_m = 8
+points_m = [[-291, -480], [-192, -448], [-112, -371], [-48, -320]]
+
+# --- Houses and growth --------------------------------------------------------
+
+[[village]]
+kinds = ["env_house_desert_hut", "env_house_desert_two", "env_house_desert_long", "env_house_desert_corner", "env_house_desert_roofroom", "env_house_desert_stair"]
+count = 9
+polygon_m = [[-208, -456], [32, -456], [24, -320], [-96, -272], [-208, -320]]
+
+[[village]]
+kinds = ["env_house_desert_two", "env_house_desert_long", "env_house_desert_large", "env_house_desert_tall", "env_house_desert_shop", "env_house_desert_vault", "env_house_desert_corner", "env_house_desert_roofroom"]
+count = 20
+polygon_m = [[96, -224], [432, -192], [432, 0], [320, 160], [160, 96], [96, -48]]
+
+[[village]]
+kinds = ["env_house_desert_hut", "env_house_desert_two", "env_house_desert_long", "env_house_desert_roofroom"]
+count = 6
+polygon_m = [[-544, -336], [-256, -336], [-256, -192], [-544, -192]]
+
+[[village]]
+kinds = ["env_house_desert_hut", "env_house_desert_two", "env_house_desert_long"]
+count = 4
+polygon_m = [[-408, -48], [-192, -48], [-192, 64], [-408, 64]]
+
+[[village]]
+kinds = ["env_house_desert_hut", "env_house_desert_two", "env_house_desert_long", "env_house_desert_corner", "env_house_desert_stair"]
+count = 9
+polygon_m = [[-512, 160], [-272, 224], [-256, 448], [-480, 448]]
+
+[[village]]
+kinds = ["env_house_desert_hut", "env_house_desert_two", "env_house_desert_long", "env_house_desert_vault"]
+count = 6
+polygon_m = [[-136, 112], [64, 160], [48, 416], [-112, 416]]
+
+[[village]]
+kinds = ["env_house_desert_hut", "env_house_desert_two", "env_house_desert_long", "env_house_desert_corner"]
+count = 9
+polygon_m = [[448, -112], [800, -80], [800, 448], [416, 416]]
+
+[[village]]
+kinds = ["env_house_desert_hut", "env_house_desert_two"]
+count = 3
+polygon_m = [[-48, -816], [96, -816], [96, -608], [-48, -608]]
+
+[[wood]]
+kind = "grove"
+spacing_m = 5
+polygon_m = [[-816, -816], [-416, -816], [-392, -704], [-424, -616], [-528, -608], [-640, -624], [-816, -616]]
+
+[[wood]]
+kind = "grove"
+spacing_m = 5
+polygon_m = [[-816, -557], [-672, -544], [-576, -488], [-560, -400], [-576, -288], [-608, -208], [-704, -200], [-816, -221]]
+
+[[wood]]
+kind = "grove"
+spacing_m = 5.5
+polygon_m = [[-128, 544], [0, 499], [160, 515], [320, 515], [480, 483], [592, 448], [688, 419], [816, 403], [816, 816], [-112, 816]]
+
+[[wood]]
+kind = "grove"
+spacing_m = 6
+polygon_m = [[-408, 528], [-320, 512], [-285, 608], [-320, 720], [-400, 704]]
+
+[[scatter]]
+kind = "grove"
+spacing_m = 18
+polygon_m = [[-816, -816], [816, -816], [816, 816], [-816, 816]]
