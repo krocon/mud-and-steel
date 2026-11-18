@@ -69,6 +69,7 @@ just vehicle-db / just vehicle-db-check  # write data/vehicles/*.json from the r
 just units-web             # unit browser in the web browser: pictures, 3D models, values (web/units/)
 just sounds-web            # every sound playable in the browser, with when the game plays it (web/sounds/, local only)
 just trailer-shots         # record the demo video's shots to build/trailer/ (--only=<shot>, --stills; docs/ARCHITECTURE.md)
+just trailer-scout / just trailer-cut  # scout a trailer scene over seeds / cut recorded shots `<prefix>_*` into <prefix>_final.mp4
 just export / just export-selftest  # exported .pck and its self-test; release builds: docs/RELEASE.md
 just export-model assets-src/blender/X.blend
 just model-tank            # regenerate placeholder tank

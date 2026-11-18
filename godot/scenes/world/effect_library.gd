@@ -108,6 +108,11 @@ const FIREBALL_BODY := """float age = smoothstep(0.15, 0.65, v_age);
 const GLOW_BILLOW_BODY := "ALBEDO = c.rgb * mix(0.72, 1.0, t.b) * (1.0 + emission);"
 
 static var _shaders: Dictionary[String, Shader] = {}
+## Trailer recordings (prompt 082): every particle system gets a fixed seed
+## (its number), so a shot is recorded the same again. -1: not asked yet,
+## 0: off (the game: random as ever).
+static var _fixed_seeds := -1
+static var _next_seed := 1
 
 
 ## A new particle system of `kind`. `factor` scales particle counts
@@ -122,6 +127,15 @@ static func build(kind: String, factor: float, soft: bool, wind: Vector2) -> GPU
 	p.explosiveness = 0.9 if p.one_shot else 0.0
 	p.fixed_fps = 0
 	p.interpolate = false
+	if _fixed_seeds < 0:
+		_fixed_seeds = 0
+		for arg in OS.get_cmdline_user_args():
+			if arg.begins_with("--trailer="):
+				_fixed_seeds = 1
+	if _fixed_seeds == 1:
+		p.use_fixed_seed = true
+		p.seed = _next_seed
+		_next_seed += 1
 	p.visibility_aabb = AABB(Vector3(-25, -5, -25), Vector3(50, 40, 50))
 	var pm := ParticleProcessMaterial.new()
 	pm.angle_min = 0.0

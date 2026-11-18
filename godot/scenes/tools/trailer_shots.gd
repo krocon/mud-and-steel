@@ -17,12 +17,15 @@ extends Node
 ##     --trailer-scout[=<s>]     no camera: run the scene for <s> game seconds
 ##                               (default: to the shot's end) at high speed and
 ##                               print who is destroyed when and where
+##     --trailer-seed=<n>        scouting: another seed than the shot's
 ##     --trailer-off=<a,b,..>    analysis only (prompt 068): turn parts of the
 ##                               picture off, see `OFF_PARTS`
 ##
 ## The camera does more than in the game (lower, closer, flat angles, chase
 ## rides); the camera rig stands still meanwhile and only receives focus and
-## distance, which haze and sound follow. Presentation only.
+## distance, which haze and sound follow. A shot with `game_camera` shows
+## what a player can see instead (prompt 082): the rig places the camera.
+## Presentation only.
 
 const FPS := 60
 const SIZE := Vector2i(1920, 1080)
@@ -31,7 +34,10 @@ const SCENE_DIR := "trailer"
 ## Game speed of the run-up (the bridge runs at most 5 ticks per frame).
 const RUN_UP_SPEED := 15.0
 ## The last seconds before the shot run at normal speed, so smoke, dust and
-## sound loops are in place when the first frame is written.
+## sound loops are in place when the first frame is written. Effects live in
+## real time: what starts during the fast run-up is seen too long (a rocket
+## trail of 9 s stands for 135 game seconds). A shot after long-lived effects
+## sets `pre_roll_s` to more than their life.
 const PRE_ROLL_S := 2.0
 ## The camera stays this far above the ground below it, in meters.
 const CLEARANCE := 0.45
@@ -44,6 +50,7 @@ const BUS_DB: Dictionary[String, float] = {
 ## The shots. Per shot:
 ##   map, scene (file in data/trailer, default: the shot's name), seed,
 ##   start_s (game seconds before the first frame), seconds (length),
+##   pre_roll_s (seconds before `start_s` played at normal speed, default 2),
 ##   hud (default false: no HUD, no fog of war, no relation tint),
 ##   weather, daytime (default: the map's), stills (seconds into the shot),
 ##   select ([owner, catalog id prefix]: units the player has selected),
@@ -60,6 +67,14 @@ const BUS_DB: Dictionary[String, float] = {
 ##     fov    field of view in degrees (default: the game's 30)
 ##     haze   distance the haze and the sound are set for (default: `dist`
 ##            for steep views, farther for flat ones)
+##   game_camera (default false): the camera of the game. The keys give only
+##     what a player controls, `at` or `unit` (the focus on the ground),
+##     `dist` and `yaw`; the camera rig places the camera as in a match: pitch
+##     from the zoom level (45 to 65 degrees), distance within its limits,
+##     field of view, clearance over ground and roofs, planes, shadow range.
+##     Shots whose keys carry `pitch`, `lift`, `fov` or `haze` (the measuring
+##     pans of prompts 068 to 080) keep the free placement with the game's
+##     shadow range.
 ## Parts `--trailer-off=` can turn off (prompt 068, analysis of flicker, never
 ## a game setting): meadow tufts, procedural meadow of the ground shader,
 ## sun shadows, wind of the tufts, depth of field, SSAO, MSAA; "fxaa" and
@@ -357,6 +372,172 @@ const SHOTS: Dictionary[String, Dictionary] = {
 			{"t": 3.0, "at": Vector2(80, 0), "dist": 110.0, "yaw": 23.0, "pitch": 56.0, "haze": 110.0},
 		],
 	},
+	# --- Scene "ambush" on ambush_meadow (prompt 082) ---------------------------
+	# One battle told in seventeen shots, all with the player's camera
+	# (`game_camera`: focus, distance and yaw only). Seed 14: the point tank
+	# blows up at 50.0 s and loses its turret, a Tiger at 57.75 s, the last
+	# T-34 at 74.5 s; rockets leave from 56.5 s and land from 69.25 s; the
+	# bombs fall from 82.25 s. In the order of the edit. Shots after the
+	# first explosions have a long pre-roll (see `PRE_ROLL_S`).
+	# Act 1, march: the column as a line in the grass, the west wood behind it.
+	"ambush_march_wide": {
+		"map": "ambush_meadow", "scene": "ambush", "seed": 14, "daytime": "morning", "game_camera": true,
+		"start_s": 34.3, "seconds": 5.0, "stills": [1.0, 4.0],
+		"camera": [
+			{"t": 0.0, "at": Vector2(0, 325), "dist": 300.0, "yaw": 65.0},
+			{"t": 5.0, "at": Vector2(0, 255), "dist": 280.0, "yaw": 72.0},
+		],
+	},
+	# Act 1: beside the tanks, the grass parts.
+	"ambush_march_side": {
+		"map": "ambush_meadow", "scene": "ambush", "seed": 14, "daytime": "morning", "game_camera": true,
+		"start_s": 37.5, "seconds": 4.5, "stills": [1.0, 3.5],
+		"camera": [
+			{"t": 0.0, "unit": [0, "su_t34", -1], "dist": 70.0, "yaw": 95.0},
+			{"t": 4.5, "unit": [0, "su_t34", -1], "dist": 55.0, "yaw": 80.0},
+		],
+	},
+	# Act 1: the silent wood, the point tank drives into the picture.
+	"ambush_march_wood": {
+		"map": "ambush_meadow", "scene": "ambush", "seed": 14, "daytime": "morning", "game_camera": true,
+		"start_s": 46.8, "seconds": 3.0, "stills": [0.5, 2.6],
+		"camera": [
+			{"t": 0.0, "at": Vector2(0, -48), "dist": 235.0, "yaw": 10.0},
+			{"t": 3.0, "at": Vector2(0, -50), "dist": 225.0, "yaw": 10.0},
+		],
+	},
+	# Act 2, 50.0 s: the point tank, the shot comes from outside the picture.
+	"ambush_shot_near": {
+		"map": "ambush_meadow", "scene": "ambush", "seed": 14, "daytime": "morning", "game_camera": true,
+		"start_s": 48.6, "seconds": 4.2, "stills": [1.2, 1.5, 2.2, 3.6],
+		"camera": [
+			{"t": 0.0, "unit": [0, "su_t34", 0], "dist": 32.0, "yaw": 100.0},
+			{"t": 1.4, "unit": [0, "su_t34", 0], "dist": 32.0, "yaw": 100.0},
+			{"t": 4.2, "unit": [0, "su_t34", 0], "dist": 42.0, "yaw": 92.0},
+		],
+	},
+	# Act 2: the same second wide, the muzzle flashes at the wood's edge.
+	"ambush_shot_wide": {
+		"map": "ambush_meadow", "scene": "ambush", "seed": 14, "daytime": "morning", "game_camera": true,
+		"start_s": 49.2, "seconds": 4.3, "stills": [0.85, 1.3, 2.1, 3.5],
+		"camera": [
+			{"t": 0.0, "at": Vector2(0, -68), "dist": 200.0, "yaw": 8.0},
+			{"t": 4.3, "at": Vector2(0, -68), "dist": 200.0, "yaw": 8.0},
+		],
+	},
+	# Act 3, 50.0 to 51.0 s: machine guns from the west wood cut a rifle squad down.
+	"ambush_mg": {
+		"map": "ambush_meadow", "scene": "ambush", "seed": 14, "daytime": "morning", "game_camera": true,
+		"start_s": 49.8, "seconds": 3.6, "stills": [0.5, 1.3, 2.5],
+		"camera": [
+			{"t": 0.0, "at": Vector2(-50, 376), "dist": 60.0, "yaw": 70.0},
+			{"t": 3.6, "at": Vector2(-50, 376), "dist": 55.0, "yaw": 70.0},
+		],
+	},
+	# Act 3: the three tanks spread and fire back; 55.0 s the Tigers' second salvo.
+	"ambush_spread": {
+		"map": "ambush_meadow", "scene": "ambush", "seed": 14, "daytime": "morning", "game_camera": true,
+		"start_s": 52.0, "seconds": 4.5, "pre_roll_s": 3, "stills": [1.0, 3.05, 4.0],
+		"camera": [
+			{"t": 0.0, "at": Vector2(0, -35), "dist": 175.0, "yaw": 70.0},
+			{"t": 4.5, "at": Vector2(0, -40), "dist": 160.0, "yaw": 55.0},
+		],
+	},
+	# Act 4: the German side, along the wood's edge: both Tigers, the meadow before them.
+	"ambush_reveal": {
+		"map": "ambush_meadow", "scene": "ambush", "seed": 14, "daytime": "morning", "game_camera": true,
+		"start_s": 53.4, "seconds": 4.0, "pre_roll_s": 4.5, "stills": [0.5, 1.65, 3.5],
+		"camera": [
+			{"t": 0.0, "at": Vector2(0, -98), "dist": 150.0, "yaw": 80.0},
+			{"t": 4.0, "at": Vector2(0, -98), "dist": 140.0, "yaw": 80.0},
+		],
+	},
+	# Act 5, 56.5 s: the launchers fire.
+	"ambush_rockets_near": {
+		"map": "ambush_meadow", "scene": "ambush", "seed": 14, "daytime": "morning", "game_camera": true,
+		"start_s": 56.2, "seconds": 4.0, "pre_roll_s": 7.5, "stills": [0.5, 1.5, 3.0],
+		"camera": [
+			{"t": 0.0, "at": Vector2(0, 300), "dist": 50.0, "yaw": 95.0},
+			{"t": 4.0, "at": Vector2(0, 296), "dist": 58.0, "yaw": 95.0},
+		],
+	},
+	# Act 6, 57.75 s: a Tiger blows up.
+	"ambush_tiger_hit": {
+		"map": "ambush_meadow", "scene": "ambush", "seed": 14, "daytime": "morning", "game_camera": true,
+		"start_s": 56.9, "seconds": 2.6, "pre_roll_s": 8, "stills": [0.6, 0.95, 1.8],
+		"camera": [
+			{"t": 0.0, "at": Vector2(-36, -112), "dist": 45.0, "yaw": 20.0},
+			{"t": 2.6, "at": Vector2(-36, -112), "dist": 45.0, "yaw": 20.0},
+		],
+	},
+	# Act 5: from behind the launchers, the smoke trails towards the wood.
+	"ambush_rockets_trails": {
+		"map": "ambush_meadow", "scene": "ambush", "seed": 14, "daytime": "morning", "game_camera": true,
+		"start_s": 57.2, "seconds": 4.4, "pre_roll_s": 8.5, "stills": [1.0, 2.5, 4.0],
+		"camera": [
+			{"t": 0.0, "at": Vector2(0, 255), "dist": 200.0, "yaw": 0.0},
+			{"t": 4.4, "at": Vector2(0, 250), "dist": 200.0, "yaw": 8.0},
+		],
+	},
+	# Act 6, 60.0 s: the tank on the east flank is hit.
+	"ambush_t34_east": {
+		"map": "ambush_meadow", "scene": "ambush", "seed": 14, "daytime": "morning", "game_camera": true,
+		"start_s": 58.9, "seconds": 2.6, "pre_roll_s": 10, "stills": [0.8, 1.2, 2.0],
+		"camera": [
+			{"t": 0.0, "unit": [0, "su_t34", 2], "dist": 55.0, "yaw": 60.0},
+			{"t": 2.6, "unit": [0, "su_t34", 2], "dist": 55.0, "yaw": 60.0},
+		],
+	},
+	# Act 6, 63.75 and 64.75 s: tank against tank across the edge.
+	"ambush_duel": {
+		"map": "ambush_meadow", "scene": "ambush", "seed": 14, "daytime": "morning", "game_camera": true,
+		"start_s": 63.2, "seconds": 3.2, "pre_roll_s": 12, "stills": [0.6, 1.6, 2.5],
+		"camera": [
+			{"t": 0.0, "at": Vector2(-16, -74), "dist": 185.0, "yaw": 39.0},
+			{"t": 3.2, "at": Vector2(-16, -74), "dist": 185.0, "yaw": 39.0},
+		],
+	},
+	# Act 5, 69.25 to 74.25 s: the rockets come down in the wood.
+	"ambush_impacts": {
+		"map": "ambush_meadow", "scene": "ambush", "seed": 14, "daytime": "morning", "game_camera": true,
+		"start_s": 69.0, "seconds": 5.2, "pre_roll_s": 12, "stills": [0.6, 2.0, 3.5, 5.0],
+		"camera": [
+			{"t": 0.0, "at": Vector2(5, -128), "dist": 170.0, "yaw": 25.0},
+			{"t": 5.2, "at": Vector2(5, -128), "dist": 160.0, "yaw": 12.0},
+		],
+	},
+	# Act 6, 74.5 s: the last tank.
+	"ambush_last_t34": {
+		"map": "ambush_meadow", "scene": "ambush", "seed": 14, "daytime": "morning", "game_camera": true,
+		"start_s": 73.6, "seconds": 2.4, "pre_roll_s": 12, "stills": [0.8, 1.0, 1.9],
+		"camera": [
+			{"t": 0.0, "unit": [0, "su_t34", 3], "dist": 45.0, "yaw": 110.0},
+			{"t": 2.4, "unit": [0, "su_t34", 3], "dist": 45.0, "yaw": 110.0},
+		],
+	},
+	# Act 7, 82.25 to 86.0 s: the bombers' shadows, then the sticks along the column.
+	"ambush_bombers": {
+		"map": "ambush_meadow", "scene": "ambush", "seed": 14, "daytime": "morning", "game_camera": true,
+		"start_s": 80.0, "seconds": 6.6, "pre_roll_s": 12, "stills": [1.0, 2.4, 3.6, 5.1, 6.2],
+		"camera": [
+			{"t": 0.0, "at": Vector2(0, 235), "dist": 270.0, "yaw": 90.0},
+			{"t": 6.6, "at": Vector2(0, 250), "dist": 270.0, "yaw": 90.0},
+		],
+	},
+	# Act 8, from 110 s: the meadow burns; out to the widest view, and stay.
+	"ambush_end": {
+		"map": "ambush_meadow", "scene": "ambush", "seed": 14, "daytime": "morning", "game_camera": true,
+		"start_s": 110.0, "seconds": 12.0, "pre_roll_s": 12, "stills": [1.0, 5.0, 11.0],
+		"camera": [
+			{"t": 0.0, "at": Vector2(0, 150), "dist": 230.0, "yaw": 25.0},
+			{"t": 9.0, "at": Vector2(0, 110), "dist": 600.0, "yaw": 40.0},
+			{"t": 12.0, "at": Vector2(0, 110), "dist": 600.0, "yaw": 40.0},
+		],
+	},
+	"survey_ambush_meadow": {
+		"map": "ambush_meadow", "scene": "survey", "seed": 1, "start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, 0), "dist": 1902.0, "yaw": 0.0, "pitch": 89.0, "haze": 4000.0}],
+	},
 	"survey_twin_meadow": {
 		"map": "twin_meadow", "scene": "survey", "seed": 1, "start_s": 0.5, "seconds": 1.0, "stills": [0.5],
 		"camera": [{"t": 0.0, "at": Vector2(0, 0), "dist": 1902.0, "yaw": 0.0, "pitch": 89.0, "haze": 4000.0}],
@@ -380,6 +561,9 @@ var _off: PackedStringArray = []
 var _headings: Dictionary[int, float] = {}
 ## Combat events by type since the last scout report.
 var _scout_counts: Dictionary[String, int] = {}
+var _scout_first_shot := false
+## Turrets blown off so far (ammunition explosions).
+var _scout_turrets := 0
 
 
 ## The shot named on the command line, or "".
@@ -403,7 +587,11 @@ static func start(sim_host: SimHost) -> bool:
 	sim_host.hold_fire_at_start = false
 	sim_host.weather = shot.get("weather", "")
 	sim_host.daytime = shot.get("daytime", "")
-	return sim_host.start_mission_on(int(shot.get("seed", 1)), file.simplify_path(),
+	var match_seed := int(shot.get("seed", 1))
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--trailer-seed="):
+			match_seed = int(arg.trim_prefix("--trailer-seed="))
+	return sim_host.start_mission_on(match_seed, file.simplify_path(),
 		GamePaths.map_dir(shot["map"]).simplify_path())
 
 
@@ -424,6 +612,9 @@ func _ready() -> void:
 				if part not in OFF_PARTS:
 					push_error("unknown --trailer-off part '%s'; known: %s" % [part, ", ".join(OFF_PARTS)])
 	_stills_left = (_shot.get("stills", [float(_shot["seconds"]) * 0.5]) as Array).duplicate()
+	# Effects roll with Godot's generator (where a turret lands, how a wreck
+	# smokes): the same numbers every time the shot is recorded.
+	seed(int(_shot.get("seed", 1)))
 	if not _stills_dir.is_empty():
 		DirAccess.make_dir_recursive_absolute(_stills_dir)
 
@@ -444,6 +635,9 @@ func _ready() -> void:
 		main.effects.visible_at = func(_point: Vector3) -> bool: return true
 		if main.battle_sound != null:
 			main.battle_sound.visible_at = main.effects.visible_at
+		# The rings where the own shells will land are interface too.
+		main.artillery_view._marker_material.albedo_color.a = 0.0
+		main.artillery_view._marker_smoke_material.albedo_color.a = 0.0
 		# The relation tint is part of the interface, not of the world.
 		main._enemy_material.albedo_color.a = 0.0
 		main._ally_material.albedo_color.a = 0.0
@@ -475,7 +669,8 @@ func _process(_delta: float) -> void:
 	var start_tick := roundi(float(_shot.get("start_s", 0.0)) * TICK_HZ)
 	if _frame < 0:
 		# Run-up: fast and silent, then the pre-roll at normal speed.
-		if tick >= start_tick - roundi(PRE_ROLL_S * TICK_HZ) and host.speed != 1.0:
+		var pre_roll := float(_shot.get("pre_roll_s", PRE_ROLL_S))
+		if tick >= start_tick - roundi(pre_roll * TICK_HZ) and host.speed != 1.0:
 			host.speed = 1.0
 			_silent = false
 		_place_camera(0.0)
@@ -613,6 +808,11 @@ func _place_camera(t: float) -> void:
 
 	var rig: Node3D = main.camera_rig
 	var camera: Camera3D = main.camera
+	if _player_view():
+		# The rig does what it does in a match; nothing is placed by hand.
+		camera.fov = rig.fov_deg
+		rig.snap_to(Vector3(target.x, 0.0, target.z), distance, yaw)
+		return
 	var ground := Vector3(target.x, main.sim_host.height_at(target.x, target.z), target.z)
 	rig.focus = ground
 	rig.distance = haze
@@ -632,6 +832,18 @@ func _place_camera(t: float) -> void:
 		main.sun.directional_shadow_max_distance = haze * main.camera_rig.shadow_distance_factor
 	else:
 		main.sun.directional_shadow_max_distance = clampf(haze * 2.5, 60.0, 500.0)
+
+
+## Whether the shot is taken with the game's camera alone: `game_camera`
+## and no key that places the camera freely.
+func _player_view() -> bool:
+	if not _shot.get("game_camera", false):
+		return false
+	for key: Dictionary in _shot.get("camera", []):
+		for free: String in ["pitch", "lift", "fov", "haze"]:
+			if key.has(free):
+				return false
+	return true
 
 
 ## The point a camera key looks at, right now.
@@ -716,6 +928,11 @@ func _scout_step(tick: int) -> void:
 	var seconds := _scout_seconds
 	if seconds < 0.0:
 		seconds = float(_shot.get("start_s", 0.0)) + float(_shot["seconds"])
+	var turrets := int(main.blast_effects.counts.get("turret", 0))
+	if turrets > _scout_turrets:
+		_scout_turrets = turrets
+		print("trailer-scout: %6.2f s ammunition explosion, turret %d blown off" % [
+			float(tick) / TICK_HZ, turrets])
 	if tick % (5 * TICK_HZ) < 5 and tick > 0:
 		_print_groups(tick)
 	if tick >= roundi(seconds * TICK_HZ):
@@ -726,6 +943,24 @@ func _scout_step(tick: int) -> void:
 
 func _on_scout_event(event: Dictionary) -> void:
 	_scout_counts[event["type"]] = int(_scout_counts.get(event["type"], 0)) + 1
+	if event["type"] == "shot" and not _scout_first_shot:
+		_scout_first_shot = true
+		print("trailer-scout: %6.2f s first shot by %s" % [
+			float(main.sim_host.current_tick()) / TICK_HZ, _unit_text(event.get("unit", -1))])
+	# Guns (not small arms): who fires when, and what a hit on a unit does.
+	var now := float(main.sim_host.current_tick()) / TICK_HZ
+	if event["type"] == "shot" and float(event["caliber_mm"]) >= 37.0:
+		print("trailer-scout: %6.2f s shot %s %d mm%s" % [now, _unit_text(event["unit"]),
+			roundi(event["caliber_mm"]), " (indirect)" if int(event["weapon"]) == 255 else ""])
+	if event["type"] == "hit" and float(event["caliber_mm"]) >= 37.0 and event["surface"] == "unit":
+		print("trailer-scout: %6.2f s hit %s by %s: %s, damage %d" % [now, _unit_text(event["target"]),
+			_unit_text(event["shooter"]), "penetrated" if event["penetrated"] else "bounced",
+			int(event["damage"])])
+	# Where shells, rockets and bombs come down.
+	if event["type"] == "hit" and float(event["caliber_mm"]) >= 100.0 and event["surface"] != "unit":
+		var where: Vector3 = event["position"]
+		print("trailer-scout: %6.2f s impact %d mm at (%d, %d) on %s" % [now,
+			roundi(event["caliber_mm"]), roundi(where.x), roundi(where.z), event["surface"]])
 	if event["type"] == "destroyed":
 		var at: Vector3 = event["position"]
 		print("trailer-scout: %6.2f s destroyed %s at (%d, %d) by %s" % [
@@ -756,6 +991,7 @@ func _print_groups(tick: int) -> void:
 	var owners := host.unit_owners()
 	var types := host.unit_type_ids()
 	var alive := host.unit_alive()
+	var health := host.unit_health()
 	var positions := host.current_positions()
 	var groups: Dictionary[String, Array] = {}
 	for i in ids.size():
@@ -763,11 +999,18 @@ func _print_groups(tick: int) -> void:
 			var key := "%d %s" % [owners[i], types[i]]
 			if not groups.has(key):
 				groups[key] = []
-			groups[key].append(Vector2i(roundi(positions[i].x), roundi(positions[i].z)))
+			# Place and hit points left in percent.
+			groups[key].append("(%d, %d) %d%%" % [
+				roundi(positions[i].x), roundi(positions[i].z), roundi(health[i] * 100.0)])
 	var keys := groups.keys()
 	keys.sort()
 	var text := ""
 	for key: String in keys:
 		text += "\n    %s: %s" % [key, groups[key]]
+	# Presentation only: how far the grass fire has come (16 m² per cell).
+	var fire: Node = main.grass_fire
+	if fire != null and fire.ignited > 0:
+		text += "\n    grass fire: %d cells burning, %.2f ha burning or burnt" % [
+			fire.burning(), fire.ignited * 16.0 / 10000.0]
 	print("trailer-scout: %6.2f s  %s%s" % [float(tick) / TICK_HZ, _scout_counts, text])
 	_scout_counts.clear()

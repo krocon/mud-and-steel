@@ -259,6 +259,42 @@ actions = [{{ do = "text", text = "taken" }}]
     );
 }
 
+/// Prompt 082: `barrage`, `air` and `camouflage` issue the normal commands
+/// of the units' owners.
+#[test]
+fn barrage_air_and_camouflage_are_commands_of_the_owner() {
+    let mut sim = start(&format!(
+        r#"{UNITS}
+[[group]]
+name = "rockets"
+owner = 0
+unit = "de_pzwerfer42"
+position_m = [0, 150]
+
+[[trigger]]
+id = "go"
+when = "time"
+actions = [
+  {{ do = "camouflage", group = "far" }},
+  {{ do = "barrage", group = "rockets", at = "goal", radius_m = 30 }},
+  {{ do = "air", player = 1, mission = "bomb", at = "range" }},
+]
+"#
+    ));
+    let far = sim.mission_group("far")[0];
+    assert_eq!(sim.camouflage_of(far), None);
+    run(&mut sim, 3, &[]);
+    assert!(sim.camouflage_of(far).is_some(), "no camouflage order");
+    assert_eq!(sim.snapshot().sorties.len(), 1, "no air call");
+    // The launcher sets up, then its salvo is in the air.
+    let mut fired = false;
+    for _ in 0..1200 {
+        sim.step(&[]);
+        fired |= !sim.snapshot().shells.is_empty();
+    }
+    assert!(fired, "no rocket was fired");
+}
+
 #[test]
 fn units_count_completed_and_eliminated_conditions() {
     let mut sim = start(&format!(
@@ -313,6 +349,10 @@ fn errors_name_what_is_wrong() {
         (
             "[[trigger]]\nid = \"a\"\nwhen = \"time\"\nactions = [{ do = \"spawn\", group = \"g\", unit = \"base_hq\", at = \"goal\" }]",
             "buildings cannot be spawned",
+        ),
+        (
+            "[[trigger]]\nid = \"a\"\nwhen = \"time\"\nactions = [{ do = \"air\", mission = \"zeppelin\", at = \"goal\" }]",
+            "unknown air mission",
         ),
         (
             "[[trigger]]\nid = \"a\"\nwhen = \"captured\"\npoint = \"nope\"",

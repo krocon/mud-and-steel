@@ -320,6 +320,27 @@ impl Sim {
         }
     }
 
+    /// Applies `command` for the units of `group`, once per owner, like an
+    /// order of that player.
+    fn group_command(
+        &mut self,
+        m: &MissionRt,
+        group: u16,
+        command: impl Fn(Vec<UnitId>) -> Command,
+    ) {
+        let ids = &m.groups[usize::from(group)];
+        let mut owners: Vec<PlayerId> = ids
+            .iter()
+            .filter_map(|&id| self.units.binary_search_by_key(&id, |u| u.id).ok())
+            .map(|i| self.units[i].owner)
+            .collect();
+        owners.sort_unstable();
+        owners.dedup();
+        for owner in owners {
+            self.apply(&PlayerCommand::new(owner, command(ids.clone())));
+        }
+    }
+
     fn run_action(&mut self, m: &mut MissionRt, action: &Action) {
         match action {
             Action::Text { text } => m.message = Some((text.clone(), self.tick)),
@@ -354,47 +375,52 @@ impl Sim {
                 group,
                 target,
                 engage,
-            } => {
-                // One command per owner, like an order of that player.
-                let ids = m.groups[usize::from(*group)].clone();
-                let mut owners: Vec<PlayerId> = ids
-                    .iter()
-                    .filter_map(|&id| self.units.binary_search_by_key(&id, |u| u.id).ok())
-                    .map(|i| self.units[i].owner)
-                    .collect();
-                owners.sort_unstable();
-                owners.dedup();
-                for owner in owners {
-                    self.apply(&PlayerCommand::new(
-                        owner,
-                        Command::FormationMove {
-                            units: ids.clone(),
-                            target: *target,
-                            formation: Formation::Auto,
-                            facing: None,
-                            engage: *engage,
-                        },
-                    ));
-                }
-            }
+            } => self.group_command(m, *group, |units| Command::FormationMove {
+                units,
+                target: *target,
+                formation: Formation::Auto,
+                facing: None,
+                engage: *engage,
+            }),
             Action::FireMode { group, mode } => {
-                let ids = m.groups[usize::from(*group)].clone();
-                let mut owners: Vec<PlayerId> = ids
-                    .iter()
-                    .filter_map(|&id| self.units.binary_search_by_key(&id, |u| u.id).ok())
-                    .map(|i| self.units[i].owner)
-                    .collect();
-                owners.sort_unstable();
-                owners.dedup();
-                for owner in owners {
-                    self.apply(&PlayerCommand::new(
-                        owner,
-                        Command::SetFireMode {
-                            units: ids.clone(),
-                            mode: *mode,
-                        },
-                    ));
-                }
+                self.group_command(m, *group, |units| Command::SetFireMode {
+                    units,
+                    mode: *mode,
+                });
+            }
+            Action::Barrage {
+                group,
+                target,
+                radius_m,
+                salvos,
+            } => self.group_command(m, *group, |units| Command::Barrage {
+                units,
+                target: *target,
+                radius_m: *radius_m,
+                salvos: *salvos,
+                smoke: false,
+            }),
+            Action::Air {
+                player,
+                mission,
+                target,
+                to,
+            } => {
+                let command = match to {
+                    Some(to) => Command::CallAirLine {
+                        mission: *mission,
+                        from: *target,
+                        to: *to,
+                    },
+                    None => Command::CallAir {
+                        mission: *mission,
+                        target: *target,
+                    },
+                };
+                self.apply(&PlayerCommand::new(*player, command));
+            }
+            Action::Camouflage { group, on } => {
+                self.group_command(m, *group, |units| Command::SetCamouflage { units, on: *on });
             }
             Action::Victory => {
                 let player = m.def.player;

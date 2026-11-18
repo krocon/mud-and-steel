@@ -336,7 +336,7 @@ gen-city *args:
 gen-village:
     cargo run -q --release -p cli -- gen-village
 
-# Generate the landscape maps of prompt 056 (winter_village, farms, river_land, or all) into data/maps/
+# Generate the landscape maps of prompt 056 (winter_village, farms, river_land, or all) into data/maps/; `ambush_meadow` (prompt 082, the video scene's ground) only when named
 [group('maps')]
 gen-land map="all":
     cargo run -q --release -p cli -- gen-land --map {{ map }}
@@ -582,6 +582,16 @@ strike-shots dir="build/explosions": build
 [group('godot')]
 trailer-shots *args: build
     bash tools/trailer-shots.sh {{ args }}
+
+# Cut the recorded shots `<prefix>_*` into build/trailer/<prefix>_final.mp4 in the order of the shot table: hard cuts, sound faded over 3 frames at the cuts, -14 LUFS, H.264 and AAC (prompt 082; needs ffmpeg), e.g. `just trailer-cut ambush`
+[group('godot')]
+trailer-cut prefix *out:
+    bash tools/trailer-cut.sh {{ prefix }} {{ out }}
+
+# Scout a trailer scene headless (prompt 082): who fires, hits and is destroyed when; with seeds one line per seed, e.g. `just trailer-scout ambush_end 100 1 2 3`
+[group('godot')]
+trailer-scout shot seconds *seeds: build
+    bash tools/trailer-scout.sh {{ shot }} {{ seconds }} {{ seeds }}
 
 # Measure the frame rate with 50 explosions at once, two rocket salvos and 40 cannon shots a second in every graphics quality (opens a window); `--salvos` only the salvos, `--muzzles` only the cannon shots
 [group('godot')]

@@ -13,6 +13,7 @@
 //! everything a mission changes (units appearing, orders, victory) is part
 //! of the deterministic state, the replay and saved games.
 
+use crate::air::AirMission;
 use crate::catalog::Catalog;
 use crate::combat::{CombatRules, FireMode};
 use crate::command::PlayerId;
@@ -220,6 +221,27 @@ pub enum Action {
     Victory,
     /// The human player loses.
     Defeat,
+    /// The group's units with an indirect weapon fire `salvos` salvos at
+    /// random points within `radius_m` of `target`
+    /// ([`crate::Command::Barrage`] of their owner; prompt 082).
+    Barrage {
+        group: u16,
+        target: Vec2,
+        radius_m: u16,
+        salvos: u16,
+    },
+    /// `player` calls air support on `target`
+    /// ([`crate::Command::CallAir`]), or along `target` → `to`
+    /// ([`crate::Command::CallAirLine`]); price and cooldown apply.
+    Air {
+        player: PlayerId,
+        mission: AirMission,
+        target: Vec2,
+        to: Option<Vec2>,
+    },
+    /// The group's vehicles and guns put up or take off their camouflage
+    /// ([`crate::Command::SetCamouflage`]).
+    Camouflage { group: u16, on: bool },
 }
 
 // --- Files -------------------------------------------------------------------
@@ -412,8 +434,8 @@ struct TriggerFile {
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct ActionFile {
-    /// `text`, `objective`, `spawn`, `camera`, `order`, `fire`, `victory`,
-    /// `defeat`.
+    /// `text`, `objective`, `spawn`, `camera`, `order`, `fire`, `barrage`,
+    /// `air`, `camouflage`, `victory`, `defeat`.
     #[serde(rename = "do")]
     kind: String,
     #[serde(default)]
@@ -439,6 +461,19 @@ struct ActionFile {
     /// `order`: `advance` (default, halt to fight) or `move`.
     #[serde(default)]
     order: Option<String>,
+    /// `barrage`: radius around the place and salvos per unit.
+    #[serde(default)]
+    radius_m: Option<u16>,
+    #[serde(default)]
+    salvos: Option<u16>,
+    /// `air`: who calls (default: the mission's player) and what.
+    #[serde(default)]
+    player: Option<u8>,
+    #[serde(default)]
+    mission: Option<String>,
+    /// `camouflage`: put it up (default) or take it off.
+    #[serde(default)]
+    on: Option<bool>,
 }
 
 /// The header of a mission file (for menus).
@@ -778,6 +813,28 @@ pub fn parse_mission(
                 },
                 "victory" => Action::Victory,
                 "defeat" => Action::Defeat,
+                "barrage" => Action::Barrage {
+                    group: group_of(&need(&a.group, "group")?, &mut groups),
+                    target: place(&need(&a.at, "at")?)?,
+                    radius_m: a.radius_m.unwrap_or(0),
+                    salvos: a.salvos.unwrap_or(1).max(1),
+                },
+                "air" => {
+                    let name = need(&a.mission, "mission")?;
+                    Action::Air {
+                        player: known_player(a.player.unwrap_or(player.0))?,
+                        mission: AirMission::ALL
+                            .into_iter()
+                            .find(|m| m.name() == name)
+                            .ok_or_else(|| ctx(&format!("unknown air mission '{name}'")))?,
+                        target: place(&need(&a.at, "at")?)?,
+                        to: a.to.as_deref().map(&place).transpose()?,
+                    }
+                }
+                "camouflage" => Action::Camouflage {
+                    group: group_of(&need(&a.group, "group")?, &mut groups),
+                    on: a.on.unwrap_or(true),
+                },
                 other => return Err(ctx(&format!("unknown action `do = \"{other}\"`"))),
             });
         }

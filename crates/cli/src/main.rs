@@ -119,7 +119,8 @@ enum CliCommand {
     /// Generates a landscape map of prompt 056: winter_village, farms or
     /// river_land (two or four players, supply points at real places).
     GenLand {
-        /// winter_village, farms, river_land or all.
+        /// winter_village, farms, river_land or all; ambush_meadow (prompt
+        /// 082) only when named.
         #[arg(long, default_value = "all")]
         map: String,
         /// Seed (default: the one of the committed map).

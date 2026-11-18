@@ -2848,9 +2848,49 @@ than the meadow).
 Open: concealment of infantry in tall grass (ambush rule, `data/vision.toml`
 `[ambush]`; balance and AI), slower infantry or wheels in it, a tropical
 biome (light, palms, bamboo, houses), reeds and grain fields with the same
-technique, plants giving way around soldiers, burning tall grass as ground
-fire (fire only burns objects so far; scorch marks of blasts burn it), the
+technique, plants giving way around soldiers, burning tall grass as a rule
+(the fire below is drawn only; the simulation's fire burns objects), the
 tracks raster is lost with a saved game (presentation only).
+
+#### Grass fire (prompt 082, presentation only)
+
+`scenes/world/grass_fire.gd`, created by `main.gd` on maps with tall grass.
+Nothing of it reaches the simulation: a burning meadow hurts nobody, blocks
+no sight and changes no path. [provisional] all values; not benchmarked.
+
+- **Start:** `effects.gd` reports every scorch mark (`_decal`) to
+  `grass_fire.ignite(at, size)`. Marks of at least 4 m (132 mm rockets,
+  bombs, heavy shells, exploding vehicles; an 8.8 cm shell leaves 3.3 m) set
+  the tall grass under them on fire.
+- **Spread:** a raster of 4 m cells over the map. A burning cell schedules
+  its eight neighbours that are tall grass (`SimHost.terrain_at`, asked once
+  per cell): they catch fire after the way there at 1.4 m per game second,
+  up to 55 % faster downwind and slower upwind, times a random 0.7–1.4, with
+  a 90 % chance per burning neighbour. A cell burns 9 s. The front stops
+  where the tall grass ends (short grass, tracks, roads, water, woods).
+  Time is the simulation's tick, so the fire pauses with the game and is as
+  far after a fast run-up of the trailer tool as after a slow one; its
+  random generator has a fixed seed.
+- **Burnt ground:** every cell that catches fire stamps a circle (off
+  center, 2.6–4.2 m) into channel G of the track raster (`grass_trails.gd`),
+  which plants and ground already draw as black stubble.
+- **Flames and smoke:** `fire` and `smoke_column` emitters of the effect
+  library (4 + 2 / 10 + 5 / 18 + 10 for low / medium / high) that jump to
+  another burning cell every frame; their particles stay in the world, so
+  a few systems cover the whole front. Flames are scaled 1.9, deeper orange
+  and with less glow than a wreck's fire; smoke is scaled 2.6. Emitters thin
+  out while few cells burn and skip cells the player does not see.
+- **Sound:** every half second `grass_fire.gd` tells `battle_sound.gd`
+  (`set_grass_fires`) where the fire burns nearest the listener and at a
+  second place at least 60 m from there; both get a `fire_large` loop that
+  follows them, ahead of single wrecks in the six fire voices. Level by the
+  number of burning cells: 0 dB over the loop's own at 60 cells, at most
+  +14 dB (the sample is a quiet one, judged by ear in the video).
+- **Trailer scout:** prints burning cells and the area burning or burnt.
+
+Open: a real rule (damage, sight, spreading into woods and to objects),
+embers glowing on the burnt ground, light at night, saving the fire with
+a saved game (it is lost like the tracks).
 
 ### Region updates (craters, prompt 021)
 
@@ -4516,7 +4556,8 @@ and sound, written by Godot's Movie Maker (`--write-movie`, `--fixed-fps 60`; th
   point or unit, distance, yaw, pitch, field of view), interpolated with Catmull-Rom.
   `main.gd` starts the tool with `-- --trailer=<shot>`.
 - **Scenes** are mission scripts in `data/trailer/<scene>.toml` ([MISSIONS.md](MISSIONS.md)):
-  groups and `order` actions, nothing else. They are no missions of the menu;
+  groups and actions that issue normal commands (`order`, `fire`, and since prompt
+  082 `barrage`, `air` and `camouflage`), nothing else. They are no missions of the menu;
   `SimHost.start_mission_on(seed, script, map_dir)` runs one on a map it does not lie
   next to. The simulation is untouched: who hits whom is decided by the rules, the
   shot only picks seed, moment and camera. Several shots show one scene from other
@@ -4524,17 +4565,54 @@ and sound, written by Godot's Movie Maker (`--write-movie`, `--fixed-fps 60`; th
 - **Run-up:** the tool runs the simulation at high speed and muted to two seconds
   before the shot's start, then at normal speed. Movie Maker writes from the first
   frame, so the tool prints the first frame of the shot and `tools/trailer-shots.sh`
-  cuts the run-up off with ffmpeg (stream copy, exact to the frame).
+  cuts the run-up off with ffmpeg (stream copy, exact to the frame). Effects live in
+  real time, so what starts in the fast part stays visible too long; a shot after
+  long-lived effects (rocket trails, explosion smoke) sets `pre_roll_s` above their
+  life (prompt 082).
 - **Camera:** the rig stands still (no input, no edge scrolling); the tool places the
   `Camera3D` itself, lower and flatter than the game allows, and hands focus and
   distance to the rig, which haze, depth of field and sound follow. Without `hud` the
   interface is off: HUD layer, health bars, fog of war, relation tint, supply point
-  markers; pause menu and result screen are always off.
+  markers, the rings where own shells will land; pause menu and result screen are
+  always off.
 - **Sound:** fixed bus volumes, set every frame (the game applies the settings again and mutes when its window changes focus), with 14 dB headroom (layered explosions clip otherwise; the edit sets the loudness), no music (a cut would chop it).
 - **Finding a shot:** `-- --trailer=<shot> --trailer-scout=<seconds>` (headless, with
   `--fixed-fps 60`) plays the shot's scene without a camera and prints every destroyed
   unit with time and place, shots and hits per five seconds and where the groups
-  stand; the `survey_<map>` shots show a map from above.
+  stand; the `survey_<map>` shots show a map from above. Since prompt 082 it also
+  prints every gun shot, every hit on a unit (penetrated or bounced, damage), where
+  shells, rockets and bombs come down, blown-off turrets, and the hit points left of
+  every unit. `tools/trailer-scout.sh <shot> <seconds> [seed …]` runs it; with seeds
+  (`--trailer-seed=<n>` replaces the shot's) it plays the scene once per seed and
+  prints one line each with the destroyed vehicles in order and who is left.
+- **Scene `ambush` (prompt 082):** `data/trailer/ambush.toml` on the map
+  `ambush_meadow` ([MAPS.md](MAPS.md)), seed 14: a Soviet column in tall grass runs
+  into two camouflaged Tigers at a wood's edge, fires a rocket salvo and is bombed.
+  Seventeen shots `ambush_*`, all with the player's camera, in the order of the edit;
+  the script's header lists the times. `just trailer-shots --only=ambush_…` records
+  them, `just trailer-cut ambush` builds `build/trailer/ambush_final.mp4` (76.1 s).
+  The meadow burns at the end through the grass fire (see "Grass fire").
+- **Edit (prompt 082):** `just trailer-cut <prefix>` (`tools/trailer-cut.sh`) joins
+  the recorded shots `<prefix>_*` in the order of the shot table into
+  `build/trailer/<prefix>_final.mp4`: hard cuts, every shot keeps its frames; the
+  sound is faded out and in over 1.5 frames each at every cut (nothing overlaps, so
+  picture and sound stay in step), then set to −14 LUFS with two passes of ffmpeg's
+  `loudnorm` (true peak ≤ −1.5 dB); H.264 `yuv420p` in video range (the recordings
+  are full-range MJPEG), AAC, 60 fps.
+- **The player's camera (prompt 082):** a shot with `"game_camera": true` whose keys
+  give only focus (`at` or `unit`), `dist` and `yaw` is placed by the camera rig
+  itself (`rts_camera.gd` `snap_to`), as in a match: pitch from the zoom level (45°
+  near to 65° far), distance within 15–600 m, the game's field of view, clearance
+  over ground and roofs, planes and shadow range. The keys are interpolated as
+  before, so the view pans, turns and zooms smoothly. Shots that set `pitch`,
+  `lift`, `fov` or `haze` (the measuring pans of prompts 068–080) keep the free
+  placement.
+- **Recording the same again (prompt 082):** the tool seeds Godot's random generator
+  with the shot's seed (where a turret lands), and `effect_library.gd` gives every
+  particle system a fixed seed when the game runs with `--trailer=` (random as ever
+  otherwise). Simulation, camera and timing are the same in every take; pictures were
+  identical in a march shot (270 of 270 frames) and differed in 2 of 156 frames of an
+  explosion shot (PSNR 81 dB on average). The sound is not bit-identical.
 
 ## Data flow (multiplayer)
 

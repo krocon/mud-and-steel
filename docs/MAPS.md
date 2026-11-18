@@ -897,6 +897,21 @@ woods (8 m from a tree), away from starts, supply points, roads and field
 tracks; `winter_village` has none. `cli gen-map --tall-grass` paints large
 stands over the meadows instead (map `tall_grass_test`).
 
+`just gen-land ambush_meadow` (prompt 082, only when named; seed 82) writes
+the ground of the video scene `data/trailer/ambush.toml` with the same
+building blocks: a meadow of tall grass (all of it but a few patches of
+short grass and a few single trees) in the south-east, dense wood in the
+north (edge at y ≈ -120 m, so units placed there face south: units start
+facing the map's center) and along the whole west flank (edge at x ≈ -140 m,
+machine-gun range from the line of march along x = 0). The wood is trees
+on a 5.2 m grid with a 12 m fringe of birches and young trees on a 5.4 m
+grid, so nearly every vision cell in it is forest (two trees per 8 m cell).
+A forest track leads from a clearing (player 1's start) to the edge and
+stays free of trunks for 9 m to both sides; player 0 starts in the
+south-east, off the line of march. It has no supply points and no
+buildings: a ground for scenes, not a match map. Markers `wood_edge`,
+`clearing`, `meadow`. It passes `just map-check`.
+
 `SHOT_SET=land just terrain-shots <dir> <map>` records the whole map, a
 few felled trees and every supply point (prompt 056); `SHOT_SET=tall_land`
 the tall grass of `river_land` and `farms` (prompt 073).

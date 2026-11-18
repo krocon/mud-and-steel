@@ -1,0 +1,335 @@
+# Trailer scene (prompt 082): a Soviet column crosses the tall grass of
+# `ambush_meadow` towards the wood in the north and runs into a German
+# ambush: two camouflaged Tigers at the wood's edge, infantry and MG teams
+# in the edge and in the wood along the west flank.
+# Format: docs/MISSIONS.md; played by godot/scenes/tools/trailer_shots.gd.
+#
+# Everything is a normal command of the units' owner. Times (game seconds;
+# the events are those of seed 14, the seed of the shots):
+#    0    the Tigers put up their camouflage (30 s), the Soviet infantry
+#         starts walking north beside the standing vehicles
+#   34    the vehicles drive off (tanks 20 m/s, infantry 2.2 m/s: the column
+#         stretches); the launchers halt 400 m from the wood and set up
+#   50.0  the point tank is 100 m from the wood: the Germans open fire, it
+#         blows up and loses its turret
+#   51    the other tanks spread and fire back, the launchers get their
+#         target, the infantry advances
+#   56.5  the launchers fire (until 60.75); 57.75 a Tiger blows up; 60.0 and
+#         64.75 two T-34 are destroyed
+#   65    the Germans call their bombers along the column (17 s of flight)
+#   69.25 the rockets land in the wood (until 74.25); 74.5 the last T-34
+#   82.25 the bombs fall (until 86.0)
+# Left at the end: one Tiger (42 %), the German infantry nearly whole, both
+# launchers damaged, the Soviet infantry at 56 to 100 %.
+
+[mission]
+title = "Trailer: ambush"
+player = 0
+elimination = false
+
+# --- Places ---------------------------------------------------------------------
+
+[[area]]
+name = "kill_zone"
+center_m = [0, -100]
+radius_m = 80
+
+[[spawn]]
+name = "halt"
+position_m = [0, -60]
+
+[[spawn]]
+name = "launch"
+position_m = [0, 300]
+
+[[spawn]]
+name = "infantry_goal"
+position_m = [0, 150]
+
+[[spawn]]
+name = "spread_west"
+position_m = [-70, -30]
+
+[[spawn]]
+name = "spread_east"
+position_m = [70, -40]
+
+[[spawn]]
+name = "spread_rear"
+position_m = [0, 25]
+
+[[spawn]]
+name = "wood"
+position_m = [0, -126]
+
+[[spawn]]
+name = "bombs_from"
+position_m = [0, 140]
+
+[[spawn]]
+name = "bombs_to"
+position_m = [0, 340]
+
+# --- Soviet column (player 0), heading north along x = 0 --------------------------
+
+# The column marches with "hold fire" and gets "fire at will" when the
+# ambush is sprung: units pick their targets by their own line of sight, so
+# they would fire at the hidden squads in the wood's edge from the start.
+# The point tank drives 30 m ahead of the others.
+[[group]]
+name = "t34_lead"
+owner = 0
+unit = "su_t34_76_1943"
+position_m = [0, 290]
+hold_fire = true
+
+[[group]]
+name = "t34_west"
+owner = 0
+unit = "su_t34_76_1943"
+position_m = [0, 322]
+hold_fire = true
+
+[[group]]
+name = "t34_east"
+owner = 0
+unit = "su_t34_76_1943"
+position_m = [0, 338]
+hold_fire = true
+
+[[group]]
+name = "t34_rear"
+owner = 0
+unit = "su_t34_76_1943"
+position_m = [0, 354]
+hold_fire = true
+
+# The launchers get their target by order.
+[[group]]
+name = "launchers"
+owner = 0
+unit = "su_bm13"
+position_m = [0, 376]
+hold_fire = true
+
+[[group]]
+name = "launchers"
+owner = 0
+unit = "su_bm13"
+position_m = [0, 392]
+hold_fire = true
+
+# Infantry on foot in two files beside the vehicles' lane.
+[[group]]
+name = "infantry"
+owner = 0
+unit = "su_inf_rifle_squad"
+position_m = [-12, 440]
+hold_fire = true
+
+[[group]]
+name = "infantry"
+owner = 0
+unit = "su_inf_rifle_squad"
+position_m = [12, 440]
+hold_fire = true
+
+[[group]]
+name = "infantry"
+owner = 0
+unit = "su_inf_mg_team"
+position_m = [-12, 452]
+hold_fire = true
+
+[[group]]
+name = "infantry"
+owner = 0
+unit = "su_inf_mg_team"
+position_m = [12, 452]
+hold_fire = true
+
+[[group]]
+name = "infantry"
+owner = 0
+unit = "su_inf_rifle_squad"
+position_m = [-12, 464]
+hold_fire = true
+
+[[group]]
+name = "infantry"
+owner = 0
+unit = "su_inf_rifle_squad"
+position_m = [12, 464]
+hold_fire = true
+
+[[group]]
+name = "infantry"
+owner = 0
+unit = "su_inf_rifle_squad"
+position_m = [-12, 476]
+hold_fire = true
+
+[[group]]
+name = "infantry"
+owner = 0
+unit = "su_inf_rifle_squad"
+position_m = [12, 476]
+hold_fire = true
+
+# --- German ambush (player 1) -------------------------------------------------------
+
+# The Tigers at the edge on both sides of the forest track, facing south.
+[[group]]
+name = "tigers"
+owner = 1
+unit = "de_tiger1_e"
+position_m = [-36, -117]
+hold_fire = true
+
+[[group]]
+name = "tigers"
+owner = 1
+unit = "de_tiger1_e"
+position_m = [36, -117]
+hold_fire = true
+
+# The wood's north edge around the Tigers; every place is a forest cell of
+# the vision grid (at least two trees), so the squads are hidden while silent.
+[[group]]
+name = "ambush"
+owner = 1
+unit = "de_inf_mg42_team"
+position_m = [-88, -128]
+hold_fire = true
+
+[[group]]
+name = "ambush"
+owner = 1
+unit = "de_inf_rifle_squad"
+position_m = [-60, -128]
+hold_fire = true
+
+[[group]]
+name = "ambush"
+owner = 1
+unit = "de_inf_mg42_team"
+position_m = [-41, -128]
+hold_fire = true
+
+[[group]]
+name = "ambush"
+owner = 1
+unit = "de_inf_mg42_team"
+position_m = [25, -128]
+hold_fire = true
+
+[[group]]
+name = "ambush"
+owner = 1
+unit = "de_inf_rifle_squad"
+position_m = [41, -128]
+hold_fire = true
+
+[[group]]
+name = "ambush"
+owner = 1
+unit = "de_inf_mg42_team"
+position_m = [70, -128]
+hold_fire = true
+
+# The wood along the west flank, beside the column's tail.
+[[group]]
+name = "ambush"
+owner = 1
+unit = "de_inf_mg42_team"
+position_m = [-152, 312]
+hold_fire = true
+
+[[group]]
+name = "ambush"
+owner = 1
+unit = "de_inf_rifle_squad"
+position_m = [-152, 336]
+hold_fire = true
+
+[[group]]
+name = "ambush"
+owner = 1
+unit = "de_inf_mg42_team"
+position_m = [-152, 368]
+hold_fire = true
+
+[[group]]
+name = "ambush"
+owner = 1
+unit = "de_inf_rifle_squad"
+position_m = [-152, 392]
+hold_fire = true
+
+[[group]]
+name = "ambush"
+owner = 1
+unit = "de_inf_mg42_team"
+position_m = [-146, 408]
+hold_fire = true
+
+# --- Script ---------------------------------------------------------------------
+
+[[trigger]]
+id = "start"
+when = "time"
+actions = [
+  { do = "camouflage", group = "tigers" },
+  { do = "order", group = "infantry", to = "infantry_goal", order = "move" },
+]
+
+[[trigger]]
+id = "march"
+when = "time"
+delay_s = 34
+actions = [
+  { do = "order", group = "t34_lead", to = "halt", order = "move" },
+  { do = "order", group = "t34_west", to = "halt", order = "move" },
+  { do = "order", group = "t34_east", to = "halt", order = "move" },
+  { do = "order", group = "t34_rear", to = "halt", order = "move" },
+  { do = "order", group = "launchers", to = "launch", order = "move" },
+]
+
+# The first tank enters the kill zone: fire at will.
+[[trigger]]
+id = "contact"
+after = ["march"]
+when = "area"
+area = "kill_zone"
+unit = "su_t34"
+actions = [
+  { do = "fire", group = "tigers" },
+  { do = "fire", group = "ambush" },
+]
+
+[[trigger]]
+id = "react"
+after = ["contact"]
+when = "time"
+delay_s = 1
+actions = [
+  { do = "fire", group = "t34_lead" },
+  { do = "fire", group = "t34_west" },
+  { do = "fire", group = "t34_east" },
+  { do = "fire", group = "t34_rear" },
+  { do = "fire", group = "infantry" },
+  { do = "order", group = "t34_west", to = "spread_west", order = "move" },
+  { do = "order", group = "t34_east", to = "spread_east", order = "move" },
+  { do = "order", group = "t34_rear", to = "spread_rear", order = "move" },
+  { do = "barrage", group = "launchers", at = "wood", radius_m = 35 },
+  { do = "order", group = "infantry", to = "infantry_goal", order = "advance" },
+]
+
+[[trigger]]
+id = "bombers"
+after = ["contact"]
+when = "time"
+delay_s = 15
+actions = [
+  { do = "air", player = 1, mission = "bomb", at = "bombs_from", to = "bombs_to" },
+]

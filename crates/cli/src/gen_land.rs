@@ -21,6 +21,11 @@
 //! marker) are placed with them. Writes `map.toml`, `height.png`,
 //! `terrain.png` and `objects.csv` (format: `docs/MAPS.md`).
 //!
+//! `ambush_meadow` (prompt 082, only when named) is the ground of the video
+//! scene `data/trailer/ambush.toml`: a meadow of tall grass in the south and
+//! east, dense wood in the north and along the whole west flank, a forest track
+//! from a clearing to the wood's edge. It has no supply points.
+//!
 //! Like `gen_map` it runs outside the simulation and may use floats, but
 //! only basic arithmetic and `sqrt` (exactly rounded by IEEE 754) and the
 //! simulation's random generator, so the same seed gives the same files
@@ -78,16 +83,23 @@ pub enum LandMap {
     WinterVillage,
     Farms,
     RiverLand,
+    /// Prompt 082: not one of the three match maps, generated only when
+    /// named.
+    AmbushMeadow,
 }
 
 impl LandMap {
+    /// The match maps of prompt 056 (`--map all`).
     pub const ALL: [Self; 3] = [Self::WinterVillage, Self::Farms, Self::RiverLand];
 
     pub fn parse(name: &str) -> Result<Self, String> {
         Self::ALL
             .into_iter()
+            .chain([Self::AmbushMeadow])
             .find(|m| m.name() == name)
-            .ok_or_else(|| format!("unknown map {name:?}: winter_village, farms or river_land"))
+            .ok_or_else(|| {
+                format!("unknown map {name:?}: winter_village, farms, river_land or ambush_meadow")
+            })
     }
 
     pub const fn name(self) -> &'static str {
@@ -95,6 +107,7 @@ impl LandMap {
             Self::WinterVillage => "winter_village",
             Self::Farms => "farms",
             Self::RiverLand => "river_land",
+            Self::AmbushMeadow => "ambush_meadow",
         }
     }
 
@@ -104,6 +117,7 @@ impl LandMap {
             Self::WinterVillage => 56,
             Self::Farms => 57,
             Self::RiverLand => 58,
+            Self::AmbushMeadow => 82,
         }
     }
 }
@@ -1605,6 +1619,102 @@ fn river_land(seed: u64) -> Result<Built, String> {
     Ok((plan, meta, Box::new(place)))
 }
 
+// --- Ambush meadow (prompt 082) ---------------------------------------------------
+
+/// The meadow's start in the south-east, off the line of march; the wood's
+/// in a clearing joined to the meadow by the forest track.
+const AM_STARTS: [Start; 2] = [(0, 0, 260, 400), (1, 1, 0, -400)];
+/// The forest track from the wood's edge to the clearing.
+const AM_TRACK: [(f64, f64); 4] = [(0.0, -96.0), (5.0, -210.0), (-4.0, -310.0), (0.0, -400.0)];
+/// The wood's edges: north of the map's center, so that units placed at
+/// the north edge face south (units start facing the center), and west of
+/// the line of march within machine-gun range.
+const AM_NORTH_EDGE_M: f64 = -120.0;
+const AM_WEST_EDGE_M: f64 = -140.0;
+/// Width of the fringe of young trees and birches along the edge (m).
+const AM_FRINGE_M: f64 = 12.0;
+
+/// How deep a point lies in the wood (m; negative: in the meadow). The
+/// wood fills the north and the west flank down to the south edge; both
+/// edges wander by `edge` noise.
+fn am_depth(edge: &Noise, x: f64, y: f64) -> f64 {
+    let north = AM_NORTH_EDGE_M + 26.0 * (edge.at(x, 0.0) - 0.5) - y;
+    let west = AM_WEST_EDGE_M + 26.0 * (edge.at(900.0, y) - 0.5) - x;
+    north.max(west)
+}
+
+fn ambush_meadow(seed: u64) -> Result<Built, String> {
+    let mut random = Random(Rng::new(seed ^ 0x616d_6275));
+    let mut plan = base_plan(seed, &mut random, 8, (-1.5, 3.0));
+    plan.mud_level = 2.0;
+    plan.ways.push(Way::new(&AM_TRACK, 2.0, DIRT_TRACK));
+    let meta = Meta {
+        biome: "forest",
+        weather: None,
+        starts: &AM_STARTS,
+        markers: vec![
+            ("wood_edge".to_string(), AM_TRACK[0]),
+            ("clearing".to_string(), AM_TRACK[3]),
+            ("meadow".to_string(), (0.0, 200.0)),
+        ],
+    };
+    let edge = noise(seed, 5, 60.0);
+    let stand_noise = noise(seed, 6, 70.0);
+    let single_noise = noise(seed, 7, 90.0);
+    let track = Way::new(&AM_TRACK, 2.0, DIRT_TRACK);
+    let place = move |o: &mut Objects| {
+        // The forest track stays open for tanks: no trunk within 9 m of its
+        // middle (`Objects::wood` only looks 6 m to four sides, which lets
+        // trees stand right beside a narrow track).
+        let in_wood = |x: f64, y: f64| {
+            if track.distance(x, y) < 9.0 {
+                -1.0
+            } else {
+                am_depth(&edge, x, y)
+            }
+        };
+        // Dense wood: old trees on a 5.2 m grid, so nearly every vision
+        // cell (8 m) holds the two trees that make it forest.
+        let dense: [(&str, &[&str]); 3] = [
+            ("env_tree_deciduous", &["Oak", "Beech", "Oak", "Beech"]),
+            ("env_tree_conifer", &["Spruce", "Pine", "Spruce"]),
+            ("env_tree_deciduous", &["Beech", "Oak", "OakYoung"]),
+        ];
+        o.wood(
+            &dense,
+            5.2,
+            FULL,
+            &|x, y| in_wood(x, y) > AM_FRINGE_M,
+            &stand_noise,
+        );
+        // The fringe: birches and young trees.
+        let fringe: [(&str, &[&str]); 2] = [
+            ("env_tree_birch", &["Birch", "BirchYoung"]),
+            ("env_tree_deciduous", &["OakYoung", "OakYoung", "Beech"]),
+        ];
+        o.wood(
+            &fringe,
+            5.4,
+            FULL,
+            &|x, y| {
+                let d = in_wood(x, y);
+                d > 0.0 && d <= AM_FRINGE_M
+            },
+            &stand_noise,
+        );
+        // A few single trees in the meadow, off the line of march.
+        let singles: [(&str, &[&str]); 1] = [("env_tree_deciduous", &["Oak", "Beech"])];
+        o.wood(
+            &singles,
+            70.0,
+            FULL,
+            &|x, y| am_depth(&edge, x, y) < -40.0 && x.abs() > 90.0 && single_noise.at(x, y) > 0.55,
+            &stand_noise,
+        );
+    };
+    Ok((plan, meta, Box::new(place)))
+}
+
 /// Writes the map into `options.out`.
 /// Tall grass (prompt 073), sparingly where it belongs: along the river
 /// banks of river_land (a frayed band a few to about 20 m wide) and on a few
@@ -1665,6 +1775,10 @@ fn paint_tall_grass(map: LandMap, seed: u64, meta: &Meta, wood: &[bool], terrain
                     band.at(x * 0.4, y * 0.4) * 0.88 + fine.at(x, y) * 0.12 > 0.8
                 }
                 LandMap::WinterVillage => false,
+                // The whole meadow but for a few patches of short grass.
+                LandMap::AmbushMeadow => {
+                    band.at(x * 0.4, y * 0.4) * 0.7 + fine.at(x, y) * 0.3 > 0.24
+                }
             };
             if wanted {
                 terrain[k] = TALL_GRASS;
@@ -1681,6 +1795,7 @@ pub fn generate(options: &Options) -> Result<String, String> {
         LandMap::WinterVillage => winter_village(seed)?,
         LandMap::Farms => farms(seed)?,
         LandMap::RiverLand => river_land(seed)?,
+        LandMap::AmbushMeadow => ambush_meadow(seed)?,
     };
     let (mut heights, mut terrain) = rasters(&mut plan, meta.starts);
     let bridges = match &plan.river {
@@ -1939,7 +2054,63 @@ mod tests {
                 }
                 LandMap::Farms => assert!(count("env_hedge") >= 300, "{report}"),
                 LandMap::RiverLand => assert_eq!(count("env_bridge"), 3, "{report}"),
+                LandMap::AmbushMeadow => unreachable!(),
             }
         }
+    }
+
+    /// The ground of the video scene (prompt 082): wood in the north and
+    /// along the west flank, tall grass on the meadow, the same files for
+    /// the same seed.
+    #[test]
+    fn ambush_meadow_is_half_wood_half_tall_grass() {
+        let map = LandMap::AmbushMeadow;
+        let dir = std::env::temp_dir().join(format!("mas-gen-land-ambush-{}", std::process::id()));
+        let options = Options {
+            map,
+            seed: map.default_seed(),
+            out: &dir,
+        };
+        generate(&options).unwrap();
+        let read = |f: &str| std::fs::read(dir.join(f)).unwrap();
+        let first = (read("objects.csv"), read("height.png"), read("terrain.png"));
+        generate(&options).unwrap();
+        assert!(first == (read("objects.csv"), read("height.png"), read("terrain.png")));
+        let toml = String::from_utf8(read("map.toml")).unwrap();
+        let mut loaded = Map::load(&toml, &first.1, &first.2).unwrap();
+        loaded
+            .add_objects(&String::from_utf8(first.0).unwrap())
+            .unwrap();
+        let _ = std::fs::remove_dir_all(&dir);
+        assert_eq!(loaded.starts().len(), 2);
+        let tall = sim::TerrainRules::builtin()
+            .unwrap()
+            .types
+            .iter()
+            .position(|t| t.name == "tall_grass")
+            .unwrap() as u8;
+        let at = |x: i32, y: i32| loaded.terrain_at(sim::Vec2::from_meters(x, y));
+        // Tall grass on the line of march, none under the trees.
+        let on_march = (-60..=180)
+            .step_by(20)
+            .filter(|&y| at(0, y) == tall)
+            .count();
+        assert!(on_march >= 10, "{on_march} of 13 samples are tall grass");
+        assert!((-460..=-160).step_by(20).all(|y| at(60, y) != tall));
+        let trees = |north: bool| {
+            loaded
+                .objects()
+                .iter()
+                .filter(|o| {
+                    loaded.object_kinds()[usize::from(o.kind)]
+                        .id
+                        .starts_with("env_tree")
+                        && (o.position.y < sim::Fixed::from_num(-120)) == north
+                        && o.position.x > sim::Fixed::from_num(-100)
+                })
+                .count()
+        };
+        assert!(trees(true) > 5000, "{} trees in the wood", trees(true));
+        assert!(trees(false) < 60, "{} trees in the meadow", trees(false));
     }
 }

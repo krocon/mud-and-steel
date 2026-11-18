@@ -143,6 +143,9 @@ trigger fires once.
 | `spawn` | `group`, `owner`, `unit`, `count`, `at`, `hold_fire` | Units appear around the place (not buildings) and join the group. |
 | `order` | `group`, `to`, `order` (`advance`: halt to fight on the way; `move`: drive through) | The group's living units move there, as a command of their owner. |
 | `fire` | `group`, `hold_fire` | Fire mode of the group. |
+| `barrage` | `group`, `at`, `radius_m` (0), `salvos` (1) | The group's units with an indirect weapon (mortars, howitzers, rocket launchers) fire at the place, as a `Barrage` command of their owner (prompt 082). |
+| `air` | `mission` (`recon`, `strafe`, `attack`, `bomb`, `airborne`), `at`, `to` (optional), `player` (default: the mission's) | The player calls air support on the place, with `to` along the line `at` → `to`; price and cooldown apply as for any call (prompt 082). |
+| `camouflage` | `group`, `on` (default `true`) | Vehicles and guns of the group put up or take off their camouflage (prompt 082). |
 | `camera` | `at` | The camera glides there (presentation). |
 | `victory` / `defeat` | – | The human player (and allies) win, or lose. |
 

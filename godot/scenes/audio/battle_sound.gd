@@ -136,6 +136,9 @@ var _last_seen: Dictionary[int, Vector3] = {}
 var _wrecks: Array[Dictionary] = []
 ## Burning map objects (prompt 041) by fire key: `{position, gain, sound}`.
 var _object_fires: Dictionary[int, Dictionary] = {}
+## Burning tall grass (prompt 082): a few sources `{position, gain, sound,
+## moves}` that `world/grass_fire.gd` keeps on the fire nearest the listener.
+var _grass_fires: Array[Dictionary] = []
 ## Notices.
 var _notice_at: Dictionary[String, float] = {}
 var _known_units: Dictionary[int, bool] = {}
@@ -536,7 +539,13 @@ func _assign_fires() -> void:
 		if d < (large_reach if fire.sound == "fire_large" else reach):
 			near.append([d, fire])
 	near.sort_custom(func(a: Array, b: Array) -> bool: return a[0] < b[0])
-	var wanted: Array = near.slice(0, FIRE_VOICES).map(func(entry: Array) -> Dictionary: return entry[1])
+	# A burning meadow is heard before single wrecks: its sources go first.
+	var wanted: Array = []
+	for fire in _grass_fires:
+		if hear.distance_to(fire.position) < large_reach:
+			wanted.append(fire)
+	wanted.append_array(near.slice(0, FIRE_VOICES - wanted.size()).map(
+		func(entry: Array) -> Dictionary: return entry[1]))
 	var free: Array[Dictionary] = []
 	for slot in _fire_slots:
 		if slot.wreck != null and wanted.has(slot.wreck):
@@ -552,6 +561,18 @@ func _assign_fires() -> void:
 		slot.wreck = wanted.pop_front()
 		player.global_position = slot.wreck.position
 		_start_loop(player, str(slot.wreck.get("sound", "fire")), randf() * 5.0)
+
+
+## The grass fire's sources (prompt 082): where it burns nearest the
+## listener and how loud (dB over `fire_large`). An empty list ends them.
+func set_grass_fires(points: Array[Vector3], gain: float) -> void:
+	while _grass_fires.size() > points.size():
+		_grass_fires.pop_back()
+	while _grass_fires.size() < points.size():
+		_grass_fires.append({"position": Vector3.ZERO, "sound": "fire_large", "gain": 0.0, "moves": true})
+	for i in points.size():
+		_grass_fires[i].position = points[i]
+		_grass_fires[i].gain = gain
 
 
 ## Burning map objects from the simulation (prompt 041; wrecks, keys < 0,
@@ -624,6 +645,8 @@ func _update_loops(delta: float) -> void:
 		var level := float(SoundLibrary.spec(str(wreck.get("sound", "fire"))).get("volume_db", 0.0)) + float(wreck.get("gain", 0.0))
 		if float(wreck.get("age", 0.0)) > BURN_SECONDS:
 			level += SMOLDER_DB
+		if wreck.get("moves", false):
+			player.global_position = wreck.position
 		var hidden: bool = not visible_at.call(wreck.position)
 		player.bus = "Muffled" if hidden else "Effects"
 		player.volume_db = lerpf(player.volume_db, level + (FOG_DB if hidden else 0.0), smooth)

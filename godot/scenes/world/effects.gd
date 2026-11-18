@@ -784,6 +784,9 @@ func _decal(at: Vector3, size_m: float) -> void:
 	# Tall grass burns down to stubble under the scorch mark (prompt 073).
 	if main.get("grass_trails") != null:
 		main.grass_trails.burn(at, size_m * 0.35)
+	# ... and a big blast sets the stand on fire (prompt 082).
+	if main.get("grass_fire") != null:
+		main.grass_fire.ignite(at, size_m)
 	counts["decal"] = counts.get("decal", 0) + 1
 
 

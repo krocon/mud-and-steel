@@ -72,6 +72,7 @@ const WeatherLook := preload("res://scenes/world/weather_look.gd")
 const GraphicsQuality := preload("res://scenes/world/graphics_quality.gd")
 const MapObjects := preload("res://scenes/world/map_objects.gd")
 const GrassTrails := preload("res://scenes/world/grass_trails.gd")
+const GrassFire := preload("res://scenes/world/grass_fire.gd")
 const Water := preload("res://scenes/world/water.gd")
 const ObjectsBench := preload("res://scenes/tools/objects_bench.gd")
 const LanMatch := preload("res://scenes/lan/lan_match.gd")
@@ -176,6 +177,8 @@ var fog_of_war: FogOfWar
 var effects: Effects
 ## Tracks in tall grass (prompt 073).
 var grass_trails: GrassTrails
+## Tall grass burning after big blasts (prompt 082), presentation only.
+var grass_fire: GrassFire
 var blast_effects: BlastEffects
 var strike_view: StrikeView
 ## Soldiers of infantry squads (prompt 022).
@@ -316,6 +319,10 @@ func _ready() -> void:
 	grass_trails.name = "GrassTrails"
 	add_child(grass_trails)
 	grass_trails.setup(self)
+	grass_fire = GrassFire.new()
+	grass_fire.name = "GrassFire"
+	add_child(grass_fire)
+	grass_fire.setup(self)
 	blast_effects = BlastEffects.new()
 	blast_effects.name = "BlastEffects"
 	add_child(blast_effects)
