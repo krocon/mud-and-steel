@@ -100,6 +100,22 @@ pub struct ClassRule {
     pub damaged_variant: Option<String>,
     #[serde(default)]
     pub ruin_variant: Option<String>,
+    /// Takes damage from the blast of big explosions around the impact
+    /// point ([`BlastRules`], prompt 085), not only from direct hits.
+    #[serde(default)]
+    pub blast: bool,
+    /// A damaged object no longer counts for sight (a tree stripped of its
+    /// leaves: its bare crown does not form forest).
+    #[serde(default)]
+    pub damaged_clear: bool,
+    /// A damaged object stops projectiles only up to this share of its
+    /// catalog height (a bare tree: trunk and main branches).
+    #[serde(default = "full_height")]
+    pub damaged_height_pct: u32,
+}
+
+const fn full_height() -> u32 {
+    100
 }
 
 const fn no_blocks() -> Blocks {
@@ -131,10 +147,51 @@ pub struct DamageRules {
     pub min_caliber_mm: u32,
 }
 
+/// Damage of a big explosion to the objects around its impact point
+/// (prompt 085; only classes with `blast = true`). Explosions below
+/// `min_caliber_mm` do nothing (so a mortar barrage does not add up). At
+/// the impact point an explosion of `caliber` mm deals `damage_per_mm ×
+/// (caliber − base_caliber_mm)` hit points, falling linearly to 0 at
+/// `radius_mm_per_mm × caliber` (at most `max_radius_m`).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct BlastRules {
+    pub min_caliber_mm: u32,
+    pub base_caliber_mm: u32,
+    pub damage_per_mm: u32,
+    pub radius_mm_per_mm: u32,
+    pub max_radius_m: u32,
+}
+
+impl BlastRules {
+    /// Damage at the impact point and radius (mm) of an explosion of
+    /// `caliber_mm_x10`; `None` below the threshold.
+    pub fn reach(&self, caliber_mm_x10: u32) -> Option<(u32, u32)> {
+        let base = self.base_caliber_mm * 10;
+        if caliber_mm_x10 < self.min_caliber_mm * 10
+            || caliber_mm_x10 <= base
+            || self.damage_per_mm == 0
+        {
+            return None;
+        }
+        let damage = u64::from(caliber_mm_x10 - base) * u64::from(self.damage_per_mm) / 10;
+        let radius = (u64::from(caliber_mm_x10) * u64::from(self.radius_mm_per_mm) / 10)
+            .min(u64::from(self.max_radius_m) * 1000);
+        (radius > 0).then(|| {
+            (
+                u32::try_from(damage).unwrap_or(u32::MAX),
+                u32::try_from(radius).unwrap_or(u32::MAX),
+            )
+        })
+    }
+}
+
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 struct File {
     damage: DamageRules,
+    #[serde(default)]
+    blast: Option<BlastRules>,
     class: Vec<ClassRule>,
 }
 
@@ -142,6 +199,9 @@ struct File {
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DestructionRules {
     pub damage: DamageRules,
+    /// Area damage of big explosions (`None`: only direct hits).
+    #[serde(default)]
+    pub blast: Option<BlastRules>,
     pub classes: Vec<ClassRule>,
 }
 
@@ -162,6 +222,9 @@ impl DestructionRules {
             if class.ruin_height_pct > 100 {
                 return Err(err("ruin_height_pct above 100"));
             }
+            if class.damaged_height_pct > 100 {
+                return Err(err("damaged_height_pct above 100"));
+            }
             if class.remains != Remains::Ruin
                 && (class.ruin_blocks != Blocks::None || class.ruin_height_pct != 0)
             {
@@ -175,6 +238,7 @@ impl DestructionRules {
         }
         Ok(Self {
             damage: file.damage,
+            blast: file.blast,
             classes: file.class,
         })
     }
@@ -193,6 +257,17 @@ impl DestructionRules {
 
     pub(crate) fn hash_into(&self, h: &mut StableHasher) {
         h.write_u32(self.damage.min_caliber_mm);
+        match self.blast {
+            None => h.write_u8(0),
+            Some(b) => {
+                h.write_u8(1);
+                h.write_u32(b.min_caliber_mm);
+                h.write_u32(b.base_caliber_mm);
+                h.write_u32(b.damage_per_mm);
+                h.write_u32(b.radius_mm_per_mm);
+                h.write_u32(b.max_radius_m);
+            }
+        }
         h.write_u64(self.classes.len() as u64);
         for c in &self.classes {
             h.write_u64(c.ids.len() as u64);
@@ -215,6 +290,8 @@ impl DestructionRules {
                 h.write_bytes(v.as_deref().unwrap_or("").as_bytes());
                 h.write_u8(0);
             }
+            h.write_u8(u8::from(c.blast) | u8::from(c.damaged_clear) << 1);
+            h.write_u32(c.damaged_height_pct);
         }
     }
 }
@@ -275,7 +352,17 @@ mod tests {
         assert_eq!(house.stage_at(1250), ObjectStage::Damaged);
         assert_eq!(house.stage_at(0), ObjectStage::Destroyed);
         let tree = &rules.classes[rules.class_of("env_tree_birch").unwrap()];
-        assert_eq!(tree.stage_at(1), ObjectStage::Intact);
+        assert_eq!(tree.stage_at(tree.hp), ObjectStage::Intact);
+        assert_eq!(tree.stage_at(1), ObjectStage::Damaged);
+        assert!(tree.blast && tree.damaged_clear);
+        let blast = rules.blast.unwrap();
+        // Mortars and light guns do not thin a forest; heavy charges do.
+        assert!(blast.reach(800).is_none());
+        assert!(blast.reach(750).is_none());
+        let (h105, r105) = blast.reach(1050).unwrap();
+        let (h132, r132) = blast.reach(1320).unwrap();
+        assert!(h105 < tree.hp && h105 >= tree.hp - tree.damaged_hp());
+        assert!(h132 > tree.hp && r132 > r105);
         assert!(rules.class_of("fort_bunker_mg").is_none());
     }
 

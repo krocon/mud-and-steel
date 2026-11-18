@@ -392,3 +392,109 @@ fn destruction_is_deterministic() {
     assert!(!changed.is_empty());
     assert_eq!(a, run().0);
 }
+
+/// A wood of oaks on a 4 m grid from -30 m to 30 m, offset by 2 m so no tree
+/// stands on the origin; its trees by index with their positions in meters.
+fn oak_wood() -> (String, Vec<(i32, i32)>) {
+    let mut rows = Vec::new();
+    let mut at = Vec::new();
+    for gy in -8..8 {
+        for gx in -8..8 {
+            let (x, y) = (gx * 4 + 2, gy * 4 + 2);
+            rows.push(format!(
+                "env_tree_deciduous,Oak,{},{},0",
+                x * 1000,
+                y * 1000
+            ));
+            at.push((x, y));
+        }
+    }
+    (rows.join("\n"), at)
+}
+
+/// Fires one shell of `caliber_mm_x10` from a tank 300 m south at `(x, y)`
+/// and steps until it has landed; the object events.
+fn blast_at(sim: &mut Sim, caliber_mm_x10: u32, x: i32, y: i32) -> Vec<ObjectEvent> {
+    assert!(sim.debug_rocket(UnitId(0), Vec2::from_meters(x, y), caliber_mm_x10));
+    run_until(sim, 400, |s| s.snapshot().shells.is_empty())
+}
+
+#[test]
+fn big_blasts_fell_and_strip_trees_around_the_impact() {
+    let (objects, trees) = oak_wood();
+    let run = || {
+        let mut sim = sim_with(map_with(&objects), &[(P0, TANK, 0, 300)]);
+        // 13.2 cm rocket (BM-13) between four trees.
+        let events = blast_at(&mut sim, 1320, 0, 0);
+        (sim, events)
+    };
+    let (sim, events) = run();
+    let (mut fallen, mut bare, mut intact) = (0, 0, 0);
+    for (i, &(x, y)) in (0u32..).zip(&trees) {
+        let d = f64::from(x * x + y * y).sqrt();
+        let state = sim.object_state(i).unwrap();
+        match state.stage {
+            ObjectStage::Destroyed => {
+                fallen += 1;
+                assert!(d < 6.0, "tree at {d:.1} m fell");
+                // It fell away from the impact point.
+                let (sin, cos) = sim::objects::sin_cos_deg(state.fall_deg);
+                let along = f64::from(x) * sin.to_num::<f64>() - f64::from(y) * cos.to_num::<f64>();
+                assert!(
+                    along > 0.9 * d,
+                    "tree at ({x}, {y}) fell to {}°",
+                    state.fall_deg
+                );
+                assert_eq!(sim.object_blocks(i), Some(Blocks::None));
+            }
+            ObjectStage::Damaged => {
+                bare += 1;
+                assert!((3.0..14.0).contains(&d), "tree at {d:.1} m is bare");
+                // A bare tree still blocks the way like a standing one.
+                assert_eq!(sim.object_blocks(i), Some(Blocks::Large));
+            }
+            ObjectStage::Intact => {
+                intact += 1;
+                assert!(d > 10.0, "tree at {d:.1} m untouched");
+            }
+        }
+    }
+    assert!(fallen >= 4, "{fallen} trees fell");
+    assert!(bare >= 12, "{bare} trees bare");
+    assert!(intact > 150, "{intact} trees intact");
+    assert_eq!(
+        events
+            .iter()
+            .filter(|e| e.stage != ObjectStage::Intact)
+            .count(),
+        fallen + bare
+    );
+    // The same again gives the same state.
+    let (again, _) = run();
+    assert_eq!(sim.state_hash(), again.state_hash());
+}
+
+#[test]
+fn mortars_and_light_guns_do_not_thin_a_wood() {
+    let (objects, trees) = oak_wood();
+    let mut sim = sim_with(map_with(&objects), &[(P0, TANK, 0, 300)]);
+    // 8 cm mortar and 7.5 cm rounds into the gaps between the trees.
+    for (caliber, x, y) in [(810, 0, 0), (810, 4, 0), (750, -4, 4), (810, 0, 0)] {
+        blast_at(&mut sim, caliber, x, y);
+    }
+    for i in 0..trees.len() {
+        let i = u32::try_from(i).unwrap();
+        assert_eq!(sim.object_stage(i), Some(ObjectStage::Intact), "tree {i}");
+    }
+    // A 10.5 cm shell strips a few trees but fells none.
+    blast_at(&mut sim, 1050, 0, 0);
+    let stages: Vec<ObjectStage> = (0..trees.len())
+        .map(|i| sim.object_stage(u32::try_from(i).unwrap()).unwrap())
+        .collect();
+    assert!(!stages.contains(&ObjectStage::Destroyed));
+    let bare = stages
+        .iter()
+        .filter(|&&s| s == ObjectStage::Damaged)
+        .count();
+    assert!((1..=16).contains(&bare), "{bare} trees bare after 10.5 cm");
+}

@@ -21,7 +21,13 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by prompt 078 (apartment blocks): the hashed object,
+/// Last changed by prompt 085 (trees under heavy fire): the hashed
+/// destruction rules gained `[blast]` (area damage of big explosions) and
+/// per class `blast`, `damaged_clear`, `damaged_height_pct`; trees now have
+/// a bare stage (`damaged_pct = 40`). Checked: with the old
+/// `data/destruction.toml` and without the new hashed fields the old value
+/// comes out, and the demo battle is still decided at tick 1834 by player 0.
+/// Before (`0xa074_f11f_4471_6147`), prompt 078 (apartment blocks): the hashed object,
 /// vision, destruction, infantry and fire rules gained the three
 /// `env_block_*` entries. Checked: with the old five data files the old
 /// value comes out, so the demo plays exactly as before (`test_small` has
@@ -245,7 +251,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xa074_f11f_4471_6147;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xd58a_97ab_9472_eeb7;
 
 #[test]
 fn golden_hash() {

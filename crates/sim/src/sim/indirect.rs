@@ -1083,6 +1083,9 @@ impl Sim {
                 self.ground_hit(p, caliber);
             }
         }
+        // Big blasts fell and strip the trees around (prompt 085).
+        let map = std::sync::Arc::clone(&self.map);
+        self.destruction.blast(&map, caliber, at, shell.shooter);
         // Who the blast knocks down (prompt 048), before fragments strike.
         let thrown = self.blast_reach(p, self.infantry.rules.knockdown.radius_mm(caliber));
         // Fragments. Rolls in unit and soldier order (deterministic).

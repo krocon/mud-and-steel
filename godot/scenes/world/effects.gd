@@ -34,6 +34,8 @@ const POOL_SIZES: Dictionary[String, int] = {
 	"flash": 32, "powder": 40, "blast_dust": 56, "fountain": 48, "spray": 16,
 	"impact_dust": 48, "puff": 48, "sparks": 56, "fireball": 56,
 	"explosion_smoke": 56, "debris": 56,
+	# Leaf fall of trees stripped by a big blast (prompt 085).
+	"leaves": 32,
 	"core": 48, "rays": 32, "streaks": 48, "earth_cloud": 48, "embers": 56, "dust_cloud": 24,
 	# Two salvos at once: four launches a second each, 3.2 s of smoke.
 	"rocket_blast": 26,
@@ -74,6 +76,14 @@ const EARTH_GREY := Color(0.55, 0.52, 0.48)
 ## Ground look per terrain id (data/terrain.toml) and biome: dust color kind
 ## and dust trail strength (0..1). Desert draws grass and snow as sand, winter
 ## grass and sand as snow (like the terrain shader, prompt 015).
+## Trees whose stage changed that get bursts per frame (prompt 085: a salvo
+## into a wood changes dozens in a few ticks); the rest change silently.
+const TREE_EFFECTS_PER_FRAME := 6
+## Leaves, needles and frond bits of a stripped tree (prompt 085).
+const LEAF_COLORS: Dictionary[String, Color] = {
+	"env_tree_deciduous": Color(0.36, 0.42, 0.16), "env_tree_birch": Color(0.5, 0.55, 0.2),
+	"env_tree_conifer": Color(0.2, 0.3, 0.14), "env_tree_palm": Color(0.42, 0.45, 0.2),
+}
 const GROUND_COLORS: Dictionary[String, Color] = {
 	"earth": Color(0.37, 0.3, 0.22), "sand": Color(0.82, 0.72, 0.54), "snow": Color(0.93, 0.95, 0.99),
 	"mud": Color(0.21, 0.17, 0.13), "road": Color(0.55, 0.53, 0.5), "water": Color(0.88, 0.92, 0.96),
@@ -207,6 +217,7 @@ var shake_enabled := true
 ## Bursts, lights, decals and wrecks started since the start (self-test,
 ## tools); key = effect kind.
 var counts: Dictionary[String, int] = {}
+var _tree_effects_left := TREE_EFFECTS_PER_FRAME
 
 var main: Node3D
 var sim_host: SimHost
@@ -276,6 +287,7 @@ func _process(delta: float) -> void:
 
 func _process_effects(delta: float) -> void:
 	_time += delta
+	_tree_effects_left = TREE_EFFECTS_PER_FRAME
 	_configure()
 	_start_pending()
 	_update_lights(delta)
@@ -595,6 +607,21 @@ func object_event(event: Dictionary) -> void:
 	var dust: Color = GROUND_COLORS["object"]
 	var key := "object_" + str(event.remains if event.stage == "destroyed" else event.stage)
 	counts[key] = counts.get(key, 0) + 1
+	if str(event.remains) == "fallen":
+		# A salvo into a wood changes dozens of trees in a few ticks: only
+		# the first few per frame get their bursts (prompt 085).
+		if _tree_effects_left <= 0:
+			counts["object_tree_skipped"] = counts.get("object_tree_skipped", 0) + 1
+			return
+		_tree_effects_left -= 1
+	if event.stage == "damaged" and str(event.remains) == "fallen":
+		# Stripped by a big blast (prompt 085): leaves, needles or fronds
+		# fall; a winter tree that had none drops only a few twigs.
+		var leafless: bool = str(event.id) == "env_tree_deciduous" and str(event.variant) == "Bare"
+		if not leafless:
+			_burst("leaves", at + Vector3.UP * 9.0, Basis.IDENTITY, 1.0, _leaf_color(str(event.id)))
+		_burst("debris", at + Vector3.UP * 6.0, Basis.IDENTITY, 0.5)
+		return
 	if event.stage == "damaged":
 		var s := 1.2
 		_burst("debris", at + Vector3.UP * 3.0, Basis.IDENTITY, s)
@@ -623,6 +650,11 @@ func object_event(event: Dictionary) -> void:
 			_burst("blast_dust", at + Vector3.UP * 0.2, Basis.IDENTITY, 0.8, _ground_color(at))
 		_:
 			_burst("puff", at + Vector3.UP * 0.3, Basis.IDENTITY, 1.2, _ground_color(at))
+
+
+## Color of the leaves a tree of catalog `id` drops (prompt 085).
+func _leaf_color(id: String) -> Color:
+	return LEAF_COLORS.get(id, LEAF_COLORS["env_tree_deciduous"])
 
 
 ## A vehicle explosion of relative size `s` (1 = medium tank).

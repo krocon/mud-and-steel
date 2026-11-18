@@ -311,3 +311,13 @@ erfasst hat. Gesamtlänge damit 76,1 s.
 - Der Brandton stammt aus einer leisen Aufnahme und ist kräftig angehoben
   (bis +14 dB); im Schlussbild liegt er etwa auf dem Pegel der Motoren am
   Anfang.
+
+### Nachtrag Prompt 085 (Bäume unter schwerem Feuer)
+
+Seit Prompt 085 fällen und entlauben Explosionen ab 10 cm die Bäume ringsum.
+Die Raketensalve in den Waldrand (Spielsekunde 69–74) hinterlässt jetzt eine
+Schneise aus umgestürzten und kahlen Bäumen, und die Simulation verläuft
+danach anders (andere Hashes). Die Aufnahmen ab `ambush_impacts` zeigen den
+alten Stand; bei einer Neuaufnahme die Szene ab der Salve neu abnehmen
+(`just trailer-scout`), die Zeitpunkte davor bleiben gleich.
+

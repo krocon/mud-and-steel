@@ -28,6 +28,12 @@
 #   ruin_height_pct  share of the catalog height (ruins only)
 #   crush_min_mass_kg  vehicles at least this heavy (catalog mass_kg) flatten
 #                the object when their footprint covers it (0 = never)
+#   blast        true: also damaged by the blast of big explosions around
+#                the impact point ([blast]), not only by direct hits
+#   damaged_clear  true: a damaged object no longer counts for sight (a bare
+#                tree is no forest)
+#   damaged_height_pct  a damaged object stops projectiles only up to this
+#                share of its catalog height (default 100)
 #   damaged_variant / ruin_variant  model variants (assets-src/blueprints/
 #                neutral/<id>.toml) a map places for an object that starts
 #                damaged or destroyed; the presentation shows them
@@ -39,13 +45,46 @@
 # Rounds below this caliber do not damage objects.
 min_caliber_mm = 20
 
-# --- Trees: one 7.5 cm hit fells them -------------------------------------------
+# Blast of big explosions on the objects around the impact point (prompt 085;
+# only classes with `blast = true`: trees so far). Explosions below
+# `min_caliber_mm` (shells, rockets, bombs as data/air.toml converts them,
+# exploding dumps) do nothing, so mortar and gun fire never adds up to a
+# cleared wood. Above it, an explosion of caliber c deals `damage_per_mm` ×
+# (c − `base_caliber_mm`) hit points at the impact point, falling linearly to
+# 0 at `radius_mm_per_mm` × c (at most `max_radius_m`). With the trees below
+# (400 hp, bare at 160 hp or less, i.e. after 240 damage):
+#   8 cm mortar, 7.5 cm gun, tank guns: nothing (direct hits only)
+#   10.5 cm howitzer: 330 at the point, strips trees within  5 m, fells none
+#   12 cm mortar: 420, fells within 1 m, strips within 9 m
+#   13.2 cm rocket (BM-13): 492, fells within 4 m, strips within 12 m
+#   15 cm howitzer / rocket: 600, fells within 9 m, strips within 16 m
+#   SC 250 bomb (158 mm): 648, fells within 11 m, strips within 18 m
+# Blasts do not add up (direct hits do): a tree keeps at most what an intact
+# one has left after the strongest blast, so a salvo into a wood leaves a lane
+# of felled trees around the impacts among bare ones instead of clearing it.
+# Game values: no source gives such radii for trees.
+# [provisional]
+[blast]
+min_caliber_mm = 100
+base_caliber_mm = 50
+damage_per_mm = 6
+radius_mm_per_mm = 180
+max_radius_m = 30
 
+# --- Trees: one 7.5 cm hit fells them; big blasts fell or strip them -------------
+
+# Damaged = bare (prompt 085): stripped of leaves, needles or fronds. The bare
+# crown does not count as forest for sight; projectiles are stopped by trunk
+# and main branches (half the height); paths stay blocked as by a standing
+# tree. A bare tree still falls to further hits.
 [[class]]
 ids = ["env_tree_deciduous", "env_tree_conifer", "env_tree_birch", "env_tree_palm"]
 hp = 400
-damaged_pct = 0
+damaged_pct = 40
 remains = "fallen"
+blast = true
+damaged_clear = true
+damaged_height_pct = 50
 
 # --- Field boundaries --------------------------------------------------------------
 

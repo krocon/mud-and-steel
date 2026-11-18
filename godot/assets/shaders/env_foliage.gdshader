@@ -26,6 +26,11 @@ void vertex() {
 	v_local = VERTEX;
 	vec3 inst = (MODEL_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
 	VERTEX += wind_offset(VERTEX, COLOR.g, COLOR.b, inst, TIME) * (1.0 - env_fallen);
+	// A bare tree (prompt 085): every card collapses to one point, so its
+	// triangles have no area and draw nothing (cheaper than discarding).
+	if (env_bare > 0.5) {
+		VERTEX = vec3(0.0);
+	}
 	v_world_normal = normalize((MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz);
 	v_rest_normal = normalize(NORMAL);
 	v_tint = hash1(inst * 0.37 + vec3(COLOR.b * 13.0));

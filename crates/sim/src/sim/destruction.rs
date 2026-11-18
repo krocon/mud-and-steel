@@ -63,6 +63,10 @@ pub(super) struct Destruction {
     buckets: Vec<Vec<u32>>,
     /// Ground areas of objects destroyed this tick (not yet applied).
     pending: Vec<(Vec2, Vec2)>,
+    /// Ground areas of objects that only changed how they affect sight
+    /// this tick (bare trees, prompt 085): vision cells only, no paths.
+    #[serde(default)]
+    pending_sight: Vec<(Vec2, Vec2)>,
     /// Events of the last tick (derived, not hashed).
     pub(super) events: Vec<ObjectEvent>,
 }
@@ -115,6 +119,7 @@ impl Destruction {
             rows,
             buckets: vec![Vec::new(); (columns * rows) as usize],
             pending: Vec::new(),
+            pending_sight: Vec::new(),
             events: Vec::new(),
             rules,
         };
@@ -139,6 +144,10 @@ impl Destruction {
             // grids were built from their kind and are corrected once.
             if d.kind_stage[k] == ObjectStage::Destroyed {
                 d.pending.push(area(object, kind.shape));
+            } else if d.kind_stage[k] == ObjectStage::Damaged
+                && d.kind_class[k].is_some_and(|c| d.rules.classes[c].damaged_clear)
+            {
+                d.pending_sight.push(area(object, kind.shape));
             }
         }
         d
@@ -215,8 +224,21 @@ impl Destruction {
         let Some(class) = self.kind_class[k].map(|c| &self.rules.classes[c]) else {
             return intact;
         };
-        if self.state(map, i).stage != ObjectStage::Destroyed {
-            return intact;
+        match self.state(map, i).stage {
+            ObjectStage::Intact => return intact,
+            // A bare tree (prompt 085): no forest, trunk and branches only.
+            ObjectStage::Damaged => {
+                return Effective {
+                    sight: if class.damaged_clear {
+                        Sight::Clear
+                    } else {
+                        intact.sight
+                    },
+                    height: kind.height * Fixed::from_num(class.damaged_height_pct) / 100,
+                    ..intact
+                };
+            }
+            ObjectStage::Destroyed => {}
         }
         match class.remains {
             // Rubble and wall stumps with gaps: they stop projectiles but
@@ -280,6 +302,55 @@ impl Destruction {
         taken
     }
 
+    /// The blast of an explosion of `caliber_mm_x10` at `at` damages the
+    /// objects around it whose class takes blast damage (prompt 085),
+    /// falling with the distance; destroyed ones fall away from the impact
+    /// point. Blasts do not add up: an object keeps at most what an intact
+    /// one has left after this blast (the strongest blast decides; direct
+    /// hits still add), so a salvo leaves a lane of felled trees around the
+    /// impacts in a wood of bare ones rather than clearing it. Objects in
+    /// index order (deterministic).
+    pub(super) fn blast(&mut self, map: &Map, caliber_mm_x10: u32, at: Vec3, shooter: UnitId) {
+        let Some((center, radius_mm)) = self.rules.blast.and_then(|b| b.reach(caliber_mm_x10))
+        else {
+            return;
+        };
+        let p = at.ground();
+        let radius = Fixed::from_num(radius_mm) / 1000;
+        let reach = Vec2::new(radius, radius);
+        for i in self.query(p - reach, p + reach) {
+            let Some(class) = self.class(map, i) else {
+                continue;
+            };
+            if !class.blast || class.hp == 0 {
+                continue;
+            }
+            let mut state = self.state(map, i);
+            if state.stage == ObjectStage::Destroyed {
+                continue;
+            }
+            let away = map.objects()[i as usize].position - p;
+            let d = away.length();
+            if d >= radius {
+                continue;
+            }
+            let damage = (Fixed::from_num(center) * (radius - d) / radius).to_num::<u32>();
+            if damage == 0 {
+                continue;
+            }
+            let left = class.hp.saturating_sub(damage);
+            if left >= state.hp {
+                continue;
+            }
+            state.hp = left;
+            let stage = class.stage_at(state.hp);
+            if stage == ObjectStage::Destroyed {
+                state.fall_deg = heading_deg(away);
+            }
+            self.set(map, i, state, stage, at, ObjectCause::Hit(shooter));
+        }
+    }
+
     /// Fire (prompt 041) takes `damage` hit points of object `i`; the
     /// fire was started by `by`. Returns the damage taken.
     pub(super) fn burn(&mut self, map: &Map, i: u32, damage: u32, at: Vec3, by: UnitId) -> u32 {
@@ -324,9 +395,13 @@ impl Destruction {
             at,
             cause,
         });
+        let shape = map.object_kinds()[usize::from(object.kind)].shape;
         if stage == ObjectStage::Destroyed {
-            let shape = map.object_kinds()[usize::from(object.kind)].shape;
             self.pending.push(area(object, shape));
+        } else if stage == ObjectStage::Damaged
+            && self.class(map, i).is_some_and(|c| c.damaged_clear)
+        {
+            self.pending_sight.push(area(object, shape));
         }
     }
 
@@ -346,6 +421,35 @@ impl Destruction {
 fn area(object: &MapObject, shape: Shape) -> (Vec2, Vec2) {
     let extent = object.half_extent(shape);
     (object.position - extent, object.position + extent)
+}
+
+/// `areas` with overlapping or touching rectangles joined into their
+/// bounding box, so a salvo that fells a wood rebuilds a few large areas
+/// instead of hundreds of small overlapping ones. Deterministic: depends
+/// only on the order of `areas`.
+fn merge_areas(mut areas: Vec<(Vec2, Vec2)>) -> Vec<(Vec2, Vec2)> {
+    let mut i = 0;
+    while i < areas.len() {
+        let mut j = i + 1;
+        let mut grown = false;
+        while j < areas.len() {
+            let (a, b) = (areas[i], areas[j]);
+            if a.0.x <= b.1.x && b.0.x <= a.1.x && a.0.y <= b.1.y && b.0.y <= a.1.y {
+                areas[i] = (
+                    Vec2::new(a.0.x.min(b.0.x), a.0.y.min(b.0.y)),
+                    Vec2::new(a.1.x.max(b.1.x), a.1.y.max(b.1.y)),
+                );
+                areas.swap_remove(j);
+                grown = true;
+            } else {
+                j += 1;
+            }
+        }
+        if !grown {
+            i += 1;
+        }
+    }
+    areas
 }
 
 /// Whole-degree heading (`0..360`, clockwise from north = -y) closest to
@@ -422,10 +526,13 @@ impl Sim {
     /// their cells, routes through them, vision cells and the viewsheds
     /// that contain them.
     pub(super) fn apply_destruction(&mut self) {
-        let areas = std::mem::take(&mut self.destruction.pending);
-        if areas.is_empty() {
+        let areas = merge_areas(std::mem::take(&mut self.destruction.pending));
+        let mut sight_areas = std::mem::take(&mut self.destruction.pending_sight);
+        if areas.is_empty() && sight_areas.is_empty() {
             return;
         }
+        sight_areas.extend_from_slice(&areas);
+        let sight_areas = merge_areas(sight_areas);
         let map = Arc::clone(&self.map);
         let d = &self.destruction;
         let objects = |low: Vec2, high: Vec2| {
@@ -450,8 +557,8 @@ impl Sim {
         let vision = Arc::make_mut(&mut self.vision.grid);
         let half_cell = vision.cell / 2;
         let half = Vec2::new(half_cell, half_cell);
-        let mut cells = Vec::with_capacity(areas.len());
-        for &(low, high) in &areas {
+        let mut cells = Vec::with_capacity(sight_areas.len());
+        for &(low, high) in &sight_areas {
             let (c0, r0) = vision.cell_of(low);
             let (c1, r1) = vision.cell_of(high);
             let (c0, r0, c1, r1) = (c0 as u32, r0 as u32, c1 as u32, r1 as u32);

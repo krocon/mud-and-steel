@@ -776,7 +776,7 @@ cannot be destroyed.
 
 | Objects | Hit points | Damaged at | Destroyed |
 |---|---|---|---|
-| Trees | 400 | – | fall in the flight direction; block nothing, no forest |
+| Trees | 400 | 40 %: bare (prompt 085): no forest, stop projectiles up to half the height, block paths as before | fall in the flight direction (away from a blast); block nothing, no forest |
 | Hedges / dry-stone walls | 600 / 1200 | – | gone (a gap) |
 | Fences / barbed wire | – | – | flattened by vehicles from 2.5 t / 8 t |
 | Mud house, barn, farmhouse (brick, stone) | 1800, 2000, 2500 (3000, 3500) | 50 % | ruin: blocks tanks only, stops projectiles up to 40 % of the height |
@@ -785,7 +785,27 @@ cannot be destroyed.
 
 A 7.5 cm round (562 points, the vehicle damage formula of `combat.toml`)
 fells a tree, three bring down a wall segment, a farmhouse is damaged after
-three and a ruin after five.
+three and a ruin after five. A 5 cm round (250) strips a tree it hits, two
+3.7 cm rounds do too.
+
+**Blast on trees (prompt 085).** `[blast]` in `data/destruction.toml`: every
+explosion that goes through `explode` (shells, rockets of launchers and the
+heavy strike, bombs at their converted caliber, exploding dumps) of at least
+10 cm damages the objects of classes with `blast = true` (trees so far)
+around the impact point: 6 × (caliber − 50 mm) hit points at the point,
+falling linearly to 0 at 0.18 m per mm of caliber (at most 30 m). A 10.5 cm
+shell strips trees within 5 m and fells none; a 13.2 cm rocket fells within
+4 m and strips within 12 m; 15 cm fells within 9 m and strips within 16 m.
+Blasts do not add up (an object keeps at most what an intact one has left
+after the strongest blast; direct hits still add), so a salvo leaves a lane
+of felled trees among bare ones instead of clearing a wood. Felled trees fall
+away from the impact point (heading of impact → tree from the sine table).
+Mortars, light guns and tank guns (below 10 cm) change trees only by direct
+hits. The objects are found through the object index (`Destruction::query`),
+in index order. A bare tree (`damaged_clear`, `damaged_height_pct = 50`)
+counts for no forest cell, so the vision cells of its area are rebuilt
+(`pending_sight`, no path rebuild); paths stay blocked as by a standing
+tree. Fire: a bare tree can still catch fire; a felled one cannot.
 
 ### State and per tick
 
@@ -811,7 +831,10 @@ acts follows from its stage (`effective`: blocking class, sight, height):
    flags and costs rebuilt (`rebuild_cells`), the components labeled once
    for all of them, and units whose route touches the cells plan again; the
    vision cells are rebuilt (`VisionGrid::rebuild_objects`, copy-on-write of
-   the shared grid) and every viewshed that covers them is queued.
+   the shared grid) and every viewshed that covers them is queued. Objects
+   that only changed their sight (bare trees) rebuild vision cells only.
+   Overlapping areas are joined into their bounding box first (a salvo into
+   a wood rebuilds a few areas, not hundreds).
 
 Events (`Sim::object_events`: object, new stage, remains, fall direction,
 point, cause `Hit(shooter)` or `Crushed(vehicle)`) are derived, not hashed.
@@ -824,6 +847,11 @@ object index adds a few milliseconds to `Sim::new` (198 ms in all); a tick in
 which objects are destroyed takes about 8 ms, almost all of it the one flood
 fill of the component grids over the whole map (ticks without destruction
 are unchanged). Several objects in one tick cost the same flood fill.
+A salvo into the densest wood (`just salvo-bench <map>`, 200 moving units,
+prompt 085): 16 × 13.2 cm fells 24 and strips 73 trees on `test_large` (17 /
+83 on `city_large`), worst tick 11.4 ms (10.2); 18 × 15 cm, six per tick,
+fells 69 and strips 70 (74 / 70), worst tick 14.3 ms (11.9); ticks without
+impacts 2–4 ms. Far below the 50 ms budget.
 
 ### Bridge and Godot
 
@@ -834,10 +862,18 @@ chunk, slot of `object_groups`). `scenes/world/destruction_view.gd` reads
 the events; `map_objects.gd` collapses the object's MultiMesh instance and
 puts a single node in its place: the `Damaged` or `Ruin` variant, a tree
 that tips over in 1.6 s next to an `env_tree_stump`, a flattened fence or
-wire; walls and hedges just vanish. `effects.gd` (`object_event`) throws
+wire; walls and hedges just vanish. A bare tree (prompt 085) is the leafless
+winter oak (`Bare`) for grown oaks and beeches; young oaks, conifers, birches
+and palms keep their model with the instance uniform `env_bare = 1`, which
+folds every foliage card to a point in `env_foliage.gdshader` (no new models,
+no extra draw calls; on winter maps the oaks are bare already and drop
+nothing). A bare tree that falls later falls bare. `effects.gd` (`object_event`) throws
 debris, dust clouds and a scorch mark for a collapsing building, splinters
 and dust where a tree's crown lands, debris for walls and a puff for crushed
-fences, only at visible points. Objects change in the fog too (the stage is
+fences, only at visible points. A stripped tree drops leaves, needles or
+frond bits (`leaves`, 4 s, tinted per tree type) and a few twigs; it makes
+no sound of its own (the blast is heard). At most six trees per frame get
+bursts, the rest change silently (`TREE_EFFECTS_PER_FRAME`). Objects change in the fog too (the stage is
 not secret, only the effects are hidden).
 
 ### Decisions
@@ -847,6 +883,9 @@ not secret, only the effects are hidden).
 | Where the state lives | Next to the unchanged map, only deviations | The map and its hash stay the loaded map; a copy-on-write of a 4 km map per hit would be expensive, and a map's kinds often lack the ruin variant. |
 | Rules outside `SimConfig` | Built in like `data/objects.toml`, hashed | Bound to the map objects; keeps `SimConfig` (shared by every caller) unchanged. The state hash reports differing rules. |
 | Damage | Direct hits, caliber² like vehicles, from 20 mm | Consistent with prompt 017; rifles do not fell trees. Splash comes with indirect fire. |
+| Blast on trees (prompt 085) | From 10 cm, linear falloff, the strongest blast decides; only classes with `blast = true` | Heavy charges thin a wood visibly; mortars and guns must not clear it shot by shot; adding up let one salvo clear a whole wood (105 of ~110 trees). Houses, walls and hedges can opt in later with the same flag. |
+| Bare trees and sight (prompt 085) | No forest at all; projectiles up to half the height; paths unchanged | A stripped crown hides nothing in an 8 m cell; counting half would need weights in the forest count. The trunk and main branches still stop rounds, and the standing trunks still keep tanks out. |
+| Bare trees in Godot (prompt 085) | Winter oak model for oaks and beeches, foliage folded away in the shader for the rest | Uses what exists: no new models, thumbnails or draw calls. |
 | Ruins and sight | Ruins block no sight | At 8 m vision cells a ruin would blind the infantry inside it; rubble has gaps. Cover against fire comes from the projectile height. |
 | Felled trees | Block nothing | Tanks drive over trunks; "the forest thins" follows from the forest count of the vision cells. |
 | Fall direction | Flight direction in whole degrees from the sine table | Deterministic without floats or randomness. |
@@ -856,8 +895,12 @@ not secret, only the effects are hidden).
 ### Open
 
 - Bridges cannot be shot down yet (`Sim::set_bridge_intact` exists; what
-  happens to units on the deck is open), splash damage (HE radius), rubble
-  as an obstacle of its own, fires in buildings. Craters: [Terrain
+  happens to units on the deck is open); blast damage to houses, walls,
+  hedges, fences and bridges (only trees take it, prompt 085); rubble
+  as an obstacle of its own, fires in buildings.
+- Trees (prompt 085): splintered stumps as an obstacle of their own; tree
+  bursts (shells exploding in the crowns and showering the infantry below);
+  regrowth and seasons; the radii are game values without a source. Craters: [Terrain
   deformation](#terrain-deformation).
 - Ruins stop rounds below their height; soldiers inside are hit through
   the rubble with an exposure chance by stance, and occupants of a
@@ -1293,8 +1336,9 @@ bunker (2500) or a farmhouse.
   the Soviet catalog entries name no smoke rounds, and tanks have no smoke
   dischargers in the catalog (the 75 mm M89 smoke round of US tank guns is
   not used for direct fire).
-- Shells do not hit aircraft or anything in flight; HE does not damage
-  objects around the impact point (only the one hit); no counter-battery,
+- Shells do not hit aircraft or anything in flight; HE from 10 cm fells
+  and strips trees around the impact point (prompt 085), other objects take
+  only the direct hit; no counter-battery,
   sound ranging or ammunition limits.
 
 ## Fire

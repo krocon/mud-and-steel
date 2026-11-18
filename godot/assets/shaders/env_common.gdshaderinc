@@ -19,6 +19,9 @@ instance uniform float env_char = 0.0;
 // Fallen or flattened (prompt 056, map_objects.gd _falling): 1 = lying, no
 // wind sway.
 instance uniform float env_fallen = 0.0;
+// Stripped of leaves by a big blast (prompt 085, map_objects.gd): 1 = the
+// foliage cards fold away (env_foliage.gdshader), trunk and limbs stay.
+instance uniform float env_bare = 0.0;
 
 // Soot over the albedo of a charred object; a little texture stays visible.
 vec3 charred(vec3 albedo, float amount) {

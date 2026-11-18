@@ -85,6 +85,21 @@ cells and queues the viewsheds that cover them. `just crater-bench` with
 per tick with the full relabeling, 6.0 / 6.7 ms with the local one, same
 state hash.
 
+Salvos into a wood (prompt 085, `just salvo-bench <map>`: the densest 64 m
+square of trees, 200 moving units, release, Apple M1 Max). Big blasts fell
+and strip the trees around them; felled trees rebuild path and vision cells,
+bare ones vision cells only, overlapping areas joined per tick:
+
+| Map | Salvo | Felled / bare | Ticks before | Worst tick |
+|---|---|---|---|---|
+| `test_large` | 16 × 13.2 cm, 2 per tick | 24 / 73 | max 5.6 ms | 11.4 ms |
+| `test_large` | 18 × 15 cm, 6 per tick | 69 / 70 | max 5.4 ms | 14.3 ms (70 trees in the tick) |
+| `city_large` | 16 × 13.2 cm, 2 per tick | 17 / 83 | max 9.3 ms | 10.2 ms |
+| `city_large` | 18 × 15 cm, 6 per tick | 74 / 70 | max 8.8 ms | 11.9 ms (70 trees in the tick) |
+
+Far below the 50 ms tick budget. In Godot at most six changed trees per frame
+get leaf, splinter and dust bursts (`effects.gd`), the rest change silently.
+
 All simulation budgets are met. What changed:
 
 1. **Path components** (`PathGrid::relabel_components_in`): every wreck

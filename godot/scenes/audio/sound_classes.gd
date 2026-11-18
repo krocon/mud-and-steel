@@ -120,6 +120,9 @@ static func hit_class(event: Dictionary, target_infantry: bool, water: bool) -> 
 ## Sound class of a map object stage event (`SimHost.take_object_events`).
 static func object_class(event: Dictionary) -> String:
 	if event.get("stage", "") == "damaged":
+		# A tree stripped by a big blast (prompt 085) is heard in the blast.
+		if str(event.get("remains", "")) == "fallen":
+			return ""
 		return "building_damage"
 	match str(event.get("remains", "")):
 		"ruin":

@@ -250,6 +250,19 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"start_s": 68.0, "seconds": 3.0, "stills": [0.5, 1.6, 2.8],
 		"camera": [{"t": 0.0, "at": Vector2(0, -105), "dist": 260.0, "yaw": 0.0}],
 	},
+	# Trees under heavy fire (prompt 085): the launchers' salvo into the
+	# wood, before it lands and ten seconds after the last rocket, from the
+	# side and from above. Only when named.
+	"survey_forest_blast_side": {
+		"map": "ambush_meadow", "scene": "ambush", "seed": 14, "daytime": "day", "game_camera": true,
+		"start_s": 66.0, "seconds": 19.0, "stills": [0.5, 18.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, -125), "dist": 120.0, "yaw": 0.0}],
+	},
+	"survey_forest_blast_top": {
+		"map": "ambush_meadow", "scene": "ambush", "seed": 14, "daytime": "day",
+		"start_s": 66.0, "seconds": 19.0, "stills": [0.5, 18.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, -125), "dist": 170.0, "yaw": 0.0, "pitch": 80.0}],
+	},
 	"survey_farms": {
 		"map": "farms", "scene": "survey", "seed": 1, "start_s": 0.5, "seconds": 1.0, "stills": [0.5],
 		"camera": [{"t": 0.0, "at": Vector2(0, 0), "dist": 1902.0, "yaw": 0.0, "pitch": 89.0, "haze": 4000.0}],

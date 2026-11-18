@@ -436,6 +436,28 @@ static func build(kind: String, factor: float, soft: bool, wind: Vector2) -> GPU
 				Color(1.2, 1.2, 1.2, 0), Color(1.2, 1.2, 1.2, 0.95), Color(1.15, 1.15, 1.15, 0.65),
 				Color(1.15, 1.15, 1.15, 0.25), Color(1.15, 1.15, 1.15, 0)], [0.0, 0.02, 0.3, 0.7, 1.0], true)
 			material = _material("billow", EffectTextures.billow(), 0.0, soft)
+		"leaves":
+			# Leaves, needles or frond bits falling from a tree stripped by a
+			# big blast (prompt 085): small lit flakes thrown out of the crown,
+			# then fluttering down slowly; tinted with the foliage color.
+			amount = 40
+			p.lifetime = 4.0
+			p.explosiveness = 0.9
+			pm.lifetime_randomness = 0.3
+			size = 0.22
+			pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
+			pm.emission_box_extents = Vector3(3.0, 2.5, 3.0)
+			_cone(pm, Vector3.UP, 80.0, 1.0, 5.0)
+			pm.gravity = Vector3(0, -2.0, 0) + drift * 0.5
+			pm.damping_min = 1.5
+			pm.damping_max = 3.0
+			pm.scale_min = 0.5
+			pm.scale_max = 1.3
+			pm.angular_velocity_min = -360.0
+			pm.angular_velocity_max = 360.0
+			_turbulence(pm, 0.8)
+			pm.color_ramp = _ramp([Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 0)], [0.0, 0.8, 1.0])
+			material = _material("lit", EffectTextures.clod(), 0.0, false)
 		"debris":
 			# Dark tumbling fragments (sprites: a mesh with a StandardMaterial3D
 			# leaked its shader at exit).

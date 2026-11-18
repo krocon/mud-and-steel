@@ -166,6 +166,9 @@ var build_msec := 0.0
 var swapped: Dictionary[int, Node3D] = {}
 ## Objects charred by fire (prompt 041): object index -> amount 0..1.
 var charred: Dictionary[int, float] = {}
+## Trees stripped of their leaves (prompt 085): object index -> true; a
+## bare tree that falls later falls bare.
+var bare: Dictionary[int, bool] = {}
 
 var _objects_root: Node3D
 ## Single nodes of damaged and destroyed objects (prompt 020).
@@ -397,6 +400,9 @@ func _rebuild_crater_squares() -> void:
 ## Seconds a felled tree takes to hit the ground; flattened fences fall faster.
 const TREE_FALL_SECONDS := 1.6
 const FLAT_FALL_SECONDS := 0.35
+## Bare trees (prompt 085) shown with the leafless winter model: id -> the
+## map variants of its size (the young oak keeps its model, leaves folded).
+const BARE_MODELS := {"env_tree_deciduous": ["Oak", "Beech", "Bare"]}
 
 
 ## Draws object `state.object` in its new stage (a dictionary of
@@ -422,13 +428,18 @@ func set_object_state(state: Dictionary, animate := true) -> void:
 	if state.stage == "intact":
 		_instance_transform(index, false)
 		return
-	if state.stage == "damaged" or state.remains == "ruin":
+	if state.stage == "damaged" and state.remains == "fallen":
+		# A tree stripped by a big blast (prompt 085).
+		node = _bare_tree(id, variant, transform)
+		bare[index] = true
+	elif state.stage == "damaged" or state.remains == "ruin":
 		node = _variant_node(id, variant, transform)
 	elif state.remains == "fallen":
 		node = Node3D.new()
 		node.add_child(_variant_node("env_tree_stump", "Broken", Transform3D(transform.basis, Vector3.ZERO)))
-		var tree: Node3D = _falling(_variant_node(id, variant, Transform3D(transform.basis, Vector3.ZERO)),
-			fall_deg, TREE_FALL_SECONDS if animate else 0.0, deg_to_rad(86.0))
+		var standing := Transform3D(transform.basis, Vector3.ZERO)
+		var model: Node3D = _bare_tree(id, variant, standing) if bare.has(index) else _variant_node(id, variant, standing)
+		var tree: Node3D = _falling(model, fall_deg, TREE_FALL_SECONDS if animate else 0.0, deg_to_rad(86.0))
 		node.add_child(tree)
 		node.position = transform.origin
 	elif state.remains == "flat":
@@ -461,6 +472,24 @@ func set_charred(index: int, amount: float) -> void:
 		swapped[index] = node
 	if node != null:
 		_char_node(node, charred[index])
+
+
+## A tree without leaves (prompt 085): grown deciduous trees show the
+## leafless winter model, other trees their own model with the foliage
+## cards folded away (`env_bare`), so no new models are needed.
+func _bare_tree(id: String, variant: String, transform: Transform3D) -> Node3D:
+	if BARE_MODELS.has(id) and variant in BARE_MODELS[id]:
+		return _variant_node(id, "Bare", transform)
+	var node := _variant_node(id, variant, transform)
+	_set_bare(node)
+	return node
+
+
+func _set_bare(node: Node) -> void:
+	if node is GeometryInstance3D:
+		(node as GeometryInstance3D).set_instance_shader_parameter(&"env_bare", 1.0)
+	for child in node.get_children():
+		_set_bare(child)
 
 
 func _set_fallen(node: Node) -> void:

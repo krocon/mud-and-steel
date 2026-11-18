@@ -19,6 +19,7 @@ mod lan;
 mod map_reach;
 mod mission_po;
 mod path_bench;
+mod salvo_bench;
 mod save_bench;
 #[cfg(feature = "steam")]
 mod steam;
@@ -243,6 +244,26 @@ enum CliCommand {
         /// Craters land within this distance of the map center per axis (m).
         #[arg(long, default_value_t = 200)]
         range_m: i32,
+        #[arg(long, default_value_t = 1)]
+        seed: u64,
+    },
+    /// A salvo into the densest wood of a map (prompt 085): ticks timed,
+    /// trees felled and stripped.
+    SalvoBench {
+        #[arg(long, default_value = "data/maps/test_large")]
+        map: PathBuf,
+        /// Units per player.
+        #[arg(long, default_value_t = 100)]
+        units: u32,
+        #[arg(long, default_value_t = 16)]
+        rounds: u32,
+        /// Caliber in mm × 10 (1320: BM-13 rocket, 1500: 15 cm).
+        #[arg(long, default_value_t = 1320)]
+        caliber: u32,
+        #[arg(long, default_value_t = 35)]
+        radius_m: i32,
+        #[arg(long, default_value_t = 2)]
+        per_tick: u32,
         #[arg(long, default_value_t = 1)]
         seed: u64,
     },
@@ -809,6 +830,29 @@ fn main() {
             };
             match crater_bench::run(map, &options) {
                 Ok(report) => println!("{report}"),
+                Err(e) => fail(&e),
+            }
+        }
+        CliCommand::SalvoBench {
+            map,
+            units,
+            rounds,
+            caliber,
+            radius_m,
+            per_tick,
+            seed,
+        } => {
+            let map = Arc::new(load_map_dir(&map).unwrap_or_else(|e| fail(&e)));
+            let options = salvo_bench::Options {
+                units,
+                rounds,
+                caliber_mm_x10: caliber,
+                radius_m,
+                per_tick,
+                seed,
+            };
+            match salvo_bench::run(map, &options) {
+                Ok(report) => print!("{report}"),
                 Err(e) => fail(&e),
             }
         }

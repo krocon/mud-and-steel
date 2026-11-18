@@ -432,6 +432,11 @@ path-bench map="test_large" units="200" group="1":
 crater-bench map="test_large" craters="100" per_tick="5" range_m="200":
     cargo run -q --release -p cli -- crater-bench --map data/maps/{{ map }} --craters {{ craters }} --per-tick {{ per_tick }} --range-m {{ range_m }}
 
+# Benchmark a salvo into the densest wood of a map (prompt 085): ticks timed, trees felled and stripped; e.g. `just salvo-bench city_large --caliber 1500 --rounds 18`
+[group('performance')]
+salvo-bench map="test_large" *args:
+    cargo run -q --release -p cli -- salvo-bench --map data/maps/{{ map }} {{ args }}
+
 # Benchmark (prompt 018): moving units of two players with vision, time per tick
 [group('pathfinding')]
 vision-bench map="test_large" units="500" ticks="600":
