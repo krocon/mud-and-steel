@@ -13,6 +13,10 @@
 shader_type spatial;
 render_mode cull_disabled, diffuse_burley, specular_schlick_ggx;
 
+// Clouds dim the direct sunlight (prompt 087): light() of the include.
+#define CLOUD_BACKLIGHT
+#include "res://assets/shaders/cloud_shadow.gdshaderinc"
+
 uniform sampler2D macro_tex : filter_linear_mipmap, repeat_enable;
 uniform float wind_strength = 0.25;
 uniform vec2 wind_direction = vec2(1.0, 0.3);
@@ -50,6 +54,7 @@ void vertex() {
 }
 
 void fragment() {
+	CLOUD_FRAGMENT(0.3)
 	vec3 tip = v_base * vec3(1.45, 1.38, 1.0);
 	vec3 c = mix(v_base * 0.6, tip, smoothstep(0.0, 0.8, v_t));
 	ALBEDO = c * mix(0.85, 1.12, v_shade);

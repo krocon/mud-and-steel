@@ -14,6 +14,9 @@
 shader_type spatial;
 render_mode blend_mix, depth_draw_opaque, cull_back, diffuse_burley, specular_schlick_ggx;
 
+// Clouds dim the direct sunlight (prompt 087): light() of the include.
+#include "res://assets/shaders/cloud_shadow.gdshaderinc"
+
 // 0 Cloth, 1 Canvas, 2 Leather, 3 Paint, 4 Skin, 5 Metal, 6 Wood, 7 Rubber, 8 Glass,
 // 9 Insignia (same order as SoldierLook.SLOTS)
 uniform int slot = 0;
@@ -121,6 +124,7 @@ void vertex() {
 }
 
 void fragment() {
+	CLOUD_FRAGMENT(0.5)
 	// glTF stores V flipped (v = 1 - v_blender)
 	vec3 p = vec3(UV.x, UV2.x, 1.0 - UV.y);
 	// fade fine detail when one pixel covers more than a few centimeters (no shimmer

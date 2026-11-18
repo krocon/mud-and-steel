@@ -495,6 +495,10 @@ biome variants cost nothing.
   forest, dry olive desert with dust, winter with snow on upward faces and on
   needles. The leafless `Bare` oak is the winter variant of deciduous trees.
   Military objects use `Paint`; pass a faction palette base color as `paint`.
+- **Every world shader includes `cloud_shadow.gdshaderinc`** (prompt 087)
+  and starts its `fragment()` with `CLOUD_FRAGMENT(<its SPECULAR>)`; shaders
+  that write `BACKLIGHT` define `CLOUD_BACKLIGHT` before the include. It
+  brings the `light()` that lets passing clouds dim the direct sunlight.
 - **Wind** is set as material parameters `wind_strength`,
   `wind_direction`, `wind_speed`, `tree_sway`, `leaf_flutter` on the shared
   `bark` and `foliage` materials from the biome preset (prompt 015, 086).

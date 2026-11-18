@@ -8,6 +8,9 @@
 shader_type spatial;
 render_mode blend_mix, depth_draw_opaque, cull_back, diffuse_burley, specular_schlick_ggx;
 
+// Clouds dim the direct sunlight (prompt 087): light() of the include.
+#include "res://assets/shaders/cloud_shadow.gdshaderinc"
+
 #include "res://assets/shaders/env_common.gdshaderinc"
 // Roof patina (prompt 075): RoofFrame, roof_clay/slate/thatch/planks,
 // sheet_patina (corrugated Metal), flat_roof_patina (flat Plaster roofs).
@@ -163,6 +166,7 @@ float bond(vec2 uv, vec2 size, float joint) {
 }
 
 void fragment() {
+	CLOUD_FRAGMENT(0.5)
 	vec4 vc = COLOR;
 	float ao = vc.r;
 	int kind = kind_of(vc.a);

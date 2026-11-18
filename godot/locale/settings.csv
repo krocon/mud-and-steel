@@ -14,6 +14,8 @@ SET_DOF,Depth of field,Tiefenschärfe
 SET_DOF_SUBTLE,Subtle (close zoom only),Dezent (nur nah)
 SET_DOF_MINIATURE,Miniature (tilt-shift),Miniatur (Tilt-Shift)
 SET_DOF_HINT,"Miniature: the upper and lower screen edges blur and the colours are stronger, like a photo of a model. Units near the screen edges are harder to make out. Not on quality low.","Miniatur: oberer und unterer Bildrand verschwimmen, die Farben werden kräftiger – wie das Foto eines Modells. Einheiten am Bildrand sind schwerer zu erkennen. Nicht bei Qualität Niedrig."
+SET_CLOUD_SHADOWS,Cloud shadows,Wolkenschatten
+SET_CLOUD_SHADOWS_HINT,"Shadows of passing clouds drift with the wind over the ground in clear weather.","Schatten vorbeiziehender Wolken wandern bei klarem Wetter mit dem Wind über das Land."
 SET_WINDOW_MODE,Display mode,Anzeigemodus
 SET_WINDOWED,Window,Fenster
 SET_FULLSCREEN,Fullscreen (borderless),Vollbild (randlos)

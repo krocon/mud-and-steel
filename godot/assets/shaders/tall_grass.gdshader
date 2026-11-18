@@ -12,6 +12,10 @@
 shader_type spatial;
 render_mode cull_disabled, diffuse_burley, specular_schlick_ggx;
 
+// Clouds dim the direct sunlight (prompt 087): light() of the include.
+#define CLOUD_BACKLIGHT
+#include "res://assets/shaders/cloud_shadow.gdshaderinc"
+
 uniform sampler2D macro_tex : filter_linear_mipmap, repeat_enable;
 
 #include "res://assets/shaders/tall_grass_common.gdshaderinc"
@@ -86,6 +90,7 @@ void vertex() {
 }
 
 void fragment() {
+	CLOUD_FRAGMENT(0.3)
 	float t = v_t;
 	vec3 c;
 	if (v_kind < 0.17) {

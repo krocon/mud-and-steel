@@ -24,6 +24,14 @@ extends Node
 ## fractions of it and put the cascades where the ground is seen (about 0.8
 ## to 1.5 camera distances), not near the camera where there is only air.
 ##
+## Cloud shadows (prompt 087): large soft patches drift with the wind of the
+## simulation over the map and dim the direct sunlight of every world shader
+## (`cloud_shadow.gdshaderinc`, global shader uniforms). Their position runs
+## with the game time (`cloud_clock`, set by main.gd: they stand in the pause
+## and follow replays and recordings); strength, cover, size and softness
+## come from the preset (`WeatherLook.adjust`), the setting "cloud_shadows"
+## turns them off. Without `cloud_clock` (map editor, tools) there are none.
+##
 ## Presentation only: nothing here reaches the simulation.
 
 const BiomePreset := preload("res://assets/biomes/biome_preset.gd")
@@ -61,6 +69,21 @@ const DOF_MODES: Dictionary[String, Dictionary] = {
 		"saturation": 1.18, "contrast": 1.05,
 	},
 }
+## Cloud shadows (prompt 087): meters of ground per repeat of the noise
+## texture at `cloud_shadow_scale` 1, its size in pixels and the noise
+## frequency per pixel (patches of about 100-400 m), and the drift speed in
+## m/s of game time: 10 m/s plus 4 s per (m/s) of simulation wind, at most
+## 20 (calm but visible; real low clouds move 5-15 m/s, at the time factor 2
+## that would be 10-30).
+const CLOUD_REPEAT_M := 1600.0
+const CLOUD_TEX_SIZE := 256
+const CLOUD_FREQUENCY := 0.022
+const CLOUD_SPEED := Vector2(10.0, 20.0)
+const CLOUD_SPEED_PER_WIND := 4.0
+## The second noise layer drifts this much slower and turned by this angle,
+## so the patches change their shape as they go.
+const CLOUD_SECOND_SPEED := 0.7
+const CLOUD_SECOND_TURN_DEG := 25.0
 ## SSAO radius in meters: distance * factor, clamped.
 const SSAO_RADIUS_FACTOR := 0.025
 const SSAO_RADIUS_RANGE := Vector2(0.6, 10.0)
@@ -106,9 +129,23 @@ var _snow: GPUParticles3D
 var _dof: CameraAttributesPractical
 ## Mode whose bokeh shape and blur quality are set (they are global).
 var _dof_mode := ""
+## Game time in seconds and simulation wind (m/s, x east, y south) for the
+## cloud shadows: `func() -> Vector3(seconds, wind.x, wind.y)`; empty: none.
+var cloud_clock := Callable()
+## Values of the last frame (self-test): offsets and shape as set.
+var cloud_offset := Vector4.ZERO
+var cloud_shape := Vector4.ZERO
+## Noise levels (sorted samples of the texture) to turn a cover share into
+## a threshold.
+static var _cloud_levels := PackedFloat32Array()
+static var _cloud_texture: ImageTexture
+## `--no-cloud-shadows` (measurements, prompt 087): off whatever the setting.
+static var _no_clouds_arg := "--no-cloud-shadows" in OS.get_cmdline_user_args()
 
 
 func setup(world_env: WorldEnvironment, sun: DirectionalLight3D, camera_rig: Node3D, terrain: Node) -> void:
+	# No cloud shadows until a match sets them (a previous match may have).
+	RenderingServer.global_shader_parameter_set(&"cloud_shadow_shape", Vector4(0.0, 0.0, 0.6, 0.08))
 	_world_env = world_env
 	_sun = sun
 	_rig = camera_rig
@@ -294,6 +331,73 @@ func _apply_viewport(q: Dictionary) -> void:
 
 func _process(_delta: float) -> void:
 	_follow_camera()
+	_update_clouds()
+
+
+## Sets the cloud shadow uniforms for this frame (prompt 087).
+func _update_clouds() -> void:
+	var strength := 0.0
+	if preset != null and cloud_clock.is_valid() and Settings.get_value("cloud_shadows") \
+			and not _no_clouds_arg:
+		strength = preset.cloud_shadow_strength
+	if strength <= 0.0:
+		if cloud_shape.y != 0.0:
+			cloud_shape = Vector4.ZERO
+			RenderingServer.global_shader_parameter_set(&"cloud_shadow_shape", Vector4(0.0, 0.0, 0.6, 0.08))
+		return
+	_make_cloud_texture()
+	var clock: Vector3 = cloud_clock.call()
+	var wind := Vector2(clock.y, clock.z)
+	var dir := wind.normalized() if wind.length() > 0.01 else preset.wind_direction.normalized()
+	var speed := clampf(CLOUD_SPEED.x + wind.length() * CLOUD_SPEED_PER_WIND, CLOUD_SPEED.x, CLOUD_SPEED.y)
+	var repeat := CLOUD_REPEAT_M * preset.cloud_shadow_scale
+	var t := clock.x
+	# The pattern moves downwind: its texture coordinate moves upwind.
+	var first := -dir * speed * t / repeat
+	var second := -dir.rotated(deg_to_rad(CLOUD_SECOND_TURN_DEG)) * speed * CLOUD_SECOND_SPEED * t * 1.7 / repeat
+	cloud_offset = Vector4(fposmod(first.x, 1.0), fposmod(first.y, 1.0), fposmod(second.x, 1.0), fposmod(second.y, 1.0))
+	cloud_shape = Vector4(1.0 / repeat, strength, cloud_threshold(preset.cloud_shadow_cover), preset.cloud_shadow_softness)
+	RenderingServer.global_shader_parameter_set(&"cloud_shadow_offset", cloud_offset)
+	RenderingServer.global_shader_parameter_set(&"cloud_shadow_shape", cloud_shape)
+
+
+## Noise level above which a share `cover` of the ground lies in cloud
+## shadow (the two layers mixed as in the shader, from the texture).
+static func cloud_threshold(cover: float) -> float:
+	_make_cloud_texture()
+	var n := _cloud_levels.size()
+	return _cloud_levels[clampi(int((1.0 - clampf(cover, 0.0, 1.0)) * (n - 1)), 0, n - 1)]
+
+
+## The tileable noise of the cloud shadows, made once per run (the same
+## every time: fixed seed); also measures its levels for `cloud_threshold`.
+static func _make_cloud_texture() -> void:
+	if _cloud_texture != null:
+		return
+	var noise := FastNoiseLite.new()
+	noise.seed = 87
+	noise.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
+	noise.frequency = CLOUD_FREQUENCY
+	noise.fractal_type = FastNoiseLite.FRACTAL_FBM
+	noise.fractal_octaves = 4
+	var image := noise.get_seamless_image(CLOUD_TEX_SIZE, CLOUD_TEX_SIZE, false, false, 0.1, true)
+	image.convert(Image.FORMAT_L8)
+	image.generate_mipmaps()
+	_cloud_texture = ImageTexture.create_from_image(image)
+	RenderingServer.global_shader_parameter_set(&"cloud_shadow_tex", _cloud_texture)
+	# Levels of the mix the shader samples (a: uv, b: uv × 1.7), every
+	# second pixel.
+	var levels := PackedFloat32Array()
+	var size := CLOUD_TEX_SIZE
+	for y in range(0, size, 2):
+		for x in range(0, size, 2):
+			var a := image.get_pixel(x, y).r
+			var bx := int(fposmod(x * 1.7 + 0.37 * size, size))
+			var by := int(fposmod(y * 1.7 + 0.61 * size, size))
+			var b := image.get_pixel(bx, by).r
+			levels.append(a * 0.62 + b * 0.38)
+	levels.sort()
+	_cloud_levels = levels
 
 
 ## Zoom-dependent values: haze range, SSAO radius, snow volume.

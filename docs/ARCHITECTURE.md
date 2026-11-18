@@ -1821,9 +1821,45 @@ ground, following the soaking of the match; the ambience (030) plays rain.
 Fires (041) and muzzle flashes light up the night through their existing
 lights.
 
+**Cloud shadows (prompt 087, presentation only).** Large soft patches of
+shade drift with the simulation's wind over the whole world and dim only the
+direct sunlight. One pattern in world coordinates: two layers of a 256 px
+tileable noise (`FastNoiseLite`, seed 87, made at start), 1 600 m per repeat,
+the second 1.7 times finer, slower and turned by 25° so the patches change
+shape as they go. Global shader uniforms (`project.godot` `[shader_globals]`:
+`cloud_shadow_tex`, `_offset`, `_shape`, default off) read by
+`assets/shaders/cloud_shadow.gdshaderinc`, which every world shader includes
+(terrain, water, env, env_foliage, meadow_tuft, tall_grass, unit_camo,
+soldier: two lines each, the include and `CLOUD_FRAGMENT(specular)`). The
+include brings the shader's `light()`: Godot's diffuse_burley and
+specular_schlick_ggx terms with the clouds multiplied into the attenuation
+of the directional light (which holds the sun's shadow already, so a tree's
+shadow does not turn doubly dark); ambient light and other lights stay.
+`atmosphere.gd` (`_update_clouds`) sets them every frame from the game time
+(`cloud_clock`, set by `main.gd`: tick plus interpolation, so they stand in
+the pause and lie the same in recordings and replays) and the simulation
+wind; they drift at 10 m/s plus 4 s per (m/s) of wind, at most 20 m/s
+(visible but calm). Strength, cover, size and softness come from the
+`BiomePreset` (`cloud_shadow_*`; forest 60 % of the sun taken in the core,
+30 % of the ground; desert few hard patches; winter weak) and
+`WeatherLook.adjust` (overcast: a 88 % deck at 0.6 of the strength; rain,
+snow, fog and night: none). The cover share is turned into a noise
+threshold from the texture's own levels. Setting "cloud_shadows" (graphics
+tab) and `--no-cloud-shadows` turn them off; without `cloud_clock` (map
+editor, thumbnails, model gallery) there are none.
+
+Covered: terrain, water, map objects (houses, trees, bushes, rocks, bridges
+of the env kit), meadow tufts, tall grass, vehicles and soldiers. Left out
+on purpose: smoke, fire, muzzle flashes, effects, unshaded markers and the
+HUD; small lit `StandardMaterial3D` parts (trench walls, camouflage nets,
+crossing pontoons, medic tents, rank badges, wreck tint, bombs and rockets
+in the air) keep full sun, noted as open. `just cloud-shots [prefix] [--off]`
+(`build/cloud_shots/`).
+
 ### Measurements
 
 See the result of prompt 040 in `prompts/done/040-wetter-schlamm-tageszeit.md`.
+Cloud shadows (prompt 087): see `docs/PERFORMANCE.md`.
 
 ### Decisions
 
@@ -1832,9 +1868,18 @@ See the result of prompt 040 in `prompts/done/040-wetter-schlamm-tageszeit.md`.
 - Running gear from the catalog category, no new catalog field (the values
   are game rules, not historical data).
 - Routes are not replanned when the ground softens.
+- Cloud shadows (prompt 087): a `light()` in a shared include instead of a
+  light projector (Godot 4.7 projects textures only from omni and spot
+  lights), a second shadow map or a transparent sheet over the map (no
+  overdraw, no sorting with smoke and water). Thumbnails rendered with the
+  include look the same as before (PSNR 60 / 62 / 49 dB for tank, farmhouse
+  and squad; the tree differs between two runs of the same code).
 
 ### Open
 
+- Cloud shadows (prompt 087): the small `StandardMaterial3D` parts listed
+  above; clouds in the sky and in the water; stretching the patches towards
+  a low sun.
 - Weather changing during a match; flares at night; per-cell wetness (low
   ground wetter), tire tracks in the mud (decals), splashes.
 - LAN and online lobbies offer no weather choice (they use the map's).
@@ -2477,6 +2522,7 @@ shows in English. Details in [MISSIONS.md](MISSIONS.md).
 | `color_palette` | `standard`, `red_green`, `blue_yellow` | own/ally/enemy colors (`hud/relation_colors.gd`): minimap, health bars, base markers, mines, strike areas, model tints |
 | `subtitles` | off by default | a line for warnings (UI notices: under attack, unit lost or ready, building complete, victory, defeat) and battle callouts (`hud/subtitles.gd`) |
 | `screen_shake` | on by default | camera shake of explosions (`effects.gd`) |
+| `cloud_shadows` | on by default | shadows of passing clouds (prompt 087, `atmosphere.gd`) |
 | `window_mode` | `windowed`, `fullscreen` (borderless), `exclusive` | `DisplayServer.window_set_mode` |
 | `resolution` | "" (as started), 1280×720 … 3840×2160 | window size in window mode, centered, at most the screen |
 | `vsync`, `fps_limit` | on/off; 0 (none), 30, 60, 120, 144, 240 | VSync mode, `Engine.max_fps` |

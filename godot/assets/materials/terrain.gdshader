@@ -47,6 +47,9 @@
 shader_type spatial;
 render_mode cull_back;
 
+// Clouds dim the direct sunlight (prompt 087): light() of the include.
+#include "res://assets/shaders/cloud_shadow.gdshaderinc"
+
 const int LAYER_COUNT = 10;
 const int TRACK = 1;
 const int ROAD = 2;
@@ -159,6 +162,7 @@ vec2 rotate(vec2 p, float a) {
 }
 
 void fragment() {
+	CLOUD_FRAGMENT(0.35)
 	vec2 p = world_pos.xz;
 	vec2 texel = vec2(samples);
 	vec4 macro_far = texture(macro_tex, p / 420.0);

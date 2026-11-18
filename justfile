@@ -444,6 +444,11 @@ wind-shots prefix="after": build
     bash tools/trailer-shots.sh --stills --only=survey_wind_mid,survey_wind_near
     python3 -I tools/wind_shots.py {{ prefix }}
 
+# Cloud shadows in pictures (prompt 087; needs a window): meadow, column, village, overcast, evening and a series every 2 s into build/cloud_shots/<prefix>_*; `just cloud-shots before --off` without them
+[group('godot')]
+cloud-shots prefix="after" *args: build
+    bash tools/cloud-shots.sh {{ prefix }} {{ args }}
+
 # Benchmark (prompt 018): moving units of two players with vision, time per tick
 [group('pathfinding')]
 vision-bench map="test_large" units="500" ticks="600":

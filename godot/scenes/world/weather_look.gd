@@ -51,8 +51,13 @@ static func adjust(base: BiomePreset, weather_name: String, daytime_name: String
 	match weather_name:
 		"overcast":
 			_cloud_cover(p, 0.65)
+			# Cloud shadows (prompt 087): an almost closed deck with a few
+			# weak holes of sun (the sun is dimmed already, little contrast).
+			p.cloud_shadow_cover = 0.88
+			p.cloud_shadow_strength *= 0.6
 		"rain":
 			_cloud_cover(p, 0.85)
+			p.cloud_shadow_strength = 0.0
 			p.haze_amount = maxf(p.haze_amount, 0.55)
 			p.haze_begin *= 0.7
 			p.haze_end *= 0.8
@@ -60,6 +65,7 @@ static func adjust(base: BiomePreset, weather_name: String, daytime_name: String
 			p.wind_speed *= 1.5
 		"snow":
 			_cloud_cover(p, 0.7)
+			p.cloud_shadow_strength = 0.0
 			p.snowfall = maxf(p.snowfall, 0.9)
 			p.snow_cover = maxf(p.snow_cover, 0.85)
 			p.haze_amount = maxf(p.haze_amount, 0.5)
@@ -67,6 +73,7 @@ static func adjust(base: BiomePreset, weather_name: String, daytime_name: String
 			p.wind_strength *= 1.5
 		"fog":
 			_cloud_cover(p, 0.6)
+			p.cloud_shadow_strength = 0.0
 			p.haze_amount = 0.97
 			p.haze_begin = 0.12
 			p.haze_end = 1.5
@@ -86,6 +93,8 @@ static func adjust(base: BiomePreset, weather_name: String, daytime_name: String
 			p.sun_azimuth_deg = 200.0
 			p.sun_color = Color(0.62, 0.72, 1.0)
 			p.sun_energy *= 0.35
+			# No cloud shadows in the moonlight (prompt 087).
+			p.cloud_shadow_strength = 0.0
 			p.shadow_opacity *= 0.7
 			var night := Color(0.10, 0.13, 0.22)
 			p.sky_top = p.sky_top.lerp(Color(0.03, 0.05, 0.12), 0.85)

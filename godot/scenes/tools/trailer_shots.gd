@@ -79,8 +79,10 @@ const BUS_DB: Dictionary[String, float] = {
 ## a game setting): meadow tufts, procedural meadow of the ground shader,
 ## sun shadows, wind of the tufts, depth of field, SSAO, MSAA; "fxaa" and
 ## "taa" turn that antialiasing on instead; "snowfall" (prompt 080) hides
-## the falling snow of a winter map.
-const OFF_PARTS: Array[String] = ["tufts", "ground", "shadows", "wind", "dof", "ssao", "msaa", "fxaa", "taa", "snowfall"]
+## the falling snow of a winter map; "clouds" (prompt 087) the cloud
+## shadows (they are on otherwise and lie the same for the same scene and
+## seed: they follow the game time).
+const OFF_PARTS: Array[String] = ["tufts", "ground", "shadows", "wind", "dof", "ssao", "msaa", "fxaa", "taa", "snowfall", "clouds"]
 const MeadowTufts := preload("res://scenes/world/meadow_tufts.gd")
 const TallGrass := preload("res://scenes/world/tall_grass.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
@@ -274,6 +276,39 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"map": "ambush_meadow", "scene": "survey", "seed": 1, "daytime": "day", "game_camera": true,
 		"start_s": 2.0, "seconds": 2.2, "stills": [0.5, 1.5],
 		"camera": [{"t": 0.0, "at": Vector2(-70, -108), "dist": 45.0, "yaw": 0.0}],
+	},
+	# Cloud shadows (prompt 087): the meadow and the wood's edge of
+	# ambush_meadow, a village of test_large; near, middle and far, clear by
+	# day, overcast and evening once; a series every 2 s at a fixed camera.
+	"survey_clouds_meadow": {
+		"map": "ambush_meadow", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 2.0, "seconds": 1.5, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, -40), "dist": 300.0, "yaw": 0.0}],
+	},
+	"survey_clouds_near": {
+		"map": "ambush_meadow", "scene": "ambush", "seed": 14, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 30.0, "seconds": 18.0, "stills": [0.5, 3.5, 6.5, 9.5, 12.5, 15.5],
+		"camera": [{"t": 0.0, "unit": [0, "su_", -1], "dist": 110.0, "yaw": 0.0}],
+	},
+	"survey_clouds_far": {
+		"map": "test_large", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 2.0, "seconds": 1.5, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-200, 0), "dist": 700.0, "yaw": 0.0}],
+	},
+	"survey_clouds_overcast": {
+		"map": "ambush_meadow", "scene": "survey", "seed": 1, "daytime": "day", "weather": "overcast", "game_camera": true,
+		"start_s": 2.0, "seconds": 1.5, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, -40), "dist": 300.0, "yaw": 0.0}],
+	},
+	"survey_clouds_evening": {
+		"map": "ambush_meadow", "scene": "survey", "seed": 1, "daytime": "evening", "weather": "clear", "game_camera": true,
+		"start_s": 2.0, "seconds": 1.5, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, -40), "dist": 300.0, "yaw": 0.0}],
+	},
+	"survey_clouds_series": {
+		"map": "ambush_meadow", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 2.0, "seconds": 25.0, "stills": [0.5, 2.5, 4.5, 6.5, 8.5, 10.5, 12.5, 14.5, 16.5, 18.5, 20.5, 22.5, 24.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, -40), "dist": 300.0, "yaw": 0.0}],
 	},
 	"survey_farms": {
 		"map": "farms", "scene": "survey", "seed": 1, "start_s": 0.5, "seconds": 1.0, "stills": [0.5],
@@ -781,6 +816,8 @@ func _apply_off() -> void:
 		main.atmosphere._env.ssao_enabled = false
 	if "snowfall" in _off and main.atmosphere._snow_root != null:
 		main.atmosphere._snow_root.visible = false
+	if "clouds" in _off:
+		main.atmosphere.cloud_clock = Callable()
 	var vp := get_viewport()
 	if "msaa" in _off:
 		vp.msaa_3d = Viewport.MSAA_DISABLED

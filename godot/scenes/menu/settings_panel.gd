@@ -52,6 +52,7 @@ var render_scale_slider: HSlider
 var ui_scale_slider: HSlider
 var subtitles_box: CheckBox
 var shake_box: CheckBox
+var cloud_box: CheckBox
 var save_button: Button
 var cancel_button: Button
 ## Action whose key is being captured, or "".
@@ -148,6 +149,11 @@ func _graphics_tab() -> Control:
 		_change("depth_of_field", Settings.DOF_MODES[index]))
 	tab.add_child(_row("SET_DOF", dof_option))
 	tab.add_child(MenuTheme.hint("SET_DOF_HINT"))
+	cloud_box = CheckBox.new()
+	cloud_box.text = "SET_CLOUD_SHADOWS"
+	cloud_box.toggled.connect(func(on: bool) -> void: _change("cloud_shadows", on))
+	tab.add_child(cloud_box)
+	tab.add_child(MenuTheme.hint("SET_CLOUD_SHADOWS_HINT"))
 	tab.add_child(_row("SET_WINDOW_MODE", _option("window_mode")))
 	resolution_option = OptionButton.new()
 	resolution_option.add_item("SET_RESOLUTION_KEEP")
@@ -270,6 +276,7 @@ func _refresh() -> void:
 	vsync_box.set_pressed_no_signal(Settings.get_value("vsync"))
 	subtitles_box.set_pressed_no_signal(Settings.get_value("subtitles"))
 	shake_box.set_pressed_no_signal(Settings.get_value("screen_shake"))
+	cloud_box.set_pressed_no_signal(Settings.get_value("cloud_shadows"))
 	fps_option.select(maxi(Settings.FPS_LIMITS.find(Settings.get_value("fps_limit")), 0))
 	var resolution: String = Settings.get_value("resolution")
 	resolution_option.select(0 if resolution.is_empty() else 1 + Settings.RESOLUTIONS.find(resolution))

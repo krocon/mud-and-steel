@@ -20,6 +20,9 @@
 shader_type spatial;
 render_mode blend_mix, depth_draw_always, cull_back, specular_schlick_ggx;
 
+// Clouds dim the direct sunlight (prompt 087): light() of the include.
+#include "res://assets/shaders/cloud_shadow.gdshaderinc"
+
 uniform sampler2D screen_tex : hint_screen_texture, filter_linear_mipmap, repeat_disable;
 uniform sampler2D depth_tex : hint_depth_texture, filter_nearest, repeat_disable;
 uniform sampler2D normal_a : hint_normal, filter_linear_mipmap, repeat_enable;
@@ -67,6 +70,7 @@ float scene_distance(vec2 uv, mat4 inv_projection) {
 }
 
 void fragment() {
+	CLOUD_FRAGMENT(0.35)
 	vec2 p = v_world.xz;
 	float speed = length(v_flow);
 	// Flow map: two phases of the same pattern, shifted along the flow.

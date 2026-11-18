@@ -90,6 +90,16 @@ const LAYER_COUNT := 10
 ## the leaves (0: bare winter trees only swing their branches).
 @export_range(0.0, 4.0) var tree_sway := 1.0
 @export_range(0.0, 2.0) var leaf_flutter := 1.0
+## Shadows of passing clouds (prompt 087, `cloud_shadow.gdshaderinc`) on a
+## clear day: share of the direct sunlight a cloud takes in its core, share
+## of the ground under clouds, size factor of the patches (1: about
+## 100-400 m) and softness of their edge (noise units: 0.07 gives edges of
+## some tens of meters). `WeatherLook.adjust` changes them per weather and
+## time of day.
+@export_range(0.0, 1.0) var cloud_shadow_strength := 0.6
+@export_range(0.0, 1.0) var cloud_shadow_cover := 0.3
+@export_range(0.25, 4.0) var cloud_shadow_scale := 1.0
+@export_range(0.005, 0.3) var cloud_shadow_softness := 0.07
 ## Falling snow, 0..1 (particles around the camera focus).
 @export_range(0.0, 1.0) var snowfall := 0.0
 

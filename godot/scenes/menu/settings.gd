@@ -107,6 +107,8 @@ const DEFAULTS := {
 	"health_bars": "damaged",
 	# Tilt-shift depth of field, one of DOF_MODES.
 	"depth_of_field": "subtle",
+	# Shadows of passing clouds (prompt 087).
+	"cloud_shadows": true,
 	# Language and accessibility (prompt 043).
 	"language": "auto",
 	"ui_scale": 1.0,

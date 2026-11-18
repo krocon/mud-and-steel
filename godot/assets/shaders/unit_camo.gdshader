@@ -14,6 +14,9 @@
 shader_type spatial;
 render_mode blend_mix, depth_draw_opaque, cull_back, diffuse_burley, specular_schlick_ggx;
 
+// Clouds dim the direct sunlight (prompt 087): light() of the include.
+#include "res://assets/shaders/cloud_shadow.gdshaderinc"
+
 // 0 Paint, 1 Metal, 2 Rubber, 3 Wood, 4 Canvas, 5 Glass, 6 Skin, 7 Cloth
 uniform int slot = 0;
 
@@ -97,6 +100,7 @@ vec3 camo(vec3 p) {
 }
 
 void fragment() {
+	CLOUD_FRAGMENT(0.5)
 	vec4 vc = COLOR;
 	float ao = vc.r;
 	float edge = vc.g;

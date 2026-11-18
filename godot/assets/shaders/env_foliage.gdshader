@@ -7,6 +7,10 @@
 shader_type spatial;
 render_mode blend_mix, depth_draw_opaque, cull_disabled, diffuse_burley, specular_schlick_ggx;
 
+// Clouds dim the direct sunlight (prompt 087): light() of the include.
+#define CLOUD_BACKLIGHT
+#include "res://assets/shaders/cloud_shadow.gdshaderinc"
+
 #include "res://assets/shaders/env_common.gdshaderinc"
 
 uniform float alpha_cut = 0.5;
@@ -73,6 +77,7 @@ vec2 leaves(vec2 uv, float cells, float aspect) {
 }
 
 void fragment() {
+	CLOUD_FRAGMENT(0.5)
 	int pattern = int(floor(UV.x));
 	vec2 uv = vec2(fract(UV.x), UV.y);
 	vec2 c = uv - 0.5;

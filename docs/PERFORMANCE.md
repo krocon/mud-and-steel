@@ -108,6 +108,21 @@ bend, the gust and the flutter are a dozen sines per vertex, also in the
 shadow passes). The wood itself is slow in this bench with shadows (23 FPS
 near, 88 without them), before and after alike; not part of prompt 086.
 
+Cloud shadows (prompt 087): `just bench-view --quality=<q>` (`bench_large`,
+Apple M1 Max) with and without them (`--no-cloud-shadows`), frame time in ms
+standing at 40 / 150 / 600 m:
+
+| Quality | With | Without |
+|---|---|---|
+| high | 13.64 / 13.16 / 12.41 | 13.61 / 13.32 / 12.29 |
+| medium | 11.26 / 12.88 / 11.08 | 11.21 / 12.81 / 11.07 |
+| low | 10.84 / 10.77 / 10.00 | 10.78 / 10.76 / 9.98 |
+
+At most 0.6 % apart, within the noise of two runs (two texture reads per
+pixel in the light function, the same in every shader); the battle phase
+varies by ±10 % between runs with the AI's decisions either way. They stay
+on at every quality, including low.
+
 All simulation budgets are met. What changed:
 
 1. **Path components** (`PathGrid::relabel_components_in`): every wreck

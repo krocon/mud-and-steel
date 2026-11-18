@@ -93,6 +93,7 @@ const ExperienceSelfTest := preload("res://scenes/tools/experience_self_test.gd"
 const CrossingSelfTest := preload("res://scenes/tools/crossing_self_test.gd")
 const CareSelfTest := preload("res://scenes/tools/care_self_test.gd")
 const MatchSetup := preload("res://scenes/menu/match_setup.gd")
+const Settings := preload("res://scenes/menu/settings.gd")
 
 ## Screen size for the test (see `_ready`).
 const SCREEN := Vector2i(1600, 900)
@@ -125,6 +126,7 @@ func _run() -> void:
 	await _fog_test()
 	await _combat_test()
 	await _marker_test()
+	await _cloud_test()
 	await InfantrySelfTest.new().run(self)
 	await DestructionSelfTest.new().run(self)
 	await FireSelfTest.new().run(self)
@@ -144,7 +146,7 @@ func _run() -> void:
 	await ExperienceSelfTest.new().run(self)
 	await CareSelfTest.new().run(self)
 	var ok := _errors.is_empty()
-	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, fog, combat, impact markers, infantry, destruction, fire, craters, sound, music, water, hud, air, transport, supply, formations, crossings, replay, works, positions, experience and care ok" if ok else " ".join(_errors)
+	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, fog, combat, impact markers, cloud shadows, infantry, destruction, fire, craters, sound, music, water, hud, air, transport, supply, formations, crossings, replay, works, positions, experience and care ok" if ok else " ".join(_errors)
 	print("self-test %s: %s" % ["PASSED" if ok else "FAILED", message])
 	# Started from the menu flow test (prompt 027): it continues the flow.
 	var flow: Node = MatchSetup.flow_test
@@ -742,6 +744,51 @@ func _marker_test() -> void:
 	var radius: float = view._marker_radius(105.0)
 	_check(radius > 1.0 and radius <= 10.5, "impact marker radius %.1f m for 10.5 cm" % radius)
 	await get_tree().process_frame
+
+
+## Cloud shadows (prompt 087): set in clear weather by day, drifting
+## downwind with the game time, standing when the game stands, off in rain,
+## at night, with the setting off and by default (thumbnails, editor).
+func _cloud_test() -> void:
+	var atmosphere: Node = main.atmosphere
+	var sim_host: SimHost = main.sim_host
+	var default_shape: Vector4 = ProjectSettings.get_setting("shader_globals/cloud_shadow_shape")["value"]
+	_check(default_shape.y == 0.0, "cloud shadows on by default (thumbnails would show them)")
+	var base: Resource = atmosphere.load_preset(atmosphere.preset.id)
+	var weather_look: GDScript = load("res://scenes/world/weather_look.gd")
+	for case: Array in [["rain", "day"], ["snow", "day"], ["fog", "day"], ["clear", "night"]]:
+		var p: Resource = weather_look.adjust(base, case[0], case[1])
+		_check(p.cloud_shadow_strength == 0.0, "cloud shadows in %s / %s" % case)
+	var overcast: Resource = weather_look.adjust(base, "overcast", "day")
+	_check(overcast.cloud_shadow_cover > base.cloud_shadow_cover, "overcast has no closed cloud deck")
+	if atmosphere.preset.cloud_shadow_strength <= 0.0:
+		print("self-test: cloud shadows off in this weather, drift not checked")
+		return
+	await _frames(2)
+	_check(atmosphere.cloud_shape.y > 0.0, "no cloud shadows in clear weather")
+	var before: Vector4 = atmosphere.cloud_offset
+	await _ticks(40)
+	await _frames(1)
+	var moved := Vector2(atmosphere.cloud_offset.x - before.x, atmosphere.cloud_offset.y - before.y)
+	moved = Vector2(wrapf(moved.x, -0.5, 0.5), wrapf(moved.y, -0.5, 0.5))
+	var wind: Vector2 = sim_host.weather_info().get("wind", Vector2.ZERO)
+	var down: Vector2 = wind.normalized() if wind.length() > 0.01 else atmosphere.preset.wind_direction.normalized()
+	# The texture coordinate moves upwind, so the pattern moves downwind.
+	_check(moved.length() > 0.0 and moved.normalized().dot(-down) > 0.99,
+		"cloud shadows do not drift downwind (%s, wind %s)" % [moved, down])
+	var speed: float = sim_host.speed
+	sim_host.speed = 0.0
+	await _frames(2)
+	var stood: Vector4 = atmosphere.cloud_offset
+	await _frames(10)
+	_check(atmosphere.cloud_offset == stood, "cloud shadows move while the game stands")
+	sim_host.speed = speed
+	Settings.values["cloud_shadows"] = false
+	await _frames(2)
+	_check(atmosphere.cloud_shape.y == 0.0, "the setting does not turn cloud shadows off")
+	Settings.values["cloud_shadows"] = true
+	await _frames(2)
+	_check(atmosphere.cloud_shape.y > 0.0, "cloud shadows do not come back with the setting")
 
 
 func _replay_test() -> void:

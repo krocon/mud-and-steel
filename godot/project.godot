@@ -164,6 +164,21 @@ order_formation={
 "events": [Object(InputEventKey,"physical_keycode":44)]
 }
 
+[shader_globals]
+
+cloud_shadow_tex={
+"type": "sampler2D",
+"value": ""
+}
+cloud_shadow_offset={
+"type": "vec4",
+"value": Vector4(0, 0, 0, 0)
+}
+cloud_shadow_shape={
+"type": "vec4",
+"value": Vector4(0.003, 0, 0.6, 0.08)
+}
+
 [importer_defaults]
 
 scene={

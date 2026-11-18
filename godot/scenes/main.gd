@@ -248,6 +248,13 @@ func _ready() -> void:
 	add_child(atmosphere)
 	atmosphere.setup($WorldEnvironment, sun, camera_rig, terrain)
 	atmosphere.quality = Settings.quality()
+	# Cloud shadows (prompt 087) drift with the game time and the wind of
+	# the simulation.
+	var wind: Vector2 = sim_host.weather_info().get("wind", Vector2.ZERO)
+	atmosphere.cloud_clock = func() -> Vector3:
+		var rate := float(maxi(sim_host.tick_rate(), 1))
+		var seconds := (float(sim_host.current_tick()) + sim_host.interpolation_alpha()) / rate
+		return Vector3(seconds, wind.x, wind.y)
 	# Weather and time of day of the match (prompt 040).
 	var weather: Dictionary = sim_host.weather_info()
 	atmosphere.weather = weather.get("weather", "clear")
