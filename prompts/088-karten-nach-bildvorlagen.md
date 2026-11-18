@@ -299,6 +299,7 @@ Als offene Punkte notieren, nicht umsetzen:
 | Maßstab `river_town` | 3 × 2 km, 1 Spurpixel = 3 m (Vorlage auf 1000 × 667 verkleinert) | Häuser der Vorlage 15–20 m; die Brücken der Vorlage sind ohnehin Sinnbilder. |
 | Burg | Kirche auf einer 14-m-Höhe mit Steinmauerring (`[[ring]]` aus `env_wall_stone`) | Abschnitt 5: Stellvertreter statt Schloss. |
 | Turnierlänge 3-km-Karten | `--max-ticks 12000` (10 min) | Bei 6000 Ticks erreichten die Armeen einander auf 3 km oft nicht. |
+| Feldflur `valley_fields` | `[[patchwork]]`: Schläge im gedrehten Raster mit 6-m-Rainen, Art zufällig, 15 % Wiese; dazu die einzeln gezeichneten Schläge | Die Vorlage ist ein dichter Flickenteppich; jeden Schlag einzeln abzutippen lohnt nicht. |
 | Ausgleich `river_fork` | Spieler 0 im Osten, Spieler 1 im Norden: das 1v1 trifft sich im Dorf über den Ostfluss | Mit dem Südweststart als Spieler 0 lief das 1v1 nur über die Westbrücken. Die Siegverteilung der KI folgt auf allen Karten (auch `test_small`) der Fraktion: mit `de,su` gewinnt Spieler 0, mit `su,de` Spieler 1; gemessen wird deshalb beides. |
 
 ## Stand je Karte
@@ -312,7 +313,7 @@ Als offene Punkte notieren, nicht umsetzen:
 | `desert_lagoon` | ja | ja | `map-check`, `map-reach` (Teamsummen < 1 % / < 1 %) | objects-bench: nah 108 FPS, Mitte 75, Übersicht 136, Dorf 89; KI Schlacht je 16: `de,su` 10:4 (2 Zeit), `su,de` 5:10 (1 Zeit), 3v3 8 Spiele 5:2 (1 Zeit); keine hängenden Einheiten | Haine von ganz oben unsichtbar (Sichtweite der Objekte) |
 | `winter_town` | ja | ja | `map-check`, `map-reach` (7 % / 13 %) | 770 Gebäude; objects-bench: Wald 24 FPS, Mitte 28, Übersicht 59, Ort 106; KI Schlacht je 16: `de,su` 4:4 (8 Zeit), `su,de` 1:6 (9 Zeit) | viele Zeitüberschreitungen im Ortskampf; Brückendeck-Hänger wie oben |
 | `river_town` | ja | ja | `map-check`, `map-reach` (5,5 % / 5,8 %) | 879 Gebäude, 44 000 Bäume; objects-bench: Wald 23 FPS, Mitte 23, Übersicht 55, Ort 98; KI Schlacht je 16 (12 000 Ticks): `de,su` 5:8 (3 Zeit), `su,de` 10:3 (3 Zeit) | Wald und Mitte unter 60 FPS (Schatten, wie auf allen Waldkarten); kein Maskenwerkzeug nötig |
-| `valley_fields` | – | – | – | – | große Feldflur, Bahnhof, Stromschnellen |
+| `valley_fields` | ja | ja | `map-check`, `map-reach` (1,6 % / 12,6 %) | 931 Gebäude; objects-bench: Wald 28 FPS, Mitte 32, Übersicht 84, Ort 96; KI Schlacht je 16 (12 000 Ticks): `de,su` 13:2 (1 Zeit), `su,de` 2:8 (6 Zeit); keine hängenden Einheiten | Stromschnellen nur als Felsen am Ufer; Bahnhof nur als Schotterbett mit Hallen |
 | `river_valley` | – | – | – | – | Kiesgrube, Bahn, Hafen, Türme |
 | `river_city` | – | – | – | – | Blockviertel aus `gen_city`, acht Brücken |
 

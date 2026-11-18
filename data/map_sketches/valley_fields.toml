@@ -1,0 +1,749 @@
+# Map sketch of `valley_fields` (prompt 088): a river in great bends across
+# the map, joined by an arm from the north and leaving a branch through rock
+# hills with rapids to the south-east; in the west a town with halls and a
+# station, in the middle and the east villages between many grain, green and
+# ploughed fields, rock hills in the east and a walled church on a height.
+# The field map of the prompt. Lines and areas in meters (x east, y south,
+# origin in the map center); generated with `just gen-sketch valley_fields`
+# (crates/cli/src/gen_sketch.rs, docs/MAPS.md).
+name = "valley_fields"
+size_m = [3000, 2000]
+biome = "forest"
+weather = "clear"
+seed = 8811
+water_flow_deg = 270
+
+[[start]]
+player = 0
+team = 0
+position_m = [-1320, 800]
+
+[[start]]
+player = 3
+team = 1
+position_m = [1170, -334]
+
+[[start]]
+player = 2
+team = 0
+position_m = [-1350, -820]
+
+[[start]]
+player = 1
+team = 1
+position_m = [1380, 680]
+
+[[supply]]
+name = "supply_station"
+position_m = [-945, -10]
+
+[[supply]]
+name = "supply_town_square"
+position_m = [-735, -100]
+
+[[supply]]
+name = "supply_central_village"
+position_m = [420, -196]
+
+[[supply]]
+name = "supply_north_east_village"
+position_m = [690, -580]
+
+[[supply]]
+name = "supply_south_village"
+position_m = [-60, 440]
+
+[[supply]]
+name = "supply_castle_hill"
+position_m = [1026, -715]
+
+[[supply]]
+name = "supply_north_west_fields"
+position_m = [-714, -496]
+
+[[supply]]
+name = "supply_rapids_bridge"
+position_m = [735, 755]
+
+[[river]]
+width_m = 54
+points_m = [[1530, 125], [1350, 80], [1200, 20], [1050, -34], [900, -46], [750, -4], [675, 80], [651, 104], [570, 104], [525, 140], [420, 164], [240, 170], [180, 152], [144, 146], [114, 146], [60, 110], [15, 26], [-6, -1], [-84, -1], [-114, -34], [-210, -100], [-360, -184], [-390, -214], [-450, -214], [-510, -265], [-660, -334], [-696, -361], [-756, -361], [-840, -400], [-945, -436], [-1035, -445], [-1095, -445], [-1200, -424], [-1380, -391], [-1530, -364]]
+
+[[river]]
+width_m = 45
+points_m = [[420, -1030], [384, -910], [363, -835], [288, -835], [180, -790], [60, -775], [-60, -766], [-240, -748], [-450, -724], [-510, -724], [-600, -712], [-750, -676], [-855, -595], [-945, -505], [-1020, -445]]
+
+[[river]]
+width_m = 40
+points_m = [[540, 134], [480, 215], [444, 320], [480, 410], [555, 515], [645, 605], [735, 695], [756, 755], [834, 755], [960, 836], [1140, 905], [1320, 944], [1530, 968]]
+
+[[crossing]]
+kind = "stone"
+position_m = [-1065, -445]
+axis = "ns"
+
+[[crossing]]
+kind = "stone"
+position_m = [-480, -724]
+axis = "ns"
+
+[[crossing]]
+kind = "wood"
+position_m = [-726, -361]
+axis = "ns"
+
+[[crossing]]
+kind = "stone"
+position_m = [-420, -214]
+axis = "ns"
+
+[[crossing]]
+kind = "wood"
+position_m = [324, -835]
+axis = "ns"
+
+[[crossing]]
+kind = "stone"
+position_m = [-45, -1]
+axis = "ns"
+
+[[crossing]]
+kind = "wood"
+position_m = [129, 146]
+axis = "ns"
+
+[[crossing]]
+kind = "stone"
+position_m = [609, 104]
+axis = "ns"
+
+[[crossing]]
+kind = "stone"
+position_m = [795, 755]
+axis = "ns"
+
+[[rail]]
+points_m = [[-984, -355], [-984, -10], [-984, 320], [-1020, 500], [-1140, 680], [-1260, 830], [-1410, 950], [-1530, 1016]]
+
+[[road]]
+class = "road"
+width_m = 14
+points_m = [[-960, -1030], [-1005, -820], [-1050, -640], [-1065, -520], [-1065, -496]]
+
+[[road]]
+class = "road"
+width_m = 14
+points_m = [[-1065, -394], [-1050, -310], [-1050, -10], [-1050, 290], [-1050, 500], [-1050, 590], [-900, 710], [-750, 830], [-630, 1028]]
+
+[[road]]
+class = "road"
+width_m = 12
+points_m = [[-1530, -595], [-1320, -580], [-1200, -550], [-1065, -520]]
+
+[[road]]
+class = "road"
+width_m = 12
+points_m = [[-480, -880], [-480, -775]]
+
+[[road]]
+class = "road"
+width_m = 12
+points_m = [[-480, -673], [-465, -550], [-420, -400], [-420, -265]]
+
+[[road]]
+class = "road"
+width_m = 12
+points_m = [[-420, -163], [-405, -100], [-420, 80], [-450, 200], [-540, 410], [-630, 500], [-750, 560], [-1050, 590]]
+
+[[road]]
+class = "road"
+width_m = 12
+points_m = [[-465, -580], [-300, -610], [-90, -625], [120, -625], [300, -580], [480, -550], [660, -520], [900, -505], [1050, -520], [1200, -550], [1350, -580], [1530, -595]]
+
+[[road]]
+class = "road"
+width_m = 10
+points_m = [[-810, -280], [-726, -310]]
+
+[[road]]
+class = "road"
+width_m = 10
+points_m = [[-726, -412], [-630, -445], [-510, -490], [-465, -550]]
+
+[[road]]
+class = "road"
+width_m = 12
+points_m = [[-45, -52], [0, -100], [60, -220], [120, -340], [180, -460], [240, -550], [300, -700], [324, -784]]
+
+[[road]]
+class = "road"
+width_m = 10
+points_m = [[324, -886], [360, -940], [420, -1030]]
+
+[[road]]
+class = "road"
+width_m = 12
+points_m = [[-45, 50], [-66, 140], [-90, 290], [-90, 440], [-75, 620], [-60, 800], [-54, 1028]]
+
+[[road]]
+class = "road"
+width_m = 14
+points_m = [[-1050, 590], [-750, 620], [-450, 575], [-150, 620], [150, 620], [450, 650], [600, 704], [744, 755]]
+
+[[road]]
+class = "road"
+width_m = 14
+points_m = [[846, 755], [900, 770], [1110, 680], [1320, 560], [1530, 500]]
+
+[[road]]
+class = "road"
+width_m = 12
+points_m = [[420, -196], [540, -40], [609, 53]]
+
+[[road]]
+class = "road"
+width_m = 12
+points_m = [[609, 155], [720, 200], [900, 200], [1080, 155], [1200, 80], [1530, 26]]
+
+[[road]]
+class = "road"
+width_m = 10
+points_m = [[129, 197], [105, 320], [0, 410], [-90, 440]]
+
+[[road]]
+class = "road"
+width_m = 10
+points_m = [[129, 95], [180, 50], [300, -40], [420, -196]]
+
+[[road]]
+class = "road"
+width_m = 10
+points_m = [[420, -196], [600, -280], [780, -400], [900, -490], [990, -640], [1026, -715]]
+
+[[road]]
+class = "road"
+width_m = 10
+points_m = [[660, -520], [660, -700], [600, -880], [570, -1030]]
+
+[[road]]
+class = "road"
+width_m = 10
+points_m = [[120, -625], [180, -460], [300, -340], [420, -196], [300, -100]]
+
+[[road]]
+class = "road"
+width_m = 10
+points_m = [[420, -196], [240, -250], [120, -340]]
+
+[[road]]
+class = "track"
+width_m = 8
+points_m = [[1170, -334], [1080, -400], [1050, -520]]
+
+[[road]]
+class = "track"
+width_m = 8
+points_m = [[1380, 680], [1320, 560]]
+
+[[road]]
+class = "track"
+width_m = 8
+points_m = [[-1320, 800], [-1200, 680], [-1050, 590]]
+
+[[road]]
+class = "track"
+width_m = 8
+points_m = [[-1350, -820], [-1200, -730], [-1050, -640]]
+
+[[road]]
+class = "track"
+width_m = 8
+points_m = [[900, -505], [960, -340], [990, -220], [1080, -100], [1140, -10]]
+
+[[road]]
+class = "track"
+width_m = 8
+points_m = [[-300, -610], [-270, -820], [-210, -910]]
+
+[[road]]
+class = "track"
+width_m = 8
+points_m = [[180, 620], [300, 800], [420, 1028]]
+
+[[road]]
+class = "track"
+width_m = 8
+points_m = [[1110, 680], [1200, 800], [1380, 860]]
+
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[-1410, -355], [-1410, -100], [-1410, 140], [-1410, 380], [-1410, 560]]
+
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[-1230, -355], [-1230, -100], [-1230, 140], [-1230, 380], [-1230, 560]]
+
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[-870, -355], [-870, -100], [-870, 140], [-870, 380], [-870, 560]]
+
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[-750, -355], [-750, -100], [-750, 140], [-750, 380], [-750, 560]]
+
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[-630, -355], [-630, -100], [-630, 140], [-630, 380], [-630, 560]]
+
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[-510, -355], [-510, -100], [-510, 140], [-510, 380], [-510, 560]]
+
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[-1440, -340], [-1230, -340], [-1050, -340], [-870, -340], [-630, -340], [-480, -340]]
+
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[-1440, -190], [-1230, -190], [-1050, -190], [-870, -190], [-630, -190], [-480, -190]]
+
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[-1440, -40], [-1230, -40], [-1050, -40], [-870, -40], [-630, -40], [-480, -40]]
+
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[-1440, 110], [-1230, 110], [-1050, 110], [-870, 110], [-630, 110], [-480, 110]]
+
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[-1440, 260], [-1230, 260], [-1050, 260], [-870, 260], [-630, 260], [-480, 260]]
+
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[-1440, 410], [-1230, 410], [-1050, 410], [-870, 410], [-630, 410], [-480, 410]]
+
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[-1440, 545], [-1230, 545], [-1050, 545], [-870, 545], [-630, 545], [-480, 545]]
+
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[-1215, -940], [-1215, -760], [-1215, -580]]
+
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[-1215, -820], [-1065, -820]]
+
+[[town]]
+kinds = ["env_house_town", "env_house_farm_brick", "env_house_stone", "env_house_town", "env_block_town"]
+polygon_m = [[-960, -400], [-390, -385], [-384, -10], [-480, 320], [-600, 590], [-960, 605]]
+
+[[town]]
+kinds = ["env_house_farm", "env_house_farm_brick", "env_house_stone"]
+polygon_m = [[-1290, -955], [-1050, -955], [-1050, -565], [-1290, -565]]
+
+[[town]]
+kinds = ["env_warehouse", "env_house_town", "env_block_town", "env_house_town", "env_warehouse"]
+polygon_m = [[-1455, -370], [-1020, -370], [-1020, 575], [-1455, 575]]
+
+[[village]]
+kinds = ["env_warehouse", "env_house_town"]
+count = 12
+polygon_m = [[-1440, -370], [-1020, -370], [-1020, 560], [-1440, 560]]
+
+[[village]]
+kinds = ["env_house_town", "env_house_farm_brick", "env_house_stone"]
+count = 30
+polygon_m = [[-960, -400], [-390, -385], [-384, -10], [-480, 320], [-600, 590], [-960, 605]]
+
+[[town]]
+kinds = ["env_house_farm", "env_house_farm_brick", "env_house_stone", "env_barn"]
+polygon_m = [[180, -355], [600, -325], [615, -85], [300, -70], [165, -190]]
+
+[[town]]
+kinds = ["env_house_farm", "env_house_farm_brick", "env_barn", "env_house_log"]
+polygon_m = [[540, -730], [840, -715], [870, -430], [570, -430]]
+
+[[town]]
+kinds = ["env_house_farm", "env_house_farm_brick", "env_barn"]
+polygon_m = [[-300, -940], [90, -940], [90, -730], [-300, -730]]
+
+[[town]]
+kinds = ["env_house_farm", "env_house_farm_brick", "env_house_stone", "env_barn"]
+polygon_m = [[-240, 290], [120, 290], [135, 575], [-240, 575]]
+
+[[village]]
+kinds = ["env_house_farm", "env_barn", "env_house_log"]
+count = 8
+polygon_m = [[900, -520], [1200, -520], [1200, -310], [900, -310]]
+
+[[building]]
+kind = "env_church"
+position_m = [1026, -745]
+heading_deg = 90
+
+[[ring]]
+kinds = ["env_wall_stone"]
+center_m = [1026, -745]
+radius_m = [34, 26]
+count = 64
+
+[[building]]
+kind = "env_warehouse"
+position_m = [-915, -100]
+heading_deg = 0
+
+[[building]]
+kind = "env_town_hall"
+position_m = [-714, 185]
+heading_deg = 0
+
+[[building]]
+kind = "env_church"
+position_m = [-570, -130]
+heading_deg = 90
+
+[[field]]
+kind = "grain"
+polygon_m = [[-960, -745], [-825, -745], [-825, -670], [-960, -670]]
+
+[[field]]
+kind = "grain"
+polygon_m = [[-300, -910], [-210, -910], [-210, -820], [-300, -820]]
+
+[[field]]
+kind = "grain"
+polygon_m = [[-105, -925], [-15, -925], [-15, -850], [-105, -850]]
+
+[[field]]
+kind = "green"
+polygon_m = [[-210, -856], [-126, -856], [-126, -766], [-210, -766]]
+
+[[field]]
+kind = "grain"
+polygon_m = [[-780, -550], [-636, -550], [-636, -436], [-780, -436]]
+
+[[field]]
+kind = "grain"
+polygon_m = [[-624, -430], [-510, -430], [-510, -316], [-624, -316]]
+
+[[field]]
+kind = "grain"
+polygon_m = [[-660, -646], [-546, -646], [-546, -556], [-660, -556]]
+
+[[field]]
+kind = "green"
+polygon_m = [[-315, -595], [-210, -595], [-210, -535], [-315, -535]]
+
+[[field]]
+kind = "grain"
+polygon_m = [[-45, -676], [60, -676], [60, -586], [-45, -586]]
+
+[[field]]
+kind = "ploughed"
+polygon_m = [[-180, -325], [-75, -325], [-75, -250], [-180, -250]]
+
+[[field]]
+kind = "grain"
+polygon_m = [[-6, -280], [135, -280], [135, -166], [-6, -166]]
+
+[[field]]
+kind = "ploughed"
+polygon_m = [[90, -160], [216, -160], [216, -70], [90, -70]]
+
+[[field]]
+kind = "grain"
+polygon_m = [[165, -376], [270, -376], [270, -274], [165, -274]]
+
+[[field]]
+kind = "grain"
+polygon_m = [[210, -475], [354, -475], [354, -382], [210, -382]]
+
+[[field]]
+kind = "grain"
+polygon_m = [[390, -616], [495, -616], [495, -526], [390, -526]]
+
+[[field]]
+kind = "green"
+polygon_m = [[504, -580], [600, -580], [600, -490], [504, -490]]
+
+[[field]]
+kind = "grain"
+polygon_m = [[480, -475], [600, -475], [600, -385], [480, -385]]
+
+[[field]]
+kind = "ploughed"
+polygon_m = [[375, -412], [480, -412], [480, -334], [375, -334]]
+
+[[field]]
+kind = "grain"
+polygon_m = [[540, -145], [660, -145], [660, -46], [540, -46]]
+
+[[field]]
+kind = "green"
+polygon_m = [[360, -46], [495, -46], [495, 35], [360, 35]]
+
+[[field]]
+kind = "green"
+polygon_m = [[300, 35], [420, 35], [420, 116], [300, 116]]
+
+[[field]]
+kind = "green"
+polygon_m = [[816, -415], [936, -415], [936, -325], [816, -325]]
+
+[[field]]
+kind = "grain"
+polygon_m = [[945, -304], [1050, -304], [1050, -214], [945, -214]]
+
+[[field]]
+kind = "green"
+polygon_m = [[888, -214], [996, -214], [996, -130], [888, -130]]
+
+[[field]]
+kind = "ploughed"
+polygon_m = [[1074, -454], [1140, -454], [1140, -370], [1074, -370]]
+
+[[field]]
+kind = "green"
+polygon_m = [[1146, -448], [1215, -448], [1215, -364], [1146, -364]]
+
+[[field]]
+kind = "ploughed"
+polygon_m = [[684, -310], [792, -310], [792, -226], [684, -226]]
+
+[[field]]
+kind = "grain"
+polygon_m = [[-675, 194], [-540, 194], [-540, 314], [-675, 314]]
+
+[[field]]
+kind = "ploughed"
+polygon_m = [[-315, 194], [-150, 194], [-150, 254], [-315, 254]]
+
+[[field]]
+kind = "green"
+polygon_m = [[-324, 260], [-150, 260], [-150, 350], [-324, 350]]
+
+[[field]]
+kind = "green"
+polygon_m = [[-114, 134], [60, 134], [60, 215], [-114, 215]]
+
+[[field]]
+kind = "green"
+polygon_m = [[45, 254], [180, 254], [180, 344], [45, 344]]
+
+[[field]]
+kind = "green"
+polygon_m = [[165, 635], [300, 635], [300, 710], [165, 710]]
+
+[[field]]
+kind = "grain"
+polygon_m = [[-405, 836], [-270, 836], [-270, 980], [-405, 980]]
+
+[[field]]
+kind = "green"
+polygon_m = [[-264, 824], [-150, 824], [-150, 920], [-264, 920]]
+
+[[field]]
+kind = "grain"
+polygon_m = [[-870, -250], [-780, -250], [-780, -190], [-870, -190]]
+
+[[field]]
+kind = "green"
+polygon_m = [[720, -880], [840, -880], [840, -790], [720, -790]]
+
+[[field]]
+kind = "grain"
+polygon_m = [[1170, -250], [1260, -250], [1260, -175], [1170, -175]]
+
+[[field]]
+kind = "green"
+polygon_m = [[270, 335], [390, 335], [390, 410], [270, 410]]
+
+[[field]]
+kind = "ploughed"
+polygon_m = [[180, 395], [300, 395], [300, 470], [180, 470]]
+
+[[patchwork]]
+kinds = ["grain", "grain", "green", "ploughed", "green"]
+size_m = [130, 85]
+meadow = 0.15
+axis = [1, -0.3]
+polygon_m = [[-390, -715], [90, -715], [180, -490], [150, -370], [-90, -355], [-360, -490]]
+
+[[patchwork]]
+kinds = ["grain", "grain", "green", "ploughed", "green"]
+size_m = [130, 85]
+meadow = 0.15
+axis = [1, 0.6]
+polygon_m = [[-150, -355], [180, -355], [300, -40], [60, -10], [-90, -100]]
+
+[[patchwork]]
+kinds = ["grain", "grain", "green", "ploughed", "green"]
+size_m = [130, 85]
+meadow = 0.15
+axis = [0.5, 1]
+polygon_m = [[300, -670], [540, -685], [600, -355], [360, -340]]
+
+[[patchwork]]
+kinds = ["grain", "grain", "green", "ploughed", "green"]
+size_m = [130, 85]
+meadow = 0.15
+axis = [1, 0.4]
+polygon_m = [[660, -430], [1230, -460], [1245, -100], [1080, -100], [780, -130], [660, -250]]
+
+[[patchwork]]
+kinds = ["grain", "grain", "green", "ploughed", "green"]
+size_m = [130, 85]
+meadow = 0.15
+axis = [1, 0.1]
+polygon_m = [[-375, 155], [180, 185], [300, 290], [-240, 284]]
+
+[[patchwork]]
+kinds = ["grain", "grain", "green", "ploughed", "green"]
+size_m = [130, 85]
+meadow = 0.15
+axis = [0.7, 1]
+polygon_m = [[150, 290], [450, 410], [420, 620], [180, 590]]
+
+[[patchwork]]
+kinds = ["grain", "grain", "green", "ploughed", "green"]
+size_m = [130, 85]
+meadow = 0.15
+axis = [1, -0.2]
+polygon_m = [[-600, 680], [-90, 680], [-90, 920], [-540, 920]]
+
+[[patchwork]]
+kinds = ["grain", "grain", "green", "ploughed", "green"]
+size_m = [130, 85]
+meadow = 0.15
+axis = [1, 0.5]
+polygon_m = [[-1020, -790], [-510, -880], [-510, -460], [-750, -430], [-990, -550]]
+
+[[wood]]
+kind = "mixed"
+polygon_m = [[-1530, -1030], [-1290, -1030], [-1305, -580], [-1410, -490], [-1530, -475]]
+
+[[wood]]
+kind = "mixed"
+polygon_m = [[-900, -1030], [-300, -1030], [-315, -910], [-510, -880], [-720, -790], [-870, -730]]
+
+[[wood]]
+kind = "mixed"
+polygon_m = [[-360, -490], [-180, -490], [-90, -400], [-150, -310], [-300, -310]]
+
+[[wood]]
+kind = "mixed"
+polygon_m = [[60, -880], [300, -910], [600, -1030], [1080, -1030], [990, -880], [840, -910], [600, -820], [420, -730], [180, -700]]
+
+[[wood]]
+kind = "rock"
+polygon_m = [[1200, -880], [1530, -910], [1530, -580], [1320, -610], [1215, -730]]
+
+[[wood]]
+kind = "mixed"
+polygon_m = [[1080, -1030], [1530, -1030], [1530, -910], [1200, -880]]
+
+[[wood]]
+kind = "mixed"
+polygon_m = [[1260, -520], [1530, -550], [1530, -10], [1350, -10], [1290, -160], [1200, -280]]
+
+[[wood]]
+kind = "rock"
+polygon_m = [[1260, -325], [1500, -325], [1500, -100], [1275, -100]]
+
+[[wood]]
+kind = "mixed"
+polygon_m = [[660, 230], [900, 230], [1140, 200], [1530, 140], [1530, 920], [1320, 890], [1140, 830], [990, 770], [840, 680], [720, 560], [600, 410]]
+
+[[wood]]
+kind = "rock"
+polygon_m = [[1050, 485], [1275, 485], [1290, 680], [1065, 680]]
+
+[[wood]]
+kind = "rock"
+polygon_m = [[1215, 590], [1500, 575], [1500, 860], [1230, 860]]
+
+[[wood]]
+kind = "mixed"
+polygon_m = [[180, 740], [600, 755], [780, 890], [1200, 980], [1530, 1016], [1530, 1028], [0, 1028], [0, 800]]
+
+[[wood]]
+kind = "mixed"
+polygon_m = [[-1530, 620], [-1320, 680], [-1050, 680], [-750, 860], [-630, 1028], [-1530, 1028]]
+
+[[wood]]
+kind = "rock"
+polygon_m = [[-1425, 680], [-1200, 680], [-1200, 920], [-1425, 920]]
+
+[[wood]]
+kind = "mixed"
+polygon_m = [[-600, 680], [-180, 710], [-150, 800], [-240, 1028], [-600, 1028], [-660, 860]]
+
+[[wood]]
+kind = "mixed"
+polygon_m = [[240, 200], [450, 230], [420, 410], [300, 500], [210, 380]]
+
+[[wood]]
+kind = "mixed"
+polygon_m = [[-480, -100], [-210, -70], [-120, 110], [-300, 140], [-390, 80]]
+
+[[wood]]
+kind = "rock"
+polygon_m = [[465, 260], [600, 290], [660, 560], [570, 590], [480, 440]]
+
+[[scatter]]
+kind = "mixed"
+spacing_m = 30
+polygon_m = [[-1530, -1030], [1530, -1030], [1530, 1028], [-1530, 1028]]
+
+[[hill]]
+center_m = [1026, -730]
+radius_m = 170
+height_m = 14
+
+[[hill]]
+center_m = [1380, -760]
+radius_m = 160
+height_m = 16
+
+[[hill]]
+center_m = [1380, -220]
+radius_m = 170
+height_m = 15
+
+[[hill]]
+center_m = [1170, 575]
+radius_m = 150
+height_m = 14
+
+[[hill]]
+center_m = [1365, 725]
+radius_m = 170
+height_m = 15
+
+[[hill]]
+center_m = [-1320, 800]
+radius_m = 150
+height_m = 8
+
+[[hill]]
+center_m = [510, 410]
+radius_m = 120
+height_m = 8
+

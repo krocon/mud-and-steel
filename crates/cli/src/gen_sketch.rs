@@ -44,7 +44,7 @@ pub(crate) const FIELD_PLOUGHED: u8 = 11;
 /// Folder of the sketches.
 pub const SKETCH_DIR: &str = "data/map_sketches";
 /// The maps made from sketches (`just gen-sketch` without a name).
-pub const ALL: [&str; 7] = [
+pub const ALL: [&str; 8] = [
     "river_fields",
     "river_fields_winter",
     "river_fork",
@@ -52,6 +52,7 @@ pub const ALL: [&str; 7] = [
     "desert_lagoon",
     "winter_town",
     "river_town",
+    "valley_fields",
 ];
 
 const START_CLEAR_M: f64 = 60.0;
@@ -155,6 +156,25 @@ struct Sketch {
     bay: Vec<Area>,
     #[serde(default)]
     town: Vec<Town>,
+    #[serde(default)]
+    patchwork: Vec<Patchwork>,
+}
+
+/// A patchwork of fields (stage 3): inside the polygon, plots of `size_m`
+/// (length, width; each varied by up to a third) in a grid turned along
+/// `axis` (a direction, x east and y south), separated by 6 m of grass;
+/// the kind of each plot is drawn from `kinds`, and a share `meadow` stays
+/// grass. Plots whose middle lies outside the polygon are left out.
+#[derive(Deserialize, Clone)]
+#[serde(deny_unknown_fields)]
+struct Patchwork {
+    polygon_m: Vec<P>,
+    #[serde(default)]
+    axis: Option<P>,
+    size_m: P,
+    kinds: Vec<String>,
+    #[serde(default)]
+    meadow: f64,
 }
 
 /// Street building (stage 2): inside the polygon, buildings of `kinds`
@@ -471,6 +491,8 @@ struct Plan<'a> {
     ground: crate::gen_land::Noise,
     detail: crate::gen_land::Noise,
     bumps: Vec<(f64, f64, f64, f64)>,
+    /// Field plots of the patchworks.
+    plots: Vec<Area>,
     /// Outline segments of the bays that are not inside another bay (the
     /// coast of the bays).
     bay_coast: Vec<(P, P)>,
@@ -511,7 +533,7 @@ impl Plan<'_> {
         }
         let s = self.sketch;
         let mut terrain = GRASS;
-        for f in &s.field {
+        for f in s.field.iter().chain(&self.plots) {
             if inside(p, &f.polygon_m) && edge_distance(p, &f.polygon_m) > FIELD_EDGE_M {
                 terrain = match f.kind.as_str() {
                     "green" => FIELD_GREEN,
@@ -985,6 +1007,7 @@ pub fn generate(options: &Options) -> Result<String, String> {
         sketch: &sketch,
         ways,
         paints,
+        plots: patchwork_plots(&sketch.patchwork, seed),
         bay_coast: bay_coast(&sketch.bay),
         crossings: crossings.clone(),
         flats: Vec::new(),
@@ -1291,6 +1314,54 @@ pub fn generate(options: &Options) -> Result<String, String> {
         "wrote {}: {sx} x {sy} samples, heights {low:.2} .. {high:.2} m, {summary}",
         options.out.display(),
     ))
+}
+
+/// The plots of the patchworks (own random stream: sketches without a
+/// patchwork stay the same).
+fn patchwork_plots(patchworks: &[Patchwork], seed: u64) -> Vec<Area> {
+    const LANE_M: f64 = 6.0;
+    let mut random = Random(Rng::new(seed ^ 0x7061_7463));
+    let mut plots = Vec::new();
+    for pw in patchworks {
+        let [ax, ay] = pw.axis.unwrap_or([1.0, 0.0]);
+        let n = (ax * ax + ay * ay).sqrt();
+        let (a, b) = ((ax / n, ay / n), (-ay / n, ax / n));
+        let r = bounds(&pw.polygon_m);
+        let (cx, cy) = ((r.x0 + r.x1) / 2.0, (r.y0 + r.y1) / 2.0);
+        let reach = dist((r.x0, r.y0), (r.x1, r.y1)) / 2.0;
+        // Rows across b, plots along a with varying lengths.
+        let mut v = -reach;
+        while v < reach {
+            let width = pw.size_m[1] * random.range(0.67, 1.33);
+            let mut u = -reach + random.range(0.0, pw.size_m[0]);
+            while u < reach {
+                let length = pw.size_m[0] * random.range(0.67, 1.33);
+                let roll = random.unit();
+                let k = (random.unit() * pw.kinds.len() as f64) as usize;
+                let corner = |s: f64, t: f64| [cx + a.0 * s + b.0 * t, cy + a.1 * s + b.1 * t];
+                let polygon = vec![
+                    corner(u, v),
+                    corner(u + length, v),
+                    corner(u + length, v + width),
+                    corner(u, v + width),
+                ];
+                let mid = (
+                    cx + a.0 * (u + length / 2.0) + b.0 * (v + width / 2.0),
+                    cy + a.1 * (u + length / 2.0) + b.1 * (v + width / 2.0),
+                );
+                if roll >= pw.meadow && inside(mid, &pw.polygon_m) {
+                    plots.push(Area {
+                        kind: pw.kinds[k.min(pw.kinds.len() - 1)].clone(),
+                        spacing_m: None,
+                        polygon_m: polygon,
+                    });
+                }
+                u += length + LANE_M;
+            }
+            v += width + LANE_M;
+        }
+    }
+    plots
 }
 
 /// The outline segments of `bays` whose middle lies in no other bay.
