@@ -289,6 +289,9 @@ Als offene Punkte notieren, nicht umsetzen:
 | Bahnlinie | `[[rail]]`: Schotterbett als Feldweg-Gelände (7 m), flacher Damm, Telegrafenmasten daneben; Bahnbrücke = Steinbrücke auf der Linie; keine Schienen | Ein Gleismodell wäre ein neuer Baustein mit Quellen, Baukasten und Vorschaubild; das Schotterbett mit Masten liest sich von oben als Bahn. Schienen bleiben offen. |
 | Ruinendorf | `[[village]]` (lose Häuser entlang des nächsten Wegs, Anteil beschädigt/Ruine, Lehmmauerreste) und `[[paint]]` mit Rauschflecken für den zertretenen Sand | Die Vorlage zeigt kein Straßenraster, sondern verstreute Häuser auf Sandflecken. |
 | Schräge Übergänge | Fluss in der Skizze an jedem Übergang 30 m quer zur Brückenachse gelegt | Brücken des Spiels sind achsparallel; schräg gemessen war das verengte Wasser zu breit für die Holzbrücke. |
+| Meer und Inseln | `sea = true` mit `[[land]]`-Vielecken, Küste auf eine Höhe gezogen (flacher Meeresspiegel), `[[causeway]]` als Damm mit Brückenlücke quer über die ganze Breite, `[[shoal]]` als Untiefe | Die Wasserfläche des Spiels folgt den Ufern; mit einer Küstenhöhe bleibt das Meer eben. Dämme machen aus den 40–60 m breiten Lücken der Vorlage Übergänge für 30-m-Brücken. |
+| Furten `island_chain` | Zwei lange Untiefen als zweiter Panzerweg: vom Nordostkap zur Waldinsel und zwischen Westwald und Südwestland; die Kette selbst nur über Brücken | Abschnitt 6 verlangt den Charakter der Kette; die Furten umgehen je zwei Brücken. |
+| Dammbreite | 30 m statt 14 m | Bei 14 m endeten Brückendecks neben Wasser; Panzer blieben dort stehen. |
 | Ausgleich `river_fork` | Spieler 0 im Osten, Spieler 1 im Norden: das 1v1 trifft sich im Dorf über den Ostfluss | Mit dem Südweststart als Spieler 0 lief das 1v1 nur über die Westbrücken. Die Siegverteilung der KI folgt auf allen Karten (auch `test_small`) der Fraktion: mit `de,su` gewinnt Spieler 0, mit `su,de` Spieler 1; gemessen wird deshalb beides. |
 
 ## Stand je Karte
@@ -298,13 +301,22 @@ Als offene Punkte notieren, nicht umsetzen:
 | `river_fields` | ja | ja | `map-check`, `map-reach` (Ausgleich Fahrzeuge 12 %, Infanterie 3 %), Editor-Selftest | objects-bench: Wald 30 FPS (wie `test_large`), Mitte 66, Übersicht 82; KI Schlacht 16 Spiele: Süd 7, Nord 5, 4 Zeit | Getreidehalme nah, Steg, Fluss an Brücken stark verengt |
 | `river_fields_winter` | ja (`base`) | ja | `map-check`, `map-reach` (12 % / 5 %) | KI Basis wie alle Karten Zeit | wie oben |
 | `river_fork` | ja | ja | `map-check`, `map-reach` (Ausgleich Fahrzeuge 10 %, Infanterie 7 %) | objects-bench: Wald 25 FPS, Mitte 31, Übersicht 59, Dorf 112; KI Schlacht je 16 Spiele: `de,su` 13:1 (2 Zeit), `su,de` 0:15 (1 Zeit), also fraktions-, nicht kartenbedingt | Schienen (nur Schotterbett), Fluss an Brücken stark verengt |
-| `island_chain` | – | – | – | – | Inseln, Meer, Furt |
+| `island_chain` | ja | ja | `map-check`, `map-reach` (4 % / 5 %) | objects-bench: Wald 25 FPS, Mitte 31, Übersicht 68, Dorf 92; KI Schlacht je 16: `de,su` 4:4 (8 Zeit), `su,de` 9:3 (4 Zeit) | Patt an den Brücken (viele Zeitüberschreitungen), einzelne Panzer bleiben auf Brückendecks stehen (siehe offene Punkte) |
 | `desert_lagoon` | – | – | – | – | Lagune, Dämme, Wüstenort, sechs Starts |
 | `winter_town` | – | – | – | – | Kleinstadt mit mehreren hundert Häusern: Straßenbebauung im Generator fehlt |
 | `river_town` | – | – | – | – | Maskenwerkzeug, Seen, Felshöhen, Burg-Stellvertreter |
 | `valley_fields` | – | – | – | – | große Feldflur, Bahnhof, Stromschnellen |
 | `river_valley` | – | – | – | – | Kiesgrube, Bahn, Hafen, Türme |
 | `river_city` | – | – | – | – | Blockviertel aus `gen_city`, acht Brücken |
+
+## Offene Punkte aus Stufe 2
+
+- **Stehenbleibende Panzer an Übergängen** (alle Brückenkarten, auch `river_fields`): im Schlacht-Turnier
+  bleiben einzelne Panzer minutenlang auf einem Brückendeck oder am Rand einer Furt stehen (`target`
+  leer; die Simulation stoppt eine Einheit nach `STALL_TICKS` ohne Fortschritt am letzten Wegpunkt, der
+  Angriffsbefehl der Gruppe gibt ihr keinen neuen Weg). Auf `island_chain` fuhren zwei Panzer
+  nebeneinander auf das 5 m breite Deck. Gehört in einen eigenen Prompt (KI: angehaltene Gruppenmitglieder
+  neu losschicken, oder Simulation: neu planen statt anhalten); die Karten umgehen es nicht.
 
 ## Ergebnis (Stufe 1)
 

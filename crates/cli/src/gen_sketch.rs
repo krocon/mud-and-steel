@@ -44,7 +44,12 @@ pub(crate) const FIELD_PLOUGHED: u8 = 11;
 /// Folder of the sketches.
 pub const SKETCH_DIR: &str = "data/map_sketches";
 /// The maps made from sketches (`just gen-sketch` without a name).
-pub const ALL: [&str; 3] = ["river_fields", "river_fields_winter", "river_fork"];
+pub const ALL: [&str; 4] = [
+    "river_fields",
+    "river_fields_winter",
+    "river_fork",
+    "island_chain",
+];
 
 const START_CLEAR_M: f64 = 60.0;
 /// River: banks cut below the ground over a valley beside the water.
@@ -65,6 +70,8 @@ const FIELD_EDGE_M: f64 = 2.5;
 /// Railway: half width of the ballast bed and of the embankment (m).
 const RAIL_BED_M: f64 = 3.5;
 const RAIL_SHOULDER_M: f64 = 12.0;
+/// Sea maps: the height land falls to at the coast (m).
+const SEA_COAST_M: f64 = 0.35;
 
 // --- The sketch -----------------------------------------------------------
 
@@ -130,6 +137,24 @@ struct Sketch {
     paint: Vec<Paint>,
     #[serde(default)]
     village: Vec<Village>,
+    /// True: everything outside the `land` polygons is sea (stage 2).
+    #[serde(default)]
+    sea: bool,
+    #[serde(default)]
+    land: Vec<Area>,
+    #[serde(default)]
+    causeway: Vec<Strip>,
+    #[serde(default)]
+    shoal: Vec<Strip>,
+}
+
+/// A strip along a line: a causeway (land across the sea, open under the
+/// bridges of its crossings) or a shoal (shallow water, a ford for tanks).
+#[derive(Deserialize, Clone)]
+#[serde(deny_unknown_fields)]
+struct Strip {
+    width_m: f64,
+    points_m: Vec<P>,
 }
 
 /// A railway line (stage 2): a 7 m ballast bed (terrain like a field
@@ -562,7 +587,25 @@ impl Plan<'_> {
                 terrain = SAND;
             }
         }
-        // Lakes and sea.
+        if s.sea {
+            if let Some(result) = self.sea(p, h, terrain) {
+                return result;
+            }
+            let e = s
+                .land
+                .iter()
+                .filter(|a| inside(p, &a.polygon_m))
+                .map(|a| edge_distance(p, &a.polygon_m))
+                .fold(f64::INFINITY, f64::min);
+            if e.is_finite() {
+                // Land falls towards one coast height (a flat sea level).
+                h = SEA_COAST_M + (h - SEA_COAST_M) * smoothstep(0.0, 60.0, e);
+                if e < 5.0 && terrain == GRASS {
+                    terrain = SAND;
+                }
+            }
+        }
+        // Lakes.
         for lake in &s.lake {
             if inside(p, &lake.polygon_m) {
                 let e = edge_distance(p, &lake.polygon_m);
@@ -587,6 +630,60 @@ impl Plan<'_> {
             }
         }
         (h, terrain)
+    }
+}
+
+impl Plan<'_> {
+    /// The sea at `p` (outside every land polygon): water whose depth grows
+    /// with the distance to the coast, shallow on shoals; causeways stay
+    /// land except under their bridges. `None` on land.
+    fn sea(&self, p: (f64, f64), h: f64, terrain: u8) -> Option<(f64, u8)> {
+        let s = self.sketch;
+        if s.land.iter().any(|a| inside(p, &a.polygon_m)) {
+            return None;
+        }
+        // Under a bridge the water cuts across the whole causeway.
+        let gap = self.crossings.iter().any(|c| {
+            let (u, v) = if c.ns {
+                (p.1 - c.y, p.0 - c.x)
+            } else {
+                (p.0 - c.x, p.1 - c.y)
+            };
+            c.kind != CrossingKind::Ford && u.abs() < c.kind.half_water() && v.abs() < 40.0
+        });
+        let causeway = s
+            .causeway
+            .iter()
+            .map(|c| polyline_distance(p, &c.points_m) - c.width_m / 2.0)
+            .fold(f64::INFINITY, f64::min);
+        if causeway < 0.0 && !gap {
+            let top = SEA_COAST_M + 0.6;
+            let terrain = if terrain == GRASS && causeway > -1.5 {
+                SAND
+            } else {
+                terrain
+            };
+            return Some((top.max(h.min(top + 0.5)), terrain));
+        }
+        let e = s
+            .land
+            .iter()
+            .map(|a| edge_distance(p, &a.polygon_m))
+            .fold(causeway.max(0.0), f64::min);
+        let shoal = s
+            .shoal
+            .iter()
+            .any(|c| polyline_distance(p, &c.points_m) < c.width_m / 2.0);
+        let deep = !shoal && e > 10.0;
+        let bed = SEA_COAST_M
+            - WATERLINE_M
+            - SHALLOW_DEPTH_M * smoothstep(0.0, 10.0, e)
+            - if deep {
+                CHANNEL_DEPTH_M * smoothstep(10.0, 25.0, e) + 1.5 * smoothstep(25.0, 120.0, e)
+            } else {
+                0.0
+            };
+        Some((bed, if deep { DEEP_WATER } else { SHALLOW_WATER }))
     }
 }
 
