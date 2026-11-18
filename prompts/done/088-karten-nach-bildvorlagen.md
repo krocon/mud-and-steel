@@ -311,13 +311,13 @@ Als offene Punkte notieren, nicht umsetzen:
 | `river_fields` | ja | ja | `map-check`, `map-reach` (Ausgleich Fahrzeuge 12 %, Infanterie 3 %), Editor-Selftest | objects-bench: Wald 30 FPS (wie `test_large`), Mitte 66, Übersicht 82; KI Schlacht 16 Spiele: Süd 7, Nord 5, 4 Zeit | Getreidehalme nah, Steg, Fluss an Brücken stark verengt |
 | `river_fields_winter` | ja (`base`) | ja | `map-check`, `map-reach` (12 % / 5 %) | KI Basis wie alle Karten Zeit | wie oben |
 | `river_fork` | ja | ja | `map-check`, `map-reach` (Ausgleich Fahrzeuge 10 %, Infanterie 7 %) | objects-bench: Wald 25 FPS, Mitte 31, Übersicht 59, Dorf 112; KI Schlacht je 16 Spiele: `de,su` 13:1 (2 Zeit), `su,de` 0:15 (1 Zeit), also fraktions-, nicht kartenbedingt | Schienen (nur Schotterbett), Fluss an Brücken stark verengt |
-| `island_chain` | ja | ja | `map-check`, `map-reach` (4 % / 5 %) | objects-bench: Wald 25 FPS, Mitte 31, Übersicht 68, Dorf 92; KI Schlacht je 16: `de,su` 4:4 (8 Zeit), `su,de` 9:3 (4 Zeit) | Patt an den Brücken (viele Zeitüberschreitungen), einzelne Panzer bleiben auf Brückendecks stehen (siehe offene Punkte) |
+| `island_chain` | ja | ja | `map-check`, `map-reach` (4 % / 5 %) | objects-bench: Wald 25 FPS, Mitte 31, Übersicht 68, Dorf 92; KI Schlacht je 16: `de,su` 4:4 (8 Zeit), `su,de` 9:3 (4 Zeit) | Patt an den Brücken (viele Zeitüberschreitungen); Brückendeck-Hänger behoben in 86c952b |
 | `desert_lagoon` | ja | ja | `map-check`, `map-reach` (Teamsummen < 1 % / < 1 %) | objects-bench: nah 108 FPS, Mitte 75, Übersicht 136, Dorf 89; KI Schlacht je 16: `de,su` 10:4 (2 Zeit), `su,de` 5:10 (1 Zeit), 3v3 8 Spiele 5:2 (1 Zeit); keine hängenden Einheiten | Haine von ganz oben unsichtbar (Sichtweite der Objekte) |
-| `winter_town` | ja | ja | `map-check`, `map-reach` (7 % / 13 %) | 770 Gebäude; objects-bench: Wald 24 FPS, Mitte 28, Übersicht 59, Ort 106; KI Schlacht je 16: `de,su` 4:4 (8 Zeit), `su,de` 1:6 (9 Zeit) | viele Zeitüberschreitungen im Ortskampf; Brückendeck-Hänger wie oben |
+| `winter_town` | ja | ja | `map-check`, `map-reach` (7 % / 13 %) | 770 Gebäude; objects-bench: Wald 24 FPS, Mitte 28, Übersicht 59, Ort 106; KI Schlacht je 16: `de,su` 4:4 (8 Zeit), `su,de` 1:6 (9 Zeit) | viele Zeitüberschreitungen im Ortskampf |
 | `river_town` | ja | ja | `map-check`, `map-reach` (5,5 % / 5,8 %) | 879 Gebäude, 44 000 Bäume; objects-bench: Wald 23 FPS, Mitte 23, Übersicht 55, Ort 98; KI Schlacht je 16 (12 000 Ticks): `de,su` 5:8 (3 Zeit), `su,de` 10:3 (3 Zeit) | Wald und Mitte unter 60 FPS (Schatten, wie auf allen Waldkarten); kein Maskenwerkzeug nötig |
 | `valley_fields` | ja | ja | `map-check`, `map-reach` (1,6 % / 12,6 %) | 931 Gebäude; objects-bench: Wald 28 FPS, Mitte 32, Übersicht 84, Ort 96; KI Schlacht je 16 (12 000 Ticks): `de,su` 13:2 (1 Zeit), `su,de` 2:8 (6 Zeit); keine hängenden Einheiten | Stromschnellen nur als Felsen am Ufer; Bahnhof nur als Schotterbett mit Hallen |
 | `river_valley` | ja | ja | `map-check`, `map-reach` (10 % / 7 %) | 699 Gebäude, 57 000 Bäume; objects-bench: Wald 28 FPS, Mitte 25, Übersicht 41, Ort 104; KI Schlacht je 16 (12 000 Ticks): `de,su` 2:3 (11 Zeit), `su,de` 5:10 (1 Zeit) | Übersicht unter 60 FPS; viele Zeitüberschreitungen (KI hält die Stadt); Türme nur als Stellvertreter |
-| `river_city` | ja | ja | `map-check`, `map-reach` (9,7 % / 1 %) | 3042 Gebäude; objects-bench: Wald 25 FPS, Mitte 32, Übersicht 61, Stadt 105; KI Schlacht je 16 (12 000 Ticks): `de,su` 8:2 (6 Zeit), `su,de` 4:11 (1 Zeit) | Brückendeck-Hänger wie oben |
+| `river_city` | ja | ja | `map-check`, `map-reach` (9,7 % / 1 %) | 3042 Gebäude; objects-bench: Wald 25 FPS, Mitte 32, Übersicht 61, Stadt 105; KI Schlacht je 16 (12 000 Ticks): `de,su` 8:2 (6 Zeit), `su,de` 4:11 (1 Zeit) | – |
 
 ## Offene Punkte aus Stufe 2
 
@@ -327,6 +327,9 @@ Als offene Punkte notieren, nicht umsetzen:
   Angriffsbefehl der Gruppe gibt ihr keinen neuen Weg). Auf `island_chain` fuhren zwei Panzer
   nebeneinander auf das 5 m breite Deck. Gehört in einen eigenen Prompt (KI: angehaltene Gruppenmitglieder
   neu losschicken, oder Simulation: neu planen statt anhalten); die Karten umgehen es nicht.
+  **Behoben** in Commit 86c952b („Fix tanks stuck at bridge decks and fords“, Simulation; goldener Hash
+  bewusst geändert, Begründung im Commit): in 160 Schlachtspielen auf den fünf Brückenkarten bleibt kein
+  Panzer mehr an einem Übergang stehen.
 
 ## Ergebnis (Stufe 1)
 
@@ -359,6 +362,6 @@ Als offene Punkte notieren, nicht umsetzen:
 - Nicht erreicht / offen: Schienen und Züge (nur Schotterbett mit Masten), lange Brückenvarianten
   (Flüsse an Brücken stark verengt), Turm- und Burgmodelle (Stellvertreter), Getreidehalme nah,
   Flimmermessung der Felder mit `ground-motion`, Tickzeit mit großem Gefecht je Karte, Waldansichten
-  unter 60 FPS (Baumschatten, alle Waldkarten), stehenbleibende Panzer auf Brückendecks (siehe
-  „Offene Punkte aus Stufe 2“).
+  unter 60 FPS (Baumschatten, alle Waldkarten). Die stehenbleibenden Panzer auf Brückendecks und an
+  Furten sind nachträglich behoben (86c952b, siehe „Offene Punkte aus Stufe 2“).
 
