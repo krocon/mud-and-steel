@@ -813,7 +813,8 @@ impl SimHost {
     /// `j0..j0+h` (clipped to the map), row by row: `rect` (Rect2i, the
     /// clipped rectangle), `height` (PackedFloat32Array, meters), `normal`
     /// (RG8), `splat0`/`splat1` (RGBA8 weights of terrain ids 0..=3 and
-    /// 4..=7) and `track` (RGBA8 track direction and mask). Format:
+    /// 4..=7), `track` (RGBA8 track direction and mask) and `field` (RGBA8
+    /// field masks and row direction, prompt 088). Format:
     /// `terrain_layers.rs`. Empty dictionary if nothing is left.
     #[func]
     fn terrain_layers(&self, i0: i64, j0: i64, w: i64, h: i64) -> VarDictionary {
@@ -842,6 +843,7 @@ impl SimHost {
         out.set("splat0", &PackedByteArray::from(layers.splat0.as_slice()));
         out.set("splat1", &PackedByteArray::from(layers.splat1.as_slice()));
         out.set("track", &PackedByteArray::from(layers.track.as_slice()));
+        out.set("field", &PackedByteArray::from(layers.field.as_slice()));
         out
     }
 

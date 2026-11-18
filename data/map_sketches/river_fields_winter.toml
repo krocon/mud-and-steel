@@ -1,0 +1,9 @@
+# Map sketch of `river_fields_winter` (prompt 088): the land of
+# `river_fields` in winter. Everything comes from that sketch; only biome,
+# weather and seed differ (snow on the fields and in the open, conifer
+# woods, the river stays open). `just gen-sketch river_fields_winter`.
+name = "river_fields_winter"
+base = "river_fields"
+biome = "winter"
+weather = "snow"
+seed = 8802

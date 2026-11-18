@@ -82,6 +82,8 @@ MATCH_BIOME_FOREST,forest,Wald
 MATCH_BIOME_DESERT,desert,Wüste
 MATCH_BIOME_WINTER,winter,Winter
 MAP_HARBOR_CITY,Harbor city,Hafenstadt
+MAP_RIVER_FIELDS,River fields,Flussfelder
+MAP_RIVER_FIELDS_WINTER,River fields in winter,Flussfelder im Winter
 MATCH_SLOT_OPEN,Open,Offen
 MATCH_SLOT_CLOSED,Closed,Geschlossen
 MATCH_SLOT_COMPUTER,Computer: %s,Computer: %s

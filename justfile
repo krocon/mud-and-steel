@@ -341,6 +341,11 @@ gen-village:
 gen-land map="all":
     cargo run -q --release -p cli -- gen-land --map {{ map }}
 
+# Generate a map from its picture sketch data/map_sketches/<name>.toml into data/maps/<name>/ (prompt 088; without a name every sketch map; docs/MAPS.md)
+[group('maps')]
+gen-sketch *name:
+    cargo run -q --release -p cli -- gen-sketch {{ name }}
+
 # Generate a map from real geodata (prompt 081) into data/maps/<site>/ from assets-src/geo/<site>/ (OpenStreetMap + elevation model; docs/MAPS.md); `--report DIR` also writes pictures of the stages
 [group('maps')]
 gen-geo site="harbor_city" *args:
@@ -443,6 +448,11 @@ wind-shots prefix="after": build
     rm -rf build/trailer/stills
     bash tools/trailer-shots.sh --stills --only=survey_wind_mid,survey_wind_near
     python3 -I tools/wind_shots.py {{ prefix }}
+
+# Fields in pictures (prompt 088; needs a window): river_fields near, middle, far, in rain and in winter, and both sketch maps from above, as stills into build/trailer/stills/
+[group('godot')]
+field-shots: build
+    bash tools/trailer-shots.sh --stills --only=survey_fields_near,survey_fields_mid,survey_fields_far,survey_fields_rain,survey_fields_winter,survey_river_fields,survey_river_fields_winter
 
 # Cloud shadows in pictures (prompt 087; needs a window): meadow, column, village, overcast, evening and a series every 2 s into build/cloud_shots/<prefix>_*; `just cloud-shots before --off` without them
 [group('godot')]

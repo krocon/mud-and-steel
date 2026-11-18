@@ -122,6 +122,9 @@ func _tools_test(scene: Node3D, editor: MapEditor) -> void:
 	_check(editor.terrain_at(-30, 20) == 8, "no tall grass painted: terrain %d" % editor.terrain_at(-30, 20))
 	_check(editor.terrain_names().size() > 8 and editor.terrain_names()[8] == "tall_grass", "tall grass missing in the palette")
 	_check(editor.terrain_colors().size() == editor.terrain_names().size(), "palette without colors")
+	# Fields (prompt 088) can be painted.
+	for field: String in ["field_grain", "field_green", "field_ploughed"]:
+		_check(field in editor.terrain_names(), "%s missing in the palette" % field)
 	var tall: Array = editor.scatter_deco(-48.0, 8.0, 32.0, 0.44, 71, PackedFloat32Array([0, 0, 0, 0, 0, 0, 0, 0, 1]),
 		1.0, 0.0, PackedFloat32Array([1.0]), Vector2.ONE, 0.0, Vector2.ZERO, 1.1)
 	_check(not tall.is_empty() and (tall[0] as PackedFloat32Array).size() > 12 * 100, "no tall grass plants scattered")

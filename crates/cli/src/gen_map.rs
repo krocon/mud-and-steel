@@ -1155,8 +1155,18 @@ pub(crate) fn write_png(
     data: &[u8],
     palette: Option<Vec<u8>>,
 ) -> Result<(), String> {
+    write_png_rect(path, (side, side), data, palette)
+}
+
+/// A PNG of `width` × `height` samples (prompt 088: maps need not be square).
+pub(crate) fn write_png_rect(
+    path: &Path,
+    (width, height): (u32, u32),
+    data: &[u8],
+    palette: Option<Vec<u8>>,
+) -> Result<(), String> {
     let file = std::fs::File::create(path).map_err(|e| format!("{}: {e}", path.display()))?;
-    let mut encoder = png::Encoder::new(std::io::BufWriter::new(file), side, side);
+    let mut encoder = png::Encoder::new(std::io::BufWriter::new(file), width, height);
     match palette {
         Some(palette) => {
             encoder.set_color(png::ColorType::Indexed);

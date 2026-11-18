@@ -21,7 +21,11 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by prompt 085 (trees under heavy fire): the hashed
+/// Last changed by prompt 088 (fields): the hashed terrain and weather
+/// rules gained `field_grain`, `field_green` and `field_ploughed` with the
+/// rules of grass. Checked: with the old `data/terrain.toml` and
+/// `data/weather.toml` the old value comes out (`test_small` has no fields).
+/// Before (`0xd58a_97ab_9472_eeb7`), prompt 085 (trees under heavy fire): the hashed
 /// destruction rules gained `[blast]` (area damage of big explosions) and
 /// per class `blast`, `damaged_clear`, `damaged_height_pct`; trees now have
 /// a bare stage (`damaged_pct = 40`). Checked: with the old
@@ -251,7 +255,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xd58a_97ab_9472_eeb7;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x6883_ba0f_7cbe_d521;
 
 #[test]
 fn golden_hash() {

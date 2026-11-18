@@ -2840,6 +2840,23 @@ one part of the look turned off (`no_ground`, `no_tufts`, `no_dof`,
 `old_sun`, `old_blur`, `none` = the look before), in one run so a busy
 machine affects all variants alike.
 
+### Fields (prompt 088)
+
+Terrain ids 9–11 (`field_grain`, `field_green`, `field_ploughed`) count as
+grass in the splat weights. `terrain_layers.rs` adds a `field` raster (RGBA8):
+the three masks (3 × 3 tent filter) and the direction of the rows, the long
+axis of each connected field from the second moments of its samples (filled
+once per call, also one sample beyond the rectangle for the filtered edges),
+so painted fields get their rows without data in the map. `terrain.gd`
+uploads it as `field_tex`; `terrain_fields.gdshaderinc` draws grain (warm
+yellow, drill rows close up, tramlines every 20 m, lodged and mottled
+patches), green fields (rows of leaves over soil) and ploughed soil (furrows
+that tilt the normal, broad plough passes), every stripe filtered for the
+pixel footprint and faded into its mean before it gets smaller than a pixel.
+A clear edge (smoothstep over the filtered mask), the meadow look kept off
+the fields, faint rows under snow, darker in rain through the wetness of the
+ground. No 3D stalks yet (open: the tall grass technique for grain close up).
+
 ### Tall grass (prompt 073)
 
 Terrain type `tall_grass` (id 8, `data/terrain.toml`): dense, knee- to

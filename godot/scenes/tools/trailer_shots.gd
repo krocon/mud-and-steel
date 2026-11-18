@@ -310,6 +310,41 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"start_s": 2.0, "seconds": 25.0, "stills": [0.5, 2.5, 4.5, 6.5, 8.5, 10.5, 12.5, 14.5, 16.5, 18.5, 20.5, 22.5, 24.5],
 		"camera": [{"t": 0.0, "at": Vector2(0, -40), "dist": 300.0, "yaw": 0.0}],
 	},
+	# Maps from picture sketches (prompt 088): the whole map from above,
+	# for the comparison with the template (`build/sketch-compare/`).
+	"survey_river_fields": {
+		"map": "river_fields", "scene": "survey", "seed": 1, "start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, 0), "dist": 3000.0, "yaw": 0.0, "pitch": 89.0, "haze": 6000.0}],
+	},
+	"survey_river_fields_winter": {
+		"map": "river_fields_winter", "scene": "survey", "seed": 1, "start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, 0), "dist": 3000.0, "yaw": 0.0, "pitch": 89.0, "haze": 6000.0}],
+	},
+	"survey_fields_near": {
+		"map": "river_fields", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(150, -330), "dist": 60.0, "yaw": 30.0}],
+	},
+	"survey_fields_mid": {
+		"map": "river_fields", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(150, -330), "dist": 180.0, "yaw": 30.0}],
+	},
+	"survey_fields_far": {
+		"map": "river_fields", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(100, 300), "dist": 480.0, "yaw": 0.0}],
+	},
+	"survey_fields_winter": {
+		"map": "river_fields_winter", "scene": "survey", "seed": 1, "daytime": "day", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(150, -330), "dist": 180.0, "yaw": 30.0}],
+	},
+	"survey_fields_rain": {
+		"map": "river_fields", "scene": "survey", "seed": 1, "daytime": "day", "weather": "rain", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(150, -330), "dist": 180.0, "yaw": 30.0}],
+	},
 	"survey_farms": {
 		"map": "farms", "scene": "survey", "seed": 1, "start_s": 0.5, "seconds": 1.0, "stills": [0.5],
 		"camera": [{"t": 0.0, "at": Vector2(0, 0), "dist": 1902.0, "yaw": 0.0, "pitch": 89.0, "haze": 4000.0}],

@@ -19,11 +19,21 @@
 //!   eight): it counts as grass there, and A holds its mask (3 x 3 tent
 //!   filter like the weights), which the shader uses for the dark ground
 //!   under the tufts and the far look of tall grass.
+//! - fields (RGBA8, prompt 088): R, G, B = masks of grain, green fields and
+//!   ploughed soil (3 x 3 tent filter, the fields count as grass in the
+//!   splat weights), A = direction of the rows: the long axis of the
+//!   connected field the sample belongs to (from the second moments of its
+//!   samples), as an angle in 0..180 degrees mapped to 0..255. The
+//!   direction is presentation only and is not stored in the map.
+
+use std::collections::HashMap;
 
 /// Terrain id of field tracks (`data/terrain.toml`).
 const DIRT_TRACK: u8 = 1;
 /// Terrain id of tall grass (`data/terrain.toml`, prompt 073).
 const TALL_GRASS: u8 = 8;
+/// Terrain ids of the fields (prompt 088): grain, green, ploughed.
+const FIELDS: [u8; 3] = [9, 10, 11];
 /// Box blur radius (samples) of the structure tensor; applied twice.
 const TENSOR_RADIUS: i64 = 3;
 /// Extra samples around a rectangle so blurs are exact inside it.
@@ -56,6 +66,7 @@ pub struct Layers {
     pub splat0: Vec<u8>,
     pub splat1: Vec<u8>,
     pub track: Vec<u8>,
+    pub field: Vec<u8>,
 }
 
 impl Grid<'_> {
@@ -96,6 +107,7 @@ impl Grid<'_> {
             splat0: Vec::with_capacity(n * 4),
             splat1: Vec::with_capacity(n * 4),
             track: Vec::with_capacity(n * 4),
+            field: Vec::with_capacity(n * 4),
         };
         let byte = |v: f32| (v.clamp(0.0, 1.0) * 255.0 + 0.5) as u8;
         for j in rect.j0..rect.j0 + rect.h {
@@ -126,7 +138,98 @@ impl Grid<'_> {
             }
         }
         self.track_field(rect, &mut out.track);
+        self.fields(rect, &mut out.field);
         out
+    }
+
+    /// Field masks and row directions, see the module documentation.
+    fn fields(&self, rect: Rect, out: &mut Vec<u8>) {
+        let (sx, sy) = (i64::from(self.samples.0), i64::from(self.samples.1));
+        // Row direction per sample of every field that reaches the
+        // rectangle: each connected field is filled once.
+        // (The rectangle plus one sample, for the filtered edges.)
+        let mut angle: HashMap<usize, u8> = HashMap::new();
+        let (i0, j0) = (i64::from(rect.i0) - 1, i64::from(rect.j0) - 1);
+        let (i1, j1) = (
+            i64::from(rect.i0 + rect.w) + 1,
+            i64::from(rect.j0 + rect.h) + 1,
+        );
+        for j in j0.max(0)..j1.min(sy) {
+            for i in i0.max(0)..i1.min(sx) {
+                let id = self.id(i, j);
+                let k = self.clamp(i, j);
+                if !FIELDS.contains(&id) || angle.contains_key(&k) {
+                    continue;
+                }
+                let mut stack = vec![(i, j)];
+                let mut members = Vec::new();
+                let mut seen = std::collections::HashSet::new();
+                seen.insert(k);
+                let (mut n, mut mx, mut my) = (0.0f64, 0.0f64, 0.0f64);
+                let (mut xx, mut yy, mut xy) = (0.0f64, 0.0f64, 0.0f64);
+                while let Some((a, b)) = stack.pop() {
+                    members.push(self.clamp(a, b));
+                    let (fa, fb) = (a as f64, b as f64);
+                    n += 1.0;
+                    mx += fa;
+                    my += fb;
+                    xx += fa * fa;
+                    yy += fb * fb;
+                    xy += fa * fb;
+                    for (da, db) in [(1, 0), (-1, 0), (0, 1), (0, -1)] {
+                        let (c, d) = (a + da, b + db);
+                        if c < 0 || d < 0 || c >= sx || d >= sy || self.id(c, d) != id {
+                            continue;
+                        }
+                        if seen.insert(self.clamp(c, d)) {
+                            stack.push((c, d));
+                        }
+                    }
+                }
+                let (mx, my) = (mx / n, my / n);
+                let (cxx, cyy, cxy) = (xx / n - mx * mx, yy / n - my * my, xy / n - mx * my);
+                // Direction of the long axis, 0..pi.
+                let mut a = 0.5 * (2.0 * cxy).atan2(cxx - cyy);
+                if a < 0.0 {
+                    a += std::f64::consts::PI;
+                }
+                let byte = ((a / std::f64::consts::PI) * 255.0)
+                    .round()
+                    .clamp(0.0, 255.0) as u8;
+                for m in members {
+                    angle.insert(m, byte);
+                }
+            }
+        }
+        for j in rect.j0..rect.j0 + rect.h {
+            for i in rect.i0..rect.i0 + rect.w {
+                let (i, j) = (i64::from(i), i64::from(j));
+                let mut sums = [0u32; 3];
+                for (oj, wj) in [(-1, 1), (0, 2), (1, 1)] {
+                    for (oi, wi) in [(-1, 1), (0, 2), (1, 1)] {
+                        let id = self.id(i + oi, j + oj);
+                        if let Some(f) = FIELDS.iter().position(|&x| x == id) {
+                            sums[f] += wi * wj;
+                        }
+                    }
+                }
+                for sum in sums {
+                    out.push(((sum * 255 + 8) / 16) as u8);
+                }
+                // Outside a field: the direction of a field next to it, so
+                // the filtered edge keeps its rows.
+                let mut a = angle.get(&self.clamp(i, j)).copied();
+                if a.is_none() {
+                    for (oi, oj) in [(1, 0), (-1, 0), (0, 1), (0, -1)] {
+                        if FIELDS.contains(&self.id(i + oi, j + oj)) {
+                            a = angle.get(&self.clamp(i + oi, j + oj)).copied();
+                            break;
+                        }
+                    }
+                }
+                out.push(a.unwrap_or(0));
+            }
+        }
     }
 
     /// Direction and mask of field tracks, see the module documentation.

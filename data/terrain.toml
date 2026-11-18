@@ -97,3 +97,33 @@ speed = "offroad"
 speed_pct = 100
 passable = true
 debug_color = 0x3e5a24
+
+# Fields (prompt 088): ripe grain, green fields in rows (beet, clover, young
+# crops) and ploughed soil. Same rules as grass for now (no cover, no
+# concealment, same speed, soften like grass in rain and snow); the
+# presentation draws rows and furrows along each field's long side and counts
+# them as grass when blending ground textures. Slower wheels on ploughed
+# soil and infantry hidden in grain are open (docs/MAPS.md).
+[[terrain]]
+id = 9
+name = "field_grain"
+speed = "offroad"
+speed_pct = 100
+passable = true
+debug_color = 0xc9a640
+
+[[terrain]]
+id = 10
+name = "field_green"
+speed = "offroad"
+speed_pct = 100
+passable = true
+debug_color = 0x5f8a2c
+
+[[terrain]]
+id = 11
+name = "field_ploughed"
+speed = "offroad"
+speed_pct = 100
+passable = true
+debug_color = 0x6e4a30

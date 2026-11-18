@@ -98,7 +98,7 @@ func build(host: Object) -> void:
 		_samples.x, _samples.y, false, Image.FORMAT_RF, (layers["height"] as PackedFloat32Array).to_byte_array()
 	)
 	_images["normal"] = Image.create_from_data(_samples.x, _samples.y, false, Image.FORMAT_RG8, layers["normal"])
-	for key: String in ["splat0", "splat1", "track"]:
+	for key: String in ["splat0", "splat1", "track", "field"]:
 		_images[key] = Image.create_from_data(_samples.x, _samples.y, false, Image.FORMAT_RGBA8, layers[key])
 	for key: String in _images:
 		_textures[key] = ImageTexture.create_from_image(_images[key])
@@ -110,6 +110,8 @@ func build(host: Object) -> void:
 	_material.set_shader_parameter("splat0_tex", _textures["splat0"])
 	_material.set_shader_parameter("splat1_tex", _textures["splat1"])
 	_material.set_shader_parameter("track_tex", _textures["track"])
+	# Fields (prompt 088): masks and row direction.
+	_material.set_shader_parameter("field_tex", _textures["field"])
 	_material.set_shader_parameter("samples", _samples)
 	_material.set_shader_parameter("half_size", _map_size * 0.5)
 	_material.set_shader_parameter("cell", _cell)
@@ -280,6 +282,7 @@ func regions_changed(rects: Array[Rect2i]) -> void:
 			"splat0": Image.create_from_data(w, h, false, Image.FORMAT_RGBA8, layers["splat0"]),
 			"splat1": Image.create_from_data(w, h, false, Image.FORMAT_RGBA8, layers["splat1"]),
 			"track": Image.create_from_data(w, h, false, Image.FORMAT_RGBA8, layers["track"]),
+			"field": Image.create_from_data(w, h, false, Image.FORMAT_RGBA8, layers["field"]),
 		}
 		for key: String in parts:
 			_images[key].blit_rect(parts[key], Rect2i(Vector2i.ZERO, clipped.size), clipped.position)

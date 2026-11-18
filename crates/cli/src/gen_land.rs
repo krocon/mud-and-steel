@@ -521,10 +521,11 @@ pub(crate) struct Objects<'a> {
     pub(crate) rows: Vec<String>,
     rects: Vec<Rect>,
     buckets: Vec<Vec<usize>>,
-    /// Half the map size (m), samples per side and buckets per side.
-    half: f64,
+    /// Half the map width and depth (m), samples per row, buckets per row
+    /// and per column.
+    half: (f64, f64),
     samples: usize,
-    buckets_per_side: usize,
+    buckets_per_side: (usize, usize),
     /// Circles kept free of objects (starts, strongpoints).
     pub(crate) reserved: Vec<((f64, f64), f64)>,
     pub(crate) buildings: usize,
@@ -545,17 +546,28 @@ impl<'a> Objects<'a> {
         random: Random,
         size_m: u32,
     ) -> Self {
-        let buckets_per_side = (size_m as usize).div_ceil(16) + 1;
+        Self::sized_rect(rules, terrain, random, (size_m, size_m))
+    }
+
+    /// Objects of a map `width` × `depth` m with 2 m samples (prompt 088).
+    pub(crate) fn sized_rect(
+        rules: &'a ObjectRules,
+        terrain: &'a [u8],
+        random: Random,
+        (width, depth): (u32, u32),
+    ) -> Self {
+        let bx = (width as usize).div_ceil(16) + 1;
+        let by = (depth as usize).div_ceil(16) + 1;
         Self {
             rules,
             terrain,
             random,
             rows: Vec::new(),
             rects: Vec::new(),
-            buckets: vec![Vec::new(); buckets_per_side * buckets_per_side],
-            half: f64::from(size_m) / 2.0,
-            samples: (size_m / 2 + 1) as usize,
-            buckets_per_side,
+            buckets: vec![Vec::new(); bx * by],
+            half: (f64::from(width) / 2.0, f64::from(depth) / 2.0),
+            samples: (width / 2 + 1) as usize,
+            buckets_per_side: (bx, by),
             reserved: Vec::new(),
             buildings: 0,
             trees: 0,
@@ -564,18 +576,27 @@ impl<'a> Objects<'a> {
     }
 
     pub(crate) fn terrain_at(&self, x: f64, y: f64) -> u8 {
-        let c = |v: f64| {
-            ((v + self.half) / CELL_M)
-                .round()
-                .clamp(0.0, (self.samples - 1) as f64) as usize
+        let rows = self.terrain.len() / self.samples;
+        let c = |v: f64, half: f64, n: usize| {
+            ((v + half) / CELL_M).round().clamp(0.0, (n - 1) as f64) as usize
         };
-        self.terrain[c(y) * self.samples + c(x)]
+        self.terrain[c(y, self.half.1, rows) * self.samples + c(x, self.half.0, self.samples)]
     }
 
     fn bucket_range(&self, r: &Rect) -> (usize, usize, usize, usize) {
-        let last = (self.buckets_per_side - 1) as f64;
-        let b = |v: f64| ((v + self.half) / BUCKET_M).floor().clamp(0.0, last) as usize;
-        (b(r.x0), b(r.y0), b(r.x1), b(r.y1))
+        let (lx, ly) = (
+            (self.buckets_per_side.0 - 1) as f64,
+            (self.buckets_per_side.1 - 1) as f64,
+        );
+        let b = |v: f64, half: f64, last: f64| {
+            ((v + half) / BUCKET_M).floor().clamp(0.0, last) as usize
+        };
+        (
+            b(r.x0, self.half.0, lx),
+            b(r.y0, self.half.1, ly),
+            b(r.x1, self.half.0, lx),
+            b(r.y1, self.half.1, ly),
+        )
     }
 
     /// Places an object unless it would overlap another one within
@@ -605,8 +626,8 @@ impl<'a> Objects<'a> {
             x1: x + hx,
             y1: y + hy,
         };
-        let limit = self.half - 3.0;
-        if rect.x0 < -limit || rect.x1 > limit || rect.y0 < -limit || rect.y1 > limit {
+        let (lx, ly) = (self.half.0 - 3.0, self.half.1 - 3.0);
+        if rect.x0 < -lx || rect.x1 > lx || rect.y0 < -ly || rect.y1 > ly {
             return false;
         }
         if self.reserved.iter().any(|&(c, r)| {
@@ -640,7 +661,7 @@ impl<'a> Objects<'a> {
         let (i0, j0, i1, j1) = self.bucket_range(&probe);
         for j in j0..=j1 {
             for i in i0..=i1 {
-                for &k in &self.buckets[j * self.buckets_per_side + i] {
+                for &k in &self.buckets[j * self.buckets_per_side.0 + i] {
                     let o = &self.rects[k];
                     if probe.x0 < o.x1 && o.x0 < probe.x1 && probe.y0 < o.y1 && o.y0 < probe.y1 {
                         return false;
@@ -651,7 +672,7 @@ impl<'a> Objects<'a> {
         let id = self.rects.len();
         self.rects.push(rect);
         let (i0, j0, i1, j1) = self.bucket_range(&rect);
-        let per_side = self.buckets_per_side;
+        let per_side = self.buckets_per_side.0;
         for j in j0..=j1 {
             for i in i0..=i1 {
                 self.buckets[j * per_side + i].push(id);

@@ -11,6 +11,7 @@ mod gen_blocks;
 mod gen_city;
 mod gen_land;
 mod gen_map;
+mod gen_sketch;
 mod gen_textures;
 mod gen_town;
 mod gen_village;
@@ -128,6 +129,15 @@ enum CliCommand {
         #[arg(long)]
         seed: Option<u64>,
         /// Output folder (default: data/maps/<map>).
+        #[arg(long)]
+        out: Option<PathBuf>,
+    },
+    /// Generates a map from a picture sketch (prompt 088):
+    /// data/map_sketches/<name>.toml -> data/maps/<name>/.
+    GenSketch {
+        /// Sketch name; without one every map of `gen_sketch::ALL`.
+        name: Option<String>,
+        /// Output folder (default: data/maps/<name>).
         #[arg(long)]
         out: Option<PathBuf>,
     },
@@ -718,6 +728,26 @@ fn main() {
                     out: &out,
                 };
                 match gen_land::generate(&options) {
+                    Ok(report) => println!("{report}"),
+                    Err(e) => fail(&e),
+                }
+            }
+        }
+        CliCommand::GenSketch { name, out } => {
+            let names: Vec<String> = match name {
+                Some(n) => vec![n],
+                None => gen_sketch::ALL.iter().map(|n| (*n).to_string()).collect(),
+            };
+            for name in names {
+                let out = out
+                    .clone()
+                    .unwrap_or_else(|| Path::new(MAPS_DIR).join(&name));
+                let options = gen_sketch::Options {
+                    name: &name,
+                    sketches: Path::new(gen_sketch::SKETCH_DIR),
+                    out: &out,
+                };
+                match gen_sketch::generate(&options) {
                     Ok(report) => println!("{report}"),
                     Err(e) => fail(&e),
                 }

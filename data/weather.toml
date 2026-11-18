@@ -187,6 +187,22 @@ name = "tall_grass"
 wet_pct = 70
 snow_pct = 100
 
+# Fields (prompt 088): like grass for now.
+[[ground.terrain]]
+name = "field_grain"
+wet_pct = 70
+snow_pct = 100
+
+[[ground.terrain]]
+name = "field_green"
+wet_pct = 70
+snow_pct = 100
+
+[[ground.terrain]]
+name = "field_ploughed"
+wet_pct = 70
+snow_pct = 100
+
 [[ground.terrain]]
 name = "dirt_track"
 wet_pct = 100

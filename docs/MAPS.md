@@ -97,6 +97,9 @@ covers the 2 m × 2 m square around its sample. The ids index the types in
 | 6 | shallow_water | 30 % cross-country | yes (fords) |
 | 7 | deep_water | – | no (bridges only) |
 | 8 | tall_grass | 100 % cross-country (like grass) | yes |
+| 9 | field_grain | 100 % cross-country (like grass) | yes |
+| 10 | field_green | 100 % cross-country (like grass) | yes |
+| 11 | field_ploughed | 100 % cross-country (like grass) | yes |
 
 `tall_grass` (prompt 073) is dense, knee- to chest-high grass. In the rules it
 is grass (same speed, softness in rain and snow, no cover or concealment yet);
@@ -109,6 +112,16 @@ tournament gives the same games there before and after; `tall_grass_test`
 (`cli gen-map --tall-grass`, 47 %) is the test map for pictures and
 measurements. Paint it in the map editor with the terrain brush (the
 palette shows a swatch of every terrain's color).
+
+Fields (prompt 088): `field_grain` (ripe grain), `field_green` (beet, clover,
+young crops in rows) and `field_ploughed` (ploughed soil). In the rules they
+are grass for now (speed, softness in rain and snow, no cover or
+concealment); slower wheels on ploughed soil and infantry hidden in grain are
+open. The presentation counts them as grass in the ground blend and draws
+each field with rows, tramlines or furrows along its long axis (computed per
+connected field by the bridge, not stored in the map; see
+[ARCHITECTURE.md](ARCHITECTURE.md)); under snow the rows show faintly. Paint
+them with the terrain brush of the map editor.
 
 Slope (also in `terrain.toml`): uphill the speed drops by 2 % per percent of grade
 (rise over the next meter), down to 20 %; grades above 60 % (31°) cannot be climbed,
@@ -917,6 +930,42 @@ few felled trees and every supply point (prompt 056); `SHOT_SET=tall_land`
 the tall grass of `river_land` and `farms` (prompt 073).
 
 Measurements: [prompt 056](../prompts/done/056-karten-basis-stufe2.md#ergebnis).
+
+### Maps from picture sketches (prompt 088)
+
+`cli gen-sketch <name>` (`crates/cli/src/gen_sketch.rs`, `just gen-sketch
+[name]`, without a name every map of `gen_sketch::ALL`) writes
+`data/maps/<name>/` from the sketch `data/map_sketches/<name>.toml`. A
+sketch is the layout a template picture gives, traced by hand and
+simplified to what the game's building blocks need; the pictures themselves
+are not in the repository. Lines and areas are in meters (x east, y south,
+origin in the map center):
+
+| Table | Content |
+|---|---|
+| top level | `name`, `size_m` (multiples of 4 m, at most 4 km), `biome`, `weather`, `seed`, `water_flow_deg`; `base` = another sketch this one only changes (biome, weather, seed, size) |
+| `[[start]]` | player, team, position (60 m kept flat and free) |
+| `[[supply]]`, `[[marker]]` | supply point markers (`supply_*`, kept free and flat) and other markers |
+| `[[river]]` | center line and width; banks cut 3 m into a 40 m valley, deep water in the middle, shallow at the edges, sand on the banks |
+| `[[island]]`, `[[lake]]` | islands in rivers (circle); lakes and sea (polygon, `deep` or `shallow`) |
+| `[[crossing]]` | `stone` or `wood` bridge or `ford` at a point of a river, `axis` `ns` or `we`: the axis is moved onto a path cell center line, the water narrowed to what the longest bridge of the kind spans (stone 21 m, timber 7 m), a straight approach and embankments with 12 % ramps are made, and the shortest fitting variant is placed (as `gen_map`) |
+| `[[road]]` | `road` or `track` with width and points |
+| `[[ring_road]]`, `[[square]]` | a ring track (a rondel) and paved squares |
+| `[[wood]]`, `[[scatter]]` | woods (`mixed`, `deciduous`, `conifer`, `birch`, `palm`; trees on a jittered grid, 6 m off ways, none on fields or water) and scattered single trees in loose clumps; the biome picks the species (winter: conifers, birches and bare oaks; desert: palms) |
+| `[[field]]` | `grain`, `green` or `ploughed` polygons, with a 2.5 m strip of grass inside the outline |
+| `[[row]]`, `[[ring]]`, `[[farm]]`, `[[building]]` | rows of huts or barracks across a line, rings of huts on an ellipse, farmsteads (`gen_land`), single buildings (catalog kinds and variants) |
+| `[[hill]]` | bumps added to the ground noise |
+
+The generator shares the object placer, woods and farmsteads with
+`gen_land` (its `Objects` now also takes maps that are not square;
+`gen_land`, `gen_city` and their maps stay bit for bit the same). Like every
+generator it uses only basic arithmetic and `sqrt`; a test generates every
+sketch map twice and compares the files.
+
+| Map | Sketch | Size | Biome, weather | Starts | Supply points |
+|---|---|---|---|---|---|
+| `river_fields` | broad river west–east with an island, main road north–south over a stone bridge, timber bridges east and west, a ford in the west; barracks rows and a paved square in the north, hut camps in rings, a rondel square with houses and many fields in the south; woods in the north, east and south | 1.6 × 1.6 km | forest, clear | team 0 south (players 0, 2), team 1 north (1, 3) | stone bridge, timber bridge east, north farm, paved square, rondel, camp |
+| `river_fields_winter` | the same sketch (`base`) | 1.6 × 1.6 km | winter, snow | as above | as above |
 
 ## Map editor (prompt 028)
 

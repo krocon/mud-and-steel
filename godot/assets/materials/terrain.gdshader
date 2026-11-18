@@ -112,6 +112,7 @@ varying float lod_stride;
 #include "res://assets/materials/terrain_meadow.gdshaderinc"
 // Tall grass (prompt 073): dark ground under the plants, canopy far away.
 #include "res://assets/materials/terrain_tall_grass.gdshaderinc"
+#include "res://assets/materials/terrain_fields.gdshaderinc"
 
 float height_at(ivec2 s) {
 	return texelFetch(height_tex, clamp(s, ivec2(0), samples - 1), 0).r;
@@ -317,6 +318,10 @@ void fragment() {
 	albedo = mix(albedo, dry, smoothstep(0.5, 0.8, macro_far.g) * 0.7 * greenness * grass_variation);
 	albedo = mix(albedo, lush, smoothstep(0.45, 0.2, macro_far.g) * 0.6 * greenness * grass_variation);
 
+	// Fields (prompt 088): masks (they count as grass in the weights).
+	vec4 fields = texture(field_tex, data_uv);
+	float field_mask = clamp(fields.r + fields.g + fields.b, 0.0, 1.0);
+
 	// Meadow (prompt 057): palette in four scales, blades, soil, flowers.
 	{
 		float src0 = use_biome ? float(layer_source[0]) : 0.0;
@@ -324,7 +329,7 @@ void fragment() {
 		vec3 grass_mean = textureLod(albedo_array, vec3(0.5, 0.5, src0), 12.0).rgb * tint0;
 		vec3 grass_tex = bias[0] >= 0.0 ? col[0].rgb : grass_mean;
 		float px = max(length(dpdx), length(dpdy));
-		meadow_apply(p, smoothstep(0.2, 0.6, w[0]), grass_tex, grass_mean, w[TRACK], along,
+		meadow_apply(p, smoothstep(0.2, 0.6, w[0]) * (1.0 - field_mask), grass_tex, grass_mean, w[TRACK], along,
 			macro_far, macro_near, px, albedo, detail, rough);
 	}
 
@@ -335,6 +340,15 @@ void fragment() {
 		float px = max(length(dpdx), length(dpdy));
 		tall = tall_mask(p, tall_raw, macro_near);
 		tall_apply(p, tall, tall_seam(tall_raw), length(world_pos - CAMERA_POSITION_WORLD), px, TIME,
+			albedo, detail, rough);
+	}
+
+	// Fields (prompt 088): rows, tramlines and furrows along each field.
+	float field_rows = 0.0;
+	if (field_mask > 0.01) {
+		float px = max(length(dpdx), length(dpdy));
+		float fine = texture(macro_tex, p / 7.0 + 0.53).b;
+		field_rows = field_apply(p, fields.rgb, texture(field_tex, base_uv).a, macro_far, macro_near, fine, px,
 			albedo, detail, rough);
 	}
 
@@ -406,6 +420,8 @@ void fragment() {
 		vec4 snow_col = textureGrad(albedo_array, vec3(p / tile, float(SNOW)), dpdx / tile, dpdy / tile);
 		vec4 snow_nrm = textureGrad(normal_array, vec3(p / tile, float(SNOW)), dpdx / tile, dpdy / tile);
 		albedo = mix(albedo, snow_col.rgb, s);
+		// Rows and furrows of snowed fields show faintly (prompt 088).
+		albedo *= 1.0 - 0.1 * field_rows * s;
 		rough = mix(rough, snow_nrm.b, s);
 		ao = mix(ao, snow_nrm.a, s);
 		detail *= 1.0 - 0.6 * s;

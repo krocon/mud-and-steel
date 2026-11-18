@@ -963,6 +963,7 @@ impl MapEditor {
         out.set("splat0", &PackedByteArray::from(layers.splat0.as_slice()));
         out.set("splat1", &PackedByteArray::from(layers.splat1.as_slice()));
         out.set("track", &PackedByteArray::from(layers.track.as_slice()));
+        out.set("field", &PackedByteArray::from(layers.field.as_slice()));
         out
     }
 

@@ -73,6 +73,9 @@ EDITOR_TERRAIN_SNOW,Snow,Schnee
 EDITOR_TERRAIN_SHALLOW_WATER,Shallow water,Flaches Wasser
 EDITOR_TERRAIN_DEEP_WATER,Deep water,Tiefes Wasser
 EDITOR_TERRAIN_TALL_GRASS,Tall grass,Hohes Gras
+EDITOR_TERRAIN_FIELD_GRAIN,Grain field,Getreidefeld
+EDITOR_TERRAIN_FIELD_GREEN,Green field,Grünes Feld
+EDITOR_TERRAIN_FIELD_PLOUGHED,Ploughed field,Gepflügter Acker
 EDITOR_COMPOUND_HUT_YARD,Hut with yard,Hütte mit Hof
 EDITOR_COMPOUND_TWO_ROOM_YARD,Two-room house with yard,Zweiraumhaus mit Hof
 EDITOR_COMPOUND_LONG_HOUSE_YARD,Long house with yard,Langhaus mit Hof

@@ -62,6 +62,7 @@ just map-check <name>      # validate data/maps/<name>/ like the editor
 just map-reach <name>      # land open to vehicles / infantry, connected parts, start-to-supply paths
 just gen-geo harbor_city   # map from OpenStreetMap + elevation model (tools/geo_import.py, docs/MAPS.md)
 just gen-city              # regenerate the large city map data/maps/city_large (docs/MAPS.md)
+just gen-sketch [name]     # map from its picture sketch data/map_sketches/<name>.toml (docs/MAPS.md)
 just ai-tournament         # AI against AI over many seeds, statistics (docs/AI.md)
 just bench / just bench-view  # overall benchmark: simulation / frame rate (docs/PERFORMANCE.md)
 just catalog-doc           # regenerate docs/UNIT_CATALOG.md after catalog changes

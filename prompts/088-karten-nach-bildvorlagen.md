@@ -270,3 +270,51 @@ Als offene Punkte notieren, nicht umsetzen:
 - **Missionen oder Videoeinstellungen** auf den neuen Karten.
 - **Automatisches Erkennen** von Straßen und Häusern aus Bildern: das
   Hilfswerkzeug zieht nur Flächen, gezeichnet wird von Hand.
+
+## Entscheidungen (vorläufig, Nachtlauf)
+
+| Frage | Entscheidung | Grund |
+|---|---|---|
+| Skizzenformat | TOML je Karte in `data/map_sketches/`, Tabellen `start`, `supply`, `marker`, `river`, `island`, `lake`, `crossing`, `road`, `ring_road`, `square`, `wood`, `scatter`, `field`, `row`, `ring`, `farm`, `building`, `hill`; `base` für Abwandlungen (Winter) | Lesbar, eine Quelle; die Winterkarte erbt alles und ändert nur Biom, Wetter, Startwert. |
+| Nachzeichnen | Von Hand an einer verkleinerten Kopie (1400 px), Pixel in Meter umgerechnet; kein `tools/map_trace.py` | Bei `river_fields` sind die Flächen groß und klar; ein Maskenwerkzeug lohnt erst bei den großen Karten. |
+| Maßstab `river_fields` | 1,6 × 1,6 km (1 px der Vorlage = 0,4 m); Baracken ~30 m, Fluss ~70 m breit | Häuser und Wege passen in die Flächen des Bildes. |
+| Brücken | Wasser an jeder Brücke verengt (Stein 21 m, Holz 7 m), gerade Zufahrt 55 m, Achse auf Wegzellen-Mittellinie | Brücken des Spiels sind höchstens 30 m lang und nur achsparallel; längere Varianten wären neue Modelle. |
+| Zwei Panzerwege über den Fluss | Steinbrücke in der Mitte und Furt im Westen (Holzbrücken tragen 16 t) | Abschnitt 3; das Bild zeigt nur eine Steinbrücke. |
+| Steg der Vorlage | entfällt | Kein Steg-Modell; die drei Brücken und die Furt genügen. |
+| Felder als Gelände | Ids 9–11, Regeln wie Gras, Golden Hashes ändern sich | Abschnitt 4. |
+| Reihenrichtung | Berechnet die Bridge je zusammenhängendem Schlag (Hauptachse der Flächenmomente), nicht in der Karte gespeichert | Keine Formatänderung, im Editor gemalte Felder bekommen sie automatisch. |
+| Aussehen der Felder | Nur Shader (gefilterte Reihen, Fahrgassen, Furchen mit Normale), keine Halme | Halme nach der Technik des hohen Grases sind eine eigene Stufe (offen). |
+| Starts im Wald | Zufahrtswege in der Skizze ergänzt | Sonst war ein Start für Fahrzeuge abgeschnitten (`map-reach`). |
+
+## Stand je Karte
+
+| Karte | Skizze | erzeugt | geprüft | gemessen | offen |
+|---|---|---|---|---|---|
+| `river_fields` | ja | ja | `map-check`, `map-reach` (Ausgleich Fahrzeuge 12 %, Infanterie 3 %), Editor-Selftest | objects-bench: Wald 30 FPS (wie `test_large`), Mitte 66, Übersicht 82; KI Schlacht 16 Spiele: Süd 7, Nord 5, 4 Zeit | Getreidehalme nah, Steg, Fluss an Brücken stark verengt |
+| `river_fields_winter` | ja (`base`) | ja | `map-check`, `map-reach` (12 % / 5 %) | KI Basis wie alle Karten Zeit | wie oben |
+| `river_fork` | – | – | – | – | Bahnlinie, Bahnbrücke, Ruinendorf, Flussmündung |
+| `island_chain` | – | – | – | – | Inseln, Meer, Furt |
+| `desert_lagoon` | – | – | – | – | Lagune, Dämme, Wüstenort, sechs Starts |
+| `winter_town` | – | – | – | – | Kleinstadt mit mehreren hundert Häusern: Straßenbebauung im Generator fehlt |
+| `river_town` | – | – | – | – | Maskenwerkzeug, Seen, Felshöhen, Burg-Stellvertreter |
+| `valley_fields` | – | – | – | – | große Feldflur, Bahnhof, Stromschnellen |
+| `river_valley` | – | – | – | – | Kiesgrube, Bahn, Hafen, Türme |
+| `river_city` | – | – | – | – | Blockviertel aus `gen_city`, acht Brücken |
+
+## Ergebnis (Stufe 1)
+
+- Generator `cli gen-sketch` / `just gen-sketch [name]` (`crates/cli/src/gen_sketch.rs`), Skizzen in
+  `data/map_sketches/`, Test: jede Skizzenkarte zweimal erzeugt und Bit für Bit verglichen.
+- Drei Feldarten (`field_grain`, `field_green`, `field_ploughed`, Ids 9–11) mit den Regeln von Gras;
+  Darstellung im Gelände-Shader (`terrain_fields.gdshaderinc`: Reihen, Fahrgassen, Furchen, gefiltert
+  gegen Flimmern), Reihenrichtung je Schlag aus der Bridge, Editor-Pinsel; Golden Hashes geändert
+  (nur Regeltabellen, Gegenprobe mit den alten Dateien ergibt die alten Werte).
+- `river_fields` und `river_fields_winter` (1,6 km, vier Starts), im Menü als „Flussfelder“.
+- Vergleichsbilder: `build/sketch-compare/river_fields.png`, `river_fields_winter.png`,
+  `fields_views.jpg`; Feldbilder `just field-shots`.
+- `harbor_city/terrain.png` neu geschrieben: nur die Palette ist um die drei Feldfarben länger
+  (Pixel und Karten-Hash gleich), sonst schlug die Geo-Prüfung fehl.
+- Nicht erreicht (Stufen 2 und 3): die übrigen acht Karten (siehe Tabelle), Getreidehalme nah
+  (Technik des hohen Grases), Flimmermessung mit `ground-motion` für Felder, Bahnlinie, lange
+  Brücken, Straßenbebauung für Städte, `tools/map_trace.py`. Eine zweite Session kann mit
+  `river_fork` weitermachen.
