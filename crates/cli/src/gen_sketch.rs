@@ -1563,22 +1563,35 @@ mod tests {
             env!("CARGO_MANIFEST_DIR"),
             "/../../data/map_sketches"
         ));
-        for name in ALL {
+        // One thread per map and run (the large maps take long unoptimized).
+        std::thread::scope(|scope| {
+            for name in ALL {
+                scope.spawn(move || check(name, sketches));
+            }
+        });
+    }
+
+    fn check(name: &str, sketches: &std::path::Path) {
+        {
             let dirs: Vec<_> = (0..2)
                 .map(|k| {
                     std::env::temp_dir()
                         .join(format!("mas-gen-sketch-{name}-{k}-{}", std::process::id()))
                 })
                 .collect();
-            for dir in &dirs {
-                let _ = std::fs::remove_dir_all(dir);
-                generate(&Options {
-                    name,
-                    sketches,
-                    out: dir,
-                })
-                .unwrap();
-            }
+            std::thread::scope(|scope| {
+                for dir in &dirs {
+                    scope.spawn(move || {
+                        let _ = std::fs::remove_dir_all(dir);
+                        generate(&Options {
+                            name,
+                            sketches,
+                            out: dir,
+                        })
+                        .unwrap();
+                    });
+                }
+            });
             for file in ["map.toml", "height.png", "terrain.png", "objects.csv"] {
                 let a = std::fs::read(dirs[0].join(file)).unwrap();
                 let b = std::fs::read(dirs[1].join(file)).unwrap();

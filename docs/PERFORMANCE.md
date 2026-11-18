@@ -310,6 +310,36 @@ half as many nodes per long request as on `test_large` (the map is
 narrower), and a third of the land is closed by grade, which the search
 never enters.
 
+## Maps from picture sketches (prompt 088)
+
+The ten sketch maps, measured on 18.11.2026, Apple M1 Max, debug bridge,
+quality high: `just objects-bench <map>` (densest wood chunk at 15 m and
+120 m, overview at 600 m, densest village at 150 m). Battle tournaments:
+`ai-tournament --map <map> --a hard --b hard --games 16 --mode battle`, both
+faction orders, `--max-ticks 12000` on the 3 km maps (the armies need
+longer to meet).
+
+| Map | Size | Buildings / objects | Files | Wood 15 m | Wood 120 m | Overview | Village | AI µs/tick (mean) |
+|---|---|---|---|---|---|---|---|---|
+| `river_fields` | 1.6 km | 55 / 24 000 | 1.5 MB | 30 | – | 82 | 66 (middle) | – |
+| `river_fork` | 1.6 km | 92 / 20 100 | 1.3 MB | 25 | 31 | 59 | 112 | 15 |
+| `island_chain` | 1.6 km | 36 / 18 500 | 1.2 MB | 25 | 31 | 68 | 92 | 12 |
+| `desert_lagoon` | 1.6 km | 66 / 15 700 | 1.0 MB | 108 | 75 | 136 | 89 | 101 (3v3) |
+| `winter_town` | 1.6 km | 770 / 21 800 | 1.4 MB | 24 | 28 | 59 | 106 | – |
+| `river_town` | 3.0 × 2.0 km | 879 / 45 600 | 3.0 MB | 23 | 23 | 55 | 98 | – |
+| `valley_fields` | 3.0 × 2.0 km | 931 / 42 400 | 2.9 MB | 28 | 32 | 84 | 96 | – |
+| `river_valley` | 3.6 × 2.0 km | 699 / 58 700 | 3.9 MB | 28 | 25 | 41 | 104 | – |
+| `river_city` | 3.6 × 2.4 km | 3 042 / 36 000 | 3.1 MB | 25 | 32 | 61 | 105 | – |
+
+Reading the numbers: towns and villages stay far above 60 FPS, the city
+included (3 000 buildings, 105 FPS over its densest quarter). The woods are
+the slow views, as on `river_fields` and `test_large` in stage 1 (about
+30 FPS at 15 m with shadows, 73–82 FPS without): the tree shadows, not the
+sketch maps. The overview of `river_valley` (41 FPS) looks at 58 000 objects,
+most of them trees. Loading `river_city`: decode 45 ms, objects 28 ms.
+Open: tick time with a large battle on each map (no bench scenario for the
+sketch maps yet).
+
 ## Decisions
 
 | Question | Decision | Why |

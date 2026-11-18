@@ -345,3 +345,20 @@ Als offene Punkte notieren, nicht umsetzen:
   (Technik des hohen Grases), Flimmermessung mit `ground-motion` für Felder, Bahnlinie, lange
   Brücken, Straßenbebauung für Städte, `tools/map_trace.py`. Eine zweite Session kann mit
   `river_fork` weitermachen.
+
+## Ergebnis (Stufen 2 und 3)
+
+- Alle zehn Karten erzeugt, in `gen_sketch::ALL` (Test: jede zweimal erzeugt und Bit für Bit
+  verglichen), im Menü mit deutschen und englischen Namen, `map-check` und `map-reach` grün; je Karte
+  ein Commit, frühere Karten blieben bei jeder Generatorerweiterung Bit für Bit gleich.
+- Neue Skizzentabellen: `rail`, `paint`, `village`, `town`, `sea`/`land`/`bay`, `causeway`, `shoal`,
+  `patchwork`; Waldarten `grove` und `rock`; Inseln auch in Seen; Mauerringe (Doku: `docs/MAPS.md`).
+- Vergleichsbilder (Vorlage links, Karte von oben rechts): `build/sketch-compare/<karte>.png` für alle
+  zehn, Rohbilder in `build/sketch-compare/raw/`; Shots `survey_<karte>` in
+  `godot/scenes/tools/trailer_shots.gd`. Messwerte: `docs/PERFORMANCE.md` „Maps from picture sketches“.
+- Nicht erreicht / offen: Schienen und Züge (nur Schotterbett mit Masten), lange Brückenvarianten
+  (Flüsse an Brücken stark verengt), Turm- und Burgmodelle (Stellvertreter), Getreidehalme nah,
+  Flimmermessung der Felder mit `ground-motion`, Tickzeit mit großem Gefecht je Karte, Waldansichten
+  unter 60 FPS (Baumschatten, alle Waldkarten), stehenbleibende Panzer auf Brückendecks (siehe
+  „Offene Punkte aus Stufe 2“).
+
