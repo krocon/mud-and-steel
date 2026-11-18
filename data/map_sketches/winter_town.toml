@@ -1,0 +1,367 @@
+# Map sketch of `winter_town` (prompt 088): a small town in winter on both
+# banks of a river flowing from north to south, three bridges, a close-knit
+# grown street net with a square and large buildings (church, town hall,
+# halls), a quarter in the north-west, conifer woods all around, country
+# roads to every edge. Team 0 in the west, team 1 in the east. Lines and
+# areas in meters (x east, y south, origin in the map center); generated
+# with `just gen-sketch winter_town` (crates/cli/src/gen_sketch.rs,
+# docs/MAPS.md).
+name = "winter_town"
+size_m = [1600, 1600]
+biome = "winter"
+weather = "snow"
+seed = 8803
+water_flow_deg = 180
+
+[[start]]
+player = 2
+team = 0
+position_m = [-680, 48]
+
+[[start]]
+player = 1
+team = 1
+position_m = [688, 176]
+
+[[start]]
+player = 0
+team = 0
+position_m = [-560, -248]
+
+[[start]]
+player = 3
+team = 1
+position_m = [672, -176]
+
+[[supply]]
+name = "supply_square"
+position_m = [-16, -48]
+
+[[supply]]
+name = "supply_north_west_quarter"
+position_m = [-381, -320]
+
+[[supply]]
+name = "supply_east_crossroads"
+position_m = [352, 120]
+
+[[supply]]
+name = "supply_south_town"
+position_m = [112, 320]
+
+[[supply]]
+name = "supply_east_road"
+position_m = [328, -77]
+
+[[supply]]
+name = "supply_south_bridge"
+position_m = [-72, 688]
+
+[[river]]
+width_m = 54
+points_m = [[-368, -832], [-344, -704], [-288, -592], [-224, -496], [-200, -400], [-208, -288], [-232, -200], [-243, -168], [-248, -96], [-224, 0], [-192, 96], [-176, 176], [-171, 243], [-168, 304], [-200, 384], [-240, 464], [-259, 544], [-232, 624], [-168, 688], [-139, 717], [-139, 762], [-96, 832]]
+
+[[crossing]]
+kind = "stone"
+position_m = [-243, -168]
+axis = "we"
+
+[[crossing]]
+kind = "stone"
+position_m = [-171, 243]
+axis = "we"
+
+[[crossing]]
+kind = "wood"
+position_m = [-139, 739]
+axis = "we"
+
+# --- Roads ----------------------------------------------------------------
+
+[[road]]
+class = "road"
+width_m = 12
+points_m = [[-816, -595], [-704, -595], [-608, -544], [-544, -448], [-480, -397], [-400, -336], [-320, -272], [-288, -221], [-272, -168]]
+
+[[road]]
+class = "road"
+width_m = 10
+points_m = [[-592, -816], [-560, -704], [-557, -608], [-536, -496], [-480, -397]]
+
+[[road]]
+class = "road"
+width_m = 12
+points_m = [[-816, -240], [-704, -224], [-608, -160], [-512, -96], [-416, -88], [-336, -128], [-272, -168]]
+
+[[road]]
+class = "road"
+width_m = 12
+points_m = [[-816, 88], [-672, 104], [-544, 144], [-400, 160], [-288, 200], [-224, 237], [-198, 243]]
+
+[[road]]
+class = "road"
+width_m = 10
+points_m = [[-816, -48], [-672, -32], [-560, 16], [-464, 64], [-384, 96], [-288, 200]]
+
+[[road]]
+class = "road"
+width_m = 14
+points_m = [[-214, -168], [-160, -144], [-96, -115], [-48, -96], [32, -96], [128, -160], [224, -216], [352, -272], [480, -349], [592, -416], [672, -480], [736, -592], [776, -704], [792, -816]]
+
+[[road]]
+class = "road"
+width_m = 14
+points_m = [[-16, -96], [-40, 32], [-35, 160], [-27, 288], [-19, 416], [-13, 544], [-32, 608], [-72, 688], [-109, 739]]
+
+[[road]]
+class = "road"
+width_m = 12
+points_m = [[32, -88], [160, -77], [320, -109], [480, -144], [608, -128], [720, -80], [816, -32]]
+
+[[road]]
+class = "road"
+width_m = 12
+points_m = [[-160, 96], [-35, 99], [96, 104], [224, 115], [352, 99], [480, 99], [608, 115], [816, 120]]
+
+[[road]]
+class = "road"
+width_m = 12
+points_m = [[-144, 243], [-27, 256], [128, 259], [256, 269], [384, 291], [480, 307], [576, 323], [672, 371], [768, 419], [816, 448]]
+
+[[road]]
+class = "road"
+width_m = 10
+points_m = [[-13, 544], [64, 640], [112, 736], [136, 816]]
+
+[[road]]
+class = "road"
+width_m = 10
+points_m = [[-170, 739], [-200, 776], [-216, 816]]
+
+[[road]]
+class = "road"
+width_m = 10
+points_m = [[-160, -816], [-152, -704], [-144, -592], [-152, -480], [-160, -384], [-128, -272], [-96, -115]]
+
+[[road]]
+class = "road"
+width_m = 10
+points_m = [[320, -816], [288, -704], [256, -592], [192, -432], [128, -320], [96, -224], [128, -160]]
+
+# Streets of the north-west quarter.
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[-432, -496], [-400, -432], [-368, -368], [-336, -320], [-288, -221]]
+
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[-480, -320], [-400, -336]]
+
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[-464, -224], [-384, -248], [-320, -272]]
+
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[-416, -88], [-400, 0], [-384, 96]]
+
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[-336, -128], [-304, -32], [-288, 64], [-272, 144]]
+
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[-368, -368], [-320, -416], [-272, -464]]
+
+# Streets of the east town.
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[-128, -272], [-48, -288], [48, -320], [96, -320]]
+
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[-128, -48], [-96, 32], [-40, 32]]
+
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[32, -32], [96, 32], [160, 0], [224, -48]]
+
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[160, -77], [176, 16], [224, 115]]
+
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[320, -109], [320, 0], [352, 99]]
+
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[224, -216], [240, -128], [320, -109]]
+
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[48, -320], [96, -224], [128, -160]]
+
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[96, 104], [112, 192], [128, 259]]
+
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[256, 269], [288, 192], [352, 99]]
+
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[-27, 352], [64, 368], [160, 384], [288, 416], [352, 464]]
+
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[384, 291], [368, 384], [352, 464], [320, 512]]
+
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[-144, 320], [-96, 352], [-27, 352]]
+
+[[road]]
+class = "road"
+width_m = 8
+points_m = [[480, -144], [464, -32], [480, 99]]
+
+# Access to the starts.
+[[road]]
+class = "track"
+width_m = 8
+points_m = [[-680, 48], [-672, 104]]
+
+[[road]]
+class = "track"
+width_m = 8
+points_m = [[-560, -248], [-608, -160]]
+
+[[road]]
+class = "track"
+width_m = 8
+points_m = [[688, 176], [672, 120]]
+
+[[road]]
+class = "track"
+width_m = 8
+points_m = [[672, -176], [672, -109]]
+
+[[square]]
+polygon_m = [[-72, -128], [45, -128], [45, -67], [-72, -67]]
+
+# --- Building ---------------------------------------------------------------
+
+[[town]]
+kinds = ["env_house_town", "env_house_farm_brick", "env_house_stone", "env_house_town", "env_house_farm", "env_house_stone"]
+polygon_m = [[-504, -520], [-320, -536], [-240, -480], [-221, -272], [-253, -160], [-272, -80], [-248, 160], [-400, 176], [-488, 104], [-456, -72], [-424, -152], [-488, -264], [-520, -400]]
+
+[[town]]
+kinds = ["env_house_town", "env_house_farm_brick", "env_house_stone", "env_house_town", "env_block_town", "env_house_farm"]
+polygon_m = [[-192, -392], [96, -400], [240, -352], [352, -320], [496, -272], [504, -72], [464, 112], [432, 320], [368, 488], [112, 520], [8, 616], [-88, 584], [-144, 424], [-152, 320], [-141, 112], [-176, -72], [-205, -264]]
+
+[[town]]
+kinds = ["env_house_farm", "env_house_farm_brick", "env_barn"]
+polygon_m = [[512, -192], [816, -160], [816, 480], [512, 416]]
+
+[[town]]
+kinds = ["env_house_farm", "env_house_farm_brick", "env_barn"]
+polygon_m = [[-816, -272], [-496, -272], [-496, 192], [-816, 192]]
+
+# Back lots between the streets.
+[[village]]
+kinds = ["env_house_town", "env_house_farm_brick", "env_house_stone", "env_house_farm"]
+count = 160
+polygon_m = [[-192, -392], [96, -400], [240, -352], [352, -320], [496, -272], [504, -72], [464, 112], [432, 320], [368, 488], [112, 520], [8, 616], [-88, 584], [-144, 424], [-152, 320], [-141, 112], [-176, -72], [-205, -264]]
+
+[[village]]
+kinds = ["env_house_town", "env_house_farm_brick", "env_house_stone", "env_house_farm"]
+count = 70
+polygon_m = [[-504, -520], [-320, -536], [-240, -480], [-221, -272], [-253, -160], [-272, -80], [-248, 160], [-400, 176], [-488, 104], [-456, -72], [-424, -152], [-488, -264], [-520, -400]]
+
+[[building]]
+kind = "env_church"
+position_m = [0, -221]
+heading_deg = 90
+
+[[building]]
+kind = "env_town_hall"
+position_m = [-13, -160]
+heading_deg = 90
+
+[[building]]
+kind = "env_warehouse"
+position_m = [-112, 144]
+heading_deg = 0
+
+[[building]]
+kind = "env_warehouse"
+position_m = [176, -336]
+heading_deg = 90
+
+[[building]]
+kind = "env_warehouse"
+position_m = [32, 320]
+heading_deg = 90
+
+# --- Woods ------------------------------------------------------------------
+
+[[wood]]
+kind = "conifer"
+polygon_m = [[-816, -816], [-416, -816], [-432, -736], [-528, -704], [-576, -640], [-640, -624], [-816, -624]]
+
+[[wood]]
+kind = "conifer"
+polygon_m = [[-816, -576], [-704, -560], [-640, -480], [-624, -384], [-640, -272], [-672, -128], [-816, -112]]
+
+[[wood]]
+kind = "conifer"
+polygon_m = [[-144, -736], [-16, -736], [-8, -400], [-136, -400]]
+
+[[wood]]
+kind = "conifer"
+polygon_m = [[88, -672], [256, -672], [256, -576], [192, -432], [96, -448]]
+
+[[wood]]
+kind = "conifer"
+polygon_m = [[240, -816], [816, -816], [816, -288], [736, -288], [640, -320], [560, -352], [480, -400], [416, -432], [320, -576], [256, -704]]
+
+[[wood]]
+kind = "conifer"
+polygon_m = [[424, 8], [544, 0], [560, 160], [512, 240], [432, 224]]
+
+[[wood]]
+kind = "conifer"
+polygon_m = [[-656, 240], [-400, 224], [-272, 320], [-256, 480], [-280, 576], [-232, 672], [-168, 733], [-168, 816], [-656, 816], [-704, 640], [-640, 480], [-592, 320]]
+
+[[wood]]
+kind = "conifer"
+polygon_m = [[160, 736], [320, 608], [448, 416], [816, 384], [816, 816], [160, 816]]
+
+[[wood]]
+kind = "conifer"
+polygon_m = [[-112, 816], [-96, 776], [-48, 736], [32, 720], [96, 816]]
+
+[[scatter]]
+kind = "mixed"
+spacing_m = 26
+polygon_m = [[-816, -816], [816, -816], [816, 816], [-816, 816]]

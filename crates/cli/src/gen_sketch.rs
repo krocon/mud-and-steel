@@ -44,12 +44,13 @@ pub(crate) const FIELD_PLOUGHED: u8 = 11;
 /// Folder of the sketches.
 pub const SKETCH_DIR: &str = "data/map_sketches";
 /// The maps made from sketches (`just gen-sketch` without a name).
-pub const ALL: [&str; 5] = [
+pub const ALL: [&str; 6] = [
     "river_fields",
     "river_fields_winter",
     "river_fork",
     "island_chain",
     "desert_lagoon",
+    "winter_town",
 ];
 
 const START_CLEAR_M: f64 = 60.0;
@@ -151,6 +152,25 @@ struct Sketch {
     /// inlets), at the same level; polygons may overlap.
     #[serde(default)]
     bay: Vec<Area>,
+    #[serde(default)]
+    town: Vec<Town>,
+}
+
+/// Street building (stage 2): inside the polygon, buildings of `kinds`
+/// line both sides of every road and track of the sketch, long side along
+/// the street, `setback_m` (default 3) behind its edge, `gap_m` (default
+/// 4) apart on average; a share `damaged` damaged or ruined.
+#[derive(Deserialize, Clone)]
+#[serde(deny_unknown_fields)]
+struct Town {
+    polygon_m: Vec<P>,
+    kinds: Vec<String>,
+    #[serde(default)]
+    setback_m: Option<f64>,
+    #[serde(default)]
+    gap_m: Option<f64>,
+    #[serde(default)]
+    damaged: f64,
 }
 
 /// A strip along a line: a causeway (land across the sea, open under the
@@ -1083,6 +1103,14 @@ pub fn generate(options: &Options) -> Result<String, String> {
             objects.place(kind, variant, p, heading, 0.4);
         }
     }
+    for t in &sketch.town {
+        town(
+            &mut objects,
+            &object_rules,
+            t,
+            &plan.ways[crossings.len()..],
+        );
+    }
     for v in &sketch.village {
         village(&mut objects, v, &plan.ways);
     }
@@ -1258,6 +1286,65 @@ fn bay_coast(bays: &[Area]) -> Vec<(P, P)> {
         }
     }
     coast
+}
+
+/// Street building of a town (see `Town`).
+fn town(objects: &mut Objects, rules: &ObjectRules, t: &Town, ways: &[Way]) {
+    // Length (along the street) and depth of every kind.
+    let sizes: Vec<(&str, f64, f64)> = t
+        .kinds
+        .iter()
+        .map(|k| {
+            let probe = editor::PlacedObject {
+                kind: k.clone(),
+                variant: "Intact".into(),
+                x_mm: 0,
+                y_mm: 0,
+                heading_deg: 0,
+            };
+            let (ex, ey) = editor::compound::half_extent(rules, &probe);
+            let (a, b) = (ex as f64 / 500.0, ey as f64 / 500.0);
+            (k.as_str(), a.max(b), a.min(b))
+        })
+        .collect();
+    let setback = t.setback_m.unwrap_or(3.0);
+    let gap = t.gap_m.unwrap_or(4.0);
+    for way in ways {
+        for s in way.points.windows(2) {
+            let (a, b) = (s[0], s[1]);
+            let len = dist(a, b);
+            if len < 1.0 {
+                continue;
+            }
+            let (dx, dy) = ((b.0 - a.0) / len, (b.1 - a.1) / len);
+            let heading = heading_of(dx, dy);
+            for side in [1.0, -1.0] {
+                // Left of the direction for side 1.
+                let (nx, ny) = (dy * side, -dx * side);
+                let mut u = objects.random.range(0.0, gap);
+                loop {
+                    let k = (objects.random.unit() * sizes.len() as f64) as usize;
+                    let (kind, length, depth) = sizes[k.min(sizes.len() - 1)];
+                    if u + length > len {
+                        break;
+                    }
+                    let offset = way.half + setback + objects.random.range(0.0, 2.0) + depth / 2.0;
+                    let c = u + length / 2.0;
+                    let p = (a.0 + dx * c + nx * offset, a.1 + dy * c + ny * offset);
+                    let variant = variant_of(objects, t.damaged);
+                    let h = if side > 0.0 {
+                        heading
+                    } else {
+                        (heading + 180) % 360
+                    };
+                    if inside(p, &t.polygon_m) {
+                        objects.place(kind, variant, p, h, 1.0);
+                    }
+                    u += length + gap * objects.random.range(0.5, 1.5);
+                }
+            }
+        }
+    }
 }
 
 /// Loose houses of a village (see `Village`).

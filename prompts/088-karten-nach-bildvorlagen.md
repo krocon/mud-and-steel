@@ -294,6 +294,8 @@ Als offene Punkte notieren, nicht umsetzen:
 | Dammbreite | 30 m statt 14 m | Bei 14 m endeten Brückendecks neben Wasser; Panzer blieben dort stehen. |
 | Lagune | `[[bay]]`: Wasserflächen im Land, die zum Meer gehören (gleicher Spiegel), dürfen sich überlappen; Dämme mit Brücken wie bei den Inseln | Die Lagune hängt über eine Meerenge am Meer; als Seen hätte sie einen eigenen Spiegel. |
 | Wüstenhaine | Waldart `grove`: Palmen mit Büschen | Palmen allein lesen sich nicht als Hain. Von ganz oben (3 km) blendet die Darstellung Palmen und Büsche aus; im Vergleichsbild fehlen sie deshalb, aus Spielhöhe sind sie da. |
+| Straßenbebauung | `[[town]]`: Häuser beiderseits jeder Straße im Ortsvieleck, Längsseite zur Straße, dazu ein `[[village]]` über dasselbe Vieleck für die Hinterhöfe | Die Vorlage zeigt gewachsene Bebauung an Straßen, keine Blockraster wie `city_large`. |
+| Ausgleich `winter_town` | Spieler 0 im Nordwesten, ein Versorgungspunkt an der Ostkreuzung statt am Westufer | Mit dem Weststart als Spieler 0 gewann der Westen mit beiden Fraktionsreihenfolgen; `map-reach` lag bei 25 %. |
 | Ausgleich `river_fork` | Spieler 0 im Osten, Spieler 1 im Norden: das 1v1 trifft sich im Dorf über den Ostfluss | Mit dem Südweststart als Spieler 0 lief das 1v1 nur über die Westbrücken. Die Siegverteilung der KI folgt auf allen Karten (auch `test_small`) der Fraktion: mit `de,su` gewinnt Spieler 0, mit `su,de` Spieler 1; gemessen wird deshalb beides. |
 
 ## Stand je Karte
@@ -305,7 +307,7 @@ Als offene Punkte notieren, nicht umsetzen:
 | `river_fork` | ja | ja | `map-check`, `map-reach` (Ausgleich Fahrzeuge 10 %, Infanterie 7 %) | objects-bench: Wald 25 FPS, Mitte 31, Übersicht 59, Dorf 112; KI Schlacht je 16 Spiele: `de,su` 13:1 (2 Zeit), `su,de` 0:15 (1 Zeit), also fraktions-, nicht kartenbedingt | Schienen (nur Schotterbett), Fluss an Brücken stark verengt |
 | `island_chain` | ja | ja | `map-check`, `map-reach` (4 % / 5 %) | objects-bench: Wald 25 FPS, Mitte 31, Übersicht 68, Dorf 92; KI Schlacht je 16: `de,su` 4:4 (8 Zeit), `su,de` 9:3 (4 Zeit) | Patt an den Brücken (viele Zeitüberschreitungen), einzelne Panzer bleiben auf Brückendecks stehen (siehe offene Punkte) |
 | `desert_lagoon` | ja | ja | `map-check`, `map-reach` (Teamsummen < 1 % / < 1 %) | objects-bench: nah 108 FPS, Mitte 75, Übersicht 136, Dorf 89; KI Schlacht je 16: `de,su` 10:4 (2 Zeit), `su,de` 5:10 (1 Zeit), 3v3 8 Spiele 5:2 (1 Zeit); keine hängenden Einheiten | Haine von ganz oben unsichtbar (Sichtweite der Objekte) |
-| `winter_town` | – | – | – | – | Kleinstadt mit mehreren hundert Häusern: Straßenbebauung im Generator fehlt |
+| `winter_town` | ja | ja | `map-check`, `map-reach` (7 % / 13 %) | 770 Gebäude; objects-bench: Wald 24 FPS, Mitte 28, Übersicht 59, Ort 106; KI Schlacht je 16: `de,su` 4:4 (8 Zeit), `su,de` 1:6 (9 Zeit) | viele Zeitüberschreitungen im Ortskampf; Brückendeck-Hänger wie oben |
 | `river_town` | – | – | – | – | Maskenwerkzeug, Seen, Felshöhen, Burg-Stellvertreter |
 | `valley_fields` | – | – | – | – | große Feldflur, Bahnhof, Stromschnellen |
 | `river_valley` | – | – | – | – | Kiesgrube, Bahn, Hafen, Türme |
