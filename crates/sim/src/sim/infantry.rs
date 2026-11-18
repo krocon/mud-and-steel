@@ -639,6 +639,7 @@ impl Sim {
                 s.enter = (!ruin).then_some(building);
             }
             let id = self.paths.request(
+                (&self.map, &self.terrain),
                 unit.position,
                 object.position,
                 unit.unit_type as usize,

@@ -77,6 +77,14 @@ fn unit_type(name: &str, footprint_m: i32, mass_kg: u32) -> UnitType {
 }
 
 fn sim(map: &Arc<Map>, spawns: &[(&str, i32, i32)]) -> Sim {
+    let spawns: Vec<(&str, Vec2)> = spawns
+        .iter()
+        .map(|&(t, x, y)| (t, Vec2::from_meters(x, y)))
+        .collect();
+    sim_at(map, &spawns)
+}
+
+fn sim_at(map: &Arc<Map>, spawns: &[(&str, Vec2)]) -> Sim {
     let config = SimConfig {
         tick_hz: 20,
         unit_types: vec![
@@ -86,10 +94,10 @@ fn sim(map: &Arc<Map>, spawns: &[(&str, i32, i32)]) -> Sim {
         ],
         spawns: spawns
             .iter()
-            .map(|&(t, x, y)| Spawn {
+            .map(|&(t, position)| Spawn {
                 owner: P0,
                 unit_type: t.into(),
-                position: Vec2::from_meters(x, y),
+                position,
                 fire_mode: sim::FireMode::default(),
             })
             .collect(),
@@ -346,5 +354,56 @@ fn units_do_not_drive_down_cliffs() {
             .slope
             .factor(-max - Fixed::from_num(1) / 100)
             .is_none()
+    );
+}
+
+/// A tank pushed to the edge of a narrow deck stands in the path cell
+/// beside it. Here that cell is the bed of a shallow river 1 m below the
+/// deck, passable for the tank: a path planned from there leads over the
+/// side of the deck, which movement never allows, and the tank stopped for
+/// good (prompt 088 tournaments). It plans from the deck's axis instead
+/// (and could also edge along the deck at an angle).
+#[test]
+fn a_tank_at_the_deck_edge_drives_on() {
+    let (sx, sy) = (101u32, 61u32);
+    let mut heights = Vec::new();
+    let mut terrain = Vec::new();
+    for _ in 0..sy {
+        for i in 0..sx {
+            let x = 2 * i as i32 - 100;
+            let river = x.abs() <= 7;
+            heights.push(if river { -1000 } else { 0 });
+            terrain.push(if river { SHALLOW } else { 0 });
+        }
+    }
+    let layout = MapLayout {
+        name: "shallow".into(),
+        samples_x: sx,
+        samples_y: sy,
+        cell_size_mm: 2000,
+        starts: Vec::new(),
+        markers: Vec::new(),
+    };
+    let mut map = Map::from_rasters(layout, heights, terrain).unwrap();
+    map.add_objects(&bridges_csv()).unwrap();
+    let map = Arc::new(map);
+    let edge = Vec2::new(
+        Fixed::ZERO,
+        Fixed::from_num(STONE_Y) + Fixed::from_num(12) / 5,
+    );
+    assert!(map.deck_at(edge).is_some());
+    let mut sim = sim_at(&map, &[("tank", edge)]);
+    let grid = sim.path_grid();
+    let (x, y) = grid.cell_of(edge);
+    assert_eq!(grid.deck_of(x, y), None);
+    assert!(grid.passable_for(2, edge));
+    move_to(&mut sim, &[0], 40, STONE_Y);
+    for _ in 0..400 {
+        sim.step(&[]);
+    }
+    let end = sim.snapshot().units[0].position;
+    assert!(
+        (end - Vec2::from_meters(40, STONE_Y)).length() < Fixed::from_num(2),
+        "stopped at {end:?}"
     );
 }

@@ -1022,6 +1022,7 @@ impl Sim {
             });
             if let (true, Some(target)) = (touched, unit.target) {
                 let id = self.paths.request(
+                    (&self.map, &self.terrain),
                     unit.position,
                     target,
                     unit.unit_type as usize,
@@ -1076,7 +1077,10 @@ impl Sim {
             };
             let grid = &self.paths.grid;
             let waypoints = if single {
-                Some(path.waypoints[1..].to_vec())
+                // The path starts at the unit, or at its lead-in point
+                // ([`PathGrid::lead_in`]), which it drives to first.
+                let from = usize::from(request.start == unit.position);
+                Some(path.waypoints[from..].to_vec())
             } else {
                 let profile = unit.unit_type as usize;
                 formation_route(grid, &self.map, profile, unit.position, path, offset)
@@ -1089,6 +1093,7 @@ impl Sim {
                 None => {
                     let slot = unit.target.unwrap_or(path.goal + offset);
                     let own = self.paths.request(
+                        (&self.map, &self.terrain),
                         unit.position,
                         slot,
                         unit.unit_type as usize,
@@ -1167,6 +1172,7 @@ impl Sim {
             match unit.target {
                 Some(target) if unit.replans <= MAX_REPLANS => {
                     let id = self.paths.request(
+                        (&self.map, &self.terrain),
                         unit.position,
                         target,
                         unit.unit_type as usize,
@@ -1415,7 +1421,9 @@ impl Sim {
             .iter()
             .map(|&(i, slot)| (self.units[i].id, slot - target))
             .collect();
-        let id = self.paths.request(anchor, target, profile, members);
+        let id = self
+            .paths
+            .request((&self.map, &self.terrain), anchor, target, profile, members);
         for &(i, slot) in assigned {
             self.units[i].target = Some(slot);
             self.units[i].route = Route::Waiting(id);
@@ -1892,9 +1900,7 @@ fn move_unit(
     }
     let (waypoint, last) = (waypoints[*next], *next + 1 == waypoints.len());
     if let Some(direction) = heading(unit) {
-        let Some(speed) = ground_speed(unit, direction, map, rules, ground_pct) else {
-            return Moved::Blocked;
-        };
+        let ahead = ground_speed(unit, direction, map, rules, ground_pct);
         let (from, from_height) = (unit.position, unit.height);
         let max_grade = Fixed::from_num(rules.slope.max_grade_pct) / 100;
         // No step steeper than the grade limit, up or down: separation must
@@ -1907,26 +1913,40 @@ fn move_unit(
         };
         let off_grid = !clear(unit.position);
         let detour_ok = |p: Vec2| off_grid || clear(p);
-        let candidates = if (waypoint - unit.position).length() <= speed {
-            [Some(waypoint), None, None, None]
-        } else {
-            let mut velocity = direction + push;
-            let length = velocity.length();
-            if length > Fixed::ONE {
-                velocity = Vec2::new(velocity.x / length, velocity.y / length);
-            }
-            let step = direction.scale(speed);
-            let pushed = unit.position + velocity.scale(speed);
-            let slide_x = unit.position + Vec2::new(step.x, Fixed::ZERO);
-            let slide_y = unit.position + Vec2::new(Fixed::ZERO, step.y);
-            [
-                Some(pushed).filter(|&p| detour_ok(p)),
-                Some(unit.position + step),
-                Some(slide_x).filter(|&p| detour_ok(p)),
-                Some(slide_y).filter(|&p| detour_ok(p)),
-            ]
-        };
-        let Some(next_position) = candidates.into_iter().flatten().find(|&p| valid(p)) else {
+        let straight = ahead.and_then(|speed| {
+            let candidates = if (waypoint - unit.position).length() <= speed {
+                [Some(waypoint), None, None, None]
+            } else {
+                let mut velocity = direction + push;
+                let length = velocity.length();
+                if length > Fixed::ONE {
+                    velocity = Vec2::new(velocity.x / length, velocity.y / length);
+                }
+                let step = direction.scale(speed);
+                let pushed = unit.position + velocity.scale(speed);
+                let slide_x = unit.position + Vec2::new(step.x, Fixed::ZERO);
+                let slide_y = unit.position + Vec2::new(Fixed::ZERO, step.y);
+                [
+                    Some(pushed).filter(|&p| detour_ok(p)),
+                    Some(unit.position + step),
+                    Some(slide_x).filter(|&p| detour_ok(p)),
+                    Some(slide_y).filter(|&p| detour_ok(p)),
+                ]
+            };
+            candidates.into_iter().flatten().find(|&p| valid(p))
+        });
+        // Too steep or blocked ahead: take it at an angle, like a tank that
+        // climbs a bank it cannot take head-on. Without this a unit pushed
+        // onto a slope steeper than the limit (the bank of a ford's deep
+        // channel) could neither climb back nor go anywhere else.
+        let next_position = straight.or_else(|| {
+            angled(direction).into_iter().find_map(|d| {
+                let speed = ground_speed(unit, d, map, rules, ground_pct)?;
+                let p = unit.position + d.scale(speed);
+                (detour_ok(p) && valid(p)).then_some(p)
+            })
+        });
+        let Some(next_position) = next_position else {
             return Moved::Blocked;
         };
         unit.position = next_position;
@@ -1966,6 +1986,16 @@ fn move_unit(
         }
     }
     Moved::Ok
+}
+
+/// `direction` turned by 45 degrees to the left and to the right.
+fn angled(direction: Vec2) -> [Vec2; 2] {
+    let c = Fixed::from_num(7071) / Fixed::from_num(10_000);
+    let (x, y) = (direction.x, direction.y);
+    [
+        Vec2::new((x - y) * c, (x + y) * c),
+        Vec2::new((x + y) * c, (y - x) * c),
+    ]
 }
 
 /// Paths a unit may plan again from its position before reaching the next

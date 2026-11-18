@@ -725,6 +725,7 @@ impl Sim {
     fn send(&mut self, i: usize, target: Vec2) {
         let unit = &mut self.units[i];
         let id = self.paths.request(
+            (&self.map, &self.terrain),
             unit.position,
             target,
             unit.unit_type as usize,

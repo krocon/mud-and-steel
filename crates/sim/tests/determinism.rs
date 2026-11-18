@@ -21,7 +21,16 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by prompt 088 (fields): the hashed terrain and weather
+/// Last changed by the fix for tanks stuck at crossings (after prompt 088):
+/// a unit on a path cell blocked for it (pushed into the margin of an
+/// obstacle or onto a bank) no longer plans from that cell but drives first
+/// to the nearest passable cell it can reach in a straight line
+/// (`PathGrid::lead_in`). Demo units pushed into margins take these lead-ins,
+/// so the battle runs differently: still decided by elimination, player 0
+/// wins, at tick 1871 instead of 1834. Checked: without the blocked-cell
+/// lead-in (the deck edge lead-in, 45° steps and the no-halt-on-decks rule
+/// kept) the old value comes out.
+/// Before (`0x6883_ba0f_7cbe_d521`), prompt 088 (fields): the hashed terrain and weather
 /// rules gained `field_grain`, `field_green` and `field_ploughed` with the
 /// rules of grass. Checked: with the old `data/terrain.toml` and
 /// `data/weather.toml` the old value comes out (`test_small` has no fields).
@@ -255,7 +264,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x6883_ba0f_7cbe_d521;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x9516_95b0_336f_27c0;
 
 #[test]
 fn golden_hash() {
@@ -304,17 +313,18 @@ fn demo_is_a_battle() {
 /// holds out until about tick 1000 (1013 with the wounds of prompt 049).
 /// With the typical combat distances of prompt 067 the rifle squads start
 /// out of each other's range (176 m apart, rifles reach 75 m) and the last
-/// Soviet squad falls at tick 1834, so the run is 1900 ticks long (the
-/// golden hash above stays at 1000 ticks).
+/// Soviet squad falls at tick 1834 (1871 since units on blocked path cells
+/// drive to a lead-in point first, after prompt 088), so the run is 1900
+/// ticks long (the golden hash above stays at 1000 ticks).
 #[test]
 fn demo_battle_is_decided() {
     let end = run_demo(42, 1900);
     let outcome = end.outcome().expect("the demo battle is decided");
     assert_eq!(outcome.winner, Some(sim::PlayerId(0)));
-    assert_eq!(outcome.tick, 1834);
+    assert_eq!(outcome.tick, 1871);
     assert_eq!(end.alive_units(sim::PlayerId(1)), 0);
     assert_eq!(
         end.standings()[1].defeat,
-        Some((sim::DefeatReason::Eliminated, 1834))
+        Some((sim::DefeatReason::Eliminated, 1871))
     );
 }

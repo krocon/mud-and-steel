@@ -673,8 +673,12 @@ impl Sim {
             return;
         }
         let ty = &self.types[self.units[i].unit_type as usize];
+        // No halt on a bridge deck: a group stopping there blocks the
+        // crossing, and on the narrow deck its members stand in each other's
+        // line of fire. The unit drives on until it is off the deck.
+        let on_deck = self.map.deck_at(self.units[i].position).is_some();
         let unit = &mut self.units[i];
-        if distance <= wanted {
+        if distance <= wanted && !on_deck {
             if unit.combat.attack_moving {
                 unit.combat.attack_moving = false;
                 stop(unit);
@@ -687,6 +691,7 @@ impl Sim {
         if !unit.combat.attack_moving || (retarget && moved_away) {
             unit.combat.attack_moving = true;
             let id = self.paths.request(
+                (&self.map, &self.terrain),
                 unit.position,
                 point,
                 unit.unit_type as usize,

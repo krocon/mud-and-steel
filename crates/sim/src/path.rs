@@ -44,6 +44,10 @@ pub const MIN_CELL_COST: u16 = 100;
 /// the straight line (see `docs/ARCHITECTURE.md`).
 pub const HEURISTIC_WEIGHT_PCT: i32 = 0;
 
+/// How far (in cells) [`PathGrid::lead_in`] looks for a passable cell a
+/// unit on a blocked cell can drive to.
+const LEAD_IN_CELLS: u32 = 4;
+
 /// How far (in cells) a search that starts on a blocked cell without
 /// passable neighbors looks for a passable start cell.
 const START_SEARCH_CELLS: u32 = 16;
@@ -473,6 +477,69 @@ impl PathGrid {
     /// covers the center of cell `(x, y)`.
     pub fn deck_of(&self, x: u32, y: u32) -> Option<usize> {
         self.deck[self.index(x, y)].checked_sub(1).map(usize::from)
+    }
+
+    /// Where a search for a unit at `p` starts (its lead-in point, which
+    /// the unit drives to in a straight line first):
+    ///
+    /// - On an intact deck whose path cells do not contain `p` (a unit
+    ///   pushed to the edge of a narrow deck stands in the cell beside it,
+    ///   which is the ground or water below): the nearest point of the
+    ///   deck's axis. A path from the cell beside would lead over the side
+    ///   of the deck, which movement never allows.
+    /// - On a cell blocked for `profile` (a unit pushed onto a bank or
+    ///   beside a deck): the center of the nearest passable cell within
+    ///   [`LEAD_IN_CELLS`] rings that the unit can drive to in a straight line
+    ///   ([`drivable`]). A search from the blocked cell itself may lead
+    ///   down a bank or over a railing the unit cannot take.
+    /// - Otherwise (or if there is no such cell) `p` itself.
+    pub fn lead_in(&self, map: &Map, rules: &TerrainRules, profile: usize, p: Vec2) -> Vec2 {
+        let (x, y) = self.cell_of(p);
+        if let Some((index, bridge)) = map
+            .bridges()
+            .iter()
+            .enumerate()
+            .find(|(_, b)| b.intact && b.covers(p))
+        {
+            if self.deck_of(x, y) == Some(index) {
+                return p;
+            }
+            let (along, _) = bridge.local(p);
+            let reach = (bridge.half_length - self.cell / 2).max(Fixed::ZERO);
+            let axis = bridge.center + bridge.forward.scale(along.clamp(-reach, reach));
+            let (ax, ay) = self.cell_of(axis);
+            return if self.deck_of(ax, ay) == Some(index) {
+                axis
+            } else {
+                p
+            };
+        }
+        let cost = &self.profiles[profile].cost;
+        if cost[self.index(x, y)] != 0 {
+            return p;
+        }
+        let mut cells: Vec<(i128, u32)> = Vec::new();
+        let rings = LEAD_IN_CELLS as i32;
+        for dy in -rings..=rings {
+            for dx in -rings..=rings {
+                let Some((nx, ny)) = self.offset(x, y, dx, dy) else {
+                    continue;
+                };
+                let n = self.index(nx, ny);
+                if cost[n] == 0 {
+                    continue;
+                }
+                let d = self.center(nx, ny) - p;
+                let (ddx, ddy) = (i128::from(d.x.to_bits()), i128::from(d.y.to_bits()));
+                cells.push((ddx * ddx + ddy * ddy, n as u32));
+            }
+        }
+        cells.sort_unstable();
+        cells
+            .into_iter()
+            .map(|(_, n)| self.center(n % self.width, n / self.width))
+            .find(|&c| drivable(map, rules, p, c))
+            .unwrap_or(p)
     }
 
     /// The cells whose flags may depend on bridge `bridge` (its deck
@@ -1198,9 +1265,11 @@ impl PathGrid {
     /// Start cell and component of a search from cell `(x, y)`: the cell
     /// itself if passable; for a blocked cell (a unit standing in the
     /// margin) the cell itself with the first passable neighbor's
-    /// component; with no passable neighbor either, the nearest passable
-    /// cell within [`START_SEARCH_CELLS`] rings (the unit drives there in a
-    /// straight line). `None` if there is none.
+    /// component (not across a railing: a unit beside a deck, below it on
+    /// the bank, cannot climb over the side); with no such neighbor, the
+    /// nearest passable cell off any deck within [`START_SEARCH_CELLS`]
+    /// rings (the unit drives there in a straight line). `None` if there is
+    /// none.
     fn search_start(&self, profile: usize, x: u32, y: u32, start: Vec2) -> Option<(u32, u32)> {
         let grid = &self.components[self.profiles[profile].components];
         let cell = self.index(x, y) as u32;
@@ -1211,12 +1280,14 @@ impl PathGrid {
         let neighbor = NEIGHBORS
             .iter()
             .filter_map(|&(dx, dy, _)| self.offset(x, y, dx, dy))
-            .map(|(nx, ny)| grid.component[self.index(nx, ny)])
+            .map(|(nx, ny)| self.index(nx, ny))
+            .filter(|&n| !railing(&self.deck, &self.bridge_right, self.width, cell as usize, n))
+            .map(|n| grid.component[n])
             .find(|&c| c != 0);
         if let Some(component) = neighbor {
             return Some((cell, component));
         }
-        let nearest = self.nearest_cell(profile, None, start, START_SEARCH_CELLS)?;
+        let nearest = self.nearest_cell(profile, None, start, START_SEARCH_CELLS, true)?;
         Some((nearest, grid.component[nearest as usize]))
     }
 
@@ -1228,13 +1299,14 @@ impl PathGrid {
 
     /// The passable cell (of `component`, if given) whose center is nearest
     /// to `goal` (ties: the smaller index), searched ring by ring around the
-    /// goal cell up to `max_rings`.
+    /// goal cell up to `max_rings`; with `off_decks` no cell of a deck.
     fn nearest_cell(
         &self,
         profile: usize,
         component: Option<u32>,
         goal: Vec2,
         max_rings: u32,
+        off_decks: bool,
     ) -> Option<u32> {
         let grid = &self.components[self.profiles[profile].components];
         let (gx, gy) = self.cell_of(goal);
@@ -1256,7 +1328,10 @@ impl PathGrid {
             let mut visit = |x: u32, y: u32| {
                 let i = self.index(x, y);
                 let c = grid.component[i];
-                if c == 0 || component.is_some_and(|wanted| c != wanted) {
+                if c == 0
+                    || component.is_some_and(|wanted| c != wanted)
+                    || (off_decks && self.deck[i] != 0)
+                {
                     return;
                 }
                 let d = self.center(x, y) - goal;
@@ -1407,6 +1482,26 @@ impl PathGrid {
         h.write_u32(self.height);
         h.write_u32(self.version);
     }
+}
+
+/// Whether a unit can drive from `a` to `b` in a straight line: every
+/// half meter on passable terrain, within the grade limit and not over the
+/// side of a deck ([`Map::deck_step_ok`]), like the movement rules.
+pub(crate) fn drivable(map: &Map, rules: &TerrainRules, a: Vec2, b: Vec2) -> bool {
+    let length = (b - a).length();
+    let steps = (length * 2).ceil().to_num::<u32>().max(1);
+    let max_grade = Fixed::from_num(rules.slope.max_grade_pct) / 100;
+    let step_length = length / Fixed::from_num(steps);
+    let mut from = a;
+    (1..=steps).all(|k| {
+        let to = a + (b - a).scale(Fixed::from_num(k) / Fixed::from_num(steps));
+        let ok = map.contains(to)
+            && rules.types[usize::from(map.terrain_at(to))].passable
+            && map.deck_step_ok(from, to)
+            && (map.height_at(to) - map.height_at(from)).abs() <= step_length * max_grade;
+        from = to;
+        ok
+    })
 }
 
 /// Cost factor of cell `i` for a search that avoids `avoid` (sorted).
@@ -1738,7 +1833,8 @@ impl Search {
         let mut goal = goal;
         let components = &grid.components[grid.profiles[profile].components].component;
         if components[goal_cell as usize] != component {
-            let Some(nearest) = grid.nearest_cell(profile, Some(component), goal, u32::MAX) else {
+            let Some(nearest) = grid.nearest_cell(profile, Some(component), goal, u32::MAX, false)
+            else {
                 return Begin::Done(None);
             };
             goal_cell = nearest;
@@ -1805,13 +1901,9 @@ impl Search {
                     continue;
                 };
                 let n = grid.index(nx, ny);
-                // A unit on a blocked start cell (pushed beside a deck) may
-                // leave it in any direction; movement checks the railing
-                // height itself.
-                let off_grid = cost[c] == 0;
                 if cost[n] == 0
                     || ws.nodes[n].mark == closed
-                    || (!off_grid && railing(&grid.deck, &grid.bridge_right, grid.width, c, n))
+                    || railing(&grid.deck, &grid.bridge_right, grid.width, c, n)
                 {
                     continue;
                 }
@@ -1908,9 +2000,11 @@ impl Pathfinder {
         }
     }
 
-    /// Queues a request and returns its id.
+    /// Queues a request and returns its id. The search starts at the
+    /// lead-in point of `start` ([`PathGrid::lead_in`]).
     pub fn request(
         &mut self,
+        ground: (&Map, &TerrainRules),
         start: Vec2,
         goal: Vec2,
         profile: usize,
@@ -1918,6 +2012,7 @@ impl Pathfinder {
     ) -> u32 {
         let id = self.next_id;
         self.next_id = self.next_id.wrapping_add(1);
+        let start = self.grid.lead_in(ground.0, ground.1, profile, start);
         self.queue.push_back(Request {
             id,
             start,
@@ -2374,7 +2469,13 @@ mod tests {
         let mut finder = Pathfinder::new(grid(&map));
         let start = finder.grid.center(2, 2);
         let goal = finder.grid.center(38, 27);
-        let id = finder.request(start, goal, 0, vec![(UnitId(0), Vec2::ZERO)]);
+        let id = finder.request(
+            (&map, &TerrainRules::builtin().unwrap()),
+            start,
+            goal,
+            0,
+            vec![(UnitId(0), Vec2::ZERO)],
+        );
         let mut ticks = 0;
         let path = loop {
             ticks += 1;
@@ -2389,7 +2490,13 @@ mod tests {
         assert!(ticks > 3, "finished in {ticks} ticks");
         assert_eq!(Some(path), finder.grid.find_path(start, goal, 0));
         // Unwanted requests are dropped without searching.
-        finder.request(start, goal, 0, Vec::new());
+        finder.request(
+            (&map, &TerrainRules::builtin().unwrap()),
+            start,
+            goal,
+            0,
+            Vec::new(),
+        );
         assert!(finder.run(100, |_| false).is_empty());
         assert_eq!(finder.queued(), 0);
     }
@@ -2447,7 +2554,7 @@ mod tests {
                 }
             }
             assert_eq!(
-                grid.nearest_cell(profile, None, goal, u32::MAX),
+                grid.nearest_cell(profile, None, goal, u32::MAX, false),
                 best.map(|b| b.1),
                 "{goal:?}"
             );

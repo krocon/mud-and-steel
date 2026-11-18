@@ -397,6 +397,7 @@ impl Sim {
             Some(Task::Advance { slot, halted: true })
         } else if halted {
             let id = self.paths.request(
+                (&self.map, &self.terrain),
                 unit.position,
                 slot,
                 unit.unit_type as usize,
@@ -459,6 +460,7 @@ impl Sim {
             && unit.target.is_none()
         {
             let id = self.paths.request(
+                (&self.map, &self.terrain),
                 unit.position,
                 home,
                 unit.unit_type as usize,

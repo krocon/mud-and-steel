@@ -200,8 +200,11 @@ generator and the reasons behind them: [MAPS.md](MAPS.md).
   step (also a pushed or sliding one) may be steeper than that, so separation
   cannot push a unit onto an abutment wall or drop it into the river. The path
   grid matches: steps between a deck cell and a cell beside it (across the
-  axis) are not allowed in A*, line-of-sight tests and components, except out
-  of a blocked start cell.
+  axis) are not allowed in A*, line-of-sight tests and components, also not
+  out of a blocked start cell (after prompt 088: a tank beside a deck, below it on
+  the bank, cannot climb over the side). A unit pushed to the edge of a narrow
+  deck stands in the path cell beside it; its searches start on the deck's
+  axis ([lead-in](#movement-and-separation)).
 
 ## Pathfinding
 
@@ -322,8 +325,25 @@ from arriving, and pushed steps must stay on cells passable for the unit's class
 Rules that keep units from getting stuck: intermediate waypoints count as reached
 within 1 m; a unit that has not come closer to its waypoint for 2 s (40 ticks)
 skips it, or stops on the last one; if neither the pushed, the direct nor a
-sliding step (x or y part only) is possible, it plans a new path from where it is,
+sliding step (x or y part only) is possible, nor a step turned 45° to either
+side (a bank too steep head-on is taken at an angle; after prompt 088: tanks pushed
+onto the bank of a ford's deep channel), it plans a new path from where it is,
 at most 3 times until it reaches the next waypoint.
+
+**Lead-in** (after prompt 088, `PathGrid::lead_in`): a single-unit search starts
+where the unit stands, except
+
+- on a deck whose path cells do not contain it (pushed to the edge of a narrow
+  deck): at the nearest point of the deck's axis;
+- on a cell blocked for its profile (pushed onto a bank or beside a deck): at
+  the center of the nearest passable cell within 4 rings that it can drive to
+  in a straight line (every half meter: passable terrain, grade limit, no deck
+  side; `path::drivable`).
+
+The unit drives to that point first. Before, the search ran from the blocked
+cell to any passable neighbor, which could lie down a bank or across a deck's
+side, and the unit stopped for good after its re-plans (AI tournaments of
+prompt 088).
 
 ### Changing obstacles
 
@@ -436,7 +456,9 @@ After commands and path planning, before movement:
    distance, id), among enemies some weapon can hurt at that distance
    (against their thinnest plate). An order to attack makes the unit drive
    (single path) until the target is within 90 % of its longest range, and
-   re-plans when the target moved away.
+   re-plans when the target moved away. It does not halt for that on a bridge
+   deck but drives on until it is off it (after prompt 088: a group halting on a
+   narrow deck blocks the crossing and stands in its own line of fire).
 2. **Aim.** The turret (`aim`, a unit vector) turns towards the target at
    the category's rate × time factor (Panzer IV: 20°/s real, 2° per tick);
    infantry turns at once. Casemate vehicles aim within their traverse and,

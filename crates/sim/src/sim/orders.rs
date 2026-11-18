@@ -188,6 +188,7 @@ impl Sim {
             self.leave_building(index);
             let unit = &mut self.units[index];
             let id = self.paths.request(
+                (&self.map, &self.terrain),
                 unit.position,
                 next,
                 unit.unit_type as usize,

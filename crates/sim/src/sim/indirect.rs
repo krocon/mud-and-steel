@@ -646,6 +646,7 @@ impl Sim {
         let unit = &mut self.units[i];
         if !closing && unit.speed_offroad > Fixed::ZERO {
             let request = self.paths.request(
+                (&self.map, &self.terrain),
                 unit.position,
                 point,
                 unit.unit_type as usize,
