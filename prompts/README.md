@@ -286,6 +286,7 @@ vermerkt. Empfohlene Reihenfolge: 097 und 098 zuerst, dann 099, 101, 100, 104, 1
 | 109 | [Mitfahrer im Infofeld zeigen und einzeln absetzen](109-mitfahrer-einzeln-absetzen.md) | Kachel je Mitfahrer im Infofeld des Transporters, Klick setzt genau diesen Trupp ab (die Simulation kann das schon, nur die Bedienung fehlt); J setzt weiter alle ab; reine Bedienung | offen |
 | 110 | [Reaktion auf Beschuss von der Seite](110-reaktion-auf-beschuss-von-der-seite.md) | Stehende Einheiten merken sich die Richtung des Beschusses und drehen Turm bzw. Lafette dorthin (ohne den Schützen automatisch zu sehen, Spielerbefehle gehen vor); KI wechselt mit flankierten Geschützen und Panzern die Stellung; Prüfszenario und KI-Turnier vorher/nachher; Golden Hash beabsichtigt neu | offen |
 | 111 | [Ton: mehr Wucht für schwere Waffen und Fahrzeuge](111-ton-mehr-wucht.md) | Tiefton-Schicht für Abschüsse, Motoren und Ketten nach Masse, Anflug der Granate, Feuerstöße, Mischung; braucht Hörurteil und Antworten des Nutzers, Ton-Arbeit läuft gerade | Entwurf |
+| 112 | [Karte nach echten Geodaten: Backsteinviertel](112-karte-backsteinviertel.md) | Zweite Karte mit `geo_import.py`: Ausschnitt von Manhattan um Greenwich Village (ca. 3,2 × 2,2 km, um 29° gedreht, Hudson mit Piers), Stand 1944 (Bauten nach 1945 raus, Baujahr aus NYC-Daten nach Lizenzprüfung, sonst Höhengrenze), Blockrand statt Reihenraster, Starts Nord gegen Süd, Gebäudezahl nach Bildrate; eigene Modelle und Hochstraßen nur offen | offen |
 
 ## Festgelegte Grundsätze
 
