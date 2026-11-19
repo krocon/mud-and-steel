@@ -1019,6 +1019,7 @@ impl Sim {
                 && grid.passable_for(profile, p)
         };
         let spacing = mm(rules.formation.spacing_mm);
+        let (overrun, dodge_step) = (&self.overrun, self.dodge_step());
         // Soldiers holding while their fire team bounds stay within the
         // squad's reach (hit tests look that far around it).
         let hold_limit = self.units[i].spread - Fixed::ONE;
@@ -1033,6 +1034,16 @@ impl Sim {
             // Knocked-down soldiers lie where the blast threw them; the
             // wounded and their helpers are placed by `sim/care.rs`.
             if !soldier.alive() || soldier.knocked > 0 || soldier.wound.held {
+                continue;
+            }
+            // Out of the lane of a vehicle that is about to run him over
+            // (prompt 093), instead of to his place.
+            if let Some(aside) = overrun.dodge(i, k) {
+                let next = soldier.position + aside.scale(dodge_step);
+                if ok(next) || !ok(soldier.position) {
+                    soldier.position = next;
+                    soldier.height = map.height_at(next);
+                }
                 continue;
             }
             let place = center + facing.scale(f) + right.scale(r);

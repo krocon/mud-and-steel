@@ -426,7 +426,13 @@ fn scripted_production_chain_is_deterministic() {
 
 /// Golden hash of the scripted skirmish (prompt 023): construction,
 /// production, rally points, supply points and the fight of the starting
-/// units. Recorded on macOS ARM64. Last changed by prompt 088 (fields: the
+/// units. Recorded on macOS ARM64. Last changed by prompt 093 (tanks
+/// against walls, infantry and buildings: the hashed destruction and combat
+/// rules gained `[crush]`, `[overrun]` and `[vehicle_mg]`, units carry
+/// their slow-down after a wall and their machine gun targets, and the
+/// tanks of the skirmish fire their machine guns at infantry and run it
+/// over; see `determinism.rs`). Before (`0x9038_1c53_98b6_6b5e`), prompt
+/// 088 (fields: the
 /// hashed terrain and weather rules gained three field types with the rules
 /// of grass; with the old data files the old value comes out). Before
 /// (`0xb4ab_0840_6daa_d29c`), prompt 085 (trees under
@@ -497,7 +503,7 @@ fn economy_golden_hash() {
     let sim = run_economy(42, 5000);
     assert_eq!(
         sim.state_hash(),
-        0x9038_1c53_98b6_6b5e,
+        0xa7db_2e45_cf79_5aff,
         "economy golden hash mismatch: got {:#018x}",
         sim.state_hash()
     );

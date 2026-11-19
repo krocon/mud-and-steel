@@ -40,6 +40,8 @@ extends Control
 signal move_ordered(point: Vector3)
 signal attack_ordered(target: int)
 signal garrison_ordered(building: int)
+## A shelling order on map object `object` (prompt 093).
+signal object_attack_ordered(object: int)
 ## The targeted order waiting for a click changed ("" = none).
 signal command_mode_changed(mode: String)
 signal barrage_ordered(point: Vector3, smoke: bool)
@@ -53,6 +55,7 @@ const TransportOrders := preload("res://scenes/selection/transport_orders.gd")
 const EngineerOrders := preload("res://scenes/selection/engineer_orders.gd")
 const FormationOrders := preload("res://scenes/selection/formation_orders.gd")
 const CrossingOrders := preload("res://scenes/selection/crossing_orders.gd")
+const ShellOrders := preload("res://scenes/selection/shell_orders.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
 ## Pointer travel in pixels before a left press becomes a box drag.
 const DRAG_THRESHOLD := 6.0
@@ -70,12 +73,14 @@ const MODE_ACTIONS := {
 	"order_move": "move", "order_attack": "attack", "order_attack_ground": "attack_ground",
 	"order_patrol": "patrol", "order_garrison": "garrison",
 	"order_attack_move": "attack_move", "order_secure": "secure",
+	"order_attack_object": "attack_object",
 }
 ## Hint (translation key) shown while a targeted order waits for its click.
 const MODE_HINTS := {
 	"move": "HUD_HINT_MOVE",
 	"attack": "HUD_HINT_ATTACK",
 	"attack_ground": "HUD_HINT_GROUND",
+	"attack_object": "HUD_HINT_SHELL",
 	"patrol": "HUD_HINT_PATROL",
 	"garrison": "HUD_HINT_OCCUPY",
 	"barrage": "HUD_HINT_BARRAGE",
@@ -107,6 +112,9 @@ var is_structure := func(_id: int) -> bool: return false
 
 ## Targeted order waiting for the next left click ("" = none, prompt 031).
 var command_mode := ""
+## Map object under the cursor while a shelling order waits (prompt 093;
+## -1 = none).
+var shell_target := -1
 var _pressing := false
 var _dragging := false
 var _double_click := false
@@ -228,6 +236,7 @@ func set_command_mode(mode: String) -> void:
 	if next == command_mode:
 		return
 	command_mode = next
+	shell_target = -1
 	EngineerOrders.reset(self)
 	Input.set_default_cursor_shape(Input.CURSOR_CROSS if not next.is_empty() else Input.CURSOR_ARROW)
 	command_mode_changed.emit(command_mode)
@@ -253,6 +262,8 @@ func click_command(screen_position: Vector2, shift := false) -> void:
 			done = _order_attack(screen_position)
 		"attack_ground":
 			done = _order_attack_ground(screen_position)
+		"attack_object":
+			done = ShellOrders.click(self, screen_position)
 		"patrol":
 			var hit: Variant = GroundPick.from_screen(camera, screen_position)
 			if hit != null and not selected.is_empty():
@@ -530,6 +541,8 @@ func set_follow(on: bool) -> void:
 
 
 func _process(_delta: float) -> void:
+	if command_mode == ShellOrders.MODE:
+		ShellOrders.hover(self)
 	if not follow:
 		return
 	if selected.is_empty():
@@ -669,6 +682,8 @@ func _own_index(id: int) -> int:
 
 
 func _draw() -> void:
+	if command_mode == ShellOrders.MODE:
+		ShellOrders.draw(self)
 	if not command_mode.is_empty():
 		var size := get_viewport_rect().size
 		draw_string(ThemeDB.fallback_font, Vector2(size.x * 0.5 - 180, 70),

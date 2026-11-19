@@ -53,6 +53,7 @@ keys work while they are folded.
 | Shift + right click | Add a waypoint: the units drive there after their current orders; lines and markers show the chain |
 | Right click on an enemy | Attack it |
 | Ctrl + right click (Cmd on macOS) | Fire at the ground point |
+| Right click with tanks | Never breaks a wall on purpose: the path search decides. Tanks drive through mud walls (from 8 t) and dry-stone walls (from 18 t) where the way around is clearly longer, and run over enemy soldiers in their way (prompt 093) |
 | Right click on a building (infantry) | Occupy it; vehicles drive there |
 | Minimap: right click (Shift: waypoint) | Move there |
 | H *(rebindable)* | Stop (also drops the waypoints) |
@@ -79,6 +80,7 @@ become waypoints).
 | I | Secure: take up the formation around the clicked point and hold 80 m around it; enemies inside are attacked, the units return to their places [provisional] |
 | R | Attack the clicked enemy |
 | L | Fire at the clicked ground point |
+| Shift + L | Shell a building, wall or tree (prompt 093): the object under the cursor that can be shelled is outlined (the cursor shows a cross on a target, a "forbidden" sign elsewhere); the click orders tanks and guns to drive into range and shell it until it is a ruin or gone, then they stop by themselves. Only guns from 20 mm fire at it; machine guns keep firing at soldiers. Shift + click keeps the order armed for the next building (the new order replaces the old one: orders on objects are not queued) |
 | P | Patrol: drive to the clicked point and back, again and again |
 | U | Occupy the clicked building (infantry) |
 | Barrage / Smoke buttons | Mortars and guns fire at the clicked point (the keys G / T fire at the cursor at once) |

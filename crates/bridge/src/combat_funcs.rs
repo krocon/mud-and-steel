@@ -72,6 +72,97 @@ impl SimHost {
         }
     }
 
+    /// Orders the units to shell map object `object` until it is destroyed
+    /// (prompt 093; units without a gun that damages objects ignore it).
+    #[func]
+    fn attack_object(&mut self, unit_ids: PackedInt64Array, object: i64) {
+        let units = to_unit_ids(&unit_ids);
+        let Ok(object) = u32::try_from(object) else {
+            return;
+        };
+        if !units.is_empty() {
+            self.pending.push(Command::AttackObject { units, object });
+        }
+    }
+
+    /// The map object that can be shelled (it has hit points and is not
+    /// destroyed) at the ground point `(x, z)` in meters, with `margin`
+    /// meters to spare around its ground shape; -1 if there is none.
+    #[func]
+    fn shell_target_at(&self, x: f32, z: f32, margin: f32) -> i64 {
+        let Some(game) = &self.game else {
+            return -1;
+        };
+        let (Some(x_mm), Some(z_mm), Some(m_mm)) = (
+            meters_to_millimeters(x),
+            meters_to_millimeters(z),
+            meters_to_millimeters(margin.clamp(0.0, 50.0)),
+        ) else {
+            return -1;
+        };
+        game.sim
+            .shellable_object_at(
+                Vec2::from_millimeters(x_mm, z_mm),
+                sim::Fixed::from_num(m_mm) / 1000,
+            )
+            .map_or(-1, i64::from)
+    }
+
+    /// Whether some of the units can shell map objects (a direct weapon of
+    /// at least the caliber that damages objects).
+    #[func]
+    fn can_shell_objects(&self, unit_ids: PackedInt64Array) -> bool {
+        let Some(game) = &self.game else {
+            return false;
+        };
+        to_unit_ids(&unit_ids)
+            .iter()
+            .any(|&id| game.sim.can_shell_objects(id))
+    }
+
+    /// The box around map object `object` as it stands now: eight corners
+    /// in Godot coordinates, four on the ground (clockwise) and the four
+    /// above them at the object's current height; empty for an unknown
+    /// index. For highlighting the target of a shelling order.
+    #[func]
+    fn object_outline(&self, object: i64) -> PackedVector3Array {
+        let Some(game) = &self.game else {
+            return PackedVector3Array::new();
+        };
+        let map = game.map();
+        let Some((index, o)) = u32::try_from(object)
+            .ok()
+            .and_then(|i| Some((i, map.objects().get(i as usize)?)))
+        else {
+            return PackedVector3Array::new();
+        };
+        let kind = &map.object_kinds()[usize::from(o.kind)];
+        let (half_length, half_width) = match kind.shape {
+            sim::objects::Shape::Circle { radius } => (radius, radius),
+            sim::objects::Shape::Box {
+                half_length,
+                half_width,
+            } => (half_length, half_width),
+        };
+        let (forward, right) = o.axes();
+        let ground = fixed_to_f32(map.height_at(o.position));
+        // A ruin keeps a part of its height; what is gone has none.
+        let ruin = game.sim.object_stage(index) == Some(sim::ObjectStage::Destroyed);
+        let height = fixed_to_f32(kind.height) * if ruin { 0.4 } else { 1.0 };
+        let mut corners = Vec::with_capacity(8);
+        for up in [0.0, height.max(0.5)] {
+            for (a, b) in [(1, 1), (1, -1), (-1, -1), (-1, 1)] {
+                let p = o.position + forward.scale(half_length * a) + right.scale(half_width * b);
+                corners.push(Vector3::new(
+                    fixed_to_f32(p.x),
+                    ground + up,
+                    fixed_to_f32(p.y),
+                ));
+            }
+        }
+        PackedVector3Array::from(corners.as_slice())
+    }
+
     /// Sets the units to hold fire (`true`) or fire at will.
     #[func]
     fn set_hold_fire(&mut self, unit_ids: PackedInt64Array, hold: bool) {

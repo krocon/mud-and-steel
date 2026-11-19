@@ -79,6 +79,61 @@ min_cos_pct = 25
 # casemate) if the catalog has turret armor.
 turret_height_pct = 35
 
+# Heavy vehicles run over enemy soldiers (prompt 093). A vehicle of at least
+# `min_mass_kg` (catalog mass: tanks from the Pz I on, halftracks, trucks
+# over 5 t; not jeeps, motorcycles, tankettes) that drives at least
+# `min_speed_mm_per_s` (game speed; 1.5 m/s is walking pace in real terms,
+# so a tank turning on the spot or creeping hurts nobody) kills every enemy
+# soldier whose position lies under its hull (catalog length x width, turned
+# to its driving direction). Never soldiers of its own side or of allies,
+# never soldiers in buildings, dug positions (foxholes, trenches, dugouts,
+# nests) or vehicles.
+# Soldiers step aside: one who stands in the lane of the vehicle (its width
+# plus `dodge_clear_mm` on both sides) and sees it within `notice_mm` ahead
+# of its nose walks sideways out of the lane at `dodge_speed_mm_per_s` (4
+# m/s game speed = 2 m/s real, a hurried step). He starts `reaction_ticks`
+# late, counted as the way the vehicle covers in that time, so a slow tank
+# (4 m/s) leaves him 2.5 s and catches nobody who can move, a fast one (10
+# m/s and more) catches those near the middle of its lane. Soldiers lying
+# prone, pinned down, knocked down or badly wounded do not step aside.
+# Soldiers of the vehicle's own side always do.
+# Game values: no source gives reaction times or distances. [provisional]
+[overrun]
+min_mass_kg = 5000
+min_speed_mm_per_s = 1500
+notice_mm = 12000
+reaction_ticks = 8
+dodge_speed_mm_per_s = 4000
+dodge_clear_mm = 800
+
+# Secondary machine guns of vehicles (prompt 093): weapons below
+# `max_caliber_mm` after the main weapon. They pick their own targets among
+# the enemy infantry in sight, whatever the main weapon aims at, and never
+# turn the turret. The mount follows from the catalog name of the weapon:
+#   "coaxial"            fires along the turret: only at infantry within
+#                        `coax_half_deg` of the gun's direction
+#   "bow", "hull", "ball mount"  within `bow_half_deg` of the hull's front
+#   "AA", "roof", "ring mount", "pulpit", "pedestal", "remote"  all round
+#   "coaxial, bow" (several guns in one entry) and names that say nothing
+#   (MG 34, DT of most German and Soviet tanks: one coaxial and one bow
+#   gun)                 the turret cone or the bow cone
+# Most secondary machine guns have no range in the catalog; they get
+# `range_real_m` as their typical combat distance, the catalog value of the
+# same guns as infantry weapons (M1919A4, MG 34/42 and DT: range_typical_m
+# = 400). A few entries also lack the muzzle velocity (DT of the T-34/76
+# 1943 and IS-2, MG 37(t), MG 13, DShK); they fly at `velocity_real_mps`,
+# the middle of the catalog's machine guns (MG 42 740, MG 34 755, DT 840,
+# M1919A4 853, M2HB 887 m/s), so that no tank goes without its machine guns
+# for a gap in the catalog. The cones are game values (a coaxial gun has no
+# traverse of its own, a ball mount about 15-20 degrees to each side plus
+# the driver's small corrections): [provisional]
+[vehicle_mg]
+max_caliber_mm = 20
+range_real_m = 400
+velocity_real_mps = 800
+coax_half_deg = 10
+bow_half_deg = 30
+
 [damage]
 # Hit points of every vehicle.
 vehicle_hp = 1000

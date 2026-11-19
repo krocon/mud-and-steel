@@ -58,7 +58,8 @@ pub use bridges::Bridge;
 pub use care::CareRules;
 pub use catalog::Catalog;
 pub use combat::{
-    CombatEvent, CombatRules, CombatType, Face, FireMode, HitKind, ProjectileSnapshot, Vec3,
+    CombatEvent, CombatRules, CombatType, Face, FireMode, HitKind, MgMount, ProjectileSnapshot,
+    Vec3,
 };
 pub use command::{Command, PlayerCommand, PlayerId, UnitId};
 pub use craters::{CraterEvent, CraterRules};

@@ -16,6 +16,7 @@ const HOLD: FireMode = FireMode::HoldFire;
 const TANK: &str = "de_pz4_h";
 const ENEMY: &str = "su_t34_76_1943";
 const SQUAD: &str = "de_inf_rifle_squad";
+const HALFTRACK: &str = "de_sdkfz251_1";
 
 /// 800 m × 800 m flat map around the origin with the given objects (CSV
 /// rows without header).
@@ -120,12 +121,19 @@ fn wall() -> String {
 fn a_destroyed_wall_opens_a_path() {
     // The Panzer IV stands 60 m south of the wall (y grows southwards) and shoots five segments
     // around x = 0 out of it (1200 hit points, 562 per 7.5 cm round).
+    // Since prompt 093 medium tanks push through dry-stone walls, so the
+    // path is measured for a halftrack (8.5 t, below the wall's limit of
+    // 18 t; profile 1: the unit types are sorted by name).
     let mut sim = sim_with(
         map_with(&wall()),
-        &[(P0, TANK, 0, 60), (P1, ENEMY, 0, -300)],
+        &[
+            (P0, TANK, 0, 60),
+            (P1, ENEMY, 0, -300),
+            (P0, HALFTRACK, 200, 200),
+        ],
     );
     let (south, north) = (Vec2::from_meters(0, 40), Vec2::from_meters(0, -40));
-    let before = path_length(&sim, 0, south, north);
+    let before = path_length(&sim, 1, south, north);
     assert!(before > 300, "path around the wall: {before} m");
     let mut events = Vec::new();
     for k in -2..=2 {
@@ -147,7 +155,7 @@ fn a_destroyed_wall_opens_a_path() {
     // ground behind the gap.
     assert_eq!(sim.object_hp(48), Some((0, 1200)));
     assert_eq!(sim.object_stage(47), Some(ObjectStage::Intact));
-    let after = path_length(&sim, 0, south, north);
+    let after = path_length(&sim, 1, south, north);
     assert!(
         after < 90,
         "path through the gap: {after} m (before {before} m)"

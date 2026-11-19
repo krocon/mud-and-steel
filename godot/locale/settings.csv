@@ -71,6 +71,7 @@ SET_KEY_CAMERA_RESET_NORTH,Face north,Nach Norden ausrichten
 SET_KEY_ORDER_MOVE,Move (then click),Bewegen (dann klicken)
 SET_KEY_ORDER_ATTACK,Attack (then click),Angreifen (dann klicken)
 SET_KEY_ORDER_ATTACK_GROUND,Fire at ground (then click),Bodenziel beschießen (dann klicken)
+SET_KEY_ORDER_ATTACK_OBJECT,Shell a building (then click),Gebäude beschießen (dann klicken)
 SET_KEY_ORDER_PATROL,Patrol (then click),Patrouille (dann klicken)
 SET_KEY_ORDER_GARRISON,Occupy building (then click),Gebäude besetzen (dann klicken)
 SET_KEY_ORDER_STOP,Stop,Halt

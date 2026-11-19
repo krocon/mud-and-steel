@@ -36,6 +36,8 @@ const BUTTONS: Array[Array] = [
 	["move", "HUD_CMD_MOVE", "order_move", "mode"],
 	["attack", "HUD_CMD_ATTACK", "order_attack", "mode"],
 	["attack_ground", "HUD_CMD_GROUND", "order_attack_ground", "mode"],
+	# Shelling a building, wall or tree until it is destroyed (prompt 093).
+	["attack_object", "HUD_CMD_SHELL", "order_attack_object", "mode"],
 	["patrol", "HUD_CMD_PATROL", "order_patrol", "mode"],
 	["attack_move", "HUD_CMD_ADVANCE", "order_attack_move", "mode"],
 	["secure", "HUD_CMD_SECURE", "order_secure", "mode"],
@@ -282,6 +284,8 @@ func _update() -> void:
 	var engineers := EngineerOrders.engineers(selection).size()
 	var layers := CrossingOrders.layers(selection).size()
 	var camo := CrossingOrders.camouflageable(selection)
+	# Units with a gun that damages objects (prompt 093).
+	var shells := mobile > 0 and sim_host.can_shell_objects(PackedInt64Array(selected))
 	for spec in BUTTONS:
 		var b: Button = buttons[spec[0]]
 		var key := Settings.action_key_name(spec[2]) if not (spec[2] as String).is_empty() else ""
@@ -292,7 +296,8 @@ func _update() -> void:
 		match spec[3]:
 			"mode":
 				b.disabled = mobile == 0 or (spec[0] == "garrison" and squads == 0) \
-						or (spec[0] == "barrage" and guns == 0) or (spec[0] == "smoke" and smoke == 0)
+						or (spec[0] == "barrage" and guns == 0) or (spec[0] == "smoke" and smoke == 0) \
+						or (spec[0] == "attack_object" and not shells)
 				b.set_pressed_no_signal(selection.command_mode == spec[0])
 			"stance":
 				b.disabled = squads == 0
@@ -332,6 +337,7 @@ func _set_tooltips() -> void:
 	buttons["move"].tooltip_text = "HUD_TIP_MOVE"
 	buttons["attack"].tooltip_text = "HUD_TIP_ATTACK"
 	buttons["attack_ground"].tooltip_text = "HUD_TIP_GROUND"
+	buttons["attack_object"].tooltip_text = "HUD_TIP_SHELL"
 	buttons["attack_move"].tooltip_text = tr("HUD_TIP_ADVANCE") % Settings.action_key_name("order_move")
 	buttons["secure"].tooltip_text = tr("HUD_TIP_SECURE") % FormationOrders.SECURE_RADIUS
 	buttons["patrol"].tooltip_text = "HUD_TIP_PATROL"

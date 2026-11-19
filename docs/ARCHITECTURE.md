@@ -56,6 +56,7 @@ but never its issuer:
 | `Stop { units }` | The units stop where they are (and drop an attack order). |
 | `Attack { units, target }` | The units drive into range of the unit `target` and fire at it until it is destroyed ([Combat](#combat)). Own targets are ignored. |
 | `AttackGround { units, target }` | The units drive into range of the ground point and fire at it. |
+| `AttackObject { units, object }` | The units drive into range of the map object (index) and shell it with the weapons that damage objects until it is destroyed (prompt 093, [Combat](#combat)). Since this command the lobby protocol is version 6 and the replay format version 10. |
 | `SetFireMode { units, mode }` | `FireAtWill` (default: pick targets automatically) or `HoldFire` (fire only at attack targets). |
 | `Surrender` | The issuing player gives up and is defeated ([Victory conditions](#victory-conditions-and-game-flow)). |
 | `SetStance { units, stance }` | Infantry squads stand, kneel, go prone or choose automatically (prompt 022, [INFANTRY.md](INFANTRY.md#behavior-prompt-022)). |
@@ -322,6 +323,24 @@ The push deflects the step but never makes it longer than the speed. It is ignor
 within one footprint of the final waypoint, so a parked unit cannot keep another
 from arriving, and pushed steps must stay on cells passable for the unit's class.
 
+**Running over** (prompt 093, `sim/overrun.rs`, `[overrun]` in
+`data/combat.toml`). Vehicles of at least `min_mass_kg` ignore enemy squads in
+the separation: they do not swerve around them. Within a tick, right after the
+movement: `plan_overrun` lists the vehicles that drove at least
+`min_speed_mm_per_s` in this tick and, through the unit grid, the soldiers in
+their lane (hull width plus `dodge_clear_mm`, up to `notice_mm` ahead of the
+nose, less the way the vehicle covers in `reaction_ticks`) who step aside:
+enemies only if their squad stands or kneels, is not pinned and sees the
+vehicle, allies always; never men knocked down, carried or badly wounded.
+`update_squads` moves those soldiers sideways at `dodge_speed_mm_per_s`
+instead of to their places. `overrun_soldiers` then kills every enemy soldier
+whose position lies under a hull (catalog length × width along the driving
+direction), except in buildings, vehicles and dug samples (foxholes,
+trenches); a squad that loses its last man is destroyed by the vehicle
+(`CombatEvent::Destroyed`: kill, experience, statistics). The lists are
+rebuilt every tick and are not state; vehicles, squads and soldiers are
+visited in index order and nothing is rolled.
+
 Rules that keep units from getting stuck: intermediate waypoints count as reached
 within 1 m; a unit that has not come closer to its waypoint for 2 s (40 ticks)
 skips it, or stops on the last one; if neither the pushed, the direct nor a
@@ -466,8 +485,33 @@ After commands and path planning, before movement:
    turret points at the target, its reload is done, the target is in range,
    it can hurt the target, and no living unit of the same player stands in
    the line of fire.
+   **Secondary machine guns** (prompt 093, `[vehicle_mg]` in
+   `data/combat.toml`): weapons below 20 mm after the main weapon of a
+   vehicle. Most have no range in the catalog and are not in
+   `CombatType::weapons` but in `CombatType::machine_guns`; the rules give
+   them their range (400 m real) and, where the catalog has none, a muzzle
+   velocity, and `CombatType::armed_with` lists all weapons in the order of
+   the weapon indices of `Shot` events (machine guns last). They never fire
+   at the main weapon's target: every `retarget_ticks` each picks the
+   nearest enemy squad in its range that the vehicle sees and its mount
+   covers (`MgMount::of_name`: coaxial = within 10° of the turret, or free
+   while the main weapon has no target; bow = within 30° of the hull front;
+   roof = all round; several guns in one entry or a name that says nothing =
+   turret cone or bow cone) and fires at it while that holds. The turret
+   turns only for the main weapon. Their dispersion comes from a generator
+   derived from the shared one (state, unit id, projectile id) without
+   advancing it. Hold fire silences them.
+   **Shelling an object** (`Command::AttackObject`, `Attack::Object`): the
+   unit drives into 90 % of the range of its longest weapon that damages
+   objects (`min_caliber_mm` of `data/destruction.toml`), aims at the
+   middle of the object at half its current height and fires those weapons
+   only. The order ends when the object is destroyed (`Sim::shellable`);
+   objects without hit points, destroyed ones and units without such a
+   weapon ignore it.
 3. **Fire.** One projectile per barrel (`count`), from the muzzle (half a
-   hull length ahead, at 75 % of the unit height) at the target's center.
+   hull length ahead, at 75 % of the unit height; machine guns from the
+   hull front, the mantlet or the middle of the roof) at the target's
+   center.
    The climb is solved for the aim point under gravity (9.807 m/s² × time
    factor²), then side and height get a triangular random error of up to
    2 mrad real, × 4 for the compressed range (× 3 while moving).
@@ -840,8 +884,14 @@ destroyed (a placed ruin acts as a ruin from `Sim::new` on). How an object
 acts follows from its stage (`effective`: blocking class, sight, height):
 
 1. After the movement, vehicles at least as heavy as `crush_min_mass_kg`
-   flatten crushable objects whose shape overlaps their footprint square,
-   falling in their driving direction.
+   flatten crushable objects, falling in their driving direction: fences
+   and wire (they block no vehicle) where the shape overlaps the footprint
+   square, walls (they block vehicles; prompt 093) only where the hull
+   touches them (three squares as wide as the hull from tail to nose), so
+   the gap is as wide as the vehicle and a tank driving along a wall leaves
+   it standing. Every broken piece with hit points slows the vehicle
+   (`[crush]`: `slow_pct` of its speed for `slow_ticks`, at most
+   `slow_max_ticks`; the counter is unit state and hashed).
 2. In the projectile flight, a hit on an object costs its hit points the
    vehicle damage of the round (`HitKind::Object`, `damage` in the event).
    Destroyed trees, gaps and flattened objects no longer stop projectiles;
@@ -874,6 +924,22 @@ prompt 085): 16 × 13.2 cm fells 24 and strips 73 trees on `test_large` (17 /
 83 on `city_large`), worst tick 11.4 ms (10.2); 18 × 15 cm, six per tick,
 fells 69 and strips 70 (74 / 70), worst tick 14.3 ms (11.9); ticks without
 impacts 2–4 ms. Far below the 50 ms budget.
+
+**Walls heavy vehicles break through** (prompt 093). A class that blocks
+large units and has a `crush_min_mass_kg` (mud walls 8 t, dry-stone walls
+18 t) does not block vehicles of that mass in the path grid: per cell the
+grid keeps the mass from which every large-blocking object in it can be
+crushed (`PathGrid::crush_kg`; `u32::MAX` if one cannot). The class grids
+(`passable(class, …)`, used by tools and the editor) still count such cells
+as blocked; the cost of a *profile* is open there if its mass suffices, plus
+`[crush] detour_m` (40 m of driving on its fastest ground), so A* breaks
+through only where the way around is longer. Profiles are grouped into
+component grids by size class, bridge load tier and crush tier (the number
+of crush limits of the map at or below the mass), and a group plans for its
+lightest member. Movement never checks objects, so a vehicle on such a path
+cannot get stuck: it drives on, its hull touches the wall, the wall is gone
+in that tick, and `apply_destruction` clears the cell (also for lighter
+vehicles, once no piece overlaps it any more).
 
 ### Bridge and Godot
 

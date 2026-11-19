@@ -2,6 +2,7 @@ keys,en,de
 HUD_CMD_MOVE,Move,Bewegen
 HUD_CMD_ATTACK,Attack,Angreifen
 HUD_CMD_GROUND,Ground,Bodenziel
+HUD_CMD_SHELL,Shell,Beschießen
 HUD_CMD_PATROL,Patrol,Patrouille
 HUD_CMD_ADVANCE,Advance,Vorrücken
 HUD_CMD_SECURE,Secure,Sichern
@@ -44,6 +45,7 @@ HUD_TIP_FORMATION,"Formation of the next moves (key %s switches). Auto picks by 
 HUD_TIP_MOVE,Then left click the target. Right click moves at once; Shift + right click adds a waypoint.,Dann Linksklick auf das Ziel. Rechtsklick bewegt sofort; Umschalt + Rechtsklick fügt einen Wegpunkt an.
 HUD_TIP_ATTACK,Then left click an enemy. Right click on an enemy attacks at once.,Dann Linksklick auf einen Feind. Rechtsklick auf einen Feind greift sofort an.
 HUD_TIP_GROUND,Then left click a ground point. Ctrl + right click fires there at once.,Dann Linksklick auf einen Geländepunkt. Strg + Rechtsklick beschießt ihn sofort.
+HUD_TIP_SHELL,"Tanks and guns: then left click a building, wall or tree (it is outlined). They drive into range and shell it until it is a ruin; machine guns keep firing at soldiers.","Panzer und Geschütze: dann Linksklick auf ein Gebäude, eine Mauer oder einen Baum (wird umrandet). Sie fahren in Reichweite und beschießen es, bis es eine Ruine ist; Maschinengewehre schießen weiter auf Soldaten."
 HUD_TIP_ADVANCE,"Attack-move: then left click a point; every unit halts to fight enemies in range on the way, then drives on. Right click does this for infantry only; %s moves without halting.","Angriffsmarsch: dann Linksklick auf einen Punkt; jede Einheit hält unterwegs an, um Feinde in Reichweite zu bekämpfen, und fährt dann weiter. Rechtsklick tut das nur für Infanterie; %s bewegt ohne anzuhalten."
 HUD_TIP_SECURE,"Then left click the center: the units hold %d m around it, attack enemies inside and return to their places.","Dann Linksklick auf den Mittelpunkt: Die Einheiten halten %d m um ihn herum, greifen Feinde darin an und kehren auf ihre Plätze zurück."
 HUD_TIP_PATROL,Then left click a point: the units drive back and forth.,Dann Linksklick auf einen Punkt: Die Einheiten fahren hin und her.
@@ -70,6 +72,7 @@ HUD_FORMATION_DISPERSED,Dispersed,Aufgelockert
 HUD_HINT_MOVE,Move: left click a point (Shift: waypoint),Bewegen: Linksklick auf einen Punkt (Umschalt: Wegpunkt)
 HUD_HINT_ATTACK,Attack: left click an enemy,Angreifen: Linksklick auf einen Feind
 HUD_HINT_GROUND,Fire at ground: left click a point,Bodenziel beschießen: Linksklick auf einen Punkt
+HUD_HINT_SHELL,Shell a building: left click the outlined building,Gebäude beschießen: Linksklick auf das umrandete Gebäude
 HUD_HINT_PATROL,Patrol: left click a point,Patrouille: Linksklick auf einen Punkt
 HUD_HINT_OCCUPY,Occupy: left click a building,Besetzen: Linksklick auf ein Gebäude
 HUD_HINT_BARRAGE,Barrage: left click a point,Sperrfeuer: Linksklick auf einen Punkt

@@ -9,8 +9,8 @@
 use super::infantry::{InfantryRt, inside};
 use super::{Route, Sim, Unit, stop};
 use crate::combat::{
-    CombatEvent, CombatRules, Face, FireMode, HitKind, ProjectileSnapshot, Vec3, WeaponType,
-    deg_to_rad, sin_cos_rad,
+    CombatEvent, CombatRules, Face, FireMode, HitKind, MgMount, ProjectileSnapshot, Vec3,
+    WeaponType, deg_to_rad, sin_cos_rad,
 };
 use crate::command::UnitId;
 use crate::data::UnitType;
@@ -26,6 +26,8 @@ use serde::{Deserialize, Serialize};
 pub(super) enum Attack {
     Unit(UnitId),
     Ground(Vec2),
+    /// A map object (index), until it is destroyed (prompt 093).
+    Object(u32),
 }
 
 /// Combat state of one unit.
@@ -43,6 +45,10 @@ pub(super) struct CombatState {
     pub(super) auto_target: Option<UnitId>,
     /// Where the player last saw the target of an attack order (prompt 018).
     last_seen: Option<Vec2>,
+    /// Infantry targets of the secondary machine guns (prompt 093), per
+    /// weapon; empty until one has a target.
+    #[serde(default)]
+    mg_targets: Vec<Option<UnitId>>,
 }
 
 impl CombatState {
@@ -55,6 +61,7 @@ impl CombatState {
             attack_moving: false,
             auto_target: None,
             last_seen: None,
+            mg_targets: Vec::new(),
         }
     }
 
@@ -77,6 +84,10 @@ impl CombatState {
                 h.write_i64(p.x.to_bits());
                 h.write_i64(p.y.to_bits());
             }
+            Some(Attack::Object(o)) => {
+                h.write_u8(3);
+                h.write_u32(o);
+            }
         }
         h.write_u8(u8::from(self.attack_moving));
         h.write_u32(self.auto_target.map_or(u32::MAX, |t| t.0));
@@ -86,6 +97,12 @@ impl CombatState {
                 h.write_u8(1);
                 h.write_i64(p.x.to_bits());
                 h.write_i64(p.y.to_bits());
+            }
+        }
+        for (w, t) in self.mg_targets.iter().enumerate() {
+            if let Some(t) = t {
+                h.write_u32(w as u32);
+                h.write_u32(t.0);
             }
         }
     }
@@ -101,15 +118,19 @@ struct WeaponRt {
     range: Fixed,
     vehicle_damage: u32,
     infantry_damage: u32,
+    /// Secondary machine gun of a vehicle (prompt 093): it picks its own
+    /// infantry targets and never fires at the main weapon's target.
+    #[serde(default)]
+    mount: Option<MgMount>,
 }
 
 /// Combat values of a unit type with the rules applied.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub(super) struct TypeCombat {
     pub(super) max_hp: u32,
-    infantry: bool,
-    half_length: Fixed,
-    half_width: Fixed,
+    pub(super) infantry: bool,
+    pub(super) half_length: Fixed,
+    pub(super) half_width: Fixed,
     pub(super) height: Fixed,
     armor: crate::combat::Armor,
     /// `(sin, cos)` of the turret turn per tick; `None` = instant.
@@ -126,6 +147,12 @@ pub(super) struct TypeCombat {
     real_per_game: Fixed,
     /// Game angle per real angle (the inverse of the range compression).
     angle_scale: Fixed,
+    /// Longest range of a secondary machine gun (0: the type has none).
+    #[serde(default)]
+    mg_range: Fixed,
+    /// Cosines of half the cones of coaxial and bow machine guns.
+    #[serde(default)]
+    mg_cos: (Fixed, Fixed),
 }
 
 fn ratio((num, den): (u32, u32)) -> Fixed {
@@ -150,17 +177,20 @@ impl TypeCombat {
         let footprint = unit_type.footprint_m;
         let dim = |v: Fixed| if v > Fixed::ZERO { v } else { footprint };
         let weapons: Vec<WeaponRt> = c
-            .weapons
+            .armed_with(rules)
             .iter()
-            .map(|w| WeaponRt {
+            .enumerate()
+            .map(|(index, w)| WeaponRt {
                 reload_ticks: rules.reload_ticks(w, tick_hz),
                 speed: w.speed_m_per_s / hz,
                 range: w.range_m,
                 vehicle_damage: rules.vehicle_damage(w),
                 infantry_damage: rules.infantry_damage(w),
                 weapon: w.clone(),
+                mount: c.mg_mount(rules, index),
             })
             .collect();
+        let cone = |deg: u32| sin_cos_rad(deg_to_rad(Fixed::from_num(deg.min(180)))).1;
         let g =
             Fixed::from_num(rules.ballistics.gravity_mm_per_s2) / 1000 * time * time / (hz * hz);
         Self {
@@ -189,6 +219,16 @@ impl TypeCombat {
                 .filter(|_| !infantry)
                 .map(|deg| sin_cos_rad(deg_to_rad(Fixed::from_num(deg) / 2)).1),
             max_range: weapons.iter().map(|w| w.range).max().unwrap_or(Fixed::ZERO),
+            mg_range: weapons
+                .iter()
+                .filter(|w| w.mount.is_some())
+                .map(|w| w.range)
+                .max()
+                .unwrap_or(Fixed::ZERO),
+            mg_cos: (
+                cone(rules.vehicle_mg.coax_half_deg),
+                cone(rules.vehicle_mg.bow_half_deg),
+            ),
             weapons,
             gravity: g,
             real_per_game: Fixed::ONE / range_factor,
@@ -407,6 +447,8 @@ type Candidate = (Fixed, HitKind, Option<(usize, Face, Option<usize>)>);
 enum Goal {
     Unit(usize),
     Ground(Vec2),
+    /// The middle of a map object (prompt 093), at this height.
+    Object(Vec2, Fixed),
     /// The attack target is out of sight: drive to where it was last seen.
     Search(Vec2),
 }
@@ -423,6 +465,46 @@ impl Sim {
         unit.combat.attack = Some(attack);
         unit.combat.attack_moving = false;
         unit.combat.last_seen = None;
+    }
+
+    /// Smallest caliber (mm × 10) that damages map objects.
+    fn shell_caliber_x10(&self) -> u32 {
+        self.destruction_rules().damage.min_caliber_mm * 10
+    }
+
+    /// Longest range of a weapon of unit type `ty` that damages objects
+    /// (0: it has none).
+    fn shell_range(&self, ty: usize) -> Fixed {
+        let caliber = self.shell_caliber_x10();
+        self.types[ty]
+            .weapons
+            .iter()
+            .filter(|w| w.mount.is_none() && w.weapon.caliber_mm_x10 >= caliber)
+            .map(|w| w.range)
+            .max()
+            .unwrap_or(Fixed::ZERO)
+    }
+
+    /// Whether unit `i` has a direct weapon that damages map objects
+    /// (prompt 093: who obeys [`crate::Command::AttackObject`]).
+    pub(super) fn shells_objects(&self, i: usize) -> bool {
+        self.shell_range(self.units[i].unit_type as usize) > Fixed::ZERO
+    }
+
+    /// Whether the living unit `id` has a direct weapon that damages map
+    /// objects (presentation: who can be given a shelling order).
+    pub fn can_shell_objects(&self, id: UnitId) -> bool {
+        self.units
+            .binary_search_by_key(&id, |u| u.id)
+            .is_ok_and(|i| self.units[i].alive() && self.shells_objects(i))
+    }
+
+    /// Whether map object `object` can be shelled: it exists, has hit
+    /// points and is not destroyed yet.
+    pub fn shellable(&self, object: u32) -> bool {
+        self.object_hp(object)
+            .is_some_and(|(hp, max)| max > 0 && hp > 0)
+            && self.object_stage(object) != Some(crate::destruction::ObjectStage::Destroyed)
     }
 
     /// Whether some weapon of unit `i` can hurt unit `j` from half its
@@ -447,88 +529,282 @@ impl Sim {
             if self.types[ty].weapons.is_empty() {
                 continue;
             }
-            for r in &mut self.units[i].combat.reload {
+            let weapons = self.types[ty].weapons.len();
+            let reload = &mut self.units[i].combat.reload;
+            // Older saved games: fewer weapons per type (prompt 093).
+            if reload.len() < weapons {
+                reload.resize(weapons, 0);
+            }
+            for r in reload {
                 *r = r.saturating_sub(1);
             }
-            let goal = self.goal(i, retarget);
-            let Some(goal) = goal else {
-                // Back to the front.
-                let unit = &mut self.units[i];
-                let facing = unit.facing;
-                unit.combat.aim =
-                    rotate_towards(unit.combat.aim, facing, self.types[ty].turret_step).0;
-                continue;
-            };
-            let (point, sees) = match goal {
-                Goal::Unit(t) => {
-                    let p = self.units[t].position;
-                    (p, self.sees_unit(i, t))
-                }
-                Goal::Ground(p) => (p, true),
-                Goal::Search(p) => (p, false),
-            };
-            let delta = point - self.units[i].position;
-            let distance = delta.length();
-            let cell = self.vision.grid.cell;
-            if matches!(goal, Goal::Search(_)) && distance < cell {
-                // Nothing found where the target was last seen.
-                let unit = &mut self.units[i];
-                unit.combat.attack = None;
-                unit.combat.last_seen = None;
-                if unit.combat.attack_moving {
-                    unit.combat.attack_moving = false;
-                    stop(unit);
-                }
-                continue;
+            let main_goal = self.aim_main(i, retarget);
+            if self.types[ty].mg_range > Fixed::ZERO {
+                self.fire_machine_guns(i, retarget, main_goal);
             }
-            // Without a line of sight the unit drives on until it sees the
-            // target (or reaches the point where it was last seen).
-            let wanted = if sees {
-                self.types[ty].max_range * Fixed::from_num(self.combat_rules.fire.attack_range_pct)
-                    / 100
+        }
+    }
+
+    /// Target, attack movement, aiming and firing of the main weapon (and
+    /// every weapon that fires with it) of unit `i`. Returns whether the
+    /// unit has something to fire at.
+    fn aim_main(&mut self, i: usize, retarget: bool) -> bool {
+        let ty = self.units[i].unit_type as usize;
+        let goal = self.goal(i, retarget);
+        let Some(goal) = goal else {
+            // Back to the front.
+            let unit = &mut self.units[i];
+            let facing = unit.facing;
+            unit.combat.aim = rotate_towards(unit.combat.aim, facing, self.types[ty].turret_step).0;
+            return false;
+        };
+        let (point, sees) = match goal {
+            Goal::Unit(t) => {
+                let p = self.units[t].position;
+                (p, self.sees_unit(i, t))
+            }
+            Goal::Ground(p) | Goal::Object(p, _) => (p, true),
+            Goal::Search(p) => (p, false),
+        };
+        let delta = point - self.units[i].position;
+        let distance = delta.length();
+        let cell = self.vision.grid.cell;
+        if matches!(goal, Goal::Search(_)) && distance < cell {
+            // Nothing found where the target was last seen.
+            let unit = &mut self.units[i];
+            unit.combat.attack = None;
+            unit.combat.last_seen = None;
+            if unit.combat.attack_moving {
+                unit.combat.attack_moving = false;
+                stop(unit);
+            }
+            return true;
+        }
+        // Without a line of sight the unit drives on until it sees the
+        // target (or reaches the point where it was last seen).
+        let wanted = if sees {
+            let range = if matches!(goal, Goal::Object(..)) {
+                self.shell_range(ty)
             } else {
-                cell / 2
+                self.types[ty].max_range
             };
-            self.attack_move(i, point, distance, wanted, retarget);
-            if distance < Fixed::ONE || !sees {
+            range * Fixed::from_num(self.combat_rules.fire.attack_range_pct) / 100
+        } else {
+            cell / 2
+        };
+        self.attack_move(i, point, distance, wanted, retarget);
+        if distance < Fixed::ONE || !sees {
+            return true;
+        }
+        let want = Vec2::new(delta.x / distance, delta.y / distance);
+        let aimed = self.turn_to(i, want);
+        if !aimed {
+            return true;
+        }
+        for w in 0..self.types[ty].weapons.len() {
+            // Out of ammunition: no weapon fires (prompt 036). Secondary
+            // machine guns have their own targets (prompt 093).
+            if self.units[i].combat.reload[w] > 0
+                || !self.has_ammo(i)
+                || self.types[ty].weapons[w].mount.is_some()
+            {
                 continue;
             }
-            let want = Vec2::new(delta.x / distance, delta.y / distance);
-            let aimed = self.turn_to(i, want);
-            if !aimed {
-                continue;
-            }
-            for w in 0..self.types[ty].weapons.len() {
-                // Out of ammunition: no weapon fires (prompt 036).
-                if self.units[i].combat.reload[w] > 0 || !self.has_ammo(i) {
-                    continue;
+            let ok = match goal {
+                Goal::Unit(t) => {
+                    let target = &self.types[self.units[t].unit_type as usize];
+                    self.types[ty].can_damage(w, &self.combat_rules, target, distance)
                 }
-                let ok = match goal {
-                    Goal::Unit(t) => {
-                        let target = &self.types[self.units[t].unit_type as usize];
-                        self.types[ty].can_damage(w, &self.combat_rules, target, distance)
-                    }
-                    Goal::Ground(_) => distance <= self.types[ty].weapons[w].range,
-                    Goal::Search(_) => false,
+                Goal::Ground(_) => distance <= self.types[ty].weapons[w].range,
+                // Only rounds that damage objects.
+                Goal::Object(..) => {
+                    let weapon = &self.types[ty].weapons[w];
+                    distance <= weapon.range
+                        && weapon.weapon.caliber_mm_x10 >= self.shell_caliber_x10()
+                }
+                Goal::Search(_) => false,
+            };
+            if ok {
+                let aim_point = match goal {
+                    Goal::Unit(t) => self.aim_point(t),
+                    Goal::Ground(p) | Goal::Search(p) => Vec3::new(p.x, p.y, self.map.height_at(p)),
+                    Goal::Object(p, up) => Vec3::new(p.x, p.y, self.map.height_at(p) + up),
                 };
-                if ok {
-                    let aim_point = match goal {
-                        Goal::Unit(t) => self.aim_point(t),
-                        Goal::Ground(p) | Goal::Search(p) => {
-                            Vec3::new(p.x, p.y, self.map.height_at(p))
-                        }
-                    };
-                    if self.units[i].squad.is_some() {
-                        self.fire_squad(i, w, aim_point);
-                    } else {
-                        self.fire(i, w, aim_point);
-                    }
-                    if w == 0 && self.units[i].combat.reload[0] > 0 {
-                        self.spend_salvo(i, false);
-                    }
+                if self.units[i].squad.is_some() {
+                    self.fire_squad(i, w, aim_point);
+                } else {
+                    self.fire(i, w, aim_point);
+                }
+                if w == 0 && self.units[i].combat.reload[0] > 0 {
+                    self.spend_salvo(i, false);
                 }
             }
         }
+        true
+    }
+
+    /// The secondary machine guns of vehicle `i` fire at enemy infantry of
+    /// their own choice (prompt 093, `[vehicle_mg]` in `data/combat.toml`):
+    /// the nearest squad in sight and range that the mount can reach,
+    /// chosen again every `retarget_ticks`. The turret never turns for
+    /// them. `main_goal`: the main weapon has a target (a coaxial gun then
+    /// only fires where the turret points). Nothing while the unit holds
+    /// its fire.
+    fn fire_machine_guns(&mut self, i: usize, retarget: bool, main_goal: bool) {
+        let ty = self.units[i].unit_type as usize;
+        let count = self.types[ty].weapons.len();
+        if self.units[i].combat.fire_mode == FireMode::HoldFire || !self.has_ammo(i) {
+            self.units[i].combat.mg_targets.clear();
+            return;
+        }
+        if retarget {
+            self.choose_mg_targets(i, main_goal);
+        }
+        if self.units[i].combat.mg_targets.is_empty() {
+            return;
+        }
+        for w in 0..count {
+            let Some(mount) = self.types[ty].weapons[w].mount else {
+                continue;
+            };
+            let Some(id) = self.units[i].combat.mg_targets.get(w).copied().flatten() else {
+                continue;
+            };
+            if self.units[i].combat.reload[w] > 0 {
+                continue;
+            }
+            let me = &self.units[i];
+            let target = self
+                .units
+                .binary_search_by_key(&id, |u| u.id)
+                .ok()
+                .filter(|&t| {
+                    let other = &self.units[t];
+                    let d = other.position - me.position;
+                    let distance = d.length();
+                    other.alive()
+                        && !super::transport::aboard(other)
+                        && distance >= Fixed::ONE
+                        && distance <= self.types[ty].weapons[w].range
+                        && self.mount_covers(i, mount, main_goal, d, distance)
+                        && self.sees_unit(i, t)
+                });
+            let Some(t) = target else {
+                // Gone, out of reach or out of the cone: the next choice
+                // finds another one.
+                self.units[i].combat.mg_targets[w] = None;
+                continue;
+            };
+            let aim_point = self.aim_point(t);
+            let me = &self.units[i];
+            let d = aim_point.ground() - me.position;
+            let distance = d.length();
+            if distance < Fixed::ONE {
+                continue;
+            }
+            let towards = Vec2::new(d.x / distance, d.y / distance);
+            // Where the gun sits: at the hull front, at the gun mantlet, or
+            // on the roof.
+            let half_length = self.types[ty].half_length;
+            let muzzle = match mount {
+                MgMount::Bow => me.facing.scale(half_length),
+                MgMount::Coax => me.combat.aim.scale(half_length),
+                MgMount::Roof => Vec2::ZERO,
+                MgMount::Mixed => {
+                    if dot(me.facing, towards) >= self.types[ty].mg_cos.1 {
+                        me.facing.scale(half_length)
+                    } else {
+                        me.combat.aim.scale(half_length)
+                    }
+                }
+            };
+            self.fire_from(i, w, aim_point, muzzle);
+        }
+    }
+
+    /// Whether a machine gun on `mount` of vehicle `i` can fire along `d`
+    /// (to a target `distance` away).
+    fn mount_covers(
+        &self,
+        i: usize,
+        mount: MgMount,
+        main_goal: bool,
+        d: Vec2,
+        distance: Fixed,
+    ) -> bool {
+        let unit = &self.units[i];
+        let (coax_cos, bow_cos) = self.types[unit.unit_type as usize].mg_cos;
+        let coax = || !main_goal || dot(unit.combat.aim, d) >= coax_cos * distance;
+        let bow = || dot(unit.facing, d) >= bow_cos * distance;
+        match mount {
+            MgMount::Roof => true,
+            MgMount::Coax => coax(),
+            MgMount::Bow => bow(),
+            MgMount::Mixed => coax() || bow(),
+        }
+    }
+
+    /// Chooses the infantry target of every secondary machine gun of
+    /// vehicle `i`: the nearest enemy squad in its range and cone that the
+    /// vehicle sees; equally near ones by id.
+    fn choose_mg_targets(&mut self, i: usize, main_goal: bool) {
+        let me = &self.units[i];
+        let mine = &self.types[me.unit_type as usize];
+        let reach = Vec2::new(mine.mg_range, mine.mg_range);
+        let mut near = Vec::new();
+        self.unit_grid
+            .query(me.position - reach, me.position + reach, &mut near);
+        // (distance, id, index, direction, seen: unknown / no / yes).
+        let mut found: Vec<(Fixed, UnitId, usize, Vec2, u8)> = near
+            .iter()
+            .filter_map(|&j| {
+                let j = j as usize;
+                let other = &self.units[j];
+                if other.squad.is_none()
+                    || !other.alive()
+                    || self.teams.allied(other.owner, me.owner)
+                    || super::transport::aboard(other)
+                {
+                    return None;
+                }
+                let d = other.position - me.position;
+                if d.x.abs() > mine.mg_range || d.y.abs() > mine.mg_range {
+                    return None;
+                }
+                let distance = d.length();
+                (distance >= Fixed::ONE && distance <= mine.mg_range)
+                    .then_some((distance, other.id, j, d, 0))
+            })
+            .collect();
+        if found.is_empty() {
+            self.units[i].combat.mg_targets.clear();
+            return;
+        }
+        found.sort_unstable_by_key(|&(distance, id, ..)| (distance, id));
+        let mut targets = vec![None; mine.weapons.len()];
+        for (w, weapon) in mine.weapons.iter().enumerate() {
+            let Some(mount) = weapon.mount else { continue };
+            for candidate in &mut found {
+                let (distance, id, j, d, seen) = *candidate;
+                if distance > weapon.range {
+                    break;
+                }
+                if seen == 1 || !self.mount_covers(i, mount, main_goal, d, distance) {
+                    continue;
+                }
+                if seen == 0 {
+                    candidate.4 = if self.sees_unit(i, j) { 2 } else { 1 };
+                }
+                if candidate.4 == 2 {
+                    targets[w] = Some(id);
+                    break;
+                }
+            }
+        }
+        if targets.iter().all(Option::is_none) {
+            targets.clear();
+        }
+        self.units[i].combat.mg_targets = targets;
     }
 
     /// Blind fire of squad `i` at `point`, where its target went out of
@@ -593,6 +869,20 @@ impl Sim {
                 }
             }
             Some(Attack::Ground(p)) => return Some(Goal::Ground(p)),
+            Some(Attack::Object(o)) => {
+                if self.shellable(o) {
+                    let object = &self.map.objects()[o as usize];
+                    let top = self.destruction.effective(&self.map, o).height;
+                    return Some(Goal::Object(object.position, top / 2));
+                }
+                // A ruin, or gone: the order is done.
+                let unit = &mut self.units[i];
+                unit.combat.attack = None;
+                if unit.combat.attack_moving {
+                    unit.combat.attack_moving = false;
+                    stop(unit);
+                }
+            }
             None => {}
         }
         if self.units[i].combat.fire_mode == FireMode::HoldFire {
@@ -730,13 +1020,21 @@ impl Sim {
     /// Fires weapon `w` of unit `i` at `aim_point` (one projectile per
     /// barrel), with dispersion from the simulation's generator.
     fn fire(&mut self, i: usize, w: usize, aim_point: Vec3) {
+        let unit = &self.units[i];
+        let half_length = self.types[unit.unit_type as usize].half_length;
+        self.fire_from(i, w, aim_point, unit.combat.aim.scale(half_length));
+    }
+
+    /// [`Self::fire`] with the muzzle `offset` from the middle of the unit
+    /// on the ground (the main gun: half the hull length along the turret).
+    fn fire_from(&mut self, i: usize, w: usize, aim_point: Vec3, offset: Vec2) {
         let rules = &self.combat_rules;
         let unit = &self.units[i];
         let ty = &self.types[unit.unit_type as usize];
         let weapon = &ty.weapons[w];
         let muzzle = Vec3::new(
-            unit.position.x + unit.combat.aim.x * ty.half_length,
-            unit.position.y + unit.combat.aim.y * ty.half_length,
+            unit.position.x + offset.x,
+            unit.position.y + offset.y,
             unit.height + ty.height * Fixed::from_num(rules.fire.muzzle_height_pct) / 100,
         );
         let delta = aim_point.ground() - muzzle.ground();
@@ -767,9 +1065,22 @@ impl Sim {
         let ticks = distance / speed;
         let dz = aim_point.z - muzzle.z;
         let climb = dz / ticks + gravity * (ticks - Fixed::ONE) / 2;
+        // The bursts of secondary machine guns (prompt 093) roll their
+        // dispersion with a generator of their own, derived from the shared
+        // one without advancing it (like the ammunition roll of prompt
+        // 048): how often a tank's machine guns fire does not shift the
+        // rolls of every gun duel of the match.
+        let mut burst = weapon.mount.is_some().then(|| {
+            let seed = self.rng.state()
+                ^ (u64::from(shooter.0) << 32)
+                ^ u64::from(self.next_projectile)
+                ^ 0x5bd1_e995_9e37_79b9;
+            crate::rng::Rng::new(seed)
+        });
         for _ in 0..count {
-            let side = triangular(&mut self.rng) * spread;
-            let up = triangular(&mut self.rng) * spread;
+            let rng = burst.as_mut().unwrap_or(&mut self.rng);
+            let side = triangular(rng) * spread;
+            let up = triangular(rng) * spread;
             let (s, c) = sin_cos_rad(side);
             let shot = Vec2::new(dir.x * c - dir.y * s, dir.x * s + dir.y * c);
             let id = self.next_projectile;

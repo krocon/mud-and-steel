@@ -590,6 +590,44 @@ open.
    `just ai-tournament --mode base --max-ticks 30000` and a few matches, and
    note the reason in the commit.
 
+## Tanks against walls, infantry and buildings (prompt 093) [provisional]
+
+A tank is no fragile gun carriage. Four rules, all in the simulation, all
+values in `data/destruction.toml` and `data/combat.toml`:
+
+- **Walls.** Vehicles from 8 t (halftracks, most tanks) drive through mud
+  courtyard walls, vehicles from 18 t (medium and heavy tanks) through
+  dry-stone field walls. The path search charges 40 m of detour per wall
+  cell, so a tank takes a gate or a corner that is near and breaks through
+  where the way around is long. A broken piece is gone (dust, debris, the
+  wall sound), the gap is as wide as the hull, and the vehicle drives at
+  half speed for a second per piece. Brick and town walls, buildings,
+  bunkers and trees stop every vehicle as before; light vehicles (trucks,
+  armored cars, jeeps, the lightest tanks) drive around walls.
+- **Running over.** A vehicle of at least 5 t that drives (1.5 m/s game
+  speed or faster) kills the enemy soldiers under its hull. Soldiers who
+  stand and see it coming step out of its lane; those lying prone, pinned
+  down, knocked down or badly wounded do not get away, and a fast tank also
+  catches men in the middle of its lane. Own and allied soldiers always
+  step aside and are never killed. Soldiers in buildings, foxholes,
+  trenches, dugouts and vehicles are safe. A squad wiped out this way is a
+  kill of the vehicle.
+- **Machine guns.** The bow, coaxial and roof machine guns of a vehicle pick
+  their own targets among the enemy infantry within 100 m (400 m real),
+  whatever the main gun fights: a tank duelling a tank keeps the infantry
+  around it down. The mount decides where a gun reaches: coaxial guns fire
+  where the turret points (±10°), bow guns ahead of the hull (±30°), roof
+  guns all round. The turret turns for the main gun only. Hold fire
+  silences them; an order to attack a tank does not.
+- **Shelling a building.** The order "Shell" (Shift + L) makes tanks and
+  guns destroy the building, wall or tree the player clicks; they stop when
+  it is a ruin. Rounds that hit an occupied building may hit its occupants
+  as before.
+
+Open: a button or rule for shelling a building because the enemy is inside
+(today a right click on a visible enemy squad attacks that squad, also in a
+building); the computer player does not use the shelling order yet.
+
 ## Open (not in this version)
 
 Replacing soldiers of squads (and what replacements do to a squad's

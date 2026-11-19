@@ -3,14 +3,18 @@ extends RefCounted
 ## the combat test with its helpers (`_check`, `_frames`, `_ids_of`,
 ## `_positions_of`, `_indices`).
 ##
-## - The own tanks attack the ground at the nearest building until the
-##   simulation says it is a ruin: the house is drawn as its `Ruin` variant
-##   (its MultiMesh instance hidden), debris and dust effects were played,
-##   and the damaged stage came first.
+## - The own tanks get the order "shell building" (prompt 093) on the
+##   nearest building, given like the player does: the order waits for its
+##   click, the building under the cursor is the outlined target, the click
+##   sends the order. They shell it until the simulation says it is a ruin
+##   and then stop firing by themselves: the house is drawn as its `Ruin`
+##   variant (its MultiMesh instance hidden), debris and dust effects were
+##   played, and the damaged stage came first.
 ## - Then they attack the nearest tree until a tree falls: it is drawn as a
 ##   falling tree with a stump.
 ## The replay test that follows re-simulates all of it to the same hash.
 
+const ShellOrders := preload("res://scenes/selection/shell_orders.gd")
 const TIME_SCALE := 4.0
 const BUILDINGS: Array[String] = [
 	"env_house_farm", "env_house_farm_brick", "env_house_stone", "env_house_mud", "env_barn", "env_church",
@@ -42,9 +46,21 @@ func run(test: Node) -> void:
 	if house < 0:
 		return
 	var damaged_before: int = view.damaged
+	await _order_shelling(test, tanks, house)
 	Engine.time_scale = TIME_SCALE
-	await _shell(test, tanks, house)
+	var deadline := sim_host.current_tick() + SECONDS_PER_TARGET * sim_host.tick_rate()
+	while sim_host.current_tick() < deadline and sim_host.object_state(house).stage != "destroyed":
+		await test.get_tree().process_frame
+	# The order ends with the ruin: the tanks stand, and the ruin is no
+	# target for another order.
+	await test._ticks(40)
 	Engine.time_scale = 1.0
+	test._check(_tanks_stand(test, tanks), "tanks still drive after building %d became a ruin" % house)
+	var house_at: Vector3 = sim_host.object_position(house)
+	test._check(sim_host.shell_target_at(house_at.x, house_at.z, 0.0) != house,
+		"the ruin %d still counts as a target to shell" % house)
+	sim_host.stop_units(PackedInt64Array(tanks))
+	await test._ticks(2)
 	var state: Dictionary = sim_host.object_state(house)
 	test._check(state.stage == "destroyed" and state.remains == "ruin",
 		"building %d (%s) is %s after %d ticks" % [house, state.id, state.stage, sim_host.current_tick()])
@@ -77,6 +93,50 @@ func run(test: Node) -> void:
 	print("self-test: destruction ok at tick %d (building %d a ruin, %d objects destroyed, %d damaged)" % [
 		sim_host.current_tick(), house, view.destroyed, view.damaged
 	])
+
+
+## Gives `tanks` the order to shell building `house` the way the player
+## does: select them, start the order (button of the command bar), point at
+## the building, click.
+func _order_shelling(test: Node, tanks: Array[int], house: int) -> void:
+	var main: Node3D = test.main
+	var sim_host: SimHost = main.sim_host
+	var selection: Control = main.selection
+	var at: Vector3 = sim_host.object_position(house)
+	at.y = sim_host.height_at(at.x, at.z)
+	main.camera_rig.snap_to(at, 120.0, 0.0)
+	await test._frames(3)
+	selection._set_selection(tanks)
+	test._check(sim_host.can_shell_objects(PackedInt64Array(tanks)), "the tanks cannot shell objects")
+	var button: Button = main.hud.command_bar.buttons.get("attack_object")
+	test._check(button != null, "no 'shell building' button in the command bar")
+	main.hud.command_bar.press("attack_object")
+	test._check(selection.command_mode == ShellOrders.MODE, "the shelling order does not wait for a click")
+	# The cursor on the wall of the house, a little above the ground.
+	var screen: Vector2 = main.camera.unproject_position(at + Vector3.UP * 1.5)
+	var picked: int = ShellOrders.target_at(selection, screen)
+	test._check(picked == house, "the cursor on building %d picks object %d" % [house, picked])
+	var ordered: Array[int] = []
+	var note := func(object: int) -> void: ordered.append(object)
+	selection.object_attack_ordered.connect(note)
+	if picked == house:
+		selection.click_command(screen)
+	else:
+		sim_host.attack_object(PackedInt64Array(tanks), house)
+		selection.set_command_mode("")
+	selection.object_attack_ordered.disconnect(note)
+	test._check(picked != house or ordered == [house], "the click ordered %s instead of building %d" % [ordered, house])
+	test._check(selection.command_mode.is_empty(), "the shelling order stays armed after its click")
+	await test._ticks(2)
+
+
+## Whether none of `tanks` drives.
+func _tanks_stand(test: Node, tanks: Array[int]) -> bool:
+	var moving: PackedByteArray = test.main.sim_host.unit_moving()
+	for index: int in test._indices(tanks):
+		if index >= 0 and index < moving.size() and moving[index] != 0:
+			return false
+	return true
 
 
 ## Orders `tanks` to fire at the ground under object `index` until it is

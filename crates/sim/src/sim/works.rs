@@ -927,6 +927,7 @@ impl Sim {
                 | Command::Stop { .. }
                 | Command::Attack { .. }
                 | Command::AttackGround { .. }
+                | Command::AttackObject { .. }
                 | Command::Garrison { .. }
                 | Command::Patrol { .. }
                 | Command::QueueMove { .. }

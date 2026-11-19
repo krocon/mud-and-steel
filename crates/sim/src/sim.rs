@@ -31,6 +31,7 @@ mod knockdown;
 mod logistics;
 mod mission;
 mod orders;
+mod overrun;
 mod positions;
 mod spatial;
 mod strike;
@@ -264,6 +265,10 @@ struct Unit {
     /// Experience points and kills (prompt 050).
     #[serde(default)]
     veterancy: experience::Veterancy,
+    /// Ticks the vehicle still drives slowly after breaking through a wall
+    /// (prompt 093, `[crush]` in `data/destruction.toml`).
+    #[serde(default)]
+    crush_slow: u32,
 }
 
 impl Unit {
@@ -526,6 +531,10 @@ pub struct Sim {
     /// The mission script and its progress (prompt 039).
     #[serde(default)]
     mission: Option<Box<mission::MissionRt>>,
+    /// Vehicles running soldiers over (prompt 093): lists of the current
+    /// tick, not state.
+    #[serde(skip)]
+    overrun: overrun::Overrun,
 }
 
 impl Sim {
@@ -691,7 +700,12 @@ impl Sim {
             config,
             &config.terrain,
         );
-        let grid = PathGrid::new(&map, &config.terrain, &config.unit_types);
+        let grid = PathGrid::with_crushing(
+            &map,
+            &config.terrain,
+            &config.unit_types,
+            &destruction.crushing(&map),
+        );
         let weather = weather::WeatherState::new(
             crate::weather::WeatherRules::builtin()
                 .map_err(|e| ConfigError::Weather(e.to_string()))?,
@@ -749,6 +763,7 @@ impl Sim {
                 .mission
                 .as_ref()
                 .map(|m| Box::new(mission::MissionRt::new(m))),
+            overrun: overrun::Overrun::default(),
         };
         sim.init_weather();
         sim.init_economy();
@@ -839,7 +854,9 @@ impl Sim {
         self.move_units();
         self.update_transport();
         done(Phase::Movement);
+        self.plan_overrun();
         self.update_squads();
+        self.overrun_soldiers();
         done(Phase::Squads);
         self.crush_objects();
         self.rebuild_unit_grid();
@@ -1129,6 +1146,7 @@ impl Sim {
         // The unit grid holds the positions of this phase (built before
         // combat, which moves nobody).
         let mut near = Vec::new();
+        let overrun_kg = self.combat_rules.overrun.min_mass_kg;
         let pushes: Vec<Vec2> = (0..self.units.len())
             .map(|i| {
                 directions[i].map_or(Vec2::ZERO, |d| {
@@ -1138,11 +1156,22 @@ impl Sim {
                     let r = Vec2::new(r, r);
                     self.unit_grid
                         .query(me.position - r, me.position + r, &mut near);
-                    separation(&self.units, &directions, i, d, &near)
+                    // Heavy vehicles do not swerve around enemy infantry:
+                    // they run it over (prompt 093).
+                    let runs_over = overrun_kg > 0
+                        && me.squad.is_none()
+                        && self.unit_types[me.unit_type as usize].mass_kg >= overrun_kg;
+                    let ignore = |other: &Unit| {
+                        runs_over
+                            && other.squad.is_some()
+                            && !self.teams.allied(me.owner, other.owner)
+                    };
+                    separation(&self.units, &directions, i, d, &near, ignore)
                 })
             })
             .collect();
         let grid = &self.paths.grid;
+        let crush_slow_pct = self.destruction.crush_slow_pct();
         let mut blocked = Vec::new();
         let mut driven = Vec::new();
         for (index, (unit, push)) in self.units.iter_mut().zip(pushes).enumerate() {
@@ -1150,7 +1179,17 @@ impl Sim {
             let keep_clear = |p: Vec2| grid.passable_for(profile, p);
             let from = unit.position;
             let ground = (&self.terrain, grid.ground_pct(profile));
-            if move_unit(unit, push, &self.map, ground, keep_clear) == Moved::Blocked {
+            // Slower for a moment after breaking through a wall (prompt 093).
+            let speed_pct = unit.speed_pct;
+            if unit.crush_slow > 0 {
+                unit.crush_slow -= 1;
+                if speed_pct > 0 {
+                    unit.speed_pct = (speed_pct * crush_slow_pct / 100).max(1);
+                }
+            }
+            let moved = move_unit(unit, push, &self.map, ground, keep_clear);
+            unit.speed_pct = speed_pct;
+            if moved == Moved::Blocked {
                 blocked.push(index);
             }
             // The hull points where the unit drove.
@@ -1161,8 +1200,12 @@ impl Sim {
                 driven.push((index, length));
             }
         }
+        self.overrun.driven.clear();
         for (index, length) in driven {
             self.burn_fuel(index, length);
+            if self.units[index].squad.is_none() {
+                self.overrun.driven.push((index as u32, length));
+            }
         }
         // Pushed off the planned line (or the way is blocked): plan again
         // from here, a limited number of times.
@@ -1258,6 +1301,15 @@ impl Sim {
                 for index in self.mobile_indices(command.player, units) {
                     if !guns.contains(&index) {
                         self.start_attack(index, Attack::Ground(*target));
+                    }
+                }
+            }
+            Command::AttackObject { units, object } => {
+                if self.shellable(*object) {
+                    for index in self.mobile_indices(command.player, units) {
+                        if self.shells_objects(index) {
+                            self.start_attack(index, Attack::Object(*object));
+                        }
                     }
                 }
             }
@@ -1512,6 +1564,7 @@ impl Sim {
             h.write_i64(unit.spread.to_bits());
             h.write_u32(unit.elevation_mm.cast_unsigned());
             h.write_u8(u8::from(unit.vision_dirty));
+            h.write_u32(unit.crush_slow);
             match &unit.squad {
                 None => h.write_u8(0),
                 Some(squad) => {
@@ -1799,6 +1852,7 @@ fn separation(
     i: usize,
     direction: Vec2,
     near: &[u32],
+    ignore: impl Fn(&Unit) -> bool,
 ) -> Vec2 {
     let me = &units[i];
     let left = Vec2::new(direction.y, -direction.x);
@@ -1806,7 +1860,12 @@ fn separation(
     for &j in near {
         let j = j as usize;
         let other = &units[j];
-        if j == i || !other.alive() || infantry::inside(other) || other.link.is_some() {
+        if j == i
+            || !other.alive()
+            || infantry::inside(other)
+            || other.link.is_some()
+            || ignore(other)
+        {
             continue;
         }
         let reach = (me.spread + other.spread) / 2;
@@ -2099,7 +2158,11 @@ fn new_unit(n: &NewUnit<'_>) -> Unit {
         footprint: n.unit_type.footprint_m,
         facing: n.facing,
         hp: n.hp,
-        combat: CombatState::new(n.facing, n.unit_type.combat.weapons.len(), n.fire_mode),
+        combat: CombatState::new(
+            n.facing,
+            n.unit_type.combat.weapons.len() + n.unit_type.combat.machine_guns.len(),
+            n.fire_mode,
+        ),
         squad,
         speed_pct: 100,
         spread,
@@ -2110,6 +2173,7 @@ fn new_unit(n: &NewUnit<'_>) -> Unit {
         stock: logistics::Stock::default(),
         drill: drill::Drill::default(),
         veterancy: experience::Veterancy::default(),
+        crush_slow: 0,
     }
 }
 

@@ -26,5 +26,7 @@ pub use wire::{CHANNEL_COUNT, LobbyPlayer, LobbySetup, LobbySlot, SlotKind, Star
 /// joining. 3 since prompt 037 (slots, teams, `Command::Ping`); 4 since
 /// prompt 040 (`SimConfig::weather`); 5 since prompts 035, 039, 046, 054
 /// and 055 (new `Command` variants: works, mission signals, formations,
-/// heavy strike, crossings; `SimConfig::mission`).
-pub const PROTOCOL_VERSION: u16 = 5;
+/// heavy strike, crossings; `SimConfig::mission`); 6 since prompt 093
+/// (`Command::AttackObject`, overrun and machine gun rules in
+/// `SimConfig::combat`, machine guns in the unit types).
+pub const PROTOCOL_VERSION: u16 = 6;

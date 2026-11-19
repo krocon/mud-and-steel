@@ -103,6 +103,7 @@ const fn replaces_drill(command: &Command) -> bool {
             | Command::Stop { .. }
             | Command::Attack { .. }
             | Command::AttackGround { .. }
+            | Command::AttackObject { .. }
             | Command::Garrison { .. }
             | Command::Barrage { .. }
             | Command::Patrol { .. }
@@ -433,7 +434,7 @@ impl Sim {
                         self.units[t].alive()
                             && (self.units[t].position - center).length() <= radius
                     }),
-                Attack::Ground(_) => false,
+                Attack::Ground(_) | Attack::Object(_) => false,
             };
             if inside_circle {
                 return;

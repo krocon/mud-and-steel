@@ -146,6 +146,9 @@ struct ClassGrid {
 struct ComponentGrid {
     class: SizeClass,
     tier: u32,
+    /// Crush tier of its profiles ([`Profile::crush`]).
+    #[serde(default)]
+    crush: u32,
     /// Connected region of every passable cell (4-neighborhood, which equals
     /// the reachability of the 8-neighborhood without corner cutting); 0 for
     /// blocked cells. Only equality of labels matters (searches compare
@@ -167,6 +170,12 @@ struct Profile {
     /// Number of distinct bridge load limits of the map below `mass_kg`:
     /// profiles with the same class and tier block the same cells.
     tier: u32,
+    /// Number of crush limits of the map's objects at or below `mass_kg`
+    /// (prompt 093; 0 for the small class, which no crushable object
+    /// blocks): profiles with the same class, tier and crush tier block
+    /// the same cells.
+    #[serde(default)]
+    crush: u32,
     /// Index into [`PathGrid::components`].
     components: usize,
     /// 0 = blocked, otherwise at least [`MIN_CELL_COST`].
@@ -212,6 +221,30 @@ const PLACED_FLAGS: u8 = BLOCKED_OBSTACLE
     | BLOCKED_WORK_SMALL
     | BLOCKED_WORK_LARGE;
 
+/// Map objects that vehicles above a mass limit drive through and flatten
+/// (walls, prompt 093; `data/destruction.toml`): the path grid lets those
+/// vehicles plan through them at an extra cost, so they break through only
+/// where the way around is clearly longer.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct Crushing {
+    /// Per map object kind ([`Map::object_kinds`]): lightest vehicle (kg)
+    /// that crushes it; 0 = cannot be crushed. Shorter lists count as 0.
+    pub kind_kg: Vec<u32>,
+    /// Extra cost of a cell with such an object, as meters of detour on
+    /// the unit's fastest ground.
+    pub detour_m: u32,
+}
+
+impl Crushing {
+    fn of_kind(&self, kind: u16) -> u32 {
+        self.kind_kg.get(usize::from(kind)).copied().unwrap_or(0)
+    }
+}
+
+/// [`PathGrid::crush_kg`] of a cell with an object that blocks large units
+/// and cannot be crushed.
+const NEVER_CRUSHED: u32 = u32::MAX;
+
 /// Step cost factor in cells a search avoids (known minefields of the
 /// requesting player, prompt 035). They stay passable, so a unit inside a
 /// minefield still finds its way out.
@@ -239,6 +272,15 @@ pub struct PathGrid {
     origin: Vec2,
     /// `BLOCKED_*` flags per cell.
     base: Vec<u8>,
+    /// Per cell with a map object that blocks large units: the vehicle mass
+    /// (kg) from which the cell is passable all the same, because every
+    /// such object there can be crushed (prompt 093); [`NEVER_CRUSHED`] if
+    /// one cannot; 0 without such an object. Empty: no crushable objects.
+    #[serde(default)]
+    crush_kg: Vec<u32>,
+    /// Extra cost of a cell a profile crushes its way through.
+    #[serde(default)]
+    crush_cost: u16,
     /// Slope cost factor in permille (1000 = flat).
     slope_pml: Vec<u16>,
     classes: [ClassGrid; 2],
@@ -261,6 +303,17 @@ pub struct PathGrid {
 impl PathGrid {
     /// Builds the grid for `map` and one profile per unit type.
     pub fn new(map: &Map, rules: &TerrainRules, unit_types: &[UnitType]) -> Self {
+        Self::with_crushing(map, rules, unit_types, &Crushing::default())
+    }
+
+    /// [`Self::new`] with the objects heavy vehicles drive through
+    /// (prompt 093).
+    pub fn with_crushing(
+        map: &Map,
+        rules: &TerrainRules,
+        unit_types: &[UnitType],
+        crushing: &Crushing,
+    ) -> Self {
         let (sx, sy) = map.samples();
         let stride = (PATH_CELL_MM / map.cell_size_mm()).max(1);
         let width = (sx / stride).max(1);
@@ -276,6 +329,22 @@ impl PathGrid {
         loads.sort_unstable();
         loads.dedup();
         let tier = |mass: u32| loads.iter().filter(|&&l| l < mass).count() as u32;
+        // Crush tiers: distinct crush limits of the kinds that block large
+        // units on this map.
+        let mut limits: Vec<u32> = (0u16..)
+            .zip(map.object_kinds())
+            .filter(|(_, k)| k.blocks.large())
+            .map(|(k, _)| crushing.of_kind(k))
+            .filter(|&kg| kg > 0)
+            .collect();
+        limits.sort_unstable();
+        limits.dedup();
+        let crush_tier = |class: SizeClass, mass: u32| match class {
+            SizeClass::Small => 0,
+            SizeClass::Large => limits.iter().filter(|&&l| l <= mass).count() as u32,
+        };
+        let extra = u64::from(MIN_CELL_COST) * u64::from(crushing.detour_m) * 1000
+            / u64::from(PATH_CELL_MM);
         let mut components: Vec<ComponentGrid> = Vec::new();
         let mut grid = Self {
             width,
@@ -285,6 +354,12 @@ impl PathGrid {
             cell: Fixed::from_num(stride * map.cell_size_mm()) / Fixed::from_num(1000),
             origin: Vec2::new(-size.x / 2 - half_sample, -size.y / 2 - half_sample),
             base: vec![0; count],
+            crush_kg: if limits.is_empty() {
+                Vec::new()
+            } else {
+                vec![0; count]
+            },
+            crush_cost: u16::try_from(extra).unwrap_or(u16::MAX),
             slope_pml: vec![1000; count],
             classes: [empty(), empty()],
             profiles: unit_types
@@ -292,13 +367,15 @@ impl PathGrid {
                 .map(|t| {
                     let class = SizeClass::of_footprint(t.footprint_m);
                     let tier = tier(t.mass_kg);
+                    let crush = crush_tier(class, t.mass_kg);
                     let index = components
                         .iter()
-                        .position(|c| c.class == class && c.tier == tier)
+                        .position(|c| c.class == class && c.tier == tier && c.crush == crush)
                         .unwrap_or_else(|| {
                             components.push(ComponentGrid {
                                 class,
                                 tier,
+                                crush,
                                 component: vec![0; count],
                                 last_label: 0,
                             });
@@ -310,6 +387,7 @@ impl PathGrid {
                         road: t.road_speed_m_per_s,
                         mass_kg: t.mass_kg,
                         tier,
+                        crush,
                         components: index,
                         cost: vec![0; count],
                         heuristic: heuristic_cost(t),
@@ -340,7 +418,7 @@ impl PathGrid {
             x1: width - 1,
             y1: height - 1,
         };
-        grid.rasterize_objects(map);
+        grid.rasterize_objects(map, crushing);
         grid.rebuild_cells(map, rules, all);
         grid.relabel_components();
         grid.version = 0;
@@ -348,21 +426,53 @@ impl PathGrid {
     }
 
     /// Marks every cell overlapped by the shape of a blocking map object.
-    fn rasterize_objects(&mut self, map: &Map) {
-        let half = self.cell / 2;
+    fn rasterize_objects(&mut self, map: &Map, crushing: &Crushing) {
+        let all = CellRect {
+            x0: 0,
+            y0: 0,
+            x1: self.width - 1,
+            y1: self.height - 1,
+        };
         for object in map.objects() {
             let kind = &map.object_kinds()[usize::from(object.kind)];
-            let flags = object_flags(kind.blocks);
-            if flags == 0 {
-                continue;
-            }
-            let extent = object.half_extent(kind.shape);
-            let rect = self.cells_in(object.position - extent, object.position + extent);
-            for y in rect.y0..=rect.y1 {
-                for x in rect.x0..=rect.x1 {
-                    if object.overlaps_square(kind.shape, self.center(x, y), half) {
-                        let i = self.index(x, y);
-                        self.base[i] |= flags;
+            let crush_kg = crushing.of_kind(object.kind);
+            self.mark_object(all, object, kind.shape, kind.blocks, crush_kg);
+        }
+    }
+
+    /// Marks the cells within `rect` that the shape of a blocking object
+    /// overlaps. An object that blocks large units and is crushed by
+    /// vehicles from `crush_kg` (0: by none) sets the mass limit of the
+    /// cell instead of the flag.
+    fn mark_object(
+        &mut self,
+        rect: CellRect,
+        object: &MapObject,
+        shape: Shape,
+        blocks: Blocks,
+        crush_kg: u32,
+    ) {
+        let flags = object_flags(blocks);
+        if flags == 0 {
+            return;
+        }
+        let limit = if !blocks.large() {
+            0
+        } else if crush_kg == 0 || self.crush_kg.is_empty() {
+            NEVER_CRUSHED
+        } else {
+            crush_kg
+        };
+        let half = self.cell / 2;
+        let extent = object.half_extent(shape);
+        let r = self.cells_in(object.position - extent, object.position + extent);
+        for y in r.y0.max(rect.y0)..=r.y1.min(rect.y1) {
+            for x in r.x0.max(rect.x0)..=r.x1.min(rect.x1) {
+                if object.overlaps_square(shape, self.center(x, y), half) {
+                    let i = self.index(x, y);
+                    self.base[i] |= flags;
+                    if limit > 0 && !self.crush_kg.is_empty() {
+                        self.crush_kg[i] = self.crush_kg[i].max(limit);
                     }
                 }
             }
@@ -376,6 +486,15 @@ impl PathGrid {
             SizeClass::Large => BLOCKED_OBJECT_LARGE,
         };
         self.base[self.index(x, y)] & flag != 0
+    }
+
+    /// Whether the map objects that block large units in the cell can all
+    /// be crushed by a vehicle of `mass_kg` (prompt 093); false without
+    /// such an object.
+    pub fn crushable_by(&self, mass_kg: u32, x: u32, y: u32) -> bool {
+        self.crush_kg
+            .get(self.index(x, y))
+            .is_some_and(|&kg| kg > 0 && kg <= mass_kg)
     }
 
     /// Number of cells per axis.
@@ -432,9 +551,10 @@ impl PathGrid {
     /// How restrictive a profile is: its size class, then its load tier
     /// (bridges it may not cross). A path planned for the most restrictive
     /// profile of a group fits every member.
-    pub fn restriction(&self, profile: usize) -> (SizeClass, u32) {
+    pub fn restriction(&self, profile: usize) -> (SizeClass, u32, u32) {
         let p = &self.profiles[profile];
-        (p.class, p.tier)
+        // Lighter vehicles crush less (prompt 093).
+        (p.class, p.tier, u32::MAX - p.crush)
     }
 
     /// Speed on soft ground of profile `profile` in percent of the terrain
@@ -663,14 +783,15 @@ impl PathGrid {
         let mut components: Vec<ComponentGrid> = Vec::new();
         for p in &mut self.profiles {
             p.tier = tier(p.mass_kg);
-            let (class, tier) = (p.class, p.tier);
+            let (class, tier, crush) = (p.class, p.tier, p.crush);
             p.components = components
                 .iter()
-                .position(|c| c.class == class && c.tier == tier)
+                .position(|c| c.class == class && c.tier == tier && c.crush == crush)
                 .unwrap_or_else(|| {
                     components.push(ComponentGrid {
                         class,
                         tier,
+                        crush,
                         component: vec![0; count],
                         last_label: 0,
                     });
@@ -696,34 +817,25 @@ impl PathGrid {
     /// again from `objects` (position and shape, with the classes they block
     /// now), for objects that changed (destruction, prompt 020). Pass every
     /// object whose shape may overlap `rect`; cells outside `rect` are not
-    /// touched. Call [`Self::rebuild_cells`] afterwards.
+    /// touched. The last value is the mass from which vehicles crush the
+    /// object (0: never, prompt 093). Call [`Self::rebuild_cells`]
+    /// afterwards.
     pub fn rasterize_objects_in(
         &mut self,
         rect: CellRect,
-        objects: impl IntoIterator<Item = (MapObject, Shape, Blocks)>,
+        objects: impl IntoIterator<Item = (MapObject, Shape, Blocks, u32)>,
     ) {
         for y in rect.y0..=rect.y1 {
             for x in rect.x0..=rect.x1 {
                 let i = self.index(x, y);
                 self.base[i] &= !(BLOCKED_OBJECT_SMALL | BLOCKED_OBJECT_LARGE);
-            }
-        }
-        let half = self.cell / 2;
-        for (object, shape, blocks) in objects {
-            let flags = object_flags(blocks);
-            if flags == 0 {
-                continue;
-            }
-            let extent = object.half_extent(shape);
-            let r = self.cells_in(object.position - extent, object.position + extent);
-            for y in r.y0.max(rect.y0)..=r.y1.min(rect.y1) {
-                for x in r.x0.max(rect.x0)..=r.x1.min(rect.x1) {
-                    if object.overlaps_square(shape, self.center(x, y), half) {
-                        let i = self.index(x, y);
-                        self.base[i] |= flags;
-                    }
+                if let Some(kg) = self.crush_kg.get_mut(i) {
+                    *kg = 0;
                 }
             }
+        }
+        for (object, shape, blocks, crush_kg) in objects {
+            self.mark_object(rect, &object, shape, blocks, crush_kg);
         }
     }
 
@@ -1085,7 +1197,20 @@ impl PathGrid {
     /// for the profile's class.
     fn cell_cost(&self, map: &Map, times: &[Fixed], p: usize, x: u32, y: u32) -> u16 {
         let i = self.index(x, y);
-        if !self.classes[self.profiles[p].class.index()].passable[i] {
+        let profile = &self.profiles[p];
+        // Walls a vehicle of this mass flattens do not block it, they only
+        // cost a detour's worth (prompt 093).
+        let crushing = profile.class == SizeClass::Large
+            && self
+                .crush_kg
+                .get(i)
+                .is_some_and(|&kg| kg > 0 && kg <= profile.mass_kg);
+        let open = if crushing {
+            self.base[i] & profile.class.blocking() & !BLOCKED_OBJECT_LARGE == 0
+        } else {
+            self.classes[profile.class.index()].passable[i]
+        };
+        if !open {
             return 0;
         }
         let mean = if let Some(b) = self.deck_of(x, y) {
@@ -1112,8 +1237,12 @@ impl PathGrid {
         };
         let cost = mean * Fixed::from_num(MIN_CELL_COST) * Fixed::from_num(self.slope_pml[i])
             / Fixed::from_num(1000);
-        cost.to_num::<u32>()
-            .clamp(u32::from(MIN_CELL_COST), u32::from(u16::MAX)) as u16
+        let extra = if crushing {
+            u32::from(self.crush_cost)
+        } else {
+            0
+        };
+        (cost.to_num::<u32>().max(u32::from(MIN_CELL_COST)) + extra).min(u32::from(u16::MAX)) as u16
     }
 
     /// Labels the connected regions of component grid `c` from the costs of

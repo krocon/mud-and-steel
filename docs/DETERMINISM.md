@@ -126,6 +126,11 @@ Additional rules:
   two headless Godot instances.
 - `crates/net/tests/replay.rs` records a lockstep match, encodes and decodes it, and
   re-simulates it to the same end hash; a tampered command is reported.
+- `crates/sim/tests/tank_overrun.rs` and `crates/net/tests/tank_orders.rs` (prompt
+  093): walls broken by tanks, soldiers run over, machine guns with their own targets
+  and shelling orders, without random rolls of their own (the machine guns' dispersion
+  comes from a generator derived from the shared one); two peers with shelling orders
+  agree on every tick's hash and the replay plays back to the same end.
 - `crates/net/tests/snapshot.rs` and `crates/ai/tests/save.rs` (prompt 038): restored
   snapshots and loaded games continue tick for tick like the original.
 

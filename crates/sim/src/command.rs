@@ -183,6 +183,12 @@ pub enum Command {
     /// (prompt 039). Ignored without a mission, from other players and for
     /// names longer than `crate::mission::MAX_SIGNAL_LEN`.
     MissionSignal { name: String },
+    /// `units` drive into range of the map object `object` (index into
+    /// [`crate::Map::objects`]: a building, a wall, a tree) and shell it
+    /// with the weapons that damage objects until it is destroyed (prompt
+    /// 093). Ignored for objects that cannot be shot to pieces or are
+    /// destroyed already, and by units without such a weapon.
+    AttackObject { units: Vec<UnitId>, object: u32 },
 }
 
 impl Command {
@@ -193,6 +199,7 @@ impl Command {
             | Self::Stop { units }
             | Self::Attack { units, .. }
             | Self::AttackGround { units, .. }
+            | Self::AttackObject { units, .. }
             | Self::SetFireMode { units, .. }
             | Self::SetStance { units, .. }
             | Self::Garrison { units, .. }

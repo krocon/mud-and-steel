@@ -21,7 +21,31 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by the fix for tanks stuck at crossings (after prompt 088):
+/// Last changed by prompt 093 (tanks against walls, infantry and buildings),
+/// an intended rule change:
+/// - Hashed rules and state: `[crush]` and the crush limits of mud and
+///   dry-stone walls (`data/destruction.toml`), `[overrun]` and
+///   `[vehicle_mg]` (`data/combat.toml`), every unit's slow-down after
+///   breaking a wall, the machine guns' targets, shelling orders. Checked:
+///   with the machine guns and the overrun switched off in the data
+///   (`max_caliber_mm = 0`, `min_mass_kg = 0`) the demo battle is the one
+///   from before (decided at tick 1871, player 0 wins; hash
+///   `0x67b5_8f6f_dcc2_d1ea`), also with the walls not crushable
+///   (`0x7ca6_3535_d3dc_8049`): `test_small` makes no tank break a wall.
+/// - The tanks' secondary machine guns (two MG 34 per Panzer IV, two DT per
+///   T-34) now exist in the simulation and pick their own infantry targets:
+///   the rifle squads behind the tanks die much earlier and the battle is
+///   decided at tick 556 instead of 1871, same winner (player 0). Their
+///   bursts roll dispersion with a generator derived from the shared one
+///   without advancing it, so the gun duels keep their rolls until the
+///   first machine gun hit changes something.
+/// - Heavy vehicles run over enemy soldiers and no longer swerve around
+///   enemy squads. Alone (machine guns off) this decides the battle after
+///   tick 1900 instead of 1871; with the machine guns on it does not move
+///   the decision (556 with and without).
+///
+/// Before (`0x9516_95b0_336f_27c0`), the fix for tanks stuck at crossings
+/// (after prompt 088):
 /// a unit on a path cell blocked for it (pushed into the margin of an
 /// obstacle or onto a bank) no longer plans from that cell but drives first
 /// to the nearest passable cell it can reach in a straight line
@@ -264,7 +288,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x9516_95b0_336f_27c0;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x61a2_ce50_2027_ba7c;
 
 #[test]
 fn golden_hash() {
@@ -315,16 +339,18 @@ fn demo_is_a_battle() {
 /// out of each other's range (176 m apart, rifles reach 75 m) and the last
 /// Soviet squad falls at tick 1834 (1871 since units on blocked path cells
 /// drive to a lead-in point first, after prompt 088), so the run is 1900
-/// ticks long (the golden hash above stays at 1000 ticks).
+/// ticks long (the golden hash above stays at 1000 ticks). Since prompt 093
+/// the tanks' machine guns fire at the squads: the last Soviet squad falls
+/// at tick 556.
 #[test]
 fn demo_battle_is_decided() {
     let end = run_demo(42, 1900);
     let outcome = end.outcome().expect("the demo battle is decided");
     assert_eq!(outcome.winner, Some(sim::PlayerId(0)));
-    assert_eq!(outcome.tick, 1871);
+    assert_eq!(outcome.tick, 556);
     assert_eq!(end.alive_units(sim::PlayerId(1)), 0);
     assert_eq!(
         end.standings()[1].defeat,
-        Some((sim::DefeatReason::Eliminated, 1871))
+        Some((sim::DefeatReason::Eliminated, 556))
     );
 }

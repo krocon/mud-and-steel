@@ -186,12 +186,31 @@ impl BlastRules {
     }
 }
 
+/// Vehicles breaking through objects that block them (walls, prompt 093):
+/// classes with `crush_min_mass_kg` whose objects block large units.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct CrushRules {
+    /// Path cost of a cell with such an object, as meters of detour: a
+    /// vehicle breaks through only where the way around is longer.
+    pub detour_m: u32,
+    /// Speed of a vehicle that just broke an object with hit points, in
+    /// percent of its speed (0 or 100: no slow-down).
+    pub slow_pct: u32,
+    /// Ticks the slow-down lasts per broken object.
+    pub slow_ticks: u32,
+    /// Most ticks of slow-down a vehicle collects.
+    pub slow_max_ticks: u32,
+}
+
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 struct File {
     damage: DamageRules,
     #[serde(default)]
     blast: Option<BlastRules>,
+    #[serde(default)]
+    crush: CrushRules,
     class: Vec<ClassRule>,
 }
 
@@ -202,6 +221,9 @@ pub struct DestructionRules {
     /// Area damage of big explosions (`None`: only direct hits).
     #[serde(default)]
     pub blast: Option<BlastRules>,
+    /// Breaking through walls (prompt 093).
+    #[serde(default)]
+    pub crush: CrushRules,
     pub classes: Vec<ClassRule>,
 }
 
@@ -236,9 +258,13 @@ impl DestructionRules {
                 }
             }
         }
+        if file.crush.slow_pct > 100 {
+            return Err(DestructionError("crush: slow_pct above 100".into()));
+        }
         Ok(Self {
             damage: file.damage,
             blast: file.blast,
+            crush: file.crush,
             classes: file.class,
         })
     }
@@ -268,6 +294,10 @@ impl DestructionRules {
                 h.write_u32(b.max_radius_m);
             }
         }
+        h.write_u32(self.crush.detour_m);
+        h.write_u32(self.crush.slow_pct);
+        h.write_u32(self.crush.slow_ticks);
+        h.write_u32(self.crush.slow_max_ticks);
         h.write_u64(self.classes.len() as u64);
         for c in &self.classes {
             h.write_u64(c.ids.len() as u64);

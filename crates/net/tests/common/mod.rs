@@ -22,6 +22,9 @@ pub struct Peer<T = LoopbackTransport> {
     pub recorder: ReplayRecorder,
     /// Commands applied locally only, to provoke a desync: (tick, command).
     pub cheat: Option<(u64, PlayerCommand)>,
+    /// Commands this peer issues itself at the given ticks, beside its
+    /// script (they travel through the lockstep session).
+    pub extra: Vec<(u64, Command)>,
 }
 
 impl<T: Transport> Peer<T> {
@@ -52,6 +55,7 @@ impl<T: Transport> Peer<T> {
             hashes: Vec::new(),
             recorder: ReplayRecorder::new(SEED, sim_config, &players),
             cheat: None,
+            extra: Vec::new(),
         }
     }
 
@@ -70,6 +74,12 @@ impl<T: Transport> Peer<T> {
                     target: Vec2::from_meters(500, 500),
                 });
             }
+            commands.extend(
+                self.extra
+                    .iter()
+                    .filter(|(t, _)| *t == tick)
+                    .map(|(_, c)| c.clone()),
+            );
             self.session
                 .submit_local(commands, &mut self.transport)
                 .unwrap();

@@ -56,6 +56,7 @@ const fn replaces_queue(command: &Command) -> bool {
             | Command::Stop { .. }
             | Command::Attack { .. }
             | Command::AttackGround { .. }
+            | Command::AttackObject { .. }
             | Command::Garrison { .. }
             | Command::Barrage { .. }
             | Command::Patrol { .. }

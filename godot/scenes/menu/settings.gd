@@ -35,6 +35,8 @@ const BINDABLE: Dictionary[String, String] = {
 	"order_move": "SET_KEY_ORDER_MOVE",
 	"order_attack": "SET_KEY_ORDER_ATTACK",
 	"order_attack_ground": "SET_KEY_ORDER_ATTACK_GROUND",
+	# Shelling a building (prompt 093); its action is added at run time.
+	"order_attack_object": "SET_KEY_ORDER_ATTACK_OBJECT",
 	"order_patrol": "SET_KEY_ORDER_PATROL",
 	"order_garrison": "SET_KEY_ORDER_GARRISON",
 	"order_stop": "SET_KEY_ORDER_STOP",
@@ -79,6 +81,8 @@ const RUNTIME_ACTIONS: Dictionary[String, int] = {
 	"strike_rockets": KEY_6 | KEY_MASK_SHIFT,
 	# Plain I is "Secure" (prompt 046); every letter key is taken.
 	"unit_card": KEY_I | KEY_MASK_SHIFT,
+	# Plain L is "Fire at ground" (prompt 093).
+	"order_attack_object": KEY_L | KEY_MASK_SHIFT,
 }
 
 ## Health bars over units (prompt 031): `damaged` (damaged and selected

@@ -640,6 +640,7 @@ impl Sim {
                     | Command::Stop { .. }
                     | Command::Attack { .. }
                     | Command::AttackGround { .. }
+                    | Command::AttackObject { .. }
                     | Command::Patrol { .. }
                     | Command::QueueMove { .. }
                     | Command::Embark { .. }

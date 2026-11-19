@@ -149,6 +149,52 @@ pub struct CombatRules {
     pub ballistics: BallisticsRules,
     pub penetration: PenetrationRules,
     pub damage: DamageRules,
+    /// Heavy vehicles running over enemy soldiers (prompt 093). Absent in
+    /// older replays: nobody is run over.
+    #[serde(default)]
+    pub overrun: OverrunRules,
+    /// Secondary machine guns of vehicles (prompt 093). Absent in older
+    /// replays: they pick no targets of their own.
+    #[serde(default)]
+    pub vehicle_mg: VehicleMgRules,
+}
+
+/// Moving heavy vehicles kill the enemy soldiers under their hull (prompt
+/// 093). Speeds are game speeds.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct OverrunRules {
+    /// Lightest vehicle (catalog mass) that runs soldiers over; 0 = none.
+    pub min_mass_kg: u32,
+    /// Slower vehicles (turning on the spot, creeping) hurt nobody.
+    pub min_speed_mm_per_s: u32,
+    /// Soldiers notice a vehicle coming at them this far ahead of its nose.
+    pub notice_mm: u32,
+    /// Ticks before a soldier who noticed it starts to move.
+    pub reaction_ticks: u32,
+    /// Speed of the step aside.
+    pub dodge_speed_mm_per_s: u32,
+    /// Soldiers step aside until they are this far beside the hull.
+    pub dodge_clear_mm: u32,
+}
+
+/// Machine guns of vehicles that pick their own infantry targets beside
+/// the main weapon's target (prompt 093).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct VehicleMgRules {
+    /// Weapons below this caliber count as machine guns; 0 = none.
+    pub max_caliber_mm: u32,
+    /// Real typical combat distance of a vehicle's secondary machine gun
+    /// whose catalog entry has none (converted like every direct-fire
+    /// range).
+    pub range_real_m: u32,
+    /// Real muzzle velocity of such a gun whose catalog entry has none.
+    pub velocity_real_mps: u32,
+    /// Half the cone around the turret direction a coaxial gun covers.
+    pub coax_half_deg: u32,
+    /// Half the cone around the hull direction a bow gun covers.
+    pub bow_half_deg: u32,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -187,6 +233,18 @@ impl CombatRules {
         for o in &a.categories {
             check("aim.category.turret_deg_per_s", o.turret_deg_per_s, 1, 360)?;
         }
+        check(
+            "vehicle_mg.coax_half_deg",
+            rules.vehicle_mg.coax_half_deg,
+            0,
+            180,
+        )?;
+        check(
+            "vehicle_mg.bow_half_deg",
+            rules.vehicle_mg.bow_half_deg,
+            0,
+            180,
+        )?;
         check("fire.retarget_ticks", f.retarget_ticks, 1, 1000)?;
         check("fire.automatic_rpm", f.automatic_rpm, 1, 100_000)?;
         check(
@@ -291,6 +349,23 @@ impl CombatRules {
             g.soldier_hp,
             g.infantry_per_mm,
             g.infantry_height_mm,
+        ] {
+            h.write_u32(v);
+        }
+        let o = &self.overrun;
+        let m = &self.vehicle_mg;
+        for v in [
+            o.min_mass_kg,
+            o.min_speed_mm_per_s,
+            o.notice_mm,
+            o.reaction_ticks,
+            o.dodge_speed_mm_per_s,
+            o.dodge_clear_mm,
+            m.max_caliber_mm,
+            m.range_real_m,
+            m.velocity_real_mps,
+            m.coax_half_deg,
+            m.bow_half_deg,
         ] {
             h.write_u32(v);
         }
@@ -399,11 +474,101 @@ pub struct CombatType {
     /// (prompt 032).
     #[serde(default)]
     pub indirect: Option<crate::indirect::IndirectWeapon>,
+    /// Secondary weapons of vehicles whose catalog entry gives no range
+    /// (bow, coaxial and roof machine guns; prompt 093). `range_m` is 0,
+    /// and so are the velocities where the catalog has none: the rules
+    /// give those below `vehicle_mg.max_caliber_mm` their range (and
+    /// velocity) and add them after `weapons` ([`Self::armed_with`]); the
+    /// others stay unused.
+    #[serde(default)]
+    pub machine_guns: Vec<WeaponType>,
+}
+
+/// How a secondary machine gun of a vehicle is mounted (prompt 093); it
+/// follows from the catalog name of the weapon ([`MgMount::of_name`]).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub enum MgMount {
+    /// Beside the main gun: fires where the turret points.
+    Coax,
+    /// In the hull front: a cone ahead of the vehicle.
+    Bow,
+    /// On the roof or a ring: all round.
+    Roof,
+    /// Several guns in one entry, or a name that says nothing: the turret
+    /// cone or the bow cone.
+    Mixed,
+}
+
+impl MgMount {
+    /// The mount a weapon name describes.
+    pub fn of_name(name: &str) -> Self {
+        let lower = name.to_lowercase();
+        let has = |words: &[&str]| words.iter().any(|w| lower.contains(w));
+        let coax = has(&["coax"]);
+        let bow = has(&["bow", "hull", "ball mount"]);
+        if has(&["(aa", "roof", "ring mount", "pulpit", "pedestal", "remote"]) {
+            Self::Roof
+        } else if coax && !bow {
+            Self::Coax
+        } else if bow && !coax {
+            Self::Bow
+        } else {
+            Self::Mixed
+        }
+    }
+
+    pub const fn name(self) -> &'static str {
+        match self {
+            Self::Coax => "coax",
+            Self::Bow => "bow",
+            Self::Roof => "roof",
+            Self::Mixed => "mixed",
+        }
+    }
 }
 
 impl CombatType {
     pub const fn is_infantry(&self) -> bool {
         self.squad_size > 0
+    }
+
+    /// The weapons a unit of this type fires with `rules`, in the order of
+    /// the weapon indices of [`CombatEvent::Shot`]: `weapons`, then the
+    /// machine guns of `machine_guns` (prompt 093) with their rule range.
+    pub fn armed_with(&self, rules: &CombatRules) -> Vec<WeaponType> {
+        let mg = rules.vehicle_mg;
+        let range = Fixed::from_num(mg.range_real_m) * ratio_of(self.range_ratio);
+        let time = ratio_of(self.time_ratio);
+        let extra = self
+            .machine_guns
+            .iter()
+            .filter(|w| {
+                w.caliber_mm_x10 < mg.max_caliber_mm * 10
+                    && range > Fixed::ZERO
+                    && (w.muzzle_velocity_mps > 0 || mg.velocity_real_mps > 0)
+            })
+            .map(|w| {
+                let mut w = w.clone();
+                w.range_m = range;
+                if w.muzzle_velocity_mps == 0 {
+                    w.muzzle_velocity_mps = mg.velocity_real_mps;
+                    w.speed_m_per_s = Fixed::from_num(mg.velocity_real_mps) * time;
+                }
+                w
+            });
+        self.weapons.iter().cloned().chain(extra).collect()
+    }
+
+    /// Mount of weapon `index` of [`Self::armed_with`] if it is a secondary
+    /// machine gun of a vehicle that picks its own targets (prompt 093).
+    pub fn mg_mount(&self, rules: &CombatRules, index: usize) -> Option<MgMount> {
+        let weapons = self.armed_with(rules);
+        let w = weapons.get(index)?;
+        let secondary = index >= self.weapons.len() || index > 0;
+        (!self.is_infantry()
+            && secondary
+            && w.caliber_mm_x10 < rules.vehicle_mg.max_caliber_mm * 10)
+            .then(|| MgMount::of_name(&w.name))
     }
 
     /// Converts the combat values of a catalog entry.
@@ -441,6 +606,31 @@ impl CombatType {
                 })
                 .collect()
         };
+        // Secondary weapons of vehicles without a range in the catalog
+        // (prompt 093): the rules decide which of them fire, and how far.
+        let machine_guns = if group == Group::Vehicle {
+            e.weapon
+                .iter()
+                .skip(skip + 1)
+                .filter_map(|w| {
+                    let (caliber, rate) = (w.caliber_mm_x10?, w.rate_rpm?);
+                    let velocity = w.muzzle_velocity_mps.unwrap_or(0);
+                    (w.range_typical_m.is_none() && caliber > 0 && rate > 0).then(|| WeaponType {
+                        name: w.name.clone(),
+                        count: w.count.max(1),
+                        caliber_mm_x10: caliber,
+                        rate_rpm: rate,
+                        muzzle_velocity_mps: velocity,
+                        range_m: Fixed::ZERO,
+                        interval_s: scale.game_duration(e.category, 60_000 / rate.max(1)),
+                        speed_m_per_s: Fixed::from_num(u64::from(velocity) * u64::from(factor.num))
+                            / Fixed::from_num(factor.den),
+                    })
+                })
+                .collect()
+        } else {
+            Vec::new()
+        };
         let m = |v: Option<u32>| v.map_or(Fixed::ZERO, |v| Fixed::from_num(v) / 1000);
         Self {
             category: Some(e.category),
@@ -458,7 +648,17 @@ impl CombatType {
             time_ratio: (factor.num, factor.den),
             range_ratio: (scale.direct_fire_range.num, scale.direct_fire_range.den),
             indirect,
+            machine_guns,
         }
+    }
+}
+
+/// `(num, den)` as a factor; `(0, 0)` counts as 1.
+fn ratio_of((num, den): (u32, u32)) -> Fixed {
+    if num == 0 || den == 0 {
+        Fixed::ONE
+    } else {
+        Fixed::from_num(num) / Fixed::from_num(den)
     }
 }
 

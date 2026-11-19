@@ -1780,7 +1780,8 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -2026,8 +2027,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -2271,8 +2274,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -2517,7 +2522,8 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -2761,8 +2767,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -3007,7 +3015,8 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -3488,7 +3497,8 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -3821,8 +3831,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -5205,8 +5217,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -5333,7 +5347,8 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -5579,8 +5594,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -5825,7 +5842,8 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -6072,7 +6090,8 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -6250,8 +6269,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -6429,8 +6450,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -6674,8 +6697,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -6919,8 +6944,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -7165,7 +7192,8 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -7344,7 +7372,8 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -7589,7 +7618,8 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -7834,7 +7864,8 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -8079,7 +8110,8 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -8323,8 +8355,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -8569,7 +8603,8 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -8814,7 +8849,8 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -9058,8 +9094,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -9303,8 +9341,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -9548,8 +9588,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -10040,7 +10082,8 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -10165,8 +10208,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -10296,7 +10341,8 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -10543,7 +10589,8 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -10790,7 +10837,8 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -11035,7 +11083,8 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -11280,7 +11329,8 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -11524,8 +11574,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -11769,8 +11821,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -12014,8 +12068,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -12259,8 +12315,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -12504,8 +12562,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -12749,8 +12809,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -12994,8 +13056,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -13239,8 +13303,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -13484,8 +13550,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -13729,8 +13797,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -13974,8 +14044,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -14219,8 +14291,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -14464,8 +14538,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -14709,8 +14785,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -14954,8 +15032,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -15199,8 +15279,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -15814,7 +15896,8 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -15993,7 +16076,8 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -16171,8 +16255,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -16416,8 +16502,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -16661,8 +16749,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -16906,8 +16996,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -17151,8 +17243,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -17396,8 +17490,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -17641,8 +17737,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -19441,7 +19539,8 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -19685,8 +19784,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -19930,8 +20031,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -20175,8 +20278,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -20421,7 +20526,8 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -21167,8 +21273,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -22466,8 +22574,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -22594,7 +22704,8 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -22839,7 +22950,8 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -23084,7 +23196,8 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -23328,8 +23441,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -23573,8 +23688,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -23818,8 +23935,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -24063,8 +24182,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -24308,8 +24429,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -24553,8 +24676,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -24798,8 +24923,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -25043,8 +25170,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -25288,8 +25417,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -25533,8 +25664,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -25775,7 +25908,8 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -25904,8 +26038,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -26149,8 +26285,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -26393,8 +26531,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -26573,7 +26713,8 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -26818,7 +26959,8 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -27063,7 +27205,8 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -27308,7 +27451,8 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -27677,8 +27821,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -27922,8 +28068,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -28167,8 +28315,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -28412,8 +28562,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -28657,8 +28809,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -28902,8 +29056,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -29560,8 +29716,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -29806,7 +29964,8 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -30543,7 +30702,8 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -32475,7 +32635,8 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -32719,8 +32880,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -32964,8 +33127,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -33209,8 +33374,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -33454,8 +33621,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -33698,8 +33867,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -33878,7 +34049,8 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -34341,8 +34513,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -35613,7 +35787,8 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -36101,8 +36276,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -36346,8 +36523,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -36591,8 +36770,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -36852,7 +37033,8 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -37096,8 +37278,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -37357,7 +37541,8 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -37601,8 +37786,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -37862,7 +38049,8 @@
         "steepest_grade_speed_pct": 20,
         "crushes": [
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -38106,8 +38294,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -38366,8 +38556,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -38611,8 +38803,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -38856,8 +39050,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -39101,8 +39297,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -39346,8 +39544,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -39591,8 +39791,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -39836,8 +40038,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -40081,8 +40285,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -40326,8 +40532,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_wall_stone",
           "env_fence_wood",
-          "fort_barbed_wire"
+          "fort_barbed_wire",
+          "env_wall_mud"
         ]
       },
       "protection": {
@@ -40667,7 +40875,8 @@
       "category": "env_fence",
       "object": {
         "hp": 1200,
-        "min_caliber_mm": 20
+        "min_caliber_mm": 20,
+        "crush_min_mass_kg": 18000
       }
     },
     "env_pole_telegraph": {
@@ -41372,7 +41581,8 @@
       "category": "env_fence",
       "object": {
         "hp": 800,
-        "min_caliber_mm": 20
+        "min_caliber_mm": 20,
+        "crush_min_mass_kg": 8000
       }
     },
     "env_awning": {

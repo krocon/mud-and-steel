@@ -10,9 +10,11 @@ impl SimHost {
     /// Sound facts of a unit type index (`unit_types()`): `id` (catalog id),
     /// `category` (catalog category, e.g. `"tank_medium"`, `""` for
     /// hand-made types), `mass_kg` (0 if unknown), `road_speed` (game m/s)
-    /// and `weapons`, in the order of the `weapon` index of shot events:
-    /// `{name, caliber_mm, rate_rpm}`. Empty without a match or for an
-    /// unknown index.
+    /// and `weapons`, in the order of the `weapon` index of shot events
+    /// (the secondary machine guns of vehicles last, prompt 093):
+    /// `{name, caliber_mm, rate_rpm, mount}`; `mount` is "coax", "bow",
+    /// "roof" or "mixed" for a machine gun that picks its own targets, ""
+    /// otherwise. Empty without a match or for an unknown index.
     #[func]
     fn unit_type_sound(&self, unit_type: i64) -> VarDictionary {
         let Some(game) = &self.game else {
@@ -25,11 +27,13 @@ impl SimHost {
             return VarDictionary::new();
         };
         let mut weapons = VarArray::new();
-        for w in &t.combat.weapons {
+        let rules = &game.config.combat;
+        for (index, w) in t.combat.armed_with(rules).iter().enumerate() {
             let entry = vdict! {
                 "name" => w.name.as_str(),
                 "caliber_mm" => w.caliber_mm_x10 as f32 / 10.0,
                 "rate_rpm" => i64::from(w.rate_rpm),
+                "mount" => t.combat.mg_mount(rules, index).map_or("", sim::MgMount::name),
             };
             weapons.push(&entry.to_variant());
         }

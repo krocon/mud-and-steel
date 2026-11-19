@@ -184,6 +184,40 @@ impl Destruction {
         found
     }
 
+    /// What the path grid needs to let heavy vehicles plan through the
+    /// objects they crush (prompt 093).
+    pub(super) fn crushing(&self, map: &Map) -> crate::path::Crushing {
+        crate::path::Crushing {
+            kind_kg: self
+                .kind_class
+                .iter()
+                .zip(map.object_kinds())
+                .map(|(c, k)| {
+                    c.filter(|_| k.blocks.large())
+                        .map_or(0, |c| self.rules.classes[c].crush_min_mass_kg)
+                })
+                .collect(),
+            detour_m: self.rules.crush.detour_m,
+        }
+    }
+
+    /// Mass from which vehicles crush object `i` as it stands now (0:
+    /// never, or nothing left to crush).
+    fn crush_kg(&self, map: &Map, i: u32) -> u32 {
+        if self.state(map, i).stage == ObjectStage::Destroyed {
+            return 0;
+        }
+        self.class(map, i).map_or(0, |c| c.crush_min_mass_kg)
+    }
+
+    /// Speed in percent of a vehicle that just broke through a wall.
+    pub(super) fn crush_slow_pct(&self) -> u32 {
+        match self.rules.crush.slow_pct {
+            0 => 100,
+            pct => pct,
+        }
+    }
+
     fn class(&self, map: &Map, i: u32) -> Option<&ClassRule> {
         let k = usize::from(map.objects()[i as usize].kind);
         self.kind_class[k].map(|c| &self.rules.classes[c])
@@ -467,22 +501,39 @@ pub(super) fn heading_deg(v: Vec2) -> u16 {
 }
 
 impl Sim {
-    /// Vehicles heavy enough flatten crushable objects (fences, barbed
-    /// wire) under their footprint. Also starts the tick's object events,
-    /// so it runs before any other destruction step of the tick.
+    /// Vehicles heavy enough flatten crushable objects: fences and barbed
+    /// wire under their footprint, objects that block vehicles (mud and
+    /// dry-stone walls, prompt 093) only where the hull touches them (a
+    /// row of squares as wide as the vehicle from its tail to its nose),
+    /// so a tank driving along a wall leaves it standing and the gap is as
+    /// wide as the tank. Breaking an object with hit points (a wall) slows
+    /// the vehicle for a moment. Also starts the tick's object events, so
+    /// it runs before any other destruction step of the tick.
     pub(super) fn crush_objects(&mut self) {
         self.destruction.events.clear();
         let Some(min_mass) = self.destruction.min_crush_mass else {
             return;
         };
         let map = Arc::clone(&self.map);
-        for unit in &self.units {
+        let crush = self.destruction.rules.crush;
+        for u in 0..self.units.len() {
+            let unit = &self.units[u];
             let mass = self.destruction.masses[unit.unit_type as usize];
-            if !unit.alive() || mass < min_mass {
+            if !unit.alive() || mass < min_mass || super::transport::aboard(unit) {
                 continue;
             }
-            let half = unit.footprint / 2;
-            let reach = Vec2::new(half, half);
+            let ty = &self.types[unit.unit_type as usize];
+            let half = ty.half_width.min(ty.half_length);
+            let along = ty.half_length - half;
+            let probes = [
+                unit.position + unit.facing.scale(along),
+                unit.position,
+                unit.position - unit.facing.scale(along),
+            ];
+            let footprint = unit.footprint / 2;
+            let reach = ty.half_length.max(footprint);
+            let reach = Vec2::new(reach, reach);
+            let mut broken = 0;
             for i in self
                 .destruction
                 .query(unit.position - reach, unit.position + reach)
@@ -499,9 +550,20 @@ impl Sim {
                     continue;
                 }
                 let object = &map.objects()[i as usize];
-                let shape = map.object_kinds()[usize::from(object.kind)].shape;
-                if !object.overlaps_square(shape, unit.position, half) {
+                let kind = &map.object_kinds()[usize::from(object.kind)];
+                let shape = kind.shape;
+                let touched = if kind.blocks.large() {
+                    probes
+                        .iter()
+                        .any(|&p| object.overlaps_square(shape, p, half))
+                } else {
+                    object.overlaps_square(shape, unit.position, footprint)
+                };
+                if !touched {
                     continue;
+                }
+                if class.hp > 0 {
+                    broken += 1;
                 }
                 let at = Vec3::new(unit.position.x, unit.position.y, unit.height);
                 let state = ObjectState {
@@ -517,6 +579,11 @@ impl Sim {
                     at,
                     ObjectCause::Crushed(unit.id),
                 );
+            }
+            if broken > 0 && crush.slow_ticks > 0 {
+                let unit = &mut self.units[u];
+                unit.crush_slow = (unit.crush_slow + broken * crush.slow_ticks)
+                    .min(crush.slow_max_ticks.max(crush.slow_ticks));
             }
         }
     }
@@ -539,7 +606,7 @@ impl Sim {
             d.query(low, high).into_iter().map(|i| {
                 let object = map.objects()[i as usize];
                 let shape = map.object_kinds()[usize::from(object.kind)].shape;
-                (object, shape, d.effective(&map, i))
+                (object, shape, d.effective(&map, i), d.crush_kg(&map, i))
             })
         };
         let grid = &mut self.paths.grid;
@@ -549,7 +616,7 @@ impl Sim {
         for &(low, high) in &areas {
             let rect = grid.cells_in(low, high);
             let (a, b) = (grid.center(rect.x0, rect.y0), grid.center(rect.x1, rect.y1));
-            let list = objects(a - half, b + half).map(|(o, s, e)| (o, s, e.blocks));
+            let list = objects(a - half, b + half).map(|(o, s, e, kg)| (o, s, e.blocks, kg));
             grid.rasterize_objects_in(rect, list);
             changed.push(grid.rebuild_cells(&map, &self.terrain, rect));
         }
@@ -563,7 +630,7 @@ impl Sim {
             let (c1, r1) = vision.cell_of(high);
             let (c0, r0, c1, r1) = (c0 as u32, r0 as u32, c1 as u32, r1 as u32);
             let (a, b) = (vision.center(c0, r0), vision.center(c1, r1));
-            let list = objects(a - half, b + half).map(|(o, s, e)| (o, s, e.sight, e.height));
+            let list = objects(a - half, b + half).map(|(o, s, e, _)| (o, s, e.sight, e.height));
             vision.rebuild_objects((c0, r0, c1, r1), list);
             cells.push((c0, r0, c1, r1));
         }
@@ -625,6 +692,23 @@ impl Sim {
     /// The destruction rules of this match.
     pub const fn destruction_rules(&self) -> &DestructionRules {
         &self.destruction.rules
+    }
+
+    /// The map object that can be shelled ([`Self::shellable`], prompt
+    /// 093) whose ground shape, grown by `margin` meters, contains `p`:
+    /// the one whose middle is nearest, then the lowest index. For picking
+    /// with the mouse (presentation and tools).
+    pub fn shellable_object_at(&self, p: Vec2, margin: Fixed) -> Option<u32> {
+        let reach = Vec2::new(margin, margin);
+        self.destruction
+            .query(p - reach, p + reach)
+            .into_iter()
+            .filter(|&i| {
+                let object = &self.map.objects()[i as usize];
+                let shape = self.map.object_kinds()[usize::from(object.kind)].shape;
+                object.overlaps_square(shape, p, margin) && self.shellable(i)
+            })
+            .min_by_key(|&i| ((self.map.objects()[i as usize].position - p).length(), i))
     }
 
     /// Whether map object `index` is a ruin now.
