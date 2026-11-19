@@ -33,8 +33,11 @@ func run(test: Node) -> void:
 	var bar: Control = main.hud.command_bar
 	main.selection.set_selection(vehicles)
 	await test._frames(12)
+	# The camouflage tile lies on the page "more" of the order grid (prompt 095).
+	test._check(not bar.buttons["more"].disabled, "the 'more' tile is greyed for vehicles that can put up camouflage")
+	bar.open_page("more")
 	var button: Button = bar.buttons.get("camouflage")
-	test._check(button != null and button.visible, "no camouflage button for the selected vehicles")
+	test._check(button != null and button.is_visible_in_tree() and not button.disabled, "no camouflage button for the selected vehicles")
 	if button != null:
 		bar.press("camouflage")
 	await test._ticks(3)
@@ -46,7 +49,7 @@ func run(test: Node) -> void:
 	test._check(states == vehicles.size(), "%d of %d vehicles put up camouflage" % [states, vehicles.size()])
 	test._check(view.camo_drawn > 0, "no branches or nets drawn")
 	bar._update()
-	test._check(button == null or button.text == "Uncover", "the button does not offer to uncover (%s)" % (button.text if button != null else ""))
+	test._check(button == null or str(button.get_meta(&"label")) == "Uncover", "the button does not offer to uncover (%s)" % (str(button.get_meta(&"label")) if button != null else ""))
 	main.selection.set_selection([])
 
 	# Paratroopers by a drag in the air bar.

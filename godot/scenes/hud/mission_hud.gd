@@ -1,6 +1,7 @@
 extends PanelContainer
 ## Mission panel (prompt 039): the mission's title (the tutorial's step),
-## its latest message and the objectives, top right. Presentation only: the
+## its latest message and the objectives, top left (the top right corner
+## belongs to the resources and the support column, prompt 095). Presentation only: the
 ## script runs in the simulation (`docs/MISSIONS.md`).
 ##
 ## Also draws a ring around the area of every active objective, moves the
@@ -56,9 +57,8 @@ func setup(main_node: Node3D) -> void:
 	name = "MissionHud"
 	theme = MenuTheme.get_theme()
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
-	grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	position = Vector2(get_viewport_rect().size.x - WIDTH - 12.0, 12.0)
+	set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
+	position = Vector2(12.0, 12.0)
 	custom_minimum_size = Vector2(WIDTH, 0)
 	var box := VBoxContainer.new()
 	box.mouse_filter = Control.MOUSE_FILTER_IGNORE

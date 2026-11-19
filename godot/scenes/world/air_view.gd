@@ -134,15 +134,11 @@ func setup(main_node: Node3D) -> void:
 	add_child(_route)
 
 
-## Docks the call bar above the command bar (call after the HUD exists).
+## Puts the call tiles into the support column (call after the HUD exists).
 func setup_hud(hud: Control) -> void:
 	air_bar = AirBar.new()
-	air_bar.setup(main)
-	var dock: Node = hud.command_bar.get_node_or_null("Dock") if hud != null else null
-	if dock != null:
-		dock.add_child(air_bar)
-	else:
-		main.get_node("Hud").add_child(air_bar)
+	hud.add_child(air_bar)
+	air_bar.setup(main, hud.support, hud.hints)
 
 
 func _glow(color: Color) -> StandardMaterial3D:

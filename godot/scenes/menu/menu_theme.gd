@@ -33,29 +33,6 @@ static func font(size: int) -> int:
 	return roundi(size * font_scale)
 
 
-## Order and air buttons of the match HUD (prompt 092): larger text than
-## before (15 instead of 12-13; menu text, 18, would make the order grid
-## half a 1600 pixel window wide), and narrower on a narrow window so the
-## unit panel and the minimap still fit beside the order grid.
-const HUD_FONT := 15
-const HUD_BUTTON := Vector2(112, 36)
-const HUD_FIT_WIDTH := 1600.0
-
-
-## Factor on the HUD button sizes for an interface `width` pixels wide.
-static func hud_fit(width: float) -> float:
-	return clampf(width / HUD_FIT_WIDTH, 0.7, 1.0)
-
-
-## Gives a HUD button its size and font for the fit factor `fit`. Disabled
-## buttons stay readable: dimmed text instead of the theme's darker one.
-static func style_hud_button(button: Control, fit: float, size := HUD_BUTTON) -> void:
-	button.custom_minimum_size = (size * fit).round()
-	button.add_theme_font_size_override(&"font_size", font(roundi(HUD_FONT * fit)))
-	if button is Button:
-		button.add_theme_color_override(&"font_disabled_color", TEXT_DIM.darkened(0.12))
-
-
 ## Sets the font size factor; the shared theme follows at once.
 static func set_font_scale(factor: float) -> void:
 	font_scale = factor

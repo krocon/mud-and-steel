@@ -4,8 +4,10 @@ extends Node
 ## Started by `main_menu.gd` for `--l10n-shots=<dir>`; needs a window.
 ##
 ## Shots: every main menu screen, every settings tab, a base-building match
-## on test_small with a selected tank group, the build menu, a selected
-## infantry squad, the pause menu, the result after surrendering. Extra
+## on test_small with a selected tank group, a selected infantry squad (also
+## with the stance page of the order grid and with its unit card), nothing
+## selected, an own building, the build menu, the pause menu, the result
+## after surrendering. Extra
 ## arguments: `--language=<code>` (the recipe passes `de`),
 ## `--ui-scale=<f>` for a second set at another interface scale.
 
@@ -72,7 +74,22 @@ func _run() -> void:
 		main.selection.set_selection([squads[0]])
 		await _frames(20)
 		await _shot("hud_squad")
+		main.hud.command_bar.open_page("stance")
+		await _frames(5)
+		await _shot("hud_squad_stance")
+		main.hud.show_unit_card(str(main.sim_host.unit_info(squads[0]).type_id), squads[0])
+		await _frames(10)
+		await _shot("hud_unit_card")
+		main.hud.unit_card.close()
 	main.selection.set_selection([])
+	await _frames(20)
+	await _shot("hud_none")
+	var buildings: Array[int] = main.base_view.own_structures(main.sim_host.unit_ids())
+	if not buildings.is_empty():
+		main.selection.set_selection([buildings[0]])
+		await _frames(30)
+		await _shot("hud_building")
+		main.selection.set_selection([])
 	main.hud.command_bar.press("build")
 	await _frames(20)
 	await _shot("hud_build_menu")

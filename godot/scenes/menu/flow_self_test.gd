@@ -588,9 +588,17 @@ func _base_building_test(main: Node3D) -> void:
 			var index := Array(host.unit_ids()).find(s["id"])
 			hq = host.current_positions()[index]
 	# Through the build menu's picture tile (prompt 058).
-	main.hud.command_bar.press("build")
+	# The build button of the top bar (prompt 095) opens the menu above the
+	# order grid's corner.
+	var match_hud: Control = main.hud
+	match_hud.top_bar._refresh()
+	_check(match_hud.top_bar.build_button.is_visible_in_tree() and match_hud.top_bar.amounts.get("fuel", -1) == int(host.economy_state()["fuel"]),
+		"the top bar shows no build button or not the stock of fuel (%s)" % [match_hud.top_bar.amounts])
+	match_hud.top_bar.build_button.pressed.emit()
 	await _frames(20)
-	_check(hud._build_panel.visible, "build menu not shown")
+	_check(hud._build_panel.visible and hud._build_panel.is_visible_in_tree(), "build menu not shown")
+	_check(match_hud.covers(hud._build_panel.get_global_rect().get_center()), "the HUD does not count the build menu as a panel")
+	_check_hud_layout(match_hud, "build menu open")
 	hud.build_picker.open_tab(hud.build_picker.tab_of({"id": "base_barracks", "structure": true}))
 	_check_tiles(hud.build_picker)
 	_check(hud.build_picker.press_type(barracks) and hud.placing == barracks, "barracks tile does not start placing")
@@ -621,10 +629,31 @@ func _base_building_test(main: Node3D) -> void:
 		return
 	main.selection._set_selection([site["id"]])
 	await _frames(20)
-	_check(hud._production_panel.visible, "production bar not shown for the barracks")
-	# Prompt 036: Repair (disabled while whole) and Sell for the building.
-	_check(hud._sell.is_visible_in_tree() and hud._sell.text == "Sell", "no Sell button for the barracks")
-	_check(hud._repair.disabled, "Repair enabled for an undamaged building")
+	_check(hud._production_panel.visible and hud._production_panel.is_visible_in_tree(), "production bar not shown for the barracks")
+	# Prompt 036: Repair (disabled while whole) and Sell for the building;
+	# prompt 095: as tiles of the order grid, which shows for the building.
+	var grid: Control = match_hud.command_bar
+	var sell: Button = grid.buttons["sell"]
+	_check(grid.visible and grid.page == "building" and sell.is_visible_in_tree() and not sell.disabled and str(sell.get_meta(&"label")) == "Sell",
+		"no Sell tile for the barracks (page '%s')" % grid.page)
+	_check(grid.buttons["repair"].disabled and grid.buttons["repair"].is_visible_in_tree(), "Repair enabled for an undamaged building")
+	_check(not grid.buttons["move"].is_visible_in_tree(), "the order grid offers 'move' for a building")
+	_check(match_hud.panels().has("info field"), "no info field for the barracks")
+	_check_hud_layout(match_hud, "barracks selected")
+	# The same in the smallest window the game supports.
+	var window := get_tree().root.size
+	get_tree().root.size = Vector2i(1280, 720)
+	await _frames(20)
+	_check_hud_layout(match_hud, "barracks selected, 1280 x 720")
+	main.selection._set_selection([])
+	main.hud.command_bar.press("build")
+	await _frames(20)
+	_check(hud._build_panel.is_visible_in_tree(), "build menu not shown at 1280 x 720")
+	_check_hud_layout(match_hud, "build menu open, 1280 x 720")
+	main.hud.command_bar.press("build")
+	main.selection._set_selection([site["id"]])
+	get_tree().root.size = window
+	await _frames(20)
 	var options: Array = host.production_options(site["id"])
 	_check(not options.is_empty(), "the barracks offers nothing")
 	var own_units := func() -> int:
@@ -896,3 +925,18 @@ func _push_key(keycode: Key, logical := false) -> void:
 			event.keycode = keycode
 		event.physical_keycode = keycode
 		get_tree().root.push_input(event)
+
+
+## No two parts of the match HUD overlap and all lie inside the window
+## (prompt 095).
+func _check_hud_layout(match_hud: Control, what: String) -> void:
+	var parts: Dictionary = match_hud.panels()
+	var screen := Rect2(Vector2.ZERO, match_hud.get_viewport_rect().size)
+	var names := parts.keys()
+	for i in names.size():
+		var a: Control = parts[names[i]]
+		_check(screen.grow(0.5).encloses(a.get_global_rect()), "%s sticks out of the window (%s): %s" % [names[i], what, a.get_global_rect()])
+		for j in range(i + 1, names.size()):
+			var b: Control = parts[names[j]]
+			_check(not a.get_global_rect().intersects(b.get_global_rect()),
+				"%s overlaps %s (%s): %s / %s" % [names[i], names[j], what, a.get_global_rect(), b.get_global_rect()])

@@ -1,17 +1,31 @@
 extends Control
-## Match HUD (prompt 031): minimap, unit panel, command bar, event feed and
-## waypoint lines. Created by `main.gd` in the HUD layer; presentation only,
-## every order goes through `selection.gd` or `SimHost`.
+## Match HUD (prompts 031 and 095). Created by `main.gd` in the HUD layer;
+## presentation only, every order goes through `selection.gd` or `SimHost`.
 ##
-## Layout: command bar bottom left (with the build menu and the production
-## bar of prompt 023 docked above it), unit panel bottom center, minimap
-## bottom right, events at the left edge.
+## Every part has a fixed corner, so nothing pushes anything else around:
+##
+## | Where | Part | Shows |
+## |-------|------|-------|
+## | bottom left | `minimap` with its north mark, `minimap.column` right of it | always |
+## | bottom center | `unit_panel`, the info field of the selection | with a selection |
+## | bottom right | `command_bar`, the 5 x 3 order grid | with an own selection that takes orders |
+## | above the grid | `dock`: build menu and production bar (`base_hud.gd`) | while open |
+## | top right | `top_bar`: resources, build, help, menu | always |
+## | right, under it | `support`: air support and rocket strike tiles | when the player has support |
+## | top center | `group_tabs`, under them `hints` (what a pending order waits for) | groups in use |
+## | left | `event_feed`, above the minimap | messages |
+##
+## The grid's room is kept free while it is hidden, so showing it moves
+## nothing but the dock, which stands in the grid's corner meanwhile. A strip of `HudTheme.GIZMO_ROOM` above the minimap and the room
+## above the button column stay free (camera control of prompt 096).
+## `HudTheme.scale` sizes all parts; it is set here every frame and the
+## parts are told when it changed (`apply_scale`).
 ##
 ## Prompt 066: the unit card (`unit_card.gd`) opens by a right click on a
 ## picker tile, by the key `unit_card` (Shift + I) for the selected unit and
-## by the button of the unit panel. It sits top right, clear of command bar
-## and minimap, takes no keyboard focus (orders keep working, the match
-## runs on) and closes with Escape.
+## by the button of the info field. It sits left of the support column,
+## under the top bar and above the bottom row, takes no keyboard focus
+## (orders keep working, the match runs on) and closes with Escape.
 ##
 ## `usec` is the time all HUD parts took in the last frame (their
 ## `_process` and `_draw`), for the self-test and `--perf-bench`.
@@ -23,13 +37,17 @@ const EventFeed := preload("res://scenes/hud/event_feed.gd")
 const Waypoints := preload("res://scenes/hud/waypoints.gd")
 const SupplyRings := preload("res://scenes/hud/supply_rings.gd")
 const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
+const HudTheme := preload("res://scenes/hud/hud_theme.gd")
 const Subtitles := preload("res://scenes/hud/subtitles.gd")
 const UnitCard := preload("res://scenes/hud/unit_card.gd")
-## Unit card: preferred and smallest size, and the top edge below the
-## resource bar.
+const TopBar := preload("res://scenes/hud/top_bar.gd")
+const GroupTabs := preload("res://scenes/hud/group_tabs.gd")
+## Unit card: preferred and smallest size.
 const CARD_SIZE := Vector2(540, 620)
 const CARD_MIN := Vector2(400, 260)
-const CARD_TOP := 60.0
+## Height of the replay bar (`replay/replay_bar.gd`), which lies over the
+## bottom edge while a replay runs.
+const REPLAY_BAR := 64.0
 
 var main: Node3D
 var minimap: Minimap
@@ -43,10 +61,23 @@ var supply_rings: SupplyRings
 var subtitles: Subtitles
 ## Unit card (prompt 066), hidden until asked for.
 var unit_card: UnitCard
+## Resources, build, help and menu (prompt 095).
+var top_bar: TopBar
+## Tabs of the control groups in use.
+var group_tabs: GroupTabs
+## Column of support tiles under the top bar (`air_bar.gd`, the strike
+## tile of `strike_view.gd` put theirs in).
+var support: GridContainer
+## Build menu and production bar, above the order grid.
+var dock: VBoxContainer
+## Hint lines of pending orders (air support, rocket strike, placing a
+## building), top center under the group tabs.
+var hints: VBoxContainer
 ## HUD time of the last frame in microseconds, and the largest so far.
 var usec := 0
 var max_usec := 0
 var _parts: Array[Control] = []
+var _scale := 0.0
 
 
 func setup(main_node: Node3D) -> void:
@@ -55,6 +86,7 @@ func setup(main_node: Node3D) -> void:
 	theme = MenuTheme.get_theme()
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	HudTheme.scale = HudTheme.scale_for(get_viewport_rect().size)
 	# Behind the HUD panels of other prompts, above the health bars.
 	waypoints = Waypoints.new()
 	add_child(waypoints)
@@ -65,12 +97,40 @@ func setup(main_node: Node3D) -> void:
 	minimap = Minimap.new()
 	add_child(minimap)
 	minimap.setup(main)
+	add_child(minimap.column)
 	unit_panel = UnitPanel.new()
 	add_child(unit_panel)
 	unit_panel.setup(main)
+	unit_panel.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+	unit_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	hints = VBoxContainer.new()
+	hints.name = "Hints"
+	hints.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hints.add_theme_constant_override(&"separation", 2)
+	add_child(hints)
+	dock = VBoxContainer.new()
+	dock.name = "Dock"
+	dock.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	dock.alignment = BoxContainer.ALIGNMENT_END
+	dock.add_theme_constant_override(&"separation", 6)
+	dock.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+	dock.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	dock.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	add_child(dock)
 	command_bar = CommandBar.new()
 	add_child(command_bar)
 	command_bar.setup(main)
+	top_bar = TopBar.new()
+	add_child(top_bar)
+	top_bar.setup(main)
+	support = GridContainer.new()
+	support.name = "Support"
+	# The gaps between its tiles take clicks too: no order slips through.
+	support.mouse_filter = Control.MOUSE_FILTER_STOP
+	add_child(support)
+	group_tabs = GroupTabs.new()
+	add_child(group_tabs)
+	group_tabs.setup(main)
 	event_feed = EventFeed.new()
 	add_child(event_feed)
 	event_feed.setup(main)
@@ -84,10 +144,12 @@ func setup(main_node: Node3D) -> void:
 	unit_panel.card_requested.connect(show_unit_card)
 	var base_hud: Node = main.get("base_hud")
 	if base_hud != null:
+		base_hud.dock_into(dock, command_bar, hints)
 		for picker: Node in [base_hud.get("build_picker"), base_hud.get("production_picker")]:
 			if picker != null:
 				picker.connect(&"info_requested", show_unit_card)
-	_parts = [waypoints, supply_rings, minimap, unit_panel, command_bar, event_feed]
+	_parts = [waypoints, supply_rings, minimap, unit_panel, command_bar, event_feed, top_bar, group_tabs]
+	_layout()
 
 
 func _process(_delta: float) -> void:
@@ -98,8 +160,7 @@ func _process(_delta: float) -> void:
 		part.set("usec", 0)
 	usec = total
 	max_usec = maxi(max_usec, usec)
-	_keep_events_above_command_bar()
-	_keep_unit_panel_beside_command_bar()
+	_layout()
 	if unit_card.visible:
 		_place_unit_card()
 
@@ -145,62 +206,136 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 
-## The card sits top right: right of the command bar (with the build menu
-## docked it reaches far up), above the minimap, and above the unit panel
-## when that sits over the minimap and there is room left. On a small
-## screen it gets narrower and shorter; its pages scroll.
+## Puts every part into its corner. Runs every frame: the window, the
+## interface scale and the font size may change at any time, and the
+## panels that grow with their content (info field, dock) settle here.
+func _layout() -> void:
+	var screen := get_viewport_rect().size
+	var factor := HudTheme.scale_for(screen)
+	if not is_equal_approx(factor, _scale):
+		_scale = factor
+		HudTheme.scale = factor
+		for child in get_children():
+			if child.has_method(&"apply_scale"):
+				child.call(&"apply_scale")
+		var base_hud: Node = main.get("base_hud")
+		if base_hud != null:
+			base_hud.apply_scale()
+		support.add_theme_constant_override(&"h_separation", int(HudTheme.px(HudTheme.GAP)))
+		support.add_theme_constant_override(&"v_separation", int(HudTheme.px(HudTheme.GAP)))
+		hints.add_theme_font_size_override(&"font_size", HudTheme.font(14))
+	var margin := HudTheme.MARGIN
+	var bottom := screen.y - margin - (REPLAY_BAR if main.sim_host.is_replay() else 0.0)
+	# Bottom left: the minimap and its buttons.
+	minimap.position = Vector2(margin, bottom - minimap.size.y)
+	var column: Control = minimap.column
+	column.position = Vector2(minimap.position.x + minimap.size.x + HudTheme.px(HudTheme.GAP), bottom - column.size.y)
+	# Bottom right: the order grid; its room stays free while it is hidden.
+	command_bar.position = Vector2(screen.x - margin - command_bar.size.x, bottom - command_bar.size.y)
+	# Top right: the top bar, the support column under it.
+	top_bar.position = Vector2(screen.x - margin - top_bar.size.x, margin)
+	var support_top := top_bar.position.y + top_bar.size.y + margin
+	var tiles := 0
+	var tile_height := 0.0
+	for tile: Control in support.get_children():
+		if tile.visible:
+			tiles += 1
+			tile_height = tile.custom_minimum_size.y + HudTheme.px(HudTheme.GAP)
+	support.visible = tiles > 0
+	# A second column when one does not fit above the order grid.
+	var room := command_bar.position.y - margin - support_top
+	support.columns = clampi(ceili(tiles * tile_height / maxf(room, 1.0)), 1, 3)
+	support.size = Vector2.ZERO
+	support.position = Vector2(screen.x - margin - support.size.x, support_top)
+	# The dock stands on the order grid (in its corner while the grid is
+	# hidden), left of the support column where it reaches up to it.
+	var dock_stands := command_bar.position.y if HudTheme.shown(command_bar) else bottom + margin
+	if HudTheme.shown(unit_panel):
+		dock_stands = minf(dock_stands, unit_panel.position.y)
+	var dock_bottom := screen.y - dock_stands + margin
+	var beside := support.visible and screen.y - dock_bottom - dock.size.y < support.position.y + support.size.y + margin
+	var dock_right := margin + (support.size.x + margin if beside else 0.0)
+	dock.offset_left = -dock_right
+	dock.offset_right = -dock_right
+	dock.offset_top = -dock_bottom
+	dock.offset_bottom = -dock_bottom
+	# Bottom center: the info field, between minimap and order grid.
+	var left := column.position.x + column.size.x + margin
+	var right := command_bar.position.x - margin
+	var width := minf(HudTheme.px(UnitPanel.WIDTH), right - left)
+	unit_panel.custom_minimum_size.x = width
+	var x := clampf((screen.x - width) * 0.5, left, maxf(right - width, left))
+	unit_panel.offset_left = x
+	unit_panel.offset_right = x + width
+	unit_panel.offset_top = bottom - screen.y
+	unit_panel.offset_bottom = bottom - screen.y
+	# Top center: the group tabs, the hint lines under them.
+	group_tabs.position = Vector2((screen.x - group_tabs.size.x) * 0.5, margin)
+	hints.size = Vector2.ZERO
+	hints.position = Vector2((screen.x - hints.size.x) * 0.5, margin + HudTheme.px(34))
+	# Left: the messages, clear of the minimap and the room kept above it,
+	# and under the mission panel.
+	var feed_top := 64.0
+	var mission: Control = main.get("mission_hud")
+	if mission != null and mission.visible:
+		feed_top = maxf(feed_top, mission.position.y + mission.size.y + margin)
+	var feed_y := minf(screen.y * 0.5 - 40.0, minimap.position.y - HudTheme.px(HudTheme.GIZMO_ROOM) - event_feed.size.y - margin)
+	event_feed.global_position = Vector2(margin, maxf(feed_y, feed_top))
+	# Subtitles above the info field.
+	subtitles.offset_bottom = minf(-200.0, unit_panel.position.y - margin - screen.y) if HudTheme.shown(unit_panel) else -200.0
+
+
+## The card sits under the top bar, left of the support column (and of the
+## dock while that is open), above the bottom row. On a small screen it
+## gets narrower and shorter; its pages scroll.
 func _place_unit_card() -> void:
 	var screen := get_viewport_rect().size
-	var width := minf(CARD_SIZE.x, screen.x - 16.0)
-	if command_bar.visible:
-		width = clampf(screen.x - 16.0 - command_bar.get_global_rect().end.x, minf(CARD_MIN.x, screen.x - 16.0), width)
-	var x := screen.x - 8.0 - width
-	var bottom := screen.y - 8.0
-	if minimap.visible:
-		bottom = minimap.get_global_rect().position.y - 8.0
-	var panel := unit_panel.get_global_rect()
-	if unit_panel.visible and panel.end.x > x and panel.position.y - 8.0 - CARD_TOP >= CARD_MIN.y:
-		bottom = minf(bottom, panel.position.y - 8.0)
-	var height := clampf(bottom - CARD_TOP, minf(CARD_MIN.y, screen.y - CARD_TOP - 8.0), CARD_SIZE.y)
+	var margin := HudTheme.MARGIN
+	var right := screen.x - margin
+	if support.visible:
+		right = support.position.x - margin
+	if _dock_open():
+		right = minf(right, dock.position.x - margin)
+	var top := top_bar.position.y + top_bar.size.y + margin
+	var bottom := command_bar.position.y - margin
+	if HudTheme.shown(unit_panel):
+		bottom = minf(bottom, unit_panel.position.y - margin)
+	var width := clampf(right - margin, minf(CARD_MIN.x, screen.x - 2.0 * margin), CARD_SIZE.x)
+	var height := clampf(bottom - top, minf(CARD_MIN.y, screen.y - top - margin), CARD_SIZE.y)
 	unit_card.custom_minimum_size = Vector2(width, 0.0)
-	unit_card.position = Vector2(x, CARD_TOP)
+	unit_card.position = Vector2(maxf(right - width, margin), top)
 	unit_card.size = Vector2(width, height)
 
 
-## The event feed sits at the left edge; when the build menu or production
-## bar (prompt 058 picture tiles) makes the command bar tall, it moves up
-## so the two do not overlap.
-func _keep_events_above_command_bar() -> void:
-	var top := command_bar.get_global_rect().position.y
-	var middle := get_viewport_rect().size.y * 0.5
-	var y := minf(middle - 40.0, top - event_feed.size.y - 8.0)
-	event_feed.global_position.y = maxf(y, 64.0)
-	# No room above it (the picker reaches up to the resource bar): beside
-	# it, so the messages do not lie over the tiles (prompt 066).
-	event_feed.global_position.x = command_bar.get_global_rect().end.x + 8.0 if y < 64.0 else 8.0
+## Whether the dock shows a panel.
+func _dock_open() -> bool:
+	for panel: Control in dock.get_children():
+		if panel.visible:
+			return true
+	return false
 
 
-## The unit panel sits bottom center; on a narrow screen (or a large UI
-## scale, prompt 043) it moves right so it does not cover the command bar.
-## If it does not fit between command bar and minimap either, it goes
-## above the minimap.
-func _keep_unit_panel_beside_command_bar() -> void:
-	var screen := get_viewport_rect().size
-	var x := (screen.x - unit_panel.size.x) * 0.5
-	if command_bar.visible:
-		x = maxf(x, command_bar.get_global_rect().end.x + 8.0)
-	var map_rect := minimap.get_global_rect()
-	var y := screen.y - 8.0 - unit_panel.size.y
-	if minimap.visible and x + unit_panel.size.x > map_rect.position.x - 8.0:
-		x = screen.x - 8.0 - unit_panel.size.x
-		y = map_rect.position.y - 8.0 - unit_panel.size.y
-	unit_panel.global_position = Vector2(maxf(x, 0.0), y)
+## The HUD parts that take clicks, by name (self-test: none may overlap
+## another). A part that is hidden or fading out is left out.
+func panels() -> Dictionary[String, Control]:
+	var out: Dictionary[String, Control] = {}
+	var all: Dictionary[String, Control] = {"minimap": minimap, "minimap buttons": minimap.column, "info field": unit_panel,
+		"order grid": command_bar, "top bar": top_bar, "support column": support, "group tabs": group_tabs,
+		"unit card": unit_card}
+	for key: String in all:
+		if HudTheme.shown(all[key]) and all[key].size.x > 0.0:
+			out[key] = all[key]
+	for panel: Control in dock.get_children():
+		if panel.visible:
+			out["dock " + panel.name] = panel
+	return out
 
 
 ## Whether the screen point lies on a HUD panel (clicks there are not
 ## orders).
 func covers(screen: Vector2) -> bool:
-	for part: Control in [minimap, unit_panel, command_bar, event_feed, unit_card]:
-		if part.visible and part.get_global_rect().has_point(screen):
+	var parts := panels()
+	for key: String in parts:
+		if parts[key].get_global_rect().has_point(screen):
 			return true
-	return false
+	return event_feed.visible and event_feed.get_global_rect().has_point(screen)

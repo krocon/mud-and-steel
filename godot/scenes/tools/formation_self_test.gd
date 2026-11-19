@@ -23,10 +23,11 @@ func run(test: Node) -> void:
 	if tanks.size() < 2:
 		return
 	tanks = tanks.slice(0, 3)
-	var choice: OptionButton = main.hud.command_bar.formation_choice
+	var bar: Control = main.hud.command_bar
 	selection._set_selection(tanks)
 	selection.set_formation(LINE)
-	test._check(choice.selected == LINE, "formation choice shows %d, expected line" % choice.selected)
+	test._check(bar.formation_shown == LINE and bar.buttons["formation"].icon_id == "formation_%d" % LINE,
+		"formation tile shows %d, expected line" % bar.formation_shown)
 	test._key(KEY_COMMA)
 	await test._frames(1)
 	test._check(selection.formation == WEDGE, "',' gave formation %d, expected wedge" % selection.formation)

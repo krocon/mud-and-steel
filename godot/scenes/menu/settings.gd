@@ -121,9 +121,6 @@ const DEFAULTS := {
 	"language": "auto",
 	"ui_scale": 1.0,
 	"font_size": 1.0,
-	# Air bar and order grid folded open (prompt 092).
-	"hud_air_open": true,
-	"hud_commands_open": true,
 	# The camera follows the active unit (prompt 094): what the player last
 	# chose with the button or the key, taken over by the next match.
 	"camera_follow_active": false,

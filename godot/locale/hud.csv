@@ -39,8 +39,6 @@ HUD_WORK_CAMO_NET,Camo net,Tarnnetz
 HUD_WORK_BUNKER,Bunker,Bunker
 HUD_WORK_TEETH,Teeth,Höcker
 HUD_FORMATION,Formation,Formation
-HUD_ORDERS,Orders,Befehle
-HUD_TIP_FOLD,Fold in or out. The keys work either way.,Ein- oder ausklappen. Die Tasten wirken in beiden Fällen.
 HUD_TIP_FORMATION,"Formation of the next moves (key %s switches). Auto picks by the ground at the target: column on roads and in narrows, dispersed in woods, wedge (vehicles) or line (infantry) in the open. Control groups remember theirs.","Formation der nächsten Bewegungen (Taste %s wechselt). Auto wählt nach dem Gelände am Ziel: Kolonne auf Straßen und in Engstellen, aufgelockert im Wald, Keil (Fahrzeuge) oder Linie (Infanterie) im offenen Gelände. Gruppen merken sich ihre Formation."
 HUD_TIP_MOVE,Then left click the target. Right click moves at once; Shift + right click adds a waypoint.,Dann Linksklick auf das Ziel. Rechtsklick bewegt sofort; Umschalt + Rechtsklick fügt einen Wegpunkt an.
 HUD_TIP_ATTACK,Then left click an enemy. Right click on an enemy attacks at once.,Dann Linksklick auf einen Feind. Rechtsklick auf einen Feind greift sofort an.
@@ -232,10 +230,6 @@ HUD_STRIKE_ENEMY_COUNTDOWN,ENEMY ROCKET STRIKE in %d s - destroy the marked batt
 HUD_STRIKE_COUNTDOWN,Rocket strike in %d s,Raketenschlag in %d s
 HUD_HINT_STRIKE,Rocket strike: left click the target  ·  right click cancels,Raketenschlag: Linksklick auf das Ziel  ·  Rechtsklick bricht ab
 HUD_STRIKE_UNLOCK,in %d:%02d,in %d:%02d
-HUD_STRIKE_NO_BATTERY,no battery,keine Stellung
-HUD_STRIKE_BUTTON,"Rockets
-%s","Raketen
-%s"
 HUD_TIP_STRIKE,"Heavy rocket strike ({key}): {rockets} rockets within {radius} m, {warning} s warning.
 Needs a rocket battery position; the enemy can destroy it before the salvo.
 Fuel {fuel}, ammo {ammo}, manpower {manpower}","Schwerer Raketenschlag ({key}): {rockets} Raketen im Umkreis von {radius} m, {warning} s Vorwarnung.
@@ -244,3 +238,18 @@ Treibstoff {fuel}, Munition {ammo}, Personal {manpower}"
 HUD_FEED_CREW_BAILED,Crew bailed out: %s,Besatzung ausgestiegen: %s
 HUD_WOUNDED,"wounded %d light, %d down","verwundet: %d leicht, %d am Boden"
 HUD_FEED_WOUNDED,Man wounded: %s,Mann verwundet: %s
+HUD_CMD_STANCE,Stance,Haltung
+HUD_TIP_STANCE,"Squads: stand, kneel, lie down or decide themselves. The keys set a stance at once.","Trupps: stehen, knien, liegen oder selbst entscheiden. Die Tasten setzen eine Haltung sofort."
+HUD_CMD_MORE,More orders,Weitere Befehle
+HUD_TIP_MORE,"Dismount, unlimber, camouflage, bridge layers and the engineers' works.","Absitzen, Abprotzen, Tarnen, Brückenleger und die Arbeiten der Pioniere."
+HUD_CMD_POSITIONS,Positions,Stellungen
+HUD_TIP_POSITIONS,"Engineers: foxholes, trenches, nests, dugouts, pits, nets and bunkers.","Pioniere: Schützenlöcher, Gräben, Nester, Unterstände, Fahrzeugstellungen, Netze und Bunker."
+HUD_CMD_BACK,Back,Zurück
+HUD_TIP_CANCEL_LAST,Cancels the last order of the queue (full refund).,Bricht den letzten Auftrag der Warteschlange ab (volle Erstattung).
+HUD_TIP_NORTH,Turn the camera north (key %s). The needle shows where north is.,Kamera nach Norden drehen (Taste %s). Die Nadel zeigt nach Norden.
+HUD_TIP_ZOOM_RESET,Camera back to its starting distance.,Kamera zurück auf die Ausgangsentfernung.
+HUD_TIP_PAUSE,Pause (opens the menu).,Pause (öffnet das Menü).
+HUD_TIP_HELP,Keys and controls.,Tasten und Steuerung.
+HUD_TIP_MENU,Menu (Esc).,Menü (Esc).
+HUD_TIP_GROUP,Select this group (its number key). Twice: camera there.,Diese Gruppe wählen (ihre Zifferntaste). Zweimal: Kamera dorthin.
+HUD_SELECTED_N,%d units selected,%d Einheiten ausgewählt

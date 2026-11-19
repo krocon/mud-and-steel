@@ -1,6 +1,16 @@
 extends PanelContainer
-## Minimap (prompt 031), bottom right.
+## Minimap (prompts 031 and 095), bottom left, always shown.
 ##
+## - North is always up; an "N" marks it on the frame. The map does not
+##   turn with the camera: a click, a drag and the dots keep their places,
+##   and the view trapezoid shows where the camera looks. Which way north
+##   lies on the screen is shown by the needle of the north button, which
+##   turns with the camera.
+## - `column`, right of the map (placed by `hud.gd`): north (turns the
+##   camera back, key `camera_reset_north`), zoom (back to the camera's
+##   starting distance) and pause (the pause menu; not in a network match,
+##   where nothing pauses). The room above the column and a strip above the
+##   map stay free for the camera control of prompt 096.
 ## - Ground: `SimHost.minimap_image` (one pixel per 8 m vision cell:
 ##   terrain, hill shading, roads, forest, buildings), built once, darkened
 ##   by the fog texture of `fog_of_war.gd` (the same grid) in one shader.
@@ -13,8 +23,12 @@ extends PanelContainer
 ##   selection there (Shift: waypoint).
 
 const GroundPick := preload("res://scenes/camera/ground_pick.gd")
-## Longer side of the map on screen, pixels.
-const SIZE := 220.0
+const HudTheme := preload("res://scenes/hud/hud_theme.gd")
+const HudTile := preload("res://scenes/hud/hud_tile.gd")
+const Settings := preload("res://scenes/menu/settings.gd")
+## Longer side of the map on screen, pixels at HUD factor 1 (it shrinks on
+## a small window, it does not grow with the font size).
+const SIZE := 200.0
 const RelationColors := preload("res://scenes/hud/relation_colors.gd")
 const DOT_PX := 3.0
 const PING_SECONDS := 1.6
@@ -60,7 +74,17 @@ var dot_count := 0
 ## Pings so far (self-test).
 var ping_count := 0
 
+## Buttons right of the map, a child of the HUD (`hud.gd` places it).
+var column: VBoxContainer
+var north_button: HudTile
+var zoom_button: HudTile
+var pause_button: HudTile
+
 var _area: Control
+var _overlay: Control
+var _north: Label
+var _start_distance := 0.0
+var _fit := 0.0
 var _ground: ColorRect
 var _material: ShaderMaterial
 var _dots: MultiMeshInstance2D
@@ -77,24 +101,15 @@ func setup(main_node: Node3D) -> void:
 	if map_size.x <= 0.0 or map_size.y <= 0.0:
 		map_size = Vector2.ONE
 	map_origin = -map_size * 0.5
-	scale_px = SIZE / maxf(map_size.x, map_size.y)
-	var area_size := map_size * scale_px
-	set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
-	grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	grow_vertical = Control.GROW_DIRECTION_BEGIN
-	offset_right = -8
-	offset_bottom = -8
-	offset_left = -8 - area_size.x - 12
-	offset_top = -8 - area_size.y - 12
+	add_theme_stylebox_override(&"panel", HudTheme.box(HudTheme.PANEL, HudTheme.PANEL_BORDER, 5.0))
 	mouse_filter = Control.MOUSE_FILTER_STOP
+	_start_distance = main.camera_rig.target_distance
 
 	_area = Control.new()
-	_area.custom_minimum_size = area_size
 	_area.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_area.clip_contents = true
 	add_child(_area)
 	_ground = ColorRect.new()
-	_ground.size = area_size
 	_ground.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_material = ShaderMaterial.new()
 	var shader := Shader.new()
@@ -115,11 +130,87 @@ func setup(main_node: Node3D) -> void:
 	_area.add_child(_dots)
 	# Overlay for the view, pings and selection rings, above the dots.
 	var overlay := Control.new()
-	overlay.size = area_size
 	overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	overlay.draw.connect(_draw_overlay.bind(overlay))
 	overlay.name = "Overlay"
 	_area.add_child(overlay)
+	_overlay = overlay
+	# The north mark sits on the top edge of the frame.
+	_north = Label.new()
+	_north.name = "North"
+	_north.text = "N"  # l10n-ignore
+	_north.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_north.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_north.add_theme_font_override(&"font", HudTheme.serif())
+	_north.add_theme_color_override(&"font_color", HudTheme.TEXT)
+	_north.add_theme_stylebox_override(&"normal", HudTheme.box(Color(HudTheme.PANEL, 0.95), HudTheme.PANEL_BORDER, 1.0))
+	_north.top_level = true
+	add_child(_north)
+	_build_column()
+	apply_scale()
+
+
+## The buttons right of the map.
+func _build_column() -> void:
+	column = VBoxContainer.new()
+	column.name = "MinimapButtons"
+	column.mouse_filter = Control.MOUSE_FILTER_STOP
+	north_button = HudTile.new("north", HudTheme.SMALL_TILE_PX)
+	north_button.name = "North"
+	north_button.pressed.connect(reset_north)
+	column.add_child(north_button)
+	zoom_button = HudTile.new("zoom", HudTheme.SMALL_TILE_PX)
+	zoom_button.name = "Zoom"
+	zoom_button.pressed.connect(reset_zoom)
+	column.add_child(zoom_button)
+	pause_button = HudTile.new("pause", HudTheme.SMALL_TILE_PX)
+	pause_button.name = "Pause"
+	pause_button.visible = not sim_host.is_networked()
+	pause_button.pressed.connect(func() -> void:
+		var menu: Node = main.get("game_menu")
+		if menu != null:
+			menu.open_pause())
+	column.add_child(pause_button)
+	_set_tooltips()
+
+
+func _set_tooltips() -> void:
+	north_button.tooltip_text = tr("HUD_TIP_NORTH") % Settings.action_key_name("camera_reset_north")
+	zoom_button.tooltip_text = tr("HUD_TIP_ZOOM_RESET")
+	pause_button.tooltip_text = tr("HUD_TIP_PAUSE")
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_TRANSLATION_CHANGED and north_button != null:
+		_set_tooltips()
+
+
+## Turns the camera back to north the shortest way (as the key does).
+func reset_north() -> void:
+	var rig: Node3D = main.camera_rig
+	rig.target_yaw = roundf(rig.yaw / TAU) * TAU
+
+
+## Back to the distance the camera started the match with.
+func reset_zoom() -> void:
+	main.camera_rig.target_distance = _start_distance
+
+
+## Sizes for the HUD factor (`hud.gd` calls it when the factor changed).
+func apply_scale() -> void:
+	var fit := minf(HudTheme.scale, 1.0)
+	scale_px = SIZE * fit / maxf(map_size.x, map_size.y)
+	var area_size := (map_size * scale_px).round()
+	_area.custom_minimum_size = area_size
+	_ground.size = area_size
+	_overlay.size = area_size
+	size = Vector2.ZERO
+	_north.add_theme_font_size_override(&"font_size", HudTheme.font(12))
+	_north.size = Vector2.ZERO
+	column.add_theme_constant_override(&"separation", int(HudTheme.px(HudTheme.GAP)))
+	for tile: HudTile in [north_button, zoom_button, pause_button]:
+		tile.apply_scale()
+	column.size = Vector2.ZERO
 
 
 ## The ground image: one pixel per vision cell, scaled to the map.
@@ -153,7 +244,9 @@ func _process(delta: float) -> void:
 		ping.age += delta
 	_pings = _pings.filter(func(p: Dictionary) -> bool: return p.age < PING_SECONDS)
 	_update_view()
-	(_area.get_node("Overlay") as Control).queue_redraw()
+	_overlay.queue_redraw()
+	_north.global_position = global_position + Vector2((size.x - _north.size.x) * 0.5, -_north.size.y * 0.5).round()
+	north_button.turn = main.camera_rig.yaw
 	usec += Time.get_ticks_usec() - began
 
 

@@ -11,8 +11,15 @@ extends RefCounted
 ## - Waypoint chain: right click, then Shift + right click twice: the tank
 ##   drives through all three points in order (the start positions of
 ##   three own tanks, known to be reachable); markers are drawn.
-## - Command bar: "Move" waits for a left click and sends the order,
+## - Order grid: "Move" waits for a left click and sends the order,
 ##   "Stop" stops, "Hold fire" switches the fire mode.
+## - Layout (prompt 095): only minimap and top bar (and support) show
+##   without a selection; an own unit brings the info field and the order
+##   grid with every tile on its fixed place, a tile gives the same order as
+##   its key, the pages open and lead back; a unit of the enemy brings the
+##   info field only; clicks on HUD parts are no orders; no two parts
+##   overlap and all stay inside the window at 1280 x 720 and 3840 x 2160,
+##   the smallest and largest interface scale and the largest font.
 ## - Events: a posted message and Space move the camera there; health bar
 ##   setting "never" hides the bars.
 ## - Unit values (prompt 066): for every buildable id the tile's tooltip and
@@ -31,7 +38,23 @@ const Language := preload("res://scenes/menu/language.gd")
 const L10nSelfTest := preload("res://scenes/menu/l10n_self_test.gd")
 const Picker := preload("res://scenes/hud/picker.gd")
 const UnitStats := preload("res://scenes/hud/unit_stats.gd")
+const HudTheme := preload("res://scenes/hud/hud_theme.gd")
 const TIME_SCALE := 4.0
+## Fixed places of the first page of the order grid (row by row).
+const MAIN_PAGE: Array[String] = [
+	"move", "attack_move", "patrol", "secure", "stop",
+	"attack", "attack_ground", "attack_object", "barrage", "smoke",
+	"fire", "stance", "formation", "garrison", "more",
+]
+## Window size, interface scale, font size of the overlap checks.
+const LAYOUT_CASES: Array[Array] = [
+	[Vector2i(1280, 720), 1.0, 1.0],
+	[Vector2i(1280, 720), 1.0, 1.3],
+	[Vector2i(1280, 720), 0.75, 1.3],
+	[Vector2i(3840, 2160), 0.75, 1.0],
+	[Vector2i(3840, 2160), 1.5, 1.3],
+	[Vector2i(3840, 2160), 3.0, 1.3],
+]
 
 ## Start positions of the own tanks.
 var _starts: Array[Vector3] = []
@@ -39,17 +62,6 @@ var _starts: Array[Vector3] = []
 
 func remember(test: Node) -> void:
 	_starts = test._positions_of(test._ids_of(true))
-
-
-## Folds the order grid and the air bar open or away for the test, without
-## touching the setting.
-func fold_bars(test: Node, open: bool) -> void:
-	var main: Node3D = test.main
-	if main.hud != null:
-		main.hud.command_bar.set_open(open, false)
-	var air_view: Node = main.get("air_view")
-	if air_view != null and air_view.air_bar != null:
-		air_view.air_bar.set_open(open, false)
 
 
 func run(test: Node) -> void:
@@ -76,6 +88,7 @@ func run(test: Node) -> void:
 	await _chain_test(test, main, tanks[0])
 	await _command_bar_test(test, main, hud.command_bar, tanks)
 	Engine.time_scale = 1.0
+	await _layout_test(test, main, hud, tanks)
 	await _events_test(test, main, hud.event_feed)
 	await _health_bar_test(test, main)
 	await _unit_values_test(test, main, hud, tanks)
@@ -144,6 +157,7 @@ func _panel_test(test: Node, main: Node3D, panel: Control, tanks: Array[int]) ->
 	selection.set_selection(three)
 	await test._frames(2)
 	test._check(panel.visible and panel.tile_ids == three, "unit panel tiles %s for %s" % [panel.tile_ids, three])
+	await test._frames(10)
 	var tiles: Array = panel._grid.get_children()
 	if tiles.size() == 3:
 		var middle := (tiles[1] as Control).get_global_rect().get_center()
@@ -157,6 +171,13 @@ func _panel_test(test: Node, main: Node3D, panel: Control, tanks: Array[int]) ->
 	await test._frames(1)
 	test._check(not panel._title.text.is_empty() and panel._details.text.contains("Weapons"),
 		"single unit view: '%s' / '%s'" % [panel._title.text, panel._details.text])
+	# Prompt 095: hit points as a symbol with numbers, the kind of unit in
+	# the header, a picture.
+	var shown_info: Dictionary = main.sim_host.unit_info(three[0])
+	test._check(panel.health_chip.text == "%d / %d" % [shown_info.hp, shown_info.max_hp] and panel.health_chip.tooltip_text.contains("Hit points"),
+		"hit points chip '%s' / '%s'" % [panel.health_chip.text, panel.health_chip.tooltip_text])
+	test._check(panel.kind == "vehicles" and panel._kind_icon.text == "Vehicles" and panel._portrait.texture != null,
+		"info field: kind '%s' ('%s'), picture %s" % [panel.kind, panel._kind_icon.text, panel._portrait.texture])
 	var info: Dictionary = main.sim_host.unit_info(three[0])
 	test._check(info.get("max_hp", 0) > 0 and not (info.get("weapons", []) as Array).is_empty(), "unit info %s" % info)
 
@@ -201,14 +222,16 @@ func _command_bar_test(test: Node, main: Node3D, bar: Control, tanks: Array[int]
 	var selection: Control = main.selection
 	var group: Array[int] = tanks.slice(0, 3)
 	selection.set_selection(group)
-	fold_bars(test, true)
-	await test._frames(2)
+	await test._frames(12)
 	var move: Button = bar.buttons["move"]
-	test._check(not move.disabled and move.text.contains("[M]"), "move button '%s' (disabled %s)" % [move.text, move.disabled])
+	test._check(bar.visible and move.is_visible_in_tree(), "the order grid does not show for own tanks")
+	test._check(not move.disabled and move.key_text == "M" and move.tooltip_text.contains("[M]"),
+		"move tile: key '%s', tooltip '%s' (disabled %s)" % [move.key_text, move.tooltip_text, move.disabled])
 	test._left_click(move.get_global_rect().get_center())
 	await test._frames(1)
 	test._check(selection.command_mode == "move", "move button left mode '%s'" % selection.command_mode)
 	var target: Vector3 = _starts[3] if _starts.size() > 3 else _starts[0]
+	test._check(not main.hud.covers(test._screen_of_point(target)), "the move target lies under a HUD panel")
 	test._left_click(test._screen_of_point(target))
 	await test._ticks(5)
 	test._check(selection.command_mode.is_empty(), "mode '%s' after the click" % selection.command_mode)
@@ -227,84 +250,206 @@ func _command_bar_test(test: Node, main: Node3D, bar: Control, tanks: Array[int]
 	if hold_after == 0:
 		sim_host.set_hold_fire(PackedInt64Array(group), true)
 	test._check((bar.buttons["stance_stand"] as Button).disabled, "stance buttons enabled for tanks")
-	await _bar_size_test(test, main, bar)
-	fold_bars(test, false)
-	await test._frames(1)
+	test._check((bar.buttons["stance"] as Button).disabled and bar.buttons["stance"].is_visible_in_tree(),
+		"the stance tile is not greyed in its place for tanks")
+	await _tile_size_test(test, main, bar)
 
 
-## Prompt 092: button text of 15 px or more, growing with the font
-## size setting; the bars do not overlap the other HUD parts; folding hides
-## the buttons, keeps the keys working and is remembered.
-func _bar_size_test(test: Node, main: Node3D, bar: Control) -> void:
-	var selection: Control = main.selection
+## Prompts 092 and 095: tiles of 46 px or more at factor 1 that grow with
+## the font size setting, the key readable in the corner; every tile lies
+## inside the grid; the HUD parts do not overlap at either size.
+func _tile_size_test(test: Node, main: Node3D, bar: Control) -> void:
 	var hud: Control = main.hud
-	var air: Control = main.air_view.air_bar if main.get("air_view") != null else null
 	var move: Button = bar.buttons["move"]
-	var fit: float = MenuTheme.hud_fit(hud.get_viewport_rect().size.x)
-	var wanted: int = MenuTheme.font(roundi(MenuTheme.HUD_FONT * fit))
-	test._check(move.get_theme_font_size(&"font_size") == wanted and wanted >= roundi(15 * fit),
-		"order button text is %d px, wanted %d px" % [move.get_theme_font_size(&"font_size"), wanted])
+	var factor: float = HudTheme.scale_for(hud.get_viewport_rect().size)
+	test._check(is_equal_approx(HudTheme.scale, factor), "HUD factor %.2f, expected %.2f" % [HudTheme.scale, factor])
+	var wanted: float = roundf(HudTheme.TILE_PX * factor)
+	test._check(is_equal_approx(move.size.x, wanted) and is_equal_approx(move.size.y, wanted) and wanted >= 27.0,
+		"order tile is %s, wanted %.0f px" % [move.size, wanted])
+	test._check(HudTheme.font(9) >= 8, "the key in a tile's corner is %d px" % HudTheme.font(9))
+	var inside := Rect2(Vector2.ZERO, bar.size)
 	for id: String in bar.buttons:
 		var b: Button = bar.buttons[id]
 		if b.is_visible_in_tree():
-			test._check(b.size.x >= b.get_combined_minimum_size().x - 0.5 and not b.clip_text, "order button '%s' cuts its text" % b.text)
-	# Larger font setting, larger buttons.
+			test._check(inside.encloses(b.get_rect()), "order tile '%s' sticks out of the grid" % id)
+	# Larger font setting, larger tiles (as far as the window has room).
 	var before := move.size
 	MenuTheme.set_font_scale(1.3)
 	await test._frames(20)
-	test._check(move.get_theme_font_size(&"font_size") > wanted and move.size.y >= before.y and move.size.x >= before.x,
-		"order buttons do not grow with the font size (%s -> %s)" % [before, move.size])
-	_no_overlap(test, hud, air, "font size 1.3")
+	var larger: float = HudTheme.scale_for(hud.get_viewport_rect().size)
+	test._check(larger > factor and move.size.x > before.x and move.size.y > before.y,
+		"order tiles do not grow with the font size (%s -> %s)" % [before, move.size])
+	_no_overlap(test, hud, "font size 1.3")
 	MenuTheme.set_font_scale(Settings.get_value("font_size"))
 	await test._frames(20)
-	_no_overlap(test, hud, air, "default size")
-	# Folding.
-	test._check(bar.is_open() and Settings.get_value("hud_commands_open"), "order grid not open by default")
-	var open_height: float = bar.size.y
-	test._left_click((bar.fold_button as Button).get_global_rect().get_center())
-	await test._frames(3)
-	test._check(not bar.is_open() and not move.is_visible_in_tree(), "folding left the order buttons visible")
-	test._check(bar.size.y < open_height * 0.6, "folded order bar is %.0f px high, open %.0f" % [bar.size.y, open_height])
-	selection.set_command_mode("")
-	_press(test, KEY_M)
-	await test._frames(1)
-	test._check(selection.command_mode == "move", "key M gives no move order while the grid is folded")
-	selection.set_command_mode("")
-	Settings.load_file()
-	test._check(not Settings.get_value("hud_commands_open"), "folded order grid not remembered")
-	bar.set_open(true)
-	await test._frames(2)
-	test._check(move.is_visible_in_tree() and Settings.get_value("hud_commands_open"), "order grid did not fold open again")
-	if air != null and air.visible:
-		var mission: Button = air.buttons["recon"]
-		test._check(mission.get_theme_font_size(&"font_size") == wanted, "air button text is %d px" % mission.get_theme_font_size(&"font_size"))
-		air.set_open(false)
-		await test._frames(2)
-		test._check(not mission.is_visible_in_tree() and not Settings.get_value("hud_air_open"), "folding left the air buttons visible")
-		if not mission.disabled:
-			_press(test, KEY_1, true)
-			await test._frames(1)
-			test._check(air.pending == "recon", "Shift+1 calls no recon flight while the air bar is folded")
-			air.set_pending("")
-		air.set_open(true)
-		await test._frames(2)
-		test._check(mission.is_visible_in_tree() and Settings.get_value("hud_air_open"), "air bar did not fold open again")
+	test._check(move.size == before, "order tiles did not return to %s (%s)" % [before, move.size])
+	_no_overlap(test, hud, "default size")
 
 
-func _no_overlap(test: Node, hud: Control, air: Control, what: String) -> void:
-	var parts := {"command bar": hud.command_bar, "unit panel": hud.unit_panel, "minimap": hud.minimap}
-	if air != null:
-		parts["air bar"] = air
+## No two HUD parts that take clicks overlap, and all lie inside the window.
+func _no_overlap(test: Node, hud: Control, what: String) -> int:
+	var parts: Dictionary = hud.panels()
+	var screen := Rect2(Vector2.ZERO, hud.get_viewport_rect().size)
 	var names := parts.keys()
 	for i in names.size():
+		var a: Control = parts[names[i]]
+		test._check(screen.grow(0.5).encloses(a.get_global_rect()),
+			"%s sticks out of the window (%s): %s in %s" % [names[i], what, a.get_global_rect(), screen.size])
 		for j in range(i + 1, names.size()):
-			var a: Control = parts[names[i]]
 			var b: Control = parts[names[j]]
-			# The air bar is docked inside the command bar's column.
-			if not a.is_visible_in_tree() or not b.is_visible_in_tree() or a.is_ancestor_of(b) or b.is_ancestor_of(a):
-				continue
 			test._check(not a.get_global_rect().intersects(b.get_global_rect()),
 				"%s overlaps %s (%s): %s / %s" % [names[i], names[j], what, a.get_global_rect(), b.get_global_rect()])
+	return names.size()
+
+
+## Prompt 095: what shows when, the fixed places of the order grid, tiles
+## against keys, the pages, clicks on the HUD, and the overlap checks at
+## other window sizes, interface scales and font sizes.
+func _layout_test(test: Node, main: Node3D, hud: Control, tanks: Array[int]) -> void:
+	var sim_host: SimHost = main.sim_host
+	var selection: Control = main.selection
+	var bar: Control = hud.command_bar
+	# Nothing selected: minimap and top bar, support if the player has any,
+	# group tabs if groups are in use; nothing else.
+	selection.set_selection([])
+	await test._frames(15)
+	var shown: Array = hud.panels().keys()
+	for part: String in ["minimap", "minimap buttons", "top bar"]:
+		test._check(shown.has(part), "%s does not show without a selection (%s)" % [part, shown])
+	for part: String in shown:
+		test._check(part in ["minimap", "minimap buttons", "top bar", "support column", "group tabs"],
+			"%s shows without a selection" % part)
+	test._check(not hud.unit_panel.visible and not bar.visible, "info field or order grid still visible without a selection")
+	test._check(hud.support.visible == (not sim_host.air_options().is_empty() or main.strike_view.bar.visible),
+		"support column visible %s, air options %d" % [hud.support.visible, sim_host.air_options().size()])
+	test._check(hud.minimap.north_button.is_visible_in_tree() and hud.minimap.zoom_button.is_visible_in_tree()
+		and hud.minimap.pause_button.is_visible_in_tree(), "the minimap buttons do not show")
+	# Own unit: info field and grid; every tile of the first page on its place.
+	selection.set_selection([tanks[0]])
+	await test._frames(15)
+	shown = hud.panels().keys()
+	test._check(shown.has("info field") and shown.has("order grid"), "own tank selected, shown: %s" % [shown])
+	for slot in MAIN_PAGE.size():
+		var id := MAIN_PAGE[slot]
+		var tile: Button = bar.buttons[id]
+		test._check(bar.slot_of(id) == slot and tile.is_visible_in_tree() and tile.position.is_equal_approx(bar.slot_rect(slot).position),
+			"order '%s' is not on place %d (place %d, at %s)" % [id, slot, bar.slot_of(id), tile.position])
+		test._check(not str(tile.icon_id).is_empty() and tile.tooltip_text.length() > 2 and tile.text.is_empty(),
+			"tile '%s' has no symbol or tooltip" % id)
+	# A tile gives the same order as its key.
+	for pair: Array in [["patrol", KEY_P], ["attack", KEY_R], ["attack_ground", KEY_L]]:
+		var tile: Button = bar.buttons[pair[0]]
+		test._left_click(tile.get_global_rect().get_center())
+		await test._frames(1)
+		var by_tile: String = selection.command_mode
+		selection.set_command_mode("")
+		_press(test, pair[1])
+		await test._frames(1)
+		test._check(by_tile == pair[0] and selection.command_mode == by_tile,
+			"tile '%s' gives '%s', its key '%s'" % [pair[0], by_tile, selection.command_mode])
+		selection.set_command_mode("")
+	# Pages: formation opens its choices and returns after one; the keys
+	# work on any page; "back" leads back.
+	test._left_click((bar.buttons["formation"] as Button).get_global_rect().get_center())
+	await test._frames(2)
+	var wedge: Button = bar.buttons["formation_2"]
+	test._check(bar.page == "formation" and wedge.is_visible_in_tree() and not bar.buttons["move"].is_visible_in_tree()
+		and bar.buttons["back"].is_visible_in_tree(), "the formation page did not open (page '%s')" % bar.page)
+	_press(test, KEY_M)
+	await test._frames(1)
+	test._check(selection.command_mode == "move", "key M gives no move order on the formation page")
+	selection.set_command_mode("")
+	var formation_before: int = selection.formation
+	test._left_click(wedge.get_global_rect().get_center())
+	await test._frames(2)
+	test._check(selection.formation == 2 and bar.formation_shown == 2 and bar.page == "main",
+		"formation tile: formation %d, shown %d, page '%s'" % [selection.formation, bar.formation_shown, bar.page])
+	selection.set_formation(formation_before)
+	bar.open_page("stance")
+	await test._frames(1)
+	test._left_click((bar.buttons["back"] as Button).get_global_rect().get_center())
+	await test._frames(2)
+	test._check(bar.page == "main" and bar.buttons["move"].is_visible_in_tree(), "'back' did not lead to the first page")
+	# Clicks on HUD parts are no orders and keep the selection.
+	var one: Array[int] = [tanks[0]]
+	var parts: Dictionary = hud.panels()
+	# (Not on the top bar: it is all buttons, and those open menus.)
+	test._check(hud.covers(hud.top_bar.get_global_rect().get_center()), "the HUD does not count the top bar as a panel")
+	var spots: Array[Vector2] = [bar.global_position + bar.slot_rect(3).end + Vector2(1, 1),
+		hud.unit_panel.global_position + Vector2(2, 2), hud.minimap.column.global_position + Vector2(1, HudTheme.px(HudTheme.SMALL_TILE_PX) + 1)]
+	if parts.has("support column"):
+		var disabled: Button = main.air_view.air_bar.buttons["recon"]
+		spots.append(disabled.get_global_rect().end + Vector2(-2, 1))
+	for spot in spots:
+		test._check(hud.covers(spot), "the HUD does not cover %s" % spot)
+		test._left_click(spot)
+		test._right_click(spot)
+	await test._ticks(4)
+	test._check(selection.selected == one and not test._moving(one) and sim_host.unit_queue_length(tanks[0]) == 0
+		and selection.command_mode.is_empty(), "a click on a HUD part gave an order or changed the selection (%s, mode '%s')" % [
+		selection.selected, selection.command_mode])
+	# A unit of the enemy (looked at, not commanded): info field, no grid.
+	var enemies: Array[int] = _alive(test, test._ids_of(false))
+	test._check(not enemies.is_empty(), "no enemy unit left for the HUD test")
+	if not enemies.is_empty():
+		selection._set_selection([enemies[0]])
+		await test._frames(15)
+		shown = hud.panels().keys()
+		test._check(shown.has("info field") and not shown.has("order grid") and not bar.visible,
+			"enemy unit selected, shown: %s" % [shown])
+		test._check(not hud.unit_panel._title.text.is_empty(), "the info field names no enemy unit")
+	# Groups: a tab per group in use, a click recalls it.
+	var groups_before: Dictionary = selection.groups.duplicate(true)
+	selection.groups[7] = [tanks[1], tanks[2]]
+	selection.set_selection([])
+	await test._frames(15)
+	var tab: Button = hud.group_tabs.tabs[7]
+	test._check(tab.is_visible_in_tree() and not hud.group_tabs.tabs[8].is_visible_in_tree(), "group 7 has no tab, or the empty group 8 has one")
+	test._left_click(tab.get_global_rect().get_center())
+	await test._frames(15)
+	var pair: Array[int] = [tanks[1], tanks[2]]
+	pair.sort()
+	test._check(selection.selected == pair and tab.button_pressed, "the tab of group 7 selected %s" % [selection.selected])
+	# The buttons beside the minimap.
+	var rig: Node3D = main.camera_rig
+	rig.snap_to(rig.focus, rig.distance, 0.9)
+	await test._frames(2)
+	test._check(absf(hud.minimap.north_button.turn - 0.9) < 0.01, "the north needle shows %.2f, the camera is turned 0.9" % hud.minimap.north_button.turn)
+	test._left_click(hud.minimap.north_button.get_global_rect().get_center())
+	await test._frames(1)
+	test._check(is_zero_approx(rig.target_yaw), "the north button left the camera heading for %.2f" % rig.target_yaw)
+	rig.snap_to(rig.focus, rig.distance, 0.0)
+	# Other window sizes, interface scales and font sizes: with nothing,
+	# several units and one unit with its card selected.
+	var root: Window = test.get_tree().root
+	var window := root.size
+	var interface := root.content_scale_factor
+	var checked := 0
+	for case: Array in LAYOUT_CASES:
+		root.size = case[0]
+		root.content_scale_factor = case[1]
+		MenuTheme.set_font_scale(case[2])
+		var what := "%s, scale %.2f, font %.2f" % [case[0], case[1], case[2]]
+		selection.set_selection([])
+		await test._frames(15)
+		checked += _no_overlap(test, hud, what + ", nothing selected")
+		selection.set_selection(tanks.slice(0, 3))
+		await test._frames(15)
+		test._check(hud.panels().has("order grid") and hud.panels().has("info field"), "grid or info field missing (%s)" % what)
+		checked += _no_overlap(test, hud, what + ", three tanks")
+		selection.set_selection([tanks[0]])
+		hud.show_unit_card(str(sim_host.unit_info(tanks[0]).type_id), tanks[0])
+		await test._frames(15)
+		test._check(hud.panels().has("unit card"), "the unit card does not show (%s)" % what)
+		checked += _no_overlap(test, hud, what + ", one tank and its card")
+		hud.unit_card.close()
+	root.size = window
+	root.content_scale_factor = interface
+	MenuTheme.set_font_scale(Settings.get_value("font_size"))
+	selection.groups = groups_before
+	selection.set_selection([])
+	await test._frames(15)
+	print("self-test: hud layout ok (%d cases, %d part checks, factor %.2f)" % [LAYOUT_CASES.size(), checked, HudTheme.scale])
 
 
 func _events_test(test: Node, main: Node3D, feed: Control) -> void:
@@ -553,6 +698,8 @@ func _card_controls_test(test: Node, main: Node3D, hud: Control, tanks: Array[in
 	test._check(screen.encloses(rect), "unit card %s sticks out of the window %s" % [rect, screen.size])
 	test._check(not rect.intersects(hud.minimap.get_global_rect()), "unit card covers the minimap")
 	test._check(not rect.intersects(hud.command_bar.get_global_rect()), "unit card covers the command bar")
+	test._check(not rect.intersects(hud.top_bar.get_global_rect()) and not (hud.support.visible and rect.intersects(hud.support.get_global_rect())),
+		"unit card covers the top bar or the support column")
 	test._check(hud.covers(rect.get_center()), "the HUD does not count the card as a panel")
 	# The match runs on and orders still work while the card is open.
 	var tick := sim_host.current_tick()

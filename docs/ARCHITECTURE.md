@@ -2663,7 +2663,8 @@ high as meant, the 12–13 px order buttons hardly readable.
   `-- --display-scale=<n>` for tests). `ui_scale_for(height)` multiplies
   the "Interface scale" setting by it and still keeps 720 pixels of room,
   and it is applied again whenever the window changes its size.
-- Order grid and air bar: text 15 px instead of 12–13 (`MenuTheme.HUD_FONT`,
+- (Replaced by prompt 095, see "HUD (presentation only)": symbol tiles,
+  `HudTheme.scale`, nothing folds.) Order grid and air bar: text 15 px instead of 12–13 (`MenuTheme.HUD_FONT`,
   `style_hud_button`; buttons 112 × 36, air 100 × 50, never narrower than
   their text), times the font size setting, times `hud_fit` (window width /
   1600, at least 0.7) so unit panel and minimap fit beside it on a narrow
@@ -2679,8 +2680,12 @@ high as meant, the 12–13 px order buttons hardly readable.
   font size, no overlap of order bar, air bar, unit panel and minimap,
   folding, keys while folded, the remembered state).
 - Pictures: `build/hud-size/before|after/` (`--l10n-shots`).
-- Open: the block is still large at 1280 × 720 (the unit panel moves above
-  the minimap); prompt 095 rearranges the HUD.
+- Prompt 095 rearranged the HUD: the folding, its two settings, the bar
+  size test and `fold_bars` of the self-test are gone (nothing needs
+  folding when only minimap and top bar always show); the checks that
+  still make sense live on in `hud_self_test.gd` (`_tile_size_test`: tile
+  size, growth with the font size, `_no_overlap` over all parts; keys work
+  whatever the grid shows: `_layout_test`).
 
 ## Missions and tutorial
 
@@ -4550,11 +4555,85 @@ ring; units of other players carry a red tint overlay.
 
 ## HUD (presentation only)
 
-Prompt 031, `godot/scenes/hud/` (created by `main.gd` as `hud`): minimap,
-unit panel, command bar, event feed and waypoint lines. Nothing here
-decides anything; orders go through `selection.gd` or `SimHost`.
+Prompts 031 and 095, `godot/scenes/hud/` (created by `main.gd` as `hud`):
+minimap, info field, order grid, top bar, support column, group tabs,
+event feed and waypoint lines. Nothing here decides anything; orders go
+through `selection.gd` or `SimHost`.
 
-- **Minimap** (`minimap.gd`, bottom right): `SimHost.minimap_image` renders
+**Layout (prompt 095).** Every part has a fixed corner, so no part pushes
+another around; `hud.gd` `_layout()` places them every frame and replaces
+the old dodging (`_keep_events_above_command_bar`,
+`_keep_unit_panel_beside_command_bar`):
+
+| Where | Part | Shows |
+|---|---|---|
+| bottom left | `minimap` + `minimap.column` (north, zoom, pause) | always |
+| bottom center | `unit_panel` (info field) | with a selection |
+| bottom right | `command_bar` (order grid 5 × 3) | own units, or one own building that can be served |
+| above the grid | `dock`: build menu, production bar (`base_hud.gd`) | while open |
+| top right | `top_bar`: Build, resources, "?", menu | always |
+| right, under it | `support`: tiles of `air_bar.gd` and of the strike (`strike_view.gd`) | when the player has support |
+| top center | `group_tabs`; under them `hints` (air, strike and placement hints, strike countdown) | groups in use / a pending order |
+| left | `event_feed` | messages |
+
+- The grid's room stays free while it is hidden; info field and grid fade
+  in and out in 0.12 s (`HudTheme.fade`; a part fading out counts as gone:
+  `HudTheme.shown`). The support column gets a second column when one does
+  not fit between top bar and grid. The dock stands on the grid (in the
+  grid's corner while that is hidden, on the info field where that is
+  higher) and moves left of the support column where it reaches up to it.
+  The open build menu takes the place of the production bar. In a replay
+  everything at the bottom stands above the replay bar. The mission panel
+  moved to the top left; the event feed stays under it and keeps
+  `HudTheme.GIZMO_ROOM` (48 px times the factor) above the minimap: that
+  strip and the room above the three minimap buttons are reserved for the
+  camera control of prompt 096.
+- **One look** (`hud_theme.gd`): dark translucent panels with a thin light
+  border, square tiles, gold for prices and lasting states, red for
+  shortage, blue for cooldowns; a serif `SystemFont` for names (no font
+  file). **One factor**, `HudTheme.scale` = font size setting × room
+  (`min(width / 1280, height / 720)`, clamped to 0.6 … 1), capped at
+  1.15 × room: at 1280 × 720 the largest font still enlarges the HUD by
+  15 %, and the corners cannot grow into each other. The interface scale
+  acts through the window's interface pixels as before (prompt 092).
+  `hud.gd` calls `apply_scale()` of every part when the factor changes.
+  This replaces `MenuTheme.style_hud_button` / `hud_fit` / `HUD_FONT` of
+  prompt 092, which are gone. The minimap is 200 px at factor 1 and only
+  shrinks with the room.
+- **Symbols** (`hud_icons.gd`, `hud_tile.gd`). Origin: all drawn for this
+  game in prompt 095, nothing from other games or icon sets, no insignia
+  beyond the faint national marking of the info field
+  (`HudTheme.draw_emblem`: bar cross, star in a ring, red star;
+  docs/SOURCES.md). Format: no picture files; a symbol is a short text of
+  strokes (`l` line, `g` outline, `f` filled shape, `c` circle, `d` disc,
+  `a` arc, `t` letter) on a 24 × 24 grid in `HudIcons.ICONS`, drawn with
+  the canvas by `HudIcons.draw` in one stroke width (1.6 px times the
+  factor), so it is sharp at every scale. Size: order tiles 46 px, support
+  tiles 56 px plus a 16 px footer, small tiles (minimap, top bar) 34 px,
+  each times the factor; the symbol fills 60 % of its tile. `HudTile` is
+  the square button: symbol, key in the corner, a dot and a gold frame for
+  a lasting state, for support the footer with price or seconds and a
+  dark cooldown sector. A new order needs a line in `ICONS` and one in
+  `CommandBar.BUTTONS`.
+- **`hud.panels()`** names every part that takes clicks and shows right
+  now; `covers()` is built on it (plus the event feed), and the self-test
+  checks that no two of them overlap and all lie inside the window.
+- **Top bar** (`top_bar.gd`): stock and income of the three resources from
+  `SimHost.economy_state` (the label of `base_hud.gd` is gone), the build
+  button (`command_bar.press("build")`), "?" (`GameMenu.open_controls`: the
+  settings on the page of the keys) and the menu button
+  (`GameMenu.open_pause`).
+- **Group tabs** (`group_tabs.gd`): `selection.groups` with a living unit;
+  a click is `selection.recall_group`.
+- **Tests:** `hud_self_test.gd` `_layout_test` (what shows when, fixed
+  places, tile against key, pages, clicks on the HUD, groups, north
+  button, overlap at 1280 × 720 and 3840 × 2160 with interface scale 0.75
+  … 3 and font 1 and 1.3) and `_tile_size_test`; `flow_self_test.gd` for
+  the base match (build button, build menu, building page of the grid).
+  Pictures: `build/hud-layout/before|after/` (`--l10n-shots`).
+
+- **Minimap** (`minimap.gd`, bottom left; north always up, see the script
+  for why it does not turn): `SimHost.minimap_image` renders
   the ground once in Rust, one RGB pixel per 8 m vision cell (terrain color,
   hill shading from the vision grid's heights, roads if any sample of the
   cell is a road, forest and solid obstacles from the vision grid). One
@@ -4566,24 +4645,36 @@ decides anything; orders go through `selection.gd` or `SimHost`.
   (the focus height where a ray misses); pings mark hits on own units. Left
   click/drag looks there, right click moves the selection (Shift: waypoint).
   Not redrawn after craters.
-- **Unit panel** (`unit_panel.gd`, bottom center): `SimHost.unit_info` (name,
+- **Info field** (`unit_panel.gd`, bottom center): `SimHost.unit_info` (name,
   hit points, armor per face, weapons with caliber and game range, soldiers);
+  the header names the unit in a serif face and its kind (the picker's tab)
+  with a symbol; hit points and soldiers are symbols with numbers
+  (`Chip`), the words in their tooltips; behind everything the faint
+  marking of the unit's faction (the player's own for buildings);
   stance, fire mode and queued waypoints from the per-unit arrays; under
   the portrait the five ratings of the unit's type, in its corner the
   button to its unit card, and the bonuses of its rank as a line of their
   own (prompt 066). The
-  portrait (`unit_portrait.gd`, [provisional]) is rendered once per unit type
+  picture is the pre-rendered thumbnail (prompt 058) on its faction-tinted
+  backdrop; only a type without one gets the portrait of
+  `unit_portrait.gd` ([provisional]), rendered once per unit type
   in its own `SubViewport` from a fresh model (duplicating a unit's model
-  fails: its parts are merged at run time); a pre-rendered thumbnail
-  (prompt 058) replaces it when there is one. Several units: tiles with health
+  fails: its parts are merged at run time). Several units: tiles with health
   bars; click selects one, Shift + click removes it. The tile of the active unit
   has a bright frame; two small drawn buttons (`CameraButton`: center, and
   the follow toggle, which mirrors `selection.follow` every frame) sit next
   to the card button, or above the tiles (prompt 094).
-- **Command bar** (`command_bar.gd`, bottom left): buttons with the bound key
-  for every order; targeted orders set `selection.command_mode`. The build
-  menu and the production bar of `world/base_hud.gd` are docked above it
-  (`BaseHud.dock_into`, [provisional]); "Build" opens the build menu.
+- **Order grid** (`command_bar.gd`, bottom right): 15 fixed places
+  (`BUTTONS`: id, label, action, kind, page, place, tooltip); a tile per
+  order with its symbol and bound key; targeted orders set
+  `selection.command_mode`. Pages: `main` (movement / combat / posture and
+  more), `stance`, `formation`, `more`, `positions` (engineers), and
+  `building` (repair, sell, cancel last order; `base_hud.gd` acts:
+  `toggle_repair`, `sell`, `cancel_last`, `service_state`). A tile that
+  does not fit the selection is greyed in its place on `main` and
+  `building`, hidden on the other pages. Keys never depend on the page or
+  on the grid showing. The build menu and the production bar of
+  `world/base_hud.gd` sit in `hud.dock` above it (`BaseHud.dock_into`).
 - **Picker** (`picker.gd`, prompt 058, [provisional]): the build menu and the
   production bar show their options as picture tiles: thumbnail on a
   faction-tinted backdrop, name, fuel / ammunition / manpower, build time,
@@ -4603,9 +4694,7 @@ decides anything; orders go through `selection.gd` or `SimHost`.
   thumbnails are PNGs in
   `godot/assets/thumbnails/` (`hud/thumbnail.gd`, docs/ASSETS.md), rendered
   by `just thumbnails` for every id of `SimHost.buildable_ids()`; any own
-  structure with production options gets the production bar. When the
-  docked panels make the command bar tall, `hud.gd` moves the event feed
-  above it, or beside it when there is no room above (prompt 066).
+  structure with production options gets the production bar.
 - **Event feed** (`event_feed.gd`, left edge): own unit lost, building
   completed, unit ready, enemy sighted (at most every 15 s), under fire (at
   most every 10 s), from the combat event stream and a poll of the snapshot

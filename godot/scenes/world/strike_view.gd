@@ -84,25 +84,17 @@ func setup(main_node: Node3D, blasts: Node3D) -> void:
 func setup_hud(hud: Control) -> void:
 	_hud = hud
 	bar = StrikeBar.new()
-	bar.setup(main)
-	var dock: Node = hud.command_bar.get_node_or_null("Dock") if hud != null else null
-	if dock != null:
-		dock.add_child(bar)
-	else:
-		main.get_node("Hud").add_child(bar)
+	hud.add_child(bar)
+	bar.setup(main, hud.support, hud.hints)
 	_countdown = Label.new()
 	_countdown.name = "StrikeCountdown"
-	_countdown.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	_countdown.offset_top = 64
-	_countdown.offset_left = -300
-	_countdown.offset_right = 300
 	_countdown.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_countdown.add_theme_font_size_override(&"font_size", MenuTheme.font(22))
 	_countdown.add_theme_color_override(&"font_outline_color", Color.BLACK)
 	_countdown.add_theme_constant_override(&"outline_size", 6)
 	_countdown.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_countdown.visible = false
-	main.get_node("Hud").add_child(_countdown)
+	hud.hints.add_child(_countdown)
 
 
 func _process(delta: float) -> void:
@@ -382,43 +374,53 @@ static func _siren_hz(t: float) -> float:
 
 ## The call bar: one button with price, unlock time and cooldown.
 class StrikeBar:
-	extends PanelContainer
+	extends Control
+	## The rocket strike's tile in the support column of the HUD (prompt
+	## 095): symbol, under it the price, the time until it unlocks or the
+	## seconds of its cooldown. This node has no size of its own.
 
+	const HudTheme := preload("res://scenes/hud/hud_theme.gd")
+	const HudTile := preload("res://scenes/hud/hud_tile.gd")
+	const AirBar := preload("res://scenes/hud/air_bar.gd")
 	const REFRESH := 0.25
 	const HINT := "HUD_HINT_STRIKE"
 
 	var main: Node3D
 	var sim_host: SimHost
-	var button: Button
+	var button: HudTile
 	## Waiting for the target click.
 	var pending := false
 	## Calls sent (self-test).
 	var calls := 0
 	var _hint: Label
 	var _refresh_left := 0.0
+	var _cooldown_full := 0.0
 
-	func setup(main_node: Node3D) -> void:
+	func setup(main_node: Node3D, column: Control, hints: Control) -> void:
 		main = main_node
 		sim_host = main.sim_host
 		name = "StrikeBar"
-		mouse_filter = Control.MOUSE_FILTER_STOP
-		var box := VBoxContainer.new()
-		add_child(box)
-		button = Button.new()
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+		button = HudTile.new("strike", AirBar.TILE_PX, true)
 		button.name = "Strike"
-		button.custom_minimum_size = Vector2(120, 40)
-		button.focus_mode = Control.FOCUS_NONE
 		button.toggle_mode = true
-		button.add_theme_font_size_override(&"font_size", MenuTheme.font(12))
 		button.pressed.connect(func() -> void: set_pending(not pending))
-		box.add_child(button)
+		column.add_child(button)
 		_hint = Label.new()
+		_hint.name = "StrikeHint"
 		_hint.text = HINT
 		_hint.visible = false
-		_hint.add_theme_font_size_override(&"font_size", MenuTheme.font(12))
+		_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		_hint.add_theme_color_override(&"font_color", Color(1, 0.95, 0.6))
-		box.add_child(_hint)
+		_hint.add_theme_color_override(&"font_outline_color", Color.BLACK)
+		_hint.add_theme_constant_override(&"outline_size", 5)
+		hints.add_child(_hint)
+		apply_scale()
 		_refresh()
+
+	func apply_scale() -> void:
+		button.apply_scale()
+		_hint.add_theme_font_size_override(&"font_size", HudTheme.font(14))
 
 	func _process(delta: float) -> void:
 		_refresh_left -= delta
@@ -430,20 +432,30 @@ class StrikeBar:
 		if sim_host == null:
 			return
 		var o: Dictionary = sim_host.strike_option()
-		# Only players who could ever call it see the bar: with a base.
+		# Only players who could ever call it see the tile: with a base.
 		visible = not o.is_empty() and o["blocked"] != "defeated" and not sim_host.structures().is_empty()
+		button.visible = visible
 		if not visible:
 			return
 		var cost: PackedInt32Array = o["cost"]
 		var blocked: String = o["blocked"]
 		var line := "%d/%d/%d" % [cost[0], cost[1], cost[2]]
+		button.footer_color = HudTheme.RED if blocked == "not enough resources" else HudTheme.GOLD
+		button.cooldown = 0.0
 		if float(o["unlock"]) > 0.0:
 			line = tr("HUD_STRIKE_UNLOCK") % [int(o["unlock"]) / 60, int(o["unlock"]) % 60]
+			button.footer_color = HudTheme.BLUE
 		elif float(o["cooldown"]) > 0.0:
+			_cooldown_full = maxf(_cooldown_full, float(o["cooldown"]))
 			line = tr("COMMON_SECONDS") % ceili(float(o["cooldown"]))
+			button.footer_color = HudTheme.BLUE
+			button.cooldown = float(o["cooldown"]) / _cooldown_full
 		elif blocked == "no rocket battery":
-			line = tr("HUD_STRIKE_NO_BATTERY")
-		button.text = tr("HUD_STRIKE_BUTTON") % line
+			line = "–"
+		else:
+			_cooldown_full = 0.0
+		button.footer = line
+		button.key_text = Settings.action_key_name("strike_rockets").replace("Shift+", "")
 		button.disabled = not blocked.is_empty()
 		var reason := Picker.blocked_text(blocked)
 		button.tooltip_text = tr("HUD_TIP_STRIKE").format({
@@ -493,8 +505,6 @@ class StrikeBar:
 			return
 		var hud: Node = main.get("hud")
 		if hud != null and hud.covers(mouse.position):
-			return
-		if get_global_rect().has_point(mouse.position):
 			return
 		if mouse.button_index == MOUSE_BUTTON_LEFT:
 			call_at(mouse.position)

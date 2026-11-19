@@ -1,17 +1,22 @@
 extends PanelContainer
-## Unit panel (prompt 031), bottom center.
+## Info field of the selection (prompts 031 and 095), bottom center; shown
+## only while something is selected, also an enemy or a building that is
+## only looked at.
 ##
-## - One unit: portrait (`unit_portrait.gd`), name, hit points, armor
-##   (hull and turret front / side / rear), weapons with caliber and range,
-##   soldiers of a squad, stance and fire mode; passengers and seats, the
-##   towed gun or the tractor (prompt 034); ammunition and fuel bars with a
-##   warning when they run low or the vehicle is immobilized (prompt 036);
-##   rank insignia, rank name, kills and an experience bar (prompt 050).
-##   Prompt 066: under the portrait the five ratings of the unit's type
+## - Header: rank insignia and name in a serif face on the left, the kind
+##   of unit with its symbol on the right. Very faint behind everything:
+##   the national marking of the unit's faction (`HudTheme.draw_emblem`).
+## - One unit: its picture (`godot/assets/thumbnails/<id>.png`; rendered
+##   live by `unit_portrait.gd` where a type has none), beside it hit points
+##   and soldiers as symbols with numbers, bars for health, ammunition, fuel
+##   and experience (prompt 036, 050; numbers in their tooltips), then
+##   armor (hull and turret front / side / rear), weapons with caliber and
+##   range, wounded men and warnings, stance, fire mode, passengers and
+##   towing (prompt 034), and the bonuses of its rank.
+##   Prompt 066: under the picture the five ratings of the unit's type
 ##   (`rating_bars.gd`: symbols with bars, the numbers in the tooltip; type
 ##   values without rank or damage), in its corner the button that opens
-##   the unit card; an own unit with a rank lists the bonuses of
-##   its rank as their own line.
+##   the unit card.
 ## - Several units: a grid of tiles with a short name, a health bar and an
 ##   ammunition bar (red when low);
 ##   click selects that unit alone, Shift + click removes it.
@@ -20,7 +25,7 @@ extends PanelContainer
 ##   "Values" (above the tiles with several units): `center_button` lets
 ##   the camera glide to the active unit, the toggle `follow_button` is the
 ##   follow mode (key C) and always shows its state.
-## - Hidden without a selection.
+## - Fades in and out (`HudTheme.fade`); `hud.gd` places it.
 
 ## The unit card of this catalog id is wanted, for unit `unit` (prompt 066).
 signal card_requested(type_id: String, unit: int)
@@ -31,13 +36,20 @@ const RatingBars := preload("res://scenes/hud/rating_bars.gd")
 const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
 const UnitPortrait := preload("res://scenes/hud/unit_portrait.gd")
 const RankBadge := preload("res://scenes/hud/rank_badge.gd")
+const HudTheme := preload("res://scenes/hud/hud_theme.gd")
+const HudIcons := preload("res://scenes/hud/hud_icons.gd")
+const Thumbnail := preload("res://scenes/hud/thumbnail.gd")
+const Picker := preload("res://scenes/hud/picker.gd")
 const UNIT_SCENE: PackedScene = preload("res://scenes/unit.tscn")
 const REFRESH := 0.2
 ## Height of the ratings strip under the portrait (prompt 066).
 const RATINGS_HEIGHT := 16
 ## Tiles shown at most; the rest is counted.
-const MAX_TILES := 40
+const MAX_TILES := 24
 const TILE_SIZE := Vector2(74, 40)
+## Width of the field and size of the picture at HUD factor 1.
+const WIDTH := 470.0
+const PICTURE := Vector2(120, 80)
 const STANCES := {-1: "", 0: "HUD_STANCE_STANDING", 1: "HUD_STANCE_KNEELING", 2: "HUD_STANCE_PRONE"}
 
 var main: Node3D
@@ -68,7 +80,17 @@ var _box: VBoxContainer
 ## Active unit the tiles show.
 var _shown_active := -1
 
+## Symbol chips of the single unit (self-test): hit points, soldiers.
+var health_chip: Chip
+var soldiers_chip: Chip
+## Kind of the single unit as the header names it (a tab id of the picker).
+var kind := ""
+
 var _portraits: UnitPortrait
+var _frame: PanelContainer
+var _kind_icon: Chip
+var _faction := ""
+var _own_faction := ""
 var _single: HBoxContainer
 var _portrait: TextureRect
 var _title: Label
@@ -92,53 +114,54 @@ func setup(main_node: Node3D) -> void:
 	main = main_node
 	sim_host = main.sim_host
 	name = "UnitPanel"
-	set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	grow_horizontal = Control.GROW_DIRECTION_BOTH
-	grow_vertical = Control.GROW_DIRECTION_BEGIN
-	offset_left = -250
-	offset_right = 250
-	offset_bottom = -8
-	offset_top = -8
-	custom_minimum_size = Vector2(500, 0)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	_portraits = UnitPortrait.new()
 	_portraits.name = "Portraits"
 	add_child(_portraits)
 	var box := VBoxContainer.new()
 	_box = box
+	box.add_theme_constant_override(&"separation", 4)
 	add_child(box)
 
+	# Header: rank insignia and name left, the kind of unit right.
+	var header := HBoxContainer.new()
+	header.add_theme_constant_override(&"separation", 6)
+	box.add_child(header)
+	_badge = RankBadge.new()
+	_badge.name = "RankBadge"
+	header.add_child(_badge)
+	_title = Label.new()
+	_title.add_theme_font_override(&"font", HudTheme.serif())
+	_title.add_theme_color_override(&"font_color", HudTheme.TEXT)
+	_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_title.clip_text = true
+	_title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	header.add_child(_title)
+	_kind_icon = Chip.new()
+	_kind_icon.color = HudTheme.TEXT_DIM
+	header.add_child(_kind_icon)
+
 	_single = HBoxContainer.new()
+	_single.add_theme_constant_override(&"separation", 8)
 	box.add_child(_single)
-	# The portrait with the five ratings of the type under it and the
-	# button to its unit card in its corner (prompt 066). Together they are
-	# as large as the portrait was: a larger panel would cover units.
+	# The picture with the five ratings of the type under it and the
+	# button to its unit card in its corner (prompt 066).
 	var picture := VBoxContainer.new()
 	picture.add_theme_constant_override(&"separation", 2)
 	_single.add_child(picture)
+	_frame = PanelContainer.new()
+	picture.add_child(_frame)
 	_portrait = TextureRect.new()
-	_portrait.custom_minimum_size = Vector2(UnitPortrait.SIZE) - Vector2(0, RATINGS_HEIGHT + 2)
 	_portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	picture.add_child(_portrait)
+	_frame.add_child(_portrait)
 	ratings = RatingBars.new(RatingBars.Layout.STRIP)
 	ratings.name = "Ratings"
-	ratings.custom_minimum_size = Vector2(UnitPortrait.SIZE.x, RATINGS_HEIGHT)
 	ratings.mouse_filter = Control.MOUSE_FILTER_PASS
 	picture.add_child(ratings)
 	card_button = Button.new()
 	card_button.name = "CardButton"
 	card_button.text = "UNIT_CARD_BUTTON"
-	card_button.focus_mode = Control.FOCUS_NONE
-	card_button.add_theme_font_size_override(&"font_size", MenuTheme.font(11))
-	var flat := StyleBoxFlat.new()
-	flat.bg_color = Color(MenuTheme.BUTTON, 0.85)
-	flat.border_color = MenuTheme.PANEL_BORDER
-	flat.set_border_width_all(1)
-	flat.set_content_margin_all(2)
-	flat.content_margin_left = 5
-	flat.content_margin_right = 5
-	card_button.add_theme_stylebox_override(&"normal", flat)
 	card_button.pressed.connect(func() -> void:
 		if _shown.size() == 1:
 			card_requested.emit(_single_type, _shown[0]))
@@ -164,43 +187,87 @@ func setup(main_node: Node3D) -> void:
 	_corner.add_child(_camera_buttons)
 	var text := VBoxContainer.new()
 	text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	text.add_theme_constant_override(&"separation", 3)
 	_single.add_child(text)
-	# Rank insignia before the name, in the same row (prompt 050).
-	var title_row := HBoxContainer.new()
-	text.add_child(title_row)
-	_badge = RankBadge.new()
-	_badge.name = "RankBadge"
-	_badge.custom_minimum_size = Vector2(18, 20)
-	title_row.add_child(_badge)
-	_title = Label.new()
-	title_row.add_child(_title)
+	# Hit points and soldiers as symbols with numbers.
+	var chips := HBoxContainer.new()
+	chips.add_theme_constant_override(&"separation", 12)
+	text.add_child(chips)
+	health_chip = Chip.new()
+	health_chip.icon_id = "health"
+	chips.add_child(health_chip)
+	soldiers_chip = Chip.new()
+	soldiers_chip.icon_id = "soldiers"
+	chips.add_child(soldiers_chip)
 	# Health, ammunition and fuel in one row, so the panel keeps its
 	# height (prompt 036).
 	var bars := HBoxContainer.new()
+	bars.add_theme_constant_override(&"separation", 4)
 	text.add_child(bars)
 	_health = ProgressBar.new()
-	_health.custom_minimum_size = Vector2(0, 14)
 	_health.show_percentage = false
 	_health.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var health_fill := StyleBoxFlat.new()
+	health_fill.bg_color = Color(0.45, 0.78, 0.4)
+	_health.add_theme_stylebox_override(&"fill", health_fill)
 	bars.add_child(_health)
 	_ammo_bar = _stock_bar(Color(0.95, 0.75, 0.25), "COMMON_RESOURCE_AMMO")
 	bars.add_child(_ammo_bar)
 	_fuel_bar = _stock_bar(Color(0.45, 0.7, 1.0), "COMMON_RESOURCE_FUEL")
 	bars.add_child(_fuel_bar)
 	_xp_bar = _stock_bar(Color(0.75, 0.68, 0.5), "HUD_EXPERIENCE")
-	_xp_bar.custom_minimum_size = Vector2(56, 14)
 	bars.add_child(_xp_bar)
 	_details = Label.new()
 	_details.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_details.add_theme_font_size_override(&"font_size", MenuTheme.font(13))
+	_details.add_theme_color_override(&"font_color", HudTheme.TEXT)
 	text.add_child(_details)
 
 	_grid = GridContainer.new()
 	_grid.columns = 6
+	_grid.add_theme_constant_override(&"h_separation", 3)
+	_grid.add_theme_constant_override(&"v_separation", 3)
 	box.add_child(_grid)
 	_more = Label.new()
 	box.add_child(_more)
 	visible = false
+	apply_scale()
+
+
+## Sizes and fonts for the HUD factor (`hud.gd` calls it when the factor
+## changed).
+func apply_scale() -> void:
+	add_theme_stylebox_override(&"panel", HudTheme.panel_box())
+	custom_minimum_size = Vector2(HudTheme.px(WIDTH), 0.0)
+	_badge.custom_minimum_size = Vector2(HudTheme.px(16), HudTheme.px(18))
+	_title.add_theme_font_size_override(&"font_size", HudTheme.font(17))
+	_kind_icon.apply_scale()
+	_frame.add_theme_stylebox_override(&"panel", HudTheme.box(Color(Thumbnail.backdrop(_single_type), 0.6), HudTheme.TILE_BORDER, 0.0))
+	_portrait.custom_minimum_size = (PICTURE * HudTheme.scale).round()
+	ratings.custom_minimum_size = Vector2(HudTheme.px(PICTURE.x), RATINGS_HEIGHT)
+	HudTheme.style_button(card_button, 11.0)
+	for chip: Chip in [health_chip, soldiers_chip]:
+		chip.apply_scale()
+	var bar_height := HudTheme.px(9)
+	_health.custom_minimum_size = Vector2(0, bar_height)
+	for bar: ProgressBar in [_ammo_bar, _fuel_bar, _xp_bar]:
+		bar.custom_minimum_size = Vector2(HudTheme.px(54), bar_height)
+	for bar: ProgressBar in [_health, _ammo_bar, _fuel_bar, _xp_bar]:
+		bar.add_theme_stylebox_override(&"background", HudTheme.box(HudTheme.TILE, HudTheme.TILE_BORDER, 0.0))
+	_details.add_theme_font_size_override(&"font_size", HudTheme.font(12))
+	_more.add_theme_font_size_override(&"font_size", HudTheme.font(12))
+	for button: CameraButton in [center_button, follow_button]:
+		button.custom_minimum_size = Vector2(HudTheme.px(22), HudTheme.px(20))
+	for tile: Control in _grid.get_children():
+		tile.custom_minimum_size = (TILE_SIZE * HudTheme.scale).round()
+	size = Vector2.ZERO
+
+
+## The faint national marking behind the content.
+func _draw() -> void:
+	var faction := _faction if not _faction.is_empty() else _own_faction
+	if not faction.is_empty():
+		var radius := minf(size.y * 0.42, HudTheme.px(64))
+		HudTheme.draw_emblem(self, faction, Vector2(size.x - radius - HudTheme.px(18), size.y * 0.5), radius, 0.055)
 
 
 func _process(delta: float) -> void:
@@ -224,9 +291,11 @@ func _process(delta: float) -> void:
 func _refresh(selected: Array[int]) -> void:
 	var changed := selected != _shown
 	_shown = selected.duplicate()
-	visible = not selected.is_empty()
+	HudTheme.fade(self, not selected.is_empty())
 	if selected.is_empty():
 		return
+	if _own_faction.is_empty():
+		_own_faction = _faction_of_player()
 	center_button.tooltip_text = tr("HUD_TIP_CENTER") % Settings.action_key_name("camera_center")
 	follow_button.tooltip_text = tr("HUD_TIP_FOLLOW") % Settings.action_key_name("camera_follow")
 	# The camera buttons sit in the portrait's corner, or above the tiles.
@@ -235,7 +304,8 @@ func _refresh(selected: Array[int]) -> void:
 		_camera_buttons.get_parent().remove_child(_camera_buttons)
 		home.add_child(_camera_buttons)
 		if home == _box:
-			_box.move_child(_camera_buttons, 0)
+			# Under the header line, above the tiles.
+			_box.move_child(_camera_buttons, 1)
 	if selected.size() == 1:
 		_single.visible = true
 		_grid.visible = false
@@ -245,6 +315,10 @@ func _refresh(selected: Array[int]) -> void:
 		return
 	_single.visible = false
 	_grid.visible = true
+	_badge.visible = false
+	_kind_icon.visible = false
+	_title.text = tr("HUD_SELECTED_N") % selected.size()
+	_set_faction("")
 	if changed:
 		_build_tiles(selected)
 	_update_tiles()
@@ -255,36 +329,56 @@ func _show_single(id: int) -> void:
 	if info.is_empty():
 		return
 	var type_id: String = info.type_id
-	_portrait.texture = _portraits.texture_for(type_id, func() -> Node3D:
-		var unit := UNIT_SCENE.instantiate() as Node3D
-		main._use_catalog_model(unit, type_id, 0)
-		var ring := unit.get_node_or_null("SelectionRing") as Node3D
-		if ring != null:
-			ring.visible = false
-		return unit)
+	var picture := Thumbnail.texture(type_id)
+	if picture == null:
+		# No rendered picture for this type: the live portrait.
+		picture = _portraits.texture_for(type_id, func() -> Node3D:
+			var unit := UNIT_SCENE.instantiate() as Node3D
+			main._use_catalog_model(unit, type_id, 0)
+			var ring := unit.get_node_or_null("SelectionRing") as Node3D
+			if ring != null:
+				ring.visible = false
+			return unit)
+	_portrait.texture = picture
 	_title.text = info.name
 	if type_id != _single_type or ratings.tooltip_text.is_empty():
 		_single_type = type_id
+		_frame.add_theme_stylebox_override(&"panel", HudTheme.box(Color(Thumbnail.backdrop(type_id), 0.6), HudTheme.TILE_BORDER, 0.0))
+		kind = Picker.tab_of({"id": type_id, "structure": main.selection.is_structure.call(id)})
+		_kind_icon.icon_id = "kind_" + kind
+		for spec: Array in Picker.TABS:
+			if spec[0] == kind:
+				_kind_icon.text = tr(spec[1])
 		ratings.ratings = UnitStats.ratings(type_id)
 		ratings.tooltip_text = UnitStats.ratings_line(type_id)
 		card_button.tooltip_text = tr("UNIT_CARD_BUTTON_TIP") % Settings.action_key_name("unit_card")
+	_set_faction(HudTheme.faction_of(type_id))
+	_kind_icon.visible = true
 	_show_rank(id, type_id)
 	_health.max_value = maxi(int(info.max_hp), 1)
 	_health.value = int(info.hp)
 	var lines: Array[String] = []
-	var hp_line := tr("HUD_HIT_POINTS") % [info.hp, info.max_hp]
+	# Hit points and soldiers as symbols with numbers; the words are in
+	# their tooltips.
+	health_chip.text = "%d / %d" % [info.hp, info.max_hp]
+	health_chip.tooltip_text = tr("HUD_HIT_POINTS") % [info.hp, info.max_hp]
+	_health.tooltip_text = health_chip.tooltip_text
+	soldiers_chip.visible = info.has("soldiers")
+	var notes: Array[String] = []
 	if info.has("soldiers"):
-		hp_line += "   ·   " + tr("HUD_SOLDIERS") % [info.soldiers, info.squad_size]
+		soldiers_chip.text = "%d / %d" % [info.soldiers, info.squad_size]
+		soldiers_chip.tooltip_text = tr("HUD_SOLDIERS") % [info.soldiers, info.squad_size]
 		# Prompt 049: lightly / heavily wounded (untreated) men.
 		var wounded: Vector2i = sim_host.unit_wounded_counts().get(id, Vector2i.ZERO)
 		if wounded != Vector2i.ZERO:
-			hp_line += "   ·   " + tr("HUD_WOUNDED") % [wounded.x, wounded.y]
-	# Only warnings, on the same line, so the panel keeps its height; the
-	# bars carry the percentages in their tooltips.
+			notes.append(tr("HUD_WOUNDED") % [wounded.x, wounded.y])
+	# Only warnings and wounded men get a line of their own; the bars carry
+	# the percentages in their tooltips.
 	var warning := _supply_warning(id)
 	if not warning.is_empty():
-		hp_line += "   ·   " + warning
-	lines.append(hp_line)
+		notes.append(warning)
+	if not notes.is_empty():
+		lines.append("   ·   ".join(notes))
 	var hull: PackedInt64Array = info.armor_hull
 	var turret: PackedInt64Array = info.armor_turret
 	if hull.size() == 3 and hull[0] > 0:
@@ -382,10 +476,28 @@ func _transport_line(id: int, index: int) -> String:
 	return ", ".join(parts)
 
 
+## The faction whose marking lies behind the content.
+func _set_faction(faction: String) -> void:
+	if faction != _faction:
+		_faction = faction
+		queue_redraw()
+
+
+## Faction of the local player: of its first unit with a faction in its id
+## (base buildings have none).
+func _faction_of_player() -> String:
+	var owners := sim_host.unit_owners()
+	var types := sim_host.unit_type_ids()
+	var me := sim_host.local_player()
+	for i in owners.size():
+		if owners[i] == me and not HudTheme.faction_of(types[i]).is_empty():
+			return HudTheme.faction_of(types[i])
+	return ""
+
+
 ## A thin bar for a stock (prompt 036).
 func _stock_bar(color: Color, tip: String) -> ProgressBar:
 	var bar := ProgressBar.new()
-	bar.custom_minimum_size = Vector2(70, 14)
 	bar.show_percentage = false
 	bar.max_value = 100
 	bar.tooltip_text = tip
@@ -438,7 +550,7 @@ func _build_tiles(selected: Array[int]) -> void:
 	for id: int in selected.slice(0, MAX_TILES):
 		var index := ids.find(id)
 		var tile := Tile.new()
-		tile.custom_minimum_size = TILE_SIZE
+		tile.custom_minimum_size = (TILE_SIZE * HudTheme.scale).round()
 		tile.unit = id
 		tile.label = _short_name(types[index] if index >= 0 else "")
 		tile.faction = (types[index] if index >= 0 else "").get_slice("_", 0)
@@ -506,6 +618,39 @@ static func _short_name(type_id: String) -> String:
 	return " ".join(parts).to_upper().left(12)
 
 
+## A symbol with a short text beside it (hit points, soldiers, the kind of
+## unit): drawn, so it needs no picture file.
+class Chip:
+	extends Control
+
+	var icon_id := "":
+		set(value):
+			icon_id = value
+			queue_redraw()
+	var text := "":
+		set(value):
+			if text != value:
+				text = value
+				apply_scale()
+	var color := HudTheme.TEXT
+
+	func _init() -> void:
+		mouse_filter = Control.MOUSE_FILTER_PASS
+
+	func apply_scale() -> void:
+		var font_size := HudTheme.font(13)
+		var width := ThemeDB.fallback_font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
+		custom_minimum_size = Vector2(HudTheme.px(18) + 4.0 + ceilf(width), HudTheme.px(18))
+		queue_redraw()
+
+	func _draw() -> void:
+		var side := HudTheme.px(16)
+		HudIcons.draw(self, icon_id, Rect2(0.0, (size.y - side) * 0.5, side, side), color, maxf(1.4 * HudTheme.scale, 1.1))
+		var font_size := HudTheme.font(13)
+		draw_string(ThemeDB.fallback_font, Vector2(HudTheme.px(18) + 4.0, size.y * 0.5 + font_size * 0.36), text,
+			HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, color)
+
+
 ## A small camera button of the panel (prompt 094): a drawn symbol instead
 ## of text. Center: a ring with four marks; follow (a toggle): a dot in a
 ## frame of four corners, bright on an accent ground while it is on.
@@ -516,17 +661,16 @@ class CameraButton:
 
 	func _init() -> void:
 		focus_mode = Control.FOCUS_NONE
-		custom_minimum_size = Vector2(MenuTheme.font(22), MenuTheme.font(20))
 		for state: StringName in [&"normal", &"hover", &"pressed", &"hover_pressed", &"disabled"]:
 			var flat := StyleBoxFlat.new()
 			var on := state == &"pressed" or state == &"hover_pressed"
-			flat.bg_color = Color(MenuTheme.ACCENT.darkened(0.45) if on else (MenuTheme.BUTTON_HOVER if state == &"hover" else MenuTheme.BUTTON), 0.85)
-			flat.border_color = MenuTheme.ACCENT if on else MenuTheme.PANEL_BORDER
+			flat.bg_color = HudTheme.TILE_ON if on else (HudTheme.TILE_HOVER if state == &"hover" else HudTheme.TILE)
+			flat.border_color = HudTheme.GOLD if on else HudTheme.TILE_BORDER
 			flat.set_border_width_all(1)
 			add_theme_stylebox_override(state, flat)
 
 	func _draw() -> void:
-		var color := MenuTheme.TEXT_DIM.darkened(0.3) if disabled else (MenuTheme.ACCENT.lightened(0.3) if button_pressed else MenuTheme.TEXT)
+		var color := MenuTheme.TEXT_DIM.darkened(0.3) if disabled else (HudTheme.GOLD.lightened(0.3) if button_pressed else MenuTheme.TEXT)
 		var middle := size * 0.5
 		var r := minf(size.x, size.y) * 0.5 - 4.0
 		if follow:
@@ -571,13 +715,14 @@ class Tile:
 
 	func _draw() -> void:
 		var rect := Rect2(Vector2.ZERO, size)
-		draw_rect(rect, Color(0.12, 0.13, 0.11, 0.9))
+		draw_rect(rect, HudTheme.TILE)
 		if active:
 			draw_rect(rect.grow(-1.0), Color(1.0, 0.9, 0.45), false, 2.0)
 		else:
-			draw_rect(rect, Color(0.5, 0.55, 0.45, 0.8), false, 1.0)
+			draw_rect(rect.grow(-0.5), HudTheme.TILE_BORDER, false, 1.0)
 		var room := size.x - (20 if rank > 0 else 8)
-		draw_string(ThemeDB.fallback_font, Vector2(4, 17), label, HORIZONTAL_ALIGNMENT_LEFT, room, 12)
+		var font_size := HudTheme.font(12)
+		draw_string(ThemeDB.fallback_font, Vector2(4, 5 + font_size), label, HORIZONTAL_ALIGNMENT_LEFT, room, font_size)
 		if rank > 0:
 			RankBadge.draw_badge(self, Rect2(size.x - 13, 3, 10, 12), faction, rank)
 		var bar := Rect2(4, size.y - 10, size.x - 8, 5)

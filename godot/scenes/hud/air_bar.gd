@@ -1,24 +1,30 @@
-extends PanelContainer
-## Air support call bar (prompt 033), docked above the command bar.
+extends Control
+## Air support calls (prompts 033 and 095): one square tile per mission in
+## the support column at the right edge (`hud.support`), under the
+## resources. This node itself has no size; it owns the tiles, the keys and
+## the target click.
 ##
-## One button per mission with its price and cooldown (`SimHost.air_options`).
-## A button (or its key, Shift + 1…5 by default) waits for a left click on the map, which calls
-## the mission there (`SimHost.call_air`); right click or Escape cancels.
+## A tile shows the mission's symbol, under it the price (gold: fuel /
+## ammunition / manpower) or the seconds left (blue), and a dark sector
+## while it cools down; it is greyed while the call is blocked
+## (`SimHost.air_options`). A tile (or its key, Shift + 1…5 by default)
+## waits for a left click on the map, which calls the mission there
+## (`SimHost.call_air`); right click or Escape cancels. The hint line shows
+## only while a target is picked (`hud.hints`).
 ## Dragging instead of clicking (prompt 055) aims along the line
 ## (`SimHost.call_air_line`): the aircraft fly from its start to its end,
 ## bombers lay a carpet over it (at most `air_carpet_max_m`), transports
 ## drop their paratroopers along it.
-## Size and folding (prompt 092): buttons with larger text that shrink
-## on a narrow window; the title folds the buttons away (setting
-## `hud_air_open`). Folded, the keys still call, and the hint shows.
 ## Presentation only: the simulation checks cooldown and price again.
-## [provisional] keys and layout.
 
-const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
+const HudTheme := preload("res://scenes/hud/hud_theme.gd")
+const HudTile := preload("res://scenes/hud/hud_tile.gd")
 const GroundPick := preload("res://scenes/camera/ground_pick.gd")
 const Picker := preload("res://scenes/hud/picker.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
 const REFRESH := 0.2
+## Side of a support tile at HUD factor 1.
+const TILE_PX := 56.0
 const MISSIONS: Array[Array] = [
 	["recon", "HUD_AIR_RECON"],
 	["strafe", "HUD_AIR_STRAFE"],
@@ -34,93 +40,52 @@ var main: Node3D
 var sim_host: SimHost
 ## Mission waiting for its target click ("" = none).
 var pending := ""
-## Button per mission (self-test).
+## Tile per mission (self-test).
 var buttons: Dictionary[String, Button] = {}
 ## Calls sent (self-test).
 var calls := 0
 
-## Title that folds the buttons (self-test).
-var fold_button: Button
-
 var _refresh_left := 0.0
 var _hint: Label
-var _fit := 0.0
 ## Ground point where a drag started (null: none).
 var _drag_from: Variant = null
 var _options: Dictionary = {}
-var _open := true
+## Longest cooldown seen per mission, the full circle of its sector.
+var _cooldown_full: Dictionary[String, float] = {}
 
 
-func setup(main_node: Node3D) -> void:
+## `column` takes the tiles (the support column of the HUD), `hints` the
+## hint line.
+func setup(main_node: Node3D, column: Control, hints: Control) -> void:
 	main = main_node
 	sim_host = main.sim_host
 	name = "AirBar"
-	mouse_filter = Control.MOUSE_FILTER_STOP
-	var box := VBoxContainer.new()
-	add_child(box)
-	var row := HBoxContainer.new()
-	box.add_child(row)
-	fold_button = Button.new()
-	fold_button.name = "Fold"
-	fold_button.flat = true
-	fold_button.focus_mode = Control.FOCUS_NONE
-	fold_button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	fold_button.tooltip_text = "HUD_TIP_FOLD"
-	fold_button.pressed.connect(func() -> void: set_open(not is_open()))
-	row.add_child(fold_button)
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	for k in MISSIONS.size():
 		var spec: Array = MISSIONS[k]
-		var b := Button.new()
+		var b := HudTile.new("air_" + str(spec[0]), TILE_PX, true)
 		b.name = "Air_" + spec[0]
-		b.focus_mode = Control.FOCUS_NONE
 		b.toggle_mode = true
 		b.pressed.connect(_on_button.bind(spec[0]))
-		row.add_child(b)
+		column.add_child(b)
 		buttons[spec[0]] = b
 	_hint = Label.new()
+	_hint.name = "AirHint"
 	_hint.text = HINT
 	_hint.visible = false
+	_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_hint.add_theme_color_override(&"font_color", Color(1, 0.95, 0.6))
-	box.add_child(_hint)
-	_open = Settings.get_value("hud_air_open")
+	_hint.add_theme_color_override(&"font_outline_color", Color.BLACK)
+	_hint.add_theme_constant_override(&"outline_size", 5)
+	hints.add_child(_hint)
+	apply_scale()
 	_refresh()
-	set_open(_open, false)
 
 
-## Whether the mission buttons are folded open.
-func is_open() -> bool:
-	return _open
-
-
-## Folds the mission buttons open or away; `remember` keeps it in the
-## settings.
-func set_open(open: bool, remember := true) -> void:
-	_open = open
+func apply_scale() -> void:
 	for m: String in buttons:
-		buttons[m].visible = open
-	fold_button.text = ("▾ " if open else "▸ ") + tr("HUD_TAB_AIR")
-	if remember and Settings.get_value("hud_air_open") != open:
-		Settings.set_value("hud_air_open", open)
-		Settings.save_file()
-
-
-func _notification(what: int) -> void:
-	if what == NOTIFICATION_TRANSLATION_CHANGED and fold_button != null:
-		set_open(_open, false)
-
-
-## Button sizes and fonts for the window width and the font size setting.
-func _fit_size() -> void:
-	var fit := MenuTheme.hud_fit(get_viewport_rect().size.x) if is_inside_tree() else 1.0
-	var signature := fit * 1000.0 + MenuTheme.font_scale
-	if is_equal_approx(signature, _fit):
-		return
-	_fit = signature
-	var text := roundi(MenuTheme.HUD_FONT * fit)
-	for m: String in buttons:
-		MenuTheme.style_hud_button(buttons[m], fit, Vector2(100, 50))
-	fold_button.add_theme_font_size_override(&"font_size", MenuTheme.font(text))
-	_hint.add_theme_font_size_override(&"font_size", MenuTheme.font(text))
+		(buttons[m] as HudTile).apply_scale()
+	_hint.add_theme_font_size_override(&"font_size", HudTheme.font(14))
 
 
 func _process(delta: float) -> void:
@@ -133,30 +98,43 @@ func _process(delta: float) -> void:
 func _refresh() -> void:
 	if sim_host == null:
 		return
-	_fit_size()
 	_options.clear()
 	for o: Dictionary in sim_host.air_options():
 		_options[o["mission"]] = o
 	visible = not _options.is_empty()
 	for k in MISSIONS.size():
 		var spec: Array = MISSIONS[k]
-		var b: Button = buttons[spec[0]]
-		var o: Dictionary = _options.get(spec[0], {})
+		var mission: String = spec[0]
+		var b: HudTile = buttons[mission]
+		var o: Dictionary = _options.get(mission, {})
+		b.visible = visible
 		if o.is_empty():
 			b.disabled = true
+			b.footer = ""
+			b.cooldown = 0.0
 			continue
 		var cost: PackedInt32Array = o["cost"]
 		var cooldown: float = o["cooldown"]
 		var blocked: String = o["blocked"]
-		b.text = "%s\n%s" % [tr(spec[1]), (tr("COMMON_SECONDS") % ceili(cooldown)) if cooldown > 0.0 else "%d/%d/%d" % [cost[0], cost[1], cost[2]]]
+		if cooldown > 0.0:
+			_cooldown_full[mission] = maxf(_cooldown_full.get(mission, 0.0), cooldown)
+			b.footer = tr("COMMON_SECONDS") % ceili(cooldown)
+			b.footer_color = HudTheme.BLUE
+			b.cooldown = cooldown / _cooldown_full[mission]
+		else:
+			_cooldown_full.erase(mission)
+			b.footer = "%d/%d/%d" % [cost[0], cost[1], cost[2]]
+			b.footer_color = HudTheme.RED if blocked == "not enough resources" else HudTheme.GOLD
+			b.cooldown = 0.0
+		b.key_text = Settings.action_key_name("air_" + mission).replace("Shift+", "")
 		b.disabled = not blocked.is_empty()
 		var reason := Picker.blocked_text(blocked)
 		b.tooltip_text = tr("HUD_TIP_AIR").format({
-			"mission": tr(spec[1]), "key": Settings.action_key_name("air_" + str(spec[0])),
+			"mission": tr(spec[1]), "key": Settings.action_key_name("air_" + mission),
 			"aircraft": str(o.get("aircraft_name", "")) if str(o["aircraft"]) != "" else tr("HUD_BLOCKED_NO_AIRCRAFT"),
 			"fuel": cost[0], "ammo": cost[1], "manpower": cost[2]}) \
 			+ ("" if reason.is_empty() else "\n" + reason[0].to_upper() + reason.substr(1))
-		b.set_pressed_no_signal(pending == spec[0])
+		b.set_pressed_no_signal(pending == mission)
 	if not pending.is_empty() and buttons[pending].disabled:
 		set_pending("")
 

@@ -3,31 +3,34 @@ extends Control
 ## production of the selected building and its rally point. Presentation
 ## only: every order goes to `SimHost`, which checks it again.
 ##
-## - The resource bar shows fuel, ammunition and manpower with the income
-##   per minute.
-## - The build menu (bottom left) lists what the player can build with its
+## - The stocks of fuel, ammunition and manpower show in the top bar of the
+##   match HUD (`hud/top_bar.gd`, prompt 095), which also has the button
+##   that opens the build menu.
+## - The build menu lists what the player can build with its
 ##   price; a greyed-out button says why not. Clicking one starts the
 ##   placement: a box of the building's size follows the mouse, green where
 ##   the simulation would accept it, red otherwise (the reason is shown).
 ##   Left click places it (Shift keeps placing), right click or Esc cancels.
 ## - With one own producing building selected, the production bar shows
-##   what it makes, the queue with the progress of the first order, and a
-##   button that cancels the last order (full refund). Right click on the
-##   ground sets the building's rally point.
-## - Prompt 036: with one own building or construction site selected, the
-##   bar has "Repair" (start / stop, paid while it runs) and "Sell" (a
-##   site: "Cancel site"); see docs/GAME_DESIGN.md "Supply and repair".
+##   what it makes and the queue with the progress of the first order.
+##   Right click on the ground sets the building's rally point.
+## - Prompt 036: with one own building or construction site selected it can
+##   be repaired (start / stop, paid while it runs) and sold (a site:
+##   cancelled); see docs/GAME_DESIGN.md "Supply and repair".
+## - Prompt 095: both panels sit in the dock above the order grid
+##   (`hud.gd`); while the build menu is open it takes the place of the
+##   production bar. "Repair", "Sell" and "Cancel last" are tiles of the
+##   order grid (`command_bar.gd`, page "building"), which calls
+##   `toggle_repair`, `sell`, `cancel_last` and reads `service_state`.
 ##
 ## Hidden in matches without base building. Created by `main.gd` in the HUD.
-## Prompt 031: the command bar docks the build menu and the production bar
-## (`dock_into`); its "Build" button opens the build menu.
 ## Prompt 058: both show picture tiles in tabs (`hud/picker.gd`); Alt + 1…0
 ## picks a tile of the production bar if it shows, else of the build menu.
 
 const GroundPick := preload("res://scenes/camera/ground_pick.gd")
 const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
 const Picker := preload("res://scenes/hud/picker.gd")
-const RESOURCE_NAMES := ["COMMON_RESOURCE_FUEL", "COMMON_RESOURCE_AMMO", "COMMON_RESOURCE_MANPOWER"]
+const HudTheme := preload("res://scenes/hud/hud_theme.gd")
 const OK_COLOR := Color(0.3, 0.9, 0.35, 0.45)
 const BAD_COLOR := Color(0.95, 0.25, 0.2, 0.45)
 const GHOST_HEIGHT := 4.0
@@ -46,7 +49,6 @@ var production_building := -1
 ## The own building the Repair and Sell buttons act on (prompt 036), or -1.
 var service_building := -1
 
-var _resources: Label
 var _build_panel: PanelContainer
 var _production_panel: PanelContainer
 var _production_box: VBoxContainer
@@ -54,9 +56,6 @@ var _production_box: VBoxContainer
 var build_picker: Picker
 var production_picker: Picker
 var _queue_label: Label
-var _cancel: Button
-var _repair: Button
-var _sell: Button
 var _hint: Label
 var _ghost: MeshInstance3D
 var _ghost_material: StandardMaterial3D
@@ -73,16 +72,6 @@ func setup(main_node: Node3D, view: Node) -> void:
 	theme = MenuTheme.get_theme()
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-
-	var top := PanelContainer.new()
-	top.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	top.offset_left = -330
-	top.offset_right = 330
-	top.offset_top = 6
-	_resources = Label.new()
-	_resources.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	top.add_child(_resources)
-	add_child(top)
 
 	_build_panel = PanelContainer.new()
 	_build_panel.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
@@ -113,41 +102,20 @@ func setup(main_node: Node3D, view: Node) -> void:
 			sim_host.produce(production_building, o.type))
 	_production_box.add_child(production_picker)
 	_queue_label = Label.new()
-	_queue_label.add_theme_font_size_override(&"font_size", MenuTheme.font(13))
 	_queue_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_production_box.add_child(_queue_label)
-	_cancel = Button.new()
-	_cancel.text = "HUD_CANCEL_LAST"
-	_cancel.add_theme_font_size_override(&"font_size", MenuTheme.font(13))
-	_cancel.pressed.connect(func() -> void:
-		if production_building >= 0:
-			sim_host.cancel_production(production_building))
-	_production_box.add_child(_cancel)
-	var service := HBoxContainer.new()
-	_production_box.add_child(service)
-	_repair = Button.new()
-	_repair.text = "HUD_REPAIR"
-	_repair.tooltip_text = "HUD_TIP_REPAIR"
-	_repair.pressed.connect(func() -> void:
-		if service_building >= 0:
-			sim_host.repair_building(service_building))
-	service.add_child(_repair)
-	_sell = Button.new()
-	_sell.text = "HUD_SELL"
-	_sell.pressed.connect(func() -> void:
-		if service_building >= 0:
-			sim_host.sell_building(service_building)
-			main.selection.set_selection([]))
-	service.add_child(_sell)
 	_production_panel.visible = false
 	add_child(_production_panel)
 
 	_hint = Label.new()
+	_hint.name = "BuildHint"
 	_hint.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	_hint.offset_left = -300
 	_hint.offset_right = 300
 	_hint.offset_top = 46
 	_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_hint.add_theme_color_override(&"font_outline_color", Color.BLACK)
+	_hint.add_theme_constant_override(&"outline_size", 5)
 	add_child(_hint)
 
 	_ghost = MeshInstance3D.new()
@@ -172,17 +140,72 @@ func _process(delta: float) -> void:
 		_update_ghost(get_viewport().get_mouse_position())
 
 
-## Moves the build menu and the production bar into `dock` (the command
-## bar, prompt 031); `bar.build_menu_open()` decides whether the build menu
-## shows.
-func dock_into(dock: Control, bar: Node) -> void:
+## Moves the build menu and the production bar into `dock` (above the
+## order grid) and the placement hint into `hints`;
+## `bar.build_menu_open()` decides whether the build menu shows.
+func dock_into(dock: Control, bar: Node, hints: Control = null) -> void:
 	_command_bar = bar
 	for panel: Control in [_production_panel, _build_panel]:
 		remove_child(panel)
 		panel.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
 		panel.grow_vertical = Control.GROW_DIRECTION_END
 		dock.add_child(panel)
+	if hints != null:
+		remove_child(_hint)
+		hints.add_child(_hint)
+	apply_scale()
 	_refresh()
+
+
+## Look and sizes for the HUD factor (`hud.gd` calls it when it changed).
+func apply_scale() -> void:
+	for panel: Control in [_production_panel, _build_panel]:
+		panel.add_theme_stylebox_override(&"panel", HudTheme.panel_box())
+	_queue_label.add_theme_font_size_override(&"font_size", HudTheme.font(12))
+	_hint.add_theme_font_size_override(&"font_size", HudTheme.font(14))
+
+
+## Starts or stops the repair of the selected own building (prompt 036).
+func toggle_repair() -> void:
+	if service_building >= 0:
+		sim_host.repair_building(service_building)
+
+
+## Sells the selected own building (a site: cancels it).
+func sell() -> void:
+	if service_building >= 0:
+		sim_host.sell_building(service_building)
+		main.selection.set_selection([])
+
+
+## Cancels the last order of the production queue (full refund).
+func cancel_last() -> void:
+	if production_building >= 0:
+		sim_host.cancel_production(production_building)
+
+
+## What the order grid shows for the selected own building: whether there
+## is one to serve (`service`) or to cancel orders of (`production`),
+## `site`, `repairing`, `can_repair`, `can_cancel`.
+func service_state() -> Dictionary:
+	var state := {"service": service_building >= 0, "production": production_building >= 0,
+		"site": false, "repairing": false, "can_repair": false, "can_cancel": false}
+	if production_building >= 0:
+		var queue: PackedInt32Array = base_view.structures[production_building].queue
+		state.can_cancel = not queue.is_empty()
+	if service_building < 0:
+		return state
+	var s: Dictionary = base_view.structures.get(service_building, {})
+	state.site = float(s.get("built", 1.0)) < 1.0
+	var hp := 0
+	var max_hp := 1
+	if sim_host.unit_ids().find(service_building) >= 0:
+		var info := sim_host.unit_info(service_building)
+		hp = int(info.get("hp", 0))
+		max_hp = maxi(int(info.get("max_hp", 1)), 1)
+	state.repairing = sim_host.building_repairing(service_building)
+	state.can_repair = not state.site and (hp < max_hp or state.repairing)
+	return state
 
 
 ## Rebuilds the panels now (the command bar opened the build menu).
@@ -289,12 +312,6 @@ func _refresh() -> void:
 		_production_panel.visible = _production_panel.visible and _enabled
 	if not _enabled:
 		return
-	var income: PackedInt64Array = state.income
-	var parts: Array[String] = []
-	for i in 3:
-		var key: String = ["fuel", "ammo", "manpower"][i]
-		parts.append(tr("HUD_RESOURCE_AMOUNT") % [tr(RESOURCE_NAMES[i]), state[key], income[i]])
-	_resources.text = "    ".join(parts)
 	# Own construction sites per type, and the progress of the furthest.
 	var sites := {}
 	var site_progress := {}
@@ -318,10 +335,8 @@ func _refresh_production() -> void:
 			production_building = id
 			break
 	service_building = own[0] if own.size() == 1 and main.selection.selected.size() == 1 else -1
-	_production_panel.visible = production_building >= 0 or service_building >= 0
-	_refresh_service()
-	for part: Control in [production_picker, _queue_label, _cancel]:
-		part.visible = production_building >= 0
+	# The open build menu takes the place of the production bar.
+	_production_panel.visible = production_building >= 0 and not _build_panel.visible
 	if production_building < 0:
 		return
 	var s: Dictionary = base_view.structures[production_building]
@@ -340,25 +355,3 @@ func _refresh_production() -> void:
 	if float(s.built) < 1.0:
 		names = [tr("HUD_UNDER_CONSTRUCTION") % int(float(s.built) * 100.0)]
 	_queue_label.text = tr("HUD_QUEUE") % (", ".join(names) if not names.is_empty() else tr("HUD_QUEUE_EMPTY"))
-	_cancel.disabled = queue.is_empty()
-
-
-## Repair and Sell of the selected own building (prompt 036).
-func _refresh_service() -> void:
-	_repair.get_parent().visible = service_building >= 0
-	if service_building < 0:
-		return
-	var s: Dictionary = base_view.structures.get(service_building, {})
-	var site := float(s.get("built", 1.0)) < 1.0
-	_sell.text = tr("HUD_CANCEL_SITE") if site else tr("HUD_SELL")
-	_sell.tooltip_text = tr("HUD_TIP_CANCEL_SITE") if site else tr("HUD_TIP_SELL")
-	var hp := 0
-	var max_hp := 1
-	var index := sim_host.unit_ids().find(service_building)
-	if index >= 0:
-		var info := sim_host.unit_info(service_building)
-		hp = int(info.get("hp", 0))
-		max_hp = maxi(int(info.get("max_hp", 1)), 1)
-	var repairing := sim_host.building_repairing(service_building)
-	_repair.text = tr("HUD_STOP_REPAIR") if repairing else tr("HUD_REPAIR")
-	_repair.disabled = site or (hp >= max_hp and not repairing)

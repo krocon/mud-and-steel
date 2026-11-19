@@ -98,6 +98,20 @@ func open_pause() -> void:
 	resume_button.grab_focus()
 
 
+## Opens the pause menu on the settings page that lists the keys (the "?"
+## of the match HUD, prompt 095).
+func open_controls() -> void:
+	open_pause()
+	if not pause_panel.visible:
+		return
+	pause_panel.visible = false
+	settings_panel.visible = true
+	for tabs: TabContainer in settings_panel.find_children("", "TabContainer", true, false):
+		for i in tabs.get_tab_count():
+			if tabs.get_child(i).name == &"SET_TAB_CONTROLS":
+				tabs.current_tab = i
+
+
 func close_pause() -> void:
 	pause_panel.visible = false
 	settings_panel.visible = false
