@@ -51,6 +51,14 @@ void vertex() {
 // Paint of plaster walls (prompt 056): whitewash, cream, pale yellow, light
 // ochre, pale pink, light grey-green, grey (a palette of rural Central
 // European houses, judgement values).
+// Wall colors in the desert (prompt 089): sun-dried mud brick and mud
+// plaster in the tones of the sand, a few houses whitewashed.
+vec3 plaster_mud(float seed) {
+	vec3 c[6] = {vec3(0.55, 0.26, 0.105), vec3(0.62, 0.32, 0.13), vec3(0.47, 0.22, 0.09),
+		vec3(0.66, 0.37, 0.165), vec3(0.58, 0.30, 0.14), vec3(0.78, 0.66, 0.48)};
+	return c[int(floor(seed * 6.0)) % 6];
+}
+
 vec3 plaster_paint(float seed) {
 	vec3 c[7] = {vec3(0.88, 0.87, 0.83), vec3(0.84, 0.79, 0.66), vec3(0.86, 0.78, 0.52),
 		vec3(0.78, 0.62, 0.40), vec3(0.84, 0.70, 0.64), vec3(0.70, 0.74, 0.66), vec3(0.66, 0.66, 0.63)};
@@ -272,6 +280,9 @@ void fragment() {
 		} else {
 			base *= 0.9 + 0.2 * fract(v_seed * 5.31);
 		}
+		if (env_dust > 0.0) {
+			base = mix(base, plaster_mud(fract(v_seed * 7.13)), clamp(env_dust / 0.45, 0.0, 1.0));
+		}
 		albedo = base * (0.88 + 0.16 * big) * (0.95 + 0.1 * grain);
 		// grime rising from the ground
 		float h = vc.b * 4.0;
@@ -335,7 +346,7 @@ void fragment() {
 		float dust = env_dust * (0.35 + 0.65 * max(wn.y, 0.0)) * (0.6 + 0.4 * grain);
 		// grown rock takes its desert color from the tint, less dust
 		dust *= slot == 16 ? 0.45 : 1.0;
-		albedo = mix(albedo, vec3(0.70, 0.62, 0.46), clamp(dust, 0.0, 0.7));
+		albedo = mix(albedo, vec3(0.70, 0.38, 0.15), clamp(dust, 0.0, 0.7));
 		if (snow_roof < 0) {
 			albedo = snow_cover(albedo, rough, normalize(v_rest_normal), p, env_snow);
 		}

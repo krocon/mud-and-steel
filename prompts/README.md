@@ -208,6 +208,12 @@ Zeichnungen bleiben Referenz auf dem Rechner.
 |-----|--------|------|--------|
 | 088 | [Zehn Karten nach Bildvorlagen, mit Feldern](done/088-karten-nach-bildvorlagen.md) | Aus jedem der zehn Bilder in `docs/.vorlagen/_todo/maps/` eine spielbare Karte: je Karte eine Skizze `data/map_sketches/<name>.toml` (Flüsse, Küsten, Straßen, Bahn, Wald, Felder, Siedlungen, Höhen, Starts), daraus `just gen-sketch <name>`; drei neue Geländearten `field_grain`, `field_green`, `field_ploughed` (Regeln wie Gras, Golden Hash ändert sich bewusst) mit Reihen, Halmen, Furchen und Winterfassung; weitere Bausteine nur bei Bedarf (Gleis, lange Brücken, Baracken, Turm); Gerechtigkeit gemessen über `just map-reach`; drei Stufen ohne Halt, selbständig; nicht gleichzeitig mit 085 | erledigt (`just gen-sketch` mit Skizzen in `data/map_sketches/`, Feldarten 9–11 mit Shader und Editor, Golden Hashes neu; alle zehn Karten `river_fields`, `river_fields_winter`, `river_fork`, `island_chain`, `desert_lagoon`, `winter_town`, `river_town`, `valley_fields`, `river_valley`, `river_city` im Menü, `map-check`/`map-reach` grün, Vergleichsbilder in `build/sketch-compare/`; Generator lernte Bahn, Ruinendorf, Meer/Buchten/Dämme/Untiefen, Straßenbebauung, Feldflur-Raster; Entscheidungen vorläufig; offen: Schienen, lange Brücken, Turmmodelle, Getreidehalme, Flimmermessung, Tickzeit je Karte, Wald unter 60 FPS; Panzer-Hänger an Brücken und Furten nachträglich behoben in 86c952b) |
 
+### Außer der Reihe: Wüste (089)
+
+| Nr. | Prompt | Ziel | Status |
+|-----|--------|------|--------|
+| 089 | [Wüste mit Gebäuden und Palmen nach Bildvorlage](done/089-wueste.md) | Gebäude und Wüstenlandschaft mit Palmen wie in der Vorlage `done/089-img.png`: orangefarbener Sand, Lehmhäuser und Hofmauern im Ton des Sandes, grüne Palmen | erledigt (nur Darstellung: Sand-Tönung, Dunst und Sättigung in `desert.tres`; `plaster_mud` färbt Putz in der Wüste als Lehm, jedes sechste Haus bleibt gekalkt, Staub in Sandfarbe; Palmwedel dichter und grün trotz Trockenheit; Palmen-Thumbnail neu; Vorher/Nachher in `build/089/`, Shots `survey_desert_houses`, `survey_desert_oasis`; offen: antike Säulenruine als neues Objekt, niedrigere Palmen mit dickerem Stamm, Dünenkämme im Gelände) |
+
 ### Außer der Reihe: Darstellung (090, 091)
 
 | Nr. | Prompt | Ziel | Status |

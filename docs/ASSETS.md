@@ -493,7 +493,11 @@ biome variants cost nothing.
 - **Biomes**: `EnvLook.apply(model, biome, paint)` sets the instance uniforms
   `env_foliage`, `env_dry`, `env_snow`, `env_dust`, `env_paint`: green
   forest, dry olive desert with dust, winter with snow on upward faces and on
-  needles. The leafless `Bare` oak is the winter variant of deciduous trees.
+  needles. In the desert (prompt 089) the `Plaster` slot turns to mud brick
+  in the tones of the sand (`plaster_mud` in `env.gdshader`, one house in
+  six stays whitewashed), the dust has the sand's color, and palm fronds
+  keep a fresh green that the dryness hardly touches. Shader colors are
+  linear: pick them from sRGB targets, not by eye. The leafless `Bare` oak is the winter variant of deciduous trees.
   Military objects use `Paint`; pass a faction palette base color as `paint`.
 - **Every world shader includes `cloud_shadow.gdshaderinc`** (prompt 087)
   and starts its `fragment()` with `CLOUD_FRAGMENT(<its SPECULAR>)`; shaders

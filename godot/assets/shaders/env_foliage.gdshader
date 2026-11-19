@@ -124,10 +124,12 @@ void fragment() {
 		float side = abs(uv.x - 0.5) * 2.0;
 		float width = sin(3.1416 * clamp(uv.y * 1.05, 0.0, 1.0));
 		float leaflets = abs(fract(uv.y * 34.0 + side * 3.5) - 0.5);
-		alpha = step(side, width * 0.98) * step(leaflets, 0.3);
+		alpha = step(side, width * 0.98) * step(leaflets, 0.38);
 		alpha = max(alpha, step(side, 0.05));
 		shade = 0.75 + 0.35 * side;
-		base = mix(base, base * vec3(1.15, 1.1, 0.75), 0.4);
+		// Date palms are evergreen (prompt 089): a fresh green of their own
+		// that the biome's dryness hardly touches (see `dryness` below).
+		base = mix(base, vec3(0.16, 0.34, 0.08), 0.65);
 	} else if (pattern == 3 || pattern == 4) {
 		// grass blades (and flower heads)
 		float n = 14.0;
@@ -168,7 +170,8 @@ void fragment() {
 		discard;
 	}
 	// biome: dryness pushes greens to olive/brown
-	vec3 dry = mix(base, vec3(0.50, 0.44, 0.26) * (0.8 + 0.4 * v_tint), env_dry);
+	float dryness = env_dry * (pattern == 2 ? 0.2 : 1.0);
+	vec3 dry = mix(base, vec3(0.50, 0.44, 0.26) * (0.8 + 0.4 * v_tint), dryness);
 	vec3 albedo = (pattern == 4 && shade == 1.0 && alpha == 1.0) ? base : dry;
 	albedo *= shade * (0.85 + 0.3 * v_tint);
 	float rough = 0.85;

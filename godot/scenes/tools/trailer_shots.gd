@@ -385,6 +385,18 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"map": "desert_village", "scene": "survey", "seed": 1, "start_s": 0.5, "seconds": 1.0, "stills": [0.5],
 		"camera": [{"t": 0.0, "at": Vector2(0, 0), "dist": 1522.0, "yaw": 0.0, "pitch": 89.0, "haze": 4000.0}],
 	},
+	# Prompt 089: the desert village as the player sees it, a block of
+	# courtyard houses and the oasis' palm grove.
+	"survey_desert_houses": {
+		"map": "desert_village", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(70, 60), "dist": 110.0, "yaw": 35.0}],
+	},
+	"survey_desert_oasis": {
+		"map": "desert_village", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-235, 70), "dist": 110.0, "yaw": 35.0}],
+	},
 	"survey_winter_village": {
 		"map": "winter_village", "scene": "survey", "seed": 1, "start_s": 0.5, "seconds": 1.0, "stills": [0.5],
 		"camera": [{"t": 0.0, "at": Vector2(0, 0), "dist": 1902.0, "yaw": 0.0, "pitch": 89.0, "haze": 4000.0}],
