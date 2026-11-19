@@ -125,7 +125,7 @@ def folders():
         for path in sorted((AUDIO / table).glob("*/")):
             out[table][path.name] = audio_files(path)
     for path in audio_files(AUDIO / "music"):
-        out["music"].setdefault(path.stem.rsplit("_", 1)[0], []).append(path)
+        out["music"].setdefault(path.stem.removeprefix(PRIVATE).rsplit("_", 1)[0], []).append(path)
     # Voices: one remark per callout for all factions (voice/<faction>/<callout>/).
     for path in sorted((AUDIO / "voice").glob("*/*/")):
         out["voice"].setdefault(path.name, []).extend(audio_files(path))
@@ -286,10 +286,10 @@ def build_index():
     for layer, files in found["ambience"].items():
         if files:
             row("ambience", f"ambience/{layer}", f"ambience-{layer}", usage.get("ambience", {}).get(layer, ""),
-                files, loop=layer in AMBIENCE_LOOPS, displaces=False, note="Pegel im Code (ambience.gd)")
+                files, loop=layer in AMBIENCE_LOOPS, note="Pegel im Code (ambience.gd)")
     for mood, files in found["music"].items():
         row("music", f"music/{mood}", f"music-{mood}", usage.get("music", {}).get(mood, ""), files,
-            displaces=False, note="Pegel −8 dB im Code (music.gd)")
+            note="Pegel −8 dB im Code (music.gd)")
     index = {
         "sections": [{"key": key, "title": title, "rows": rows[key]} for key, title in SECTIONS if rows[key]],
     }

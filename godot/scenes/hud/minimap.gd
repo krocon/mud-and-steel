@@ -3,14 +3,15 @@ extends PanelContainer
 ##
 ## - North is always up; an "N" marks it on the frame. The map does not
 ##   turn with the camera: a click, a drag and the dots keep their places,
-##   and the view trapezoid shows where the camera looks. Which way north
-##   lies on the screen is shown by the needle of the north button, which
-##   turns with the camera.
+##   and the view trapezoid shows where the camera looks (wider and
+##   farther the flatter the camera is tilted, prompt 096). Which way north
+##   lies on the screen is shown by the camera control above the map
+##   (`camera_gizmo.gd`), or, while that is switched off, by the needle of
+##   the north button, which turns with the camera.
 ## - `column`, right of the map (placed by `hud.gd`): north (turns the
-##   camera back, key `camera_reset_north`), zoom (back to the camera's
-##   starting distance) and pause (the pause menu; not in a network match,
-##   where nothing pauses). The room above the column and a strip above the
-##   map stay free for the camera control of prompt 096.
+##   camera back, key `camera_reset_north`; only while the camera control
+##   is switched off), zoom (back to the camera's starting distance) and
+##   pause (the pause menu; not in a network match, where nothing pauses).
 ## - Ground: `SimHost.minimap_image` (one pixel per 8 m vision cell:
 ##   terrain, hill shading, roads, forest, buildings), built once, darkened
 ##   by the fog texture of `fog_of_war.gd` (the same grid) in one shader.
@@ -183,6 +184,13 @@ func _set_tooltips() -> void:
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_TRANSLATION_CHANGED and north_button != null:
 		_set_tooltips()
+
+
+## Shows the north button (`hud.gd`: while the camera control is off).
+func show_north_button(show: bool) -> void:
+	if north_button.visible != show:
+		north_button.visible = show
+		column.size = Vector2.ZERO
 
 
 ## Turns the camera back to north the shortest way (as the key does).

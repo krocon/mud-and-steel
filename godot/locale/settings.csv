@@ -108,3 +108,8 @@ SUB_CALLOUT_CONTACT,[Squad] Contact!,[Trupp] Feindkontakt!
 SUB_CALLOUT_TAKE_COVER,[Squad] Take cover!,[Trupp] Deckung!
 SUB_CALLOUT_RELOADING,[Squad] Reloading!,[Trupp] Nachladen!
 SUB_CALLOUT_WOUNDED,[Squad] Man hit!,[Trupp] Getroffen!
+SET_KEY_CAMERA_TILT_UP,Tilt the camera steeper,Kamera steiler neigen
+SET_KEY_CAMERA_TILT_DOWN,Tilt the camera flatter,Kamera flacher neigen
+SET_CAMERA_GIZMO,Show the camera control above the minimap,Kamerasteuerung über der Minimap anzeigen
+SET_TILT_INVERT,Invert tilting (drag up = flatter),Neigen umkehren (nach oben ziehen = flacher)
+SET_CAMERA_GIZMO_HINT,"Camera control: drag on it to turn and tilt the camera. On the map: hold Shift and drag with the middle mouse button (or hold Shift + Alt and move the mouse). Rotation and tilt are not stored; every match starts facing north.","Kamerasteuerung: darauf ziehen dreht und neigt die Kamera. Auf der Karte: Umschalt halten und mit der mittleren Maustaste ziehen (oder Umschalt + Alt halten und die Maus bewegen). Drehung und Neigung werden nicht gespeichert; jedes Gefecht beginnt mit Blick nach Norden."

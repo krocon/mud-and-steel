@@ -23,7 +23,8 @@ of war, reverb and delay are left out: `just sound-gallery` and the game play th
 The page loads `index.json` and the audio files straight from `godot/assets/audio/`.
 Origin comes from the file name: `<class>_NN` synthesized, `ext_*` a free recording,
 `priv_*` from the private sound repository. A folder with a `priv_*` file plays only
-those in the game (`sound_library.gd`; not for ambience and music); the page marks the
+those in the game (`sound_library.gd`; for ambience layers and music moods `ambience.gd`,
+`music.gd`); the page marks the
 other files "im Spiel verdrängt" and still plays them.
 
 ## Adding a remark

@@ -4,7 +4,8 @@ extends Node3D
 ## `battle_sound.gd`; presentation only.
 ##
 ## Files: `assets/audio/ambience/<layer>/*.wav` (`tools/audio/music.py`,
-## `just music`). Beds loop, birds and rumble are one-shots.
+## `just music`). Beds loop, birds and rumble are one-shots. `priv_*` files
+## of a layer (private sound repository) replace its public ones.
 ##
 ## - Biome (`main.atmosphere.preset.id`, followed when it changes): which
 ##   wind, insects and birds play (`BIOMES`).
@@ -24,6 +25,7 @@ extends Node3D
 ##   and birds.
 
 const DIR := "res://assets/audio/ambience/"
+const PRIVATE_PREFIX := "priv_"
 const LAYERS: Array[String] = [
 	"wind_forest", "wind_desert", "wind_winter", "insects_meadow", "insects_desert", "leaves", "water", "rain",
 	"birds_forest", "birds_desert", "birds_winter", "rumble",
@@ -122,9 +124,16 @@ static func streams(layer: String) -> Array:
 	var list: Array = []
 	var dir := DIR + layer + "/"
 	var files := PackedStringArray()
+	var private := PackedStringArray()
 	for file in ResourceLoader.list_directory(dir):
 		if file.get_extension().to_lower() in ["wav", "ogg", "mp3"]:
 			files.append(file)
+			if file.begins_with(PRIVATE_PREFIX):
+				private.append(file)
+	# Private files (`priv_*`, from the private sound repository, never in
+	# git) replace the public files of their layer where they exist.
+	if not private.is_empty():
+		files = private
 	files.sort()
 	for file in files:
 		var stream := load(dir + file) as AudioStream

@@ -253,3 +253,9 @@ HUD_TIP_HELP,Keys and controls.,Tasten und Steuerung.
 HUD_TIP_MENU,Menu (Esc).,Menü (Esc).
 HUD_TIP_GROUP,Select this group (its number key). Twice: camera there.,Diese Gruppe wählen (ihre Zifferntaste). Zweimal: Kamera dorthin.
 HUD_SELECTED_N,%d units selected,%d Einheiten ausgewählt
+HUD_TIP_CAMERA_GIZMO,"Camera: drag sideways to turn, up or down to tilt (keys %s / %s; the mouse wheel tilts too). Click N, E, S or W to look that way. Double click: north and normal tilt.","Kamera: seitlich ziehen dreht, nach oben oder unten ziehen neigt (Tasten %s / %s; das Mausrad neigt ebenfalls). Klick auf N, O, S oder W: dorthin schauen. Doppelklick: Norden und normale Neigung."
+HUD_TIP_CAMERA_HOME,Camera back to north and to the normal tilt.,Kamera zurück nach Norden und auf die normale Neigung.
+HUD_COMPASS_N,N,N
+HUD_COMPASS_E,E,O
+HUD_COMPASS_S,S,S
+HUD_COMPASS_W,W,W

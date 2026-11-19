@@ -27,12 +27,21 @@ origin replace a piece: `assets-src/music/<piece>.(wav|mp3|ogg|flac)` is
 converted with ffmpeg instead of composing it (its source belongs in
 `docs/SOURCES.md`).
 
+Private files (prompt 069 layout, the repository `../mud-and-steel-sfx` or
+`MUD_AND_STEEL_SFX`): `music/<mood>_<name>.*` becomes
+`music/priv_<mood>_<name>.mp3` (mixed to the same loudness, faded at the
+end) and `ambience/<layer>/*.*` becomes `ambience/<layer>/priv_<name>.wav`
+(converted to the layer's rate and channels; beds crossfaded into a loop).
+The game plays only the `priv_` files of a mood or layer where there are
+any (`music.gd`, `ambience.gd`); they are gitignored.
+
 Requires numpy and `lame` (or ffmpeg with libmp3lame). Afterwards run
 `just import` so Godot imports new files.
 """
 
 from __future__ import annotations
 
+import os
 import shutil
 import struct
 import subprocess
@@ -46,6 +55,15 @@ ROOT = Path(__file__).resolve().parents[2]
 MUSIC_DIR = ROOT / "godot" / "assets" / "audio" / "music"
 AMBIENCE_DIR = ROOT / "godot" / "assets" / "audio" / "ambience"
 EXTERNAL_MUSIC = ROOT / "assets-src" / "music"
+PRIVATE_DIR = Path(os.environ.get("MUD_AND_STEEL_SFX", ROOT.parent / "mud-and-steel-sfx"))
+PRIVATE_PREFIX = "priv_"
+SOURCE_EXTENSIONS = {".wav", ".mp3", ".ogg", ".flac"}
+# Ambience layers played at a position (mono); the other beds are stereo.
+MONO_LAYERS = {"leaves", "water"}
+# Seconds of crossfade that close a private bed into a loop.
+LOOP_CROSSFADE = 2.0
+# Seconds of fade at the end of a private piece.
+PIECE_FADE = 3.0
 MUSIC_SR = 44100
 BED_SR = 32000
 WIND_SR = 22050  # wind has little above 9 kHz
@@ -847,6 +865,77 @@ def make_piece(name: str, extra_dir: Path | None) -> None:
     print(f"music    {name:16s} {out.stat().st_size / 1e6:5.2f} MB{origin}")
 
 
+def read_audio(path: Path, sr: int, channels: int) -> np.ndarray:
+    """Float samples of any file at `sr` with `channels` (ffmpeg)."""
+    ffmpeg = shutil.which("ffmpeg")
+    if ffmpeg is None:
+        raise SystemExit(f"{path}: needs ffmpeg to convert")
+    raw = subprocess.run([ffmpeg, "-v", "error", "-i", str(path), "-ac", str(channels), "-ar", str(sr), "-f", "f32le",
+                          "-"], capture_output=True, check=True).stdout
+    x = np.frombuffer(raw, dtype=np.float32).astype(np.float64)
+    return x if channels == 1 else x.reshape(-1, channels)
+
+
+def private_files(rel: str) -> list[Path]:
+    folder = PRIVATE_DIR / rel
+    return sorted(p for p in folder.glob("*") if p.suffix.lower() in SOURCE_EXTENSIONS) if folder.is_dir() else []
+
+
+def crossfade_loop(x: np.ndarray, sr: int) -> np.ndarray:
+    """Folds the last `LOOP_CROSSFADE` seconds into the start (equal power),
+    so the end runs into the start without a seam."""
+    n = min(secs(LOOP_CROSSFADE, sr), len(x) // 4)
+    ramp = np.linspace(0, np.pi / 2, n)
+    if x.ndim == 2:
+        ramp = ramp[:, None]
+    loop = x[:len(x) - n].copy()
+    loop[:n] = loop[:n] * np.sin(ramp) + x[len(x) - n:] * np.cos(ramp)
+    return loop
+
+
+def make_private_layer(name: str, extra_dir: Path | None) -> int:
+    _, _, loop, sr = AMBIENCE[name]
+    files = private_files(f"ambience/{name}")
+    for path in files:
+        x = read_audio(path, sr, 1 if name in MONO_LAYERS or not loop else 2)
+        x = normalize(crossfade_loop(x, sr) if loop else x, loop, sr)
+        stem = PRIVATE_PREFIX + path.stem
+        write_wav(AMBIENCE_DIR / name / f"{stem}.wav", x, sr, loop)
+        if extra_dir is not None:
+            write_wav(extra_dir / f"{stem}.wav", x, sr, loop)
+    return len(files)
+
+
+def make_private_pieces(argv: list[str], extra_dir: Path | None) -> None:
+    moods = sorted({n.rsplit("_", 1)[0] for n in PIECES})
+    chosen = [m for m in moods if not argv or any(m.startswith(a) or a.startswith(m) for a in argv)]
+    for old in MUSIC_DIR.glob(PRIVATE_PREFIX + "*.mp3"):
+        if old.stem[len(PRIVATE_PREFIX):].rsplit("_", 1)[0] in chosen:
+            old.unlink()
+    for path in private_files("music"):
+        mood = path.stem.rsplit("_", 1)[0]
+        if mood not in moods:
+            print(f"music    {path.name}: unknown mood '{mood}' (name it <mood>_<name>, moods {moods}), skipped")
+            continue
+        if mood not in chosen:
+            continue
+        x = read_audio(path, MUSIC_SR, 2)
+        fade = secs(PIECE_FADE, MUSIC_SR)
+        x[-fade:] *= np.cos(np.linspace(0, np.pi / 2, fade))[:, None] ** 2
+        rms = np.sqrt(np.mean(x ** 2)) + 1e-12
+        gain = min(10 ** (MUSIC_RMS_DBFS / 20) / rms, 10 ** (PEAK_DBFS / 20) / (np.max(np.abs(x)) + 1e-12))
+        name = PRIVATE_PREFIX + path.stem
+        out = MUSIC_DIR / f"{name}.mp3"
+        with tempfile.TemporaryDirectory() as tmp:
+            wav = Path(tmp) / f"{name}.wav"
+            write_wav(wav, x * gain, MUSIC_SR, False)
+            encode_mp3(wav, out)
+            if extra_dir is not None:
+                extra_dir.mkdir(parents=True, exist_ok=True)
+                shutil.copy(wav, extra_dir / wav.name)
+        print(f"music    {name:16s} {out.stat().st_size / 1e6:5.2f} MB (private, {20 * np.log10(gain):+.1f} dB)")
+
+
 def make_layer(name: str, extra_dir: Path | None) -> None:
     recipe, variants, loop, sr = AMBIENCE[name]
     out_dir = AMBIENCE_DIR / name
@@ -860,7 +949,8 @@ def make_layer(name: str, extra_dir: Path | None) -> None:
         write_wav(out_dir / f"{stem}.wav", x, sr, loop)
         if extra_dir is not None:
             write_wav(extra_dir / f"{stem}.wav", x, sr, loop)
-    print(f"ambience {name:16s} {variants} file(s){' (loop)' if loop else ''}")
+    private = make_private_layer(name, extra_dir)
+    print(f"ambience {name:16s} {variants} file(s){' (loop)' if loop else ''}{f', {private} private' if private else ''}")
 
 
 def main(argv: list[str]) -> int:
@@ -878,6 +968,8 @@ def main(argv: list[str]) -> int:
             make_piece(name, extra_dir)
         else:
             make_layer(name, extra_dir)
+    if any(n in PIECES for n in wanted):
+        make_private_pieces(argv, extra_dir)
     for stale in list(AMBIENCE_DIR.glob("*/*.wav.import")) + list(MUSIC_DIR.glob("*.mp3.import")):
         if not stale.with_suffix("").exists():
             stale.unlink()

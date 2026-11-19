@@ -40,6 +40,8 @@ var mute_unfocused_box: CheckBox
 var pan_slider: HSlider
 var zoom_slider: HSlider
 var edge_scroll_box: CheckBox
+var gizmo_box: CheckBox
+var tilt_invert_box: CheckBox
 var dof_option: OptionButton
 var health_bar_option: OptionButton
 ## Option buttons of OPTIONS, by settings key (prompt 043).
@@ -217,6 +219,15 @@ func _camera_tab() -> Control:
 	edge_scroll_box.text = "SET_EDGE_SCROLL"
 	edge_scroll_box.toggled.connect(func(on: bool) -> void: _change("edge_scroll", on))
 	tab.add_child(edge_scroll_box)
+	gizmo_box = CheckBox.new()
+	gizmo_box.text = "SET_CAMERA_GIZMO"
+	gizmo_box.toggled.connect(func(on: bool) -> void: _change("camera_gizmo", on))
+	tab.add_child(gizmo_box)
+	tilt_invert_box = CheckBox.new()
+	tilt_invert_box.text = "SET_TILT_INVERT"
+	tilt_invert_box.toggled.connect(func(on: bool) -> void: _change("tilt_invert", on))
+	tab.add_child(tilt_invert_box)
+	tab.add_child(MenuTheme.hint("SET_CAMERA_GIZMO_HINT"))
 	return tab
 
 
@@ -268,6 +279,8 @@ func _refresh() -> void:
 	pan_slider.set_value_no_signal(Settings.get_value("pan_sensitivity"))
 	zoom_slider.set_value_no_signal(Settings.get_value("zoom_sensitivity"))
 	edge_scroll_box.set_pressed_no_signal(Settings.get_value("edge_scroll"))
+	gizmo_box.set_pressed_no_signal(Settings.get_value("camera_gizmo"))
+	tilt_invert_box.set_pressed_no_signal(Settings.get_value("tilt_invert"))
 	dof_option.select(maxi(Settings.DOF_MODES.find(Settings.get_value("depth_of_field")), 0))
 	var language: String = Settings.get_value("language")
 	language_option.select(0 if language == "auto" else 1 + Language.LANGUAGES.keys().find(language))

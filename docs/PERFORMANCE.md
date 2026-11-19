@@ -245,6 +245,26 @@ the test map stays just under 60 FPS at 80 and 110 m on high, where it
 runs at 60–67 FPS as plain meadow; medium and low stay at the 120 FPS
 cap. Table and flicker measurements: [ARCHITECTURE.md](ARCHITECTURE.md#tall-grass-prompt-073).
 
+**Camera tilt** (prompt 096): `just bench-view --perf-quick --perf-tilts`
+measures the standing views with the tilt of the zoom, tilted as flat
+(25°) and as steep (85°) as the camera goes. A flat view shows ground up
+to 2.4 camera distances deep instead of 1.4, so more is drawn. Measured
+on high with other sessions working on the same machine (the absolute
+rates are below the table above; compare the columns of this run only),
+window 1280 × 720 interface pixels:
+
+| View | Tilt of the zoom | Flat (25°) | Steep (85°) |
+|---|---|---|---|
+| standing, 40 m | 68.2 FPS (14.7 ms), 589 draw calls | 57.3 (17.4 ms), 817 | 69.7 (14.4 ms), 506 |
+| standing, 150 m | 67.7 (14.8 ms), 913 | 57.1 (17.5 ms), 1 795 | 66.6 (15.0 ms), 909 |
+| standing, 600 m | 78.5 (12.7 ms), 1 660 | 58.9 (17.0 ms), 5 873 | 81.2 (12.3 ms), 1 474 |
+
+The flattest view costs 3–4 ms per frame (16–25 % of the frame rate; at
+600 m it has 3.5 times the draw calls), the steepest costs nothing. The
+limit stays at 25°: the flat view is the player's choice and one key away
+from the normal one. Not measured: the battle views tilted flat, and a
+machine without other load.
+
 **HUD** (prompt 031: minimap, unit panel, command bar, events, waypoint
 lines; budget 1 ms per frame): the bench prints it as "hud"; the battle views
 have a dozen units selected. Measured with five other sessions building and

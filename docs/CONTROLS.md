@@ -25,11 +25,25 @@ or not.
 | Middle mouse drag, Option/Alt + mouse move, two-finger trackpad pan | Grab the map |
 | Q / E *(rebindable)* | Turn by 45° |
 | N *(rebindable)* | Face north |
+| Page up / Page down *(rebindable)* | Tilt the camera steeper / flatter by 10° (prompt 096) |
+| Camera control above the minimap: drag | Sideways turns the camera by any angle, up tilts steeper, down flatter (Settings → Camera: "Invert tilting" swaps up and down) |
+| Camera control: click on N, E, S or W | Turn to look that way |
+| Camera control: mouse wheel | Tilt in steps (instead of zoom) |
+| Camera control: house button, or double click on the dial | Back to north and to the normal tilt |
+| Shift + middle mouse drag, Shift + Option/Alt + mouse move | Turn and tilt around the screen center, on the map |
 | Double click on empty ground | Glide there |
 | Shift + C *(rebindable)*, info field: button with the ring | Glide to the active unit (see "Selecting"); zoom and rotation stay (prompt 094) |
 | C *(rebindable)*, info field: toggle with the frame | Follow the active unit: it stays in the screen center while it drives. Zoom and rotation keep the mode; moving the map by hand (keys, screen edge, drag, trackpad, minimap, double click on the ground, Space) ends it. Without a selection it waits for the next one. The game remembers the choice for the next match |
 | Minimap: left click or drag | Look there |
 | Space *(rebindable)* | Jump to the newest event message |
+
+**Tilt** (prompt 096): the zoom sets how steeply the camera looks down
+(45° close, 65° far away), as before; your tilt is added to that and stays
+while you zoom. The view goes from 25° (flat, towards the horizon) to 85°
+(nearly straight down). Rotation and tilt are not saved: every match
+starts facing north with the normal tilt. Turning and tilting do not end
+the follow mode. The camera control can be switched off in Settings →
+Camera; the keys and the drag on the map work without it.
 
 ## Selecting
 
@@ -186,7 +200,8 @@ top bar. Everything else appears when there is something to do with it.
 
 | Where | What | Shows |
 |---|---|---|
-| bottom left | Minimap with the "N" mark; right of it three buttons | always |
+| bottom left | Minimap with the "N" mark; right of it its buttons | always |
+| above the minimap | Camera control: a dial with a compass rose and a house button | unless switched off (Settings → Camera) |
 | bottom center | Info field of the selection | with a selection |
 | bottom right | Order grid, 5 × 3 tiles | with own units (or one own building) selected |
 | above the order grid | Build menu / production bar | while open / with a producing building selected |
@@ -199,11 +214,20 @@ top bar. Everything else appears when there is something to do with it.
   fog of war, the camera's view as a trapezoid, red rings where own units are
   hit. North is always up ("N" on the frame); the map does not turn with
   the camera, so a click always means the same place, and the trapezoid
-  shows where you look. Buttons right of it: **north** (the needle turns
-  with the camera and shows where north is on the screen; a click or N
-  turns the camera back), **zoom** (the magnifier: camera back to its
+  shows where you look (wider and farther the flatter the camera is
+  tilted). Buttons right of it: **zoom** (the magnifier: camera back to its
   starting distance), **pause** (opens the pause menu; missing in network
-  matches, which cannot pause).
+  matches, which cannot pause), and, only while the camera control is
+  switched off, **north** (the needle turns with the camera and shows
+  where north is on the screen; a click or N turns the camera back).
+- **Camera control** (above the minimap, prompt 096): a dark dial with a
+  compass rose that lies on the ground as the camera sees it. Its gold
+  "N" always points to the map's north on the screen, and the tilt
+  squashes the rose: a narrow ellipse for a flat view, nearly a circle
+  when you look straight down. Drag on it to turn and tilt, click a
+  letter to look that way, use the wheel to tilt; the house button beside
+  it (or a double click on the dial) restores north and the normal tilt.
+  See "Camera" for all inputs.
 - **Info field** (bottom center): one unit with its name and rank, the kind
   of unit (top right), picture, hit points and soldiers as numbers with a
   symbol, bars for health, ammunition, fuel and experience (numbers in the

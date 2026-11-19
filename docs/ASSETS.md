@@ -840,6 +840,12 @@ godot/assets/audio/sounds.json        manifest: class -> group, bus, level, rang
   `just audio` prepares them as `priv_<name>.wav` beside the public files; a folder
   with `priv_` files plays only those (`sound_library.gd`). They and their import
   files are gitignored. Without the private repository nothing changes.
+  Music and ambience take the same way through `just music` (`tools/audio/music.py`):
+  `music/<mood>_<name>.*` there becomes `music/priv_<mood>_<name>.mp3` (same loudness
+  as the composed pieces, 3 s fade at the end) and replaces the pieces of that mood
+  (`music.gd`); `ambience/<layer>/*` becomes `ambience/<layer>/priv_*.wav` at the
+  layer's rate and channels, beds closed into a loop with a 2 s crossfade, and
+  replaces the files of that layer (`ambience.gd`).
 - **New class:** add it to `sounds.json` (group, bus, levels, `variants`),
   write a recipe in `synth.py` or put files into `assets-src/audio/<class>/`,
   run `just audio <class>` and `just import`, and map it in

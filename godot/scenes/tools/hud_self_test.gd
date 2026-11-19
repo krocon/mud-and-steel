@@ -314,16 +314,29 @@ func _layout_test(test: Node, main: Node3D, hud: Control, tanks: Array[int]) -> 
 	selection.set_selection([])
 	await test._frames(15)
 	var shown: Array = hud.panels().keys()
-	for part: String in ["minimap", "minimap buttons", "top bar"]:
+	for part: String in ["minimap", "minimap buttons", "camera control", "top bar"]:
 		test._check(shown.has(part), "%s does not show without a selection (%s)" % [part, shown])
 	for part: String in shown:
-		test._check(part in ["minimap", "minimap buttons", "top bar", "support column", "group tabs"],
+		test._check(part in ["minimap", "minimap buttons", "camera control", "top bar", "support column", "group tabs"],
 			"%s shows without a selection" % part)
 	test._check(not hud.unit_panel.visible and not bar.visible, "info field or order grid still visible without a selection")
 	test._check(hud.support.visible == (not sim_host.air_options().is_empty() or main.strike_view.bar.visible),
 		"support column visible %s, air options %d" % [hud.support.visible, sim_host.air_options().size()])
+	# The camera control (prompt 096) stands for the north button; with the
+	# control switched off in the settings the button is there.
+	test._check(hud.gizmo.is_visible_in_tree() and not hud.minimap.north_button.is_visible_in_tree(),
+		"the camera control does not show, or the north button shows beside it")
+	Settings.set_value("camera_gizmo", false)
+	await test._frames(3)
+	test._check(not hud.gizmo.visible and not hud.panels().has("camera control")
+		and not hud.covers(hud.gizmo.get_global_rect().get_center()), "the camera control shows although it is switched off")
 	test._check(hud.minimap.north_button.is_visible_in_tree() and hud.minimap.zoom_button.is_visible_in_tree()
 		and hud.minimap.pause_button.is_visible_in_tree(), "the minimap buttons do not show")
+	test._check(_no_overlap(test, hud, "camera control off") > 0, "no HUD part without the camera control")
+	Settings.set_value("camera_gizmo", true)
+	await test._frames(3)
+	test._check(hud.minimap.zoom_button.is_visible_in_tree() and hud.minimap.pause_button.is_visible_in_tree(),
+		"zoom or pause button missing beside the camera control")
 	# Own unit: info field and grid; every tile of the first page on its place.
 	selection.set_selection([tanks[0]])
 	await test._frames(15)
@@ -376,7 +389,8 @@ func _layout_test(test: Node, main: Node3D, hud: Control, tanks: Array[int]) -> 
 	# (Not on the top bar: it is all buttons, and those open menus.)
 	test._check(hud.covers(hud.top_bar.get_global_rect().get_center()), "the HUD does not count the top bar as a panel")
 	var spots: Array[Vector2] = [bar.global_position + bar.slot_rect(3).end + Vector2(1, 1),
-		hud.unit_panel.global_position + Vector2(2, 2), hud.minimap.column.global_position + Vector2(1, HudTheme.px(HudTheme.SMALL_TILE_PX) + 1)]
+		hud.unit_panel.global_position + Vector2(2, 2), hud.minimap.column.global_position + Vector2(1, HudTheme.px(HudTheme.SMALL_TILE_PX) + 1),
+		hud.gizmo.global_position + hud.gizmo.size - Vector2(2, 2)]
 	if parts.has("support column"):
 		var disabled: Button = main.air_view.air_bar.buttons["recon"]
 		spots.append(disabled.get_global_rect().end + Vector2(-2, 1))
@@ -410,15 +424,22 @@ func _layout_test(test: Node, main: Node3D, hud: Control, tanks: Array[int]) -> 
 	var pair: Array[int] = [tanks[1], tanks[2]]
 	pair.sort()
 	test._check(selection.selected == pair and tab.button_pressed, "the tab of group 7 selected %s" % [selection.selected])
-	# The buttons beside the minimap.
+	# The buttons beside the minimap; the north button shows while the
+	# camera control (prompt 096) is switched off, the dial turns with the
+	# camera when it is on.
 	var rig: Node3D = main.camera_rig
 	rig.snap_to(rig.focus, rig.distance, 0.9)
 	await test._frames(2)
+	test._check(absf(hud.gizmo.turn - 0.9) < 0.01, "the dial shows %.2f, the camera is turned 0.9" % hud.gizmo.turn)
+	Settings.set_value("camera_gizmo", false)
+	await test._frames(3)
 	test._check(absf(hud.minimap.north_button.turn - 0.9) < 0.01, "the north needle shows %.2f, the camera is turned 0.9" % hud.minimap.north_button.turn)
 	test._left_click(hud.minimap.north_button.get_global_rect().get_center())
 	await test._frames(1)
 	test._check(is_zero_approx(rig.target_yaw), "the north button left the camera heading for %.2f" % rig.target_yaw)
+	Settings.set_value("camera_gizmo", true)
 	rig.snap_to(rig.focus, rig.distance, 0.0)
+	await test._frames(3)
 	# Other window sizes, interface scales and font sizes: with nothing,
 	# several units and one unit with its card selected.
 	var root: Window = test.get_tree().root

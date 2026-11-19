@@ -1031,6 +1031,8 @@ func _place_camera(t: float) -> void:
 		# The rig does what it does in a match; nothing is placed by hand.
 		camera.fov = rig.fov_deg
 		rig.snap_to(Vector3(target.x, 0.0, target.z), distance, yaw)
+		# Never the player's tilt (prompt 096): the shots stay the same.
+		rig.snap_tilt(0.0)
 		return
 	var ground := Vector3(target.x, main.sim_host.height_at(target.x, target.z), target.z)
 	rig.focus = ground

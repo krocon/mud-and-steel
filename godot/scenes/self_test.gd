@@ -14,6 +14,10 @@ extends Node
 ##    state, zoom and rotation keep it, a hand pan ends it, a new selection
 ##    is followed, the choice is remembered). The hill drive (4) checks that
 ##    a driving tank stays in the screen center while followed.
+##    Prompt 096 (`_tilt_test`): the camera control (drag, clicks on the
+##    directions, home, wheel), the tilt keys and the orbit drag on the map,
+##    the tilt limits, ground picking and the minimap's view turned and
+##    tilted, shadows and far plane, clearance flat and close.
 ## 3. Orders: right click sends the group into a grid formation (speed,
 ##    spacing, center checked), enemy tanks stay put, H stops a moving group.
 ## 4. Hill: one tank is right-clicked onto the `hill_top` marker of the map
@@ -375,6 +379,14 @@ func _controls_test() -> void:
 	await _frames(60)
 	_check(absf(rig.yaw - PI / 4.0) < 0.001, "rotation while following reached %.4f" % rig.yaw)
 	_check(selection.follow and _off_center(own[1]) < 0.05, "rotating ended follow mode or lost the unit (%.2f m off)" % _off_center(own[1]))
+	# Tilting and a drag on the camera control keep it too (prompt 096).
+	var gizmo: Control = main.hud.gizmo
+	_key(KEY_PAGEDOWN)
+	_gizmo_drag(gizmo.global_position + gizmo.dial_center(), Vector2(25.0, 10.0))
+	await _frames(60)
+	_check(rig.tilt < -0.1 and absf(rig.yaw - PI / 4.0) > 0.1, "tilt key and dial drag did nothing while following (tilt %.2f, yaw %.2f)" % [rig.tilt, rig.yaw])
+	_check(selection.follow and _off_center(own[1]) < 0.05, "tilting or turning ended follow mode or lost the unit (%.2f m off)" % _off_center(own[1]))
+	rig.snap_tilt(0.0)
 	rig.snap_to(rig.focus, OVERVIEW_DISTANCE, 0.0)
 
 	# Another active unit: the camera wanders there without a jump.
@@ -416,8 +428,281 @@ func _controls_test() -> void:
 	selection.set_selection(own)
 	rig.snap_to(Vector3.ZERO, OVERVIEW_DISTANCE, 0.0)
 	await _frames(1)
+	await _tilt_test(own)
 	_check(selection.selected == own, "map controls left the selection %s" % [selection.selected])
-	print("self-test: map controls ok (trackpad, Option drag, double click, active unit, center, follow)")
+	print("self-test: map controls ok (trackpad, Option drag, double click, active unit, center, follow, turn and tilt)")
+
+
+## Prompt 096: the camera control (drag, clicks on the directions, home,
+## double click, wheel), the tilt keys, the orbit drag on the map, the
+## limits, ground picking and the minimap's view under a turned and tilted
+## camera, the camera's clearance at the flattest tilt. Expects all own
+## units selected and leaves it so; issues no orders.
+func _tilt_test(own: Array[int]) -> void:
+	var rig: Node3D = main.camera_rig
+	var selection: Control = main.selection
+	var sim_host: SimHost = main.sim_host
+	var hud: Control = main.hud
+	var gizmo: Control = hud.gizmo
+	var camera: Camera3D = main.camera
+	var low := deg_to_rad(rig.tilt_min_deg)
+	var high := deg_to_rad(rig.tilt_max_deg)
+	rig.snap_to(Vector3.ZERO, OVERVIEW_DISTANCE, 0.0)
+	await _frames(2)
+	var dial: Vector2 = gizmo.global_position + gizmo.dial_center()
+	_check(gizmo.is_visible_in_tree() and hud.panels().has("camera control") and hud.covers(dial)
+		and hud.covers(gizmo.home_button.get_global_rect().get_center()), "the camera control does not show or is no HUD panel")
+	_check(not hud.minimap.north_button.is_visible_in_tree(), "the north button shows beside the camera control")
+	# Tilt 0 is the view of the zoom, as before the prompt.
+	var base: float = rig.base_pitch()
+	_check(is_zero_approx(rig.tilt) and is_zero_approx(rig.target_tilt) and is_equal_approx(rig.pitch(), base),
+		"the match does not start with the tilt of the zoom (tilt %.3f)" % rig.tilt)
+	_check(absf(gizmo.elevation - base) < 0.001 and absf(gizmo.turn) < 0.001, "the dial shows turn %.2f, elevation %.2f" % [gizmo.turn, gizmo.elevation])
+	var north: Vector2 = gizmo.mark_position(0) - gizmo.dial_center()
+	_check(absf(north.x) < 0.5 and north.y < 0.0, "facing north, the dial's N is at %s" % north)
+
+	# A sideways drag turns by any angle, at once, and nothing moves on.
+	var rate: float = deg_to_rad(rig.orbit_deg_per_pixel) * gizmo.DRAG_GAIN / gizmo.HudTheme.scale
+	_gizmo_drag(dial, Vector2(30.0, 0.0))
+	await _frames(1)
+	var turned: float = rig.yaw
+	_check(absf(turned + 30.0 * rate) < 0.005, "a 30 px drag on the dial turned to %.4f, expected %.4f" % [turned, -30.0 * rate])
+	_check(absf(fposmod(turned, PI / 4.0)) > 0.01 and is_equal_approx(rig.target_yaw, turned), "the dial drag turns in steps or glides on")
+	_check(is_equal_approx(rig.pitch(), base), "a sideways drag tilted the camera")
+	await _frames(30)
+	_check(is_equal_approx(rig.yaw, turned), "the camera turned on after the drag (%.4f, was %.4f)" % [rig.yaw, turned])
+	north = gizmo.mark_position(0) - gizmo.dial_center()
+	_check(absf(north.angle_to(Vector2.UP.rotated(turned))) < 0.35 and absf(gizmo.turn - turned) < 0.001,
+		"the dial's N at %s does not follow the camera turned %.2f" % [north, turned])
+
+	# Up is steeper, down flatter; the limits hold.
+	_gizmo_drag(dial, Vector2(0.0, -15.0))
+	await _frames(1)
+	_check(absf(rig.pitch() - (base + 15.0 * rate)) < 0.005 and is_equal_approx(rig.yaw, turned),
+		"a 15 px drag up tilted to %.3f, expected %.3f" % [rig.pitch(), base + 15.0 * rate])
+	var squash_default := absf(gizmo.mark_position(0).y - gizmo.mark_position(2).y)
+	_gizmo_drag(dial, Vector2(0.0, -300.0))
+	await _frames(1)
+	_check(absf(rig.pitch() - high) < 0.001, "dragging far up tilted to %.1f degrees, the limit is %.1f" % [rad_to_deg(rig.pitch()), rig.tilt_max_deg])
+	_gizmo_drag(dial, Vector2(0.0, 600.0))
+	await _frames(2)
+	_check(absf(rig.pitch() - low) < 0.001, "dragging far down tilted to %.1f degrees, the limit is %.1f" % [rad_to_deg(rig.pitch()), rig.tilt_min_deg])
+	_check(camera.global_position.y > rig.focus.y + 1.0, "the camera is not above its focus at the flattest tilt")
+	# No dead way at the limit: a small drag back acts at once.
+	_gizmo_drag(dial, Vector2(0.0, -10.0))
+	await _frames(1)
+	_check(absf(rig.pitch() - (low + 10.0 * rate)) < 0.005, "after the limit a 10 px drag up tilted to %.3f, expected %.3f" % [rig.pitch(), low + 10.0 * rate])
+	# The dial is squashed by the tilt.
+	gizmo.queue_redraw()
+	await _frames(2)
+	var squash_flat := absf(gizmo.mark_position(0).y - gizmo.mark_position(2).y)
+	_check(absf(gizmo.elevation - rig.pitch()) < 0.001, "the dial shows elevation %.2f, the camera has %.2f" % [gizmo.elevation, rig.pitch()])
+
+	# Home button: north and the tilt of the zoom, smoothly.
+	_left_click(gizmo.home_button.get_global_rect().get_center())
+	await _frames(2)
+	_check(not is_zero_approx(rig.tilt) and not is_zero_approx(rig.yaw), "the home button jumps instead of gliding")
+	await _frames(120)
+	_check(absf(angle_difference(rig.yaw, 0.0)) < 0.001 and is_zero_approx(rig.tilt) and absf(rig.pitch() - base) < 0.001,
+		"the home button left yaw %.3f, tilt %.3f" % [rig.yaw, rig.tilt])
+	rig.snap_to(rig.focus, rig.distance, 0.0)
+
+	# A click on E turns the camera to look east (+x).
+	await _frames(2)
+	_left_click(gizmo.global_position + gizmo.mark_position(1))
+	await _frames(120)
+	var forward := -camera.global_transform.basis.z
+	forward.y = 0.0
+	_check(forward.normalized().dot(Vector3.RIGHT) > 0.9999, "a click on E left the camera looking along %s" % forward.normalized())
+	_check(is_equal_approx(rig.pitch(), base), "a click on E tilted the camera")
+	# ... on S south, on N north again (each time the mark is where it is now).
+	_left_click(gizmo.global_position + gizmo.mark_position(2))
+	await _frames(120)
+	forward = -camera.global_transform.basis.z
+	forward.y = 0.0
+	_check(forward.normalized().dot(Vector3.BACK) > 0.9999, "a click on S left the camera looking along %s" % forward.normalized())
+	_left_click(gizmo.global_position + gizmo.mark_position(0))
+	await _frames(120)
+	_check(absf(angle_difference(rig.yaw, 0.0)) < 0.001, "a click on N left yaw %.3f" % rig.yaw)
+	rig.snap_to(rig.focus, rig.distance, 0.0)
+	await _frames(1)
+
+	# Wheel over the dial: it tilts in steps, the zoom stays.
+	var step: float = deg_to_rad(rig.tilt_step_deg)
+	_push_wheel(MOUSE_BUTTON_WHEEL_UP, 1, dial / get_viewport().get_visible_rect().size)
+	await _frames(60)
+	_check(absf(rig.tilt - step) < 0.001 and is_equal_approx(rig.target_distance, OVERVIEW_DISTANCE),
+		"the wheel over the dial: tilt %.3f (expected %.3f), distance %.1f" % [rig.tilt, step, rig.target_distance])
+	_push_wheel(MOUSE_BUTTON_WHEEL_DOWN, 1, dial / get_viewport().get_visible_rect().size)
+	await _frames(60)
+	_check(is_zero_approx(rig.tilt), "the wheel down over the dial left tilt %.3f" % rig.tilt)
+
+	# Keys: steeper / flatter in steps, within the limits.
+	_key(KEY_PAGEDOWN)
+	await _frames(1)
+	_check(absf(rig.target_tilt + step) < 0.0001 and rig.tilt > rig.target_tilt, "Page down: target tilt %.3f, expected %.3f, gliding" % [rig.target_tilt, -step])
+	await _frames(60)
+	_check(absf(rig.pitch() - (base - step)) < 0.001, "Page down tilted to %.3f, expected %.3f" % [rig.pitch(), base - step])
+	_key(KEY_PAGEUP)
+	_key(KEY_PAGEUP)
+	await _frames(60)
+	_check(absf(rig.pitch() - (base + step)) < 0.001, "Page up twice tilted to %.3f, expected %.3f" % [rig.pitch(), base + step])
+	for i in 12:
+		_key(KEY_PAGEUP)
+	await _frames(90)
+	_check(absf(rig.pitch() - high) < 0.001, "Page up at the limit: %.1f degrees" % rad_to_deg(rig.pitch()))
+	for i in 12:
+		_key(KEY_PAGEDOWN)
+	await _frames(90)
+	_check(absf(rig.pitch() - low) < 0.001, "Page down at the limit: %.1f degrees" % rad_to_deg(rig.pitch()))
+	# Zooming keeps the limits (the zoom's own angle changes).
+	for distance: float in [rig.min_distance, 60.0, rig.max_distance]:
+		for tilt: float in [-PI, PI]:
+			rig.snap_to(rig.focus, distance, 0.0)
+			rig.snap_tilt(tilt)
+			_check(rig.pitch() >= low - 0.0001 and rig.pitch() <= high + 0.0001, "tilt %.1f at %.0f m: %.1f degrees" % [tilt, distance, rad_to_deg(rig.pitch())])
+	rig.snap_to(Vector3.ZERO, OVERVIEW_DISTANCE, 0.0)
+	rig.snap_tilt(0.0)
+	await _frames(1)
+
+	# Orbit drag on the map: Shift + middle button (or Shift + Alt + move)
+	# turns and tilts around the focus, it does not pan.
+	var center := get_viewport().get_visible_rect().size * 0.5
+	var spot := _free_ground()
+	var map_rate: float = deg_to_rad(rig.orbit_deg_per_pixel)
+	_mouse(MOUSE_BUTTON_MIDDLE, spot, true, true)
+	for i in 4:
+		var motion := InputEventMouseMotion.new()
+		motion.position = spot + Vector2(20.0, -10.0) * (i + 1)
+		motion.global_position = motion.position
+		motion.relative = Vector2(20.0, -10.0)
+		motion.shift_pressed = true
+		motion.button_mask = MOUSE_BUTTON_MASK_MIDDLE
+		get_viewport().push_input(motion)
+	_mouse(MOUSE_BUTTON_MIDDLE, spot + Vector2(80.0, -40.0), false, true)
+	await _frames(2)
+	_check(absf(rig.yaw + 80.0 * map_rate) < 0.001 and absf(rig.tilt - 40.0 * map_rate) < 0.001,
+		"Shift + middle drag: yaw %.4f (expected %.4f), tilt %.4f (expected %.4f)" % [rig.yaw, -80.0 * map_rate, rig.tilt, 40.0 * map_rate])
+	_check(Vector2(rig.focus.x, rig.focus.z).length() < 0.01, "the orbit drag moved the map (focus %s)" % rig.focus)
+	var alt_motion := InputEventMouseMotion.new()
+	alt_motion.position = center
+	alt_motion.global_position = center
+	alt_motion.relative = Vector2(-80.0, 40.0)
+	alt_motion.alt_pressed = true
+	alt_motion.shift_pressed = true
+	get_viewport().push_input(alt_motion)
+	await _frames(2)
+	_check(absf(rig.yaw) < 0.001 and absf(rig.tilt) < 0.001 and Vector2(rig.focus.x, rig.focus.z).length() < 0.01,
+		"Shift + Alt + move: yaw %.4f, tilt %.4f, focus %s" % [rig.yaw, rig.tilt, rig.focus])
+	# The setting turns the drag direction of the tilt around.
+	rig.tilt_inverted = true
+	_gizmo_drag(dial, Vector2(0.0, -15.0))
+	await _frames(1)
+	_check(absf(rig.pitch() - (base - 15.0 * rate)) < 0.005, "inverted, a drag up tilted to %.3f, expected %.3f" % [rig.pitch(), base - 15.0 * rate])
+	Settings.apply_camera(rig)
+	_check(not rig.tilt_inverted, "the tilt is inverted without the setting")
+
+	# Ground picking and the minimap's view, turned and tilted to both limits.
+	var top_edges: Array[float] = []
+	for tilt: float in [0.0, -PI, PI]:
+		rig.snap_to(Vector3.ZERO, 150.0, 1.1)
+		rig.snap_tilt(tilt)
+		await _frames(3)
+		var worst := 0.0
+		for offset: Vector2 in [Vector2.ZERO, Vector2(18, 7), Vector2(-25, 12), Vector2(6, -30), Vector2(-14, -22), Vector2(35, 30)]:
+			var point := Vector3(offset.x, sim_host.height_at(offset.x, offset.y), offset.y)
+			var hit: Variant = GroundPick.from_screen(camera, camera.unproject_position(point))
+			_check(hit != null, "no ground under the pointer at %s (tilt %.1f)" % [offset, tilt])
+			if hit != null:
+				worst = maxf(worst, (hit as Vector3).distance_to(point))
+		_check(worst < 1.0, "turned and tilted (%.0f degrees), the ground pick is %.2f m off" % [rad_to_deg(rig.pitch()), worst])
+		var polygon: PackedVector2Array = hud.minimap._view_polygon
+		_check(polygon.size() == 5, "the minimap's view has %d points" % polygon.size())
+		var corner: Variant = GroundPick.from_screen(camera, Vector2.ZERO)
+		if corner != null and polygon.size() == 5:
+			_check(polygon[0].distance_to(hud.minimap.to_minimap(corner)) < 0.5, "the minimap's view corner is not under the screen corner (tilt %.1f)" % tilt)
+		if polygon.size() == 5:
+			top_edges.append(polygon[0].distance_to(polygon[1]))
+	_check(top_edges.size() == 3 and top_edges[1] > top_edges[0] * 1.3 and top_edges[2] < top_edges[0],
+		"the minimap's view does not widen with a flat tilt: far edges %s (default, flat, steep)" % [top_edges])
+	# Shadows and far plane reach the ground at the upper screen edge.
+	rig.snap_to(Vector3.ZERO, 40.0, 0.0)
+	rig.snap_tilt(-PI)
+	var far_ground: Variant = GroundPick.from_screen(camera, Vector2(center.x, 0.0))
+	_check(far_ground != null, "the flattest view shows no ground at the upper screen edge")
+	if far_ground != null:
+		var depth := (far_ground as Vector3 - camera.global_position).dot(-camera.global_transform.basis.z)
+		_check(main.sun.directional_shadow_max_distance > depth and camera.far > depth * 1.2,
+			"flattest view: ground %.0f m deep, shadows to %.0f m, far plane %.0f m" % [depth, main.sun.directional_shadow_max_distance, camera.far])
+	_check(squash_flat < squash_default * 0.75, "the dial is not squashed by a flat tilt (%.1f px, steeper %.1f px)" % [squash_flat, squash_default])
+
+	# Flattest tilt at the closest zoom: above ground and roofs, all around,
+	# on the hill and with the camera right over a building.
+	var spots: Array[Vector3] = [Vector3.ZERO]
+	var hill: Variant = sim_host.map_marker("hill_top") if sim_host.has_method(&"map_marker") else null
+	if hill is Vector3:
+		spots.append(hill)
+	var building: Variant = null
+	var half: Vector2 = sim_host.map_size() * 0.5
+	var x := -half.x + 4.0
+	while x < half.x and building == null:
+		var z := -half.y + 4.0
+		while z < half.y:
+			if GroundPick.object_top_at(x, z, 0.0) > -1e8:
+				building = Vector3(x, 0.0, z)
+				break
+			z += 6.0
+		x += 6.0
+	_check(building != null, "no building on the map for the clearance test")
+	var checked := 0
+	for k in 8:
+		var yaw := TAU * k / 8.0
+		var all := spots.duplicate()
+		if building != null:
+			# The focus from which the camera stands over the building.
+			var reach: float = rig.min_distance * cos(low)
+			all.append((building as Vector3) - Vector3(sin(yaw), 0.0, cos(yaw)) * reach)
+		for at: Vector3 in all:
+			rig.snap_to(at, rig.min_distance, yaw)
+			rig.snap_tilt(-PI)
+			var eye := camera.global_position
+			var ground: float = sim_host.height_at(eye.x, eye.z)
+			_check(eye.y >= ground + rig.min_clearance - 0.01, "flat and close at %s, yaw %.1f: camera %.2f m over the ground" % [at, yaw, eye.y - ground])
+			var roof := GroundPick.object_top_at(eye.x, eye.z, 2.0)
+			_check(eye.y >= roof + rig.building_clearance - 0.01, "flat and close at %s, yaw %.1f: camera %.2f m over the roof" % [at, yaw, eye.y - roof])
+			var middle := eye.lerp(rig.focus, 0.5)
+			_check(middle.y > sim_host.height_at(middle.x, middle.z), "flat and close at %s, yaw %.1f: ground between camera and focus" % [at, yaw])
+			checked += 1
+	if building != null:
+		var over := camera.global_position
+		_check(GroundPick.object_top_at(over.x, over.z, 2.0) > -1e8, "the clearance test never put the camera over a building")
+
+	# None of this was an order or a selection.
+	rig.snap_to(Vector3.ZERO, OVERVIEW_DISTANCE, 0.0)
+	rig.snap_tilt(0.0)
+	await _frames(2)
+	dial = gizmo.global_position + gizmo.dial_center()
+	_right_click(dial)
+	_left_click(dial + Vector2(0.0, gizmo.dial_radius() * 0.9))
+	await _ticks(3)
+	_check(selection.selected == own and selection.command_mode.is_empty() and not _moving(own) and is_zero_approx(rig.yaw),
+		"clicks on the camera control gave an order or changed the selection (%s, moving %s)" % [selection.selected, _moving(own)])
+	for id in own:
+		_check(sim_host.unit_queue_length(id) == 0, "unit %d has orders after the camera control test" % id)
+	print("self-test: turn and tilt ok (limits %.0f to %.0f degrees, %d clearance views)" % [rig.tilt_min_deg, rig.tilt_max_deg, checked])
+
+
+## A left drag that starts on the camera control at `from` (screen pixels).
+func _gizmo_drag(from: Vector2, by: Vector2, steps := 6) -> void:
+	_mouse(MOUSE_BUTTON_LEFT, from, true)
+	for step in steps:
+		var motion := InputEventMouseMotion.new()
+		motion.position = from + by * (step + 1.0) / steps
+		motion.global_position = motion.position
+		motion.relative = by / steps
+		motion.button_mask = MOUSE_BUTTON_MASK_LEFT
+		get_viewport().push_input(motion)
+	_mouse(MOUSE_BUTTON_LEFT, from + by, false)
 
 
 ## Active unit (prompt 094): the unit clicked last; a box keeps it, taking

@@ -7,6 +7,7 @@ extends Control
 ## | Where | Part | Shows |
 ## |-------|------|-------|
 ## | bottom left | `minimap` with its north mark, `minimap.column` right of it | always |
+## | above the minimap | `gizmo`: camera control (turn, tilt, home; prompt 096) | unless switched off in the settings |
 ## | bottom center | `unit_panel`, the info field of the selection | with a selection |
 ## | bottom right | `command_bar`, the 5 x 3 order grid | with an own selection that takes orders |
 ## | above the grid | `dock`: build menu and production bar (`base_hud.gd`) | while open |
@@ -16,8 +17,10 @@ extends Control
 ## | left | `event_feed`, above the minimap | messages |
 ##
 ## The grid's room is kept free while it is hidden, so showing it moves
-## nothing but the dock, which stands in the grid's corner meanwhile. A strip of `HudTheme.GIZMO_ROOM` above the minimap and the room
-## above the button column stay free (camera control of prompt 096).
+## nothing but the dock, which stands in the grid's corner meanwhile. The
+## camera control stands in a strip of `HudTheme.GIZMO_ROOM` above the
+## minimap; while it shows, the north button of the minimap's column is
+## hidden (the dial shows north, a click on its "N" turns there).
 ## `HudTheme.scale` sizes all parts; it is set here every frame and the
 ## parts are told when it changed (`apply_scale`).
 ##
@@ -42,6 +45,8 @@ const Subtitles := preload("res://scenes/hud/subtitles.gd")
 const UnitCard := preload("res://scenes/hud/unit_card.gd")
 const TopBar := preload("res://scenes/hud/top_bar.gd")
 const GroupTabs := preload("res://scenes/hud/group_tabs.gd")
+const CameraGizmo := preload("res://scenes/hud/camera_gizmo.gd")
+const Settings := preload("res://scenes/menu/settings.gd")
 ## Unit card: preferred and smallest size.
 const CARD_SIZE := Vector2(540, 620)
 const CARD_MIN := Vector2(400, 260)
@@ -51,6 +56,8 @@ const REPLAY_BAR := 64.0
 
 var main: Node3D
 var minimap: Minimap
+## Camera control above the minimap (prompt 096).
+var gizmo: CameraGizmo
 var unit_panel: UnitPanel
 var command_bar: CommandBar
 var event_feed: EventFeed
@@ -98,6 +105,9 @@ func setup(main_node: Node3D) -> void:
 	add_child(minimap)
 	minimap.setup(main)
 	add_child(minimap.column)
+	gizmo = CameraGizmo.new()
+	add_child(gizmo)
+	gizmo.setup(main.camera_rig)
 	unit_panel = UnitPanel.new()
 	add_child(unit_panel)
 	unit_panel.setup(main)
@@ -148,7 +158,7 @@ func setup(main_node: Node3D) -> void:
 		for picker: Node in [base_hud.get("build_picker"), base_hud.get("production_picker")]:
 			if picker != null:
 				picker.connect(&"info_requested", show_unit_card)
-	_parts = [waypoints, supply_rings, minimap, unit_panel, command_bar, event_feed, top_bar, group_tabs]
+	_parts = [waypoints, supply_rings, minimap, gizmo, unit_panel, command_bar, event_feed, top_bar, group_tabs]
 	_layout()
 
 
@@ -228,6 +238,10 @@ func _layout() -> void:
 	var bottom := screen.y - margin - (REPLAY_BAR if main.sim_host.is_replay() else 0.0)
 	# Bottom left: the minimap and its buttons.
 	minimap.position = Vector2(margin, bottom - minimap.size.y)
+	# The camera control above it; the north button only without it.
+	gizmo.visible = bool(Settings.get_value("camera_gizmo"))
+	minimap.show_north_button(not gizmo.visible)
+	gizmo.position = Vector2(margin, minimap.position.y - HudTheme.px(HudTheme.GIZMO_GAP) - gizmo.size.y)
 	var column: Control = minimap.column
 	column.position = Vector2(minimap.position.x + minimap.size.x + HudTheme.px(HudTheme.GAP), bottom - column.size.y)
 	# Bottom right: the order grid; its room stays free while it is hidden.
@@ -319,7 +333,7 @@ func _dock_open() -> bool:
 ## another). A part that is hidden or fading out is left out.
 func panels() -> Dictionary[String, Control]:
 	var out: Dictionary[String, Control] = {}
-	var all: Dictionary[String, Control] = {"minimap": minimap, "minimap buttons": minimap.column, "info field": unit_panel,
+	var all: Dictionary[String, Control] = {"minimap": minimap, "minimap buttons": minimap.column, "camera control": gizmo, "info field": unit_panel,
 		"order grid": command_bar, "top bar": top_bar, "support column": support, "group tabs": group_tabs,
 		"unit card": unit_card}
 	for key: String in all:

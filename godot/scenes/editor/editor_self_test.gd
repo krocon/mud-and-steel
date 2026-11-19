@@ -54,6 +54,7 @@ func _run() -> void:
 	var editor: MapEditor = scene.editor
 	_check(editor.map_name() == MAP_NAME and editor.map_size() == Vector2(256, 256), "new map is %s %s" % [editor.map_name(), editor.map_size()])
 	var hash_before: String = editor.validate()["map_hash"]
+	await _camera_control_test(scene)
 	await _tools_test(scene, editor)
 	await _mountain_tools_test(scene, editor)
 	await _history_test(scene, editor)
@@ -80,6 +81,50 @@ func _run() -> void:
 		return
 	await _play_test(menu, report["map_hash"])
 	_finish()
+
+
+## The camera control of the match HUD (prompt 096) works in the editor:
+## a click on E turns the camera east, the home button back north, and
+## neither paints on the map.
+func _camera_control_test(scene: Node3D) -> void:
+	var gizmo: Control = scene.gizmo
+	var rig: Node3D = scene.camera_rig
+	var editor: MapEditor = scene.editor
+	# Headless the window is tiny: give the control a real corner.
+	var root := get_tree().root
+	var window := root.size
+	root.size = Vector2i(1280, 720)
+	await _frames(3)
+	_check(gizmo != null and gizmo.is_visible_in_tree(), "the editor has no camera control")
+	if gizmo == null:
+		root.size = window
+		return
+	var screen := Rect2(Vector2.ZERO, get_viewport().get_visible_rect().size)
+	_check(screen.encloses(gizmo.get_global_rect()), "the camera control is outside the editor window: %s" % gizmo.get_global_rect())
+	var hash_before: String = editor.validate()["map_hash"]
+	_click(gizmo.global_position + gizmo.mark_position(1))
+	await _frames(120)
+	var forward: Vector3 = -scene.camera.global_transform.basis.z
+	forward.y = 0.0
+	_check(forward.normalized().dot(Vector3.RIGHT) > 0.9999, "editor: a click on E left the camera looking along %s" % forward.normalized())
+	rig.tilt_step(-1.0)
+	_click(gizmo.home_button.get_global_rect().get_center())
+	await _frames(120)
+	_check(absf(angle_difference(rig.yaw, 0.0)) < 0.001 and is_zero_approx(rig.tilt), "editor: home left yaw %.3f, tilt %.3f" % [rig.yaw, rig.tilt])
+	rig.snap_to(rig.focus, rig.distance, 0.0)
+	_check(editor.validate()["map_hash"] == hash_before, "a click on the camera control changed the map")
+	root.size = window
+	await _frames(2)
+
+
+func _click(at: Vector2) -> void:
+	for pressed: bool in [true, false]:
+		var event := InputEventMouseButton.new()
+		event.button_index = MOUSE_BUTTON_LEFT
+		event.position = at
+		event.global_position = at
+		event.pressed = pressed
+		get_viewport().push_input(event)
 
 
 func _tools_test(scene: Node3D, editor: MapEditor) -> void:

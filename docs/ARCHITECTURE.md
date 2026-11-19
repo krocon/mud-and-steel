@@ -4567,7 +4567,8 @@ the old dodging (`_keep_events_above_command_bar`,
 
 | Where | Part | Shows |
 |---|---|---|
-| bottom left | `minimap` + `minimap.column` (north, zoom, pause) | always |
+| bottom left | `minimap` + `minimap.column` (zoom, pause; north only while the camera control is off) | always |
+| above the minimap | `gizmo` (`camera_gizmo.gd`): camera control, prompt 096 | unless the setting `camera_gizmo` is off |
 | bottom center | `unit_panel` (info field) | with a selection |
 | bottom right | `command_bar` (order grid 5 × 3) | own units, or one own building that can be served |
 | above the grid | `dock`: build menu, production bar (`base_hud.gd`) | while open |
@@ -4585,9 +4586,26 @@ the old dodging (`_keep_events_above_command_bar`,
   The open build menu takes the place of the production bar. In a replay
   everything at the bottom stands above the replay bar. The mission panel
   moved to the top left; the event feed stays under it and keeps
-  `HudTheme.GIZMO_ROOM` (48 px times the factor) above the minimap: that
-  strip and the room above the three minimap buttons are reserved for the
-  camera control of prompt 096.
+  `HudTheme.GIZMO_ROOM` (88 px times the factor) above the minimap: in
+  that strip stands the camera control of prompt 096, `GIZMO_GAP` above
+  the minimap so it clears the north mark on the frame.
+- **Camera control** (`camera_gizmo.gd`, prompt 096; drawn in `_draw`, no
+  picture files, own design): a dial of 72 px times the factor with a
+  compass rose and a home tile beside it. The rose is the ground as the
+  camera sees it: mark `i` (N, E, S, W; letters from `hud.csv`, "O" for
+  east in German) lies at `(sin a, -cos a * sin(pitch))` times the rose's
+  radius with `a = yaw + i * 90°`, so it turns with the camera and the
+  tilt squashes it. A drag calls `rig.orbit_by` (sideways turn, up/down
+  tilt, four times the rate of the map drag; the way before the drag
+  threshold counts), a click on a mark `rig.face`, the wheel
+  `rig.tilt_step`, a double click and the home tile `rig.home`. The
+  control stops the mouse (`MOUSE_FILTER_STOP`, in `hud.panels()` as
+  "camera control", so `covers` knows it) and takes no focus. It needs
+  only the rig: the map editor shows the same control bottom right. It
+  replaces the north button of the minimap column while it shows
+  (`minimap.show_north_button`): the dial shows north, a click on "N"
+  turns there, the key N stays. Setting `camera_gizmo` (Settings →
+  Camera, default on) hides it; then the north button is back.
 - **One look** (`hud_theme.gd`): dark translucent panels with a thin light
   border, square tiles, gold for prices and lasting states, red for
   shortage, blue for cooldowns; a serif `SystemFont` for names (no font
@@ -4945,13 +4963,59 @@ ground, with a perspective `Camera3D` (30° field of view) as its child. The cam
 placed from four values: focus, distance (15–600 m), pitch and yaw.
 
 - **Pitch follows the zoom:** 45° above the horizon at the closest distance, 65° at the
-  farthest, blended over a logarithmic zoom level (optional `Curve`, else smoothstep).
+  farthest, blended over a logarithmic zoom level (optional `Curve`, else smoothstep):
+  `base_pitch()`.
+- **Tilt (prompt 096):** the player's tilt is an offset to that curve, not a
+  replacement: `pitch() = clamp(base_pitch() + tilt, 25°, 85°)` (`tilt_min_deg`,
+  `tilt_max_deg`). With tilt 0 everything is as before. `tilt` follows `target_tilt`
+  like `yaw` follows `target_yaw` (keys Page up / Page down, `tilt_step`: 10° steps;
+  `face(bearing)` and `home()` for the camera control). A drag, on the camera control
+  or on the map (Shift + middle button, Shift + Alt + move), calls `orbit_by(pixels)`,
+  which moves value and target together: any angle, no glide after the release. A
+  change by hand clamps the target to what the limits allow at the current zoom
+  (`tilt_range`), so there is no dead way at a limit; zooming keeps the target and
+  only the sum is clamped. Below 25° the upper screen edge nears the horizon (half
+  the field of view is 15°): the visible ground grows without bound and the sky shows.
+  Nothing is stored: every match starts facing north with tilt 0; `snap_to` keeps the
+  tilt, `snap_tilt` sets it (tests, pictures; the trailer tool sets 0). Turning and
+  tilting do not emit `panned_by_hand`, so the follow mode stays.
+- **What the tilt changes** (all of it the same as before at tilt 0):
+  - *Reach.* `edge_depths(elevation)` gives the view depth of flat ground at the lower
+    and upper screen edge in camera distances: 0.79 / 1.37 at 45°, 0.64 / 2.35 at 25°.
+    The sun's shadow distance is `distance * max(shadow_distance_factor, 1.3 * reach)`
+    (`shadow_reach`; 3.06 at 25°, so the shadows still cover the ground at the upper
+    edge before they fade) and goes through the same steps as before (prompt 090); the
+    near plane steps with it. The far plane is `distance * max(far_factor, 1.6 * reach)`
+    (the factor 4 still wins at 25°).
+  - *Haze and depth of field* (`atmosphere.gd`): the haze range grows by the ratio of
+    the reach to the reach at tilt 0 (never shrinks), and the sharp band and the
+    transitions of the tilt-shift blur stretch by `view_stretch()`, so the screen edges
+    are as hazy and as soft at every tilt instead of dissolving in a flat view.
+  - *Clearance.* As before the camera rises to `min_clearance` over the ground under it
+    and `building_clearance` over a roof; tilted flatter than the zoom it also rises
+    until the ray to the focus clears the ground at a quarter, half and three quarters
+    of the way, so a rise in between does not hide the focus.
+  - Ground picking (`ground_pick.gd`), the minimap's view (screen corners on the
+    ground, the plane at the focus height where a ray leaves the map), edge scrolling
+    and `bounds` work from the camera's rays or the focus and needed no change.
+  - Frame rate: the flattest view costs 3–4 ms per frame on the 4 km map
+    ([PERFORMANCE.md](PERFORMANCE.md), "Camera tilt").
+  - Tests: `self_test.gd` `_tilt_test` (camera control: drag, clicks, home, wheel;
+    keys; orbit drag on the map; limits; ground picking under 1 m and the minimap's
+    view turned and tilted; shadows and far plane; clearance flat and close, also with
+    the camera over a building; no order, no selection), the follow test (tilting keeps
+    the mode), `hud_self_test.gd` (control off: north button back, no overlap) and
+    `editor_self_test.gd` `_camera_control_test`. Pictures: `build/camera-gizmo/`
+    (`--l10n-shots`: `hud_camera_*`).
 - **Zoom** (mouse wheel, trackpad pinch) is smoothed in log space and keeps the ground
   point under the cursor fixed. **Pan** (WASD, arrows, window edge) scales with the
   distance; middle-mouse drag, **Option/Alt + mouse move** and the **trackpad
   two-finger pan** (`InputEventPanGesture`, which macOS sends for trackpad scrolling;
   the map follows the fingers, honoring the system's scroll direction) grab the
-  ground. **Q/E** turn in 45° steps, **N** turns back to north (−Z).
+  ground. **Q/E** turn in 45° steps, **N** turns back to north (−Z). With **Shift** the
+  middle-mouse drag and the Alt move turn and tilt instead (prompt 096). Godot has no
+  rotation gesture for trackpads (only `InputEventMagnifyGesture` and
+  `InputEventPanGesture`), so there is none.
 - `center_on(point)` glides the focus to a point (double click on the ground, center
   button); every hand pan cancels the glide and emits `panned_by_hand`.
   `track(point, restart, delta)` holds a moving point in the screen center (follow
@@ -4960,7 +5024,9 @@ placed from four values: focus, distance (15–600 m), pitch and yaw.
   sits on the ground height (`GroundPick.height_at`).
 - Near/far planes and the sun's shadow distance scale with the camera distance
   (`atmosphere.gd` sets the shadow factor to 1.8; see "Lighting, atmosphere and biomes").
-- All bindings are `camera_*` actions in the input map in `project.godot`.
+- All bindings are `camera_*` actions in the input map in `project.godot`
+  (`camera_tilt_up` / `camera_tilt_down` are added at run time by `settings.gd`, like
+  the other later keys).
 - `ground_pick.gd` holds the screen-to-ground math used by the camera and by mouse
   commands. Once `main.gd` sets `GroundPick.height_source` to the SimHost, rays hit
   the simulation's height field (`SimHost.ray_pick`); without it, the plane y = 0.

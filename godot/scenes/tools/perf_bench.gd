@@ -11,6 +11,9 @@ extends Node
 ## ticks, AI, snapshots), render CPU time, draw calls and the script time of
 ## the big presentation systems (the HUD of prompt 031 included; the battle
 ## views have a dozen units selected). Screenshots go to `user://perf-bench/`. See docs/PERFORMANCE.md.
+##
+## `--perf-tilts` (prompt 096) measures the standing views three times: with
+## the tilt of the zoom, tilted as flat and as steep as the camera goes.
 
 const BENCH_SIZE := Vector2i(1920, 1080)
 const SECONDS := 6.0
@@ -44,9 +47,13 @@ func _run() -> void:
 		RenderingServer.get_video_adapter_name(), sim_host.unit_ids().size(),
 		sim_host.soldier_units().size(), main.atmosphere.quality])
 	var battle_only := "--perf-battle" in OS.get_cmdline_user_args()
-	for distance in DISTANCES:
-		if not battle_only:
-			await _measure("standing", distance)
+	var tilts: Array[String] = [""]
+	if "--perf-tilts" in OS.get_cmdline_user_args():
+		tilts.append_array(["flat", "steep"])
+	for tilt in tilts:
+		for distance in DISTANCES:
+			if not battle_only:
+				await _measure("standing", distance, tilt)
 	if "--perf-quick" in OS.get_cmdline_user_args():
 		get_tree().quit()
 		return
@@ -135,10 +142,15 @@ func _front() -> Vector3:
 	return best if best.z < INF else Vector3.ZERO
 
 
-func _measure(phase: String, distance: float) -> void:
+## `tilt`: "" for the tilt of the zoom, "flat" or "steep" for the limits.
+func _measure(phase: String, distance: float, tilt := "") -> void:
 	var label := "%s, %d m" % [phase, int(distance)]
 	var focus := _front() if phase == "battle" else _nearest_own(_center(_own_units()))
 	main.camera_rig.snap_to(focus, distance, 0.7)
+	main.camera_rig.snap_tilt({"": 0.0, "flat": -PI, "steep": PI}[tilt])
+	if not tilt.is_empty():
+		label = "%s, %d m %s" % [phase, int(distance), tilt]
+		phase += "_" + tilt
 	await _frames(WARMUP_FRAMES)
 	var viewport_rid := get_viewport().get_viewport_rid()
 	var times: Array[float] = []

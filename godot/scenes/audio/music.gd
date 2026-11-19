@@ -4,7 +4,8 @@ extends Node
 ## screen → match → result → menu) and changes only when the mood does.
 ##
 ## Pieces are `assets/audio/music/<mood>_NN.mp3` (made by
-## `tools/audio/music.py`, `just music`). MP3 is decoded while it plays;
+## `tools/audio/music.py`, `just music`). `priv_<mood>_*` pieces (private
+## sound repository) replace the public pieces of their mood. MP3 is decoded while it plays;
 ## only the compressed file is in memory. Moods:
 ##
 ## | Mood | Who sets it | After a piece |
@@ -22,6 +23,7 @@ extends Node
 
 const SoundBuses := preload("res://scenes/audio/sound_buses.gd")
 const DIR := "res://assets/audio/music/"
+const PRIVATE_PREFIX := "priv_"
 const EXTENSIONS: Array[String] = ["mp3", "ogg", "wav"]
 ## Level of the music under the bus slider: music sits below the battle.
 ## [provisional] Set without listening.
@@ -113,14 +115,29 @@ static func tracks(of_mood: String) -> Array:
 	if _tracks.has(of_mood):
 		return _tracks[of_mood]
 	var list: Array = []
+	var files := PackedStringArray()
+	var private := PackedStringArray()
 	for file in ResourceLoader.list_directory(DIR):
-		if file.get_extension().to_lower() in EXTENSIONS and file.get_basename().rsplit("_", true, 1)[0] == of_mood:
-			var stream := load(DIR + file) as AudioStream
-			if stream == null:
-				push_error("cannot load music %s" % (DIR + file))
-				continue
-			stream.set_meta(&"path", DIR + file)
-			list.append(stream)
+		if file.get_extension().to_lower() not in EXTENSIONS:
+			continue
+		var is_private := file.begins_with(PRIVATE_PREFIX)
+		var stem := file.get_basename().trim_prefix(PRIVATE_PREFIX) if is_private else file.get_basename()
+		if stem.rsplit("_", true, 1)[0] == of_mood:
+			files.append(file)
+			if is_private:
+				private.append(file)
+	# Private pieces (`priv_<mood>_*`, from the private sound repository,
+	# never in git) replace the public pieces of their mood where they exist.
+	if not private.is_empty():
+		files = private
+	files.sort()
+	for file in files:
+		var stream := load(DIR + file) as AudioStream
+		if stream == null:
+			push_error("cannot load music %s" % (DIR + file))
+			continue
+		stream.set_meta(&"path", DIR + file)
+		list.append(stream)
 	_tracks[of_mood] = list
 	return list
 

@@ -33,9 +33,11 @@ const PAD := 6.0
 const MARGIN := 8.0
 ## Seconds a part takes to fade in or out.
 const FADE := 0.12
-## Free strip above the minimap (times `scale`), kept for the camera control
-## of prompt 096.
-const GIZMO_ROOM := 48.0
+## Strip above the minimap (times `scale`) for the camera control of prompt
+## 096 (`camera_gizmo.gd`): its dial, and `GIZMO_GAP` under it, which clears
+## the north mark on the minimap's frame. The messages stay above the strip.
+const GIZMO_ROOM := 88.0
+const GIZMO_GAP := 12.0
 
 static var scale := 1.0
 static var _serif: Font

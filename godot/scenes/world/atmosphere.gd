@@ -406,18 +406,28 @@ func _follow_camera() -> void:
 	if _env == null or _rig == null:
 		return
 	var d: float = _rig.distance
-	_env.fog_depth_begin = d * preset.haze_begin
-	_env.fog_depth_end = d * preset.haze_end
+	# A camera tilted flat (prompt 096) sees ground far behind the focus:
+	# the haze reaches as much farther, so the upper screen edge is as hazy
+	# as with the tilt of the zoom. (Never nearer: a steep view keeps it.)
+	var stretch := Vector2.ONE
+	var haze_reach := 1.0
+	if _rig.has_method(&"view_stretch"):
+		stretch = _rig.view_stretch()
+		haze_reach = maxf(_rig.ground_reach() / _rig.edge_depths(_rig.base_pitch()).y, 1.0)
+	_env.fog_depth_begin = d * preset.haze_begin * haze_reach
+	_env.fog_depth_end = d * preset.haze_end * haze_reach
 	_env.ssao_radius = clampf(d * SSAO_RADIUS_FACTOR, SSAO_RADIUS_RANGE.x, SSAO_RADIUS_RANGE.y)
 	if _snow_root:
 		_snow_root.global_position = _rig.focus
 		_snow_root.scale = Vector3.ONE * clampf(d / 60.0, 0.4, 10.0)
-	_follow_dof(d)
+	_follow_dof(d, stretch)
 
 
 ## Tilt-shift depth of field around the focus distance (`DOF_MODES`), with
-## the mode's stronger colours as far as the blur is on.
-func _follow_dof(d: float) -> void:
+## the mode's stronger colours as far as the blur is on. `stretch`: how much
+## farther the ground reaches before and behind the focus than with the
+## tilt of the zoom; the sharp band and the transitions widen with it.
+func _follow_dof(d: float, stretch := Vector2.ONE) -> void:
 	var camera: Camera3D = _rig.get("camera")
 	if camera == null:
 		return
@@ -445,10 +455,10 @@ func _follow_dof(d: float) -> void:
 		camera.attributes = _dof
 	var transition := d * float(mode.transition)
 	_dof.dof_blur_amount = float(mode.amount) * amount
-	_dof.dof_blur_near_distance = d * float(mode.near)
-	_dof.dof_blur_near_transition = transition
-	_dof.dof_blur_far_distance = d * float(mode.far)
-	_dof.dof_blur_far_transition = transition
+	_dof.dof_blur_near_distance = d * (1.0 - (1.0 - float(mode.near)) * stretch.x)
+	_dof.dof_blur_near_transition = transition * stretch.x
+	_dof.dof_blur_far_distance = d * (1.0 + (float(mode.far) - 1.0) * stretch.y)
+	_dof.dof_blur_far_transition = transition * stretch.y
 
 
 ## Snowfall: a box of falling flakes around the camera focus, in local

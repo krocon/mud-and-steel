@@ -72,6 +72,7 @@ const ICONS: Dictionary[String, String] = {
 	# Minimap buttons, help, menu.
 	"north": "f 12,2 16,13 12,11 8,13 | g 12,22 16,13 12,11 8,13",
 	"zoom": "c 10,10 6 | l 15,15 21,21",
+	"home": HOUSE,
 	"pause": "f 7,5 10,5 10,19 7,19 | f 14,5 17,5 17,19 14,19",
 	"help": "t ?",
 	"menu": "l 5,7 19,7 | l 5,12 19,12 | l 5,17 19,17",

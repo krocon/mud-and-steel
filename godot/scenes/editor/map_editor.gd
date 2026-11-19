@@ -23,6 +23,7 @@ const MatchSetup := preload("res://scenes/menu/match_setup.gd")
 const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
 const EditorPanel := preload("res://scenes/editor/editor_panel.gd")
+const CameraGizmo := preload("res://scenes/hud/camera_gizmo.gd")
 const EditorData := preload("res://scenes/editor/editor_data.gd")
 const SCENE := "res://scenes/editor/map_editor.tscn"
 ## Maps the editor refuses to overwrite: the golden hash and the benchmarks
@@ -55,6 +56,7 @@ var map_objects: Node3D
 var water: Node3D
 var atmosphere: Atmosphere
 var panel: EditorPanel
+var gizmo: CameraGizmo
 ## Strongpoints drawn (self-test).
 var strongpoint_outlines := 0
 ## Current tool (key of TOOLS) and brush settings.
@@ -132,6 +134,16 @@ func _ready() -> void:
 	panel.name = "EditorPanel"
 	panel.main = self
 	$Hud.add_child(panel)
+	# The camera control of the match HUD (prompt 096), bottom right.
+	gizmo = CameraGizmo.new()
+	$Hud.add_child(gizmo)
+	gizmo.setup(camera_rig)
+	gizmo.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+	gizmo.offset_left = -gizmo.size.x - 12.0
+	gizmo.offset_top = -gizmo.size.y - 12.0
+	gizmo.offset_right = -12.0
+	gizmo.offset_bottom = -12.0
+	gizmo.visible = bool(Settings.get_value("camera_gizmo"))
 	_update_starts()
 	set_status(tr("EDITOR_STATUS_OPENED") % editor.map_name())
 

@@ -31,6 +31,9 @@ const BINDABLE: Dictionary[String, String] = {
 	"camera_rotate_left": "SET_KEY_CAMERA_ROTATE_LEFT",
 	"camera_rotate_right": "SET_KEY_CAMERA_ROTATE_RIGHT",
 	"camera_reset_north": "SET_KEY_CAMERA_RESET_NORTH",
+	# Tilt steeper / flatter (prompt 096); their actions are added at run time.
+	"camera_tilt_up": "SET_KEY_CAMERA_TILT_UP",
+	"camera_tilt_down": "SET_KEY_CAMERA_TILT_DOWN",
 	# Orders and HUD (prompt 031).
 	"order_move": "SET_KEY_ORDER_MOVE",
 	"order_attack": "SET_KEY_ORDER_ATTACK",
@@ -87,6 +90,9 @@ const RUNTIME_ACTIONS: Dictionary[String, int] = {
 	"order_attack_object": KEY_L | KEY_MASK_SHIFT,
 	# Plain C is the follow mode it belongs to (prompt 094).
 	"camera_center": KEY_C | KEY_MASK_SHIFT,
+	# Every letter key is taken; Page up / Page down were free (prompt 096).
+	"camera_tilt_up": KEY_PAGEUP,
+	"camera_tilt_down": KEY_PAGEDOWN,
 }
 
 ## Health bars over units (prompt 031): `damaged` (damaged and selected
@@ -112,6 +118,10 @@ const DEFAULTS := {
 	"pan_sensitivity": 1.0,
 	"zoom_sensitivity": 1.0,
 	"edge_scroll": true,
+	# Camera control beside the minimap (prompt 096) and the direction of a
+	# tilt drag. Rotation and tilt themselves are never stored.
+	"camera_gizmo": true,
+	"tilt_invert": false,
 	"health_bars": "damaged",
 	# Tilt-shift depth of field, one of DOF_MODES.
 	"depth_of_field": "subtle",
@@ -390,6 +400,7 @@ static func apply_camera(rig: Node) -> void:
 	rig.pan_speed = rig.get_meta(&"base_pan_speed") * float(get_value("pan_sensitivity"))
 	rig.zoom_step = rig.get_meta(&"base_zoom_step") * float(get_value("zoom_sensitivity"))
 	rig.edge_scroll_enabled = rig.get_meta(&"base_edge_scroll") and bool(get_value("edge_scroll"))
+	rig.tilt_inverted = bool(get_value("tilt_invert"))
 
 
 static func _first_key(action: String) -> int:
