@@ -65,6 +65,8 @@ const BUS_DB: Dictionary[String, float] = {
 ##     heading  true: `yaw` is relative to the unit's driving direction
 ##     pitch  degrees above the horizon
 ##     fov    field of view in degrees (default: the game's 30)
+##     shadow zoom distance the shadow range is set for (game_camera only,
+##            default: `haze`; prompt 090)
 ##     haze   distance the haze and the sound are set for (default: `dist`
 ##            for steep views, farther for flat ones)
 ##   game_camera (default false): the camera of the game. The keys give only
@@ -82,7 +84,7 @@ const BUS_DB: Dictionary[String, float] = {
 ## the falling snow of a winter map; "clouds" (prompt 087) the cloud
 ## shadows (they are on otherwise and lie the same for the same scene and
 ## seed: they follow the game time).
-const OFF_PARTS: Array[String] = ["tufts", "ground", "shadows", "wind", "dof", "ssao", "msaa", "fxaa", "taa", "snowfall", "clouds"]
+const OFF_PARTS: Array[String] = ["tufts", "ground", "shadows", "wind", "dof", "ssao", "msaa", "fxaa", "taa", "snowfall", "clouds", "shadowsteps", "lodsteps"]
 const MeadowTufts := preload("res://scenes/world/meadow_tufts.gd")
 const TallGrass := preload("res://scenes/world/tall_grass.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
@@ -420,6 +422,20 @@ const SHOTS: Dictionary[String, Dictionary] = {
 			{"t": 6.0, "at": Vector2(-1680, 1220), "dist": 80.0, "yaw": 40.0, "pitch": 46.0},
 		],
 	},
+	# Prompt 090: the camera stands over hilly ground with trees while only
+	# the shadow distance (`shadow`) runs from that of a 70 m zoom to that
+	# of a 300 m zoom and back. Every change of the picture is the
+	# flicker a zoom adds on top of the motion. `just shadow-flicker`
+	# measures it with and without the shadow distance steps.
+	"zoom_shadow_range": {
+		"map": "test_large", "scene": "survey", "seed": 1, "start_s": 0.5, "seconds": 4.0, "game_camera": true,
+		"stills": [2.0],
+		"camera": [
+			{"t": 0.0, "at": Vector2(-30, 70), "dist": 110.0, "yaw": 23.0, "haze": 110.0, "shadow": 70.0},
+			{"t": 2.0, "at": Vector2(-30, 70), "dist": 110.0, "yaw": 23.0, "haze": 110.0, "shadow": 300.0},
+			{"t": 4.0, "at": Vector2(-30, 70), "dist": 110.0, "yaw": 23.0, "haze": 110.0, "shadow": 70.0},
+		],
+	},
 	# Prompt 068: open meadow with tufts at the game's near zoom levels, panned
 	# at about 6 px/frame like a player's pan; camera as in the game (pitch of
 	# the rig, `haze` = distance, so depth of field and shadow range match).
@@ -720,6 +736,8 @@ var _silent := true
 var _stills_left: Array = []
 ## Parts turned off with `--trailer-off=` (prompt 068).
 var _off: PackedStringArray = []
+## Shadow distance step of the game camera shots (prompt 090).
+var _shadow_step := 0.0
 ## Smoothed heading per camera key (chase rides must not jitter).
 var _headings: Dictionary[int, float] = {}
 ## Combat events by type since the last scout report.
@@ -891,6 +909,8 @@ func _apply_off() -> void:
 		main.terrain.set_tall_strength(0.0)
 	if "dof" in _off and Settings.get_value("depth_of_field") != "off":
 		Settings.set_value("depth_of_field", "off")
+	if "lodsteps" in _off:
+		main.terrain.lod_hysteresis = 0.0
 	if "ssao" in _off:
 		main.atmosphere._env.ssao_enabled = false
 	if "snowfall" in _off and main.atmosphere._snow_root != null:
@@ -995,7 +1015,18 @@ func _place_camera(t: float) -> void:
 	camera.near = clampf(distance * 0.02, 0.05, 2.0)
 	camera.far = maxf(distance * 4.0, 2500.0)
 	if _shot.get("game_camera", false):
-		main.sun.directional_shadow_max_distance = haze * main.camera_rig.shadow_distance_factor
+		# Shadow distance in steps and the near plane with it, like the
+		# game's camera (prompt 090); `--trailer-off=shadowsteps` glides.
+		var game_rig: Node3D = main.camera_rig
+		# `shadow`: the zoom (m) the shadows are set for, if not `haze`.
+		var shadow_zoom: float = value.call("shadow", -1.0)
+		var wanted: float = (shadow_zoom if shadow_zoom > 0.0 else haze) * game_rig.shadow_distance_factor
+		if "shadowsteps" in _off:
+			main.sun.directional_shadow_max_distance = wanted
+		else:
+			_shadow_step = game_rig.shadow_step_for(wanted, _shadow_step)
+			main.sun.directional_shadow_max_distance = _shadow_step
+			camera.near = game_rig.near_for(_shadow_step)
 	else:
 		main.sun.directional_shadow_max_distance = clampf(haze * 2.5, 60.0, 500.0)
 

@@ -473,6 +473,7 @@ func _terrain_test() -> void:
 		# Close up the chunk under the camera uses full detail.
 		if distance == rig.min_distance:
 			_check(terrain.visible_per_lod[0] > 0, "no full-detail chunk at %.0f m" % distance)
+	await _steady_zoom_test()
 	var marker: Variant = sim_host.map_marker("hill_top")
 	var point: Vector3 = marker if marker != null else Vector3(30, 0, 30)
 	var s: Vector2i = terrain.sample_of(point)
@@ -495,6 +496,64 @@ func _terrain_test() -> void:
 		"crater changed the ground 80 m away")
 	_check(absf(sim_host.height_at(point.x, point.z) - before) < 0.01, "debug crater changed the simulation")
 	print("self-test: terrain ok (crater %.2f -> %.2f m, chunks per LOD %s)" % [before, after, terrain.visible_per_lod])
+
+
+## Prompt 090: the shadow distance takes only step values and does not
+## switch back and forth at a boundary; a small camera move changes no
+## chunk's LOD level.
+func _steady_zoom_test() -> void:
+	var rig: Node3D = main.camera_rig
+	var terrain: Node3D = main.terrain
+	var factor: float = rig.shadow_distance_factor
+	var step := 0.0
+	var values := {}
+	var distance: float = rig.min_distance
+	while distance <= rig.max_distance:
+		step = rig.shadow_step_for(distance * factor, step)
+		values[step] = true
+		var n := log(step / rig.SHADOW_STEP_BASE) / log(rig.SHADOW_STEP_RATIO)
+		_check(absf(n - roundf(n)) < 0.001, "shadow distance %.2f m is no step" % step)
+		_check(step >= distance * factor - 0.001, "shadows end at %.1f m, needed %.1f m" % [step, distance * factor])
+		_check(step <= distance * factor * rig.SHADOW_STEP_RATIO * (1.0 + rig.SHADOW_STEP_HYSTERESIS) + 0.001,
+			"shadow distance %.1f m is too far for %.1f m" % [step, distance * factor])
+		_check(rig.near_for(step) <= maxf(0.05, distance * 0.02) + 0.0001, "near plane beyond 2 %% at %.1f m" % distance)
+		distance *= 1.01
+	var steps_out := values.size()
+	_check(steps_out >= 3 and steps_out <= 16, "%d shadow distance steps over the zoom range" % steps_out)
+	# Zooming back and forth across a boundary switches once, not every time.
+	var boundary: float = rig.SHADOW_STEP_BASE * pow(rig.SHADOW_STEP_RATIO, 3)
+	step = rig.shadow_step_for(boundary * 0.99, 0.0)
+	var switches := 0
+	for i in 20:
+		var next: float = rig.shadow_step_for(boundary * (1.01 if i % 2 == 0 else 0.99), step)
+		switches += int(next != step)
+		step = next
+	_check(switches == 1, "shadow distance switched %d times at a boundary" % switches)
+	# The rig really uses it.
+	rig.snap_to(Vector3(0, 0, 40), 120.0, 0.0)
+	_check(is_equal_approx(main.sun.directional_shadow_max_distance, rig.shadow_step_above(120.0 * factor)),
+		"sun shadow distance %.1f m is not the step for 120 m" % main.sun.directional_shadow_max_distance)
+
+	# Terrain: jitter the camera by 2 m at a far zoom, where LOD boundaries
+	# cross the view.
+	var flips := [0, 0]
+	for pass_index in 2:
+		terrain.lod_hysteresis = 0.1 if pass_index == 0 else 0.0
+		terrain.reset_lods()
+		rig.snap_to(Vector3(0, 0, 40), 300.0, 0.0)
+		await _frames(2)
+		var before: PackedInt32Array = terrain.chunk_lods().duplicate()
+		for i in 12:
+			rig.snap_to(Vector3(2.0 if i % 2 == 0 else 0.0, 0, 40 + (1.5 if i % 3 == 0 else 0.0)), 300.0, 0.0)
+			await _frames(1)
+			var now: PackedInt32Array = terrain.chunk_lods()
+			for k in now.size():
+				flips[pass_index] += int(now[k] != before[k])
+			before = now.duplicate()
+	terrain.lod_hysteresis = 0.1
+	terrain.reset_lods()
+	_check(flips[0] == 0, "%d LOD switches while the camera moved 2 m" % flips[0])
+	print("self-test: steady zoom ok (%d shadow steps, LOD switches %d with hysteresis, %d without)" % [steps_out, flips[0], flips[1]])
 
 
 # --- 6. Biomes (prompt 015) -------------------------------------------------

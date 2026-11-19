@@ -123,6 +123,14 @@ pixel in the light function, the same in every shader); the battle phase
 varies by ±10 % between runs with the AI's decisions either way. They stay
 on at every quality, including low.
 
+Shadow distance in steps (prompt 090): `just bench-view --perf-quick`
+(quality high, Apple M1 Max, one run each) with the steps and with the
+gliding distance (`--no-shadow-steps`), frame time in ms standing at
+40 / 150 / 600 m: 14.69 / 13.77 / 12.66 against 14.48 / 13.73 / 12.48
+(1.4 %, 0.3 %, 1.4 % slower: the shadows reach up to 1.6 times as far, so
+more objects fall into them: 495 against 416 draw calls at 40 m). Medium
+and low were not measured.
+
 All simulation budgets are met. What changed:
 
 1. **Path components** (`PathGrid::relabel_components_in`): every wreck

@@ -50,7 +50,9 @@ signal panned_by_hand
 @export_group("Rendering")
 ## Field of view in degrees. Small, so the view is only slightly perspective.
 @export var fov_deg := 30.0
-## Shadow distance as a multiple of the camera distance.
+## Shadow distance as a multiple of the camera distance: the least the
+## shadows must reach. The distance in use is the next step above it, see
+## `shadow_distance_for`. (world/atmosphere.gd sets this factor.)
 @export var shadow_distance_factor := 2.5
 ## Far plane as a multiple of the camera distance.
 @export var far_factor := 4.0
@@ -68,6 +70,19 @@ signal panned_by_hand
 ## How fast the camera glides to a point centered by double click.
 @export var glide_smoothing := 8.0
 
+## Shadow distance steps (prompt 090): 50 m times a power of this ratio.
+## A shadow distance that glides with the zoom changes the size of a shadow
+## texel on the ground every frame, so every shadow edge crawls while
+## zooming; between two steps the shadow maps stay the same.
+const SHADOW_STEP_BASE := 50.0
+const SHADOW_STEP_RATIO := 1.41421356
+## A smaller step is taken only when it is this much more than needed, so
+## zooming back and forth at a boundary does not switch every time.
+const SHADOW_STEP_HYSTERESIS := 0.12
+## Near plane as a share of the shadow distance step. The cascades start
+## at the near plane, so it steps with them (at most 2 % of the distance).
+const NEAR_PER_SHADOW_STEP := 0.02 / (SHADOW_STEP_RATIO * (1.0 + SHADOW_STEP_HYSTERESIS))
+
 ## Area the focus point must stay in (x/z plane, meters).
 var bounds := Rect2(-1000, -1000, 2000, 2000)
 
@@ -76,6 +91,12 @@ var distance := 80.0
 var target_distance := 80.0
 var yaw := 0.0
 var target_yaw := 0.0
+
+## false (`-- --no-shadow-steps`, for comparisons): the shadow distance
+## glides with the zoom as before prompt 090.
+var shadow_steps := true
+## Shadow distance step in use (m), 0 before the first frame.
+var shadow_step := 0.0
 
 var _zoom_anchor := Vector2.ZERO
 var _dragging := false
@@ -88,6 +109,7 @@ var _glide_target: Variant = null
 func _ready() -> void:
 	if DisplayServer.get_name() == "headless":
 		edge_scroll_enabled = false
+	shadow_steps = "--no-shadow-steps" not in OS.get_cmdline_user_args()
 	focus = Vector3(global_position.x, 0.0, global_position.z)
 	distance = clampf(start_distance, min_distance, max_distance)
 	target_distance = distance
@@ -103,6 +125,8 @@ func snap_to(new_focus: Vector3, new_distance: float, new_yaw := 0.0) -> void:
 	target_distance = distance
 	yaw = new_yaw
 	target_yaw = new_yaw
+	# The same picture however the camera got here (tests, screenshots).
+	shadow_step = 0.0
 	_apply()
 
 
@@ -256,10 +280,39 @@ func _apply() -> void:
 	camera.global_position.y = maxf(camera.global_position.y, top + building_clearance)
 	camera.look_at(focus, Vector3.UP)
 
-	camera.near = maxf(0.05, distance * 0.02)
+	if shadow_steps:
+		shadow_step = shadow_step_for(distance * shadow_distance_factor, shadow_step)
+		camera.near = near_for(shadow_step)
+	else:
+		shadow_step = distance * shadow_distance_factor
+		camera.near = maxf(0.05, distance * 0.02)
 	camera.far = distance * far_factor
 	if sun:
-		sun.directional_shadow_max_distance = distance * shadow_distance_factor
+		sun.directional_shadow_max_distance = shadow_step
+
+
+## The smallest step that reaches `wanted` meters (0 = no step yet).
+static func shadow_step_above(wanted: float) -> float:
+	var n := ceili(log(maxf(wanted, 1.0) / SHADOW_STEP_BASE) / log(SHADOW_STEP_RATIO) - 0.0001)
+	return SHADOW_STEP_BASE * pow(SHADOW_STEP_RATIO, n)
+
+
+## The shadow distance step for `wanted` meters when `current` is in use:
+## up at once when the shadows would end too early, down only when the
+## smaller step still has `SHADOW_STEP_HYSTERESIS` to spare.
+static func shadow_step_for(wanted: float, current: float) -> float:
+	var step := shadow_step_above(wanted)
+	if current <= 0.0 or step > current:
+		return step
+	if shadow_step_above(wanted * (1.0 + SHADOW_STEP_HYSTERESIS)) < current:
+		return shadow_step_above(wanted * (1.0 + SHADOW_STEP_HYSTERESIS))
+	return current
+
+
+## Near plane for a shadow distance step: between 1.3 % and 2 % of the
+## camera distance, and the same for as long as the step is.
+func near_for(step: float) -> float:
+	return maxf(0.05, step * NEAR_PER_SHADOW_STEP / maxf(shadow_distance_factor, 0.001))
 
 
 static func _smooth(rate: float, delta: float) -> float:

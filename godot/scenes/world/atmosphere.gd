@@ -20,7 +20,8 @@ extends Node
 ##   stronger colours; never on quality low.
 ##
 ## Shadows: the rig sets `directional_shadow_max_distance` from the camera
-## distance (`shadow_distance_factor`); the cascade splits here are
+## distance (`shadow_distance_factor`), in steps (prompt 090: the next step
+## above it, up to 1.6 times as far); the cascade splits here are
 ## fractions of it and put the cascades where the ground is seen (about 0.8
 ## to 1.5 camera distances), not near the camera where there is only air.
 ##

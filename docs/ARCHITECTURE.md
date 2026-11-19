@@ -2862,6 +2862,45 @@ one part of the look turned off (`no_ground`, `no_tufts`, `no_dof`,
 `old_sun`, `old_blur`, `none` = the look before), in one run so a busy
 machine affects all variants alike.
 
+**Flicker while zooming (prompt 090).** Three values followed the zoom
+every frame. What was done about each:
+
+- **Shadow distance.** It was `distance × 1.8`, so the size of a shadow
+  texel on the ground changed every frame of a zoom and every shadow edge
+  crawled. Now `rts_camera.gd` takes the next step of a ladder above it
+  (50 m × √2ⁿ, `shadow_step_for`): up at once, down only when the smaller
+  step has 12 % to spare, so a zoom back and forth at a boundary switches
+  once. The near plane steps with it (`near_for`, 1.3–2 % of the distance),
+  because the cascades start there. Between two steps the shadow maps are
+  the same; at a step they jump once. The cascade splits stay fractions of
+  the distance, so the first cascade ends between 0.8 and 1.3 camera
+  distances (before: always 0.8). `snap_to` forgets the step, so tests and
+  pictures do not depend on where the camera came from.
+- **Terrain LOD.** A chunk at a level boundary switched with every small
+  camera move. `terrain.gd` now keeps a chunk's level until it is 10 %
+  beyond the boundary (`lod_hysteresis`). Seams still take the
+  neighbours' strides from the same `_lods`.
+- **SSAO radius**: left as it is; not measured as a cause.
+
+Measured with `just shadow-flicker` (trailer shot `zoom_shadow_range`,
+`tools/shadow_flicker.py`): the camera stands over hills and trees on
+`test_large` while only the shadow distance runs from that of a 70 m zoom
+to that of a 300 m zoom and back in 4 s; wind, cloud shadows, tufts and
+depth of field off. Mean change of the fine detail per frame (grey levels
+of 255) and share of frame pairs without change:
+
+| | mean | unchanged pairs | largest jump |
+|---|---|---|---|
+| gliding (before, `--off=shadowsteps`) | 0.048 | 59 % | 0.059 |
+| steps | 0.006 | 97 % | 0.104 |
+
+The zoom itself (the picture scaling) is not measured: the tools here
+compare frames of a standing or panning camera. Frame rate: PERFORMANCE.md.
+`-- --no-shadow-steps` starts the game with the gliding distance for
+comparison; `--trailer-off=shadowsteps,lodsteps` does it in trailer shots.
+Open: the LOD hysteresis is checked on `test_small` only, where no chunk
+sat at a boundary even without it; the SSAO share is unmeasured.
+
 ### Fields (prompt 088)
 
 Terrain ids 9–11 (`field_grain`, `field_green`, `field_ploughed`) count as

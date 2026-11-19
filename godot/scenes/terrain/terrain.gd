@@ -44,6 +44,12 @@ const INSTANCE_FLOATS := 16
 ## Distance (m) up to which chunks use full detail; every doubling of the
 ## distance drops one level.
 @export var lod0_distance := 140.0
+## A chunk changes its level only when it is this share beyond the boundary
+## (prompt 090): coarser from 10 % farther, finer from 10 % nearer. Without
+## it a chunk at a boundary switches back and forth with every small camera
+## move, and hill outlines and their shadows pop. 0: the level follows the
+## distance alone.
+@export var lod_hysteresis := 0.1
 ## Chunks this far outside the view frustum still count as visible, so hills
 ## just off screen keep casting their shadows into it.
 @export var cull_margin := 40.0
@@ -66,6 +72,8 @@ var _map_size := Vector2.ZERO
 var _chunks := Vector2i.ZERO
 var _ranges := PackedVector2Array()
 var _lods := PackedInt32Array()
+## No level from an earlier update to hold on to yet.
+var _lods_fresh := true
 var _material: ShaderMaterial
 var _edge_material: ShaderMaterial
 ## BiomePreset applied by `apply_biome` (prompt 015), or null.
@@ -200,7 +208,11 @@ func update_chunks(camera: Camera3D) -> void:
 			var range_y := _ranges[k]
 			var dy := maxf(maxf(range_y.x - eye.y, eye.y - range_y.y), 0.0)
 			var dist := sqrt(dx * dx + dy * dy + dz * dz)
-			_lods[k] = 0 if dist < lod0_distance else mini(LOD_LEVELS - 1, int(log(dist / lod0_distance) / log(2.0)) + 1)
+			if _lods_fresh or lod_hysteresis <= 0.0:
+				_lods[k] = _level_at(dist)
+			else:
+				_lods[k] = clampi(_lods[k], _level_at(dist / (1.0 + lod_hysteresis)), _level_at(dist * (1.0 + lod_hysteresis)))
+	_lods_fresh = false
 
 	# Visible chunks per level.
 	# Plain Arrays (references): appending to an element changes it in place.
@@ -259,6 +271,25 @@ func update_chunks(camera: Camera3D) -> void:
 ## Re-reads the samples in `rect` (sample coordinates) from the SimHost and
 ## uploads them. Normals and blurred rasters reach a few samples beyond a
 ## height change, so the rectangle is grown before reading.
+## LOD level of a chunk `dist` meters from the camera, without hysteresis.
+func _level_at(dist: float) -> int:
+	if dist < lod0_distance:
+		return 0
+	return mini(LOD_LEVELS - 1, int(log(dist / lod0_distance) / log(2.0)) + 1)
+
+
+## LOD level of every chunk in the last update (for tests).
+func chunk_lods() -> PackedInt32Array:
+	return _lods
+
+
+## The next update takes every level from the distance alone, as after a
+## jump of the camera (tests and pictures: the same from wherever it came).
+func reset_lods() -> void:
+	_lods_fresh = true
+	_dirty = true
+
+
 func heights_changed(rect: Rect2i) -> void:
 	regions_changed([rect])
 

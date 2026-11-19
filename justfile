@@ -526,6 +526,11 @@ terrain-shots dir map="test_large" *args: build
 ground-motion *args: build
     bash tools/ground-motion.sh {{ args }}
 
+# Flicker from the zoom alone (prompt 090; needs a window, ffmpeg, numpy): the camera stands while the shadow distance runs through a 40-300 m zoom; with the steps and (`--off=shadowsteps`) gliding as before
+[group('terrain')]
+shadow-flicker *args: build
+    bash tools/shadow-flicker.sh {{ args }}
+
 # --- Map objects (prompt 013) ---------------------------------------------------------
 
 # Measure frame rate, draw calls and instances over the densest wood and a village (opens a window); `just objects-bench rock_hills --rocks-bench`: over a rock ridge field (prompt 074)
