@@ -251,6 +251,18 @@ Zeichnungen bleiben Referenz auf dem Rechner.
 |-----|--------|------|--------|
 | 096 | [Kamera-Gizmo: Karte mit der Maus drehen und neigen](096-kamera-gizmo-drehen-neigen.md) | Rundes Gizmo bei der Minimap (Kompassrose mit N, dreht mit, zur Ellipse gestaucht je nach Neigung) plus Haus-Knopf: waagerecht ziehen = stufenlos drehen, senkrecht = neigen, Klick auf N/O/S/W, Mausrad neigt; Neigung als Versatz zur bisherigen Zoomkurve (Standard wie heute, Grenzen ~25°–85°), Tasten steiler/flacher, Zieh-Geste auf der Karte; Bodenabstand, Sichtweite, Minimap-Trapez, Bodenauswahl angepasst, Bildrate gemessen; Selftests; reine Darstellung | offen |
 
+### Außer der Reihe: Gameplay (097)
+
+| Nr. | Prompt | Ziel | Status |
+|-----|--------|------|--------|
+| 097 | [Panzertempo und Schussweite nach Referenzvideo prüfen und anpassen](097-panzertempo-schussweite-nach-video.md) | Referenzvideo (nur Spielgefühl, keine Daten aus anderen Spielen) in Fahrzeuglängen ausmessen: Tempo, Bilddurchquerung, Schussentfernung; dieselben Größen im eigenen Spiel messen; Fahrzeugtempo und Faktor für direktes Feuer (Sicht folgt) in `data/scale.toml` anpassen, Katalog unverändert; Folgen für Treffer/Durchschlag, Flak, KI, Missionen, Darstellung mitziehen; Balance per KI-Turnier vorher/nachher; Golden Hash beabsichtigt neu | offen |
+
+### Außer der Reihe: Darstellung (098)
+
+| Nr. | Prompt | Ziel | Status |
+|-----|--------|------|--------|
+| 098 | [Nebel des Krieges: Landschaft immer sichtbar, Einheiten nur im Sichtbereich](098-nebel-des-krieges-landschaft-sichtbar.md) | Nach Vorbild-Bild (`docs/.vorlagen/nebel/`, nur Wirkung): kein Schwarz mehr für „nie gesehen“, die ganze Karte ist von Anfang an durch eine halbdurchsichtige, gedämpfte Schicht zu sehen, klar nur im aktuellen Sichtbereich, weicher und zeitlich geglätteter Rand; gegnerische Einheiten und ihre kurzlebigen Effekte nur im Sichtbereich; Minimap ebenso; Lücken (Gegnerbauten, Zerstörung im Nebel) als Befund; reine Darstellung, Sim und Golden Hash unverändert; Selftest, Bildrate, Vorher/Nachher-Bilder | offen |
+
 ## Festgelegte Grundsätze
 
 - **Größen 1:1** in echten Metern, auch Infanterie (1,80 m).
