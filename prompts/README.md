@@ -208,6 +208,19 @@ Zeichnungen bleiben Referenz auf dem Rechner.
 |-----|--------|------|--------|
 | 088 | [Zehn Karten nach Bildvorlagen, mit Feldern](done/088-karten-nach-bildvorlagen.md) | Aus jedem der zehn Bilder in `docs/.vorlagen/_todo/maps/` eine spielbare Karte: je Karte eine Skizze `data/map_sketches/<name>.toml` (Flüsse, Küsten, Straßen, Bahn, Wald, Felder, Siedlungen, Höhen, Starts), daraus `just gen-sketch <name>`; drei neue Geländearten `field_grain`, `field_green`, `field_ploughed` (Regeln wie Gras, Golden Hash ändert sich bewusst) mit Reihen, Halmen, Furchen und Winterfassung; weitere Bausteine nur bei Bedarf (Gleis, lange Brücken, Baracken, Turm); Gerechtigkeit gemessen über `just map-reach`; drei Stufen ohne Halt, selbständig; nicht gleichzeitig mit 085 | erledigt (`just gen-sketch` mit Skizzen in `data/map_sketches/`, Feldarten 9–11 mit Shader und Editor, Golden Hashes neu; alle zehn Karten `river_fields`, `river_fields_winter`, `river_fork`, `island_chain`, `desert_lagoon`, `winter_town`, `river_town`, `valley_fields`, `river_valley`, `river_city` im Menü, `map-check`/`map-reach` grün, Vergleichsbilder in `build/sketch-compare/`; Generator lernte Bahn, Ruinendorf, Meer/Buchten/Dämme/Untiefen, Straßenbebauung, Feldflur-Raster; Entscheidungen vorläufig; offen: Schienen, lange Brücken, Turmmodelle, Getreidehalme, Flimmermessung, Tickzeit je Karte, Wald unter 60 FPS; Panzer-Hänger an Brücken und Furten nachträglich behoben in 86c952b) |
 
+### Außer der Reihe: Darstellung (090, 091)
+
+| Nr. | Prompt | Ziel | Status |
+|-----|--------|------|--------|
+| 090 | [Kein Bodenflackern beim Zoomen und Bewegen](090-boden-flackern-beim-zoomen.md) | Boden flackert beim Zoomen/Schwenken: zuerst mit `just ground-motion` (neuer Zoom-Shot, LOD-Schwenk, mit/ohne Schatten und SSAO) messen, welche Ursache wie viel ausmacht; dann Schattendistanz in Stufen mit Hysterese statt gleitend mit dem Zoom, Terrain-LOD mit Hysterese, SSAO nur bei Bedarf; Zoom bleibt stufenlos; Bildrate gemessen, reine Darstellung | offen |
+| 091 | [Hellblaueres Wasser, am Ufer ganz hell](091-wasser-hellblau.md) | Flüsse, Seen und Meer wirken dunkel und grünlich-braun: nach Vorlage `img_6.png` blauer und heller (flach hell-/mittelblau, tief dunkleres Blau), am Ufer ein weicher, fast weiß-hellblauer Saum aus der Wassertiefe; Farben als Biom-Werte (Wald bekommt eigene), Biome bleiben unterscheidbar, Wetter/Nacht wirken weiter; Minimap/Editor angleichen; Vorher/Nachher-Bilder, Bildrate geprüft, reine Darstellung | offen |
+
+### Außer der Reihe: Bedienung (092)
+
+| Nr. | Prompt | Ziel | Status |
+|-----|--------|------|--------|
+| 092 | [Größere, lesbare Befehlsleiste unten links](092-befehlsleiste-groesser.md) | Luft- und Befehlsleiste unten links sind auf großen/Retina-Bildschirmen kaum lesbar: erst Ursache klären (`ui_scale_for()` begrenzt auf Höhe/720, feste 88 × 40 px und 12-px-Schrift), dann Standardgröße anheben und mit UI-Skala bzw. eigener HUD-Größe skalierbar machen; Luft- und Befehlsleiste einzeln ein-/ausklappbar (Zustand gespeichert, Kürzel wirken weiter); keine Überlappung mit Einheitenpanel/Minimap; Vorher/Nachher-Bilder in mehreren Auflösungen, Selftests ergänzt | offen |
+
 ## Festgelegte Grundsätze
 
 - **Größen 1:1** in echten Metern, auch Infanterie (1,80 m).
