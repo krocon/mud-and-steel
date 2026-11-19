@@ -19,12 +19,13 @@ keys work while they are folded.
 | Input | Effect |
 |---|---|
 | W A S D, arrow keys *(rebindable)*, mouse at the screen edge | Pan |
-| Mouse wheel, trackpad pinch | Zoom (towards the cursor) |
+| Mouse wheel, trackpad pinch | Zoom (towards the cursor; towards the screen center while the camera follows a unit) |
 | Middle mouse drag, Option/Alt + mouse move, two-finger trackpad pan | Grab the map |
 | Q / E *(rebindable)* | Turn by 45° |
 | N *(rebindable)* | Face north |
 | Double click on empty ground | Glide there |
-| C *(rebindable)* | Follow the selection (any pan ends it) |
+| Shift + C *(rebindable)*, unit panel: button with the ring | Glide to the active unit (see "Selecting"); zoom and rotation stay (prompt 094) |
+| C *(rebindable)*, unit panel: toggle with the frame | Follow the active unit: it stays in the screen center while it drives. Zoom and rotation keep the mode; moving the map by hand (keys, screen edge, drag, trackpad, minimap, double click on the ground, Space) ends it. Without a selection it waits for the next one. The game remembers the choice for the next match |
 | Minimap: left click or drag | Look there |
 | Space *(rebindable)* | Jump to the newest event message |
 
@@ -41,8 +42,16 @@ keys work while they are folded.
 | 1…9 | Recall the group (and its formation); twice quickly: camera there |
 | Unit panel: click a tile | Select only that unit |
 | Unit panel: Shift + click a tile | Remove that unit from the selection |
-| Shift + I *(rebindable)* | Unit card of the selected unit (the first of several); again closes it (prompt 066) |
+| Shift + I *(rebindable)* | Unit card of the active unit; again closes it (prompt 066) |
 | Unit panel: "Values" in the corner of the picture | The same as the key |
+
+**Active unit** (prompt 094): the selected unit you clicked last (on the
+map, with Shift + click, or its tile). Its tile in the unit panel has a
+bright frame; the camera buttons and the unit card refer to it. A selection
+box, a double click or a group keep it if it is among the selected units;
+otherwise the unit nearest to the box or the screen center (the first of a
+group) becomes active. If it is destroyed, mounts or is deselected, the
+nearest selected unit takes over.
 
 ## Orders
 

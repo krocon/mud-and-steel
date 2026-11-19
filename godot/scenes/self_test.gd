@@ -8,6 +8,12 @@ extends Node
 ## 1. Camera: zoom limits, pan to the map corner, 45° rotation.
 ## 2. Selection: box over the whole screen selects exactly the own tanks,
 ##    Ctrl+1 / 1 / 1-1 (center), click, Shift-click, enemy click, double click.
+## 2b. Map controls: trackpad pan, Option drag, double click on the ground;
+##    prompt 094: the active unit (click, box, deselecting, tile frame), the
+##    panel's center button and Shift+C, the follow toggle and C (same
+##    state, zoom and rotation keep it, a hand pan ends it, a new selection
+##    is followed, the choice is remembered). The hill drive (4) checks that
+##    a driving tank stays in the screen center while followed.
 ## 3. Orders: right click sends the group into a grid formation (speed,
 ##    spacing, center checked), enemy tanks stay put, H stops a moving group.
 ## 4. Hill: one tank is right-clicked onto the `hill_top` marker of the map
@@ -313,21 +319,266 @@ func _controls_test() -> void:
 		var off := Vector2(rig.focus.x - target.x, rig.focus.z - target.z).length()
 		_check(off < 1.0, "double click did not center the camera (%.2f m off)" % off)
 
-	# Follow mode (C): the camera moves to the selection's center and stops
-	# following as soon as the map is moved by hand.
+	await _active_unit_test(own)
+	await _center_test(own)
+
+	# Follow mode (C): the camera moves to the active unit (prompt 094;
+	# before: the selection's center) and stops following as soon as the
+	# map is moved by hand.
+	var panel: Control = main.hud.unit_panel
+	_check(not selection.follow and not Settings.get_value("camera_follow_active"), "follow mode is on without the player's choice")
+	rig.snap_to(Vector3.ZERO, OVERVIEW_DISTANCE, 0.0)
+	await _frames(1)
+	_left_click(_screen_of_unit(own[0]))
+	_left_click(_screen_of_unit(own[1]), true)
+	await _frames(2)
 	rig.snap_to(Vector3(200.0, 0.0, 200.0), OVERVIEW_DISTANCE, 0.0)
 	_key(KEY_C)
 	await _frames(90)
 	_check(selection.follow, "follow mode did not turn on")
-	var centroid := _centroid(own)
-	var follow_off := Vector2(rig.focus.x - centroid.x, rig.focus.z - centroid.z).length()
+	_check(selection.active_unit == own[1], "follow test: active unit %d, expected %d" % [selection.active_unit, own[1]])
+	var follow_off := _off_center(own[1])
 	_check(follow_off < 1.0, "follow mode did not center the selection (%.2f m off)" % follow_off)
+	_check(panel.follow_button.button_pressed, "C turned follow mode on, the button does not show it")
+	_check(Settings.get_value("camera_follow_active"), "follow mode chosen with C is not remembered")
 	get_viewport().push_input(pan)
-	await _frames(1)
+	await _frames(2)
 	_check(not selection.follow, "a hand pan did not end follow mode")
+	_check(not panel.follow_button.button_pressed, "a hand pan ended follow mode, the button still shows it")
+	# The hand pan is no choice: the next match follows again.
+	_check(Settings.get_value("camera_follow_active"), "a hand pan changed the remembered follow mode")
+	selection.load_follow()
+	await _frames(2)
+	_check(selection.follow and panel.follow_button.button_pressed, "the remembered follow mode is not taken over")
+	_key(KEY_C)
+	await _frames(2)
+	_check(not selection.follow and not panel.follow_button.button_pressed and not Settings.get_value("camera_follow_active"),
+		"C did not turn follow mode off (follow %s, button %s)" % [selection.follow, panel.follow_button.button_pressed])
+
+	# The toggle in the unit panel is the same mode. Zoom (with the cursor
+	# off the center) and rotation keep it and keep the unit centered.
+	rig.snap_to(Vector3(200.0, 0.0, 200.0), OVERVIEW_DISTANCE, 0.0)
+	await _frames(1)
+	_left_click(panel.follow_button.get_global_rect().get_center())
+	await _frames(90)
+	_check(selection.follow and panel.follow_button.button_pressed and Settings.get_value("camera_follow_active"),
+		"the follow button did not turn follow mode on")
+	_check(selection.selected == [own[0], own[1]] and selection.command_mode.is_empty(),
+		"the follow button changed the selection to %s" % [selection.selected])
+	_check(_off_center(own[1]) < 1.0, "follow button: active unit %.2f m off the center" % _off_center(own[1]))
+	var distance_before: float = rig.distance
+	_push_wheel(MOUSE_BUTTON_WHEEL_UP, 3, Vector2(0.25, 0.3))
+	await _frames(60)
+	_check(rig.distance < distance_before - 1.0, "the wheel did not zoom while following (%.1f m)" % rig.distance)
+	_check(selection.follow, "zooming ended follow mode")
+	_check(_off_center(own[1]) < 0.05, "zooming while following pushed the unit %.2f m off the center" % _off_center(own[1]))
+	var rotate := InputEventAction.new()
+	rotate.action = "camera_rotate_left"
+	rotate.pressed = true
+	get_viewport().push_input(rotate)
+	await _frames(60)
+	_check(absf(rig.yaw - PI / 4.0) < 0.001, "rotation while following reached %.4f" % rig.yaw)
+	_check(selection.follow and _off_center(own[1]) < 0.05, "rotating ended follow mode or lost the unit (%.2f m off)" % _off_center(own[1]))
+	rig.snap_to(rig.focus, OVERVIEW_DISTANCE, 0.0)
+
+	# Another active unit: the camera wanders there without a jump.
+	var apart := _positions_of([own[0]])[0].distance_to(_positions_of([own[1]])[0])
+	var tiles: Array = panel._grid.get_children()
+	_check(tiles.size() == 2, "unit panel has %d tiles for two units" % tiles.size())
+	if tiles.size() == 2:
+		_left_click((tiles[0] as Control).get_global_rect().get_center())
+		await _frames(3)
+		_check(selection.selected == [own[0]] and selection.active_unit == own[0], "tile click: selected %s, active %d" % [selection.selected, selection.active_unit])
+		_check(selection.follow, "a new selection ended follow mode")
+		_check(_off_center(own[0]) > apart * 0.3, "the camera jumped to the new active unit (%.2f of %.2f m left)" % [_off_center(own[0]), apart])
+		await _frames(90)
+		_check(_off_center(own[0]) < 1.0, "the camera did not wander to the new active unit (%.2f m off)" % _off_center(own[0]))
+	# Without a selection the mode waits where the camera is ...
+	_left_click(_free_ground())
+	await _frames(10)
+	var waiting: Vector3 = rig.focus
+	_check(selection.selected.is_empty() and selection.follow and panel.follow_button.button_pressed,
+		"without a selection: selected %s, follow %s" % [selection.selected, selection.follow])
+	_check(panel.center_button.disabled, "the center button is not disabled without an active unit")
+	await _frames(10)
+	_check(rig.focus.distance_to(waiting) < 0.01, "the waiting follow mode moved the camera")
+	# ... and takes the next selection.
+	_left_click(_screen_of_unit(own[1]))
+	await _frames(90)
+	_check(selection.active_unit == own[1] and not panel.center_button.disabled and _off_center(own[1]) < 1.0,
+		"follow mode did not take the next selection (active %d, %.2f m off)" % [selection.active_unit, _off_center(own[1])])
+	# A double click on the ground looks there and ends the mode.
+	var away := _free_ground()
+	_left_click(away)
+	_left_click(away, false, true)
+	await _frames(2)
+	_check(not selection.follow and not panel.follow_button.button_pressed, "a double click on the ground did not end follow mode")
+	_check(selection.selected == [own[1]] and selection.active_unit == own[1], "the double click on the ground lost the active unit")
+	# Back to the state the next parts expect.
+	Settings.set_value("camera_follow_active", false)
+	Settings.save_file()
+	selection.set_selection(own)
 	rig.snap_to(Vector3.ZERO, OVERVIEW_DISTANCE, 0.0)
 	await _frames(1)
-	print("self-test: map controls ok (trackpad, Option drag, double click, follow)")
+	_check(selection.selected == own, "map controls left the selection %s" % [selection.selected])
+	print("self-test: map controls ok (trackpad, Option drag, double click, active unit, center, follow)")
+
+
+## Active unit (prompt 094): the unit clicked last; a box keeps it, taking
+## it out of the selection hands it to the nearest selected unit.
+func _active_unit_test(own: Array[int]) -> void:
+	var rig: Node3D = main.camera_rig
+	var selection: Control = main.selection
+	var panel: Control = main.hud.unit_panel
+	rig.snap_to(Vector3.ZERO, OVERVIEW_DISTANCE, 0.0)
+	await _frames(1)
+	_left_click(_screen_of_unit(own[0]))
+	await _frames(2)
+	_check(selection.selected == [own[0]] and selection.active_unit == own[0],
+		"click: selected %s, active %d" % [selection.selected, selection.active_unit])
+	# Shift + click on a second unit: both selected, the clicked one active.
+	_left_click(_screen_of_unit(own[1]), true)
+	await _frames(2)
+	_check(selection.selected == [own[0], own[1]] and selection.active_unit == own[1],
+		"shift click: selected %s, active %d" % [selection.selected, selection.active_unit])
+	_check(panel.active_tile() == own[1], "unit panel frames the tile of %d, active is %d" % [panel.active_tile(), own[1]])
+	# A box over everything keeps the active unit.
+	var size := get_viewport().get_visible_rect().size
+	_drag(Vector2(4, 4), size - Vector2(4, 4))
+	await _frames(2)
+	_check(_tanks(selection.selected) == own, "box selected %s" % [selection.selected])
+	_check(selection.active_unit == own[1], "the box made %d active, it was %d" % [selection.active_unit, own[1]])
+	_check(panel.active_tile() == own[1], "after the box the panel frames %d" % panel.active_tile())
+	# Taking the active unit out: the nearest selected unit takes over.
+	var from := _positions_of([own[1]])[0]
+	var nearest := -1
+	var nearest_distance := INF
+	for id: int in selection.selected:
+		var d := _positions_of([id])[0].distance_to(from)
+		if id != own[1] and d < nearest_distance:
+			nearest = id
+			nearest_distance = d
+	_left_click(_screen_of_unit(own[1]), true)
+	await _frames(2)
+	_check(not selection.selected.has(own[1]) and selection.active_unit == nearest,
+		"deselecting the active unit made %d active, the nearest is %d" % [selection.active_unit, nearest])
+	_check(panel.active_tile() == nearest, "after deselecting the panel frames %d" % panel.active_tile())
+	# A group recalled without the active unit in it: its first unit.
+	selection.groups[9] = [own[2], own[3]]
+	_left_click(_screen_of_unit(own[0]))
+	await _frames(1)
+	selection._last_group_key = -1
+	selection.recall_group(9)
+	_check(selection.selected == [own[2], own[3]] and selection.active_unit == own[2],
+		"group: selected %s, active %d" % [selection.selected, selection.active_unit])
+	selection.groups.erase(9)
+	selection._last_group_key = -1
+
+
+## The center button of the unit panel and its key (Shift+C, prompt 094):
+## the camera glides to the active unit; zoom and rotation stay.
+func _center_test(own: Array[int]) -> void:
+	var rig: Node3D = main.camera_rig
+	var selection: Control = main.selection
+	var panel: Control = main.hud.unit_panel
+	rig.snap_to(Vector3.ZERO, OVERVIEW_DISTANCE, 0.0)
+	await _frames(1)
+	_left_click(_screen_of_unit(own[0]))
+	_left_click(_screen_of_unit(own[1]), true)
+	await _frames(2)
+	var two: Array[int] = [own[0], own[1]]
+	_check(selection.selected == two and selection.active_unit == own[1], "center test: selected %s" % [selection.selected])
+	_check(Settings.action_key_name("camera_center") != "" and Settings.bindings["camera_center"] != Settings.bindings["camera_follow"],
+		"no own key for centering the active unit")
+	_check(panel.center_button.is_visible_in_tree() and not panel.center_button.disabled
+		and panel.follow_button.is_visible_in_tree(), "the camera buttons of the unit panel are not shown")
+	rig.snap_to(Vector3(200.0, 0.0, 200.0), 200.0, PI / 4.0)
+	await _frames(1)
+	_left_click(panel.center_button.get_global_rect().get_center())
+	await _frames(2)
+	_check(rig.is_gliding(), "the center button did not start a glide")
+	await _frames(90)
+	_check(_off_center(own[1]) < 1.0, "center button: active unit %.2f m off the center" % _off_center(own[1]))
+	_check(selection.selected == two and selection.active_unit == own[1] and selection.command_mode.is_empty(),
+		"the center button changed the selection to %s" % [selection.selected])
+	_check(is_equal_approx(rig.distance, 200.0) and is_equal_approx(rig.yaw, PI / 4.0),
+		"centering changed zoom or rotation (%.1f m, %.3f)" % [rig.distance, rig.yaw])
+	_check(not selection.follow, "centering turned follow mode on")
+	rig.snap_to(Vector3(-200.0, 0.0, 150.0), OVERVIEW_DISTANCE, 0.0)
+	await _frames(1)
+	_key(KEY_C, false, true)
+	await _frames(90)
+	_check(_off_center(own[1]) < 1.0, "Shift+C: active unit %.2f m off the center" % _off_center(own[1]))
+	_check(not selection.follow, "Shift+C turned follow mode on")
+
+
+## A screen point on open ground: no unit under it, no HUD panel over it.
+func _free_ground() -> Vector2:
+	var selection: Control = main.selection
+	var center := get_viewport().get_visible_rect().size * 0.5
+	for offset: Vector2 in [Vector2(0, -200), Vector2(-300, -150), Vector2(300, -150), Vector2(-450, 0), Vector2(450, 0), Vector2(0, -330)]:
+		var at := center + offset
+		if selection._unit_at(at) < 0 and selection._unit_at(at, false) < 0 and not main.hud.covers(at) \
+				and GroundPick.from_screen(main.camera, at) != null:
+			return at
+	_check(false, "no open ground on the screen")
+	return center
+
+
+## Meters (x/z) between the screen center and where unit `id` is drawn.
+func _off_center(id: int) -> float:
+	var sim_host: SimHost = main.sim_host
+	var index := sim_host.unit_ids().find(id)
+	var at := sim_host.previous_positions()[index].lerp(sim_host.current_positions()[index], sim_host.interpolation_alpha())
+	var focus: Vector3 = main.camera_rig.focus
+	return Vector2(focus.x - at.x, focus.z - at.z).length()
+
+
+## Follow mode with a driving tank (prompt 094; called by the hill test once
+## `tank`, selected alone, has its order): turned on with the panel's
+## toggle, the camera glides to the tank and then holds it in the screen
+## center for three seconds, through a zoom and a rotation; a hand pan ends
+## it. Camera only, so the drive is the same; the camera is put back.
+func _follow_drive_test(tank: int) -> void:
+	var rig: Node3D = main.camera_rig
+	var selection: Control = main.selection
+	var panel: Control = main.hud.unit_panel
+	var focus: Vector3 = rig.focus
+	var distance: float = rig.distance
+	_check(selection.active_unit == tank, "hill test: active unit %d, expected %d" % [selection.active_unit, tank])
+	_left_click(panel.follow_button.get_global_rect().get_center())
+	await _frames(2)
+	_check(selection.follow and panel.follow_button.button_pressed, "the follow button did not turn follow mode on (hill)")
+	_check(selection.selected == [tank], "the follow button changed the selection to %s" % [selection.selected])
+	await _frames(90)
+	var start := _positions_of([tank])[0]
+	var worst := 0.0
+	for frame in 180:
+		await get_tree().process_frame
+		if frame == 60:
+			_push_wheel(MOUSE_BUTTON_WHEEL_UP, 4, Vector2(0.25, 0.3))
+		elif frame == 120:
+			var rotate := InputEventAction.new()
+			rotate.action = "camera_rotate_right"
+			rotate.pressed = true
+			get_viewport().push_input(rotate)
+		worst = maxf(worst, _off_center(tank))
+	var driven := _positions_of([tank])[0].distance_to(start)
+	_check(driven > 10.0, "the followed tank drove only %.1f m" % driven)
+	_check(worst < 1.0, "the followed tank was up to %.2f m off the screen center" % worst)
+	_check(selection.follow and panel.follow_button.button_pressed, "zoom or rotation ended follow mode on the drive")
+	_check(rig.distance < distance - 1.0 and absf(rig.yaw) > 0.5, "zoom or rotation did not work while following (%.1f m, %.3f)" % [rig.distance, rig.yaw])
+	var pan := InputEventPanGesture.new()
+	pan.position = get_viewport().get_visible_rect().size * 0.5
+	pan.delta = Vector2(0.0, -2.0)
+	get_viewport().push_input(pan)
+	await _frames(2)
+	_check(not selection.follow and not panel.follow_button.button_pressed, "a hand pan did not end follow mode on the drive")
+	Settings.set_value("camera_follow_active", false)
+	Settings.save_file()
+	rig.snap_to(focus, distance, 0.0)
+	await _frames(1)
+	print("self-test: followed tank %d over %.1f m, at most %.3f m off the screen center" % [tank, driven, worst])
 
 
 # --- 3. Orders ------------------------------------------------------------
@@ -436,6 +687,7 @@ func _hill_test() -> void:
 	await _frames(1)
 	var aimed: Vector3 = main.target_marker.position - Vector3(0, 0.05, 0)
 	_check(aimed.distance_to(top) < 0.5, "mouse ray hit %s, expected the hill top %s" % [aimed, top])
+	await _follow_drive_test(tank)
 
 	Engine.time_scale = HILL_TIME_SCALE
 	var deadline := sim_host.current_tick() + 20 * 180
@@ -1001,13 +1253,14 @@ func _drag(from: Vector2, to: Vector2) -> void:
 	_mouse(MOUSE_BUTTON_LEFT, to, false)
 
 
-func _key(keycode: Key, ctrl := false) -> void:
+func _key(keycode: Key, ctrl := false, shift := false) -> void:
 	for pressed in [true, false]:
 		var event := InputEventKey.new()
 		event.keycode = keycode
 		# Order keys are input actions bound to physical keys (prompt 031).
 		event.physical_keycode = keycode
 		event.ctrl_pressed = ctrl
+		event.shift_pressed = shift
 		event.pressed = pressed
 		get_viewport().push_input(event)
 

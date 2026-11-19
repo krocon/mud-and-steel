@@ -102,6 +102,11 @@ var _zoom_anchor := Vector2.ZERO
 var _dragging := false
 ## Point the focus glides to (double click on the ground), or null.
 var _glide_target: Variant = null
+## Follow mode (`track`, prompt 094): what is left of the way from where
+## the focus was to the tracked point (x/z), and whether `track` was called
+## since the last `_process`.
+var _track_offset := Vector3.ZERO
+var _tracked := false
 
 @onready var camera: Camera3D = $Camera3D
 
@@ -134,6 +139,26 @@ func snap_to(new_focus: Vector3, new_distance: float, new_yaw := 0.0) -> void:
 ## Any manual pan stops the glide.
 func center_on(point: Vector3) -> void:
 	_glide_target = point
+
+
+## Keeps `point` in the middle of the screen (follow mode, prompt 094); to
+## be called every frame, after the units are placed. With `restart` the
+## focus glides there from where it is; the rest of that way shrinks every
+## frame, and once it is gone the focus sits on the point itself. So the
+## camera does not trail behind a driving unit as a glide to its position
+## would. Zoom and rotation stay free (the zoom goes to the screen center
+## meanwhile); a hand pan is reported by `panned_by_hand` as always.
+func track(point: Vector3, restart: bool, delta: float) -> void:
+	_glide_target = null
+	_tracked = true
+	if restart:
+		_track_offset = Vector3(focus.x - point.x, 0.0, focus.z - point.z)
+	else:
+		_track_offset *= exp(-glide_smoothing * delta)
+		if _track_offset.length() < 0.05:
+			_track_offset = Vector3.ZERO
+	focus = point + _track_offset
+	_apply()
 
 
 ## Whether the camera is still gliding to a point set by `center_on`.
@@ -185,6 +210,9 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _process(delta: float) -> void:
+	# Followed since the last frame: the zoom must not push the focus away.
+	var tracking := _tracked
+	_tracked = false
 	var direction := Input.get_vector(
 		"camera_pan_left", "camera_pan_right", "camera_pan_forward", "camera_pan_back"
 	)
@@ -215,7 +243,8 @@ func _process(delta: float) -> void:
 		_apply()
 		# Keep the ground point under the cursor where it was.
 		var anchor_after: Variant = GroundPick.from_screen(camera, _zoom_anchor)
-		if anchor_before != null and anchor_after != null:
+		# (Not while following a unit: it stays in the screen center.)
+		if not tracking and anchor_before != null and anchor_after != null:
 			focus += (anchor_before as Vector3) - (anchor_after as Vector3)
 
 	_apply()

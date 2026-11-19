@@ -4503,7 +4503,8 @@ player are selectable; destroyed units leave the selection.
 | Left drag | Selection box (own units whose hull center is inside) |
 | Double click on a unit | All visible own units of the same type |
 | Double click on empty ground | Camera glides there; the selection stays (the first click's deselect is undone) |
-| C | Follow mode: the camera keeps the selection's center in view; ends on any hand pan or when the selection is empty |
+| C, toggle in the unit panel | Follow mode: the camera keeps the active unit in the screen center; ends on any hand pan (prompt 094, see below) |
+| Shift + C, button in the unit panel | Camera glides to the active unit |
 | Ctrl+1…9 (Cmd on macOS) | Store the selection as a group |
 | 1…9 | Recall the group; twice within 0.4 s also centers the camera on it |
 | Right click | Move the selection to the ground point (green marker for 1 s) |
@@ -4520,6 +4521,28 @@ rebindable in the settings; control groups stay on the fixed keys 1…9. A
 box drag that started on the map ends wherever the button is released, also
 over a HUD panel (`selection.gd` takes the release in `_input`). The player's
 overview of all inputs is [CONTROLS.md](CONTROLS.md).
+
+**Active unit and follow mode (prompt 094).** `selection.gd` keeps
+`active_unit`: the selected unit the player clicked last (click, Shift + click,
+tile of the unit panel). A box, a double click or a group keep it if it is in
+the new selection; otherwise the selected unit nearest to the box's center or
+the screen center (the first of a group) takes over, and when the active unit
+dies, mounts or is deselected, the selected unit nearest to it. It is local
+state only: no `Command`, nothing in `crates/sim`. The unit panel frames its
+tile, the unit card key shows it. `center_on_active()` (Shift + C,
+`camera_center`, a run-time action; the panel's button) glides there with
+`center_on`. Follow mode (`follow`, `set_follow`; C and the panel's toggle
+are the same switch) calls `rts_camera.track(point, restart, delta)` every
+frame with the position the unit is drawn at (previous and current tick
+position blended by `interpolation_alpha`, as `main.gd` places it; the tick
+positions alone would step at 20 Hz). `track` glides once from where the
+focus was and then sits on the point itself, so the camera does not trail a
+driving unit; while tracking, the zoom goes to the screen center instead of
+the cursor. Zoom and rotation keep the mode, a new active unit is glided to,
+without a selection it waits. `panned_by_hand`, a minimap click, a double
+click on the ground and an event jump end it. The mode the player chose with
+key or button is the setting `camera_follow_active` (default off) and is
+taken over by the next match; an end by a hand pan is not saved.
 
 Picking projects unit positions to the screen (`Camera3D.unproject_position`); the pick
 radius is half the footprint on screen, at least 14 px. Selected units show a green
@@ -4553,7 +4576,10 @@ decides anything; orders go through `selection.gd` or `SimHost`.
   in its own `SubViewport` from a fresh model (duplicating a unit's model
   fails: its parts are merged at run time); a pre-rendered thumbnail
   (prompt 058) replaces it when there is one. Several units: tiles with health
-  bars; click selects one, Shift + click removes it.
+  bars; click selects one, Shift + click removes it. The tile of the active unit
+  has a bright frame; two small drawn buttons (`CameraButton`: center, and
+  the follow toggle, which mirrors `selection.follow` every frame) sit next
+  to the card button, or above the tiles (prompt 094).
 - **Command bar** (`command_bar.gd`, bottom left): buttons with the bound key
   for every order; targeted orders set `selection.command_mode`. The build
   menu and the production bar of `world/base_hud.gd` are docked above it
@@ -4837,8 +4863,10 @@ placed from four values: focus, distance (15–600 m), pitch and yaw.
   two-finger pan** (`InputEventPanGesture`, which macOS sends for trackpad scrolling;
   the map follows the fingers, honoring the system's scroll direction) grab the
   ground. **Q/E** turn in 45° steps, **N** turns back to north (−Z).
-- `center_on(point)` glides the focus to a point (double click on the ground, follow
-  mode); every hand pan cancels the glide and emits `panned_by_hand`.
+- `center_on(point)` glides the focus to a point (double click on the ground, center
+  button); every hand pan cancels the glide and emits `panned_by_hand`.
+  `track(point, restart, delta)` holds a moving point in the screen center (follow
+  mode, prompt 094; see "Selection").
 - The focus is clamped to `bounds`, set by `main.gd` from `SimHost.map_size()`, and
   sits on the ground height (`GroundPick.height_at`).
 - Near/far planes and the sun's shadow distance scale with the camera distance

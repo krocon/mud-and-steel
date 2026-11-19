@@ -81,7 +81,9 @@ HUD_HINT_ADVANCE,Attack-move: left click a point (Shift: waypoint),Angriffsmarsc
 HUD_HINT_SECURE,Secure: left click the center of the area,Gebiet sichern: Linksklick auf den Mittelpunkt
 HUD_HINT_LAY_BRIDGE,Lay bridge: left click a narrow river or ditch,Brücke legen: Linksklick auf einen schmalen Fluss oder Graben
 HUD_HINT_RIGHT_CANCELS,right click cancels,Rechtsklick bricht ab
-HUD_CAMERA_FOLLOWS,Camera follows the selection (%s),Kamera folgt der Auswahl (%s)
+HUD_CAMERA_FOLLOWS,Camera follows the active unit (%s),Kamera folgt der aktiven Einheit (%s)
+HUD_TIP_CENTER,Center the active unit (key %s),Aktive Einheit zentrieren (Taste %s)
+HUD_TIP_FOLLOW,Camera follows the active unit (key %s),Kamera folgt der aktiven Einheit (Taste %s)
 HUD_HINT_WORK_CLEAR,Clear: left click the area,Räumen: Linksklick auf das Gebiet
 HUD_HINT_WORK_BRIDGE,Bridge: left click a bridge (demolish / repair),Brücke: Linksklick auf eine Brücke (sprengen / reparieren)
 HUD_HINT_WORK_POINT,%s: left click a point,%s: Linksklick auf einen Punkt

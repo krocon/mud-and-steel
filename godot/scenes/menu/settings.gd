@@ -46,6 +46,8 @@ const BINDABLE: Dictionary[String, String] = {
 	"stance_prone": "SET_KEY_STANCE_PRONE",
 	"stance_auto": "SET_KEY_STANCE_AUTO",
 	"camera_follow": "SET_KEY_CAMERA_FOLLOW",
+	# Center the active unit (prompt 094); its action is added at run time.
+	"camera_center": "SET_KEY_CAMERA_CENTER",
 	"event_jump": "SET_KEY_EVENT_JUMP",
 	"order_barrage": "SET_KEY_ORDER_BARRAGE",
 	"order_smoke": "SET_KEY_ORDER_SMOKE",
@@ -83,6 +85,8 @@ const RUNTIME_ACTIONS: Dictionary[String, int] = {
 	"unit_card": KEY_I | KEY_MASK_SHIFT,
 	# Plain L is "Fire at ground" (prompt 093).
 	"order_attack_object": KEY_L | KEY_MASK_SHIFT,
+	# Plain C is the follow mode it belongs to (prompt 094).
+	"camera_center": KEY_C | KEY_MASK_SHIFT,
 }
 
 ## Health bars over units (prompt 031): `damaged` (damaged and selected
@@ -120,6 +124,9 @@ const DEFAULTS := {
 	# Air bar and order grid folded open (prompt 092).
 	"hud_air_open": true,
 	"hud_commands_open": true,
+	# The camera follows the active unit (prompt 094): what the player last
+	# chose with the button or the key, taken over by the next match.
+	"camera_follow_active": false,
 	"color_palette": "standard",
 	"subtitles": false,
 	"screen_shake": true,

@@ -113,17 +113,21 @@ func show_unit_card(type_id: String, unit := -1) -> void:
 	_place_unit_card()
 
 
-## The key `unit_card`: the card of the first selected unit; closes it if
-## it shows that type already (or nothing is selected).
+## The key `unit_card`: the card of the active unit (prompt 094; the one
+## last clicked); closes it if it shows that type already (or nothing is
+## selected).
 func toggle_unit_card() -> void:
 	var selected: Array[int] = main.selection.selected
+	var unit: int = main.selection.active_unit
+	if unit < 0 and not selected.is_empty():
+		unit = selected[0]
 	var type_id := ""
-	if not selected.is_empty():
-		type_id = str(main.sim_host.unit_info(selected[0]).get("type_id", ""))
+	if unit >= 0:
+		type_id = str(main.sim_host.unit_info(unit).get("type_id", ""))
 	if type_id.is_empty() or (unit_card.visible and unit_card.type_id == type_id):
 		unit_card.close()
 	else:
-		show_unit_card(type_id, selected[0])
+		show_unit_card(type_id, unit)
 
 
 ## Escape closes the open card before anything else reacts to it.

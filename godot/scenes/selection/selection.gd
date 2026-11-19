@@ -33,6 +33,11 @@ extends Control
 ##   the formation of the command bar (infantry halts to fight on the way),
 ##   right-drag sets the facing; M moves without halting, Y attack-moves,
 ##   I secures an area, `,` cycles the formation. Groups keep theirs.
+## - Active unit (prompt 094): the unit clicked last (`active_unit`); the
+##   unit panel marks its tile, the unit card shows it. Shift+C
+##   (`camera_center`) or the panel's button lets the camera glide to it, C
+##   (`camera_follow`) or the panel's toggle keeps it in the screen center
+##   until the map is moved by hand.
 ##
 ## Sits full-screen in a CanvasLayer and draws the selection box itself. It
 ## ignores the mouse for GUI purposes and works from `_unhandled_input`.
@@ -101,6 +106,12 @@ var camera: Camera3D
 var camera_rig: Node3D
 ## Selected unit ids, ascending.
 var selected: Array[int] = []
+## The active unit (prompt 094): the selected unit the player clicked last,
+## -1 without one. A box, a double click or a group keep it if it is among
+## the new selection; otherwise the selected unit nearest to it (or to the
+## box, the screen center; the first of a group) takes over. Local state
+## only: the simulation knows nothing of it.
+var active_unit := -1
 ## Control groups 1..9: number -> unit ids.
 var groups: Dictionary[int, Array] = {}
 ## Formation of the next moves (code, prompt 046) and per control group.
@@ -121,10 +132,16 @@ var _double_click := false
 ## Selection before the first click of a possible double click, restored when
 ## the double click centers the camera on empty ground.
 var _selection_before_click: Array = []
-## Follow mode (key C): the camera keeps the center of the selection in view.
-## Ends when the player moves the map by hand or the selection becomes empty.
+var _active_before_click := -1
+## Follow mode (key C, toggle in the unit panel): the camera keeps the
+## active unit in the screen center. Ends when the player moves the map by
+## hand or no selected unit is left alive; without a selection it waits.
 var follow := false
 var _follow_hooked := false
+## Unit the camera sits on while following (-1: glide to the active unit).
+var _follow_unit := -1
+## Where the active unit is drawn this frame (between two ticks).
+var _active_position := Vector3.ZERO
 var _press_position := Vector2.ZERO
 var _drag_position := Vector2.ZERO
 var _last_group_key := -1
@@ -139,6 +156,7 @@ var _right_drag := Vector2.ZERO
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_anchors_preset(Control.PRESET_FULL_RECT)
+	load_follow()
 
 
 func is_selected(id: int) -> bool:
@@ -206,7 +224,9 @@ func _on_action(event: InputEvent) -> bool:
 	elif event.is_action_pressed("order_fire_mode", false, true):
 		toggle_hold_fire()
 	elif event.is_action_pressed("camera_follow", false, true):
-		set_follow(not follow)
+		set_follow(not follow, true)
+	elif event.is_action_pressed("camera_center", false, true):
+		center_on_active()
 	elif event.is_action_pressed("order_disembark", false, true):
 		TransportOrders.disembark(self)
 	elif event.is_action_pressed("order_unlimber", false, true):
@@ -293,6 +313,7 @@ func _on_left_button(button: InputEventMouseButton) -> void:
 		_double_click = button.double_click
 		if not button.double_click:
 			_selection_before_click = selected.duplicate()
+			_active_before_click = active_unit
 		_press_position = button.position
 		_drag_position = button.position
 		return
@@ -335,7 +356,9 @@ func recall_group(number: int) -> void:
 	_last_group_key = number
 	_last_group_time = now
 	var members: Array = groups.get(number, [])
-	_set_selection(members.filter(func(id: int) -> bool: return _own_index(id) >= 0))
+	var living := members.filter(func(id: int) -> bool: return _own_index(id) >= 0)
+	# The active unit stays if it is in the group, else the group's first.
+	_set_selection(living, -1 if living.is_empty() or living.has(active_unit) else int(living[0]))
 	if group_formations.has(number):
 		set_formation(group_formations[number])
 	if again and not selected.is_empty():
@@ -510,57 +533,134 @@ func set_selection(ids: Array) -> void:
 	_set_selection(ids.filter(func(id: int) -> bool: return _own_index(id) >= 0))
 
 
+## The clicked unit becomes the active one (prompt 094).
 func _click(id: int, additive: bool) -> void:
 	if not additive:
-		_set_selection([] if id < 0 else [id])
+		_set_selection([] if id < 0 else [id], id)
 	elif id >= 0:
 		var next := selected.duplicate()
 		if next.has(id):
 			next.erase(id)
 		else:
 			next.append(id)
-		_set_selection(next)
+		_set_selection(next, id)
 
 
 ## Double click on empty ground: keep the selection the first click cleared
-## and let the camera glide to the clicked point.
+## and let the camera glide to the clicked point (which ends follow mode).
 func _center_on_ground(screen_position: Vector2) -> void:
-	_set_selection(_selection_before_click)
+	_set_selection(_selection_before_click, _active_before_click)
 	var hit: Variant = GroundPick.from_screen(camera, screen_position)
 	if hit != null and camera_rig != null:
+		set_follow(false)
 		camera_rig.center_on(hit as Vector3)
 
 
-## Turns follow mode on or off (only on with a selection).
-func set_follow(on: bool) -> void:
-	if camera_rig != null and not _follow_hooked:
-		camera_rig.panned_by_hand.connect(func() -> void: set_follow(false))
-		_follow_hooked = true
-	follow = on and not selected.is_empty()
+## Turns follow mode on or off. `remember` (the player's own choice by key
+## or button) keeps it in the settings for the next match; a hand pan that
+## ends the mode does not.
+func set_follow(on: bool, remember := false) -> void:
+	_hook_camera()
+	if on != follow:
+		follow = on
+		_follow_unit = -1
+		queue_redraw()
+	if remember and Settings.get_value("camera_follow_active") != on:
+		Settings.set_value("camera_follow_active", on)
+		Settings.save_file()
+
+
+## Takes the follow mode over from the settings (start of a match).
+func load_follow() -> void:
+	follow = bool(Settings.get_value("camera_follow_active"))
+	_follow_unit = -1
 	queue_redraw()
 
 
-func _process(_delta: float) -> void:
+## Lets the camera glide to the active unit; zoom and rotation stay.
+func center_on_active() -> void:
+	if active_unit < 0 or camera_rig == null:
+		return
+	if follow:
+		# Already held in the center; glide back if it is still on its way.
+		_follow_unit = -1
+	else:
+		camera_rig.center_on(_active_position)
+
+
+## A hand pan ends follow mode.
+func _hook_camera() -> void:
+	if camera_rig != null and not _follow_hooked:
+		camera_rig.panned_by_hand.connect(func() -> void: set_follow(false))
+		_follow_hooked = true
+
+
+func _process(delta: float) -> void:
 	if command_mode == ShellOrders.MODE:
 		ShellOrders.hover(self)
-	if not follow:
-		return
 	if selected.is_empty():
+		# Follow mode waits for the next selection and glides to it.
+		_follow_unit = -1
+		return
+	_keep_active()
+	if not follow or camera_rig == null:
+		return
+	_hook_camera()
+	if active_unit < 0:
+		# No selected unit is left alive.
 		set_follow(false)
 		return
+	# The drawn position (between two ticks), so the picture does not step
+	# with the 20 Hz of the simulation. `main.gd` placed the units before.
+	camera_rig.track(_active_position, active_unit != _follow_unit, delta)
+	_follow_unit = active_unit
+
+
+## Every frame: the active unit must still be selectable (alive, own, not
+## mounted); otherwise the selected unit nearest to where it was takes
+## over. Notes where the active unit is drawn.
+func _keep_active() -> void:
+	var index := _selectable_index(active_unit)
+	if index < 0:
+		active_unit = _nearest_selected(_active_position)
+		index = _index_of(active_unit) if active_unit >= 0 else -1
+	if index >= 0:
+		_active_position = _drawn_position(index)
+
+
+## Index of unit `id` if a click could select it (own, alive, no
+## passenger), else -1.
+func _selectable_index(id: int) -> int:
+	var index := _own_index(id) if id >= 0 else -1
+	if index >= 0 and sim_host.unit_carriers()[index] >= 0 and sim_host.unit_stances()[index] >= 0:
+		return -1
+	return index
+
+
+## The selectable selected unit nearest to `point` (x/z), or -1.
+func _nearest_selected(point: Vector3) -> int:
 	var ids := sim_host.unit_ids()
 	var positions := sim_host.current_positions()
-	var sum := Vector3.ZERO
-	var count := 0
-	for id: int in selected:
-		var i := ids.find(id)
-		if i >= 0:
-			sum += positions[i]
-			count += 1
-	if count == 0:
-		set_follow(false)
-		return
-	camera_rig.center_on(sum / count)
+	var best := -1
+	var best_distance := INF
+	for i in _own_indices():
+		if not selected.has(ids[i]):
+			continue
+		var distance := Vector2(positions[i].x - point.x, positions[i].z - point.z).length_squared()
+		if distance < best_distance:
+			best = ids[i]
+			best_distance = distance
+	return best
+
+
+## Where unit `index` is drawn this frame: between its previous and its
+## current tick position, as `main.gd` places it.
+func _drawn_position(index: int) -> Vector3:
+	var to := sim_host.current_positions()[index]
+	var previous := sim_host.previous_positions()
+	if index >= previous.size():
+		return to
+	return previous[index].lerp(to, sim_host.interpolation_alpha())
 
 
 func _select_same_type(id: int) -> void:
@@ -575,7 +675,8 @@ func _select_same_type(id: int) -> void:
 	for i in _own_indices():
 		if types[i] == wanted and _on_screen(i, visible_rect):
 			result.append(ids[i])
-	_set_selection(result)
+	# Without the active unit among them: the one nearest the screen center.
+	_set_selection(result, -1, camera_rig.focus if camera_rig != null else null)
 
 
 func _select_in_box(box: Rect2, additive: bool) -> void:
@@ -590,7 +691,8 @@ func _select_in_box(box: Rect2, additive: bool) -> void:
 	if caught.any(func(id: int) -> bool: return not is_structure.call(id)):
 		caught = caught.filter(func(id: int) -> bool: return not is_structure.call(id))
 	result.append_array(caught)
-	_set_selection(result)
+	# Without the active unit among them: the one nearest the box's center.
+	_set_selection(result, -1, GroundPick.from_screen(camera, box.get_center()))
 
 
 ## Id of the own (or, with `own` false, another player's) living unit under
@@ -629,13 +731,28 @@ func _center_camera_on_selection() -> void:
 	camera_rig.snap_to(sum / selected.size(), camera_rig.distance, camera_rig.yaw)
 
 
-func _set_selection(ids: Array) -> void:
+## Selects `ids`. The active unit (prompt 094) becomes `prefer` if that is
+## among them, else it stays if it is; otherwise the selected unit nearest
+## to `near` (a ground point; without one: to the old active unit, or the
+## screen center) takes over.
+func _set_selection(ids: Array, prefer := -1, near: Variant = null) -> void:
 	var next: Array[int] = []
 	for id: int in ids:
 		if not next.has(id):
 			next.append(id)
 	next.sort()
 	selected = next
+	if selected.is_empty():
+		active_unit = -1
+	elif selected.has(prefer):
+		active_unit = prefer
+	elif not selected.has(active_unit):
+		var from: Variant = near
+		if from == null:
+			from = _active_position if active_unit >= 0 else (camera_rig.focus if camera_rig != null else Vector3.ZERO)
+		active_unit = _nearest_selected(from as Vector3)
+	if active_unit >= 0:
+		_keep_active()
 	if selected.is_empty() and not command_mode.is_empty():
 		set_command_mode("")
 

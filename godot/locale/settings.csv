@@ -80,7 +80,8 @@ SET_KEY_STANCE_STAND,Stance: stand,Haltung: stehen
 SET_KEY_STANCE_KNEEL,Stance: kneel,Haltung: knien
 SET_KEY_STANCE_PRONE,Stance: prone,Haltung: liegen
 SET_KEY_STANCE_AUTO,Stance: automatic,Haltung: automatisch
-SET_KEY_CAMERA_FOLLOW,Camera follows selection,Kamera folgt der Auswahl
+SET_KEY_CAMERA_FOLLOW,Camera follows the active unit,Kamera folgt der aktiven Einheit
+SET_KEY_CAMERA_CENTER,Center the active unit,Aktive Einheit zentrieren
 SET_KEY_EVENT_JUMP,Jump to last event,Zum letzten Ereignis springen
 SET_KEY_ORDER_BARRAGE,Barrage at the cursor (artillery),Sperrfeuer auf den Mauszeiger (Artillerie)
 SET_KEY_ORDER_SMOKE,Smoke at the cursor (artillery),Nebel auf den Mauszeiger (Artillerie)

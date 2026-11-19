@@ -15,6 +15,11 @@ extends PanelContainer
 ## - Several units: a grid of tiles with a short name, a health bar and an
 ##   ammunition bar (red when low);
 ##   click selects that unit alone, Shift + click removes it.
+## - Prompt 094: the tile of the active unit (`selection.active_unit`, the
+##   one clicked last) has a bright frame. Two small buttons next to
+##   "Values" (above the tiles with several units): `center_button` lets
+##   the camera glide to the active unit, the toggle `follow_button` is the
+##   follow mode (key C) and always shows its state.
 ## - Hidden without a selection.
 
 ## The unit card of this catalog id is wanted, for unit `unit` (prompt 066).
@@ -51,6 +56,17 @@ var bonus_line := ""
 ## (prompt 066; self-test).
 var ratings: RatingBars
 var card_button: Button
+## Camera buttons (prompt 094; self-test): center the active unit, and the
+## toggle of the follow mode.
+var center_button: Button
+var follow_button: Button
+var _camera_buttons: HBoxContainer
+## Corner of the portrait with "Values" and, for one unit, the camera
+## buttons; `_box` holds them above the tiles for several units.
+var _corner: HBoxContainer
+var _box: VBoxContainer
+## Active unit the tiles show.
+var _shown_active := -1
 
 var _portraits: UnitPortrait
 var _single: HBoxContainer
@@ -89,6 +105,7 @@ func setup(main_node: Node3D) -> void:
 	_portraits.name = "Portraits"
 	add_child(_portraits)
 	var box := VBoxContainer.new()
+	_box = box
 	add_child(box)
 
 	_single = HBoxContainer.new()
@@ -125,8 +142,26 @@ func setup(main_node: Node3D) -> void:
 	card_button.pressed.connect(func() -> void:
 		if _shown.size() == 1:
 			card_requested.emit(_single_type, _shown[0]))
-	_portrait.add_child(card_button)
-	card_button.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
+	_corner = HBoxContainer.new()
+	_corner.add_theme_constant_override(&"separation", 2)
+	_portrait.add_child(_corner)
+	_corner.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
+	_corner.add_child(card_button)
+	_camera_buttons = HBoxContainer.new()
+	_camera_buttons.name = "CameraButtons"
+	_camera_buttons.add_theme_constant_override(&"separation", 2)
+	_camera_buttons.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	center_button = CameraButton.new()
+	center_button.name = "CenterButton"
+	center_button.pressed.connect(func() -> void: main.selection.center_on_active())
+	_camera_buttons.add_child(center_button)
+	follow_button = CameraButton.new()
+	follow_button.name = "FollowButton"
+	follow_button.follow = true
+	follow_button.toggle_mode = true
+	follow_button.toggled.connect(func(on: bool) -> void: main.selection.set_follow(on, true))
+	_camera_buttons.add_child(follow_button)
+	_corner.add_child(_camera_buttons)
 	var text := VBoxContainer.new()
 	text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_single.add_child(text)
@@ -175,6 +210,14 @@ func _process(delta: float) -> void:
 	if selected != _shown or _refresh_left <= 0.0:
 		_refresh_left = REFRESH
 		_refresh(selected)
+	var active: int = main.selection.active_unit
+	if active != _shown_active:
+		_shown_active = active
+		_mark_active()
+	# The buttons show the state whoever changed it (key, hand pan, ...).
+	center_button.disabled = active < 0
+	if follow_button.button_pressed != main.selection.follow:
+		follow_button.set_pressed_no_signal(main.selection.follow)
 	usec += Time.get_ticks_usec() - began
 
 
@@ -184,6 +227,15 @@ func _refresh(selected: Array[int]) -> void:
 	visible = not selected.is_empty()
 	if selected.is_empty():
 		return
+	center_button.tooltip_text = tr("HUD_TIP_CENTER") % Settings.action_key_name("camera_center")
+	follow_button.tooltip_text = tr("HUD_TIP_FOLLOW") % Settings.action_key_name("camera_follow")
+	# The camera buttons sit in the portrait's corner, or above the tiles.
+	var home: Control = _corner if selected.size() == 1 else _box
+	if _camera_buttons.get_parent() != home:
+		_camera_buttons.get_parent().remove_child(_camera_buttons)
+		home.add_child(_camera_buttons)
+		if home == _box:
+			_box.move_child(_camera_buttons, 0)
 	if selected.size() == 1:
 		_single.visible = true
 		_grid.visible = false
@@ -390,6 +442,7 @@ func _build_tiles(selected: Array[int]) -> void:
 		tile.unit = id
 		tile.label = _short_name(types[index] if index >= 0 else "")
 		tile.faction = (types[index] if index >= 0 else "").get_slice("_", 0)
+		tile.active = id == main.selection.active_unit
 		tile.pressed_with.connect(_on_tile)
 		_grid.add_child(tile)
 		tile_ids.append(id)
@@ -417,6 +470,23 @@ func _update_tiles() -> void:
 			tile.queue_redraw()
 
 
+## Unit id of the tile marked as active, -1 without one (self-test).
+func active_tile() -> int:
+	for tile: Tile in _grid.get_children():
+		if tile.active and not tile.is_queued_for_deletion():
+			return tile.unit
+	return -1
+
+
+## Frames the tile of the active unit (prompt 094).
+func _mark_active() -> void:
+	for tile: Tile in _grid.get_children():
+		var active := tile.unit == _shown_active
+		if active != tile.active:
+			tile.active = active
+			tile.queue_redraw()
+
+
 ## Click selects only that unit, Shift + click removes it (also used by
 ## the self-test).
 func _on_tile(id: int, shift: bool) -> void:
@@ -436,6 +506,41 @@ static func _short_name(type_id: String) -> String:
 	return " ".join(parts).to_upper().left(12)
 
 
+## A small camera button of the panel (prompt 094): a drawn symbol instead
+## of text. Center: a ring with four marks; follow (a toggle): a dot in a
+## frame of four corners, bright on an accent ground while it is on.
+class CameraButton:
+	extends Button
+
+	var follow := false
+
+	func _init() -> void:
+		focus_mode = Control.FOCUS_NONE
+		custom_minimum_size = Vector2(MenuTheme.font(22), MenuTheme.font(20))
+		for state: StringName in [&"normal", &"hover", &"pressed", &"hover_pressed", &"disabled"]:
+			var flat := StyleBoxFlat.new()
+			var on := state == &"pressed" or state == &"hover_pressed"
+			flat.bg_color = Color(MenuTheme.ACCENT.darkened(0.45) if on else (MenuTheme.BUTTON_HOVER if state == &"hover" else MenuTheme.BUTTON), 0.85)
+			flat.border_color = MenuTheme.ACCENT if on else MenuTheme.PANEL_BORDER
+			flat.set_border_width_all(1)
+			add_theme_stylebox_override(state, flat)
+
+	func _draw() -> void:
+		var color := MenuTheme.TEXT_DIM.darkened(0.3) if disabled else (MenuTheme.ACCENT.lightened(0.3) if button_pressed else MenuTheme.TEXT)
+		var middle := size * 0.5
+		var r := minf(size.x, size.y) * 0.5 - 4.0
+		if follow:
+			draw_circle(middle, 2.0, color)
+			for corner: Vector2 in [Vector2(-1, -1), Vector2(1, -1), Vector2(1, 1), Vector2(-1, 1)]:
+				var at := middle + corner * r
+				draw_line(at, at - Vector2(corner.x * r * 0.6, 0.0), color, 1.5)
+				draw_line(at, at - Vector2(0.0, corner.y * r * 0.6), color, 1.5)
+		else:
+			draw_arc(middle, r * 0.6, 0.0, TAU, 20, color, 1.5, true)
+			for side: Vector2 in [Vector2.LEFT, Vector2.RIGHT, Vector2.UP, Vector2.DOWN]:
+				draw_line(middle + side * r * 0.25, middle + side * (r + 1.0), color, 1.5)
+
+
 ## One unit of a multiple selection.
 class Tile:
 	extends Control
@@ -451,6 +556,8 @@ class Tile:
 	## Rank insignia in the corner (prompt 050).
 	var rank := 0
 	var faction := "de"
+	## The active unit (prompt 094): a bright frame.
+	var active := false
 
 	func _ready() -> void:
 		mouse_filter = Control.MOUSE_FILTER_STOP
@@ -465,7 +572,10 @@ class Tile:
 	func _draw() -> void:
 		var rect := Rect2(Vector2.ZERO, size)
 		draw_rect(rect, Color(0.12, 0.13, 0.11, 0.9))
-		draw_rect(rect, Color(0.5, 0.55, 0.45, 0.8), false, 1.0)
+		if active:
+			draw_rect(rect.grow(-1.0), Color(1.0, 0.9, 0.45), false, 2.0)
+		else:
+			draw_rect(rect, Color(0.5, 0.55, 0.45, 0.8), false, 1.0)
 		var room := size.x - (20 if rank > 0 else 8)
 		draw_string(ThemeDB.fallback_font, Vector2(4, 17), label, HORIZONTAL_ALIGNMENT_LEFT, room, 12)
 		if rank > 0:

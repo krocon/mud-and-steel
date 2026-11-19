@@ -248,13 +248,18 @@ func _settings_test(menu: Control) -> void:
 	await _frames(2)
 	_check(_action_key("camera_rotate_right") == KEY_R, "rotate right not bound to R")
 	_check(_action_key("camera_rotate_left") == rotate_right_key, "rotate left did not get the key of rotate right")
+	# The follow mode of the camera (prompt 094) is kept for the next match.
+	_check(not Settings.get_value("camera_follow_active"), "follow mode is on by default")
+	Settings.set_value("camera_follow_active", true)
 	panel.save_button.pressed.emit()
 	await _frames(2)
 	_check(menu.screens["main"].visible, "saving the settings did not return to the main menu")
 	_check(FileAccess.file_exists(Settings.path()), "settings file not written")
 
 	Settings.reset()
+	_check(not Settings.get_value("camera_follow_active"), "the defaults leave follow mode on")
 	Settings.load_file()
+	_check(Settings.get_value("camera_follow_active"), "follow mode not loaded")
 	_check(Settings.get_value("quality") == "low", "quality not loaded")
 	_check(Settings.get_value("depth_of_field") == "miniature", "depth of field mode not loaded")
 	_check(is_equal_approx(Settings.get_value("pan_sensitivity"), 1.5), "pan speed not loaded")
