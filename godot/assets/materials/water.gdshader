@@ -30,13 +30,20 @@ uniform sampler2D normal_b : hint_normal, filter_linear_mipmap, repeat_enable;
 uniform sampler2D foam_tex : filter_linear_mipmap, repeat_enable;
 
 // Biome look (BiomePreset, water group).
-uniform vec4 shallow_color : source_color = vec4(0.24, 0.26, 0.14, 1.0);
-uniform vec4 deep_color : source_color = vec4(0.07, 0.10, 0.06, 1.0);
+uniform vec4 shallow_color : source_color = vec4(0.08, 0.30, 0.50, 1.0);
+uniform vec4 deep_color : source_color = vec4(0.03, 0.14, 0.34, 1.0);
 uniform vec4 foam_color : source_color = vec4(0.85, 0.88, 0.84, 1.0);
 // Meters of water after which 63 % of the green light is absorbed; red
 // goes a little farther, blue much less (humic river water).
-uniform float clarity = 1.2;
-uniform vec3 absorb_tint = vec3(1.0, 0.9, 0.55);
+uniform float clarity = 0.8;
+// How far each color reaches through the water, relative to `clarity`:
+// red is absorbed first, so the bed shows through bluish (prompt 091).
+uniform vec3 absorb_tint = vec3(0.45, 0.85, 1.0);
+// Pale band along every bank (prompt 091): full at the water's edge, gone
+// at `shore_depth` meters of water or `shore_width` meters from the bank.
+uniform vec4 shore_color : source_color = vec4(0.42, 0.66, 0.78, 1.0);
+uniform float shore_depth = 1.2;
+uniform float shore_width = 7.0;
 
 uniform float normal_tile = 7.0;
 uniform float ripple_tile = 31.0;
@@ -106,6 +113,11 @@ void fragment() {
 	vec3 transmit = exp(-through / (max(clarity, 0.01) * absorb_tint));
 	float deep = 1.0 - exp(-max(v_depth, 0.0) / 1.2);
 	vec3 water = mix(shallow_color.rgb, deep_color.rgb, deep);
+	// Shore band from the bed (depth, distance to the bank), not from the
+	// screen depth: it must not change with the view or the zoom.
+	float shore = (1.0 - smoothstep(0.0, shore_depth, max(v_depth, 0.0)))
+		* (1.0 - smoothstep(0.0, shore_width, max(v_shore, 0.0)));
+	shore = pow(shore, 1.5) * 0.85;
 
 	// Foam: banks and stones, very shallow water, thin water on screen.
 	float edge = smoothstep(2.4, 0.2, v_shore) * 0.85 + smoothstep(0.15, 0.0, v_depth) * 0.6
@@ -122,8 +134,9 @@ void fragment() {
 
 	// The lit part is the water's own color; the scene below comes in as
 	// emission so it is not lit twice.
-	ALBEDO = mix(water * (1.0 - transmit.g), foam_color.rgb, foam);
-	EMISSION = below * transmit * (1.0 - foam);
+	vec3 own = mix(water * (1.0 - transmit.g), shore_color.rgb, shore);
+	ALBEDO = mix(own, foam_color.rgb, foam);
+	EMISSION = below * transmit * (1.0 - foam) * (1.0 - shore);
 	ROUGHNESS = mix(0.09, 0.7, foam);
 	METALLIC = 0.0;
 	SPECULAR = 0.35;

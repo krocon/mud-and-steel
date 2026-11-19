@@ -387,6 +387,39 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"map": "desert_village", "scene": "survey", "seed": 1, "start_s": 0.5, "seconds": 1.0, "stills": [0.5],
 		"camera": [{"t": 0.0, "at": Vector2(0, 0), "dist": 1522.0, "yaw": 0.0, "pitch": 89.0, "haze": 4000.0}],
 	},
+	# Prompt 091: a bank with shallow and deep water on a map of every biome,
+	# as the player sees it at a middle zoom (`just water-shots`); by night
+	# and in rain on river_city.
+	"survey_water_river_city": {
+		"map": "river_city", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-192, -260), "dist": 150.0, "yaw": 0.0}],
+	},
+	"survey_water_desert_lagoon": {
+		"map": "desert_lagoon", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(0, 6), "dist": 150.0, "yaw": 0.0}],
+	},
+	"survey_water_island_chain": {
+		"map": "island_chain", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(36, -16), "dist": 150.0, "yaw": 0.0}],
+	},
+	"survey_water_winter_town": {
+		"map": "winter_town", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-174, 72), "dist": 150.0, "yaw": 0.0}],
+	},
+	"survey_water_night": {
+		"map": "river_city", "scene": "survey", "seed": 1, "daytime": "night", "weather": "clear", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-192, -260), "dist": 150.0, "yaw": 0.0}],
+	},
+	"survey_water_rain": {
+		"map": "river_city", "scene": "survey", "seed": 1, "daytime": "day", "weather": "rain", "game_camera": true,
+		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],
+		"camera": [{"t": 0.0, "at": Vector2(-192, -260), "dist": 150.0, "yaw": 0.0}],
+	},
 	# Prompt 089: the desert village as the player sees it, a block of
 	# courtyard houses and the oasis' palm grove.
 	"survey_desert_houses": {

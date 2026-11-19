@@ -454,6 +454,12 @@ wind-shots prefix="after": build
 field-shots: build
     bash tools/trailer-shots.sh --stills --only=survey_fields_near,survey_fields_mid,survey_fields_far,survey_fields_rain,survey_fields_winter,survey_river_fields,survey_river_fields_winter
 
+# Water colors in pictures (prompt 091; needs a window): a bank on river_city, desert_lagoon, island_chain and winter_town by day, river_city by night and in rain, as stills into build/water-color/<prefix>/
+[group('godot')]
+water-shots prefix="after": build
+    bash tools/trailer-shots.sh --stills --only=survey_water_river_city,survey_water_desert_lagoon,survey_water_island_chain,survey_water_winter_town,survey_water_night,survey_water_rain
+    mkdir -p build/water-color/{{ prefix }} && mv build/trailer/stills/survey_water_*.png build/water-color/{{ prefix }}/
+
 # Cloud shadows in pictures (prompt 087; needs a window): meadow, column, village, overcast, evening and a series every 2 s into build/cloud_shots/<prefix>_*; `just cloud-shots before --off` without them
 [group('godot')]
 cloud-shots prefix="after" *args: build

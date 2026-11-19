@@ -65,6 +65,8 @@ func apply_biome(preset: Resource) -> void:
 	_material.set_shader_parameter("deep_color", preset.water_deep)
 	_material.set_shader_parameter("foam_color", preset.water_foam)
 	_material.set_shader_parameter("clarity", preset.water_clarity)
+	_material.set_shader_parameter("shore_color", preset.water_shore)
+	_material.set_shader_parameter("absorb_tint", preset.water_absorb)
 
 
 ## Shows or hides the water (debug menu).

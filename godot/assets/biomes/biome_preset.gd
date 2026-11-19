@@ -105,8 +105,14 @@ const LAYER_COUNT := 10
 
 @export_group("Water")
 ## Water color over shallow and over deep beds (prompt 014, water.gdshader).
-@export var water_shallow := Color(0.24, 0.26, 0.14)
-@export var water_deep := Color(0.07, 0.10, 0.06)
+## Linear colors, like every color here: pick them from sRGB targets.
+@export var water_shallow := Color(0.08, 0.30, 0.50)
+@export var water_deep := Color(0.03, 0.14, 0.34)
 @export var water_foam := Color(0.85, 0.88, 0.84)
-## Meters of water after which 63 % of the green light is absorbed.
-@export_range(0.1, 5.0) var water_clarity := 1.2
+## Pale band along the banks (prompt 091): lighter than `water_shallow`.
+@export var water_shore := Color(0.42, 0.66, 0.78)
+## Reach of red, green and blue light through the water, relative to
+## `water_clarity` (prompt 091): red goes first, so the bed looks bluish.
+@export var water_absorb := Vector3(0.45, 0.85, 1.0)
+## Meters of water after which 63 % of the blue light is absorbed.
+@export_range(0.1, 5.0) var water_clarity := 0.8

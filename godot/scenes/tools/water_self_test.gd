@@ -20,6 +20,7 @@ func run(test: Node) -> void:
 	var bridges: Array[Dictionary] = sim_host.bridges()
 	test._check(bridges.size() >= 2, "expected bridges on '%s', got %d" % [sim_host.map_name(), bridges.size()])
 	test._check(main.water.triangle_count > 0, "no water mesh")
+	_check_colors(test)
 	var stone: Dictionary = {}
 	for b in bridges:
 		if b.kind == "env_bridge_stone" and stone.is_empty():
@@ -142,3 +143,22 @@ func _check_model(test: Node, main: Node3D, bridge: Dictionary) -> void:
 		var t: Transform3D = part.transform
 		test._check(absf(t.origin.y + deck_height) < 0.01,
 			"bridge %s part %s lowered by %.3f, deck height %.3f" % [bridge.variant, part.name, -t.origin.y, deck_height])
+
+
+## Prompt 091: in every biome the water is blue (shallow, deep and the band
+## along the banks), the band is lighter than the shallow water and the
+## deep water darker; red light is absorbed first.
+func _check_colors(test: Node) -> void:
+	for biome: String in ["forest", "desert", "winter"]:
+		var preset: Resource = load("res://assets/biomes/%s.tres" % biome)
+		for field: String in ["water_shallow", "water_deep", "water_shore"]:
+			var c: Color = preset.get(field)
+			test._check(c.b > c.r and c.b > c.g, "%s: %s %s is not blue" % [biome, field, c])
+		var shallow: Color = preset.water_shallow
+		var deep: Color = preset.water_deep
+		var shore: Color = preset.water_shore
+		test._check(shore.get_luminance() > shallow.get_luminance() * 1.5,
+			"%s: the shore band is not lighter than the shallow water" % biome)
+		test._check(deep.get_luminance() < shallow.get_luminance(), "%s: deep water is not darker than shallow" % biome)
+		var absorb: Vector3 = preset.water_absorb
+		test._check(absorb.x < absorb.y and absorb.y <= absorb.z, "%s: water does not absorb red first" % biome)

@@ -3449,9 +3449,24 @@ SimHost.water_levels(): level raster → terrain shader (wet band)
 - **Color:** the opaque scene behind (screen texture, offset by the normals
   unless that would pick up something in front of the water) comes in as
   emission, so it is not lit twice, weakened per channel over the view
-  distance through the water (screen depth; blue is absorbed fastest, like
-  humic river water); the water's own color (biome: shallow, deep, foam,
+  distance through the water (screen depth; since prompt 091 red is
+  absorbed first, `water_absorb`, so a shallow bed shows through bluish
+  instead of yellow); the water's own color (biome: shallow, deep, foam,
   clarity) is the lit albedo.
+- **Blue water, pale banks (prompt 091):** every biome has blue water
+  colors of its own (`water_shallow`, `water_deep`: forest a full blue,
+  desert turquoise, winter cooler and darker) and a pale band along the
+  banks, `water_shore`. The band comes from the bed, not from the screen
+  depth or the foam: full at the water's edge, gone at 1.2 m of water or
+  7 m from the bank (`shore_depth`, `shore_width`, both vertex data), so
+  it is narrow on a steep river bank and wide on a flat coast and does not
+  change with the zoom. There it replaces up to 85 % of the bed showing
+  through. Colors are linear values. Weather and night dim it like all lit
+  color. The minimap and the map PNG palette (`debug_color` in
+  `data/terrain.toml`) were blue already and stay. `just water-shots
+  [prefix]` records a bank on a map of every biome, by night and in rain
+  into `build/water-color/`. Frame rate not measured (a few arithmetic
+  operations more per water pixel, no texture read).
 - **Reflection:** Godot's sky radiance and sun specular on a smooth surface
   (Fresnel included). No screen-space reflections: they are an effect of
   the whole environment (every surface pays for them, and they streak at the
