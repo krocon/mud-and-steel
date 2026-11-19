@@ -221,6 +221,30 @@ Zeichnungen bleiben Referenz auf dem Rechner.
 |-----|--------|------|--------|
 | 092 | [Größere, lesbare Befehlsleiste unten links](092-befehlsleiste-groesser.md) | Luft- und Befehlsleiste unten links sind auf großen/Retina-Bildschirmen kaum lesbar: erst Ursache klären (`ui_scale_for()` begrenzt auf Höhe/720, feste 88 × 40 px und 12-px-Schrift), dann Standardgröße anheben und mit UI-Skala bzw. eigener HUD-Größe skalierbar machen; Luft- und Befehlsleiste einzeln ein-/ausklappbar (Zustand gespeichert, Kürzel wirken weiter); keine Überlappung mit Einheitenpanel/Minimap; Vorher/Nachher-Bilder in mehreren Auflösungen, Selftests ergänzt | offen |
 
+### Außer der Reihe: Gameplay (093)
+
+| Nr. | Prompt | Ziel | Status |
+|-----|--------|------|--------|
+| 093 | [Panzer: Mauern umfahren, Infanterie überrollen, MG gegen Soldaten, Häuser beschießen](093-panzer-mauern-ueberrollen-mg.md) | Lehm- und Trockenmauern ab Massengrenze niederwalzbar (Wegfindung mit Zusatzkosten, Lücke, Staub); fahrende schwere Fahrzeuge töten feindliche Soldaten in ihrer Grundfläche (Ausweichen, eigene nie, Gräben schützen); Fahrzeug-MGs wählen eigene Infanterieziele nach Lafette (Koax, Bug, Dach) neben der Hauptwaffe; Befehl „Gebäude beschießen“ mit Taste, Hervorhebung und Ende bei Ruine; Golden Hash beabsichtigt neu | offen |
+
+### Außer der Reihe: Bedienung (094)
+
+| Nr. | Prompt | Ziel | Status |
+|-----|--------|------|--------|
+| 094 | [Kamera: aktive Einheit zentrieren und ihr folgen](094-kamera-aktive-einheit.md) | „Aktive Einheit“ (zuletzt angeklickte) einführen und im Einheitenpanel hervorheben; Knopf „Zentrieren“ plus belegbare Taste lässt die Kamera zu ihr gleiten; Umschaltknopf „Folgen“ = bestehender Folgemodus (C), folgt jetzt der aktiven Einheit statt der Auswahlmitte, glatt ohne Hinterherhängen, Zoom/Drehen erlaubt, Verschieben von Hand beendet ihn, Zustand gespeichert; Selftests ergänzt, reine Darstellung | offen |
+
+### Außer der Reihe: Bedienung (095)
+
+| Nr. | Prompt | Ziel | Status |
+|-----|--------|------|--------|
+| 095 | [HUD neu anordnen: Karte unten links, Befehle als Kachelraster](095-hud-neu-anordnen.md) | HUD nach Vorbild-Bildern (`docs/.vorlagen/hud/`, nur Anordnung und Stimmung): Minimap mit Nordmarke und Knopfspalte unten links, Infofeld der Auswahl unten Mitte, Befehlsraster 5 × 3 mit eigenen Symbolen unten rechts, Ressourcen + Hilfe + Menü oben rechts, Unterstützungsspalte darunter, Gruppenreiter oben Mitte; nur Minimap und Ressourcen immer sichtbar, Rest bei Bedarf; gemeinsame dunkle Gestaltung, keine Überlappung, Tests und Vorher/Nachher-Bilder; baut auf 092/094 auf | offen |
+
+### Außer der Reihe: Bedienung (096)
+
+| Nr. | Prompt | Ziel | Status |
+|-----|--------|------|--------|
+| 096 | [Kamera-Gizmo: Karte mit der Maus drehen und neigen](096-kamera-gizmo-drehen-neigen.md) | Rundes Gizmo bei der Minimap (Kompassrose mit N, dreht mit, zur Ellipse gestaucht je nach Neigung) plus Haus-Knopf: waagerecht ziehen = stufenlos drehen, senkrecht = neigen, Klick auf N/O/S/W, Mausrad neigt; Neigung als Versatz zur bisherigen Zoomkurve (Standard wie heute, Grenzen ~25°–85°), Tasten steiler/flacher, Zieh-Geste auf der Karte; Bodenabstand, Sichtweite, Minimap-Trapez, Bodenauswahl angepasst, Bildrate gemessen; Selftests; reine Darstellung | offen |
+
 ## Festgelegte Grundsätze
 
 - **Größen 1:1** in echten Metern, auch Infanterie (1,80 m).
