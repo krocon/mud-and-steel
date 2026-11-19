@@ -114,6 +114,10 @@ func _ready() -> void:
 func _run() -> void:
 	var hud_test := HudSelfTest.new()
 	hud_test.remember(self)
+	# Folded like a player who needs the ground under them (prompt 092): the
+	# parts below click on units and ground at the lower left. The HUD part
+	# folds them open for its own checks.
+	hud_test.fold_bars(self, false)
 	await _camera_test()
 	await _selection_test()
 	await _controls_test()

@@ -26,6 +26,7 @@ extends RefCounted
 ##   and off the minimap and the command bar.
 
 const Settings := preload("res://scenes/menu/settings.gd")
+const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
 const Language := preload("res://scenes/menu/language.gd")
 const L10nSelfTest := preload("res://scenes/menu/l10n_self_test.gd")
 const Picker := preload("res://scenes/hud/picker.gd")
@@ -38,6 +39,17 @@ var _starts: Array[Vector3] = []
 
 func remember(test: Node) -> void:
 	_starts = test._positions_of(test._ids_of(true))
+
+
+## Folds the order grid and the air bar open or away for the test, without
+## touching the setting.
+func fold_bars(test: Node, open: bool) -> void:
+	var main: Node3D = test.main
+	if main.hud != null:
+		main.hud.command_bar.set_open(open, false)
+	var air_view: Node = main.get("air_view")
+	if air_view != null and air_view.air_bar != null:
+		air_view.air_bar.set_open(open, false)
 
 
 func run(test: Node) -> void:
@@ -189,7 +201,8 @@ func _command_bar_test(test: Node, main: Node3D, bar: Control, tanks: Array[int]
 	var selection: Control = main.selection
 	var group: Array[int] = tanks.slice(0, 3)
 	selection.set_selection(group)
-	await test._frames(1)
+	fold_bars(test, true)
+	await test._frames(2)
 	var move: Button = bar.buttons["move"]
 	test._check(not move.disabled and move.text.contains("[M]"), "move button '%s' (disabled %s)" % [move.text, move.disabled])
 	test._left_click(move.get_global_rect().get_center())
@@ -214,6 +227,84 @@ func _command_bar_test(test: Node, main: Node3D, bar: Control, tanks: Array[int]
 	if hold_after == 0:
 		sim_host.set_hold_fire(PackedInt64Array(group), true)
 	test._check((bar.buttons["stance_stand"] as Button).disabled, "stance buttons enabled for tanks")
+	await _bar_size_test(test, main, bar)
+	fold_bars(test, false)
+	await test._frames(1)
+
+
+## Prompt 092: button text of 15 px or more, growing with the font
+## size setting; the bars do not overlap the other HUD parts; folding hides
+## the buttons, keeps the keys working and is remembered.
+func _bar_size_test(test: Node, main: Node3D, bar: Control) -> void:
+	var selection: Control = main.selection
+	var hud: Control = main.hud
+	var air: Control = main.air_view.air_bar if main.get("air_view") != null else null
+	var move: Button = bar.buttons["move"]
+	var fit: float = MenuTheme.hud_fit(hud.get_viewport_rect().size.x)
+	var wanted: int = MenuTheme.font(roundi(MenuTheme.HUD_FONT * fit))
+	test._check(move.get_theme_font_size(&"font_size") == wanted and wanted >= roundi(15 * fit),
+		"order button text is %d px, wanted %d px" % [move.get_theme_font_size(&"font_size"), wanted])
+	for id: String in bar.buttons:
+		var b: Button = bar.buttons[id]
+		if b.is_visible_in_tree():
+			test._check(b.size.x >= b.get_combined_minimum_size().x - 0.5 and not b.clip_text, "order button '%s' cuts its text" % b.text)
+	# Larger font setting, larger buttons.
+	var before := move.size
+	MenuTheme.set_font_scale(1.3)
+	await test._frames(20)
+	test._check(move.get_theme_font_size(&"font_size") > wanted and move.size.y >= before.y and move.size.x >= before.x,
+		"order buttons do not grow with the font size (%s -> %s)" % [before, move.size])
+	_no_overlap(test, hud, air, "font size 1.3")
+	MenuTheme.set_font_scale(Settings.get_value("font_size"))
+	await test._frames(20)
+	_no_overlap(test, hud, air, "default size")
+	# Folding.
+	test._check(bar.is_open() and Settings.get_value("hud_commands_open"), "order grid not open by default")
+	var open_height: float = bar.size.y
+	test._left_click((bar.fold_button as Button).get_global_rect().get_center())
+	await test._frames(3)
+	test._check(not bar.is_open() and not move.is_visible_in_tree(), "folding left the order buttons visible")
+	test._check(bar.size.y < open_height * 0.6, "folded order bar is %.0f px high, open %.0f" % [bar.size.y, open_height])
+	selection.set_command_mode("")
+	_press(test, KEY_M)
+	await test._frames(1)
+	test._check(selection.command_mode == "move", "key M gives no move order while the grid is folded")
+	selection.set_command_mode("")
+	Settings.load_file()
+	test._check(not Settings.get_value("hud_commands_open"), "folded order grid not remembered")
+	bar.set_open(true)
+	await test._frames(2)
+	test._check(move.is_visible_in_tree() and Settings.get_value("hud_commands_open"), "order grid did not fold open again")
+	if air != null and air.visible:
+		var mission: Button = air.buttons["recon"]
+		test._check(mission.get_theme_font_size(&"font_size") == wanted, "air button text is %d px" % mission.get_theme_font_size(&"font_size"))
+		air.set_open(false)
+		await test._frames(2)
+		test._check(not mission.is_visible_in_tree() and not Settings.get_value("hud_air_open"), "folding left the air buttons visible")
+		if not mission.disabled:
+			_press(test, KEY_1, true)
+			await test._frames(1)
+			test._check(air.pending == "recon", "Shift+1 calls no recon flight while the air bar is folded")
+			air.set_pending("")
+		air.set_open(true)
+		await test._frames(2)
+		test._check(mission.is_visible_in_tree() and Settings.get_value("hud_air_open"), "air bar did not fold open again")
+
+
+func _no_overlap(test: Node, hud: Control, air: Control, what: String) -> void:
+	var parts := {"command bar": hud.command_bar, "unit panel": hud.unit_panel, "minimap": hud.minimap}
+	if air != null:
+		parts["air bar"] = air
+	var names := parts.keys()
+	for i in names.size():
+		for j in range(i + 1, names.size()):
+			var a: Control = parts[names[i]]
+			var b: Control = parts[names[j]]
+			# The air bar is docked inside the command bar's column.
+			if not a.is_visible_in_tree() or not b.is_visible_in_tree() or a.is_ancestor_of(b) or b.is_ancestor_of(a):
+				continue
+			test._check(not a.get_global_rect().intersects(b.get_global_rect()),
+				"%s overlaps %s (%s): %s / %s" % [names[i], names[j], what, a.get_global_rect(), b.get_global_rect()])
 
 
 func _events_test(test: Node, main: Node3D, feed: Control) -> void:

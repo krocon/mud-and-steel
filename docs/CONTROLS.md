@@ -7,6 +7,13 @@ and [the HUD section](ARCHITECTURE.md#hud-presentation-only). The tutorial
 (prompt 039, main menu → Tutorial, [MISSIONS.md](MISSIONS.md)) builds on
 this page.
 
+**Size of the interface:** Settings → Interface → "Interface scale" and
+"Font size" change every text, the order buttons included. On a dense
+screen (Retina, high DPI) the game starts from the system's scale. The
+order grid ("Orders") and the air bar ("Air") at the lower left fold away
+with a click on their header line and stay that way in later matches; all
+keys work while they are folded.
+
 ## Camera
 
 | Input | Effect |

@@ -113,6 +113,9 @@ const DEFAULTS := {
 	"language": "auto",
 	"ui_scale": 1.0,
 	"font_size": 1.0,
+	# Air bar and order grid folded open (prompt 092).
+	"hud_air_open": true,
+	"hud_commands_open": true,
 	"color_palette": "standard",
 	"subtitles": false,
 	"screen_shake": true,
@@ -276,15 +279,43 @@ static func apply() -> void:
 	_apply_display()
 
 
-## The interface scale for a window `height` pixels high: the setting, but
-## enlarged at most so that the interface keeps 720 pixels of room (menus
-## are built for 1600×900) [provisional]. Headless (self-test) it is the
-## setting.
+## How many window pixels one interface pixel takes on this screen without
+## the setting (prompt 092): the scale the system uses for it (2 on a Retina
+## display; elsewhere from its dots per inch, 96 = 1, in quarters). The
+## window is as large as the screen's real pixels, so without this factor
+## every text is half as high there. 1 headless and while recording
+## (pictures and videos stay the same on every machine);
+## `-- --display-scale=<n>` sets it for tests and pictures.
+static func display_scale() -> float:
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--display-scale="):
+			return clampf(arg.trim_prefix("--display-scale=").to_float(), 0.5, 4.0)
+	if DisplayServer.get_name() == "headless" or OS.has_feature("movie"):
+		return 1.0
+	var screen := DisplayServer.window_get_current_screen()
+	var factor := DisplayServer.screen_get_scale(screen)
+	if is_equal_approx(factor, 1.0):
+		factor = snappedf(DisplayServer.screen_get_dpi(screen) / 96.0, 0.25)
+	return clampf(factor, 1.0, 3.0)
+
+
+## The interface scale for a window `height` pixels high: the setting times
+## the screen's own scale (`display_scale`), but enlarged at most so that
+## the interface keeps 720 pixels of room (menus are built for 1600×900)
+## [provisional]. Headless (self-test) it is the setting.
 static func ui_scale_for(height: int) -> float:
-	var wanted: float = values.get("ui_scale", 1.0)
+	var wanted: float = values.get("ui_scale", 1.0) * display_scale()
 	if wanted <= 1.0 or height <= 0 or DisplayServer.get_name() == "headless":
 		return wanted
 	return clampf(float(height) / 720.0, 1.0, wanted)
+
+
+## Fits the interface scale to the window again when its size changes
+## (maximized, full screen, dragged): the 720-pixel limit depends on it.
+static func _on_window_resized() -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree != null and DisplayServer.get_name() != "headless":
+		tree.root.content_scale_factor = ui_scale_for(tree.root.size.y)
 
 
 ## UI scale, window, VSync, frame limit and render scale (prompt 043). Only
@@ -302,6 +333,8 @@ static func _apply_display() -> void:
 		return not _applied.has(key) or _applied[key] != wanted[key]
 	if changed.call("ui_scale") or changed.call("window_mode") or changed.call("resolution"):
 		root.content_scale_factor = ui_scale_for(root.size.y)
+	if not root.size_changed.is_connected(_on_window_resized):
+		root.size_changed.connect(_on_window_resized)
 	if changed.call("fps_limit"):
 		Engine.max_fps = wanted["fps_limit"]
 	if changed.call("render_scale") or changed.call("upscaler"):

@@ -17,6 +17,12 @@ extends VBoxContainer
 ## Formations (prompt 046): the first cells of the grid set the formation
 ## of the next moves (`selection.formation`, key `,` cycles); attack-move
 ## ("Advance") and secure are targeted orders like move.
+##
+## Size and folding (prompt 092): the buttons carry larger text (`MenuTheme.HUD_FONT`) and
+## shrink on a narrow window (`MenuTheme.hud_fit`); the header line folds
+## the grid away (setting `hud_commands_open`, kept over matches). Folded,
+## every key still gives its order: the keys are read by the selection, not
+## by the buttons.
 
 const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
@@ -80,8 +86,14 @@ var build_open := false
 ## Formation choice (prompt 046; self-test).
 var formation_choice: OptionButton
 
+## Header line that folds the grid (self-test).
+var fold_button: Button
+
 var _dock: VBoxContainer
 var _panel: PanelContainer
+var _grid: GridContainer
+var _formation_label: Label
+var _fit := 0.0
 var _refresh_left := 0.0
 var _keys_signature := ""
 
@@ -105,18 +117,28 @@ func setup(main_node: Node3D) -> void:
 	_panel = PanelContainer.new()
 	_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(_panel)
+	var box := VBoxContainer.new()
+	_panel.add_child(box)
+	fold_button = Button.new()
+	fold_button.name = "Fold"
+	fold_button.flat = true
+	fold_button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	fold_button.focus_mode = Control.FOCUS_NONE
+	fold_button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	fold_button.tooltip_text = "HUD_TIP_FOLD"
+	fold_button.pressed.connect(func() -> void: set_open(not is_open()))
+	box.add_child(fold_button)
 	var grid := GridContainer.new()
 	grid.columns = 5
-	_panel.add_child(grid)
+	box.add_child(grid)
+	_grid = grid
 	_add_formation_choice(grid)
 	for spec in BUTTONS:
 		var b := Button.new()
 		b.name = "Order_" + spec[0]
-		b.custom_minimum_size = Vector2(92, 34)
 		b.focus_mode = Control.FOCUS_NONE
 		b.toggle_mode = spec[3] == "mode" or spec[3] == "build" or spec[3] == "work" \
 				or spec[3] == "layer"
-		b.add_theme_font_size_override(&"font_size", MenuTheme.font(13))
 		b.pressed.connect(press.bind(spec[0]))
 		grid.add_child(b)
 		buttons[spec[0]] = b
@@ -125,7 +147,37 @@ func setup(main_node: Node3D) -> void:
 	if base_hud != null and base_hud.has_method("dock_into"):
 		base_hud.dock_into(_dock, self)
 	_set_tooltips()
+	_fit_size()
+	set_open(Settings.get_value("hud_commands_open"), false)
 	_update()
+
+
+## Whether the order grid is folded open.
+func is_open() -> bool:
+	return _grid.visible
+
+
+## Folds the order grid open or away; `remember` keeps it in the settings.
+func set_open(open: bool, remember := true) -> void:
+	_grid.visible = open
+	fold_button.text = ("▾ " if open else "▸ ") + tr("HUD_ORDERS")
+	if remember and Settings.get_value("hud_commands_open") != open:
+		Settings.set_value("hud_commands_open", open)
+		Settings.save_file()
+
+
+## Button sizes and fonts for the window width and the font size setting.
+func _fit_size() -> void:
+	var fit := MenuTheme.hud_fit(get_viewport_rect().size.x) if is_inside_tree() else 1.0
+	var signature := fit * 1000.0 + MenuTheme.font_scale
+	if is_equal_approx(signature, _fit):
+		return
+	_fit = signature
+	for id: String in buttons:
+		MenuTheme.style_hud_button(buttons[id], fit)
+	MenuTheme.style_hud_button(formation_choice, fit)
+	MenuTheme.style_hud_button(_formation_label, fit)
+	fold_button.add_theme_font_size_override(&"font_size", MenuTheme.font(roundi(MenuTheme.HUD_FONT * fit)))
 
 
 func _process(delta: float) -> void:
@@ -133,6 +185,7 @@ func _process(delta: float) -> void:
 	_refresh_left -= delta
 	if _refresh_left <= 0.0:
 		_refresh_left = REFRESH
+		_fit_size()
 		_update()
 	usec += Time.get_ticks_usec() - began
 
@@ -142,18 +195,15 @@ func _process(delta: float) -> void:
 func _add_formation_choice(grid: GridContainer) -> void:
 	var label := Label.new()
 	label.text = "HUD_FORMATION"
-	label.custom_minimum_size = Vector2(92, 34)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	label.add_theme_font_size_override(&"font_size", MenuTheme.font(13))
 	grid.add_child(label)
+	_formation_label = label
 	formation_choice = OptionButton.new()
 	formation_choice.name = "Formation"
-	formation_choice.custom_minimum_size = Vector2(92, 34)
 	formation_choice.focus_mode = Control.FOCUS_NONE
 	formation_choice.fit_to_longest_item = false
 	formation_choice.clip_text = true
-	formation_choice.add_theme_font_size_override(&"font_size", MenuTheme.font(13))
 	for code in FormationOrders.LABELS.size():
 		formation_choice.add_item(FormationOrders.label(code), code)
 	formation_choice.tooltip_text = tr("HUD_TIP_FORMATION") % Settings.action_key_name("order_formation")
@@ -274,6 +324,7 @@ func _notification(what: int) -> void:
 	# new language.
 	if what == NOTIFICATION_TRANSLATION_CHANGED and sim_host != null and not buttons.is_empty():
 		_set_tooltips()
+		set_open(is_open(), false)
 		formation_choice.tooltip_text = tr("HUD_TIP_FORMATION") % Settings.action_key_name("order_formation")
 
 

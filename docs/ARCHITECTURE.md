@@ -2585,6 +2585,37 @@ translating validation messages from the Rust crates (editor validation,
 lobby and network messages, file errors stay English); scaling the 3D
 labels over units with the UI scale.
 
+**Interface size on dense screens, larger order bars (prompt 092).** The
+project has no stretch mode: one interface pixel is one window pixel, and
+the window is as large as the screen's real pixels. On a Retina display
+(measured: 3456 × 2234, system scale 2.0) every text was therefore half as
+high as meant, the 12–13 px order buttons hardly readable.
+
+- `Settings.display_scale()` is the screen's own scale (macOS: the system
+  scale; elsewhere dots per inch / 96 in quarters; 1 headless and while
+  recording, so pictures and videos are the same on every machine;
+  `-- --display-scale=<n>` for tests). `ui_scale_for(height)` multiplies
+  the "Interface scale" setting by it and still keeps 720 pixels of room,
+  and it is applied again whenever the window changes its size.
+- Order grid and air bar: text 15 px instead of 12–13 (`MenuTheme.HUD_FONT`,
+  `style_hud_button`; buttons 112 × 36, air 100 × 50, never narrower than
+  their text), times the font size setting, times `hud_fit` (window width /
+  1600, at least 0.7) so unit panel and minimap fit beside it on a narrow
+  window. Disabled buttons use a lighter grey than the theme. Menu-sized
+  text (18 px) was tried and dropped: the block would be half a 1600 px
+  window wide. No separate HUD scale: the interface scale does it.
+- Folding: the header lines "Orders" and "Air" fold their buttons away
+  (settings `hud_commands_open`, `hud_air_open`, saved at once). The keys
+  work either way: the selection and the air bar read them, not the
+  buttons. No key for folding: every letter key is taken.
+- The self-test folds both bars while it clicks on units and ground at the
+  lower left, and opens them for the bar checks (text size, growth with the
+  font size, no overlap of order bar, air bar, unit panel and minimap,
+  folding, keys while folded, the remembered state).
+- Pictures: `build/hud-size/before|after/` (`--l10n-shots`).
+- Open: the block is still large at 1280 × 720 (the unit panel moves above
+  the minimap); prompt 095 rearranges the HUD.
+
 ## Missions and tutorial
 
 Prompt 039, reference in [MISSIONS.md](MISSIONS.md). A mission is a TOML

@@ -8,6 +8,9 @@ extends PanelContainer
 ## (`SimHost.call_air_line`): the aircraft fly from its start to its end,
 ## bombers lay a carpet over it (at most `air_carpet_max_m`), transports
 ## drop their paratroopers along it.
+## Size and folding (prompt 092): buttons with larger text that shrink
+## on a narrow window; the title folds the buttons away (setting
+## `hud_air_open`). Folded, the keys still call, and the hint shows.
 ## Presentation only: the simulation checks cooldown and price again.
 ## [provisional] keys and layout.
 
@@ -36,11 +39,16 @@ var buttons: Dictionary[String, Button] = {}
 ## Calls sent (self-test).
 var calls := 0
 
+## Title that folds the buttons (self-test).
+var fold_button: Button
+
 var _refresh_left := 0.0
 var _hint: Label
+var _fit := 0.0
 ## Ground point where a drag started (null: none).
 var _drag_from: Variant = null
 var _options: Dictionary = {}
+var _open := true
 
 
 func setup(main_node: Node3D) -> void:
@@ -52,28 +60,67 @@ func setup(main_node: Node3D) -> void:
 	add_child(box)
 	var row := HBoxContainer.new()
 	box.add_child(row)
-	var title := Label.new()
-	title.text = "HUD_TAB_AIR"
-	title.add_theme_font_size_override(&"font_size", MenuTheme.font(13))
-	row.add_child(title)
+	fold_button = Button.new()
+	fold_button.name = "Fold"
+	fold_button.flat = true
+	fold_button.focus_mode = Control.FOCUS_NONE
+	fold_button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	fold_button.tooltip_text = "HUD_TIP_FOLD"
+	fold_button.pressed.connect(func() -> void: set_open(not is_open()))
+	row.add_child(fold_button)
 	for k in MISSIONS.size():
 		var spec: Array = MISSIONS[k]
 		var b := Button.new()
 		b.name = "Air_" + spec[0]
-		b.custom_minimum_size = Vector2(88, 40)
 		b.focus_mode = Control.FOCUS_NONE
 		b.toggle_mode = true
-		b.add_theme_font_size_override(&"font_size", MenuTheme.font(12))
 		b.pressed.connect(_on_button.bind(spec[0]))
 		row.add_child(b)
 		buttons[spec[0]] = b
 	_hint = Label.new()
 	_hint.text = HINT
 	_hint.visible = false
-	_hint.add_theme_font_size_override(&"font_size", MenuTheme.font(12))
 	_hint.add_theme_color_override(&"font_color", Color(1, 0.95, 0.6))
 	box.add_child(_hint)
+	_open = Settings.get_value("hud_air_open")
 	_refresh()
+	set_open(_open, false)
+
+
+## Whether the mission buttons are folded open.
+func is_open() -> bool:
+	return _open
+
+
+## Folds the mission buttons open or away; `remember` keeps it in the
+## settings.
+func set_open(open: bool, remember := true) -> void:
+	_open = open
+	for m: String in buttons:
+		buttons[m].visible = open
+	fold_button.text = ("▾ " if open else "▸ ") + tr("HUD_TAB_AIR")
+	if remember and Settings.get_value("hud_air_open") != open:
+		Settings.set_value("hud_air_open", open)
+		Settings.save_file()
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_TRANSLATION_CHANGED and fold_button != null:
+		set_open(_open, false)
+
+
+## Button sizes and fonts for the window width and the font size setting.
+func _fit_size() -> void:
+	var fit := MenuTheme.hud_fit(get_viewport_rect().size.x) if is_inside_tree() else 1.0
+	var signature := fit * 1000.0 + MenuTheme.font_scale
+	if is_equal_approx(signature, _fit):
+		return
+	_fit = signature
+	var text := roundi(MenuTheme.HUD_FONT * fit)
+	for m: String in buttons:
+		MenuTheme.style_hud_button(buttons[m], fit, Vector2(100, 50))
+	fold_button.add_theme_font_size_override(&"font_size", MenuTheme.font(text))
+	_hint.add_theme_font_size_override(&"font_size", MenuTheme.font(text))
 
 
 func _process(delta: float) -> void:
@@ -86,6 +133,7 @@ func _process(delta: float) -> void:
 func _refresh() -> void:
 	if sim_host == null:
 		return
+	_fit_size()
 	_options.clear()
 	for o: Dictionary in sim_host.air_options():
 		_options[o["mission"]] = o

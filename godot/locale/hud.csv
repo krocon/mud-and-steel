@@ -38,6 +38,8 @@ HUD_WORK_CAMO_NET,Camo net,Tarnnetz
 HUD_WORK_BUNKER,Bunker,Bunker
 HUD_WORK_TEETH,Teeth,Höcker
 HUD_FORMATION,Formation,Formation
+HUD_ORDERS,Orders,Befehle
+HUD_TIP_FOLD,Fold in or out. The keys work either way.,Ein- oder ausklappen. Die Tasten wirken in beiden Fällen.
 HUD_TIP_FORMATION,"Formation of the next moves (key %s switches). Auto picks by the ground at the target: column on roads and in narrows, dispersed in woods, wedge (vehicles) or line (infantry) in the open. Control groups remember theirs.","Formation der nächsten Bewegungen (Taste %s wechselt). Auto wählt nach dem Gelände am Ziel: Kolonne auf Straßen und in Engstellen, aufgelockert im Wald, Keil (Fahrzeuge) oder Linie (Infanterie) im offenen Gelände. Gruppen merken sich ihre Formation."
 HUD_TIP_MOVE,Then left click the target. Right click moves at once; Shift + right click adds a waypoint.,Dann Linksklick auf das Ziel. Rechtsklick bewegt sofort; Umschalt + Rechtsklick fügt einen Wegpunkt an.
 HUD_TIP_ATTACK,Then left click an enemy. Right click on an enemy attacks at once.,Dann Linksklick auf einen Feind. Rechtsklick auf einen Feind greift sofort an.
