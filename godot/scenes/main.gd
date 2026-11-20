@@ -98,12 +98,14 @@ const GameMenu := preload("res://scenes/menu/game_menu.gd")
 const BaseView := preload("res://scenes/world/base_view.gd")
 const BaseHud := preload("res://scenes/world/base_hud.gd")
 const BaseShots := preload("res://scenes/tools/base_shots.gd")
+const UnitMarkerShots := preload("res://scenes/tools/unit_marker_shots.gd")
 const PositionShots := preload("res://scenes/tools/position_shots.gd")
 const GameFiles := preload("res://scenes/menu/game_files.gd")
 const ReplayBar := preload("res://scenes/replay/replay_bar.gd")
 const BattleSound := preload("res://scenes/audio/battle_sound.gd")
 const MatchHud := preload("res://scenes/hud/hud.gd")
 const TransportView := preload("res://scenes/world/transport_view.gd")
+const UnitHighlight := preload("res://scenes/world/unit_highlight.gd")
 const WorksView := preload("res://scenes/world/works_view.gd")
 const VeterancyView := preload("res://scenes/world/veterancy_view.gd")
 const CrossingView := preload("res://scenes/world/crossing_view.gd")
@@ -185,6 +187,8 @@ var strike_view: StrikeView
 var infantry_view: InfantryView
 ## Passengers and their seats (prompt 034).
 var transport_view: TransportView
+## Own units easier to see (prompt 164).
+var unit_highlight: UnitHighlight
 ## Mines, wire, obstacles, sites, thrown tracks, bridges (prompt 035).
 var works_view: WorksView
 ## Kill rings on gun barrels, promotion messages (prompt 050).
@@ -301,6 +305,10 @@ func _ready() -> void:
 	transport_view.name = "TransportView"
 	add_child(transport_view)
 	transport_view.setup(self)
+	unit_highlight = UnitHighlight.new()
+	unit_highlight.name = "UnitHighlight"
+	add_child(unit_highlight)
+	unit_highlight.setup(self)
 	works_view = WorksView.new()
 	works_view.name = "WorksView"
 	add_child(works_view)
@@ -461,6 +469,11 @@ func _ready() -> void:
 			var shots := BaseShots.new()
 			shots.main = self
 			add_child(shots)
+		if arg.begins_with("--unit-marker-shots="):
+			camera_rig.edge_scroll_enabled = false
+			var marker_shots := UnitMarkerShots.new()
+			marker_shots.main = self
+			add_child(marker_shots)
 		if arg.begins_with("--blast-shots="):
 			camera_rig.edge_scroll_enabled = false
 			var blast_shots := BlastShots.new()

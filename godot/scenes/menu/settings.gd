@@ -73,6 +73,8 @@ const BINDABLE: Dictionary[String, String] = {
 	"strike_rockets": "SET_KEY_STRIKE_ROCKETS",
 	# Unit card of the selected unit (prompt 066).
 	"unit_card": "SET_KEY_UNIT_CARD",
+	# Hold to show every own unit (prompt 164).
+	"show_units": "SET_KEY_SHOW_UNITS",
 }
 
 ## Actions that are not in `project.godot`, with their default key
@@ -93,11 +95,18 @@ const RUNTIME_ACTIONS: Dictionary[String, int] = {
 	# Every letter key is taken; Page up / Page down were free (prompt 096).
 	"camera_tilt_up": KEY_PAGEUP,
 	"camera_tilt_down": KEY_PAGEDOWN,
+	# Held: every own unit shows its ring (prompt 164); Tab was free.
+	"show_units": KEY_TAB,
 }
 
 ## Health bars over units (prompt 031): `damaged` (damaged and selected
 ## units), `selected` (selected units only), `never`.
 const HEALTH_BAR_MODES: Array[String] = ["damaged", "selected", "never"]
+
+## Own units easier to see (prompt 164, `unit_highlight.gd`): `always`
+## (faint markers under own soldiers, units near the cursor highlighted),
+## `hover` (only near the cursor and with the show-all key), `off`.
+const UNIT_MARKER_MODES: Array[String] = ["always", "hover", "off"]
 
 ## Tilt-shift depth of field (`atmosphere.gd`, `DOF_MODES`): `off`, `subtle`
 ## (soft screen edges at close zoom, prompt 057), `miniature` (strong, like a
@@ -123,6 +132,7 @@ const DEFAULTS := {
 	"camera_gizmo": true,
 	"tilt_invert": false,
 	"health_bars": "damaged",
+	"unit_markers": "always",
 	# Tilt-shift depth of field, one of DOF_MODES.
 	"depth_of_field": "subtle",
 	# Shadows of passing clouds (prompt 087).

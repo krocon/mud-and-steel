@@ -586,6 +586,11 @@ effects-shots dir: build
 base-shots dir: build
     {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- --mode=base --ai=normal "--base-shots={{ dir }}"
 
+# Own-unit markers in pictures (prompt 164; needs a window): off, faint markers, cursor over a squad, show-all key; e.g. `just unit-marker-shots build/unit-visibility --prefix=night --daytime=night`
+[group('godot')]
+unit-marker-shots dir="build/unit-visibility" *args: build
+    {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- "--unit-marker-shots={{ justfile_directory() }}/{{ dir }}" {{ args }}
+
 # Record a trench strongpoint (prompt 052) as PNG files into a folder: overview, firing bay, dugouts, ring and wire (needs a window)
 [group('godot')]
 position-shots dir="build/positions": build

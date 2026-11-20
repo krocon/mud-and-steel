@@ -272,6 +272,13 @@ top bar. Everything else appears when there is something to do with it.
   sighted, under fire. Click one to look there.
 - **Health bars**: over damaged and selected units; Settings → Interface
   can limit them to selected units or hide them.
+- **Own units** (prompt 164): a small light ring with a dark rim under
+  every own soldier; units within about 20–80 m of the mouse pointer (more
+  when zoomed out) show their ring in their color (own, ally, enemy), the
+  nearest one stronger, and own ones light up. Hold **Tab**
+  *(rebindable)* to show every own unit. Settings → Interface → "Own
+  units": markers and highlight (default), highlight near the pointer only,
+  or off. Pictures: `just unit-marker-shots` (`build/unit-visibility/`).
 - **Unit card** (under the top bar, left of the support column, prompt 066): all game values of a unit type and,
   for vehicles of the vehicle database, its technical data, in two tabs. It
   opens by a right click on a tile of the build menu or the production bar,

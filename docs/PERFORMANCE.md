@@ -58,6 +58,11 @@ Apple M1 Max, the scenario above, release simulation, debug bridge (as
 
 ## Simulation
 
+Prompt 164 (own-unit markers, `unit_highlight.gd`): `just bench-view`
+reports them as "unit markers": 0.36–0.49 ms per frame with 1125 soldiers
+(after warm-up). The markers are one MultiMesh, rebuilt only on a new tick
+or when the hover changes (every frame: 1.2 ms).
+
 Prompt 097 (sight and direct fire 1/8, vehicles at real speed;
 `just bench --runs 3`, 2026-11-20, same machine): mean sim tick 5.13 → 2.87 ms,
 p99 9.24 → 6.43 ms, max 11.1 → 8.6 ms. Vision (half the sight range, a

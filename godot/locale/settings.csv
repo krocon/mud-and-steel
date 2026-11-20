@@ -61,6 +61,10 @@ SET_HEALTH_BARS,Health bars,Lebensbalken
 SET_HEALTH_DAMAGED,Damaged and selected units,Beschädigte und gewählte Einheiten
 SET_HEALTH_SELECTED,Selected units only,Nur gewählte Einheiten
 SET_HEALTH_NEVER,Never,Nie
+SET_UNIT_MARKERS,Own units,Eigene Einheiten
+SET_MARKERS_ALWAYS,Markers and highlight near the cursor,Markierungen und Hervorheben am Mauszeiger
+SET_MARKERS_HOVER,Highlight near the cursor only,Nur am Mauszeiger hervorheben
+SET_MARKERS_OFF,Off,Aus
 SET_KEY_CAMERA_PAN_FORWARD,Pan forward,Vorwärts schwenken
 SET_KEY_CAMERA_PAN_BACK,Pan back,Rückwärts schwenken
 SET_KEY_CAMERA_PAN_LEFT,Pan left,Links schwenken
@@ -98,6 +102,7 @@ SET_KEY_AIR_BOMB,Air: bombing run (then click),Luft: Bombenangriff (dann klicken
 SET_KEY_AIR_AIRBORNE,Air: airborne drop (then click),Luft: Luftlandung (dann klicken)
 SET_KEY_STRIKE_ROCKETS,Heavy rocket strike (then click),Schwerer Raketenschlag (dann klicken)
 SET_KEY_UNIT_CARD,Unit card of the selection,Einheitenkarte der Auswahl
+SET_KEY_SHOW_UNITS,Show all own units (hold),Alle eigenen Einheiten zeigen (halten)
 SUB_UNDER_ATTACK,We are under attack!,Wir werden angegriffen!
 SUB_UNIT_LOST,Unit lost.,Einheit verloren.
 SUB_UNIT_READY,Unit ready.,Einheit bereit.

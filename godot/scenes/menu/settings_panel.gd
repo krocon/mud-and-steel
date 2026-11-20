@@ -44,6 +44,7 @@ var gizmo_box: CheckBox
 var tilt_invert_box: CheckBox
 var dof_option: OptionButton
 var health_bar_option: OptionButton
+var unit_marker_option: OptionButton
 ## Option buttons of OPTIONS, by settings key (prompt 043).
 var options: Dictionary[String, OptionButton] = {}
 var language_option: OptionButton
@@ -266,11 +267,18 @@ func _interface_tab() -> Control:
 	health_bar_option.item_selected.connect(func(index: int) -> void:
 		_change("health_bars", Settings.HEALTH_BAR_MODES[index]))
 	tab.add_child(_row("SET_HEALTH_BARS", health_bar_option))
+	unit_marker_option = OptionButton.new()
+	for label in ["SET_MARKERS_ALWAYS", "SET_MARKERS_HOVER", "SET_MARKERS_OFF"]:
+		unit_marker_option.add_item(label)
+	unit_marker_option.item_selected.connect(func(index: int) -> void:
+		_change("unit_markers", Settings.UNIT_MARKER_MODES[index]))
+	tab.add_child(_row("SET_UNIT_MARKERS", unit_marker_option))
 	return _scrolled(tab)
 
 
 func _refresh() -> void:
 	health_bar_option.select(maxi(Settings.HEALTH_BAR_MODES.find(Settings.get_value("health_bars")), 0))
+	unit_marker_option.select(maxi(Settings.UNIT_MARKER_MODES.find(Settings.get_value("unit_markers")), 0))
 	quality_option.select(maxi(GraphicsQuality.LEVELS.find(Settings.get_value("quality")), 0))
 	volume_slider.set_value_no_signal(Settings.get_value("master_volume"))
 	for key in bus_sliders:

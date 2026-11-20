@@ -157,8 +157,11 @@ func _run() -> void:
 	await PositionsSelfTest.new().run(self)
 	await ExperienceSelfTest.new().run(self)
 	await CareSelfTest.new().run(self)
+	# Last: the extra frames shift the match, and the positions test above
+	# depends on where the fight stands at its start (prompt 164).
+	await _highlight_test()
 	var ok := _errors.is_empty()
-	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, fog, combat, impact markers, cloud shadows, infantry, destruction, fire, craters, sound, music, water, hud, air, transport, supply, formations, crossings, replay, works, positions, experience and care ok" if ok else " ".join(_errors)
+	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, fog, combat, impact markers, cloud shadows, infantry, destruction, fire, craters, sound, music, water, hud, air, transport, supply, formations, crossings, replay, works, positions, experience, care and unit highlight ok" if ok else " ".join(_errors)
 	print("self-test %s: %s" % ["PASSED" if ok else "FAILED", message])
 	# Started from the menu flow test (prompt 027): it continues the flow.
 	var flow: Node = MatchSetup.flow_test
@@ -1342,6 +1345,52 @@ func _marker_test() -> void:
 	var radius: float = view._marker_radius(105.0)
 	_check(radius > 1.0 and radius <= 10.5, "impact marker radius %.1f m for 10.5 cm" % radius)
 	await get_tree().process_frame
+
+
+## Own units easier to see (prompt 164): the cursor over an own squad
+## highlights it (ring, lit models, bright markers), away from it nothing is
+## highlighted and only the faint markers stay; the show-all key lights
+## every own unit; the setting `off` draws nothing.
+func _highlight_test() -> void:
+	var highlight: Node = main.unit_highlight
+	var squads := _ids_of(true, true)
+	_check(not squads.is_empty(), "no own squad for the highlight test")
+	if squads.is_empty():
+		return
+	var squad := squads[0]
+	var at := _centroid([squad] as Array[int])
+	highlight.forced_point = at
+	await _frames(2)
+	_check(highlight.hovered.has(squad) and highlight.nearest == squad,
+		"squad %d under the cursor not highlighted (nearest %d)" % [squad, highlight.nearest])
+	_check(highlight.lit.has(squad), "squad under the cursor not lit up")
+	_check(highlight.markers_bright > 0, "no bright markers under the cursor")
+	var ring: MeshInstance3D = main._rings[squad]
+	_check(ring.visible and ring.material_override != null, "no hover ring on the squad")
+	highlight.forced_point = Vector3(-10000, 0, -10000)
+	await _frames(2)
+	_check(highlight.hovered.is_empty() and highlight.lit.is_empty(), "highlight stays after the cursor left")
+	_check(highlight.markers_drawn > 0 and highlight.markers_bright == 0,
+		"faint markers: %d drawn, %d bright" % [highlight.markers_drawn, highlight.markers_bright])
+	_check(ring.material_override == null, "hover ring look stays after the cursor left")
+	Input.action_press("show_units")
+	await _frames(2)
+	var own := _ids_of(true, false) + squads
+	var shown := 0
+	for id in own:
+		if highlight.hovered.has(id) or main.selection.is_selected(id):
+			shown += 1
+	_check(shown == own.size() and highlight.markers_bright == highlight.markers_drawn,
+		"show-all: %d of %d own units shown, %d of %d markers bright" % [shown, own.size(),
+			highlight.markers_bright, highlight.markers_drawn])
+	Input.action_release("show_units")
+	Settings.set_value("unit_markers", "off")
+	highlight.forced_point = at
+	await _frames(2)
+	_check(highlight.markers_drawn == 0 and highlight.hovered.is_empty(), "unit markers drawn while off")
+	Settings.set_value("unit_markers", "always")
+	highlight.forced_point = null
+	await _frames(1)
 
 
 ## Cloud shadows (prompt 087): set in clear weather by day, drifting
