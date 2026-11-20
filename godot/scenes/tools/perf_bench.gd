@@ -17,6 +17,9 @@ extends Node
 ## `--perf-distances=600,1000,1500` (prompt 103) measures other distances,
 ## beyond the game's zoom limit too. `--perf-overview` also measures the
 ## overview of prompt 103.
+## `--perf-column` (prompt 104) measures only a column of COLUMN_SIZE own
+## tanks driving across open ground (dust, exhaust, tracks), followed at
+## 60 and 150 m.
 
 const BENCH_SIZE := Vector2i(1920, 1080)
 const SECONDS := 6.0
@@ -26,10 +29,18 @@ const DISTANCES: Array[float] = [40.0, 150.0, 600.0]
 const BATTLE_TIMEOUT := 150.0
 ## Real seconds of battle before the battle views are measured.
 const BATTLE_SETTLE := 8.0
+## Vehicles of the column of `--perf-column` (prompt 104), how far they drive
+## and the real seconds they drive before the measurement.
+const COLUMN_SIZE := 30
+const COLUMN_DRIVE_M := 600.0
+const COLUMN_SETTLE := 4.0
+const COLUMN_DISTANCES: Array[float] = [60.0, 150.0]
 
 var main: Node3D
 var forced_draws := 0
 var _shots_seen := 0
+## The driving column of `--perf-column` (followed while measuring).
+var _column_units := PackedInt64Array()
 
 
 func _ready() -> void:
@@ -49,6 +60,10 @@ func _run() -> void:
 		sim_host.map_name(), get_viewport().get_visible_rect().size,
 		RenderingServer.get_video_adapter_name(), sim_host.unit_ids().size(),
 		sim_host.soldier_units().size(), main.atmosphere.quality])
+	if "--perf-column" in OS.get_cmdline_user_args():
+		await _column()
+		get_tree().quit()
+		return
 	var battle_only := "--perf-battle" in OS.get_cmdline_user_args()
 	var tilts: Array[String] = [""]
 	if "--perf-tilts" in OS.get_cmdline_user_args():
@@ -95,6 +110,27 @@ func _run() -> void:
 		await _measure("battle", distance)
 	print("perf-bench: frames rendered by force_draw (window not drawable): %d" % forced_draws)
 	get_tree().quit()
+
+
+## A column of COLUMN_SIZE own tanks drives north; the camera follows it.
+func _column() -> void:
+	var sim_host: SimHost = main.sim_host
+	var types := sim_host.unit_type_ids()
+	var ids := sim_host.unit_ids()
+	var column := PackedInt64Array()
+	for id in _own_units():
+		var type := types[ids.find(id)]
+		if column.size() < COLUMN_SIZE and not type.contains("_inf_") and not type.contains("opel"):
+			column.append(id)
+	var center := _center(column)
+	sim_host.move_units(column, center.x, center.z - COLUMN_DRIVE_M)
+	var began := Time.get_ticks_msec()
+	while (Time.get_ticks_msec() - began) / 1000.0 < COLUMN_SETTLE:
+		main.camera_rig.snap_to(_center(column), 150.0, 0.7)
+		await _frame()
+	_column_units = column
+	for distance in COLUMN_DISTANCES:
+		await _measure("column", distance)
 
 
 func _on_combat_event(event: Dictionary) -> void:
@@ -163,6 +199,8 @@ func _front() -> Vector3:
 func _measure(phase: String, distance: float, tilt := "") -> void:
 	var label := "%s, %d m" % [phase, int(distance)]
 	var focus := _front() if phase == "battle" else _nearest_own(_center(_own_units()))
+	if phase == "column":
+		focus = _center(_column_units)
 	main.camera_rig.snap_to(focus, distance, 0.7)
 	main.camera_rig.snap_tilt({"": 0.0, "flat": -PI, "steep": PI}[tilt])
 	if not tilt.is_empty():
@@ -185,6 +223,8 @@ func _measure(phase: String, distance: float, tilt := "") -> void:
 		if phase == "battle":
 			# Follow the front slowly, like a player would.
 			main.camera_rig.snap_to(main.camera_rig.focus.lerp(_front(), 0.02), distance, 0.7)
+		elif phase == "column":
+			main.camera_rig.snap_to(_center(_column_units), distance, 0.7)
 		await _frame()
 		var now := Time.get_ticks_usec()
 		times.append((now - last) / 1000.0)

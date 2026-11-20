@@ -55,6 +55,8 @@ fn entry_card(e: &Entry) -> VarDictionary {
         "squad_size" => i64::from(e.squad_size.unwrap_or(0)),
         "passengers" => i64::from(e.passengers.unwrap_or(0)),
         "mass_t" => f64::from(e.mass_kg.unwrap_or(0)) / 1000.0,
+        "length_m" => f64::from(e.length_mm.unwrap_or(0)) / 1000.0,
+        "width_m" => f64::from(e.width_mm.unwrap_or(0)) / 1000.0,
         "speed_road_kmh" => kmh(e.speed_road_kmh_x10),
         "speed_offroad_kmh" => kmh(e.speed_offroad_kmh_x10),
         "armor_hull" => &faces([e.armor_hull_front_mm, e.armor_hull_side_mm, e.armor_hull_rear_mm]),
@@ -121,7 +123,8 @@ impl SimHost {
     /// `id`, `name`, `group` (`building`, or the catalog group `infantry`,
     /// `vehicle`, `gun`, `fortification`, `aircraft`) and, for catalog
     /// entries, `designation`, `faction`, `category`, `year`, `year_to`, `crew`,
-    /// `squad_size`, `passengers`, `mass_t`, `speed_road_kmh`,
+    /// `squad_size`, `passengers`, `mass_t`, `length_m`, `width_m` (0 if
+    /// unknown), `speed_road_kmh`,
     /// `speed_offroad_kmh`, `armor_hull` / `armor_turret` (front, side, rear
     /// mm; empty if unknown), `weapons` (`name`, `count`, `caliber_mm`,
     /// `range_m` = real effective range). Base buildings have `hp`,

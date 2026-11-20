@@ -1,0 +1,30 @@
+# Vehicle tracks and ground effects (prompt 104): a tank and a truck of player
+# 0 on the forest map `river_fork`, one enemy tank far away. Used by `just
+# track-shots` (scenes/tools/track_shots.gd), which drives both vehicles in
+# figure eights over the ground kinds of the map (sand, ford). Integers only.
+
+map = "river_fork"
+
+[[group]]
+owner = 0
+unit = "de_pz4_h"
+count = 1
+columns = 1
+spacing_m = 12
+center_m = [608, 208]
+
+[[group]]
+owner = 0
+unit = "de_opel_blitz"
+count = 1
+columns = 1
+spacing_m = 12
+center_m = [622, 208]
+
+[[group]]
+owner = 1
+unit = "su_t34_76_1943"
+count = 1
+columns = 1
+spacing_m = 12
+center_m = [-48, -688]

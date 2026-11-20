@@ -616,6 +616,15 @@ view-shots dir="build/view" *args: build
 position-shots dir="build/positions": build
     {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- "--position-shots={{ dir }}"
 
+# Tank and truck drive figure eights over grass, sand, mud, snow and through a ford, dry and in the rain, as PNG files (prompt 104, needs a window)
+[group('godot')]
+track-shots dir="build/tracks": build
+    {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- --scenario=tracks.toml "--track-shots={{ justfile_directory() }}/{{ dir }}"
+    {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- --scenario=tracks.toml --weather=rain "--track-shots={{ justfile_directory() }}/{{ dir }}"
+    {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- --scenario=tracks_mud.toml "--track-shots={{ justfile_directory() }}/{{ dir }}"
+    {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- --scenario=tracks_mud.toml --weather=rain "--track-shots={{ justfile_directory() }}/{{ dir }}"
+    {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- --scenario=tracks_winter.toml "--track-shots={{ justfile_directory() }}/{{ dir }}"
+
 # Record big blasts, a tank's ammunition explosion and a heavy rocket strike by day and night as PNG files (prompt 054, needs a window)
 [group('godot')]
 blast-shots dir="build/explosions": build
