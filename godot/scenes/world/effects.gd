@@ -853,6 +853,8 @@ func _start_wreck(unit: int, at: Vector3) -> void:
 	var root := Node3D.new()
 	root.name = "Wreck%d" % unit
 	_bursts_root.add_child(root)
+	# Hidden at once in the fog, not only at the next visibility pass (prompt 098).
+	root.visible = visible_at.call(at)
 	var points: Array[Vector3] = []
 	for socket: Node3D in _sockets_of(unit).fires:
 		points.append(socket.global_position)

@@ -159,12 +159,21 @@ func _draw_quick_tracers() -> void:
 			continue
 		var direction := span / total
 		var head := from + span * clampf(age / QUICK_TRACER_S + 0.3, 0.0, 1.0)
+		tracer.visible = _visible_at(head)
+		if not tracer.visible:
+			continue
 		var length := minf(maxf(TRACER_MIN_LENGTH, total * 0.3), (head - from).length())
 		var up := Vector3.UP if absf(direction.y) < 0.99 else Vector3.RIGHT
 		var basis := Basis.looking_at(direction, up)
 		var w: float = q.width
 		tracer.transform = Transform3D(basis.scaled_local(Vector3(w, w, length)), head - direction * length * 0.5)
 	_quick = keep
+
+
+## Whether the local player sees `at` (fog of war, `effects.visible_at`).
+func _visible_at(at: Vector3) -> bool:
+	var effects: Node = main.get("effects")
+	return effects == null or effects.visible_at.call(at)
 
 
 ## One stretched box per projectile, from its position along its flight,
@@ -194,6 +203,11 @@ func _draw_tracers() -> void:
 			tracer.visible = false
 			continue
 		var head := positions[i] + velocity * ahead
+		# Only where the local player sees (prompt 098): a tracer in the
+		# fog would give the shooter away.
+		if not _visible_at(head):
+			tracer.visible = false
+			continue
 		var length := maxf(TRACER_MIN_LENGTH, speed * TRACER_SECONDS)
 		var width := maxf(0.03, calibers[i] * TRACER_WIDTH_PER_MM)
 		var direction := velocity / speed

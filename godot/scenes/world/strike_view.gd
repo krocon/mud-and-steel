@@ -19,6 +19,7 @@ extends Node3D
 ## shells (`artillery_view.gd`) and explode with the ordinary effects plus
 ## the big blasts of `blast_effects.gd`. [provisional] colours, keys, siren.
 
+const FogOfWar := preload("res://scenes/world/fog_of_war.gd")
 const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
 const EffectLibrary := preload("res://scenes/world/effect_library.gd")
 const EffectTextures := preload("res://scenes/world/effect_textures.gd")
@@ -333,6 +334,7 @@ static func _flat(color: Color) -> StandardMaterial3D:
 	m.albedo_color = color
 	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.render_priority = FogOfWar.MARKER_PRIORITY  # above the fog layer (prompt 098)
 	return m
 
 

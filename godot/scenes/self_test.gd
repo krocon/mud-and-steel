@@ -1188,6 +1188,40 @@ func _objects_test() -> void:
 	])
 
 
+## The layer of prompt 098: the whole map stays visible under it. The
+## mask is 0 at a never-seen cell (no separate black state any more) and
+## 255 where an own unit stands; out of sight the picture keeps a good
+## part of its brightness (the headless test has no pixels to read, so
+## the layer's own values are checked) and stays darker than in sight.
+func _fog_layer_test(fog: Node3D, sim_host: SimHost, own: Array[int]) -> void:
+	_check(main.camera.get_node_or_null("FogDesaturate") != null, "fog desaturation quad missing")
+	var tint: Color = fog.DIM_TINT
+	var kept := tint.get_luminance()
+	_check(kept > 0.5 and kept < 0.95 and fog.DESATURATION < 1.0,
+		"fog layer too dark or too light: keeps %.2f of the brightness" % kept)
+	var image: Image = fog._image
+	var size := sim_host.vision_grid_size()
+	_check(image != null and image.get_size() == fog.padded_size(), "fog mask missing")
+	if image == null:
+		return
+	var states := sim_host.vision_image()
+	var unseen := states.find(0)
+	if unseen >= 0:
+		var x: int = unseen % size.x + fog.BORDER
+		var y: int = floori(float(unseen) / size.x) + fog.BORDER
+		_check(image.get_pixel(x, y).r < 0.01, "never-seen cell not under the layer in the mask")
+	_check(image.get_pixel(0, 0).r < 0.01, "map border not under the layer")
+	var cell := sim_host.vision_cell_size()
+	var origin := sim_host.vision_origin()
+	var lit := 0
+	for p in _positions_of(own):
+		var x: int = int(floor((p.x - origin.x) / cell)) + fog.BORDER
+		var y: int = int(floor((p.z - origin.y) / cell)) + fog.BORDER
+		if image.get_pixel(x, y).r > 0.99:
+			lit += 1
+	_check(lit > 0, "no own unit stands in a clear cell of the fog mask")
+
+
 # --- 8. Combat -------------------------------------------------------------
 
 
@@ -1208,12 +1242,16 @@ func _fog_test() -> void:
 		if fog.state_at(p) != 255:
 			_check(false, "own unit at %s stands in a fogged cell (%d)" % [p, fog.state_at(p)])
 			break
+	_fog_layer_test(fog, sim_host, own)
 	var seen := sim_host.unit_ids().size()
 	await _frames(1)
+	var in_sight := sim_host.unit_ids()
 	for id: int in main._unit_nodes:
 		var node: Node3D = main._unit_nodes[id]
-		if not (id in sim_host.unit_ids()):
+		if not (id in in_sight):
 			_check(not node.visible, "unit %d is out of sight but drawn" % id)
+		else:
+			_check(not main._fogged.has(id), "unit %d is in sight but hidden by the fog" % id)
 	fog.set_fog_enabled(false)
 	await _frames(2)
 	var all := sim_host.unit_ids().size()

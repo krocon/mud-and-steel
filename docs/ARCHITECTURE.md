@@ -771,14 +771,47 @@ the presentation. The bridge (`vision_funcs.rs`) gives Godot the local
 player's snapshot and the cell states as an L8 image (0 / 128 / 255),
 uploaded only when the version changes.
 
-`scenes/world/fog_of_war.gd` draws the fog as a screen-space overlay: a quad
-in front of the camera reads the depth buffer, reconstructs every pixel's
-world position and darkens it by its cell (never seen: nearly black,
-explored: dimmed). It covers terrain, MultiMesh vegetation, objects and water
-without changing their materials; linear filtering and five taps give soft
-edges. Tracers in the fog are dimmed with the ground behind them. `main.gd`
-hides the nodes of units that left the snapshot. F3 → "Fog of war" reveals
-everything (presentation only: `SimHost.set_reveal_all`).
+`scenes/world/fog_of_war.gd` draws the fog (prompt 098): the **map is known
+from the start**, so terrain, vegetation, objects, houses and water are drawn
+everywhere; what the local player does not see right now lies under one
+translucent layer (darker, a little cooler, less saturated). Never seen and
+explored look the same; the states stay for `state_at` / `share_of`
+(effects, sounds, tests). Two screen-space quads in front of the camera read
+the depth buffer and reconstruct every pixel's world position:
+`FogDesaturate` (first in the transparent pass, render priority −128) mixes
+the opaque scene from the screen texture towards its own gray;
+`FogOverlay` (priority 100) multiplies everything, water included, by a tint.
+Water, smoke and tracers come after the screen-texture copy, so they are
+dimmed but not desaturated. Order markers (move marker, build ghost,
+engineer preview, artillery landing rings, strike rings, air sortie rings)
+are transparent with priority `FogOfWar.MARKER_PRIORITY` (110) and stay
+bright above the layer. Their values are constants at the top of the
+script: `DIM_TINT`, `DESATURATION`, `EDGE_SOFTNESS`, `FADE_SECONDS`.
+
+The mask comes from `SimHost.vision_mask_fade(delta, seconds, border)`:
+255 where the player sees, 0 elsewhere, with two unseen cells around the
+grid so the map edge lies under the layer too; every cell moves towards its
+state over `FADE_SECONDS` (0.3 s), so the edge glides instead of jumping
+8 m; it returns nothing while no cell changes, so the texture is only
+uploaded then. The shader samples the mask as a cubic B-spline (four
+bilinear taps) and cuts it with a narrow smoothstep around 0.5: the edge is
+a round curve through the cells with a soft seam of about 3–4 m, sight
+circles merge into one area. `main.gd` hides the nodes of units that left
+the snapshot. F3 → "Fog of war" reveals everything (presentation only:
+`SimHost.set_reveal_all`); both quads are hidden then.
+
+Short-lived things are drawn only where the player sees (`effects.visible_at`):
+muzzle flashes, impacts, dust, explosions, tracers (also the quick ones from
+the muzzle), enemy shells, falling bombs and a wreck's first flames.
+Known gaps (prompt 098, nothing in `crates/sim` changed): finished enemy
+field works, supply-point owners and capture progress, wrecks of units killed
+out of sight (dead units are seen by everybody), craters, destroyed or
+charred objects, felled trees, destroyed bridges, smoke clouds, rockets in
+flight and strike markers are drawn in the fog; a "last seen state" per
+object would be needed to hide them. Pictures of the edge of sight with the
+minimap: `godot --path godot -s res://scenes/tools/fog_shots.gd --
+--fog-shots=<absolute dir> --prefix=<name> --map=<map> [--daytime=night]`
+(needs a window).
 
 **Map hacks:** in lockstep every peer simulates the full state, so a
 modified client can always show everything. Filtering happens only in the
@@ -4661,8 +4694,9 @@ the old dodging (`_keep_events_above_command_bar`,
   the ground once in Rust, one RGB pixel per 8 m vision cell (terrain color,
   hill shading from the vision grid's heights, roads if any sample of the
   cell is a road, forest and solid obstacles from the vision grid). One
-  canvas shader multiplies it with the fog texture of `fog_of_war.gd` (the
-  same grid; never seen 12 %, explored 45 %). Units are one
+  canvas shader dims it out of sight with the mask of `fog_of_war.gd` (the
+  same grid) and its `DIM_TINT` and `DESATURATION`: the whole map is drawn
+  from the start (prompt 098). Units are one
   `MultiMeshInstance2D` whose buffer (2D transform + color per dot) comes
   from `SimHost.minimap_dots` in one call, only for the units of the local
   player's snapshot. The camera's view is the screen corners on the ground

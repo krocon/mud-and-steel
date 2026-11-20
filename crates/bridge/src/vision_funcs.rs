@@ -101,3 +101,135 @@ impl SimHost {
         self.reveal_all
     }
 }
+
+/// The fog overlay's mask (prompt 098): 255 where the local player sees,
+/// 0 elsewhere (never seen and explored look the same now), with a border
+/// of unseen cells around the grid so the map edge fades like the rest.
+/// Each cell moves towards its state over a fraction of a second, so the
+/// edge glides instead of jumping a whole 8 m cell. Presentation only.
+#[derive(Default)]
+pub(crate) struct FogFade {
+    /// Cells per axis including the border on both sides.
+    columns: usize,
+    rows: usize,
+    border: usize,
+    /// `vision_version` the target was built from.
+    version: Option<i64>,
+    target: Vec<u8>,
+    shown: Vec<u8>,
+    /// Whether `shown` still differs from `target`.
+    moving: bool,
+}
+
+impl FogFade {
+    /// Rebuilds the target from the cell states (row by row, unpadded).
+    fn set_target(&mut self, columns: usize, rows: usize, border: usize, visible: &[bool]) {
+        let (w, h) = (columns + 2 * border, rows + 2 * border);
+        let resized = w != self.columns || h != self.rows || border != self.border;
+        self.columns = w;
+        self.rows = h;
+        self.border = border;
+        self.target.clear();
+        self.target.resize(w * h, 0);
+        for r in 0..rows {
+            let from = r * columns;
+            let to = (r + border) * w + border;
+            for (out, &seen) in self.target[to..to + columns]
+                .iter_mut()
+                .zip(&visible[from..from + columns])
+            {
+                *out = if seen { VISIBLE } else { UNEXPLORED };
+            }
+        }
+        if resized {
+            // No fade at the start of a match.
+            self.shown.clone_from(&self.target);
+            self.moving = false;
+        } else {
+            self.moving = true;
+        }
+    }
+
+    /// Moves every shown cell up to `step` towards its target.
+    fn step(&mut self, step: u8) {
+        let mut moving = false;
+        for (shown, &target) in self.shown.iter_mut().zip(&self.target) {
+            if *shown < target {
+                *shown = shown.saturating_add(step).min(target);
+            } else if *shown > target {
+                *shown = shown.saturating_sub(step).max(target);
+            }
+            moving |= *shown != target;
+        }
+        self.moving = moving;
+    }
+}
+
+#[godot_api(secondary)]
+impl SimHost {
+    /// The fog overlay's mask (see [`FogFade`]): `(columns + 2 * border) *
+    /// (rows + 2 * border)` bytes, advanced by `delta` seconds of a fade
+    /// that takes `fade_seconds`. Empty when nothing changed since the last
+    /// call, so the texture is only uploaded while the edge moves.
+    #[func]
+    fn vision_mask_fade(&mut self, delta: f32, fade_seconds: f32, border: i32) -> PackedByteArray {
+        let version = self.vision_version();
+        let Some(game) = &self.game else {
+            return PackedByteArray::new();
+        };
+        let grid = game.sim.vision_grid();
+        let (columns, rows) = (grid.columns as usize, grid.rows as usize);
+        let border = usize::try_from(border).unwrap_or(0);
+        let changed = self.fog_fade.version != Some(version)
+            || self.fog_fade.columns != columns + 2 * border
+            || self.fog_fade.rows != rows + 2 * border;
+        if changed {
+            let visible: Vec<bool> = if self.reveal_all {
+                vec![true; columns * rows]
+            } else {
+                let mut states = Vec::with_capacity(columns * rows);
+                game.sim
+                    .vision_states(game.session.local_player(), &mut states);
+                states.iter().map(|s| *s == CellState::Visible).collect()
+            };
+            if visible.len() != columns * rows {
+                return PackedByteArray::new();
+            }
+            self.fog_fade.set_target(columns, rows, border, &visible);
+            self.fog_fade.version = Some(version);
+        } else if !self.fog_fade.moving {
+            return PackedByteArray::new();
+        }
+        if self.fog_fade.moving {
+            let share = if fade_seconds > 0.0 {
+                (delta / fade_seconds).clamp(0.0, 1.0)
+            } else {
+                1.0
+            };
+            let step = (share * 255.0).ceil().clamp(1.0, 255.0) as u8;
+            self.fog_fade.step(step);
+        }
+        PackedByteArray::from(self.fog_fade.shown.as_slice())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::FogFade;
+
+    #[test]
+    fn fog_fade_pads_and_glides() {
+        let mut fade = FogFade::default();
+        // 2 x 1 cells, the right one visible, one border cell around.
+        fade.set_target(2, 1, 1, &[false, true]);
+        assert_eq!(fade.shown, vec![0, 0, 0, 0, 0, 0, 255, 0, 0, 0, 0, 0]);
+        assert!(!fade.moving, "no fade at the start");
+        fade.set_target(2, 1, 1, &[true, false]);
+        fade.step(100);
+        assert_eq!(&fade.shown[5..7], &[100, 155]);
+        assert!(fade.moving);
+        fade.step(200);
+        assert_eq!(&fade.shown[5..7], &[255, 0]);
+        assert!(!fade.moving);
+    }
+}

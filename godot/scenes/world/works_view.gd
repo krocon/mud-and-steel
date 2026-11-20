@@ -22,6 +22,7 @@ extends Node3D
 ##
 ## Created by `main.gd`.
 
+const FogOfWar := preload("res://scenes/world/fog_of_war.gd")
 const TrenchBuilder := preload("res://scenes/world/trench_builder.gd")
 const EngineerOrders := preload("res://scenes/selection/engineer_orders.gd")
 const GroundPick := preload("res://scenes/camera/ground_pick.gd")
@@ -242,6 +243,7 @@ func _strip(from: Vector3, to: Vector3, width: float, height: float, color: Colo
 	if color.a < 1.0:
 		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 		mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		mat.render_priority = FogOfWar.MARKER_PRIORITY  # above the fog layer (prompt 098)
 	box.material = mat
 	var mesh := MeshInstance3D.new()
 	mesh.mesh = box

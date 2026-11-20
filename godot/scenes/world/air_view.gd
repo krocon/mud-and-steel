@@ -14,6 +14,7 @@ extends Node3D
 ## Every air event as read (sound, prompt 053: flak, strafing, crashes).
 signal air_event(event: Dictionary)
 
+const FogOfWar := preload("res://scenes/world/fog_of_war.gd")
 const EffectTextures := preload("res://scenes/world/effect_textures.gd")
 const AirBar := preload("res://scenes/hud/air_bar.gd")
 const MODELS_DIR := "res://assets/models/"
@@ -148,6 +149,7 @@ func _glow(color: Color) -> StandardMaterial3D:
 	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	m.emission_enabled = true
 	m.emission = Color(color.r, color.g, color.b)
+	m.render_priority = FogOfWar.MARKER_PRIORITY  # above the fog layer (prompt 098)
 	return m
 
 
@@ -323,6 +325,10 @@ func _draw_bombs() -> void:
 		# The capsule's axis is Y: turn it along the flight path.
 		var basis := Basis.looking_at(dir, up) * Basis(Vector3.RIGHT, PI * 0.5)
 		_bombs[i].transform = Transform3D(basis, positions[i] + v * ahead)
+		# Only where the local player sees (prompt 098).
+		var visible_at: Callable = main.effects.visible_at if main.get("effects") != null else Callable()
+		if visible_at.is_valid() and not visible_at.call(positions[i]):
+			_bombs[i].visible = false
 	bombs_drawn = positions.size()
 
 

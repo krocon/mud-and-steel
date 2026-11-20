@@ -63,6 +63,13 @@ reports them as "unit markers": 0.36–0.49 ms per frame with 1125 soldiers
 (after warm-up). The markers are one MultiMesh, rebuilt only on a new tick
 or when the hover changes (every frame: 1.2 ms).
 
+Prompt 098 (fog of war as a translucent layer, `fog_of_war.gd`: two
+screen-space quads, B-spline mask, screen-texture desaturation; mask fade in
+`SimHost.vision_mask_fade`): `just bench-view --perf-quick`, 2026-11-20,
+standing at 40 / 150 / 600 m: 70.3 / 74.3 / 81.0 → 68.2 / 72.5 / 78.9 FPS,
+frame time +0.35 ms (about 2–3 %; the screen texture is already copied for
+the water).
+
 Prompt 097 (sight and direct fire 1/8, vehicles at real speed;
 `just bench --runs 3`, 2026-11-20, same machine): mean sim tick 5.13 → 2.87 ms,
 p99 9.24 → 6.43 ms, max 11.1 → 8.6 ms. Vision (half the sight range, a

@@ -285,6 +285,8 @@ pub struct SimHost {
     strike_events: Vec<(u64, sim::StrikeEvent)>,
     /// Debug: draw everything without fog (prompt 018, presentation only).
     reveal_all: bool,
+    /// The fog overlay's fading mask (prompt 098, presentation only).
+    fog_fade: vision_funcs::FogFade,
     /// Time of the last `process` (ticks, AI, snapshots) in microseconds
     /// and the ticks it ran, for benchmarks (prompt 016).
     process_usec: i64,
@@ -338,6 +340,7 @@ impl INode for SimHost {
             crossing_events: Vec::new(),
             strike_events: Vec::new(),
             reveal_all: false,
+            fog_fade: vision_funcs::FogFade::default(),
             process_usec: 0,
             process_ticks: 0,
             mode: GString::new(),

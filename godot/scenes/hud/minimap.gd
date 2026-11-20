@@ -13,8 +13,10 @@ extends PanelContainer
 ##   is switched off), zoom (back to the camera's starting distance) and
 ##   pause (the pause menu; not in a network match, where nothing pauses).
 ## - Ground: `SimHost.minimap_image` (one pixel per 8 m vision cell:
-##   terrain, hill shading, roads, forest, buildings), built once, darkened
-##   by the fog texture of `fog_of_war.gd` (the same grid) in one shader.
+##   terrain, hill shading, roads, forest, buildings), built once and all
+##   drawn from the start; out of sight dimmed by the mask of
+##   `fog_of_war.gd` (the same grid) with its tint and desaturation
+##   (prompt 098), in one shader.
 ## - Units: one `MultiMeshInstance2D` whose buffer the bridge fills
 ##   (`minimap_dots`), colored by player; only units in the local
 ##   player's snapshot (own units, enemies in sight, wrecks are left out).
@@ -23,6 +25,7 @@ extends PanelContainer
 ## - Left click / drag moves the camera there, right click moves the
 ##   selection there (Shift: waypoint).
 
+const FogOfWar := preload("res://scenes/world/fog_of_war.gd")
 const GroundPick := preload("res://scenes/camera/ground_pick.gd")
 const HudTheme := preload("res://scenes/hud/hud_theme.gd")
 const HudTile := preload("res://scenes/hud/hud_tile.gd")
@@ -47,17 +50,23 @@ uniform sampler2D fog_map : filter_linear;
 uniform bool use_fog = false;
 // Map rectangle within the vision grid's texture (UV).
 uniform vec2 uv_scale = vec2(1.0);
+// Vision grid uv to uv in the padded fog mask (fog_of_war.fog_uv_transform).
+uniform vec4 fog_uv = vec4(1.0, 1.0, 0.0, 0.0);
+// The main view's layer (fog_of_war.gd): same tint and desaturation.
+uniform vec3 dim_tint = vec3(0.6, 0.63, 0.7);
+uniform float desaturation = 0.6;
 void fragment() {
 	vec2 uv = UV * uv_scale;
 	vec3 ground = texture(ground_map, uv).rgb;
-	float light = 1.0;
+	vec3 color = ground;
 	if (use_fog) {
-		// 0 never seen, 0.5 explored, 1 visible.
-		float state = texture(fog_map, uv).r;
-		light = state < 0.25 ? mix(0.12, 0.45, state * 4.0) : mix(0.45, 1.0, (state - 0.5) * 2.0);
-		light = clamp(light, 0.12, 1.0);
+		// The whole map is drawn; out of sight it is dimmed (prompt 098).
+		float seen = smoothstep(0.3, 0.7, texture(fog_map, uv * fog_uv.xy + fog_uv.zw).r);
+		vec3 gray = vec3(dot(ground, vec3(0.2126, 0.7152, 0.0722)));
+		vec3 dimmed = mix(ground, gray, desaturation) * dim_tint;
+		color = mix(dimmed, ground, seen);
 	}
-	COLOR = vec4(ground * light, 1.0);
+	COLOR = vec4(color, 1.0);
 }
 """
 
@@ -117,6 +126,9 @@ func setup(main_node: Node3D) -> void:
 	shader.code = SHADER_CODE
 	_material.shader = shader
 	_ground.material = _material
+	var tint: Color = FogOfWar.DIM_TINT
+	_material.set_shader_parameter("dim_tint", Vector3(tint.r, tint.g, tint.b))
+	_material.set_shader_parameter("desaturation", FogOfWar.DESATURATION)
 	_area.add_child(_ground)
 	_build_ground()
 
@@ -243,6 +255,7 @@ func _process(delta: float) -> void:
 	_material.set_shader_parameter("use_fog", fogged)
 	if texture != null:
 		_material.set_shader_parameter("fog_map", texture)
+		_material.set_shader_parameter("fog_uv", fog.fog_uv_transform())
 	var buffer := sim_host.minimap_dots(map_origin, scale_px, DOT_PX, _colors())
 	dot_count = buffer.size() / 12
 	_dots.multimesh.instance_count = dot_count

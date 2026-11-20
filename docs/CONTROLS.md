@@ -211,7 +211,8 @@ top bar. Everything else appears when there is something to do with it.
 | left edge | Events | messages |
 
 - **Minimap** (bottom left): terrain, own units green, enemies in sight red,
-  fog of war, the camera's view as a trapezoid, red rings where own units are
+  everything out of sight dimmed (the whole map is drawn from the start),
+  the camera's view as a trapezoid, red rings where own units are
   hit. North is always up ("N" on the frame); the map does not turn with
   the camera, so a click always means the same place, and the trapezoid
   shows where you look (wider and farther the flatter the camera is

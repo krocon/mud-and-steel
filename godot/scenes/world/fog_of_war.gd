@@ -1,74 +1,147 @@
 extends Node3D
-## Fog of war (prompt 018). Presentation only.
+## Fog of war (prompts 018 and 098). Presentation only.
 ##
 ## The simulation decides what the local player sees (`SimHost.vision_image`:
 ## one byte per 8 m vision cell, 0 never seen, 128 explored, 255 visible).
-## This node draws it as a screen-space overlay: a quad in front of the
-## camera reads the depth buffer, reconstructs the world position of every
-## pixel and darkens it by the state of its cell. One shader covers terrain,
-## vegetation, map objects, units and water without touching their
-## materials. The texture is filtered linearly and sampled five times, so
-## the edges are soft. Enemy units out of sight are not in the snapshot at
-## all; `main.gd` hides their nodes.
+## The whole map is known from the start (prompt 098): everything the local
+## player does not see right now lies under one translucent layer (darker,
+## cooler, less saturated); only what own and allied units see is clear.
+## Never seen and explored look the same; the states stay for `state_at`
+## and `share_of` (effects, sounds, tests).
+##
+## Drawn as two screen-space quads in front of the camera. Both read the
+## depth buffer, reconstruct the world position of every pixel and look up
+## its cell in the mask from `SimHost.vision_mask_fade` (255 visible, 0
+## not; each cell fades over `FADE_SECONDS`, so the edge glides instead of
+## jumping 8 m). The mask is sampled as a cubic B-spline and cut with a
+## narrow smoothstep, so the edge is a round curve with a soft seam of a
+## few meters and no cell corners.
+## - `FogDesaturate`, first in the transparent pass: mixes the opaque scene
+##   (screen texture) towards its own gray. Water, smoke and tracers come
+##   later and are not desaturated (the screen texture does not have them).
+## - `FogOverlay`, last: multiplies everything (water included) by
+##   `DIM_TINT`. Order markers drawn after it stay bright
+##   (`MARKER_PRIORITY`).
+## Enemy units out of sight are not in the snapshot at all; `main.gd`
+## hides their nodes.
 
-const SHADER_CODE := """
-shader_type spatial;
-render_mode unshaded, depth_test_disabled, depth_draw_never, cull_disabled, blend_mix, fog_disabled, shadows_disabled;
+## Color everything out of sight is multiplied by (sRGB): about 60 %
+## brightness, a little cooler. The minimap uses the same values.
+const DIM_TINT := Color(0.76, 0.76, 0.78)
+## How far colors out of sight move towards gray (0 none, 1 gray).
+const DESATURATION := 0.45
+## Half width of the soft edge in mask units: 0.15 is about 3.5 m.
+const EDGE_SOFTNESS := 0.15
+## Seconds a cell takes to fade between seen and not seen.
+const FADE_SECONDS := 0.3
+## Cells of "not seen" around the grid, so the map edge fades like the rest.
+const BORDER := 2
+## Render priority of the dimming quad; order markers that must stay bright
+## above the layer use `MARKER_PRIORITY`.
+const DIM_PRIORITY := 100
+const MARKER_PRIORITY := 110
 
+const COMMON_CODE := """
 uniform sampler2D depth_texture : hint_depth_texture, filter_nearest;
 uniform sampler2D fog_map : filter_linear, repeat_disable;
-/// World x/z of the grid's corner and its size in meters.
+/// World x/z of the padded mask's corner and its size in meters.
 uniform vec2 fog_origin;
 uniform vec2 fog_size = vec2(1.0);
-/// Cell size in uv, for the soft-edge taps.
-uniform vec2 texel = vec2(0.01);
-uniform vec4 unexplored_color : source_color = vec4(0.02, 0.025, 0.03, 0.86);
-uniform vec4 explored_color : source_color = vec4(0.04, 0.05, 0.07, 0.5);
+/// Texels of the padded mask.
+uniform vec2 fog_texels = vec2(1.0);
+uniform float edge_softness = 0.15;
 
 void vertex() {
 	POSITION = vec4(VERTEX.xy, 1.0, 1.0);
 }
 
-float cell_state(vec2 uv) {
-	if (uv.x < 0.0 || uv.y < 0.0 || uv.x > 1.0 || uv.y > 1.0) {
-		return 0.0;
-	}
-	return texture(fog_map, uv).r;
+vec4 bspline_weights(float t) {
+	vec4 n = vec4(1.0, 2.0, 3.0, 4.0) - t;
+	vec4 s = n * n * n;
+	float x = s.x;
+	float y = s.y - 4.0 * s.x;
+	float z = s.z - 4.0 * s.y + 6.0 * s.x;
+	return vec4(x, y, z, 6.0 - x - y - z) * (1.0 / 6.0);
 }
 
-void fragment() {
-	float depth = texture(depth_texture, SCREEN_UV).x;
+/// Cubic B-spline of the mask from four bilinear taps: a smooth field
+/// whose 0.5 line is a round curve through the 8 m cells.
+float mask_at(vec2 uv) {
+	vec2 p = uv * fog_texels - 0.5;
+	vec2 f = fract(p);
+	p -= f;
+	vec4 wx = bspline_weights(f.x);
+	vec4 wy = bspline_weights(f.y);
+	vec4 c = p.xxyy + vec2(-0.5, 1.5).xyxy;
+	vec4 s = vec4(wx.xz + wx.yw, wy.xz + wy.yw);
+	vec4 o = (c + vec4(wx.yw, wy.yw) / s) / fog_texels.xxyy;
+	float a = texture(fog_map, o.xz).r;
+	float b = texture(fog_map, o.yz).r;
+	float d = texture(fog_map, o.xw).r;
+	float e = texture(fog_map, o.yw).r;
+	float sx = s.x / (s.x + s.y);
+	float sy = s.z / (s.z + s.w);
+	return mix(mix(e, d, sx), mix(b, a, sx), sy);
+}
+
+/// 1 where the local player sees the pixel, 0 under the layer; -1 for sky.
+float seen(vec2 screen_uv, mat4 inv_view, mat4 inv_projection) {
+	float depth = texture(depth_texture, screen_uv).x;
 	if (depth <= 0.0) {
-		discard; // sky (reverse z: the far plane is 0)
+		return -1.0; // sky (reverse z: the far plane is 0)
 	}
-	vec4 world = INV_VIEW_MATRIX * INV_PROJECTION_MATRIX * vec4(SCREEN_UV * 2.0 - 1.0, depth, 1.0);
+	vec4 world = inv_view * inv_projection * vec4(screen_uv * 2.0 - 1.0, depth, 1.0);
 	vec2 uv = (world.xz / world.w - fog_origin) / fog_size;
-	float v = cell_state(uv) * 0.4;
-	v += cell_state(uv + vec2(texel.x, 0.0) * 0.6) * 0.15;
-	v += cell_state(uv - vec2(texel.x, 0.0) * 0.6) * 0.15;
-	v += cell_state(uv + vec2(0.0, texel.y) * 0.6) * 0.15;
-	v += cell_state(uv - vec2(0.0, texel.y) * 0.6) * 0.15;
-	float visible = smoothstep(0.7, 0.98, v);
-	float explored = smoothstep(0.15, 0.5, v);
-	vec4 color = mix(unexplored_color, explored_color, explored);
-	ALBEDO = color.rgb;
-	ALPHA = color.a * (1.0 - visible);
+	return smoothstep(0.5 - edge_softness, 0.5 + edge_softness, mask_at(uv));
 }
 """
 
-## Whether the overlay is drawn (debug switch; the simulation is unaffected).
+const DESATURATE_CODE := """
+shader_type spatial;
+render_mode unshaded, depth_test_disabled, depth_draw_never, cull_disabled, blend_mix, fog_disabled, shadows_disabled;
+uniform sampler2D screen_texture : hint_screen_texture, filter_nearest;
+uniform float desaturation = 0.6;
+%s
+void fragment() {
+	float v = seen(SCREEN_UV, INV_VIEW_MATRIX, INV_PROJECTION_MATRIX);
+	if (v < 0.0 || v >= 1.0) {
+		discard;
+	}
+	vec3 color = texture(screen_texture, SCREEN_UV).rgb;
+	ALBEDO = vec3(dot(color, vec3(0.2126, 0.7152, 0.0722)));
+	ALPHA = desaturation * (1.0 - v);
+}
+""" % COMMON_CODE
+
+const DIM_CODE := """
+shader_type spatial;
+render_mode unshaded, depth_test_disabled, depth_draw_never, cull_disabled, blend_mul, fog_disabled, shadows_disabled;
+uniform vec4 dim_tint : source_color = vec4(0.6, 0.63, 0.7, 1.0);
+%s
+void fragment() {
+	float v = seen(SCREEN_UV, INV_VIEW_MATRIX, INV_PROJECTION_MATRIX);
+	if (v < 0.0 || v >= 1.0) {
+		discard;
+	}
+	ALBEDO = mix(dim_tint.rgb, vec3(1.0), v);
+}
+""" % COMMON_CODE
+
+## Whether the layer is drawn (debug switch; the simulation is unaffected).
 var enabled := true
-## Texture updates so far (self-test).
+## Mask uploads so far (self-test).
 var updates := 0
 
 var _host: SimHost
+## The dimming quad (`FogOverlay`) and the desaturating one.
 var _quad: MeshInstance3D
-var _material: ShaderMaterial
+var _desaturate_quad: MeshInstance3D
+var _materials: Array[ShaderMaterial] = []
 var _image: Image
 var _texture: ImageTexture
 var _size := Vector2i.ZERO
 var _version := 0
-## Cell states of the last upload, and the grid's cell size and origin.
+## Cell states of the last read, and the grid's cell size and origin.
 var _bytes := PackedByteArray()
 var _cell := 0.0
 var _origin := Vector2.ZERO
@@ -79,61 +152,86 @@ func setup(host: SimHost, camera: Camera3D) -> void:
 	_size = host.vision_grid_size()
 	if _size.x <= 0 or _size.y <= 0:
 		return
+	_cell = host.vision_cell_size()
+	_origin = host.vision_origin()
+	_desaturate_quad = _make_quad("FogDesaturate", DESATURATE_CODE, Material.RENDER_PRIORITY_MIN, camera)
+	_quad = _make_quad("FogOverlay", DIM_CODE, DIM_PRIORITY, camera)
+	for material in _materials:
+		material.set_shader_parameter("fog_origin", _origin - Vector2(BORDER, BORDER) * _cell)
+		material.set_shader_parameter("fog_size", Vector2(padded_size()) * _cell)
+		material.set_shader_parameter("fog_texels", Vector2(padded_size()))
+		material.set_shader_parameter("edge_softness", EDGE_SOFTNESS)
+	_materials[0].set_shader_parameter("desaturation", DESATURATION)
+	_materials[1].set_shader_parameter("dim_tint", DIM_TINT)
+	_version = host.vision_version() - 1
+	_refresh(0.0)
+
+
+func _make_quad(quad_name: String, code: String, priority: int, camera: Camera3D) -> MeshInstance3D:
 	var shader := Shader.new()
-	shader.code = SHADER_CODE
-	_material = ShaderMaterial.new()
-	_material.shader = shader
-	# After every other transparent surface (water, tracers).
-	_material.render_priority = Material.RENDER_PRIORITY_MAX
-	var cell := host.vision_cell_size()
-	_material.set_shader_parameter("fog_origin", host.vision_origin())
-	_material.set_shader_parameter("fog_size", Vector2(_size) * cell)
-	_material.set_shader_parameter("texel", Vector2(1.0 / _size.x, 1.0 / _size.y))
+	shader.code = code
+	var material := ShaderMaterial.new()
+	material.shader = shader
+	material.render_priority = priority
+	_materials.append(material)
 	var mesh := QuadMesh.new()
 	mesh.size = Vector2(2, 2)
-	mesh.material = _material
-	_quad = MeshInstance3D.new()
-	_quad.name = "FogOverlay"
-	_quad.mesh = mesh
-	_quad.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	mesh.material = material
+	var quad := MeshInstance3D.new()
+	quad.name = quad_name
+	quad.mesh = mesh
+	quad.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	# Never culled: the vertex shader puts it on the screen.
-	_quad.custom_aabb = AABB(Vector3(-1e6, -1e6, -1e6), Vector3(2e6, 2e6, 2e6))
-	camera.add_child(_quad)
-	_version = host.vision_version() - 1
-	_refresh()
+	quad.custom_aabb = AABB(Vector3(-1e6, -1e6, -1e6), Vector3(2e6, 2e6, 2e6))
+	camera.add_child(quad)
+	return quad
 
 
-func _process(_delta: float) -> void:
-	_refresh()
+func _process(delta: float) -> void:
+	_refresh(delta)
 
 
-## Uploads the cell states when the simulation reports a change.
-func _refresh() -> void:
+## Shows or hides the layer and uploads the mask while it changes.
+func _refresh(delta: float) -> void:
 	if _host == null or _quad == null:
 		return
-	_quad.visible = enabled and not _host.is_reveal_all()
-	var version := _host.vision_version()
-	if version == _version:
+	var shown := enabled and not _host.is_reveal_all()
+	_quad.visible = shown
+	_desaturate_quad.visible = shown
+	var bytes := _host.vision_mask_fade(delta, FADE_SECONDS, BORDER)
+	var size := padded_size()
+	if bytes.size() != size.x * size.y:
 		return
-	_version = version
-	var bytes := _host.vision_image()
-	if bytes.size() != _size.x * _size.y:
-		return
-	_bytes = bytes
 	if _image == null:
-		_image = Image.create_from_data(_size.x, _size.y, false, Image.FORMAT_L8, bytes)
+		_image = Image.create_from_data(size.x, size.y, false, Image.FORMAT_L8, bytes)
 		_texture = ImageTexture.create_from_image(_image)
-		_material.set_shader_parameter("fog_map", _texture)
+		for material in _materials:
+			material.set_shader_parameter("fog_map", _texture)
 	else:
-		_image.set_data(_size.x, _size.y, false, Image.FORMAT_L8, bytes)
+		_image.set_data(size.x, size.y, false, Image.FORMAT_L8, bytes)
 		_texture.update(_image)
 	updates += 1
 
 
-## The cell states as a texture (L8, one texel per vision cell), shared
-## with the minimap (prompt 031); null before the first upload.
+## Mask texels per axis: the vision grid plus `BORDER` cells on each side.
+func padded_size() -> Vector2i:
+	return _size + Vector2i(BORDER, BORDER) * 2
+
+
+## The mask as a texture (L8, one texel per vision cell plus the border:
+## 255 seen, 0 not), shared with the minimap (prompt 031); null before the
+## first upload. `fog_uv(grid_uv)` maps grid uv into it.
 func fog_texture() -> ImageTexture:
 	return _texture
+
+
+## Scale (x, y) and offset (z, w) from uv over the vision grid to uv in the
+## padded mask.
+func fog_uv_transform() -> Vector4:
+	var padded := Vector2(padded_size())
+	var scale := Vector2(_size) / padded
+	var offset := Vector2(BORDER, BORDER) / padded
+	return Vector4(scale.x, scale.y, offset.x, offset.y)
 
 
 ## Share of cells with the given state byte (0, 128, 255), for tests.
@@ -153,20 +251,19 @@ func share_of(state: int) -> float:
 func state_at(p: Vector3) -> int:
 	if _host == null or _size.x <= 0:
 		return -1
-	if _host.vision_version() != _version:
-		_refresh()
-	if _bytes.size() != _size.x * _size.y:
+	var version := _host.vision_version()
+	if version != _version:
+		_version = version
+		_bytes = _host.vision_image()
+	if _bytes.size() != _size.x * _size.y or _cell <= 0.0:
 		return -1
-	if _cell <= 0.0:
-		_cell = _host.vision_cell_size()
-		_origin = _host.vision_origin()
 	var c := clampi(int(floor((p.x - _origin.x) / _cell)), 0, _size.x - 1)
 	var r := clampi(int(floor((p.z - _origin.y) / _cell)), 0, _size.y - 1)
 	return _bytes[r * _size.x + c]
 
 
-## Reveals everything (debug) or shows the fog again.
+## Reveals everything (debug) or shows the layer again.
 func set_fog_enabled(on: bool) -> void:
 	enabled = on
 	_host.set_reveal_all(not on)
-	_refresh()
+	_refresh(0.0)

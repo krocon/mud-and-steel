@@ -14,6 +14,7 @@ extends Node3D
 ## Emitted once per shell shortly before it lands (whistle).
 signal shell_incoming(position: Vector3, caliber_mm: float, smoke: bool)
 
+const FogOfWar := preload("res://scenes/world/fog_of_war.gd")
 const EffectTextures := preload("res://scenes/world/effect_textures.gd")
 const Effects := preload("res://scenes/world/effects.gd")
 const RelationColors := preload("res://scenes/hud/relation_colors.gd")
@@ -123,6 +124,7 @@ func _marker_material_of(color: Color) -> StandardMaterial3D:
 	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	m.roughness = 1.0
 	m.metallic_specular = 0.0
+	m.render_priority = FogOfWar.MARKER_PRIORITY  # above the fog layer (prompt 098)
 	return m
 
 
@@ -165,6 +167,9 @@ func _draw_shells(delta: float) -> void:
 		if rockets != null and rockets.is_rocket(ids[i]):
 			_shells[i].visible = false
 			at = rockets.flight(ids[i], at, velocity)
+		elif owners[i] != me and effects != null and not effects.visible_at.call(at):
+			# Enemy shells only where the local player sees (prompt 098).
+			_shells[i].visible = false
 		var size := maxf(0.4, caliber * SHELL_SIZE_PER_MM)
 		var up := Vector3.UP if absf(velocity.normalized().y) < 0.99 else Vector3.RIGHT
 		var basis := Basis.looking_at(velocity.normalized(), up) if velocity.length() > 0.01 else Basis.IDENTITY

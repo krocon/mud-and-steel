@@ -27,6 +27,7 @@ extends Control
 ## Prompt 058: both show picture tiles in tabs (`hud/picker.gd`); Alt + 1…0
 ## picks a tile of the production bar if it shows, else of the build menu.
 
+const FogOfWar := preload("res://scenes/world/fog_of_war.gd")
 const GroundPick := preload("res://scenes/camera/ground_pick.gd")
 const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
 const Picker := preload("res://scenes/hud/picker.gd")
@@ -123,6 +124,7 @@ func setup(main_node: Node3D, view: Node) -> void:
 	_ghost_material = StandardMaterial3D.new()
 	_ghost_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	_ghost_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	_ghost_material.render_priority = FogOfWar.MARKER_PRIORITY  # above the fog layer (prompt 098)
 	_ghost.material_override = _ghost_material
 	_ghost.visible = false
 	main.add_child(_ghost)

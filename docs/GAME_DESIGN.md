@@ -513,6 +513,17 @@ at the forest edge be seen from 500 m. Rules in `data/vision.toml`
 `[ambush]`; details in
 [ARCHITECTURE.md](ARCHITECTURE.md#ambush-prompt-056-provisional).
 
+## Fog of war: the map is known [confirmed 2026-11-20]
+
+Prompt 098, the user's decision: the landscape is known from the start.
+Terrain, roads, water, vegetation, houses and the map's fixed positions are
+visible everywhere, under a translucent darker layer where no own or allied
+unit sees right now; only the current sight is clear. What is hidden is the
+enemy: his units only show where they are seen, and short-lived traces
+(muzzle flashes, tracers, impacts, dust) too. Enemy changes to the map
+(new field works, destruction, craters, wrecks) are not hidden yet: a
+"last seen state" is a later prompt.
+
 ## Victory [confirmed 2026-11-16]
 
 A player who has no living unit left is defeated (prompt 027). Since
