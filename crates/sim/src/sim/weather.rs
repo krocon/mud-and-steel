@@ -140,6 +140,24 @@ impl WeatherState {
         )
     }
 
+    /// Soft-ground speed per running gear on terrain `terrain` now (gear
+    /// name and percent, in the order of the rules), prompt 100.
+    pub(super) fn gear_speeds(&self, terrain: usize) -> Vec<(String, u32)> {
+        let soft = self.softness.get(terrain).copied().unwrap_or((0, 0));
+        self.rules
+            .ground
+            .gear
+            .iter()
+            .enumerate()
+            .map(|(g, gear)| {
+                (
+                    gear.name.clone(),
+                    self.rules.speed_pct(g, self.ground, self.level, soft),
+                )
+            })
+            .collect()
+    }
+
     pub(super) fn hash_into(&self, h: &mut StableHasher) {
         self.rules.hash_into(h);
         h.write_u8(self.setup.weather as u8);
@@ -165,6 +183,16 @@ impl Sim {
     /// soft.
     pub const fn ground_state(&self) -> (crate::weather::Ground, u32) {
         (self.weather.ground(), self.weather.level())
+    }
+
+    /// Name of the running gear of unit `unit` (`data/weather.toml`:
+    /// foot, wheeled, halftrack, tracked), prompt 100; `None` for units
+    /// without one (aircraft, buildings) and unknown units.
+    pub fn unit_gear(&self, unit: crate::command::UnitId) -> Option<String> {
+        let i = self.units.binary_search_by_key(&unit, |u| u.id).ok()?;
+        let w = &self.weather;
+        let g = (*w.gears.get(self.units[i].unit_type as usize)?)?;
+        w.rules.ground.gear.get(g).map(|gear| gear.name.clone())
     }
 
     /// The wind of the match in meters per second of game time (smoke drift,

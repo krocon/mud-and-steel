@@ -42,6 +42,7 @@ const SupplyRings := preload("res://scenes/hud/supply_rings.gd")
 const RangeRings := preload("res://scenes/hud/range_rings.gd")
 const OrderPreview := preload("res://scenes/hud/order_preview.gd")
 const Alerts := preload("res://scenes/hud/alerts.gd")
+const GroundTooltip := preload("res://scenes/hud/ground_tooltip.gd")
 const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
 const HudTheme := preload("res://scenes/hud/hud_theme.gd")
 const Subtitles := preload("res://scenes/hud/subtitles.gd")
@@ -73,6 +74,8 @@ var range_rings: RangeRings
 var order_preview: OrderPreview
 ## Alarms out of view and their edge arrows (prompt 101).
 var alerts: Alerts
+## What the ground under the resting mouse does (prompt 100).
+var ground_tooltip: GroundTooltip
 ## Text lines for warnings and callouts (prompt 043).
 var subtitles: Subtitles
 ## Unit card (prompt 066), hidden until asked for.
@@ -169,6 +172,9 @@ func setup(main_node: Node3D) -> void:
 	unit_card.name = "UnitCard"
 	unit_card.visible = false
 	add_child(unit_card)
+	ground_tooltip = GroundTooltip.new()
+	add_child(ground_tooltip)
+	ground_tooltip.setup(main)
 	unit_panel.card_requested.connect(show_unit_card)
 	var base_hud: Node = main.get("base_hud")
 	if base_hud != null:
@@ -176,7 +182,7 @@ func setup(main_node: Node3D) -> void:
 		for picker: Node in [base_hud.get("build_picker"), base_hud.get("production_picker")]:
 			if picker != null:
 				picker.connect(&"info_requested", show_unit_card)
-	_parts = [waypoints, supply_rings, range_rings, order_preview, minimap, gizmo, unit_panel, command_bar, event_feed, alerts, top_bar, group_tabs]
+	_parts = [waypoints, supply_rings, range_rings, order_preview, minimap, gizmo, unit_panel, command_bar, event_feed, alerts, ground_tooltip, top_bar, group_tabs]
 	_layout()
 
 

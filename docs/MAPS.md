@@ -129,6 +129,17 @@ and since prompt 014 not driven down either (units used to drop off abutments).
 Downhill has no other effect yet. These are game rules, not historical values; per-vehicle
 climbing ability, tracked versus wheeled ground pressure and cover follow later.
 
+In the game the **ground tooltip** (prompt 100, `hud/ground_tooltip.gd`,
+`Sim::ground_info`) shows these rules for the point under the mouse: terrain
+speed and road basis, the soft-ground factor per running gear of the
+weather, passability per size class from the path grid, the slope factor,
+and from the other rule files concealment (vision cell: `solid` and
+`foliage` objects of `data/vision.toml`, smoke) and cover (objects that
+block tanks stop bullets, `[[cover.object]]` of `data/infantry.toml`, dug
+positions, craters). Terrain types themselves carry neither concealment nor
+cover: tall grass and grain hide nobody, and woods slow vehicles only by
+their trunks (path grid), not by a terrain speed.
+
 Units drive around impassable terrain, too steep grades and the map edge on paths
 planned on a 4 m grid (2 × 2 samples per cell, see
 [ARCHITECTURE.md](ARCHITECTURE.md#pathfinding)). Passages need to be about 4 m wide

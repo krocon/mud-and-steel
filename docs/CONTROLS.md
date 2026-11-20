@@ -303,6 +303,22 @@ top bar. Everything else appears when there is something to do with it.
   facing of the drag. A grey mark is a spot the unit cannot stand on
   (water, house, rock); it stops at the nearest reachable spot instead. A
   tractor towing a gun shows the gun's range circle at its mark.
+- **Ground tooltip** (prompt 100): rest the mouse on the map for 0.4 s and
+  a small box beside the pointer names the ground or the object under it
+  (meadow, road, ford, woods, farmhouse, wall, trench …) and says what it
+  does: movement for vehicles and infantry (or, when all selected units
+  share one running gear, for tracks, wheels, half-tracks or foot) as a
+  word and the percent of the cross-country speed, with rain or snow
+  softening the ground; "road speed" on roads; impassable; the slope when
+  it slows uphill noticeably; **concealment** (woods, buildings, rock,
+  smoke hide what is in or behind them) and, separately, **cover** (heavy
+  where an object stops bullets, otherwise the share of hits soft cover,
+  a dug position or a crater catches). Field works of the enemy show only
+  where you see them. No box during a box selection, a right-drag, a
+  camera drag, while placing a building or over a HUD panel. Settings →
+  Interface → "Ground tooltip": when the mouse rests (default), only while
+  **-** (right of the period on German keyboards, / on US ones;
+  *rebindable*) is held, or off.
 - **Range circles** (prompt 099): the fire range of the selected units as
   a thin yellow circle on the ground (the longest-reaching weapon; mortars
   and guns firing indirectly: minimum and maximum, the minimum dotted

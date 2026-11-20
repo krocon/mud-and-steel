@@ -92,6 +92,7 @@ func run(test: Node) -> void:
 	await _events_test(test, main, hud.event_feed)
 	await _alerts_test(test, main, hud.alerts, tanks)
 	await _selection_keys_test(test, main, tanks)
+	await _ground_tooltip_test(test, main, hud.ground_tooltip)
 	await _health_bar_test(test, main)
 	await _unit_values_test(test, main, hud, tanks)
 	main.selection.set_selection([])
@@ -577,6 +578,68 @@ func _selection_keys_test(test: Node, main: Node3D, tanks: Array[int]) -> void:
 	sim_host.stop_units(PackedInt64Array([mover]))
 	await test._ticks(2)
 	selection.set_selection([])
+
+
+## Prompt 100: the ground tooltip over a road, woods, deep water and a
+## house names them and gives the levels of the rules; it waits for the
+## pointer to rest and stays away during a box selection.
+func _ground_tooltip_test(test: Node, main: Node3D, tip: Control) -> void:
+	var sim_host: SimHost = main.sim_host
+	var found := {}
+	var x := -240.0
+	while x <= 240.0 and found.size() < 4:
+		var z := -240.0
+		while z <= 240.0:
+			var info := sim_host.ground_info(x, z)
+			var object: String = info.get("object", "")
+			if not found.has("road") and info.get("terrain_name", "") == "road" and object.is_empty():
+				found["road"] = Vector3(x, 0, z)
+			elif not found.has("woods") and info.get("sight", "") == "foliage" and object.begins_with("env_tree"):
+				found["woods"] = Vector3(x, 0, z)
+			elif not found.has("water") and info.get("terrain_name", "") == "deep_water" and object.is_empty():
+				found["water"] = Vector3(x, 0, z)
+			elif not found.has("house") and info.get("building", false):
+				found["house"] = Vector3(x, 0, z)
+			z += 4.0
+		x += 4.0
+	test._check(found.size() == 4, "test_small lacks a road, woods, deep water or a house: %s" % found.keys())
+	main.selection.set_selection([])
+	var center: Vector2 = tip.get_viewport_rect().get_center()
+	var none := tr("GROUND_NONE")
+	if found.has("road"):
+		tip.show_at(found["road"], center)
+		test._check(tip.visible and tip.title == tr("GROUND_T_ROAD") and tip.lines.has(tr("GROUND_MOVE") % [tr("GROUND_VEHICLES"), tr("GROUND_MOVE_ROAD")]),
+			"road tooltip: %s / %s" % [tip.title, tip.lines])
+		test._check(tip.lines.has(tr("GROUND_SIGHT") % none), "a road gives concealment: %s" % [tip.lines])
+	if found.has("woods"):
+		tip.show_at(found["woods"], center)
+		test._check(tip.title == tr("GROUND_WOODS") and tip.lines.has(tr("GROUND_SIGHT") % tr("GROUND_STRONG"))
+			and tip.lines.has(tr("GROUND_COVER") % tr("GROUND_COVER_HARD")), "woods tooltip: %s / %s" % [tip.title, tip.lines])
+	if found.has("water"):
+		tip.show_at(found["water"], center)
+		test._check(tip.title == tr("GROUND_T_DEEP_WATER")
+			and tip.lines.has(tr("GROUND_MOVE") % [tr("GROUND_VEHICLES"), tr("GROUND_MOVE_NONE")])
+			and tip.lines.has(tr("GROUND_MOVE") % [tr("GROUND_INFANTRY"), tr("GROUND_MOVE_NONE_FOOT")]),
+			"water tooltip: %s / %s" % [tip.title, tip.lines])
+	if found.has("house"):
+		tip.show_at(found["house"], center)
+		test._check(tip.lines.has(tr("GROUND_OCCUPY")) and tip.lines.has(tr("GROUND_COVER") % tr("GROUND_COVER_HARD"))
+			and tip.lines.has(tr("GROUND_SIGHT") % tr("GROUND_STRONG")), "house tooltip: %s / %s" % [tip.title, tip.lines])
+	# Rest and box selection, through the frame update with a fixed point.
+	tip._hide()
+	tip.forced_point = found.get("road", Vector3.ZERO)
+	tip._last_mouse = tip.get_viewport().get_mouse_position()
+	tip._rest = 0.0
+	tip._update(0.2)
+	test._check(not tip.visible, "the ground tooltip showed before the pointer rested")
+	tip._update(0.3)
+	test._check(tip.visible, "the ground tooltip did not show after resting 0.5 s")
+	main.selection._dragging = true
+	tip._update(0.1)
+	test._check(not tip.visible, "the ground tooltip shows during a box selection")
+	main.selection._dragging = false
+	tip.forced_point = null
+	tip.visible = false
 
 
 func _health_bar_test(test: Node, main: Node3D) -> void:

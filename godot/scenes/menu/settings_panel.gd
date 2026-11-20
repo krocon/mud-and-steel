@@ -47,6 +47,7 @@ var health_bar_option: OptionButton
 var unit_marker_option: OptionButton
 var range_circle_option: OptionButton
 var sight_circle_option: OptionButton
+var ground_tooltip_option: OptionButton
 ## Option buttons of OPTIONS, by settings key (prompt 043).
 var options: Dictionary[String, OptionButton] = {}
 var language_option: OptionButton
@@ -279,6 +280,12 @@ func _interface_tab() -> Control:
 	tab.add_child(_row("SET_RANGE_CIRCLES", range_circle_option))
 	sight_circle_option = _circle_option("sight_circles")
 	tab.add_child(_row("SET_SIGHT_CIRCLES", sight_circle_option))
+	ground_tooltip_option = OptionButton.new()
+	for label in ["SET_TOOLTIP_ON", "SET_TOOLTIP_KEY", "SET_TOOLTIP_OFF"]:
+		ground_tooltip_option.add_item(label)
+	ground_tooltip_option.item_selected.connect(func(index: int) -> void:
+		_change("ground_tooltip", Settings.TOOLTIP_MODES[index]))
+	tab.add_child(_row("SET_GROUND_TOOLTIP", ground_tooltip_option))
 	return _scrolled(tab)
 
 
@@ -297,6 +304,7 @@ func _refresh() -> void:
 	unit_marker_option.select(maxi(Settings.UNIT_MARKER_MODES.find(Settings.get_value("unit_markers")), 0))
 	range_circle_option.select(maxi(Settings.CIRCLE_MODES.find(Settings.get_value("range_circles")), 0))
 	sight_circle_option.select(maxi(Settings.CIRCLE_MODES.find(Settings.get_value("sight_circles")), 0))
+	ground_tooltip_option.select(maxi(Settings.TOOLTIP_MODES.find(Settings.get_value("ground_tooltip")), 0))
 	quality_option.select(maxi(GraphicsQuality.LEVELS.find(Settings.get_value("quality")), 0))
 	volume_slider.set_value_no_signal(Settings.get_value("master_volume"))
 	for key in bus_sliders:

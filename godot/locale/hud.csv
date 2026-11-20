@@ -260,3 +260,109 @@ HUD_COMPASS_N,N,N
 HUD_COMPASS_E,E,O
 HUD_COMPASS_S,S,S
 HUD_COMPASS_W,W,W
+GROUND_T_GRASS,Meadow,Wiese
+GROUND_T_DIRT_TRACK,Dirt track,Feldweg
+GROUND_T_ROAD,Road,Straße
+GROUND_T_SAND,Sand,Sand
+GROUND_T_MUD,Mud,Schlamm
+GROUND_T_SNOW,Deep snow,Tiefschnee
+GROUND_T_SHALLOW_WATER,Ford,Furt
+GROUND_T_DEEP_WATER,Deep water,Tiefes Wasser
+GROUND_T_TALL_GRASS,Tall grass,Hohes Gras
+GROUND_T_FIELD_GRAIN,Grain field,Getreidefeld
+GROUND_T_FIELD_GREEN,Green field,Grünes Feld
+GROUND_T_FIELD_PLOUGHED,Ploughed field,Acker
+GROUND_O_ENV_TREE_DECIDUOUS,Deciduous tree,Laubbaum
+GROUND_O_ENV_TREE_CONIFER,Conifer,Nadelbaum
+GROUND_O_ENV_TREE_BIRCH,Birch,Birke
+GROUND_O_ENV_TREE_PALM,Palm,Palme
+GROUND_O_ENV_TREE_STUMP,Tree stump,Baumstumpf
+GROUND_O_ENV_LOG_FALLEN,Fallen log,Umgestürzter Stamm
+GROUND_O_ENV_BUSH,Bush,Busch
+GROUND_O_ENV_ROCK,Rock,Fels
+GROUND_O_ENV_ROCK_SLAB,Rock slab,Felsplatte
+GROUND_O_ENV_ROCK_OUTCROP,Rock outcrop,Felsgruppe
+GROUND_O_ENV_ROCK_MASSIF,Rock face,Felsmassiv
+GROUND_O_ENV_HOUSE_FARM,Farmhouse,Bauernhaus
+GROUND_O_ENV_HOUSE_FARM_BRICK,Brick farmhouse,Backstein-Bauernhaus
+GROUND_O_ENV_HOUSE_STONE,Stone house,Steinhaus
+GROUND_O_ENV_HOUSE_MUD,Clay house,Lehmhaus
+GROUND_O_ENV_BARN,Barn,Scheune
+GROUND_O_ENV_CHURCH,Church,Kirche
+GROUND_O_ENV_HOUSE_TOWN,Town house,Stadthaus
+GROUND_O_ENV_TOWN_HALL,Town hall,Rathaus
+GROUND_O_ENV_WAREHOUSE,Warehouse,Lagerhaus
+GROUND_O_ENV_HOUSE_LOG,Log house,Blockhaus
+GROUND_O_ENV_HOUSE_DESERT_HUT,Hut,Hütte
+GROUND_O_ENV_HOUSE_DESERT_TWO,House,Haus
+GROUND_O_ENV_HOUSE_DESERT_LONG,Long house,Langhaus
+GROUND_O_ENV_HOUSE_DESERT_CORNER,Corner house,Eckhaus
+GROUND_O_ENV_HOUSE_DESERT_STAIR,House with stairs,Haus mit Außentreppe
+GROUND_O_ENV_HOUSE_DESERT_ROOFROOM,House with roof room,Haus mit Dachkammer
+GROUND_O_ENV_HOUSE_DESERT_TALL,Tall house,Hohes Haus
+GROUND_O_ENV_HOUSE_DESERT_VAULT,Vaulted house,Gewölbehaus
+GROUND_O_ENV_HOUSE_DESERT_LARGE,Large house,Großes Haus
+GROUND_O_ENV_HOUSE_DESERT_SHOP,Shop,Laden
+GROUND_O_ENV_MOSQUE,Mosque,Moschee
+GROUND_O_ENV_POLICE_POST,Police post,Polizeiposten
+GROUND_O_ENV_BLOCK_DESERT,Apartment block,Wohnblock
+GROUND_O_ENV_BLOCK_DESERT_LONG,Long apartment block,Langer Wohnblock
+GROUND_O_ENV_BLOCK_TOWN,Apartment block,Wohnblock
+GROUND_O_ENV_HEDGE,Hedge,Hecke
+GROUND_O_ENV_WALL_STONE,Stone wall,Steinmauer
+GROUND_O_ENV_WALL_MUD,Clay wall,Lehmmauer
+GROUND_O_ENV_FENCE_WOOD,Wooden fence,Holzzaun
+GROUND_O_ENV_BRIDGE_WOOD,Wooden bridge,Holzbrücke
+GROUND_O_ENV_BRIDGE_STONE,Stone bridge,Steinbrücke
+GROUND_O_ENV_POLE_TELEGRAPH,Telegraph pole,Telegrafenmast
+GROUND_O_ENV_HAY_BALE,Hay bale,Heuballen
+GROUND_O_ENV_HAY_BALE_SQUARE,Hay bale,Heuballen
+GROUND_O_ENV_WOODPILE,Woodpile,Holzstapel
+GROUND_O_ENV_CRATE,Crates,Kisten
+GROUND_O_ENV_BARREL,Barrels,Fässer
+GROUND_O_ENV_DUMP_AMMO,Ammunition dump,Munitionslager
+GROUND_O_ENV_DUMP_FUEL,Fuel dump,Treibstofflager
+GROUND_O_ENV_AWNING,Awning,Sonnendach
+GROUND_O_ENV_JARS,Jars,Tonkrüge
+GROUND_O_ENV_WELL_DESERT,Well,Brunnen
+GROUND_O_ENV_CART_WOOD,Cart,Karren
+GROUND_O_ENV_MARKET_STALL,Market stall,Marktstand
+GROUND_O_FORT_BARBED_WIRE,Barbed wire,Stacheldraht
+GROUND_O_FORT_HEDGEHOG,Czech hedgehog,Panzerigel
+GROUND_O_FORT_BUNKER_MG,MG bunker,MG-Bunker
+GROUND_O_FORT_SANDBAG_POSITION,Sandbag position,Sandsackstellung
+GROUND_O_FORT_TRENCH_SECTION,Trench,Graben
+GROUND_O_FORT_MINE_AT,AT mine,Panzermine
+GROUND_O_FORT_MINE_AP,AP mine,S-Mine
+GROUND_RUIN,%s (ruin),%s (Ruine)
+GROUND_WOODS,Woods,Wald
+GROUND_VEHICLES,Vehicles,Fahrzeuge
+GROUND_INFANTRY,Infantry,Infanterie
+GROUND_GEAR_FOOT,Infantry,Infanterie
+GROUND_GEAR_WHEELED,Wheels,Räder
+GROUND_GEAR_HALFTRACK,Half-tracks,Halbketten
+GROUND_GEAR_TRACKED,Tracks,Ketten
+GROUND_MOVE,%s: %s,%s: %s
+GROUND_MOVE_NONE,impassable,nicht befahrbar
+GROUND_MOVE_NONE_FOOT,impassable,nicht begehbar
+GROUND_MOVE_ROAD,road speed,Straßentempo
+GROUND_MOVE_ROAD_SLOW,"road speed, %d %%","Straßentempo, %d %%"
+GROUND_MOVE_FAST,"fast, %d %%","schnell, %d %%"
+GROUND_MOVE_NORMAL,"normal, %d %%","normal, %d %%"
+GROUND_MOVE_SLOW,"slow, %d %%","langsam, %d %%"
+GROUND_MOVE_VERY_SLOW,"very slow, %d %%","sehr langsam, %d %%"
+GROUND_SLOPE,"Slope %d %%: uphill at %d %%","Steigung %d %%: bergauf %d %%"
+GROUND_SLOPE_STEEP,"Slope %d %%: too steep to climb","Steigung %d %%: zu steil"
+GROUND_SIGHT,Concealment: %s,Sichtschutz: %s
+GROUND_COVER,Cover: %s,Deckung: %s
+GROUND_NONE,none,keiner
+GROUND_COVER_NONE,none,keine
+GROUND_LIGHT,light,leicht
+GROUND_STRONG,strong,stark
+GROUND_HEAVY,heavy,schwer
+GROUND_SIGHT_SMOKE,strong (smoke),stark (Rauch)
+GROUND_COVER_HARD,"heavy, stops bullets","schwer, hält Geschosse auf"
+GROUND_COVER_PCT,%s (%d %% of hits),%s (%d %% aller Treffer)
+GROUND_COVER_DUG,"%s, dug in (prone %d %%)","%s, eingegraben (liegend %d %%)"
+GROUND_COVER_CRATER,"%s, crater (prone %d %%)","%s, Trichter (liegend %d %%)"
+GROUND_OCCUPY,Infantry can occupy it,Infanterie kann es besetzen

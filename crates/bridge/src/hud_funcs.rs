@@ -172,6 +172,76 @@ impl SimHost {
         d
     }
 
+    /// The ground at `(x, z)` for the ground tooltip (prompt 100), as the
+    /// local player may know it (`Sim::ground_info`); empty outside the
+    /// map. Keys: `terrain` (id), `terrain_name`, `road` (road speed
+    /// basis), `speed_pct`, `gears` (dictionary gear name → percent on soft
+    /// ground now), `passable_small`, `passable_large`, `grade_pct`,
+    /// `slope_pct` (-1: too steep), `sight` ("clear", "foliage", "solid"),
+    /// `smoke`, `object` (catalog id or ""), `ruin`, `hard_cover`,
+    /// `object_cover_pct`, `building`, `work` (work name or ""),
+    /// `ground_cover_pct`.
+    #[func]
+    fn ground_info(&self, x: f32, z: f32) -> VarDictionary {
+        let mut d = VarDictionary::new();
+        let (Some(game), Some(x), Some(z)) = (
+            &self.game,
+            crate::meters_to_millimeters(x),
+            crate::meters_to_millimeters(z),
+        ) else {
+            return d;
+        };
+        let player = game.session.local_player();
+        let Some(info) = game
+            .sim
+            .ground_info(player, sim::Vec2::from_millimeters(x, z))
+        else {
+            return d;
+        };
+        d.set("terrain", i64::from(info.terrain));
+        d.set("terrain_name", info.terrain_name.as_str());
+        d.set("road", info.road);
+        d.set("speed_pct", i64::from(info.speed_pct));
+        let mut gears = VarDictionary::new();
+        for (name, pct) in &info.gears {
+            gears.set(name.as_str(), i64::from(*pct));
+        }
+        d.set("gears", &gears);
+        d.set("passable_small", info.passable_small);
+        d.set("passable_large", info.passable_large);
+        d.set("grade_pct", i64::from(info.grade_pct));
+        d.set("slope_pct", info.slope_pct.map_or(-1, i64::from));
+        d.set(
+            "sight",
+            match info.sight {
+                sim::vision::Sight::Clear => "clear",
+                sim::vision::Sight::Foliage => "foliage",
+                sim::vision::Sight::Solid => "solid",
+            },
+        );
+        d.set("smoke", info.smoke);
+        d.set("object", info.object.as_deref().unwrap_or(""));
+        d.set("ruin", info.ruin);
+        d.set("hard_cover", info.hard_cover);
+        d.set("object_cover_pct", i64::from(info.object_cover_pct));
+        d.set("building", info.building);
+        d.set("work", info.work.map_or("", sim::works::WorkKind::name));
+        d.set("ground_cover_pct", i64::from(info.ground_cover_pct));
+        d
+    }
+
+    /// Running gear of unit `id` (`foot`, `wheeled`, `halftrack`,
+    /// `tracked`; "" without one), prompt 100.
+    #[func]
+    fn unit_gear(&self, id: i64) -> GString {
+        let (Some(game), Ok(id)) = (&self.game, u32::try_from(id)) else {
+            return GString::new();
+        };
+        game.sim
+            .unit_gear(sim::UnitId(id))
+            .map_or_else(GString::new, |g| GString::from(g.as_str()))
+    }
+
     /// The minimap's ground: one RGB8 pixel per vision cell
     /// (`vision_grid_size`), row by row from the north-west corner, like
     /// `vision_image`. Terrain color with hill shading, roads (any sample

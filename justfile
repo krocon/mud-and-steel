@@ -601,6 +601,11 @@ order-preview-shots dir="build/order-preview" *args: build
 alert-shots dir="build/alerts" *args: build
     {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- "--alert-shots={{ justfile_directory() }}/{{ dir }}" {{ args }}
 
+# Ground tooltip in pictures (prompt 100; needs a window): road, woods, house, water, meadow, field, mud of the map; e.g. `just ground-tooltip-shots build/ground-tooltip --map=farms`
+[group('godot')]
+ground-tooltip-shots dir="build/ground-tooltip" *args: build
+    {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- "--ground-tooltip-shots={{ justfile_directory() }}/{{ dir }}" {{ args }}
+
 # Record a trench strongpoint (prompt 052) as PNG files into a folder: overview, firing bay, dugouts, ring and wire (needs a window)
 [group('godot')]
 position-shots dir="build/positions": build

@@ -82,6 +82,8 @@ const BINDABLE: Dictionary[String, String] = {
 	"select_army": "SET_KEY_SELECT_ARMY",
 	"select_idle": "SET_KEY_SELECT_IDLE",
 	"select_idle_all": "SET_KEY_SELECT_IDLE_ALL",
+	# Hold for the ground tooltip in its "key" mode (prompt 100).
+	"ground_tooltip": "SET_KEY_GROUND_TOOLTIP",
 }
 
 ## Actions that are not in `project.godot`, with their default key
@@ -114,6 +116,9 @@ const RUNTIME_ACTIONS: Dictionary[String, int] = {
 	"select_army": KEY_A | KEY_MASK_SHIFT,
 	"select_idle": KEY_PERIOD,
 	"select_idle_all": KEY_PERIOD | KEY_MASK_SHIFT,
+	# Prompt 100: the key right of the period (- on German, / on US
+	# keyboards) was free.
+	"ground_tooltip": KEY_SLASH,
 }
 
 ## Health bars over units (prompt 031): `damaged` (damaged and selected
@@ -128,6 +133,10 @@ const UNIT_MARKER_MODES: Array[String] = ["always", "hover", "off"]
 ## Range and sight circles of the selection (prompt 099, `range_rings.gd`):
 ## `always` with a selection, `key` only while `show_ranges` is held, `never`.
 const CIRCLE_MODES: Array[String] = ["always", "key", "never"]
+
+## Ground tooltip (prompt 100, `ground_tooltip.gd`): `on` when the mouse
+## rests on the map, `key` only while `ground_tooltip` is held, `off`.
+const TOOLTIP_MODES: Array[String] = ["on", "key", "off"]
 
 ## Tilt-shift depth of field (`atmosphere.gd`, `DOF_MODES`): `off`, `subtle`
 ## (soft screen edges at close zoom, prompt 057), `miniature` (strong, like a
@@ -157,6 +166,8 @@ const DEFAULTS := {
 	# Range and sight circles, one of CIRCLE_MODES (prompt 099).
 	"range_circles": "always",
 	"sight_circles": "key",
+	# Ground tooltip, one of TOOLTIP_MODES (prompt 100).
+	"ground_tooltip": "on",
 	# Tilt-shift depth of field, one of DOF_MODES.
 	"depth_of_field": "subtle",
 	# Shadows of passing clouds (prompt 087).

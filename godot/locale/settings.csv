@@ -128,3 +128,8 @@ SET_KEY_ALARM_JUMP,Jump to the latest alarm (again: older),Zum letzten Alarm spr
 SET_KEY_SELECT_ARMY,Select the whole army,Ganze Armee auswählen
 SET_KEY_SELECT_IDLE,Next idle unit,Nächste untätige Einheit
 SET_KEY_SELECT_IDLE_ALL,All idle units,Alle untätigen Einheiten
+SET_GROUND_TOOLTIP,Ground tooltip,Gelände-Info
+SET_TOOLTIP_ON,When the mouse rests on the map,Wenn die Maus auf der Karte ruht
+SET_TOOLTIP_KEY,Only while the key is held,Nur mit gedrückter Taste
+SET_TOOLTIP_OFF,Off,Aus
+SET_KEY_GROUND_TOOLTIP,Ground tooltip (hold),Gelände-Info (halten)

@@ -376,6 +376,16 @@ impl Sim {
         pct > 0 && self.rng.below(100) < pct
     }
 
+    /// Cover of a soldier in `stance` in a crater at map sample `sample`
+    /// (percent; 0 if it is not deep enough), prompt 100.
+    pub(super) fn crater_cover_pct(&self, sample: usize, stance: crate::infantry::Stance) -> u32 {
+        let cover = self.craters.rules.cover;
+        if self.craters.delta(sample) > -i32::try_from(cover.min_depth_mm).unwrap_or(i32::MAX) {
+            return 0;
+        }
+        cover.pct(stance)
+    }
+
     /// Crater samples (at least `min_depth_mm` deep) within `half` of
     /// `center` on both axes, as cover spots for infantry, row by row.
     pub(super) fn crater_spots(&self, center: Vec2, half: Fixed) -> Vec<Vec2> {
