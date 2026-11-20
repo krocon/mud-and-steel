@@ -100,8 +100,14 @@ fn play(extra_host: &[&str], extra_join: &[&str], search: bool) -> (Output, Outp
 fn two_processes_play_without_desync() {
     let (host, join) = play(&[], &[], true);
     let (host_text, join_text) = (text(&host), text(&join));
-    assert!(host.status.success(), "host failed:\n{host_text}");
-    assert!(join.status.success(), "client failed:\n{join_text}");
+    assert!(
+        host.status.success(),
+        "host failed:\n{host_text}\nclient:\n{join_text}"
+    );
+    assert!(
+        join.status.success(),
+        "client failed:\n{join_text}\nhost:\n{host_text}"
+    );
     assert!(join_text.contains("found 'cli host' at"), "{join_text}");
 
     let expected = format!(
@@ -133,8 +139,16 @@ fn a_desync_is_reported_by_both_with_replays() {
         false,
     );
     let (host_text, join_text) = (text(&host), text(&join));
-    assert_eq!(host.status.code(), Some(1), "{host_text}");
-    assert_eq!(join.status.code(), Some(1), "{join_text}");
+    assert_eq!(
+        host.status.code(),
+        Some(1),
+        "{host_text}\nclient:\n{join_text}"
+    );
+    assert_eq!(
+        join.status.code(),
+        Some(1),
+        "{join_text}\nhost:\n{host_text}"
+    );
     // Hashes are exchanged every 20 ticks: the first mismatch is at tick 60.
     assert!(host_text.contains("DESYNC player=0 tick=60"), "{host_text}");
     assert!(join_text.contains("DESYNC player=1 tick=60"), "{join_text}");
