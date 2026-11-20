@@ -71,8 +71,12 @@ struct TypeRt {
     seats: u32,
     /// Index into the rules' carriers.
     carrier: Option<usize>,
-    embark_ticks: u32,
+    /// Ticks one soldier needs to climb aboard (prompt 163).
+    climb_ticks: u32,
     disembark_ticks: u32,
+    /// Height of the floor passengers stand on while the others climb
+    /// (half the hull height), meters.
+    floor: Fixed,
     /// Engine power (hp) and mass (kg) of a vehicle that can tow.
     tow: Option<(u32, u32)>,
     /// Limber and unlimber ticks and mass (kg) of a towed gun.
@@ -82,12 +86,17 @@ struct TypeRt {
 /// What a unit is doing for transport.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 enum Task {
-    /// A squad walks to `carrier` (towards `goal`) and mounts; `left`
-    /// ticks of mounting once it stands next to it.
+    /// A squad walks to `carrier` (towards `goal`) and mounts. Once it
+    /// stands next to it (`left` is `Some`), its soldiers line up behind
+    /// the carrier and climb aboard one after another: `left` ticks for
+    /// the one at the front of the line, `mounted` the soldiers (bit per
+    /// index) already up (prompt 163). The squad boards when all are up.
     Embark {
         carrier: UnitId,
         goal: Vec2,
         left: Option<u32>,
+        #[serde(default)]
+        mounted: u32,
     },
     /// A passenger gets off after `left` ticks while its vehicle stands.
     Disembark { left: u32 },
@@ -110,12 +119,14 @@ impl Task {
                 carrier,
                 goal,
                 left,
+                mounted,
             } => {
                 h.write_u8(0);
                 h.write_u32(carrier.0);
                 h.write_i64(goal.x.to_bits());
                 h.write_i64(goal.y.to_bits());
                 opt(h, left);
+                h.write_u32(mounted);
             }
             Self::Disembark { left } => {
                 h.write_u8(1);
@@ -161,6 +172,10 @@ fn ticks(ms: u32, (num, den): (u32, u32), tick_hz: u32) -> u32 {
     u32::try_from((u64::from(ms) * den * hz + 500 * num) / (1000 * num)).unwrap_or(u32::MAX)
 }
 
+/// A squad ordered to mount stops this many meters farther out than the
+/// mounting reach and its men run to the carrier one by one (prompt 163).
+const LINE_UP_M: i32 = 15;
+
 fn mm(v: u32) -> Fixed {
     Fixed::from_num(v) / 1000
 }
@@ -185,7 +200,8 @@ impl Transport {
                         u32::from(t.transport.passengers)
                     };
                     rt.carrier = (rt.seats > 0).then_some(k);
-                    rt.embark_ticks = ticks(c.embark_ms, time, tick_hz);
+                    rt.climb_ticks = ticks(c.climb_ms, time, tick_hz);
+                    rt.floor = t.combat.height_m / 2;
                     rt.disembark_ticks = ticks(c.disembark_ms, time, tick_hz);
                     if c.tows && t.transport.power_hp > 0 && t.mass_kg > 0 && t.mobile() {
                         rt.tow = Some((t.transport.power_hp, t.mass_kg));
@@ -292,6 +308,7 @@ impl Sim {
                     carrier,
                     goal,
                     left: None,
+                    mounted: 0,
                 },
             );
             if self.close(i, c) {
@@ -487,6 +504,7 @@ impl Sim {
                 carrier,
                 goal,
                 left,
+                mounted,
             } => {
                 let c = self.index_of(carrier)?;
                 let v = &self.units[c];
@@ -497,17 +515,26 @@ impl Sim {
                 {
                     return None;
                 }
-                let ticks = self.ttype(c).embark_ticks;
-                let (goal, left) = self.walk_up(i, c, goal, left, ticks)?;
-                if left == Some(0) {
-                    self.board(i, c);
+                let need = self.units[i].squad.as_ref().map_or(0, |s| s.alive_count());
+                if self.seats_used(carrier) + need > self.ttype(c).seats {
                     return None;
                 }
-                Some(Task::Embark {
-                    carrier,
-                    goal,
-                    left,
-                })
+                let climb = self.ttype(c).climb_ticks;
+                if mounted == 0 {
+                    let (goal, left) = self.walk_up(i, c, goal, left, climb)?;
+                    let Some(left) = left else {
+                        return Some(Task::Embark {
+                            carrier,
+                            goal,
+                            left: None,
+                            mounted,
+                        });
+                    };
+                    return self.climb(i, c, carrier, goal, left, mounted);
+                }
+                // Men are up already: the others go on climbing even if
+                // the carrier moves (they ride along, the rest follows).
+                self.climb(i, c, carrier, goal, left.unwrap_or(climb), mounted)
             }
             Task::Disembark { left } => {
                 let Some(Link::Aboard(carrier)) = self.units[i].link else {
@@ -582,7 +609,21 @@ impl Sim {
         left: Option<u32>,
         ticks: u32,
     ) -> Option<(Vec2, Option<u32>)> {
-        if self.close(i, j) {
+        // A squad about to mount stops this far out already: its men run
+        // to the carrier one by one (prompt 163), faster than the squad
+        // walks in formation.
+        let mounting = self.ttype(j).seats > 0 && self.units[i].squad.is_some();
+        let extra = if mounting {
+            Fixed::from_num(LINE_UP_M)
+        } else {
+            Fixed::ZERO
+        };
+        let near = {
+            let (a, b) = (&self.units[i], &self.units[j]);
+            (a.position - b.position).length()
+                <= (a.spread + b.spread) / 2 + self.transport.reach + extra
+        };
+        if near {
             if self.units[i].route != Route::None {
                 stop(&mut self.units[i]);
             }
@@ -613,6 +654,110 @@ impl Sim {
             return Some((wanted, None));
         }
         Some((goal, None))
+    }
+
+    /// One tick of squad `i` climbing onto carrier `c` (prompt 163): the
+    /// soldiers not yet up line up behind it; the first of the line climbs
+    /// for `left` ticks once he stands there; the ones up stand on the
+    /// carrier. The squad boards when every soldier who can move is up.
+    fn climb(
+        &mut self,
+        i: usize,
+        c: usize,
+        carrier: UnitId,
+        goal: Vec2,
+        left: u32,
+        mut mounted: u32,
+    ) -> Option<Task> {
+        let climb = self.ttype(c).climb_ticks;
+        let floor = self.ttype(c).floor;
+        let (pos, facing, half, ground) = {
+            let v = &self.units[c];
+            (v.position, v.facing, v.footprint / 2, v.height)
+        };
+        let gate = pos - facing.scale(half + Fixed::ONE);
+        let right = Vec2::new(-facing.y, facing.x);
+        let step = Fixed::from_num(4) / 5;
+        let unit_pos = self.units[i].position;
+        let squad = self.units[i].squad.as_mut()?;
+        // Who still has to climb, nearest to the gate first (ties: index).
+        let mut line: Vec<(Fixed, usize)> = squad
+            .soldiers
+            .iter()
+            .enumerate()
+            .filter(|&(k, s)| {
+                s.alive() && s.knocked == 0 && !s.wound.held && k < 32 && mounted & (1 << k) == 0
+            })
+            .map(|(k, s)| ((s.position - gate).length(), k))
+            .collect();
+        line.sort_unstable();
+        let mut left = left;
+        if let Some(&(d, k)) = line.first()
+            && d <= Fixed::ONE
+        {
+            left = left.saturating_sub(1);
+            if left == 0 {
+                mounted |= 1 << k;
+                line.remove(0);
+                left = climb;
+            }
+        } else {
+            left = climb;
+        }
+        // The line forms behind the gate; the men up stand on the floor,
+        // two abreast from the back.
+        for (q, &(_, k)) in line.iter().enumerate() {
+            let q = Fixed::from_num(u32::try_from(q).unwrap_or(u32::MAX));
+            squad.soldiers[k].spot = Some(gate - facing.scale(step * q));
+        }
+        let mut row = 0u32;
+        for (k, s) in squad.soldiers.iter_mut().enumerate() {
+            if k >= 32 || mounted & (1 << k) == 0 {
+                continue;
+            }
+            let back =
+                (half - Fixed::from_num(3) / 5 - step * Fixed::from_num(row / 2)).max(Fixed::ZERO);
+            let side = if row.is_multiple_of(2) {
+                Fixed::ONE / 2
+            } else {
+                -Fixed::ONE / 2
+            };
+            let at = pos - facing.scale(back) + right.scale(side);
+            s.position = at;
+            s.height = ground + floor;
+            s.spot = Some(at);
+            s.cover = None;
+            row += 1;
+        }
+        // The squad is where its men on the ground are.
+        let ground: Vec<Vec2> = line
+            .iter()
+            .map(|&(_, k)| squad.soldiers[k].position)
+            .collect();
+        let at = if ground.is_empty() {
+            unit_pos
+        } else {
+            let n = Fixed::from_num(u32::try_from(ground.len()).unwrap_or(1));
+            let sum = ground.iter().fold(Vec2::ZERO, |a, &p| a + p);
+            Vec2::new(sum.x / n, sum.y / n)
+        };
+        squad.spots_at = Some(at);
+        let unit = &mut self.units[i];
+        if at != unit.position {
+            unit.position = at;
+            unit.height = self.map.height_at(at);
+            unit.vision_dirty = true;
+        }
+        if line.is_empty() {
+            self.board(i, c);
+            return None;
+        }
+        Some(Task::Embark {
+            carrier,
+            goal,
+            left: Some(left),
+            mounted,
+        })
     }
 
     /// Squad `i` mounts vehicle `c` if its seats suffice.
@@ -966,6 +1111,17 @@ impl Sim {
             }
         }
         loads.into_iter().map(|(c, (n, g))| (c, n, g)).collect()
+    }
+
+    /// Squads (sorted ids) standing next to their carrier and climbing
+    /// aboard one by one (prompt 163).
+    pub(super) fn squads_lining_up(&self) -> Vec<UnitId> {
+        self.transport
+            .tasks
+            .iter()
+            .filter(|(_, t)| matches!(t, Task::Embark { left: Some(_), .. }))
+            .map(|(&id, _)| id)
+            .collect()
     }
 
     /// Whether unit `id` is mounting, dismounting, limbering or

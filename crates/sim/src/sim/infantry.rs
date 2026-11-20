@@ -695,11 +695,14 @@ impl Sim {
 
     /// Stances and speed factors of every squad, before firing and moving.
     pub(super) fn update_stances(&mut self) {
+        // Squads lining up to climb aboard walk upright (prompt 163).
+        let mounting = self.squads_lining_up();
         for unit in &mut self.units {
             if !unit.alive() {
                 continue;
             }
-            let moving = matches!(unit.route, Route::Following { .. });
+            let moving = matches!(unit.route, Route::Following { .. })
+                || mounting.binary_search(&unit.id).is_ok();
             let Some(s) = &mut unit.squad else {
                 continue;
             };

@@ -118,9 +118,31 @@ fn distance(a: Vec2, b: Vec2) -> Fixed {
 fn squad_mounts_rides_along_and_dismounts() {
     let mut sim = sim_with(&[(P0, HALFTRACK, 0, 0), (P0, SQUAD, 30, 0)], 1);
     sim.step(&[embark(&[1], 0)]);
-    let ticks = run_until(&mut sim, 20 * 60, |s| unit(s, 1).carrier == Some(UnitId(0)));
-    // Walk of ~25 m plus 12 s real (6 s game) of mounting.
-    assert!(ticks > 120, "mounted too fast: {ticks} ticks");
+    // The squad stops 15 m farther out than the mounting reach, its men
+    // run up (catch-up speed, upright) and climb through the rear doors one
+    // after another, 0.5 s real (5 ticks) each (prompt 163; before: the
+    // squad walked up and all mounted after 12 s real). Nine men need at
+    // least 45 ticks of climbing; the run of ~25 m about 6 s.
+    let mut up_before_aboard = 0;
+    let mut ticks = 0;
+    while unit(&sim, 1).carrier != Some(UnitId(0)) {
+        assert!(ticks < 20 * 60, "not aboard after a minute");
+        let up = sim
+            .snapshot()
+            .soldiers
+            .iter()
+            .filter(|s| s.height > Fixed::ONE / 2)
+            .count();
+        up_before_aboard = up_before_aboard.max(up);
+        sim.step(&[]);
+        ticks += 1;
+    }
+    assert!((100..=240).contains(&ticks), "mounted in {ticks} ticks");
+    // Men stood on the halftrack before the last one was up.
+    assert!(
+        up_before_aboard >= 4,
+        "only {up_before_aboard} men up before the squad boarded"
+    );
     assert_eq!(unit(&sim, 0).passengers, 9);
     assert!(
         sim.snapshot().soldiers.is_empty(),
@@ -410,4 +432,28 @@ fn transport_is_deterministic() {
     let (a, b) = (play(), play());
     assert_eq!(a.state_hash(), b.state_hash());
     assert_eq!(a.snapshot(), b.snapshot());
+}
+
+/// Prompt 163: game seconds from the order until the squad is aboard
+/// (standing beside the carrier, and 25 m away) and from the order until it
+/// is off again, per carrier. Printed with `--nocapture`.
+#[test]
+#[ignore]
+fn measure_mounting_times() {
+    for carrier in [TRUCK, HALFTRACK, "de_pz4_h"] {
+        for gap in [6, 25] {
+            let mut sim = sim_with(&[(P0, carrier, 0, 0), (P0, SQUAD, gap, 0)], 1);
+            sim.step(&[embark(&[1], 0)]);
+            let on = run_until(&mut sim, 20 * 120, |s| {
+                unit(s, 1).carrier == Some(UnitId(0))
+            });
+            sim.step(&[cmd(P0, Command::Disembark { units: ids(&[0]) })]);
+            let off = run_until(&mut sim, 20 * 60, |s| unit(s, 1).carrier.is_none());
+            println!(
+                "MEASURE {carrier} gap {gap} m: on {:.2} s, off {:.2} s",
+                f64::from(on + 1) / 20.0,
+                f64::from(off + 1) / 20.0
+            );
+        }
+    }
 }

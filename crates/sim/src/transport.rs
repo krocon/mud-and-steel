@@ -34,7 +34,10 @@ pub struct CarrierRules {
     /// Soldiers riding on the outside of a tank; 0: catalog seats.
     pub riders: u32,
     pub open: bool,
-    pub embark_ms: u32,
+    /// Time one soldier needs to climb aboard once he stands at the
+    /// carrier (prompt 163: soldiers mount one after another as they
+    /// arrive; before, the whole squad waited and mounted together).
+    pub climb_ms: u32,
     pub disembark_ms: u32,
     pub hit_pct: u32,
     pub bounce_pct: u32,
@@ -91,7 +94,7 @@ impl TransportRules {
                 )));
             }
             check("carrier.riders", c.riders, 0, 30)?;
-            check("carrier.embark_ms", c.embark_ms, 0, 600_000)?;
+            check("carrier.climb_ms", c.climb_ms, 0, 600_000)?;
             check("carrier.disembark_ms", c.disembark_ms, 0, 600_000)?;
             check("carrier.hit_pct", c.hit_pct, 0, 100)?;
             check("carrier.bounce_pct", c.bounce_pct, 0, 100)?;
@@ -148,7 +151,7 @@ impl TransportRules {
             for v in [
                 c.riders,
                 u32::from(c.open),
-                c.embark_ms,
+                c.climb_ms,
                 c.disembark_ms,
                 c.hit_pct,
                 c.bounce_pct,

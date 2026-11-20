@@ -1761,14 +1761,14 @@ Decisions and provisional values: `prompts/done/034-transport-schleppen.md`.
   them the rules' `manhandle_kmh_x10` × time factor (Pak 2 km/h real,
   howitzer 1 km/h). They fire only standing, not while towed, being
   limbered or unlimbered; indirect guns then need their setup time too.
-- Times (`embark_ms`, `disembark_ms`, `limber_ms`, `unlimber_ms`) are real
+- Times (`climb_ms`, `disembark_ms`, `limber_ms`, `unlimber_ms`) are real
   and divided by the time factor.
 
 ### Orders and tasks
 
 | Command | Effect |
 |---|---|
-| `Embark { units, carrier }` | Squads walk behind the own vehicle (planning again when it moves), then mount after `embark_ms` while both stand |
+| `Embark { units, carrier }` | Squads walk towards the own vehicle (planning again when it moves); 15 m farther out than the mounting reach the squad stops walking in formation and its men run upright to a line behind the vehicle and climb aboard one after another, `climb_ms` each, standing on its floor (half the hull height) and riding along; the squad boards when every man who can move is up (prompt 163; before, the squad waited for its last man and mounted together after `embark_ms`) |
 | `Disembark { units }` | Listed vehicles unload everybody, listed passengers get off; `disembark_ms` while the vehicle stands, then behind it (sides or front if blocked) |
 | `Tow { units, gun }` | The nearest listed vehicle that can pull the gun and tows nothing drives to it, limbers it (`limber_ms`) and hitches it |
 | `Unlimber { units }` | Towed guns of listed vehicles (or listed guns) are unhitched after `unlimber_ms` while the tractor stands, facing the way the tractor drove; a hitch under way is called off |

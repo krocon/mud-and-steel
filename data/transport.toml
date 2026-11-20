@@ -12,8 +12,15 @@
 # Carriers by category. `riders` > 0: soldiers ride on the outside of the
 # hull (tank desant); 0: seats from the catalog field `passengers`.
 #   open           passengers sit in the open: drawn sitting on the vehicle
-#   embark_ms      mounting, once the squad stands next to the carrier
-#   disembark_ms   dismounting (the carrier must stand)
+#   climb_ms       one soldier climbing aboard (prompt 163): once the squad
+#                  stands next to the carrier its men line up behind it and
+#                  climb one after another as they arrive; the squad is
+#                  aboard when the last man is up. Before prompt 163 the
+#                  squad waited for its last man and mounted together after
+#                  embark_ms (truck 20 s, halftrack 12 s, tank 10 s real),
+#                  which felt far too long in play.
+#   disembark_ms   dismounting (the carrier must stand); prompt 163 halved
+#                  it about (truck 10 s, halftrack 8 s real before)
 #   hit_pct        chance that a round which hurts the carrier also kills
 #                  one passenger (rounds through canvas and thin sides;
 #                  hit points lost to shell fragments count as one round)
@@ -27,8 +34,9 @@
 category = "truck"
 riders = 0
 open = true
-embark_ms = 20000
-disembark_ms = 10000
+# Over the tailgate: 12 men × 0.6 s real = 3.6 s game.
+climb_ms = 600
+disembark_ms = 5000
 hit_pct = 50
 bounce_pct = 0
 destroyed_pct = 60
@@ -38,8 +46,9 @@ tows = true
 category = "halftrack"
 riders = 0
 open = true
-embark_ms = 12000
-disembark_ms = 8000
+# Through the rear doors.
+climb_ms = 500
+disembark_ms = 4000
 hit_pct = 30
 bounce_pct = 0
 destroyed_pct = 50
@@ -49,7 +58,7 @@ tows = true
 category = "tank_light"
 riders = 6
 open = true
-embark_ms = 10000
+climb_ms = 500
 disembark_ms = 4000
 hit_pct = 40
 bounce_pct = 30
@@ -60,7 +69,7 @@ tows = false
 category = "tank_medium"
 riders = 10
 open = true
-embark_ms = 10000
+climb_ms = 500
 disembark_ms = 4000
 hit_pct = 40
 bounce_pct = 30
@@ -71,7 +80,7 @@ tows = false
 category = "tank_heavy"
 riders = 10
 open = true
-embark_ms = 10000
+climb_ms = 500
 disembark_ms = 4000
 hit_pct = 40
 bounce_pct = 30

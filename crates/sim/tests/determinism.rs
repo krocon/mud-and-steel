@@ -21,7 +21,13 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by prompt 097 (vehicle speed and weapon range after the
+/// Last changed by prompt 163 (faster mounting and dismounting), an
+/// intended rule change: the hashed transport rules have `climb_ms` (one
+/// soldier climbing aboard) instead of `embark_ms` and shorter
+/// `disembark_ms`, and a mounting task hashes the soldiers already up. The
+/// demo mounts nobody: its battle is unchanged (decided at tick 603).
+///
+/// Before (`0x51f2_adfb_a7d6_82f8`), prompt 097 (vehicle speed and weapon range after the
 /// reference video), an intended rule change: ground vehicles drive their
 /// real speed (`[speed] vehicle = 1/1` in `data/scale.toml` instead of the
 /// time factor 2), direct fire and sight are compressed 1/8 instead of 1/4
@@ -299,7 +305,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x51f2_adfb_a7d6_82f8;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xab17_f1b1_96c9_e323;
 
 #[test]
 fn golden_hash() {

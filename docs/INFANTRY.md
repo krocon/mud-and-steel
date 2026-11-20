@@ -643,12 +643,18 @@ spots take the cover poses, a soldier clearing a jam plays `reload` /
 ### Transport (prompt 034)
 
 - A squad mounts a truck, halftrack (catalog `passengers`) or tank (10 or 6
-  riders, `data/transport.toml`) as a whole: right click on the own vehicle,
-  `Command::Embark`. It walks behind the vehicle, waits there for
-  `embark_ms` (truck 20 s, halftrack 12 s, tank 10 s real) and is then
-  aboard: hidden in the vehicle, out of the enemy's sight and fire, no
-  orders but dismounting, no fire.
-- `J` / `Command::Disembark`: off after `disembark_ms` (10 / 8 / 4 s real)
+  riders, `data/transport.toml`): right click on the own vehicle,
+  `Command::Embark`. It walks towards the vehicle; close to it (15 m beyond
+  the mounting reach) its men run to a line behind the vehicle and climb
+  aboard one by one as they arrive, `climb_ms` each (truck 0.6 s, halftrack
+  and tanks 0.5 s real), and stand on it until the last man is up. Then the
+  squad is aboard: hidden in the vehicle, out of the enemy's sight and fire,
+  no orders but dismounting, no fire. Game seconds from the order (prompt
+  163, `cargo test -p sim --test transport measure -- --ignored
+  --nocapture`): squad beside the vehicle 3.5–3.8 s (before 5–10 s), 25 m
+  away about 8 s (before 10–15 s).
+- `J` / `Command::Disembark`: off after `disembark_ms` (5 / 4 / 4 s real;
+  10 / 8 / 4 s before prompt 163)
   once the vehicle stands; the squad appears behind it and takes its places
   and cover as usual.
 - Every round that hits the carrier kills one passenger with `hit_pct`

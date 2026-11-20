@@ -426,7 +426,10 @@ fn scripted_production_chain_is_deterministic() {
 
 /// Golden hash of the scripted skirmish (prompt 023): construction,
 /// production, rally points, supply points and the fight of the starting
-/// units. Recorded on macOS ARM64. Last changed by prompt 097 (vehicles
+/// units. Recorded on macOS ARM64. Last changed by prompt 163 (faster
+/// mounting and dismounting: hashed transport rules with `climb_ms` per
+/// soldier and shorter `disembark_ms`; see `determinism.rs`). Before
+/// (`0x3e60_5854_3f4c_5793`), prompt 097 (vehicles
 /// at real speed, direct fire and sight 1/8 with a 15 m minimum, the price
 /// range reference 87 m, the starts of `test_small` 60 m apart; see
 /// `determinism.rs`). Before (`0xa7db_2e45_cf79_5aff`), prompt 093 (tanks
@@ -506,7 +509,7 @@ fn economy_golden_hash() {
     let sim = run_economy(42, 5000);
     assert_eq!(
         sim.state_hash(),
-        0x3e60_5854_3f4c_5793,
+        0x4353_2085_ed39_76de,
         "economy golden hash mismatch: got {:#018x}",
         sim.state_hash()
     );
