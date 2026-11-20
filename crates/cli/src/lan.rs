@@ -92,6 +92,9 @@ pub fn host(options: &HostOptions, play: &MatchOptions) -> Result<i32, String> {
     play_match(node, play)
 }
 
+/// Pause before joining again when a join by address got no answer.
+const RETRY_MS: u64 = 250;
+
 /// Joins a game (by address or the first one found), gets ready and plays.
 /// Returns the process exit code.
 pub fn join(options: &JoinOptions, play: &MatchOptions) -> Result<i32, String> {
@@ -104,6 +107,7 @@ pub fn join(options: &JoinOptions, play: &MatchOptions) -> Result<i32, String> {
     let mut node =
         LanNode::join(&options.name, address).map_err(|e| format!("cannot join: {e}"))?;
     let mut ready = false;
+    let mut in_lobby = false;
     loop {
         if Instant::now() > deadline {
             return Err("timed out waiting for the start".into());
@@ -113,8 +117,17 @@ pub fn join(options: &JoinOptions, play: &MatchOptions) -> Result<i32, String> {
             LanState::Lobby if !ready => {
                 node.set_ready(true);
                 ready = true;
+                in_lobby = true;
             }
             LanState::Started => break,
+            // Joined by address before the host listens (both started
+            // together, a slow host start): try again until the deadline.
+            LanState::Closed(reason) if !in_lobby && options.address.is_some() => {
+                println!("no answer from {address} ({reason}), trying again");
+                std::thread::sleep(Duration::from_millis(RETRY_MS));
+                node = LanNode::join(&options.name, address)
+                    .map_err(|e| format!("cannot join: {e}"))?;
+            }
             LanState::Closed(reason) => return Err(reason.clone()),
             _ => {}
         }

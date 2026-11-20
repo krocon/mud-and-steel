@@ -149,6 +149,9 @@ devices).
 2. **Headless check first** (no graphics involved):
    - Machine A: `just lan-host` (prints "hosting on port 47810 …").
    - Machine B: `just lan-join` (searches) or `just lan-join 192.168.1.20` (A's IP).
+     Joined by address, B may start first: it tries again every 0.25 s until
+     its timeout while nobody answers (CI starts both at once, and a slow host
+     start on Windows used to leave the client gone).
    - Both print `player=… ticks=600 hash=0x… verified=600`. The hashes must be equal
      and equal to `just sim 600` on either machine. Exit code 0 on both.
 3. **The game:** `just lan` on both. A hosts, B searches and joins (or types A's IP),
