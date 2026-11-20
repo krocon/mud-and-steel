@@ -39,6 +39,8 @@ const CommandBar := preload("res://scenes/hud/command_bar.gd")
 const EventFeed := preload("res://scenes/hud/event_feed.gd")
 const Waypoints := preload("res://scenes/hud/waypoints.gd")
 const SupplyRings := preload("res://scenes/hud/supply_rings.gd")
+const RangeRings := preload("res://scenes/hud/range_rings.gd")
+const OrderPreview := preload("res://scenes/hud/order_preview.gd")
 const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
 const HudTheme := preload("res://scenes/hud/hud_theme.gd")
 const Subtitles := preload("res://scenes/hud/subtitles.gd")
@@ -64,6 +66,10 @@ var event_feed: EventFeed
 var waypoints: Waypoints
 ## Supply and repair radii of selected sources (prompt 036).
 var supply_rings: SupplyRings
+## Range and sight circles of the selection (prompt 099).
+var range_rings: RangeRings
+## Slots of a formation move before and just after the order (prompt 099).
+var order_preview: OrderPreview
 ## Text lines for warnings and callouts (prompt 043).
 var subtitles: Subtitles
 ## Unit card (prompt 066), hidden until asked for.
@@ -101,6 +107,12 @@ func setup(main_node: Node3D) -> void:
 	supply_rings = SupplyRings.new()
 	add_child(supply_rings)
 	supply_rings.setup(main)
+	range_rings = RangeRings.new()
+	add_child(range_rings)
+	range_rings.setup(main)
+	order_preview = OrderPreview.new()
+	add_child(order_preview)
+	order_preview.setup(main)
 	minimap = Minimap.new()
 	add_child(minimap)
 	minimap.setup(main)
@@ -158,7 +170,7 @@ func setup(main_node: Node3D) -> void:
 		for picker: Node in [base_hud.get("build_picker"), base_hud.get("production_picker")]:
 			if picker != null:
 				picker.connect(&"info_requested", show_unit_card)
-	_parts = [waypoints, supply_rings, minimap, gizmo, unit_panel, command_bar, event_feed, top_bar, group_tabs]
+	_parts = [waypoints, supply_rings, range_rings, order_preview, minimap, gizmo, unit_panel, command_bar, event_feed, top_bar, group_tabs]
 	_layout()
 
 

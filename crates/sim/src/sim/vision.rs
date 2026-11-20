@@ -13,7 +13,7 @@ mod ambush;
 use super::Sim;
 use crate::command::{PlayerId, UnitId};
 use crate::hash::StableHasher;
-use crate::math::Vec2;
+use crate::math::{Fixed, Vec2};
 use crate::sim::Snapshot;
 use crate::vision::{CellState, PlayerVision, Viewshed, VisionGrid, VisionRules};
 use serde::{Deserialize, Serialize};
@@ -429,6 +429,17 @@ impl Sim {
         let mut snapshot = Snapshot::default();
         self.snapshot_into(Some(player), &mut snapshot);
         snapshot
+    }
+
+    /// Sight range of unit `unit` in game meters on level ground, as the
+    /// vision update uses it (weather already applied; the downhill bonus
+    /// of prompt 060 comes on top). `None` for unknown units.
+    pub fn sight_range(&self, unit: UnitId) -> Option<Fixed> {
+        let j = self.units.binary_search_by_key(&unit, |u| u.id).ok()?;
+        let t = self.units[j].unit_type as usize;
+        let v = &self.vision;
+        let cells = v.base.get(t).or_else(|| v.radius.get(t)).copied()?;
+        Some(Fixed::from_num(cells) * v.rules.cell_m())
     }
 
     /// The vision grid of this match (cell size, origin, dimensions).

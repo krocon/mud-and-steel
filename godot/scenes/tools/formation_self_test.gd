@@ -9,6 +9,7 @@ extends RefCounted
 ## they arrive turned that way; Y + click attack-moves, the Secure button +
 ## click secures an area, which the waypoint overlay draws.
 
+const Settings := preload("res://scenes/menu/settings.gd")
 const TIME_SCALE := 4.0
 const LINE := 1
 const WEDGE := 2
@@ -47,7 +48,20 @@ func run(test: Node) -> void:
 	motion.global_position = to
 	motion.button_mask = MOUSE_BUTTON_MASK_RIGHT
 	test.get_viewport().push_input(motion)
+	# Target preview (prompt 099): one mark per tank while the button is held.
+	var preview: Control = main.hud.order_preview
+	await test._frames(2)
+	test._check(preview.showing() and preview.marks == tanks.size(),
+		"target preview: %d marks for %d tanks while dragging" % [preview.marks, tanks.size()])
+	var fetches: int = preview.fetches
+	await test._frames(3)
+	test._check(preview.fetches == fetches, "the preview fetched slots again without a change")
+	var held: PackedFloat32Array = preview.slots.duplicate()
 	test._mouse(MOUSE_BUTTON_RIGHT, to, false)
+	await test._frames(1)
+	test._check(preview.showing() and preview.slots == held,
+		"the preview did not stay with the same slots after the release")
+	await _check_rings(test, main, tanks)
 	Engine.time_scale = TIME_SCALE
 	await test._ticks(5)
 	test._check(test._moving(tanks), "the tanks did not start after the right-drag")
@@ -56,6 +70,14 @@ func run(test: Node) -> void:
 		await test._frames(1)
 	await test._ticks(80)
 	Engine.time_scale = 1.0
+	test._check(not preview.showing(), "the target preview did not fade out")
+	# Each preview slot is where the tank stopped.
+	var worst_slot := 0.0
+	for k in held.size() / 4:
+		var i: int = test._indices([int(held[4 * k])] as Array[int])[0]
+		var p: Vector3 = sim_host.current_positions()[i]
+		worst_slot = maxf(worst_slot, Vector2(p.x, p.z).distance_to(Vector2(held[4 * k + 1], held[4 * k + 2])))
+	test._check(worst_slot < 1.0, "a tank stopped %.2f m from its preview mark" % worst_slot)
 	var positions: Array[Vector3] = []
 	var yaws := sim_host.unit_facing_yaws()
 	var want := atan2(-1.0, -0.0)
@@ -93,6 +115,29 @@ func run(test: Node) -> void:
 	test._check(sim_host.unit_drill(tanks[0]).x == 0.0, "stop did not end securing")
 	selection.set_formation(0)
 	print("self-test: formations ok (line facing east, %.2f rad off; attack-move, secure)" % worst)
+
+
+## Range circles (prompt 099): with the default settings the fire range of
+## every selected tank shows (the `unit_info` value), the sight circle only
+## while `show_ranges` is held, nothing with both set to never.
+func _check_rings(test: Node, main: Node3D, tanks: Array[int]) -> void:
+	var sim_host: SimHost = main.sim_host
+	var rings: Control = main.hud.range_rings
+	var fire := 0.0
+	for w: Dictionary in sim_host.unit_info(tanks[0])["weapons"]:
+		fire = maxf(fire, float(w["range_m"]))
+	var sight := sim_host.unit_sight_range(tanks[0])
+	await test._frames(2)
+	test._check(rings.radii.has(fire) and not rings.radii.has(sight),
+		"range circles %s: want the fire range %.1f m, no sight circle" % [rings.radii, fire])
+	Input.action_press("show_ranges")
+	await test._frames(2)
+	test._check(sight > 0.0 and rings.radii.has(sight), "sight circle %.1f m missing while the key is held: %s" % [sight, rings.radii])
+	Input.action_release("show_ranges")
+	Settings.set_value("range_circles", "never")
+	await test._frames(2)
+	test._check(rings.rings == 0, "%d circles with both settings at never" % rings.rings)
+	Settings.set_value("range_circles", "always")
 
 
 func _alive(sim_host: SimHost, ids: Array[int]) -> Array[int]:

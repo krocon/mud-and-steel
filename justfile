@@ -591,6 +591,11 @@ base-shots dir: build
 unit-marker-shots dir="build/unit-visibility" *args: build
     {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- "--unit-marker-shots={{ justfile_directory() }}/{{ dir }}" {{ args }}
 
+# Target preview and range circles in pictures (prompt 099; needs a window): line, wedge, column, circles; e.g. `just order-preview-shots build/order-preview --prefix=snow --biome=winter`
+[group('godot')]
+order-preview-shots dir="build/order-preview" *args: build
+    {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- "--order-preview-shots={{ justfile_directory() }}/{{ dir }}" {{ args }}
+
 # Record a trench strongpoint (prompt 052) as PNG files into a folder: overview, firing bay, dugouts, ring and wire (needs a window)
 [group('godot')]
 position-shots dir="build/positions": build

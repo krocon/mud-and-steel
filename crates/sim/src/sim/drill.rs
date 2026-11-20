@@ -558,6 +558,37 @@ impl Sim {
         Some(self.auto_formation(&group, center, target, forward, spacing))
     }
 
+    /// The slots a `FormationMove` (or `Secure`) of the own mobile `units`
+    /// to `target` would give them, computed by the same code as the order
+    /// (prompt 099: target preview). Read only. Per unit: id, slot and
+    /// whether the slot is blocked for the unit's size class (outside the
+    /// map, water, house, rock); the order then moves such a unit to the
+    /// nearest reachable spot on its way, the preview shows the slot itself.
+    pub fn formation_preview(
+        &self,
+        player: PlayerId,
+        units: &[UnitId],
+        target: Vec2,
+        formation: Formation,
+        facing: Option<Vec2>,
+    ) -> Vec<(UnitId, Vec2, bool)> {
+        let group = self.mobile_indices(player, units);
+        if group.is_empty() || !within_world(target) {
+            return Vec::new();
+        }
+        let (assigned, _) = self.formation_slots_for(&group, target, formation, facing);
+        let grid = &self.paths.grid;
+        assigned
+            .into_iter()
+            .map(|(i, slot)| {
+                let unit = &self.units[i];
+                let class = grid.class_of(unit.unit_type as usize);
+                let blocked = !self.map.contains(slot) || !grid.passable_at(class, slot);
+                (unit.id, slot, blocked)
+            })
+            .collect()
+    }
+
     /// Hashes the drills of the units that have one.
     pub(super) fn hash_drills(&self, h: &mut StableHasher) {
         let write = |h: &mut StableHasher, p: Vec2| {

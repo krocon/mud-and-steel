@@ -54,6 +54,10 @@ signal barrage_ordered(point: Vector3, smoke: bool)
 signal embark_ordered(target: int)
 ## The formation for the next moves changed (code, prompt 046).
 signal formation_changed(code: int)
+## A formation move or secure order went out (prompt 099: the target
+## preview shows the slots for a moment): target, facing (zero: direction
+## of travel), unit ids.
+signal formation_ordered(point: Vector3, facing: Vector3, ids: Array)
 
 const GroundPick := preload("res://scenes/camera/ground_pick.gd")
 const TransportOrders := preload("res://scenes/selection/transport_orders.gd")
@@ -475,6 +479,24 @@ func set_formation(code: int) -> void:
 		return
 	formation = code
 	formation_changed.emit(code)
+
+
+## The move a held right button would give now (prompt 099): `[target,
+## facing]` (facing zero below the drag threshold: direction of travel),
+## or `[]` while the right button is not held for a move.
+func pending_move() -> Array:
+	if not _right_pressing:
+		return []
+	var a: Variant = GroundPick.from_screen(camera, _right_press)
+	if a == null:
+		return []
+	var facing := Vector3.ZERO
+	if _right_drag.distance_to(_right_press) > DRAG_THRESHOLD:
+		var b: Variant = GroundPick.from_screen(camera, _right_drag)
+		if b != null:
+			facing = (b as Vector3) - (a as Vector3)
+			facing.y = 0.0
+	return [a as Vector3, facing]
 
 
 ## Right-drag (prompt 046): motion while the right button is held, and the

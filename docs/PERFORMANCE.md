@@ -291,6 +291,12 @@ the table above): standing 0.24–0.27 ms, battle 0.70–0.83 ms per frame. The
 minimap dots are one MultiMesh buffer filled by the bridge; the ground image
 is built once (`test_large`: 500 × 500 cells).
 
+Range circles (prompt 099, 20.11.2026): with the bench's dozen selected
+units only the active one gets circles. Battle views 0.95–1.12 ms "hud" with
+circles, 0.83–1.04 ms with both circle settings at `never` (same session):
+about 0.1 ms for the circles. The target preview costs nothing while no
+right button is held.
+
 
 ## Large city (prompt 079)
 

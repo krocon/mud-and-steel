@@ -75,6 +75,8 @@ const BINDABLE: Dictionary[String, String] = {
 	"unit_card": "SET_KEY_UNIT_CARD",
 	# Hold to show every own unit (prompt 164).
 	"show_units": "SET_KEY_SHOW_UNITS",
+	# Hold to show range and sight circles (prompt 099).
+	"show_ranges": "SET_KEY_SHOW_RANGES",
 }
 
 ## Actions that are not in `project.godot`, with their default key
@@ -97,6 +99,9 @@ const RUNTIME_ACTIONS: Dictionary[String, int] = {
 	"camera_tilt_down": KEY_PAGEDOWN,
 	# Held: every own unit shows its ring (prompt 164); Tab was free.
 	"show_units": KEY_TAB,
+	# Held: range and sight circles of the selection (prompt 099); the key
+	# under Escape (^ on German, ` on US keyboards) was free.
+	"show_ranges": KEY_QUOTELEFT,
 }
 
 ## Health bars over units (prompt 031): `damaged` (damaged and selected
@@ -107,6 +112,10 @@ const HEALTH_BAR_MODES: Array[String] = ["damaged", "selected", "never"]
 ## (faint markers under own soldiers, units near the cursor highlighted),
 ## `hover` (only near the cursor and with the show-all key), `off`.
 const UNIT_MARKER_MODES: Array[String] = ["always", "hover", "off"]
+
+## Range and sight circles of the selection (prompt 099, `range_rings.gd`):
+## `always` with a selection, `key` only while `show_ranges` is held, `never`.
+const CIRCLE_MODES: Array[String] = ["always", "key", "never"]
 
 ## Tilt-shift depth of field (`atmosphere.gd`, `DOF_MODES`): `off`, `subtle`
 ## (soft screen edges at close zoom, prompt 057), `miniature` (strong, like a
@@ -133,6 +142,9 @@ const DEFAULTS := {
 	"tilt_invert": false,
 	"health_bars": "damaged",
 	"unit_markers": "always",
+	# Range and sight circles, one of CIRCLE_MODES (prompt 099).
+	"range_circles": "always",
+	"sight_circles": "key",
 	# Tilt-shift depth of field, one of DOF_MODES.
 	"depth_of_field": "subtle",
 	# Shadows of passing clouds (prompt 087).

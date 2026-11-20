@@ -385,3 +385,93 @@ fn a_waypoint_waits_for_the_attack_move() {
     assert!(reached_first, "the attack-move target came first");
     assert!((unit(&sim, 0).position - second).length() < m(2));
 }
+
+/// Prompt 099: the target preview gives every unit exactly the slot the
+/// executed order gives it, for several formations, facings and group
+/// sizes, and leaves the state untouched.
+#[test]
+fn formation_preview_matches_the_executed_order() {
+    let facings = [
+        None,
+        Some(Vec2::from_meters(1, 0)),
+        Some(Vec2::from_meters(-1, 1)),
+    ];
+    for count in [1u32, 3, 5, 9, 14] {
+        let mut spawns: Vec<(PlayerId, &str, i32, i32, FireMode)> = Vec::new();
+        for k in 0..count as i32 {
+            let ty = if k % 2 == 0 { TANK } else { SQUAD };
+            spawns.push((P0, ty, -60 + (k % 5) * 25, -150 - (k / 5) * 25, HOLD));
+        }
+        let list: Vec<u32> = (0..count).collect();
+        for formation in Formation::ALL {
+            for facing in facings {
+                let mut sim = sim_with(flat(), &spawns);
+                let target = Vec2::from_meters(30, 120);
+                let before = sim.state_hash();
+                let preview = sim.formation_preview(P0, &ids(&list), target, formation, facing);
+                assert_eq!(sim.state_hash(), before, "the preview changes nothing");
+                assert_eq!(preview.len(), count as usize);
+                sim.step(&[formation_move(
+                    &list,
+                    target,
+                    formation,
+                    facing,
+                    Engage::All,
+                )]);
+                for &(id, slot, blocked) in &preview {
+                    assert!(!blocked, "flat open ground blocks nothing");
+                    match sim.drill_view(id) {
+                        Some(DrillView::Advance(s, _)) => assert_eq!(
+                            s, slot,
+                            "{formation:?} {facing:?} {count} units: unit {id:?}"
+                        ),
+                        other => panic!("unit {id:?} has no slot: {other:?}"),
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// Prompt 099: a slot in water is shown as blocked, not moved.
+#[test]
+fn formation_preview_marks_slots_in_water() {
+    // A lake east of x = 20 m (terrain 7: deep water).
+    let map = map_with(|x, _| if x >= 20 { 7 } else { 0 }, &[]);
+    let mut sim = sim_with(
+        map,
+        &[
+            (P0, TANK, -20, -100, HOLD),
+            (P0, TANK, 0, -100, HOLD),
+            (P0, TANK, 20, -100, HOLD),
+        ],
+    );
+    let preview = sim.formation_preview(
+        P0,
+        &ids(&[0, 1, 2]),
+        Vec2::from_meters(15, 0),
+        Formation::Line,
+        Some(Vec2::from_meters(0, 1)),
+    );
+    assert_eq!(preview.len(), 3);
+    assert!(
+        preview.iter().any(|p| p.2),
+        "a slot lies in the water: {preview:?}"
+    );
+    assert!(
+        preview.iter().any(|p| !p.2),
+        "a slot lies on land: {preview:?}"
+    );
+    sim.step(&[]);
+}
+
+/// Prompt 099: the sight range for the HUD circle is the catalog's (weather
+/// default: clear) and larger than zero.
+#[test]
+fn sight_range_is_read_per_unit() {
+    let sim = sim_with(flat(), &[(P0, TANK, 0, 0, HOLD), (P0, SQUAD, 20, 0, HOLD)]);
+    let tank = sim.sight_range(UnitId(0)).unwrap();
+    let squad = sim.sight_range(UnitId(1)).unwrap();
+    assert!(tank > m(0) && squad > m(0));
+    assert_eq!(sim.sight_range(UnitId(9)), None);
+}

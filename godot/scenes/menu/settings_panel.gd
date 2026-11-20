@@ -45,6 +45,8 @@ var tilt_invert_box: CheckBox
 var dof_option: OptionButton
 var health_bar_option: OptionButton
 var unit_marker_option: OptionButton
+var range_circle_option: OptionButton
+var sight_circle_option: OptionButton
 ## Option buttons of OPTIONS, by settings key (prompt 043).
 var options: Dictionary[String, OptionButton] = {}
 var language_option: OptionButton
@@ -273,12 +275,28 @@ func _interface_tab() -> Control:
 	unit_marker_option.item_selected.connect(func(index: int) -> void:
 		_change("unit_markers", Settings.UNIT_MARKER_MODES[index]))
 	tab.add_child(_row("SET_UNIT_MARKERS", unit_marker_option))
+	range_circle_option = _circle_option("range_circles")
+	tab.add_child(_row("SET_RANGE_CIRCLES", range_circle_option))
+	sight_circle_option = _circle_option("sight_circles")
+	tab.add_child(_row("SET_SIGHT_CIRCLES", sight_circle_option))
 	return _scrolled(tab)
+
+
+## Choice for a circle setting of prompt 099 (`Settings.CIRCLE_MODES`).
+func _circle_option(key: String) -> OptionButton:
+	var option := OptionButton.new()
+	for label in ["SET_CIRCLES_ALWAYS", "SET_CIRCLES_KEY", "SET_CIRCLES_NEVER"]:
+		option.add_item(label)
+	option.item_selected.connect(func(index: int) -> void:
+		_change(key, Settings.CIRCLE_MODES[index]))
+	return option
 
 
 func _refresh() -> void:
 	health_bar_option.select(maxi(Settings.HEALTH_BAR_MODES.find(Settings.get_value("health_bars")), 0))
 	unit_marker_option.select(maxi(Settings.UNIT_MARKER_MODES.find(Settings.get_value("unit_markers")), 0))
+	range_circle_option.select(maxi(Settings.CIRCLE_MODES.find(Settings.get_value("range_circles")), 0))
+	sight_circle_option.select(maxi(Settings.CIRCLE_MODES.find(Settings.get_value("sight_circles")), 0))
 	quality_option.select(maxi(GraphicsQuality.LEVELS.find(Settings.get_value("quality")), 0))
 	volume_slider.set_value_no_signal(Settings.get_value("master_volume"))
 	for key in bus_sliders:

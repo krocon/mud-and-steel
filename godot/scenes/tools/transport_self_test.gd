@@ -55,8 +55,19 @@ func run(test: Node) -> void:
 	test._check(not main.selection.selected.has(squad), "a passenger stays selected")
 	test._check(not main.selection._own_indices().has(test._indices(squad_only)[0]), "a passenger can be selected")
 
-	# Off again.
+	# Prompt 099: the riders' range circle shows around the tank (pale,
+	# dashed: they cannot fire like this); it is the same code path a
+	# towed gun takes.
 	main.selection._set_selection([tank])
+	await test._frames(2)
+	var squad_fire := 0.0
+	for w: Dictionary in sim_host.unit_info(squad)["weapons"]:
+		squad_fire = maxf(squad_fire, float(w["range_m"]))
+	var radii: Array[float] = main.hud.range_rings.radii
+	test._check(squad_fire > 0.0 and radii.has(squad_fire),
+		"riders' range circle %.1f m missing around the tank: %s" % [squad_fire, radii])
+
+	# Off again.
 	test._key(KEY_J)
 	Engine.time_scale = TIME_SCALE
 	await test._ticks(2)

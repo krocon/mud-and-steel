@@ -118,3 +118,9 @@ SET_KEY_CAMERA_TILT_DOWN,Tilt the camera flatter,Kamera flacher neigen
 SET_CAMERA_GIZMO,Show the camera control above the minimap,Kamerasteuerung über der Minimap anzeigen
 SET_TILT_INVERT,Invert tilting (drag up = flatter),Neigen umkehren (nach oben ziehen = flacher)
 SET_CAMERA_GIZMO_HINT,"Camera control: drag on it to turn and tilt the camera. On the map: hold Shift and drag with the middle mouse button (or hold Shift + Alt and move the mouse). Rotation and tilt are not stored; every match starts facing north.","Kamerasteuerung: darauf ziehen dreht und neigt die Kamera. Auf der Karte: Umschalt halten und mit der mittleren Maustaste ziehen (oder Umschalt + Alt halten und die Maus bewegen). Drehung und Neigung werden nicht gespeichert; jedes Gefecht beginnt mit Blick nach Norden."
+SET_RANGE_CIRCLES,Range circles,Reichweitenkreise
+SET_SIGHT_CIRCLES,Sight circles,Sichtkreise
+SET_CIRCLES_ALWAYS,Always with a selection,Immer bei Auswahl
+SET_CIRCLES_KEY,Only while the key is held,Nur mit gedrückter Taste
+SET_CIRCLES_NEVER,Never,Nie
+SET_KEY_SHOW_RANGES,Show range and sight circles (hold),Reichweiten- und Sichtkreise zeigen (halten)

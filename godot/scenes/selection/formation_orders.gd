@@ -32,6 +32,7 @@ static func move(selection: Control, ids: Array, point: Vector3, facing: Vector3
 		return
 	selection.sim_host.formation_move(PackedInt64Array(ids), point.x, point.z,
 		selection.formation, facing.x, facing.z, engage)
+	selection.formation_ordered.emit(point, facing, ids.duplicate())
 
 
 ## The selection secures the circle around `point`.
@@ -40,6 +41,7 @@ static func secure(selection: Control, point: Vector3, facing := Vector3.ZERO) -
 		return
 	selection.sim_host.secure_area(PackedInt64Array(selection.selected), point.x, point.z,
 		SECURE_RADIUS, selection.formation, facing.x, facing.z)
+	selection.formation_ordered.emit(point, facing, selection.selected.duplicate())
 	selection.move_ordered.emit(point)
 
 

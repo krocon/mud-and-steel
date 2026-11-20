@@ -4760,6 +4760,20 @@ the old dodging (`_keep_events_above_command_bar`,
 - **Waypoint lines** (`waypoints.gd`): for up to 48 selected units the
   remaining route and the queued waypoints (`SimHost.unit_waypoints`),
   projected to the screen; markers at queued waypoints, patrols in blue.
+- **Target preview** (`order_preview.gd`, prompt 099): the slots of a
+  formation move from `SimHost.formation_preview`, which calls
+  `Sim::formation_preview`, the very layout and assignment the order runs
+  (`formation_slots_for`), so preview and result agree (test
+  `formation_preview_matches_the_executed_order`). Fetched only when the
+  target, facing, selection or formation changed; blocked slots come back
+  flagged, not moved. `selection.pending_move()` gives the held right
+  button's target and facing, `selection.formation_ordered` the sent order.
+- **Range circles** (`range_rings.gd`, prompt 099): fire range from
+  `unit_info` (longest `weapons[].range_m`), `unit_indirect`,
+  `unit_aa_range` (flak only) and `SimHost.unit_sight_range`
+  (`Sim::sight_range`: the vision rules' range in cells times the cell
+  size, weather applied, no downhill bonus). Points follow `height_at`.
+  Settings `range_circles` / `sight_circles`, key `show_ranges`.
 - **Health bars** (`combat_view.gd`): setting `health_bars` = `damaged`
   (damaged and selected units, default), `selected` or `never`.
 - **Cost:** every part adds its `_process`/`_draw` time to `hud.usec`;

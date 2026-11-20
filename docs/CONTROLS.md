@@ -75,6 +75,8 @@ nearest selected unit takes over.
 |---|---|
 | Right click on the ground | Move there in the formation of the order grid; infantry halts to fight enemies in range on the way (prompt 046) |
 | Right drag on the ground | Move to where the drag started; the formation faces the drag direction and the units (tanks: their front armor) turn that way on arrival |
+| Hold right button for a move | Target preview: a mark per unit where it will stand (grey: blocked spot), prompt 099 |
+| ^ (key under Esc; \` on US keyboards) *(rebindable)*, held | Range and sight circles of the selection (prompt 099; Settings → Interface) |
 | Shift + right click | Add a waypoint: the units drive there after their current orders; lines and markers show the chain |
 | Right click on an enemy | Attack it |
 | Ctrl + right click (Cmd on macOS) | Fire at the ground point |
@@ -280,6 +282,25 @@ top bar. Everything else appears when there is something to do with it.
   *(rebindable)* to show every own unit. Settings → Interface → "Own
   units": markers and highlight (default), highlight near the pointer only,
   or off. Pictures: `just unit-marker-shots` (`build/unit-visibility/`).
+- **Target preview** (prompt 099): while the right button is held for a
+  move (and for a second after any move, attack-move or secure order) every
+  selected unit shows a flat mark where it will stand: a rectangle with a
+  nose for vehicles, a disc for squads, in the own color, turned to the
+  facing of the drag. A grey mark is a spot the unit cannot stand on
+  (water, house, rock); it stops at the nearest reachable spot instead. A
+  tractor towing a gun shows the gun's range circle at its mark.
+- **Range circles** (prompt 099): the fire range of the selected units as
+  a thin yellow circle on the ground (the longest-reaching weapon; mortars
+  and guns firing indirectly: minimum and maximum, the minimum dotted
+  orange; flak: its anti-aircraft range in light blue), the sight range
+  dotted pale blue. A tractor shows the circle of its towed gun, a vehicle
+  those of its riders, dashed and pale: they cannot fire like this. Up to
+  8 selected units get circles, more: only the active unit. Hold **^**
+  (the key under Esc; \` on US keyboards, *rebindable*) to show them;
+  Settings → Interface → "Range circles" / "Sight circles": always with a
+  selection (range default), only while the key is held (sight default),
+  or never. A circle is only a distance: woods, houses and slopes that
+  block the view or the shot are not cut out.
 - **Unit card** (under the top bar, left of the support column, prompt 066): all game values of a unit type and,
   for vehicles of the vehicle database, its technical data, in two tabs. It
   opens by a right click on a tile of the build menu or the production bar,

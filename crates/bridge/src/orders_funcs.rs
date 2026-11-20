@@ -103,6 +103,56 @@ impl SimHost {
             .map_or(-1, |f| i64::from(f.code()))
     }
 
+    /// Target preview of a formation move (prompt 099): the slots the
+    /// order `formation_move(unit_ids, x, z, formation, dx, dz, ..)` would
+    /// give the local player's mobile units, computed by the same
+    /// simulation code. Four floats per unit: id, slot x, slot z, blocked
+    /// (1: the slot is outside the map or impassable for the unit; the
+    /// order then stops it at the nearest reachable spot).
+    #[func]
+    #[allow(clippy::too_many_arguments)]
+    fn formation_preview(
+        &self,
+        unit_ids: PackedInt64Array,
+        x: f32,
+        z: f32,
+        formation: i64,
+        dx: f32,
+        dz: f32,
+    ) -> PackedFloat32Array {
+        let (Some(game), Some(target)) = (&self.game, point(x, z)) else {
+            return PackedFloat32Array::new();
+        };
+        let player = game.session.local_player();
+        let slots = game.sim.formation_preview(
+            player,
+            &to_unit_ids(&unit_ids),
+            target,
+            Formation::from_code(formation),
+            facing(dx, dz),
+        );
+        let mut out = Vec::with_capacity(slots.len() * 4);
+        for (id, slot, blocked) in slots {
+            out.extend([
+                id.0 as f32,
+                fixed_to_f32(slot.x),
+                fixed_to_f32(slot.y),
+                if blocked { 1.0 } else { 0.0 },
+            ]);
+        }
+        PackedFloat32Array::from(out)
+    }
+
+    /// Sight range of unit `id` in meters on level ground, as the fog of
+    /// war uses it (weather applied); 0 for unknown units (prompt 099).
+    #[func]
+    fn unit_sight_range(&self, id: i64) -> f32 {
+        let (Some(game), Ok(id)) = (&self.game, u32::try_from(id)) else {
+            return 0.0;
+        };
+        game.sim.sight_range(UnitId(id)).map_or(0.0, fixed_to_f32)
+    }
+
     /// Task of unit `id`: `(kind, x, z, radius)`, kind 0 none, 1
     /// attack-move (to x, z), 2 halted to fight, 3 securing the circle.
     #[func]
