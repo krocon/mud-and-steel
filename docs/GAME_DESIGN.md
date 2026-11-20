@@ -524,6 +524,22 @@ enemy: his units only show where they are seen, and short-lived traces
 (new field works, destruction, craters, wrecks) are not hidden yet: a
 "last seen state" is a later prompt.
 
+## Tactical pause and speed [provisional, 2026-11-20]
+
+Prompt 102: in single player (battles against the computer, missions,
+base matches) the game can be paused without the menu: the simulation
+stands, camera, selection, orders and the HUD go on, orders wait for the
+first tick after the pause. Speed ½×, 1×, 2× only changes how many ticks
+run per frame. Network matches have neither (a lockstep match cannot stop
+for one player); replays keep their own pause and speeds. The pause is no
+input of the simulation: replays and the golden hash do not see it.
+
+Key: **open, for the user to decide.** Default now Shift + P, Space keeps
+"jump to the newest event". Variant B: Space pauses (as in many tactical
+games) and the event jump moves to Shift + Space, the alarm jump of prompt
+101 to Ctrl + Space. Both are a rebinding in Settings → Controls; only the
+defaults would change.
+
 ## Victory [confirmed 2026-11-16]
 
 A player who has no living unit left is defeated (prompt 027). Since

@@ -4758,6 +4758,17 @@ the old dodging (`_keep_events_above_command_bar`,
   every 0.25 s; hits and losses come from `alerts.gd`. Click looks there,
   `event_jump` (Space) jumps to the newest. A message has its own lifetime;
   long ones (losses out of view) are pushed out last.
+- **Tactical pause** (`world/tactical_pause.gd`, prompt 102): pauses the
+  scene tree like the pause menu and sets the HUD layer, the camera rig and
+  the unit highlight to `PROCESS_MODE_ALWAYS` while it lasts. What runs on
+  frame time and so stands: `SimHost` (no tick: `pending` keeps the
+  orders), unit placement and interpolation (`main.gd`, the alpha does not
+  move), infantry animations, particles (smoke, fire, dust, tracks),
+  effects and wrecks, 3D sounds (paused with the tree). What keeps running:
+  shader time (water, wind in trees, cloud shadows), the music (Music bus
+  9 dB down), the HUD with its own clocks (event feed, alarms; the order
+  preview does not age). Nothing jumps on resume: positions are only
+  interpolated between the two last ticks. Speed: `SimHost.speed`.
 - **Alarms** (`alerts.gd`, prompt 101): the only consumer of own hits and
   losses for feed, minimap ping and the notices `ui_under_attack` /
   `ui_unit_lost` (`battle_sound.notice(.., per_place)`). `in_view` (the

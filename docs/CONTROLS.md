@@ -36,6 +36,8 @@ or not.
 | C *(rebindable)*, info field: toggle with the frame | Follow the active unit: it stays in the screen center while it drives. Zoom and rotation keep the mode; moving the map by hand (keys, screen edge, drag, trackpad, minimap, double click on the ground, Space) ends it. Without a selection it waits for the next one. The game remembers the choice for the next match |
 | Minimap: left click or drag | Look there |
 | Space *(rebindable)* | Jump to the newest event message |
+| Shift + P *(rebindable)*, or the pause tile beside the minimap | Tactical pause (single player, prompt 102): the game stands, camera, selection and orders keep working; orders start with the first tick after the pause. A line at the top says so; the music plays quieter. Esc opens the menu as before; closed again, the pause goes on. Not in network matches |
+| ] (right of Ü on German keyboards) *(rebindable)* | Game speed 1×, 2×, ½× (single player) |
 | Shift + Space *(rebindable)* | Jump to the newest alarm (fire on or loss of own units and buildings out of view); pressed again within 4 s: the next older one (prompt 101) |
 
 **Tilt** (prompt 096): the zoom sets how steeply the camera looks down

@@ -133,3 +133,5 @@ SET_TOOLTIP_ON,When the mouse rests on the map,Wenn die Maus auf der Karte ruht
 SET_TOOLTIP_KEY,Only while the key is held,Nur mit gedrückter Taste
 SET_TOOLTIP_OFF,Off,Aus
 SET_KEY_GROUND_TOOLTIP,Ground tooltip (hold),Gelände-Info (halten)
+SET_KEY_TACTICAL_PAUSE,Tactical pause (single player),Taktische Pause (Einzelspiel)
+SET_KEY_GAME_SPEED,"Game speed 1×, 2×, ½× (single player)","Spieltempo 1×, 2×, ½× (Einzelspiel)"

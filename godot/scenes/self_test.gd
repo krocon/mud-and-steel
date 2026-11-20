@@ -160,8 +160,9 @@ func _run() -> void:
 	# Last: the extra frames shift the match, and the positions test above
 	# depends on where the fight stands at its start (prompt 164).
 	await _highlight_test()
+	await _pause_test()
 	var ok := _errors.is_empty()
-	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, fog, combat, impact markers, cloud shadows, infantry, destruction, fire, craters, sound, music, water, hud, air, transport, supply, formations, crossings, replay, works, positions, experience, care and unit highlight ok" if ok else " ".join(_errors)
+	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, fog, combat, impact markers, cloud shadows, infantry, destruction, fire, craters, sound, music, water, hud, air, transport, supply, formations, crossings, replay, works, positions, experience, care, unit highlight and tactical pause ok" if ok else " ".join(_errors)
 	print("self-test %s: %s" % ["PASSED" if ok else "FAILED", message])
 	# Started from the menu flow test (prompt 027): it continues the flow.
 	var flow: Node = MatchSetup.flow_test
@@ -1429,6 +1430,66 @@ func _highlight_test() -> void:
 	Settings.set_value("unit_markers", "always")
 	highlight.forced_point = null
 	await _frames(1)
+
+
+## Tactical pause (prompt 102): the tick stands, the camera moves, an
+## order given in the pause starts with the first tick after it; the Esc
+## menu keeps the pause; the speed goes to 2x and back.
+func _pause_test() -> void:
+	var pause: Node = main.tactical_pause
+	var sim_host: SimHost = main.sim_host
+	_check(pause.available(), "no tactical pause in single player")
+	# A squad: tanks may stand by now without fuel or with a thrown track.
+	var units := _ids_of(true, true)
+	var mover := -1
+	var idle := sim_host.unit_idle()
+	var immobile := sim_host.unit_immobile()
+	for i in _indices(units):
+		# Not a tank that lost its track to a mine in the works test.
+		if idle[i] != 0 and immobile[i] == 0:
+			mover = sim_host.unit_ids()[i]
+			break
+	_check(mover >= 0, "pause test: no idle own unit")
+	pause.pause()
+	var tick := sim_host.current_tick()
+	await _frames(30)
+	_check(get_tree().paused and sim_host.current_tick() == tick,
+		"the tick ran on in the pause (%d -> %d)" % [tick, sim_host.current_tick()])
+	var rig: Node3D = main.camera_rig
+	var goal: Vector3 = rig.focus + Vector3(30.0, 0.0, 0.0)
+	rig.center_on(goal)
+	await _frames(90)
+	_check(Vector2(rig.focus.x, rig.focus.z).distance_to(Vector2(goal.x, goal.z)) < 2.0,
+		"the camera did not move in the pause (%s, wanted %s)" % [rig.focus, goal])
+	var start: Vector3 = Vector3.ZERO
+	if mover >= 0:
+		start = sim_host.current_positions()[_indices([mover] as Array[int])[0]]
+		# 25 m toward the map center: open ground in test_small.
+		var way := Vector3(-start.x, 0.0, -start.z).normalized() * 25.0
+		sim_host.move_units(PackedInt64Array([mover]), start.x + way.x, start.z + way.z)
+		await _frames(10)
+		_check(sim_host.current_tick() == tick and sim_host.unit_idle()[_indices([mover] as Array[int])[0]] != 0,
+			"the order of the pause was carried out before the pause ended")
+	main.game_menu.open_pause()
+	await _frames(2)
+	main.game_menu.close_pause()
+	await _frames(2)
+	_check(pause.active and get_tree().paused and sim_host.current_tick() == tick,
+		"the Esc menu ended the tactical pause")
+	pause.resume()
+	await _ticks(4)
+	_check(not get_tree().paused and sim_host.current_tick() > tick, "the game did not go on after the pause")
+	if mover >= 0:
+		await _ticks(30)
+		var k: int = _indices([mover] as Array[int])[0]
+		var now: Vector3 = sim_host.current_positions()[k]
+		_check(sim_host.unit_idle()[k] == 0 or now.distance_to(start) > 0.5,
+			"the order of the pause did not start after it (unit %d moved %.2f m, alive %d)" % [
+				mover, now.distance_to(start), sim_host.unit_alive()[k]])
+		sim_host.stop_units(PackedInt64Array([mover]))
+	pause.set_speed(2.0)
+	_check(is_equal_approx(sim_host.speed, 2.0), "speed 2x not set")
+	pause.set_speed(1.0)
 
 
 ## Cloud shadows (prompt 087): set in clear weather by day, drifting

@@ -95,6 +95,7 @@ func open_pause() -> void:
 	_shade.visible = true
 	if not is_networked():
 		get_tree().paused = true
+		_tactical("menu_opened")
 	resume_button.grab_focus()
 
 
@@ -117,6 +118,8 @@ func close_pause() -> void:
 	settings_panel.visible = false
 	_shade.visible = result_panel.visible
 	get_tree().paused = false
+	# A tactical pause (prompt 102) goes on after the menu.
+	_tactical("menu_closed")
 
 
 ## Writes the match as a saved game (prompt 038).
@@ -136,8 +139,16 @@ func surrender() -> void:
 
 
 func back_to_menu() -> void:
+	_tactical("resume")
 	get_tree().paused = false
 	get_tree().change_scene_to_file(MatchSetup.MENU_SCENE)
+
+
+## Calls `method` of the tactical pause (prompt 102) if the match has one.
+func _tactical(method: String) -> void:
+	var pause: Node = main.get("tactical_pause")
+	if pause != null:
+		pause.call(method)
 
 
 func _unhandled_input(event: InputEvent) -> void:

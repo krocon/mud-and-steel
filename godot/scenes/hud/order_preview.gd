@@ -79,7 +79,9 @@ func _process(delta: float) -> void:
 		if _age < 0.0:
 			slots = PackedFloat32Array()
 	elif _age >= 0.0:
-		_age += delta
+		# During the tactical pause (prompt 102) the order waits: so do its marks.
+		if not get_tree().paused:
+			_age += delta
 		if _age > HOLD_SECONDS:
 			_age = -1.0
 			slots = PackedFloat32Array()

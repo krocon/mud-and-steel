@@ -84,6 +84,9 @@ const BINDABLE: Dictionary[String, String] = {
 	"select_idle_all": "SET_KEY_SELECT_IDLE_ALL",
 	# Hold for the ground tooltip in its "key" mode (prompt 100).
 	"ground_tooltip": "SET_KEY_GROUND_TOOLTIP",
+	# Tactical pause and game speed in single player (prompt 102).
+	"tactical_pause": "SET_KEY_TACTICAL_PAUSE",
+	"game_speed": "SET_KEY_GAME_SPEED",
 }
 
 ## Actions that are not in `project.godot`, with their default key
@@ -119,6 +122,11 @@ const RUNTIME_ACTIONS: Dictionary[String, int] = {
 	# Prompt 100: the key right of the period (- on German, / on US
 	# keyboards) was free.
 	"ground_tooltip": KEY_SLASH,
+	# Prompt 102: Space stays "jump to the newest event" until the player
+	# decides (docs/GAME_DESIGN.md); Shift + P ("pause", plain P is patrol)
+	# and the key right of Ü (] on US keyboards) were free.
+	"tactical_pause": KEY_P | KEY_MASK_SHIFT,
+	"game_speed": KEY_BRACKETRIGHT,
 }
 
 ## Health bars over units (prompt 031): `damaged` (damaged and selected

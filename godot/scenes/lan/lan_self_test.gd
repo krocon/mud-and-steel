@@ -42,6 +42,12 @@ func _ready() -> void:
 	# The tanks would fight on their own (prompt 017) and decide the match
 	# before the surrender this test checks: both sides hold fire.
 	sim_host.set_hold_fire(_own_units(), true)
+	# Prompt 102: no tactical pause in a network match; the key does nothing.
+	var pause: Node = main.get("tactical_pause")
+	if pause != null:
+		pause.toggle()
+		if pause.active or get_tree().paused or pause.available():
+			_fail("the tactical pause works in a network match")
 
 
 func _process(_delta: float) -> void:

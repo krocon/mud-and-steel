@@ -11,7 +11,8 @@ extends PanelContainer
 ## - `column`, right of the map (placed by `hud.gd`): north (turns the
 ##   camera back, key `camera_reset_north`; only while the camera control
 ##   is switched off), zoom (back to the camera's starting distance) and
-##   pause (the pause menu; not in a network match, where nothing pauses).
+##   pause (the tactical pause of prompt 102; not in a network match,
+##   where nothing pauses).
 ## - Ground: `SimHost.minimap_image` (one pixel per 8 m vision cell:
 ##   terrain, hill shading, roads, forest, buildings), built once and all
 ##   drawn from the start; out of sight dimmed by the mask of
@@ -179,10 +180,11 @@ func _build_column() -> void:
 	pause_button = HudTile.new("pause", HudTheme.SMALL_TILE_PX)
 	pause_button.name = "Pause"
 	pause_button.visible = not sim_host.is_networked()
+	# The tactical pause (prompt 102); Esc opens the pause menu.
 	pause_button.pressed.connect(func() -> void:
-		var menu: Node = main.get("game_menu")
-		if menu != null:
-			menu.open_pause())
+		var pause: Node = main.get("tactical_pause")
+		if pause != null:
+			pause.toggle())
 	column.add_child(pause_button)
 	_set_tooltips()
 

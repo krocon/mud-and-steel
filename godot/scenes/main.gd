@@ -109,6 +109,7 @@ const BattleSound := preload("res://scenes/audio/battle_sound.gd")
 const MatchHud := preload("res://scenes/hud/hud.gd")
 const TransportView := preload("res://scenes/world/transport_view.gd")
 const UnitHighlight := preload("res://scenes/world/unit_highlight.gd")
+const TacticalPause := preload("res://scenes/world/tactical_pause.gd")
 const WorksView := preload("res://scenes/world/works_view.gd")
 const VeterancyView := preload("res://scenes/world/veterancy_view.gd")
 const CrossingView := preload("res://scenes/world/crossing_view.gd")
@@ -214,6 +215,8 @@ var hud: MatchHud
 var mission_hud: MissionHud
 ## Pause menu and result screen (prompt 027).
 var game_menu: CanvasLayer
+## Tactical pause and game speed in single player (prompt 102).
+var tactical_pause: TacticalPause
 var _loading: CanvasLayer
 var _loaded := false
 
@@ -419,6 +422,9 @@ func _ready() -> void:
 	game_menu.name = "GameMenu"
 	game_menu.main = self
 	add_child(game_menu)
+	tactical_pause = TacticalPause.new()
+	add_child(tactical_pause)
+	tactical_pause.setup(self)
 	if sim_host.is_replay():
 		var replay_bar := ReplayBar.new()
 		replay_bar.name = "ReplayBar"
