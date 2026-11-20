@@ -83,6 +83,8 @@ const NOTICE_COOLDOWN: Dictionary[String, float] = {
 	"ui_under_attack": 20.0, "ui_unit_lost": 6.0, "ui_unit_ready": 1.0, "ui_build_complete": 1.0,
 	"ui_order": 0.12, "ui_select": 0.12,
 }
+## Alarms of different places play at least this far apart (seconds).
+const PLACE_GAP := 1.5
 ## New units in the first seconds are the start forces, not production.
 const START_GRACE_SECONDS := 2.0
 
@@ -244,8 +246,7 @@ func on_combat_event(event: Dictionary) -> void:
 			if target >= 0:
 				var index := _index_of(target)
 				infantry = index >= 0 and str(_info(_types[index]).get("category", "")).begins_with("inf_")
-				if index >= 0 and _owners[index] == sim_host.local_player():
-					notice("ui_under_attack")
+				# The alarm for own units out of view: `hud/alerts.gd` (prompt 101).
 			var water := false
 			if event["surface"] == "ground" and float(event["caliber_mm"]) >= SoundClasses.SMALL_ARMS_MM:
 				water = sim_host.terrain_at(at.x, at.z) in [6, 7]
@@ -290,8 +291,7 @@ func crater_event(event: Dictionary) -> void:
 func _destroyed(unit: int, at: Vector3) -> void:
 	var index := _index_of(unit)
 	var type_id: String = str(_info(_types[index]).get("id", "")) if index >= 0 else ""
-	if index >= 0 and _owners[index] == sim_host.local_player():
-		notice("ui_unit_lost")
+	# The loss notice for own units out of view: `hud/alerts.gd` (prompt 101).
 	if type_id.contains("_inf_"):
 		return
 	if BaseView.is_building(type_id):
@@ -665,9 +665,11 @@ func active_loops() -> int:
 # --- Notices ------------------------------------------------------------------
 
 
-## Plays a notice (UI sound) unless the same one played within its cooldown.
-func notice(sound_class: String) -> void:
-	var cooldown: float = NOTICE_COOLDOWN.get(sound_class, 0.0)
+## Plays a notice (UI sound) unless the same one played within its
+## cooldown; `per_place` (alarms of `alerts.gd`, prompt 101, which keep a
+## cooldown per spot) only keeps two alarms apart by `PLACE_GAP`.
+func notice(sound_class: String, per_place := false) -> void:
+	var cooldown: float = PLACE_GAP if per_place else NOTICE_COOLDOWN.get(sound_class, 0.0)
 	if _time - float(_notice_at.get(sound_class, -INF)) < cooldown:
 		return
 	_notice_at[sound_class] = _time

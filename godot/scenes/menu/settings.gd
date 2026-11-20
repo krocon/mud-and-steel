@@ -77,6 +77,11 @@ const BINDABLE: Dictionary[String, String] = {
 	"show_units": "SET_KEY_SHOW_UNITS",
 	# Hold to show range and sight circles (prompt 099).
 	"show_ranges": "SET_KEY_SHOW_RANGES",
+	# Alarms and selection keys (prompt 101).
+	"alarm_jump": "SET_KEY_ALARM_JUMP",
+	"select_army": "SET_KEY_SELECT_ARMY",
+	"select_idle": "SET_KEY_SELECT_IDLE",
+	"select_idle_all": "SET_KEY_SELECT_IDLE_ALL",
 }
 
 ## Actions that are not in `project.godot`, with their default key
@@ -102,6 +107,13 @@ const RUNTIME_ACTIONS: Dictionary[String, int] = {
 	# Held: range and sight circles of the selection (prompt 099); the key
 	# under Escape (^ on German, ` on US keyboards) was free.
 	"show_ranges": KEY_QUOTELEFT,
+	# Prompt 101: Space jumps to the newest event, Shift + Space to the
+	# newest alarm; Shift + A (plain A is taken) the whole army; the period
+	# the next idle unit, Shift + period every idle one.
+	"alarm_jump": KEY_SPACE | KEY_MASK_SHIFT,
+	"select_army": KEY_A | KEY_MASK_SHIFT,
+	"select_idle": KEY_PERIOD,
+	"select_idle_all": KEY_PERIOD | KEY_MASK_SHIFT,
 }
 
 ## Health bars over units (prompt 031): `damaged` (damaged and selected

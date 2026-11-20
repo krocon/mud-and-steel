@@ -155,6 +155,9 @@ var _right_pressing := false
 var _right_shift := false
 var _right_press := Vector2.ZERO
 var _right_drag := Vector2.ZERO
+## Armed per unit type index (`select_army`), last unit of `select_idle`.
+var _armed_types := {}
+var _last_idle := -1
 
 
 func _ready() -> void:
@@ -237,6 +240,12 @@ func _on_action(event: InputEvent) -> bool:
 		TransportOrders.unlimber(self)
 	elif event.is_action_pressed("order_formation", false, true):
 		set_formation((formation + 1) % FormationOrders.LABELS.size())
+	elif event.is_action_pressed("select_army", false, true):
+		select_army()
+	elif event.is_action_pressed("select_idle", false, true):
+		select_idle(false)
+	elif event.is_action_pressed("select_idle_all", false, true):
+		select_idle(true)
 	else:
 		for action: String in BARRAGE_ACTIONS:
 			if event.is_action_pressed(action, false, true):
@@ -331,7 +340,8 @@ func _on_left_button(button: InputEventMouseButton) -> void:
 	elif _double_click:
 		var id := _unit_at(button.position)
 		if id >= 0:
-			_select_same_type(id)
+			# Ctrl / Cmd: the whole map, not only the screen (prompt 101).
+			_select_same_type(id, button.ctrl_pressed or button.meta_pressed)
 		else:
 			_center_on_ground(button.position)
 	else:
@@ -685,7 +695,7 @@ func _drawn_position(index: int) -> Vector3:
 	return previous[index].lerp(to, sim_host.interpolation_alpha())
 
 
-func _select_same_type(id: int) -> void:
+func _select_same_type(id: int, whole_map := false) -> void:
 	if id < 0:
 		_set_selection([])
 		return
@@ -695,7 +705,7 @@ func _select_same_type(id: int) -> void:
 	var visible_rect := get_viewport().get_visible_rect()
 	var result: Array[int] = []
 	for i in _own_indices():
-		if types[i] == wanted and _on_screen(i, visible_rect):
+		if types[i] == wanted and (whole_map or _on_screen(i, visible_rect)):
 			result.append(ids[i])
 	# Without the active unit among them: the one nearest the screen center.
 	_set_selection(result, -1, camera_rig.focus if camera_rig != null else null)
@@ -808,6 +818,53 @@ func _other_indices() -> Array[int]:
 
 func _index_of(id: int) -> int:
 	return sim_host.unit_ids().find(id)
+
+
+## Selects the whole army (prompt 101): every selectable own unit with a
+## weapon that is not a structure. Unarmed trucks, tractors, ambulances
+## and the like stay out (their catalog entry has no weapon).
+func select_army() -> void:
+	var ids := sim_host.unit_ids()
+	var result: Array[int] = []
+	for i in _own_indices():
+		if not is_structure.call(ids[i]) and _armed(ids[i]):
+			result.append(ids[i])
+	_set_selection(result, -1, camera_rig.focus if camera_rig != null else null)
+
+
+## Whether unit `id` carries a weapon (cached per unit type).
+func _armed(id: int) -> bool:
+	var type_index := sim_host.unit_types()[_index_of(id)]
+	if not _armed_types.has(type_index):
+		_armed_types[type_index] = not (sim_host.unit_info(id).get("weapons", []) as Array).is_empty()
+	return _armed_types[type_index]
+
+
+## Idle own units (prompt 101, `SimHost.unit_idle`): no structures. With
+## `all` every one is selected; otherwise the next one after the last
+## picked is selected and the camera goes there.
+func select_idle(all: bool) -> void:
+	var ids := sim_host.unit_ids()
+	var idle := sim_host.unit_idle()
+	var found: Array[int] = []
+	for i in _own_indices():
+		if i < idle.size() and idle[i] != 0 and not is_structure.call(ids[i]):
+			found.append(ids[i])
+	if found.is_empty():
+		return
+	if all:
+		_set_selection(found, -1, camera_rig.focus if camera_rig != null else null)
+		return
+	var next := found[0]
+	for id in found:
+		if id > _last_idle:
+			next = id
+			break
+	_last_idle = next
+	_set_selection([next], next)
+	if camera_rig != null:
+		set_follow(false)
+		camera_rig.center_on(sim_host.current_positions()[_index_of(next)])
 
 
 ## Index of `id` if it is an existing living own unit, else -1.

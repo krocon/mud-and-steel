@@ -2,9 +2,12 @@ extends VBoxContainer
 ## Event feed (prompt 031), at the left edge.
 ##
 ## Short messages with a place: own unit lost, building completed, unit
-## produced, enemy sighted (at most every SIGHTED_SECONDS), own units under
-## fire (at most every FIRE_SECONDS; every hit on an own unit also pings
-## the minimap, at most one ping per PING_SECONDS within PING_RADIUS).
+## produced, enemy sighted (at most every SIGHTED_SECONDS). Hits on own
+## units and buildings and own losses come from `alerts.gd` (prompt 101):
+## loud only where the camera does not look; it also pings the minimap
+## (`add_ping`: at most one ping per PING_SECONDS within PING_RADIUS).
+## Messages with a longer lifetime (losses out of view) are not pushed out
+## by newer short ones.
 ## Clicking a message moves the camera there; the `event_jump` action
 ## (Space) jumps to the newest one. Messages fade after LIFETIME seconds.
 ##
@@ -23,7 +26,6 @@ const MAX_MESSAGES := 6
 const LIFETIME := 12.0
 const POLL := 0.25
 const SIGHTED_SECONDS := 15.0
-const FIRE_SECONDS := 10.0
 const PING_SECONDS := 2.0
 const PING_RADIUS := 60.0
 ## Prompt 049: "man wounded" at most every WOUNDED_SECONDS.
@@ -48,7 +50,6 @@ var _known_own: Dictionary[int, bool] = {}
 var _seen_enemies: Dictionary[int, bool] = {}
 var _completed: Dictionary[int, bool] = {}
 var _last_sighted := -1e9
-var _last_fire := -1e9
 var _pings: Array[Dictionary] = []
 ## Owner per unit id, refreshed every poll (hits come many per frame).
 var _owners: Dictionary[int, int] = {}
@@ -68,9 +69,6 @@ func setup(main_node: Node3D) -> void:
 	offset_bottom = 120
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_theme_constant_override(&"separation", 2)
-	var combat: Node = main.get("combat_view")
-	if combat != null:
-		combat.combat_event.connect(_on_combat_event)
 
 
 func _process(delta: float) -> void:
@@ -82,11 +80,12 @@ func _process(delta: float) -> void:
 		_poll()
 	for child: Control in get_children():
 		var age: float = _now - float(child.get_meta(&"time", _now))
-		if age > LIFETIME:
+		var lifetime: float = child.get_meta(&"lifetime", LIFETIME)
+		if age > lifetime:
 			remove_child(child)
 			child.queue_free()
-		elif age > LIFETIME - 2.0:
-			child.modulate.a = (LIFETIME - age) / 2.0
+		elif age > lifetime - 2.0:
+			child.modulate.a = (lifetime - age) / 2.0
 	usec += Time.get_ticks_usec() - began
 
 
@@ -115,8 +114,8 @@ func jump_to(index: int) -> void:
 		main.selection.set_follow(false)
 
 
-## Adds a message (also used by the self-test).
-func post(kind: String, text: String, position: Vector3) -> void:
+## Adds a message (also used by the self-test); `lifetime` in seconds.
+func post(kind: String, text: String, position: Vector3, lifetime := LIFETIME) -> void:
 	history.append({"kind": kind, "text": text, "position": position, "time": _now})
 	var index := history.size() - 1
 	var b := Button.new()
@@ -128,31 +127,22 @@ func post(kind: String, text: String, position: Vector3) -> void:
 	b.add_theme_color_override(&"font_color", COLORS.get(kind, Color.WHITE))
 	b.tooltip_text = tr("HUD_TIP_FEED") % Settings.action_key_name("event_jump")
 	b.set_meta(&"time", _now)
+	b.set_meta(&"lifetime", lifetime)
 	b.pressed.connect(jump_to.bind(index))
 	add_child(b)
 	while get_child_count() > MAX_MESSAGES:
+		# The oldest short message goes first; long ones only if all are.
 		var old := get_child(0)
+		for child in get_children():
+			if float(child.get_meta(&"lifetime", LIFETIME)) <= LIFETIME:
+				old = child
+				break
 		remove_child(old)
 		old.queue_free()
 
 
-func _on_combat_event(event: Dictionary) -> void:
-	var type: String = event["type"]
-	if type == "destroyed":
-		var id: int = event["unit"]
-		if _owner_of(id) == sim_host.local_player():
-			post("lost", tr("HUD_FEED_LOST") % _name_of(id), event["position"])
-	elif type == "hit" and int(event["target"]) >= 0:
-		if _owner_of(event["target"]) != sim_host.local_player():
-			return
-		var at: Vector3 = event["position"]
-		_add_ping(at)
-		if _now - _last_fire >= FIRE_SECONDS:
-			_last_fire = _now
-			post("fire", tr("HUD_FEED_UNDER_FIRE") % _name_of(event["target"]), at)
-
-
-func _add_ping(at: Vector3) -> void:
+## Pings the minimap at `at` unless a ping is near it already.
+func add_ping(at: Vector3) -> void:
 	_pings = _pings.filter(func(p: Dictionary) -> bool: return _now - float(p.time) < PING_SECONDS)
 	for p in _pings:
 		if (p.at as Vector3).distance_to(at) < PING_RADIUS:
@@ -182,16 +172,16 @@ func _poll() -> void:
 			if not _known_own.has(id):
 				_known_own[id] = true
 				if _initialized and sim_host.unit_is_crew(id):
-					post("lost", tr("HUD_FEED_CREW_BAILED") % _name_of(id), positions[i])
+					post("lost", tr("HUD_FEED_CREW_BAILED") % name_of(id), positions[i])
 				elif _initialized and not structures.has(id):
-					post("ready", tr("HUD_FEED_READY") % _name_of(id), positions[i])
+					post("ready", tr("HUD_FEED_READY") % name_of(id), positions[i])
 		elif sim_host.relation(owners[i]) == 2:
 			visible_enemies[id] = true
 			if not _seen_enemies.has(id) and newly_sighted < 0:
 				newly_sighted = i
 	if _initialized and newly_sighted >= 0 and _now - _last_sighted >= SIGHTED_SECONDS:
 		_last_sighted = _now
-		post("sighted", tr("HUD_FEED_SIGHTED") % _name_of(ids[newly_sighted]), positions[newly_sighted])
+		post("sighted", tr("HUD_FEED_SIGHTED") % name_of(ids[newly_sighted]), positions[newly_sighted])
 	_seen_enemies = visible_enemies
 	_poll_wounded(ids, owners, positions, me)
 	for id: int in structures:
@@ -227,16 +217,16 @@ func _poll_wounded(ids: PackedInt64Array, owners: PackedInt32Array, positions: P
 	_wounded = now_wounded
 	if newly >= 0 and _now - _last_wounded >= WOUNDED_SECONDS:
 		_last_wounded = _now
-		post("wounded", tr("HUD_FEED_WOUNDED") % _name_of(ids[newly]), positions[newly])
+		post("wounded", tr("HUD_FEED_WOUNDED") % name_of(ids[newly]), positions[newly])
 
 
-func _owner_of(id: int) -> int:
+func owner_of(id: int) -> int:
 	if _owners.has(id):
 		return _owners[id]
 	var index := sim_host.unit_ids().find(id)
 	return sim_host.unit_owners()[index] if index >= 0 else -1
 
 
-func _name_of(id: int) -> String:
+func name_of(id: int) -> String:
 	var info := sim_host.unit_info(id)
 	return info.get("name", tr("HUD_FEED_UNIT"))

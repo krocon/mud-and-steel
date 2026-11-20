@@ -90,6 +90,8 @@ func run(test: Node) -> void:
 	Engine.time_scale = 1.0
 	await _layout_test(test, main, hud, tanks)
 	await _events_test(test, main, hud.event_feed)
+	await _alerts_test(test, main, hud.alerts, tanks)
+	await _selection_keys_test(test, main, tanks)
 	await _health_bar_test(test, main)
 	await _unit_values_test(test, main, hud, tanks)
 	main.selection.set_selection([])
@@ -488,6 +490,93 @@ func _events_test(test: Node, main: Node3D, feed: Control) -> void:
 	test._check(Vector2(focus.x, focus.z).distance_to(Vector2(point.x, point.z)) < 2.0,
 		"Space moved the camera to %s, expected %s" % [focus, point])
 	test._check(feed.get_child_count() >= 1, "no event message shown")
+
+
+## Prompt 101: a hit in view stays quiet, one out of view alarms (sound,
+## arrow pointing at it, a click on the arrow jumps there); two places
+## alarm twice, the same place only once.
+func _alerts_test(test: Node, main: Node3D, alerts: Control, tanks: Array[int]) -> void:
+	var sound: Node = main.get("battle_sound")
+	var tank: int = tanks[0]
+	var here: Vector3 = main.sim_host.current_positions()[test._indices([tank] as Array[int])[0]]
+	main.camera_rig.snap_to(here, 60.0, 0.0)
+	await test._frames(3)
+	var raised: int = alerts.raised
+	var heard: int = sound.notices.get("ui_under_attack", 0) if sound != null else 0
+	alerts.report("fire", tank, here)
+	await test._frames(2)
+	test._check(alerts.raised == raised and alerts.arrows.is_empty(),
+		"a hit in view raised an alarm (%d) or an arrow (%d)" % [alerts.raised - raised, alerts.arrows.size()])
+	# Out of view: east of the camera, on the map (test_small: 500 m).
+	var far := Vector3(minf(here.x + 180.0, 220.0), 0.0, here.z)
+	far.y = main.sim_host.height_at(far.x, far.z)
+	alerts.report("fire", tank, far)
+	await test._frames(2)
+	test._check(alerts.raised == raised + 1, "a hit out of view raised %d alarms" % (alerts.raised - raised))
+	if sound != null:
+		test._check(sound.notices.get("ui_under_attack", 0) == heard + 1, "no alarm sound for a hit out of view")
+	test._check(alerts.arrows.size() == 1, "%d edge arrows for one place" % alerts.arrows.size())
+	if alerts.arrows.size() == 1:
+		var camera: Camera3D = main.camera
+		var center := alerts.get_viewport_rect().get_center()
+		var want: Vector2 = (camera.unproject_position(far) - center).normalized()
+		var dir: Vector2 = alerts.arrows[0].dir
+		test._check(dir.dot(want) > 0.95, "the arrow points %s, the place lies %s" % [dir, want])
+	# The same place again: no second alarm; another place: at once.
+	alerts.report("fire", tank, far + Vector3(10.0, 0.0, 0.0))
+	var other := Vector3(maxf(here.x - 180.0, -220.0), 0.0, here.z)
+	other.y = main.sim_host.height_at(other.x, other.z)
+	alerts.report("building", tank, other)
+	await test._frames(2)
+	test._check(alerts.raised == raised + 2, "two places gave %d alarms, expected 2" % (alerts.raised - raised))
+	test._check(alerts.arrows.size() == 2, "%d arrows for two places" % alerts.arrows.size())
+	var east: Dictionary = {}
+	for a: Dictionary in alerts.arrows:
+		if (a.at as Vector3).distance_to(far) < 1.0:
+			east = a
+	test._check(not east.is_empty() and alerts.click_arrow(east.screen), "no arrow to click for the east place")
+	await test._frames(90)
+	var focus: Vector3 = main.camera_rig.focus
+	test._check(Vector2(focus.x, focus.z).distance_to(Vector2(far.x, far.z)) < 2.0,
+		"the arrow click moved the camera to %s, expected %s" % [focus, far])
+	# Shift + Space: the newest alarm (the building in the west).
+	test._check(alerts.jump_to_alarm(), "the alarm jump found no alarm")
+	await test._frames(90)
+	focus = main.camera_rig.focus
+	test._check(Vector2(focus.x, focus.z).distance_to(Vector2(other.x, other.z)) < 2.0,
+		"the alarm jump moved the camera to %s, expected %s" % [focus, other])
+	main.camera_rig.snap_to(here, 120.0, 0.0)
+	await test._frames(2)
+
+
+## Prompt 101: the whole army holds no structure and no unarmed unit; the
+## idle key finds a standing unit and never a driving one.
+func _selection_keys_test(test: Node, main: Node3D, tanks: Array[int]) -> void:
+	var selection: Control = main.selection
+	var sim_host: SimHost = main.sim_host
+	selection.select_army()
+	var army: Array[int] = selection.selected.duplicate()
+	var bad := army.filter(func(id: int) -> bool:
+		return selection.is_structure.call(id) or (sim_host.unit_info(id).get("weapons", []) as Array).is_empty())
+	test._check(army.size() >= tanks.size() and bad.is_empty(),
+		"whole army: %d units, %s structures or unarmed" % [army.size(), bad])
+	# One tank drives off; it must not count as idle.
+	var mover: int = tanks[0]
+	var at: Vector3 = sim_host.current_positions()[test._indices([mover] as Array[int])[0]]
+	sim_host.move_units(PackedInt64Array([mover]), at.x + 60.0, at.z)
+	await test._ticks(3)
+	selection.select_idle(true)
+	var idle: Array[int] = selection.selected.duplicate()
+	test._check(not idle.has(mover), "the driving tank %d counts as idle" % mover)
+	var flags := sim_host.unit_idle()
+	var wrong := idle.filter(func(id: int) -> bool: return flags[test._indices([id] as Array[int])[0]] == 0)
+	test._check(not idle.is_empty() and wrong.is_empty(), "idle selection %s, not idle among them %s" % [idle, wrong])
+	selection.select_idle(false)
+	test._check(selection.selected.size() == 1 and idle.has(selection.selected[0]),
+		"the idle key selected %s" % [selection.selected])
+	sim_host.stop_units(PackedInt64Array([mover]))
+	await test._ticks(2)
+	selection.set_selection([])
 
 
 func _health_bar_test(test: Node, main: Node3D) -> void:

@@ -1038,6 +1038,21 @@ impl SimHost {
             .collect()
     }
 
+    /// Whether every unit is idle (prompt 101: no move, waypoint, attack,
+    /// target of its own, indirect fire, attack-move, secured area or
+    /// engineer job; not riding or towed). Same order as `unit_ids`.
+    #[func]
+    fn unit_idle(&self) -> PackedByteArray {
+        let Some(game) = &self.game else {
+            return PackedByteArray::new();
+        };
+        self.current
+            .units
+            .iter()
+            .map(|u| u8::from(game.sim.unit_idle(u.id)))
+            .collect()
+    }
+
     /// Unit positions of the latest snapshot.
     #[func]
     fn current_positions(&self) -> PackedVector3Array {

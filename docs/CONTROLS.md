@@ -36,6 +36,7 @@ or not.
 | C *(rebindable)*, info field: toggle with the frame | Follow the active unit: it stays in the screen center while it drives. Zoom and rotation keep the mode; moving the map by hand (keys, screen edge, drag, trackpad, minimap, double click on the ground, Space) ends it. Without a selection it waits for the next one. The game remembers the choice for the next match |
 | Minimap: left click or drag | Look there |
 | Space *(rebindable)* | Jump to the newest event message |
+| Shift + Space *(rebindable)* | Jump to the newest alarm (fire on or loss of own units and buildings out of view); pressed again within 4 s: the next older one (prompt 101) |
 
 **Tilt** (prompt 096): the zoom sets how steeply the camera looks down
 (45° close, 65° far away), as before; your tilt is added to that and stays
@@ -54,6 +55,10 @@ Camera; the keys and the drag on the map work without it.
 | Shift + left click | Add or remove a unit |
 | Left drag | Selection box (buildings only if nothing else is in it) |
 | Double click on a unit | All visible own units of that type |
+| Ctrl + double click (Cmd on macOS) on a unit | All own units of that type on the whole map (prompt 101) |
+| Shift + A *(rebindable)* | The whole army: every own unit with a weapon, no structures; unarmed trucks, tractors and other carriers stay out (prompt 101) |
+| . *(rebindable)* | Next idle own unit (stands without an order: no move, waypoint, attack, target it fires at, barrage, attack-move, secured area or engineer job), the camera goes there; again: the next one |
+| Shift + . *(rebindable)* | Every idle own unit |
 | Ctrl + 1…9 (Cmd on macOS) | Store the selection as group (with the current formation) |
 | 1…9 | Recall the group (and its formation); twice quickly: camera there |
 | Unit panel: click a tile | Select only that unit |
@@ -273,6 +278,15 @@ top bar. Everything else appears when there is something to do with it.
   goes there). The tab of the group that is selected right now is lit.
 - **Events** (left edge): unit lost, building completed, unit ready, enemy
   sighted, under fire. Click one to look there.
+- **Alarms** (prompt 101): fire on own units and buildings and own losses
+  sound, ping the minimap and show "under fire" / "building under fire" /
+  "lost" only where the camera does not look. In view a hit stays quiet
+  and a loss shows in the feed without the alarm sound. Out of view a small
+  arrow at the screen edge points at the place (yellow: fire, red: loss)
+  for 6 s; click it to look there. Events within 60 m are one place: it
+  alarms again after 10 s (losses 3 s), another place alarms at once.
+  Losses out of view stay 30 s in the feed and are not pushed out by
+  newer messages. Replays and spectators get no alarms.
 - **Health bars**: over damaged and selected units; Settings → Interface
   can limit them to selected units or hide them.
 - **Own units** (prompt 164): a small light ring with a dark rim under

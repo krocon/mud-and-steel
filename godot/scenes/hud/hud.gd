@@ -41,6 +41,7 @@ const Waypoints := preload("res://scenes/hud/waypoints.gd")
 const SupplyRings := preload("res://scenes/hud/supply_rings.gd")
 const RangeRings := preload("res://scenes/hud/range_rings.gd")
 const OrderPreview := preload("res://scenes/hud/order_preview.gd")
+const Alerts := preload("res://scenes/hud/alerts.gd")
 const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
 const HudTheme := preload("res://scenes/hud/hud_theme.gd")
 const Subtitles := preload("res://scenes/hud/subtitles.gd")
@@ -70,6 +71,8 @@ var supply_rings: SupplyRings
 var range_rings: RangeRings
 ## Slots of a formation move before and just after the order (prompt 099).
 var order_preview: OrderPreview
+## Alarms out of view and their edge arrows (prompt 101).
+var alerts: Alerts
 ## Text lines for warnings and callouts (prompt 043).
 var subtitles: Subtitles
 ## Unit card (prompt 066), hidden until asked for.
@@ -157,6 +160,9 @@ func setup(main_node: Node3D) -> void:
 	add_child(event_feed)
 	event_feed.setup(main)
 	event_feed.ping.connect(minimap.add_ping)
+	alerts = Alerts.new()
+	add_child(alerts)
+	alerts.setup(main, event_feed)
 	subtitles = Subtitles.new()
 	add_child(subtitles)
 	unit_card = UnitCard.new()
@@ -170,7 +176,7 @@ func setup(main_node: Node3D) -> void:
 		for picker: Node in [base_hud.get("build_picker"), base_hud.get("production_picker")]:
 			if picker != null:
 				picker.connect(&"info_requested", show_unit_card)
-	_parts = [waypoints, supply_rings, range_rings, order_preview, minimap, gizmo, unit_panel, command_bar, event_feed, top_bar, group_tabs]
+	_parts = [waypoints, supply_rings, range_rings, order_preview, minimap, gizmo, unit_panel, command_bar, event_feed, alerts, top_bar, group_tabs]
 	_layout()
 
 

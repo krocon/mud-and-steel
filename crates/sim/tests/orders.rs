@@ -239,3 +239,32 @@ fn chains_are_deterministic_and_in_the_hash() {
     let (without, _) = run(false);
     assert_ne!(with, without, "the queue is part of the state hash");
 }
+
+/// Prompt 101: a standing unit without orders is idle; with a move order it
+/// is not, until it arrives; with waypoints neither.
+#[test]
+fn idle_follows_the_orders() {
+    let mut sim = quiet();
+    assert!(sim.unit_idle(TANK), "a fresh tank stands idle");
+    let start = position(&sim, TANK);
+    let target = start + Vec2::from_meters(20, 0);
+    sim.step(&[PlayerCommand::new(
+        P0,
+        Command::MoveTo {
+            units: vec![TANK],
+            target,
+        },
+    )]);
+    assert!(!sim.unit_idle(TANK), "a moving tank is not idle");
+    for _ in 0..2000 {
+        sim.step(&[]);
+        if sim.unit_idle(TANK) {
+            break;
+        }
+    }
+    assert!(sim.unit_idle(TANK), "the tank is idle again after arriving");
+    assert!(distance(position(&sim, TANK), target) < Fixed::from_num(3));
+    sim.step(&[queue(&[TANK], start), queue(&[TANK], target)]);
+    assert!(!sim.unit_idle(TANK), "a tank with waypoints is not idle");
+    assert!(!sim.unit_idle(UnitId(9999)), "unknown units are not idle");
+}

@@ -480,6 +480,11 @@ impl Works {
 }
 
 impl Sim {
+    /// Whether unit `i` has an engineer job (prompt 101: idle units).
+    pub(super) fn has_work_job(&self, i: usize) -> bool {
+        self.works.jobs.contains_key(&self.units[i].id)
+    }
+
     fn works_index_of(&self, id: UnitId) -> Option<usize> {
         self.units.binary_search_by_key(&id, |u| u.id).ok()
     }

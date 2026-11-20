@@ -596,6 +596,11 @@ unit-marker-shots dir="build/unit-visibility" *args: build
 order-preview-shots dir="build/order-preview" *args: build
     {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- "--order-preview-shots={{ justfile_directory() }}/{{ dir }}" {{ args }}
 
+# Alarms out of view in a picture (prompt 101; needs a window): edge arrows for fire and a loss off the screen
+[group('godot')]
+alert-shots dir="build/alerts" *args: build
+    {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- "--alert-shots={{ justfile_directory() }}/{{ dir }}" {{ args }}
+
 # Record a trench strongpoint (prompt 052) as PNG files into a folder: overview, firing bay, dugouts, ring and wire (needs a window)
 [group('godot')]
 position-shots dir="build/positions": build

@@ -76,6 +76,27 @@ fn idle(unit: &Unit) -> bool {
 }
 
 impl Sim {
+    /// Whether unit `id` is idle (prompt 101, the "idle unit" key): alive,
+    /// not riding or towed, no target to drive to, no waypoints, no attack
+    /// order and no target it fires at by itself, no indirect fire order,
+    /// no attack-move or secured area, no engineer job. Read only.
+    pub fn unit_idle(&self, id: UnitId) -> bool {
+        let Ok(i) = self.units.binary_search_by_key(&id, |u| u.id) else {
+            return false;
+        };
+        let u = &self.units[i];
+        u.alive()
+            && u.link.is_none()
+            && u.target.is_none()
+            && matches!(u.route, Route::None)
+            && u.orders.is_empty()
+            && u.combat.attack.is_none()
+            && u.combat.auto_target.is_none()
+            && !u.drill.busy()
+            && !self.has_indirect_order(i)
+            && !self.has_work_job(i)
+    }
+
     /// Drops the queues of the units of `command` if it replaces their
     /// orders. Called before the command is applied.
     pub(super) fn drop_replaced_queues(&mut self, command: &PlayerCommand) {

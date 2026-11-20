@@ -124,3 +124,7 @@ SET_CIRCLES_ALWAYS,Always with a selection,Immer bei Auswahl
 SET_CIRCLES_KEY,Only while the key is held,Nur mit gedrückter Taste
 SET_CIRCLES_NEVER,Never,Nie
 SET_KEY_SHOW_RANGES,Show range and sight circles (hold),Reichweiten- und Sichtkreise zeigen (halten)
+SET_KEY_ALARM_JUMP,Jump to the latest alarm (again: older),Zum letzten Alarm springen (nochmal: älterer)
+SET_KEY_SELECT_ARMY,Select the whole army,Ganze Armee auswählen
+SET_KEY_SELECT_IDLE,Next idle unit,Nächste untätige Einheit
+SET_KEY_SELECT_IDLE_ALL,All idle units,Alle untätigen Einheiten

@@ -4753,10 +4753,19 @@ the old dodging (`_keep_events_above_command_bar`,
   `godot/assets/thumbnails/` (`hud/thumbnail.gd`, docs/ASSETS.md), rendered
   by `just thumbnails` for every id of `SimHost.buildable_ids()`; any own
   structure with production options gets the production bar.
-- **Event feed** (`event_feed.gd`, left edge): own unit lost, building
-  completed, unit ready, enemy sighted (at most every 15 s), under fire (at
-  most every 10 s), from the combat event stream and a poll of the snapshot
-  every 0.25 s. Click looks there, `event_jump` (Space) jumps to the newest.
+- **Event feed** (`event_feed.gd`, left edge): building completed, unit
+  ready, enemy sighted (at most every 15 s), from a poll of the snapshot
+  every 0.25 s; hits and losses come from `alerts.gd`. Click looks there,
+  `event_jump` (Space) jumps to the newest. A message has its own lifetime;
+  long ones (losses out of view) are pushed out last.
+- **Alarms** (`alerts.gd`, prompt 101): the only consumer of own hits and
+  losses for feed, minimap ping and the notices `ui_under_attack` /
+  `ui_unit_lost` (`battle_sound.notice(.., per_place)`). `in_view` (the
+  projected point inside the screen, 24 px margin) decides; out of view
+  events gather in spots of 60 m with their own cooldown and an edge
+  arrow; `alarm_jump` walks the alarms. Selection keys of the same prompt
+  (`selection.gd`: `select_army`, `select_idle`, Ctrl + double click) use
+  `SimHost.unit_idle` (`Sim::unit_idle`, read only).
 - **Waypoint lines** (`waypoints.gd`): for up to 48 selected units the
   remaining route and the queued waypoints (`SimHost.unit_waypoints`),
   projected to the screen; markers at queued waypoints, patrols in blue.
