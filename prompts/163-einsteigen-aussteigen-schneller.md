@@ -45,19 +45,24 @@ Hinlaufen kommt dazu.
    Fahrzeug, und Befehl → Fahrzeug steht → alle draußen. Für Lkw, Halbkette
    und Panzer (Aufsitzen außen). Ergebnis als Tabelle; daran sehen, ob die
    Zeit im Hinlaufen, im Warten auf den letzten Mann oder im Zähler steckt.
-2. **Hebel in dieser Reihenfolge prüfen** und den einfachsten nehmen, der
-   reicht:
-   - `embark_ms` / `disembark_ms` in `data/transport.toml` senken (Regelwerte,
-     begründen; Belege für echte Auf- und Absitzzeiten in `docs/SOURCES.md`
-     suchen, sonst als Spielregel markieren).
-   - Einsteigen beginnt, sobald der **erste** Mann am Fahrzeug ist, und jeder
-     Soldat steigt einzeln ein, wenn er ankommt (Zähler pro Soldat oder
-     gestaffelt), statt dass der Trupp auf den letzten wartet.
-   - Fahrzeug und Trupp gehen aufeinander zu (der Träger fährt dem Trupp
-     entgegen), wenn der Spieler den Trupp auf ein Fahrzeug schickt, das
-     weiter als z. B. 30 m weg ist.
-   - Aussteigen: alle Männer springen gleichzeitig bzw. kurz gestaffelt ab;
-     der Trupp ist sofort wieder ein normaler Trupp und kann Befehle annehmen.
+2. **Umsetzen, was der Nutzer entschieden hat (2026-11-20), beides:**
+   - **Zeiten senken:** `embark_ms` und `disembark_ms` in
+     `data/transport.toml` für alle Träger so senken, dass die Richtwerte aus
+     Abschnitt 2 erreicht werden (Regelwerte, begründen; Belege für echte
+     Auf- und Absitzzeiten in `docs/SOURCES.md` suchen, sonst als Spielregel
+     markieren).
+   - **Jeder Soldat steigt einzeln ein, sobald er ankommt:** Einsteigen
+     beginnt mit dem ersten Mann am Fahrzeug; jeder Soldat, der in
+     `reach_mm` am Fahrzeug steht, steigt nach seiner eigenen (kurzen)
+     Einstiegszeit auf und ist dann an Bord, statt dass der Trupp auf den
+     letzten Mann wartet und dann gemeinsam einen Zähler abläuft. Der Trupp
+     gilt als eingestiegen, wenn der letzte lebende Mann oben ist. Klären und
+     festhalten: was mit Männern passiert, die unterwegs fallen, und was, wenn
+     das Fahrzeug losfährt oder zerstört wird, solange erst ein Teil oben ist
+     (Vorschlag: Fahrzeug wartet, bis alle oben sind; bei Zerstörung springen
+     die Männer ab wie bisher).
+   - Nicht in diesem Prompt: Träger fährt dem Trupp entgegen; neue
+     Ablauflogik fürs Aussteigen (dort reicht die kürzere Zeit).
 3. **Darstellung** an die neuen Zeiten anpassen (Klettern/Abspringen der
    Soldaten, keine Männer, die nach dem Einsteigen noch neben dem Lkw stehen
    oder durch ihn laufen).

@@ -344,7 +344,7 @@ Vom Nutzer nach Prompt 097 im Spiel bemerkt (2026-11-20). Unabhängig voneinande
 
 | Nr. | Prompt | Ziel | Status |
 |-----|--------|------|--------|
-| 163 | [Ein- und Aussteigen geht zu langsam](163-einsteigen-aussteigen-schneller.md) | Ablauf Befehl → Trupp im/neben dem Fahrzeug in Ticks messen (Hinlaufen, Warten auf den letzten Mann, Zähler); Ziel 3–4 s Einsteigen, 2–3 s Aussteigen Spielzeit: `embark_ms`/`disembark_ms` senken, Soldaten einzeln einsteigen lassen, Träger fährt dem Trupp entgegen, alle springen zugleich ab; Darstellung und KI-Zeitgrenzen anpassen; mit 109 abstimmen | offen |
+| 163 | [Ein- und Aussteigen geht zu langsam](163-einsteigen-aussteigen-schneller.md) | Ablauf Befehl → Trupp im/neben dem Fahrzeug in Ticks messen (Hinlaufen, Warten auf den letzten Mann, Zähler); Ziel 3–4 s Einsteigen, 2–3 s Aussteigen Spielzeit; vom Nutzer entschieden: `embark_ms`/`disembark_ms` senken und jeder Soldat steigt einzeln ein, sobald er ankommt (kein Warten auf den letzten Mann); Darstellung und KI-Zeitgrenzen anpassen; mit 109 abstimmen | offen |
 | 164 | [Eigene Einheiten besser sichtbar: Hervorheben unter der Maus](164-eigene-einheiten-besser-sichtbar.md) | Einheiten im Umkreis des Mauszeigers mit Umriss und Ring in der Beziehungsfarbe hervorheben (Trupp als Ganzes), dezente dauerhafte Bodenmarke für eigene Einheiten, Taste „alle zeigen“, Einstellung Aus / Unter der Maus / Immer; Farbpaletten aus `relation_colors.gd`; reine Darstellung, Bildrate messen, Bilder vorher/nachher; nichts doppelt zu 099/101/103 | offen |
 
 ## Festgelegte Grundsätze
