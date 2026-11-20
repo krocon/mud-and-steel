@@ -10,7 +10,9 @@ extends Node
 ## grass plants (tall_grass.gdshader) and the terrain's look of tall grass
 ## read it through `tall_grass_common.gdshaderinc`.
 ##
-## Built only on maps with tall grass.
+## Built only on maps with tall grass. Like the tracks on other ground
+## (`ground_tracks.gd`, prompt 104) only vehicles the local player sees
+## press the grass, so it never shows where an enemy drove unseen.
 
 const TallGrass := preload("res://scenes/world/tall_grass.gd")
 ## Terrain id of tall grass (data/terrain.toml).
@@ -125,6 +127,9 @@ func _collect_vehicles() -> void:
 		if node == null:
 			continue
 		var at := node.global_position
+		if not main.effects.visible_at.call(at):
+			_last[id] = Vector3.INF
+			continue
 		var last: Vector3 = _last.get(id, Vector3.INF)
 		if last != Vector3.INF and Vector2(at.x - last.x, at.z - last.z).length() < STAMP_STEP_M:
 			continue

@@ -32,6 +32,13 @@
 // world/tall_grass.gd stand on a dark ground; beyond their range the
 // shader draws the stand itself (terrain_tall_grass.gdshaderinc).
 //
+// Vehicle tracks (prompt 104): `ground_track_tex` (world/ground_tracks.gd)
+// holds ruts (R), churned ground (G) and worn ground (B) in a window around
+// the camera. Drawn on soft ground only (none on roads, rock and water),
+// darker on dark ground (mud) than on bright (sand, snow), browner on
+// meadow, with a little relief at the rut edges; puddles gather in them in
+// the rain, and snow is pressed grey.
+//
 // Mountains (prompt 060): on maps with a lot of relief (`mountain`, set by
 // terrain.gd from the height range) scree covers slopes between bare earth
 // and rock, and snow lies above `snow_line` on all but the steepest rock.
@@ -102,6 +109,14 @@ uniform float snow_line = 1000000.0;
 uniform float snow_line_fade = 25.0;
 // 1: tint every chunk by its LOD level (debug menu).
 uniform bool show_lod = false;
+uniform sampler2D ground_track_tex : hint_default_black, filter_linear, repeat_disable;
+uniform vec2 ground_track_origin = vec2(0.0);
+uniform vec2 ground_track_size = vec2(1.0);
+uniform bool has_ground_tracks = false;
+// Brightness factor of a full rut on dark (x) and bright ground (y).
+uniform vec2 track_dark = vec2(0.5, 0.8);
+// Strength of the rut edges in the normal.
+uniform float track_relief = 1.2;
 uniform sampler2D water_tex : filter_linear, repeat_disable;
 uniform bool has_water = false;
 
@@ -373,6 +388,43 @@ void fragment() {
 		detail = mix(detail, vec3(sdn.x, 0.0, sdn.y), scree * 0.8);
 	}
 
+	// Vehicle tracks (prompt 104).
+	float rut = 0.0;
+	float churned = 0.0;
+	float worn = 0.0;
+	vec3 track_detail = vec3(0.0);
+	if (has_ground_tracks) {
+		vec2 tuv = (p - ground_track_origin) / ground_track_size;
+		vec2 edge = min(tuv, 1.0 - tuv);
+		float inside = smoothstep(0.0, 0.08, min(edge.x, edge.y));
+		if (inside > 0.0) {
+			float soft_track = clamp(1.0 - w[ROAD] - w[ROCK] - w[SHALLOW] - w[DEEP], 0.0, 1.0) * inside;
+			vec3 t = texture(ground_track_tex, tuv).rgb;
+			// Ruts fade out where a texel shrinks below a few pixels (no
+			// shimmer from far away); churned and worn ground are larger.
+			float texel_size = 1.0 / float(textureSize(ground_track_tex, 0).x);
+			float texel_m = ground_track_size.x * texel_size;
+			float px = max(length(dpdx), length(dpdy));
+			float sharp = smoothstep(texel_m * 4.0, texel_m * 1.5, px);
+			rut = clamp(t.r, 0.0, 1.0) * soft_track * sharp;
+			churned = clamp(t.g, 0.0, 1.0) * soft_track;
+			worn = clamp(t.b, 0.0, 1.0) * soft_track;
+			if (rut + churned + worn > 0.003) {
+				float lum = dot(albedo, vec3(0.3, 0.55, 0.15));
+				float k = mix(track_dark.x, track_dark.y, smoothstep(0.15, 0.6, lum));
+				// Pressed meadow turns brown.
+				vec3 crushed = albedo * mix(vec3(1.0), vec3(1.05, 0.82, 0.62), greenness);
+				albedo = mix(albedo, crushed * mix(1.0, k, 0.55), worn * 0.7);
+				albedo = mix(albedo, crushed * k, rut);
+				albedo = mix(albedo, crushed * k * 0.85 * mix(0.8, 1.15, macro_near.r), churned);
+				float rx = texture(ground_track_tex, tuv + vec2(texel_size, 0.0)).r - t.r;
+				float rz = texture(ground_track_tex, tuv + vec2(0.0, texel_size)).r - t.r;
+				track_detail = vec3(rx, 0.0, rz) * track_relief * soft_track * sharp;
+				detail *= 1.0 - 0.5 * clamp(churned + rut * 0.5, 0.0, 1.0);
+			}
+		}
+	}
+
 	// Wet band above the waterline (and wet ground under the water).
 	if (has_water) {
 		float level = texture(water_tex, base_uv).r;
@@ -392,9 +444,12 @@ void fragment() {
 	// soft ground (driven tracks, mud and bare earth more than grass).
 	if (wetness > 0.0) {
 		float flat_wet = smoothstep(0.3, 0.08, grade);
-		float soil = clamp(w[TRACK] + w[EARTH] + w[4] + 0.35 * w[0], 0.0, 1.0);
+		float soil = clamp(w[TRACK] + w[EARTH] + w[4] + 0.35 * w[0] + rut + churned, 0.0, 1.0);
 		float puddle = smoothstep(0.62, 0.7, macro_near.r + 0.25 * soil + 0.15 * wetness - 0.2)
 			* flat_wet * soil * wetness * (1.0 - far * 0.5);
+		// Water stands in deep ruts; churned mud glistens.
+		puddle = max(puddle, smoothstep(0.55, 0.95, rut) * smoothstep(0.4, 0.75, macro_near.g) * flat_wet * wetness);
+		rough = mix(rough, 0.18, clamp(rut + churned, 0.0, 1.0) * wetness * 0.6);
 		albedo *= mix(1.0, 0.62, wetness);
 		rough = mix(rough, 0.32, wetness * 0.6);
 		albedo = mix(albedo, albedo * 0.45 + vec3(0.02, 0.025, 0.03), puddle);
@@ -420,6 +475,9 @@ void fragment() {
 		vec4 snow_col = textureGrad(albedo_array, vec3(p / tile, float(SNOW)), dpdx / tile, dpdy / tile);
 		vec4 snow_nrm = textureGrad(normal_array, vec3(p / tile, float(SNOW)), dpdx / tile, dpdy / tile);
 		albedo = mix(albedo, snow_col.rgb, s);
+		// Pressed snow in tracks: greyer and a little blue.
+		float pressed = clamp(rut + churned * 0.8 + worn * 0.3, 0.0, 1.0) * s;
+		albedo = mix(albedo, albedo * vec3(0.72, 0.76, 0.82), pressed);
 		// Rows and furrows of snowed fields show faintly (prompt 088).
 		albedo *= 1.0 - 0.1 * field_rows * s;
 		rough = mix(rough, snow_nrm.b, s);
@@ -434,6 +492,7 @@ void fragment() {
 		albedo = mix(albedo, tint, 0.45);
 	}
 
+	detail += track_detail;
 	vec3 n = normalize(base_n + detail * base_n.y);
 	ALBEDO = albedo;
 	ROUGHNESS = rough;

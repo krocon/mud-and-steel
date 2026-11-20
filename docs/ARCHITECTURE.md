@@ -2008,7 +2008,11 @@ Cloud shadows (prompt 087): see `docs/PERFORMANCE.md`.
   above; clouds in the sky and in the water; stretching the patches towards
   a low sun.
 - Weather changing during a match; flares at night; per-cell wetness (low
-  ground wetter), tire tracks in the mud (decals), splashes.
+  ground wetter). (Tracks and splashes: prompt 104, "Vehicle tracks".)
+- Tracks (prompt 104): no footprints of infantry in snow; tracks are not
+  saved and not in replays; bow spray and wake were not seen in the
+  pictures (the vehicles of `just track-shots` stuck at the ford of
+  `river_fork`); a far zoom shows no ruts beyond the 512 m window.
 - LAN and online lobbies offer no weather choice (they use the map's).
 - Aircraft fly in any weather and at night.
 - The look is checked in a few rendered frames only (rain by day, clear
@@ -3751,11 +3755,55 @@ effect is read back. No Rust code was needed: everything comes from
 | `hit` on an object | Splinters and dust |
 | `destroyed`, vehicle | A ray burst, a cream fireball of lumps that turns orange, dark red and black (2.4 s), black smoke growing out of it from 0.9 s, glowing embers, sparks, debris, ground dust ring, a big light flash, a large scorch decal, camera shake (prompt 072); then the wreck **burns** at its `Socket_Fire_NN` (fire, a dense black smoke column drifting with the biome's wind, flickering light) for 60 s, smolders for 90 s and goes out |
 | `destroyed`, infantry | Dust only |
-| Vehicle moving | Dust trail behind the hull, color and strength by the terrain under it in the current biome (tracks and sand strong, grass weak, roads hardly, mud dark, snow powder, shallow water spray), exhaust smoke at `Socket_Exhaust_NN` (thin when standing) |
+| Vehicle moving | By the ground under it (`effects.drive_effect`, prompt 104): on dry ground a dust trail behind the hull, color and strength by the terrain in the current biome (tracks and sand strong, grass weak, roads hardly); on mud, and on bare earth, meadow and sand soaked by rain (terrain wetness ≥ 0.3), heavy dark clods behind the tracks and no dust; on snow fine bright snow dust; in a ford bow spray and a foam wake on the water surface; nothing in deep water or on a wet road. Exhaust smoke at `Socket_Exhaust_NN` (thin when standing). Tracks on the ground: see "Vehicle tracks" below |
 
 Tracers stay in `combat_view.gd` (prompt 017). The ground color follows the
 terrain shader's biome mapping (desert draws grass as sand, winter grass and
 sand as snow), so dust matches the ground it rises from.
+
+### Vehicle tracks (prompt 104)
+
+`world/ground_tracks.gd` leaves tracks of every vehicle and towed gun on
+soft ground; presentation only, not part of the game state (computers may
+differ; saved games and replays start without tracks, like the pressed tall
+grass). A vehicle stamps one segment per meter driven (and a churned patch
+per 12° turned on the spot), only while the local player sees it
+(`effects.visible_at`: an enemy that drove unseen leaves nothing to find
+later; the tall grass of `grass_trails.gd` follows the same rule since).
+Infantry leaves none.
+
+- **Stamps:** a ring of 32 768 instances of a 2D `MultiMesh` in world
+  meters (about 30 vehicles for five minutes). Per stamp the segment, two
+  ruts (tracks: 17 % of the catalog width, 0.3–0.75 m; trucks, recon cars
+  and guns: 0.3 m wheels inside 90 % of the width), its band strength
+  (ground × mass factor 0.55 + t / 45), churn (curves sharper than
+  5°/m), wear (10 % of the band) and birth and lifetime in game seconds.
+  `ground_track_stamp.gdshader` draws the profile and fades a stamp out
+  after 30 % of its life.
+- **Ground** (`GROUNDS`): meadow 0.55 / 240 s, dirt track 0.3 / 240 s, sand
+  0.8 / 150 s, mud 1.0 / 480 s, snow 0.95 / 600 s; roads, water and (in the
+  shader) rock none. Rain (wetness ≥ 0.3): sand keeps tracks 35 % as long,
+  meadow becomes mud-like (0.8 / 360 s). The biome maps like the terrain
+  shader (winter grass is snow, desert grass sand).
+- **Raster:** the stamps are drawn additively into a SubViewport window
+  around the camera focus: `fx_track_texels` × `fx_track_m` (high 2048 ×
+  0.25 m = 512 m, medium 1536 × 0.3 m, low 1024 × 0.5 m; 0 texels turns
+  tracks off). It moves with the camera (snapped to 16 texels) by a new
+  canvas transform; stamps outside stay and show again. It is drawn again
+  every second frame while stamps come in and once a second for the fading.
+  R ruts, G churned, B worn: many passes add up to a worn, darker path.
+- **Look** (`terrain.gdshader`): on soft ground only, darkened by the
+  brightness of the ground (`track_dark`: mud 0.5, sand and snow 0.8),
+  meadow turns brown, churned ground darker and patchy, the rut edges in
+  the normal (`track_relief`); ruts fade below a few pixels per texel (no
+  shimmer far away) and at the window's edge. Rain: puddles in deep ruts,
+  glossy churned mud. Snow: pressed grey-blue.
+
+Why not the tall-grass raster: its 1 m texels cannot hold two ruts, and
+0.25 m over a 4 km map would be 16 000 texels per side; a window with the
+stamps kept as instances costs one small 2D pass. `just track-shots` drives
+a tank and a truck in figure eights over meadow, sand, a ford, mud and snow,
+dry and in the rain (`data/scenarios/tracks*.toml`, `build/tracks/`).
 
 ### Drawing
 

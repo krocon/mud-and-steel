@@ -28,6 +28,10 @@ const DEFAULT := "high"
 ## Muzzle blast (prompt 077, `effects.gd`): fx_muzzle_detail: the glowing
 ## gas cloud and the side blasts of muzzle brakes (off: core, tongue,
 ## powder smoke, dust and light only).
+## Tracks and ground effects (prompt 104): fx_track_texels: side of the track
+## raster around the camera (0 = no tracks); fx_track_m: meters per texel;
+## fx_ground_fx: mud clods, snow dust, bow spray and wake (off: only the dust
+## trail, tinted, and nothing on mud and water).
 const SETTINGS: Dictionary[String, Dictionary] = {
 	"low": {
 		"shadow_size": 2048, "cascades": 2, "shadow_filter": RenderingServer.SHADOW_QUALITY_HARD,
@@ -37,6 +41,7 @@ const SETTINGS: Dictionary[String, Dictionary] = {
 		"fx_fire_lights": 0, "fx_soft": false, "fx_vehicle_m": 150.0,
 		"fx_rocket_trails": 24, "fx_trail_life": 4.5, "fx_trail_width": 0.7, "fx_salvo_smoke": false,
 		"fx_rocket_lights": 1, "fx_muzzle_detail": false,
+		"fx_track_texels": 1024, "fx_track_m": 0.5, "fx_ground_fx": false,
 	},
 	"medium": {
 		"shadow_size": 4096, "cascades": 4, "shadow_filter": RenderingServer.SHADOW_QUALITY_SOFT_LOW,
@@ -46,6 +51,7 @@ const SETTINGS: Dictionary[String, Dictionary] = {
 		"fx_fire_lights": 3, "fx_soft": false, "fx_vehicle_m": 250.0,
 		"fx_rocket_trails": 48, "fx_trail_life": 7.0, "fx_trail_width": 1.0, "fx_salvo_smoke": true,
 		"fx_rocket_lights": 2, "fx_muzzle_detail": true,
+		"fx_track_texels": 1536, "fx_track_m": 0.3, "fx_ground_fx": true,
 	},
 	"high": {
 		"shadow_size": 8192, "cascades": 4, "shadow_filter": RenderingServer.SHADOW_QUALITY_SOFT_MEDIUM,
@@ -55,6 +61,7 @@ const SETTINGS: Dictionary[String, Dictionary] = {
 		"fx_fire_lights": 8, "fx_soft": true, "fx_vehicle_m": 400.0,
 		"fx_rocket_trails": 64, "fx_trail_life": 9.0, "fx_trail_width": 1.0, "fx_salvo_smoke": true,
 		"fx_rocket_lights": 2, "fx_muzzle_detail": true,
+		"fx_track_texels": 2048, "fx_track_m": 0.25, "fx_ground_fx": true,
 	},
 }
 

@@ -13,7 +13,7 @@ extends Node
 ## figure eight, the truck a few waypoints behind the tank. Per ground it
 ## saves `<prefix>_<ground>_drive.png` (close, while driving: dust, clods,
 ## spray) and `<prefix>_<ground>_tracks.png` (from normal playing height
-## after the lap: the tracks). `<prefix>` is the map's biome and the weather.
+## after the lap: the tracks). `<prefix>` is the map's name and the weather.
 ## `just track-shots`.
 
 const SHOT_SIZE := Vector2i(1600, 900)
@@ -32,11 +32,17 @@ const TRUCK_LAG := 4
 const ARRIVE_M := 4.5
 ## Share of the patch around the eight that must be the ground kind.
 const MIN_SHARE := 0.7
+## Objects that must not stand on the patch (trees hide the picture,
+## houses block the way), within this radius (m).
+const CLEAR_KINDS: Array[String] = [
+	"env_tree_deciduous", "env_tree_birch", "env_tree_conifer", "env_tree_palm", "env_house_farm",
+]
+const CLEAR_RADIUS_M := 22.0
 ## Search step over the map and sample step inside a patch (m).
 const SEARCH_STEP_M := 8.0
 const SAMPLE_STEP_M := 3.0
 ## Game speed on the way to a patch and on the lap.
-const TRAVEL_SPEED := 6.0
+const TRAVEL_SPEED := 12.0
 const LAP_SPEED := 1.5
 ## Real seconds before a waypoint is given up.
 const WAYPOINT_TIMEOUT_S := 25.0
@@ -73,7 +79,7 @@ func _run() -> void:
 	var sim_host: SimHost = main.sim_host
 	var biome: String = main.atmosphere.preset.id if main.atmosphere.preset != null else "forest"
 	var weather: String = main.weather_look.weather if main.weather_look != null else "clear"
-	_prefix = "%s_%s" % [biome, weather]
+	_prefix = "%s_%s" % [sim_host.map_name(), weather]
 	var tank := -1
 	var truck := -1
 	var ids := sim_host.unit_ids()
@@ -114,12 +120,20 @@ func _find(terrains: Array, near: Vector3) -> Vector3:
 		var z := -half.y
 		while z <= half.y:
 			var d := Vector2(x - near.x, z - near.z).length()
-			if d < best_d and _share(terrains, Vector2(x, z), reach) >= MIN_SHARE:
+			if d < best_d and _share(terrains, Vector2(x, z), reach) >= MIN_SHARE and _clear(x, z):
 				best_d = d
 				best = Vector3(x, 0.0, z)
 			z += SEARCH_STEP_M
 		x += SEARCH_STEP_M
 	return best
+
+
+## Whether no tree or house stands within CLEAR_RADIUS_M of (x, z).
+func _clear(x: float, z: float) -> bool:
+	for kind in CLEAR_KINDS:
+		if not main.sim_host.destructible_objects_near(kind, x, z, CLEAR_RADIUS_M).is_empty():
+			return false
+	return true
 
 
 ## Share of the samples in the rectangle `center` ± `reach` that are one of

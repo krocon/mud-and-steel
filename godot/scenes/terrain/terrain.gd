@@ -420,6 +420,18 @@ func set_trails(texture: Texture2D, origin: Vector2, size: Vector2) -> void:
 	_material.set_shader_parameter("trail_size", size)
 
 
+## Vehicle tracks (prompt 104, world/ground_tracks.gd): ruts (R), churned
+## (G) and worn ground (B) in the window `origin`, `size` (m); no texture:
+## no tracks.
+func set_ground_tracks(texture: Texture2D, origin: Vector2, size: Vector2) -> void:
+	if _material == null:
+		return
+	_material.set_shader_parameter("ground_track_tex", texture)
+	_material.set_shader_parameter("ground_track_origin", origin)
+	_material.set_shader_parameter("ground_track_size", size)
+	_material.set_shader_parameter("has_ground_tracks", texture != null)
+
+
 ## Shows tall grass as tall grass (1) or as plain meadow (0, benchmark A/B).
 func set_tall_strength(value: float) -> void:
 	if _material != null:

@@ -20,7 +20,7 @@ hedges and bushes.
 | Command | Measures |
 |---|---|
 | `just bench` (`cli bench`) | Simulation: two Hard AIs play the scenario through a lockstep session (as `ai-tournament`); per tick `Sim::step` and each of its phases, the AIs' think, the local player's snapshot. Prints mean / median / p99 / max, the five slowest ticks by phase, ten time windows and the end hash. `--runs 3` takes the minimum per tick over three identical runs; `--ticks`, `--seed`, `--ai`, `--scenario` |
-| `just bench-view` | Frame rate in Godot with the same scenario and a Hard AI as enemy: camera 40 / 150 / 600 m over the own army standing, then the army advances and the same distances in the battle. FPS, frame time (mean, p99, worst), the simulation's part of the frame (`SimHost.process_usec`), render CPU, draw calls, primitives and the script time of the big presentation systems. `--quality=medium`, `--perf-quick` (standing only). Screenshots in `user://perf-bench/` |
+| `just bench-view` | Frame rate in Godot with the same scenario and a Hard AI as enemy: camera 40 / 150 / 600 m over the own army standing, then the army advances and the same distances in the battle. FPS, frame time (mean, p99, worst), the simulation's part of the frame (`SimHost.process_usec`), render CPU, draw calls, primitives and the script time of the big presentation systems. `--quality=medium`, `--perf-quick` (standing only), `--perf-column` (only 30 tanks driving in a column, prompt 104). Screenshots in `user://perf-bench/` |
 | `just path-bench`, `vision-bench`, `infantry-bench` | Single systems of the simulation (see ARCHITECTURE.md, INFANTRY.md) |
 | `just fire-bench` | Fire on the town map (prompt 041): 40 units per side, 6000 ticks without fire and with a wood, a terrace and the dumps burning; mean and worst tick (ARCHITECTURE.md, "Fire") |
 | `just terrain-bench`, `objects-bench`, `effects-bench`, `infantry-view-bench` | Single systems of the presentation |
@@ -303,6 +303,19 @@ units only the active one gets circles. Battle views 0.95–1.12 ms "hud" with
 circles, 0.83–1.04 ms with both circle settings at `never` (same session):
 about 0.1 ms for the circles. The target preview costs nothing while no
 right button is held.
+
+Vehicle tracks and ground effects (prompt 104, 20.11.2026, `just bench-view
+--perf-column`: 30 tanks drive in a column across `test_large`, followed at
+60 and 150 m, high, 1280 × 720, M1 Max): before 70.3 / 75.9 FPS (frame
+14.22 / 13.18 ms), after 68.1 / 72.7 FPS (14.68 / 13.75 ms), about 3–4 %.
+Scripts: tracks 0.15 ms (stamping every other frame; the bench adds them to
+"effects", 0.84 ms against 0.57 ms before, the rest is the dust and clod
+emitters by ground), the remaining 0.3 ms are the GPU's: three more samples
+of the track raster in the terrain shader and the raster pass (a 2048²
+window, drawn every second frame while stamps come in, once a second for
+the fading). Memory: the raster 16 MB at high (RGBA8), the stamp ring 2 MB.
+Graphics quality: `fx_track_texels` 0 turns tracks off; low draws 1024 ×
+0.5 m and no clods, snow dust or spray (`fx_ground_fx`).
 
 
 ## Large city (prompt 079)

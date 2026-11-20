@@ -4,6 +4,10 @@ extends Node3D
 ## flash, debris and camera shake, burning wrecks with smoke columns, dust
 ## trails and exhaust smoke behind vehicles, and scorch decals.
 ##
+## Ground effects of driving vehicles (prompt 104, `drive_effect`): dust on
+## dry ground, heavy dark clods on mud and on soaked earth (rain), fine
+## snow dust on snow, bow spray and a foam wake in a ford.
+##
 ## Presentation only. Triggered by the combat events of the simulation
 ## (`combat_view.combat_event`) and by the snapshot (positions,
 ## `unit_moving`, terrain under the units). Nothing here is read by the
@@ -93,6 +97,16 @@ const TERRAIN_WATER_SHALLOW := 6
 const TERRAIN_WATER_DEEP := 7
 ## Tall grass (prompt 073): dust and trails like grass.
 const TERRAIN_TALL_GRASS := 8
+## Ground effects of driving (prompt 104) besides the dust trail, and the
+## emitters of each (effect_library.gd kinds).
+const GROUND_EFFECTS: Dictionary[String, Array] = {
+	"mud": ["mud_clods"], "snow": ["snow_dust"], "wake": ["bow_spray", "wake_foam"],
+}
+## Without `fx_ground_fx` (low quality): what is drawn instead ("" nothing).
+const PLAIN_EFFECTS: Dictionary[String, String] = {"snow": "dust", "wake": "dust", "mud": ""}
+## Terrain wetness (weather_look.gd) from which bare earth and meadow throw
+## mud instead of dust: rain soaks them (fog only dampens, < 0.25).
+const WET_GROUND := 0.3
 ## Below this caliber (mm) a round is small arms: tiny flashes and puffs.
 const SMALL_CALIBER := 20.0
 ## `weapon` of shot events of indirect fire (prompt 032).
@@ -229,7 +243,8 @@ var _lights: Array[Dictionary] = []
 var _decals: Array[Decal] = []
 var _decal_next := 0
 var _wrecks: Array[Dictionary] = []
-## Unit id -> {dust, exhausts, kind, strength, last, frame}.
+## Unit id -> {dust, exhausts, ground (effect -> emitters), kind, strength,
+## effect, length, last, frame}.
 var _vehicles: Dictionary[int, Dictionary] = {}
 ## Unit id -> sockets of the model (muzzles, fires, exhausts, rocket racks).
 var _sockets: Dictionary[int, Dictionary] = {}
@@ -942,6 +957,8 @@ func _update_vehicles(delta: float) -> void:
 	var alive := sim_host.unit_alive()
 	var camera_position: Vector3 = main.camera.global_position
 	var reach: float = _settings.fx_vehicle_m
+	var wet := wet()
+	var ground_fx: bool = _settings.get("fx_ground_fx", true)
 	# Unit types never change: which ids are infantry is read once per unit
 	# instead of every frame (prompt 016).
 	var types := PackedStringArray()
@@ -970,11 +987,25 @@ func _update_vehicles(delta: float) -> void:
 			var terrain := sim_host.terrain_at(position.x, position.z)
 			fx.kind = _ground_kind(terrain)
 			fx.strength = _trail_strength(terrain)
+			fx.effect = drive_effect(terrain, wet)
+			if not ground_fx and fx.effect != "dust":
+				fx.effect = PLAIN_EFFECTS.get(fx.effect, "")
 			(fx.dust as GPUParticles3D).set_instance_shader_parameter(&"tint", GROUND_COLORS[fx.kind])
+			if GROUND_EFFECTS.has(fx.effect):
+				_place_ground(fx, node, position)
 		var driving: bool = near and moving[i] != 0 and speed > 0.5
 		var dust: GPUParticles3D = fx.dust
-		dust.emitting = driving and fx.strength > 0.0
-		dust.amount_ratio = clampf(fx.strength * speed / 6.0, 0.1, 1.0)
+		dust.emitting = driving and fx.effect == "dust" and fx.strength > 0.0
+		# Prompt 104: the vehicles drive slowly (prompt 097); the dust shows
+		# from walking pace on.
+		dust.amount_ratio = clampf(fx.strength * (0.3 + speed / 4.0), 0.15, 1.0)
+		for effect: String in GROUND_EFFECTS:
+			var on: bool = driving and fx.effect == effect
+			if not on and not (fx.ground as Dictionary).has(effect):
+				continue
+			for emitter: GPUParticles3D in _ground_emitters(fx, node, effect):
+				emitter.emitting = on
+				emitter.amount_ratio = clampf(0.35 + speed / 4.0, 0.35, 1.0)
 		for exhaust: GPUParticles3D in fx.exhausts:
 			exhaust.emitting = near
 			exhaust.amount_ratio = 1.0 if driving else 0.3
@@ -996,17 +1027,83 @@ func _vehicle(id: int, node: Node3D, index: int) -> Dictionary:
 		node.add_child(exhaust)
 		exhaust.position = node.to_local(socket.global_position)
 		exhausts.append(exhaust)
-	var fx := {"dust": dust, "exhausts": exhausts, "kind": "earth", "strength": 0.0, "last": node.global_position, "frame": 0}
+	var fx := {"dust": dust, "exhausts": exhausts, "ground": {}, "kind": "earth", "strength": 0.0, "effect": "dust",
+		"length": length, "last": node.global_position, "frame": 0}
 	_vehicles[id] = fx
 	return fx
+
+
+## The emitters of a ground effect of a vehicle, built when first needed
+## (most vehicles never drive through a ford).
+func _ground_emitters(fx: Dictionary, node: Node3D, effect: String) -> Array:
+	var ground: Dictionary = fx.ground
+	if ground.has(effect):
+		return ground[effect]
+	var length: float = fx.length
+	var emitters: Array[GPUParticles3D] = []
+	for kind: String in GROUND_EFFECTS[effect]:
+		var emitter := EffectLibrary.build(kind, _settings.fx_particles, _settings.fx_soft, _wind())
+		node.add_child(emitter)
+		# Models face -Z: clods and snow fly off behind the tracks, spray
+		# at the bow, the wake trails behind.
+		emitter.position = Vector3(0.0, 0.3, length * (-0.45 if kind == "bow_spray" else 0.4))
+		emitters.append(emitter)
+	ground[effect] = emitters
+	_place_ground(fx, node, node.global_position)
+	return emitters
+
+
+## Tint of the ground effect; spray and wake float on the water surface.
+func _place_ground(fx: Dictionary, node: Node3D, position: Vector3) -> void:
+	var ground: Dictionary = fx.ground
+	if not ground.has(fx.effect):
+		return
+	var tint: Color = GROUND_COLORS[fx.kind]
+	if fx.effect == "mud" and fx.kind != "mud":
+		# Soaked earth or sand: darker than its dust.
+		tint = GROUND_COLORS["mud"] if fx.kind == "earth" else tint.darkened(0.45)
+	var level := sim_host.water_level_at(position.x, position.z)
+	for emitter: GPUParticles3D in ground[fx.effect]:
+		emitter.set_instance_shader_parameter(&"tint", tint)
+		if fx.effect == "wake" and not is_nan(level):
+			var lift := 0.15 if emitter.name == "bow_spray" else 0.04
+			emitter.position.y = (level - position.y) / maxf(node.scale.y, 0.01) + lift
 
 
 func _remove_vehicle(id: int) -> void:
 	var fx: Dictionary = _vehicles[id]
 	(fx.dust as Node).queue_free()
+	for emitters: Array in (fx.ground as Dictionary).values():
+		for emitter: Node in emitters:
+			emitter.queue_free()
 	for exhaust: Node in fx.exhausts:
 		exhaust.queue_free()
 	_vehicles.erase(id)
+
+
+## Ground effect of a vehicle driving on terrain id `terrain` (prompt 104):
+## "dust", "mud" (clods), "snow" (snow dust), "wake" (ford) or "" (none:
+## deep water, a wet road). `wet`: the ground is soaked (`wet()`), so bare
+## earth, meadow and sand throw mud instead of dust.
+func drive_effect(terrain: int, wet: bool) -> String:
+	if terrain == TERRAIN_WATER_DEEP:
+		return ""
+	match _ground_kind(terrain):
+		"water":
+			return "wake"
+		"mud":
+			return "mud"
+		"snow":
+			return "snow"
+		"road":
+			return "" if wet else "dust"
+	return "mud" if wet else "dust"
+
+
+## Whether rain soaked the ground (terrain wetness of weather_look.gd).
+func wet() -> bool:
+	var look: Node = main.get("weather_look")
+	return look != null and look.wetness >= WET_GROUND
 
 
 ## Dust color kind of a terrain id in the current biome.

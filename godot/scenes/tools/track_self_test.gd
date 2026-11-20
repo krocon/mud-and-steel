@@ -16,7 +16,7 @@ extends RefCounted
 const SAND_ID := -104001
 const ROAD_ID := -104002
 ## Length of a test drive (m).
-const DRIVE_M := 6.0
+const DRIVE_M := 4.0
 
 
 func run(test: Node) -> void:
@@ -35,16 +35,16 @@ func run(test: Node) -> void:
 	test._check(tracks._info("de_inf_rifle_squad").is_empty(), "infantry would leave vehicle tracks")
 	var sand := _find(sim_host, 3)
 	var road := _find(sim_host, 2)
-	test._check(sand != Vector3.INF and road != Vector3.INF, "no sand or road on the test map")
-	if sand != Vector3.INF and road != Vector3.INF:
+	test._check(not sand.is_empty() and not road.is_empty(), "no sand or road on the test map")
+	if not sand.is_empty() and not road.is_empty():
 		var before: int = tracks.stamps
 		_drive(tracks, SAND_ID, sand, info)
 		test._check(tracks.stamps > before, "a drive over sand stamped nothing")
-		test._check(tracks.amount_at(sand) > 0.0, "the raster is empty on the drive over sand")
+		test._check(tracks.amount_at(sand[0]) > 0.0, "the raster is empty on the drive over sand")
 		before = tracks.stamps
 		_drive(tracks, ROAD_ID, road, info)
 		test._check(tracks.stamps == before, "a drive on a road stamped %d tracks" % (tracks.stamps - before))
-		test._check(is_zero_approx(tracks.amount_at(road)), "the raster is set on the road")
+		test._check(is_zero_approx(tracks.amount_at(road[0])), "the raster is set on the road")
 
 	# An unseen enemy vehicle stamps nothing; seen, it does.
 	var enemy := _enemy_vehicle(test, sim_host, tracks)
@@ -75,43 +75,47 @@ func run(test: Node) -> void:
 	var wetness: float = look.wetness
 	look.wetness = 0.6
 	test._check(effects.drive_effect(0, effects.wet()) == "mud", "in the rain bare earth still raises dust")
-	if sand != Vector3.INF:
-		var rain_life: float = tracks.ground_params(sand)[1]
+	if not sand.is_empty():
+		var rain_life: float = tracks.ground_params(sand[0])[1]
 		look.wetness = 0.0
-		var dry_life: float = tracks.ground_params(sand)[1]
+		var dry_life: float = tracks.ground_params(sand[0])[1]
 		test._check(rain_life < dry_life, "tracks in sand last as long in the rain (%.0f s, dry %.0f s)" % [rain_life, dry_life])
 	look.wetness = wetness
 	print("self-test: tracks ok: %d stamps, window %.0f m at %.2f m per texel" % [tracks.stamps, tracks.window_m, tracks.texel_m])
 
 
-## A point of `terrain` whose surroundings (± DRIVE_M) are the same terrain,
-## or Vector3.INF.
-func _find(sim_host: SimHost, terrain: int) -> Vector3:
+## A point of `terrain` with the same terrain ± DRIVE_M / 2 along x or
+## along z: [point, direction], or [] if there is none.
+func _find(sim_host: SimHost, terrain: int) -> Array:
 	var half: Vector2 = sim_host.map_size() * 0.5 - Vector2(20.0, 20.0)
 	var x := -half.x
 	while x <= half.x:
 		var z := -half.y
 		while z <= half.y:
-			if _all(sim_host, terrain, x, z):
-				return Vector3(x, 0.0, z)
-			z += 2.0
-		x += 2.0
-	return Vector3.INF
+			for direction: Vector3 in [Vector3.RIGHT, Vector3.BACK]:
+				if _all(sim_host, terrain, Vector3(x, 0.0, z), direction):
+					return [Vector3(x, 0.0, z), direction]
+			z += 1.0
+		x += 1.0
+	return []
 
 
-func _all(sim_host: SimHost, terrain: int, x: float, z: float) -> bool:
-	for dx: float in [-DRIVE_M, -DRIVE_M * 0.5, 0.0, DRIVE_M * 0.5, DRIVE_M]:
-		if int(sim_host.terrain_at(x + dx, z)) != terrain:
+func _all(sim_host: SimHost, terrain: int, at: Vector3, direction: Vector3) -> bool:
+	for k in 5:
+		var p := at + direction * DRIVE_M * (k / 4.0 - 0.5)
+		if int(sim_host.terrain_at(p.x, p.z)) != terrain:
 			return false
 	return true
 
 
-## A made-up vehicle drives DRIVE_M along x through `center`, seen.
-func _drive(tracks: Node, id: int, center: Vector3, info: Dictionary) -> void:
-	var steps := int(DRIVE_M / tracks.STEP_M) + 1
+## A made-up vehicle drives DRIVE_M along `found[1]` through `found[0]`, seen.
+func _drive(tracks: Node, id: int, found: Array, info: Dictionary) -> void:
+	var center: Vector3 = found[0]
+	var direction: Vector3 = found[1]
+	var steps := int(DRIVE_M / tracks.STEP_M)
 	for k in steps + 1:
-		var at := center + Vector3(-DRIVE_M * 0.5 + k * tracks.STEP_M, 0.0, 0.0)
-		tracks.step(id, at, PI * 0.5, info, true)
+		var at: Vector3 = center + direction * (-DRIVE_M * 0.5 + k * tracks.STEP_M)
+		tracks.step(id, at, atan2(direction.x, direction.z), info, true)
 
 
 func _enemy_vehicle(test: Node, sim_host: SimHost, tracks: Node) -> int:

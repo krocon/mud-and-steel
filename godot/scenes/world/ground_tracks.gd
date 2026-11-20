@@ -87,6 +87,8 @@ var main: Node3D
 var sim_host: Object
 ## Stamps since the start (self-test, tools).
 var stamps := 0
+## Microseconds of the last frame (benchmark).
+var process_usec := 0
 ## Window side (m) and meters per texel; 0: tracks off.
 var window_m := 0.0
 var texel_m := 0.0
@@ -208,6 +210,12 @@ func _wet() -> bool:
 
 
 func _process(delta: float) -> void:
+	var began := Time.get_ticks_usec()
+	_process_tracks(delta)
+	process_usec = Time.get_ticks_usec() - began
+
+
+func _process_tracks(delta: float) -> void:
 	_frame += 1
 	_since_redraw += delta
 	_frames_since_redraw += 1
@@ -215,7 +223,9 @@ func _process(delta: float) -> void:
 		_configure()
 	if window_m <= 0.0:
 		return
-	_collect()
+	# Every other frame is enough for 1 m segments.
+	if _frame % 2 == 0:
+		_collect()
 	var focus: Vector3 = main.camera_rig.focus if main.get("camera_rig") != null else Vector3.ZERO
 	var f := Vector2(focus.x, focus.z)
 	if _center == Vector2.INF or f.distance_to(_center) > window_m * RECENTER_SHARE:
@@ -318,7 +328,7 @@ func step(id: int, at: Vector3, heading: float, info: Dictionary, visible: bool)
 		var spot := Color(0.0, SPOT_CHURN * params[0] * turn / TURN_STEP_DEG, strength * WEAR_SHARE)
 		_stamp(Vector2(at.x, at.z), heading, Vector2(info.length, info.width), spot, params[1], info)
 		return
-	var churn := clampf((turn / length - CHURN_FROM_DEG_PER_M) * CHURN_PER_DEG_PER_M, 0.0, 0.6) * params[0]
+	var churn: float = clampf((turn / length - CHURN_FROM_DEG_PER_M) * CHURN_PER_DEG_PER_M, 0.0, 0.6) * params[0]
 	var center := Vector2(from.x + at.x, from.z + at.z) * 0.5
 	_stamp(center, segment.angle(), Vector2(length, info.width), Color(strength, churn, strength * WEAR_SHARE),
 		params[1], info)

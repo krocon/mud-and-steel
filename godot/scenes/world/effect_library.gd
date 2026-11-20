@@ -22,7 +22,10 @@ const BURSTS: Array[String] = [
 ]
 ## Kinds that run continuously (wreck fires, vehicles, a firing rocket
 ## position).
-const CONTINUOUS: Array[String] = ["fire", "smoke_column", "dust_trail", "exhaust", "salvo_smoke"]
+const CONTINUOUS: Array[String] = [
+	"fire", "smoke_column", "dust_trail", "exhaust", "salvo_smoke",
+	"mud_clods", "snow_dust", "bow_spray", "wake_foam",
+]
 
 const SHADER_TEMPLATE := """
 shader_type spatial;
@@ -647,6 +650,66 @@ static func build(kind: String, factor: float, soft: bool, wind: Vector2) -> GPU
 			pm.angular_velocity_max = 6.0
 			pm.color_ramp = _ramp([Color(0.9, 0.89, 0.87, 0), Color(0.9, 0.89, 0.87, 0.32), Color(0.88, 0.87, 0.86, 0)], [0.0, 0.15, 1.0])
 			material = _material("lit", EffectTextures.smoke(), 0.0, soft)
+		# Ground effects of driving (prompt 104; effects.gd `drive_effect`),
+		# tinted by the ground like the dust trail.
+		"mud_clods":
+			# Short, heavy, dark clods thrown up behind tracks and wheels;
+			# they fall back within a second, no hanging dust.
+			amount = 30
+			p.lifetime = 0.9
+			size = 0.3
+			pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
+			pm.emission_box_extents = Vector3(1.3, 0.1, 0.3)
+			_cone(pm, Vector3(0.0, 0.8, 0.6).normalized(), 28.0, 2.0, 4.5)
+			pm.gravity = Vector3(0, -9.8, 0)
+			pm.scale_min = 0.45
+			pm.scale_max = 1.4
+			pm.angular_velocity_min = -400.0
+			pm.angular_velocity_max = 400.0
+			pm.color_ramp = _ramp([Color(0.7, 0.7, 0.7, 1), Color(0.6, 0.6, 0.6, 1), Color(0.6, 0.6, 0.6, 0)], [0.0, 0.8, 1.0])
+			material = _material("lit", EffectTextures.clod(), 0.0, false)
+		"snow_dust":
+			# Fine, bright powder snow: thrown up a little, settling soon.
+			amount = 56
+			p.lifetime = 1.8
+			size = 1.3
+			pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
+			pm.emission_box_extents = Vector3(1.4, 0.1, 0.4)
+			_cone(pm, Vector3(0.0, 1.0, 0.5).normalized(), 40.0, 0.8, 2.6)
+			pm.damping_min = 1.5
+			pm.damping_max = 2.5
+			pm.gravity = Vector3(0, -0.2, 0) + drift * 0.5
+			pm.scale_curve = _curve([Vector2(0, 0.4), Vector2(1, 2.2)])
+			pm.angular_velocity_min = -20.0
+			pm.angular_velocity_max = 20.0
+			pm.color_ramp = _ramp([Color(1, 1, 1, 0), Color(1, 1, 1, 0.7), Color(1, 1, 1, 0)], [0.0, 0.1, 1.0])
+			material = _material("lit", EffectTextures.smoke(), 0.35, soft)
+		"bow_spray":
+			# Water thrown up and aside at the bow in a ford.
+			amount = 36
+			p.lifetime = 0.8
+			size = 0.5
+			pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
+			pm.emission_box_extents = Vector3(1.3, 0.05, 0.2)
+			_cone(pm, Vector3(0.0, 1.0, -0.35).normalized(), 70.0, 2.5, 5.0)
+			pm.gravity = Vector3(0, -9.8, 0)
+			pm.scale_curve = _curve([Vector2(0, 0.6), Vector2(1, 1.7)])
+			pm.color_ramp = _ramp([Color(1, 1, 1, 0.85), Color(1, 1, 1, 0.55), Color(1, 1, 1, 0)], [0.0, 0.6, 1.0])
+			material = _material("lit", EffectTextures.smoke(), 0.2, soft)
+		"wake_foam":
+			# Foam on the water surface that spreads behind the vehicle
+			# (the wake; particles stay where they were born).
+			amount = 40
+			p.lifetime = 4.0
+			size = 1.6
+			pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
+			pm.emission_box_extents = Vector3(1.5, 0.02, 0.4)
+			_cone(pm, Vector3(0, 0, 1), 85.0, 0.3, 0.9)
+			pm.damping_min = 0.2
+			pm.damping_max = 0.4
+			pm.scale_curve = _curve([Vector2(0, 0.5), Vector2(1, 3.0)])
+			pm.color_ramp = _ramp([Color(1, 1, 1, 0), Color(1, 1, 1, 0.5), Color(1, 1, 1, 0)], [0.0, 0.1, 1.0])
+			material = _material("lit", EffectTextures.smoke(), 0.15, soft)
 		"exhaust":
 			amount = 16
 			p.lifetime = 2.2

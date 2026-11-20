@@ -104,6 +104,7 @@ const FormationSelfTest := preload("res://scenes/tools/formation_self_test.gd")
 const ExperienceSelfTest := preload("res://scenes/tools/experience_self_test.gd")
 const CrossingSelfTest := preload("res://scenes/tools/crossing_self_test.gd")
 const CareSelfTest := preload("res://scenes/tools/care_self_test.gd")
+const TrackSelfTest := preload("res://scenes/tools/track_self_test.gd")
 const MatchSetup := preload("res://scenes/menu/match_setup.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
 
@@ -137,6 +138,7 @@ func _run() -> void:
 	await WaterSelfTest.new().run(self)
 	await _fog_test()
 	await _combat_test()
+	await TrackSelfTest.new().run(self)
 	await _marker_test()
 	await _cloud_test()
 	await InfantrySelfTest.new().run(self)
@@ -163,7 +165,7 @@ func _run() -> void:
 	await _pause_test()
 	await _view_test()
 	var ok := _errors.is_empty()
-	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, fog, combat, impact markers, cloud shadows, infantry, destruction, fire, craters, sound, music, water, hud, air, transport, supply, formations, crossings, replay, works, positions, experience, care, unit highlight, tactical pause, overview, view switches and photo mode ok" if ok else " ".join(_errors)
+	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, fog, combat, tracks, impact markers, cloud shadows, infantry, destruction, fire, craters, sound, music, water, hud, air, transport, supply, formations, crossings, replay, works, positions, experience, care, unit highlight, tactical pause, overview, view switches and photo mode ok" if ok else " ".join(_errors)
 	print("self-test %s: %s" % ["PASSED" if ok else "FAILED", message])
 	# Started from the menu flow test (prompt 027): it continues the flow.
 	var flow: Node = MatchSetup.flow_test

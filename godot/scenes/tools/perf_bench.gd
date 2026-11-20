@@ -237,7 +237,7 @@ func _measure(phase: String, distance: float, tilt := "") -> void:
 		parts[0] += main.draw_usec
 		parts[1] += main.infantry_view.process_usec
 		parts[2] += main.combat_view.process_usec
-		parts[3] += main.effects.process_usec
+		parts[3] += main.effects.process_usec + (main.ground_tracks.process_usec if main.get("ground_tracks") != null else 0)
 		parts[4] += main.map_objects.process_usec
 		parts[5] += main.terrain.last_update_usec
 		# Sound (prompt 029; its event handling counts under the combat view).
