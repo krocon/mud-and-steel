@@ -249,7 +249,7 @@ Zeichnungen bleiben Referenz auf dem Rechner.
 
 | Nr. | Prompt | Ziel | Status |
 |-----|--------|------|--------|
-| 096 | [Kamera-Gizmo: Karte mit der Maus drehen und neigen](096-kamera-gizmo-drehen-neigen.md) | Rundes Gizmo bei der Minimap (Kompassrose mit N, dreht mit, zur Ellipse gestaucht je nach Neigung) plus Haus-Knopf: waagerecht ziehen = stufenlos drehen, senkrecht = neigen, Klick auf N/O/S/W, Mausrad neigt; Neigung als Versatz zur bisherigen Zoomkurve (Standard wie heute, Grenzen ~25°–85°), Tasten steiler/flacher, Zieh-Geste auf der Karte; Bodenabstand, Sichtweite, Minimap-Trapez, Bodenauswahl angepasst, Bildrate gemessen; Selftests; reine Darstellung | offen |
+| 096 | [Kamera-Gizmo: Karte mit der Maus drehen und neigen](done/096-kamera-gizmo-drehen-neigen.md) | Rundes Gizmo bei der Minimap (Kompassrose mit N, dreht mit, zur Ellipse gestaucht je nach Neigung) plus Haus-Knopf: waagerecht ziehen = stufenlos drehen, senkrecht = neigen, Klick auf N/O/S/W, Mausrad neigt; Neigung als Versatz zur bisherigen Zoomkurve (Standard wie heute, Grenzen ~25°–85°), Tasten steiler/flacher, Zieh-Geste auf der Karte; Bodenabstand, Sichtweite, Minimap-Trapez, Bodenauswahl angepasst, Bildrate gemessen; Selftests; reine Darstellung | erledigt (Gizmo über der Minimap zeigt Norden mit Drehung und Neigung, ersetzt bei aktivem Gizmo den N-Knopf; Klick, Ziehen, Mausrad und Haus-Knopf; Karteneditor nutzt dieselbe Steuerung; Einstellungen: Gizmo an/aus, Neigung umkehren, Bild auf/ab neigt; Selftests, Doku und l10n-Bilder; Commit 21:03 am 19.11., Datei erst nachträglich verschoben) |
 
 ### Außer der Reihe: Gameplay (097)
 
