@@ -581,7 +581,25 @@ fn exit_with(result: Result<i32, String>) -> ! {
     }
 }
 
+/// Stack of the thread that runs the command line.
+const MAIN_STACK_BYTES: usize = 16 * 1024 * 1024;
+
+/// Runs the command line on its own thread: unoptimized, clap's generated
+/// code for the many subcommands needs almost 1 MB of stack in one frame,
+/// which is all the main thread has on Windows.
 fn main() {
+    let thread = std::thread::Builder::new()
+        .name("main".into())
+        .stack_size(MAIN_STACK_BYTES)
+        .spawn(run_cli)
+        .expect("cannot start the main thread");
+    if thread.join().is_err() {
+        // The panic message is already printed; 101 is Rust's panic exit code.
+        std::process::exit(101);
+    }
+}
+
+fn run_cli() {
     match Cli::parse().command {
         CliCommand::MapCheck { dir } => exit_with(map_check(&dir)),
         CliCommand::LanHost {
