@@ -1,4 +1,4 @@
-# Prompt 167 – Blauer Balken für eigene Einheiten, dezenteres Hervorheben unter der Maus
+# Prompt 167 – Blaue und gelbe Balken für eigene Einheiten, dezenteres Hervorheben unter der Maus
 
 > In einer frischen Session im Repo-Ordner ausführen. Lies zuerst `CLAUDE.md`,
 > `docs/CONTROLS.md` (Lebensbalken, „Own units“), `prompts/done/164-*.md`,
@@ -19,6 +19,12 @@ Rand, der die Gesundheit zeigt. Eine andere Markierung braucht es dort nicht; ma
 erkennt sofort, welche Einheit gemeint ist und wie es um sie steht. Feinde tragen
 einen roten Balken.
 
+Ein zweites Bild desselben Spiels zeigt dieselben Balken **in Gelb** über einer
+ausgewählten Truppe: über jedem Infanterietrupp mehrere kurze, schmale gelbe Balken,
+treppenartig leicht versetzt übereinander (je Mann bzw. Teil des Trupps einer).
+Auslegung (vom Nutzer so beschrieben, Farben im Ergebnis bestätigen lassen):
+**gelb = ausgewählt, blau = unter der Maus** bzw. nahe bei ihr.
+
 Bei uns heute (Prompt 031 und 164):
 
 - `HealthBars` in `combat_view.gd` zeichnet Balken über beschädigten und über
@@ -33,8 +39,11 @@ Bei uns heute (Prompt 031 und 164):
 
 ## 2. Ziel
 
-1. **Blauer Balken:** Eine eigene Einheit zeigt einen blauen Gesundheitsbalken,
-   wenn sie ausgewählt ist **oder** die Maus über ihr bzw. nahe bei ihr steht. Nach
+1. **Blauer/gelber Balken:** Eine eigene Einheit zeigt einen Gesundheitsbalken,
+   wenn die Maus über ihr bzw. nahe bei ihr steht (blau) **oder** sie ausgewählt
+   ist (gelb). Infanterietrupps zeigen wie im zweiten Vorbild mehrere kurze Balken
+   treppenartig versetzt (je Mann, bei großen Trupps zusammengefasst, Richtwert
+   höchstens 6 Balken); Fahrzeuge und Geschütze einen Balken. Nach
    dem Wegfahren der Maus verschwindet er (kurz ausblenden, nicht flackern).
    Beschädigte eigene Einheiten zeigen ihn wie heute je nach Einstellung
    `health_bars` weiter.
@@ -56,7 +65,8 @@ Reine Darstellung, `crates/sim` und der Golden Hash bleiben.
   (ausgewählt **oder** unter der Maus laut `unit_highlight.gd` **oder** Tab
   gehalten) → Balken zeichnen. Den Zustand „unter der Maus“ aus `unit_highlight.gd`
   lesen, nicht ein zweites Mal ermitteln.
-- Farbe für eigene Einheiten **blau**, wie vom Nutzer gewünscht. Achtung: In der
+- Farbe für eigene Einheiten **blau** unter der Maus und **gelb** ausgewählt (gelb
+  gewinnt, wenn beides zutrifft), wie vom Nutzer gewünscht. Achtung: In der
   Standardpalette sind Verbündete schon blau und eigene grün. Vor dem Umsetzen
   prüfen und im Ergebnis nennen, wie beides unterscheidbar bleibt (Vorschlag:
   eigene kräftiges Blau, Verbündete heller/türkis, oder den Verbündeten-Balken mit
@@ -105,7 +115,7 @@ Reine Darstellung, `crates/sim` und der Golden Hash bleiben.
 4. Selftest: Maus über einem eigenen Trupp → genau diese Einheit `hovered` und mit
    Balken; Maus 30 px daneben zwischen zwei Einheiten → höchstens eine; Maus weg →
    kein Balken (nach dem Ausblenden); ausgewählte unbeschädigte Einheit hat einen
-   Balken; Tab → alle eigenen im Bild mit Balken; Feind unter der Maus → kein blauer
+   gelben Balken (ein Trupp mehrere, je Mann); Tab → alle eigenen im Bild mit Balken; Feind unter der Maus → kein blauer
    Balken.
 5. `just check`, `just selftest`; `just bench-view` vorher/nachher (HUD-Spalte).
 6. Doku: `docs/CONTROLS.md` (Lebensbalken, „Own units“), `docs/ARCHITECTURE.md`.
