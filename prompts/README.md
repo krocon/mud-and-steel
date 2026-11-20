@@ -338,11 +338,21 @@ vermerkt. Empfohlene Reihenfolge: 097 und 098 zuerst, dann 099, 101, 100, 104, 1
 | 161 | [Karte nach echten Geodaten: Wasserfallstadt](161-karte-wasserfallstadt.md) | Braucht 160 und 115; empfohlen nach 112/127, 139, 141, 155, 122. Schaffhausen mit Rheinfall um 1944 (frei erfundene Lage, neutraler Name `falls_town`), etwa 4,0 × 3,0 km, sechs Spieler: Strom in echtem Lauf und Profil vom Stadtufer über Wehr und Schnellen zum Fall, Brücken nach Stand 1944, vier Schaustücke von Hand (Fall mit Schloss und Schlösschen, Rundfestung mit Rebhang, Altstadt mit Erkerhäusern und Toren, Stadtufer), Industrietal, Dörfer, Weinberge, Wälder, viele kleine Details im Modellbahn-Anspruch; Autobahn und Bauten nach 1945 raus; Teams West gegen Ost oder Nord gegen Süd nach Rechnung; Brücken-, Sicht-, Fahrzeitprobe, Vergleich mit den Geodaten, KI-Turnier mit vertauschten Seiten | offen |
 | 162 | [Karte nach echten Geodaten: Fachwerkstadt](162-karte-fachwerkstadt.md) | Braucht 139; empfohlen nach 112/127, 115, 151, 160, 141, 122. Altstadt von Hameln an der Weser um 1944 (neutraler Name `timber_town`; hier wurde im April 1945 gekämpft, die Karte bleibt freies Gefecht), etwa 2,4 × 2,0 km, vier Spieler: runde Altstadt im Ring der Wallalleen von Hand nachgearbeitet (zwei Hauptstraßen, Markt mit Kirche und steinernem Festsaalbau, Münster am Fluss, verwinkelte Gassen nur für Infanterie, Wehrtürme), Fluss mit Insel, Wehren, Schleuse und Mühle, Straßen- und Bahnbrücke, Vorstädte, Berghang mit Aussichtsturm; neue Bauten (weitere Fachwerkvarianten, steinernes Giebelhaus, Münster, Wehrturm, Flussmühle, Dampfer als Kulisse); Diorama-Anspruch; Teams Nord gegen Süd oder West gegen Ost nach Rechnung; Brücken-, Sicht-, Brandprobe, Vergleich mit den Geodaten, KI-Turnier | offen |
 
+### Außer der Reihe: Rückmeldungen aus dem Spiel (163–164)
+
+Vom Nutzer nach Prompt 097 im Spiel bemerkt (2026-11-20). Unabhängig voneinander.
+
+| Nr. | Prompt | Ziel | Status |
+|-----|--------|------|--------|
+| 163 | [Ein- und Aussteigen geht zu langsam](163-einsteigen-aussteigen-schneller.md) | Ablauf Befehl → Trupp im/neben dem Fahrzeug in Ticks messen (Hinlaufen, Warten auf den letzten Mann, Zähler); Ziel 3–4 s Einsteigen, 2–3 s Aussteigen Spielzeit: `embark_ms`/`disembark_ms` senken, Soldaten einzeln einsteigen lassen, Träger fährt dem Trupp entgegen, alle springen zugleich ab; Darstellung und KI-Zeitgrenzen anpassen; mit 109 abstimmen | offen |
+| 164 | [Eigene Einheiten besser sichtbar: Hervorheben unter der Maus](164-eigene-einheiten-besser-sichtbar.md) | Einheiten im Umkreis des Mauszeigers mit Umriss und Ring in der Beziehungsfarbe hervorheben (Trupp als Ganzes), dezente dauerhafte Bodenmarke für eigene Einheiten, Taste „alle zeigen“, Einstellung Aus / Unter der Maus / Immer; Farbpaletten aus `relation_colors.gd`; reine Darstellung, Bildrate messen, Bilder vorher/nachher; nichts doppelt zu 099/101/103 | offen |
+
 ## Festgelegte Grundsätze
 
 - **Größen 1:1** in echten Metern, auch Infanterie (1,80 m).
 - **Zeitfaktor 2:** Geschwindigkeiten × 2, Dauern ÷ 2; echte Werte im Katalog,
-  Umrechnung nur über `data/scale.toml`.
+  Umrechnung nur über `data/scale.toml`. Seit Prompt 097 fahren Bodenfahrzeuge
+  echtes Tempo (`[speed] vehicle = 1/1`); direktes Feuer und Sicht × 1/8.
 - **Ein Modell pro Einheit**, Tarnung Wald/Wüste/Winter über das Material-System.
 - **Quellen:** Fakten und Maße frei, Zeichnungen und Fotos Dritter nur als Referenz,
   nichts aus anderen Spielen. Balkenkreuz statt Hakenkreuz, kein Rotes Kreuz.
