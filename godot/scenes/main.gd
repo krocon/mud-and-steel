@@ -110,6 +110,9 @@ const MatchHud := preload("res://scenes/hud/hud.gd")
 const TransportView := preload("res://scenes/world/transport_view.gd")
 const UnitHighlight := preload("res://scenes/world/unit_highlight.gd")
 const TacticalPause := preload("res://scenes/world/tactical_pause.gd")
+const ViewToggles := preload("res://scenes/world/view_toggles.gd")
+const Overview := preload("res://scenes/camera/overview.gd")
+const PhotoMode := preload("res://scenes/world/photo_mode.gd")
 const WorksView := preload("res://scenes/world/works_view.gd")
 const VeterancyView := preload("res://scenes/world/veterancy_view.gd")
 const CrossingView := preload("res://scenes/world/crossing_view.gd")
@@ -217,6 +220,12 @@ var mission_hud: MissionHud
 var game_menu: CanvasLayer
 ## Tactical pause and game speed in single player (prompt 102).
 var tactical_pause: TacticalPause
+## Interface switches and "HUD off" (prompt 103).
+var view_toggles: ViewToggles
+## Overview zoom (prompt 103).
+var overview: Overview
+## Photo mode (prompt 103).
+var photo_mode: PhotoMode
 var _loading: CanvasLayer
 var _loaded := false
 
@@ -425,6 +434,15 @@ func _ready() -> void:
 	tactical_pause = TacticalPause.new()
 	add_child(tactical_pause)
 	tactical_pause.setup(self)
+	view_toggles = ViewToggles.new()
+	add_child(view_toggles)
+	view_toggles.setup(self)
+	overview = Overview.new()
+	add_child(overview)
+	overview.setup(self)
+	photo_mode = PhotoMode.new()
+	add_child(photo_mode)
+	photo_mode.setup(self)
 	if sim_host.is_replay():
 		var replay_bar := ReplayBar.new()
 		replay_bar.name = "ReplayBar"

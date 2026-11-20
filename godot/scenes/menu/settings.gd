@@ -87,6 +87,10 @@ const BINDABLE: Dictionary[String, String] = {
 	# Tactical pause and game speed in single player (prompt 102).
 	"tactical_pause": "SET_KEY_TACTICAL_PAUSE",
 	"game_speed": "SET_KEY_GAME_SPEED",
+	# Overview, HUD off and photo mode (prompt 103).
+	"overview": "SET_KEY_OVERVIEW",
+	"hud_toggle": "SET_KEY_HUD_TOGGLE",
+	"photo_mode": "SET_KEY_PHOTO_MODE",
 }
 
 ## Actions that are not in `project.godot`, with their default key
@@ -127,6 +131,11 @@ const RUNTIME_ACTIONS: Dictionary[String, int] = {
 	# and the key right of Ü (] on US keyboards) were free.
 	"tactical_pause": KEY_P | KEY_MASK_SHIFT,
 	"game_speed": KEY_BRACKETRIGHT,
+	# Prompt 103: Shift + O ("overview"; plain O unhitches guns); F1 and F2
+	# were free (F3-F5 are debug views).
+	"overview": KEY_O | KEY_MASK_SHIFT,
+	"hud_toggle": KEY_F1,
+	"photo_mode": KEY_F2,
 }
 
 ## Health bars over units (prompt 031): `damaged` (damaged and selected
@@ -176,6 +185,17 @@ const DEFAULTS := {
 	"sight_circles": "key",
 	# Ground tooltip, one of TOOLTIP_MODES (prompt 100).
 	"ground_tooltip": "on",
+	# Marks on and over the map (prompt 103, `world/view_toggles.gd`).
+	"show_selection_rings": true,
+	"show_routes": true,
+	"show_supply_rings": true,
+	"show_supply_points": true,
+	"show_impact_markers": true,
+	"show_mission_rings": true,
+	"show_relation_tint": true,
+	"show_edge_arrows": true,
+	# Lines and circles on the ground: "strong" or "subtle".
+	"ground_lines": "strong",
 	# Tilt-shift depth of field, one of DOF_MODES.
 	"depth_of_field": "subtle",
 	# Shadows of passing clouds (prompt 087).

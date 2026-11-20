@@ -14,6 +14,7 @@ extends PanelContainer
 signal changed
 signal closed
 
+const ViewToggles := preload("res://scenes/world/view_toggles.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
 const GraphicsQuality := preload("res://scenes/world/graphics_quality.gd")
 const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
@@ -48,6 +49,9 @@ var unit_marker_option: OptionButton
 var range_circle_option: OptionButton
 var sight_circle_option: OptionButton
 var ground_tooltip_option: OptionButton
+## Prompt 103: one box per mark, and the strength of ground lines.
+var mark_boxes: Dictionary[String, CheckBox] = {}
+var ground_lines_option: OptionButton
 ## Option buttons of OPTIONS, by settings key (prompt 043).
 var options: Dictionary[String, OptionButton] = {}
 var language_option: OptionButton
@@ -286,6 +290,18 @@ func _interface_tab() -> Control:
 	ground_tooltip_option.item_selected.connect(func(index: int) -> void:
 		_change("ground_tooltip", Settings.TOOLTIP_MODES[index]))
 	tab.add_child(_row("SET_GROUND_TOOLTIP", ground_tooltip_option))
+	for key: String in ViewToggles.TOGGLES:
+		var box := CheckBox.new()
+		box.text = "SET_" + key.to_upper()
+		box.toggled.connect(func(on: bool) -> void: _change(key, on))
+		mark_boxes[key] = box
+		tab.add_child(box)
+	ground_lines_option = OptionButton.new()
+	for label in ["SET_LINES_STRONG", "SET_LINES_SUBTLE"]:
+		ground_lines_option.add_item(label)
+	ground_lines_option.item_selected.connect(func(index: int) -> void:
+		_change("ground_lines", ["strong", "subtle"][index]))
+	tab.add_child(_row("SET_GROUND_LINES", ground_lines_option))
 	return _scrolled(tab)
 
 
@@ -305,6 +321,9 @@ func _refresh() -> void:
 	range_circle_option.select(maxi(Settings.CIRCLE_MODES.find(Settings.get_value("range_circles")), 0))
 	sight_circle_option.select(maxi(Settings.CIRCLE_MODES.find(Settings.get_value("sight_circles")), 0))
 	ground_tooltip_option.select(maxi(Settings.TOOLTIP_MODES.find(Settings.get_value("ground_tooltip")), 0))
+	for key: String in mark_boxes:
+		mark_boxes[key].set_pressed_no_signal(Settings.get_value(key))
+	ground_lines_option.select(1 if Settings.get_value("ground_lines") == "subtle" else 0)
 	quality_option.select(maxi(GraphicsQuality.LEVELS.find(Settings.get_value("quality")), 0))
 	volume_slider.set_value_no_signal(Settings.get_value("master_volume"))
 	for key in bus_sliders:

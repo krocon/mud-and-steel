@@ -48,6 +48,12 @@ func _ready() -> void:
 		pause.toggle()
 		if pause.active or get_tree().paused or pause.available():
 			_fail("the tactical pause works in a network match")
+	# Prompt 103: no photo mode either.
+	var photo: Node = main.get("photo_mode")
+	if photo != null:
+		photo.toggle()
+		if photo.active or photo.available():
+			_fail("the photo mode works in a network match")
 
 
 func _process(_delta: float) -> void:

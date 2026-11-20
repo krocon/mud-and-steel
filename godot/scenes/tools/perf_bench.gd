@@ -14,6 +14,8 @@ extends Node
 ##
 ## `--perf-tilts` (prompt 096) measures the standing views three times: with
 ## the tilt of the zoom, tilted as flat and as steep as the camera goes.
+## `--perf-distances=600,1000,1500` (prompt 103) measures other distances,
+## beyond the game's zoom limit too.
 
 const BENCH_SIZE := Vector2i(1920, 1080)
 const SECONDS := 6.0
@@ -50,8 +52,15 @@ func _run() -> void:
 	var tilts: Array[String] = [""]
 	if "--perf-tilts" in OS.get_cmdline_user_args():
 		tilts.append_array(["flat", "steep"])
+	var distances: Array[float] = DISTANCES.duplicate()
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--perf-distances="):
+			distances.clear()
+			for part in arg.trim_prefix("--perf-distances=").split(","):
+				distances.append(float(part))
+			main.camera_rig.max_distance = maxf(main.camera_rig.max_distance, distances.max())
 	for tilt in tilts:
-		for distance in DISTANCES:
+		for distance in distances:
 			if not battle_only:
 				await _measure("standing", distance, tilt)
 	if "--perf-quick" in OS.get_cmdline_user_args():
@@ -74,7 +83,7 @@ func _run() -> void:
 	# A typical selection of a dozen units for the HUD (prompt 031): unit
 	# panel tiles, waypoint lines, minimap rings.
 	main.selection.set_selection(Array(_own_units()).slice(0, 12))
-	for distance in DISTANCES:
+	for distance in distances:
 		await _measure("battle", distance)
 	print("perf-bench: frames rendered by force_draw (window not drawable): %d" % forced_draws)
 	get_tree().quit()

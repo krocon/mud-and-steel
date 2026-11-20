@@ -368,3 +368,16 @@ GROUND_COVER_CRATER,"%s, crater (prone %d %%)","%s, Trichter (liegend %d %%)"
 GROUND_OCCUPY,Infantry can occupy it,Infanterie kann es besetzen
 HUD_PAUSED,Paused – orders wait for the next tick (%s: go on),Pause – Befehle gelten ab dem nächsten Tick (%s: weiter)
 HUD_SPEED,Speed %s×,Tempo %s×
+HUD_HIDDEN_NOTE,HUD hidden – %s shows it again,HUD ausgeblendet – %s blendet es wieder ein
+PHOTO_TITLE,Photo mode,Fotomodus
+PHOTO_FOV,Field of view,Bildwinkel
+PHOTO_DOF,Depth of field: %s,Tiefenschärfe: %s
+PHOTO_DOF_OFF,off,aus
+PHOTO_DOF_SUBTLE,subtle,dezent
+PHOTO_DOF_MINIATURE,miniature,Miniatur
+PHOTO_NO_FOG,Fog of war off,Nebel des Krieges aus
+PHOTO_SAVE,Save picture,Bild speichern
+PHOTO_LEAVE,Leave,Beenden
+PHOTO_HINT,"Camera as usual (drag, wheel, Shift + drag turns and tilts), closer and flatter than in the game. Esc leaves.","Kamera wie gewohnt (ziehen, Rad, Umschalt + ziehen dreht und neigt), näher und flacher als im Spiel. Esc beendet."
+PHOTO_SAVED,Saved: %s,Gespeichert: %s
+PHOTO_SAVE_FAILED,The picture could not be saved.,Das Bild konnte nicht gespeichert werden.

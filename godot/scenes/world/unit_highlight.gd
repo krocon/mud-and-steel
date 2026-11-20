@@ -43,6 +43,8 @@ const RING_HOVER := 0.55
 ## Brightening of hovered own models (additive white).
 const LIGHT_UP := 0.12
 
+## Every own unit shows as with the show-all key (the overview, prompt 103).
+var force_show_all := false
 var main: Node3D
 var sim_host: SimHost
 ## Time of the last `_process` in microseconds (`perf_bench.gd`).
@@ -156,8 +158,8 @@ func _process(_delta: float) -> void:
 		return
 	var began := Time.get_ticks_usec()
 	var mode: String = Settings.get_value("unit_markers")
-	var show_all := mode != "off" and InputMap.has_action("show_units") \
-			and Input.is_action_pressed("show_units")
+	var show_all := mode != "off" and (force_show_all or InputMap.has_action("show_units") \
+			and Input.is_action_pressed("show_units"))
 	cursor_point = null
 	if mode != "off":
 		if forced_point != null:

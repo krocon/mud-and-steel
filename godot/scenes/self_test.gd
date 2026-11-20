@@ -161,8 +161,9 @@ func _run() -> void:
 	# depends on where the fight stands at its start (prompt 164).
 	await _highlight_test()
 	await _pause_test()
+	await _view_test()
 	var ok := _errors.is_empty()
-	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, fog, combat, impact markers, cloud shadows, infantry, destruction, fire, craters, sound, music, water, hud, air, transport, supply, formations, crossings, replay, works, positions, experience, care, unit highlight and tactical pause ok" if ok else " ".join(_errors)
+	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, fog, combat, impact markers, cloud shadows, infantry, destruction, fire, craters, sound, music, water, hud, air, transport, supply, formations, crossings, replay, works, positions, experience, care, unit highlight, tactical pause, overview, view switches and photo mode ok" if ok else " ".join(_errors)
 	print("self-test %s: %s" % ["PASSED" if ok else "FAILED", message])
 	# Started from the menu flow test (prompt 027): it continues the flow.
 	var flow: Node = MatchSetup.flow_test
@@ -1430,6 +1431,82 @@ func _highlight_test() -> void:
 	Settings.set_value("unit_markers", "always")
 	highlight.forced_point = null
 	await _frames(1)
+
+
+## Prompt 103: the overview goes out and back to the same view; every mark
+## switch hides its mark; HUD off and on; the photo mode stops the ticks
+## and restores the camera.
+func _view_test() -> void:
+	var rig: Node3D = main.camera_rig
+	var sim_host: SimHost = main.sim_host
+	var toggles: Node = main.view_toggles
+	var hud: Control = main.hud
+	rig.snap_to(_centroid(_ids_of(true)), 120.0, 0.3)
+	await _frames(5)
+	var before := [rig.target_distance, rig.target_tilt, rig.max_distance]
+	main.overview.enter()
+	await _frames(150)
+	_check(rig.distance > 600.0 and not main.sun.shadow_enabled and main.unit_highlight.force_show_all,
+		"overview: distance %.0f m, shadows %s" % [rig.distance, main.sun.shadow_enabled])
+	main.overview.leave()
+	await _frames(150)
+	_check(absf(rig.distance - before[0]) < 1.0 and absf(rig.target_tilt - before[1]) < 0.001
+		and rig.max_distance == before[2] and main.sun.shadow_enabled and not main.unit_highlight.force_show_all,
+		"overview did not restore the view: %.1f m (was %.1f), tilt %.3f (was %.3f)" % [
+			rig.distance, before[0], rig.target_tilt, before[1]])
+	# Mark switches.
+	var tanks := _tanks(_ids_of(true))
+	main.selection.set_selection(tanks.slice(0, 1))
+	await _frames(3)
+	var ring: Node3D = main._rings[tanks[0]]
+	_check(ring.visible, "the selected tank shows no ring")
+	var checks := {
+		"show_selection_rings": func() -> bool: return not ring.visible,
+		"show_routes": func() -> bool: return not hud.waypoints.visible and not hud.order_preview.visible,
+		"show_supply_rings": func() -> bool: return not hud.supply_rings.visible,
+		"show_impact_markers": func() -> bool: return not main.artillery_view.markers_enabled,
+		"show_edge_arrows": func() -> bool: return not hud.alerts.visible,
+		"show_relation_tint": func() -> bool: return main._enemy_material.albedo_color.a == 0.0,
+	}
+	for key: String in checks:
+		Settings.set_value(key, false)
+		await _frames(2)
+		_check((checks[key] as Callable).call(), "switch %s off: its mark still shows" % key)
+		Settings.set_value(key, true)
+	await _frames(2)
+	_check(ring.visible and hud.waypoints.visible and main._enemy_material.albedo_color.a > 0.0,
+		"the marks did not come back after the switches")
+	Settings.set_value("ground_lines", "subtle")
+	await _frames(2)
+	_check(hud.waypoints.modulate.a < 1.0, "subtle lines are drawn at full strength")
+	Settings.set_value("ground_lines", "strong")
+	# HUD off and on.
+	toggles.set_hidden(true, true)
+	await _frames(2)
+	_check(not (main.get_node("Hud") as CanvasLayer).visible and not ring.visible, "HUD off left the HUD or a ring")
+	toggles.set_hidden(false)
+	await _frames(2)
+	_check((main.get_node("Hud") as CanvasLayer).visible and ring.visible, "HUD on did not bring it back")
+	# Photo mode.
+	var view := [rig.focus, rig.target_distance, rig.target_yaw, rig.target_tilt, rig.fov_deg, rig.min_distance]
+	var tick := sim_host.current_tick()
+	main.photo_mode.enter()
+	main.photo_mode._set_fov(50.0)
+	rig.target_distance = 6.0
+	await _frames(40)
+	_check(get_tree().paused and sim_host.current_tick() == tick and toggles.hidden,
+		"photo mode: paused %s, ticks %d -> %d" % [get_tree().paused, tick, sim_host.current_tick()])
+	_check(rig.distance < 10.0, "photo mode: the camera does not go closer (%.1f m)" % rig.distance)
+	var path: String = await main.photo_mode.save_photo()
+	_check(not path.is_empty() and FileAccess.file_exists(path), "photo mode saved no picture")
+	if not path.is_empty():
+		DirAccess.remove_absolute(path)
+	main.photo_mode.leave()
+	await _frames(3)
+	_check(not get_tree().paused and not toggles.hidden and rig.focus == view[0] and rig.target_distance == view[1]
+		and rig.target_yaw == view[2] and rig.target_tilt == view[3] and rig.fov_deg == view[4] and rig.min_distance == view[5],
+		"photo mode did not restore the camera")
+	main.selection.set_selection([])
 
 
 ## Tactical pause (prompt 102): the tick stands, the camera moves, an
