@@ -606,6 +606,11 @@ alert-shots dir="build/alerts" *args: build
 ground-tooltip-shots dir="build/ground-tooltip" *args: build
     {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- "--ground-tooltip-shots={{ justfile_directory() }}/{{ dir }}" {{ args }}
 
+# Overview, HUD off and photo mode in pictures (prompt 103; needs a window); e.g. `just view-shots build/view --map=river_town`
+[group('godot')]
+view-shots dir="build/view" *args: build
+    {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- "--view-shots={{ justfile_directory() }}/{{ dir }}" {{ args }}
+
 # Record a trench strongpoint (prompt 052) as PNG files into a folder: overview, firing bay, dugouts, ring and wire (needs a window)
 [group('godot')]
 position-shots dir="build/positions": build

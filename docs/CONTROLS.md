@@ -38,6 +38,9 @@ or not.
 | Space *(rebindable)* | Jump to the newest event message |
 | Shift + P *(rebindable)*, or the pause tile beside the minimap | Tactical pause (single player, prompt 102): the game stands, camera, selection and orders keep working; orders start with the first tick after the pause. A line at the top says so; the music plays quieter. Esc opens the menu as before; closed again, the pause goes on. Not in network matches |
 | ] (right of Ü on German keyboards) *(rebindable)* | Game speed 1×, 2×, ½× (single player) |
+| Shift + O *(rebindable)* | Overview (prompt 103): the camera glides out to up to 1200 m at the steepest tilt, shadows and small decoration off, every own unit shows its ring. Again: back to the view before; a zoom in returns centered on the point under the pointer |
+| F1 *(rebindable)* | Hide or show the HUD and every mark on the map; orders keep working, a short line names the key |
+| F2 *(rebindable)* | Photo mode (single player and replays): the game stops, HUD and marks go, the camera goes closer, flatter and steeper; field of view, depth of field (off / subtle / miniature), fog of war off (only in replays or after the match), "Save picture" writes a PNG to the user folder `photos/`. F2, the button or Esc leave and restore everything |
 | Shift + Space *(rebindable)* | Jump to the newest alarm (fire on or loss of own units and buildings out of view); pressed again within 4 s: the next older one (prompt 101) |
 
 **Tilt** (prompt 096): the zoom sets how steeply the camera looks down
@@ -305,6 +308,11 @@ top bar. Everything else appears when there is something to do with it.
   facing of the drag. A grey mark is a spot the unit cannot stand on
   (water, house, rock); it stops at the nearest reachable spot instead. A
   tractor towing a gun shows the gun's range circle at its mark.
+- **Mark switches** (prompt 103): Settings → Interface has a box for
+  selection rings, routes and waypoints, supply and repair radii, flags and
+  capture rings of supply points, impact markers, mission rings, the
+  ally / enemy tint and the edge arrows, and "Lines on the ground" strong or
+  subtle (half strength for routes, previews, supply and range circles).
 - **Ground tooltip** (prompt 100): rest the mouse on the map for 0.4 s and
   a small box beside the pointer names the ground or the object under it
   (meadow, road, ford, woods, farmhouse, wall, trench …) and says what it

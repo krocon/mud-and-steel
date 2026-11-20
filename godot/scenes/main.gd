@@ -102,6 +102,7 @@ const UnitMarkerShots := preload("res://scenes/tools/unit_marker_shots.gd")
 const OrderPreviewShots := preload("res://scenes/tools/order_preview_shots.gd")
 const AlertShots := preload("res://scenes/tools/alert_shots.gd")
 const GroundTooltipShots := preload("res://scenes/tools/ground_tooltip_shots.gd")
+const ViewShots := preload("res://scenes/tools/view_shots.gd")
 const PositionShots := preload("res://scenes/tools/position_shots.gd")
 const GameFiles := preload("res://scenes/menu/game_files.gd")
 const ReplayBar := preload("res://scenes/replay/replay_bar.gd")
@@ -516,6 +517,11 @@ func _ready() -> void:
 			var tooltip_shots := GroundTooltipShots.new()
 			tooltip_shots.main = self
 			add_child(tooltip_shots)
+		if arg.begins_with("--view-shots="):
+			camera_rig.edge_scroll_enabled = false
+			var view_shots := ViewShots.new()
+			view_shots.main = self
+			add_child(view_shots)
 		if arg.begins_with("--blast-shots="):
 			camera_rig.edge_scroll_enabled = false
 			var blast_shots := BlastShots.new()

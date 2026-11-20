@@ -291,6 +291,13 @@ the table above): standing 0.24–0.27 ms, battle 0.70–0.83 ms per frame. The
 minimap dots are one MultiMesh buffer filled by the bridge; the ground image
 is built once (`test_large`: 500 × 500 cells).
 
+Far camera distances (prompt 103, 20.11.2026, `just bench-view
+--perf-distances=600,1000,1500`, 1280 × 720, M1 Max): standing 76 / 68 /
+59 FPS (draw calls 1 455 / 5 048 / 8 720), battle 57 / 46 / 40 FPS (render
+CPU 2.5 / 4.1 / 5.5 ms). A plain zoom limit beyond 600 m would cost 20-30 %
+of the frame rate, so the game keeps 600 m and the overview (up to 1200 m)
+turns shadows and decoration off.
+
 Range circles (prompt 099, 20.11.2026): with the bench's dozen selected
 units only the active one gets circles. Battle views 0.95–1.12 ms "hud" with
 circles, 0.83–1.04 ms with both circle settings at `never` (same session):

@@ -15,7 +15,8 @@ extends Node
 ## `--perf-tilts` (prompt 096) measures the standing views three times: with
 ## the tilt of the zoom, tilted as flat and as steep as the camera goes.
 ## `--perf-distances=600,1000,1500` (prompt 103) measures other distances,
-## beyond the game's zoom limit too.
+## beyond the game's zoom limit too. `--perf-overview` also measures the
+## overview of prompt 103.
 
 const BENCH_SIZE := Vector2i(1920, 1080)
 const SECONDS := 6.0
@@ -63,6 +64,13 @@ func _run() -> void:
 		for distance in distances:
 			if not battle_only:
 				await _measure("standing", distance, tilt)
+	if "--perf-overview" in OS.get_cmdline_user_args():
+		# Prompt 103: the overview (no shadows, no decoration, steepest tilt).
+		main.overview.enter()
+		await _frames(60)
+		await _measure("overview", main.overview.distance(), "steep")
+		main.overview.leave()
+		await _frames(60)
 	if "--perf-quick" in OS.get_cmdline_user_args():
 		get_tree().quit()
 		return

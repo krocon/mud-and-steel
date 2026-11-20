@@ -4758,6 +4758,15 @@ the old dodging (`_keep_events_above_command_bar`,
   every 0.25 s; hits and losses come from `alerts.gd`. Click looks there,
   `event_jump` (Space) jumps to the newest. A message has its own lifetime;
   long ones (losses out of view) are pushed out last.
+- **Overview, mark switches, HUD off, photo mode** (prompt 103):
+  `camera/overview.gd` raises the rig's `max_distance` for the overview
+  only (up to 1200 m), turns the sun's shadows and the decoration off and
+  sets `unit_highlight.force_show_all`; `world/view_toggles.gd` applies the
+  `show_*` settings and `ground_lines` every frame after `main.gd` and the
+  unit highlight placed their marks, and hides the HUD layer and all marks
+  for F1 and the photo mode; `world/photo_mode.gd` pauses the tree with the
+  rig `PROCESS_MODE_ALWAYS`, widens the rig's limits and restores every
+  value it changed on leaving.
 - **Tactical pause** (`world/tactical_pause.gd`, prompt 102): pauses the
   scene tree like the pause menu and sets the HUD layer, the camera rig and
   the unit highlight to `PROCESS_MODE_ALWAYS` while it lasts. What runs on

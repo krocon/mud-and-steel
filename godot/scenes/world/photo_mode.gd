@@ -69,6 +69,7 @@ func enter() -> void:
 	active = true
 	_saved = {
 		"paused": get_tree().paused, "rig_mode": rig.process_mode,
+		"atmosphere_mode": main.atmosphere.process_mode if main.get("atmosphere") != null else Node.PROCESS_MODE_INHERIT,
 		"min": rig.min_distance, "tilt_min": rig.tilt_min_deg, "tilt_max": rig.tilt_max_deg,
 		"fov": rig.fov_deg, "dof": Settings.get_value("depth_of_field"),
 		"fog": main.fog_of_war.enabled if main.get("fog_of_war") != null else true,
@@ -77,6 +78,9 @@ func enter() -> void:
 	}
 	get_tree().paused = true
 	rig.process_mode = Node.PROCESS_MODE_ALWAYS
+	# The depth of field follows the camera (`atmosphere.gd`).
+	if main.get("atmosphere") != null:
+		main.atmosphere.process_mode = Node.PROCESS_MODE_ALWAYS
 	rig.min_distance = MIN_DISTANCE
 	rig.tilt_min_deg = TILT_MIN_DEG
 	rig.tilt_max_deg = TILT_MAX_DEG
@@ -110,6 +114,8 @@ func leave() -> void:
 	rig.target_tilt = _saved.tilt
 	rig.tilt = _saved.tilt
 	rig.process_mode = _saved.rig_mode
+	if main.get("atmosphere") != null:
+		main.atmosphere.process_mode = _saved.atmosphere_mode
 	main.view_toggles.set_hidden(_saved.hidden)
 	get_tree().paused = _saved.paused
 

@@ -1446,8 +1446,10 @@ func _view_test() -> void:
 	var before := [rig.target_distance, rig.target_tilt, rig.max_distance]
 	main.overview.enter()
 	await _frames(150)
-	_check(rig.distance > 600.0 and not main.sun.shadow_enabled and main.unit_highlight.force_show_all,
-		"overview: distance %.0f m, shadows %s" % [rig.distance, main.sun.shadow_enabled])
+	var far: float = main.overview.distance()
+	_check(far >= before[2] and absf(rig.distance - far) < 2.0 and not main.sun.shadow_enabled
+		and main.unit_highlight.force_show_all,
+		"overview: distance %.0f m of %.0f m, shadows %s" % [rig.distance, far, main.sun.shadow_enabled])
 	main.overview.leave()
 	await _frames(150)
 	_check(absf(rig.distance - before[0]) < 1.0 and absf(rig.target_tilt - before[1]) < 0.001
@@ -1497,10 +1499,13 @@ func _view_test() -> void:
 	_check(get_tree().paused and sim_host.current_tick() == tick and toggles.hidden,
 		"photo mode: paused %s, ticks %d -> %d" % [get_tree().paused, tick, sim_host.current_tick()])
 	_check(rig.distance < 10.0, "photo mode: the camera does not go closer (%.1f m)" % rig.distance)
-	var path: String = await main.photo_mode.save_photo()
-	_check(not path.is_empty() and FileAccess.file_exists(path), "photo mode saved no picture")
-	if not path.is_empty():
-		DirAccess.remove_absolute(path)
+	# Headless nothing is drawn: no picture to save (the export self-test
+	# and `just`-recipes with a window save one).
+	if DisplayServer.get_name() != "headless":
+		var path: String = await main.photo_mode.save_photo()
+		_check(not path.is_empty() and FileAccess.file_exists(path), "photo mode saved no picture")
+		if not path.is_empty():
+			DirAccess.remove_absolute(path)
 	main.photo_mode.leave()
 	await _frames(3)
 	_check(not get_tree().paused and not toggles.hidden and rig.focus == view[0] and rig.target_distance == view[1]
