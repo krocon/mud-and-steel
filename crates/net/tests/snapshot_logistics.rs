@@ -72,9 +72,12 @@ fn snapshot_while_resupplying_and_driving() {
     let map = flat_map();
     let mut original = supply(map.clone());
     original.step(&[
+        // 71 m away: inside the 87.5 m of the 75 mm gun since prompt 097,
+        // so the tank fires from where it stands and the truck below finds
+        // it next to its destination (at 141 m it would drive off first).
         order(Command::AttackGround {
             units: vec![UnitId(1)],
-            target: Vec2::from_meters(-100, 100),
+            target: Vec2::from_meters(-50, 50),
         }),
         order(Command::Patrol {
             units: vec![UnitId(2)],

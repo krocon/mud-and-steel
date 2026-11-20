@@ -15,13 +15,15 @@ pub(crate) const STALE_TICKS: u64 = 4800;
 /// Losses count in full for this long, then fade out over the same time.
 const LOSS_TICKS: u64 = 2400;
 /// A loss makes the ground within this distance dangerous (m).
-const LOSS_RADIUS_M: i32 = 120;
+/// Halved with the ranges and sight in prompt 097 (120 m before).
+const LOSS_RADIUS_M: i32 = 60;
 /// Losses kept at most (the oldest go first).
 const MAX_LOSSES: usize = 64;
 /// A known enemy seen this far from its last sighting has moved (m).
 const MOVED_M: i32 = 8;
 /// Sightings within this distance of each other belong to one front (m).
-const FRONT_LINK_M: i32 = 160;
+/// Halved with the ranges and sight in prompt 097 (160 m before).
+const FRONT_LINK_M: i32 = 80;
 
 /// Where and when an own unit was lost, and what it was worth.
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]

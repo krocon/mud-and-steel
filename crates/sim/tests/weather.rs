@@ -179,12 +179,13 @@ fn p0_sees(weather: WeatherSetup, y: i32) -> bool {
 
 #[test]
 fn fog_and_night_shorten_sight() {
-    // 300 m apart: seen by day (500 m), not in fog (35 %) or at night (45 %).
-    assert!(p0_sees(WeatherSetup::default(), -100));
-    assert!(!p0_sees(setup(Weather::Fog, Daytime::Day), -100));
-    assert!(!p0_sees(setup(Weather::Clear, Daytime::Night), -100));
-    // Close by, fog hides nothing.
-    assert!(p0_sees(setup(Weather::Fog, Daytime::Day), 120));
+    // 150 m apart: seen by day (250 m, 2 km real × 1/8, prompt 097), not in
+    // fog (35 %: 87.5 m) or at night (45 %: 112.5 m).
+    assert!(p0_sees(WeatherSetup::default(), 50));
+    assert!(!p0_sees(setup(Weather::Fog, Daytime::Day), 50));
+    assert!(!p0_sees(setup(Weather::Clear, Daytime::Night), 50));
+    // Close by (40 m), fog hides nothing.
+    assert!(p0_sees(setup(Weather::Fog, Daytime::Day), 160));
     let day = VisionRules::builtin().unwrap();
     let mut config_vision = SimConfig {
         tick_hz: 20,
@@ -207,16 +208,17 @@ fn fog_and_night_shorten_sight() {
 
 #[test]
 fn muzzle_flashes_reveal_the_shooter_at_night() {
-    // Two tanks fight 150 m apart; an observer 300 m behind the P1 tank
-    // cannot see it at night (225 m sight) until it fires.
+    // Two tanks fight 75 m apart (their guns reach 87.5 m, prompt 097); an
+    // observer 150 m behind the P1 tank cannot see it at night (112.5 m
+    // sight) until it fires (flashes are seen within 250 m).
     let night = setup(Weather::Clear, Daytime::Night);
     let mut sim = sim_with(
         flat_map(GRASS),
         night,
         &[
-            (P0, TANK, 0, -150, FIRE),
+            (P0, TANK, 0, -75, FIRE),
             (P1, ENEMY, 0, 0, FIRE),
-            (P2, SQUAD, 0, 300, HOLD),
+            (P2, SQUAD, 0, 150, HOLD),
         ],
     );
     assert!(sim.visible_to(P0, UnitId(1)), "the tanks see each other");
@@ -241,7 +243,7 @@ fn same_weather_and_seed_give_the_same_hash() {
         let mut sim = sim_with(
             flat_map(DIRT_TRACK),
             weather,
-            &[(P0, TANK, 0, -150, FIRE), (P1, ENEMY, 0, 0, FIRE)],
+            &[(P0, TANK, 0, -75, FIRE), (P1, ENEMY, 0, 0, FIRE)],
         );
         for _ in 0..300 {
             sim.step(&[]);

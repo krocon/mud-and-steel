@@ -208,9 +208,10 @@ fn factions_replace_the_units_of_a_player() {
         };
         assert_eq!(spawn.unit_type, expected);
         // Every unit keeps its place, except the tanks of the group that
-        // grew: its grid (one more row) is centered on the same point.
+        // grew: its grid (one more row) is centered on the same point, the
+        // start of player 0 (0, 30).
         if spawn.owner == P0 && !infantry {
-            let center = sim::Vec2::from_meters(0, 60);
+            let center = sim::Vec2::from_meters(0, 30);
             assert!((spawn.position - center).length() < sim::Fixed::from_num(30));
         } else {
             let i = originals

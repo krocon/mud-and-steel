@@ -1104,8 +1104,9 @@ impl Ai {
             {
                 let enemy_center =
                     centroid(near.iter().map(|e| e.position)).unwrap_or(near[0].position);
+                // Always round the same way (prompt 097): alternating
+                // sides swung back behind the same wrecks.
                 let side = flank_point(center, enemy_center, range, state.flank_left);
-                state.flank_left = !state.flank_left;
                 let side = self.clamp_to_map(side);
                 out.push(Command::MoveTo {
                     units: ids,
@@ -1366,7 +1367,8 @@ fn flank_point(center: Vec2, enemy: Vec2, range: Fixed, left: bool) -> Vec2 {
     if len == Fixed::ZERO {
         return center;
     }
-    let reach = (range * 6 / 10).max(Fixed::from_num(60));
+    // At least 30 m (60 m before the ranges were halved in prompt 097).
+    let reach = (range * 6 / 10).max(Fixed::from_num(30));
     let u = d.scale(reach / len);
     // cos 70° ≈ 0.342, sin 70° ≈ 0.940.
     let (c, s) = (Fixed::from_num(342) / 1000, Fixed::from_num(940) / 1000);

@@ -73,11 +73,13 @@ extends Node
 ##    test): debug-wounded men of an own squad in the feed, the unit panel and
 ##    their clips; a comrade carries the heavily wounded man along.
 
-## Panzer IV H: 16 km/h cross-country (catalog) × time factor 2 = 8.889 m/s,
-## i.e. 0.4444 m per tick at 20 Hz. Terrain scales it (data/terrain.toml).
-const EXPECTED_STEP := 16.0 * 2.0 / 3.6 / 20.0
-## Panzer IV H on roads: 38 km/h × 2 = 1.0556 m per tick.
-const ROAD_STEP := 38.0 * 2.0 / 3.6 / 20.0
+## Panzer IV H: 16 km/h cross-country (catalog) × the vehicle speed factor
+## 1/1 (`data/scale.toml [speed]`, prompt 097; the time factor 2 before) =
+## 4.444 m/s, i.e. 0.2222 m per tick at 20 Hz. Terrain scales it
+## (data/terrain.toml).
+const EXPECTED_STEP := 16.0 * 1.0 / 3.6 / 20.0
+## Panzer IV H on roads: 38 km/h × 1 = 0.5278 m per tick.
+const ROAD_STEP := 38.0 * 1.0 / 3.6 / 20.0
 const OVERVIEW_DISTANCE := 350.0
 const GroundPick := preload("res://scenes/camera/ground_pick.gd")
 ## The hill drive runs at this time scale to keep the test short.

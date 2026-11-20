@@ -858,10 +858,10 @@ mod tests {
     fn catalog_values_are_scaled() {
         let rules = CombatRules::builtin().unwrap();
         let (pz4, kwk) = weapon("de_pz4_h");
-        // 700 m real (typical distance) → 175 m; 10 rpm real → 6 s → 3 s
-        // game = 60 ticks;
+        // 700 m real (typical distance) × 1/8 → 87.5 m; 10 rpm real → 6 s
+        // → 3 s game = 60 ticks;
         // 750 m/s × 2.
-        assert_eq!(kwk.range_m, Fixed::from_num(175));
+        assert_eq!(kwk.range_m, Fixed::from_num(700) / Fixed::from_num(8));
         assert_eq!(rules.reload_ticks(&kwk, 20), 60);
         assert_eq!(kwk.speed_m_per_s, Fixed::from_num(1500));
         // MG 34 without range is not used.

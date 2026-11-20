@@ -14,9 +14,12 @@ fn normal_calls_bombers_on_a_large_group() {
     let sim = Sim::new(&config, map.clone(), 1).unwrap();
     let mut view = PlayerView::new(&sim, PlayerId(0));
     let own: Vec<Vec2> = view.own.iter().map(|u| u.position).collect();
+    // More than 250 m from every own unit (300 m before prompt 097 moved
+    // the starts of test_small to 60 m apart; the bombers' safety margin
+    // is 150 m).
     let far = (-8..=8)
         .flat_map(|x| (-8..=8).map(move |y| Vec2::from_meters(x * 100, y * 100)))
-        .find(|&p| map.contains(p) && own.iter().all(|&q| (p - q).length() > Fixed::from_num(300)))
+        .find(|&p| map.contains(p) && own.iter().all(|&q| (p - q).length() > Fixed::from_num(250)))
         .expect("a point far from player 0");
     let t34 = config
         .unit_types

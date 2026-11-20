@@ -25,7 +25,8 @@ use serde::{Deserialize, Serialize};
 use sim::{Command, Engage, Fixed, Formation, UnitId, Vec2};
 
 /// The staging point lies this far outside the front's weapon range (m).
-const STAGE_MARGIN_M: i32 = 70;
+/// Halved with the ranges and sight in prompt 097 (70 m before).
+const STAGE_MARGIN_M: i32 = 35;
 /// The army waits at the staging point at most this long (ticks).
 const STAGE_WAIT_TICKS: u64 = 600;
 /// A stage (way there plus waiting) is given up after this long: assault.
@@ -35,7 +36,8 @@ const ASSAULT_RANGE_PCT: i64 = 60;
 /// The way round the front: at most this many degrees per leg.
 const ARC_STEP_DEG: i32 = 45;
 /// Withdraw this far beyond the front's reach (m).
-const WITHDRAW_M: i32 = 150;
+/// Halved with the ranges and sight in prompt 097 (150 m before).
+const WITHDRAW_M: i32 = 75;
 /// A withdrawal ends after this long at the latest (ticks).
 const WITHDRAW_TICKS: u64 = 900;
 /// Followers (infantry behind armor) keep this far behind the lead (m).
@@ -44,13 +46,23 @@ const FOLLOW_M: i32 = 50;
 const CLOSE_PCT: i64 = 45;
 /// ... but only when it stands farther than this share of its range.
 const CLOSE_FROM_PCT: i64 = 60;
+/// A fight in which neither the enemies in sight nor the own army
+/// loses hit points for this long is stalled (prompt 097: with guns
+/// reaching 87.5 m, full-size wrecks often block every line of fire): the
+/// armor steps `SIDESTEP_M` to the side. Ticks: longer than the slowest
+/// reload of the tanks (T-34 6 s real = 3 s game).
+const STALL_TICKS: u64 = 160;
+const SIDESTEP_M: i32 = 20;
 /// Armor that outranges the enemy fights from this share of its range.
 const STANDOFF_PCT: i64 = 85;
-/// With no anti-tank weapon seen, armor closes in this far (m).
-const OVERRUN_M: i32 = 60;
+/// With no anti-tank weapon seen, armor closes in this far (m): inside
+/// the 50 m of its machine guns (400 m real × 1/8 since prompt 097; 60 m
+/// of 100 m before).
+const OVERRUN_M: i32 = 30;
 /// An assault that arrived without contact creeps this much closer after
 /// this long (m, ticks).
-const CREEP_M: i32 = 60;
+/// Halved with the ranges and sight in prompt 097 (60 m before).
+const CREEP_M: i32 = 30;
 const CREEP_TICKS: u64 = 200;
 /// The front is sampled every `WATCH_TICKS`; closer by `ADVANCE_M` means
 /// it advances, for `ADVANCING_TICKS`.
@@ -118,6 +130,16 @@ pub(crate) struct ArmyPlan {
     reach: Option<Fixed>,
     /// Distance of the assault after creeping closer.
     creep: Option<Fixed>,
+    /// Hit points of the enemies in sight, own strength and the tick
+    /// since when both are unchanged in a fight (prompt 097).
+    #[serde(default)]
+    stall: Option<(u64, u64, u64)>,
+    /// A side step out of a stalled fight runs until this tick.
+    #[serde(default)]
+    sidestep_until: u64,
+    /// Side of the next side step.
+    #[serde(default)]
+    sidestep_left: bool,
 }
 
 /// `v` turned by `deg` degrees (multiples of 15 only; counter-clockwise).
@@ -464,7 +486,7 @@ impl Ai {
         }
         if in_range {
             self.start_fight(units, tick);
-            if role == Role::Armor && self.close_in(&ids, center, range, near, &front, tick, out) {
+            if role == Role::Armor && self.close_in(units, center, range, near, &front, tick, out) {
                 return true;
             }
             return false;
@@ -644,6 +666,15 @@ impl Ai {
         out: &mut Vec<Command>,
     ) -> bool {
         let ids: Vec<UnitId> = units.iter().map(|u| u.id).collect();
+        if tick < self.army.sidestep_until {
+            return true;
+        }
+        if role == Role::Armor
+            && self.army.sent.is_none()
+            && self.sidestep(units, center, near, tick, out)
+        {
+            return true;
+        }
         // A flank move under way.
         if let Some((goal, sent)) = self.army.sent {
             let arrived = dist(center, goal) <= Fixed::from_num(40);
@@ -684,7 +715,65 @@ impl Ai {
         }
         // Even or better: a new window, closer if need be.
         self.start_fight(units, tick);
-        role == Role::Armor && self.close_in(&ids, center, range, near, front, tick, out)
+        role == Role::Armor && self.close_in(units, center, range, near, front, tick, out)
+    }
+
+    /// Steps the armor aside when the fight is stalled (see `STALL_TICKS`):
+    /// every tank moves `SIDESTEP_M` across the line to the nearest enemy
+    /// in sight, firing on the move, alternating the side.
+    fn sidestep(
+        &mut self,
+        units: &[OwnUnit],
+        center: Vec2,
+        near: &[&SeenUnit],
+        tick: u64,
+        out: &mut Vec<Command>,
+    ) -> bool {
+        let targets: Vec<&SeenUnit> = near
+            .iter()
+            .copied()
+            .filter(|e| e.alive() && self.type_info(e.unit_type).role != Role::Structure)
+            .collect();
+        let hp: u64 = targets.iter().map(|e| u64::from(e.hp)).sum();
+        let own = self.strength(units);
+        match self.army.stall {
+            Some((h, o, since)) if h == hp && o == own => {
+                if hp == 0 || tick < since + STALL_TICKS {
+                    return false;
+                }
+            }
+            _ => {
+                self.army.stall = Some((hp, own, tick));
+                return false;
+            }
+        }
+        self.army.stall = None;
+        let Some(nearest) = targets
+            .iter()
+            .map(|e| e.position)
+            .min_by_key(|&p| dist(p, center))
+        else {
+            return false;
+        };
+        let Some(to) = unit_vec(nearest - center) else {
+            return false;
+        };
+        let side = if self.army.sidestep_left {
+            Vec2::new(-to.y, to.x)
+        } else {
+            Vec2::new(to.y, -to.x)
+        };
+        self.army.sidestep_left = !self.army.sidestep_left;
+        let step = side.scale(Fixed::from_num(SIDESTEP_M));
+        for u in units {
+            let goal = self.clamp_to_map(u.position + step);
+            out.push(Command::MoveTo {
+                units: vec![u.id],
+                target: goal,
+            });
+        }
+        self.army.sidestep_until = tick + STALL_TICKS / 2;
+        true
     }
 
     /// Closes in on the enemy before (and between) firing: armor drives
@@ -695,7 +784,7 @@ impl Ai {
     #[allow(clippy::too_many_arguments)]
     fn close_in(
         &mut self,
-        ids: &[UnitId],
+        units: &[OwnUnit],
         center: Vec2,
         range: Fixed,
         near: &[&SeenUnit],
@@ -738,13 +827,17 @@ impl Ai {
         }
         let dir = unit_vec(center - nearest).unwrap_or(Vec2::ZERO);
         let goal = self.clamp_to_map(nearest + dir.scale(close));
-        out.push(Command::FormationMove {
-            units: ids.to_vec(),
-            target: goal,
-            formation: Formation::Line,
-            facing: Some(nearest - goal),
-            engage: Engage::Infantry,
-        });
+        // Every tank drives the same way forward and keeps its place in the
+        // group (prompt 097): forming a line first sent the outer tanks of
+        // a full-size line (8 tanks, ~85 m) across the front under fire,
+        // far longer at the short ranges of 1/8 than before.
+        let shift = goal - center;
+        for u in units {
+            out.push(Command::MoveTo {
+                units: vec![u.id],
+                target: self.clamp_to_map(u.position + shift),
+            });
+        }
         self.army.sent = Some((goal, tick));
         true
     }

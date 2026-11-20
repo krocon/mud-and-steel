@@ -140,7 +140,7 @@ hurt a building, so the first tanks or AT squads decide when a base falls.
 The bases stand at up to 70 % of half the map size from the center, on the
 line through the map's start positions (`start_distance_pct`; closer in
 where map objects or impassable ground are in the way): the test maps have
-their starts only 120 m apart, which is right for the battle but leaves no
+their starts only 60 m apart (`test_small`, 120 m before prompt 097), which is right for the battle but leaves no
 room for two bases. On `test_large` the bases end up 0.9 and 1.4 km from the
 center; on `test_small` the woods around the start meadow keep them at
 about 90 m. Fortifications come from the catalog:
@@ -224,7 +224,8 @@ From the catalog entry of the unit (`data/economy.toml`, `[unit_cost]`):
 - **Ammunition** = 10 + Σ over the weapons the simulation uses
   (caliber in mm)² × count / 60 × range factor × rate factor × velocity
   factor. The range factor (prompt 045) is the weapon's game range /
-  175 m (the 75 mm class guns; 250 m before prompt 067), clamped to
+  87 m (the 75 mm class guns; 175 m before prompt 097, 250 m before
+  prompt 067), clamped to
   50–150 %; the rate factor (decision 4 of prompt 045) is the catalog
   rate of fire / 10 rounds per minute, clamped to 75–150 %; the velocity
   factor (prompt 067, **[provisional]**) is (muzzle velocity / 650 m/s)³,

@@ -89,13 +89,14 @@ fn shots(sim: &mut Sim, ticks: u32, commands: &[PlayerCommand]) -> usize {
     count
 }
 
-/// Two tanks of different players 100 m apart on the same side of the
-/// hill, and a third player's tank far behind it.
+/// Two tanks of different players 50 m apart on the same side of the
+/// hill (inside the 87.5 m of their 75 mm guns, 700 m real x 1/8), and a
+/// third player's tank far behind it.
 fn face_off(teams: &[(PlayerId, u8)]) -> Sim {
     sim_with(
         &[
             (P0, TANK, 0, 200, FIRE),
-            (P1, ENEMY, 0, 300, FIRE),
+            (P1, ENEMY, 0, 250, FIRE),
             (P2, ENEMY, 300, -350, HOLD),
         ],
         teams,
@@ -127,11 +128,15 @@ fn allies_do_not_fire_at_each_other() {
 
 #[test]
 fn allies_see_each_other_and_share_vision_if_asked() {
-    // P0 south of the hill, its ally P1 and the enemy P2 north of it.
+    // P0 south of the hill, its ally P1 and the enemy P2 north of it. The
+    // hill (|y| < 100 m) does not shrink with the sight factor, so the
+    // tanks stand closer to it than before: P0 and P2 240 m apart, inside
+    // the 250 m sight (2000 m real x 1/8), only the hill between them; P1
+    // sees P2 from 170 m.
     let spawns = [
-        (P0, TANK, 0, 200, HOLD),
-        (P1, TANK, 300, -250, HOLD),
-        (P2, ENEMY, 0, -150, HOLD),
+        (P0, TANK, 0, 120, HOLD),
+        (P1, TANK, 150, -200, HOLD),
+        (P2, ENEMY, 0, -120, HOLD),
     ];
     let teams = [(P0, 0), (P1, 0), (P2, 1)];
     let alone = sim_with(&spawns, &teams, false);

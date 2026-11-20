@@ -367,7 +367,8 @@ fn json_escape(text: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::scenario::{builtin_map, demo_config};
+    use crate::PlayerCommand;
+    use crate::scenario::{builtin_map, demo_config, demo_scripts};
 
     #[test]
     fn counts_losses_and_kills_of_the_demo() {
@@ -376,9 +377,23 @@ mod tests {
         let mut sim = Sim::new(&config, map, 42).unwrap();
         let mut stats = MatchStats::new(&config);
         stats.observe(&sim);
+        // The demo's command scripts move the armies about: since prompt
+        // 097 (direct fire × 1/8, guns 87.5 m) the tanks start out of each
+        // other's reach (120 m) and would not fight standing still.
+        let mut scripts = demo_scripts(42, &config);
         let mut ticks = 0;
         while sim.outcome().is_none() && ticks < 6000 {
-            sim.step(&[]);
+            let commands: Vec<PlayerCommand> = scripts
+                .iter_mut()
+                .flat_map(|(player, script)| {
+                    let player = *player;
+                    script
+                        .commands_for_tick(ticks)
+                        .into_iter()
+                        .map(move |c| PlayerCommand::new(player, c))
+                })
+                .collect();
+            sim.step(&commands);
             stats.observe(&sim);
             ticks += 1;
         }

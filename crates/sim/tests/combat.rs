@@ -90,14 +90,14 @@ fn run_until_destroyed(sim: &mut Sim, id: UnitId, max: u64) -> Vec<(u64, CombatE
 
 #[test]
 fn panzer_destroys_t34_after_the_expected_tick_count() {
-    // Panzer IV 150 m east of a T-34 that faces north and holds fire: the
+    // Panzer IV 75 m (600 m real at 1/8) east of a T-34 that faces north and holds fire: the
     // Panzer IV faces the origin, so its gun is on target at once, and the
     // rounds strike the T-34's flank.
     let mut sim = sim_with(
         map_with(|_, _| 0),
         exact_rules(),
         &[
-            (P0, "de_pz4_h", 150, 0, FIRE),
+            (P0, "de_pz4_h", 75, 0, FIRE),
             (P1, "su_t34_76_1943", 0, 0, HOLD),
         ],
     );
@@ -106,12 +106,13 @@ fn panzer_destroys_t34_after_the_expected_tick_count() {
     // Expected from catalog and rules: KwK 40 at 10 rpm real, time factor
     // 2 → 3 s → 60 ticks between rounds; 750 m/s × 2 = 75 m per tick; the
     // muzzle sits half a hull length (2.96 m) ahead, the T-34's side 1.5 m
-    // off its center: 145.54 m of flight → the round hits during the second
-    // tick after the shot. A penetration costs 75² × 10 / 100 = 562 of 1000
+    // off its center: 70.54 m of flight, less than one tick → the round
+    // hits in the tick of the shot (projectiles fly after firing within a
+    // tick). A penetration costs 75² × 10 / 100 = 562 of 1000
     // hit points, so the second hit destroys it.
     let rules = exact_rules();
     let reload = 60;
-    let flight_ticks = 2;
+    let flight_ticks = 1;
     let hits_needed = rules.damage.vehicle_hp.div_ceil(562);
     assert_eq!(hits_needed, 2);
     let expected = u64::from(hits_needed - 1) * reload + flight_ticks - 1;
@@ -138,7 +139,7 @@ fn panzer_destroys_t34_after_the_expected_tick_count() {
     assert_eq!(
         hits,
         vec![
-            (1, Face::Side, true, 562),
+            (flight_ticks - 1, Face::Side, true, 562),
             (expected, Face::Side, true, 562)
         ]
     );
@@ -196,15 +197,15 @@ fn t34_hits_on_tiger(x: i32, y: i32) -> Vec<(Face, bool)> {
 
 #[test]
 fn front_armor_holds_where_the_flank_does_not() {
-    // F-34 at 150 m (600 m real): 109 × (1 - 0.12) = 96 mm. The Tiger's
+    // F-34 at 75 m (600 m real at 1/8): 109 × (1 - 0.12) = 96 mm. The Tiger's
     // front is 100 mm at 9°, its side 80 mm.
-    let front = t34_hits_on_tiger(0, -150);
+    let front = t34_hits_on_tiger(0, -75);
     assert!(!front.is_empty());
     assert!(
         front.iter().all(|&h| h == (Face::Front, false)),
         "{front:?}"
     );
-    let side = t34_hits_on_tiger(150, 0);
+    let side = t34_hits_on_tiger(75, 0);
     assert!(side.iter().all(|&h| h == (Face::Side, true)), "{side:?}");
     // Two penetrations of 76.2 mm (580 each) destroy it.
     assert_eq!(side.len(), 2);
@@ -212,22 +213,23 @@ fn front_armor_holds_where_the_flank_does_not() {
 
 #[test]
 fn an_oblique_hit_on_the_flank_bounces() {
-    // 45° to the side plate: 80 mm / cos 45° = 113 mm > 96 mm.
-    let hits = t34_hits_on_tiger(106, -106);
+    // 45° to the side plate at 75 m (600 m real): 80 mm / cos 45° = 113 mm
+    // > 96 mm.
+    let hits = t34_hits_on_tiger(53, -53);
     assert!(!hits.is_empty());
     assert!(hits.iter().all(|&h| h == (Face::Side, false)), "{hits:?}");
 }
 
 #[test]
 fn a_ridge_stops_the_rounds() {
-    // A 20 m high bank between the tanks.
+    // A 20 m high bank between the tanks, 80 m (640 m real at 1/8) apart.
     let map = map_with(|_, y| if y.abs() <= 10 { 20_000 } else { 0 });
     let mut sim = sim_with(
         map,
         exact_rules(),
         &[
-            (P0, "de_pz4_h", 0, 80, FIRE),
-            (P1, "su_t34_76_1943", 0, -80, HOLD),
+            (P0, "de_pz4_h", 0, 40, FIRE),
+            (P1, "su_t34_76_1943", 0, -40, HOLD),
         ],
     );
     // Since prompt 018 a unit does not fire at targets it cannot see, so
@@ -239,7 +241,7 @@ fn a_ridge_stops_the_rounds() {
         P0,
         Command::AttackGround {
             units: vec![UnitId(0)],
-            target: Vec2::from_meters(0, -80),
+            target: Vec2::from_meters(0, -40),
         },
     )]);
     let events = run_until_destroyed(&mut sim, UnitId(1), 300);
@@ -326,14 +328,15 @@ fn hold_fire_keeps_everyone_quiet_until_attack() {
 
 #[test]
 fn attack_drives_into_range_and_fires() {
-    // 180 m apart, the KwK 40 reaches 175 m: the Panzer IV must close in to
-    // 90 % of its range, then stop and fire.
+    // 90 m apart, the KwK 40 reaches 700 m real × 1/8 = 87.5 m: the
+    // Panzer IV must close in to 90 % of its range (78.75 m), then stop and
+    // fire.
     let mut sim = sim_with(
         map_with(|_, _| 0),
         CombatRules::builtin().unwrap(),
         &[
-            (P0, "de_pz4_h", 0, 90, HOLD),
-            (P1, "su_t34_76_1943", 0, -90, HOLD),
+            (P0, "de_pz4_h", 0, 45, HOLD),
+            (P1, "su_t34_76_1943", 0, -45, HOLD),
         ],
     );
     sim.step(&[PlayerCommand::new(
@@ -364,21 +367,23 @@ fn attack_drives_into_range_and_fires() {
     assert_eq!(sim.unit_hp(UnitId(1)), Some(0), "target survived");
     let first_shot = first_shot.unwrap().to_num::<i32>();
     assert!(
-        (154..=175).contains(&first_shot),
+        (77..=87).contains(&first_shot),
         "first shot at {first_shot} m"
     );
     let stopped = stopped_at.unwrap().to_num::<i32>();
-    assert!((150..=158).contains(&stopped), "stopped at {stopped} m");
+    assert!((75..=79).contains(&stopped), "stopped at {stopped} m");
 }
 
 #[test]
 fn infantry_is_killed_by_machine_guns_but_cannot_hurt_tanks() {
+    // 50 m apart (400 m real at 1/8): the typical range of the Sherman's
+    // bow and coaxial M1919A4.
     let mut sim = sim_with(
         map_with(|_, _| 0),
         CombatRules::builtin().unwrap(),
         &[
-            (P0, "de_inf_rifle_squad", 0, 50, FIRE),
-            (P1, "us_m4a3_75", 0, -50, FIRE),
+            (P0, "de_inf_rifle_squad", 0, 25, FIRE),
+            (P1, "us_m4a3_75", 0, -25, FIRE),
         ],
     );
     let events = run_until_destroyed(&mut sim, UnitId(0), 2000);
@@ -393,23 +398,24 @@ fn infantry_is_killed_by_machine_guns_but_cannot_hurt_tanks() {
     // Dead infantry leaves no wreck.
     assert!(
         sim.path_grid()
-            .passable_at(SizeClass::Small, Vec2::from_meters(0, 50))
+            .passable_at(SizeClass::Small, Vec2::from_meters(0, 25))
     );
 }
 
 #[test]
 fn same_seed_same_battle() {
+    // Tanks 80 m apart (640 m real at 1/8), inside the 75/76 mm ranges.
     let run = || {
         let mut sim = sim_with(
             map_with(|x, y| (x * 7 + y * 3).rem_euclid(900)),
             CombatRules::builtin().unwrap(),
             &[
-                (P0, "de_pz4_h", -20, 80, FIRE),
-                (P0, "de_pz4_h", 20, 80, FIRE),
-                (P0, "de_inf_rifle_squad", 0, 100, FIRE),
-                (P1, "su_t34_76_1943", -20, -80, FIRE),
-                (P1, "su_t34_76_1943", 20, -80, FIRE),
-                (P1, "su_inf_rifle_squad", 0, -100, FIRE),
+                (P0, "de_pz4_h", -10, 40, FIRE),
+                (P0, "de_pz4_h", 10, 40, FIRE),
+                (P0, "de_inf_rifle_squad", 0, 50, FIRE),
+                (P1, "su_t34_76_1943", -10, -40, FIRE),
+                (P1, "su_t34_76_1943", 10, -40, FIRE),
+                (P1, "su_inf_rifle_squad", 0, -50, FIRE),
             ],
         );
         let mut events = Vec::new();

@@ -4,7 +4,7 @@
 #
 # These are game rules, not catalog values: the catalog has no sight ranges.
 # Ranges are given in real meters and compressed by `range.sight` in
-# data/scale.toml (× 1/4), like weapon ranges.
+# data/scale.toml (× 1/8 since prompt 097, 1/4 before), like weapon ranges.
 
 [grid]
 # Edge of a vision cell. Sight lines run from cell to cell.
@@ -23,7 +23,7 @@ foliage_depth_cells = 1
 budget_steps_per_tick = 400000
 
 [sight]
-# Real sight range of a unit in open terrain, in meters (→ 500 m game).
+# Real sight range of a unit in open terrain, in meters (→ 250 m game).
 range_real_m = 2000
 # Per-category overrides.
 [[sight.category]]
@@ -101,7 +101,7 @@ max_pct = 25
 # Infantry ambush (prompt 056) [provisional]: a squad that stands in a
 # forest cell or is garrisoned in a building and has not fired for
 # `reveal_s` seconds is seen only by hostile ground units within
-# `spot_real_m` real meters (→ 50 m game) that have it in sight. Firing
+# `spot_real_m` real meters (→ 25 m game) that have it in sight. Firing
 # reveals it like anyone else; standing silent again for `reveal_s` hides
 # it again. 0 turns the rule off.
 spot_real_m = 200

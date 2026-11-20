@@ -21,8 +21,19 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by prompt 093 (tanks against walls, infantry and buildings),
-/// an intended rule change:
+/// Last changed by prompt 097 (vehicle speed and weapon range after the
+/// reference video), an intended rule change: ground vehicles drive their
+/// real speed (`[speed] vehicle = 1/1` in `data/scale.toml` instead of the
+/// time factor 2), direct fire and sight are compressed 1/8 instead of 1/4
+/// with a minimum game range of 15 m, anti-aircraft fire keeps 1/4, and the
+/// starts of `test_small` (and the demo's groups) moved from 120 m to 60 m
+/// apart, so the tanks start inside the 87.5 m of their guns as they
+/// started inside 175 m before. The hashed unit types, vision and price
+/// rules change with the factors; the demo battle is decided at tick 603
+/// instead of 556, same winner (player 0).
+///
+/// Before (`0x61a2_ce50_2027_ba7c`), prompt 093 (tanks against walls,
+/// infantry and buildings), an intended rule change:
 /// - Hashed rules and state: `[crush]` and the crush limits of mud and
 ///   dry-stone walls (`data/destruction.toml`), `[overrun]` and
 ///   `[vehicle_mg]` (`data/combat.toml`), every unit's slow-down after
@@ -288,7 +299,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x61a2_ce50_2027_ba7c;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x51f2_adfb_a7d6_82f8;
 
 #[test]
 fn golden_hash() {
@@ -341,16 +352,17 @@ fn demo_is_a_battle() {
 /// drive to a lead-in point first, after prompt 088), so the run is 1900
 /// ticks long (the golden hash above stays at 1000 ticks). Since prompt 093
 /// the tanks' machine guns fire at the squads: the last Soviet squad falls
-/// at tick 556.
+/// at tick 556. Since prompt 097 (vehicles at real speed, direct fire and
+/// sight 1/8, tanks starting 60 m apart) at tick 603.
 #[test]
 fn demo_battle_is_decided() {
     let end = run_demo(42, 1900);
     let outcome = end.outcome().expect("the demo battle is decided");
     assert_eq!(outcome.winner, Some(sim::PlayerId(0)));
-    assert_eq!(outcome.tick, 556);
+    assert_eq!(outcome.tick, 603);
     assert_eq!(end.alive_units(sim::PlayerId(1)), 0);
     assert_eq!(
         end.standings()[1].defeat,
-        Some((sim::DefeatReason::Eliminated, 556))
+        Some((sim::DefeatReason::Eliminated, 603))
     );
 }

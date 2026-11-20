@@ -109,7 +109,8 @@ struct ScenarioFile {
     /// Moves every player's groups outwards along the line from the map
     /// center through their start, until the first group stands at this
     /// share (percent) of half the map size from the center (prompt 023:
-    /// bases need room; the test maps have their starts 120 m apart).
+    /// bases need room; `test_small` has its starts 60 m apart since prompt 097,
+    /// `test_large` 120 m).
     #[serde(default)]
     start_distance_pct: Option<u32>,
 }
@@ -759,12 +760,13 @@ mod tests {
             assert!(spawns[..8].iter().all(|s| s.unit_type == unit));
             assert!(spawns[8..].iter().all(|s| s.unit_type == squad));
         }
-        // First row of player 0: four tanks 12 m apart, centered, at y = 54 m.
+        // First row of player 0: four tanks 12 m apart, centered on the
+        // start (0, 30), two rows 12 m apart: y = 30 - 6 = 24 m.
         let first: Vec<(i32, i32)> = config.spawns[..4]
             .iter()
             .map(|s| (s.position.x.to_num(), s.position.y.to_num()))
             .collect();
-        assert_eq!(first, vec![(-18, 54), (-6, 54), (6, 54), (18, 54)]);
+        assert_eq!(first, vec![(-18, 24), (-6, 24), (6, 24), (18, 24)]);
     }
 
     #[test]
@@ -822,16 +824,18 @@ mod tests {
         let scale = Scale::builtin().unwrap();
         let terrain = TerrainRules::builtin().unwrap();
         let moved = BUILTIN_MAP_TOML
-            .replacen("position_m = [0, 60]", "position_m = [-100, 150]", 1)
-            .replacen("position_m = [0, -60]", "position_m = [120, -30]", 1);
+            .replacen("position_m = [0, 30]", "position_m = [-100, 150]", 1)
+            .replacen("position_m = [0, -30]", "position_m = [120, -30]", 1);
         let map = Map::load(&moved, BUILTIN_MAP_HEIGHT, BUILTIN_MAP_TERRAIN).unwrap();
         let config = parse_scenario(DEMO_SCENARIO, &catalog, &scale, &terrain, &map).unwrap();
         let demo = demo_config();
+        // Every group moves by its player's start shift: (0, 30) -> (-100, 150)
+        // and (0, -30) -> (120, -30).
         for (spawn, original) in config.spawns.iter().zip(&demo.spawns) {
             let offset = if spawn.owner == PlayerId(0) {
-                Vec2::from_meters(-100, 90)
+                Vec2::from_meters(-100, 120)
             } else {
-                Vec2::from_meters(120, 30)
+                Vec2::from_meters(120, 0)
             };
             assert_eq!(spawn.position, original.position + offset);
         }

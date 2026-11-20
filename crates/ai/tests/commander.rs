@@ -55,16 +55,18 @@ fn config(map: &Map, spawns: &[(PlayerId, &str, i32, i32)]) -> SimConfig {
 }
 
 /// Rifle squads that see only tanks (which hold their fire): Hard gives up
-/// after a minute, the old Hard never does.
+/// after a minute, the old Hard never does. 200 m apart (1600 m real at
+/// the sight factor 1/8 of prompt 097; 400 m at 1/4 before), inside the
+/// 250 m sight.
 #[test]
 fn hard_surrenders_when_nothing_it_has_can_hurt_the_enemy() {
     let map = meadow();
     let config = config(
         &map,
         &[
-            (PlayerId(0), "de_pz4_h", -200, 0),
-            (PlayerId(0), "de_pz4_h", -200, 20),
-            (PlayerId(1), "su_inf_rifle_squad", 200, 0),
+            (PlayerId(0), "de_pz4_h", -100, 0),
+            (PlayerId(0), "de_pz4_h", -100, 20),
+            (PlayerId(1), "su_inf_rifle_squad", 100, 0),
         ],
     );
     for (level, gives_up) in [(Difficulty::Hard, true), (Difficulty::HardOld, false)] {
@@ -99,8 +101,9 @@ fn hard_attacks_from_the_flank() {
     let map = meadow();
     let mut spawns = Vec::new();
     for k in 0..4 {
-        spawns.push((PlayerId(0), "de_pz4_h", 300, -18 + 12 * k));
-        spawns.push((PlayerId(1), "su_t34_76_1943", -450, -18 + 12 * k));
+        // Half the distances of before prompt 097 (ranges and sight 1/8).
+        spawns.push((PlayerId(0), "de_pz4_h", 150, -18 + 12 * k));
+        spawns.push((PlayerId(1), "su_t34_76_1943", -225, -18 + 12 * k));
     }
     let config = config(&map, &spawns);
     let mut game = Game::new(
@@ -113,7 +116,7 @@ fn hard_attacks_from_the_flank() {
         ],
     )
     .unwrap();
-    let enemy = Vec2::from_meters(300, 0);
+    let enemy = Vec2::from_meters(150, 0);
     loop {
         assert!(game.sim().tick() < 20 * 300, "no attack");
         let d = game.think();
@@ -138,7 +141,8 @@ fn hard_attacks_from_the_flank() {
         off.y.abs() * 2 > off.length(),
         "attacked along the direct line from {center:?}"
     );
-    // From a distance: more than 60 % of the T-34's range (175 m since
-    // prompt 067: 105 m; 150 m of 250 m before).
-    assert!(off.length() > Fixed::from_num(105), "{center:?}");
+    // From a distance: more than 60 % of the T-34's range (87.5 m since
+    // prompt 097: 52.5 m; 105 m of 175 m since prompt 067, 150 m of 250 m
+    // before).
+    assert!(off.length() > Fixed::from_num(52), "{center:?}");
 }

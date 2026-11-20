@@ -58,6 +58,12 @@ Apple M1 Max, the scenario above, release simulation, debug bridge (as
 
 ## Simulation
 
+Prompt 097 (sight and direct fire 1/8, vehicles at real speed;
+`just bench --runs 3`, 2026-11-20, same machine): mean sim tick 5.13 → 2.87 ms,
+p99 9.24 → 6.43 ms, max 11.1 → 8.6 ms. Vision (half the sight range, a
+quarter of the cells) 2.29 → 0.61 ms mean, combat 0.23 → 0.15 ms; paths
+1.67 → 1.28 ms.
+
 `just bench --runs 3` (6000 ticks = 5 min game time, seed 1, minimum per
 tick of 3 runs, release, Apple M1 Max, 2026-11-15). "Before" and "after"
 are prompt 016 alone (end hash `0x21c325f3290ca7fd` both); "with 021/023"

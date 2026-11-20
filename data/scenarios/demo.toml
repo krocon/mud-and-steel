@@ -1,5 +1,8 @@
 # Demo scenario: two players with eight tanks and two rifle squads each,
 # facing each other across the start meadow of the test map. Integers only.
+# Prompt 097 halved the distances with the direct-fire factor (1/4 -> 1/8):
+# the tanks start 60 m apart (before 120 m, the starts of test_small moved
+# with them), inside the 87.5 m of their guns, as before inside 175 m.
 # Used by the game, the CLI, the golden-hash test and the network tests.
 #
 # Every [[group]] places `count` units of the catalog id `unit` for player
@@ -16,7 +19,7 @@ unit = "de_pz4_h"
 count = 8
 columns = 4
 spacing_m = 12
-center_m = [0, 60]
+center_m = [0, 30]
 
 [[group]]
 owner = 1
@@ -24,7 +27,7 @@ unit = "su_t34_76_1943"
 count = 8
 columns = 4
 spacing_m = 12
-center_m = [0, -60]
+center_m = [0, -30]
 
 # Infantry behind the tanks (prompt 022). Appended after the tanks, so the
 # tanks keep their unit ids.
@@ -35,7 +38,7 @@ role = "infantry"
 count = 2
 columns = 2
 spacing_m = 24
-center_m = [0, 88]
+center_m = [0, 44]
 
 [[group]]
 owner = 1
@@ -44,7 +47,7 @@ role = "infantry"
 count = 2
 columns = 2
 spacing_m = 24
-center_m = [0, -88]
+center_m = [0, -44]
 
 # Unit that replaces a player's groups when they pick another faction in the
 # skirmish setup (prompt 027). Keys are the faction ids of the catalog.

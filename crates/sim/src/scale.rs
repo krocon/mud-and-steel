@@ -50,8 +50,19 @@ struct RangeSection {
     direct_fire: Ratio,
     sight: Ratio,
     indirect_fire: Ratio,
+    /// Anti-aircraft fire (prompt 097: no longer the direct-fire factor).
+    anti_aircraft: Ratio,
+    /// Shortest game range of direct fire in meters (prompt 097).
+    direct_fire_min_m: u32,
     /// Fuel range (prompt 036).
     fuel: Ratio,
+}
+
+/// Movement speed factors that replace the time factor (prompt 097).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct SpeedSection {
+    vehicle: Ratio,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize)]
@@ -64,6 +75,7 @@ struct AircraftSection {
 #[serde(deny_unknown_fields)]
 struct ScaleFile {
     time: TimeSection,
+    speed: SpeedSection,
     range: RangeSection,
     aircraft: AircraftSection,
 }
@@ -87,6 +99,12 @@ pub struct Scale {
     pub direct_fire_range: Ratio,
     pub sight_range: Ratio,
     pub indirect_fire_range: Ratio,
+    /// Anti-aircraft ranges (prompt 097).
+    pub anti_aircraft_range: Ratio,
+    /// No direct-fire weapon reaches less far than this in the game (prompt 097).
+    pub direct_fire_min_m: u32,
+    /// Speed factor of ground vehicles instead of the time factor (prompt 097).
+    pub vehicle_speed: Ratio,
     pub aircraft_speed: Ratio,
     /// Real road range to the distance a full tank drives (prompt 036).
     pub fuel_range: Ratio,
@@ -105,6 +123,9 @@ impl Scale {
             direct_fire_range: file.range.direct_fire,
             sight_range: file.range.sight,
             indirect_fire_range: file.range.indirect_fire,
+            anti_aircraft_range: file.range.anti_aircraft,
+            direct_fire_min_m: file.range.direct_fire_min_m,
+            vehicle_speed: file.speed.vehicle,
             aircraft_speed: file.aircraft.speed,
             fuel_range: file.range.fuel,
         };
@@ -113,6 +134,8 @@ impl Scale {
             scale.direct_fire_range,
             scale.sight_range,
             scale.indirect_fire_range,
+            scale.anti_aircraft_range,
+            scale.vehicle_speed,
             scale.aircraft_speed,
             scale.fuel_range,
         ];
@@ -123,6 +146,11 @@ impl Scale {
             .any(|r| r.num == 0 || r.den == 0 || r.num > 1000 || r.den > 1000)
         {
             return Err(ScaleError("factors must be fractions of 1..=1000".into()));
+        }
+        if scale.direct_fire_min_m > 1000 {
+            return Err(ScaleError(
+                "range.direct_fire_min_m must be 0..=1000".into(),
+            ));
         }
         Ok(scale)
     }
@@ -136,12 +164,14 @@ impl Scale {
     }
 
     /// The factor applied to real speeds: the aircraft factor for aircraft,
-    /// otherwise the time factor of the category.
+    /// the vehicle factor for ground vehicles (prompt 097: heavy vehicles
+    /// move fewer of their own lengths per second than the time factor
+    /// would give), otherwise the time factor of the category.
     pub fn speed_factor_for(&self, category: Category) -> Ratio {
-        if category.group() == Group::Aircraft {
-            self.aircraft_speed
-        } else {
-            self.time_factor_for(category)
+        match category.group() {
+            Group::Aircraft => self.aircraft_speed,
+            Group::Vehicle => self.vehicle_speed,
+            _ => self.time_factor_for(category),
         }
     }
 
@@ -160,9 +190,18 @@ impl Scale {
             / Fixed::from_num(1000 * u64::from(factor.num))
     }
 
-    /// Game range in meters of a real direct-fire range.
+    /// Game range in meters of a real direct-fire range, at least
+    /// `direct_fire_min_m` (prompt 097: pure compression would leave a
+    /// Panzerfaust 7.5 m and a pistol 3 m).
     pub fn direct_fire_range_m(&self, real_m: u32) -> Fixed {
-        self.direct_fire_range.apply(Fixed::from_num(real_m))
+        self.direct_fire_range
+            .apply(Fixed::from_num(real_m))
+            .max(Fixed::from_num(self.direct_fire_min_m))
+    }
+
+    /// Game range in meters of a real anti-aircraft range (prompt 097).
+    pub fn anti_aircraft_range_m(&self, real_m: u32) -> Fixed {
+        self.anti_aircraft_range.apply(Fixed::from_num(real_m))
     }
 
     /// Game range in meters of a real sight range.
@@ -199,8 +238,13 @@ mod tests {
         let scale = Scale::builtin().unwrap();
         // 36 km/h real = 10 m/s real = 20 m/s in game.
         assert_eq!(
-            scale.game_speed(Category::TankMedium, 360),
+            scale.game_speed(Category::InfRifle, 360),
             Fixed::from_num(20)
+        );
+        // Ground vehicles drive their real speed (prompt 097).
+        assert_eq!(
+            scale.game_speed(Category::TankMedium, 360),
+            Fixed::from_num(10)
         );
         // Aircraft: 720 km/h real = 200 m/s, halved = 100 m/s.
         assert_eq!(
@@ -216,7 +260,10 @@ mod tests {
             scale.game_duration(Category::GunAt, 6000),
             Fixed::from_num(3)
         );
-        assert_eq!(scale.direct_fire_range_m(1000), Fixed::from_num(250));
+        assert_eq!(scale.direct_fire_range_m(1200), Fixed::from_num(150));
+        // Never below the minimum (prompt 097): Panzerfaust 60 m real.
+        assert_eq!(scale.direct_fire_range_m(60), Fixed::from_num(15));
+        assert_eq!(scale.anti_aircraft_range_m(2200), Fixed::from_num(550));
         assert_eq!(scale.indirect_fire_range_m(8000), Fixed::from_num(1000));
     }
 

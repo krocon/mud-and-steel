@@ -405,11 +405,13 @@ fn camouflage_hides_standing_vehicles_from_afar() {
     let map = Arc::new(map_with("crossing_camo", 401, 401, |_, _| false));
     let mut sim = sim_on(
         map,
-        &[(P0, "de_pz4_h", 0, 0), (P1, "su_t34_76_1943", 0, 300)],
+        &[(P0, "de_pz4_h", 0, 0), (P1, "su_t34_76_1943", 0, 150)],
         5,
     );
+    // 150 m: inside the 250 m sight (2000 m real x 1/8), outside the 100 m
+    // (40 %) that camouflage leaves.
     run(&mut sim, 20);
-    assert!(sim.visible_to(P1, UnitId(0)), "seen at 300 m in the open");
+    assert!(sim.visible_to(P1, UnitId(0)), "seen at 150 m in the open");
     sim.step(&[cmd(
         P0,
         Command::SetCamouflage {
@@ -422,13 +424,13 @@ fn camouflage_hides_standing_vehicles_from_afar() {
     run(&mut sim, 20 * 34);
     assert_eq!(sim.camouflage_of(UnitId(0)), Some(true));
     assert!(sim.camouflage_hides(UnitId(0)));
-    assert!(!sim.visible_to(P1, UnitId(0)), "hidden at 300 m");
+    assert!(!sim.visible_to(P1, UnitId(0)), "hidden at 150 m");
     assert!(sim.visible_to(P0, UnitId(0)));
-    // The enemy comes closer than 40 % of its sight range.
-    sim.step(&[move_to(P1, &[1], 0, 120)]);
+    // The enemy comes closer than 40 % of its sight range (100 m).
+    sim.step(&[move_to(P1, &[1], 0, 60)]);
     run_until(&mut sim, 20 * 60, |s| s.visible_to(P1, UnitId(0)));
     // Driving: seen again even from afar.
-    sim.step(&[move_to(P1, &[1], 0, 300)]);
+    sim.step(&[move_to(P1, &[1], 0, 150)]);
     run(&mut sim, 20 * 40);
     assert!(!sim.visible_to(P1, UnitId(0)));
     sim.step(&[move_to(P0, &[0], 30, 0)]);

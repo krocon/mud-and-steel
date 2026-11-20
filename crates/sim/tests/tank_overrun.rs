@@ -320,7 +320,8 @@ fn own_soldiers_are_never_run_over() {
 #[test]
 fn a_standing_tank_that_turns_kills_nobody() {
     // The squad lies right beside the tank; the tank only shoots at a
-    // target behind it (its hull and turret turn).
+    // target behind it (its hull and turret turn). 40 m: well inside the
+    // 87.5 m gun range (prompt 097), so the tank does not creep forward.
     let mut sim = sim_with(
         map_with(""),
         &[(P0, SHERMAN, 0, 0, HOLD), (P1, GERMANS, 2, 0, HOLD)],
@@ -331,7 +332,7 @@ fn a_standing_tank_that_turns_kills_nobody() {
         P0,
         Command::AttackGround {
             units: vec![UnitId(0)],
-            target: Vec2::from_meters(0, 80),
+            target: Vec2::from_meters(0, 40),
         },
     )]);
     for _ in 0..300 {
@@ -412,8 +413,9 @@ fn the_sherman_has_its_machine_guns() {
     assert_eq!(combat.mg_mount(&rules, 0), None);
     assert_eq!(combat.mg_mount(&rules, 1), Some(sim::MgMount::Roof));
     assert_eq!(combat.mg_mount(&rules, 2), Some(sim::MgMount::Mixed));
-    // 400 m real, like the same gun on its tripod: 100 m in the game.
-    assert_eq!(weapons[2].range_m, sim::Fixed::from_num(100));
+    // 400 m real, like the same gun as an infantry weapon: 50 m in the
+    // game (1/8, prompt 097).
+    assert_eq!(weapons[2].range_m, sim::Fixed::from_num(50));
     for (name, mount) in [
         ("Browning M1919A4 (coaxial)", sim::MgMount::Coax),
         ("Browning M1919A4 (bow)", sim::MgMount::Bow),
@@ -427,14 +429,15 @@ fn the_sherman_has_its_machine_guns() {
 
 #[test]
 fn machine_guns_fire_at_infantry_while_the_gun_duels_a_tank() {
-    // The Sherman faces north. A Panzer IV stands 150 m north, a squad 60 m
-    // north and 8 m to the side: inside the turret cone and the bow cone.
+    // The Sherman faces north. A Panzer IV stands 75 m north (the 75 mm gun
+    // reaches 87.5 m, prompt 097), a squad 30 m north and 4 m to the side
+    // (machine guns 50 m): inside the turret cone and the bow cone.
     let mut sim = sim_with(
         map_with(""),
         &[
             (P0, SHERMAN, 0, 0, AT_WILL),
-            (P1, PANZER, 0, -150, HOLD),
-            (P1, GERMANS, 8, -60, HOLD),
+            (P1, PANZER, 0, -75, HOLD),
+            (P1, GERMANS, 4, -30, HOLD),
         ],
     );
     let (fired, lost) = shots(&mut sim, 0, 2, 200);
@@ -449,13 +452,13 @@ fn machine_guns_fire_at_infantry_while_the_gun_duels_a_tank() {
 
 #[test]
 fn only_the_roof_gun_reaches_infantry_behind_the_tank() {
-    // The squad stands 60 m south, behind the tank that duels north.
+    // The squad stands 30 m south, behind the tank that duels north.
     let mut sim = sim_with(
         map_with(""),
         &[
             (P0, SHERMAN, 0, 0, AT_WILL),
-            (P1, PANZER, 0, -150, HOLD),
-            (P1, GERMANS, 0, 60, HOLD),
+            (P1, PANZER, 0, -75, HOLD),
+            (P1, GERMANS, 0, 30, HOLD),
         ],
     );
     let (fired, _) = shots(&mut sim, 0, 2, 200);
@@ -469,8 +472,8 @@ fn hold_fire_silences_the_machine_guns_and_an_attack_order_does_not() {
     let spawns = |mode| {
         [
             (P0, SHERMAN, 0, 0, mode),
-            (P1, PANZER, 0, -150, HOLD),
-            (P1, GERMANS, 8, -60, HOLD),
+            (P1, PANZER, 0, -75, HOLD),
+            (P1, GERMANS, 4, -30, HOLD),
         ]
     };
     let attack = command(
@@ -498,7 +501,7 @@ fn hold_fire_silences_the_machine_guns_and_an_attack_order_does_not() {
 fn without_a_tank_around_gun_and_machine_guns_fight_the_infantry() {
     let mut sim = sim_with(
         map_with(""),
-        &[(P0, SHERMAN, 0, 0, AT_WILL), (P1, GERMANS, 8, -60, HOLD)],
+        &[(P0, SHERMAN, 0, 0, AT_WILL), (P1, GERMANS, 4, -30, HOLD)],
     );
     let (fired, lost) = shots(&mut sim, 0, 1, 200);
     assert!(fired[0] > 0 && fired[2] > 0 && lost > 0, "{fired:?}");
@@ -519,9 +522,9 @@ fn attack_object(player: PlayerId, unit: u32, object: u32) -> PlayerCommand {
 
 #[test]
 fn shelling_a_building_ends_when_it_is_a_ruin() {
-    // A mud house 200 m north of the Sherman (out of range: it drives up),
-    // a second one beside it.
-    let map = map_with("env_house_mud,Intact,0,-200000,0\nenv_house_mud,Intact,40000,-200000,0");
+    // A mud house 100 m north of the Sherman (out of range: it drives up),
+    // a second one 40 m beside it.
+    let map = map_with("env_house_mud,Intact,0,-100000,0\nenv_house_mud,Intact,40000,-100000,0");
     let mut sim = sim_with(map, &[(P0, SHERMAN, 0, 0, HOLD)]);
     assert!(sim.shellable(0));
     sim.step(&[attack_object(P0, 0, 0)]);
@@ -544,9 +547,10 @@ fn shelling_a_building_ends_when_it_is_a_ruin() {
         [(0, ObjectStage::Damaged), (0, ObjectStage::Destroyed)]
     );
     assert_eq!(sim.object_remains(0), Some(Remains::Ruin));
-    // It drove into range: 700 m real are 175 m in the game.
-    let distance = (position(&sim, 0) - Vec2::from_meters(0, -200)).length();
-    assert!(distance < sim::Fixed::from_num(175), "{distance}");
+    // It drove into range: 700 m real are 87.5 m in the game (1/8, prompt
+    // 097).
+    let distance = (position(&sim, 0) - Vec2::from_meters(0, -100)).length();
+    assert!(distance < sim::Fixed::from_num(87.5), "{distance}");
     // 1800 hit points, 562 per 7.5 cm round: four hits. Only the gun fired.
     assert!((4..=6).contains(&shots_fired), "{shots_fired} rounds");
     // The order is done: no more rounds, the neighbor stands.
@@ -573,13 +577,15 @@ fn shelling_a_building_ends_when_it_is_a_ruin() {
 fn only_guns_that_damage_objects_shell_a_building() {
     // A rifle squad ignores the order; the machine guns of a tank that
     // shells a house keep to the infantry.
-    let map = map_with("env_house_mud,Intact,0,-100000,0");
+    // House 50 m north (in range of the 87.5 m gun), the enemy squad 32 m
+    // away (machine guns 50 m, prompt 097).
+    let map = map_with("env_house_mud,Intact,0,-50000,0");
     let mut sim = sim_with(
         map,
         &[
             (P0, SHERMAN, 0, 0, AT_WILL),
-            (P0, AMERICANS, 30, 0, HOLD),
-            (P1, GERMANS, -50, -40, HOLD),
+            (P0, AMERICANS, 15, 0, HOLD),
+            (P1, GERMANS, -25, -20, HOLD),
         ],
     );
     sim.step(&[attack_object(P0, 0, 0), attack_object(P0, 1, 0)]);

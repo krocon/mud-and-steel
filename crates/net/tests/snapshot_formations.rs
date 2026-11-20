@@ -27,11 +27,15 @@ fn flat_map() -> Arc<Map> {
 }
 
 fn setup(map: Arc<Map>) -> Sim {
+    // Prompt 097 halved direct-fire range (75 mm gun 87.5 m) and vehicle
+    // speed: the truck the tanks halt for stands 50 m beside their path
+    // (was 100 m), and the tanks start 150 m short of it (was 300 m), so
+    // they halt after about 350 ticks, well inside the limit below.
     let spawns = [
-        (P0, "de_pz4_h", 0, -300, FireMode::FireAtWill),
-        (P0, "de_pz4_h", 20, -300, FireMode::FireAtWill),
+        (P0, "de_pz4_h", 0, -150, FireMode::FireAtWill),
+        (P0, "de_pz4_h", 20, -150, FireMode::FireAtWill),
         (P0, "de_inf_rifle_squad", -100, 0, FireMode::FireAtWill),
-        (P1, "de_opel_blitz", 100, 0, FireMode::HoldFire),
+        (P1, "de_opel_blitz", 50, 0, FireMode::HoldFire),
         (P1, "de_opel_blitz", -100, 270, FireMode::HoldFire),
     ];
     let catalog = Catalog::builtin().unwrap();

@@ -122,13 +122,15 @@ fn m(v: i32) -> Fixed {
 
 /// Drives a Panzer IV past an unarmed truck with the given move mode;
 /// returns whether it ever halted on the way, whether the truck was
-/// destroyed, and where the tank ended.
+/// destroyed, and where the tank ended. The truck stands 50 m beside the
+/// path, inside the 87.5 m of the 75 mm gun (700 m real x 1/8); the tank
+/// drives 300 m at 16 km/h off road (4.4 m/s, about 70 s of the 150 s).
 fn past_the_truck(engage: Engage) -> (bool, bool, Vec2, Option<DrillView>) {
     let mut sim = sim_with(
         flat(),
-        &[(P0, TANK, 0, -300, FIRE), (P1, TRUCK, 100, 0, HOLD)],
+        &[(P0, TANK, 0, -150, FIRE), (P1, TRUCK, 50, 0, HOLD)],
     );
-    let target = Vec2::from_meters(0, 300);
+    let target = Vec2::from_meters(0, 150);
     sim.step(&[formation_move(&[0], target, Formation::Auto, None, engage)]);
     let mut halted = false;
     for _ in 0..3000 {
@@ -153,7 +155,7 @@ fn attack_move_halts_to_fight_then_drives_on() {
     let (halted, destroyed, end, task) = past_the_truck(Engage::All);
     assert!(halted, "the tank halted while the truck was in range");
     assert!(destroyed, "and destroyed it");
-    let target = Vec2::from_meters(0, 300);
+    let target = Vec2::from_meters(0, 150);
     assert!(
         (end - target).length() < m(3),
         "then reached its target: {end:?}"
@@ -165,7 +167,7 @@ fn attack_move_halts_to_fight_then_drives_on() {
 fn a_plain_move_never_halts() {
     let (halted, _, end, _) = past_the_truck(Engage::Never);
     assert!(!halted);
-    assert!((end - Vec2::from_meters(0, 300)).length() < m(3));
+    assert!((end - Vec2::from_meters(0, 150)).length() < m(3));
 }
 
 #[test]
@@ -194,18 +196,19 @@ fn by_default_only_infantry_attack_moves() {
 
 #[test]
 fn securing_units_chase_inside_the_circle_and_return() {
-    // The squad holds a circle of 300 m; the truck stands inside it, out
-    // of range of the squad's machine gun (200 game meters).
+    // The squad holds a circle of 150 m; the truck stands inside it, seen
+    // (250 m sight) but out of range of the squad's machine gun (50 m, 400 m
+    // real x 1/8).
     let mut sim = sim_with(
         flat(),
-        &[(P0, SQUAD, 0, 0, FIRE), (P1, TRUCK, 270, 0, HOLD)],
+        &[(P0, SQUAD, 0, 0, FIRE), (P1, TRUCK, 135, 0, HOLD)],
     );
     sim.step(&[PlayerCommand::new(
         P0,
         Command::Secure {
             units: ids(&[0]),
             center: Vec2::ZERO,
-            radius_m: 300,
+            radius_m: 150,
             formation: Formation::Auto,
             facing: None,
         },
@@ -223,7 +226,7 @@ fn securing_units_chase_inside_the_circle_and_return() {
         "the truck in the circle was destroyed"
     );
     assert!(farthest > m(30), "the squad went after it ({farthest})");
-    assert!(farthest < m(300), "but not out of the circle ({farthest})");
+    assert!(farthest < m(150), "but not out of the circle ({farthest})");
     for _ in 0..600 {
         sim.step(&[]);
     }
@@ -237,16 +240,18 @@ fn securing_units_chase_inside_the_circle_and_return() {
 
 #[test]
 fn securing_units_do_not_chase_out_of_the_circle() {
+    // The truck is seen, but farther than the circle of 50 m plus the 50 m
+    // of the machine gun.
     let mut sim = sim_with(
         flat(),
-        &[(P0, SQUAD, 0, 0, FIRE), (P1, TRUCK, 270, 0, HOLD)],
+        &[(P0, SQUAD, 0, 0, FIRE), (P1, TRUCK, 135, 0, HOLD)],
     );
     sim.step(&[PlayerCommand::new(
         P0,
         Command::Secure {
             units: ids(&[0]),
             center: Vec2::ZERO,
-            radius_m: 100,
+            radius_m: 50,
             formation: Formation::Auto,
             facing: None,
         },

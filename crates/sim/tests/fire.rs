@@ -352,8 +352,11 @@ fn shells_bursting_next_to_hay_set_it_on_fire() {
 
 #[test]
 fn destroyed_vehicles_burn_as_wrecks() {
+    // The truck stands 127 m from the Panzer IV (before 254 m at the origin,
+    // halved with the direct-fire and sight factors 1/4 -> 1/8): seen
+    // (250 m sight), the tank closes in to its 87.5 m and fires.
     let mut spawns = bystanders();
-    spawns.push((P1, "de_opel_blitz", 0, 0));
+    spawns.push((P1, "de_opel_blitz", -90, 90));
     let mut sim = sim_with(map_with("", |_| false), &spawns, 10);
     sim.step(&[PlayerCommand::new(
         P0,

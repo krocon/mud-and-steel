@@ -547,7 +547,58 @@ games. The statistics name three causes:
 - Sight ranges (`data/vision.toml`) are unchanged; every direct-fire weapon
   now reaches less far than its unit sees.
 
+## Vehicle speed and ranges after a reference video (prompt 097)
+
+Ground vehicles drive their real speed (`[speed] vehicle = 1/1` instead of
+the time factor 2), direct fire and sight are compressed 1/8 instead of 1/4
+(at least 15 m), `test_small` starts 60 m apart, and the AI was retuned
+([SCALE.md](SCALE.md), [AI.md](AI.md)). Battle mode, the ten maps of prompt
+067 × 3 pairings × 10 games, Hard against Hard, seeds from 1 (2026-11-20,
+"before" is `main` before prompt 097, measured again the same day):
+
+| Variant | de | su | us | undecided | mean decided |
+|---|---|---|---|---|---|
+| before (1/4, vehicles × 2) | 55 % | 53 % | 37 % | 3.0 % | 175 s |
+| 1/6, vehicles 1/1, old AI | 51 % | 40 % | 54 % | 3.3 % | 249 s |
+| 1/8, vehicles 1/1, old AI | 51 % | 46 % | 49 % | 2.0 % | 250 s |
+| **1/8, vehicles 1/1, retuned AI (kept)** | **48 %** | **46 %** | **52 %** | 2.7 % | 232 s |
+
+Sum of the distances from 50 %: 21 points before, 8 after. Tank kills per
+loss: Panzer IV 2.00 → 1.71, T-34 1.50 → 1.20, M4A3 1.25 → 1.67.
+
+| Map | de – su before | after | de – us before | after | su – us before | after |
+|---|---|---|---|---|---|---|
+| desert_village | 70 / 30 / 0 | 80 / 20 / 0 | 90 / 10 / 0 | 40 / 60 / 0 | 70 / 30 / 0 | 50 / 50 / 0 |
+| farms | 60 / 30 / 10 | 70 / 30 / 0 | 60 / 40 / 0 | 50 / 50 / 0 | 70 / 20 / 10 | 70 / 30 / 0 |
+| mountain_pass | 50 / 50 / 0 | 60 / 40 / 0 | 60 / 40 / 0 | 60 / 10 / 30 | 70 / 20 / 10 | 60 / 40 / 0 |
+| river_land | 70 / 30 / 0 | 30 / 70 / 0 | 80 / 20 / 0 | 30 / 50 / 20 | 60 / 40 / 0 | 50 / 40 / 10 |
+| skirmish | 40 / 50 / 10 | 10 / 80 / 10 | 60 / 30 / 10 | 40 / 60 / 0 | 90 / 10 / 0 | 50 / 50 / 0 |
+| test_large | 60 / 40 / 0 | 80 / 20 / 0 | 30 / 70 / 0 | 50 / 50 / 0 | 60 / 40 / 0 | 50 / 50 / 0 |
+| test_small | 60 / 40 / 0 | 70 / 30 / 0 | 30 / 70 / 0 | 50 / 50 / 0 | 60 / 40 / 0 | 0 / 100 / 0 |
+| town_small | 0 / 90 / 10 | 50 / 50 / 0 | 20 / 50 / 30 | 30 / 70 / 0 | 70 / 30 / 0 | 60 / 40 / 0 |
+| twin_meadow | 100 / 0 / 0 | 40 / 60 / 0 | 40 / 60 / 0 | 50 / 50 / 0 | 60 / 40 / 0 | 40 / 60 / 0 |
+| winter_village | 80 / 20 / 0 | 40 / 60 / 0 | 40 / 60 / 0 | 30 / 70 / 0 | 70 / 30 / 0 | 30 / 60 / 10 |
+
+(X wins / Y wins / undecided in percent.) Rows at 100 % for one side: one
+before (`twin_meadow` de–su), one after (`test_small` su–us, where the
+armies now start 60 m apart).
+
+Against the passive enemy on the demo (60 games, `just ai-tournament --b
+passive --games 60 --seed 100`; Easy with `--max-ticks 8000`):
+
+| | Hard | Normal | Easy |
+|---|---|---|---|
+| before | 85 % | 96 % | 91 % (5 timeouts at 6000 ticks) |
+| vehicles 1/1 only | 71 % | 81 % | 88 % |
+| 1/8, vehicles 1/1, old AI | 56 % | 60 % | 51 % (29 timeouts) |
+| 1/8, vehicles 1/1, retuned AI | **100 %** | **100 %** | 86 % (8 timeouts) |
+
 ## Golden hash
+
+Prompt 097 changed the golden hash to `0x51f2_adfb_a7d6_82f8` (economy
+golden hash `0x3e60_5854_3f4c_5793`): vehicle speeds, ranges, sight and
+prices follow the new factors, and the demo's tanks start 60 m apart; the
+demo battle is decided at tick 603 instead of 556, same winner.
 
 Prompt 067 changed the golden hash to `0x3ad2_633d_388d_e4f8` (economy
 golden hash `0x57e7_5da9_31e6_20dd`): weapon ranges come from

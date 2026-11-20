@@ -11,8 +11,9 @@ use sim::{Command, Fixed, UnitId, Vec2};
 
 /// Cell size of the knowledge grid (m).
 pub(crate) const KNOW_CELL_M: i32 = 200;
-/// A scout turns back once an enemy is this close (m).
-const SHY_M: i32 = 350;
+/// A scout turns back once an enemy is this close (m): half its sight.
+/// Halved with the ranges and sight in prompt 097 (350 m before).
+const SHY_M: i32 = 175;
 /// A scout's goal is renewed after this long at the latest (ticks).
 const GOAL_TICKS: u64 = 1200;
 /// Danger above which a cell is not scouted.

@@ -119,7 +119,8 @@ fn destroying_a_vehicle_promotes_the_shooter() {
 #[test]
 fn squads_earn_points_for_damage_and_for_surviving_fire() {
     let rules = ExperienceRules::builtin().unwrap();
-    let mut sim = sim_with(&[(P0, SQUAD, 0, 0), (P1, SQUAD, 90, 0)], 3);
+    // 45 m: inside the 50 m of the squad's machine gun (400 m real x 1/8).
+    let mut sim = sim_with(&[(P0, SQUAD, 0, 0), (P1, SQUAD, 45, 0)], 3);
     sim.step(&[cmd(
         P0,
         Command::Attack {
@@ -151,13 +152,14 @@ fn squads_earn_points_for_damage_and_for_surviving_fire() {
     assert!(target.xp <= survived_max);
 }
 
-/// Salvos of unit 0 firing at the ground for `ticks` ticks.
+/// Salvos of unit 0 firing at the ground for `ticks` ticks, 75 m away:
+/// inside the 87.5 m of the 75 mm gun (700 m real x 1/8).
 fn salvos(sim: &mut Sim, ticks: u32) -> (u32, Vec<Vec2>) {
     sim.step(&[cmd(
         P0,
         Command::AttackGround {
             units: vec![UnitId(0)],
-            target: Vec2::from_meters(150, 0),
+            target: Vec2::from_meters(75, 0),
         },
     )]);
     let mut shots = 0;
@@ -192,7 +194,7 @@ fn veterans_reload_faster_and_shoot_closer() {
     );
     assert!(elite_shots <= recruit_shots * 100 / 85 + 1);
     // Same random numbers: the elite rounds land closer to the aim point.
-    let target = Vec2::from_meters(150, 0);
+    let target = Vec2::from_meters(75, 0);
     let spread = |hits: &[Vec2]| {
         hits.iter()
             .take(15)

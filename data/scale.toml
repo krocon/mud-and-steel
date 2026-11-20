@@ -15,13 +15,34 @@ factor = { num = 2, den = 1 }
 #   [[time.override]]
 #   category = "inf_rifle"
 #   factor = { num = 3, den = 2 }
-# Aircraft do not use the time factor at all, see [aircraft].
+# Aircraft do not use the time factor at all, see [aircraft]. Ground
+# vehicles move with [speed] instead, so an override changes their reload
+# and setup times but not how fast they drive.
+
+# Movement speed of ground vehicles (prompt 097): real speeds times this
+# factor instead of the time factor. At factor 2 a Panzer IV crossed 1.5 of
+# its own lengths per second off road and felt light; at 1 it drives its real
+# speed (0.75 lengths per second), heavy and slow like the reference the user
+# chose for the feel (docs/SCALE.md). Infantry, towed guns and everything
+# else keep the time factor.
+[speed]
+vehicle = { num = 1, den = 1 }
 
 # Range compression: real ranges are multiplied by these factors.
+# Direct fire and sight 1/8 since prompt 097 (before 1/4): a duel of 75 mm
+# guns takes place at 87 m, about 15 tank lengths; 1/6 was measured too
+# (docs/SCALE.md, docs/BALANCE.md).
 [range]
-direct_fire = { num = 1, den = 4 }
-sight = { num = 1, den = 4 }
+direct_fire = { num = 1, den = 8 }
+# No direct-fire weapon reaches less far than this many game meters: 1/8
+# alone would leave a Panzerfaust 7.5 m (closer than infantry notices a
+# tank, combat.toml [overrun]) and a pistol 3 m.
+direct_fire_min_m = 15
+sight = { num = 1, den = 8 }
 indirect_fire = { num = 1, den = 8 }
+# Anti-aircraft fire keeps 1/4 (prompt 097): aircraft speeds and altitudes
+# do not change with the ground ranges.
+anti_aircraft = { num = 1, den = 4 }
 # Fuel (prompt 036): the real road range times this factor is how far a
 # vehicle drives on a full tank. Real ranges (200 km) would never run out in
 # a match on maps of 4 km; 1/20 leaves 5-15 km.

@@ -121,7 +121,7 @@ fn empty_tank(extra: &[(PlayerId, &str, i32, i32)]) -> Sim {
         P0,
         Command::AttackGround {
             units: vec![UnitId(0)],
-            target: Vec2::from_meters(0, 150),
+            target: Vec2::from_meters(0, 75),
         },
     )]);
     let (main, _) = count_shots(&mut sim, 0, 20 * 400);
@@ -145,7 +145,7 @@ fn main_weapon_uses_up_its_stock_then_nothing_fires() {
         P0,
         Command::AttackGround {
             units: vec![UnitId(0)],
-            target: Vec2::from_meters(0, 150),
+            target: Vec2::from_meters(0, 75),
         },
     )]);
     assert_eq!(count_shots(&mut sim, 0, 20 * 30), (0, 0));
@@ -170,13 +170,14 @@ fn trucks_resupply_own_and_allied_units_for_a_price() {
         ],
         teams,
     );
-    // Empty both tanks first: fire at the ground far away.
-    for (player, id) in [(P1, 1), (P2, 2), (P1, 3)] {
+    // Empty the tanks first: each fires at the ground 60 m north of it,
+    // inside its 87.5 m gun range (prompt 097), so none drives off.
+    for (player, id, x) in [(P1, 1, 20), (P2, 2, -20), (P1, 3, 200)] {
         sim.step(&[cmd(
             player,
             Command::AttackGround {
                 units: vec![UnitId(id)],
-                target: Vec2::from_meters(-100 + 200 * i32::from(player.0 == P1.0), 120),
+                target: Vec2::from_meters(x, 60),
             },
         )]);
     }

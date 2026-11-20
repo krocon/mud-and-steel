@@ -1202,11 +1202,12 @@ mod tests {
                 .int(&["indirect", "range_game_m"])
                 .is_some_and(|m| m > 500)
         );
-        // Game speed is the real speed times the time factor.
+        // Game speed of a vehicle is the real speed times the vehicle
+        // speed factor (1/1 since prompt 097).
         let pz4 = rules.card_of("de_pz4_h").expect("pz4");
         let real = pz4.int(&["movement", "road_real_kmh_x10"]).expect("real");
         let game = pz4.int(&["movement", "road_game_mps_x10"]).expect("game");
-        assert_eq!(game, (real * 20 + 18) / 36);
+        assert_eq!(game, (real * 10 + 18) / 36);
     }
 
     #[test]

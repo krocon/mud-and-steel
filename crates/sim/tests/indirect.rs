@@ -387,9 +387,16 @@ fn salvo_log(
 fn a_rocket_salvo_fires_every_tube_then_reloads() {
     // The 15 cm Panzerwerfer 42: 10 tubes, 4 rockets per minute sustained,
     // rockets 500 ms real (5 ticks) apart.
+    // A squad of P0 at (0, -100) watches the aim point: since prompt 097
+    // the launcher's own sight (250 m) no longer reaches 500 m, and an
+    // unseen aim point would triple the dispersion ([dispersion] blind_pct).
     let mut sim = sim_with(
         map_with(""),
-        &[(P0, "de_pzwerfer42", 0, 300), (P1, SQUAD, -380, -380)],
+        &[
+            (P0, "de_pzwerfer42", 0, 300),
+            (P1, SQUAD, -380, -380),
+            (P0, SQUAD, 0, -100),
+        ],
         11,
     );
     let (shots, impacts) = salvo_log(&mut sim, &[fire_at(&[0], 0, -200)], 20 * 120, UnitId(0));

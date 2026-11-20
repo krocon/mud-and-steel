@@ -101,7 +101,7 @@ travel came with prompt 046 (`FormationMove`, [below](#formations-attack-move-an
 **Scenarios** (`data/scenarios/*.toml`) name a map and place groups of catalog units
 per player in a grid. The compiled-in demo (`sim::scenario::demo_config`) has eight
 Panzer IV H and two rifle squads (player 0) against eight T-34/76 and two rifle
-squads (player 1), the tanks 120 m apart, on the built-in map `test_small`. Unit ids
+squads (player 1), the tanks 60 m apart (120 m before prompt 097), on the built-in map `test_small`. Unit ids
 follow file order (the squads, appended in prompt 022, have ids 16–19).
 
 ### Waypoint chains and patrols
@@ -451,7 +451,8 @@ simulation's `Rng` supplies dispersion and penetration rolls in a fixed order
 
 - **Unit values come from the catalog**, converted by `data/scale.toml`
   (`CombatType::from_catalog`, part of `UnitType`): direct-fire weapons with
-  caliber, rate of fire, muzzle velocity and range (range × 1/4, interval
+  caliber, rate of fire, muzzle velocity and range (range × 1/8, at least
+  15 m, since prompt 097; interval
   between rounds ÷ time factor, projectile speed × time factor), armor per
   face (hull and turret front / side / rear, slope of the upper front plate),
   hull dimensions, squad size, and `gun_traverse_deg` for casemate vehicles.
@@ -542,15 +543,18 @@ After commands and path planning, before movement:
    infantry_per_mm` of his `soldier_hp`); soft cover and buildings may
    catch it first ([INFANTRY.md](INFANTRY.md#behavior-prompt-022)).
 
-Ranges are the catalog's typical combat distances × 1/4 since prompt 067
-([SCALE.md](SCALE.md#typical-combat-distances-prompt-067)).
+Ranges are the catalog's typical combat distances (prompt 067) × 1/8, at
+least 15 m, since prompt 097 (× 1/4 before;
+[SCALE.md](SCALE.md#vehicle-speed-and-range-after-a-reference-video-prompt-097)).
+Penetration works on the real distance, so the values at the range limit
+did not change.
 
 | Gun (catalog) | Muzzle penetration | At its range limit (game / real) |
 |---|---|---|
-| 7.5 cm KwK 40 L/48 (Panzer IV H, 750 m/s) | 130 mm | 112 mm (175 m / 700 m) |
-| 8.8 cm KwK 36 L/56 (Tiger I, 773 m/s) | 159 mm | 127 mm (250 m / 1000 m) |
-| 76.2 mm F-34 (T-34, 662 m/s) | 109 mm | 94 mm (175 m / 700 m) |
-| Bazooka M9 (HEAT, 81 m/s) | 96 mm | 96 mm (25 m / 100 m) |
+| 7.5 cm KwK 40 L/48 (Panzer IV H, 750 m/s) | 130 mm | 112 mm (87.5 m / 700 m) |
+| 8.8 cm KwK 36 L/56 (Tiger I, 773 m/s) | 159 mm | 127 mm (125 m / 1000 m) |
+| 76.2 mm F-34 (T-34, 662 m/s) | 109 mm | 94 mm (87.5 m / 700 m) |
+| Bazooka M9 (HEAT, 81 m/s) | 96 mm | 96 mm (15 m minimum / 100 m) |
 
 ### Snapshot and queries
 
@@ -668,8 +672,9 @@ only draws the result.
 `data/vision.toml` (built in, `SimConfig::vision`, in the state hash):
 cell size (8 m), target height (2 m), forest rules, the ray-step budget per
 tick, sight ranges in **real** meters per category (2 km, recon and snipers
-2.8 km, trucks 1.6 km; compressed by `range.sight` = 1/4 of
-`data/scale.toml` to 500 / 700 / 400 m) and which object ids are `solid`
+2.8 km, trucks 1.6 km; compressed by `range.sight` = 1/8 of
+`data/scale.toml` to 250 / 350 / 200 m since prompt 097, 500 / 700 / 400 m
+before) and which object ids are `solid`
 (houses, barns, church, walls, hedges) or `foliage` (trees). The catalog has
 no sight values; these are rules like the turret traverse in `combat.toml`.
 
@@ -1582,7 +1587,8 @@ positions), before the vision update:
    aircraft its player sees within range (3D distance) and above the
    class's `min_altitude_m`: AA guns (`gun_aa_light`, `gun_aa_heavy`) with
    their catalog `range_aa_m`, MGs with `aa = true` with `range_real_m` of
-   the rules; × `range.direct_fire` (1/4), capped at `max_range_m`. One
+   the rules; × `range.anti_aircraft` (1/4; the direct-fire factor until
+   prompt 097), capped at `max_range_m`. One
    round per barrel at the rate of `data/combat.toml` (automatic weapons
    25 % of the cyclic rate, ÷ time factor). Chance: `hit_pct` × (1 − d/2R) ×
    wingspan / 12 m; slow aircraft are in range longer and so are hit more
@@ -1860,7 +1866,7 @@ matches without weather keep their hashes (the golden hash did not change).
 | Soft ground | one softness per match (0..100 %, kind wet or snow); speed = terrain speed × (100 % − loss(gear, kind) × softness(terrain, kind) × level), at least 8 % | losses wet/snow: wheeled 80/60, half-track 50/35, tracked 35/25, foot 30/40 %; terrain wet/snow: dirt track 100/80, grass and tall grass 70/100, road 0/30, mud 100/60, sand 20/100, snow 40/0 % |
 | Rain | the ground starts half soaked and gets 10 % softer every 120 game seconds up to 100 % (after ten minutes) | snow: 100 % from the start; fog: 20 % wet; clear/overcast: dry |
 | Running gear | catalog category (`[[ground.gear]]`), single ids override (M3A1 Scout Car: wheeled); towed guns roll on wheels; aircraft and buildings are not slowed | |
-| Muzzle flash | at night a unit that fires a direct-fire weapon is seen for 2 game seconds by every player with a unit within 2000 m real (500 m game), without a line of sight | |
+| Muzzle flash | at night a unit that fires a direct-fire weapon is seen for 2 game seconds by every player with a unit within 2000 m real (250 m game), without a line of sight | |
 | Wind | scales the smoke drift of `data/indirect.toml` | rain 150, snow 120, overcast 130, fog 20 % |
 | Fire (041) | catch chance × `fire_catch_pct` (wet wood) × (1 + 0.5 · cos(wind, way to the neighbor) · wind strength) | rain 40, snow 30, fog 70, overcast 90 % |
 

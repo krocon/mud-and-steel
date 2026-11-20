@@ -167,6 +167,38 @@ kept; the battle tournament of [BALANCE.md](BALANCE.md) was measured with
 them. The numbers quoted below from prompts 024–051 are from before
 prompt 067 (Panzer IV 375 m, T-34 250 m).
 
+**Vehicle speed and ranges after a reference video (prompt 097).** Ground
+vehicles drive their real speed (half of before), direct fire and sight
+are compressed 1/8 instead of 1/4 ([SCALE.md](SCALE.md)). The shares of
+the ranges follow by themselves; what did not:
+
+- **Closing in keeps the group's places.** `close_in` sent the armor into
+  a line formation; a line of eight tanks is about 85 m wide at full size,
+  and at 87.5 m gun range the outer tanks drove across the front for
+  twice as long (in real distance) as before, under fire. Normal and Hard
+  then lost 40 % of their attacks on a passive army of Panzer IV with
+  T-34s (60 games on `test_small`; before 4 % and 15 %). Now every tank
+  drives the same way forward (`MoveTo` per tank): Hard and Normal win
+  100 % against Passive again.
+- **Stalled fights.** Wrecks are full size and block the line of fire;
+  at the short ranges they often stand between the last tanks of both
+  sides, which then fire into the wrecks for minutes. A fight in which
+  neither the enemies in sight nor the own army lose hit points for
+  `STALL_TICKS` (160 ticks, longer than the slowest reload) makes the
+  commander's armor step 20 m to the side (`sidestep`, alternating). The
+  group logic's patience move (Easy) goes round the same way every time
+  instead of alternating sides (which swung back behind the same wrecks),
+  and its flank point lies at least 30 m (was 60 m) from the enemy.
+- **Halved with the ranges:** `OVERRUN_M` 60 → 30 m (inside the 50 m of the
+  vehicles' machine guns: tanks stopped at 60 m beside the last enemy squad
+  and could not reach it), `STAGE_MARGIN_M` 70 → 35, `WITHDRAW_M` 150 → 75,
+  `CREEP_M` 60 → 30, `FRONT_LINK_M` 160 → 80, `LOSS_RADIUS_M` 120 → 60,
+  scouts turn back at 175 m (half their sight; was 350 m), passengers get
+  off 90 m short of the enemy (was 180 m, beyond every gun then and now).
+- **Strike evasion:** supply and transport no longer send a unit back into
+  the area of an enemy heavy strike while it leaves it (the slower trucks
+  made this visible).
+
 **Scouting** (`scout.rs`): reconnaissance vehicles (catalog category
 `recon_vehicle`) are their own role. They drive to the 200 m cell the
 player saw longest ago (nearer to the enemy's home and to the scout first,
@@ -542,7 +574,7 @@ Prompt 051: `--a hard-old` plays the Hard before the commander;
 not end); `--trace N` (with `--games 1`) prints every N ticks the living
 units, the commander's plan and every player's account and buildings.
 
-`cli ai-tournament` plays the demo scenario (eight tanks per side, 120 m apart)
+`cli ai-tournament` plays the demo scenario (eight tanks per side, 60 m apart since prompt 097)
 on `test_small` (`--map` for others). Game *i* uses seed *seed + i*; A plays
 player 0 in even games and player 1 in odd ones, so with the scenario's
 factions each AI plays both Germany and the Soviet Union. A game not decided

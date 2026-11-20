@@ -312,7 +312,9 @@ fn towed_gun_does_not_fire_until_unlimbered() {
         &[
             (P0, TRUCK, 0, 0),
             (P0, PAK, 0, -12),
-            (P1, "su_t34_76_1943", 0, 150),
+            // Within the 87.5 m of the PaK 40 (700 m real × 1/8, prompt
+            // 097) wherever the truck leaves it.
+            (P1, "su_t34_76_1943", 0, 60),
         ],
         8,
     );
@@ -378,7 +380,7 @@ fn transport_is_deterministic() {
                 (P0, SQUAD, 15, 0),
                 (P0, HALFTRACK, -20, 0),
                 (P0, PAK, -20, -15),
-                (P1, "su_t34_76_1943", 0, 220),
+                (P1, "su_t34_76_1943", 0, 110),
             ],
             11,
         );

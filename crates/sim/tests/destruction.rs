@@ -291,10 +291,11 @@ fn a_shelled_house_becomes_a_ruin_that_stops_tanks_and_low_rounds() {
 #[test]
 fn infantry_fires_out_of_a_ruin_it_stands_in() {
     // A ruin placed by the map acts as a ruin from the start: open for
-    // infantry, closed for tanks.
+    // infantry, closed for tanks. The enemy squad stands 30 m away, inside
+    // the 37.5 m of the rifles (300 m real x 1/8).
     let mut sim = sim_with(
         map_with("env_house_farm,Ruin,0,0,0"),
-        &[(P0, SQUAD, 0, -60), (P1, SQUAD, 0, 0)],
+        &[(P0, SQUAD, 0, -30), (P1, SQUAD, 0, 0)],
     );
     assert_eq!(sim.object_stage(0), Some(ObjectStage::Destroyed));
     assert_eq!(sim.object_hp(0), Some((0, 2500)));

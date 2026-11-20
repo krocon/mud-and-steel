@@ -27,6 +27,11 @@ const RECENT_EVENTS := 64
 ## shifted from the simulation's muzzle to the socket by an offset that
 ## fades over this flight distance (m); the simulated path is untouched.
 const MUZZLE_BLEND_M := 40.0
+## A shell that hits within the tick it is fired (closer than one tick of
+## flight: 75 m for a 750 m/s gun since prompt 097 halved the ranges) never
+## appears in a snapshot; it is drawn as a tracer from the muzzle to the
+## hit for this long (seconds).
+const QUICK_TRACER_S := 0.07
 
 ## Time of the last `_process` in microseconds, effects of the events
 ## included (benchmark, prompt 016).
@@ -49,6 +54,9 @@ var health_bars: Control
 var tracers_from_muzzle := 0
 
 var _tracers: Array[MeshInstance3D] = []
+## Tracers of shells that hit in the tick they were fired:
+## {node, from, to, width, until (msec)}.
+var _quick: Array[Dictionary] = []
 ## Projectile id -> {from (socket), offset (socket - simulation muzzle),
 ## sim (simulation muzzle), frame (last seen), seen} (prompt 077).
 var _muzzles: Dictionary[int, Dictionary] = {}
@@ -84,6 +92,7 @@ func _process(delta: float) -> void:
 	var began := Time.get_ticks_usec()
 	_read_events()
 	_draw_tracers()
+	_draw_quick_tracers()
 	_update_units(delta)
 	process_usec = Time.get_ticks_usec() - began
 
@@ -95,6 +104,7 @@ func _read_events() -> void:
 				shots += 1
 			"hit":
 				hits += 1
+				_quick_tracer(event)
 				if event["penetrated"] and event["surface"] == "unit":
 					penetrations += 1
 			"destroyed":
@@ -110,6 +120,51 @@ func _read_events() -> void:
 func note_muzzle(projectile: int, from: Vector3, sim_from: Vector3) -> void:
 	_muzzles[projectile] = {"from": from, "offset": from - sim_from, "sim": sim_from,
 		"frame": Engine.get_process_frames(), "seen": false}
+
+
+## A shell that hit before any snapshot showed it in flight: a short-lived
+## tracer from the model's muzzle to the hit.
+func _quick_tracer(event: Dictionary) -> void:
+	var muzzle: Dictionary = _muzzles.get(int(event["projectile"]), {})
+	if muzzle.is_empty() or muzzle.seen:
+		return
+	muzzle.seen = true
+	tracers_from_muzzle += 1
+	var tracer := MeshInstance3D.new()
+	tracer.mesh = _tracer_mesh
+	tracer.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(tracer)
+	var width := maxf(0.03, float(event.get("caliber_mm", 0.0)) * TRACER_WIDTH_PER_MM)
+	_quick.append({"node": tracer, "from": muzzle.from, "to": event["position"], "width": width,
+		"born": Time.get_ticks_msec()})
+
+
+func _draw_quick_tracers() -> void:
+	var now := Time.get_ticks_msec()
+	var keep: Array[Dictionary] = []
+	for q in _quick:
+		var age := float(now - int(q.born)) / 1000.0
+		var tracer: MeshInstance3D = q.node
+		if age >= QUICK_TRACER_S:
+			tracer.queue_free()
+			continue
+		keep.append(q)
+		# The shell runs from the muzzle to the hit over the drawing time.
+		var from: Vector3 = q.from
+		var to: Vector3 = q.to
+		var span := to - from
+		var total := span.length()
+		if total < 0.01:
+			tracer.visible = false
+			continue
+		var direction := span / total
+		var head := from + span * clampf(age / QUICK_TRACER_S + 0.3, 0.0, 1.0)
+		var length := minf(maxf(TRACER_MIN_LENGTH, total * 0.3), (head - from).length())
+		var up := Vector3.UP if absf(direction.y) < 0.99 else Vector3.RIGHT
+		var basis := Basis.looking_at(direction, up)
+		var w: float = q.width
+		tracer.transform = Transform3D(basis.scaled_local(Vector3(w, w, length)), head - direction * length * 0.5)
+	_quick = keep
 
 
 ## One stretched box per projectile, from its position along its flight,

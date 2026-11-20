@@ -940,11 +940,12 @@ mod tests {
     #[test]
     fn builtin_rules_parse() {
         let rules = VisionRules::builtin().unwrap();
-        assert_eq!(rules.range_m(None), Fixed::from_num(500));
-        assert_eq!(rules.range_cells(None), 62);
+        // 2000 m real × 1/8 = 250 m, 31 cells of 8 m (prompt 097).
+        assert_eq!(rules.range_m(None), Fixed::from_num(250));
+        assert_eq!(rules.range_cells(None), 31);
         assert_eq!(
             rules.range_m(Some(Category::ReconVehicle)),
-            Fixed::from_num(700)
+            Fixed::from_num(350)
         );
         assert_eq!(rules.object_sight("env_hedge"), Sight::Solid);
         assert_eq!(rules.object_sight("env_tree_conifer"), Sight::Foliage);

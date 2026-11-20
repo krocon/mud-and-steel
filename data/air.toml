@@ -134,7 +134,7 @@ error_bomb_m = 25
 gravity_mm_per_s2 = 9807
 
 # Reconnaissance: a viewshed from flight altitude, real sight range ×
-# range.sight of data/scale.toml (2000 m → 500 m).
+# range.sight of data/scale.toml (2000 m → 250 m since prompt 097).
 [recon]
 sight_real_m = 2000
 

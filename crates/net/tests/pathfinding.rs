@@ -7,7 +7,12 @@ use sim::scenario::{builtin_map, demo_config};
 use sim::{Command, FireMode, Fixed, Sim, SimConfig, UnitId, Vec2};
 
 const SEED: u64 = 7;
-const TICKS: u64 = 2400;
+/// Ground vehicles drive at real speed since prompt 097 (half of the earlier
+/// doubled speed), so both legs get twice the ticks they had before
+/// (1300 + 1100 then).
+const TICKS: u64 = 4800;
+/// The second order (back west); by then the first one must be done.
+const BACK_TICK: u64 = 2600;
 const DEEP_WATER: u8 = 7;
 /// The river of `test_small` runs north-south around x = 160..175 m.
 const EAST_OF_RIVER_M: i32 = 190;
@@ -50,7 +55,7 @@ impl Peer {
                 },
             ),
             (
-                1300,
+                BACK_TICK,
                 Command::MoveTo {
                     units,
                     target: Vec2::from_meters(0, y_back),
@@ -112,7 +117,7 @@ fn groups_cross_the_river_in_sync() {
                 );
                 crossed[i] |= unit.position.x > Fixed::from_num(EAST_OF_RIVER_M);
             }
-            if a.sim.tick() == 1300 {
+            if a.sim.tick() == BACK_TICK {
                 // The first order is done: every tank stands east of the
                 // river (the rifle squads of prompt 022, ids 16..20, get no
                 // orders here).

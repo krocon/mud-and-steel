@@ -97,7 +97,12 @@ const ENEMY: &str = "su_t34_76_1943";
 
 /// Whether P0 (a tank at `(0, 200)`) sees a P1 tank at `(x, y)`.
 fn p0_sees(map: Arc<Map>, x: i32, y: i32) -> bool {
-    let sim = sim_with(map, &[(P0, TANK, 0, 200, HOLD), (P1, ENEMY, x, y, HOLD)]);
+    p0_sees_from(map, 200, x, y)
+}
+
+/// Whether P0 (a tank at `(0, oy)`) sees a P1 tank at `(x, y)`.
+fn p0_sees_from(map: Arc<Map>, oy: i32, x: i32, y: i32) -> bool {
+    let sim = sim_with(map, &[(P0, TANK, 0, oy, HOLD), (P1, ENEMY, x, y, HOLD)]);
     let seen = sim.visible_to(P0, UnitId(1));
     // Vision is mutual here: both are tanks of similar height.
     assert_eq!(seen, sim.visible_to(P1, UnitId(0)));
@@ -108,8 +113,10 @@ fn p0_sees(map: Arc<Map>, x: i32, y: i32) -> bool {
 
 #[test]
 fn a_unit_behind_the_hill_is_hidden() {
-    assert!(!p0_sees(map_with(hill, ""), 0, -150));
-    assert!(!p0_sees(map_with(hill, ""), 40, -200));
+    // 240 m and 236 m away, within the 250 m sight range (prompt 097): on
+    // flat ground they would be seen.
+    assert!(!p0_sees(map_with(hill, ""), 0, -40));
+    assert!(!p0_sees(map_with(hill, ""), 15, -35));
 }
 
 #[test]
@@ -122,10 +129,11 @@ fn a_unit_on_the_hill_is_seen() {
 
 #[test]
 fn flat_ground_hides_nothing_within_range_but_everything_beyond() {
-    assert!(p0_sees(map_with(flat, ""), 0, -150));
-    assert!(p0_sees(map_with(flat, ""), 250, -150));
-    // 500 m sight (2 km real × 1/4): 560 m is out of range.
-    assert!(!p0_sees(map_with(flat, ""), 0, -360));
+    // 175 m and 215 m away.
+    assert!(p0_sees(map_with(flat, ""), 0, 25));
+    assert!(p0_sees(map_with(flat, ""), 125, 25));
+    // 250 m sight (2 km real × 1/8, prompt 097): 280 m is out of range.
+    assert!(!p0_sees(map_with(flat, ""), 0, -80));
 }
 
 /// A slope falling at 100 % from `top` meters at y = 200 to the plain
@@ -135,7 +143,8 @@ fn slope_from(top: i32) -> impl Fn(i32, i32) -> i32 {
 }
 
 /// Seeing downhill (prompt 060): a tank on a 100 m height at `(0, 200)`
-/// sees a tank on the plain beyond its 500 m sight range (up to 25 % more),
+/// sees a tank on the plain beyond its 250 m sight range (up to 25 % more,
+/// 312 m),
 /// but not the other way round, and a height of 15 m gives no bonus.
 #[test]
 fn a_height_sees_farther_downhill() {
@@ -146,13 +155,13 @@ fn a_height_sees_farther_downhill() {
         );
         (sim.visible_to(P0, UnitId(1)), sim.visible_to(P1, UnitId(0)))
     };
-    // 560 m and 609 m away, 100 m below: seen from above only.
-    assert_eq!(seen(100, 0, -360), (true, false));
-    assert_eq!(seen(100, 300, -330), (true, false));
+    // 280 m and 288 m away, 100 m below: seen from above only.
+    assert_eq!(seen(100, 0, -80), (true, false));
+    assert_eq!(seen(100, 100, -70), (true, false));
     // 15 m below: no bonus, out of range both ways.
-    assert_eq!(seen(15, 0, -360), (false, false));
+    assert_eq!(seen(15, 0, -80), (false, false));
     // Within the sight range nothing changes.
-    assert_eq!(seen(100, 0, -200), (true, true));
+    assert_eq!(seen(100, 0, 0), (true, true));
 }
 
 /// A forest band between y = -20 and y = 20 m: trees every 4 m.
@@ -183,12 +192,15 @@ fn the_forest_edge_is_seen_but_not_its_depth() {
 
 #[test]
 fn a_hill_looks_over_the_canopy() {
-    // The observer stands on a 50 % slope rising north of the forest, 85 m
-    // above it; the target stands 230 m behind the forest.
-    let map = map_with(|_, y| (y - 30).max(0) * 500, &forest());
-    assert!(p0_sees(Arc::clone(&map), 0, -250));
+    // The observer stands on a 100 % slope rising north of the forest, 70 m
+    // above it at (0, 100); the target stands 80 m behind the forest, 200 m
+    // away. Prompt 097 (sight 1/8, 250 m) brought both closer than the old
+    // 50 % slope from (0, 200) at 450 m: the 25 m canopy is 1:1, so a
+    // target within the shorter sight range needs a steeper look down.
+    let map = map_with(|_, y| (y - 30).max(0) * 1000, &forest());
+    assert!(p0_sees_from(Arc::clone(&map), 100, 0, -100));
     // From the plain the forest hides it.
-    assert!(!p0_sees(map_with(flat, &forest()), 0, -250));
+    assert!(!p0_sees_from(map_with(flat, &forest()), 100, 0, -100));
 }
 
 #[test]
@@ -279,7 +291,7 @@ fn hidden_targets_draw_no_fire_and_seen_ones_do() {
     let shots = |y: i32| {
         let mut sim = sim_with(
             map_with(hill, ""),
-            &[(P0, TANK, 0, 150, FIRE), (P1, ENEMY, 0, y, HOLD)],
+            &[(P0, TANK, 0, 65, FIRE), (P1, ENEMY, 0, y, HOLD)],
         );
         let mut shots = 0;
         for _ in 0..200 {
@@ -292,7 +304,8 @@ fn hidden_targets_draw_no_fire_and_seen_ones_do() {
         }
         shots
     };
-    // Within weapon range in both cases.
+    // Within weapon range in both cases: 85 m and 65 m, the gun reaches
+    // 87.5 m (700 m typical real × 1/8, prompt 097).
     assert_eq!(shots(-20), 0);
     assert!(shots(0) > 0);
 }
@@ -303,7 +316,7 @@ fn snapshots_show_only_what_the_player_sees() {
         map_with(hill, ""),
         &[
             (P0, TANK, 0, 200, HOLD),
-            (P1, ENEMY, 0, -150, HOLD),
+            (P1, ENEMY, 0, -40, HOLD),
             (P1, ENEMY, 0, 0, HOLD),
         ],
     );
@@ -382,7 +395,7 @@ fn attack_orders_follow_a_target_out_of_sight() {
 fn orders_against_unseen_units_are_dropped() {
     let mut sim = sim_with(
         map_with(hill, ""),
-        &[(P0, TANK, 0, 200, HOLD), (P1, ENEMY, 0, -150, HOLD)],
+        &[(P0, TANK, 0, 200, HOLD), (P1, ENEMY, 0, -40, HOLD)],
     );
     sim.step(&[PlayerCommand::new(
         P0,
@@ -427,9 +440,9 @@ fn the_budget_spreads_updates_over_ticks() {
         largest_step = largest_step.max(sim.vision_steps());
     }
     // Several units waited, and no tick computed more than one viewshed
-    // (62 cells radius: at most 8 × 62 × 62 ray steps).
+    // (31 cells radius, 250 m sight: at most 8 × 31 × 31 ray steps).
     assert!(longest >= 2, "queue never grew: {longest}");
-    assert!(largest_step <= 8 * 62 * 62, "{largest_step}");
+    assert!(largest_step <= 8 * 31 * 31, "{largest_step}");
 }
 
 #[test]

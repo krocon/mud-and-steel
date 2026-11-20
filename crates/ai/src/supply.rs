@@ -90,7 +90,9 @@ impl Ai {
             if trip.is_none() && !supply && !repair {
                 continue;
             }
-            if u.stock.immobile || u.stock.fuel_pct == Some(0) {
+            // Units leaving the area of an enemy strike are not sent back
+            // into it (prompt 097 made this visible: slower trucks).
+            if u.stock.immobile || u.stock.fuel_pct == Some(0) || self.strike.busy(u.id, tick) {
                 continue;
             }
             let Some((source, radius)) =

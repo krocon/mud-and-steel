@@ -60,7 +60,8 @@ ammo_caliber_div = 60
 time_base_s = 8
 time_per_point_div = 8
 # Prompt 045 [provisional]: the ammunition term of every direct-fire weapon
-# is scaled by its game range (catalog range x 1/4) relative to range_ref_m,
+# is scaled by its game range (catalog range x range.direct_fire, 1/8 since
+# prompt 097) relative to range_ref_m,
 # clamped to range_min_pct..range_max_pct percent; indirect weapons keep
 # 100 %. Without it a T-34 (250 m, 5 rounds/min) cost more than a Panzer IV
 # (375 m, 10 rounds/min) and lost 2:1 to it at the same price; the
@@ -69,7 +70,8 @@ time_per_point_div = 8
 # Prompt 067: game ranges are typical combat distances now (catalog
 # range_typical_m x 1/4); the reference follows the 57-76 mm tank and
 # anti-tank guns (700 m real, 175 m in the game; 250 m before).
-range_ref_m = 175
+# Prompt 097: direct fire x 1/8, the same guns reach 87 m (87.5).
+range_ref_m = 87
 range_min_pct = 50
 range_max_pct = 150
 # Decision 4 of prompt 045 (confirmed by the user 2026-11-16):
@@ -97,7 +99,8 @@ rate_max_pct = 150
 # rules (caliber x velocity^1.5, data/combat.toml). Before prompt 067 the
 # range factor did this job by accident: the catalog's maximum ranges were
 # longer for the high-velocity guns (KwK 40 1500 m, F-34 and M3 1000 m).
-# With typical combat distances every 75 mm class gun reaches 175 m, and
+# With typical combat distances every 75 mm class gun reaches one range
+# (175 m after prompt 067, 87.5 m since prompt 097), and
 # without this factor a Panzer IV (KwK 40, 750 m/s) would cost what a T-34
 # (662 m/s) or an M4A3 (619 m/s) costs although it still beats both from
 # the front at every distance (docs/BALANCE.md). The reference is between

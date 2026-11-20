@@ -17,8 +17,8 @@ const P1: PlayerId = PlayerId(1);
 const FIRE: FireMode = FireMode::FireAtWill;
 const HOLD: FireMode = FireMode::HoldFire;
 const SQUAD: &str = "de_inf_rifle_squad";
-// The tripod machine gun: it reaches 200 m (800 m real typical distance,
-// prompt 067); the bipod gun of `su_inf_mg_team` reaches 100 m.
+// The tripod machine gun: it reaches 100 m (800 m real typical distance,
+// prompt 067, at 1/8); the bipod gun of `su_inf_mg_team` reaches 50 m.
 const MG: &str = "su_inf_hmg_team";
 
 /// 800 m × 800 m flat map around the origin with the given objects
@@ -224,14 +224,15 @@ fn bounds_end_in_cover() {
     );
 }
 
-/// A rifle squad at the origin under fire from an MG team 150 m north for
+/// A rifle squad at the origin under fire from an MG team 75 m (600 m real
+/// at 1/8) north for
 /// 8 s; returns the highest suppression, whether it was pinned and lay
 /// prone, and the suppression and pinning 30 s after the MG stopped.
 fn under_mg_fire(seed: u64) -> (u32, bool, bool, u32, bool) {
     let mut sim = sim_with(
         map_with(&[]),
         seed,
-        &[(P0, SQUAD, 0, 0, HOLD), (P1, MG, 0, -150, FIRE)],
+        &[(P0, SQUAD, 0, 0, HOLD), (P1, MG, 0, -75, FIRE)],
     );
     let (mut highest, mut pinned, mut prone) = (0, false, false);
     for _ in 0..20 * 8 {
@@ -268,18 +269,18 @@ fn machine_gun_fire_pins_a_squad_down_and_it_recovers() {
 }
 
 /// How far a squad holding fire gets in 30 s marching west past an MG team
-/// (or without one).
+/// 60 m away at the closest (480 m real at 1/8), or without one.
 fn march_distance(with_mg: bool, seed: u64) -> Fixed {
-    let mut spawns = vec![(P0, SQUAD, 100, 0, HOLD)];
+    let mut spawns = vec![(P0, SQUAD, 50, 0, HOLD)];
     if with_mg {
-        spawns.push((P1, MG, 0, -120, FIRE));
+        spawns.push((P1, MG, 0, -60, FIRE));
     }
     let mut sim = sim_with(map_with(&[]), seed, &spawns);
     sim.step(&[move_to(&[0], -300, 0)]);
     for _ in 0..20 * 30 {
         sim.step(&[]);
     }
-    (position(&sim, 0) - Vec2::from_meters(100, 0)).length()
+    (position(&sim, 0) - Vec2::from_meters(50, 0)).length()
 }
 
 #[test]
@@ -294,17 +295,18 @@ fn suppression_slows_a_squad_down() {
 }
 
 /// Rounds and wounding hits of a machine-gun team (fire at will) on an
-/// enemy squad 120 m away within 10 s, with or without an MG team
-/// suppressing the shooters from the side. The shooters are a tripod
-/// machine-gun team since prompt 067: rifles reach 75 m now, and at that
-/// distance (300 m real) nearly every round hits, suppressed or not.
+/// enemy squad 60 m (480 m real at 1/8) away within 10 s, with or without
+/// an MG team suppressing the shooters from the side. The shooters are a
+/// tripod machine-gun team since prompt 067: rifles reach 37.5 m now, and
+/// at that distance (300 m real) nearly every round hits, suppressed or
+/// not.
 fn hits_of_shooters(suppressed: bool, seed: u64) -> (u32, u32) {
     let mut spawns = vec![
         (P0, "de_inf_hmg_team", 0, 0, FIRE),
-        (P1, SQUAD, 0, -120, HOLD),
+        (P1, SQUAD, 0, -60, HOLD),
     ];
     if suppressed {
-        spawns.push((P1, MG, 150, 0, FIRE));
+        spawns.push((P1, MG, 75, 0, FIRE));
     }
     let mut sim = sim_with(map_with(&[]), seed, &spawns);
     // This measures suppression, not wounds (prompt 049): every hit a man
@@ -349,7 +351,8 @@ fn suppressed_squads_hit_less() {
     );
 }
 
-/// A squad marching past an enemy truck 40 m away (it can hurt it, slowly);
+/// A squad marching past an enemy truck 20 m away (160 m real at 1/8; it
+/// can hurt it, slowly);
 /// returns the ticks in which it stood (halted with a route) and the rounds
 /// it fired.
 fn march_past(mode: FireMode, seed: u64) -> (u32, u32) {
@@ -357,11 +360,11 @@ fn march_past(mode: FireMode, seed: u64) -> (u32, u32) {
         map_with(&[]),
         seed,
         &[
-            (P0, SQUAD, 40, 0, mode),
-            (P1, "de_opel_blitz", 0, -40, HOLD),
+            (P0, SQUAD, 20, 0, mode),
+            (P1, "de_opel_blitz", 0, -20, HOLD),
         ],
     );
-    sim.step(&[move_to(&[0], -150, 0)]);
+    sim.step(&[move_to(&[0], -75, 0)]);
     let (mut halted, mut shots) = (0, 0);
     let mut last = position(&sim, 0);
     for _ in 0..20 * 40 {
@@ -411,7 +414,8 @@ fn close_firefights_are_fought_lying_down() {
 #[test]
 fn squads_fire_blind_into_smoke() {
     // P0: a rifle squad (holding fire) and a mortar with smoke rounds;
-    // P1: a squad 100 m north of the riflemen. The mortar lays smoke
+    // P1: a squad 50 m (400 m real at 1/8) north of the riflemen. The
+    // mortar (indirect fire keeps 1/8) lays smoke
     // between them; just before it lands the riflemen open fire, then
     // keep firing blindly into the smoke where they last saw the enemy.
     let mut sim = sim_with(
@@ -420,14 +424,14 @@ fn squads_fire_blind_into_smoke() {
         &[
             (P0, SQUAD, 0, 0, HOLD),
             (P0, "de_inf_mortar_medium", 0, 150, HOLD),
-            (P1, SQUAD, 0, -100, HOLD),
+            (P1, SQUAD, 0, -50, HOLD),
         ],
     );
     sim.step(&[cmd(
         P0,
         Command::Barrage {
             units: vec![UnitId(1)],
-            target: Vec2::from_meters(0, -60),
+            target: Vec2::from_meters(0, -30),
             radius_m: 0,
             salvos: 3,
             smoke: true,
@@ -569,18 +573,19 @@ fn same_fight_gives_same_hash() {
 
 #[test]
 fn weapons_jam_now_and_then() {
-    // Two lines of three squads, 70 m apart, holding their ground, each
-    // behind a stone wall: at the distances rifles reach since prompt 067
-    // (75 m) a fight in the open is over after a few hundred rounds, too
-    // few to tell a rare jam from a frequent one.
+    // Two lines of three squads, 36 m apart (288 m real at 1/8), holding
+    // their ground, each behind a stone wall: at the distances rifles reach
+    // since prompt 067 (300 m real, 37.5 m) a fight in the open is over
+    // after a few hundred rounds, too few to tell a rare jam from a frequent
+    // one.
     let mut spawns = Vec::new();
     for k in 0..3 {
-        spawns.push((P0, SQUAD, k * 30 - 30, 35, FIRE));
-        spawns.push((P1, "su_inf_rifle_squad", k * 30 - 30, -35, FIRE));
+        spawns.push((P0, SQUAD, k * 30 - 30, 18, FIRE));
+        spawns.push((P1, "su_inf_rifle_squad", k * 30 - 30, -18, FIRE));
     }
     let walls: Vec<String> = (-17..=17)
         .flat_map(|k| {
-            [31_000, -31_000].map(|y| format!("env_wall_stone,Segment,{},{y},90", k * 3000))
+            [14_000, -14_000].map(|y| format!("env_wall_stone,Segment,{},{y},90", k * 3000))
         })
         .collect();
     let mut sim = sim_with(map_with(&walls), 11, &spawns);

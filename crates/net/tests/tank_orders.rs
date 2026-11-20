@@ -7,6 +7,7 @@ mod common;
 
 use common::{pair, run};
 use net::Replay;
+use sim::scenario::COMMAND_INTERVAL;
 use sim::{Command, ObjectStage, Sim, UnitId, Vec2};
 
 const TICKS: u64 = 700;
@@ -35,12 +36,30 @@ fn shelling_orders_stay_in_sync_and_replay() {
     // Player 0 shells the house with four tanks; player 1 sends the same
     // order for its own tanks a little later, and a forged one for tanks
     // that are not its own.
+    //
+    // Since prompt 097 (direct fire 1/8, demo starts at y = ±30 m) the
+    // house, about 150 m from player 0's tanks, is beyond the 87.5 m of
+    // their guns: they first drive some 70 m at real vehicle speed. The demo
+    // scripts send Stop / MoveTo to random units every COMMAND_INTERVAL
+    // ticks and would cancel a single order on the way (before, the house
+    // was in range from the start and the first shots fell at once), so each
+    // peer repeats its order one tick after every script command.
     let order = |units: std::ops::Range<u32>| Command::AttackObject {
         units: units.map(UnitId).collect(),
         object: house,
     };
-    a.extra = vec![(20, order(0..4))];
-    b.extra = vec![(40, order(8..12)), (41, order(0..8))];
+    let repeated = |first: u64, units: std::ops::Range<u32>| {
+        std::iter::once(first)
+            .chain(
+                (first / COMMAND_INTERVAL + 1..TICKS / COMMAND_INTERVAL)
+                    .map(|k| k * COMMAND_INTERVAL + 1),
+            )
+            .map(move |t| (t, order(units.clone())))
+            .collect::<Vec<_>>()
+    };
+    a.extra = repeated(20, 0..4);
+    b.extra = repeated(40, 8..12);
+    b.extra.push((41, order(0..8)));
     let before = a.sim.object_hp(house).unwrap().0;
     run(&mut a, &mut b, TICKS);
     assert_eq!(a.hashes, b.hashes);

@@ -8,8 +8,9 @@ use serde::{Deserialize, Serialize};
 use sim::{Command, Fixed, UnitId, Vec2};
 use std::collections::BTreeMap;
 
-/// Passengers get off this far short of the enemy (m).
-const UNLOAD_M: i32 = 180;
+/// Passengers get off this far short of the enemy (m), outside the reach
+/// of its guns. Halved with the ranges and sight in prompt 097 (180 m before).
+const UNLOAD_M: i32 = 90;
 /// Squads farther than this from their objective ride (m).
 const RIDE_FROM_M: i32 = 200;
 /// A carrier picks up squads within this distance (m).
@@ -75,7 +76,13 @@ impl Ai {
             || self.eco.launched.contains(&Role::Armor);
         let place = self.gun_place(view);
         let towed: Vec<UnitId> = own.iter().filter_map(|u| u.towing).collect();
-        for carrier in own.iter().filter(|u| role(u) == Role::Transport) {
+        // Carriers leaving the area of an enemy strike are left alone until
+        // the strike is over (prompt 097 made this visible: slower trucks).
+        let evading = |u: &OwnUnit| self.strike.busy(u.id, tick);
+        for carrier in own
+            .iter()
+            .filter(|u| role(u) == Role::Transport && !evading(u))
+        {
             let info = self.type_info(carrier.unit_type);
             // A tractor with a gun brings it to its place and unlimbers.
             if carrier.towing.is_some() {

@@ -302,7 +302,7 @@ gen-map name size_m="500" seed="1" start_distance_m="120" *args:
 # Regenerate the committed test maps (changes the golden hash if test_small changes)
 [group('maps')]
 test-maps:
-    just gen-map test_small 500 7
+    just gen-map test_small 500 7 60
     just gen-map test_large 4000 11 120 --players 6
     just gen-map twin_meadow 1000 21 120 --players 4
 

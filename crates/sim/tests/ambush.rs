@@ -127,12 +127,13 @@ fn ambush_seen(vision: VisionRules, y: i32) -> bool {
 
 #[test]
 fn a_squad_at_the_forest_edge_is_hidden_from_afar() {
-    // Without the rule the forest edge is seen from 100 m …
-    assert!(ambush_seen(no_ambush(), 120));
+    // Without the rule the forest edge is seen from 51 m (408 m real at
+    // 1/8) …
+    assert!(ambush_seen(no_ambush(), 69));
     // … with it the silent squad stays hidden …
-    assert!(!ambush_seen(VisionRules::builtin().unwrap(), 120));
-    // … until an enemy comes within 50 m (200 m real).
-    assert!(ambush_seen(VisionRules::builtin().unwrap(), 60));
+    assert!(!ambush_seen(VisionRules::builtin().unwrap(), 69));
+    // … until an enemy comes within 25 m (200 m real): here 21 m.
+    assert!(ambush_seen(VisionRules::builtin().unwrap(), 39));
 }
 
 #[test]

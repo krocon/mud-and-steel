@@ -14,8 +14,8 @@ const P1: PlayerId = PlayerId(1);
 const FIRE: FireMode = FireMode::FireAtWill;
 const HOLD: FireMode = FireMode::HoldFire;
 const SQUAD: &str = "de_inf_rifle_squad";
-// The tripod machine gun: it reaches 200 m (800 m real typical distance,
-// prompt 067); the bipod gun of `su_inf_mg_team` reaches 100 m.
+// The tripod machine gun: it reaches 100 m (800 m real typical distance,
+// prompt 067, at 1/8); the bipod gun of `su_inf_mg_team` reaches 50 m.
 const MG: &str = "su_inf_hmg_team";
 
 /// 800 m × 800 m flat map around the origin with the given objects
@@ -169,16 +169,21 @@ fn sandbags() -> Vec<String> {
 }
 
 /// A rifle squad at the origin (holding fire) under fire from an MG team
-/// 150 m north; rounds and wounding hits over `ticks`, summed over five
-/// seeds.
+/// 75 m north (600 m real at 1/8); rounds and wounding hits over `ticks`,
+/// summed over five seeds.
 fn hits_on_squad(objects: &[String], squad_stance: Stance, ticks: u32) -> Tally {
+    hits_on_squad_at(objects, squad_stance, ticks, 75)
+}
+
+/// [`hits_on_squad`] with the MG team `distance` m north.
+fn hits_on_squad_at(objects: &[String], squad_stance: Stance, ticks: u32, distance: i32) -> Tally {
     let map = map_with(objects);
     (1..=5)
         .map(|seed| {
             let mut sim = sim_with(
                 Arc::clone(&map),
                 seed,
-                &[(P0, SQUAD, 0, 0, HOLD), (P1, MG, 0, -150, FIRE)],
+                &[(P0, SQUAD, 0, 0, HOLD), (P1, MG, 0, -distance, FIRE)],
             );
             sim.step(&[stance(P0, 0, squad_stance)]);
             // Let the squad settle into its places (and cover spots).
@@ -253,8 +258,12 @@ fn stone_wall_protects_kneeling_soldiers() {
 
 #[test]
 fn prone_squad_takes_fewer_hits_than_standing() {
-    let standing = hits_on_squad(&[], Stance::Stand, 400);
-    let prone = hits_on_squad(&[], Stance::Prone, 400);
+    // 90 m (720 m real at 1/8). At 75 m (600 m real) prone soldiers take
+    // about 0.52 of the standing hit rate since the 1/8 compression
+    // (prompt 097; 0.48 at 1/4 and 150 m), too close to the factor 2 this
+    // test asks for; farther away the stance matters more (0.42 at 90 m).
+    let standing = hits_on_squad_at(&[], Stance::Stand, 400, 90);
+    let prone = hits_on_squad_at(&[], Stance::Prone, 400, 90);
     println!("standing {standing:?}, prone {prone:?}");
     assert!(
         prone.per_mille() * 2 < standing.per_mille(),
@@ -297,7 +306,7 @@ fn automatic_stance_goes_prone_under_fire() {
     let mut sim = sim_with(
         map_with(&[]),
         1,
-        &[(P0, SQUAD, 0, 0, HOLD), (P1, MG, 0, -150, HOLD)],
+        &[(P0, SQUAD, 0, 0, HOLD), (P1, MG, 0, -75, HOLD)],
     );
     run(&mut sim, 40);
     assert_eq!(sim.snapshot().units[0].stance, Some(Stance::Kneel));
@@ -372,8 +381,8 @@ fn squads_occupy_buildings_up_to_their_capacity() {
 
 #[test]
 fn occupants_take_fewer_hits_than_squads_in_the_open() {
-    // The silent squad in the house would stay hidden from the MG 150 m
-    // away (ambush, prompt 056); this test is about cover, so it plays
+    // The silent squad in the house would stay hidden from the MG 81 m
+    // away (648 m real at 1/8) (ambush, prompt 056); this test is about cover, so it plays
     // without that rule.
     let mut vision = sim::VisionRules::builtin().unwrap();
     vision.ambush.spot_real_m = 0;
@@ -384,7 +393,7 @@ fn occupants_take_fewer_hits_than_squads_in_the_open() {
                 let mut sim = sim_with_vision(
                     Arc::clone(&map),
                     seed,
-                    &[(P0, SQUAD, 0, 12, HOLD), (P1, MG, 0, -150, HOLD)],
+                    &[(P0, SQUAD, 0, 12, HOLD), (P1, MG, 0, -69, HOLD)],
                     vision.clone(),
                 );
                 if garrisoned {
@@ -425,15 +434,15 @@ fn infantry_runs_are_deterministic() {
             9,
             &[
                 (P0, SQUAD, 0, 0, FIRE),
-                (P1, SQUAD, 0, -120, FIRE),
-                (P1, MG, 30, -120, FIRE),
+                (P1, SQUAD, 0, -60, FIRE),
+                (P1, MG, 15, -60, FIRE),
             ],
         );
         sim.step(&[order(
             P1,
             Command::MoveTo {
                 units: vec![UnitId(1), UnitId(2)],
-                target: Vec2::from_meters(0, -60),
+                target: Vec2::from_meters(0, -30),
             },
         )]);
         run(&mut sim, 600);
@@ -467,7 +476,7 @@ fn ruins_cannot_be_occupied_but_squads_move_into_the_rubble() {
     }
 }
 
-/// Wounding hits per round of an MG team 150 m north at a rifle squad at
+/// Wounding hits per round of an MG team 75 m (600 m real at 1/8) north at a rifle squad at
 /// the origin, in the open or ordered into a farmhouse ruin there.
 fn hits_in_rubble(ruin: bool) -> Tally {
     let objects = if ruin {
@@ -481,7 +490,7 @@ fn hits_in_rubble(ruin: bool) -> Tally {
             let mut sim = sim_with(
                 Arc::clone(&map),
                 seed,
-                &[(P0, SQUAD, 0, 0, HOLD), (P1, MG, 0, -150, HOLD)],
+                &[(P0, SQUAD, 0, 0, HOLD), (P1, MG, 0, -75, HOLD)],
             );
             sim.step(&[garrison(P0, &[0])]);
             run(&mut sim, 120);

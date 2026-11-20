@@ -654,7 +654,7 @@ impl AaWeapon {
                     _ => return None,
                 };
                 let range = scale
-                    .direct_fire_range_m(real)
+                    .anti_aircraft_range_m(real)
                     .min(Fixed::from_num(rules.flak(class).max_range_m));
                 Some(Self {
                     class,
