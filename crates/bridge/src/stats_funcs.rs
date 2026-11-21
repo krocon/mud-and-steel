@@ -15,6 +15,12 @@ impl SimHost {
     /// `types` (array of `id`, `name`, `produced`, `lost`, `kills`, sorted
     /// by kills, then losses) and `samples` (array of `seconds`, `account`
     /// and `income` as [fuel, ammunition, manpower], `points`, `units`).
+    /// Prompt 179: `losses` (array of `seconds`, `type`, `name`, `x`, `z`,
+    /// `cause`, `by` (display name of the shooter's type or ""), `face`
+    /// ("front", "side", "rear", "top" or ""), `seen`) and `report` (the
+    /// three costliest groups: `cause`, `by`, `count`, `value`, `unseen`,
+    /// `flank`, `hint` (translation key)). Shooters the player never saw
+    /// are named too: the report is meant for after the match.
     #[func]
     fn match_stats(&self) -> VarArray {
         let mut out = VarArray::new();
@@ -69,6 +75,48 @@ impl SimHost {
             };
             entry.set("types", &types);
             entry.set("samples", &samples);
+            let by_name = |t: Option<u32>| {
+                t.map_or(String::new(), |t| {
+                    display_name(stats.type_name(t)).to_string()
+                })
+            };
+            let mut losses = VarArray::new();
+            for l in &p.losses {
+                let face = match l.face {
+                    Some(sim::Face::Front) => "front",
+                    Some(sim::Face::Side) => "side",
+                    Some(sim::Face::Rear) => "rear",
+                    Some(sim::Face::Top) => "top",
+                    None => "",
+                };
+                let row = vdict! {
+                    "seconds" => i64::try_from(l.tick / hz).unwrap_or(i64::MAX),
+                    "type" => stats.type_name(l.unit_type),
+                    "name" => display_name(stats.type_name(l.unit_type)),
+                    "x" => crate::fixed_to_f32(l.position.x),
+                    "z" => crate::fixed_to_f32(l.position.y),
+                    "cause" => l.cause.name(),
+                    "by" => by_name(l.by_type),
+                    "face" => face,
+                    "seen" => l.shooter_seen,
+                };
+                losses.push(&row.to_variant());
+            }
+            let mut report = VarArray::new();
+            for line in sim::stats::report(&p.losses, 3) {
+                let row = vdict! {
+                    "cause" => line.cause.name(),
+                    "by" => by_name(line.by_type),
+                    "count" => i64::from(line.count),
+                    "value" => i64::try_from(line.value).unwrap_or(i64::MAX),
+                    "unseen" => i64::from(line.unseen),
+                    "flank" => i64::from(line.flank),
+                    "hint" => line.hint.as_str(),
+                };
+                report.push(&row.to_variant());
+            }
+            entry.set("losses", &losses);
+            entry.set("report", &report);
             out.push(&entry.to_variant());
         }
         out

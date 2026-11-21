@@ -548,6 +548,11 @@ func _combat_victory_test(main: Node3D) -> void:
 	_check(stats_json is Dictionary and (stats_json["players"] as Array).size() == 2, "statistics JSON does not parse")
 	var own_stats: Dictionary = (host.match_stats() as Array)[host.local_player()]
 	_check(int(own_stats["kills"]) > 0, "no kills counted for the local player: %s" % own_stats)
+	# Prompt 179: the loser's report names a cause with a hint.
+	var enemy_stats: Dictionary = (host.match_stats() as Array)[1 - host.local_player()]
+	var report: Array = enemy_stats.get("report", [])
+	_check(not report.is_empty() and str(report[0]["cause"]) == "direct" and not str(report[0]["hint"]).is_empty(),
+		"no cause in the enemy's report: %s" % [report])
 	print("flow self-test: statistics ok (%s)" % game_menu.result_stats.text.replace("\n", "; "))
 	print("flow self-test: combat victory ok at tick %d (%s)" % [result["tick"], game_menu.result_details.text.replace("\n", "; ")])
 
@@ -570,6 +575,9 @@ func _ai_opponent_test(main: Node3D) -> void:
 	_check(result["decided"] and result["winner"] == 1, "the computer opponent did not win: %s" % result)
 	_check(result["players"][0]["reason"] == "eliminated", "player 0 not eliminated: %s" % result)
 	_check(game_menu.result_title.text == "DEFEAT", "result shows '%s'" % game_menu.result_title.text)
+	# Prompt 179: the report of the lost match lists at least one cause.
+	var report_lines: Array[String] = game_menu.result_report.lines
+	_check(report_lines.size() >= 3, "the battle report shows %s" % [report_lines])
 	print("flow self-test: computer opponent won at tick %d after %d decisions (%s)" % [result["tick"], status["decisions"], game_menu.result_details.text.replace("\n", "; ")])
 
 

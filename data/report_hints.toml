@@ -1,0 +1,47 @@
+# Hints of the battle report (prompt 179): for the costliest causes of the
+# player's losses, the first rule that matches gives a translation key
+# (`godot/locale/menu.csv`, German and English). A rule matches a group of
+# losses with the same cause and the same kind of shooter when
+#   cause    the cause (direct, indirect, mine, air, overrun, water, other)
+#   unseen   at least half of them came from a shooter the player did not
+#            see at that moment (an ambush, a gun never found)
+#   flank    at least half of the vehicles were hit from the side or rear
+# No AI texts: only this table. Order matters.
+
+[[hint]]
+cause = "direct"
+unseen = true
+key = "REPORT_HINT_UNSEEN"
+
+[[hint]]
+cause = "direct"
+flank = true
+key = "REPORT_HINT_FLANK"
+
+[[hint]]
+cause = "direct"
+key = "REPORT_HINT_DIRECT"
+
+[[hint]]
+cause = "indirect"
+key = "REPORT_HINT_INDIRECT"
+
+[[hint]]
+cause = "mine"
+key = "REPORT_HINT_MINE"
+
+[[hint]]
+cause = "air"
+key = "REPORT_HINT_AIR"
+
+[[hint]]
+cause = "overrun"
+key = "REPORT_HINT_OVERRUN"
+
+[[hint]]
+cause = "water"
+key = "REPORT_HINT_WATER"
+
+[[hint]]
+cause = "other"
+key = "REPORT_HINT_OTHER"

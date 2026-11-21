@@ -12,8 +12,15 @@
 //! Kills come from [`CombatEvent::Destroyed`]: the unit that fired the last
 //! hit gets the kill. Units that die without such an event (heavy strike,
 //! fire, mines, aircraft crashes) count as losses with an unknown killer.
+//!
+//! Prompt 179: every loss is also kept as a [`Loss`] with its cause, read
+//! from what the simulation reports in that tick (the destroying shooter,
+//! the hit on the unit, crossing events) and from public queries (the
+//! shooter's unit type, whether the loser's player saw the shooter). The
+//! report on the result screen ranks the causes; nothing here changes the
+//! simulation.
 
-use crate::combat::CombatEvent;
+use crate::combat::{CombatEvent, Face, HitKind};
 use crate::command::{PlayerId, UnitId};
 use crate::economy::Resources;
 use crate::sim::{Sim, SimConfig};
@@ -35,6 +42,145 @@ pub struct TypeCounts {
     pub kills: u32,
     /// Price (sum of the three resources) of the enemy units they destroyed.
     pub kill_value: u64,
+}
+
+/// What destroyed a unit (prompt 179).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub enum Cause {
+    /// A round of a unit's direct-fire weapon.
+    Direct,
+    /// Shells of mortars, artillery, rocket launchers, heavy strikes.
+    Indirect,
+    Mine,
+    Air,
+    /// Run over by a vehicle (prompt 093).
+    Overrun,
+    /// Drowned or fell with a bridge.
+    Water,
+    /// Fire, wounds and anything else.
+    Other,
+}
+
+impl Cause {
+    pub const ALL: [Self; 7] = [
+        Self::Direct,
+        Self::Indirect,
+        Self::Mine,
+        Self::Air,
+        Self::Overrun,
+        Self::Water,
+        Self::Other,
+    ];
+
+    /// Stable name for the report and its hint table.
+    pub const fn name(self) -> &'static str {
+        match self {
+            Self::Direct => "direct",
+            Self::Indirect => "indirect",
+            Self::Mine => "mine",
+            Self::Air => "air",
+            Self::Overrun => "overrun",
+            Self::Water => "water",
+            Self::Other => "other",
+        }
+    }
+}
+
+/// One own unit lost (prompt 179).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Loss {
+    pub tick: u64,
+    pub unit_type: u32,
+    pub position: crate::math::Vec2,
+    pub cause: Cause,
+    /// Unit type of the shooter, if a unit.
+    pub by_type: Option<u32>,
+    /// Face of a vehicle hit by the last round.
+    pub face: Option<Face>,
+    /// The loser's player saw the shooter right after the loss (with its
+    /// remaining units; `false`: an ambush or a position it never found).
+    pub shooter_seen: bool,
+    /// Price of the unit (sum of the three resources).
+    pub value: u64,
+}
+
+/// A group of losses with the same cause and shooter type, for the report
+/// (prompt 179).
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ReportLine {
+    pub cause: Cause,
+    pub by_type: Option<u32>,
+    pub count: u32,
+    pub value: u64,
+    /// Of them: shooter not seen; vehicles hit from the side or rear.
+    pub unseen: u32,
+    pub flank: u32,
+    /// Translation key of the hint (`data/report_hints.toml`).
+    pub hint: String,
+}
+
+/// The hint table (`data/report_hints.toml`).
+pub const BUILTIN_REPORT_HINTS: &str = include_str!("../../../data/report_hints.toml");
+
+#[derive(serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+struct HintRule {
+    cause: String,
+    #[serde(default)]
+    unseen: bool,
+    #[serde(default)]
+    flank: bool,
+    key: String,
+}
+
+#[derive(serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+struct HintTable {
+    hint: Vec<HintRule>,
+}
+
+/// The costliest groups of `losses` (by value, then count, then cause and
+/// shooter type), at most `top`, each with its hint.
+pub fn report(losses: &[Loss], top: usize) -> Vec<ReportLine> {
+    let table: Vec<HintRule> = toml::from_str::<HintTable>(BUILTIN_REPORT_HINTS)
+        .map(|t| t.hint)
+        .unwrap_or_default();
+    let mut groups: BTreeMap<(Cause, Option<u32>), ReportLine> = BTreeMap::new();
+    for l in losses {
+        let g = groups
+            .entry((l.cause, l.by_type))
+            .or_insert_with(|| ReportLine {
+                cause: l.cause,
+                by_type: l.by_type,
+                count: 0,
+                value: 0,
+                unseen: 0,
+                flank: 0,
+                hint: String::new(),
+            });
+        g.count += 1;
+        g.value += l.value;
+        if !l.shooter_seen && l.by_type.is_some() {
+            g.unseen += 1;
+        }
+        if matches!(l.face, Some(Face::Side | Face::Rear)) {
+            g.flank += 1;
+        }
+    }
+    let mut lines: Vec<ReportLine> = groups.into_values().collect();
+    lines.sort_by(|a, b| {
+        (b.value, b.count, a.cause, a.by_type).cmp(&(a.value, a.count, b.cause, b.by_type))
+    });
+    lines.truncate(top);
+    for line in &mut lines {
+        let unseen = line.unseen * 2 >= line.count;
+        let flank = line.flank * 2 >= line.count;
+        line.hint = table
+            .iter()
+            .find(|r| r.cause == line.cause.name() && (!r.unseen || unseen) && (!r.flank || flank))
+            .map_or_else(String::new, |r| r.key.clone());
+    }
+    lines
 }
 
 /// One sample of a player's economy.
@@ -69,6 +215,8 @@ pub struct PlayerStats {
     pub produced_value: u64,
     /// Price of the own units destroyed.
     pub lost_value: u64,
+    /// Every own unit lost, in order (prompt 179).
+    pub losses: Vec<Loss>,
 }
 
 impl PlayerStats {
@@ -116,6 +264,7 @@ impl MatchStats {
                     points_lost: 0,
                     produced_value: 0,
                     lost_value: 0,
+                    losses: Vec::new(),
                 })
                 .collect(),
             alive: BTreeMap::new(),
@@ -150,11 +299,34 @@ impl MatchStats {
         }
         self.last_tick = tick;
         let mut killers: BTreeMap<UnitId, UnitId> = BTreeMap::new();
+        let mut places: BTreeMap<UnitId, crate::math::Vec2> = BTreeMap::new();
+        // The last round that hit a unit in this tick: its face.
+        let mut hits: BTreeMap<UnitId, Option<Face>> = BTreeMap::new();
         for e in sim.events() {
-            if let CombatEvent::Destroyed { unit, by, .. } = *e {
-                killers.insert(unit, by);
+            match *e {
+                CombatEvent::Destroyed { unit, by, at } => {
+                    killers.insert(unit, by);
+                    places.insert(unit, at.ground());
+                }
+                CombatEvent::Hit {
+                    kind: HitKind::Unit(unit),
+                    face,
+                    ..
+                } => {
+                    hits.insert(unit, face);
+                }
+                _ => {}
             }
         }
+        let drowned: Vec<UnitId> = sim
+            .crossing_events()
+            .iter()
+            .filter_map(|e| match *e {
+                crate::CrossingEvent::Fell { unit, .. }
+                | crate::CrossingEvent::Drowned { unit, .. } => Some(unit),
+                _ => None,
+            })
+            .collect();
         let mut died: Vec<(UnitId, PlayerId, u32)> = Vec::new();
         for (id, owner, unit_type, alive) in sim.unit_roster() {
             match (alive, self.alive.contains_key(&id)) {
@@ -175,9 +347,45 @@ impl MatchStats {
         }
         for (id, owner, unit_type) in died {
             let value = price(sim, unit_type);
+            let by = killers.get(&id).copied();
+            let by_type = by.and_then(|b| {
+                sim.unit_roster()
+                    .find_map(|(u, _, t, _)| (u == b).then_some(t))
+            });
+            let cause = match by {
+                Some(crate::works::MINE_SHOOTER) => Cause::Mine,
+                Some(crate::air::AIR_SHOOTER) => Cause::Air,
+                Some(crate::crossings::WATER_SHOOTER) => Cause::Water,
+                _ if drowned.contains(&id) => Cause::Water,
+                Some(_) => match by_type {
+                    Some(t) if sim.unit_types()[t as usize].combat.indirect.is_some() => {
+                        Cause::Indirect
+                    }
+                    Some(_) if hits.contains_key(&id) => Cause::Direct,
+                    Some(t)
+                        if sim.unit_types()[t as usize].combat.squad_size == 0
+                            && sim.unit_types()[unit_type as usize].combat.squad_size > 0 =>
+                    {
+                        Cause::Overrun
+                    }
+                    _ => Cause::Other,
+                },
+                None => Cause::Other,
+            };
+            let loss = Loss {
+                tick,
+                unit_type,
+                position: places.get(&id).copied().unwrap_or_default(),
+                cause,
+                by_type,
+                face: hits.get(&id).copied().flatten(),
+                shooter_seen: by.is_some_and(|b| sim.visible_to(owner, b)),
+                value,
+            };
             if let Some(p) = self.player_mut(owner) {
                 p.types.entry(unit_type).or_default().lost += 1;
                 p.lost_value += value;
+                p.losses.push(loss);
             }
             let Some(by) = killers.get(&id) else {
                 continue;
@@ -320,6 +528,28 @@ impl MatchStats {
                 );
             }
             s.push_str(if p.types.is_empty() {
+                "],\n"
+            } else {
+                "\n      ],\n"
+            });
+            // Prompt 179: every loss with its cause.
+            s.push_str("      \"losses\": [");
+            for (j, l) in p.losses.iter().enumerate() {
+                let _ = write!(
+                    s,
+                    "{}\n        {{ \"tick\": {}, \"type\": \"{}\", \"cause\": \"{}\", \"by\": {}, \"seen\": {} }}",
+                    if j == 0 { "" } else { "," },
+                    l.tick,
+                    json_escape(self.type_name(l.unit_type)),
+                    l.cause.name(),
+                    l.by_type.map_or_else(
+                        || "null".to_string(),
+                        |t| format!("\"{}\"", json_escape(self.type_name(t)))
+                    ),
+                    l.shooter_seen
+                );
+            }
+            s.push_str(if p.losses.is_empty() {
                 "],\n"
             } else {
                 "\n      ],\n"

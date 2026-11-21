@@ -21,6 +21,7 @@ const SettingsPanel := preload("res://scenes/menu/settings_panel.gd")
 const GameFiles := preload("res://scenes/menu/game_files.gd")
 const Language := preload("res://scenes/menu/language.gd")
 const StatsChart := preload("res://scenes/menu/stats_chart.gd")
+const ReportView := preload("res://scenes/menu/report_view.gd")
 
 var main: Node3D
 
@@ -33,6 +34,9 @@ var result_details: Label
 ## Prompt 045: losses, kills and points per player, resource curves.
 var result_stats: Label
 var result_chart: Control
+## Tabs "Summary" and "Report" (prompt 179) and the report.
+var result_tabs: TabContainer
+var result_report: ReportView
 ## Absolute path of the statistics JSON of this match ("" if not written).
 var stats_path := ""
 var settings_panel: PanelContainer
@@ -209,11 +213,21 @@ func _build_result() -> void:
 	box.add_child(result_reason)
 	result_details = MenuTheme.hint("")
 	box.add_child(result_details)
+	# Prompt 179: the numbers and the battle report on two tabs.
+	result_tabs = TabContainer.new()
+	box.add_child(result_tabs)
+	var summary := VBoxContainer.new()
+	summary.name = tr("RESULT_TAB_SUMMARY")
+	result_tabs.add_child(summary)
 	result_stats = MenuTheme.hint("")
-	box.add_child(result_stats)
+	summary.add_child(result_stats)
 	result_chart = StatsChart.new()
-	box.add_child(result_chart)
-	box.add_child(MenuTheme.hint("RESULT_STATS_LEGEND"))
+	summary.add_child(result_chart)
+	summary.add_child(MenuTheme.hint("RESULT_STATS_LEGEND"))
+	result_report = ReportView.new()
+	result_report.setup(main)
+	result_report.name = tr("RESULT_TAB_REPORT")
+	result_tabs.add_child(result_report)
 	var buttons := HBoxContainer.new()
 	buttons.alignment = BoxContainer.ALIGNMENT_CENTER
 	box.add_child(buttons)
@@ -312,6 +326,7 @@ func _show_stats(me: int) -> void:
 	if not stats_path.is_empty():
 		lines.append(tr("RESULT_STATS_SAVED") % stats_path.get_file())
 	result_stats.text = "\n".join(lines)
+	result_report.show_for(me)
 
 
 func _reason(winner: int, me: int, own: Dictionary, players: Array, won: bool) -> String:

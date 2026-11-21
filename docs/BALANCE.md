@@ -12,7 +12,7 @@ price, defeat without base), see "Decisions of the user (2026-11-16)".
 
 | Tool | What it measures |
 |---|---|
-| Result screen and `user://stats/*.json` | Every finished match: losses, kills and kill value per unit type, units produced, supply points taken and lost, account, income, points and living units every 30 s of game time (`sim::stats::MatchStats`). |
+| Result screen and `user://stats/*.json` | Every finished match: losses, kills and kill value per unit type, units produced, supply points taken and lost, account, income, points and living units every 30 s of game time (`sim::stats::MatchStats`). Since prompt 179 every loss with its cause, shooter type and whether the shooter was seen (`losses`), and the tab "Report" with the costliest causes and hints (ARCHITECTURE.md "Victory conditions and game flow"). |
 | `just balance` (`cli balance`) | AI tournaments over faction pairings × maps × modes with the same statistics, summed: wins per pairing, win rate per faction, kills per loss per unit type, the economy per faction at the end of base matches. Every pairing is played in both orders (each faction half the games as player 0). |
 | `just duel` (`cli duel`) | One unit against another on flat, empty ground, both standing and firing at will, over distances and angles (where A stands relative to B's hull). Shows what the catalog values do after the scale and combat rules, without AI decisions. |
 | `just ai-tournament` | One pairing of difficulties (prompt 024); now with the statistics too. |

@@ -1025,6 +1025,11 @@ impl Sim {
     }
 
     /// Ticks per second.
+    /// The unit types of the match (`SimConfig::unit_types`).
+    pub fn unit_types(&self) -> &[UnitType] {
+        &self.unit_types
+    }
+
     pub const fn tick_hz(&self) -> u32 {
         self.tick_hz
     }

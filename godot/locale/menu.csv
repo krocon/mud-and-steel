@@ -147,3 +147,30 @@ MENU_MISSIONS_NONE,No missions found.,Keine Missionen gefunden.
 MENU_MISSION_BROKEN,{id} ({map}): cannot be read,{id} ({map}): nicht lesbar
 MENU_MISSION_TUTORIAL,Tutorial,Tutorial
 MENU_MISSION_WON,(won),(gewonnen)
+RESULT_TAB_SUMMARY,Summary,Übersicht
+RESULT_TAB_REPORT,Report,Bericht
+REPORT_COST_TITLE,What cost you most:,Was dich am meisten gekostet hat:
+REPORT_NO_LOSSES,No losses.,Keine Verluste.
+REPORT_LINE,{count} × {cause}{by},{count} × {cause}{by}
+REPORT_BY, by %s, durch %s
+REPORT_UNSEEN,%d from a position you never saw,"%d aus einer Stellung, die du nie gesehen hast"
+REPORT_FLANK,%d hit from the side or rear,%d von der Seite oder hinten getroffen
+REPORT_CAUSE_DIRECT,direct fire,direktes Feuer
+REPORT_CAUSE_INDIRECT,artillery and mortars,Artillerie und Mörser
+REPORT_CAUSE_MINE,mines,Minen
+REPORT_CAUSE_AIR,air attack,Luftangriff
+REPORT_CAUSE_OVERRUN,run over,überrollt
+REPORT_CAUSE_WATER,drowned or fell with a bridge,ertrunken oder mit einer Brücke gestürzt
+REPORT_CAUSE_OTHER,fire and other causes,Feuer und anderes
+REPORT_HINT_UNSEEN,"Scout before you attack, lay smoke, send infantry ahead to find hidden guns.","Vor dem Angriff aufklären, Rauch legen, Infanterie vorschicken, um versteckte Geschütze zu finden."
+REPORT_HINT_FLANK,Secure your flanks and keep the front of your tanks towards the enemy.,Flanken sichern und die Front der Panzer zum Feind halten.
+REPORT_HINT_DIRECT,"Attack with more units at once, from cover, or from two sides.","Mit mehr Einheiten zugleich angreifen, aus der Deckung oder von zwei Seiten."
+REPORT_HINT_INDIRECT,Do not stand still in the open; spread out and move after the first shells.,Nicht still im offenen Gelände stehen; auseinanderziehen und nach den ersten Granaten weiterziehen.
+REPORT_HINT_MINE,Let engineers clear mines; known minefields are marked on the map.,Minen von Pionieren räumen lassen; bekannte Minenfelder sind auf der Karte markiert.
+REPORT_HINT_AIR,Bring anti-aircraft guns and spread out when aircraft appear.,"Flak mitnehmen und auseinanderziehen, wenn Flugzeuge auftauchen."
+REPORT_HINT_OVERRUN,"Keep anti-tank weapons with your infantry, or get it into buildings and trenches.",Panzerabwehr bei der Infanterie halten oder sie in Gebäude und Gräben bringen.
+REPORT_HINT_WATER,"Cross rivers at bridges and fords, and not when the bridge is under fire.","Flüsse an Brücken und Furten queren, und nicht, wenn die Brücke unter Feuer liegt."
+REPORT_HINT_OTHER,Keep units away from burning woods and houses.,Einheiten von brennenden Wäldern und Häusern fernhalten.
+REPORT_DROPS,Biggest losses (click: watch the replay there):,Größte Einbrüche (Klick: Wiederholung dort ansehen):
+REPORT_DROP,%d:%02d  −%d,%d:%02d  −%d
+REPORT_DROP_TIP,Saves the match as a replay and opens it at this moment.,Speichert das Gefecht als Wiederholung und öffnet sie an dieser Stelle.

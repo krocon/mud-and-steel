@@ -103,7 +103,9 @@ Rules I want changed (section, what, why):
 
 1. Put the statistics JSON files next to the notes and compare them with
    the tournament numbers in [BALANCE.md](BALANCE.md) (losses per type,
-   end accounts, supply points).
+   end accounts, supply points). Since prompt 179 the result screen's tab
+   "Report" names the costliest causes of the losses with a hint; ask the
+   tester whether it matches what they felt went wrong.
 2. For every rule the user confirms, a later prompt changes its
    **[provisional]** mark in GAME_DESIGN.md to **[confirmed]** with the
    date; only the user can confirm (prompt 045 does not).

@@ -2737,7 +2737,22 @@ main menu ── Single player ─ setup (map, season, factions, opponent, mode)
   Surrender and Leave. The result screen appears as soon as
   `SimHost.match_result()` is decided: victory, defeat or draw, why, match
   time, units left per player; "Back to main menu" (the replay is written as
-  before).
+  before). Since prompt 179 the statistics sit on a tab "Summary" and a
+  tab "Report" (`menu/report_view.gd`) explains the losses: every own loss
+  is recorded by `sim::stats::MatchStats` as a `Loss` (cause: direct,
+  indirect, mine, air, overrun, water, other, read from the tick's
+  `Destroyed` and `Hit` events, the special shooters `MINE_SHOOTER`,
+  `AIR_SHOOTER`, `WATER_SHOOTER`, crossing events and the shooter's unit
+  type; the face of the last hit; whether the loser's player saw the
+  shooter right after the loss, with its remaining units; the place). The
+  report shows a loss map (dots by cause), the three costliest groups of
+  losses by cause and shooter type (`sim::stats::report`) with a hint from
+  `data/report_hints.toml` (translation keys `REPORT_HINT_*`), and the
+  biggest drops of living units from the 30-s samples as buttons that save
+  the match as a replay and open the viewer there. Decision: shooters the
+  player never saw are named (the report comes after the match; nothing
+  is shown during it). Observer only: not state, not hashed, also in the
+  statistics JSON (`losses`).
 - `menu/settings.gd` (static, loaded by every entry scene; language,
   accessibility and display since prompt 043): graphics quality
   (`--quality` overrides it), keyboard bindings of the camera actions (a key
