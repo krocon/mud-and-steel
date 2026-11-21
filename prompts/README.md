@@ -363,6 +363,30 @@ als SVG-Bauplan mit Beschreibung (und Bild) vorbereitet hat.
 | 171 | [Karte nach Bildvorlage: Felseninsel](171-karte-felseninsel.md) | Braucht 126; empfohlen nach 133, 149, 122, 113. Skizzenkarte `cliff_island` (Insel 2,4–2,8 km in 3,2 × 3,2 km Meer, sechs Lager: jeder gegen jeden bis 6, 1 gegen 1, 2 gegen 2, 3 gegen 3) nach dem Bild `docs/.vorlagen/felseninsel/img.webp` (Schrägansicht, erst entzerren): runde Insel mit Steilküste ohne Landung, hoher Randring mit sechs Lagern, Felswände nach innen zu einem Kessel mit Tümpeln und Burgruine, sechs Zwischenplateaus mit Steinkreis-Ruinen, Fahrwege nur über Rampen (≥ 12 m, Fahrprobe); sechsfach drehsymmetrisch (Rückfall dreifach + Punkt); Gerechtigkeits-, Sicht-, Reichweitenprobe, KI-Turnier zu sechst | offen |
 | 172 | [Karte nach Bildvorlage: Trümmerstadt](172-karte-truemmerstadt.md) | Empfohlen nach 134, 155, 139, 122. Stadt-Skizzenkarte `rubble_town` (Stadt etwa 1,2 × 1,1 km in 2,4 × 2,4 km, 1 gegen 1 und 2 gegen 2 Nord gegen Süd, punktsymmetrisch um die mittlere Brücke) nach dem Bild `docs/.vorlagen/truemmerstadt/img.webp` (fast Draufsicht, nach Hausmaßen skaliert): weitgehend zerstörte Stadt (40 % beschädigt, 25 % Ruine) an einem Fluss mit Seitenarm (Z-Form durch die Drehung), drei Straßenbrücken in der Mitte, kleine Brücken über den Seitenarm, Kirche mit Denkmalplatz, Herrenhaus, Fabrik, Park, Grabenlinien mit Rundbunkern am Stadtrand; später Winter ohne Schnee; Brücken-, Sicht-, Reichweitenprobe, KI-Turnier | offen |
 
+### Außer der Reihe: Lehren aus einer Testauswertung (173–182)
+
+Aus einer Auswertung von Tests und Spielermeinungen zu einem anderen
+WW2-Echtzeit-Taktikspiel (Datei des Nutzers, 2026-11-21), gegen den Stand des
+Spiels und die offenen Prompts geprüft. Nur Anregung: nichts wird nachgebaut oder
+übernommen. Schon erledigt oder offen und daher ohne neuen Prompt: taktische
+Pause (102), Smart-Squad-artige Gruppen (046, 101), Einheitenwerte (066),
+Versorgungspunkte lesbar (107), Flankenreaktion (110), viele neue Karten
+(112–172). Empfohlene Reihenfolge: 173, 175, 174, dann nach 110: 176, 177, 178;
+danach 179, 180, 181, 182.
+
+| Nr. | Prompt | Ziel | Status |
+|-----|--------|------|--------|
+| 173 | [Festfahr-Prüfstand](173-festfahr-pruefstand.md) | `just stuck-audit`: Gruppen über Brücken, Furten, Engstellen auf jeder Karte plus KI-Turniere, Festfahrer mit Ort und Ursache zählen; häufigste Ursachen beheben (Ziel unter 1 %, keiner über 30 s); Ereignis „kommt nicht weiter“ mit Alarm, kein Teleport | offen |
+| 174 | [Verbände fahren gemeinsam](174-verbaende-fahren-gemeinsam.md) | Empfohlen nach 173. Formationsplätze entlang der Fahrtrichtung (keine Kreuzungen), Gleichschritt nach dem langsamsten Mitglied (abschaltbar), Kolonne an Brücken und Engstellen; die offenen Punkte aus „Pathfinding → Open“ | offen |
+| 175 | [Befehle mit Rückmeldung](175-befehle-mit-rueckmeldung.md) | Unerreichbares Ziel in der Zielvorschau mit Ersatzpunkt, verworfene Befehle mit Grund (Ereignis-Code), gedimmte Kacheln, Zeile „Tätigkeit“ im Infofeld, Grund fürs Nicht-Feuern, Durchschlags-Ampel auf Feinden (aus 066 offen) | offen |
+| 176 | [Zielwahl und Feuerdisziplin](176-zielwahl-und-feuerdisziplin.md) | Braucht 110. Zielwertung nach Wirkung, Bedrohung, Rolle statt ja/nein; Feuer frei / erwidern / Verbot, Eröffnungsentfernung und „nur Fahrzeuge“ für Hinterhalte; indirekte Waffen ohne Befehl begrenzt; unbewaffnete Fahrzeuge weichen aus | offen |
+| 177 | [Geschützbedienung verwundbar](177-geschuetzbedienung-verwundbar.md) | Braucht 110, empfohlen nach 176. Bedienung als Zähler mit Katalogstärke (Quelle), Schutzschild von vorn, MG und Splitter treffen die Männer, Niederhalten, verlassene Geschütze wiederbesetzen; Gegenmittel gegen schwere Pak und Flak messen | offen |
+| 178 | [KI: Deckung, Haltung, Stellung halten](178-ki-infanterie-deckung-und-stellung.md) | Empfohlen nach 110, 176. KI-Infanterie kniet/liegt unter Feuer, Deckung zu Deckung, Feuer und Bewegung; Verteidiger besetzen Gebäude und halten Stellung, unbewaffnete Fahrzeuge meiden bekannte Feuerbereiche | offen |
+| 179 | [Gefechtsbericht](179-gefechtsbericht.md) | Verlust-Ursachen erfassen (Waffe, Trefferseite, Schütze unsichtbar, Ort); Reiter „Bericht“: Verlustkarte, teuerste Ursachen, Hinweise aus einer Tabelle, Stärkeverlauf mit Sprung ins Replay | offen |
+| 180 | [Grundausbildung in Kapiteln](180-grundausbildung-in-kapiteln.md) | Empfohlen nach 175. Acht kurze Tutorial-Kapitel (Sicht, Infanterie, Panzerseiten, Unterstützung und Pause, Verband und Transport, Pioniere, Nachschub), Scheitern mit Hinweis statt Neustart, neue Auslöser, Hilfe-Karten | offen |
+| 181 | [Kampagne und Missionsschwierigkeit](181-kampagne-und-missionsschwierigkeit.md) | Empfohlen nach 179, 180. Leicht/Normal/Schwer je Mission über Daten, Warnung „kaum noch zu gewinnen“, Kampagnenformat mit Freischalten und Bewertung, zwei neue Missionen (Verteidigung mit Zeitgeber, Rückzug), eine aus der Gegenseite | offen |
+| 182 | [Koop-Missionen und Startvarianten](182-koop-missionen-und-startvarianten.md) | Empfohlen nach 181. Mehrere Menschen auf einer Missionsseite, Modus „Mission“ in LAN- und Steam-Lobby, eine Koop-Mission; mehrere Startaufstellungen je Karte (Editor, Prüfung, Lobby-Wahl), fünf Varianten mit Turnier | offen |
+
 ## Festgelegte Grundsätze
 
 - **Größen 1:1** in echten Metern, auch Infanterie (1,80 m).
