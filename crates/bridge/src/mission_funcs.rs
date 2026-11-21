@@ -104,7 +104,12 @@ impl SimHost {
     /// of reinforcements that drove in, oldest first: `owner`, `entry`, `to`
     /// (positions), `tick`; prompt 108), `level` (`easy`, `normal`, `hard`)
     /// and `hopeless_tick` (-1, or when the script said the mission can
-    /// hardly be won; prompt 181) with its text `hopeless`.
+    /// hardly be won; prompt 181) with its text `hopeless`. Every objective
+    /// also has a `goal` (prompt 180): what completes it, `when` (the
+    /// script's condition name, "" if no trigger completes it) with
+    /// `unit`, `stance`, `signal`, `area` (ground point or null),
+    /// `area_radius`, `group` (living unit ids) and `by` where the
+    /// condition has them.
     #[func]
     fn mission_info(&self) -> VarDictionary {
         let Some(game) = &self.game else {
@@ -116,7 +121,7 @@ impl SimHost {
         };
         let map = game.map();
         let mut objectives = VarArray::new();
-        for o in sim.mission_objectives() {
+        for (k, o) in sim.mission_objectives().into_iter().enumerate() {
             let mut d = vdict! {
                 "id" => o.id.as_str(),
                 "text" => o.text.as_str(),
@@ -128,6 +133,7 @@ impl SimHost {
                 Some((c, _)) => d.set("position", ground_to_godot(c, map.height_at(c))),
                 None => d.set("position", &Variant::nil()),
             }
+            d.set("goal", &goal_of(sim, mission, k, map));
             objectives.push(&d.to_variant());
         }
         let (message, message_tick) = sim
@@ -350,4 +356,80 @@ impl SimHost {
         self.ai_opponent = GString::new();
         self.start_config(seed, map, config)
     }
+}
+
+/// The `goal` of objective `k` for `mission_info` (prompt 180).
+fn goal_of(
+    sim: &sim::Sim,
+    mission: &sim::mission::Mission,
+    k: usize,
+    map: &sim::Map,
+) -> VarDictionary {
+    use sim::mission::Condition;
+    let mut d = VarDictionary::new();
+    let Some(c) = sim.mission_goal(k) else {
+        d.set("when", "");
+        return d;
+    };
+    d.set("when", c.name());
+    let area = |d: &mut VarDictionary, a: Option<u16>| {
+        if let Some(a) = a.and_then(|a| mission.areas.get(usize::from(a))) {
+            d.set("area", ground_to_godot(a.center, map.height_at(a.center)));
+            d.set("area_radius", a.radius.to_num::<f32>());
+        }
+    };
+    let group = |d: &mut VarDictionary, g: u16| {
+        let name = mission
+            .groups
+            .get(usize::from(g))
+            .cloned()
+            .unwrap_or_default();
+        let ids: PackedInt64Array = sim
+            .mission_group(&name)
+            .into_iter()
+            .filter(|&id| sim.unit_alive(id))
+            .map(|id| i64::from(id.0))
+            .collect();
+        d.set("group", &ids);
+    };
+    let stance_name = |s: sim::Stance| match s {
+        sim::Stance::Stand => "stand",
+        sim::Stance::Kneel => "kneel",
+        sim::Stance::Prone => "prone",
+    };
+    match c {
+        Condition::Area { area: a, unit, .. } => {
+            area(&mut d, Some(*a));
+            d.set("unit", unit.clone().unwrap_or_default());
+        }
+        Condition::Destroyed { group: g } | Condition::Pinned { group: g, .. } => group(&mut d, *g),
+        Condition::Spotted { group: g, .. } => group(&mut d, *g),
+        Condition::Signal { name } => d.set("signal", name.as_str()),
+        Condition::Units { unit, .. } => d.set("unit", unit.as_str()),
+        Condition::Stance {
+            unit,
+            area: a,
+            stance,
+            ..
+        } => {
+            area(&mut d, *a);
+            d.set("unit", unit.clone().unwrap_or_default());
+            d.set("stance", stance_name(*stance));
+        }
+        Condition::Garrison { unit, area: a, .. } => {
+            area(&mut d, *a);
+            d.set("unit", unit.clone().unwrap_or_default());
+        }
+        Condition::Unseen {
+            unit, area: a, by, ..
+        } => {
+            area(&mut d, *a);
+            d.set("unit", unit.clone().unwrap_or_default());
+            d.set("by", i64::from(by.0));
+        }
+        Condition::Smoke { area: a } => area(&mut d, Some(*a)),
+        Condition::Captured { point, .. } => d.set("point", point.as_str()),
+        _ => {}
+    }
+    d
 }

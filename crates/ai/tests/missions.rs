@@ -4,6 +4,7 @@
 //! a mission plays the same twice (state hash) and survives a snapshot.
 
 use ai::{Ai, Difficulty, PlayerView};
+use sim::mission::Condition;
 use sim::mission::{Level, MISSIONS_DIR, POINTS_FILE, parse_mission_at};
 use sim::{
     Command, Engage, Formation, Map, ObjectiveState, PlayerCommand, PlayerId, Sim, SimConfig,
@@ -93,13 +94,20 @@ fn autopilot(sim: &Sim, player: PlayerId, tick: u64) -> Vec<Command> {
         .filter(|u| u.owner == player && u.alive())
         .map(|u| u.id)
         .collect();
-    let Some(objective) = sim
+    let Some((index, objective)) = sim
         .mission_objectives()
         .into_iter()
-        .find(|o| o.state == ObjectiveState::Active)
+        .enumerate()
+        .find(|(_, o)| o.state == ObjectiveState::Active)
     else {
         return out;
     };
+    // Prompt 180: what completes the objective decides the orders.
+    if let Some(goal) = sim.mission_goal(index).cloned()
+        && goal_orders(sim, player, &snapshot, &objective, &goal, &mut out)
+    {
+        return out;
+    }
     if let Some(unit) = &objective.unit {
         let Some(t) = sim.unit_type_index(unit) else {
             return out;
@@ -167,6 +175,179 @@ fn autopilot(sim: &Sim, player: PlayerId, tick: u64) -> Vec<Command> {
         });
     }
     out
+}
+
+/// Orders for the goals of prompt 180 (stance, building, spotting,
+/// camouflage, suppression, smoke, air, destroying a group); false for the
+/// others (the autopilot then goes to the objective's area).
+fn goal_orders(
+    sim: &Sim,
+    player: PlayerId,
+    snapshot: &sim::Snapshot,
+    objective: &sim::ObjectiveView,
+    goal: &Condition,
+    out: &mut Vec<Command>,
+) -> bool {
+    let types = sim.unit_types();
+    let own = |prefix: Option<&str>| -> Vec<&sim::UnitSnapshot> {
+        snapshot
+            .units
+            .iter()
+            .filter(|u| {
+                u.owner == player
+                    && u.alive()
+                    && prefix.is_none_or(|p| types[u.unit_type as usize].name.starts_with(p))
+            })
+            .collect()
+    };
+    let ids = |units: &[&sim::UnitSnapshot]| units.iter().map(|u| u.id).collect::<Vec<_>>();
+    let mission = sim.mission().unwrap();
+    let area_of = |a: Option<u16>| a.map(|a| &mission.areas[usize::from(a)]);
+    let move_to = |units: Vec<UnitId>, at: Vec2, out: &mut Vec<Command>| {
+        out.push(Command::FormationMove {
+            units,
+            target: at,
+            formation: Formation::Auto,
+            facing: None,
+            engage: Engage::Infantry,
+        });
+    };
+    match goal {
+        // Bring units of a kind somewhere: only they drive, and they do
+        // not stop to attack on the way (the flank of the tank chapter).
+        Condition::Area {
+            area,
+            unit: Some(unit),
+            ..
+        } => {
+            let units = own(Some(unit));
+            move_to(ids(&units), mission.areas[usize::from(*area)].center, out);
+            true
+        }
+        Condition::Stance {
+            unit, area, stance, ..
+        } => {
+            let units = own(unit.as_deref());
+            if let Some(a) = area_of(*area)
+                && !units.iter().any(|u| a.contains(u.position))
+            {
+                move_to(ids(&units), a.center, out);
+            } else {
+                out.push(Command::SetStance {
+                    units: ids(&units),
+                    stance: sim::StanceOrder::Fixed(*stance),
+                });
+            }
+            true
+        }
+        Condition::Garrison { unit, area, .. } => {
+            let units = own(unit.as_deref());
+            let center = area_of(*area).map_or(units[0].position, |a| a.center);
+            let rules = sim::InfantryRules::builtin().unwrap();
+            let map = sim.map();
+            let kinds = map.object_kinds();
+            let building = (0u32..)
+                .zip(map.objects())
+                .filter(|(_, o)| {
+                    kinds
+                        .get(usize::from(o.kind))
+                        .is_some_and(|k| rules.building(&k.id).is_some())
+                })
+                .min_by_key(|(_, o)| (o.position - center).length())
+                .map(|(i, _)| i);
+            if let Some(building) = building {
+                out.push(Command::Garrison {
+                    units: ids(&units),
+                    building,
+                });
+            }
+            true
+        }
+        Condition::Unseen { unit, .. } => {
+            out.push(Command::SetCamouflage {
+                units: ids(&own(unit.as_deref())),
+                on: true,
+            });
+            true
+        }
+        Condition::Spotted { .. } => {
+            // The scouts (or everyone) go to the objective's area.
+            let scouts = own(Some("de_inf_recon"));
+            let units = if scouts.is_empty() { own(None) } else { scouts };
+            if let Some((center, _)) = objective.area {
+                move_to(ids(&units), center, out);
+            }
+            true
+        }
+        Condition::Destroyed { group } | Condition::Pinned { group, .. } => {
+            let name = &mission.groups[usize::from(*group)];
+            let target = sim
+                .mission_group(name)
+                .into_iter()
+                .find(|&id| sim.unit_alive(id) && sim.visible_to(player, id));
+            let units = own(None);
+            match target {
+                Some(target) => {
+                    let indirect: Vec<UnitId> = units
+                        .iter()
+                        .filter(|u| types[u.unit_type as usize].name.contains("mortar"))
+                        .map(|u| u.id)
+                        .collect();
+                    let at = snapshot
+                        .units
+                        .iter()
+                        .find(|u| u.id == target)
+                        .unwrap()
+                        .position;
+                    if !indirect.is_empty() {
+                        out.push(Command::Barrage {
+                            units: indirect,
+                            target: at,
+                            radius_m: 10,
+                            salvos: 4,
+                            smoke: false,
+                        });
+                    }
+                    out.push(Command::SetFireMode {
+                        units: ids(&units),
+                        mode: sim::FireMode::FireAtWill,
+                    });
+                    out.push(Command::Attack {
+                        units: ids(&units),
+                        target,
+                    });
+                }
+                None => {
+                    if let Some((center, _)) = objective.area {
+                        move_to(ids(&units), center, out);
+                    }
+                }
+            }
+            true
+        }
+        Condition::Smoke { area } => {
+            out.push(Command::Barrage {
+                units: ids(&own(None)),
+                target: mission.areas[usize::from(*area)].center,
+                radius_m: 0,
+                salvos: 2,
+                smoke: true,
+            });
+            true
+        }
+        Condition::Air { .. } => {
+            if let Some((center, _)) = objective.area {
+                for m in sim::AirMission::ALL {
+                    out.push(Command::CallAir {
+                        mission: m,
+                        target: center,
+                    });
+                }
+            }
+            true
+        }
+        _ => false,
+    }
 }
 
 struct Played {
@@ -293,6 +474,49 @@ fn every_level_of_every_mission() {
             }
         }
     }
+}
+
+/// Prompt 180: a tank driven at the anti-tank gun of the tank chapter is
+/// knocked out, and the script gives a new one instead of a restart.
+#[test]
+fn a_tank_lost_in_training_comes_back() {
+    let files = mission_files();
+    let (map_name, id, path) = files
+        .iter()
+        .find(|(_, id, _)| id == "tutorial_tanks")
+        .unwrap();
+    let map = load_map(map_name);
+    let config = config_of(&map, map_name, id, path);
+    let mut sim = Sim::new(&config, map.clone(), SEED).unwrap();
+    let tank = sim.mission_group("tank")[0];
+    let gun = sim.mission_group("gun")[0];
+    let gun_at = sim.snapshot().units[gun.0 as usize].position;
+    sim.step(&[PlayerCommand::new(
+        PlayerId(0),
+        Command::MoveTo {
+            units: vec![tank],
+            target: gun_at + Vec2::from_meters(0, 40),
+        },
+    )]);
+    let mut lost_at = None;
+    while sim.tick() < 20 * 120 {
+        sim.step(&[]);
+        if lost_at.is_none() && !sim.unit_alive(tank) {
+            lost_at = Some(sim.tick());
+        }
+        if sim.mission_group("tank").len() == 2 {
+            break;
+        }
+    }
+    let group = sim.mission_group("tank");
+    println!(
+        "tank driven at the gun: lost at tick {lost_at:?}, group {group:?}, message {:?}",
+        sim.mission_message()
+    );
+    assert!(lost_at.is_some(), "the gun did not knock out the tank");
+    assert_eq!(group.len(), 2, "no new tank");
+    assert!(sim.unit_alive(group[1]));
+    assert!(sim.outcome().is_none());
 }
 
 #[test]

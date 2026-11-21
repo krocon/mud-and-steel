@@ -1,0 +1,223 @@
+# Basic training, chapter 4 (prompt 180): spotting anti-tank guns, the
+# flank, armor sides. Format: docs/MISSIONS.md. Places in meters, x east,
+# y south. `{key:<action>}` in a text shows the current key binding.
+
+[mission]
+title = "Basic training 4: Tanks"
+kind = "tutorial"
+order = 3
+faction = "de"
+briefing = """
+A tank is strong in front and weak at the sides and rear. Find the hidden \
+anti-tank gun first, take it from the flank and hit an enemy tank in the side."""
+player = 0
+elimination = false
+
+[[group]]
+name = "tank"
+owner = 0
+unit = "de_pz4_h"
+position_m = [-40, 120]
+
+[[group]]
+name = "scouts"
+owner = 0
+unit = "de_inf_recon"
+position_m = [-10, 110]
+
+# The anti-tank gun holds its fire until a tank drives into its field of
+# fire in front of it (`front`), or reaches its flank.
+[[group]]
+name = "gun"
+owner = 1
+unit = "su_zis3"
+position_m = [-40, -60]
+hold_fire = true
+
+# A training target: it holds its fire.
+[[group]]
+name = "target"
+owner = 1
+unit = "su_t34_76_1943"
+position_m = [120, -150]
+hold_fire = true
+
+[[area]]
+name = "lookout"
+center_m = [-40, 30]
+radius_m = 20
+
+[[area]]
+name = "front"
+center_m = [-40, 10]
+radius_m = 45
+
+[[area]]
+name = "flank"
+center_m = [-190, -60]
+radius_m = 25
+
+[[area]]
+name = "gun_area"
+center_m = [-40, -60]
+radius_m = 20
+
+[[area]]
+name = "target_area"
+center_m = [120, -150]
+radius_m = 25
+
+[[spawn]]
+name = "tank_start"
+position_m = [-40, 120]
+
+[[objective]]
+id = "tank_spot"
+text = "Find the anti-tank gun with your scouts."
+area = "lookout"
+
+[[objective]]
+id = "tank_flank"
+text = "Drive the tank around to the flank."
+area = "flank"
+
+[[objective]]
+id = "tank_gun"
+text = "Destroy the anti-tank gun from the flank."
+area = "gun_area"
+
+[[objective]]
+id = "tank_side"
+text = "Destroy the enemy tank: hit its side or rear."
+area = "target_area"
+
+[[trigger]]
+id = "intro"
+when = "time"
+delay_s = 1
+actions = [
+  { do = "text", text = "An anti-tank gun waits somewhere ahead. It is small, hard to see and deadly from the front. Send the scouts forward to the marked place and find it; keep the tank back." },
+  { do = "objective", objective = "tank_spot", state = "active" },
+  { do = "camera", at = "lookout" },
+]
+
+[[trigger]]
+id = "spotted"
+after = ["intro"]
+when = "spotted"
+group = "gun"
+actions = [
+  { do = "objective", objective = "tank_spot", state = "done" },
+  { do = "objective", objective = "tank_flank", state = "active" },
+  { do = "camera", at = "flank" },
+  { do = "text", text = "Found it. Driving straight at it costs the tank. Go around: drive the tank to the marked place on its flank." },
+]
+
+[[trigger]]
+id = "flanked"
+after = ["spotted"]
+when = "area"
+area = "flank"
+unit = "de_pz4"
+actions = [
+  { do = "objective", objective = "tank_flank", state = "done" },
+  { do = "objective", objective = "tank_gun", state = "active" },
+  { do = "fire", group = "gun", hold_fire = false },
+  { do = "text", text = "The gun points the other way and its shield does not cover the side. Attack it now, before it turns: select the tank and right click the gun." },
+]
+
+[[trigger]]
+id = "gun_gone"
+after = ["flanked"]
+when = "destroyed"
+group = "gun"
+actions = [
+  { do = "objective", objective = "tank_gun", state = "done" },
+  { do = "objective", objective = "tank_side", state = "active" },
+  { do = "camera", at = "target_area" },
+  { do = "text", text = "Armor is thickest in front. The tooltip over an enemy shows whether your gun gets through. Drive to the side of the enemy tank and destroy it; a tank behind a crest shows only its turret." },
+]
+
+[[trigger]]
+id = "side_done"
+after = ["gun_gone"]
+when = "destroyed"
+group = "target"
+actions = [
+  { do = "objective", objective = "tank_side", state = "done" },
+  { do = "text", text = "Well done: scout first, take guns from the flank, hit tanks in the side." },
+]
+
+[[trigger]]
+id = "end"
+after = ["side_done"]
+when = "time"
+delay_s = 3
+actions = [{ do = "victory" }]
+
+# A tank in front of the gun draws its fire.
+[[trigger]]
+id = "front"
+when = "area"
+area = "front"
+unit = "de_pz4"
+actions = [
+  { do = "fire", group = "gun", hold_fire = false },
+  { do = "text", text = "The gun opens fire: you drove into its field of fire from the front." },
+]
+
+[[trigger]]
+id = "front_again"
+after = ["lost_once"]
+when = "area"
+area = "front"
+unit = "de_pz4"
+actions = [
+  { do = "fire", group = "gun", hold_fire = false },
+  { do = "text", text = "The gun opens fire: you drove into its field of fire from the front." },
+]
+
+[[trigger]]
+id = "front_last"
+after = ["lost_twice"]
+when = "area"
+area = "front"
+unit = "de_pz4"
+actions = [
+  { do = "fire", group = "gun", hold_fire = false },
+  { do = "text", text = "The gun opens fire: you drove into its field of fire from the front." },
+]
+
+# Failing is part of training: a lost tank comes back twice.
+[[trigger]]
+id = "lost_once"
+when = "destroyed"
+group = "tank"
+actions = [
+  { do = "spawn", group = "tank", owner = 0, unit = "de_pz4_h", at = "tank_start" },
+  { do = "camera", at = "tank_start" },
+  { do = "fire", group = "gun", hold_fire = true },
+  { do = "text", text = "Your tank was knocked out: it drove where the gun could see its front. Here is a new one. Go around through cover." },
+]
+
+[[trigger]]
+id = "lost_twice"
+after = ["lost_once"]
+when = "destroyed"
+group = "tank"
+actions = [
+  { do = "spawn", group = "tank", owner = 0, unit = "de_pz4_h", at = "tank_start" },
+  { do = "fire", group = "gun", hold_fire = true },
+  { do = "text", text = "Lost again. Keep woods and hills between the gun and your tank until you reach its flank." },
+]
+
+[[trigger]]
+id = "hopeless"
+after = ["lost_twice"]
+when = "fewer"
+unit = "de_pz4"
+count = 1
+open = ["tank_side"]
+actions = [
+  { do = "hopeless", text = "No tank is left. Restart the chapter." },
+]

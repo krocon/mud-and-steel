@@ -47,8 +47,8 @@ msgstr "Ein Rechtsklick auf den Boden schickt die gewählten Einheiten dorthin. 
 msgid "Two enemy light tanks appeared. Select your tanks and right click an enemy to attack it. They will not shoot back."
 msgstr "Zwei feindliche leichte Panzer sind aufgetaucht. Wähle deine Panzer und klicke mit rechts auf einen Feind, um ihn anzugreifen. Sie schießen nicht zurück."
 
-msgid "Infantry lives on cover. Woods, hedges, walls and houses protect soldiers; going prone (V) makes them harder to hit, Z stands them up. Move your rifle squad into the marked wood. A right click on a house makes infantry occupy it."
-msgstr "Infanterie lebt von Deckung. Wälder, Hecken, Mauern und Häuser schützen Soldaten; liegend (V) sind sie schwerer zu treffen, Z lässt sie aufstehen. Bring deinen Schützentrupp in den markierten Wald. Ein Rechtsklick auf ein Haus lässt Infanterie es besetzen."
+msgid "Infantry lives on cover. Woods, hedges, walls and houses protect soldiers; going prone ({key:stance_prone}) makes them harder to hit, {key:stance_stand} stands them up. Move your rifle squad into the marked wood. A right click on a house makes infantry occupy it."
+msgstr "Infanterie lebt von Deckung. Wälder, Hecken, Mauern und Häuser schützen Soldaten; liegend ({key:stance_prone}) sind sie schwerer zu treffen, {key:stance_stand} lässt sie aufstehen. Bring deinen Schützentrupp in den markierten Wald. Ein Rechtsklick auf ein Haus lässt Infanterie es besetzen."
 
 msgid "Now build. Open the build menu in the command bar, pick the barracks and place it with a left click near your headquarters. Building takes a little time."
 msgstr "Jetzt wird gebaut. Öffne das Baumenü in der Befehlsleiste, wähle die Kaserne und setze sie mit einem Linksklick nahe deinem Hauptquartier. Der Bau dauert etwas."
@@ -59,8 +59,8 @@ msgstr "Die Kaserne ist fertig. Wähle sie aus und klicke in ihrer Produktionsle
 msgid "Supply points bring a steady income. Send units to the flag in the village and keep them there until the point is yours; enemies nearby stop the capture."
 msgstr "Versorgungspunkte bringen stetiges Einkommen. Schicke Einheiten zur Flagge im Dorf und lass sie dort, bis der Punkt dir gehört; Feinde in der Nähe stoppen die Einnahme."
 
-msgid "Well done: basic training is complete."
-msgstr "Gut gemacht: Die Grundausbildung ist abgeschlossen."
+msgid "Well done: the first chapter of basic training is complete. The next chapters teach sight, infantry, tanks and support."
+msgstr "Gut gemacht: Das erste Kapitel der Grundausbildung ist geschafft. Die nächsten Kapitel lehren Sicht, Infanterie, Panzer und Unterstützung."
 
 msgid "Both tanks are lost: the targets cannot be destroyed any more. Restart the training."
 msgstr "Beide Panzer sind verloren: Die Ziele können nicht mehr zerstört werden. Starte die Ausbildung neu."

@@ -191,7 +191,7 @@ HUD_PLACE_HINT,Place: left click · cancel: right click,Platzieren: Linksklick �
 HUD_UNDER_CONSTRUCTION,under construction %d %%,im Bau %d %%
 HUD_QUEUE,Queue: %s,Warteschlange: %s
 HUD_QUEUE_EMPTY,empty,leer
-HUD_MISSION_STEP,Training – step %d of %d,Training – Schritt %d von %d
+HUD_MISSION_STEP,%s – step %d of %d,%s – Schritt %d von %d
 HUD_MISSION_DONE,Done: %s,Erledigt: %s
 HUD_MISSION_FAILED,Failed: %s,Gescheitert: %s
 HUD_MISSION_ALL_DONE,All objectives complete.,Alle Ziele erfüllt.

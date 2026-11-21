@@ -188,9 +188,10 @@ func start_skirmish() -> void:
 	get_tree().change_scene_to_file(MatchSetup.MAIN_SCENE)
 
 
-## Starts the tutorial (prompt 039).
+## Starts the tutorial (prompt 039): the first chapter not won yet
+## (prompt 180); the missions screen picks any chapter.
 func start_tutorial() -> void:
-	var tutorial := Missions.tutorial()
+	var tutorial := Missions.next_chapter()
 	if tutorial.is_empty():
 		push_error("tutorial mission not found")
 		return

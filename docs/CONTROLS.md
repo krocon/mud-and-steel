@@ -5,7 +5,8 @@ can be changed in **Settings → Controls**; every tile of the order grid
 shows its current key in its corner and in its tooltip. Technical details: [ARCHITECTURE.md](ARCHITECTURE.md#selection-presentation-only)
 and [the HUD section](ARCHITECTURE.md#hud-presentation-only). The tutorial
 (prompt 039, main menu → Tutorial, [MISSIONS.md](MISSIONS.md)) builds on
-this page.
+this page; since prompt 180 it has five chapters (basics, sight, infantry,
+tanks, support), and its hints name the keys as currently bound.
 
 **Size of the interface:** Settings → Interface → "Interface scale" and
 "Font size" change every text and every tile of the HUD (as far as the

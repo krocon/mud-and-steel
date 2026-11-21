@@ -2968,6 +2968,17 @@ hash (only when there is one: the golden hash is unchanged). What only the
 presentation knows arrives as `Command::MissionSignal`. Godot shows the
 panel (`hud/mission_hud.gd`) and keeps the progress in `user://`.
 
+**Difficulty and chapters (prompts 181, 180).** The difficulty is an input
+of the scenario: `parse_mission_at` applies `[difficulty.<level>]` while
+resolving, the simulation only stores `Mission::level` and
+`resources_pct`. The tutorial is five chapter files (`kind = "tutorial"`,
+in `order`) on `test_small`; their steps use generic conditions
+(`stance`, `garrison`, `spotted`, `unseen`, `pinned`, `smoke`, `air`, the
+signal `pause`), and `Sim::mission_goal` names the condition that
+completes an objective, which the autopilots of the tests and the
+self-test follow. `{key:<action>}` in texts is replaced by the panel with
+the current binding (presentation only).
+
 **Reinforcements drive in (prompt 108).** `spawn` with `arrive = "drive"`
 resolves at parse time to `Arrival::Drive { entry }`: the place `from`, or
 `mission::edge_entry` (the point on the map edge nearest to `at`, 4 m

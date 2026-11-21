@@ -1,0 +1,164 @@
+# Basic training, chapter 3 (prompt 180): stances, cover, buildings and
+# suppression. Format: docs/MISSIONS.md. Places in meters, x east, y south.
+# `{key:<action>}` in a text shows the current key binding.
+
+[mission]
+title = "Basic training 3: Infantry"
+kind = "tutorial"
+order = 2
+faction = "de"
+briefing = """
+Soldiers survive by using the ground: lie down, take cover behind hedges, \
+occupy houses and pin the enemy down with fire before you attack."""
+player = 0
+elimination = false
+
+[[group]]
+name = "rifles"
+owner = 0
+unit = "de_inf_rifle_squad"
+count = 2
+position_m = [-60, 60]
+# They hold their fire until the suppression step.
+hold_fire = true
+
+# Training targets: they hold their fire.
+[[group]]
+name = "dummies"
+owner = 1
+unit = "su_inf_rifle_squad"
+position_m = [-140, -20]
+hold_fire = true
+
+[[area]]
+name = "hedge"
+center_m = [-150, 80]
+radius_m = 25
+
+[[area]]
+name = "village"
+center_m = [-145, 140]
+radius_m = 40
+
+[[area]]
+name = "targets"
+center_m = [-140, -20]
+radius_m = 25
+
+[[objective]]
+id = "inf_prone"
+text = "Let a rifle squad go prone."
+
+[[objective]]
+id = "inf_kneel"
+text = "Let a rifle squad kneel."
+
+[[objective]]
+id = "inf_hedge"
+text = "Bring a squad behind the hedges."
+area = "hedge"
+
+[[objective]]
+id = "inf_house"
+text = "Occupy a house in the village."
+area = "village"
+
+[[objective]]
+id = "inf_pin"
+text = "Pin the enemy squad down with fire."
+area = "targets"
+
+[[objective]]
+id = "inf_destroy"
+text = "Destroy the enemy squad."
+area = "targets"
+
+[[trigger]]
+id = "intro"
+when = "time"
+delay_s = 1
+actions = [
+  { do = "text", text = "Standing soldiers are easy to hit. Select a rifle squad and let it go prone ({key:stance_prone})." },
+  { do = "objective", objective = "inf_prone", state = "active" },
+]
+
+[[trigger]]
+id = "prone"
+after = ["intro"]
+when = "stance"
+unit = "de_inf"
+stance = "prone"
+actions = [
+  { do = "objective", objective = "inf_prone", state = "done" },
+  { do = "objective", objective = "inf_kneel", state = "active" },
+  { do = "text", text = "Prone soldiers are hardest to hit but slow. Kneeling ({key:stance_kneel}) is the middle way; {key:stance_auto} lets the squad choose by itself again." },
+]
+
+[[trigger]]
+id = "kneel"
+after = ["prone"]
+when = "stance"
+unit = "de_inf"
+stance = "kneel"
+actions = [
+  { do = "objective", objective = "inf_kneel", state = "done" },
+  { do = "objective", objective = "inf_hedge", state = "active" },
+  { do = "camera", at = "hedge" },
+  { do = "text", text = "Hedges, walls and woods give cover. Move a squad behind the marked hedges." },
+]
+
+[[trigger]]
+id = "hedge"
+after = ["kneel"]
+when = "area"
+area = "hedge"
+unit = "de_inf"
+actions = [
+  { do = "objective", objective = "inf_hedge", state = "done" },
+  { do = "objective", objective = "inf_house", state = "active" },
+  { do = "camera", at = "village" },
+  { do = "text", text = "Houses protect best. Select a squad and right click a house, or use {key:order_garrison} and click it, to occupy it." },
+]
+
+[[trigger]]
+id = "house"
+after = ["hedge"]
+when = "garrison"
+unit = "de_inf"
+area = "village"
+actions = [
+  { do = "objective", objective = "inf_house", state = "done" },
+  { do = "objective", objective = "inf_pin", state = "active" },
+  { do = "camera", at = "targets" },
+  { do = "text", text = "An enemy squad lies in the field. Switch your squads to fire at will ({key:order_fire_mode}) and fire at it: soldiers under fire duck and stop shooting. That is suppression, the bar above a squad shows it." },
+]
+
+[[trigger]]
+id = "pinned"
+after = ["house"]
+when = "pinned"
+group = "dummies"
+pct = 50
+actions = [
+  { do = "objective", objective = "inf_pin", state = "done" },
+  { do = "objective", objective = "inf_destroy", state = "active" },
+  { do = "text", text = "The enemy is pinned down. While it cannot shoot back, finish it." },
+]
+
+[[trigger]]
+id = "destroyed"
+after = ["house"]
+when = "destroyed"
+group = "dummies"
+actions = [
+  { do = "objective", objective = "inf_pin", state = "done" },
+  { do = "objective", objective = "inf_destroy", state = "done" },
+  { do = "text", text = "Well done: cover, stance and suppression keep your soldiers alive." },
+]
+
+[[trigger]]
+id = "end"
+after = ["destroyed"]
+when = "time"
+delay_s = 3
+actions = [{ do = "victory" }]

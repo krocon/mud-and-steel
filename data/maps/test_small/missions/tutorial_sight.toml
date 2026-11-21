@@ -1,0 +1,194 @@
+# Basic training, chapter 2 (prompt 180): line of sight, height, ambush and
+# camouflage. Format: docs/MISSIONS.md. Areas and spawn points are in this
+# file because test_small is a protected test map. Places in meters, x east,
+# y south. `{key:<action>}` in a text shows the current key binding.
+
+[mission]
+title = "Basic training 2: Seeing and being seen"
+kind = "tutorial"
+order = 1
+faction = "de"
+briefing = """
+Units only see what lies in their line of sight. Climb a hill to look far, \
+hide your infantry in a wood for an ambush and camouflage a tank that stands \
+still."""
+player = 0
+elimination = false
+
+[[group]]
+name = "scouts"
+owner = 0
+unit = "de_inf_recon"
+position_m = [-30, 90]
+
+[[group]]
+name = "ambushers"
+owner = 0
+unit = "de_inf_rifle_squad"
+position_m = [20, 95]
+hold_fire = true
+
+[[group]]
+name = "tank"
+owner = 0
+unit = "de_pz4_h"
+position_m = [-60, 115]
+
+# Behind the hill: only seen from its top.
+[[group]]
+name = "lookout"
+owner = 1
+unit = "su_inf_rifle_squad"
+position_m = [-104, -180]
+hold_fire = true
+
+[[area]]
+name = "hill"
+center_m = [-104, -142]
+radius_m = 20
+
+[[area]]
+name = "wood"
+center_m = [60, 100]
+radius_m = 25
+
+[[area]]
+name = "kill_zone"
+center_m = [30, 40]
+radius_m = 35
+
+[[area]]
+name = "scout_end"
+center_m = [-200, 210]
+radius_m = 30
+
+[[spawn]]
+name = "patrol_start"
+position_m = [20, -150]
+
+[[spawn]]
+name = "scout_start"
+position_m = [-200, -60]
+
+[[spawn]]
+name = "tank_view"
+position_m = [-60, 115]
+
+[[objective]]
+id = "sight_spot"
+text = "Find the enemy lookout: climb the hill with your scouts."
+area = "hill"
+
+[[objective]]
+id = "sight_hide"
+text = "Hide the rifle squad in the wood and let it go prone."
+area = "wood"
+
+[[objective]]
+id = "sight_ambush"
+text = "Wait until the patrol is close, then open fire."
+area = "kill_zone"
+
+[[objective]]
+id = "sight_camo"
+text = "Camouflage the tank and let the scout car pass without seeing it."
+
+[[trigger]]
+id = "intro"
+when = "time"
+delay_s = 1
+actions = [
+  { do = "text", text = "A unit sees only what lies in its line of sight: woods, hedges, houses and hills block it, height lets it look further. An enemy lookout hides behind the hill. Send your scouts up the hill to find it." },
+  { do = "objective", objective = "sight_spot", state = "active" },
+  { do = "camera", at = "hill" },
+]
+
+[[trigger]]
+id = "spotted"
+after = ["intro"]
+when = "spotted"
+group = "lookout"
+actions = [
+  { do = "objective", objective = "sight_spot", state = "done" },
+  { do = "objective", objective = "sight_hide", state = "active" },
+  { do = "camera", at = "wood" },
+  { do = "text", text = "There it is. Seeing first wins fights. Now an ambush: move the rifle squad into the marked wood and let it go prone ({key:stance_prone}). It holds its fire for now." },
+]
+
+[[trigger]]
+id = "hidden"
+after = ["spotted"]
+when = "stance"
+unit = "de_inf"
+area = "wood"
+stance = "prone"
+actions = [
+  { do = "objective", objective = "sight_hide", state = "done" },
+  { do = "spawn", group = "patrol", owner = 1, unit = "su_inf_rifle_squad", at = "patrol_start" },
+  { do = "order", group = "patrol", to = "kill_zone", order = "move" },
+  { do = "objective", objective = "sight_ambush", state = "active" },
+  { do = "camera", at = "kill_zone" },
+  { do = "text", text = "An enemy patrol walks down the field. A squad that lies still in a wood is hard to see. Let the patrol come close, then switch the squad to fire at will ({key:order_fire_mode}) and destroy it." },
+]
+
+[[trigger]]
+id = "close"
+after = ["hidden"]
+when = "area"
+area = "kill_zone"
+player = 1
+actions = [
+  { do = "text", text = "The patrol is close and has not seen you. Fire now ({key:order_fire_mode})!" },
+]
+
+[[trigger]]
+id = "ambushed"
+after = ["hidden"]
+when = "destroyed"
+group = "patrol"
+actions = [
+  { do = "objective", objective = "sight_ambush", state = "done" },
+  { do = "objective", objective = "sight_camo", state = "active" },
+  { do = "spawn", group = "scout_car", owner = 1, unit = "su_m3a1_scout", at = "scout_start", hold_fire = true },
+  { do = "order", group = "scout_car", to = "scout_end", order = "move" },
+  { do = "camera", at = "tank_view" },
+  { do = "text", text = "An enemy scout car is coming. Select your tank, keep it still and put up its camouflage (tile in the command bar). Branches and nets take 30 seconds; a camouflaged vehicle that stands still is only seen from close by." },
+]
+
+[[trigger]]
+id = "seen"
+after = ["ambushed"]
+when = "spotted"
+group = "tank"
+player = 1
+actions = [
+  { do = "text", text = "The scout car saw your tank. Camouflage only hides a vehicle that stands still once the branches are up." },
+]
+
+[[trigger]]
+id = "passed"
+after = ["ambushed"]
+when = "area"
+area = "scout_end"
+player = 1
+actions = [
+  { do = "text", text = "The scout car has passed." },
+]
+
+[[trigger]]
+id = "camo_done"
+after = ["passed"]
+when = "unseen"
+unit = "de_pz4"
+by = 1
+actions = [
+  { do = "objective", objective = "sight_camo", state = "done" },
+  { do = "text", text = "Well done: you know how to see first and stay unseen." },
+]
+
+[[trigger]]
+id = "end"
+after = ["camo_done"]
+when = "time"
+delay_s = 3
+actions = [{ do = "victory" }]

@@ -1,0 +1,48 @@
+# Translation of the mission tutorial_sight (prompt 043). msgid: the English text of the
+# mission file; `just mission-po` adds new texts, see docs/MISSIONS.md.
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: de\n"
+
+msgid "Basic training 2: Seeing and being seen"
+msgstr "Grundausbildung 2: Sehen und gesehen werden"
+
+msgid "Units only see what lies in their line of sight. Climb a hill to look far, hide your infantry in a wood for an ambush and camouflage a tank that stands still."
+msgstr "Einheiten sehen nur, was in ihrer Sichtlinie liegt. Steig auf einen Hügel, um weit zu sehen, versteck deine Infanterie für einen Hinterhalt im Wald und tarne einen stehenden Panzer."
+
+msgid "Find the enemy lookout: climb the hill with your scouts."
+msgstr "Finde den feindlichen Beobachter: Steig mit deinen Spähern auf den Hügel."
+
+msgid "Hide the rifle squad in the wood and let it go prone."
+msgstr "Versteck den Schützentrupp im Wald und lass ihn sich hinlegen."
+
+msgid "Wait until the patrol is close, then open fire."
+msgstr "Warte, bis die Streife nah ist, dann eröffne das Feuer."
+
+msgid "Camouflage the tank and let the scout car pass without seeing it."
+msgstr "Tarne den Panzer und lass den Spähwagen vorbeifahren, ohne dass er ihn sieht."
+
+msgid "A unit sees only what lies in its line of sight: woods, hedges, houses and hills block it, height lets it look further. An enemy lookout hides behind the hill. Send your scouts up the hill to find it."
+msgstr "Eine Einheit sieht nur, was in ihrer Sichtlinie liegt: Wälder, Hecken, Häuser und Hügel versperren sie, Höhe lässt weiter blicken. Hinter dem Hügel versteckt sich ein feindlicher Beobachter. Schick deine Späher auf den Hügel, um ihn zu finden."
+
+msgid "There it is. Seeing first wins fights. Now an ambush: move the rifle squad into the marked wood and let it go prone ({key:stance_prone}). It holds its fire for now."
+msgstr "Da ist er. Wer zuerst sieht, gewinnt das Gefecht. Jetzt ein Hinterhalt: Bring den Schützentrupp in den markierten Wald und lass ihn sich hinlegen ({key:stance_prone}). Er hält sein Feuer vorerst zurück."
+
+msgid "An enemy patrol walks down the field. A squad that lies still in a wood is hard to see. Let the patrol come close, then switch the squad to fire at will ({key:order_fire_mode}) and destroy it."
+msgstr "Eine feindliche Streife kommt über das Feld. Ein Trupp, der still im Wald liegt, ist schwer zu sehen. Lass die Streife nah herankommen, dann schalte den Trupp auf freies Feuer ({key:order_fire_mode}) und vernichte sie."
+
+msgid "The patrol is close and has not seen you. Fire now ({key:order_fire_mode})!"
+msgstr "Die Streife ist nah und hat dich nicht gesehen. Jetzt feuern ({key:order_fire_mode})!"
+
+msgid "An enemy scout car is coming. Select your tank, keep it still and put up its camouflage (tile in the command bar). Branches and nets take 30 seconds; a camouflaged vehicle that stands still is only seen from close by."
+msgstr "Ein feindlicher Spähwagen kommt. Wähle deinen Panzer, lass ihn stehen und bring seine Tarnung an (Kachel in der Befehlsleiste). Zweige und Netze brauchen 30 Sekunden; ein getarntes Fahrzeug, das stillsteht, wird nur aus der Nähe gesehen."
+
+msgid "The scout car saw your tank. Camouflage only hides a vehicle that stands still once the branches are up."
+msgstr "Der Spähwagen hat deinen Panzer gesehen. Tarnung verbirgt ein Fahrzeug erst, wenn die Zweige angebracht sind und es stillsteht."
+
+msgid "The scout car has passed."
+msgstr "Der Spähwagen ist vorbeigefahren."
+
+msgid "Well done: you know how to see first and stay unseen."
+msgstr "Gut gemacht: Du weißt, wie man zuerst sieht und ungesehen bleibt."

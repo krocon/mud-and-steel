@@ -1,0 +1,45 @@
+# Translation of the mission tutorial_support (prompt 043). msgid: the English text of the
+# mission file; `just mission-po` adds new texts, see docs/MISSIONS.md.
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: de\n"
+
+msgid "Basic training 5: Support"
+msgstr "Grundausbildung 5: Unterstützung"
+
+msgid "Mortars and aircraft hit what your scouts see. Spot the enemy, pin it down with a barrage, lay smoke, plan in the tactical pause and call an air strike."
+msgstr "Mörser und Flugzeuge treffen, was deine Späher sehen. Klär den Feind auf, halte ihn mit einem Sperrfeuer nieder, leg Rauch, plane in der taktischen Pause und ruf einen Luftangriff."
+
+msgid "Spot the enemy position with your scouts."
+msgstr "Klär die feindliche Stellung mit deinen Spähern auf."
+
+msgid "Pin the enemy down with a mortar barrage."
+msgstr "Halte den Feind mit Mörser-Sperrfeuer nieder."
+
+msgid "Lay smoke in the marked place."
+msgstr "Leg Rauch an die markierte Stelle."
+
+msgid "Switch the tactical pause on."
+msgstr "Schalte die taktische Pause ein."
+
+msgid "Call air support on the enemy."
+msgstr "Ruf Luftunterstützung auf den Feind."
+
+msgid "A mortar fires over hills and houses, but only where someone sees. Send the scouts to the marked place to spot the enemy position."
+msgstr "Ein Mörser schießt über Hügel und Häuser, aber nur dorthin, wo jemand sieht. Schick die Späher an die markierte Stelle, um die feindliche Stellung aufzuklären."
+
+msgid "Select the mortar, press {key:order_barrage} and click the enemy position: a barrage pins soldiers down even when it hits nobody."
+msgstr "Wähle den Mörser, drück {key:order_barrage} und klicke auf die feindliche Stellung: Sperrfeuer hält Soldaten nieder, selbst wenn es niemanden trifft."
+
+msgid "Smoke blocks sight for a while. Select the mortar, press {key:order_smoke} and click the marked place."
+msgstr "Rauch versperrt eine Weile die Sicht. Wähle den Mörser, drück {key:order_smoke} und klicke auf die markierte Stelle."
+
+msgid "In a busy moment, stop the time: the tactical pause ({key:tactical_pause}) lets you give orders while nothing moves. Switch it on."
+msgstr "Wenn es hektisch wird, halte die Zeit an: In der taktischen Pause ({key:tactical_pause}) gibst du Befehle, während sich nichts bewegt. Schalte sie ein."
+
+msgid "Orders given in the pause go out when it ends. Now call air support: pick a mission in the air bar (strafing: {key:air_strafe}) and click the enemy position, then end the pause ({key:tactical_pause})."
+msgstr "Befehle aus der Pause gehen raus, wenn sie endet. Ruf jetzt Luftunterstützung: Wähle einen Einsatz in der Luftleiste (Tiefangriff: {key:air_strafe}) und klicke auf die feindliche Stellung, dann beende die Pause ({key:tactical_pause})."
+
+msgid "Well done: basic training is complete. Support wins battles when your scouts guide it."
+msgstr "Gut gemacht: Die Grundausbildung ist abgeschlossen. Unterstützung gewinnt Gefechte, wenn deine Späher sie lenken."

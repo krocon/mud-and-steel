@@ -43,7 +43,8 @@ pub const MAGIC: [u8; 4] = *b"MSRP";
 /// action `spawn`); 12 since prompt 176 (`FireMode::ReturnFire`,
 /// `Command::SetFireLimits`, `[discipline]` tactics rules); 13 since
 /// prompt 181 (mission `level`, `resources_pct`, trigger `open`, condition
-/// `fewer`, action `hopeless`).
+/// `fewer`, action `hopeless`; prompt 180 appended the conditions
+/// `stance` … `air`, which old files of version 13 never contain).
 pub const FORMAT_VERSION: u16 = 13;
 
 /// Version of the game that writes replays and saved games.

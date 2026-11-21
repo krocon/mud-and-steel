@@ -1,0 +1,51 @@
+# Translation of the mission tutorial_infantry (prompt 043). msgid: the English text of the
+# mission file; `just mission-po` adds new texts, see docs/MISSIONS.md.
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: de\n"
+
+msgid "Basic training 3: Infantry"
+msgstr "Grundausbildung 3: Infanterie"
+
+msgid "Soldiers survive by using the ground: lie down, take cover behind hedges, occupy houses and pin the enemy down with fire before you attack."
+msgstr "Soldaten überleben, indem sie das Gelände nutzen: hinlegen, hinter Hecken Deckung nehmen, Häuser besetzen und den Feind mit Feuer niederhalten, bevor sie angreifen."
+
+msgid "Let a rifle squad go prone."
+msgstr "Lass einen Schützentrupp sich hinlegen."
+
+msgid "Let a rifle squad kneel."
+msgstr "Lass einen Schützentrupp knien."
+
+msgid "Bring a squad behind the hedges."
+msgstr "Bring einen Trupp hinter die Hecken."
+
+msgid "Occupy a house in the village."
+msgstr "Besetze ein Haus im Dorf."
+
+msgid "Pin the enemy squad down with fire."
+msgstr "Halte den feindlichen Trupp mit Feuer nieder."
+
+msgid "Destroy the enemy squad."
+msgstr "Vernichte den feindlichen Trupp."
+
+msgid "Standing soldiers are easy to hit. Select a rifle squad and let it go prone ({key:stance_prone})."
+msgstr "Stehende Soldaten sind leicht zu treffen. Wähle einen Schützentrupp und lass ihn sich hinlegen ({key:stance_prone})."
+
+msgid "Prone soldiers are hardest to hit but slow. Kneeling ({key:stance_kneel}) is the middle way; {key:stance_auto} lets the squad choose by itself again."
+msgstr "Liegende Soldaten sind am schwersten zu treffen, aber langsam. Knien ({key:stance_kneel}) ist der Mittelweg; {key:stance_auto} lässt den Trupp wieder selbst wählen."
+
+msgid "Hedges, walls and woods give cover. Move a squad behind the marked hedges."
+msgstr "Hecken, Mauern und Wälder geben Deckung. Bring einen Trupp hinter die markierten Hecken."
+
+msgid "Houses protect best. Select a squad and right click a house, or use {key:order_garrison} and click it, to occupy it."
+msgstr "Häuser schützen am besten. Wähle einen Trupp und klicke mit rechts auf ein Haus oder nutze {key:order_garrison} und klicke es an, um es zu besetzen."
+
+msgid "An enemy squad lies in the field. Switch your squads to fire at will ({key:order_fire_mode}) and fire at it: soldiers under fire duck and stop shooting. That is suppression, the bar above a squad shows it."
+msgstr "Ein feindlicher Trupp liegt im Feld. Schalte deine Trupps auf freies Feuer ({key:order_fire_mode}) und beschieß ihn: Soldaten unter Feuer ducken sich und hören auf zu schießen. Das ist Niederhalten, der Balken über einem Trupp zeigt es."
+
+msgid "The enemy is pinned down. While it cannot shoot back, finish it."
+msgstr "Der Feind ist niedergehalten. Solange er nicht zurückschießen kann, erledige ihn."
+
+msgid "Well done: cover, stance and suppression keep your soldiers alive."
+msgstr "Gut gemacht: Deckung, Haltung und Niederhalten halten deine Soldaten am Leben."

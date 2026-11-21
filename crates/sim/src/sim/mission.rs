@@ -247,6 +247,23 @@ impl Sim {
             .collect()
     }
 
+    /// What completes objective `objective` (prompt 180): the condition
+    /// of the first trigger that sets it done, if any. For hints and the
+    /// autopilots of the tests.
+    pub fn mission_goal(&self, objective: usize) -> Option<&Condition> {
+        let m = self.mission.as_deref()?;
+        m.def
+            .triggers
+            .iter()
+            .find(|t| {
+                t.actions.iter().any(|a| {
+                    matches!(a, Action::Objective { index, state: ObjectiveState::Done }
+                        if usize::from(*index) == objective)
+                })
+            })
+            .map(|t| &t.condition)
+    }
+
     /// Triggers fired so far and their number.
     pub fn mission_progress(&self) -> (usize, usize) {
         self.mission.as_deref().map_or((0, 0), |m| {
@@ -258,6 +275,13 @@ impl Sim {
                 m.triggers.len(),
             )
         })
+    }
+
+    /// Whether unit `id` exists and lives.
+    pub fn unit_alive(&self, id: UnitId) -> bool {
+        self.units
+            .binary_search_by_key(&id, |u| u.id)
+            .is_ok_and(|i| self.units[i].alive())
     }
 
     /// Unit ids of a mission group (living or not).
@@ -345,18 +369,40 @@ impl Sim {
 
     /// Counts living units of `player` whose catalog id starts with `unit`.
     fn count_units(&self, player: PlayerId, unit: Option<&str>) -> usize {
-        self.units
+        self.matching(player, unit, None).count()
+    }
+
+    /// Living units of `player` whose catalog id starts with `unit` (if
+    /// given) standing in the area (if given).
+    fn matching<'a>(
+        &'a self,
+        player: PlayerId,
+        unit: Option<&'a str>,
+        area: Option<&'a crate::mission::Area>,
+    ) -> impl Iterator<Item = &'a super::Unit> + 'a {
+        self.units.iter().filter(move |u| {
+            u.alive()
+                && u.owner == player
+                && unit.is_none_or(|prefix| {
+                    self.unit_types[u.unit_type as usize]
+                        .name
+                        .starts_with(prefix)
+                })
+                && area.is_none_or(|a| a.contains(u.position))
+        })
+    }
+
+    /// Living units of a mission group.
+    fn group_alive<'a>(
+        &'a self,
+        m: &'a MissionRt,
+        group: u16,
+    ) -> impl Iterator<Item = &'a super::Unit> + 'a {
+        m.groups[usize::from(group)]
             .iter()
-            .filter(|u| {
-                u.alive()
-                    && u.owner == player
-                    && unit.is_none_or(|prefix| {
-                        self.unit_types[u.unit_type as usize]
-                            .name
-                            .starts_with(prefix)
-                    })
-            })
-            .count()
+            .filter_map(|&id| self.units.binary_search_by_key(&id, |u| u.id).ok())
+            .map(|i| &self.units[i])
+            .filter(|u| u.alive())
     }
 
     fn condition_holds(&self, m: &MissionRt, t: usize) -> bool {
@@ -366,6 +412,59 @@ impl Sim {
                 unit,
                 count,
             } => self.count_units(*player, unit.as_deref()) < *count as usize,
+            Condition::Stance {
+                player,
+                unit,
+                area,
+                stance,
+                count,
+            } => {
+                let area = area.map(|a| &m.def.areas[usize::from(a)]);
+                self.matching(*player, unit.as_deref(), area)
+                    .filter(|u| {
+                        u.squad
+                            .as_ref()
+                            .is_some_and(|s| s.stance == *stance && s.changing == 0)
+                    })
+                    .count()
+                    >= *count as usize
+            }
+            Condition::Garrison {
+                player,
+                unit,
+                area,
+                count,
+            } => {
+                let area = area.map(|a| &m.def.areas[usize::from(a)]);
+                self.matching(*player, unit.as_deref(), area)
+                    .filter(|u| u.squad.as_ref().is_some_and(|s| s.garrison.is_some()))
+                    .count()
+                    >= *count as usize
+            }
+            Condition::Spotted { group, player } => self
+                .group_alive(m, *group)
+                .any(|u| self.visible_to(*player, u.id)),
+            Condition::Unseen {
+                player,
+                unit,
+                area,
+                by,
+                count,
+            } => {
+                let area = area.map(|a| &m.def.areas[usize::from(a)]);
+                self.matching(*player, unit.as_deref(), area)
+                    .filter(|u| !self.visible_to(*by, u.id))
+                    .count()
+                    >= *count as usize
+            }
+            Condition::Pinned { group, pct } => self.group_alive(m, *group).any(|u| {
+                self.squad_tactics(u.id)
+                    .is_some_and(|t| t.suppression >= *pct)
+            }),
+            Condition::Smoke { area } => self.smoke_at(m.def.areas[usize::from(*area)].center),
+            Condition::Air { player } => self.air_events().iter().any(
+                |e| matches!(e, crate::air::AirEvent::Called { owner, .. } if owner == player),
+            ),
             Condition::Always => true,
             Condition::Area {
                 area,

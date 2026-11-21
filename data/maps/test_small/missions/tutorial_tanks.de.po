@@ -1,0 +1,51 @@
+# Translation of the mission tutorial_tanks (prompt 043). msgid: the English text of the
+# mission file; `just mission-po` adds new texts, see docs/MISSIONS.md.
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: de\n"
+
+msgid "Basic training 4: Tanks"
+msgstr "Grundausbildung 4: Panzer"
+
+msgid "A tank is strong in front and weak at the sides and rear. Find the hidden anti-tank gun first, take it from the flank and hit an enemy tank in the side."
+msgstr "Ein Panzer ist vorne stark und an den Seiten und hinten schwach. Finde zuerst die versteckte Panzerabwehrkanone, nimm sie von der Flanke und triff einen feindlichen Panzer in die Seite."
+
+msgid "Find the anti-tank gun with your scouts."
+msgstr "Finde die Panzerabwehrkanone mit deinen Spähern."
+
+msgid "Drive the tank around to the flank."
+msgstr "Fahr mit dem Panzer herum in die Flanke."
+
+msgid "Destroy the anti-tank gun from the flank."
+msgstr "Vernichte die Panzerabwehrkanone von der Flanke."
+
+msgid "Destroy the enemy tank: hit its side or rear."
+msgstr "Vernichte den feindlichen Panzer: Triff ihn an der Seite oder hinten."
+
+msgid "An anti-tank gun waits somewhere ahead. It is small, hard to see and deadly from the front. Send the scouts forward to the marked place and find it; keep the tank back."
+msgstr "Irgendwo voraus wartet eine Panzerabwehrkanone. Sie ist klein, schwer zu sehen und von vorne tödlich. Schick die Späher an die markierte Stelle und finde sie; halte den Panzer zurück."
+
+msgid "Found it. Driving straight at it costs the tank. Go around: drive the tank to the marked place on its flank."
+msgstr "Gefunden. Wer direkt auf sie zufährt, verliert den Panzer. Fahr außen herum: Bring den Panzer an die markierte Stelle in ihrer Flanke."
+
+msgid "The gun points the other way and its shield does not cover the side. Attack it now, before it turns: select the tank and right click the gun."
+msgstr "Die Kanone zeigt in die andere Richtung, und ihr Schild deckt die Seite nicht. Greif sie jetzt an, bevor sie sich dreht: Wähle den Panzer und klicke mit rechts auf die Kanone."
+
+msgid "Armor is thickest in front. The tooltip over an enemy shows whether your gun gets through. Drive to the side of the enemy tank and destroy it; a tank behind a crest shows only its turret."
+msgstr "Die Panzerung ist vorne am dicksten. Der Hinweis über einem Gegner zeigt, ob deine Kanone durchschlägt. Fahr an die Seite des feindlichen Panzers und vernichte ihn; ein Panzer hinter einer Kuppe zeigt nur seinen Turm."
+
+msgid "Well done: scout first, take guns from the flank, hit tanks in the side."
+msgstr "Gut gemacht: zuerst aufklären, Kanonen von der Flanke nehmen, Panzer in die Seite treffen."
+
+msgid "The gun opens fire: you drove into its field of fire from the front."
+msgstr "Die Kanone eröffnet das Feuer: Du bist von vorne in ihr Schussfeld gefahren."
+
+msgid "Your tank was knocked out: it drove where the gun could see its front. Here is a new one. Go around through cover."
+msgstr "Dein Panzer wurde abgeschossen: Er fuhr dorthin, wo die Kanone seine Front sah. Hier ist ein neuer. Fahr durch Deckung außen herum."
+
+msgid "Lost again. Keep woods and hills between the gun and your tank until you reach its flank."
+msgstr "Wieder verloren. Halte Wälder und Hügel zwischen der Kanone und deinem Panzer, bis du ihre Flanke erreichst."
+
+msgid "No tank is left. Restart the chapter."
+msgstr "Kein Panzer ist mehr übrig. Starte das Kapitel neu."

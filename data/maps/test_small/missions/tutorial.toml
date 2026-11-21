@@ -170,7 +170,7 @@ actions = [
   { do = "objective", objective = "attack", state = "done" },
   { do = "objective", objective = "cover", state = "active" },
   { do = "camera", at = "wood" },
-  { do = "text", text = "Infantry lives on cover. Woods, hedges, walls and houses protect soldiers; going prone (V) makes them harder to hit, Z stands them up. Move your rifle squad into the marked wood. A right click on a house makes infantry occupy it." },
+  { do = "text", text = "Infantry lives on cover. Woods, hedges, walls and houses protect soldiers; going prone ({key:stance_prone}) makes them harder to hit, {key:stance_stand} stands them up. Move your rifle squad into the marked wood. A right click on a house makes infantry occupy it." },
 ]
 
 [[trigger]]
@@ -217,7 +217,7 @@ when = "captured"
 point = "supply_village"
 actions = [
   { do = "objective", objective = "supply", state = "done" },
-  { do = "text", text = "Well done: basic training is complete." },
+  { do = "text", text = "Well done: the first chapter of basic training is complete. The next chapters teach sight, infantry, tanks and support." },
 ]
 
 [[trigger]]

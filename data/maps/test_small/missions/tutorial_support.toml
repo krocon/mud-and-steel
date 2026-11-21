@@ -1,0 +1,146 @@
+# Basic training, chapter 5 (prompt 180): mortar fire, smoke, the tactical
+# pause and air support. Format: docs/MISSIONS.md. Places in meters, x east,
+# y south. `{key:<action>}` in a text shows the current key binding.
+
+[mission]
+title = "Basic training 5: Support"
+kind = "tutorial"
+order = 4
+faction = "de"
+briefing = """
+Mortars and aircraft hit what your scouts see. Spot the enemy, pin it down \
+with a barrage, lay smoke, plan in the tactical pause and call an air strike."""
+player = 0
+elimination = false
+
+[[group]]
+name = "scouts"
+owner = 0
+unit = "de_inf_recon"
+position_m = [-20, 100]
+
+[[group]]
+name = "mortar"
+owner = 0
+unit = "de_inf_mortar_medium"
+position_m = [0, 140]
+
+# Training target: it holds its fire.
+[[group]]
+name = "position"
+owner = 1
+unit = "su_inf_rifle_squad"
+position_m = [-60, -120]
+hold_fire = true
+
+[[area]]
+name = "lookout"
+center_m = [-50, -20]
+radius_m = 20
+
+[[area]]
+name = "target"
+center_m = [-60, -120]
+radius_m = 25
+
+[[area]]
+name = "smoke_line"
+center_m = [-50, -60]
+radius_m = 15
+
+[[objective]]
+id = "sup_spot"
+text = "Spot the enemy position with your scouts."
+area = "lookout"
+
+[[objective]]
+id = "sup_barrage"
+text = "Pin the enemy down with a mortar barrage."
+area = "target"
+
+[[objective]]
+id = "sup_smoke"
+text = "Lay smoke in the marked place."
+area = "smoke_line"
+
+[[objective]]
+id = "sup_pause"
+text = "Switch the tactical pause on."
+
+[[objective]]
+id = "sup_air"
+text = "Call air support on the enemy."
+area = "target"
+
+[[trigger]]
+id = "intro"
+when = "time"
+delay_s = 1
+actions = [
+  { do = "text", text = "A mortar fires over hills and houses, but only where someone sees. Send the scouts to the marked place to spot the enemy position." },
+  { do = "objective", objective = "sup_spot", state = "active" },
+  { do = "camera", at = "lookout" },
+]
+
+[[trigger]]
+id = "spotted"
+after = ["intro"]
+when = "spotted"
+group = "position"
+actions = [
+  { do = "objective", objective = "sup_spot", state = "done" },
+  { do = "objective", objective = "sup_barrage", state = "active" },
+  { do = "camera", at = "target" },
+  { do = "text", text = "Select the mortar, press {key:order_barrage} and click the enemy position: a barrage pins soldiers down even when it hits nobody." },
+]
+
+[[trigger]]
+id = "pinned"
+after = ["spotted"]
+when = "pinned"
+group = "position"
+pct = 40
+actions = [
+  { do = "objective", objective = "sup_barrage", state = "done" },
+  { do = "objective", objective = "sup_smoke", state = "active" },
+  { do = "camera", at = "smoke_line" },
+  { do = "text", text = "Smoke blocks sight for a while. Select the mortar, press {key:order_smoke} and click the marked place." },
+]
+
+[[trigger]]
+id = "smoked"
+after = ["pinned"]
+when = "smoke"
+area = "smoke_line"
+actions = [
+  { do = "objective", objective = "sup_smoke", state = "done" },
+  { do = "objective", objective = "sup_pause", state = "active" },
+  { do = "text", text = "In a busy moment, stop the time: the tactical pause ({key:tactical_pause}) lets you give orders while nothing moves. Switch it on." },
+]
+
+[[trigger]]
+id = "paused"
+after = ["smoked"]
+when = "signal"
+signal = "pause"
+actions = [
+  { do = "objective", objective = "sup_pause", state = "done" },
+  { do = "objective", objective = "sup_air", state = "active" },
+  { do = "text", text = "Orders given in the pause go out when it ends. Now call air support: pick a mission in the air bar (strafing: {key:air_strafe}) and click the enemy position, then end the pause ({key:tactical_pause})." },
+]
+
+[[trigger]]
+id = "air"
+after = ["paused"]
+when = "air"
+actions = [
+  { do = "objective", objective = "sup_air", state = "done" },
+  { do = "text", text = "Well done: basic training is complete. Support wins battles when your scouts guide it." },
+]
+
+[[trigger]]
+id = "end"
+after = ["air"]
+when = "time"
+delay_s = 10
+actions = [{ do = "victory" }]

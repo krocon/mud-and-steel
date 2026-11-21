@@ -10,7 +10,9 @@ Items marked [provisional] are decisions the user should confirm.
 
 ## Playing
 
-- **Main menu → Tutorial** starts the tutorial (`data/maps/test_small/missions/tutorial.toml`).
+- **Main menu → Tutorial** starts the first chapter of basic training not
+  won yet (prompt 180; all won: chapter 1). The missions screen lists every
+  chapter (in `order`) and starts any of them.
 - **Main menu → Missions** lists the tutorial and every mission (title,
   side, map, "(won)" once won, with the hardest level it was won on) with
   its briefing; **Difficulty** (Easy, Normal, Hard; prompt 181) picks the
@@ -32,7 +34,11 @@ Items marked [provisional] are decisions the user should confirm.
 
 | Mission | Side | Map | What happens |
 |---|---|---|---|
-| Basic training (tutorial) | Germany | test_small | Camera, selection, moving, attacking two training targets, rifle squad into a wood, barracks, a rifle squad from it, the village supply point. |
+| Basic training (tutorial, chapter 1, `tutorial`) | Germany | test_small | Camera, selection, moving, attacking two training targets, rifle squad into a wood, barracks, a rifle squad from it, the village supply point. |
+| Basic training 2: Seeing and being seen (`tutorial_sight`) | Germany | test_small | Scouts up the hill find a lookout only seen from there (`spotted`); a squad lies prone in a wood (`stance`) and ambushes a patrol; a tank is camouflaged while a scout car passes (`unseen`). |
+| Basic training 3: Infantry (`tutorial_infantry`) | Germany | test_small | Prone, kneel (`stance`), behind hedges, a house occupied (`garrison`), an enemy squad pinned down (`pinned`) and destroyed. |
+| Basic training 4: Tanks (`tutorial_tanks`) | Germany | test_small | Scouts find an anti-tank gun; it fires only at a tank in front of it (area `front`), a lost tank comes back twice (`destroyed` → `spawn`); the gun from the flank, a T-34 from the side. |
+| Basic training 5: Support (`tutorial_support`) | Germany | test_small | Scouts spot, a mortar barrage pins (`pinned`), smoke (`smoke`), the tactical pause (signal `pause`), an air call (`air`). |
 | Meadow crossing | Soviet Union | twin_meadow | Take the western meadow's supply point from a light German screen, then destroy the counterattack that drives in from the north edge. |
 | The village square | United States | desert_village | Clear the square of German infantry and a tank, then take its supply point. |
 | Town in the snow | Germany | town_small (winter look) | Destroy the Soviet outpost on the square, then the Soviet relief that drives in from the north edge. |
@@ -146,6 +152,13 @@ trigger fires once.
 | `signal` | `signal` | the human player's presentation reported it this tick (below) |
 | `units` | `unit` (catalog id prefix), `count` (1), `player` | the player owns that many living matching units; buildings count once completed |
 | `fewer` | `unit` (catalog id prefix, optional), `count` (1), `player` | the player owns fewer than `count` living matching units (prompt 181) |
+| `stance` | `stance` (`stand`, `kneel`, `prone`), `unit`, `area` (optional), `count` (1), `player` | that many living matching squads have the stance (not while changing it; prompt 180) |
+| `garrison` | `unit`, `area` (optional), `count` (1), `player` | that many living matching squads are inside a building (prompt 180) |
+| `spotted` | `group`, `player` | the player sees a living unit of the group (prompt 180) |
+| `unseen` | `by`, `unit`, `area` (optional), `count` (1), `player` | that many living matching units of the player are not seen by player `by` (ambush, camouflage; prompt 180) |
+| `pinned` | `group`, `pct` (50) | a living squad of the group is suppressed by at least `pct` % (prompt 180) |
+| `smoke` | `area` | smoke lies at the center of the area (prompt 180) |
+| `air` | `player` | the player called air support this tick (prompt 180) |
 
 | `do` | Keys | Effect |
 |---|---|---|
@@ -191,9 +204,11 @@ a group that has no units at a level is an error (it could never fire).
 | Town in the snow | relief 50 % (one T-34) | computer `normal`, outpost 200 %, relief 150 % | one Panzer IV left before the relief is beaten |
 
 Measured against the test autopilot (`every_level_of_every_mission`,
-seed 42; game time to victory): tutorial 188 s on every level; meadow
-crossing 398 / 453 / 84 s; village square 80 / 80 / 202 s; town in the
-snow 82 / 83 / 62 s. Hard is not always longer: with `computer = "normal"`
+seed 42; game time to victory, Easy / Normal / Hard; since prompt 180 the
+autopilot attacks the group a `destroyed` objective names): tutorial 153 s
+on every level; meadow crossing 390 / 391 / 84 s; village square 80 / 80 /
+202 s; town in the snow 82 / 83 / 72 s. Chapters 2–5 (no levels): 368,
+201, 167 (one tank lost on purpose by the route) and 50 s. Hard is not always longer: with `computer = "normal"`
 the enemy comes out to fight the autopilot's column instead of waiting.
 On Hard with two Panzer IV at the crossing (`enemy_start_pct = 200`) the
 autopilot lost meadow crossing after 98 s, so that level only grows the
@@ -270,6 +285,14 @@ an armed trigger waits for it (`SimHost.mission_info()["wanted"]`):
 |---|---|
 | `camera` | The view was panned 12 m, zoomed by 15 % or turned by 0.3 rad since the trigger was armed. |
 | `select` | Own units are selected. |
+| `pause` | The tactical pause is on (prompt 180; the trigger fires with the first tick after it). |
+
+Texts (messages, objectives, the `hopeless` text) may contain
+`{key:<action>}` (prompt 180): the mission panel shows the key the action
+is bound to now (Settings → Controls, `Settings.action_key_name`), "–"
+without one. Translations keep the placeholder. Each objective's `goal`
+in `SimHost.mission_info()` (the condition of the trigger that completes
+it, `Sim::mission_goal`) tells the self-test's autopilot what to do.
 
 Signals from other players, unknown names and names over 32 bytes are
 ignored.
@@ -316,15 +339,21 @@ file written by hand next to it [provisional: no script editor in the game].
 - `crates/sim/tests/mission_levels.rs` (prompt 181): the values of each
   level, `levels` of groups, level errors, start resources, the `fewer`
   condition with `open` and the `hopeless` action.
+- `crates/sim/tests/mission_triggers.rs` (prompt 180): `stance`,
+  `garrison`, `spotted`, `unseen`, `air`.
 - `crates/ai/tests/missions.rs`: every mission file is won by an autopilot
-  that follows the objectives against the mission's computer players
+  that follows the objectives against the mission's computer players (it
+  reads what completes each objective: stance, house, scouts to the area,
+  camouflage, attack or barrage of a group, smoke, air call;
+  `a_tank_lost_in_training_comes_back`: a tank driven at the gun of
+  chapter 4 is lost and replaced)
   (`every_level_of_every_mission`: on Easy and Normal, Hard reported); the
   tutorial plays the same twice and survives a snapshot; every column that
   drives in has a path from its entry to its place.
   `MISSION=<id> END=<ticks> cargo test -p ai --test missions debug_units -- --ignored --nocapture`
   prints the units while tuning a mission.
-- `just selftest` plays the tutorial and every mission from the menu to
-  victory (`menu/mission_self_test.gd`; the first mission on Easy, the
+- `just selftest` plays every tutorial chapter and every mission from the
+  menu to victory (`menu/mission_self_test.gd`; the first mission on Easy, the
   second on Hard, chosen in the screen; the warning panel opens and
   closes); `just editor-selftest` places,
   removes and saves trigger areas and spawn points.
@@ -335,6 +364,11 @@ file written by hand next to it [provisional: no script editor in the game].
   and lobby do not offer missions).
 - A campaign (mission order, unlocking), mission ratings and timers in the
   panel (prompt 189).
+- Prompt 180: chapters on moving in formation and transport, engineers,
+  supply (later prompt); help cards; a picture per chapter for the menu.
+  Chapter 2's camouflage step does not fail when the scout car sees the
+  tank (only a hint). Camera keys in chapter 1 are fixed text (not
+  rebindable).
 - Prompt 181: the warning panel does not pause the match; "Load last save"
   takes the newest save of the map, not only of this mission; a level per
   computer player.

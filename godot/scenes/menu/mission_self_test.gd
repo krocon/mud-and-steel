@@ -8,6 +8,12 @@ extends RefCounted
 ## objective like `crates/ai/tests/missions.rs` does: they attack the
 ## nearest enemy they see near its area, else move there. Wins must land in
 ## the progress file (the self-test's own).
+##
+## Prompt 180: every tutorial chapter is started from the missions screen
+## and played through; the autopilot reads each objective's `goal` (what
+## completes it) and gives the matching orders: stance, occupy a house,
+## camouflage, scouts to the area, attack or barrage a group, smoke, an air
+## call, the tactical pause.
 
 const Missions := preload("res://scenes/menu/missions.gd")
 const MatchSetup := preload("res://scenes/menu/match_setup.gd")
@@ -40,7 +46,7 @@ func run(menu: Control) -> Control:
 	var screen: Control = menu.screens["missions"]
 	flow._check(screen.visible, "missions screen not shown")
 	var entries: Array[Dictionary] = screen.entries.duplicate()
-	flow._check(entries.size() >= 4, "missions screen lists %d entries" % entries.size())
+	flow._check(entries.size() >= 8, "missions screen lists %d entries" % entries.size())
 	for m in entries:
 		flow._check(m.get("ok", false), "mission %s cannot be read: %s" % [m["id"], m.get("error", "")])
 	flow._check(not entries.is_empty() and entries[0]["kind"] == "tutorial", "the tutorial is not listed first")
@@ -62,6 +68,30 @@ func run(menu: Control) -> Control:
 	if menu == null:
 		return null
 	flow._check(Missions.is_done(Missions.TUTORIAL_ID), "tutorial not recorded as won")
+	flow._check(Missions.next_chapter().get("id", "") != Missions.TUTORIAL_ID, "the Tutorial button would start chapter 1 again")
+
+	# Prompt 180: the other chapters from the missions screen.
+	for m in entries:
+		if m["kind"] != "tutorial" or m["id"] == Missions.TUTORIAL_ID:
+			continue
+		menu.missions_button.pressed.emit()
+		await flow._frames(2)
+		screen = menu.screens["missions"]
+		var chapter: int = screen.find(m["id"])
+		flow._check(chapter >= 0, "chapter %s not listed" % m["id"])
+		if chapter < 0:
+			continue
+		screen.list.select(chapter)
+		screen.start_selected()
+		main = await _wait_loaded(m["map"])
+		if main == null:
+			return null
+		await _play(main, true)
+		menu = await flow._back_to_menu(main)
+		if menu == null:
+			return null
+		flow._check(Missions.is_done(m["id"]), "chapter %s not recorded as won" % m["id"])
+	flow._check(Missions.chapters().size() >= 5, "%d tutorial chapters" % Missions.chapters().size())
 
 	# Every mission from the missions screen; prompt 181: the first on Easy,
 	# the second on Hard, the others on Normal, chosen in the screen.
@@ -178,9 +208,11 @@ func _play(main: Node3D, tutorial: bool) -> void:
 	# Prompt 108: every column that drove in reached the event feed.
 	var arrivals: Array = info.get("arrivals", [])
 	flow._check(main.mission_hud.arrivals_reported == arrivals.size(), "mission %s: %d columns drove in, %d reported" % [info["id"], arrivals.size(), main.mission_hud.arrivals_reported])
-	if tutorial:
+	if tutorial and info["id"] == Missions.TUTORIAL_ID:
 		flow._check(signals.has("camera") and signals.has("select"), "the tutorial did not wait for camera and selection: %s" % [signals.keys()])
-		flow._check(main.mission_hud.title.text.begins_with("Training"), "tutorial title '%s'" % main.mission_hud.title.text)
+	if tutorial:
+		flow._check(main.mission_hud.title.text.begins_with("Basic training"), "tutorial title '%s'" % main.mission_hud.title.text)
+		flow._check(not main.mission_hud.message.text.contains("{key:"), "a key placeholder is left in '%s'" % main.mission_hud.message.text)
 	# The HUD records the victory (every 30 frames).
 	await flow._frames(40)
 	flow._check(main.mission_hud.recorded, "the mission HUD did not record the victory")
@@ -199,6 +231,13 @@ func _autopilot(main: Node3D, info: Dictionary) -> void:
 		rig.snap_to(rig.focus + Vector3(25.0, 0.0, 0.0), rig.distance, rig.yaw)
 	if wanted.has("select") and not own.is_empty():
 		main.selection.set_selection(Array(own))
+	# Prompt 180: the tactical pause, until the HUD sent the signal.
+	var pause: Node = main.tactical_pause
+	if wanted.has("pause") and not main.mission_hud.sent.has("pause"):
+		if not pause.active:
+			pause.pause()
+	elif pause.active:
+		pause.resume()
 	var tick := host.current_tick()
 	if tick - _last_order_tick < ORDER_TICKS:
 		return
@@ -210,6 +249,8 @@ func _autopilot(main: Node3D, info: Dictionary) -> void:
 	if objective.is_empty():
 		return
 	_last_order_tick = tick
+	if _goal_orders(main, objective, own):
+		return
 	if not String(objective["unit"]).is_empty():
 		_build_or_produce(main, objective["unit"])
 	if objective["position"] == null or own.is_empty():
@@ -233,6 +274,112 @@ func _autopilot(main: Node3D, info: Dictionary) -> void:
 		host.attack_unit(own, best)
 	else:
 		host.formation_move(own, center.x, center.z, 0, 0.0, 0.0, 1)
+
+
+## Orders for the goals of prompt 180 (like `goal_orders` in
+## `crates/ai/tests/missions.rs`); false for the others.
+func _goal_orders(main: Node3D, objective: Dictionary, own: PackedInt64Array) -> bool:
+	var host: SimHost = main.sim_host
+	var goal: Dictionary = objective.get("goal", {})
+	var when: String = goal.get("when", "")
+	var units := _matching(main, own, goal.get("unit", ""))
+	var area = goal.get("area")
+	var radius := float(goal.get("area_radius", 0.0))
+	match when:
+		"area":
+			if String(goal.get("unit", "")).is_empty():
+				return false
+			host.formation_move(units, area.x, area.z, 0, 0.0, 0.0, 1)
+		"stance":
+			if area != null and not _any_inside(main, units, area, radius):
+				host.formation_move(units, area.x, area.z, 0, 0.0, 0.0, 1)
+			else:
+				host.set_stance(units, {"stand": 0, "kneel": 1, "prone": 2}[goal["stance"]])
+		"garrison":
+			var building := _building_near(host, area if area != null else Vector3.ZERO, maxf(radius, 30.0))
+			flow._check(building >= 0, "no building near %s" % [area])
+			if building >= 0:
+				host.garrison_units(units, building)
+		"unseen":
+			host.set_camouflage(units, true)
+		"spotted":
+			var scouts := _matching(main, own, "de_inf_recon")
+			var at = objective["position"]
+			if at != null:
+				host.formation_move(scouts if not scouts.is_empty() else own, at.x, at.z, 0, 0.0, 0.0, 1)
+		"destroyed", "pinned":
+			var ids := Array(host.unit_ids())
+			var alive := host.unit_alive()
+			var target := -1
+			for id: int in goal.get("group", PackedInt64Array()):
+				var k := ids.find(id)
+				if k >= 0 and alive[k] != 0:
+					target = id
+					break
+			if target < 0:
+				var at = objective["position"]
+				if at != null:
+					host.formation_move(own, at.x, at.z, 0, 0.0, 0.0, 1)
+				return true
+			var p: Vector3 = host.current_positions()[ids.find(target)]
+			var mortars := _matching(main, own, "", "mortar")
+			if not mortars.is_empty():
+				host.barrage(mortars, p.x, p.z, 10, 4, false)
+			host.set_fire_mode(own, 0)
+			host.attack_unit(own, target)
+		"smoke":
+			host.barrage(own, area.x, area.z, 0, 2, true)
+		"air":
+			var at = objective["position"]
+			if at != null:
+				for mission: String in ["recon", "strafe", "attack", "bomb"]:
+					host.call_air(mission, at.x, at.z)
+		_:
+			return false
+	return true
+
+
+## The units of `own` whose catalog id starts with `prefix` (all if empty)
+## and contains `part`.
+func _matching(main: Node3D, own: PackedInt64Array, prefix: String, part := "") -> PackedInt64Array:
+	var host: SimHost = main.sim_host
+	var ids := Array(host.unit_ids())
+	var types := host.unit_type_ids()
+	var out := PackedInt64Array()
+	for id in own:
+		var t: String = types[ids.find(id)]
+		if t.begins_with(prefix) and (part.is_empty() or t.contains(part)):
+			out.append(id)
+	return out
+
+
+func _any_inside(main: Node3D, units: PackedInt64Array, center: Vector3, radius: float) -> bool:
+	var host: SimHost = main.sim_host
+	var ids := Array(host.unit_ids())
+	var positions := host.current_positions()
+	for id in units:
+		var p: Vector3 = positions[ids.find(id)]
+		if Vector2(p.x - center.x, p.z - center.z).length() <= radius:
+			return true
+	return false
+
+
+## The nearest intact building (map object index) with room within
+## `radius` of `center`, -1 if none; ruins are skipped.
+func _building_near(host: SimHost, center: Vector3, radius: float) -> int:
+	var step := 4.0
+	var r := 0.0
+	while r <= radius:
+		for k in 24:
+			var angle := TAU * k / 24.0
+			var b := host.building_at(center.x + cos(angle) * r, center.z + sin(angle) * r)
+			if b < 0:
+				continue
+			var info := host.building_info(b)
+			if info.get("condition", "") == "intact" and int(info["occupants"]) < int(info["capacity"]):
+				return b
+		r += step
+	return -1
 
 
 ## Own living units that can take orders (no buildings).

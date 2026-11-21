@@ -89,7 +89,26 @@ static func list() -> Array[Dictionary]:
 	return found
 
 
-## The tutorial's header, or {} if it is missing.
+## The tutorial chapters (prompt 180) in their order (`order`).
+static func chapters() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for m in list():
+		if m.get("kind", "") == "tutorial" and m.get("ok", false):
+			out.append(m)
+	return out
+
+
+## The first chapter not won yet, else the first chapter ({} without any):
+## what the main menu's Tutorial button starts.
+static func next_chapter() -> Dictionary:
+	var all := chapters()
+	for m in all:
+		if not is_done(m["id"]):
+			return m
+	return all[0] if not all.is_empty() else {}
+
+
+## The tutorial's header (chapter 1), or {} if it is missing.
 static func tutorial() -> Dictionary:
 	for m in list():
 		if m.get("kind", "") == "tutorial" and m.get("ok", false):

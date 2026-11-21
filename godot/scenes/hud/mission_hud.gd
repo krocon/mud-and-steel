@@ -20,6 +20,11 @@ extends PanelContainer
 ## (same mission and difficulty), Load last save (the newest saved game of
 ## this map) and Play on. Once per match; not in replays.
 ##
+## Prompt 180: `{key:<action>}` in a mission text shows the key the action
+## is bound to now (`Settings.action_key_name`), so hints follow the
+## player's bindings; the signal `pause` is sent while the tactical pause is
+## on. A tutorial chapter's title reads "<title> – step n of m".
+##
 ## All texts come from the mission file; the few own ones are the
 ## translation keys below (prompt 043).
 
@@ -27,6 +32,7 @@ const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
 const Missions := preload("res://scenes/menu/missions.gd")
 const GameFiles := preload("res://scenes/menu/game_files.gd")
 const MatchSetup := preload("res://scenes/menu/match_setup.gd")
+const Settings := preload("res://scenes/menu/settings.gd")
 const TEXT_STEP := "HUD_MISSION_STEP"
 const TEXT_DONE := "HUD_MISSION_DONE"
 const TEXT_FAILED := "HUD_MISSION_FAILED"
@@ -157,7 +163,7 @@ func _show_hopeless() -> void:
 	hopeless_shown = tick
 	if sim_host.match_result()["decided"]:
 		return
-	show_warning(Missions.text(_path(), info.get("hopeless", "")))
+	show_warning(with_keys(Missions.text(_path(), info.get("hopeless", ""))))
 
 
 ## Opens the warning panel with `text` (also the self-test).
@@ -210,12 +216,12 @@ func refresh() -> void:
 	var shown := objectives.filter(func(o: Dictionary) -> bool: return o["state"] != "hidden")
 	if info["tutorial"]:
 		var done := objectives.filter(func(o: Dictionary) -> bool: return o["state"] == "done").size()
-		title.text = tr(TEXT_STEP) % [mini(done + 1, objectives.size()), objectives.size()]
+		title.text = tr(TEXT_STEP) % [Missions.text(_path(), info["title"]), mini(done + 1, objectives.size()), objectives.size()]
 	else:
 		title.text = Missions.text(_path(), info["title"])
 	if info["message_tick"] != _message_tick:
 		_message_tick = info["message_tick"]
-		message.text = Missions.text(_path(), info["message"])
+		message.text = with_keys(Missions.text(_path(), info["message"]))
 		message.visible = not message.text.is_empty()
 	var key := ",".join(shown.map(func(o: Dictionary) -> String: return o["id"] + ":" + o["state"]))
 	if key != _objective_key:
@@ -229,6 +235,23 @@ func refresh() -> void:
 	_report_arrivals(info.get("arrivals", []))
 	_send_signals(info["wanted"])
 	_show_hopeless()
+
+
+## `text` with every `{key:<action>}` replaced by the key bound to the
+## action now ("–" if none).
+static func with_keys(text: String) -> String:
+	var at := text.find("{key:")
+	while at >= 0:
+		var end := text.find("}", at)
+		if end < 0:
+			break
+		var action := text.substr(at + 5, end - at - 5)
+		var key := Settings.action_key_name(action)
+		if key.is_empty():
+			key = "–"
+		text = text.substr(0, at) + key + text.substr(end + 1)
+		at = text.find("{key:", at + key.length())
+	return text
 
 
 ## Event feed message and minimap ping for every new arriving column.
@@ -275,7 +298,7 @@ func _show_objectives(shown: Array) -> void:
 				label.text = tr(TEXT_FAILED) % Missions.text(_path(), o["text"])
 				label.add_theme_color_override("font_color", MenuTheme.DEFEAT)
 			_:
-				label.text = "• " + Missions.text(_path(), o["text"])
+				label.text = "• " + with_keys(Missions.text(_path(), o["text"]))
 				open += 1
 		objectives_box.add_child(label)
 	if open == 0 and not shown.is_empty():
@@ -325,6 +348,9 @@ func _send_signals(wanted: PackedStringArray) -> void:
 					fulfilled = Vector2(rig.focus.x - focus.x, rig.focus.z - focus.z).length() > CAMERA_MOVE_M \
 						or absf(rig.target_distance / maxf(_camera_from[1], 0.01) - 1.0) > CAMERA_ZOOM \
 						or absf(angle_difference(rig.target_yaw, _camera_from[2])) > CAMERA_TURN
+			"pause":
+				var pause: Node = main.get("tactical_pause")
+				fulfilled = pause != null and bool(pause.get("active"))
 			"select":
 				var local := sim_host.local_player()
 				var owners := sim_host.unit_owners()

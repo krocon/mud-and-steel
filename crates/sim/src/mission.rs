@@ -230,6 +230,65 @@ pub enum Condition {
         unit: Option<String>,
         count: u32,
     },
+    /// At least `count` living squads of `player` (catalog id prefix
+    /// `unit`, in `area` if given) have the stance `stance` (prompt 180).
+    Stance {
+        player: PlayerId,
+        unit: Option<String>,
+        area: Option<u16>,
+        stance: crate::infantry::Stance,
+        count: u32,
+    },
+    /// At least `count` living squads of `player` (prefix `unit`, in
+    /// `area` if given) are inside a building (prompt 180).
+    Garrison {
+        player: PlayerId,
+        unit: Option<String>,
+        area: Option<u16>,
+        count: u32,
+    },
+    /// `player` sees a living unit of the group (prompt 180).
+    Spotted { group: u16, player: PlayerId },
+    /// At least `count` living units of `player` (prefix `unit`, in `area`
+    /// if given) are not seen by player `by` (prompt 180: ambush,
+    /// camouflage).
+    Unseen {
+        player: PlayerId,
+        unit: Option<String>,
+        area: Option<u16>,
+        by: PlayerId,
+        count: u32,
+    },
+    /// A living squad of the group is suppressed by at least `pct`
+    /// (0..=100; prompt 180).
+    Pinned { group: u16, pct: u32 },
+    /// Smoke lies at the center of the area (prompt 180).
+    Smoke { area: u16 },
+    /// `player` called air support this tick (prompt 180).
+    Air { player: PlayerId },
+}
+
+impl Condition {
+    /// The script's name of the condition (`when = "…"`).
+    pub const fn name(&self) -> &'static str {
+        match self {
+            Self::Always => "time",
+            Self::Area { .. } => "area",
+            Self::Destroyed { .. } => "destroyed",
+            Self::Eliminated { .. } => "eliminated",
+            Self::Captured { .. } => "captured",
+            Self::Signal { .. } => "signal",
+            Self::Units { .. } => "units",
+            Self::Fewer { .. } => "fewer",
+            Self::Stance { .. } => "stance",
+            Self::Garrison { .. } => "garrison",
+            Self::Spotted { .. } => "spotted",
+            Self::Unseen { .. } => "unseen",
+            Self::Pinned { .. } => "pinned",
+            Self::Smoke { .. } => "smoke",
+            Self::Air { .. } => "air",
+        }
+    }
 }
 
 /// What a trigger does.
@@ -597,7 +656,8 @@ struct TriggerFile {
     #[serde(default)]
     after: Vec<String>,
     /// `time`, `area`, `destroyed`, `eliminated`, `captured`, `signal`,
-    /// `units`, `fewer`.
+    /// `units`, `fewer`, `stance`, `garrison`, `spotted`, `unseen`,
+    /// `pinned`, `smoke`, `air`.
     when: String,
     #[serde(default)]
     delay_s: u32,
@@ -618,6 +678,15 @@ struct TriggerFile {
     point: Option<String>,
     #[serde(default)]
     signal: Option<String>,
+    /// `stance`: `stand`, `kneel` or `prone` (prompt 180).
+    #[serde(default)]
+    stance: Option<String>,
+    /// `unseen`: the player who must not see the units.
+    #[serde(default)]
+    by: Option<u8>,
+    /// `pinned`: suppression in percent.
+    #[serde(default)]
+    pct: Option<u32>,
     #[serde(default)]
     actions: Vec<ActionFile>,
 }
@@ -1001,6 +1070,43 @@ pub fn parse_mission_at(
                 unit: t.unit.clone(),
                 count: t.count.unwrap_or(1).max(1),
             },
+            "stance" => Condition::Stance {
+                player: who,
+                unit: t.unit.clone(),
+                area: t.area.as_deref().map(area_index).transpose()?,
+                stance: match need(&t.stance, "stance")?.as_str() {
+                    "stand" => crate::infantry::Stance::Stand,
+                    "kneel" => crate::infantry::Stance::Kneel,
+                    "prone" => crate::infantry::Stance::Prone,
+                    _ => return Err(ctx("stance must be stand, kneel or prone")),
+                },
+                count: t.count.unwrap_or(1).max(1),
+            },
+            "garrison" => Condition::Garrison {
+                player: who,
+                unit: t.unit.clone(),
+                area: t.area.as_deref().map(area_index).transpose()?,
+                count: t.count.unwrap_or(1).max(1),
+            },
+            "spotted" => Condition::Spotted {
+                group: group_of(&need(&t.group, "group")?, &mut groups),
+                player: who,
+            },
+            "unseen" => Condition::Unseen {
+                player: who,
+                unit: t.unit.clone(),
+                area: t.area.as_deref().map(area_index).transpose()?,
+                by: known_player(t.by.ok_or_else(|| ctx("`when = \"unseen\"` needs `by`"))?)?,
+                count: t.count.unwrap_or(1).max(1),
+            },
+            "pinned" => Condition::Pinned {
+                group: group_of(&need(&t.group, "group")?, &mut groups),
+                pct: t.pct.unwrap_or(50).min(100),
+            },
+            "smoke" => Condition::Smoke {
+                area: area_index(&need(&t.area, "area")?)?,
+            },
+            "air" => Condition::Air { player: who },
             other => return Err(ctx(&format!("unknown `when = \"{other}\"`"))),
         };
         let mut actions = Vec::new();
