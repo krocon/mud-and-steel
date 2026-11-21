@@ -602,6 +602,11 @@ base-shots dir: build
 unit-marker-shots dir="build/unit-visibility" *args: build
     {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- "--unit-marker-shots={{ justfile_directory() }}/{{ dir }}" {{ args }}
 
+# Hidden own units as silhouettes in pictures (prompt 165; needs a window): squad behind a house, squad in trees, vehicle behind a tree, setting off and on; e.g. `just hidden-unit-shots build/occluded-units --prefix=night --daytime=night`
+[group('godot')]
+hidden-unit-shots dir="build/occluded-units" *args: build
+    {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- "--hidden-unit-shots={{ justfile_directory() }}/{{ dir }}" {{ args }}
+
 # Target preview and range circles in pictures (prompt 099; needs a window): line, wedge, column, circles; e.g. `just order-preview-shots build/order-preview --prefix=snow --biome=winter`
 [group('godot')]
 order-preview-shots dir="build/order-preview" *args: build

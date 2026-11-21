@@ -334,6 +334,14 @@ top bar. Everything else appears when there is something to do with it.
   *(rebindable)* to show every own unit. Settings → Interface → "Own
   units": markers and highlight (default), highlight near the pointer only,
   or off. Pictures: `just unit-marker-shots` (`build/unit-visibility/`).
+- **Hidden units** (prompt 165): the parts of own units hidden behind
+  houses, trees, hills or vehicles show as a flat silhouette in the own
+  color (selected units and those near the pointer brighter), allied ones
+  in the ally color; never enemy units, not through tall grass or smoke,
+  not for soldiers inside a building or a trench. A click on a silhouette
+  selects the unit. Settings → Interface → "Hidden units as silhouette":
+  own and allied (default), own only, or off. Hidden with the HUD (F1) and
+  in photo mode. Pictures: `just hidden-unit-shots` (`build/occluded-units/`).
 - **Target preview** (prompt 099): while the right button is held for a
   move (and for a second after any move, attack-move or secure order) every
   selected unit shows a flat mark where it will stand: a rectangle with a

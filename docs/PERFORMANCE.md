@@ -58,6 +58,15 @@ Apple M1 Max, the scenario above, release simulation, debug bridge (as
 
 ## Simulation
 
+Prompt 165 (hidden units as silhouettes, `unit_xray.gdshader`; `just
+bench-view`, 2026-11-21, same machine, the same run with the setting off as
+comparison): the stencil writes in the unit shaders cost nothing (draw calls
+as before); the silhouette pass adds up to 1230 draw calls at 600 m (render
+CPU +0.0–0.2 ms), the script ("unit markers") 0.32–0.41 → 0.45–0.71 ms per
+frame; frame times moved by +0.2–0.6 ms, within the run-to-run noise of
+about ±0.5 ms. Checking every unit every frame cost 0.6 ms: now once per
+tick or on a change; squads beyond 300 m from the camera get none.
+
 Prompt 164 (own-unit markers, `unit_highlight.gd`): `just bench-view`
 reports them as "unit markers": 0.36–0.49 ms per frame with 1125 soldiers
 (after warm-up). The markers are one MultiMesh, rebuilt only on a new tick

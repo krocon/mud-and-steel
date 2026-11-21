@@ -152,6 +152,12 @@ const STATE_MARK_MODES: Array[String] = ["always", "selected", "never"]
 ## `hover` (only near the cursor and with the show-all key), `off`.
 const UNIT_MARKER_MODES: Array[String] = ["always", "hover", "off"]
 
+## Hidden parts of units as a silhouette through houses, trees and hills
+## (prompt 165, `unit_highlight.gd`): `own_allies` (default), `own`, `off`.
+## Independent of `unit_markers`: those mark where units stand, this shows
+## what is behind something.
+const HIDDEN_UNIT_MODES: Array[String] = ["own_allies", "own", "off"]
+
 ## Range and sight circles of the selection (prompt 099, `range_rings.gd`):
 ## `always` with a selection, `key` only while `show_ranges` is held, `never`.
 const CIRCLE_MODES: Array[String] = ["always", "key", "never"]
@@ -188,6 +194,7 @@ const DEFAULTS := {
 	"health_bars": "damaged",
 	"state_marks": "always",
 	"unit_markers": "always",
+	"hidden_units": "own_allies",
 	# Range and sight circles, one of CIRCLE_MODES (prompt 099).
 	"range_circles": "always",
 	"sight_circles": "key",

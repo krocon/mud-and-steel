@@ -12,6 +12,9 @@
 // b = random shade per blade.
 shader_type spatial;
 render_mode cull_disabled, diffuse_burley, specular_schlick_ggx;
+// Grass hides units without a silhouette through it (unit_xray.gdshader,
+// prompt 165).
+stencil_mode write, compare_always, 1;
 
 // Clouds dim the direct sunlight (prompt 087): light() of the include.
 #define CLOUD_BACKLIGHT

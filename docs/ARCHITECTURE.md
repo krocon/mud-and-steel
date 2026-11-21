@@ -4766,6 +4766,37 @@ Picking projects unit positions to the screen (`Camera3D.unproject_position`); t
 radius is half the footprint on screen, at least 14 px. Selected units show a green
 ring; units of other players carry a red tint overlay.
 
+**Hidden units as silhouettes (prompt 165).** What of an own (and, by the
+setting `hidden_units`, allied) unit is hidden behind a house, a tree, a hill
+or another vehicle is drawn as a flat, half-opaque silhouette in its relation
+color, through the stencil buffer (Godot 4.5+ `stencil_mode`):
+
+1. Every unit model writes stencil value 1 in its opaque pass
+   (`unit_camo.gdshader`, `soldier.gdshader`), and so does see-through cover
+   that should never show a silhouette (`tall_grass.gdshader`,
+   `meadow_tuft.gdshader`). This is free: the same draw calls as before.
+2. Own and allied units carry `unit_xray.gdshader` as material overlay (or
+   as the next pass of the hover light and the ally tint; soldiers on the
+   body mesh only, vehicles and guns on every mesh). It is transparent,
+   `depth_test_inverted` (only where the surface is behind the depth
+   buffer), skips gaps under 0.3 m against the depth texture (feet in the
+   ground, a seat inside a hull), reads the stencil (`compare_not_equal 1`:
+   where a unit or tall grass is the front-most surface nothing is drawn,
+   so no unit glows through itself or another unit) and writes 1 itself,
+   so overlapping triangles and silhouettes are drawn once and the opacity
+   stays even. Smoke, dust and water write no depth and hide nothing.
+3. The color is the instance parameter `xray_color` (one material for all
+   units); `unit_highlight.gd` sets it and the overlays only when a unit's
+   needs change (hover, selection, setting, a squad entering a trench, the
+   squad's distance from the camera), looked at once per tick or when the
+   hover, selection, setting or camera changed.
+
+No silhouette for enemies, base buildings, units in a building or vehicle
+pit, soldiers in dug works and dead soldiers, squads farther than 300 m from
+the camera (150 m on the lowest graphics level), nor with the HUD hidden or
+in photo mode. Picking stays screen-space, so a silhouette behind a roof is
+clicked like any unit.
+
 ## HUD (presentation only)
 
 Prompts 031 and 095, `godot/scenes/hud/` (created by `main.gd` as `hud`):

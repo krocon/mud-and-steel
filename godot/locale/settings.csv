@@ -69,6 +69,10 @@ SET_UNIT_MARKERS,Own units,Eigene Einheiten
 SET_MARKERS_ALWAYS,Markers and highlight near the cursor,Markierungen und Hervorheben am Mauszeiger
 SET_MARKERS_HOVER,Highlight near the cursor only,Nur am Mauszeiger hervorheben
 SET_MARKERS_OFF,Off,Aus
+SET_HIDDEN_UNITS,Hidden units as silhouette,Verdeckte Einheiten als Silhouette
+SET_HIDDEN_OWN_ALLIES,Own and allied,Eigene und verbündete
+SET_HIDDEN_OWN,Own only,Nur eigene
+SET_HIDDEN_OFF,Off,Aus
 SET_KEY_CAMERA_PAN_FORWARD,Pan forward,Vorwärts schwenken
 SET_KEY_CAMERA_PAN_BACK,Pan back,Rückwärts schwenken
 SET_KEY_CAMERA_PAN_LEFT,Pan left,Links schwenken

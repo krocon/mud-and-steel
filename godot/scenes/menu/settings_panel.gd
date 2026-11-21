@@ -46,6 +46,7 @@ var tilt_invert_box: CheckBox
 var dof_option: OptionButton
 var health_bar_option: OptionButton
 var unit_marker_option: OptionButton
+var hidden_units_option: OptionButton
 var state_mark_option: OptionButton
 var range_circle_option: OptionButton
 var sight_circle_option: OptionButton
@@ -288,6 +289,12 @@ func _interface_tab() -> Control:
 	unit_marker_option.item_selected.connect(func(index: int) -> void:
 		_change("unit_markers", Settings.UNIT_MARKER_MODES[index]))
 	tab.add_child(_row("SET_UNIT_MARKERS", unit_marker_option))
+	hidden_units_option = OptionButton.new()
+	for label in ["SET_HIDDEN_OWN_ALLIES", "SET_HIDDEN_OWN", "SET_HIDDEN_OFF"]:
+		hidden_units_option.add_item(label)
+	hidden_units_option.item_selected.connect(func(index: int) -> void:
+		_change("hidden_units", Settings.HIDDEN_UNIT_MODES[index]))
+	tab.add_child(_row("SET_HIDDEN_UNITS", hidden_units_option))
 	range_circle_option = _circle_option("range_circles")
 	tab.add_child(_row("SET_RANGE_CIRCLES", range_circle_option))
 	sight_circle_option = _circle_option("sight_circles")
@@ -333,6 +340,7 @@ func _refresh() -> void:
 	health_bar_option.select(maxi(Settings.HEALTH_BAR_MODES.find(Settings.get_value("health_bars")), 0))
 	state_mark_option.select(maxi(Settings.STATE_MARK_MODES.find(Settings.get_value("state_marks")), 0))
 	unit_marker_option.select(maxi(Settings.UNIT_MARKER_MODES.find(Settings.get_value("unit_markers")), 0))
+	hidden_units_option.select(maxi(Settings.HIDDEN_UNIT_MODES.find(Settings.get_value("hidden_units")), 0))
 	range_circle_option.select(maxi(Settings.CIRCLE_MODES.find(Settings.get_value("range_circles")), 0))
 	sight_circle_option.select(maxi(Settings.CIRCLE_MODES.find(Settings.get_value("sight_circles")), 0))
 	ground_tooltip_option.select(maxi(Settings.TOOLTIP_MODES.find(Settings.get_value("ground_tooltip")), 0))

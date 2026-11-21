@@ -176,10 +176,11 @@ func _run() -> void:
 	# Last: the extra frames shift the match, and the positions test above
 	# depends on where the fight stands at its start (prompt 164).
 	await _highlight_test()
+	await _hidden_units_test()
 	await _pause_test()
 	await _view_test()
 	var ok := _errors.is_empty()
-	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, fog, combat, kill sequences, tracks, pushed trees, impact markers, cloud shadows, infantry, destruction, fire, craters, sound, music, water, hud, air, transport, supply, formations, crossings, replay, works, state marks, positions, experience, care, unit highlight, tactical pause, overview, view switches and photo mode ok" if ok else " ".join(_errors)
+	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, fog, combat, kill sequences, tracks, pushed trees, impact markers, cloud shadows, infantry, destruction, fire, craters, sound, music, water, hud, air, transport, supply, formations, crossings, replay, works, state marks, positions, experience, care, unit highlight, hidden units, tactical pause, overview, view switches and photo mode ok" if ok else " ".join(_errors)
 	print("self-test %s: %s" % ["PASSED" if ok else "FAILED", message])
 	# Started from the menu flow test (prompt 027): it continues the flow.
 	var flow: Node = MatchSetup.flow_test
@@ -1728,6 +1729,78 @@ func _ticks(count: int) -> void:
 ## Ids of the own (or the other players') tanks, ascending; with `squads`
 ## their infantry squads instead (prompt 022), without crews that bailed
 ## out of destroyed tanks (prompt 049).
+## Hidden units as silhouettes (prompt 165): every own squad's soldier
+## bodies carry the silhouette overlay with an opaque-enough own color, no
+## enemy model does, a click on the squad's spot picks it whatever stands
+## in front (screen-space picking), and the setting `off` removes it.
+func _hidden_units_test() -> void:
+	var highlight: Node = main.unit_highlight
+	var squads := _ids_of(true, true)
+	var enemies := _ids_of(false, true) + _ids_of(false, false)
+	_check(not squads.is_empty(), "no own squad for the hidden units test")
+	if squads.is_empty():
+		return
+	highlight.forced_point = Vector3(-10000, 0, -10000)
+	Settings.set_value("hidden_units", "own_allies")
+	await _frames(2)
+	var squad := -1
+	for id in squads:
+		if highlight.xray_units.has(id):
+			squad = id
+			break
+	_check(squad >= 0, "no own squad draws a silhouette (%d squads)" % squads.size())
+	for id in enemies:
+		_check(not highlight.xray_units.has(id), "enemy unit %d draws a silhouette" % id)
+	if squad < 0:
+		return
+	var bodies := _xray_bodies(squad)
+	_check(bodies > 0, "squad %d: no soldier body with the silhouette overlay" % squad)
+	for id in enemies:
+		_check(_xray_bodies(id) == 0 and _xray_meshes(id) == 0, "enemy unit %d has the silhouette overlay" % id)
+	var at: Vector3 = _centroid([squad] as Array[int]) + Vector3.UP * 1.2
+	var screen: Vector2 = main.camera.unproject_position(at)
+	if not main.camera.is_position_behind(at) and get_viewport().get_visible_rect().has_point(screen):
+		_check(main.selection._unit_at(screen) >= 0, "nothing picked at the squad's spot")
+	Settings.set_value("hidden_units", "off")
+	await _frames(2)
+	_check(highlight.xray_units.is_empty() and _xray_bodies(squad) == 0,
+		"silhouettes stay with the setting off (%d units)" % highlight.xray_units.size())
+	Settings.set_value("hidden_units", "own_allies")
+	highlight.forced_point = null
+	await _frames(1)
+
+
+## Soldier bodies of unit `id` whose overlay draws the silhouette.
+func _xray_bodies(id: int) -> int:
+	var highlight: Node = main.unit_highlight
+	var view: Node = main.infantry_view
+	var n := 0
+	for key: int in (view._by_unit.get(id, []) as Array):
+		for mesh: GeometryInstance3D in (view._soldiers[key]["meshes"] as Array):
+			if mesh.name == "Body" and _draws_xray(mesh, highlight):
+				var color: Color = mesh.get_instance_shader_parameter(&"xray_color")
+				if color.a > 0.3:
+					n += 1
+	return n
+
+
+## Meshes of vehicle unit `id` whose overlay draws the silhouette.
+func _xray_meshes(id: int) -> int:
+	var node: Node3D = main._unit_nodes.get(id)
+	if node == null:
+		return 0
+	var n := 0
+	for mesh: Node in node.find_children("*", "MeshInstance3D", true, false):
+		if _draws_xray(mesh, main.unit_highlight):
+			n += 1
+	return n
+
+
+static func _draws_xray(mesh: GeometryInstance3D, highlight: Node) -> bool:
+	var overlay := mesh.material_overlay
+	return overlay != null and (overlay == highlight._xray or overlay.next_pass == highlight._xray)
+
+
 func _ids_of(own: bool, squads := false) -> Array[int]:
 	var sim_host: SimHost = main.sim_host
 	var ids := sim_host.unit_ids()

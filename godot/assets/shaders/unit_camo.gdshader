@@ -13,6 +13,9 @@
 // Presentation only: nothing here feeds back into the simulation.
 shader_type spatial;
 render_mode blend_mix, depth_draw_opaque, cull_back, diffuse_burley, specular_schlick_ggx;
+// Visible unit surface: hidden parts of own units are drawn as a silhouette
+// only where no unit is in front (unit_xray.gdshader, prompt 165).
+stencil_mode write, compare_always, 1;
 
 // Clouds dim the direct sunlight (prompt 087): light() of the include.
 #include "res://assets/shaders/cloud_shadow.gdshaderinc"
