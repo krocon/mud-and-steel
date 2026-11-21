@@ -72,6 +72,7 @@ fn sim_with(
         teams: Teams::new(teams, shared_vision),
         weather: sim::WeatherSetup::default(),
         mission: None,
+        variant: None,
     };
     Sim::new(&config, map, 7).unwrap()
 }

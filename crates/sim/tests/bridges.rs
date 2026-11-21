@@ -112,6 +112,7 @@ fn sim_at(map: &Arc<Map>, spawns: &[(&str, Vec2)]) -> Sim {
         teams: sim::Teams::default(),
         weather: sim::WeatherSetup::default(),
         mission: None,
+        variant: None,
     };
     Sim::new(&config, Arc::clone(map), 7).unwrap()
 }

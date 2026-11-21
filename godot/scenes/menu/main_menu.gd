@@ -77,6 +77,9 @@ var map_option: OptionButton
 var biome_option: OptionButton
 ## Weather and time of day (prompt 040).
 var weather_option: OptionButton
+## Start layout of the map (prompt 182), entries of `MatchSetup.variant_choices`.
+var variant_option: OptionButton
+var _variants: Array[Dictionary] = []
 var daytime_option: OptionButton
 var faction_option: OptionButton
 var enemy_option: OptionButton
@@ -190,6 +193,7 @@ func start_skirmish() -> void:
 		"factions": PackedStringArray([own, enemy]),
 		"ai": MatchSetup.OPPONENTS.keys()[opponent_option.selected],
 		"mode": MatchSetup.MODES.keys()[mode_option.selected],
+		"variant": MatchSetup.resolve_variant(_maps[map_option.selected], selected_variant()),
 	}
 	if team_size() > 1:
 		MatchSetup.pending["slots"] = slot_list.slots()
@@ -277,8 +281,11 @@ func _skirmish_screen() -> Control:
 	map_option.select(MatchSetup.default_map_index(_maps))
 	map_option.item_selected.connect(func(_index: int) -> void:
 		_update_map_info()
+		_update_variants()
 		_update_team_sizes())
 	box.add_child(_row("MATCH_MAP", map_option))
+	variant_option = OptionButton.new()
+	box.add_child(_row("MATCH_VARIANT", variant_option))
 	_map_info = MenuTheme.hint("")
 	box.add_child(_map_info)
 
@@ -334,6 +341,7 @@ func _skirmish_screen() -> Control:
 	_button(buttons, "COMMON_BACK", func() -> void: show_screen("main"))
 	start_button = _button(buttons, "COMMON_START", start_skirmish)
 	_update_map_info()
+	_update_variants()
 	_update_team_sizes()
 	return box.get_meta(&"screen")
 
@@ -413,6 +421,23 @@ func _credits_screen() -> Control:
 	credits_panel.closed.connect(func() -> void: show_screen("main"))
 	center.add_child(credits_panel)
 	return center
+
+
+## The start layout chosen (`standard`, `random` or a variant name).
+func selected_variant() -> String:
+	if _variants.is_empty() or variant_option.selected < 0:
+		return "standard"
+	return _variants[variant_option.selected]["name"]
+
+
+## Fills the start layouts of the chosen map (prompt 182).
+func _update_variants() -> void:
+	_variants = MatchSetup.variant_choices(_maps[map_option.selected])
+	variant_option.clear()
+	for v in _variants:
+		variant_option.add_item(v["label"])
+	variant_option.select(0)
+	variant_option.disabled = _variants.size() <= 1
 
 
 func _update_map_info() -> void:

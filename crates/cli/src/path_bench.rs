@@ -57,6 +57,7 @@ pub fn run(map: Arc<Map>, options: &Options) -> Result<String, String> {
         teams: sim::Teams::default(),
         weather: sim::WeatherSetup::default(),
         mission: None,
+        variant: None,
     };
 
     let build = Instant::now();

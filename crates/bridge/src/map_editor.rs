@@ -733,19 +733,73 @@ impl MapEditor {
     fn start_teams(&self) -> VarDictionary {
         let mut d = VarDictionary::new();
         if let Some(map) = &self.map {
-            for &(player, team) in &map.meta().start_teams {
+            for &(player, team) in map.active_starts().1 {
                 d.set(i64::from(player), i64::from(team));
             }
         }
         d
     }
 
-    /// Start positions: player id → ground point (Vector3).
+    /// The start layouts (prompt 182): names, the standard one first; the
+    /// start tools edit `active_variant()`.
+    #[func]
+    fn variants(&self) -> PackedStringArray {
+        let mut out = PackedStringArray::new();
+        out.push(sim::map::STANDARD_VARIANT);
+        if let Some(map) = &self.map {
+            for v in &map.meta().variants {
+                out.push(v.name.as_str());
+            }
+        }
+        out
+    }
+
+    /// Index into `variants()` of the layout the start tools edit.
+    #[func]
+    fn active_variant(&self) -> i64 {
+        self.map.as_ref().map_or(0, |m| m.active_variant() as i64)
+    }
+
+    /// Edits the start layout `index` of `variants()`.
+    #[func]
+    fn select_variant(&mut self, index: i64) {
+        if let Some(map) = self.map.as_mut() {
+            map.select_variant(usize::try_from(index).unwrap_or(0));
+        }
+    }
+
+    /// Adds a start variant with a copy of the standard starts and edits
+    /// it; "" on success, else why not.
+    #[func]
+    fn add_variant(&mut self, name: GString, title: GString) -> GString {
+        let Some(map) = self.map.as_mut() else {
+            return GString::from("no map");
+        };
+        match map.add_variant(&name.to_string(), &title.to_string()) {
+            Ok(_) => {
+                self.edited(None);
+                GString::new()
+            }
+            Err(e) => GString::from(e.as_str()),
+        }
+    }
+
+    /// Removes the edited start variant (never the standard layout).
+    #[func]
+    fn remove_variant(&mut self) {
+        if let Some(map) = self.map.as_mut() {
+            map.remove_variant();
+        }
+        self.edited(None);
+    }
+
+    /// Start positions of the edited layout: player id → ground point
+    /// (Vector3).
     #[func]
     fn start_positions(&self) -> VarDictionary {
         let mut d = VarDictionary::new();
         if let Some(map) = &self.map {
-            for &(player, p) in &map.meta().starts {
+            for &(player, p) in map.active_starts().0 {
                 let (x, z) = (p[0] as f32, p[1] as f32);
                 d.set(
                     i64::from(player),

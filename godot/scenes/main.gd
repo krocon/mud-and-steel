@@ -696,6 +696,8 @@ func _start_simulation() -> bool:
 	if not MatchSetup.pending.is_empty():
 		var setup := MatchSetup.pending
 		sim_host.mode = setup.get("mode", "battle")
+		# Prompt 182: the start layout (already concrete, see `MatchSetup.resolve_variant`).
+		sim_host.variant = setup.get("variant", "")
 		# Teams with computer allies and enemies (prompt 037).
 		if setup.has("slots"):
 			return sim_host.start_slots(SEED, MatchSetup.map_dir(setup["map"]), setup["slots"], setup.get("shared_vision", true))

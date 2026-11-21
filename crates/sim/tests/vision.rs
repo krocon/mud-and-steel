@@ -79,6 +79,7 @@ fn config(
         teams: sim::Teams::default(),
         weather: sim::WeatherSetup::default(),
         mission: None,
+        variant: None,
     }
 }
 

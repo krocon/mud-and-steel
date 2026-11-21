@@ -164,6 +164,29 @@ fn map_toml(map: &EditMap, base: i32, step: u32) -> String {
             p[1]
         );
     }
+    // Prompt 182: other start layouts.
+    for v in &meta.variants {
+        let _ = write!(t, "\n[[variant]]\nname = {}\n", quoted(&v.name));
+        if !v.title.is_empty() && v.title != v.name {
+            let _ = writeln!(t, "title = {}", quoted(&v.title));
+        }
+        if let Some(supply) = &v.supply {
+            let names: Vec<String> = supply.iter().map(|n| quoted(n)).collect();
+            let _ = writeln!(t, "supply = [{}]", names.join(", "));
+        }
+        for (player, p) in &v.starts {
+            let team = v
+                .start_teams
+                .iter()
+                .find(|s| s.0 == *player)
+                .map_or(String::new(), |s| format!("team = {}\n", s.1));
+            let _ = write!(
+                t,
+                "\n[[variant.start]]\nplayer = {player}\n{team}position_m = [{}, {}]\n",
+                p[0], p[1]
+            );
+        }
+    }
     t
 }
 

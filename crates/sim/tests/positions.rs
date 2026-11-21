@@ -80,6 +80,7 @@ fn sim_on(map: Arc<Map>, spawns: &[(PlayerId, &str, i32, i32, FireMode)], extra:
         teams: sim::Teams::default(),
         weather: sim::WeatherSetup::default(),
         mission: None,
+        variant: None,
     };
     Sim::new(&config, map, 5).unwrap()
 }

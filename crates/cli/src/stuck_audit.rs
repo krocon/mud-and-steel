@@ -270,6 +270,7 @@ fn base_config(map: &Map, ids: &[String], spawns: Vec<Spawn>) -> Result<SimConfi
         teams: sim::Teams::default(),
         weather: sim::WeatherSetup::default(),
         mission: None,
+        variant: None,
     })
 }
 

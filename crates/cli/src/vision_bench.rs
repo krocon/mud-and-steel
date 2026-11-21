@@ -68,6 +68,7 @@ fn run_once(map: &Arc<Map>, options: &Options, vision: VisionRules) -> Result<Ru
         teams: sim::Teams::default(),
         weather: sim::WeatherSetup::default(),
         mission: None,
+        variant: None,
     };
     let build = Instant::now();
     let mut sim = Sim::new(&config, Arc::clone(map), options.seed).map_err(|e| e.to_string())?;

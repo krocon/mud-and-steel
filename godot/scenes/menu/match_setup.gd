@@ -148,6 +148,32 @@ static func describe_map(map_name: String) -> String:
 	return "%s%s%s" % [size, (", " + biome) if not biome.is_empty() else "", (", " + weather) if not weather.is_empty() else ""]
 
 
+## The start layouts to choose from (prompt 182): dictionaries with
+## `name` (`standard`, `random`, or a `[[variant]]` name) and `label` (the
+## text of the choice); just the standard one for maps without variants.
+static func variant_choices(map_name: String) -> Array[Dictionary]:
+	var found: Array = SimHost.map_variants("" if map_name == BUILTIN_MAP else map_dir(map_name))
+	var out: Array[Dictionary] = [{"name": "standard", "label": TranslationServer.translate("MATCH_VARIANT_STANDARD")}]
+	if found.size() > 1:
+		out.append({"name": "random", "label": TranslationServer.translate("MATCH_VARIANT_RANDOM")})
+		for v: Dictionary in found.slice(1):
+			out.append({"name": v["name"], "label": v["title"] if not String(v["title"]).is_empty() else v["name"]})
+	return out
+
+
+## A concrete start layout for `choice` in single player: `random` picks
+## one of the map's layouts now (the match records the name, so replays
+## and saves keep it); others stay.
+static func resolve_variant(map_name: String, choice: String) -> String:
+	if choice != "random":
+		return choice
+	var found: Array = SimHost.map_variants("" if map_name == BUILTIN_MAP else map_dir(map_name))
+	if found.is_empty():
+		return "standard"
+	var pick: Dictionary = found[Time.get_ticks_usec() % found.size()]
+	return pick["name"]
+
+
 ## Start positions of a map from its `map.toml` (prompt 037): dictionaries
 ## with `player` and `team` (the map's suggestion, else player % 2), by
 ## player. The built-in map has two.

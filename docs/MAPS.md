@@ -61,6 +61,64 @@ the center of the player's first group (`sim::scenario`, layout unchanged).
 Maps without a start for a player keep the scenario's positions; the test maps
 have their starts at the demo's centers.
 
+### Start variants (prompt 182)
+
+A map may have further start layouts besides its `[[start]]` entries (the
+"standard" layout):
+
+```toml
+[[variant]]
+name = "west_east"                 # id: lowercase letters, digits, _ (not standard, random)
+title = "West against east"        # shown in the lobby (optional, default: the name)
+supply = ["supply_square", "supply_well"]  # optional: only these supply points count
+
+[[variant.start]]                  # the same players as the standard starts
+player = 0
+team = 0
+position_m = [-330, 90]
+```
+
+- The single-player setup, the LAN lobby and the Steam lobby offer
+  **Start layout**: Standard, Random and the variants (only on maps that
+  have some). Random in a lobby is picked by the host from the match seed
+  (`Map::choose_variant`, the same on every peer); in single player the menu
+  picks one when the match starts. The match records the chosen layout
+  (`SimConfig::variant`: name and supply points), so replays and saved
+  games keep it.
+- It is an input of the scenario, no hidden state: the host places the units
+  at the variant's starts (`sim::scenario::build_in_variant` with
+  `Map::with_variant`), the simulation only reads which supply points count.
+  Starts are no part of the map hash, so the map hash stays; the golden hash
+  is unchanged (the demo uses the standard layout).
+- Lobby teams and team sizes follow the standard starts (a variant places the
+  same players; its `team` entries are kept for the editor).
+- The computer players look for enemy homes at the variant's starts.
+- Check, `just map-check` and the editor check every variant like the
+  standard layout (messages begin with "start variant '<name>':");
+  `just map-reach` lists every variant's starts and their path lengths to the
+  variant's supply points.
+
+Second layouts (measured in prompt 182, `just map-reach`: every start in the
+main area for vehicles and infantry):
+
+| Map | Variant | Starts | Supply points |
+|---|---|---|---|
+| skirmish | `east_west` | west (-600, 100) against east (520, -420), the river behind the east | all |
+| farms | `west_east` | west against east, two per side | all |
+| desert_village | `west_east` | west against east, two per side | all three |
+| twin_meadow | `river_sides` | west of the village and the meadow against east of the river | meadows, village, hill (not the ford) |
+| winter_village | `west_east` | west against east, two per side | square and trench hill only |
+
+`just ai-tournament --map <map> --variant <name> --a hard --b normal
+--games 40` (1 against 1: players 0 and 1; hard plays player 0), wins of
+hard / normal / timeouts, standard → variant: skirmish 5/65/12 % →
+7/42/20 %; farms 27/35/15 → 47/5/19 (the west start favors player 0);
+desert_village 42/47/4 → 40/40/8; twin_meadow 37/62/0 → 52/30/7 (the
+river between the sides makes games longer); winter_village 35/0/26 →
+42/0/23 (normal never wins there in either layout). The pairing is not
+mirrored, so the numbers mix strength and side; desert_village is the only
+layout pair that is even.
+
 Height of a sample: `height_base_mm + png_value * height_step_mm` millimeters. All
 heights must stay within ±10 km.
 
@@ -1074,7 +1132,14 @@ DIR` for any map folder) loads the files the way a match does (`Map::load`,
 - whether every supply point (markers `supply*`) can be reached from
   player 0's start, within 20 m (prompt 060): an error if no unit type
   gets there, a warning listing the types that do not,
-- the map hash a match on it will use.
+- the map hash a match on it will use,
+- the same for every start variant (prompt 182).
+
+**Start variants** (prompt 182): the start tools edit the layout chosen under
+**Layout** (shown with them): `standard` or a variant; **New** adds a variant
+`variant_<n>` with a copy of the standard starts and edits it, **Remove**
+drops the edited one. Saved as `[[variant]]` in `map.toml` (rename and
+`supply` by hand for now).
 
 The editing code is the crate `crates/editor` (`EditMap`, brushes, undo,
 files, validation): integers only like the simulation, so the same edit

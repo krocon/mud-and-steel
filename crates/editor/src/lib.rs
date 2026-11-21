@@ -67,12 +67,43 @@ pub struct Meta {
     pub start_teams: Vec<(u8, u8)>,
     /// `(name, [x, y] meters)`, kept as loaded.
     pub markers: Vec<(String, [i32; 2])>,
+    /// Other start layouts (prompt 182, `[[variant]]`).
+    pub variants: Vec<VariantMeta>,
+}
+
+/// A start variant in the editor (prompt 182): like the standard layout
+/// in [`Meta`], plus the supply points it uses (`None`: all).
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct VariantMeta {
+    pub name: String,
+    pub title: String,
+    pub starts: Vec<(u8, [i32; 2])>,
+    pub start_teams: Vec<(u8, u8)>,
+    pub supply: Option<Vec<String>>,
 }
 
 impl Meta {
     /// The suggested team of `player`'s start, if any.
     pub fn start_team(&self, player: u8) -> Option<u8> {
         self.start_teams.iter().find(|s| s.0 == player).map(|s| s.1)
+    }
+}
+
+/// Starts and teams of a start layout: `(player, [x, y] m)` and
+/// `(player, team)`.
+pub type StartsView<'a> = (&'a [(u8, [i32; 2])], &'a [(u8, u8)]);
+
+/// Starts and teams of layout `active` (0 = standard, see
+/// `EditMap::active`); a stale index edits the standard one.
+type Layout<'a> = (&'a mut Vec<(u8, [i32; 2])>, &'a mut Vec<(u8, u8)>);
+
+fn layout_mut(m: &mut Meta, active: usize) -> Layout<'_> {
+    match active.checked_sub(1) {
+        Some(k) if k < m.variants.len() => {
+            let v = &mut m.variants[k];
+            (&mut v.starts, &mut v.start_teams)
+        }
+        _ => (&mut m.starts, &mut m.start_teams),
     }
 }
 
@@ -139,6 +170,9 @@ pub struct EditMap {
     dabs: u64,
     /// Incremented by every change (for caches of the presentation).
     version: u64,
+    /// The start layout the start tools edit (prompt 182): 0 = standard,
+    /// `k` = `meta.variants[k - 1]`. View state, not undone.
+    active: usize,
 }
 
 impl EditMap {
@@ -169,6 +203,7 @@ impl EditMap {
             starts: vec![(0, [0, d]), (1, [0, -d])],
             start_teams: Vec::new(),
             markers: Vec::new(),
+            variants: Vec::new(),
         };
         Self::from_parts(
             (samples_x, samples_y),
@@ -214,6 +249,31 @@ impl EditMap {
                 .iter()
                 .map(|m| (m.name.clone(), meters(m.position)))
                 .collect(),
+            variants: map
+                .variants()
+                .iter()
+                .map(|v| {
+                    let mut starts: Vec<(u8, [i32; 2])> = v
+                        .starts
+                        .iter()
+                        .map(|s| (s.player, meters(s.position)))
+                        .collect();
+                    starts.sort_by_key(|s| s.0);
+                    let mut start_teams: Vec<(u8, u8)> = v
+                        .starts
+                        .iter()
+                        .filter_map(|s| Some((s.player, s.team?)))
+                        .collect();
+                    start_teams.sort_by_key(|s| s.0);
+                    VariantMeta {
+                        name: v.name.clone(),
+                        title: v.title.clone(),
+                        starts,
+                        start_teams,
+                        supply: v.supply.clone(),
+                    }
+                })
+                .collect(),
         };
         let objects = parse_objects(&files.objects_csv)?;
         Self::from_parts(
@@ -254,6 +314,7 @@ impl EditMap {
             seed: 0x0028_ed17_0000_0001,
             dabs: 0,
             version: 0,
+            active: 0,
         })
     }
 
@@ -314,6 +375,27 @@ impl EditMap {
         };
         let mut map = Map::from_rasters(layout, self.heights.clone(), self.terrain.clone())
             .map_err(|e| e.to_string())?;
+        map.set_variants(
+            self.meta
+                .variants
+                .iter()
+                .map(|v| sim::map::MapVariant {
+                    name: v.name.clone(),
+                    title: v.title.clone(),
+                    starts: v
+                        .starts
+                        .iter()
+                        .map(|&(player, p)| StartPosition {
+                            player,
+                            position: point(p),
+                            team: v.start_teams.iter().find(|t| t.0 == player).map(|t| t.1),
+                        })
+                        .collect(),
+                    supply: v.supply.clone(),
+                })
+                .collect(),
+        )
+        .map_err(|e| e.to_string())?;
         let half = Vec2::from_millimeters(self.half_x_mm, self.half_y_mm);
         let list =
             ObjectList::parse(&self.objects_csv(), &self.rules, half).map_err(|e| e.to_string())?;
@@ -459,11 +541,78 @@ impl EditMap {
             (v + v.signum() * 500) / 1000
         };
         let p = [to_m(x_mm, self.half_x_mm), to_m(y_mm, self.half_y_mm)];
+        let active = self.active;
         self.edit_meta(|m| {
-            m.starts.retain(|s| s.0 != player);
-            m.starts.push((player, p));
-            m.starts.sort_by_key(|s| s.0);
+            let (starts, _) = layout_mut(m, active);
+            starts.retain(|s| s.0 != player);
+            starts.push((player, p));
+            starts.sort_by_key(|s| s.0);
         });
+    }
+
+    /// The start layout the start tools edit: 0 = standard, `k` = the
+    /// `k`-th variant (prompt 182).
+    pub const fn active_variant(&self) -> usize {
+        self.active
+    }
+
+    /// Chooses the start layout to edit; out of range: the standard one.
+    pub fn select_variant(&mut self, k: usize) {
+        self.active = if k <= self.meta.variants.len() { k } else { 0 };
+        self.version += 1;
+    }
+
+    /// Starts and teams of the edited layout.
+    pub fn active_starts(&self) -> StartsView<'_> {
+        match self
+            .active
+            .checked_sub(1)
+            .and_then(|k| self.meta.variants.get(k))
+        {
+            Some(v) => (&v.starts, &v.start_teams),
+            None => (&self.meta.starts, &self.meta.start_teams),
+        }
+    }
+
+    /// Adds a start variant `name` (lowercase letters, digits, `_`) with a
+    /// copy of the standard starts and selects it; returns its index.
+    pub fn add_variant(&mut self, name: &str, title: &str) -> Result<usize, String> {
+        let ok = !name.is_empty()
+            && name.len() <= 32
+            && name
+                .chars()
+                .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '_')
+            && name != sim::map::STANDARD_VARIANT
+            && name != sim::map::RANDOM_VARIANT;
+        if !ok {
+            return Err(format!("bad start variant name '{name}'"));
+        }
+        if self.meta.variants.iter().any(|v| v.name == name) {
+            return Err(format!("start variant '{name}' exists"));
+        }
+        let v = VariantMeta {
+            name: name.into(),
+            title: title.into(),
+            starts: self.meta.starts.clone(),
+            start_teams: self.meta.start_teams.clone(),
+            supply: None,
+        };
+        self.edit_meta(|m| m.variants.push(v));
+        self.active = self.meta.variants.len();
+        Ok(self.active)
+    }
+
+    /// Removes the edited start variant (not the standard layout).
+    pub fn remove_variant(&mut self) {
+        let Some(k) = self.active.checked_sub(1) else {
+            return;
+        };
+        self.edit_meta(|m| {
+            if k < m.variants.len() {
+                m.variants.remove(k);
+            }
+        });
+        self.active = 0;
     }
 
     /// Adds a strongpoint marker (prompt 052: `<prefix><n>`, a neutral trench
@@ -517,22 +666,28 @@ impl EditMap {
         count
     }
 
-    /// Removes the start position of `player` (and its team).
+    /// Removes the start position of `player` (and its team) from the
+    /// edited layout.
     pub fn remove_start(&mut self, player: u8) {
+        let active = self.active;
         self.edit_meta(|m| {
-            m.starts.retain(|s| s.0 != player);
-            m.start_teams.retain(|s| s.0 != player);
+            let (starts, teams) = layout_mut(m, active);
+            starts.retain(|s| s.0 != player);
+            teams.retain(|s| s.0 != player);
         });
     }
 
-    /// Sets the suggested team of `player`'s start (prompt 037; `None`:
-    /// no suggestion, the player is on a team of their own).
+    /// Sets the suggested team of `player`'s start in the edited layout
+    /// (prompt 037; `None`: no suggestion, the player is on a team of
+    /// their own).
     pub fn set_start_team(&mut self, player: u8, team: Option<u8>) {
+        let active = self.active;
         self.edit_meta(|m| {
-            m.start_teams.retain(|s| s.0 != player);
+            let (_, teams) = layout_mut(m, active);
+            teams.retain(|s| s.0 != player);
             if let Some(team) = team {
-                m.start_teams.push((player, team));
-                m.start_teams.sort_by_key(|s| s.0);
+                teams.push((player, team));
+                teams.sort_by_key(|s| s.0);
             }
         });
     }

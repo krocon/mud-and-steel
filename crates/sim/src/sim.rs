@@ -112,6 +112,30 @@ pub struct SimConfig {
     /// skirmishes.
     #[serde(default)]
     pub mission: Option<crate::mission::Mission>,
+    /// The start layout of the map (prompt 182, `[[variant]]` in
+    /// `map.toml`); `None`: the standard one. An input of the scenario:
+    /// the spawns already stand at its starts; the simulation only reads
+    /// which supply points count.
+    #[serde(default)]
+    pub variant: Option<VariantSetup>,
+}
+
+/// A chosen start layout (prompt 182), see [`SimConfig::variant`].
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct VariantSetup {
+    pub name: String,
+    /// Supply markers that count; `None`: all of the map's.
+    pub supply: Option<Vec<String>>,
+}
+
+impl VariantSetup {
+    /// The setup of a map's start variant.
+    pub fn of(variant: &crate::map::MapVariant) -> Self {
+        Self {
+            name: variant.name.clone(),
+            supply: variant.supply.clone(),
+        }
+    }
 }
 
 impl SimConfig {
@@ -578,6 +602,10 @@ pub struct Sim {
     /// The mission script and its progress (prompt 039).
     #[serde(default)]
     mission: Option<Box<mission::MissionRt>>,
+    /// Name of the start layout of the match (prompt 182), for the
+    /// presentation; follows from the config, so not hashed.
+    #[serde(default)]
+    variant: Option<String>,
     /// Vehicles running soldiers over (prompt 093): lists of the current
     /// tick, not state.
     #[serde(skip)]
@@ -814,6 +842,7 @@ impl Sim {
                 .mission
                 .as_ref()
                 .map(|m| Box::new(mission::MissionRt::new(m))),
+            variant: config.variant.as_ref().map(|v| v.name.clone()),
             overrun: overrun::Overrun::default(),
         };
         sim.init_weather();
@@ -1035,6 +1064,12 @@ impl Sim {
     /// The unit types of the match (`SimConfig::unit_types`).
     pub fn unit_types(&self) -> &[UnitType] {
         &self.unit_types
+    }
+
+    /// The start layout the match was set up in (prompt 182), `None` for
+    /// the standard one.
+    pub fn config_variant(&self) -> Option<&str> {
+        self.variant.as_deref()
     }
 
     pub const fn tick_hz(&self) -> u32 {
@@ -2556,6 +2591,7 @@ mod tests {
             teams: crate::teams::Teams::default(),
             weather: crate::weather::WeatherSetup::default(),
             mission: None,
+            variant: None,
         }
     }
 
@@ -3249,6 +3285,7 @@ mod object_tests {
             teams: crate::teams::Teams::default(),
             weather: crate::weather::WeatherSetup::default(),
             mission: None,
+            variant: None,
         };
         (Sim::new(&config, map.clone(), 1).unwrap(), map)
     }

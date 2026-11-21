@@ -73,6 +73,7 @@ fn sim_with(map: Arc<Map>, spawns: &[(PlayerId, &str, i32, i32, FireMode)]) -> S
         teams: sim::Teams::default(),
         weather: sim::WeatherSetup::default(),
         mission: None,
+        variant: None,
     };
     Sim::new(&config, map.clone(), 7).unwrap()
 }
@@ -124,6 +125,7 @@ fn config_of(sim: &Sim, spawns: &[(PlayerId, &str, i32, i32, FireMode)]) -> SimC
         teams: sim::Teams::default(),
         weather: sim::WeatherSetup::default(),
         mission: None,
+        variant: None,
     }
 }
 

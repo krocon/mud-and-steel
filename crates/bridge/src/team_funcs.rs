@@ -102,7 +102,10 @@ pub(crate) fn start_setup<L: Link>(
 ) -> Result<(), String> {
     let map = load_map(map_dir)?;
     let setup = node.setup().clone();
-    let mut config = slots_config(&setup.mode, &map, &setup_slots(&setup), setup.shared_vision)?;
+    let mut config =
+        sim::scenario::build_in_variant(&map, &setup.variant, seed.cast_unsigned(), |m| {
+            slots_config(&setup.mode, m, &setup_slots(&setup), setup.shared_vision)
+        })?;
     if hold_fire {
         for spawn in &mut config.spawns {
             spawn.fire_mode = sim::FireMode::HoldFire;
@@ -155,14 +158,21 @@ pub(crate) fn lobby_slots<L: Link>(node: &LobbyNode<L>) -> Array<VarDictionary> 
         .collect()
 }
 
-/// The match settings of a lobby: `map`, `mode`, `shared_vision`.
+/// The match settings of a lobby: `map`, `mode`, `shared_vision`,
+/// `variant` (prompt 182).
 pub(crate) fn lobby_match<L: Link>(node: &LobbyNode<L>) -> VarDictionary {
     let setup = node.setup();
     vdict! {
         "map" => setup.map.clone(),
         "mode" => setup.mode.clone(),
         "shared_vision" => setup.shared_vision,
+        "variant" => setup.variant.clone(),
     }
+}
+
+/// Host: the start layout of the lobby's map (prompt 182).
+pub(crate) fn set_lobby_variant<L: Link>(node: &mut LobbyNode<L>, variant: &str) {
+    node.edit_setup(|s| variant.clone_into(&mut s.variant));
 }
 
 /// Host: what slot `index` holds: `open`, `closed` or `computer` with the
@@ -300,7 +310,12 @@ impl SimHost {
             godot_error!("start_slots: slot 0 must be the local player");
             return false;
         }
-        let config = match slots_config(&self.mode.to_string(), &map, &setup, shared_vision) {
+        let mode = self.mode.to_string();
+        let variant = self.variant.to_string();
+        let built = sim::scenario::build_in_variant(&map, &variant, seed.cast_unsigned(), |m| {
+            slots_config(&mode, m, &setup, shared_vision)
+        });
+        let config = match built {
             Ok(config) => config,
             Err(e) => {
                 godot_error!("{e}");

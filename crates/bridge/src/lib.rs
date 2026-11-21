@@ -304,6 +304,10 @@ pub struct SimHost {
     /// default) or `"base"` (base building, `data/scenarios/skirmish.toml`).
     #[export]
     mode: GString,
+    /// Start layout of single-player matches (prompt 182): "" /
+    /// `standard`, `random` (from the seed) or a variant name.
+    #[export]
+    variant: GString,
     /// Game time per real time (1 = normal). Only the number of ticks per
     /// frame changes, so a match plays the same at any speed (self-tests).
     #[export]
@@ -356,6 +360,7 @@ impl INode for SimHost {
             process_usec: 0,
             process_ticks: 0,
             mode: GString::new(),
+            variant: GString::new(),
             speed: 1.0,
             weather: GString::new(),
             daytime: GString::new(),
@@ -480,6 +485,48 @@ impl SimHost {
         self.process_ticks
     }
 
+    /// The start layouts of the map in `map_dir` (absolute, "" = the
+    /// built-in map), prompt 182: dictionaries with `name`, `title` and
+    /// `starts` (number of start positions), the standard layout first.
+    #[func]
+    fn map_variants(map_dir: GString) -> VarArray {
+        let dir = map_dir.to_string();
+        let map = if dir.is_empty() {
+            Ok(builtin_map())
+        } else {
+            load_map_toml_only(Path::new(&dir))
+        };
+        let mut out = VarArray::new();
+        let Ok(map) = map else {
+            return out;
+        };
+        let standard = vdict! {
+            "name" => sim::map::STANDARD_VARIANT,
+            "title" => "",
+            "starts" => map.starts().len() as i64,
+        };
+        out.push(&standard.to_variant());
+        for v in map.variants() {
+            let d = vdict! {
+                "name" => v.name.as_str(),
+                "title" => v.title.as_str(),
+                "starts" => v.starts.len() as i64,
+            };
+            out.push(&d.to_variant());
+        }
+        out
+    }
+
+    /// The variant this match was started in ("" for the standard layout).
+    #[func]
+    fn match_variant(&self) -> GString {
+        self.game
+            .as_ref()
+            .and_then(|g| g.sim.config_variant())
+            .map(GString::from)
+            .unwrap_or_default()
+    }
+
     /// Starts the demo scenario (two players, eight tanks each) on the
     /// built-in map `test_small` with the local player in slot 0. Returns
     /// `false` (and logs an error) if the data is invalid.
@@ -509,7 +556,11 @@ impl SimHost {
         } else {
             DEMO_SCENARIO
         };
-        let config = match scenario_config(scenario, &map, factions) {
+        let variant = self.variant.to_string();
+        let built = sim::scenario::build_in_variant(&map, &variant, seed.cast_unsigned(), |m| {
+            scenario_config(scenario, m, factions)
+        });
+        let config = match built {
             Ok(config) => config,
             Err(e) => {
                 godot_error!("{e}");
@@ -1278,6 +1329,18 @@ fn scenario_config(
     Ok(parse_scenario_with_factions(
         scenario, factions, &catalog, &scale, &terrain, map,
     )?)
+}
+
+/// The map of `dir` without its objects (for its metadata).
+fn load_map_toml_only(dir: &Path) -> Result<Arc<Map>, String> {
+    let read = |file: &str| {
+        let path = dir.join(file);
+        std::fs::read(&path).map_err(|e| format!("cannot read {}: {e}", path.display()))
+    };
+    let toml = String::from_utf8(read("map.toml")?).map_err(|e| e.to_string())?;
+    Map::load(&toml, &read("height.png")?, &read("terrain.png")?)
+        .map(Arc::new)
+        .map_err(|e| format!("{}: {e}", dir.display()))
 }
 
 /// Reads and decodes `dir/map.toml`, `dir/height.png`, `dir/terrain.png`

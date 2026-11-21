@@ -78,7 +78,7 @@ ENet channel 0, lobby messages (postcard, `net::lobby`; the same over Steam):
 | `Ready(bool)` | client → host | |
 | `Start(StartInfo)` | host → all | seed, resolved `SimConfig`, players, initial input delay, hash interval |
 | `PeerLeft(player)` | host → all | a player left the running match; it ends |
-| `Setup(LobbySetup)` | host → all | slots (open, human, computer with difficulty, closed; team, faction), map, mode, shared vision (prompt 037, [TEAMS.md](TEAMS.md)) |
+| `Setup(LobbySetup)` | host → all | slots (open, human, computer with difficulty, closed; team, faction), map, mode, shared vision (prompt 037, [TEAMS.md](TEAMS.md)), start variant (prompt 182: `standard`, `random` or a name, [MAPS.md](MAPS.md#start-variants-prompt-182)) |
 | `Choose { team, faction }` | client → host | team and faction of the client's own slot |
 
 ENet channel 1 carries the opaque lockstep messages of `net::Transport`
@@ -118,7 +118,12 @@ and hash reports as if they had their own peer. Since prompt 037 the lobby has
 slots ([TEAMS.md](TEAMS.md)): the host picks map, mode and shared vision before
 hosting and then sets every slot (open, computer with difficulty, closed; team
 and faction), a client its own team and faction; the host runs the computer
-players. `PROTOCOL_VERSION` is 3.
+players. Since prompt 182 the host also picks the **start layout** of the
+map (`LanLobby.set_variant`); `random` is resolved from the match seed when
+the host starts, and the `StartInfo` carries the result in its
+`SimConfig::variant`. `PROTOCOL_VERSION` is 8 (older clients are rejected
+with "protocol version 7, the host has 8"); the self-tests take
+`--variant=<name>`.
 
 ## Tests
 

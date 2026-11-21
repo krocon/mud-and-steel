@@ -1410,6 +1410,7 @@ pub fn parse_mission_at(
         teams: crate::teams::Teams::default(),
         weather: map.weather(),
         mission: Some(mission),
+        variant: None,
     })
 }
 

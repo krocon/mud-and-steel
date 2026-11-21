@@ -57,6 +57,7 @@ fn setup(map: Arc<Map>) -> Sim {
         vision: sim::VisionRules::builtin().unwrap(),
         infantry: sim::InfantryRules::builtin().unwrap(),
         mission: None,
+        variant: None,
         teams: sim::Teams::default(),
         weather: sim::WeatherSetup::default(),
     };

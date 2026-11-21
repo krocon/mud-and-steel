@@ -67,3 +67,29 @@ position_m = [-120, 0]
 [[marker]]
 name = "supply_meadow_east"
 position_m = [120, 0]
+
+# Prompt 182: a second start layout (docs/MAPS.md "Start variants").
+[[variant]]
+name = "river_sides"
+title = "West against east, across the river"
+supply = ["supply_meadow_west", "supply_meadow_east", "supply_village", "supply_hill"]
+
+[[variant.start]]
+player = 0
+team = 0
+position_m = [-380, 300]
+
+[[variant.start]]
+player = 1
+team = 1
+position_m = [440, -120]
+
+[[variant.start]]
+player = 2
+team = 0
+position_m = [-400, -120]
+
+[[variant.start]]
+player = 3
+team = 1
+position_m = [440, 120]

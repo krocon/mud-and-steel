@@ -476,6 +476,40 @@ func _draw_cursor() -> void:
 	_cursor_mesh.surface_end()
 
 
+## Edits the start layout `index` of `editor.variants()` (prompt 182).
+func select_variant(index: int) -> void:
+	editor.select_variant(index)
+	_update_starts()
+	if panel != null:
+		panel.update_variants()
+
+
+## Adds a start variant with a copy of the standard starts
+## (`variant_<n>`) and edits it; returns its name ("" on failure).
+func add_variant() -> String:
+	var n := editor.variants().size()
+	var name := "variant_%d" % n
+	while name in editor.variants():
+		n += 1
+		name = "variant_%d" % n
+	var error := editor.add_variant(name, "")
+	if not error.is_empty():
+		push_warning(error)
+		return ""
+	_update_starts()
+	if panel != null:
+		panel.update_variants()
+	return name
+
+
+## Removes the edited start variant (not the standard layout).
+func remove_variant() -> void:
+	editor.remove_variant()
+	_update_starts()
+	if panel != null:
+		panel.update_variants()
+
+
 ## Team of `player`'s start, -1 without (prompt 037).
 func start_team_of(player: int) -> int:
 	return int(editor.start_teams().get(player, -1))

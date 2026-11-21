@@ -77,6 +77,7 @@ fn sim_with(map: Arc<Map>, spawns: &[(&str, i32, i32)]) -> Sim {
         teams: sim::Teams::default(),
         weather: sim::WeatherSetup::default(),
         mission: None,
+        variant: None,
     };
     Sim::new(&config, map, 7).unwrap()
 }

@@ -364,6 +364,7 @@ fn parse_scenario_inner(
         // The map's default weather (prompt 040); the setup may override it.
         weather: map.weather(),
         mission: None,
+        variant: None,
     })
 }
 
@@ -737,6 +738,28 @@ pub fn run_economy(seed: u64, ticks: u64) -> Sim {
         sim.step(&commands);
     }
     sim
+}
+
+/// Builds a match on `map` in the start layout `choice` (prompt 182:
+/// `""`/`"standard"`, `"random"` picked from `seed`, or a `[[variant]]`
+/// name): `build` gets the map with that layout's starts, and the
+/// config records the layout ([`crate::SimConfig::variant`]).
+pub fn build_in_variant<E: std::fmt::Display>(
+    map: &Map,
+    choice: &str,
+    seed: u64,
+    build: impl FnOnce(&Map) -> Result<crate::SimConfig, E>,
+) -> Result<crate::SimConfig, String> {
+    let variant = map
+        .choose_variant(choice, seed)
+        .map_err(|e| e.to_string())?;
+    let mut config = match variant {
+        Some(v) => build(&map.with_variant(v)),
+        None => build(map),
+    }
+    .map_err(|e| e.to_string())?;
+    config.variant = variant.map(crate::VariantSetup::of);
+    Ok(config)
 }
 
 #[cfg(test)]

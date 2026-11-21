@@ -47,6 +47,27 @@ pub struct StartPosition {
     pub team: Option<u8>,
 }
 
+/// Another start layout of a map (prompt 182, `[[variant]]` in
+/// `map.toml`): its own start positions and, if given, the supply points
+/// that count in it. The map's own `[[start]]` entries are the standard
+/// layout ([`STANDARD_VARIANT`]).
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct MapVariant {
+    /// Id (lowercase, digits, `_`): lobby, replays, `SimConfig::variant`.
+    pub name: String,
+    /// Shown in the lobby (English; the map's name is not translated
+    /// either).
+    pub title: String,
+    pub starts: Vec<StartPosition>,
+    /// Supply markers that count in this layout; `None`: all of them.
+    pub supply: Option<Vec<String>>,
+}
+
+/// Name of a map's own start layout (its `[[start]]` entries).
+pub const STANDARD_VARIANT: &str = "standard";
+/// Lobby choice: one of the layouts, picked from the match seed.
+pub const RANDOM_VARIANT: &str = "random";
+
 /// A named point from `map.toml` (for tools and tests, e.g. `hill_top`).
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Marker {
@@ -109,6 +130,18 @@ struct StartEntry {
 
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
+struct VariantEntry {
+    name: String,
+    #[serde(default)]
+    title: String,
+    #[serde(default)]
+    start: Vec<StartEntry>,
+    #[serde(default)]
+    supply: Option<Vec<String>>,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
 struct MarkerEntry {
     name: String,
     #[serde(flatten)]
@@ -147,6 +180,9 @@ struct MapFile {
     start: Vec<StartEntry>,
     #[serde(default)]
     marker: Vec<MarkerEntry>,
+    /// Other start layouts (prompt 182).
+    #[serde(default)]
+    variant: Vec<VariantEntry>,
 }
 
 /// Height difference (mm) between a deck and the ground beside it up to
@@ -177,6 +213,9 @@ pub struct Map {
     terrain: Vec<u8>,
     starts: Vec<StartPosition>,
     markers: Vec<Marker>,
+    /// Other start layouts (prompt 182); not part of `hash`, like the
+    /// starts.
+    variants: Vec<MapVariant>,
     /// Not part of `hash`.
     biome: Biome,
     /// Not part of `hash` (presentation only).
@@ -282,6 +321,29 @@ impl Map {
                 .collect(),
         };
         let mut map = Self::from_rasters(layout, heights_mm, terrain)?;
+        let variants = file
+            .variant
+            .into_iter()
+            .map(|v| MapVariant {
+                title: if v.title.is_empty() {
+                    v.name.clone()
+                } else {
+                    v.title
+                },
+                name: v.name,
+                starts: v
+                    .start
+                    .into_iter()
+                    .map(|s| StartPosition {
+                        player: s.player,
+                        position: point(&s.point),
+                        team: s.team,
+                    })
+                    .collect(),
+                supply: v.supply,
+            })
+            .collect();
+        map.set_variants(variants)?;
         map.biome = file.biome;
         map.weather = crate::weather::WeatherSetup {
             weather: file.weather,
@@ -376,6 +438,7 @@ impl Map {
             terrain,
             starts,
             markers,
+            variants: Vec::new(),
             objects: ObjectList::default(),
             bridges: Vec::new(),
             biome: Biome::default(),
@@ -605,6 +668,116 @@ impl Map {
 
     pub fn starts(&self) -> &[StartPosition] {
         &self.starts
+    }
+
+    /// The other start layouts (prompt 182), in file order.
+    pub fn variants(&self) -> &[MapVariant] {
+        &self.variants
+    }
+
+    /// Names of every start layout: [`STANDARD_VARIANT`] first.
+    pub fn variant_names(&self) -> Vec<String> {
+        std::iter::once(STANDARD_VARIANT.to_owned())
+            .chain(self.variants.iter().map(|v| v.name.clone()))
+            .collect()
+    }
+
+    /// The layout a lobby choice stands for: `""` or [`STANDARD_VARIANT`]
+    /// the standard one (`None`), [`RANDOM_VARIANT`] one of all layouts
+    /// picked from `seed` (the same on every peer), otherwise the layout of
+    /// that name. Unknown names are an error.
+    pub fn choose_variant(&self, choice: &str, seed: u64) -> Result<Option<&MapVariant>, MapError> {
+        match choice {
+            "" | STANDARD_VARIANT => Ok(None),
+            RANDOM_VARIANT => {
+                let n = self.variants.len() as u64 + 1;
+                // A mix of the seed, so neighboring seeds spread.
+                let k = crate::rng::Rng::new(seed ^ 0x5641_5249_414e_5453).next_u64() % n;
+                Ok(usize::try_from(k)
+                    .ok()
+                    .and_then(|k| k.checked_sub(1))
+                    .map(|k| &self.variants[k]))
+            }
+            name => self
+                .variants
+                .iter()
+                .find(|v| v.name == name)
+                .map(Some)
+                .ok_or_else(|| {
+                    MapError(format!("map '{}' has no start variant '{name}'", self.name))
+                }),
+        }
+    }
+
+    /// A copy of the map whose start positions are those of `variant`
+    /// (prompt 182); the hash stays (starts are no part of it).
+    pub fn with_variant(&self, variant: &MapVariant) -> Self {
+        let mut map = self.clone();
+        map.starts.clone_from(&variant.starts);
+        map
+    }
+
+    /// Replaces the other start layouts after checking them: names unique,
+    /// lowercase letters, digits and `_`, not the reserved ones; starts
+    /// inside the map, one per player; supply names among the markers.
+    pub fn set_variants(&mut self, variants: Vec<MapVariant>) -> Result<(), MapError> {
+        for (i, v) in variants.iter().enumerate() {
+            let ok_name = !v.name.is_empty()
+                && v.name.len() <= 32
+                && v.name
+                    .chars()
+                    .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '_');
+            if !ok_name || v.name == STANDARD_VARIANT || v.name == RANDOM_VARIANT {
+                return Err(MapError(format!("bad start variant name '{}'", v.name)));
+            }
+            if variants[..i].iter().any(|o| o.name == v.name) {
+                return Err(MapError(format!(
+                    "start variant '{}' is defined twice",
+                    v.name
+                )));
+            }
+            if v.starts.is_empty() {
+                return Err(MapError(format!(
+                    "start variant '{}' has no [[variant.start]]",
+                    v.name
+                )));
+            }
+            let mut players: Vec<u8> = v.starts.iter().map(|s| s.player).collect();
+            let mut standard: Vec<u8> = self.starts.iter().map(|s| s.player).collect();
+            players.sort_unstable();
+            players.dedup();
+            standard.sort_unstable();
+            if players.len() == v.starts.len() && players != standard {
+                return Err(MapError(format!(
+                    "start variant '{}' must place the players of the standard starts {standard:?}, got {players:?}",
+                    v.name
+                )));
+            }
+            for (k, s) in v.starts.iter().enumerate() {
+                if v.starts[..k].iter().any(|o| o.player == s.player) {
+                    return Err(MapError(format!(
+                        "start variant '{}' places player {} twice",
+                        v.name, s.player
+                    )));
+                }
+                if !self.contains(s.position) {
+                    return Err(MapError(format!(
+                        "start variant '{}': start of player {} lies outside the map",
+                        v.name, s.player
+                    )));
+                }
+            }
+            for name in v.supply.iter().flatten() {
+                if self.marker(name).is_none() {
+                    return Err(MapError(format!(
+                        "start variant '{}': no marker '{name}'",
+                        v.name
+                    )));
+                }
+            }
+        }
+        self.variants = variants;
+        Ok(())
     }
 
     pub fn markers(&self) -> &[Marker] {

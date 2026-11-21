@@ -54,6 +54,9 @@ RESULT_STATS_BEST,Most kills: %s,Meiste Abschüsse: %s
 RESULT_STATS_SAVED,Statistics saved: %s,Statistik gespeichert: %s
 RESULT_STATS_LEGEND,"Your account over the match: fuel (yellow), ammunition (red), manpower (blue)","Dein Konto im Spielverlauf: Treibstoff (gelb), Munition (rot), Personal (blau)"
 MATCH_MAP,Map,Karte
+MATCH_VARIANT,Start layout,Startaufstellung
+MATCH_VARIANT_STANDARD,Standard,Standard
+MATCH_VARIANT_RANDOM,Random,Zufällig
 MATCH_SEASON,Season,Jahreszeit
 MATCH_WEATHER,Weather,Wetter
 MATCH_DAYTIME,Time of day,Tageszeit

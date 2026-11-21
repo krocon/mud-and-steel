@@ -85,6 +85,7 @@ fn play(v: &Variant, flank: bool, seed: u64) -> (usize, usize, u64) {
         teams: sim::Teams::default(),
         weather: sim::WeatherSetup::default(),
         mission: None,
+        variant: None,
     };
     let mut sim = Sim::new(&config, map.clone(), seed).unwrap();
     let mut ai =

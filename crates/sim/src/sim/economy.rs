@@ -299,6 +299,14 @@ impl Economy {
             .markers()
             .iter()
             .filter(|m| m.name.starts_with(&rules.supply.marker_prefix))
+            // Prompt 182: a start variant may use only some of them.
+            .filter(|m| {
+                config
+                    .variant
+                    .as_ref()
+                    .and_then(|v| v.supply.as_ref())
+                    .is_none_or(|names| names.contains(&m.name))
+            })
             .map(|m| SupplyPoint {
                 name: m.name.clone(),
                 position: m.position,

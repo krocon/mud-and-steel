@@ -61,6 +61,7 @@ fn sim_with(map: Arc<Map>, spawns: &[(&str, i32, i32)]) -> Sim {
         vision: sim::VisionRules::builtin().unwrap(),
         infantry: sim::InfantryRules::builtin().unwrap(),
         mission: None,
+        variant: None,
         teams: sim::Teams::default(),
         weather: sim::WeatherSetup::default(),
     };

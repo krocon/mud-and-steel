@@ -50,6 +50,7 @@ fn new_sim(map: Arc<Map>) -> Sim {
             daytime: Daytime::Night,
         },
         mission: None,
+        variant: None,
     };
     Sim::new(&config, map, 5).unwrap()
 }

@@ -58,6 +58,9 @@ var _setup: Control
 var _map: OptionButton
 var _maps: PackedStringArray = []
 var _mode: OptionButton
+## Start layout of the map (prompt 182): `MatchSetup.variant_choices`.
+var _variant: OptionButton
+var _variants: Array[Dictionary] = []
 var _shared_vision: CheckBox
 var _slot_list: SlotList
 var _slot_hint: Label
@@ -133,6 +136,10 @@ func _build_ui() -> void:
 	if _args.has("--map") and _args["--map"] in _maps:
 		_map.select(Array(_maps).find(_args["--map"]))
 	_setup.add_child(_labeled("LOBBY_MAP_HOST", _map))
+	_variant = OptionButton.new()
+	_setup.add_child(_labeled("MATCH_VARIANT", _variant))
+	_map.item_selected.connect(func(_index: int) -> void: _fill_variants())
+	_fill_variants()
 	_mode = OptionButton.new()
 	for id in MatchSetup.MODES:
 		_mode.add_item(MatchSetup.MODES[id])
@@ -238,6 +245,8 @@ func _apply_match_settings() -> void:
 	var starts := MatchSetup.map_starts(map_name)
 	var mode: String = MatchSetup.MODES.keys()[_mode.selected]
 	_lobby.set_match(map_name, mode, _shared_vision.button_pressed, starts.size())
+	# Prompt 182: `random` is picked by the host from the match seed.
+	_lobby.set_variant(_chosen_variant())
 	for s in starts:
 		_lobby.set_slot_side(s["player"], s["team"], "")
 	if _args.has("--lan-computers"):
@@ -402,3 +411,23 @@ func _auto_step() -> void:
 ## when every slot is taken, prompt 037).
 func _has_open_slot() -> bool:
 	return _lobby.slots().any(func(s: Dictionary) -> bool: return s["kind"] == "open")
+
+
+## The start layouts of the chosen map (prompt 182).
+func _fill_variants() -> void:
+	var map_name: String = _args["--map"] if _args.has("--map") and _args["--map"] in _maps else _maps[_map.selected]
+	_variants = MatchSetup.variant_choices(map_name)
+	_variant.clear()
+	for v in _variants:
+		_variant.add_item(v["label"])
+	var wanted: String = _args.get("--variant", "standard")
+	var k := 0
+	for i in _variants.size():
+		if _variants[i]["name"] == wanted:
+			k = i
+	_variant.select(k)
+	_variant.disabled = _variants.size() <= 1
+
+
+func _chosen_variant() -> String:
+	return _variants[_variant.selected]["name"] if _variant.selected >= 0 and not _variants.is_empty() else "standard"

@@ -115,6 +115,7 @@ pub fn run(map: Arc<Map>, options: &Options) -> Result<String, String> {
         teams: sim::Teams::default(),
         weather: sim::WeatherSetup::default(),
         mission: None,
+        variant: None,
     };
     let mut sim = Sim::new(&config, map, options.seed).map_err(|e| e.to_string())?;
     let total = options.units * 2;

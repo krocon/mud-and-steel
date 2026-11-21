@@ -51,6 +51,7 @@ fn config(map: &Map, spawns: &[(PlayerId, &str, i32, i32)]) -> SimConfig {
         teams: sim::Teams::default(),
         weather: sim::WeatherSetup::default(),
         mission: None,
+        variant: None,
     }
 }
 

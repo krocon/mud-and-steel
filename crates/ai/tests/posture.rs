@@ -41,6 +41,7 @@ fn village_attack(difficulty: Difficulty, seed: u64) -> (Option<PlayerId>, Optio
         teams: sim::Teams::default(),
         weather: sim::WeatherSetup::default(),
         mission: None,
+        variant: None,
     };
     let mut game = Game::new(&config, map, seed, &[(PlayerId(0), difficulty)]).unwrap();
     let result = game.run(20 * 600);

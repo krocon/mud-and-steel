@@ -44,8 +44,11 @@ pub const MAGIC: [u8; 4] = *b"MSRP";
 /// `Command::SetFireLimits`, `[discipline]` tactics rules); 13 since
 /// prompt 181 (mission `level`, `resources_pct`, trigger `open`, condition
 /// `fewer`, action `hopeless`; prompt 180 appended the conditions
-/// `stance` … `air`, which old files of version 13 never contain).
-pub const FORMAT_VERSION: u16 = 13;
+/// `stance` … `air`, which old files of version 13 never contain); 14
+/// since prompt 182 (`SimConfig::variant`; prompt 189 added mission
+/// `rating`, objective `optional`/`timer`/`progress` and the condition
+/// `reach` in the same release).
+pub const FORMAT_VERSION: u16 = 14;
 
 /// Version of the game that writes replays and saved games.
 pub const GAME_VERSION: &str = env!("CARGO_PKG_VERSION");

@@ -67,6 +67,7 @@ fn normal_lays_its_bridge_across_the_river_to_the_enemy() {
         teams: sim::Teams::default(),
         weather: sim::WeatherSetup::default(),
         mission: None,
+        variant: None,
     };
     let mut game = Game::new(
         &config,

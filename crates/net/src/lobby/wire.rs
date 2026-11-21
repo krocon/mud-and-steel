@@ -54,6 +54,10 @@ pub struct LobbySetup {
     pub mode: String,
     /// Allies see what the other players of their team see.
     pub shared_vision: bool,
+    /// Start layout of the map (prompt 182): "" or `standard`, `random`
+    /// (picked from the match seed) or a `[[variant]]` name.
+    #[serde(default)]
+    pub variant: String,
 }
 
 impl LobbySetup {
@@ -75,6 +79,7 @@ impl LobbySetup {
             map: String::new(),
             mode: "battle".into(),
             shared_vision: true,
+            variant: String::new(),
         }
     }
 

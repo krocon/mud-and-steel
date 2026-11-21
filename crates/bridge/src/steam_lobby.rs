@@ -338,6 +338,16 @@ impl SteamLobby {
         let _ = (map, mode, shared_vision, slots);
     }
 
+    /// Host: the start layout of the map (prompt 182), as `LanLobby.set_variant`.
+    #[func]
+    fn set_variant(&mut self, variant: GString) {
+        #[cfg(feature = "steam")]
+        if let Some(node) = self.lobby.as_mut().and_then(OnlineLobby::node_mut) {
+            crate::team_funcs::set_lobby_variant(node, &variant.to_string());
+        }
+        let _ = variant;
+    }
+
     /// Host: starts the lobby's match for everyone, on the built-in map or
     /// the map folder `map_dir` (absolute path, "" = built-in).
     #[func]

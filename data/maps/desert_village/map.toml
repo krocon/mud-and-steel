@@ -51,3 +51,29 @@ position_m = [-188, 40]
 [[marker]]
 name = "supply_fort"
 position_m = [235, -30]
+
+# Prompt 182: a second start layout (docs/MAPS.md "Start variants").
+[[variant]]
+name = "west_east"
+title = "West against east"
+supply = ["supply_square", "supply_well", "supply_fort"]
+
+[[variant.start]]
+player = 0
+team = 0
+position_m = [-330, 90]
+
+[[variant.start]]
+player = 1
+team = 1
+position_m = [330, -90]
+
+[[variant.start]]
+player = 2
+team = 0
+position_m = [-330, -90]
+
+[[variant.start]]
+player = 3
+team = 1
+position_m = [330, 90]

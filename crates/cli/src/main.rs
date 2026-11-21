@@ -413,6 +413,10 @@ enum CliCommand {
         /// Print every game.
         #[arg(long)]
         verbose: bool,
+        /// Start variant of the map (prompt 182): `standard` or a
+        /// `[[variant]]` name.
+        #[arg(long, default_value = "")]
+        variant: String,
         /// Print the living units every this many ticks (tuning, with
         /// `--games 1`).
         #[arg(long, default_value_t = 0)]
@@ -1049,6 +1053,7 @@ fn run_cli() {
             max_ticks,
             jobs,
             verbose,
+            variant,
             trace,
             weather,
             daytime,
@@ -1068,11 +1073,13 @@ fn run_cli() {
                 "base" => sim::scenario::SKIRMISH_SCENARIO,
                 other => fail(&format!("unknown mode '{other}' (battle, base)")),
             };
-            let mut config = if team_size > 1 {
-                team_tournament_config(&map, &factions, scenario, team_size)
-            } else {
-                tournament_config(&map, &factions, scenario)
-            }
+            let mut config = sim::scenario::build_in_variant(&map, &variant, seed, |m| {
+                if team_size > 1 {
+                    team_tournament_config(m, &factions, scenario, team_size)
+                } else {
+                    tournament_config(m, &factions, scenario)
+                }
+            })
             .unwrap_or_else(|e| fail(&e));
             set_weather(&mut config, weather.as_deref(), daytime.as_deref())
                 .unwrap_or_else(|e| fail(&e));

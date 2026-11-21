@@ -62,6 +62,9 @@ EDITOR_OBJECT,Object,Objekt
 EDITOR_HEADING,Heading °,Ausrichtung °
 EDITOR_COMPOUND,Compound,Gehöft
 EDITOR_TEAM,Team,Team
+EDITOR_VARIANT,Layout,Aufstellung
+EDITOR_VARIANT_ADD,New,Neu
+EDITOR_VARIANT_REMOVE,Remove,Entfernen
 EDITOR_NAME,Name,Name
 EDITOR_NUMBERED,numbered,nummeriert
 EDITOR_TERRAIN_GRASS,Grass,Gras

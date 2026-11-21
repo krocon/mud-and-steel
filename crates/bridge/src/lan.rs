@@ -283,6 +283,15 @@ impl LanLobby {
         }
     }
 
+    /// Host: the start layout of the map (prompt 182): "" / `standard`,
+    /// `random` or a variant name (`SimHost.map_variants`).
+    #[func]
+    fn set_variant(&mut self, variant: GString) {
+        if let Some(node) = &mut self.node {
+            team_funcs::set_lobby_variant(node, &variant.to_string());
+        }
+    }
+
     /// Host: starts the lobby's match for everyone, on the built-in map or
     /// the map folder `map_dir` (absolute path, "" = built-in).
     #[func]

@@ -594,6 +594,12 @@ impl Ai {
         // start from the map, else the centroid of its spawns (public like
         // the map). Allies (prompt 037) are no enemies.
         let teams = &config.teams;
+        // Prompt 182: the starts of the match's start variant.
+        let starts = config
+            .variant
+            .as_ref()
+            .and_then(|v| map.variants().iter().find(|m| m.name == v.name))
+            .map_or(map.starts(), |v| v.starts.as_slice());
         let home_of = |enemy: PlayerId| {
             config
                 .spawns
@@ -607,7 +613,7 @@ impl Ai {
                 })
                 .map(|s| s.position)
                 .or_else(|| {
-                    map.starts()
+                    starts
                         .iter()
                         .find(|s| s.player == enemy.0)
                         .map(|s| s.position)

@@ -61,6 +61,7 @@ fn convoy(map: Arc<Map>) -> Sim {
         teams: sim::Teams::default(),
         weather: sim::WeatherSetup::default(),
         mission: None,
+        variant: None,
     };
     Sim::new(&config, map, 9).unwrap()
 }

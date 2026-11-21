@@ -61,8 +61,31 @@ pub fn validate_files(files: &MapFiles) -> Report {
     }
 }
 
-/// Checks a loaded map.
+/// Checks a loaded map: its standard start layout and every start variant
+/// (prompt 182; their messages begin with "start variant '<name>':").
 pub fn validate_map(map: Map) -> Report {
+    let variants = map.variants().to_vec();
+    let mut variant_reports: Vec<(String, Report)> = variants
+        .iter()
+        .map(|v| {
+            (
+                v.name.clone(),
+                validate_layout(map.with_variant(v), v.supply.as_deref()),
+            )
+        })
+        .collect();
+    let mut report = validate_layout(map, None);
+    for (name, r) in variant_reports.drain(..) {
+        let tag = |m: String| format!("start variant '{name}': {m}");
+        report.errors.extend(r.errors.into_iter().map(tag));
+        report.warnings.extend(r.warnings.into_iter().map(tag));
+    }
+    report
+}
+
+/// Checks a map in one start layout; `supply`: the supply points of that
+/// layout (`None`: all).
+fn validate_layout(map: Map, supply: Option<&[String]>) -> Report {
     let mut report = Report {
         map_hash: Some(map.hash()),
         ..Report::default()
@@ -187,6 +210,7 @@ pub fn validate_map(map: Map) -> Report {
         .markers()
         .iter()
         .filter(|m| m.name.starts_with("supply"))
+        .filter(|m| supply.is_none_or(|names| names.contains(&m.name)))
     {
         let missing: Vec<&str> = names
             .iter()

@@ -290,6 +290,7 @@ mod tests {
             teams: crate::Teams::default(),
             weather: crate::WeatherSetup::default(),
             mission: None,
+            variant: None,
         };
         let mut sim = Sim::new(&config, map, 3).unwrap();
         sim.units[0].facing = Vec2::new(Fixed::ZERO, -Fixed::ONE);

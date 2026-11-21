@@ -113,6 +113,7 @@ fn duel(
         teams: sim::Teams::default(),
         weather: sim::WeatherSetup::default(),
         mission: None,
+        variant: None,
     };
     let mut sim = Sim::new(&config, map, seed).map_err(|e| e.to_string())?;
     while sim.tick() < max_ticks {

@@ -23,6 +23,8 @@ var place_option: OptionButton
 var heading_spin: SpinBox
 ## Team of the start a start tool places (prompt 037).
 var start_team_option: OptionButton
+## Start layout the start tools edit (prompt 182).
+var variant_option: OptionButton
 ## Dialogs by name: "new", "open", "save".
 var dialogs: Dictionary[String, PanelContainer] = {}
 var new_name: LineEdit
@@ -138,6 +140,22 @@ func _ready() -> void:
 		start_team_option.add_item(label)
 	start_team_option.item_selected.connect(func(i: int) -> void: main.set_start_team(i - 1))
 	_setting(box, "start_team", "EDITOR_TEAM", start_team_option)
+	# Prompt 182: start variants.
+	variant_option = OptionButton.new()
+	variant_option.item_selected.connect(func(i: int) -> void: main.select_variant(i))
+	var variant_box := HBoxContainer.new()
+	variant_box.add_child(variant_option)
+	variant_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var add_variant := Button.new()
+	add_variant.text = "EDITOR_VARIANT_ADD"
+	add_variant.pressed.connect(func() -> void: main.add_variant())
+	variant_box.add_child(add_variant)
+	var remove_variant := Button.new()
+	remove_variant.text = "EDITOR_VARIANT_REMOVE"
+	remove_variant.pressed.connect(func() -> void: main.remove_variant())
+	variant_box.add_child(remove_variant)
+	_setting(box, "variant", "EDITOR_VARIANT", variant_box)
+	update_variants()
 	# Prompt 039: name of the next trigger area or spawn point.
 	var point_name := LineEdit.new()
 	point_name.placeholder_text = "EDITOR_NUMBERED"
@@ -165,12 +183,23 @@ func select_tool(id: String) -> void:
 		"density": ["scatter"], "preset": ["scatter"], "terrain": ["paint", "road"],
 		"place": ["place"], "heading": ["place", "compound"], "compound": ["compound"],
 		"start_team": EditorData.START_TOOLS,
+		"variant": EditorData.START_TOOLS,
 		"point_name": EditorData.MISSION_TOOLS,
 	}
 	for key in _settings:
 		_settings[key].visible = id in uses[key]
 	if id in EditorData.START_TOOLS:
 		start_team_option.select(main.start_team_of(int(id.right(1))) + 1)
+
+
+## Fills the start layout list from the map (prompt 182).
+func update_variants() -> void:
+	if variant_option == null:
+		return
+	variant_option.clear()
+	for name in main.editor.variants():
+		variant_option.add_item(name)
+	variant_option.select(main.editor.active_variant())
 
 
 func set_radius(value: float) -> void:

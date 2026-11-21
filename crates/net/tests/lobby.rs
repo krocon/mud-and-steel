@@ -251,3 +251,31 @@ fn the_start_message_fits_into_a_steam_message() {
         "start message has {size} bytes"
     );
 }
+
+/// Prompt 182: the host's start variant reaches the client with the setup,
+/// and the start message carries the match built in it.
+#[test]
+fn the_start_variant_travels_with_the_setup_and_the_config() {
+    let network = MemoryNetwork::new();
+    let mut host = LobbyNode::new_host(network.endpoint(HOST), "host", 2);
+    let mut joiner = client(&network, HOST + 1, "client");
+    poll_until(&mut [&mut host, &mut joiner], |n| {
+        *n[1].state() == LobbyState::Lobby
+    });
+    host.edit_setup(|s| "west_east".clone_into(&mut s.variant));
+    poll_until(&mut [&mut host, &mut joiner], |n| {
+        n[1].setup().variant == "west_east"
+    });
+    joiner.set_ready(true);
+    poll_until(&mut [&mut host, &mut joiner], |n| n[0].can_start());
+    let mut config = demo_config();
+    config.variant = Some(sim::VariantSetup {
+        name: "west_east".into(),
+        supply: Some(vec!["supply_village".into()]),
+    });
+    host.start(SEED, config.clone(), 3, 10).unwrap();
+    poll_until(&mut [&mut host, &mut joiner], |n| {
+        *n[1].state() == LobbyState::Started
+    });
+    assert_eq!(joiner.start_info().map(|i| &i.config), Some(&config));
+}

@@ -202,11 +202,31 @@ pub fn run(dir: &Path, map: &Map, png: Option<&Path>) -> Result<String, String> 
         );
     }
 
+    // Prompt 182: every start layout, the standard one first, with the
+    // supply points it uses (`None`: all).
+    let mut layouts: Vec<(String, Vec<sim::map::StartPosition>, Option<Vec<String>>)> =
+        vec![(String::new(), map.starts().to_vec(), None)];
+    layouts.extend(
+        map.variants()
+            .iter()
+            .map(|v| (v.name.clone(), v.starts.clone(), v.supply.clone())),
+    );
+    let start_name = |layout: &str, player: u8| {
+        if layout.is_empty() {
+            format!("start {player}")
+        } else {
+            format!("start {player} ({layout})")
+        }
+    };
     // Starts and markers: the component they lie in, per class.
-    let mut points: Vec<(String, Vec2)> = map
-        .starts()
+    let mut points: Vec<(String, Vec2)> = layouts
         .iter()
-        .map(|s| (format!("start {}", s.player), s.position))
+        .flat_map(|(name, starts, _)| {
+            starts
+                .iter()
+                .map(|s| (start_name(name, s.player), s.position))
+                .collect::<Vec<_>>()
+        })
         .collect();
     points.extend(map.markers().iter().map(|m| (m.name.clone(), m.position)));
     let main_of = |c: &Components| {
@@ -242,42 +262,50 @@ pub fn run(dir: &Path, map: &Map, png: Option<&Path>) -> Result<String, String> 
     // Path lengths from every start to every supply point (balance): the
     // smoothed path of a tank and of a rifle squad; "(x m short)" when the
     // nearest reachable cell is that far from the point.
-    let supplies: Vec<&(String, Vec2)> = points
-        .iter()
-        .filter(|(n, _)| n.starts_with("supply"))
-        .collect();
-    if !supplies.is_empty() && !map.starts().is_empty() {
-        let _ = writeln!(
-            out,
-            "  path length start -> supply point (m), vehicles / infantry:"
-        );
-        let mut header = format!("  {:<24}", "");
-        for s in map.starts() {
-            let _ = write!(header, " {:>22}", format!("start {}", s.player));
-        }
-        let _ = writeln!(out, "{header}");
-        for (name, p) in &supplies {
-            let mut line = format!("  {name:<24}");
-            for s in map.starts() {
-                let mut cell = String::new();
-                for profile in 0..2 {
-                    let text = match grid.find_path(s.position, *p, profile) {
-                        Some(path) => {
-                            let short = (path.goal - *p).length().to_num::<f64>();
-                            let length = path.length().to_num::<f64>();
-                            if short > f64::from(NEAR_M) {
-                                format!("({length:.0}, {short:.0} short)")
-                            } else {
-                                format!("{length:.0}")
-                            }
-                        }
-                        None => "-".to_string(),
-                    };
-                    let _ = write!(cell, "{}{text}", if profile == 0 { "" } else { " / " });
+    for (layout, starts, only) in &layouts {
+        let supplies: Vec<&(String, Vec2)> = points
+            .iter()
+            .filter(|(n, _)| n.starts_with("supply"))
+            .filter(|(n, _)| only.as_ref().is_none_or(|names| names.contains(n)))
+            .collect();
+        if !supplies.is_empty() && !starts.is_empty() {
+            let _ = writeln!(
+                out,
+                "  path length start -> supply point (m), vehicles / infantry{}:",
+                if layout.is_empty() {
+                    String::new()
+                } else {
+                    format!(", start variant '{layout}'")
                 }
-                let _ = write!(line, " {cell:>22}");
+            );
+            let mut header = format!("  {:<24}", "");
+            for s in starts {
+                let _ = write!(header, " {:>22}", format!("start {}", s.player));
             }
-            let _ = writeln!(out, "{line}");
+            let _ = writeln!(out, "{header}");
+            for (name, p) in &supplies {
+                let mut line = format!("  {name:<24}");
+                for s in starts {
+                    let mut cell = String::new();
+                    for profile in 0..2 {
+                        let text = match grid.find_path(s.position, *p, profile) {
+                            Some(path) => {
+                                let short = (path.goal - *p).length().to_num::<f64>();
+                                let length = path.length().to_num::<f64>();
+                                if short > f64::from(NEAR_M) {
+                                    format!("({length:.0}, {short:.0} short)")
+                                } else {
+                                    format!("{length:.0}")
+                                }
+                            }
+                            None => "-".to_string(),
+                        };
+                        let _ = write!(cell, "{}{text}", if profile == 0 { "" } else { " / " });
+                    }
+                    let _ = write!(line, " {cell:>22}");
+                }
+                let _ = writeln!(out, "{line}");
+            }
         }
     }
 

@@ -253,6 +253,19 @@ func _tools_test(scene: Node3D, editor: MapEditor) -> void:
 	_check(editor.start_teams() == {2: 0}, "start teams %s" % [editor.start_teams()])
 	scene.set_start_team(1)
 	_check(editor.start_teams() == {2: 1} and scene.has_node("Start2"), "start team not changed: %s" % [editor.start_teams()])
+	# Prompt 182: a start variant gets its own starts; the standard ones stay.
+	var variant: String = scene.add_variant()
+	_check(not variant.is_empty() and editor.variants().size() == 2 and editor.active_variant() == 1, "start variant not added: %s" % [editor.variants()])
+	scene.tool = "start0"
+	scene.stroke(_points([Vector2(-60, 0)], editor))
+	var moved := editor.start_positions()
+	_check(Vector2(moved[0].x, moved[0].z) == Vector2(-60, 0), "variant start not set: %s" % moved)
+	scene.select_variant(0)
+	var standard := editor.start_positions()
+	_check(Vector2(standard[0].x, standard[0].z) == Vector2(20, 70), "the variant moved the standard start: %s" % standard)
+	scene.select_variant(1)
+	scene.remove_variant()
+	_check(editor.variants().size() == 1 and editor.active_variant() == 0, "start variant not removed: %s" % [editor.variants()])
 	await _frames(5)
 
 
