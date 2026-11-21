@@ -253,6 +253,45 @@ pub fn assign<K: Copy + Ord>(
     result
 }
 
+/// Untangles an assignment (prompt 174): while the straight lines from two
+/// units to their slots cross, the two swap slots. Each swap makes the
+/// sum of the lines strictly shorter (the triangle inequality), so it
+/// ends; pairs are visited in index order, so the result is deterministic.
+/// `starts[k]` is where the unit of `pairs[k]` stands. At most
+/// `4 * pairs.len()` passes over all pairs (in practice two or three).
+pub fn untangle<K: Copy>(pairs: &mut [(K, Vec2)], starts: &[Vec2]) {
+    let n = pairs.len().min(starts.len());
+    for _ in 0..4 * n {
+        let mut swapped = false;
+        for a in 0..n {
+            for b in a + 1..n {
+                if segments_cross((starts[a], pairs[a].1), (starts[b], pairs[b].1)) {
+                    let slot = pairs[a].1;
+                    pairs[a].1 = pairs[b].1;
+                    pairs[b].1 = slot;
+                    swapped = true;
+                }
+            }
+        }
+        if !swapped {
+            break;
+        }
+    }
+}
+
+/// Whether two segments cross properly (touching or collinear ones do
+/// not count). Exact in 128-bit integers.
+fn segments_cross(a: (Vec2, Vec2), b: (Vec2, Vec2)) -> bool {
+    let bits = |p: Vec2| (i128::from(p.x.to_bits()), i128::from(p.y.to_bits()));
+    let side = |p: Vec2, q: Vec2, r: Vec2| {
+        let (p, q, r) = (bits(p), bits(q), bits(r));
+        ((q.0 - p.0) * (r.1 - p.1) - (q.1 - p.1) * (r.0 - p.0)).signum()
+    };
+    let (d1, d2) = (side(b.0, b.1, a.0), side(b.0, b.1, a.1));
+    let (d3, d4) = (side(a.0, a.1, b.0), side(a.0, a.1, b.1));
+    d1 * d2 < 0 && d3 * d4 < 0
+}
+
 fn dot(a: Vec2, b: Vec2) -> Fixed {
     a.x * b.x + a.y * b.y
 }
@@ -351,6 +390,38 @@ mod tests {
         // Left to right: unit 0 (west) gets the western slot.
         let west = a.iter().find(|(k, _)| *k == 0).unwrap().1;
         assert_eq!(west.x.to_num::<i32>(), -10);
+    }
+
+    #[test]
+    fn untangle_removes_crossings_deterministically() {
+        // Four units in a row, slots in reverse order: every pair crosses.
+        let starts: Vec<Vec2> = (0..4).map(|k| Vec2::from_meters(k * 10, 0)).collect();
+        let mut pairs: Vec<(u32, Vec2)> = (0..4)
+            .map(|k| (k as u32, Vec2::from_meters(30 - k * 10, 50)))
+            .collect();
+        untangle(&mut pairs, &starts);
+        for a in 0..4 {
+            for b in a + 1..4 {
+                assert!(!segments_cross(
+                    (starts[a], pairs[a].1),
+                    (starts[b], pairs[b].1)
+                ));
+            }
+        }
+        // Straight ahead: every unit to the slot in front of it.
+        for (k, &(_, slot)) in pairs.iter().enumerate() {
+            assert_eq!(slot, Vec2::from_meters(k as i32 * 10, 50));
+        }
+        // Touching or parallel lines are no crossing.
+        let a = (Vec2::from_meters(0, 0), Vec2::from_meters(10, 0));
+        assert!(!segments_cross(
+            a,
+            (Vec2::from_meters(10, 0), Vec2::from_meters(10, 10))
+        ));
+        assert!(!segments_cross(
+            a,
+            (Vec2::from_meters(0, 1), Vec2::from_meters(10, 1))
+        ));
     }
 
     #[test]

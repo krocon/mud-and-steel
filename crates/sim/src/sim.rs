@@ -1314,11 +1314,20 @@ impl Sim {
                     (u.position.y, u.position.x, u.id)
                 });
                 let target = *target;
+                // Prompt 174: then by rows along the way to the target, so a
+                // unit in front takes a slot in front.
+                let slots = travel_order(&mut group, slots, &self.units, target);
                 for &i in &group {
                     self.units[i].combat.attack = None;
                     self.cancel_indirect(i);
                 }
-                let assigned: Vec<(usize, Vec2)> = group.into_iter().zip(slots).collect();
+                let mut assigned: Vec<(usize, Vec2)> = group.into_iter().zip(slots).collect();
+                // Prompt 174: no unit crosses another's way to its slot.
+                let starts: Vec<Vec2> = assigned
+                    .iter()
+                    .map(|&(i, _)| self.units[i].position)
+                    .collect();
+                crate::formation::untangle(&mut assigned, &starts);
                 self.request_group_path(&assigned, target);
             }
             Command::Stop { units } => {
@@ -1916,6 +1925,58 @@ fn heading(unit: &Unit) -> Option<Vec2> {
     let distance = delta.length();
     // delta / distance has components in [-1, 1], so this cannot overflow.
     (distance > Fixed::ZERO).then(|| Vec2::new(delta.x / distance, delta.y / distance))
+}
+
+/// Reorders `group` and `slots` (prompt 174) so that the unit most
+/// forward along the way from the group's center to `target` comes first
+/// and gets the most forward slot: both are cut into ranks of the grid's
+/// width along that way, and each rank sorted across it (ties: unit id,
+/// slot order). Returns the slots in the new order.
+fn travel_order(group: &mut [usize], slots: Vec<Vec2>, units: &[Unit], target: Vec2) -> Vec<Vec2> {
+    let n = group.len().min(slots.len());
+    if n < 2 {
+        return slots;
+    }
+    let count = Fixed::from_num(n);
+    let center = group.iter().fold(Vec2::ZERO, |sum, &i| {
+        let p = units[i].position;
+        sum + Vec2::new(p.x / count, p.y / count)
+    });
+    let Some(forward) = crate::formation::normalized(target - center) else {
+        return slots;
+    };
+    let right = crate::formation::right_of(forward);
+    let along = |p: Vec2| (p.x - center.x) * forward.x + (p.y - center.y) * forward.y;
+    let across = |p: Vec2| (p.x - center.x) * right.x + (p.y - center.y) * right.y;
+    let columns = (1..).find(|c| c * c >= n).unwrap_or(1);
+    let mut u: Vec<(Fixed, Fixed, UnitId, usize)> = group
+        .iter()
+        .map(|&i| {
+            (
+                along(units[i].position),
+                across(units[i].position),
+                units[i].id,
+                i,
+            )
+        })
+        .collect();
+    u.sort_by(|a, b| b.0.cmp(&a.0).then(a.2.cmp(&b.2)));
+    let mut s: Vec<(Fixed, Fixed, usize, Vec2)> = slots
+        .iter()
+        .enumerate()
+        .map(|(k, &p)| (along(p), across(p), k, p))
+        .collect();
+    s.sort_by(|a, b| b.0.cmp(&a.0).then(a.2.cmp(&b.2)));
+    for chunk in u.chunks_mut(columns) {
+        chunk.sort_by(|a, b| a.1.cmp(&b.1).then(a.2.cmp(&b.2)));
+    }
+    for chunk in s.chunks_mut(columns) {
+        chunk.sort_by(|a, b| a.1.cmp(&b.1).then(a.2.cmp(&b.2)));
+    }
+    for (k, e) in u.iter().enumerate() {
+        group[k] = e.3;
+    }
+    s.into_iter().map(|e| e.3).collect()
 }
 
 /// The waypoint a unit drives to now.
@@ -2524,13 +2585,16 @@ mod tests {
             .iter()
             .map(|u| u.target.unwrap())
             .collect();
-        // Three units: 2 columns, 2 rows, spacing 6 m * 1.5 = 9 m.
+        // Three units: 2 columns, 2 rows, spacing 6 m * 1.5 = 9 m. Since
+        // prompt 174 the slots go by the way to the target (north-east):
+        // the left unit takes the far slot, the others the near row, so no
+        // way crosses another (before: row by row, the right unit crossed).
         assert_eq!(
             targets,
             vec![
+                Vec2::new(Fixed::from_num(100), Fixed::from_num(104.5)),
                 Vec2::new(Fixed::from_num(95.5), Fixed::from_num(95.5)),
                 Vec2::new(Fixed::from_num(104.5), Fixed::from_num(95.5)),
-                Vec2::new(Fixed::from_num(100), Fixed::from_num(104.5)),
             ]
         );
     }

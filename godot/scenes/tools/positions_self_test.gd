@@ -27,7 +27,17 @@ func run(test: Node) -> void:
 	var dir := Vector3(-at.x, 0.0, -at.z).normalized()
 	if dir.length() < 0.5:
 		dir = Vector3(1, 0, 0)
+	# Towards the map center, else the first of eight directions whose
+	# point the squad can reach (where it stands after the earlier parts
+	# depends on them; a point on a steep slope is no strongpoint).
 	var center := at + dir * OFFSET_M
+	for k in 8:
+		var try_dir := dir.rotated(Vector3.UP, k * PI / 4.0)
+		var p := at + try_dir * OFFSET_M
+		if _open_ground(sim_host, squad, p):
+			dir = try_dir
+			center = p
+			break
 	var before := sim_host.field_works().size()
 	var placed := sim_host.debug_strongpoint(center.x, center.z)
 	test._check(placed > 20, "debug strongpoint placed %d works" % placed)
@@ -40,15 +50,23 @@ func run(test: Node) -> void:
 	if bar != null:
 		test._check(bar.buttons.has("work_mg_nest") and bar.buttons.has("work_camo_net"),
 			"positions buttons missing in the command bar")
-	# The squad walks into the ring and takes firing positions.
+	# The squad walks into the ring and takes firing positions: to the
+	# center, or where it can reach next to it (a bunker or nest may stand
+	# on the center, prompt 174).
+	var pv := sim_host.formation_preview(PackedInt64Array([squad]), center.x, center.z, 1, 0.0, 0.0)
+	var goal := center
+	if pv.size() >= 6:
+		goal = Vector3(pv[4], center.y, pv[5])
+	test._check(Vector2(goal.x - center.x, goal.z - center.z).length() <= 20.0,
+		"the strongpoint's center is %.1f m from where the squad can get" % Vector2(goal.x - center.x, goal.z - center.z).length())
 	sim_host.move_units(PackedInt64Array([squad]), center.x, center.z)
 	Engine.time_scale = TIME_SCALE
 	var deadline := sim_host.current_tick() + 1200
-	while sim_host.current_tick() < deadline and _distance(sim_host, squad, center) > 6.0:
+	while sim_host.current_tick() < deadline and _distance(sim_host, squad, goal) > 6.0:
 		await test._frames(1)
 	await test._ticks(200)
 	Engine.time_scale = 1.0
-	test._check(_distance(sim_host, squad, center) <= 8.0, "squad %d did not reach the strongpoint" % squad)
+	test._check(_distance(sim_host, squad, goal) <= 8.0, "squad %d did not reach the strongpoint" % squad)
 	# A line being drawn shows its price.
 	var selection: Control = main.selection
 	selection.set_command_mode("work_teeth")
@@ -60,6 +78,20 @@ func run(test: Node) -> void:
 	selection.set_command_mode("")
 	print("self-test: positions ok (%d works, %d trench meshes, squad %d at the strongpoint)" % [
 		placed, view.trench_meshes, squad])
+
+
+## Whether the squad can reach `p` and the ground within 16 m of it, on
+## nearly level ground (the strongpoint needs room).
+static func _open_ground(sim_host: SimHost, squad: int, p: Vector3) -> bool:
+	var h := sim_host.height_at(p.x, p.z)
+	for o: Vector2 in [Vector2.ZERO, Vector2(16, 0), Vector2(-16, 0), Vector2(0, 16), Vector2(0, -16)]:
+		var q := Vector2(p.x + o.x, p.z + o.y)
+		if absf(sim_host.height_at(q.x, q.y) - h) > 0.4:
+			return false
+		var preview := sim_host.formation_preview(PackedInt64Array([squad]), q.x, q.y, 1, 0.0, 0.0)
+		if preview.size() < 6 or Vector2(preview[4] - q.x, preview[5] - q.y).length() > 3.0:
+			return false
+	return true
 
 
 func _own_squads(sim_host: SimHost) -> Array[int]:

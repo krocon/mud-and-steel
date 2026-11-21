@@ -173,7 +173,15 @@ impl Sim {
             let u = &self.units[i];
             (u.position.y, u.position.x, u.id)
         });
-        group.into_iter().zip(slots).collect()
+        let slots = super::travel_order(&mut group, slots, &self.units, target);
+        let mut assigned: Vec<(usize, Vec2)> = group.into_iter().zip(slots).collect();
+        // Prompt 174: no unit crosses another's way to its slot.
+        let starts: Vec<Vec2> = assigned
+            .iter()
+            .map(|&(i, _)| self.units[i].position)
+            .collect();
+        crate::formation::untangle(&mut assigned, &starts);
+        assigned
     }
 
     /// Idle units with a queue drive to their next waypoint (own path).

@@ -97,7 +97,21 @@ position (y, then x, then id), slots in the same order, which avoids crossing pa
 in the common cases and makes the result independent of the order of ids in the
 command. Facing-aware formations with a slot assignment along the direction of
 travel came with prompt 046 (`FormationMove`, [below](#formations-attack-move-and-securing));
-`MoveTo` keeps the grid.
+`MoveTo` keeps the grid. Since prompt 174 the grid's slots of `MoveTo`,
+`QueueMove` and `Patrol` are assigned along the way from the group's center
+to the target (`travel_order`: units and slots cut into ranks of the grid's
+width along that way, each rank sorted across it) and then untangled
+(`formation::untangle`): while the straight lines of two units to their
+slots cross, they swap slots. Each swap shortens the sum of the lines, so it
+ends; pairs go in index order, so it is deterministic; at most `4 n` passes
+of `n²/2` pair tests (two or three in practice). Measured with eight mixed
+units in a 4 × 2 block (`crates/sim/tests/formation_slots.rs`): crossings of
+the lines 14 / 4 / 0 / 11 → 0 at 45°, 135°, across and ahead; time until
+all stand (the squads set it) 97 / 84 / 100 / 88 s → 98 / 89 / 95 / 94 s;
+the arrival spread stays about 60–90 s (squads against vehicles; speed
+matching is prompt 187). `FormationMove` (the player's moves and the
+target preview, prompt 046) keeps its rank-by-rank assignment: crossings
+1 / 1 / 6 / 2 in the same test (see Open).
 
 **Scenarios** (`data/scenarios/*.toml`) name a map and place groups of catalog units
 per player in a grid. The compiled-in demo (`sim::scenario::demo_config`) has eight
@@ -488,9 +502,16 @@ the whole square per ring, which cost up to 15 ms for targets deep in a wood).
 
 ### Open
 
-- Formation facing and slot assignment along the direction of travel (slots are
-  assigned by y, then x, as in prompt 009: diagonal moves make members cross
-  while the group re-forms; prompt 174).
+- Slot assignment minimizes crossings, not the time of the slowest member:
+  a crossing-free assignment can give a squad a longer way (prompt 174:
+  `MoveTo` ahead 88 → 94 s until all stand).
+- `FormationMove` is not untangled (prompt 174): with it, the mission
+  self-test (`meadow_crossing`, played by an autopilot) was no longer won:
+  the autopilot lost its infantry and its tanks ran out of ammunition
+  against a squad hidden in a wood. Its crossings come from units on the
+  same lateral line within one rank (ties broken by id): 6 when a 4 × 2
+  block moves across in a line. Untangling it is ready
+  (`formation::untangle`), together with a sturdier mission autopilot.
 - Speed matching within a group (members drive at their own terrain speed;
   prompt 187). The stuck audit (prompt 173) found no stuck orders caused by
   that.

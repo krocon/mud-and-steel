@@ -3,7 +3,8 @@ extends Node
 ## files, started by `main.gd` with `-- --order-preview-shots=<dir>`
 ## (`just order-preview-shots`): the own units with the right button held
 ## and dragged for a line, a wedge and a column, then the range and sight
-## circles of the selection. Extra arguments (`--map=`, `--biome=`,
+## circles of the selection, and (prompt 174) the slots of an order at 45°
+## without a drag. Extra arguments (`--map=`, `--biome=`,
 ## `--daytime=`, `--weather=`) pick the scene; `--prefix=` names the files.
 ## Needs a window. Quits when done.
 
@@ -60,6 +61,17 @@ func _run() -> void:
 		selection._right_pressing = false
 		selection.queue_redraw()
 		await _frames(2)
+	# Prompt 174: an order at 45° to the group without a drag: the slots
+	# are assigned along the way to the target (prompt 046).
+	var oblique := center + Vector3(70.0, 0.0, -70.0)
+	oblique.y = host.height_at(oblique.x, oblique.z)
+	selection.set_formation(1)
+	main.camera_rig.snap_to(center.lerp(oblique, 0.5), 150.0, deg_to_rad(20.0))
+	await _frames(20)
+	main.hud.order_preview._fetch(oblique, Vector3.ZERO, own)
+	await _frames(4)
+	await _save("%s_preview_oblique.png" % prefix)
+	main.hud.order_preview.slots = PackedFloat32Array()
 	Settings.set_value("range_circles", "always")
 	Input.action_press("show_ranges")
 	main.camera_rig.snap_to(center, 330.0, deg_to_rad(20.0))

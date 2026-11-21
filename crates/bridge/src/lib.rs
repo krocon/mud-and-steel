@@ -757,14 +757,17 @@ impl SimHost {
     /// Terrain id at `(x, z)` (nearest sample, like the simulation).
     #[func]
     fn terrain_at(&self, x: f32, z: f32) -> i64 {
+        // Not rounded to millimeters (prompt 174): a unit a fraction of a
+        // millimeter before the border of two samples is on the sample the
+        // simulation sees it on.
         let (Some(game), Some(x), Some(z)) = (
             self.game.as_ref(),
-            meters_to_millimeters(x),
-            meters_to_millimeters(z),
+            Fixed::checked_from_num(x),
+            Fixed::checked_from_num(z),
         ) else {
             return -1;
         };
-        i64::from(game.map().terrain_at(Vec2::from_millimeters(x, z)))
+        i64::from(game.map().terrain_at(Vec2::new(x, z)))
     }
 
     /// Speed of a terrain type in percent of its basis speed (-1 if unknown).
