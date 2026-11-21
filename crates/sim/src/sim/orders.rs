@@ -37,7 +37,7 @@ pub(super) struct OrderQueue {
 }
 
 impl OrderQueue {
-    fn is_empty(&self) -> bool {
+    pub(super) fn is_empty(&self) -> bool {
         self.points.is_empty() && !self.patrol
     }
 

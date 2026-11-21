@@ -94,7 +94,7 @@ nearest selected unit takes over.
 | Right click on a building (infantry) | Occupy it; vehicles drive there |
 | Minimap: right click (Shift: waypoint) | Move there |
 | H *(rebindable)* | Stop (also drops the waypoints) |
-| F *(rebindable)* | Hold fire / fire at will |
+| F *(rebindable)* | Next fire mode: fire at will → return fire → hold fire (prompt 176) |
 | Z / X / V / B *(rebindable)* | Infantry: stand / kneel / prone / automatic stance |
 | G / T *(rebindable)* | Mortars, guns and rocket launchers: barrage / smoke at the ground point under the cursor (prompt 032; a rocket launcher fires whole salvos, prompt 062) |
 | Right click with squads on an own truck, halftrack or tank | Mount it (if its seats suffice; prompt 034) |
@@ -282,11 +282,14 @@ top bar. Everything else appears when there is something to do with it.
   |---|---|---|---|---|---|
   | **Movement** | Move (M) | Advance (Z) | Patrol (P) | Secure (I) | Stop (H) |
   | **Combat** | Attack (R) | Ground (L) | Shell (Shift + L) | Barrage (G) | Smoke (T) |
-  | **Posture, more** | Hold fire (F) | Stance ▸ | Formation ▸ (,) | Occupy (U) | More orders ▸ |
+  | **Posture, more** | Fire ▸ (F cycles) | Stance ▸ | Formation ▸ (,) | Occupy (U) | More orders ▸ |
 
   An order that does not fit the selection stays in its place, greyed, so
-  the others never move. There are more than 15 orders, so three tiles
+  the others never move. There are more than 15 orders, so four tiles
   open a page of their own and the last place of such a page leads back:
+  **Fire** (prompt 176: fire at will, return fire, hold fire, and the
+  switches close range only and vehicles only; the tile shows the mode of
+  the selection, a dot when it is not "fire at will" or a limit is on),
   **Stance** (Stand Y, Kneel X, Prone V, Auto B; returns after a choice),
   **Formation** (the six formations; returns after a choice) and **More
   orders**: Dismount (J), Unlimber (O), Camouflage, Lay bridge, Take up in
@@ -385,6 +388,8 @@ top bar. Everything else appears when there is something to do with it.
   | wheel, struck through | red | immobilized (too damaged to drive) |
   | broken track | red | lost its track to a mine |
   | helmet pressed down by an arrow | white | suppressed or pinned down |
+  | crosshair with an arrow back | grey | own unit returns fire only (prompt 176) |
+  | crosshair, struck through | grey | own unit holds fire (prompt 176) |
   | arrow stopped at a wall | sand | stuck: stopped short of its target, waits for a new order (prompt 173) |
   | shell, struck through | amber | out of ammunition |
   | drop, struck through | blue | out of fuel |

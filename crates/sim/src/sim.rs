@@ -22,6 +22,7 @@ mod combat;
 mod craters;
 mod crossings;
 mod destruction;
+mod discipline;
 mod drill;
 mod economy;
 mod experience;
@@ -51,6 +52,7 @@ use combat::{Attack, CombatState, Projectile, TypeCombat};
 use infantry::{InfantryRt, Squad};
 
 pub use care::{AidView, CareEvent, WoundView};
+pub use discipline::FireLimits;
 pub use drill::DrillView;
 pub use economy::{BuyOption, PlaceError, StructureView, SupplyView};
 pub use experience::ExperienceView;
@@ -283,6 +285,10 @@ struct Unit {
     /// (prompt 173).
     #[serde(default)]
     progress: progress::Progress,
+    /// Who fired at it lately (return fire) and the retreat cooldown of an
+    /// unarmed vehicle (prompt 176).
+    #[serde(default)]
+    under_fire: discipline::UnderFire,
 }
 
 impl Unit {
@@ -338,6 +344,8 @@ pub struct UnitSnapshot {
     pub hp: u32,
     pub max_hp: u32,
     pub fire_mode: FireMode,
+    /// Limits of automatic fire (prompt 176).
+    pub fire_limits: FireLimits,
     /// Stance of an infantry squad; `None` for vehicles (prompt 022).
     pub stance: Option<crate::infantry::Stance>,
     /// The building (object index) a squad is in.
@@ -1376,11 +1384,23 @@ impl Sim {
             Command::SetFireMode { units, mode } => {
                 for index in self.owned_indices(command.player, units) {
                     self.units[index].combat.fire_mode = *mode;
-                    if *mode == FireMode::HoldFire {
+                    if *mode != FireMode::FireAtWill {
                         self.units[index].combat.auto_target = None;
                     }
                 }
             }
+            Command::SetFireLimits {
+                units,
+                close_only,
+                vehicles_only,
+            } => self.order_fire_limits(
+                command.player,
+                units,
+                FireLimits {
+                    close_only: *close_only,
+                    vehicles_only: *vehicles_only,
+                },
+            ),
             Command::Surrender => self.standings.surrender(command.player, self.tick + 1),
             Command::SetStance { units, stance } => {
                 for index in self.owned_indices(command.player, units) {
@@ -1637,6 +1657,7 @@ impl Sim {
             h.write_u8(u8::from(unit.vision_dirty));
             h.write_u32(unit.crush_slow);
             unit.progress.hash_into(&mut h);
+            unit.under_fire.hash_into(&mut h);
             match &unit.squad {
                 None => h.write_u8(0),
                 Some(squad) => {
@@ -1718,6 +1739,7 @@ impl Sim {
                     hp: u.hp,
                     max_hp: self.types[u.unit_type as usize].max_hp,
                     fire_mode: u.combat.fire_mode,
+                    fire_limits: u.combat.limits,
                     stance: u.squad.as_ref().map(|s| s.stance),
                     garrison: u.squad.as_ref().and_then(|s| s.garrison),
                     changing_stance: u.squad.as_ref().is_some_and(|s| s.changing > 0),
@@ -2335,6 +2357,7 @@ fn new_unit(n: &NewUnit<'_>) -> Unit {
         crush_slow: 0,
         alert: alert::Alert::default(),
         progress: progress::Progress::default(),
+        under_fire: discipline::UnderFire::default(),
     }
 }
 

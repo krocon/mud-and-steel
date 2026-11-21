@@ -461,7 +461,10 @@ fn scripted_production_chain_is_deterministic() {
 
 /// Golden hash of the scripted skirmish (prompt 023): construction,
 /// production, rally points, supply points and the fight of the starting
-/// units. Recorded on macOS ARM64. Last changed by prompt 173 (movement
+/// units. Recorded on macOS ARM64. Last changed by prompt 176 (fire
+/// discipline: hashed `[discipline]` tactics rules; the skirmish's trucks
+/// drive away when fired at; see `determinism.rs`). Before
+/// (`0xab39_28dc_8af4_b40c`), prompt 173 (movement
 /// rules against stuck units and the progress of every unit in the hash;
 /// see `determinism.rs`). Before (`0x2c11_092d_3344_0e3a`), prompt 110 (guns and
 /// standing tanks react to fire from the flank: hashed `[flank]` tactics
@@ -553,7 +556,7 @@ fn economy_golden_hash() {
     let sim = run_economy(42, 5000);
     assert_eq!(
         sim.state_hash(),
-        0xab39_28dc_8af4_b40c,
+        0x2a15_922b_d831_f01f,
         "economy golden hash mismatch: got {:#018x}",
         sim.state_hash()
     );

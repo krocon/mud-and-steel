@@ -218,6 +218,10 @@ struct TypeInfo {
     /// Has a weapon of at least 20 mm (or a shaped charge): can hurt
     /// armor and buildings (prompt 023: AT squads).
     anti_tank: bool,
+    /// A towed anti-tank gun (prompt 176): fires at vehicles only, so it
+    /// does not give itself away to infantry.
+    #[serde(default)]
+    at_gun: bool,
     /// Indirect weapon (prompt 032): minimum and maximum range, smoke.
     indirect: Option<(Fixed, Fixed, bool)>,
     /// Soldiers it carries (prompt 034, 0: none), soldiers of a squad.
@@ -547,6 +551,7 @@ impl Ai {
                     range,
                     sight: vision.range_m(t.combat.category),
                     anti_tank: t.combat.weapons.iter().any(|w| w.caliber_mm_x10 >= 200),
+                    at_gun: category == Some(sim::catalog::Category::GunAt),
                     indirect,
                     seats,
                     squad: t.combat.squad_size,
@@ -762,6 +767,23 @@ impl Ai {
             }
         }
 
+        // Prompt 176: anti-tank guns fire at vehicles only (new ones too).
+        let guns: Vec<UnitId> = view
+            .own
+            .iter()
+            .filter(|u| {
+                u.alive() && self.type_info(u.unit_type).at_gun && !u.fire_limits.vehicles_only
+            })
+            .map(|u| u.id)
+            .collect();
+        if !guns.is_empty() {
+            out.push(Command::SetFireLimits {
+                units: guns,
+                close_only: false,
+                vehicles_only: true,
+            });
+        }
+
         self.think_economy(view, &mut out);
         self.think_air(view, &mut out);
         self.think_strike(view, &mut out);
@@ -873,6 +895,7 @@ impl Ai {
                 range: Fixed::ZERO,
                 sight: Fixed::ZERO,
                 anti_tank: false,
+                at_gun: false,
                 indirect: None,
                 seats: 0,
                 squad: 0,

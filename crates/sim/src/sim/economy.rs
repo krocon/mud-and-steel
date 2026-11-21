@@ -352,7 +352,7 @@ impl Economy {
         }
     }
 
-    fn structure_index(&self, unit: UnitId) -> Option<usize> {
+    pub(super) fn structure_index(&self, unit: UnitId) -> Option<usize> {
         self.structures.binary_search_by_key(&unit, |s| s.unit).ok()
     }
 

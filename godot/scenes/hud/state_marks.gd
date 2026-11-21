@@ -4,7 +4,9 @@ extends Control
 ## flames of a fire), immobilized (at or below `immobile_pct` hit points),
 ## track off (mine), suppressed or pinned down (infantry), out of
 ## ammunition, out of fuel, being repaired or resupplied, stopped because
-## it got stuck (prompt 173, `SimHost.stuck_units`: until a new order).
+## it got stuck (prompt 173, `SimHost.stuck_units`: until a new order),
+## and for own units their fire discipline when it is not "fire at will"
+## (prompt 176: return fire, hold fire; least important).
 ##
 ## Sparse on purpose: at most MAX_MARKS marks side by side, the most
 ## important first (ORDER); from FAR_M camera distance only the most
@@ -27,7 +29,7 @@ const HudIcons := preload("res://scenes/hud/hud_icons.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
 
 ## Mark ids by importance.
-const ORDER: Array[String] = ["burning", "immobile", "track", "suppressed", "stuck", "no_ammo", "no_fuel", "service"]
+const ORDER: Array[String] = ["burning", "immobile", "track", "suppressed", "stuck", "no_ammo", "no_fuel", "service", "return_fire", "hold_fire"]
 ## What an enemy shows (visible from outside).
 const ENEMY_MARKS: Array[String] = ["burning", "immobile", "track", "suppressed"]
 const COLORS: Dictionary[String, Color] = {
@@ -39,6 +41,8 @@ const COLORS: Dictionary[String, Color] = {
 	"no_fuel": Color(0.45, 0.7, 1.0),
 	"service": Color(0.45, 0.9, 0.45),
 	"stuck": Color(0.95, 0.8, 0.55),
+	"return_fire": Color(0.85, 0.85, 0.95),
+	"hold_fire": Color(0.85, 0.85, 0.95),
 }
 const MAX_MARKS := 2
 ## Camera distance (m) from which only the most important mark shows.
@@ -110,6 +114,7 @@ func scan() -> void:
 	var tracks: Dictionary[int, bool] = {}
 	for id in sim_host.tracks_off():
 		tracks[id] = true
+	var modes := sim_host.unit_fire_modes()
 	var stuck: Dictionary[int, bool] = {}
 	for id in sim_host.stuck_units():
 		stuck[id] = true
@@ -142,6 +147,10 @@ func scan() -> void:
 			kinds.append("no_fuel")
 		if _serviced.get(id, -1.0) > _time:
 			kinds.append("service")
+		if i < modes.size() and modes[i] == 2:
+			kinds.append("return_fire")
+		elif i < modes.size() and modes[i] == 1:
+			kinds.append("hold_fire")
 		if not kinds.is_empty():
 			states[id] = kinds
 	for id: int in _serviced.keys():

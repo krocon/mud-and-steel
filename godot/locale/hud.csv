@@ -472,3 +472,19 @@ ACTIVITY_GROUP_TRANSPORT,%d mounting or towing,"%d beim Auf-, Absitzen oder Schl
 ACTIVITY_GROUP_WORKING,%d at work,%d bei der Arbeit
 ACTIVITY_GROUP_IN_BUILDING,%d in buildings,%d in Gebäuden
 ACTIVITY_GROUP_IDLE,%d waiting,%d warten
+FIRE_STATUS_RETURN_FIRE,returns fire only (enemy in sight),erwidert nur Feuer (Gegner in Sicht)
+FIRE_STATUS_LIMITED,fire limits keep it back (enemy in sight),Feuergrenzen halten es zurück (Gegner in Sicht)
+HUD_CMD_FIRE_DISCIPLINE,Fire,Feuer
+HUD_TIP_FIRE_DISCIPLINE,"Fire discipline: fire at will, return fire or hold fire, and limits for an ambush. The fire key switches the three modes.","Feuerdisziplin: Feuer frei, Feuer erwidern oder Feuerverbot, dazu Grenzen für einen Hinterhalt. Die Feuertaste schaltet die drei Stufen durch."
+HUD_CMD_RETURN_FIRE,Return fire,Feuer erwidern
+HUD_TIP_FIRE_AT_WILL,Fire at every enemy in sight and range.,Feuer auf jeden Gegner in Sicht und Reichweite.
+HUD_TIP_RETURN_FIRE,Fire only at units that fired at this one (or at the target of an attack order). Stays hidden until then.,"Feuer nur auf Einheiten, die auf diese geschossen haben (oder auf das Ziel eines Angriffsbefehls). Bleibt bis dahin verborgen."
+HUD_TIP_HOLD_FIRE,Fire only at the target of an attack order.,Feuer nur auf das Ziel eines Angriffsbefehls.
+HUD_CMD_CLOSE_ONLY,Close range only,Erst auf kurze Entfernung
+HUD_TIP_CLOSE_ONLY,Open fire on its own only within half of its range: an ambush waits until the enemy is close. Switch.,"Eröffnet das Feuer von sich aus erst innerhalb der halben Reichweite: Ein Hinterhalt wartet, bis der Gegner nah ist. Schalter."
+HUD_CMD_VEHICLES_ONLY,Vehicles only,Nur auf Fahrzeuge
+HUD_TIP_VEHICLES_ONLY,"Open fire on its own only at vehicles, never at infantry (also the machine guns): for anti-tank guns. Switch.","Eröffnet das Feuer von sich aus nur auf Fahrzeuge, nie auf Infanterie (auch die Maschinengewehre): für Panzerabwehr. Schalter."
+HUD_FIRE_MIXED,mixed,gemischt
+HUD_STATE_RETURN_FIRE,returns fire,erwidert Feuer
+HUD_STATE_CLOSE_ONLY,close range only,erst auf kurze Entfernung
+HUD_STATE_VEHICLES_ONLY,vehicles only,nur auf Fahrzeuge

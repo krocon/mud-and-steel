@@ -28,5 +28,6 @@ pub use wire::{CHANNEL_COUNT, LobbyPlayer, LobbySetup, LobbySlot, SlotKind, Star
 /// and 055 (new `Command` variants: works, mission signals, formations,
 /// heavy strike, crossings; `SimConfig::mission`); 6 since prompt 093
 /// (`Command::AttackObject`, overrun and machine gun rules in
-/// `SimConfig::combat`, machine guns in the unit types).
-pub const PROTOCOL_VERSION: u16 = 6;
+/// `SimConfig::combat`, machine guns in the unit types); 7 since prompt
+/// 176 (`FireMode::ReturnFire`, `Command::SetFireLimits`).
+pub const PROTOCOL_VERSION: u16 = 7;

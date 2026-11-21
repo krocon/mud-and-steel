@@ -513,6 +513,20 @@ at the forest edge be seen from 500 m. Rules in `data/vision.toml`
 `[ambush]`; details in
 [ARCHITECTURE.md](ARCHITECTURE.md#ambush-prompt-056-provisional).
 
+## Fire discipline (prompt 176) [provisional, 2026-11-21]
+
+An ambush must not give itself away at the first scout. Three fire modes
+instead of two: **fire at will**, **return fire** (only at whoever fired at
+the unit, for 30 s after the last round) and **hold fire**; and two limits
+of the unit's own fire: **close range only** (half its range) and
+**vehicles only** (anti-tank guns that do not open up on infantry). Attack
+orders always fire. The AI sets its anti-tank guns to vehicles only.
+Unarmed vehicles (trucks, tractors) that stand without an order and come
+under fire drive 80 m away from it instead of waiting to die. Values in
+`[discipline]` of `data/tactics.toml`. Open: "vehicles only" includes
+armored cars, so a scout car in front still draws the first shot; a "tanks
+only" limit or a click distance would be the next step if wanted.
+
 ## Fog of war: the map is known [confirmed 2026-11-20]
 
 Prompt 098, the user's decision: the landscape is known from the start.

@@ -405,16 +405,48 @@ func stop_selected() -> void:
 		sim_host.stop_units(PackedInt64Array(selected))
 
 
-## Hold fire for the selection, or fire at will if all of it holds fire.
+## The fire key (prompt 176): the next fire mode after that of the first
+## selected unit, for the whole selection: fire at will, return fire, hold
+## fire, fire at will.
 func toggle_hold_fire() -> void:
 	if selected.is_empty():
 		return
-	var hold := sim_host.unit_hold_fire()
-	var all_hold := true
+	var modes := sim_host.unit_fire_modes()
+	var index := _index_of(selected[0])
+	var mode: int = modes[index] if index >= 0 and index < modes.size() else 0
+	# Codes: 0 fire at will, 1 hold fire, 2 return fire.
+	var next: int = {0: 2, 2: 1, 1: 0}.get(mode, 0)
+	sim_host.set_fire_mode(PackedInt64Array(selected), next)
+
+
+## Sets fire mode `code` (0 fire at will, 1 hold fire, 2 return fire) for
+## the selection (prompt 176).
+func set_fire_mode(code: int) -> void:
+	if not selected.is_empty():
+		sim_host.set_fire_mode(PackedInt64Array(selected), code)
+
+
+## Switches one fire limit ("close" or "vehicles") for the selection: on
+## unless every selected unit has it already (prompt 176).
+func toggle_fire_limit(which: String) -> void:
+	if selected.is_empty():
+		return
+	var limits := sim_host.unit_fire_limits()
+	var bit := 1 if which == "close" else 2
+	var all := true
+	var close := true
+	var vehicles := true
 	for id: int in selected:
 		var index := _index_of(id)
-		all_hold = all_hold and index >= 0 and hold[index] != 0
-	sim_host.set_hold_fire(PackedInt64Array(selected), not all_hold)
+		var v: int = limits[index] if index >= 0 and index < limits.size() else 0
+		all = all and (v & bit) != 0
+		close = close and (v & 1) != 0
+		vehicles = vehicles and (v & 2) != 0
+	if which == "close":
+		close = not all
+	else:
+		vehicles = not all
+	sim_host.set_fire_limits(PackedInt64Array(selected), close, vehicles)
 
 
 ## Attacks the living unit of another player under the cursor; false if

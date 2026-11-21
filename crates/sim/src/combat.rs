@@ -72,6 +72,37 @@ pub enum FireMode {
     FireAtWill,
     /// Fire only at targets of an attack order.
     HoldFire,
+    /// Fire automatically only at units that fired at this one (prompt
+    /// 176), and at targets of an attack order.
+    ReturnFire,
+}
+
+impl FireMode {
+    /// The next mode of the fire key: fire at will, return fire, hold fire.
+    pub const fn next(self) -> Self {
+        match self {
+            Self::FireAtWill => Self::ReturnFire,
+            Self::ReturnFire => Self::HoldFire,
+            Self::HoldFire => Self::FireAtWill,
+        }
+    }
+
+    /// 0 fire at will, 1 hold fire, 2 return fire (bridge, hash).
+    pub const fn code(self) -> u8 {
+        match self {
+            Self::FireAtWill => 0,
+            Self::HoldFire => 1,
+            Self::ReturnFire => 2,
+        }
+    }
+
+    pub const fn from_code(code: i64) -> Self {
+        match code {
+            1 => Self::HoldFire,
+            2 => Self::ReturnFire,
+            _ => Self::FireAtWill,
+        }
+    }
 }
 
 // --- Rules -----------------------------------------------------------------

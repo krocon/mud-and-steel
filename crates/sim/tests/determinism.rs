@@ -21,7 +21,15 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by prompt 173 (stuck audit), an intended rule change in
+/// Last changed by prompt 176 (fire discipline), an intended rule change:
+/// the hashed tactics rules have the new `[discipline]` section (return
+/// fire, close range, unarmed vehicles drive away when fired at), fire
+/// modes hash as a code (0 at will, 1 hold, 2 return fire: unchanged for
+/// the old two), limits and remembered attackers only when set. The demo
+/// has no unarmed vehicle and nobody uses the new modes: its battle is
+/// unchanged (decided at tick 436 by player 0).
+///
+/// Before (`0xfc84_38d4_649c_5305`), prompt 173 (stuck audit), an intended rule change in
 /// the movement: getting closer to a waypoint by less than 0.2 m is no
 /// progress (creeping units skip it after 2 s), slides shorter than a
 /// quarter step do not count, units of a column queue (push only along
@@ -328,7 +336,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xfc84_38d4_649c_5305;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x0be4_14e3_d70b_7823;
 
 #[test]
 fn golden_hash() {

@@ -615,7 +615,7 @@ impl Sim {
                     if gun.reload > 0
                         || gun.setup > 0
                         || moving
-                        || self.units[i].combat.fire_mode == FireMode::HoldFire
+                        || self.units[i].combat.fire_mode != FireMode::FireAtWill
                     {
                         continue;
                     }

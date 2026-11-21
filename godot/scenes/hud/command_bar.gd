@@ -9,7 +9,10 @@ extends Control
 ##
 ## - first page: row 1 movement (move, advance, patrol, secure, stop),
 ##   row 2 combat (attack, ground, shell, barrage, smoke), row 3 posture
-##   and more (hold fire, stance, formation, occupy, more);
+##   and more (fire discipline, stance, formation, occupy, more);
+## - "fire" (prompt 176): fire at will, return fire, hold fire and the two
+##   limits close range only and vehicles only (switches; a dot marks
+##   them); the fire key cycles the three modes without the page;
 ## - "stance" and "formation" open a page with the choices and return to
 ##   the first page after one;
 ## - "more": dismount, unlimber, camouflage, bridge layer, the engineers'
@@ -50,7 +53,7 @@ const BACK_SLOT := COLUMNS * ROWS - 1
 const PAGE_MAIN := "main"
 const PAGE_BUILDING := "building"
 ## Page a page leads back to.
-const PARENTS: Dictionary[String, String] = {"stance": "main", "formation": "main", "more": "main", "positions": "more"}
+const PARENTS: Dictionary[String, String] = {"stance": "main", "formation": "main", "more": "main", "positions": "more", "fire": "main"}
 ## id, label (translation key), action (key shown), kind, page, place
 ## (0..14, row by row), tooltip (translation key or "").
 ## Kinds: "mode" (targeted), "now", "stance", "formation", "page" (opens
@@ -69,11 +72,17 @@ const BUTTONS: Array[Array] = [
 	["attack_object", "HUD_CMD_SHELL", "order_attack_object", "mode", "main", 7, "HUD_TIP_SHELL"],
 	["barrage", "HUD_CMD_BARRAGE", "order_barrage", "mode", "main", 8, "HUD_TIP_BARRAGE"],
 	["smoke", "HUD_CMD_SMOKE", "order_smoke", "mode", "main", 9, "HUD_TIP_SMOKE"],
-	["fire", "HUD_CMD_HOLD_FIRE", "order_fire_mode", "now", "main", 10, ""],
+	["fire", "HUD_CMD_FIRE_DISCIPLINE", "order_fire_mode", "page", "main", 10, "HUD_TIP_FIRE_DISCIPLINE"],
 	["stance", "HUD_CMD_STANCE", "", "page", "main", 11, "HUD_TIP_STANCE"],
 	["formation", "HUD_FORMATION", "order_formation", "page", "main", 12, "HUD_TIP_FORMATION"],
 	["garrison", "HUD_CMD_OCCUPY", "order_garrison", "mode", "main", 13, "HUD_TIP_OCCUPY"],
 	["more", "HUD_CMD_MORE", "", "page", "main", 14, "HUD_TIP_MORE"],
+	# Fire discipline (prompt 176): the modes by code, then the limits.
+	["fire_at_will", "HUD_CMD_FIRE_AT_WILL", "", "firemode", "fire", 0, "HUD_TIP_FIRE_AT_WILL"],
+	["return_fire", "HUD_CMD_RETURN_FIRE", "", "firemode", "fire", 1, "HUD_TIP_RETURN_FIRE"],
+	["hold_fire", "HUD_CMD_HOLD_FIRE", "", "firemode", "fire", 2, "HUD_TIP_HOLD_FIRE"],
+	["close_only", "HUD_CMD_CLOSE_ONLY", "", "firelimit", "fire", 3, "HUD_TIP_CLOSE_ONLY"],
+	["vehicles_only", "HUD_CMD_VEHICLES_ONLY", "", "firelimit", "fire", 4, "HUD_TIP_VEHICLES_ONLY"],
 	["stance_stand", "HUD_CMD_STAND", "stance_stand", "stance", "stance", 0, ""],
 	["stance_kneel", "HUD_CMD_KNEEL", "stance_kneel", "stance", "stance", 1, ""],
 	["stance_prone", "HUD_CMD_PRONE", "stance_prone", "stance", "stance", 2, ""],
@@ -231,6 +240,10 @@ func press(id: String) -> void:
 		"stance":
 			selection.set_stance({"stance_stand": 0, "stance_kneel": 1, "stance_prone": 2, "stance_auto": -1}[id])
 			page = PAGE_MAIN
+		"firemode":
+			selection.set_fire_mode({"fire_at_will": 0, "hold_fire": 1, "return_fire": 2}[id])
+		"firelimit":
+			selection.toggle_fire_limit("close" if id == "close_only" else "vehicles")
 		"formation":
 			selection.set_formation(id.get_slice("_", 1).to_int())
 			page = PAGE_MAIN
@@ -255,8 +268,6 @@ func press(id: String) -> void:
 				TransportOrders.disembark(selection)
 			elif id == "unlimber":
 				TransportOrders.unlimber(selection)
-			else:
-				selection.toggle_hold_fire()
 	_update()
 
 
@@ -270,13 +281,16 @@ func _update() -> void:
 	var selected: Array[int] = selection.selected
 	var ids := sim_host.unit_ids()
 	var stances := sim_host.unit_stances()
-	var hold := sim_host.unit_hold_fire()
+	var modes := sim_host.unit_fire_modes()
+	var limits := sim_host.unit_fire_limits()
 	var owners := sim_host.unit_owners()
 	var me := sim_host.local_player()
 	var base_view: Node = main.get("base_view")
 	var mobile := 0
 	var squads := 0
-	var holding := 0
+	# Selected own units per fire mode (codes 0, 1, 2) and with each limit.
+	var in_mode := [0, 0, 0]
+	var limited := [0, 0]
 	var guns := 0
 	var smoke := 0
 	for id: int in selected:
@@ -287,7 +301,11 @@ func _update() -> void:
 			mobile += 1
 		if stances[i] >= 0:
 			squads += 1
-		holding += hold[i]
+		if i < modes.size():
+			in_mode[modes[i]] += 1
+		if i < limits.size():
+			limited[0] += limits[i] & 1
+			limited[1] += (limits[i] >> 1) & 1
 		var weapon := sim_host.unit_indirect(id)
 		if weapon.y > 0.0:
 			guns += 1
@@ -315,7 +333,12 @@ func _update() -> void:
 	var shells := mobile > 0 and sim_host.can_shell_objects(PackedInt64Array(selected))
 	var more := transport.x > 0 or transport.y > 0 or engineers > 0 or layers > 0 or not camo.is_empty()
 	formation_shown = selection.formation
-	var all_holding := holding > 0 and holding == selected.size()
+	var own_count: int = in_mode[0] + in_mode[1] + in_mode[2]
+	# The mode all own selected units share (-1: mixed).
+	var common := -1
+	for code in 3:
+		if own_count > 0 and in_mode[code] == own_count:
+			common = code
 	for spec in BUTTONS:
 		var id: String = spec[0]
 		if spec[3] == "build":
@@ -359,9 +382,7 @@ func _update() -> void:
 					why = "HUD_WHY_NO_PASSENGERS"
 				elif id == "unlimber":
 					why = "ORDER_REJECTED_NOTHING_TO_UNLIMBER"
-				if id == "fire":
-					label = tr("HUD_CMD_FIRE_AT_WILL") if all_holding else tr("HUD_CMD_HOLD_FIRE")
-					b.marked = all_holding
+
 			"page":
 				fits = (id == "stance" and squads > 0) or (id == "formation" and mobile > 0) \
 						or (id == "more" and more) or (id == "positions" and engineers > 0)
@@ -370,6 +391,23 @@ func _update() -> void:
 				if id == "formation":
 					b.icon_id = "formation_%d" % formation_shown
 					label += ": " + tr(FormationOrders.label(formation_shown))
+				if id == "fire":
+					fits = mobile > 0 or own_count > 0
+					why = "ORDER_REJECTED_NO_MOBILE_UNITS"
+					var names := ["HUD_CMD_FIRE_AT_WILL", "HUD_CMD_HOLD_FIRE", "HUD_CMD_RETURN_FIRE"]
+					label += ": " + (tr(names[common]) if common >= 0 else tr("HUD_FIRE_MIXED"))
+					b.icon_id = ["fire_at_will", "hold_fire", "return_fire"][common] if common >= 0 else "fire"
+					b.marked = common > 0 or limited[0] > 0 or limited[1] > 0
+			"firemode":
+				fits = own_count > 0
+				why = "ORDER_REJECTED_NO_MOBILE_UNITS"
+				var code: int = {"fire_at_will": 0, "hold_fire": 1, "return_fire": 2}[id]
+				b.marked = common == code
+			"firelimit":
+				fits = own_count > 0
+				why = "ORDER_REJECTED_NO_MOBILE_UNITS"
+				var k := 0 if id == "close_only" else 1
+				b.marked = own_count > 0 and limited[k] == own_count
 			"service":
 				fits = false
 				if not service.is_empty():

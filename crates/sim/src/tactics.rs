@@ -144,6 +144,41 @@ pub struct TacticsRules {
     /// Prompt 110; missing in saved games from before (then off).
     #[serde(default)]
     pub flank: FlankRules,
+    /// Prompt 176; missing in saved games from before (then off).
+    #[serde(default)]
+    pub discipline: DisciplineRules,
+}
+
+/// Fire discipline and unarmed vehicles under fire (prompt 176,
+/// `[discipline]` in `data/tactics.toml`).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct DisciplineRules {
+    pub return_near_mm: u32,
+    pub return_remember_ms: u32,
+    pub close_range_pct: u32,
+    pub unarmed_retreat: u32,
+    pub retreat_mm: u32,
+    pub retreat_cooldown_ms: u32,
+}
+
+impl DisciplineRules {
+    /// Everything off (saved games from before prompt 176): no attacker
+    /// is remembered, close range means the whole range, no retreat.
+    pub const OFF: Self = Self {
+        return_near_mm: 0,
+        return_remember_ms: 0,
+        close_range_pct: 100,
+        unarmed_retreat: 0,
+        retreat_mm: 0,
+        retreat_cooldown_ms: 0,
+    };
+}
+
+impl Default for DisciplineRules {
+    fn default() -> Self {
+        Self::OFF
+    }
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -245,6 +280,23 @@ impl TacticsRules {
         check("flank.shaken_max_ms", k.shaken_max_ms, k.react_ms, 600_000)?;
         check("flank.near_miss_mm", k.near_miss_mm, 0, 100_000)?;
         check("flank.same_deg", k.same_deg, 0, 180)?;
+        let d = &rules.discipline;
+        check("discipline.return_near_mm", d.return_near_mm, 0, 100_000)?;
+        check(
+            "discipline.return_remember_ms",
+            d.return_remember_ms,
+            0,
+            600_000,
+        )?;
+        check("discipline.close_range_pct", d.close_range_pct, 1, 100)?;
+        check("discipline.unarmed_retreat", d.unarmed_retreat, 0, 1)?;
+        check("discipline.retreat_mm", d.retreat_mm, 0, 1_000_000)?;
+        check(
+            "discipline.retreat_cooldown_ms",
+            d.retreat_cooldown_ms,
+            0,
+            600_000,
+        )?;
         Ok(rules)
     }
 
@@ -303,6 +355,12 @@ impl TacticsRules {
             k.near_miss_mm,
             k.same_deg,
             k.ordered_hold_ms,
+            self.discipline.return_near_mm,
+            self.discipline.return_remember_ms,
+            self.discipline.close_range_pct,
+            self.discipline.unarmed_retreat,
+            self.discipline.retreat_mm,
+            self.discipline.retreat_cooldown_ms,
         ] {
             h.write_u32(v);
         }

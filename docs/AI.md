@@ -420,6 +420,15 @@ a seen enemy changes nothing; a flanked gun is towed away by a nearby
 truck, without one it stays). Test scenario with numbers: BALANCE.md
 "Fire from the flank (prompt 110)".
 
+## Fire discipline (prompt 176)
+
+Every AI (also `HardOld`) sets its towed anti-tank guns (category `gun_at`)
+to "vehicles only" (`Command::SetFireLimits`) when it sees one without
+that limit, also guns produced later: they do not give their position away
+to infantry. The other units keep firing at will; return fire and close
+range are not used by the AI yet (finding for prompt 178: defenders in
+woods could wait with "close range only").
+
 ## Supply and repair (prompt 036)
 
 `crates/ai/src/supply.rs`, all difficulties. The view carries every own

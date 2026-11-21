@@ -49,7 +49,10 @@ pub(super) struct CombatState {
     /// Infantry targets of the secondary machine guns (prompt 093), per
     /// weapon; empty until one has a target.
     #[serde(default)]
-    mg_targets: Vec<Option<UnitId>>,
+    pub(super) mg_targets: Vec<Option<UnitId>>,
+    /// Limits of automatic fire (prompt 176).
+    #[serde(default)]
+    pub(super) limits: super::discipline::FireLimits,
 }
 
 impl CombatState {
@@ -63,6 +66,7 @@ impl CombatState {
             auto_target: None,
             last_seen: None,
             mg_targets: Vec::new(),
+            limits: super::discipline::FireLimits::default(),
         }
     }
 
@@ -73,7 +77,8 @@ impl CombatState {
         for &r in &self.reload {
             h.write_u32(r);
         }
-        h.write_u8(u8::from(self.fire_mode == FireMode::HoldFire));
+        h.write_u8(self.fire_mode.code());
+        self.limits.hash_into(h);
         match self.attack {
             None => h.write_u8(0),
             Some(Attack::Unit(id)) => {
@@ -777,8 +782,10 @@ impl Sim {
                     return None;
                 }
                 let distance = d.length();
-                (distance >= Fixed::ONE && distance <= mine.mg_range)
-                    .then_some((distance, other.id, j, d, 0))
+                (distance >= Fixed::ONE
+                    && distance <= mine.mg_range
+                    && self.may_engage(i, j, distance, mine.mg_range))
+                .then_some((distance, other.id, j, d, 0))
             })
             .collect();
         if found.is_empty() {
@@ -938,6 +945,10 @@ impl Sim {
                 continue;
             }
             let distance = d.length();
+            // Fire discipline (prompt 176).
+            if !self.may_engage(i, j, distance, mine.max_range) {
+                continue;
+            }
             let theirs = &self.types[other.unit_type as usize];
             if !(0..mine.weapons.len()).any(|w| mine.can_damage(w, rules, theirs, distance)) {
                 continue;
@@ -1535,6 +1546,8 @@ impl Sim {
                 }
             }
             self.near_miss(point.ground(), p.shooter, p.caliber_mm_x10);
+            // Prompt 176: who fired at units that return fire.
+            self.note_fire(point.ground(), p.shooter, unit_hit.map(|(j, ..)| j));
             // Prompt 110: where the fire came from.
             let heavy = p.caliber_mm_x10 >= self.tactics.rules.suppression.heavy_caliber_mm_x10;
             let back = Vec2::new(-d.x, -d.y);
@@ -1548,6 +1561,7 @@ impl Sim {
                     alert::BOUNCED
                 };
                 self.report_fire(j, back, level, p.traveled, heavy);
+                self.unarmed_under_fire(j, back);
             }
             self.report_near_misses(
                 point.ground(),

@@ -189,6 +189,15 @@ pub enum Command {
     /// 093). Ignored for objects that cannot be shot to pieces or are
     /// destroyed already, and by units without such a weapon.
     AttackObject { units: Vec<UnitId>, object: u32 },
+    /// Limits of automatic fire of `units` (prompt 176): `close_only`
+    /// takes automatic targets only within half the range
+    /// (`[discipline] close_range_pct`), `vehicles_only` none among
+    /// infantry. Attack orders are never limited.
+    SetFireLimits {
+        units: Vec<UnitId>,
+        close_only: bool,
+        vehicles_only: bool,
+    },
 }
 
 impl Command {
@@ -201,6 +210,7 @@ impl Command {
             | Self::AttackGround { units, .. }
             | Self::AttackObject { units, .. }
             | Self::SetFireMode { units, .. }
+            | Self::SetFireLimits { units, .. }
             | Self::SetStance { units, .. }
             | Self::Garrison { units, .. }
             | Self::Barrage { units, .. }

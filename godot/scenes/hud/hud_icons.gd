@@ -27,6 +27,13 @@ const ICONS: Dictionary[String, String] = {
 	"barrage": "l 6,3 6,15 | l 3,12 6,16 9,12 | l 12,5 12,17 | l 9,14 12,18 15,14 | l 18,3 18,15 | l 15,12 18,16 21,12 | l 3,21 21,21",
 	"smoke": "c 8,13 4 | c 14,10 5 | c 17,15 4 | l 5,20 20,20",
 	"fire": "c 12,12 7 | d 12,12 2 | l 4,20 20,4",
+	# Fire discipline (prompt 176): crosshair open, crossed, with an arrow
+	# back to the shooter; the limits: a short range ring, a hull.
+	"fire_at_will": "c 12,12 7 | d 12,12 2 | l 12,2 12,6 | l 12,18 12,22 | l 2,12 6,12 | l 18,12 22,12",
+	"hold_fire": "c 12,12 7 | d 12,12 2 | l 4,20 20,4",
+	"return_fire": "c 13,12 6 | d 13,12 2 | l 3,20 9,14 | l 3,15 3,20 8,20",
+	"close_only": "c 12,12 9 | c 12,12 4 | d 12,12 1.5",
+	"vehicles_only": "g 3,15 21,15 19,19 5,19 | g 7,15 8,11 15,11 16,15 | l 15,12 21,10",
 	"stance": "d 12,5 2.5 | l 12,8 12,16 | l 12,16 8,22 | l 12,16 16,22 | l 7,11 17,11",
 	"garrison": "g 5,21 5,11 12,5 19,11 19,21 | l 12,10 12,18 | l 9,15 12,18 15,15",
 	"more": "d 6,12 2 | d 12,12 2 | d 18,12 2",
@@ -107,6 +114,9 @@ const ICONS: Dictionary[String, String] = {
 	"state_no_fuel": "a 12,14 6 -30 210 | l 6.8,11 12,3 17.2,11 | l 4,21 20,3",
 	# A unit stopped because it got stuck (prompt 173): a wall and an
 	# arrow that stops at it.
+	# Fire discipline of own units (prompt 176).
+	"state_hold_fire": "c 12,12 7 | l 4,20 20,4",
+	"state_return_fire": "c 13,12 6 | l 3,20 9,14 | l 3,15 3,20 8,20",
 	"state_stuck": "l 18,3 18,21 | l 21,3 21,21 | l 3,12 13,12 | l 9,8 13,12 9,16",
 	"state_service": "l 4,21 13,12 | l 6,23 15,14 | a 17,8 5 30 260 | l 4,21 6,23 | l 18,16 18,22 | l 15,19 21,19",
 }

@@ -179,6 +179,61 @@ impl SimHost {
         }
     }
 
+    /// Sets the fire mode of the units (prompt 176): 0 fire at will, 1
+    /// hold fire, 2 return fire.
+    #[func]
+    fn set_fire_mode(&mut self, unit_ids: PackedInt64Array, code: i64) {
+        let units = to_unit_ids(&unit_ids);
+        if !units.is_empty() {
+            self.pending.push(Command::SetFireMode {
+                units,
+                mode: FireMode::from_code(code),
+            });
+        }
+    }
+
+    /// Fire mode of every unit (same order as `unit_ids`): 0 fire at will,
+    /// 1 hold fire, 2 return fire (prompt 176).
+    #[func]
+    fn unit_fire_modes(&self) -> PackedByteArray {
+        self.current
+            .units
+            .iter()
+            .map(|u| u.fire_mode.code())
+            .collect()
+    }
+
+    /// Sets the limits of automatic fire of the units (prompt 176).
+    #[func]
+    fn set_fire_limits(
+        &mut self,
+        unit_ids: PackedInt64Array,
+        close_only: bool,
+        vehicles_only: bool,
+    ) {
+        let units = to_unit_ids(&unit_ids);
+        if !units.is_empty() {
+            self.pending.push(Command::SetFireLimits {
+                units,
+                close_only,
+                vehicles_only,
+            });
+        }
+    }
+
+    /// Fire limits of every unit (same order as `unit_ids`): bit 0 close
+    /// range only, bit 1 vehicles only (prompt 176).
+    #[func]
+    fn unit_fire_limits(&self) -> PackedByteArray {
+        self.current
+            .units
+            .iter()
+            .map(|u| {
+                u8::from(u.fire_limits.close_only) | (u8::from(u.fire_limits.vehicles_only) << 1)
+            })
+            .collect()
+    }
+
     /// Whether every unit holds fire (same order as `unit_ids`).
     #[func]
     fn unit_hold_fire(&self) -> PackedByteArray {

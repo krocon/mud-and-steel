@@ -57,7 +57,8 @@ but never its issuer:
 | `Attack { units, target }` | The units drive into range of the unit `target` and fire at it until it is destroyed ([Combat](#combat)). Own targets are ignored. |
 | `AttackGround { units, target }` | The units drive into range of the ground point and fire at it. |
 | `AttackObject { units, object }` | The units drive into range of the map object (index) and shell it with the weapons that damage objects until it is destroyed (prompt 093, [Combat](#combat)). Since this command the lobby protocol is version 6 and the replay format version 10. |
-| `SetFireMode { units, mode }` | `FireAtWill` (default: pick targets automatically) or `HoldFire` (fire only at attack targets). |
+| `SetFireMode { units, mode }` | `FireAtWill` (default: pick targets automatically), `ReturnFire` (automatic targets only among units that fired at it, prompt 176) or `HoldFire` (fire only at attack targets). |
+| `SetFireLimits { units, close_only, vehicles_only }` | Limits of automatic fire (prompt 176, [Fire discipline](#fire-discipline-prompt-176-provisional)): only within half the range, only at vehicles. Since this command the lobby protocol is version 7 and the replay format version 12. |
 | `Surrender` | The issuing player gives up and is defeated ([Victory conditions](#victory-conditions-and-game-flow)). |
 | `SetStance { units, stance }` | Infantry squads stand, kneel, go prone or choose automatically (prompt 022, [INFANTRY.md](INFANTRY.md#behavior-prompt-022)). |
 | `Garrison { units, building }` | Infantry squads walk to the building (map object index) and occupy it if there is room and no enemy inside; a `MoveTo` leaves it. |
@@ -529,6 +530,37 @@ simulation's `Rng` supplies dispersion and penetration rolls in a fixed order
   and the state hash): turret and hull traverse per category, retargeting
   interval, sustained rate of automatic weapons, dispersion, gravity,
   penetration formula, damage and hit points.
+
+### Fire discipline (prompt 176) [provisional]
+
+`sim/src/sim/discipline.rs`, `[discipline]` in `data/tactics.toml`:
+
+- **Fire modes:** fire at will; **return fire**: automatic targets
+  (`choose_target`, the machine guns' `choose_mg_targets`) only among units
+  that fired at this one: a hit on it or a round of theirs landing within
+  `return_near_mm` (10 m), remembered `return_remember_ms` (30 s) after the
+  last round (`note_fire`, called from the projectile flight for units in
+  that mode only, at most 8 shooters per unit); **hold fire** as before.
+  Places that gate automatic fire that is not a target choice (automatic
+  indirect fire) treat return fire like hold fire.
+- **Limits** (`SetFireLimits`, `FireLimits` in the combat state): close
+  range only (automatic targets within `close_range_pct`, 50 %, of the
+  longest range; machine guns of their own range) and vehicles only (no
+  infantry, also for the machine guns). Attack orders are never limited, a
+  target once chosen is kept while it stays in sight and range, and a new
+  limit drops the current automatic targets.
+- **Unarmed vehicles** (no weapons, not a building, not linked, no move
+  target, no queued orders, no transport task) that are hit or nearly hit
+  (the `[flank]` near-miss distance) drive `retreat_mm` (80 m) away from
+  where the round came from, at most every `retreat_cooldown_ms` (15 s).
+- Ambush (prompt 056): a unit that does not fire stays hidden; the first
+  shot reveals it as before. Nothing else in the vision rules changed.
+- State hash: fire modes as a code (0, 1, 2), limits and the remembered
+  attackers or the retreat cooldown only when set; the rules always.
+- Test scenarios (`crates/sim/tests/fire_discipline.rs`, numbers with
+  `--nocapture`): a Pak 40 and an MG team in a wood against a BA-64 in front
+  of a T-34; a truck 40 m from a rifle squad; return fire, close range and
+  vehicles only each on their own.
 
 ### Per tick
 
@@ -4783,7 +4815,7 @@ player are selectable; destroyed units leave the selection.
 | Right click on an enemy unit | Attack it |
 | Ctrl+right click (Cmd on macOS) | Fire at the ground point |
 | H | Stop the selection |
-| F | Hold fire / fire at will for the selection |
+| F | Next fire mode for the selection: fire at will → return fire → hold fire (prompt 176) |
 | M, R, L, P, U | Targeted order (move, attack, fire at ground, patrol, occupy): waits for the next left click (`command_mode`; Shift keeps it and queues moves), right click cancels |
 
 Since prompt 031 the order, stance, follow and event keys are input actions

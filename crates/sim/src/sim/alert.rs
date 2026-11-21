@@ -217,12 +217,15 @@ impl Sim {
             let edge = ty.half_length.max(ty.half_width) + rt.near_miss;
             if (unit.position - point).length() <= edge {
                 self.report_fire(j, back, NEAR_MISS, traveled, heavy);
+                // Prompt 176: unarmed vehicles drive away.
+                self.unarmed_under_fire(j, back);
             }
         }
     }
 
     /// Counts down the alerts of every unit.
     pub(super) fn update_alerts(&mut self) {
+        self.decay_under_fire();
         for unit in &mut self.units {
             if unit.alert.is_empty() {
                 continue;

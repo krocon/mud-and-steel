@@ -438,7 +438,14 @@ func _show_single(id: int) -> void:
 				state.append(tr("HUD_STATE_SUPPRESSED") % int(tactics.get("suppression", 0)))
 			if int(tactics.get("bounding", -1)) >= 0:
 				state.append(tr("HUD_STATE_BOUNDING"))
-		state.append(tr("HUD_STATE_HOLDING_FIRE") if sim_host.unit_hold_fire()[index] != 0 else tr("HUD_STATE_FIRE_AT_WILL"))
+		# Prompt 176: three fire modes and the limits.
+		var mode: int = sim_host.unit_fire_modes()[index]
+		state.append(tr(["HUD_STATE_FIRE_AT_WILL", "HUD_STATE_HOLDING_FIRE", "HUD_STATE_RETURN_FIRE"][clampi(mode, 0, 2)]))
+		var limits: int = sim_host.unit_fire_limits()[index]
+		if limits & 1:
+			state.append(tr("HUD_STATE_CLOSE_ONLY"))
+		if limits & 2:
+			state.append(tr("HUD_STATE_VEHICLES_ONLY"))
 		var queued := sim_host.unit_queue_length(id)
 		if sim_host.unit_patrols(id):
 			state.append(tr("HUD_STATE_PATROLLING"))

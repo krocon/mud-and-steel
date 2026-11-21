@@ -141,3 +141,25 @@ near_miss_mm = 6000
 # Any new order ends the hold; an attack order or an automatic target
 # always wins, hold fire only stops the firing, not the turning.
 ordered_hold_ms = 60000
+
+[discipline]
+# Prompt 176: fire discipline and unarmed vehicles under fire.
+# "Return fire" (`FireMode::ReturnFire`): a unit fires automatically only
+# at units that fired at it: hits on it and rounds landing within
+# `return_near_mm` of it, remembered for `return_remember_ms` after the
+# last round. "Close range only" (`SetFireLimits`): automatic targets only
+# within `close_range_pct` percent of the unit's longest range (half: the
+# ambush waits until the enemy is close). "Vehicles only": no automatic
+# targets among infantry (also for the machine guns). Attack orders are
+# never limited. [provisional]
+return_near_mm = 10000
+return_remember_ms = 30000
+close_range_pct = 50
+# Unarmed vehicles (trucks, tractors, cars without weapons) that stand
+# without an order and are hit, or that rounds of another player miss by
+# less than `flank.near_miss_mm`, drive `retreat_mm` away from where the
+# fire came from (the way to it planned as usual), at most every
+# `retreat_cooldown_ms`. 0 = off. [provisional]
+unarmed_retreat = 1
+retreat_mm = 80000
+retreat_cooldown_ms = 15000

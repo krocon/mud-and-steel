@@ -206,6 +206,12 @@ pub enum FireStatus {
     NoTarget,
     /// It holds its fire (fire mode) and has no attack order.
     HoldFire,
+    /// It returns fire only (prompt 176) and the enemy in sight has not
+    /// fired at it.
+    ReturnFire,
+    /// Its fire limits (close range only, vehicles only) keep it from the
+    /// enemy in sight (prompt 176).
+    Limited,
     /// Its attack target is not in its own sight.
     NoSight,
     /// The target is beyond the range of its weapons.
@@ -228,6 +234,8 @@ impl FireStatus {
             Self::Aiming => "aiming",
             Self::NoTarget => "no_target",
             Self::HoldFire => "hold_fire",
+            Self::ReturnFire => "return_fire",
+            Self::Limited => "limited",
             Self::NoSight => "no_sight",
             Self::OutOfRange => "out_of_range",
             Self::Ineffective => "ineffective",
@@ -403,10 +411,20 @@ impl Sim {
             if unit.combat.fire_mode == FireMode::HoldFire {
                 return Some((FireStatus::HoldFire, Some(other)));
             }
-            return Some((
-                self.range_status(i, j).unwrap_or(FireStatus::Aiming),
-                Some(other),
-            ));
+            if let Some(status) = self.range_status(i, j) {
+                return Some((status, Some(other)));
+            }
+            let distance = (self.units[j].position - unit.position).length();
+            let range = self.types[unit.unit_type as usize].max_range;
+            if !self.may_engage(i, j, distance, range) {
+                let status = if unit.combat.fire_mode == FireMode::ReturnFire {
+                    FireStatus::ReturnFire
+                } else {
+                    FireStatus::Limited
+                };
+                return Some((status, Some(other)));
+            }
+            return Some((FireStatus::Aiming, Some(other)));
         };
         let other = self.units[t].id;
         if !self.sees_unit(i, t) {

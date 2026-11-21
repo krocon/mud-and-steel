@@ -47,6 +47,9 @@ pub(super) struct TacticsRt {
     /// `[flank]` in ticks (prompt 110; off in older saved games).
     #[serde(default)]
     pub(super) flank: super::alert::FlankRt,
+    /// `[discipline]` in ticks (prompt 176; off in older saved games).
+    #[serde(default)]
+    pub(super) discipline: super::discipline::DisciplineRt,
 }
 
 /// Ticks of `ms` real milliseconds at `tick_hz` with the time factor
@@ -90,6 +93,14 @@ impl TacticsRt {
             // The same time factor; a match without infantry takes that of
             // its first vehicle.
             flank: super::alert::FlankRt::new(&rules.flank, |ms| {
+                let general = unit_types
+                    .iter()
+                    .find(|t| t.combat.is_infantry())
+                    .or_else(|| unit_types.first())
+                    .map_or((1, 1), |t| t.combat.time_ratio);
+                ticks(ms, tick_hz, general)
+            }),
+            discipline: super::discipline::DisciplineRt::new(&rules.discipline, |ms| {
                 let general = unit_types
                     .iter()
                     .find(|t| t.combat.is_infantry())

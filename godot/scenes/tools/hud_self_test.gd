@@ -246,10 +246,23 @@ func _command_bar_test(test: Node, main: Node3D, bar: Control, tanks: Array[int]
 	test._check(not test._moving(group), "stop button did not stop the group")
 	var first: Array[int] = [group[0]]
 	var hold_before: int = sim_host.unit_hold_fire()[test._indices(first)[0]]
+	# Prompt 176: the fire tile opens the page of the fire discipline.
 	test._left_click((bar.buttons["fire"] as Button).get_global_rect().get_center())
+	await test._frames(2)
+	test._check(bar.page == "fire", "the fire tile opened page '%s'" % bar.page)
+	var other := "fire_at_will" if hold_before != 0 else "hold_fire"
+	test._left_click((bar.buttons[other] as Button).get_global_rect().get_center())
 	await test._ticks(3)
 	var hold_after: int = sim_host.unit_hold_fire()[test._indices(first)[0]]
 	test._check(hold_after != hold_before, "fire mode button left hold fire at %d" % hold_after)
+	test._left_click((bar.buttons["vehicles_only"] as Button).get_global_rect().get_center())
+	await test._ticks(3)
+	var limits: int = sim_host.unit_fire_limits()[test._indices(first)[0]]
+	test._check(limits & 2 != 0, "the vehicles-only switch left the limits at %d" % limits)
+	test._left_click((bar.buttons["vehicles_only"] as Button).get_global_rect().get_center())
+	await test._ticks(3)
+	bar.open_page("main")
+	await test._frames(2)
 	# Back to holding fire if the button released it (later parts expect quiet).
 	if hold_after == 0:
 		sim_host.set_hold_fire(PackedInt64Array(group), true)
