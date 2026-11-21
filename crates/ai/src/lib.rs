@@ -20,6 +20,7 @@ mod engineers;
 mod flank;
 pub mod game;
 mod intel;
+mod posture;
 mod scout;
 mod strike;
 mod supply;
@@ -91,6 +92,7 @@ impl Difficulty {
                 veteran_retreat_hp_pct: 0,
                 patience_ticks: 0,
                 attack_move: false,
+                garrison: false,
             },
             Self::Easy => Params {
                 think_ticks: 80,
@@ -100,6 +102,7 @@ impl Difficulty {
                 veteran_retreat_hp_pct: 0,
                 patience_ticks: 1600,
                 attack_move: false,
+                garrison: false,
             },
             Self::Normal => Params {
                 think_ticks: 20,
@@ -109,6 +112,7 @@ impl Difficulty {
                 veteran_retreat_hp_pct: 40,
                 patience_ticks: 800,
                 attack_move: true,
+                garrison: true,
             },
             Self::Hard | Self::HardOld => Params {
                 think_ticks: 10,
@@ -118,6 +122,7 @@ impl Difficulty {
                 veteran_retreat_hp_pct: 50,
                 patience_ticks: 800,
                 attack_move: true,
+                garrison: true,
             },
         }
     }
@@ -177,6 +182,8 @@ struct Params {
     /// Advances as attack-move in an automatic formation, facing the
     /// enemy (prompt 046); otherwise plain `MoveTo`.
     attack_move: bool,
+    /// Waiting squads occupy a building near them (prompt 178).
+    garrison: bool,
 }
 
 /// Role of a unit; every role is commanded as its own group. Infantry
@@ -431,6 +438,12 @@ pub struct Ai {
     /// When the player last saw every part of the map (prompt 051).
     #[serde(default)]
     knowledge: scout::Knowledge,
+    /// Stances ordered to squads (prompt 178).
+    #[serde(default)]
+    posture: posture::PostureState,
+    /// Enterable buildings of the map (prompt 178; public map data).
+    #[serde(default)]
+    houses: Vec<(u32, Vec2)>,
 }
 
 impl Ai {
@@ -676,6 +689,8 @@ impl Ai {
             army: commander::ArmyPlan::default(),
             surrender: surrender::SurrenderState::default(),
             knowledge: scout::Knowledge::default(),
+            posture: posture::PostureState::default(),
+            houses: posture::houses(map),
             ground: if difficulty.commander() {
                 intel::Ground::new(map)
             } else {
@@ -794,6 +809,8 @@ impl Ai {
         self.command_supply(view, &mut out);
         self.command_engineers(view, &mut out);
         self.command_layers(view, &mut out);
+        // Prompt 178: stances and buildings of the squads.
+        self.command_posture(view, &mut out);
         let mut roles: Vec<Role> = Vec::new();
         for u in view.own.iter().filter(|u| u.alive()) {
             let role = self.type_info(u.unit_type).role;

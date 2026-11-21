@@ -420,6 +420,40 @@ a seen enemy changes nothing; a flanked gun is towed away by a nearby
 truck, without one it stays). Test scenario with numbers: BALANCE.md
 "Fire from the flank (prompt 110)".
 
+## Stances and positions (prompt 178)
+
+`crates/ai/src/posture.rs`. The simulation's automatic stance (prompt 047)
+already kneels squads that stand, fight or are fired at while moving, lays
+them down when pinned or in a close fight and lets their fire teams bound;
+the AI keeps attacking squads on it. A first rule that ordered a fixed
+kneel whenever an enemy came within twice the range switched the bounds off
+and stalled attacks (village scenario below, Hard: 30 of 108 defenders
+killed before, none with the rule), so it was dropped.
+
+The AI adds, on Normal and Hard: a squad that stands without an order within
+80 m of an own supply point or building (it defends) and sees an enemy
+within twice its range occupies the nearest enterable building within 30 m
+(`Garrison`, at most once a minute); without one it kneels, or lies down
+when its suppression is 30 or more; it returns to the automatic stance 10 s
+after the last enemy. A stance holds at least 5 s. The view gives the
+squads' stance, building and suppression (`OwnUnit::stance`, `garrison`,
+`suppression`); the buildings come from the map (public).
+
+Checked, already in place: carriers unload 90 m short of seen enemies
+(`transport.rs`), unarmed units stay at home, and since prompt 176 unarmed
+vehicles drive out of fire by themselves. Defenders do not leave a point
+for a single enemy out of range only as far as the group logic keeps them
+(no separate rule yet).
+
+Scenarios (`crates/ai/tests/posture.rs`): two AI rifle squads attack the
+village of `test_small` held by three passive squads (4 seeds each):
+defenders killed Easy 0, Normal 9, Hard 30 of 108 before and after (the
+attack is unchanged). In a base match against Hard, the Normal AI gives
+21 house and stance orders, Easy none. Tournament: battle mode unchanged;
+base mode between two AIs now all 10-game series end in timeouts (before:
+1 of 10 and 2 of 10 decided): defenders in houses hold longer. The AI's
+think time per tick is unchanged (about 10 µs).
+
 ## Fire discipline (prompt 176)
 
 Every AI (also `HardOld`) sets its towed anti-tank guns (category `gun_at`)
@@ -532,6 +566,7 @@ waves. The AI does not call paratroopers. Test:
 | Commander (prompt 051) | – | no | yes, axes 0/±45° | yes, axes 0/±30/±60/±90° |
 | Withdraws below (share of the front) | – | – | 40 % | 60 % |
 | Surrenders when hopeless | no | yes | yes | yes (`HardOld`: no) |
+| Squads defending own points take houses, kneel, lie down (prompt 178) | – | no | yes | yes |
 
 `Passive` is the baseline of the tournament and the enemy of the matches
 before prompt 024; the self-test's first two matches use it.
@@ -851,9 +886,12 @@ lost engineers rebuilt again and again).
   (crests, woods, houses) in the choice of axes, and coordinating allies
   beyond shared sightings are open.
 
-- Infantry tactics: stances, cover spots and buildings (prompt 022) are not
-  used by the AI yet; attacking squads walk in standing and lose against
-  kneeling defenders. The end game of base matches (see above),
+- Infantry tactics (prompt 178 did stances and houses for defenders):
+  moving from cover to cover, buildings and wood edges as intermediate
+  goals, fire and movement of two squads, positions of tanks and guns by
+  the enemy's approach. Decide after more tournament numbers whether that
+  is worth a prompt; base matches between two AIs are now even more often
+  undecided. The end game of base matches (see above),
   using terrain (hull-down positions, woods, crests). Artillery (prompt
   032) is Hard only and simple: no observers sent forward, no
   counter-battery, smoke only when the enemy first appears.

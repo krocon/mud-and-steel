@@ -696,6 +696,13 @@ lone sniper → does not, at a squad → still does.
 the AI lose 25 % of its games against a passive enemy; effect 40 keeps the
 results. The weights are a first setting, not tuned further.
 
+## AI stances and houses (prompt 178) [provisional, 2026-11-21]
+
+Battle-mode tournament unchanged. Base mode (10 games each): hard vs normal
+1 win and 9 timeouts → 10 timeouts, normal vs easy 2 wins (easy) → 10
+timeouts, against passive unchanged. Village attack by two AI squads:
+unchanged (AI.md "Stances and positions").
+
 ## Gun crews (prompt 177) [provisional, 2026-11-21]
 
 Pak 40 against infantry (ARCHITECTURE.md "Gun crews", numbers before →

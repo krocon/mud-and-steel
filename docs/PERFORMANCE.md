@@ -529,6 +529,12 @@ movement phase); the rest is path search: the hard AIs' units move
 differently (2152 → 2151 requests, 58 → 77 million expansions). Within the
 budgets.
 
+## AI think time (prompt 178)
+
+`just ai-tournament --matrix` (Apple M1 Max): AI think per tick about
+9–13 µs mean before and after prompt 178 (house search over the map's
+enterable buildings only for waiting defenders that see an enemy).
+
 ## Decisions
 
 | Question | Decision | Why |

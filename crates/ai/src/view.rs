@@ -34,6 +34,12 @@ pub struct OwnUnit {
     pub facing: Vec2,
     /// Where it remembers being fired at from (prompt 110).
     pub alert: Option<Vec2>,
+    /// Stance of a squad; `None` for vehicles (prompt 178).
+    pub stance: Option<sim::Stance>,
+    /// The building a squad occupies.
+    pub garrison: Option<u32>,
+    /// Suppression of a squad, 0..=100.
+    pub suppression: u8,
 }
 
 impl OwnUnit {
@@ -142,6 +148,11 @@ impl PlayerView {
                     rank: u.experience.rank,
                     facing: u.facing,
                     alert: u.alert,
+                    stance: u.stance,
+                    garrison: u.garrison,
+                    suppression: sim
+                        .squad_tactics(u.id)
+                        .map_or(0, |t| u8::try_from(t.suppression.min(100)).unwrap_or(100)),
                 });
             } else {
                 let seen = SeenUnit {
