@@ -602,6 +602,11 @@ base-shots dir: build
 unit-marker-shots dir="build/unit-visibility" *args: build
     {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- "--unit-marker-shots={{ justfile_directory() }}/{{ dir }}" {{ args }}
 
+# Route lines in pictures and their drawing time (prompt 166; needs a window): twelve vehicles with one order, a waypoint chain, a patrol and an attack-move, each with route_lines always / brief strong / brief faint / targets
+[group('godot')]
+route-shots dir="build/route-lines" *args: build
+    {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- "--route-shots={{ justfile_directory() }}/{{ dir }}" {{ args }}
+
 # Hidden own units as silhouettes in pictures (prompt 165; needs a window): squad behind a house, squad in trees, vehicle behind a tree, setting off and on; e.g. `just hidden-unit-shots build/occluded-units --prefix=night --daytime=night`
 [group('godot')]
 hidden-unit-shots dir="build/occluded-units" *args: build

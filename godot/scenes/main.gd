@@ -103,6 +103,7 @@ const BaseHud := preload("res://scenes/world/base_hud.gd")
 const BaseShots := preload("res://scenes/tools/base_shots.gd")
 const UnitMarkerShots := preload("res://scenes/tools/unit_marker_shots.gd")
 const HiddenUnitShots := preload("res://scenes/tools/hidden_unit_shots.gd")
+const RouteShots := preload("res://scenes/tools/route_shots.gd")
 const OrderPreviewShots := preload("res://scenes/tools/order_preview_shots.gd")
 const AlertShots := preload("res://scenes/tools/alert_shots.gd")
 const GroundTooltipShots := preload("res://scenes/tools/ground_tooltip_shots.gd")
@@ -547,6 +548,11 @@ func _ready() -> void:
 			var dof_shots := DofShots.new()
 			dof_shots.main = self
 			add_child(dof_shots)
+		if arg.begins_with("--route-shots="):
+			camera_rig.edge_scroll_enabled = false
+			var route_shots := RouteShots.new()
+			route_shots.main = self
+			add_child(route_shots)
 		if arg.begins_with("--hidden-unit-shots="):
 			camera_rig.edge_scroll_enabled = false
 			var hidden_shots := HiddenUnitShots.new()
@@ -646,6 +652,9 @@ func _start_simulation() -> bool:
 	# The kill shots (prompt 105) destroy their vehicles for the presentation.
 	sim_host.hold_fire_at_start = sim_host.hold_fire_at_start or Array(OS.get_cmdline_user_args()).any(
 		func(a: String) -> bool: return a.begins_with("--kill-shots="))
+	# The route shots (prompt 166) give orders on a calm field.
+	sim_host.hold_fire_at_start = sim_host.hold_fire_at_start or Array(OS.get_cmdline_user_args()).any(
+		func(a: String) -> bool: return a.begins_with("--route-shots="))
 	# The hidden unit shots (prompt 165) walk units behind cover.
 	sim_host.hold_fire_at_start = sim_host.hold_fire_at_start or Array(OS.get_cmdline_user_args()).any(
 		func(a: String) -> bool: return a.begins_with("--hidden-unit-shots="))

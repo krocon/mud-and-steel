@@ -177,10 +177,11 @@ func _run() -> void:
 	# depends on where the fight stands at its start (prompt 164).
 	await _highlight_test()
 	await _hidden_units_test()
+	await _route_lines_test()
 	await _pause_test()
 	await _view_test()
 	var ok := _errors.is_empty()
-	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, fog, combat, kill sequences, tracks, pushed trees, impact markers, cloud shadows, infantry, destruction, fire, craters, sound, music, water, hud, air, transport, supply, formations, crossings, replay, works, state marks, positions, experience, care, unit highlight, hidden units, tactical pause, overview, view switches and photo mode ok" if ok else " ".join(_errors)
+	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, fog, combat, kill sequences, tracks, pushed trees, impact markers, cloud shadows, infantry, destruction, fire, craters, sound, music, water, hud, air, transport, supply, formations, crossings, replay, works, state marks, positions, experience, care, unit highlight, hidden units, route lines, tactical pause, overview, view switches and photo mode ok" if ok else " ".join(_errors)
 	print("self-test %s: %s" % ["PASSED" if ok else "FAILED", message])
 	# Started from the menu flow test (prompt 027): it continues the flow.
 	var flow: Node = MatchSetup.flow_test
@@ -1884,6 +1885,47 @@ func _hidden_units_test() -> void:
 		"silhouettes stay with the setting off (%d units)" % highlight.xray_units.size())
 	Settings.set_value("hidden_units", "own_allies")
 	highlight.forced_point = null
+	await _frames(1)
+
+
+## Route lines (prompt 166): own vehicles (up to twelve) with one move
+## order draw one group and one line, not one per unit; the setting `off`
+## draws no line and no marker. Waypoint chains and secured areas are
+## checked by the HUD and formation tests.
+func _route_lines_test() -> void:
+	var waypoints: Node = main.hud.waypoints
+	var sim_host: SimHost = main.sim_host
+	var immobile := sim_host.unit_immobile()
+	var ids := sim_host.unit_ids()
+	var vehicles: Array[int] = []
+	for id in _ids_of(true, false):
+		var i := Array(ids).find(id)
+		if i >= 0 and immobile[i] == 0 and not main.selection.is_structure.call(id) \
+				and not sim_host.unit_is_crew(id) and vehicles.size() < 12:
+			vehicles.append(id)
+	_check(vehicles.size() >= 2, "route lines test: %d own vehicles" % vehicles.size())
+	if vehicles.size() < 2:
+		return
+	var at := _centroid(vehicles)
+	main.camera_rig.snap_to(at, 180.0, main.camera_rig.yaw)
+	main.selection.set_selection(vehicles)
+	main.selection.order_move_to(at + Vector3(40.0, 0.0, 30.0))
+	await _ticks(3)
+	await _frames(2)
+	var moving := 0
+	for id in vehicles:
+		if not sim_host.unit_waypoints(id).is_empty():
+			moving += 1
+	_check(moving >= 2 and waypoints.groups == 1 and waypoints.lines == 1,
+		"%d of %d vehicles with one order: %d groups, %d lines (want 1 and 1)" % [moving, vehicles.size(),
+			waypoints.groups, waypoints.lines])
+	Settings.set_value("route_lines", "off")
+	await _frames(2)
+	_check(waypoints.lines == 0 and waypoints.markers == 0 and waypoints.groups == 0,
+		"route lines off: %d lines, %d markers" % [waypoints.lines, waypoints.markers])
+	Settings.set_value("route_lines", "brief")
+	main.selection.stop_selected()
+	main.selection.set_selection([])
 	await _frames(1)
 
 

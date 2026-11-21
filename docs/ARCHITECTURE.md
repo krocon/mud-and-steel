@@ -5012,6 +5012,19 @@ the old dodging (`_keep_events_above_command_bar`,
 - **Waypoint lines** (`waypoints.gd`): for up to 48 selected units the
   remaining route and the queued waypoints (`SimHost.unit_waypoints`),
   projected to the screen; markers at queued waypoints, patrols in blue.
+  Prompt 166: units are grouped by order (`selection.formation_ordered`
+  tags the ordered ids with an order id; units without one by a target
+  within 40 m), each group draws one dashed 1.5 px line from the middle of
+  its units on the screen to the order's point, dots at the formation
+  places and the waypoint chain once; a single unit's path with every bend
+  only for the only selected unit or the one under the pointer. Lines start
+  only from units on the screen and are cut to the screen before dashing.
+  Setting `route_lines`: `off`, `targets` (markers only), `brief` (strong
+  for 2.5 s after an order or while Shift or the show-all key is held, then
+  faint at 18 %), `always` (the old per-unit routes). The groups are built
+  once per tick (route queries are the cost); `just route-shots` (with
+  `--scenario=bench_large.toml`) measured 48 selected units: `always` 0.56
+  ms per frame, `brief` 0.25–0.30 ms.
 - **Target preview** (`order_preview.gd`, prompt 099): the slots of a
   formation move from `SimHost.formation_preview`, which calls
   `Sim::formation_preview`, the very layout and assignment the order runs

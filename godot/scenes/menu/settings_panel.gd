@@ -47,6 +47,7 @@ var dof_option: OptionButton
 var health_bar_option: OptionButton
 var unit_marker_option: OptionButton
 var hidden_units_option: OptionButton
+var route_lines_option: OptionButton
 var state_mark_option: OptionButton
 var range_circle_option: OptionButton
 var sight_circle_option: OptionButton
@@ -295,6 +296,12 @@ func _interface_tab() -> Control:
 	hidden_units_option.item_selected.connect(func(index: int) -> void:
 		_change("hidden_units", Settings.HIDDEN_UNIT_MODES[index]))
 	tab.add_child(_row("SET_HIDDEN_UNITS", hidden_units_option))
+	route_lines_option = OptionButton.new()
+	for label in ["SET_ROUTES_OFF", "SET_ROUTES_TARGETS", "SET_ROUTES_BRIEF", "SET_ROUTES_ALWAYS"]:
+		route_lines_option.add_item(label)
+	route_lines_option.item_selected.connect(func(index: int) -> void:
+		_change("route_lines", Settings.ROUTE_LINE_MODES[index]))
+	tab.add_child(_row("SET_ROUTE_LINES", route_lines_option))
 	range_circle_option = _circle_option("range_circles")
 	tab.add_child(_row("SET_RANGE_CIRCLES", range_circle_option))
 	sight_circle_option = _circle_option("sight_circles")
@@ -341,6 +348,7 @@ func _refresh() -> void:
 	state_mark_option.select(maxi(Settings.STATE_MARK_MODES.find(Settings.get_value("state_marks")), 0))
 	unit_marker_option.select(maxi(Settings.UNIT_MARKER_MODES.find(Settings.get_value("unit_markers")), 0))
 	hidden_units_option.select(maxi(Settings.HIDDEN_UNIT_MODES.find(Settings.get_value("hidden_units")), 0))
+	route_lines_option.select(maxi(Settings.ROUTE_LINE_MODES.find(Settings.get_value("route_lines")), 0))
 	range_circle_option.select(maxi(Settings.CIRCLE_MODES.find(Settings.get_value("range_circles")), 0))
 	sight_circle_option.select(maxi(Settings.CIRCLE_MODES.find(Settings.get_value("sight_circles")), 0))
 	ground_tooltip_option.select(maxi(Settings.TOOLTIP_MODES.find(Settings.get_value("ground_tooltip")), 0))

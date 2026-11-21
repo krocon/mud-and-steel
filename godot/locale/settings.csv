@@ -73,6 +73,11 @@ SET_HIDDEN_UNITS,Hidden units as silhouette,Verdeckte Einheiten als Silhouette
 SET_HIDDEN_OWN_ALLIES,Own and allied,Eigene und verbündete
 SET_HIDDEN_OWN,Own only,Nur eigene
 SET_HIDDEN_OFF,Off,Aus
+SET_ROUTE_LINES,Route lines,Routenlinien
+SET_ROUTES_OFF,Off,Aus
+SET_ROUTES_TARGETS,Targets only,Nur Ziele
+SET_ROUTES_BRIEF,Briefly after an order,Kurz nach dem Befehl
+SET_ROUTES_ALWAYS,Always (every unit),Immer (jede Einheit)
 SET_KEY_CAMERA_PAN_FORWARD,Pan forward,Vorwärts schwenken
 SET_KEY_CAMERA_PAN_BACK,Pan back,Rückwärts schwenken
 SET_KEY_CAMERA_PAN_LEFT,Pan left,Links schwenken

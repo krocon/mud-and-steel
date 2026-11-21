@@ -152,6 +152,11 @@ const STATE_MARK_MODES: Array[String] = ["always", "selected", "never"]
 ## `hover` (only the outline and the show-all key), `off`.
 const UNIT_MARKER_MODES: Array[String] = ["always", "hover", "off"]
 
+## Route lines of the selection (prompt 166, `hud/waypoints.gd`): `off`,
+## `targets` (markers only), `brief` (one line per order, strong after an
+## order, then faint; default), `always` (every unit's full route).
+const ROUTE_LINE_MODES: Array[String] = ["off", "targets", "brief", "always"]
+
 ## Hidden parts of units as a silhouette through houses, trees and hills
 ## (prompt 165, `unit_highlight.gd`): `own_allies` (default), `own`, `off`.
 ## Independent of `unit_markers`: those mark where units stand, this shows
@@ -195,6 +200,7 @@ const DEFAULTS := {
 	"state_marks": "always",
 	"unit_markers": "always",
 	"hidden_units": "own_allies",
+	"route_lines": "brief",
 	# Range and sight circles, one of CIRCLE_MODES (prompt 099).
 	"range_circles": "always",
 	"sight_circles": "key",

@@ -175,6 +175,17 @@ direction of travel, or the right-drag direction). Selected units show an
 attack-move route in orange and a secured area as a red circle. Control
 groups remember their formation; there are no named squads [provisional].
 
+**Route lines (prompt 166).** Units that got the same order share one
+thin dashed line from their middle to the order's target, small dots at
+their formation places and the waypoint chain once (yellow; patrols blue,
+attack-move orange). The lines are strong for about 2.5 s after an order,
+then faint; strong again while **Shift** (setting waypoints) or **Tab**
+(show all own units) is held. The full path with every bend shows for a
+single selected unit or the selected unit under the mouse pointer. Units
+off the screen draw no line. Settings → Interface → "Route lines": off,
+targets only, briefly after an order (default), always (every unit's full
+route, as before). F5 still shows every path for debugging.
+
 ## Air support (prompt 033)
 
 | Input | Effect |
