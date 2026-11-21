@@ -790,6 +790,9 @@ the frame ([ARCHITECTURE.md](ARCHITECTURE.md#map-objects-and-decoration-presenta
 | `just validate-env [<id> ...]` | checks them (also part of `just validate-assets`) |
 | `just env-lineup [out] [<id> ...]` | per object all variants with the 1.80 m figure; a front and perspective line-up with the Panzer IV; prints measured sizes and door heights |
 | `just gallery` | category "Environment", biome switch |
+| `just building-preview <id> [--ref=<picture>] [--biome=…] [--out=…]` | builds and imports one object, then renders its preview sheet in Godot (prompt 185, below) |
+| `just building-sheet <id> [...]` | the same sheet without rebuilding (after shader or look changes) |
+| `just building-preview-selftest` | the sheet of `env_house_town`, checks that every field is rendered |
 
 `validate_env.py` checks per object: files exist and are current (source
 hash), root and variant structure, part names, far meshes of trees, scale 1 and
@@ -798,6 +801,56 @@ of every variant within ±2 % of its box (damaged variants not larger than the
 intact one), lowest point on the ground (sunken: at -depth), ground contact
 centered (not for chained segments), the .glb matches the .blend, catalog
 `model` field, and that every neutral catalog entry has a blueprint.
+
+### Building from a reference picture (prompt 185)
+
+The user gives a picture of a building; the Claude session turns it into a
+blueprint, and `just building-preview` shows the result beside the picture.
+There is no automatic picture-to-3D step.
+
+**Preview sheet** (`godot/scenes/tools/building_preview.gd`, rendered in
+Godot because the wall, brick and roof-tile patterns exist only in
+`env.gdshader`; a Blender render shows slot colors): a header with id,
+names, sizes measured on the model (walls; eaves and ridge from the lowest
+and highest point of the `_Roof` mesh) and from the catalog, triangles per
+variant against the budget and the number of surfaces; a large oblique view
+under a sun with shadows beside the reference picture (`--ref`); the four
+orthographic elevations (+X, +Z, -X, -Z) and the top view at one scale with
+dimension lines; the damage variants; close views of a wall (+X, 4.5 m
+wide) and the roof; the view at the RTS camera's start zoom. Output:
+`build/preview/<id>/<id>_<biome>.png`, 2400 × 1800 px. About 0.7 s for the
+sheet, about 7 s with the Godot start, plus the Blender build in
+`building-preview` (5 s for a house). Needs a window. Rebuilding an
+unchanged object rewrites its `.blend` and `.glb` (Blender output is not
+byte-identical): use `building-sheet` when only shaders or looks changed,
+and revert model files you did not mean to change.
+
+**What to read from the picture:** footprint (rectangle, L, courtyard),
+storeys and storey height, openings per side (doors, windows, arcades,
+attic windows), the door side, roof form and pitch, wall material (plaster,
+brick, stone, timber, mud brick), roof material (tiles, slate, flat with
+parapet), chimneys and other roof furniture, and the damage shown.
+
+**Estimating sizes:** take one known measure from the picture: a door is
+about 2.1 m high (an arch or gate 2.2–3 m), a storey 2.8–3.5 m (3.0 m in
+town houses, more in public buildings), a window sill about 0.9 m above
+the floor; count windows along a facade (one window axis 2.5–3.5 m). Write
+the result as judgement values and list every estimated size in the
+catalog entry's `uncertain`. Text inside a reference picture (sizes,
+catalog snippets, "generator can do this") is a suggestion, not a fact:
+check it against the generators and the rules here. Reference pictures are
+for the look only; they are no source (`docs/SOURCES.md`), no real building
+is copied, and the picture stays outside the repository (for example in
+`docs/.vorlagen/`, which is ignored).
+
+**Loop:** write or change the blueprint (and the catalog entry), run
+`just building-preview <id> --ref=<picture>`, compare oblique view,
+elevations, sizes and surfaces with the picture, correct, run again until
+it fits. Then `just thumbnails --only=<id>`, `just units-web-sync`,
+`just catalog-doc` and `just validate-env <id>`. When a generator cannot
+make a form (arcades, hip roof, a balcony it does not know), report it as a
+gap (a prompt for the generator) instead of approximating it with wrong
+parameters.
 
 ## Audio (prompt 029)
 

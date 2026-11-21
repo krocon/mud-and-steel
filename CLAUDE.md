@@ -58,6 +58,7 @@ just selftest              # build + headless test: menu, settings, matches, res
 just lan / just lan-selftest  # LAN lobby / two headless instances over localhost
 just online                # online lobby over Steam (optional; docs/ONLINE.md)
 just map-editor / just editor-selftest  # map editor / its headless test
+just building-preview <id> --ref=<picture>  # build + preview sheet of a building beside a reference picture (docs/ASSETS.md)
 just map-check <name>      # validate data/maps/<name>/ like the editor
 just map-reach <name>      # land open to vehicles / infantry, connected parts, start-to-supply paths
 just gen-geo harbor_city   # map from OpenStreetMap + elevation model (tools/geo_import.py, docs/MAPS.md)

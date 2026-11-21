@@ -103,4 +103,24 @@ bringt, und in `CLAUDE.md` den Befehl unter „Commands“ nachtragen.
 
 ## Ergebnis
 
-(von der Session auszufüllen)
+- `just building-preview <id> [--ref=…] [--biome=…] [--out=…]` baut das
+  Objekt (Blender), importiert es und rendert das Blatt in Godot
+  (`godot/scenes/tools/building_preview.gd`, 2400 × 1800 px nach
+  `build/preview/<id>/<id>_<biome>.png`): Kopfzeile (Maße aus Modell und
+  Katalog, Dreiecke je Variante gegen das Budget, Oberflächen),
+  Schrägansicht neben dem Referenzbild, vier Ansichten und Draufsicht in
+  einem Maßstab mit Maßlinien, Schadensstufen, Nahansicht Wand und Dach,
+  Spielansicht (Startzoom der RTS-Kamera).
+- `just building-sheet <id>` dasselbe ohne Neubau (für Shader-Arbeit wie
+  Prompt 186). Grund: ein Neubau ohne Änderung schreibt `.blend` und `.glb`
+  neu (nicht bitgleich).
+- Dauer: Blatt 0,7 s, mit Godot-Start etwa 7 s, mit Blender-Neubau etwa
+  12 s. Kopflos geht es nicht (Godots Headless-Renderer zeichnet nichts).
+- `just building-preview-selftest` erzeugt das Blatt von `env_house_town`
+  und prüft Größe und alle 12 Felder (nicht einfarbig). Nicht in
+  `just check`, weil es ein Fenster braucht.
+- Ablauf vom Bild zum Blueprint: `docs/ASSETS.md`, Abschnitt „Building from
+  a reference picture“; Befehl in `CLAUDE.md`. Kein Projekt-Skill: die
+  Doku und das Rezept reichen, ein Skill brächte nichts dazu.
+- Blätter: `env_house_town` (mit dem Arkadenhaus als Referenz),
+  `env_town_hall`, `env_house_desert_large` (Wüste).

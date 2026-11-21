@@ -404,6 +404,23 @@ run-map name="test_large": build
 env *ids:
     {{ CALL }}"{{ BLENDER }}" -b --factory-startup --python-exit-code 1 --python tools/blender/build_env.py -- {{ ids }}
 
+# Preview sheet of a building as the game shows it (prompt 185; needs a window): builds the model, imports it, renders views, elevations with dimensions, damage variants and close-ups beside a reference picture; e.g. `just building-preview env_house_town --ref=docs/.vorlagen/x/referenz.webp --biome=desert` -> build/preview/<id>/<id>_<biome>.png
+[group('assets')]
+building-preview id *args: build
+    just env {{ id }}
+    just import
+    {{ GODOT }} --path godot res://scenes/tools/building_preview.tscn -- "--id={{ id }}" "--root={{ justfile_directory() }}" {{ args }}
+
+# The preview sheet without rebuilding the model (after shader or look changes only; prompt 185, needs a window): same arguments as building-preview
+[group('assets')]
+building-sheet id *args: build
+    {{ GODOT }} --path godot res://scenes/tools/building_preview.tscn -- "--id={{ id }}" "--root={{ justfile_directory() }}" {{ args }}
+
+# The preview sheet of one existing house without rebuilding it, checked for every field (prompt 185; needs a window)
+[group('assets')]
+building-preview-selftest: build
+    {{ GODOT }} --path godot res://scenes/tools/building_preview.tscn -- --id=env_house_town "--root={{ justfile_directory() }}" --out=build/preview/selftest --check
+
 # Check environment objects only (also part of validate-assets)
 [group('assets')]
 validate-env *ids:
