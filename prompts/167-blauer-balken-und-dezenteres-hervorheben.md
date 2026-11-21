@@ -126,3 +126,68 @@ Reine Darstellung, `crates/sim` und der Golden Hash bleiben.
 - Umriss verdeckter Einheiten (Prompt 165).
 - Routenlinien (Prompt 166), Reichweitenkreise (Prompt 099, erledigt).
 - Neue Uniform- oder Modellfarben.
+
+## 7. Ergänzung (Rückmeldung des Nutzers, 2026-11-21): Umriss statt Ring
+
+Der Nutzer hat zwei weitere Bilder gezeigt. Das erste ist ein Bildschirmfoto aus
+unserem Spiel: Maus zwischen Panzern und einem Trupp, mehrere hellgrüne Ringe
+leuchten auf (Panzer und ein großer Ring um den ganzen Trupp). Sein Wunsch:
+
+> „Ich möchte keine Ringe mehr haben wie im Bild beim Mausover. Nur noch eine
+> dezente Markierung, wenn ich direkt drüber bin. Markierung soll aussehen wie
+> Fahrzeug/Person selbst, nur etwas größer umrissen.“
+
+Das zweite Bild (aus einem anderen Spiel, nur Vorbild für die **Wirkung**, nichts
+nachbauen) zeigt ein Fahrzeug unter dem Mauszeiger mit einem dünnen, leicht
+leuchtenden **blauen Umriss**, der genau der Silhouette des Modells folgt und ein
+paar Pixel darüber hinausragt; darunter der kurze blaue Balken aus Ziel 1.
+
+Das **ersetzt** Ziel 2 und Abschnitt 3.2 in folgenden Punkten (Balken aus 3.1 und
+Tab aus Ziel 3 bleiben):
+
+1. **Keine Ringe beim Hover.** Unter der Maus erscheint kein Ring mehr, auch kein
+   leiser, und kein Aufhellen des Modells (`RING_HOVER`, `LIGHT_UP`, Hover-Zweig
+   der Bodenmarken entfallen bzw. greifen beim Hover nicht mehr). Auswahlringe
+   ausgewählter Einheiten sind nicht Teil dieser Änderung; bleiben wie sie sind,
+   im Ergebnis kurz nennen, ob sie zum neuen Umriss noch passen.
+2. **Nur direkt darüber.** Hervorgehoben wird nur, wenn der Zeiger **auf dem
+   Modell** liegt (Fahrzeug, Geschütz bzw. einem Soldaten des Trupps), mit
+   höchstens wenigen Pixeln Toleranz (Richtwert 4–6 px, mit `HudTheme.scale`),
+   nicht mehr die nächste Einheit in 24 px Umkreis. Steht die Maus auf freiem
+   Boden zwischen Einheiten, ist nichts hervorgehoben. Ohne Godot-Physik:
+   projizierte Umrisse/Hüllkörper der Modelle wie beim Klick; Klick und Hover
+   benutzen dieselbe Trefferfunktion (gegebenenfalls die Klickregel mit
+   anpassen und das im Ergebnis sagen).
+3. **Markierung = Umriss der Silhouette.** Die Einheit unter dem Zeiger bekommt
+   einen dünnen Umriss, der der Form des Modells folgt (Richtwert 2–3 px auf dem
+   Bildschirm, gleich dick bei jedem Zoom und mit `HudTheme.scale`), leicht
+   weich/leuchtend, nicht grell. Bei einem Trupp bekommen **alle Soldaten
+   dieses Trupps** den Umriss (sie gehören zusammen, ein Klick wählt den ganzen
+   Trupp), bei einem Fahrzeug das Fahrzeug samt sichtbarer Besatzung. Farbe für
+   eigene Einheiten dasselbe Blau wie der Hover-Balken (Farbschwäche-Paletten:
+   deren eigene Farbe); Feinde unter der Maus bekommen den Umriss in ihrer
+   Beziehungsfarbe (rot), damit man sieht, was ein Rechtsklick angreift;
+   Verbündete in ihrer Farbe.
+4. **Technik:** Prompt 165 (Umriss verdeckter Einheiten) baut gerade eine
+   Silhouetten-Technik mit Stencil (`unit_xray.gdshader`, `STENCIL_VISIBLE` in
+   `unit_camo.gdshader`/`soldier.gdshader`). Vorher nachsehen, ob 165 erledigt
+   ist, und darauf aufbauen statt eine zweite Technik zu erfinden. Naheliegend:
+   ein zusätzlicher `next_pass` nur für die gehoverte Einheit, der die Hülle in
+   Bildschirmpixeln entlang der Normalen aufbläst und per Stencil nur außerhalb
+   der eigenen Silhouette zeichnet (so entsteht ein Rand, keine Fläche). Das
+   Material nur auf die eine Einheit setzen, nicht auf alle Modelle; Kosten mit
+   `just bench-view` messen (Richtwert unter 0,2 ms pro Bild).
+5. **Kurzes Ein-/Ausblenden** (Richtwert 0,15 s), damit beim Überstreichen
+   vieler Einheiten nichts flackert.
+6. Einstellung `unit_markers` (`always` / `hover` / `off`): die Bodenmarken unter
+   Soldaten bleiben davon getrennt; im Modus `hover` zeigt die Maus nur noch den
+   Umriss. Texte in den Einstellungen anpassen, falls dort „Ring“ oder „im
+   Umkreis“ steht.
+
+Selbsttest (ersetzt die Hover-Punkte in 5.4): Maus genau auf einem Panzer →
+dieser `hovered`, Umriss-Material gesetzt, kein Ring sichtbar; Maus auf einem
+Soldaten → alle Soldaten dieses Trupps mit Umriss, kein anderer Trupp; Maus auf
+freiem Boden 30 px neben einer Einheit → nichts `hovered`, kein Umriss; Feind
+unter der Maus → roter Umriss, kein blauer Balken. Bilder vorher/nachher an der
+Stelle aus dem Bildschirmfoto des Nutzers (Panzerreihe mit zwei Trupps auf Wiese)
+sowie in Stadt und bei Nacht.
