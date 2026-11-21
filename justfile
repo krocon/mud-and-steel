@@ -622,6 +622,11 @@ ground-tooltip-shots dir="build/ground-tooltip" *args: build
 view-shots dir="build/view" *args: build
     {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- "--view-shots={{ justfile_directory() }}/{{ dir }}" {{ args }}
 
+# Depth of field by view angle in pictures (prompt 183; needs a window): two own vehicles, subtle and miniature at the zoom's angle, 25 and 8 degrees; e.g. `just dof-shots build/dof --map=town_small`
+[group('godot')]
+dof-shots dir="build/dof" *args: build
+    {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- "--dof-shots={{ justfile_directory() }}/{{ dir }}" {{ args }}
+
 # Record a trench strongpoint (prompt 052) as PNG files into a folder: overview, firing bay, dugouts, ring and wire (needs a window)
 [group('godot')]
 position-shots dir="build/positions": build

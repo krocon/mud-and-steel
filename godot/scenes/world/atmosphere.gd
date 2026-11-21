@@ -17,7 +17,10 @@ extends Node
 ##   the focus blurs, so the upper and lower screen edges are soft like a
 ##   photo of a model. Setting "depth_of_field" (menu, `DOF_MODES`): "subtle"
 ##   only at close zoom, "miniature" strong, up to middle zoom and with
-##   stronger colours; never on quality low.
+##   stronger colours; never on quality low. Prompt 183: the near blur fades
+##   out as the camera tilts flat and the far blur then starts at a screen
+##   row (`DOF_FLAT_*`), so the foreground, where the player's units stand,
+##   stays sharp in a flat view.
 ##
 ## Shadows: the rig sets `directional_shadow_max_distance` from the camera
 ## distance (`shadow_distance_factor`), in steps (prompt 090: the next step
@@ -70,6 +73,19 @@ const DOF_MODES: Dictionary[String, Dictionary] = {
 		"saturation": 1.18, "contrast": 1.05,
 	},
 }
+## View angle rule of the depth of field (prompt 183), in degrees of camera
+## elevation: the near blur is full at `DOF_FLAT_DEG.y` and steeper and none
+## at `DOF_FLAT_DEG.x` and flatter (smoothstep between). 45 degrees is the
+## zoom's own angle at close zoom, where "subtle" is on, so the default view
+## does not change; the flattest angle in a match (25) has no near blur. A
+## flat camera sees the ground below the focus close to it, so a near blur
+## there covered the lower half of the screen and the player's own units.
+const DOF_FLAT_DEG := Vector2(30.0, 45.0)
+## In a flat view the far blur starts at the ground seen this far up the
+## screen (0 = lower edge, 1 = upper edge) and is full at the second row,
+## unless the band of the mode already reaches farther: everything below
+## the middle stays sharp, only the upper part of the picture is soft.
+const DOF_FLAT_ROWS := Vector2(0.6, 0.85)
 ## Cloud shadows (prompt 087): meters of ground per repeat of the noise
 ## texture at `cloud_shadow_scale` 1, its size in pixels and the noise
 ## frequency per pixel (patches of about 100-400 m), and the drift speed in
@@ -130,6 +146,9 @@ var _snow: GPUParticles3D
 var _dof: CameraAttributesPractical
 ## Mode whose bokeh shape and blur quality are set (they are global).
 var _dof_mode := ""
+## false: the depth of field ignores the view angle, as before prompt 183
+## (only for the comparison pictures of `tools/dof_shots.gd`).
+var dof_view_angle := true
 ## Game time in seconds and simulation wind (m/s, x east, y south) for the
 ## cloud shadows: `func() -> Vector3(seconds, wind.x, wind.y)`; empty: none.
 var cloud_clock := Callable()
@@ -427,6 +446,9 @@ func _follow_camera() -> void:
 ## the mode's stronger colours as far as the blur is on. `stretch`: how much
 ## farther the ground reaches before and behind the focus than with the
 ## tilt of the zoom; the sharp band and the transitions widen with it.
+## The view angle rule (prompt 183, `dof_flat_share`): the flatter the
+## camera, the less near blur (off when flat) and the farther up the screen
+## the far blur starts (`DOF_FLAT_ROWS`).
 func _follow_dof(d: float, stretch := Vector2.ONE) -> void:
 	var camera: Camera3D = _rig.get("camera")
 	if camera == null:
@@ -445,7 +467,6 @@ func _follow_dof(d: float, stretch := Vector2.ONE) -> void:
 		return
 	if _dof == null:
 		_dof = CameraAttributesPractical.new()
-		_dof.dof_blur_near_enabled = true
 		_dof.dof_blur_far_enabled = true
 	if _dof_mode != mode_name:
 		_dof_mode = mode_name
@@ -453,12 +474,45 @@ func _follow_dof(d: float, stretch := Vector2.ONE) -> void:
 		RenderingServer.camera_attributes_set_dof_blur_quality(int(mode.blur_quality) as RenderingServer.DOFBlurQuality, false)
 	if camera.attributes != _dof:
 		camera.attributes = _dof
+	var flat := 0.0
+	var far_rows := Vector2.ONE
+	if dof_view_angle and _rig.has_method(&"pitch"):
+		var elevation: float = _rig.pitch()
+		flat = dof_flat_share(elevation)
+		var fov := deg_to_rad(camera.fov)
+		far_rows = Vector2(row_depth(elevation, fov, DOF_FLAT_ROWS.x), row_depth(elevation, fov, DOF_FLAT_ROWS.y))
 	var transition := d * float(mode.transition)
 	_dof.dof_blur_amount = float(mode.amount) * amount
-	_dof.dof_blur_near_distance = d * (1.0 - (1.0 - float(mode.near)) * stretch.x)
-	_dof.dof_blur_near_transition = transition * stretch.x
-	_dof.dof_blur_far_distance = d * (1.0 + (float(mode.far) - 1.0) * stretch.y)
-	_dof.dof_blur_far_transition = transition * stretch.y
+	# Near: the blurred depths shrink towards the camera and are gone when
+	# flat; off then, so the near pass is skipped.
+	var near_keep := 1.0 - flat
+	_dof.dof_blur_near_enabled = near_keep > 0.0
+	_dof.dof_blur_near_distance = d * (1.0 - (1.0 - float(mode.near)) * stretch.x) * near_keep
+	_dof.dof_blur_near_transition = transition * stretch.x * near_keep
+	# Far: from the band of the mode towards the screen rows, never nearer.
+	var far := d * (1.0 + (float(mode.far) - 1.0) * stretch.y)
+	var far_transition := transition * stretch.y
+	var row_far := maxf(far, d * far_rows.x)
+	var row_transition := maxf(far_transition, d * (far_rows.y - far_rows.x))
+	_dof.dof_blur_far_distance = lerpf(far, row_far, flat)
+	_dof.dof_blur_far_transition = lerpf(far_transition, row_transition, flat)
+
+
+## How flat the camera is for the depth of field (prompt 183): 0 at
+## `DOF_FLAT_DEG.y` and steeper (the tilt-shift look as before), 1 at
+## `DOF_FLAT_DEG.x` and flatter (no near blur, far blur only up the screen).
+static func dof_flat_share(elevation: float) -> float:
+	return 1.0 - smoothstep(DOF_FLAT_DEG.x, DOF_FLAT_DEG.y, rad_to_deg(elevation))
+
+
+## View depth of flat ground seen at screen row `row` (0 = lower edge, 1 =
+## upper edge) by a camera `elevation` radians above the horizon with a
+## vertical field of view `fov`, in camera distances (the focus in the
+## screen center is at 1). Rays that would meet the ground less than 1
+## degree below the horizon count as meeting it there.
+static func row_depth(elevation: float, fov: float, row: float) -> float:
+	var up := atan((row * 2.0 - 1.0) * tan(fov * 0.5))
+	return sin(elevation) * cos(up) / sin(maxf(elevation - up, deg_to_rad(1.0)))
 
 
 ## Snowfall: a box of falling flakes around the camera focus, in local

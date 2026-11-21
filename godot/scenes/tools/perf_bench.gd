@@ -24,6 +24,10 @@ extends Node
 ## camera being destroyed within KILL_SPREAD_S (destroyed events for the
 ## presentation only: the units stay alive in the simulation), at 150 m
 ## while the kill sequences run and at 60 m while the wrecks burn.
+## `--perf-dof=<mode>` (prompt 183) measures with that depth of field mode
+## ("off", "subtle", "miniature") whatever the setting says (not saved).
+
+const Settings := preload("res://scenes/menu/settings.gd")
 
 const BENCH_SIZE := Vector2i(1920, 1080)
 const SECONDS := 6.0
@@ -62,12 +66,16 @@ func _run() -> void:
 	RenderingServer.viewport_set_measure_render_time(get_viewport().get_viewport_rid(), true)
 	main.camera_rig.edge_scroll_enabled = false
 	main.combat_view.combat_event.connect(_on_combat_event)
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--perf-dof="):
+			Settings.set_value("depth_of_field", arg.trim_prefix("--perf-dof="))
 	await _frames(10)
 	var sim_host: SimHost = main.sim_host
 	print("perf-bench: map '%s', render size %s, %s, %d units, %d soldiers, quality '%s'" % [
 		sim_host.map_name(), get_viewport().get_visible_rect().size,
 		RenderingServer.get_video_adapter_name(), sim_host.unit_ids().size(),
 		sim_host.soldier_units().size(), main.atmosphere.quality])
+	print("perf-bench: depth of field '%s'" % Settings.get_value("depth_of_field"))
 	if "--perf-column" in OS.get_cmdline_user_args():
 		await _column()
 		get_tree().quit()

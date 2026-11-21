@@ -113,9 +113,18 @@ Was die Session selbst entscheidet, hier als Tabelle (vorläufig), mit Begründu
 
 | Frage | Entscheidung | Grund |
 |---|---|---|
-| Nah-Unschärfe | abhängig vom Blickwinkel, bei flachem Blick aus | Wunsch des Nutzers (2026-11-21): eigene Panzer vorne scharf |
-| Fern-Unschärfe | bleibt, aber nur im oberen Bildteil | Wunsch des Nutzers: „Unschärfe nur oben im Bild“ |
+| Nah-Unschärfe | abhängig vom Blickwinkel: voll ab 45°, keine unter 30° (smoothstep, `DOF_FLAT_DEG`); die unscharfen Tiefen schrumpfen zur Kamera hin, flach ist `dof_blur_near_enabled` aus | Wunsch des Nutzers (2026-11-21): eigene Panzer vorne scharf. 45° statt der vorgeschlagenen 55°: das ist der Zoom-Winkel in der Nähe, wo „subtle“ wirkt; mit 55° hätte sich die normale Draufsicht sichtbar geändert |
+| Fern-Unschärfe | bleibt; flach beginnt sie am Boden auf 60 % Bildhöhe und ist bei 85 % voll (`DOF_FLAT_ROWS`, `row_depth`), nie näher als das Band des Modus | Wunsch des Nutzers: „Unschärfe nur oben im Bild“; am Bildschirm statt an einem Vielfachen des Kameraabstands ausgerichtet |
+| Fern-Unschärfe hinter ausgewählte Einheiten rücken | nicht umgesetzt, offener Punkt | Einheiten oben im Bild sind fern und klein; ein Fokus, der der Auswahl folgt, springt bei jedem Klick |
+| Eigene Option im Fotomodus | keine | Wer einen schmalen Schärfebereich will, nimmt „Miniatur“ bei steilem Winkel; die drei Modi bleiben |
+| Vergleichsbilder | im selben Lauf vorher/nachher (`dof_view_angle` in `atmosphere.gd`, nur für das Bildwerkzeug) | Die Panzer sahen zwischen getrennten Läufen zufällig verschieden blass aus (nicht durch die Unschärfe); im selben Lauf ist nur die Regel verschieden |
 
 ## Ergebnis
 
-(von der Session auszufüllen)
+- `godot/scenes/world/atmosphere.gd`: Winkelregel in `_follow_dof()`, `dof_flat_share()`, `row_depth()`, Konstanten `DOF_FLAT_DEG`, `DOF_FLAT_ROWS`. Beim Zoom-Winkel ist alles wie vorher.
+- Bildwerkzeug `just dof-shots build/dof --map=river_town` (`godot/scenes/tools/dof_shots.gd`): fährt zwei eigene Panzer in die Gasse mit den meisten Häusern, ausgewählt, und nimmt je Modus die Neigungen Zoom/25°/8° vorher und nachher auf. Bilder: `docs/images/dof/subtle_compare.jpg`, `docs/images/dof/miniature_compare.jpg`.
+- Selbsttest `self_test.gd` `_dof_tilt_test`: beim Zoom-Winkel ist das Band unverändert (Nah- und Fern-Unschärfe), bei der flachsten Neigung ist die Nah-Unschärfe aus und die Fern-Unschärfe beginnt an der Bildzeile, steil behält die Miniatur ihre Nah-Unschärfe.
+- Bildrate (`--perf-dof=subtle`, neu in `perf_bench.gd`): vorher und nachher gleich innerhalb des Rauschens (`docs/PERFORMANCE.md`).
+- Doku: `docs/ARCHITECTURE.md` (Zeile „Depth of field“, Abschnitt zum Kippen), `docs/CONTROLS.md` (Fotomodus), `docs/PERFORMANCE.md`.
+- `just check` und `just selftest` grün. Im Selbsttest steht ein `String formatting error` aus `hud_self_test.gd:605` (Bodentooltip), der schon vorher da war und nicht von diesem Prompt stammt.
+- Offen: Fern-Unschärfe hinter die fernste ausgewählte Einheit rücken (siehe Entscheidungen).

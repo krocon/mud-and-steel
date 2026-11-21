@@ -283,6 +283,24 @@ limit stays at 25°: the flat view is the player's choice and one key away
 from the normal one. Not measured: the battle views tilted flat, and a
 machine without other load.
 
+**Depth of field by view angle** (prompt 183): `just bench-view --perf-quick
+--perf-tilts --perf-distances=30,40 --perf-dof=subtle` (`--perf-dof=` sets the
+mode for the run, not saved), on high, window 1280 × 720, before and after the
+rule (near blur off when flat, far blur from a screen row):
+
+| View | Before | After |
+|---|---|---|
+| standing, 30 m, tilt of the zoom | 69.8 FPS (14.33 ms) | 71.4 (14.00 ms) |
+| standing, 40 m, tilt of the zoom | 75.7 (13.20 ms) | 76.1 (13.14 ms) |
+| standing, 30 m, flat (25°) | 70.4 (14.21 ms) | 69.8 (14.33 ms) |
+| standing, 40 m, flat (25°) | 58.9 (16.98 ms) | 59.5 (16.79 ms) |
+| standing, 30 m, steep (85°) | 83.5 (11.98 ms) | 81.5 (12.26 ms) |
+| standing, 40 m, steep (85°) | 78.7 (12.70 ms) | 77.6 (12.88 ms) |
+
+No difference beyond the noise of a run (±2 FPS both ways; the steep view
+runs the same code as before). Switching the near blur off when flat saves
+nothing measurable on this machine.
+
 **HUD** (prompt 031: minimap, unit panel, command bar, events, waypoint
 lines; budget 1 ms per frame): the bench prints it as "hud"; the battle views
 have a dozen units selected. Measured with five other sessions building and

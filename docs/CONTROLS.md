@@ -40,7 +40,7 @@ or not.
 | ] (right of Ü on German keyboards) *(rebindable)* | Game speed 1×, 2×, ½× (single player) |
 | Shift + O *(rebindable)* | Overview (prompt 103): the camera glides out to up to 1200 m at the steepest tilt, shadows and small decoration off, every own unit shows its ring. Again: back to the view before; a zoom in returns centered on the point under the pointer |
 | F1 *(rebindable)* | Hide or show the HUD and every mark on the map; orders keep working, a short line names the key |
-| F2 *(rebindable)* | Photo mode (single player and replays): the game stops, HUD and marks go, the camera goes closer, flatter and steeper; field of view, depth of field (off / subtle / miniature), fog of war off (only in replays or after the match), "Save picture" writes a PNG to the user folder `photos/`. F2, the button or Esc leave and restore everything |
+| F2 *(rebindable)* | Photo mode (single player and replays): the game stops, HUD and marks go, the camera goes closer, flatter and steeper; field of view, depth of field (off / subtle / miniature; tilted flat the foreground stays sharp and only the upper part of the picture is soft, a narrow sharp band needs miniature and a steep view), fog of war off (only in replays or after the match), "Save picture" writes a PNG to the user folder `photos/`. F2, the button or Esc leave and restore everything |
 | Shift + Space *(rebindable)* | Jump to the newest alarm (fire on or loss of own units and buildings out of view); pressed again within 4 s: the next older one (prompt 101) |
 
 **Tilt** (prompt 096): the zoom sets how steeply the camera looks down

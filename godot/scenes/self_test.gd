@@ -452,8 +452,63 @@ func _controls_test() -> void:
 	rig.snap_to(Vector3.ZERO, OVERVIEW_DISTANCE, 0.0)
 	await _frames(1)
 	await _tilt_test(own)
+	await _dof_tilt_test()
 	_check(selection.selected == own, "map controls left the selection %s" % [selection.selected])
 	print("self-test: map controls ok (trackpad, Option drag, double click, active unit, center, follow, turn and tilt)")
+
+
+## Prompt 183: the depth of field follows the view angle. At the zoom's own
+## angle the tilt-shift band is as before (near and far blur), tilted flat
+## there is no near blur and the far blur starts up the screen; steep, the
+## miniature look keeps its near blur. Checks the values of the camera's
+## CameraAttributesPractical, no pictures. Leaves tilt 0 at the overview.
+func _dof_tilt_test() -> void:
+	var rig: Node3D = main.camera_rig
+	var camera: Camera3D = main.camera
+	var atmosphere: Node = main.atmosphere
+	var saved_mode: Variant = Settings.get_value("depth_of_field")
+	var saved_quality: String = atmosphere.quality
+	if saved_quality == "low":
+		atmosphere.quality = "medium"
+	Settings.set_value("depth_of_field", "subtle")
+	rig.snap_to(Vector3.ZERO, 40.0, 0.0)
+	rig.snap_tilt(0.0)
+	await _frames(2)
+	var dof := camera.attributes as CameraAttributesPractical
+	var d: float = rig.distance
+	_check(dof != null and dof.dof_blur_amount > 0.0, "no depth of field at 40 m with the setting subtle")
+	if dof:
+		var mode: Dictionary = atmosphere.DOF_MODES.subtle
+		_check(dof.dof_blur_near_enabled and absf(dof.dof_blur_near_distance - d * float(mode.near)) < 0.01 * d
+			and absf(dof.dof_blur_far_distance - d * float(mode.far)) < 0.01 * d,
+			"the tilt-shift band changed at the zoom's angle (near %s %.1f, far %.1f, distance %.1f)"
+			% [dof.dof_blur_near_enabled, dof.dof_blur_near_distance, dof.dof_blur_far_distance, d])
+	rig.snap_tilt(-PI)
+	await _frames(2)
+	dof = camera.attributes as CameraAttributesPractical
+	d = rig.distance
+	if dof:
+		var row: float = atmosphere.row_depth(rig.pitch(), deg_to_rad(camera.fov), atmosphere.DOF_FLAT_ROWS.x)
+		_check(not dof.dof_blur_near_enabled and is_zero_approx(dof.dof_blur_near_distance),
+			"near blur at the flattest tilt (%.1f degrees): on %s, %.1f m"
+			% [rad_to_deg(rig.pitch()), dof.dof_blur_near_enabled, dof.dof_blur_near_distance])
+		_check(dof.dof_blur_far_distance >= d * row - 0.01 and dof.dof_blur_far_distance > d * 1.2,
+			"the far blur starts at %.1f m at the flattest tilt, below the screen row at %.1f m" % [dof.dof_blur_far_distance, d * row])
+	else:
+		_check(false, "no depth of field at the flattest tilt")
+	Settings.set_value("depth_of_field", "miniature")
+	rig.snap_to(Vector3.ZERO, 100.0, 0.0)
+	rig.snap_tilt(PI)
+	await _frames(2)
+	dof = camera.attributes as CameraAttributesPractical
+	_check(dof != null and dof.dof_blur_near_enabled and dof.dof_blur_near_distance > 0.5 * rig.distance,
+		"the miniature look lost its near blur looking steeply down")
+	Settings.set_value("depth_of_field", saved_mode)
+	atmosphere.quality = saved_quality
+	rig.snap_tilt(0.0)
+	rig.snap_to(Vector3.ZERO, OVERVIEW_DISTANCE, 0.0)
+	await _frames(1)
+	print("self-test: depth of field by view angle ok")
 
 
 ## Prompt 096: the camera control (drag, clicks on the directions, home,
