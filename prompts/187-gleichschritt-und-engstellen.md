@@ -1,26 +1,21 @@
-# Prompt 174 – Verbände fahren gemeinsam: Gleichschritt, Plätze in Fahrtrichtung, Engstellen nacheinander
+# Prompt 187 – Verbände fahren gemeinsam: Gleichschritt und Engstellen nacheinander
 
-> In einer frischen Session im Repo-Ordner ausführen. Empfohlen nach 173 (dessen
-> Prüfstand misst auch hier). Lies zuerst `CLAUDE.md`, `docs/DETERMINISM.md`, in
-> `docs/ARCHITECTURE.md` „Players, commands and formation“, „Formations,
+> In einer frischen Session im Repo-Ordner ausführen. **Braucht 173 und 174**
+> (Prüfstand und Plätze in Fahrtrichtung). Vorher die Prüfstand-Zahlen aus 173
+> ansehen: Wenn Gruppen an Brücken und Engstellen dort kaum noch festfahren, ist
+> 2.2 ggf. unnötig; das dem Nutzer sagen, bevor gebaut wird. Lies zuerst
+> `CLAUDE.md`, `docs/DETERMINISM.md`, in `docs/ARCHITECTURE.md` „Formations,
 > attack-move and securing“, „Pathfinding“ (vor allem „Groups and formation“,
-> „Movement and separation“, „Open“), `prompts/done/046-*.md`,
-> `prompts/done/099-*.md`, `crates/sim/src/formation.rs`, `crates/sim/src/path.rs`
+> „Movement and separation“, „Open“), „Bridges“, dazu `prompts/done/173-*.md`,
+> `prompts/done/174-*.md`, `crates/sim/src/formation.rs`, `crates/sim/src/path.rs`
 > und die Bewegung in `crates/sim/src/sim.rs`. Fremde, nicht eingecheckte
 > Änderungen an `crates/sim`: erst den Nutzer fragen.
 
 ## 1. Ausgangslage
 
-Die Testauswertung zu einem anderen WW2-Taktikspiel (Nutzer-Datei, 2026-11-21,
-nur Anregung) lobt Gruppensteuerung und Formationen, kritisiert aber: Verbände
-lösen sich an kleinen Hindernissen auf, Einheiten blockieren sich gegenseitig,
-große Schlachten werden zur Folge von Einzelbefehlen.
+Aufgeteilt aus dem früheren Prompt 174 (2026-11-21). Lücken aus
+„Pathfinding → Open“:
 
-Bei uns stehen in `docs/ARCHITECTURE.md` („Pathfinding → Open“) genau diese
-Lücken:
-
-- Plätze werden nach y, dann x vergeben, nicht entlang der Fahrtrichtung: bei
-  schrägen Befehlen kreuzen sich die Mitglieder beim Neuordnen.
 - Kein Gleichschritt: jedes Mitglied fährt mit seiner eigenen
   Geländegeschwindigkeit; Kettenfahrzeuge, Lkw und Infanterie kommen weit
   auseinandergezogen an, die schnellsten zuerst und allein.
@@ -29,15 +24,7 @@ Lücken:
 
 ## 2. Ziel
 
-### 2.1 Plätze in Fahrtrichtung
-
-- Plätze der Formation so vergeben, dass sich die Wege der Mitglieder möglichst
-  nicht kreuzen (z. B. beide Mengen entlang der Fahrtrichtung und quer dazu
-  sortieren und der Reihe nach zuordnen). Deterministisch, ohne teure
-  Optimierung; Kosten messen.
-- Die Zielvorschau aus Prompt 099 zeigt dieselben Plätze.
-
-### 2.2 Gleichschritt
+### 2.1 Gleichschritt
 
 - Ein Gruppenbefehl (Bewegen, Angriffsbewegung, Sichern) fährt im Verband: das
   Tempo richtet sich nach dem **langsamsten Mitglied im jeweiligen Gelände**, wer
@@ -47,7 +34,7 @@ Lücken:
   vorläufig).
 - Ausnahme: Einheiten unter Beschuss oder im Gefecht verlassen den Gleichschritt.
 
-### 2.3 Engstellen nacheinander
+### 2.2 Engstellen nacheinander
 
 - Liegt auf dem Gruppenweg eine Engstelle (Brückendeck, Furt, Durchlass schmaler
   als die Formation), reihen sich die Mitglieder **in Kolonne** davor ein und
@@ -67,12 +54,12 @@ Lücken:
 
 ## 4. Vorgehen
 
-1. Prüfszenarien: acht gemischte Einheiten schräg über offenes Feld, über eine
-   Brücke, durch einen Waldweg; messen: Ankunftsspanne (erste bis letzte),
-   Kreuzungen, Zeit bis alle angekommen sind, Festfahrer (Prüfstand aus 173, falls
-   da).
-2. 2.1, 2.2, 2.3 nacheinander, je mit Tests und neuen Zahlen.
-3. `just check`, `just selftest`, `just lan-selftest`, `just ai-tournament`.
+1. Prüfszenarien: acht gemischte Einheiten über offenes Feld, über eine Brücke,
+   durch einen Waldweg; messen: Ankunftsspanne (erste bis letzte), Zeit bis alle
+   angekommen sind, Festfahrer (Prüfstand aus 173).
+2. 2.1, dann 2.2, je mit Tests und neuen Zahlen.
+3. `just check`, `just selftest`, `just lan-selftest`, `just ai-tournament`,
+   `just stuck-audit`.
 4. Doku: `docs/ARCHITECTURE.md` („Open“ aktualisieren), `docs/CONTROLS.md`.
 5. Für den Nutzer: Vorher/Nachher-Zahlen und ein kurzer Clip der Brückenüberfahrt.
 

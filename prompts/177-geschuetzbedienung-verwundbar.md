@@ -1,8 +1,8 @@
-# Prompt 177 – Geschützbedienung als verwundbare Mannschaft, Schutzschild, Gegenmittel gegen schwere Pak und Flak
+# Prompt 177 – Geschützbedienung als verwundbare Mannschaft mit Schutzschild
 
-> In einer frischen Session im Repo-Ordner ausführen. **Braucht 110**, empfohlen
-> nach 176. Lies zuerst `CLAUDE.md`, `docs/DETERMINISM.md`, `docs/SOURCES.md`,
-> `docs/SCALE.md`, in `docs/ARCHITECTURE.md` „Combat“ (Schadensmodell, „Open“:
+> In einer frischen Session im Repo-Ordner ausführen. Empfohlen nach 176 und
+> 188 (Zielwahl). Lies zuerst `CLAUDE.md`, `docs/DETERMINISM.md`,
+> `docs/SOURCES.md`, `docs/SCALE.md`, in `docs/ARCHITECTURE.md` „Combat“ (Schadensmodell, „Open“:
 > „the gun crew is not modelled“), „Transport and towing“, „Wounds and care“
 > (ausgestiegene Besatzungen), „Indirect fire and smoke“ (Splitter), „Air support
 > and anti-aircraft fire“, dazu `docs/INFANTRY.md`, `docs/BALANCE.md`,
@@ -44,25 +44,12 @@ keine Antwort.
 - Panzergranaten und Sprenggranaten auf das Geschütz selbst wirken wie bisher auf
   dessen Lebenspunkte.
 
-### 2.2 Verlassen, wiederbesetzen
+### 2.2 Gegenmittel messen
 
-- Verlassene Geschütze können von einem eigenen Infanterietrupp **wiederbesetzt**
-  werden (Rechtsklick wie „Gebäude besetzen“); ob auch vom Gegner
-  (Beutegeschütz), entscheidet der Nutzer: als Frage mit Empfehlung im Ergebnis
-  festhalten, Standard vorläufig nur eigene.
-- Fliehende Bedienung bei Totalverlust ist optional; wenn, dann über die
-  vorhandenen ausgestiegenen Besatzungen (Prompt 049).
-
-### 2.3 Gegenmittel sichtbar
-
-- Prüfen, dass jede schwere Waffe mindestens zwei erkennbare Gegenmittel hat:
-  Flanke (Prompt 110), Infanterie mit MG, Mörser/Artillerie, Rauch, Luftangriff
-  außerhalb der Flak-Reichweite. Mit dem Gefechtssimulator aus Prompt 045 messen
-  (Pak 40, Flak 36 im Erdkampf, 17-pdr, falls 117 erledigt ist).
-- Flak gegen Luftunterstützung: prüfen, ob eine einzelne Flakstellung den Abruf
-  fast vollständig verhindert. Wenn ja, Abrufe nicht pauschal schwächen, sondern
-  Gegenmittel sichtbar machen (Flakstellung auf der Karte nach Aufklärung
-  markiert, Hinweis beim Abruf „Flak im Zielgebiet bekannt“).
+- Mit dem Gefechtssimulator aus Prompt 045 messen, ob Infanterie mit MG, Mörser
+  und Flanke (Prompt 110) jetzt gegen Pak 40 und Flak 36 im Erdkampf wirken
+  (17-pdr, falls 117 erledigt ist). Zahlen vorher/nachher, keine pauschale
+  Abschwächung der Geschütze.
 
 ## 3. Regeln
 
@@ -75,18 +62,26 @@ keine Antwort.
   am Modell nur, wenn die vorhandenen Geschützmodelle Bedienungsfiguren haben
   (sonst als Befund für einen Asset-Prompt).
 - Die KI bekommt keinen Sonderweg: sie greift Geschütze mit Infanterie und
-  Mörsern an, wenn die Zielwahl aus 176 das ergibt; Turnier vorher/nachher.
+  Mörsern an, wenn die Zielwahl aus 188 das ergibt; Turnier vorher/nachher.
 
 ## 4. Vorgehen
 
 1. Bestand lesen, Gefechtssimulator: Infanterie gegen Pak frontal/seitlich,
    Flak 36 gegen Panzer, MG gegen Pak. Vorher-Zahlen.
 2. Katalogfelder mit Quellen, Simulation mit Tests (Schild vorn wirkt, von der
-   Seite nicht; Bedienung null → kein Feuer; Wiederbesetzen).
-3. Darstellung und Bedienung.
-4. Gegenmittel messen, Abruf-Hinweis.
+   Seite nicht; Bedienung null → kein Feuer).
+3. Darstellung.
+4. Gegenmittel messen.
 5. `just check`, `just selftest`, `just lan-selftest`, `just ai-tournament`,
    `just bench`.
 6. Doku: `docs/ARCHITECTURE.md`, `docs/GAME_DESIGN.md` (vorläufig, Datum),
    `docs/BALANCE.md`, `docs/CONTROLS.md`, `data/catalog/SCHEMA.md`.
-7. Für den Nutzer: Zahlen vorher/nachher und die offene Frage zu Beutegeschützen.
+7. Für den Nutzer: Zahlen vorher/nachher.
+
+## 5. Nicht Teil dieses Prompts (gekürzt am 2026-11-21)
+
+- Verlassene Geschütze wiederbesetzen, Beutegeschütze, fliehende Bedienung: ein
+  verlassenes Geschütz bleibt vorerst verlassen. Als offener Punkt in
+  `docs/ARCHITECTURE.md` festhalten, mit Empfehlung zur Beutefrage.
+- Flak gegen Luftunterstützung (Flakstellung nach Aufklärung markieren, Hinweis
+  beim Abruf): erst messen, ob es überhaupt ein Problem ist; Befund nennen.

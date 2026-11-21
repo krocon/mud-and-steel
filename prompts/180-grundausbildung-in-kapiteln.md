@@ -31,8 +31,8 @@ Nichts davon wird geübt.
 
 Die Grundausbildung wird zu einer Reihe **kurzer Kapitel** (je 3–6 Minuten),
 jedes eine eigene Missionsdatei, in einer festen Reihenfolge im Menü
-„Tutorial“; das bestehende Tutorial wird Kapitel 1. Vorschlag (vom Nutzer
-bestätigen lassen, bevor alles gebaut wird):
+„Tutorial“; das bestehende Tutorial wird Kapitel 1. Gekürzt am 2026-11-21 auf
+die Kernmechaniken; der Kapitelplan wird dem Nutzer vorgelegt, bevor gebaut wird:
 
 1. Grundlagen (heutiges Tutorial, gestrafft).
 2. Sehen und gesehen werden: Sichtlinie, Wald und Hecken, Höhen, Hinterhalt,
@@ -42,11 +42,9 @@ bestätigen lassen, bevor alles gebaut wird):
    Kamm, Panzerabwehr erkennen.
 5. Unterstützung: Mörser und Artillerie, Rauch, Luftabruf, taktische Pause zum
    Koordinieren.
-6. Bewegung im Verband: Formationen, Wegpunkte, Angriffsbewegung, Sichern,
-   Transport und Schleppen.
-7. Pioniere: Minen erkennen und räumen, Brücke reparieren/sprengen, Stellung
-   graben.
-8. Nachschub: Versorgungspunkte, Munition und Reparatur, was ein Verlust kostet.
+
+Das Format muss weitere Kapitel ohne Code erlauben (Bewegung im Verband und
+Transport, Pioniere, Nachschub; siehe 5.).
 
 ### 2.2 Ablauf eines Kapitels
 
@@ -60,12 +58,6 @@ bestätigen lassen, bevor alles gebaut wird):
   Wald“, „Taste gedrückt“, „Pause aktiv“) als neue Auslöser ergänzen,
   dokumentiert in `docs/MISSIONS.md`.
 - Fortschritt je Kapitel in `user://missions.cfg`, Kapitel einzeln wählbar.
-
-### 2.3 Nachschlagen im Spiel
-
-- Kurze Hilfe-Karten je Mechanik (ein Satz, ein Bild, die Taste), aufrufbar aus
-  dem Pausemenü und per Tooltip „?“ an Befehlskacheln; Inhalt aus denselben Texten
-  wie die Kapitel.
 
 ## 3. Regeln
 
@@ -82,7 +74,13 @@ bestätigen lassen, bevor alles gebaut wird):
 2. Auslöser mit Tests.
 3. Kapitel nacheinander bauen; je Kapitel ein Selbsttest, der es mit Befehlen
    durchspielt (wie der Ablauf-Selbsttest).
-4. Hilfe-Karten.
-5. `just check`, `just selftest`.
-6. Doku: `docs/MISSIONS.md` (Kapiteltabelle, neue Auslöser), `docs/CONTROLS.md`.
-7. Für den Nutzer: je Kapitel ein Bild und die Spieldauer.
+4. `just check`, `just selftest`.
+5. Doku: `docs/MISSIONS.md` (Kapiteltabelle, neue Auslöser), `docs/CONTROLS.md`.
+6. Für den Nutzer: je Kapitel ein Bild und die Spieldauer.
+
+## 5. Nicht Teil dieses Prompts (gekürzt am 2026-11-21)
+
+- Kapitel zu Bewegung im Verband und Transport, Pionieren, Nachschub: später als
+  eigener Prompt, wenn sich das Format bewährt hat (besser nach 174/187 und 176,
+  damit nichts zweimal geschrieben wird).
+- Hilfe-Karten zum Nachschlagen (Pausemenü, „?“ an Befehlskacheln).

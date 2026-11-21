@@ -90,5 +90,6 @@ Nutzer sie zufällig sieht.
 
 ## 5. Nicht Teil dieses Prompts
 
-- Gleichschritt und Formation in Fahrtrichtung (Prompt 174).
+- Formationsplätze in Fahrtrichtung (Prompt 174), Gleichschritt und Kolonne
+  (Prompt 187).
 - Rückmeldung zu unerreichbaren Zielen beim Befehl (Prompt 175).
