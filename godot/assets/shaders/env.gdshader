@@ -173,6 +173,10 @@ float bond(vec2 uv, vec2 size, float joint) {
 	return step(j.x, f.x) * step(j.y, f.y);
 }
 
+// Surfaces per building (prompt 186): plaster, spalling, brick, roof
+// coverings, relief from normals (env_surface.gdshaderinc, needs bond()).
+#include "res://assets/shaders/env_surface.gdshaderinc"
+
 void fragment() {
 	CLOUD_FRAGMENT(0.5)
 	vec4 vc = COLOR;
@@ -189,6 +193,8 @@ void fragment() {
 	// 0 tiles, slate, boards; 1 thatch; 2 corrugated sheet; 3 flat roof.
 	int snow_roof = -1;
 	RoofFrame srf;
+	// Relief height in meters (prompt 186), turned into a normal at the end.
+	float bump_h = 0.0;
 	if (slot == 0) {  // Paint
 		vec3 c[4] = {env_paint.rgb, vec3(0.62, 0.07, 0.05), vec3(0.86, 0.86, 0.82), vec3(0.36, 0.20, 0.11)};
 		albedo = c[kind] * (0.9 + 0.2 * grain);
@@ -257,9 +263,17 @@ void fragment() {
 	} else if (slot == 12) {  // Stone: fieldstone, ashlar, concrete, brick
 		vec2 uv = UV;
 		if (kind == 3) {
-			float m = bond(uv, vec2(0.25, 0.075), 0.012);
 			vec3 brick = mix(vec3(0.50, 0.22, 0.15), vec3(0.58, 0.32, 0.20), fract(v_seed * 3.7));
-			albedo = mix(vec3(0.62, 0.60, 0.55), brick * (0.8 + 0.4 * hash2(floor(uv / vec2(0.25, 0.075)))), m);
+			float joint;
+			if (env_surface_a.z > 0.5 || env_surface_a.w > 0.5) {
+				albedo = surface_brickwork(uv, surface_brick_color(env_surface_a.z, brick), env_surface_a.w, joint);
+			} else {
+				float m = bond(uv, vec2(0.25, 0.075), 0.012);
+				albedo = mix(vec3(0.62, 0.60, 0.55), brick * (0.8 + 0.4 * hash2(floor(uv / vec2(0.25, 0.075)))), m);
+				joint = 1.0 - m;
+			}
+			// recessed mortar joints (prompt 186), gone before they flicker
+			bump_h = -0.006 * joint * roof_fine(max(fwidth(uv.x), fwidth(uv.y)), 0.075);
 		} else if (kind == 1) {
 			float m = bond(uv, vec2(0.6, 0.3), 0.02);
 			albedo = mix(vec3(0.45, 0.43, 0.40), vec3(0.66, 0.62, 0.54) * (0.88 + 0.24 * hash2(floor(uv / vec2(0.6, 0.3)))), m);
@@ -274,13 +288,16 @@ void fragment() {
 	} else if (slot == 13) {  // Plaster: lime, adobe, whitewash, ochre
 		vec3 c[4] = {vec3(0.80, 0.77, 0.69), vec3(0.62, 0.48, 0.33), vec3(0.90, 0.89, 0.85), vec3(0.76, 0.60, 0.36)};
 		vec3 base = c[kind];
-		if (kind == 0 || kind == 2) {
+		if (env_surface_a.x > 0.5) {
+			// the blueprint's plaster color (prompt 186), a little per house
+			base = surface_plaster(env_surface_a.x) * (0.96 + 0.08 * fract(v_seed * 5.31));
+		} else if (kind == 0 || kind == 2) {
 			// Most houses get a paint of their own, a few stay bare lime.
 			base = v_seed < 0.15 ? base : plaster_paint(fract(v_seed * 7.13));
 		} else {
 			base *= 0.9 + 0.2 * fract(v_seed * 5.31);
 		}
-		if (env_dust > 0.0) {
+		if (env_dust > 0.0 && env_surface_a.x < 0.5) {
 			base = mix(base, plaster_mud(fract(v_seed * 7.13)), clamp(env_dust / 0.45, 0.0, 1.0));
 		}
 		albedo = base * (0.88 + 0.16 * big) * (0.95 + 0.1 * grain);
@@ -289,6 +306,20 @@ void fragment() {
 		albedo *= mix(0.72, 1.0, smoothstep(0.0, 1.2 + 0.6 * big, h));
 		if (UV.x > 99.5) {
 			albedo = wall_stain(albedo, UV, p);
+		}
+		if (env_surface_a.y > 0.0 && abs(v_rest_normal.y) < 0.5) {
+			// Spalled plaster (prompt 186): brick shows through, the broken
+			// edge is darker and stands 1.5 cm proud of the brick.
+			vec2 w = surface_wall_uv(p, normalize(v_rest_normal));
+			float rim;
+			float bare = surface_spall(w, env_surface_a.y, h, vc.g, v_seed, rim);
+			float joint;
+			vec3 fallback = mix(vec3(0.50, 0.22, 0.15), vec3(0.58, 0.32, 0.20), fract(v_seed * 3.7));
+			vec3 brick = surface_brickwork(w, surface_brick_color(env_surface_a.z, fallback), env_surface_a.w, joint);
+			brick *= mix(0.72, 1.0, smoothstep(0.0, 1.2, h));
+			albedo = mix(albedo * (1.0 - 0.35 * rim), brick, bare);
+			float fw = max(fwidth(w.x), fwidth(w.y));
+			bump_h = (1.0 - bare) * 0.015 * roof_fine(fw, 0.3) - 0.006 * joint * bare * roof_fine(fw, 0.075);
 		}
 		if (v_rest_normal.y > 0.9) {
 			// Flat roofs (prompt 075): grime rims, stains, cracks; the wall
@@ -324,7 +355,13 @@ void fragment() {
 		if (kind == 0 && fract(v_seed * 11.3) > 0.82) {
 			kind = 1;
 		}
-		if (kind == 1) {
+		if (env_surface_b.x > 0.5) {
+			// The blueprint's covering (prompt 186).
+			int covering = int(env_surface_b.x + 0.5);
+			albedo = surface_roof(rf, v_seed, age, env_dry, covering, env_surface_b.y, env_surface_b.z,
+				env_surface_b.w, bump_h);
+			rough = covering == 5 ? 0.7 : 0.85;
+		} else if (kind == 1) {
 			albedo = roof_slate(rf, v_seed, age, env_dry);
 			rough = 0.7;
 		} else if (kind == 2) {
@@ -336,6 +373,15 @@ void fragment() {
 		} else {
 			albedo = roof_clay(rf, v_seed, age, env_dry);
 			rough = 0.85;
+		}
+		if (env_surface_b.x < 0.5 && (kind == 0 || kind == 1) && rf.top > 0.5) {
+			// Course steps of clay tiles and slate as relief (prompt 186, for
+			// every roof): the same rows as roof_clay / roof_slate.
+			float r = kind == 0
+				? rf.uv.y * 6.0 + 0.22 * sin(rf.uv.x * 0.8 + v_seed * 40.0)
+					+ 0.3 * (vnoise(vec3(rf.uv.x * 0.6, v_seed * 13.0, 0.5)) - 0.5)
+				: rf.uv.y * 5.0 + 0.15 * sin(rf.uv.x * 0.7 + v_seed * 30.0);
+			bump_h = fract(r) * (kind == 0 ? 0.03 : 0.014) * roof_fine(rf.fw, kind == 0 ? 0.19 : 0.24);
 		}
 	}
 	// edge wear (bevel strips) brightens a little, desert dust, snow on top faces
@@ -354,6 +400,7 @@ void fragment() {
 	// Roof snow (prompt 080): after patina and dust, before soot; none where
 	// the roof burns or is charred.
 	float roof_amount = env_snow * (1.0 - smoothstep(0.05, 0.4, env_char));
+	float snow_cover_share = 0.0;
 	if (snow_roof >= 0 && roof_amount > 0.0) {
 		// hold, ridge band, eave band, softness per covering
 		vec4 cfg = snow_roof == 1 ? vec4(1.35, 1.2, 1.2, 0.06)
@@ -362,6 +409,7 @@ void fragment() {
 			cfg.x, cfg.y, cfg.z, cfg.w, snow_roof == 3 ? 1.0 : 0.0);
 		albedo *= 1.0 - 0.65 * rs.shade;
 		albedo = mix(albedo, snow_albedo(p, wn, srf), rs.cover);
+		snow_cover_share = rs.cover;
 		rough = mix(rough, 0.8, rs.cover);
 		metal = mix(metal, 0.0, rs.cover);
 		if (abs(rs.bend) > 0.0) {
@@ -369,6 +417,9 @@ void fragment() {
 			NORMAL = normalize(NORMAL + (VIEW_MATRIX * vec4(wdown * rs.bend * 0.7, 0.0)).xyz);
 		}
 	}
+	// Relief (prompt 186): none under snow. Taken here, outside every
+	// branch, so the derivatives are defined.
+	NORMAL = surface_bump(NORMAL, VERTEX, bump_h * (1.0 - snow_cover_share));
 	albedo = charred(albedo, env_char);
 	ALBEDO = albedo * mix(0.45, 1.0, ao);
 	AO = ao;

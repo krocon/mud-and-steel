@@ -98,4 +98,30 @@ Dachziegel. Heute sind alle Oberflächen prozedural, aber pro Slot gibt es nur
 
 ## Ergebnis
 
-(von der Session auszufüllen)
+- Blueprint-Abschnitt `[surface]` (Putzfarbe, Abplatzen, Ziegelfarbe,
+  Verband, Dachdeckung mit fünf Arten, Reihenhöhe, fehlende Ziegel, Moos),
+  geprüft in `kit/env.py`, als glTF-Extra `env_surface` gespeichert und in
+  Godot als zwei Instanz-Uniforms gesetzt (Einzelmodelle über
+  `EnvLook.apply`, Karten einmal pro Art auf den MultiMesh-Knoten). Ohne
+  Abschnitt bleibt alles wie vorher; kein Modell musste neu gebaut werden.
+  Werte gelten pro Gebäudeart, nicht pro Fläche.
+- Relief über Normalen (`surface_bump`): Ziegelreihen, gewölbte Ziegel,
+  Mörtelfugen, Abplatzkanten; blendet mit der Pixelgröße aus. Für alle
+  Dächer und Ziegelwände aktiv, wirkt aber nur aus der Nähe; aus Spielhöhe
+  sehen die vorhandenen Häuser praktisch gleich aus (Vorher/nachher in
+  `build/surfaces/before|after`).
+- Testhaus: `just building-sheet env_house_town --surface=…` mit
+  abgeplatztem ochsenblutrotem Putz, roten Ziegeln und Mönch-Nonne-Dach
+  neben dem Referenzbild, dazu Winter und Wüste
+  (`build/surfaces/test_house/`). Der Blueprint-Weg wurde mit einem
+  zeitweiligen `[surface]` in `env_house_town` geprüft (Bau,
+  `validate-env`, Blatt) und danach zurückgesetzt.
+- Bildrate (Häuserviertel `city_large`, warm): 35 / 110 / 350 m
+  12,51 / 14,52 / 15,59 → 12,47 / 14,49 / 15,87 ms.
+- Lücken: Werkstein an Ecken, Rahmen und Gesimsen braucht Generatoren, die
+  diesen Flächen den Stone-Slot geben; Walmdach (Prompt 184). Die
+  Einheiten-Webseite zeigt Gebäude in flachen Slot-Farben, ohne die neuen
+  Oberflächen. Verkohlt (`env_char`) nicht eigens im Bild geprüft (Ruß
+  liegt wie bisher über allem).
+- Thumbnails nicht neu gerendert: Albedo der vorhandenen Häuser unverändert,
+  das Relief verschwindet in Thumbnail-Größe.

@@ -6,6 +6,7 @@ extends Node
 ##
 ##     just building-preview env_house_town --ref docs/.vorlagen/x/referenz.webp
 ##     ... -- --id=<id> [--ref=<picture>] [--biome=forest|desert|winter] [--out=<dir>]
+##            [--surface=plaster=ochre_red,spall=0.5,roof=mission] (prompt 186)
 ##
 ## (the recipe builds the model with Blender and imports it first). Needs a
 ## window: rendering does not work headless. The sheet (`SHEET` pixels):
@@ -71,6 +72,9 @@ var _eaves := 0.0
 var _ridge := 0.0
 var _sheet: SubViewport
 var _canvas: Control
+## `--surface=plaster=ochre_red,spall=0.5,roof=mission,...` (prompt 186):
+## a `[surface]` table tried on the model without changing its blueprint.
+var surface := {}
 ## `--check` (self-test): every placed picture's rectangle on the sheet.
 var check := false
 var _fields: Array[Rect2i] = []
@@ -86,6 +90,11 @@ func _ready() -> void:
 			biome = arg.trim_prefix("--biome=")
 		elif arg.begins_with("--out="):
 			out_dir = arg.trim_prefix("--out=")
+		elif arg.begins_with("--surface="):
+			for pair in arg.trim_prefix("--surface=").split(",", false):
+				var kv := pair.split("=")
+				if kv.size() == 2:
+					surface[kv[0]] = float(kv[1]) if kv[1].is_valid_float() else kv[1]
 		elif arg == "--check":
 			check = true
 		elif arg.begins_with("--root="):
@@ -113,6 +122,10 @@ func _run() -> void:
 		printerr("building preview: no environment model for %s (run just env %s)" % [id, id])
 		get_tree().quit(1)
 		return
+	if not surface.is_empty():
+		var uniforms := EnvLook.surface_from(surface)
+		for mesh in UnitCamo.meshes(_model):
+			EnvLook.apply_surface(mesh, uniforms)
 	_setup_world()
 	_viewport.add_child(_model)
 	var variants := EnvLook.variants(_model)
@@ -302,8 +315,9 @@ func _header(variants: Array) -> void:
 		var counts := _triangles(node)
 		surfaces = maxi(surfaces, counts.y)
 		parts.append("%s %d%s" % [v.name, counts.x, " (!)" if counts.x > budget else ""])
-	_label("Triangles per variant (budget %d): %s   ·   surfaces: up to %d   ·   biome %s" % [
-		budget, ", ".join(parts), surfaces, biome], Vector2(MARGIN, 64), 17)
+	var tried := "" if surface.is_empty() else "   ·   tried surface: %s" % JSON.stringify(surface)
+	_label("Triangles per variant (budget %d): %s   ·   surfaces: up to %d   ·   biome %s%s" % [
+		budget, ", ".join(parts), surfaces, biome, tried], Vector2(MARGIN, 64), 17)
 
 
 ## Triangles and surfaces of every mesh below `node`.

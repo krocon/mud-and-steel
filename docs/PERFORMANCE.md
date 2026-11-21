@@ -58,6 +58,15 @@ Apple M1 Max, the scenario above, release simulation, debug bridge (as
 
 ## Simulation
 
+Prompt 186 (surfaces per building, relief in `env.gdshader`; `just
+objects-bench city_large --blocks-bench --quality=high`, 2026-11-21, warm
+shader cache): 35 m 12.51 → 12.47 ms, 110 m 14.52 → 14.49 ms, 350 m
+15.59 → 15.87 ms per frame, draw calls unchanged. The first run after the
+shader change had one 784 ms frame at 110 m: the new pipeline compiled
+when first seen. Cost in the shader: one derivative bump per pixel of every
+env material, one extra noise per clay roof pixel; the spall noise only on
+buildings with `spall`.
+
 Prompt 165 (hidden units as silhouettes, `unit_xray.gdshader`; `just
 bench-view`, 2026-11-21, same machine, the same run with the setting off as
 comparison): the stencil writes in the unit shaders cost nothing (draw calls

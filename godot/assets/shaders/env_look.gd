@@ -34,19 +34,61 @@ const TREE_WIND_MATERIALS: Array[String] = [
 ]
 ## Distance (m) at which tree variants switch to their `_Far` mesh.
 const FAR_DISTANCE := 180.0
+## Surfaces per building (prompt 186): names of the blueprint's `[surface]`
+## values; the index + 1 goes to the shader (0 = the look before, chosen
+## per house). Same lists as `SURFACE_NAMES` in tools/blender/kit/env.py.
+const PLASTERS: Array[String] = ["lime", "cream", "ochre", "ochre_red", "pink", "grey_green", "white"]
+const BRICKS: Array[String] = ["red", "yellow", "dark"]
+const BONDS: Array[String] = ["stretcher", "english"]
+const ROOFS: Array[String] = ["clay", "mission", "beaver", "spanish", "slate"]
+## Instance uniforms of a building without a `[surface]` table.
+const SURFACE_DEFAULT: Array[Vector4] = [Vector4(0, 0, 0, 0), Vector4(0, 0, 0, 1)]
 
 
 ## Sets the biome look on every mesh below `model`. `paint` recolors the
 ## Paint slot (military objects take a faction palette base color).
 static func apply(model: Node, biome: String, paint := NEUTRAL_PAINT) -> void:
 	var look: Dictionary = LOOK.get(biome, LOOK["forest"])
+	var surface := surface_of(model)
+	var custom := surface != SURFACE_DEFAULT
 	for mesh in UnitCamo.meshes(model):
+		if custom:
+			apply_surface(mesh, surface)
 		mesh.set_instance_shader_parameter(&"env_foliage", look.foliage)
 		mesh.set_instance_shader_parameter(&"env_dry", look.dry)
 		mesh.set_instance_shader_parameter(&"env_snow", look.snow)
 		mesh.set_instance_shader_parameter(&"env_dust", look.dust)
 		mesh.set_instance_shader_parameter(&"env_paint", paint)
 		set_roof_box(mesh)
+
+
+## The two surface uniforms (`env_surface_a`, `env_surface_b`,
+## env_surface.gdshaderinc) of a model from its `env_surface` extra, or the
+## defaults.
+static func surface_of(model: Node) -> Array[Vector4]:
+	var raw: Variant = root_extras(model).get("env_surface", "")
+	if str(raw).is_empty():
+		return SURFACE_DEFAULT
+	var table: Variant = JSON.parse_string(str(raw))
+	if not table is Dictionary:
+		return SURFACE_DEFAULT
+	return surface_from(table)
+
+
+## The two surface uniforms of a `[surface]` table (names as in the
+## blueprint; missing keys keep the look before prompt 186).
+static func surface_from(t: Dictionary) -> Array[Vector4]:
+	return [
+		Vector4(PLASTERS.find(str(t.get("plaster", ""))) + 1, float(t.get("spall", 0.0)),
+			BRICKS.find(str(t.get("brick", ""))) + 1, maxf(BONDS.find(str(t.get("bond", ""))), 0.0)),
+		Vector4(ROOFS.find(str(t.get("roof", ""))) + 1, float(t.get("roof_row", 0.0)),
+			float(t.get("roof_missing", 0.0)), float(t.get("moss", 1.0))),
+	]
+
+
+static func apply_surface(node: GeometryInstance3D, surface: Array[Vector4]) -> void:
+	node.set_instance_shader_parameter(&"env_surface_a", surface[0])
+	node.set_instance_shader_parameter(&"env_surface_b", surface[1])
 
 
 ## Sets the wind bend of a tree kind on `node` and its meshes (prompt 086).

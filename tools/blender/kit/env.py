@@ -104,6 +104,37 @@ BUDGET_OVERRIDES = {"env_church": 5000, "env_dump_ammo": 1500, "env_dump_fuel": 
                     # Prompt 078: apartment blocks (100-170 windows, interiors when damaged).
                     "env_block_desert": 6000, "env_block_desert_long": 6000, "env_block_town": 6000}
 FAR_BUDGET = 200
+
+# Surfaces per building (prompt 186): the optional `[surface]` table of a
+# blueprint, stored as the glTF extra `env_surface` (JSON). The names must
+# match EnvLook.PLASTERS / BRICKS / BONDS / ROOFS in godot/assets/shaders/
+# env_look.gd (their index is what the shader gets).
+SURFACE_NAMES = {
+    "plaster": ("lime", "cream", "ochre", "ochre_red", "pink", "grey_green", "white"),
+    "brick": ("red", "yellow", "dark"),
+    "bond": ("stretcher", "english"),
+    "roof": ("clay", "mission", "beaver", "spanish", "slate"),
+}
+SURFACE_RANGES = {"spall": (0.0, 1.0), "roof_row": (0.0, 0.6), "roof_missing": (0.0, 0.4), "moss": (0.0, 3.0)}
+
+
+def surface_props(table, where):
+    """Checks a blueprint's [surface] table; returns it as a plain dict."""
+    out = {}
+    for key, value in table.items():
+        if key in SURFACE_NAMES:
+            if value not in SURFACE_NAMES[key]:
+                raise ValueError(f"{where}: surface.{key} = {value!r}; known: {', '.join(SURFACE_NAMES[key])}")
+            out[key] = value
+        elif key in SURFACE_RANGES:
+            low, high = SURFACE_RANGES[key]
+            if not isinstance(value, (int, float)) or not low <= value <= high:
+                raise ValueError(f"{where}: surface.{key} = {value!r}; a number from {low} to {high}")
+            out[key] = float(value)
+        else:
+            known = sorted(list(SURFACE_NAMES) + list(SURFACE_RANGES))
+            raise KeyError(f"{where}: unknown surface key {key!r}; known: {', '.join(known)}")
+    return out
 # Far meshes of rock ridge pieces (prompt 074).
 FAR_BUDGET_OVERRIDES = {"env_rock_massif": 300}
 

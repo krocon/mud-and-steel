@@ -92,6 +92,9 @@ def build_env_model(uid):
     model.props.update(catalog.summary(u))
     model.props["env_kit_version"] = env.ENV_KIT_VERSION
     model.props["env_variants"] = json.dumps(info)
+    if "surface" in bp:
+        # Surfaces per building (prompt 186): read by EnvLook.surface() in Godot.
+        model.props["env_surface"] = json.dumps(env.surface_props(bp["surface"], f"{uid}: [surface]"))
     model.props["env_sunken"] = sunken
     model.props["blueprint"] = f"assets-src/blueprints/{FACTION}/{uid}.toml"
     model.props["source_hash"] = source_hash(FACTION, uid)

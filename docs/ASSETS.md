@@ -710,6 +710,54 @@ its top face. Shader only: no snow geometry, the models are unchanged.
   pass is untouched. Checks: `just snow-shots`, `just objects-bench
   winter_village --roofs-bench`, `just ground-motion --snow-roofs`.
 
+### Surfaces per building (prompt 186)
+
+A blueprint may set an optional `[surface]` table (top level, beside
+`unit` and `assembly`); without it a building looks as before. Every key is
+optional:
+
+| Key | Values | Effect |
+|---|---|---|
+| `plaster` | `lime`, `cream`, `ochre`, `ochre_red`, `pink`, `grey_green`, `white` | plaster color of the whole building (instead of the paint picked per house); wins over the desert mud plaster |
+| `spall` | 0–1 | share of fallen-off plaster; brickwork shows through, more near the ground and at edges, the broken edge darker and 1.5 cm proud |
+| `brick` | `red`, `yellow`, `dark` | brick color under the plaster and of brick walls (Stone kind 3) |
+| `bond` | `stretcher`, `english` | brick bond (English: every other course of headers) |
+| `roof` | `clay`, `mission`, `beaver`, `spanish`, `slate` | covering of the Roof slot: clay tiles (without the per-house slate swap), monk-and-nun, beaver tail, S pan, slate |
+| `roof_row` | 0–0.6 m | course height (0 = the covering's own: 17, 36, 15, 33, 20 cm) |
+| `roof_missing` | 0–0.4 | share of missing tiles (battens and the dark roof space show) |
+| `moss` | 0–3 | factor on moss and lichen (1 = as before) |
+
+**Transport:** `build_env.py` checks the table (`kit/env.py`,
+`surface_props`: unknown keys and values are errors) and stores it as the
+glTF extra `env_surface` (JSON). Godot packs it into two instance uniforms,
+`env_surface_a` and `env_surface_b` (`EnvLook.surface_of`, layout in
+`env_surface.gdshaderinc`), and sets them only on buildings that have a
+table: `EnvLook.apply` for single models (thumbnails, gallery, base
+buildings, preview) and `map_objects.gd` once per kind on its MultiMesh
+nodes and swapped variant nodes. The values are per building type, not per
+face; per-face choices stay with the slots and their four kinds (vertex
+color A), so no existing model had to be rebuilt. The per-house seed still
+varies tones, age and stains. The names must match in `kit/env.py`
+(`SURFACE_NAMES`) and `env_look.gd` (`PLASTERS`, `BRICKS`, `BONDS`,
+`ROOFS`).
+
+**Relief:** fine structure is a normal perturbation from a height in meters
+(`surface_bump`, bump mapping from screen-space derivatives), never
+geometry: tile courses step at their lower edge (clay 3 cm, slate 1.4 cm,
+for every roof), monk-and-nun and S pans have their profile across, mortar
+joints are 6 mm deep (every brick wall), spalled plaster stands 1.5 cm
+proud. It fades out with the pixel footprint like the fine color layers
+(`roof_fine`): at the start zoom most roofs look as before, the relief
+shows up close. No relief under snow.
+
+**Trying values:** `just building-sheet <id> --surface=plaster=ochre_red,spall=0.5,roof=mission`
+puts a table on a model without changing its blueprint. The unit web page
+draws buildings in flat slot colors and does not show these surfaces.
+
+Not yet possible: cut stone at corners, window frames and cornices as a
+surface of its own (needs the generators to give those faces the Stone
+slot) and hip roofs (prompt 184).
+
 ### Grown rock (prompt 074)
 
 `kit/rocks.py`, slot `Rock` (env.gdshader slot 16). The building block is

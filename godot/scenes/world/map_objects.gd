@@ -175,6 +175,8 @@ var _objects_root: Node3D
 var _destroyed_root: Node3D
 var _deco_root: Node3D
 var _models: Dictionary[String, Node3D] = {}
+## Surface uniforms per kind id (prompt 186, `_apply_surface`).
+var _surfaces: Dictionary[String, Array] = {}
 ## Per decoration layer: Vector2i square -> Array of MultiMeshInstance3D.
 var _deco: Array[Dictionary] = []
 ## Per decoration layer: the meshes of its variants.
@@ -247,6 +249,7 @@ func build(host: Object, view: Camera3D) -> void:
 			node.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
 			node.set_meta(&"local", part.transform)
 			EnvLook.apply_bend(node, id)
+			_apply_surface(node, id)
 			_objects_root.add_child(node)
 			object_nodes += 1
 			var key := "%d:%d:%d" % [kind, group.chunk.x, group.chunk.y]
@@ -558,9 +561,21 @@ func _variant_node(id: String, variant: String, transform: Transform3D) -> Node3
 		mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if cls.shadow \
 			else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		_apply_look(mesh)
+		_apply_surface(mesh, id)
 		root.add_child(mesh)
 	EnvLook.apply_bend(root, id)
 	return root
+
+
+## The blueprint's surfaces of kind `id` (prompt 186), only where it has a
+## `[surface]` table (the shader defaults are the look without one).
+func _apply_surface(node: GeometryInstance3D, id: String) -> void:
+	if not _surfaces.has(id):
+		var model := _model(id)
+		_surfaces[id] = EnvLook.surface_of(model) if model != null else EnvLook.SURFACE_DEFAULT
+	var surface: Array[Vector4] = _surfaces[id]
+	if surface != EnvLook.SURFACE_DEFAULT:
+		EnvLook.apply_surface(node, surface)
 
 
 ## Wraps `node` in a pivot at its base that tips it over towards
