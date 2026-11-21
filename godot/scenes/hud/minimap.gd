@@ -21,6 +21,14 @@ extends PanelContainer
 ## - Units: one `MultiMeshInstance2D` whose buffer the bridge fills
 ##   (`minimap_dots`), colored by player; only units in the local
 ##   player's snapshot (own units, enemies in sight, wrecks are left out).
+## - Supply points (prompt 107) as marks in the holder's color with a
+##   shape of their own: neutral a hollow circle, own a filled circle,
+##   allied a filled square, enemy a filled diamond; the capture progress
+##   as an arc in the taker's color; a contested point blinks white. They
+##   show what the player knows (`supply_view.gd known`: enemy points out
+##   of sight as last seen).
+## - Active mission objectives with a place as a gold ring with four ticks
+##   (the color of the rings on the ground, `mission_hud.gd`).
 ## - The camera's view as a trapezoid (screen corners on the ground), combat
 ##   pings (expanding rings) and rings around selected units.
 ## - Left click / drag moves the camera there, right click moves the
@@ -44,6 +52,11 @@ const ALLY_COLOR := Color(0.35, 0.6, 1.0)
 const ENEMY_COLOR := Color(1.0, 0.3, 0.22)
 const VIEW_COLOR := Color(1, 1, 1, 0.9)
 const PING_COLOR := Color(1.0, 0.25, 0.2)
+const SupplyView := preload("res://scenes/world/supply_view.gd")
+const MissionHud := preload("res://scenes/hud/mission_hud.gd")
+## Half size of a supply point mark, pixels at HUD factor 1.
+const POINT_PX := 5.0
+const OUTLINE := Color(0.05, 0.05, 0.05, 0.9)
 const SHADER_CODE := """
 shader_type canvas_item;
 uniform sampler2D ground_map : filter_linear, source_color;
@@ -84,6 +97,11 @@ var scale_px := 1.0
 var dot_count := 0
 ## Pings so far (self-test).
 var ping_count := 0
+## Supply point marks drawn in the last frame (self-test): `at` (pixels),
+## `relation`, `color`, `contested`.
+var point_marks: Array[Dictionary] = []
+## Mission objective marks drawn in the last frame (self-test).
+var objective_marks := 0
 
 ## Buttons right of the map, a child of the HUD (`hud.gd` places it).
 var column: VBoxContainer
@@ -336,6 +354,8 @@ func _update_view() -> void:
 
 func _draw_overlay(overlay: Control) -> void:
 	var began := Time.get_ticks_usec()
+	_draw_objectives(overlay)
+	_draw_points(overlay)
 	if _view_polygon.size() > 1:
 		overlay.draw_polyline(_view_polygon, VIEW_COLOR, 1.5)
 	for ping in _pings:
@@ -350,6 +370,62 @@ func _draw_overlay(overlay: Control) -> void:
 			if i >= 0:
 				overlay.draw_arc(to_minimap(positions[i]), 3.5, 0.0, TAU, 10, Color(1, 1, 1, 0.9), 1.0)
 	usec += Time.get_ticks_usec() - began
+
+
+## Supply points as marks (prompt 107).
+func _draw_points(overlay: Control) -> void:
+	point_marks.clear()
+	var base_view: Node = main.get("base_view")
+	if base_view == null or base_view.get("supply") == null:
+		return
+	var supply: SupplyView = base_view.supply
+	var r := POINT_PX * minf(HudTheme.scale, 1.0) + 1.0
+	var blink := fmod(Time.get_ticks_msec() / 1000.0 * SupplyView.BLINK_HZ, 1.0) < 0.5
+	for k: Dictionary in supply.known:
+		var at := to_minimap(k.position).round()
+		var relation: String = k.relation
+		var color := SupplyView.color_of(relation)
+		var outline := Color.WHITE if k.contested and blink else OUTLINE
+		match relation:
+			"own":
+				overlay.draw_circle(at, r, color)
+				overlay.draw_arc(at, r, 0.0, TAU, 16, outline, 1.5)
+			"ally":
+				var box := Rect2(at - Vector2(r, r) * 0.85, Vector2(r, r) * 1.7)
+				overlay.draw_rect(box, color)
+				overlay.draw_rect(box, outline, false, 1.5)
+			"enemy":
+				var d := PackedVector2Array([at + Vector2(0, -r * 1.2), at + Vector2(r * 1.2, 0), at + Vector2(0, r * 1.2), at + Vector2(-r * 1.2, 0)])
+				overlay.draw_colored_polygon(d, color)
+				d.append(d[0])
+				overlay.draw_polyline(d, outline, 1.5)
+			_:
+				overlay.draw_arc(at, r, 0.0, TAU, 16, OUTLINE, 3.5)
+				overlay.draw_arc(at, r, 0.0, TAU, 16, color, 2.0)
+		var taker: int = k.taker
+		if taker >= 0 and float(k.progress) > 0.0:
+			var tc := SupplyView.color_of(supply.relation_of(taker))
+			overlay.draw_arc(at, r + 3.0, -PI * 0.5, -PI * 0.5 + TAU * float(k.progress), 20, tc, 2.0)
+		point_marks.append({"at": at, "relation": relation, "color": color, "contested": k.contested})
+
+
+## Active mission objectives with a place: a gold ring with four ticks.
+func _draw_objectives(overlay: Control) -> void:
+	objective_marks = 0
+	var mission: Node = main.get("mission_hud")
+	if mission == null or not mission.visible:
+		return
+	var info: Dictionary = mission.info
+	for o: Dictionary in info.get("objectives", []):
+		if o["state"] != "active" or o["position"] == null:
+			continue
+		var at := to_minimap(o["position"]).round()
+		var r := POINT_PX * minf(HudTheme.scale, 1.0) + 2.0
+		overlay.draw_arc(at, r, 0.0, TAU, 20, OUTLINE, 4.0)
+		overlay.draw_arc(at, r, 0.0, TAU, 20, MissionHud.RING_COLOR, 2.0)
+		for dir: Vector2 in [Vector2.UP, Vector2.DOWN, Vector2.LEFT, Vector2.RIGHT]:
+			overlay.draw_line(at + dir * (r + 1.0), at + dir * (r + 4.0), MissionHud.RING_COLOR, 2.0)
+		objective_marks += 1
 
 
 func _gui_input(event: InputEvent) -> void:

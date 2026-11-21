@@ -12,7 +12,9 @@ extends RefCounted
 ## | `red_green` (deuteranopia, protanopia) | sky blue | yellow | orange |
 ## | `blue_yellow` (tritanopia) | bluish green | reddish purple | vermilion |
 ##
-## Minimap, health bars, base markers, mines, strike areas and the tint over
+## Neutral (supply points nobody holds) is pale grey in every palette.
+##
+## Minimap, health bars, base markers, supply points, mines, strike areas and the tint over
 ## other players' models use these; a palette change shows on the next match
 ## for tints set at its start.
 
@@ -22,6 +24,8 @@ const COLORS := {
 	"red_green": [Color(0.34, 0.71, 0.91), Color(0.94, 0.89, 0.26), Color(0.9, 0.62, 0.0)],
 	"blue_yellow": [Color(0.0, 0.75, 0.55), Color(0.8, 0.47, 0.65), Color(0.84, 0.37, 0.0)],
 }
+
+const NEUTRAL := Color(0.85, 0.85, 0.8)
 
 ## Palette in use; set by `settings.gd` when settings apply.
 static var palette := "standard"
@@ -37,6 +41,12 @@ static func ally(alpha := 1.0) -> Color:
 
 static func enemy(alpha := 1.0) -> Color:
 	return Color(COLORS[palette][2], alpha)
+
+
+## Neutral markers (supply points nobody holds, prompt 107): a pale grey in
+## every palette.
+static func neutral(alpha := 1.0) -> Color:
+	return Color(NEUTRAL, alpha)
 
 
 ## Color of `player` seen by `me` (`relation`: 1 = ally, as `SimHost.relation`).

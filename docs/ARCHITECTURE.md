@@ -1113,7 +1113,10 @@ its larger side, no living unit within `clearance_m`. `Sim::find_site` tries
 rings around a point in a fixed order (the computer player).
 
 **Queries** for the bridge and the AI: `account`, `income`, `faction`,
-`structures` (`StructureView`), `supply_points`, `build_options`,
+`structures` (`StructureView`), `supply_points` (`SupplyView`, since
+prompt 107 with `contested`: hostile players both in the area, the same
+check `take_supply_points` uses), `supply_radius`, `supply_income`,
+`build_options`,
 `production_options` (`BuyOption` with the reason it is blocked), `cost_of`,
 `structure_size`, `is_structure`, `unit_type_index`, `unit_position`.
 
@@ -1124,9 +1127,23 @@ frame (self-tests). `scenes/world/base_view.gd` gives the `base_*` buildings
 their models (the headquarters a borrowed stone house of prompt 007; since
 prompt 056 the vehicle works `env_steel_hall`, the barracks `env_barracks`
 and the depot `env_depot`, built by `tools/blender/kit/base_buildings.py`;
-all with the `Damaged` and `Ruin` variants of prompt 020), lets a site's model grow with its progress, and draws supply
-points as flags in the colour of their holder with a ring that fills while
-they are taken. `scenes/world/base_hud.gd`: resource bar, build menu with
+all with the `Damaged` and `Ruin` variants of prompt 020), lets a site's model grow with its progress. Supply points (prompt 107)
+have `scenes/world/supply_view.gd` (`base_view.supply`): a flag in the
+holder's color, a ring that grows with the capture progress, and the border
+of the capture area as a band on the ground (radius from `[supply]
+radius_m` through `SimHost.supply_points`, following the terrain, render
+priority `FogOfWar.MARKER_PRIORITY` above the fog layer; neutral dashed,
+own and allied solid, enemy with ticks inwards; a contested point blinks;
+setting `supply_border` strong / subtle / off). `known` is what the local
+player knows: the live state while the point's center is in sight, the fog
+is off, or the point is held by the player or an ally; otherwise the holder
+last seen without taker or progress. The minimap marks (`hud/minimap.gd`,
+shapes per relation, progress arc, objectives of `mission_hud.gd`), the
+ground tooltip (holder, income per minute, progress) and the feed messages
+"point taken / lost / under attack" read `known`, so nothing out of sight
+is given away. Colors only from `hud/relation_colors.gd` (`neutral` added). Tests:
+`tools/supply_point_self_test.gd` in match 4 of the flow self-test;
+pictures: `just supply-shots [dir]` (`tools/supply_shots.gd`). `scenes/world/base_hud.gd`: resource bar, build menu with
 prices (greyed out with the reason), placement preview (a box of the
 building's size, green or red with the reason from `placement_check`),
 production bar of the selected building with its queue and a cancel button,

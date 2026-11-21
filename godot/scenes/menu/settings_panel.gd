@@ -53,6 +53,7 @@ var ground_tooltip_option: OptionButton
 ## Prompt 103: one box per mark, and the strength of ground lines.
 var mark_boxes: Dictionary[String, CheckBox] = {}
 var ground_lines_option: OptionButton
+var supply_border_option: OptionButton
 ## Option buttons of OPTIONS, by settings key (prompt 043).
 var options: Dictionary[String, OptionButton] = {}
 var language_option: OptionButton
@@ -309,6 +310,12 @@ func _interface_tab() -> Control:
 	ground_lines_option.item_selected.connect(func(index: int) -> void:
 		_change("ground_lines", ["strong", "subtle"][index]))
 	tab.add_child(_row("SET_GROUND_LINES", ground_lines_option))
+	supply_border_option = OptionButton.new()
+	for label in ["SET_LINES_STRONG", "SET_LINES_SUBTLE", "SET_LINES_OFF"]:
+		supply_border_option.add_item(label)
+	supply_border_option.item_selected.connect(func(index: int) -> void:
+		_change("supply_border", Settings.SUPPLY_BORDER_MODES[index]))
+	tab.add_child(_row("SET_SUPPLY_BORDER", supply_border_option))
 	return _scrolled(tab)
 
 
@@ -332,6 +339,7 @@ func _refresh() -> void:
 	for key: String in mark_boxes:
 		mark_boxes[key].set_pressed_no_signal(Settings.get_value(key))
 	ground_lines_option.select(1 if Settings.get_value("ground_lines") == "subtle" else 0)
+	supply_border_option.select(maxi(Settings.SUPPLY_BORDER_MODES.find(Settings.get_value("supply_border")), 0))
 	quality_option.select(maxi(GraphicsQuality.LEVELS.find(Settings.get_value("quality")), 0))
 	volume_slider.set_value_no_signal(Settings.get_value("master_volume"))
 	for key in bus_sliders:

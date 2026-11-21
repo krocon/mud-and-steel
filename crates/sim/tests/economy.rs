@@ -1,7 +1,7 @@
 //! Base building, resources and production (prompt 023).
 
 use sim::scenario::{builtin_map, economy_commands, run_economy, skirmish_config};
-use sim::{Command, FireMode, PlaceError, PlayerCommand, PlayerId, Sim, SimConfig, Vec2};
+use sim::{Command, FireMode, Fixed, PlaceError, PlayerCommand, PlayerId, Sim, SimConfig, Vec2};
 
 const P0: PlayerId = PlayerId(0);
 const P1: PlayerId = PlayerId(1);
@@ -399,8 +399,43 @@ fn supply_points_are_taken_and_pay() {
         }
     }
     assert!(taken.is_some(), "the ford was taken");
+    assert!(
+        !sim.supply_points()[2].contested,
+        "nobody contests the ford"
+    );
     // Headquarters 40/100/90 and the point 50/90/40 (prompt 045).
     assert_eq!(sim.income(P0), [90, 190, 130]);
+    // The read functions of the presentation (prompt 107) give the data.
+    assert_eq!(sim.supply_income(), [50, 90, 40]);
+    assert_eq!(sim.supply_radius(), Fixed::from_num(25));
+    // An enemy unit in the area contests the point; it stays the owner's.
+    let enemy = sim
+        .snapshot()
+        .units
+        .iter()
+        .find(|u| u.owner == P1 && !sim.is_structure(u.unit_type))
+        .unwrap()
+        .id;
+    step(
+        &mut sim,
+        P1,
+        Command::MoveTo {
+            units: vec![enemy],
+            target: point,
+        },
+    );
+    let mut contested = false;
+    for _ in 0..6000 {
+        sim.step(&[]);
+        if sim.supply_points()[2].contested {
+            contested = true;
+            break;
+        }
+    }
+    assert!(contested, "the ford is contested");
+    let ford = &sim.supply_points()[2];
+    assert_eq!(ford.owner, Some(P0));
+    assert_eq!(ford.taker, None);
 }
 
 #[test]

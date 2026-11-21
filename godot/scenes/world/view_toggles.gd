@@ -10,12 +10,13 @@ extends Node
 ## | `show_selection_rings` | rings under selected units (`main._rings`) |
 ## | `show_routes` | routes and waypoints (`hud/waypoints.gd`) and the target preview |
 ## | `show_supply_rings` | supply and repair radii (`hud/supply_rings.gd`) |
-## | `show_supply_points` | flags and capture rings of supply points |
+## | `show_supply_points` | flags, capture rings and borders of supply points |
 ## | `show_impact_markers` | impact rings of the own shells |
 ## | `show_mission_rings` | rings around mission objectives |
 ## | `show_relation_tint` | the ally / enemy tint over other players' models |
 ## | `show_edge_arrows` | edge arrows of alarms (prompt 101) |
 ## | `ground_lines` | `strong` / `subtle`: lines and circles on the ground at half strength |
+## | `supply_border` | `strong` / `subtle` / `off`: borders of supply point areas (prompt 107, `supply_view.gd`) |
 ##
 ## Range and sight circles have their own settings (prompt 099). Applied
 ## after `main.gd` and `unit_highlight.gd` placed their marks, every frame,
@@ -115,8 +116,8 @@ func _apply() -> void:
 			part.modulate.a = line_alpha
 	var base_view: Node = main.get("base_view")
 	if base_view != null:
-		var flags := shows("show_supply_points")
-		for flag: Node3D in base_view._supply_nodes:
+		var flags: bool = shows("show_supply_points") and base_view.supply.marks_enabled
+		for flag: Node3D in base_view.supply.flags:
 			flag.visible = flags
 	var artillery: Node = main.get("artillery_view")
 	if artillery != null:

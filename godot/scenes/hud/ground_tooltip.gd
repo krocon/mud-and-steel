@@ -12,6 +12,11 @@ extends PanelContainer
 ## - cover (an object that stops bullets, soft cover of an object, a dug
 ##   position, a crater), kept apart from concealment.
 ##
+## Over the area of a supply point (prompt 107) the box names the point
+## first: holder (enemy points out of sight as last seen, from
+## `supply_view.gd known`), income per minute per resource and the capture
+## progress or "contested"; the ground follows below.
+##
 ## Every value comes from `SimHost.ground_info`, which reads the rules
 ## (`data/terrain.toml`, `weather.toml`, `vision.toml`, `infantry.toml`,
 ## `craters.toml`); nothing is a hand-kept text table. Field works count
@@ -118,6 +123,7 @@ func show_at(point: Vector3, screen: Vector2) -> void:
 		_hide()
 		return
 	_fill(info)
+	_add_supply(point)
 	_title.add_theme_font_size_override(&"font_size", HudTheme.font(15))
 	_body.add_theme_font_size_override(&"font_size", HudTheme.font(13))
 	_title.text = title
@@ -194,6 +200,32 @@ func _fill(info: Dictionary) -> void:
 	lines.append(tr("GROUND_COVER") % _cover_word(info))
 	if info.get("building", false):
 		lines.append(tr("GROUND_OCCUPY"))
+
+
+## Puts the supply point whose area holds `point` in front of the lines.
+func _add_supply(point: Vector3) -> void:
+	var base_view: Node = main.get("base_view")
+	if base_view == null or base_view.get("supply") == null:
+		return
+	var supply: Node = base_view.supply
+	var i: int = supply.point_at(point)
+	if i < 0:
+		return
+	var k: Dictionary = supply.known[i]
+	var head := PackedStringArray()
+	var holder := tr("GROUND_POINT_" + str(k.relation).to_upper())
+	head.append(holder if k.seen else tr("GROUND_POINT_LAST_SEEN") % holder)
+	var income: PackedInt64Array = k.income
+	if income.size() == 3:
+		head.append(tr("GROUND_POINT_INCOME") % [income[0], income[1], income[2]])
+	if k.contested:
+		head.append(tr("GROUND_POINT_CONTESTED"))
+	elif int(k.taker) >= 0:
+		head.append(tr("GROUND_POINT_TAKING") % [tr("GROUND_POINT_BY_" + supply.relation_of(k.taker).to_upper()), roundi(float(k.progress) * 100.0)])
+	head.append(title)
+	head.append_array(lines)
+	lines = head
+	title = tr("GROUND_POINT")
 
 
 func _terrain_name(info: Dictionary) -> String:

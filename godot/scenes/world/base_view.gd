@@ -7,8 +7,8 @@ extends Node3D
 ## model of prompt 007 (with the damage variants of prompt 020). Here the
 ## model grows with the construction progress and switches to its
 ## "Damaged" variant at half its hit points and to "Ruin" when destroyed.
-## Supply points are flag poles in the colour of their holder with a ring
-## that fills while they are taken. Created by `main.gd`.
+## Supply points have their own node (`supply_view.gd`, `supply`). Created
+## by `main.gd`.
 
 ## Models of the base buildings (sizes match data/economy.toml): the
 ## headquarters borrows a stone house, the others have their own since
@@ -24,22 +24,20 @@ const MODELS := {
 }
 const MODELS_DIR := "res://assets/models/neutral/"
 const StrikeView := preload("res://scenes/world/strike_view.gd")
+const SupplyView := preload("res://scenes/world/supply_view.gd")
 ## A site this far built shows at least this much of its model's height.
 const MIN_SITE_SCALE := 0.12
 const RelationColors := preload("res://scenes/hud/relation_colors.gd")
 const OWN_COLOR := Color(0.35, 0.6, 0.95)
-const ENEMY_COLOR := Color(0.85, 0.25, 0.2)
-## Supply points of allies (prompt 037) [provisional].
-const ALLY_COLOR := Color(0.4, 0.85, 0.85)
-const NEUTRAL_COLOR := Color(0.85, 0.85, 0.8)
-## Structures and supply points are read this often (s).
+## Structures are read this often (s).
 const READ_INTERVAL := 0.1
 
 var main: Node3D
 var sim_host: SimHost
 ## Last `SimHost.structures()`, by unit id.
 var structures: Dictionary[int, Dictionary] = {}
-var _supply_nodes: Array[Node3D] = []
+## Flags, border lines and what the player knows of the supply points.
+var supply: SupplyView
 var _rally_marker: MeshInstance3D
 var _read_left := 0.0
 
@@ -109,11 +107,9 @@ func setup(main_node: Node3D) -> void:
 	_rally_marker.material_override = _flat(RelationColors.own_or(OWN_COLOR))
 	_rally_marker.visible = false
 	add_child(_rally_marker)
-	for point: Dictionary in sim_host.supply_points():
-		var flag := _make_flag()
-		flag.position = point.position
-		add_child(flag)
-		_supply_nodes.append(flag)
+	supply = SupplyView.new()
+	add_child(supply)
+	supply.setup(main)
 
 
 func _process(delta: float) -> void:
@@ -125,7 +121,6 @@ func _process(delta: float) -> void:
 		structures.clear()
 		for s: Dictionary in sim_host.structures():
 			structures[s.id] = s
-		_update_supply()
 	_update_buildings()
 	_update_rally()
 
@@ -180,70 +175,6 @@ func _update_rally() -> void:
 		return
 	_rally_marker.visible = true
 	_rally_marker.position = (s.rally as Vector3) + Vector3.UP * 2.0
-
-
-func _side_color(player: int, me: int) -> Color:
-	if player == me:
-		return RelationColors.own_or(OWN_COLOR)
-	return RelationColors.ally_or(ALLY_COLOR) if sim_host.relation(player) == 1 else RelationColors.enemy_or(ENEMY_COLOR)
-
-
-func _update_supply() -> void:
-	var points := sim_host.supply_points()
-	var me := sim_host.local_player()
-	for i in mini(points.size(), _supply_nodes.size()):
-		var p: Dictionary = points[i]
-		var flag := _supply_nodes[i]
-		var owner: int = p.owner
-		var color := NEUTRAL_COLOR if owner < 0 else _side_color(owner, me)
-		(flag.get_node("Cloth") as MeshInstance3D).material_override = _flat(color)
-		var ring := flag.get_node("Ring") as MeshInstance3D
-		var taker: int = p.taker
-		ring.visible = taker >= 0
-		if taker >= 0:
-			ring.material_override = _flat(_side_color(taker, me) * Color(1, 1, 1, 0.6))
-			var r := 2.0 + 23.0 * float(p.progress)
-			ring.scale = Vector3(r, 1.0, r)
-
-
-func _make_flag() -> Node3D:
-	var flag := Node3D.new()
-	var pole := MeshInstance3D.new()
-	var pole_mesh := CylinderMesh.new()
-	pole_mesh.top_radius = 0.08
-	pole_mesh.bottom_radius = 0.1
-	pole_mesh.height = 7.0
-	pole.mesh = pole_mesh
-	pole.position.y = 3.5
-	pole.material_override = _flat(Color(0.35, 0.3, 0.25))
-	flag.add_child(pole)
-	var cloth := MeshInstance3D.new()
-	cloth.name = "Cloth"
-	var cloth_mesh := BoxMesh.new()
-	cloth_mesh.size = Vector3(2.4, 1.5, 0.05)
-	cloth.mesh = cloth_mesh
-	cloth.position = Vector3(1.25, 6.1, 0.0)
-	cloth.material_override = _flat(NEUTRAL_COLOR)
-	flag.add_child(cloth)
-	var ring := MeshInstance3D.new()
-	ring.name = "Ring"
-	var ring_mesh := TorusMesh.new()
-	ring_mesh.inner_radius = 0.92
-	ring_mesh.outer_radius = 1.0
-	ring.mesh = ring_mesh
-	ring.position.y = 0.3
-	ring.visible = false
-	flag.add_child(ring)
-	# The area that must be held (radius of data/economy.toml).
-	var area := MeshInstance3D.new()
-	var area_mesh := TorusMesh.new()
-	area_mesh.inner_radius = 24.6
-	area_mesh.outer_radius = 25.0
-	area.mesh = area_mesh
-	area.position.y = 0.25
-	area.material_override = _flat(Color(1, 1, 1, 0.25))
-	flag.add_child(area)
-	return flag
 
 
 static func _flat(color: Color) -> StandardMaterial3D:

@@ -2,7 +2,8 @@ extends VBoxContainer
 ## Event feed (prompt 031), at the left edge.
 ##
 ## Short messages with a place: own unit lost, building completed, unit
-## produced, enemy sighted (at most every SIGHTED_SECONDS). Hits on own
+## produced, enemy sighted (at most every SIGHTED_SECONDS); supply point
+## taken, lost or under attack come from `world/supply_view.gd` (prompt 107). Hits on own
 ## units and buildings and own losses come from `alerts.gd` (prompt 101):
 ## loud only where the camera does not look; it also pings the minimap
 ## (`add_ping`: at most one ping per PING_SECONDS within PING_RADIUS).
@@ -34,6 +35,9 @@ const COLORS := {
 	"lost": Color(1.0, 0.45, 0.4), "fire": Color(1.0, 0.7, 0.35), "sighted": Color(1.0, 0.85, 0.4),
 	"built": Color(0.55, 0.9, 1.0), "ready": Color(0.6, 1.0, 0.6),
 	"ping": Color(0.45, 0.7, 1.0), "wounded": Color(1.0, 0.6, 0.55),
+	# Supply points (prompt 107, `world/supply_view.gd`).
+	"point_taken": Color(0.6, 1.0, 0.6), "point_lost": Color(1.0, 0.45, 0.4),
+	"point_attack": Color(1.0, 0.7, 0.35),
 }
 
 var main: Node3D

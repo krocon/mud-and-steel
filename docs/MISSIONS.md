@@ -215,5 +215,6 @@ file written by hand next to it [provisional: no script editor in the game].
   and lobby do not offer missions).
 - A campaign (mission order, unlocking), mission ratings and timers in the
   panel.
-- Objective markers on the minimap; voice-over; a script editor in the game.
+- Voice-over; a script editor in the game. (Objective markers on the
+  minimap: done in prompt 107, a gold ring with four ticks.)
 - Translations of the mission texts (prompt 043).

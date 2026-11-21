@@ -145,7 +145,7 @@ SET_KEY_PHOTO_MODE,Photo mode (single player and replays),Fotomodus (Einzelspiel
 SET_SHOW_SELECTION_RINGS,Selection rings,Auswahlringe
 SET_SHOW_ROUTES,Routes and waypoints,Routen und Wegpunkte
 SET_SHOW_SUPPLY_RINGS,Supply and repair radii,Versorgungs- und Reparaturringe
-SET_SHOW_SUPPLY_POINTS,Flags and capture rings of supply points,Flaggen und Eroberungsringe der Versorgungspunkte
+SET_SHOW_SUPPLY_POINTS,"Flags, capture rings and borders of supply points","Flaggen, Eroberungsringe und Grenzlinien der Versorgungspunkte"
 SET_SHOW_IMPACT_MARKERS,Impact markers of own shells,Einschlagmarken eigener Granaten
 SET_SHOW_MISSION_RINGS,Mission rings,Missionsringe
 SET_SHOW_RELATION_TINT,Ally and enemy tint on models,Färbung verbündeter und feindlicher Modelle
@@ -153,3 +153,5 @@ SET_SHOW_EDGE_ARROWS,Edge arrows of alarms,Randpfeile bei Alarmen
 SET_GROUND_LINES,Lines on the ground,Linien am Boden
 SET_LINES_STRONG,Strong,Kräftig
 SET_LINES_SUBTLE,Subtle,Dezent
+SET_LINES_OFF,Off,Aus
+SET_SUPPLY_BORDER,Border of supply point areas,Grenzlinie der Versorgungspunkte

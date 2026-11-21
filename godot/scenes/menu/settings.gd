@@ -159,6 +159,8 @@ const CIRCLE_MODES: Array[String] = ["always", "key", "never"]
 ## Ground tooltip (prompt 100, `ground_tooltip.gd`): `on` when the mouse
 ## rests on the map, `key` only while `ground_tooltip` is held, `off`.
 const TOOLTIP_MODES: Array[String] = ["on", "key", "off"]
+## Border lines of supply point areas (prompt 107).
+const SUPPLY_BORDER_MODES: Array[String] = ["strong", "subtle", "off"]
 
 ## Tilt-shift depth of field (`atmosphere.gd`, `DOF_MODES`): `off`, `subtle`
 ## (soft screen edges at close zoom, prompt 057), `miniature` (strong, like a
@@ -202,6 +204,8 @@ const DEFAULTS := {
 	"show_edge_arrows": true,
 	# Lines and circles on the ground: "strong" or "subtle".
 	"ground_lines": "strong",
+	# Border of the supply point areas, one of SUPPLY_BORDER_MODES.
+	"supply_border": "strong",
 	# Tilt-shift depth of field, one of DOF_MODES.
 	"depth_of_field": "subtle",
 	# Shadows of passing clouds (prompt 087).

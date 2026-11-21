@@ -184,6 +184,8 @@ pub struct SupplyView {
     /// Who is taking it and how far (per mille of one step).
     pub taker: Option<PlayerId>,
     pub progress_pml: u32,
+    /// Hostile players both stand in the area now (no one takes it).
+    pub contested: bool,
 }
 
 /// Something a player can build or produce, with its price.
@@ -851,30 +853,37 @@ impl Sim {
         }
     }
 
+    /// Who stands in the area of a supply point at `at`: the first player
+    /// with a unit (not a building) there, and whether a hostile player
+    /// stands there too. Allies (prompt 037) do not contest each other; the
+    /// first of them present takes the point.
+    fn supply_presence(&self, at: Vec2, radius: Fixed) -> (Option<PlayerId>, bool) {
+        let mut present: Option<PlayerId> = None;
+        let mut contested = false;
+        for u in &self.units {
+            if !u.alive()
+                || self.economy.types[u.unit_type as usize].structure
+                || !within_fixed(u.position, at, radius)
+            {
+                continue;
+            }
+            match present {
+                None => present = Some(u.owner),
+                Some(p) if self.teams.hostile(p, u.owner) => contested = true,
+                Some(_) => {}
+            }
+        }
+        (present, contested)
+    }
+
     fn take_supply_points(&mut self) {
-        let radius = Fixed::from_num(self.economy.rules.supply.radius_m);
+        let radius = self.supply_radius();
         let steps = self
             .economy
             .ticks(self.economy.rules.supply.capture_s.saturating_mul(1000));
         for k in 0..self.economy.supply.len() {
-            let at = self.economy.supply[k].position;
-            let mut present: Option<PlayerId> = None;
-            let mut contested = false;
-            for u in &self.units {
-                if !u.alive()
-                    || self.economy.types[u.unit_type as usize].structure
-                    || !within_fixed(u.position, at, radius)
-                {
-                    continue;
-                }
-                // Allies (prompt 037) do not contest each other; the first
-                // of them present takes the point.
-                match present {
-                    None => present = Some(u.owner),
-                    Some(p) if self.teams.hostile(p, u.owner) => contested = true,
-                    Some(_) => {}
-                }
-            }
+            let (present, contested) =
+                self.supply_presence(self.economy.supply[k].position, radius);
             let p = &mut self.economy.supply[k];
             match present {
                 None => {
@@ -1054,6 +1063,7 @@ impl Sim {
         let steps = self
             .economy
             .ticks(self.economy.rules.supply.capture_s.saturating_mul(1000));
+        let radius = self.supply_radius();
         self.economy
             .supply
             .iter()
@@ -1063,8 +1073,19 @@ impl Sim {
                 owner: p.owner,
                 taker: p.taker,
                 progress_pml: pml(p.progress, steps),
+                contested: self.supply_presence(p.position, radius).1,
             })
             .collect()
+    }
+
+    /// Radius of the area that takes a supply point (`[supply] radius_m`).
+    pub fn supply_radius(&self) -> Fixed {
+        Fixed::from_num(self.economy.rules.supply.radius_m)
+    }
+
+    /// Income of one held supply point per minute (`[supply] income_per_min`).
+    pub fn supply_income(&self) -> Resources {
+        self.economy.rules.supply.income_per_min
     }
 
     /// Index of the unit type named `name` in `SimConfig::unit_types`.

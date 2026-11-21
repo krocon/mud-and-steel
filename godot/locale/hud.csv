@@ -198,6 +198,9 @@ HUD_FEED_BUILDING_UNDER_FIRE,Building under fire: %s,Gebäude unter Beschuss: %s
 HUD_FEED_READY,Ready: %s,Bereit: %s
 HUD_FEED_SIGHTED,Enemy sighted: %s,Feind gesichtet: %s
 HUD_FEED_COMPLETED,Completed: %s,Fertiggestellt: %s
+HUD_FEED_POINT_TAKEN,Supply point taken,Versorgungspunkt erobert
+HUD_FEED_POINT_LOST,Supply point lost,Versorgungspunkt verloren
+HUD_FEED_POINT_ATTACK,Supply point under attack,Versorgungspunkt wird angegriffen
 HUD_FEED_BUILDING,building,Gebäude
 HUD_FEED_UNIT,unit,Einheit
 HUD_FEED_PING,Ally (player %d) marks a spot,Verbündeter (Spieler %d) markiert eine Stelle
@@ -366,6 +369,19 @@ GROUND_COVER_PCT,%s (%d %% of hits),%s (%d %% aller Treffer)
 GROUND_COVER_DUG,"%s, dug in (prone %d %%)","%s, eingegraben (liegend %d %%)"
 GROUND_COVER_CRATER,"%s, crater (prone %d %%)","%s, Trichter (liegend %d %%)"
 GROUND_OCCUPY,Infantry can occupy it,Infanterie kann es besetzen
+GROUND_POINT,Supply point,Versorgungspunkt
+GROUND_POINT_NEUTRAL,Neutral,Neutral
+GROUND_POINT_OWN,Held by you,In deiner Hand
+GROUND_POINT_ALLY,Held by an ally,In der Hand eines Verbündeten
+GROUND_POINT_ENEMY,Held by the enemy,In der Hand des Gegners
+GROUND_POINT_LAST_SEEN,%s (last seen),%s (zuletzt gesehen)
+GROUND_POINT_INCOME,Per minute: fuel %d · ammunition %d · manpower %d,Pro Minute: Treibstoff %d · Munition %d · Personal %d
+GROUND_POINT_CONTESTED,"Contested: both sides in the area","Umkämpft: beide Seiten in der Fläche"
+GROUND_POINT_TAKING,Being taken by %s: %d %%,Wird erobert von %s: %d %%
+GROUND_POINT_BY_OWN,you,dir
+GROUND_POINT_BY_ALLY,an ally,einem Verbündeten
+GROUND_POINT_BY_ENEMY,the enemy,dem Gegner
+GROUND_POINT_BY_NEUTRAL,nobody,niemandem
 HUD_PAUSED,Paused – orders wait for the next tick (%s: go on),Pause – Befehle gelten ab dem nächsten Tick (%s: weiter)
 HUD_SPEED,Speed %s×,Tempo %s×
 HUD_HIDDEN_NOTE,HUD hidden – %s shows it again,HUD ausgeblendet – %s blendet es wieder ein

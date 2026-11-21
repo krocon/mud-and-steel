@@ -223,6 +223,7 @@ top bar. Everything else appears when there is something to do with it.
 | left edge | Events | messages |
 
 - **Minimap** (bottom left): terrain, own units green, enemies in sight red,
+  supply points and mission objectives as marks (see below),
   everything out of sight dimmed (the whole map is drawn from the start),
   the camera's view as a trapezoid, red rings where own units are
   hit. North is always up ("N" on the frame); the map does not turn with
@@ -327,10 +328,23 @@ top bar. Everything else appears when there is something to do with it.
   (water, house, rock); it stops at the nearest reachable spot instead. A
   tractor towing a gun shows the gun's range circle at its mark.
 - **Mark switches** (prompt 103): Settings → Interface has a box for
-  selection rings, routes and waypoints, supply and repair radii, flags and
-  capture rings of supply points, impact markers, mission rings, the
+  selection rings, routes and waypoints, supply and repair radii, flags,
+  capture rings and borders of supply points, impact markers, mission rings, the
   ally / enemy tint and the edge arrows, and "Lines on the ground" strong or
   subtle (half strength for routes, previews, supply and range circles).
+- **Supply points** (prompt 107): the edge of the capture area is a line
+  on the ground in the holder's color: pale and dashed while nobody holds
+  it, solid for you and your allies, with short ticks inwards for the
+  enemy; it blinks while both sides stand in the area. On the minimap each
+  point is a mark: hollow circle neutral, filled circle yours, square an
+  ally's, diamond the enemy's, with an arc for the capture progress; an
+  enemy point out of sight shows its holder as last seen. Rest the mouse
+  on the area for the holder, the income per minute and the progress.
+  Settings → Interface → "Border of supply point areas": strong, subtle
+  or off. The event feed says "supply point taken", "lost" and "under
+  attack" (click or Space to jump there). The top bar shows the income
+  per minute beside each stock. Active mission objectives are gold rings
+  with four ticks on the minimap.
 - **Ground tooltip** (prompt 100): rest the mouse on the map for 0.4 s and
   a small box beside the pointer names the ground or the object under it
   (meadow, road, ford, woods, farmhouse, wall, trench …) and says what it

@@ -581,6 +581,11 @@ block-fight dir="build/block-fight" map="city_blocks" *args: build
 effects-shots dir: build
     {{ GODOT }} --path godot --always-on-top --fixed-fps 30 res://scenes/main.tscn -- "--effects-shots={{ dir }}"
 
+# Supply points in pictures (prompt 107; needs a window): main view and minimap neutral, own, allied, enemy, contested, subtle
+[group('godot')]
+supply-shots dir="build/supply_points": build
+    {{ GODOT }} --path godot --always-on-top --resolution 1600x900 res://scenes/main.tscn -- --mode=base "--supply-shots={{ justfile_directory() }}/{{ dir }}"
+
 # Record base building (preview, construction site, production bar, bases) as PNG files into a folder (prompt 023)
 [group('godot')]
 base-shots dir: build

@@ -35,7 +35,10 @@ extends Node
 ##    a barracks is placed through the placement preview, completed,
 ##    selected, and produces a squad that appears and costs resources; the
 ##    computer opponent builds too; supply points are drawn; surrender and
-##    back to the menu.
+##    back to the menu. Before that, readable supply points (prompt 107,
+##    `tools/supply_point_self_test.gd`): minimap marks neutral, then own
+##    after the own units took one; border radius from the data; the
+##    border setting; the ground tooltip.
 ##
 ## 8. Saved game and replay viewer (prompt 038): match 4 is saved from the
 ##    pause menu before the surrender; "Load game" continues it at the saved
@@ -69,6 +72,7 @@ const MissionSelfTest := preload("res://scenes/menu/mission_self_test.gd")
 const L10nSelfTest := preload("res://scenes/menu/l10n_self_test.gd")
 ## Unit reference (prompt 066).
 const UnitsSelfTest := preload("res://scenes/tools/units_self_test.gd")
+const SupplyPointSelfTest := preload("res://scenes/tools/supply_point_self_test.gd")
 ## Wall-clock limit for the whole flow (`--fixed-fps` decouples frame time);
 ## raised from 10 to 20 minutes for the tutorial and missions (prompt 039).
 const TIMEOUT_MS := 1200000
@@ -190,6 +194,7 @@ func _run() -> void:
 	if main == null:
 		_finish()
 		return
+	await SupplyPointSelfTest.new().run(self, main)
 	await _base_building_test(main)
 	var saved := await _save_test(main)
 	await _surrender_test(main)
@@ -575,7 +580,7 @@ func _base_building_test(main: Node3D) -> void:
 	await _frames(30)
 	var state: Dictionary = host.economy_state()
 	_check(state["enabled"] and hud.visible, "base building HUD not shown: %s" % state)
-	_check(main.base_view._supply_nodes.size() == 3, "supply points not drawn")
+	_check(main.base_view.supply.flags.size() == 3, "supply points not drawn")
 	var barracks := -1
 	for o: Dictionary in host.build_options():
 		if o["id"] == "base_barracks":

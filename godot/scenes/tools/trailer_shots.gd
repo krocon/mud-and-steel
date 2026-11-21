@@ -865,9 +865,8 @@ func _ready() -> void:
 		# The relation tint is part of the interface, not of the world.
 		main._enemy_material.albedo_color.a = 0.0
 		main._ally_material.albedo_color.a = 0.0
-		# Flags and capture rings of the supply points.
-		for marker: Node3D in main.base_view._supply_nodes:
-			marker.visible = false
+		# Flags, capture rings and borders of the supply points.
+		main.base_view.supply.marks_enabled = false
 	else:
 		# The player's view with a large interface (a game setting), so it
 		# can be read in a video.

@@ -235,12 +235,22 @@ impl SimHost {
     }
 
     /// Supply points: dictionaries with `name`, `position` (ground point),
-    /// `owner` and `taker` (player id, -1 for none) and `progress` (0..1).
+    /// `owner` and `taker` (player id, -1 for none), `progress` (0..1),
+    /// `contested` (hostile players both in the area), `radius` (m, from
+    /// `[supply] radius_m`) and `income` (per minute, `[fuel, ammo,
+    /// manpower]`). The true state; `supply_view.gd` applies the fog.
     #[func]
     fn supply_points(&self) -> VarArray {
         let Some(game) = &self.game else {
             return VarArray::new();
         };
+        let radius = fixed_to_f32(game.sim.supply_radius());
+        let income: PackedInt64Array = game
+            .sim
+            .supply_income()
+            .iter()
+            .map(|&v| i64::from(v))
+            .collect();
         game.sim
             .supply_points()
             .iter()
@@ -252,6 +262,9 @@ impl SimHost {
                     "owner" => p.owner.map_or(-1, |o| i64::from(o.0)),
                     "taker" => p.taker.map_or(-1, |o| i64::from(o.0)),
                     "progress" => f64::from(p.progress_pml) / 1000.0,
+                    "contested" => p.contested,
+                    "radius" => radius,
+                    "income" => &income,
                 }
                 .to_variant()
             })
