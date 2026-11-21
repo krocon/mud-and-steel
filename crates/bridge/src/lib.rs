@@ -39,6 +39,7 @@ mod language_funcs;
 mod map_editor;
 mod match_funcs;
 mod mission_funcs;
+mod move_funcs;
 mod object_funcs;
 mod objects;
 mod orders_funcs;
@@ -283,6 +284,10 @@ pub struct SimHost {
     crossing_events: Vec<(u64, sim::CrossingEvent)>,
     /// Strike events since the last `take_strike_events` (prompt 054).
     strike_events: Vec<(u64, sim::StrikeEvent)>,
+    /// Movement events since the last `take_move_events`, and the units
+    /// stuck since (prompt 173).
+    move_events: Vec<(u64, sim::MoveEvent)>,
+    stuck_units: std::collections::BTreeSet<u32>,
     /// Debug: draw everything without fog (prompt 018, presentation only).
     reveal_all: bool,
     /// The fog overlay's fading mask (prompt 098, presentation only).
@@ -339,6 +344,8 @@ impl INode for SimHost {
             air_events: Vec::new(),
             crossing_events: Vec::new(),
             strike_events: Vec::new(),
+            move_events: Vec::new(),
+            stuck_units: std::collections::BTreeSet::new(),
             reveal_all: false,
             fog_fade: vision_funcs::FogFade::default(),
             process_usec: 0,
@@ -417,6 +424,7 @@ impl SimHost {
             air_funcs::collect_events(&mut self.air_events, &game.sim);
             crossing_funcs::collect_events(&mut self.crossing_events, &game.sim);
             strike_funcs::collect_events(&mut self.strike_events, &game.sim);
+            move_funcs::collect_events(&mut self.move_events, &mut self.stuck_units, &game.sim);
             self.accumulator -= tick_seconds;
             ticks += 1;
         }
@@ -572,6 +580,8 @@ impl SimHost {
         self.air_events.clear();
         self.crossing_events.clear();
         self.strike_events.clear();
+        self.move_events.clear();
+        self.stuck_units.clear();
         self.accumulator = 0.0;
         let mut stats = sim::stats::MatchStats::new(&config);
         stats.observe(&sim);

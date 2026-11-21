@@ -21,7 +21,17 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by prompt 110 (guns and standing tanks react to fire from
+/// Last changed by prompt 173 (stuck audit), an intended rule change in
+/// the movement: getting closer to a waypoint by less than 0.2 m is no
+/// progress (creeping units skip it after 2 s), slides shorter than a
+/// quarter step do not count, units of a column queue (push only along
+/// their line) at bridges and when they head for the same waypoint,
+/// squads count 4 m wide near bridges, and the direct step must stay on
+/// cells passable for the unit's class; every unit hashes its progress
+/// (a unit without progress for 20 s stops and is reported). The demo
+/// battle is decided at tick 436 instead of 603, still by player 0.
+///
+/// Before (`0xd68a_2529_06b0_2b43`), prompt 110 (guns and standing tanks react to fire from
 /// the flank), an intended rule change: the hashed tactics rules have the
 /// new `[flank]` section, and units that remember where fire came from
 /// hash that alert after the drills. Standing units without a target now
@@ -318,7 +328,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xd68a_2529_06b0_2b43;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xfc84_38d4_649c_5305;
 
 #[test]
 fn golden_hash() {
@@ -372,16 +382,18 @@ fn demo_is_a_battle() {
 /// ticks long (the golden hash above stays at 1000 ticks). Since prompt 093
 /// the tanks' machine guns fire at the squads: the last Soviet squad falls
 /// at tick 556. Since prompt 097 (vehicles at real speed, direct fire and
-/// sight 1/8, tanks starting 60 m apart) at tick 603.
+/// sight 1/8, tanks starting 60 m apart) at tick 603. Since prompt 173
+/// (progress needs 0.2 m, no creeping slides, columns queue at bridges and
+/// shared waypoints, direct steps stay on passable cells) at tick 436.
 #[test]
 fn demo_battle_is_decided() {
     let end = run_demo(42, 1900);
     let outcome = end.outcome().expect("the demo battle is decided");
     assert_eq!(outcome.winner, Some(sim::PlayerId(0)));
-    assert_eq!(outcome.tick, 603);
+    assert_eq!(outcome.tick, 436);
     assert_eq!(end.alive_units(sim::PlayerId(1)), 0);
     assert_eq!(
         end.standings()[1].defeat,
-        Some((sim::DefeatReason::Eliminated, 603))
+        Some((sim::DefeatReason::Eliminated, 436))
     );
 }

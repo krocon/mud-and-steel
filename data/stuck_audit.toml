@@ -1,0 +1,54 @@
+# Settings of `just stuck-audit` (prompt 173, crates/cli/src/stuck_audit.rs).
+# A tool, not a rule: nothing in the simulation reads this file.
+#
+# A unit counts as stuck when it follows a route (not waiting for its path)
+# and has not moved `stall_m` away from where it stood for `stall_s` seconds
+# of game time, or when it stopped farther than `arrive_m` (plus its own
+# width) from the end of its planned route. `long_s`: stalls at least this
+# long are listed as long in the report (goal: none).
+
+stall_s = 10
+# 1 m in 10 s: infantry climbing the steepest passable slopes manages about
+# 0.15 m/s, which is slow, not stuck.
+stall_m = 1
+long_s = 30
+arrive_m = 8
+# Upper bound of one run in seconds of game time; every run ends earlier
+# when all units are idle.
+max_s = 3600
+# At most this many bridges per map get their own crossing routes (the
+# longest first), and approach points lie this far before a deck's end.
+max_bridges = 8
+approach_m = 60
+
+# Unit groups. Every route of a map is driven once by every group; each
+# group drives all routes of the map in one simulation. `tow`: guns hitched
+# to the first vehicles before the order (one per vehicle).
+[[group]]
+name = "infantry"
+units = ["de_inf_rifle_squad", "de_inf_rifle_squad", "de_inf_rifle_squad"]
+
+[[group]]
+name = "light"
+units = ["de_opel_blitz", "de_sdkfz222", "de_opel_blitz"]
+
+[[group]]
+name = "heavy"
+units = ["de_tiger1_e", "de_tiger1_e", "de_pz4_h"]
+
+[[group]]
+name = "towed"
+units = ["de_opel_blitz", "de_opel_blitz"]
+tow = ["de_pak40", "de_pak40"]
+
+[[group]]
+name = "mixed"
+units = ["de_pz4_h", "de_inf_rifle_squad", "de_sdkfz251_1", "de_inf_rifle_squad", "de_pz4_h"]
+
+# AI games (`just ai-tournament` setup: demo battle, normal against normal)
+# on these maps, watched with the same rule. Units the AI halts on purpose
+# (infantry changing stance, guns unlimbering) are not counted.
+[ai]
+games = 1
+max_s = 600
+maps = ["skirmish", "river_fields", "twin_meadow", "river_town", "farms"]

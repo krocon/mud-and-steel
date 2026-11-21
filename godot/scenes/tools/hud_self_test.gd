@@ -546,6 +546,15 @@ func _alerts_test(test: Node, main: Node3D, alerts: Control, tanks: Array[int]) 
 	focus = main.camera_rig.focus
 	test._check(Vector2(focus.x, focus.z).distance_to(Vector2(other.x, other.z)) < 2.0,
 		"the alarm jump moved the camera to %s, expected %s" % [focus, other])
+	# Prompt 173: a unit stuck out of view alarms with its own feed message.
+	var feed_before: int = alerts.feed.history.size()
+	var south := Vector3(here.x, 0.0, minf(here.z + 180.0, 220.0))
+	south.y = main.sim_host.height_at(south.x, south.z)
+	alerts.report("stuck", tank, south)
+	await test._frames(2)
+	test._check(alerts.raised == raised + 3, "a stuck unit out of view raised %d alarms, expected 3 in all" % (alerts.raised - raised))
+	var last: Dictionary = alerts.feed.history.back() if alerts.feed.history.size() > feed_before else {}
+	test._check(last.get("kind", "") == "stuck", "no feed message for a stuck unit (%s)" % [last])
 	main.camera_rig.snap_to(here, 120.0, 0.0)
 	await test._frames(2)
 

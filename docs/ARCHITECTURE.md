@@ -334,6 +334,15 @@ The push deflects the step but never makes it longer than the speed. It is ignor
 within one footprint of the final waypoint, so a parked unit cannot keep another
 from arriving, and pushed steps must stay on cells passable for the unit's class.
 
+**Queues** (prompt 173): between units driving the same way (less than 60°
+apart), the push acts only along the own line when both head for the same
+waypoint (members squeezing through a gap or onto a deck on the unshifted
+group path) or the unit is within 25 m of an intact bridge's deck
+(`near_bridge`): the rear one waits behind instead of being pushed onto a bank
+or beside the deck, from where it cannot get on (railings). Near a bridge a
+squad counts only 4 m wide (in file) instead of its line formation's width,
+so squads meeting on a deck pass each other.
+
 **Running over** (prompt 093, `sim/overrun.rs`, `[overrun]` in
 `data/combat.toml`). Vehicles of at least `min_mass_kg` ignore enemy squads in
 the separation: they do not swerve around them. Within a tick, right after the
@@ -353,12 +362,47 @@ rebuilt every tick and are not state; vehicles, squads and soldiers are
 visited in index order and nothing is rolled.
 
 Rules that keep units from getting stuck: intermediate waypoints count as reached
-within 1 m; a unit that has not come closer to its waypoint for 2 s (40 ticks)
-skips it, or stops on the last one; if neither the pushed, the direct nor a
-sliding step (x or y part only) is possible, nor a step turned 45° to either
+within 1 m; a unit that has not come closer to its waypoint by at least 0.2 m
+(`MIN_PROGRESS_MM`, prompt 173: creeping by millimeters is no progress) for 2 s
+(40 ticks) skips it, or stops on the last one; if neither the pushed, the direct
+nor a sliding step (x or y part only, and since prompt 173 at least a quarter of
+the step long) is possible, nor a step turned 45° to either
 side (a bank too steep head-on is taken at an angle; after prompt 088: tanks pushed
 onto the bank of a ford's deep channel), it plans a new path from where it is,
-at most 3 times until it reaches the next waypoint.
+at most 3 times until it reaches the next waypoint. Since prompt 173 the direct
+step along the leg must also stay on cells passable for the unit's class (like
+the pushed and sliding ones; only the final step onto a waypoint is exempt): a
+unit pushed off its leg beside a deck drove onto the steep bank below it before,
+where no search could start and it stopped for good.
+
+**Last resort** (prompt 173, `sim/progress.rs`): a unit that follows a route
+and whose remaining route length has not dropped by 1 m for 20 s (halts on
+purpose, `speed_pct == 0`, do not count; a new route, an order or a re-plan,
+starts the clock again) stops where it is, and the simulation reports
+`MoveEvent::Stuck` (`Sim::move_events`). The same event reports units the
+rules above stop short of their target (more than their width plus 8 m away):
+re-plans used up, a search from where it stands found nothing, or stalled on
+its last waypoint. No teleporting and no pushing through obstacles: the player
+sees a feed message, an alarm out of view and a state mark on the unit
+([CONTROLS.md](CONTROLS.md), `alerts.gd`, `state_marks.gd`, bridge
+`take_move_events` / `stuck_units`) and gives a new order. Per unit the
+progress (best remaining length, ticks, route key) is state and hashed.
+
+**Stuck audit** (prompt 173, `just stuck-audit`, `cli/src/stuck_audit.rs`,
+settings in `data/stuck_audit.toml`): on every map, five groups (three rifle
+squads; two trucks and an armored car; two Tigers and a Panzer IV; two trucks
+towing a Pak 40 each; two Panzer IV, two squads and a half-track) drive every
+route of the map: start to start, supply point to start, and over the eight
+longest bridges both ways (60 m before to 80 m behind the deck). Each group
+drives all routes of a map at once in one headless simulation, so groups meet
+at bridges and targets. Normal AI games on five maps add the units of real
+matches. A unit counts as stuck when it follows a route and has not moved 1 m
+in 10 s (crawling up the steepest passable slopes is about 0.15 m/s: slow, not
+stuck), or when it stops more than its width plus 8 m short of the end of its
+planned route; units lost or immobilized by mines are counted apart. Output:
+a table per map, the worst places with cause (bridge deck, bridgehead, other
+unit, object kind, water, bank, slope, wreck) and every case as CSV
+(`build/stuck_audit.csv`). Results: [PERFORMANCE.md](PERFORMANCE.md#stuck-audit-prompt-173).
 
 **Lead-in** (after prompt 088, `PathGrid::lead_in`): a single-unit search starts
 where the unit stands, except
@@ -445,11 +489,20 @@ the whole square per ring, which cost up to 15 ms for targets deep in a wood).
 
 - Formation facing and slot assignment along the direction of travel (slots are
   assigned by y, then x, as in prompt 009: diagonal moves make members cross
-  while the group re-forms).
-- Speed matching within a group (members drive at their own terrain speed).
+  while the group re-forms; prompt 174).
+- Speed matching within a group (members drive at their own terrain speed;
+  prompt 187). The stuck audit (prompt 173) found no stuck orders caused by
+  that.
 - Obstacles and map objects are cell-based and not widened by the margin for
   large units: a tank whose center passes a free cell next to a tree may overlap
-  the trunk by up to half its width.
+  the trunk by up to half its width. The stuck audit found no tank stuck at a
+  tree or wall (0 of 1810 orders), so this stays a look issue.
+- Vehicles meeting head-on on a one-lane deck have no rule for who backs off;
+  the audit's groups meet at bridges (both directions at once) and got through,
+  but a column against a column on a long bridge is not measured.
+- The audit does not drive through fords, woods and town edges on purpose:
+  its routes come from starts, supply points and bridges, and pass them where
+  the maps put them in the way.
 
 ## Combat
 

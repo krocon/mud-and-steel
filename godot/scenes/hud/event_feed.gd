@@ -40,6 +40,8 @@ const COLORS := {
 	"point_attack": Color(1.0, 0.7, 0.35),
 	# Mission reinforcements driving in (prompt 108, `mission_hud.gd`).
 	"reinforce": Color(0.55, 0.9, 1.0), "enemy_reinforce": Color(1.0, 0.7, 0.35),
+	# A unit stopped because it got stuck (prompt 173, `alerts.gd`).
+	"stuck": Color(0.95, 0.8, 0.55),
 }
 
 var main: Node3D

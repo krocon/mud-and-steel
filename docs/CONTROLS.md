@@ -41,7 +41,7 @@ or not.
 | Shift + O *(rebindable)* | Overview (prompt 103): the camera glides out to up to 1200 m at the steepest tilt, shadows and small decoration off, every own unit shows its ring. Again: back to the view before; a zoom in returns centered on the point under the pointer |
 | F1 *(rebindable)* | Hide or show the HUD and every mark on the map; orders keep working, a short line names the key |
 | F2 *(rebindable)* | Photo mode (single player and replays): the game stops, HUD and marks go, the camera goes closer, flatter and steeper; field of view, depth of field (off / subtle / miniature; tilted flat the foreground stays sharp and only the upper part of the picture is soft, a narrow sharp band needs miniature and a steep view), fog of war off (only in replays or after the match), "Save picture" writes a PNG to the user folder `photos/`. F2, the button or Esc leave and restore everything |
-| Shift + Space *(rebindable)* | Jump to the newest alarm (fire on or loss of own units and buildings out of view); pressed again within 4 s: the next older one (prompt 101) |
+| Shift + Space *(rebindable)* | Jump to the newest alarm (fire on or loss of own units and buildings out of view, units stuck out of view since prompt 173); pressed again within 4 s: the next older one (prompt 101) |
 
 **Tilt** (prompt 096): the zoom sets how steeply the camera looks down
 (45° close, 65° far away), as before; your tilt is added to that and stays
@@ -318,6 +318,12 @@ top bar. Everything else appears when there is something to do with it.
   alarms again after 10 s (losses 3 s), another place alarms at once.
   Losses out of view stay 30 s in the feed and are not pushed out by
   newer messages. Replays and spectators get no alarms.
+- **Stuck units** (prompt 173): a unit that gets no closer to its target
+  for 20 s, or that the movement rules stop short of it, stops where it is.
+  The feed says "Cannot get through: <unit>" (in view too); out of view it
+  also pings the minimap and shows a sand-colored edge arrow (no sound),
+  and Shift + Space jumps there like to the other alarms. Until it gets a
+  new order the unit carries a state mark (a wall with an arrow).
 - **Health bars**: short bars over damaged units and over own units that
   are selected (yellow), under the mouse pointer or shown with **Tab**
   (blue in the standard palette, the own color in the other palettes);
@@ -335,6 +341,7 @@ top bar. Everything else appears when there is something to do with it.
   | wheel, struck through | red | immobilized (too damaged to drive) |
   | broken track | red | lost its track to a mine |
   | helmet pressed down by an arrow | white | suppressed or pinned down |
+  | arrow stopped at a wall | sand | stuck: stopped short of its target, waits for a new order (prompt 173) |
   | shell, struck through | amber | out of ammunition |
   | drop, struck through | blue | out of fuel |
   | wrench with a plus | green | being repaired or resupplied |

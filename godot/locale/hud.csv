@@ -198,6 +198,7 @@ HUD_MISSION_ALL_DONE,All objectives complete.,Alle Ziele erfüllt.
 HUD_TIP_FEED,Click: camera there. %s: the newest message.,Klick: Kamera dorthin. %s: neueste Meldung.
 HUD_FEED_LOST,Lost: %s,Verloren: %s
 HUD_FEED_UNDER_FIRE,Under fire: %s,Unter Beschuss: %s
+HUD_FEED_STUCK,Cannot get through: %s,Kommt nicht weiter: %s
 HUD_FEED_BUILDING_UNDER_FIRE,Building under fire: %s,Gebäude unter Beschuss: %s
 HUD_FEED_READY,Ready: %s,Bereit: %s
 HUD_FEED_SIGHTED,Enemy sighted: %s,Feind gesichtet: %s

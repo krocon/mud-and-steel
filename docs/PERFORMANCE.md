@@ -22,6 +22,7 @@ hedges and bushes.
 | `just bench` (`cli bench`) | Simulation: two Hard AIs play the scenario through a lockstep session (as `ai-tournament`); per tick `Sim::step` and each of its phases, the AIs' think, the local player's snapshot. Prints mean / median / p99 / max, the five slowest ticks by phase, ten time windows and the end hash. `--runs 3` takes the minimum per tick over three identical runs; `--ticks`, `--seed`, `--ai`, `--scenario` |
 | `just bench-view` | Frame rate in Godot with the same scenario and a Hard AI as enemy: camera 40 / 150 / 600 m over the own army standing, then the army advances and the same distances in the battle. FPS, frame time (mean, p99, worst), the simulation's part of the frame (`SimHost.process_usec`), render CPU, draw calls, primitives and the script time of the big presentation systems. `--quality=medium`, `--perf-quick` (standing only), `--perf-column` (only 30 tanks driving in a column, prompt 104), `--perf-kills` (40 vehicles destroyed within 2 s, prompt 105). Screenshots in `user://perf-bench/` |
 | `just path-bench`, `vision-bench`, `infantry-bench` | Single systems of the simulation (see ARCHITECTURE.md, INFANTRY.md) |
+| `just stuck-audit` | Stuck units (prompt 173): groups drive across every map, stalls and give-ups per map with cause; see [Stuck audit](#stuck-audit-prompt-173) |
 | `just fire-bench` | Fire on the town map (prompt 041): 40 units per side, 6000 ticks without fire and with a wood, a terrace and the dumps burning; mean and worst tick (ARCHITECTURE.md, "Fire") |
 | `just terrain-bench`, `objects-bench`, `effects-bench`, `infantry-view-bench` | Single systems of the presentation |
 
@@ -459,6 +460,74 @@ sketch maps. The overview of `river_valley` (41 FPS) looks at 58 000 objects,
 most of them trees. Loading `river_city`: decode 45 ms, objects 28 ms.
 Open: tick time with a large battle on each map (no bench scenario for the
 sketch maps yet).
+
+## Stuck audit (prompt 173)
+
+`just stuck-audit` (`cli stuck-audit`, rules in
+[ARCHITECTURE.md](ARCHITECTURE.md#movement-and-separation), settings in
+`data/stuck_audit.toml`): five groups drive every route of every map (starts,
+supply points, the eight longest bridges both ways); a unit is stuck when it
+follows a route and moves less than 1 m in 10 s, or stops more than its width
+plus 8 m short of its planned end. 26 maps, 1810 group orders, 5792 units,
+about 60 s on 4 threads (Apple M1 Max). Before = the same audit against the
+movement of prompt 166 (commit `8aec865`).
+
+| Map | Orders | Stuck units (orders) before | After |
+|---|---|---|---|
+| ambush_meadow | 10 | 0 (0.0%) | 0 (0.0%) |
+| city_blocks | 10 | 0 (0.0%) | 0 (0.0%) |
+| city_large | 60 | 19 (20.0%) | 0 (0.0%) |
+| desert_lagoon | 100 | 6 (6.0%) | 0 (0.0%) |
+| desert_village | 35 | 0 (0.0%) | 0 (0.0%) |
+| farms | 45 | 6 (6.7%) | 0 (0.0%) |
+| harbor_city | 55 | 14 (12.7%) | 0 (0.0%) |
+| island_chain | 65 | 19 (16.9%) | 0 (0.0%) |
+| mountain_pass | 70 | 10 (10.0%) | 0 (0.0%) |
+| river_city | 140 | 27 (10.7%) | 0 (0.0%) |
+| river_fields | 75 | 11 (9.3%) | 0 (0.0%) |
+| river_fields_winter | 75 | 10 (9.3%) | 0 (0.0%) |
+| river_fork | 125 | 11 (4.0%) | 0 (0.0%) |
+| river_land | 75 | 17 (14.7%) | 0 (0.0%) |
+| river_town | 140 | 28 (13.6%) | 0 (0.0%) |
+| river_valley | 90 | 22 (13.3%) | 0 (0.0%) |
+| rock_hills | 50 | 13 (14.0%) | 0 (0.0%) |
+| skirmish | 55 | 11 (14.5%) | 0 (0.0%) |
+| tall_grass_test | 45 | 6 (8.9%) | 0 (0.0%) |
+| test_large | 100 | 5 (4.0%) | 0 (0.0%) |
+| test_small | 45 | 10 (17.8%) | 0 (0.0%) |
+| town_small | 25 | 3 (8.0%) | 0 (0.0%) |
+| twin_meadow | 65 | 8 (9.2%) | 0 (0.0%) |
+| valley_fields | 140 | 29 (12.1%) | 0 (0.0%) |
+| winter_town | 80 | 11 (8.8%) | 0 (0.0%) |
+| winter_village | 35 | 1 (2.9%) | 0 (0.0%) |
+
+Causes before (298 cases, 63 of them 30 s or longer): another unit in the
+way 228 (groups converging on a target or meeting at a bridge: units crept
+forward by millimeters, pushed back almost as far as they drove, so the 2 s
+stall rule never fired; squads pushed each other sideways off the deck's
+line), stopping short at a bridgehead 35 (pushed beside a deck, then onto the
+steep bank below it: no search could start there), stalls at a bridgehead 13,
+water and banks 10, a vehicle sliding along an obstacle by millimeters
+(never "blocked", never re-planned). After the fixes of prompt 173 no
+stuck order on any map; the "stuck" events of the simulation stayed at 0 in
+the route runs and in five AI games (one 11 s stall of an AI Panzer IV on a
+slope at twin_meadow's minefield remains, below the 20 s limit). Units lost
+or immobilized by twin_meadow's minefield (7) are counted apart.
+
+Also measured with the stall at 2 m in 10 s (the first setting): 15
+infantry orders on island_chain and desert_lagoon "stalled" on the steepest
+passable slopes, crawling at about 0.15 m/s: slow, not stuck, so the audit
+uses 1 m.
+
+`just path-bench` (200 units on `test_large`, Apple M1 Max), before → after
+prompt 173: single orders 288 → 284 requests, planning ticks mean 4.6 → 4.6
+ms, all ticks 0.46 → 0.46 ms; groups of 8 163 → 161 requests, 4.7 → 4.7 ms,
+0.42 → 0.42 ms. `just bench` (one run): sim step mean 2.86 → 3.11 ms, p99
+6.3 → 6.1 ms, max 8.8 → 8.4 ms, movement 0.43 → 0.45 ms (the remaining route
+length is cached per waypoint; summing it every tick had doubled the
+movement phase); the rest is path search: the hard AIs' units move
+differently (2152 → 2151 requests, 58 → 77 million expansions). Within the
+budgets.
 
 ## Decisions
 

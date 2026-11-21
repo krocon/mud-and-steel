@@ -35,6 +35,7 @@ mod mission;
 mod orders;
 mod overrun;
 mod positions;
+mod progress;
 mod spatial;
 mod strike;
 mod tactics;
@@ -57,6 +58,7 @@ pub use infantry::BuildingCondition;
 pub use logistics::{StockView, SupplySource};
 pub use mission::{ArrivalView, ObjectiveView, column_spacing};
 pub use orders::MAX_QUEUED;
+pub use progress::MoveEvent;
 pub use tactics::{SquadTactics, soldier_flags};
 
 /// Move targets farther than this from the origin (in meters, per axis) are
@@ -275,6 +277,10 @@ struct Unit {
     /// Where it was last fired at from, ordered facing hold (prompt 110).
     #[serde(default)]
     alert: alert::Alert,
+    /// Progress along its route, for the last resort against stuck units
+    /// (prompt 173).
+    #[serde(default)]
+    progress: progress::Progress,
 }
 
 impl Unit {
@@ -491,6 +497,10 @@ pub struct Sim {
     next_projectile: u32,
     /// Events of the last tick (not state: derived, not hashed).
     events: Vec<CombatEvent>,
+    /// Units that stopped short of their target in the last tick (prompt
+    /// 173; derived, not hashed).
+    #[serde(skip)]
+    move_events: Vec<MoveEvent>,
     objects: combat::ObjectIndex,
     /// Defeated players and the result (prompt 027).
     standings: Standings,
@@ -745,6 +755,7 @@ impl Sim {
             projectiles: Vec::new(),
             next_projectile: 0,
             events: Vec::new(),
+            move_events: Vec::new(),
             objects: combat::ObjectIndex::new(&map),
             map,
             standings: Standings::new(&players),
@@ -842,6 +853,7 @@ impl Sim {
         self.air.events.clear();
         self.crossings.events.clear();
         self.strikes.events.clear();
+        self.move_events.clear();
         for command in commands {
             self.apply(command);
         }
@@ -862,6 +874,7 @@ impl Sim {
         self.halt_stranded();
         self.update_swimmers();
         self.move_units();
+        self.check_progress();
         self.update_transport();
         done(Phase::Movement);
         self.plan_overrun();
@@ -1098,8 +1111,10 @@ impl Sim {
                 continue;
             }
             let Some(path) = path else {
-                unit.target = None;
+                // Nowhere to go from here (prompt 173: reported).
+                let target = unit.target.take();
                 unit.route = Route::None;
+                self.report_short(index, target);
                 continue;
             };
             let grid = &self.paths.grid;
@@ -1153,6 +1168,8 @@ impl Sim {
             .iter()
             .map(|u| heading(u).filter(|_| !arriving(u)))
             .collect();
+        // Current waypoints: units squeezing through the same one queue.
+        let waypoints: Vec<Option<Vec2>> = self.units.iter().map(current_waypoint).collect();
         // The unit grid holds the positions of this phase (built before
         // combat, which moves nobody).
         let mut near = Vec::new();
@@ -1176,13 +1193,18 @@ impl Sim {
                             && other.squad.is_some()
                             && !self.teams.allied(me.owner, other.owner)
                     };
-                    separation(&self.units, &directions, i, d, &near, ignore)
+                    // At bridges a column queues instead of pushing its
+                    // members off the deck's line (prompt 173).
+                    let narrow = near_bridge(&self.map, me.position);
+                    let lane = (&directions[..], &waypoints[..], narrow);
+                    separation(&self.units, lane, i, d, &near, ignore)
                 })
             })
             .collect();
         let grid = &self.paths.grid;
         let crush_slow_pct = self.destruction.crush_slow_pct();
         let mut blocked = Vec::new();
+        let mut stalled = Vec::new();
         let mut driven = Vec::new();
         for (index, (unit, push)) in self.units.iter_mut().zip(pushes).enumerate() {
             let profile = unit.unit_type as usize;
@@ -1199,8 +1221,10 @@ impl Sim {
             }
             let moved = move_unit(unit, push, &self.map, ground, keep_clear);
             unit.speed_pct = speed_pct;
-            if moved == Moved::Blocked {
-                blocked.push(index);
+            match moved {
+                Moved::Blocked => blocked.push(index),
+                Moved::Stalled(at) => stalled.push((index, at)),
+                Moved::Ok => {}
             }
             // The hull points where the unit drove.
             let step = unit.position - from;
@@ -1233,8 +1257,14 @@ impl Sim {
                     );
                     unit.route = Route::Waiting(id);
                 }
-                _ => stop(unit),
+                target => {
+                    stop(unit);
+                    self.report_short(index, target);
+                }
             }
+        }
+        for (index, at) in stalled {
+            self.report_short(index, Some(at));
         }
     }
 
@@ -1575,6 +1605,7 @@ impl Sim {
             h.write_u32(unit.elevation_mm.cast_unsigned());
             h.write_u8(u8::from(unit.vision_dirty));
             h.write_u32(unit.crush_slow);
+            unit.progress.hash_into(&mut h);
             match &unit.squad {
                 None => h.write_u8(0),
                 Some(squad) => {
@@ -1834,6 +1865,16 @@ fn heading(unit: &Unit) -> Option<Vec2> {
     (distance > Fixed::ZERO).then(|| Vec2::new(delta.x / distance, delta.y / distance))
 }
 
+/// The waypoint a unit drives to now.
+fn current_waypoint(unit: &Unit) -> Option<Vec2> {
+    match &unit.route {
+        Route::Following {
+            waypoints, next, ..
+        } => waypoints.get(*next).copied(),
+        _ => None,
+    }
+}
+
 /// Whether a unit following a route is within one footprint of its target.
 fn arriving(unit: &Unit) -> bool {
     let Route::Following {
@@ -1856,17 +1897,25 @@ fn arriving(unit: &Unit) -> bool {
 ///   that drive in roughly the same direction (`directions`, less than 60°
 ///   apart) are not swerved around: a column follows its leader instead of
 ///   zig-zagging behind it. The push still keeps them from overlapping.
+/// - **Queue** (prompt 173): between units driving the same way, the push
+///   acts only along the own line when both head for the same waypoint (a
+///   group squeezing through a gap or onto a bridge) or the unit is near a
+///   bridge (`lane.2`, [`near_bridge`]): they wait behind each other
+///   instead of pushing each other aside onto a bank or beside a deck.
+///   Near a bridge squads count only `FILE_WIDTH_M` wide (in file).
 ///
-/// `near` lists the candidates (indices; every unit within the reach must
+/// `lane`: directions and current waypoints of all units, and whether unit
+/// `i` is near a bridge. `near` lists the candidates (indices; every unit within the reach must
 /// be among them). The push is a sum, so their order does not matter.
 fn separation(
     units: &[Unit],
-    directions: &[Option<Vec2>],
+    lane: (&[Option<Vec2>], &[Option<Vec2>], bool),
     i: usize,
     direction: Vec2,
     near: &[u32],
     ignore: impl Fn(&Unit) -> bool,
 ) -> Vec2 {
+    let (directions, waypoints, narrow) = lane;
     let me = &units[i];
     let left = Vec2::new(direction.y, -direction.x);
     let mut push = Vec2::ZERO;
@@ -1881,7 +1930,17 @@ fn separation(
         {
             continue;
         }
-        let reach = (me.spread + other.spread) / 2;
+        // Near a bridge a squad crosses in file, not in its line
+        // formation (prompt 173): oncoming squads pass each other on the
+        // deck instead of swerving onto the bank beside it.
+        let width = |u: &Unit| {
+            if narrow && u.squad.is_some() {
+                u.spread.min(Fixed::from_num(FILE_WIDTH_M))
+            } else {
+                u.spread
+            }
+        };
+        let reach = (width(me) + width(other)) / 2;
         let look = reach * 2;
         // From me to the other unit.
         let d = other.position - me.position;
@@ -1892,6 +1951,8 @@ fn separation(
         if distance >= look {
             continue;
         }
+        let same_way =
+            directions[j].is_some_and(|o| o.x * direction.x + o.y * direction.y > Fixed::ONE / 2);
         if distance < reach {
             let weight = (reach - distance) / reach;
             let away = if distance == Fixed::ZERO {
@@ -1907,13 +1968,18 @@ fn separation(
             } else {
                 Vec2::new(-d.x / distance, -d.y / distance)
             };
-            push = push + away.scale(weight);
+            let away = away.scale(weight);
+            push = push
+                + if same_way && (narrow || waypoints[i] == waypoints[j]) {
+                    // Only along the own line: wait behind, not beside.
+                    direction.scale(away.x * direction.x + away.y * direction.y)
+                } else {
+                    away
+                };
         }
         let ahead = d.x * direction.x + d.y * direction.y;
         // Positive: the other unit is on my left.
         let lateral = d.x * left.x + d.y * left.y;
-        let same_way =
-            directions[j].is_some_and(|o| o.x * direction.x + o.y * direction.y > Fixed::ONE / 2);
         if ahead > Fixed::ZERO && lateral.abs() < reach && !same_way {
             let weight = (look - distance) / look;
             let side = if lateral > Fixed::ZERO {
@@ -1927,6 +1993,32 @@ fn separation(
     push
 }
 
+/// Whether `p` lies on or near the deck of an intact bridge (within
+/// `NEAR_BRIDGE_M` of its ends and sides), where units of a column queue
+/// instead of pushing each other sideways ([`separation`]).
+fn near_bridge(map: &Map, p: Vec2) -> bool {
+    let margin = Fixed::from_num(NEAR_BRIDGE_M);
+    map.bridges().iter().any(|b| {
+        if !b.intact {
+            return false;
+        }
+        let d = p - b.center;
+        let reach = b.half_length.max(b.half_width) + margin;
+        if d.x.abs() > reach || d.y.abs() > reach {
+            return false;
+        }
+        let along = (d.x * b.forward.x + d.y * b.forward.y).abs();
+        let across = (d.x * b.right.x + d.y * b.right.y).abs();
+        along <= b.half_length + margin && across <= b.half_width + margin
+    })
+}
+
+/// See [`near_bridge`] (meters).
+const NEAR_BRIDGE_M: i32 = 25;
+
+/// Width of a squad in file near a bridge, for [`separation`] (meters).
+const FILE_WIDTH_M: i32 = 4;
+
 /// Result of [`move_unit`].
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Moved {
@@ -1934,6 +2026,8 @@ enum Moved {
     /// The way to the next waypoint is blocked (impassable terrain, the map
     /// edge or a grade too steep): the unit did not move.
     Blocked,
+    /// It stopped on its last waypoint (this one) without reaching it.
+    Stalled(Vec2),
 }
 
 /// Moves a unit one tick towards its current waypoint, at the speed of the
@@ -1945,10 +2039,10 @@ enum Moved {
 /// steeper than the grade limit. If neither
 /// the pushed nor the direct step is possible, it slides along the obstacle
 /// (only the x or only the y part of the step); if that fails too, it
-/// reports [`Moved::Blocked`]. Pushed and sliding steps must also stay on
-/// cells that `clear` accepts (passable for the unit's size class) unless
-/// the unit already stands on a blocked cell; the direct step follows the
-/// planned leg and needs no such check.
+/// reports [`Moved::Blocked`]. Every step except the last one onto the
+/// waypoint must also stay on cells that `clear` accepts (passable for the
+/// unit's size class) unless the unit already stands on a blocked cell
+/// (since prompt 173 also the direct one: a unit pushed off its leg).
 /// `ground`: the terrain rules and the unit's soft-ground speeds per
 /// terrain id (prompt 040, [`PathGrid::ground_pct`]).
 fn move_unit(
@@ -1996,13 +2090,23 @@ fn move_unit(
                 }
                 let step = direction.scale(speed);
                 let pushed = unit.position + velocity.scale(speed);
-                let slide_x = unit.position + Vec2::new(step.x, Fixed::ZERO);
-                let slide_y = unit.position + Vec2::new(Fixed::ZERO, step.y);
+                // A slide shorter than a quarter of the step is no way
+                // forward: the unit would creep along the obstacle by
+                // millimeters instead of planning again (prompt 173).
+                let long = |d: Fixed| d.abs() * 4 >= speed;
+                let slide_x =
+                    long(step.x).then_some(unit.position + Vec2::new(step.x, Fixed::ZERO));
+                let slide_y =
+                    long(step.y).then_some(unit.position + Vec2::new(Fixed::ZERO, step.y));
                 [
                     Some(pushed).filter(|&p| detour_ok(p)),
-                    Some(unit.position + step),
-                    Some(slide_x).filter(|&p| detour_ok(p)),
-                    Some(slide_y).filter(|&p| detour_ok(p)),
+                    // Also the direct step: a unit pushed off its leg must
+                    // not drive onto a cell its class cannot use (a steep
+                    // bank beside a deck), from where no search starts
+                    // (prompt 173).
+                    Some(unit.position + step).filter(|&p| detour_ok(p)),
+                    slide_x.filter(|&p| detour_ok(p)),
+                    slide_y.filter(|&p| detour_ok(p)),
                 ]
             };
             candidates.into_iter().flatten().find(|&p| valid(p))
@@ -2036,7 +2140,10 @@ fn move_unit(
     };
     let reached =
         distance == Fixed::ZERO || (!last && distance <= Fixed::from_num(WAYPOINT_RADIUS_M));
-    if distance < *best {
+    // Progress counts only in steps of `MIN_PROGRESS_MM`: a unit that
+    // creeps forward by millimeters (pushed back by separation almost as
+    // far as it drives) is stalled, not arriving (prompt 173).
+    if distance + Fixed::from_num(MIN_PROGRESS_MM) / 1000 <= *best || *best == Fixed::MAX {
         *best = distance;
         *stalled = 0;
     } else {
@@ -2051,6 +2158,9 @@ fn move_unit(
         // where it is.
         if last {
             stop(unit);
+            if !reached {
+                return Moved::Stalled(waypoint);
+            }
         } else {
             *next += 1;
             *best = Fixed::MAX;
@@ -2090,6 +2200,11 @@ const WAYPOINT_RADIUS_M: i32 = 1;
 /// Ticks without getting closer to the current waypoint after which a unit
 /// gives up on it (2 s).
 const STALL_TICKS: u32 = 40;
+
+/// Getting closer to the waypoint by less than this (mm) is no progress
+/// (prompt 173). The slowest units (infantry crawling through mud, about
+/// 0.2 m/s) cover it in a second.
+const MIN_PROGRESS_MM: i32 = 200;
 
 fn stop(unit: &mut Unit) {
     unit.target = None;
@@ -2188,6 +2303,7 @@ fn new_unit(n: &NewUnit<'_>) -> Unit {
         veterancy: experience::Veterancy::default(),
         crush_slow: 0,
         alert: alert::Alert::default(),
+        progress: progress::Progress::default(),
     }
 }
 
@@ -2639,6 +2755,191 @@ mod tests {
         run(&mut sim, 20 * 120);
         assert!(sim.path_stats().requests <= 4);
         assert!(sim.snapshot().units[..3].iter().all(|u| u.target.is_none()));
+    }
+
+    /// Unit 0 of a solo sim on `map`, following `waypoints`, moved by
+    /// [`move_unit`] with `push` for `ticks` ticks; `clear` as in
+    /// [`Sim::move_units`]. Returns the unit and the results.
+    fn drive(
+        map: &Arc<Map>,
+        from: Vec2,
+        waypoints: Vec<Vec2>,
+        push: impl Fn(&Unit) -> Vec2,
+        clear: impl Fn(Vec2) -> bool,
+        ticks: u32,
+    ) -> (Unit, Vec<Moved>) {
+        let sim = solo_on(map.clone());
+        let mut unit = sim.units[0].clone();
+        unit.position = from;
+        unit.height = map.height_at(from);
+        unit.target = waypoints.last().copied();
+        unit.route = following(waypoints);
+        let ground = (&sim.terrain, sim.paths.grid.ground_pct(0));
+        let moves = (0..ticks)
+            .map(|_| {
+                let p = push(&unit);
+                move_unit(&mut unit, p, map, ground, &clear)
+            })
+            .collect();
+        (unit, moves)
+    }
+
+    /// Prompt 173: a unit pushed back almost as far as it drives (a crowd
+    /// at the target) creeps by millimeters; that is no progress, so it
+    /// gives up the waypoint after the stall time instead of creeping for
+    /// minutes.
+    #[test]
+    fn creeping_is_no_progress() {
+        let map = flat_map();
+        let waypoints = vec![Vec2::from_meters(30, 0), Vec2::from_meters(60, 0)];
+        // Pushed straight back by 99 % of the heading.
+        let back =
+            |u: &Unit| heading(u).map_or(Vec2::ZERO, |d| d.scale(-Fixed::from_num(99) / 100));
+        let (unit, _) = drive(&map, Vec2::ZERO, waypoints, back, |_| true, STALL_TICKS + 2);
+        let Route::Following { next, .. } = unit.route else {
+            panic!("route ended: {:?}", unit.route);
+        };
+        assert_eq!(
+            next, 1,
+            "the creeping unit still heads for the first waypoint"
+        );
+        assert!(unit.position.x < Fixed::ONE, "{:?}", unit.position);
+    }
+
+    /// Prompt 173: blocked by water almost head-on, a slide along the bank
+    /// of a few millimeters per tick is no way forward: the unit reports
+    /// the way as blocked (and plans again) instead of creeping.
+    #[test]
+    fn tiny_slides_do_not_count() {
+        // Deep water from x = 40 m on.
+        let map = map_with(|i, _| (0, if i >= 120 { 7 } else { 0 }));
+        let from = Vec2::new(Fixed::from_num(38), Fixed::ZERO);
+        let waypoints = vec![Vec2::new(Fixed::from_num(120), Fixed::from_num(2))];
+        let (unit, moves) = drive(&map, from, waypoints, |_| Vec2::ZERO, |_| true, 40);
+        assert!(
+            moves.contains(&Moved::Blocked),
+            "never blocked: {:?}",
+            unit.position
+        );
+        assert!(
+            (unit.position.y - from.y).abs() < Fixed::ONE,
+            "crept along the bank to {:?}",
+            unit.position
+        );
+    }
+
+    /// Prompt 173: the direct step along the leg must stay on cells the
+    /// unit's class may use, like pushed and sliding steps: a unit pushed
+    /// off its leg beside a deck must not drive onto the steep bank from
+    /// where no search starts.
+    #[test]
+    fn direct_steps_stay_on_clear_cells() {
+        let map = flat_map();
+        let waypoints = vec![Vec2::from_meters(60, 20)];
+        // Cells with y >= 2 m are closed to this unit.
+        let clear = |p: Vec2| p.y < Fixed::from_num(2);
+        let (unit, _) = drive(&map, Vec2::ZERO, waypoints, |_| Vec2::ZERO, clear, 200);
+        assert!(unit.position.y < Fixed::from_num(2), "{:?}", unit.position);
+    }
+
+    /// Prompt 173: two units of a column heading for the same waypoint
+    /// push each other only along their line (the rear one waits), not
+    /// sideways onto a bank; units with different waypoints still push
+    /// each other sideways.
+    #[test]
+    fn a_column_queues_at_a_shared_waypoint() {
+        let mut sim = sim_on(flat_map());
+        let ahead = Vec2::new(Fixed::from_num(4), Fixed::ONE);
+        sim.units[0].position = Vec2::ZERO;
+        sim.units[1].position = ahead;
+        let gap = Vec2::from_meters(50, 0);
+        for unit in &mut sim.units[..2] {
+            unit.route = following(vec![gap]);
+        }
+        let east = Vec2::new(Fixed::ONE, Fixed::ZERO);
+        let directions = vec![Some(east), Some(east), None, None];
+        let shared = vec![Some(gap), Some(gap), None, None];
+        let near = [0, 1];
+        let push = separation(
+            &sim.units,
+            (&directions, &shared, false),
+            0,
+            east,
+            &near,
+            |_| false,
+        );
+        assert_eq!(push.y, Fixed::ZERO, "pushed sideways: {push:?}");
+        assert!(
+            push.x < Fixed::ZERO,
+            "the rear unit is not held back: {push:?}"
+        );
+        let own = vec![Some(gap), Some(Vec2::from_meters(50, 10)), None, None];
+        let push = separation(
+            &sim.units,
+            (&directions, &own, false),
+            0,
+            east,
+            &near,
+            |_| false,
+        );
+        assert!(
+            push.y < Fixed::ZERO,
+            "no sideways push without a shared waypoint: {push:?}"
+        );
+    }
+
+    /// Prompt 173: a unit that follows a route but gets nowhere for
+    /// `STUCK_SECONDS` stops where it is and is reported; a halted unit
+    /// (stance change, bound) is not, and a new target starts afresh.
+    #[test]
+    fn units_without_progress_stop_and_are_reported() {
+        let mut sim = solo_on(flat_map());
+        let limit = progress::STUCK_SECONDS * sim.tick_hz;
+        let hold = |sim: &mut Sim, target: Vec2, ticks: u32, speed_pct: u32| {
+            for _ in 0..ticks {
+                sim.move_events.clear();
+                let unit = &mut sim.units[0];
+                if unit.target != Some(target) {
+                    unit.target = Some(target);
+                    unit.route = following(vec![target]);
+                }
+                unit.speed_pct = speed_pct;
+                sim.check_progress();
+                if !sim.move_events.is_empty() {
+                    return true;
+                }
+            }
+            false
+        };
+        let far = Vec2::from_meters(100, 0);
+        // Halted on purpose: never reported.
+        assert!(!hold(&mut sim, far, limit * 2, 0));
+        // A new target just before the limit starts the clock again.
+        assert!(!hold(&mut sim, far, limit - 1, 100));
+        assert!(!hold(&mut sim, Vec2::from_meters(0, 100), limit - 1, 100));
+        assert!(hold(&mut sim, Vec2::from_meters(0, 100), 2, 100));
+        let unit = &sim.units[0];
+        assert_eq!(unit.route, Route::None);
+        assert_eq!(unit.target, None);
+        assert_eq!(
+            sim.move_events,
+            vec![MoveEvent::Stuck {
+                unit: unit.id,
+                at: unit.position
+            }]
+        );
+    }
+
+    /// Prompt 173: a unit that stops short of its target under the old
+    /// rules (stalled on its last waypoint) is reported, one that stops
+    /// close to it is not.
+    #[test]
+    fn units_stopping_short_are_reported() {
+        let mut sim = solo_on(flat_map());
+        sim.report_short(0, Some(Vec2::from_meters(5, 0)));
+        assert!(sim.move_events.is_empty());
+        sim.report_short(0, Some(Vec2::from_meters(40, 0)));
+        assert_eq!(sim.move_events.len(), 1);
     }
 
     #[test]

@@ -560,6 +560,38 @@ impl PathGrid {
         self.profiles[profile].cost[self.index(x, y)] != 0
     }
 
+    /// Whether `b` lies on a cell that `profile` can drive to from `a`
+    /// (both cells passable for it and connected). For tools: the
+    /// simulation itself moves unreachable targets to the nearest
+    /// reachable cell.
+    pub fn reachable(&self, profile: usize, a: Vec2, b: Vec2) -> bool {
+        let p = &self.profiles[profile];
+        let (ax, ay) = self.cell_of(a);
+        let (bx, by) = self.cell_of(b);
+        let (ia, ib) = (self.index(ax, ay), self.index(bx, by));
+        let labels = &self.components[p.components].component;
+        p.cost[ia] != 0 && p.cost[ib] != 0 && labels[ia] == labels[ib]
+    }
+
+    /// Why a cell is blocked, for tools (`cli stuck-audit`): the reasons
+    /// that apply to it, most specific first.
+    pub fn block_reasons(&self, x: u32, y: u32) -> Vec<&'static str> {
+        let flags = self.base[self.index(x, y)];
+        [
+            (BLOCKED_OBSTACLE, "obstacle"),
+            (BLOCKED_OBJECT_SMALL, "object"),
+            (BLOCKED_OBJECT_LARGE, "object (vehicles)"),
+            (BLOCKED_WORK_SMALL | BLOCKED_WORK_LARGE, "field work"),
+            (BLOCKED_TERRAIN, "water"),
+            (BLOCKED_MARGIN, "bank"),
+            (BLOCKED_STEEP, "slope"),
+        ]
+        .into_iter()
+        .filter(|(f, _)| flags & f != 0)
+        .map(|(_, name)| name)
+        .collect()
+    }
+
     /// How restrictive a profile is: its size class, then its load tier
     /// (bridges it may not cross). A path planned for the most restrictive
     /// profile of a group fits every member.

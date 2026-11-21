@@ -105,6 +105,9 @@ const ICONS: Dictionary[String, String] = {
 	"state_suppressed": "a 12,19 7 180 360 | l 3,19 21,19 | l 12,2 12,9 | l 8,6 12,10 16,6",
 	"state_no_ammo": "g 9,21 9,9 12,3 15,9 15,21 | l 9,17 15,17 | l 4,21 20,3",
 	"state_no_fuel": "a 12,14 6 -30 210 | l 6.8,11 12,3 17.2,11 | l 4,21 20,3",
+	# A unit stopped because it got stuck (prompt 173): a wall and an
+	# arrow that stops at it.
+	"state_stuck": "l 18,3 18,21 | l 21,3 21,21 | l 3,12 13,12 | l 9,8 13,12 9,16",
 	"state_service": "l 4,21 13,12 | l 6,23 15,14 | a 17,8 5 30 260 | l 4,21 6,23 | l 18,16 18,22 | l 15,19 21,19",
 }
 

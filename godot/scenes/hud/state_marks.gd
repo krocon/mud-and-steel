@@ -3,7 +3,8 @@ extends Control
 ## that tell a unit's state without selecting it: burning (standing in the
 ## flames of a fire), immobilized (at or below `immobile_pct` hit points),
 ## track off (mine), suppressed or pinned down (infantry), out of
-## ammunition, out of fuel, being repaired or resupplied.
+## ammunition, out of fuel, being repaired or resupplied, stopped because
+## it got stuck (prompt 173, `SimHost.stuck_units`: until a new order).
 ##
 ## Sparse on purpose: at most MAX_MARKS marks side by side, the most
 ## important first (ORDER); from FAR_M camera distance only the most
@@ -26,7 +27,7 @@ const HudIcons := preload("res://scenes/hud/hud_icons.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
 
 ## Mark ids by importance.
-const ORDER: Array[String] = ["burning", "immobile", "track", "suppressed", "no_ammo", "no_fuel", "service"]
+const ORDER: Array[String] = ["burning", "immobile", "track", "suppressed", "stuck", "no_ammo", "no_fuel", "service"]
 ## What an enemy shows (visible from outside).
 const ENEMY_MARKS: Array[String] = ["burning", "immobile", "track", "suppressed"]
 const COLORS: Dictionary[String, Color] = {
@@ -37,6 +38,7 @@ const COLORS: Dictionary[String, Color] = {
 	"no_ammo": Color(0.95, 0.75, 0.25),
 	"no_fuel": Color(0.45, 0.7, 1.0),
 	"service": Color(0.45, 0.9, 0.45),
+	"stuck": Color(0.95, 0.8, 0.55),
 }
 const MAX_MARKS := 2
 ## Camera distance (m) from which only the most important mark shows.
@@ -108,6 +110,9 @@ func scan() -> void:
 	var tracks: Dictionary[int, bool] = {}
 	for id in sim_host.tracks_off():
 		tracks[id] = true
+	var stuck: Dictionary[int, bool] = {}
+	for id in sim_host.stuck_units():
+		stuck[id] = true
 	var fires := sim_host.fires()
 	states.clear()
 	for i in ids.size():
@@ -129,6 +134,8 @@ func scan() -> void:
 			kinds.append("track")
 		if suppressed.size() > i and suppressed[i] != 0:
 			kinds.append("suppressed")
+		if stuck.has(id):
+			kinds.append("stuck")
 		if ammo[i] == 0:
 			kinds.append("no_ammo")
 		if fuel[i] == 0:

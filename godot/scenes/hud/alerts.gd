@@ -10,6 +10,11 @@ extends Control
 ## | own unit hit | nothing | feed "under fire", alarm sound, minimap ping, edge arrow (yellow) |
 ## | own building hit | nothing | feed "building under fire", alarm sound, ping, edge arrow (yellow) |
 ## | own unit lost | feed "lost" (normal time), no sound | feed "lost" for `LOST_LIFETIME`, loss sound, ping, edge arrow (red) |
+## | own unit stuck (prompt 173) | feed "stuck" | feed "stuck" for `STUCK_LIFETIME`, ping, edge arrow (sand), no sound |
+##
+## "Stuck": the simulation stopped the unit because it got no closer to
+## its target (`SimHost.take_move_events`); it waits for a new order and
+## carries a state mark meanwhile (`state_marks.gd`).
 ##
 ## Events within `SPOT_RADIUS` of each other form one spot with one arrow;
 ## a spot alarms again only after `SPOT_COOLDOWN` (losses: `LOST_COOLDOWN`),
@@ -38,7 +43,9 @@ const MAX_ALARMS := 16
 const ARROW_SIZE := 26.0
 const EDGE_INSET := 40.0
 ## Rank of a spot's kind: a loss outranks a building hit, that a unit hit.
-const RANK := {"fire": 0, "building": 1, "lost": 2}
+const RANK := {"stuck": 0, "fire": 1, "building": 2, "lost": 3}
+## Stuck units stay this long in the feed.
+const STUCK_LIFETIME := 20.0
 
 var main: Node3D
 var sim_host: SimHost
@@ -76,6 +83,7 @@ func setup(main_node: Node3D, event_feed: EventFeed) -> void:
 func _process(delta: float) -> void:
 	var began := Time.get_ticks_usec()
 	_now += delta
+	_take_move_events()
 	spots = spots.filter(func(s: Dictionary) -> bool: return _now - float(s.time) < maxf(ARROW_SECONDS, SPOT_COOLDOWN))
 	queue_redraw()
 	usec += Time.get_ticks_usec() - began
@@ -138,6 +146,20 @@ func on_combat_event(event: Dictionary) -> void:
 			report("building" if _is_building(target) else "fire", target, event["position"])
 
 
+## Own units the simulation stopped because they got stuck (prompt 173).
+func _take_move_events() -> void:
+	if sim_host == null:
+		return
+	var events := sim_host.take_move_events()
+	if not active():
+		return
+	var me := sim_host.local_player()
+	for event: Dictionary in events:
+		var id: int = event["unit"]
+		if event["type"] == "stuck" and feed.owner_of(id) == me:
+			report("stuck", id, event["at"])
+
+
 ## One event of `kind` at `at` concerning own unit `id` (also the self-test).
 func report(kind: String, id: int, at: Vector3) -> void:
 	var seen := in_view(at)
@@ -145,6 +167,8 @@ func report(kind: String, id: int, at: Vector3) -> void:
 		quiet += 1
 		if kind == "lost":
 			feed.post("lost", tr("HUD_FEED_LOST") % feed.name_of(id), at)
+		elif kind == "stuck":
+			feed.post("stuck", tr("HUD_FEED_STUCK") % feed.name_of(id), at)
 		return
 	var spot := _spot_at(at)
 	var cooldown := LOST_COOLDOWN if kind == "lost" else SPOT_COOLDOWN
@@ -168,6 +192,8 @@ func report(kind: String, id: int, at: Vector3) -> void:
 			feed.post("lost", tr("HUD_FEED_LOST") % feed.name_of(id), at, LOST_LIFETIME)
 			if sound != null:
 				sound.notice("ui_unit_lost", true)
+		"stuck":
+			feed.post("stuck", tr("HUD_FEED_STUCK") % feed.name_of(id), at, STUCK_LIFETIME)
 		"building":
 			feed.post("fire", tr("HUD_FEED_BUILDING_UNDER_FIRE") % feed.name_of(id), at)
 			if sound != null:

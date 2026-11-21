@@ -455,6 +455,12 @@ soldiers-tier2:
 path-bench map="test_large" units="200" group="1":
     cargo run -q --release -p cli -- path-bench --map data/maps/{{ map }} --units {{ units }} --group {{ group }}
 
+# Stuck units (prompt 173): groups drive across every map (bridges, starts, supply points) plus AI games;
+# table per map, worst places, every case in build/stuck_audit.csv (args: --map=<name>, --no-ai, --jobs=N)
+[group('pathfinding')]
+stuck-audit *args:
+    cargo run -q --release -p cli -- stuck-audit --csv build/stuck_audit.csv {{ args }}
+
 # Benchmark (prompt 021): craters among moving units of two players, time per tick
 [group('pathfinding')]
 crater-bench map="test_large" craters="100" per_tick="5" range_m="200":

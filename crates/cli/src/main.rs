@@ -24,6 +24,7 @@ mod salvo_bench;
 mod save_bench;
 #[cfg(feature = "steam")]
 mod steam;
+mod stuck_audit;
 mod vision_bench;
 
 use clap::{Parser, Subcommand};
@@ -237,6 +238,26 @@ enum CliCommand {
         /// Targets lie within this distance of the map center per axis (m).
         #[arg(long, default_value_t = 1800)]
         range_m: i32,
+    },
+    /// Stuck units (prompt 173): groups of typical units drive across
+    /// every map (over bridges, between starts and supply points), AI
+    /// games add real matches; counts units that stall or stop short.
+    StuckAudit {
+        /// Only this map (folder name in data/maps/).
+        #[arg(long)]
+        map: Option<String>,
+        /// Settings file.
+        #[arg(long, default_value = "data/stuck_audit.toml")]
+        settings: PathBuf,
+        /// Write every case to this CSV file.
+        #[arg(long)]
+        csv: Option<PathBuf>,
+        /// Without the AI games.
+        #[arg(long)]
+        no_ai: bool,
+        /// Maps audited in parallel (default: available cores).
+        #[arg(long)]
+        jobs: Option<usize>,
     },
     /// Benchmarks craters (prompt 021): many craters in a short time among
     /// moving units of two players, time per tick.
@@ -838,6 +859,38 @@ fn run_cli() {
                 Ok(report) => print!("{report}"),
                 Err(e) => fail(&e),
             }
+        }
+        CliCommand::StuckAudit {
+            map,
+            settings,
+            csv,
+            no_ai,
+            jobs,
+        } => {
+            let mut settings = stuck_audit::Settings::load(&settings).unwrap_or_else(|e| fail(&e));
+            if no_ai {
+                settings.ai.maps.clear();
+            }
+            let names = map.map_or_else(all_maps, |m| vec![m]);
+            let maps: Vec<(String, Arc<sim::Map>)> = names
+                .into_iter()
+                .map(|n| (n.clone(), find_map(&n)))
+                .collect();
+            let jobs = jobs.unwrap_or_else(|| {
+                std::thread::available_parallelism().map_or(1, std::num::NonZero::get)
+            });
+            let start = std::time::Instant::now();
+            let results = stuck_audit::run(&settings, &maps, jobs).unwrap_or_else(|e| fail(&e));
+            print!("{}", stuck_audit::report(&settings, &results));
+            if let Some(path) = csv {
+                if let Some(dir) = path.parent() {
+                    let _ = std::fs::create_dir_all(dir);
+                }
+                std::fs::write(&path, stuck_audit::csv(&results))
+                    .unwrap_or_else(|e| fail(&format!("cannot write {}: {e}", path.display())));
+                println!("cases: {}", path.display());
+            }
+            println!("{:.1} s", start.elapsed().as_secs_f64());
         }
         CliCommand::PathBench {
             map,
