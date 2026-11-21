@@ -21,7 +21,13 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by prompt 163 (faster mounting and dismounting), an
+/// Last changed by prompt 106 (heavy vehicles push trees over), an
+/// intended rule change: the hashed destruction rules have per-variant
+/// crush limits (`crush_variants`) and the dense-stand check
+/// (`stand_radius_mm`, `stand_min_objects`) of the tree class. The demo
+/// fells no tree: without these fields in the hash it is unchanged.
+///
+/// Before (`0xab17_f1b1_96c9_e323`), prompt 163 (faster mounting and dismounting), an
 /// intended rule change: the hashed transport rules have `climb_ms` (one
 /// soldier climbing aboard) instead of `embark_ms` and shorter
 /// `disembark_ms`, and a mounting task hashes the soldiers already up. The
@@ -305,7 +311,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xab17_f1b1_96c9_e323;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x7aed_4dec_7cbe_20b2;
 
 #[test]
 fn golden_hash() {

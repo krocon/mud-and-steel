@@ -401,6 +401,10 @@ func _rebuild_crater_squares() -> void:
 ## Seconds a felled tree takes to hit the ground; flattened fences fall faster.
 const TREE_FALL_SECONDS := 1.6
 const FLAT_FALL_SECONDS := 0.35
+## A tree a vehicle pushes over (prompt 106) starts with the hull's shove:
+## it falls faster and bounces once on its crown.
+const TREE_PUSH_SECONDS := 1.1
+const TREE_PUSH_BOUNCE_DEG := 5.0
 ## Bare trees (prompt 085) shown with the leafless winter model: id -> the
 ## map variants of its size (the young oak keeps its model, leaves folded).
 const BARE_MODELS := {"env_tree_deciduous": ["Oak", "Beech", "Bare"]}
@@ -440,7 +444,10 @@ func set_object_state(state: Dictionary, animate := true) -> void:
 		node.add_child(_variant_node("env_tree_stump", "Broken", Transform3D(transform.basis, Vector3.ZERO)))
 		var standing := Transform3D(transform.basis, Vector3.ZERO)
 		var model: Node3D = _bare_tree(id, variant, standing) if bare.has(index) else _variant_node(id, variant, standing)
-		var tree: Node3D = _falling(model, fall_deg, TREE_FALL_SECONDS if animate else 0.0, deg_to_rad(86.0))
+		var pushed: bool = str(state.get("cause", "")) == "crushed"
+		var seconds: float = (TREE_PUSH_SECONDS if pushed else TREE_FALL_SECONDS) if animate else 0.0
+		var tree: Node3D = _falling(model, fall_deg, seconds, deg_to_rad(86.0),
+			deg_to_rad(TREE_PUSH_BOUNCE_DEG) if pushed else 0.0)
 		node.add_child(tree)
 		node.position = transform.origin
 	elif state.remains == "flat":
@@ -558,8 +565,9 @@ func _variant_node(id: String, variant: String, transform: Transform3D) -> Node3
 
 ## Wraps `node` in a pivot at its base that tips it over towards
 ## `fall_deg` (simulation heading: 0 = north = -Z, 90 = east = +X) by
-## `angle`, animated over `seconds` (0: at once).
-func _falling(node: Node3D, fall_deg: int, seconds: float, angle: float) -> Node3D:
+## `angle`, animated over `seconds` (0: at once). A `bounce` (radians) lets
+## it spring back that far when it lands and settle again.
+func _falling(node: Node3D, fall_deg: int, seconds: float, angle: float, bounce := 0.0) -> Node3D:
 	var pivot := Node3D.new()
 	pivot.add_child(node)
 	# Lying still: no wind sway; snow stays on what was the top (prompt 056).
@@ -571,10 +579,14 @@ func _falling(node: Node3D, fall_deg: int, seconds: float, angle: float) -> Node
 		pivot.basis = Basis(axis, angle)
 		return pivot
 	# The tween starts once the pivot is in the scene tree.
-	pivot.tree_entered.connect(func() -> void:
+	var start := func() -> void:
 		var t := pivot.create_tween()
-		t.tween_method(func(a: float) -> void: pivot.basis = Basis(axis, a), 0.0, angle, seconds) \
-			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN), CONNECT_ONE_SHOT)
+		var tip := func(a: float) -> void: pivot.basis = Basis(axis, a)
+		t.tween_method(tip, 0.0, angle, seconds).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		if bounce > 0.0:
+			t.tween_method(tip, angle, angle - bounce, 0.18).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			t.tween_method(tip, angle - bounce, angle, 0.25).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	pivot.tree_entered.connect(start, CONNECT_ONE_SHOT)
 	return pivot
 
 

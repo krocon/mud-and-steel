@@ -501,7 +501,10 @@ impl StatRules {
                 .destruction
                 .classes
                 .iter()
-                .filter(|c| c.crush_min_mass_kg > 0 && unit.mass_kg >= c.crush_min_mass_kg)
+                .filter(|c| {
+                    let kg = c.lightest_crusher_kg();
+                    kg > 0 && unit.mass_kg >= kg
+                })
                 .flat_map(|c| c.ids.iter().map(|id| Value::Text(id.clone())))
                 .collect();
             m.put("crushes", Value::List(crushed));
@@ -928,8 +931,11 @@ impl StatRules {
         let mut m = MapBuilder::default();
         m.int("hp", class.hp);
         m.int("min_caliber_mm", self.destruction.damage.min_caliber_mm);
-        if class.crush_min_mass_kg > 0 {
-            m.int("crush_min_mass_kg", class.crush_min_mass_kg);
+        // Trees (prompt 106): the thinnest trunk's limit, i.e. from which
+        // mass some of them fall.
+        let crush_kg = class.lightest_crusher_kg();
+        if crush_kg > 0 {
+            m.int("crush_min_mass_kg", crush_kg);
         }
         Some(m.build())
     }

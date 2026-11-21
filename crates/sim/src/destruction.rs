@@ -9,8 +9,11 @@
 use crate::combat::Vec3;
 use crate::command::UnitId;
 use crate::hash::StableHasher;
+use crate::map::Map;
+use crate::math::{Fixed, Vec2};
 use crate::objects::Blocks;
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
 use std::fmt;
 
 /// The rules compiled into the simulation.
@@ -96,6 +99,19 @@ pub struct ClassRule {
     pub ruin_height_pct: u32,
     #[serde(default)]
     pub crush_min_mass_kg: u32,
+    /// Per model variant (`data/objects.toml`): the crush limit instead of
+    /// `crush_min_mass_kg` (trees by trunk thickness, prompt 106; 0 =
+    /// never).
+    #[serde(default)]
+    pub crush_variants: BTreeMap<String, u32>,
+    /// Dense stands (prompt 106): an object of this class with at least
+    /// `stand_min_objects` other objects of the class within
+    /// `stand_radius_mm` (middle to middle, as the map places them) is
+    /// never crushed. 0: no such check.
+    #[serde(default)]
+    pub stand_radius_mm: u32,
+    #[serde(default)]
+    pub stand_min_objects: u32,
     #[serde(default)]
     pub damaged_variant: Option<String>,
     #[serde(default)]
@@ -127,6 +143,25 @@ impl ClassRule {
     pub const fn damaged_hp(&self) -> u32 {
         // At most 100 % of a u32: fits in u64.
         (self.hp as u64 * self.damaged_pct as u64 / 100) as u32
+    }
+
+    /// Mass (kg) from which vehicles crush an object of this class placed
+    /// as `variant` (0: never).
+    pub fn crush_kg(&self, variant: &str) -> u32 {
+        self.crush_variants
+            .get(variant)
+            .copied()
+            .unwrap_or(self.crush_min_mass_kg)
+    }
+
+    /// Lightest vehicle (kg) that crushes some object of this class (0:
+    /// none).
+    pub fn lightest_crusher_kg(&self) -> u32 {
+        std::iter::once(self.crush_min_mass_kg)
+            .chain(self.crush_variants.values().copied())
+            .filter(|&kg| kg > 0)
+            .min()
+            .unwrap_or(0)
     }
 
     /// Stage of an object with `hp` hit points left.
@@ -238,7 +273,7 @@ impl DestructionRules {
             if class.damaged_pct >= 100 {
                 return Err(err("damaged_pct must be below 100"));
             }
-            if class.hp == 0 && class.crush_min_mass_kg == 0 {
+            if class.hp == 0 && class.lightest_crusher_kg() == 0 {
                 return Err(err("needs hp or crush_min_mass_kg"));
             }
             if class.ruin_height_pct > 100 {
@@ -246,6 +281,9 @@ impl DestructionRules {
             }
             if class.damaged_height_pct > 100 {
                 return Err(err("damaged_height_pct above 100"));
+            }
+            if (class.stand_radius_mm == 0) != (class.stand_min_objects == 0) {
+                return Err(err("stand_radius_mm and stand_min_objects go together"));
             }
             if class.remains != Remains::Ruin
                 && (class.ruin_blocks != Blocks::None || class.ruin_height_pct != 0)
@@ -279,6 +317,108 @@ impl DestructionRules {
         self.classes
             .iter()
             .position(|c| c.ids.iter().any(|i| i == id))
+    }
+
+    /// Per object kind of `map` ([`Map::object_kinds`]): the mass (kg)
+    /// from which vehicles crush it, by its class and variant (0: never).
+    pub fn kind_crush_kg(&self, map: &Map) -> Vec<u32> {
+        map.object_kinds()
+            .iter()
+            .map(|k| {
+                self.class_of(&k.id)
+                    .map_or(0, |c| self.classes[c].crush_kg(&k.variant))
+            })
+            .collect()
+    }
+
+    /// Indices (ascending) of the objects of `map` that could be crushed
+    /// by their kind but stand in a dense stand of their class
+    /// (`stand_radius_mm`, `stand_min_objects`, prompt 106): a wood, not
+    /// a row of trees. Counted as the map places them.
+    pub fn dense_stands(&self, map: &Map) -> Vec<u32> {
+        let kind_kg = self.kind_crush_kg(map);
+        let kind_class: Vec<Option<usize>> = map
+            .object_kinds()
+            .iter()
+            .map(|k| self.class_of(&k.id))
+            .collect();
+        let mut dense = Vec::new();
+        for (c, class) in self.classes.iter().enumerate() {
+            if class.stand_radius_mm == 0 || class.stand_min_objects == 0 {
+                continue;
+            }
+            let members: Vec<u32> = (0u32..)
+                .zip(map.objects())
+                .filter(|(_, o)| kind_class[usize::from(o.kind)] == Some(c))
+                .map(|(i, _)| i)
+                .collect();
+            if members.is_empty() {
+                continue;
+            }
+            // Buckets as large as the radius: neighbors lie in the 3 x 3
+            // buckets around an object.
+            let radius = Fixed::from_num(class.stand_radius_mm) / 1000;
+            let size = map.size();
+            let origin = Vec2::new(-size.x / 2, -size.y / 2);
+            let columns = (size.x / radius).ceil().to_num::<i64>().max(0) + 1;
+            let rows = (size.y / radius).ceil().to_num::<i64>().max(0) + 1;
+            let bucket = |p: Vec2| {
+                let axis = |v: Fixed, o: Fixed, n: i64| {
+                    ((v - o) / radius).floor().to_num::<i64>().clamp(0, n - 1)
+                };
+                (axis(p.x, origin.x, columns), axis(p.y, origin.y, rows))
+            };
+            let mut buckets: Vec<Vec<u32>> = vec![Vec::new(); (columns * rows) as usize];
+            for &i in &members {
+                let (bx, by) = bucket(map.objects()[i as usize].position);
+                buckets[(by * columns + bx) as usize].push(i);
+            }
+            let r2 = radius * radius;
+            for &i in &members {
+                let object = &map.objects()[i as usize];
+                if kind_kg[usize::from(object.kind)] == 0 {
+                    continue;
+                }
+                let (bx, by) = bucket(object.position);
+                let mut near = 0u32;
+                'count: for y in (by - 1).max(0)..=(by + 1).min(rows - 1) {
+                    for x in (bx - 1).max(0)..=(bx + 1).min(columns - 1) {
+                        for &j in &buckets[(y * columns + x) as usize] {
+                            if j == i {
+                                continue;
+                            }
+                            let d = map.objects()[j as usize].position - object.position;
+                            if d.x * d.x + d.y * d.y <= r2 {
+                                near += 1;
+                                if near >= class.stand_min_objects {
+                                    break 'count;
+                                }
+                            }
+                        }
+                    }
+                }
+                if near >= class.stand_min_objects {
+                    dense.push(i);
+                }
+            }
+        }
+        dense.sort_unstable();
+        dense
+    }
+
+    /// What the path grid of `map` needs to let heavy vehicles plan
+    /// through the objects they crush (prompts 093 and 106).
+    pub fn crushing(&self, map: &Map) -> crate::path::Crushing {
+        crate::path::Crushing {
+            kind_kg: self
+                .kind_crush_kg(map)
+                .into_iter()
+                .zip(map.object_kinds())
+                .map(|(kg, k)| if k.blocks.large() { kg } else { 0 })
+                .collect(),
+            never: self.dense_stands(map),
+            detour_m: self.crush.detour_m,
+        }
     }
 
     pub(crate) fn hash_into(&self, h: &mut StableHasher) {
@@ -316,6 +456,14 @@ impl DestructionRules {
             });
             h.write_u32(c.ruin_height_pct);
             h.write_u32(c.crush_min_mass_kg);
+            h.write_u64(c.crush_variants.len() as u64);
+            for (variant, &kg) in &c.crush_variants {
+                h.write_bytes(variant.as_bytes());
+                h.write_u8(0);
+                h.write_u32(kg);
+            }
+            h.write_u32(c.stand_radius_mm);
+            h.write_u32(c.stand_min_objects);
             for v in [&c.damaged_variant, &c.ruin_variant] {
                 h.write_bytes(v.as_deref().unwrap_or("").as_bytes());
                 h.write_u8(0);
@@ -404,6 +552,7 @@ mod tests {
             "[damage]\nmin_caliber_mm = 20\n[[class]]\nids = [\"a\"]\nhp = 1\ndamaged_pct = 100\nremains = \"gone\"",
             "[damage]\nmin_caliber_mm = 20\n[[class]]\nids = [\"a\"]\nhp = 1\ndamaged_pct = 0\nremains = \"gone\"\nruin_height_pct = 5",
             "[damage]\nmin_caliber_mm = 20\n[[class]]\nids = [\"a\"]\nhp = 1\ndamaged_pct = 0\nremains = \"gone\"\n[[class]]\nids = [\"a\"]\nhp = 1\ndamaged_pct = 0\nremains = \"gone\"",
+            "[damage]\nmin_caliber_mm = 20\n[[class]]\nids = [\"a\"]\nhp = 1\ndamaged_pct = 0\nremains = \"gone\"\nstand_radius_mm = 8000",
         ];
         for text in bad {
             assert!(DestructionRules::parse(text).is_err(), "{text}");
@@ -422,6 +571,14 @@ mod tests {
                 {
                     assert!(objects.find(id, v).is_some(), "{id} has no variant {v}");
                 }
+            }
+            // Every crush variant belongs to at least one id of the class.
+            for v in class.crush_variants.keys() {
+                assert!(
+                    class.ids.iter().any(|id| objects.find(id, v).is_some()),
+                    "no id of {:?} has the variant {v}",
+                    class.ids
+                );
             }
         }
     }

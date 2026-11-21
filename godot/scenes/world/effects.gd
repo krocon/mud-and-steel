@@ -844,6 +844,15 @@ func object_event(event: Dictionary) -> void:
 			_burst("debris", at + Vector3.UP * 1.5, Basis.IDENTITY, 0.6)
 			_burst("impact_dust", at + Vector3.UP * 0.5, Basis.IDENTITY, 0.7, dust)
 			_burst("blast_dust", crown, Basis.IDENTITY, 1.1, _ground_color(crown))
+			# Pushed over by a vehicle (prompt 106): the shove shakes the
+			# crown (leaves, needles or fronds) and the roots tear up earth.
+			if str(event.get("cause", "")) == "crushed":
+				counts["object_tree_pushed"] = counts.get("object_tree_pushed", 0) + 1
+				var leafless: bool = str(event.id) == "env_tree_deciduous" and str(event.variant) == "Bare"
+				if not leafless:
+					var mid := at.lerp(crown, 0.6) + Vector3.UP * 3.0
+					_burst("leaves", mid, Basis.IDENTITY, 1.2, _leaf_color(str(event.id)))
+				_burst("blast_dust", at + Vector3.UP * 0.3, Basis.IDENTITY, 0.8, _ground_color(at))
 		"gone":
 			_burst("debris", at + Vector3.UP, Basis.IDENTITY, 0.9)
 			_burst("impact_dust", at + Vector3.UP * 0.6, Basis.IDENTITY, 1.2, dust)

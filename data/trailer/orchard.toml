@@ -1,0 +1,28 @@
+# Trailer scene (prompt 106): a Tiger drives diagonally through the orchard
+# of young oaks by the farm in the west of `test_small` and pushes trees
+# over (data/destruction.toml: thick trunks fall to vehicles from 40 t).
+# Format: docs/MISSIONS.md; played by godot/scenes/tools/trailer_shots.gd
+# (shot `survey_orchard`, `just orchard-clip`).
+
+[mission]
+title = "Trailer: orchard"
+player = 0
+elimination = false
+
+[[spawn]]
+name = "east"
+position_m = [-120, 40]
+
+[[group]]
+name = "tiger"
+owner = 0
+unit = "de_tiger1_e"
+count = 1
+position_m = [-200, 85]
+
+[[trigger]]
+id = "go"
+when = "time"
+actions = [
+  { do = "order", group = "tiger", to = "east", order = "move" },
+]

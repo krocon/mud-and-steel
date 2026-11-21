@@ -593,6 +593,35 @@ passive --games 60 --seed 100`; Easy with `--max-ticks 8000`):
 | 1/8, vehicles 1/1, old AI | 56 % | 60 % | 51 % (29 timeouts) |
 | 1/8, vehicles 1/1, retuned AI | **100 %** | **100 %** | 86 % (8 timeouts) |
 
+## Tanks push trees over (prompt 106)
+
+Measured 2026-11-21 with `main` before prompt 106 ("before") and after it,
+same seeds, Apple M1 Max, release.
+
+- **Difficulty matrix** (`just ai-tournament`, demo, 40 games per pairing)
+  and **base mode** (`--mode base`, test_small): every win rate, timeout
+  and mean time unchanged; only the hashes differ (the rules are in them).
+- **Base mode** (`just balance --maps skirmish,river_fields --modes base
+  --games 6`): all 36 games undecided at 20 minutes, before and after.
+- **Battle mode**, the ten maps of prompt 067 × 3 pairings × 10 games:
+
+| | de | su | us | undecided |
+|---|---|---|---|---|
+| before | 48 % | 46 % | 52 % | 8 of 300 |
+| after | 52 % | 40 % | 54 % | 6 of 300 |
+
+  `desert_village`, `test_large`, `test_small` and `twin_meadow` play out
+  exactly as before; the shift comes from the six maps with orchards,
+  groves and tree rows (`farms` su–us 70/30 → 40/60, `skirmish` de–su
+  10/80 → 60/30, `town_small` de–su 50/50 → 80/20). With 10 games per
+  pairing a single map moves by chance, but the Soviet side lost 11 games
+  in all. Its main tanks (T-34, 30 t) fell thin trees only, the Panther,
+  Tiger and M26 also thick ones. **Open:** watch in the next balance
+  pass; if it holds, the 40 t limit or the Soviet side, not the tree rule,
+  is the lever.
+- **Simulation cost** (`just bench`, 504 units): 3.05 → 2.93 ms per tick
+  (noise), setup 410 → 408 ms: the dense-stand check runs once per match.
+
 ## Golden hash
 
 Prompt 097 changed the golden hash to `0x51f2_adfb_a7d6_82f8` (economy

@@ -98,6 +98,9 @@ const START_GRACE_SECONDS := 2.0
 
 ## Visibility of a world point (fog of war); default: everything visible.
 var visible_at: Callable = func(_point: Vector3) -> bool: return true
+## Object events of vehicles crushing things out of sight, kept silent
+## (prompt 106; self-test).
+var hidden_crushes := 0
 ## Statistics since the start (self-test, gallery, benchmark): sounds
 ## played per class, dropped per group (pool or frame budget), culled
 ## (beyond hearing range), muffled (in the fog), highest number of busy
@@ -287,6 +290,11 @@ func object_event(event: Dictionary) -> void:
 		return
 	var at: Vector3 = sim_host.object_position(event.object)
 	at.y = sim_host.height_at(at.x, at.z)
+	# A vehicle crushing walls, fences and trees out of sight (prompt 106)
+	# must not give itself away; shots and shells are heard anyway.
+	if str(event.get("cause", "")) == "crushed" and not visible_at.call(at):
+		hidden_crushes += 1
+		return
 	play_far(sound_class, at)
 
 

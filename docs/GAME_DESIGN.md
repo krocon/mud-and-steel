@@ -629,8 +629,9 @@ values in `data/destruction.toml` and `data/combat.toml`:
   cell, so a tank takes a gate or a corner that is near and breaks through
   where the way around is long. A broken piece is gone (dust, debris, the
   wall sound), the gap is as wide as the hull, and the vehicle drives at
-  half speed for a second per piece. Brick and town walls, buildings,
-  bunkers and trees stop every vehicle as before; light vehicles (trucks,
+  half speed for a second per piece. Brick and town walls, buildings and
+  bunkers stop every vehicle as before (trees: see prompt 106 below);
+  light vehicles (trucks,
   armored cars, jeeps, the lightest tanks) drive around walls.
 - **Running over.** A vehicle of at least 5 t that drives (1.5 m/s game
   speed or faster) kills the enemy soldiers under its hull. Soldiers who
@@ -655,6 +656,46 @@ values in `data/destruction.toml` and `data/combat.toml`:
 Open: a button or rule for shelling a building because the enemy is inside
 (today a right click on a visible enemy squad attacks that squad, also in a
 building); the computer player does not use the shelling order yet.
+
+## Heavy vehicles push trees over (prompt 106) [provisional, 2026-11-21]
+
+Decided by prompt 106 on 2026-11-21, provisional until the user confirms
+it. Tanks push single trees, tree rows, orchards and loose groves over and
+leave a lane; woods stay infantry ground and keep the chokepoints of the
+maps. All values in `data/destruction.toml` (tree class):
+
+- **By trunk.** The model variant stands for the trunk: young birch and
+  young spruce (thin, up to about 20 cm) fall to vehicles from 18 t (every
+  medium and heavy tank, the heavier tracked tank destroyers, assault and
+  self-propelled guns); young oak, mature birch and date palms (thick, about
+  25-40 cm) to vehicles from 40 t (heavy tanks, Panther, Jagdpanther,
+  ISU-152); mature oak, beech, spruce, pine and the winter tree (50 cm and
+  more) to none. No wheeled vehicle or truck of the catalog reaches 18 t.
+- **Woods stay closed.** A tree with at least 6 other trees within 10 m
+  stands in a wood and is never pushed over (a felled trunk would land on
+  the next ones and pile up, US Army doctrine). Rows, also closed ones down
+  to 3.4 m apart, and orchards (8-12 m) stay below that.
+- **Like walls.** The path search charges 40 m of detour per cell with
+  such a tree, so a tank drives between the trunks or round a row's end
+  and breaks through where the way round is long; rounding the end of a
+  row or a wood, its hull may clip the end tree. Each tree slows it to half
+  speed for a second.
+- **What is left.** The tree falls the way the vehicle drives and lies
+  there like a shot-down one: it blocks nobody, is no forest for sight any
+  more and gives no cover (a felled tree has none today either), the lane is
+  open to every unit.
+- **Presentation.** The tree tips faster than a shot-down one and bounces
+  once on its crown, throws leaves (needles, fronds) and torn-up earth, the
+  tree sound plays. Pushed over by an enemy out of sight: no effect and no
+  sound (a vehicle must not give itself away), but the tree is drawn lying
+  afterwards, the same gap as for every destroyed object in the dimmed
+  area (prompt 098, section 3.2).
+
+Open for the user: the mass limits (18 t / 40 t) and the dense-stand rule
+(6 trees within 10 m) are game values without a source for the numbers;
+whether felled trees should give cover like `env_log_fallen` (50 %); the
+stand counts as the map places it, so a wood thinned by artillery does not
+open up for tanks.
 
 ## Open (not in this version)
 

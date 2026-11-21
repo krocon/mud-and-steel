@@ -47,6 +47,9 @@ extends Node
 ## 9. Destruction (prompt 020, `tools/destruction_self_test.gd`): the own
 ##    tanks shell a building into a ruin and fell a tree; variants and
 ##    effects follow the simulation, the replay re-simulates it.
+##    Prompt 106 (`tools/tree_crush_self_test.gd`, after the track test): a
+##    tree pushed over by a vehicle falls with a bounce, throws leaves and
+##    is heard in sight, and stays silent out of sight.
 ## 10. Craters (prompt 021, `tools/crater_self_test.gd`): the own tanks
 ##    fire at open grass until a crater appears; drawn terrain, mud and
 ##    decoration follow the simulation, the replay re-simulates it.
@@ -110,6 +113,7 @@ const CrossingSelfTest := preload("res://scenes/tools/crossing_self_test.gd")
 const CareSelfTest := preload("res://scenes/tools/care_self_test.gd")
 const TrackSelfTest := preload("res://scenes/tools/track_self_test.gd")
 const KillSelfTest := preload("res://scenes/tools/kill_self_test.gd")
+const TreeCrushSelfTest := preload("res://scenes/tools/tree_crush_self_test.gd")
 const MatchSetup := preload("res://scenes/menu/match_setup.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
 
@@ -147,6 +151,7 @@ func _run() -> void:
 	await _combat_test()
 	await kill_test.run_kills(self)
 	await TrackSelfTest.new().run(self)
+	await TreeCrushSelfTest.new().run(self)
 	await _marker_test()
 	await _cloud_test()
 	await InfantrySelfTest.new().run(self)
@@ -174,7 +179,7 @@ func _run() -> void:
 	await _pause_test()
 	await _view_test()
 	var ok := _errors.is_empty()
-	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, fog, combat, kill sequences, tracks, impact markers, cloud shadows, infantry, destruction, fire, craters, sound, music, water, hud, air, transport, supply, formations, crossings, replay, works, state marks, positions, experience, care, unit highlight, tactical pause, overview, view switches and photo mode ok" if ok else " ".join(_errors)
+	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, fog, combat, kill sequences, tracks, pushed trees, impact markers, cloud shadows, infantry, destruction, fire, craters, sound, music, water, hud, air, transport, supply, formations, crossings, replay, works, state marks, positions, experience, care, unit highlight, tactical pause, overview, view switches and photo mode ok" if ok else " ".join(_errors)
 	print("self-test %s: %s" % ["PASSED" if ok else "FAILED", message])
 	# Started from the menu flow test (prompt 027): it continues the flow.
 	var flow: Node = MatchSetup.flow_test

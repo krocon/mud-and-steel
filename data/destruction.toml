@@ -30,6 +30,12 @@
 #                the object when their hull touches it (0 = never). If the
 #                object blocks vehicles (data/objects.toml), those heavy
 #                enough plan their way through it at the cost of [crush]
+#   crush_variants  per model variant (data/objects.toml) a crush limit
+#                instead of crush_min_mass_kg (0 = never): trees by trunk
+#                thickness (prompt 106)
+#   stand_radius_mm / stand_min_objects  dense stands are never crushed: an
+#                object with at least stand_min_objects other objects of its
+#                class within stand_radius_mm (as the map places them)
 #   blast        true: also damaged by the blast of big explosions around
 #                the impact point ([blast]), not only by direct hits
 #   damaged_clear  true: a damaged object no longer counts for sight (a bare
@@ -73,7 +79,7 @@ damage_per_mm = 6
 radius_mm_per_mm = 180
 max_radius_m = 30
 
-# Breaking through walls (prompt 093). Objects that block vehicles and have a
+# Breaking through walls (prompt 093) and trees (prompt 106). Objects that block vehicles and have a
 # crush_min_mass_kg (mud and dry-stone walls) do not block vehicles of that
 # mass: the path search lets them through at the cost of `detour_m` meters
 # of driving per 4 m path cell with such an object, so a tank takes a gate
@@ -95,6 +101,43 @@ slow_max_ticks = 60
 # crown does not count as forest for sight; projectiles are stopped by trunk
 # and main branches (half the height); paths stay blocked as by a standing
 # tree. A bare tree still falls to further hits.
+#
+# Heavy vehicles push trees over (prompt 106). The tree falls the way the
+# vehicle drives and lies there like a shot-down one (remains "fallen":
+# blocks nothing, no forest, no sight block). Limits by trunk thickness;
+# the variants of data/objects.toml stand for these trunks at breast height
+# (judgement values from the catalog heights, not in the catalog sources):
+#   thin, up to about 20 cm: young birch (12 m), young spruce (14 m)
+#     -> from 18 t: every medium and heavy tank and the heavier tracked
+#        tank destroyers, assault guns and self-propelled guns (the lightest
+#        medium tank of the catalog, Pz IV A, has 18.4 t);
+#   thick, about 25-40 cm: young oak (12.5 m), mature birch (20 m), date
+#     palms (fibrous trunk, the same thickness at every height)
+#     -> from 40 t: heavy tanks (M26 41.9 t and up), Panther, Jagdpanther,
+#        Jagdtiger, ISU-152 and the like;
+#   very thick, 50 cm and more: mature oak, beech, spruce, pine and the bare
+#     winter tree (catalog 25-35 m) -> never.
+# No wheeled vehicle of the catalog reaches 18 t (the heaviest truck has
+# 7.4 t, armored cars and halftracks at most 9.1 t), so trucks and wheels
+# never fell trees. US Army doctrine: tanks push through small trees
+# (FM 7-20 appendix D); closely spaced small trees can be pushed over, but
+# the pile-up may stop the tank, and huge trees stand far enough apart to
+# drive between them (FM 5-33 Terrain Analysis, 1990, vegetation); heavy
+# stands of trees of 8 in (20 cm) and more spaced less than 20 ft (6 m)
+# build up into an obstacle for tracked vehicles that push through them
+# (US Army subcourse IN0201). Sources in docs/SOURCES.md. The masses are
+# game values: no source names them.
+#
+# Dense stands stay closed: a tree with at least 6 other trees within 10 m
+# stands in a wood, where a felled 12-20 m trunk lands on the next ones and
+# piles up (the source's heavy stands under 6 m apart; 6 neighbors within
+# 10 m are about 220 trees per hectare, 6.7 m apart on average). A straight
+# row of trees counts at most 4 neighbors at 4 m apart, so single trees,
+# tree rows (even closed ones down to 3.4 m), orchards (8-12 m) and loose
+# groves stay crushable; the woods of the generated maps (6.5 m apart with
+# scatter, about 7 neighbors) do not, apart from some trees at their
+# edges. The stand counts as the map places it, also after trees fell.
+# [provisional]
 [[class]]
 ids = ["env_tree_deciduous", "env_tree_conifer", "env_tree_birch", "env_tree_palm"]
 hp = 400
@@ -103,6 +146,9 @@ remains = "fallen"
 blast = true
 damaged_clear = true
 damaged_height_pct = 50
+crush_variants = { BirchYoung = 18000, SpruceYoung = 18000, OakYoung = 40000, Birch = 40000, Palm = 40000, PalmShort = 40000, PalmLeaning = 40000 }
+stand_radius_mm = 10000
+stand_min_objects = 6
 
 # --- Field boundaries --------------------------------------------------------------
 

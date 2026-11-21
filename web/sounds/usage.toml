@@ -56,9 +56,9 @@ engine_bomber = "Eines der drei nächsten Flugzeuge ab 18 m Spannweite; Tonhöhe
 # Buildings and objects (sound_classes.gd object_class; battle_sound.gd _destroyed, crater_event)
 building_damage = "Ein Gebäude wird von Granaten ab 20 mm beschädigt (Stufe „beschädigt“ in data/destruction.toml)."
 building_collapse = "Gebäude oder Munitions-/Treibstofflager wird zur Ruine, oder ein Basisgebäude wird zerstört."
-tree_fall = "Ein Baum wird von einer Granate ab 20 mm gefällt."
-wall_break = "Mauer, Hecke, Heuballen oder Holzstapel wird zerstört und verschwindet."
-fence_crush = "Fahrzeug walzt einen Holzzaun (ab 2,5 t) oder Stacheldraht (ab 8 t) platt."
+tree_fall = "Ein Baum wird von einer Granate ab 20 mm gefällt oder von einem schweren Kettenfahrzeug umgefahren (nur in Sicht)."
+wall_break = "Mauer, Hecke, Heuballen oder Holzstapel wird zerstört und verschwindet (Niederwalzen nur in Sicht)."
+fence_crush = "Fahrzeug walzt einen Holzzaun (ab 2,5 t) oder Stacheldraht (ab 8 t) platt (nur in Sicht)."
 crater = "Ein Krater entsteht: Erde regnet herab, lauter mit dem Kaliber; Graben von Pionieren bleibt stumm."
 
 # Notices and interface (battle_sound.gd notice, _watch_notices; ui_sound.gd; air_view.gd _warn)

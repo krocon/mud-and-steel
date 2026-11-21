@@ -281,6 +281,10 @@ pub fn run(dir: &Path, map: &Map, png: Option<&Path>) -> Result<String, String> 
         }
     }
 
+    let heavy_open = crushers(
+        map, &rules, &catalog, &scale, &kinds, &points, width, height, &mut out,
+    )?;
+
     if let Some(path) = png {
         let mut rgb = vec![0u8; count * 3];
         for (k, kind) in kinds.iter().enumerate() {
@@ -288,6 +292,7 @@ pub fn run(dir: &Path, map: &Map, png: Option<&Path>) -> Result<String, String> 
                 Kind::Water => [40, 70, 110],
                 Kind::Vehicles if road[k] => [60, 130, 60],
                 Kind::Vehicles => [140, 200, 110],
+                _ if heavy_open[k] => [200, 60, 200],
                 Kind::Infantry => [235, 190, 60],
                 Kind::Objects => [70, 60, 60],
                 Kind::Nobody => [200, 60, 50],
@@ -317,11 +322,85 @@ pub fn run(dir: &Path, map: &Map, png: Option<&Path>) -> Result<String, String> 
         writer.finish().map_err(|e| e.to_string())?;
         let _ = writeln!(
             out,
-            "  picture {} (light green: vehicles, dark green: their roads and tracks, yellow: infantry only, red: nobody, dark: buildings and objects, blue: water, white: starts and markers)",
+            "  picture {} (light green: vehicles, dark green: their roads and tracks, yellow: infantry only, red: nobody, dark: buildings and objects, blue: water, magenta: open only to a heavy tank that breaks walls and trees, white: starts and markers)",
             path.display()
         );
     }
     Ok(out)
+}
+
+/// Medium and heavy tank for [`crushers`]: the first fells thin trees and
+/// breaks walls, the second also thick trees (`data/destruction.toml`).
+const CRUSHERS: [&str; 2] = ["de_pz4_h", "de_tiger1_e"];
+
+/// Vehicle ground of the tanks that break walls and push trees over
+/// (prompts 093 and 106): open cells for each, how much more than without
+/// breaking anything, through how many cells with crushable objects, the
+/// largest connected part and whether the starts and markers lie in it.
+/// Returns the open cells of the heaviest tank.
+#[allow(clippy::too_many_arguments)]
+fn crushers(
+    map: &Map,
+    rules: &TerrainRules,
+    catalog: &Catalog,
+    scale: &Scale,
+    kinds: &[Kind],
+    points: &[(String, Vec2)],
+    width: u32,
+    height: u32,
+    out: &mut String,
+) -> Result<Vec<bool>, String> {
+    let destruction = sim::DestructionRules::builtin().map_err(|e| e.to_string())?;
+    let crushing = destruction.crushing(map);
+    let types =
+        sim::unit_types_from_catalog(catalog, scale, &CRUSHERS).map_err(|e| e.to_string())?;
+    let grid = PathGrid::with_crushing(map, rules, &types, &crushing);
+    let plain = kinds.iter().filter(|k| **k == Kind::Vehicles).count();
+    let land = kinds.iter().filter(|k| **k != Kind::Water).count().max(1);
+    let _ = writeln!(
+        out,
+        "  breaking walls and trees ({} objects in dense stands stay closed):",
+        crushing.never.len()
+    );
+    let mut heaviest = Vec::new();
+    for (profile, ty) in types.iter().enumerate() {
+        let open: Vec<bool> = grid.costs(profile).iter().map(|&c| c > 0).collect();
+        let through = (0..height)
+            .flat_map(|y| (0..width).map(move |x| (x, y)))
+            .filter(|&(x, y)| open[(y * width + x) as usize] && grid.crushable_by(ty.mass_kg, x, y))
+            .count();
+        let n = open.iter().filter(|o| **o).count();
+        let c = components(width, height, &open);
+        let (main, largest) = c
+            .sizes
+            .iter()
+            .enumerate()
+            .skip(1)
+            .max_by_key(|(id, s)| (**s, std::cmp::Reverse(*id)))
+            .map_or((0, 0), |(id, &s)| (id as u32, s));
+        let outside: Vec<&str> = points
+            .iter()
+            .filter(|(_, p)| component_near(&grid, &c, width, height, *p) != main)
+            .map(|(name, _)| name.as_str())
+            .collect();
+        let _ = writeln!(
+            out,
+            "    {:<14} {:>4.1} t: {:5.1} % of the land ({:+.1} points), {} cells through objects; largest part {:.1} %{}",
+            ty.name,
+            f64::from(ty.mass_kg) / 1000.0,
+            n as f64 * 100.0 / land as f64,
+            (n as f64 - plain as f64) * 100.0 / land as f64,
+            through,
+            f64::from(largest) * 100.0 / n.max(1) as f64,
+            if outside.is_empty() {
+                String::new()
+            } else {
+                format!("; outside it: {}", outside.join(", "))
+            }
+        );
+        heaviest = open;
+    }
+    Ok(heaviest)
 }
 
 #[cfg(test)]

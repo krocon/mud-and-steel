@@ -622,6 +622,14 @@ kill-shots prefix="after" dir="build/kill-stages": build
     {{ GODOT }} --path godot --always-on-top --fixed-fps 30 res://scenes/main.tscn -- --scenario=kills.toml "--kill-shots={{ justfile_directory() }}/{{ dir }}" --kill-prefix={{ prefix }}
     bash -c 'cd "{{ justfile_directory() }}/{{ dir }}" && rm -rf .seq && mkdir .seq && n=0 && for d in {{ prefix }}_[0-9]_*/; do for f in "$d"frame_*.png; do cp "$f" .seq/$(printf "%05d" $n).png; n=$((n+1)); done; done && ffmpeg -y -loglevel error -framerate 15 -i .seq/%05d.png -c:v libx264 -pix_fmt yuv420p -crf 23 {{ prefix }}_kills.mp4 && rm -rf .seq {{ prefix }}_[0-9]_*/ && echo "kill-shots: {{ dir }}/{{ prefix }}_kills.mp4"'
 
+# A Tiger pushes over the young oaks of the orchard of test_small (prompt 106): build/trailer/survey_orchard.mp4 and stills in build/trailer/stills/ (needs a window and ffmpeg)
+[group('godot')]
+orchard-clip: build
+    bash tools/trailer-shots.sh --only=survey_orchard
+    ffmpeg -y -loglevel error -i build/trailer/survey_orchard.avi -c:v libx264 -pix_fmt yuv420p -crf 23 -c:a aac build/trailer/survey_orchard.mp4
+    rm build/trailer/survey_orchard.avi
+    bash tools/trailer-shots.sh --stills --only=survey_orchard
+
 # Tank and truck drive figure eights over grass, sand, mud, snow and through a ford, dry and in the rain, as PNG files (prompt 104, needs a window)
 [group('godot')]
 track-shots dir="build/tracks": build

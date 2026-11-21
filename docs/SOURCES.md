@@ -126,6 +126,29 @@ photos, no file names of them, no text except the short notes of the data tables
 - **Rules** (hit points, capacities, exposure, ruin heights) are game
   rules, marked provisional.
 
+## Tanks pushing trees over (prompt 106)
+
+- **What tanks can push over:** US Army FM 7-20, appendix D (tank
+  capabilities: tanks push through small trees and vegetation;
+  globalsecurity.org/military/library/policy/army/fm/7-20/Appd.htm) and
+  FM 5-33 *Terrain Analysis* (1990, vegetation: huge trees seldom stand so
+  close that a tank cannot pass between them, closely spaced small trees
+  can often be pushed over but the pile-up may stop the tank, wheeled
+  vehicles are more restricted; archive.org/download/MManuals/
+  UsArmyTerrainAnalysis1990.pdf). An unofficial summary of US tank
+  doctrine names "small trees up to 12 inches in diameter" (inetres.com/gp/
+  military/cv/US_tank_doctrine.html); the official text found lacks the
+  number, so it is no basis for a value.
+- **Dense stands:** US Army subcourse IN0201 (heavy stands of trees 8 in
+  and more in diameter spaced less than 20 ft apart build up into an
+  obstacle when tracked vehicles push through them;
+  globalsecurity.org/military/library/policy/army/accp/in0201/ch2j.htm).
+- **Trunk thickness per model variant** (`data/destruction.toml`) is a
+  judgement from the catalog heights of the trees; the catalog sources
+  (Wikipedia) give heights, not trunk diameters. The mass limits (18 t,
+  40 t) and the stand rule (6 trees within 10 m) are game values, marked
+  provisional: no source gives them. No values from other games.
+
 ## Maps from real geodata (prompt 081)
 
 The map `harbor_city` (in the game "Hafenstadt" / "Harbor city") is built

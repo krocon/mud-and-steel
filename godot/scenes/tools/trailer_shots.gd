@@ -197,6 +197,17 @@ const SHOTS: Dictionary[String, Dictionary] = {
 			{"t": 7.0, "at": Vector2(8, 26), "dist": 30.0, "yaw": 185.0, "pitch": 10.0, "lift": 1.5},
 		],
 	},
+	# Prompt 106: a Tiger pushes over the young oaks of the orchard of
+	# `test_small` (`just orchard-clip`; planning shot, not in the trailer).
+	"survey_orchard": {
+		"map": "test_small", "scene": "orchard", "seed": 7, "start_s": 3.0, "seconds": 16.0,
+		"stills": [3.0, 6.0, 9.0, 12.0], "game_camera": true,
+		"camera": [
+			{"t": 0.0, "unit": [0, "de_tiger1_e", 0], "dist": 55.0, "yaw": 200.0},
+			{"t": 8.0, "unit": [0, "de_tiger1_e", 0], "dist": 45.0, "yaw": 225.0},
+			{"t": 16.0, "unit": [0, "de_tiger1_e", 0], "dist": 55.0, "yaw": 250.0},
+		],
+	},
 	"winter_is2": {
 		"map": "winter_village", "scene": "winter", "seed": 7, "start_s": 5.0, "seconds": 7.0,
 		"stills": [1.0, 3.4, 6.0],

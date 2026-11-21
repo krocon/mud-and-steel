@@ -979,6 +979,22 @@ cannot get stuck: it drives on, its hull touches the wall, the wall is gone
 in that tick, and `apply_destruction` clears the cell (also for lighter
 vehicles, once no piece overlaps it any more).
 
+**Trees heavy vehicles push over** (prompt 106). The tree class gives its
+crush limits per model variant (`crush_variants`: the variant stands for
+the trunk; 18 t thin, 40 t thick, mature trees never) instead of one
+`crush_min_mass_kg`; `DestructionRules::kind_crush_kg` resolves them per
+map object kind (kind = id and variant). Dense stands stay closed:
+`DestructionRules::dense_stands` lists, once per match from the placed
+map, every crushable object with at least `stand_min_objects` (6) other
+objects of its class within `stand_radius_mm` (10 m), using buckets as
+large as the radius; `Crushing::never` hands them to the path grid,
+`Destruction::crush_kg` and `crush_objects` skip them. Everything else is
+the wall rule above: the same detour cost, the same hull probes, the same
+slow-down; a felled tree falls in the driving direction (`fall_deg`) and
+then acts like a shot-down one (blocks nothing, clear for sight). `cli
+map-reach` reports the ground a Panzer IV H (25 t) and a Tiger I (57 t)
+open by breaking walls and trees (magenta in `--png`).
+
 ### Bridge and Godot
 
 The bridge collects the events of every tick (`SimHost.take_object_events`)
@@ -987,7 +1003,8 @@ the variant to show and where an object is drawn (`object_instance`: kind,
 chunk, slot of `object_groups`). `scenes/world/destruction_view.gd` reads
 the events; `map_objects.gd` collapses the object's MultiMesh instance and
 puts a single node in its place: the `Damaged` or `Ruin` variant, a tree
-that tips over in 1.6 s next to an `env_tree_stump`, a flattened fence or
+that tips over in 1.6 s next to an `env_tree_stump` (pushed over by a
+vehicle, prompt 106: in 1.1 s and springing back 5° once), a flattened fence or
 wire; walls and hedges just vanish. A bare tree (prompt 085) is the leafless
 winter oak (`Bare`) for grown oaks and beeches; young oaks, conifers, birches
 and palms keep their model with the instance uniform `env_bare = 1`, which
@@ -995,8 +1012,11 @@ folds every foliage card to a point in `env_foliage.gdshader` (no new models,
 no extra draw calls; on winter maps the oaks are bare already and drop
 nothing). A bare tree that falls later falls bare. `effects.gd` (`object_event`) throws
 debris, dust clouds and a scorch mark for a collapsing building, splinters
-and dust where a tree's crown lands, debris for walls and a puff for crushed
-fences, only at visible points. A stripped tree drops leaves, needles or
+and dust where a tree's crown lands (pushed over by a vehicle, prompt 106:
+also leaves and torn-up earth at the roots), debris for walls and a puff
+for crushed fences, only at visible points. The sound of an object crushed
+by a vehicle out of sight is not played either (`battle_sound.gd`,
+`hidden_crushes`). A stripped tree drops leaves, needles or
 frond bits (`leaves`, 4 s, tinted per tree type) and a few twigs; it makes
 no sound of its own (the blast is heard). At most six trees per frame get
 bursts, the rest change silently (`TREE_EFFECTS_PER_FRAME`). Objects change in the fog too (the stage is

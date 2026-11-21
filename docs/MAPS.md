@@ -235,7 +235,32 @@ projectiles; rocks, prompt 074). These are game rules:
 | Apartment blocks `env_block_desert`, `env_block_desert_long`, `env_block_town` (prompt 078) | all (ruin: large) | catalog box (24 × 12, 40 × 13, 30 × 13 m) |
 
 Woods, hedgerows and walls are closed to tanks and open to infantry; tanks use
-gaps and tracks. Loading resolves every line against the rules; unknown kinds or
+gaps and tracks. Since prompt 093 medium and heavy tanks break through mud and
+dry-stone walls, since prompt 106 they push trees over by trunk thickness
+(young birch and spruce from 18 t; young oak, mature birch and palms from
+40 t; mature oak, beech, spruce and pine never), but never trees in a dense
+stand (6 other trees within 10 m: the woods of the generated maps). A map
+that wants a tree row as a barrier for tanks plants mature trees or plants it
+dense enough; a wood should keep 6.5 m spacing or less.
+
+`just map-reach <map>` reports, below the usual numbers, the ground a
+Panzer IV H (25 t) and a Tiger I (57 t) open by breaking walls and trees
+(magenta in the `--png` picture). All 26 maps on 2026-11-21 (prompt 106):
+the Panzer IV gains 0.0-1.8 points of the land (`desert_village` 3.0: its
+mud walls), the Tiger 0.2-3.0 (`desert_village` 4.2, palms and walls). Trees join no
+start, supply point or marker to the main part that was cut off before:
+outside it stay `harbor_city` (harbor, beach_east: in the water, as in the
+plain numbers) and `rock_hills` (bridge_wood: the wooden bridge carries
+less than these tanks; the plain numbers ignore bridge loads); the police
+post and fort of `desert_village`, separate in the plain numbers, join
+through their mud walls (prompt 093). In woods the Tiger connects some open spots between the trunks
+(edge trees and thinner spots), so the largest part grows by up to 6
+points (`river_fields` 83.6 → 89.6 %, `river_fork` 85.7 → 91.1 %,
+`island_chain` 72.1 → 76.0 %); at 40 m of detour per felled cell a path
+through a wood stays far dearer than the way round. No map loses a tree
+row that was meant as a barrier (the generators plant rows 9 m apart or
+more, which tanks drove between before). The missions use tanks below
+40 t and rely on no tree row; the tutorial's "wood" stays a wood. Loading resolves every line against the rules; unknown kinds or
 variants, objects outside the map, bad numbers and headings are errors with the line
 number. The kinds a map uses and their resolved shapes become part of the map hash,
 so changing a rule changes the hash of every map using that kind (old replays then

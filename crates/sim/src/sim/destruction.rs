@@ -50,6 +50,14 @@ pub(super) struct Destruction {
     kind_stage: Vec<ObjectStage>,
     /// Per map object kind: how it affects sight (`data/vision.toml`).
     kind_sight: Vec<Sight>,
+    /// Per map object kind: mass (kg) from which vehicles crush it, by
+    /// class and variant (0: never; trees by trunk, prompt 106).
+    #[serde(default)]
+    kind_crush: Vec<u32>,
+    /// Objects never crushed although their kind could be (trees in dense
+    /// stands, prompt 106), ascending.
+    #[serde(default)]
+    dense: Vec<u32>,
     /// Objects whose state differs from their start, by index.
     changed: BTreeMap<u32, ObjectState>,
     /// Per unit type: catalog mass (kg).
@@ -101,16 +109,15 @@ impl Destruction {
         let bucket = Fixed::from_num(BUCKET_M);
         let columns = (size.x / bucket).ceil().to_num::<u32>() + 1;
         let rows = (size.y / bucket).ceil().to_num::<u32>() + 1;
-        let min_crush_mass = rules
-            .classes
-            .iter()
-            .map(|c| c.crush_min_mass_kg)
-            .filter(|&m| m > 0)
-            .min();
+        let kind_crush = rules.kind_crush_kg(map);
+        let dense = rules.dense_stands(map);
+        let min_crush_mass = kind_crush.iter().copied().filter(|&m| m > 0).min();
         let mut d = Self {
             kind_class,
             kind_stage,
             kind_sight,
+            kind_crush,
+            dense,
             changed: BTreeMap::new(),
             masses: unit_types.iter().map(|t| t.mass_kg).collect(),
             min_crush_mass,
@@ -189,14 +196,12 @@ impl Destruction {
     pub(super) fn crushing(&self, map: &Map) -> crate::path::Crushing {
         crate::path::Crushing {
             kind_kg: self
-                .kind_class
+                .kind_crush
                 .iter()
                 .zip(map.object_kinds())
-                .map(|(c, k)| {
-                    c.filter(|_| k.blocks.large())
-                        .map_or(0, |c| self.rules.classes[c].crush_min_mass_kg)
-                })
+                .map(|(&kg, k)| if k.blocks.large() { kg } else { 0 })
                 .collect(),
+            never: self.dense.clone(),
             detour_m: self.rules.crush.detour_m,
         }
     }
@@ -204,10 +209,13 @@ impl Destruction {
     /// Mass from which vehicles crush object `i` as it stands now (0:
     /// never, or nothing left to crush).
     fn crush_kg(&self, map: &Map, i: u32) -> u32 {
-        if self.state(map, i).stage == ObjectStage::Destroyed {
+        if self.state(map, i).stage == ObjectStage::Destroyed
+            || self.dense.binary_search(&i).is_ok()
+        {
             return 0;
         }
-        self.class(map, i).map_or(0, |c| c.crush_min_mass_kg)
+        let k = usize::from(map.objects()[i as usize].kind);
+        self.kind_crush.get(k).copied().unwrap_or(0)
     }
 
     /// Speed in percent of a vehicle that just broke through a wall.
@@ -539,16 +547,14 @@ impl Sim {
                 .query(unit.position - reach, unit.position + reach)
             {
                 let d = &self.destruction;
+                let kg = d.crush_kg(&map, i);
+                if kg == 0 || mass < kg {
+                    continue;
+                }
                 let Some(class) = d.class(&map, i) else {
                     continue;
                 };
-                if class.crush_min_mass_kg == 0 || mass < class.crush_min_mass_kg {
-                    continue;
-                }
                 let state = d.state(&map, i);
-                if state.stage == ObjectStage::Destroyed {
-                    continue;
-                }
                 let object = &map.objects()[i as usize];
                 let kind = &map.object_kinds()[usize::from(object.kind)];
                 let shape = kind.shape;

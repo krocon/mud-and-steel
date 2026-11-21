@@ -2027,6 +2027,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -2274,6 +2278,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -2767,6 +2775,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -3831,6 +3843,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -5217,6 +5233,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -5594,6 +5614,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -6269,6 +6293,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -6450,6 +6478,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -6697,6 +6729,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -6944,6 +6980,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -8355,6 +8395,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -9094,6 +9138,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -9341,6 +9389,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -9588,6 +9640,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -10208,6 +10264,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -11574,6 +11634,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -11821,6 +11885,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -12068,6 +12136,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -12315,6 +12387,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -12562,6 +12638,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -12809,6 +12889,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -13056,6 +13140,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -13303,6 +13391,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -13550,6 +13642,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -13797,6 +13893,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -14044,6 +14144,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -14291,6 +14395,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -14538,6 +14646,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -14785,6 +14897,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -15032,6 +15148,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -15279,6 +15399,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -16255,6 +16379,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -16502,6 +16630,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -16749,6 +16881,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -16996,6 +17132,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -17243,6 +17383,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -17490,6 +17634,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -17737,6 +17885,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -19784,6 +19936,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -20031,6 +20187,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -20278,6 +20438,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -21273,6 +21437,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -22574,6 +22742,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -23441,6 +23613,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -23688,6 +23864,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -23935,6 +24115,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -24182,6 +24366,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -24429,6 +24617,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -24676,6 +24868,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -24923,6 +25119,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -25170,6 +25370,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -25417,6 +25621,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -25664,6 +25872,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -26038,6 +26250,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -26285,6 +26501,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -26531,6 +26751,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -27821,6 +28045,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -28068,6 +28296,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -28315,6 +28547,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -28562,6 +28798,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -28809,6 +29049,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -29056,6 +29300,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -29716,6 +29964,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -32880,6 +33132,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -33127,6 +33383,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -33374,6 +33634,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -33621,6 +33885,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -33867,6 +34135,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -34513,6 +34785,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -36276,6 +36552,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -36523,6 +36803,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -36770,6 +37054,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -37278,6 +37566,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -37786,6 +38078,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -38294,6 +38590,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -38556,6 +38856,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -38803,6 +39107,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -39050,6 +39358,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -39297,6 +39609,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -39544,6 +39860,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -39791,6 +40111,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -40038,6 +40362,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -40285,6 +40613,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -40532,6 +40864,10 @@
         "max_grade_pct": 60,
         "steepest_grade_speed_pct": 20,
         "crushes": [
+          "env_tree_deciduous",
+          "env_tree_conifer",
+          "env_tree_birch",
+          "env_tree_palm",
           "env_wall_stone",
           "env_fence_wood",
           "fort_barbed_wire",
@@ -40762,7 +41098,8 @@
       "category": "env_tree",
       "object": {
         "hp": 400,
-        "min_caliber_mm": 20
+        "min_caliber_mm": 20,
+        "crush_min_mass_kg": 18000
       }
     },
     "env_tree_conifer": {
@@ -40770,7 +41107,8 @@
       "category": "env_tree",
       "object": {
         "hp": 400,
-        "min_caliber_mm": 20
+        "min_caliber_mm": 20,
+        "crush_min_mass_kg": 18000
       }
     },
     "env_tree_birch": {
@@ -40778,7 +41116,8 @@
       "category": "env_tree",
       "object": {
         "hp": 400,
-        "min_caliber_mm": 20
+        "min_caliber_mm": 20,
+        "crush_min_mass_kg": 18000
       }
     },
     "env_tree_palm": {
@@ -40786,7 +41125,8 @@
       "category": "env_tree",
       "object": {
         "hp": 400,
-        "min_caliber_mm": 20
+        "min_caliber_mm": 20,
+        "crush_min_mass_kg": 18000
       }
     },
     "env_bush": {

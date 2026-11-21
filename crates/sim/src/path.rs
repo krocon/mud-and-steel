@@ -230,6 +230,9 @@ pub struct Crushing {
     /// Per map object kind ([`Map::object_kinds`]): lightest vehicle (kg)
     /// that crushes it; 0 = cannot be crushed. Shorter lists count as 0.
     pub kind_kg: Vec<u32>,
+    /// Objects ([`Map::objects`] indices, ascending) that are never crushed
+    /// although their kind could be: trees in dense stands (prompt 106).
+    pub never: Vec<u32>,
     /// Extra cost of a cell with such an object, as meters of detour on
     /// the unit's fastest ground.
     pub detour_m: u32,
@@ -238,6 +241,15 @@ pub struct Crushing {
 impl Crushing {
     fn of_kind(&self, kind: u16) -> u32 {
         self.kind_kg.get(usize::from(kind)).copied().unwrap_or(0)
+    }
+
+    /// Crush limit of object `index` of kind `kind` (0: never).
+    fn of_object(&self, index: u32, kind: u16) -> u32 {
+        if self.never.binary_search(&index).is_ok() {
+            0
+        } else {
+            self.of_kind(kind)
+        }
     }
 }
 
@@ -433,9 +445,9 @@ impl PathGrid {
             x1: self.width - 1,
             y1: self.height - 1,
         };
-        for object in map.objects() {
+        for (i, object) in (0u32..).zip(map.objects()) {
             let kind = &map.object_kinds()[usize::from(object.kind)];
-            let crush_kg = crushing.of_kind(object.kind);
+            let crush_kg = crushing.of_object(i, object.kind);
             self.mark_object(all, object, kind.shape, kind.blocks, crush_kg);
         }
     }
