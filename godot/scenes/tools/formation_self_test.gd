@@ -73,10 +73,11 @@ func run(test: Node) -> void:
 	test._check(not preview.showing(), "the target preview did not fade out")
 	# Each preview slot is where the tank stopped.
 	var worst_slot := 0.0
-	for k in held.size() / 4:
-		var i: int = test._indices([int(held[4 * k])] as Array[int])[0]
+	var stride: int = preview.STRIDE
+	for k in held.size() / stride:
+		var i: int = test._indices([int(held[stride * k])] as Array[int])[0]
 		var p: Vector3 = sim_host.current_positions()[i]
-		worst_slot = maxf(worst_slot, Vector2(p.x, p.z).distance_to(Vector2(held[4 * k + 1], held[4 * k + 2])))
+		worst_slot = maxf(worst_slot, Vector2(p.x, p.z).distance_to(Vector2(held[stride * k + 1], held[stride * k + 2])))
 	test._check(worst_slot < 1.0, "a tank stopped %.2f m from its preview mark" % worst_slot)
 	var positions: Array[Vector3] = []
 	var yaws := sim_host.unit_facing_yaws()

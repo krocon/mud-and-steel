@@ -404,3 +404,71 @@ PHOTO_LEAVE,Leave,Beenden
 PHOTO_HINT,"Camera as usual (drag, wheel, Shift + drag turns and tilts), closer and flatter than in the game. Esc leaves.","Kamera wie gewohnt (ziehen, Rad, Umschalt + ziehen dreht und neigt), näher und flacher als im Spiel. Esc beendet."
 PHOTO_SAVED,Saved: %s,Gespeichert: %s
 PHOTO_SAVE_FAILED,The picture could not be saved.,Das Bild konnte nicht gespeichert werden.
+ORDER_REJECTED_OUTSIDE_MAP,Target outside the map,Ziel außerhalb der Karte
+ORDER_REJECTED_NO_MOBILE_UNITS,None of these units can move,Keine dieser Einheiten kann fahren
+ORDER_REJECTED_TARGET_FRIENDLY,That is an own or allied unit,Das ist eine eigene oder verbündete Einheit
+ORDER_REJECTED_TARGET_GONE,The target no longer exists,Das Ziel gibt es nicht mehr
+ORDER_REJECTED_CANNOT_HURT_TARGET,No weapon of these units can hurt the target,Keine Waffe dieser Einheiten kann dem Ziel schaden
+ORDER_REJECTED_NO_AMMO,Out of ammunition,Keine Munition mehr
+ORDER_REJECTED_NOT_SHELLABLE,This cannot be shelled,Das lässt sich nicht beschießen
+ORDER_REJECTED_NO_OBJECT_WEAPON,No gun that damages buildings,"Keine Kanone, die Gebäuden schadet"
+ORDER_REJECTED_NO_SEATS,No own vehicle with free seats,Kein eigenes Fahrzeug mit Sitzplätzen
+ORDER_REJECTED_NO_SQUADS,No infantry squad selected,Kein Infanterietrupp ausgewählt
+ORDER_REJECTED_NOT_A_GUN,Not an own free gun,Kein eigenes freies Geschütz
+ORDER_REJECTED_NO_TRACTOR,No selected vehicle can pull this gun,Kein ausgewähltes Fahrzeug kann dieses Geschütz ziehen
+ORDER_REJECTED_NOTHING_TO_UNLIMBER,No towed gun to unlimber,Kein geschlepptes Geschütz zum Abprotzen
+ORDER_REJECTED_NOT_A_BUILDING,Squads cannot enter this,Hier können Trupps nicht hinein
+ORDER_REJECTED_CANNOT_PLACE,It cannot be built here,Hier lässt sich das nicht bauen
+ORDER_REJECTED_CANNOT_AFFORD,Not enough resources,Nicht genug Rohstoffe
+ORDER_REJECTED_NOT_AVAILABLE,Not available now,Gerade nicht verfügbar
+ORDER_REJECTED_QUEUE_FULL,The production queue is full,Die Bauliste ist voll
+ORDER_REJECTED_NO_ARTILLERY,No selected unit fires indirectly,Keine ausgewählte Einheit schießt indirekt
+ORDER_REJECTED_NO_ENGINEERS,No engineers selected,Keine Pioniere ausgewählt
+HUD_WHY_GREYED,Not now: %s,Gerade nicht: %s
+HUD_WHY_NO_SMOKE,No selected unit has smoke rounds,Keine ausgewählte Einheit hat Nebelgranaten
+HUD_WHY_NO_PASSENGERS,Nobody aboard,Niemand an Bord
+HUD_WHY_NOTHING_MORE,No further orders for these units,Keine weiteren Befehle für diese Einheiten
+HUD_WHY_NO_BRIDGE_LAYER,No bridge-laying tank selected,Kein Brückenleger ausgewählt
+HUD_WHY_NO_CAMOUFLAGE,No selected unit can be camouflaged,Keine ausgewählte Einheit lässt sich tarnen
+HUD_TARGET_UNREACHABLE,Target not reachable – drives up to here,Ziel nicht erreichbar – fährt bis hierher
+HUD_PENETRATION_FRONT,Penetrates,Kann durchschlagen
+HUD_PENETRATION_SIDE,Only from the side or rear,Nur von der Seite oder hinten
+HUD_PENETRATION_NONE,Does not penetrate,Schlägt nicht durch
+HUD_ACTIVITY,Activity: %s,Tätigkeit: %s
+HUD_FIRE_STATUS,Fire: %s,Feuer: %s
+ACTIVITY_TARGET,%s %s,%s %s
+ACTIVITY_IDLE,waiting for orders,wartet auf Befehle
+ACTIVITY_PLANNING,plans its route,plant den Weg
+ACTIVITY_MOVING,drives,fährt
+ACTIVITY_ATTACKING,closes in on,rückt vor auf
+ACTIVITY_FIGHTING,in combat with,im Gefecht mit
+ACTIVITY_BOMBARDING,fires indirectly,schießt indirekt
+ACTIVITY_MOUNTING,mounts,sitzt auf
+ACTIVITY_DISMOUNTING,dismounts,sitzt ab
+ACTIVITY_RIDING,rides along,fährt mit
+ACTIVITY_HITCHING,hitches a gun,hängt ein Geschütz an
+ACTIVITY_UNLIMBERING,unlimbers,protzt ab
+ACTIVITY_TOWED,is towed,wird geschleppt
+ACTIVITY_WORKING,at work,bei der Arbeit
+ACTIVITY_IN_BUILDING,holds a building,hält ein Gebäude
+ACTIVITY_PINNED,pinned down,niedergehalten
+ACTIVITY_STUCK,cannot get through – give a new order,kommt nicht weiter – neuer Befehl nötig
+FIRE_STATUS_FIRING,fires at,feuert auf
+FIRE_STATUS_RELOADING,"reloads, target","lädt nach, Ziel"
+FIRE_STATUS_AIMING,aims at,richtet auf
+FIRE_STATUS_NO_TARGET,no enemy in sight,kein Gegner in Sicht
+FIRE_STATUS_HOLD_FIRE,holds fire (enemy in sight),Feuer verboten (Gegner in Sicht)
+FIRE_STATUS_NO_SIGHT,target not in sight,Ziel nicht in Sicht
+FIRE_STATUS_OUT_OF_RANGE,enemy out of range,Gegner außer Reichweite
+FIRE_STATUS_INEFFECTIVE,weapons cannot hurt the enemy,Waffen wirkungslos gegen den Gegner
+FIRE_STATUS_NO_AMMO,out of ammunition,keine Munition
+FIRE_STATUS_SUPPRESSED,pinned down,niedergehalten
+FIRE_STATUS_CANNOT_FIRE,cannot fire now,kann gerade nicht feuern
+ACTIVITY_GROUP_STUCK,%d cannot get through,%d kommen nicht weiter
+ACTIVITY_GROUP_PINNED,%d pinned down,%d niedergehalten
+ACTIVITY_GROUP_FIGHTING,%d in combat,%d im Gefecht
+ACTIVITY_GROUP_MOVING,%d driving,%d fahren
+ACTIVITY_GROUP_TRANSPORT,%d mounting or towing,"%d beim Auf-, Absitzen oder Schleppen"
+ACTIVITY_GROUP_WORKING,%d at work,%d bei der Arbeit
+ACTIVITY_GROUP_IN_BUILDING,%d in buildings,%d in Gebäuden
+ACTIVITY_GROUP_IDLE,%d waiting,%d warten

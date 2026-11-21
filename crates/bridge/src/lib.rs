@@ -30,6 +30,7 @@ mod crossing_funcs;
 mod destruction_funcs;
 mod economy_funcs;
 mod experience_funcs;
+mod feedback_funcs;
 mod fire_funcs;
 mod hud_funcs;
 mod infantry_funcs;
@@ -288,6 +289,9 @@ pub struct SimHost {
     /// stuck since (prompt 173).
     move_events: Vec<(u64, sim::MoveEvent)>,
     stuck_units: std::collections::BTreeSet<u32>,
+    /// The local player's dropped orders since the last
+    /// `take_order_events` (prompt 175).
+    order_events: Vec<sim::OrderEvent>,
     /// Debug: draw everything without fog (prompt 018, presentation only).
     reveal_all: bool,
     /// The fog overlay's fading mask (prompt 098, presentation only).
@@ -346,6 +350,7 @@ impl INode for SimHost {
             strike_events: Vec::new(),
             move_events: Vec::new(),
             stuck_units: std::collections::BTreeSet::new(),
+            order_events: Vec::new(),
             reveal_all: false,
             fog_fade: vision_funcs::FogFade::default(),
             process_usec: 0,
@@ -425,6 +430,11 @@ impl SimHost {
             crossing_funcs::collect_events(&mut self.crossing_events, &game.sim);
             strike_funcs::collect_events(&mut self.strike_events, &game.sim);
             move_funcs::collect_events(&mut self.move_events, &mut self.stuck_units, &game.sim);
+            feedback_funcs::collect_events(
+                &mut self.order_events,
+                &game.sim,
+                Some(game.session.local_player()),
+            );
             self.accumulator -= tick_seconds;
             ticks += 1;
         }
@@ -582,6 +592,7 @@ impl SimHost {
         self.strike_events.clear();
         self.move_events.clear();
         self.stuck_units.clear();
+        self.order_events.clear();
         self.accumulator = 0.0;
         let mut stats = sim::stats::MatchStats::new(&config);
         stats.observe(&sim);

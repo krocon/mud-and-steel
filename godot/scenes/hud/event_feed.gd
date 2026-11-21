@@ -42,6 +42,8 @@ const COLORS := {
 	"reinforce": Color(0.55, 0.9, 1.0), "enemy_reinforce": Color(1.0, 0.7, 0.35),
 	# A unit stopped because it got stuck (prompt 173, `alerts.gd`).
 	"stuck": Color(0.95, 0.8, 0.55),
+	# An order the simulation dropped (prompt 175, `order_feedback.gd`).
+	"rejected": Color(1.0, 0.78, 0.5),
 }
 
 var main: Node3D

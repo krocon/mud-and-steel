@@ -25,6 +25,7 @@ mod destruction;
 mod drill;
 mod economy;
 mod experience;
+mod feedback;
 mod fire;
 mod ground_info;
 mod indirect;
@@ -53,6 +54,7 @@ pub use care::{AidView, CareEvent, WoundView};
 pub use drill::DrillView;
 pub use economy::{BuyOption, PlaceError, StructureView, SupplyView};
 pub use experience::ExperienceView;
+pub use feedback::{Activity, FireStatus, OrderEvent, RejectReason};
 pub use ground_info::GroundInfo;
 pub use infantry::BuildingCondition;
 pub use logistics::{StockView, SupplySource};
@@ -501,6 +503,10 @@ pub struct Sim {
     /// 173; derived, not hashed).
     #[serde(skip)]
     move_events: Vec<MoveEvent>,
+    /// Orders dropped in the last tick, with their reason (prompt 175;
+    /// derived, not hashed).
+    #[serde(skip)]
+    order_events: Vec<OrderEvent>,
     objects: combat::ObjectIndex,
     /// Defeated players and the result (prompt 027).
     standings: Standings,
@@ -756,6 +762,7 @@ impl Sim {
             next_projectile: 0,
             events: Vec::new(),
             move_events: Vec::new(),
+            order_events: Vec::new(),
             objects: combat::ObjectIndex::new(&map),
             map,
             standings: Standings::new(&players),
@@ -854,6 +861,7 @@ impl Sim {
         self.crossings.events.clear();
         self.strikes.events.clear();
         self.move_events.clear();
+        self.order_events.clear();
         for command in commands {
             self.apply(command);
         }
@@ -1276,13 +1284,10 @@ impl Sim {
         self.drop_crossing_jobs(command);
         match &command.command {
             Command::MoveTo { units, target } => {
-                if !within_world(*target) {
+                if self.reject_movement(command.player, units, *target) {
                     return;
                 }
                 let mut group = self.mobile_indices(command.player, units);
-                if group.is_empty() {
-                    return;
-                }
                 for &i in &group {
                     self.leave_building(i);
                 }
@@ -1318,12 +1323,18 @@ impl Sim {
             }
             Command::Attack { units, target } => {
                 let Ok(t) = self.units.binary_search_by_key(target, |u| u.id) else {
+                    self.reject(command.player, RejectReason::TargetGone, Some(*target));
                     return;
                 };
-                if self.teams.allied(self.units[t].owner, command.player) || !self.units[t].alive()
-                {
+                if !self.units[t].alive() {
+                    self.reject(command.player, RejectReason::TargetGone, Some(*target));
                     return;
                 }
+                if self.teams.allied(self.units[t].owner, command.player) {
+                    self.reject(command.player, RejectReason::TargetFriendly, Some(*target));
+                    return;
+                }
+                self.reject_attack(command.player, units, t);
                 let guns =
                     self.order_indirect(command.player, units, indirect::Order::Unit(*target));
                 for index in self.mobile_indices(command.player, units) {
@@ -1334,6 +1345,7 @@ impl Sim {
             }
             Command::AttackGround { units, target } => {
                 if !within_world(*target) {
+                    self.reject(command.player, RejectReason::OutsideMap, None);
                     return;
                 }
                 let guns =
@@ -1345,12 +1357,20 @@ impl Sim {
                 }
             }
             Command::AttackObject { units, object } => {
-                if self.shellable(*object) {
-                    for index in self.mobile_indices(command.player, units) {
-                        if self.shells_objects(index) {
-                            self.start_attack(index, Attack::Object(*object));
-                        }
-                    }
+                if !self.shellable(*object) {
+                    self.reject(command.player, RejectReason::NotShellable, None);
+                    return;
+                }
+                let shooters: Vec<usize> = self
+                    .mobile_indices(command.player, units)
+                    .into_iter()
+                    .filter(|&i| self.shells_objects(i))
+                    .collect();
+                if shooters.is_empty() && !self.owned_indices(command.player, units).is_empty() {
+                    self.reject(command.player, RejectReason::NoObjectWeapon, None);
+                }
+                for index in shooters {
+                    self.start_attack(index, Attack::Object(*object));
                 }
             }
             Command::SetFireMode { units, mode } => {
@@ -1368,7 +1388,18 @@ impl Sim {
                 }
             }
             Command::Garrison { units, building } => {
+                if self.reject_immobile(command.player, units) {
+                    return;
+                }
                 let indices = self.mobile_indices(command.player, units);
+                if indices.iter().all(|&i| self.units[i].squad.is_none()) {
+                    self.reject(command.player, RejectReason::NoSquads, None);
+                    return;
+                }
+                if self.infantry.building(&self.map, *building).is_none() {
+                    self.reject(command.player, RejectReason::NotABuilding, None);
+                    return;
+                }
                 self.order_garrison(&indices, *building);
             }
             Command::Build {

@@ -5200,6 +5200,56 @@ computed there.
   and English at interface scale 1 and 1.25 and in German at 1280 × 720,
   into `build/unit-cards/`.
 
+### Order feedback (prompt 175)
+
+The player sees why an order does nothing, what a unit does and why it does
+not fire. The simulation only reports and answers queries
+(`sim/src/sim/feedback.rs`); no rule changed, nothing new is hashed.
+
+- **Dropped orders:** where the simulation drops an order as a whole it
+  pushes `OrderEvent::Rejected { player, reason, unit }` (`Sim::order_events`,
+  cleared every tick, `#[serde(skip)]`). `RejectReason` is a code (`u8`) with
+  a stable name; the bridge passes the local player's events
+  (`take_order_events`) and `hud/order_feedback.gd` shows the translation
+  `ORDER_REJECTED_<NAME>` beside the pointer for 2.5 s, in the event feed
+  (kind "rejected") and with a quiet click. Every reason and where it comes
+  from: [CONTROLS.md](CONTROLS.md#order-feedback-prompt-175). Orders that do
+  part of what was asked (some units cannot) are not reported; per unit the
+  dimmed tiles say it before the order.
+- **Unreachable targets:** `PathGrid::reachable_point` gives where a search
+  ends (the target, or the nearest cell of the start's region, as the
+  `Pathfinder` does; beyond the map edge the edge cell); `Sim::reachable_point`
+  per unit, and `formation_preview` in the bridge returns it as two more
+  floats per unit (six instead of four). `hud/order_preview.gd` draws a mark
+  more than 6 m from its slot at that point, in orange, with a dashed line
+  from the slot and the note "Target not reachable – drives up to here".
+- **Dimmed tiles:** `hud/command_bar.gd` already greyed orders that do not
+  fit the selection; their tooltip now names the reason (the same
+  `ORDER_REJECTED_*` texts, a few `HUD_WHY_*` of the grid).
+- **Activity:** `Sim::activity(id)` reads the state (link, transport task,
+  pinned, engineer job, fire mission, attack, auto target, route, building)
+  into `Activity`; the unit panel's first line for own and allied units
+  ("Activity: in combat with T-34/76"), "cannot get through" for units in
+  `SimHost.stuck_units` (prompt 173). With several units the header counts
+  groups ("4 in combat, 2 driving").
+- **Fire status:** `Sim::fire_status(id)` reads what the combat update would
+  decide: cannot fire (aboard, towed, limbered), no ammunition, pinned, the
+  target (attack order, else the automatic one) not in its own sight, out of
+  range, no weapon that hurts it (`can_damage`), turret more than 3° off,
+  reloading, firing; without a target the nearest enemy in its own sight
+  says why (hold fire, out of range, ineffective) or "no enemy in sight".
+- **Penetration light:** `Sim::penetration_view(shooter, target)`: the best
+  weapon's penetration at their distance (`penetration_at`, no random
+  spread) against the hull's front (with its slope), side and rear plates,
+  head-on. `order_feedback.gd` shows it while own armed units are selected
+  and the pointer is over a visible enemy: three dots (front, side, rear)
+  and "Penetrates" (green), "Only from the side or rear" (yellow), "Does not
+  penetrate" (red).
+- Pictures: `just feedback-shots` (`tools/feedback_shots.gd`, needs a
+  window) into `build/feedback/`. Self-test: a dropped unlimber order shows
+  its reason and a feed line, the activity line of a tank, a target beyond
+  the map edge moves the preview marks.
+
 The self-test (`tools/hud_self_test.gd`) clicks and drags the minimap,
 changes the selection through the unit panel, drives a waypoint chain by
 Shift + right click, gives orders through the command bar and jumps to an

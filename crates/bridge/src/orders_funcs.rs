@@ -106,9 +106,11 @@ impl SimHost {
     /// Target preview of a formation move (prompt 099): the slots the
     /// order `formation_move(unit_ids, x, z, formation, dx, dz, ..)` would
     /// give the local player's mobile units, computed by the same
-    /// simulation code. Four floats per unit: id, slot x, slot z, blocked
+    /// simulation code. Six floats per unit: id, slot x, slot z, blocked
     /// (1: the slot is outside the map or impassable for the unit; the
-    /// order then stops it at the nearest reachable spot).
+    /// order then stops it at the nearest reachable spot), and where the
+    /// unit really ends up, x and z (prompt 175: the slot, or the nearest
+    /// point it can reach when the slot lies across a river or in a lake).
     #[func]
     #[allow(clippy::too_many_arguments)]
     fn formation_preview(
@@ -131,13 +133,18 @@ impl SimHost {
             Formation::from_code(formation),
             facing(dx, dz),
         );
-        let mut out = Vec::with_capacity(slots.len() * 4);
+        let mut out = Vec::with_capacity(slots.len() * 6);
         for (id, slot, blocked) in slots {
+            // Where the unit really ends up (prompt 175): the slot, or the
+            // nearest point it can reach.
+            let reach = game.sim.reachable_point(id, slot).unwrap_or(slot);
             out.extend([
                 id.0 as f32,
                 fixed_to_f32(slot.x),
                 fixed_to_f32(slot.y),
                 if blocked { 1.0 } else { 0.0 },
+                fixed_to_f32(reach.x),
+                fixed_to_f32(reach.y),
             ]);
         }
         PackedFloat32Array::from(out)

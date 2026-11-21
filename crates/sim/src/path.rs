@@ -573,6 +573,35 @@ impl PathGrid {
         p.cost[ia] != 0 && p.cost[ib] != 0 && labels[ia] == labels[ib]
     }
 
+    /// Where a search of `profile` from `from` towards `goal` ends: `goal`
+    /// if its cell is reachable, else the center of the nearest cell of the
+    /// start's region (what [`Pathfinder`] does with unreachable targets,
+    /// prompt 175: the target preview shows it).
+    pub fn reachable_point(&self, profile: usize, from: Vec2, goal: Vec2) -> Vec2 {
+        let (sx, sy) = self.cell_of(from);
+        let Some((_, component)) = self.search_start(profile, sx, sy, from) else {
+            return from;
+        };
+        let (gx, gy) = self.cell_of(goal);
+        // Beyond the grid: the search ends in the edge cell.
+        let center = self.center(gx, gy);
+        let half = self.cell / 2;
+        let goal = if (goal.x - center.x).abs() > half || (goal.y - center.y).abs() > half {
+            center
+        } else {
+            goal
+        };
+        let labels = &self.components[self.profiles[profile].components].component;
+        if labels[self.index(gx, gy)] == component {
+            return goal;
+        }
+        self.nearest_cell(profile, Some(component), goal, u32::MAX, false)
+            .map_or(from, |n| {
+                let (x, y) = self.coords(n);
+                self.center(x, y)
+            })
+    }
+
     /// Why a cell is blocked, for tools (`cli stuck-audit`): the reasons
     /// that apply to it, most specific first.
     pub fn block_reasons(&self, x: u32, y: u32) -> Vec<&'static str> {

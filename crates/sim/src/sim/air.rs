@@ -492,9 +492,20 @@ impl Sim {
         line: Option<(Vec2, Fixed)>,
     ) {
         if !within_world(target) || !self.map.contains(target) {
+            self.reject(player, super::RejectReason::OutsideMap, None);
             return;
         }
-        if self.air_block(player, mission).is_some() {
+        if let Some(block) = self.air_block(player, mission) {
+            let reason = match block {
+                AirBlock::NotEnoughResources => Some(super::RejectReason::CannotAfford),
+                AirBlock::NoAircraft | AirBlock::Cooldown => {
+                    Some(super::RejectReason::NotAvailable)
+                }
+                AirBlock::Defeated => None,
+            };
+            if let Some(reason) = reason {
+                self.reject(player, reason, None);
+            }
             return;
         }
         let faction = self.faction(player);

@@ -442,6 +442,20 @@ impl Sim {
         guns
     }
 
+    /// Whether unit `i` has an indirect weapon (prompt 175).
+    pub(super) fn artillery_type_of(&self, i: usize) -> bool {
+        self.artillery.types[self.units[i].unit_type as usize].is_some()
+    }
+
+    /// Whether unit `id` has an indirect fire order (prompt 175,
+    /// [`Sim::activity`]).
+    pub(super) fn has_fire_mission(&self, id: UnitId) -> bool {
+        self.artillery
+            .guns
+            .get(&id)
+            .is_some_and(|g| g.order.is_some())
+    }
+
     /// A barrage order (`Command::Barrage`).
     pub(super) fn order_barrage(
         &mut self,
@@ -451,6 +465,11 @@ impl Sim {
         (radius_m, salvos, smoke): (u16, u16, bool),
     ) {
         if !super::within_world(target) || salvos == 0 {
+            self.reject(player, super::RejectReason::OutsideMap, None);
+            return;
+        }
+        if self.gun_indices(player, ids).is_empty() {
+            self.reject(player, super::RejectReason::NoArtillery, None);
             return;
         }
         let rules = &self.artillery.rules.barrage;

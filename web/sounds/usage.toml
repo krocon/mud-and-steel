@@ -62,7 +62,7 @@ fence_crush = "Fahrzeug walzt einen Holzzaun (ab 2,5 t) oder Stacheldraht (ab 8 
 crater = "Ein Krater entsteht: Erde regnet herab, lauter mit dem Kaliber; Graben von Pionieren bleibt stumm."
 
 # Notices and interface (battle_sound.gd notice, _watch_notices; ui_sound.gd; air_view.gd _warn)
-ui_click = "Klick auf jeden Knopf in jedem Bildschirm: Menü, Lobby, Editor, Spiel."
+ui_click = "Klick auf jeden Knopf in jedem Bildschirm: Menü, Lobby, Editor, Spiel; auch ein Befehl, den die Simulation verwirft (Grund am Mauszeiger, höchstens alle 0,4 s)."
 ui_select = "Die Auswahl eigener Einheiten ändert sich und ist nicht leer; höchstens alle 0,12 s."
 ui_order = "Befehl zum Bewegen, Angreifen oder Besetzen eines Gebäudes ist erteilt; höchstens alle 0,12 s."
 ui_unit_ready = "Neue eigene Einheit (kein Gebäude) erscheint, nicht in den ersten 2 s; höchstens jede Sekunde."

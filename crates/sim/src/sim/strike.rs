@@ -175,9 +175,18 @@ impl Sim {
     /// Calls a strike of `player` on `target` if it can.
     pub(super) fn order_strike(&mut self, player: PlayerId, target: Vec2) {
         if !within_world(target) || !self.map.contains(target) {
+            self.reject(player, super::RejectReason::OutsideMap, None);
             return;
         }
-        if self.strike_block(player).is_some() {
+        if let Some(block) = self.strike_block(player) {
+            let reason = match block {
+                StrikeBlock::Defeated => None,
+                StrikeBlock::NotEnoughResources => Some(super::RejectReason::CannotAfford),
+                _ => Some(super::RejectReason::NotAvailable),
+            };
+            if let Some(reason) = reason {
+                self.reject(player, reason, None);
+            }
             return;
         }
         let (Some(slot), Some(battery), Some(caliber)) = (

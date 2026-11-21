@@ -592,10 +592,12 @@ impl Sim {
         (from, to): (Vec2, Vec2),
     ) {
         if !within_world(from) || !within_world(to) {
+            self.reject(player, super::RejectReason::OutsideMap, None);
             return;
         }
         let squads = self.engineer_indices(player, units);
         if squads.is_empty() {
+            self.reject(player, super::RejectReason::NoEngineers, None);
             return;
         }
         // Clamp the line and start at the end nearer to the engineers.
@@ -869,9 +871,14 @@ impl Sim {
     /// `target`.
     pub(super) fn order_clear(&mut self, player: PlayerId, units: &[UnitId], target: Vec2) {
         if !within_world(target) {
+            self.reject(player, super::RejectReason::OutsideMap, None);
             return;
         }
         let squads = self.engineer_indices(player, units);
+        if squads.is_empty() {
+            self.reject(player, super::RejectReason::NoEngineers, None);
+            return;
+        }
         self.assign_job(
             &squads,
             &Job::Clear {

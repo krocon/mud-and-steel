@@ -91,6 +91,7 @@ func run(test: Node) -> void:
 	await _layout_test(test, main, hud, tanks)
 	await _events_test(test, main, hud.event_feed)
 	await _alerts_test(test, main, hud.alerts, tanks)
+	await _order_feedback_test(test, main, hud, tanks)
 	await _selection_keys_test(test, main, tanks)
 	await _ground_tooltip_test(test, main, hud.ground_tooltip)
 	await _health_bar_test(test, main)
@@ -559,6 +560,33 @@ func _alerts_test(test: Node, main: Node3D, alerts: Control, tanks: Array[int]) 
 	await test._frames(2)
 
 
+## Prompt 175: a dropped order (unlimbering tanks without a gun) shows its
+## reason at the pointer and in the feed; the activity line of a tank;
+## a target beyond the map edge moves the preview mark to where the tanks
+## really stop.
+func _order_feedback_test(test: Node, main: Node3D, hud: Control, tanks: Array[int]) -> void:
+	var feedback: Control = hud.order_feedback
+	var shown: int = feedback.shown
+	main.sim_host.unlimber_units(PackedInt64Array(tanks))
+	await test._frames(10)
+	test._check(feedback.shown == shown + 1, "a dropped order showed %d hints" % (feedback.shown - shown))
+	test._check(feedback.hint == tr("ORDER_REJECTED_NOTHING_TO_UNLIMBER"), "hint '%s'" % feedback.hint)
+	var last: Dictionary = hud.event_feed.history.back() if not hud.event_feed.history.is_empty() else {}
+	test._check(last.get("kind", "") == "rejected", "no feed message for a dropped order (%s)" % [last])
+	main.selection.set_selection([tanks[0]])
+	await test._frames(20)
+	test._check(hud.unit_panel.activity_line.begins_with(tr("HUD_ACTIVITY").get_slice("%", 0)),
+		"no activity line: '%s'" % hud.unit_panel.activity_line)
+	var preview: Control = hud.order_preview
+	var here: Vector3 = main.sim_host.current_positions()[test._indices([tanks[0]] as Array[int])[0]]
+	main.camera_rig.snap_to(here, 400.0, 0.0)
+	preview._fetch(Vector3(here.x, 0.0, here.z + 2000.0), Vector3.ZERO, tanks)
+	await test._frames(3)
+	test._check(preview.substitutes > 0, "a target beyond the map edge moved no preview mark")
+	preview.slots = PackedFloat32Array()
+	await test._frames(2)
+
+
 ## Prompt 101: the whole army holds no structure and no unarmed unit; the
 ## idle key finds a standing unit and never a driving one.
 func _selection_keys_test(test: Node, main: Node3D, tanks: Array[int]) -> void:
@@ -611,7 +639,7 @@ func _ground_tooltip_test(test: Node, main: Node3D, tip: Control) -> void:
 				found["house"] = Vector3(x, 0, z)
 			z += 4.0
 		x += 4.0
-	test._check(found.size() == 4, "test_small lacks a road, woods, deep water or a house: %s" % found.keys())
+	test._check(found.size() == 4, "test_small lacks a road, woods, deep water or a house: %s" % [found.keys()])
 	main.selection.set_selection([])
 	var center: Vector2 = tip.get_viewport_rect().get_center()
 	var none := tr("GROUND_NONE")

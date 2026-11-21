@@ -17,7 +17,7 @@
 //! State hash: only units with a queue (or a patrol) are written, after all
 //! other state, so matches without chains keep their hash.
 
-use super::{Route, Sim, Unit, formation_slots, formation_spacing, within_world};
+use super::{Route, Sim, Unit, formation_slots, formation_spacing};
 use crate::command::{Command, PlayerCommand, PlayerId, UnitId};
 use crate::hash::StableHasher;
 use crate::math::{Fixed, Vec2};
@@ -111,13 +111,10 @@ impl Sim {
     /// `QueueMove`: appends a formation slot around `target` to the queue
     /// of every listed (own, mobile) unit.
     pub(super) fn order_queue_move(&mut self, player: PlayerId, units: &[UnitId], target: Vec2) {
-        if !within_world(target) {
+        if self.reject_movement(player, units, target) {
             return;
         }
         let group = self.mobile_indices(player, units);
-        if group.is_empty() {
-            return;
-        }
         if group.iter().all(|&i| {
             idle(&self.units[i]) && self.units[i].orders.is_empty() && !self.has_indirect_order(i)
         }) {
@@ -139,13 +136,10 @@ impl Sim {
     /// `Patrol`: a `MoveTo` to `target`, then back and forth between the
     /// start and the slot at the target.
     pub(super) fn order_patrol(&mut self, player: PlayerId, units: &[UnitId], target: Vec2) {
-        if !within_world(target) {
+        if self.reject_movement(player, units, target) {
             return;
         }
         let group = self.mobile_indices(player, units);
-        if group.is_empty() {
-            return;
-        }
         let starts: Vec<(usize, Vec2)> =
             group.iter().map(|&i| (i, self.units[i].position)).collect();
         let slots = self.assign_slots(group.clone(), target);

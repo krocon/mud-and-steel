@@ -249,7 +249,7 @@ impl Transport {
 }
 
 impl Sim {
-    fn index_of(&self, id: UnitId) -> Option<usize> {
+    pub(super) fn index_of(&self, id: UnitId) -> Option<usize> {
         self.units.binary_search_by_key(&id, |u| u.id).ok()
     }
 
@@ -292,13 +292,34 @@ impl Sim {
         (a.position - b.position).length() <= (a.spread + b.spread) / 2 + self.transport.reach
     }
 
+    /// The transport task of unit `id` (prompt 175, for
+    /// [`Sim::activity`]): "embark", "disembark", "hitch" or "unhitch".
+    pub(super) fn transport_task_name(&self, id: UnitId) -> Option<&'static str> {
+        self.transport.tasks.get(&id).map(|t| match t {
+            Task::Embark { .. } => "embark",
+            Task::Disembark { .. } => "disembark",
+            Task::Hitch { .. } => "hitch",
+            Task::Unhitch { .. } => "unhitch",
+        })
+    }
+
     /// `Embark`: squads of `player` walk to `carrier` and mount it.
     pub(super) fn order_embark(&mut self, player: PlayerId, units: &[UnitId], carrier: UnitId) {
         let Some(c) = self.index_of(carrier) else {
+            self.reject(player, super::RejectReason::NoSeats, Some(carrier));
             return;
         };
         let v = &self.units[c];
         if v.owner != player || !v.alive() || v.link.is_some() || self.ttype(c).seats == 0 {
+            self.reject(player, super::RejectReason::NoSeats, Some(carrier));
+            return;
+        }
+        if self
+            .mobile_indices(player, units)
+            .iter()
+            .all(|&i| i == c || self.units[i].squad.is_none())
+        {
+            self.reject(player, super::RejectReason::NoSquads, Some(carrier));
             return;
         }
         let goal = self.rear_of(c);
@@ -368,9 +389,13 @@ impl Sim {
     /// `Tow`: the nearest free vehicle of `units` that can pull `gun`
     /// drives to it and hitches it.
     pub(super) fn order_tow(&mut self, player: PlayerId, units: &[UnitId], gun: UnitId) {
-        let Some(g) = self.index_of(gun) else { return };
+        let Some(g) = self.index_of(gun) else {
+            self.reject(player, super::RejectReason::NotAGun, Some(gun));
+            return;
+        };
         let gu = &self.units[g];
         if gu.owner != player || !gu.alive() || gu.link.is_some() || self.ttype(g).gun.is_none() {
+            self.reject(player, super::RejectReason::NotAGun, Some(gun));
             return;
         }
         if self
@@ -379,6 +404,7 @@ impl Sim {
             .values()
             .any(|t| matches!(t, Task::Hitch { gun: h, .. } if *h == gun))
         {
+            self.reject(player, super::RejectReason::NotAGun, Some(gun));
             return;
         }
         let towing: Vec<UnitId> = self
@@ -405,7 +431,10 @@ impl Sim {
                 let (x, y) = (i128::from(d.x.to_bits()), i128::from(d.y.to_bits()));
                 (x * x + y * y, self.units[t].id)
             });
-        let Some(t) = tractor else { return };
+        let Some(t) = tractor else {
+            self.reject(player, super::RejectReason::NoTractor, Some(gun));
+            return;
+        };
         self.units[t].combat.attack = None;
         self.units[t].combat.attack_moving = false;
         self.cancel_indirect(t);
@@ -428,7 +457,17 @@ impl Sim {
     /// `Unlimber`: towed guns of the listed vehicles (or the listed towed
     /// guns) are unhitched; a hitch under way is called off.
     pub(super) fn order_unlimber(&mut self, player: PlayerId, units: &[UnitId]) {
-        for i in self.owned_indices(player, units) {
+        let owned = self.owned_indices(player, units);
+        let any = owned.iter().any(|&i| {
+            let id = self.units[i].id;
+            matches!(self.units[i].link, Some(Link::Towed(_)))
+                || matches!(self.transport.tasks.get(&id), Some(Task::Hitch { .. }))
+                || self.units.iter().any(|u| u.link == Some(Link::Towed(id)))
+        });
+        if !owned.is_empty() && !any {
+            self.reject(player, super::RejectReason::NothingToUnlimber, None);
+        }
+        for i in owned {
             let id = self.units[i].id;
             if matches!(self.transport.tasks.get(&id), Some(Task::Hitch { .. })) {
                 self.transport.tasks.remove(&id);

@@ -25,7 +25,10 @@ extends Control
 ## Targeted orders (move, attack, ...) wait for a left click
 ## (`selection.command_mode`); stop, fire mode and the stances act at once.
 ## The tooltip of a tile names the order, its key and what it does; the key
-## also stands small in the tile's corner, a dot marks a lasting state.
+## also stands small in the tile's corner, a dot marks a lasting state. A
+## greyed tile's tooltip also says why it does nothing for the selection
+## (prompt 175: the same reasons the simulation reports for a dropped
+## order, `ORDER_REJECTED_*`, and a few of the grid's own, `HUD_WHY_*`).
 ##
 ## Base building (prompt 023): `build_open` says whether the build menu
 ## shows; the button for it sits in the top bar (`top_bar.gd`), the menu
@@ -322,26 +325,48 @@ func _update() -> void:
 		# Whether the selection can use the order at all; a tile of the
 		# first page stays in its place greyed, others leave theirs empty.
 		var fits := true
+		# Why a greyed tile does nothing (prompt 175).
+		var why := ""
 		match spec[3]:
 			"mode":
 				fits = mobile > 0 and not (id == "garrison" and squads == 0) \
 						and not (id == "barrage" and guns == 0) and not (id == "smoke" and smoke == 0) \
 						and not (id == "attack_object" and not shells)
+				if mobile == 0:
+					why = "ORDER_REJECTED_NO_MOBILE_UNITS"
+				elif id == "garrison" and squads == 0:
+					why = "ORDER_REJECTED_NO_SQUADS"
+				elif id == "barrage" and guns == 0:
+					why = "ORDER_REJECTED_NO_ARTILLERY"
+				elif id == "smoke" and smoke == 0:
+					why = "HUD_WHY_NO_SMOKE"
+				elif id == "attack_object" and not shells:
+					why = "ORDER_REJECTED_NO_OBJECT_WEAPON"
 				b.set_pressed_no_signal(selection.command_mode == id)
 			"stance":
 				fits = squads > 0
+				why = "ORDER_REJECTED_NO_SQUADS"
 			"formation":
 				fits = mobile > 0
+				why = "ORDER_REJECTED_NO_MOBILE_UNITS"
 				b.marked = formation_shown == id.get_slice("_", 1).to_int()
 			"now":
 				fits = mobile > 0 and not (id == "disembark" and transport.x == 0) \
 						and not (id == "unlimber" and transport.y == 0)
+				if mobile == 0:
+					why = "ORDER_REJECTED_NO_MOBILE_UNITS"
+				elif id == "disembark":
+					why = "HUD_WHY_NO_PASSENGERS"
+				elif id == "unlimber":
+					why = "ORDER_REJECTED_NOTHING_TO_UNLIMBER"
 				if id == "fire":
 					label = tr("HUD_CMD_FIRE_AT_WILL") if all_holding else tr("HUD_CMD_HOLD_FIRE")
 					b.marked = all_holding
 			"page":
 				fits = (id == "stance" and squads > 0) or (id == "formation" and mobile > 0) \
 						or (id == "more" and more) or (id == "positions" and engineers > 0)
+				why = {"stance": "ORDER_REJECTED_NO_SQUADS", "formation": "ORDER_REJECTED_NO_MOBILE_UNITS",
+					"more": "HUD_WHY_NOTHING_MORE", "positions": "ORDER_REJECTED_NO_ENGINEERS"}.get(id, "")
 				if id == "formation":
 					b.icon_id = "formation_%d" % formation_shown
 					label += ": " + tr(FormationOrders.label(formation_shown))
@@ -360,14 +385,18 @@ func _update() -> void:
 							fits = service.can_cancel
 			"work":
 				fits = engineers > 0
+				why = "ORDER_REJECTED_NO_ENGINEERS"
 				b.set_pressed_no_signal(selection.command_mode == id)
 			"layer":
 				fits = layers > 0
+				why = "HUD_WHY_NO_BRIDGE_LAYER"
 				b.set_pressed_no_signal(selection.command_mode == id)
 			"layer_now":
 				fits = layers > 0
+				why = "HUD_WHY_NO_BRIDGE_LAYER"
 			"camo":
 				fits = not camo.is_empty()
+				why = "HUD_WHY_NO_CAMOUFLAGE"
 				var on := 0
 				for unit: int in camo:
 					if sim_host.camouflage_state(unit) > 0:
@@ -384,6 +413,9 @@ func _update() -> void:
 		# The name the tile stands for (self-test, screen readers).
 		b.set_meta(&"label", label)
 		b.tooltip_text = _tip(spec, label, key)
+		if not fits and not why.is_empty():
+			b.tooltip_text += "\n" + tr("HUD_WHY_GREYED") % tr(why)
+		b.set_meta(&"why", "" if fits else why)
 
 
 ## A key name short enough for a tile's corner.

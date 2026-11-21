@@ -14,6 +14,13 @@ extends Control
 ## Gun teams: a tractor towing a gun shows the gun's range circle at its
 ## slot (dashed and pale: limbered, the gun cannot fire).
 ##
+## Unreachable slots (prompt 175): where the unit cannot get to its slot
+## (across a river without a bridge it may use, into a lake), the mark
+## stands at the point it really drives to (`REACH_COLOR`), a thin line
+## leads from the clicked slot to it, and a short note says "Target not
+## reachable – drives up to here". `SimHost.formation_preview` gives that
+## point with the slot (the same rule as the path search).
+##
 ## Drawn on the HUD like `waypoints.gd`, so above the fog layer.
 
 const RangeRings := preload("res://scenes/hud/range_rings.gd")
@@ -34,6 +41,12 @@ const FILL_ALPHA := 0.28
 const LINE_ALPHA := 0.9
 const LINE_WIDTH := 2.0
 const BLOCKED_COLOR := Color(0.62, 0.62, 0.62)
+const REACH_COLOR := Color(1.0, 0.68, 0.25)
+## Floats per unit in `slots` (id, slot x, z, blocked, reach x, z).
+const STRIDE := 6
+## A reach point farther than this (m) from its slot counts as a
+## substitute.
+const SUBSTITUTE_M := 6.0
 ## Target or facing must move this far (m) before the slots are fetched again.
 const REFETCH_M := 0.25
 
@@ -45,6 +58,9 @@ var usec := 0
 var marks := 0
 ## Gun circles drawn at slots in the last frame (self-test).
 var gun_rings := 0
+## Marks moved to a substitute point in the last frame (prompt 175;
+## self-test).
+var substitutes := 0
 ## Bridge calls for slots so far (self-test: at most one per change).
 var fetches := 0
 ## Slots shown: four floats per unit (id, x, z, blocked).
@@ -130,12 +146,26 @@ func _draw() -> void:
 	var forward := _forward()
 	var ids := sim_host.unit_ids()
 	var towing := sim_host.unit_towing()
-	var count := mini(slots.size() / 4, MAX_MARKS)
+	var count := mini(slots.size() / STRIDE, MAX_MARKS)
+	substitutes = 0
+	var note_at := Vector3.INF
 	for k in count:
-		var id := int(slots[4 * k])
-		var at := Vector3(slots[4 * k + 1], 0.0, slots[4 * k + 2])
+		var id := int(slots[STRIDE * k])
+		var at := Vector3(slots[STRIDE * k + 1], 0.0, slots[STRIDE * k + 2])
 		at.y = sim_host.height_at(at.x, at.z) + LIFT
-		var color := BLOCKED_COLOR if slots[4 * k + 3] > 0.5 else own
+		var color := BLOCKED_COLOR if slots[STRIDE * k + 3] > 0.5 else own
+		var reach := Vector3(slots[STRIDE * k + 4], 0.0, slots[STRIDE * k + 5])
+		if Vector2(reach.x - at.x, reach.z - at.z).length() > SUBSTITUTE_M:
+			# Not reachable: the mark stands where the unit stops.
+			reach.y = sim_host.height_at(reach.x, reach.z) + LIFT
+			if not camera.is_position_behind(at) and not camera.is_position_behind(reach):
+				draw_dashed_line(camera.unproject_position(at), camera.unproject_position(reach),
+					Color(REACH_COLOR, 0.7 * alpha), 1.5, 6.0)
+			substitutes += 1
+			at = reach
+			color = REACH_COLOR
+			if note_at == Vector3.INF:
+				note_at = reach
 		if _is_vehicle(id):
 			_rect_mark(camera, at, forward, color, alpha)
 		else:
@@ -144,6 +174,14 @@ func _draw() -> void:
 		if index >= 0 and index < towing.size() and towing[index] >= 0:
 			gun_rings += RangeRings.draw_unit_rings(self, camera, sim_host, towing[index], at,
 				RangeRings.STYLE_TOWED, alpha)
+	if note_at != Vector3.INF and not camera.is_position_behind(note_at):
+		var font := get_theme_default_font()
+		var text := tr("HUD_TARGET_UNREACHABLE")
+		var size := 15
+		var p := camera.unproject_position(note_at) + Vector2(12, -12)
+		var width := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
+		draw_rect(Rect2(p - Vector2(5, size), Vector2(width + 10, size + 8)), Color(0, 0, 0, 0.55 * alpha))
+		draw_string(font, p, text, HORIZONTAL_ALIGNMENT_LEFT, -1, size, Color(REACH_COLOR, alpha))
 	usec += Time.get_ticks_usec() - began
 
 

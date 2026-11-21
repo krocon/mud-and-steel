@@ -161,13 +161,10 @@ impl Sim {
         facing: Option<Vec2>,
         engage: Engage,
     ) -> Option<(Vec<(usize, Vec2)>, Vec2)> {
-        if !within_world(target) {
+        if self.reject_movement(player, units, target) {
             return None;
         }
         let group = self.mobile_indices(player, units);
-        if group.is_empty() {
-            return None;
-        }
         let (assigned, forward) = self.formation_slots_for(&group, target, formation, facing);
         for &i in &group {
             self.leave_building(i);

@@ -37,7 +37,7 @@ pub(super) struct CombatState {
     /// Direction of the turret / main weapon (unit length).
     pub(super) aim: Vec2,
     /// Ticks until each weapon can fire again.
-    reload: Vec<u32>,
+    pub(super) reload: Vec<u32>,
     pub(super) fire_mode: FireMode,
     pub(super) attack: Option<Attack>,
     /// The unit drives towards its attack target.
@@ -111,8 +111,8 @@ impl CombatState {
 
 /// A weapon with the rules applied, in game units per tick.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-struct WeaponRt {
-    weapon: WeaponType,
+pub(super) struct WeaponRt {
+    pub(super) weapon: WeaponType,
     reload_ticks: u32,
     /// Meters per tick.
     speed: Fixed,
@@ -133,19 +133,19 @@ pub(super) struct TypeCombat {
     pub(super) half_length: Fixed,
     pub(super) half_width: Fixed,
     pub(super) height: Fixed,
-    armor: crate::combat::Armor,
+    pub(super) armor: crate::combat::Armor,
     /// `(sin, cos)` of the turret turn per tick; `None` = instant.
     turret_step: Option<(Fixed, Fixed)>,
     /// `(sin, cos)` of the hull turn per tick (casemates).
     pub(super) hull_step: Option<(Fixed, Fixed)>,
     /// Cosine of half the casemate traverse; `None` = turret.
     arc_cos: Option<Fixed>,
-    weapons: Vec<WeaponRt>,
+    pub(super) weapons: Vec<WeaponRt>,
     pub(super) max_range: Fixed,
     /// Gravity in meters per tick².
     gravity: Fixed,
     /// Real meters per game meter (direct-fire range compression).
-    real_per_game: Fixed,
+    pub(super) real_per_game: Fixed,
     /// Game angle per real angle (the inverse of the range compression).
     angle_scale: Fixed,
     /// Longest range of a secondary machine gun (0: the type has none).
@@ -239,7 +239,7 @@ impl TypeCombat {
 
     /// Whether `weapon` can hurt a unit of type `target` at `distance` game
     /// meters (against its thinnest plate).
-    fn can_damage(
+    pub(super) fn can_damage(
         &self,
         weapon: usize,
         rules: &CombatRules,

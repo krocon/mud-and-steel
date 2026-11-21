@@ -28,6 +28,12 @@ extends PanelContainer
 ## - Prompt 109: an own vehicle with riders (the single unit, or the active
 ##   one of several) lists them as tiles under the rest (`rider_tiles.gd`):
 ##   click puts exactly that squad off or unhitches that gun.
+## - Prompt 175: the first line of an own (or allied) unit says what it
+##   does (`SimHost.unit_activity`, "Activity: drives") and, for armed
+##   units, whether it fires and why not (`SimHost.unit_fire_status`,
+##   "Fire: no target in sight"). A unit the simulation stopped because it
+##   got stuck says so (`SimHost.stuck_units`). With several units the
+##   header sums them up ("5 drive, 2 in combat, 1 cannot get through").
 ## - Fades in and out (`HudTheme.fade`); `hud.gd` places it.
 
 ## The unit card of this catalog id is wanted, for unit `unit` (prompt 066).
@@ -68,6 +74,10 @@ var rank_line := ""
 ## Bonuses of the single unit's rank as their own line ("" for a recruit;
 ## prompt 066; self-test).
 var bonus_line := ""
+## Activity and fire status of the single unit, summary of several
+## (prompt 175; self-test).
+var activity_line := ""
+var activity_summary := ""
 ## Ratings of the single unit's type and the button to its unit card
 ## (prompt 066; self-test).
 var ratings: RatingBars
@@ -333,6 +343,9 @@ func _refresh(selected: Array[int]) -> void:
 	_badge.visible = false
 	_kind_icon.visible = false
 	_title.text = tr("HUD_SELECTED_N") % selected.size()
+	activity_summary = _activity_summary(selected)
+	if not activity_summary.is_empty():
+		_title.text += "   ·   " + activity_summary
 	_set_faction("")
 	if changed:
 		_build_tiles(selected)
@@ -401,6 +414,9 @@ func _show_single(id: int) -> void:
 		if turret.size() == 3:
 			armor += ", " + tr("HUD_ARMOR_TURRET") % [turret[0], turret[1], turret[2]]
 		lines.append(armor + " " + tr("HUD_ARMOR_SIDES"))
+	activity_line = _activity_line(id)
+	if not activity_line.is_empty():
+		lines.push_front(activity_line)
 	var weapons: Array[String] = []
 	for w: Dictionary in info.weapons:
 		var count := "%d× " % w.count if int(w.count) > 1 else ""
@@ -437,6 +453,77 @@ func _show_single(id: int) -> void:
 	if not bonus_line.is_empty():
 		lines.append(bonus_line)
 	_details.text = "\n".join(lines)
+
+
+## Activities that the summary of several units groups together, and the
+## order of the groups.
+const ACTIVITY_GROUPS := {
+	"planning": "moving", "moving": "moving", "attacking": "fighting", "fighting": "fighting",
+	"bombarding": "fighting", "mounting": "transport", "dismounting": "transport",
+	"riding": "transport", "hitching": "transport", "unlimbering": "transport", "towed": "transport",
+	"working": "working", "in_building": "in_building", "pinned": "pinned", "idle": "idle",
+}
+const GROUP_ORDER: Array[String] = ["stuck", "pinned", "fighting", "moving", "transport", "working", "in_building", "idle"]
+
+
+## "Activity: … · Fire: …" for an own or allied unit (prompt 175); empty
+## for others.
+func _activity_line(id: int) -> String:
+	var index := sim_host.unit_ids().find(id)
+	if index < 0:
+		return ""
+	var owner: int = sim_host.unit_owners()[index]
+	if owner != sim_host.local_player() and sim_host.relation(owner) != 1:
+		return ""
+	var parts: Array[String] = []
+	var activity := sim_host.unit_activity(id)
+	if sim_host.stuck_units().has(id):
+		parts.append(tr("HUD_ACTIVITY") % tr("ACTIVITY_STUCK"))
+	elif not activity.is_empty():
+		var text := tr("ACTIVITY_" + str(activity.activity).to_upper())
+		var target := int(activity.target)
+		if target >= 0 and str(activity.activity) in ["attacking", "fighting"]:
+			text = tr("ACTIVITY_TARGET") % [text, _unit_name(target)]
+		parts.append(tr("HUD_ACTIVITY") % text)
+	var fire := sim_host.unit_fire_status(id)
+	if not fire.is_empty():
+		var text := tr("FIRE_STATUS_" + str(fire.status).to_upper())
+		var target := int(fire.target)
+		if target >= 0 and str(fire.status) in ["firing", "reloading", "aiming"]:
+			text = tr("ACTIVITY_TARGET") % [text, _unit_name(target)]
+		parts.append(tr("HUD_FIRE_STATUS") % text)
+	return "   ·   ".join(parts)
+
+
+## "5 drive, 2 in combat, 1 cannot get through" for own units (prompt 175).
+func _activity_summary(selected: Array[int]) -> String:
+	var own: Array[int] = []
+	var ids := sim_host.unit_ids()
+	var owners := sim_host.unit_owners()
+	var me := sim_host.local_player()
+	for id in selected:
+		var i := ids.find(id)
+		if i >= 0 and owners[i] == me:
+			own.append(id)
+	if own.is_empty():
+		return ""
+	var stuck := sim_host.stuck_units()
+	var names := sim_host.unit_activities(PackedInt64Array(own))
+	var counts := {}
+	for k in own.size():
+		var group: String = "stuck" if stuck.has(own[k]) else ACTIVITY_GROUPS.get(names[k], "")
+		if not group.is_empty():
+			counts[group] = int(counts.get(group, 0)) + 1
+	var parts: Array[String] = []
+	for group in GROUP_ORDER:
+		if counts.has(group):
+			parts.append(tr("ACTIVITY_GROUP_" + group.to_upper()) % counts[group])
+	return ", ".join(parts)
+
+
+func _unit_name(id: int) -> String:
+	var info := sim_host.unit_info(id)
+	return str(info.get("name", "?"))
 
 
 ## Rank insignia, name and kills after the unit's name, the experience

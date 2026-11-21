@@ -42,6 +42,7 @@ const SupplyRings := preload("res://scenes/hud/supply_rings.gd")
 const RangeRings := preload("res://scenes/hud/range_rings.gd")
 const OrderPreview := preload("res://scenes/hud/order_preview.gd")
 const Alerts := preload("res://scenes/hud/alerts.gd")
+const OrderFeedback := preload("res://scenes/hud/order_feedback.gd")
 const GroundTooltip := preload("res://scenes/hud/ground_tooltip.gd")
 const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
 const HudTheme := preload("res://scenes/hud/hud_theme.gd")
@@ -74,6 +75,8 @@ var range_rings: RangeRings
 var order_preview: OrderPreview
 ## Alarms out of view and their edge arrows (prompt 101).
 var alerts: Alerts
+## Dropped orders and the penetration light at the pointer (prompt 175).
+var order_feedback: OrderFeedback
 ## What the ground under the resting mouse does (prompt 100).
 var ground_tooltip: GroundTooltip
 ## Text lines for warnings and callouts (prompt 043).
@@ -166,6 +169,9 @@ func setup(main_node: Node3D) -> void:
 	alerts = Alerts.new()
 	add_child(alerts)
 	alerts.setup(main, event_feed)
+	order_feedback = OrderFeedback.new()
+	add_child(order_feedback)
+	order_feedback.setup(main, event_feed)
 	subtitles = Subtitles.new()
 	add_child(subtitles)
 	unit_card = UnitCard.new()

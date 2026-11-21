@@ -606,7 +606,7 @@ impl Sim {
         Ok(())
     }
 
-    fn unit(&self, id: UnitId) -> Option<&Unit> {
+    pub(super) fn unit(&self, id: UnitId) -> Option<&Unit> {
         self.units
             .binary_search_by_key(&id, |u| u.id)
             .ok()
@@ -616,13 +616,16 @@ impl Sim {
     /// [`crate::Command::Build`].
     pub(super) fn order_build(&mut self, player: PlayerId, unit_type: u32, position: Vec2) {
         if self.placement(player, unit_type, position).is_err() {
+            self.reject(player, super::RejectReason::CannotPlace, None);
             return;
         }
         let t = unit_type as usize;
         let Some(cost) = self.economy.types[t].cost else {
+            self.reject(player, super::RejectReason::NotAvailable, None);
             return;
         };
         if !self.economy.pay(player, cost.resources) {
+            self.reject(player, super::RejectReason::CannotAfford, None);
             return;
         }
         let facing = axis_facing(position);
@@ -708,19 +711,29 @@ impl Sim {
             return;
         };
         let st = &self.economy.structures[s];
-        if st.owner != player || st.build_left > 0 || !self.unit(building).is_some_and(Unit::alive)
-        {
+        if st.owner != player {
             return;
         }
-        if !self.producible(st.unit_type, player).contains(&unit_type)
-            || st.queue.len() >= self.economy.rules.production.max_queue as usize
+        let reason = if st.build_left > 0
+            || !self.unit(building).is_some_and(Unit::alive)
+            || !self.producible(st.unit_type, player).contains(&unit_type)
         {
+            Some(super::RejectReason::NotAvailable)
+        } else if st.queue.len() >= self.economy.rules.production.max_queue as usize {
+            Some(super::RejectReason::QueueFull)
+        } else {
+            None
+        };
+        if let Some(reason) = reason {
+            self.reject(player, reason, Some(building));
             return;
         }
         let Some(cost) = self.economy.types[unit_type as usize].cost else {
+            self.reject(player, super::RejectReason::NotAvailable, Some(building));
             return;
         };
         if !self.economy.pay(player, cost.resources) {
+            self.reject(player, super::RejectReason::CannotAfford, Some(building));
             return;
         }
         let total = self.economy.ticks(cost.time_ms);

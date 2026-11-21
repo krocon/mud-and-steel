@@ -106,6 +106,7 @@ const HiddenUnitShots := preload("res://scenes/tools/hidden_unit_shots.gd")
 const RouteShots := preload("res://scenes/tools/route_shots.gd")
 const OrderPreviewShots := preload("res://scenes/tools/order_preview_shots.gd")
 const AlertShots := preload("res://scenes/tools/alert_shots.gd")
+const FeedbackShots := preload("res://scenes/tools/feedback_shots.gd")
 const GroundTooltipShots := preload("res://scenes/tools/ground_tooltip_shots.gd")
 const SupplyShots := preload("res://scenes/tools/supply_shots.gd")
 const ViewShots := preload("res://scenes/tools/view_shots.gd")
@@ -528,6 +529,11 @@ func _ready() -> void:
 			var alert_shots := AlertShots.new()
 			alert_shots.main = self
 			add_child(alert_shots)
+		if arg.begins_with("--feedback-shots="):
+			camera_rig.edge_scroll_enabled = false
+			var feedback_shots := FeedbackShots.new()
+			feedback_shots.main = self
+			add_child(feedback_shots)
 		if arg.begins_with("--ground-tooltip-shots="):
 			camera_rig.edge_scroll_enabled = false
 			var tooltip_shots := GroundTooltipShots.new()

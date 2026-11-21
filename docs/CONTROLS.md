@@ -331,6 +331,50 @@ top bar. Everything else appears when there is something to do with it.
   stacked like stairs. Allied bars have a light rim. Bars fade out when
   they are no longer wanted. Settings → Interface can limit them to
   selected and marked units or hide them (prompt 167).
+- **Order feedback** (prompt 175):
+  - An order the game drops shows its reason beside the pointer for 2.5 s
+    and in the event feed, with a quiet click.
+  - The target preview of a move marks in orange where a unit really stops
+    when its slot cannot be reached (across water without a crossing it may
+    use, beyond the map edge), with a dashed line from the clicked slot and
+    "Target not reachable – drives up to here".
+  - Greyed order tiles name the reason in their tooltip.
+  - The info field of an own unit starts with what it does ("Activity:
+    drives", "in combat with T-34/76", "cannot get through") and, if armed,
+    whether it fires and why not ("Fire: no enemy in sight", "enemy out of
+    range", "weapons cannot hurt the enemy", "target not in sight", "holds
+    fire", "reloads", "aims at", "pinned down", "out of ammunition"). With
+    several units the header counts them ("4 in combat, 2 driving").
+  - With own armed units selected, the pointer over an enemy shows a light:
+    three dots for front, side and rear (green: penetrated, red: not) and
+    "Penetrates", "Only from the side or rear" or "Does not penetrate", for
+    the active (or first armed) unit at its current distance, head-on.
+
+  Reasons for a dropped order:
+
+  | Reason | When |
+  |---|---|
+  | Target outside the map | a move, attack, barrage, air call or engineer line beyond the map |
+  | None of these units can move | a move order (also patrol, waypoint, formation, secure, occupy) for own units that are all buildings, unhitched guns, aboard or towed, out of fuel or immobilized |
+  | That is an own or allied unit | attacking a friend |
+  | The target no longer exists | attacking a destroyed or unknown unit |
+  | No weapon of these units can hurt the target | attacking a tank with rifles only (at any distance) |
+  | Out of ammunition | attacking with units that are all out of ammunition |
+  | This cannot be shelled | shelling an object without hit points, or already destroyed |
+  | No gun that damages buildings | shelling with units without such a gun |
+  | No own vehicle with free seats | mounting an enemy, destroyed, towed or seatless vehicle |
+  | No infantry squad selected | mounting or occupying without squads |
+  | Not an own free gun | towing a unit that is no own gun, is towed already or is being hitched |
+  | No selected vehicle can pull this gun | no selected vehicle is strong enough or free |
+  | No towed gun to unlimber | unlimbering without a towed gun |
+  | Squads cannot enter this | occupying an object that is no enterable building |
+  | It cannot be built here | placing a building where it does not fit |
+  | Not enough resources | building, producing, air support, heavy strike |
+  | Not available now | producing what the building does not make or while it is built, air support or a strike the faction lacks or that is in its cooldown |
+  | The production queue is full | producing beyond the queue |
+  | No selected unit fires indirectly | a barrage without artillery or mortars |
+  | No engineers selected | mines, wire, obstacles, positions or clearing without engineers |
+
 - **State marks** (prompt 105): small symbols above the health bar tell
   a unit's state without selecting it, at most two side by side (from far
   away only the most important one; the rest is in the info field):
