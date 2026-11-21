@@ -70,7 +70,7 @@ group = "outpost"
 actions = [
   { do = "objective", objective = "square", state = "done" },
   { do = "text", text = "The square is ours. Soviet tanks approach from the north!" },
-  { do = "spawn", group = "relief", owner = 1, unit = "su_t34_76_1943", count = 2, at = "north_entry" },
+  { do = "spawn", group = "relief", owner = 1, unit = "su_t34_76_1943", count = 2, at = "north_entry", arrive = "drive" },
   { do = "order", group = "relief", to = "square", order = "move" },
   { do = "objective", objective = "relief", state = "active" },
   { do = "camera", at = "north_entry" },

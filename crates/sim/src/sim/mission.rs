@@ -13,10 +13,10 @@
 
 use super::{Sim, formation_slots, formation_spacing};
 use crate::command::{Command, PlayerCommand, PlayerId, UnitId};
-use crate::formation::Formation;
+use crate::formation::{Engage, Formation};
 use crate::hash::StableHasher;
 use crate::math::{Fixed, Vec2};
-use crate::mission::{Action, Condition, MAX_SIGNAL_LEN, Mission, ObjectiveState};
+use crate::mission::{Action, Arrival, Condition, MAX_SIGNAL_LEN, Mission, ObjectiveState};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -43,6 +43,50 @@ pub(super) struct MissionRt {
     camera: Option<(Vec2, u64)>,
     /// Signals of the current tick.
     signals: Vec<String>,
+    /// Columns that drove in (prompt 108), oldest first.
+    arrivals: Vec<ArrivalView>,
+}
+
+/// A column of reinforcements that started driving in (prompt 108): its
+/// owner, entry point, destination and tick. Follows from the triggers, so
+/// it is not part of the state hash.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ArrivalView {
+    pub owner: PlayerId,
+    pub entry: Vec2,
+    pub to: Vec2,
+    pub tick: u64,
+}
+
+/// Units of a column that still need their move order: owner, entry,
+/// destination, unit ids.
+type Pending = Vec<(PlayerId, Vec2, Vec2, Vec<UnitId>)>;
+
+/// Distance between the vehicles of a column: their length plus one more
+/// (prompt 108; a road march keeps a gap so that one hit does not stop
+/// the next vehicle). Squads keep their own width apart.
+pub fn column_spacing(footprint: Fixed) -> Fixed {
+    footprint * 2
+}
+
+/// The point `d` meters along the polyline `points` and the direction
+/// there; past its end the last point.
+fn along(points: &[Vec2], d: Fixed) -> (Vec2, Vec2) {
+    let mut left = d;
+    let mut dir = Vec2::new(Fixed::ZERO, -Fixed::ONE);
+    for w in points.windows(2) {
+        let step = w[1] - w[0];
+        let len = step.length();
+        if len == Fixed::ZERO {
+            continue;
+        }
+        dir = Vec2::new(step.x / len, step.y / len);
+        if left <= len {
+            return (w[0] + dir.scale(left), dir);
+        }
+        left -= len;
+    }
+    (points.last().copied().unwrap_or(Vec2::ZERO), dir)
 }
 
 impl MissionRt {
@@ -68,6 +112,7 @@ impl MissionRt {
             message: None,
             camera: None,
             signals: Vec::new(),
+            arrivals: Vec::new(),
             def: def.clone(),
         }
     }
@@ -163,6 +208,14 @@ impl Sim {
         self.mission.as_deref()?.camera
     }
 
+    /// Columns of reinforcements that drove in so far, oldest first
+    /// (prompt 108).
+    pub fn mission_arrivals(&self) -> &[ArrivalView] {
+        self.mission
+            .as_deref()
+            .map_or(&[], |m| m.arrivals.as_slice())
+    }
+
     /// Signals that armed triggers wait for, in trigger order.
     pub fn mission_wanted_signals(&self) -> Vec<&str> {
         let Some(m) = self.mission.as_deref() else {
@@ -244,9 +297,22 @@ impl Sim {
             {
                 m.triggers[t] = TriggerState::Fired(tick);
                 let actions = m.def.triggers[t].actions.clone();
-                for action in &actions {
-                    self.run_action(&mut m, action);
+                let offsets = self.column_offsets(&actions);
+                let mut pending: Pending = Vec::new();
+                for (action, offset) in actions.iter().zip(offsets) {
+                    let drive = matches!(
+                        action,
+                        Action::Spawn {
+                            arrival: Arrival::Drive { .. },
+                            ..
+                        }
+                    );
+                    if !drive {
+                        self.send_columns(&mut m, &mut pending);
+                    }
+                    self.run_action(&mut m, action, offset, &mut pending);
                 }
+                self.send_columns(&mut m, &mut pending);
             }
         }
         m.signals.clear();
@@ -341,8 +407,175 @@ impl Sim {
         }
     }
 
-    fn run_action(&mut self, m: &mut MissionRt, action: &Action) {
+    /// Where each driving spawn of one trigger starts in its column, in
+    /// meters from the entry: spawns with the same entry and destination
+    /// form one column, the first spawn at its head, the last at the edge.
+    fn column_offsets(&self, actions: &[Action]) -> Vec<Fixed> {
+        let mut offsets = vec![Fixed::ZERO; actions.len()];
+        let mut used: Vec<(Vec2, Vec2, Fixed)> = Vec::new();
+        for (k, action) in actions.iter().enumerate().rev() {
+            let Action::Spawn {
+                unit_type,
+                count,
+                at,
+                arrival: Arrival::Drive { entry },
+                ride,
+                ..
+            } = action
+            else {
+                continue;
+            };
+            let length = if ride.is_some() {
+                Fixed::ZERO
+            } else {
+                column_spacing(self.unit_types[*unit_type as usize].footprint_m)
+                    * Fixed::from_num(*count)
+            };
+            match used.iter_mut().find(|u| u.0 == *entry && u.1 == *at) {
+                Some(u) => {
+                    offsets[k] = u.2;
+                    u.2 += length;
+                }
+                None => used.push((*entry, *at, length)),
+            }
+        }
+        offsets
+    }
+
+    /// Gives the columns waiting in `pending` their move order (one per
+    /// owner, entry and destination, as a command of the owner) and records
+    /// their arrival.
+    fn send_columns(&mut self, m: &mut MissionRt, pending: &mut Pending) {
+        for (owner, entry, to, units) in pending.drain(..) {
+            m.arrivals.push(ArrivalView {
+                owner,
+                entry,
+                to,
+                tick: self.tick,
+            });
+            if units.is_empty() {
+                continue;
+            }
+            self.apply(&PlayerCommand::new(
+                owner,
+                Command::FormationMove {
+                    units,
+                    target: to,
+                    formation: Formation::Auto,
+                    facing: None,
+                    engage: Engage::Infantry,
+                },
+            ));
+        }
+    }
+
+    /// A driving spawn (prompt 108): the units start one behind the other
+    /// along the path from `entry` to `at`, `offset` meters from the entry
+    /// for the rearmost, facing along the path. Passengers mount a free
+    /// carrier of `ride`; the others wait in `pending` for their order.
+    #[allow(clippy::too_many_arguments)]
+    fn spawn_column(
+        &mut self,
+        m: &mut MissionRt,
+        (group, owner, unit_type, count): (u16, PlayerId, u32, u32),
+        (entry, at): (Vec2, Vec2),
+        fire_mode: crate::combat::FireMode,
+        ride: Option<u16>,
+        offset: Fixed,
+        pending: &mut Pending,
+    ) {
+        let spacing = column_spacing(self.unit_types[unit_type as usize].footprint_m);
+        let points = self
+            .paths
+            .grid
+            .find_path(entry, at, unit_type as usize)
+            .map(|p| p.waypoints)
+            .filter(|w| w.len() >= 2)
+            .unwrap_or_else(|| vec![entry, at]);
+        let slot = match pending
+            .iter()
+            .position(|p| p.0 == owner && p.1 == entry && p.2 == at)
+        {
+            Some(i) => i,
+            None => {
+                pending.push((owner, entry, at, Vec::new()));
+                pending.len() - 1
+            }
+        };
+        for k in 0..count {
+            let behind = if ride.is_some() { 0 } else { count - 1 - k };
+            let d = offset + spacing * Fixed::from_num(behind) + spacing / 2;
+            let (p, facing) = along(&points, d);
+            if !self.map.contains(p) {
+                continue;
+            }
+            let i = self.spawn_unit(owner, unit_type, p, facing, fire_mode);
+            let id = self.units[i].id;
+            m.groups[usize::from(group)].push(id);
+            let boarded = ride.is_some_and(|r| self.mount_on_group(m, i, r));
+            if !boarded {
+                pending[slot].3.push(id);
+            }
+        }
+    }
+
+    /// Squad `i` mounts the first living carrier of `group` (same owner,
+    /// not towed or aboard) with enough free seats: vehicles with seats
+    /// inside first, then tanks that carry riders on their hull.
+    fn mount_on_group(&mut self, m: &MissionRt, i: usize, group: u16) -> bool {
+        if self.units[i].squad.is_none() {
+            return false;
+        }
+        let owner = self.units[i].owner;
+        for inside in [true, false] {
+            for &id in &m.groups[usize::from(group)] {
+                let Ok(c) = self.units.binary_search_by_key(&id, |u| u.id) else {
+                    continue;
+                };
+                let v = &self.units[c];
+                if c == i
+                    || !v.alive()
+                    || v.owner != owner
+                    || v.link.is_some()
+                    || self.seats_inside(c) != inside
+                {
+                    continue;
+                }
+                self.board(i, c);
+                if self.units[i].link.is_some() {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+
+    fn run_action(
+        &mut self,
+        m: &mut MissionRt,
+        action: &Action,
+        offset: Fixed,
+        pending: &mut Pending,
+    ) {
         match action {
+            Action::Spawn {
+                group,
+                owner,
+                unit_type,
+                count,
+                at,
+                fire_mode,
+                arrival: Arrival::Drive { entry },
+                ride,
+            } => self.spawn_column(
+                m,
+                (*group, *owner, *unit_type, *count),
+                (*entry, *at),
+                *fire_mode,
+                *ride,
+                offset,
+                pending,
+            ),
             Action::Text { text } => m.message = Some((text.clone(), self.tick)),
             Action::Objective { index, state } => m.objectives[usize::from(*index)] = *state,
             Action::Spawn {
@@ -352,6 +585,8 @@ impl Sim {
                 count,
                 at,
                 fire_mode,
+                arrival: Arrival::Appear,
+                ride,
             } => {
                 let footprint = self.unit_types[*unit_type as usize].footprint_m;
                 let slots = formation_slots(*at, *count as usize, formation_spacing(footprint));
@@ -368,6 +603,9 @@ impl Sim {
                     };
                     let i = self.spawn_unit(*owner, *unit_type, p, facing, *fire_mode);
                     m.groups[usize::from(*group)].push(self.units[i].id);
+                    if let Some(r) = ride {
+                        self.mount_on_group(m, i, *r);
+                    }
                 }
             }
             Action::Camera { at } => m.camera = Some((*at, self.tick)),

@@ -146,15 +146,18 @@ func _play(main: Node3D, tutorial: bool) -> void:
 		flow._check(o["state"] == "done", "objective %s of %s is %s" % [o["id"], info["id"], o["state"]])
 	flow._check(rings > 0, "no objective ring drawn in %s" % info["id"])
 	flow._check(messages.size() >= 2, "mission %s showed %d messages" % [info["id"], messages.size()])
+	# Prompt 108: every column that drove in reached the event feed.
+	var arrivals: Array = info.get("arrivals", [])
+	flow._check(main.mission_hud.arrivals_reported == arrivals.size(), "mission %s: %d columns drove in, %d reported" % [info["id"], arrivals.size(), main.mission_hud.arrivals_reported])
 	if tutorial:
 		flow._check(signals.has("camera") and signals.has("select"), "the tutorial did not wait for camera and selection: %s" % [signals.keys()])
 		flow._check(main.mission_hud.title.text.begins_with("Training"), "tutorial title '%s'" % main.mission_hud.title.text)
 	# The HUD records the victory (every 30 frames).
 	await flow._frames(40)
 	flow._check(main.mission_hud.recorded, "the mission HUD did not record the victory")
-	print("flow self-test: %s '%s' decided at tick %d (%d s game time, %.1f s real time, %d messages, signals %s)" % [
+	print("flow self-test: %s '%s' decided at tick %d (%d s game time, %.1f s real time, %d messages, signals %s, %d columns drove in)" % [
 		"tutorial" if tutorial else "mission", info["id"], result["tick"], result["tick"] / 20,
-		(Time.get_ticks_msec() - started) / 1000.0, messages.size(), signals.keys()])
+		(Time.get_ticks_msec() - started) / 1000.0, messages.size(), signals.keys(), arrivals.size()])
 
 
 ## What a player following the objectives does (see the file comment).

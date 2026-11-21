@@ -257,6 +257,14 @@ impl Sim {
         &self.transport.types[self.units[i].unit_type as usize]
     }
 
+    /// Whether vehicle `c` carries passengers on seats inside (trucks,
+    /// halftracks) rather than on its hull (tanks).
+    pub(super) fn seats_inside(&self, c: usize) -> bool {
+        self.ttype(c)
+            .carrier
+            .is_some_and(|k| self.transport.rules.carriers[k].riders == 0)
+    }
+
     /// Soldiers riding in or on vehicle `c`.
     fn seats_used(&self, c: UnitId) -> u32 {
         self.units
@@ -761,7 +769,7 @@ impl Sim {
     }
 
     /// Squad `i` mounts vehicle `c` if its seats suffice.
-    fn board(&mut self, i: usize, c: usize) {
+    pub(super) fn board(&mut self, i: usize, c: usize) {
         let carrier = self.units[c].id;
         let need = self.units[i].squad.as_ref().map_or(0, |s| s.alive_count());
         if need == 0 || self.seats_used(carrier) + need > self.ttype(c).seats {

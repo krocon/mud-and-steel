@@ -201,6 +201,8 @@ HUD_FEED_COMPLETED,Completed: %s,Fertiggestellt: %s
 HUD_FEED_POINT_TAKEN,Supply point taken,Versorgungspunkt erobert
 HUD_FEED_POINT_LOST,Supply point lost,Versorgungspunkt verloren
 HUD_FEED_POINT_ATTACK,Supply point under attack,Versorgungspunkt wird angegriffen
+HUD_FEED_REINFORCEMENTS,Reinforcements arriving,Verstärkung trifft ein
+HUD_FEED_ENEMY_REINFORCEMENTS,Enemy reinforcements,Feindliche Verstärkung
 HUD_FEED_BUILDING,building,Gebäude
 HUD_FEED_UNIT,unit,Einheit
 HUD_FEED_PING,Ally (player %d) marks a spot,Verbündeter (Spieler %d) markiert eine Stelle

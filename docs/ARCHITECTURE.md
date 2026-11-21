@@ -2782,6 +2782,27 @@ hash (only when there is one: the golden hash is unchanged). What only the
 presentation knows arrives as `Command::MissionSignal`. Godot shows the
 panel (`hud/mission_hud.gd`) and keeps the progress in `user://`.
 
+**Reinforcements drive in (prompt 108).** `spawn` with `arrive = "drive"`
+resolves at parse time to `Arrival::Drive { entry }`: the place `from`, or
+`mission::edge_entry` (the point on the map edge nearest to `at`, 4 m
+inside, moved along the edge to the nearest road within 150 m, else to
+passable ground). When the trigger fires, `sim/mission.rs` lays the units
+along the path from the entry to `at` (`PathGrid::find_path` for their
+type; a straight line without a path), one `column_spacing` (twice the
+footprint) apart, the first spawn at the head and the rearmost at the
+entry; spawns of one trigger with the same entry and place form one
+column. Squads with `ride` mount carriers of that group at once
+(`Sim::board`; seats inside before a tank's hull, `Sim::seats_inside`). Before the next non-driving action of the trigger (and at
+its end) every column gets a `FormationMove` to `at` (right-click default
+`Engage::Infantry`) as a command of its owner, so an `order` that follows
+replaces it. No protection: from the first tick the column is ordinary
+units with a move order. `Sim::mission_arrivals` (entry, place, owner,
+tick; not hashed, it follows from the triggers) feeds `mission_info()
+["arrivals"]`; `mission_hud.gd` posts "Reinforcements arriving" / "Enemy
+reinforcements" to the event feed at the entry and pings the minimap. The
+golden hash is unchanged (its scenario has no mission); the replay format
+is 11 since the action carries `arrival` and `ride`.
+
 ## Map editor
 
 Prompt 028 adds an in-game map editor (`godot/scenes/editor/`, main menu →

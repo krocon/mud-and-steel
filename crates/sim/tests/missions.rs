@@ -1,5 +1,6 @@
 //! Mission scripts (prompt 039): parsing, triggers and actions.
 
+use sim::Fixed;
 use sim::map::{MapLayout, Marker};
 use sim::mission::{MissionPoints, parse_mission};
 use sim::{
@@ -362,6 +363,18 @@ fn errors_name_what_is_wrong() {
             "[[trigger]]\nid = \"a\"\nwhen = \"time\"\n[[trigger]]\nid = \"a\"\nwhen = \"time\"",
             "twice",
         ),
+        (
+            "[[trigger]]\nid = \"a\"\nwhen = \"time\"\nactions = [{ do = \"spawn\", group = \"g\", unit = \"de_pz4_h\", at = \"goal\", arrive = \"fly\" }]",
+            "arrive must be appear or drive",
+        ),
+        (
+            "[[trigger]]\nid = \"a\"\nwhen = \"time\"\nactions = [{ do = \"spawn\", group = \"g\", unit = \"de_pz4_h\", at = \"goal\", from = \"range\" }]",
+            "`from` needs",
+        ),
+        (
+            "[[trigger]]\nid = \"a\"\nwhen = \"time\"\nactions = [{ do = \"spawn\", group = \"g\", unit = \"de_pz4_h\", at = \"goal\", arrive = \"drive\", from = \"nowhere\" }]",
+            "unknown place 'nowhere'",
+        ),
     ];
     for (extra, expected) in bad {
         let e = parse(&format!("{UNITS}\n{extra}\n"), &map).unwrap_err();
@@ -389,4 +402,167 @@ fn skirmishes_hash_as_before_and_missions_add_their_state() {
     let a = Sim::new(&with, map.clone(), 1).unwrap();
     let b = Sim::new(&without, map, 1).unwrap();
     assert_ne!(a.state_hash(), b.state_hash());
+}
+
+// --- Prompt 108: reinforcements drive in ------------------------------------------
+
+fn unit(snapshot: &sim::Snapshot, id: UnitId) -> &sim::UnitSnapshot {
+    snapshot.units.iter().find(|u| u.id == id).unwrap()
+}
+
+/// `arrive = "drive"`: the units start in a column on the map edge nearest
+/// to the place (the south edge for (0, 40) on the 400 m map), the leader
+/// first, one column spacing apart, and drive to the place.
+#[test]
+fn a_driving_spawn_starts_as_a_column_at_the_edge_and_drives_in() {
+    let text = format!(
+        r#"{UNITS}
+[[trigger]]
+id = "come"
+when = "time"
+actions = [{{ do = "spawn", group = "relief", owner = 0, unit = "de_pz4_h", count = 3, at = "range", arrive = "drive" }}]
+"#
+    );
+    let map = flat_map();
+    let config = parse(&text, &map).unwrap();
+    let footprint = config
+        .unit_types
+        .iter()
+        .find(|t| t.name == "de_pz4_h")
+        .unwrap()
+        .footprint_m;
+    let mut sim = Sim::new(&config, map, 3).unwrap();
+    run(&mut sim, 1, &[]);
+    let ids = sim.mission_group("relief");
+    assert_eq!(ids.len(), 3);
+    let snap = sim.snapshot();
+    let ys: Vec<f64> = ids
+        .iter()
+        .map(|&id| unit(&snap, id).position.y.to_num::<f64>())
+        .collect();
+    let spacing = sim::column_spacing(footprint).to_num::<f64>();
+    // Rearmost half a spacing inside the edge line (196 m), the others
+    // ahead of it towards the place, one spacing apart.
+    assert!((ys[2] - (196.0 - spacing / 2.0)).abs() < 0.5, "{ys:?}");
+    assert!((ys[1] - (ys[2] - spacing)).abs() < 0.5, "{ys:?}");
+    assert!((ys[0] - (ys[1] - spacing)).abs() < 0.5, "{ys:?}");
+    for &id in &ids {
+        let u = unit(&snap, id);
+        assert!(u.position.x.abs() < Fixed::from_num(1), "{:?}", u.position);
+        assert!(u.facing.y < Fixed::ZERO, "faces north, to the place");
+        assert!(u.target.is_some(), "has a move order from the first tick");
+    }
+    let arrivals = sim.mission_arrivals();
+    assert_eq!(arrivals.len(), 1);
+    assert_eq!(arrivals[0].owner, P0);
+    assert_eq!(arrivals[0].entry, Vec2::from_meters(0, 196));
+    assert_eq!(arrivals[0].to, Vec2::from_meters(0, 40));
+    // About 150 m at road march speed: there well within two minutes.
+    run(&mut sim, 2400, &[]);
+    let snap = sim.snapshot();
+    for &id in &ids {
+        let p = unit(&snap, id).position;
+        assert!(
+            (p - Vec2::from_meters(0, 40)).length() < Fixed::from_num(25),
+            "{p:?}"
+        );
+    }
+}
+
+/// Spawns of one trigger with the same entry and place form one column in
+/// file order (the tank first, the squads behind); an `order` after them
+/// replaces the move order; squads with `ride` mount the carriers (seats
+/// inside before a tank's hull).
+#[test]
+fn driving_spawns_of_a_trigger_queue_up_and_passengers_mount() {
+    let mut sim = start(&format!(
+        r#"{UNITS}
+[[trigger]]
+id = "come"
+when = "time"
+actions = [
+  {{ do = "spawn", group = "relief", owner = 1, unit = "su_t34_76_1943", count = 1, at = "range", arrive = "drive" }},
+  {{ do = "spawn", group = "relief", owner = 1, unit = "su_inf_rifle_squad", count = 2, at = "range", arrive = "drive" }},
+  {{ do = "order", group = "relief", to = "goal", order = "move" }},
+]
+
+[[trigger]]
+id = "lift"
+when = "time"
+delay_s = 1
+actions = [
+  {{ do = "spawn", group = "trucks", owner = 0, unit = "de_pz4_h", count = 1, at = "goal", arrive = "drive", from = "range" }},
+  {{ do = "spawn", group = "trucks", owner = 0, unit = "us_m3_halftrack", count = 1, at = "goal", arrive = "drive", from = "range" }},
+  {{ do = "spawn", group = "riders", owner = 0, unit = "us_inf_rifle_squad", count = 1, at = "goal", arrive = "drive", from = "range", ride = "trucks" }},
+]
+"#
+    ));
+    run(&mut sim, 1, &[]);
+    let ids = sim.mission_group("relief");
+    assert_eq!(ids.len(), 3);
+    let snap = sim.snapshot();
+    let y = |id: UnitId| unit(&snap, id).position.y;
+    assert!(
+        y(ids[0]) < y(ids[1]) && y(ids[1]) < y(ids[2]),
+        "tank ahead of the squads"
+    );
+    // The order of the same trigger replaced the move to `range`.
+    for &id in &ids {
+        let target = unit(&snap, id).target.expect("moving");
+        assert!(target.y.abs() < Fixed::from_num(20), "{target:?}");
+    }
+    run(&mut sim, 25, &[]);
+    // The halftrack's seats come before riding on the tank's hull.
+    let truck = sim.mission_group("trucks")[1];
+    let rider = sim.mission_group("riders")[0];
+    let snap = sim.snapshot();
+    assert_eq!(unit(&snap, rider).carrier, Some(truck), "mounted at once");
+    assert!(unit(&snap, truck).target.is_some());
+    // The column started at the place `from`.
+    let entry = sim.mission_arrivals().last().unwrap().entry;
+    assert_eq!(entry, Vec2::from_meters(0, 40));
+}
+
+/// The entry moves along the edge to the nearest road.
+#[test]
+fn the_entry_is_the_nearest_road_on_the_nearest_edge() {
+    let n: usize = 201;
+    let mut terrain = vec![0u8; n * n];
+    // A road (terrain 2) along the column x = 60 m (sample 130).
+    for row in 0..n {
+        terrain[row * n + 130] = 2;
+    }
+    let layout = MapLayout {
+        name: "road_test".into(),
+        samples_x: n as u32,
+        samples_y: n as u32,
+        cell_size_mm: 2000,
+        starts: Vec::new(),
+        markers: Vec::new(),
+    };
+    let map = Map::from_rasters(layout, vec![0; n * n], terrain).unwrap();
+    let rules = TerrainRules::builtin().unwrap();
+    let entry = sim::mission::edge_entry(&map, &rules, Vec2::from_meters(10, -150));
+    assert_eq!(entry, Vec2::from_meters(60, -196));
+    // No road within reach: straight out to the edge.
+    let entry = sim::mission::edge_entry(&map, &rules, Vec2::from_meters(-150, 20));
+    assert_eq!(entry, Vec2::from_meters(-196, 20));
+}
+
+/// Driving reinforcements play the same twice (deterministic).
+#[test]
+fn driving_in_is_deterministic() {
+    let text = format!(
+        r#"{UNITS}
+[[trigger]]
+id = "come"
+when = "time"
+actions = [{{ do = "spawn", group = "relief", owner = 1, unit = "su_t34_76_1943", count = 4, at = "goal", arrive = "drive" }}]
+"#
+    );
+    let mut a = start(&text);
+    let mut b = start(&text);
+    run(&mut a, 600, &[]);
+    run(&mut b, 600, &[]);
+    assert_eq!(a.state_hash(), b.state_hash());
 }

@@ -39,8 +39,9 @@ pub const MAGIC: [u8; 4] = *b"MSRP";
 /// prompt 040 (`SimConfig::weather`); 9 since prompt 039
 /// (`SimConfig::mission`, `Command::MissionSignal`); 10 since prompt 093
 /// (`Command::AttackObject`, new combat rules and machine guns in
-/// `SimConfig`).
-pub const FORMAT_VERSION: u16 = 10;
+/// `SimConfig`); 11 since prompt 108 (`arrival` and `ride` of the mission
+/// action `spawn`).
+pub const FORMAT_VERSION: u16 = 11;
 
 /// Version of the game that writes replays and saved games.
 pub const GAME_VERSION: &str = env!("CARGO_PKG_VERSION");

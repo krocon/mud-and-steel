@@ -90,7 +90,9 @@ impl SimHost {
     /// `camera_tick`, `objectives` (array of `id`, `text`, `state`
     /// (`hidden`, `active`, `done`, `failed`), `position` (ground point or
     /// null), `radius` (m), `unit` (catalog id or "")), `wanted` (signals
-    /// armed triggers wait for), `fired` and `triggers`.
+    /// armed triggers wait for), `fired` and `triggers`, `arrivals` (columns
+    /// of reinforcements that drove in, oldest first: `owner`, `entry`, `to`
+    /// (positions), `tick`; prompt 108).
     #[func]
     fn mission_info(&self) -> VarDictionary {
         let Some(game) = &self.game else {
@@ -149,6 +151,18 @@ impl SimHost {
             .map(GString::from)
             .collect();
         info.set("wanted", &wanted);
+        // Prompt 108: columns of reinforcements that drove in.
+        let mut arrivals = VarArray::new();
+        for a in sim.mission_arrivals() {
+            let d = vdict! {
+                "owner" => i64::from(a.owner.0),
+                "entry" => ground_to_godot(a.entry, map.height_at(a.entry)),
+                "to" => ground_to_godot(a.to, map.height_at(a.to)),
+                "tick" => i64::try_from(a.tick).unwrap_or(i64::MAX),
+            };
+            arrivals.push(&d.to_variant());
+        }
+        info.set("arrivals", &arrivals);
         info
     }
 

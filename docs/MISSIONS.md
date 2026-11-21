@@ -25,9 +25,9 @@ Items marked [provisional] are decisions the user should confirm.
 | Mission | Side | Map | What happens |
 |---|---|---|---|
 | Basic training (tutorial) | Germany | test_small | Camera, selection, moving, attacking two training targets, rifle squad into a wood, barracks, a rifle squad from it, the village supply point. |
-| Meadow crossing | Soviet Union | twin_meadow | Take the western meadow's supply point from a light German screen, then destroy the counterattack from the north. |
+| Meadow crossing | Soviet Union | twin_meadow | Take the western meadow's supply point from a light German screen, then destroy the counterattack that drives in from the north edge. |
 | The village square | United States | desert_village | Clear the square of German infantry and a tank, then take its supply point. |
-| Town in the snow | Germany | town_small (winter look) | Destroy the Soviet outpost on the square, then the Soviet relief from the north. |
+| Town in the snow | Germany | town_small (winter look) | Destroy the Soviet outpost on the square, then the Soviet relief that drives in from the north edge. |
 
 The example missions use the passive computer player (holds its ground and
 fires) and scripted `order` actions for counterattacks [provisional]. They
@@ -140,7 +140,7 @@ trigger fires once.
 |---|---|---|
 | `text` | `text` | Shows the message (replaces the previous one). |
 | `objective` | `objective`, `state` (`hidden`, `active`, `done`, `failed`) | Sets the objective's state. |
-| `spawn` | `group`, `owner`, `unit`, `count`, `at`, `hold_fire` | Units appear around the place (not buildings) and join the group. |
+| `spawn` | `group`, `owner`, `unit`, `count`, `at`, `hold_fire`, `arrive` (`appear`), `from`, `ride` | Units arrive at the place (not buildings) and join the group: they appear there in formation, or with `arrive = "drive"` drive in from the map edge in a column ([below](#reinforcements-drive-in)). `ride`: squads mount carriers of that group at once. |
 | `order` | `group`, `to`, `order` (`advance`: halt to fight on the way; `move`: drive through) | The group's living units move there, as a command of their owner. |
 | `fire` | `group`, `hold_fire` | Fire mode of the group. |
 | `barrage` | `group`, `at`, `radius_m` (0), `salvos` (1) | The group's units with an indirect weapon (mortars, howitzers, rocket launchers) fire at the place, as a `Barrage` command of their owner (prompt 082). |
@@ -148,6 +148,66 @@ trigger fires once.
 | `camouflage` | `group`, `on` (default `true`) | Vehicles and guns of the group put up or take off their camouflage (prompt 082). |
 | `camera` | `at` | The camera glides there (presentation). |
 | `victory` / `defeat` | – | The human player (and allies) win, or lose. |
+
+### Reinforcements drive in
+
+Prompt 108. `arrive = "drive"` turns a `spawn` into a column that drives
+in; without it (`arrive = "appear"`, the default) the units appear at the
+place as before, so old files play unchanged.
+
+```toml
+actions = [
+  { do = "text", text = "Soviet tanks approach from the north!" },
+  { do = "spawn", group = "relief", owner = 1, unit = "su_t34_76_1943", count = 2, at = "north_entry", arrive = "drive" },
+  { do = "spawn", group = "relief", owner = 1, unit = "su_zis5", count = 1, at = "north_entry", arrive = "drive" },
+  { do = "spawn", group = "relief", owner = 1, unit = "su_inf_rifle_squad", count = 1, at = "north_entry", arrive = "drive", ride = "relief" },
+  { do = "order", group = "relief", to = "square", order = "move" },
+]
+```
+
+- **Entry.** `from` (a place: spawn point, area or marker) if given;
+  otherwise the point on the map edge nearest to `at`, 4 m inside, moved
+  along that edge to the nearest road (or track) within 150 m, else to the
+  nearest passable ground there. A mission whose edge is blocked or held by
+  the enemy names another entry with `from` [provisional]: the column
+  drives in anyway, there is no check for enemies at the edge.
+- **Column.** The units stand one behind the other along the path from the
+  entry to `at` (the path their type would drive; a straight line if there
+  is none), twice their footprint apart (a vehicle length of gap; squads
+  march in file the same way), facing along the path. The first unit of
+  the first spawn leads; spawns of one trigger with the same entry and
+  place form one column in file order, the last one at the entry.
+- **Order.** From the first tick they are ordinary units with a move order
+  of their owner to `at` (right-click default: squads halt for enemies in
+  range, vehicles drive on), where they take the formation of the move.
+  No protection, no special rule: they can be shot on the way and fire
+  back. An `order` action after the spawns in the same trigger replaces
+  that move (the columns get their move before the next action that is not
+  a driving spawn).
+- **Mounted.** `ride = "<group>"`: each squad mounts the first carrier of
+  that group (spawned before, same owner) with free seats, trucks and
+  halftracks before tanks (riders on the hull), and rides with it; squads
+  without a seat march. They stay aboard until the carrier is hit or the
+  owner orders them off (no automatic dismount at the place).
+- **Message.** The event feed says "Reinforcements arriving" (own and
+  allied) or "Enemy reinforcements" at the entry (a click jumps there) and
+  the minimap pings it.
+- Enemy reinforcements use the same action (`owner` of the enemy).
+
+Which spawns drive in (prompt 108):
+
+| Mission | Spawn | Arrival | Entry | Won (autopilot, game time) |
+|---|---|---|---|---|
+| Basic training | two training targets at `targets` | appear (they must stand at the range) | – | 188 s / 191 s (unchanged) |
+| Town in the snow | relief, 2 × T-34 at `north_entry` | drive | north edge (0, -296), on the road | 86 s → 87 s / 84 s |
+| Meadow crossing | counterattack, Pz IV + 2 halftracks (new) with the 2 squads aboard at `north_west` | drive | north edge (-110, -496) | 435 s → 585 s / 485 s |
+| The village square | – (no spawn) | – | – | 81 s / 82 s (unchanged) |
+
+Times: `crates/ai/tests/missions.rs` autopilot / `just selftest`. On foot
+the two squads of the meadow counterattack took too long for the 500 m from
+the edge (the self-test's autopilot waited 100 minutes for the last one),
+so they now ride in two halftracks; a squad mounts vehicles with seats
+before a tank's hull.
 
 ### Signals
 
@@ -199,10 +259,14 @@ file written by hand next to it [provisional: no script editor in the game].
 
 - `crates/sim/tests/missions.rs`: timers, areas, signals (only from the
   player, only while armed), spawns and destroyed groups, orders, captured
-  points, unit counts, errors, the points file, the hash.
+  points, unit counts, errors, the points file, the hash; columns that
+  drive in (start at the edge in file order, drive to the place, an
+  `order` replaces their move, passengers mount, the entry finds the road,
+  deterministic).
 - `crates/ai/tests/missions.rs`: every mission file is won by an autopilot
   that follows the objectives against the mission's computer players; the
-  tutorial plays the same twice and survives a snapshot.
+  tutorial plays the same twice and survives a snapshot; every column that
+  drives in has a path from its entry to its place.
   `MISSION=<id> END=<ticks> cargo test -p ai --test missions debug_units -- --ignored --nocapture`
   prints the units while tuning a mission.
 - `just selftest` plays the tutorial and every mission from the menu to
@@ -218,3 +282,6 @@ file written by hand next to it [provisional: no script editor in the game].
 - Voice-over; a script editor in the game. (Objective markers on the
   minimap: done in prompt 107, a gold ring with four ticks.)
 - Translations of the mission texts (prompt 043).
+- Reinforcements by train at a station or by landing craft on a coast
+  (prompt 108 proposal); a check for enemies at the entry; waypoints
+  (`via`) for a column.

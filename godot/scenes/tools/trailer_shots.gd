@@ -365,6 +365,16 @@ const SHOTS: Dictionary[String, Dictionary] = {
 		"map": "river_city", "scene": "survey", "seed": 1, "start_s": 0.5, "seconds": 1.0, "stills": [0.5],
 		"camera": [{"t": 0.0, "at": Vector2(0, 0), "dist": 4400.0, "yaw": 0.0, "pitch": 89.0, "haze": 9000.0}],
 	},
+	# --- Prompt 108: reinforcements drive in from the map edge -----------------
+	"survey_reinforcements": {
+		"map": "town_small", "scene": "reinforcements", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
+		"start_s": 1.2, "seconds": 16.0, "pre_roll_s": 1.0, "stills": [0.5, 5.0, 10.0, 15.5],
+		"camera": [
+			{"t": 0.0, "at": Vector2(0, -270), "dist": 110.0, "yaw": 20.0},
+			{"t": 6.0, "unit": [1, "su_t34", -1], "dist": 120.0, "yaw": 10.0},
+			{"t": 16.0, "unit": [1, "su_t34", -1], "dist": 130.0, "yaw": 0.0},
+		],
+	},
 	"survey_fields_near": {
 		"map": "river_fields", "scene": "survey", "seed": 1, "daytime": "day", "weather": "clear", "game_camera": true,
 		"start_s": 0.5, "seconds": 1.0, "stills": [0.5],

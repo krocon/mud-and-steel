@@ -54,7 +54,7 @@ pub use experience::ExperienceView;
 pub use ground_info::GroundInfo;
 pub use infantry::BuildingCondition;
 pub use logistics::{StockView, SupplySource};
-pub use mission::ObjectiveView;
+pub use mission::{ArrivalView, ObjectiveView, column_spacing};
 pub use orders::MAX_QUEUED;
 pub use tactics::{SquadTactics, soldier_flags};
 

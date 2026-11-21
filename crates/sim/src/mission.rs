@@ -23,7 +23,7 @@ use crate::map::Map;
 use crate::math::{Fixed, Vec2};
 use crate::scale::Scale;
 use crate::sim::{SimConfig, Spawn, formation_slots, formation_spacing};
-use crate::terrain::TerrainRules;
+use crate::terrain::{SpeedBasis, TerrainRules};
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
@@ -196,8 +196,10 @@ pub enum Action {
     Text { text: String },
     /// Sets the state of an objective.
     Objective { index: u16, state: ObjectiveState },
-    /// `count` units of `unit_type` appear for `owner` around `at` and join
-    /// the group.
+    /// `count` units of `unit_type` arrive for `owner` at `at` and join
+    /// the group: they appear there in formation, or drive in from the map
+    /// edge in a column ([`Arrival`], prompt 108). Passengers (`ride`, a
+    /// group of carriers spawned before) mount the carriers at once.
     Spawn {
         group: u16,
         owner: PlayerId,
@@ -205,6 +207,8 @@ pub enum Action {
         count: u32,
         at: Vec2,
         fire_mode: FireMode,
+        arrival: Arrival,
+        ride: Option<u16>,
     },
     /// Moves the camera there (presentation).
     Camera { at: Vec2 },
@@ -242,6 +246,77 @@ pub enum Action {
     /// The group's vehicles and guns put up or take off their camouflage
     /// ([`crate::Command::SetCamouflage`]).
     Camouflage { group: u16, on: bool },
+}
+
+/// How spawned units arrive (prompt 108).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub enum Arrival {
+    /// They appear in formation around the place (`arrive = "appear"`).
+    #[default]
+    Appear,
+    /// They start in a column at `entry` (on the map edge or a place of the
+    /// script), along the path to the place, and drive there with a move
+    /// order of their owner (`arrive = "drive"`).
+    Drive { entry: Vec2 },
+}
+
+/// A column starts this many meters inside the map edge.
+pub const EDGE_INSET_M: i32 = 4;
+/// The entry looks this far along the edge for a road (meters).
+pub const ROAD_SEARCH_M: i32 = 150;
+
+/// Where a column bound for `at` enters: the point on the map edge nearest
+/// to `at` ([`EDGE_INSET_M`] inside), moved along that edge to the nearest
+/// road (within [`ROAD_SEARCH_M`]), else to the nearest passable ground,
+/// else left as it is. Steps of 2 m, the nearer side first, the plus side
+/// first at equal distance: deterministic.
+pub fn edge_entry(map: &Map, terrain: &TerrainRules, at: Vec2) -> Vec2 {
+    let size = map.size();
+    let inset = Fixed::from_num(EDGE_INSET_M);
+    let (hx, hy) = (size.x / 2 - inset, size.y / 2 - inset);
+    let at = Vec2::new(at.x.clamp(-hx, hx), at.y.clamp(-hy, hy));
+    // East, west, south, north: distance, base point, along y?
+    let edges = [
+        (hx - at.x, Vec2::new(hx, at.y), true),
+        (at.x + hx, Vec2::new(-hx, at.y), true),
+        (hy - at.y, Vec2::new(at.x, hy), false),
+        (at.y + hy, Vec2::new(at.x, -hy), false),
+    ];
+    let mut best = edges[0];
+    for e in edges {
+        if e.0 < best.0 {
+            best = e;
+        }
+    }
+    let (_, base, along_y) = best;
+    let rank = |p: Vec2| -> u8 {
+        match terrain.types.get(usize::from(map.terrain_at(p))) {
+            Some(t) if t.passable && (t.speed == SpeedBasis::Road || t.speed_pct > 100) => 0,
+            Some(t) if t.passable => 1,
+            _ => 2,
+        }
+    };
+    let candidates = (0..=ROAD_SEARCH_M / 2).flat_map(|k| {
+        let d = Fixed::from_num(2 * k);
+        [d, -d].into_iter().map(move |d| {
+            if along_y {
+                Vec2::new(base.x, (base.y + d).clamp(-hy, hy))
+            } else {
+                Vec2::new((base.x + d).clamp(-hx, hx), base.y)
+            }
+        })
+    });
+    let mut found: [Option<Vec2>; 2] = [None, None];
+    for p in candidates {
+        let r = usize::from(rank(p));
+        if r < 2 && found[r].is_none() {
+            found[r] = Some(p);
+            if r == 0 {
+                break;
+            }
+        }
+    }
+    found[0].or(found[1]).unwrap_or(base)
 }
 
 // --- Files -------------------------------------------------------------------
@@ -456,6 +531,14 @@ struct ActionFile {
     at: Option<String>,
     #[serde(default)]
     to: Option<String>,
+    /// `spawn`: `appear` (default) or `drive` (prompt 108), the entry
+    /// place of a column and the group of carriers the units mount.
+    #[serde(default)]
+    arrive: Option<String>,
+    #[serde(default)]
+    from: Option<String>,
+    #[serde(default)]
+    ride: Option<String>,
     #[serde(default)]
     hold_fire: Option<bool>,
     /// `order`: `advance` (default, halt to fight) or `move`.
@@ -778,17 +861,31 @@ pub fn parse_mission(
                     if is_structure(&unit) {
                         return Err(ctx("buildings cannot be spawned"));
                     }
+                    let at = place(&need(&a.at, "at")?)?;
+                    let arrival = match a.arrive.as_deref().unwrap_or("appear") {
+                        "appear" if a.from.is_none() => Arrival::Appear,
+                        "appear" => return Err(ctx("`from` needs `arrive = \"drive\"`")),
+                        "drive" => Arrival::Drive {
+                            entry: match a.from.as_deref() {
+                                Some(from) => place(from)?,
+                                None => edge_entry(map, terrain, at),
+                            },
+                        },
+                        _ => return Err(ctx("arrive must be appear or drive")),
+                    };
                     Action::Spawn {
                         group: group_of(&need(&a.group, "group")?, &mut groups),
                         owner: known_player(a.owner.unwrap_or(player.0))?,
                         unit_type: type_index(&unit)?,
                         count: a.count.unwrap_or(1).clamp(1, 50),
-                        at: place(&need(&a.at, "at")?)?,
+                        at,
                         fire_mode: if a.hold_fire.unwrap_or(false) {
                             FireMode::HoldFire
                         } else {
                             FireMode::FireAtWill
                         },
+                        arrival,
+                        ride: a.ride.as_deref().map(|r| group_of(r, &mut groups)),
                     }
                 }
                 "camera" => Action::Camera {

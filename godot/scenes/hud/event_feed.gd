@@ -38,6 +38,8 @@ const COLORS := {
 	# Supply points (prompt 107, `world/supply_view.gd`).
 	"point_taken": Color(0.6, 1.0, 0.6), "point_lost": Color(1.0, 0.45, 0.4),
 	"point_attack": Color(1.0, 0.7, 0.35),
+	# Mission reinforcements driving in (prompt 108, `mission_hud.gd`).
+	"reinforce": Color(0.55, 0.9, 1.0), "enemy_reinforce": Color(1.0, 0.7, 0.35),
 }
 
 var main: Node3D

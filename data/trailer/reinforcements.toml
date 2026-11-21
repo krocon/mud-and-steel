@@ -1,0 +1,40 @@
+# Trailer scene (prompt 108): Soviet reinforcements drive in from the north
+# edge of `town_small` in a column (two T-34, a truck with a rifle squad
+# aboard, two more T-34) and take position north of the square.
+# Format: docs/MISSIONS.md; played by godot/scenes/tools/trailer_shots.gd.
+
+[mission]
+title = "Trailer: reinforcements"
+player = 0
+elimination = false
+
+[[spawn]]
+name = "north_square"
+position_m = [0, -120]
+
+[[group]]
+name = "watch"
+owner = 0
+unit = "de_inf_rifle_squad"
+count = 1
+position_m = [0, 120]
+hold_fire = true
+
+[[group]]
+name = "post"
+owner = 1
+unit = "su_inf_rifle_squad"
+count = 1
+position_m = [-20, -160]
+hold_fire = true
+
+[[trigger]]
+id = "relief"
+when = "time"
+delay_s = 1
+actions = [
+  { do = "spawn", group = "relief", owner = 1, unit = "su_t34_76_1943", count = 2, at = "north_square", arrive = "drive", hold_fire = true },
+  { do = "spawn", group = "trucks", owner = 1, unit = "su_zis5", count = 1, at = "north_square", arrive = "drive", hold_fire = true },
+  { do = "spawn", group = "riders", owner = 1, unit = "su_inf_rifle_squad", count = 1, at = "north_square", arrive = "drive", ride = "trucks", hold_fire = true },
+  { do = "spawn", group = "relief", owner = 1, unit = "su_t34_76_1943", count = 2, at = "north_square", arrive = "drive", hold_fire = true },
+]

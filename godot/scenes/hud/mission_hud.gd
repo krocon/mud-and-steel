@@ -10,6 +10,11 @@ extends PanelContainer
 ## or turned) and `select` (own units are selected). A won mission is
 ## recorded in the progress file (`menu/missions.gd`).
 ##
+## Prompt 108: a column of reinforcements that starts driving in (`spawn`
+## with `arrive = "drive"`) posts "Reinforcements arriving" (own and allied)
+## or "Enemy reinforcements" to the event feed at its entry point (a click
+## jumps there) and pings the minimap.
+##
 ## All texts come from the mission file; the few own ones are the
 ## translation keys below (prompt 043).
 
@@ -19,6 +24,8 @@ const TEXT_STEP := "HUD_MISSION_STEP"
 const TEXT_DONE := "HUD_MISSION_DONE"
 const TEXT_FAILED := "HUD_MISSION_FAILED"
 const TEXT_ALL_DONE := "HUD_MISSION_ALL_DONE"
+const TEXT_REINFORCEMENTS := "HUD_FEED_REINFORCEMENTS"
+const TEXT_ENEMY_REINFORCEMENTS := "HUD_FEED_ENEMY_REINFORCEMENTS"
 ## The camera counts as moved after this many meters, this zoom factor or
 ## this turn (radians).
 const CAMERA_MOVE_M := 12.0
@@ -41,9 +48,13 @@ var sent: Dictionary[String, bool] = {}
 var recorded := false
 ## Rings drawn around objective areas (self-test).
 var rings := 0
+## Arriving columns reported to the event feed (self-test).
+var arrivals_reported := 0
 
 var _message_tick := -2
 var _camera_tick := -1
+## Arrivals already known (-1: not read yet; those of a loaded game stay quiet).
+var _arrivals_seen := -1
 var _objective_key := ""
 ## Camera at the moment the `camera` signal became wanted.
 var _camera_from: Array = []
@@ -117,7 +128,29 @@ func refresh() -> void:
 		_camera_tick = info["camera_tick"]
 		if info["camera"] != null and not sim_host.is_replay():
 			main.camera_rig.center_on(info["camera"])
+	_report_arrivals(info.get("arrivals", []))
 	_send_signals(info["wanted"])
+
+
+## Event feed message and minimap ping for every new arriving column.
+func _report_arrivals(arrivals: Array) -> void:
+	if _arrivals_seen < 0:
+		_arrivals_seen = arrivals.size()
+		return
+	var hud: Node = main.get("hud")
+	var feed: Node = hud.get("event_feed") if hud != null else null
+	while _arrivals_seen < arrivals.size():
+		var a: Dictionary = arrivals[_arrivals_seen]
+		_arrivals_seen += 1
+		if feed == null:
+			continue
+		var at: Vector3 = a["entry"]
+		if sim_host.relation(int(a["owner"])) == 2:
+			feed.post("enemy_reinforce", tr(TEXT_ENEMY_REINFORCEMENTS), at)
+		else:
+			feed.post("reinforce", tr(TEXT_REINFORCEMENTS), at)
+		feed.add_ping(at)
+		arrivals_reported += 1
 
 
 ## Path of the running mission's file, for its translations (prompt 043).

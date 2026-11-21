@@ -71,8 +71,9 @@ point = "supply_meadow_west"
 actions = [
   { do = "objective", objective = "take", state = "done" },
   { do = "text", text = "The point is ours. German tanks are coming from the north: hold the meadow." },
-  { do = "spawn", group = "counter", owner = 1, unit = "de_pz4_h", count = 1, at = "north_west" },
-  { do = "spawn", group = "counter", owner = 1, unit = "de_inf_rifle_squad", count = 2, at = "north_west" },
+  { do = "spawn", group = "counter", owner = 1, unit = "de_pz4_h", count = 1, at = "north_west", arrive = "drive" },
+  { do = "spawn", group = "counter", owner = 1, unit = "de_sdkfz251_1", count = 2, at = "north_west", arrive = "drive" },
+  { do = "spawn", group = "counter", owner = 1, unit = "de_inf_rifle_squad", count = 2, at = "north_west", arrive = "drive", ride = "counter" },
   { do = "order", group = "counter", to = "meadow_west", order = "move" },
   { do = "objective", objective = "counter", state = "active" },
   { do = "camera", at = "meadow_west" },

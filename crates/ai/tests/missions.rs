@@ -231,8 +231,23 @@ fn every_mission_can_be_won() {
                 .all(|o| o.state == ObjectiveState::Done),
             "{map_name}/{id}: {objectives:?}"
         );
+        let arrivals: Vec<String> = sim
+            .mission_arrivals()
+            .iter()
+            .map(|a| {
+                format!(
+                    "p{} ({}, {}) -> ({}, {}) at tick {}",
+                    a.owner.0,
+                    a.entry.x.to_num::<i32>(),
+                    a.entry.y.to_num::<i32>(),
+                    a.to.x.to_num::<i32>(),
+                    a.to.y.to_num::<i32>(),
+                    a.tick
+                )
+            })
+            .collect();
         println!(
-            "{map_name}/{id}: won at tick {} ({} s game time), {} units",
+            "{map_name}/{id}: won at tick {} ({} s game time), {} units, columns driving in {arrivals:?}",
             sim.tick(),
             sim.tick() / 20,
             sim.snapshot().units.len()
@@ -300,4 +315,47 @@ fn debug_units() {
             );
         }
     }
+}
+
+/// Prompt 108: every column that drives in (`arrive = "drive"`) finds a
+/// path from its entry to its place for its unit type, the entry stands on
+/// ground the type can drive on.
+#[test]
+fn every_driving_entry_reaches_its_place() {
+    use sim::mission::{Action, Arrival};
+    let mut checked = 0;
+    for (map_name, id, path) in &mission_files() {
+        let map = load_map(map_name);
+        let config = config_of(&map, map_name, id, path);
+        let grid = sim::path::PathGrid::new(&map, &config.terrain, &config.unit_types);
+        for t in &config.mission.as_ref().unwrap().triggers {
+            for a in &t.actions {
+                let Action::Spawn {
+                    unit_type,
+                    at,
+                    arrival: Arrival::Drive { entry },
+                    ..
+                } = a
+                else {
+                    continue;
+                };
+                let profile = *unit_type as usize;
+                let name = &config.unit_types[profile].name;
+                assert!(
+                    grid.passable_for(profile, *entry),
+                    "{map_name}/{id}: entry {entry:?} of {name} not passable"
+                );
+                let found = grid
+                    .find_path(*entry, *at, profile)
+                    .unwrap_or_else(|| panic!("{map_name}/{id}: no path for {name}"));
+                assert!(
+                    (found.goal - *at).length() < sim::Fixed::from_num(10),
+                    "{map_name}/{id}: {name} only reaches {:?}",
+                    found.goal
+                );
+                checked += 1;
+            }
+        }
+    }
+    assert!(checked >= 3, "driving spawns checked: {checked}");
 }
