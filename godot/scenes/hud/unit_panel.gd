@@ -25,6 +25,9 @@ extends PanelContainer
 ##   "Values" (above the tiles with several units): `center_button` lets
 ##   the camera glide to the active unit, the toggle `follow_button` is the
 ##   follow mode (key C) and always shows its state.
+## - Prompt 109: an own vehicle with riders (the single unit, or the active
+##   one of several) lists them as tiles under the rest (`rider_tiles.gd`):
+##   click puts exactly that squad off or unhitches that gun.
 ## - Fades in and out (`HudTheme.fade`); `hud.gd` places it.
 
 ## The unit card of this catalog id is wanted, for unit `unit` (prompt 066).
@@ -40,6 +43,7 @@ const HudTheme := preload("res://scenes/hud/hud_theme.gd")
 const HudIcons := preload("res://scenes/hud/hud_icons.gd")
 const Thumbnail := preload("res://scenes/hud/thumbnail.gd")
 const Picker := preload("res://scenes/hud/picker.gd")
+const RiderTiles := preload("res://scenes/hud/rider_tiles.gd")
 const UNIT_SCENE: PackedScene = preload("res://scenes/unit.tscn")
 const REFRESH := 0.2
 ## Height of the ratings strip under the portrait (prompt 066).
@@ -79,6 +83,8 @@ var _corner: HBoxContainer
 var _box: VBoxContainer
 ## Active unit the tiles show.
 var _shown_active := -1
+## Riders of the shown vehicle (prompt 109; self-test).
+var riders: RiderTiles
 
 ## Symbol chips of the single unit (self-test): hit points, soldiers.
 var health_chip: Chip
@@ -229,6 +235,9 @@ func setup(main_node: Node3D) -> void:
 	box.add_child(_grid)
 	_more = Label.new()
 	box.add_child(_more)
+	riders = RiderTiles.new()
+	riders.setup(main)
+	box.add_child(riders)
 	visible = false
 	apply_scale()
 
@@ -259,6 +268,7 @@ func apply_scale() -> void:
 		button.custom_minimum_size = Vector2(HudTheme.px(22), HudTheme.px(20))
 	for tile: Control in _grid.get_children():
 		tile.custom_minimum_size = (TILE_SIZE * HudTheme.scale).round()
+	riders.apply_scale()
 	size = Vector2.ZERO
 
 
@@ -281,6 +291,9 @@ func _process(delta: float) -> void:
 	if active != _shown_active:
 		_shown_active = active
 		_mark_active()
+		if selected.size() > 1:
+			riders.show_for(active)
+	riders.follow_leaving()
 	# The buttons show the state whoever changed it (key, hand pan, ...).
 	center_button.disabled = active < 0
 	if follow_button.button_pressed != main.selection.follow:
@@ -293,7 +306,9 @@ func _refresh(selected: Array[int]) -> void:
 	_shown = selected.duplicate()
 	HudTheme.fade(self, not selected.is_empty())
 	if selected.is_empty():
+		riders.show_for(-1)
 		return
+	riders.show_for(selected[0] if selected.size() == 1 else main.selection.active_unit)
 	if _own_faction.is_empty():
 		_own_faction = _faction_of_player()
 	center_button.tooltip_text = tr("HUD_TIP_CENTER") % Settings.action_key_name("camera_center")

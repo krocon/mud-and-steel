@@ -1,0 +1,57 @@
+# Riders in the unit panel (prompt 109): an Opel Blitz of player 0 with three
+# small squads (MG 42 team, sniper team, medics: 7 of 16 seats) next to it and
+# a Pak 40 to tow, one unarmed enemy truck in the far corner (the test holds the own
+# fire, so the match goes on). Used by the riders self-test
+# (`just selftest`, scenes/tools/riders_self_test.gd), which mounts the
+# squads, hitches the gun and puts single riders off through the unit
+# panel's tiles. Integers only.
+
+map = "test_small"
+
+[[group]]
+owner = 0
+unit = "de_opel_blitz"
+count = 1
+columns = 1
+spacing_m = 12
+center_m = [0, 30]
+
+[[group]]
+owner = 0
+unit = "de_inf_mg42_team"
+count = 1
+columns = 1
+spacing_m = 8
+center_m = [-12, 40]
+
+[[group]]
+owner = 0
+unit = "de_inf_sniper"
+count = 1
+columns = 1
+spacing_m = 8
+center_m = [-4, 44]
+
+[[group]]
+owner = 0
+unit = "de_inf_medic"
+count = 1
+columns = 1
+spacing_m = 8
+center_m = [4, 44]
+
+[[group]]
+owner = 0
+unit = "de_pak40"
+count = 1
+columns = 1
+spacing_m = 12
+center_m = [14, 40]
+
+[[group]]
+owner = 1
+unit = "su_zis5"
+count = 1
+columns = 1
+spacing_m = 12
+center_m = [240, -240]

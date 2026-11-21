@@ -1199,6 +1199,14 @@ impl Sim {
         (u32::from(n), g)
     }
 
+    /// Living soldiers of squad `id`, also while it rides (the snapshot
+    /// lists only soldiers on the ground); `None` for no squad. Read only,
+    /// for the rider tiles of the unit panel (prompt 109).
+    pub fn squad_alive(&self, id: UnitId) -> Option<u32> {
+        let i = self.index_of(id)?;
+        self.units[i].squad.as_ref().map(|s| s.alive_count())
+    }
+
     /// Seats of unit `id` for soldiers (0: no carrier).
     pub fn seats(&self, id: UnitId) -> u32 {
         self.index_of(id).map_or(0, |i| self.ttype(i).seats)

@@ -51,6 +51,8 @@ extends Node3D
 ## `world/infantry_view.gd` places and animates the soldiers.
 ## `-- --mode=base` starts the base-building skirmish directly (prompt 023);
 ## `-- --scenario=<file>` starts a scenario file of `data/scenarios/`;
+## `--riders-test` / `--riders-shot=<png>` run `tools/riders_self_test.gd` (prompt 109,
+## with `--scenario=riders.toml`).
 ## `-- --infantry-bench` runs `tools/infantry_bench.gd`.
 ## Saved games and replays (prompt 038): the menu hands a saved game or a
 ## replay over (`menu/game_files.gd`); a replay plays with the controls of
@@ -125,6 +127,7 @@ const StrikeView := preload("res://scenes/world/strike_view.gd")
 const BlastShots := preload("res://scenes/tools/blast_shots.gd")
 const TrackShots := preload("res://scenes/tools/track_shots.gd")
 const KillShots := preload("res://scenes/tools/kill_shots.gd")
+const RidersSelfTest := preload("res://scenes/tools/riders_self_test.gd")
 const MissionHud := preload("res://scenes/hud/mission_hud.gd")
 const SEED := 42
 ## Map folders, relative to the Godot project (repository checkout only).
@@ -551,6 +554,11 @@ func _ready() -> void:
 			var kill_shots := KillShots.new()
 			kill_shots.main = self
 			add_child(kill_shots)
+		if arg == "--riders-test" or arg.begins_with("--riders-shot="):
+			camera_rig.edge_scroll_enabled = false
+			var riders_test := RidersSelfTest.new()
+			riders_test.main = self
+			add_child(riders_test)
 		if arg.begins_with("--position-shots="):
 			camera_rig.edge_scroll_enabled = false
 			var position_shots := PositionShots.new()

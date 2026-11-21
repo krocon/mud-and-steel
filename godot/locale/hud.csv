@@ -132,6 +132,10 @@ HUD_WARN_LOW_FUEL,low fuel,wenig Treibstoff
 HUD_WARN_IMMOBILIZED,IMMOBILIZED,BEWEGUNGSUNFÄHIG
 HUD_MORE,+%d more,+%d weitere
 HUD_TIP_TILE,Click: select only this unit. Shift + click: remove it.,Klick: nur diese Einheit wählen. Umschalt + Klick: sie abwählen.
+HUD_RIDERS,Aboard %s – click a tile to unload it,An Bord: %s – Kachel anklicken zum Absetzen
+HUD_TIP_RIDER,"Click: only this squad gets off and is selected once outside. Shift + click: add more squads. %s: everybody off.","Klick: nur dieser Trupp steigt aus und ist draußen ausgewählt. Umschalt + Klick: weitere Trupps dazunehmen. %s: alle aussteigen."
+HUD_TIP_RIDER_GUN,"Click: unhitch this gun; it is selected once free. Shift + click: add more.","Klick: dieses Geschütz abkoppeln; frei ist es ausgewählt. Umschalt + Klick: weitere dazunehmen."
+HUD_RIDER_LEAVING,getting off,steigt aus
 HUD_TAB_BASE,Base,Basis
 HUD_TAB_DEFENSE,Defense,Verteidigung
 HUD_TAB_INFANTRY,Infantry,Infanterie

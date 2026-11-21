@@ -119,10 +119,16 @@ run *args: build
 editor: build
     {{ GODOT }} --path godot -e
 
-# Build the bridge and run the headless self-test: translations, menu, settings, three matches (one against the computer), result (exit code 0 = passed)
+# Build the bridge and run the headless self-test: translations, menu, settings, three matches (one against the computer), result, rider tiles (exit code 0 = passed)
 [group('godot')]
 selftest: l10n-check build
     {{ GODOT }} --path godot --headless --fixed-fps 60 -- --self-test
+    {{ GODOT }} --path godot --headless --fixed-fps 60 res://scenes/main.tscn -- --scenario=riders.toml --riders-test
+
+# Picture of the unit panel with rider tiles (prompt 109; needs a window), e.g. `just riders-shot build/riders_panel.png`
+[group('godot')]
+riders-shot file="build/riders_panel.png": build
+    {{ GODOT }} --path godot --always-on-top --fixed-fps 60 res://scenes/main.tscn -- --scenario=riders.toml "--riders-shot={{ justfile_directory() }}/{{ file }}"
 
 # Check the translations (prompt 043): tables complete, no hard-coded interface text in the game scripts, every mission text translated
 [group('godot')]

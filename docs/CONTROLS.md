@@ -100,6 +100,8 @@ nearest selected unit takes over.
 | Right click with squads on an own truck, halftrack or tank | Mount it (if its seats suffice; prompt 034) |
 | Right click with vehicles on an own towed gun | The nearest vehicle strong enough hitches it |
 | J *(rebindable)* | Passengers of the selected vehicles get off once the vehicle stands |
+| Info field: click on a rider tile | Only this squad gets off (the gun is unhitched); once outside it alone is selected (prompt 109) |
+| Info field: Shift + click on more rider tiles | Collects them: each gets off at once, all are selected together once they stand outside |
 | O *(rebindable)* | Selected vehicles drop their towed guns; selected towed guns are unhitched |
 | K *(rebindable)* | Mark the ground point under the cursor for your allies (ping, prompt 037) |
 | , *(rebindable)* | Next formation: Auto, Line, Wedge, Column, Broad wedge, Dispersed (prompt 046) [provisional] |
@@ -149,6 +151,18 @@ Passengers are hidden in their vehicle and cannot be selected; the info
 field shows "Passengers 9 / 10", "towing …" or "towed by …" and "loading"
 while mounting, dismounting, limbering or unlimbering runs. Dismount and
 Unlimber are also tiles of the order grid (page "More orders").
+
+**Rider tiles** (prompt 109): with an own vehicle selected (one unit, or the
+active one of several) the info field lists under "Aboard …" one tile per
+squad riding in it and per towed gun: picture, short name, soldiers alive /
+squad size, wounded men as an orange number (details in the tooltip), a
+health bar; dim with "getting off" while it gets off. A click puts exactly
+that squad off where J puts everybody off (same order, only its id), or
+unhitches that gun (Unlimber with the gun's id). The vehicle then leaves
+the selection and the squad (or gun) alone is selected once it stands
+outside; Shift + click collects several, selected together once all are
+out. Selecting something else in between drops the switch. J still
+unloads everybody. Vehicles of other players show no rider tiles.
 
 ## Formations (prompt 046)
 

@@ -139,12 +139,17 @@ impl SimHost {
         d.set("hp", i64::from(unit.hp));
         d.set("max_hp", i64::from(unit.max_hp));
         if ty.combat.squad_size > 0 {
-            let alive = self
-                .current
-                .soldiers
-                .iter()
-                .filter(|s| s.unit == unit.id && s.hp > 0)
-                .count();
+            // Riders have no soldiers in the snapshot (prompt 109).
+            let riding = unit.carrier.and_then(|_| game.sim.squad_alive(unit.id));
+            let alive = match riding {
+                Some(n) => n as usize,
+                None => self
+                    .current
+                    .soldiers
+                    .iter()
+                    .filter(|s| s.unit == unit.id && s.hp > 0)
+                    .count(),
+            };
             d.set("soldiers", alive as i64);
             d.set("squad_size", i64::from(ty.combat.squad_size));
         }
