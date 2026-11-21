@@ -350,7 +350,7 @@ Vom Nutzer nach Prompt 097 im Spiel bemerkt (2026-11-20). Unabhängig voneinande
 | 166 | [Routenlinien der Auswahl aufräumen](166-routenlinien-aufraeumen.md) | Statt einer vollen Pfadlinie pro ausgewählter Einheit (bis 48, quer übers Bild) eine gemeinsame Darstellung pro Befehl (Ziel, Wegpunktkette, eine Linie von der Gruppe), volle Linien nur kurz nach dem Befehl, mit Shift, unter der Maus oder per Taste; keine Linien von Einheiten außerhalb des Bildes quer über den Schirm; Einstellung Aus / Nur Ziele / Kurz nach Befehl / Immer; F5-Debug bleibt; reine Darstellung, Bilder vorher/nachher | offen |
 | 167 | [Blaue und gelbe Balken für eigene Einheiten, dezenteres Hervorheben](167-blauer-balken-und-dezenteres-hervorheben.md) | Eigene Einheit zeigt kurze Gesundheitsbalken: blau unter der Maus, gelb wenn ausgewählt, Trupps mehrere kurze Balken treppenartig je Mann (Tab: alle); Hervorheben unter der Maus nur noch für die eine Einheit unter dem Zeiger (dieselbe Regel wie der Klick) statt Umkreis 20–80 m, Ring und Aufhellen leiser; Unterscheidung zu blauen Verbündeten und Farbschwäche-Paletten klären; Selbsttest aus 164 umstellen, nicht lockern; Bilder vorher/nachher | offen |
 
-### Außer der Reihe: Karten nach dem Meta-Prompt (168)
+### Außer der Reihe: Karten nach dem Meta-Prompt und Bildvorlagen (168–169)
 
 Vorlagen, die eine andere KI nach [`meta/karte-2d-vorlage.md`](meta/karte-2d-vorlage.md)
 als SVG-Bauplan mit Beschreibung (und Bild) vorbereitet hat.
@@ -358,6 +358,7 @@ als SVG-Bauplan mit Beschreibung (und Bild) vorbereitet hat.
 | Nr. | Prompt | Ziel | Status |
 |-----|--------|------|--------|
 | 168 | [Karte nach Vorlage: Westfront](168-karte-westfront.md) | Braucht 124; empfohlen nach 131, 122. Skizzenkarte `western_front` (4 × 2 km, 1 gegen 1 und 2 gegen 2 West gegen Ost, punktsymmetrisch) nach `docs/.vorlagen/westfront/`: Anordnung nach dem Bild (gewundener Bach Nord–Süd mit drei Steinbrücken auf drei Straßen, Grabenringe um Hügelstellungen und Lager, vordere Bunkerlinie, weites Trichterfeld mit Ruinen, Kirchdörfer und Gehöfte an den Flanken), Maße und Regeln aus SVG und Beschreibung (Fehler der SVG korrigiert: kein Bach, Grabenraster, zu kleine Dörfer); Gassen ≥ 12 m, Furten, Querwege; Brücken-, Symmetrie-, Sicht-, Reichweitenprobe, KI-Turnier | offen |
+| 169 | [Karte nach Bildvorlage: Vier Werke](169-karte-vier-werke.md) | Braucht 124; empfohlen nach 168, 131, 122. Skizzenkarte `four_forts` (4000 × 2250 m, 1 gegen 1 und 2 gegen 2 West gegen Ost, punktsymmetrisch) nur nach dem Bild `docs/.vorlagen/vierwerke/img.webp` (keine SVG): gleiche Grundanordnung wie 168 (gewundener Bach mit drei Steinbrücken auf drei Straßen, Lager an den Enden), aber grünes Sommerland mit Feldern, Raps und heilen Dörfern; vier Festungswerke auf Hügeln (Betonbau, Kuppel, Grabenring, Höckerlinien; Kuppelwerk-Modell als offener Punkt) als Ankerpunkte; lockeres Trichterfeld mit Ruinen; rote Kreuze der Vorlage weggelassen; Gassen ≥ 12 m, Brücken-, Symmetrie-, Sicht-, Reichweitenprobe, KI-Turnier | offen |
 
 ## Festgelegte Grundsätze
 
