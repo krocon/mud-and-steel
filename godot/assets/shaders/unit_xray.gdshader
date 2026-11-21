@@ -14,7 +14,10 @@
 //   triangles and silhouettes are drawn once and the opacity stays even.
 // Transparent things (smoke, dust, water) write no depth and hide nothing.
 // The color is an instance parameter (`xray_color`, per mesh): one material
-// for all units.
+// for all units. Its index is fixed: instance parameters of all materials
+// on a mesh share one slot list, and without it `xray_color` took the slot
+// of `camo_base` in unit_camo.gdshader (13 instance parameters, 0-12) and
+// painted the vehicles in the silhouette color.
 shader_type spatial;
 render_mode unshaded, blend_mix, depth_draw_never, depth_test_inverted, cull_back,
 		shadows_disabled, fog_disabled;
@@ -27,7 +30,7 @@ const float MIN_GAP_M = 0.3;
 // Edges of the silhouette (grazing angles) are drawn this much stronger.
 const float RIM_GAIN = 0.45;
 
-instance uniform vec4 xray_color : source_color = vec4(0.35, 0.95, 0.4, 0.6);
+instance uniform vec4 xray_color : source_color, instance_index(14) = vec4(0.35, 0.95, 0.4, 0.6);
 uniform sampler2D depth_tex : hint_depth_texture, filter_nearest;
 
 void fragment() {
