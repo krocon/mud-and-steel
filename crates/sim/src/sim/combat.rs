@@ -6,6 +6,7 @@
 //! projectiles), unit movement, [`Sim::fly_projectiles`] (flight, hits,
 //! destruction).
 
+use super::alert;
 use super::infantry::{InfantryRt, inside};
 use super::{Route, Sim, Unit, stop};
 use crate::combat::{
@@ -552,6 +553,10 @@ impl Sim {
         let ty = self.units[i].unit_type as usize;
         let goal = self.goal(i, retarget);
         let Some(goal) = goal else {
+            // Towards fire from where it does not look (prompt 110).
+            if self.alert_turn(i) {
+                return false;
+            }
             // Back to the front.
             let unit = &mut self.units[i];
             let facing = unit.facing;
@@ -995,7 +1000,7 @@ impl Sim {
 
     /// Turns the turret (or, for casemates, the hull) of unit `i` towards
     /// `want`; returns whether the gun points there.
-    fn turn_to(&mut self, i: usize, want: Vec2) -> bool {
+    pub(super) fn turn_to(&mut self, i: usize, want: Vec2) -> bool {
         let ty = &self.types[self.units[i].unit_type as usize];
         let unit = &mut self.units[i];
         let Some(arc_cos) = ty.arc_cos else {
@@ -1530,6 +1535,28 @@ impl Sim {
                 }
             }
             self.near_miss(point.ground(), p.shooter, p.caliber_mm_x10);
+            // Prompt 110: where the fire came from.
+            let heavy = p.caliber_mm_x10 >= self.tactics.rules.suppression.heavy_caliber_mm_x10;
+            let back = Vec2::new(-d.x, -d.y);
+            let hit_index = unit_hit.map(|(j, ..)| j);
+            if let Some(j) = hit_index
+                && self.hostile_round(j, p.shooter)
+            {
+                let level = if penetrated && damage > 0 {
+                    alert::PENETRATED
+                } else {
+                    alert::BOUNCED
+                };
+                self.report_fire(j, back, level, p.traveled, heavy);
+            }
+            self.report_near_misses(
+                point.ground(),
+                d.ground(),
+                p.shooter,
+                p.traveled,
+                heavy,
+                hit_index,
+            );
             if kind == HitKind::Ground {
                 self.ground_hit(point.ground(), p.caliber_mm_x10);
             }
@@ -1548,6 +1575,13 @@ impl Sim {
         for (j, by, at) in destroyed {
             self.destroy(j, by, at);
         }
+    }
+
+    /// Whether a round of `shooter` comes from an enemy of unit `j`.
+    fn hostile_round(&self, j: usize, shooter: UnitId) -> bool {
+        self.units
+            .binary_search_by_key(&shooter, |u| u.id)
+            .is_ok_and(|k| !self.teams.allied(self.units[k].owner, self.units[j].owner))
     }
 
     /// Armor check of a hit on unit `j`: `(turret, penetrated, damage)`.

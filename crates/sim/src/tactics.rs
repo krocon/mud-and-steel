@@ -1,6 +1,7 @@
 //! Infantry tactics rules (`data/tactics.toml`, prompt 047): fire teams and
 //! bounds, suppression, close firefights, blind fire, mortar teams and
-//! weapon jams. The update itself lives in `sim/tactics.rs`. See
+//! weapon jams; since prompt 110 also how standing vehicles and guns react
+//! to fire from the flank (`[flank]`). The update itself lives in `sim/tactics.rs`. See
 //! docs/INFANTRY.md "Tactics (prompt 047)".
 
 use crate::hash::StableHasher;
@@ -93,6 +94,43 @@ pub struct JamRules {
     pub clear_ms: u32,
 }
 
+/// Reaction of standing vehicles and guns to fire from a direction they
+/// do not look at (prompt 110, `[flank]`).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct FlankRules {
+    pub enabled: u32,
+    pub remember_ms: u32,
+    pub switch_ms: u32,
+    pub react_ms: u32,
+    pub shaken_ms: u32,
+    pub shaken_max_ms: u32,
+    pub near_miss_mm: u32,
+    pub same_deg: u32,
+    pub ordered_hold_ms: u32,
+}
+
+impl FlankRules {
+    /// The reaction switched off (saved games from before prompt 110).
+    pub const OFF: Self = Self {
+        enabled: 0,
+        remember_ms: 0,
+        switch_ms: 0,
+        react_ms: 0,
+        shaken_ms: 0,
+        shaken_max_ms: 0,
+        near_miss_mm: 0,
+        same_deg: 0,
+        ordered_hold_ms: 0,
+    };
+}
+
+impl Default for FlankRules {
+    fn default() -> Self {
+        Self::OFF
+    }
+}
+
 /// All tactics rules.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -103,6 +141,9 @@ pub struct TacticsRules {
     pub blind_fire: BlindFireRules,
     pub mortar: MortarRules,
     pub jams: JamRules,
+    /// Prompt 110; missing in saved games from before (then off).
+    #[serde(default)]
+    pub flank: FlankRules,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -190,6 +231,20 @@ impl TacticsRules {
         check("jams.enabled", j.enabled, 0, 1)?;
         check("jams.per_100k", j.per_100k, 0, 100_000)?;
         check("jams.clear_ms", j.clear_ms, 0, 600_000)?;
+        let k = &rules.flank;
+        check("flank.enabled", k.enabled, 0, 1)?;
+        for (name, v) in [
+            ("remember_ms", k.remember_ms),
+            ("switch_ms", k.switch_ms),
+            ("react_ms", k.react_ms),
+            ("shaken_ms", k.shaken_ms),
+            ("ordered_hold_ms", k.ordered_hold_ms),
+        ] {
+            check(&format!("flank.{name}"), v, 0, 600_000)?;
+        }
+        check("flank.shaken_max_ms", k.shaken_max_ms, k.react_ms, 600_000)?;
+        check("flank.near_miss_mm", k.near_miss_mm, 0, 100_000)?;
+        check("flank.same_deg", k.same_deg, 0, 180)?;
         Ok(rules)
     }
 
@@ -204,6 +259,7 @@ impl TacticsRules {
         let b = &self.blind_fire;
         let m = &self.mortar;
         let j = &self.jams;
+        let k = &self.flank;
         for v in [
             f.min_size,
             f.bound_min_mm,
@@ -238,6 +294,15 @@ impl TacticsRules {
             j.enabled,
             j.per_100k,
             j.clear_ms,
+            k.enabled,
+            k.remember_ms,
+            k.switch_ms,
+            k.react_ms,
+            k.shaken_ms,
+            k.shaken_max_ms,
+            k.near_miss_mm,
+            k.same_deg,
+            k.ordered_hold_ms,
         ] {
             h.write_u32(v);
         }
@@ -259,6 +324,9 @@ mod tests {
         let bad = BUILTIN_TACTICS.replace("unpinned_at = 30", "unpinned_at = 70");
         assert!(TacticsRules::parse(&bad).is_err());
         let bad = BUILTIN_TACTICS.replace("enabled = 1", "enabled = 2");
+        assert!(TacticsRules::parse(&bad).is_err());
+        assert_eq!(rules.flank.enabled, 1);
+        let bad = BUILTIN_TACTICS.replace("same_deg = 30", "same_deg = 200");
         assert!(TacticsRules::parse(&bad).is_err());
         let unknown = format!("{BUILTIN_TACTICS}\n[extra]\nx = 1\n");
         assert!(TacticsRules::parse(&unknown).is_err());

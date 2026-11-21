@@ -169,6 +169,17 @@ Prompt 046, `crates/sim/src/formation.rs` (shapes) and
 - **Facing:** a standing unit without a fight turns its hull to the facing
   of the order (turret speed rules: `hull_step`); squads turn their soldier
   formation with it.
+- **Fire from the flank (prompt 110):** `crates/sim/src/sim/alert.rs`.
+  Hits and near misses (rounds of another player within `near_miss_mm` of
+  the hull) are reported from `fly_projectiles`; a vehicle or gun keeps the
+  direction of the most dangerous fire in `Unit::alert` and, standing
+  without a target, turns there in `aim_main` (`turn_to`, the same turn
+  rules as for targets). An explicit facing of `FormationMove`/`Secure`
+  holds against it for `ordered_hold_ms` after it was reached. Rules:
+  `[flank]` in `data/tactics.toml`; the alert is hashed after the drills
+  for units that have one. `Sim::alert_direction` and
+  `UnitSnapshot::alert` (own units only in a filtered snapshot) serve the
+  AI and tests (`crates/sim/tests/flank.rs`).
 - Other orders drop task and facing; a waypoint (`QueueMove`) only ends
   securing, and a queue continues after an attack-move (`idle` waits for it).
 - **State:** `Unit::drill` (serde, so in saved games); hashed after all other

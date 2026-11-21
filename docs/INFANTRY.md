@@ -576,6 +576,9 @@ fire, hits), `sim/drill.rs` (attack-move) and `sim/indirect.rs` (mortar
 targets, blasts). Tests: `crates/sim/tests/tactics.rs`,
 `crates/net/tests/snapshot_tactics.rs`. Values are [provisional] until the
 playtests of prompt 045.
+The file's `[flank]` section (prompt 110) is not about squads: it rules how
+standing vehicles and guns turn towards fire from the flank (GAME_DESIGN.md
+"Fire from the flank"); squads have no alert.
 
 - **Fire teams:** a squad of at least 6 living soldiers (both halves with at
   least two) splits by roster order: the first half (leader and the squad's

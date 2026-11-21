@@ -44,6 +44,9 @@ pub(super) struct TacticsRt {
     recover: u32,
     remember: u32,
     jam_clear: u32,
+    /// `[flank]` in ticks (prompt 110; off in older saved games).
+    #[serde(default)]
+    pub(super) flank: super::alert::FlankRt,
 }
 
 /// Ticks of `ms` real milliseconds at `tick_hz` with the time factor
@@ -84,6 +87,16 @@ impl TacticsRt {
             recover: rules.suppression.recover_per_s * MILLI / per_second,
             remember: t(rules.blind_fire.remember_ms),
             jam_clear: t(rules.jams.clear_ms),
+            // The same time factor; a match without infantry takes that of
+            // its first vehicle.
+            flank: super::alert::FlankRt::new(&rules.flank, |ms| {
+                let general = unit_types
+                    .iter()
+                    .find(|t| t.combat.is_infantry())
+                    .or_else(|| unit_types.first())
+                    .map_or((1, 1), |t| t.combat.time_ratio);
+                ticks(ms, tick_hz, general)
+            }),
             rules,
         }
     }

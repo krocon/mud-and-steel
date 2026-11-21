@@ -21,7 +21,14 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by prompt 106 (heavy vehicles push trees over), an
+/// Last changed by prompt 110 (guns and standing tanks react to fire from
+/// the flank), an intended rule change: the hashed tactics rules have the
+/// new `[flank]` section, and units that remember where fire came from
+/// hash that alert after the drills. Standing units without a target now
+/// turn towards hits; the demo battle is still decided at tick 603 by
+/// player 0.
+///
+/// Before (`0x7aed_4dec_7cbe_20b2`), prompt 106 (heavy vehicles push trees over), an
 /// intended rule change: the hashed destruction rules have per-variant
 /// crush limits (`crush_variants`) and the dense-stand check
 /// (`stand_radius_mm`, `stand_min_objects`) of the tree class. The demo
@@ -311,7 +318,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x7aed_4dec_7cbe_20b2;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xd68a_2529_06b0_2b43;
 
 #[test]
 fn golden_hash() {

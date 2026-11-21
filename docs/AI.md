@@ -384,6 +384,42 @@ group):
 Tank riders are not used by the AI (players only). Test:
 `ai_rides_trucks_and_tows_guns` (`crates/ai/tests/ai.rs`).
 
+Prompt 110: the guns of one place stand side by side, 20 m apart across the
+direction of the enemy home (by unit id), and once set up each turns to a
+facing whose aim point lies 100 m ahead and twice its side offset off the
+center line (`FormationMove` on the spot with a facing): the outer guns look
+outwards, so the arcs cover each other's flanks. Not for `HardOld`.
+
+## Fire from the flank (prompt 110)
+
+`crates/ai/src/flank.rs`, Easy, Normal and Hard (not `HardOld`). The
+simulation turns every standing vehicle and gun towards hits on its own
+(`[flank]` in `data/tactics.toml`, GAME_DESIGN.md "Fire from the flank");
+the view gives the AI the hull direction and the remembered direction of
+fire of its own units (`OwnUnit::facing`, `OwnUnit::alert`). The AI only
+decides when a position is lost:
+
+- Who: own guns and armored vehicles (roles `Gun`, `Armor`) that stand
+  (no move target), tow nothing and lost hit points since the last think,
+  with fire remembered from more than 60° off the hull front.
+- When: they cannot answer (no enemy seen within their range within 45° of
+  that direction) or are below 40 % of their hit points.
+- What: a vehicle with smoke rounds lays two smoke salvos 40 m towards the
+  fire (within its ranges); other armor backs off 40 m away from the fire
+  (`MoveTo`) and its group leaves it alone for 20 s; a gun is towed 40 m
+  back by the nearest free tractor within 250 m that can pull it, and set
+  up there facing the fire (the transport keeps the new place until the gun
+  is unlimbered). A gun without a tractor stays and keeps turning (the
+  simulation has no crew that leaves its gun for cover).
+- At most once per minute per unit, so the AI does not regroup at every
+  shot.
+
+Tests: `crates/ai/src/flank.rs` (a tank hit from the side by an unseen
+enemy backs off, not again within the cooldown; fire from the front or from
+a seen enemy changes nothing; a flanked gun is towed away by a nearby
+truck, without one it stays). Test scenario with numbers: BALANCE.md
+"Fire from the flank (prompt 110)".
+
 ## Supply and repair (prompt 036)
 
 `crates/ai/src/supply.rs`, all difficulties. The view carries every own
@@ -581,7 +617,7 @@ factions each AI plays both Germany and the Soviet Union. A game not decided
 after 6000 ticks (5 min) is a timeout. Games run on all cores; every game is its
 own deterministic simulation, so the **result hash** over all games is the same
 for any number of threads and on every run (checked: `--jobs 1` and parallel
-give `0x4f59adf0e6662daf` for the default matrix).
+give `0xc9539c0a6296c902` for the default matrix, measured with prompt 110).
 
 Results (40 games per pairing, seeds 1–40, Apple M1 Max, release; all
 pairings of all four faction settings take about 3 s together):
@@ -783,6 +819,9 @@ lost engineers rebuilt again and again).
 - `crates/ai/tests/commander.rs` (prompt 051): Hard surrenders when its
   rifles see only tanks, the old Hard does not; Hard attacks a passive
   tank platoon from the flank, not along the direct line.
+- `crates/ai/src/flank.rs` (prompt 110): flanked guns and tanks; the
+  measurement `crates/ai/tests/flank_scenario.rs` (ignored, prints a
+  table).
 - `crates/ai/tests/economy.rs` (prompt 023): every level builds barracks
   and depot and produces units against the passive enemy; base matches
   between two AIs are reproducible and both sides build.

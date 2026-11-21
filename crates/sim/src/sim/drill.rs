@@ -67,6 +67,12 @@ impl Drill {
         self.task.is_some()
     }
 
+    /// The unit still turns to a facing (prompt 110: that wins over the
+    /// reaction to fire).
+    pub(super) const fn facing_pending(&self) -> bool {
+        self.facing.is_some()
+    }
+
     /// The unit attack-moves (prompt 047: squads bound).
     pub(super) const fn advancing(&self) -> bool {
         matches!(self.task, Some(Task::Advance { .. }))
@@ -129,6 +135,9 @@ impl Sim {
             return;
         }
         for index in self.owned_indices(command.player, command.command.units()) {
+            if !queue {
+                self.units[index].alert.set_ordered(false);
+            }
             let drill = &mut self.units[index].drill;
             if queue {
                 if matches!(drill.task, Some(Task::Secure { .. })) {
@@ -172,6 +181,8 @@ impl Sim {
                 Engage::Infantry => self.units[i].squad.is_some(),
                 Engage::All => true,
             };
+            // An explicit facing holds against fire for a while (prompt 110).
+            self.units[i].alert.set_ordered(facing.is_some());
             let drill = &mut self.units[i].drill;
             drill.facing = Some(forward);
             drill.task = fights.then_some(Task::Advance {
@@ -529,6 +540,7 @@ impl Sim {
         unit.facing = facing;
         if done {
             unit.drill.facing = None;
+            self.facing_reached(i);
         }
     }
 

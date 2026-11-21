@@ -109,3 +109,35 @@ halt_on_attack_move = 1
 enabled = 1
 per_100k = 1000
 clear_ms = 5000
+
+[flank]
+# Prompt 110: vehicles and guns (not squads) that stand without a target
+# remember where fire came from and turn there: turreted vehicles their
+# turret, guns and casemate vehicles their carriage or hull (with the turn
+# speeds of `[aim]` in data/combat.toml). They do not see the shooter
+# because of it; they fire once the normal sight rules show him. Counts:
+# hits on them and rounds of another player landing within `near_miss_mm`
+# of their hull, from the direction the round flew in. 0 = off.
+enabled = 1
+# The direction is remembered this long after the last round from it.
+remember_ms = 20000
+# Rounds from another direction (more than `same_deg` off) take over only
+# when they are more dangerous (a penetrating hit before a bounced one, a
+# hit before a near miss, then the shorter flight) and the current
+# direction is at least `switch_ms` old: no twitching back and forth.
+switch_ms = 6000
+same_deg = 30
+# The crew starts turning `react_ms` after the first round. Every round of
+# `suppression.heavy_caliber_mm_x10` and more that hits or lands near the
+# vehicle keeps its crew down another `shaken_ms`, up to `shaken_max_ms`:
+# a crew under heavy fire turns late. [provisional]
+react_ms = 2000
+shaken_ms = 3000
+shaken_max_ms = 12000
+near_miss_mm = 6000
+# A facing the player ordered (formation move or securing with a facing)
+# holds this long after the unit reached it; rounds meanwhile are
+# remembered, and the unit turns when the hold ends if they still count.
+# Any new order ends the hold; an attack order or an automatic target
+# always wins, hold fire only stops the firing, not the turning.
+ordered_hold_ms = 60000

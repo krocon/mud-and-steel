@@ -5,8 +5,8 @@
 
 use crate::{Ai, OwnUnit, PlayerView, Role, centroid, dist, toward};
 use serde::{Deserialize, Serialize};
-use sim::{Command, Fixed, UnitId, Vec2};
-use std::collections::BTreeMap;
+use sim::{Command, Engage, Fixed, Formation, UnitId, Vec2};
+use std::collections::{BTreeMap, BTreeSet};
 
 /// Passengers get off this far short of the enemy (m), outside the reach
 /// of its guns. Halved with the ranges and sight in prompt 097 (180 m before).
@@ -23,6 +23,15 @@ const GUN_BEHIND_M: i32 = 60;
 const FETCH_FROM_M: i32 = 150;
 /// Distance at which a vehicle counts as arrived (m).
 const ARRIVED_M: i32 = 30;
+/// Guns at one place stand this far apart (m), across the direction of the
+/// enemy (prompt 110).
+const GUN_SPACING_M: i32 = 20;
+/// The aim point of a gun lies [`FAN_AHEAD_M`] ahead and this many times
+/// its side offset off the center line: outer guns look outwards.
+const GUN_FAN: i32 = 2;
+const FAN_AHEAD_M: i32 = 100;
+/// A flanked gun is fetched by a tractor within this distance (m).
+const TRACTOR_M: i32 = 250;
 
 /// Running transport jobs of a computer player.
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
@@ -31,9 +40,22 @@ pub(crate) struct TransportState {
     boarding: BTreeMap<UnitId, (UnitId, u64)>,
     /// Guns a tractor was sent to: gun -> (tractor, tick).
     fetching: BTreeMap<UnitId, (UnitId, u64)>,
+    /// Guns towed out of a flanked position (prompt 110): gun -> (new
+    /// place, facing there).
+    #[serde(default)]
+    relocate: BTreeMap<UnitId, (Vec2, Vec2)>,
+    /// Guns turned to their facing at their place (prompt 110).
+    #[serde(default)]
+    faced: BTreeSet<UnitId>,
 }
 
 impl TransportState {
+    /// The new place and facing of a gun towed out of a flanked position.
+    #[cfg(test)]
+    pub(crate) fn relocate_of(&self, gun: UnitId) -> Option<(Vec2, Vec2)> {
+        self.relocate.get(&gun).copied()
+    }
+
     /// Squads that walk to a carrier (the infantry group leaves them alone).
     pub(crate) fn boarding(&self, id: UnitId, tick: u64) -> bool {
         self.boarding
@@ -76,6 +98,15 @@ impl Ai {
             || self.eco.launched.contains(&Role::Armor);
         let place = self.gun_place(view);
         let towed: Vec<UnitId> = own.iter().filter_map(|u| u.towing).collect();
+        let slots = self.gun_slots(&own, place);
+        let alive_gun = |id: &UnitId| own.iter().any(|u| u.id == *id);
+        let fetching = &self.transport.fetching;
+        self.transport
+            .relocate
+            .retain(|g, _| alive_gun(g) && (towed.contains(g) || fetching.contains_key(g)));
+        self.transport
+            .faced
+            .retain(|g| alive_gun(g) && !towed.contains(g));
         // Carriers leaving the area of an enemy strike are left alone until
         // the strike is over (prompt 097 made this visible: slower trucks).
         let evading = |u: &OwnUnit| self.strike.busy(u.id, tick);
@@ -85,15 +116,20 @@ impl Ai {
         {
             let info = self.type_info(carrier.unit_type);
             // A tractor with a gun brings it to its place and unlimbers.
-            if carrier.towing.is_some() {
-                if dist(carrier.position, place) <= Fixed::from_num(ARRIVED_M) {
+            if let Some(gun) = carrier.towing {
+                let goal = if self.legacy {
+                    place
+                } else {
+                    self.gun_spot(gun, &slots).map_or(place, |(p, _)| p)
+                };
+                if dist(carrier.position, goal) <= Fixed::from_num(ARRIVED_M) {
                     if carrier.target.is_none() {
                         out.push(Command::Unlimber {
                             units: vec![carrier.id],
                         });
                     }
                 } else {
-                    self.drive(carrier, place, out);
+                    self.drive(carrier, goal, out);
                 }
                 continue;
             }
@@ -195,6 +231,7 @@ impl Ai {
                 self.drive(carrier, place, out);
             }
         }
+        self.face_guns(&own, &towed, &slots, out);
     }
 
     /// Where passengers are going: the freshest enemy sighting, else the
@@ -235,6 +272,125 @@ impl Ai {
         )
         .unwrap_or(self.home);
         self.clamp_to_map(toward(self.enemy_home, army, Fixed::from_num(GUN_BEHIND_M)))
+    }
+
+    /// Places of the own guns at `place` (prompt 110): side by side across
+    /// the direction of the enemy, by id, each with the facing that makes
+    /// the outer ones look outwards. Guns towed out of a flanked position
+    /// go to their new place instead ([`Self::gun_spot`]).
+    fn gun_slots(&self, own: &[OwnUnit], place: Vec2) -> BTreeMap<UnitId, (Vec2, Vec2)> {
+        let guns: Vec<UnitId> = own
+            .iter()
+            .filter(|u| self.type_info(u.unit_type).role == Role::Gun)
+            .map(|u| u.id)
+            .collect();
+        let d = self.enemy_home - place;
+        let length = d.length();
+        let forward = if length > Fixed::ZERO {
+            Vec2::new(d.x / length, d.y / length)
+        } else {
+            Vec2::new(Fixed::ZERO, -Fixed::ONE)
+        };
+        let right = Vec2::new(-forward.y, forward.x);
+        let n = i32::try_from(guns.len()).unwrap_or(0);
+        let mut slots = BTreeMap::new();
+        for (k, id) in (0..).zip(guns) {
+            // Half-meter steps keep an even count symmetric.
+            let side = Fixed::from_num((2 * k - (n - 1)) * GUN_SPACING_M) / 2;
+            let spot = self.clamp_to_map(place + right.scale(side));
+            let aim = forward.scale(Fixed::from_num(FAN_AHEAD_M))
+                + right.scale(side * Fixed::from_num(GUN_FAN));
+            let facing = aim.scale(Fixed::ONE / aim.length());
+            slots.insert(id, (spot, facing));
+        }
+        slots
+    }
+
+    /// Where gun `gun` goes and how it faces there: its new place after a
+    /// flanked position, else its slot.
+    fn gun_spot(
+        &self,
+        gun: UnitId,
+        slots: &BTreeMap<UnitId, (Vec2, Vec2)>,
+    ) -> Option<(Vec2, Vec2)> {
+        self.transport
+            .relocate
+            .get(&gun)
+            .or_else(|| slots.get(&gun))
+            .copied()
+    }
+
+    /// Guns standing at their place turn to its facing once (prompt 110).
+    fn face_guns(
+        &mut self,
+        own: &[OwnUnit],
+        towed: &[UnitId],
+        slots: &BTreeMap<UnitId, (Vec2, Vec2)>,
+        out: &mut Vec<Command>,
+    ) {
+        if self.legacy {
+            return;
+        }
+        let guns: Vec<&OwnUnit> = own
+            .iter()
+            .filter(|g| self.type_info(g.unit_type).role == Role::Gun)
+            .filter(|g| g.carrier.is_none() && g.target.is_none() && !towed.contains(&g.id))
+            .filter(|g| !self.transport.faced.contains(&g.id))
+            .collect();
+        for g in guns {
+            let Some((spot, facing)) = self.gun_spot(g.id, slots) else {
+                continue;
+            };
+            if dist(g.position, spot) > Fixed::from_num(ARRIVED_M) {
+                continue;
+            }
+            out.push(Command::FormationMove {
+                units: vec![g.id],
+                target: g.position,
+                formation: Formation::Line,
+                facing: Some(facing),
+                engage: Engage::Never,
+            });
+            self.transport.faced.insert(g.id);
+        }
+    }
+
+    /// A free tractor nearby tows the flanked gun `gun` to `place`, where it
+    /// is set up facing `facing` (prompt 110). Returns whether one was sent.
+    pub(crate) fn tow_away(
+        &mut self,
+        view: &PlayerView,
+        gun: &OwnUnit,
+        place: Vec2,
+        facing: Vec2,
+        out: &mut Vec<Command>,
+    ) -> bool {
+        let tick = view.tick;
+        let tractor = view
+            .own
+            .iter()
+            .filter(|t| t.alive() && t.carrier.is_none() && t.towing.is_none())
+            .filter(|t| t.passengers == 0)
+            .filter(|t| {
+                let info = self.type_info(t.unit_type);
+                info.role == Role::Transport && info.tows
+            })
+            .filter(|t| !self.transport.fetching.values().any(|&(c, _)| c == t.id))
+            .filter(|t| !self.strike.busy(t.id, tick))
+            .filter(|t| dist(t.position, gun.position) <= Fixed::from_num(TRACTOR_M))
+            .filter(|t| self.can_pull(t.unit_type, gun.unit_type))
+            .min_by_key(|t| (dist(t.position, gun.position), t.id));
+        let Some(tractor) = tractor else {
+            return false;
+        };
+        out.push(Command::Tow {
+            units: vec![tractor.id],
+            gun: gun.id,
+        });
+        self.transport.fetching.insert(gun.id, (tractor.id, tick));
+        self.transport.relocate.insert(gun.id, (place, facing));
+        self.transport.faced.remove(&gun.id);
+        true
     }
 
     /// Sends a vehicle to `target` unless it already drives there.

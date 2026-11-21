@@ -16,6 +16,7 @@ use std::fmt;
 use std::sync::Arc;
 
 mod air;
+mod alert;
 mod care;
 mod combat;
 mod craters;
@@ -271,6 +272,9 @@ struct Unit {
     /// (prompt 093, `[crush]` in `data/destruction.toml`).
     #[serde(default)]
     crush_slow: u32,
+    /// Where it was last fired at from, ordered facing hold (prompt 110).
+    #[serde(default)]
+    alert: alert::Alert,
 }
 
 impl Unit {
@@ -347,6 +351,9 @@ pub struct UnitSnapshot {
     pub stock: StockView,
     /// Experience points, rank and kills (prompt 050).
     pub experience: ExperienceView,
+    /// Where the unit remembers being fired at from (prompt 110): only for
+    /// the player's own units in a filtered snapshot.
+    pub alert: Option<Vec2>,
 }
 
 /// Presentation data of one soldier of a squad (prompt 022).
@@ -845,6 +852,7 @@ impl Sim {
         self.update_stances();
         self.care_speed();
         self.rebuild_unit_grid();
+        self.update_alerts();
         self.aim_and_fire();
         self.update_drills();
         self.update_tactics();
@@ -1595,6 +1603,7 @@ impl Sim {
         self.hash_transport(&mut h);
         self.hash_logistics(&mut h);
         self.hash_drills(&mut h);
+        self.hash_alerts(&mut h);
         // Clear weather by day changes nothing and is left out, so matches
         // without weather keep their hashes (prompt 040).
         if !self.weather.is_default() {
@@ -1633,11 +1642,9 @@ impl Sim {
         let loads = self.transport_loads();
         out.tick = self.tick;
         out.units.clear();
-        out.units.extend(
-            self.units
-                .iter()
-                .filter(|u| shown(u))
-                .map(|u| UnitSnapshot {
+        out.units
+            .extend(self.units.iter().filter(|u| shown(u)).map(|u| {
+                UnitSnapshot {
                     id: u.id,
                     owner: u.owner,
                     unit_type: u.unit_type,
@@ -1659,8 +1666,12 @@ impl Sim {
                     loading: self.transport_busy(u.id),
                     stock: self.stock_view(u),
                     experience: self.experience.view(u.veterancy),
-                }),
-        );
+                    alert: u
+                        .alert
+                        .direction()
+                        .filter(|_| player.is_none_or(|p| p == u.owner)),
+                }
+            }));
         out.projectiles.clear();
         out.projectiles
             .extend(self.projectiles.iter().map(|p| p.snapshot(self.tick_hz)));
@@ -2176,6 +2187,7 @@ fn new_unit(n: &NewUnit<'_>) -> Unit {
         drill: drill::Drill::default(),
         veterancy: experience::Veterancy::default(),
         crush_slow: 0,
+        alert: alert::Alert::default(),
     }
 }
 

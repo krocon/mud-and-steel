@@ -28,6 +28,10 @@ pub struct OwnUnit {
     pub stock: StockView,
     /// Rank index (prompt 050; 0 = recruit).
     pub rank: u8,
+    /// Hull direction (prompt 110).
+    pub facing: Vec2,
+    /// Where it remembers being fired at from (prompt 110).
+    pub alert: Option<Vec2>,
 }
 
 impl OwnUnit {
@@ -133,6 +137,8 @@ impl PlayerView {
                     towing: u.towing,
                     stock: u.stock,
                     rank: u.experience.rank,
+                    facing: u.facing,
+                    alert: u.alert,
                 });
             } else {
                 let seen = SeenUnit {

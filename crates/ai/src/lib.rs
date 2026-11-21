@@ -17,6 +17,7 @@ mod bridgelayer;
 mod commander;
 mod economy;
 mod engineers;
+mod flank;
 pub mod game;
 mod intel;
 mod scout;
@@ -408,6 +409,9 @@ pub struct Ai {
     /// Heavy strikes: own calls and evading enemy ones (prompt 054).
     #[serde(default)]
     strike: strike::StrikeState,
+    /// Guns and standing vehicles under fire from the flank (prompt 110).
+    #[serde(default)]
+    flank: flank::FlankState,
     /// Situation picture: losses, known enemies (prompt 051).
     #[serde(default)]
     intel: intel::Intel,
@@ -662,6 +666,7 @@ impl Ai {
                 )
             }),
             strike: strike::StrikeState::default(),
+            flank: flank::FlankState::default(),
             intel: intel::Intel::default(),
             army: commander::ArmyPlan::default(),
             surrender: surrender::SurrenderState::default(),
@@ -760,6 +765,9 @@ impl Ai {
         self.think_economy(view, &mut out);
         self.think_air(view, &mut out);
         self.think_strike(view, &mut out);
+        if !self.legacy {
+            self.think_flank(view, &mut out);
+        }
         self.command_transport(view, &mut out);
         self.command_supply(view, &mut out);
         self.command_engineers(view, &mut out);
@@ -782,6 +790,7 @@ impl Ai {
                 .filter(|u| u.carrier.is_none() && !self.transport.boarding(u.id, view.tick))
                 .filter(|u| !self.supply.busy(u.id))
                 .filter(|u| !self.strike.busy(u.id, view.tick))
+                .filter(|u| !self.flank.busy(u.id, view.tick))
                 .copied()
                 .collect();
             if units.is_empty() {

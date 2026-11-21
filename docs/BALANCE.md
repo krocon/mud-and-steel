@@ -622,7 +622,61 @@ same seeds, Apple M1 Max, release.
 - **Simulation cost** (`just bench`, 504 units): 3.05 → 2.93 ms per tick
   (noise), setup 410 → 408 ms: the dense-stand check runs once per match.
 
+## Fire from the flank (prompt 110)
+
+Measured 2026-11-21 with `main` before prompt 110 ("before") and after it,
+same seeds, Apple M1 Max, release.
+
+- **Difficulty matrix** (`just ai-tournament`, demo, 40 games per pairing):
+  every win rate, mean time, units left and timeout unchanged; only the
+  hashes differ (the rules are in them). Tournament hash
+  `0xc9539c0a6296c902` (before `0x6f0ce18bbb7f33a9`).
+- **Test scenario** (`crates/ai/tests/flank_scenario.rs`, run with
+  `cargo test --release -p ai --test flank_scenario -- --ignored
+  --nocapture`): three guns 20 m apart on flat ground facing north, four
+  T-34 (1943) attack-move at them from 140 m north (front) or east (flank),
+  ten seeds, at most 2 minutes. Means per game, before → after:
+
+| Defenders | Attack | guns lost | T-34 lost | seconds |
+|---|---|---|---|---|
+| 3 StuG III G, fire at will | front | 2.8 → 2.8 | 1.7 → 1.7 | 16 → 16 |
+| 3 StuG III G, fire at will | flank | 3.0 → 3.0 | 0.0 → 0.0 | 15 → 15 |
+| 3 StuG III G, hold fire | front | 3.0 → 3.0 | 0 → 0 | 12 → 12 |
+| 3 StuG III G, hold fire | flank | 3.0 → 3.0 | 0 → 0 | 13 → 13 |
+| 3 PaK 40 + truck, Normal AI | front | 1.3 → 1.3 | 4.0 → 4.0 | 14 → 14 |
+| 3 PaK 40 + truck, Normal AI | flank | 3.0 → 3.0 | 0.2 → 0.2 | 19 → 23 |
+| 3 StuG III G, Normal AI | front | 3.0 → 3.0 | 0.8 → 0.8 | 10 → 10 |
+| 3 StuG III G, Normal AI | flank | 3.0 → 3.0 | 0.9 → 0.9 | 16 → 16 |
+
+  **Reading the numbers.** On open ground the new reaction changes almost
+  nothing, because a unit that fires at will already turns to every enemy
+  it sees, and here every shooter is seen: sight (250 m) is far beyond the
+  weapon ranges (about 87 m), and woods, houses and crests block sight both
+  ways. What makes the flank attack a free shot in this scenario is
+  geometry: the T-34s meet the guns one after the other along the line
+  (the next gun is 20 m farther, out of range), four against one each
+  time, into the thin side armor of the StuG (30 mm against 80 mm front).
+  The AI tows a flanked PaK away (the flank fight lasts 4 s longer) but
+  does not win it. The reaction pays where a unit does not fire at its
+  shooter: hold fire (an ambush) turns the front armor towards the hits,
+  and a unit hit before it sees the shooter (vision updated a moment
+  later, a shooter round a corner) points its gun the right way in
+  advance. **Open, for the user:** the flank remains clearly better than
+  the front, and on open ground it stays almost a free shot against a line
+  of guns. Levers that would change that, each a decision of its own:
+  the real traverse of towed guns (they have none in the catalog and
+  swivel like turrets, see GAME_DESIGN.md "Fire from the flank"), guns
+  placed in depth (a triangle instead of a line) by the AI, or fewer
+  shots for a moving attacker.
+- **Simulation cost** (`just bench`, 504 units): 2.93 → 2.95 ms per tick
+  (noise), setup 409 → 405 ms.
+
 ## Golden hash
+
+Prompt 110 changed the golden hash to `0xd68a_2529_06b0_2b43` (economy
+golden hash `0x2c11_092d_3344_0e3a`): the `[flank]` rules are part of the
+hashed tactics rules, and units hash where they were fired at from; the
+demo battle is still decided at tick 603 by player 0.
 
 Prompt 097 changed the golden hash to `0x51f2_adfb_a7d6_82f8` (economy
 golden hash `0x3e60_5854_3f4c_5793`): vehicle speeds, ranges, sight and

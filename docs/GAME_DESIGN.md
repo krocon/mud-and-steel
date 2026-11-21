@@ -697,6 +697,58 @@ whether felled trees should give cover like `env_log_fallen` (50 %); the
 stand counts as the map places it, so a wood thinned by artillery does not
 open up for tanks.
 
+## Fire from the flank (prompt 110) [provisional, 2026-11-21]
+
+Decided by prompt 110 on 2026-11-21, provisional until the user confirms
+it. A tester of the reference video found that an enemy who attacks a
+position from the side is not answered: guns do not turn, dug-in tanks are
+shot from the flank. The basic reaction is a rule of the simulation for
+every player; when to give up a position is the computer player's
+decision. Values in `[flank]` of `data/tactics.toml`:
+
+- **Who.** Vehicles and guns that stand and have no target (no attack
+  order, no automatic target). Squads keep their own rules (they crouch and
+  take cover under fire, prompt 047).
+- **What counts.** A hit, or a round of another player landing within 6 m
+  of the hull. The direction is where the round came from (the reverse of
+  its flight), not the shooter's position.
+- **Reaction.** After 1 s (game time) the crew turns there: a turret turns
+  the turret, a casemate vehicle or a gun with a limited traverse its hull
+  or carriage until the direction is within the traverse, with the normal
+  turn speeds. Every round of 20 mm and more keeps the crew down another
+  1.5 s, up to 6 s: under heavy fire it turns late (vehicles have no
+  suppression value like squads). The direction is remembered for 10 s
+  after the last round from it; then the gun goes back to the hull front.
+- **No free sight.** Looking there does not reveal the shooter; the unit
+  fires as soon as it sees him by the normal sight rules.
+- **The player's orders win.** An attack order or an automatic target is
+  always served first. Hold fire stops the firing, not the turning. A
+  facing the player ordered (formation move or securing with a facing)
+  holds for 30 s game time after the unit reached it; rounds meanwhile are
+  remembered, and the unit turns when the hold ends if they still count.
+  Any new order ends the hold.
+- **Several directions.** The more dangerous one wins: a penetrating hit
+  before a bounced one, a hit before a near miss, then the shorter flight.
+  A direction is kept at least 3 s before another one takes over; rounds
+  from within 30° of it only refresh it.
+- **Computer player.** An own gun or standing armored vehicle that loses
+  hit points to fire from more than 60° off its front and cannot answer
+  (no enemy seen within its range in that direction), or is below 40 % of
+  its hit points, lays smoke if it has smoke rounds, else backs off 40 m
+  away from the fire (armor) or is towed 40 m back by a free tractor within
+  250 m and set up facing the fire (guns; without a tractor it stays).
+  Once per minute per unit. Its towed guns now stand side by side, 20 m
+  apart across the direction of the enemy, the outer ones looking outwards,
+  so their arcs cover each other's flanks.
+
+Open for the user: the durations and thresholds have no source (game
+values); towed guns (PaK 40, ZiS-3, 57 mm M1, the howitzers and AA guns)
+have no traverse limit in the catalog and swivel like a turret at 20°/s,
+although the PaK 40 traversed 65° (source in the catalog entry) and had to
+be dragged round by its trails beyond that; giving them their real traverse
+would make the flank matter much more for them. A gun crew cannot leave its
+gun for cover in the simulation (no separate crew).
+
 ## Open (not in this version)
 
 Replacing soldiers of squads (and what replacements do to a squad's
