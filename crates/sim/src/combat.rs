@@ -188,6 +188,26 @@ pub struct CombatRules {
     /// replays: they pick no targets of their own.
     #[serde(default)]
     pub vehicle_mg: VehicleMgRules,
+    /// Scores of automatic targets (prompt 188). Absent in older replays:
+    /// all weights 0, ties by distance (close to the old order).
+    #[serde(default)]
+    pub targeting: TargetingRules,
+}
+
+/// Scores of automatic targets (prompt 188, `[targeting]` in
+/// `data/combat.toml`).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct TargetingRules {
+    pub effect: u32,
+    pub threat: u32,
+    pub role: u32,
+    pub focus: u32,
+    pub focus_max: u32,
+    pub stick: u32,
+    pub distance_per_10m: u32,
+    pub indirect_auto_range_pct: u32,
+    pub indirect_min_soldiers: u32,
 }
 
 /// Moving heavy vehicles kill the enemy soldiers under their hull (prompt
@@ -327,6 +347,30 @@ impl CombatRules {
         check("damage.soldier_hp", g.soldier_hp, 1, 100_000)?;
         check("damage.infantry_per_mm", g.infantry_per_mm, 1, 10_000)?;
         check("damage.infantry_height_mm", g.infantry_height_mm, 100, 5000)?;
+        let t = &rules.targeting;
+        for (name, v) in [
+            ("effect", t.effect),
+            ("threat", t.threat),
+            ("role", t.role),
+            ("focus", t.focus),
+            ("stick", t.stick),
+            ("distance_per_10m", t.distance_per_10m),
+        ] {
+            check(&format!("targeting.{name}"), v, 0, 10_000)?;
+        }
+        check("targeting.focus_max", t.focus_max, 0, 16)?;
+        check(
+            "targeting.indirect_auto_range_pct",
+            t.indirect_auto_range_pct,
+            0,
+            100,
+        )?;
+        check(
+            "targeting.indirect_min_soldiers",
+            t.indirect_min_soldiers,
+            0,
+            100,
+        )?;
         Ok(rules)
     }
 
@@ -397,6 +441,20 @@ impl CombatRules {
             m.velocity_real_mps,
             m.coax_half_deg,
             m.bow_half_deg,
+        ] {
+            h.write_u32(v);
+        }
+        let t = &self.targeting;
+        for v in [
+            t.effect,
+            t.threat,
+            t.role,
+            t.focus,
+            t.focus_max,
+            t.stick,
+            t.distance_per_10m,
+            t.indirect_auto_range_pct,
+            t.indirect_min_soldiers,
         ] {
             h.write_u32(v);
         }

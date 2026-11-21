@@ -146,3 +146,40 @@ soldier_hp = 100
 infantry_per_mm = 8
 # Height of an infantry squad's hit box in mm (the 1.80 m reference figure).
 infantry_height_mm = 1800
+
+[targeting]
+# Prompt 188: automatic targets by a score instead of yes/no keys. Every
+# candidate in the unit's own sight and range that one of its weapons can
+# hurt (after the fire discipline of prompt 176) gets
+#   effect  × the share of the target's hit points one hit of the unit's
+#             best weapon takes, against the hull plate it faces from
+#             here (percent; 0 when it does not penetrate that side)
+# + threat  × the same share for the target's best weapon against this
+#             unit (it can hurt me)
+# + role    for a target of the unit's kind: anti-tank guns, tank
+#             destroyers, assault guns and anti-tank squads prefer armored
+#             targets; machine guns, rifles and other infantry prefer
+#             infantry and unarmored targets; tanks prefer units that can
+#             penetrate them
+# + focus   for each other unit of the same player that fires at it (at
+#             most `focus_max`): finish what others started
+# + stick   for its current target (no jumping at every check)
+# - distance per 10 game meters.
+# The highest score wins; ties go to the nearer, then the lower id.
+# [provisional]
+effect = 40
+threat = 60
+role = 40
+focus = 8
+focus_max = 2
+stick = 30
+distance_per_10m = 4
+# Indirect weapons (mortars, howitzers, rocket launchers) without an order
+# fire only at spotted targets within `indirect_auto_range_pct` of their
+# range (not at the very edge, where the spread is widest) and never at
+# squads with fewer than `indirect_min_soldiers` living men (snipers,
+# crews, the last men of a squad): no shells on a single scout far away.
+# 0 = no limit (replays from before prompt 188). Before: the nearest
+# spotted soft target anywhere in range, also a lone sniper.
+indirect_auto_range_pct = 85
+indirect_min_soldiers = 3

@@ -515,6 +515,10 @@ pub struct Sim {
     /// derived, not hashed).
     #[serde(skip)]
     order_events: Vec<OrderEvent>,
+    /// Per unit index: units that fire at it, counted at the start of every
+    /// combat phase (prompt 188; derived scratch, not state).
+    #[serde(skip)]
+    focus: Vec<u8>,
     objects: combat::ObjectIndex,
     /// Defeated players and the result (prompt 027).
     standings: Standings,
@@ -771,6 +775,7 @@ impl Sim {
             events: Vec::new(),
             move_events: Vec::new(),
             order_events: Vec::new(),
+            focus: Vec::new(),
             objects: combat::ObjectIndex::new(&map),
             map,
             standings: Standings::new(&players),

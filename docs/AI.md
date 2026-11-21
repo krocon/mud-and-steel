@@ -429,6 +429,12 @@ to infantry. The other units keep firing at will; return fire and close
 range are not used by the AI yet (finding for prompt 178: defenders in
 woods could wait with "close range only").
 
+## Target choice (prompt 188)
+
+The AI does not pick its units' targets: the simulation's score
+(ARCHITECTURE.md "Combat") does it for every player alike. With it the
+tournament shifted little (BALANCE.md "Target choice by score").
+
 ## Supply and repair (prompt 036)
 
 `crates/ai/src/supply.rs`, all difficulties. The view carries every own

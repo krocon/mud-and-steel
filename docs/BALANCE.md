@@ -671,6 +671,31 @@ same seeds, Apple M1 Max, release.
 - **Simulation cost** (`just bench`, 504 units): 2.93 → 2.95 ms per tick
   (noise), setup 409 → 405 ms.
 
+## Target choice by score (prompt 188) [provisional, 2026-11-21]
+
+Automatic targets by an integer score instead of a fixed key
+(ARCHITECTURE.md "Combat", `[targeting]` in `data/combat.toml`).
+Scenarios (`crates/sim/tests/targeting.rs`), first target before → after:
+a Pak 40 beside a truck and a T-34: the T-34 → the T-34; a Panzer IV
+against a ZiS-3 and a rifle squad: the gun → the gun; an MG team against a
+half-track and a rifle squad: the half-track → the squad; a mortar team
+without orders with a recon squad spotting an enemy 250 m away: fires at a
+lone sniper → does not, at a squad → still does.
+
+| `just ai-tournament --matrix` (40 games each) | before | after |
+|---|---|---|
+| hard vs normal | 50 % / 50 %, 58 s | 47 % / 52 %, 56 s |
+| hard vs easy | 50 % / 50 %, 46 s | 50 % / 50 %, 45 s |
+| hard vs passive | 100 %, 33 s | 100 %, 39 s |
+| normal vs easy | 50 % / 50 %, 45 s | 52 % / 47 %, 40 s |
+| normal vs passive | 100 %, 34 s | 100 %, 34 s |
+| easy vs passive | 65 %, 14 timeouts, 131 s | 65 %, 14 timeouts, 135 s |
+
+`just balance --maps test_small --modes battle --games 10`: win rates de
+60 → 65 %, su 15 → 15 %, us 75 → 70 %. The first weights (effect 100) let
+the AI lose 25 % of its games against a passive enemy; effect 40 keeps the
+results. The weights are a first setting, not tuned further.
+
 ## Golden hash
 
 Prompt 110 changed the golden hash to `0xd68a_2529_06b0_2b43` (economy

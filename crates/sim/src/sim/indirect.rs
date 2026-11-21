@@ -719,6 +719,21 @@ impl Sim {
             if d < min_range || d > range || !self.indirect_spots(i, j) {
                 continue;
             }
+            // Prompt 188: not too far and no single men (0 = no limit).
+            let t = &self.combat_rules.targeting;
+            if t.indirect_auto_range_pct > 0
+                && d * 100 > range * Fixed::from_num(t.indirect_auto_range_pct)
+            {
+                continue;
+            }
+            if t.indirect_min_soldiers > 0
+                && other
+                    .squad
+                    .as_ref()
+                    .is_some_and(|s| s.alive_count() < t.indirect_min_soldiers)
+            {
+                continue;
+            }
             // No automatic fire near own troops (fragments hurt them too).
             if self.friend_near(me.owner, other.position, danger) {
                 continue;

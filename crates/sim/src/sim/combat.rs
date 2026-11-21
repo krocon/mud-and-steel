@@ -159,6 +159,37 @@ pub(super) struct TypeCombat {
     /// Cosines of half the cones of coaxial and bow machine guns.
     #[serde(default)]
     mg_cos: (Fixed, Fixed),
+    /// Its kind for the target score (prompt 188).
+    #[serde(default)]
+    pub(super) role: Role,
+}
+
+/// Kind of a unit type for the target score (prompt 188), from its catalog
+/// category.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub(super) enum Role {
+    #[default]
+    Other,
+    /// Anti-tank guns, tank destroyers, assault guns, anti-tank squads:
+    /// prefer armored targets.
+    AntiTank,
+    /// Machine guns, rifles and other infantry: prefer soft targets.
+    Soft,
+    /// Tanks: prefer units that can penetrate them.
+    Tank,
+}
+
+impl Role {
+    fn of(category: Option<crate::catalog::Category>, infantry: bool) -> Self {
+        use crate::catalog::Category as C;
+        match category {
+            Some(C::GunAt | C::TankDestroyer | C::AssaultGun | C::InfAt) => Self::AntiTank,
+            Some(C::TankLight | C::TankMedium | C::TankHeavy) => Self::Tank,
+            _ if infantry => Self::Soft,
+            Some(C::Halftrack | C::ReconVehicle) => Self::Soft,
+            _ => Self::Other,
+        }
+    }
 }
 
 fn ratio((num, den): (u32, u32)) -> Fixed {
@@ -200,6 +231,7 @@ impl TypeCombat {
         let g =
             Fixed::from_num(rules.ballistics.gravity_mm_per_s2) / 1000 * time * time / (hz * hz);
         Self {
+            role: Role::of(c.category, infantry),
             max_hp: rules.max_hp(c),
             infantry,
             half_length: dim(c.length_m) / 2,
@@ -527,6 +559,10 @@ impl Sim {
         let retarget = self
             .tick
             .is_multiple_of(u64::from(self.combat_rules.fire.retarget_ticks));
+        // Prompt 188: how many units fire at each unit, from the targets at
+        // the start of the phase (derived every tick, so a restored game
+        // continues alike; not state).
+        self.count_focus();
         for i in 0..self.units.len() {
             if !self.units[i].alive() || self.transport_blocks_fire(i) {
                 continue;
@@ -917,14 +953,15 @@ impl Sim {
         chosen.map(Goal::Unit)
     }
 
-    /// Best automatic target of unit `i`: enemies the main weapon can hurt
-    /// first, then enemies that can hurt it, then the nearest, then the
-    /// lowest id. Only targets some weapon can hurt are considered.
+    /// Best automatic target of unit `i` (prompt 188): among the enemies in
+    /// its own sight and range that a weapon of it can hurt and that its
+    /// fire discipline allows, the one with the highest score
+    /// ([`Self::target_score`]); ties go to the nearer, then the lower id.
     fn choose_target(&self, i: usize) -> Option<usize> {
         let me = &self.units[i];
         let mine = &self.types[me.unit_type as usize];
         let rules = &self.combat_rules;
-        let mut best: Option<((bool, bool, i64, UnitId), usize)> = None;
+        let mut best: Option<((i64, i64, UnitId), usize)> = None;
         // The key is a total order, so the candidates' order does not matter.
         let range = Vec2::new(mine.max_range, mine.max_range);
         let mut near = Vec::new();
@@ -953,15 +990,115 @@ impl Sim {
             if !(0..mine.weapons.len()).any(|w| mine.can_damage(w, rules, theirs, distance)) {
                 continue;
             }
-            let main = mine.can_damage(0, rules, theirs, distance);
-            let threat =
-                (0..theirs.weapons.len()).any(|w| theirs.can_damage(w, rules, mine, distance));
-            let key = (!main, !threat, distance.to_bits(), other.id);
+            let score = self.target_score(i, j, distance);
+            let key = (-score, distance.to_bits(), other.id);
             if best.is_none_or(|(b, _)| key < b) {
                 best = Some((key, j));
             }
         }
         best.map(|(_, j)| j)
+    }
+
+    /// Counts per unit index how many living units have it as their
+    /// automatic or ordered target (for [`Self::target_score`]).
+    fn count_focus(&mut self) {
+        let mut focus = std::mem::take(&mut self.focus);
+        focus.clear();
+        focus.resize(self.units.len(), 0);
+        for u in self.units.iter().filter(|u| u.alive()) {
+            let target = match u.combat.attack {
+                Some(Attack::Unit(t)) => Some(t),
+                _ => u.combat.auto_target,
+            };
+            if let Some(t) = target
+                && let Ok(k) = self.units.binary_search_by_key(&t, |x| x.id)
+            {
+                focus[k] = focus[k].saturating_add(1);
+            }
+        }
+        self.focus = focus;
+    }
+
+    /// Score of unit `j` as an automatic target of unit `i` at `distance`
+    /// (`[targeting]` in `data/combat.toml`, prompt 188): effect of my best
+    /// hit, threat of its best hit to me, role, focus of the other own
+    /// units, staying on the current target, minus distance.
+    pub(super) fn target_score(&self, i: usize, j: usize, distance: Fixed) -> i64 {
+        let t = &self.combat_rules.targeting;
+        let (me, other) = (&self.units[i], &self.units[j]);
+        let mine = &self.types[me.unit_type as usize];
+        let theirs = &self.types[other.unit_type as usize];
+        let effect = self.hit_share(i, j, distance);
+        let threat = self.hit_share(j, i, distance);
+        let soft = theirs.infantry || theirs.armor.thinnest() == 0;
+        let role = match mine.role {
+            Role::AntiTank => !soft,
+            Role::Soft => soft,
+            Role::Tank => threat > 0,
+            Role::Other => false,
+        };
+        let focus = u32::from(self.focus.get(j).copied().unwrap_or(0)).min(t.focus_max);
+        let stick = me.combat.auto_target == Some(other.id);
+        let meters_10 = (distance / 10).to_num::<i64>();
+        i64::from(t.effect) * i64::from(effect) / 100
+            + i64::from(t.threat) * i64::from(threat) / 100
+            + if role { i64::from(t.role) } else { 0 }
+            + i64::from(t.focus * focus)
+            + if stick { i64::from(t.stick) } else { 0 }
+            - i64::from(t.distance_per_10m) * meters_10
+    }
+
+    /// Percent of unit `j`'s hit points (0..=100) one hit of the best
+    /// weapon of unit `i` in range takes (of a squad at most one man's),
+    /// against the hull plate `j` turns
+    /// towards `i` (front with its slope, side, rear); 0 when nothing
+    /// penetrates. No random spread: a score, not a shot.
+    fn hit_share(&self, i: usize, j: usize, distance: Fixed) -> u32 {
+        let (me, other) = (&self.units[i], &self.units[j]);
+        let mine = &self.types[me.unit_type as usize];
+        let theirs = &self.types[other.unit_type as usize];
+        let rules = &self.combat_rules;
+        let hp = other.hp.max(1);
+        let plate = if theirs.infantry || theirs.armor.thinnest() == 0 {
+            None
+        } else {
+            // Which face of `j` looks at `i`.
+            let to_me = me.position - other.position;
+            let length = to_me.length();
+            let along = if length > Fixed::ZERO {
+                (to_me.x * other.facing.x + to_me.y * other.facing.y) / length
+            } else {
+                Fixed::ONE
+            };
+            let diagonal = Fixed::from_num(7071) / 10_000;
+            let hull = theirs.armor.hull;
+            let min_cos = Fixed::from_num(rules.penetration.min_cos_pct) / 100;
+            Some(if along >= diagonal {
+                let slope = sin_cos_deg(theirs.armor.hull_front_deg).1.max(min_cos);
+                Fixed::from_num(hull[0]) / slope
+            } else if along <= -diagonal {
+                Fixed::from_num(hull[2])
+            } else {
+                Fixed::from_num(hull[1])
+            })
+        };
+        let mut best = 0u32;
+        for w in &mine.weapons {
+            if distance > w.range {
+                continue;
+            }
+            let damage = match plate {
+                // One hit takes at most one man of a squad.
+                None if theirs.infantry => w.infantry_damage.min(rules.damage.soldier_hp),
+                None => w.vehicle_damage,
+                Some(plate) => {
+                    let pen = rules.penetration_at(&w.weapon, distance * mine.real_per_game);
+                    if pen >= plate { w.vehicle_damage } else { 0 }
+                }
+            };
+            best = best.max((damage.saturating_mul(100) / hp).min(100));
+        }
+        best
     }
 
     /// Drives a unit with an attack order into range of `point`, or stops it

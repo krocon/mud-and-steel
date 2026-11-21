@@ -588,10 +588,18 @@ simulation's `Rng` supplies dispersion and penetration rolls in a fixed order
 After commands and path planning, before movement:
 
 1. **Target.** An attack order wins. Otherwise (fire at will) every
-   `retarget_ticks` (10) or when the target is gone, a unit picks the enemy
-   with the smallest key (main weapon can penetrate it, it can hurt me,
-   distance, id), among enemies some weapon can hurt at that distance
-   (against their thinnest plate). An order to attack makes the unit drive
+   `retarget_ticks` (10) or when the target is gone, a unit picks among the
+   enemies in its own sight that some weapon can hurt at that distance
+   (against their thinnest plate) and that its fire discipline allows
+   (prompt 176) the one with the highest score (prompt 188, `[targeting]`
+   in `data/combat.toml`): `effect` × the share of the target's hit points
+   one hit of my best weapon takes against the hull plate it shows me (front
+   with slope, side, rear; of a squad at most one man) + `threat` × the same
+   for its best weapon against me + `role` (anti-tank units for armored
+   targets, machine guns and infantry for soft ones, tanks for units that
+   can penetrate them) + `focus` per other unit already firing at it (at
+   most `focus_max`, counted at the start of every combat phase) + `stick`
+   for the current target − `distance_per_10m`; ties: nearer, lower id. An order to attack makes the unit drive
    (single path) until the target is within 90 % of its longest range, and
    re-plans when the target moved away. It does not halt for that on a bridge
    deck but drives on until it is off it (after prompt 088: a group halting on a
@@ -698,7 +706,8 @@ aim. Hulls follow the simulation's `facing`.
 | Damage model | Hit points; a hit penetrates or not; vehicles lose caliber² × factor, infantry caliber × factor | Simple and traceable from catalog values: a 7.5 cm needs two penetrations, MGs cannot hurt tanks. Modules, crew losses and fires can refine it later. |
 | Penetration | caliber × (v / 520)^1.5, −20 %/km | The catalog has caliber and muzzle velocity but no penetration tables; the formula meets published values of the KwK 36 and KwK 40 and needs only `isqrt`. No values from other games. |
 | Armor by angle | Entry face of the oriented hit box, angle to its normal | Front, flank, rear and obliquity come from one geometric test, without sector rules. |
-| Targets | One target per unit, fixed sort key, every 10 ticks | Deterministic, cheap (O(n²) every 0.5 s), no random choice. |
+| Targets | One target per unit, integer score from effect, threat, role, focus, staying and distance (prompt 188), every 10 ticks | Deterministic, about as cheap as the old key (bench: combat phase 0.157 vs 0.159 ms), no random choice. Before: a fixed key (main weapon penetrates, it can hurt me, distance), which let a machine gun fire at a half-track beside a squad. The first effect weight of 100 cost the AI 25 % of its games against a passive enemy (its tanks spread fire); 40 keeps the tournament as it was. |
+| Automatic indirect fire | Spotted targets within 85 % of the range, no squads under 3 men (prompt 188) | Before: the nearest spotted soft target anywhere in range, also a lone sniper; shells at the edge of the range scatter most. |
 | Projectiles | Real objects with ballistic flight, tested per tick segment | Hills, trees and wrecks stop rounds by themselves; effects get flight paths. Units near a flight segment come from the unit grid (prompt 016, [PERFORMANCE.md](PERFORMANCE.md)). |
 | Friendly fire | Possible, but units do not fire through friends | Rounds that miss can hit anything; a second rank does not shoot into the first. |
 | Automatic weapons | 25 % of the cyclic rate | The catalog lists the cyclic rate; the practical rate of MGs is a quarter to a sixth of it. |

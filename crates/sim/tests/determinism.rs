@@ -21,7 +21,15 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by prompt 174 (formation slots along the way), an
+/// Last changed by prompt 188 (target choice by score), an intended rule
+/// change: automatic targets are chosen by a score (effect of my best hit
+/// on the face it shows me, its threat to me, role, focus of other own
+/// units, staying on the current target, distance) from the new hashed
+/// `[targeting]` rules, and indirect weapons without an order skip the edge
+/// of their range and squads of fewer than three men. The demo battle is
+/// decided at tick 715 instead of 1519, still by player 0.
+///
+/// Before (`0xf927_8410_5bb5_50d8`), prompt 174 (formation slots along the way), an
 /// intended rule change: `MoveTo`, `QueueMove` and `Patrol` assign their
 /// grid slots in ranks along the way to the target and swap slots of units
 /// whose straight lines to them cross (`formation::untangle`). The demo's groups take
@@ -343,7 +351,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xf927_8410_5bb5_50d8;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x54a8_dffa_7753_37b2;
 
 #[test]
 fn golden_hash() {
@@ -400,16 +408,17 @@ fn demo_is_a_battle() {
 /// sight 1/8, tanks starting 60 m apart) at tick 603. Since prompt 173
 /// (progress needs 0.2 m, no creeping slides, columns queue at bridges and
 /// shared waypoints, direct steps stay on passable cells) at tick 436.
-/// Since prompt 174 (slots along the way, no crossing ways) at tick 1519.
+/// Since prompt 174 (slots along the way, no crossing ways) at tick 1519,
+/// since prompt 188 (target choice by score) at tick 715.
 #[test]
 fn demo_battle_is_decided() {
     let end = run_demo(42, 1900);
     let outcome = end.outcome().expect("the demo battle is decided");
     assert_eq!(outcome.winner, Some(sim::PlayerId(0)));
-    assert_eq!(outcome.tick, 1519);
+    assert_eq!(outcome.tick, 715);
     assert_eq!(end.alive_units(sim::PlayerId(1)), 0);
     assert_eq!(
         end.standings()[1].defeat,
-        Some((sim::DefeatReason::Eliminated, 1519))
+        Some((sim::DefeatReason::Eliminated, 715))
     );
 }
