@@ -81,6 +81,29 @@ pub struct Mission {
     /// Start resources of the mission's player in percent of the economy
     /// rules' `start` (economy missions, `[difficulty.*] resources_pct`).
     pub resources_pct: u16,
+    /// What a victory is rated by (prompt 189).
+    #[serde(default)]
+    pub rating: Rating,
+}
+
+/// What a won mission is rated by (prompt 189, `[rating]`): one star each
+/// for winning within `par_ticks`, losing at most `losses_pct` percent of
+/// the own units, and doing every optional objective (a mission without
+/// optional objectives gives that star for the victory).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Rating {
+    /// 0: no time star asked for (given with the victory).
+    pub par_ticks: u64,
+    pub losses_pct: u32,
+}
+
+impl Default for Rating {
+    fn default() -> Self {
+        Self {
+            par_ticks: 0,
+            losses_pct: 25,
+        }
+    }
 }
 
 /// Difficulty of a mission, chosen by the player at the start (prompt 181).
@@ -138,6 +161,17 @@ pub struct Objective {
     pub unit: Option<String>,
     /// Shown from the start (otherwise when an action activates it).
     pub shown: bool,
+    /// A side objective: not needed to win, counts for the rating
+    /// (prompt 189).
+    #[serde(default)]
+    pub optional: bool,
+    /// The panel shows the time until this trigger fires (prompt 189).
+    #[serde(default)]
+    pub timer: Option<u16>,
+    /// The panel shows how far this trigger's count is (`area`, `units`,
+    /// `reach`; prompt 189).
+    #[serde(default)]
+    pub progress: Option<u16>,
 }
 
 /// State of an objective.
@@ -266,6 +300,16 @@ pub enum Condition {
     Smoke { area: u16 },
     /// `player` called air support this tick (prompt 180).
     Air { player: PlayerId },
+    /// At least `count` different living units of `player` (catalog id
+    /// prefix `unit`, if given) reached the area since the trigger was
+    /// armed; they need not stay there (prompt 189: a breakout to the map
+    /// edge).
+    Reach {
+        area: u16,
+        player: PlayerId,
+        count: u32,
+        unit: Option<String>,
+    },
 }
 
 impl Condition {
@@ -287,6 +331,7 @@ impl Condition {
             Self::Pinned { .. } => "pinned",
             Self::Smoke { .. } => "smoke",
             Self::Air { .. } => "air",
+            Self::Reach { .. } => "reach",
         }
     }
 }
@@ -484,6 +529,20 @@ struct MissionFile {
     trigger: Vec<TriggerFile>,
     #[serde(default)]
     difficulty: DifficultyFile,
+    #[serde(default)]
+    rating: RatingFile,
+}
+
+/// `[rating]` (prompt 189).
+#[derive(Debug, Default, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct RatingFile {
+    /// Seconds to win within for the time star (0 or missing: none).
+    #[serde(default)]
+    par_s: u32,
+    /// Most own units lost (percent) for the losses star (default 25).
+    #[serde(default)]
+    losses_pct: Option<u32>,
 }
 
 /// `[difficulty.easy]`, `[difficulty.normal]`, `[difficulty.hard]`
@@ -647,6 +706,14 @@ struct ObjectiveFile {
     unit: Option<String>,
     #[serde(default)]
     shown: bool,
+    /// Prompt 189: a side objective, a trigger whose time is shown, a
+    /// trigger whose count is shown.
+    #[serde(default)]
+    optional: bool,
+    #[serde(default)]
+    timer: Option<String>,
+    #[serde(default)]
+    progress: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -998,6 +1065,9 @@ pub fn parse_mission_at(
                 area: o.area.as_deref().map(area_index).transpose()?,
                 unit: o.unit.clone(),
                 shown: o.shown,
+                optional: o.optional,
+                timer: None,
+                progress: None,
             })
         })
         .collect::<Result<Vec<_>, MissionError>>()?;
@@ -1107,6 +1177,12 @@ pub fn parse_mission_at(
                 area: area_index(&need(&t.area, "area")?)?,
             },
             "air" => Condition::Air { player: who },
+            "reach" => Condition::Reach {
+                area: area_index(&need(&t.area, "area")?)?,
+                player: who,
+                count: t.count.unwrap_or(1).max(1),
+                unit: t.unit.clone(),
+            },
             other => return Err(ctx(&format!("unknown `when = \"{other}\"`"))),
         };
         let mut actions = Vec::new();
@@ -1281,6 +1357,27 @@ pub fn parse_mission_at(
         return err("the player cannot be a computer player");
     }
 
+    // Prompt 189: timers and counts shown with an objective.
+    let mut objectives = objectives;
+    for (o, f) in objectives.iter_mut().zip(&file.objective) {
+        let trigger = |name: &Option<String>, key: &str| {
+            name.as_deref()
+                .map(|n| {
+                    ids.iter()
+                        .position(|id| *id == n)
+                        .map(|i| i as u16)
+                        .ok_or_else(|| {
+                            MissionError(format!(
+                                "objective '{}': unknown trigger '{n}' in `{key}`",
+                                f.id
+                            ))
+                        })
+                })
+                .transpose()
+        };
+        o.timer = trigger(&f.timer, "timer")?;
+        o.progress = trigger(&f.progress, "progress")?;
+    }
     let mission = Mission {
         id: id.to_owned(),
         title: header.title,
@@ -1295,6 +1392,10 @@ pub fn parse_mission_at(
         triggers,
         level,
         resources_pct: tune.resources_pct.unwrap_or(100),
+        rating: Rating {
+            par_ticks: u64::from(file.rating.par_s) * u64::from(tick_hz),
+            losses_pct: file.rating.losses_pct.unwrap_or(25).min(100),
+        },
     };
     Ok(SimConfig {
         tick_hz,

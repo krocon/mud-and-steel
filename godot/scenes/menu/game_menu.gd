@@ -257,6 +257,18 @@ func _apply_settings() -> void:
 	main.atmosphere.set_quality(Settings.quality())
 
 
+## The stars of a won mission and why (prompt 189): "★★☆ – in time,
+## few losses, side objectives 1/2".
+static func rating_line(rating: Dictionary) -> String:
+	var stars := int(rating.get("stars", 0))
+	var parts: PackedStringArray = []
+	parts.append(TranslationServer.translate("RESULT_RATING_TIME_OK" if rating.get("in_time", false) else "RESULT_RATING_TIME_LATE"))
+	parts.append(TranslationServer.translate("RESULT_RATING_LOSSES").format({"lost": rating.get("lost", 0), "units": rating.get("units", 0)}))
+	if int(rating.get("optional_total", 0)) > 0:
+		parts.append(TranslationServer.translate("RESULT_RATING_OPTIONAL").format({"done": rating.get("optional_won", 0), "total": rating.get("optional_total", 0)}))
+	return "%s%s – %s" % ["★".repeat(stars), "☆".repeat(3 - stars), ", ".join(parts)]
+
+
 func _show_result(result: Dictionary) -> void:
 	_result_shown = true
 	close_pause()
@@ -292,6 +304,10 @@ func _show_result(result: Dictionary) -> void:
 		if player["defeated"]:
 			line += " – " + Language.code_text("RESULT_DEFEAT_", player["reason"])
 		lines.append(line)
+	# Prompt 189: the rating of a won mission.
+	var rating: Dictionary = main.sim_host.mission_info().get("rating", {})
+	if not rating.is_empty():
+		lines.insert(0, rating_line(rating))
 	result_details.text = "\n".join(lines)
 	_show_stats(me)
 	result_panel.visible = true

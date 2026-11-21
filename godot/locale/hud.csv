@@ -195,6 +195,7 @@ HUD_MISSION_STEP,%s – step %d of %d,%s – Schritt %d von %d
 HUD_MISSION_DONE,Done: %s,Erledigt: %s
 HUD_MISSION_FAILED,Failed: %s,Gescheitert: %s
 HUD_MISSION_ALL_DONE,All objectives complete.,Alle Ziele erfüllt.
+HUD_MISSION_OPTIONAL,Optional: %s,Optional: %s
 HUD_HOPELESS_TITLE,The mission can hardly be won,Die Mission ist kaum noch zu gewinnen
 HUD_HOPELESS_RESTART,Restart,Neu starten
 HUD_HOPELESS_LOAD,Load last save,Letzten Spielstand laden

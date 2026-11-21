@@ -1,0 +1,191 @@
+# Prompt 189: a breakout. American units cut off on the village square must
+# reach the road out of the village in the south before German tanks close
+# in from the north. Format: docs/MISSIONS.md. Areas and spawn points:
+# ../mission_points.toml plus the ones below.
+
+[mission]
+title = "Breaking out"
+kind = "mission"
+order = 5
+faction = "us"
+briefing = """
+German troops have cut off your column on the village square. A thin German \
+screen of riflemen and a machine gun blocks the road south. Break through it and bring at least six of your \
+vehicles and squads to the road out of the village before the German tanks \
+from the north close the ring. Try to save both trucks."""
+player = 0
+elimination = false
+
+[[computer]]
+player = 1
+difficulty = "passive"
+
+[[area]]
+name = "south_exit"
+center_m = [0, 340]
+radius_m = 60
+
+[[spawn]]
+name = "screen_east"
+position_m = [45, 215]
+
+[[spawn]]
+name = "screen_west"
+position_m = [-40, 225]
+
+[[spawn]]
+name = "north_road"
+position_m = [0, -330]
+
+[[group]]
+name = "shermans"
+owner = 0
+unit = "us_m4a3_75"
+count = 3
+position_m = [0, 30]
+
+[[group]]
+name = "trucks"
+owner = 0
+unit = "us_gmc_cckw"
+count = 2
+position_m = [-15, 0]
+
+[[group]]
+name = "halftrack"
+owner = 0
+unit = "us_m3_halftrack"
+count = 1
+position_m = [15, 0]
+
+[[group]]
+name = "riflemen"
+owner = 0
+unit = "us_inf_rifle_squad"
+count = 2
+position_m = [0, -15]
+
+[[group]]
+name = "screen"
+owner = 1
+unit = "de_inf_mg42_team"
+count = 1
+at = "screen_east"
+
+# An anti-tank gun only on Hard: on Normal it shot every Sherman of the
+# test autopilot from the front.
+[[group]]
+name = "screen"
+owner = 1
+unit = "de_pak40"
+count = 1
+position_m = [60, 235]
+levels = ["hard"]
+
+[[group]]
+name = "screen"
+owner = 1
+unit = "de_inf_rifle_squad"
+count = 3
+at = "screen_west"
+
+[[objective]]
+id = "out"
+text = "Bring at least six units to the road out of the village in the south."
+area = "south_exit"
+shown = true
+progress = "escaped"
+
+[[objective]]
+id = "trucks"
+text = "Bring both trucks out."
+area = "south_exit"
+shown = true
+optional = true
+progress = "trucks_out"
+
+[[objective]]
+id = "pursuit"
+text = "German tanks expected from the north."
+shown = true
+timer = "pursuit"
+
+[[trigger]]
+id = "briefing"
+when = "time"
+actions = [
+  { do = "text", text = "We are cut off. A German screen holds the road south. Punch through before their tanks arrive." },
+]
+
+[[trigger]]
+id = "pursuit"
+when = "time"
+delay_s = 40
+actions = [
+  { do = "text", text = "German tanks are entering the village from the north!" },
+  { do = "objective", objective = "pursuit", state = "done" },
+  { do = "spawn", group = "pursuit", owner = 1, unit = "de_pz4_h", count = 2, at = "north_road", arrive = "drive" },
+  { do = "spawn", group = "pursuit", owner = 1, unit = "de_sdkfz251_1", count = 1, at = "north_road", arrive = "drive" },
+  { do = "order", group = "pursuit", to = "square", order = "advance" },
+]
+
+[[trigger]]
+id = "escaped"
+when = "reach"
+area = "south_exit"
+count = 6
+actions = [
+  { do = "objective", objective = "out", state = "done" },
+  { do = "objective", objective = "pursuit", state = "done" },
+  { do = "text", text = "We are through. The column is out of the village." },
+]
+
+[[trigger]]
+id = "trucks_out"
+when = "reach"
+area = "south_exit"
+unit = "us_gmc"
+count = 2
+open = ["trucks"]
+actions = [{ do = "objective", objective = "trucks", state = "done" }]
+
+[[trigger]]
+id = "truck_lost"
+when = "fewer"
+unit = "us_gmc"
+count = 2
+open = ["trucks"]
+actions = [
+  { do = "objective", objective = "trucks", state = "failed" },
+  { do = "text", text = "A truck is lost." },
+]
+
+[[trigger]]
+id = "victory"
+after = ["escaped"]
+when = "time"
+delay_s = 3
+actions = [{ do = "victory" }]
+
+[[trigger]]
+id = "hopeless"
+when = "fewer"
+unit = "us_"
+count = 6
+open = ["out"]
+actions = [
+  { do = "hopeless", text = "Fewer than six units are left. The breakout can hardly succeed." },
+]
+
+[rating]
+par_s = 240
+losses_pct = 25
+
+[difficulty.easy]
+enemy_start_pct = 50
+enemy_delay_pct = 150
+
+[difficulty.hard]
+enemy_start_pct = 150
+enemy_count_pct = 150
+enemy_delay_pct = 60

@@ -48,6 +48,10 @@ pub(super) struct MissionRt {
     /// The "hardly winnable" warning and its tick (prompt 181). Follows
     /// from the triggers, so it is not part of the state hash.
     hopeless: Option<(String, u64)>,
+    /// Units that reached the area of each `reach` trigger while it was
+    /// armed, sorted (prompt 189; empty for other triggers).
+    #[serde(default)]
+    reached: Vec<Vec<UnitId>>,
 }
 
 /// A column of reinforcements that started driving in (prompt 108): its
@@ -117,6 +121,7 @@ impl MissionRt {
             signals: Vec::new(),
             arrivals: Vec::new(),
             hopeless: None,
+            reached: vec![Vec::new(); def.triggers.len()],
             def: def.clone(),
         }
     }
@@ -156,6 +161,17 @@ impl MissionRt {
                 h.write_u32(id.0);
             }
         }
+        // Prompt 189: only once a unit reached a `reach` area, so older
+        // missions hash as before.
+        if self.reached.iter().any(|r| !r.is_empty()) {
+            h.write_u8(0xbd);
+            for r in &self.reached {
+                h.write_u64(r.len() as u64);
+                for id in r {
+                    h.write_u32(id.0);
+                }
+            }
+        }
     }
 }
 
@@ -168,6 +184,27 @@ pub struct ObjectiveView {
     /// Center and radius of its area.
     pub area: Option<(Vec2, Fixed)>,
     pub unit: Option<String>,
+    /// A side objective (prompt 189).
+    pub optional: bool,
+    /// Ticks until its timer trigger fires, while that one counts down.
+    pub timer_ticks: Option<u64>,
+    /// How far its progress trigger's count is: (now, needed).
+    pub progress: Option<(u32, u32)>,
+}
+
+/// The rating of a won mission (prompt 189, `Mission::rating`).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct RatingView {
+    /// Stars, 0..=3 (0 unless the player won).
+    pub stars: u8,
+    pub in_time: bool,
+    pub few_losses: bool,
+    pub optional_done: bool,
+    /// Own units lost and own units in the match (spawned ones too).
+    pub lost: u32,
+    pub units: u32,
+    /// Optional objectives done and in the mission.
+    pub optional: (u32, u32),
 }
 
 impl Sim {
@@ -194,8 +231,96 @@ impl Sim {
                     (a.center, a.radius)
                 }),
                 unit: o.unit.clone(),
+                optional: o.optional,
+                timer_ticks: o.timer.and_then(|t| match m.triggers[usize::from(t)] {
+                    TriggerState::Due(at) => Some(at.saturating_sub(self.tick)),
+                    _ => None,
+                }),
+                progress: o
+                    .progress
+                    .and_then(|t| self.trigger_count(m, usize::from(t))),
             })
             .collect()
+    }
+
+    /// The count of a counting trigger (`area`, `units`, `reach`): how
+    /// many it has and how many it needs (prompt 189). A fired trigger
+    /// shows the count it needed.
+    fn trigger_count(&self, m: &MissionRt, t: usize) -> Option<(u32, u32)> {
+        let count = |n: usize| u32::try_from(n).unwrap_or(u32::MAX);
+        let (now, need) = match &m.def.triggers[t].condition {
+            Condition::Area {
+                area,
+                player,
+                count: c,
+                unit,
+            } => (
+                self.matching(
+                    *player,
+                    unit.as_deref(),
+                    Some(&m.def.areas[usize::from(*area)]),
+                )
+                .count(),
+                *c,
+            ),
+            Condition::Units {
+                player,
+                unit,
+                count: c,
+            } => (self.count_units(*player, Some(unit)), *c),
+            Condition::Reach { count: c, .. } => (m.reached.get(t).map_or(0, Vec::len), *c),
+            _ => return None,
+        };
+        let now = if matches!(m.triggers[t], TriggerState::Fired(_)) {
+            need
+        } else {
+            count(now).min(need)
+        };
+        Some((now, need))
+    }
+
+    /// The rating of the mission once the human player won it (prompt
+    /// 189); `None` without a mission or before a victory.
+    pub fn mission_rating(&self) -> Option<RatingView> {
+        let m = self.mission.as_deref()?;
+        let outcome = self.outcome()?;
+        let won = outcome
+            .winner
+            .is_some_and(|w| self.teams.allied(w, m.def.player));
+        if !won {
+            return None;
+        }
+        let rating = m.def.rating;
+        let own = self.units.iter().filter(|u| u.owner == m.def.player);
+        let units = u32::try_from(own.clone().count()).unwrap_or(u32::MAX);
+        let lost = u32::try_from(own.filter(|u| !u.alive()).count()).unwrap_or(u32::MAX);
+        let optional: Vec<ObjectiveState> = m
+            .def
+            .objectives
+            .iter()
+            .zip(&m.objectives)
+            .filter(|(o, _)| o.optional)
+            .map(|(_, &s)| s)
+            .collect();
+        let done = optional
+            .iter()
+            .filter(|&&s| s == ObjectiveState::Done)
+            .count();
+        let in_time = rating.par_ticks == 0 || outcome.tick <= rating.par_ticks;
+        let few_losses = u64::from(lost) * 100 <= u64::from(units) * u64::from(rating.losses_pct);
+        let optional_done = done == optional.len();
+        Some(RatingView {
+            stars: u8::from(in_time) + u8::from(few_losses) + u8::from(optional_done),
+            in_time,
+            few_losses,
+            optional_done,
+            lost,
+            units,
+            optional: (
+                u32::try_from(done).unwrap_or(0),
+                u32::try_from(optional.len()).unwrap_or(0),
+            ),
+        })
     }
 
     /// The latest message of the mission and the tick it appeared.
@@ -321,11 +446,31 @@ impl Sim {
             return;
         };
         let tick = self.tick;
+        if m.reached.len() < m.def.triggers.len() {
+            m.reached.resize(m.def.triggers.len(), Vec::new());
+        }
         for t in 0..m.def.triggers.len() {
             if m.triggers[t] == TriggerState::Waiting
                 && m.def.triggers[t].after.iter().all(|&a| m.fired(a))
             {
                 m.triggers[t] = TriggerState::Armed;
+            }
+            if m.triggers[t] == TriggerState::Armed
+                && let Condition::Reach {
+                    area, player, unit, ..
+                } = &m.def.triggers[t].condition
+            {
+                // Remember every unit that stood in the area (prompt 189).
+                let area = &m.def.areas[usize::from(*area)];
+                let inside: Vec<UnitId> = self
+                    .matching(*player, unit.as_deref(), Some(area))
+                    .map(|u| u.id)
+                    .collect();
+                for id in inside {
+                    if let Err(k) = m.reached[t].binary_search(&id) {
+                        m.reached[t].insert(k, id);
+                    }
+                }
             }
             if m.triggers[t] == TriggerState::Armed && self.condition_met(&m, t) {
                 m.triggers[t] = TriggerState::Due(tick + u64::from(m.def.triggers[t].delay_ticks));
@@ -466,6 +611,9 @@ impl Sim {
                 |e| matches!(e, crate::air::AirEvent::Called { owner, .. } if owner == player),
             ),
             Condition::Always => true,
+            Condition::Reach { count, .. } => {
+                m.reached.get(t).map_or(0, Vec::len) >= *count as usize
+            }
             Condition::Area {
                 area,
                 player,

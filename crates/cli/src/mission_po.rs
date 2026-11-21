@@ -1,7 +1,8 @@
 //! Translations of mission texts (prompt 043): `<map>/missions/<id>.<lang>.po`
 //! next to every mission file, one entry per text the player reads
 //! (`sim::mission::mission_texts`), the English text as `msgid`. The game
-//! loads them in `godot/scenes/menu/missions.gd`.
+//! loads them in `godot/scenes/menu/missions.gd`. Campaign files
+//! (`data/campaigns/<id>.toml`, prompt 189) get theirs the same way.
 //!
 //! `just mission-po` writes the files: new texts get an empty `msgstr`,
 //! existing translations are kept, texts no longer in the mission are
@@ -120,14 +121,40 @@ pub fn render_po(
     out
 }
 
-/// Writes (or with `check` only compares) the PO files; returns the problems.
-pub fn run(maps: &Path, check: bool) -> Vec<String> {
+/// Every campaign file in `campaigns` (prompt 189), sorted.
+pub fn campaign_files(campaigns: &Path) -> Vec<PathBuf> {
+    let mut files: Vec<PathBuf> = std::fs::read_dir(campaigns)
+        .map(|d| {
+            d.flatten()
+                .map(|f| f.path())
+                .filter(|p| p.extension().is_some_and(|e| e == "toml"))
+                .collect()
+        })
+        .unwrap_or_default();
+    files.sort();
+    files
+}
+
+/// Writes (or with `check` only compares) the PO files of the missions
+/// below `maps` and the campaigns in `campaigns`; returns the problems.
+pub fn run(maps: &Path, campaigns: &Path, check: bool) -> Vec<String> {
     let mut problems = Vec::new();
-    for file in mission_files(maps) {
+    let files = mission_files(maps)
+        .into_iter()
+        .map(|f| (f, false))
+        .chain(campaign_files(campaigns).into_iter().map(|f| (f, true)));
+    for (file, campaign) in files {
         let texts = match std::fs::read_to_string(&file)
             .map_err(|e| e.to_string())
-            .and_then(|t| sim::mission::mission_texts(&t).map_err(|e| e.0))
-        {
+            .and_then(|t| {
+                if campaign {
+                    sim::campaign::Campaign::parse(&t)
+                        .map(|c| c.texts())
+                        .map_err(|e| e.0)
+                } else {
+                    sim::mission::mission_texts(&t).map_err(|e| e.0)
+                }
+            }) {
             Ok(t) => t,
             Err(e) => {
                 problems.push(format!("{}: {e}", file.display()));

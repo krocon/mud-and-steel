@@ -1,0 +1,36 @@
+# Translation of the mission meadow_hold (prompt 043). msgid: the English text of the
+# mission file; `just mission-po` adds new texts, see docs/MISSIONS.md.
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: de\n"
+
+msgid "Holding the meadow"
+msgstr "Die Wiese halten"
+
+msgid "Your battle group holds the western meadow and its supply point. Soviet tanks and riflemen will come up from the south. Hold the point until the relief from the north arrives in five minutes, and keep the anti-tank gun in action."
+msgstr "Deine Kampfgruppe hält die westliche Wiese und ihren Nachschubpunkt. Sowjetische Panzer und Schützen werden von Süden heranrücken. Halte den Punkt, bis in fünf Minuten die Ablösung aus dem Norden eintrifft, und halte die Pak einsatzbereit."
+
+msgid "Hold the supply point on the western meadow until the relief arrives."
+msgstr "Halte den Nachschubpunkt auf der westlichen Wiese, bis die Ablösung eintrifft."
+
+msgid "Keep the anti-tank gun in action."
+msgstr "Halte die Pak einsatzbereit."
+
+msgid "Soviet tanks are forming up in the fields to the south. Hold the meadow: the relief is on its way."
+msgstr "Auf den Feldern im Süden sammeln sich sowjetische Panzer. Haltet die Wiese: die Ablösung ist unterwegs."
+
+msgid "A second wave is coming from the south-east!"
+msgstr "Eine zweite Welle kommt von Südosten!"
+
+msgid "The relief is here. The meadow is held."
+msgstr "Die Ablösung ist da. Die Wiese ist gehalten."
+
+msgid "The anti-tank gun is lost."
+msgstr "Die Pak ist verloren."
+
+msgid "The Soviets have taken the meadow."
+msgstr "Die Sowjets haben die Wiese genommen."
+
+msgid "Every Panzer IV is lost. The meadow can hardly be held."
+msgstr "Alle Panzer IV sind verloren. Die Wiese ist kaum noch zu halten."

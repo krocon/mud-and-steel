@@ -34,6 +34,8 @@ const EditorSelfTest := preload("res://scenes/editor/editor_self_test.gd")
 const FilesScreen := preload("res://scenes/menu/files_screen.gd")
 ## Tutorial and missions (prompt 039).
 const MissionsScreen := preload("res://scenes/menu/missions_screen.gd")
+## Campaigns (prompt 189).
+const CampaignScreen := preload("res://scenes/menu/campaign_screen.gd")
 const Missions := preload("res://scenes/menu/missions.gd")
 ## Unit reference (prompt 066).
 const UnitsScreen := preload("res://scenes/menu/units_screen.gd")
@@ -49,7 +51,7 @@ const BIOMES: Dictionary[String, String] = {
 }
 
 ## Screens, by name: "main", "skirmish", "settings", "credits", "load",
-## "replays", "missions", "units".
+## "replays", "missions", "campaign", "units".
 var screens: Dictionary[String, Control] = {}
 var single_player_button: Button
 var lan_button: Button
@@ -65,6 +67,9 @@ var replays_button: Button
 var tutorial_button: Button
 var missions_button: Button
 var missions_screen: MissionsScreen
+## Campaigns (prompt 189).
+var campaign_button: Button
+var campaign_screen: CampaignScreen
 ## Unit reference (prompt 066).
 var units_button: Button
 var units_screen: UnitsScreen
@@ -120,6 +125,11 @@ func _ready() -> void:
 	missions_screen.back_pressed.connect(func() -> void: show_screen("main"))
 	add_child(missions_screen)
 	screens["missions"] = missions_screen
+	campaign_screen = CampaignScreen.new()
+	campaign_screen.visible = false
+	campaign_screen.back_pressed.connect(func() -> void: show_screen("main"))
+	add_child(campaign_screen)
+	screens["campaign"] = campaign_screen
 	units_screen = UnitsScreen.new()
 	units_screen.visible = false
 	units_screen.back_pressed.connect(func() -> void: show_screen("main"))
@@ -230,6 +240,7 @@ func _main_screen() -> Control:
 	box.add_child(subtitle)
 	box.add_child(_spacer(4))
 	tutorial_button = _button(box, "MENU_TUTORIAL", start_tutorial)
+	campaign_button = _button(box, "MENU_CAMPAIGN", func() -> void: show_screen("campaign"))
 	missions_button = _button(box, "MENU_MISSIONS", func() -> void: show_screen("missions"))
 	single_player_button = _button(box, "MENU_SINGLE_PLAYER", func() -> void: show_screen("skirmish"))
 	load_button = _button(box, "MENU_LOAD_GAME", func() -> void: show_screen("load"))

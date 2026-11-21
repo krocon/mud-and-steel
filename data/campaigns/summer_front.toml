@@ -1,0 +1,42 @@
+# Campaign (prompt 189): the order of the missions and the texts between
+# them. Format: docs/MISSIONS.md. A mission unlocks once the one before it
+# was won (on any level); nothing carries over between missions. Freely
+# invented situations, no historical units.
+
+[campaign]
+title = "Summer front"
+order = 0
+briefing = """
+Five battles on a quiet stretch of the front, seen from both sides: a meadow \
+taken and held, a village square stormed and a column breaking out, a town in \
+the snow."""
+
+[[mission]]
+id = "meadow_crossing"
+map = "twin_meadow"
+intro = "Spring. A Soviet tank company is ordered to take the western meadow and its supply point from a light German screen."
+outro = "The meadow is in Soviet hands. The German counterattack has broken down in front of it."
+
+[[mission]]
+id = "meadow_hold"
+map = "twin_meadow"
+intro = "The same meadow, a few weeks earlier, from the other side: a German battle group has to hold it until the relief comes."
+outro = "The relief has arrived in time. For now the meadow stays German."
+
+[[mission]]
+id = "village_square"
+map = "desert_village"
+intro = "Further south, American tanks and riflemen reach a village held by German infantry with a tank."
+outro = "The square is clear and its supply point taken."
+
+[[mission]]
+id = "village_breakout"
+map = "desert_village"
+intro = "Days later the Germans are back in force. The American column on the square is cut off and must break out to the south."
+outro = "The column made it out of the village. It will fight again."
+
+[[mission]]
+id = "winter_town"
+map = "town_small"
+intro = "Winter. A German force is to take a small town held by a Soviet outpost, while Soviet tanks are on their way to relieve it."
+outro = "The town is taken and the relief beaten off. The campaign is over."

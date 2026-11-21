@@ -78,7 +78,7 @@ else
     DEST="$OUT"
 fi
 mkdir -p "$DEST/data"
-cp -R data/maps data/scenarios "$DEST/data/"
+cp -R data/maps data/scenarios data/campaigns "$DEST/data/"
 rm -rf "$DEST/data/maps/editor_selftest"
 cp CREDITS.md LICENSE.txt target/export/THIRD_PARTY_LICENSES.txt "$DEST/"
 

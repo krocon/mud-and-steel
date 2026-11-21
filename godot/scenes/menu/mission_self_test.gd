@@ -25,6 +25,8 @@ const MAX_FRAMES := 30000
 const ORDER_TICKS := 100
 ## Enemies this far beyond an objective's area are attacked first (m).
 const REACH_M := 300.0
+## Around an objective with a timer (a defense, prompt 189) only this far.
+const DEFEND_M := 120.0
 
 ## The flow self-test (for `_check`, `_frames`, `_wait_scene`).
 var flow: Node
@@ -57,6 +59,7 @@ func run(menu: Control) -> Control:
 	flow._check(factions.size() >= 3, "missions cover the factions %s" % [factions.keys()])
 	screen.back_button.pressed.emit()
 	await flow._frames(2)
+	await _check_campaign(menu, false)
 
 	# The tutorial from its own button.
 	menu.tutorial_button.pressed.emit()
@@ -135,8 +138,42 @@ func run(menu: Control) -> Control:
 	flow._check(screen.list.get_item_text(0).contains("(won)"), "missions screen does not show the won tutorial: %s" % screen.list.get_item_text(0))
 	screen.back_button.pressed.emit()
 	await flow._frames(2)
+	await _check_campaign(menu, true)
 	Missions.reset()
 	return menu
+
+
+## The campaign screen (prompt 189): before any victory only the first
+## mission can be started; once all were won every one is open and shows
+## its stars.
+func _check_campaign(menu: Control, all_won: bool) -> void:
+	flow._check(menu.campaign_button != null and menu.campaign_button.is_visible_in_tree(), "main menu has no Campaign button")
+	menu.campaign_button.pressed.emit()
+	await flow._frames(2)
+	var screen: Control = menu.screens["campaign"]
+	flow._check(screen.visible, "campaign screen not shown")
+	flow._check(not screen.campaigns.is_empty(), "no campaign listed")
+	if screen.campaigns.is_empty():
+		return
+	var c: Dictionary = screen.campaign()
+	flow._check(c.get("ok", false), "campaign %s cannot be read: %s" % [c.get("id"), c.get("error", "")])
+	flow._check(screen.entries.size() >= 5, "campaign lists %d missions" % screen.entries.size())
+	for k in screen.entries.size():
+		flow._check(screen.entries[k].get("ok", false), "campaign mission %d is missing" % k)
+	if screen.entries.size() < 2:
+		return
+	screen.list.select(1)
+	screen._update_details()
+	if all_won:
+		flow._check(not screen.start_button.disabled, "a won campaign keeps its second mission locked")
+		flow._check(screen.list.get_item_text(1).contains("★") or screen.list.get_item_text(1).contains("☆"), "no stars in '%s'" % screen.list.get_item_text(1))
+		flow._check(screen.details.text.contains("After the mission:"), "no outro for a won mission: %s" % screen.details.text)
+	else:
+		flow._check(screen.start_button.disabled, "the second campaign mission can be started before the first was won")
+		flow._check(screen.list.get_item_text(1).contains("(locked)"), "second mission not shown as locked: %s" % screen.list.get_item_text(1))
+	print("flow self-test: campaign '%s' with %d missions (%s)" % [c.get("title", ""), screen.entries.size(), "all won" if all_won else "fresh"])
+	screen.back_button.pressed.emit()
+	await flow._frames(2)
 
 
 ## The "hardly winnable" panel (prompt 181): opens with its three
@@ -181,6 +218,8 @@ func _play(main: Node3D, tutorial: bool) -> void:
 	var signals := {}
 	var rings := 0
 	var messages := {}
+	var timers_shown := false
+	var counts_shown := false
 	var frames := MAX_FRAMES
 	var started := Time.get_ticks_msec()
 	while not game_menu.result_panel.visible and frames > 0:
@@ -192,6 +231,12 @@ func _play(main: Node3D, tutorial: bool) -> void:
 		for s: String in info["wanted"]:
 			signals[s] = true
 		rings = maxi(rings, main.mission_hud.rings)
+		# Prompt 189: timers and counts in the panel.
+		for o: Dictionary in info["objectives"]:
+			if o["state"] == "active" and int(o.get("timer_s", -1)) >= 0:
+				timers_shown = timers_shown or _panel_has(main, " – %d:" % (int(o["timer_s"]) / 60))
+			if o["state"] != "hidden" and int(o.get("progress_of", -1)) > 0:
+				counts_shown = counts_shown or _panel_has(main, "/%d)" % int(o["progress_of"]))
 		messages[info["message"]] = true
 		_autopilot(main, info)
 	host.speed = 1.0
@@ -201,8 +246,19 @@ func _play(main: Node3D, tutorial: bool) -> void:
 	flow._check(game_menu.result_title.text == "VICTORY", "mission result shows '%s'" % game_menu.result_title.text)
 	flow._check(game_menu.result_reason.text == "Mission accomplished.", "mission result reason '%s'" % game_menu.result_reason.text)
 	info = host.mission_info()
+	var has_count := false
 	for o: Dictionary in info["objectives"]:
-		flow._check(o["state"] == "done", "objective %s of %s is %s" % [o["id"], info["id"], o["state"]])
+		# Optional objectives (prompt 189) may be failed or open.
+		flow._check(o["state"] == "done" or o.get("optional", false), "objective %s of %s is %s" % [o["id"], info["id"], o["state"]])
+		has_count = has_count or int(o.get("progress_of", -1)) > 0
+	if has_count:
+		flow._check(counts_shown, "mission %s: the panel never showed a count" % info["id"])
+	if info["id"] == "meadow_hold":
+		flow._check(timers_shown, "mission %s: the panel never showed its timer" % info["id"])
+	# Prompt 189: the rating of the victory, on the result screen too.
+	var rating: Dictionary = info.get("rating", {})
+	flow._check(not rating.is_empty(), "mission %s has no rating after the victory" % info["id"])
+	flow._check(game_menu.result_details.text.contains("★") or game_menu.result_details.text.contains("☆"), "no stars on the result screen of %s" % info["id"])
 	flow._check(rings > 0, "no objective ring drawn in %s" % info["id"])
 	flow._check(messages.size() >= 2, "mission %s showed %d messages" % [info["id"], messages.size()])
 	# Prompt 108: every column that drove in reached the event feed.
@@ -219,6 +275,14 @@ func _play(main: Node3D, tutorial: bool) -> void:
 	print("flow self-test: %s '%s' decided at tick %d (%d s game time, %.1f s real time, %d messages, signals %s, %d columns drove in)" % [
 		"tutorial" if tutorial else "mission", info["id"], result["tick"], result["tick"] / 20,
 		(Time.get_ticks_msec() - started) / 1000.0, messages.size(), signals.keys(), arrivals.size()])
+
+
+## Whether a line of the mission panel contains `text`.
+func _panel_has(main: Node3D, text: String) -> bool:
+	for child in main.mission_hud.objectives_box.get_children():
+		if child is Label and String(child.text).contains(text):
+			return true
+	return false
 
 
 ## What a player following the objectives does (see the file comment).
@@ -256,7 +320,9 @@ func _autopilot(main: Node3D, info: Dictionary) -> void:
 	if objective["position"] == null or own.is_empty():
 		return
 	var center: Vector3 = objective["position"]
-	var reach: float = float(objective["radius"]) + REACH_M
+	# Prompt 189: an objective with a timer is held: only enemies close to
+	# it are attacked.
+	var reach: float = float(objective["radius"]) + (DEFEND_M if int(objective.get("timer_s", -1)) >= 0 else REACH_M)
 	var ids := host.unit_ids()
 	var owners := host.unit_owners()
 	var alive := host.unit_alive()

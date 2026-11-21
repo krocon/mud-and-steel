@@ -25,6 +25,10 @@ extends PanelContainer
 ## player's bindings; the signal `pause` is sent while the tactical pause is
 ## on. A tutorial chapter's title reads "<title> – step n of m".
 ##
+## Prompt 189: side objectives read "Optional: …", an objective with a
+## count shows it "(2/5)", one with a timer the time left "– 3:20"; a won
+## mission is recorded with its stars.
+##
 ## All texts come from the mission file; the few own ones are the
 ## translation keys below (prompt 043).
 
@@ -37,6 +41,7 @@ const TEXT_STEP := "HUD_MISSION_STEP"
 const TEXT_DONE := "HUD_MISSION_DONE"
 const TEXT_FAILED := "HUD_MISSION_FAILED"
 const TEXT_ALL_DONE := "HUD_MISSION_ALL_DONE"
+const TEXT_OPTIONAL := "HUD_MISSION_OPTIONAL"
 const TEXT_REINFORCEMENTS := "HUD_FEED_REINFORCEMENTS"
 const TEXT_ENEMY_REINFORCEMENTS := "HUD_FEED_ENEMY_REINFORCEMENTS"
 ## The camera counts as moved after this many meters, this zoom factor or
@@ -223,7 +228,9 @@ func refresh() -> void:
 		_message_tick = info["message_tick"]
 		message.text = with_keys(Missions.text(_path(), info["message"]))
 		message.visible = not message.text.is_empty()
-	var key := ",".join(shown.map(func(o: Dictionary) -> String: return o["id"] + ":" + o["state"]))
+	# Prompt 189: timers and counts change the lines too.
+	var key := ",".join(shown.map(func(o: Dictionary) -> String:
+		return "%s:%s:%d:%d" % [o["id"], o["state"], int(o.get("timer_s", -1)), int(o.get("progress", -1))]))
 	if key != _objective_key:
 		_objective_key = key
 		_show_objectives(shown)
@@ -290,19 +297,33 @@ func _show_objectives(shown: Array) -> void:
 		var label := Label.new()
 		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		label.custom_minimum_size = Vector2(WIDTH - 16.0, 0)
+		var text := line_of(Missions.text(_path(), o["text"]), o)
 		match o["state"]:
 			"done":
-				label.text = tr(TEXT_DONE) % Missions.text(_path(), o["text"])
+				label.text = tr(TEXT_DONE) % text
 				label.add_theme_color_override("font_color", MenuTheme.VICTORY)
 			"failed":
-				label.text = tr(TEXT_FAILED) % Missions.text(_path(), o["text"])
+				label.text = tr(TEXT_FAILED) % text
 				label.add_theme_color_override("font_color", MenuTheme.DEFEAT)
 			_:
-				label.text = "• " + with_keys(Missions.text(_path(), o["text"]))
+				label.text = "• " + with_keys(text)
 				open += 1
 		objectives_box.add_child(label)
 	if open == 0 and not shown.is_empty():
 		objectives_box.add_child(MenuTheme.hint(TEXT_ALL_DONE))
+
+
+## An objective's line (prompt 189): "Optional:" before a side objective,
+## its count "(2/5)" and, while it runs, its timer "– 3:20" after it.
+func line_of(text: String, o: Dictionary) -> String:
+	if o.get("optional", false):
+		text = tr(TEXT_OPTIONAL) % text
+	if int(o.get("progress_of", -1)) > 0:
+		text += " (%d/%d)" % [int(o["progress"]), int(o["progress_of"])]
+	var left := int(o.get("timer_s", -1))
+	if left >= 0 and o["state"] == "active":
+		text += " – %d:%02d" % [left / 60, left % 60]
+	return text
 
 
 ## Rings on the ground around the areas of active objectives.
@@ -371,5 +392,6 @@ func _record_victory() -> void:
 	var result: Dictionary = sim_host.match_result()
 	if result["decided"] and result["winner"] == sim_host.local_player():
 		recorded = true
-		Missions.mark_done(info.get("id", ""), str(info.get("level", "normal")))
+		var rating: Dictionary = sim_host.mission_info().get("rating", {})
+		Missions.mark_done(info.get("id", ""), str(info.get("level", "normal")), int(rating.get("stars", 0)))
 		print("Mission '%s' won at tick %d" % [info.get("id", ""), result["tick"]])

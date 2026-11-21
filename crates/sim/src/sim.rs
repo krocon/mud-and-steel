@@ -62,7 +62,7 @@ pub use feedback::{Activity, FireStatus, OrderEvent, RejectReason};
 pub use ground_info::GroundInfo;
 pub use infantry::BuildingCondition;
 pub use logistics::{StockView, SupplySource};
-pub use mission::{ArrivalView, ObjectiveView, column_spacing};
+pub use mission::{ArrivalView, ObjectiveView, RatingView, column_spacing};
 pub use orders::MAX_QUEUED;
 pub use progress::MoveEvent;
 pub use tactics::{SquadTactics, soldier_flags};

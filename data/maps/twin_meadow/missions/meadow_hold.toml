@@ -1,0 +1,180 @@
+# Prompt 189: a defense with a timer, the counterpart of "Meadow crossing"
+# from the German side (own start places and objectives, not mirrored).
+# Format: docs/MISSIONS.md. Areas and spawn points: ../mission_points.toml
+# plus the ones below.
+
+[mission]
+title = "Holding the meadow"
+kind = "mission"
+order = 4
+faction = "de"
+briefing = """
+Your battle group holds the western meadow and its supply point. Soviet tanks \
+and riflemen will come up from the south. Hold the point until the relief from \
+the north arrives in five minutes, and keep the anti-tank gun in action."""
+player = 0
+# Only the script decides.
+elimination = false
+
+[[computer]]
+player = 1
+difficulty = "passive"
+
+[[spawn]]
+name = "south_field"
+position_m = [-120, 340]
+
+[[spawn]]
+name = "south_east_field"
+position_m = [20, 330]
+
+[[group]]
+name = "panzers"
+owner = 0
+unit = "de_pz4_h"
+count = 3
+position_m = [-120, -25]
+
+[[group]]
+name = "pak"
+owner = 0
+unit = "de_pak40"
+count = 1
+position_m = [-135, 15]
+
+[[group]]
+name = "grenadiers"
+owner = 0
+unit = "de_inf_rifle_squad"
+count = 2
+position_m = [-100, 10]
+
+[[group]]
+name = "mg"
+owner = 0
+unit = "de_inf_mg42_team"
+count = 1
+position_m = [-145, 0]
+
+[[group]]
+name = "first_wave"
+owner = 1
+unit = "su_t34_76_1943"
+count = 2
+at = "south_field"
+
+[[group]]
+name = "first_wave"
+owner = 1
+unit = "su_inf_rifle_squad"
+count = 2
+position_m = [-120, 380]
+
+[[objective]]
+id = "hold"
+text = "Hold the supply point on the western meadow until the relief arrives."
+area = "meadow_west"
+shown = true
+timer = "relief"
+
+[[objective]]
+id = "pak_safe"
+text = "Keep the anti-tank gun in action."
+shown = true
+optional = true
+
+[[trigger]]
+id = "briefing"
+when = "time"
+actions = [
+  { do = "text", text = "Soviet tanks are forming up in the fields to the south. Hold the meadow: the relief is on its way." },
+]
+
+[[trigger]]
+id = "attack"
+when = "time"
+delay_s = 15
+actions = [
+  { do = "order", group = "first_wave", to = "meadow_west", order = "advance" },
+]
+
+[[trigger]]
+id = "second_wave"
+when = "time"
+delay_s = 150
+actions = [
+  { do = "text", text = "A second wave is coming from the south-east!" },
+  { do = "spawn", group = "second_wave", owner = 1, unit = "su_t34_76_1943", count = 2, at = "south_east_field", arrive = "drive" },
+  { do = "spawn", group = "second_wave", owner = 1, unit = "su_inf_rifle_squad", count = 1, at = "south_east_field", arrive = "drive" },
+  { do = "order", group = "second_wave", to = "meadow_west", order = "advance" },
+]
+
+[[trigger]]
+id = "relief"
+when = "time"
+delay_s = 300
+actions = [
+  { do = "text", text = "The relief is here. The meadow is held." },
+  { do = "spawn", group = "relief", owner = 0, unit = "de_pz4_h", count = 2, at = "north_west", arrive = "drive" },
+  { do = "objective", objective = "hold", state = "done" },
+]
+
+[[trigger]]
+id = "pak_kept"
+after = ["relief"]
+when = "units"
+unit = "de_pak40"
+open = ["pak_safe"]
+actions = [{ do = "objective", objective = "pak_safe", state = "done" }]
+
+[[trigger]]
+id = "pak_lost"
+when = "destroyed"
+group = "pak"
+open = ["pak_safe"]
+actions = [
+  { do = "objective", objective = "pak_safe", state = "failed" },
+  { do = "text", text = "The anti-tank gun is lost." },
+]
+
+[[trigger]]
+id = "victory"
+after = ["relief"]
+when = "time"
+delay_s = 3
+actions = [{ do = "victory" }]
+
+[[trigger]]
+id = "lost_point"
+when = "captured"
+point = "supply_meadow_west"
+player = 1
+open = ["hold"]
+actions = [
+  { do = "objective", objective = "hold", state = "failed" },
+  { do = "text", text = "The Soviets have taken the meadow." },
+  { do = "defeat" },
+]
+
+[[trigger]]
+id = "hopeless"
+when = "fewer"
+unit = "de_pz4"
+count = 1
+open = ["hold"]
+actions = [
+  { do = "hopeless", text = "Every Panzer IV is lost. The meadow can hardly be held." },
+]
+
+# The time is set by the relief; the stars are for few losses and the gun.
+[rating]
+losses_pct = 30
+
+[difficulty.easy]
+enemy_start_pct = 50
+enemy_count_pct = 50
+
+[difficulty.hard]
+enemy_start_pct = 150
+enemy_count_pct = 150
+enemy_delay_pct = 70

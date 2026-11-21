@@ -147,7 +147,14 @@ fn autopilot(sim: &Sim, player: PlayerId, tick: u64) -> Vec<Command> {
         // first, like a player would.
         let mut seen = sim::Snapshot::default();
         sim.snapshot_into(Some(player), &mut seen);
-        let reach = radius + sim::Fixed::from_num(300);
+        // Prompt 189: an objective with a timer is held, so only enemies
+        // close to it are attacked (the defense stays in place).
+        let around = if objective.timer_ticks.is_some() {
+            120
+        } else {
+            300
+        };
+        let reach = radius + sim::Fixed::from_num(around);
         let distance_bits = |p: Vec2| {
             let d = p - center;
             let (x, y) = (i128::from(d.x.to_bits()), i128::from(d.y.to_bits()));
@@ -415,10 +422,11 @@ fn every_mission_can_be_won() {
             sim.tick(),
             sim.mission_message()
         );
+        // Optional objectives (prompt 189) may be failed or still open.
         assert!(
             sim.mission_objectives()
                 .iter()
-                .all(|o| o.state == ObjectiveState::Done),
+                .all(|o| o.optional || o.state == ObjectiveState::Done),
             "{map_name}/{id}: {objectives:?}"
         );
         let arrivals: Vec<String> = sim

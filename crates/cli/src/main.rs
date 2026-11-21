@@ -1164,7 +1164,11 @@ fn run_cli() {
             print!("{}", sim::unit_stats::document(&rules).to_json());
         }
         CliCommand::MissionPo { check } => {
-            let problems = mission_po::run(std::path::Path::new("data/maps"), check);
+            let problems = mission_po::run(
+                std::path::Path::new("data/maps"),
+                std::path::Path::new("data/campaigns"),
+                check,
+            );
             for p in &problems {
                 eprintln!("{p}");
             }

@@ -176,14 +176,61 @@ static func is_done(id: String) -> bool:
 	return bool(_load().get_value("done", id, false))
 
 
-## Records a won mission and the hardest level it was won on.
-static func mark_done(id: String, level := "normal") -> void:
+## Records a won mission, the hardest level it was won on and the most
+## stars per level (prompt 189, section `stars`, key `<id>.<level>`).
+static func mark_done(id: String, level := "normal", stars := 0) -> void:
 	var file := _load()
 	file.set_value("done", id, true)
 	var best := String(file.get_value("level", id, ""))
 	if LEVELS.find(level) > LEVELS.find(best):
 		file.set_value("level", id, level)
+	var key := "%s.%s" % [id, level]
+	if stars > int(file.get_value("stars", key, -1)):
+		file.set_value("stars", key, stars)
 	_save(file)
+
+
+## The most stars the mission `id` was won with at `level`, -1 if never.
+static func stars(id: String, level: String) -> int:
+	return int(_load().get_value("stars", "%s.%s" % [id, level], -1))
+
+
+## "★★☆" per level the mission was won on, e.g. "Normal ★★☆", "" if none.
+static func stars_text(id: String) -> String:
+	var parts: PackedStringArray = []
+	for level in LEVELS:
+		var n := stars(id, level)
+		if n >= 0:
+			parts.append("%s %s%s" % [TranslationServer.translate(LEVEL_KEYS[level]), "★".repeat(n), "☆".repeat(3 - n)])
+	return "  ".join(parts)
+
+
+## Every campaign file (`data/campaigns/<id>.toml`, prompt 189) as
+## `SimHost.campaign_header` plus `path`, by `order` and title.
+static func campaigns() -> Array[Dictionary]:
+	var found: Array[Dictionary] = []
+	var folder := GamePaths.data_dir().path_join("campaigns")
+	var dir := DirAccess.open(folder)
+	if dir == null:
+		return found
+	for file in dir.get_files():
+		if not file.ends_with(".toml"):
+			continue
+		var header: Dictionary = SimHost.campaign_header(folder.path_join(file))
+		header["path"] = folder.path_join(file)
+		found.append(header)
+	found.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		if int(a.get("order", 0)) != int(b.get("order", 0)):
+			return int(a.get("order", 0)) < int(b.get("order", 0))
+		return String(a.get("title", a["id"])) < String(b.get("title", b["id"])))
+	return found
+
+
+## Whether mission `k` of a campaign (from `campaigns`) can be played: the
+## first always, every other once the one before it was won.
+static func unlocked(campaign: Dictionary, k: int) -> bool:
+	var missions: Array = campaign.get("missions", [])
+	return k == 0 or (k > 0 and k < missions.size() + 1 and is_done(missions[k - 1]["id"]))
 
 
 static func _save(file: ConfigFile) -> void:

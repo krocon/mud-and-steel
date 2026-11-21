@@ -1,0 +1,36 @@
+# Translation of the mission village_breakout (prompt 043). msgid: the English text of the
+# mission file; `just mission-po` adds new texts, see docs/MISSIONS.md.
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: de\n"
+
+msgid "Breaking out"
+msgstr "Der Ausbruch"
+
+msgid "German troops have cut off your column on the village square. A thin German screen of riflemen and a machine gun blocks the road south. Break through it and bring at least six of your vehicles and squads to the road out of the village before the German tanks from the north close the ring. Try to save both trucks."
+msgstr "Deutsche Truppen haben deine Kolonne auf dem Dorfplatz abgeschnitten. Ein dünner Schleier aus Schützen und einem MG sperrt die Straße nach Süden. Brich durch und bring mindestens sechs deiner Fahrzeuge und Trupps auf die Straße aus dem Dorf, bevor die deutschen Panzer aus dem Norden den Ring schließen. Versuche, beide Lastwagen zu retten."
+
+msgid "Bring at least six units to the road out of the village in the south."
+msgstr "Bring mindestens sechs Einheiten auf die Straße aus dem Dorf im Süden."
+
+msgid "Bring both trucks out."
+msgstr "Bring beide Lastwagen hinaus."
+
+msgid "German tanks expected from the north."
+msgstr "Deutsche Panzer aus dem Norden erwartet."
+
+msgid "We are cut off. A German screen holds the road south. Punch through before their tanks arrive."
+msgstr "Wir sind abgeschnitten. Ein deutscher Schleier hält die Straße nach Süden. Brecht durch, bevor ihre Panzer kommen."
+
+msgid "German tanks are entering the village from the north!"
+msgstr "Deutsche Panzer fahren von Norden ins Dorf!"
+
+msgid "We are through. The column is out of the village."
+msgstr "Wir sind durch. Die Kolonne ist aus dem Dorf heraus."
+
+msgid "A truck is lost."
+msgstr "Ein Lastwagen ist verloren."
+
+msgid "Fewer than six units are left. The breakout can hardly succeed."
+msgstr "Es sind weniger als sechs Einheiten übrig. Der Ausbruch kann kaum noch gelingen."

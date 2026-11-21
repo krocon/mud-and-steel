@@ -2,6 +2,7 @@ keys,en,de
 MENU_SUBTITLE,"Real-time tactics, 1939–1945","Echtzeit-Taktik, 1939–1945"
 MENU_TUTORIAL,Tutorial,Tutorial
 MENU_MISSIONS,Missions,Missionen
+MENU_CAMPAIGN,Campaign,Kampagne
 MENU_SINGLE_PLAYER,Single player,Einzelspieler
 MENU_LOAD_GAME,Load game,Spiel laden
 MENU_REPLAYS,Replays,Replays
@@ -36,6 +37,10 @@ RESULT_DEFEAT_MISSION,mission failed,Mission gescheitert
 RESULT_DEFEAT_BASE_LOST,base lost,Basis verloren
 RESULT_REASON_DRAW,Every side lost in the same moment.,Alle Seiten haben im selben Moment verloren.
 RESULT_REASON_MISSION_WON,Mission accomplished.,Mission erfüllt.
+RESULT_RATING_TIME_OK,in time,in der Zeit
+RESULT_RATING_TIME_LATE,too slow,zu langsam
+RESULT_RATING_LOSSES,{lost} of {units} units lost,{lost} von {units} Einheiten verloren
+RESULT_RATING_OPTIONAL,side objectives {done}/{total},Nebenziele {done}/{total}
 RESULT_REASON_MISSION_LOST,Mission failed.,Mission gescheitert.
 RESULT_REASON_YOU_SURRENDERED,You surrendered.,Du hast aufgegeben.
 RESULT_REASON_YOU_ELIMINATED,All your units were lost.,Alle deine Einheiten sind verloren.
@@ -151,6 +156,13 @@ MENU_LEVEL,Difficulty,Schwierigkeit
 MENU_LEVEL_EASY,Easy,Leicht
 MENU_LEVEL_NORMAL,Normal,Normal
 MENU_LEVEL_HARD,Hard,Schwer
+MENU_CAMPAIGN_TITLE,Campaign,Kampagne
+MENU_CAMPAIGN_NONE,No campaign found.,Keine Kampagne gefunden.
+MENU_CAMPAIGN_LOCKED,(locked),(gesperrt)
+MENU_CAMPAIGN_LOCKED_HINT,Win the mission before this one first.,Gewinne zuerst die Mission davor.
+MENU_CAMPAIGN_PROGRESS,{won} of {total} missions won,{won} von {total} Missionen gewonnen
+MENU_CAMPAIGN_AFTER,After the mission:,Nach der Mission:
+MENU_MISSION_STARS,Best: {stars},Bestes: {stars}
 RESULT_TAB_SUMMARY,Summary,Übersicht
 RESULT_TAB_REPORT,Report,Bericht
 REPORT_COST_TITLE,What cost you most:,Was dich am meisten gekostet hat:

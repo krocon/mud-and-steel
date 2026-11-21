@@ -109,7 +109,12 @@ impl SimHost {
     /// script's condition name, "" if no trigger completes it) with
     /// `unit`, `stance`, `signal`, `area` (ground point or null),
     /// `area_radius`, `group` (living unit ids) and `by` where the
-    /// condition has them.
+    /// condition has them. Prompt 189: every objective has `optional`,
+    /// `timer_s` (seconds until its timer trigger fires, -1 without) and
+    /// `progress` / `progress_of` (its count, -1 without); `rating` is
+    /// empty until the player won, then `stars` (0..3), `in_time`,
+    /// `few_losses`, `optional_done`, `lost`, `units`, `optional_won`,
+    /// `optional_total`, `par_s` and `losses_pct`.
     #[func]
     fn mission_info(&self) -> VarDictionary {
         let Some(game) = &self.game else {
@@ -134,6 +139,16 @@ impl SimHost {
                 None => d.set("position", &Variant::nil()),
             }
             d.set("goal", &goal_of(sim, mission, k, map));
+            // Prompt 189: side objective, timer, count.
+            let hz = u64::from(sim.tick_hz().max(1));
+            d.set("optional", o.optional);
+            d.set(
+                "timer_s",
+                o.timer_ticks
+                    .map_or(-1, |t| i64::try_from(t.div_ceil(hz)).unwrap_or(i64::MAX)),
+            );
+            d.set("progress", o.progress.map_or(-1, |(n, _)| i64::from(n)));
+            d.set("progress_of", o.progress.map_or(-1, |(_, n)| i64::from(n)));
             objectives.push(&d.to_variant());
         }
         let (message, message_tick) = sim
@@ -186,7 +201,66 @@ impl SimHost {
             arrivals.push(&d.to_variant());
         }
         info.set("arrivals", &arrivals);
+        // Prompt 189: the rating once the mission is won.
+        let mut rating = VarDictionary::new();
+        if let Some(r) = sim.mission_rating() {
+            let hz = u64::from(sim.tick_hz().max(1));
+            rating.set("stars", i64::from(r.stars));
+            rating.set("in_time", r.in_time);
+            rating.set("few_losses", r.few_losses);
+            rating.set("optional_done", r.optional_done);
+            rating.set("lost", i64::from(r.lost));
+            rating.set("units", i64::from(r.units));
+            rating.set("optional_won", i64::from(r.optional.0));
+            rating.set("optional_total", i64::from(r.optional.1));
+            rating.set(
+                "par_s",
+                i64::try_from(mission.rating.par_ticks / hz).unwrap_or(0),
+            );
+            rating.set("losses_pct", i64::from(mission.rating.losses_pct));
+        }
+        info.set("rating", &rating);
         info
+    }
+
+    /// A campaign file (`data/campaigns/<id>.toml`, prompt 189) for the
+    /// menu: `ok`, `error`, `id`, `title`, `briefing`, `order` and
+    /// `missions` (array of `id`, `map`, `intro`, `outro` in play order).
+    #[func]
+    fn campaign_header(campaign_path: GString) -> VarDictionary {
+        let path = campaign_path.to_string();
+        let id = Path::new(&path)
+            .file_stem()
+            .map(|s| s.to_string_lossy().into_owned())
+            .unwrap_or_default();
+        let parsed = std::fs::read_to_string(&path)
+            .map_err(|e| e.to_string())
+            .and_then(|t| sim::campaign::Campaign::parse(&t).map_err(|e| e.to_string()));
+        match parsed {
+            Ok(c) => {
+                let mut missions = VarArray::new();
+                for m in &c.missions {
+                    let d = vdict! {
+                        "id" => m.id.as_str(),
+                        "map" => m.map.as_str(),
+                        "intro" => m.intro.as_str(),
+                        "outro" => m.outro.as_str(),
+                    };
+                    missions.push(&d.to_variant());
+                }
+                let mut d = vdict! {
+                    "ok" => true,
+                    "error" => "",
+                    "id" => id,
+                    "title" => c.campaign.title,
+                    "briefing" => c.campaign.briefing,
+                    "order" => i64::from(c.campaign.order),
+                };
+                d.set("missions", &missions);
+                d
+            }
+            Err(e) => vdict! { "ok" => false, "error" => e, "id" => id },
+        }
     }
 
     /// Reports `name` (`camera`, `select`) to the mission script of the
@@ -429,6 +503,10 @@ fn goal_of(
         }
         Condition::Smoke { area: a } => area(&mut d, Some(*a)),
         Condition::Captured { point, .. } => d.set("point", point.as_str()),
+        Condition::Reach { area: a, unit, .. } => {
+            area(&mut d, Some(*a));
+            d.set("unit", unit.clone().unwrap_or_default());
+        }
         _ => {}
     }
     d

@@ -13,6 +13,13 @@ Items marked [provisional] are decisions the user should confirm.
 - **Main menu → Tutorial** starts the first chapter of basic training not
   won yet (prompt 180; all won: chapter 1). The missions screen lists every
   chapter (in `order`) and starts any of them.
+- **Main menu → Campaign** (prompt 189) shows a campaign of
+  `data/campaigns/` (a choice box if there are several) with its missions
+  in play order and "n of m missions won": the first is open, every other
+  one opens once the one before it was won (on any level); locked ones are
+  grey. Below: the campaign's briefing (first mission), the mission's
+  intro and briefing, and its outro once won. Difficulty and Start as in
+  the missions screen. Nothing carries over between missions.
 - **Main menu → Missions** lists the tutorial and every mission (title,
   side, map, "(won)" once won, with the hardest level it was won on) with
   its briefing; **Difficulty** (Easy, Normal, Hard; prompt 181) picks the
@@ -23,7 +30,16 @@ Items marked [provisional] are decisions the user should confirm.
   ground; the script can move the camera.
 - A won mission is recorded in `user://missions.cfg` (section `done`, key
   = mission id; section `level`: the hardest level won; section
-  `settings`, key `level`: the level chosen last). The flow self-test uses
+  `settings`, key `level`: the level chosen last; section `stars`, key
+  `<id>.<level>`: the most stars won with at that level, prompt 189).
+- **Rating** (prompt 189): a victory earns up to three stars, one each for
+  winning in time (`[rating] par_s`; none set: given), losing at most
+  `losses_pct` percent of the own units (default 25; spawned units count),
+  and doing every optional objective (none: given). The result screen
+  shows them ("★★☆ – in time, 2 of 9 units lost, side objectives 1/2"),
+  the campaign and missions screens the best per level.
+- The panel marks side objectives "Optional: …", shows an objective's
+  count "(2/6)" (`progress`) and the time left "– 3:20" (`timer`). The flow self-test uses
   `user://missions-selftest.cfg`.
 - When the script says the mission can hardly be won any more (action
   `hopeless`, prompt 181), a panel in the middle says so and offers
@@ -42,6 +58,8 @@ Items marked [provisional] are decisions the user should confirm.
 | Meadow crossing | Soviet Union | twin_meadow | Take the western meadow's supply point from a light German screen, then destroy the counterattack that drives in from the north edge. |
 | The village square | United States | desert_village | Clear the square of German infantry and a tank, then take its supply point. |
 | Town in the snow | Germany | town_small (winter look) | Destroy the Soviet outpost on the square, then the Soviet relief that drives in from the north edge. |
+| Holding the meadow (`meadow_hold`, prompt 189) | Germany | twin_meadow | The counterpart of Meadow crossing: hold the western meadow's supply point for five minutes (timer) against two waves of T-34s and riflemen from the south until the relief drives in from the north; lost if the Soviets take the point. Optional: keep the anti-tank gun in action. |
+| Breaking out (`village_breakout`, prompt 189) | United States | desert_village | Cut off on the village square: break through a screen of riflemen and a machine gun and bring six of eight units to the road out in the south (count) before German tanks from the north arrive (timer). Optional: both trucks out. |
 
 The example missions use the passive computer player (holds its ground and
 fires) and scripted `order` actions for counterattacks [provisional]. They
@@ -126,6 +144,9 @@ Units at the start, laid out like a `MoveTo` formation around the place.
 | `area` | – | Its area: drawn as a ring (the self-test's autopilot goes there). |
 | `unit` | – | The catalog id it is about (a building to build, a unit to produce). |
 | `shown` | `false` | Active from the start; otherwise hidden until an action activates it. |
+| `optional` | `false` | A side objective (prompt 189): "Optional: …" in the panel, not needed for the victory (the script decides), counts for the rating. |
+| `timer` | – | A trigger id: while that trigger counts down (its condition held, its `delay_s` runs; a `time` trigger from its arming) the panel shows the time left (prompt 189). |
+| `progress` | – | A trigger id of `when = "area"`, `"units"` or `"reach"`: the panel shows its count, e.g. "(2/6)"; a fired trigger shows it full (prompt 189). |
 
 ### `[[trigger]]`
 
@@ -160,6 +181,7 @@ trigger fires once.
 | `pinned` | `group`, `pct` (50) | a living squad of the group is suppressed by at least `pct` % (prompt 180) |
 | `smoke` | `area` | smoke lies at the center of the area (prompt 180) |
 | `air` | `player` | the player called air support this tick (prompt 180) |
+| `reach` | `area`, `player`, `count` (1), `unit` (catalog id prefix, optional) | at least `count` different living matching units of the player stood in the area since the trigger was armed; they need not stay (prompt 189: a breakout; the remembered ids are state and hashed once one is there) |
 
 | `do` | Keys | Effect |
 |---|---|---|
@@ -203,6 +225,8 @@ a group that has no units at a level is an error (it could never fire).
 | Meadow crossing | counterattack 50 % | computer `normal`, counterattack 150 % | one T-34 left before the counterattack is beaten |
 | The village square | garrison 50 % (one squad, the tank) | computer `normal`, garrison 150 % | one Sherman left before the square is cleared |
 | Town in the snow | relief 50 % (one T-34) | computer `normal`, outpost 200 %, relief 150 % | one Panzer IV left before the relief is beaten |
+| Holding the meadow | first wave 50 % (one T-34, one squad), second wave 50 % | first wave 150 %, second wave 150 % and 30 % earlier | every Panzer IV lost while the point is held |
+| Breaking out | screen 50 %, the tanks 50 % later | an anti-tank gun in the screen, screen 150 %, the tanks 150 % and 40 % earlier | fewer than six units left before six are out |
 
 Measured against the test autopilot (`every_level_of_every_mission`,
 seed 42; game time to victory, Easy / Normal / Hard; since prompt 180 the
@@ -211,9 +235,48 @@ on every level; meadow crossing 390 / 391 / 84 s; village square 80 / 80 /
 202 s; town in the snow 82 / 83 / 72 s. Chapters 2–5 (no levels): 368,
 201, 167 (one tank lost on purpose by the route) and 50 s. Hard is not always longer: with `computer = "normal"`
 the enemy comes out to fight the autopilot's column instead of waiting.
-On Hard with two Panzer IV at the crossing (`enemy_start_pct = 200`) the
+Prompt 189 (same test, Easy / Normal / Hard): holding the meadow 303 /
+303 / 303 s (the relief decides it; 1 / 0 / 2 own units lost), breaking out
+69 / 65 s and not won on Hard (the anti-tank gun); first versions were not
+winnable: an anti-tank gun in the breakout's screen on Normal shot every
+Sherman of the autopilot from the front, and the defense with three T-34s
+in the first wave and two Panzer IV was lost on Easy (the autopilot went
+out to meet them; it now holds an objective with a timer and attacks only
+enemies within 120 m of its area). On Hard with two Panzer IV at the crossing (`enemy_start_pct = 200`) the
 autopilot lost meadow crossing after 98 s, so that level only grows the
 counterattack.
+
+### `[rating]`
+
+Prompt 189. `par_s`: win within this many game seconds for the time star
+(0 or missing: the star comes with the victory, e.g. for a defense whose
+length the script sets); `losses_pct` (default 25): the most own units lost,
+in percent of all own units of the match. `Sim::mission_rating` gives the
+stars once the player won (`SimHost.mission_info()["rating"]`).
+
+### Campaigns
+
+Prompt 189. `data/campaigns/<id>.toml` orders missions (by id and map) and
+holds the texts between them; translations in `<id>.de.po` next to it
+(`just mission-po` writes them with the missions'). The simulation never
+reads it (`sim::campaign`, bridge `SimHost.campaign_header`).
+
+```toml
+[campaign]
+title = "Summer front"
+order = 0              # position among campaigns
+briefing = "…"         # shown with the first mission
+
+[[mission]]
+id = "meadow_crossing" # mission file name without .toml
+map = "twin_meadow"
+intro = "…"            # before the mission
+outro = "…"            # once it was won
+```
+
+The campaign "Summer front" plays meadow crossing, holding the meadow (the
+same meadow from the other side), the village square, breaking out and the
+town in the snow.
 
 ### Reinforcements drive in
 
@@ -340,6 +403,10 @@ file written by hand next to it [provisional: no script editor in the game].
 - `crates/sim/tests/mission_levels.rs` (prompt 181): the values of each
   level, `levels` of groups, level errors, start resources, the `fewer`
   condition with `open` and the `hopeless` action.
+- `crates/sim/tests/mission_rating.rs` (prompt 189): `reach` counts units
+  that left the area again, timers and counts of objectives, optional
+  objectives and the rating, errors; `sim::campaign` tests the campaign
+  format.
 - `crates/sim/tests/mission_triggers.rs` (prompt 180): `stance`,
   `garrison`, `spotted`, `unseen`, `air`.
 - `crates/ai/tests/missions.rs`: every mission file is won by an autopilot
@@ -356,15 +423,20 @@ file written by hand next to it [provisional: no script editor in the game].
 - `just selftest` plays every tutorial chapter and every mission from the
   menu to victory (`menu/mission_self_test.gd`; the first mission on Easy, the
   second on Hard, chosen in the screen; the warning panel opens and
-  closes); `just editor-selftest` places,
+  closes; prompt 189: timers and counts shown in the panel, a rating and
+  stars on the result screen, the campaign screen locked before and open
+  with stars after); `just editor-selftest` places,
   removes and saves trigger areas and spawn points.
 
 ## Open
 
 - Multiplayer or cooperative missions (the script supports teams, the menu
   and lobby do not offer missions).
-- A campaign (mission order, unlocking), mission ratings and timers in the
-  panel (prompt 189).
+- Prompt 189: units that reach a `reach` area stay on the map (they do
+  not leave it and can still be shot); a campaign mission cannot be
+  restarted from its outro; one campaign only; the time star of a defense
+  comes with the victory; the breakout is not won by the test autopilot on
+  Hard and is short (about a minute) for it on Normal.
 - Prompt 180: chapters on moving in formation and transport, engineers,
   supply (later prompt); help cards; a picture per chapter for the menu.
   Chapter 2's camouflage step does not fail when the scout car sees the
