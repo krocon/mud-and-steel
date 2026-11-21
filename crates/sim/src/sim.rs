@@ -20,6 +20,7 @@ mod alert;
 mod care;
 mod combat;
 mod craters;
+mod crew;
 mod crossings;
 mod destruction;
 mod discipline;
@@ -289,6 +290,9 @@ struct Unit {
     /// unarmed vehicle (prompt 176).
     #[serde(default)]
     under_fire: discipline::UnderFire,
+    /// The men serving a gun (prompt 177); empty for other units.
+    #[serde(default)]
+    crew: crew::Crew,
 }
 
 impl Unit {
@@ -1672,6 +1676,7 @@ impl Sim {
             h.write_u32(unit.crush_slow);
             unit.progress.hash_into(&mut h);
             unit.under_fire.hash_into(&mut h);
+            unit.crew.hash_into(&mut h);
             match &unit.squad {
                 None => h.write_u8(0),
                 Some(squad) => {
@@ -2424,6 +2429,7 @@ fn new_unit(n: &NewUnit<'_>) -> Unit {
         alert: alert::Alert::default(),
         progress: progress::Progress::default(),
         under_fire: discipline::UnderFire::default(),
+        crew: crew::Crew::new(n.unit_type.combat.gun_crew),
     }
 }
 

@@ -264,6 +264,8 @@ pub struct Entry {
     /// Total horizontal traverse of the main gun in a casemate (degrees);
     /// absent for vehicles with a rotating turret.
     pub gun_traverse_deg: Option<u16>,
+    /// Towed guns: a shield protects the crew from the front (prompt 177).
+    pub gun_shield: Option<bool>,
 
     #[serde(default)]
     pub weapon: Vec<Weapon>,
@@ -288,6 +290,7 @@ pub const FIELD_NAMES: &[&str] = &[
     "wingspan_mm",
     "mass_kg",
     "crew",
+    "gun_shield",
     "passengers",
     "squad_size",
     "bridge_length_mm",
@@ -395,6 +398,9 @@ impl Catalog {
 /// Checks required fields and plausible value ranges of one entry.
 fn validate(e: &Entry) -> Vec<String> {
     let mut errors = Vec::new();
+    if e.gun_shield.is_some() && e.category.group() != Group::Gun {
+        errors.push("gun_shield is only for guns".to_string());
+    }
     let mut need = |name: &str, value: Option<u32>, min: u32, max: u32| match value {
         None => errors.push(format!("missing {name}")),
         Some(v) if v < min || v > max => {

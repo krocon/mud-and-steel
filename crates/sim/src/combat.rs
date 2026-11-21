@@ -192,6 +192,22 @@ pub struct CombatRules {
     /// all weights 0, ties by distance (close to the old order).
     #[serde(default)]
     pub targeting: TargetingRules,
+    /// Gun crews (prompt 177). Absent in older replays: no crew is hit.
+    #[serde(default)]
+    pub gun_crew: GunCrewRules,
+}
+
+/// Gun crews (prompt 177, `[gun_crew]` in `data/combat.toml`).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct GunCrewRules {
+    /// Rounds below this caliber hit the crew instead of the gun; 0 = off.
+    pub small_caliber_mm_x10: u32,
+    pub hit_pct: u32,
+    pub shield_half_deg: u32,
+    /// Reload time in percent by the share of men left (up to 25, 50, 75 %
+    /// and above).
+    pub reload_pct: [u32; 4],
 }
 
 /// Scores of automatic targets (prompt 188, `[targeting]` in
@@ -371,6 +387,18 @@ impl CombatRules {
             0,
             100,
         )?;
+        let c = &rules.gun_crew;
+        check(
+            "gun_crew.small_caliber_mm_x10",
+            c.small_caliber_mm_x10,
+            0,
+            1000,
+        )?;
+        check("gun_crew.hit_pct", c.hit_pct, 0, 100)?;
+        check("gun_crew.shield_half_deg", c.shield_half_deg, 0, 180)?;
+        for v in c.reload_pct {
+            check("gun_crew.reload_pct", v, 100, 1000)?;
+        }
         Ok(rules)
     }
 
@@ -458,6 +486,13 @@ impl CombatRules {
         ] {
             h.write_u32(v);
         }
+        let c = &self.gun_crew;
+        for v in [c.small_caliber_mm_x10, c.hit_pct, c.shield_half_deg] {
+            h.write_u32(v);
+        }
+        for v in c.reload_pct {
+            h.write_u32(v);
+        }
     }
 }
 
@@ -543,6 +578,13 @@ pub struct CombatType {
     pub category: Option<Category>,
     /// Soldiers of an infantry squad; 0 for vehicles.
     pub squad_size: u16,
+    /// Men serving a towed gun or heavy mortar (prompt 177: they can be
+    /// hit apart from the gun); 0 for everything else.
+    #[serde(default)]
+    pub gun_crew: u16,
+    /// The gun has a shield that covers its crew from the front.
+    #[serde(default)]
+    pub gun_shield: bool,
     /// Hull length, width and height in meters (0: use the footprint and
     /// the rules' infantry height).
     pub length_m: Fixed,
@@ -728,6 +770,12 @@ impl CombatType {
             } else {
                 0
             },
+            gun_crew: if group == Group::Gun {
+                e.crew.unwrap_or(0)
+            } else {
+                0
+            },
+            gun_shield: group == Group::Gun && e.gun_shield.unwrap_or(false),
             length_m: m(e.length_hull_mm.or(e.length_mm)),
             width_m: m(e.width_mm),
             height_m: m(e.height_mm),

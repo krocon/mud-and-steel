@@ -696,6 +696,17 @@ lone sniper → does not, at a squad → still does.
 the AI lose 25 % of its games against a passive enemy; effect 40 keeps the
 results. The weights are a first setting, not tuned further.
 
+## Gun crews (prompt 177) [provisional, 2026-11-21]
+
+Pak 40 against infantry (ARCHITECTURE.md "Gun crews", numbers before →
+after): one squad or HMG team, front or flank: the Pak wins either way;
+two HMG teams from both flanks: the Pak won → its crew is out after 9 s; a
+mortar team with a spotter: gun destroyed after 20 s → abandoned after
+18 s; Flak 36 against a T-34 head-on unchanged. `just ai-tournament`
+(battle, 40 games each): unchanged (the demo has no guns); base mode (10
+games each): normal vs easy 0 / 20 % → 0 / 10 % wins, the rest unchanged.
+bench 3.04 ms per step.
+
 ## Golden hash
 
 Prompt 110 changed the golden hash to `0xd68a_2529_06b0_2b43` (economy

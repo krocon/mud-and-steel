@@ -488,3 +488,7 @@ HUD_FIRE_MIXED,mixed,gemischt
 HUD_STATE_RETURN_FIRE,returns fire,erwidert Feuer
 HUD_STATE_CLOSE_ONLY,close range only,erst auf kurze Entfernung
 HUD_STATE_VEHICLES_ONLY,vehicles only,nur auf Fahrzeuge
+HUD_GUN_CREW,Crew %d / %d,Bedienung %d / %d
+HUD_CREW_ABANDONED,Abandoned: no crew,Verlassen: keine Bedienung
+ACTIVITY_ABANDONED,abandoned (no crew),verlassen (keine Bedienung)
+FIRE_STATUS_ABANDONED,no crew,keine Bedienung

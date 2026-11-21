@@ -513,6 +513,18 @@ at the forest edge be seen from 500 m. Rules in `data/vision.toml`
 `[ambush]`; details in
 [ARCHITECTURE.md](ARCHITECTURE.md#ambush-prompt-056-provisional).
 
+## Gun crews (prompt 177) [provisional, 2026-11-21]
+
+A towed gun is as strong as the men serving it. Machine guns and rifles
+cannot hurt the gun but its crew, unless the gun's shield faces them (it
+turns with the gun); fragments from mortars and artillery strike the crew
+over any shield. Fewer men load more slowly, a pinned crew too; a gun
+without men is abandoned and silent. Counters to a dangerous gun: infantry
+from two sides at once, mortars with a spotter, artillery, tanks. Crew
+sizes and shields come from the catalog with sources; values in
+`[gun_crew]` of `data/combat.toml`. Not yet: manning abandoned guns again,
+captured guns.
+
 ## Fire discipline (prompt 176) [provisional, 2026-11-21]
 
 An ambush must not give itself away at the first scout. Three fire modes

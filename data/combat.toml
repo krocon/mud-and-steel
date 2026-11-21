@@ -183,3 +183,25 @@ distance_per_10m = 4
 # spotted soft target anywhere in range, also a lone sniper.
 indirect_auto_range_pct = 85
 indirect_min_soldiers = 3
+
+[gun_crew]
+# Prompt 177: the men serving a towed gun or heavy mortar (catalog `crew`)
+# are a count with their own hits, not soldiers of their own. Rounds below
+# `small_caliber_mm_x10` (rifles, machine guns, 20 mm) that hit the gun hit
+# a man with `hit_pct` percent (the rest strike steel and do nothing) and
+# never the gun; heavier rounds hit the gun's hit points as before. A gun
+# with a shield (catalog `gun_shield`) stops them within `shield_half_deg`
+# of its front (they suppress the crew half as much). Fragments of shells and bombs strike each man like an
+# infantryman in the open (`[blast] infantry_pct` of data/indirect.toml),
+# shield or not, and do not hurt the gun. Each man takes `[damage]
+# soldier_hp`. Suppression works on the crew as on a squad (the values of
+# `[suppression]` in data/tactics.toml): a pinned crew loads as slowly as
+# a pinned squad fires (`pinned_fire_pct`).
+# Fewer men load more slowly: the reload time in percent by the share of
+# men left, up to 25 %, 50 %, 75 % and above. Without men the gun is
+# abandoned: it does not fire (manning it again is not modelled).
+# [provisional]
+small_caliber_mm_x10 = 200
+hit_pct = 25
+shield_half_deg = 40
+reload_pct = [400, 250, 150, 100]

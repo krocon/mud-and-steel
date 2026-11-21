@@ -580,8 +580,9 @@ impl Sim {
                 gun.setup = gun.setup.saturating_sub(1);
             }
             let order = gun.order;
-            // Squads inside a building cannot fire their mortar.
-            if super::infantry::inside(&self.units[i]) || blocked {
+            // Squads inside a building cannot fire their mortar; a heavy
+            // mortar or howitzer without a fit crew neither (prompt 177).
+            if super::infantry::inside(&self.units[i]) || blocked || self.crew_silenced(i) {
                 continue;
             }
             let point = match order {
@@ -869,6 +870,10 @@ impl Sim {
             return;
         }
         gun.reload = reload;
+        // Fewer men load more slowly (prompt 177).
+        let pct = self.crew_reload_pct(i);
+        let gun = self.artillery.guns.entry(id).or_default();
+        gun.reload = gun.reload * pct / 100;
         if let Some(Order::Barrage { salvos, .. }) = &mut gun.order {
             *salvos = salvos.saturating_sub(1);
             if *salvos == 0 {
@@ -1187,7 +1192,7 @@ impl Sim {
                     }
                     self.suppress_blast(j);
                 }
-            } else if b.thinnest_mm <= blast.open_armor_mm {
+            } else if b.thinnest_mm <= blast.open_armor_mm && unit.crew.full == 0 {
                 let d = (unit.position - p).length();
                 if d < radius {
                     let hp = Fixed::from_num(
@@ -1210,6 +1215,8 @@ impl Sim {
             caliber_mm_x10: caliber,
         });
         self.knock_down(&thrown, p);
+        // Prompt 177: fragments strike the crews of guns, not the guns.
+        self.crew_fragments(p, radius, blast.infantry_pct, blast.soldier_damage);
     }
 
     /// Drifts the smoke clouds, dissolves old ones and puts the smoke into

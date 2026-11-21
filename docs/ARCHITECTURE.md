@@ -552,6 +552,50 @@ simulation's `Rng` supplies dispersion and penetration rolls in a fixed order
   interval, sustained rate of automatic weapons, dispersion, gravity,
   penetration formula, damage and hit points.
 
+### Gun crews (prompt 177) [provisional]
+
+`sim/src/sim/crew.rs`, `[gun_crew]` in `data/combat.toml`. Every towed gun
+and heavy mortar (catalog group `Gun`) has a crew of catalog `crew` men,
+kept as a count (`Crew`: men, wounds towards the next man, suppression),
+not as soldiers.
+
+- **Small rounds** (below `small_caliber_mm_x10`, 20 mm) that hit the gun
+  go to the crew, never to the gun: a gun with a shield (catalog
+  `gun_shield`) stops them within `shield_half_deg` (40°) of the direction
+  its gun points (the shield turns with the gun, also on AA platforms);
+  otherwise a man is hit with `hit_pct` (25 %) and takes the round's
+  infantry damage (`[damage] soldier_hp` per man). Heavier rounds hit the
+  gun's hit points as before.
+- **Fragments** of shells and bombs strike each man like an infantryman in
+  the open (`[blast] infantry_pct`), shield or not; they no longer hurt the
+  gun itself.
+- **Suppression** as for squads (`[suppression]`): near misses (the
+  infantry near-miss radius), hits and rounds on the shield (half);
+  pinned (at `pinned_at`, until below `unpinned_at`) the crew reloads as
+  slowly as a pinned squad fires (`pinned_fire_pct`).
+- **Fewer men** reload more slowly: `reload_pct` by the share left (400 /
+  250 / 150 / 100 % up to 25 / 50 / 75 % / more), for direct and indirect
+  fire. Without men the gun is **abandoned**: it does not fire
+  (`FireStatus::Abandoned`, `Activity::Abandoned`), stops its orders.
+- Hashed only for crewed guns; the info field shows "Crew 4 / 6" or
+  "Abandoned" (bridge `unit_info` `crew`, `crew_full`, `Sim::crew_of`).
+- Measured (`crates/sim/tests/crew.rs`, Pak 40 against infantry at 60 m,
+  180 s; "out" = destroyed or abandoned), before → after: rifle squad
+  front / flank: never / never (the Pak wins both); HMG team front / flank:
+  never / never; two HMG teams from both flanks: never → out after 9 s;
+  mortar with a spotter: destroyed after 20 s → abandoned after 18 s;
+  Flak 36 against a T-34 head-on: unchanged (out after 6 s). A single
+  attacker from the flank no longer works because the gun turns its
+  shield towards it; two directions at once, mortars and artillery do.
+
+Open: abandoned guns are not manned again, not captured, and their crews
+do not flee as units (recommendation for captured guns: an own squad next
+to an abandoned enemy gun takes it over as a crew of its size, the gun
+changes owner; a rule of its own with a vote of the user, since it changes
+victory counts). Abandoned guns still count as living units for the
+victory check. No crew figures on the gun models (asset finding). Flak
+against air support was not changed: no measurement showed a problem yet.
+
 ### Fire discipline (prompt 176) [provisional]
 
 `sim/src/sim/discipline.rs`, `[discipline]` in `data/tactics.toml`:
@@ -2034,8 +2078,9 @@ linked units with the same id.
   over the deck); the `mount` / `dismount` clips of prompt 042 are not
   played yet (figures appear seated, soldiers appear behind the vehicle).
   Not checked in a rendered frame (headless tests only).
-- Passengers do not fire from open vehicles; the gun crew is not modelled
-  as passengers (it rides with the gun); bridges check the tractor's mass
+- Passengers do not fire from open vehicles; the gun crew (a count since
+  prompt 177, [Gun crews](#gun-crews-prompt-177-provisional)) rides with
+  the gun, not as passengers; bridges check the tractor's mass
   only; no tractors for the 88 mm and 90 mm AA guns in the catalog; no
   path profile for a tractor with a gun.
 

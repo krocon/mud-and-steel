@@ -21,7 +21,11 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by prompt 188 (target choice by score), an intended rule
+/// Last changed by prompt 177 (gun crews), an intended rule change: the
+/// hashed combat rules gained `[gun_crew]` (the demo has no gun, its
+/// battle is unchanged: tick 715, player 0).
+///
+/// Before (`0x54a8_dffa_7753_37b2`), prompt 188 (target choice by score), an intended rule
 /// change: automatic targets are chosen by a score (effect of my best hit
 /// on the face it shows me, its threat to me, role, focus of other own
 /// units, staying on the current target, distance) from the new hashed
@@ -351,7 +355,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x54a8_dffa_7753_37b2;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x1336_c665_a6ad_e5b4;
 
 #[test]
 fn golden_hash() {

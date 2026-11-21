@@ -140,6 +140,21 @@ impl TacticsRt {
         self.add(squad, self.near_miss_points(caliber_mm_x10));
     }
 
+    /// Suppression rules in milli points for gun crews (prompt 177): points
+    /// of a near miss of `caliber` and of a hit, the pinned and unpinned
+    /// thresholds, ticks of quiet before recovery, recovery per tick.
+    pub(super) fn crew_suppression(&self, caliber_mm_x10: u32) -> (u32, u32, u32, u32, u32, u32) {
+        let s = &self.rules.suppression;
+        (
+            self.near_miss_points(caliber_mm_x10) * MILLI,
+            s.hit * MILLI,
+            s.pinned_at * MILLI,
+            s.unpinned_at * MILLI,
+            self.recover_delay,
+            self.recover,
+        )
+    }
+
     /// A round hit a soldier of `squad`.
     pub(super) fn hit(&self, squad: &mut Squad) {
         self.add(squad, self.rules.suppression.hit);

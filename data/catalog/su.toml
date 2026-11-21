@@ -739,6 +739,7 @@ width_mm = 1600
 height_mm = 1370
 mass_kg = 1116
 crew = 7
+gun_shield = true
 armor_turret_front_mm = 5
 weapon = [
     { name = "76.2 mm ZiS-3 L/42.6", caliber_mm_x10 = 762, ammo = "BR-350A APHE, BR-350P APCR, OF-350 HE-frag", rate_rpm = 15, muzzle_velocity_mps = 662, range_effective_m = 1000, range_typical_m = 700 },
@@ -821,10 +822,12 @@ width_mm = 1980
 height_mm = 1820
 mass_kg = 2450
 crew = 8
+gun_shield = true
 weapon = [
     { name = "122 mm M-30 L/22.7", caliber_mm_x10 = 1220, ammo = "OF-462 HE-frag, BP-460A HEAT (from 1943)", rate_rpm = 5, muzzle_velocity_mps = 515, range_effective_m = 11800 },
 ]
 source = [
+    { ref = "https://en.wikipedia.org/wiki/122_mm_howitzer_M1938_(M-30)", covers = "gun_shield: the split-trail carriage carries a gun shield (photographs, description of the carriage)" },
     { ref = "https://en.wikipedia.org/wiki/122_mm_howitzer_M1938_(M-30) (infobox; ammunition table)", covers = "2,450 kg combat / 3,100 kg travel, length 5.9 m with limber, width 1.98 m, height 1.82 m, crew 8, 5-6 rpm, max range 11.8 km, OF-462 515 m/s" },
 ]
 uncertain = ["length_mm", "height_mm"]

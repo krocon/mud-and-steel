@@ -217,7 +217,7 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `de_sturmpanzer4`: length_hull_mm, speed_offroad_kmh_x10, armor_hull_front_mm, armor_hull_side_mm, armor_hull_rear_mm, armor_turret_side_mm, armor_turret_rear_mm, gun_traverse_deg, weapon
 - `de_pak40`: width_mm, height_mm, crew
 - `de_flak38`: mass_kg, length_mm, width_mm, height_mm, weapon
-- `de_flak36`: length_mm, width_mm
+- `de_flak36`: length_mm, width_mm, gun_shield
 - `de_grw42`: length_mm, width_mm, height_mm, crew, weapon
 - `de_bunker_tobruk`: length_mm, width_mm, height_mm, weapon
 - `de_minefield_at`: weapon
@@ -399,6 +399,7 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
   - https://en.wikipedia.org/wiki/15_cm_sIG_33 (the 15 cm infantry howitzer whose ammunition the StuH 43 fires: muzzle velocity up to 240 m/s, maximum range 4,700 m, rate of fire 2-3 rounds per minute, HE and HEAT shells)
   - TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII sec. II, https://lonesentry.com/manuals/tme30/ch7sec2sub6.html (range_typical_m: MG 34 / MG 42 effective range as light MG 600-800 yd: upper bound for the typical distance)
 - `de_pak40`
+  - https://en.wikipedia.org/wiki/7.5_cm_Pak_40 (gun_shield: photographs and description show the spaced armoured shield in front of the crew)
   - https://en.wikipedia.org/wiki/7.5_cm_Pak_40 (1425 kg combat, length 6.2 m with carriage, barrel 3.45 m (L/46), width 2.08 m (2.0 m in characteristics list), height 1.2 m (1.25 m in list), crew 6, PzGr 39 790 m/s, PzGr 40 990 m/s, HL 450 m/s, HE 550 m/s, 14 rpm, effective 1800 m, max 7678 m, elevation -5/+22, traverse 65)
   - https://panzerworld.com/7-5-cm-pak-40 (1425 kg firing / 1500 kg travel, length 6.20 m (travel), width 1.98 m (travel), height 1.26 m combat-ready, firing height 0.98 m, 12-15 rpm, PzGr 39 790 m/s, PzGr 40 990 m/s, max range 8100 m (cites Überblick über den Rüstungsstand des Heeres 1942-44, Waffen-Revue W 127))
   - https://collection.lonesentry.com/manuals/tme30/ch7sec5sub2.html (TM-E 30-451 (1945): Pak 40 weight in action 3136 lb (1422 kg), tube length 11 ft 4 in)
@@ -407,10 +408,12 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `de_flak38`
   - https://en.wikipedia.org/wiki/2_cm_Flak_30/38/Flakvierling (405 kg (420 kg in text), 4.08 m, 1.81 m, 1.6 m, crew 5, 450 rpm cyclic / 180 practical, 900 m/s, AA effective 2200 m, ground max 5783 m, 20-round box)
 - `de_flak36`
+  - https://en.wikipedia.org/wiki/8.8_cm_Flak_18/36/37/41 (gun_shield: Flak 36 guns were often fitted with an armoured shield giving the gunners limited protection (not every gun))
   - https://en.wikipedia.org/wiki/8.8_cm_Flak_18/36/37/41 (7407 kg firing, 5.791 m, 2.3 m, height 2.10 m firing, crew 10, 15-20 rpm, 820 m/s, effective ceiling 8000 m, ground range 14,860 m)
   - TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII (8.8 cm Flak 36) (cross-check of weights and performance)
   - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
 - `de_lefh18`
+  - https://en.wikipedia.org/wiki/10.5_cm_leFH_18 (gun_shield: a reinforced, tapered gun shield with flattened sides that could be folded down)
   - https://en.wikipedia.org/wiki/10.5_cm_leFH_18 (leFH 18 base data: 1985 kg combat, 6.10 m, 1.977 m, 1.88 m, crew 6, 6-8 rpm, 470 m/s, 10,675 m, L/28)
   - https://en.wikipedia.org/wiki/10.5_cm_leFH_18M (18M: 1985 kg in action, muzzle velocity 540 m/s, max range 12,325 m)
   - https://www.historyofwar.org/articles/weapons_105_leFH_18M.html (18M: weight in action 1985 kg, transport 2535 kg, range increase 10,765 -> 12,325 m from muzzle brake and extra charge)
@@ -984,6 +987,7 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
   - https://en.wikipedia.org/wiki/85_mm_air_defense_gun_M1939_(52-K) (infobox) (4,500 kg combat and travel, length 7.05 m, width 2.15 m, height 2.25 m, crew 7, 10-12 rpm, 792 m/s, vertical range 10,500 m, maximum firing range 15.65 km)
   - A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html (range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m))
 - `su_m30`
+  - https://en.wikipedia.org/wiki/122_mm_howitzer_M1938_(M-30) (gun_shield: the split-trail carriage carries a gun shield (photographs, description of the carriage))
   - https://en.wikipedia.org/wiki/122_mm_howitzer_M1938_(M-30) (infobox; ammunition table) (2,450 kg combat / 3,100 kg travel, length 5.9 m with limber, width 1.98 m, height 1.82 m, crew 8, 5-6 rpm, max range 11.8 km, OF-462 515 m/s)
 - `su_pm38`
   - https://en.wikipedia.org/wiki/M1938_mortar (infobox; ammunition table) (280 kg combat / 477 kg travel, barrel 1.86 m (L/15.5), crew 6, 10 rpm, 272 m/s, effective range 6 km, max range 5.35-5.8 km by shell, 16 kg bomb)

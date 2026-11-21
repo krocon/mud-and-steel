@@ -226,6 +226,7 @@ impl Sim {
     /// Counts down the alerts of every unit.
     pub(super) fn update_alerts(&mut self) {
         self.decay_under_fire();
+        self.recover_crews();
         for unit in &mut self.units {
             if unit.alert.is_empty() {
                 continue;

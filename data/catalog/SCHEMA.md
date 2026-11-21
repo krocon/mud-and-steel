@@ -35,7 +35,8 @@ Rules:
 | `width_mm`, `height_mm` | int | Overall width and height (with tracks, skirts as fitted; height of towed guns in travel or firing position, say which in `note`). |
 | `wingspan_mm` | int | Aircraft. |
 | `mass_kg` | int | Combat weight (vehicles, aircraft: loaded/normal takeoff weight; guns: in firing position). |
-| `crew` | int | Vehicles, guns, aircraft. |
+| `crew` | int | Vehicles, guns, aircraft. For guns (prompt 177) the men serving the gun: small arms and fragments hit them apart from the gun. |
+| `gun_shield` | bool | Guns only (prompt 177): a shield covers the crew from the front (`[gun_crew] shield_half_deg` in `data/combat.toml`), not from the side and not against fragments from above. Absent: no shield documented in the sources. |
 | `passengers` | int | Troop seats besides the crew (trucks, halftracks; prompt 034; transport aircraft, prompt 055). Vehicles and aircraft only, 1–30; required for `aircraft_transport`. |
 | `squad_size` | int | Infantry: soldiers in the team. |
 | `bridge_length_mm` | int | `bridgelayer` only (required): length of the carried bridge, 4–30 m (prompt 055). |

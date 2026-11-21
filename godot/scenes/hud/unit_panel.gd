@@ -400,6 +400,12 @@ func _show_single(id: int) -> void:
 		var wounded: Vector2i = sim_host.unit_wounded_counts().get(id, Vector2i.ZERO)
 		if wounded != Vector2i.ZERO:
 			notes.append(tr("HUD_WOUNDED") % [wounded.x, wounded.y])
+	# Prompt 177: the men serving a gun.
+	if info.has("crew"):
+		if int(info.crew) == 0:
+			notes.append(tr("HUD_CREW_ABANDONED"))
+		else:
+			notes.append(tr("HUD_GUN_CREW") % [info.crew, info.crew_full])
 	# Only warnings and wounded men get a line of their own; the bars carry
 	# the percentages in their tooltips.
 	var warning := _supply_warning(id)

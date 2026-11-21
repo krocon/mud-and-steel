@@ -807,10 +807,12 @@ width_mm = 2000
 height_mm = 1250
 mass_kg = 1425
 crew = 6
+gun_shield = true
 weapon = [
     { name = "7.5 cm PaK 40 L/46", caliber_mm_x10 = 750, ammo = "PzGr 39 APCBC, PzGr 40 APCR, Gr 38 HL HEAT, Sprgr 34 HE", rate_rpm = 14, muzzle_velocity_mps = 790, range_effective_m = 1800, range_typical_m = 700 },
 ]
 source = [
+    { ref = "https://en.wikipedia.org/wiki/7.5_cm_Pak_40", covers = "gun_shield: photographs and description show the spaced armoured shield in front of the crew" },
     { ref = "https://en.wikipedia.org/wiki/7.5_cm_Pak_40", covers = "1425 kg combat, length 6.2 m with carriage, barrel 3.45 m (L/46), width 2.08 m (2.0 m in characteristics list), height 1.2 m (1.25 m in list), crew 6, PzGr 39 790 m/s, PzGr 40 990 m/s, HL 450 m/s, HE 550 m/s, 14 rpm, effective 1800 m, max 7678 m, elevation -5/+22, traverse 65" },
     { ref = "https://panzerworld.com/7-5-cm-pak-40", covers = "1425 kg firing / 1500 kg travel, length 6.20 m (travel), width 1.98 m (travel), height 1.26 m combat-ready, firing height 0.98 m, 12-15 rpm, PzGr 39 790 m/s, PzGr 40 990 m/s, max range 8100 m (cites Überblick über den Rüstungsstand des Heeres 1942-44, Waffen-Revue W 127)" },
     { ref = "https://collection.lonesentry.com/manuals/tme30/ch7sec5sub2.html", covers = "TM-E 30-451 (1945): Pak 40 weight in action 3136 lb (1422 kg), tube length 11 ft 4 in" },
@@ -861,15 +863,17 @@ width_mm = 2300
 height_mm = 2100
 mass_kg = 7407
 crew = 10
+gun_shield = true
 weapon = [
     { name = "8.8 cm Flak 36 L/56", caliber_mm_x10 = 880, ammo = "Sprgr HE (time/percussion fuze), PzGr 39 APCBC", rate_rpm = 15, muzzle_velocity_mps = 820, range_effective_m = 14860, range_typical_m = 1000, range_aa_m = 8000 },
 ]
 source = [
+    { ref = "https://en.wikipedia.org/wiki/8.8_cm_Flak_18/36/37/41", covers = "gun_shield: Flak 36 guns were often fitted with an armoured shield giving the gunners limited protection (not every gun)" },
     { ref = "https://en.wikipedia.org/wiki/8.8_cm_Flak_18/36/37/41", covers = "7407 kg firing, 5.791 m, 2.3 m, height 2.10 m firing, crew 10, 15-20 rpm, 820 m/s, effective ceiling 8000 m, ground range 14,860 m" },
     { ref = "TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII (8.8 cm Flak 36)", covers = "cross-check of weights and performance" },
     { ref = "A. F. Stogov / V. V. Larchenko, NII-48 conclusions on tanks knocked out 1942-1944 (RGAE F.8752 Op.7 D.045 L.33-34), translated at https://www.tankarchives.com/2022/11/engagement-ranges.html", covers = "range_typical_m: German 75 mm guns fire mostly from 100 to 700 m (at T-34 tanks 100-600 m), 88 mm guns from 600 to 1300 m (at T-34 tanks 400-1100 m)" },
 ]
-uncertain = ["length_mm", "width_mm"]
+uncertain = ["length_mm", "width_mm", "gun_shield"]
 note = "Height 2.10 m in firing position. Length and width as given by Wikipedia; on the cruciform platform with outriggers lowered the footprint is considerably wider (~6-7 m across, estimate). range_effective_m is maximum ground range; effective AA ceiling 8000 m. 820 m/s is the HE muzzle velocity."
 
 [[unit]]
@@ -888,10 +892,12 @@ width_mm = 1977
 height_mm = 1880
 mass_kg = 1985
 crew = 6
+gun_shield = true
 weapon = [
     { name = "10.5 cm leFH 18M L/28", caliber_mm_x10 = 1050, ammo = "10.5 cm FH Gr 38 HE, Gr 39 HL HEAT, smoke", rate_rpm = 6, muzzle_velocity_mps = 540, range_effective_m = 12325 },
 ]
 source = [
+    { ref = "https://en.wikipedia.org/wiki/10.5_cm_leFH_18", covers = "gun_shield: a reinforced, tapered gun shield with flattened sides that could be folded down" },
     { ref = "https://en.wikipedia.org/wiki/10.5_cm_leFH_18", covers = "leFH 18 base data: 1985 kg combat, 6.10 m, 1.977 m, 1.88 m, crew 6, 6-8 rpm, 470 m/s, 10,675 m, L/28" },
     { ref = "https://en.wikipedia.org/wiki/10.5_cm_leFH_18M", covers = "18M: 1985 kg in action, muzzle velocity 540 m/s, max range 12,325 m" },
     { ref = "https://www.historyofwar.org/articles/weapons_105_leFH_18M.html", covers = "18M: weight in action 1985 kg, transport 2535 kg, range increase 10,765 -> 12,325 m from muzzle brake and extra charge" },

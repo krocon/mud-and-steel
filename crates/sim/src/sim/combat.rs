@@ -564,7 +564,7 @@ impl Sim {
         // continues alike; not state).
         self.count_focus();
         for i in 0..self.units.len() {
-            if !self.units[i].alive() || self.transport_blocks_fire(i) {
+            if !self.units[i].alive() || self.transport_blocks_fire(i) || self.crew_silenced(i) {
                 continue;
             }
             let ty = self.units[i].unit_type as usize;
@@ -1262,7 +1262,8 @@ impl Sim {
             self.units[i].veterancy,
             self.types[shooter_type as usize].weapons[w].reload_ticks,
         );
-        self.units[i].combat.reload[w] = reload;
+        // Fewer men load more slowly (prompt 177).
+        self.units[i].combat.reload[w] = reload * self.crew_reload_pct(i) / 100;
     }
 
     /// Where shooters aim at unit `t`: the middle of its hull, or a living
@@ -1683,6 +1684,12 @@ impl Sim {
                 }
             }
             self.near_miss(point.ground(), p.shooter, p.caliber_mm_x10);
+            // Prompt 177: and near gun crews.
+            if let Ok(k) = self.units.binary_search_by_key(&p.shooter, |u| u.id) {
+                let owner = self.units[k].owner;
+                let radius = Fixed::from_num(self.infantry.rules.stance.near_miss_mm) / 1000;
+                self.crew_near_miss(point.ground(), radius, owner, p.caliber_mm_x10);
+            }
             // Prompt 176: who fired at units that return fire.
             self.note_fire(point.ground(), p.shooter, unit_hit.map(|(j, ..)| j));
             // Prompt 110: where the fire came from.
@@ -1743,7 +1750,6 @@ impl Sim {
         face: Face,
         point: Vec3,
     ) -> (bool, bool, u32) {
-        let rules = &self.combat_rules;
         let target = &self.units[j];
         let ty = &self.types[target.unit_type as usize];
         let shooter = &self.types[p.shooter_type as usize];
@@ -1751,6 +1757,18 @@ impl Sim {
         if !target.alive() {
             return (false, false, 0);
         }
+        // Prompt 177: small rounds on a gun hit its crew (or its shield).
+        if !ty.infantry {
+            let damage = weapon.infantry_damage;
+            if self.crew_hit(j, p.caliber_mm_x10, p.velocity.ground(), damage) {
+                return (false, false, 0);
+            }
+        }
+        let rules = &self.combat_rules;
+        let target = &self.units[j];
+        let ty = &self.types[target.unit_type as usize];
+        let shooter = &self.types[p.shooter_type as usize];
+        let weapon = &shooter.weapons[usize::from(p.weapon)];
         if ty.infantry {
             return (false, true, weapon.infantry_damage);
         }

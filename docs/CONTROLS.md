@@ -378,6 +378,10 @@ top bar. Everything else appears when there is something to do with it.
   | No selected unit fires indirectly | a barrage without artillery or mortars |
   | No engineers selected | mines, wire, obstacles, positions or clearing without engineers |
 
+- **Gun crews** (prompt 177): the info field of a towed gun shows its
+  crew ("Crew 4 / 6"); a gun whose men are all hit says "Abandoned" and
+  does not fire. Machine guns hurt the crew, not the gun, unless its shield
+  faces them.
 - **State marks** (prompt 105): small symbols above the health bar tell
   a unit's state without selecting it, at most two side by side (from far
   away only the most important one; the rest is in the info field):

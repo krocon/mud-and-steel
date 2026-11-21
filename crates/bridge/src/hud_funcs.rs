@@ -138,6 +138,11 @@ impl SimHost {
         );
         d.set("hp", i64::from(unit.hp));
         d.set("max_hp", i64::from(unit.max_hp));
+        // Gun crews (prompt 177).
+        if let Some((men, full)) = game.sim.crew_of(unit.id) {
+            d.set("crew", i64::from(men));
+            d.set("crew_full", i64::from(full));
+        }
         if ty.combat.squad_size > 0 {
             // Riders have no soldiers in the snapshot (prompt 109).
             let riding = unit.carrier.and_then(|_| game.sim.squad_alive(unit.id));

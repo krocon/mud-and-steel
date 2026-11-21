@@ -170,6 +170,8 @@ pub enum Activity {
     InBuilding,
     /// Pinned down under fire.
     Pinned,
+    /// A gun without crew (prompt 177).
+    Abandoned,
 }
 
 impl Activity {
@@ -190,6 +192,7 @@ impl Activity {
             Self::Working => "working",
             Self::InBuilding => "in_building",
             Self::Pinned => "pinned",
+            Self::Abandoned => "abandoned",
         }
     }
 }
@@ -224,6 +227,8 @@ pub enum FireStatus {
     Suppressed,
     /// Riding, towed, limbered or mounting: cannot fire now.
     CannotFire,
+    /// A gun without crew (prompt 177).
+    Abandoned,
 }
 
 impl FireStatus {
@@ -242,6 +247,7 @@ impl FireStatus {
             Self::NoAmmo => "no_ammo",
             Self::Suppressed => "suppressed",
             Self::CannotFire => "cannot_fire",
+            Self::Abandoned => "abandoned",
         }
     }
 }
@@ -343,7 +349,10 @@ impl Sim {
             Some("unhitch") => return Some((Activity::Unlimbering, None)),
             _ => {}
         }
-        if unit.squad.as_ref().is_some_and(|s| s.tactics.pinned) {
+        if unit.crew.abandoned() {
+            return Some((Activity::Abandoned, None));
+        }
+        if unit.squad.as_ref().is_some_and(|s| s.tactics.pinned) || self.crew_pinned(i) {
             return Some((Activity::Pinned, None));
         }
         if self.has_work_job(i) {
@@ -385,10 +394,13 @@ impl Sim {
         if self.transport_blocks_fire(i) || unit.link.is_some() {
             return Some((FireStatus::CannotFire, None));
         }
+        if unit.crew.abandoned() {
+            return Some((FireStatus::Abandoned, None));
+        }
         if !self.has_ammo(i) {
             return Some((FireStatus::NoAmmo, None));
         }
-        if unit.squad.as_ref().is_some_and(|s| s.tactics.pinned) {
+        if unit.squad.as_ref().is_some_and(|s| s.tactics.pinned) || self.crew_pinned(i) {
             return Some((FireStatus::Suppressed, None));
         }
         let target = match unit.combat.attack {

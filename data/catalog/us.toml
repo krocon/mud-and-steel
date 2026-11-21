@@ -757,6 +757,7 @@ width_mm = 1800
 height_mm = 1280
 mass_kg = 1275
 crew = 7
+gun_shield = true
 armor_turret_front_mm = 6
 weapon = [
     { name = "57 mm Gun M1 (L/50)", caliber_mm_x10 = 570, ammo = "M86 APC, M70 AP, M303 HE (1944), British APDS (late 1944)", rate_rpm = 15, muzzle_velocity_mps = 823, range_effective_m = 1000, range_typical_m = 700 },
