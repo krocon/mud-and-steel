@@ -166,12 +166,16 @@ fn autopilot(sim: &Sim, player: PlayerId, tick: u64) -> Vec<Command> {
             });
             return out;
         }
+        // The plain move (M): every unit at its own speed. Driving
+        // together (prompt 187) kept the Shermans of the village square
+        // at the riflemen's pace into a frontal duel with the Panzer IV
+        // that this autopilot, which never flanks, lost.
         out.push(Command::FormationMove {
             units: own,
             target: center,
             formation: Formation::Auto,
             facing: None,
-            engage: Engage::Infantry,
+            engage: Engage::Never,
         });
     }
     out

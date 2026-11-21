@@ -94,7 +94,8 @@ second). Unknown keys are errors.
 
 `player`, `difficulty` (`passive`, `easy`, `normal`, `hard`): a computer
 player of `crates/ai`, like in a skirmish. Players without one give no
-orders at all (training targets).
+orders at all (training targets). A computer player never surrenders in a
+mission (prompt 187): the script decides.
 
 ### `[[group]]`
 

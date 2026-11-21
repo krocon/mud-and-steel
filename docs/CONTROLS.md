@@ -84,7 +84,7 @@ nearest selected unit takes over.
 
 | Input | Effect |
 |---|---|
-| Right click on the ground | Move there in the formation of the order grid; infantry halts to fight enemies in range on the way (prompt 046) |
+| Right click on the ground | Move there in the formation of the order grid; infantry halts to fight enemies in range on the way (prompt 046). The group drives together: at the pace of its slowest member on the ground it crosses, the front waits for the rear (prompt 187) [provisional] |
 | Right drag on the ground | Move to where the drag started; the formation faces the drag direction and the units (tanks: their front armor) turn that way on arrival |
 | Hold right button for a move | Target preview: a mark per unit where it will stand (grey: blocked spot), prompt 099 |
 | ^ (key under Esc; \` on US keyboards) *(rebindable)*, held | Range and sight circles of the selection (prompt 099; Settings → Interface) |
@@ -108,6 +108,11 @@ nearest selected unit takes over.
 | , *(rebindable)* | Next formation: Auto, Line, Wedge, Column, Broad wedge, Dispersed (prompt 046) [provisional] |
 | Minimap: Alt + left click | Mark that point for your allies |
 
+**Driving together** (prompt 187, proposal, [provisional]): right click,
+Y and I keep the group together, M lets every unit drive at its own speed.
+Units under fire or fighting leave the pace until it is over. There is no
+separate key or setting for it yet: M is the switch.
+
 **Targeted orders** from the order grid or their key wait for a left click
 (the cursor turns into a cross, a hint shows at the top); right click
 cancels. Shift + left click keeps the order active for more targets (moves
@@ -115,9 +120,9 @@ become waypoints).
 
 | Key *(rebindable)* | Order |
 |---|---|
-| M | Move to the clicked point; nobody halts on the way (also infantry) |
-| Y | Attack-move ("Advance"): every unit halts to fight enemies in range on the way, then drives on (prompt 046) [provisional] |
-| I | Secure: take up the formation around the clicked point and hold 80 m around it; enemies inside are attacked, the units return to their places [provisional] |
+| M | Move to the clicked point; nobody halts on the way (also infantry). Every unit drives at its own speed: the fast ones arrive first (the only move that does not keep the group together, prompt 187) |
+| Y | Attack-move ("Advance"): every unit halts to fight enemies in range on the way, then drives on (prompt 046); the group drives together like the right click [provisional] |
+| I | Secure: take up the formation around the clicked point and hold 80 m around it; enemies inside are attacked, the units return to their places; the group drives there together [provisional] |
 | R | Attack the clicked enemy |
 | L | Fire at the clicked ground point |
 | Shift + L | Shell a building, wall or tree (prompt 093): the object under the cursor that can be shelled is outlined (the cursor shows a cross on a target, a "forbidden" sign elsewhere); the click orders tanks and guns to drive into range and shell it until it is a ruin or gone, then they stop by themselves. Only guns from 20 mm fire at it; machine guns keep firing at soldiers. Shift + click keeps the order armed for the next building (the new order replaces the old one: orders on objects are not queued) |

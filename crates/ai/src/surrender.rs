@@ -8,6 +8,8 @@
 //! of its armed units (price times hit point share) is below 15 % of the
 //! known enemy's. Known enemies are those it saw and did not see destroyed
 //! (`intel.rs`), so it never gives up because of units it could not see.
+//! Never in a mission: there the script decides (its `hopeless` warning is
+//! for the human player).
 
 use crate::{Ai, PlayerView, Role};
 use serde::{Deserialize, Serialize};
@@ -31,7 +33,7 @@ pub(crate) struct SurrenderState {
 impl Ai {
     /// Surrenders after `HOPELESS_TICKS` of a hopeless situation.
     pub(crate) fn think_surrender(&mut self, view: &PlayerView, out: &mut Vec<Command>) {
-        if self.legacy || self.surrender.done {
+        if self.legacy || self.surrender.done || self.in_mission {
             return;
         }
         match self.hopeless(view) {

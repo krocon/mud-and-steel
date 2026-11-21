@@ -435,6 +435,11 @@ pub struct Ai {
     /// Giving up when hopeless (prompt 051).
     #[serde(default)]
     surrender: surrender::SurrenderState,
+    /// The match is a mission: its script decides, the player never
+    /// surrenders (prompt 187: a computer player that gave up ended the
+    /// village square before its objectives were done).
+    #[serde(default)]
+    in_mission: bool,
     /// When the player last saw every part of the map (prompt 051).
     #[serde(default)]
     knowledge: scout::Knowledge,
@@ -688,6 +693,7 @@ impl Ai {
             intel: intel::Intel::default(),
             army: commander::ArmyPlan::default(),
             surrender: surrender::SurrenderState::default(),
+            in_mission: config.mission.is_some(),
             knowledge: scout::Knowledge::default(),
             posture: posture::PostureState::default(),
             houses: posture::houses(map),

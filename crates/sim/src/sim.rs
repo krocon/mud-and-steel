@@ -34,6 +34,7 @@ mod indirect;
 mod infantry;
 mod knockdown;
 mod logistics;
+mod march;
 mod mission;
 mod orders;
 mod overrun;
@@ -515,6 +516,11 @@ pub struct Sim {
     /// 173; derived, not hashed).
     #[serde(skip)]
     move_events: Vec<MoveEvent>,
+    /// Units that waited in front of a bridge for their group in the last
+    /// movement (prompt 187; derived, not hashed): their progress clock
+    /// waits.
+    #[serde(skip)]
+    march_waiting: Vec<bool>,
     /// Orders dropped in the last tick, with their reason (prompt 175;
     /// derived, not hashed).
     #[serde(skip)]
@@ -778,6 +784,7 @@ impl Sim {
             next_projectile: 0,
             events: Vec::new(),
             move_events: Vec::new(),
+            march_waiting: Vec::new(),
             order_events: Vec::new(),
             focus: Vec::new(),
             objects: combat::ObjectIndex::new(&map),
@@ -1231,6 +1238,11 @@ impl Sim {
                 })
             })
             .collect();
+        // Groups drive together (prompt 187).
+        let caps = self.march_caps();
+        self.march_waiting.clear();
+        self.march_waiting
+            .extend(caps.iter().map(|c| *c == Some(Fixed::ZERO)));
         let grid = &self.paths.grid;
         let crush_slow_pct = self.destruction.crush_slow_pct();
         let mut blocked = Vec::new();
@@ -1249,8 +1261,12 @@ impl Sim {
                     unit.speed_pct = (speed_pct * crush_slow_pct / 100).max(1);
                 }
             }
-            let moved = move_unit(unit, push, &self.map, ground, keep_clear);
+            let cap = caps.get(index).copied().flatten();
+            let moved = move_unit(unit, (push, cap), &self.map, ground, keep_clear);
             unit.speed_pct = speed_pct;
+            if unit.route == Route::None {
+                unit.drill.march = 0;
+            }
             match moved {
                 Moved::Blocked => blocked.push(index),
                 Moved::Stalled(at) => stalled.push((index, at)),
@@ -2126,20 +2142,28 @@ fn separation(
 /// `NEAR_BRIDGE_M` of its ends and sides), where units of a column queue
 /// instead of pushing each other sideways ([`separation`]).
 fn near_bridge(map: &Map, p: Vec2) -> bool {
-    let margin = Fixed::from_num(NEAR_BRIDGE_M);
-    map.bridges().iter().any(|b| {
-        if !b.intact {
-            return false;
-        }
-        let d = p - b.center;
-        let reach = b.half_length.max(b.half_width) + margin;
-        if d.x.abs() > reach || d.y.abs() > reach {
-            return false;
-        }
-        let along = (d.x * b.forward.x + d.y * b.forward.y).abs();
-        let across = (d.x * b.right.x + d.y * b.right.y).abs();
-        along <= b.half_length + margin && across <= b.half_width + margin
-    })
+    bridge_within(map, p, Fixed::from_num(NEAR_BRIDGE_M)).is_some()
+}
+
+/// Center of the first intact bridge whose deck lies within `margin` of
+/// `p` (along its ends and sides).
+fn bridge_within(map: &Map, p: Vec2, margin: Fixed) -> Option<Vec2> {
+    map.bridges()
+        .iter()
+        .find(|b| {
+            if !b.intact {
+                return false;
+            }
+            let d = p - b.center;
+            let reach = b.half_length.max(b.half_width) + margin;
+            if d.x.abs() > reach || d.y.abs() > reach {
+                return false;
+            }
+            let along = (d.x * b.forward.x + d.y * b.forward.y).abs();
+            let across = (d.x * b.right.x + d.y * b.right.y).abs();
+            along <= b.half_length + margin && across <= b.half_width + margin
+        })
+        .map(|b| b.center)
 }
 
 /// See [`near_bridge`] (meters).
@@ -2176,12 +2200,19 @@ enum Moved {
 /// terrain id (prompt 040, [`PathGrid::ground_pct`]).
 fn move_unit(
     unit: &mut Unit,
-    push: Vec2,
+    (push, cap): (Vec2, Option<Fixed>),
     map: &Map,
     ground: (&TerrainRules, &[u32]),
     clear: impl Fn(Vec2) -> bool,
 ) -> Moved {
     let (rules, ground_pct) = ground;
+    // Waiting in front of a bridge for its group (prompt 187): like a
+    // halt, no step and no stall.
+    if cap == Some(Fixed::ZERO) {
+        return Moved::Ok;
+    }
+    // Driving with its group: no faster than the cap.
+    let capped = |speed: Fixed| cap.map_or(speed, |c| speed.min(c));
     let Route::Following {
         waypoints, next, ..
     } = &unit.route
@@ -2195,7 +2226,7 @@ fn move_unit(
     }
     let (waypoint, last) = (waypoints[*next], *next + 1 == waypoints.len());
     if let Some(direction) = heading(unit) {
-        let ahead = ground_speed(unit, direction, map, rules, ground_pct);
+        let ahead = ground_speed(unit, direction, map, rules, ground_pct).map(capped);
         let (from, from_height) = (unit.position, unit.height);
         let max_grade = Fixed::from_num(rules.slope.max_grade_pct) / 100;
         // No step steeper than the grade limit, up or down: separation must
@@ -2246,7 +2277,7 @@ fn move_unit(
         // channel) could neither climb back nor go anywhere else.
         let next_position = straight.or_else(|| {
             angled(direction).into_iter().find_map(|d| {
-                let speed = ground_speed(unit, d, map, rules, ground_pct)?;
+                let speed = capped(ground_speed(unit, d, map, rules, ground_pct)?);
                 let p = unit.position + d.scale(speed);
                 (detour_ok(p) && valid(p)).then_some(p)
             })
@@ -2912,7 +2943,7 @@ mod tests {
         let moves = (0..ticks)
             .map(|_| {
                 let p = push(&unit);
-                move_unit(&mut unit, p, map, ground, &clear)
+                move_unit(&mut unit, (p, None), map, ground, &clear)
             })
             .collect();
         (unit, moves)

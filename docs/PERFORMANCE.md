@@ -529,6 +529,37 @@ movement phase); the rest is path search: the hard AIs' units move
 differently (2152 → 2151 requests, 58 → 77 million expansions). Within the
 budgets.
 
+### Driving together (prompt 187)
+
+`just stuck-audit --march` drives the same routes with an attack-move
+formation order (`FormationMove`, `Engage::All`, the AI's order) instead of
+`MoveTo`, so groups drive together ([ARCHITECTURE.md](ARCHITECTURE.md#movement-and-separation)).
+Before = the same code with `[march] enabled = 0` and without the change to
+fire-team bounds at bridges.
+
+| Audit | Arrived units | Stuck orders | Gave up | Stalls of 30 s or more |
+|---|---|---|---|---|
+| `--march`, before | 4225 of 5792 | 1560 (36.1 %) | 311 (squads) | 1 |
+| `--march`, after | 4218 of 5792 | 1566 (36.2 %) | 25 (22 squads, 3 Panzer IV) | 16 (squads) |
+| plain (`MoveTo`), after | 5783 of 5792 | 2 (0.1 %) | 2 | 0 |
+
+Most "stuck" orders with `--march` are short halts of attack-moving squads
+that bound by fire teams (prompt 047) even without contact; the audit counts
+those halts as stalls, the simulation does not (`speed_pct == 0`). The give-ups
+were squads that halted on bridge decks; they no longer bound there. A first
+version of driving together let the front wait for the rear; waiting units
+stood on decks and in lanes, and vehicles and squads behind them gave up (81
+on island_chain alone). The long stalls left are squads on slopes and in
+traffic at bridges. The two plain-move cases (a squad at river_fields, a
+towing truck at twin_meadow) are no march orders.
+
+`just ai-tournament --matrix`: win shares unchanged in every pairing (hard
+vs normal 47/52 %, hard vs easy 50/50 %, normal vs easy 52/47 %, easy vs
+passive 65 % with 14 timeouts), game hashes changed, mean times 56 → 54 s
+and 40 → 39 s in two pairings. `just bench`: sim step mean 2.98 → 2.87 ms
+(p99 5.9 → 6.3 ms, noise of one run), `just path-bench` unchanged (284
+requests, 4.47 → 4.48 ms per planning tick).
+
 ## AI think time (prompt 178)
 
 `just ai-tournament --matrix` (Apple M1 Max): AI think per tick about

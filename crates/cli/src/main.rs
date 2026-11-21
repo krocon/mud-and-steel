@@ -255,6 +255,10 @@ enum CliCommand {
         /// Without the AI games.
         #[arg(long)]
         no_ai: bool,
+        /// Groups drive together (attack-move formation order, prompt 187)
+        /// instead of the plain move.
+        #[arg(long)]
+        march: bool,
         /// Maps audited in parallel (default: available cores).
         #[arg(long)]
         jobs: Option<usize>,
@@ -865,12 +869,14 @@ fn run_cli() {
             settings,
             csv,
             no_ai,
+            march,
             jobs,
         } => {
             let mut settings = stuck_audit::Settings::load(&settings).unwrap_or_else(|e| fail(&e));
             if no_ai {
                 settings.ai.maps.clear();
             }
+            settings.march = march;
             let names = map.map_or_else(all_maps, |m| vec![m]);
             let maps: Vec<(String, Arc<sim::Map>)> = names
                 .into_iter()

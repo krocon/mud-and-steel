@@ -41,6 +41,9 @@ pub struct Settings {
     #[serde(rename = "group")]
     pub groups: Vec<GroupKind>,
     pub ai: AiSettings,
+    /// `--march`: formation orders that drive together (prompt 187).
+    #[serde(skip)]
+    pub march: bool,
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -472,9 +475,19 @@ fn drive_routes(
             order,
             PlayerCommand::new(
                 PlayerId(0),
-                Command::MoveTo {
-                    units: units.clone(),
-                    target: route.to,
+                if settings.march {
+                    Command::FormationMove {
+                        units: units.clone(),
+                        target: route.to,
+                        formation: sim::Formation::Auto,
+                        facing: None,
+                        engage: sim::Engage::All,
+                    }
+                } else {
+                    Command::MoveTo {
+                        units: units.clone(),
+                        target: route.to,
+                    }
                 },
             ),
         ));
@@ -687,6 +700,13 @@ fn observe(
         _ => {
             w.was_following = false;
         }
+    }
+    if sim.waits_for_group(w.id) {
+        // Waiting in front of a bridge for its group (prompt 187) is no
+        // stall either.
+        w.anchor = position;
+        w.anchor_tick = tick;
+        return true;
     }
     let busy = matches!(route, Some(RouteView::Following(_)));
     if (position - w.anchor).length() > Fixed::from_num(s.stall_m) || !busy {

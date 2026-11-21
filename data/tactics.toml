@@ -163,3 +163,32 @@ close_range_pct = 50
 unarmed_retreat = 1
 retreat_mm = 80000
 retreat_cooldown_ms = 15000
+
+[march]
+# Prompt 187: a group order (formation move with attack-move, `Secure`;
+# not the plain move M) drives as one body. Every member drives at most as
+# fast as the slowest member type would on the ground under it (road,
+# field, mud). Members compare the length of the route still ahead of them
+# (to their own slot): one ahead of the rearmost by more than `lead_mm`
+# drives at `slow_pct` percent of that pace, by more than `far_mm` at
+# `far_pct` percent, never slower than `min_speed_mm_per_s` (game time).
+# Nobody stops to wait on the way: a member standing in a lane, on a deck
+# or in a gap would block the others behind it. On and near bridge decks
+# (25 m) everybody drives at its own speed, so the deck clears soon. In
+# front of a bridge: a member within `gate_mm` of that zone, heading for
+# the bridge, waits there while a unit on the deck drives towards it (one
+# direction at a time), and while the member just ahead of it (by route
+# still ahead) is less than `gap_mm` in front (0 = off: 8 m made the test
+# crossing 40 % slower for 4 fewer stuck units in the whole stuck audit).
+# A member behind the group's middle by more than `catch_up_mm` drives at
+# its own full speed until it has caught up. Members in a fight (a target,
+# or fired at lately) leave the pace. 0 = off. [provisional]
+enabled = 1
+lead_mm = 15000
+slow_pct = 50
+far_mm = 30000
+far_pct = 25
+catch_up_mm = 10000
+min_speed_mm_per_s = 500
+gate_mm = 20000
+gap_mm = 0

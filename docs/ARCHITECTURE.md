@@ -108,8 +108,8 @@ of `n²/2` pair tests (two or three in practice). Measured with eight mixed
 units in a 4 × 2 block (`crates/sim/tests/formation_slots.rs`): crossings of
 the lines 14 / 4 / 0 / 11 → 0 at 45°, 135°, across and ahead; time until
 all stand (the squads set it) 97 / 84 / 100 / 88 s → 98 / 89 / 95 / 94 s;
-the arrival spread stays about 60–90 s (squads against vehicles; speed
-matching is prompt 187). `FormationMove` (the player's moves and the
+the arrival spread stays about 60–90 s (squads against vehicles; `MoveTo` keeps
+every member at its own speed, prompt 187). `FormationMove` (the player's moves and the
 target preview, prompt 046) keeps its rank-by-rank assignment: crossings
 1 / 1 / 6 / 2 in the same test (see Open).
 
@@ -358,6 +358,54 @@ or beside the deck, from where it cannot get on (railings). Near a bridge a
 squad counts only 4 m wide (in file) instead of its line formation's width,
 so squads meeting on a deck pass each other.
 
+**Driving together** (prompt 187, `sim/march.rs`, `[march]` in
+`data/tactics.toml`): a formation move that attack-moves (right click, Y)
+and `Secure` (I) mark their units with the id of the group's path request
+(`Drill::march`); the plain move (M, `Engage::Never`) and `MoveTo` do not.
+Before the movement, `Sim::march_caps` caps the speed of each marching
+member:
+
+- **pace:** the speed the slowest member type would have on the ground
+  under this member (terrain speed, soft ground, stance; the grade still
+  applies per unit), so trucks keep to the tanks on a road and everybody
+  walks with the infantry in a field;
+- **together:** members compare the length of the route still ahead of
+  them (to their own slot, so a deep formation keeps its depth); one ahead
+  of the rearmost by more than `lead_mm` (15 m) drives at `slow_pct`
+  (50 %) of the pace, by more than `far_mm` (30 m) at `far_pct` (25 %),
+  never below `min_speed_mm_per_s` (0.5 m/s); one behind the group's middle
+  by more than `catch_up_mm` (10 m) drives at its own full speed. Nobody
+  stops on the way: a first version let the front wait, and waiting
+  members stood on decks and in lanes in the way of the members behind
+  them, which stalled and gave up (stuck audit);
+- **bridges:** on and near an intact deck (the 25 m zone where columns
+  queue) every member drives at its own speed, so the deck clears soon
+  (vehicles crawling over it at infantry pace kept other groups waiting
+  until they stalled). A member within `gate_mm` (20 m) in front of that
+  zone and heading for the bridge waits there while a unit in the zone
+  drives towards it (one direction at a time on one-lane decks; waiting
+  members stand outside the zone, so two columns cannot wait for each
+  other), and, if `gap_mm` is set, while the member just ahead of it is
+  closer than that (off: 8 m made the test crossing 40 % slower for 4
+  fewer stuck units in the whole audit). Squads no longer bound by fire
+  teams in that zone (`wants_bounds`): attack-moving squads halted on the
+  deck and blocked it for everybody behind them;
+- only members that follow a route, drive, ride on nothing and do not
+  fight (an attack or automatic target, or fired at within
+  `discipline.return_remember_ms`) count; the others leave the pace while
+  that lasts. A member that arrives or stops leaves the march.
+
+Waiting in front of a bridge is a halt on purpose: no stall in
+`move_unit`, the progress clock waits (`Sim::waits_for_group`, also used by
+the stuck audit). State: only the march id (hashed with the drill); caps
+are derived every tick. Measured in `crates/sim/tests/march.rs` (eight
+mixed units: tanks, squads, half-tracks, trucks; plain move → driving
+together): arrivals first to last over open ground 148 → 3.6 s, over a
+stone bridge 106 → 6.7 s, along a lane through a wood 118 → 6.6 s; the
+group on the way at most 373 / 267 / 230 → 90 / 114 / 81 m long; all
+standing after about the same time (200 → 202 s, 141 → 142 s, 153 →
+152 s). Stuck audit and tournament: [PERFORMANCE.md](PERFORMANCE.md#stuck-audit-prompt-173).
+
 **Running over** (prompt 093, `sim/overrun.rs`, `[overrun]` in
 `data/combat.toml`). Vehicles of at least `min_mass_kg` ignore enemy squads in
 the separation: they do not swerve around them. Within a tick, right after the
@@ -512,9 +560,18 @@ the whole square per ring, which cost up to 15 ms for targets deep in a wood).
   same lateral line within one rank (ties broken by id): 6 when a 4 × 2
   block moves across in a line. Untangling it is ready
   (`formation::untangle`), together with a sturdier mission autopilot.
-- Speed matching within a group (members drive at their own terrain speed;
-  prompt 187). The stuck audit (prompt 173) found no stuck orders caused by
-  that.
+- Narrow passages other than bridge decks (fords, lanes through woods,
+  gaps narrower than the formation) get no rule of their own (prompt 187):
+  the queue rule of prompt 173 and the separation sort them out, and the
+  wood lane of the test drove through without stalls. A group does not
+  re-form its formation behind a deck on purpose: driving together closes
+  it up again.
+- Attack-moving squads bound by fire teams even without contact (prompt
+  047); the stuck audit counts those halts as short stalls when it drives
+  with `--march` (most of its 36 % "stuck" orders there; none with plain
+  moves).
+- The plain move (M) keeps every member at its own speed on purpose; there
+  is no key or setting for driving together beyond the choice of order.
 - Obstacles and map objects are cell-based and not widened by the margin for
   large units: a tank whose center passes a free cell next to a tree may overlap
   the trunk by up to half its width. The stuck audit found no tank stuck at a

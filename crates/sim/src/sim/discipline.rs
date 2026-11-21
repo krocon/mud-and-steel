@@ -101,6 +101,11 @@ impl UnderFire {
         self.attackers.is_empty() && self.cooldown == 0
     }
 
+    /// Nobody fired at the unit lately (prompt 187: it keeps the pace).
+    pub(super) fn attackers_empty(&self) -> bool {
+        self.attackers.is_empty()
+    }
+
     pub(super) fn hash_into(&self, h: &mut StableHasher) {
         if self.is_empty() {
             return;

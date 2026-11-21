@@ -129,8 +129,9 @@ impl Sim {
                 unit.progress = Progress::default();
                 continue;
             };
-            if unit.speed_pct == 0 {
-                // Halted on purpose: the clock waits.
+            if unit.speed_pct == 0 || self.march_waiting.get(i) == Some(&true) {
+                // Halted on purpose or waiting in front of a bridge for its
+                // group (prompt 187): the clock waits.
                 continue;
             }
             if unit.progress.route != Some(key) {

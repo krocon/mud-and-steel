@@ -273,7 +273,10 @@ func _autopilot(main: Node3D, info: Dictionary) -> void:
 	if best >= 0:
 		host.attack_unit(own, best)
 	else:
-		host.formation_move(own, center.x, center.z, 0, 0.0, 0.0, 1)
+		# The plain move (M, engage 0) like `crates/ai/tests/missions.rs`:
+		# driving together (prompt 187) led this autopilot, which never
+		# flanks, into a lost frontal tank duel on the village square.
+		host.formation_move(own, center.x, center.z, 0, 0.0, 0.0, 0)
 
 
 ## Orders for the goals of prompt 180 (like `goal_orders` in

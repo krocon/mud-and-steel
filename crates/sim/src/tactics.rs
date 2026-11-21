@@ -147,6 +147,46 @@ pub struct TacticsRules {
     /// Prompt 176; missing in saved games from before (then off).
     #[serde(default)]
     pub discipline: DisciplineRules,
+    /// Prompt 187; missing in saved games from before (then off).
+    #[serde(default)]
+    pub march: MarchRules,
+}
+
+/// Groups drive together (prompt 187, `[march]` in `data/tactics.toml`).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct MarchRules {
+    pub enabled: u32,
+    pub lead_mm: u32,
+    pub slow_pct: u32,
+    pub far_mm: u32,
+    pub far_pct: u32,
+    pub catch_up_mm: u32,
+    pub min_speed_mm_per_s: u32,
+    pub gate_mm: u32,
+    pub gap_mm: u32,
+}
+
+impl MarchRules {
+    /// Off (saved games from before prompt 187): every member drives at
+    /// its own speed.
+    pub const OFF: Self = Self {
+        enabled: 0,
+        lead_mm: 0,
+        slow_pct: 100,
+        far_mm: 0,
+        far_pct: 100,
+        catch_up_mm: 0,
+        min_speed_mm_per_s: 0,
+        gate_mm: 0,
+        gap_mm: 0,
+    };
+}
+
+impl Default for MarchRules {
+    fn default() -> Self {
+        Self::OFF
+    }
 }
 
 /// Fire discipline and unarmed vehicles under fire (prompt 176,
@@ -297,6 +337,16 @@ impl TacticsRules {
             0,
             600_000,
         )?;
+        let w = &rules.march;
+        check("march.enabled", w.enabled, 0, 1)?;
+        check("march.lead_mm", w.lead_mm, 0, 1_000_000)?;
+        check("march.slow_pct", w.slow_pct, 1, 100)?;
+        check("march.far_mm", w.far_mm, w.lead_mm, 1_000_000)?;
+        check("march.far_pct", w.far_pct, 1, w.slow_pct)?;
+        check("march.catch_up_mm", w.catch_up_mm, 0, 1_000_000)?;
+        check("march.min_speed_mm_per_s", w.min_speed_mm_per_s, 0, 100_000)?;
+        check("march.gate_mm", w.gate_mm, 0, 200_000)?;
+        check("march.gap_mm", w.gap_mm, 0, 200_000)?;
         Ok(rules)
     }
 
@@ -361,6 +411,15 @@ impl TacticsRules {
             self.discipline.unarmed_retreat,
             self.discipline.retreat_mm,
             self.discipline.retreat_cooldown_ms,
+            self.march.enabled,
+            self.march.lead_mm,
+            self.march.slow_pct,
+            self.march.far_mm,
+            self.march.far_pct,
+            self.march.catch_up_mm,
+            self.march.min_speed_mm_per_s,
+            self.march.gate_mm,
+            self.march.gap_mm,
         ] {
             h.write_u32(v);
         }
@@ -385,6 +444,9 @@ mod tests {
         assert!(TacticsRules::parse(&bad).is_err());
         assert_eq!(rules.flank.enabled, 1);
         let bad = BUILTIN_TACTICS.replace("same_deg = 30", "same_deg = 200");
+        assert!(TacticsRules::parse(&bad).is_err());
+        assert_eq!(rules.march.enabled, 1);
+        let bad = BUILTIN_TACTICS.replace("far_mm = 30000", "far_mm = 100");
         assert!(TacticsRules::parse(&bad).is_err());
         let unknown = format!("{BUILTIN_TACTICS}\n[extra]\nx = 1\n");
         assert!(TacticsRules::parse(&unknown).is_err());

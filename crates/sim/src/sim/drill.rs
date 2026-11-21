@@ -55,11 +55,15 @@ pub(super) struct Drill {
     /// Hull direction to turn to once the unit stands (unit length).
     facing: Option<Vec2>,
     task: Option<Task>,
+    /// The group it drives with (prompt 187, `sim/march.rs`): the id of
+    /// the group's path request; 0 = none.
+    #[serde(default)]
+    pub(super) march: u32,
 }
 
 impl Drill {
     pub(super) fn is_empty(&self) -> bool {
-        self.facing.is_none() && self.task.is_none()
+        self.facing.is_none() && self.task.is_none() && self.march == 0
     }
 
     /// The unit attack-moves or secures an area.
@@ -172,6 +176,12 @@ impl Sim {
             self.cancel_indirect(i);
         }
         self.request_group_path(&assigned, target);
+        // Attack-moves drive together (prompt 187); the plain move does not.
+        let march = match (engage, assigned.first().map(|&(i, _)| &self.units[i].route)) {
+            (Engage::Never, _) => None,
+            (_, Some(Route::Waiting(id))) => Some(*id),
+            _ => None,
+        };
         for &(i, slot) in &assigned {
             let fights = match engage {
                 Engage::Never => false,
@@ -186,6 +196,7 @@ impl Sim {
                 slot,
                 halted: false,
             });
+            drill.march = march.map_or(0, |id| id.wrapping_add(1).max(1));
         }
         Some((assigned, forward))
     }
@@ -207,7 +218,13 @@ impl Sim {
             return;
         };
         let radius = Fixed::from_num(radius_m.clamp(SECURE_RADIUS_M.0, SECURE_RADIUS_M.1));
+        // The group drives there together (prompt 187).
+        let march = match assigned.first().map(|&(i, _)| &self.units[i].route) {
+            Some(Route::Waiting(id)) => id.wrapping_add(1).max(1),
+            _ => 0,
+        };
         for (i, home) in assigned {
+            self.units[i].drill.march = march;
             self.units[i].drill.task = Some(Task::Secure {
                 center,
                 radius,
@@ -632,6 +649,10 @@ impl Sim {
                     write(h, home);
                     write(h, facing);
                 }
+            }
+            if unit.drill.march != 0 {
+                h.write_u8(0xa7);
+                h.write_u32(unit.drill.march);
             }
         }
     }

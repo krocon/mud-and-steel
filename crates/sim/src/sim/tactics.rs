@@ -645,6 +645,10 @@ impl Sim {
             || unit.combat.fire_mode == FireMode::HoldFire
             || unit.combat.attack.is_some()
             || unit.route == Route::None
+            // Nobody takes cover on a bridge deck or its approach: the
+            // squad crosses in one go instead of halting there and
+            // blocking the deck for everybody behind it (prompt 187).
+            || super::near_bridge(&self.map, unit.position)
         {
             return None;
         }

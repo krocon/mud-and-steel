@@ -21,7 +21,13 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by prompt 177 (gun crews), an intended rule change: the
+/// Last changed by prompt 187 (groups drive together), an intended rule
+/// change: the hashed tactics rules gained `[march]`, and squads no
+/// longer bound by fire teams on and near bridge decks. The demo gives
+/// plain moves only (no march): its battle is unchanged (tick 715,
+/// player 0).
+///
+/// Before (`0x1336_c665_a6ad_e5b4`), prompt 177 (gun crews), an intended rule change: the
 /// hashed combat rules gained `[gun_crew]` (the demo has no gun, its
 /// battle is unchanged: tick 715, player 0).
 ///
@@ -355,7 +361,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x1336_c665_a6ad_e5b4;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x35b9_524a_728b_ca8d;
 
 #[test]
 fn golden_hash() {
