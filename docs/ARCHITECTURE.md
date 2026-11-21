@@ -4762,9 +4762,27 @@ click on the ground and an event jump end it. The mode the player chose with
 key or button is the setting `camera_follow_active` (default off) and is
 taken over by the next match; an end by a hand pan is not saved.
 
-Picking projects unit positions to the screen (`Camera3D.unproject_position`); the pick
-radius is half the footprint on screen, at least 14 px. Selected units show a green
-ring; units of other players carry a red tint overlay.
+Picking (prompt 167, `world/unit_pick.gd`, shared by the hover and the
+clicks) projects the models to the screen, without physics: vehicles,
+guns and buildings as the box around their meshes (in the unit's frame,
+measured once), soldiers as upright segments from feet to head (lying: a
+flat segment) as wide as a man; a point within 5 px (HUD-scaled) of one
+hits it, the model nearest to the camera wins. A click that hits no model
+falls back to the old rule: unit positions projected to the screen, the
+pick radius half the footprint, at least 14 px (so a click just beside a
+small, distant unit still takes it). Selected units show a green ring;
+units of other players carry a red tint overlay.
+
+**Outline under the pointer (prompt 167).** `unit_highlight.gd` asks
+`unit_pick.gd` every frame which unit's model is under the pointer (at
+most one; a squad as a whole) and appends `unit_outline.gdshader` to the
+overlay chain of its meshes (soldier bodies, every vehicle mesh): the mesh
+again, pushed outward along its normals by 2.5 screen pixels, drawn only
+where the stencil is still 0, so only a rim outside the silhouette shows
+(every unit model writes stencil 1, see the hidden units below), with the
+normal depth test. The color (`outline_color`, instance index 15) fades in
+and out in 0.15 s. Hard mesh edges (split normals) leave small gaps at
+corners. Hovering no longer shows rings or lights models up.
 
 **Hidden units as silhouettes (prompt 165).** What of an own (and, by the
 setting `hidden_units`, allied) unit is hidden behind a house, a tree, a hill
@@ -5008,8 +5026,17 @@ the old dodging (`_keep_events_above_command_bar`,
   (`Sim::sight_range`: the vision rules' range in cells times the cell
   size, weather applied, no downhill bonus). Points follow `height_at`.
   Settings `range_circles` / `sight_circles`, key `show_ranges`.
-- **Health bars** (`combat_view.gd`): setting `health_bars` = `damaged`
-  (damaged and selected units, default), `selected` or `never`.
+- **Health bars** (`combat_view.gd`, `HealthBars`): setting `health_bars` =
+  `damaged` (damaged and marked units, default), `selected` (marked units)
+  or `never`. Prompt 167: own units are marked when selected (yellow),
+  under the pointer (`unit_highlight.nearest`) or with the show-all key
+  (`unit_highlight.own_mark_color()`: blue in the standard palette, where
+  own units are green and allies light blue; the own color in the other
+  palettes). Own squads: one bar per man (his hit points against the most
+  seen, there is no maximum in the snapshot), at most 6, stacked like
+  stairs. Allies' bars have a light rim (allies are blue in `standard`
+  and yellow in `red_green`, the colors of the marked own bars). Bars fade
+  in in 0.1 s and out in 0.3 s; size scales with `HudTheme`.
 - **State marks** (prompt 105, `hud/state_marks.gd`, created by the combat
   view beside the health bars): symbols of `hud_icons.gd` (`state_*`) on a
   dark disc above the health bar. Kinds by importance: burning (standing in

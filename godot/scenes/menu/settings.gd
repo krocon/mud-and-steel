@@ -147,9 +147,9 @@ const HEALTH_BAR_MODES: Array[String] = ["damaged", "selected", "never"]
 ## units only), `never`.
 const STATE_MARK_MODES: Array[String] = ["always", "selected", "never"]
 
-## Own units easier to see (prompt 164, `unit_highlight.gd`): `always`
-## (faint markers under own soldiers, units near the cursor highlighted),
-## `hover` (only near the cursor and with the show-all key), `off`.
+## Own units easier to see (prompts 164, 167, `unit_highlight.gd`): `always`
+## (faint markers under own soldiers, the unit under the pointer outlined),
+## `hover` (only the outline and the show-all key), `off`.
 const UNIT_MARKER_MODES: Array[String] = ["always", "hover", "off"]
 
 ## Hidden parts of units as a silhouette through houses, trees and hills

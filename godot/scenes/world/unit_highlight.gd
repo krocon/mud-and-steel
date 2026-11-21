@@ -1,20 +1,23 @@
 extends Node3D
-## Own units easier to see (prompt 164). Presentation only.
+## Own units easier to see (prompts 164, 165, 167). Presentation only.
 ##
-## - **Under the cursor:** units within `hover_radius()` of the ground point
-##   under the mouse show their ring in their relation color (own, ally,
-##   enemy, `relation_colors.gd`), the one nearest the cursor stronger; own
-##   units also light up (an additive overlay on their models, a squad as a
-##   whole).
+## - **Under the pointer** (prompt 167): only the one unit whose model is
+##   under the mouse pointer (`unit_pick.gd`, the same rule as a click) is
+##   marked: a thin outline that follows its silhouette
+##   (`unit_outline.gdshader`), in the hover blue for own units
+##   (`own_mark_color`), red for enemies, the ally color for allies; a squad
+##   as a whole (every soldier), fading in and out in `OUTLINE_FADE_S`.
+##   Own units also show their health bar in that blue (`combat_view.gd`,
+##   `HealthBars`). No rings and no lighting up on hover any more.
 ## - **Ground markers:** a small flat ring in a light own color on a dark
 ##   rim under every own soldier (one MultiMesh for all; the rim keeps it
 ##   readable on grass of the own color, on snow and sand), faint; bright
-##   for the squads under the cursor and while the show-all key is held.
+##   while the show-all key is held.
 ## - **Show all** (`show_units`, Tab, rebindable): while held, every own
-##   unit shows its ring and its soldiers' markers bright.
+##   unit shows its ring, its health bars and its soldiers' markers bright.
 ##
 ## Setting `unit_markers` (`settings.gd`): `off` (none of it), `hover` (the
-## cursor and the key only), `always` (also the faint markers; default).
+## pointer and the key only), `always` (also the faint markers; default).
 ##
 ## **Hidden units** (prompt 165): what of an own (and, by the setting
 ## `hidden_units`, allied) unit is hidden behind a house, a tree, a hill or
@@ -25,22 +28,22 @@ extends Node3D
 ## building or a vehicle pit, soldiers in dug works (trench, foxhole) and
 ## dead soldiers, and none for squads farther than `XRAY_SOLDIERS_M` from the
 ## camera (draw calls); none while the HUD is hidden or in photo mode. Selected
-## units and those near the cursor are brighter. The hover light-up shares
-## the overlay slot: hovered own units get the light with the silhouette as
-## its next pass, allies the ally tint with it.
+## units and the one under the pointer are brighter.
+##
+## The overlay slot of a mesh holds a chain: the ally / enemy tint (or
+## nothing for own units), then the silhouette, then the outline, each as
+## the next pass of the one before (`_set_overlay`).
 ## Runs after `main.gd` placed the units and set the selection rings (it is
 ## added after them; children process after their parent).
 
 const Settings := preload("res://scenes/menu/settings.gd")
 const RelationColors := preload("res://scenes/hud/relation_colors.gd")
-const GroundPick := preload("res://scenes/camera/ground_pick.gd")
+const HudTheme := preload("res://scenes/hud/hud_theme.gd")
 const XRAY_SHADER := preload("res://assets/shaders/unit_xray.gdshader")
+const OUTLINE_SHADER := preload("res://assets/shaders/unit_outline.gdshader")
 const BaseView := preload("res://scenes/world/base_view.gd")
+const UnitPick := preload("res://scenes/world/unit_pick.gd")
 
-## Hover radius in meters: a share of the camera distance, clamped.
-const HOVER_SHARE := 0.12
-const HOVER_MIN_M := 20.0
-const HOVER_MAX_M := 80.0
 ## Marker ring under a soldier (meters, light ring and its dark rim) and
 ## its height above his feet.
 const MARKER_RADIUS := 0.62
@@ -50,15 +53,20 @@ const MARKER_LIFT := 0.06
 ## the dark rim relative to the ring.
 const MARKER_LIGHTEN := 0.4
 const RIM_ALPHA := 0.55
-## Marker opacity: faint (always), bright (hovered or show-all).
+## Marker opacity: faint (always), bright (show-all).
 const MARKER_FAINT := 0.38
 const MARKER_BRIGHT := 0.95
-## Ring opacity of hovered units; the nearest one is drawn opaque.
-const RING_HOVER := 0.55
-## Brightening of hovered own models (additive white).
-const LIGHT_UP := 0.12
+## Outline of the unit under the pointer (prompt 167): width in screen
+## pixels (scaled with the HUD), opacity, seconds to fade in or out.
+const OUTLINE_PX := 2.5
+const OUTLINE_ALPHA := 0.85
+const OUTLINE_FADE_S := 0.15
+## Own units under the pointer: outline and health bar in this blue in the
+## standard palette (own units are green there and allies a lighter blue,
+## `relation_colors.gd`); other palettes use their own color.
+const OWN_MARK := Color(0.2, 0.42, 1.0)
 ## Silhouette of hidden units (prompt 165): opacity, and for selected units
-## and those near the cursor a higher opacity and a share of white.
+## and the one under the pointer a higher opacity and a share of white.
 const XRAY_ALPHA := 0.55
 const XRAY_BRIGHT_ALPHA := 0.75
 const XRAY_LIGHTEN := 0.3
@@ -79,38 +87,48 @@ var main: Node3D
 var sim_host: SimHost
 ## Time of the last `_process` in microseconds (`perf_bench.gd`).
 var process_usec := 0
-## Unit ids lit up (overlay set) in the last frame.
-var lit: Dictionary[int, bool] = {}
-## Unit ids whose ring this script showed in the last frame (self-test).
+## The unit whose model is under the pointer ({id: true}, at most one) and
+## its id (-1: none).
 var hovered: Dictionary[int, bool] = {}
-## Unit nearest the cursor within the radius, or -1.
 var nearest := -1
+## The show-all key is held (or forced) this frame.
+var show_all := false
+## Unit ids whose ring the show-all key showed in the last frame.
+var ringed: Dictionary[int, bool] = {}
+## Per unit id: opacity share (0..1) of its outline, fading in and out.
+var outlined: Dictionary[int, float] = {}
 ## Markers drawn in the last frame, and how many of them bright.
 var markers_drawn := 0
 var markers_bright := 0
-## Ground point under the cursor (null: none); the self-test may set
-## `forced_point` instead of moving the mouse.
-var cursor_point: Variant = null
+## The self-test may set `forced_point` (a world point, projected to the
+## screen; off screen: nothing under the pointer) instead of moving the mouse.
 var forced_point: Variant = null
 ## Unit ids drawing a silhouette where hidden in the last frame (self-test).
 var xray_units: Dictionary[int, bool] = {}
+## Hit test shared with `selection.gd`.
+var pick: UnitPick
 
 var _markers: MultiMeshInstance3D
-## What the markers were last built for: tick, hovered ids, key, setting.
+## What the markers were last built for: tick, key, setting.
 var _marker_key := []
-var _ring_materials := {}
-var _light_material: StandardMaterial3D
-## Silhouette alone, the hover light and the ally tint with it as next pass.
+var _ring_material: StandardMaterial3D
+## Overlay chains (`_set_overlay`).
 var _xray: ShaderMaterial
-var _light_xray: StandardMaterial3D
+var _outline: ShaderMaterial
+var _xray_outline: ShaderMaterial
 var _ally_xray: StandardMaterial3D
-## Per unit id: what its overlays were last set for (light, silhouette,
-## bright, soldier count as bits) and the mask of its excluded soldiers;
+var _ally_outline: StandardMaterial3D
+var _ally_xray_outline: StandardMaterial3D
+var _enemy_outline: StandardMaterial3D
+## Per unit id: what its overlays were last set for (silhouette, bright,
+## outline, soldier count as bits) and the mask of its excluded soldiers;
 ## what the overlays were last looked at for, and with which palette.
 var _applied: Dictionary[int, int] = {}
 var _applied_mask: Dictionary[int, int] = {}
 var _overlay_frame_key := []
 var _overlay_palette := ""
+## Per unit id: the meshes carrying its outline.
+var _outline_meshes: Dictionary[int, Array] = {}
 ## Per unit id: a base building (no silhouette).
 var _structure: Dictionary[int, bool] = {}
 ## Soldier keys (unit id * 256 + index) without a silhouette, a mask of
@@ -125,6 +143,8 @@ var _dug_cover: Dictionary[int, bool] = {}
 func setup(main_node: Node3D) -> void:
 	main = main_node
 	sim_host = main.sim_host
+	pick = UnitPick.new(main)
+	main.selection.model_hit = pick.unit_at
 	var ring := _marker_mesh()
 	var material := StandardMaterial3D.new()
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
@@ -141,18 +161,31 @@ func setup(main_node: Node3D) -> void:
 	_markers.multimesh = multimesh
 	_markers.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(_markers)
-	_light_material = StandardMaterial3D.new()
-	_light_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	_light_material.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
-	_light_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	_light_material.albedo_color = Color(1.0, 1.0, 1.0, LIGHT_UP)
 	_xray = ShaderMaterial.new()
 	_xray.shader = XRAY_SHADER
-	_light_xray = _light_material.duplicate()
-	_light_xray.next_pass = _xray
+	_outline = ShaderMaterial.new()
+	_outline.shader = OUTLINE_SHADER
+	# After the silhouettes: the outline keeps out of them (stencil).
+	_outline.render_priority = 1
+	_xray_outline = _xray.duplicate()
+	_xray_outline.next_pass = _outline
 	if main._ally_material != null:
-		_ally_xray = main._ally_material.duplicate()
-		_ally_xray.next_pass = _xray
+		_ally_xray = _tint_with(main._ally_material, _xray)
+		_ally_outline = _tint_with(main._ally_material, _outline)
+		_ally_xray_outline = _tint_with(main._ally_material, _xray_outline)
+	if main._enemy_material != null:
+		_enemy_outline = _tint_with(main._enemy_material, _outline)
+
+
+static func _tint_with(tint: StandardMaterial3D, next: Material) -> StandardMaterial3D:
+	var copy := tint.duplicate() as StandardMaterial3D
+	copy.next_pass = next
+	return copy
+
+
+## Outline and health bar color of own units under the pointer.
+static func own_mark_color() -> Color:
+	return OWN_MARK if RelationColors.palette == "standard" else RelationColors.own()
 
 
 ## A flat marker of radius 1: a light ring in the own color (inner part)
@@ -190,120 +223,108 @@ static func _marker_mesh() -> ArrayMesh:
 	return mesh
 
 
-## The ring material of a relation (0 own, 1 ally, 2 enemy) and strength.
-func _ring_material(relation: int, strong: bool) -> StandardMaterial3D:
-	var key := relation * 2 + int(strong)
-	if not _ring_materials.has(key):
-		var color: Color = [RelationColors.own(), RelationColors.ally(), RelationColors.enemy()][relation]
-		var m := StandardMaterial3D.new()
-		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-		m.no_depth_test = true
-		m.render_priority = 1
-		m.albedo_color = Color(color.r, color.g, color.b, 1.0 if strong else RING_HOVER)
-		_ring_materials[key] = m
-	return _ring_materials[key]
-
-
-func hover_radius() -> float:
-	var camera: Camera3D = main.camera
-	var target: Vector3 = main.camera_rig.global_position if main.get("camera_rig") != null else Vector3.ZERO
-	var distance := camera.global_position.distance_to(target)
-	return clampf(distance * HOVER_SHARE, HOVER_MIN_M, HOVER_MAX_M)
-
-
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if sim_host == null:
 		return
 	var began := Time.get_ticks_usec()
 	var mode: String = Settings.get_value("unit_markers")
-	var show_all := mode != "off" and (force_show_all or InputMap.has_action("show_units") \
+	show_all = mode != "off" and (force_show_all or InputMap.has_action("show_units") \
 			and Input.is_action_pressed("show_units"))
-	cursor_point = null
+	nearest = -1
 	if mode != "off":
+		var screen: Variant = null
 		if forced_point != null:
-			cursor_point = forced_point
+			if not main.camera.is_position_behind(forced_point):
+				var projected: Vector2 = main.camera.unproject_position(forced_point)
+				if get_viewport().get_visible_rect().has_point(projected):
+					screen = projected
 		elif get_viewport().gui_get_hovered_control() == null:
-			cursor_point = GroundPick.from_screen(main.camera, get_viewport().get_mouse_position())
+			screen = get_viewport().get_mouse_position()
+		if screen != null:
+			nearest = pick.unit_at(screen, "any")
+	hovered = {}
+	if nearest >= 0:
+		hovered[nearest] = true
+	_fade_outlines(delta)
 	var ids := sim_host.unit_ids()
 	var owners := sim_host.unit_owners()
 	var alive := sim_host.unit_alive()
-	var positions := sim_host.current_positions()
 	var me := sim_host.local_player()
-	# Who is under the cursor.
-	var near: Dictionary[int, bool] = {}
-	nearest = -1
-	if cursor_point != null:
-		var point: Vector3 = cursor_point
-		var radius := hover_radius()
-		var best := INF
-		for i in ids.size():
-			if alive[i] == 0:
-				continue
-			var d := Vector2(positions[i].x - point.x, positions[i].z - point.z).length()
-			if d <= radius:
-				near[ids[i]] = true
-				if d < best:
-					best = d
-					nearest = ids[i]
-	_update_rings(ids, owners, alive, near, show_all, me)
-	_update_overlays(ids, owners, alive, near, me)
-	_update_markers(ids, owners, near, show_all, mode, me)
+	_update_rings(ids, owners, alive, me)
+	_update_overlays(ids, owners, alive, me)
+	_color_outlines()
+	_update_markers(ids, owners, show_all, mode, me)
 	process_usec = Time.get_ticks_usec() - began
 
 
-## Rings of hovered units (and of every own unit while show-all is held),
-## unless the unit is selected: `main.gd` keeps the selection ring.
+## The hovered unit's outline fades in, the others' out (dropped at 0).
+func _fade_outlines(delta: float) -> void:
+	var step := delta / OUTLINE_FADE_S
+	for id: int in outlined.keys():
+		if id != nearest:
+			outlined[id] = float(outlined[id]) - step
+			if outlined[id] <= 0.0:
+				outlined.erase(id)
+	if nearest >= 0:
+		outlined[nearest] = minf(float(outlined.get(nearest, 0.0)) + step, 1.0)
+
+
+## Rings of every own unit while show-all is held, unless the unit is
+## selected: `main.gd` keeps the selection ring. Hovering shows no ring.
 func _update_rings(ids: PackedInt64Array, owners: PackedInt32Array, alive: PackedByteArray,
-		near: Dictionary[int, bool], show_all: bool, me: int) -> void:
+		me: int) -> void:
 	var rings: Dictionary = main._rings
 	var shown: Dictionary[int, bool] = {}
-	for i in ids.size():
-		var id := ids[i]
-		if alive[i] == 0 or main.selection.is_selected(id):
-			continue
-		var own := owners[i] == me
-		if not near.has(id) and not (show_all and own):
-			continue
-		var ring: MeshInstance3D = rings.get(id)
-		if ring == null:
-			continue
-		var relation := 0 if own else (1 if sim_host.relation(owners[i]) == 1 else 2)
-		ring.material_override = _ring_material(relation, id == nearest or (show_all and own))
-		ring.visible = true
-		shown[id] = true
+	if show_all:
+		if _ring_material == null:
+			_ring_material = StandardMaterial3D.new()
+			_ring_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+			_ring_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+			_ring_material.no_depth_test = true
+			_ring_material.render_priority = 1
+		_ring_material.albedo_color = RelationColors.own()
+		for i in ids.size():
+			var id := ids[i]
+			if alive[i] == 0 or owners[i] != me or main.selection.is_selected(id):
+				continue
+			var ring: MeshInstance3D = rings.get(id)
+			if ring == null:
+				continue
+			ring.material_override = _ring_material
+			ring.visible = true
+			shown[id] = true
 	# Rings shown last frame and no longer: back to the selection look.
-	for id in hovered:
+	for id in ringed:
 		if not shown.has(id) and rings.has(id):
 			var ring: MeshInstance3D = rings[id]
 			ring.material_override = null
-	for id in shown:
-		var ring: MeshInstance3D = rings[id]
-		if main.selection.is_selected(id):
-			ring.material_override = null
-	hovered = shown
+	ringed = shown
 
 
-## Overlays of own and allied units: the hover light (own units near the
-## cursor) and the silhouette of hidden parts (prompt 165). Looked at only
-## when a tick arrived or the hover, the selection, the setting or the
-## camera (10 m steps) changed, and set only for units whose needs changed
+## Overlays of own and allied units (silhouette of hidden parts, prompt
+## 165) and of the outlined units (prompt 167). Looked at only when a tick
+## arrived or the outlined units, the selection, the setting or the camera
+## (10 m steps) changed, and set only for units whose needs changed
 ## (`_applied`): checking every unit every frame cost about 0.6 ms.
 func _update_overlays(ids: PackedInt64Array, owners: PackedInt32Array, alive: PackedByteArray,
-		near: Dictionary[int, bool], me: int) -> void:
+		me: int) -> void:
 	var mode: String = Settings.get_value("hidden_units")
 	var toggles: Node = main.get("view_toggles")
 	var photo: Node = main.get("photo_mode")
 	var off: bool = mode == "off" or (toggles != null and toggles.hidden) \
 			or (photo != null and photo.active)
-	# The copy follows the tint switch (`view_toggles.gd`).
-	if _ally_xray != null:
-		_ally_xray.albedo_color.a = main._ally_material.albedo_color.a
+	# The copies follow the tint switch (`view_toggles.gd`).
+	for copy: StandardMaterial3D in [_ally_xray, _ally_outline, _ally_xray_outline]:
+		if copy != null:
+			copy.albedo_color.a = main._ally_material.albedo_color.a
+	if _enemy_outline != null:
+		_enemy_outline.albedo_color.a = main._enemy_material.albedo_color.a
+	_outline.set_shader_parameter(&"width_px", HudTheme.px(OUTLINE_PX))
 	var camera_position: Vector3 = main.camera.global_position
-	var near_ids := near.keys()
-	near_ids.sort()
-	var frame_key := [sim_host.current_tick(), near_ids, main.selection.selected.hash(), mode, off,
-			Vector3i(camera_position / 10.0)]
+	var outline_ids := outlined.keys()
+	outline_ids.sort()
+	var frame_key := [sim_host.current_tick(), outline_ids, nearest, main.selection.selected.hash(),
+			mode, off, Vector3i(camera_position / 10.0)]
 	if frame_key == _overlay_frame_key:
 		return
 	_overlay_frame_key = frame_key
@@ -322,27 +343,27 @@ func _update_overlays(ids: PackedInt64Array, owners: PackedInt32Array, alive: Pa
 	var low: bool = atmosphere != null and atmosphere.get("quality") == "low"
 	var soldier_range := XRAY_SOLDIERS_LOW_M if low else XRAY_SOLDIERS_M
 	var relations := {}
-	var want_lit: Dictionary[int, bool] = {}
 	var seen: Dictionary[int, bool] = {}
 	xray_units = {}
 	for i in ids.size():
 		var id := ids[i]
 		var owner := owners[i]
-		var own := owner == me
-		if not own:
+		var relation := 0
+		if owner != me:
 			if not relations.has(owner):
-				relations[owner] = sim_host.relation(owner) == 1
-			if not relations[owner]:
-				continue
+				relations[owner] = 1 if sim_host.relation(owner) == 1 else 2
+			relation = relations[owner]
+		var outline := outlined.has(id)
+		# Enemies only while outlined (and once more to take it off).
+		if relation == 2 and not outline and not _applied.has(id):
+			continue
 		var node: Node3D = main._unit_nodes.get(id)
 		if node == null:
 			continue
 		seen[id] = true
-		var light := own and near.has(id)
-		if light:
-			want_lit[id] = true
-		var xray: bool = not off and (own or mode == "own_allies") and alive[i] != 0 \
-				and garrisons[i] < 0 and not dug.has(id) and node.visible and not _is_structure(id, i)
+		var xray: bool = relation != 2 and not off and (relation == 0 or mode == "own_allies") \
+				and alive[i] != 0 and garrisons[i] < 0 and not dug.has(id) and node.visible \
+				and not _is_structure(id, i)
 		var soldiers: Array = view._by_unit.get(id, []) if view != null else []
 		# Far squads: no silhouette (a few pixels tall; its draw calls cost
 		# more than it shows).
@@ -351,20 +372,48 @@ func _update_overlays(ids: PackedInt64Array, owners: PackedInt32Array, alive: Pa
 			xray = false
 		if xray:
 			xray_units[id] = true
-		var bright: bool = xray and (near.has(id) or main.selection.is_selected(id))
+		var bright: bool = xray and (id == nearest or main.selection.is_selected(id))
 		var mask: int = _excluded_by_unit.get(id, 0)
-		var code := int(light) | int(xray) << 1 | int(bright) << 2 | soldiers.size() << 3
+		var code := int(xray) | int(bright) << 1 | int(outline) << 2 | soldiers.size() << 3
 		if _applied.get(id, -1) == code and _applied_mask.get(id, 0) == mask:
 			continue
 		_applied[id] = code
 		_applied_mask[id] = mask
-		_apply_overlays(node, own, light, xray, bright, soldiers, view)
-	lit = want_lit
+		_apply_overlays(id, node, relation, xray, bright, outline, soldiers, view)
+		if relation == 2 and not outline:
+			_applied.erase(id)
+			_applied_mask.erase(id)
 	if _applied.size() > seen.size():
 		for id: int in _applied.keys():
 			if not seen.has(id):
 				_applied.erase(id)
 				_applied_mask.erase(id)
+				_outline_meshes.erase(id)
+
+
+## Outline color and fade of every outlined unit, every frame (a few meshes).
+func _color_outlines() -> void:
+	var owners := sim_host.unit_owners()
+	var ids := sim_host.unit_ids()
+	var me := sim_host.local_player()
+	for id: int in outlined:
+		var meshes: Array = _outline_meshes.get(id, [])
+		if meshes.is_empty():
+			continue
+		var index := Array(ids).find(id)
+		if index < 0:
+			continue
+		var color: Color
+		if owners[index] == me:
+			color = own_mark_color()
+		elif sim_host.relation(owners[index]) == 1:
+			color = RelationColors.ally()
+		else:
+			color = RelationColors.enemy()
+		color.a = OUTLINE_ALPHA * float(outlined[id])
+		for mesh: MeshInstance3D in meshes:
+			if is_instance_valid(mesh):
+				mesh.set_instance_shader_parameter(&"outline_color", color)
 
 
 func _is_structure(id: int, index: int) -> bool:
@@ -400,47 +449,68 @@ func _is_dug_cover(cover: int) -> bool:
 
 
 ## Sets the overlay of every mesh of a unit: soldiers (top-level nodes of
-## the squad model, `infantry_view.gd`) the light on every mesh and the
-## silhouette on the body; other units both on every mesh.
-func _apply_overlays(node: Node3D, own: bool, light: bool, xray: bool, bright: bool,
-		soldiers: Array, view: Node) -> void:
-	var color := RelationColors.own() if own else RelationColors.ally()
+## the squad model, `infantry_view.gd`) the silhouette and the outline on
+## the body, the tint on every mesh; other units all on every mesh.
+func _apply_overlays(id: int, node: Node3D, relation: int, xray: bool, bright: bool,
+		outline: bool, soldiers: Array, view: Node) -> void:
+	var color := RelationColors.own() if relation == 0 else RelationColors.ally()
 	if bright:
 		color = color.lerp(Color.WHITE, XRAY_LIGHTEN)
 	color.a = XRAY_BRIGHT_ALPHA if bright else XRAY_ALPHA
+	var outline_meshes: Array = []
 	if soldiers.is_empty():
 		for mesh: Node in node.find_children("*", "MeshInstance3D", true, false):
 			if mesh.name != "SelectionRing":
-				_set_overlay(mesh, own, light, xray, color)
-		return
-	for key: int in soldiers:
-		var s: Dictionary = view._soldiers.get(key, {})
-		if s.is_empty():
-			continue
-		var soldier_xray := xray and not _excluded.has(key)
-		for mesh: GeometryInstance3D in s["meshes"]:
-			if mesh is MeshInstance3D:
-				_set_overlay(mesh, own, light, soldier_xray and mesh.name == "Body", color)
-
-
-func _set_overlay(mesh: MeshInstance3D, own: bool, light: bool, xray: bool, color: Color) -> void:
-	var material: Material
-	if own:
-		material = (_light_xray if xray else _light_material) if light else (_xray if xray else null)
+				_set_overlay(mesh, relation, xray, outline, color)
+				if outline:
+					outline_meshes.append(mesh)
 	else:
-		material = _ally_xray if xray and _ally_xray != null else main._ally_material
+		for key: int in soldiers:
+			var s: Dictionary = view._soldiers.get(key, {})
+			if s.is_empty():
+				continue
+			var soldier_xray := xray and not _excluded.has(key)
+			for mesh: GeometryInstance3D in s["meshes"]:
+				if mesh is MeshInstance3D:
+					var body := mesh.name == "Body"
+					_set_overlay(mesh, relation, soldier_xray and body, outline and body, color)
+					if outline and body:
+						outline_meshes.append(mesh)
+	if outline:
+		_outline_meshes[id] = outline_meshes
+	else:
+		_outline_meshes.erase(id)
+
+
+## The overlay chain of a mesh: tint (allies, enemies), silhouette,
+## outline.
+func _set_overlay(mesh: MeshInstance3D, relation: int, xray: bool, outline: bool, color: Color) -> void:
+	var material: Material
+	match relation:
+		0:
+			material = (_xray_outline if xray else _outline) if outline else (_xray if xray else null)
+		1:
+			if _ally_xray == null:
+				material = main._ally_material
+			elif outline:
+				material = _ally_xray_outline if xray else _ally_outline
+			else:
+				material = _ally_xray if xray else main._ally_material
+		_:
+			material = _enemy_outline if outline and _enemy_outline != null else main._enemy_material
 	mesh.material_overlay = material
 	if xray:
 		mesh.set_instance_shader_parameter(&"xray_color", color)
 
 
-## One marker ring per living own soldier on the ground. Rebuilt only when
-## a new tick arrived or the hover, the key or the setting changed: at the
+## One marker ring per living own soldier on the ground, bright while the
+## show-all key is held. Rebuilt only when a new tick arrived or the key or
+## the setting changed: at the
 ## half-way point between the two ticks, so a marker is at most a few
 ## centimeters from the soldier drawn between them (rebuilding every frame
 ## cost about 1.2 ms with 1100 soldiers).
-func _update_markers(ids: PackedInt64Array, owners: PackedInt32Array,
-		near: Dictionary[int, bool], show_all: bool, mode: String, me: int) -> void:
+func _update_markers(ids: PackedInt64Array, owners: PackedInt32Array, show_all: bool,
+		mode: String, me: int) -> void:
 	var multimesh := _markers.multimesh
 	if mode == "off":
 		multimesh.visible_instance_count = 0
@@ -448,9 +518,7 @@ func _update_markers(ids: PackedInt64Array, owners: PackedInt32Array,
 		markers_bright = 0
 		_marker_key = []
 		return
-	var near_ids := near.keys()
-	near_ids.sort()
-	var key := [sim_host.current_tick(), near_ids, show_all, mode]
+	var key := [sim_host.current_tick(), show_all, mode]
 	if key == _marker_key:
 		return
 	_marker_key = key
@@ -474,7 +542,7 @@ func _update_markers(ids: PackedInt64Array, owners: PackedInt32Array,
 		var unit := units[k]
 		if hp[k] <= 0 or not own_units.has(unit):
 			continue
-		var bright := show_all or near.has(unit)
+		var bright := show_all
 		if not bright and mode != "always":
 			continue
 		var at := previous[k].lerp(current[k], 0.5)

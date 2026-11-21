@@ -307,8 +307,13 @@ top bar. Everything else appears when there is something to do with it.
   alarms again after 10 s (losses 3 s), another place alarms at once.
   Losses out of view stay 30 s in the feed and are not pushed out by
   newer messages. Replays and spectators get no alarms.
-- **Health bars**: over damaged and selected units; Settings → Interface
-  can limit them to selected units or hide them.
+- **Health bars**: short bars over damaged units and over own units that
+  are selected (yellow), under the mouse pointer or shown with **Tab**
+  (blue in the standard palette, the own color in the other palettes);
+  own squads show one bar per man (at most six, men grouped beyond),
+  stacked like stairs. Allied bars have a light rim. Bars fade out when
+  they are no longer wanted. Settings → Interface can limit them to
+  selected and marked units or hide them (prompt 167).
 - **State marks** (prompt 105): small symbols above the health bar tell
   a unit's state without selecting it, at most two side by side (from far
   away only the most important one; the rest is in the info field):
@@ -327,13 +332,17 @@ top bar. Everything else appears when there is something to do with it.
   immobilized, track off, suppressed (never out of ammunition or fuel).
   Settings → Interface → State marks: own units and visible enemies,
   selected units only, or never.
-- **Own units** (prompt 164): a small light ring with a dark rim under
-  every own soldier; units within about 20–80 m of the mouse pointer (more
-  when zoomed out) show their ring in their color (own, ally, enemy), the
-  nearest one stronger, and own ones light up. Hold **Tab**
-  *(rebindable)* to show every own unit. Settings → Interface → "Own
-  units": markers and highlight (default), highlight near the pointer only,
-  or off. Pictures: `just unit-marker-shots` (`build/unit-visibility/`).
+- **Own units** (prompts 164, 167): a small light ring with a dark rim
+  under every own soldier. Only the unit whose model is directly under the
+  mouse pointer (a few pixels of tolerance; on free ground between units
+  nothing) gets a thin outline along its silhouette: own units blue (with
+  their blue health bar), enemies red, allies in their color; a squad as a
+  whole. A click selects exactly what is outlined (a click just beside a
+  small unit still takes the nearest one). No rings and no lighting up on
+  hover. Hold **Tab** *(rebindable)* to show every own unit (ring, bars,
+  bright markers). Settings → Interface → "Own units": markers and outline
+  (default), outline under the pointer only, or off. Pictures:
+  `just unit-marker-shots` (`build/unit-visibility/`).
 - **Hidden units** (prompt 165): the parts of own units hidden behind
   houses, trees, hills or vehicles show as a flat silhouette in the own
   color (selected units and those near the pointer brighter), allied ones

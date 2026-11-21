@@ -124,6 +124,9 @@ var group_formations: Dictionary[int, int] = {}
 ## Whether a unit id is a building (prompt 023): box selections that also
 ## catch units leave buildings out. Set by `main.gd`.
 var is_structure := func(_id: int) -> bool: return false
+## Hit on a unit's model (prompt 167): `unit_pick.gd`'s `unit_at(screen,
+## kind)`, set by `unit_highlight.gd`; the hover marks what a click takes.
+var model_hit: Callable
 
 ## Targeted order waiting for the next left click ("" = none, prompt 031).
 var command_mode := ""
@@ -727,10 +730,17 @@ func _select_in_box(box: Rect2, additive: bool) -> void:
 	_set_selection(result, -1, GroundPick.from_screen(camera, box.get_center()))
 
 
-## Id of the own (or, with `own` false, another player's) living unit under
-## `screen_position`, or -1. Picks the closest one whose screen radius
-## contains the point.
+## Id of the own (or, with `own` false, an enemy's) living unit under
+## `screen_position`, or -1: first the unit whose model is under the point
+## (`model_hit`, the rule of the hover outline, prompt 167); else, so a
+## click just beside a small or distant unit still takes it, the closest
+## one whose screen radius (half its footprint, at least
+## `MIN_PICK_RADIUS`) contains the point.
 func _unit_at(screen_position: Vector2, own := true) -> int:
+	if model_hit.is_valid():
+		var hit: int = model_hit.call(screen_position, "own" if own else "enemy")
+		if hit >= 0:
+			return hit
 	var ids := sim_host.unit_ids()
 	var positions := sim_host.current_positions()
 	var footprints := sim_host.unit_footprints()

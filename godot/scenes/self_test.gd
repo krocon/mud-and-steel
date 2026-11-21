@@ -1459,50 +1459,167 @@ func _marker_test() -> void:
 	await get_tree().process_frame
 
 
-## Own units easier to see (prompt 164): the cursor over an own squad
-## highlights it (ring, lit models, bright markers), away from it nothing is
-## highlighted and only the faint markers stay; the show-all key lights
-## every own unit; the setting `off` draws nothing.
+## Own units easier to see (prompts 164, 167): the pointer on an own
+## soldier marks exactly that squad (outline on its bodies, blue health
+## bars, one per man, no ring); on free ground 30 px beside it nothing is
+## marked and the bars fade out; an enemy under the pointer gets a red
+## outline and no blue bar; a selected squad shows yellow bars; the
+## show-all key shows every own unit's ring, bars and bright markers; the
+## setting `off` marks nothing.
 func _highlight_test() -> void:
 	var highlight: Node = main.unit_highlight
+	var bars: Control = main.combat_view.health_bars
+	var rig: Node3D = main.camera_rig
 	var squads := _ids_of(true, true)
 	_check(not squads.is_empty(), "no own squad for the highlight test")
 	if squads.is_empty():
 		return
 	var squad := squads[0]
-	var at := _centroid([squad] as Array[int])
-	highlight.forced_point = at
-	await _frames(2)
-	_check(highlight.hovered.has(squad) and highlight.nearest == squad,
-		"squad %d under the cursor not highlighted (nearest %d)" % [squad, highlight.nearest])
-	_check(highlight.lit.has(squad), "squad under the cursor not lit up")
-	_check(highlight.markers_bright > 0, "no bright markers under the cursor")
+	main.selection.set_selection([])
+	# The simulation holds still: a walking soldier would leave the point
+	# under the pointer (or walk under the "free" one).
+	var sim_host: SimHost = main.sim_host
+	var speed := sim_host.speed
+	sim_host.speed = 0.0
+	rig.snap_to(_centroid([squad] as Array[int]), 60.0, rig.yaw)
+	await _frames(3)
+	var point := _soldier_point(squad)
+	highlight.forced_point = point
+	await _seconds(0.3)
+	_check(highlight.nearest == squad and highlight.hovered.size() == 1,
+		"soldier of squad %d under the pointer: marked %s" % [squad, highlight.hovered.keys()])
+	_check(_outlined_bodies(squad) > 0, "no outline on the squad under the pointer")
 	var ring: MeshInstance3D = main._rings[squad]
-	_check(ring.visible and ring.material_override != null, "no hover ring on the squad")
+	_check(not ring.visible, "a ring under the squad under the pointer")
+	var bar: Array = bars.bars_of.get(squad, [])
+	_check(not bar.is_empty() and bar[0] == highlight.own_mark_color() and int(bar[1]) > 1,
+		"squad under the pointer: bars %s (want the hover blue, one per man)" % [bar])
+	# Free ground 30 px beside the soldier.
+	var screen: Vector2 = main.camera.unproject_position(point)
+	var beside: Variant = null
+	for k in 8:
+		var spot := screen + Vector2.from_angle(TAU * k / 8.0) * 30.0
+		if highlight.pick.unit_at(spot, "any") < 0:
+			beside = GroundPick.from_screen(main.camera, spot)
+			if beside != null:
+				break
+	_check(beside != null, "no free ground 30 px beside the soldier")
+	if beside != null:
+		highlight.forced_point = beside
+		await _seconds(0.5)
+		_check(highlight.nearest == -1 and highlight.hovered.is_empty(),
+			"free ground beside the squad marks %s" % [highlight.hovered.keys()])
+		_check(_outlined_bodies(squad) == 0, "outline stays after the pointer left")
+		var left: Array = bars.bars_of.get(squad, [])
+		_check(left.is_empty() or left[0] != highlight.own_mark_color(), "blue bar stays after the pointer left")
+	# An enemy under the pointer.
+	var enemy := -1
+	for id in _ids_of(false, true) + _ids_of(false, false):
+		var node: Node3D = main._unit_nodes.get(id)
+		if node == null or not node.visible:
+			continue
+		rig.snap_to(node.global_position, 60.0, rig.yaw)
+		await _frames(2)
+		var target := _soldier_point(id) if main.infantry_view._by_unit.has(id) \
+				else node.global_position + Vector3.UP * 1.0
+		highlight.forced_point = target
+		await _seconds(0.3)
+		if highlight.nearest == id:
+			enemy = id
+			break
+	_check(enemy >= 0, "no enemy unit could be put under the pointer")
+	if enemy >= 0:
+		_check(_outline_material_on(enemy, highlight._enemy_outline), "enemy under the pointer has no red outline")
+		var enemy_bar: Array = bars.bars_of.get(enemy, [])
+		_check(enemy_bar.is_empty() or enemy_bar[0] != highlight.own_mark_color(), "enemy under the pointer has a blue bar")
+	# A selected squad: yellow bars, one per man.
 	highlight.forced_point = Vector3(-10000, 0, -10000)
+	rig.snap_to(_centroid([squad] as Array[int]), 60.0, rig.yaw)
+	main.selection.set_selection([squad])
+	await _seconds(0.3)
+	var chosen: Array = bars.bars_of.get(squad, [])
+	_check(not chosen.is_empty() and chosen[0] == bars.SELECTED and int(chosen[1]) > 1,
+		"selected squad: bars %s (want yellow, one per man)" % [chosen])
+	main.selection.set_selection([])
 	await _frames(2)
-	_check(highlight.hovered.is_empty() and highlight.lit.is_empty(), "highlight stays after the cursor left")
 	_check(highlight.markers_drawn > 0 and highlight.markers_bright == 0,
 		"faint markers: %d drawn, %d bright" % [highlight.markers_drawn, highlight.markers_bright])
-	_check(ring.material_override == null, "hover ring look stays after the cursor left")
 	Input.action_press("show_units")
-	await _frames(2)
+	await _frames(3)
 	var own := _ids_of(true, false) + squads
 	var shown := 0
+	var with_bars := 0
+	var on_screen := 0
+	var rect := get_viewport().get_visible_rect()
 	for id in own:
-		if highlight.hovered.has(id) or main.selection.is_selected(id):
+		if highlight.ringed.has(id) or main.selection.is_selected(id):
 			shown += 1
+		var node: Node3D = main._unit_nodes.get(id)
+		if node != null and node.visible and not main.camera.is_position_behind(node.global_position) \
+				and rect.has_point(main.camera.unproject_position(node.global_position)):
+			on_screen += 1
+			if bars.bars_of.has(id):
+				with_bars += 1
 	_check(shown == own.size() and highlight.markers_bright == highlight.markers_drawn,
 		"show-all: %d of %d own units shown, %d of %d markers bright" % [shown, own.size(),
 			highlight.markers_bright, highlight.markers_drawn])
+	_check(on_screen > 0 and with_bars == on_screen, "show-all: %d of %d own units on screen with bars" % [with_bars, on_screen])
 	Input.action_release("show_units")
 	Settings.set_value("unit_markers", "off")
-	highlight.forced_point = at
-	await _frames(2)
-	_check(highlight.markers_drawn == 0 and highlight.hovered.is_empty(), "unit markers drawn while off")
+	highlight.forced_point = point
+	await _seconds(0.3)
+	_check(highlight.markers_drawn == 0 and highlight.hovered.is_empty() and highlight.outlined.is_empty(),
+		"unit markers or outline while off")
 	Settings.set_value("unit_markers", "always")
-	highlight.forced_point = null
+	highlight.forced_point = Vector3(-10000, 0, -10000)
+	sim_host.speed = speed
 	await _frames(1)
+
+
+## A point on a drawn soldier of squad `id` (just above his feet: on the
+## body whether he stands, kneels or lies).
+func _soldier_point(id: int) -> Vector3:
+	var view: Node = main.infantry_view
+	for key: int in (view._by_unit.get(id, []) as Array):
+		var s: Dictionary = view._soldiers[key]
+		if not s["dead"] and (s["node"] as Node3D).visible:
+			return (s["position"] as Vector3) + Vector3.UP * 0.3
+	return _centroid([id] as Array[int]) + Vector3.UP * 0.3
+
+
+## Soldier bodies of unit `id` carrying the outline in their overlay chain.
+func _outlined_bodies(id: int) -> int:
+	var highlight: Node = main.unit_highlight
+	var view: Node = main.infantry_view
+	var n := 0
+	for key: int in (view._by_unit.get(id, []) as Array):
+		for mesh: GeometryInstance3D in (view._soldiers[key]["meshes"] as Array):
+			if mesh.name == "Body" and _chain_has(mesh.material_overlay, highlight._outline):
+				n += 1
+	return n
+
+
+## Whether a mesh of unit `id` (vehicle meshes or soldier bodies) has
+## `material` as its overlay.
+func _outline_material_on(id: int, material: Material) -> bool:
+	var meshes: Array = main.unit_highlight._outline_meshes.get(id, [])
+	for mesh: MeshInstance3D in meshes:
+		if mesh.material_overlay == material:
+			return true
+	return false
+
+
+static func _chain_has(first: Material, wanted: Material) -> bool:
+	var m := first
+	while m != null:
+		if m == wanted:
+			return true
+		m = m.next_pass
+	return false
+
+
+func _seconds(seconds: float) -> void:
+	await get_tree().create_timer(seconds).timeout
 
 
 ## Prompt 103: the overview goes out and back to the same view; every mark
@@ -1797,8 +1914,8 @@ func _xray_meshes(id: int) -> int:
 
 
 static func _draws_xray(mesh: GeometryInstance3D, highlight: Node) -> bool:
-	var overlay := mesh.material_overlay
-	return overlay != null and (overlay == highlight._xray or overlay.next_pass == highlight._xray)
+	return _chain_has(mesh.material_overlay, highlight._xray) \
+			or _chain_has(mesh.material_overlay, highlight._xray_outline)
 
 
 func _ids_of(own: bool, squads := false) -> Array[int]:

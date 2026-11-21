@@ -66,8 +66,8 @@ SET_STATE_MARKS_ALWAYS,Own units and visible enemies,Eigene Einheiten und sichtb
 SET_STATE_MARKS_SELECTED,Selected units only,Nur gewählte Einheiten
 SET_STATE_MARKS_NEVER,Never,Nie
 SET_UNIT_MARKERS,Own units,Eigene Einheiten
-SET_MARKERS_ALWAYS,Markers and highlight near the cursor,Markierungen und Hervorheben am Mauszeiger
-SET_MARKERS_HOVER,Highlight near the cursor only,Nur am Mauszeiger hervorheben
+SET_MARKERS_ALWAYS,Markers and outline under the pointer,Markierungen und Umriss unter dem Mauszeiger
+SET_MARKERS_HOVER,Outline under the pointer only,Nur Umriss unter dem Mauszeiger
 SET_MARKERS_OFF,Off,Aus
 SET_HIDDEN_UNITS,Hidden units as silhouette,Verdeckte Einheiten als Silhouette
 SET_HIDDEN_OWN_ALLIES,Own and allied,Eigene und verbündete

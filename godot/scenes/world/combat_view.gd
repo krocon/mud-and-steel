@@ -384,50 +384,170 @@ func _tint(node: Node, material: Material) -> void:
 ## setting "Health bars" limits them to selected units or hides them.
 class HealthBars:
 	extends Control
+	## Short health bars over units (prompts 031, 167). Setting
+	## `health_bars`: `damaged` (damaged and marked units), `selected`
+	## (marked units only), `never`. Own units are marked when selected
+	## (yellow), under the pointer or while the show-all key is held (the
+	## hover blue of `unit_highlight.gd`); damaged ones show the own color.
+	## Own squads show one bar per man (at most `MAX_BARS`, men grouped
+	## beyond), stacked like stairs; vehicles, guns and other players' units
+	## one bar. Allies' bars have a light rim, so they never read as own
+	## bars (blue in the standard palette, yellow in `red_green`). A bar fades
+	## out in `FADE_S` when it is no longer wanted.
 
-	const WIDTH := 34.0
-	const HEIGHT := 4.0
+	const HudTheme := preload("res://scenes/hud/hud_theme.gd")
+	## Bar size and the stair step between a squad's bars (pixels at HUD
+	## scale 1).
+	const WIDTH := 30.0
+	const HEIGHT := 3.5
+	const STEP_X := 3.0
+	const GAP := 1.5
+	const MAX_BARS := 6
 	## Meters above the ground.
 	const LIFT := 3.6
+	## Seconds to fade in and out.
+	const FADE_IN_S := 0.1
+	const FADE_S := 0.3
+	const EMPTY := Color(0.16, 0.16, 0.16, 0.85)
+	const RIM := Color(0.0, 0.0, 0.0, 0.85)
+	const ALLY_RIM := Color(0.92, 0.92, 0.92, 0.8)
+	## Selected own units.
+	const SELECTED := Color(1.0, 0.84, 0.18)
 
 	var view: Node3D
-	## Bars drawn in the last frame (for the self-test).
+	## Units with bars drawn in the last frame (for the self-test), and per
+	## unit id its bar color and number of bars.
 	var drawn := 0
+	var bars_of: Dictionary[int, Array] = {}
+	## Per unit id: bar opacity (fading) and its last color; per soldier key
+	## the highest hit points seen (no maximum in the snapshot); bar values
+	## of own squads, when they were built.
+	var _alpha: Dictionary[int, float] = {}
+	var _color: Dictionary[int, Color] = {}
+	var _max_hp: Dictionary[int, int] = {}
+	var _squad_values: Dictionary[int, PackedFloat32Array] = {}
+	var _values_tick := -1
+	var _delta := 0.0
 
 	func _ready() -> void:
 		mouse_filter = Control.MOUSE_FILTER_IGNORE
 		set_anchors_preset(Control.PRESET_FULL_RECT)
 
-	func _process(_delta: float) -> void:
+	func _process(delta: float) -> void:
+		_delta = delta
 		queue_redraw()
 
 	func _draw() -> void:
 		drawn = 0
-		# Setting "Health bars" (prompt 031): damaged, selected or never.
+		bars_of = {}
 		var mode: String = Settings.get_value("health_bars")
 		if mode == "never":
+			_alpha.clear()
 			return
 		var damaged_too := mode != "selected"
 		var sim_host: SimHost = view.sim_host
 		var camera: Camera3D = view.main.camera
 		var selection: Control = view.main.selection
+		var highlight: Node = view.main.get("unit_highlight")
+		var hovered: int = highlight.nearest if highlight != null else -1
+		var show_all: bool = highlight != null and highlight.show_all
+		var mark: Color = highlight.own_mark_color() if highlight != null else RelationColors.own()
 		var ids := sim_host.unit_ids()
 		var health := sim_host.unit_health()
 		var alive := sim_host.unit_alive()
 		var owners := sim_host.unit_owners()
+		var stances := sim_host.unit_stances()
 		var me := sim_host.local_player()
+		if sim_host.current_tick() != _values_tick:
+			_values_tick = sim_host.current_tick()
+			_build_squad_values(owners, ids, me)
+		var width := HudTheme.px(WIDTH)
+		var height := HudTheme.px(HEIGHT)
+		var seen: Dictionary[int, bool] = {}
 		for i in ids.size():
-			if alive[i] == 0 or ((health[i] >= 1.0 or not damaged_too) and not selection.is_selected(ids[i])):
+			var id := ids[i]
+			if alive[i] == 0:
 				continue
-			var node: Node3D = view.main._unit_nodes.get(ids[i])
-			if node == null:
+			var own := owners[i] == me
+			var selected: bool = selection.is_selected(id)
+			var marked := own and (selected or id == hovered or show_all)
+			var want := marked or selected or (damaged_too and health[i] < 1.0)
+			var alpha: float = _alpha.get(id, 0.0)
+			if want:
+				alpha = minf(alpha + _delta / FADE_IN_S, 1.0)
+				if not own:
+					_color[id] = RelationColors.ally_or(Color(0.35, 0.6, 1.0)) if sim_host.relation(owners[i]) == 1 \
+							else RelationColors.enemy_or(Color(0.95, 0.3, 0.2))
+				elif selected:
+					_color[id] = SELECTED
+				elif marked:
+					_color[id] = mark
+				else:
+					_color[id] = RelationColors.own_or(Color(0.3, 0.9, 0.3))
+			else:
+				alpha -= _delta / FADE_S
+			if alpha <= 0.0:
+				continue
+			_alpha[id] = alpha
+			seen[id] = true
+			var node: Node3D = view.main._unit_nodes.get(id)
+			if node == null or not node.visible:
 				continue
 			var world := node.global_position + Vector3.UP * LIFT
 			if camera.is_position_behind(world):
 				continue
-			var at := camera.unproject_position(world) - Vector2(WIDTH * 0.5, 0)
-			var color := RelationColors.own_or(Color(0.3, 0.9, 0.3)) if owners[i] == me else (
-				RelationColors.ally_or(Color(0.35, 0.6, 1.0)) if sim_host.relation(owners[i]) == 1 else RelationColors.enemy_or(Color(0.95, 0.3, 0.2)))
-			draw_rect(Rect2(at - Vector2(1, 1), Vector2(WIDTH + 2, HEIGHT + 2)), Color(0, 0, 0, 0.6))
-			draw_rect(Rect2(at, Vector2(WIDTH * health[i], HEIGHT)), color)
+			var values := PackedFloat32Array([health[i]])
+			if own and stances[i] >= 0 and _squad_values.has(id):
+				values = _squad_values[id]
+			var rim := RIM if own or sim_host.relation(owners[i]) != 1 else ALLY_RIM
+			var color: Color = _color.get(id, RelationColors.own())
+			var origin := camera.unproject_position(world) - Vector2(width * 0.5, 0.0)
+			for b in values.size():
+				var at := origin + Vector2(HudTheme.px(STEP_X) * b, -(height + HudTheme.px(GAP)) * b)
+				_bar(at, width, height, values[b], color, rim, alpha)
 			drawn += 1
+			bars_of[id] = [color, values.size()]
+		for id: int in _alpha.keys():
+			if not seen.has(id):
+				_alpha.erase(id)
+
+	func _bar(at: Vector2, width: float, height: float, value: float, color: Color, rim: Color,
+			alpha: float) -> void:
+		draw_rect(Rect2(at - Vector2(1, 1), Vector2(width + 2, height + 2)), Color(rim, rim.a * alpha))
+		draw_rect(Rect2(at, Vector2(width, height)), Color(EMPTY, EMPTY.a * alpha))
+		var fill := clampf(value, 0.0, 1.0)
+		if fill > 0.0:
+			draw_rect(Rect2(at, Vector2(width * fill, height)), Color(color, alpha))
+
+	## Bar values of every own squad: one per man (his hit points against
+	## the most he had), grouped into at most MAX_BARS bars.
+	func _build_squad_values(owners: PackedInt32Array, ids: PackedInt64Array, me: int) -> void:
+		var sim_host: SimHost = view.sim_host
+		var own := {}
+		for i in ids.size():
+			if owners[i] == me:
+				own[ids[i]] = true
+		var units := sim_host.soldier_units()
+		var indices := sim_host.soldier_indices()
+		var hp := sim_host.soldier_hp()
+		var men := {}
+		for k in units.size():
+			if not own.has(units[k]):
+				continue
+			var key := units[k] * 256 + indices[k]
+			var most := maxi(int(_max_hp.get(key, 0)), hp[k])
+			_max_hp[key] = most
+			(men.get_or_add(units[k], []) as Array).append([maxi(hp[k], 0), most])
+		_squad_values.clear()
+		for unit: int in men:
+			var list: Array = men[unit]
+			var per_bar := ceili(list.size() / float(MAX_BARS))
+			var values := PackedFloat32Array()
+			for start in range(0, list.size(), per_bar):
+				var got := 0
+				var most := 0
+				for m in range(start, mini(start + per_bar, list.size())):
+					got += int(list[m][0])
+					most += int(list[m][1])
+				values.append(float(got) / float(most) if most > 0 else 0.0)
+			_squad_values[unit] = values
