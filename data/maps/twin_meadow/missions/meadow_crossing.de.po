@@ -25,3 +25,6 @@ msgstr "Der Punkt gehört uns. Deutsche Panzer kommen von Norden: Halte die Wies
 
 msgid "The counterattack is beaten off. The meadow is ours."
 msgstr "Der Gegenangriff ist abgeschlagen. Die Wiese gehört uns."
+
+msgid "Only one T-34 is left. The counterattack can hardly be stopped."
+msgstr "Nur noch ein T-34 ist übrig. Der Gegenangriff ist kaum noch aufzuhalten."

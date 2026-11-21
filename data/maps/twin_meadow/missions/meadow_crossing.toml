@@ -95,3 +95,27 @@ after = ["beaten"]
 when = "time"
 delay_s = 3
 actions = [{ do = "victory" }]
+
+# Prompt 181: with one T-34 left the counterattack can hardly be beaten.
+[[trigger]]
+id = "hopeless"
+when = "fewer"
+unit = "su_t34"
+count = 2
+open = ["counter"]
+actions = [
+  { do = "hopeless", text = "Only one T-34 is left. The counterattack can hardly be stopped." },
+]
+
+# Difficulty (prompt 181, docs/MISSIONS.md). Normal is the script as
+# written: a Panzer IV and a squad hold the crossing, a tank, two
+# half-tracks and two squads counterattack.
+[difficulty.easy]
+enemy_count_pct = 50
+
+# Hard with two Panzer IV at the crossing (`enemy_start_pct = 200`) was
+# lost by the test autopilot after 98 s (prompt 181): only the
+# counterattack grows.
+[difficulty.hard]
+computer = "normal"
+enemy_count_pct = 150

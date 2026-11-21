@@ -45,6 +45,9 @@ pub(super) struct MissionRt {
     signals: Vec<String>,
     /// Columns that drove in (prompt 108), oldest first.
     arrivals: Vec<ArrivalView>,
+    /// The "hardly winnable" warning and its tick (prompt 181). Follows
+    /// from the triggers, so it is not part of the state hash.
+    hopeless: Option<(String, u64)>,
 }
 
 /// A column of reinforcements that started driving in (prompt 108): its
@@ -113,6 +116,7 @@ impl MissionRt {
             camera: None,
             signals: Vec::new(),
             arrivals: Vec::new(),
+            hopeless: None,
             def: def.clone(),
         }
     }
@@ -199,6 +203,16 @@ impl Sim {
         self.mission
             .as_deref()?
             .message
+            .as_ref()
+            .map(|(text, tick)| (text.as_str(), *tick))
+    }
+
+    /// The "hardly winnable" warning of the mission and its tick
+    /// (prompt 181), if a `hopeless` action ran.
+    pub fn mission_hopeless(&self) -> Option<(&str, u64)> {
+        self.mission
+            .as_deref()?
+            .hopeless
             .as_ref()
             .map(|(text, tick)| (text.as_str(), *tick))
     }
@@ -320,7 +334,38 @@ impl Sim {
     }
 
     fn condition_met(&self, m: &MissionRt, t: usize) -> bool {
+        let open = m.def.triggers[t].open.iter().all(|&o| {
+            matches!(
+                m.objectives[usize::from(o)],
+                ObjectiveState::Hidden | ObjectiveState::Active
+            )
+        });
+        open && self.condition_holds(m, t)
+    }
+
+    /// Counts living units of `player` whose catalog id starts with `unit`.
+    fn count_units(&self, player: PlayerId, unit: Option<&str>) -> usize {
+        self.units
+            .iter()
+            .filter(|u| {
+                u.alive()
+                    && u.owner == player
+                    && unit.is_none_or(|prefix| {
+                        self.unit_types[u.unit_type as usize]
+                            .name
+                            .starts_with(prefix)
+                    })
+            })
+            .count()
+    }
+
+    fn condition_holds(&self, m: &MissionRt, t: usize) -> bool {
         match &m.def.triggers[t].condition {
+            Condition::Fewer {
+                player,
+                unit,
+                count,
+            } => self.count_units(*player, unit.as_deref()) < *count as usize,
             Condition::Always => true,
             Condition::Area {
                 area,
@@ -577,6 +622,13 @@ impl Sim {
                 pending,
             ),
             Action::Text { text } => m.message = Some((text.clone(), self.tick)),
+            Action::Hopeless { text } => {
+                // Only while the match runs; once a time.
+                if self.standings.outcome().is_none() && m.hopeless.is_none() {
+                    m.message = Some((text.clone(), self.tick));
+                    m.hopeless = Some((text.clone(), self.tick));
+                }
+            }
             Action::Objective { index, state } => m.objectives[usize::from(*index)] = *state,
             Action::Spawn {
                 group,

@@ -25,3 +25,6 @@ msgstr "Der Platz gehört uns. Sowjetische Panzer nähern sich von Norden!"
 
 msgid "The relief is destroyed. The town is held."
 msgstr "Der Entsatz ist vernichtet. Die Stadt ist gehalten."
+
+msgid "Only one Panzer IV is left. The town can hardly be held against the relief."
+msgstr "Nur noch ein Panzer IV ist übrig. Die Stadt ist gegen den Entsatz kaum noch zu halten."

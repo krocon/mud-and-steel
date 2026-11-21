@@ -195,6 +195,10 @@ HUD_MISSION_STEP,Training – step %d of %d,Training – Schritt %d von %d
 HUD_MISSION_DONE,Done: %s,Erledigt: %s
 HUD_MISSION_FAILED,Failed: %s,Gescheitert: %s
 HUD_MISSION_ALL_DONE,All objectives complete.,Alle Ziele erfüllt.
+HUD_HOPELESS_TITLE,The mission can hardly be won,Die Mission ist kaum noch zu gewinnen
+HUD_HOPELESS_RESTART,Restart,Neu starten
+HUD_HOPELESS_LOAD,Load last save,Letzten Spielstand laden
+HUD_HOPELESS_GO_ON,Play on,Weiterspielen
 HUD_TIP_FEED,Click: camera there. %s: the newest message.,Klick: Kamera dorthin. %s: neueste Meldung.
 HUD_FEED_LOST,Lost: %s,Verloren: %s
 HUD_FEED_UNDER_FIRE,Under fire: %s,Unter Beschuss: %s

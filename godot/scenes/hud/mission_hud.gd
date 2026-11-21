@@ -15,11 +15,18 @@ extends PanelContainer
 ## or "Enemy reinforcements" to the event feed at its entry point (a click
 ## jumps there) and pings the minimap.
 ##
+## Prompt 181: when the script says the mission can hardly be won any more
+## (action `hopeless`), a panel in the middle says so and offers Restart
+## (same mission and difficulty), Load last save (the newest saved game of
+## this map) and Play on. Once per match; not in replays.
+##
 ## All texts come from the mission file; the few own ones are the
 ## translation keys below (prompt 043).
 
 const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
 const Missions := preload("res://scenes/menu/missions.gd")
+const GameFiles := preload("res://scenes/menu/game_files.gd")
+const MatchSetup := preload("res://scenes/menu/match_setup.gd")
 const TEXT_STEP := "HUD_MISSION_STEP"
 const TEXT_DONE := "HUD_MISSION_DONE"
 const TEXT_FAILED := "HUD_MISSION_FAILED"
@@ -50,6 +57,15 @@ var recorded := false
 var rings := 0
 ## Arriving columns reported to the event feed (self-test).
 var arrivals_reported := 0
+## The "hardly winnable" panel (prompt 181) and its buttons.
+var hopeless_panel: PanelContainer
+var hopeless_text: Label
+var restart_button: Button
+var load_button: Button
+var go_on_button: Button
+## Tick of the warning already shown (-1: none; -2: not read yet, the
+## warning of a loaded game stays quiet).
+var hopeless_shown := -2
 
 var _message_tick := -2
 var _camera_tick := -1
@@ -90,7 +106,89 @@ func setup(main_node: Node3D) -> void:
 	material.albedo_color = RING_COLOR
 	_ring_mesh.material_override = material
 	main.add_child(_ring_mesh)
+	_build_hopeless()
 	refresh()
+
+
+func _build_hopeless() -> void:
+	hopeless_panel = PanelContainer.new()
+	hopeless_panel.name = "HopelessPanel"
+	hopeless_panel.theme = MenuTheme.get_theme()
+	hopeless_panel.visible = false
+	hopeless_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	hopeless_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	hopeless_panel.grow_vertical = Control.GROW_DIRECTION_BOTH
+	hopeless_panel.custom_minimum_size = Vector2(460, 0)
+	var box := VBoxContainer.new()
+	hopeless_panel.add_child(box)
+	box.add_child(MenuTheme.title("HUD_HOPELESS_TITLE", MenuTheme.FONT_SIZE + 4))
+	hopeless_text = Label.new()
+	hopeless_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	hopeless_text.custom_minimum_size = Vector2(440, 0)
+	box.add_child(hopeless_text)
+	var buttons := HBoxContainer.new()
+	buttons.alignment = BoxContainer.ALIGNMENT_CENTER
+	box.add_child(buttons)
+	restart_button = _hopeless_button(buttons, "HUD_HOPELESS_RESTART", restart)
+	load_button = _hopeless_button(buttons, "HUD_HOPELESS_LOAD", load_last_save)
+	go_on_button = _hopeless_button(buttons, "HUD_HOPELESS_GO_ON", func() -> void:
+		hopeless_panel.visible = false)
+	# Beside the mission panel, on the same HUD layer.
+	main.get_node("Hud").add_child.call_deferred(hopeless_panel)
+
+
+func _hopeless_button(parent: Control, text: String, action: Callable) -> Button:
+	var button := Button.new()
+	button.text = text
+	button.custom_minimum_size = Vector2(140, 40)
+	button.pressed.connect(action)
+	parent.add_child(button)
+	return button
+
+
+## Shows the warning once when the script raised it.
+func _show_hopeless() -> void:
+	var tick := int(info.get("hopeless_tick", -1))
+	if hopeless_shown == -2:
+		hopeless_shown = tick
+		return
+	if tick < 0 or tick == hopeless_shown or sim_host.is_replay():
+		return
+	hopeless_shown = tick
+	if sim_host.match_result()["decided"]:
+		return
+	show_warning(Missions.text(_path(), info.get("hopeless", "")))
+
+
+## Opens the warning panel with `text` (also the self-test).
+func show_warning(text: String) -> void:
+	hopeless_text.text = text
+	load_button.disabled = last_save().is_empty()
+	hopeless_panel.visible = true
+
+
+## Starts the running mission again at its difficulty.
+func restart() -> void:
+	hopeless_panel.visible = false
+	Missions.restart(get_tree(), str(info.get("id", "")), str(info.get("level", "normal")))
+
+
+## Path of the newest saved game of this map, "" if none.
+func last_save() -> String:
+	for entry in GameFiles.list(GameFiles.SAVE_DIR, GameFiles.SAVE_EXTENSION):
+		if entry["info"].get("map", "") == sim_host.map_name():
+			return entry["path"]
+	return ""
+
+
+## Loads the newest saved game of this map.
+func load_last_save() -> void:
+	var path := last_save()
+	if path.is_empty():
+		return
+	hopeless_panel.visible = false
+	MatchSetup.pending = {"load": path}
+	get_tree().change_scene_to_file(MatchSetup.MAIN_SCENE)
 
 
 func _process(_delta: float) -> void:
@@ -130,6 +228,7 @@ func refresh() -> void:
 			main.camera_rig.center_on(info["camera"])
 	_report_arrivals(info.get("arrivals", []))
 	_send_signals(info["wanted"])
+	_show_hopeless()
 
 
 ## Event feed message and minimap ping for every new arriving column.
@@ -246,5 +345,5 @@ func _record_victory() -> void:
 	var result: Dictionary = sim_host.match_result()
 	if result["decided"] and result["winner"] == sim_host.local_player():
 		recorded = true
-		Missions.mark_done(info.get("id", ""))
+		Missions.mark_done(info.get("id", ""), str(info.get("level", "normal")))
 		print("Mission '%s' won at tick %d" % [info.get("id", ""), result["tick"]])

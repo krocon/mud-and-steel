@@ -14,6 +14,8 @@ var list: ItemList
 var details: Label
 var start_button: Button
 var back_button: Button
+## Difficulty (prompt 181), in the order of `Missions.LEVELS`.
+var level_button: OptionButton
 ## Headers of `Missions.list`, in list order.
 var entries: Array[Dictionary] = []
 
@@ -38,6 +40,15 @@ func _ready() -> void:
 	var buttons := HBoxContainer.new()
 	buttons.alignment = BoxContainer.ALIGNMENT_END
 	box.add_child(buttons)
+	var level_label := MenuTheme.hint("MENU_LEVEL")
+	buttons.add_child(level_label)
+	level_button = OptionButton.new()
+	level_button.custom_minimum_size = Vector2(140, 44)
+	for level: String in Missions.LEVELS:
+		level_button.add_item(Missions.LEVEL_KEYS[level])
+	level_button.item_selected.connect(func(index: int) -> void:
+		Missions.set_level(Missions.LEVELS[index]))
+	buttons.add_child(level_button)
 	back_button = _button(buttons, "COMMON_BACK", func() -> void: back_pressed.emit())
 	start_button = _button(buttons, "COMMON_START", start_selected)
 	visibility_changed.connect(func() -> void:
@@ -58,6 +69,7 @@ func refresh() -> void:
 		var index := list.add_item(describe(m))
 		if not m.get("ok", false):
 			list.set_item_custom_fg_color(index, MenuTheme.DEFEAT.darkened(0.2))
+	level_button.select(Missions.LEVELS.find(Missions.level()))
 	if entries.is_empty():
 		details.text = "MENU_MISSIONS_NONE"
 	else:
@@ -71,7 +83,9 @@ static func describe(m: Dictionary) -> String:
 		return Language.t("MENU_MISSION_BROKEN").format({"id": m["id"], "map": m["map"]})
 	var side := Language.t(MatchSetup.FACTIONS.get(m.get("faction", ""), ""))
 	var kind := Language.t("MENU_MISSION_TUTORIAL") if m["kind"] == "tutorial" else side
-	var won := "   " + Language.t("MENU_MISSION_WON") if Missions.is_done(m["id"]) else ""
+	var won := ""
+	if Missions.is_done(m["id"]):
+		won = "   %s · %s" % [Language.t("MENU_MISSION_WON"), Language.t(Missions.LEVEL_KEYS.get(Missions.best_level(m["id"]), "MENU_LEVEL_NORMAL"))]
 	return "%s   –   %s, %s%s" % [Missions.text(m["path"], m["title"]), kind, m["map"], won]
 
 
@@ -89,7 +103,7 @@ func start_selected() -> void:
 		return
 	var m := entries[selected[0]]
 	if m.get("ok", false):
-		Missions.start(get_tree(), m)
+		Missions.start(get_tree(), m, Missions.LEVELS[maxi(level_button.selected, 0)])
 
 
 func _update_details() -> void:

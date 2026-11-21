@@ -691,7 +691,8 @@ func _start_simulation() -> bool:
 	# Missions and the tutorial (prompt 039) start with fire at will.
 	if MatchSetup.pending.has("mission"):
 		sim_host.hold_fire_at_start = false
-		return sim_host.start_mission(SEED, MatchSetup.pending["mission"])
+		# Prompt 181: at the difficulty chosen in the missions screen.
+		return sim_host.start_mission_level(SEED, MatchSetup.pending["mission"], MatchSetup.pending.get("level", "normal"))
 	if not MatchSetup.pending.is_empty():
 		var setup := MatchSetup.pending
 		sim_host.mode = setup.get("mode", "battle")

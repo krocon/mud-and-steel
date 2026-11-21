@@ -5,7 +5,7 @@
 use crate::map_editor::MapEditor;
 use crate::{SimHost, ground_to_godot, load_map_dir};
 use godot::prelude::*;
-use sim::mission::{POINTS_FILE, mission_header, parse_mission};
+use sim::mission::{Level, POINTS_FILE, mission_header, parse_mission_at};
 use sim::scenario::{BUILTIN_MAP_NAME, builtin_map};
 use sim::{Catalog, Command, Scale, TerrainRules};
 use std::path::Path;
@@ -19,7 +19,16 @@ impl SimHost {
     /// Returns `false` (and logs why) if the mission is invalid.
     #[func]
     fn start_mission(&mut self, seed: i64, mission_path: GString) -> bool {
-        self.start_mission_file(seed, &mission_path.to_string(), None)
+        self.start_mission_file(seed, &mission_path.to_string(), None, Level::Normal)
+    }
+
+    /// Like `start_mission` at a difficulty `level` (`easy`, `normal`,
+    /// `hard`; prompt 181): the script's `[difficulty.<level>]` values
+    /// apply. Unknown levels are Normal.
+    #[func]
+    fn start_mission_level(&mut self, seed: i64, mission_path: GString, level: GString) -> bool {
+        let level = Level::parse(&level.to_string()).unwrap_or_default();
+        self.start_mission_file(seed, &mission_path.to_string(), None, level)
     }
 
     /// Like `start_mission`, for a script that does not lie next to its map:
@@ -32,6 +41,7 @@ impl SimHost {
             seed,
             &mission_path.to_string(),
             Some(Path::new(&map_dir.to_string())),
+            Level::Normal,
         )
     }
 
@@ -92,7 +102,9 @@ impl SimHost {
     /// null), `radius` (m), `unit` (catalog id or "")), `wanted` (signals
     /// armed triggers wait for), `fired` and `triggers`, `arrivals` (columns
     /// of reinforcements that drove in, oldest first: `owner`, `entry`, `to`
-    /// (positions), `tick`; prompt 108).
+    /// (positions), `tick`; prompt 108), `level` (`easy`, `normal`, `hard`)
+    /// and `hopeless_tick` (-1, or when the script said the mission can
+    /// hardly be won; prompt 181) with its text `hopeless`.
     #[func]
     fn mission_info(&self) -> VarDictionary {
         let Some(game) = &self.game else {
@@ -131,6 +143,11 @@ impl SimHost {
             "player" => i64::from(mission.player.0),
             "message" => message,
             "message_tick" => message_tick,
+            "level" => mission.level.name(),
+            "hopeless" => sim.mission_hopeless().map_or(String::new(), |(t, _)| t.to_owned()),
+            "hopeless_tick" => sim
+                .mission_hopeless()
+                .map_or(-1, |(_, tick)| i64::try_from(tick).unwrap_or(i64::MAX)),
             "fired" => sim.mission_progress().0 as i64,
             "triggers" => sim.mission_progress().1 as i64,
         };
@@ -264,7 +281,13 @@ impl MapEditor {
 impl SimHost {
     /// Starts the mission file `path` on the map in `map_dir`, or on the map
     /// the file lies next to (`<map>/missions/<id>.toml`).
-    fn start_mission_file(&mut self, seed: i64, path: &str, map_dir: Option<&Path>) -> bool {
+    fn start_mission_file(
+        &mut self,
+        seed: i64,
+        path: &str,
+        map_dir: Option<&Path>,
+        level: Level,
+    ) -> bool {
         let result = (|| -> Result<_, String> {
             let file = Path::new(path);
             let text = std::fs::read_to_string(file).map_err(|e| e.to_string())?;
@@ -293,7 +316,7 @@ impl SimHost {
             let catalog = Catalog::builtin().map_err(|e| e.to_string())?;
             let scale = Scale::builtin().map_err(|e| e.to_string())?;
             let terrain = TerrainRules::builtin().map_err(|e| e.to_string())?;
-            let config = parse_mission(
+            let config = parse_mission_at(
                 &id,
                 &text,
                 points.as_deref(),
@@ -301,6 +324,7 @@ impl SimHost {
                 &scale,
                 &terrain,
                 &map,
+                level,
             )
             .map_err(|e| e.to_string())?;
             Ok((map, config))

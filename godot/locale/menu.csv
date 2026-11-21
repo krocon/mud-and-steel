@@ -147,6 +147,10 @@ MENU_MISSIONS_NONE,No missions found.,Keine Missionen gefunden.
 MENU_MISSION_BROKEN,{id} ({map}): cannot be read,{id} ({map}): nicht lesbar
 MENU_MISSION_TUTORIAL,Tutorial,Tutorial
 MENU_MISSION_WON,(won),(gewonnen)
+MENU_LEVEL,Difficulty,Schwierigkeit
+MENU_LEVEL_EASY,Easy,Leicht
+MENU_LEVEL_NORMAL,Normal,Normal
+MENU_LEVEL_HARD,Hard,Schwer
 RESULT_TAB_SUMMARY,Summary,Übersicht
 RESULT_TAB_REPORT,Report,Bericht
 REPORT_COST_TITLE,What cost you most:,Was dich am meisten gekostet hat:

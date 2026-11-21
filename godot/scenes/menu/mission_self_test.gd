@@ -63,10 +63,14 @@ func run(menu: Control) -> Control:
 		return null
 	flow._check(Missions.is_done(Missions.TUTORIAL_ID), "tutorial not recorded as won")
 
-	# Every mission from the missions screen.
+	# Every mission from the missions screen; prompt 181: the first on Easy,
+	# the second on Hard, the others on Normal, chosen in the screen.
+	var played := 0
 	for m in entries:
 		if m["kind"] != "mission":
 			continue
+		var level: String = ["easy", "hard"][played] if played < 2 else "normal"
+		played += 1
 		menu.missions_button.pressed.emit()
 		await flow._frames(2)
 		screen = menu.screens["missions"]
@@ -75,10 +79,18 @@ func run(menu: Control) -> Control:
 		if index < 0:
 			continue
 		screen.list.select(index)
+		var level_index := Missions.LEVELS.find(level)
+		screen.level_button.select(level_index)
+		screen.level_button.item_selected.emit(level_index)
+		flow._check(Missions.level() == level, "difficulty %s not remembered: %s" % [level, Missions.level()])
 		screen.start_selected()
 		main = await _wait_loaded(m["map"])
 		if main == null:
 			return null
+		var level_info: Dictionary = main.sim_host.mission_info()
+		flow._check(level_info.get("level", "") == level, "mission %s runs on %s, not %s" % [m["id"], level_info.get("level", ""), level])
+		if played == 1:
+			await _check_warning(main)
 		if not m.get("biome", "").is_empty():
 			flow._check(main.atmosphere.preset.id == m["biome"], "mission %s plays in %s, not %s" % [m["id"], main.atmosphere.preset.id, m["biome"]])
 		await _play(main, false)
@@ -86,6 +98,7 @@ func run(menu: Control) -> Control:
 		if menu == null:
 			return null
 		flow._check(Missions.is_done(m["id"]), "mission %s not recorded as won" % m["id"])
+		flow._check(Missions.best_level(m["id"]) == level, "mission %s recorded on %s, not %s" % [m["id"], Missions.best_level(m["id"]), level])
 	menu.missions_button.pressed.emit()
 	await flow._frames(2)
 	screen = menu.screens["missions"]
@@ -94,6 +107,22 @@ func run(menu: Control) -> Control:
 	await flow._frames(2)
 	Missions.reset()
 	return menu
+
+
+## The "hardly winnable" panel (prompt 181): opens with its three
+## buttons, Play on closes it, and nothing raised it by itself.
+func _check_warning(main: Node3D) -> void:
+	var hud: Node = main.mission_hud
+	await flow._frames(5)
+	flow._check(hud.hopeless_panel.is_inside_tree(), "the warning panel is not in the HUD")
+	flow._check(not hud.hopeless_panel.visible, "the warning shows at the start")
+	hud.show_warning("test")
+	await flow._frames(2)
+	flow._check(hud.hopeless_panel.visible and hud.restart_button.visible and hud.load_button.visible and hud.go_on_button.visible, "the warning panel lacks its buttons")
+	hud.go_on_button.pressed.emit()
+	await flow._frames(2)
+	flow._check(not hud.hopeless_panel.visible, "Play on did not close the warning")
+	print("flow self-test: mission warning panel opens and closes")
 
 
 func _wait_loaded(map_name: String) -> Node3D:

@@ -4,7 +4,7 @@
 //! a mission plays the same twice (state hash) and survives a snapshot.
 
 use ai::{Ai, Difficulty, PlayerView};
-use sim::mission::{MISSIONS_DIR, POINTS_FILE, parse_mission};
+use sim::mission::{Level, MISSIONS_DIR, POINTS_FILE, parse_mission_at};
 use sim::{
     Command, Engage, Formation, Map, ObjectiveState, PlayerCommand, PlayerId, Sim, SimConfig,
     UnitId, Vec2,
@@ -56,9 +56,13 @@ fn mission_files() -> Vec<(String, String, PathBuf)> {
 }
 
 fn config_of(map: &Map, map_name: &str, id: &str, path: &Path) -> SimConfig {
+    config_at(map, map_name, id, path, Level::Normal)
+}
+
+fn config_at(map: &Map, map_name: &str, id: &str, path: &Path, level: Level) -> SimConfig {
     let text = std::fs::read_to_string(path).unwrap();
     let points = std::fs::read_to_string(maps_dir().join(map_name).join(POINTS_FILE)).ok();
-    parse_mission(
+    parse_mission_at(
         id,
         &text,
         points.as_deref(),
@@ -66,6 +70,7 @@ fn config_of(map: &Map, map_name: &str, id: &str, path: &Path) -> SimConfig {
         &sim::Scale::builtin().unwrap(),
         &sim::TerrainRules::builtin().unwrap(),
         map,
+        level,
     )
     .unwrap_or_else(|e| panic!("{map_name}/{id}: {e}"))
 }
@@ -252,6 +257,41 @@ fn every_mission_can_be_won() {
             sim.tick() / 20,
             sim.snapshot().units.len()
         );
+    }
+}
+
+/// Every mission on every difficulty (prompt 181) against the autopilot:
+/// game time, result, losses of the player and the "hopeless" warning.
+/// Easy and Normal must be won; Hard is only reported.
+#[test]
+fn every_level_of_every_mission() {
+    for (map_name, id, path) in &mission_files() {
+        let map = load_map(map_name);
+        for level in Level::ALL {
+            let config = config_at(&map, map_name, id, path, level);
+            let played = play(&map, &config, None);
+            let sim = &played.sim;
+            let won = sim.outcome().map(|o| o.winner) == Some(Some(PlayerId(0)));
+            let snap = sim.snapshot();
+            let own = |alive: bool| {
+                snap.units
+                    .iter()
+                    .filter(|u| u.owner == PlayerId(0) && u.alive() == alive)
+                    .count()
+            };
+            println!(
+                "{map_name}/{id} {}: {} after {} s, {} own units lost, {} left, warning {:?}",
+                level.name(),
+                if won { "won" } else { "not won" },
+                sim.tick() / 20,
+                own(false),
+                own(true),
+                sim.mission_hopeless().map(|(_, t)| t / 20)
+            );
+            if level != Level::Hard {
+                assert!(won, "{map_name}/{id} not won on {}", level.name());
+            }
+        }
     }
 }
 

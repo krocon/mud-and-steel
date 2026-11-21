@@ -17,6 +17,10 @@ const PROGRESS_PATH := "user://missions.cfg"
 const SELF_TEST_PROGRESS_PATH := "user://missions-selftest.cfg"
 ## Id of the tutorial's mission file.
 const TUTORIAL_ID := "tutorial"
+## Difficulty levels (prompt 181), easiest first; names of
+## `SimHost.start_mission_level`.
+const LEVELS: Array[String] = ["easy", "normal", "hard"]
+const LEVEL_KEYS := {"easy": "MENU_LEVEL_EASY", "normal": "MENU_LEVEL_NORMAL", "hard": "MENU_LEVEL_HARD"}
 
 
 ## Loaded translations by PO path (null: no file).
@@ -93,15 +97,49 @@ static func tutorial() -> Dictionary:
 	return {}
 
 
-## Starts the mission of `header` (from `list`) through `main.tscn`.
-static func start(tree: SceneTree, header: Dictionary) -> void:
+## Starts the mission of `header` (from `list`) through `main.tscn`, at
+## `level` (default: the level chosen last, `level()`).
+static func start(tree: SceneTree, header: Dictionary, level := "") -> void:
+	if not LEVELS.has(level):
+		level = level()
 	MatchSetup.pending = {
 		"map": header["map"],
 		"mission": header["path"],
 		"biome": header.get("biome", ""),
+		"level": level,
 	}
-	print("Menu: starting mission %s (%s)" % [header["id"], header["path"]])
+	print("Menu: starting mission %s (%s) on %s" % [header["id"], header["path"], level])
 	tree.change_scene_to_file(MatchSetup.MAIN_SCENE)
+
+
+## Starts the mission `id` again from the beginning at `level` (the
+## "hopeless" warning, prompt 181). False if it is not found.
+static func restart(tree: SceneTree, id: String, level: String) -> bool:
+	for m in list():
+		if m["id"] == id and m.get("ok", false):
+			start(tree, m, level)
+			return true
+	return false
+
+
+## The difficulty chosen last (prompt 181), "normal" at first.
+static func level() -> String:
+	var value := String(_load().get_value("settings", "level", "normal"))
+	return value if LEVELS.has(value) else "normal"
+
+
+## Remembers the chosen difficulty.
+static func set_level(level: String) -> void:
+	if not LEVELS.has(level):
+		return
+	var file := _load()
+	file.set_value("settings", "level", level)
+	_save(file)
+
+
+## The hardest level the mission `id` was won on, "" if never.
+static func best_level(id: String) -> String:
+	return String(_load().get_value("level", id, "normal" if is_done(id) else ""))
 
 
 static func _progress_path() -> String:
@@ -119,10 +157,17 @@ static func is_done(id: String) -> bool:
 	return bool(_load().get_value("done", id, false))
 
 
-## Records a won mission.
-static func mark_done(id: String) -> void:
+## Records a won mission and the hardest level it was won on.
+static func mark_done(id: String, level := "normal") -> void:
 	var file := _load()
 	file.set_value("done", id, true)
+	var best := String(file.get_value("level", id, ""))
+	if LEVELS.find(level) > LEVELS.find(best):
+		file.set_value("level", id, level)
+	_save(file)
+
+
+static func _save(file: ConfigFile) -> void:
 	var error := file.save(_progress_path())
 	if error != OK:
 		push_error("cannot save mission progress: %s" % error_string(error))

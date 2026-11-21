@@ -61,3 +61,6 @@ msgstr "Versorgungspunkte bringen stetiges Einkommen. Schicke Einheiten zur Flag
 
 msgid "Well done: basic training is complete."
 msgstr "Gut gemacht: Die Grundausbildung ist abgeschlossen."
+
+msgid "Both tanks are lost: the targets cannot be destroyed any more. Restart the training."
+msgstr "Beide Panzer sind verloren: Die Ziele können nicht mehr zerstört werden. Starte die Ausbildung neu."

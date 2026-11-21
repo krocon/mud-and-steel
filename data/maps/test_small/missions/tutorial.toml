@@ -234,3 +234,19 @@ position_m = [-20, 80]
 [[spawn]]
 name = "hq"
 position_m = [-25, 150]
+
+# Prompt 181: without a tank the targets cannot be destroyed.
+[[trigger]]
+id = "hopeless"
+when = "fewer"
+unit = "de_pz4_h"
+count = 1
+open = ["attack"]
+actions = [
+  { do = "hopeless", text = "Both tanks are lost: the targets cannot be destroyed any more. Restart the training." },
+]
+
+# Difficulty (prompt 181, docs/MISSIONS.md): the training only gives
+# more start resources on Easy; Hard is Normal (the targets hold fire).
+[difficulty.easy]
+resources_pct = 150

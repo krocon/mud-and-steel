@@ -12,13 +12,21 @@ Items marked [provisional] are decisions the user should confirm.
 
 - **Main menu → Tutorial** starts the tutorial (`data/maps/test_small/missions/tutorial.toml`).
 - **Main menu → Missions** lists the tutorial and every mission (title,
-  side, map, "(won)" once won) with its briefing; **Start** plays it.
+  side, map, "(won)" once won, with the hardest level it was won on) with
+  its briefing; **Difficulty** (Easy, Normal, Hard; prompt 181) picks the
+  level, **Start** plays it. The tutorial button uses the level chosen last.
 - In the match the mission panel (top right) shows the title (the tutorial:
   "Training – step n of m"), the latest message and the objectives (open,
   done, failed). Active objectives with an area get a yellow ring on the
   ground; the script can move the camera.
 - A won mission is recorded in `user://missions.cfg` (section `done`, key
-  = mission id). The flow self-test uses `user://missions-selftest.cfg`.
+  = mission id; section `level`: the hardest level won; section
+  `settings`, key `level`: the level chosen last). The flow self-test uses
+  `user://missions-selftest.cfg`.
+- When the script says the mission can hardly be won any more (action
+  `hopeless`, prompt 181), a panel in the middle says so and offers
+  **Restart** (same mission and level), **Load last save** (the newest
+  saved game of this map; greyed without one) and **Play on**.
 - The result screen says "Mission accomplished." or "Mission failed." when
   the script decided the match.
 
@@ -95,6 +103,7 @@ Units at the start, laid out like a `MoveTo` formation around the place.
 | `at` / `position_m` | – | A place (spawn point, area or map marker) or `[x, y]`. |
 | `spacing_m` | 1.5 × footprint | Distance in the formation grid. |
 | `hold_fire` | `false` | Start with hold fire. |
+| `levels` | every level | Difficulty levels the group exists at, e.g. `["hard"]` (prompt 181). |
 
 ### `[[area]]`, `[[spawn]]`
 
@@ -124,6 +133,7 @@ trigger fires once.
 | `after` | Triggers that must have fired first (default: armed at the start). |
 | `when` | The condition, see below. |
 | `delay_s` | Seconds between the condition and the actions. |
+| `open` | Objectives that must still be open (hidden or active, not done or failed) for the condition to count (prompt 181). |
 | `actions` | Array of inline tables with `do = "…"`. |
 
 | `when` | Keys | Holds when |
@@ -135,6 +145,7 @@ trigger fires once.
 | `captured` | `point` (supply marker of the map), `player` | the player holds the supply point |
 | `signal` | `signal` | the human player's presentation reported it this tick (below) |
 | `units` | `unit` (catalog id prefix), `count` (1), `player` | the player owns that many living matching units; buildings count once completed |
+| `fewer` | `unit` (catalog id prefix, optional), `count` (1), `player` | the player owns fewer than `count` living matching units (prompt 181) |
 
 | `do` | Keys | Effect |
 |---|---|---|
@@ -148,6 +159,45 @@ trigger fires once.
 | `camouflage` | `group`, `on` (default `true`) | Vehicles and guns of the group put up or take off their camouflage (prompt 082). |
 | `camera` | `at` | The camera glides there (presentation). |
 | `victory` / `defeat` | – | The human player (and allies) win, or lose. |
+| `hopeless` | `text` | The mission can hardly be won any more: shows the text as the message and opens the warning panel (once, only while the match runs; prompt 181). |
+
+### `[difficulty.easy]`, `[difficulty.normal]`, `[difficulty.hard]`
+
+Prompt 181. The player picks the level in the missions screen; it is an
+input of the scenario: `sim::mission::parse_mission_at` applies the values
+of that level when the script is parsed, so the simulation, replays and
+saved games only see the result (and `Mission::level`). A missing section
+(or a script without any) is the script as written; Normal usually has
+none. Every key is optional; percentages round to the nearest unit.
+
+| Key | Changes |
+|---|---|
+| `computer` | `difficulty` of every `[[computer]]` (`passive`, `easy`, `normal`, `hard`). |
+| `enemy_start_pct` | `count` of the start groups of other players (at least 1 per group). |
+| `enemy_count_pct` | `count` of `spawn` actions for other players (reinforcements; 1 to 50). |
+| `enemy_delay_pct` | `delay_s` of triggers that spawn units for other players. |
+| `own_count_pct` | `count` of `spawn` actions for the mission's player. |
+| `time_pct` | `delay_s` of time limits: triggers that fail an objective or `defeat` (they win over `enemy_delay_pct`). |
+| `resources_pct` | Start resources of the mission's player (economy missions). |
+
+Groups with `levels` leave out the other levels. A `destroyed` trigger on
+a group that has no units at a level is an error (it could never fire).
+
+| Mission | Easy | Hard | Warning (`hopeless`) |
+|---|---|---|---|
+| Basic training | 150 % start resources | as Normal | both tanks lost while the targets stand |
+| Meadow crossing | counterattack 50 % | computer `normal`, counterattack 150 % | one T-34 left before the counterattack is beaten |
+| The village square | garrison 50 % (one squad, the tank) | computer `normal`, garrison 150 % | one Sherman left before the square is cleared |
+| Town in the snow | relief 50 % (one T-34) | computer `normal`, outpost 200 %, relief 150 % | one Panzer IV left before the relief is beaten |
+
+Measured against the test autopilot (`every_level_of_every_mission`,
+seed 42; game time to victory): tutorial 188 s on every level; meadow
+crossing 398 / 453 / 84 s; village square 80 / 80 / 202 s; town in the
+snow 82 / 83 / 62 s. Hard is not always longer: with `computer = "normal"`
+the enemy comes out to fight the autopilot's column instead of waiting.
+On Hard with two Panzer IV at the crossing (`enemy_start_pct = 200`) the
+autopilot lost meadow crossing after 98 s, so that level only grows the
+counterattack.
 
 ### Reinforcements drive in
 
@@ -263,14 +313,20 @@ file written by hand next to it [provisional: no script editor in the game].
   drive in (start at the edge in file order, drive to the place, an
   `order` replaces their move, passengers mount, the entry finds the road,
   deterministic).
+- `crates/sim/tests/mission_levels.rs` (prompt 181): the values of each
+  level, `levels` of groups, level errors, start resources, the `fewer`
+  condition with `open` and the `hopeless` action.
 - `crates/ai/tests/missions.rs`: every mission file is won by an autopilot
-  that follows the objectives against the mission's computer players; the
+  that follows the objectives against the mission's computer players
+  (`every_level_of_every_mission`: on Easy and Normal, Hard reported); the
   tutorial plays the same twice and survives a snapshot; every column that
   drives in has a path from its entry to its place.
   `MISSION=<id> END=<ticks> cargo test -p ai --test missions debug_units -- --ignored --nocapture`
   prints the units while tuning a mission.
 - `just selftest` plays the tutorial and every mission from the menu to
-  victory (`menu/mission_self_test.gd`); `just editor-selftest` places,
+  victory (`menu/mission_self_test.gd`; the first mission on Easy, the
+  second on Hard, chosen in the screen; the warning panel opens and
+  closes); `just editor-selftest` places,
   removes and saves trigger areas and spawn points.
 
 ## Open
@@ -278,7 +334,10 @@ file written by hand next to it [provisional: no script editor in the game].
 - Multiplayer or cooperative missions (the script supports teams, the menu
   and lobby do not offer missions).
 - A campaign (mission order, unlocking), mission ratings and timers in the
-  panel.
+  panel (prompt 189).
+- Prompt 181: the warning panel does not pause the match; "Load last save"
+  takes the newest save of the map, not only of this mission; a level per
+  computer player.
 - Voice-over; a script editor in the game. (Objective markers on the
   minimap: done in prompt 107, a gold ring with four ticks.)
 - Translations of the mission texts (prompt 043).

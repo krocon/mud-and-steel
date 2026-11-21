@@ -92,3 +92,24 @@ after = ["relief_gone"]
 when = "time"
 delay_s = 3
 actions = [{ do = "victory" }]
+
+# Prompt 181: two tanks or fewer cannot take the town and stop the relief.
+[[trigger]]
+id = "hopeless"
+when = "fewer"
+unit = "de_pz4"
+count = 2
+open = ["relief"]
+actions = [
+  { do = "hopeless", text = "Only one Panzer IV is left. The town can hardly be held against the relief." },
+]
+
+# Difficulty (prompt 181, docs/MISSIONS.md). Normal is the script as
+# written: an outpost of a squad and a T-70, two T-34 as relief.
+[difficulty.easy]
+enemy_count_pct = 50
+
+[difficulty.hard]
+computer = "normal"
+enemy_start_pct = 200
+enemy_count_pct = 150

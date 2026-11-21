@@ -101,3 +101,24 @@ after = ["taken"]
 when = "time"
 delay_s = 3
 actions = [{ do = "victory" }]
+
+# Prompt 181: the mission can hardly be won with fewer than two Shermans
+# while the square is not cleared.
+[[trigger]]
+id = "hopeless"
+when = "fewer"
+unit = "us_m4a3"
+count = 2
+open = ["clear"]
+actions = [
+  { do = "hopeless", text = "Only one Sherman is left and the square is still held. The attack can hardly succeed." },
+]
+
+# Difficulty (prompt 181, docs/MISSIONS.md). Normal is the script as
+# written: two squads and a tank, standing (passive).
+[difficulty.easy]
+enemy_start_pct = 50
+
+[difficulty.hard]
+computer = "normal"
+enemy_start_pct = 150

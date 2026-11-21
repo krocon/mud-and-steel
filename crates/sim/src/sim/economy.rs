@@ -278,7 +278,16 @@ impl Economy {
             .iter()
             .map(|&player| Account {
                 player,
-                parts: rules.account.start.map(|v| u64::from(v) * PARTS),
+                // The mission's difficulty scales its player's start
+                // (prompt 181).
+                parts: rules.account.start.map(|v| {
+                    let pct = config
+                        .mission
+                        .as_ref()
+                        .filter(|m| m.player == player)
+                        .map_or(100, |m| u64::from(m.resources_pct));
+                    u64::from(v) * PARTS * pct / 100
+                }),
                 faction: config
                     .spawns
                     .iter()

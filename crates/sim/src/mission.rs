@@ -75,6 +75,39 @@ pub struct Mission {
     /// Groups of the start units.
     pub start_groups: Vec<StartGroup>,
     pub triggers: Vec<Trigger>,
+    /// The difficulty the player chose (prompt 181); already applied to
+    /// computers, spawns and delays when the script was parsed.
+    pub level: Level,
+    /// Start resources of the mission's player in percent of the economy
+    /// rules' `start` (economy missions, `[difficulty.*] resources_pct`).
+    pub resources_pct: u16,
+}
+
+/// Difficulty of a mission, chosen by the player at the start (prompt 181).
+/// An input of the scenario: [`parse_mission_at`] applies the script's
+/// `[difficulty.<level>]` values, the simulation only sees the result.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub enum Level {
+    Easy,
+    #[default]
+    Normal,
+    Hard,
+}
+
+impl Level {
+    pub const ALL: [Self; 3] = [Self::Easy, Self::Normal, Self::Hard];
+
+    pub const fn name(self) -> &'static str {
+        match self {
+            Self::Easy => "easy",
+            Self::Normal => "normal",
+            Self::Hard => "hard",
+        }
+    }
+
+    pub fn parse(text: &str) -> Option<Self> {
+        Self::ALL.into_iter().find(|l| l.name() == text)
+    }
 }
 
 /// A circle on the ground that triggers watch.
@@ -154,6 +187,9 @@ pub struct Trigger {
     pub after: Vec<u16>,
     /// Ticks between the condition being met and the actions.
     pub delay_ticks: u32,
+    /// Objectives that must still be open (not done, not failed) for the
+    /// condition to count (prompt 181, e.g. a "hopeless" warning).
+    pub open: Vec<u16>,
     pub condition: Condition,
     pub actions: Vec<Action>,
 }
@@ -185,6 +221,13 @@ pub enum Condition {
     Units {
         player: PlayerId,
         unit: String,
+        count: u32,
+    },
+    /// `player` owns fewer than `count` living units (whose catalog id
+    /// starts with `unit`, if given; prompt 181).
+    Fewer {
+        player: PlayerId,
+        unit: Option<String>,
         count: u32,
     },
 }
@@ -246,6 +289,9 @@ pub enum Action {
     /// The group's vehicles and guns put up or take off their camouflage
     /// ([`crate::Command::SetCamouflage`]).
     Camouflage { group: u16, on: bool },
+    /// The mission can hardly be won any more (prompt 181): the message
+    /// says so and the presentation offers restart, load and play on.
+    Hopeless { text: String },
 }
 
 /// How spawned units arrive (prompt 108).
@@ -377,6 +423,70 @@ struct MissionFile {
     objective: Vec<ObjectiveFile>,
     #[serde(default)]
     trigger: Vec<TriggerFile>,
+    #[serde(default)]
+    difficulty: DifficultyFile,
+}
+
+/// `[difficulty.easy]`, `[difficulty.normal]`, `[difficulty.hard]`
+/// (prompt 181). A missing level keeps the script as written.
+#[derive(Debug, Default, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct DifficultyFile {
+    #[serde(default)]
+    easy: Option<LevelFile>,
+    #[serde(default)]
+    normal: Option<LevelFile>,
+    #[serde(default)]
+    hard: Option<LevelFile>,
+}
+
+/// What one difficulty level changes; every field is optional.
+#[derive(Clone, Debug, Default, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct LevelFile {
+    /// Difficulty of every computer player (`ai::Difficulty` names).
+    #[serde(default)]
+    computer: Option<String>,
+    /// Count of the start units (`[[group]]`) of other players, percent,
+    /// at least one unit per group.
+    #[serde(default)]
+    enemy_start_pct: Option<u32>,
+    /// Count of the units spawned for other players (reinforcements),
+    /// percent, at least one unit per spawn.
+    #[serde(default)]
+    enemy_count_pct: Option<u32>,
+    /// `delay_s` of triggers that spawn units for other players, percent.
+    #[serde(default)]
+    enemy_delay_pct: Option<u32>,
+    /// Count of the units spawned for the mission's player, percent.
+    #[serde(default)]
+    own_count_pct: Option<u32>,
+    /// `delay_s` of time limits: triggers that fail an objective or lose
+    /// the mission, percent (they win over `enemy_delay_pct`).
+    #[serde(default)]
+    time_pct: Option<u32>,
+    /// Start resources of the mission's player (economy), percent.
+    #[serde(default)]
+    resources_pct: Option<u16>,
+}
+
+impl DifficultyFile {
+    fn get(&self, level: Level) -> LevelFile {
+        match level {
+            Level::Easy => self.easy.clone(),
+            Level::Normal => self.normal.clone(),
+            Level::Hard => self.hard.clone(),
+        }
+        .unwrap_or_default()
+    }
+}
+
+/// `value` × `pct` / 100, rounded to the nearest.
+fn scaled(value: u32, pct: Option<u32>) -> u32 {
+    pct.map_or(value, |p| {
+        let v = (u64::from(value) * u64::from(p) + 50) / 100;
+        u32::try_from(v).unwrap_or(u32::MAX)
+    })
 }
 
 #[derive(Debug, Deserialize)]
@@ -404,6 +514,9 @@ struct GroupFile {
     spacing_m: Option<u32>,
     #[serde(default)]
     hold_fire: bool,
+    /// Difficulty levels the group exists at (empty: every level).
+    #[serde(default)]
+    levels: Vec<String>,
 }
 
 /// A trigger area in `mission_points.toml` or a mission file.
@@ -484,10 +597,13 @@ struct TriggerFile {
     #[serde(default)]
     after: Vec<String>,
     /// `time`, `area`, `destroyed`, `eliminated`, `captured`, `signal`,
-    /// `units`.
+    /// `units`, `fewer`.
     when: String,
     #[serde(default)]
     delay_s: u32,
+    /// Objectives that must still be open (prompt 181).
+    #[serde(default)]
+    open: Vec<String>,
     #[serde(default)]
     area: Option<String>,
     #[serde(default)]
@@ -510,7 +626,7 @@ struct TriggerFile {
 #[serde(deny_unknown_fields)]
 struct ActionFile {
     /// `text`, `objective`, `spawn`, `camera`, `order`, `fire`, `barrage`,
-    /// `air`, `camouflage`, `victory`, `defeat`.
+    /// `air`, `camouflage`, `victory`, `defeat`, `hopeless`.
     #[serde(rename = "do")]
     kind: String,
     #[serde(default)]
@@ -592,6 +708,7 @@ pub fn mission_texts(text: &str) -> Result<Vec<String>, MissionError> {
 /// Builds the match of a mission: `text` is the mission file, `points` the
 /// map's `mission_points.toml` (if any), `id` the mission's file name
 /// without extension. Unit ids follow the order of the `[[group]]` entries.
+/// At [`Level::Normal`]; see [`parse_mission_at`].
 pub fn parse_mission(
     id: &str,
     text: &str,
@@ -601,7 +718,42 @@ pub fn parse_mission(
     terrain: &TerrainRules,
     map: &Map,
 ) -> Result<SimConfig, MissionError> {
-    let file: MissionFile = toml::from_str(text).map_err(|e| MissionError(e.to_string()))?;
+    parse_mission_at(
+        id,
+        text,
+        points,
+        catalog,
+        scale,
+        terrain,
+        map,
+        Level::Normal,
+    )
+}
+
+/// [`parse_mission`] at a difficulty `level` (prompt 181): the script's
+/// `[difficulty.<level>]` values are applied (computer difficulty, counts
+/// of spawned units, delays, start resources) and groups with `levels`
+/// that leave out `level` are dropped.
+#[allow(clippy::too_many_arguments)]
+pub fn parse_mission_at(
+    id: &str,
+    text: &str,
+    points: Option<&str>,
+    catalog: &Catalog,
+    scale: &Scale,
+    terrain: &TerrainRules,
+    map: &Map,
+    level: Level,
+) -> Result<SimConfig, MissionError> {
+    let mut file: MissionFile = toml::from_str(text).map_err(|e| MissionError(e.to_string()))?;
+    for g in &file.group {
+        if let Some(bad) = g.levels.iter().find(|l| Level::parse(l).is_none()) {
+            return err(format!("unknown level '{bad}' (easy, normal, hard)"));
+        }
+    }
+    file.group
+        .retain(|g| g.levels.is_empty() || g.levels.iter().any(|l| l == level.name()));
+    let tune = file.difficulty.get(level);
     let mut places = match points {
         Some(points) => MissionPoints::parse(points)?,
         None => MissionPoints::default(),
@@ -713,6 +865,11 @@ pub fn parse_mission(
         if g.count == 0 {
             return err(format!("group {k} ('{}') has no units", g.unit));
         }
+        let count = if g.owner == player.0 {
+            g.count
+        } else {
+            scaled(g.count, tune.enemy_start_pct).max(1)
+        };
         let center = match (&g.position_m, g.at.as_str()) {
             (Some(p), "") => Vec2::from_meters(p[0], p[1]),
             (None, at) if !at.is_empty() => place(at)?,
@@ -729,7 +886,7 @@ pub fn parse_mission(
         } else {
             FireMode::FireAtWill
         };
-        for position in formation_slots(center, g.count as usize, spacing) {
+        for position in formation_slots(center, count as usize, spacing) {
             spawns.push(Spawn {
                 owner: PlayerId(g.owner),
                 unit_type: g.unit.clone(),
@@ -745,7 +902,7 @@ pub fn parse_mission(
         start_groups.push(StartGroup {
             group: group_of(&name, &mut groups),
             first,
-            count: g.count,
+            count,
         });
     }
     let mut players: Vec<PlayerId> = spawns.iter().map(|s| s.owner).collect();
@@ -839,6 +996,11 @@ pub fn parse_mission(
                 unit: need(&t.unit, "unit")?,
                 count: t.count.unwrap_or(1).max(1),
             },
+            "fewer" => Condition::Fewer {
+                player: who,
+                unit: t.unit.clone(),
+                count: t.count.unwrap_or(1).max(1),
+            },
             other => return Err(ctx(&format!("unknown `when = \"{other}\"`"))),
         };
         let mut actions = Vec::new();
@@ -873,11 +1035,17 @@ pub fn parse_mission(
                         },
                         _ => return Err(ctx("arrive must be appear or drive")),
                     };
+                    let owner = known_player(a.owner.unwrap_or(player.0))?;
+                    let pct = if owner == player {
+                        tune.own_count_pct
+                    } else {
+                        tune.enemy_count_pct
+                    };
                     Action::Spawn {
                         group: group_of(&need(&a.group, "group")?, &mut groups),
-                        owner: known_player(a.owner.unwrap_or(player.0))?,
+                        owner,
                         unit_type: type_index(&unit)?,
-                        count: a.count.unwrap_or(1).clamp(1, 50),
+                        count: scaled(a.count.unwrap_or(1), pct).clamp(1, 50),
                         at,
                         fire_mode: if a.hold_fire.unwrap_or(false) {
                             FireMode::HoldFire
@@ -932,21 +1100,76 @@ pub fn parse_mission(
                     group: group_of(&need(&a.group, "group")?, &mut groups),
                     on: a.on.unwrap_or(true),
                 },
+                "hopeless" => Action::Hopeless {
+                    text: need(&a.text, "text")?,
+                },
                 other => return Err(ctx(&format!("unknown action `do = \"{other}\"`"))),
             });
         }
+        // Time limits and enemy reinforcements per difficulty.
+        let limit = actions.iter().any(|a| {
+            matches!(
+                a,
+                Action::Defeat
+                    | Action::Objective {
+                        state: ObjectiveState::Failed,
+                        ..
+                    }
+            )
+        });
+        let enemy = actions
+            .iter()
+            .any(|a| matches!(a, Action::Spawn { owner, .. } if *owner != player));
+        let delay_s = if limit {
+            scaled(t.delay_s, tune.time_pct)
+        } else if enemy {
+            scaled(t.delay_s, tune.enemy_delay_pct)
+        } else {
+            t.delay_s
+        };
+        let open = t
+            .open
+            .iter()
+            .map(|o| objective_index(o))
+            .collect::<Result<Vec<_>, _>>()?;
         triggers.push(Trigger {
             id: t.id.clone(),
             after,
-            delay_ticks: t.delay_s.saturating_mul(tick_hz),
+            delay_ticks: delay_s.saturating_mul(tick_hz),
+            open,
             condition,
             actions,
         });
     }
+    // A `destroyed` trigger on a group without units would never fire
+    // (e.g. a group left out at this level).
+    for t in &triggers {
+        if let Condition::Destroyed { group } = t.condition {
+            let started = start_groups.iter().any(|g| g.group == group);
+            let spawned = triggers
+                .iter()
+                .flat_map(|t| &t.actions)
+                .any(|a| matches!(a, Action::Spawn { group: g, .. } if *g == group));
+            if !started && !spawned {
+                return err(format!(
+                    "trigger '{}': group '{}' has no units at level {}",
+                    t.id,
+                    groups[usize::from(group)],
+                    level.name()
+                ));
+            }
+        }
+    }
     let computers = file
         .computer
         .iter()
-        .map(|c| Ok((known_player(c.player)?, c.difficulty.clone())))
+        .map(|c| {
+            let difficulty = tune
+                .computer
+                .clone()
+                .unwrap_or_else(|| c.difficulty.clone());
+            Ok((known_player(c.player)?, difficulty))
+        })
         .collect::<Result<Vec<_>, MissionError>>()?;
     if computers.iter().any(|&(p, _)| p == player) {
         return err("the player cannot be a computer player");
@@ -964,6 +1187,8 @@ pub fn parse_mission(
         groups,
         start_groups,
         triggers,
+        level,
+        resources_pct: tune.resources_pct.unwrap_or(100),
     };
     Ok(SimConfig {
         tick_hz,

@@ -28,3 +28,6 @@ msgstr "Die Infanterie ist vertrieben. Nimm den Versorgungspunkt auf dem Platz."
 
 msgid "The village is in American hands."
 msgstr "Das Dorf ist in amerikanischer Hand."
+
+msgid "Only one Sherman is left and the square is still held. The attack can hardly succeed."
+msgstr "Nur noch ein Sherman ist übrig, und der Platz wird noch gehalten. Der Angriff kann kaum noch gelingen."
