@@ -123,6 +123,7 @@ const BlastEffects := preload("res://scenes/world/blast_effects.gd")
 const StrikeView := preload("res://scenes/world/strike_view.gd")
 const BlastShots := preload("res://scenes/tools/blast_shots.gd")
 const TrackShots := preload("res://scenes/tools/track_shots.gd")
+const KillShots := preload("res://scenes/tools/kill_shots.gd")
 const MissionHud := preload("res://scenes/hud/mission_hud.gd")
 const SEED := 42
 ## Map folders, relative to the Godot project (repository checkout only).
@@ -539,6 +540,11 @@ func _ready() -> void:
 			var track_shots := TrackShots.new()
 			track_shots.main = self
 			add_child(track_shots)
+		if arg.begins_with("--kill-shots="):
+			camera_rig.edge_scroll_enabled = false
+			var kill_shots := KillShots.new()
+			kill_shots.main = self
+			add_child(kill_shots)
 		if arg.begins_with("--position-shots="):
 			camera_rig.edge_scroll_enabled = false
 			var position_shots := PositionShots.new()
@@ -611,6 +617,9 @@ func _start_simulation() -> bool:
 	# The track shots (prompt 104) want a calm field.
 	sim_host.hold_fire_at_start = sim_host.hold_fire_at_start or Array(OS.get_cmdline_user_args()).any(
 		func(a: String) -> bool: return a.begins_with("--track-shots="))
+	# The kill shots (prompt 105) destroy their vehicles for the presentation.
+	sim_host.hold_fire_at_start = sim_host.hold_fire_at_start or Array(OS.get_cmdline_user_args()).any(
+		func(a: String) -> bool: return a.begins_with("--kill-shots="))
 	# The position shots (prompt 052) want a calm field.
 	sim_host.hold_fire_at_start = sim_host.hold_fire_at_start or Array(OS.get_cmdline_user_args()).any(
 		func(a: String) -> bool: return a.begins_with("--position-shots="))

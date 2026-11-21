@@ -142,6 +142,11 @@ const RUNTIME_ACTIONS: Dictionary[String, int] = {
 ## units), `selected` (selected units only), `never`.
 const HEALTH_BAR_MODES: Array[String] = ["damaged", "selected", "never"]
 
+## State marks over units (prompt 105, `hud/state_marks.gd`): `always`
+## (every own unit and visible enemy with a state), `selected` (selected
+## units only), `never`.
+const STATE_MARK_MODES: Array[String] = ["always", "selected", "never"]
+
 ## Own units easier to see (prompt 164, `unit_highlight.gd`): `always`
 ## (faint markers under own soldiers, units near the cursor highlighted),
 ## `hover` (only near the cursor and with the show-all key), `off`.
@@ -179,6 +184,7 @@ const DEFAULTS := {
 	"camera_gizmo": true,
 	"tilt_invert": false,
 	"health_bars": "damaged",
+	"state_marks": "always",
 	"unit_markers": "always",
 	# Range and sight circles, one of CIRCLE_MODES (prompt 099).
 	"range_circles": "always",
@@ -276,6 +282,7 @@ static func load_file() -> void:
 				bindings[action] = code
 	values["quality"] = values["quality"] if values["quality"] in GraphicsQuality.LEVELS else GraphicsQuality.DEFAULT
 	values["health_bars"] = values["health_bars"] if values["health_bars"] in HEALTH_BAR_MODES else "damaged"
+	values["state_marks"] = values["state_marks"] if values["state_marks"] in STATE_MARK_MODES else "always"
 	values["depth_of_field"] = values["depth_of_field"] if values["depth_of_field"] in DOF_MODES else "subtle"
 	for key: String in ["language", "color_palette", "window_mode", "upscaler", "resolution"]:
 		var allowed: Array = {

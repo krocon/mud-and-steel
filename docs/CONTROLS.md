@@ -294,6 +294,24 @@ top bar. Everything else appears when there is something to do with it.
   newer messages. Replays and spectators get no alarms.
 - **Health bars**: over damaged and selected units; Settings → Interface
   can limit them to selected units or hide them.
+- **State marks** (prompt 105): small symbols above the health bar tell
+  a unit's state without selecting it, at most two side by side (from far
+  away only the most important one; the rest is in the info field):
+
+  | Symbol | Color | Means |
+  |---|---|---|
+  | flame | orange | stands in the flames of a fire |
+  | wheel, struck through | red | immobilized (too damaged to drive) |
+  | broken track | red | lost its track to a mine |
+  | helmet pressed down by an arrow | white | suppressed or pinned down |
+  | shell, struck through | amber | out of ammunition |
+  | drop, struck through | blue | out of fuel |
+  | wrench with a plus | green | being repaired or resupplied |
+
+  Over enemies in sight only what can be seen from outside: flames,
+  immobilized, track off, suppressed (never out of ammunition or fuel).
+  Settings → Interface → State marks: own units and visible enemies,
+  selected units only, or never.
 - **Own units** (prompt 164): a small light ring with a dark rim under
   every own soldier; units within about 20–80 m of the mouse pointer (more
   when zoomed out) show their ring in their color (own, ally, enemy), the

@@ -2653,6 +2653,7 @@ shows in English. Details in [MISSIONS.md](MISSIONS.md).
 | `color_palette` | `standard`, `red_green`, `blue_yellow` | own/ally/enemy colors (`hud/relation_colors.gd`): minimap, health bars, base markers, mines, strike areas, model tints |
 | `subtitles` | off by default | a line for warnings (UI notices: under attack, unit lost or ready, building complete, victory, defeat) and battle callouts (`hud/subtitles.gd`) |
 | `screen_shake` | on by default | camera shake of explosions (`effects.gd`) |
+| `state_marks` | `always` (default), `selected`, `never` | state marks over units (`hud/state_marks.gd`, prompt 105) |
 | `cloud_shadows` | on by default | shadows of passing clouds (prompt 087, `atmosphere.gd`) |
 | `window_mode` | `windowed`, `fullscreen` (borderless), `exclusive` | `DisplayServer.window_set_mode` |
 | `resolution` | "" (as started), 1280×720 … 3840×2160 | window size in window mode, centered, at most the screen |
@@ -3751,15 +3752,71 @@ effect is read back. No Rust code was needed: everything comes from
 | `shot`, small arms | A small flash at the nearest machine-gun socket (`Socket_Muzzle_NN`) |
 | `shot` of indirect fire from a unit whose model has `Socket_Rocket_NN` (vehicle launchers, the strike's battery position) | The rocket salvo of prompt 076 (`rocket_effects.gd`, below): the next rail's socket in turn, a flare, back blast and ground dust, the position's light and haze; the shell is drawn as a rocket with flame and smoke trail |
 | `hit` on the ground | From 37 mm (prompt 072): a core flash, a fan of dark earth streaks, clods, a cloud of earth lumps that rises and greys (tinted by terrain and biome), sparks, a light flash and a scorch decal; below 37 mm clods and a dust column; water: spray; small arms: a dust puff |
-| `hit` on a unit | Sparks and a light flash; a penetration adds a small burst of fire and smoke |
+| `hit` on a unit | Sparks and a light flash; a penetration adds a small burst of fire and smoke; a round from 20 mm that bounces off a vehicle flies away as a short tracer at the angle of reflection (prompt 105, `combat_view.ricochet`) |
 | `hit` on an object | Splinters and dust |
-| `destroyed`, vehicle | A ray burst, a cream fireball of lumps that turns orange, dark red and black (2.4 s), black smoke growing out of it from 0.9 s, glowing embers, sparks, debris, ground dust ring, a big light flash, a large scorch decal, camera shake (prompt 072); then the wreck **burns** at its `Socket_Fire_NN` (fire, a dense black smoke column drifting with the biome's wind, flickering light) for 60 s, smolders for 90 s and goes out |
+| `destroyed`, vehicle of a kill class | The kill sequence of prompt 105 (below): flash, smoke, fire, cook-off or fuel flare over 2–5 s, then the wreck burns as below |
+| `destroyed`, other units (buildings, aircraft, hand-made types) | A ray burst, a cream fireball of lumps that turns orange, dark red and black (2.4 s), black smoke growing out of it from 0.9 s, glowing embers, sparks, debris, ground dust ring, a big light flash, a large scorch decal, camera shake (prompt 072); then the wreck **burns** at its `Socket_Fire_NN` (fire, a dense black smoke column drifting with the biome's wind, flickering light) for 60 s, smolders for 90 s and goes out |
 | `destroyed`, infantry | Dust only |
 | Vehicle moving | By the ground under it (`effects.drive_effect`, prompt 104): on dry ground a dust trail behind the hull, color and strength by the terrain in the current biome (tracks and sand strong, grass weak, roads hardly); on mud, and on bare earth, meadow and sand soaked by rain (terrain wetness ≥ 0.3), heavy dark clods behind the tracks and no dust; on snow fine bright snow dust; in a ford bow spray and a foam wake on the water surface; nothing in deep water or on a wet road. Exhaust smoke at `Socket_Exhaust_NN` (thin when standing). Tracks on the ground: see "Vehicle tracks" below |
 
 Tracers stay in `combat_view.gd` (prompt 017). The ground color follows the
 terrain shader's biome mapping (desert draws grass as sand, winter grass and
 sand as snow), so dust matches the ground it rises from.
+
+### Kill sequences (prompt 105)
+
+A destroyed vehicle does not vanish in one bang: `effects.destroyed` plays a
+short series of stages instead (table and rolls: `world/kill_sequence.gd`).
+The rules do not wait for it: the unit is dead with the killing tick, shoots
+and drives no more, counts as lost at once and cannot be selected; the crew
+bails out in that tick as before (prompt 049), during the flash and smoke.
+Only picture and sound are staggered.
+
+| Stage | Picture | Sound |
+|---|---|---|
+| `flash` | with the killing hit's own sparks and fireball: a jet of flame upwards out of the hatches (`muzzle_tongue`, the fire socket or 1.8 m × size up), sparks, light | `hit_shell_small`, pitch 1.25 |
+| `smoke` | the wreck's smoke column starts at half strength, two dark puffs | `fence_crush`, pitch 0.7 (metal, hatches) |
+| `fire` | the wreck's flames and light start (its 60 s burn time starts now); trucks add a fireball (the fuel catching) | `flak_burst` −10 dB, pitch 0.55; the fire loop |
+| `cookoff` | the vehicle explosion of prompt 072; after an ammunition explosion of the simulation (`StrikeEvent::AmmoExplosion`, prompt 054) the big blast with the flying turret instead | `explosion_vehicle` (+3 dB for the magazine) and `explosion_tail` |
+| `flare` | a fuel tank bursts: a fireball smaller than a cook-off, embers, smoke, light, no blast | `hit_shell_small`, pitch 0.6 |
+| `pop` | the rounds at a towed gun: a half-size vehicle explosion | `hit_shell_small` −3 dB, pitch 0.9 |
+
+| Class (catalog category) | Stages (real s after the killing tick) |
+|---|---|
+| armor: tanks, tank destroyers, assault guns, self-propelled guns | flash 0, smoke 0.25–0.45, fire 1.2–1.9, cook-off 2.6–4.4 |
+| light: halftracks, armored cars, bridge layers | flash 0, smoke 0.2–0.4, fire 0.9–1.5, then 40 % cook-off 2.0–3.5, else a flare 2.0–3.4 (burns out) |
+| soft: trucks, rocket trucks | flash 0, smoke 0.2–0.35, fire 0.7–1.2, flare 1.8–3.2 (burns out, no blast) |
+| gun: towed guns, heavy mortars | flash 0, smoke 0.15–0.3, pop 0.8–1.6, fire 1.3–1.9 |
+| heavy kill (killing hit ≥ 85 mm, or the ammunition explosion) | the smoke is skipped and the rest comes sooner (armor: cook-off 0.15–0.3, fire 0.6–1.0) |
+
+- **Same everywhere:** the class, the variant (cook-off or burn-out of
+  light vehicles) and every stage's time come from an integer hash of the
+  unit id and the killing tick (`KillSequence.roll`), never from Godot
+  randomness: a replay and every machine show the same sequence. The
+  particles themselves still scatter freely.
+- **Heavy hit:** `effects` remembers the last hit on every unit; a hit from
+  85 mm within 1 s before the destroyed event makes the kill heavy.
+- **Ammunition explosion:** `strike_view` passes `ammo_explosion` to
+  `effects.note_ammo_explosion`: the running sequence drops its smoke and
+  cooks off within 0.15 s with the big blast (the knocked-down soldiers of
+  prompt 048 fly at the same moment), the fire follows. An ammunition
+  explosion without a sequence plays alone after 0.5 s.
+- **Wreck:** created at the killing tick, unlit; `smoke` lets it smoke,
+  `fire` (or a cook-off) lights it; from then on it burns 60 s and smolders
+  90 s as before. The darkened model (`combat_view._make_wreck`) and the
+  `fx_fires` budget are unchanged.
+- **Fog of war:** stages at points the player does not see show nothing;
+  `kill_stage` is sent all the same, so the sound plays muffled there like
+  every battle sound (`battle_sound.gd`).
+- **Sound:** `effects.kill_stage(unit, stage, at, size, ammo)`;
+  `battle_sound.on_kill_stage` picks the classes above (all from the
+  existing library, nothing new). `_destroyed` keeps the single explosion
+  for units without a kill class and the collapse for buildings.
+- **Tools:** `just kill-shots [prefix]` destroys a tank, a halftrack, a
+  truck and a towed gun of `data/scenarios/kills.toml` for the presentation
+  (the gun first shows a ricochet) and writes stills and
+  `build/kill-stages/<prefix>_kills.mp4`. Self-test:
+  `tools/kill_self_test.gd`.
 
 ### Vehicle tracks (prompt 104)
 
@@ -4853,6 +4910,20 @@ the old dodging (`_keep_events_above_command_bar`,
   Settings `range_circles` / `sight_circles`, key `show_ranges`.
 - **Health bars** (`combat_view.gd`): setting `health_bars` = `damaged`
   (damaged and selected units, default), `selected` or `never`.
+- **State marks** (prompt 105, `hud/state_marks.gd`, created by the combat
+  view beside the health bars): symbols of `hud_icons.gd` (`state_*`) on a
+  dark disc above the health bar. Kinds by importance: burning (standing in
+  the flame radius of a fire of `SimHost.fires`: living vehicles do not
+  burn by rule), immobilized (`unit_immobile`), track off (`tracks_off`),
+  suppressed (`unit_suppressed`: at least 50 points, or pinned down), out
+  of ammunition, out of fuel (`unit_ammo` / `unit_fuel` = 0), being
+  repaired or resupplied (health, ammunition or fuel rose within the last
+  2.5 s; derived here, there is no such flag in the simulation). At most
+  two side by side, from 260 m camera distance only the first. Enemies and
+  neutral units show only burning, immobilized, track off and suppressed,
+  and only while their node and point are visible (fog of war). Setting
+  `state_marks` = `always` (default), `selected` or `never`. The states
+  are read every 0.25 s; drawing projects the positions each frame.
 - **Cost:** every part adds its `_process`/`_draw` time to `hud.usec`;
   `--perf-bench` prints it per view (column "hud").
 

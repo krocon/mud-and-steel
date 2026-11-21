@@ -33,6 +33,13 @@ extends Node3D
 ## lower and roll longer with caliber, burning map objects (prompt 041)
 ## share the fire loops, and a weapon with real recordings in
 ## `assets/audio/weapon/<slug>/` plays them instead of its class.
+##
+## Kill sequences (prompt 105): vehicles of a kill class sound per stage
+## (`effects.kill_stage`, `on_kill_stage`), all from the existing library:
+## flash `hit_shell_small` high, smoke `fence_crush` low (metal, hatches),
+## fire `flak_burst` low and quiet (the fuel catching; the fire loop starts
+## here), flare `hit_shell_small` low, pop `hit_shell_small`, cook-off
+## `explosion_vehicle` with `explosion_tail` as before.
 
 const Subtitles := preload("res://scenes/hud/subtitles.gd")
 const SoundLibrary := preload("res://scenes/audio/sound_library.gd")
@@ -44,6 +51,7 @@ const Ambience := preload("res://scenes/audio/ambience.gd")
 const MatchMusic := preload("res://scenes/audio/match_music.gd")
 const Acoustics := preload("res://scenes/audio/acoustics.gd")
 const BattleVoices := preload("res://scenes/audio/battle_voices.gd")
+const KillSequence := preload("res://scenes/world/kill_sequence.gd")
 
 ## Camera distance up to which the hearing range is the manifest's.
 const HEARING_REF_DISTANCE := 150.0
@@ -172,6 +180,9 @@ func setup(main_node: Node3D) -> void:
 	for i in FIRE_VOICES:
 		_fire_slots.append({"player": _new_player(), "wreck": null})
 	main.combat_view.combat_event.connect(on_combat_event)
+	var effects: Object = main.get("effects")
+	if effects != null and effects.has_signal(&"kill_stage"):
+		effects.connect(&"kill_stage", on_kill_stage)
 	# Indirect fire (prompt 032), if present: the whistle before a shell lands.
 	var artillery: Object = main.get("artillery_view")
 	if artillery != null and artillery.has_signal(&"shell_incoming"):
@@ -297,6 +308,9 @@ func _destroyed(unit: int, at: Vector3) -> void:
 	if BaseView.is_building(type_id):
 		play_far("building_collapse", at)
 		return
+	# Vehicles of a kill class sound per stage (`on_kill_stage`).
+	if index >= 0 and not KillSequence.kill_class(str(_info(_types[index]).get("category", ""))).is_empty():
+		return
 	var size := clampf((sim_host.unit_footprints()[index] if index >= 0 else 6.0) / 7.0, 0.6, 1.4)
 	var size_db := 20.0 * log(size) / log(10.0)
 	# Bigger vehicles carry more ammunition and fuel: lower, and from the
@@ -305,6 +319,29 @@ func _destroyed(unit: int, at: Vector3) -> void:
 	if size >= 1.0:
 		play_far("explosion_tail", at, size_db * 2.0)
 	_wrecks.append({"position": at + Vector3.UP, "age": 0.0})
+
+
+## One stage of a kill sequence (prompt 105, `effects.kill_stage`).
+func on_kill_stage(_unit: int, stage: String, at: Vector3, size: float, ammo: bool) -> void:
+	var size_db := 20.0 * log(size) / log(10.0)
+	match stage:
+		"flash":
+			play_far("hit_shell_small", at, size_db - 2.0, 1.25)
+		"smoke":
+			play_far("fence_crush", at, size_db + 2.0, 0.7)
+		"fire":
+			play_far("flak_burst", at, size_db - 10.0, 0.55)
+			_wrecks.append({"position": at + Vector3.UP, "age": 0.0})
+		"flare":
+			play_far("hit_shell_small", at, size_db, 0.6)
+		"pop":
+			play_far("hit_shell_small", at, size_db - 3.0, 0.9)
+		"cookoff":
+			# Bigger vehicles carry more ammunition and fuel: lower, and from
+			# the size of a medium tank (or a blown magazine) a long roll.
+			play_far("explosion_vehicle", at, size_db + (3.0 if ammo else 0.0), clampf(1.0 / sqrt(size), 0.85, 1.15))
+			if size >= 1.0 or ammo:
+				play_far("explosion_tail", at, size_db * 2.0)
 
 
 # --- One-shot voices ----------------------------------------------------------

@@ -129,7 +129,12 @@ func _on_event(event: Dictionary) -> void:
 		"launched":
 			_post("strike", tr("HUD_FEED_ROCKETS_AWAY") if allied else tr("HUD_FEED_ROCKETS_INCOMING"), event["target"])
 		"ammo_explosion":
-			blast_effects.ammo_explosion(int(event["unit"]), event["position"])
+			# The kill sequence cooks off with it (prompt 105).
+			var effects: Node = main.get("effects") if main != null else null
+			if effects != null and effects.has_method("note_ammo_explosion"):
+				effects.note_ammo_explosion(int(event["unit"]), event["position"])
+			else:
+				blast_effects.ammo_explosion(int(event["unit"]), event["position"])
 
 
 func _post(kind: String, text: String, at: Vector3) -> void:

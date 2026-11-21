@@ -20,7 +20,7 @@ hedges and bushes.
 | Command | Measures |
 |---|---|
 | `just bench` (`cli bench`) | Simulation: two Hard AIs play the scenario through a lockstep session (as `ai-tournament`); per tick `Sim::step` and each of its phases, the AIs' think, the local player's snapshot. Prints mean / median / p99 / max, the five slowest ticks by phase, ten time windows and the end hash. `--runs 3` takes the minimum per tick over three identical runs; `--ticks`, `--seed`, `--ai`, `--scenario` |
-| `just bench-view` | Frame rate in Godot with the same scenario and a Hard AI as enemy: camera 40 / 150 / 600 m over the own army standing, then the army advances and the same distances in the battle. FPS, frame time (mean, p99, worst), the simulation's part of the frame (`SimHost.process_usec`), render CPU, draw calls, primitives and the script time of the big presentation systems. `--quality=medium`, `--perf-quick` (standing only), `--perf-column` (only 30 tanks driving in a column, prompt 104). Screenshots in `user://perf-bench/` |
+| `just bench-view` | Frame rate in Godot with the same scenario and a Hard AI as enemy: camera 40 / 150 / 600 m over the own army standing, then the army advances and the same distances in the battle. FPS, frame time (mean, p99, worst), the simulation's part of the frame (`SimHost.process_usec`), render CPU, draw calls, primitives and the script time of the big presentation systems. `--quality=medium`, `--perf-quick` (standing only), `--perf-column` (only 30 tanks driving in a column, prompt 104), `--perf-kills` (40 vehicles destroyed within 2 s, prompt 105). Screenshots in `user://perf-bench/` |
 | `just path-bench`, `vision-bench`, `infantry-bench` | Single systems of the simulation (see ARCHITECTURE.md, INFANTRY.md) |
 | `just fire-bench` | Fire on the town map (prompt 041): 40 units per side, 6000 ticks without fire and with a wood, a terrace and the dumps burning; mean and worst tick (ARCHITECTURE.md, "Fire") |
 | `just terrain-bench`, `objects-bench`, `effects-bench`, `infantry-view-bench` | Single systems of the presentation |
@@ -316,6 +316,18 @@ window, drawn every second frame while stamps come in, once a second for
 the fading). Memory: the raster 16 MB at high (RGBA8), the stamp ring 2 MB.
 Graphics quality: `fx_track_texels` 0 turns tracks off; low draws 1024 ×
 0.5 m and no clods, snow dust or spray (`fx_ground_fx`).
+
+Kill sequences and state marks (prompt 105, 21.11.2026, `just bench-view
+--perf-kills`: 40 own vehicles of `bench_large` destroyed within 2 s for the
+presentation, measured at 150 m while the sequences run and at 60 m while
+the wrecks burn, high, 1280 × 720, M1 Max): before (one explosion per kill)
+51.7 / 47.4 FPS (frame 19.33 / 21.09 ms), after 49.2 / 47.7 FPS (20.32 /
+20.95 ms; two more runs 48.2 / 44.7 and 47.6 / 46.5 before the core flash
+and the fire stage's fireball were dropped). Scripts: effects 0.89 → 1.00
+ms, HUD (state marks) 0.38 → 0.48 ms at 150 m; the rest is GPU overdraw of
+the extra bursts (flame jet, smoke puffs, flares) over the 2–5 s of a
+sequence. The battle views of `--perf-battle` before: 62.1 / 57.9 / 47.3
+FPS at 40 / 150 / 600 m (the armies did not meet within the 150 s timeout).
 
 
 ## Large city (prompt 079)

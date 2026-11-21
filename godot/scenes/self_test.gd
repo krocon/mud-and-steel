@@ -39,7 +39,11 @@ extends Node
 ##    enemy tank orders the attack; the own tanks drive into range, fire and
 ##    destroy it (shots, hits, a destroyed event, a darkened wreck, health
 ##    bars); the enemy never fires back; F switches the selection to fire at
-##    will.
+##    will. Prompt 105 (`tools/kill_self_test.gd`): the destroyed tank plays
+##    its kill sequence to a burning wreck, dead units are never selectable,
+##    ricochets fly off; after the works test the state marks follow the
+##    rules (track off, immobilized, nothing seen only from inside over
+##    enemies).
 ## 9. Destruction (prompt 020, `tools/destruction_self_test.gd`): the own
 ##    tanks shell a building into a ruin and fell a tree; variants and
 ##    effects follow the simulation, the replay re-simulates it.
@@ -105,6 +109,7 @@ const ExperienceSelfTest := preload("res://scenes/tools/experience_self_test.gd"
 const CrossingSelfTest := preload("res://scenes/tools/crossing_self_test.gd")
 const CareSelfTest := preload("res://scenes/tools/care_self_test.gd")
 const TrackSelfTest := preload("res://scenes/tools/track_self_test.gd")
+const KillSelfTest := preload("res://scenes/tools/kill_self_test.gd")
 const MatchSetup := preload("res://scenes/menu/match_setup.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
 
@@ -127,6 +132,7 @@ func _ready() -> void:
 func _run() -> void:
 	var hud_test := HudSelfTest.new()
 	hud_test.remember(self)
+	var kill_test := KillSelfTest.new()
 	await _camera_test()
 	await _selection_test()
 	await _controls_test()
@@ -137,7 +143,9 @@ func _run() -> void:
 	await _biome_test()
 	await WaterSelfTest.new().run(self)
 	await _fog_test()
+	kill_test.watch(self)
 	await _combat_test()
+	await kill_test.run_kills(self)
 	await TrackSelfTest.new().run(self)
 	await _marker_test()
 	await _cloud_test()
@@ -156,6 +164,7 @@ func _run() -> void:
 	_replay_test()
 	# After the replay test: its debug minefield is no command (prompt 035).
 	await WorksSelfTest.new().run(self)
+	await kill_test.run_marks(self)
 	await PositionsSelfTest.new().run(self)
 	await ExperienceSelfTest.new().run(self)
 	await CareSelfTest.new().run(self)
@@ -165,7 +174,7 @@ func _run() -> void:
 	await _pause_test()
 	await _view_test()
 	var ok := _errors.is_empty()
-	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, fog, combat, tracks, impact markers, cloud shadows, infantry, destruction, fire, craters, sound, music, water, hud, air, transport, supply, formations, crossings, replay, works, positions, experience, care, unit highlight, tactical pause, overview, view switches and photo mode ok" if ok else " ".join(_errors)
+	var message := "camera, selection, controls, orders, hill, objects, terrain, biomes, fog, combat, kill sequences, tracks, impact markers, cloud shadows, infantry, destruction, fire, craters, sound, music, water, hud, air, transport, supply, formations, crossings, replay, works, state marks, positions, experience, care, unit highlight, tactical pause, overview, view switches and photo mode ok" if ok else " ".join(_errors)
 	print("self-test %s: %s" % ["PASSED" if ok else "FAILED", message])
 	# Started from the menu flow test (prompt 027): it continues the flow.
 	var flow: Node = MatchSetup.flow_test

@@ -24,6 +24,13 @@ extends Node3D
 ## Fog of war (prompt 018) can set `visible_at`: new effects only appear at
 ## visible points, and burning wrecks and vehicle effects are hidden while
 ## their position is not visible.
+##
+## Kill sequences (prompt 105, `kill_sequence.gd`): a destroyed vehicle plays
+## a few stages (flash, smoke, fire, cook-off or a fuel flare) over 2-5 s
+## instead of one explosion; `kill_stage` tells the sound. The wreck exists
+## from the killing tick (smoke only), its flames start with the `fire`
+## stage. Timing and kind come from the unit id and the tick, the same in
+## every replay. The rules do not wait for it: the unit is dead at once.
 
 const EffectLibrary := preload("res://scenes/world/effect_library.gd")
 const EffectTextures := preload("res://scenes/world/effect_textures.gd")
@@ -31,6 +38,13 @@ const GraphicsQuality := preload("res://scenes/world/graphics_quality.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
 const RocketEffects := preload("res://scenes/world/rocket_effects.gd")
 const BlastEffects := preload("res://scenes/world/blast_effects.gd")
+const KillSequence := preload("res://scenes/world/kill_sequence.gd")
+
+## A stage of a kill sequence started (prompt 105): `unit`, the stage name
+## (`kill_sequence.gd`), the wreck's ground point, its size (1 = medium
+## tank) and whether the simulation blew its ammunition up. Sent also while
+## the point is not visible (the sound plays muffled there).
+signal kill_stage(unit: int, stage: String, at: Vector3, size: float, ammo: bool)
 
 ## Emitters per burst kind at quality "high" (scaled by fx_pools). Sized so
 ## 50 explosions at once fit at high.
@@ -123,6 +137,13 @@ const DETAIL_KINDS: Array[String] = ["embers", "sparks", "core"]
 ## Burning wrecks: fire and dense smoke, then smoke only, then nothing.
 const BURN_SECONDS := 60.0
 const SMOLDER_SECONDS := 90.0
+## A hit counts as the killing one for this long before the destroyed
+## event (s), and an ammunition explosion waits this long for its destroyed
+## event before it plays alone (prompt 105).
+const KILL_HIT_S := 1.0
+const AMMO_WAIT_S := 0.5
+## Smoke share of a wreck before its fire takes hold.
+const SMOKE_ONLY := 0.5
 ## Camera shake: offset per unit of shake as a share of the camera distance,
 ## and how fast it decays (1/s).
 const SHAKE_SCALE := 0.003
@@ -271,6 +292,19 @@ var _velocities: Dictionary[int, Vector3] = {}
 var _velocities_frame := -1
 ## Recoils started since the start (self-test, tools).
 var recoils := 0
+## Kill sequences under way (prompt 105): {unit, at, top, s, profile,
+## stages ([[s, stage], ...]), next, start, ammo, log}.
+var _kills: Array[Dictionary] = []
+## Every kill sequence started, newest last (self-test, at most 64):
+## {unit, tick, profile, planned (stage names), done (stage names)}.
+var kill_log: Array[Dictionary] = []
+## Unit id -> the last hit on it: {caliber_mm, t} (the killing hit).
+var _last_hits: Dictionary[int, Dictionary] = {}
+## Unit id -> an ammunition explosion of the simulation waiting for its
+## destroyed event: {t, at}.
+var _ammo_waiting: Dictionary[int, Dictionary] = {}
+## Catalog category per unit type index (cached).
+var _categories: Dictionary[int, String] = {}
 
 
 func setup(main_node: Node3D) -> void:
@@ -305,6 +339,7 @@ func _process_effects(delta: float) -> void:
 	_tree_effects_left = TREE_EFFECTS_PER_FRAME
 	_configure()
 	_start_pending()
+	_update_kills()
 	_update_lights(delta)
 	_update_wrecks(delta)
 	_update_vehicles(delta)
@@ -331,6 +366,9 @@ func on_combat_event(event: Dictionary) -> void:
 				"ground":
 					ground_hit(event["position"], event["caliber_mm"])
 				"unit":
+					_last_hits[int(event["target"])] = {"caliber_mm": float(event["caliber_mm"]), "t": _time}
+					if _last_hits.size() > 512:
+						_last_hits.clear()
 					if _is_infantry(int(event["target"])):
 						soldier_hit(event["position"], event["caliber_mm"])
 					else:
@@ -338,7 +376,7 @@ func on_combat_event(event: Dictionary) -> void:
 				_:
 					object_hit(event["position"], event["caliber_mm"])
 		"destroyed":
-			destroyed(event["unit"], event["position"])
+			destroyed(event["unit"], event["position"], int(event.get("tick", 0)))
 
 
 func _shot(unit: int, sim_muzzle: Vector3, caliber: float, weapon := -1, projectile := -1) -> void:
@@ -596,9 +634,11 @@ func object_hit(at: Vector3, caliber: float) -> void:
 	_burst("impact_dust", at, Basis.IDENTITY, s, color)
 
 
-## A unit is destroyed: vehicles explode (fireball, light, debris, smoke,
-## scorch mark, camera shake) and keep burning; infantry leaves dust.
-func destroyed(unit: int, at: Vector3) -> void:
+## A unit is destroyed at `tick`: vehicles play their kill sequence
+## (prompt 105) and keep burning; other units explode at once (fireball,
+## light, debris, smoke, scorch mark, camera shake) and burn; infantry
+## leaves dust.
+func destroyed(unit: int, at: Vector3, tick := 0) -> void:
 	var index := _index_of(unit)
 	var type_id: String = sim_host.unit_type_ids()[index] if index >= 0 else ""
 	if type_id.contains("_inf_"):
@@ -606,8 +646,153 @@ func destroyed(unit: int, at: Vector3) -> void:
 			_burst("impact_dust", at, Basis.IDENTITY, 0.6, _ground_color(at))
 		return
 	var size := clampf((sim_host.unit_footprints()[index] if index >= 0 else 6.0) / 7.0, 0.6, 1.4)
-	explosion(at, size)
-	_start_wreck(unit, at)
+	var hit: Dictionary = _last_hits.get(unit, {})
+	_last_hits.erase(unit)
+	var ammo := _ammo_waiting.has(unit)
+	_ammo_waiting.erase(unit)
+	var heavy := ammo or (not hit.is_empty() and _time - float(hit.t) < KILL_HIT_S
+			and float(hit.caliber_mm) >= KillSequence.HEAVY_KILL_MM)
+	var profile := KillSequence.profile(_category_of(index), heavy, unit, tick)
+	if profile.is_empty():
+		explosion(at, size)
+		_start_wreck(unit, at)
+		return
+	_start_wreck(unit, at, false)
+	var ground := at
+	ground.y = sim_host.height_at(at.x, at.z)
+	var fires: Array = _sockets_of(unit).fires
+	var top: Vector3 = (fires[0] as Node3D).global_position if not fires.is_empty() else ground + Vector3.UP * 1.8 * size
+	var stages := KillSequence.stages(profile, unit, tick)
+	var entry := {"unit": unit, "tick": tick, "profile": profile, "done": [],
+		"planned": stages.map(func(st: Array) -> String: return st[1])}
+	kill_log.append(entry)
+	if kill_log.size() > 64:
+		kill_log.pop_front()
+	_kills.append({"unit": unit, "at": ground, "top": top, "s": size, "profile": profile, "stages": stages,
+		"next": 0, "start": _time, "ammo": ammo, "log": entry})
+	counts["kill_" + profile] = counts.get("kill_" + profile, 0) + 1
+	_update_kills()
+
+
+## Catalog category of the unit at `index` ("" if unknown).
+func _category_of(index: int) -> String:
+	if index < 0:
+		return ""
+	var unit_type: int = sim_host.unit_types()[index]
+	if not _categories.has(unit_type):
+		_categories[unit_type] = str(sim_host.unit_type_sound(unit_type).get("category", ""))
+	return _categories[unit_type]
+
+
+## The simulation blew up a destroyed vehicle's ammunition
+## (`StrikeEvent::AmmoExplosion`, `strike_view.gd`): its kill sequence
+## cooks off right away with the big blast and the flying turret. Without
+## a sequence it waits AMMO_WAIT_S for the destroyed event, then plays alone.
+func note_ammo_explosion(unit: int, at: Vector3) -> void:
+	for kill in _kills:
+		if kill.unit != unit:
+			continue
+		kill.ammo = true
+		var age := _time - float(kill.start)
+		var stages: Array = kill.stages
+		var soon := age + 0.15
+		# Like a heavy kill: no smoke stage left, the cook-off next, the
+		# fire after it.
+		var rest: Array = []
+		var fire := false
+		for k in range(kill.next, stages.size()):
+			var st: Array = stages[k]
+			if st[1] == "cookoff":
+				continue
+			if st[1] == "fire":
+				fire = true
+				st[0] = maxf(float(st[0]), soon + 0.3)
+			if st[1] != "smoke":
+				rest.append(st)
+		rest.append([soon, "cookoff"])
+		if not fire and not (kill.log.done as Array).has("fire"):
+			rest.append([soon + 0.4, "fire"])
+		rest.sort_custom(func(a: Array, b: Array) -> bool: return a[0] < b[0])
+		stages.resize(kill.next)
+		stages.append_array(rest)
+		kill.log.planned = stages.map(func(st: Array) -> String: return st[1])
+		return
+	_ammo_waiting[unit] = {"t": _time, "at": at}
+
+
+## Kill sequences still running (self-test).
+func kills_running() -> int:
+	return _kills.size()
+
+
+## Plays the stages that are due; ammunition explosions without a
+## destroyed event play alone after AMMO_WAIT_S.
+func _update_kills() -> void:
+	for i in range(_kills.size() - 1, -1, -1):
+		var kill: Dictionary = _kills[i]
+		var age := _time - float(kill.start)
+		var stages: Array = kill.stages
+		while kill.next < stages.size() and float(stages[kill.next][0]) <= age:
+			var stage: String = stages[kill.next][1]
+			kill.next += 1
+			_kill_stage(kill, stage)
+		if kill.next >= stages.size():
+			_kills.remove_at(i)
+	for unit: int in _ammo_waiting.keys():
+		var waiting: Dictionary = _ammo_waiting[unit]
+		if _time - float(waiting.t) > AMMO_WAIT_S:
+			_ammo_waiting.erase(unit)
+			if main.get("blast_effects") != null:
+				main.blast_effects.ammo_explosion(unit, waiting.at)
+
+
+## One stage of a kill sequence (table in `kill_sequence.gd`).
+func _kill_stage(kill: Dictionary, stage: String) -> void:
+	var s: float = kill.s
+	var at: Vector3 = kill.at
+	var top: Vector3 = kill.top
+	(kill.log.done as Array).append(stage)
+	counts["kill_stage_" + stage] = counts.get("kill_stage_" + stage, 0) + 1
+	kill_stage.emit(kill.unit, stage, at, s, kill.ammo)
+	var wreck := _wreck_of(kill.unit)
+	var shown: bool = visible_at.call(at)
+	match stage:
+		"flash":
+			if shown:
+				# The jet of flame out of the hatches.
+				_burst("muzzle_tongue", top, _facing(Vector3.UP), 1.1 * s, Color.WHITE, 4.5 * s)
+				_burst("sparks", top, Basis.IDENTITY, 0.8 * s)
+				_light(top, 6.0 * s, 16.0 * s, 0.2)
+		"smoke":
+			if not wreck.is_empty():
+				_smoke_wreck(wreck)
+			if shown:
+				# Dark smoke pours out (a puff, not a fireball's smoke).
+				_burst("puff", top, Basis.IDENTITY, 1.6 * s, Color(0.16, 0.15, 0.14))
+				_burst("puff", top + Vector3.UP * 0.8, Basis.IDENTITY, 1.1 * s, Color(0.3, 0.29, 0.27))
+		"fire":
+			if not wreck.is_empty():
+				_ignite_wreck(wreck)
+			# Trucks: the fuel catches with a whoosh; the others' flames
+			# simply start (the wreck's fire and light).
+			if shown and kill.profile.begins_with("soft"):
+				_burst("fireball", top, Basis.IDENTITY, 0.8 * s)
+		"flare":
+			if shown:
+				# Smaller than a cook-off: a gout of flame, no blast.
+				_burst("fireball", top + Vector3.UP * 0.5, Basis.IDENTITY, 0.7 * s)
+				_burst("embers", top, Basis.IDENTITY, 0.6 * s)
+				_burst("explosion_smoke", top + Vector3.UP, Basis.IDENTITY, 0.5 * s)
+				_light(top, 4.0 * s, 12.0 * s, 0.3)
+		"pop":
+			explosion(at, 0.5 * s)
+		"cookoff":
+			if kill.ammo and main.get("blast_effects") != null:
+				main.blast_effects.ammo_explosion(kill.unit, at)
+			else:
+				explosion(at, s)
+			if not wreck.is_empty():
+				_ignite_wreck(wreck)
 
 
 ## A map object changed its stage (prompt 020, `SimHost.take_object_events`):
@@ -864,7 +1049,10 @@ func _update_shake(delta: float) -> void:
 # --- Burning wrecks -----------------------------------------------------------
 
 
-func _start_wreck(unit: int, at: Vector3) -> void:
+## Starts the wreck of `unit`: fire, smoke column and light; with `lit`
+## false (kill sequences, prompt 105) everything waits for
+## `_smoke_wreck` and `_ignite_wreck`.
+func _start_wreck(unit: int, at: Vector3, lit := true) -> void:
 	var root := Node3D.new()
 	root.name = "Wreck%d" % unit
 	_bursts_root.add_child(root)
@@ -875,24 +1063,25 @@ func _start_wreck(unit: int, at: Vector3) -> void:
 		points.append(socket.global_position)
 	if points.is_empty():
 		points.append(at + Vector3.UP * 1.5)
-	var wreck := {"unit": unit, "root": root, "position": at, "age": 0.0, "fires": [], "light": null, "smoke": null}
+	var wreck := {"unit": unit, "root": root, "position": at, "age": 0.0, "fires": [], "light": null, "smoke": null,
+		"lit": lit, "smoking": lit}
 	var wind := _wind()
 	for point in points.slice(0, 2):
 		var fire := EffectLibrary.build("fire", _settings.fx_particles, _settings.fx_soft, wind)
 		root.add_child(fire)
 		fire.global_position = point
-		fire.emitting = true
+		fire.emitting = lit
 		wreck.fires.append(fire)
 	var smoke := EffectLibrary.build("smoke_column", _settings.fx_particles, _settings.fx_soft, wind)
 	root.add_child(smoke)
 	smoke.global_position = points[0] + Vector3.UP * 0.8
-	smoke.emitting = true
+	smoke.emitting = lit
 	wreck.smoke = smoke
-	var lit := 0
+	var lights := 0
 	for other in _wrecks:
 		if other.light != null:
-			lit += 1
-	if lit < int(_settings.fx_fire_lights):
+			lights += 1
+	if lights < int(_settings.fx_fire_lights):
 		var light := OmniLight3D.new()
 		light.light_color = FIRE_LIGHT_COLOR
 		light.omni_range = 12.0
@@ -900,6 +1089,7 @@ func _start_wreck(unit: int, at: Vector3) -> void:
 		light.shadow_enabled = false
 		root.add_child(light)
 		light.global_position = points[0] + Vector3.UP * 1.0
+		light.visible = lit
 		wreck.light = light
 	_wrecks.append(wreck)
 	counts["wreck"] = counts.get("wreck", 0) + 1
@@ -912,10 +1102,49 @@ func _start_wreck(unit: int, at: Vector3) -> void:
 				_wrecks[i].age = BURN_SECONDS
 
 
+## The wreck of `unit` ({} if none).
+func _wreck_of(unit: int) -> Dictionary:
+	for i in range(_wrecks.size() - 1, -1, -1):
+		if _wrecks[i].unit == unit:
+			return _wrecks[i]
+	return {}
+
+
+## Smoke pours out of a wreck whose fire has not taken hold yet.
+func _smoke_wreck(wreck: Dictionary) -> void:
+	if wreck.lit or wreck.smoking:
+		return
+	wreck.smoking = true
+	var smoke: GPUParticles3D = wreck.smoke
+	smoke.amount_ratio = SMOKE_ONLY
+	smoke.emitting = true
+
+
+## The fire takes hold: flames, light, the full smoke column; the burn
+## time starts now. A wreck pushed over the fire budget only smolders.
+func _ignite_wreck(wreck: Dictionary) -> void:
+	if wreck.lit:
+		return
+	wreck.lit = true
+	wreck.smoking = true
+	(wreck.smoke as GPUParticles3D).emitting = true
+	if wreck.age >= BURN_SECONDS:
+		return
+	for fire: GPUParticles3D in wreck.fires:
+		fire.emitting = true
+	if wreck.light != null:
+		(wreck.light as OmniLight3D).visible = true
+
+
 ## Fire, then smoke only (thinner, lighter), then nothing.
 func _update_wrecks(delta: float) -> void:
 	for i in range(_wrecks.size() - 1, -1, -1):
 		var wreck: Dictionary = _wrecks[i]
+		if not wreck.lit:
+			# Before the fire of a kill sequence: smoke only, no burn time.
+			if wreck.smoking:
+				(wreck.smoke as GPUParticles3D).amount_ratio = SMOKE_ONLY
+			continue
 		wreck.age += delta
 		var age: float = wreck.age
 		var smoke: GPUParticles3D = wreck.smoke

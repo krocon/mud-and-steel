@@ -1,0 +1,47 @@
+# Kill sequences (prompt 105): a tank, a halftrack, a truck and a towed
+# anti-tank gun of player 0 in a row on the start meadow of `test_small`, one
+# enemy tank far away. Used by `just kill-shots`
+# (scenes/tools/kill_shots.gd), which destroys them one after the other for
+# the presentation and records each kill. Integers only.
+
+map = "test_small"
+
+[[group]]
+owner = 0
+unit = "de_pz4_h"
+count = 1
+columns = 1
+spacing_m = 12
+center_m = [-30, 30]
+
+[[group]]
+owner = 0
+unit = "de_sdkfz251_1"
+count = 1
+columns = 1
+spacing_m = 12
+center_m = [-10, 30]
+
+[[group]]
+owner = 0
+unit = "de_opel_blitz"
+count = 1
+columns = 1
+spacing_m = 12
+center_m = [10, 30]
+
+[[group]]
+owner = 0
+unit = "de_pak40"
+count = 1
+columns = 1
+spacing_m = 12
+center_m = [30, 30]
+
+[[group]]
+owner = 1
+unit = "su_t34_76_1943"
+count = 1
+columns = 1
+spacing_m = 12
+center_m = [0, -200]

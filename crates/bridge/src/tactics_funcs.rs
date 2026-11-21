@@ -50,4 +50,26 @@ impl SimHost {
         d.set("close", t.close);
         d
     }
+
+    /// Suppression of every unit for the state marks over the units
+    /// (prompt 105), in the order of `unit_ids`: 0 = none or below
+    /// `SUPPRESSED_MARK` points (and every vehicle), 1 = suppressed, 2 =
+    /// pinned down.
+    #[func]
+    fn unit_suppressed(&self) -> PackedByteArray {
+        /// Points (of 100) from which a squad counts as suppressed.
+        const SUPPRESSED_MARK: u32 = 50;
+        let Some(game) = self.game.as_ref() else {
+            return PackedByteArray::new();
+        };
+        self.current
+            .units
+            .iter()
+            .map(|u| match game.sim.squad_tactics(u.id) {
+                Some(t) if t.pinned => 2,
+                Some(t) if t.suppression >= SUPPRESSED_MARK => 1,
+                _ => 0,
+            })
+            .collect()
+    }
 }

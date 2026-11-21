@@ -46,6 +46,7 @@ var tilt_invert_box: CheckBox
 var dof_option: OptionButton
 var health_bar_option: OptionButton
 var unit_marker_option: OptionButton
+var state_mark_option: OptionButton
 var range_circle_option: OptionButton
 var sight_circle_option: OptionButton
 var ground_tooltip_option: OptionButton
@@ -274,6 +275,12 @@ func _interface_tab() -> Control:
 	health_bar_option.item_selected.connect(func(index: int) -> void:
 		_change("health_bars", Settings.HEALTH_BAR_MODES[index]))
 	tab.add_child(_row("SET_HEALTH_BARS", health_bar_option))
+	state_mark_option = OptionButton.new()
+	for label in ["SET_STATE_MARKS_ALWAYS", "SET_STATE_MARKS_SELECTED", "SET_STATE_MARKS_NEVER"]:
+		state_mark_option.add_item(label)
+	state_mark_option.item_selected.connect(func(index: int) -> void:
+		_change("state_marks", Settings.STATE_MARK_MODES[index]))
+	tab.add_child(_row("SET_STATE_MARKS", state_mark_option))
 	unit_marker_option = OptionButton.new()
 	for label in ["SET_MARKERS_ALWAYS", "SET_MARKERS_HOVER", "SET_MARKERS_OFF"]:
 		unit_marker_option.add_item(label)
@@ -317,6 +324,7 @@ func _circle_option(key: String) -> OptionButton:
 
 func _refresh() -> void:
 	health_bar_option.select(maxi(Settings.HEALTH_BAR_MODES.find(Settings.get_value("health_bars")), 0))
+	state_mark_option.select(maxi(Settings.STATE_MARK_MODES.find(Settings.get_value("state_marks")), 0))
 	unit_marker_option.select(maxi(Settings.UNIT_MARKER_MODES.find(Settings.get_value("unit_markers")), 0))
 	range_circle_option.select(maxi(Settings.CIRCLE_MODES.find(Settings.get_value("range_circles")), 0))
 	sight_circle_option.select(maxi(Settings.CIRCLE_MODES.find(Settings.get_value("sight_circles")), 0))

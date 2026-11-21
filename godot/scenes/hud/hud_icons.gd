@@ -97,6 +97,15 @@ const ICONS: Dictionary[String, String] = {
 	"kind_base": HOUSE,
 	"kind_defense": "g 3,20 3,10 7,6 17,6 21,10 21,20 | f 8,12 16,12 16,14 8,14",
 	"kind_other": "g 6,6 18,6 18,18 6,18",
+	# State marks over units (prompt 105, `state_marks.gd`): one clear
+	# shape each, readable at 14 px.
+	"state_burning": "g 12,2 17,9 19,15 16,20 12,22 8,20 5,15 7,9 10,12 | l 12,21 10,17 12,13 14,17 12,21",
+	"state_immobile": "c 12,12 7 | l 12,5 12,19 | l 5,12 19,12 | l 3,21 21,3",
+	"state_track": "l 9,6 2,6 2,18 9,18 | l 15,6 22,6 22,18 15,18 | l 5,6 5,18 | l 19,6 19,18 | l 11,4 13,9 10,13 13,20",
+	"state_suppressed": "a 12,19 7 180 360 | l 3,19 21,19 | l 12,2 12,9 | l 8,6 12,10 16,6",
+	"state_no_ammo": "g 9,21 9,9 12,3 15,9 15,21 | l 9,17 15,17 | l 4,21 20,3",
+	"state_no_fuel": "a 12,14 6 -30 210 | l 6.8,11 12,3 17.2,11 | l 4,21 20,3",
+	"state_service": "l 4,21 13,12 | l 6,23 15,14 | a 17,8 5 30 260 | l 4,21 6,23 | l 18,16 18,22 | l 15,19 21,19",
 }
 
 static var _parsed: Dictionary[String, Array] = {}

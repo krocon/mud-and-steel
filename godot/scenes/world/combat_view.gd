@@ -6,11 +6,19 @@ extends Node3D
 ## `main.gd`. The event stream (`SimHost.take_combat_events`) is read every
 ## frame and kept as counters and `recent_events`, so effects (prompt 019)
 ## and sound can hook in through the `combat_event` signal.
+##
+## Prompt 105: state marks over the units (`hud/state_marks.gd`, beside the
+## health bars), and a round that bounces off armor flies away as a short
+## tracer at the angle of reflection (shot direction from the shooter, the
+## hit face of the target; a little upward kick and spread from the
+## projectile id, the same in every replay).
 
 signal combat_event(event: Dictionary)
 
 const RelationColors := preload("res://scenes/hud/relation_colors.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
+const StateMarks := preload("res://scenes/hud/state_marks.gd")
+const KillSequence := preload("res://scenes/world/kill_sequence.gd")
 
 ## How fast turrets follow the simulation's aim (presentation only).
 const TURRET_TURN_RATE := 10.0
@@ -32,6 +40,12 @@ const MUZZLE_BLEND_M := 40.0
 ## appears in a snapshot; it is drawn as a tracer from the muzzle to the
 ## hit for this long (seconds).
 const QUICK_TRACER_S := 0.07
+## Ricochets (prompt 105): from this caliber (mm), flying this fast (m/s,
+## drawn), for this long (s), with a tail of this length (m).
+const RICOCHET_MIN_MM := 20.0
+const RICOCHET_SPEED := 160.0
+const RICOCHET_S := 0.35
+const RICOCHET_TAIL_M := 4.0
 
 ## Time of the last `_process` in microseconds, effects of the events
 ## included (benchmark, prompt 016).
@@ -49,6 +63,10 @@ var recent_events: Array[Dictionary] = []
 ## Ids of units drawn as wrecks (or hidden, for infantry).
 var wrecks: Dictionary[int, bool] = {}
 var health_bars: Control
+## State marks over the units (prompt 105).
+var state_marks: Control
+## Ricochet tracers started since the start (self-test).
+var ricochets := 0
 
 ## Tracers drawn from a model's muzzle since the start (self-test).
 var tracers_from_muzzle := 0
@@ -57,6 +75,8 @@ var _tracers: Array[MeshInstance3D] = []
 ## Tracers of shells that hit in the tick they were fired:
 ## {node, from, to, width, until (msec)}.
 var _quick: Array[Dictionary] = []
+## Ricochet tracers: {node, from, dir, width, born (msec)}.
+var _ricochets: Array[Dictionary] = []
 ## Projectile id -> {from (socket), offset (socket - simulation muzzle),
 ## sim (simulation muzzle), frame (last seen), seen} (prompt 077).
 var _muzzles: Dictionary[int, Dictionary] = {}
@@ -84,6 +104,11 @@ func setup(main_node: Node3D, hud: CanvasLayer) -> void:
 	health_bars.name = "HealthBars"
 	hud.add_child(health_bars)
 	hud.move_child(health_bars, 0)
+	state_marks = StateMarks.new()
+	state_marks.view = self
+	state_marks.name = "StateMarks"
+	hud.add_child(state_marks)
+	hud.move_child(state_marks, 1)
 
 
 func _process(delta: float) -> void:
@@ -93,6 +118,7 @@ func _process(delta: float) -> void:
 	_read_events()
 	_draw_tracers()
 	_draw_quick_tracers()
+	_draw_ricochets()
 	_update_units(delta)
 	process_usec = Time.get_ticks_usec() - began
 
@@ -107,6 +133,8 @@ func _read_events() -> void:
 				_quick_tracer(event)
 				if event["penetrated"] and event["surface"] == "unit":
 					penetrations += 1
+				elif event["surface"] == "unit":
+					ricochet(event)
 			"destroyed":
 				destroyed += 1
 		recent_events.append(event)
@@ -168,6 +196,78 @@ func _draw_quick_tracers() -> void:
 		var w: float = q.width
 		tracer.transform = Transform3D(basis.scaled_local(Vector3(w, w, length)), head - direction * length * 0.5)
 	_quick = keep
+
+
+## A round bounced off a unit (`hit` event, not penetrated): a short tracer
+## flies away at the angle of reflection off the hit face. Infantry and
+## small arms give none; nothing where the player does not see.
+func ricochet(event: Dictionary) -> void:
+	var caliber := float(event.get("caliber_mm", 0.0))
+	var at: Vector3 = event["position"]
+	if caliber < RICOCHET_MIN_MM or not _visible_at(at):
+		return
+	var ids := sim_host.unit_ids()
+	var target := ids.find(int(event.get("target", -1)))
+	if target < 0 or (sim_host.unit_type_ids()[target] as String).contains("_inf_"):
+		return
+	var shooter := ids.find(int(event.get("shooter", -1)))
+	var from: Vector3 = sim_host.current_positions()[shooter] + Vector3.UP * 1.8 if shooter >= 0 \
+		else event.get("from", at - Vector3.FORWARD * 50.0)
+	var projectile := int(event.get("projectile", 0))
+	var tick := int(event.get("tick", 0))
+	var direction := ricochet_direction(at - from, str(event.get("face", "")), sim_host.unit_facing_yaws()[target],
+		KillSequence.roll(projectile, tick, 7), KillSequence.roll(projectile, tick, 8))
+	var tracer := MeshInstance3D.new()
+	tracer.mesh = _tracer_mesh
+	tracer.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	tracer.visible = false
+	add_child(tracer)
+	_ricochets.append({"node": tracer, "from": at, "dir": direction,
+		"width": maxf(0.03, caliber * TRACER_WIDTH_PER_MM * 0.8), "born": Time.get_ticks_msec()})
+	ricochets += 1
+
+
+## Where a round coming along `incoming` flies after bouncing off face
+## `face` ("front", "side", "rear", "top") of a hull turned to `yaw`
+## (Godot yaw of a model facing -Z): mirrored at the face, kicked upwards
+## and spread a little by the rolls `a` and `b` (0..1).
+static func ricochet_direction(incoming: Vector3, face: String, yaw: float, a: float, b: float) -> Vector3:
+	var d := incoming.normalized() if incoming.length() > 0.001 else Vector3.FORWARD
+	var forward := Vector3(-sin(yaw), 0.0, -cos(yaw))
+	var normal := Vector3.UP
+	match face:
+		"front":
+			normal = forward
+		"rear":
+			normal = -forward
+		"side":
+			normal = forward.cross(Vector3.UP)
+	if normal.dot(d) > 0.0:
+		normal = -normal
+	var out := d - 2.0 * d.dot(normal) * normal
+	out.y = absf(out.y) + 0.15 + 0.3 * a
+	return out.normalized().rotated(Vector3.UP, (b - 0.5) * 0.6)
+
+
+func _draw_ricochets() -> void:
+	var now := Time.get_ticks_msec()
+	for i in range(_ricochets.size() - 1, -1, -1):
+		var r: Dictionary = _ricochets[i]
+		var age := float(now - int(r.born)) / 1000.0
+		var tracer: MeshInstance3D = r.node
+		if age >= RICOCHET_S:
+			tracer.queue_free()
+			_ricochets.remove_at(i)
+			continue
+		var direction: Vector3 = r.dir
+		var flown := RICOCHET_SPEED * age
+		var length := minf(RICOCHET_TAIL_M, maxf(flown, 0.05))
+		var head: Vector3 = r.from + direction * flown
+		var up := Vector3.UP if absf(direction.y) < 0.99 else Vector3.RIGHT
+		var w: float = r.width
+		tracer.visible = true
+		tracer.transform = Transform3D(Basis.looking_at(direction, up).scaled_local(Vector3(w, w, length)),
+			head - direction * length * 0.5)
 
 
 ## Whether the local player sees `at` (fog of war, `effects.visible_at`).

@@ -20,6 +20,10 @@ extends Node
 ## `--perf-column` (prompt 104) measures only a column of COLUMN_SIZE own
 ## tanks driving across open ground (dust, exhaust, tracks), followed at
 ## 60 and 150 m.
+## `--perf-kills` (prompt 105) measures only KILLS own vehicles near the
+## camera being destroyed within KILL_SPREAD_S (destroyed events for the
+## presentation only: the units stay alive in the simulation), at 150 m
+## while the kill sequences run and at 60 m while the wrecks burn.
 
 const BENCH_SIZE := Vector2i(1920, 1080)
 const SECONDS := 6.0
@@ -35,6 +39,10 @@ const COLUMN_SIZE := 30
 const COLUMN_DRIVE_M := 600.0
 const COLUMN_SETTLE := 4.0
 const COLUMN_DISTANCES: Array[float] = [60.0, 150.0]
+## Vehicles of `--perf-kills` (prompt 105) and the real seconds over which
+## their destroyed events are spread.
+const KILLS := 40
+const KILL_SPREAD_S := 2.0
 
 var main: Node3D
 var forced_draws := 0
@@ -62,6 +70,10 @@ func _run() -> void:
 		sim_host.soldier_units().size(), main.atmosphere.quality])
 	if "--perf-column" in OS.get_cmdline_user_args():
 		await _column()
+		get_tree().quit()
+		return
+	if "--perf-kills" in OS.get_cmdline_user_args():
+		await _kills()
 		get_tree().quit()
 		return
 	var battle_only := "--perf-battle" in OS.get_cmdline_user_args()
@@ -133,6 +145,38 @@ func _column() -> void:
 		await _measure("column", distance)
 
 
+## KILLS own vehicles nearest the army's center are destroyed (events for
+## the presentation only) within KILL_SPREAD_S; measured at 150 m right
+## away (the kill sequences), then at 60 m (burning wrecks).
+func _kills() -> void:
+	var sim_host: SimHost = main.sim_host
+	var types := sim_host.unit_type_ids()
+	var ids := sim_host.unit_ids()
+	var positions := sim_host.current_positions()
+	var focus := _nearest_own(_center(_own_units()))
+	var vehicles: Array = []
+	for id in _own_units():
+		var i := ids.find(id)
+		if not types[i].contains("_inf_") and sim_host.unit_footprints()[i] > 2.0:
+			vehicles.append([positions[i].distance_squared_to(focus), id, positions[i]])
+	vehicles.sort_custom(func(a: Array, b: Array) -> bool: return a[0] < b[0])
+	vehicles = vehicles.slice(0, KILLS)
+	_column_units = PackedInt64Array(vehicles.map(func(v: Array) -> int: return v[1]))
+	main.camera_rig.snap_to(_center(_column_units), 150.0, 0.7)
+	await _frames(WARMUP_FRAMES)
+	var began := Time.get_ticks_msec()
+	var next := 0
+	while next < vehicles.size():
+		if (Time.get_ticks_msec() - began) / 1000.0 >= KILL_SPREAD_S * next / vehicles.size():
+			var v: Array = vehicles[next]
+			main.combat_view.combat_event.emit({"type": "destroyed", "unit": v[1], "by": -1,
+				"position": v[2], "tick": sim_host.current_tick()})
+			next += 1
+		await _frame()
+	await _measure("kills", 150.0)
+	await _measure("kills", 60.0)
+
+
 func _on_combat_event(event: Dictionary) -> void:
 	if event.get("type", "") == "shot":
 		_shots_seen += 1
@@ -199,7 +243,7 @@ func _front() -> Vector3:
 func _measure(phase: String, distance: float, tilt := "") -> void:
 	var label := "%s, %d m" % [phase, int(distance)]
 	var focus := _front() if phase == "battle" else _nearest_own(_center(_own_units()))
-	if phase == "column":
+	if phase == "column" or phase == "kills":
 		focus = _center(_column_units)
 	main.camera_rig.snap_to(focus, distance, 0.7)
 	main.camera_rig.snap_tilt({"": 0.0, "flat": -PI, "steep": PI}[tilt])
