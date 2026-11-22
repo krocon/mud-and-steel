@@ -506,6 +506,16 @@ shell-shots prefix="after" *args: build
     bash tools/trailer-shots.sh --stills --only="${shots%,}"
     mkdir -p build/shell-shots/{{ prefix }} && mv build/trailer/stills/survey_shells_*.png build/shell-shots/{{ prefix }}/
 
+# Smoke in pictures (prompt 200; needs a window): wreck and grass fire, a smoke screen, mortar impacts by day and evening, a column's dust and the battle at the houses, as stills into build/smoke-shots/<prefix>/
+[group('godot')]
+smoke-shots prefix="after": build
+    #!/usr/bin/env bash
+    set -euo pipefail
+    shots=$(printf 'survey_smoke_%s,' wreck_near_day wreck_day wreck_evening wall_day wall_near_day wall_evening mortar_day mortar_evening)
+    bash tools/trailer-shots.sh --stills --only="${shots}column_pass,battle_house_center"
+    mkdir -p build/smoke-shots/{{ prefix }}
+    mv build/trailer/stills/survey_smoke_*.png build/trailer/stills/column_pass_*.png build/trailer/stills/battle_house_center_*.png build/smoke-shots/{{ prefix }}/
+
 # Water colors in pictures (prompt 091; needs a window): a bank on river_city, desert_lagoon, island_chain and winter_town by day, river_city by night and in rain, as stills into build/water-color/<prefix>/
 [group('godot')]
 water-shots prefix="after": build

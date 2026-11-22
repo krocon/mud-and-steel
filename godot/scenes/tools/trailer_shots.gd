@@ -56,6 +56,10 @@ const BUS_DB: Dictionary[String, float] = {
 ##   dof (depth of field "off", "subtle", "miniature"; default: the setting),
 ##   weather, daytime (default: the map's), stills (seconds into the shot),
 ##   select ([owner, catalog id prefix]: units the player has selected),
+##   smoke_barrage ([owner, catalog id prefix, Vector2 at, radius m, salvos,
+##     game s]: those units fire smoke shells there from that time on, a
+##     normal `Barrage` command; mission scripts have no smoke barrage;
+##     prompt 200),
 ##   camera: keys in time order, interpolated (Catmull-Rom):
 ##     t      seconds into the shot
 ##     at     Vector2 map position (x east, y south) the camera looks at, or
@@ -367,6 +371,49 @@ const SHOTS: Dictionary[String, Dictionary] = {
 	# Shells in the air (prompt 199): mortars, a howitzer battery and a tank
 	# duel on the open meadow (scene `shells`), with the game's camera by
 	# day, in the evening and at night. Only when named: `just shell-shots`.
+	# Smoke (prompt 200): wrecks of the tank duel and the grass fire they
+	# start, the German mortars' impacts and an American smoke screen (from
+	# 14 s), by day and in the evening. `just smoke-shots`.
+	"survey_smoke_wreck_near_day": {
+		"map": "ambush_meadow", "scene": "shells", "seed": 1, "weather": "clear", "daytime": "day", "game_camera": true,
+		"start_s": 30.0, "seconds": 4.0, "stills": [0.5, 3.0], "smoke_barrage": [0, "us_inf_mortar", Vector2(300, 100), 35, 10, 14.0],
+		"camera": [{"t": 0.0, "at": Vector2(-40, 0), "dist": 70.0, "yaw": 90.0}],
+	},
+	"survey_smoke_wreck_day": {
+		"map": "ambush_meadow", "scene": "shells", "seed": 1, "weather": "clear", "daytime": "day", "game_camera": true,
+		"start_s": 30.0, "seconds": 4.0, "stills": [0.5, 3.0], "smoke_barrage": [0, "us_inf_mortar", Vector2(300, 100), 35, 10, 14.0],
+		"camera": [{"t": 0.0, "at": Vector2(-40, -20), "dist": 200.0, "yaw": 90.0}],
+	},
+	"survey_smoke_wreck_evening": {
+		"map": "ambush_meadow", "scene": "shells", "seed": 1, "weather": "clear", "daytime": "evening", "game_camera": true,
+		"start_s": 30.0, "seconds": 4.0, "stills": [0.5, 3.0], "smoke_barrage": [0, "us_inf_mortar", Vector2(300, 100), 35, 10, 14.0],
+		"camera": [{"t": 0.0, "at": Vector2(-40, -20), "dist": 200.0, "yaw": 90.0}],
+	},
+	"survey_smoke_wall_day": {
+		"map": "ambush_meadow", "scene": "shells", "seed": 1, "weather": "clear", "daytime": "day", "game_camera": true,
+		"start_s": 36.0, "seconds": 4.0, "stills": [0.5, 3.0], "smoke_barrage": [0, "us_inf_mortar", Vector2(300, 100), 35, 10, 14.0],
+		"camera": [{"t": 0.0, "at": Vector2(300, 100), "dist": 220.0, "yaw": 90.0}],
+	},
+	"survey_smoke_wall_near_day": {
+		"map": "ambush_meadow", "scene": "shells", "seed": 1, "weather": "clear", "daytime": "day", "game_camera": true,
+		"start_s": 36.0, "seconds": 4.0, "stills": [0.5, 3.0], "smoke_barrage": [0, "us_inf_mortar", Vector2(300, 100), 35, 10, 14.0],
+		"camera": [{"t": 0.0, "at": Vector2(300, 100), "dist": 90.0, "yaw": 90.0}],
+	},
+	"survey_smoke_wall_evening": {
+		"map": "ambush_meadow", "scene": "shells", "seed": 1, "weather": "clear", "daytime": "evening", "game_camera": true,
+		"start_s": 36.0, "seconds": 4.0, "stills": [0.5, 3.0], "smoke_barrage": [0, "us_inf_mortar", Vector2(300, 100), 35, 10, 14.0],
+		"camera": [{"t": 0.0, "at": Vector2(300, 100), "dist": 220.0, "yaw": 90.0}],
+	},
+	"survey_smoke_mortar_day": {
+		"map": "ambush_meadow", "scene": "shells", "seed": 1, "weather": "clear", "daytime": "day", "game_camera": true,
+		"start_s": 30.0, "seconds": 4.0, "stills": [0.5, 3.0], "smoke_barrage": [0, "us_inf_mortar", Vector2(300, 100), 35, 10, 14.0],
+		"camera": [{"t": 0.0, "at": Vector2(150, -30), "dist": 110.0, "yaw": 90.0}],
+	},
+	"survey_smoke_mortar_evening": {
+		"map": "ambush_meadow", "scene": "shells", "seed": 1, "weather": "clear", "daytime": "evening", "game_camera": true,
+		"start_s": 30.0, "seconds": 4.0, "stills": [0.5, 3.0], "smoke_barrage": [0, "us_inf_mortar", Vector2(300, 100), 35, 10, 14.0],
+		"camera": [{"t": 0.0, "at": Vector2(150, -30), "dist": 110.0, "yaw": 90.0}],
+	},
 	"survey_shells_mortar_day": {
 		"map": "ambush_meadow", "scene": "shells", "seed": 1, "weather": "clear", "daytime": "day", "game_camera": true,
 		"start_s": SHELLS_START_S, "seconds": 6.0, "stills": [1.0, 2.5, 4.0, 5.5],
@@ -981,6 +1028,9 @@ static func start(sim_host: SimHost) -> bool:
 		GamePaths.map_dir(shot["map"]).simplify_path())
 
 
+var _smoke_ordered := false
+
+
 func _ready() -> void:
 	_name = requested()
 	_shot = SHOTS[_name]
@@ -1049,6 +1099,14 @@ func _process(_delta: float) -> void:
 	var tick := host.current_tick()
 	_set_volumes()
 	_apply_off()
+	var spec: Array = _shot.get("smoke_barrage", [])
+	if not spec.is_empty() and not _smoke_ordered and tick >= roundi(float(spec[5]) * TICK_HZ):
+		_smoke_ordered = true
+		var ids := PackedInt64Array()
+		for node in _unit_nodes([spec[0], spec[1]]):
+			ids.append(int(str(node.name).trim_prefix("Unit")))
+		var at: Vector2 = spec[2]
+		host.barrage(ids, at.x, at.y, int(spec[3]), int(spec[4]), true)
 	if _scout:
 		_scout_step(tick)
 		return

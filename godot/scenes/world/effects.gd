@@ -218,6 +218,10 @@ const TIME_FACTOR := 2.0
 ## gas cloud (judged).
 const BRAKE_TONGUE := 0.35
 const BRAKE_GAS := 0.45
+## Clouds (prompt 200, `effect_library.gd`): radius of a burst's cloud at
+## scale 1 and of a wreck's smoke column, for lighting the puffs as one body.
+const CLOUD_RADIUS_M := 3.0
+const COLUMN_RADIUS_M := 3.0
 ## Light flash (m, energy, s) at scale 1; × the daytime factors of
 ## blast_effects.gd (night × 3). Judged: lights the ground and the own
 ## vehicle as in the reference, as long as the core.
@@ -970,6 +974,8 @@ func _burst(kind: String, at: Vector3, basis: Basis, s: float, tint := Color.WHI
 		pm.initial_velocity_min = pm.initial_velocity_max * 0.15
 	p.amount_ratio = ratio * amount
 	p.set_instance_shader_parameter(&"tint", tint)
+	# The cloud the puffs belong to (prompt 200): lit as one body.
+	p.set_instance_shader_parameter(&"cloud_center", Vector4(at.x, at.y, at.z, CLOUD_RADIUS_M * s))
 	p.restart()
 	counts[kind] = counts.get(kind, 0) + 1
 
@@ -1110,6 +1116,9 @@ func _start_wreck(unit: int, at: Vector3, lit := true) -> void:
 	var smoke := EffectLibrary.build("smoke_column", _settings.fx_particles, _settings.fx_soft, wind)
 	root.add_child(smoke)
 	smoke.global_position = points[0] + Vector3.UP * 0.8
+	# A column (prompt 200): lit by the side its puffs drift to.
+	var base: Vector3 = smoke.global_position
+	smoke.set_instance_shader_parameter(&"cloud_center", Vector4(base.x, base.y, base.z, -COLUMN_RADIUS_M))
 	smoke.emitting = lit
 	wreck.smoke = smoke
 	var lights := 0
@@ -1442,6 +1451,7 @@ func _configure() -> void:
 		return
 	_config_key = key
 	_settings = GraphicsQuality.settings(quality)
+	EffectLibrary.use_clouds(bool(_settings.get("fx_clouds", true)))
 	for pool: Array in _pools.values():
 		for p: Node in pool:
 			p.queue_free()

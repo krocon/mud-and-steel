@@ -283,6 +283,7 @@ func _build() -> void:
 	_flames.clear()
 	_smokes.clear()
 	var settings := GraphicsQuality.settings(quality)
+	EffectLibrary.use_clouds(bool(settings.get("fx_clouds", true)))
 	var counts: Vector2i = EMITTERS.get(quality, EMITTERS["medium"])
 	var wind := _wind()
 	for k in counts.x + counts.y:

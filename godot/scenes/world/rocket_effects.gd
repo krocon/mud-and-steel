@@ -365,6 +365,8 @@ func launch(at: Vector3, direction: Vector3, caliber: float, station: int) -> vo
 			effects._settings.fx_soft, effects._wind())
 		add_child(haze)
 		haze.global_position = Vector3(at.x, ground.y + 2.0, at.z)
+		# One haze over the position (prompt 200): lit as one cloud.
+		haze.set_instance_shader_parameter(&"cloud_center", Vector4(at.x, ground.y + 2.0, at.z, 8.0))
 		haze.emitting = true
 		st.haze = haze
 

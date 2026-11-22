@@ -27,6 +27,7 @@ const Effects := preload("res://scenes/world/effects.gd")
 const RelationColors := preload("res://scenes/hud/relation_colors.gd")
 const LightStreak := preload("res://scenes/world/light_streak.gd")
 const GraphicsQuality := preload("res://scenes/world/graphics_quality.gd")
+const EffectLibrary := preload("res://scenes/world/effect_library.gd")
 ## Seconds before the impact at which `shell_incoming` fires.
 const WHISTLE_SECONDS := 1.5
 ## Shell light (prompt 199): real width per mm of caliber, held on screen
@@ -83,9 +84,14 @@ const MARKER_MERGE_SHARE := 0.6
 ## for color vision deficiencies use their own color (`relation_colors.gd`).
 const MARKER_COLOR := Color(0.86, 0.88, 0.72, 0.35)
 const MARKER_SMOKE_COLOR := Color(0.85, 0.85, 0.85, 0.3)
-## Puffs per cloud and their look.
+## Puffs per cloud and their look. Prompt 200: at medium and high quality
+## (`fx_clouds`) the puffs are soft cloud puffs lit as one body
+## (`effect_library.gd` "cloud"), else the plain smoke texture.
 const PUFFS := 9
 const SMOKE_COLOR := Color(0.78, 0.78, 0.76)
+## The same smoke drawn as a lit cloud (prompt 200): a little darker, so
+## the sun side does not burn out to white.
+const CLOUD_SMOKE_COLOR := Color(0.66, 0.66, 0.65)
 ## Fire smoke (prompt 041): dark, oily.
 const FIRE_SMOKE_COLOR := Color(0.16, 0.15, 0.14)
 const SMOKE_OPACITY := 0.85
@@ -124,6 +130,9 @@ var _shown_markers: Dictionary[int, Array] = {}
 var _fading_markers: Array[Array] = []
 var _puff_mesh: QuadMesh
 var _dark_puff_mesh: QuadMesh
+## Prompt 200: the cloud puff (one material; color and opacity per puff).
+var _cloud_mesh: QuadMesh
+var _clouds_on := true
 ## Cloud id -> its puffs (MeshInstance3D) and their offsets (x, y, z in
 ## units of the radius).
 var _clouds: Dictionary[int, Array] = {}
@@ -145,6 +154,8 @@ func setup(main_node: Node3D) -> void:
 	puff.albedo_color = SMOKE_COLOR
 	puff.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	puff.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	# Keep the node's scale: without it every puff was 1 m (prompt 200).
+	puff.billboard_keep_scale = true
 	puff.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	puff.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
 	_puff_mesh.material = puff
@@ -153,6 +164,9 @@ func setup(main_node: Node3D) -> void:
 	var dark := puff.duplicate() as StandardMaterial3D
 	dark.albedo_color = FIRE_SMOKE_COLOR
 	_dark_puff_mesh.material = dark
+	_cloud_mesh = QuadMesh.new()
+	_cloud_mesh.size = Vector2(1, 1)
+	_cloud_mesh.material = EffectLibrary._material("cloud", EffectTextures.cloud(), 0.0, true)
 
 
 ## Lit (no emission), half transparent, no specular shine.
@@ -197,7 +211,16 @@ func _update_look() -> void:
 	_shell_material.set_shader_parameter("energy", float(SHELL_ENERGY.get(daytime, SHELL_ENERGY.day)))
 	_trail_material.set_shader_parameter("energy",
 			float(TRAIL_ENERGY.get(daytime, TRAIL_ENERGY.day)) * float(TRAIL_WEATHER.get(weather, 1.0)))
-	_trails_on = bool(GraphicsQuality.settings(quality).get("fx_shell_trails", true))
+	var settings := GraphicsQuality.settings(quality)
+	_trails_on = bool(settings.get("fx_shell_trails", true))
+	var clouds := bool(settings.get("fx_clouds", true))
+	if clouds != _clouds_on:
+		_clouds_on = clouds
+		# Built again with the other look.
+		for id in _clouds.keys():
+			for puff: Array in _clouds[id]:
+				(puff[0] as Node).queue_free()
+		_clouds.clear()
 
 
 ## Shells along their arc (advanced by the time since the last tick) and,
@@ -381,12 +404,22 @@ func _draw_smoke() -> void:
 		var center := Vector3(c.x, c.y, c.z)
 		var radius := c.w
 		var fade := clampf(life[i] * 4.0, 0.0, 1.0)
+		var is_dark := i < dark.size() and dark[i] != 0
+		var body := center + Vector3.UP * 0.35 * radius
 		for puff: Array in _clouds[id]:
 			var node: MeshInstance3D = puff[0]
 			var offset: Vector3 = puff[1]
 			node.position = center + Vector3(offset.x * radius, (0.35 + offset.y) * radius, offset.z * radius)
-			node.scale = Vector3.ONE * radius * (1.1 + 0.3 * offset.y)
-			node.transparency = 1.0 - SMOKE_OPACITY * fade
+			if _clouds_on:
+				# Bigger, overlapping puffs; colour and opacity per puff, lit
+				# as one cloud around its body.
+				node.scale = Vector3.ONE * radius * (1.5 + 0.3 * offset.y)
+				var color := FIRE_SMOKE_COLOR if is_dark else CLOUD_SMOKE_COLOR
+				node.set_instance_shader_parameter(&"tint", Color(color, SMOKE_OPACITY * fade))
+				node.set_instance_shader_parameter(&"cloud_center", Vector4(body.x, body.y, body.z, radius))
+			else:
+				node.scale = Vector3.ONE * radius * (1.1 + 0.3 * offset.y)
+				node.transparency = 1.0 - SMOKE_OPACITY * fade
 	for id in _clouds.keys():
 		if not live.has(id):
 			for puff: Array in _clouds[id]:
@@ -401,7 +434,7 @@ func _make_cloud(id: int, is_dark := false) -> Array:
 	var puffs: Array = []
 	for k in PUFFS:
 		var node := MeshInstance3D.new()
-		node.mesh = _dark_puff_mesh if is_dark else _puff_mesh
+		node.mesh = _cloud_mesh if _clouds_on else (_dark_puff_mesh if is_dark else _puff_mesh)
 		node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		add_child(node)
 		var angle := rng.randf() * TAU

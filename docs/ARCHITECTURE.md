@@ -4380,6 +4380,51 @@ wreck tint and no longer follows the aim. Pictures: `just blast-shots`
 strike-shots` (a real strike on the base skirmish; fails if smoke, siren,
 countdown or launch are missing). [provisional] sizes, colours, threshold.
 
+### Smoke as clouds (prompt 200)
+
+Smoke, dust and haze read as one mass instead of single quads. Of the three
+techniques the prompt named, the soft particles were chosen: a smoke buffer
+at reduced resolution (blurred, composited with a depth test) needs a second
+pass over the particles that Godot 4.5 does not offer without a duplicated
+camera in a `SubViewport` or a compositor effect that re-renders particles,
+and raymarched volumes cost far more than the frame budget for many clouds;
+both were judged from the engine's means, not prototyped. What changed, at
+medium and high quality (`fx_clouds`; low keeps the particles of before):
+
+- **Kinds:** powder smoke, earth cloud, explosion smoke, dust cloud, wreck and
+  grass fire columns, dust trails, salvo haze, blast/impact/muzzle dust and
+  exhaust (`effect_library.gd` `CLOUDS`: per kind the share of the particles,
+  0.6–0.7, and a factor on the puff size, 1.2–1.3: fewer, bigger puffs over
+  about the same area). Colours, ramps, lifetimes and wind as before.
+- **Texture** `effect_textures.cloud()`: a 2 × 2 atlas of soft masses, each a
+  few large overlapping Gaussian lumps whose density adds up, with a little
+  low noise and nothing left at the cell's edge: no rim, no repeated
+  cauliflower pattern.
+- **Shader** mode `cloud`: no spin (angle 0, no angular velocity), always
+  soft against the ground (2 m), lit as one body. The normal is the puff's
+  offset from its cloud's centre (per-instance `cloud_center`: `effects._burst`
+  sets the burst point with 3 m × scale, a wreck's column its base with a
+  negative radius = only the horizontal offset counts, a rocket position's
+  haze 8 m; unknown = 0: only an upward bias), plus an upward bias, a soft
+  dome over the quad and a fifth of the texture's own slope. So the sun side
+  and the shadow side run over the whole column and the underside is darker;
+  evening light and fire lights (where they exist) light it as before.
+- **Smoke screens** (`artillery_view.gd`): the nine puffs per cloud use the
+  cloud material (colour and opacity per puff through `tint`, centre the
+  cloud's body), 1.5 × the radius. Before, the billboard material dropped the
+  node's scale (`billboard_keep_scale` was off), so every puff of a smoke
+  screen was a 1 m dot; low quality keeps the plain puffs, now at their size.
+
+Pictures: `just smoke-shots <prefix>` (shots `survey_smoke_*` on the scene
+`shells`: the duel's wrecks and the grass fire they start, the German
+mortars' impacts and a smoke screen of three American mortars ordered by the
+shot key `smoke_barrage`, by day and in the evening; plus `column_pass` and
+`battle_house_center`). Frame rate (22.11.2026, M1 Max, 1600 × 900 window,
+V-Sync off, debug bridge, high, before → after directly one after the other):
+wrecks with the large grass fire 78–80 → 79–81 fps; the smoke screen (up to 30
+clouds) 111 → 97–99 fps (about 1.2 ms: the clouds now have their real size).
+Not measured: the ten burning wrecks of the prompt with `just bench-view`.
+
 ### Explosions after a video reference (prompt 072)
 
 A short promotional video of another game served as a reference for

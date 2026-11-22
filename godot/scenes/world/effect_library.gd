@@ -9,7 +9,14 @@ extends RefCounted
 ## lit with a rounded fake normal so puffs read as volumes in the sun, or
 ## unshaded (fire, flashes, sparks; HDR values feed the glow). Soft
 ## particles fade where they cut into the ground (quality "fx_soft").
-## Presentation only.
+##
+## Prompt 200: at medium and high quality (`fx_clouds`, `use_clouds`) smoke,
+## dust and haze are drawn as clouds rather than particles: fewer, bigger,
+## heavily overlapping puffs of a soft texture without a rim (`cloud`), that
+## do not spin, always soft against the ground, and lit as one body: the
+## normal comes from where a puff sits in its cloud (`cloud_center`, set by
+## whoever places the emitter), so the sun side and the shadow side run over
+## the whole column instead of over every quad. Presentation only.
 
 const EffectTextures := preload("res://scenes/world/effect_textures.gd")
 
@@ -28,6 +35,23 @@ const CONTINUOUS: Array[String] = [
 	"mud_clods", "snow_dust", "bow_spray", "wake_foam",
 ]
 
+## Prompt 200: kinds drawn as clouds at medium and high quality, with
+## (share of the particles, factor on the puff size): fewer, bigger puffs
+## that overlap into one mass; about the same covered area.
+const CLOUDS := {
+	"powder": Vector2(0.7, 1.25),
+	"earth_cloud": Vector2(0.6, 1.3),
+	"explosion_smoke": Vector2(0.7, 1.25),
+	"dust_cloud": Vector2(0.65, 1.25),
+	"smoke_column": Vector2(0.6, 1.3),
+	"dust_trail": Vector2(0.6, 1.3),
+	"salvo_smoke": Vector2(0.65, 1.25),
+	"blast_dust": Vector2(0.7, 1.2),
+	"impact_dust": Vector2(0.7, 1.2),
+	"muzzle_dust": Vector2(0.7, 1.2),
+	"exhaust": Vector2(0.7, 1.2),
+}
+
 const SHADER_TEMPLATE := """
 shader_type spatial;
 render_mode %s, depth_draw_never, cull_disabled, shadows_disabled%s;
@@ -37,8 +61,13 @@ uniform float emission = 0.0;
 uniform float soft_distance = 0.0;
 uniform sampler2D depth_tex : hint_depth_texture, filter_nearest;
 instance uniform vec4 tint : source_color = vec4(1.0);
+// Prompt 200: the cloud a puff belongs to: xyz its center, w its radius
+// (m); w < 0: a column, only the horizontal offset counts; w = 0: unknown.
+instance uniform vec4 cloud_center = vec4(0.0);
 varying float v_angle;
 varying float v_age;
+varying vec2 v_quad_uv;
+varying vec3 v_center;
 
 void vertex() {
 	// Face the camera like BILLBOARD_PARTICLES: keep the particle's position
@@ -46,6 +75,12 @@ void vertex() {
 	mat4 world = mat4(normalize(INV_VIEW_MATRIX[0]), normalize(INV_VIEW_MATRIX[1]),
 		normalize(INV_VIEW_MATRIX[2]), MODEL_MATRIX[3]);
 	float a = INSTANCE_CUSTOM.x;
+	v_quad_uv = UV;
+	v_center = MODEL_MATRIX[3].xyz;
+#ifdef CLOUD
+	// Clouds do not spin (prompt 200).
+	a = 0.0;
+#endif
 #ifdef STREAK
 	// Earth streaks (prompt 072): the quad's up axis follows the particle's
 	// Y axis, which ParticleProcessMaterial aligns to the velocity.
@@ -107,16 +142,46 @@ const FIREBALL_BODY := """float age = smoothstep(0.15, 0.65, v_age);
 	vec3 crease = mix(c.rgb * vec3(1.0, 0.5, 0.2) * 0.75, c.rgb * 0.25, age);
 	ALBEDO = mix(crease, c.rgb * 1.05, smoothstep(0.35, 0.9, t.b)) * (1.0 + emission);"""
 
+## Clouds (prompt 200): the normal is the puff's place in its cloud (its
+## offset from `cloud_center`, in view space) with an upward bias and a soft
+## dome over the quad; the texture adds only a little of its own slope. So
+## the whole column is lit from the sun's side and darker below.
+const CLOUD_BODY := """vec2 p = v_quad_uv * 2.0 - 1.0;
+	vec3 dome = vec3(p.x, -p.y, 0.9);
+	vec3 place = vec3(0.0, 0.45, 0.0);
+	if (cloud_center.w != 0.0) {
+		vec3 offset = v_center - cloud_center.xyz;
+		if (cloud_center.w < 0.0) {
+			offset.y = 0.0;
+		}
+		place += offset / abs(cloud_center.w);
+	}
+	vec2 n = t.rg * 2.0 - 1.0;
+	NORMAL = normalize(mat3(VIEW_MATRIX) * place + dome * 0.55 + vec3(n * 0.2, 0.0));
+	ALBEDO = c.rgb * mix(0.7, 1.0, t.b);
+	EMISSION = ALBEDO * emission;"""
+
 ## Glowing gas (prompt 077): unshaded billows, the creases only a little
 ## darker, so the ball reads white-hot and then pale.
 const GLOW_BILLOW_BODY := "ALBEDO = c.rgb * mix(0.72, 1.0, t.b) * (1.0 + emission);"
 
 static var _shaders: Dictionary[String, Shader] = {}
+## Prompt 200: smoke, dust and haze as clouds (quality `fx_clouds`).
+static var _clouds := true
+## Soft-particle fade of clouds (m): wide, so a puff never shows a line
+## where it meets the ground.
+const CLOUD_SOFT_M := 2.0
 ## Trailer recordings (prompt 082): every particle system gets a fixed seed
 ## (its number), so a shot is recorded the same again. -1: not asked yet,
 ## 0: off (the game: random as ever).
 static var _fixed_seeds := -1
 static var _next_seed := 1
+
+
+## Clouds or plain particles for the systems built from now on (prompt
+## 200); the callers rebuild their emitters when the quality changes.
+static func use_clouds(on: bool) -> void:
+	_clouds = on
 
 
 ## A new particle system of `kind`. `factor` scales particle counts
@@ -809,6 +874,17 @@ static func build(kind: String, factor: float, soft: bool, wind: Vector2) -> GPU
 			material = _material("lit", EffectTextures.smoke(), 0.0, false)
 		_:
 			push_error("unknown effect kind '%s'" % kind)
+	if _clouds and CLOUDS.has(kind):
+		var look: Vector2 = CLOUDS[kind]
+		amount = maxi(1, roundi(amount * look.x))
+		size *= look.y
+		pm.angular_velocity_min = 0.0
+		pm.angular_velocity_max = 0.0
+		pm.angle_min = 0.0
+		pm.angle_max = 0.0
+		_atlas(pm)
+		var emission: float = material.get_shader_parameter("emission") if material != null else 0.0
+		material = _material("cloud", EffectTextures.cloud(), emission, true)
 	p.amount = maxi(1, int(round(amount * factor)))
 	p.process_material = pm
 	if material != null:
@@ -876,16 +952,19 @@ static func _ramp(colors: Array[Color], offsets: Array[float], hdr := false) -> 
 ## (unshaded atlas billows, glowing gas: prompt 077), "streak" (lit,
 ## the quad follows the velocity; needs `particle_flag_align_y`) or
 ## "streak_add" (additive and glowing like "add", following the velocity:
-## the fire tongue, prompt 077).
+## the fire tongue, prompt 077) or "cloud" (lit soft puffs lit as one
+## cloud, always soft: prompt 200).
 static func _material(mode: String, texture: Texture2D, emission: float, soft: bool) -> ShaderMaterial:
 	if not _shaders.has(mode):
 		var shader := Shader.new()
 		var blend := "blend_add" if mode in ["add", "streak_add"] else "blend_mix"
-		var lit := mode in ["lit", "billow", "streak"]
+		var lit := mode in ["lit", "billow", "streak", "cloud"]
 		var extra := "" if lit else ", unshaded"
 		var defines := ""
 		if mode in ["billow", "fireball", "glow_billow"]:
 			defines = "#define ATLAS"
+		elif mode == "cloud":
+			defines = "#define ATLAS\n#define CLOUD"
 		elif mode in ["streak", "streak_add"]:
 			defines = "#define STREAK"
 		var body := LIT_BODY if mode in ["lit", "streak"] else UNSHADED_BODY
@@ -895,13 +974,15 @@ static func _material(mode: String, texture: Texture2D, emission: float, soft: b
 			body = FIREBALL_BODY
 		elif mode == "glow_billow":
 			body = GLOW_BILLOW_BODY
+		elif mode == "cloud":
+			body = CLOUD_BODY
 		shader.code = SHADER_TEMPLATE % [blend, extra, defines, body]
 		_shaders[mode] = shader
 	var material := ShaderMaterial.new()
 	material.shader = _shaders[mode]
 	material.set_shader_parameter("tex", texture)
 	material.set_shader_parameter("emission", emission)
-	material.set_shader_parameter("soft_distance", 0.8 if soft else 0.0)
+	material.set_shader_parameter("soft_distance", CLOUD_SOFT_M if mode == "cloud" else (0.8 if soft else 0.0))
 	return material
 
 

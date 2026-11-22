@@ -2,8 +2,9 @@ extends RefCounted
 ## Procedural textures for the effects (prompt 019): smoke puff, fire puff,
 ## spark, earth clod and scorch mark; since prompt 072 also billows (a 2 x 2
 ## atlas of cauliflower clusters with a baked normal), earth streaks and a
-## ray burst. Built once at run time from noise, so the effects need no image
-## files and no downloads. Presentation only.
+## ray burst; since prompt 200 soft cloud puffs. Built once at run time
+## from noise, so the effects need no image files and no downloads.
+## Presentation only.
 
 const SIZE := 128
 
@@ -161,6 +162,56 @@ static func billow() -> Texture2D:
 					var nx := normal.x * 0.5 + 0.5 if best > 0.0 else 0.5
 					var ny := normal.y * 0.5 + 0.5 if best > 0.0 else 0.5
 					image.set_pixel(ox + x, oy + y, Color(nx, ny, shade, alpha))
+		return image)
+
+
+## Cloud puffs (prompt 200): a 2 x 2 atlas of soft, round masses, each a
+## few large overlapping lumps whose density adds up, without a hard rim:
+## the density falls smoothly to nothing well inside the cell, so many big
+## puffs melt into one cloud instead of showing their edges. Per pixel:
+## R, G = a gentle normal from the density's slope (x right, y up, 0.5 =
+## flat), B = shade (thin parts a little darker), A = density. Lit by
+## `effect_library.gd` ("cloud" shaders) as part of the whole cloud.
+static func cloud() -> Texture2D:
+	return _cached("cloud", func() -> Image:
+		var cell := SIZE
+		var image := Image.create(cell * 2, cell * 2, false, Image.FORMAT_RGBA8)
+		var noise := _noise(41, 2.2 / cell)
+		var rng := RandomNumberGenerator.new()
+		rng.seed = 200
+		for c in 4:
+			var ox := (c % 2) * cell
+			var oy := (c / 2) * cell
+			# Lumps: centre (cell units, -1..1, y up) and radius.
+			var lumps: Array[Vector3] = [Vector3(0.0, 0.0, 0.42)]
+			for k in rng.randi_range(3, 4):
+				var a := rng.randf() * TAU
+				var d := rng.randf_range(0.12, 0.3)
+				lumps.append(Vector3(cos(a) * d, sin(a) * d, rng.randf_range(0.24, 0.34)))
+			var density := PackedFloat32Array()
+			density.resize(cell * cell)
+			for y in cell:
+				for x in cell:
+					var p := Vector2((x + 0.5) / cell * 2.0 - 1.0, 1.0 - (y + 0.5) / cell * 2.0)
+					var sum := 0.0
+					for lump in lumps:
+						var q := (p - Vector2(lump.x, lump.y)) / lump.z
+						sum += exp(-q.length_squared() * 1.6)
+					# Low, slow noise: a little texture inside, never holes.
+					var n := noise.get_noise_2d(x + ox, y + oy)
+					sum *= 1.0 + 0.25 * n
+					# Nothing left at the cell's edge.
+					sum *= clampf((0.98 - p.length()) * 4.0, 0.0, 1.0)
+					density[y * cell + x] = sum
+			for y in cell:
+				for x in cell:
+					var d := density[y * cell + x]
+					var dx := density[y * cell + mini(x + 1, cell - 1)] - density[y * cell + maxi(x - 1, 0)]
+					var dy := density[maxi(y - 1, 0) * cell + x] - density[mini(y + 1, cell - 1) * cell + x]
+					var normal := Vector3(-dx * 6.0, -dy * 6.0, 1.0).normalized()
+					var alpha := clampf(1.0 - exp(-d * 2.2), 0.0, 1.0)
+					var shade := clampf(0.7 + 0.3 * alpha, 0.0, 1.0)
+					image.set_pixel(ox + x, oy + y, Color(normal.x * 0.5 + 0.5, normal.y * 0.5 + 0.5, shade, alpha))
 		return image)
 
 

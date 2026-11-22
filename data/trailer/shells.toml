@@ -3,7 +3,9 @@
 # battery of four light field howitzers fire barrages at empty ground, and
 # west of them two Panzer IV and two T-34 advance at each other (they meet
 # at about 8 s, the duel is over at 11.5 s). Looked at by
-# the `survey_shells_*` shots (`just shell-shots`).
+# the `survey_shells_*` shots (`just shell-shots`). Three American mortars
+# lay a smoke screen for the `survey_smoke_*` shots (prompt 200,
+# `just smoke-shots`).
 # Format: docs/MISSIONS.md; played by godot/scenes/tools/trailer_shots.gd.
 
 [mission]
@@ -108,6 +110,31 @@ name = "t34s"
 owner = 0
 unit = "su_t34_76_1943"
 position_m = [-16, 60]
+hold_fire = true
+
+# --- Smoke mortars (player 0, prompt 200) ------------------------------------------
+
+# Fire only when a `survey_smoke_*` shot orders their smoke screen (mission
+# scripts have no smoke barrage; trailer_shots.gd `smoke_barrage`).
+[[group]]
+name = "smoke_mortars"
+owner = 0
+unit = "us_inf_mortar_medium"
+position_m = [420, 330]
+hold_fire = true
+
+[[group]]
+name = "smoke_mortars"
+owner = 0
+unit = "us_inf_mortar_medium"
+position_m = [440, 336]
+hold_fire = true
+
+[[group]]
+name = "smoke_mortars"
+owner = 0
+unit = "us_inf_mortar_medium"
+position_m = [460, 330]
 hold_fire = true
 
 # --- Script ---------------------------------------------------------------------
