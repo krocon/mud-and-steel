@@ -35,6 +35,9 @@ const DEFAULT := "high"
 ## Meadow relief (prompt 191, `terrain_meadow.gdshaderinc`): ground_relief:
 ## grass clumps beyond the blades; ground_shadows: their fake shadows
 ## (about 3 and 1 ms per frame on an M1 Max at the middle zoom).
+## Ground scatter (prompt 191, `ground_scatter.gd`): scatter_range: view
+## distance in meters (shrinks to nothing there); scatter_density: factor
+## on its density; scatter_shadows: shrubs and large stones cast shadows.
 ## Shells in flight (prompt 199, `artillery_view.gd`): fx_shell_trails: the
 ## faint vapour trail behind a shell's light.
 ## Smoke (prompt 200, `effect_library.gd`): fx_clouds: smoke, dust and haze
@@ -50,6 +53,7 @@ const SETTINGS: Dictionary[String, Dictionary] = {
 		"fx_rocket_lights": 1, "fx_muzzle_detail": false, "fx_shell_trails": false, "fx_clouds": false,
 		"fx_track_texels": 1024, "fx_track_m": 0.5, "fx_ground_fx": false,
 		"ground_relief": false, "ground_shadows": false,
+		"scatter_range": 90.0, "scatter_density": 0.4, "scatter_shadows": false,
 	},
 	"medium": {
 		"shadow_size": 4096, "cascades": 4, "shadow_filter": RenderingServer.SHADOW_QUALITY_SOFT_LOW,
@@ -61,6 +65,7 @@ const SETTINGS: Dictionary[String, Dictionary] = {
 		"fx_rocket_lights": 2, "fx_muzzle_detail": true, "fx_shell_trails": true, "fx_clouds": true,
 		"fx_track_texels": 1536, "fx_track_m": 0.3, "fx_ground_fx": true,
 		"ground_relief": true, "ground_shadows": false,
+		"scatter_range": 120.0, "scatter_density": 0.7, "scatter_shadows": true,
 	},
 	"high": {
 		"shadow_size": 8192, "cascades": 4, "shadow_filter": RenderingServer.SHADOW_QUALITY_SOFT_MEDIUM,
@@ -72,6 +77,7 @@ const SETTINGS: Dictionary[String, Dictionary] = {
 		"fx_rocket_lights": 2, "fx_muzzle_detail": true, "fx_shell_trails": true, "fx_clouds": true,
 		"fx_track_texels": 2048, "fx_track_m": 0.25, "fx_ground_fx": true,
 		"ground_relief": true, "ground_shadows": true,
+		"scatter_range": 150.0, "scatter_density": 1.0, "scatter_shadows": true,
 	},
 }
 

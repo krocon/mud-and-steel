@@ -22,7 +22,7 @@
 # houses of winter_village and measures windows on the snowy roofs, with
 # the falling snow hidden (`--off=snowfall` unless --off= is given).
 # --off=<parts> turns parts of the picture off for the analysis
-# (`--trailer-off=` of trailer_shots.gd: tufts, ground, shadows, wind, dof,
+# (`--trailer-off=` of trailer_shots.gd: tufts, scatter, relief, ground, shadows, wind, dof,
 # ssao, msaa; fxaa, taa turn those on).
 # Needs a window, the built bridge, ffmpeg and python3 with numpy.
 set -euo pipefail

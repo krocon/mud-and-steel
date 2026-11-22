@@ -31,6 +31,7 @@ extends Node
 
 const StampShader := preload("res://assets/shaders/ground_track_stamp.gdshader")
 const GraphicsQuality := preload("res://scenes/world/graphics_quality.gd")
+const GroundScatter := preload("res://scenes/world/ground_scatter.gd")
 
 ## Stamps kept (the oldest is overwritten); about 30 vehicles driving for
 ## five minutes.
@@ -262,6 +263,8 @@ func _set_terrain(texture: Texture2D, origin: Vector2, size: Vector2) -> void:
 	var terrain: Node = main.get("terrain")
 	if terrain != null and terrain.has_method("set_ground_tracks"):
 		terrain.set_ground_tracks(texture, origin, size)
+	# The ground scatter is pressed flat under the tracks (prompt 191).
+	GroundScatter.set_tracks(texture, origin, size)
 
 
 ## Centers the window on `focus` (snapped to 16 texels so the picture does

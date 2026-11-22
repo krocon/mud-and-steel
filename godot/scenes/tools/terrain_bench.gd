@@ -101,6 +101,16 @@ const TALL_VIEWS: Array[Dictionary] = [
 	{"name": "tall_110", "distance": 110.0, "focus": TALL_FOCUS},
 	{"name": "tall_350", "distance": 350.0, "focus": TALL_FOCUS},
 ]
+## Prompt 191: views of the scatter benchmark (`SCATTER_AB=1 just
+## terrain-bench`) and of `SHOT_SET=scatter just terrain-shots <dir> [map]`:
+## the meadow by the village of test_large (elsewhere the map centre or the
+## marker of SCATTER_MARKER) at 45, 110 and 300 m.
+const SCATTER_OFFSET := Vector3(-31, 0, -87)
+const SCATTER_VIEWS: Array[Dictionary] = [
+	{"name": "scatter_45", "distance": 45.0, "marker": "village", "offset": SCATTER_OFFSET},
+	{"name": "scatter_110", "distance": 110.0, "marker": "village", "offset": SCATTER_OFFSET},
+	{"name": "scatter_300", "distance": 300.0, "marker": "village", "offset": SCATTER_OFFSET},
+]
 const Settings := preload("res://scenes/menu/settings.gd")
 const SHOT_FRAMES := 20
 const WARMUP_FRAMES := 60
@@ -149,6 +159,11 @@ func _run() -> void:
 	if OS.get_environment("TALL_AB") == "1":
 		variants = ["tall", "tall_ground", "meadow"]
 		views = TALL_VIEWS
+	# Prompt 191: SCATTER_AB=1 measures the ground scatter on and off, and
+	# the look before the prompt (no scatter, no meadow relief).
+	if OS.get_environment("SCATTER_AB") == "1":
+		variants = ["scatter", "no_scatter", "before_191", "ssao_strong"]
+		views = SCATTER_VIEWS
 	var runs: Array = []
 	for v in views.size():
 		for k in variants.size():
@@ -158,6 +173,9 @@ func _run() -> void:
 		var view: Dictionary = run[0]
 		if run[1] in ["tall", "tall_ground", "meadow"]:
 			await _set_tall_variant(run[1] != "meadow", run[1] == "tall")
+		elif run[1] in ["scatter", "no_scatter", "before_191", "ssao_strong"]:
+			await _set_scatter_variant(run[1] in ["scatter", "ssao_strong"], run[1] != "before_191",
+				run[1] == "ssao_strong")
 		else:
 			await _set_meadow_variant(run[1])
 		var distance: float = view["distance"]
@@ -168,7 +186,8 @@ func _run() -> void:
 			start = view["focus"] - Vector3(0.15, 0.0, -0.12) * distance
 		elif view.has("marker") and main.sim_host.map_marker(view["marker"]) != null:
 			# Pan across the marker (the pan below covers 0.4 distances).
-			start = main.sim_host.map_marker(view["marker"]) - Vector3(0.15, 0.0, -0.12) * distance
+			start = main.sim_host.map_marker(view["marker"]) + view.get("offset", Vector3.ZERO) \
+				- Vector3(0.15, 0.0, -0.12) * distance
 		rig.snap_to(start, distance, 0.0)
 		await _frames(WARMUP_FRAMES)
 		var began := Time.get_ticks_usec()
@@ -233,6 +252,27 @@ func _set_meadow_variant(variant: String) -> void:
 	await _frames(2)
 
 
+## Ground scatter on or off, meadow relief on or off (prompt 191). The
+## relief is a global shader uniform the atmosphere sets from the quality.
+## `strong_ssao` tries stronger contact shadows (prompt 191, 3.2): more
+## intensity and light affect, high SSAO quality at full resolution.
+func _set_scatter_variant(scatter: bool, relief: bool, strong_ssao := false) -> void:
+	main.atmosphere.set_quality(main.atmosphere.quality)
+	if strong_ssao:
+		var env: Environment = main.atmosphere._env
+		env.ssao_intensity = 2.6
+		env.ssao_power = 1.6
+		env.ssao_light_affect = 0.35
+		RenderingServer.environment_set_ssao_quality(RenderingServer.ENV_SSAO_QUALITY_HIGH, false, 0.5, 2, 50.0, 300.0)
+	if not relief:
+		RenderingServer.global_shader_parameter_set(&"ground_relief", 0.0)
+		RenderingServer.global_shader_parameter_set(&"ground_sun", Vector4(0.0, 1.0, 0.0, 0.0))
+	if main.map_objects.ground_scatter != scatter:
+		main.map_objects.ground_scatter = scatter
+		main.map_objects.set_biome(main.map_objects.biome)
+	await _frames(30)
+
+
 ## Tall grass look of the ground on or off (plain meadow), plants on or
 ## off (prompt 073).
 func _set_tall_variant(ground: bool, plants: bool) -> void:
@@ -271,11 +311,31 @@ func _shots() -> void:
 			{"name": "land_45", "focus": spot, "distance": 45.0, "yaw": 0.4},
 			{"name": "land_130", "focus": spot, "distance": 130.0, "yaw": 0.4},
 		]
+	# Prompt 191 (`SHOT_SET=scatter`): 45, 110, 300 m over the meadow, each
+	# with the scatter and the relief, and as before the prompt
+	# (`SCATTER_OFF=1`: only the "before" views).
+	var scatter := OS.get_environment("SHOT_SET") == "scatter"
+	if scatter:
+		var marker := OS.get_environment("SCATTER_MARKER") if OS.has_environment("SCATTER_MARKER") else "village"
+		var spot := Vector3.ZERO
+		if main.sim_host.map_marker(marker) != null:
+			spot = main.sim_host.map_marker(marker) + (SCATTER_OFFSET if marker == "village" else Vector3.ZERO)
+		if OS.has_environment("SCATTER_FOCUS"):
+			var xz := OS.get_environment("SCATTER_FOCUS").split(",")
+			spot = Vector3(float(xz[0]), 0.0, float(xz[1]))
+		shots = []
+		var kinds: Array = ["before"] if OS.get_environment("SCATTER_OFF") == "1" else ["scatter", "before"]
+		if OS.get_environment("SCATTER_SSAO") == "1":
+			kinds = ["scatter", "ssao"]
+		for kind: String in kinds:
+			for d: float in [45.0, 110.0, 300.0]:
+				shots.append({"name": "%s_%d" % [kind, int(d)], "focus": spot,
+					"distance": d, "yaw": 0.4, "before_191": kind == "before", "ssao": kind == "ssao"})
 	# Prompt 056 (`SHOT_SET=land`): the whole map and every supply point.
 	var land := OS.get_environment("SHOT_SET") == "land"
 	if land:
 		shots = _land_shots()
-	if meadow or mountains or land or tall:
+	if meadow or mountains or land or tall or scatter:
 		# Clean ground views: no fog of war over the village, no HUD.
 		main.fog_of_war.set_fog_enabled(false)
 		main.get_node("Hud").visible = false
@@ -305,6 +365,8 @@ func _shots() -> void:
 		if shot.get("track", false):
 			_press_track(focus)
 		main.terrain.set_show_lod(shot.get("lod", false))
+		if scatter:
+			await _set_scatter_variant(not shot.before_191, not shot.before_191, shot.ssao)
 		if shot.get("crater", false):
 			for k in 3:
 				main.terrain.debug_crater(focus + Vector3(-8.0 + 8.0 * k, 0.0, 4.0 * k), 3.0 + k, 1.0)
@@ -317,7 +379,13 @@ func _shots() -> void:
 			rig.pitch_far_deg = shot["pitch"]
 			rig.max_distance = maxf(rig.max_distance, shot["distance"])
 		rig.snap_to(focus, shot["distance"], shot["yaw"])
-		print("terrain-shots: view %d '%s' in frames %d..%d" % [i, shot["name"], i * SHOT_FRAMES, i * SHOT_FRAMES + SHOT_FRAMES - 1])
+		if scatter:
+			# The decoration builds a few squares per frame; the variant
+			# switch and the build shift the frames, hence the frame number.
+			await _frames(60)
+			print("terrain-shots: view '%s' from movie frame %d" % [shot["name"], Engine.get_frames_drawn()])
+		else:
+			print("terrain-shots: view %d '%s' in frames %d..%d" % [i, shot["name"], i * SHOT_FRAMES, i * SHOT_FRAMES + SHOT_FRAMES - 1])
 		await _frames(SHOT_FRAMES)
 	get_tree().quit()
 

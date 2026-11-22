@@ -89,8 +89,9 @@ const BUS_DB: Dictionary[String, float] = {
 ## "taa" turn that antialiasing on instead; "snowfall" (prompt 080) hides
 ## the falling snow of a winter map; "clouds" (prompt 087) the cloud
 ## shadows (they are on otherwise and lie the same for the same scene and
-## seed: they follow the game time).
-const OFF_PARTS: Array[String] = ["tufts", "ground", "shadows", "wind", "dof", "ssao", "msaa", "fxaa", "taa", "snowfall", "clouds", "shadowsteps", "lodsteps"]
+## seed: they follow the game time); "scatter" and "relief" (prompt 191) the
+## ground scatter and the meadow relief of the ground shader.
+const OFF_PARTS: Array[String] = ["tufts", "scatter", "relief", "ground", "shadows", "wind", "dof", "ssao", "msaa", "fxaa", "taa", "snowfall", "clouds", "shadowsteps", "lodsteps"]
 const MeadowTufts := preload("res://scenes/world/meadow_tufts.gd")
 const TallGrass := preload("res://scenes/world/tall_grass.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
@@ -1158,6 +1159,13 @@ func _apply_off() -> void:
 		for node: Node in main.map_objects._deco_root.get_children():
 			if node.name.begins_with("grass_"):
 				(node as Node3D).visible = false
+	# Prompt 191: the ground scatter, and the meadow relief with its shadows.
+	if "scatter" in _off:
+		for node: Node in main.map_objects._deco_root.get_children():
+			if node.name.begins_with("scatter_"):
+				(node as Node3D).visible = false
+	if "relief" in _off:
+		RenderingServer.global_shader_parameter_set(&"ground_relief", 0.0)
 	if "ground" in _off:
 		main.terrain._material.set_shader_parameter("meadow_strength", 0.0)
 		main.terrain._material.set_shader_parameter("flower_density", 0.0)

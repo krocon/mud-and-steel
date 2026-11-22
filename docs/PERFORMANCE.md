@@ -29,6 +29,12 @@ hedges and bushes.
 `MEADOW_AB=1 just terrain-bench` (prompt 057) measures every terrain view once
 per variant of the meadow look (each part off in turn, and the look before)
 in one run; see ARCHITECTURE.md, "Meadow".
+`SCATTER_AB=1 just terrain-bench` (prompt 191) does the same for the ground
+scatter (`scatter`, `no_scatter`, `before_191`, `ssao_strong`) at 45, 110
+and 300 m; `just bench-view --no-ground-scatter` starts without it. On high
+the scatter costs 0.2–0.4 ms at 45 and 110 m and nothing at 300 m; standing
+150 m in `bench-view` 14.59 → 15.05 ms (2026-11-22, M1 Max; details and
+the spoiled battle runs in ARCHITECTURE.md, "Meadow").
 
 **Phases** come from `Sim::step_observed(commands, done)`: the simulation
 calls `done(Phase)` after each phase of the tick; the caller reads the

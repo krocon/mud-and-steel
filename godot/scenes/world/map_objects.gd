@@ -60,6 +60,7 @@ const OBJECT_CLASSES: Array[Dictionary] = [
 const MeadowTufts := preload("res://scenes/world/meadow_tufts.gd")
 const TallGrass := preload("res://scenes/world/tall_grass.gd")
 const GraphicsQuality := preload("res://scenes/world/graphics_quality.gd")
+const GroundScatter := preload("res://scenes/world/ground_scatter.gd")
 ## Square size of decoration chunks in meters.
 const DECO_CHUNK_M := 64.0
 ## Decoration squares built per frame at most (keeps the frame time flat).
@@ -72,6 +73,11 @@ const DECO_BUILDS_PER_FRAME := 6
 ## Layers with `tall` (prompt 073) draw the plants of `tall_grass.gd` in
 ## squares of `square` meters (finer culling), with frayed edges (`fray`,
 ## meters) and the range of the quality level.
+## Layers with `scatter` (prompt 191, `ground_scatter.gd`) draw the
+## procedural meshes of those kinds (`shadows` per variant), denser by
+## `edge` along hedges, houses, tracks, fields and wood edges and grouped by
+## `macro` (90 m), with range and density of the quality level and the
+## biome; the shader shrinks them to nothing at the range.
 const DECO_LAYERS: Array[Dictionary] = [
 	{"name": "grass", "model": "env_grass_clump", "variants": ["Grass", "GrassTall", "Flowers"],
 		"weights": [0.62, 0.3, 0.08], "spacing": 0.7, "seed": 11,
@@ -115,6 +121,22 @@ const DECO_LAYERS: Array[Dictionary] = [
 	{"name": "tall_shrubs", "tall": true, "weights": [0.55, 0.45], "spacing": 2.2, "seed": 73,
 		"density": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.3], "wood": 0.5, "patchiness": 1.0,
 		"scale": Vector2(0.8, 1.2), "sink": 0.05, "range": 65.0, "shadow": false, "square": 16.0, "fray": 0.0},
+	{"name": "scatter_shrubs", "scatter": [GroundScatter.Kind.SHRUB], "shadows": [true],
+		"weights": [1.0], "spacing": 3.0, "seed": 191,
+		"density": [0.14, 0.0, 0.0, 0.06, 0.12, 0.04, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "wood": 2.0,
+		"patchiness": 0.9, "edge": 3.0, "macro": 0.7, "scale": Vector2(0.85, 1.75), "sink": 0.04},
+	{"name": "scatter_herbs", "scatter": [GroundScatter.Kind.HERB], "shadows": [false],
+		"weights": [1.0], "spacing": 1.5, "seed": 193,
+		"density": [0.1, 0.0, 0.0, 0.0, 0.12, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "wood": 2.5,
+		"patchiness": 0.9, "edge": 1.5, "macro": 0.8, "scale": Vector2(0.7, 1.4), "sink": 0.02},
+	{"name": "scatter_stalks", "scatter": [GroundScatter.Kind.STALKS], "shadows": [false],
+		"weights": [1.0], "spacing": 1.7, "seed": 197,
+		"density": [0.07, 0.03, 0.0, 0.06, 0.04, 0.05, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "wood": 0.4,
+		"patchiness": 1.0, "edge": 2.5, "macro": 0.8, "scale": Vector2(0.7, 1.3), "sink": 0.02},
+	{"name": "scatter_stones", "scatter": [GroundScatter.Kind.STONE_SMALL, GroundScatter.Kind.STONE_LARGE],
+		"shadows": [false, true], "weights": [0.8, 0.2], "spacing": 2.2, "seed": 199,
+		"density": [0.05, 0.12, 0.0, 0.12, 0.04, 0.03, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06], "wood": 1.2,
+		"patchiness": 0.8, "edge": 1.0, "macro": 0.6, "scale": Vector2(0.8, 1.4), "sink": 0.02},
 ]
 
 ## Tall grass layers draw this much beyond their range (m): the plants
@@ -148,6 +170,10 @@ var meadow_tufts := true
 ## Tall grass plants (prompt 073; the terrain benchmark turns them off for
 ## its A/B comparison, then calls set_biome).
 var tall_grass := true
+## Ground scatter (prompt 191; the terrain benchmark turns it off for its
+## A/B comparison, then calls set_biome; `-- --no-ground-scatter` starts
+## without it, e.g. for `just bench-view` comparisons).
+var ground_scatter := not "--no-ground-scatter" in OS.get_cmdline_user_args()
 ## Atmosphere (graphics quality) and terrain (tall grass look) of the
 ## scene, set by main.gd and the map editor; optional.
 var atmosphere: Node
@@ -261,6 +287,12 @@ func build(host: Object, view: Camera3D) -> void:
 	_build_straw(kinds)
 	for layer: Dictionary in DECO_LAYERS:
 		var meshes: Array = []
+		if layer.has("scatter"):
+			for kind: int in layer.scatter:
+				meshes.append(GroundScatter.mesh(kind))
+			_deco_meshes.append(meshes)
+			_deco.append({})
+			continue
 		if layer.get("tall", false):
 			_deco_meshes.append(meshes)
 			_deco.append({})
@@ -307,6 +339,7 @@ func set_biome(id: String) -> void:
 			_free_deco(layer, square)
 	_last_deco_origin = Vector3.INF
 	_apply_tall_look()
+	GroundScatter.apply_look(biome, GroundScatter.quality(_quality()).range)
 
 
 ## Graphics quality of the scene (tall grass range and density).
@@ -316,14 +349,16 @@ func _quality() -> String:
 	return GraphicsQuality.DEFAULT
 
 
-## Rebuilds the tall grass layers when the graphics quality changed.
+## Rebuilds the tall grass and scatter layers when the graphics quality
+## changed.
 func _check_tall_quality() -> void:
 	var level := _quality()
 	if level == _tall_quality:
 		return
 	_tall_quality = level
+	GroundScatter.apply_look(biome, GroundScatter.quality(level).range)
 	for layer in _deco.size():
-		if DECO_LAYERS[layer].get("tall", false):
+		if DECO_LAYERS[layer].get("tall", false) or DECO_LAYERS[layer].has("scatter"):
 			for square: Vector2i in _deco[layer].keys():
 				_free_deco(layer, square)
 	_last_deco_origin = Vector3.INF
@@ -351,6 +386,8 @@ func _square_m(layer: int) -> float:
 func _range_m(layer: int) -> float:
 	if DECO_LAYERS[layer].get("tall", false):
 		return TallGrass.quality(_quality()).range + TALL_SQUARE_MARGIN
+	if DECO_LAYERS[layer].has("scatter"):
+		return GroundScatter.quality(_quality()).range
 	return DECO_LAYERS[layer].range
 
 
@@ -644,6 +681,8 @@ func _update_deco(origin: Vector3) -> bool:
 		var range_m := _range_m(layer)
 		if DECO_LAYERS[layer].get("tall", false) and not tall_grass:
 			range_m = -1.0e6
+		if DECO_LAYERS[layer].has("scatter") and not ground_scatter:
+			range_m = -1.0e6
 		# Free squares well beyond the range.
 		for square: Vector2i in _deco[layer].keys():
 			if _square_distance(layer, square, origin) > range_m + half_diag + square_m:
@@ -704,10 +743,16 @@ func _build_deco(layer_index: int, square: Vector2i) -> void:
 		# Snow covers most of the grass (prompt 056).
 		for k in density.size():
 			density[k] *= WINTER_SPARSE[layer.name]
+	var scatter: bool = layer.has("scatter")
+	if scatter:
+		var factor: float = GroundScatter.quality(_quality()).density * GroundScatter.biome_density(layer.name, biome)
+		for k in density.size():
+			density[k] *= factor
 	var buffers: Array = sim_host.scatter_deco(
 		x0, z0, DECO_CHUNK_M, spacing, layer.seed, density,
 		layer.wood, layer.patchiness, PackedFloat32Array(layer.weights), layer.scale, layer.sink,
-		layer.get("shore", Vector2.ZERO), 0.0, layer.get("rock", 0.0)
+		layer.get("shore", Vector2.ZERO), 0.0,
+		Vector3(layer.get("rock", 0.0), layer.get("edge", 0.0), layer.get("macro", 0.0))
 	)
 	var nodes: Array = []
 	for v in buffers.size():
@@ -716,8 +761,20 @@ func _build_deco(layer_index: int, square: Vector2i) -> void:
 		if buffer.is_empty() or mesh == null:
 			continue
 		var node := _multimesh(mesh, buffer, Transform3D.IDENTITY)
-		_apply_look(node, layer.get("tint", Color.WHITE))
 		node.name = "%s_%d_%d_%d" % [layer.name, v, square.x, square.y]
+		if scatter:
+			# The shader shrinks the scatter to nothing at the range; a square
+			# is drawn while any part of it is within the range.
+			var q := GroundScatter.quality(_quality())
+			var shadow: bool = q.shadows and bool(layer.shadows[v])
+			node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if shadow \
+				else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			node.visibility_range_end = float(q.range) + DECO_CHUNK_M * 0.7072
+			_deco_root.add_child(node)
+			nodes.append(node)
+			deco_instances += buffer.size() / 12
+			continue
+		_apply_look(node, layer.get("tint", Color.WHITE))
 		node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if layer.shadow \
 			else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		node.visibility_range_end = layer.range

@@ -3331,6 +3331,99 @@ low off (`ground_relief` 0), medium without the shadows, high both. Cost on an
 M1 Max at 1728 × 1084, high: about +3–4 ms per frame at 120 and 600 m (shadows
 about 1 ms of it), none on low.
 
+**Ground scatter (prompt 191, parts 3–5).** Real geometry everywhere in the
+picture, beyond the 55 m of the tufts: low shrubs (0.4–0.9 m, dark, three
+lumps), fern and herb clumps, dry stalks with seed heads (dock, thistle) and
+field stones (0.1–0.4 m). `scenes/world/ground_scatter.gd` builds the meshes
+procedurally (109 / 36 / 36 / 25 / 30 triangles, one material
+`assets/shaders/ground_scatter.gdshader`, no model files, no catalog entry,
+so no thumbnails); `map_objects.gd` places them as four decoration layers
+`scatter_shrubs`, `scatter_herbs`, `scatter_stalks`, `scatter_stones` on the
+lattice of prompt 013 (spacing 3 / 1.5 / 1.7 / 2.2 m). Placement in Rust
+(`objects.rs::scatter`, two new layer values passed as
+`rock_edge_macro` because godot-rust takes at most 14 parameters):
+
+- `edge`: density × (1 + edge) in a 4 m band along objects (hedges, walls,
+  houses), field tracks, roads and fields (`DecoRasters::edge`, a dilated
+  raster built once per map) and at the edge of woods (wood density around
+  one half); shrubs ×4, stalks ×3.5, herbs ×2.5, stones ×2 there.
+- `macro`: groups of about 90 m on top of the 25 m patches.
+- Moisture: the shader keeps herbs to the lush and damp areas and stalks to
+  the dry ones of the meadow palette (the same dryness as the ground color,
+  read per instance), and mud has more herbs and shrubs.
+- Biome (`BIOME_DENSITY`, `scatter_look`): desert grey-olive scrub, bleached
+  stalks, twice the (sandy) stones, no fern; winter dark twigs and dead stalks,
+  few stones with snow caps, no fern. Not on tall grass (it has its own
+  shrubs), roads, fields or water.
+
+Range and fade: the shader shrinks every instance into the ground between
+72 % and 100 % of `scatter_range` from the game camera (also in shadow
+passes, `MAIN_CAM_INV_VIEW_MATRIX`), so nothing pops; a square is drawn
+while any part of it is within the range. Only shrubs and the large stones
+cast shadows. Vehicles: the shader reads the track raster of
+`ground_tracks.gd` (prompt 104) across a hull's width; shrubs are pressed
+flat and brown, everything else disappears under ruts, churned and worn
+ground (presentation only; it grows back as the tracks fade). Craters clear
+it like every decoration layer (`craters_changed`).
+
+| Quality | Range | Density | Shadows |
+|---|---|---|---|
+| low | 90 m | 0.4 | no |
+| medium | 120 m | 0.7 | shrubs, large stones |
+| high | 150 m | 1.0 | shrubs, large stones |
+
+Cost (`SCATTER_AB=1 just terrain-bench`, test_large, meadow by the village,
+M1 Max, render size 1280 × 720 that day, all variants in one run; frame
+time in ms, scatter / without scatter / before prompt 191 = also without
+relief; medium and low run into the 120 FPS display limit):
+
+| Quality | 45 m | 110 m | 300 m |
+|---|---|---|---|
+| high | 14.06 / 13.90 / 13.59 | 14.46 / 14.07 / 13.53 | 11.68 / 11.64 / 11.05 |
+| medium | 8.75 / 8.65 / 8.64 | 8.65 / 8.56 / 8.47 | 8.34 / 8.34 / 8.34 |
+| low | 8.37 / 8.34 / 8.35 | 8.33 / 8.33 / 8.33 | at the limit |
+
+On high the scatter adds 0.2–0.4 ms and 0.3–0.6 M triangles (+53 / +93
+draw calls) at 45 and 110 m, nothing at 300 m (beyond its range). `just
+bench-view` (back to back, without first): standing 150 m 14.59 → 15.05 ms;
+the battle views of the second run were spoiled by 433 frames the window
+could not draw (600 m, where no scatter is drawn, lost as much as 40 m),
+and a repeat in reverse order lost thousands of frames that way, so the
+battle cost is not measured.
+
+Flicker (`just ground-motion --near --png`, back to back, frame match
+4–8 / 2–4 px, 1 = stable), with scatter and relief / with
+`--off=scatter,relief`: 15 m 0.974 / 0.819 against 0.975 / 0.821, 35 m
+0.956 / 0.712 against 0.957 / 0.720, 55 m 0.971 / 0.778 against 0.960 /
+0.775, 55 m far window 0.976 / 0.754 against 0.951 / 0.754; no worse than
+the table above. The hand-over between the three clump sizes while zooming
+was not watched (the tools compare standing or panning frames only).
+
+**SSAO (3.2).** Tried stronger contact shadows (intensity 2.6 instead of
+1.6, power 1.6, light affect 0.35, quality high at full size; variant
+`ssao_strong`, shots `SCATTER_SSAO=1`): at 45 and 110 m no visible
+difference on the meadow, the shrubs or the stones (the meadow relief and
+the shrubs' own shading already darken the gaps), +0.2–0.3 ms on high.
+Not adopted.
+
+**Photo scans (3.3)** were skipped: they need downloads (ambientCG, Poly
+Haven), which the autonomous session did not make.
+
+**From parts 1/2.** Desert and winter keep no meadow relief of their own
+(provisional, decided autonomously): sand and snow are smooth in the
+reference, and the scatter (scrub, stalks, stones, twigs) gives them the
+small dark spots. `ambush_meadow`'s meadow is tall grass, which draws its
+own stand: no relief and no scatter there, unchanged.
+
+Tools: `SHOT_SET=scatter just terrain-shots <absolute dir> [map]` records
+45, 110 and 300 m with scatter and relief and as before the prompt
+(`SCATTER_MARKER=<marker>` or `SCATTER_FOCUS=x,z`; test_large: the meadow
+by the village; `SCATTER_OFF=1` only before, `SCATTER_SSAO=1` scatter
+against stronger SSAO); `SCATTER_AB=1 just terrain-bench` measures the same
+three views as `scatter`, `no_scatter`, `before_191` and `ssao_strong` in
+one run; `--trailer-off=scatter,relief` turns both off in trailer shots and
+`just ground-motion`.
+
 Open: footprints and drag marks of soldiers (a presentation trail texture;
 prompt 040 brings tracks into the same shader), mowing stripes (pastures of
 the period were grazed, not mown), crater ejecta on grass, seasons (the biome
@@ -4098,6 +4191,11 @@ units; measured before the map objects of prompt 013 were merged):
 
 Every level stays far above the 60 FPS target. Most of the cost of "high" is
 MSAA 4× and the full-size SSAO.
+
+Meadow relief and ground scatter (prompt 191) have their own values per
+level (`ground_relief`, `ground_shadows`, `scatter_range`,
+`scatter_density`, `scatter_shadows`); table and cost in "Meadow (prompt
+057)".
 
 ### Tools
 

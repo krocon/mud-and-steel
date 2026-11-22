@@ -50,6 +50,12 @@ const DECO_CLEARANCE_M: i32 = 1;
 const WOOD_CELL_M: f32 = 8.0;
 /// Trunks in the 3 x 3 cells around a wood cell that count as dense wood.
 const WOOD_FULL: f32 = 6.0;
+/// Width of the edge band (prompt 191) along hedges, walls, houses, field
+/// tracks, roads and fields, in which layers with `edge` grow denser.
+const EDGE_M: f32 = 4.0;
+/// Terrain ids whose border makes an edge band: field track, road, grain,
+/// green and ploughed fields.
+const EDGE_TERRAIN: [u8; 5] = [1, 2, 9, 10, 11];
 
 fn f(v: Fixed) -> f32 {
     v.to_num::<f32>()
@@ -256,6 +262,9 @@ pub struct DecoRasters {
     blocked: Vec<bool>,
     /// Map samples in the seam around rocks (prompt 074), 0 or 1.
     rock: Vec<f32>,
+    /// Map samples in the edge band (prompt 191), 0 or 1: within `EDGE_M`
+    /// of an object (not trees) or an `EDGE_TERRAIN` sample, but not on it.
+    edge: Vec<f32>,
     /// Wood density 0..1 per `WOOD_CELL_M` cell.
     wood: Vec<f32>,
     wood_size: (usize, usize),
@@ -336,6 +345,7 @@ impl DecoRasters {
                 }
             }
         }
+        let edge = edge_band(map, &blocked, cell_m);
         // 3 x 3 sum of trunks, scaled to 0..1.
         let (w, h) = wood_size;
         let mut wood = vec![0.0; w * h];
@@ -356,6 +366,7 @@ impl DecoRasters {
             half,
             blocked,
             rock,
+            edge,
             wood,
             wood_size,
         }
@@ -403,6 +414,39 @@ impl DecoRasters {
     }
 }
 
+/// The edge band of [`DecoRasters::edge`]: sources are samples covered by
+/// objects (`blocked`) and samples of `EDGE_TERRAIN`; every other sample
+/// within `EDGE_M` of a source (square dilation, separable max) gets 1.
+fn edge_band(map: &Map, blocked: &[bool], cell_m: f32) -> Vec<f32> {
+    let (sx, sy) = (map.samples().0 as usize, map.samples().1 as usize);
+    let terrain = map.terrain_ids();
+    let source: Vec<bool> = (0..sx * sy)
+        .map(|k| blocked[k] || EDGE_TERRAIN.contains(&terrain[k]))
+        .collect();
+    let r = (EDGE_M / cell_m.max(0.1)).ceil() as usize;
+    let mut rows = vec![false; sx * sy];
+    for j in 0..sy {
+        for i in 0..sx {
+            let row = &source[j * sx + i.saturating_sub(r)..=j * sx + (i + r).min(sx - 1)];
+            rows[j * sx + i] = row.contains(&true);
+        }
+    }
+    let mut edge = vec![0.0f32; sx * sy];
+    for j in 0..sy {
+        for i in 0..sx {
+            let k = j * sx + i;
+            if source[k] {
+                continue;
+            }
+            let near = (j.saturating_sub(r)..=(j + r).min(sy - 1)).any(|b| rows[b * sx + i]);
+            if near {
+                edge[k] = 1.0;
+            }
+        }
+    }
+    edge
+}
+
 /// Parameters of one decoration layer (e.g. grass clumps).
 pub struct DecoLayer<'a> {
     /// Lattice spacing in meters: at most one instance per lattice point.
@@ -431,6 +475,13 @@ pub struct DecoLayer<'a> {
     /// Extra density in the seam around rocks (prompt 074), added on soft
     /// ground (grass, sand, mud, snow, tall grass).
     pub rock: f32,
+    /// Extra density factor in the edge band (prompt 191) along hedges,
+    /// walls, houses, tracks, roads and fields, and at the edge of woods
+    /// (wood density around one half): density × (1 + edge).
+    pub edge: f32,
+    /// Large-scale groups (prompt 191): density × (1 ± macro) by a noise of
+    /// about 90 m, on top of the 25 m patches.
+    pub macro_noise: f32,
 }
 
 /// Scale factor of an instance at the edge of a frayed layer: `coverage`
@@ -532,6 +583,15 @@ pub fn scatter(
             density *= 1.0 + layer.patchiness * (patch * 2.0 - 1.0);
             let wood = rasters.wood_at(x, z);
             density *= 1.0 + (layer.wood_factor - 1.0) * wood;
+            if layer.edge > 0.0 {
+                let band = rasters.interpolate(x, z, |i| rasters.edge[i]);
+                let wood_edge = (4.0 * wood * (1.0 - wood)).clamp(0.0, 1.0);
+                density *= 1.0 + layer.edge * band.max(wood_edge);
+            }
+            if layer.macro_noise > 0.0 {
+                let groups = noise(layer.seed ^ 0x3ac9, x, z, 90.0);
+                density *= (1.0 + layer.macro_noise * (groups * 2.0 - 1.0)).max(0.0);
+            }
             if unit(h) >= density {
                 continue;
             }
@@ -591,6 +651,8 @@ mod tests {
             shore: (0.0, 0.0),
             fray,
             rock: 0.0,
+            edge: 0.0,
+            macro_noise: 0.0,
         }
     }
 
@@ -628,6 +690,40 @@ mod tests {
             .collect();
         assert!(!edge.is_empty() && edge.iter().all(|&s| s < 1.0));
         assert!(edge.iter().all(|&s| s >= 0.4 - 1e-5));
+    }
+
+    /// Prompt 191: a layer with `edge` grows denser in the band along a
+    /// field track (id 1) and not on the track itself.
+    #[test]
+    fn edge_band_is_denser_along_a_track() {
+        let (sx, sy) = (41u32, 21u32);
+        let mut terrain = vec![0u8; (sx * sy) as usize];
+        for j in 0..sy {
+            terrain[(j * sx + 20) as usize] = 1;
+        }
+        let layout = MapLayout {
+            name: "t".into(),
+            samples_x: sx,
+            samples_y: sy,
+            cell_size_mm: 2000,
+            starts: Vec::new(),
+            markers: Vec::new(),
+        };
+        let map = Map::from_rasters(layout, vec![0; (sx * sy) as usize], terrain).unwrap();
+        let density = [0.1];
+        let mut edged = layer(&density, 0.0);
+        edged.edge = 4.0;
+        let plain = scatter_x(&map, &layer(&density, 0.0));
+        let dense = scatter_x(&map, &edged);
+        let near = |v: &[(f32, f32)]| {
+            v.iter()
+                .filter(|&&(x, _)| x.abs() > 1.0 && x.abs() < 5.0)
+                .count()
+        };
+        let far = |v: &[(f32, f32)]| v.iter().filter(|&&(x, _)| x.abs() > 15.0).count();
+        assert!(near(&dense) > 2 * near(&plain));
+        assert_eq!(far(&dense), far(&plain));
+        assert!(dense.iter().all(|&(x, _)| x.abs() > 0.9));
     }
 
     #[test]
