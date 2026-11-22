@@ -24,7 +24,7 @@ default, so a 1-against-1 from the lobby is bit for bit the old match.
 | Flak does not fire at allied planes; allies see each other's planes and, with shared vision, the planes an ally spots (prompt 033 merged) | `sim/air.rs` |
 | Nobody commands an ally's units | unchanged (`owned_indices`) |
 | A match is decided once every undefeated player is an ally of the others; `Outcome::winner` is the lowest undefeated player of the winning team, `Sim::winners()` the whole team | `outcome.rs` |
-| A surrender hands nothing over: the units stay where they are with their fire mode **[provisional]** | `outcome.rs` |
+| A surrender hands nothing over: the units stay where they are with their fire mode **[provisional]**; in a cooperative mission (prompt 190) the units pass to the first other human of the side still playing ([MISSIONS.md](MISSIONS.md#seat-cooperative-missions)) | `outcome.rs`, `sim/mission.rs` |
 
 Ground attacks and fragments still hurt everybody: they are physics, and
 the AI keeps barrages away from allies.

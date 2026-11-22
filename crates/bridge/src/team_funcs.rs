@@ -102,6 +102,9 @@ pub(crate) fn start_setup<L: Link>(
 ) -> Result<(), String> {
     let map = load_map(map_dir)?;
     let setup = node.setup().clone();
+    if setup.mode == "mission" {
+        return start_mission_setup(node, seed, map_dir, &map, &setup, hold_fire);
+    }
     let mut config =
         sim::scenario::build_in_variant(&map, &setup.variant, seed.cast_unsigned(), |m| {
             slots_config(&setup.mode, m, &setup_slots(&setup), setup.shared_vision)
@@ -112,6 +115,79 @@ pub(crate) fn start_setup<L: Link>(
         }
     }
     // The seed is a bit pattern; reinterpreting the sign is intended.
+    node.start(
+        seed.cast_unsigned(),
+        config,
+        crate::lan::LAN_INPUT_DELAY,
+        crate::lan::LAN_HASH_INTERVAL,
+    )
+    .map(|_| ())
+}
+
+/// Host, mode `mission` (prompt 190): the mission file
+/// `map_dir/missions/<id>.toml` at the lobby's level; the human slots play
+/// their seats, free seats are merged into the leader, the mission's
+/// computer players take their slots.
+fn start_mission_setup<L: Link>(
+    node: &mut LobbyNode<L>,
+    seed: i64,
+    map_dir: &str,
+    map: &Map,
+    setup: &LobbySetup,
+    hold_fire: bool,
+) -> Result<(), String> {
+    let dir = std::path::Path::new(map_dir);
+    let path = dir
+        .join(sim::mission::MISSIONS_DIR)
+        .join(format!("{}.toml", setup.mission));
+    let text = std::fs::read_to_string(&path)
+        .map_err(|e| format!("cannot read {}: {e}", path.display()))?;
+    let points = std::fs::read_to_string(dir.join(sim::mission::POINTS_FILE)).ok();
+    let humans: Vec<PlayerId> = setup
+        .slots
+        .iter()
+        .enumerate()
+        .filter(|(_, s)| s.kind == SlotKind::Human)
+        .filter_map(|(i, _)| u8::try_from(i).ok().map(PlayerId))
+        .collect();
+    let level = sim::mission::Level::parse(&setup.level).unwrap_or_default();
+    let mut config = sim::mission::parse_mission_with_seats(
+        &setup.mission,
+        &text,
+        points.as_deref(),
+        &Catalog::builtin().map_err(|e| e.to_string())?,
+        &Scale::builtin().map_err(|e| e.to_string())?,
+        &TerrainRules::builtin().map_err(|e| e.to_string())?,
+        map,
+        level,
+        &humans,
+    )
+    .map_err(|e| e.to_string())?;
+    // The mission's own computer players, at the level's difficulty.
+    let computers = config
+        .mission
+        .as_ref()
+        .map(|m| m.computers.clone())
+        .unwrap_or_default();
+    node.edit_setup(|s| {
+        for (p, difficulty) in &computers {
+            let i = usize::from(p.0);
+            while s.slots.len() <= i {
+                s.slots.push(LobbySlot {
+                    kind: SlotKind::Closed,
+                    team: 1,
+                    faction: String::new(),
+                });
+            }
+            s.slots[i].kind = SlotKind::Computer(difficulty.clone());
+            s.slots[i].team = 1;
+        }
+    });
+    if hold_fire {
+        for spawn in &mut config.spawns {
+            spawn.fire_mode = sim::FireMode::HoldFire;
+        }
+    }
     node.start(
         seed.cast_unsigned(),
         config,
@@ -167,7 +243,17 @@ pub(crate) fn lobby_match<L: Link>(node: &LobbyNode<L>) -> VarDictionary {
         "mode" => setup.mode.clone(),
         "shared_vision" => setup.shared_vision,
         "variant" => setup.variant.clone(),
+        "mission" => setup.mission.clone(),
+        "level" => setup.level.clone(),
     }
+}
+
+/// Host: the mission (id) and difficulty of mode `mission` (prompt 190).
+pub(crate) fn set_lobby_mission<L: Link>(node: &mut LobbyNode<L>, mission: &str, level: &str) {
+    node.edit_setup(|s| {
+        mission.clone_into(&mut s.mission);
+        level.clone_into(&mut s.level);
+    });
 }
 
 /// Host: the start layout of the lobby's map (prompt 182).

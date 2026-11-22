@@ -89,7 +89,8 @@ delay of the LAN applies unchanged (`ceil((rtt + variance) / 2 / 50 ms) + 1`,
 
 | What | Value |
 |------|-------|
-| Start layout | the host picks it like in the LAN lobby (`SteamLobby.set_variant`, prompt 182; protocol 8) |
+| Start layout | the host picks it like in the LAN lobby (`SteamLobby.set_variant`, prompt 182) |
+| Cooperative mission | `SteamLobby.set_mission(id, level)` like the LAN lobby (prompt 190; protocol 9): the host's screen offers **Cooperative mission** and **Difficulty**; the clients do not see the briefing there yet (the LAN lobby shows it) |
 | Lobby data | `game = mud-and-steel`, `protocol = <net::lobby::PROTOCOL_VERSION>`, `name = <host's Steam name>`, `started = 1` once the match runs (the lobby is then also set not joinable) |
 | Lobby size | 6 members (prompt 037: the slots follow the map's starts, [TEAMS.md](TEAMS.md)) |
 | Lobby list | filter `game`, distance worldwide; incompatible protocol versions are shown and refused by the host |

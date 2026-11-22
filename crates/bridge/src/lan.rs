@@ -292,6 +292,14 @@ impl LanLobby {
         }
     }
 
+    /// Host: mission id and difficulty of the mode `mission` (prompt 190).
+    #[func]
+    fn set_mission(&mut self, mission: GString, level: GString) {
+        if let Some(node) = &mut self.node {
+            team_funcs::set_lobby_mission(node, &mission.to_string(), &level.to_string());
+        }
+    }
+
     /// Host: starts the lobby's match for everyone, on the built-in map or
     /// the map folder `map_dir` (absolute path, "" = built-in).
     #[func]

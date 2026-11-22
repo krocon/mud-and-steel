@@ -58,6 +58,13 @@ pub struct LobbySetup {
     /// (picked from the match seed) or a `[[variant]]` name.
     #[serde(default)]
     pub variant: String,
+    /// Mode `mission` (prompt 190): the mission's id (its file
+    /// `<map>/missions/<id>.toml`) and difficulty (`easy`, `normal`,
+    /// `hard`).
+    #[serde(default)]
+    pub mission: String,
+    #[serde(default)]
+    pub level: String,
 }
 
 impl LobbySetup {
@@ -80,6 +87,8 @@ impl LobbySetup {
             mode: "battle".into(),
             shared_vision: true,
             variant: String::new(),
+            mission: String::new(),
+            level: String::new(),
         }
     }
 

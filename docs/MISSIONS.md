@@ -59,6 +59,7 @@ Items marked [provisional] are decisions the user should confirm.
 | The village square | United States | desert_village | Clear the square of German infantry and a tank, then take its supply point. |
 | Town in the snow | Germany | town_small (winter look) | Destroy the Soviet outpost on the square, then the Soviet relief that drives in from the north edge. |
 | Holding the meadow (`meadow_hold`, prompt 189) | Germany | twin_meadow | The counterpart of Meadow crossing: hold the western meadow's supply point for five minutes (timer) against two waves of T-34s and riflemen from the south until the relief drives in from the north; lost if the Soviets take the point. Optional: keep the anti-tank gun in action. |
+| Two bridges (`two_bridges`, prompt 190, cooperative) | United States | river_land | Two seats: "Bridge" (player 0) takes the far end of the stone bridge from infantry with a machine gun, "Flank" (player 2) destroys the half-tracks of the counterattack over the southern timber bridge before they get behind the lines (else the mission is lost). Alone, one player commands both forces. |
 | Breaking out (`village_breakout`, prompt 189) | United States | desert_village | Cut off on the village square: break through a screen of riflemen and a machine gun and bring six of eight units to the road out in the south (count) before German tanks from the north arrive (timer). Optional: both trucks out. |
 
 The example missions use the passive computer player (holds its ground and
@@ -107,6 +108,39 @@ second). Unknown keys are errors.
 | `player` | 0 | The human player. |
 | `elimination` | `true` | Enemies lose when their last unit is destroyed, as in a skirmish. `false`: only the script decides; the player still loses with the last unit. |
 | `economy` | `false` | Base building: adds the base buildings and the production lists of the factions in the mission. |
+
+### `[[seat]]` (cooperative missions)
+
+Prompt 190. Further human players on the side of `[mission] player` (the
+leader):
+
+| Key | Default | Meaning |
+|---|---|---|
+| `player` | – | The seat's player id: it needs start groups of its own, may not be a computer player or the leader. |
+| `name` | `Player <n>` | Shown in the lobby ("Flank"). |
+| `briefing` | `""` | The seat's own part, shown in the lobby. |
+
+- **Free seats are merged** [provisional]: a seat nobody takes (always in
+  single player, or an open slot in the lobby) belongs to the leader:
+  its units, the units spawned for it and every condition about it become
+  the leader's (`sim::mission::take_seats`, applied when the match is set
+  up, so replays and saves see the result). The leader and the taken seats
+  are one team with shared vision against all other players of the mission.
+- **Leaving** [provisional]: a human of the side who gives up (the game
+  menu's surrender) hands every unit, with its orders, to the first other
+  human of the side still playing (the leader first, then the seats);
+  the match goes on. The last one to give up loses the mission for the
+  side. A lost connection still ends the match for everyone, as in every
+  network match (no pause and no loading over the network).
+- Objectives, messages and the panel are the same for everybody; victory
+  and defeat are the whole side's.
+- **Lobby** (LAN, Steam): **Cooperative mission** lists the missions with
+  seats, with **Difficulty**; the host plays the leader, the seats are open
+  slots on team 0, the other slots up to the highest seat are the
+  mission's computer players on team 1 (their difficulty comes from the
+  script and the level when it starts). Everybody sees the mission's title,
+  difficulty, briefing and the seats' parts. Lobby protocol 9 (`mission`
+  and `level` in `LobbySetup`).
 
 ### `[[computer]]`
 
@@ -226,6 +260,7 @@ a group that has no units at a level is an error (it could never fire).
 | The village square | garrison 50 % (one squad, the tank) | computer `normal`, garrison 150 % | one Sherman left before the square is cleared |
 | Town in the snow | relief 50 % (one T-34) | computer `normal`, outpost 200 %, relief 150 % | one Panzer IV left before the relief is beaten |
 | Holding the meadow | first wave 50 % (one T-34, one squad), second wave 50 % | first wave 150 %, second wave 150 % and 30 % earlier | every Panzer IV lost while the point is held |
+| Two bridges | garrison and counterattack 50 %, the counterattack 50 % later | a Panzer IV in the garrison, computer `normal`, everything 150 % | one Sherman left on the side while both objectives are open |
 | Breaking out | screen 50 %, the tanks 50 % later | an anti-tank gun in the screen, screen 150 %, the tanks 150 % and 40 % earlier | fewer than six units left before six are out |
 
 Measured against the test autopilot (`every_level_of_every_mission`,
@@ -235,7 +270,11 @@ on every level; meadow crossing 390 / 391 / 84 s; village square 80 / 80 /
 202 s; town in the snow 82 / 83 / 72 s. Chapters 2–5 (no levels): 368,
 201, 167 (one tank lost on purpose by the route) and 50 s. Hard is not always longer: with `computer = "normal"`
 the enemy comes out to fight the autopilot's column instead of waiting.
-Prompt 189 (same test, Easy / Normal / Hard): holding the meadow 303 /
+Prompt 190 (same test, both seats on the one autopilot): two bridges 265 /
+925 s, not won on Hard. The autopilot now splits its units by the nearest
+active objective (a front per seat) and never attacks units riding in a
+vehicle; the game's self-test plays cooperative missions on Easy (on
+Normal its autopilot let the half-tracks break through). Prompt 189 (same test, Easy / Normal / Hard): holding the meadow 303 /
 303 / 303 s (the relief decides it; 1 / 0 / 2 own units lost), breaking out
 69 / 65 s and not won on Hard (the anti-tank gun); first versions were not
 winnable: an anti-tank gun in the breakout's screen on Normal shot every
@@ -403,6 +442,11 @@ file written by hand next to it [provisional: no script editor in the game].
 - `crates/sim/tests/mission_levels.rs` (prompt 181): the values of each
   level, `levels` of groups, level errors, start resources, the `fewer`
   condition with `open` and the `hopeless` action.
+- `crates/sim/tests/mission_coop.rs` (prompt 190): free seats merged,
+  taken seats on the leader's team, units passed on when a human gives up,
+  errors; `crates/net/tests/lobby.rs` carries mission and level in the
+  setup; `just lan-selftest` plays `two_bridges` with the client in the
+  seat (it gives up, the host gets its units, then gives up).
 - `crates/sim/tests/mission_rating.rs` (prompt 189): `reach` counts units
   that left the area again, timers and counts of objectives, optional
   objectives and the rating, errors; `sim::campaign` tests the campaign
@@ -430,8 +474,9 @@ file written by hand next to it [provisional: no script editor in the game].
 
 ## Open
 
-- Multiplayer or cooperative missions (the script supports teams, the menu
-  and lobby do not offer missions).
+- Prompt 190: the leader has no seat name of its own in the lobby; a
+  seat cannot be re-taken after its player gave up; competitive missions
+  (humans on both sides) are not offered; only one cooperative mission.
 - Prompt 189: units that reach a `reach` area stay on the map (they do
   not leave it and can still be shot); a campaign mission cannot be
   restarted from its outro; one campaign only; the time star of a defense

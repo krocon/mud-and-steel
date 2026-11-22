@@ -1,0 +1,42 @@
+# Translation of the mission two_bridges (prompt 043). msgid: the English text of the
+# mission file; `just mission-po` adds new texts, see docs/MISSIONS.md.
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: de\n"
+
+msgid "Two bridges"
+msgstr "Zwei Brücken"
+
+msgid "The river line holds. Two crossings matter: the stone bridge in the middle, held by German infantry with a machine gun on the far bank, and the timber bridge in the south, over which their counterattack will come. One commander takes the stone bridge, the other holds the southern flank: neither succeeds alone."
+msgstr "Die Flusslinie hält. Zwei Übergänge zählen: die Steinbrücke in der Mitte, am anderen Ufer von deutscher Infanterie mit einem MG gehalten, und die Holzbrücke im Süden, über die ihr Gegenangriff kommen wird. Ein Kommandeur nimmt die Steinbrücke, der andere hält die Südflanke: allein schafft es keiner."
+
+msgid "Flank"
+msgstr "Flanke"
+
+msgid "You hold the southern timber bridge. Stop whatever comes over it before it gets behind our lines. Player 1 takes the stone bridge."
+msgstr "Du hältst die südliche Holzbrücke. Halte auf, was darüber kommt, bevor es hinter unsere Linien gelangt. Spieler 1 nimmt die Steinbrücke."
+
+msgid "Bridge: take the far end of the stone bridge with at least two units."
+msgstr "Brücke: Nimm das andere Ende der Steinbrücke mit mindestens zwei Einheiten."
+
+msgid "Flank: destroy the vehicles of the counterattack over the southern bridge."
+msgstr "Flanke: Vernichte die Fahrzeuge des Gegenangriffs über die Südbrücke."
+
+msgid "Bridge: take the stone bridge. Flank: the counterattack comes over the timber bridge in the south."
+msgstr "Brücke: Nehmt die Steinbrücke. Flanke: Der Gegenangriff kommt über die Holzbrücke im Süden."
+
+msgid "The stone bridge is ours."
+msgstr "Die Steinbrücke ist unser."
+
+msgid "Enemy half-tracks are crossing the southern bridge!"
+msgstr "Feindliche Schützenpanzer fahren über die Südbrücke!"
+
+msgid "The counterattack is beaten off."
+msgstr "Der Gegenangriff ist abgewehrt."
+
+msgid "The enemy is behind our lines."
+msgstr "Der Feind ist hinter unseren Linien."
+
+msgid "Only one Sherman is left on our side. The crossings can hardly be won."
+msgstr "Auf unserer Seite ist nur noch ein Sherman übrig. Die Übergänge sind kaum noch zu gewinnen."

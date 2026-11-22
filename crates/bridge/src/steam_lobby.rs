@@ -348,6 +348,17 @@ impl SteamLobby {
         let _ = variant;
     }
 
+    /// Host: mission and difficulty of the mode `mission` (prompt 190), as
+    /// `LanLobby.set_mission`.
+    #[func]
+    fn set_mission(&mut self, mission: GString, level: GString) {
+        #[cfg(feature = "steam")]
+        if let Some(node) = self.lobby.as_mut().and_then(OnlineLobby::node_mut) {
+            crate::team_funcs::set_lobby_mission(node, &mission.to_string(), &level.to_string());
+        }
+        let _ = (mission, level);
+    }
+
     /// Host: starts the lobby's match for everyone, on the built-in map or
     /// the map folder `map_dir` (absolute path, "" = built-in).
     #[func]

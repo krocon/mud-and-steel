@@ -103,6 +103,11 @@ func run(menu: Control) -> Control:
 		if m["kind"] != "mission":
 			continue
 		var level: String = ["easy", "hard"][played] if played < 2 else "normal"
+		# Prompt 190: a cooperative mission played alone (both seats on one
+		# autopilot) on Easy.
+		var seats: PackedInt64Array = m.get("seats", PackedInt64Array())
+		if not seats.is_empty():
+			level = "easy"
 		played += 1
 		menu.missions_button.pressed.emit()
 		await flow._frames(2)
@@ -319,6 +324,43 @@ func _autopilot(main: Node3D, info: Dictionary) -> void:
 		_build_or_produce(main, objective["unit"])
 	if objective["position"] == null or own.is_empty():
 		return
+	# Prompt 190: with several active objectives that have an area (a
+	# cooperative mission played alone: a front per seat) every unit works
+	# for the objective nearest to it, like `crates/ai/tests/missions.rs`.
+	var fronts: Array[Dictionary] = []
+	for o: Dictionary in info["objectives"]:
+		if o["state"] == "active" and o["position"] != null:
+			fronts.append(o)
+	var ids := host.unit_ids()
+	var positions := host.current_positions()
+	var where := {}
+	for i in ids.size():
+		where[ids[i]] = positions[i]
+	var groups: Array[PackedInt64Array] = []
+	for f in fronts:
+		groups.append(PackedInt64Array())
+	for id in own:
+		var p: Vector3 = where.get(id, Vector3.ZERO)
+		var best_k := 0
+		var best_d := INF
+		for k in fronts.size():
+			var c: Vector3 = fronts[k]["position"]
+			var d := Vector2(p.x - c.x, p.z - c.z).length_squared()
+			if d < best_d:
+				best_d = d
+				best_k = k
+		# Packed arrays are values: append to the element, then store it.
+		var group := groups[best_k]
+		group.append(id)
+		groups[best_k] = group
+	for k in fronts.size():
+		if not groups[k].is_empty():
+			_front_orders(host, fronts[k], groups[k])
+
+
+## One objective with an area: attack the nearest enemy near it, else go
+## there.
+func _front_orders(host: SimHost, objective: Dictionary, own: PackedInt64Array) -> void:
 	var center: Vector3 = objective["position"]
 	# Prompt 189: an objective with a timer is held: only enemies close to
 	# it are attacked.
@@ -327,10 +369,12 @@ func _autopilot(main: Node3D, info: Dictionary) -> void:
 	var owners := host.unit_owners()
 	var alive := host.unit_alive()
 	var positions := host.current_positions()
+	# Prompt 190: units riding in a vehicle cannot be attacked.
+	var carriers := host.unit_carriers()
 	var best := -1
 	var best_d := INF
 	for i in ids.size():
-		if owners[i] == host.local_player() or alive[i] == 0:
+		if owners[i] == host.local_player() or alive[i] == 0 or carriers[i] >= 0:
 			continue
 		var d := Vector2(positions[i].x - center.x, positions[i].z - center.z).length()
 		if d <= reach and d < best_d:

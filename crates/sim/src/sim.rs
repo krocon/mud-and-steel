@@ -1475,7 +1475,12 @@ impl Sim {
                     vehicles_only: *vehicles_only,
                 },
             ),
-            Command::Surrender => self.standings.surrender(command.player, self.tick + 1),
+            Command::Surrender => {
+                // Prompt 190: in a cooperative mission the units go to the
+                // ally who plays on.
+                self.hand_over_on_surrender(command.player);
+                self.standings.surrender(command.player, self.tick + 1);
+            }
             Command::SetStance { units, stance } => {
                 for index in self.owned_indices(command.player, units) {
                     self.set_stance(index, *stance);

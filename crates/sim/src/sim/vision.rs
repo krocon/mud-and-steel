@@ -161,6 +161,18 @@ impl Vision {
         }
     }
 
+    /// Takes unit `i`'s viewshed out of the vision of `owner` (prompt
+    /// 190: before the unit changes hands); the next update computes it
+    /// for the new owner.
+    pub(super) fn release_shed(&mut self, i: usize, owner: PlayerId) {
+        if let (Some(shed), Some(s)) = (
+            self.sheds.get_mut(i).and_then(Option::take),
+            self.slot(owner),
+        ) {
+            self.per_player[s].remove(&self.grid, &shed);
+        }
+    }
+
     /// Removes a viewshed added by [`Self::add_air_shed`].
     pub(super) fn remove_air_shed(&mut self, player: PlayerId, shed: &Viewshed) {
         if let Some(s) = self.slot(player) {

@@ -1,0 +1,217 @@
+# Prompt 190: a cooperative mission for two players (also playable alone:
+# a free seat is merged into the mission's player). Format and seats:
+# docs/MISSIONS.md "Cooperative missions". Freely invented situation.
+
+[mission]
+title = "Two bridges"
+kind = "mission"
+order = 6
+faction = "us"
+briefing = """
+The river line holds. Two crossings matter: the stone bridge in the middle, \
+held by German infantry with a machine gun on the far bank, and the timber bridge in \
+the south, over which their counterattack will come. One commander takes the \
+stone bridge, the other holds the southern flank: neither succeeds alone."""
+player = 0
+elimination = false
+
+[[computer]]
+player = 1
+difficulty = "passive"
+
+# The second human seat (prompt 190). Player 0 ("Bridge") is the leader.
+[[seat]]
+player = 2
+name = "Flank"
+briefing = "You hold the southern timber bridge. Stop whatever comes over it before it gets behind our lines. Player 1 takes the stone bridge."
+
+[[area]]
+name = "bridgehead"
+center_m = [55, 1]
+radius_m = 35
+
+[[area]]
+name = "south_bridge"
+center_m = [-60, 281]
+radius_m = 80
+
+[[area]]
+name = "rear"
+center_m = [-430, 300]
+radius_m = 45
+
+[[spawn]]
+name = "east_south"
+position_m = [300, 300]
+
+[[group]]
+name = "bridge_force"
+owner = 0
+unit = "us_m4a3_75"
+count = 3
+position_m = [-400, -110]
+
+[[group]]
+name = "bridge_force"
+owner = 0
+unit = "us_inf_rifle_squad"
+count = 2
+position_m = [-400, -70]
+
+[[group]]
+name = "flank_force"
+owner = 2
+unit = "us_m4a3_75"
+count = 2
+position_m = [-400, 120]
+
+[[group]]
+name = "flank_force"
+owner = 2
+unit = "us_57mm_m1"
+count = 1
+position_m = [-370, 150]
+
+[[group]]
+name = "flank_force"
+owner = 2
+unit = "us_inf_rifle_squad"
+count = 1
+position_m = [-420, 160]
+
+[[group]]
+name = "garrison"
+owner = 1
+unit = "de_inf_mg42_team"
+count = 1
+position_m = [60, 10]
+
+# A tank only on Hard: on Normal it shot the test autopilot's Shermans on
+# the deck from the front.
+[[group]]
+name = "garrison"
+owner = 1
+unit = "de_pz4_h"
+count = 1
+position_m = [75, 20]
+levels = ["hard"]
+
+[[group]]
+name = "garrison"
+owner = 1
+unit = "de_inf_rifle_squad"
+count = 2
+position_m = [45, -25]
+
+[[objective]]
+id = "bridge"
+text = "Bridge: take the far end of the stone bridge with at least two units."
+area = "bridgehead"
+shown = true
+
+[[objective]]
+id = "flank"
+text = "Flank: destroy the vehicles of the counterattack over the southern bridge."
+area = "south_bridge"
+shown = true
+timer = "counter"
+
+[[trigger]]
+id = "briefing"
+when = "time"
+actions = [
+  { do = "text", text = "Bridge: take the stone bridge. Flank: the counterattack comes over the timber bridge in the south." },
+]
+
+[[trigger]]
+id = "taken"
+when = "area"
+area = "bridgehead"
+count = 2
+actions = [
+  { do = "objective", objective = "bridge", state = "done" },
+  { do = "text", text = "The stone bridge is ours." },
+]
+
+[[trigger]]
+id = "counter"
+when = "time"
+delay_s = 120
+actions = [
+  { do = "text", text = "Enemy half-tracks are crossing the southern bridge!" },
+  { do = "spawn", group = "counterattack", owner = 1, unit = "de_sdkfz251_1", count = 2, at = "east_south", arrive = "drive" },
+  { do = "spawn", group = "counterattack", owner = 1, unit = "de_sdkfz222", count = 1, at = "east_south", arrive = "drive" },
+  { do = "spawn", group = "counterattack", owner = 1, unit = "de_inf_rifle_squad", count = 2, at = "east_south", arrive = "drive", ride = "counterattack" },
+  { do = "order", group = "counterattack", to = "south_bridge", order = "advance" },
+]
+
+# A minute later what is left tries to break through behind our lines.
+[[trigger]]
+id = "break_through"
+after = ["counter"]
+when = "time"
+delay_s = 60
+actions = [
+  { do = "order", group = "counterattack", to = "rear", order = "advance" },
+]
+
+[[trigger]]
+id = "flank_held"
+after = ["counter"]
+# Its vehicles are what threatens the rear; a squad left on foot does not
+# count (it may hide out of sight).
+when = "fewer"
+unit = "de_sdkfz"
+player = 1
+count = 1
+actions = [
+  { do = "objective", objective = "flank", state = "done" },
+  { do = "text", text = "The counterattack is beaten off." },
+]
+
+[[trigger]]
+id = "victory"
+after = ["taken", "flank_held"]
+when = "time"
+delay_s = 3
+actions = [{ do = "victory" }]
+
+[[trigger]]
+id = "rear_lost"
+after = ["counter"]
+# Two vehicles behind our lines (riders aboard do not count extra).
+when = "area"
+area = "rear"
+player = 1
+unit = "de_sdkfz"
+count = 2
+open = ["flank"]
+actions = [
+  { do = "objective", objective = "flank", state = "failed" },
+  { do = "text", text = "The enemy is behind our lines." },
+  { do = "defeat" },
+]
+
+[[trigger]]
+id = "hopeless"
+when = "fewer"
+unit = "us_m4"
+count = 2
+open = ["bridge", "flank"]
+actions = [
+  { do = "hopeless", text = "Only one Sherman is left on our side. The crossings can hardly be won." },
+]
+
+[rating]
+par_s = 360
+losses_pct = 30
+
+[difficulty.easy]
+enemy_start_pct = 50
+enemy_count_pct = 50
+enemy_delay_pct = 150
+
+[difficulty.hard]
+computer = "normal"
+enemy_start_pct = 150
+enemy_count_pct = 150

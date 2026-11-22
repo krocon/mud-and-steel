@@ -21,6 +21,7 @@ extends Control
 const LanMatch := preload("res://scenes/lan/lan_match.gd")
 const MatchSetup := preload("res://scenes/menu/match_setup.gd")
 const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
+const Missions := preload("res://scenes/menu/missions.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
 const SlotList := preload("res://scenes/menu/slot_list.gd")
 const MAIN_SCENE := "res://scenes/main.tscn"
@@ -49,6 +50,10 @@ var _mode: OptionButton
 ## Start layout of the map (prompt 182): `MatchSetup.variant_choices`.
 var _variant: OptionButton
 var _variants: Array[Dictionary] = []
+## Cooperative missions (prompt 190), as in the LAN lobby.
+var _mission: OptionButton
+var _missions: Array[Dictionary] = []
+var _level: OptionButton
 var _shared_vision: CheckBox
 var _slot_list: SlotList
 ## The host applied map, mode and slots to its new lobby (prompt 037).
@@ -159,6 +164,19 @@ func _build_ui() -> void:
 		_mode.add_item(MatchSetup.MODES[id])
 	_mode.select(MatchSetup.MODES.keys().find("battle"))
 	_setup.add_child(_labeled("LOBBY_MODE_HOST", _mode))
+	_mission = OptionButton.new()
+	_mission.add_item("LOBBY_MISSION_NONE")
+	for m in Missions.list():
+		var seats: PackedInt64Array = m.get("seats", PackedInt64Array())
+		if m.get("ok", false) and not seats.is_empty():
+			_missions.append(m)
+			_mission.add_item(Missions.text(m["path"], m["title"]))
+	_setup.add_child(_labeled("LOBBY_MISSION_HOST", _mission))
+	_level = OptionButton.new()
+	for level: String in Missions.LEVELS:
+		_level.add_item(Missions.LEVEL_KEYS[level])
+	_level.select(Missions.LEVELS.find("normal"))
+	_setup.add_child(_labeled("MENU_LEVEL", _level))
 	_shared_vision = CheckBox.new()
 	_shared_vision.text = "LOBBY_SHARED_VISION"
 	_shared_vision.button_pressed = true
@@ -276,6 +294,9 @@ func _on_host() -> void:
 ## the map's teams (prompt 037).
 func _apply_match_settings() -> void:
 	_match_applied = true
+	if _mission.selected > 0:
+		_apply_mission_settings(_missions[_mission.selected - 1])
+		return
 	var map_name: String = _args["--map"] if _args.has("--map") and _args["--map"] in _maps else _maps[_map.selected]
 	var starts := MatchSetup.map_starts(map_name)
 	_lobby.set_match(map_name, MatchSetup.MODES.keys()[_mode.selected], _shared_vision.button_pressed, starts.size())
@@ -310,9 +331,26 @@ func _join(code: String) -> void:
 		print("Steam: joining lobby %s" % code)
 
 
+## Host, prompt 190: a cooperative mission, as `lan_lobby.gd`.
+func _apply_mission_settings(m: Dictionary) -> void:
+	var seats: PackedInt64Array = m["seats"]
+	var count := 2
+	for p in seats:
+		count = maxi(count, int(p) + 1)
+	_lobby.set_match(m["map"], "mission", true, count)
+	_lobby.set_mission(m["id"], Missions.LEVELS[maxi(_level.selected, 0)])
+	for i in count:
+		var seat := i == 0 or seats.has(i)
+		if i > 0:
+			_lobby.set_slot_kind(i, "open" if seat else "computer", "passive")
+		_lobby.set_slot_side(i, 0 if seat else 1, "")
+
+
 func _on_start() -> void:
 	var map_dir := ""
-	if _args.has("--map"):
+	if _mission.selected > 0:
+		map_dir = GamePaths.map_dir(_missions[_mission.selected - 1]["map"])
+	elif _args.has("--map"):
 		map_dir = GamePaths.map_dir(_args["--map"])
 	else:
 		map_dir = MatchSetup.map_dir(_maps[_map.selected])

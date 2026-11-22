@@ -19,6 +19,8 @@ extends Control
 ##                             players on one team, the humans on the other
 ##                             (prompt 037; the self-test plays 2 against 2)
 ##   --mode=<battle|base>      host: the mode
+##   --lan-mission=<id>        host: the cooperative mission (prompt 190)
+##   --level=<easy|normal|hard>  host: its difficulty
 ##
 ## Slots (prompt 037): the host sets who plays in each slot (open, closed,
 ## a computer and its difficulty), teams and factions; a client changes
@@ -28,6 +30,7 @@ extends Control
 const LanMatch := preload("res://scenes/lan/lan_match.gd")
 const MatchSetup := preload("res://scenes/menu/match_setup.gd")
 const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
+const Missions := preload("res://scenes/menu/missions.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
 const SlotList := preload("res://scenes/menu/slot_list.gd")
 const MAIN_SCENE := "res://scenes/main.tscn"
@@ -62,6 +65,11 @@ var _mode: OptionButton
 var _variant: OptionButton
 var _variants: Array[Dictionary] = []
 var _shared_vision: CheckBox
+## Cooperative missions (prompt 190): "none" first, then the mission
+## headers with seats; and the difficulty.
+var _mission: OptionButton
+var _missions: Array[Dictionary] = []
+var _level: OptionButton
 var _slot_list: SlotList
 var _slot_hint: Label
 ## Returns to the main menu (prompt 027).
@@ -145,6 +153,23 @@ func _build_ui() -> void:
 		_mode.add_item(MatchSetup.MODES[id])
 	_mode.select(MatchSetup.MODES.keys().find(_args.get("--mode", "battle")))
 	_setup.add_child(_labeled("LOBBY_MODE_HOST", _mode))
+	# Prompt 190: a cooperative mission instead of a battle.
+	_mission = OptionButton.new()
+	_mission.add_item("LOBBY_MISSION_NONE")
+	for m in Missions.list():
+		var seats: PackedInt64Array = m.get("seats", PackedInt64Array())
+		if m.get("ok", false) and not seats.is_empty():
+			_missions.append(m)
+			_mission.add_item(Missions.text(m["path"], m["title"]))
+	for k in _missions.size():
+		if _missions[k]["id"] == _args.get("--lan-mission", ""):
+			_mission.select(k + 1)
+	_setup.add_child(_labeled("LOBBY_MISSION_HOST", _mission))
+	_level = OptionButton.new()
+	for level: String in Missions.LEVELS:
+		_level.add_item(Missions.LEVEL_KEYS[level])
+	_level.select(maxi(Missions.LEVELS.find(_args.get("--level", "normal")), 0))
+	_setup.add_child(_labeled("MENU_LEVEL", _level))
 	_shared_vision = CheckBox.new()
 	_shared_vision.text = "LOBBY_SHARED_VISION"
 	_shared_vision.button_pressed = true
@@ -241,6 +266,9 @@ func _on_host() -> void:
 ## Host: map, mode, shared vision and one slot per start position of the
 ## map, with the teams the map suggests (prompt 037).
 func _apply_match_settings() -> void:
+	if not _chosen_mission().is_empty():
+		_apply_mission_settings(_chosen_mission())
+		return
 	var map_name := _selected_map()
 	var starts := MatchSetup.map_starts(map_name)
 	var mode: String = MatchSetup.MODES.keys()[_mode.selected]
@@ -259,6 +287,33 @@ func _apply_match_settings() -> void:
 			_lobby.set_slot_side(i, 1 if computer else 0, "")
 		# Nobody fires on their own: the test ends by surrender.
 		_lobby.hold_fire_at_start = LanMatch.self_test
+
+
+## The chosen cooperative mission's header, {} for a battle.
+func _chosen_mission() -> Dictionary:
+	return _missions[_mission.selected - 1] if _mission.selected > 0 else {}
+
+
+## Host, prompt 190: mode `mission` on the mission's map; slot 0 is the
+## host (the mission's player), the seats are open for humans on team 0,
+## the other slots are the mission's computers on team 1.
+func _apply_mission_settings(m: Dictionary) -> void:
+	var seats: PackedInt64Array = m["seats"]
+	var count := 2
+	for p in seats:
+		count = maxi(count, int(p) + 1)
+	_lobby.set_match(m["map"], "mission", true, count)
+	_lobby.set_mission(m["id"], Missions.LEVELS[maxi(_level.selected, 0)])
+	for i in count:
+		var seat := i == 0 or seats.has(i)
+		# Slots up to the highest seat that are no seat belong to the
+		# mission's computers; the host sets their difficulty when the
+		# mission starts.
+		if i > 0:
+			_lobby.set_slot_kind(i, "open" if seat else "computer", "passive")
+		_lobby.set_slot_side(i, 0 if seat else 1, "")
+	# Nobody fires on their own in the self-test: it ends by surrender.
+	_lobby.hold_fire_at_start = LanMatch.self_test
 
 
 func _selected_map() -> String:
@@ -295,7 +350,9 @@ func _join(address: String) -> void:
 
 func _on_start() -> void:
 	var map_dir := ""
-	if _args.has("--map"):
+	if not _chosen_mission().is_empty():
+		map_dir = GamePaths.map_dir(_chosen_mission()["map"])
+	elif _args.has("--map"):
 		map_dir = GamePaths.map_dir(_args["--map"])
 	else:
 		map_dir = MatchSetup.map_dir(_maps[_map.selected])
@@ -357,6 +414,9 @@ func _update_lobby() -> void:
 			tr(summary).format({"map": settings.get("map", ""), "mode": tr(MatchSetup.MODES.get(settings.get("mode", ""), ""))}),
 			tr("LOBBY_HINT_HOST_SLOTS" if _lobby.is_host() else "LOBBY_HINT_CLIENT_SLOTS"),
 		]
+		# Prompt 190: the briefing of a cooperative mission for everyone.
+		if settings.get("mode", "") == "mission":
+			_slot_hint.text = mission_briefing(settings)
 	_slot_hint.visible = state == "lobby"
 	var status: String
 	match state:
@@ -431,3 +491,21 @@ func _fill_variants() -> void:
 
 func _chosen_variant() -> String:
 	return _variants[_variant.selected]["name"] if _variant.selected >= 0 and not _variants.is_empty() else "standard"
+
+
+## The lobby's mission for everyone (prompt 190): title, difficulty,
+## briefing and every seat's own part.
+static func mission_briefing(settings: Dictionary) -> String:
+	var path := GamePaths.map_dir(settings.get("map", "")).path_join("missions").path_join("%s.toml" % settings.get("mission", ""))
+	var header: Dictionary = SimHost.mission_header(path)
+	if not header.get("ok", false):
+		return String(settings.get("mission", ""))
+	var lines: PackedStringArray = [
+		"%s (%s)" % [Missions.text(path, header["title"]), TranslationServer.translate(Missions.LEVEL_KEYS.get(settings.get("level", "normal"), "MENU_LEVEL_NORMAL"))],
+		Missions.text(path, header.get("briefing", "")),
+	]
+	var names: PackedStringArray = header.get("seat_names", PackedStringArray())
+	var players: PackedInt64Array = header.get("seats", PackedInt64Array())
+	for k in names.size():
+		lines.append(TranslationServer.translate("LOBBY_MISSION_SEAT").format({"player": players[k] + 1, "name": Missions.text(path, names[k])}))
+	return "\n".join(lines)

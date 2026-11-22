@@ -390,7 +390,8 @@ func _record_victory() -> void:
 	if recorded or sim_host.is_replay():
 		return
 	var result: Dictionary = sim_host.match_result()
-	if result["decided"] and result["winner"] == sim_host.local_player():
+	# Prompt 190: in a cooperative mission the winner may be an ally.
+	if result["decided"] and (result["winner"] == sim_host.local_player() or (result["winner"] >= 0 and sim_host.local_team_won())):
 		recorded = true
 		var rating: Dictionary = sim_host.mission_info().get("rating", {})
 		Missions.mark_done(info.get("id", ""), str(info.get("level", "normal")), int(rating.get("stars", 0)))

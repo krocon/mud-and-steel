@@ -84,6 +84,99 @@ pub struct Mission {
     /// What a victory is rated by (prompt 189).
     #[serde(default)]
     pub rating: Rating,
+    /// Further human seats of a cooperative mission (prompt 190); empty
+    /// for single-player missions. See [`take_seats`].
+    #[serde(default)]
+    pub seats: Vec<Seat>,
+}
+
+/// A human seat of a cooperative mission (prompt 190, `[[seat]]`): a
+/// player on the side of [`Mission::player`] with its own start groups.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Seat {
+    pub player: PlayerId,
+    /// Shown in the lobby ("Flank").
+    pub name: String,
+    /// The seat's own part of the briefing.
+    pub briefing: String,
+    /// A human plays it; `false`: merged into the leader (see
+    /// [`take_seats`]).
+    pub taken: bool,
+}
+
+/// Gives the seats of a cooperative mission to their players (prompt 190):
+/// seats in `humans` stay their own player; every other seat is merged
+/// into the leader ([`Mission::player`]): its units, the units spawned for
+/// it and every condition about it become the leader's. The leader and the
+/// seats form one team with shared vision against every other player of
+/// the mission (one team). Without seats nothing changes (single-player
+/// missions keep their hashes). An input of the scenario, applied before
+/// the match starts.
+pub fn take_seats(config: &mut SimConfig, humans: &[PlayerId]) {
+    let Some(mission) = config.mission.as_mut() else {
+        return;
+    };
+    if mission.seats.is_empty() {
+        return;
+    }
+    let leader = mission.player;
+    for seat in &mut mission.seats {
+        seat.taken = humans.contains(&seat.player);
+    }
+    let merged: Vec<PlayerId> = mission
+        .seats
+        .iter()
+        .filter(|s| !s.taken)
+        .map(|s| s.player)
+        .collect();
+    let map = |p: &mut PlayerId| {
+        if merged.contains(p) {
+            *p = leader;
+        }
+    };
+    for spawn in &mut config.spawns {
+        map(&mut spawn.owner);
+    }
+    for trigger in &mut mission.triggers {
+        match &mut trigger.condition {
+            Condition::Area { player, .. }
+            | Condition::Eliminated { player }
+            | Condition::Captured { player, .. }
+            | Condition::Units { player, .. }
+            | Condition::Fewer { player, .. }
+            | Condition::Stance { player, .. }
+            | Condition::Garrison { player, .. }
+            | Condition::Spotted { player, .. }
+            | Condition::Air { player }
+            | Condition::Reach { player, .. } => map(player),
+            Condition::Unseen { player, by, .. } => {
+                map(player);
+                map(by);
+            }
+            Condition::Always
+            | Condition::Destroyed { .. }
+            | Condition::Signal { .. }
+            | Condition::Pinned { .. }
+            | Condition::Smoke { .. } => {}
+        }
+        for action in &mut trigger.actions {
+            match action {
+                Action::Spawn { owner, .. } => map(owner),
+                Action::Air { player, .. } => map(player),
+                _ => {}
+            }
+        }
+    }
+    let mut side: Vec<PlayerId> = vec![leader];
+    side.extend(mission.seats.iter().filter(|s| s.taken).map(|s| s.player));
+    let mut players: Vec<PlayerId> = config.spawns.iter().map(|s| s.owner).collect();
+    players.sort_unstable();
+    players.dedup();
+    let members: Vec<(PlayerId, u8)> = players
+        .iter()
+        .map(|&p| (p, u8::from(!side.contains(&p))))
+        .collect();
+    config.teams = crate::teams::Teams::new(&members, true);
 }
 
 /// What a won mission is rated by (prompt 189, `[rating]`): one star each
@@ -531,6 +624,19 @@ struct MissionFile {
     difficulty: DifficultyFile,
     #[serde(default)]
     rating: RatingFile,
+    /// Human seats of a cooperative mission (prompt 190).
+    #[serde(default)]
+    seat: Vec<SeatFile>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct SeatFile {
+    player: u8,
+    #[serde(default)]
+    name: String,
+    #[serde(default)]
+    briefing: String,
 }
 
 /// `[rating]` (prompt 189).
@@ -817,12 +923,23 @@ pub fn mission_header(text: &str) -> Result<MissionHeader, MissionError> {
     Ok(file.mission)
 }
 
+/// The human seats of a mission file besides its player (prompt 190):
+/// player id and name; empty for single-player missions.
+pub fn mission_seats(text: &str) -> Result<Vec<(u8, String)>, MissionError> {
+    let file: MissionFile = toml::from_str(text).map_err(|e| MissionError(e.to_string()))?;
+    Ok(file.seat.into_iter().map(|s| (s.player, s.name)).collect())
+}
+
 /// Every text of a mission file the player reads, in file order without
 /// repeats: title, briefing, objective texts and `text` actions. The keys
 /// of its translations (`<id>.<lang>.po`, prompt 043).
 pub fn mission_texts(text: &str) -> Result<Vec<String>, MissionError> {
     let file: MissionFile = toml::from_str(text).map_err(|e| MissionError(e.to_string()))?;
     let mut texts: Vec<String> = vec![file.mission.title, file.mission.briefing];
+    for seat in file.seat {
+        texts.push(seat.name);
+        texts.push(seat.briefing);
+    }
     texts.extend(file.objective.into_iter().map(|o| o.text));
     texts.extend(
         file.trigger
@@ -870,8 +987,44 @@ pub fn parse_mission(
 /// `[difficulty.<level>]` values are applied (computer difficulty, counts
 /// of spawned units, delays, start resources) and groups with `levels`
 /// that leave out `level` are dropped.
+/// Seats of a cooperative mission (prompt 190) are all merged into the
+/// mission's player (single player); see [`parse_mission_with_seats`].
 #[allow(clippy::too_many_arguments)]
 pub fn parse_mission_at(
+    id: &str,
+    text: &str,
+    points: Option<&str>,
+    catalog: &Catalog,
+    scale: &Scale,
+    terrain: &TerrainRules,
+    map: &Map,
+    level: Level,
+) -> Result<SimConfig, MissionError> {
+    parse_mission_with_seats(id, text, points, catalog, scale, terrain, map, level, &[])
+}
+
+/// [`parse_mission_at`] for a lobby (prompt 190): the seats of `humans`
+/// are played by them, the others merged into the mission's player
+/// ([`take_seats`]).
+#[allow(clippy::too_many_arguments)]
+pub fn parse_mission_with_seats(
+    id: &str,
+    text: &str,
+    points: Option<&str>,
+    catalog: &Catalog,
+    scale: &Scale,
+    terrain: &TerrainRules,
+    map: &Map,
+    level: Level,
+    humans: &[PlayerId],
+) -> Result<SimConfig, MissionError> {
+    let mut config = parse_mission_raw(id, text, points, catalog, scale, terrain, map, level)?;
+    take_seats(&mut config, humans);
+    Ok(config)
+}
+
+#[allow(clippy::too_many_arguments)]
+fn parse_mission_raw(
     id: &str,
     text: &str,
     points: Option<&str>,
@@ -1357,6 +1510,35 @@ pub fn parse_mission_at(
         return err("the player cannot be a computer player");
     }
 
+    // Prompt 190: human seats besides the leader, each with units of its
+    // own at the start and not played by the computer.
+    let mut seats: Vec<Seat> = Vec::new();
+    for f in &file.seat {
+        let p = PlayerId(f.player);
+        if p == player || seats.iter().any(|s| s.player == p) {
+            return err(format!(
+                "seat {} is the mission's player or listed twice",
+                f.player
+            ));
+        }
+        if !players.contains(&p) {
+            return err(format!("seat {} has no units at the start", f.player));
+        }
+        if computers.iter().any(|(c, _)| *c == p) {
+            return err(format!("seat {} is a computer player", f.player));
+        }
+        seats.push(Seat {
+            player: p,
+            name: if f.name.is_empty() {
+                format!("Player {}", f.player + 1)
+            } else {
+                f.name.clone()
+            },
+            briefing: f.briefing.clone(),
+            taken: false,
+        });
+    }
+
     // Prompt 189: timers and counts shown with an objective.
     let mut objectives = objectives;
     for (o, f) in objectives.iter_mut().zip(&file.objective) {
@@ -1396,6 +1578,7 @@ pub fn parse_mission_at(
             par_ticks: u64::from(file.rating.par_s) * u64::from(tick_hz),
             losses_pct: file.rating.losses_pct.unwrap_or(25).min(100),
         },
+        seats,
     };
     Ok(SimConfig {
         tick_hz,

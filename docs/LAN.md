@@ -121,9 +121,14 @@ and faction), a client its own team and faction; the host runs the computer
 players. Since prompt 182 the host also picks the **start layout** of the
 map (`LanLobby.set_variant`); `random` is resolved from the match seed when
 the host starts, and the `StartInfo` carries the result in its
-`SimConfig::variant`. `PROTOCOL_VERSION` is 8 (older clients are rejected
-with "protocol version 7, the host has 8"); the self-tests take
-`--variant=<name>`.
+`SimConfig::variant`. Since prompt 190 the host can choose a **cooperative
+mission** instead of a battle (`LanLobby.set_mission(id, level)`, mode
+`mission`; [MISSIONS.md](MISSIONS.md#seat-cooperative-missions)): the
+seats are the open slots, the mission's computers run on the host.
+`PROTOCOL_VERSION` is 9 (older clients are rejected with "protocol version
+8, the host has 9"); the self-tests take `--variant=<name>`,
+`--lan-mission=<id>` and `--level=<level>`. `just lan-selftest` plays a
+second round in the mission `two_bridges` (`LAN_MISSION=` skips it).
 
 ## Tests
 

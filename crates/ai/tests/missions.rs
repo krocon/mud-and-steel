@@ -142,50 +142,98 @@ fn autopilot(sim: &Sim, player: PlayerId, tick: u64) -> Vec<Command> {
             });
         }
     }
-    if let Some((center, radius)) = objective.area {
-        // The nearest enemy the player sees near the objective is attacked
-        // first, like a player would.
-        let mut seen = sim::Snapshot::default();
-        sim.snapshot_into(Some(player), &mut seen);
-        // Prompt 189: an objective with a timer is held, so only enemies
-        // close to it are attacked (the defense stays in place).
-        let around = if objective.timer_ticks.is_some() {
-            120
-        } else {
-            300
-        };
-        let reach = radius + sim::Fixed::from_num(around);
-        let distance_bits = |p: Vec2| {
-            let d = p - center;
+    if objective.area.is_some() {
+        // Prompt 190: with several active objectives that have an area (a
+        // cooperative mission played alone: a front per seat), every unit
+        // works for the objective whose area is nearest to it.
+        let fronts: Vec<sim::ObjectiveView> = sim
+            .mission_objectives()
+            .into_iter()
+            .filter(|o| o.state == ObjectiveState::Active && o.area.is_some())
+            .collect();
+        let bits = |d: Vec2| {
             let (x, y) = (i128::from(d.x.to_bits()), i128::from(d.y.to_bits()));
             x * x + y * y
         };
-        let reach_bits = i128::from(reach.to_bits()).pow(2);
-        let enemy = seen
-            .units
-            .iter()
-            .filter(|u| u.owner != player && u.alive() && distance_bits(u.position) <= reach_bits)
-            .min_by_key(|u| (distance_bits(u.position), u.id));
-        if let Some(enemy) = enemy {
-            out.push(Command::Attack {
-                units: own,
-                target: enemy.id,
-            });
-            return out;
+        let mut seen = sim::Snapshot::default();
+        sim.snapshot_into(Some(player), &mut seen);
+        for (k, front) in fronts.iter().enumerate() {
+            let Some((center, radius)) = front.area else {
+                continue;
+            };
+            let units: Vec<UnitId> = snapshot
+                .units
+                .iter()
+                .filter(|u| own.contains(&u.id))
+                .filter(|u| {
+                    let nearest = fronts
+                        .iter()
+                        .enumerate()
+                        .min_by_key(|(j, f)| {
+                            (f.area.map_or(i128::MAX, |(c, _)| bits(u.position - c)), *j)
+                        })
+                        .map(|(j, _)| j);
+                    nearest == Some(k)
+                })
+                .map(|u| u.id)
+                .collect();
+            if units.is_empty() {
+                continue;
+            }
+            front_orders(&seen, player, front, (center, radius), units, &mut out);
         }
-        // The plain move (M): every unit at its own speed. Driving
-        // together (prompt 187) kept the Shermans of the village square
-        // at the riflemen's pace into a frontal duel with the Panzer IV
-        // that this autopilot, which never flanks, lost.
-        out.push(Command::FormationMove {
-            units: own,
-            target: center,
-            formation: Formation::Auto,
-            facing: None,
-            engage: Engage::Never,
-        });
     }
     out
+}
+
+/// The orders for one objective with an area: the nearest enemy the
+/// player sees near it is attacked first, like a player would; else the
+/// units go there.
+fn front_orders(
+    seen: &sim::Snapshot,
+    player: PlayerId,
+    objective: &sim::ObjectiveView,
+    (center, radius): (Vec2, sim::Fixed),
+    units: Vec<UnitId>,
+    out: &mut Vec<Command>,
+) {
+    // Prompt 189: an objective with a timer is held, so only enemies close
+    // to it are attacked (the defense stays in place).
+    let around = if objective.timer_ticks.is_some() {
+        120
+    } else {
+        300
+    };
+    let reach = radius + sim::Fixed::from_num(around);
+    let distance_bits = |p: Vec2| {
+        let d = p - center;
+        let (x, y) = (i128::from(d.x.to_bits()), i128::from(d.y.to_bits()));
+        x * x + y * y
+    };
+    let reach_bits = i128::from(reach.to_bits()).pow(2);
+    let enemy = seen
+        .units
+        .iter()
+        .filter(|u| u.owner != player && u.alive() && distance_bits(u.position) <= reach_bits)
+        .min_by_key(|u| (distance_bits(u.position), u.id));
+    if let Some(enemy) = enemy {
+        out.push(Command::Attack {
+            units,
+            target: enemy.id,
+        });
+        return;
+    }
+    // The plain move (M): every unit at its own speed. Driving together
+    // (prompt 187) kept the Shermans of the village square at the
+    // riflemen's pace into a frontal duel with the Panzer IV that this
+    // autopilot, which never flanks, lost.
+    out.push(Command::FormationMove {
+        units,
+        target: center,
+        formation: Formation::Auto,
+        facing: None,
+        engage: Engage::Never,
+    });
 }
 
 /// Orders for the goals of prompt 180 (stance, building, spotting,
@@ -564,7 +612,12 @@ fn debug_units() {
     let files = mission_files();
     let (map_name, id, path) = files.iter().find(|(_, id, _)| *id == wanted).unwrap();
     let map = load_map(map_name);
-    let config = config_of(&map, map_name, id, path);
+    // `LEVEL=easy|normal|hard` (prompt 190), default normal.
+    let level = std::env::var("LEVEL")
+        .ok()
+        .and_then(|l| Level::parse(&l))
+        .unwrap_or_default();
+    let config = config_at(&map, map_name, id, path, level);
     let end: u64 = std::env::var("END")
         .ok()
         .and_then(|v| v.parse().ok())

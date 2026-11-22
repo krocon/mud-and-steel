@@ -59,7 +59,8 @@ impl SimHost {
 
     /// Header of a mission file for the menu: `ok`, `error`, `id`, `map`,
     /// `title`, `kind` (`mission`, `tutorial`), `order`, `faction`,
-    /// `briefing`, `biome`.
+    /// `briefing`, `biome`; prompt 190: `seats` (player ids of further
+    /// human seats, empty for single-player missions) and `seat_names`.
     #[func]
     fn mission_header(mission_path: GString) -> VarDictionary {
         let path = mission_path.to_string();
@@ -74,22 +75,36 @@ impl SimHost {
             .and_then(Path::file_name)
             .map(|s| s.to_string_lossy().into_owned())
             .unwrap_or_default();
-        let header = std::fs::read_to_string(file)
-            .map_err(|e| e.to_string())
-            .and_then(|text| mission_header(&text).map_err(|e| e.to_string()));
+        let text = std::fs::read_to_string(file).map_err(|e| e.to_string());
+        let seats = text
+            .as_ref()
+            .ok()
+            .and_then(|t| sim::mission::mission_seats(t).ok())
+            .unwrap_or_default();
+        let header = text.and_then(|text| mission_header(&text).map_err(|e| e.to_string()));
+        let seat_players: PackedInt64Array = seats.iter().map(|(p, _)| i64::from(*p)).collect();
+        let seat_names: PackedStringArray = seats
+            .iter()
+            .map(|(_, n)| GString::from(n.as_str()))
+            .collect();
         match header {
-            Ok(h) => vdict! {
-                "ok" => true,
-                "error" => "",
-                "id" => id,
-                "map" => map,
-                "title" => h.title,
-                "kind" => h.kind,
-                "order" => i64::from(h.order),
-                "faction" => h.faction,
-                "briefing" => h.briefing,
-                "biome" => h.biome,
-            },
+            Ok(h) => {
+                let mut d = vdict! {
+                    "ok" => true,
+                    "error" => "",
+                    "id" => id,
+                    "map" => map,
+                    "title" => h.title,
+                    "kind" => h.kind,
+                    "order" => i64::from(h.order),
+                    "faction" => h.faction,
+                    "briefing" => h.briefing,
+                    "biome" => h.biome,
+                };
+                d.set("seats", &seat_players);
+                d.set("seat_names", &seat_names);
+                d
+            }
             Err(e) => vdict! { "ok" => false, "error" => e, "id" => id, "map" => map },
         }
     }

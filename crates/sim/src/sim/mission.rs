@@ -279,6 +279,46 @@ impl Sim {
         Some((now, need))
     }
 
+    /// Prompt 190: a human of a cooperative mission who gives up hands
+    /// every unit to the first other human of the side who has not given
+    /// up (the leader first, then the seats in file order); without one
+    /// nothing changes. The new owner gets their orders as they are.
+    pub(super) fn hand_over_on_surrender(&mut self, player: PlayerId) {
+        let Some(m) = self.mission.as_deref() else {
+            return;
+        };
+        let humans: Vec<PlayerId> = std::iter::once(m.def.player)
+            .chain(m.def.seats.iter().filter(|s| s.taken).map(|s| s.player))
+            .collect();
+        if humans.len() < 2 || !humans.contains(&player) {
+            return;
+        }
+        let undefeated = |p: PlayerId| {
+            self.standings
+                .players()
+                .iter()
+                .any(|s| s.player == p && s.defeat.is_none())
+        };
+        let Some(heir) = humans
+            .iter()
+            .copied()
+            .find(|&p| p != player && undefeated(p))
+        else {
+            return;
+        };
+        if self.outcome().is_some() {
+            return;
+        }
+        for i in 0..self.units.len() {
+            if self.units[i].owner == player {
+                // Its viewshed counts for the old owner until now.
+                self.vision.release_shed(i, player);
+                self.units[i].owner = heir;
+                self.units[i].vision_dirty = true;
+            }
+        }
+    }
+
     /// The rating of the mission once the human player won it (prompt
     /// 189); `None` without a mission or before a victory.
     pub fn mission_rating(&self) -> Option<RatingView> {
@@ -435,9 +475,12 @@ impl Sim {
     /// without a mission and for the mission's player, for enemies only if
     /// the mission says so.
     pub(super) fn eliminable(&self, player: PlayerId) -> bool {
-        self.mission
-            .as_deref()
-            .is_none_or(|m| m.def.elimination || m.def.player == player)
+        self.mission.as_deref().is_none_or(|m| {
+            m.def.elimination
+                    || m.def.player == player
+                    // Prompt 190: the humans of a cooperative mission.
+                    || m.def.seats.iter().any(|s| s.taken && s.player == player)
+        })
     }
 
     /// Visits every trigger once (end of the tick, see the module docs).
