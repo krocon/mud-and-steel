@@ -419,6 +419,12 @@ pub struct SoldierSnapshot {
     pub knocked: u32,
     /// Where the blast that knocked him down (last) went off.
     pub knock_from: Vec2,
+    /// Prompt 194: his last throw by a blast: start point, the tick it
+    /// began and the flight time in ticks (0: never thrown). `position` is
+    /// already the landing point.
+    pub throw_from: Vec2,
+    pub throw_tick: u64,
+    pub flight: u32,
     /// Map object whose cover spot he stands at (prompt 048: cover poses).
     pub cover: Option<u32>,
     /// Wound state (prompt 049).
@@ -1861,6 +1867,9 @@ impl Sim {
                             in_cover: inside || x.at_spot(),
                             knocked: x.knocked,
                             knock_from: x.knock_from,
+                            throw_from: x.throw_from,
+                            throw_tick: x.throw_tick,
+                            flight: x.flight,
                             cover: x.cover.filter(|_| !inside && x.at_spot()),
                             wound,
                             aid,

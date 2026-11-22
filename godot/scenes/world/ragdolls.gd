@@ -19,6 +19,10 @@ extends Node3D
 
 ## Simultaneous ragdolls [provisional].
 const MAX_ACTIVE := 8
+## Prompt 194: soldiers thrown far by a big blast may use ragdolls beyond
+## MAX_ACTIVE, up to this many in all; the rest fly as a clip on the arc of
+## the simulation (`infantry_view.gd`). [provisional]
+const MAX_BURST := 16
 ## Camera distance up to which ragdolls are used [provisional].
 const MAX_DISTANCE_M := 60.0
 const SETTLE_SECONDS := 1.8
@@ -60,17 +64,24 @@ func is_active(member: Node3D) -> bool:
 	return _active.has(member.get_instance_id())
 
 
-## Whether a new ragdoll may start at `at`.
-func can_start(at: Vector3, camera_position: Vector3) -> bool:
-	return _active.size() < MAX_ACTIVE and at.distance_to(camera_position) <= MAX_DISTANCE_M
+## Whether a new ragdoll may start at `at`; `burst` for a far throw by a
+## big blast (own, higher limit).
+func can_start(at: Vector3, camera_position: Vector3, burst := false) -> bool:
+	var limit := MAX_BURST if burst else MAX_ACTIVE
+	return _active.size() < limit and at.distance_to(camera_position) <= MAX_DISTANCE_M
 
 
 ## Starts a ragdoll on `member` (a soldier with a Skeleton3D): every body
 ## gets `velocity` (m/s) and `spin` (rad/s about the hips); the floor lies at
 ## `ground_y`. `mode` "dead" freezes by itself, "down" waits for `release`.
-func start(member: Node3D, velocity: Vector3, spin: Vector3, ground_y: float, mode: String) -> bool:
+## Prompt 194, a throw by a blast: `landing` is where the simulation puts
+## him (the floor reaches from here to there; `Vector3.INF`: no throw) and
+## `gravity_scale` makes the bodies fall in game time (time factor 2: 4).
+func start(member: Node3D, velocity: Vector3, spin: Vector3, ground_y: float, mode: String,
+		landing := Vector3.INF, gravity_scale := 1.0) -> bool:
 	var key := member.get_instance_id()
-	if _active.has(key) or _active.size() >= MAX_ACTIVE:
+	var limit := MAX_ACTIVE if landing == Vector3.INF else MAX_BURST
+	if _active.has(key) or _active.size() >= limit:
 		return false
 	var skeleton := SoldierLook.find_skeleton(member)
 	if skeleton == null:
@@ -84,10 +95,17 @@ func start(member: Node3D, velocity: Vector3, spin: Vector3, ground_y: float, mo
 		if bone < 0:
 			continue
 		var body := _make_body(skeleton, bone, spec)
+		body.gravity_scale = gravity_scale
 		simulator.add_child(body)
 		body.global_transform = skeleton.global_transform * skeleton.get_bone_global_pose(bone)
 		bodies[bone] = body
-	var floor := _make_floor(member.global_position, ground_y)
+	var floor_at := member.global_position
+	var floor_size := FLOOR_SIZE_M
+	if landing != Vector3.INF:
+		floor_at = (floor_at + landing) * 0.5
+		floor_size = maxf(FLOOR_SIZE_M, Vector2(landing.x - member.global_position.x,
+				landing.z - member.global_position.z).length() + FLOOR_SIZE_M)
+	var floor := _make_floor(floor_at, ground_y, floor_size)
 	add_child(floor)
 	simulator.physical_bones_start_simulation()
 	var center := skeleton.global_transform * skeleton.get_bone_global_pose(skeleton.find_bone("Hips")).origin
@@ -253,13 +271,13 @@ func _make_body(skeleton: Skeleton3D, bone: int, spec: Array) -> PhysicalBone3D:
 	return body
 
 
-func _make_floor(at: Vector3, ground_y: float) -> StaticBody3D:
+func _make_floor(at: Vector3, ground_y: float, size: float) -> StaticBody3D:
 	var floor := StaticBody3D.new()
 	floor.name = "RagdollFloor"
 	floor.collision_layer = LAYER
 	floor.collision_mask = LAYER
 	var shape := BoxShape3D.new()
-	shape.size = Vector3(FLOOR_SIZE_M, 1.0, FLOOR_SIZE_M)
+	shape.size = Vector3(size, 1.0, size)
 	var collision := CollisionShape3D.new()
 	collision.shape = shape
 	floor.add_child(collision)

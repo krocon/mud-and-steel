@@ -262,3 +262,259 @@ fn a_tank_ammunition_explosion_knocks_the_squad_beside_it_down() {
         "no explosion, no knockdown"
     );
 }
+
+// Prompt 194: big charges throw farther, on a flight from the simulation,
+// never into blocked ground.
+
+/// 800 m × 800 m flat map around the origin: deep water (terrain 7) from
+/// `water_from_m` east on (none if `None`) and the given objects.
+fn map_with(water_from_m: Option<i32>, objects: &[String]) -> Arc<Map> {
+    let n = 401u32;
+    let layout = MapLayout {
+        name: "throw_test".into(),
+        samples_x: n,
+        samples_y: n,
+        cell_size_mm: 2000,
+        starts: Vec::new(),
+        markers: Vec::new(),
+    };
+    let count = (n * n) as usize;
+    let mut terrain = vec![0u8; count];
+    if let Some(from) = water_from_m {
+        for y in 0..n {
+            for x in 0..n {
+                // Sample x lies at (x - 200) × 2 m.
+                if (i64::from(x) - 200) * 2 >= i64::from(from) {
+                    terrain[(y * n + x) as usize] = 7;
+                }
+            }
+        }
+    }
+    let mut map = Map::from_rasters(layout, vec![0; count], terrain).unwrap();
+    if !objects.is_empty() {
+        map.add_objects(&format!(
+            "{}\n{}\n",
+            sim::objects::CSV_HEADER,
+            objects.join("\n")
+        ))
+        .unwrap();
+    }
+    Arc::new(map)
+}
+
+/// The soldiers thrown by one blast: (before, after) of every soldier of
+/// the squad whose throw began on this tick.
+struct Blast {
+    at: Vec2,
+    thrown: Vec<(SoldierSnapshot, SoldierSnapshot)>,
+}
+
+/// One rocket of `caliber` (mm × 10) from the mortar 150 m north onto `aim`
+/// next to a rifle squad at the origin in `st`, on `map`.
+fn blast_on_squad(map: Arc<Map>, caliber: u32, aim: Vec2, st: Stance, seed: u64) -> Blast {
+    let catalog = Catalog::builtin().unwrap();
+    let scale = Scale::builtin().unwrap();
+    let names = [MORTAR, SQUAD];
+    let config = SimConfig {
+        tick_hz: 20,
+        unit_types: unit_types_from_catalog(&catalog, &scale, &names).unwrap(),
+        spawns: [(P0, MORTAR, 0, 150), (P1, SQUAD, 0, 0)]
+            .iter()
+            .map(|&(owner, unit, x, y)| Spawn {
+                owner,
+                unit_type: unit.into(),
+                position: Vec2::from_meters(x, y),
+                fire_mode: FireMode::HoldFire,
+            })
+            .collect(),
+        map: map.reference(),
+        terrain: TerrainRules::builtin().unwrap(),
+        combat: CombatRules::builtin().unwrap(),
+        vision: sim::VisionRules::builtin().unwrap(),
+        infantry: InfantryRules::builtin().unwrap(),
+        teams: sim::Teams::default(),
+        weather: sim::WeatherSetup::default(),
+        mission: None,
+        variant: None,
+    };
+    let mut sim = Sim::new(&config, map, seed).unwrap();
+    sim.step(&[stance(1, st)]);
+    for _ in 0..80 {
+        sim.step(&[]);
+    }
+    assert!(sim.debug_rocket(UnitId(0), aim, caliber));
+    for _ in 0..20 * 60 {
+        let before = soldiers(&sim, 1);
+        sim.step(&[]);
+        let hit = sim.events().iter().find_map(|e| match e {
+            CombatEvent::Hit { shooter, at, .. } if *shooter == UnitId(0) => Some(at.ground()),
+            _ => None,
+        });
+        if let Some(at) = hit {
+            let tick = sim.snapshot().tick;
+            let after = soldiers(&sim, 1);
+            let thrown = before
+                .into_iter()
+                .zip(after)
+                .filter(|(_, b)| b.flight > 0 && b.throw_tick == tick)
+                .collect();
+            return Blast { at, thrown };
+        }
+    }
+    panic!("the rocket never landed");
+}
+
+fn meters(f: sim::Fixed) -> f64 {
+    f.to_num::<f64>()
+}
+
+#[test]
+fn the_throw_grows_with_the_charge() {
+    let rules = InfantryRules::builtin().unwrap().knockdown;
+    let air = sim::AirRules::builtin().unwrap();
+    // 8 cm stays as before prompt 194, 15 cm and more throw several meters,
+    // bombs and the 38 cm rocket farther.
+    assert_eq!(rules.throw_mm(810), 2500);
+    assert_eq!(rules.throw_mm(500), 2500);
+    let heavy = rules.throw_mm(1500);
+    assert!((4000..=8000).contains(&heavy), "15 cm: {heavy} mm");
+    let sc250 = rules.throw_mm(air.bomb_caliber(250));
+    let sc500 = rules.throw_mm(air.bomb_caliber(500));
+    let sturmtiger = rules.throw_mm(3800);
+    assert!(sc250 >= heavy && sc500 > sc250, "bombs {sc250} / {sc500} mm");
+    assert!(sturmtiger > sc500 && sturmtiger >= 10_000, "38 cm: {sturmtiger} mm");
+
+    // In the game: every thrown soldier flies the share of the charge's
+    // throw that his distance leaves, away from the blast, for the time of
+    // a 45-degree arc.
+    let map = map_with(None, &[]);
+    let mut farthest = Vec::new();
+    for caliber in [810, 1500, air.bomb_caliber(250), 3800] {
+        let b = blast_on_squad(Arc::clone(&map), caliber, Vec2::from_meters(0, -3), Stance::Stand, 4);
+        assert!(!b.thrown.is_empty(), "{caliber}: nobody thrown");
+        let radius = meters(sim::Fixed::from_num(rules.radius_mm(caliber)) / 1000);
+        let throw = f64::from(rules.throw_mm(caliber)) / 1000.0;
+        let mut best = 0.0f64;
+        for (a, b2) in &b.thrown {
+            // Where he stood when the blast went off.
+            let d0 = meters((b2.throw_from - b.at).length());
+            let moved = meters((b2.position - b2.throw_from).length());
+            let expected = throw * (radius - d0) / radius;
+            assert!(
+                (moved - expected).abs() < 0.35,
+                "{caliber}: thrown {moved:.2} m from {d0:.2} m, expected {expected:.2} m"
+            );
+            assert!(
+                meters((b2.position - b.at).length()) + 0.2 >= d0,
+                "{caliber}: thrown towards the blast"
+            );
+            assert!(meters((b2.throw_from - a.position).length()) < 0.3);
+            // 45-degree arc: t = sqrt(2 d / g) real, at time factor 2 and
+            // 20 Hz: 10 ticks per real second.
+            let ticks = (2.0 * moved / 9.81).sqrt() * 10.0;
+            assert!(
+                (f64::from(b2.flight) - ticks).abs() <= 1.0,
+                "{caliber}: flight {} ticks for {moved:.2} m",
+                b2.flight
+            );
+            if b2.hp > 0 {
+                // He lies the knock-down time after landing.
+                assert_eq!(b2.knocked, 60 + b2.flight);
+            }
+            best = best.max(moved);
+        }
+        farthest.push(best);
+    }
+    println!("farthest throws 8 cm / 15 cm / SC 250 / 38 cm: {farthest:?}");
+    assert!(farthest[0] <= 2.5 + 0.01);
+    assert!(farthest[1] >= 3.0 && farthest[1] > farthest[0] + 1.0);
+    assert!(farthest[2] >= farthest[1] - 0.5);
+    assert!(farthest[3] >= 8.0);
+}
+
+#[test]
+fn thrown_soldiers_never_land_in_water_or_houses() {
+    // Deep water 4 m east of the squad, a 38 cm rocket west of it: the
+    // throws towards the water are cut short at its shore.
+    let map = map_with(Some(4), &[]);
+    assert_eq!(map.terrain_at(Vec2::from_meters(5, 0)), 7);
+    assert_eq!(map.terrain_at(Vec2::from_meters(1, 0)), 0);
+    let mut cut = 0;
+    for seed in 1..=3 {
+        let b = blast_on_squad(Arc::clone(&map), 3800, Vec2::from_meters(-6, 0), Stance::Stand, seed);
+        assert!(!b.thrown.is_empty(), "nobody thrown");
+        let rules = InfantryRules::builtin().unwrap().knockdown;
+        let radius = f64::from(rules.radius_mm(3800)) / 1000.0;
+        for (_, s) in &b.thrown {
+            assert_ne!(map.terrain_at(s.position), 7, "landed in the water at {:?}", s.position);
+            let d0 = meters((s.throw_from - b.at).length());
+            let full = 11.4 * (radius - d0) / radius;
+            if meters((s.position - s.throw_from).length()) + 0.6 < full {
+                cut += 1;
+            }
+        }
+    }
+    assert!(cut > 0, "no throw was cut short at the shore");
+
+    // A farmhouse east of the squad: nobody lands inside its walls.
+    let map = map_with(None, &["env_house_farm,Intact,9000,0,0".to_string()]);
+    let house = map.objects()[0];
+    let kind = &map.object_kinds()[usize::from(house.kind)];
+    let (half_length, half_width) = match kind.shape {
+        sim::objects::Shape::Box {
+            half_length,
+            half_width,
+        } => (half_length, half_width),
+        sim::objects::Shape::Circle { radius } => (radius, radius),
+    };
+    let (forward, right) = house.axes();
+    let mut thrown = 0;
+    for seed in 1..=3 {
+        let b = blast_on_squad(Arc::clone(&map), 3800, Vec2::from_meters(-6, 0), Stance::Stand, seed);
+        for (_, s) in &b.thrown {
+            thrown += 1;
+            let rel = s.position - house.position;
+            let along = rel.x * forward.x + rel.y * forward.y;
+            let across = rel.x * right.x + rel.y * right.y;
+            assert!(
+                along.abs() > half_length || across.abs() > half_width,
+                "landed in the house at {:?}",
+                s.position
+            );
+        }
+    }
+    assert!(thrown > 0);
+}
+
+/// Sum of the throws (m) of a 15 cm shell 5 m north of a squad at the
+/// origin, over three seeds.
+fn total_throw(objects: &[String], st: Stance) -> (f64, usize) {
+    let map = map_with(None, objects);
+    let mut sum = 0.0;
+    let mut n = 0;
+    for seed in 1..=3 {
+        let b = blast_on_squad(Arc::clone(&map), 1500, Vec2::from_meters(0, -5), st, seed);
+        for (_, s) in &b.thrown {
+            sum += meters((s.position - s.throw_from).length());
+            n += 1;
+        }
+    }
+    (sum, n)
+}
+
+#[test]
+fn lying_down_and_cover_damp_the_throw() {
+    let (open, n_open) = total_throw(&[], Stance::Kneel);
+    let (prone, n_prone) = total_throw(&[], Stance::Prone);
+    // Sandbags 4 m north: the soldiers kneel at cover spots behind them.
+    let sandbags: Vec<String> = (-4..=4)
+        .map(|k| format!("fort_sandbag_position,Position,{},-4000,90", k * 3000))
+        .collect();
+    let (covered, n_covered) = total_throw(&sandbags, Stance::Kneel);
+    println!(
+        "kneeling {open:.1} m ({n_open}), prone {prone:.1} m ({n_prone}), behind sandbags {covered:.1} m ({n_covered})"
+    );
+    assert!(n_open > 0 && open > 1.0);
+    assert!(prone < open * 0.6, "prone {prone}, kneeling {open}");
+    assert!(covered < open * 0.6, "covered {covered}, kneeling {open}");
+}

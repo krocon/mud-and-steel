@@ -1,5 +1,6 @@
 //! `SimHost` functions for prompt 048 (soldier animations and ragdolls):
-//! knocked-down soldiers and the cover object of every soldier. The
+//! knocked-down soldiers and the cover object of every soldier; prompt 194:
+//! their flights when a blast throws them. The
 //! simulation decides who is knocked down, where he lies and when he gets
 //! up; `scenes/world/infantry_view.gd` and `ragdolls.gd` only show it.
 
@@ -32,6 +33,36 @@ impl SimHost {
             .iter()
             .map(|s| ground_to_godot(s.knock_from, game.map().height_at(s.knock_from)))
             .collect()
+    }
+
+    /// Prompt 194: where every soldier's last throw by a blast began, on
+    /// the ground (Godot coordinates; the origin if never thrown). He lands
+    /// at his position of `soldier_positions`.
+    #[func]
+    fn soldier_throw_from(&self) -> PackedVector3Array {
+        let Some(game) = self.game.as_ref() else {
+            return PackedVector3Array::new();
+        };
+        self.current
+            .soldiers
+            .iter()
+            .map(|s| ground_to_godot(s.throw_from, game.map().height_at(s.throw_from)))
+            .collect()
+    }
+
+    /// Prompt 194: two values per soldier: ticks since his last throw
+    /// began (0 on the first snapshot that shows it) and its flight time in
+    /// ticks (0: never thrown). Flying while the first is below the second.
+    #[func]
+    fn soldier_flights(&self) -> PackedInt32Array {
+        let tick = self.current.tick;
+        let mut out = PackedInt32Array::new();
+        for s in &self.current.soldiers {
+            let since = tick.saturating_sub(s.throw_tick);
+            out.push(i32::try_from(since).unwrap_or(i32::MAX));
+            out.push(i32::try_from(s.flight).unwrap_or(i32::MAX));
+        }
+        out
     }
 
     /// Map object whose cover spot every soldier stands at (-1: none, also

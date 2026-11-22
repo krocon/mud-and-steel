@@ -21,7 +21,14 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by the circling recon (`recon_loiter`), an intended rule
+/// Last changed by prompt 194 (big blasts throw soldiers), an intended rule
+/// change: the hashed knock-down rules gained `throw_mm_per_mm`,
+/// `throw_max_mm` and `ammo_throw_mm`, and every soldier hashes his last
+/// throw (start point, tick, flight time). The demo has no infantry:
+/// nothing else changes (checked: hashing without them gives the old
+/// value); its battle is unchanged.
+///
+/// Before (`0xb352_1dda_3679_b5ab`), the circling recon (`recon_loiter`), an intended rule
 /// change: a sixth air mission in the hashed air rules (with `loiter_s`
 /// and `loiter_radius_m`), its aircraft types, a sixth cooldown per player
 /// and a loiter marker per aircraft. Nothing else changes (checked: hashing
@@ -372,7 +379,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xb352_1dda_3679_b5ab;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x9e1b_4f2f_d781_54eb;
 
 #[test]
 fn golden_hash() {

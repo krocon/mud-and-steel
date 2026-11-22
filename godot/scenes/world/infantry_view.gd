@@ -53,6 +53,7 @@ const IDLE_CLIPS: Array[String] = ["idle", "kneel", "prone"]
 const JAMMED := 1
 const RELOAD_CLIPS: Array[String] = ["reload", "reload_kneel", "reload_prone"]
 const Motion := preload("res://scenes/world/soldier_motion.gd")
+const Helmets := preload("res://scenes/world/helmets.gd")
 const Care := preload("res://scenes/world/care_view.gd")
 
 var main: Node3D
@@ -174,6 +175,9 @@ func _draw(delta: float) -> void:
 	var knocked := sim_host.soldier_knocked()
 	var knock_from := sim_host.soldier_knock_from()
 	var covers := sim_host.soldier_cover_objects()
+	# Prompt 194: throws by big blasts (start point; ticks since, flight).
+	var throw_from := sim_host.soldier_throw_from()
+	var flights := sim_host.soldier_flights()
 	# Prompt 047: jams, rushing fire teams.
 	var tactics := sim_host.soldier_tactics()
 	# Prompt 049: wounds and buddy aid.
@@ -225,6 +229,16 @@ func _draw(delta: float) -> void:
 			SoldierLook.apply(member, s["faction"], _biome, s["seed"], "auto", s["rank"])
 		(_by_unit.get_or_add(unit_id, []) as Array).append(key)
 		var position := previous[k].lerp(current[k], alpha)
+		# Prompt 194: thrown by a blast, he flies the simulation's arc to
+		# his landing point (a ragdoll flies there on its own).
+		if 2 * k + 1 < flights.size() and flights[2 * k + 1] > 0 \
+				and float(flights[2 * k]) + alpha < float(flights[2 * k + 1]):
+			var total := float(flights[2 * k + 1])
+			var since := float(flights[2 * k]) + alpha
+			position = motion.flight_position(s, throw_from[k], current[k], since / total,
+					(total - since) / maxf(tick_rate, 1.0))
+		elif s.has("flight"):
+			motion.flight_ended(s)
 		# Swimming squads (prompt 055) float at the water surface.
 		if crossing != null and crossing.is_swimming(unit_id):
 			position.y = crossing.swim_height(position)
@@ -483,7 +497,7 @@ func _advance(s: Dictionary, delta: float, distance: float) -> void:
 	if far != s["far"]:
 		s["far"] = far
 		for mesh: GeometryInstance3D in s["details"]:
-			mesh.visible = not far
+			mesh.visible = not far and not Helmets.thrown(mesh)
 	s["accum"] = float(s["accum"]) + delta
 	# Far squads are only drawn every FAR_SQUAD_STEP frames (`_skip_squad`);
 	# their soldiers advance whenever drawn.

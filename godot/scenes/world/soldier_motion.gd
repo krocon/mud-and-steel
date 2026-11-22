@@ -37,6 +37,14 @@ const HELMET_HEAD_CHANCE := 0.6
 const HEAD_HIT_M := 0.3
 ## Blend from a ragdoll into the get-up clip (s).
 const RELEASE_SECONDS := 0.5
+## Prompt 194: throws by the simulation of at least this length (m) count
+## as a big blast: own ragdoll limit (`Ragdolls.MAX_BURST`), and the weapon
+## may fly off with this chance.
+const BURST_FROM_M := 3.0
+const WEAPON_BLAST_CHANCE := 0.6
+## Gravity of a thrown body in game time: the simulation's flight time is
+## real time divided by the time factor, so bodies fall factor² as fast.
+const FLIGHT_GRAVITY := 9.81 * 4.0
 
 var view: Node3D
 var ragdolls: Ragdolls
@@ -46,7 +54,7 @@ var rng := RandomNumberGenerator.new()
 ## Cover object kinds by object index: "low", "tall", "trench".
 var _cover_kinds: Dictionary[int, Dictionary] = {}
 ## Statistics for the self-test: knockdowns, get-ups, dives, rolls.
-var counts := {"knocked": 0, "got_up": 0, "dive": 0, "roll": 0, "cover": 0}
+var counts := {"knocked": 0, "got_up": 0, "dive": 0, "roll": 0, "cover": 0, "thrown": 0}
 
 
 func setup(infantry_view: Node3D) -> void:
@@ -138,13 +146,20 @@ func animate(s: Dictionary, dead: bool, knocked: int, from: Vector3, at: Vector3
 		var dir := _away(at, from, s) if blast else (s.get("hit_dir", _back_of(s)) as Vector3)
 		var velocity := dir * HIT_SPEED + Vector3.UP * 0.3
 		var spin := Vector3.UP.cross(dir) * HIT_SPIN
+		var flight: Dictionary = s.get("flight", {}) if blast else {}
 		if blast:
 			velocity = dir * THROW_SPEED * rng.randf_range(0.8, 1.2) + Vector3.UP * THROW_UP
 			spin = Vector3.UP.cross(dir) * THROW_SPIN * rng.randf_range(0.7, 1.3)
-			if rng.randf() < HELMET_BLAST_CHANCE:
-				_helmet_off(s, velocity * 1.4 + Vector3.UP)
-		if ragdolls.can_start(at, camera_position):
-			ragdolls.start(member, velocity, spin, at.y, "dead")
+			if not flight.is_empty():
+				velocity = _flight_velocity(flight, at)
+			_tear_off(s, velocity, flight)
+		var burst := float(flight.get("distance", 0.0)) >= BURST_FROM_M
+		if ragdolls.can_start(at, camera_position, burst):
+			if flight.is_empty():
+				ragdolls.start(member, velocity, spin, at.y, "dead")
+			else:
+				ragdolls.start(member, velocity, spin, (flight["to"] as Vector3).y, "dead",
+						flight["to"], FLIGHT_GRAVITY / 9.8)
 		# The view plays a death clip (under a ragdoll it drops the weapon).
 		return false
 	if knocked > 0:
@@ -179,11 +194,18 @@ func _knock_down(s: Dictionary, from: Vector3, at: Vector3, camera_position: Vec
 		player.play("knockdown", 0.1)
 		s["clip"] = "knockdown"
 	var velocity := dir * THROW_SPEED * rng.randf_range(0.8, 1.2) + Vector3.UP * THROW_UP * rng.randf_range(0.8, 1.1)
-	if rng.randf() < HELMET_BLAST_CHANCE:
-		_helmet_off(s, velocity * 1.4 + Vector3.UP)
-	if ragdolls.can_start(at, camera_position):
-		ragdolls.start(member, velocity, Vector3.UP.cross(dir) * THROW_SPIN * rng.randf_range(0.7, 1.3),
-				at.y, "down")
+	var flight: Dictionary = s.get("flight", {})
+	if not flight.is_empty():
+		velocity = _flight_velocity(flight, at)
+	_tear_off(s, velocity, flight)
+	var spin := Vector3.UP.cross(dir) * THROW_SPIN * rng.randf_range(0.7, 1.3)
+	var burst := float(flight.get("distance", 0.0)) >= BURST_FROM_M
+	if ragdolls.can_start(at, camera_position, burst):
+		if flight.is_empty():
+			ragdolls.start(member, velocity, spin, at.y, "down")
+		else:
+			ragdolls.start(member, velocity, spin, (flight["to"] as Vector3).y, "down",
+					flight["to"], FLIGHT_GRAVITY / 9.8)
 
 
 func _get_up(s: Dictionary) -> void:
@@ -191,6 +213,7 @@ func _get_up(s: Dictionary) -> void:
 	var player: AnimationPlayer = s["player"]
 	s["getting_up"] = true
 	counts["got_up"] += 1
+	helmets.pick_up(member)
 	var clip := "get_up_back"
 	var blend := 0.2
 	var lying := ragdolls.lying(member)
@@ -315,6 +338,50 @@ func _peek_side(s: Dictionary, cover: int) -> String:
 	var right := Vector3(cos(yaw), 0.0, -sin(yaw))
 	var rel: Vector3 = (s["position"] as Vector3) - (info["position"] as Vector3)
 	return "r" if rel.dot(right) >= 0.0 else "l"
+
+
+## Prompt 194: where a thrown soldier flies, on the arc of the
+## simulation: from `from` to `to` (his landing point), `f` of the flight
+## done, `left` seconds to go. Remembers the flight for the ragdoll and
+## returns the point on the arc (45 degrees: the apex at a quarter of the
+## distance).
+func flight_position(s: Dictionary, from: Vector3, to: Vector3, f: float, left: float) -> Vector3:
+	var distance := Vector2(to.x - from.x, to.z - from.z).length()
+	var at := from.lerp(to, f) + Vector3.UP * (distance * f * (1.0 - f))
+	s["flight"] = {"to": to, "left": left, "distance": distance}
+	if distance >= BURST_FROM_M and not s.has("flight_counted"):
+		s["flight_counted"] = true
+		counts["thrown"] = int(counts.get("thrown", 0)) + 1
+	return at
+
+
+## The flight is over (or there is none).
+func flight_ended(s: Dictionary) -> void:
+	s.erase("flight")
+	s.erase("flight_counted")
+
+
+## Start velocity of a ragdoll at `at` that lands on the simulation's point
+## `flight.to` after `flight.left` seconds under FLIGHT_GRAVITY.
+func _flight_velocity(flight: Dictionary, at: Vector3) -> Vector3:
+	var to: Vector3 = flight["to"]
+	var left := maxf(float(flight["left"]), 0.05)
+	var v := (to - at) / left
+	v.y = FLIGHT_GRAVITY * left * 0.5 - (at.y - to.y) / left
+	return v
+
+
+## Helmet and, for far throws, the weapon fly off.
+## Helmets and weapons fall at real gravity: half the speed of a body on
+## the game-time arc draws the same arc.
+func _tear_off(s: Dictionary, velocity: Vector3, flight: Dictionary) -> void:
+	var k := 1.0 if flight.is_empty() else 0.5
+	if rng.randf() < HELMET_BLAST_CHANCE:
+		_helmet_off(s, velocity * 1.4 * k + Vector3.UP)
+	if float(flight.get("distance", 0.0)) >= BURST_FROM_M and rng.randf() < WEAPON_BLAST_CHANCE:
+		var spin := Vector3(rng.randf_range(-1, 1), rng.randf_range(-1, 1), rng.randf_range(-1, 1)) * 7.0
+		var v := velocity * k * rng.randf_range(0.6, 1.2) + Vector3.UP * rng.randf_range(0.5, 2.0)
+		helmets.throw_weapon(s["node"], v, spin, (flight["to"] as Vector3).y)
 
 
 func _helmet_off(s: Dictionary, velocity: Vector3) -> void:

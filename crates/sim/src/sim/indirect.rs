@@ -1132,7 +1132,12 @@ impl Sim {
         let map = std::sync::Arc::clone(&self.map);
         self.destruction.blast(&map, caliber, at, shell.shooter);
         // Who the blast knocks down (prompt 048), before fragments strike.
-        let thrown = self.blast_reach(p, self.infantry.rules.knockdown.radius_mm(caliber));
+        let knockdown = self.infantry.rules.knockdown;
+        let thrown = self.blast_reach(
+            p,
+            knockdown.radius_mm(caliber),
+            knockdown.throw_mm(caliber),
+        );
         // Fragments. Rolls in unit and soldier order (deterministic).
         let stand = self.infantry.rules.stance.stand.height_mm.max(1);
         let lying = self.infantry.rules.stance.prone.height_mm;

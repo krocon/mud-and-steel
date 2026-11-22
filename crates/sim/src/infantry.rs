@@ -116,9 +116,15 @@ pub struct KnockdownRules {
     pub prone_pct: u32,
     pub cover_pct: u32,
     pub throw_mm: u32,
+    /// Prompt 194: the throw grows with the charge, `throw_mm_per_mm` per
+    /// mm of caliber (never below `throw_mm`, at most `throw_max_mm`).
+    pub throw_mm_per_mm: u32,
+    pub throw_max_mm: u32,
     pub down_ms: u32,
     pub ammo_explosion_pct: u32,
     pub ammo_radius_mm: u32,
+    /// Prompt 194: throw at the wreck of an ammunition explosion.
+    pub ammo_throw_mm: u32,
     pub ammo_min_caliber_mm_x10: u32,
 }
 
@@ -126,6 +132,16 @@ impl KnockdownRules {
     /// Knock-down radius of a high-explosive charge in mm.
     pub const fn radius_mm(&self, caliber_mm_x10: u32) -> u32 {
         caliber_mm_x10.saturating_mul(self.radius_mm_per_mm) / 10
+    }
+
+    /// Prompt 194: farthest throw (at the point of impact) of a
+    /// high-explosive charge in mm. Cube-root scaling: the charge mass of
+    /// similar shells grows with the cube of the caliber, blast effects at a
+    /// distance with its cube root, so the throw grows linearly with the
+    /// caliber; small charges keep `throw_mm`.
+    pub fn throw_mm(&self, caliber_mm_x10: u32) -> u32 {
+        let grown = caliber_mm_x10.saturating_mul(self.throw_mm_per_mm) / 10;
+        grown.min(self.throw_max_mm).max(self.throw_mm)
     }
 
     /// Share of the radius that knocks a soldier in `stance` down.
@@ -222,6 +238,9 @@ impl InfantryRules {
         check("knockdown.prone_pct", k.prone_pct, 0, 100)?;
         check("knockdown.cover_pct", k.cover_pct, 0, 100)?;
         check("knockdown.throw_mm", k.throw_mm, 0, 10_000)?;
+        check("knockdown.throw_mm_per_mm", k.throw_mm_per_mm, 0, 200)?;
+        check("knockdown.throw_max_mm", k.throw_max_mm, 0, 30_000)?;
+        check("knockdown.ammo_throw_mm", k.ammo_throw_mm, 0, 30_000)?;
         check("knockdown.down_ms", k.down_ms, 0, 60_000)?;
         check("knockdown.ammo_explosion_pct", k.ammo_explosion_pct, 0, 100)?;
         check("knockdown.ammo_radius_mm", k.ammo_radius_mm, 0, 50_000)?;
@@ -312,9 +331,12 @@ impl InfantryRules {
             k.prone_pct,
             k.cover_pct,
             k.throw_mm,
+            k.throw_mm_per_mm,
+            k.throw_max_mm,
             k.down_ms,
             k.ammo_explosion_pct,
             k.ammo_radius_mm,
+            k.ammo_throw_mm,
             k.ammo_min_caliber_mm_x10,
         ] {
             h.write_u32(v);

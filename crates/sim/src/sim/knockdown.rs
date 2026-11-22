@@ -1,36 +1,50 @@
-//! Blasts knock soldiers down (prompt 048). Rules: `[knockdown]` in
-//! `data/infantry.toml` (`crate::infantry::KnockdownRules`).
+//! Blasts knock soldiers down (prompt 048) and big ones throw them through
+//! the air (prompt 194). Rules: `[knockdown]` in `data/infantry.toml`
+//! (`crate::infantry::KnockdownRules`).
 //!
-//! The simulation decides who falls, where he lies and when he gets up; the
-//! presentation (ragdolls in Godot) only shows the body falling there.
-//! High-explosive charges ([`Sim::detonate`], shells, bombs, exploding
-//! dumps) knock down the soldiers within a radius per caliber; a destroyed
-//! gun-armed vehicle blows up its ammunition with a chance and knocks down
-//! the soldiers around the wreck. A soldier is thrown away from the blast
-//! (at most `throw_mm`, less towards the edge of the radius) and lies there
-//! for `down_ms`: he neither moves nor fires and is hit like a prone
-//! soldier. Soldiers killed by the same blast are thrown as well, so the
-//! bodies lie where the blast put them.
+//! The simulation decides who falls, where he lands, how long he flies and
+//! when he gets up; the presentation (ragdolls in Godot) only shows the body
+//! flying there. High-explosive charges ([`Sim::detonate`], shells, bombs,
+//! exploding dumps) knock down the soldiers within a radius per caliber; a
+//! destroyed gun-armed vehicle blows up its ammunition with a chance and
+//! knocks down the soldiers around the wreck. A soldier is thrown away from
+//! the blast (the farther the bigger the charge, `KnockdownRules::throw_mm`,
+//! less towards the edge of the radius), cut short at the last passable
+//! point along the way. He is at the landing point at once (hits meanwhile
+//! find him there), flies for the time of a 45-degree arc and then lies for
+//! `down_ms`: he neither moves nor fires and is hit like a prone soldier.
+//! Soldiers killed by the same blast are thrown as well, so the bodies lie
+//! where the blast put them.
 
 use super::Sim;
 use crate::math::{Fixed, Vec2};
 
-/// Soldiers a blast reaches: (unit index, soldier index, new position).
+/// Soldiers a blast reaches: (unit index, soldier index, landing point).
 pub(super) type Thrown = Vec<(usize, usize, Vec2)>;
+
+/// Steps (m) along a throw at which the landing point is checked.
+const THROW_STEP_DIV: i64 = 2;
+
+/// Real flight time in ms of a body thrown `distance_mm` on a 45-degree
+/// arc: d = g t² / 2, t = sqrt(2 d / g) with g = 9.81 m/s².
+pub(super) fn flight_ms(distance_mm: u64) -> u64 {
+    (distance_mm * 200_000 / 981).isqrt()
+}
 
 impl Sim {
     /// The living soldiers that a blast of `radius_mm` (before stance and
-    /// cover factors) at `p` knocks down, with the point each is thrown to.
-    /// Computed before the blast's fragments strike, applied after them by
+    /// cover factors) at `p` knocks down, with the point each is thrown to
+    /// (at most `throw_mm` away, at the point of impact). Computed before
+    /// the blast's fragments strike, applied after them by
     /// [`Sim::knock_down`].
-    pub(super) fn blast_reach(&self, p: Vec2, radius_mm: u32) -> Thrown {
+    pub(super) fn blast_reach(&self, p: Vec2, radius_mm: u32, throw_mm: u32) -> Thrown {
         let mut out = Vec::new();
         if radius_mm == 0 {
             return out;
         }
         let rules = self.infantry.rules.knockdown;
         let radius = Fixed::from_num(radius_mm) / 1000;
-        let throw = Fixed::from_num(rules.throw_mm) / 1000;
+        let throw = Fixed::from_num(throw_mm) / 1000;
         let reach = radius + self.unit_grid.max_reach;
         let mut near = Vec::new();
         self.unit_grid.query_sorted(
@@ -73,17 +87,21 @@ impl Sim {
                 } else {
                     Vec2::new(-unit.facing.x, -unit.facing.y)
                 };
-                let to = s.position + dir.scale(throw * (r - d) / r);
-                out.push((j, k, if ok(to) { to } else { s.position }));
+                let length = throw * (r - d) / r;
+                out.push((j, k, landing(s.position, dir, length, &ok)));
             }
         }
         out
     }
 
-    /// Knocks the soldiers of `thrown` down (`blast_reach`): they lie at
-    /// their new position for the knock-down time. Those who died of the
-    /// blast meanwhile are only moved.
+    /// Knocks the soldiers of `thrown` down (`blast_reach`): they fly to
+    /// their landing point and lie there for the knock-down time. Those who
+    /// died of the blast meanwhile are only thrown.
     pub(super) fn knock_down(&mut self, thrown: &Thrown, from: Vec2) {
+        let down_ms = u64::from(self.infantry.rules.knockdown.down_ms);
+        // Shown from the next snapshot on (the tick counter moves on after
+        // the blasts of this tick).
+        let tick = self.tick + 1;
         for &(j, k, to) in thrown {
             let ticks = self.infantry.types[self.units[j].unit_type as usize]
                 .as_ref()
@@ -93,10 +111,27 @@ impl Sim {
                 continue;
             };
             let s = &mut squad.soldiers[k];
+            // Flight time in ticks: the real time converted like the
+            // knock-down time (time factor, tick rate).
+            let distance = (to - s.position).length();
+            let distance_mm = u64::try_from((distance * 1000).to_num::<i64>()).unwrap_or(0);
+            let flight = if distance_mm == 0 || down_ms == 0 {
+                0
+            } else {
+                let t = u64::from(ticks) * flight_ms(distance_mm) / down_ms;
+                u32::try_from(t.max(1)).unwrap_or(u32::MAX)
+            };
+            s.throw_from = s.position;
+            s.throw_tick = tick;
+            s.flight = flight;
             s.position = to;
             s.height = height;
             s.knock_from = from;
-            s.knocked = if s.alive() { ticks } else { 0 };
+            s.knocked = if s.alive() {
+                ticks.saturating_add(flight)
+            } else {
+                0
+            };
         }
     }
 
@@ -123,7 +158,29 @@ impl Sim {
             at: crate::combat::Vec3::new(at.x, at.y, unit.height),
         };
         self.strikes.events.push(event);
-        let thrown = self.blast_reach(at, rules.ammo_radius_mm);
+        let thrown = self.blast_reach(at, rules.ammo_radius_mm, rules.ammo_throw_mm);
         self.knock_down(&thrown, at);
     }
+}
+
+/// Landing point of a throw from `start` along `dir` over `length` m: the
+/// farthest point before the first blocked one (wall, house, water, map
+/// edge), checked every half meter; `start` if that is blocked itself.
+fn landing(start: Vec2, dir: Vec2, length: Fixed, ok: &impl Fn(Vec2) -> bool) -> Vec2 {
+    if length <= Fixed::ZERO || !ok(start) {
+        return start;
+    }
+    let step = Fixed::ONE / THROW_STEP_DIV;
+    let mut best = start;
+    let mut along = step;
+    while along < length {
+        let q = start + dir.scale(along);
+        if !ok(q) {
+            return best;
+        }
+        best = q;
+        along += step;
+    }
+    let to = start + dir.scale(length);
+    if ok(to) { to } else { best }
 }

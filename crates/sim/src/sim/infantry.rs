@@ -44,6 +44,16 @@ pub(super) struct Soldier {
     pub(super) knocked: u32,
     /// Where the blast that knocked him down (last) went off.
     pub(super) knock_from: Vec2,
+    /// Prompt 194: the last throw by a blast: where he flew from, the tick
+    /// it began and its flight time in ticks (0: never thrown). He is at
+    /// the landing point (`position`) from the start; the presentation
+    /// shows the arc.
+    #[serde(default)]
+    pub(super) throw_from: Vec2,
+    #[serde(default)]
+    pub(super) throw_tick: u64,
+    #[serde(default)]
+    pub(super) flight: u32,
     /// Wounds and buddy aid (prompt 049).
     #[serde(default)]
     pub(super) wound: super::care::Wound,
@@ -147,6 +157,10 @@ impl Squad {
             h.write_u32(s.knocked);
             h.write_i64(s.knock_from.x.to_bits());
             h.write_i64(s.knock_from.y.to_bits());
+            h.write_i64(s.throw_from.x.to_bits());
+            h.write_i64(s.throw_from.y.to_bits());
+            h.write_u64(s.throw_tick);
+            h.write_u32(s.flight);
         }
         h.write_u8(self.stance.index() as u8);
         h.write_u8(match self.order {
@@ -491,6 +505,9 @@ impl Sim {
                     cover: None,
                     knocked: 0,
                     knock_from: Vec2::ZERO,
+                    throw_from: Vec2::ZERO,
+                    throw_tick: 0,
+                    flight: 0,
                     wound: super::care::Wound::default(),
                 }
             })
