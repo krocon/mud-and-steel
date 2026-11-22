@@ -1,0 +1,25 @@
+# Big blasts throw soldiers (prompt 194): on the open meadow of
+# `ambush_meadow` player 0 has a Sturmtiger (only the shooter of the debug
+# rockets), player 1 two rifle squads in the open. Used by the throw series
+# (`just throw-shots`, scenes/tools/blast_shots.gd `--throw-series`): a
+# 38 cm rocket next to the first squad, a 15 cm blast (the blast of an
+# exploding ammunition dump, data/fire.toml) next to the second. Integers
+# only.
+
+map = "ambush_meadow"
+
+[[group]]
+owner = 0
+unit = "de_sturmtiger"
+count = 1
+columns = 1
+spacing_m = 16
+center_m = [250, 250]
+
+[[group]]
+owner = 1
+unit = "su_inf_rifle_squad"
+count = 2
+columns = 2
+spacing_m = 60
+center_m = [250, 430]

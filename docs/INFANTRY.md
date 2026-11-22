@@ -549,12 +549,42 @@ tests in `crates/sim/tests/knockdown.rs`. [provisional]
   60 mm per mm of caliber (8 cm: 4.8 m, 10.5 cm: 6.3 m), kneeling ones
   within 75 %, prone ones within 40 % of that, soldiers at a cover spot
   (object or crater) within half of it. No random roll.
-- The soldier is thrown away from the blast, up to 2.5 m at the point of
-  impact and less towards the edge (only onto passable points), and lies
-  there for 6 s real (3 s game: dazed, getting up, picking up his weapon).
-  Meanwhile he neither moves nor fires and his hit box is the prone one.
-  Soldiers killed by the same blast are thrown as well: the simulation
-  decides where the bodies lie.
+- The soldier is thrown away from the blast and lies there for 6 s real
+  (3 s game: dazed, getting up, picking up his weapon). Meanwhile he
+  neither moves nor fires and his hit box is the prone one. Soldiers
+  killed by the same blast are thrown as well: the simulation decides
+  where the bodies lie.
+- Prompt 194: the throw grows with the charge (`KnockdownRules::throw_mm`):
+  30 mm per mm of caliber at the point of impact, never less than 2.5 m
+  (8 cm mortars and smaller as before) and at most 12 m; 15 cm 4.5 m, SC 250
+  bomb (158 mm equivalent) 4.7 m, SC 500 5.9 m, 21 cm rocket 6.3 m, 38 cm
+  Sturmtiger rocket 11.4 m; an exploding tank's ammunition 6 m
+  (`ammo_throw_mm`). Linear in the caliber after cube-root blast scaling
+  (`docs/SOURCES.md`); the factor is judgement. It falls linearly to 0 at
+  the knock-down radius, so lying and cover (smaller radius) also damp the
+  throw.
+- The throw is cut short at the last passable point along its line
+  (checked every 0.5 m: map edge, impassable terrain such as deep water,
+  cells blocked for infantry by houses and walls).
+- Flight: the soldier is at his landing point at once (hits meanwhile find
+  him there), and the snapshot carries the flight: `throw_from`,
+  `throw_tick` (first snapshot that shows it) and `flight` in ticks, the
+  real time of a 45-degree arc, sqrt(2 d / g) (5 m: 1 s real, 10 ticks),
+  converted like the knock-down time. He lies `down_ms` after landing
+  (`knocked` = flight + knock-down ticks). `SimHost.soldier_throw_from`,
+  `soldier_flights` (ticks since the start, flight ticks).
+- Presentation (`infantry_view.gd`, `soldier_motion.gd`): during the flight
+  the soldier's node follows the arc (apex at a quarter of the distance)
+  from the start to the simulation's landing point; a ragdoll gets the
+  start velocity that lands it there at the same time under gravity in game
+  time (4 × g at time factor 2), with a floor box reaching to the landing
+  point. Throws of 3 m and more may use up to `Ragdolls.MAX_BURST` (16)
+  ragdolls at once instead of `MAX_ACTIVE` (8); the rest play the fall clip
+  on the arc. Such throws also tear the weapon away with 60 %
+  (`helmets.gd` `throw_weapon`: the weapon mesh is hidden, a copy flies
+  and lies on the ground; the soldier picks it up when he gets up).
+  Pictures, frame times and ragdoll counts: `just throw-shots` (scenario
+  `data/scenarios/blast_throws.toml`, `blast_shots.gd --throw-series`).
 - A destroyed vehicle with a gun of 20 mm or more blows up its ammunition
   with 40 % and knocks down the soldiers within 12 m of the wreck (same
   stance and cover factors, no damage). The roll uses its own `Rng`, seeded

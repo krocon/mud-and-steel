@@ -198,6 +198,18 @@ names of streets, shops or people.
   sizes and times are judgement or from the source above, textures and
   shapes are generated in shaders.
 
+## Blast throws (prompt 194)
+
+- **Throw by charge** (`[knockdown]` in `data/infantry.toml`): the throw
+  grows linearly with the caliber after Hopkinson-Cranz cube-root scaling
+  (blast effects at a distance scale with the cube root of the charge
+  mass, the charge of similar shells with the cube of the caliber; G. F.
+  Kinney, K. J. Graham, *Explosive Shocks in Air*, 2nd ed., Springer 1985,
+  chapter on scaling laws). How far a man is thrown is not
+  given by any source found; the factor (30 mm per mm of caliber, at
+  most 12 m) is judgement and marked provisional. Bombs use their shell
+  equivalent of `data/air.toml`.
+
 ## Muzzle blast (prompt 077)
 
 - **Flash zones**: the intermediate flash appears about 20-25 calibers

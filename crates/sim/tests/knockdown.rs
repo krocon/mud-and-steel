@@ -3,7 +3,7 @@
 
 use sim::map::MapLayout;
 use sim::{
-    Catalog, CombatEvent, CombatRules, Command, FireMode, InfantryRules, Map, PlayerCommand,
+    Catalog, CombatEvent, CombatRules, Command, FireMode, Fixed, InfantryRules, Map, PlayerCommand,
     PlayerId, Scale, Sim, SimConfig, SoldierSnapshot, Spawn, Stance, StanceOrder, TerrainRules,
     UnitId, Vec2, unit_types_from_catalog,
 };
@@ -364,8 +364,9 @@ fn blast_on_squad(map: Arc<Map>, caliber: u32, aim: Vec2, st: Stance, seed: u64)
     panic!("the rocket never landed");
 }
 
-fn meters(f: sim::Fixed) -> f64 {
-    f.to_num::<f64>()
+/// `num / den` meters.
+fn m(num: i64, den: i64) -> Fixed {
+    Fixed::from_num(num) / den
 }
 
 #[test]
@@ -381,8 +382,14 @@ fn the_throw_grows_with_the_charge() {
     let sc250 = rules.throw_mm(air.bomb_caliber(250));
     let sc500 = rules.throw_mm(air.bomb_caliber(500));
     let sturmtiger = rules.throw_mm(3800);
-    assert!(sc250 >= heavy && sc500 > sc250, "bombs {sc250} / {sc500} mm");
-    assert!(sturmtiger > sc500 && sturmtiger >= 10_000, "38 cm: {sturmtiger} mm");
+    assert!(
+        sc250 >= heavy && sc500 > sc250,
+        "bombs {sc250} / {sc500} mm"
+    );
+    assert!(
+        sturmtiger > sc500 && sturmtiger >= 10_000,
+        "38 cm: {sturmtiger} mm"
+    );
 
     // In the game: every thrown soldier flies the share of the charge's
     // throw that his distance leaves, away from the blast, for the time of
@@ -390,31 +397,38 @@ fn the_throw_grows_with_the_charge() {
     let map = map_with(None, &[]);
     let mut farthest = Vec::new();
     for caliber in [810, 1500, air.bomb_caliber(250), 3800] {
-        let b = blast_on_squad(Arc::clone(&map), caliber, Vec2::from_meters(0, -3), Stance::Stand, 4);
+        let b = blast_on_squad(
+            Arc::clone(&map),
+            caliber,
+            Vec2::from_meters(0, -3),
+            Stance::Stand,
+            4,
+        );
         assert!(!b.thrown.is_empty(), "{caliber}: nobody thrown");
-        let radius = meters(sim::Fixed::from_num(rules.radius_mm(caliber)) / 1000);
-        let throw = f64::from(rules.throw_mm(caliber)) / 1000.0;
-        let mut best = 0.0f64;
+        let radius = m(i64::from(rules.radius_mm(caliber)), 1000);
+        let throw = m(i64::from(rules.throw_mm(caliber)), 1000);
+        let mut best = Fixed::ZERO;
         for (a, b2) in &b.thrown {
             // Where he stood when the blast went off.
-            let d0 = meters((b2.throw_from - b.at).length());
-            let moved = meters((b2.position - b2.throw_from).length());
+            let d0 = (b2.throw_from - b.at).length();
+            let moved = (b2.position - b2.throw_from).length();
             let expected = throw * (radius - d0) / radius;
             assert!(
-                (moved - expected).abs() < 0.35,
-                "{caliber}: thrown {moved:.2} m from {d0:.2} m, expected {expected:.2} m"
+                (moved - expected).abs() < m(35, 100),
+                "{caliber}: thrown {moved} m from {d0} m, expected {expected} m"
             );
             assert!(
-                meters((b2.position - b.at).length()) + 0.2 >= d0,
+                (b2.position - b.at).length() + m(1, 5) >= d0,
                 "{caliber}: thrown towards the blast"
             );
-            assert!(meters((b2.throw_from - a.position).length()) < 0.3);
-            // 45-degree arc: t = sqrt(2 d / g) real, at time factor 2 and
-            // 20 Hz: 10 ticks per real second.
-            let ticks = (2.0 * moved / 9.81).sqrt() * 10.0;
+            assert!((b2.throw_from - a.position).length() < m(3, 10));
+            // 45-degree arc: t = sqrt(2 d / g) real (g = 9.81 m/s²), at
+            // time factor 2 and 20 Hz 10 ticks per real second.
+            let mm = u64::try_from((moved * 1000).to_num::<i64>()).unwrap();
+            let ticks = (mm * 200_000 / 981).isqrt() / 100;
             assert!(
-                (f64::from(b2.flight) - ticks).abs() <= 1.0,
-                "{caliber}: flight {} ticks for {moved:.2} m",
+                u64::from(b2.flight).abs_diff(ticks) <= 1,
+                "{caliber}: flight {} ticks for {moved} m",
                 b2.flight
             );
             if b2.hp > 0 {
@@ -426,10 +440,10 @@ fn the_throw_grows_with_the_charge() {
         farthest.push(best);
     }
     println!("farthest throws 8 cm / 15 cm / SC 250 / 38 cm: {farthest:?}");
-    assert!(farthest[0] <= 2.5 + 0.01);
-    assert!(farthest[1] >= 3.0 && farthest[1] > farthest[0] + 1.0);
-    assert!(farthest[2] >= farthest[1] - 0.5);
-    assert!(farthest[3] >= 8.0);
+    assert!(farthest[0] <= m(251, 100));
+    assert!(farthest[1] >= m(3, 1) && farthest[1] > farthest[0] + Fixed::ONE);
+    assert!(farthest[2] >= farthest[1] - m(1, 2));
+    assert!(farthest[3] >= m(8, 1));
 }
 
 #[test]
@@ -441,15 +455,27 @@ fn thrown_soldiers_never_land_in_water_or_houses() {
     assert_eq!(map.terrain_at(Vec2::from_meters(1, 0)), 0);
     let mut cut = 0;
     for seed in 1..=3 {
-        let b = blast_on_squad(Arc::clone(&map), 3800, Vec2::from_meters(-6, 0), Stance::Stand, seed);
+        let b = blast_on_squad(
+            Arc::clone(&map),
+            3800,
+            Vec2::from_meters(-6, 0),
+            Stance::Stand,
+            seed,
+        );
         assert!(!b.thrown.is_empty(), "nobody thrown");
         let rules = InfantryRules::builtin().unwrap().knockdown;
-        let radius = f64::from(rules.radius_mm(3800)) / 1000.0;
+        let radius = m(i64::from(rules.radius_mm(3800)), 1000);
+        let throw = m(i64::from(rules.throw_mm(3800)), 1000);
         for (_, s) in &b.thrown {
-            assert_ne!(map.terrain_at(s.position), 7, "landed in the water at {:?}", s.position);
-            let d0 = meters((s.throw_from - b.at).length());
-            let full = 11.4 * (radius - d0) / radius;
-            if meters((s.position - s.throw_from).length()) + 0.6 < full {
+            assert_ne!(
+                map.terrain_at(s.position),
+                7,
+                "landed in the water at {:?}",
+                s.position
+            );
+            let d0 = (s.throw_from - b.at).length();
+            let full = throw * (radius - d0) / radius;
+            if (s.position - s.throw_from).length() + m(6, 10) < full {
                 cut += 1;
             }
         }
@@ -470,7 +496,13 @@ fn thrown_soldiers_never_land_in_water_or_houses() {
     let (forward, right) = house.axes();
     let mut thrown = 0;
     for seed in 1..=3 {
-        let b = blast_on_squad(Arc::clone(&map), 3800, Vec2::from_meters(-6, 0), Stance::Stand, seed);
+        let b = blast_on_squad(
+            Arc::clone(&map),
+            3800,
+            Vec2::from_meters(-6, 0),
+            Stance::Stand,
+            seed,
+        );
         for (_, s) in &b.thrown {
             thrown += 1;
             let rel = s.position - house.position;
@@ -488,14 +520,14 @@ fn thrown_soldiers_never_land_in_water_or_houses() {
 
 /// Sum of the throws (m) of a 15 cm shell 5 m north of a squad at the
 /// origin, over three seeds.
-fn total_throw(objects: &[String], st: Stance) -> (f64, usize) {
+fn total_throw(objects: &[String], st: Stance) -> (Fixed, usize) {
     let map = map_with(None, objects);
-    let mut sum = 0.0;
+    let mut sum = Fixed::ZERO;
     let mut n = 0;
     for seed in 1..=3 {
         let b = blast_on_squad(Arc::clone(&map), 1500, Vec2::from_meters(0, -5), st, seed);
         for (_, s) in &b.thrown {
-            sum += meters((s.position - s.throw_from).length());
+            sum += (s.position - s.throw_from).length();
             n += 1;
         }
     }
@@ -512,9 +544,9 @@ fn lying_down_and_cover_damp_the_throw() {
         .collect();
     let (covered, n_covered) = total_throw(&sandbags, Stance::Kneel);
     println!(
-        "kneeling {open:.1} m ({n_open}), prone {prone:.1} m ({n_prone}), behind sandbags {covered:.1} m ({n_covered})"
+        "kneeling {open} m ({n_open}), prone {prone} m ({n_prone}), behind sandbags {covered} m ({n_covered})"
     );
-    assert!(n_open > 0 && open > 1.0);
-    assert!(prone < open * 0.6, "prone {prone}, kneeling {open}");
-    assert!(covered < open * 0.6, "covered {covered}, kneeling {open}");
+    assert!(n_open > 0 && open > Fixed::ONE);
+    assert!(prone * 5 < open * 3, "prone {prone}, kneeling {open}");
+    assert!(covered * 5 < open * 3, "covered {covered}, kneeling {open}");
 }

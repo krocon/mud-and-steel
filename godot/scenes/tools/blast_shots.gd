@@ -32,6 +32,12 @@ extends Node
 ## per second until SERIES_SECONDS; needs `--fixed-fps 30`). `series.txt`
 ## names the crop (pixels) that shows SERIES_KINDS[kind].crop_m meters
 ## around the explosion. `just explosion-series`.
+##
+## With `--throw-series` (prompt 194, scenario `blast_throws.toml`) it fires
+## a 38 cm rocket (Sturmtiger) next to one rifle squad and a 15 cm blast
+## (an exploding ammunition dump) next to the other, records the soldiers
+## flying, and prints the frame times after each blast, the most ragdolls
+## at once and the throws (`soldier_motion.gd` counts). `just throw-shots`.
 
 const BaseView := preload("res://scenes/world/base_view.gd")
 const UiSound := preload("res://scenes/audio/ui_sound.gd")
@@ -80,6 +86,10 @@ func _ready() -> void:
 		return
 	if "--salvo-series" in OS.get_cmdline_user_args():
 		await _salvo_series()
+		get_tree().quit()
+		return
+	if "--throw-series" in OS.get_cmdline_user_args():
+		await _throw_series()
 		get_tree().quit()
 		return
 	if "--strike-live" in OS.get_cmdline_user_args():
@@ -476,6 +486,71 @@ func _build(type_id: String, near: Vector3) -> bool:
 		if not s.is_empty() and float(s["built"]) >= 1.0:
 			return true
 	return false
+
+
+# --- Throw series (prompt 194) ---------------------------------------------------
+
+
+func _throw_series() -> void:
+	if _dir.is_empty():
+		_dir = "user://throw-shots"
+	DirAccess.make_dir_recursive_absolute(_dir)
+	get_window().size = SHOT_SIZE
+	main.camera_rig.edge_scroll_enabled = false
+	main.effects.shake_enabled = false
+	main.fog_of_war.set_fog_enabled(false)
+	main.effects.visible_at = func(_point: Vector3) -> bool: return true
+	await _frames(30)
+	var shooter: int = _ids_of(true)[0]
+	var squads := _ids_of(false)
+	var runs := [
+		{"name": "throw_sturmtiger", "squad": squads[0], "caliber": 380.0, "offset": Vector3(-5, 0, 2)},
+		{"name": "throw_dump", "squad": squads[1], "caliber": 150.0, "offset": Vector3(-3, 0, 1)},
+	]
+	var motion: Node = main.infantry_view.motion
+	for run: Dictionary in runs:
+		var at := _ground(_position_of(int(run["squad"])) + (run["offset"] as Vector3))
+		await _view(at, 34.0, 0.7)
+		await _frames(30)
+		var thrown_before := int(motion.counts.get("thrown", 0))
+		var blasts := int(main.blast_effects.counts.get("big_blast", 0))
+		main.sim_host.debug_rocket(shooter, at.x, at.z, float(run["caliber"]))
+		# Waits for the impact (the blast effects or the first soldier flying).
+		var waited := 0
+		while waited < 900 and int(main.blast_effects.counts.get("big_blast", 0)) == blasts \
+				and int(motion.counts.get("thrown", 0)) == thrown_before:
+			await _frame()
+			waited += 1
+		var frame_ms: Array[float] = []
+		var most := 0
+		var last := Time.get_ticks_usec()
+		var frame := 0
+		for offset: int in [0, 3, 6, 9, 12, 16, 20, 26, 34, 50, 80]:
+			while frame <= offset:
+				await _frame()
+				var now := Time.get_ticks_usec()
+				frame_ms.append((now - last) / 1000.0)
+				last = now
+				most = maxi(most, motion.ragdolls.active_count())
+				frame += 1
+			var image := get_viewport().get_texture().get_image()
+			var path := "%s/%s_%02d.png" % [_dir, run["name"], offset]
+			image.save_png(path)
+			_shot_count += 1
+			# Saving is not part of the frame time.
+			last = Time.get_ticks_usec()
+		frame_ms.sort()
+		var mean := 0.0
+		for ms in frame_ms:
+			mean += ms
+		mean /= maxf(frame_ms.size(), 1.0)
+		print("throw-shots: %s: impact after %d frames, %d thrown (3 m and more), ragdolls at most %d, frame ms mean %.1f, median %.1f, max %.1f" % [
+			run["name"], waited, int(motion.counts.get("thrown", 0)) - thrown_before, most, mean,
+			frame_ms[frame_ms.size() / 2], frame_ms[-1]])
+		await _frames(90)
+	print("throw-shots: %d screenshots in %s; motion %s, weapons %d, helmets %d" % [
+		_shot_count, ProjectSettings.globalize_path(_dir), motion.counts, motion.helmets.weapons_thrown,
+		motion.helmets.knocked_off])
 
 
 func _big(at: Vector3) -> void:

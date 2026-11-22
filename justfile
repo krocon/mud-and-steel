@@ -743,6 +743,11 @@ track-shots dir="build/tracks": build
 blast-shots dir="build/explosions": build
     {{ GODOT }} --path godot --always-on-top --fixed-fps 30 res://scenes/main.tscn -- "--blast-shots={{ justfile_directory() }}/{{ dir }}"
 
+# Big blasts throw soldiers (prompt 194): a Sturmtiger rocket and a dump-sized blast next to rifle squads as PNG files, with frame times and ragdoll counts (needs a window)
+[group('godot')]
+throw-shots dir="build/throws": build
+    {{ GODOT }} --path godot --always-on-top --fixed-fps 30 res://scenes/main.tscn -- --scenario=blast_throws.toml --throw-series "--blast-shots={{ justfile_directory() }}/{{ dir }}"
+
 # Every explosion kind as a picture series, stacked under the reference video's series if .temp/rts-explosionen.mp4 is there (prompt 072, needs a window, ffmpeg and numpy)
 [group('godot')]
 explosion-series dir="build/explosion-ref/now": build
