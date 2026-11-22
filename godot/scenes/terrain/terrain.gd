@@ -23,6 +23,7 @@ const EDGE_SHADER := preload("res://assets/materials/terrain_edge.gdshader")
 const ALBEDO_ARRAY := preload("res://assets/textures/terrain/terrain_albedo.png")
 const NORMAL_ARRAY := preload("res://assets/textures/terrain/terrain_normal.png")
 const MACRO := preload("res://assets/textures/terrain/terrain_macro.png")
+const CLUMPS := preload("res://assets/textures/terrain/terrain_clumps.png")
 const TallGrass := preload("res://scenes/world/tall_grass.gd")
 
 ## Material layers, in texture-array order (crates/cli/src/gen_textures.rs).
@@ -126,6 +127,8 @@ func build(host: Object) -> void:
 	_material.set_shader_parameter("albedo_array", ALBEDO_ARRAY)
 	_material.set_shader_parameter("normal_array", NORMAL_ARRAY)
 	_material.set_shader_parameter("macro_tex", MACRO)
+	# Grass clumps of the meadow relief (prompt 191).
+	_material.set_shader_parameter("clump_tex", CLUMPS)
 	_material.set_shader_parameter("layer_tile", PackedFloat32Array(LAYER_TILE_M))
 	# Water level per sample (prompt 014): wet band above the waterline.
 	var levels: PackedFloat32Array = host.water_levels()

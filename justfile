@@ -702,6 +702,7 @@ track-shots dir="build/tracks": build
     {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- --scenario=tracks_mud.toml "--track-shots={{ justfile_directory() }}/{{ dir }}"
     {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- --scenario=tracks_mud.toml --weather=rain "--track-shots={{ justfile_directory() }}/{{ dir }}"
     {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- --scenario=tracks_winter.toml "--track-shots={{ justfile_directory() }}/{{ dir }}"
+    {{ GODOT }} --path godot --always-on-top res://scenes/main.tscn -- --scenario=tracks_fields.toml "--track-shots={{ justfile_directory() }}/{{ dir }}"
 
 # Record big blasts, a tank's ammunition explosion and a heavy rocket strike by day and night as PNG files (prompt 054, needs a window)
 [group('godot')]

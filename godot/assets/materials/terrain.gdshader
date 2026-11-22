@@ -337,6 +337,8 @@ void fragment() {
 	vec4 fields = texture(field_tex, data_uv);
 	float field_mask = clamp(fields.r + fields.g + fields.b, 0.0, 1.0);
 
+	float tall_raw = texture(track_tex, data_uv).a;
+
 	// Meadow (prompt 057): palette in four scales, blades, soil, flowers.
 	{
 		float src0 = use_biome ? float(layer_source[0]) : 0.0;
@@ -344,12 +346,15 @@ void fragment() {
 		vec3 grass_mean = textureLod(albedo_array, vec3(0.5, 0.5, src0), 12.0).rgb * tint0;
 		vec3 grass_tex = bias[0] >= 0.0 ? col[0].rgb : grass_mean;
 		float px = max(length(dpdx), length(dpdy));
+		// Fake clump shadows only in direct sun (weaker under clouds).
+		float sun_k = ground_sun.w > 0.0 ? ground_sun.w * cloud_sun(world_pos) : 0.0;
+		// No clump relief under tall grass (it draws its own stand).
+		float relief_w = 1.0 - smoothstep(0.0, 0.4, tall_raw);
 		meadow_apply(p, smoothstep(0.2, 0.6, w[0]) * (1.0 - field_mask), grass_tex, grass_mean, w[TRACK], along,
-			macro_far, macro_near, px, albedo, detail, rough);
+			macro_far, macro_near, px, dpdx, dpdy, sun_k, relief_w, albedo, detail, rough, ao);
 	}
 
 	// Tall grass (prompt 073).
-	float tall_raw = texture(track_tex, data_uv).a;
 	float tall = 0.0;
 	if (tall_raw > 0.01) {
 		float px = max(length(dpdx), length(dpdy));

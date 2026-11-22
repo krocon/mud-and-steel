@@ -18,6 +18,13 @@
 //   bright tips, dark gaps, a common lean that changes over tens of meters
 //   (flattened along field tracks). Antialiased by the pixel footprint and
 //   skipped where a pixel is larger than about 2.5 cm.
+// - Relief (middle and far, prompt 191): grass clumps in three scales
+//   (0.45, 1.1 and 2.6 m) with dark gaps, lit through the normal, lower
+//   ambient occlusion in the gaps and a short fake shadow away from the sun
+//   (`ground_sun`, `ground_relief`, set by atmosphere.gd by quality; off
+//   where they are 0). Each scale fades
+//   in where a pixel resolves it and out before it shimmers, so the ground
+//   stays tufty from the middle zoom to the overview.
 // - Flowers (near and middle): white daisies and yellow dandelions as tiny
 //   flat dots in loose groups, `flower_density` per biome (0 in desert and
 //   winter). Skipped where a pixel is larger than about 6 cm.
@@ -80,6 +87,96 @@ float m_clumps(vec2 q, float size) {
 	return 1.0 - smoothstep(0.15, 0.75, d);
 }
 
+// Grass clumps (prompt 191): terrain_clumps.png from `just terrain-textures`,
+// R height, GB gradient per cell (0.5 + g / 8), 32 x 32 cells per tile.
+// Mipmapped: far away height and gradient average out by themselves.
+uniform sampler2D clump_tex : filter_linear_mipmap, repeat_enable;
+
+// Height of grass clumps in cells of `size` meters, the tile turned by
+// `angle` (radians) against visible repeats; dx, dy: screen derivatives
+// of p. Returns (height 0..1,
+// gradient per meter in x and z).
+vec3 m_clump_h(vec2 p, vec2 dx, vec2 dy, float size, float angle) {
+	float ca = cos(angle);
+	float sa = sin(angle);
+	vec2 q = vec2(ca * p.x - sa * p.y, sa * p.x + ca * p.y);
+	float k = 1.0 / (32.0 * size);
+	vec2 qdx = vec2(ca * dx.x - sa * dx.y, sa * dx.x + ca * dx.y) * k;
+	vec2 qdy = vec2(ca * dy.x - sa * dy.y, sa * dy.x + ca * dy.y) * k;
+	// Explicit derivatives: called inside branches.
+	vec4 t = textureGrad(clump_tex, q * k, qdx, qdy);
+	vec2 gq = (t.gb - 0.5) * 8.0 / size;
+	// Gradient back from the turned frame.
+	vec2 g = vec2(ca * gq.x + sa * gq.y, -sa * gq.x + ca * gq.y);
+	return vec3(t.r, g);
+}
+
+// Global sun for the fake clump shadows (prompt 191, set by atmosphere.gd):
+// xyz direction towards the sun, w strength (0 = off: thumbnails, editor,
+// quality below high).
+global uniform vec4 ground_sun;
+// Clump relief on (1) or off (0: thumbnails, editor, low quality).
+global uniform float ground_relief;
+
+// One scale of the relief: returns the albedo factor, adds to the normal
+// detail and lowers the ambient occlusion. `height` is the clump height
+// in meters, `fade` its weight at this pixel size.
+float m_relief_layer(vec2 p, vec2 dx, vec2 dy, float size, float height, float angle, float fade, float sun_k,
+		inout vec3 detail, inout float ao) {
+	if (fade <= 0.0) {
+		return 1.0;
+	}
+	vec3 c = m_clump_h(p, dx, dy, size, angle);
+	// Gaps between clumps are dark (the ground there lies in their shade),
+	// tops a little brighter.
+	float shade = mix(0.66, 1.16, smoothstep(0.0, 0.7, c.x));
+	ao *= mix(1.0, mix(0.9, 1.0, c.x), fade);
+	// Lit through the normal: slope of the dome times its height.
+	detail += vec3(-c.y, 0.0, -c.z) * height * 0.5 * fade;
+	// Fake shadow: a clump towards the sun hides this point.
+	if (sun_k > 0.0) {
+		vec2 to_sun = ground_sun.xz;
+		float hl = length(to_sun);
+		if (hl > 1e-3) {
+			float tan_el = max(ground_sun.y, 0.08) / hl;
+			float reach = min(height / tan_el, size * 0.7);
+			vec3 o = m_clump_h(p + to_sun / hl * reach, dx, dy, size, angle);
+			float shadow = clamp((o.x - c.x) * 2.2, 0.0, 1.0);
+			shade *= 1.0 - shadow * 0.55 * sun_k;
+		}
+	}
+	// Keep the mean brightness: gaps, shadows and the tilted normals take about 20 %.
+	return mix(1.0, shade * 1.22, fade);
+}
+
+// Relief of the meadow beyond the blades: three scales of clumps, each
+// faded in where a pixel resolves it and out before it shimmers.
+// `patch`: smooth noise of tens of meters (0..1), the relief is stronger in
+// some places than in others.
+float meadow_relief(vec2 p, vec2 dx, vec2 dy, float px, float grass, float patch, float sun_k,
+		inout vec3 detail, inout float ao) {
+	// A clump stays about 6 to 15 pixels wide: each scale takes over from
+	// the finer one as the pixels grow (at most two at a time, each costs
+	// two texture reads). Larger on screen they read as bumps, not grass.
+	float f1 = smoothstep(0.012, 0.025, px) * (1.0 - smoothstep(0.06, 0.09, px));
+	float f2 = smoothstep(0.06, 0.09, px) * (1.0 - smoothstep(0.16, 0.24, px));
+	float f3 = smoothstep(0.16, 0.24, px) * (1.0 - smoothstep(0.6, 1.0, px));
+	float vary = mix(0.6, 1.2, smoothstep(0.3, 0.7, patch));
+	f1 *= vary;
+	f2 *= vary;
+	f3 *= vary;
+	vec3 d = vec3(0.0);
+	float a = 1.0;
+	float k = 1.0;
+	k *= m_relief_layer(p + vec2(0.31, 0.77), dx, dy, 0.45, 0.12, 0.3, f1, sun_k, d, a);
+	k *= m_relief_layer(p, dx, dy, 1.1, 0.25, 1.9, f2, sun_k, d, a);
+	k *= m_relief_layer(p + vec2(3.7, 1.9), dx, dy, 2.6, 0.45, 4.1, f3 * 0.75, sun_k, d, a);
+	detail += d * grass;
+	ao = mix(ao, ao * max(a, 0.7), grass);
+	// The scales overlap: never darker than 0.6 in all their gaps at once.
+	return clamp(k, 0.6, 1.35);
+}
+
 // Flowers: at most one per cell of 0.35 m, in loose groups. Returns
 // (coverage, kind 0 daisy / 1 dandelion, center share).
 vec3 m_flowers(vec2 p, float groups, float px) {
@@ -102,10 +199,13 @@ vec3 m_flowers(vec2 p, float groups, float px) {
 // grass: share of the grass layer (0..1); grass_tex: blended grass texture
 // color here; grass_mean: its average color; track_w: weight of field
 // tracks; along: track direction; macro_far/near: the shader's macro
-// samples; px: pixel footprint in meters.
+// samples; px: pixel footprint in meters; dpdx, dpdy: screen derivatives of
+// p; sun_k: strength of the fake clump
+// shadows (0..1, direct sunlight here); relief_w: weight of the clump
+// relief (0 under tall grass).
 void meadow_apply(vec2 p, float grass, vec3 grass_tex, vec3 grass_mean, float track_w, vec2 along,
-		vec4 macro_far, vec4 macro_near, float px, inout vec3 albedo, inout vec3 detail,
-		inout float rough) {
+		vec4 macro_far, vec4 macro_near, float px, vec2 dpdx, vec2 dpdy, float sun_k, float relief_w, inout vec3 albedo, inout vec3 detail,
+		inout float rough, inout float ao) {
 	if (meadow_strength <= 0.0 || grass <= 0.0) {
 		return;
 	}
@@ -150,12 +250,11 @@ void meadow_apply(vec2 p, float grass, vec3 grass_tex, vec3 grass_mean, float tr
 		detail += vec3(dn.x, 0.0, dn.y) * grass;
 	}
 
-	// Tufts of the middle zoom: clumps of about 0.45 m, bright tops and dark
-	// gaps, where a pixel is 1.5 to 8 cm (the blades above take over nearer).
-	if (px > 0.012 && px < 0.08) {
-		float mid_fade = smoothstep(0.012, 0.025, px) * (1.0 - smoothstep(0.05, 0.08, px));
-		float tuft = m_clumps(p + vec2(0.31, 0.77), 0.45);
-		meadow *= mix(1.0, mix(0.72, 1.12, tuft), mid_fade);
+	// Relief of the middle and far zoom (prompt 191): clumps of 0.45, 1.1
+	// and 2.6 m with dark gaps, lit through the normal and casting a short
+	// fake shadow away from the sun (the blades above take over nearer).
+	if (px > 0.012 && ground_relief > 0.0) {
+		meadow *= mix(1.0, meadow_relief(p, dpdx, dpdy, px, grass * relief_w, m_mid.b, sun_k, detail, ao), relief_w);
 	}
 
 	// Bare soil: patches of a few meters, frayed edges of field tracks.

@@ -178,6 +178,14 @@ cloud_shadow_shape={
 "type": "vec4",
 "value": Vector4(0.003, 0, 0.6, 0.08)
 }
+ground_sun={
+"type": "vec4",
+"value": Vector4(0, 1, 0, 0)
+}
+ground_relief={
+"type": "float",
+"value": 0.0
+}
 
 [importer_defaults]
 

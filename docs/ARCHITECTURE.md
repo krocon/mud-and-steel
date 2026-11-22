@@ -3283,6 +3283,25 @@ placement. The decoration lattice of prompt 013 already scatters by terrain
 type, wood density, map objects and craters, so the tufts reuse it with new
 meshes.
 
+**Relief beyond the blades (prompt 191).** From the game camera the meadow
+read flat: blades end at a 2.5 cm pixel, tufts at 55 m. `meadow_relief` in
+`terrain_meadow.gdshaderinc` adds grass clumps in three scales (0.45, 1.1 and
+2.6 m), each faded in while a clump is about 6–15 pixels wide and handed to
+the next scale as the pixels grow (larger on screen they read as an egg
+carton). Each scale: dark gaps, slightly brighter tops (mean brightness kept),
+the dome slope tilts the normal, a little ambient occlusion in the gaps, and a
+fake shadow from one more read towards the sun (`ground_sun`, a global shader
+uniform set by `atmosphere.gd`: direction, strength from sun energy and shadow
+opacity, times the cloud shadow at the pixel). Strength varies over tens of
+meters (`meadow_mid`). The clumps come from `terrain_clumps.png` (`just
+terrain-textures`: up to two domes per cell, random size and place, a quarter
+of the cells empty; R height, GB gradient), mipmapped and read with
+`textureGrad`; computing the domes from hashes per pixel cost three times as
+much. Not under tall grass (it draws its own stand). Quality (`graphics_quality.gd`):
+low off (`ground_relief` 0), medium without the shadows, high both. Cost on an
+M1 Max at 1728 × 1084, high: about +3–4 ms per frame at 120 and 600 m (shadows
+about 1 ms of it), none on low.
+
 Open: footprints and drag marks of soldiers (a presentation trail texture;
 prompt 040 brings tracks into the same shader), mowing stripes (pastures of
 the period were grazed, not mown), crater ejecta on grass, seasons (the biome
@@ -4163,7 +4182,9 @@ Infantry leaves none.
   after 30 % of its life.
 - **Ground** (`GROUNDS`): meadow 0.55 / 240 s, dirt track 0.3 / 240 s, sand
   0.8 / 150 s, mud 1.0 / 480 s, snow 0.95 / 600 s; roads, water and (in the
-  shader) rock none. Rain (wetness ≥ 0.3): sand keeps tracks 35 % as long,
+  shader) rock none. Grain and green fields count as meadow, ploughed fields
+  as mud (in the desert sand, in winter snow; fields of prompt 088 had no
+  tracks before 2026-11-22). Rain (wetness ≥ 0.3): sand keeps tracks 35 % as long,
   meadow becomes mud-like (0.8 / 360 s). The biome maps like the terrain
   shader (winter grass is snow, desert grass sand).
 - **Raster:** the stamps are drawn additively into a SubViewport window

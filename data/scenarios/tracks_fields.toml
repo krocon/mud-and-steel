@@ -1,0 +1,30 @@
+# Vehicle tracks on fields (prompt 088 fields, tracks since 2026-11-22): a
+# tank and a truck of player 0 on `valley_fields` near its first start, one
+# enemy tank far away. Used by `just track-shots`, which drives both vehicles
+# over grain, green and ploughed fields. Integers only.
+
+map = "valley_fields"
+
+[[group]]
+owner = 0
+unit = "de_pz4_h"
+count = 1
+columns = 1
+spacing_m = 12
+center_m = [-1320, 800]
+
+[[group]]
+owner = 0
+unit = "de_opel_blitz"
+count = 1
+columns = 1
+spacing_m = 12
+center_m = [-1306, 800]
+
+[[group]]
+owner = 1
+unit = "su_t34_76_1943"
+count = 1
+columns = 1
+spacing_m = 12
+center_m = [1380, 680]

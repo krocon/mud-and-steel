@@ -22,7 +22,8 @@ extends Node
 ## B wear (adds up over passes: a column's way turns into a worn, darker
 ## path). The terrain shader (`terrain.gdshader`) draws them by the ground
 ## under them: dark ruts in mud, pressed snow, soft-edged ruts in sand, a
-## dark streak in meadow; roads, rock and water show none.
+## dark streak in meadow and in grain and green fields, mud ruts in ploughed
+## fields; roads, rock and water show none.
 ##
 ## Fog of war (prompt 098): a vehicle stamps only while its position is
 ## visible to the local player (`effects.visible_at`), so the tracks never
@@ -176,7 +177,8 @@ func amount_at(point: Vector3) -> float:
 func track_ground(terrain: int) -> String:
 	var biome: String = main.effects._biome() if main.get("effects") != null else "forest"
 	match terrain:
-		0, 8:
+		0, 8, 9, 10:
+			# Meadow, tall grass, grain and green fields (prompt 088).
 			return {"desert": "sand", "winter": "snow"}.get(biome, "grass")
 		1:
 			return "snow" if biome == "winter" else "track"
@@ -184,6 +186,9 @@ func track_ground(terrain: int) -> String:
 			return "snow" if biome == "winter" else "sand"
 		4:
 			return "sand" if biome == "desert" else "mud"
+		11:
+			# Ploughed field: loose soil, deep ruts like mud.
+			return {"desert": "sand", "winter": "snow"}.get(biome, "mud")
 		5:
 			return "sand" if biome == "desert" else "snow"
 	return ""

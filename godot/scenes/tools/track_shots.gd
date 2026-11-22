@@ -5,7 +5,8 @@ extends Node
 ##     godot --path godot -- --scenario=tracks.toml [--weather=rain] --track-shots=<dir>
 ##
 ## (`tracks.toml`: sand and a ford on `river_fork`, `tracks_mud.toml`: mud
-## on `river_land`, `tracks_winter.toml`: snow on `winter_village`.)
+## on `river_land`, `tracks_winter.toml`: snow on `winter_village`,
+## `tracks_fields.toml`: grain, green and ploughed fields on `valley_fields`.)
 ##
 ## With the fog of war off it looks for open patches of every ground kind of
 ## the map (grass, sand, mud, snow, a ford; on winter maps grass is drawn as
@@ -20,6 +21,7 @@ const SHOT_SIZE := Vector2i(1600, 900)
 ## Terrain ids per ground of the shots (data/terrain.toml).
 const GROUNDS: Dictionary[String, Array] = {
 	"grass": [0], "sand": [3], "mud": [4], "snow": [5], "ford": [6],
+	"grain": [9], "green_field": [10], "ploughed": [11],
 }
 ## Winter maps draw grass as snow.
 const WINTER_GROUNDS: Dictionary[String, Array] = {"snow": [0, 5], "ford": [6]}

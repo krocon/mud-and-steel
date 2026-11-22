@@ -28,6 +28,9 @@ func run(test: Node) -> void:
 		return
 	test._check(tracks.window_m > 0.0, "ground tracks are off at quality '%s'" % main.atmosphere.quality)
 	test._check(tracks.stamps > 0, "the tanks drove, but no track was stamped")
+	# Fields (prompt 088) take tracks like meadow, ploughed soil like mud.
+	for field: int in [9, 10, 11]:
+		test._check(not tracks.track_ground(field).is_empty(), "field terrain %d takes no tracks" % field)
 
 	# Over sand, then on a road.
 	var info: Dictionary = tracks._info("de_pz4_h")

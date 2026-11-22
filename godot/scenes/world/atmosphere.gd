@@ -257,6 +257,13 @@ func _apply_sun(q: Dictionary) -> void:
 	# Direction towards the sun: bearing 0 = north (-Z), 90 = east (+X).
 	var to_sun := Vector3(sin(az) * cos(el), sin(el), -cos(az) * cos(el))
 	_sun.basis = Basis.looking_at(-to_sun, Vector3.UP)
+	# Meadow relief and its fake clump shadows (prompt 191), by quality;
+	# the shadows are weaker in weak or soft sun.
+	var sun_k := clampf(preset.sun_energy / 2.0, 0.0, 1.0) * preset.shadow_opacity
+	if not bool(q.ground_shadows):
+		sun_k = 0.0
+	RenderingServer.global_shader_parameter_set(&"ground_sun", Vector4(to_sun.x, to_sun.y, to_sun.z, sun_k))
+	RenderingServer.global_shader_parameter_set(&"ground_relief", 1.0 if bool(q.ground_relief) else 0.0)
 	_sun.light_color = preset.sun_color
 	_sun.light_energy = preset.sun_energy
 	_sun.light_angular_distance = 0.0

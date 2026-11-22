@@ -9,6 +9,9 @@
 //!   down), B roughness, A ambient occlusion
 //! - `terrain_macro.png`: four channels of tileable low-frequency noise for
 //!   large-scale variation
+//! - `terrain_clumps.png`: grass clumps for the meadow relief (prompt 191):
+//!   R height (0..1), G and B its gradient per cell (x, y; 0.5 + g / 8),
+//!   32 x 32 cells per tile
 //!
 //! Everything is drawn from noise, cells and strokes; no photo source, so no
 //! license question (see `godot/assets/textures/CREDITS.md`). The output files
@@ -700,6 +703,63 @@ fn macro_noise(n: usize, seed: u32) -> Vec<u8> {
     out
 }
 
+/// Grass clumps (prompt 191): `cells` x `cells` cells per tile, up to two
+/// domes per cell of random radius anywhere in the cell, about one cell in
+/// four empty (bare gaps); the highest dome wins. Tileable (cells wrap).
+/// Irregular on purpose: one dome per cell on a lattice reads as a knitted
+/// carpet from the game camera.
+fn clumps(n: usize, cells: i32, seed: u32) -> Vec<u8> {
+    let mut out = Vec::with_capacity(n * n * 4);
+    for y in 0..n {
+        for x in 0..n {
+            let gx = (x as f32 + 0.5) / n as f32 * cells as f32;
+            let gy = (y as f32 + 0.5) / n as f32 * cells as f32;
+            let (ix, iy) = (gx.floor() as i32, gy.floor() as i32);
+            let mut best = (0.0f32, 0.0f32, 0.0f32);
+            for dy in -1..=1 {
+                for dx in -1..=1 {
+                    let (cx, cy) = (ix + dx, iy + dy);
+                    let (wx, wy) = (cx.rem_euclid(cells), cy.rem_euclid(cells));
+                    let count = match hash01(wx, wy, seed + 9) {
+                        v if v < 0.25 => 0,
+                        v if v < 0.7 => 1,
+                        _ => 2,
+                    };
+                    for k in 0..count {
+                        let s2 = seed + 16 * k;
+                        let hx = hash01(wx, wy, s2);
+                        let hy = hash01(wx, wy, s2 + 1);
+                        let r = 0.25 + 0.6 * hash01(wx, wy, s2 + 2).powf(1.5);
+                        let tall = 0.6 + 0.4 * hash01(wx, wy, s2 + 3);
+                        let ddx = gx - (cx as f32 + hx);
+                        let ddy = gy - (cy as f32 + hy);
+                        let len = (ddx * ddx + ddy * ddy).sqrt();
+                        let t = (len / r).min(1.0);
+                        let h = (1.0 - t * t) * (1.0 - t * t) * tall;
+                        if h > best.0 {
+                            let dh = -4.0 * t * (1.0 - t * t) / r * tall;
+                            let (gxv, gyv) = if len > 1e-4 {
+                                (ddx / len * dh, ddy / len * dh)
+                            } else {
+                                (0.0, 0.0)
+                            };
+                            best = (h, gxv, gyv);
+                        }
+                    }
+                }
+            }
+            let enc = |g: f32| ((0.5 + g / 8.0).clamp(0.0, 1.0) * 255.0 + 0.5) as u8;
+            out.extend_from_slice(&[
+                (best.0.clamp(0.0, 1.0) * 255.0 + 0.5) as u8,
+                enc(best.1),
+                enc(best.2),
+                255,
+            ]);
+        }
+    }
+    out
+}
+
 fn write_rgba(path: &Path, width: u32, height: u32, data: &[u8]) -> Result<(), String> {
     let file = std::fs::File::create(path).map_err(|e| format!("{}: {e}", path.display()))?;
     let mut encoder = png::Encoder::new(std::io::BufWriter::new(file), width, height);
@@ -711,7 +771,7 @@ fn write_rgba(path: &Path, width: u32, height: u32, data: &[u8]) -> Result<(), S
     writer.finish().map_err(|e| e.to_string())
 }
 
-/// Generates all layers and writes the three PNGs; returns a report.
+/// Generates all layers and writes the four PNGs; returns a report.
 pub fn generate(options: &Options) -> Result<String, String> {
     let n = options.size as usize;
     if !n.is_power_of_two() || !(64..=4096).contains(&n) {
@@ -767,6 +827,12 @@ pub fn generate(options: &Options) -> Result<String, String> {
         512,
         512,
         &macro_noise(512, s + 77),
+    )?;
+    write_rgba(
+        &options.out.join("terrain_clumps.png"),
+        512,
+        512,
+        &clumps(512, 32, s + 91),
     )?;
     if let Some(path) = options.preview {
         write_preview(path, n, &albedo, &normal)?;
@@ -850,6 +916,7 @@ mod tests {
         .unwrap();
         assert!(report.contains("10 layers"));
         assert!(dir.join("terrain_albedo.png").exists());
+        assert!(dir.join("terrain_clumps.png").exists());
         std::fs::remove_dir_all(&dir).unwrap();
     }
 }
