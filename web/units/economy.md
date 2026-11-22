@@ -44,6 +44,7 @@
 | Vehicle works | `de_brueckenleger4` | 112 | 10 | 12 | 24.7 |
 | Vehicle works | `de_sturmpanzer4` | 112 | 210 | 30 | 52.0 |
 | Vehicle works | `de_pzwerfer42` | 28 | 385 | 18 | 61.8 |
+| Vehicle works | `de_sturmtiger` | 260 | 1286 | 30 | 205.0 |
 | Vehicle works | `su_ba64b` | 9 | 11 | 12 | 12.0 |
 | Vehicle works | `su_t70m` | 39 | 36 | 12 | 18.8 |
 | Vehicle works | `su_t34_76_1943` | 123 | 85 | 24 | 37.0 |

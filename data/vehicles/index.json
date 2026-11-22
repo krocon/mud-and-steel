@@ -324,8 +324,7 @@
   },
   "GER/Tiger/Sturmtiger": {
     "id": "de_sturmtiger",
-    "status": "skipped",
-    "reason": "small series (built: 18 converted from Tiger I); alternative for prompt 062",
+    "status": "new",
     "chassis": "de_tiger1_e"
   },
   "GER/Tiger/Tiger I": {

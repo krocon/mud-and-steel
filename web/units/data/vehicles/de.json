@@ -5327,6 +5327,92 @@
     ]
   },
   {
+    "id": "de_sturmtiger",
+    "name": "Sturmtiger",
+    "type": "SP Rocket Mortar",
+    "family": "Tiger",
+    "source": {
+      "name": "onwar.com (Ralph Zuljan)",
+      "url": "https://www.onwar.com/wwii/tanks/germany/ge066sturmtiger.html",
+      "fetched": "2026-11-16",
+      "references": [
+        "EGT",
+        "GT"
+      ]
+    },
+    "general": {
+      "designation": "38cm RW61 auf Sturmmorser Tiger, Tiger-Morser",
+      "manufacturer": "Alkett",
+      "production_quantity": 18,
+      "production_period": "Aug.-Dec.1944",
+      "crew": 5,
+      "length_mm": 6280,
+      "width_mm": 3570,
+      "height_mm": 2850,
+      "barrel_overhang_mm": 0,
+      "mass_kg": 65000,
+      "radio": "FuG5",
+      "text": {
+        "production_quantity": "18 converted from Tiger I"
+      }
+    },
+    "firepower": {
+      "main_gun": "380mm StuM RW61 L/5.4",
+      "main_gun_caliber_mm_x10": 3800,
+      "main_gun_length_cal_x10": 54,
+      "main_ammo": 14,
+      "traverse_deg": 20,
+      "traverse_drive": "manual",
+      "elevation_min_deg_x10": 0,
+      "elevation_max_deg_x10": 850,
+      "sight": "PaK ZF3x8",
+      "secondary": "1 x 7.92mm MG34 (bow)",
+      "secondary_ammo": 600
+    },
+    "mobility": {
+      "engine": "Maybach HL230P45",
+      "engine_type": "V12, 23.1 liters",
+      "displacement_cc": 23100,
+      "power_hp": 700,
+      "power_rpm": 3000,
+      "power_to_weight_hp_per_t_x10": 108,
+      "gearbox": "8 forward, 4 reverse",
+      "gears_forward": 8,
+      "gears_reverse": 4,
+      "fuel": "Gasoline (Petrol)",
+      "fuel_capacity_l": 540,
+      "consumption_road_l_per_100km": 450,
+      "range_road_km": 120,
+      "range_offroad_km": 85,
+      "speed_road_kmh_x10": 400,
+      "track_width_mm": 720,
+      "track_ground_contact_mm": 3810,
+      "track_links": 96,
+      "ground_pressure_psi_x10": 176,
+      "ground_pressure_kpa_x10": 1213,
+      "ground_clearance_mm": 470,
+      "turning_radius_mm": 7000,
+      "gradient_deg": 35,
+      "vertical_obstacle_mm": 790,
+      "fording_mm": 1200,
+      "trench_crossing_mm": 2300
+    },
+    "armor": {
+      "hull": {
+        "front": { "mm": 100, "deg": 65 },
+        "side": { "mm": 60, "deg": 80 },
+        "rear": { "mm": 80, "deg": 81 },
+        "top_bottom": { "mm": 25, "deg": 0 }
+      },
+      "superstructure": {
+        "front": { "mm": 150, "deg": 45 },
+        "side": { "mm": 80, "text": "80mm @60°&90°" },
+        "rear": { "mm": 80, "deg": 90 },
+        "top_bottom": { "mm_min": 25, "mm_max": 40, "deg": 0, "text": "25-40mm @0°" }
+      }
+    }
+  },
+  {
     "id": "de_tiger1_e",
     "name": "Tiger I",
     "type": "Heavy Tank",

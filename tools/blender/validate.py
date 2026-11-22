@@ -44,6 +44,7 @@ NAMES = {
     r"Hull": [r"<root>"],
     r"Carriage": [r"<root>"],
     r"Bridge": [r"Hull"],  # carried bridge of a bridge-laying tank (prompt 055)
+    r"Crane": [r"<root>"],  # loading crane above the roof (Sturmtiger), left out of the height
     r"Turret": [r"Hull"],
     r"Cupola": [r"Turret", r"Hull"],
     r"Mount": [r"Carriage"],

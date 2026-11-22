@@ -787,6 +787,47 @@ source = [
 uncertain = ["length_hull_mm", "speed_offroad_kmh_x10", "armor_hull_front_mm", "armor_hull_side_mm", "armor_hull_rear_mm", "armor_turret_side_mm", "armor_turret_rear_mm", "gun_traverse_deg", "weapon"]
 note = "Prompt 062. Assault howitzer on the Panzer IV chassis with a casemate for the short 15 cm StuH 43 (derived from the sIG 33). Series IV (from 1944) with the MG 34 in a ball mount in the casemate front; earlier series had none. armor_turret_* = casemate: front 100 mm (Wikipedia), sides 50 and rear 30 mm estimated. Hull front 80 mm and rear 20 mm as on the late Panzer IV hull (estimate); sides 30 mm. length_hull_mm = Panzer IV hull (the short barrel hardly overhangs). gun_traverse_deg 30 (15 left and right) is an estimate. rate_rpm 2 = lower bound of the sIG 33 (two-part ammunition in a cramped casemate). range_effective_m = maximum range of the StuH 43 (4,300 m, from memory; the sIG 33 reaches 4,700 m). range_typical_m (prompt 067): howitzer in direct fire 500 m (class estimate, as the M4A3 (105)); MG 34 in a ball mount 400 m (class estimate, as other vehicle MGs). Differs from onwar.com (data/vehicles, \"Brummbar\", a rank-4 source; the values above keep their sources): speed_offroad_kmh_x10 150, armor_hull_side_mm 50 (the casemate sides; hull sides 30)."
 
+[[unit]]
+id = "de_sturmtiger"
+faction = "de"
+category = "assault_gun"
+name_de = "38 cm Sturmmörser Tiger (Sturmtiger)"
+name_en = "Sturmtiger"
+designation = "38 cm RW 61 auf Sturmmörser Tiger"
+year_from = 1944
+year_to = 1945
+tier = 3
+model = "assets/models/de/de_sturmtiger.glb"
+length_mm = 6280
+length_hull_mm = 6280
+width_mm = 3570
+height_mm = 2850
+mass_kg = 65000
+crew = 5
+speed_road_kmh_x10 = 400
+speed_offroad_kmh_x10 = 240
+range_road_km = 120
+power_hp = 700
+armor_hull_front_mm = 100
+armor_hull_side_mm = 80
+armor_hull_rear_mm = 80
+armor_turret_front_mm = 150
+armor_turret_side_mm = 80
+armor_turret_rear_mm = 80
+gun_traverse_deg = 20
+weapon = [
+    { name = "38 cm RW 61 L/5.4", caliber_mm_x10 = 3800, ammo = "38 cm Raketen-Sprenggranate 4581 HE", rate_rpm = 1, muzzle_velocity_mps = 250, range_effective_m = 5650, range_typical_m = 500, ammo_carried = 14 },
+    { name = "MG 34 (ball mount)", caliber_mm_x10 = 79, rate_rpm = 900, muzzle_velocity_mps = 755, range_effective_m = 800, range_typical_m = 400, ammo_carried = 800 },
+]
+source = [
+    { ref = "https://en.wikipedia.org/wiki/Sturmtiger", covers = "6.28 m, 3.57 m, 2.85 m, crew 5, 68 t, Maybach HL 230 P45 700 PS, 40 km/h, range 120 km, superstructure front 150 mm at 47 deg, superstructure and upper hull sides/rear 82 mm, 380 mm RW 61 L/5.4, 14 rounds, rocket projectile up to 376 kg with 125 kg HE, launch 45 m/s, about 250 m/s after burn-out, HE range 5,650 m, MG 34, 18 built (3 Aug., 10 Sept., 5 Dec. 1944) on rebuilt Tiger I chassis" },
+    { ref = "https://de.wikipedia.org/wiki/38-cm-Sturm%C3%B6rser", covers = "65 t, 6.28 / 3.57 / 2.85 m, crew 5, 40 km/h road, 24 km/h cross-country, 120 km road / 85 km terrain, Raketensprenggranate 4581 345 kg with 125 kg explosive, 45 m/s launch, 250 m/s end velocity, range up to 5,650 m, 14 rounds (12 stowed, 1 in the barrel, 1 on the loading tray), MG 34 with 800 rounds, loading crane on the roof" },
+    { ref = "https://www.onwar.com/wwii/tanks/germany/ge066sturmtiger.html", covers = "traverse 10 deg left and right, hull front 100 mm, hull sides 60-80 mm, rear 80 mm, superstructure 150 mm front / 80 mm sides and rear, no barrel overhang (docs/.vorlagen/fahrzeuge/GER/Tiger/Sturmtiger)" },
+    { ref = "TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII sec. II, https://lonesentry.com/manuals/tme30/ch7sec2sub6.html", covers = "range_typical_m: MG 34 / MG 42 effective range as light MG 600-800 yd: upper bound for the typical distance" },
+]
+uncertain = ["mass_kg", "armor_hull_front_mm", "armor_hull_side_mm", "gun_traverse_deg", "weapon"]
+note = "Rocket-assisted 38 cm breech-loading mortar in a box casemate on rebuilt Tiger I hulls (Alkett), 18 converted August - December 1944. Mass 65 t (de.wikipedia, onwar) vs 68 t (en.wikipedia). armor_turret_* = casemate. Hull front 100 mm is the Tiger I hull nose (en.wikipedia gives 150 mm with an added plate); hull sides 80 mm upper (lower 60 mm). Traverse 10 deg left and right only from onwar.com. No barrel overhang, so length_hull_mm = length_mm. muzzle_velocity_mps = velocity after the rocket burn (launch 45 m/s). range_effective_m = stated HE range (5,650 m; en.wikipedia also quotes up to 6,000 m). range_typical_m 500 = class estimate as the StuH 43 of the Sturmpanzer IV (fired directly at buildings). rate_rpm 1 is the lowest integer: no fetched source gives a rate of fire; the whole crew loaded each 345 kg round with the roof crane, so the real rate was well below one round per minute. The shaped-charge round (2.5 m of reinforced concrete) came only in 1945 and is left out. The close-defence launcher (Nahverteidigungswaffe) is left out. The catalog caliber limit was raised from 200 to 400 mm for this weapon."
+
 # ---------------------------------------------------------------------------
 # Guns (height and mass in firing position unless noted)
 # ---------------------------------------------------------------------------

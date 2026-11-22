@@ -1,0 +1,261 @@
+# Sturmtiger (38 cm RW 61 auf Sturmmoerser Tiger), 18 rebuilt Tiger I hulls,
+# August - December 1944: `casemate` assembly on the running gear and lower
+# hull of de_tiger1_e.toml. Main dimensions from data/catalog/de.toml:
+# length 6.28 m (no barrel overhang), width 3.57 m, height 2.85 m (casemate
+# roof).
+# Sources (catalog): superstructure front 150 mm at 47 deg, sides and rear
+# about 20 deg; the mortar in a ball mount right of the centre line; the
+# loading crane on the right rear corner of the roof; 14 rounds stowed inside.
+# Modeling estimates from photographs (no drawing in the reference folder):
+# casemate from the hull nose back to just behind the old turret ring, the
+# Tiger engine deck behind it, driver's visor left and MG 34 ball mount
+# upper right on the front plate, large loading hatch and commander's hatch
+# on the roof, crane post and jib (folded back), the vent ring around the
+# muzzle as a thicker ring.
+unit = "de_sturmtiger"
+assembly = "casemate"
+
+[layout]
+fender_overhang = 0.06   # outer wheel layer of `interleaved` as on the Tiger I
+
+[running_gear]
+part = "interleaved"
+rows = 3
+track_width = 0.725
+link_pitch = 0.13
+road_wheel_diameter = 0.80
+# Tiger I stations moved together by 3 % (catalog length 6.28 m over
+# everything; the Tiger I hull is 6.316 m)
+road_wheels = [1.99, 1.45, 0.90, 0.36, -0.18, -0.73, -1.27, -1.81]
+sprocket = { y = 2.74, z = 0.86, diameter = 0.84, teeth = 18 }
+idler = { y = -2.72, z = 0.82, diameter = 0.60 }
+arm = 0.40
+
+[hull]
+part = "plate_hull"
+# lower hull of the Tiger I; the upper hull is only the engine deck behind
+# the casemate (the casemate replaces the front superstructure)
+lower = [[-3.00, 0.47], [2.62, 0.47], [3.16, 1.05], [3.16, 1.24], [-3.16, 1.24], [-3.16, 0.80]]
+upper = [[-3.16, 1.23], [-0.70, 1.23], [-0.70, 1.86], [-3.16, 1.86]]
+fender_front = 3.16
+fender_rear = -3.16
+fender_slope_front = 0.0
+
+[casemate]
+part = "casemate"
+z = 1.26
+# front plate from the top of the hull nose, 47 deg from vertical; rear wall
+# just behind the old turret ring, ahead of the engine deck
+plan = [[-1.72, 3.08], [1.72, 3.08], [1.72, -0.80], [-1.72, -0.80]]
+side_slope_deg = 12
+front_slope_deg = 47
+rear_slope_deg = 8
+
+[gun]
+part = "tank_gun"
+x = 0.32                     # right of the centre line
+trunnion = [2.30, 2.00]      # model space: y, z (on the front plate)
+mantlet = { kind = "round", size = [0.86, 0.44, 0.86] }
+# the short, thick 38 cm barrel; muzzle at the catalog length (no overhang)
+segments = [["fit", 0.25, 0.25], [0.10, 0.28, 0.28]]
+muzzle_brake = "none"
+
+[[mg]]  # MG 34 in the ball mount, upper right of the front plate
+part = "mg"
+mount = "ball"
+position = [1.10, 1.98, 2.25]
+length = 0.9
+
+[[part]]
+part = "de.driver_visor"
+position = [-0.80, 2.28, 2.02]
+size = [0.40, 0.16]
+
+[[part]]
+part = "hull_hatch"           # loading hatch for the rounds (rear of the roof)
+center = [-0.35, -0.05]
+z = "casemate"
+size = [0.80, 0.70]
+hinge = "rear"
+socket = true
+
+[[part]]
+part = "hull_hatch"           # commander
+center = [0.75, 0.70]
+z = "casemate"
+size = [0.55, 0.55]
+hinge = "rear"
+
+# close-defence launcher and ventilator on the roof: own object `Crane`
+# too (props above the roof would lower the fitted roof)
+[[part]]
+part = "cylinder_prop"
+parent = "Crane"
+from = [-0.55, 0.95, 2.84]
+to = [-0.55, 0.95, 2.98]
+radius = 0.08
+material = "Metal"
+segments = 10
+
+[[part]]
+part = "cylinder_prop"
+parent = "Crane"
+from = [0.10, 1.10, 2.84]
+to = [0.10, 1.10, 2.93]
+radius = 0.12
+segments = 12
+
+# loading crane on the right rear corner of the roof (own object, left out of
+# the height): post, jib folded back, hook
+[[part]]
+part = "cylinder_prop"
+parent = "Crane"
+from = [1.22, -0.38, 2.84]
+to = [1.22, -0.38, 3.50]
+radius = 0.06
+material = "Metal"
+segments = 10
+
+[[part]]
+part = "cylinder_prop"
+parent = "Crane"
+from = [1.22, -0.38, 3.46]
+to = [1.22, -1.55, 3.36]
+radius = 0.045
+material = "Metal"
+segments = 8
+
+[[part]]
+part = "cylinder_prop"
+parent = "Crane"
+from = [1.22, -1.52, 3.36]
+to = [1.22, -1.52, 3.12]
+radius = 0.012
+material = "Metal"
+segments = 6
+
+[[part]]
+part = "deck_box"             # engine hatch
+center = [0.0, -2.05]
+size = [1.30, 1.10, 0.05]
+
+[[part]]
+part = "deck_box"             # radiator grilles left and right
+center = [-1.05, -2.15]
+size = [0.85, 1.40, 0.04]
+
+[[part]]
+part = "deck_box"
+center = [1.05, -2.15]
+size = [0.85, 1.40, 0.04]
+
+[[part]]
+part = "cylinder_prop"        # vertical exhaust stack on the rear plate
+from = [-0.50, -3.15, 1.35]
+to = [-0.50, -3.15, 2.00]
+radius = 0.055
+material = "Metal"
+segments = 8
+
+[[part]]
+part = "box_prop"
+center = [-0.50, -3.14, 1.45]
+size = [0.24, 0.10, 0.22]
+
+[[part]]
+part = "socket"
+name = "Socket_Exhaust_"
+position = [-0.50, -3.15, 2.02]
+
+[[part]]
+part = "cylinder_prop"
+from = [0.50, -3.15, 1.35]
+to = [0.50, -3.15, 2.00]
+radius = 0.055
+material = "Metal"
+segments = 8
+
+[[part]]
+part = "box_prop"
+center = [0.50, -3.14, 1.45]
+size = [0.24, 0.10, 0.22]
+
+[[part]]
+part = "socket"
+name = "Socket_Exhaust_"
+position = [0.50, -3.15, 2.02]
+
+[[part]]
+part = "tool"
+kind = "shovel"
+position = [-1.50, -1.20, 1.88]
+
+[[part]]
+part = "tool"
+kind = "jack"
+position = [0.0, -2.95, 1.88]
+axis = "x"
+
+[[part]]
+part = "headlight"
+position = [-1.25, 3.02, 1.36]
+diameter = 0.18
+
+[[part]]
+part = "antenna"
+position = [-1.20, -0.35, 2.85]
+length = 2.0
+
+[[part]]
+part = "tow_hook"
+position = [0.0, -3.13, 0.80]
+pair = true
+
+[[part]]
+part = "tow_hook"
+position = [0.0, 3.05, 1.00]
+pair = true
+socket = false
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, -2.0, 1.92]
+
+[[part]]
+part = "socket"
+name = "Socket_Fire_"
+position = [0.0, 0.6, 2.9]
+
+[[part]]
+part = "marking"
+name = "Hull_L"
+position = [-1.56, 0.40, 2.00]
+normal = [-1, 0, 0.2]
+size = 0.55
+
+[[part]]
+part = "marking"
+name = "Hull_R"
+position = [1.56, 0.40, 2.00]
+normal = [1, 0, 0.2]
+size = 0.55
+
+[[part]]
+part = "marking"
+name = "Hull_Rear"
+position = [0.0, -3.17, 1.55]
+normal = [0, -1, 0]
+size = 0.40
+
+[[part]]
+part = "marking"
+name = "Rear_Number"
+kind = "number"
+position = [0.0, -0.66, 2.30]
+normal = [0.0, -1.0, 0.15]
+size = 0.35
+
+[validate]
+exclude_height = ["Crane", "MG_*", "Hatch_*", "Antenna_*"]   # catalog height is the casemate roof
+exclude_length = ["Crane"]

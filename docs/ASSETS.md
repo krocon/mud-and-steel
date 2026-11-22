@@ -240,6 +240,7 @@ side `L`/`R`, two-digit index). The root object is named after the catalog id.
 | Hull / body | `Hull` | root | origin |
 | Turret | `Turret` | `Hull` | turret ring center, rotates around Z |
 | Carried bridge (bridge-laying tanks, prompt 055) | `Bridge` | `Hull` | origin; the game folds it out and hides it, it is not merged |
+| Roof fittings above a fitted casemate roof (Sturmtiger crane) | `Crane` | root | origin; merged like the hull, left out of the height with `exclude_height` (props in `Hull` would lower the fitted roof) |
 | Gun / barrel | `Gun` | `Turret` (or `Hull` for casemates, `Carriage` for towed guns) | trunnion, elevates around X |
 | Towed gun carriage | `Carriage` | root | origin |
 | Gun shield | `Shield` | `Carriage` | – |

@@ -575,9 +575,10 @@ fn validate(e: &Entry) -> Vec<String> {
         if w.name.trim().is_empty() || w.count == 0 {
             errors.push("weapon needs a name and count >= 1".into());
         }
-        if w.caliber_mm_x10.is_some_and(|c| !(50..=2_000).contains(&c)) {
+        // Up to 400 mm: the 38 cm RW 61 of the Sturmtiger is the largest.
+        if w.caliber_mm_x10.is_some_and(|c| !(50..=4_000).contains(&c)) {
             errors.push(format!(
-                "weapon '{}': caliber_mm_x10 outside 50..=2000",
+                "weapon '{}': caliber_mm_x10 outside 50..=4000",
                 w.name
             ));
         }

@@ -43,6 +43,7 @@ uncertain; see the list at the end of each faction.
 | de_wespe | Leichte Feldhaubitze 18/2 auf Fahrgestell Panzerkampfwagen II (Sf) "Wespe" / Wespe self-propelled howitzer | Sd.Kfz. 124 | 1943–1945 | 2 | 4.81 × 2.28 × 2.30 | 11.0 | 5? | 40.0 / 20.0? | 30? / 10? | 10.5 cm leFH 18/2 L/28? |
 | de_pzwerfer42 | 15 cm Panzerwerfer 42 auf Selbstfahrlafette Sd.Kfz. 4/1 "Maultier" / 15 cm Panzerwerfer 42 (Sd.Kfz. 4/1) | Sd.Kfz. 4/1 | 1943–1945 | 2 | 6.00 × 2.20 × 2.50 | 7.1 | 3 | 40.0 / 20.0? | 15? /  | 10× 15 cm Panzerwerfer 42 (10 tubes)? |
 | de_sturmpanzer4 | Sturmpanzer IV / Sturmpanzer IV | Sd.Kfz. 166 | 1943–1945 | 2 | 5.93 × 2.88 × 2.52 | 28.2 | 5 | 40.0 / 24.0? | 80? / 100 | 15 cm StuH 43 L/12? |
+| de_sturmtiger | 38 cm Sturmmörser Tiger (Sturmtiger) / Sturmtiger | 38 cm RW 61 auf Sturmmörser Tiger | 1944–1945 | 3 | 6.28 × 3.57 × 2.85 | 65.0? | 5 | 40.0 / 24.0 | 100? / 150 | 38 cm RW 61 L/5.4? |
 | de_brueckenleger4 | Brückenleger IV b / Brückenleger IV b bridge-laying tank | Brückenleger IV b | 1940–1941 | 2 | 11.00 × 3.00 × 3.54? | 28.0? | 2 | 40.0 / 20.0? | 30 /  |  |
 | de_aufkl38t | Aufklärer auf Fahrgestell Panzerkampfwagen 38(t) / Reconnaissance vehicle on Panzer 38(t) chassis | Aufklärer 38(t) | 1944–1944 | 3 | 4.51 × 2.14 × 2.17 | 9.8 | 4 | 42.0 / 21.0? | 50 / 30 | 2 cm KwK 38 L/55? |
 | de_elefant | Panzerjäger Tiger (P) "Elefant" / Elefant | Sd.Kfz. 184 | 1943–1943 | 3 | 8.14 × 3.38 × 2.97 | 65.0 | 6 | 30.0 / 15.0? | 200 / 200 | 8.8 cm PaK 43/2 L/71? |
@@ -153,7 +154,8 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 | 10.5 cm leFH 18/2 L/28 |  | 10675 | `de_wespe` |
 | 15 cm Panzerwerfer 42 (10 tubes) |  | 6900 | `de_pzwerfer42` |
 | 15 cm StuH 43 L/12 | 500 | 4300 | `de_sturmpanzer4` |
-| MG 34 (ball mount) | 400 | 800 | `de_sturmpanzer4` |
+| MG 34 (ball mount) | 400 | 800 | `de_sturmpanzer4`, `de_sturmtiger` |
+| 38 cm RW 61 L/5.4 | 500 | 5650 | `de_sturmtiger` |
 | 7.5 cm PaK 40 L/46 | 700 | 1800 | `de_pak40`, `de_pak40_39h` |
 | 2 cm Flak 38 L/65 | 400 | 5783 | `de_flak38`, `de_flakpz38t` |
 | 8.8 cm Flak 36 L/56 | 1000 | 14860 | `de_flak36` |
@@ -215,6 +217,7 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `de_wespe`: speed_offroad_kmh_x10, armor_hull_front_mm, armor_turret_front_mm, weapon, crew, range_road_km
 - `de_pzwerfer42`: speed_offroad_kmh_x10, armor_hull_front_mm, armor_hull_side_mm, armor_hull_rear_mm, weapon
 - `de_sturmpanzer4`: length_hull_mm, speed_offroad_kmh_x10, armor_hull_front_mm, armor_hull_side_mm, armor_hull_rear_mm, armor_turret_side_mm, armor_turret_rear_mm, gun_traverse_deg, weapon
+- `de_sturmtiger`: mass_kg, armor_hull_front_mm, armor_hull_side_mm, gun_traverse_deg, weapon
 - `de_pak40`: width_mm, height_mm, crew
 - `de_flak38`: mass_kg, length_mm, width_mm, height_mm, weapon
 - `de_flak36`: length_mm, width_mm, gun_shield
@@ -397,6 +400,11 @@ Typical: the usual combat distance (`range_typical_m`), used by direct fire. Eff
 - `de_sturmpanzer4`
   - https://en.wikipedia.org/wiki/Sturmpanzer (Sturmpanzer IV (Brummbaer): 28.2 t, 5.93 m, 2.88 m, 2.52 m, crew 5, front armor 100 mm, 15 cm StuH 43 L/12, 38 rounds, MG 34 (Series IV), Maybach HL 120 TRM 300 PS, 40 km/h road, 24 km/h off-road, range 210 km, 306 built 1943-1945)
   - https://en.wikipedia.org/wiki/15_cm_sIG_33 (the 15 cm infantry howitzer whose ammunition the StuH 43 fires: muzzle velocity up to 240 m/s, maximum range 4,700 m, rate of fire 2-3 rounds per minute, HE and HEAT shells)
+  - TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII sec. II, https://lonesentry.com/manuals/tme30/ch7sec2sub6.html (range_typical_m: MG 34 / MG 42 effective range as light MG 600-800 yd: upper bound for the typical distance)
+- `de_sturmtiger`
+  - https://en.wikipedia.org/wiki/Sturmtiger (6.28 m, 3.57 m, 2.85 m, crew 5, 68 t, Maybach HL 230 P45 700 PS, 40 km/h, range 120 km, superstructure front 150 mm at 47 deg, superstructure and upper hull sides/rear 82 mm, 380 mm RW 61 L/5.4, 14 rounds, rocket projectile up to 376 kg with 125 kg HE, launch 45 m/s, about 250 m/s after burn-out, HE range 5,650 m, MG 34, 18 built (3 Aug., 10 Sept., 5 Dec. 1944) on rebuilt Tiger I chassis)
+  - https://de.wikipedia.org/wiki/38-cm-Sturm%C3%B6rser (65 t, 6.28 / 3.57 / 2.85 m, crew 5, 40 km/h road, 24 km/h cross-country, 120 km road / 85 km terrain, Raketensprenggranate 4581 345 kg with 125 kg explosive, 45 m/s launch, 250 m/s end velocity, range up to 5,650 m, 14 rounds (12 stowed, 1 in the barrel, 1 on the loading tray), MG 34 with 800 rounds, loading crane on the roof)
+  - https://www.onwar.com/wwii/tanks/germany/ge066sturmtiger.html (traverse 10 deg left and right, hull front 100 mm, hull sides 60-80 mm, rear 80 mm, superstructure 150 mm front / 80 mm sides and rear, no barrel overhang (docs/.vorlagen/fahrzeuge/GER/Tiger/Sturmtiger))
   - TM-E 30-451 Handbook on German Military Forces (US War Dept., March 1945), ch. VII sec. II, https://lonesentry.com/manuals/tme30/ch7sec2sub6.html (range_typical_m: MG 34 / MG 42 effective range as light MG 600-800 yd: upper bound for the typical distance)
 - `de_pak40`
   - https://en.wikipedia.org/wiki/7.5_cm_Pak_40 (gun_shield: photographs and description show the spaced armoured shield in front of the crew)

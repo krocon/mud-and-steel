@@ -79,7 +79,7 @@ given). Group: the model session of prompt 063. Chassis: the nearest relative
 | `GER/PzKpfw IV/Sturmgeschutz IV` | `de_stug4` | new | ger-pz4 | assault_gun | Assault Gun | 1108 + 31 converted from PzKpfw IV | Dec. 1943 - Mar. 1945 | 1 | `de_pz4_h` |  |
 | `GER/Tiger/Elefant` | `de_elefant` | new | ger-heavy | tank_destroyer | Assault Gun | 90 | Apr. 1943 - May 1943 | 1 |  |  |
 | `GER/Tiger/Jagdtiger` | `de_jagdtiger` | new | ger-heavy | tank_destroyer | Heavy Tank Destroyer | 77 | Jul. 1944 - Mar. 1945 | 1 | `de_tiger2` |  |
-| `GER/Tiger/Sturmtiger` | `de_sturmtiger` | skipped | ger-heavy |  | SP Rocket Mortar | 18 converted from Tiger I | Aug.-Dec.1944 | 0 | `de_tiger1_e` | small series (built: 18 converted from Tiger I); alternative for prompt 062; no drawing |
+| `GER/Tiger/Sturmtiger` | `de_sturmtiger` | new | ger-heavy | assault_gun | SP Rocket Mortar | 18 converted from Tiger I | Aug.-Dec.1944 | 0 | `de_tiger1_e` | no drawing |
 | `GER/Tiger/Tiger I` | `de_tiger1_e` | existing | ger-heavy | tank_heavy | Heavy Tank | 1354 | July 1942 - Aug. 1944 | 1 |  |  |
 | `GER/Tiger/Tiger II` | `de_tiger2` | new | ger-heavy | tank_heavy | Heavy Tank | 489 | Jan. 1944 - Mar. 1945 | 1 | `de_jagdtiger` |  |
 | `RU/BT/BT-2 Model 1932` | `su_bt2` | new | ru-light | tank_light | Medium/Cruiser Tank | about 300 [1] | Sept. 1931 - 1932 | 1 | `su_bt5` |  |
@@ -155,14 +155,14 @@ given). Group: the model session of prompt 063. Chassis: the nearest relative
 | `US/M4 Sherman/M4A3E2 Sherman` | `us_m4a3e2` | new | us-sherman | tank_medium | Assault Tank | 254 | June 1944-July 1944 | 1 | `us_m4a3_75` |  |
 | `US/M4 Sherman/M4A4 Sherman` | `us_m4a4` | new | us-sherman | tank_medium | Medium Tank | 7499 | July 1942-Sept. 1943 | 1 | `us_m4` |  |
 
-Totals: 17 existing, 111 new, 13 skipped.
+Totals: 17 existing, 112 new, 12 skipped.
 
 | Group | existing | new | skipped |
 |---|---|---|---|
 | ger-light | 3 | 18 | 1 |
 | ger-pz3 | 1 | 12 | 1 |
 | ger-pz4 | 2 | 13 | 0 |
-| ger-heavy | 1 | 12 | 5 |
+| ger-heavy | 1 | 13 | 4 |
 | ru-light | 2 | 16 | 0 |
 | ru-medium | 2 | 9 | 6 |
 | ru-heavy | 2 | 11 | 0 |
@@ -243,6 +243,7 @@ drawings; the onwar.com values are not used.
 | `de_jagdpanther` | ger-heavy | L 9.87 / W 3.44 / H 2.76 m (periscope housing; roof 2.72 m), within 1.5 % | as `de_panther_g` | casemate continuing the 55 deg glacis to the roof front at +1.26 m (exactly where the drawing has it), roof to -1.00 m, rear plate down to the deck at -1.43 m, sides about 25 deg | PaK 43/3 L/71 in the Saukopf mantlet, double-baffle brake, overhang 3.02 m (data.json 3.00 m); MG 34 ball mount right | casemate, skirts | catalog hull 6.60 -> 6.87 m (as `de_panther_g`) |
 | `de_tiger2` | ger-heavy | L 10.30 / W 3.81 / H 3.08 m, within 1.3 %; hull 7.29 m | base of the Tiger II family: 9 stations of overlapping 0.80 m steel-tired wheels in two layers, no return rollers, front sprocket, rear idler, 0.80 m track; clearance 0.49 m (data.json); ground contact 4.53 m (data.json 4.13 m) | glacis 50 deg, sponson sides 25 deg, Henschel turret (sides 21 deg) from +1.45 to -2.25 m: matches the drawing | KwK 43 L/71 with double-baffle brake, Saukopf mantlet, overhang 2.99 m (data.json 3.00 m); coaxial and bow MG | production turret, spare links on the turret | none |
 | `de_jagdtiger` | ger-heavy | L 10.65 / W 3.68 / H 2.86 m (periscope; roof 2.82 m), within 1.4 %; hull 7.78 m | Tiger II running gear at the drawn 0.567 m station pitch (Tiger II 0.535 m), 0.79 m track (data.json); clearance 0.49 m (data.json 0.46 m) | casemate on the deck: 15 deg front plate from +1.58 m, roof to -1.42 m, sides continue the 25 deg sponsons: matches the drawing | PaK 44 L/55 without brake in the large cast mantlet, overhang 2.85 m (data.json 2.86 m); bow MG ball mount, MG 42 on the engine deck mount | Henschel running gear, travel lock | none |
+| `de_sturmtiger` | ger-heavy | L 6.39 / W 3.57 / H 2.85 m (roof), length within 1.8 % (catalog 6.28 m over everything) | `de_tiger1_e` running gear with the stations moved together by 3 % so the track run fits the shorter catalog length | no drawing: casemate from photographs, 47 deg front plate from the hull nose, roof to -0.6 m, Tiger engine deck behind | RW 61 in the round ball mount right of the centre line, muzzle at the hull front (no overhang); MG 34 ball mount upper right | loading crane on the right rear roof corner (own object `Crane`, left out of the height), close-defence launcher, ventilator | no drawing in the reference folder; superstructure length and crane shape estimated |
 | `de_elefant` | ger-heavy | L 8.14 / W 3.38 / H 2.97 m, exact; hull 6.82 m | Porsche running gear: three pairs of 0.75 m wheels on longitudinal torsion bars, no return rollers, FRONT idler, REAR sprocket, 0.65 m track; clearance 0.48 m (data.json), ground contact 4.32 m (data.json 4.19 m) | hull front plate behind the idlers at +2.23 m, casemate from +0.25 m to the rear end: matches the drawing | PaK 43/2 L/71 in the ball mantlet, double-baffle brake, overhang 1.27 m (data.json 1.34 m) | Elefant: bow MG ball mount and cupola (the drawing shows the Ferdinand without them); loose MG on a low mount | the drawing is the Ferdinand; casemate roof flat in the model (drawn rising from 2.75 to 2.98 m) |
 | `de_marder1` | ger-heavy | L 5.18 / W 1.88 / H 2.13 m, exact; hull profile 4.44 m ([layout], track ends), compartment to 4.86 m | base of the Lorraine conversions: six 0.42 m wheels in three sprung pairs, three return rollers, FRONT sprocket, rear idler, 0.24 m track and 0.18 m clearance (data.json); ground contact 3.04 m (data.json 2.74 m) | low hull, open compartment from +0.31 m (base) overhanging the tracks 0.43 m at the rear, wider at the top: matches the drawing | PaK 40/1 with box mount and flat double-baffle brake, overhang 0.32 m; MG 34 on the wall | open rear compartment | the front view gives the compartment 2.05 m against tracks of 1.72 m; catalog width 1.88 m kept (tracks 1.58 m) |
 | `de_sfh13_lorraine` | ger-heavy | L 5.31 / W 1.83 / H 2.23 m, exact; hull 4.86 m with the compartment (catalog 4.79) | as `de_marder1` (stations scaled to the 4.79 m hull) | compartment from -0.43 m, front plate leaning forward: matches the drawing within about 0.1 m | sFH 13 L/17 with fixed barrel ending 0.73 m behind the track front as drawn, recuperator under the barrel, no MG | raised recoil spade behind the hull | data.json "overhang" 0.52 m is the spade, not the barrel (4.79 + 0.52 = 5.31 m); the drawing shows the spade lowered and the walls at about 2.14 m |
