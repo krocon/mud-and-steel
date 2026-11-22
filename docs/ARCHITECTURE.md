@@ -4854,7 +4854,7 @@ origin: [SOURCES.md](SOURCES.md#sounds)).
 | `sound_library.gd` | Reads `sounds.json`, loads the files of each class (`ResourceLoader.list_directory`, so exports work), makes loops loop, checks the library |
 | `sound_classes.gd` | Catalog facts → class: shots by category, caliber and rate of fire; engines by category and mass; hits by surface, caliber, penetration, water; map objects by stage and remains |
 | `battle_sound.gd` | Created by `main.gd` (left out with `-- --no-sound`). Listener, voice pools, one-shots for combat, object and crater events, engine/track/fire loops, match notices |
-| `ui_sound.gd` | One node under the tree root for the whole run (installed when the settings are applied): UI voice pool, a click for every `BaseButton`, mute on focus loss |
+| `ui_sound.gd` | One node under the tree root for the whole run (installed when the settings are applied): UI voice pool, a click for every `BaseButton`, mute on focus loss; the one signal player (prompt 192): classes of `SoundClasses.SIGNAL_CLASSES` (the `ui_under_attack` alarm) and the strike siren held by `strike_view.gd` (`hold_signal`) never sound twice at once; a trigger while one sounds starts nothing, a released siren fades out at the end of its cycle, a held siren waits for a sounding alarm |
 | `sound_buses.gd` | Creates the buses in code and sets their volumes from the settings |
 
 The bridge adds one read function, `SimHost.unit_type_sound(type)`:
@@ -4897,6 +4897,7 @@ whole battle, quieter. Godot's distance low-pass darkens far sounds.
 | explosion | 8 | 3 | shell bursts, vehicle explosions |
 | object | 6 | 3 | buildings, trees, walls, fences, craters |
 | ui | 6 | – | notices and clicks (`ui_sound.gd`) |
+| signal | 1 | – | sirens and alarms, once in the whole game (`ui_sound.gd`, prompt 192) |
 | loops | 6 vehicles × 2, 4 fires | every 0.2 s | engines and tracks of the nearest vehicles, nearest burning wrecks |
 
 A new sound takes a free voice, else the weakest busy one if that is not

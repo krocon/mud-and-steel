@@ -34,6 +34,7 @@ extends Node
 ## around the explosion. `just explosion-series`.
 
 const BaseView := preload("res://scenes/world/base_view.gd")
+const UiSound := preload("res://scenes/audio/ui_sound.gd")
 
 const SHOT_SIZE := Vector2i(1600, 900)
 ## Salvo series (prompt 076): camera after the reference pictures (oblique
@@ -403,7 +404,8 @@ func _live() -> bool:
 		waited += 1
 	await _view(target, 170.0, 0.5)
 	await _frames(240)
-	var siren: bool = (view._siren as AudioStreamPlayer).playing
+	var ui: Node = UiSound.instance()
+	var siren: bool = ui != null and str(ui.signal_playing()).begins_with(view.SIREN_KEY)
 	var counting: bool = view._countdown.visible
 	await _capture("strike_live_marked", [0])
 	host.speed = 4.0

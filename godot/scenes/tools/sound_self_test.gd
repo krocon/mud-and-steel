@@ -18,12 +18,18 @@ extends RefCounted
 ## - Stage 2 (prompt 053): weapon folders fall back, far sounds wait for
 ##   the speed of sound, supersonic bullets crack, surroundings and zoom
 ##   set the Effects chain, callouts without files only count.
+## - Signals (prompt 192): three rocket strike sirens held at once (own,
+##   enemy, a rebuilt view) and alarms from three places every 1.5 s never
+##   sound twice at the same time anywhere in the tree; a second trigger
+##   does not restart the sounding one; released, the siren fades out at
+##   the end of its cycle; explosions in the same frame still overlap.
 
 const SoundLibrary := preload("res://scenes/audio/sound_library.gd")
 const SoundBuses := preload("res://scenes/audio/sound_buses.gd")
 const SoundClasses := preload("res://scenes/audio/sound_classes.gd")
 const UiSound := preload("res://scenes/audio/ui_sound.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
+const StrikeView := preload("res://scenes/world/strike_view.gd")
 
 const STRESS_FRAMES := 30
 const STRESS_EVENTS_PER_FRAME := 200
@@ -44,6 +50,7 @@ func run(test: Node) -> void:
 	await _engines(test, main, sound)
 	await _stress(test, main, sound)
 	await _acoustics(test, main, sound)
+	await _signals(test, sound)
 	test._check(sound.notices.get("ui_order", 0) > 0 and sound.notices.get("ui_select", 0) > 0,
 		"no order or selection notice: %s" % sound.notices)
 	test._check(UiSound.instance() != null and UiSound.play("ui_click"), "UI sounds do not play")
@@ -241,6 +248,82 @@ func _acoustics(test: Node, main: Node3D, sound: Node3D) -> void:
 	print("self-test: sound stage 2 ok (delayed %d, queue dropped %d, cracks %d, surroundings %s, aircraft loops %d, air events %d, callouts %s)" % [
 		acoustics.delayed, acoustics.queue_dropped, acoustics.cracks, shares, acoustics.aircraft_loops, acoustics.air_events, voices.asked
 	])
+
+
+## Prompt 192: at most one signal (siren, alarm) at a time in the game.
+func _signals(test: Node, sound: Node3D) -> void:
+	var ui: Node = UiSound.instance()
+	test._check(ui != null, "no UI sound node for the signals")
+	if ui == null:
+		return
+	# An alarm of the match before may still sound (8 s at most).
+	var settle := 0
+	while not str(ui.signal_playing()).is_empty() and settle < 720:
+		settle += 1
+		await test._frames(1)
+	test._check(str(ui.signal_playing()).is_empty(), "a signal still sounds: %s" % ui.signal_playing())
+	var siren: AudioStream = StrikeView._siren_wav
+	test._check(siren != null, "the strike view built no siren")
+	if siren == null:
+		return
+	var started_before: int = _total(ui.signals_started)
+	var absorbed_before: int = ui.signals_absorbed
+	var faded_before: int = ui.signals_faded
+	var keys := ["%s:own" % StrikeView.SIREN_KEY, "%s:enemy" % StrikeView.SIREN_KEY, "%s:rebuilt" % StrikeView.SIREN_KEY]
+	var peak := 0
+	var position_before := -1.0
+	var restarted := false
+	var at: Vector3 = sound.listener.global_position
+	var explosions := 0
+	for frame in 360:
+		# Strikes start 0.5 s apart; alarms of three places 1.7 s apart.
+		var strike := int(frame / 30.0)
+		if frame % 30 == 0 and strike < keys.size():
+			UiSound.hold_signal(keys[strike], true, siren, StrikeView.SIREN_DB, &"Effects")
+		if frame % 100 == 0 and frame > 0:
+			sound.notice("ui_under_attack", true)
+		if frame == 120:
+			for k in 3:
+				sound.play_at("hit_shell", at + Vector3(4.0 * k, 0.0, 0.0))
+		if frame == 121:
+			explosions = int(sound.busy_voices().get("explosion", 0))
+		await test._frames(1)
+		if frame % 4 == 0:
+			peak = maxi(peak, _signal_voices(test, ui))
+		var pos: float = (ui._signal as AudioStreamPlayer).get_playback_position()
+		if frame > 40 and pos + 0.5 < position_before and position_before < siren.get_length() - 0.3:
+			restarted = true
+		position_before = pos
+	var started: int = _total(ui.signals_started) - started_before
+	var absorbed: int = ui.signals_absorbed - absorbed_before
+	test._check(peak <= 1, "%d signals sounded at once" % peak)
+	test._check(started == 1 and str(ui.signal_playing()).begins_with(StrikeView.SIREN_KEY),
+		"signals started %d times, sounding '%s'" % [started, ui.signal_playing()])
+	test._check(absorbed >= 3 and not restarted, "alarms absorbed %d, siren restarted %s" % [absorbed, restarted])
+	test._check(explosions >= 2, "explosions in one frame use %d voices" % explosions)
+	# Released by all three, it fades out at the end of a cycle.
+	for key: String in keys:
+		UiSound.hold_signal(key, false)
+	var waited := 0
+	while not str(ui.signal_playing()).is_empty() and waited < int((siren.get_length() + 1.0) * 60.0):
+		waited += 1
+		await test._frames(1)
+	test._check(str(ui.signal_playing()).is_empty() and ui.signals_faded == faded_before + 1,
+		"released siren still sounds after %d frames (faded %d)" % [waited, ui.signals_faded - faded_before])
+	print("self-test: signals ok (peak %d at once, started %d, absorbed %d, explosion voices %d, faded out after %.1f s)" % [
+		peak, started, absorbed, explosions, waited / 60.0])
+
+
+## Players anywhere in the tree playing a signal stream.
+func _signal_voices(test: Node, ui: Node) -> int:
+	var streams: Array = ui.signal_streams()
+	var n := 0
+	var root: Node = test.get_tree().root
+	for type: String in ["AudioStreamPlayer", "AudioStreamPlayer2D", "AudioStreamPlayer3D"]:
+		for player: Node in root.find_children("*", type, true, false):
+			if player.get(&"playing") and streams.has(player.get(&"stream")):
+				n += 1
+	return n
 
 
 func _players(sound: Node) -> int:

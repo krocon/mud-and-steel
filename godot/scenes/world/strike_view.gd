@@ -4,8 +4,10 @@ extends Node3D
 ## position's launch frames, and the turrets of exploding tanks.
 ##
 ## - Coloured (red) smoke rises on the marked target and a ring shows the
-##   area the rockets will hit; a siren wails while the strike is under way
-##   (both public, like in the simulation).
+##   area the rockets will hit; a siren wails while a strike is under way
+##   (both public, like in the simulation). It is held on the one signal
+##   player of `ui_sound.gd` (prompt 192): never twice, not restarted by a
+##   second strike or a rebuilt scene, fading out at the end of its cycle.
 ## - The battery position of an enemy strike is marked (beam and ring) and
 ##   the HUD counts down: destroy it in time and the strike is called off.
 ## - The call bar ("Rockets", Shift+6) waits for a left click on the map,
@@ -26,6 +28,7 @@ const EffectTextures := preload("res://scenes/world/effect_textures.gd")
 const GroundPick := preload("res://scenes/camera/ground_pick.gd")
 const Picker := preload("res://scenes/hud/picker.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
+const UiSound := preload("res://scenes/audio/ui_sound.gd")
 
 const READ_INTERVAL := 0.2
 ## Red marker smoke (WW2 coloured smoke grenades and candles). [provisional]
@@ -40,6 +43,9 @@ const SIREN_SECONDS := 4.0
 const SIREN_LOW_HZ := 260.0
 const SIREN_HIGH_HZ := 620.0
 const SIREN_DB := -9.0
+## Key of the siren on the signal player (plus the view's instance id: a
+## view rebuilt beside the old one holds it on its own).
+const SIREN_KEY := "strike_siren"
 const LAUNCHER_COLOR := Color(0.22, 0.24, 0.18)
 
 var main: Node3D
@@ -54,7 +60,10 @@ var counts: Dictionary[String, int] = {}
 var _read_left := 0.0
 var _hud: Control
 var _countdown: Label
-var _siren: AudioStreamPlayer
+## The generated siren, built once per run.
+static var _siren_wav: AudioStreamWAV
+## Whether this view holds the siren.
+var siren_held := false
 var _fading: Array[Dictionary] = []
 var _area_mesh: TorusMesh
 var _beam_mesh: CylinderMesh
@@ -73,13 +82,12 @@ func setup(main_node: Node3D, blasts: Node3D) -> void:
 	_beam_mesh.top_radius = 0.6
 	_beam_mesh.bottom_radius = 0.6
 	_beam_mesh.height = 60.0
-	_siren = AudioStreamPlayer.new()
-	_siren.name = "Siren"
-	_siren.stream = _siren_stream()
-	_siren.volume_db = SIREN_DB
-	if AudioServer.get_bus_index("Effects") >= 0:
-		_siren.bus = &"Effects"
-	add_child(_siren)
+	if _siren_wav == null:
+		_siren_wav = _siren_stream()
+
+
+func _exit_tree() -> void:
+	_hold_siren(false)
 
 
 func setup_hud(hud: Control) -> void:
@@ -169,17 +177,22 @@ func _update_strikes() -> void:
 		if not live.has(id):
 			_retire(markers[id])
 			markers.erase(id)
-	var sounding := not markers.is_empty()
-	if sounding and not _siren.playing:
-		_siren.play()
-	elif not sounding and _siren.playing:
-		_siren.stop()
+	_hold_siren(not markers.is_empty())
 	if _countdown != null:
 		_countdown.visible = warning >= 0.0
 		if warning >= 0.0:
 			_countdown.text = tr("HUD_STRIKE_ENEMY_COUNTDOWN" if enemy_warning
 				else "HUD_STRIKE_COUNTDOWN") % ceili(warning)
 			_countdown.add_theme_color_override(&"font_color", Color(1, 0.35, 0.3) if enemy_warning else Color(1, 0.85, 0.4))
+
+
+## Asked again every read: holding is idempotent and catches a signal
+## player installed late.
+func _hold_siren(on: bool) -> void:
+	if not on and not siren_held:
+		return
+	siren_held = on
+	UiSound.hold_signal("%s:%d" % [SIREN_KEY, get_instance_id()], on, _siren_wav, SIREN_DB, &"Effects")
 
 
 func _make_marker(s: Dictionary, allied: bool) -> Dictionary:

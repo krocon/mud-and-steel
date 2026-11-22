@@ -67,7 +67,10 @@ ui_select = "Die Auswahl eigener Einheiten ändert sich und ist nicht leer; höc
 ui_order = "Befehl zum Bewegen, Angreifen oder Besetzen eines Gebäudes ist erteilt; höchstens alle 0,12 s."
 ui_unit_ready = "Neue eigene Einheit (kein Gebäude) erscheint, nicht in den ersten 2 s; höchstens jede Sekunde."
 ui_build_complete = "Eigenes Basisgebäude ist fertig gebaut; höchstens jede Sekunde."
-ui_under_attack = "Eigene Einheit wird getroffen oder Feindflugzeuge kommen in Sicht; höchstens alle 20 Sekunden."
+# Signals (prompt 192, ui_sound.gd play_signal / hold_signal): one player for the whole game. The
+# rocket strike's siren (strike_view.gd, generated, no folder) spielt nur einmal gleichzeitig, auch
+# bei mehreren Schlägen, und klingt am Ende ihres Zyklus aus; ein Alarm währenddessen bleibt stumm.
+ui_under_attack = "Eigene Einheit/Feindflieger (je Ort alle 1,5 s); Alarm, spielt nur einmal gleichzeitig, nie neben der Raketensirene."
 ui_unit_lost = "Eigene Einheit wird zerstört; höchstens alle 6 Sekunden."
 ui_victory = "Das Gefecht ist entschieden und der eigene Spieler hat gewonnen."
 ui_defeat = "Das Gefecht ist entschieden und der eigene Spieler hat nicht gewonnen (auch bei Unentschieden)."

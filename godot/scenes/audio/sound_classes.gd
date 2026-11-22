@@ -35,6 +35,16 @@ const TRACKED: Array[String] = [
 	"tank_light", "tank_medium", "tank_heavy", "tank_destroyer", "assault_gun", "self_propelled",
 ]
 const MORTAR_WORDS: Array[String] = ["mortar", "granatwerfer", "grw"]
+## Signals (prompt 192): sirens, alarms, horns, signal whistles. They play
+## through the one signal player of `ui_sound.gd`, at most one at a time in
+## the whole game; the rocket strike's generated siren (`strike_view.gd`)
+## joins them through `UiSound.hold_signal`.
+const SIGNAL_CLASSES: Array[String] = ["ui_under_attack"]
+
+
+## Whether `sound_class` is a signal (see SIGNAL_CLASSES).
+static func is_signal(sound_class: String) -> bool:
+	return SIGNAL_CLASSES.has(sound_class)
 
 
 ## Sound class of weapon `weapon` (`{name, caliber_mm, rate_rpm}`) of a
