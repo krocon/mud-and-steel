@@ -430,7 +430,7 @@ func _set_biome(biome: String) -> void:
 		if _is_squad(model):
 			_squad_look(model, biome)
 		else:
-			UnitCamo.apply(model, UnitCamo.palette(model.get_meta(&"gallery_faction"), biome))
+			UnitCamo.apply(model, UnitCamo.palette_for(model.get_meta(&"gallery_faction"), biome, UnitCamo.catalog_values(model)))
 	for i in _soldiers.size():
 		SoldierLook.apply(_soldiers[i].node, _soldiers[i].faction, biome, i)
 	for model in _env:
@@ -830,7 +830,7 @@ func _check_biome(biome: String, errors: Array[String]) -> void:
 			_check_squad_look(model, biome, errors)
 			continue
 		var faction: String = model.get_meta(&"gallery_faction")
-		var pal := UnitCamo.palette(faction, biome)
+		var pal := UnitCamo.palette_for(faction, biome, UnitCamo.catalog_values(model))
 		if pal.biome != biome or pal.faction != faction:
 			errors.append("palette %s_%s missing" % [faction, biome])
 			continue

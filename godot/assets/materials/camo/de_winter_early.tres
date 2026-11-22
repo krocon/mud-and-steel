@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="CamoPalette" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://assets/shaders/camo_palette.gd" id="1_pal"]
+
+[resource]
+script = ExtResource("1_pal")
+faction = "de"
+biome = "winter"
+base = Color(0.235, 0.255, 0.267, 1)
+color_1 = Color(0.235, 0.255, 0.267, 1)
+color_2 = Color(0.235, 0.255, 0.267, 1)
+pattern = 0
+scale = 1.4
+coverage = 0.0
+winter_wash = 0.85
+snow = 0.7
+mud = 0.35
+mud_color = Color(0.320, 0.290, 0.250, 1)
+dust = 0.0
+wear = 0.4
+note = "Temporary white winter wash over Dunkelgrau Nr. 46 (RAL 7021), worn at edges so the grey shows; snow on top faces (winters 1941/42 and 1942/43). For German vehicles whose catalog year_from is before 1943."

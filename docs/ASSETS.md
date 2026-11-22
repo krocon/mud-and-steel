@@ -342,7 +342,10 @@ first. Their material kinds and shaders are described under "Environment objects
   materials for these on import.
 - **Palettes** are `CamoPalette` resources per faction × biome:
   `godot/assets/materials/camo/<faction>_<biome>.tres` (`forest`, `desert`,
-  `winter`): base coat, two camouflage colors, pattern (plain, soft spray,
+  `winter`; `de_forest_early` and `de_winter_early`: Dunkelgrau RAL 7021 for
+  German ground units whose catalog `year_from` is before 1943, chosen by
+  `UnitCamo.palette_for` from the model's glTF extras; the unit page does
+  the same): base coat, two camouflage colors, pattern (plain, soft spray,
   hard-edged, ambush), pattern size and coverage, whitewash, snow on top faces,
   mud color and amount from below, dust, edge wear. `UnitCamo.apply(model,
   palette)` writes them as **instance uniforms**, so all units share the same

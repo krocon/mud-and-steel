@@ -9,6 +9,13 @@ extends RefCounted
 
 const BIOMES: Array[String] = ["forest", "desert", "winter"]
 const PALETTE_DIR := "res://assets/materials/camo/"
+## German army vehicles were painted Dunkelgrau Nr. 46 (RAL 7021) until
+## February 1943, then Dunkelgelb (RAL 7028) with camouflage colors. A
+## German ground unit whose catalog `year_from` is before this year gets
+## the early palette `de_<biome>_early` where there is one (forest,
+## winter; the desert keeps its own colors). Aircraft and fortifications
+## keep their palette.
+const EARLY_UNTIL := 1943
 
 static var _palettes: Dictionary[String, CamoPalette] = {}
 
@@ -19,6 +26,23 @@ static func palette(faction: String, biome: String) -> CamoPalette:
 		var path := PALETTE_DIR + key + ".tres"
 		_palettes[key] = load(path) as CamoPalette if ResourceLoader.exists(path) else CamoPalette.new()
 	return _palettes[key]
+
+
+## The palette of a unit with catalog values `values` (the glTF extras,
+## `catalog_values`): the early grey one for German vehicles introduced
+## before 1943, else `palette(faction, biome)`.
+static func palette_for(faction: String, biome: String, values: Dictionary) -> CamoPalette:
+	if is_early(faction, values) and ResourceLoader.exists("%s%s_%s_early.tres" % [PALETTE_DIR, faction, biome]):
+		return palette(faction, biome + "_early")
+	return palette(faction, biome)
+
+
+## Whether a unit wears the paint of before 1943 (see `EARLY_UNTIL`).
+static func is_early(faction: String, values: Dictionary) -> bool:
+	var year := int(values.get("cat_year_from", 0))
+	return faction == "de" and year > 0 and year < EARLY_UNTIL \
+		and not str(values.get("cat_category", "")).begins_with("aircraft") \
+		and not str(values.get("cat_category", "")).begins_with("fort")
 
 
 ## Sets the palette as instance uniforms on every mesh below `model`.

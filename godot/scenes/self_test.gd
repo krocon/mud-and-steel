@@ -1214,7 +1214,7 @@ func _biome_test() -> void:
 		if not faction.is_empty():
 			var mesh: GeometryInstance3D = UnitCamo.meshes(model)[0]
 			var base: Color = mesh.get_instance_shader_parameter(&"camo_base")
-			_check(base == UnitCamo.palette(faction, preset.camo_biome).base,
+			_check(base == UnitCamo.palette_for(faction, preset.camo_biome, model.get_meta(&"camo_values", {})).base,
 				"unit palette does not follow the '%s' biome" % id)
 	main.set_biome(start_biome)
 	_check(faction != "", "first unit has no catalog model")

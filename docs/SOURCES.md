@@ -217,6 +217,22 @@ names of streets, shops or people.
 - **Muzzle velocities** steer the tongue's length; they come from the
   catalog (its own sources) through the simulation's shell speed.
 
+## Vehicle paint by year
+
+German vehicles wear the paint of the year they reached the front
+(`UnitCamo.palette_for`, `godot/assets/materials/camo/de_*_early.tres`):
+catalog `year_from` before 1943 means plain Dunkelgrau Nr. 46, later ones
+the Dunkelgelb three-tone scheme. Colors are sRGB approximations of the RAL
+references, the grey lightened a little for the game distance.
+
+| Paint | Facts used | Source |
+|---|---|---|
+| Dunkelgrau Nr. 46 (RAL 7021) | standard paint of army vehicles from 1937; until 1940 with Dunkelbraun RAL 7017 patches, then plain; replaced by Dunkelgelb RAL 7028 by the order of February 1943 | https://en.wikipedia.org/wiki/Panzer_grey, https://en.wikipedia.org/wiki/List_of_RAL_colours |
+| Dunkelgelb (RAL 7028) with Olivgrün RAL 6003 and Rotbraun RAL 8017 | base coat from February 1943, the two colors issued as paste for camouflage sprayed in the field | https://en.wikipedia.org/wiki/Panzer_grey, https://en.wikipedia.org/wiki/List_of_RAL_colours |
+| Soviet 4BO | protective green, the standard paint of Soviet armour 1941–1945, plain on forest maps (disruptive patches were rare) | https://en.wikipedia.org/wiki/Military_camouflage |
+
+Simplification: older vehicles repainted Dunkelgelb after 1943 stay grey.
+
 ## Infantry camouflage (prompt 042)
 
 The camouflage prints of the soldiers are procedural imitations by period

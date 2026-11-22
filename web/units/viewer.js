@@ -41,12 +41,30 @@ function parseTres(text) {
   return out;
 }
 
+// Palettes of German vehicles whose year_from is before EARLY_UNTIL
+// (godot/assets/shaders/unit_camo.gd: Dunkelgrau RAL 7021 until 1943).
+const EARLY_UNTIL = 1943;
+const EARLY_PALETTES = ['de_forest_early', 'de_winter_early'];
+
+/** The palette of a catalog entry in a biome, like UnitCamo.palette_for. */
+function paletteFor(entry, biome, camo) {
+  const early = entry.faction === 'de' && entry.year_from > 0 && entry.year_from < EARLY_UNTIL
+    && !entry.category.startsWith('aircraft') && !entry.category.startsWith('fort');
+  const key = `${entry.faction}_${biome}`;
+  if (early && camo[`${key}_early`]) return camo[`${key}_early`];
+  return camo[key] || NEUTRAL_PALETTE;
+}
+
 /** Loads camouflage palettes and infantry slot colors. `text(path)` fetches a repo file. */
 export async function loadLook(text) {
   const camo = {};
   await Promise.all(FACTIONS.flatMap((f) => BIOMES.map(async (b) => {
     camo[`${f}_${b}`] = parseTres(await text(`godot/assets/materials/camo/${f}_${b}.tres`));
   })));
+  // Early German grey (RAL 7021) before 1943, as UnitCamo.palette_for in the game.
+  await Promise.all(EARLY_PALETTES.map(async (key) => {
+    camo[key] = parseTres(await text(`godot/assets/materials/camo/${key}.tres`));
+  }));
   const uniforms = JSON.parse(await text('godot/assets/models/infantry/uniform_palettes.json'));
   return { camo, uniforms };
 }
@@ -236,7 +254,7 @@ function parseSquadScene(text) {
 async function buildModel(entry, biome, ctx) {
   const isSquad = entry.model.endsWith('.tscn');
   const isEnv = entry.category.startsWith('env_');
-  const camo = ctx.look.camo[`${entry.faction}_${biome}`] || NEUTRAL_PALETTE;
+  const camo = paletteFor(entry, biome, ctx.look.camo);
   const soldier = ctx.look.uniforms.factions[entry.faction]?.[biome] || {};
   const cache = new Map();
   const material = (rawName) => {

@@ -164,7 +164,7 @@ static func build_model(id: String, biome := BIOME) -> Node3D:
 		if not variants.is_empty():
 			EnvLook.show_variant(model, variants[0].name)
 	else:
-		UnitCamo.apply(model, UnitCamo.palette(faction, biome))
+		UnitCamo.apply(model, UnitCamo.palette_for(faction, biome, UnitCamo.catalog_values(model)))
 		UnitCamo.add_markings(model, faction, 101)
 	for player in model.find_children("*", "AnimationPlayer", true, false):
 		(player as AnimationPlayer).pause()

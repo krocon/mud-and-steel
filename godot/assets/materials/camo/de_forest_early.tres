@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="CamoPalette" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://assets/shaders/camo_palette.gd" id="1_pal"]
+
+[resource]
+script = ExtResource("1_pal")
+faction = "de"
+biome = "forest"
+base = Color(0.235, 0.255, 0.267, 1)
+color_1 = Color(0.235, 0.255, 0.267, 1)
+color_2 = Color(0.235, 0.255, 0.267, 1)
+pattern = 0
+scale = 1.4
+coverage = 0.0
+winter_wash = 0.0
+snow = 0.0
+mud = 0.6
+mud_color = Color(0.240, 0.190, 0.130, 1)
+dust = 0.0
+wear = 0.5
+note = "Dunkelgrau Nr. 46, today RAL 7021 (about #2E3234), plain: standard paint of army vehicles 1937 to February 1943. Lightened a little (scale effect) so the grey reads at game distance. For German vehicles whose catalog year_from is before 1943 (UnitCamo.palette_for)."

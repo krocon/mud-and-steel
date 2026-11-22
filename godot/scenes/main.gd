@@ -845,10 +845,13 @@ func _use_catalog_model(node: Node3D, type_id: String, id: int) -> void:
 	var model := (load(path) as PackedScene).instantiate() as Node3D
 	model.name = "Model"
 	model.set_meta(&"faction", faction)
+	# Catalog values for the palette (early grey before 1943), read before
+	# the merge changes the nodes.
+	model.set_meta(&"camo_values", UnitCamo.catalog_values(model))
 	# Static parts to a few meshes per unit type (prompt 016).
 	UnitMerge.merge(model, type_id)
 	node.add_child(model)
-	UnitCamo.apply(model, UnitCamo.palette(faction, atmosphere.preset.camo_biome))
+	UnitCamo.apply(model, UnitCamo.palette_for(faction, atmosphere.preset.camo_biome, model.get_meta(&"camo_values")))
 	UnitCamo.add_markings(model, faction, 100 + id)
 
 
@@ -862,7 +865,7 @@ func set_biome(id: String) -> void:
 		var model := node.get_node_or_null("Model") as Node3D
 		var faction: String = model.get_meta(&"faction", "") if model else ""
 		if not faction.is_empty():
-			UnitCamo.apply(model, UnitCamo.palette(faction, atmosphere.preset.camo_biome))
+			UnitCamo.apply(model, UnitCamo.palette_for(faction, atmosphere.preset.camo_biome, model.get_meta(&"camo_values", {})))
 
 
 func _tint(node: Node, material: Material) -> void:
