@@ -48,10 +48,12 @@ const BUS_DB: Dictionary[String, float] = {
 }
 
 ## The shots. Per shot:
-##   map, scene (file in data/trailer, default: the shot's name), seed,
+##   map, scene (file in data/trailer, default: the shot's name), or
+##   battle ("<map>/<name>" of data/battles/, prompt: battle showcase), seed,
 ##   start_s (game seconds before the first frame), seconds (length),
 ##   pre_roll_s (seconds before `start_s` played at normal speed, default 2),
 ##   hud (default false: no HUD, no fog of war, no relation tint),
+##   dof (depth of field "off", "subtle", "miniature"; default: the setting),
 ##   weather, daytime (default: the map's), stills (seconds into the shot),
 ##   select ([owner, catalog id prefix]: units the player has selected),
 ##   camera: keys in time order, interpolated (Catmull-Rom):
@@ -239,6 +241,100 @@ const SHOTS: Dictionary[String, Dictionary] = {
 			{"t": 0.0, "at": Vector2(0, 128), "dist": 30.0, "yaw": 180.0, "pitch": 8.0, "lift": 1.5},
 			{"t": 6.0, "at": Vector2(0, 122), "dist": 24.0, "yaw": 180.0, "pitch": 10.0, "lift": 1.5},
 		],
+	},
+	# --- Battle short (16:9): the town battle of data/battles ----------------
+	# `just trailer-shots --only=battle_...` then `just trailer-cut battle`. Times
+	# from `just trailer-scout survey_town 300` (seed 42): the German
+	# preparation on the town edge at 14-30 s (densest from 20 s), the Katyusha salvo at 25 s
+	# landing along the river at 41-48 s, Sturmtiger hits on houses from
+	# 127 s, a second salvo on the river at 160-170 s (a Marder destroyed at
+	# 166.5 s), a KV-2 destroyed at 194.75 s.
+	"battle_open": {
+		"map": "valley_fields", "battle": "valley_fields/all_units", "seed": 42, "dof": "off",
+		"start_s": 19.5, "seconds": 5.0, "stills": [1.0, 4.0],
+		"camera": [
+			{"t": 0.0, "at": Vector2(-500, -150), "dist": 340.0, "yaw": 95.0, "pitch": 26.0},
+			{"t": 5.0, "at": Vector2(-505, -150), "dist": 270.0, "yaw": 88.0, "pitch": 24.0},
+		],
+	},
+	"battle_rockets": {
+		"map": "valley_fields", "battle": "valley_fields/all_units", "seed": 42, "dof": "off",
+		"start_s": 24.8, "seconds": 4.5, "stills": [0.5, 1.5, 3.0],
+		"camera": [
+			{"t": 0.0, "at": Vector2(-1000, -150), "dist": 90.0, "yaw": 20.0, "pitch": 14.0, "lift": 4.0},
+			{"t": 4.5, "at": Vector2(-1000, -150), "dist": 110.0, "yaw": 35.0, "pitch": 18.0, "lift": 8.0},
+		],
+	},
+	"battle_water": {
+		"map": "valley_fields", "battle": "valley_fields/all_units", "seed": 42, "dof": "off",
+		"start_s": 41.0, "seconds": 6.0, "stills": [1.0, 3.0, 5.0],
+		"camera": [
+			{"t": 0.0, "at": Vector2(-330, -215), "dist": 150.0, "yaw": 60.0, "pitch": 18.0, "lift": 4.0},
+			{"t": 6.0, "at": Vector2(-320, -205), "dist": 120.0, "yaw": 45.0, "pitch": 16.0, "lift": 4.0},
+		],
+	},
+	"battle_tigers": {
+		"map": "valley_fields", "battle": "valley_fields/all_units", "seed": 42, "dof": "off",
+		"start_s": 70.0, "seconds": 5.0, "stills": [1.0, 4.0],
+		"camera": [
+			{"t": 0.0, "unit": [0, "de_tiger1_e", 0], "dist": 18.0, "yaw": 160.0, "heading": true, "pitch": 8.0, "lift": 2.0},
+			{"t": 5.0, "unit": [0, "de_tiger1_e", 0], "dist": 24.0, "yaw": 200.0, "heading": true, "pitch": 12.0, "lift": 2.0},
+		],
+	},
+	"battle_sturmtiger_lost": {
+		"map": "valley_fields", "battle": "valley_fields/all_units", "seed": 42, "dof": "off",
+		"start_s": 113.0, "seconds": 5.0, "stills": [1.0, 2.6, 4.5],
+		"camera": [
+			{"t": 0.0, "at": Vector2(-426, -386), "dist": 55.0, "yaw": 110.0, "pitch": 16.0, "lift": 2.0},
+			{"t": 5.0, "at": Vector2(-426, -386), "dist": 45.0, "yaw": 95.0, "pitch": 14.0, "lift": 2.0},
+		],
+	},
+	"battle_house_center": {
+		"map": "valley_fields", "battle": "valley_fields/all_units", "seed": 42, "dof": "off",
+		"start_s": 126.0, "seconds": 4.5, "stills": [1.0, 1.7, 3.5],
+		"camera": [
+			{"t": 0.0, "at": Vector2(-490, -172), "dist": 75.0, "yaw": 120.0, "pitch": 16.0, "lift": 6.0},
+			{"t": 4.5, "at": Vector2(-490, -172), "dist": 65.0, "yaw": 110.0, "pitch": 15.0, "lift": 6.0},
+		],
+	},
+	"battle_house_south": {
+		"map": "valley_fields", "battle": "valley_fields/all_units", "seed": 42, "dof": "off",
+		"start_s": 133.5, "seconds": 5.0, "stills": [1.0, 1.6, 4.0],
+		"camera": [
+			{"t": 0.0, "at": Vector2(-492, 47), "dist": 70.0, "yaw": 70.0, "pitch": 16.0, "lift": 6.0},
+			{"t": 5.0, "at": Vector2(-494, 50), "dist": 60.0, "yaw": 80.0, "pitch": 14.0, "lift": 6.0},
+		],
+	},
+	"battle_river_salvo": {
+		"map": "valley_fields", "battle": "valley_fields/all_units", "seed": 42, "dof": "off",
+		"start_s": 161.0, "seconds": 7.0, "stills": [1.0, 4.0, 6.0],
+		"camera": [
+			{"t": 0.0, "at": Vector2(-380, -245), "dist": 150.0, "yaw": 50.0, "pitch": 18.0, "lift": 4.0},
+			{"t": 7.0, "at": Vector2(-360, -235), "dist": 115.0, "yaw": 38.0, "pitch": 15.0, "lift": 4.0},
+		],
+	},
+	"battle_kv2": {
+		"map": "valley_fields", "battle": "valley_fields/all_units", "seed": 42, "dof": "off",
+		"start_s": 192.5, "seconds": 5.0, "stills": [1.0, 2.5, 4.5],
+		"camera": [
+			{"t": 0.0, "at": Vector2(-395, -596), "dist": 50.0, "yaw": 80.0, "pitch": 14.0, "lift": 2.0},
+			{"t": 5.0, "at": Vector2(-395, -596), "dist": 42.0, "yaw": 65.0, "pitch": 12.0, "lift": 2.0},
+		],
+	},
+	"battle_finale": {
+		"map": "valley_fields", "battle": "valley_fields/all_units", "seed": 42, "dof": "off",
+		"start_s": 205.0, "seconds": 6.0, "pre_roll_s": 6, "stills": [1.0, 5.0],
+		"camera": [
+			{"t": 0.0, "at": Vector2(-520, -150), "dist": 260.0, "yaw": 115.0, "pitch": 24.0},
+			{"t": 6.0, "at": Vector2(-540, -150), "dist": 420.0, "yaw": 75.0, "pitch": 30.0},
+		],
+	},
+	# Planning the battle short: the town battle of data/battles, scouted
+	# with `just trailer-scout survey_town 300`.
+	"survey_town": {
+		"map": "valley_fields", "battle": "valley_fields/all_units", "seed": 42, "dof": "off",
+		"start_s": 0.0, "seconds": 300.0,
+		"camera": [{"t": 0.0, "at": Vector2(-500, -150), "dist": 300.0, "yaw": 90.0, "pitch": 40.0}],
 	},
 	# --- Maps from above, for planning shots ----------------------------------
 	# Impact markers of the own shells (prompt 084): the launchers' salvo
@@ -818,7 +914,11 @@ static func start(sim_host: SimHost) -> bool:
 		return false
 	var shot: Dictionary = SHOTS[shot_name]
 	var scene: String = shot.get("scene", shot_name)
+	# A battle of data/battles/ (`"battle": "<map>/<name>"`) instead of a
+	# trailer scene.
 	var file := GamePaths.data_dir().path_join(SCENE_DIR).path_join(scene + ".toml")
+	if shot.has("battle"):
+		file = GamePaths.data_dir().path_join("battles").path_join(str(shot["battle"]) + ".toml")
 	sim_host.hold_fire_at_start = false
 	sim_host.weather = shot.get("weather", "")
 	sim_host.daytime = shot.get("daytime", "")
@@ -872,6 +972,8 @@ func _ready() -> void:
 			main.battle_sound.visible_at = main.effects.visible_at
 		# The rings where the own shells will land are interface too.
 		main.artillery_view.markers_enabled = false
+		# So are the rings, routes and labels of air sorties.
+		main.air_view.marks_enabled = false
 		# The relation tint is part of the interface, not of the world.
 		main._enemy_material.albedo_color.a = 0.0
 		main._ally_material.albedo_color.a = 0.0
@@ -936,6 +1038,11 @@ func _frame_count() -> int:
 ## Turns the parts of `--trailer-off=` off, every frame: decoration is built
 ## while the camera moves, and the game re-applies quality and settings.
 func _apply_off() -> void:
+	# A shot may fix the depth of field (`"dof": "off"`), whatever the
+	# player's setting is (only in memory, the settings file stays).
+	var dof := str(_shot.get("dof", ""))
+	if not dof.is_empty() and Settings.get_value("depth_of_field") != dof:
+		Settings.set_value("depth_of_field", dof)
 	if _off.is_empty():
 		return
 	if "tufts" in _off:
