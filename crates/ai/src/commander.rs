@@ -193,10 +193,10 @@ fn angle_deg(a: Vec2, b: Vec2) -> i32 {
 impl Ai {
     /// The lead role of the army: armor while there is any, else infantry.
     fn lead_role(&self, view: &PlayerView) -> Role {
-        let armor = view
-            .own
-            .iter()
-            .any(|u| self.effective(u) && self.type_info(u.unit_type).role == Role::Armor);
+        let armor = view.own.iter().any(|u| {
+            let info = self.type_info(u.unit_type);
+            self.effective(u) && info.role == Role::Armor && !info.support
+        });
         if armor { Role::Armor } else { Role::Infantry }
     }
 

@@ -459,8 +459,9 @@ think time per tick is unchanged (about 10 µs).
 Every AI (also `HardOld`) sets its towed anti-tank guns (category `gun_at`)
 to "vehicles only" (`Command::SetFireLimits`) when it sees one without
 that limit, also guns produced later: they do not give their position away
-to infantry. The other units keep firing at will; return fire and close
-range are not used by the AI yet (finding for prompt 178: defenders in
+to infantry. Direct-fire support vehicles return fire only (prompt 195,
+"Support from the second line"). The other units keep firing at will;
+close range is not used by the AI yet (finding for prompt 178: defenders in
 woods could wait with "close range only").
 
 ## Target choice (prompt 188)
@@ -468,6 +469,59 @@ woods could wait with "close range only").
 The AI does not pick its units' targets: the simulation's score
 (ARCHITECTURE.md "Combat") does it for every player alike. With it the
 tournament shifted little (BALANCE.md "Target choice by score").
+
+## Support from the second line (prompt 195)
+
+`crates/ai/src/support.rs`, every level but `HardOld`. Support vehicles
+are a property of the unit's kind, not of one id (`TypeInfo::support`): an
+assault gun whose main gun has at least 100 mm (Sturmtiger, Sturmpanzer IV,
+StuIG 33B, SU-122, M4A3 (105)) and an indirect-fire vehicle that the level
+does not lead as artillery (Wespe, Priest, Calliope on Easy and Normal).
+They leave the armor group (the commander's lead role and strength ignore
+them) and get, per vehicle and think, ordinary `MoveTo`, `Attack` and
+`SetFireMode` commands:
+
+- **Escort:** at least 2 effective own armor or infantry units within
+  80 m (a squad and a tank, or two squads). Without them it drives back to
+  the gathering point (base) or the own start and waits there.
+- **Second line:** its distance to the objective (nearest enemy in sight,
+  else the nearest remembered one, else for 60 s the last of these, else
+  the escorts' move goals, else the enemy home) stays at least 12 m more
+  than the foremost escort's; farther forward it backs off, more than 40 m
+  behind it moves up. For a shot it may come up to 5 m behind the lead.
+- **Targets:** direct-fire support vehicles fire only in return
+  (`ReturnFire`; the simulation's score of prompt 188 picks among those
+  that fire at it) and get `Attack` orders only on targets within 95 % of
+  their range from where they stand: buildings and fortifications, towed
+  guns, squads within 15 m of a house, groups of 3 enemies within 25 m;
+  never lone squads, trucks, halftracks or scout cars. A worthy target out
+  of range is approached to 90 % of the range if that stays behind the
+  lead. Indirect support keeps firing at will (`indirect_min_soldiers`).
+- **Reload:** after a shot (ammunition went down) it backs off 15 m more
+  until the main gun is loaded (Sturmtiger 600 ticks).
+
+[provisional] all distances. They are game meters: the Sturmtiger's 38 cm
+reaches 62.5 m in the game (`range_typical_m` 500 m × 1/8), shorter than a
+Panzer IV's 87.5 m, so the prompt's 80–150 m (real) would put it out of
+range. From the second line it therefore fires mostly when the escorts
+close in (infantry in the village); against an anti-tank gun that the
+tanks fight from 65 m it does not reach.
+
+Measured (`crates/ai/tests/support.rs`, two Panzer IV, two rifle squads
+and a Sturmtiger starting in front of them against two rifle squads beside
+houses, an MG team and a ZiS-3 in the `test_small` village, Normal and
+Hard, two seeds each): after its first decisions the Sturmtiger is never
+nearer the defenders than the foremost escort while they are in contact;
+it fires one to three rounds per game (ammunition 100 → 78–92 %) and
+backs off to reload. With only the two squads as escorts they fall in 3 of
+4 games and the Sturmtiger drives back 80–90 m within 20–25 s, to its
+start (escorts in fog of war are compared with every defender, also
+unseen ones, so the table can show it a few meters nearer a hidden MG
+team than its escort). Tournament: the battle and base matrices
+(6 000 ticks) are unchanged to the hash (no support vehicle is built that
+early); base matches de vs us over 24 000 ticks, 20 games: hard vs normal
+55/35 % (2 timeouts) → 60/35 % (1), hard and normal vs passive 100 % as
+before; think time unchanged (51–52 µs per tick).
 
 ## Supply and repair (prompt 036)
 
@@ -875,6 +929,10 @@ lost engineers rebuilt again and again).
 - `crates/ai/tests/economy.rs` (prompt 023): every level builds barracks
   and depot and produces units against the passive enemy; base matches
   between two AIs are reproducible and both sides build.
+- `crates/ai/src/support.rs` and `crates/ai/tests/support.rs` (prompt
+  195): support vehicles hold behind their escorts, back off from the
+  front, drive back without escorts, spare lone squads, fire at squads in
+  houses and back off to reload; the village attack prints a table.
 
 ## Open
 

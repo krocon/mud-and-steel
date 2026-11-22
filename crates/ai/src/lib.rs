@@ -24,6 +24,7 @@ mod posture;
 mod scout;
 mod strike;
 mod supply;
+mod support;
 mod surrender;
 mod transport;
 mod view;
@@ -252,6 +253,14 @@ struct TypeInfo {
     /// has at least 100 mm (Sturmpanzer IV, M4A3 (105)).
     #[serde(default)]
     assault_howitzer: bool,
+    /// Support from the second line (prompt 195, `support.rs`): an
+    /// assault howitzer, or an indirect-fire vehicle not led as artillery
+    /// on this difficulty. Never on `HardOld`.
+    #[serde(default)]
+    support: bool,
+    /// Ticks the main direct weapon needs between two shots.
+    #[serde(default)]
+    reload_ticks: u32,
 }
 
 /// Where an enemy unit was last seen, and what it looked like then.
@@ -449,6 +458,9 @@ pub struct Ai {
     /// Enterable buildings of the map (prompt 178; public map data).
     #[serde(default)]
     houses: Vec<(u32, Vec2)>,
+    /// Support vehicles in the second line (prompt 195).
+    #[serde(default)]
+    support: support::SupportState,
 }
 
 impl Ai {
@@ -564,6 +576,15 @@ impl Ai {
                 } else {
                     Role::Armor
                 };
+                // Prompt 195: assault howitzers and self-propelled guns
+                // under the armor fire from the second line.
+                let support = difficulty != Difficulty::HardOld
+                    && role == Role::Armor
+                    && (assault_howitzer || indirect.is_some());
+                let reload_ticks = t.combat.weapons.first().map_or(0, |w| {
+                    let ticks = (w.interval_s * Fixed::from_num(config.tick_hz)).to_num::<i64>();
+                    u32::try_from(ticks.max(0)).unwrap_or(u32::MAX)
+                });
                 TypeInfo {
                     role,
                     range,
@@ -580,6 +601,8 @@ impl Ai {
                     keeps_base: base_buildings.contains(&t.name),
                     rockets,
                     assault_howitzer,
+                    support,
+                    reload_ticks,
                 }
             })
             .collect();
@@ -703,6 +726,7 @@ impl Ai {
             knowledge: scout::Knowledge::default(),
             posture: posture::PostureState::default(),
             houses: posture::houses(map),
+            support: support::SupportState::default(),
             ground: if difficulty.commander() {
                 intel::Ground::new(map)
             } else {
@@ -844,6 +868,12 @@ impl Ai {
                 .filter(|u| !self.flank.busy(u.id, view.tick))
                 .copied()
                 .collect();
+            // Prompt 195: support vehicles follow the armor from behind.
+            let (support, units): (Vec<OwnUnit>, Vec<OwnUnit>) =
+                units.into_iter().partition(|u| self.is_support(u));
+            if !support.is_empty() {
+                self.command_support(&support, view, &mut out);
+            }
             if units.is_empty() {
                 continue;
             }
@@ -935,6 +965,8 @@ impl Ai {
                 keeps_base: false,
                 rockets: false,
                 assault_howitzer: false,
+                support: false,
+                reload_ticks: 0,
             })
     }
 
