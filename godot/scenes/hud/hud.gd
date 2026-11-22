@@ -42,6 +42,8 @@ const SupplyRings := preload("res://scenes/hud/supply_rings.gd")
 const RangeRings := preload("res://scenes/hud/range_rings.gd")
 const OrderPreview := preload("res://scenes/hud/order_preview.gd")
 const Alerts := preload("res://scenes/hud/alerts.gd")
+const ZoomToast := preload("res://scenes/hud/zoom_toast.gd")
+const ActionSpots := preload("res://scenes/hud/action_spots.gd")
 const OrderFeedback := preload("res://scenes/hud/order_feedback.gd")
 const GroundTooltip := preload("res://scenes/hud/ground_tooltip.gd")
 const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
@@ -75,6 +77,10 @@ var range_rings: RangeRings
 var order_preview: OrderPreview
 ## Alarms out of view and their edge arrows (prompt 101).
 var alerts: Alerts
+## "Zoom 150 %" and the messages of the camera keys; places of combat for
+## the jump key (Shift + G).
+var zoom_toast: ZoomToast
+var action_spots: ActionSpots
 ## Dropped orders and the penetration light at the pointer (prompt 175).
 var order_feedback: OrderFeedback
 ## What the ground under the resting mouse does (prompt 100).
@@ -169,6 +175,12 @@ func setup(main_node: Node3D) -> void:
 	alerts = Alerts.new()
 	add_child(alerts)
 	alerts.setup(main, event_feed)
+	zoom_toast = ZoomToast.new()
+	add_child(zoom_toast)
+	zoom_toast.setup(main)
+	action_spots = ActionSpots.new()
+	add_child(action_spots)
+	action_spots.setup(main, event_feed, zoom_toast)
 	order_feedback = OrderFeedback.new()
 	add_child(order_feedback)
 	order_feedback.setup(main, event_feed)
@@ -188,7 +200,7 @@ func setup(main_node: Node3D) -> void:
 		for picker: Node in [base_hud.get("build_picker"), base_hud.get("production_picker")]:
 			if picker != null:
 				picker.connect(&"info_requested", show_unit_card)
-	_parts = [waypoints, supply_rings, range_rings, order_preview, minimap, gizmo, unit_panel, command_bar, event_feed, alerts, ground_tooltip, top_bar, group_tabs]
+	_parts = [waypoints, supply_rings, range_rings, order_preview, minimap, gizmo, unit_panel, command_bar, event_feed, alerts, ground_tooltip, top_bar, group_tabs, zoom_toast]
 	_layout()
 
 

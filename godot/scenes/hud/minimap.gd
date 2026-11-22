@@ -12,7 +12,9 @@ extends PanelContainer
 ##   camera back, key `camera_reset_north`; only while the camera control
 ##   is switched off), zoom (back to the camera's starting distance) and
 ##   pause (the tactical pause of prompt 102; not in a network match,
-##   where nothing pauses).
+##   where nothing pauses), then the camera views: overview (Shift + O),
+##   close and flat (Shift + F, `close_view.gd`) and the jump to where the
+##   fighting is (Shift + G, `action_spots.gd`).
 ## - Ground: `SimHost.minimap_image` (one pixel per 8 m vision cell:
 ##   terrain, hill shading, roads, forest, buildings), built once and all
 ##   drawn from the start; out of sight dimmed by the mask of
@@ -108,6 +110,10 @@ var column: VBoxContainer
 var north_button: HudTile
 var zoom_button: HudTile
 var pause_button: HudTile
+## Camera views (overview, close and flat) and the jump to the fighting.
+var overview_button: HudTile
+var close_button: HudTile
+var action_button: HudTile
 
 var _area: Control
 var _overlay: Control
@@ -204,6 +210,27 @@ func _build_column() -> void:
 		if pause != null:
 			pause.toggle())
 	column.add_child(pause_button)
+	overview_button = HudTile.new("overview", HudTheme.SMALL_TILE_PX)
+	overview_button.name = "Overview"
+	overview_button.pressed.connect(func() -> void:
+		var overview: Node = main.get("overview")
+		if overview != null:
+			overview.toggle())
+	column.add_child(overview_button)
+	close_button = HudTile.new("close_view", HudTheme.SMALL_TILE_PX)
+	close_button.name = "CloseView"
+	close_button.pressed.connect(func() -> void:
+		var close: Node = main.get("close_view")
+		if close != null:
+			close.toggle())
+	column.add_child(close_button)
+	action_button = HudTile.new("action_jump", HudTheme.SMALL_TILE_PX)
+	action_button.name = "ActionJump"
+	action_button.pressed.connect(func() -> void:
+		var hud: Node = main.get("hud")
+		if hud != null:
+			hud.action_spots.jump())
+	column.add_child(action_button)
 	_set_tooltips()
 
 
@@ -211,6 +238,9 @@ func _set_tooltips() -> void:
 	north_button.tooltip_text = tr("HUD_TIP_NORTH") % Settings.action_key_name("camera_reset_north")
 	zoom_button.tooltip_text = tr("HUD_TIP_ZOOM_RESET")
 	pause_button.tooltip_text = tr("HUD_TIP_PAUSE")
+	overview_button.tooltip_text = tr("HUD_TIP_OVERVIEW") % Settings.action_key_name("overview")
+	close_button.tooltip_text = tr("HUD_TIP_CLOSE_VIEW") % Settings.action_key_name("camera_close_flat")
+	action_button.tooltip_text = tr("HUD_TIP_ACTION_JUMP") % Settings.action_key_name("action_jump")
 
 
 func _notification(what: int) -> void:
@@ -248,7 +278,7 @@ func apply_scale() -> void:
 	_north.add_theme_font_size_override(&"font_size", HudTheme.font(12))
 	_north.size = Vector2.ZERO
 	column.add_theme_constant_override(&"separation", int(HudTheme.px(HudTheme.GAP)))
-	for tile: HudTile in [north_button, zoom_button, pause_button]:
+	for tile: HudTile in [north_button, zoom_button, pause_button, overview_button, close_button, action_button]:
 		tile.apply_scale()
 	column.size = Vector2.ZERO
 
@@ -288,6 +318,11 @@ func _process(delta: float) -> void:
 	_overlay.queue_redraw()
 	_north.global_position = global_position + Vector2((size.x - _north.size.x) * 0.5, -_north.size.y * 0.5).round()
 	north_button.turn = main.camera_rig.yaw
+	# The views show whether they are on.
+	var overview: Node = main.get("overview")
+	overview_button.marked = overview != null and overview.active
+	var close: Node = main.get("close_view")
+	close_button.marked = close != null and close.active
 	usec += Time.get_ticks_usec() - began
 
 

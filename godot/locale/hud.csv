@@ -265,6 +265,12 @@ HUD_TIP_CANCEL_LAST,Cancels the last order of the queue (full refund).,Bricht de
 HUD_TIP_NORTH,Turn the camera north (key %s). The needle shows where north is.,Kamera nach Norden drehen (Taste %s). Die Nadel zeigt nach Norden.
 HUD_TIP_ZOOM_RESET,Camera back to its starting distance.,Kamera zurück auf die Ausgangsentfernung.
 HUD_TIP_PAUSE,"Tactical pause: the game stands, orders still work (Esc: menu).","Taktische Pause: das Spiel steht, Befehle gehen weiter (Esc: Menü)."
+HUD_TIP_OVERVIEW,"Overview: far out, looking down [%s]. Again: back.","Übersicht: weit heraus, Blick von oben [%s]. Nochmal: zurück."
+HUD_TIP_CLOSE_VIEW,"Close and flat: right in, onto the active unit or the screen center [%s]. Again: back.","Nah und flach: ganz heran, auf die aktive Einheit oder die Bildmitte [%s]. Nochmal: zurück."
+HUD_TIP_ACTION_JUMP,"Jump to the fighting: where own units are hit or hit the enemy [%s]. Again: the next place.","Zum Gefecht springen: wo eigene Einheiten getroffen werden oder den Feind treffen [%s]. Nochmal: der nächste Ort."
+HUD_ZOOM_PERCENT,Zoom %d %%,Zoom %d %%
+HUD_ACTION_N,Combat %d / %d,Gefecht %d / %d
+HUD_NO_ACTION,No fighting right now,Gerade kein Gefecht
 HUD_TIP_HELP,Keys and controls.,Tasten und Steuerung.
 HUD_TIP_MENU,Menu (Esc).,Menü (Esc).
 HUD_TIP_GROUP,Select this group (its number key). Twice: camera there.,Diese Gruppe wählen (ihre Zifferntaste). Zweimal: Kamera dorthin.

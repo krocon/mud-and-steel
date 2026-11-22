@@ -354,6 +354,32 @@ func _layout_test(test: Node, main: Node3D, hud: Control, tanks: Array[int]) -> 
 	await test._frames(3)
 	test._check(hud.minimap.zoom_button.is_visible_in_tree() and hud.minimap.pause_button.is_visible_in_tree(),
 		"zoom or pause button missing beside the camera control")
+	# Camera keys: zoom steps (Shift + wheel), the zoom percentage, close
+	# and flat view (Shift + F) and the jump to the fighting (Shift + G).
+	var cam: Node3D = main.camera_rig
+	var cam_view := [cam.focus, cam.target_distance, cam.yaw]
+	for tile: Control in [hud.minimap.overview_button, hud.minimap.close_button, hud.minimap.action_button]:
+		test._check(tile.is_visible_in_tree() and not tile.tooltip_text.is_empty(), "camera button %s missing" % tile.name)
+	cam.target_distance = cam.start_distance
+	cam.step_zoom(1, Vector2.ZERO)
+	test._check(cam.zoom_percent() == 150, "a zoom step in from 100 %% gives %d %%" % cam.zoom_percent())
+	cam.step_zoom(-1, Vector2.ZERO)
+	cam.step_zoom(-1, Vector2.ZERO)
+	test._check(cam.zoom_percent() == 75, "two zoom steps out from 150 %% give %d %%" % cam.zoom_percent())
+	await test._frames(2)
+	test._check(hud.zoom_toast.shown_text.contains("75"), "zoom percentage not shown: '%s'" % hud.zoom_toast.shown_text)
+	main.close_view.toggle()
+	test._check(main.close_view.active and cam.target_distance <= 30.0 and cam.target_tilt < 0.0,
+		"close view: distance %.0f, tilt %.2f" % [cam.target_distance, cam.target_tilt])
+	main.close_view.toggle()
+	test._check(not main.close_view.active and cam.zoom_percent() == 75, "close view did not restore the zoom (%d %%)" % cam.zoom_percent())
+	var fight := Vector3(cam.focus.x + 40.0, 0.0, cam.focus.z)
+	hud.action_spots.add_event(fight)
+	test._check(hud.action_spots.jump() and cam.is_gliding() and hud.zoom_toast.shown_text.contains("1"),
+		"no jump to the fighting (toast '%s')" % hud.zoom_toast.shown_text)
+	hud.action_spots.spots.clear()
+	cam.snap_to(cam_view[0], cam_view[1], cam_view[2])
+	await test._frames(2)
 	# Own unit: info field and grid; every tile of the first page on its place.
 	selection.set_selection([tanks[0]])
 	await test._frames(15)

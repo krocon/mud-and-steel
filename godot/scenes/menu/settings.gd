@@ -89,6 +89,9 @@ const BINDABLE: Dictionary[String, String] = {
 	"game_speed": "SET_KEY_GAME_SPEED",
 	# Overview, HUD off and photo mode (prompt 103).
 	"overview": "SET_KEY_OVERVIEW",
+	# Close and flat view, jump to the fighting (camera keys).
+	"camera_close_flat": "SET_KEY_CAMERA_CLOSE_FLAT",
+	"action_jump": "SET_KEY_ACTION_JUMP",
 	"hud_toggle": "SET_KEY_HUD_TOGGLE",
 	"photo_mode": "SET_KEY_PHOTO_MODE",
 }
@@ -134,6 +137,10 @@ const RUNTIME_ACTIONS: Dictionary[String, int] = {
 	# Prompt 103: Shift + O ("overview"; plain O unhitches guns); F1 and F2
 	# were free (F3-F5 are debug views).
 	"overview": KEY_O | KEY_MASK_SHIFT,
+	# Shift + F ("flat"; plain F cycles the fire mode) and Shift + G
+	# ("Gefecht"; plain G is the barrage) were free.
+	"camera_close_flat": KEY_F | KEY_MASK_SHIFT,
+	"action_jump": KEY_G | KEY_MASK_SHIFT,
 	"hud_toggle": KEY_F1,
 	"photo_mode": KEY_F2,
 }

@@ -21,6 +21,13 @@ const GroundPick := preload("res://scenes/camera/ground_pick.gd")
 ## Emitted when the player moves the map by hand (keys, edge, drag, trackpad).
 signal panned_by_hand
 
+## Zoom steps of Shift + wheel, in percent of the start distance (100 % =
+## `start_distance`, more = closer); the zoom limits are steps too.
+const ZOOM_STEPS_PCT: Array[float] = [25.0, 50.0, 75.0, 100.0, 150.0, 200.0, 300.0, 400.0]
+## Shift + wheel takes one step per this many seconds (a trackpad sends a
+## stream of small wheel events).
+const ZOOM_STEP_PAUSE := 0.15
+
 @export_group("Zoom")
 ## Closest distance from camera to focus point, in meters.
 @export var min_distance := 15.0
@@ -130,6 +137,8 @@ var shadow_steps := true
 var shadow_step := 0.0
 
 var _zoom_anchor := Vector2.ZERO
+## Time of the last Shift + wheel step (msec).
+var _last_step_ms := -1000
 var _dragging := false
 ## Point the focus glides to (double click on the ground), or null.
 var _glide_target: Variant = null
@@ -197,6 +206,38 @@ func track(point: Vector3, restart: bool, delta: float) -> void:
 ## Whether the camera is still gliding to a point set by `center_on`.
 func is_gliding() -> bool:
 	return _glide_target != null
+
+
+## The zoom as the HUD shows it: start distance / distance in percent
+## (100 = the view a match starts with, 200 = twice as close); of the
+## distance the camera is heading for.
+func zoom_percent() -> int:
+	return roundi(start_distance / maxf(target_distance, 0.001) * 100.0)
+
+
+## One step of `ZOOM_STEPS_PCT` closer (`direction` > 0) or farther,
+## towards the screen point `anchor`; the limits count as steps.
+func step_zoom(direction: int, anchor: Vector2) -> void:
+	var distances: Array[float] = [min_distance, max_distance]
+	for pct in ZOOM_STEPS_PCT:
+		var d := start_distance * 100.0 / pct
+		if d > min_distance and d < max_distance:
+			distances.append(d)
+	distances.sort()
+	var now := target_distance
+	var next := now
+	if direction > 0:
+		for i in range(distances.size() - 1, -1, -1):
+			if distances[i] < now * 0.98:
+				next = distances[i]
+				break
+	else:
+		for d in distances:
+			if d > now * 1.02:
+				next = d
+				break
+	target_distance = next
+	_zoom_anchor = anchor
 
 
 ## Zoom level from 0 (closest) to 1 (farthest), logarithmic in the distance.
@@ -303,6 +344,17 @@ func view_stretch() -> Vector2:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	var wheel := event as InputEventMouseButton
+	if wheel != null and wheel.pressed and wheel.shift_pressed and wheel.button_index in [
+			MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN, MOUSE_BUTTON_WHEEL_LEFT, MOUSE_BUTTON_WHEEL_RIGHT]:
+		# Shift + wheel: zoom in steps. macOS turns Shift + wheel of a mouse
+		# into a sideways wheel, so left counts as up and right as down.
+		if Time.get_ticks_msec() - _last_step_ms >= ZOOM_STEP_PAUSE * 1000.0:
+			_last_step_ms = Time.get_ticks_msec()
+			var closer := wheel.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_LEFT]
+			step_zoom(1 if closer else -1, wheel.position)
+		get_viewport().set_input_as_handled()
+		return
 	if event.is_action_pressed("camera_zoom_in"):
 		_zoom_by(1.0 / (1.0 + zoom_step * _wheel_factor(event)), event)
 	elif event.is_action_pressed("camera_zoom_out"):

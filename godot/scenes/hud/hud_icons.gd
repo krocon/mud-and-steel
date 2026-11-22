@@ -80,6 +80,12 @@ const ICONS: Dictionary[String, String] = {
 	# follow (a dot in four corners).
 	"center": "d 12,12 2 | l 12,2 12,8 | l 10,6 12,8 14,6 | l 12,22 12,16 | l 10,18 12,16 14,18 | l 2,12 8,12 | l 6,10 8,12 6,14 | l 22,12 16,12 | l 18,10 16,12 18,14",
 	"follow": "d 12,12 2.5 | l 3,8 3,3 8,3 | l 16,3 21,3 21,8 | l 21,16 21,21 16,21 | l 8,21 3,21 3,16",
+	# Camera views beside the minimap: overview (four corners pointing
+	# out), close and flat (an eye low over the ground), the jump to the
+	# fighting (crossed swords).
+	"overview": "l 3,8 3,3 8,3 | l 3,3 9,9 | l 16,3 21,3 21,8 | l 21,3 15,9 | l 21,16 21,21 16,21 | l 21,21 15,15 | l 8,21 3,21 3,16 | l 3,21 9,15",
+	"close_view": "l 2,19 22,19 | a 12,13 7 200 340 | a 12,9 7 20 160 | d 12,11 2",
+	"action_jump": "l 4,4 17,17 | l 14,20 20,14 | l 20,4 7,17 | l 4,14 10,20",
 	# Minimap buttons, help, menu.
 	"north": "f 12,2 16,13 12,11 8,13 | g 12,22 16,13 12,11 8,13",
 	"zoom": "c 10,10 6 | l 15,15 21,21",

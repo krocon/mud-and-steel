@@ -149,6 +149,8 @@ SET_KEY_GROUND_TOOLTIP,Ground tooltip (hold),Gelände-Info (halten)
 SET_KEY_TACTICAL_PAUSE,Tactical pause (single player),Taktische Pause (Einzelspiel)
 SET_KEY_GAME_SPEED,"Game speed 1×, 2×, ½× (single player)","Spieltempo 1×, 2×, ½× (Einzelspiel)"
 SET_KEY_OVERVIEW,Overview (again: back),Übersicht (nochmal: zurück)
+SET_KEY_CAMERA_CLOSE_FLAT,Close and flat view (again: back),Nah und flach (nochmal: zurück)
+SET_KEY_ACTION_JUMP,Jump to the fighting (again: next place),Zum Gefecht springen (nochmal: nächster Ort)
 SET_KEY_HUD_TOGGLE,Hide or show the HUD,HUD aus- und einblenden
 SET_KEY_PHOTO_MODE,Photo mode (single player and replays),Fotomodus (Einzelspiel und Wiederholung)
 SET_SHOW_SELECTION_RINGS,Selection rings,Auswahlringe

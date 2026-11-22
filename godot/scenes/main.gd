@@ -121,6 +121,7 @@ const UnitHighlight := preload("res://scenes/world/unit_highlight.gd")
 const TacticalPause := preload("res://scenes/world/tactical_pause.gd")
 const ViewToggles := preload("res://scenes/world/view_toggles.gd")
 const Overview := preload("res://scenes/camera/overview.gd")
+const CloseView := preload("res://scenes/camera/close_view.gd")
 const PhotoMode := preload("res://scenes/world/photo_mode.gd")
 const WorksView := preload("res://scenes/world/works_view.gd")
 const VeterancyView := preload("res://scenes/world/veterancy_view.gd")
@@ -238,6 +239,8 @@ var tactical_pause: TacticalPause
 var view_toggles: ViewToggles
 ## Overview zoom (prompt 103).
 var overview: Overview
+## Close and flat view (Shift + F), the counterpart of the overview.
+var close_view: CloseView
 ## Photo mode (prompt 103).
 var photo_mode: PhotoMode
 var _loading: CanvasLayer
@@ -458,6 +461,9 @@ func _ready() -> void:
 	overview = Overview.new()
 	add_child(overview)
 	overview.setup(self)
+	close_view = CloseView.new()
+	add_child(close_view)
+	close_view.setup(self)
 	photo_mode = PhotoMode.new()
 	add_child(photo_mode)
 	photo_mode.setup(self)

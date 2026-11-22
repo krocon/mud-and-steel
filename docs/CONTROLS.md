@@ -22,7 +22,8 @@ or not.
 | Input | Effect |
 |---|---|
 | W A S D, arrow keys *(rebindable)*, mouse at the screen edge | Pan |
-| Mouse wheel, trackpad pinch | Zoom (towards the cursor; towards the screen center while the camera follows a unit) |
+| Mouse wheel, trackpad pinch | Zoom (towards the cursor; towards the screen center while the camera follows a unit). A short line in the upper middle shows the zoom: "Zoom 150 %" (100 % = the view a match starts with, more = closer) |
+| Shift + mouse wheel | Zoom in steps: 25, 50, 75, 100, 150, 200, 300, 400 % and the two limits (one step per notch; on a Mac the sideways wheel that Shift makes of a mouse wheel counts too) |
 | Middle mouse drag, Option/Alt + mouse move, two-finger trackpad pan | Grab the map |
 | Q / E *(rebindable)* | Turn by 45° |
 | N *(rebindable)* | Face north |
@@ -39,7 +40,9 @@ or not.
 | Space *(rebindable)* | Jump to the newest event message |
 | Shift + P *(rebindable)*, or the pause tile beside the minimap | Tactical pause (single player, prompt 102): the game stands, camera, selection and orders keep working; orders start with the first tick after the pause. A line at the top says so; the music plays quieter. Esc opens the menu as before; closed again, the pause goes on. Not in network matches |
 | ] (right of Ü on German keyboards) *(rebindable)* | Game speed 1×, 2×, ½× (single player) |
-| Shift + O *(rebindable)* | Overview (prompt 103): the camera glides out to up to 1200 m at the steepest tilt, shadows and small decoration off, every own unit shows its ring. Again: back to the view before; a zoom in returns centered on the point under the pointer |
+| Shift + F *(rebindable)*, button beside the minimap (an eye over the ground) | Close and flat: the camera goes right in (22 m) at the flattest tilt, onto the active unit, else onto the screen center. Again: the zoom and tilt from before (the camera stays where it is). Leaves the overview |
+| Shift + G *(rebindable)*, button beside the minimap (crossed swords) | Jump to the fighting: to the place where own units were hit or hit the enemy most recently (also losses on either side; places within 80 m count as one, each kept 20 s after its last hit). Pressed again within 6 s: the next place, round again; the line in the upper middle says "Combat 2 / 3", or that nothing is going on. Unlike Shift + Space it also goes to fights in view |
+| Shift + O *(rebindable)*, button beside the minimap (four corners) | Overview (prompt 103): the camera glides out to up to 1200 m at the steepest tilt, shadows and small decoration off, every own unit shows its ring. Again: back to the view before; a zoom in returns centered on the point under the pointer |
 | F1 *(rebindable)* | Hide or show the HUD and every mark on the map; orders keep working, a short line names the key |
 | F2 *(rebindable)* | Photo mode (single player and replays): the game stops, HUD and marks go, the camera goes closer, flatter and steeper; field of view, depth of field (off / subtle / miniature; tilted flat the foreground stays sharp and only the upper part of the picture is soft, a narrow sharp band needs miniature and a steep view), fog of war off (only in replays or after the match), "Save picture" writes a PNG to the user folder `photos/`. F2, the button or Esc leave and restore everything |
 | Shift + Space *(rebindable)* | Jump to the newest alarm (fire on or loss of own units and buildings out of view, units stuck out of view since prompt 173); pressed again within 4 s: the next older one (prompt 101) |

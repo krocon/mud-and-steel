@@ -45,6 +45,9 @@ func toggle() -> void:
 func enter() -> void:
 	if active:
 		return
+	var close: Node = main.get("close_view")
+	if close != null and close.active:
+		close.drop()
 	var rig: Node3D = main.camera_rig
 	active = true
 	_saved = {"focus": rig.focus, "distance": rig.target_distance, "tilt": rig.target_tilt,
