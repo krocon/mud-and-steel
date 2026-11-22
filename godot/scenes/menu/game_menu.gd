@@ -18,6 +18,7 @@ const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
 const MatchSetup := preload("res://scenes/menu/match_setup.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
 const SettingsPanel := preload("res://scenes/menu/settings_panel.gd")
+const DialogFrame := preload("res://scenes/menu/dialog_frame.gd")
 const GameFiles := preload("res://scenes/menu/game_files.gd")
 const Language := preload("res://scenes/menu/language.gd")
 const StatsChart := preload("res://scenes/menu/stats_chart.gd")
@@ -238,9 +239,8 @@ func _build_result() -> void:
 
 
 func _build_settings() -> void:
-	var center := CenterContainer.new()
-	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# The whole height of the window, like in the main menu.
+	var center := DialogFrame.new(true)
 	_root.add_child(center)
 	settings_panel = SettingsPanel.new()
 	settings_panel.visible = false
@@ -288,7 +288,7 @@ func _show_result(result: Dictionary) -> void:
 		result_title.text = tr("RESULT_DRAW")
 	else:
 		result_title.text = tr("COMMON_DEFEAT")
-		result_title.add_theme_color_override("font_color", MenuTheme.DEFEAT)
+		MenuTheme.defeat_title(result_title)
 	result_reason.text = _reason(winner, me, own, players, won)
 	var seconds: int = result["tick"] / maxi(main.sim_host.tick_rate(), 1)
 	var lines: PackedStringArray = [tr("RESULT_MATCH_TIME") % [seconds / 60, seconds % 60]]

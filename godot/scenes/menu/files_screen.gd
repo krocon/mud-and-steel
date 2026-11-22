@@ -1,4 +1,4 @@
-extends CenterContainer
+extends "res://scenes/menu/dialog_frame.gd"
 ## A screen of the main menu that lists saved games ("Load game") or
 ## replays ("Replays", prompt 038): newest first, one line each with date,
 ## map, players, duration and (replays) the result. Files this build cannot
@@ -30,7 +30,9 @@ func _ready() -> void:
 	frame.add_child(box)
 	box.add_child(MenuTheme.title("MENU_LOAD_GAME" if kind == "load" else "MENU_REPLAYS", MenuTheme.HEADING_SIZE))
 	list = ItemList.new()
-	list.custom_minimum_size = Vector2(0, 340)
+	# Grows with the window (dialog_frame.gd).
+	list.custom_minimum_size = Vector2(0, 160)
+	list.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	list.item_selected.connect(func(_index: int) -> void: _update_details())
 	list.item_activated.connect(func(_index: int) -> void: activate())
 	box.add_child(list)

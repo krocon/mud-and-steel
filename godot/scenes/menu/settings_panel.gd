@@ -83,7 +83,9 @@ func _ready() -> void:
 	add_child(box)
 	box.add_child(MenuTheme.title("COMMON_SETTINGS", MenuTheme.HEADING_SIZE))
 	var tabs := TabContainer.new()
-	tabs.custom_minimum_size = Vector2(0, 420)
+	# Takes the height of the window (dialog_frame.gd); its pages scroll.
+	tabs.custom_minimum_size = Vector2(0, 240)
+	tabs.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	box.add_child(tabs)
 	tabs.add_child(_graphics_tab())
 	tabs.add_child(_controls_tab())

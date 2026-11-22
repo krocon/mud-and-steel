@@ -1,4 +1,4 @@
-extends CenterContainer
+extends "res://scenes/menu/dialog_frame.gd"
 ## "Missions" screen of the main menu (prompt 039): the tutorial and the
 ## missions with their faction, map and whether they were won; the
 ## briefing of the selected one; Start plays it in `main.tscn`.
@@ -29,7 +29,9 @@ func _ready() -> void:
 	frame.add_child(box)
 	box.add_child(MenuTheme.title("MENU_MISSIONS_TITLE", MenuTheme.HEADING_SIZE))
 	list = ItemList.new()
-	list.custom_minimum_size = Vector2(0, 240)
+	# Grows with the window (dialog_frame.gd).
+	list.custom_minimum_size = Vector2(0, 160)
+	list.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	list.item_selected.connect(func(_index: int) -> void: _update_details())
 	list.item_activated.connect(func(_index: int) -> void: start_selected())
 	box.add_child(list)

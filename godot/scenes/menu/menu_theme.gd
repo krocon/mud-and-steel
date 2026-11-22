@@ -15,6 +15,10 @@ const PANEL_BORDER := Color("6b6a4f")
 ## Faint edge of panels and fields (instead of a frame).
 const EDGE := Color(0.42, 0.42, 0.31, 0.35)
 const NONE := Color(0, 0, 0, 0)
+## Tab pages: the selected tab and its page share this ground and one
+## border, like a file folder, so the tab visibly belongs to the page.
+const PAGE := Color("262920")
+const PAGE_BORDER := Color(0.55, 0.54, 0.41, 0.8)
 ## Corner radius of buttons and fields, and of panels.
 const RADIUS := 8
 const PANEL_RADIUS := 12
@@ -26,6 +30,9 @@ const TEXT := Color("e6e1cf")
 const TEXT_DIM := Color("a39f8c")
 const VICTORY := Color("b9c98a")
 const DEFEAT := Color("d58a6e")
+## Title of a lost match: blood red, with a dark outline that sets it off
+## from the panel (`defeat_title`).
+const BLOOD := Color("c8161d")
 
 const FONT_SIZE := 18
 const TITLE_SIZE := 44
@@ -61,6 +68,17 @@ static func title(text: String, size := TITLE_SIZE) -> Label:
 	label.add_theme_color_override("font_color", ACCENT)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	return label
+
+
+## Gives `label` the look of the "Defeat" title: blood red with a thick
+## near-black outline and a soft shadow, so it stands out on the dark panel.
+static func defeat_title(label: Label) -> void:
+	label.add_theme_color_override("font_color", BLOOD)
+	label.add_theme_color_override("font_outline_color", Color(0.04, 0.02, 0.02))
+	label.add_theme_constant_override("outline_size", maxi(roundi(8 * font_scale), 4))
+	label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.6))
+	label.add_theme_constant_override("shadow_offset_x", 0)
+	label.add_theme_constant_override("shadow_offset_y", 3)
 
 
 ## A dimmed explanatory label that wraps.
@@ -101,9 +119,10 @@ static func _build() -> Theme:
 	theme.set_color("font_unselected_color", "TabContainer", TEXT_DIM)
 
 	theme.set_stylebox("panel", "PanelContainer", _box(PANEL, EDGE, 1, 20, PANEL_RADIUS))
-	var tabs_panel := _box(PANEL, EDGE, 1, 14, PANEL_RADIUS)
+	var tabs_panel := _box(PAGE, PAGE_BORDER, 1, 14, PANEL_RADIUS)
 	tabs_panel.corner_radius_top_left = 0
 	theme.set_stylebox("panel", "TabContainer", tabs_panel)
+	theme.set_constant("side_margin", "TabContainer", 0)
 	theme.set_stylebox("panel", "PopupMenu", _box(PANEL, EDGE, 1, 6, RADIUS))
 	theme.set_stylebox("hover", "PopupMenu", _box(BUTTON_HOVER, NONE, 0, 4, 6))
 	for type in ["Button", "OptionButton"]:
@@ -120,9 +139,9 @@ static func _build() -> Theme:
 	theme.set_stylebox("selected_focus", "ItemList", _box(BUTTON_PRESSED, NONE, 0, 4, 6))
 	theme.set_stylebox("hovered", "ItemList", _box(BUTTON_HOVER, NONE, 0, 4, 6))
 	theme.set_stylebox("focus", "ItemList", _box(NONE, NONE, 0, 6))
-	theme.set_stylebox("tab_selected", "TabContainer", _tab(BUTTON_PRESSED))
-	theme.set_stylebox("tab_unselected", "TabContainer", _tab(BUTTON))
-	theme.set_stylebox("tab_hovered", "TabContainer", _tab(BUTTON_HOVER))
+	theme.set_stylebox("tab_selected", "TabContainer", _tab(PAGE, PAGE_BORDER, true))
+	theme.set_stylebox("tab_unselected", "TabContainer", _tab(BUTTON, EDGE))
+	theme.set_stylebox("tab_hovered", "TabContainer", _tab(BUTTON_HOVER, EDGE))
 	theme.set_stylebox("tab_focus", "TabContainer", _box(NONE, Color(ACCENT, 0.7), 1, 8))
 	for bar in ["VScrollBar", "HScrollBar"]:
 		theme.set_stylebox("scroll", bar, _box(Color(BACKGROUND, 0.5), NONE, 0, 2, 4))
@@ -136,11 +155,19 @@ static func _build() -> Theme:
 	return theme
 
 
-## A tab: rounded on top, open towards its page.
-static func _tab(fill: Color) -> StyleBoxFlat:
-	var box := _box(fill, NONE, 0, 8)
+## A tab: rounded on top, open towards its page. The selected one has the
+## page's ground and border and reaches over the page's top edge, so tab
+## and page form one outline.
+static func _tab(fill: Color, border: Color, selected := false) -> StyleBoxFlat:
+	var box := _box(fill, border, 1, 8)
 	box.corner_radius_bottom_left = 0
 	box.corner_radius_bottom_right = 0
+	box.border_width_bottom = 0
+	if selected:
+		box.expand_margin_bottom = 2
+	else:
+		# The others sit a little lower and stay behind the page.
+		box.content_margin_top = box.content_margin_top - 1
 	return box
 
 

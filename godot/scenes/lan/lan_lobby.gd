@@ -30,6 +30,7 @@ extends Control
 const LanMatch := preload("res://scenes/lan/lan_match.gd")
 const MatchSetup := preload("res://scenes/menu/match_setup.gd")
 const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
+const DialogFrame := preload("res://scenes/menu/dialog_frame.gd")
 const Missions := preload("res://scenes/menu/missions.gd")
 const Settings := preload("res://scenes/menu/settings.gd")
 const SlotList := preload("res://scenes/menu/slot_list.gd")
@@ -108,15 +109,15 @@ func _process(_delta: float) -> void:
 
 
 func _build_ui() -> void:
-	var center := CenterContainer.new()
-	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	# As high as it needs, scrolling on a small window (dialog_frame.gd).
+	var center := DialogFrame.new(false)
 	add_child(center)
 	var panel := PanelContainer.new()
 	panel.custom_minimum_size = Vector2(560, 0)
 	center.add_child(panel)
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 8)
-	panel.add_child(box)
+	center.scroll_in(panel, box)
 
 	box.add_child(MenuTheme.title("LOBBY_LAN_TITLE", MenuTheme.HEADING_SIZE))
 

@@ -21,6 +21,9 @@ const Settings := preload("res://scenes/menu/settings.gd")
 const MatchSetup := preload("res://scenes/menu/match_setup.gd")
 const MenuTheme := preload("res://scenes/menu/menu_theme.gd")
 const SettingsPanel := preload("res://scenes/menu/settings_panel.gd")
+const DialogFrame := preload("res://scenes/menu/dialog_frame.gd")
+## Width of one column of the main menu's entries.
+const MAIN_COLUMN := 360.0
 const CreditsPanel := preload("res://scenes/menu/credits_panel.gd")
 const FlowSelfTest := preload("res://scenes/menu/flow_self_test.gd")
 const SlotList := preload("res://scenes/menu/slot_list.gd")
@@ -237,30 +240,37 @@ func _is_direct_start() -> bool:
 
 
 func _main_screen() -> Control:
-	var box := _centered_column(360)
+	var box := _centered_column(MAIN_COLUMN)
 	box.add_child(MenuTheme.title("MUD AND STEEL"))  # l10n-ignore (game name)
 	var subtitle := MenuTheme.hint("MENU_SUBTITLE")
 	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(subtitle)
 	box.add_child(_spacer(4))
-	tutorial_button = _button(box, "MENU_TUTORIAL", start_tutorial)
-	campaign_button = _button(box, "MENU_CAMPAIGN", func() -> void: show_screen("campaign"))
-	missions_button = _button(box, "MENU_MISSIONS", func() -> void: show_screen("missions"))
-	single_player_button = _button(box, "MENU_SINGLE_PLAYER", func() -> void: show_screen("skirmish"))
-	load_button = _button(box, "MENU_LOAD_GAME", func() -> void: show_screen("load"))
-	replays_button = _button(box, "MENU_REPLAYS", func() -> void: show_screen("replays"))
-	lan_button = _button(box, "MENU_LAN_GAME", open_lan)
-	online_button = _button(box, "MENU_ONLINE", open_online)
-	editor_button = _button(box, "MENU_MAP_EDITOR", open_editor)
-	units_button = _button(box, "MENU_UNITS", func() -> void: show_screen("units"))
-	settings_button = _button(box, "COMMON_SETTINGS", func() -> void: show_screen("settings"))
-	credits_button = _button(box, "MENU_CREDITS", func() -> void: show_screen("credits"))
-	quit_button = _button(box, "COMMON_QUIT", func() -> void: get_tree().quit())
-	# Twelve entries fit a window 720 pixels high (prompt 066).
+	# The entries in one column, or two on a low window (`_fit_main_buttons`).
+	var grid := GridContainer.new()
+	grid.name = "MainButtons"
+	grid.add_theme_constant_override(&"h_separation", 8)
+	grid.add_theme_constant_override(&"v_separation", 8)
+	box.add_child(grid)
+	tutorial_button = _button(grid, "MENU_TUTORIAL", start_tutorial)
+	campaign_button = _button(grid, "MENU_CAMPAIGN", func() -> void: show_screen("campaign"))
+	missions_button = _button(grid, "MENU_MISSIONS", func() -> void: show_screen("missions"))
+	single_player_button = _button(grid, "MENU_SINGLE_PLAYER", func() -> void: show_screen("skirmish"))
+	load_button = _button(grid, "MENU_LOAD_GAME", func() -> void: show_screen("load"))
+	replays_button = _button(grid, "MENU_REPLAYS", func() -> void: show_screen("replays"))
+	lan_button = _button(grid, "MENU_LAN_GAME", open_lan)
+	online_button = _button(grid, "MENU_ONLINE", open_online)
+	editor_button = _button(grid, "MENU_MAP_EDITOR", open_editor)
+	units_button = _button(grid, "MENU_UNITS", func() -> void: show_screen("units"))
+	settings_button = _button(grid, "COMMON_SETTINGS", func() -> void: show_screen("settings"))
+	credits_button = _button(grid, "MENU_CREDITS", func() -> void: show_screen("credits"))
+	quit_button = _button(grid, "COMMON_QUIT", func() -> void: get_tree().quit())
+	for button in grid.get_children():
+		(button as Control).size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	box.add_theme_constant_override(&"separation", 8)
-	for button in box.get_children():
-		if button is Button:
-			(button as Button).custom_minimum_size.y = 40
+	var frame: Control = box.get_meta(&"screen")
+	frame.resized.connect(_fit_main_buttons.bind(box, grid), CONNECT_DEFERRED)
+	_fit_main_buttons(box, grid)
 	single_player_button.grab_focus.call_deferred()
 	# Prompt 044: a crash report of the last session, kept locally.
 	if not CrashGuard.last_report.is_empty():
@@ -403,8 +413,7 @@ func _on_slot_side(index: int, team: int, faction: String) -> void:
 
 
 func _settings_screen() -> Control:
-	var center := CenterContainer.new()
-	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var center := DialogFrame.new(true)
 	add_child(center)
 	settings_panel = SettingsPanel.new()
 	settings_panel.closed.connect(func() -> void: show_screen("main"))
@@ -414,13 +423,37 @@ func _settings_screen() -> Control:
 
 ## Credits and licenses (prompt 044).
 func _credits_screen() -> Control:
-	var center := CenterContainer.new()
-	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var center := DialogFrame.new(true)
 	add_child(center)
 	credits_panel = CreditsPanel.new()
 	credits_panel.closed.connect(func() -> void: show_screen("main"))
 	center.add_child(credits_panel)
 	return center
+
+
+## Layout of the main menu's entries for the window (prompt 066: twelve
+## entries fit 720 pixels): one column of 40 px buttons where there is
+## room, flatter (down to 32 px) when the window is a little low, two
+## columns when it is lower still; the column scrolls only after that.
+func _fit_main_buttons(box: VBoxContainer, grid: GridContainer) -> void:
+	var frame: Control = box.get_meta(&"screen")
+	if frame.size.y <= 0.0:
+		return
+	var room: float = frame.size.y - 2.0 * frame.call("margin")
+	for columns in [1, 2]:
+		grid.columns = columns
+		box.custom_minimum_size.x = MAIN_COLUMN * columns + 8.0 * (columns - 1)
+		var rows := ceili(float(grid.get_child_count()) / columns)
+		_main_button_height(grid, 40.0)
+		var spare := room - box.get_combined_minimum_size().y
+		_main_button_height(grid, clampf(floorf(40.0 + spare / rows), 32.0, 40.0))
+		if room - box.get_combined_minimum_size().y >= 0.0:
+			return
+
+
+func _main_button_height(grid: GridContainer, height: float) -> void:
+	for button in grid.get_children():
+		(button as Control).custom_minimum_size.y = height
 
 
 ## The start layout chosen (`standard`, `random` or a variant name).
@@ -450,19 +483,21 @@ func _update_map_info() -> void:
 	_map_info.text = info
 
 
-## A centered column; the screen root is stored as meta "screen".
+## A centered column, as high as it needs and scrolling on a small window
+## (`dialog_frame.gd`); the screen root is stored as meta "screen".
 func _centered_column(width: float, panel := false) -> VBoxContainer:
-	var center := CenterContainer.new()
-	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var center := DialogFrame.new(false)
 	add_child(center)
 	var box := VBoxContainer.new()
 	box.custom_minimum_size = Vector2(width, 0)
 	if panel:
 		var frame := PanelContainer.new()
 		center.add_child(frame)
-		frame.add_child(box)
+		center.scroll_in(frame, box)
 	else:
-		center.add_child(box)
+		var holder := MarginContainer.new()
+		center.add_child(holder)
+		center.scroll_in(holder, box)
 	box.set_meta(&"screen", center)
 	return box
 

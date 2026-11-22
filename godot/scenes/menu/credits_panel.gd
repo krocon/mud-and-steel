@@ -26,7 +26,8 @@ var back_button: Button
 
 
 func _ready() -> void:
-	custom_minimum_size = Vector2(900, 620)
+	# The height comes from the window (dialog_frame.gd).
+	custom_minimum_size = Vector2(900, 320)
 	var box := VBoxContainer.new()
 	add_child(box)
 	box.add_child(MenuTheme.title("MENU_CREDITS", MenuTheme.HEADING_SIZE))

@@ -1,4 +1,4 @@
-extends CenterContainer
+extends "res://scenes/menu/dialog_frame.gd"
 ## "Campaign" screen of the main menu (prompt 189): the campaigns of
 ## `data/campaigns/` with their missions in play order. A mission is
 ## locked until the one before it was won (on any level); won ones show
@@ -44,7 +44,9 @@ func _ready() -> void:
 	progress = MenuTheme.hint("")
 	box.add_child(progress)
 	list = ItemList.new()
-	list.custom_minimum_size = Vector2(0, 200)
+	# Grows with the window (dialog_frame.gd).
+	list.custom_minimum_size = Vector2(0, 140)
+	list.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	list.item_selected.connect(func(_index: int) -> void: _update_details())
 	list.item_activated.connect(func(_index: int) -> void: start_selected())
 	box.add_child(list)
