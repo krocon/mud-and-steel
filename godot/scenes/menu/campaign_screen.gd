@@ -55,7 +55,11 @@ func _ready() -> void:
 	var buttons := HBoxContainer.new()
 	buttons.alignment = BoxContainer.ALIGNMENT_END
 	box.add_child(buttons)
-	buttons.add_child(MenuTheme.hint("MENU_LEVEL"))
+	var level_label := MenuTheme.hint("MENU_LEVEL")
+	# One line beside the buttons (see missions_screen.gd).
+	level_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	level_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	buttons.add_child(level_label)
 	level_button = OptionButton.new()
 	level_button.custom_minimum_size = Vector2(140, 44)
 	for level: String in Missions.LEVELS:

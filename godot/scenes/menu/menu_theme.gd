@@ -1,6 +1,8 @@
 extends RefCounted
 ## Look of all menus (prompt 027): dark field grey and olive with sand as the
-## accent, Godot's default font, plain frames. Built in code, so there is no
+## accent, Godot's default font. Like the match HUD: rounded corners and
+## hardly any frames; buttons are plates that light up under the pointer,
+## a thin sand ring only marks keyboard focus. Built in code, so there is no
 ## `.tres` to keep in sync, and cached once per run.
 ##
 ## Why this look: muted military colors fit the WW2 setting without any
@@ -10,6 +12,12 @@ extends RefCounted
 const BACKGROUND := Color("1f211c")
 const PANEL := Color("2e3128")
 const PANEL_BORDER := Color("6b6a4f")
+## Faint edge of panels and fields (instead of a frame).
+const EDGE := Color(0.42, 0.42, 0.31, 0.35)
+const NONE := Color(0, 0, 0, 0)
+## Corner radius of buttons and fields, and of panels.
+const RADIUS := 8
+const PANEL_RADIUS := 12
 const BUTTON := Color("3c4033")
 const BUTTON_HOVER := Color("4d5240")
 const BUTTON_PRESSED := Color("5d6249")
@@ -92,33 +100,58 @@ static func _build() -> Theme:
 	theme.set_color("font_selected_color", "TabContainer", ACCENT)
 	theme.set_color("font_unselected_color", "TabContainer", TEXT_DIM)
 
-	theme.set_stylebox("panel", "PanelContainer", _box(PANEL, PANEL_BORDER, 2, 20))
-	theme.set_stylebox("panel", "TabContainer", _box(PANEL, PANEL_BORDER, 1, 14))
-	theme.set_stylebox("panel", "PopupMenu", _box(PANEL, PANEL_BORDER, 1, 6))
+	theme.set_stylebox("panel", "PanelContainer", _box(PANEL, EDGE, 1, 20, PANEL_RADIUS))
+	var tabs_panel := _box(PANEL, EDGE, 1, 14, PANEL_RADIUS)
+	tabs_panel.corner_radius_top_left = 0
+	theme.set_stylebox("panel", "TabContainer", tabs_panel)
+	theme.set_stylebox("panel", "PopupMenu", _box(PANEL, EDGE, 1, 6, RADIUS))
+	theme.set_stylebox("hover", "PopupMenu", _box(BUTTON_HOVER, NONE, 0, 4, 6))
 	for type in ["Button", "OptionButton"]:
-		theme.set_stylebox("normal", type, _box(BUTTON, PANEL_BORDER, 1, 8))
-		theme.set_stylebox("hover", type, _box(BUTTON_HOVER, ACCENT, 1, 8))
-		theme.set_stylebox("pressed", type, _box(BUTTON_PRESSED, ACCENT, 1, 8))
-		theme.set_stylebox("focus", type, _box(Color.TRANSPARENT, ACCENT, 1, 8))
-		theme.set_stylebox("disabled", type, _box(BUTTON.darkened(0.3), PANEL_BORDER.darkened(0.3), 1, 8))
-	theme.set_stylebox("normal", "LineEdit", _box(BACKGROUND, PANEL_BORDER, 1, 6))
-	theme.set_stylebox("focus", "LineEdit", _box(Color.TRANSPARENT, ACCENT, 1, 6))
-	theme.set_stylebox("panel", "ItemList", _box(BACKGROUND, PANEL_BORDER, 1, 6))
-	theme.set_stylebox("tab_selected", "TabContainer", _box(BUTTON_PRESSED, ACCENT, 1, 8))
-	theme.set_stylebox("tab_unselected", "TabContainer", _box(BUTTON, PANEL_BORDER, 1, 8))
-	theme.set_stylebox("tab_hovered", "TabContainer", _box(BUTTON_HOVER, ACCENT, 1, 8))
-	theme.set_stylebox("background", "ProgressBar", _box(BACKGROUND, PANEL_BORDER, 1, 2))
-	theme.set_stylebox("fill", "ProgressBar", _box(ACCENT.darkened(0.2), ACCENT, 0, 2))
+		theme.set_stylebox("normal", type, _box(BUTTON, NONE, 0, 8))
+		theme.set_stylebox("hover", type, _box(BUTTON_HOVER, NONE, 0, 8))
+		theme.set_stylebox("pressed", type, _box(BUTTON_PRESSED, NONE, 0, 8))
+		theme.set_stylebox("hover_pressed", type, _box(BUTTON_PRESSED.lightened(0.06), NONE, 0, 8))
+		theme.set_stylebox("focus", type, _box(NONE, Color(ACCENT, 0.7), 1, 8))
+		theme.set_stylebox("disabled", type, _box(Color(BUTTON, 0.45), NONE, 0, 8))
+	theme.set_stylebox("normal", "LineEdit", _box(BACKGROUND, EDGE, 1, 6))
+	theme.set_stylebox("focus", "LineEdit", _box(NONE, Color(ACCENT, 0.7), 1, 6))
+	theme.set_stylebox("panel", "ItemList", _box(BACKGROUND, EDGE, 1, 6))
+	theme.set_stylebox("selected", "ItemList", _box(BUTTON_PRESSED, NONE, 0, 4, 6))
+	theme.set_stylebox("selected_focus", "ItemList", _box(BUTTON_PRESSED, NONE, 0, 4, 6))
+	theme.set_stylebox("hovered", "ItemList", _box(BUTTON_HOVER, NONE, 0, 4, 6))
+	theme.set_stylebox("focus", "ItemList", _box(NONE, NONE, 0, 6))
+	theme.set_stylebox("tab_selected", "TabContainer", _tab(BUTTON_PRESSED))
+	theme.set_stylebox("tab_unselected", "TabContainer", _tab(BUTTON))
+	theme.set_stylebox("tab_hovered", "TabContainer", _tab(BUTTON_HOVER))
+	theme.set_stylebox("tab_focus", "TabContainer", _box(NONE, Color(ACCENT, 0.7), 1, 8))
+	for bar in ["VScrollBar", "HScrollBar"]:
+		theme.set_stylebox("scroll", bar, _box(Color(BACKGROUND, 0.5), NONE, 0, 2, 4))
+		theme.set_stylebox("grabber", bar, _box(BUTTON_HOVER, NONE, 0, 2, 4))
+		theme.set_stylebox("grabber_highlight", bar, _box(BUTTON_PRESSED.lightened(0.1), NONE, 0, 2, 4))
+		theme.set_stylebox("grabber_pressed", bar, _box(Color(ACCENT, 0.6), NONE, 0, 2, 4))
+	theme.set_stylebox("background", "ProgressBar", _box(BACKGROUND, NONE, 0, 2, 4))
+	theme.set_stylebox("fill", "ProgressBar", _box(ACCENT.darkened(0.2), NONE, 0, 2, 4))
 	theme.set_constant("separation", "VBoxContainer", 10)
 	theme.set_constant("separation", "HBoxContainer", 10)
 	return theme
 
 
-static func _box(fill: Color, border: Color, width: int, margin: int) -> StyleBoxFlat:
+## A tab: rounded on top, open towards its page.
+static func _tab(fill: Color) -> StyleBoxFlat:
+	var box := _box(fill, NONE, 0, 8)
+	box.corner_radius_bottom_left = 0
+	box.corner_radius_bottom_right = 0
+	return box
+
+
+static func _box(fill: Color, border: Color, width: int, margin: int, radius := RADIUS) -> StyleBoxFlat:
 	var box := StyleBoxFlat.new()
 	box.bg_color = fill
 	box.border_color = border
 	box.set_border_width_all(width)
+	box.set_corner_radius_all(radius)
+	box.corner_detail = 6
+	box.anti_aliasing = true
 	box.set_content_margin_all(margin)
 	box.content_margin_top = margin * 0.6
 	box.content_margin_bottom = margin * 0.6
