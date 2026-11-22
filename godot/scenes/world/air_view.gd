@@ -12,12 +12,22 @@ extends Node3D
 ## `bomb_*`, `air_sorties`, `take_air_events`). The simulation decides
 ## where aircraft fly, what flak hits and where bombs land; explosions and
 ## dust come from the ordinary `hit` events (`effects.gd`). Godot
-## randomness only scatters tracers and smoke puffs.
+## randomness only scatters tracers and smoke puffs. Tracers are light
+## streaks like those of ground fire (prompt 199, `light_streak.gd`).
 
 ## Every air event as read (sound, prompt 053: flak, strafing, crashes).
 signal air_event(event: Dictionary)
 
 const FogOfWar := preload("res://scenes/world/fog_of_war.gd")
+const LightStreak := preload("res://scenes/world/light_streak.gd")
+## Tracer of flak and strafing (prompt 199): real width, held on screen
+## between TRACER_MIN_PX and TRACER_MAX_PX, at most TRACER_LENGTH_M long.
+const TRACER_WIDTH_M := 0.12
+const TRACER_LENGTH_M := 25.0
+const TRACER_MIN_PX := 1.4
+const TRACER_MAX_PX := 3.0
+const TRACER_COLOR := Color(1.0, 0.85, 0.45)
+const TRACER_ENERGY := 3.5
 const EffectTextures := preload("res://scenes/world/effect_textures.gd")
 const AirBar := preload("res://scenes/hud/air_bar.gd")
 const MODELS_DIR := "res://assets/models/"
@@ -84,7 +94,8 @@ var _puff_mesh: QuadMesh
 var _puff_materials: Dictionary[Color, StandardMaterial3D] = {}
 var _flash_mesh: SphereMesh
 var _bomb_mesh: CapsuleMesh
-var _tracer_mesh: BoxMesh
+var _tracer_mesh: QuadMesh
+var _tracer_material: ShaderMaterial
 var _shadow_mesh: QuadMesh
 var _ring_mesh: TorusMesh
 var _enemy_material: StandardMaterial3D
@@ -122,9 +133,9 @@ func setup(main_node: Node3D) -> void:
 	var bomb_material := StandardMaterial3D.new()
 	bomb_material.albedo_color = Color(0.16, 0.17, 0.14)
 	_bomb_mesh.material = bomb_material
-	_tracer_mesh = BoxMesh.new()
-	_tracer_mesh.size = Vector3(0.12, 0.12, 1.0)
-	_tracer_mesh.material = _glow(Color(1.0, 0.85, 0.45))
+	_tracer_mesh = LightStreak.mesh()
+	_tracer_material = LightStreak.material(TRACER_COLOR, TRACER_ENERGY, TRACER_MIN_PX, TRACER_MAX_PX, 0.35)
+	_tracer_material.render_priority = FogOfWar.MARKER_PRIORITY  # above the fog layer (prompt 098)
 	_shadow_mesh = QuadMesh.new()
 	_shadow_mesh.size = Vector2(1, 1)
 	_shadow_mesh.orientation = PlaneMesh.FACE_Y
@@ -631,17 +642,22 @@ func _tracer(from: Vector3, to: Vector3) -> void:
 	var length := from.distance_to(to)
 	if length < 1.0:
 		return
-	var node := MeshInstance3D.new()
-	node.mesh = _tracer_mesh
-	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	var node := LightStreak.node(_tracer_mesh, _tracer_material)
 	add_child(node)
-	var dir := (to - from) / length
-	var up := Vector3.UP if absf(dir.y) < 0.98 else Vector3.RIGHT
 	# A short glowing streak that runs from the gun to the target.
 	node.set_meta(&"from", from)
 	node.set_meta(&"to", to)
-	node.transform = Transform3D(Basis.looking_at(dir, up).scaled(Vector3(1, 1, minf(length, 25.0))), from)
+	_place_tracer(node, from, to, 0.0)
 	_tracers.append([node, 0.0])
+
+
+## The streak's head at share `k` of the way, its tail at most
+## TRACER_LENGTH_M behind and never behind the gun.
+func _place_tracer(node: MeshInstance3D, from: Vector3, to: Vector3, k: float) -> void:
+	var head := from.lerp(to, k)
+	var dir := (to - from).normalized()
+	var length := minf(TRACER_LENGTH_M, maxf(from.distance_to(head), 0.5))
+	node.transform = LightStreak.transform(head, head - dir * length, TRACER_WIDTH_M)
 
 
 func _age_effects(delta: float) -> void:
@@ -667,8 +683,7 @@ func _age_effects(delta: float) -> void:
 			continue
 		var from: Vector3 = node.get_meta(&"from")
 		var to: Vector3 = node.get_meta(&"to")
-		var k: float = t[1] / TRACER_SECONDS
-		node.global_position = from.lerp(to, k)
+		_place_tracer(node, from, to, t[1] / TRACER_SECONDS)
 		tracers.append(t)
 	_tracers = tracers
 	var wrecks: Array = []

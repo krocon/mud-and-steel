@@ -1681,7 +1681,7 @@ shells are drawn only where the local player sees, as before; rockets keep
 body, flame and trail (`rocket_effects.gd`). The direct-fire tracers of
 `combat_view.gd` (also quick tracers and ricochets) use the same streak in
 their old color, length and width (pixels held between 1.4 and 3), so
-they no longer show as boxes up close. Pictures: `just shell-shots
+they no longer show as boxes up close. Flak and strafing tracers of `air_view.gd` use it too (0.12 m, at most 25 m long, running from the gun to the target in 0.15 s). Pictures: `just shell-shots
 <prefix>` (scene `data/trailer/shells.toml`: three mortars, a howitzer
 battery and a tank duel on `ambush_meadow`, by day, evening and night;
 `--video` records the clips).
