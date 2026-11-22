@@ -337,3 +337,54 @@ fn air_support_is_deterministic() {
     assert_eq!(a.state_hash(), b.state_hash());
     assert_eq!(a.snapshot(), b.snapshot());
 }
+
+#[test]
+fn loitering_recon_circles_over_the_target_then_leaves() {
+    // A hidden truck at the center of the circle: the circling Storch keeps
+    // it in view for the whole loiter time, then flies out.
+    let play = || {
+        let mut sim = sim_with(
+            &[
+                (P0, "de_pz4_h", 0, 350, HOLD),
+                (P1, "su_zis5", 0, -100, HOLD),
+            ],
+            11,
+        );
+        run(&mut sim, 5);
+        assert!(!sim.visible_to(P0, UnitId(1)));
+        sim.step(&[call(P0, AirMission::ReconLoiter, 0, -100)]);
+        let rules = sim::AirRules::builtin().unwrap();
+        let m = rules.mission(AirMission::ReconLoiter);
+        let radius = i64::from(m.loiter_radius_m);
+        let center = Vec2::from_meters(0, -100);
+        let (mut circling, mut seen, mut ticks) = (0u32, 0u32, 0u32);
+        while !sim.snapshot().aircraft.is_empty() || ticks < 10 {
+            sim.step(&[]);
+            ticks += 1;
+            assert!(ticks < 20 * 400, "the Storch never left");
+            let snap = sim.snapshot();
+            let Some(a) = snap.aircraft.first() else {
+                continue;
+            };
+            let d = (a.position.ground() - center).length().to_num::<i64>();
+            if (d - radius).abs() <= 2 {
+                circling += 1;
+                seen += u32::from(sim.visible_to(P0, UnitId(1)));
+            }
+        }
+        // 60 s at 20 Hz on the circle, plus the few seconds the straight
+        // tracks in and out run within 2 m of it at the tangent points.
+        let expected = m.loiter_s * 20;
+        assert!(
+            (expected..=expected * 11 / 10).contains(&circling),
+            "{circling} ticks on the circle, expected {expected}"
+        );
+        assert!(
+            seen * 10 >= circling * 9,
+            "the center was seen {seen} of {circling} ticks"
+        );
+        assert!(!sim.visible_to(P0, UnitId(1)), "fog returns after it left");
+        sim.state_hash()
+    };
+    assert_eq!(play(), play());
+}

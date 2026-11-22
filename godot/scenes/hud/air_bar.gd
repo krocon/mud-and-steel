@@ -7,7 +7,8 @@ extends Control
 ## A tile shows the mission's symbol, under it the price (gold: fuel /
 ## ammunition / manpower) or the seconds left (blue), and a dark sector
 ## while it cools down; it is greyed while the call is blocked
-## (`SimHost.air_options`). A tile (or its key, Shift + 1…5 by default)
+## (`SimHost.air_options`). A tile (or its key, Shift + 1…5 by default,
+## Shift + 8 for the circling recon)
 ## waits for a left click on the map, which calls the mission there
 ## (`SimHost.call_air`); right click or Escape cancels. The hint line shows
 ## only while a target is picked (`hud.hints`).
@@ -27,6 +28,7 @@ const REFRESH := 0.2
 const TILE_PX := 56.0
 const MISSIONS: Array[Array] = [
 	["recon", "HUD_AIR_RECON"],
+	["recon_loiter", "HUD_AIR_RECON_LOITER"],
 	["strafe", "HUD_AIR_STRAFE"],
 	["attack", "HUD_AIR_ATTACK"],
 	["bomb", "HUD_AIR_BOMB"],

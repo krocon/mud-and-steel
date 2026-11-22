@@ -461,10 +461,13 @@ fn scripted_production_chain_is_deterministic() {
 
 /// Golden hash of the scripted skirmish (prompt 023): construction,
 /// production, rally points, supply points and the fight of the starting
-/// units. Recorded on macOS ARM64. Last changed by the Sturmtiger
-/// (`de_sturmtiger` at the end of the German vehicle works' list in the
-/// hashed economy rules; without it the old value comes out, the skirmish
-/// plays as before). Before (`0xafb0_2c7e_529f_7d66`), prompt 187 (groups
+/// units. Recorded on macOS ARM64. Last changed by the circling recon
+/// (`recon_loiter`: a sixth air mission in the hashed air rules, its
+/// aircraft types and cooldowns; hashing without them gives the old value,
+/// the skirmish plays as before). Before (`0x1a99_554f_9420_4ad3`), the
+/// Sturmtiger (`de_sturmtiger` at the end of the German vehicle works' list
+/// in the hashed economy rules; without it the old value comes out, the
+/// skirmish plays as before). Before (`0xafb0_2c7e_529f_7d66`), prompt 187 (groups
 /// drive together: hashed `[march]` tactics rules, no fire-team bounds at
 /// bridges; see `determinism.rs`). Before (`0x4be5_2419_b382_c8e1`),
 /// prompt 177 (gun crews:
@@ -566,7 +569,7 @@ fn economy_golden_hash() {
     let sim = run_economy(42, 5000);
     assert_eq!(
         sim.state_hash(),
-        0x1a99_554f_9420_4ad3,
+        0x7004_c6d5_5878_f778,
         "economy golden hash mismatch: got {:#018x}",
         sim.state_hash()
     );

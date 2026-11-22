@@ -48,6 +48,7 @@ func run(test: Node) -> void:
 			cooling = float(o["cooldown"]) > 0.0
 	test._check(cooling, "the bomber call is not cooling down")
 	test._check(sim_host.air_sorties().size() == 1, "no own sortie shown")
+	test._check(view.sortie_labels == 1, "the new sortie shows %d labels" % view.sortie_labels)
 
 	Engine.time_scale = TIME_SCALE
 	var most_aircraft := 0

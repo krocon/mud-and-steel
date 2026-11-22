@@ -30,6 +30,25 @@ dive_m = 0
 lateral_m = 0
 trail_m = 0
 
+# Circling reconnaissance: the aircraft flies in like `recon`, turns onto a
+# circle of `loiter_radius_m` around the target (center on its left) and
+# keeps circling for `loiter_s` game seconds, revealing the ground along the
+# circle, then flies out straight along its last heading. The radius stays
+# below the recon sight (250 m, [recon]) so the target itself stays in
+# view. [provisional]
+[[mission]]
+mission = "recon_loiter"
+cost = [60, 0, 10]
+cooldown_s = 60
+aircraft = 1
+altitude_m = 250
+attack_m = 250
+dive_m = 0
+lateral_m = 0
+trail_m = 0
+loiter_s = 60
+loiter_radius_m = 200
+
 [[mission]]
 mission = "strafe"
 cost = [60, 60, 10]

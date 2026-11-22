@@ -109,6 +109,7 @@ SET_KEY_ORDER_ATTACK_MOVE,Attack-move (then click),Angriffsmarsch (dann klicken)
 SET_KEY_ORDER_SECURE,Secure area (then click),Gebiet sichern (dann klicken)
 SET_KEY_ORDER_FORMATION,Next formation,Nächste Formation
 SET_KEY_AIR_RECON,Air: recon flight (then click),Luft: Aufklärungsflug (dann klicken)
+SET_KEY_AIR_RECON_LOITER,Air: circling recon (then click),Luft: kreisende Aufklärung (dann klicken)
 SET_KEY_AIR_STRAFE,Air: fighter sweep (then click),Luft: Jagdeinsatz (dann klicken)
 SET_KEY_AIR_ATTACK,Air: ground attack (then click),Luft: Schlachtflug (dann klicken)
 SET_KEY_AIR_BOMB,Air: bombing run (then click),Luft: Bombenangriff (dann klicken)

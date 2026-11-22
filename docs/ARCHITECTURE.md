@@ -1846,7 +1846,8 @@ flak, strafing, bombs, crashes, reconnaissance).
 ### Aircraft are no units
 
 `Command::CallAir { mission, target }` (appended at the end of `Command`)
-starts a **sortie**: `recon`, `strafe`, `attack` or `bomb`. The aircraft
+starts a **sortie**: `recon`, `recon_loiter`, `strafe`, `attack`, `bomb`
+or `airborne`. The aircraft
 come from the player's faction (`Sim::faction`, from the first catalog
 unit): per faction and mission the first catalog entry of the mission's
 category (`aircraft_recon`, `_fighter`, `_attack`, `_bomber`). They live
@@ -1866,6 +1867,17 @@ Altitude in game meters above the target's ground: `altitude_m` while
 cruising, `attack_m` in the attack zone (guns firing, bombs released),
 linear over `dive_m` in between, never less than 20 m above the ground
 below. Positions outside the map are fine (no ground queries there).
+
+**Circling recon** (`recon_loiter`, same aircraft as `recon`): the straight
+approach runs `loiter_radius_m` to the right of the target, so it touches
+the circle around the target there; the aircraft turns left onto the
+circle, flies `loiter_s` game seconds around it (speed × time meters, not
+whole laps) and leaves straight along its heading at that point, to
+`edge_margin_m` beyond the map edge. Position and heading follow from the
+distance flown alone (fixed-point `sin`/`cos`, Taylor series after
+reduction to a quarter turn), the circle is part of the state hash. The
+radius (200 m) stays below the recon sight (250 m), so the target stays in
+view the whole time. The presentation banks the aircraft by its turn rate.
 
 **Who sees an aircraft.** Its owner, and every player with a living unit
 whose sight range (`data/vision.toml`, horizontal) reaches it.
@@ -1919,7 +1931,7 @@ positions), before the vision update:
    armored vehicles within `near_miss_dm_per_cbrt_kg` / 10 × ∛kg take up to
    `near_miss_damage`, falling linearly. Hits and kills name the shooter
    `AIR_SHOOTER` (`UnitId(u32::MAX)`).
-8. **Reconnaissance**: a recon aircraft over the map holds a viewshed from
+8. **Reconnaissance**: a recon aircraft (`recon`, `recon_loiter`) over the map holds a viewshed from
    its altitude (radius `recon.sight_real_m` × `range.sight`, a ray table
    added by `Vision::ensure_radius`), recomputed when it enters another
    vision cell and added to its player's vision like a unit's

@@ -199,8 +199,9 @@ route, as before). F5 still shows every path for debugging.
 
 | Input | Effect |
 |---|---|
-| Support column (right edge, under the resources): Recon / Fighters / Attack / Bombers / Paratroopers | Wait for a left click on the map, then call the mission there; right click or Esc cancels |
-| Shift + 1 / 2 / 3 / 4 / 5 *(rebindable)* | The same as the five tiles [provisional] |
+| Support column (right edge, under the resources): Recon / Circling recon / Fighters / Attack / Bombers / Paratroopers | Wait for a left click on the map, then call the mission there; right click or Esc cancels |
+| Shift + 1 / 8 / 2 / 3 / 4 / 5 *(rebindable)* | The same as the six tiles [provisional] |
+| Support column: Circling recon | A recon aircraft circles over the clicked point for 60 s (radius 200 m), keeping it in view, then flies out |
 | Support column: Paratroopers (prompt 055) | Transport aircraft drop three squads of paratroopers around the clicked point |
 | Drag instead of click (prompt 055) | The aircraft fly along the dragged line; bombers lay a carpet over it (at most 300 m), transports drop along it |
 
@@ -210,8 +211,11 @@ paid) or in blue the seconds until the mission can be called again, with a
 dark sector over the tile that shrinks meanwhile; a greyed tile cannot be
 called, its tooltip says why and names the aircraft. The hint "Air support:
 left click the target …" shows at the top only while a target is picked. Own
-missions show their approach as a dashed line to a ring on the target with
-the time until the aircraft arrive. Enemy aircraft coming into sight post
+missions show their approach as a dashed line to a ring on the target; a
+label with the mission and the time until the aircraft arrive shows for 4 s
+after the call (then fades out) and again over the last 5 s before they
+arrive. Several sorties of one mission on nearly the same target (within
+60 m) share one ring and one label ("Circling recon ×2: 155 s"). Enemy aircraft coming into sight post
 **Enemy aircraft!** in the event feed.
 
 ## Heavy strike (prompt 054)

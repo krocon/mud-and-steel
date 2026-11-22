@@ -210,7 +210,7 @@ impl SimHost {
             .collect()
     }
 
-    /// The local player's own called missions: `mission`, `target`,
+    /// The local player's own called missions: `id`, `mission`, `target`,
     /// `entry`, `exit` (ground points, y = 0), `seconds` until the first
     /// aircraft passes the target, `aircraft` still flying.
     #[func]
@@ -223,6 +223,7 @@ impl SimHost {
         let mut out = Array::new();
         for s in self.current.sorties.iter().filter(|s| s.owner == local) {
             let mut d = VarDictionary::new();
+            d.set("id", i64::from(s.id));
             d.set("mission", s.mission.name());
             d.set("target", flat(s.target));
             d.set("entry", flat(s.entry));

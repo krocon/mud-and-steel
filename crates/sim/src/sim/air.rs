@@ -17,7 +17,9 @@ use crate::air::{
     AA_WEAPON, AIR_SHOOTER, AaWeapon, AirBlock, AirEvent, AirGun, AirMission, AirOption, AirRules,
     AirType, AircraftSnapshot, BombSnapshot, SortieSnapshot,
 };
-use crate::combat::{CombatEvent, Face, FireMode, HitKind, Vec3, WeaponType, fixed_sqrt};
+use crate::combat::{
+    CombatEvent, Face, FireMode, HitKind, Vec3, WeaponType, fixed_sqrt, sin_cos_rad,
+};
 use crate::command::{PlayerId, UnitId};
 use crate::hash::StableHasher;
 use crate::math::{Fixed, Vec2};
@@ -66,6 +68,45 @@ struct Sortie {
     target_s: Fixed,
 }
 
+/// The circle of a `recon_loiter` aircraft: it reaches the circle
+/// tangentially at `start` along its track (the center on its left), flies
+/// `length` meters around it and leaves from `exit` along `exit_dir`.
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+struct Loiter {
+    center: Vec2,
+    radius: Fixed,
+    /// Direction of the approach (heading at the start of the circle).
+    dir: Vec2,
+    start: Fixed,
+    length: Fixed,
+    exit: Vec2,
+    exit_dir: Vec2,
+}
+
+impl Loiter {
+    /// Ground position and heading `d` meters into the circle.
+    fn at(center: Vec2, radius: Fixed, dir: Vec2, d: Fixed) -> (Vec2, Vec2) {
+        let left = Vec2::new(-dir.y, dir.x);
+        let (sin, cos) = sin_cos(d / radius.max(Fixed::ONE));
+        let pos = center + (dir.scale(sin) - left.scale(cos)).scale(radius);
+        (pos, left.scale(sin) + dir.scale(cos))
+    }
+}
+
+/// `(sin, cos)` of any angle in radians: reduced to a quarter turn around
+/// a multiple of pi / 2, then [`sin_cos_rad`].
+fn sin_cos(x: Fixed) -> (Fixed, Fixed) {
+    let quarter = Fixed::PI / 2;
+    let k = (x / quarter).round();
+    let (sin, cos) = sin_cos_rad(x - k * quarter);
+    match k.to_num::<i64>().rem_euclid(4) {
+        0 => (sin, cos),
+        1 => (cos, -sin),
+        2 => (-sin, -cos),
+        _ => (-cos, sin),
+    }
+}
+
 /// A shot-down aircraft falling.
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 struct Crash {
@@ -108,6 +149,8 @@ struct Plane {
     firing: bool,
     /// Viewshed of a reconnaissance aircraft.
     shed: Option<Viewshed>,
+    /// Circle of a `recon_loiter` aircraft.
+    loiter: Option<Loiter>,
     /// Bit `s`: player slot `s` sees it.
     seen: u64,
 }
@@ -115,6 +158,21 @@ struct Plane {
 impl Plane {
     const fn alive(&self) -> bool {
         self.hp > 0 && self.crash.is_none()
+    }
+
+    /// Ground position and heading at `s` along its track.
+    fn track_at(&self, s: Fixed) -> (Vec2, Vec2) {
+        match &self.loiter {
+            Some(l) if s >= l.start => {
+                let d = s - l.start;
+                if d < l.length {
+                    Loiter::at(l.center, l.radius, l.dir, d)
+                } else {
+                    (l.exit + l.exit_dir.scale(d - l.length), l.exit_dir)
+                }
+            }
+            _ => (self.origin + self.dir.scale(s), self.dir),
+        }
     }
 }
 
@@ -347,6 +405,27 @@ impl Air {
             }
             h.write_u32(p.burst);
             h.write_u64(p.seen);
+            match &p.loiter {
+                None => h.write_u8(0),
+                Some(l) => {
+                    h.write_u8(1);
+                    for v in [
+                        l.center.x,
+                        l.center.y,
+                        l.radius,
+                        l.dir.x,
+                        l.dir.y,
+                        l.start,
+                        l.length,
+                        l.exit.x,
+                        l.exit.y,
+                        l.exit_dir.x,
+                        l.exit_dir.y,
+                    ] {
+                        h.write_i64(v.to_bits());
+                    }
+                }
+            }
             match &p.shed {
                 None => h.write_u8(0),
                 Some(s) => {
@@ -674,11 +753,37 @@ impl Sim {
         }
         let left = Vec2::new(-dir.y, dir.x);
         let max_hp = ty.hp;
+        // Circling reconnaissance: radius and meters flown on the circle.
+        let circle = (mission == AirMission::ReconLoiter).then(|| {
+            (
+                Fixed::from_num(rules.loiter_radius_m),
+                speed * hz * Fixed::from_num(rules.loiter_s),
+            )
+        });
         for k in 0..n {
             let side = Fixed::from_num(rules.lateral_m)
                 * Fixed::from_num(2 * i64::from(k) - i64::from(n) + 1)
                 / 2;
-            let origin = entry + left.scale(side);
+            let mut origin = entry + left.scale(side);
+            let mut length = back + ahead;
+            let mut loiter = None;
+            if let Some((radius, around)) = circle {
+                // The straight approach passes the target `radius` to its
+                // right: tangent to the circle at `back`.
+                origin = origin - left.scale(radius);
+                let (exit, exit_dir) = Loiter::at(target, radius, dir, around);
+                let out = to_edges(exit, exit_dir, half).1 + margin;
+                length = back + around + out;
+                loiter = Some(Loiter {
+                    center: target,
+                    radius,
+                    dir,
+                    start: back,
+                    length: around,
+                    exit,
+                    exit_dir,
+                });
+            }
             let s = -Fixed::from_num(u64::from(rules.trail_m) * u64::from(k));
             let plane = air.next_plane;
             air.next_plane = air.next_plane.wrapping_add(1);
@@ -692,7 +797,7 @@ impl Sim {
                 origin,
                 dir,
                 s,
-                length: back + ahead,
+                length,
                 zone,
                 base_m,
                 position: Vec3::new(
@@ -706,6 +811,7 @@ impl Sim {
                 burst: 0,
                 firing: false,
                 shed: None,
+                loiter,
                 seen: 0,
             });
         }
@@ -769,7 +875,7 @@ impl Sim {
         planes.retain_mut(|p| {
             let speed = self.air.rt[usize::from(p.kind)].speed;
             p.s += speed;
-            let ground = p.origin + p.dir.scale(p.s);
+            let (ground, _) = p.track_at(p.s);
             let floor = if self.map.contains(ground) {
                 self.map.height_at(ground)
             } else {
@@ -824,15 +930,16 @@ impl Sim {
             owner: p.owner,
             kind: p.kind,
             at,
-            facing: p.dir,
+            facing: p.track_at(p.s).1,
         });
         let caliber = self.air.rules.crash.caliber_mm_x10;
         if caliber > 0 && self.map.contains(ground) {
             let id = self.next_projectile;
             self.next_projectile = self.next_projectile.wrapping_add(1);
+            let facing = p.track_at(p.s).1;
             let from = Vec3::new(
-                at.x - p.dir.x * 10,
-                at.y - p.dir.y * 10,
+                at.x - facing.x * 10,
+                at.y - facing.y * 10,
                 at.z + Fixed::from_num(10),
             );
             self.detonate(id, AIR_SHOOTER, p.owner, from, at, caliber);
@@ -1403,7 +1510,7 @@ impl Sim {
         let radius = self.air.recon_radius;
         for k in 0..self.air.planes.len() {
             let p = &self.air.planes[k];
-            if p.mission != AirMission::Recon {
+            if !p.mission.reveals() {
                 continue;
             }
             let ground = p.position.ground();

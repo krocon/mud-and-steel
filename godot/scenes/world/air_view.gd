@@ -3,7 +3,10 @@ extends Node3D
 ## the ground, spinning propellers, smoke trails of damaged aircraft, flak
 ## bursts and tracers, strafing tracers, falling bombs, wrecks of crashed
 ## aircraft, the local player's own sorties (route and time to target), the
-## "enemy aircraft" warning, and the call bar (`hud/air_bar.gd`).
+## "enemy aircraft" warning, and the call bar (`hud/air_bar.gd`). Sortie
+## labels (mission and seconds to target) show only for a few seconds after
+## the call and just before the aircraft arrive; nearby sorties of one
+## mission share one label.
 ##
 ## Presentation only: everything comes from SimHost (`aircraft_*`,
 ## `bomb_*`, `air_sorties`, `take_air_events`). The simulation decides
@@ -22,6 +25,13 @@ const MODELS_DIR := "res://assets/models/"
 const PROPELLER_TURNS := 22.0
 ## Damaged aircraft below this share of their hit points trail smoke.
 const SMOKE_BELOW := 0.5
+## Banked turns (circling recon): the bank of a coordinated turn,
+## atan(speed × turn rate / g), drawn this many times steeper so a wide
+## circle still reads as a turn, at most MAX_BANK, eased at BANK_EASE per
+## second.
+const BANK_EXAGGERATION := 2.0
+const MAX_BANK := 0.7
+const BANK_EASE := 3.0
 const PUFF_SECONDS := 2.5
 const TRAIL_INTERVAL := 0.06
 const TRACER_SECONDS := 0.15
@@ -37,6 +47,7 @@ const SHADOW_COLOR := Color(0.0, 0.0, 0.0, 0.45)
 const MISSION_NAMES := {
 	"recon": "HUD_AIR_MISSION_RECON", "strafe": "HUD_AIR_MISSION_STRAFE", "attack": "HUD_AIR_MISSION_ATTACK",
 	"bomb": "HUD_AIR_MISSION_BOMB", "airborne": "HUD_AIR_MISSION_AIRBORNE",
+	"recon_loiter": "HUD_AIR_MISSION_RECON_LOITER",
 }
 
 var main: Node3D
@@ -49,6 +60,10 @@ var flak_bursts := 0
 var strafe_bursts := 0
 var crashes := 0
 var warnings := 0
+## Sortie labels shown (one per group of nearby targets).
+var sortie_labels := 0
+## Sortie id -> `_now` when it was first drawn (age of its label).
+var _sortie_seen: Dictionary[int, float] = {}
 
 ## Aircraft id -> its node (child "Model"; meta "props", "bombs", "shadow").
 var _planes: Dictionary[int, Node3D] = {}
@@ -60,6 +75,8 @@ var _tracers: Array = []
 ## [node, age, next puff]
 var _wrecks: Array = []
 var _trail_left: Dictionary[int, float] = {}
+## Aircraft id -> [last heading (Vector3), drawn bank (rad)].
+var _bank: Dictionary[int, Array] = {}
 var _seen_enemies: Dictionary[int, bool] = {}
 var _last_warning := -1e9
 var _now := 0.0
@@ -76,6 +93,9 @@ var _route: MeshInstance3D
 var _route_mesh: ImmediateMesh
 var _rings: Array[MeshInstance3D] = []
 var _labels: Array[Label3D] = []
+## Rings, route lines and labels of the sorties (interface; off in the
+## trailer recordings).
+var marks_enabled := true
 
 
 func setup(main_node: Node3D) -> void:
@@ -195,6 +215,8 @@ func _draw_planes(delta: float) -> void:
 		var falling := health[i] < 0.0
 		if falling:
 			basis = basis * Basis(Vector3(0, 0, 1), _now * 4.0)
+		else:
+			basis = basis * Basis(Vector3(0, 0, 1), _bank_of(id, heading, velocity.length(), delta))
 		node.global_transform = Transform3D(basis, at)
 		for prop: Node3D in node.get_meta(&"props", []):
 			prop.rotate_object_local(Vector3(0, 0, 1), TAU * PROPELLER_TURNS * delta)
@@ -212,7 +234,24 @@ func _draw_planes(delta: float) -> void:
 			(_planes[id] as Node).queue_free()
 			_planes.erase(id)
 			_trail_left.erase(id)
+			_bank.erase(id)
 	aircraft_drawn = ids.size()
+
+
+## Bank (roll about the local Z axis, positive: left wing down) of aircraft
+## `id` from how fast its heading turns about the vertical.
+func _bank_of(id: int, heading: Vector3, speed: float, delta: float) -> float:
+	var state: Array = _bank.get(id, [heading, 0.0])
+	var last: Vector3 = state[0]
+	var flat_last := Vector3(last.x, 0.0, last.z).normalized()
+	var flat_now := Vector3(heading.x, 0.0, heading.z).normalized()
+	var rate := 0.0
+	if delta > 0.0 and flat_last.length() > 0.5 and flat_now.length() > 0.5:
+		rate = flat_last.signed_angle_to(flat_now, Vector3.UP) / delta
+	var target := clampf(atan(speed * rate / 9.81) * BANK_EXAGGERATION, -MAX_BANK, MAX_BANK)
+	var bank := lerpf(float(state[1]), target, clampf(BANK_EASE * delta, 0.0, 1.0))
+	_bank[id] = [heading, bank]
+	return bank
 
 
 func _make_plane(type_id: String, enemy: bool) -> Node3D:
@@ -334,10 +373,61 @@ func _draw_bombs() -> void:
 
 ## The local player's sorties: a line from where the aircraft enter to the
 ## target, a ring on the target and the time until they arrive.
+## Sorties of one mission whose targets lie this close (m) share one ring
+## and one label ("Circling recon ×2: 155 s", the soonest arrival), so
+## their labels never overlap.
+const SORTIE_MERGE_M := 60.0
+## A sortie label shows only briefly: LABEL_SECONDS after the call (then
+## fades out over LABEL_FADE), and again over the last LABEL_ARRIVAL
+## seconds before the aircraft reach the target. Ring and route stay.
+const LABEL_SECONDS := 4.0
+const LABEL_FADE := 1.0
+const LABEL_ARRIVAL := 5.0
+
+
+## Own sorties grouped by mission and nearby target: per group
+## {mission, target, count, seconds (soonest arrival still ahead, 0: one
+## is there)}.
+func _sortie_groups(sorties: Array) -> Array[Dictionary]:
+	var groups: Array[Dictionary] = []
+	for s: Dictionary in sorties:
+		var target: Vector3 = s.target
+		var seconds: float = s.seconds
+		var group: Dictionary = {}
+		for g in groups:
+			var at: Vector3 = g.target
+			if g.mission == s.mission and Vector2(at.x - target.x, at.z - target.z).length() <= SORTIE_MERGE_M:
+				group = g
+				break
+		var id: int = s.get("id", -1)
+		if not _sortie_seen.has(id):
+			_sortie_seen[id] = _now
+		var age := _now - _sortie_seen[id]
+		if group.is_empty():
+			groups.append({"mission": s.mission, "target": target, "count": 1, "seconds": seconds, "age": age})
+			continue
+		group.count += 1
+		group.age = minf(group.age, age)
+		# The soonest arrival still ahead; 0 only while none is on its way.
+		var best: float = group.seconds
+		group.seconds = minf(best, seconds) if best > 0.0 and seconds > 0.0 else maxf(best, seconds)
+	return groups
+
+
+## Opacity of a sortie label: the youngest call of its group is `age`
+## seconds old, the soonest aircraft `seconds` from the target.
+func _label_alpha(age: float, seconds: float) -> float:
+	var fresh := clampf((LABEL_SECONDS + LABEL_FADE - age) / LABEL_FADE, 0.0, 1.0)
+	var arriving := 1.0 if seconds > 0.0 and seconds <= LABEL_ARRIVAL else 0.0
+	return maxf(fresh, arriving)
+
+
 func _draw_sorties() -> void:
 	var sorties := sim_host.air_sorties()
+	var groups := _sortie_groups(sorties)
+	sortie_labels = 0
 	_route_mesh.clear_surfaces()
-	while _rings.size() < sorties.size():
+	while _rings.size() < groups.size():
 		var ring := MeshInstance3D.new()
 		ring.mesh = _ring_mesh
 		ring.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -356,22 +446,43 @@ func _draw_sorties() -> void:
 		label.render_priority = FogOfWar.MARKER_PRIORITY + 10
 		add_child(label)
 		_labels.append(label)
-	var lines := false
 	for i in _rings.size():
-		var shown := i < sorties.size()
+		var shown := i < groups.size()
 		_rings[i].visible = shown
 		_labels[i].visible = shown
 		if not shown:
 			continue
-		var s: Dictionary = sorties[i]
+		var g: Dictionary = groups[i]
+		var at: Vector3 = g.target
+		at.y = sim_host.height_at(at.x, at.z)
+		var pulse := 0.9 + 0.1 * sin(_now * 6.0)
+		_rings[i].transform = Transform3D(Basis.IDENTITY.scaled(Vector3(14, 0.3, 14) * pulse), at + Vector3.UP * 0.5)
+		var title := tr(MISSION_NAMES.get(g.mission, str(g.mission)))
+		if g.count > 1:
+			title += " ×%d" % g.count
+		var soonest: float = g.seconds
+		_labels[i].text = title + ": " + tr("COMMON_SECONDS") % ceili(soonest) if soonest > 0.0 else title
+		_labels[i].position = at + Vector3.UP * 12.0
+		var alpha := _label_alpha(g.age, soonest)
+		_labels[i].visible = alpha > 0.0
+		_labels[i].modulate.a = ROUTE_COLOR.a * alpha
+		_labels[i].outline_modulate.a = alpha
+		if alpha > 0.0:
+			sortie_labels += 1
+	if not marks_enabled:
+		_route_mesh.clear_surfaces()
+		for i in _rings.size():
+			_rings[i].visible = false
+			_labels[i].visible = false
+		sortie_labels = 0
+	for id: int in _sortie_seen.keys():
+		if not sorties.any(func(s: Dictionary) -> bool: return s.get("id", -1) == id):
+			_sortie_seen.erase(id)
+	var lines := false
+	for s: Dictionary in sorties:
 		var target: Vector3 = s.target
 		target.y = sim_host.height_at(target.x, target.z)
-		var pulse := 0.9 + 0.1 * sin(_now * 6.0)
-		_rings[i].transform = Transform3D(Basis.IDENTITY.scaled(Vector3(14, 0.3, 14) * pulse), target + Vector3.UP * 0.5)
 		var seconds: float = s.seconds
-		var title := tr(MISSION_NAMES.get(s.mission, str(s.mission)))
-		_labels[i].text = title + ": " + tr("COMMON_SECONDS") % ceili(seconds) if seconds > 0.0 else title
-		_labels[i].position = target + Vector3.UP * 12.0
 		if seconds <= 0.0:
 			continue
 		if not lines:

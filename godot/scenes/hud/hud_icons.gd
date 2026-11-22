@@ -101,6 +101,7 @@ const ICONS: Dictionary[String, String] = {
 	"soldiers": MAN,
 	# Support.
 	"air_recon": "a 12,19 11.4 218 322 | a 12,5 11.4 38 142 | c 12,12 2.5",
+	"air_recon_loiter": "a 12,12 8 60 360 | l 17.5,9.5 20,12 22.5,9.5 | c 12,12 2.5",
 	"air_strafe": PLANE,
 	"air_attack": PLANE + " | l 5,15 5,21 | l 19,15 19,21",
 	"air_bomb": "g 9,8 15,8 16,14 12,21 8,14 | l 9,8 8,3 16,3 15,8 | l 12,8 12,3",

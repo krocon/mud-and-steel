@@ -48,15 +48,20 @@ pub enum AirMission {
     /// Transport aircraft drop paratroopers over the target (prompt 055).
     #[serde(rename = "airborne")]
     Airborne,
+    /// A reconnaissance aircraft circles over the target for a while,
+    /// revealing the ground along its circle, then flies out.
+    #[serde(rename = "recon_loiter")]
+    ReconLoiter,
 }
 
 impl AirMission {
-    pub const ALL: [Self; 5] = [
+    pub const ALL: [Self; 6] = [
         Self::Recon,
         Self::Strafe,
         Self::Attack,
         Self::Bomb,
         Self::Airborne,
+        Self::ReconLoiter,
     ];
 
     pub const fn name(self) -> &'static str {
@@ -66,6 +71,7 @@ impl AirMission {
             Self::Attack => "attack",
             Self::Bomb => "bomb",
             Self::Airborne => "airborne",
+            Self::ReconLoiter => "recon_loiter",
         }
     }
 
@@ -77,6 +83,7 @@ impl AirMission {
             Self::Attack => Category::AircraftAttack,
             Self::Bomb => Category::AircraftBomber,
             Self::Airborne => Category::AircraftTransport,
+            Self::ReconLoiter => Category::AircraftRecon,
         }
     }
 
@@ -92,6 +99,11 @@ impl AirMission {
     /// Whether they drop bombs.
     pub const fn bombs(self) -> bool {
         matches!(self, Self::Attack | Self::Bomb)
+    }
+
+    /// Whether its aircraft reveal the ground (a viewshed from altitude).
+    pub const fn reveals(self) -> bool {
+        matches!(self, Self::Recon | Self::ReconLoiter)
     }
 }
 
@@ -118,6 +130,12 @@ pub struct MissionRules {
     pub dive_m: u32,
     pub lateral_m: u32,
     pub trail_m: u32,
+    /// Circling over the target (only `recon_loiter`): game seconds and
+    /// radius in meters.
+    #[serde(default)]
+    pub loiter_s: u32,
+    #[serde(default)]
+    pub loiter_radius_m: u32,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
@@ -286,6 +304,15 @@ impl AirRules {
             for c in m.cost {
                 check("mission.cost", c, 0, 100_000)?;
             }
+            if m.mission == AirMission::ReconLoiter {
+                check("mission.loiter_s", m.loiter_s, 1, 600)?;
+                check("mission.loiter_radius_m", m.loiter_radius_m, 50, 2000)?;
+            } else if m.loiter_s != 0 || m.loiter_radius_m != 0 {
+                return Err(AirError(format!(
+                    "mission '{}': only recon_loiter circles (loiter_s, loiter_radius_m)",
+                    m.mission.name()
+                )));
+            }
         }
         check(
             "approach.edge_margin_m",
@@ -427,6 +454,8 @@ impl AirRules {
                 m.dive_m,
                 m.lateral_m,
                 m.trail_m,
+                m.loiter_s,
+                m.loiter_radius_m,
             ] {
                 h.write_u32(v);
             }

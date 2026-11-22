@@ -66,6 +66,7 @@ const BINDABLE: Dictionary[String, String] = {
 	# Air calls and the rocket strike (prompts 033, 054), rebindable since
 	# prompt 043; their actions are added at run time (RUNTIME_ACTIONS).
 	"air_recon": "SET_KEY_AIR_RECON",
+	"air_recon_loiter": "SET_KEY_AIR_RECON_LOITER",
 	"air_strafe": "SET_KEY_AIR_STRAFE",
 	"air_attack": "SET_KEY_AIR_ATTACK",
 	"air_bomb": "SET_KEY_AIR_BOMB",
@@ -105,6 +106,8 @@ const RUNTIME_ACTIONS: Dictionary[String, int] = {
 	"air_bomb": KEY_4 | KEY_MASK_SHIFT,
 	"air_airborne": KEY_5 | KEY_MASK_SHIFT,
 	"strike_rockets": KEY_6 | KEY_MASK_SHIFT,
+	# Shift+7 is the self-test's rebinding of the recon flight.
+	"air_recon_loiter": KEY_8 | KEY_MASK_SHIFT,
 	# Plain I is "Secure" (prompt 046); every letter key is taken.
 	"unit_card": KEY_I | KEY_MASK_SHIFT,
 	# Plain L is "Fire at ground" (prompt 093).

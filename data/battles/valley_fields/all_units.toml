@@ -24,7 +24,7 @@
 #    60  wave 2 (Tiger, Panther, tank destroyers) advances
 #   100  Soviet tank counterattack from the reserve
 #    80+ further barrages of both sides every 40 s
-#     5+ a German recon plane flies over the town every 60 s
+#     5+ a German recon plane circles over the town, a new one every 60 s
 #    15+ ten Sturmtiger shell the houses of the east edge, every 45 s the
 #        next ones, deeper into the town
 
@@ -100,6 +100,9 @@ position_m = [700, 40]
 [[spawn]]
 name = "recon_west_south"
 position_m = [-1300, 40]
+[[spawn]]
+name = "recon_town"
+position_m = [-700, -150]
 
 [[objective]]
 id = "break"
@@ -3599,7 +3602,7 @@ id = "recon0"
 when = "time"
 delay_s = 5
 actions = [
-  { do = "air", mission = "recon", at = "recon_east_center", to = "recon_west_center" },
+  { do = "air", mission = "recon_loiter", at = "recon_town" },
 ]
 
 [[trigger]]
@@ -3607,7 +3610,7 @@ id = "recon1"
 when = "time"
 delay_s = 65
 actions = [
-  { do = "air", mission = "recon", at = "recon_west_north", to = "recon_east_north" },
+  { do = "air", mission = "recon_loiter", at = "recon_town" },
 ]
 
 [[trigger]]
@@ -3615,7 +3618,7 @@ id = "recon2"
 when = "time"
 delay_s = 125
 actions = [
-  { do = "air", mission = "recon", at = "recon_east_south", to = "recon_west_south" },
+  { do = "air", mission = "recon_loiter", at = "recon_town" },
 ]
 
 [[trigger]]
@@ -3623,7 +3626,7 @@ id = "recon3"
 when = "time"
 delay_s = 185
 actions = [
-  { do = "air", mission = "recon", at = "recon_west_center", to = "recon_east_center" },
+  { do = "air", mission = "recon_loiter", at = "recon_town" },
 ]
 
 [[trigger]]
@@ -3631,7 +3634,7 @@ id = "recon4"
 when = "time"
 delay_s = 245
 actions = [
-  { do = "air", mission = "recon", at = "recon_east_north", to = "recon_west_north" },
+  { do = "air", mission = "recon_loiter", at = "recon_town" },
 ]
 
 [[trigger]]
@@ -3639,7 +3642,7 @@ id = "recon5"
 when = "time"
 delay_s = 305
 actions = [
-  { do = "air", mission = "recon", at = "recon_west_south", to = "recon_east_south" },
+  { do = "air", mission = "recon_loiter", at = "recon_town" },
 ]
 
 [[trigger]]
@@ -3647,7 +3650,7 @@ id = "recon6"
 when = "time"
 delay_s = 365
 actions = [
-  { do = "air", mission = "recon", at = "recon_east_center", to = "recon_west_center" },
+  { do = "air", mission = "recon_loiter", at = "recon_town" },
 ]
 
 [[trigger]]
@@ -3655,7 +3658,7 @@ id = "recon7"
 when = "time"
 delay_s = 425
 actions = [
-  { do = "air", mission = "recon", at = "recon_west_north", to = "recon_east_north" },
+  { do = "air", mission = "recon_loiter", at = "recon_town" },
 ]
 
 [[trigger]]
@@ -3663,7 +3666,7 @@ id = "recon8"
 when = "time"
 delay_s = 485
 actions = [
-  { do = "air", mission = "recon", at = "recon_east_south", to = "recon_west_south" },
+  { do = "air", mission = "recon_loiter", at = "recon_town" },
 ]
 
 [[trigger]]
@@ -3671,7 +3674,7 @@ id = "recon9"
 when = "time"
 delay_s = 545
 actions = [
-  { do = "air", mission = "recon", at = "recon_west_center", to = "recon_east_center" },
+  { do = "air", mission = "recon_loiter", at = "recon_town" },
 ]
 
 [[trigger]]

@@ -21,10 +21,16 @@ fn different_seed_gives_different_hash() {
 
 /// Expected hash of the demo scenario with seed 42 after 1000 ticks.
 ///
-/// Last changed by the Sturmtiger (`de_sturmtiger`), an intended rule
-/// change: the German vehicle works' list in the hashed economy rules ends
-/// with it. Nothing else changes (checked: without the list entry the old
-/// value comes out); the demo battle is unchanged.
+/// Last changed by the circling recon (`recon_loiter`), an intended rule
+/// change: a sixth air mission in the hashed air rules (with `loiter_s`
+/// and `loiter_radius_m`), its aircraft types, a sixth cooldown per player
+/// and a loiter marker per aircraft. Nothing else changes (checked: hashing
+/// without them gives the old value); the demo battle is unchanged.
+///
+/// Before (`0x9b38_bd33_19c4_47f6`), the Sturmtiger (`de_sturmtiger`), an
+/// intended rule change: the German vehicle works' list in the hashed
+/// economy rules ends with it. Nothing else changes (checked: without the
+/// list entry the old value comes out); the demo battle is unchanged.
 ///
 /// Before (`0x35b9_524a_728b_ca8d`), prompt 187 (groups drive together), an intended rule
 /// change: the hashed tactics rules gained `[march]`, and squads no
@@ -366,7 +372,7 @@ fn different_seed_gives_different_hash() {
 /// If this test fails, the simulation is no longer deterministic across
 /// platforms, or its rules changed. Only update the value for an intentional
 /// rule change, and say so in the commit message.
-const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0x9b38_bd33_19c4_47f6;
+const GOLDEN_HASH_SEED_42_TICKS_1000: u64 = 0xb352_1dda_3679_b5ab;
 
 #[test]
 fn golden_hash() {
