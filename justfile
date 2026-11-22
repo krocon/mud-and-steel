@@ -397,6 +397,11 @@ editor-selftest: build
 run-map name="test_large": build
     {{ GODOT }} --path godot -- --map={{ name }}
 
+# Build the bridge and start the game with a scenario of data/scenarios/ (extra args: --ai=passive, --weather=rain, ...)
+[group('maps')]
+run-scenario file="all_units.toml" *args: build
+    {{ GODOT }} --path godot -- --scenario={{ file }} {{ args }}
+
 # --- Environment objects (prompt 007) ----------------------------------------------
 
 # Build environment objects from assets-src/blueprints/neutral/ (all, or the given ids)

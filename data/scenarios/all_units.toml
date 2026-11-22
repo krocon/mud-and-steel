@@ -1,0 +1,3616 @@
+# Test scenario: every German and Soviet unit type three times on the
+# large map `river_valley` (3.6 x 2 km), the armies about 3.3 km apart
+# (out of sight and range), to test performance and sound with many unit
+# types. Aircraft and fortifications (bunker, minefields) are left out.
+# Generated: one group per unit, each on open ground near the player's map start.
+#
+#   just run-scenario all_units.toml [--ai=passive]
+#
+# The first group of each player stands exactly on the map's start, so
+# the layout is not shifted (docs/MAPS.md). Integers only.
+
+map = "river_valley"
+
+# ---- Player 0: de (85 types x 3) ----
+
+[[group]]
+owner = 0
+unit = "de_inf_rifle_squad"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1600, 350]
+
+[[group]]
+owner = 0
+unit = "de_inf_rifle_squad"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1595, 345]
+
+[[group]]
+owner = 0
+unit = "de_inf_rifle_squad"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1575, 365]
+
+[[group]]
+owner = 0
+unit = "de_inf_mg42_team"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1575, 345]
+
+[[group]]
+owner = 0
+unit = "de_inf_mg42_team"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1615, 365]
+
+[[group]]
+owner = 0
+unit = "de_inf_mg42_team"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1615, 345]
+
+[[group]]
+owner = 0
+unit = "de_inf_hmg_team"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1595, 385]
+
+[[group]]
+owner = 0
+unit = "de_inf_hmg_team"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1595, 325]
+
+[[group]]
+owner = 0
+unit = "de_inf_hmg_team"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1555, 365]
+
+[[group]]
+owner = 0
+unit = "de_inf_mortar_light"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1555, 345]
+
+[[group]]
+owner = 0
+unit = "de_inf_mortar_light"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1575, 385]
+
+[[group]]
+owner = 0
+unit = "de_inf_mortar_light"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1575, 325]
+
+[[group]]
+owner = 0
+unit = "de_inf_mortar_medium"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1635, 365]
+
+[[group]]
+owner = 0
+unit = "de_inf_mortar_medium"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1635, 345]
+
+[[group]]
+owner = 0
+unit = "de_inf_mortar_medium"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1615, 385]
+
+[[group]]
+owner = 0
+unit = "de_inf_recon"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1615, 325]
+
+[[group]]
+owner = 0
+unit = "de_inf_recon"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1595, 405]
+
+[[group]]
+owner = 0
+unit = "de_inf_recon"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1595, 305]
+
+[[group]]
+owner = 0
+unit = "de_inf_sniper"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1535, 365]
+
+[[group]]
+owner = 0
+unit = "de_inf_sniper"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1535, 345]
+
+[[group]]
+owner = 0
+unit = "de_inf_sniper"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1555, 385]
+
+[[group]]
+owner = 0
+unit = "de_inf_medic"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1555, 325]
+
+[[group]]
+owner = 0
+unit = "de_inf_medic"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1575, 405]
+
+[[group]]
+owner = 0
+unit = "de_inf_medic"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1575, 305]
+
+[[group]]
+owner = 0
+unit = "de_inf_engineer"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1635, 385]
+
+[[group]]
+owner = 0
+unit = "de_inf_engineer"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1635, 325]
+
+[[group]]
+owner = 0
+unit = "de_inf_engineer"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1615, 405]
+
+[[group]]
+owner = 0
+unit = "de_inf_at"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1615, 305]
+
+[[group]]
+owner = 0
+unit = "de_inf_at"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1595, 425]
+
+[[group]]
+owner = 0
+unit = "de_inf_at"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1595, 285]
+
+[[group]]
+owner = 0
+unit = "de_inf_flamethrower"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1515, 365]
+
+[[group]]
+owner = 0
+unit = "de_inf_flamethrower"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1515, 345]
+
+[[group]]
+owner = 0
+unit = "de_inf_flamethrower"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1535, 385]
+
+[[group]]
+owner = 0
+unit = "de_inf_command"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1535, 325]
+
+[[group]]
+owner = 0
+unit = "de_inf_command"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1555, 405]
+
+[[group]]
+owner = 0
+unit = "de_inf_command"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1555, 305]
+
+[[group]]
+owner = 0
+unit = "de_inf_tank_crew"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1575, 425]
+
+[[group]]
+owner = 0
+unit = "de_inf_tank_crew"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1575, 285]
+
+[[group]]
+owner = 0
+unit = "de_inf_tank_crew"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1635, 405]
+
+[[group]]
+owner = 0
+unit = "de_pz2_l"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1615, 425]
+
+[[group]]
+owner = 0
+unit = "de_pz2_l"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1615, 285]
+
+[[group]]
+owner = 0
+unit = "de_pz2_l"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1595, 445]
+
+[[group]]
+owner = 0
+unit = "de_pz4_h"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1595, 265]
+
+[[group]]
+owner = 0
+unit = "de_pz4_h"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1495, 365]
+
+[[group]]
+owner = 0
+unit = "de_pz4_h"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1495, 345]
+
+[[group]]
+owner = 0
+unit = "de_tiger1_e"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1515, 385]
+
+[[group]]
+owner = 0
+unit = "de_tiger1_e"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1535, 405]
+
+[[group]]
+owner = 0
+unit = "de_tiger1_e"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1535, 305]
+
+[[group]]
+owner = 0
+unit = "de_jgdpz38t"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1555, 425]
+
+[[group]]
+owner = 0
+unit = "de_jgdpz38t"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1555, 285]
+
+[[group]]
+owner = 0
+unit = "de_jgdpz38t"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1575, 445]
+
+[[group]]
+owner = 0
+unit = "de_stug3_g"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1575, 265]
+
+[[group]]
+owner = 0
+unit = "de_stug3_g"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1695, 365]
+
+[[group]]
+owner = 0
+unit = "de_stug3_g"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1635, 425]
+
+[[group]]
+owner = 0
+unit = "de_sdkfz251_1"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1615, 445]
+
+[[group]]
+owner = 0
+unit = "de_sdkfz251_1"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1615, 265]
+
+[[group]]
+owner = 0
+unit = "de_sdkfz251_1"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1595, 465]
+
+[[group]]
+owner = 0
+unit = "de_opel_blitz"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1595, 245]
+
+[[group]]
+owner = 0
+unit = "de_opel_blitz"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1475, 365]
+
+[[group]]
+owner = 0
+unit = "de_opel_blitz"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1475, 345]
+
+[[group]]
+owner = 0
+unit = "de_sdkfz222"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1495, 385]
+
+[[group]]
+owner = 0
+unit = "de_sdkfz222"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1515, 405]
+
+[[group]]
+owner = 0
+unit = "de_sdkfz222"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1535, 425]
+
+[[group]]
+owner = 0
+unit = "de_wespe"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1555, 265]
+
+[[group]]
+owner = 0
+unit = "de_wespe"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1575, 465]
+
+[[group]]
+owner = 0
+unit = "de_wespe"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1575, 245]
+
+[[group]]
+owner = 0
+unit = "de_pzwerfer42"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1715, 365]
+
+[[group]]
+owner = 0
+unit = "de_pzwerfer42"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1715, 345]
+
+[[group]]
+owner = 0
+unit = "de_pzwerfer42"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1655, 425]
+
+[[group]]
+owner = 0
+unit = "de_sturmpanzer4"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1635, 445]
+
+[[group]]
+owner = 0
+unit = "de_sturmpanzer4"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1615, 465]
+
+[[group]]
+owner = 0
+unit = "de_sturmpanzer4"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1615, 245]
+
+[[group]]
+owner = 0
+unit = "de_pak40"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1595, 485]
+
+[[group]]
+owner = 0
+unit = "de_pak40"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1595, 225]
+
+[[group]]
+owner = 0
+unit = "de_pak40"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1455, 365]
+
+[[group]]
+owner = 0
+unit = "de_flak38"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1455, 345]
+
+[[group]]
+owner = 0
+unit = "de_flak38"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1475, 385]
+
+[[group]]
+owner = 0
+unit = "de_flak38"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1495, 405]
+
+[[group]]
+owner = 0
+unit = "de_flak36"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1515, 425]
+
+[[group]]
+owner = 0
+unit = "de_flak36"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1555, 245]
+
+[[group]]
+owner = 0
+unit = "de_flak36"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1575, 485]
+
+[[group]]
+owner = 0
+unit = "de_lefh18"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1575, 225]
+
+[[group]]
+owner = 0
+unit = "de_lefh18"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1735, 365]
+
+[[group]]
+owner = 0
+unit = "de_lefh18"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1735, 345]
+
+[[group]]
+owner = 0
+unit = "de_grw42"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1715, 325]
+
+[[group]]
+owner = 0
+unit = "de_grw42"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1675, 425]
+
+[[group]]
+owner = 0
+unit = "de_grw42"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1655, 445]
+
+[[group]]
+owner = 0
+unit = "de_brueckenleger4"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1635, 465]
+
+[[group]]
+owner = 0
+unit = "de_brueckenleger4"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1615, 485]
+
+[[group]]
+owner = 0
+unit = "de_brueckenleger4"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1615, 225]
+
+[[group]]
+owner = 0
+unit = "de_aufkl38t"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1595, 505]
+
+[[group]]
+owner = 0
+unit = "de_aufkl38t"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1595, 205]
+
+[[group]]
+owner = 0
+unit = "de_aufkl38t"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1435, 365]
+
+[[group]]
+owner = 0
+unit = "de_elefant"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1455, 385]
+
+[[group]]
+owner = 0
+unit = "de_elefant"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1455, 325]
+
+[[group]]
+owner = 0
+unit = "de_elefant"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1475, 405]
+
+[[group]]
+owner = 0
+unit = "de_flakpz38t"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1495, 425]
+
+[[group]]
+owner = 0
+unit = "de_flakpz38t"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1495, 285]
+
+[[group]]
+owner = 0
+unit = "de_flakpz38t"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1535, 245]
+
+[[group]]
+owner = 0
+unit = "de_grille_h"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1575, 505]
+
+[[group]]
+owner = 0
+unit = "de_grille_h"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1575, 205]
+
+[[group]]
+owner = 0
+unit = "de_grille_h"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1755, 365]
+
+[[group]]
+owner = 0
+unit = "de_hummel"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1755, 345]
+
+[[group]]
+owner = 0
+unit = "de_hummel"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1695, 425]
+
+[[group]]
+owner = 0
+unit = "de_hummel"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1675, 445]
+
+[[group]]
+owner = 0
+unit = "de_jagdpanther"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1655, 465]
+
+[[group]]
+owner = 0
+unit = "de_jagdpanther"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1635, 485]
+
+[[group]]
+owner = 0
+unit = "de_jagdpanther"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1635, 225]
+
+[[group]]
+owner = 0
+unit = "de_jagdtiger"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1615, 505]
+
+[[group]]
+owner = 0
+unit = "de_jagdtiger"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1615, 205]
+
+[[group]]
+owner = 0
+unit = "de_jagdtiger"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1595, 525]
+
+[[group]]
+owner = 0
+unit = "de_jgdpz4"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1595, 185]
+
+[[group]]
+owner = 0
+unit = "de_jgdpz4"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1435, 385]
+
+[[group]]
+owner = 0
+unit = "de_jgdpz4"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1455, 405]
+
+[[group]]
+owner = 0
+unit = "de_lefh18_39h"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1455, 305]
+
+[[group]]
+owner = 0
+unit = "de_lefh18_39h"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1475, 425]
+
+[[group]]
+owner = 0
+unit = "de_lefh18_39h"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1495, 445]
+
+[[group]]
+owner = 0
+unit = "de_marder1"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1495, 265]
+
+[[group]]
+owner = 0
+unit = "de_marder1"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1515, 245]
+
+[[group]]
+owner = 0
+unit = "de_marder1"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1555, 505]
+
+[[group]]
+owner = 0
+unit = "de_marder2"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1575, 525]
+
+[[group]]
+owner = 0
+unit = "de_marder2"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1755, 385]
+
+[[group]]
+owner = 0
+unit = "de_marder2"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1695, 445]
+
+[[group]]
+owner = 0
+unit = "de_marder3_139"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1675, 465]
+
+[[group]]
+owner = 0
+unit = "de_marder3_139"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1655, 485]
+
+[[group]]
+owner = 0
+unit = "de_marder3_139"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1655, 225]
+
+[[group]]
+owner = 0
+unit = "de_marder3_m"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1635, 505]
+
+[[group]]
+owner = 0
+unit = "de_marder3_m"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1635, 205]
+
+[[group]]
+owner = 0
+unit = "de_marder3_m"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1615, 525]
+
+[[group]]
+owner = 0
+unit = "de_nashorn"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1615, 185]
+
+[[group]]
+owner = 0
+unit = "de_nashorn"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1595, 545]
+
+[[group]]
+owner = 0
+unit = "de_nashorn"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1595, 165]
+
+[[group]]
+owner = 0
+unit = "de_pak40_39h"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1435, 405]
+
+[[group]]
+owner = 0
+unit = "de_pak40_39h"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1455, 425]
+
+[[group]]
+owner = 0
+unit = "de_pak40_39h"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1475, 445]
+
+[[group]]
+owner = 0
+unit = "de_pak47_35r"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1495, 465]
+
+[[group]]
+owner = 0
+unit = "de_pak47_35r"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1495, 245]
+
+[[group]]
+owner = 0
+unit = "de_pak47_35r"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1515, 485]
+
+[[group]]
+owner = 0
+unit = "de_panther_a"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1535, 505]
+
+[[group]]
+owner = 0
+unit = "de_panther_a"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1555, 525]
+
+[[group]]
+owner = 0
+unit = "de_panther_a"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1575, 545]
+
+[[group]]
+owner = 0
+unit = "de_panther_d"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1755, 405]
+
+[[group]]
+owner = 0
+unit = "de_panther_d"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1715, 445]
+
+[[group]]
+owner = 0
+unit = "de_panther_d"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1695, 465]
+
+[[group]]
+owner = 0
+unit = "de_panther_g"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1675, 485]
+
+[[group]]
+owner = 0
+unit = "de_panther_g"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1675, 225]
+
+[[group]]
+owner = 0
+unit = "de_panther_g"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1655, 505]
+
+[[group]]
+owner = 0
+unit = "de_pz1_a"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1655, 205]
+
+[[group]]
+owner = 0
+unit = "de_pz1_a"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1635, 525]
+
+[[group]]
+owner = 0
+unit = "de_pz1_a"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1635, 185]
+
+[[group]]
+owner = 0
+unit = "de_pz1_b"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1615, 545]
+
+[[group]]
+owner = 0
+unit = "de_pz1_b"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1615, 165]
+
+[[group]]
+owner = 0
+unit = "de_pz1_b"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1595, 565]
+
+[[group]]
+owner = 0
+unit = "de_pz1_c"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1415, 405]
+
+[[group]]
+owner = 0
+unit = "de_pz1_c"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1435, 425]
+
+[[group]]
+owner = 0
+unit = "de_pz1_c"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1435, 285]
+
+[[group]]
+owner = 0
+unit = "de_pz1_f"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1455, 445]
+
+[[group]]
+owner = 0
+unit = "de_pz1_f"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1475, 465]
+
+[[group]]
+owner = 0
+unit = "de_pz1_f"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1475, 245]
+
+[[group]]
+owner = 0
+unit = "de_pz2_c"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1495, 485]
+
+[[group]]
+owner = 0
+unit = "de_pz2_c"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1515, 505]
+
+[[group]]
+owner = 0
+unit = "de_pz2_c"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1535, 525]
+
+[[group]]
+owner = 0
+unit = "de_pz2_f"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1555, 545]
+
+[[group]]
+owner = 0
+unit = "de_pz2_f"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1575, 565]
+
+[[group]]
+owner = 0
+unit = "de_pz2_f"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1755, 425]
+
+[[group]]
+owner = 0
+unit = "de_pz35t"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1735, 445]
+
+[[group]]
+owner = 0
+unit = "de_pz35t"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1715, 465]
+
+[[group]]
+owner = 0
+unit = "de_pz35t"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1695, 485]
+
+[[group]]
+owner = 0
+unit = "de_pz38t_a"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1695, 225]
+
+[[group]]
+owner = 0
+unit = "de_pz38t_a"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1675, 505]
+
+[[group]]
+owner = 0
+unit = "de_pz38t_a"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1675, 205]
+
+[[group]]
+owner = 0
+unit = "de_pz38t_e"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1655, 525]
+
+[[group]]
+owner = 0
+unit = "de_pz38t_e"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1655, 185]
+
+[[group]]
+owner = 0
+unit = "de_pz38t_e"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1635, 545]
+
+[[group]]
+owner = 0
+unit = "de_pz3_f"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1635, 165]
+
+[[group]]
+owner = 0
+unit = "de_pz3_f"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1615, 565]
+
+[[group]]
+owner = 0
+unit = "de_pz3_f"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1615, 145]
+
+[[group]]
+owner = 0
+unit = "de_pz3_g"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1595, 585]
+
+[[group]]
+owner = 0
+unit = "de_pz3_g"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1415, 425]
+
+[[group]]
+owner = 0
+unit = "de_pz3_g"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1435, 445]
+
+[[group]]
+owner = 0
+unit = "de_pz3_h"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1455, 465]
+
+[[group]]
+owner = 0
+unit = "de_pz3_h"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1455, 245]
+
+[[group]]
+owner = 0
+unit = "de_pz3_h"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1475, 485]
+
+[[group]]
+owner = 0
+unit = "de_pz3_j"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1495, 505]
+
+[[group]]
+owner = 0
+unit = "de_pz3_j"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1515, 525]
+
+[[group]]
+owner = 0
+unit = "de_pz3_j"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1515, 185]
+
+[[group]]
+owner = 0
+unit = "de_pz3_l"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1535, 545]
+
+[[group]]
+owner = 0
+unit = "de_pz3_l"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1535, 165]
+
+[[group]]
+owner = 0
+unit = "de_pz3_l"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1575, 585]
+
+[[group]]
+owner = 0
+unit = "de_pz3_m"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1755, 445]
+
+[[group]]
+owner = 0
+unit = "de_pz3_m"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1735, 465]
+
+[[group]]
+owner = 0
+unit = "de_pz3_m"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1715, 485]
+
+[[group]]
+owner = 0
+unit = "de_pz3_n"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1715, 225]
+
+[[group]]
+owner = 0
+unit = "de_pz3_n"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1695, 205]
+
+[[group]]
+owner = 0
+unit = "de_pz3_n"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1675, 525]
+
+[[group]]
+owner = 0
+unit = "de_pz4_70a"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1675, 185]
+
+[[group]]
+owner = 0
+unit = "de_pz4_70a"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1655, 545]
+
+[[group]]
+owner = 0
+unit = "de_pz4_70a"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1655, 165]
+
+[[group]]
+owner = 0
+unit = "de_pz4_70v"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1635, 565]
+
+[[group]]
+owner = 0
+unit = "de_pz4_70v"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1635, 145]
+
+[[group]]
+owner = 0
+unit = "de_pz4_70v"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1615, 585]
+
+[[group]]
+owner = 0
+unit = "de_pz4_a"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1615, 125]
+
+[[group]]
+owner = 0
+unit = "de_pz4_a"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1595, 105]
+
+[[group]]
+owner = 0
+unit = "de_pz4_a"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1415, 445]
+
+[[group]]
+owner = 0
+unit = "de_pz4_c"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1435, 465]
+
+[[group]]
+owner = 0
+unit = "de_pz4_c"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1455, 485]
+
+[[group]]
+owner = 0
+unit = "de_pz4_c"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1475, 505]
+
+[[group]]
+owner = 0
+unit = "de_pz4_d"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1495, 525]
+
+[[group]]
+owner = 0
+unit = "de_pz4_d"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1515, 545]
+
+[[group]]
+owner = 0
+unit = "de_pz4_d"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1515, 165]
+
+[[group]]
+owner = 0
+unit = "de_pz4_f"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1535, 145]
+
+[[group]]
+owner = 0
+unit = "de_pz4_f"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1575, 105]
+
+[[group]]
+owner = 0
+unit = "de_pz4_f"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1755, 465]
+
+[[group]]
+owner = 0
+unit = "de_pz4_f2"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1735, 485]
+
+[[group]]
+owner = 0
+unit = "de_pz4_f2"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1735, 225]
+
+[[group]]
+owner = 0
+unit = "de_pz4_f2"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1715, 205]
+
+[[group]]
+owner = 0
+unit = "de_pz4_g"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1695, 185]
+
+[[group]]
+owner = 0
+unit = "de_pz4_g"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1675, 165]
+
+[[group]]
+owner = 0
+unit = "de_pz4_g"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1655, 565]
+
+[[group]]
+owner = 0
+unit = "de_pz4_j"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1655, 145]
+
+[[group]]
+owner = 0
+unit = "de_pz4_j"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1635, 585]
+
+[[group]]
+owner = 0
+unit = "de_pz4_j"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1635, 125]
+
+[[group]]
+owner = 0
+unit = "de_pzbef1_b"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1615, 105]
+
+[[group]]
+owner = 0
+unit = "de_pzbef1_b"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1595, 85]
+
+[[group]]
+owner = 0
+unit = "de_pzbef1_b"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1415, 465]
+
+[[group]]
+owner = 0
+unit = "de_pzjg1"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1435, 485]
+
+[[group]]
+owner = 0
+unit = "de_pzjg1"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1455, 505]
+
+[[group]]
+owner = 0
+unit = "de_pzjg1"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1475, 525]
+
+[[group]]
+owner = 0
+unit = "de_sfh13_lorraine"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1495, 165]
+
+[[group]]
+owner = 0
+unit = "de_sfh13_lorraine"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1515, 145]
+
+[[group]]
+owner = 0
+unit = "de_sfh13_lorraine"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1535, 125]
+
+[[group]]
+owner = 0
+unit = "de_sig33_jgdpz38t"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1555, 105]
+
+[[group]]
+owner = 0
+unit = "de_sig33_jgdpz38t"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1575, 85]
+
+[[group]]
+owner = 0
+unit = "de_sig33_jgdpz38t"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1775, 245]
+
+[[group]]
+owner = 0
+unit = "de_stug3_a"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1755, 225]
+
+[[group]]
+owner = 0
+unit = "de_stug3_a"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1735, 205]
+
+[[group]]
+owner = 0
+unit = "de_stug3_a"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1715, 185]
+
+[[group]]
+owner = 0
+unit = "de_stug3_b"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1695, 165]
+
+[[group]]
+owner = 0
+unit = "de_stug3_b"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1675, 145]
+
+[[group]]
+owner = 0
+unit = "de_stug3_b"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1655, 125]
+
+[[group]]
+owner = 0
+unit = "de_stug3_e"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1635, 105]
+
+[[group]]
+owner = 0
+unit = "de_stug3_e"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1615, 85]
+
+[[group]]
+owner = 0
+unit = "de_stug3_e"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1595, 65]
+
+[[group]]
+owner = 0
+unit = "de_stug3_f"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1395, 465]
+
+[[group]]
+owner = 0
+unit = "de_stug3_f"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1415, 485]
+
+[[group]]
+owner = 0
+unit = "de_stug3_f"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1435, 505]
+
+[[group]]
+owner = 0
+unit = "de_stug4"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1455, 525]
+
+[[group]]
+owner = 0
+unit = "de_stug4"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1475, 165]
+
+[[group]]
+owner = 0
+unit = "de_stug4"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1495, 145]
+
+[[group]]
+owner = 0
+unit = "de_stuig33b"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1515, 125]
+
+[[group]]
+owner = 0
+unit = "de_stuig33b"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1535, 105]
+
+[[group]]
+owner = 0
+unit = "de_stuig33b"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1555, 85]
+
+[[group]]
+owner = 0
+unit = "de_tiger2"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1575, 65]
+
+[[group]]
+owner = 0
+unit = "de_tiger2"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1775, 225]
+
+[[group]]
+owner = 0
+unit = "de_tiger2"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [-1755, 205]
+
+# ---- Player 1: su (65 types x 3) ----
+
+[[group]]
+owner = 1
+unit = "su_inf_rifle_squad"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1675, 350]
+
+[[group]]
+owner = 1
+unit = "su_inf_rifle_squad"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1685, 345]
+
+[[group]]
+owner = 1
+unit = "su_inf_rifle_squad"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1665, 365]
+
+[[group]]
+owner = 1
+unit = "su_inf_mg_team"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1665, 345]
+
+[[group]]
+owner = 1
+unit = "su_inf_mg_team"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1705, 365]
+
+[[group]]
+owner = 1
+unit = "su_inf_mg_team"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1705, 345]
+
+[[group]]
+owner = 1
+unit = "su_inf_hmg_team"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1685, 385]
+
+[[group]]
+owner = 1
+unit = "su_inf_hmg_team"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1685, 325]
+
+[[group]]
+owner = 1
+unit = "su_inf_hmg_team"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1645, 365]
+
+[[group]]
+owner = 1
+unit = "su_inf_mortar_light"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1645, 345]
+
+[[group]]
+owner = 1
+unit = "su_inf_mortar_light"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1665, 385]
+
+[[group]]
+owner = 1
+unit = "su_inf_mortar_light"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1665, 325]
+
+[[group]]
+owner = 1
+unit = "su_inf_mortar_medium"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1725, 365]
+
+[[group]]
+owner = 1
+unit = "su_inf_mortar_medium"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1725, 345]
+
+[[group]]
+owner = 1
+unit = "su_inf_mortar_medium"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1705, 385]
+
+[[group]]
+owner = 1
+unit = "su_inf_recon"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1705, 325]
+
+[[group]]
+owner = 1
+unit = "su_inf_recon"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1685, 405]
+
+[[group]]
+owner = 1
+unit = "su_inf_recon"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1685, 305]
+
+[[group]]
+owner = 1
+unit = "su_inf_sniper"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1625, 365]
+
+[[group]]
+owner = 1
+unit = "su_inf_sniper"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1625, 345]
+
+[[group]]
+owner = 1
+unit = "su_inf_sniper"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1645, 385]
+
+[[group]]
+owner = 1
+unit = "su_inf_medic"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1645, 325]
+
+[[group]]
+owner = 1
+unit = "su_inf_medic"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1665, 405]
+
+[[group]]
+owner = 1
+unit = "su_inf_medic"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1665, 305]
+
+[[group]]
+owner = 1
+unit = "su_inf_engineer"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1745, 365]
+
+[[group]]
+owner = 1
+unit = "su_inf_engineer"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1745, 345]
+
+[[group]]
+owner = 1
+unit = "su_inf_engineer"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1725, 385]
+
+[[group]]
+owner = 1
+unit = "su_inf_at"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1725, 325]
+
+[[group]]
+owner = 1
+unit = "su_inf_at"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1705, 405]
+
+[[group]]
+owner = 1
+unit = "su_inf_at"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1705, 305]
+
+[[group]]
+owner = 1
+unit = "su_inf_flamethrower"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1685, 425]
+
+[[group]]
+owner = 1
+unit = "su_inf_flamethrower"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1685, 285]
+
+[[group]]
+owner = 1
+unit = "su_inf_flamethrower"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1605, 365]
+
+[[group]]
+owner = 1
+unit = "su_inf_command"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1605, 345]
+
+[[group]]
+owner = 1
+unit = "su_inf_command"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1625, 385]
+
+[[group]]
+owner = 1
+unit = "su_inf_command"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1625, 325]
+
+[[group]]
+owner = 1
+unit = "su_inf_tank_crew"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1645, 405]
+
+[[group]]
+owner = 1
+unit = "su_inf_tank_crew"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1645, 305]
+
+[[group]]
+owner = 1
+unit = "su_inf_tank_crew"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1665, 425]
+
+[[group]]
+owner = 1
+unit = "su_t70m"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1665, 285]
+
+[[group]]
+owner = 1
+unit = "su_t70m"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1765, 365]
+
+[[group]]
+owner = 1
+unit = "su_t70m"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1765, 345]
+
+[[group]]
+owner = 1
+unit = "su_t34_76_1943"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1745, 325]
+
+[[group]]
+owner = 1
+unit = "su_t34_76_1943"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1725, 405]
+
+[[group]]
+owner = 1
+unit = "su_t34_76_1943"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1725, 305]
+
+[[group]]
+owner = 1
+unit = "su_is2"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1705, 425]
+
+[[group]]
+owner = 1
+unit = "su_is2"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1705, 285]
+
+[[group]]
+owner = 1
+unit = "su_is2"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1685, 445]
+
+[[group]]
+owner = 1
+unit = "su_su85"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1605, 385]
+
+[[group]]
+owner = 1
+unit = "su_su85"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1605, 325]
+
+[[group]]
+owner = 1
+unit = "su_su85"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1625, 405]
+
+[[group]]
+owner = 1
+unit = "su_su76m"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1625, 305]
+
+[[group]]
+owner = 1
+unit = "su_su76m"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1645, 425]
+
+[[group]]
+owner = 1
+unit = "su_su76m"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1665, 445]
+
+[[group]]
+owner = 1
+unit = "su_m3a1_scout"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1665, 265]
+
+[[group]]
+owner = 1
+unit = "su_m3a1_scout"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1785, 365]
+
+[[group]]
+owner = 1
+unit = "su_m3a1_scout"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1785, 345]
+
+[[group]]
+owner = 1
+unit = "su_zis5"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1765, 325]
+
+[[group]]
+owner = 1
+unit = "su_zis5"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1745, 305]
+
+[[group]]
+owner = 1
+unit = "su_zis5"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1725, 425]
+
+[[group]]
+owner = 1
+unit = "su_bm13"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1725, 285]
+
+[[group]]
+owner = 1
+unit = "su_bm13"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1705, 445]
+
+[[group]]
+owner = 1
+unit = "su_bm13"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1685, 465]
+
+[[group]]
+owner = 1
+unit = "su_ba64b"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1605, 405]
+
+[[group]]
+owner = 1
+unit = "su_ba64b"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1625, 425]
+
+[[group]]
+owner = 1
+unit = "su_ba64b"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1645, 445]
+
+[[group]]
+owner = 1
+unit = "su_isu152"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1665, 465]
+
+[[group]]
+owner = 1
+unit = "su_isu152"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1665, 245]
+
+[[group]]
+owner = 1
+unit = "su_isu152"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1785, 325]
+
+[[group]]
+owner = 1
+unit = "su_zis3"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1765, 305]
+
+[[group]]
+owner = 1
+unit = "su_zis3"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1745, 425]
+
+[[group]]
+owner = 1
+unit = "su_zis3"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1725, 445]
+
+[[group]]
+owner = 1
+unit = "su_61k"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1725, 265]
+
+[[group]]
+owner = 1
+unit = "su_61k"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1705, 465]
+
+[[group]]
+owner = 1
+unit = "su_61k"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1685, 485]
+
+[[group]]
+owner = 1
+unit = "su_52k"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1685, 225]
+
+[[group]]
+owner = 1
+unit = "su_52k"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1605, 425]
+
+[[group]]
+owner = 1
+unit = "su_52k"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1625, 445]
+
+[[group]]
+owner = 1
+unit = "su_m30"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1645, 465]
+
+[[group]]
+owner = 1
+unit = "su_m30"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1665, 485]
+
+[[group]]
+owner = 1
+unit = "su_m30"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1665, 225]
+
+[[group]]
+owner = 1
+unit = "su_pm38"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1785, 305]
+
+[[group]]
+owner = 1
+unit = "su_pm38"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1765, 425]
+
+[[group]]
+owner = 1
+unit = "su_pm38"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1745, 445]
+
+[[group]]
+owner = 1
+unit = "su_valentine_bridgelayer"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1725, 465]
+
+[[group]]
+owner = 1
+unit = "su_valentine_bridgelayer"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1725, 245]
+
+[[group]]
+owner = 1
+unit = "su_valentine_bridgelayer"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1705, 485]
+
+[[group]]
+owner = 1
+unit = "su_bt2"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1705, 225]
+
+[[group]]
+owner = 1
+unit = "su_bt2"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1685, 505]
+
+[[group]]
+owner = 1
+unit = "su_bt2"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1685, 205]
+
+[[group]]
+owner = 1
+unit = "su_bt5"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1605, 445]
+
+[[group]]
+owner = 1
+unit = "su_bt5"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1625, 465]
+
+[[group]]
+owner = 1
+unit = "su_bt5"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1645, 485]
+
+[[group]]
+owner = 1
+unit = "su_bt7"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1645, 225]
+
+[[group]]
+owner = 1
+unit = "su_bt7"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1665, 505]
+
+[[group]]
+owner = 1
+unit = "su_bt7"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1665, 205]
+
+[[group]]
+owner = 1
+unit = "su_is1"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1785, 425]
+
+[[group]]
+owner = 1
+unit = "su_is1"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1785, 285]
+
+[[group]]
+owner = 1
+unit = "su_is1"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1765, 445]
+
+[[group]]
+owner = 1
+unit = "su_is3"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1745, 465]
+
+[[group]]
+owner = 1
+unit = "su_is3"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1745, 245]
+
+[[group]]
+owner = 1
+unit = "su_is3"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1725, 485]
+
+[[group]]
+owner = 1
+unit = "su_isu122"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1725, 225]
+
+[[group]]
+owner = 1
+unit = "su_isu122"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1705, 505]
+
+[[group]]
+owner = 1
+unit = "su_isu122"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1705, 205]
+
+[[group]]
+owner = 1
+unit = "su_isu122s"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1685, 525]
+
+[[group]]
+owner = 1
+unit = "su_isu122s"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1685, 185]
+
+[[group]]
+owner = 1
+unit = "su_isu122s"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1625, 485]
+
+[[group]]
+owner = 1
+unit = "su_kv1_1939"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1645, 505]
+
+[[group]]
+owner = 1
+unit = "su_kv1_1939"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1665, 525]
+
+[[group]]
+owner = 1
+unit = "su_kv1_1939"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1665, 185]
+
+[[group]]
+owner = 1
+unit = "su_kv1_1941"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1785, 445]
+
+[[group]]
+owner = 1
+unit = "su_kv1_1941"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1785, 265]
+
+[[group]]
+owner = 1
+unit = "su_kv1_1941"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1765, 465]
+
+[[group]]
+owner = 1
+unit = "su_kv1e"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1765, 245]
+
+[[group]]
+owner = 1
+unit = "su_kv1e"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1745, 485]
+
+[[group]]
+owner = 1
+unit = "su_kv1e"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1745, 225]
+
+[[group]]
+owner = 1
+unit = "su_kv1s"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1725, 205]
+
+[[group]]
+owner = 1
+unit = "su_kv1s"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1705, 525]
+
+[[group]]
+owner = 1
+unit = "su_kv1s"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1705, 185]
+
+[[group]]
+owner = 1
+unit = "su_kv2"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1685, 545]
+
+[[group]]
+owner = 1
+unit = "su_kv2"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1685, 165]
+
+[[group]]
+owner = 1
+unit = "su_kv2"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1625, 505]
+
+[[group]]
+owner = 1
+unit = "su_kv85"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1645, 525]
+
+[[group]]
+owner = 1
+unit = "su_kv85"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1665, 545]
+
+[[group]]
+owner = 1
+unit = "su_kv85"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1665, 165]
+
+[[group]]
+owner = 1
+unit = "su_ot130"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1785, 465]
+
+[[group]]
+owner = 1
+unit = "su_ot130"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1765, 485]
+
+[[group]]
+owner = 1
+unit = "su_ot130"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1765, 225]
+
+[[group]]
+owner = 1
+unit = "su_su100"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1745, 205]
+
+[[group]]
+owner = 1
+unit = "su_su100"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1725, 185]
+
+[[group]]
+owner = 1
+unit = "su_su100"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1705, 545]
+
+[[group]]
+owner = 1
+unit = "su_su122"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1705, 165]
+
+[[group]]
+owner = 1
+unit = "su_su122"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1685, 565]
+
+[[group]]
+owner = 1
+unit = "su_su122"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1625, 525]
+
+[[group]]
+owner = 1
+unit = "su_su152"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1645, 545]
+
+[[group]]
+owner = 1
+unit = "su_su152"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1665, 565]
+
+[[group]]
+owner = 1
+unit = "su_su152"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1785, 485]
+
+[[group]]
+owner = 1
+unit = "su_su76"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1765, 505]
+
+[[group]]
+owner = 1
+unit = "su_su76"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1765, 205]
+
+[[group]]
+owner = 1
+unit = "su_su76"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1745, 185]
+
+[[group]]
+owner = 1
+unit = "su_t26_1933"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1725, 545]
+
+[[group]]
+owner = 1
+unit = "su_t26_1933"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1725, 165]
+
+[[group]]
+owner = 1
+unit = "su_t26_1933"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1705, 565]
+
+[[group]]
+owner = 1
+unit = "su_t26s_1937"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1625, 545]
+
+[[group]]
+owner = 1
+unit = "su_t26s_1937"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1785, 505]
+
+[[group]]
+owner = 1
+unit = "su_t26s_1937"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1765, 525]
+
+[[group]]
+owner = 1
+unit = "su_t26s_1939"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1765, 185]
+
+[[group]]
+owner = 1
+unit = "su_t26s_1939"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1745, 545]
+
+[[group]]
+owner = 1
+unit = "su_t26s_1939"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1725, 565]
+
+[[group]]
+owner = 1
+unit = "su_t27a"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1785, 525]
+
+[[group]]
+owner = 1
+unit = "su_t27a"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1785, 185]
+
+[[group]]
+owner = 1
+unit = "su_t27a"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1765, 545]
+
+[[group]]
+owner = 1
+unit = "su_t34_76_1940"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1745, 565]
+
+[[group]]
+owner = 1
+unit = "su_t34_76_1940"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1785, 545]
+
+[[group]]
+owner = 1
+unit = "su_t34_76_1940"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1785, 165]
+
+[[group]]
+owner = 1
+unit = "su_t34_76_1941"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1765, 565]
+
+[[group]]
+owner = 1
+unit = "su_t34_76_1941"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1785, 565]
+
+[[group]]
+owner = 1
+unit = "su_t34_76_1941"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1785, 145]
+
+[[group]]
+owner = 1
+unit = "su_t34_76_1942"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1685, 45]
+
+[[group]]
+owner = 1
+unit = "su_t34_76_1942"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1665, 45]
+
+[[group]]
+owner = 1
+unit = "su_t34_76_1942"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1705, 45]
+
+[[group]]
+owner = 1
+unit = "su_t34_85_1943"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1685, 25]
+
+[[group]]
+owner = 1
+unit = "su_t34_85_1943"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1665, 25]
+
+[[group]]
+owner = 1
+unit = "su_t34_85_1943"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1705, 25]
+
+[[group]]
+owner = 1
+unit = "su_t34_85_1944"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1685, 5]
+
+[[group]]
+owner = 1
+unit = "su_t34_85_1944"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1645, 25]
+
+[[group]]
+owner = 1
+unit = "su_t34_85_1944"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1665, 5]
+
+[[group]]
+owner = 1
+unit = "su_t35_1935"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1705, 5]
+
+[[group]]
+owner = 1
+unit = "su_t35_1935"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1685, -15]
+
+[[group]]
+owner = 1
+unit = "su_t35_1935"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1645, 5]
+
+[[group]]
+owner = 1
+unit = "su_t37a"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1665, -15]
+
+[[group]]
+owner = 1
+unit = "su_t37a"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1705, -15]
+
+[[group]]
+owner = 1
+unit = "su_t37a"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1685, -35]
+
+[[group]]
+owner = 1
+unit = "su_t38"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1645, -15]
+
+[[group]]
+owner = 1
+unit = "su_t38"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1665, -35]
+
+[[group]]
+owner = 1
+unit = "su_t38"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1705, -35]
+
+[[group]]
+owner = 1
+unit = "su_t40"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1685, -55]
+
+[[group]]
+owner = 1
+unit = "su_t40"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1665, -55]
+
+[[group]]
+owner = 1
+unit = "su_t40"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1705, -55]
+
+[[group]]
+owner = 1
+unit = "su_t44"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1685, -75]
+
+[[group]]
+owner = 1
+unit = "su_t44"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1465, 125]
+
+[[group]]
+owner = 1
+unit = "su_t44"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1665, -75]
+
+[[group]]
+owner = 1
+unit = "su_t50"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1705, -75]
+
+[[group]]
+owner = 1
+unit = "su_t50"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1685, -95]
+
+[[group]]
+owner = 1
+unit = "su_t50"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1445, 125]
+
+[[group]]
+owner = 1
+unit = "su_t60_1941"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1465, 105]
+
+[[group]]
+owner = 1
+unit = "su_t60_1941"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1645, -75]
+
+[[group]]
+owner = 1
+unit = "su_t60_1941"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1705, -95]
+
+[[group]]
+owner = 1
+unit = "su_t60_1942"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1685, -115]
+
+[[group]]
+owner = 1
+unit = "su_t60_1942"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1385, 165]
+
+[[group]]
+owner = 1
+unit = "su_t60_1942"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1425, 125]
+
+[[group]]
+owner = 1
+unit = "su_t70_1942"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1445, 105]
+
+[[group]]
+owner = 1
+unit = "su_t70_1942"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1705, -115]
+
+[[group]]
+owner = 1
+unit = "su_t70_1942"
+count = 1
+columns = 1
+spacing_m = 10
+center_m = [1685, -135]
